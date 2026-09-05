@@ -1,0 +1,139 @@
+<title>&lt;Chantier&gt; — &lt;Projet&gt;</title>
+<!--
+  GABARIT — artefact d'un chantier. Publié par /chantier à l'ouverture,
+  mis à jour par /tache à chaque fiche. Remplace les <…> et ne renomme pas
+  les marqueurs `ZONE:…` : les commandes les cherchent tels quels.
+  Garde la page sous ~250 lignes : /tache doit la relire à chaque fiche.
+-->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700&family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:wght@400;600&display=swap">
+<style>
+  :root {
+    --ground: #f4f5f7; --surface: #ffffff; --line: #d9dce3; --line-fort: #b9bec9;
+    --texte: #1a222e; --doux: #5c6675; --accent: #2f5d8c;
+    --fait: #2f7a55; --cours: #a86a12; --bloque: #a63d40; --attente: #8d95a3;
+    --ombre: 0 1px 2px rgba(26,34,46,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #11161d; --surface: #19202a; --line: #2b3542; --line-fort: #3d4a5a;
+      --texte: #e5e9ef; --doux: #98a2b1; --accent: #7fb0e0;
+      --fait: #5fbb8b; --cours: #d9a441; --bloque: #e0777a; --attente: #6d7787;
+      --ombre: none;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #11161d; --surface: #19202a; --line: #2b3542; --line-fort: #3d4a5a;
+    --texte: #e5e9ef; --doux: #98a2b1; --accent: #7fb0e0;
+    --fait: #5fbb8b; --cours: #d9a441; --bloque: #e0777a; --attente: #6d7787;
+    --ombre: none;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body { background: var(--ground); color: var(--texte); font-family: "Source Sans 3", system-ui, sans-serif; font-size: 16px; line-height: 1.55; }
+  .page { max-width: 46rem; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; display: flex; flex-direction: column; gap: 2rem; }
+  h1, h2 { font-family: Archivo, system-ui, sans-serif; text-wrap: balance; margin: 0; }
+  h1 { font-size: 1.9rem; font-weight: 700; letter-spacing: -.015em; }
+  h2 { font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .09em; color: var(--doux); }
+  .eyebrow { font-family: "IBM Plex Mono", monospace; font-size: .75rem; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); }
+  .mono { font-family: "IBM Plex Mono", monospace; font-variant-numeric: tabular-nums; }
+  header { display: flex; flex-direction: column; gap: .35rem; border-bottom: 2px solid var(--line-fort); padding-bottom: 1.25rem; }
+  header p { margin: .4rem 0 0; color: var(--doux); max-width: 62ch; }
+  .avancement { display: flex; gap: .25rem; margin-top: .9rem; }
+  .avancement span { height: .4rem; flex: 1; border-radius: 1px; background: var(--line); }
+  .avancement span[data-etat="faite"] { background: var(--fait); }
+  .avancement span[data-etat="encours"] { background: var(--cours); }
+  .avancement span[data-etat="bloquee"] { background: var(--bloque); }
+  section { display: flex; flex-direction: column; gap: .85rem; }
+  .fiches { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .5rem; }
+  .fiche { display: grid; grid-template-columns: 3.5rem 1fr; gap: .1rem .9rem; background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--attente); border-radius: 3px; padding: .7rem .9rem; box-shadow: var(--ombre); }
+  .fiche[data-etat="faite"] { border-left-color: var(--fait); }
+  .fiche[data-etat="encours"] { border-left-color: var(--cours); }
+  .fiche[data-etat="bloquee"] { border-left-color: var(--bloque); }
+  .fiche .id { font-family: "IBM Plex Mono", monospace; font-weight: 500; color: var(--doux); }
+  .fiche[data-etat="encours"] .id, .fiche[data-etat="bloquee"] .id { color: var(--texte); }
+  .fiche .titre { font-weight: 600; }
+  .fiche[data-etat="faite"] .titre { color: var(--doux); font-weight: 400; }
+  .fiche .note { grid-column: 2; font-size: .9rem; color: var(--doux); }
+  .fiche .etat { grid-column: 1; font-size: .68rem; letter-spacing: .07em; text-transform: uppercase; font-family: "IBM Plex Mono", monospace; color: var(--attente); }
+  .fiche[data-etat="faite"] .etat { color: var(--fait); }
+  .fiche[data-etat="encours"] .etat { color: var(--cours); }
+  .fiche[data-etat="bloquee"] .etat { color: var(--bloque); }
+  .blocage { background: var(--surface); border: 1px solid var(--bloque); border-radius: 3px; padding: .8rem .9rem; }
+  .blocage pre { margin: .5rem 0 0; overflow-x: auto; font-family: "IBM Plex Mono", monospace; font-size: .82rem; color: var(--texte); }
+  .journal { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .6rem; }
+  .journal li { display: grid; grid-template-columns: 6rem 1fr; gap: .9rem; border-top: 1px solid var(--line); padding-top: .6rem; }
+  .journal time { font-family: "IBM Plex Mono", monospace; font-size: .85rem; color: var(--doux); }
+  .bilan { background: var(--surface); border: 1px solid var(--line); border-top: 3px solid var(--fait); border-radius: 3px; padding: 1rem 1.1rem; }
+  .bilan p { margin: 0 0 .6rem; }
+  .bilan p:last-child { margin-bottom: 0; }
+  footer { border-top: 1px solid var(--line); padding-top: .9rem; font-size: .82rem; color: var(--doux); display: flex; flex-wrap: wrap; gap: .25rem 1.25rem; }
+</style>
+
+<div class="page">
+  <header>
+    <div class="eyebrow">&lt;Projet&gt; · fiches &lt;R1&gt;–&lt;R5&gt;</div>
+    <h1>&lt;Nom du chantier&gt;</h1>
+    <p>&lt;Le résultat visible : à quoi on saura que le chantier est fini. Une ou
+      deux phrases, reprises du cadrage — pas un résumé du découpage.&gt;</p>
+    <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
+    <div class="avancement">
+      <span data-etat="faite"></span><span data-etat="encours"></span><span></span>
+    </div>
+    <p class="mono" style="margin-top:.5rem">&lt;n&gt; fiches · &lt;n&gt; faites · en cours : &lt;R2&gt;</p>
+  </header>
+
+  <section>
+    <h2>Les fiches, dans l'ordre des dépendances</h2>
+    <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
+    <ul class="fiches">
+      <li class="fiche" data-etat="faite">
+        <span class="id">&lt;R1&gt;</span><span class="titre">&lt;Titre de la fiche&gt;</span>
+        <span class="etat">faite</span>
+        <span class="note">&lt;Le critère de fin, constaté. Une ligne.&gt;</span>
+      </li>
+      <li class="fiche" data-etat="encours">
+        <span class="id">&lt;R2&gt;</span><span class="titre">&lt;Titre de la fiche&gt;</span>
+        <span class="etat">en cours</span>
+        <span class="note">&lt;Ce qu'elle produit, en une ligne.&gt;</span>
+      </li>
+      <li class="fiche">
+        <span class="id">&lt;R3&gt;</span><span class="titre">&lt;Titre de la fiche&gt;</span>
+        <span class="etat">à faire</span>
+        <span class="note">&lt;Ce qu'elle produit · dépend de &lt;R2&gt;&gt;</span>
+      </li>
+    </ul>
+  </section>
+
+  <!-- ZONE:blocage — publiée quand /tache s'arrête après deux tentatives ; retirée dès que la fiche repasse -->
+  <section hidden>
+    <h2>Arrêt sur blocage</h2>
+    <div class="blocage">
+      <p>&lt;Fiche&gt; — &lt;ce qui a été tenté, en deux lignes.&gt;</p>
+      <pre>&lt;L'erreur brute, telle qu'elle est sortie.&gt;</pre>
+    </div>
+  </section>
+
+  <section>
+    <h2>Journal des décisions</h2>
+    <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
+    <ul class="journal">
+      <li><time datetime="&lt;AAAA-MM-JJ&gt;">&lt;AAAA-MM-JJ&gt;</time><span>&lt;Ce qui a
+        été tranché, et pourquoi.&gt;</span></li>
+    </ul>
+  </section>
+
+  <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
+  <section hidden>
+    <h2>Chantier clos le &lt;AAAA-MM-JJ&gt;</h2>
+    <div class="bilan">
+      <p>&lt;Ce que le chantier a livré, en deux ou trois lignes.&gt;</p>
+      <p>&lt;Ce qui a surpris : une API qui ne se comporte pas comme annoncé, une
+        frontière déplacée.&gt;</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Fichier de fiches : <span class="mono">&lt;contexte&gt;/&lt;NN&gt;-&lt;chantier&gt;.md</span></span>
+    <span>Mis à jour le <span class="mono">&lt;AAAA-MM-JJ&gt;</span></span>
+  </footer>
+</div>
