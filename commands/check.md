@@ -22,9 +22,9 @@ Retiens : le **kit**, le **dossier de contexte**, le **fichier de fiches
 courant**, l'**artefact du chantier**, l'**artefact feuille de route**.
 
 Si `CHANTIER.md` n'existe pas, le projet n'est pas équipé : dis-le, propose
-`/vlp-init`, et arrête-toi. Rien d'autre n'a de sens sans lui.
+`/vlp:init`, et arrête-toi. Rien d'autre n'a de sens sans lui.
 
-## 2. Les six vérifications
+## 2. Les sept vérifications
 
 Lance-les d'un bloc, puis commente la sortie ligne à ligne.
 
@@ -34,7 +34,7 @@ Lance-les d'un bloc, puis commente la sortie ligne à ligne.
 ls -la "<fichier de fiches courant>" 2>&1; ls "<contexte>"/*.md
 ```
 
-Une ligne « courant » qui nomme un fichier absent envoie chaque `/tache` dans
+Une ligne « courant » qui nomme un fichier absent envoie chaque `/vlp:tache` dans
 le vide. Une ligne « aucun » alors qu'un fichier de chantier récent n'est pas
 clos est l'erreur inverse : un chantier orphelin, que plus rien ne rouvrira.
 
@@ -66,7 +66,7 @@ grep -n 'Lettres prises' CHANTIER.md; ls "<contexte>"/*.md | sed 's/.*\///'
 ```
 
 Chaque fichier de chantier consomme une lettre. Une lettre réutilisée fait que
-`/tache D2` trouve deux fiches et en joue une au hasard.
+`/vlp:tache D2` trouve deux fiches et en joue une au hasard.
 
 **E — Le coût par session.**
 
@@ -89,9 +89,30 @@ Pour vérifier qu'une URL est vivante, `Artifact action:"read"` — **une seule*
 celle du chantier. Ne relis pas la feuille de route en même temps : le but est
 de mesurer un coût, pas de le doubler.
 
+**G — Le plugin est bien chargé, et c'est le bon kit.**
+
+```bash
+ls -Ld "${CLAUDE_PLUGIN_ROOT}" 2>&1; ls "${CLAUDE_PLUGIN_ROOT}/methode-chantier.md" "${CLAUDE_PLUGIN_ROOT}/cloture.md" 2>&1; ls ~/.claude/commands/*.md 2>/dev/null
+```
+
+Trois choses à lire dans cette sortie :
+
+1. **Le chemin rendu par le premier `ls`** doit être le kit réel — celui que la
+   ligne « kit » de `CHANTIER.md` nomme. S'ils diffèrent, deux kits coexistent :
+   dis lesquels, et lequel des deux les commandes utilisent vraiment (c'est
+   celui du plugin).
+2. **Si `${CLAUDE_PLUGIN_ROOT}` sort tel quel**, sans être remplacé, cette
+   commande ne tourne pas dans le plugin mais en copie simple. Dis-le : c'est
+   exactement la configuration que le plugin remplace.
+3. **Si `~/.claude/commands/` contient encore `chantier.md` ou `tache.md`**,
+   d'anciennes copies traînent. Elles offrent un `/chantier` et un `/tache` sans
+   préfixe, qui ne sont plus mis à jour et qui divergeront. Propose de les
+   déplacer — pas de les supprimer.
+
 ## 3. Rendre le verdict
 
-Une liste, une ligne par vérification : `A ✓` ou `A ✗ — <ce qui cloche>`.
+Une liste, une ligne par vérification, de `A` à `G` : `A ✓` ou
+`A ✗ — <ce qui cloche>`.
 Affiche **les comptes bruts à côté du verdict** : un contrôle qui dit « ✗ »
 sans dire 4 contre 6 ne se diagnostique pas.
 

@@ -1,0 +1,8 @@
+{
+  "name": "vlp",
+  "displayName": "vlp — chantiers et fiches",
+  "version": "3.0.0",
+  "description": "La méthode des chantiers et des fiches : un chantier se découpe une fois en fiches, chaque fiche se joue dans une session neuve.",
+  "author": { "name": "znorr" },
+  "keywords": ["chantier", "fiches", "contexte", "methode"]
+}

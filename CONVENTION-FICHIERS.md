@@ -8,11 +8,11 @@ Voici la convention complète, indépendante du langage et du projet.
 | Fichier | À la racine ? | Qui le lit | Longueur visée |
 |---|---|---|---|
 | `CLAUDE.md` | oui | **toute** session, en entier, en premier | 60 lignes |
-| `CHANTIER.md` | oui | `/chantier` et `/tache`, en entier | 30 lignes |
+| `CHANTIER.md` | oui | `/vlp:chantier` et `/vlp:tache`, en entier | 30 lignes |
 | `<contexte>/00-INDEX.md` | non | seulement quand le routage de `CLAUDE.md` ne répond pas | 40 lignes |
 | le **fichier d'état** | non | reprise à froid, choix du prochain chantier | libre |
-| les **fichiers de fiches**, un par chantier | non | `/tache`, **par plages**, jamais en entier | libre |
-| `<contexte>/artefacts/*.html` | non | publié pour l'utilisateur ; relu par `/tache` à chaque fiche | 250 lignes |
+| les **fichiers de fiches**, un par chantier | non | `/vlp:tache`, **par plages**, jamais en entier | libre |
+| `<contexte>/artefacts/*.html` | non | publié pour l'utilisateur ; relu par `/vlp:tache` à chaque fiche | 250 lignes |
 
 Le dossier de contexte s'appelle `context AI/` par défaut. Son nom importe peu ;
 ce qui compte est qu'il soit **un seul dossier**, à plat, numéroté.
@@ -29,11 +29,11 @@ sur deux ; elle lit la ligne, et la ligne dit le nom.
 
 | Fichier du kit | Qui le lit | Pourquoi il ne se copie pas |
 |---|---|---|
-| `commands/*.md` | Claude Code, via `~/.claude/commands/` | une commande par machine, poussée par `/vlp-sync` |
-| `methode-chantier.md` | `/chantier` | c'est une règle de travail, pas une donnée de projet |
-| `cloture.md` | `/tache` et `/chantier`, au moment de clore | la clôture n'est décrite qu'**une** fois |
-| `templates/context AI/fichier-de-fiches.md` | `/chantier`, comme squelette | il est instancié, pas recopié |
-| `templates/artefact-chantier.html` | `/chantier`, une fois par chantier | idem |
+| `commands/*.md` | Claude Code, via le plugin `vlp` | le plugin **est** le kit ; il n'en existe aucune copie à tenir à jour |
+| `methode-chantier.md` | `/vlp:chantier` | c'est une règle de travail, pas une donnée de projet |
+| `cloture.md` | `/vlp:tache` et `/vlp:chantier`, au moment de clore | la clôture n'est décrite qu'**une** fois |
+| `templates/context AI/fichier-de-fiches.md` | `/vlp:chantier`, comme squelette | il est instancié, pas recopié |
+| `templates/artefact-chantier.html` | `/vlp:chantier`, une fois par chantier | idem |
 
 **Le moteur est dans le kit, les données sont dans le projet.** Une doctrine
 recopiée dans cinq projets existe en cinq exemplaires, et une correction n'en
@@ -76,7 +76,7 @@ fichier devenu trop gros sans toucher aux numéros voisins.
 Les fichiers de chantier prennent un numéro comme les autres. Leur **préfixe de
 fiche** — la lettre `R`, `N`, `U`… — est indépendant du numéro et ne se réemploie
 jamais, même après clôture : `CHANTIER.md` garde la liste des lettres prises.
-`/chantier` en **propose** une à l'étape 4, avec les lettres déjà prises ; c'est
+`/vlp:chantier` en **propose** une à l'étape 4, avec les lettres déjà prises ; c'est
 l'utilisateur qui tranche, et une lettre dictée l'emporte. Le seul refus possible
 est « déjà prise », et il doit dire par quel chantier.
 
@@ -91,12 +91,12 @@ est « déjà prise », et il doit dire par quel chantier.
 
 ## Le cycle de vie d'un chantier, vu depuis les fichiers
 
-1. `/chantier` lit `<kit>/methode-chantier.md` puis le fichier d'état.
+1. `/vlp:chantier` lit `<kit>/methode-chantier.md` puis le fichier d'état.
 2. Il écrit `<contexte>/<NN>-<chantier>.md`, publie
    `<contexte>/artefacts/<NN>-<chantier>.html`, et **quatre lignes** ailleurs :
    l'index, le routage de `CLAUDE.md`, « fichier de fiches courant » et
    « artefact du chantier » dans `CHANTIER.md`.
-3. `/tache` ne touche qu'au fichier de fiches (une case cochée), à l'artefact
+3. `/vlp:tache` ne touche qu'au fichier de fiches (une case cochée), à l'artefact
    du chantier (la même case, et la fiche suivante marquée en cours) et, si une
    décision imprévue est tombée, au fichier d'état (une ligne).
 4. À la dernière case cochée, la clôture se joue : « clos » en tête du fichier
@@ -105,7 +105,7 @@ est « déjà prise », et il doit dire par quel chantier.
    pages republiées. Les cinq écritures et leur ordre sont dans
    `<kit>/cloture.md` — décrites à un seul endroit, pour que les deux commandes
    qui closent ne puissent pas le faire différemment.
-5. `/vlp-check` relit tout ça sans rien écrire, quand on doute que le fichier et
+5. `/vlp:check` relit tout ça sans rien écrire, quand on doute que le fichier et
    la page disent encore la même chose.
 
 ## Ce qui ne part pas dans git

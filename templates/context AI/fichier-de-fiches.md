@@ -1,5 +1,5 @@
 > **QUAND LIRE** : on joue une fiche `<X>*` de ce chantier, ou on se demande où
-> il en est. `/tache <X><n>` n'en lit que le socle commun et sa fiche — jamais
+> il en est. `/vlp:tache <X><n>` n'en lit que le socle commun et sa fiche — jamais
 > ce fichier en entier.
 
 # Chantier <X> — <titre du chantier>
@@ -14,7 +14,7 @@ Pas d'historique, pas de justification longue.>
 <Ce que **toutes** les fiches utilisent, et qu'aucune ne répète : les API
 vérifiées avec leur fichier et leur ligne, les invariants, les noms retenus,
 les conventions de clé, ce qui existe déjà et se réutilise sans le recréer.
-C'est la seule plage que `/tache` relit à chaque fiche : rien d'inutile ici,
+C'est la seule plage que `/vlp:tache` relit à chaque fiche : rien d'inutile ici,
 mais rien d'utile ailleurs non plus.>
 
 <Une table « symbole → fichier:ligne → ce qu'il rend » vaut mieux qu'un
@@ -38,7 +38,7 @@ paragraphe : une fiche y renvoie en un mot.>
 ## <X>1 [ ] — <titre court à l'infinitif>
 
 <Un bloc `**Tentatives** (<date>)` peut apparaître ici, sous le titre : c'est
-`/tache` qui l'écrit quand elle abandonne après deux essais, et qui le relit à
+`/vlp:tache` qui l'écrit quand elle abandonne après deux essais, et qui le relit à
 la reprise pour ne pas les rejouer. Il ne se met pas à la main.>
 
 **Dépend de** : rien.
@@ -74,7 +74,7 @@ l'utilisateur doit constater à l'écran quand lui seul peut le faire.>
 ---
 
 **Les marqueurs `<!-- FICHE:… -->` / `<!-- /FICHE -->` ne sont pas décoratifs.**
-`/tache` extrait une fiche entre eux, d'un seul `sed`. Sans eux, elle retombe
+`/vlp:tache` extrait une fiche entre eux, d'un seul `sed`. Sans eux, elle retombe
 sur un motif de titres, qui rate en silence dès qu'un titre est reformulé — et
 une extraction vide ressemble à une fiche vide. Le nom du marqueur ouvrant est
 exactement celui de la fiche : `<!-- FICHE:D3 -->` pour `## D3 [ ] — …`.

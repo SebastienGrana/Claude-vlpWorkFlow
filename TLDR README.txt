@@ -1,18 +1,27 @@
 Keep ONE copy of "Claude-vlpWorkflow" next to your projects. Do NOT copy it
-inside a project: a copy put there never gets updated. There were six copies
-once, 500 lines apart from each other, and nothing warned about it.
+inside a project, and do NOT copy its commands anywhere: the kit is a Claude
+Code PLUGIN, it is loaded where it sits. There were six copies once, 500 lines
+apart from each other, and nothing warned about it. Now there are none.
 
   ProgPerso/
     Claude-vlpWorkflow/   <- the kit, once
     MyProject/            <- your projects, next to it
     AnotherProject/
 
-Install the commands once per machine:
+Install it once per machine, by LINKING it into ~/.claude/skills/ (a folder
+there with a .claude-plugin/plugin.json loads by itself, in every project, no
+marketplace needed -- and the folder may be a link, so nothing is copied).
 
-    cp Claude-vlpWorkflow/commands/*.md ~/.claude/commands/
+Windows (PowerShell, no admin rights needed):
+
+    New-Item -ItemType Junction -Path "$env:USERPROFILE\.claude\skills\vlp" -Target "<path>\Claude-vlpWorkflow"
+
+macOS / Linux:
+
+    ln -s "<path>/Claude-vlpWorkflow" ~/.claude/skills/vlp
 
 Then, in Claude-Code, move into the project folder (with the cd command in
-claude's terminal) and type  /vlp-init  in the chat, and follow the
+claude's terminal) and type  /vlp:init  in the chat, and follow the
 instructions.
 
 
@@ -21,19 +30,22 @@ This folder should not be pushed on Git.
 
 
 
-vlpWorkflow have 5 commands:
+vlpWorkflow has 4 commands. They are all prefixed with the plugin name:
 
-/vlp-init    ->   activate a new project
+/vlp:init        ->   activate a new project
 
-/chantier    ->   start a new work (a work = list of tasks)
+/vlp:chantier    ->   start a new work (a work = list of tasks)
 
-/tache       ->   start the next task in the list
+/vlp:tache       ->   start the next task in the list
 
-/vlp-sync    ->   push the kit's commands to ~/.claude/commands (after you
-                  changed the kit -- always edit the kit, never the copy)
+/vlp:check       ->   check a project: files, ticked boxes, published page,
+                      costs. It only measures and reports, it never writes.
 
-/vlp-check   ->   check a project: files, ticked boxes, published page, costs.
-                  It only measures and reports, it never writes.
+
+There used to be a fifth one, /vlp-sync, which pushed the kit's commands to
+~/.claude/commands. It is gone, kept in archive/ for reference: there is no
+copy to push any more. You edit the kit, and the next session reads what you
+just wrote. Use /reload-plugins to see it in the current session.
 
 
 The kit holds the ENGINE: the commands, the method, the templates. A project

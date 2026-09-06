@@ -1,3 +1,14 @@
+> **Commande retirée le 6 septembre 2026 — gardée pour mémoire, plus chargée.**
+>
+> Elle poussait les commandes du kit vers `~/.claude/commands/`. Depuis que le
+> kit est un plugin Claude Code, chargé là où il est, **il n'existe plus de
+> copie à pousser** : on édite le kit, et la session suivante lit ce qu'on
+> vient d'écrire. `/reload-plugins` le fait voir à la session en cours.
+>
+> Elle est conservée ici parce qu'elle décrit un raisonnement qui reste juste —
+> montrer l'écart avant de le combler — et parce qu'un kit installé autrement
+> qu'en plugin en aurait de nouveau besoin.
+
 ---
 description: Recopie les commandes du kit vers ~/.claude/commands — le kit source fait foi
 argument-hint: (rien) | <chemin du kit>

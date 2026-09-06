@@ -1,19 +1,20 @@
 # Chantier courant — <nom du projet>
 
-> Fichier lu **en entier** par `/chantier` et `/tache`, depuis la racine du
+> Fichier lu **en entier** par `/vlp:chantier` et `/vlp:tache`, depuis la racine du
 > projet. C'est la seule table à tenir : rien à mettre à jour ailleurs quand un
 > chantier s'ouvre ou se clôt. Garde-le court — vingt à trente lignes.
 > Les libellés en gras se recopient **à l'identique** : ils sont lus tels quels.
 
 - **alias** : <md>
-- **kit** : <~/Claude-vlpWorkflow — le dossier du kit, gabarits compris>
+- **kit** : <le dossier réel du kit — pour un humain ; les commandes ne
+  s'en servent plus, elles voyagent avec lui>
 - **contexte** : <context AI/>
-- **méthode** : <kit>/methode-chantier.md
+- **méthode** : ${CLAUDE_PLUGIN_ROOT}/methode-chantier.md
 - **chantiers possibles** : <context AI/08-etat.md>
 - **fichier d'état** : <context AI/08-etat.md>
 - **index** : <context AI/00-INDEX.md>
 - **fichier de fiches courant** : aucun
-- **artefact feuille de route** : <https://… — posé par /vlp-init>
+- **artefact feuille de route** : <https://… — posé par /vlp:init>
 - **artefact du chantier** : aucun
 - **livraison** : <./deploy.sh — ou : aucune>
 - **vérification** : <la commande que la session lance et lit elle-même — ou :
@@ -38,5 +39,5 @@ Ils ne servent plus qu'à relire un socle d'API, si une fiche y renvoie.
 | <context AI/15-annulation.md> | <U1..U6> | <2026-09-04> | <https://…> |
 
 Lettres de fiche déjà prises : <U>. Un nouveau chantier en choisit une autre —
-elles ne se réemploient jamais, même après clôture. `/chantier` la propose,
+elles ne se réemploient jamais, même après clôture. `/vlp:chantier` la propose,
 l'utilisateur tranche ; c'est cette ligne qui rend le refus possible.

@@ -1,30 +1,19 @@
 # Installer le kit
 
-## La règle avant tout le reste : un seul kit
+## La règle avant tout le reste : le kit ne se copie pas
 
-Le kit **ne se copie pas dans les projets**. Il vit à **un** endroit — à côté
-de tes projets, ou dans `~` — et tous les projets équipés le lisent là.
+Le kit est un **plugin Claude Code**. Il vit à **un** endroit — à côté de tes
+projets, ou dans `~` — et il est *chargé* depuis là. Il n'en existe aucune
+copie : ni dans les projets, ni dans `~/.claude/commands/`.
 
 Ce n'est pas une préférence de rangement. Le kit a existé en six exemplaires,
-et ils avaient divergé de cinq cents lignes sans qu'aucun ne le signale : une
-copie posée dans un projet est une copie que personne ne met plus à jour. C'est
-pour ça que les commandes ne cherchent jamais `./Claude-vlpWorkflow`.
+qui avaient divergé de cinq cents lignes sans qu'aucun ne le signale : une
+copie posée quelque part est une copie que personne ne met plus à jour. Le
+plugin ne résout pas ce problème en le surveillant — il lui retire son terrain.
 
-## Le chemin court — une copie, une commande
+## Le chemin court — un lien, et c'est tout
 
-**1. Poser les cinq commandes**, une fois par machine :
-
-```bash
-cp "<chemin>/Claude-vlpWorkflow/commands/"*.md ~/.claude/commands/
-```
-
-Elles deviennent `/vlp-init`, `/chantier`, `/tache`, `/vlp-sync` et
-`/vlp-check`, disponibles partout. **C'est la seule copie de l'installation** —
-et la seule fois où tu la fais à la main : ensuite, `/vlp-sync` la refait pour
-toi quand le kit change.
-
-**2. Choisir où vit le kit.** N'importe où, tant qu'il n'y en a qu'un.
-`/vlp-init` le cherche dans le dossier parent du projet, puis dans `~` :
+**1. Choisir où vit le kit.** N'importe où, tant qu'il n'y en a qu'un :
 
 ```
 ProgPerso/
@@ -33,21 +22,44 @@ ProgPerso/
   UnAutreProjet/
 ```
 
-Ne le déplace pas après coup sans mettre à jour la ligne « **kit** » des
-`CHANTIER.md` déjà posés — `/vlp-check` te dira lesquels mentent.
+**2. Le déclarer à Claude Code**, une fois par machine. Un dossier posé dans
+`~/.claude/skills/` et portant un `.claude-plugin/plugin.json` se charge tout
+seul, dans tous les projets, sans marketplace ni installation. Et ce dossier
+peut être un **lien** vers le kit réel — donc rien n'est copié.
+
+Sur Windows (PowerShell, sans droits administrateur) :
+
+```powershell
+New-Item -ItemType Junction -Path "$env:USERPROFILE\.claude\skills\vlp" -Target "<chemin>\Claude-vlpWorkflow"
+```
+
+Sur macOS ou Linux :
+
+```bash
+ln -s "<chemin>/Claude-vlpWorkflow" ~/.claude/skills/vlp
+```
+
+Les commandes deviennent `/vlp:init`, `/vlp:chantier`, `/vlp:tache` et
+`/vlp:check`, disponibles partout. Le préfixe `vlp:` n'est pas décoratif :
+c'est le nom du plugin, et il évite qu'un `/tache` d'ailleurs prenne la place
+du tien.
+
+**Si tu déplaces le kit**, refais le lien — et mets à jour la ligne
+« **kit** » des `CHANTIER.md` déjà posés, qui la mentionne pour les humains.
+`/vlp:check` te dira lesquels mentent.
 
 **3. Équiper le projet.** Ouvrir une session **dans le dossier du projet**, et
 lancer :
 
 ```
-/vlp-init
+/vlp:init
 ```
 
 Sept questions, et c'est fini : `CHANTIER.md`, `CLAUDE.md` et le dossier de
 contexte sont posés, et la **feuille de route** du projet est publiée comme
-artefact. Puis `/clear`, et `/chantier` pour ouvrir le premier chantier.
+artefact. Puis `/clear`, et `/vlp:chantier` pour ouvrir le premier chantier.
 
-## Ce que `/vlp-init` demande
+## Ce que `/vlp:init` demande
 
 Prépare ces sept réponses, elles vont vite :
 
@@ -67,7 +79,7 @@ Même résultat, sans commande :
 
 | Copier | Vers | Puis |
 |---|---|---|
-| `commands/*.md` | `~/.claude/commands/` | rien |
+| *(rien — le lien de l'étape 2 suffit)* | — | les commandes se chargent depuis le kit |
 | `templates/CHANTIER.md` | racine du projet | remplir les `<…>`, dont la ligne « kit » |
 | `templates/CLAUDE.md` | racine du projet | remplir, ou fusionner avec l'existant |
 | `templates/context AI/00-INDEX.md` | `context AI/00-INDEX.md` | remplir |
@@ -81,7 +93,7 @@ existeraient en autant d'exemplaires qu'il y a de projets, et une correction de
 méthode n'en atteindrait aucun.
 
 `templates/context AI/fichier-de-fiches.md` et `templates/artefact-chantier.html`
-ne se copient pas non plus à l'installation : c'est `/chantier` qui s'en sert,
+ne se copient pas non plus à l'installation : c'est `/vlp:chantier` qui s'en sert,
 une fois par chantier.
 
 Un projet équipé **avant** cette règle garde sa copie de la méthode — sa ligne
@@ -97,7 +109,7 @@ convention — nommage, URL, budget — est dans `ARTEFACTS.md`.
 Depuis le dossier du projet :
 
 ```
-/chantier
+/vlp:chantier
 ```
 
 Il doit annoncer le projet **sans rien demander** et proposer des chantiers
@@ -109,7 +121,7 @@ fichier, un chantier semble orphelin, une session s'est interrompue au mauvais
 moment :
 
 ```
-/vlp-check
+/vlp:check
 ```
 
 Elle mesure et compare sans rien écrire : fichier de fiches présent, fiches
@@ -119,20 +131,23 @@ qui décides lesquelles partent.
 
 ## Quand le kit change
 
-Tu améliores une commande **dans le kit**, jamais dans `~/.claude/commands/` :
-une retouche faite là sera écrasée sans prévenir. Puis :
+Tu édites le fichier dans le kit. C'est fini — il n'y a **rien à
+synchroniser** : le plugin lit le kit là où il est, il n'en a pas de copie.
+
+Pour que la session en cours voie la modification :
 
 ```
-/vlp-sync
+/reload-plugins
 ```
 
-Elle montre l'écart avant de le combler, et te laisse lire une différence
-inattendue plutôt que de l'écraser en silence. Les commandes rechargées
-prennent effet à la session suivante.
+Sinon, la session suivante la verra d'elle-même.
+
+C'est le vrai gain de la version plugin : la question « ma copie installée
+est-elle à jour ? » n'a plus de sens, parce qu'il n'y a plus de copie.
 
 ## Dans un workspace, plusieurs projets équipés
 
 Rien à faire de plus : chaque projet porte son `CHANTIER.md`, et les commandes
 les trouvent par `ls */CHANTIER.md`. Depuis le workspace, elles demandent
-lequel — ou acceptent l'alias en premier argument : `/tache cairn N2`. Depuis
+lequel — ou acceptent l'alias en premier argument : `/vlp:tache cairn N2`. Depuis
 le dossier d'un projet, l'alias est inutile.

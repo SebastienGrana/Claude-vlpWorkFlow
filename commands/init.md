@@ -5,10 +5,10 @@ allowed-tools: Bash(pwd:*), Bash(cd:*), Bash(ls:*), Bash(cat:*), Bash(grep:*), B
 ---
 
 Équipe **un** projet de la méthode « chantiers et fiches » : après ça,
-`/chantier` et `/tache` marchent dedans sans qu'on ait à leur dire où on est.
+`/vlp:chantier` et `/vlp:tache` marchent dedans sans qu'on ait à leur dire où on est.
 
 Cette session ne code pas et ne cadre aucun chantier : elle pose des fichiers.
-Ne lance rien d'autre ensuite ; c'est `/chantier` qui prend la suite, dans une
+Ne lance rien d'autre ensuite ; c'est `/vlp:chantier` qui prend la suite, dans une
 session neuve.
 
 ## 0. Le projet à équiper
@@ -25,22 +25,28 @@ pwd; ls -d */ 2>/dev/null | head -20; ls CHANTIER.md CLAUDE.md 2>/dev/null
 - Si `CHANTIER.md` existe déjà, arrête-toi : le projet est déjà équipé. Dis ce
   qu'il contient plutôt que de l'écraser.
 
-## 1. Retrouver le kit
+## 1. Le kit — il voyage avec la commande
 
-Les gabarits à recopier sont dans le dossier `Claude-vlpWorkflow`.
+Les gabarits à recopier sont dans **le même plugin que cette commande**, à
+`${CLAUDE_PLUGIN_ROOT}`. Vérifie qu'ils répondent, et retiens le chemin réel du
+kit — il ira dans la ligne « kit » de `CHANTIER.md` :
 
 ```bash
-ls -d ../Claude-vlpWorkflow ~/Claude-vlpWorkflow 2>/dev/null
+ls -d "${CLAUDE_PLUGIN_ROOT}/templates" 2>/dev/null && ls -Ld "${CLAUDE_PLUGIN_ROOT}" || ls -d ../Claude-vlpWorkflow ~/Claude-vlpWorkflow 2>/dev/null
 ```
 
-`./Claude-vlpWorkflow` — une copie **dans** le projet — n'est volontairement
-pas cherché : une copie posée là ne se met jamais à jour, et c'est comme ça que
-le kit a divergé sur quatre projets sans que rien ne le signale. Il n'en existe
-qu'un, à côté des projets ou dans `~`.
+**La seconde moitié de la ligne est un repli, pas une recherche.** Il ne sert
+qu'au cas où cette commande tourne hors du plugin, en copie simple dans
+`~/.claude/commands/` : là, `${CLAUDE_PLUGIN_ROOT}` n'est pas remplacé. Dis-le si
+tu tombes dedans.
 
-Si aucun ne répond, demande son chemin. Ne réinvente pas les gabarits de
-mémoire : ils portent des titres de sections et des marqueurs que `/tache` lit
-au `sed`.
+`./Claude-vlpWorkflow` — une copie **dans** le projet — n'est jamais cherché :
+une copie posée là ne se met jamais à jour, et c'est comme ça que le kit a
+divergé sur quatre projets sans que rien ne le signale.
+
+Si rien ne répond, demande le chemin. Ne réinvente pas les gabarits de
+mémoire : ils portent des titres de sections et des marqueurs que `/vlp:tache`
+lit au `sed`.
 
 ## 2. Le questionnaire — sept réponses, pas une de plus
 
@@ -68,9 +74,9 @@ Pose-les d'un coup, avec une proposition par défaut pour chacune :
 
 Recopie depuis le kit, en remplaçant les `<…>` par les réponses :
 
-| Depuis le kit | Vers le projet | Rôle |
+| Depuis `${CLAUDE_PLUGIN_ROOT}` | Vers le projet | Rôle |
 |---|---|---|
-| `templates/CHANTIER.md` | `CHANTIER.md` (racine) | la carte que lisent `/chantier` et `/tache` |
+| `templates/CHANTIER.md` | `CHANTIER.md` (racine) | la carte que lisent `/vlp:chantier` et `/vlp:tache` |
 | `templates/CLAUDE.md` | `CLAUDE.md` (racine) | l'entrée : identité, état, règles, routage |
 | `templates/context AI/00-INDEX.md` | `<contexte>/00-INDEX.md` | un fichier = un sujet |
 | `templates/context AI/NN-etat.md` | `<contexte>/08-etat.md` | l'état daté et la TODO ordonnée |
@@ -98,10 +104,12 @@ de routage vers le fichier de méthode et la section « Économie de contexte »
 du gabarit, si elle manque.
 
 Renseigne dans `CHANTIER.md` tout ce que le questionnaire a donné, la ligne
-« **méthode** » avec `<kit>/methode-chantier.md`, **et la
-ligne `- **kit** :` avec le chemin résolu à l'étape 1** — c'est par elle que
-`/chantier` retrouvera ses gabarits sans chercher. Laisse
-« fichier de fiches courant : **aucun** » — c'est `/chantier` qui la remplira.
+« **méthode** » avec `${CLAUDE_PLUGIN_ROOT}/methode-chantier.md` — **écris ces
+accolades telles quelles**, c'est le plugin qui les remplace à la lecture — **et
+la ligne `- **kit** :` avec le chemin réel résolu à l'étape 1**. Cette
+dernière ne sert plus à trouver quoi que ce soit : elle dit à un humain où vit
+le kit. Laisse « fichier de fiches courant : **aucun** » — c'est
+`/vlp:chantier` qui la remplira.
 
 ## 3 bis. Publier la feuille de route
 
@@ -126,7 +134,7 @@ continue : le projet est équipé quand même.
 
 ## 3 ter. Autoriser la livraison et la vérification
 
-`/tache` n'a **pas** `Bash` ouvert : elle ne peut lire que `sed`, `grep`,
+`/vlp:tache` n'a **pas** `Bash` ouvert : elle ne peut lire que `sed`, `grep`,
 `awk`, `cat`, `tail`, `head`, `ls`, `wc`. Les commandes des réponses 4 et 5 —
 `./deploy.sh`, `mvn -q test`, `npm run build`… — n'en font pas partie, et
 seront **refusées** à chaque fiche si rien ne les autorise.
@@ -157,5 +165,5 @@ Ne modifie `.gitignore` que sur réponse explicite.
 ## 5. Rendre la main
 
 Récapitule en quatre lignes : les fichiers posés, l'alias retenu, le lien de la
-feuille de route, et la commande suivante — `/clear`, puis `/chantier` depuis le
+feuille de route, et la commande suivante — `/clear`, puis `/vlp:chantier` depuis le
 dossier du projet.

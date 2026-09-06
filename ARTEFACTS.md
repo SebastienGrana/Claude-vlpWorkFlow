@@ -13,8 +13,8 @@ est, sans lancer de session.
 
 | Artefact | Combien | Créé par | Mis à jour par |
 |---|---|---|---|
-| **Feuille de route** | un par projet, permanent | `/vlp-init` | `/chantier` (ouverture), `/tache` (clôture seulement) |
-| **Chantier** | un par chantier | `/chantier` (étape 5 bis) | `/tache` (chaque fiche) |
+| **Feuille de route** | un par projet, permanent | `/vlp:init` | `/vlp:chantier` (ouverture), `/vlp:tache` (clôture seulement) |
+| **Chantier** | un par chantier | `/vlp:chantier` (étape 5 bis) | `/vlp:tache` (chaque fiche) |
 
 La feuille de route ne change **jamais** d'URL : elle porte la TODO ordonnée,
 le chantier en cours, et la table des chantiers clos avec un lien vers chacun.
@@ -23,7 +23,7 @@ clos, et c'est la feuille de route qui y renvoie.
 
 **Une seule des deux vit au rythme des fiches.** La page du chantier est mise à
 jour à chaque fiche cochée ; la feuille de route ne bouge qu'à l'ouverture et à
-la clôture. C'est délibéré : `/tache` a le budget le plus serré des trois
+la clôture. C'est délibéré : `/vlp:tache` a le budget le plus serré des trois
 commandes, et lire puis republier une seconde page de 250 lignes pour une ligne
 de comptage y coûterait autant que la fiche. La feuille de route ne porte donc
 **pas de compteur** — elle nomme le chantier ouvert et renvoie à sa page, qui
@@ -107,12 +107,12 @@ session, qui n'a pas vu les fiches jouées avant elle.
 La tentation inverse — retoucher la ligne de la fiche qu'on vient de faire — a
 l'air moins chère et coûte plus : elle fait de la page une seconde source de
 vérité, tenue à la main, qui dérive silencieusement dès la première session
-interrompue au mauvais moment. `/vlp-check` compare les deux comptes quand on
+interrompue au mauvais moment. `/vlp:check` compare les deux comptes quand on
 doute.
 
 ## Le budget de contexte
 
-`/tache` relit l'artefact du chantier à chaque fiche. C'est ce qui fixe la
+`/vlp:tache` relit l'artefact du chantier à chaque fiche. C'est ce qui fixe la
 taille de la page : **250 lignes au maximum**, gabarit compris. La limite se
 mesure, elle ne s'estime pas :
 
@@ -135,9 +135,9 @@ Les artefacts acceptent des fils de commentaires. C'est là que se posent les
 remarques entre deux sessions : « cette fiche est mal découpée », « regarde
 plutôt le cas vide ».
 
-- `/chantier` les lit à la reprise d'un chantier déjà ouvert, et les présente
+- `/vlp:chantier` les lit à la reprise d'un chantier déjà ouvert, et les présente
   avant de proposer quoi que ce soit.
-- `/tache` ne les lit pas de lui-même — le budget ne le permet pas. Il les lit
+- `/vlp:tache` ne les lit pas de lui-même — le budget ne le permet pas. Il les lit
   si la commande est lancée avec `commentaires` en argument.
 - Un fil auquel on a répondu et donné suite se **résout** ; un fil qu'on n'a
   pas traité reste ouvert.

@@ -60,7 +60,7 @@ Résous dans cet ordre, et arrête-toi au premier cas qui s'applique :
    projet-là ; sinon **demande lequel**, et n'ouvre rien avant la réponse :
    deviner ferait jouer la fiche d'un autre projet.
 4. **Aucun `CHANTIER.md` nulle part** → dis-le et arrête-toi : c'est
-   `/vlp-init` puis `/chantier` qu'il faut lancer, pas `/tache`.
+   `/vlp:init` puis `/vlp:chantier` qu'il faut lancer, pas `/vlp:tache`.
 
 Puis place-toi à la racine du projet retenu et lis sa carte :
 
@@ -74,7 +74,7 @@ la **livraison**, la **vérification**, les **contraintes d'écriture**, le
 **fichier d'état**, et la liste des **chantiers clos**.
 
 Si « fichier de fiches courant » vaut **aucun**, arrête-toi et dis-le : c'est
-`/chantier` qu'il faut lancer d'abord.
+`/vlp:chantier` qu'il faut lancer d'abord.
 
 Un fichier de fiches listé comme **clos** ne se rejoue jamais ; il ne sert plus
 qu'à relire un socle d'API à l'étape 4, si une fiche l'y renvoie.
@@ -330,16 +330,17 @@ fiche coûterait autant que la page du chantier pour une ligne.
 ## 7. Si c'était la dernière fiche
 
 Dis-le : le chantier est fini. La clôture est décrite **à un seul endroit**,
-pour que `/tache` et `/chantier` la fassent à l'identique :
+pour que `/vlp:tache` et `/vlp:chantier` la fassent à l'identique :
 
 ```bash
-cat "<kit>/cloture.md"
+cat "${CLAUDE_PLUGIN_ROOT}/cloture.md"
 ```
 
-`<kit>` est la ligne « **kit** » de `CHANTIER.md`, déjà lue à l'étape 0. C'est
-le seul fichier que cette commande ouvre en plus, **une fois par chantier**, au
-moment où la session se termine de toute façon. S'il ne répond pas, dis-le et
-arrête-toi : le chantier reste ouvert, rien n'est cassé, et `/chantier` saura
+`${CLAUDE_PLUGIN_ROOT}` est le dossier du plugin : ce fichier voyage avec la
+commande, il n'y a rien à chercher. C'est le seul fichier que cette commande
+ouvre en plus, **une fois par chantier**, au moment où la session se termine de
+toute façon. S'il ne répond pas, dis-le et
+arrête-toi : le chantier reste ouvert, rien n'est cassé, et `/vlp:chantier` saura
 le clore.
 
 Cinq écritures, dans cet ordre — le **fichier dit comment**, cette liste ne
@@ -355,4 +356,4 @@ sert qu'à vérifier que rien ne manque :
 Si l'une échoue, dis **laquelle** : la reprise saura quoi finir.
 
 Puis donne les deux liens, et rappelle-lui de faire `/clear` avant la fiche
-suivante — ou `/chantier` s'il n'y en a plus.
+suivante — ou `/vlp:chantier` s'il n'y en a plus.

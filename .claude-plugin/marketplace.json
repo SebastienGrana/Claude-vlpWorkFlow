@@ -1,0 +1,11 @@
+{
+  "name": "vlp-local",
+  "owner": { "name": "znorr" },
+  "plugins": [
+    {
+      "name": "vlp",
+      "source": "./",
+      "description": "La méthode des chantiers et des fiches."
+    }
+  ]
+}

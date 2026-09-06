@@ -7,7 +7,7 @@ allowed-tools: Bash(pwd:*), Bash(cd:*), Bash(ls:*), Bash(sed:*), Bash(grep:*), B
 Ouvre une séance de travail sur le projet où l'on se trouve.
 
 Cette session **n'écrit pas de code** : elle produit un fichier de fiches, et
-rien d'autre. Le code viendra après, une fiche par session, via `/tache`.
+rien d'autre. Le code viendra après, une fiche par session, via `/vlp:tache`.
 
 ## La règle qui prime sur tout : cadrer coûte moins cher que se tromper
 
@@ -39,7 +39,7 @@ Résous dans cet ordre, et arrête-toi au premier cas qui s'applique :
    projet-là ; sinon **pose un questionnaire** listant les alias, et n'ouvre
    rien avant la réponse.
 4. **Aucun `CHANTIER.md` nulle part** → le projet n'est pas équipé. Dis-le, et
-   propose `/vlp-init` ; n'improvise pas la structure toi-même.
+   propose `/vlp:init` ; n'improvise pas la structure toi-même.
 
 Puis place-toi à la racine du projet retenu :
 
@@ -79,15 +79,15 @@ s'il tranche, réponds dans le fil (`action: "reply"`) puis résous-le
 reste ouvert.
 
 Dis ensuite en trois lignes : le chantier, la prochaine fiche à jouer, ce que
-les commentaires demandent. Puis propose le choix — reprendre par `/tache`,
+les commentaires demandent. Puis propose le choix — reprendre par `/vlp:tache`,
 redécouper les fiches restantes, ou clore le chantier tel quel — et arrête-toi
-là si c'est `/tache` : rappelle `/clear` d'abord.
+là si c'est `/vlp:tache` : rappelle `/clear` d'abord.
 
 **Si c'est « clore tel quel »**, n'improvise pas la procédure : elle est écrite
-une fois, et `/tache` applique la même.
+une fois, et `/vlp:tache` applique la même.
 
 ```bash
-cat "<kit>/cloture.md"
+cat "${CLAUDE_PLUGIN_ROOT}/cloture.md"
 ```
 
 Les fiches non jouées y sont dites **abandonnées**, pas cochées : une case
@@ -147,31 +147,32 @@ chantier, et redemande. À défaut d'instruction, propose une initiale du sujet
 (décor → `D`) plutôt que la suivante de l'alphabet, et laisse-lui le dernier
 mot avant l'étape 5.
 
-## 4 bis. Retrouver le kit — avant d'écrire quoi que ce soit
+## 4 bis. Le kit — il voyage avec la commande
 
 Les deux gabarits des étapes qui suivent — `templates/context AI/fichier-de-fiches.md`
-et `templates/artefact-chantier.html` — vivent dans le kit. Son chemin est la
-ligne « **kit** » de `CHANTIER.md`, déjà lue à l'étape 0. Vérifie qu'il répond :
+et `templates/artefact-chantier.html` — sont dans **le même plugin que cette
+commande**, à `${CLAUDE_PLUGIN_ROOT}`. Il n'y a rien à chercher : ils sont là par
+construction. Vérifie seulement qu'ils répondent :
 
 ```bash
-ls "<kit>/templates/context AI/fichier-de-fiches.md" "<kit>/templates/artefact-chantier.html" "<kit>/cloture.md" 2>/dev/null || ls -d ../Claude-vlpWorkflow ~/Claude-vlpWorkflow 2>/dev/null
+ls "${CLAUDE_PLUGIN_ROOT}/templates/context AI/fichier-de-fiches.md" "${CLAUDE_PLUGIN_ROOT}/templates/artefact-chantier.html" "${CLAUDE_PLUGIN_ROOT}/cloture.md" 2>/dev/null || ls -d ../Claude-vlpWorkflow ~/Claude-vlpWorkflow 2>/dev/null
 ```
 
-**Ne cherche jamais le kit à l'intérieur du projet** — `./Claude-vlpWorkflow`
-est exclu du repli, et ce n'est pas un oubli. Une copie posée dans un projet
-est une copie que personne ne met à jour : le kit a déjà divergé comme ça, sur
-quatre projets à la fois, sans que rien ne le signale. Il n'en existe qu'**un**,
-à côté des projets ou dans `~`, et la ligne « kit » le nomme.
+**La seconde moitié de la ligne est un repli, pas une recherche.** Il ne sert
+qu'à un cas : cette commande lancée **hors du plugin**, en copie simple dans
+`~/.claude/commands/`. Là, `${CLAUDE_PLUGIN_ROOT}` n'est pas remplacé, le premier
+`ls` échoue, et le repli retrouve le kit à côté des projets. Si tu tombes dans
+ce cas, **dis-le en une ligne** : la copie simple est précisément ce que le
+plugin remplace, et elle peut avoir divergé.
 
-Si la ligne « kit » manque, les seuls replis sont `../Claude-vlpWorkflow` (le
-workspace) et `~/Claude-vlpWorkflow`. Si aucun ne répond, **demande le chemin
-et arrête-toi là** : ne réinvente
-pas les gabarits de mémoire. Ils portent des titres de sections et des
-marqueurs que `/tache` lit au `sed` — un titre reformulé casse l'extraction
-dans toutes les fiches du chantier.
+Si rien ne répond, **demande le chemin et arrête-toi là** : ne réinvente pas
+les gabarits de mémoire. Ils portent des titres de sections et des marqueurs
+que `/vlp:tache` lit au `sed` — un titre reformulé casse l'extraction dans
+toutes les fiches du chantier.
 
-Quand tu l'as trouvé autrement que par `CHANTIER.md`, écris sa ligne « kit »
-dans `CHANTIER.md` à l'étape 6 : la prochaine session n'aura plus à chercher.
+La ligne « **kit** » de `CHANTIER.md` reste vraie et reste lue : elle nomme le
+dossier réel du kit, celui que le plugin pointe. Elle ne sert plus à trouver
+les gabarits, seulement à dire à un humain où ils vivent.
 
 ## 5. Écrire le fichier de fiches
 
@@ -190,14 +191,14 @@ ordre :
 1. la ligne « **QUAND LIRE** » ;
 2. l'état du chantier en deux lignes ;
 3. une section `## Le socle commun` : les API, invariants et noms que *toutes*
-   les fiches utilisent — c'est la seule plage que `/tache` relira à chaque
+   les fiches utilisent — c'est la seule plage que `/vlp:tache` relira à chaque
    fiche, donc rien d'inutile dedans ;
 4. une section `## L'ordre des fiches` : la liste et les dépendances ;
 5. les fiches, séparées par `---`, au format donné par le fichier « méthode ».
 
-Ces deux titres de section se recopient **à l'identique** : `/tache` les lit
+Ces deux titres de section se recopient **à l'identique** : `/vlp:tache` les lit
 par `sed`, un titre reformulé casse l'extraction. Le squelette est dans
-`<kit>/templates/context AI/fichier-de-fiches.md`.
+`${CLAUDE_PLUGIN_ROOT}/templates/context AI/fichier-de-fiches.md`.
 
 **Encadre chaque fiche de ses marqueurs**, exactement ainsi, seuls sur leur
 ligne :
@@ -209,7 +210,7 @@ ligne :
 <!-- /FICHE -->
 ```
 
-C'est par eux que `/tache` extrait la fiche. Sans marqueurs, elle se rabat sur
+C'est par eux que `/vlp:tache` extrait la fiche. Sans marqueurs, elle se rabat sur
 le premier `---` venu — et un `---` ou un `##` dans un bloc de code de la fiche
 la tronque **sans rien dire**. Deux lignes par fiche, et le problème n'existe
 plus.
@@ -219,7 +220,7 @@ plus.
 Le fichier de fiches est fait pour la session ; l'artefact est fait pour
 l'utilisateur, qui doit pouvoir dire où on en est sans ouvrir de session.
 
-Recopie `<kit>/templates/artefact-chantier.html` vers
+Recopie `${CLAUDE_PLUGIN_ROOT}/templates/artefact-chantier.html` vers
 `<contexte>/artefacts/<NN>-<chantier>.html` — **même `<NN>`** que le fichier de
 fiches — et remplis :
 
@@ -233,7 +234,7 @@ fiches — et remplis :
 - les zones `blocage` et `bilan` restent `hidden`, `ZONE:journal` reste vide.
 
 Rien d'autre n'y va : ni le prompt des fiches, ni le socle d'API, ni de code.
-La page reste sous 250 lignes, parce que `/tache` la relira à chaque fiche.
+La page reste sous 250 lignes, parce que `/vlp:tache` la relira à chaque fiche.
 
 Publie avec `favicon` `🧱`, un `title` `<Projet> — <Nom du chantier>` et pour
 `description` `Les fiches de <chantier>, et où on en est.` Puis **recopie
@@ -276,6 +277,6 @@ fiche, autant de fois qu'il y a de fiches.
 
 Puis arrête-toi : donne le lien de l'artefact du chantier, annonce la première
 fiche à jouer, et rappelle de faire
-`/clear` avant de lancer `/tache <fiche>`. **N'enchaîne pas sur la première
+`/clear` avant de lancer `/vlp:tache <fiche>`. **N'enchaîne pas sur la première
 fiche dans cette session** — elle traînerait derrière elle tout le cadrage, ce
 qui est exactement ce que la méthode évite.

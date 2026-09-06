@@ -1,6 +1,6 @@
 > **QUAND LIRE** : la dernière fiche d'un chantier vient d'être cochée, ou on
 > décide de clore un chantier tel quel sans jouer les fiches restantes.
-> Lu par `/tache` (étape 7) et par `/chantier` (étape 0 ter). C'est la **seule**
+> Lu par `/vlp:tache` (étape 7) et par `/vlp:chantier` (étape 0 ter). C'est la **seule**
 > description de la clôture : les deux commandes l'appliquent, aucune ne la
 > réécrit de son côté.
 
@@ -75,5 +75,5 @@ Si une publication échoue, dis-le en une ligne et continue : les quatre
 
 ## Pour finir
 
-Donne les deux liens, et dis la suite : `/clear`, puis `/chantier` pour ouvrir
+Donne les deux liens, et dis la suite : `/clear`, puis `/vlp:chantier` pour ouvrir
 le suivant.
