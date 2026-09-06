@@ -8,6 +8,10 @@ apart from each other, and nothing warned about it. Now there are none.
     MyProject/            <- your projects, next to it
     AnotherProject/
 
+Get it once:
+
+    git clone https://github.com/SebastienGrana/Claude-vlpWorkFlow.git
+
 Install it once per machine, by LINKING it into ~/.claude/skills/ (a folder
 there with a .claude-plugin/plugin.json loads by itself, in every project, no
 marketplace needed -- and the folder may be a link, so nothing is copied).
@@ -25,7 +29,9 @@ claude's terminal) and type  /vlp:init  in the chat, and follow the
 instructions.
 
 
-This folder should not be pushed on Git.
+Do not commit this folder INTO one of your projects' repositories. The kit
+has its own repository -- https://github.com/SebastienGrana/Claude-vlpWorkFlow
+-- and lives beside your projects, never inside one.
 
 
 

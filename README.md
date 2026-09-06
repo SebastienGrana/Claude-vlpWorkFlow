@@ -132,7 +132,12 @@ Détail complet dans `ARTEFACTS.md`.
 
 ## Par où commencer
 
-`INSTALLATION.md`, puis `/vlp:init` dans le projet. Ensuite `/vlp:chantier`.
+```bash
+git clone https://github.com/SebastienGrana/Claude-vlpWorkFlow.git
+```
+
+Puis `INSTALLATION.md` — un lien à poser une fois par machine — et `/vlp:init`
+dans le projet. Ensuite `/vlp:chantier`.
 
 Et une règle qui n'a plus besoin d'être retenue, parce qu'elle est devenue
 impossible à enfreindre : **il n'y a plus de copie installée.** Le kit est un

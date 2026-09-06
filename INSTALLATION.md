@@ -13,7 +13,14 @@ plugin ne résout pas ce problème en le surveillant — il lui retire son terra
 
 ## Le chemin court — un lien, et c'est tout
 
-**1. Choisir où vit le kit.** N'importe où, tant qu'il n'y en a qu'un :
+**1. Récupérer le kit, et choisir où il vit.** N'importe où, tant qu'il n'y
+en a qu'un :
+
+```bash
+git clone https://github.com/SebastienGrana/Claude-vlpWorkFlow.git
+```
+
+Le dossier cloné se place **à côté** des projets, jamais dedans :
 
 ```
 ProgPerso/
