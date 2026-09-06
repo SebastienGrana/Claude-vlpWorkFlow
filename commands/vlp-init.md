@@ -75,7 +75,9 @@ Si `CLAUDE.md` existe déjà, **ne l'écrase pas** : ajoute-lui seulement la lig
 de routage vers le fichier de méthode et la section « Économie de contexte »
 du gabarit, si elle manque.
 
-Renseigne dans `CHANTIER.md` tout ce que le questionnaire a donné, et laisse
+Renseigne dans `CHANTIER.md` tout ce que le questionnaire a donné, **et la
+ligne `- **kit** :` avec le chemin résolu à l'étape 1** — c'est par elle que
+`/chantier` retrouvera ses gabarits sans chercher. Laisse
 « fichier de fiches courant : **aucun** » — c'est `/chantier` qui la remplira.
 
 ## 3 bis. Publier la feuille de route

@@ -33,6 +33,8 @@ ligne. Un fichier de fiches clos ne se rejoue pas.
 **Les pages publiées, en marge des trois temps.** Le projet a une **feuille de
 route** (la TODO ordonnée, le chantier en cours, les clos) et chaque chantier a
 sa **page de fiches**, marquée au fur et à mesure — faite, en cours, bloquée.
+Seule la seconde vit au rythme des fiches : la feuille de route ne bouge qu'à
+l'ouverture et à la clôture, pour que `/tache` n'ait qu'une page à relire.
 Les commandes les tiennent seules ; leurs URL sont dans `CHANTIER.md`. Ce sont
 des vues : en cas de désaccord, **le fichier a raison**, et on corrige la page.
 
@@ -87,6 +89,11 @@ Elles ne se transportent pas d'un projet à l'autre.
 `CLAUDE.md`, jamais l'index, jamais un fichier de fiches en entier. Elle lit la
 sortie **elle-même** au lieu de la demander, s'arrête à deux tentatives, et
 finit par le critère de fin recopié.
+
+Quand elle s'arrête ainsi, elle écrit un bloc « **Tentatives** » **dans la
+fiche**, sous son titre. C'est ce qui rend la reprise utile : la session
+suivante le lit à l'étape 1, avant d'écrire, et cherche autre chose au lieu de
+rejouer les mêmes deux essais. Le bloc se solde à la fiche cochée.
 
 `CHANTIER.md`, à la racine, est la seule chose à mettre à jour quand un
 chantier s'ouvre ou se clôt. Un fichier qui ment envoie la session dans un

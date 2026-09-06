@@ -36,6 +36,10 @@ paragraphe : une fiche y renvoie en un mot.>
 
 ## <X>1 [ ] — <titre court à l'infinitif>
 
+<Un bloc `**Tentatives** (<date>)` peut apparaître ici, sous le titre : c'est
+`/tache` qui l'écrit quand elle abandonne après deux essais, et qui le relit à
+la reprise pour ne pas les rejouer. Il ne se met pas à la main.>
+
 **Dépend de** : rien.
 **Fichiers** : <chemin/a.ext>, <chemin/b.ext> — et rien d'autre.
 **Maquette** : <sed -n '120,148p' mockups/src/body.html>   (si des libellés existent)

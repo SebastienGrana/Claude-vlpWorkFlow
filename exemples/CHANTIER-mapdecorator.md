@@ -6,6 +6,7 @@
 > courant » remplie ; dans le projet réel elle vaut « aucun » depuis la clôture.
 
 - **alias** : md
+- **kit** : ~/Claude-vlpWorkflow
 - **contexte** : context AI/
 - **méthode** : context AI/09-chantiers.md
 - **chantiers possibles** : context AI/08-etat.md

@@ -6,6 +6,7 @@
 > Les libellés en gras se recopient **à l'identique** : ils sont lus tels quels.
 
 - **alias** : <md>
+- **kit** : <~/Claude-vlpWorkflow — le dossier du kit, gabarits compris>
 - **contexte** : <context AI/>
 - **méthode** : <context AI/09-chantiers.md>
 - **chantiers possibles** : <context AI/08-etat.md>

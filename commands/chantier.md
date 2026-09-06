@@ -1,7 +1,7 @@
 ---
 description: Ouvre une séance de travail : propose les chantiers possibles, puis cadre celui qu'on choisit en fiches
 argument-hint: (rien) | <nom du chantier> | <alias> <nom du chantier>
-allowed-tools: Bash(pwd:*), Bash(cd:*), Bash(ls:*), Bash(sed:*), Bash(grep:*), Bash(cat:*), Bash(dirname:*), Read, Edit, Write, Artifact
+allowed-tools: Bash(pwd:*), Bash(cd:*), Bash(ls:*), Bash(sed:*), Bash(grep:*), Bash(cat:*), Bash(mkdir:*), Bash(cp:*), Bash(dirname:*), Read, Edit, Write, Artifact
 ---
 
 Ouvre une séance de travail sur le projet où l'on se trouve.
@@ -49,7 +49,8 @@ cd "<racine du projet>" && cat CHANTIER.md
 
 `CHANTIER.md` fait une vingtaine de lignes : lis-le en entier, c'est la seule
 carte dont tu as besoin. Il nomme la **méthode**, les **chantiers possibles**,
-le **fichier de fiches courant**, l'**index**, le **fichier d'état**.
+le **fichier de fiches courant**, l'**index**, le **fichier d'état**, et le
+**kit** — le dossier où sont les gabarits.
 
 **Ce que valent `$1` et `$2`.** Si `$1` est l'alias d'un projet trouvé à
 l'étape 0, il désigne le projet et le chantier est `$2`. Sinon, l'alias n'était
@@ -136,9 +137,37 @@ chantier, et redemande. À défaut d'instruction, propose une initiale du sujet
 (décor → `D`) plutôt que la suivante de l'alphabet, et laisse-lui le dernier
 mot avant l'étape 5.
 
+## 4 bis. Retrouver le kit — avant d'écrire quoi que ce soit
+
+Les deux gabarits des étapes qui suivent — `templates/context AI/fichier-de-fiches.md`
+et `templates/artefact-chantier.html` — vivent dans le kit. Son chemin est la
+ligne « **kit** » de `CHANTIER.md`, déjà lue à l'étape 0. Vérifie qu'il répond :
+
+```bash
+ls "<kit>/templates/context AI/fichier-de-fiches.md" "<kit>/templates/artefact-chantier.html" 2>/dev/null || ls -d ./Claude-vlpWorkflow ../Claude-vlpWorkflow ~/Claude-vlpWorkflow 2>/dev/null
+```
+
+Si la ligne « kit » manque ou ne répond pas, le repli est la seconde moitié de
+la commande. Si rien ne répond non plus, **demande le chemin du kit et
+arrête-toi là** : ne réinvente pas les gabarits de mémoire. Ils portent des
+titres de sections que `/tache` lit au `sed` — un titre reformulé casse
+l'extraction dans toutes les fiches du chantier.
+
+Quand tu l'as trouvé autrement que par `CHANTIER.md`, écris sa ligne « kit »
+dans `CHANTIER.md` à l'étape 6 : la prochaine session n'aura plus à chercher.
+
 ## 5. Écrire le fichier de fiches
 
-Un fichier du dossier de contexte, numéroté à la suite, contenant dans cet
+Le numéro `NN` se prend **à la suite de ce qui existe**, jamais deviné — la
+convention interdit de renuméroter, un numéro repris ment aux vieux commits :
+
+```bash
+ls "<contexte>/"
+```
+
+Le fichier prend le premier nombre à deux chiffres libre après le plus grand.
+
+Un fichier du dossier de contexte, numéroté ainsi, contenant dans cet
 ordre :
 
 1. la ligne « **QUAND LIRE** » ;
@@ -151,14 +180,14 @@ ordre :
 
 Ces deux titres de section se recopient **à l'identique** : `/tache` les lit
 par `sed`, un titre reformulé casse l'extraction. Le squelette est dans
-`templates/context AI/fichier-de-fiches.md` du kit.
+`<kit>/templates/context AI/fichier-de-fiches.md`.
 
 ## 5 bis. Publier l'artefact du chantier
 
 Le fichier de fiches est fait pour la session ; l'artefact est fait pour
 l'utilisateur, qui doit pouvoir dire où on en est sans ouvrir de session.
 
-Recopie `templates/artefact-chantier.html` du kit vers
+Recopie `<kit>/templates/artefact-chantier.html` vers
 `<contexte>/artefacts/<NN>-<chantier>.html` — **même `<NN>`** que le fichier de
 fiches — et remplis :
 
@@ -197,6 +226,9 @@ fichier lui-même :
 3. la ligne « **fichier de fiches courant** » de `CHANTIER.md`, avec la plage
    de fiches (`R1..R5`) ;
 4. la ligne « **artefact du chantier** » de `CHANTIER.md`, avec l'URL rendue.
+
+Et une cinquième **si l'étape 4 bis a dû chercher le kit** : sa ligne
+« **kit** » dans `CHANTIER.md`, avec le chemin trouvé.
 
 Puis arrête-toi : donne le lien de l'artefact du chantier, annonce la première
 fiche à jouer, et rappelle de faire

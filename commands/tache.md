@@ -1,7 +1,7 @@
 ---
 description: Exécute une fiche du chantier courant du projet où l'on se trouve
 argument-hint: (rien) | <fiche> | <alias> <fiche> | <fiche> commentaires
-allowed-tools: Bash(pwd:*), Bash(cd:*), Bash(ls:*), Bash(sed:*), Bash(grep:*), Bash(cat:*), Bash(tail:*), Bash(dirname:*), Read, Edit, Write, Artifact
+allowed-tools: Bash, Read, Edit, Write, Artifact
 ---
 
 Exécute **une** fiche du chantier courant. Si une fiche est donnée en
@@ -22,11 +22,18 @@ une fiche, pas comment l'exécuter), et **jamais un fichier de fiches en
 entier** — il fait des centaines de lignes, la fiche en fait 20. Pas d'agent,
 pas de recherche large : tout est déjà localisé.
 
-Deux choses s'ouvrent en plus, et seulement à l'étape 6 bis : **l'artefact du
-chantier**, que cette commande tient à jour de bout en bout, et **la feuille de
-route**, dont elle ne touche que la ligne de comptage. Chacune fait moins de
-250 lignes, c'est la condition pour qu'elles ne coûtent rien. Les commentaires,
-eux, ne se lisent que si `commentaires` est passé en argument.
+`Bash` est ouvert **pour une seule raison** : la **livraison** et la
+**vérification** de `CHANTIER.md` sont des commandes propres au projet, et
+l'étape 5 doit pouvoir les lancer et lire leur sortie sans t'arrêter. Hors ces
+deux lignes-là, tiens-t'en à lire ce que les étapes nomment — `sed`, `grep`,
+`cat`, `tail` — et n'invente aucune commande qui écrirait ailleurs.
+
+Une seule chose s'ouvre en plus, et seulement à l'étape 6 bis : **l'artefact du
+chantier**, que cette commande tient à jour de bout en bout. Il fait moins de
+250 lignes, c'est la condition pour qu'il ne coûte rien. La **feuille de
+route**, elle, ne s'ouvre qu'à l'étape 7, à la clôture du chantier — pas à
+chaque fiche. Les commentaires ne se lisent que si `commentaires` est passé en
+argument.
 
 ## 0. Trouver le projet — sans le demander si c'est évident
 
@@ -112,6 +119,13 @@ autre ailleurs.
 Si elle porte déjà `[x]`, arrête-toi et dis-le. Si elle dépend d'une autre
 fiche non cochée, dis-le et demande s'il faut continuer quand même.
 
+**Si elle porte un bloc « Tentatives »**, c'est une reprise après blocage : une
+session précédente s'est arrêtée là. Lis-le — il est déjà dans la sortie du
+`sed`, il ne coûte rien de plus — et **ne rejoue aucune des pistes qu'il
+liste**. Annonce en une ligne, avant d'écrire, ce que tu vas faire de
+différent. Si tu n'as rien de différent à proposer, ne retente pas : dis-le, et
+demande.
+
 ## 2. Lire ce que la fiche cite en plage
 
 Une ligne « maquette : `sed -n 'A,Bp' …` », « corpus : … » ou toute autre
@@ -163,8 +177,28 @@ demande pas ce qu'elle affiche. Si elle porte une erreur, corrige et reprends
 l'étape 5. **Deux tentatives au maximum** : à la troisième, arrête-toi, montre
 l'erreur brute et dis ce que tu as essayé.
 
-Et dans ce cas, **marque le blocage sur l'artefact** avant de rendre la main —
-c'est le moment où l'on a le plus besoin de le voir. Suis la séquence de
+Et dans ce cas, avant de rendre la main, **écris ce que tu as tenté dans la
+fiche elle-même** — pas seulement sur l'artefact. C'est le seul endroit que la
+session suivante lira *avant* d'écrire : l'artefact, elle ne l'ouvre qu'à
+l'étape 6 bis, une fois le travail refait. Sans ça, elle rejoue tes deux
+tentatives à l'identique.
+
+Ajoute donc, dans le fichier de fiches, **juste sous le titre de la fiche** et
+avant sa ligne « Dépend de » :
+
+```
+**Tentatives** (<date>) — non résolu.
+1. <ce que tu as essayé, une ligne>
+2. <ce que tu as essayé, une ligne>
+Erreur : <la ligne d'erreur qui compte, pas la trace entière>
+```
+
+Trois à cinq lignes, pas plus : ce bloc est relu à chaque reprise de la fiche,
+il se paye autant de fois. Une deuxième session bloquée **complète** ce bloc,
+elle n'en ouvre pas un second.
+
+Puis **marque le blocage sur l'artefact** — c'est le moment où l'on a le plus
+besoin de le voir. Suis la séquence de
 l'étape 6 (lire, reporter, republier), avec : la fiche passée en
 `data-etat="bloquee"` dans `ZONE:fiches` et dans `ZONE:avancement`, la section
 `ZONE:blocage` rendue visible — retire son `hidden` — portant les deux lignes
@@ -189,6 +223,12 @@ Quand ça passe, écris trois choses et rien de plus :
 Une fois qu'il confirme, coche la fiche (`## <fiche retenue> [x] — …` dans le
 fichier de fiches courant), et ajoute une ligne au fichier d'état nommé par
 `CHANTIER.md` **seulement** si la tâche a tranché quelque chose d'imprévu.
+
+Si la fiche portait un bloc « **Tentatives** », remplace-le par sa seule
+dernière ligne — `**Tentatives** (<date>) — résolu par : <ce qui a marché>` —
+et rien d'autre : ce qui a échoué a servi, il n'a plus à être relu. Une piste
+qui a échoué pour une raison qui vaut au-delà de cette fiche va, elle, dans le
+fichier d'état.
 
 ## 6 bis. Mettre l'artefact du chantier à jour
 
@@ -222,17 +262,11 @@ Rien d'autre ne va sur cette page : pas de code, pas le prompt de la fiche, pas
 le détail des tentatives. Si la publication échoue, dis-le en une ligne et
 continue — le fichier de fiches, lui, est à jour.
 
-Puis la **feuille de route**, pour la seule ligne qui bouge à chaque fiche —
-son URL est dans la ligne « **artefact feuille de route** » de `CHANTIER.md` ;
-si elle vaut « aucun », saute ce geste. Même séquence : `action: "read"` sur
-cette URL, puis dans `ZONE:encours` la ligne de comptage — `fiches <R1>–<R5> ·
-<n> faites · en cours : <la suivante>` — et rien d'autre. Republie avec cette
-`url`, sans `favicon`, `label` `<fiche> faite`.
-
-C'est la seule zone que `/tache` touche sur la feuille de route : la table des
-chantiers possibles et celle des clos ne bougent qu'à l'ouverture et à la
-clôture. Un compteur figé sur l'état de l'ouverture est une page publiée qui
-ment — c'est exactement ce que la méthode reproche aux index.
+**Et c'est tout : ne touche pas à la feuille de route.** Elle ne bouge qu'à
+l'ouverture et à la clôture d'un chantier. Sa zone « en cours » ne porte pas de
+compteur — elle nomme le chantier et renvoie à sa page, qui est celle que tu
+viens de mettre à jour ; il n'y a donc rien à y reporter, et la lire à chaque
+fiche coûterait autant que la page du chantier pour une ligne.
 
 ## 7. Si c'était la dernière fiche
 

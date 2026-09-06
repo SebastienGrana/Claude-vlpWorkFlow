@@ -105,9 +105,11 @@ chantier en cours, la table des clos — et, par chantier, une page qui montre
 - `/vlp-init` pose et publie la feuille de route ;
 - `/chantier` publie l'artefact du chantier qu'il vient de cadrer, et bascule
   la feuille de route sur « en cours » ;
-- `/tache` coche la fiche sur la page, marque la suivante, y porte les
-  décisions imprévues — et signale un **arrêt sur blocage** quand il abandonne
-  après deux tentatives ;
+- `/tache` coche la fiche sur la **page du chantier**, marque la suivante, y
+  porte les décisions imprévues — et signale un **arrêt sur blocage** quand il
+  abandonne après deux tentatives. Il ne touche pas à la feuille de route : sa
+  session est la plus serrée des trois, et une seconde page relue à chaque
+  fiche y coûterait le prix de la fiche ;
 - à la dernière fiche, le chantier passe en « clos » des deux côtés.
 
 Les URL vivent dans `CHANTIER.md` ; elles ne changent jamais. Les fils de

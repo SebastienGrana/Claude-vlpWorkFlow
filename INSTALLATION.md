@@ -49,7 +49,7 @@ Même résultat, sans commande :
 | Copier | Vers | Puis |
 |---|---|---|
 | `commands/*.md` | `~/.claude/commands/` | rien |
-| `templates/CHANTIER.md` | racine du projet | remplir les `<…>` |
+| `templates/CHANTIER.md` | racine du projet | remplir les `<…>`, dont la ligne « kit » |
 | `templates/CLAUDE.md` | racine du projet | remplir, ou fusionner avec l'existant |
 | `templates/context AI/methode-chantier.md` | `context AI/09-chantiers.md` | rien à changer |
 | `templates/context AI/00-INDEX.md` | `context AI/00-INDEX.md` | remplir |

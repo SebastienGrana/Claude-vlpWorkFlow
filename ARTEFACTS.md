@@ -13,13 +13,21 @@ est, sans lancer de session.
 
 | Artefact | Combien | Créé par | Mis à jour par |
 |---|---|---|---|
-| **Feuille de route** | un par projet, permanent | `/vlp-init` | `/chantier` (ouverture), `/tache` (chaque fiche : le comptage seul ; clôture : tout) |
+| **Feuille de route** | un par projet, permanent | `/vlp-init` | `/chantier` (ouverture), `/tache` (clôture seulement) |
 | **Chantier** | un par chantier | `/chantier` (étape 5 bis) | `/tache` (chaque fiche) |
 
 La feuille de route ne change **jamais** d'URL : elle porte la TODO ordonnée,
 le chantier en cours, et la table des chantiers clos avec un lien vers chacun.
 L'artefact d'un chantier s'arrête à sa clôture — il reste en ligne, marqué
 clos, et c'est la feuille de route qui y renvoie.
+
+**Une seule des deux vit au rythme des fiches.** La page du chantier est mise à
+jour à chaque fiche cochée ; la feuille de route ne bouge qu'à l'ouverture et à
+la clôture. C'est délibéré : `/tache` a le budget le plus serré des trois
+commandes, et lire puis republier une seconde page de 250 lignes pour une ligne
+de comptage y coûterait autant que la fiche. La feuille de route ne porte donc
+**pas de compteur** — elle nomme le chantier ouvert et renvoie à sa page, qui
+est à jour, elle.
 
 ## Le nommage — le projet d'abord
 
@@ -38,7 +46,7 @@ Le reste des paramètres de publication :
 |---|---|---|
 | `favicon` (première publication seulement) | `🗺️` | `🧱` |
 | `description` | `La TODO ordonnée de <Projet> et l'état de ses chantiers.` | `Les fiches de <chantier>, et où on en est.` |
-| `label` (versions suivantes) | `<chantier> ouvert` / `<chantier> clos` | `<fiche> faite` |
+| `label` (versions suivantes) | `<chantier> ouvert` / `<chantier> clos` | `<fiche> faite` / `<fiche> bloquée` |
 
 ## Où vivent les fichiers, où vivent les URL
 
