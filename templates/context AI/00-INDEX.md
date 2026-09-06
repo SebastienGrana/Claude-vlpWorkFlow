@@ -17,7 +17,7 @@ a l'air proche.
 | `01-projet.md` | on reprend à froid : à quoi sert le projet, et à quoi il ne sert pas |
 | `02-architecture.md` | on crée un module, ou on cherche où va un bout de code |
 | `08-etat.md` | on reprend après une interruption, ou on choisit quoi faire ensuite |
-| `09-chantiers.md` | on ouvre un chantier, ou on le découpe en fiches |
+| *(hors dossier)* `<kit>/methode-chantier.md` | on ouvre un chantier, ou on le découpe en fiches — la méthode n'est pas recopiée ici, elle vit dans le kit et sert tous les projets |
 
 ## Chantiers — un fichier de fiches par chantier
 

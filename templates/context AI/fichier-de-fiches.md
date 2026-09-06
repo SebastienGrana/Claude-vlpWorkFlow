@@ -34,6 +34,7 @@ paragraphe : une fiche y renvoie en un mot.>
 
 ---
 
+<!-- FICHE:<X>1 -->
 ## <X>1 [ ] — <titre court à l'infinitif>
 
 <Un bloc `**Tentatives** (<date>)` peut apparaître ici, sous le titre : c'est
@@ -53,9 +54,11 @@ elle en fait 50, c'est deux fiches.>
 <Ce qu'on doit voir pour dire que c'est fait. Une phrase. Soit une commande et
 ce que sa sortie doit montrer — comptes bruts à côté du verdict — soit ce que
 l'utilisateur doit constater à l'écran quand lui seul peut le faire.>
+<!-- /FICHE -->
 
 ---
 
+<!-- FICHE:<X>2 -->
 ## <X>2 [ ] — <titre court à l'infinitif>
 
 **Dépend de** : `<X>1`.
@@ -66,3 +69,12 @@ l'utilisateur doit constater à l'écran quand lui seul peut le faire.>
 
 **Critère de fin**
 <…>
+<!-- /FICHE -->
+
+---
+
+**Les marqueurs `<!-- FICHE:… -->` / `<!-- /FICHE -->` ne sont pas décoratifs.**
+`/tache` extrait une fiche entre eux, d'un seul `sed`. Sans eux, elle retombe
+sur un motif de titres, qui rate en silence dès qu'un titre est reformulé — et
+une extraction vide ressemble à une fiche vide. Le nom du marqueur ouvrant est
+exactement celui de la fiche : `<!-- FICHE:D3 -->` pour `## D3 [ ] — …`.

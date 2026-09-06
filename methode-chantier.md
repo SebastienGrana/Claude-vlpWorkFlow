@@ -25,10 +25,15 @@ ne se repaye pas à chaque fiche.
 `/tache X2`. Jamais deux fiches dans la même session : la seconde traînerait
 derrière elle tout le contexte de la première.
 
-**3. Clôture.** La dernière fiche cochée, le fichier de fiches est marqué
-**clos** en tête, la table de routage de `CLAUDE.md` le dit, `CHANTIER.md`
-passe sa ligne de « courant » à « clos », et le fichier d'état reçoit une
-ligne. Un fichier de fiches clos ne se rejoue pas.
+**3. Clôture.** Elle est décrite **à un seul endroit**, `cloture.md` à la racine
+du kit, que `/tache` et `/chantier` lisent au moment de clore : cinq
+écritures — l'en-tête **CLOS**, les quatre lignes de `CHANTIER.md`, le bilan
+daté dans le fichier d'état, le routage de `CLAUDE.md`, et les deux pages
+republiées. Un fichier de fiches clos ne se rejoue pas.
+
+Un chantier peut aussi se clore **inachevé** : les fiches non jouées y sont
+dites **abandonnées**, jamais cochées. Mieux vaut un chantier clos honnête
+qu'un chantier ouvert que personne ne reprendra.
 
 **Les pages publiées, en marge des trois temps.** Le projet a une **feuille de
 route** (la TODO ordonnée, le chantier en cours, les clos) et chaque chantier a
@@ -36,7 +41,12 @@ sa **page de fiches**, marquée au fur et à mesure — faite, en cours, bloqué
 Seule la seconde vit au rythme des fiches : la feuille de route ne bouge qu'à
 l'ouverture et à la clôture, pour que `/tache` n'ait qu'une page à relire.
 Les commandes les tiennent seules ; leurs URL sont dans `CHANTIER.md`. Ce sont
-des vues : en cas de désaccord, **le fichier a raison**, et on corrige la page.
+des **vues dérivées** : la page de chantier n'est pas retouchée à la main, elle
+est **régénérée** depuis le fichier de fiches à chaque fiche finie. En cas de
+désaccord, **le fichier a raison** — c'est le `grep` des cases cochées qui
+tranche, pas la mémoire de la session.
+
+`/vlp-check` vérifie cet accord sans rien écrire, quand on a un doute.
 
 ## Le fichier de fiches
 
@@ -51,14 +61,24 @@ Il s'ouvre sur trois choses, et rien de plus :
   qui est ici n'est pas répété dans les fiches.
 - **L'ordre des fiches** : la liste, et qui dépend de qui.
 
-Puis les fiches, séparées par `---`. Les deux titres `## Le socle commun` et
-`## L'ordre des fiches` se recopient à l'identique : `/tache` les lit au `sed`,
-un titre reformulé casse l'extraction.
+Puis les fiches, séparées par `---`, **chacune encadrée de ses marqueurs** :
+
+```
+<!-- FICHE:D1 -->
+## D1 [ ] — <titre>
+…
+<!-- /FICHE -->
+```
+
+Les deux titres `## Le socle commun` et `## L'ordre des fiches` se recopient à
+l'identique, et les marqueurs ne s'omettent pas : `/tache` extrait le socle et
+la fiche par eux. Un titre reformulé ou un marqueur manquant casse l'extraction
+**en silence** — et une extraction vide ressemble à une fiche vide.
 
 ## Anatomie d'une fiche
 
 Une fiche tient en **~20 lignes**. Si elle en fait 50, c'est deux fiches.
-Le squelette complet est dans `templates/context AI/fichier-de-fiches.md`.
+Le squelette complet est dans `<kit>/templates/context AI/fichier-de-fiches.md`.
 
 Quatre exigences, apprises en cassant :
 

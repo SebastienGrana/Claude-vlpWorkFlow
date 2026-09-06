@@ -8,7 +8,7 @@
 - **alias** : <md>
 - **kit** : <~/Claude-vlpWorkflow — le dossier du kit, gabarits compris>
 - **contexte** : <context AI/>
-- **méthode** : <context AI/09-chantiers.md>
+- **méthode** : <kit>/methode-chantier.md
 - **chantiers possibles** : <context AI/08-etat.md>
 - **fichier d'état** : <context AI/08-etat.md>
 - **index** : <context AI/00-INDEX.md>

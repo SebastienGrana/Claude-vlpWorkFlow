@@ -1,7 +1,7 @@
 ---
 description: Ouvre une séance de travail : propose les chantiers possibles, puis cadre celui qu'on choisit en fiches
 argument-hint: (rien) | <nom du chantier> | <alias> <nom du chantier>
-allowed-tools: Bash(pwd:*), Bash(cd:*), Bash(ls:*), Bash(sed:*), Bash(grep:*), Bash(cat:*), Bash(mkdir:*), Bash(cp:*), Bash(dirname:*), Read, Edit, Write, Artifact
+allowed-tools: Bash(pwd:*), Bash(cd:*), Bash(ls:*), Bash(sed:*), Bash(grep:*), Bash(awk:*), Bash(cat:*), Bash(wc:*), Bash(mkdir:*), Bash(cp:*), Bash(dirname:*), Read, Edit, Write, Artifact
 ---
 
 Ouvre une séance de travail sur le projet où l'on se trouve.
@@ -83,6 +83,16 @@ les commentaires demandent. Puis propose le choix — reprendre par `/tache`,
 redécouper les fiches restantes, ou clore le chantier tel quel — et arrête-toi
 là si c'est `/tache` : rappelle `/clear` d'abord.
 
+**Si c'est « clore tel quel »**, n'improvise pas la procédure : elle est écrite
+une fois, et `/tache` applique la même.
+
+```bash
+cat "<kit>/cloture.md"
+```
+
+Les fiches non jouées y sont dites **abandonnées**, pas cochées : une case
+cochée est un mensonge que la table des clos gardera.
+
 ## 1. Lire la méthode, puis les chantiers possibles
 
 Dans cet ordre, ces fichiers, en entier — ils sont courts — et rien d'autre :
@@ -144,14 +154,21 @@ et `templates/artefact-chantier.html` — vivent dans le kit. Son chemin est la
 ligne « **kit** » de `CHANTIER.md`, déjà lue à l'étape 0. Vérifie qu'il répond :
 
 ```bash
-ls "<kit>/templates/context AI/fichier-de-fiches.md" "<kit>/templates/artefact-chantier.html" 2>/dev/null || ls -d ./Claude-vlpWorkflow ../Claude-vlpWorkflow ~/Claude-vlpWorkflow 2>/dev/null
+ls "<kit>/templates/context AI/fichier-de-fiches.md" "<kit>/templates/artefact-chantier.html" "<kit>/cloture.md" 2>/dev/null || ls -d ../Claude-vlpWorkflow ~/Claude-vlpWorkflow 2>/dev/null
 ```
 
-Si la ligne « kit » manque ou ne répond pas, le repli est la seconde moitié de
-la commande. Si rien ne répond non plus, **demande le chemin du kit et
-arrête-toi là** : ne réinvente pas les gabarits de mémoire. Ils portent des
-titres de sections que `/tache` lit au `sed` — un titre reformulé casse
-l'extraction dans toutes les fiches du chantier.
+**Ne cherche jamais le kit à l'intérieur du projet** — `./Claude-vlpWorkflow`
+est exclu du repli, et ce n'est pas un oubli. Une copie posée dans un projet
+est une copie que personne ne met à jour : le kit a déjà divergé comme ça, sur
+quatre projets à la fois, sans que rien ne le signale. Il n'en existe qu'**un**,
+à côté des projets ou dans `~`, et la ligne « kit » le nomme.
+
+Si la ligne « kit » manque, les seuls replis sont `../Claude-vlpWorkflow` (le
+workspace) et `~/Claude-vlpWorkflow`. Si aucun ne répond, **demande le chemin
+et arrête-toi là** : ne réinvente
+pas les gabarits de mémoire. Ils portent des titres de sections et des
+marqueurs que `/tache` lit au `sed` — un titre reformulé casse l'extraction
+dans toutes les fiches du chantier.
 
 Quand tu l'as trouvé autrement que par `CHANTIER.md`, écris sa ligne « kit »
 dans `CHANTIER.md` à l'étape 6 : la prochaine session n'aura plus à chercher.
@@ -181,6 +198,21 @@ ordre :
 Ces deux titres de section se recopient **à l'identique** : `/tache` les lit
 par `sed`, un titre reformulé casse l'extraction. Le squelette est dans
 `<kit>/templates/context AI/fichier-de-fiches.md`.
+
+**Encadre chaque fiche de ses marqueurs**, exactement ainsi, seuls sur leur
+ligne :
+
+```
+<!-- FICHE:D1 -->
+## D1 [ ] — <titre>
+…
+<!-- /FICHE -->
+```
+
+C'est par eux que `/tache` extrait la fiche. Sans marqueurs, elle se rabat sur
+le premier `---` venu — et un `---` ou un `##` dans un bloc de code de la fiche
+la tronque **sans rien dire**. Deux lignes par fiche, et le problème n'existe
+plus.
 
 ## 5 bis. Publier l'artefact du chantier
 
@@ -229,6 +261,18 @@ fichier lui-même :
 
 Et une cinquième **si l'étape 4 bis a dû chercher le kit** : sa ligne
 « **kit** » dans `CHANTIER.md`, avec le chemin trouvé.
+
+Puis **mesure ce que chaque fiche va coûter**, et annonce-le — un chiffre tient
+mieux qu'une règle :
+
+```bash
+awk '/^## Le socle/{f=1} f && /^## L.*ordre des fiches/{exit} f' "<contexte>/<NN>-<chantier>.md" | wc -l; wc -l "<contexte>/<NN>-<chantier>.md" "<contexte>/artefacts/<NN>-<chantier>.html"
+```
+
+Dis-le en une ligne : « socle N lignes + fiche ~M lignes + page P lignes = coût
+fixe par session ». Si le socle dépasse **80 lignes** ou la page **250**,
+propose d'alléger **avant** de rendre la main : ce gras sera relu à chaque
+fiche, autant de fois qu'il y a de fiches.
 
 Puis arrête-toi : donne le lien de l'artefact du chantier, annonce la première
 fiche à jouer, et rappelle de faire

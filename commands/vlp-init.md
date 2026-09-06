@@ -30,11 +30,17 @@ pwd; ls -d */ 2>/dev/null | head -20; ls CHANTIER.md CLAUDE.md 2>/dev/null
 Les gabarits à recopier sont dans le dossier `Claude-vlpWorkflow`.
 
 ```bash
-ls -d ./Claude-vlpWorkflow ../Claude-vlpWorkflow ~/Claude-vlpWorkflow 2>/dev/null
+ls -d ../Claude-vlpWorkflow ~/Claude-vlpWorkflow 2>/dev/null
 ```
 
+`./Claude-vlpWorkflow` — une copie **dans** le projet — n'est volontairement
+pas cherché : une copie posée là ne se met jamais à jour, et c'est comme ça que
+le kit a divergé sur quatre projets sans que rien ne le signale. Il n'en existe
+qu'un, à côté des projets ou dans `~`.
+
 Si aucun ne répond, demande son chemin. Ne réinvente pas les gabarits de
-mémoire : ils portent des titres de sections que `/tache` lit au `sed`.
+mémoire : ils portent des titres de sections et des marqueurs que `/tache` lit
+au `sed`.
 
 ## 2. Le questionnaire — sept réponses, pas une de plus
 
@@ -66,16 +72,33 @@ Recopie depuis le kit, en remplaçant les `<…>` par les réponses :
 |---|---|---|
 | `templates/CHANTIER.md` | `CHANTIER.md` (racine) | la carte que lisent `/chantier` et `/tache` |
 | `templates/CLAUDE.md` | `CLAUDE.md` (racine) | l'entrée : identité, état, règles, routage |
-| `templates/context AI/methode-chantier.md` | `<contexte>/09-chantiers.md` | comment on découpe et on exécute |
 | `templates/context AI/00-INDEX.md` | `<contexte>/00-INDEX.md` | un fichier = un sujet |
 | `templates/context AI/NN-etat.md` | `<contexte>/08-etat.md` | l'état daté et la TODO ordonnée |
 | `templates/artefact-feuille-de-route.html` | `<contexte>/artefacts/feuille-de-route.html` | la page publiable du projet |
+
+**Ce qui ne se copie pas, et pourquoi.** `methode-chantier.md`, `cloture.md`
+et `templates/context AI/fichier-de-fiches.md` restent dans le kit. Ce sont des
+règles de travail, pas des données de projet : recopiées, elles existeraient en
+autant d'exemplaires qu'il y a de projets, et une correction de méthode n'en
+atteindrait aucun. Là où elles sont, elles servent tous les projets à la fois.
+
+Le partage est celui-ci, et il vaut la peine d'être retenu :
+
+- **le kit porte le moteur** — les commandes, la méthode, la clôture, les
+  gabarits ;
+- **le projet porte ses données** — `CHANTIER.md`, `CLAUDE.md`, son état, ses
+  fichiers de fiches, ses pages publiées.
+
+Un projet équipé avant cette règle garde sa copie de la méthode : sa ligne
+« méthode » la nomme, et rien ne va la lui retirer. C'est seulement qu'on n'en
+fabrique plus de nouvelle.
 
 Si `CLAUDE.md` existe déjà, **ne l'écrase pas** : ajoute-lui seulement la ligne
 de routage vers le fichier de méthode et la section « Économie de contexte »
 du gabarit, si elle manque.
 
-Renseigne dans `CHANTIER.md` tout ce que le questionnaire a donné, **et la
+Renseigne dans `CHANTIER.md` tout ce que le questionnaire a donné, la ligne
+« **méthode** » avec `<kit>/methode-chantier.md`, **et la
 ligne `- **kit** :` avec le chemin résolu à l'étape 1** — c'est par elle que
 `/chantier` retrouvera ses gabarits sans chercher. Laisse
 « fichier de fiches courant : **aucun** » — c'est `/chantier` qui la remplira.
@@ -100,6 +123,30 @@ la prochaine session publierait un doublon du même nom.
 
 Si la publication échoue, dis-le en une ligne, laisse la ligne à « aucun » et
 continue : le projet est équipé quand même.
+
+## 3 ter. Autoriser la livraison et la vérification
+
+`/tache` n'a **pas** `Bash` ouvert : elle ne peut lire que `sed`, `grep`,
+`awk`, `cat`, `tail`, `head`, `ls`, `wc`. Les commandes des réponses 4 et 5 —
+`./deploy.sh`, `mvn -q test`, `npm run build`… — n'en font pas partie, et
+seront **refusées** à chaque fiche si rien ne les autorise.
+
+Elles se déclarent une fois, dans `.claude/settings.json` **du projet** :
+
+```json
+{
+  "permissions": {
+    "allow": ["Bash(./deploy.sh)", "Bash(mvn -q test)"]
+  }
+}
+```
+
+Écris-y les commandes exactes des réponses 4 et 5, et rien de plus large : le
+but est qu'une fiche puisse livrer et vérifier, pas qu'elle puisse tout faire.
+Si le fichier existe déjà, **ajoute** à sa liste `allow` sans rien retirer.
+
+Si la livraison est « aucune » et la vérification un geste de l'utilisateur, il
+n'y a rien à autoriser — dis-le en une ligne.
 
 ## 4. Le point que l'on oublie toujours
 

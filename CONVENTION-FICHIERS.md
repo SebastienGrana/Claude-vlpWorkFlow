@@ -10,13 +10,37 @@ Voici la convention complète, indépendante du langage et du projet.
 | `CLAUDE.md` | oui | **toute** session, en entier, en premier | 60 lignes |
 | `CHANTIER.md` | oui | `/chantier` et `/tache`, en entier | 30 lignes |
 | `<contexte>/00-INDEX.md` | non | seulement quand le routage de `CLAUDE.md` ne répond pas | 40 lignes |
-| `<contexte>/08-etat.md` | non | reprise à froid, choix du prochain chantier | libre |
-| `<contexte>/09-chantiers.md` | non | `/chantier` seulement — jamais `/tache` | 90 lignes |
-| `<contexte>/<NN>-<chantier>.md` | non | `/tache`, **par plages**, jamais en entier | libre |
+| le **fichier d'état** | non | reprise à froid, choix du prochain chantier | libre |
+| les **fichiers de fiches**, un par chantier | non | `/tache`, **par plages**, jamais en entier | libre |
 | `<contexte>/artefacts/*.html` | non | publié pour l'utilisateur ; relu par `/tache` à chaque fiche | 250 lignes |
 
 Le dossier de contexte s'appelle `context AI/` par défaut. Son nom importe peu ;
 ce qui compte est qu'il soit **un seul dossier**, à plat, numéroté.
+
+**Les numéros ne sont pas la convention — les libellés le sont.** L'état
+s'appelle `08-etat.md` dans un projet et `10-etat.md` dans un autre, selon ce
+que la numérotation avait déjà pris. Ce qui ne varie pas, ce sont les libellés
+en gras de `CHANTIER.md` — « **fichier d'état** », « **méthode** », «
+**fichier de fiches courant** » — que les commandes lisent tels quels. Une
+commande qui chercherait `08-etat.md` en dur se tromperait de projet un jour
+sur deux ; elle lit la ligne, et la ligne dit le nom.
+
+## Ce qui reste dans le kit, et ne descend jamais dans un projet
+
+| Fichier du kit | Qui le lit | Pourquoi il ne se copie pas |
+|---|---|---|
+| `commands/*.md` | Claude Code, via `~/.claude/commands/` | une commande par machine, poussée par `/vlp-sync` |
+| `methode-chantier.md` | `/chantier` | c'est une règle de travail, pas une donnée de projet |
+| `cloture.md` | `/tache` et `/chantier`, au moment de clore | la clôture n'est décrite qu'**une** fois |
+| `templates/context AI/fichier-de-fiches.md` | `/chantier`, comme squelette | il est instancié, pas recopié |
+| `templates/artefact-chantier.html` | `/chantier`, une fois par chantier | idem |
+
+**Le moteur est dans le kit, les données sont dans le projet.** Une doctrine
+recopiée dans cinq projets existe en cinq exemplaires, et une correction n'en
+atteint aucun : c'est exactement comme ça que le kit a divergé sur six copies
+sans qu'aucune alarme ne sonne. Un projet équipé avant cette règle garde sa
+copie — sa ligne « méthode » la nomme, et on ne la lui retire pas ; on cesse
+seulement d'en fabriquer de nouvelles.
 
 ## Les cinq règles
 
@@ -67,7 +91,7 @@ est « déjà prise », et il doit dire par quel chantier.
 
 ## Le cycle de vie d'un chantier, vu depuis les fichiers
 
-1. `/chantier` lit `<contexte>/09-chantiers.md` puis le fichier d'état.
+1. `/chantier` lit `<kit>/methode-chantier.md` puis le fichier d'état.
 2. Il écrit `<contexte>/<NN>-<chantier>.md`, publie
    `<contexte>/artefacts/<NN>-<chantier>.html`, et **quatre lignes** ailleurs :
    l'index, le routage de `CLAUDE.md`, « fichier de fiches courant » et
@@ -75,10 +99,14 @@ est « déjà prise », et il doit dire par quel chantier.
 3. `/tache` ne touche qu'au fichier de fiches (une case cochée), à l'artefact
    du chantier (la même case, et la fiche suivante marquée en cours) et, si une
    décision imprévue est tombée, au fichier d'état (une ligne).
-4. À la dernière case cochée : « clos » en tête du fichier de fiches, sa ligne
-   passe dans la table des clos de `CHANTIER.md` avec l'URL de son artefact, le
-   routage le dit, l'état reçoit sa ligne de bilan, l'artefact du chantier
-   reçoit le sien, et la feuille de route repasse à « aucun chantier ouvert ».
+4. À la dernière case cochée, la clôture se joue : « clos » en tête du fichier
+   de fiches, sa ligne dans la table des clos de `CHANTIER.md` avec l'URL de son
+   artefact, le routage qui le dit, une ligne de bilan dans l'état, et les deux
+   pages republiées. Les cinq écritures et leur ordre sont dans
+   `<kit>/cloture.md` — décrites à un seul endroit, pour que les deux commandes
+   qui closent ne puissent pas le faire différemment.
+5. `/vlp-check` relit tout ça sans rien écrire, quand on doute que le fichier et
+   la page disent encore la même chose.
 
 ## Ce qui ne part pas dans git
 

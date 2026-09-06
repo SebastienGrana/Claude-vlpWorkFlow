@@ -7,66 +7,51 @@
 -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700&family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:wght@400;600&display=swap">
 <style>
-  :root {
-    --ground: #f4f5f7; --surface: #ffffff; --line: #d9dce3; --line-fort: #b9bec9;
-    --texte: #1a222e; --doux: #5c6675; --accent: #2f5d8c;
-    --fait: #2f7a55; --cours: #a86a12; --bloque: #a63d40; --attente: #8d95a3;
-    --ombre: 0 1px 2px rgba(26,34,46,.06);
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --ground: #11161d; --surface: #19202a; --line: #2b3542; --line-fort: #3d4a5a;
-      --texte: #e5e9ef; --doux: #98a2b1; --accent: #7fb0e0;
-      --fait: #5fbb8b; --cours: #d9a441; --bloque: #e0777a; --attente: #6d7787;
-      --ombre: none;
-    }
-  }
-  :root[data-theme="dark"] {
-    --ground: #11161d; --surface: #19202a; --line: #2b3542; --line-fort: #3d4a5a;
-    --texte: #e5e9ef; --doux: #98a2b1; --accent: #7fb0e0;
-    --fait: #5fbb8b; --cours: #d9a441; --bloque: #e0777a; --attente: #6d7787;
-    --ombre: none;
-  }
-  * { box-sizing: border-box; }
-  [hidden] { display: none !important; }
-  body { background: var(--ground); color: var(--texte); font-family: "Source Sans 3", system-ui, sans-serif; font-size: 16px; line-height: 1.55; }
-  .page { max-width: 46rem; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; display: flex; flex-direction: column; gap: 2rem; }
-  h1, h2 { font-family: Archivo, system-ui, sans-serif; text-wrap: balance; margin: 0; }
-  h1 { font-size: 1.9rem; font-weight: 700; letter-spacing: -.015em; }
-  h2 { font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .09em; color: var(--doux); }
-  .eyebrow { font-family: "IBM Plex Mono", monospace; font-size: .75rem; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); }
-  .mono { font-family: "IBM Plex Mono", monospace; font-variant-numeric: tabular-nums; }
-  header { display: flex; flex-direction: column; gap: .35rem; border-bottom: 2px solid var(--line-fort); padding-bottom: 1.25rem; }
-  header p { margin: .4rem 0 0; color: var(--doux); max-width: 62ch; }
-  .avancement { display: flex; gap: .25rem; margin-top: .9rem; }
-  .avancement span { height: .4rem; flex: 1; border-radius: 1px; background: var(--line); }
-  .avancement span[data-etat="faite"] { background: var(--fait); }
-  .avancement span[data-etat="encours"] { background: var(--cours); }
-  .avancement span[data-etat="bloquee"] { background: var(--bloque); }
-  section { display: flex; flex-direction: column; gap: .85rem; }
-  .fiches { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .5rem; }
-  .fiche { display: grid; grid-template-columns: 3.5rem 1fr; gap: .1rem .9rem; background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--attente); border-radius: 3px; padding: .7rem .9rem; box-shadow: var(--ombre); }
-  .fiche[data-etat="faite"] { border-left-color: var(--fait); }
-  .fiche[data-etat="encours"] { border-left-color: var(--cours); }
-  .fiche[data-etat="bloquee"] { border-left-color: var(--bloque); }
-  .fiche .id { font-family: "IBM Plex Mono", monospace; font-weight: 500; color: var(--doux); }
-  .fiche[data-etat="encours"] .id, .fiche[data-etat="bloquee"] .id { color: var(--texte); }
-  .fiche .titre { font-weight: 600; }
-  .fiche[data-etat="faite"] .titre { color: var(--doux); font-weight: 400; }
-  .fiche .note { grid-column: 2; font-size: .9rem; color: var(--doux); }
-  .fiche .etat { grid-column: 1; font-size: .68rem; letter-spacing: .07em; text-transform: uppercase; font-family: "IBM Plex Mono", monospace; color: var(--attente); }
-  .fiche[data-etat="faite"] .etat { color: var(--fait); }
-  .fiche[data-etat="encours"] .etat { color: var(--cours); }
-  .fiche[data-etat="bloquee"] .etat { color: var(--bloque); }
-  .blocage { background: var(--surface); border: 1px solid var(--bloque); border-radius: 3px; padding: .8rem .9rem; }
-  .blocage pre { margin: .5rem 0 0; overflow-x: auto; font-family: "IBM Plex Mono", monospace; font-size: .82rem; color: var(--texte); }
-  .journal { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .6rem; }
-  .journal li { display: grid; grid-template-columns: 6rem 1fr; gap: .9rem; border-top: 1px solid var(--line); padding-top: .6rem; }
-  .journal time { font-family: "IBM Plex Mono", monospace; font-size: .85rem; color: var(--doux); }
-  .bilan { background: var(--surface); border: 1px solid var(--line); border-top: 3px solid var(--fait); border-radius: 3px; padding: 1rem 1.1rem; }
-  .bilan p { margin: 0 0 .6rem; }
-  .bilan p:last-child { margin-bottom: 0; }
-  footer { border-top: 1px solid var(--line); padding-top: .9rem; font-size: .82rem; color: var(--doux); display: flex; flex-wrap: wrap; gap: .25rem 1.25rem; }
+  /* Compact volontairement : /tache relit cette page à chaque fiche, et le CSS
+     ne change jamais. Chaque ligne gagnée ici est gagnée à chaque fiche. */
+  :root { --ground:#f4f5f7; --surface:#fff; --line:#d9dce3; --line-fort:#b9bec9; --texte:#1a222e; --doux:#5c6675; --accent:#2f5d8c; --fait:#2f7a55; --cours:#a86a12; --bloque:#a63d40; --attente:#8d95a3; --ombre:0 1px 2px rgba(26,34,46,.06); }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --ground:#11161d; --surface:#19202a; --line:#2b3542; --line-fort:#3d4a5a; --texte:#e5e9ef; --doux:#98a2b1; --accent:#7fb0e0; --fait:#5fbb8b; --cours:#d9a441; --bloque:#e0777a; --attente:#6d7787; --ombre:none; } }
+  :root[data-theme="dark"] { --ground:#11161d; --surface:#19202a; --line:#2b3542; --line-fort:#3d4a5a; --texte:#e5e9ef; --doux:#98a2b1; --accent:#7fb0e0; --fait:#5fbb8b; --cours:#d9a441; --bloque:#e0777a; --attente:#6d7787; --ombre:none; }
+  * { box-sizing:border-box; } [hidden] { display:none !important; }
+  body { background:var(--ground); color:var(--texte); font-family:"Source Sans 3",system-ui,sans-serif; font-size:16px; line-height:1.55; }
+  .page { max-width:46rem; margin:0 auto; padding:2.5rem 1.25rem 4rem; display:flex; flex-direction:column; gap:2rem; }
+  h1,h2 { font-family:Archivo,system-ui,sans-serif; text-wrap:balance; margin:0; }
+  h1 { font-size:1.9rem; font-weight:700; letter-spacing:-.015em; }
+  h2 { font-size:.8rem; font-weight:700; text-transform:uppercase; letter-spacing:.09em; color:var(--doux); }
+  .eyebrow { font-family:"IBM Plex Mono",monospace; font-size:.75rem; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); }
+  .mono,.fiche .id,.fiche .etat,.journal time,.blocage pre { font-family:"IBM Plex Mono",monospace; }
+  .mono { font-variant-numeric:tabular-nums; }
+  header { display:flex; flex-direction:column; gap:.35rem; border-bottom:2px solid var(--line-fort); padding-bottom:1.25rem; }
+  header p { margin:.4rem 0 0; color:var(--doux); max-width:62ch; }
+  .avancement { display:flex; gap:.25rem; margin-top:.9rem; }
+  .avancement span { height:.4rem; flex:1; border-radius:1px; background:var(--line); }
+  section { display:flex; flex-direction:column; gap:.85rem; }
+  .fiches,.journal { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
+  .fiches { gap:.5rem; } .journal { gap:.6rem; }
+  .fiche { display:grid; grid-template-columns:3.5rem 1fr; gap:.1rem .9rem; background:var(--surface); border:1px solid var(--line); border-left:3px solid var(--attente); border-radius:3px; padding:.7rem .9rem; box-shadow:var(--ombre); }
+  .fiche .id { font-weight:500; color:var(--doux); }
+  .fiche .titre { font-weight:600; }
+  .fiche .note { grid-column:2; font-size:.9rem; color:var(--doux); }
+  .fiche .etat { grid-column:1; font-size:.68rem; letter-spacing:.07em; text-transform:uppercase; color:var(--attente); }
+  /* les trois états, partout où ils comptent */
+  .avancement span[data-etat="faite"] { background:var(--fait); }
+  .avancement span[data-etat="encours"] { background:var(--cours); }
+  .avancement span[data-etat="bloquee"] { background:var(--bloque); }
+  .fiche[data-etat="faite"] { border-left-color:var(--fait); }
+  .fiche[data-etat="encours"] { border-left-color:var(--cours); }
+  .fiche[data-etat="bloquee"] { border-left-color:var(--bloque); }
+  .fiche[data-etat="faite"] .etat { color:var(--fait); }
+  .fiche[data-etat="encours"] .etat { color:var(--cours); }
+  .fiche[data-etat="bloquee"] .etat { color:var(--bloque); }
+  .fiche[data-etat="faite"] .titre { color:var(--doux); font-weight:400; }
+  .fiche[data-etat="encours"] .id,.fiche[data-etat="bloquee"] .id { color:var(--texte); }
+  .blocage { background:var(--surface); border:1px solid var(--bloque); border-radius:3px; padding:.8rem .9rem; }
+  .blocage pre { margin:.5rem 0 0; overflow-x:auto; font-size:.82rem; color:var(--texte); }
+  .journal li { display:grid; grid-template-columns:6rem 1fr; gap:.9rem; border-top:1px solid var(--line); padding-top:.6rem; }
+  .journal time { font-size:.85rem; color:var(--doux); }
+  .bilan { background:var(--surface); border:1px solid var(--line); border-top:3px solid var(--fait); border-radius:3px; padding:1rem 1.1rem; }
+  .bilan p { margin:0 0 .6rem; } .bilan p:last-child { margin-bottom:0; }
+  footer { border-top:1px solid var(--line); padding-top:.9rem; font-size:.82rem; color:var(--doux); display:flex; flex-wrap:wrap; gap:.25rem 1.25rem; }
 </style>
 
 <div class="page">

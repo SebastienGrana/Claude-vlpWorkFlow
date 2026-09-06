@@ -82,16 +82,46 @@ crée un doublon ou se fait refuser. La séquence est toujours celle-ci :
 3. `Artifact` avec le `file_path` local **et** l'`url` : même page, même URL.
 
 Sans `url`, la publication crée un artefact séparé. Sans lecture préalable,
-elle est refusée. Et en cas de conflit — quelqu'un a publié entre-temps — on
+elle est refusée. Ce `read` n'est pas une prudence du kit qu'on pourrait
+économiser : **il est imposé par le protocole de publication**. Chercher à s'en
+passer pour gagner du contexte ne gagne rien — ça fait échouer la publication. Et en cas de conflit — quelqu'un a publié entre-temps — on
 **fusionne sur la version rendue**, on ne force jamais.
 
 `favicon` ne se repasse pas : la page garde son icône, et une icône qui change
 se lit comme une autre page.
 
+## La page se régénère, elle ne se retouche pas
+
+C'est le point qui décide de tout le reste. La page du chantier est une **vue
+dérivée** du fichier de fiches : à chaque fiche finie, on relit l'état réel du
+fichier et on réécrit la page pour qu'elle y corresponde.
+
+```bash
+grep -n '^## [A-Z][0-9] \[[ x]\]' "<fichier de fiches courant>"
+```
+
+Puis la page dit exactement ça, et rien d'autre. **En cas de désaccord entre la
+page et le fichier, c'est le `grep` qui a raison** — pas la mémoire de la
+session, qui n'a pas vu les fiches jouées avant elle.
+
+La tentation inverse — retoucher la ligne de la fiche qu'on vient de faire — a
+l'air moins chère et coûte plus : elle fait de la page une seconde source de
+vérité, tenue à la main, qui dérive silencieusement dès la première session
+interrompue au mauvais moment. `/vlp-check` compare les deux comptes quand on
+doute.
+
 ## Le budget de contexte
 
 `/tache` relit l'artefact du chantier à chaque fiche. C'est ce qui fixe la
-taille de la page : **250 lignes au maximum**, gabarit compris. Une fiche
+taille de la page : **250 lignes au maximum**, gabarit compris. La limite se
+mesure, elle ne s'estime pas :
+
+```bash
+wc -l "<contexte>/artefacts/<NN>-<chantier>.html"
+```
+
+Au-delà, il faut le **dire** et proposer ce qui sort, avant de republier : ces
+lignes en trop se payent autant de fois qu'il reste de fiches à jouer. Une fiche
 n'ajoute qu'une ligne de note et un `data-etat` ; si la page gonfle, c'est que
 des choses qui appartiennent au fichier de fiches ont migré dedans.
 

@@ -1,7 +1,7 @@
 ---
 description: Exécute une fiche du chantier courant du projet où l'on se trouve
 argument-hint: (rien) | <fiche> | <alias> <fiche> | <fiche> commentaires
-allowed-tools: Bash, Read, Edit, Write, Artifact
+allowed-tools: Bash(sed:*), Bash(grep:*), Bash(awk:*), Bash(cat:*), Bash(tail:*), Bash(head:*), Bash(ls:*), Bash(wc:*), Bash(pwd:*), Bash(cd:*), Bash(dirname:*), Read, Edit, Write, Artifact
 ---
 
 Exécute **une** fiche du chantier courant. Si une fiche est donnée en
@@ -22,18 +22,24 @@ une fiche, pas comment l'exécuter), et **jamais un fichier de fiches en
 entier** — il fait des centaines de lignes, la fiche en fait 20. Pas d'agent,
 pas de recherche large : tout est déjà localisé.
 
-`Bash` est ouvert **pour une seule raison** : la **livraison** et la
-**vérification** de `CHANTIER.md` sont des commandes propres au projet, et
-l'étape 5 doit pouvoir les lancer et lire leur sortie sans t'arrêter. Hors ces
-deux lignes-là, tiens-t'en à lire ce que les étapes nomment — `sed`, `grep`,
-`cat`, `tail` — et n'invente aucune commande qui écrirait ailleurs.
+`Bash` n'est ouvert **que pour lire** : `sed`, `grep`, `awk`, `cat`, `tail`,
+`head`, `ls`, `wc`. La **livraison** et la **vérification** de `CHANTIER.md`
+sont des commandes propres au projet ; elles ne sont **pas** dans cette liste,
+et c'est voulu — elles se déclarent une fois dans les permissions du projet
+(`.claude/settings.json`), pas dans un `Bash` ouvert à tout. Si l'étape 5 se
+fait refuser la commande, dis-le en une ligne et demande de l'autoriser : ne
+cherche pas de contournement, et n'invente aucune commande qui écrirait
+ailleurs.
 
 Une seule chose s'ouvre en plus, et seulement à l'étape 6 bis : **l'artefact du
-chantier**, que cette commande tient à jour de bout en bout. Il fait moins de
-250 lignes, c'est la condition pour qu'il ne coûte rien. La **feuille de
-route**, elle, ne s'ouvre qu'à l'étape 7, à la clôture du chantier — pas à
-chaque fiche. Les commentaires ne se lisent que si `commentaires` est passé en
-argument.
+chantier**. Sa lecture est **imposée par le protocole de publication** — une
+page que la session n'a ni lue ni publiée refuse la republication — mais ce
+qu'on y écrit ne s'invente pas : l'étape 6 bis la **régénère** depuis le
+fichier de fiches, qui reste la seule source de vérité. C'est ce qui fixe sa
+taille : **250 lignes au maximum**, sinon elle coûte plus cher que la fiche.
+La **feuille de route** ne s'ouvre qu'à l'étape 7, à la clôture du chantier —
+pas à chaque fiche. Les commentaires ne se lisent que si `commentaires` est
+passé en argument.
 
 ## 0. Trouver le projet — sans le demander si c'est évident
 
@@ -92,8 +98,13 @@ Sinon, liste les titres de fiches du fichier de fiches courant — les titres
 seuls, jamais le fichier entier :
 
 ```bash
-grep -n '^## [A-Z][0-9]' "<fichier de fiches courant>"
+wc -l "<fichier de fiches courant>"; grep -n '^## [A-Z][0-9]' "<fichier de fiches courant>"
 ```
+
+**Garde.** Si le fichier compte des lignes mais que le `grep` n'en rend
+aucune, **arrête-toi et montre la sortie brute** : ses titres ne sont pas au
+format attendu. Une extraction vide n'est pas un chantier fini — ne conclus
+jamais « tout est coché » d'un `grep` muet.
 
 La fiche retenue est **la première ligne de cette sortie qui ne porte pas
 `[x]`** — la première dans l'ordre du fichier, pas le plus petit numéro :
@@ -110,8 +121,20 @@ mais une case mal cochée doit se voir tout de suite, pas à la fin.
 ## 1. Lire la fiche, et elle seule
 
 ```bash
+sed -n '/^<!-- FICHE:<fiche retenue> -->$/,/^<!-- \/FICHE -->$/p' "<fichier de fiches courant>"
+```
+
+Les fichiers de fiches cadrés **avant** les marqueurs n'en portent pas. Dans ce
+cas seulement, le repli est l'ancien motif — moins sûr, il s'arrête au premier
+`---` venu :
+
+```bash
 sed -n '/^## <fiche retenue> /,/^---$/p' "<fichier de fiches courant>"
 ```
+
+**Garde — compte ce que l'extraction a rendu.** Moins de cinq lignes n'est pas
+une fiche courte, c'est une extraction ratée : arrête-toi et montre la sortie
+brute. Un `---` ou un `##` posé dans un bloc de code coupe le repli en silence.
 
 Si la fiche ne s'y trouve pas, arrête-toi et dis-le — n'en cherche pas une
 autre ailleurs.
@@ -146,8 +169,12 @@ Lis d'abord le socle commun du fichier de fiches — une seule fois, cette plage
 et rien de plus :
 
 ```bash
-sed -n '/^## Le socle/,/^## L.ordre des fiches/p' "<fichier de fiches courant>"
+awk '/^## Le socle/{f=1} f && /^## L.*ordre des fiches/{exit} f' "<fichier de fiches courant>"
 ```
+
+(`.*` et non `.` : l'apostrophe typographique fait trois octets, un `.` ne la
+couvre pas et le motif échouerait sans rien dire.) **Si cette commande ne rend
+rien, arrête-toi** : le socle existe dans tout fichier de fiches.
 
 Puis applique le bloc « Prompt » de la fiche, en respectant la section
 « **Contraintes d'écriture** » de `CHANTIER.md`.
@@ -198,8 +225,8 @@ il se paye autant de fois. Une deuxième session bloquée **complète** ce bloc,
 elle n'en ouvre pas un second.
 
 Puis **marque le blocage sur l'artefact** — c'est le moment où l'on a le plus
-besoin de le voir. Suis la séquence de
-l'étape 6 (lire, reporter, republier), avec : la fiche passée en
+besoin de le voir. Suis la régénération de l'étape 6 bis (grep, lire, réécrire,
+republier), avec : la fiche passée en
 `data-etat="bloquee"` dans `ZONE:fiches` et dans `ZONE:avancement`, la section
 `ZONE:blocage` rendue visible — retire son `hidden` — portant les deux lignes
 de ce que tu as tenté et l'erreur brute, telle quelle, dans le `pre`.
@@ -230,7 +257,7 @@ et rien d'autre : ce qui a échoué a servi, il n'a plus à être relu. Une pist
 qui a échoué pour une raison qui vaut au-delà de cette fiche va, elle, dans le
 fichier d'état.
 
-## 6 bis. Mettre l'artefact du chantier à jour
+## 6 bis. Régénérer l'artefact du chantier
 
 L'artefact est ce que l'utilisateur regarde entre deux sessions : une fiche
 cochée dans le fichier mais pas sur la page, et la page ment. Fais-le dans la
@@ -240,23 +267,55 @@ Son URL est dans la ligne « **artefact du chantier** » de `CHANTIER.md`. Si
 elle vaut « aucun », saute cette étape et dis-le en une ligne : le chantier a
 été cadré sans artefact.
 
-Trois gestes, dans cet ordre — la lecture n'est pas facultative, une session
-neuve n'a rien publié et sa republication serait refusée :
+**Le principe : la page dérive du fichier de fiches, jamais l'inverse.** Tu ne
+reportes pas une case de tête — tu réécris les zones pour qu'elles disent ce
+que le fichier dit, et le fichier vient d'être mis à jour à l'étape 6.
 
-1. `Artifact`, `action: "read"`, cette `url` ;
-2. reporte sur la version rendue, et sur le fichier local
-   `<contexte>/artefacts/<NN>-<chantier>.html` :
-   - la fiche jouée en `data-etat="faite"`, son `etat` en « faite », et sa
-     `note` remplacée par le **critère de fin constaté** — une ligne, avec les
-     comptes bruts s'il y en a ;
-   - la fiche suivante en `data-etat="encours"` ;
-   - le même changement dans `ZONE:avancement`, et la ligne de comptage de
-     l'en-tête ;
+Quatre gestes, dans cet ordre :
+
+1. relis l'état réel des fiches — une commande, quatre lignes de sortie :
+
+   ```bash
+   grep -n '^## [A-Z][0-9]' "<fichier de fiches courant>"
+   ```
+
+2. `Artifact`, `action: "read"`, cette `url`. **Cette lecture n'est pas
+   facultative** : le protocole refuse une republication sur une page que la
+   session n'a ni lue ni publiée. Elle sert aussi à récupérer ce qui aurait été
+   publié entre-temps.
+
+3. réécris le fichier local `<contexte>/artefacts/<NN>-<chantier>.html`, à
+   partir de la version rendue, pour qu'il dise **exactement** ce que la sortie
+   du `grep` dit :
+
+   - chaque fiche `[x]` en `data-etat="faite"`, son `etat` en « faite » ;
+   - la première non cochée en `data-etat="encours"` ;
+   - les suivantes sans `data-etat` ;
+   - `ZONE:avancement` : un segment par fiche, les mêmes états ;
+   - la `note` de la fiche jouée remplacée par le **critère de fin constaté** —
+     une ligne, comptes bruts compris ;
+   - `ZONE:blocage` remise en `hidden` si la fiche qui bloquait vient de
+     passer ;
    - si la tâche a tranché quelque chose d'imprévu, la **même ligne** que celle
      ajoutée au fichier d'état, datée, dans `ZONE:journal` ;
-   - la date du pied de page ;
-3. republie : `file_path` local **et** `url` — sans `url`, tu crées un doublon.
+   - la ligne de comptage de l'en-tête, et la date du pied de page.
+
+   En cas de **désaccord** entre la page et le `grep`, c'est le `grep` qui a
+   raison : la page est une vue, le fichier est la vérité.
+
+4. republie : `file_path` local **et** `url` — sans `url`, tu crées un doublon.
    Pas de `favicon`, pas de nouveau titre. `label` : `<fiche> faite`.
+
+**Garde de taille**, avant de republier :
+
+```bash
+wc -l "<contexte>/artefacts/<NN>-<chantier>.html"
+```
+
+Au-delà de **250 lignes**, republie quand même mais **dis-le en une ligne** :
+cette page est relue à chaque fiche, son gras se paye autant de fois qu'il
+reste de fiches à jouer. Ce qui la gonfle vient presque toujours du fichier de
+fiches — prompt, socle, extraits de code — et n'a rien à faire là.
 
 Rien d'autre ne va sur cette page : pas de code, pas le prompt de la fiche, pas
 le détail des tentatives. Si la publication échoue, dis-le en une ligne et
@@ -270,22 +329,30 @@ fiche coûterait autant que la page du chantier pour une ligne.
 
 ## 7. Si c'était la dernière fiche
 
-Dis-le : le chantier est fini. Il reste alors, dans cette même session :
+Dis-le : le chantier est fini. La clôture est décrite **à un seul endroit**,
+pour que `/tache` et `/chantier` la fassent à l'identique :
 
-1. **clos** en tête du fichier de fiches, et sa ligne de `CHANTIER.md` passée
-   de « courant » à la table des clos — avec l'URL de son artefact dans la
-   colonne « Artefact », et la ligne « artefact du chantier » remise à
-   « aucun » ;
-2. sur l'artefact du chantier, la section `ZONE:bilan` rendue visible — retire
-   son `hidden` — avec la date, ce que le chantier a livré, et ce qui a
-   surpris. Republication comme à l'étape 6 bis, `label` : `clos` ;
-3. sur la **feuille de route** — son URL est dans `CHANTIER.md` — même séquence
-   lire / reporter / republier : `ZONE:encours` remis à « aucun chantier
-   ouvert », une ligne ajoutée en tête de `ZONE:clos` avec le lien vers
-   l'artefact du chantier, et la ligne correspondante retirée de `ZONE:todo`.
-   Profites-en pour reporter la TODO du fichier d'état si elle a bougé — c'est
-   le fichier qui fait foi, la page n'en est que le miroir. `label` :
-   `<chantier> clos`.
+```bash
+cat "<kit>/cloture.md"
+```
+
+`<kit>` est la ligne « **kit** » de `CHANTIER.md`, déjà lue à l'étape 0. C'est
+le seul fichier que cette commande ouvre en plus, **une fois par chantier**, au
+moment où la session se termine de toute façon. S'il ne répond pas, dis-le et
+arrête-toi : le chantier reste ouvert, rien n'est cassé, et `/chantier` saura
+le clore.
+
+Cinq écritures, dans cet ordre — le **fichier dit comment**, cette liste ne
+sert qu'à vérifier que rien ne manque :
+
+1. **CLOS** en tête du fichier de fiches ;
+2. quatre lignes de `CHANTIER.md` (courant → clos, artefact → aucun, la ligne
+   dans la table des clos avec son URL, la lettre marquée prise) ;
+3. une ligne de bilan datée dans le fichier d'état ;
+4. le routage de `CLAUDE.md` qui dit « clos » ;
+5. les deux pages republiées — l'artefact du chantier, puis la feuille de route.
+
+Si l'une échoue, dis **laquelle** : la reprise saura quoi finir.
 
 Puis donne les deux liens, et rappelle-lui de faire `/clear` avant la fiche
 suivante — ou `/chantier` s'il n'y en a plus.
