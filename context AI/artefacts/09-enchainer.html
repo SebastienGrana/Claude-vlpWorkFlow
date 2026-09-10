@@ -1,0 +1,148 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found]){display:none!important}</style></head><body>
+<title>Claude-vlpWorkflow — Enchaîner les fiches</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700&family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:wght@400;600&display=swap">
+<style>
+  /* Compact volontairement : /tache relit cette page à chaque fiche, et le CSS
+     ne change jamais. Chaque ligne gagnée ici est gagnée à chaque fiche. */
+  :root { --ground:#f4f5f7; --surface:#fff; --line:#d9dce3; --line-fort:#b9bec9; --texte:#1a222e; --doux:#5c6675; --accent:#2f5d8c; --fait:#2f7a55; --cours:#a86a12; --bloque:#a63d40; --attente:#8d95a3; --ombre:0 1px 2px rgba(26,34,46,.06); }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --ground:#11161d; --surface:#19202a; --line:#2b3542; --line-fort:#3d4a5a; --texte:#e5e9ef; --doux:#98a2b1; --accent:#7fb0e0; --fait:#5fbb8b; --cours:#d9a441; --bloque:#e0777a; --attente:#6d7787; --ombre:none; } }
+  :root[data-theme="dark"] { --ground:#11161d; --surface:#19202a; --line:#2b3542; --line-fort:#3d4a5a; --texte:#e5e9ef; --doux:#98a2b1; --accent:#7fb0e0; --fait:#5fbb8b; --cours:#d9a441; --bloque:#e0777a; --attente:#6d7787; --ombre:none; } }
+  * { box-sizing:border-box; } [hidden] { display:none !important; }
+  body { background:var(--ground); color:var(--texte); font-family:"Source Sans 3",system-ui,sans-serif; font-size:16px; line-height:1.55; }
+  .page { max-width:46rem; margin:0 auto; padding:2.5rem 1.25rem 4rem; display:flex; flex-direction:column; gap:2rem; }
+  h1,h2 { font-family:Archivo,system-ui,sans-serif; text-wrap:balance; margin:0; }
+  h1 { font-size:1.9rem; font-weight:700; letter-spacing:-.015em; }
+  h2 { font-size:.8rem; font-weight:700; text-transform:uppercase; letter-spacing:.09em; color:var(--doux); }
+  .eyebrow { font-family:"IBM Plex Mono",monospace; font-size:.75rem; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); }
+  .mono,.fiche .id,.fiche .etat,.journal time,.blocage pre { font-family:"IBM Plex Mono",monospace; }
+  .mono { font-variant-numeric:tabular-nums; }
+  header { display:flex; flex-direction:column; gap:.35rem; border-bottom:2px solid var(--line-fort); padding-bottom:1.25rem; }
+  header p { margin:.4rem 0 0; color:var(--doux); max-width:62ch; }
+  .avancement { display:flex; gap:.25rem; margin-top:.9rem; }
+  .avancement span { height:.4rem; flex:1; border-radius:1px; background:var(--line); }
+  section { display:flex; flex-direction:column; gap:.85rem; }
+  .fiches,.journal { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
+  .fiches { gap:.5rem; } .journal { gap:.6rem; }
+  .fiche { display:grid; grid-template-columns:3.5rem 1fr; gap:.1rem .9rem; background:var(--surface); border:1px solid var(--line); border-left:3px solid var(--attente); border-radius:3px; padding:.7rem .9rem; box-shadow:var(--ombre); }
+  .fiche .id { font-weight:500; color:var(--doux); }
+  .fiche .titre { font-weight:600; }
+  .fiche .note { grid-column:2; font-size:.9rem; color:var(--doux); }
+  .fiche .etat { grid-column:1; font-size:.68rem; letter-spacing:.07em; text-transform:uppercase; color:var(--attente); }
+  /* les trois états, partout où ils comptent */
+  .avancement span[data-etat="faite"] { background:var(--fait); }
+  .avancement span[data-etat="encours"] { background:var(--cours); }
+  .avancement span[data-etat="bloquee"] { background:var(--bloque); }
+  .fiche[data-etat="faite"] { border-left-color:var(--fait); }
+  .fiche[data-etat="encours"] { border-left-color:var(--cours); }
+  .fiche[data-etat="bloquee"] { border-left-color:var(--bloque); }
+  .fiche[data-etat="faite"] .etat { color:var(--fait); }
+  .fiche[data-etat="encours"] .etat { color:var(--cours); }
+  .fiche[data-etat="bloquee"] .etat { color:var(--bloque); }
+  .fiche[data-etat="faite"] .titre { color:var(--doux); font-weight:400; }
+  .fiche[data-etat="encours"] .id,.fiche[data-etat="bloquee"] .id { color:var(--texte); }
+  .blocage { background:var(--surface); border:1px solid var(--bloque); border-radius:3px; padding:.8rem .9rem; }
+  .blocage pre { margin:.5rem 0 0; overflow-x:auto; font-size:.82rem; color:var(--texte); }
+  .journal li { display:grid; grid-template-columns:6rem 1fr; gap:.9rem; border-top:1px solid var(--line); padding-top:.6rem; }
+  .journal time { font-size:.85rem; color:var(--doux); }
+  .bilan { background:var(--surface); border:1px solid var(--line); border-top:3px solid var(--fait); border-radius:3px; padding:1rem 1.1rem; }
+  .bilan p { margin:0 0 .6rem; } .bilan p:last-child { margin-bottom:0; }
+  footer { border-top:1px solid var(--line); padding-top:.9rem; font-size:.82rem; color:var(--doux); display:flex; flex-wrap:wrap; gap:.25rem 1.25rem; }
+</style>
+
+<div class="page">
+  <header>
+    <div class="eyebrow">Claude-vlpWorkflow · fiches E1–E8 · clos</div>
+    <h1>Enchaîner les fiches</h1>
+    <p>Une nouvelle commande <span class="mono">/vlp:enchainer</span> joue les fiches non cochées
+      du chantier courant l'une après l'autre, chacune dans un sous-agent neuf. Elle s'arrête dès
+      qu'un retour humain est nécessaire, pose un questionnaire, puis reprend seule avec la réponse.</p>
+    <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
+    <div class="avancement">
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span></span><span></span>
+    </div>
+    <p class="mono" style="margin-top:.5rem">8 fiches · 6 faites · 2 abandonnées · chantier clos</p>
+  </header>
+
+  <section>
+    <h2>Les fiches, dans l'ordre des dépendances</h2>
+    <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
+    <ul class="fiches">
+      <li class="fiche" data-etat="faite">
+        <span class="id">E1</span><span class="titre">Monter le bac à sable</span>
+        <span class="etat">faite</span>
+        <span class="note">grep -c FICHE:S → 0 + 0 + 4 = 4 ; grep (visuel) → 1 ligne, 09-sable.md:59, dans S2.</span>
+      </li>
+      <li class="fiche" data-etat="faite">
+        <span class="id">E2</span><span class="titre">Vérifier la doc officielle des plugins et sous-agents</span>
+        <span class="etat">faite</span>
+        <span class="note">grep -c 'https://' sur 09-enchainer.md → 4 ; ligne frontmatter répond « Oui », URL à l'appui.</span>
+      </li>
+      <li class="fiche" data-etat="faite">
+        <span class="id">E3</span><span class="titre">Mesurer un sous-agent en vrai dans le bac à sable</span>
+        <span class="etat">faite</span>
+        <span class="note">Table Mesures remplie (lignes 58-64) → 0 « à mesurer (E3) », 1 « à mesurer » (E7).</span>
+      </li>
+      <li class="fiche" data-etat="faite">
+        <span class="id">E4</span><span class="titre">Ajouter le mode enchaine à tache et le contrat de retour</span>
+        <span class="etat">faite</span>
+        <span class="note">enchainement.md, argument enchaine, marque « (visuel) » · dépend de E3</span>
+      </li>
+      <li class="fiche" data-etat="faite">
+        <span class="id">E5</span><span class="titre">Écrire la boucle nominale de /vlp:enchainer</span>
+        <span class="etat">faite</span>
+        <span class="note">/vlp:enchainer bac à sable : plan « je joue S2, arrêt prévu à S2 (visuel) », joue S2, s'arrête sur RETOUR (b.txt écrit) — S3/S4 non joués.</span>
+      </li>
+      <li class="fiche" data-etat="faite">
+        <span class="id">E6</span><span class="titre">Gérer les arrêts du chef</span>
+        <span class="etat">faite</span>
+        <span class="note">Bac à sable : questionnaire posé à S2, « oui » → case cochée, reprise ; S3 bloqué (2 tentatives, ls: cannot access), S4 jamais lancé (dépend de S3) — 143,5k tokens pour S2+S3.</span>
+      </li>
+      <li class="fiche">
+        <span class="id">E7</span><span class="titre">Diviser par 5 le coût d'une fiche enchaînée</span>
+        <span class="etat">abandonnée</span>
+        <span class="note">Non faite. Sous-agent vlp:fiche : S1 12 965, S2 13 163, S3 15 830 tokens — mais le chef coûte ~70k de socle et ~12 appels par fiche.</span>
+      </li>
+      <li class="fiche">
+        <span class="id">E8</span><span class="titre">Publier la cinquième commande</span>
+        <span class="etat">abandonnée</span>
+        <span class="note">Non faite : la commande est retirée du kit, il n'y a rien à publier.</span>
+      </li>
+    </ul>
+  </section>
+
+  <!-- ZONE:blocage — publiée quand /tache s'arrête après deux tentatives ; retirée dès que la fiche repasse -->
+  <section hidden>
+    <h2>Arrêt sur blocage</h2>
+    <div class="blocage">
+      <p>&lt;Fiche&gt; — &lt;ce qui a été tenté, en deux lignes.&gt;</p>
+      <pre>&lt;L'erreur brute, telle qu'elle est sortie.&gt;</pre>
+    </div>
+  </section>
+
+  <section>
+    <h2>Journal des décisions</h2>
+    <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
+    <ul class="journal">
+      <li><time>2026-09-10</time><span>E1 : <span class="mono">/vlp:init</span> publie une feuille de route, E1 l'interdisait ; la fiche l'a emporté, le bac à sable n'a aucune page (à retenir pour E7).</span></li>
+      <li><time>2026-09-10</time><span>E3 : <span class="mono">allowed-tools</span> du frontmatter ne contraint pas l'exécution rejouée via <span class="mono">Skill</span> dans un sous-agent (une commande Bash hors liste passe sans refus) — contredit la doc lue en E2 ; à retenir pour E4-E6.</span></li>
+      <li><time>2026-09-10</time><span>E6 : run complet mesuré à 143,5k tokens pour S2+S3 seuls ; l'utilisateur juge cette consommation inacceptable — coût central à traiter en E7, pas seulement à mesurer.</span></li>
+      <li><time>2026-09-10</time><span>E7 : sous-agents à ~13k par fiche, mais le chef (socle de session ~70k, ~12 appels par fiche) rend l'enchaînement plus cher que le jeu manuel ; chantier abandonné et clos.</span></li>
+    </ul>
+  </section>
+
+  <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
+  <section>
+    <h2>Chantier clos le 2026-09-10 — abandonné</h2>
+    <div class="bilan">
+      <p>Livré : la marque <span class="mono">(visuel)</span> des critères de fin, et une mesure fiable du coût. Retirés du kit : <span class="mono">/vlp:enchainer</span>, l'agent <span class="mono">fiche</span>, le contrat de retour et le mode <span class="mono">enchaine</span>. E7 et E8 ne sont pas faites.</p>
+      <p>Surprise : le coût ne vient pas des sous-agents (~9k au départ) mais du chef, une session principale qui part de ~70k tokens et relit ce socle à chaque appel. <span class="mono">subagent_tokens</span> mesure le dernier tour, pas un cumul.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Fichier de fiches : <span class="mono">context AI/09-enchainer.md</span></span>
+    <span>Mis à jour le <span class="mono">2026-09-10</span></span>
+  </footer>
+</div>
+
+</body></html>

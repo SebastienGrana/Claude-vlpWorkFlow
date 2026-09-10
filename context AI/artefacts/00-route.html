@@ -1,0 +1,124 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found]){display:none!important}</style></head><body>
+<title>vlp — Feuille de route</title>
+<!--
+  GABARIT — artefact permanent d'un projet. Posé par /vlp-init, mis à jour à
+  l'ouverture et à la clôture de chaque chantier. Un seul par projet, il ne
+  change jamais d'URL. Remplace les <…>, ne renomme pas les marqueurs `ZONE:…`.
+-->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700&family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:wght@400;600&display=swap">
+<style>
+  :root {
+    --ground: #f4f5f7; --surface: #ffffff; --line: #d9dce3; --line-fort: #b9bec9;
+    --texte: #1a222e; --doux: #5c6675; --accent: #2f5d8c;
+    --fait: #2f7a55; --cours: #a86a12; --attente: #8d95a3;
+    --ombre: 0 1px 2px rgba(26,34,46,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #11161d; --surface: #19202a; --line: #2b3542; --line-fort: #3d4a5a;
+      --texte: #e5e9ef; --doux: #98a2b1; --accent: #7fb0e0;
+      --fait: #5fbb8b; --cours: #d9a441; --attente: #6d7787; --ombre: none;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #11161d; --surface: #19202a; --line: #2b3542; --line-fort: #3d4a5a;
+    --texte: #e5e9ef; --doux: #98a2b1; --accent: #7fb0e0;
+    --fait: #5fbb8b; --cours: #d9a441; --attente: #6d7787; --ombre: none;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body { background: var(--ground); color: var(--texte); font-family: "Source Sans 3", system-ui, sans-serif; font-size: 16px; line-height: 1.55; }
+  .page { max-width: 50rem; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; display: flex; flex-direction: column; gap: 2rem; }
+  h1, h2 { font-family: Archivo, system-ui, sans-serif; text-wrap: balance; margin: 0; }
+  h1 { font-size: 2rem; font-weight: 700; letter-spacing: -.015em; }
+  h2 { font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .09em; color: var(--doux); }
+  a { color: var(--accent); }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .eyebrow { font-family: "IBM Plex Mono", monospace; font-size: .75rem; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); }
+  .mono { font-family: "IBM Plex Mono", monospace; font-variant-numeric: tabular-nums; }
+  header { display: flex; flex-direction: column; gap: .35rem; border-bottom: 2px solid var(--line-fort); padding-bottom: 1.25rem; }
+  header p { margin: .4rem 0 0; color: var(--doux); max-width: 62ch; }
+  section { display: flex; flex-direction: column; gap: .85rem; }
+  .encours { background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--cours); border-radius: 3px; padding: 1rem 1.1rem; display: flex; flex-direction: column; gap: .4rem; box-shadow: var(--ombre); }
+  .encours .titre { font-family: Archivo, system-ui, sans-serif; font-size: 1.15rem; font-weight: 700; }
+  .encours .rien { color: var(--doux); }
+  .tableau { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: .95rem; }
+  th { text-align: left; font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; color: var(--doux); font-weight: 600; padding: 0 .8rem .5rem 0; border-bottom: 1px solid var(--line-fort); }
+  td { padding: .6rem .8rem .6rem 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+  td:first-child, th:first-child { width: 2rem; }
+  tr[data-etat="bloque"] td { color: var(--doux); }
+  .badge { font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .05em; text-transform: uppercase; border: 1px solid currentColor; border-radius: 2px; padding: .05rem .35rem; color: var(--attente); white-space: nowrap; }
+  .badge[data-etat="cours"] { color: var(--cours); }
+  .badge[data-etat="clos"] { color: var(--fait); }
+  .rien-cell { color: var(--doux); }
+  footer { border-top: 1px solid var(--line); padding-top: .9rem; font-size: .82rem; color: var(--doux); display: flex; flex-wrap: wrap; gap: .25rem 1.25rem; }
+</style>
+
+<div class="page">
+  <header>
+    <div class="eyebrow">Feuille de route · alias <span class="mono">vlp</span></div>
+    <h1>vlp — le kit Claude-vlpWorkflow</h1>
+    <p>Le kit « vlp », un plugin Claude Code qui porte la méthode des chantiers et
+      des fiches. Il ne contient que des commandes en markdown, des gabarits et de
+      la doctrine — aucun code applicatif.</p>
+  </header>
+
+  <section>
+    <h2>Chantier en cours</h2>
+    <!-- ZONE:encours — remplacé à chaque ouverture, remis à « aucun » à chaque clôture.
+         /tache n'y touche pas : l'avancement fiche par fiche est sur la page du chantier. -->
+    <div class="encours">
+      <div class="titre rien">Aucun chantier ouvert.</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Les chantiers possibles, dans l'ordre</h2>
+    <!-- ZONE:todo — miroir de la TODO ordonnée du fichier d'état ; le fichier reste la vérité -->
+    <div class="tableau">
+      <table>
+        <thead>
+          <tr><th>#</th><th>Chantier</th><th>Ce qu'il apporte</th><th>Coût</th><th>Dépend de</th></tr>
+        </thead>
+        <tbody>
+          <tr><td colspan="5" class="rien-cell">Aucun chantier possible listé pour l'instant.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Chantiers clos — ils ne se rejouent pas</h2>
+    <!-- ZONE:clos — une ligne ajoutée à chaque clôture, la plus récente en haut -->
+    <div class="tableau">
+      <table>
+        <thead>
+          <tr><th>Chantier</th><th>Fiches</th><th>Clos le</th><th>Ce qu'il a livré</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><a href="https://claude.ai/code/artifact/6736d2af-e88e-4e72-b485-d9dbef1951fa">Mesurer les tokens consommés</a> <span class="badge" data-etat="clos">clos</span></td>
+            <td class="mono">M1–M4</td><td class="mono">2026-09-11</td>
+            <td><code>scripts/mesure-tokens.py</code>, coût affiché en fin de
+              fiche et à la clôture, proposition commit/push à confirmer à
+              chaque fois. Total mesuré (M3+M4) : 13 030 459 tokens.</td>
+          </tr>
+          <tr>
+            <td><a href="https://claude.ai/code/artifact/305e604c-23a1-4899-a3ad-37013b45ff4c">Enchaîner les fiches</a> <span class="badge" data-etat="clos">clos</span></td>
+            <td class="mono">E1–E8</td><td class="mono">2026-09-10</td>
+            <td>Abandonné après E7 : le chef coûtait plus que les fiches jouées à la main. Reste la marque <span class="mono">(visuel)</span> des critères de fin.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    <span>Lettres de fiche prises : <span class="mono">E, M</span></span>
+    <span>État détaillé : <span class="mono">context AI/08-etat.md</span></span>
+    <span>Mis à jour le <span class="mono">2026-09-11</span></span>
+  </footer>
+</div>
+
+</body></html>

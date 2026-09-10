@@ -248,7 +248,7 @@ Quand ça passe, écris trois choses et rien de plus :
    annoncé, une décision que la fiche ne tranchait pas.
 
 Une fois qu'il confirme, coche la fiche (`## <fiche retenue> [x] — …` dans le
-fichier de fiches courant), et ajoute une ligne au fichier d'état nommé par
+fichier de fiches courant). Ajoute une ligne au fichier d'état nommé par
 `CHANTIER.md` **seulement** si la tâche a tranché quelque chose d'imprévu.
 
 Si la fiche portait un bloc « **Tentatives** », remplace-le par sa seule
@@ -256,6 +256,19 @@ dernière ligne — `**Tentatives** (<date>) — résolu par : <ce qui a marché
 et rien d'autre : ce qui a échoué a servi, il n'a plus à être relu. Une piste
 qui a échoué pour une raison qui vaut au-delà de cette fiche va, elle, dans le
 fichier d'état.
+
+**Coût de la fiche.** Ne fais ceci que si
+`${CLAUDE_PLUGIN_ROOT}/scripts/mesure-tokens.py` existe — sinon saute ce
+paragraphe, rien à afficher. Détermine le chemin du fichier JSONL de la
+session courante (repéré dans un chemin déjà exposé à la session, par exemple
+le dossier scratchpad ; ne devine jamais l'id de session). Écris
+`**Session** : <chemin du jsonl>` sous le titre de la fiche qui vient d'être
+cochée — même emplacement que le bloc « Tentatives », juste avant « Dépend
+de ». Appelle ensuite `${CLAUDE_PLUGIN_ROOT}/scripts/mesure-tokens.py` sur ce
+seul fichier — coût de la fiche — puis sur tous les fichiers listés par les
+lignes `**Session**` déjà présentes dans le fichier de fiches, fiche courante
+comprise — cumul du chantier. Affiche les deux tables brutes avant de rendre
+la main.
 
 ## 6 bis. Régénérer l'artefact du chantier
 

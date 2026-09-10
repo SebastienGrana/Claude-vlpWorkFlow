@@ -1,0 +1,145 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found]){display:none!important}</style></head><body>
+<title>Mesurer les tokens — vlp</title>
+<!--
+  GABARIT — artefact d'un chantier. Publié par /chantier à l'ouverture,
+  mis à jour par /tache à chaque fiche. Remplace les <…> et ne renomme pas
+  les marqueurs `ZONE:…` : les commandes les cherchent tels quels.
+  Garde la page sous ~250 lignes : /tache doit la relire à chaque fiche.
+-->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700&family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:wght@400;600&display=swap">
+<style>
+  /* Compact volontairement : /tache relit cette page à chaque fiche, et le CSS
+     ne change jamais. Chaque ligne gagnée ici est gagnée à chaque fiche. */
+  :root { --ground:#f4f5f7; --surface:#fff; --line:#d9dce3; --line-fort:#b9bec9; --texte:#1a222e; --doux:#5c6675; --accent:#2f5d8c; --fait:#2f7a55; --cours:#a86a12; --bloque:#a63d40; --attente:#8d95a3; --ombre:0 1px 2px rgba(26,34,46,.06); }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --ground:#11161d; --surface:#19202a; --line:#2b3542; --line-fort:#3d4a5a; --texte:#e5e9ef; --doux:#98a2b1; --accent:#7fb0e0; --fait:#5fbb8b; --cours:#d9a441; --bloque:#e0777a; --attente:#6d7787; --ombre:none; } }
+  :root[data-theme="dark"] { --ground:#11161d; --surface:#19202a; --line:#2b3542; --line-fort:#3d4a5a; --texte:#e5e9ef; --doux:#98a2b1; --accent:#7fb0e0; --fait:#5fbb8b; --cours:#d9a441; --bloque:#e0777a; --attente:#6d7787; --ombre:none; } }
+  * { box-sizing:border-box; } [hidden] { display:none !important; }
+  body { background:var(--ground); color:var(--texte); font-family:"Source Sans 3",system-ui,sans-serif; font-size:16px; line-height:1.55; }
+  .page { max-width:46rem; margin:0 auto; padding:2.5rem 1.25rem 4rem; display:flex; flex-direction:column; gap:2rem; }
+  h1,h2 { font-family:Archivo,system-ui,sans-serif; text-wrap:balance; margin:0; }
+  h1 { font-size:1.9rem; font-weight:700; letter-spacing:-.015em; }
+  h2 { font-size:.8rem; font-weight:700; text-transform:uppercase; letter-spacing:.09em; color:var(--doux); }
+  .eyebrow { font-family:"IBM Plex Mono",monospace; font-size:.75rem; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); }
+  .mono,.fiche .id,.fiche .etat,.journal time,.blocage pre { font-family:"IBM Plex Mono",monospace; }
+  .mono { font-variant-numeric:tabular-nums; }
+  header { display:flex; flex-direction:column; gap:.35rem; border-bottom:2px solid var(--line-fort); padding-bottom:1.25rem; }
+  header p { margin:.4rem 0 0; color:var(--doux); max-width:62ch; }
+  .avancement { display:flex; gap:.25rem; margin-top:.9rem; }
+  .avancement span { height:.4rem; flex:1; border-radius:1px; background:var(--line); }
+  section { display:flex; flex-direction:column; gap:.85rem; }
+  .fiches,.journal { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
+  .fiches { gap:.5rem; } .journal { gap:.6rem; }
+  .fiche { display:grid; grid-template-columns:3.5rem 1fr; gap:.1rem .9rem; background:var(--surface); border:1px solid var(--line); border-left:3px solid var(--attente); border-radius:3px; padding:.7rem .9rem; box-shadow:var(--ombre); }
+  .fiche .id { font-weight:500; color:var(--doux); }
+  .fiche .titre { font-weight:600; }
+  .fiche .note { grid-column:2; font-size:.9rem; color:var(--doux); }
+  .fiche .etat { grid-column:1; font-size:.68rem; letter-spacing:.07em; text-transform:uppercase; color:var(--attente); }
+  /* les trois états, partout où ils comptent */
+  .avancement span[data-etat="faite"] { background:var(--fait); }
+  .avancement span[data-etat="encours"] { background:var(--cours); }
+  .avancement span[data-etat="bloquee"] { background:var(--bloque); }
+  .fiche[data-etat="faite"] { border-left-color:var(--fait); }
+  .fiche[data-etat="encours"] { border-left-color:var(--cours); }
+  .fiche[data-etat="bloquee"] { border-left-color:var(--bloque); }
+  .fiche[data-etat="faite"] .etat { color:var(--fait); }
+  .fiche[data-etat="encours"] .etat { color:var(--cours); }
+  .fiche[data-etat="bloquee"] .etat { color:var(--bloque); }
+  .fiche[data-etat="faite"] .titre { color:var(--doux); font-weight:400; }
+  .fiche[data-etat="encours"] .id,.fiche[data-etat="bloquee"] .id { color:var(--texte); }
+  .blocage { background:var(--surface); border:1px solid var(--bloque); border-radius:3px; padding:.8rem .9rem; }
+  .blocage pre { margin:.5rem 0 0; overflow-x:auto; font-size:.82rem; color:var(--texte); }
+  .journal li { display:grid; grid-template-columns:6rem 1fr; gap:.9rem; border-top:1px solid var(--line); padding-top:.6rem; }
+  .journal time { font-size:.85rem; color:var(--doux); }
+  .bilan { background:var(--surface); border:1px solid var(--line); border-top:3px solid var(--fait); border-radius:3px; padding:1rem 1.1rem; }
+  .bilan p { margin:0 0 .6rem; } .bilan p:last-child { margin-bottom:0; }
+  footer { border-top:1px solid var(--line); padding-top:.9rem; font-size:.82rem; color:var(--doux); display:flex; flex-wrap:wrap; gap:.25rem 1.25rem; }
+</style>
+
+<div class="page">
+  <header>
+    <div class="eyebrow">vlp · fiches M1–M4</div>
+    <h1>Mesurer les tokens consommés</h1>
+    <p>Un script (scripts/mesure-tokens.py) somme les tokens d'usage à partir des
+      transcripts JSONL de session, et affiche le résultat — comptes bruts —
+      à la fin de chaque fiche jouée et à la clôture du chantier.</p>
+    <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
+    <div class="avancement">
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span>
+    </div>
+    <p class="mono" style="margin-top:.5rem">4 fiches · 4 faites</p>
+  </header>
+
+  <section>
+    <h2>Les fiches, dans l'ordre des dépendances</h2>
+    <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
+    <ul class="fiches">
+      <li class="fiche" data-etat="faite">
+        <span class="id">M1</span><span class="titre">Exception règle 4 de CLAUDE.md</span>
+        <span class="etat">faite</span>
+        <span class="note">grep "scripts/" CLAUDE.md rend une ligne, dans une règle 4 qui dit « exception, assumée ».</span>
+      </li>
+      <li class="fiche" data-etat="faite">
+        <span class="id">M2</span><span class="titre">Écrire scripts/mesure-tokens.py</span>
+        <span class="etat">faite</span>
+        <span class="note">Sur un JSONL réel : total 13 878 232, 0 ligne invalide, comptes bruts.</span>
+      </li>
+      <li class="fiche" data-etat="faite">
+        <span class="id">M3</span><span class="titre">tache.md : coût en fin de fiche</span>
+        <span class="etat">faite</span>
+        <span class="note">Rejoué en vrai : fiche 4 741 448 tokens, cumul chantier 5 325 704 — deux tables brutes avant la main.</span>
+      </li>
+      <li class="fiche" data-etat="faite">
+        <span class="id">M4</span><span class="titre">cloture.md : total + commit/push</span>
+        <span class="etat">faite</span>
+        <span class="note">Chemin script qualifié par ${CLAUDE_PLUGIN_ROOT} (bug trouvé en testant sur Cairn) ; décompte confirmé, section commit/push à deux questionnaires écrite.</span>
+      </li>
+    </ul>
+  </section>
+
+  <!-- ZONE:blocage — publiée quand /tache s'arrête après deux tentatives ; retirée dès que la fiche repasse -->
+  <section hidden>
+    <h2>Arrêt sur blocage</h2>
+    <div class="blocage">
+      <p>&lt;Fiche&gt; — &lt;ce qui a été tenté, en deux lignes.&gt;</p>
+      <pre>&lt;L'erreur brute, telle qu'elle est sortie.&gt;</pre>
+    </div>
+  </section>
+
+  <section>
+    <h2>Journal des décisions</h2>
+    <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
+    <ul class="journal">
+      <li><time>2026-09-10</time><span>M2 : confirmé sur un vrai JSONL, <code>usage</code> vit sous <code>message.usage</code>, uniquement sur les lignes <code>type: "assistant"</code>.</span></li>
+      <li><time>2026-09-11</time><span>M4 : chemin relatif <code>scripts/mesure-tokens.py</code> introuvable hors du kit — qualifié par <code>${CLAUDE_PLUGIN_ROOT}</code> dans tache.md et cloture.md.</span></li>
+    </ul>
+  </section>
+
+  <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
+  <section>
+    <h2>Chantier clos le 2026-09-11</h2>
+    <div class="bilan">
+      <p>Livré : <code>scripts/mesure-tokens.py</code> (comptes bruts depuis un
+        JSONL de transcript), affichage du coût en fin de fiche
+        (<code>tache.md</code>) et à la clôture (<code>cloture.md</code>),
+        proposition de commit/push à la clôture — jamais sans confirmation.</p>
+      <p>A surpris : chemin relatif du script introuvable hors du kit, résolu
+        contre le cwd du projet équipé plutôt que le sien — corrigé par
+        <code>${CLAUDE_PLUGIN_ROOT}/scripts/mesure-tokens.py</code>, trouvé en
+        testant sur Cairn.</p>
+      <table class="mono" style="width:100%;border-collapse:collapse;font-size:.85rem;margin-top:.4rem">
+        <tr><td>input</td><td style="text-align:right">258</td></tr>
+        <tr><td>output</td><td style="text-align:right">54 987</td></tr>
+        <tr><td>cache_creation</td><td style="text-align:right">612 191</td></tr>
+        <tr><td>cache_read</td><td style="text-align:right">12 363 023</td></tr>
+        <tr style="font-weight:700;border-top:1px solid var(--line)"><td>total (M3+M4)</td><td style="text-align:right">13 030 459</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    <span>Fichier de fiches : <span class="mono">context AI/10-mesure.md</span></span>
+    <span>Mis à jour le <span class="mono">2026-09-11</span></span>
+  </footer>
+</div>
+
+</body></html>

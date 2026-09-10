@@ -35,6 +35,12 @@ Quatre lignes, à la racine du projet :
 
 ## 3. Le fichier d'état
 
+Avant d'écrire la ligne de bilan, si `${CLAUDE_PLUGIN_ROOT}/scripts/mesure-tokens.py`
+existe : relève toutes les lignes `**Session**` du fichier de fiches qu'on
+clôture, appelle le script sur l'ensemble, et verse le total brut dans la
+ligne de bilan — comptes bruts, pas d'estimation, pas d'arrondi. S'il
+n'existe pas, saute ce total : rien à afficher.
+
 Une ligne de bilan, datée : ce que le chantier a livré, et ce qu'il a laissé
 ouvert. Pas un récit — le détail est dans git et dans le fichier de fiches.
 
@@ -77,3 +83,11 @@ Si une publication échoue, dis-le en une ligne et continue : les quatre
 
 Donne les deux liens, et dis la suite : `/clear`, puis `/vlp:chantier` pour ouvrir
 le suivant.
+
+## Commit et push — jamais sans confirmation
+
+Une fois les cinq écritures faites, propose un `git commit` (message résumant
+le chantier clos) puis un `git push` — deux gestes irréversibles, deux
+questionnaires séparés. Ne commit ni ne push sans confirmation explicite à
+chaque fois, même si l'utilisateur a déjà confirmé pour un chantier
+précédent : une clôture ne vaut que pour elle-même.
