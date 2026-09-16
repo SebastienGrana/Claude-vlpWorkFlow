@@ -23,10 +23,13 @@ ne se repaye pas à chaque fiche.
 
 **2. Exécution — une fiche, une session.** `/vlp:tache X1`, puis `/clear`, puis
 `/vlp:tache X2`. Jamais deux fiches dans la même session : la seconde traînerait
-derrière elle tout le contexte de la première.
+derrière elle tout le contexte de la première. `/vlp:enchainer` tient la même
+règle autrement — chaque fiche dans un sous-agent neuf, jusqu'au premier arrêt
+— mais son chef relit tout son contexte à chaque appel : mesuré, l'ensemble
+coûte plus cher en tokens que les fiches jouées à la main.
 
 **3. Clôture.** Elle est décrite **à un seul endroit**, `cloture.md` à la racine
-du kit, que `/vlp:tache` et `/vlp:chantier` lisent au moment de clore : cinq
+du kit, que `/vlp:tache`, `/vlp:enchainer` et `/vlp:chantier` lisent au moment de clore : cinq
 écritures — l'en-tête **CLOS**, les quatre lignes de `CHANTIER.md`, le bilan
 daté dans le fichier d'état, le routage de `CLAUDE.md`, et les deux pages
 republiées. Un fichier de fiches clos ne se rejoue pas.
@@ -101,7 +104,9 @@ Elles ne se transportent pas d'un projet à l'autre.
   pas à l'utilisateur ce que le code calcule déjà.
 - **Visuel** — seul l'utilisateur voit le résultat (un jeu, une interface non
   pilotable). La fiche s'arrête et lui rend la main ; la session ne lit le log
-  qu'**après** son retour, sinon elle lit l'ancienne version.
+  qu'**après** son retour, sinon elle lit l'ancienne version. Son titre porte
+  alors la marque `**Critère de fin** (visuel)`, qu'un grep retrouve sans
+  lire la fiche — c'est là que `/vlp:enchainer` s'arrête pour poser la question.
 
 ## Ce que `/vlp:tache` garantit, et qu'il ne faut pas défaire
 

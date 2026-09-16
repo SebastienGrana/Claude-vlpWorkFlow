@@ -3,6 +3,9 @@
   GABARIT — artefact permanent d'un projet. Posé par /vlp-init, mis à jour à
   l'ouverture et à la clôture de chaque chantier. Un seul par projet, il ne
   change jamais d'URL. Remplace les <…>, ne renomme pas les marqueurs `ZONE:…`.
+
+  Colonne Tokens de ZONE:clos : même convention de coût que dans
+  artefact-chantier.html (posée là, pas recopiée ici).
 -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700&family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:wght@400;600&display=swap">
 <style>
@@ -47,6 +50,7 @@
   td { padding: .6rem .8rem .6rem 0; border-bottom: 1px solid var(--line); vertical-align: top; }
   td:first-child, th:first-child { width: 2rem; }
   tr[data-etat="bloque"] td { color: var(--doux); }
+  tfoot td { border-bottom: none; border-top: 2px solid var(--line-fort); color: var(--doux); font-size: .85rem; }
   .badge { font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .05em; text-transform: uppercase; border: 1px solid currentColor; border-radius: 2px; padding: .05rem .35rem; color: var(--attente); white-space: nowrap; }
   .badge[data-etat="cours"] { color: var(--cours); }
   .badge[data-etat="clos"] { color: var(--fait); }
@@ -97,19 +101,25 @@
 
   <section>
     <h2>Chantiers clos — ils ne se rejouent pas</h2>
-    <!-- ZONE:clos — une ligne ajoutée à chaque clôture, la plus récente en haut -->
+    <!-- ZONE:clos — une ligne ajoutée à chaque clôture, la plus récente en haut.
+         Colonne Tokens et total en pied de table absents tant qu'aucun
+         chantier clos ne porte de coût mesuré. -->
     <div class="tableau">
       <table>
         <thead>
-          <tr><th>Chantier</th><th>Fiches</th><th>Clos le</th><th>Ce qu'il a livré</th></tr>
+          <tr><th>Chantier</th><th>Fiches</th><th>Clos le</th><th>Tokens</th><th>Ce qu'il a livré</th></tr>
         </thead>
         <tbody>
           <tr>
             <td><a href="&lt;URL de son artefact&gt;">&lt;nom&gt;</a></td>
             <td class="mono">&lt;U1..U6&gt;</td><td class="mono">&lt;AAAA-MM-JJ&gt;</td>
+            <td class="mono">&lt;≈2,3k (2 312)&gt;</td>
             <td>&lt;une ligne&gt;</td>
           </tr>
         </tbody>
+        <tfoot>
+          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>&lt;≈15,3k (15 342)&gt;</strong></td><td></td></tr>
+        </tfoot>
       </table>
     </div>
   </section>

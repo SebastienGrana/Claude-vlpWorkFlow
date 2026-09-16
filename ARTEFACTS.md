@@ -13,8 +13,8 @@ est, sans lancer de session.
 
 | Artefact | Combien | Créé par | Mis à jour par |
 |---|---|---|---|
-| **Feuille de route** | un par projet, permanent | `/vlp:init` | `/vlp:chantier` (ouverture), `/vlp:tache` (clôture seulement) |
-| **Chantier** | un par chantier | `/vlp:chantier` (étape 5 bis) | `/vlp:tache` (chaque fiche) |
+| **Feuille de route** | un par projet, permanent | `/vlp:init` | `/vlp:chantier` (ouverture), `/vlp:tache` et `/vlp:enchainer` (clôture seulement) |
+| **Chantier** | un par chantier | `/vlp:chantier` (étape 5 bis) | `/vlp:tache` (chaque fiche), `/vlp:enchainer` (une fois par lancement) |
 
 La feuille de route ne change **jamais** d'URL : elle porte la TODO ordonnée,
 le chantier en cours, et la table des chantiers clos avec un lien vers chacun.
@@ -23,8 +23,8 @@ clos, et c'est la feuille de route qui y renvoie.
 
 **Une seule des deux vit au rythme des fiches.** La page du chantier est mise à
 jour à chaque fiche cochée ; la feuille de route ne bouge qu'à l'ouverture et à
-la clôture. C'est délibéré : `/vlp:tache` a le budget le plus serré des trois
-commandes, et lire puis republier une seconde page de 250 lignes pour une ligne
+la clôture. C'est délibéré : `/vlp:tache` a le budget le plus serré de toutes
+les commandes, et lire puis republier une seconde page de 250 lignes pour une ligne
 de comptage y coûterait autant que la fiche. La feuille de route ne porte donc
 **pas de compteur** — elle nomme le chantier ouvert et renvoie à sa page, qui
 est à jour, elle.
@@ -139,6 +139,7 @@ plutôt le cas vide ».
   avant de proposer quoi que ce soit.
 - `/vlp:tache` ne les lit pas de lui-même — le budget ne le permet pas. Il les lit
   si la commande est lancée avec `commentaires` en argument.
+- `/vlp:enchainer` ne les lit jamais : ses sous-agents ne voient que leur fiche.
 - Un fil auquel on a répondu et donné suite se **résout** ; un fil qu'on n'a
   pas traité reste ouvert.
 

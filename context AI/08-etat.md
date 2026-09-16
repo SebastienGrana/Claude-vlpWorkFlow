@@ -14,7 +14,9 @@
   clone ajoutée au README, à INSTALLATION et au TLDR.
 - **2026-09-10** — le kit s'équipe lui-même de la méthode (`/vlp:init`).
 - Abandonné : enchaîner les fiches automatiquement (chantier E clos le
-  2026-09-10, voir le journal).
+  2026-09-10, voir le journal) — puis remis tel quel le 2026-09-17.
+- **2026-09-17** — v3.1.0 : cinq commandes ; `/vlp:enchainer` et l'agent
+  `vlp:fiche` déclarés dans toute la doc.
 
 ## La TODO ordonnée — les chantiers possibles
 
@@ -23,9 +25,6 @@ ordonné par ce qui débloque le reste.
 
 | # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |
 |---|---|---|---|---|
-
-Aucun chantier listé : « Enchaîner les fiches » a été cadré (chantier E), puis
-abandonné et clos le 2026-09-10.
 
 ## Journal des décisions
 
@@ -72,3 +71,23 @@ de ce que le code dit déjà.
   brut mesuré sur les sessions de M3 et M4 (seules fiches à porter une ligne
   `**Session**`) : input 258, output 54 987, cache_creation 612 191,
   cache_read 12 363 023, **total 13 030 459 tokens**.
+- **2026-09-17** — `/vlp:enchainer` **remis tel quel**, à la demande, coût
+  connu. `commands/enchainer.md`, `agents/fiche.md` et `enchainement.md`
+  (version E7) n'avaient jamais été commités : reconstitués depuis les
+  transcripts du 2026-09-10 (écritures rejouées, 0 désynchro). Deux retouches :
+  la plage de lignes lue dans `tache.md`, décalée de 7 par M et C, devient les
+  repères `## 0.` → `## 1.` ; le contrat ne nomme plus le mode `enchaine`, qui
+  reste retiré. Non corrigé : ~12 appels du chef par fiche ; une fiche
+  enchaînée ne reçoit pas de ligne `**Session**`, donc aucun coût sur la page ;
+  le bilan lit `subagent_tokens`, le contexte du dernier tour et non un cumul.
+- **2026-09-17** — Chantier C **clos**. Livré : le coût en tokens sur toutes
+  les pages — par fiche et en total sur l'artefact de chantier (fiches à ligne
+  `**Session**`), colonne Tokens et total cumulé dans la table des clos de la
+  feuille de route, au format `≈15,4M (15 389 496)` ; M reporté après coup, E
+  « non mesurable ». Laissé ouvert : pas de cumul entre projets (exclu) ; une
+  fiche jouée par `/vlp:enchainer` n'a pas de ligne `**Session**`, donc aucun
+  coût affiché. Constat qui vaut au-delà de C : le coût affiché en fin de fiche
+  est un instantané, la session consomme encore après (C1 : 4 393 030 affichés
+  sur la page à la fiche, 6 406 759 mesurés à la clôture). Total brut mesuré
+  sur les sessions de C1 et C2 : input 272, output 104 483, cache_creation
+  372 768, cache_read 14 911 973, **total 15 389 496 tokens**.

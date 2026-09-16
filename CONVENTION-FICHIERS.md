@@ -8,11 +8,11 @@ Voici la convention complète, indépendante du langage et du projet.
 | Fichier | À la racine ? | Qui le lit | Longueur visée |
 |---|---|---|---|
 | `CLAUDE.md` | oui | **toute** session, en entier, en premier | 60 lignes |
-| `CHANTIER.md` | oui | `/vlp:chantier` et `/vlp:tache`, en entier | 30 lignes |
+| `CHANTIER.md` | oui | `/vlp:chantier`, `/vlp:tache` et `/vlp:enchainer`, en entier | 30 lignes |
 | `<contexte>/00-INDEX.md` | non | seulement quand le routage de `CLAUDE.md` ne répond pas | 40 lignes |
 | le **fichier d'état** | non | reprise à froid, choix du prochain chantier | libre |
-| les **fichiers de fiches**, un par chantier | non | `/vlp:tache`, **par plages**, jamais en entier | libre |
-| `<contexte>/artefacts/*.html` | non | publié pour l'utilisateur ; relu par `/vlp:tache` à chaque fiche | 250 lignes |
+| les **fichiers de fiches**, un par chantier | non | `/vlp:tache` et `/vlp:enchainer`, **par plages**, jamais en entier | libre |
+| `<contexte>/artefacts/*.html` | non | publié pour l'utilisateur ; relu par `/vlp:tache` à chaque fiche, par `/vlp:enchainer` une fois par lancement | 250 lignes |
 
 Le dossier de contexte s'appelle `context AI/` par défaut. Son nom importe peu ;
 ce qui compte est qu'il soit **un seul dossier**, à plat, numéroté.
@@ -30,8 +30,11 @@ sur deux ; elle lit la ligne, et la ligne dit le nom.
 | Fichier du kit | Qui le lit | Pourquoi il ne se copie pas |
 |---|---|---|
 | `commands/*.md` | Claude Code, via le plugin `vlp` | le plugin **est** le kit ; il n'en existe aucune copie à tenir à jour |
+| `agents/fiche.md` | Claude Code, quand `/vlp:enchainer` lance une fiche | idem |
 | `methode-chantier.md` | `/vlp:chantier` | c'est une règle de travail, pas une donnée de projet |
-| `cloture.md` | `/vlp:tache` et `/vlp:chantier`, au moment de clore | la clôture n'est décrite qu'**une** fois |
+| `cloture.md` | `/vlp:tache`, `/vlp:enchainer` et `/vlp:chantier`, au moment de clore | la clôture n'est décrite qu'**une** fois |
+| `enchainement.md` | `/vlp:enchainer` et l'agent `vlp:fiche` | le contrat de retour d'une fiche n'est décrit qu'**une** fois |
+| `scripts/mesure-tokens.py` | `/vlp:tache` et `cloture.md`, pour le coût en tokens | c'est un outil du kit, pas une donnée de projet |
 | `templates/context AI/fichier-de-fiches.md` | `/vlp:chantier`, comme squelette | il est instancié, pas recopié |
 | `templates/artefact-chantier.html` | `/vlp:chantier`, une fois par chantier | idem |
 
@@ -98,12 +101,14 @@ est « déjà prise », et il doit dire par quel chantier.
    « artefact du chantier » dans `CHANTIER.md`.
 3. `/vlp:tache` ne touche qu'au fichier de fiches (une case cochée), à l'artefact
    du chantier (la même case, et la fiche suivante marquée en cours) et, si une
-   décision imprévue est tombée, au fichier d'état (une ligne).
+   décision imprévue est tombée, au fichier d'état (une ligne). `/vlp:enchainer`
+   coche de même une série de fiches, et ne republie l'artefact qu'une fois, en
+   fin de lancement.
 4. À la dernière case cochée, la clôture se joue : « clos » en tête du fichier
    de fiches, sa ligne dans la table des clos de `CHANTIER.md` avec l'URL de son
    artefact, le routage qui le dit, une ligne de bilan dans l'état, et les deux
    pages republiées. Les cinq écritures et leur ordre sont dans
-   `<kit>/cloture.md` — décrites à un seul endroit, pour que les deux commandes
+   `<kit>/cloture.md` — décrites à un seul endroit, pour que les trois commandes
    qui closent ne puissent pas le faire différemment.
 5. `/vlp:check` relit tout ça sans rien écrire, quand on doute que le fichier et
    la page disent encore la même chose.

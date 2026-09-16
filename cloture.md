@@ -1,8 +1,8 @@
 > **QUAND LIRE** : la dernière fiche d'un chantier vient d'être cochée, ou on
 > décide de clore un chantier tel quel sans jouer les fiches restantes.
-> Lu par `/vlp:tache` (étape 7) et par `/vlp:chantier` (étape 0 ter). C'est la **seule**
-> description de la clôture : les deux commandes l'appliquent, aucune ne la
-> réécrit de son côté.
+> Lu par `/vlp:tache` (étape 7), par `/vlp:enchainer` (étape 5) et par
+> `/vlp:chantier` (étape 0 ter). C'est la **seule** description de la clôture :
+> les trois commandes l'appliquent, aucune ne la réécrit de son côté.
 
 # Clore un chantier — les cinq écritures, dans cet ordre
 
@@ -70,7 +70,11 @@ Puis la **feuille de route**, même séquence, son `url` est dans
 `CHANTIER.md` :
 
 - `ZONE:encours` remis à « aucun chantier ouvert » ;
-- une ligne en tête de `ZONE:clos`, avec le lien vers l'artefact du chantier ;
+- une ligne en tête de `ZONE:clos`, avec le lien vers l'artefact du chantier,
+  et sa colonne Tokens — le total déjà calculé à l'étape 3, pas un second
+  calcul (convention d'affichage dans `templates/artefact-chantier.html`) ;
+- la ligne de total cumulé en pied de `ZONE:clos` mise à jour (somme des
+  chantiers clos qui portent un total) ;
 - la ligne correspondante retirée de `ZONE:todo` ;
 - la TODO reportée depuis le **fichier d'état** si elle a bougé — c'est le
   fichier qui fait foi, la page n'en est que le miroir ;

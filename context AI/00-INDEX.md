@@ -21,8 +21,9 @@ a l'air proche.
 
 | Fichier | Lire quand |
 |---|---|
-| `09-enchainer.md` | on joue une fiche `E*` — chantier **clos**, abandonné, « Enchaîner les fiches » |
-| `10-mesure.md` | on joue une fiche `M*` — chantier **ouvert** « Mesurer les tokens », `M1..M4` |
+| `09-enchainer.md` | on joue une fiche `E*` — chantier **clos**, abandonné, « Enchaîner les fiches » ; commande remise telle quelle le 2026-09-17 |
+| `10-mesure.md` | on joue une fiche `M*` — chantier **clos** « Mesurer les tokens », `M1..M4` |
+| `11-conso.md` | on joue une fiche `C*` — chantier **clos** « Afficher la conso sur toutes les pages », `C1..C2` |
 
 ## Le kit lui-même — à la racine, hors de ce dossier
 
@@ -31,6 +32,8 @@ Ces fichiers ne se lisent pas en série : chacun répond à une question précis
 | Fichier | Lire quand |
 |---|---|
 | `commands/<nom>.md` | on modifie cette commande-là |
+| `agents/fiche.md`, `enchainement.md` | on touche au sous-agent de `/vlp:enchainer`, ou à son contrat de retour |
+| `scripts/mesure-tokens.py` | on touche à la mesure des tokens |
 | `cloture.md` | on touche aux cinq écritures d'une clôture |
 | `CONVENTION-FICHIERS.md` | on se demande où vit quoi dans un projet équipé |
 | `ARTEFACTS.md` | on touche aux pages publiées : nommage, URL, budget |

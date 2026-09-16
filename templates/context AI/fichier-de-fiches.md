@@ -54,6 +54,7 @@ elle en fait 50, c'est deux fiches.>
 <Ce qu'on doit voir pour dire que c'est fait. Une phrase. Soit une commande et
 ce que sa sortie doit montrer — comptes bruts à côté du verdict — soit ce que
 l'utilisateur doit constater à l'écran quand lui seul peut le faire.>
+<Dans ce second cas, le titre devient `**Critère de fin** (visuel)` — la marque que `/vlp:enchainer` reconnaît par grep pour s'y arrêter.>
 <!-- /FICHE -->
 
 ---

@@ -311,7 +311,12 @@ Quatre gestes, dans cet ordre :
      passer ;
    - si la tâche a tranché quelque chose d'imprévu, la **même ligne** que celle
      ajoutée au fichier d'état, datée, dans `ZONE:journal` ;
-   - la ligne de comptage de l'en-tête, et la date du pied de page.
+   - la ligne de comptage de l'en-tête, et la date du pied de page ;
+   - si la fiche jouée a une ligne `**Session**` : son coût en `.cout`, sous sa
+     `.note`, et le total du chantier en `.cout-total` sous la liste — les deux
+     déjà calculés à l'étape « Coût de la fiche » ci-dessus, convention
+     d'affichage dans `templates/artefact-chantier.html`. Pas un second appel à
+     `mesure-tokens.py`.
 
    En cas de **désaccord** entre la page et le `grep`, c'est le `grep` qui a
    raison : la page est une vue, le fichier est la vérité.

@@ -36,7 +36,7 @@ has its own repository -- https://github.com/SebastienGrana/Claude-vlpWorkFlow
 
 
 
-vlpWorkflow has 4 commands. They are all prefixed with the plugin name:
+vlpWorkflow has 5 commands. They are all prefixed with the plugin name:
 
 /vlp:init        ->   activate a new project
 
@@ -44,11 +44,16 @@ vlpWorkflow has 4 commands. They are all prefixed with the plugin name:
 
 /vlp:tache       ->   start the next task in the list
 
+/vlp:enchainer   ->   play the next tasks in a row, each in a fresh sub-agent.
+                      Asks you when a task needs you, stops when one fails or
+                      after 5 tasks. Handy, but it costs more tokens than
+                      running /vlp:tache by hand, task after task.
+
 /vlp:check       ->   check a project: files, ticked boxes, published page,
                       costs. It only measures and reports, it never writes.
 
 
-There used to be a fifth one, /vlp-sync, which pushed the kit's commands to
+There used to be another one, /vlp-sync, which pushed the kit's commands to
 ~/.claude/commands. It is gone, kept in archive/ for reference: there is no
 copy to push any more. You edit the kit, and the next session reads what you
 just wrote. Use /reload-plugins to see it in the current session.

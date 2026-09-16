@@ -40,7 +40,8 @@ Ils ne servent plus qu'à relire un socle d'API, si une fiche y renvoie.
 |---|---|---|---|
 | context AI/09-enchainer.md | E1..E8 (E7, E8 abandonnées) | 2026-09-10 | https://claude.ai/code/artifact/305e604c-23a1-4899-a3ad-37013b45ff4c |
 | context AI/10-mesure.md | M1..M4 | 2026-09-11 | https://claude.ai/code/artifact/6736d2af-e88e-4e72-b485-d9dbef1951fa |
+| context AI/11-conso.md | C1..C2 | 2026-09-17 | https://claude.ai/code/artifact/b72f8b89-f4c3-4cb1-aa35-344efd08ea23 |
 
-Lettres de fiche déjà prises : E (Enchaîner les fiches), M (Mesurer les tokens). Un nouveau chantier en choisit une autre —
+Lettres de fiche déjà prises : E (Enchaîner les fiches), M (Mesurer les tokens), C (Afficher la conso). Un nouveau chantier en choisit une autre —
 elles ne se réemploient jamais, même après clôture. `/vlp:chantier` la propose,
 l'utilisateur tranche ; c'est cette ligne qui rend le refus possible.

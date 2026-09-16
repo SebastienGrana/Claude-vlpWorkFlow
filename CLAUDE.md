@@ -7,14 +7,15 @@ https://github.com/SebastienGrana/Claude-vlpWorkFlow — cloné et utilisé en g
 
 ## Où on en est — en cinq lignes
 
-- Prouvé : le kit est un plugin (v3.0.0, « degré 3 »), chargé en place par un lien
-  dans `~/.claude/skills/vlp` ; quatre commandes `/vlp:init`, `/vlp:chantier`,
-  `/vlp:tache`, `/vlp:check`.
+- Prouvé : le kit est un plugin (v3.1.0, « degré 3 »), chargé en place par un lien
+  dans `~/.claude/skills/vlp` ; cinq commandes `/vlp:init`, `/vlp:chantier`,
+  `/vlp:tache`, `/vlp:enchainer`, `/vlp:check`, et l'agent `vlp:fiche`.
 - Équipés : Cairn-VlpLib, MapDecorator, ProjetONZSM, TrackGen — et ce kit lui-même.
 - Clos le 2026-09-10, abandonné : enchaîner les fiches — le chef coûtait plus que
-  les fiches jouées à la main.
+  les fiches jouées à la main. Remis tel quel le 2026-09-17, coût non corrigé.
 - Clos le 2026-09-11 : mesurer les tokens consommés (chantier M) — script
   `scripts/mesure-tokens.py`, coût affiché en fin de fiche et à la clôture.
+  Clos le 2026-09-17 : ce coût affiché sur toutes les pages (chantier C).
 - Détail daté dans `context AI/08-etat.md`.
 
 ## Quatre règles non négociables
@@ -44,13 +45,15 @@ et seulement dans ce cas, ouvrir l'index.
 | La tâche | Ouvrir |
 |---|---|
 | modifier une commande | `commands/<nom>.md` — celle-là seule |
+| modifier le sous-agent ou le contrat de `/vlp:enchainer` | `agents/fiche.md`, ou `enchainement.md` |
 | changer une règle de méthode | `methode-chantier.md`, ou `cloture.md` pour la clôture |
 | savoir où vit quoi dans un projet équipé | `CONVENTION-FICHIERS.md` |
 | toucher aux pages publiées | `ARTEFACTS.md`, puis le gabarit dans `templates/` |
 | ouvrir un chantier, ou le découper en fiches | **lancer `/vlp:chantier`** |
 | jouer une fiche `<X>*` | `context AI/<NN>-<chantier>.md` — chantier **ouvert** |
-| relire le chantier E (enchaîner les fiches) | `context AI/09-enchainer.md` — chantier **clos**, abandonné |
+| relire le chantier E (enchaîner les fiches) | `context AI/09-enchainer.md` — chantier **clos**, abandonné puis remis tel quel |
 | relire le chantier M (mesurer les tokens) | `context AI/10-mesure.md` — chantier **clos** |
+| relire le chantier C (afficher la conso) | `context AI/11-conso.md` — chantier **clos** |
 | reprendre après une longue interruption | `context AI/08-etat.md` |
 
 ## Économie de contexte

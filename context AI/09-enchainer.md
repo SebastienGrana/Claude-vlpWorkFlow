@@ -8,6 +8,7 @@
 E7 et E8 restent non cochées, abandonnées : le chef de `/vlp:enchainer` (socle
 de session ~70k, ~12 appels par fiche) coûtait plus que les fiches jouées à la
 main. Commande, agent `fiche`, contrat et mode `enchaine` retirés du kit.
+Commande, agent et contrat remis tels quels le 2026-09-17 — voir `08-etat.md`.
 
 **À quoi il sert.** Aujourd'hui chaque fiche se lance à la main (`/clear`, puis
 `/vlp:tache`). Le chantier ajoute `/vlp:enchainer` : un chef qui joue les fiches

@@ -68,8 +68,7 @@
     <!-- ZONE:encours — remplacé à chaque ouverture, remis à « aucun » à chaque clôture.
          /tache n'y touche pas : l'avancement fiche par fiche est sur la page du chantier. -->
     <div class="encours">
-      <div class="titre">Mesurer les tokens consommés (M1–M4)</div>
-      <div><a href="https://claude.ai/code/artifact/6736d2af-e88e-4e72-b485-d9dbef1951fa">Voir la page du chantier</a></div>
+      <div class="rien">Aucun chantier ouvert — le prochain s'ouvre par <span class="mono">/vlp:chantier</span>.</div>
     </div>
   </section>
 
@@ -82,7 +81,7 @@
           <tr><th>#</th><th>Chantier</th><th>Ce qu'il apporte</th><th>Coût</th><th>Dépend de</th></tr>
         </thead>
         <tbody>
-          <tr><td colspan="5" class="rien-cell">Aucun chantier possible listé pour l'instant.</td></tr>
+          <tr><td colspan="5" class="rien-cell">Aucun chantier proposé : la TODO du fichier d'état est vide.</td></tr>
         </tbody>
       </table>
     </div>
@@ -94,22 +93,42 @@
     <div class="tableau">
       <table>
         <thead>
-          <tr><th>Chantier</th><th>Fiches</th><th>Clos le</th><th>Ce qu'il a livré</th></tr>
+          <tr><th>Chantier</th><th>Fiches</th><th>Clos le</th><th>Tokens</th><th>Ce qu'il a livré</th></tr>
         </thead>
         <tbody>
           <tr>
+            <td><a href="https://claude.ai/code/artifact/b72f8b89-f4c3-4cb1-aa35-344efd08ea23">Afficher la conso sur toutes les pages</a> <span class="badge" data-etat="clos">clos</span></td>
+            <td class="mono">C1–C2</td><td class="mono">2026-09-17</td>
+            <td class="mono">≈15,4M (15 389 496)</td>
+            <td>Le coût en tokens sur toutes les pages : par fiche et en total sur la
+              page d'un chantier, colonne Tokens et total cumulé ici. Total mesuré
+              (C1+C2) : 15 389 496 tokens.</td>
+          </tr>
+          <tr>
+            <td><a href="https://claude.ai/code/artifact/6736d2af-e88e-4e72-b485-d9dbef1951fa">Mesurer les tokens consommés</a> <span class="badge" data-etat="clos">clos</span></td>
+            <td class="mono">M1–M4</td><td class="mono">2026-09-11</td>
+            <td class="mono">≈13,0M (13 030 459)</td>
+            <td><code>scripts/mesure-tokens.py</code>, coût affiché en fin de
+              fiche et à la clôture, proposition commit/push à confirmer à
+              chaque fois. Total mesuré (M3+M4) : 13 030 459 tokens.</td>
+          </tr>
+          <tr>
             <td><a href="https://claude.ai/code/artifact/305e604c-23a1-4899-a3ad-37013b45ff4c">Enchaîner les fiches</a> <span class="badge" data-etat="clos">clos</span></td>
             <td class="mono">E1–E8</td><td class="mono">2026-09-10</td>
-            <td>Abandonné après E7 : le chef coûtait plus que les fiches jouées à la main. Reste la marque <span class="mono">(visuel)</span> des critères de fin.</td>
+            <td class="mono">non mesurable</td>
+            <td>Abandonné après E7 : le chef coûtait plus que les fiches jouées à la main. Commande <span class="mono">/vlp:enchainer</span> remise telle quelle le 2026-09-17, coût non corrigé.</td>
           </tr>
         </tbody>
+        <tfoot>
+          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈28,4M (28 419 955)</strong></td><td></td></tr>
+        </tfoot>
       </table>
     </div>
   </section>
 
   <footer>
-    <span>Lettres de fiche prises : <span class="mono">E</span></span>
+    <span>Lettres de fiche prises : <span class="mono">E, M, C</span></span>
     <span>État détaillé : <span class="mono">context AI/08-etat.md</span></span>
-    <span>Mis à jour le <span class="mono">2026-09-10</span></span>
+    <span>Mis à jour le <span class="mono">2026-09-17</span></span>
   </footer>
 </div>

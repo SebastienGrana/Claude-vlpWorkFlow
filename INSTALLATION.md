@@ -46,10 +46,11 @@ Sur macOS ou Linux :
 ln -s "<chemin>/Claude-vlpWorkflow" ~/.claude/skills/vlp
 ```
 
-Les commandes deviennent `/vlp:init`, `/vlp:chantier`, `/vlp:tache` et
-`/vlp:check`, disponibles partout. Le préfixe `vlp:` n'est pas décoratif :
-c'est le nom du plugin, et il évite qu'un `/tache` d'ailleurs prenne la place
-du tien.
+Les commandes deviennent `/vlp:init`, `/vlp:chantier`, `/vlp:tache`,
+`/vlp:enchainer` et `/vlp:check`, disponibles partout — avec l'agent
+`vlp:fiche`, que `/vlp:enchainer` lance pour chaque fiche. Le préfixe `vlp:`
+n'est pas décoratif : c'est le nom du plugin, et il évite qu'un `/tache`
+d'ailleurs prenne la place du tien.
 
 **Si tu déplaces le kit**, refais le lien — et mets à jour la ligne
 « **kit** » des `CHANTIER.md` déjà posés, qui la mentionne pour les humains.

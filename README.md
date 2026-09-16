@@ -2,7 +2,7 @@
 
 Un kit portable — **un seul exemplaire, à côté des projets**, jamais recopié
 dedans. C'est un **plugin Claude Code** : il est chargé là où il est, il n'en
-existe aucune copie. Il apporte quatre commandes, les gabarits de fichiers, et
+existe aucune copie. Il apporte cinq commandes, les gabarits de fichiers, et
 la convention qui les tient ensemble.
 
 Le partage tient en une ligne : **le kit porte le moteur, le projet porte ses
@@ -38,6 +38,12 @@ session, jamais deux. La commande est **autoportante** : elle n'ouvre que ce
 qu'elle nomme, lit elle-même la sortie de vérification, s'arrête à deux
 tentatives, et finit par le critère de fin recopié.
 
+`/vlp:enchainer` évite de relancer à la main : il joue les fiches à la suite,
+chacune dans un sous-agent neuf, pose la question quand l'une attend un humain,
+et s'arrête au premier blocage ou après cinq fiches. Commode, mais plus cher en
+tokens que les fiches jouées une à une : son chef relit tout son contexte à
+chaque appel.
+
 **3. Clôture.** Dernière case cochée, fichier marqué clos, `CHANTIER.md` mis à
 jour, une ligne dans l'état. Un chantier clos ne se rejoue pas.
 
@@ -56,10 +62,16 @@ commands/                  LE MOTEUR — chargé depuis ici, jamais copié
   init.md                  /vlp:init      — équiper un projet, en sept questions
   chantier.md              /vlp:chantier  — cadrer un chantier en fiches
   tache.md                 /vlp:tache     — exécuter une fiche, une seule
+  enchainer.md             /vlp:enchainer — jouer les fiches à la suite, une par sous-agent
   check.md                 /vlp:check     — vérifier un projet, sans rien écrire
+agents/                    LES SOUS-AGENTS — chargés depuis ici, comme les commandes
+  fiche.md                 vlp:fiche      — exécuter une seule fiche, pour /vlp:enchainer
+scripts/                   L'OUTIL DE MESURE — lit les transcripts, zéro appel modèle
+  mesure-tokens.py         le coût en tokens d'une session, en comptes bruts
 archive/                   ce qui a servi et ne sert plus — gardé, pas supprimé
 methode-chantier.md        LA DOCTRINE — lue depuis le kit, jamais recopiée
 cloture.md                 les cinq écritures d'une clôture, décrites une fois
+enchainement.md            le contrat de retour d'une fiche enchaînée, décrit une fois
 CONVENTION-FICHIERS.md     où vit quoi, et qui a le droit de l'ouvrir
 ARTEFACTS.md               les deux pages publiées : nommage, URL, budget
 INSTALLATION.md            la mise en place
@@ -121,13 +133,16 @@ chantier en cours, la table des clos — et, par chantier, une page qui montre
 - `/vlp:tache` coche la fiche sur la **page du chantier**, marque la suivante, y
   porte les décisions imprévues — et signale un **arrêt sur blocage** quand il
   abandonne après deux tentatives. Il ne touche pas à la feuille de route : sa
-  session est la plus serrée des trois, et une seconde page relue à chaque
+  session est la plus serrée de toutes, et une seconde page relue à chaque
   fiche y coûterait le prix de la fiche ;
+- `/vlp:enchainer` fait de même pour toute une série de fiches, mais ne
+  régénère la page du chantier qu'**une fois**, en fin de lancement ;
 - à la dernière fiche, le chantier passe en « clos » des deux côtés.
 
 Les URL vivent dans `CHANTIER.md` ; elles ne changent jamais. Les fils de
 commentaires d'une page sont le canal de retour entre deux sessions :
-`/vlp:chantier` les lit à la reprise, `/vlp:tache` seulement si on le lui demande.
+`/vlp:chantier` les lit à la reprise, `/vlp:tache` seulement si on le lui demande,
+`/vlp:enchainer` jamais.
 Détail complet dans `ARTEFACTS.md`.
 
 ## Par où commencer
