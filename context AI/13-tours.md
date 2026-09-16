@@ -84,8 +84,9 @@ T4 change les commandes qui l'appellent ; T5 vient en dernier.
 ---
 
 <!-- FICHE:T1 -->
-## T1 [ ] — Dédoublonner par tour, et tester
+## T1 [x] — Dédoublonner par tour, et tester
 
+**Session** : C:\Users\znorr\.claude\projects\C--Users-znorr-Documents-ProgPerso-Claude-vlpWorkflow\0239e4db-1265-485d-ab3c-bb5097b2ecb8.jsonl
 **Dépend de** : rien.
 **Fichiers** : scripts/mesure-tokens.py, scripts/test-mesure-tokens.py (à créer)
 — et rien d'autre.

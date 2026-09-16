@@ -106,3 +106,8 @@ de ce que le code dit déjà.
   sur la page à la fiche, 6 406 759 mesurés à la clôture). Total brut mesuré
   sur les sessions de C1 et C2 : input 272, output 104 483, cache_creation
   372 768, cache_read 14 911 973, **total 15 389 496 tokens**.
+- **2026-09-17** — T1 : sans `message.id`, `mesure-tokens.py` repère un tour
+  par `requestId`, puis par sa ligne ; sur la ligne `TOTAL`, `ctx_1er` et
+  `ctx_dernier` valent `-`, un contexte ne se somme pas. Mesuré sur C1 : le
+  cache écrit mêle 5 min (47 978) et 1 h (26 375) — T3 ne peut pas tout
+  compter au prix 1 h.
