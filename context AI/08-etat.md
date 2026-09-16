@@ -17,14 +17,29 @@
   2026-09-10, voir le journal) — puis remis tel quel le 2026-09-17.
 - **2026-09-17** — v3.1.0 : cinq commandes ; `/vlp:enchainer` et l'agent
   `vlp:fiche` déclarés dans toute la doc.
+- **2026-09-17** — audit complet du kit (`12-audit.md`) : 11 bugs, 7
+  fragilités, 19 transcripts mesurés. Constat central : une fiche coûte
+  51 à 128 tours ; la commande ne pèse que ~8 % du premier tour. Les dix
+  chantiers qui en sortent sont la TODO ci-dessous.
 
 ## La TODO ordonnée — les chantiers possibles
 
 C'est d'ici que `/chantier` tire ses propositions. Un chantier par entrée,
-ordonné par ce qui débloque le reste.
+ordonné par ce qui débloque le reste. Le détail de chacun est dans
+`12-audit.md`.
 
 | # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |
 |---|---|---|---|---|
+| 1 | Corriger les bugs de l'audit | `/vlp:check` D honnête, `$ARGUMENTS`, page orpheline, titres, chemins `**Session**`, gabarits sans fichiers fantômes, README, `.gitignore` | 2 fiches | rien |
+| 2 | Compter les tours, pondérer le coût | `mesure-tokens.py` rend tours, appels d'outils, contexte 1er/dernier tour, coût pondéré (cache ≠ frais) ; `**Session**` via `${CLAUDE_SESSION_ID}` | 2 fiches | rien |
+| 3 | Réduire les tours de `/vlp:tache` | carte injectée par `` !`cat CHANTIER.md` ``, lectures groupées, corps ≤ 150 lignes, le rare en fichiers de référence | 4 fiches | 2 |
+| 4 | Un script `vlp.py` pour la mécanique | extraire, socle, état, régénérer la page, valider — remplace les `sed`/`awk` et le HTML retapé par le modèle | 5 fiches | 2 |
+| 5 | Hooks du kit | `PostToolUse` valide un fichier de fiches à l'écriture ; `SessionStart` injecte la carte ; fin des « recopie à l'identique » | 3 fiches | 4 |
+| 6 | Evals du plugin | `claude plugin eval` sur un bac à sable, graders gratuits, baseline sans plugin ; `validate` avant commit | 3 fiches | 1 |
+| 7 | Fusionner la doctrine | cinq fichiers de doc → trois ; chaque nombre vit une fois | 3 fiches | rien |
+| 8 | Migrer `commands/` → `skills/` | un dossier par commande, `disable-model-invocation`, variante `context: fork` + `vlp:fiche` | 3 fiches | 3 |
+| 9 | `/vlp:enchainer` : réparer ou retirer | chef ≤ 3 tours par fiche via la skill forkée, ou suppression — aux chiffres de 2 | 3 fiches | 2, 8 |
+| 10 | Un projet neuf qui ne ment pas | `/vlp:init` crée ce que l'index et le routage nomment ; numéro d'état pris à la suite | 2 fiches | 1 |
 
 ## Journal des décisions
 

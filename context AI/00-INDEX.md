@@ -15,6 +15,7 @@ a l'air proche.
 | Fichier | Lire quand |
 |---|---|
 | `08-etat.md` | on reprend après une interruption, ou on choisit quoi faire ensuite |
+| `12-audit.md` | on choisit le prochain chantier du kit, ou on cherche la preuve d'un bug ou d'une mesure de l'audit du 2026-09-17 |
 | *(racine du kit)* `methode-chantier.md` | on ouvre un chantier, ou on le découpe en fiches — ici le projet **est** le kit, la méthode est donc à la racine |
 
 ## Chantiers — un fichier de fiches par chantier

@@ -44,5 +44,7 @@ dans cet ordre :
 - **Ne jamais lire le dossier de contexte en entier**, ni le README.
 - **Une tâche, une session.** `/clear` entre deux tâches : une session laissée
   ouverte relit tout son passé à chaque tour.
+- **Le coût est dans les tours, pas dans les lignes** : grouper les lectures
+  en un appel, ne pas retaper ce qu'un script régénère.
 - **Explorer et lire avec un modèle léger**, garder le lourd pour ce qui décide.
 - Grep ciblé plutôt que lecture de fichier entier, dans le code comme ici.

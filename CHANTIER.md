@@ -25,12 +25,18 @@
 
 Les règles que toute fiche respecte, quel que soit son sujet.
 
-- Une règle vit à un seul endroit : on la référence, on ne la recopie jamais
-  (le kit a souffert de six copies divergentes).
+- Une règle vit à un seul endroit — un nombre aussi : on la référence, on ne la
+  recopie jamais (le kit a souffert de six copies divergentes).
 - Une commande est autoportante : chaque étape nomme ce qu'elle ouvre, et rien
-  d'autre.
+  d'autre. Elle ne découpe jamais une autre commande au `sed` : ce qui est
+  partagé vit dans un fichier ou un script commun.
+- Le déterministe s'écrit dans `scripts/`, testé, et la commande l'appelle en
+  un tour ; la prose ne décrit pas un algorithme.
 - Tout ajout dans une commande se paye à chaque exécution : court, ou pas du tout.
-- Le texte des commandes est en français.
+- `$ARGUMENTS` sur une ligne à lui ; jamais `$1` ni `$2` dans la prose — ils
+  sont substitués avant que le modèle lise.
+- Le texte des commandes est en français ; chemins en barres obliques, jamais
+  un chemin de machine.
 
 ## Chantiers clos — ne se rejouent pas
 
