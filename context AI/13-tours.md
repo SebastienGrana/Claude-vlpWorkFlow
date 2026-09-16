@@ -114,8 +114,9 @@ de `context AI/11-conso.md:60` (C1) rend `tours = 31`, `divergents = 0`, et un
 ---
 
 <!-- FICHE:T2 -->
-## T2 [ ] — Compter les appels d'outils, résoudre les chemins
+## T2 [x] — Compter les appels d'outils, résoudre les chemins
 
+**Session** : C:\Users\znorr\.claude\projects\C--Users-znorr-Documents-ProgPerso-Claude-vlpWorkflow\0239e4db-1265-485d-ab3c-bb5097b2ecb8.jsonl
 **Dépend de** : `T1`.
 **Fichiers** : scripts/mesure-tokens.py, scripts/test-mesure-tokens.py — et
 rien d'autre.

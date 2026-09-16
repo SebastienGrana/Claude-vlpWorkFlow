@@ -111,3 +111,8 @@ de ce que le code dit déjà.
   `ctx_dernier` valent `-`, un contexte ne se somme pas. Mesuré sur C1 : le
   cache écrit mêle 5 min (47 978) et 1 h (26 375) — T3 ne peut pas tout
   compter au prix 1 h.
+- **2026-09-17** — T2 : un fichier passé plusieurs fois à `mesure-tokens.py`
+  (un id et son chemin, ou deux fiches d'une même session) n'est compté qu'une
+  fois. T2 à T5 jouées d'affilée dans la session de T1, à la demande de
+  l'utilisateur : le coût d'une fiche y est l'écart du compteur de session
+  depuis la clôture de la fiche précédente.

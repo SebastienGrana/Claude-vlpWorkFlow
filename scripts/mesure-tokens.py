@@ -1,17 +1,35 @@
 #!/usr/bin/env python3
+import collections
+import glob
 import json
 import os
 import sys
 
 # Colonnes affichées, dans l'ordre du socle (context AI/13-tours.md).
 COLONNES = [
-    "tours", "ctx_1er", "ctx_dernier",
+    "tours", "appels", "ctx_1er", "ctx_dernier",
     "input", "output", "cache_creation", "cache_1h", "cache_read", "total",
     "invalides",
 ]
 # Colonnes qui se somment sur la ligne TOTAL ; ctx_1er et ctx_dernier n'ont
 # pas de somme qui ait un sens (un contexte n'est pas un cumul).
-SOMMABLES = ["tours", "input", "output", "cache_creation", "cache_1h", "cache_read", "total", "invalides"]
+SOMMABLES = ["tours", "appels", "input", "output", "cache_creation", "cache_1h", "cache_read", "total", "invalides"]
+
+
+def resoudre(argument):
+    """Rend (chemin, None) ou (None, erreur), sans rien ouvrir.
+
+    `~` → home ; un chemin (`C:\\…`, `C:/…`, `/…`) tel quel ; un id seul (ni
+    séparateur ni `.jsonl`) → le premier `~/.claude/projects/*/<id>.jsonl`.
+    """
+    argument = argument.strip()
+    if "/" in argument or "\\" in argument or argument.endswith(".jsonl"):
+        return os.path.expanduser(argument), None
+    motif = os.path.join(os.path.expanduser("~"), ".claude", "projects", "*", glob.escape(argument) + ".jsonl")
+    trouves = sorted(glob.glob(motif))
+    if not trouves:
+        return None, f"id introuvable : aucun {motif}"
+    return trouves[0], None
 
 
 def _comptes(usage):
@@ -32,8 +50,12 @@ def mesurer(chemin):
     # On garde les comptes de la DERNIÈRE ligne de chaque id, dans l'ordre
     # d'apparition, et on note les ids dont les comptes changent d'une ligne
     # à l'autre (le socle dit qu'ils sont identiques : on le vérifie).
+    # Les appels d'outils, eux, se comptent par ligne : un bloc `tool_use`
+    # n'apparaît que sur une seule ligne (vérifié le 2026-09-17 sur deux
+    # transcripts : 56 blocs, 56 ids distincts).
     tours = {}          # id -> comptes de la dernière ligne (ordre d'insertion = ordre du fichier)
     divergents = set()
+    outils = collections.Counter()
     lignes_invalides = 0
     n_ligne = 0
 
@@ -56,6 +78,11 @@ def mesurer(chemin):
             message = d.get("message")
             if not isinstance(message, dict):
                 continue
+            contenu = message.get("content")
+            if isinstance(contenu, list):
+                for bloc in contenu:
+                    if isinstance(bloc, dict) and bloc.get("type") == "tool_use":
+                        outils[bloc.get("name") or "?"] += 1
             usage = message.get("usage")
             if not isinstance(usage, dict):
                 continue
@@ -79,6 +106,8 @@ def mesurer(chemin):
     valeurs = list(tours.values())
     return {
         "tours": len(tours),
+        "appels": sum(outils.values()),
+        "outils": dict(outils),
         "ctx_1er": ctx(valeurs[0]) if valeurs else 0,
         "ctx_dernier": ctx(valeurs[-1]) if valeurs else 0,
         "input": input_tokens,
@@ -94,25 +123,35 @@ def mesurer(chemin):
 
 def main(argv):
     if not argv:
-        print("usage: mesure-tokens.py <fichier.jsonl> [...]", file=sys.stderr)
+        print("usage: mesure-tokens.py <fichier.jsonl | id de session> [...]", file=sys.stderr)
         return 1
 
     resultats = []
-    au_moins_un_lu = False
+    vus = set()
 
-    for chemin in argv:
+    for argument in argv:
+        chemin, erreur = resoudre(argument)
+        if erreur:
+            print(f"{argument}\t{erreur}", file=sys.stderr)
+            continue
         nom = os.path.basename(chemin)
+        # Le même fichier passé deux fois (un id et son chemin, ou deux fiches
+        # jouées dans la même session) ne se compte qu'une fois.
+        cle = os.path.normcase(os.path.abspath(chemin))
+        if cle in vus:
+            print(f"{nom}\tdéjà compté : passé plus d'une fois, compté une", file=sys.stderr)
+            continue
+        vus.add(cle)
         r, erreur = mesurer(chemin)
         if erreur:
             print(f"{nom}\t{erreur}", file=sys.stderr)
             continue
-        au_moins_un_lu = True
         if r["divergents"] > 0:
             print(f"{nom}\tdivergents = {r['divergents']} (ids dont l'usage change d'une ligne à l'autre)",
                   file=sys.stderr)
         resultats.append((nom, r))
 
-    if not au_moins_un_lu:
+    if not resultats:
         print("aucun fichier n'a pu être lu", file=sys.stderr)
         return 1
 
@@ -127,8 +166,19 @@ def main(argv):
                 cumul[k] += r[k]
         print("\t".join(str(x) for x in ["TOTAL"] + [cumul.get(k, "-") for k in COLONNES]))
 
+    for nom, r in resultats:
+        detail = " ".join(f"{n}={c}" for n, c in sorted(r["outils"].items(), key=lambda x: (-x[1], x[0])))
+        print(f"{nom}\tappels\t{detail or '-'}")
+
     return 0
 
 
 if __name__ == "__main__":
+    # Sous Windows, la console n'est pas en UTF-8 : sans ceci, les accents des
+    # messages sortent illisibles.
+    for flux in (sys.stdout, sys.stderr):
+        try:
+            flux.reconfigure(encoding="utf-8")
+        except (AttributeError, ValueError):
+            pass
     sys.exit(main(sys.argv[1:]))
