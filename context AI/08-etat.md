@@ -116,3 +116,8 @@ de ce que le code dit déjà.
   fois. T2 à T5 jouées d'affilée dans la session de T1, à la demande de
   l'utilisateur : le coût d'une fiche y est l'écart du compteur de session
   depuis la clôture de la fiche précédente.
+- **2026-09-17** — T3 : un tour à comptes nuls (les 120 `<synthetic>` des
+  transcripts) coûte 0 sans prix ; un tour `speed: fast` compte comme modèle
+  inconnu, la grille ne donnant pas le prix de son cache ; `--grille` affiche
+  la table de ratios. Les ratios ne sont pas communs (cache lu 0,025 sur
+  Fable 5.1, 0,1 ailleurs) : modèle inconnu → `equiv` et `usd` valent `?`.

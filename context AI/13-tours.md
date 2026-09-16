@@ -143,8 +143,9 @@ Affiche-les.
 ---
 
 <!-- FICHE:T3 -->
-## T3 [ ] — Pondérer le coût : équivalents et dollars
+## T3 [x] — Pondérer le coût : équivalents et dollars
 
+**Session** : C:\Users\znorr\.claude\projects\C--Users-znorr-Documents-ProgPerso-Claude-vlpWorkflow\0239e4db-1265-485d-ab3c-bb5097b2ecb8.jsonl
 **Dépend de** : `T1`.
 **Fichiers** : scripts/mesure-tokens.py, scripts/test-mesure-tokens.py — et
 rien d'autre.

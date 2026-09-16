@@ -11,6 +11,7 @@ import json
 import os
 import sys
 import tempfile
+from decimal import ROUND_HALF_UP, Decimal
 
 ICI = os.path.dirname(os.path.abspath(__file__))
 spec = importlib.util.spec_from_file_location("mesure_tokens", os.path.join(ICI, "mesure-tokens.py"))
@@ -23,7 +24,7 @@ def outil(nom):
     return {"type": "tool_use", "id": "toolu_" + nom, "name": nom, "input": {}}
 
 
-def assistant(mid, entree, sortie, creation, lecture, sous_objet=None, blocs=None):
+def assistant(mid, entree, sortie, creation, lecture, sous_objet=None, blocs=None, modele="test", vitesse=None):
     """Une ligne `assistant`. `sous_objet` : (1h, 5m), ou None pour un usage
     sans `cache_creation` (vieux transcript). `blocs` : le contenu, un bloc
     texte par défaut."""
@@ -36,10 +37,12 @@ def assistant(mid, entree, sortie, creation, lecture, sous_objet=None, blocs=Non
     if sous_objet is not None:
         h1, m5 = sous_objet
         usage["cache_creation"] = {"ephemeral_1h_input_tokens": h1, "ephemeral_5m_input_tokens": m5}
+    if vitesse is not None:
+        usage["speed"] = vitesse
     return json.dumps({
         "type": "assistant",
         "requestId": "req_" + mid,
-        "message": {"id": mid, "model": "test", "usage": usage,
+        "message": {"id": mid, "model": modele, "usage": usage,
                     "content": blocs if blocs is not None else [{"type": "text", "text": "texte"}]},
     })
 
@@ -81,6 +84,39 @@ LIGNES_DIVERGENT = [
     assistant("msg_D", 1, 6, 10, 100),
 ]
 ATTENDU_DIVERGENT = {"tours": 1, "output": 6, "divergents": 1, "appels": 0}
+
+# Pondération : un tour dont les quatre comptes valent 1 000, modèle connu,
+# cache écrit réparti 400 en 1 h et 600 en 5 min. Attendus calculés ici depuis
+# la même grille que le script — le test vérifie la formule, pas les prix.
+MODELE = "claude-opus-5"
+p_entree, p_sortie, p_lu, p_5m, p_1h = mod.GRILLE[MODELE]
+EQUIV = 1000 + 1000 * p_sortie / p_entree + 1000 * p_lu / p_entree + 600 * p_5m / p_entree + 400 * p_1h / p_entree
+USD = (1000 * p_entree + 1000 * p_sortie + 1000 * p_lu + 600 * p_5m + 400 * p_1h) / Decimal(1_000_000)
+LIGNES_POIDS = [
+    assistant("msg_E", 1000, 1000, 1000, 1000, sous_objet=(400, 600), modele=MODELE),
+    # Un tour <synthetic> à comptes nuls ne coûte rien et ne rend rien inconnu.
+    assistant("msg_S", 0, 0, 0, 0, modele="<synthetic>"),
+]
+ATTENDU_POIDS = {
+    "tours": 2,
+    "equiv": int(EQUIV.quantize(Decimal(1), rounding=ROUND_HALF_UP)),
+    "usd": str(USD.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)),
+    "inconnus": [],
+}
+
+# Un modèle absent de la grille, et un tour fast : usd vaut « ? », equiv aussi
+# (les ratios de la grille ne sont pas communs à tous les modèles).
+LIGNES_INCONNU = [
+    assistant("msg_F", 1000, 1000, 1000, 1000, modele=MODELE),
+    assistant("msg_G", 10, 10, 10, 10, modele="modele-inconnu"),
+    assistant("msg_H", 10, 10, 10, 10, modele=MODELE, vitesse="fast"),
+]
+ATTENDU_INCONNU = {
+    "tours": 3,
+    "equiv": "?" if mod.RATIOS_COMMUNS is None else None,
+    "usd": "?",
+    "inconnus": ["claude-opus-5 (fast)", "modele-inconnu"],
+}
 
 
 def ecrire(chemin, lignes):
@@ -158,6 +194,8 @@ def main():
     for nom, lignes, attendu in [
         ("trois-tours", LIGNES, ATTENDU),
         ("divergent", LIGNES_DIVERGENT, ATTENDU_DIVERGENT),
+        ("poids", LIGNES_POIDS, ATTENDU_POIDS),
+        ("inconnu", LIGNES_INCONNU, {k: v for k, v in ATTENDU_INCONNU.items() if v is not None}),
     ]:
         ecart = verifier(nom, lignes, attendu)
         if ecart:
@@ -166,6 +204,12 @@ def main():
     ecart = verifier_resolution()
     if ecart:
         print(ecart)
+        return 1
+    sortie = io.StringIO()
+    with contextlib.redirect_stdout(sortie):
+        code = mod.main(["--grille"])
+    if code != 0 or len(sortie.getvalue().splitlines()) != 1 + len(mod.GRILLE):
+        print(f"main(--grille) : code {code}, {len(sortie.getvalue().splitlines())} lignes, attendu {1 + len(mod.GRILLE)}")
         return 1
     print("OK")
     return 0
