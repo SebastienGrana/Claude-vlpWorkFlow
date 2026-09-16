@@ -68,7 +68,9 @@
     <!-- ZONE:encours — remplacé à chaque ouverture, remis à « aucun » à chaque clôture.
          /tache n'y touche pas : l'avancement fiche par fiche est sur la page du chantier. -->
     <div class="encours">
-      <div class="rien">Aucun chantier ouvert — le prochain s'ouvre par <span class="mono">/vlp:chantier</span>.</div>
+      <div class="titre">Compter les tours, pondérer le coût</div>
+      <div class="mono">fiches T1–T5 · avancement sur la page du chantier</div>
+      <div><a href="https://claude.ai/artifact/G7oHVSDZnVJdYXiEPD63CU">Voir le détail des fiches</a></div>
     </div>
   </section>
 
@@ -82,7 +84,7 @@
         </thead>
         <tbody>
           <tr><td class="mono">1</td><td>Corriger les bugs de l'audit</td><td><span class="mono">/vlp:check</span> D honnête, <span class="mono">$ARGUMENTS</span>, page orpheline, titres, chemins Session, gabarits sans fichiers fantômes, README, .gitignore</td><td class="mono">2 fiches</td><td class="mono">—</td></tr>
-          <tr><td class="mono">2</td><td>Compter les tours, pondérer le coût</td><td>Tours, appels d'outils, contexte 1er/dernier tour, coût pondéré (cache ≠ frais) ; Session via <span class="mono">${CLAUDE_SESSION_ID}</span></td><td class="mono">2 fiches</td><td class="mono">—</td></tr>
+          <tr><td class="mono">2</td><td>Compter les tours, pondérer le coût <span class="badge" data-etat="cours">en cours</span></td><td>Tours, appels d'outils, contexte 1er/dernier tour, coût pondéré (cache ≠ frais) ; Session via <span class="mono">${CLAUDE_CODE_SESSION_ID}</span></td><td class="mono">5 fiches</td><td class="mono">—</td></tr>
           <tr data-etat="bloque"><td class="mono">3</td><td>Réduire les tours de <span class="mono">/vlp:tache</span></td><td>Carte injectée avant le 1er tour, lectures groupées, corps ≤ 150 lignes, le rare en fichiers de référence</td><td class="mono">4 fiches</td><td class="mono">2</td></tr>
           <tr data-etat="bloque"><td class="mono">4</td><td>Un script <span class="mono">vlp.py</span> pour la mécanique</td><td>Extraire, socle, état, régénérer la page, valider — remplace les sed/awk et le HTML retapé par le modèle</td><td class="mono">5 fiches</td><td class="mono">2</td></tr>
           <tr data-etat="bloque"><td class="mono">5</td><td>Hooks du kit</td><td>PostToolUse valide un fichier de fiches à l'écriture ; SessionStart injecte la carte ; fin des « recopie à l'identique »</td><td class="mono">3 fiches</td><td class="mono">4</td></tr>

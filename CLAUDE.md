@@ -55,7 +55,7 @@ et seulement dans ce cas, ouvrir l'index.
 | savoir où vit quoi dans un projet équipé | `CONVENTION-FICHIERS.md` |
 | toucher aux pages publiées | `ARTEFACTS.md`, puis le gabarit dans `templates/` |
 | ouvrir un chantier, ou le découper en fiches | **lancer `/vlp:chantier`** |
-| jouer une fiche `<X>*` | `context AI/<NN>-<chantier>.md` — chantier **ouvert** |
+| jouer une fiche `T*` | `context AI/13-tours.md` — chantier **ouvert** « Compter les tours, pondérer le coût », `T1..T5` |
 | relire le chantier E (enchaîner les fiches) | `context AI/09-enchainer.md` — chantier **clos**, abandonné puis remis tel quel |
 | relire le chantier M (mesurer les tokens) | `context AI/10-mesure.md` — chantier **clos** |
 | relire le chantier C (afficher la conso) | `context AI/11-conso.md` — chantier **clos** |

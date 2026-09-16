@@ -31,7 +31,7 @@ ordonné par ce qui débloque le reste. Le détail de chacun est dans
 | # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |
 |---|---|---|---|---|
 | 1 | Corriger les bugs de l'audit | `/vlp:check` D honnête, `$ARGUMENTS`, page orpheline, titres, chemins `**Session**`, gabarits sans fichiers fantômes, README, `.gitignore` | 2 fiches | rien |
-| 2 | Compter les tours, pondérer le coût | `mesure-tokens.py` rend tours, appels d'outils, contexte 1er/dernier tour, coût pondéré (cache ≠ frais) ; `**Session**` via `${CLAUDE_SESSION_ID}` | 2 fiches | rien |
+| 2 | Compter les tours, pondérer le coût | `mesure-tokens.py` rend tours, appels d'outils, contexte 1er/dernier tour, coût pondéré (cache ≠ frais) ; `**Session**` via `${CLAUDE_CODE_SESSION_ID}` | 5 fiches | rien |
 | 3 | Réduire les tours de `/vlp:tache` | carte injectée par `` !`cat CHANTIER.md` ``, lectures groupées, corps ≤ 150 lignes, le rare en fichiers de référence | 4 fiches | 2 |
 | 4 | Un script `vlp.py` pour la mécanique | extraire, socle, état, régénérer la page, valider — remplace les `sed`/`awk` et le HTML retapé par le modèle | 5 fiches | 2 |
 | 5 | Hooks du kit | `PostToolUse` valide un fichier de fiches à l'écriture ; `SessionStart` injecte la carte ; fin des « recopie à l'identique » | 3 fiches | 4 |
