@@ -45,6 +45,7 @@ ordonné par ce qui débloque le reste. Le détail de chacun est dans
 | 8 | Migrer `commands/` → `skills/` | un dossier par commande, `disable-model-invocation`, variante `context: fork` + `vlp:fiche` | 3 fiches | rien |
 | 9 | `/vlp:enchainer` : réparer ou retirer | chef ≤ 3 tours par fiche via la skill forkée, ou suppression — aux chiffres de 2 | 3 fiches | 8 |
 | 10 | Un projet neuf qui ne ment pas | `/vlp:init` crée ce que l'index et le routage nomment ; numéro d'état pris à la suite | 2 fiches | rien |
+| 11 | Evals sous WSL2 | Jouer les cas d'eval qui exigent Bash (`tache`, `chantier`, sans doute `init`) : Windows n'a pas de sandbox, `claude plugin eval` les refuse ; il faut initialiser Ubuntu sous WSL2, y installer Claude Code, `bubblewrap` et `socat`, s'y connecter, et lancer la suite depuis Linux | 2 fiches | 6 |
 
 ## Journal des décisions
 
@@ -326,3 +327,13 @@ de ce que le code dit déjà.
   cache_creation 217 798, cache_read 14 364 692, **total 14 649 178 tokens**,
   11,02 $.
 - **2026-09-17** — V1 : cas eval `check` créé avec `case.yaml` + `fixture.sh`. Apprentissages : (1) fixtures non copiées au cwd du run — solution `scaffold_script: fixture.sh` (fichier, pas inline) qui écrit les fichiers en heredoc, pas de `cp` ; (2) `Skill` refusé sans `allowed_tools` déclaré dans le cas (confus avec `allowed_tools` du frontmatter) ; (3) `allowed_tools` du cas ne peut pas élargir au lancement, d'où `--allow-tools` en flag ; (4) hooks du plugin tournent (`PostToolUse`), personnels absents ; Artifact off dans eval. Runs : échecs 0,10 / 0,069 / 0,068 $ (Skill refusé, max_turns 10 dépassé), succès 0,2375 $ en 26 tours (max_turns 15, score 1). Bac à sable : CHANTIER.md (kit relatif `~/.claude/skills/vlp`), `context AI/08-etat.md` (1 fiche cochée `C1[x]` sur fichier inexistant `context AI/fiches-inexistant.md`), graders regex+tool_used. Cas retenu : `scaffold` + `--trust-plugin` (Bash sandbox unavailable sous Windows). Plafond V1..V4 : 0,35 $ par run.
+- **2026-09-17** — V2 **bloquée** : `/vlp:tache` et `/vlp:chantier` injectent leur carte
+  par `` !`python … carte` `` ; sans Bash, l'injection est refusée et le run s'arrête au
+  2e tour (score 0,5 et 0,33, 0,045 $ chacun). Avec `--allow-tools Bash`, le run est
+  refusé avant de tourner (0,00 $) : Windows n'a pas de sandbox, la doc exige WSL2 (ou
+  Linux avec `bubblewrap` et `socat`). WSL2 est actif ici, mais Ubuntu n'est pas
+  initialisé (seule distribution : `docker-desktop`). Cas `tache` et `chantier` écrits,
+  tag `wsl2`, jouables sous WSL2 (TODO n° 11). `V4` ne dépend plus de `V2`. Incident : le
+  sous-agent `vlp:fiche` a exécuté une fixture à la racine du kit (`CHANTIER.md` et
+  `08-etat.md` écrasés) — restaurés par `git checkout`, rien perdu ; la fiche est reprise
+  par le chef, le sous-agent (8 tours par reprise) relancé 4 fois pour V1.

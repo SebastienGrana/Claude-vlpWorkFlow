@@ -64,9 +64,10 @@ Git Bash (non testable sur cette machine). Tous deux restent « laissés ouverts
 | `V1` | Poser le premier cas (`check`) et le chiffrer | rien |
 | `V2` | Écrire les cas `tache` et `chantier` | `V1` |
 | `V3` | Écrire les cas `init` et `hook` | `V1` |
-| `V4` | Rendre `validate` propre, le lancer avant commit, jouer la suite | `V2`, `V3` |
+| `V4` | Rendre `validate` propre, le lancer avant commit, jouer la suite | `V3` |
 
-`V2` et `V3` sont parallélisables : elles ne touchent pas les mêmes dossiers.
+`V2` et `V3` sont parallélisables : elles ne touchent pas les mêmes dossiers. `V2` est
+bloquée sous Windows (WSL2 requis, TODO n° 11) : `V4` ne l'attend plus.
 
 ---
 
@@ -102,6 +103,12 @@ et le coût du run est écrit : tours, total tokens, `usd`.
 
 <!-- FICHE:V2 -->
 ## V2 [ ] — Écrire les cas `tache` et `chantier`
+
+**Tentatives** (2026-09-17) — non résolu : WSL2 requis.
+1. Sans Bash : `/vlp:tache` s'arrête au 2e tour, l'injection `` !`python … carte` `` est refusée.
+2. `--allow-tools Bash` : run refusé avant de tourner, 0,00 $ — pas de sandbox sous Windows.
+Erreur : `sandbox required but unavailable: … the Windows sandbox is not active`.
+Cas écrits et gardés (tag `wsl2`), fixture `tache` prouvée hors run ; à jouer sous WSL2 (TODO n° 11).
 
 **Dépend de** : `V1`.
 **Fichiers** : `evals/tache/`, `evals/chantier/`, `evals/check/` (lu, modèle du bac à
@@ -146,6 +153,7 @@ sans `<!-- /FICHE -->` ; les graders vérifient que le hook a parlé (`INVALIDE`
 que le run a reçu). Si un run ne charge pas les hooks du plugin, dis-le et arrête : le
 cas ne se contourne pas.
 `--ablation none` sur les deux. Lance-les une fois, aux options du socle.
+Un cas qui exige Bash est refusé sous Windows (V2) : écris-le quand même, tag `wsl2`.
 
 **Critère de fin**
 La sortie montre `init` et `hook` réussis, scores bruts, 0 appel `Artifact` compté sur
@@ -157,7 +165,7 @@ La sortie montre `init` et `hook` réussis, scores bruts, 0 appel `Artifact` com
 <!-- FICHE:V4 -->
 ## V4 [ ] — Rendre `validate` propre, le lancer avant commit, jouer la suite
 
-**Dépend de** : `V2`, `V3`.
+**Dépend de** : `V3`.
 **Fichiers** : `.claude-plugin/marketplace.json`, `.githooks/pre-commit`,
 `INSTALLATION.md` (une ligne : activer le hook git), `context AI/08-etat.md` —
 et rien d'autre.
@@ -171,10 +179,10 @@ ligne et laisse passer. Active-le chez toi (`git config core.hooksPath .githooks
 dis-le en une ligne dans `INSTALLATION.md`, à l'endroit qui parle du clone.
 Prouve la garde : un commit sur un `plugin.json` cassé est refusé (puis annulé), un
 commit sain passe.
-Joue enfin la suite entière (5 cas) aux options du socle, une fois, et mesure-la.
+Joue enfin, une fois et aux options du socle, tous les cas sans tag `wsl2`, et mesure.
 
 **Critère de fin**
-`validate` rend 0 avertissement ; le commit cassé est refusé, le sain passe ; la suite
-montre 5 cas sur 5 avec leurs scores bruts, et son coût total (runs, tours, tokens,
-`usd`) est écrit au journal de `08-etat.md`.
+`validate` rend 0 avertissement ; le commit cassé est refusé, le sain passe ; les cas
+sans tag `wsl2` passent tous, scores bruts affichés, et leur coût total (runs, tours,
+`usd`) est écrit au journal de `08-etat.md`, avec la liste des cas `wsl2` non joués.
 <!-- /FICHE -->

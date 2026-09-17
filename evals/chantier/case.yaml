@@ -1,0 +1,32 @@
+schema_version: "1.1"
+name: chantier
+runs: 1
+tags: [chantier, wsl2]
+
+execution:
+  max_turns: 12
+  timeout_seconds: 300
+  allowed_tools: [Read, Glob, Grep, Skill, Bash]
+
+context:
+  scaffold_script: fixture.sh
+
+graders:
+  - name: proposes-girafe
+    type: regex
+    target: last_message
+    pattern: "girafe"
+    flags: i
+    match: contains
+
+  - name: proposes-bonsai
+    type: regex
+    target: last_message
+    pattern: "bonsa"
+    flags: i
+    match: contains
+
+  - name: runs-vlp-chantier-command
+    type: tool_used
+    tool: Skill
+    input_match: '"skill"\s*:\s*"(?:[\w-]+:)?vlp:chantier"'

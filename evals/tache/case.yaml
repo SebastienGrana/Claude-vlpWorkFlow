@@ -1,0 +1,30 @@
+schema_version: "1.1"
+name: tache
+runs: 1
+tags: [tache, wsl2]
+
+execution:
+  max_turns: 12
+  timeout_seconds: 300
+  allowed_tools: [Read, Glob, Grep, Skill, Bash]
+
+context:
+  scaffold_script: fixture.sh
+
+graders:
+  - name: reads-second-fiche
+    type: regex
+    target: last_message
+    pattern: "CITRON-T2"
+    match: contains
+
+  - name: ignores-first-fiche
+    type: regex
+    target: last_message
+    pattern: "ORANGE-T1"
+    match: not_contains
+
+  - name: runs-vlp-tache-command
+    type: tool_used
+    tool: Skill
+    input_match: '"skill"\s*:\s*"(?:[\w-]+:)?vlp:tache"'
