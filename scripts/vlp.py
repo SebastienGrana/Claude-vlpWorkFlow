@@ -37,8 +37,19 @@ Sous-commandes :
   les 20 premiers sous-dossiers `nom/` (sans les cachés), `CLAUDE.md` s'il est
   là, les lignes `PROJET=`, `VOISIN=`, `AUCUN_PROJET` de la carte, et `ETAT=`
   pour `<dossier>/C` (défaut `context AI`). Sort 0.
-- `page <fichier> <page.html>` — régénère la page du chantier depuis le fichier
-  de fiches : états, avancement, comptage, coûts (`**Session**`), date. Garde
+- `lire <chemin>…` — imprime des fichiers du kit, chemins relatifs à sa racine
+  (le parent de `scripts/`) : remplace un `cat` hors du projet, que PowerShell
+  refuse. Hors du kit : `GARDE:` ; absent : `ABSENT <chemin>` ; l'un ou l'autre
+  sort 1, les autres fichiers sont imprimés.
+- `cocher <fichier> <fiche> [--resolu T] [--date D]` — `[ ]` → `[x]` sur le titre
+  de la fiche et, si `CLAUDE_CODE_SESSION_ID` n'est pas vide, `**Session** : <id>`
+  avant sa ligne `**Dépend de**` (déjà là : pas redoublée) ; `--resolu` réduit
+  un bloc `**Tentatives**` à `**Tentatives** (<date>) — résolu par : T`.
+  `COCHÉ <fiche> · Session <id|absente>`. Introuvable ou déjà cochée : `GARDE:`,
+  rien écrit, sort 1.
+- `page <fichier> [<page.html>]` — régénère la page du chantier depuis le fichier
+  de fiches : états, avancement, comptage, coûts (`**Session**`), date. Sans
+  page : `<dossier du fichier>/artefacts/<même nom>.html`. Garde
   de la page l'en-tête, les notes, le journal, le blocage et le bilan.
   `--note <fiche> <texte>`, `--journal <texte>` (répétables) ; `--creer
   --projet P --titre T --resultat R` part du gabarit ; `--verifier` n'écrit
@@ -323,6 +334,60 @@ def cmd_cout(chemin, session, sortie):
         with contextlib.redirect_stdout(sortie):
             code = mesure().main(argv) or code
     return code
+
+
+KIT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+def cmd_lire(chemins, sortie):
+    """Un `cat` d'un fichier du kit est hors du projet : PowerShell le refuse
+    (chantier U). Python, lui, est permis par `allowed-tools`."""
+    racine = os.path.realpath(KIT)
+    code = 0
+    for c in chemins:
+        vrai = os.path.realpath(os.path.join(racine, c))
+        if os.path.commonpath([racine, vrai]) != racine:
+            sortie.write("GARDE: hors du kit : %s\n" % c)
+            code = 1
+        elif not os.path.isfile(vrai):
+            sortie.write("ABSENT %s\n" % c)
+            code = 1
+        else:
+            texte = lire(vrai)
+            sortie.write(texte if texte.endswith("\n") else texte + "\n")
+    return code
+
+
+def cmd_cocher(a, sortie):
+    """La coche et la ligne Session en une écriture : l'id vient de
+    l'environnement, pas d'un `$env:` que PowerShell refuse (chantier U)."""
+    lignes = lignes_de(a.fichier)
+    titre = "## %s [" % a.fiche
+    debut = next((i for i, l in enumerate(lignes) if l.startswith(titre)), None)
+    if debut is None:
+        sortie.write("GARDE: fiche introuvable : %s\n" % a.fiche)
+        return 1
+    if not lignes[debut].startswith("## %s [ ]" % a.fiche):
+        sortie.write("GARDE: %s déjà cochée — rien écrit\n" % a.fiche)
+        return 1
+    fin = next((i for i in range(debut + 1, len(lignes))
+                if lignes[i].strip() == FERMANT or TITRE.match(lignes[i])), len(lignes))
+    lignes[debut] = lignes[debut].replace("[ ]", "[x]", 1)
+    if a.resolu:
+        t = next((i for i in range(debut + 1, fin) if lignes[i].startswith("**Tentatives**")), None)
+        if t is not None:
+            n = next((i for i in range(t + 1, fin) if not lignes[i].strip() or lignes[i].startswith("**")), fin)
+            date = a.date or __import__("datetime").date.today().isoformat()
+            lignes[t:n] = ["**Tentatives** (%s) — résolu par : %s" % (date, a.resolu)]
+            fin -= n - t - 1
+    s = os.environ.get("CLAUDE_CODE_SESSION_ID", "").strip()
+    if s and "**Session** : %s" % s not in lignes[debut:fin]:
+        dep = next((i for i in range(debut + 1, fin) if lignes[i].startswith("**Dépend de**")), debut + 1)
+        lignes.insert(dep, "**Session** : %s" % s)
+    with open(a.fichier, "w", encoding="utf-8", newline="") as f:
+        f.write("\n".join(lignes) + "\n")
+    sortie.write("COCHÉ %s · Session %s\n" % (a.fiche, s or "absente"))
+    return 0
 
 
 def cmd_lignes(chemins, sortie):
@@ -805,6 +870,7 @@ def cmd_page(a, sortie):
             sortie.write("GARDE: --creer demande --projet, --titre et --resultat\n")
             return 1
         html = creer(a.fichier, a.projet, a.titre, a.resultat)
+        os.makedirs(os.path.dirname(os.path.abspath(a.page)), exist_ok=True)
     elif not os.path.isfile(a.page):
         sortie.write("GARDE: page introuvable : %s — --creer pour la créer\n" % a.page)
         return 1
@@ -1376,7 +1442,7 @@ def main(argv, sortie=None, entree=None, erreur=None):
     v.add_argument("--plan", action="store_true")
     pg = sous.add_parser("page")
     pg.add_argument("fichier")
-    pg.add_argument("page")
+    pg.add_argument("page", nargs="?")
     pg.add_argument("--note", nargs=2, action="append", metavar=("FICHE", "TEXTE"))
     pg.add_argument("--journal", action="append")
     pg.add_argument("--creer", action="store_true")
@@ -1409,7 +1475,16 @@ def main(argv, sortie=None, entree=None, erreur=None):
     ou.add_argument("--fiches", required=True)
     ou.add_argument("--titre", required=True)
     ou.add_argument("--artefact")
+    lr = sous.add_parser("lire")
+    lr.add_argument("chemins", nargs="+")
+    co2 = sous.add_parser("cocher")
+    co2.add_argument("fichier")
+    co2.add_argument("fiche")
+    co2.add_argument("--resolu")
+    co2.add_argument("--date")
     a = p.parse_args(argv)
+    if a.cmd == "lire":
+        return cmd_lire(a.chemins, sortie)
     if a.cmd == "ouvrir":
         return cmd_ouvrir(a, sortie)
     if a.cmd == "clore":
@@ -1427,6 +1502,9 @@ def main(argv, sortie=None, entree=None, erreur=None):
         if not os.path.isfile(a.fichier):
             sortie.write("GARDE: fichier introuvable : %s\n" % a.fichier)
             return 1
+        if a.page is None:
+            a.page = os.path.join(os.path.dirname(a.fichier), "artefacts",
+                                  os.path.splitext(os.path.basename(a.fichier))[0] + ".html")
         return cmd_page(a, sortie)
     if a.cmd == "carte":
         if a.python:
@@ -1443,6 +1521,8 @@ def main(argv, sortie=None, entree=None, erreur=None):
         return 1
     if a.cmd == "extraire":
         return cmd_extraire(a.fichier, a.fiche, sortie)
+    if a.cmd == "cocher":
+        return cmd_cocher(a, sortie)
     if a.cmd == "socle":
         return cmd_socle(a.fichier, sortie)
     if a.cmd == "cout":

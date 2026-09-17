@@ -68,9 +68,9 @@
     <p>La sonde de U1 rejouée en U5 : 0 refus de permission sous PowerShell 7, fiche du bac cochée, page régénérée sans GARDE ; 5.1 sondé ; carte sans message du Store.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">5 fiches · 1 faite · en cours : U2</p>
+    <p class="mono" style="margin-top:.5rem">5 fiches · 2 faites · en cours : U3</p>
   </header>
 
   <section>
@@ -82,14 +82,14 @@
         <span class="etat">faite</span>
         <span class="note">9 refus mesurés (cat 1, $env 5, allowed-tools perdus après confirmation 3), 17 tours, 0,25 $ ; 5.1 non forçable (chemins en dur, 3 sondes Haiku → 7.6.6)</span>
       </li>
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">U2</span><span class="titre">Faire absorber lectures, coche et nom de page par vlp.py</span>
-        <span class="etat">en cours</span>
-        <span class="note">vlp.py lire, cocher, page sans chemin, testés ; dépend de U1.</span>
+        <span class="etat">faite</span>
+        <span class="note">test-vlp.py OK, 100 → 108 assertions ; bac, 2 passes : lire, page sans chemin (dossier artefacts créé), cocher → COCHÉ puis refus exit 1 ; valider VALIDE</span>
       </li>
-      <li class="fiche">
+      <li class="fiche" data-etat="encours">
         <span class="id">U3</span><span class="titre">Réécrire les corps des skills sans cat ni $…</span>
-        <span class="etat">à faire</span>
+        <span class="etat">en cours</span>
         <span class="note">Corps de tache, chantier, enchainer sans cat ni $env ; dépend de U2.</span>
       </li>
       <li class="fiche">

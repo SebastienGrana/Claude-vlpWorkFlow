@@ -612,4 +612,62 @@ with tempfile.TemporaryDirectory() as t:
              appel(["equiper", d]) == (0, "DOSSIER=%s\nA/\nb/\nCLAUDE.md\nAUCUN_PROJET\nETAT=01-etat.md\n" % os.path.abspath(d)),
              appel(["equiper", d]))
 
+# --- chantier U : lire, cocher, page déduite ----------------------------------
+
+attendu = mod.lire(os.path.join(mod.KIT, "cloture.md"))
+attendu = attendu if attendu.endswith("\n") else attendu + "\n"
+verifier("lire : un fichier du kit, tel quel", appel(["lire", "cloture.md"]) == (0, attendu), appel(["lire", "cloture.md"])[1][:200])
+code, s = appel(["lire", "cloture.md", "../hors.md", "absent.md", "cloture.md"])
+verifier("lire : hors du kit et absent sortent 1, le reste imprimé", code == 1
+         and s == attendu + "GARDE: hors du kit : ../hors.md\nABSENT absent.md\n" + attendu, s[-200:])
+
+COCHE = """## L'ordre des fiches
+
+<!-- FICHE:U1 -->
+## U1 [ ] — Première
+**Tentatives** (2026-01-01) — non résolu.
+1. essai un
+2. essai deux
+Erreur : boum
+**Dépend de** : rien.
+**Prompt**
+<!-- /FICHE -->
+<!-- FICHE:U2 -->
+## U2 [ ] — Seconde
+**Dépend de** : `U1`.
+<!-- /FICHE -->
+"""
+
+with tempfile.TemporaryDirectory() as t:
+    f = os.path.join(t, "ctx", "05-u.md")
+    ecrire(f, COCHE)
+    garde_env = dict(os.environ)
+    try:
+        os.environ["CLAUDE_CODE_SESSION_ID"] = "abc"
+        code, s = appel(["cocher", f, "U1", "--resolu", "lire par vlp.py", "--date", "2026-01-02"])
+        verifier("cocher : coche, Tentatives réduit, Session avant Dépend de", code == 0 and s == "COCHÉ U1 · Session abc\n"
+                 and lire(f) == COCHE.replace("## U1 [ ]", "## U1 [x]").replace(
+                     "**Tentatives** (2026-01-01) — non résolu.\n1. essai un\n2. essai deux\nErreur : boum\n",
+                     "**Tentatives** (2026-01-02) — résolu par : lire par vlp.py\n**Session** : abc\n"), s + lire(f))
+        avant = lire(f)
+        code, s = appel(["cocher", f, "U1"])
+        verifier("cocher : déjà cochée, refus sans écrire", code == 1 and s == "GARDE: U1 déjà cochée — rien écrit\n"
+                 and lire(f) == avant, s)
+        verifier("cocher : fiche introuvable", appel(["cocher", f, "U9"]) == (1, "GARDE: fiche introuvable : U9\n"), appel(["cocher", f, "U9"]))
+        os.environ["CLAUDE_CODE_SESSION_ID"] = ""
+        code, s = appel(["cocher", f, "U2"])
+        verifier("cocher : id vide, pas de ligne Session", code == 0 and s == "COCHÉ U2 · Session absente\n"
+                 and lire(f) == avant.replace("## U2 [ ]", "## U2 [x]"), s + lire(f))
+    finally:
+        os.environ.clear()
+        os.environ.update(garde_env)
+
+    ecrire(f, PAGE % (" ", "", " ", ""))
+    page = os.path.join(t, "ctx", "artefacts", "05-u.html")
+    code, s = appel(["page", f, "--creer", "--projet", "P", "--titre", "T", "--resultat", "R", "--date", "2026-01-02"])
+    verifier("page sans chemin : artefacts/<même nom>.html, dossier créé", code == 0 and os.path.isfile(page)
+             and s.startswith("PAGE %s · 3 fiches" % page), s)
+    code, s = appel(["page", f, "--verifier"])
+    verifier("page --verifier sans chemin : la même page", code == 0 and s.startswith("À JOUR 3 fiches"), s)
+
 print("OK")

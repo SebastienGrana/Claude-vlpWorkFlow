@@ -93,7 +93,7 @@ un poste sans pwsh 7 (geste de l'utilisateur). Sondes : 0,25 $ Sonnet + 0,14 $ H
 ---
 
 <!-- FICHE:U2 -->
-## U2 [ ] — Faire absorber lectures, coche et nom de page par `vlp.py`
+## U2 [x] — Faire absorber lectures, coche et nom de page par `vlp.py`
 
 **Dépend de** : `U1`.
 **Fichiers** : `scripts/vlp.py` (docstring, `cmd_page`, parseur), `scripts/test-vlp.py`.
