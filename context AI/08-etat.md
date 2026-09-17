@@ -50,6 +50,7 @@ ordonné par ce qui débloque le reste. Le détail de chacun est dans
 
 | # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |
 |---|---|---|---|---|
+| 12 | `/vlp:enchainer` : alléger le chef | Mesuré sur MapDecorator : 15 tours de chef pour une fiche déléguée. Donner la commande `vlp.py page` exacte (≈ 6 tours de page, dont `--help` et `ls`) ; après un `RETOUR`, poser la question sans agir soi-même (≈ 5 tours) ; `maxTurns` de `vlp:fiche` au vu des 22 tours mesurés | 2 fiches | rien |
 | 11 | Evals sous WSL2 | Jouer les cas d'eval qui exigent Bash (`tache`, `chantier`, sans doute `init`) : Windows n'a pas de sandbox, `claude plugin eval` les refuse ; il faut initialiser Ubuntu sous WSL2, y installer Claude Code, `bubblewrap` et `socat`, s'y connecter, et lancer la suite depuis Linux | 2 fiches | 6 |
 
 ## Journal des décisions
@@ -454,3 +455,11 @@ de ce que le code dit déjà.
   Cadrage, N1 à N3 et clôture dans une seule session, à la demande. Total brut mesuré au bilan : 45 tours, 54 appels,
   input 92, output 42 158, cache_creation 163 490, cache_read 6 285 334, **total 6 491 074 tokens**, 5,83 $, plus
   0,56 $ de sondes headless (3 lancements) et 0,62 $ d'evals.
+- **2026-09-17** — Premier `/vlp:enchainer` réel après N, sur MapDecorator (session `8a854f86`, partie enchaîneur
+  isolée après `/reload-plugins`) : `background: false` **tient en session interactive** — le chef appelle
+  `vlp:jouer` pour P2, attend, lit `RETOUR` (rechargement en jeu), questionne, ne coche pas, s'arrête avant P3.
+  Chef (Opus) 15 tours, 14 appels (Bash 9, Artifact 2, AskUserQuestion 2, Skill 1), ctx 94 408 → 108 267,
+  1 507 553 tokens, 2,07 $ ; sous-agent (Haiku) 22 tours pour `maxTurns: 25`, 21 appels, 537 087 tokens, 0,13 $.
+  Loin du « un appel par fiche » : P1, déjà écrite dans la session, vérifiée et cochée par le chef ; ≈ 5 tours
+  d'action du chef après le `RETOUR` (copie de fichier, lecture du log) ; ≈ 6 tours pour la page (lecture de
+  `tache-page.md`, `vlp.py page --help`, `ls` du HTML, `page`, `read`, publier). Devient la TODO n° 12.

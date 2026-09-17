@@ -12,7 +12,8 @@ https://github.com/SebastienGrana/Claude-vlpWorkFlow — cloné et utilisé en g
   `/vlp:tache`, `/vlp:enchainer`, `/vlp:check`, et l'agent `vlp:fiche`.
 - Équipés : Cairn-VlpLib, MapDecorator, ProjetONZSM, TrackGen — et ce kit lui-même.
 - Clos le 2026-09-10, abandonné : enchaîner les fiches — le chef coûtait plus que
-  les fiches jouées à la main. Remis tel quel le 2026-09-17, coût non corrigé.
+  les fiches jouées à la main. Remis tel quel le 2026-09-17, puis réparé (chantier N) ; chef encore
+  à 15 tours par fiche en vrai (TODO n° 12).
 - Clos le 2026-09-11 : mesurer les tokens consommés (chantier M) — script
   `scripts/mesure-tokens.py`, coût affiché en fin de fiche et à la clôture.
   Clos le 2026-09-17 : ce coût affiché sur toutes les pages (chantier C), puis
