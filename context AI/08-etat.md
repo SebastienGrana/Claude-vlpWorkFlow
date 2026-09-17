@@ -50,7 +50,7 @@ ordonné par ce qui débloque le reste. Le détail de chacun est dans
 
 | # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |
 |---|---|---|---|---|
-| 12 | `/vlp:enchainer` : alléger le chef | Mesuré sur MapDecorator : 15 tours de chef pour une fiche déléguée. Donner la commande `vlp.py page` exacte (≈ 6 tours de page, dont `--help` et `ls`) ; après un `RETOUR`, poser la question sans agir soi-même (≈ 5 tours) ; `maxTurns` de `vlp:fiche` au vu des 22 tours mesurés | 2 fiches | rien |
+| 13 | Un lanceur Python sans accolade | Mesuré en L3 : en `-p`, le motif `PY=$(for p in python3 python; …)` est refusé (« Contains brace with quote character ») — 1 tour de chef, 2 à 3 tours par sous-agent, qui retombe ensuite sur `python3`, le faux Python du Microsoft Store (exit 49). Le remplacer partout (skills, `cloture.md`, références) par un appel sans accolade, et vérifier s'il est aussi refusé en session interactive | 1 fiche | rien |
 | 11 | Evals sous WSL2 | Jouer les cas d'eval qui exigent Bash (`tache`, `chantier`, sans doute `init`) : Windows n'a pas de sandbox, `claude plugin eval` les refuse ; il faut initialiser Ubuntu sous WSL2, y installer Claude Code, `bubblewrap` et `socat`, s'y connecter, et lancer la suite depuis Linux | 2 fiches | 6 |
 
 ## Journal des décisions
@@ -468,3 +468,12 @@ de ce que le code dit déjà.
   reprend son modèle. `maxTurns` de `vlp:fiche` 25 → 30 : 22 tours mesurés sur MapDecorator laissaient 3 tours de
   marge, et un plafond atteint rend un compte rendu sans statut. `enchainer` 110 → 114 lignes (étape 3 bis : aucun
   autre outil que la question et la case ; étape 2 : une fiche cochée n'est ni rejouée ni vérifiée).
+- **2026-09-17** — L3 : sonde headless (bac à sable, S1 scriptable, S2 `(visuel)`, `--model opus`). Chef **7 tours** pour 2
+  fiches (Bash 2, Grep 1, Skill 2, ToolSearch 1), S1 `FAITE`, S2 `RETOUR` ; reprise « ne coche pas » : **2 tours**, page
+  en **1 appel** Bash (publication coupée par `--max-budget-usd 0.5`). Total chef 9 tours, 7 appels, 407 951 tokens,
+  0,78 $ pondéré ; avant : 15 tours, 14 appels, 2,07 $ (MapDecorator, en session). Sous-agents 9 et 6 tours (13 et 8
+  appels) pour `maxTurns: 30`. **`model: sonnet` bascule le chef** : tout le lancement en `claude-sonnet-5` malgré
+  `--model opus`, témoin sans skill en `claude-opus-5` ; une réponse en **texte** est un nouveau prompt, le chef repasse
+  en Opus (la reprise : 0,51 $ pour 2 tours). En `-p`, `Artifact` existe, `AskUserQuestion` non. Surprise : le motif
+  `PY=$(for p in …)` est refusé en `-p` (« Contains brace with quote character ») — TODO n° 13. Plugin 3.3.1 ; evals
+  Windows 3/3 (check 19, hook 2, init 23 tours ; 1,00 $). Sondes : 1,26 $ en 3 lancements.

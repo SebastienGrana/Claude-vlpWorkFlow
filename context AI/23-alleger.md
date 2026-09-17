@@ -99,8 +99,9 @@ monte-le à 30 et dis pourquoi au journal. Chaque ajout se paye à chaque lancem
 ---
 
 <!-- FICHE:L3 -->
-## L3 [ ] — Mesurer le chef après, et livrer
+## L3 [x] — Mesurer le chef après, et livrer
 
+**Session** : 93b3a242-0afb-4f86-b7eb-b6eb6168f811
 **Dépend de** : `L1`, `L2`.
 **Fichiers** : bac à sable du scratchpad, `.claude-plugin/plugin.json`, `context AI/08-etat.md` (journal, TODO n° 12).
 

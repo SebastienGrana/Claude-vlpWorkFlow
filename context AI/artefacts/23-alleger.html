@@ -68,9 +68,9 @@
     <p>Tours du chef mesurés avant (15) → après, sur une fiche FAITE et une RETOUR ; page en un appel, chef en Sonnet</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">3 fiches · 2 faites · en cours : L3</p>
+    <p class="mono" style="margin-top:.5rem">3 fiches · 3 faites</p>
   </header>
 
   <section>
@@ -87,12 +87,14 @@
         <span class="etat">faite</span>
         <span class="note">model: sonnet posé (doc : override pour le reste du tour) ; maxTurns 25 → 30 ; « Aucun autre outil » à l'étape 3 bis ; enchainer 110 → 114 lignes, fiche.md 38 → 38 ; validate : passe</span>
       </li>
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">L3</span><span class="titre">Mesurer le chef après, et livrer</span>
-        <span class="etat">en cours</span>
-        <span class="note">Rejeu headless : tours et $ du chef avant → après, plugin 3.3.1, evals ; dépend de L1 et L2</span>
+        <span class="etat">faite</span>
+        <span class="note">Chef 15 → 9 tours (7 + 2 à la reprise), 14 → 7 appels, 2,07 $ → 0,78 $ ; chef en claude-sonnet-5 malgré --model opus (témoin : opus) ; FAITE + RETOUR ; evals 3/3 (19, 2, 23 tours) ; version 3.3.1</span>
+        <span class="cout mono">≈6,9M (6 928 091) · 50 tours · 5,82 $</span>
       </li>
     </ul>
+    <p class="mono cout-total">Coût du chantier : ≈6,9M (6 928 091) · 50 tours · 5,82 $</p>
     <!-- ligne de total, absente si aucune fiche n'a de coût mesuré -->
   </section>
 
@@ -110,6 +112,7 @@
     <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
     <ul class="journal">
       <li><time datetime="2026-09-17">2026-09-17</time><span>L2 : model: sonnet sur le chef (vaut pour tout le tour), maxTurns de vlp:fiche 25 → 30 (22 tours mesurés)</span></li>
+      <li><time datetime="2026-09-17">2026-09-17</time><span>L3 : model: sonnet bascule le chef, mais une réponse en texte le rend à Opus ; motif PY=$(for …) refusé en -p (TODO n° 13)</span></li>
     </ul>
   </section>
 
