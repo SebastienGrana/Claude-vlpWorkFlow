@@ -209,8 +209,9 @@ le corps sous PowerShell (Y5).
 ---
 
 <!-- FICHE:Y5 -->
-## Y5 [ ] — Prouver sans Git et documenter
+## Y5 [x] — Prouver sans Git et documenter
 
+**Session** : 6a0eaab3-c003-4ad8-bc78-6eb76b659c49
 **Dépend de** : `Y3`, `Y4`.
 **Fichiers** : `README.md` (prérequis), `.claude-plugin/plugin.json` (version), `scripts/vlp` (si Y1 a dit
 retirer), `context AI/08-etat.md` (TODO n° 16).
@@ -225,4 +226,14 @@ Puis le README : prérequis Python 3 seul, Git Bash facultatif, ce qui reste non
 **Critère de fin**
 La sonde de bout en bout coche la fiche du bac (`grep -c '\[x\]'` = 1) avec 0 appel `sh`, coût affiché ; evals :
 comptes réussis/total par cas ; `sh scripts/vlp renvois .` (ou sa forme neuve) → 0 absent ; `"$C" plugin validate .` OK.
+
+**Mesuré** (2026-09-17) — bac sans `.git`, copie du plugin en `shell: powershell`, `--tools PowerShell Skill Read Edit
+Write` (pas `--disallowedTools`, cf. Y1) : 5 sondes, **0 appel `sh`**, fiche cochée 5/5 (`[x]` = 1), coût affiché par
+`cout --session`. Haiku ×4 (22/23/18/15 tours, 0,19/0,19/0,17/0,14 $) : `page` sautée — le bac disait « artefact :
+aucun » (×3, voulu par la skill), puis `python` au lieu de `py` (×1, refusé). Sonnet ×1 (22 tours, 0,54 $) : `cout`,
+Session réelle, `page` lancée (GARDE : nom de page deviné), `clore` ; `page` jouée à la main sous PowerShell → « 1 faite ».
+Refus restants, sans blocage : `$env:…`, `cat` hors du projet (repli Read), variables inventées. Evals : Windows `hook`
+1/1 (0,23 $) ; un run Windows n'accorde aucun shell, et `check`, `init` injectent la carte → tag `wsl2` + Bash au cas ;
+Ubuntu `chantier`, `check`, `init`, `tache` 4/4 (1,62 $). `scripts/vlp` et ses 4 tests retirés (104 → 100), renvois 43 ·
+0 absent, validate OK, README (Python seul, Git facultatif, macOS non sondé), plugin 3.4.0. Total **≈ 3,2 $**.
 <!-- /FICHE -->
