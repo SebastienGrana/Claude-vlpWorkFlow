@@ -78,6 +78,16 @@
   bac (2,4×) — mais sur fiches triviales en `-p` : en session réelle le chef part de ~78k tokens hors ratio, et un
   `RETOUR` annule le gain. Plugin 3.4.2 ; le 21 est retiré, **la TODO est vide** ; 23 753 914 tokens.
 
+- **2026-09-17** — chantier Z clos (TODO n° 23) : une `GARDE:` au lieu d'un traceback — toute lecture d'un chemin
+  venu de `CHANTIER.md` passe par `chemin_garde`/`lignes_gardees` (`vlp.py:143`), donc `clore`, `feuille`, `page`,
+  `renvois` et `ouvrir` rendent `GARDE: <phrase>` et sortent 1 ; recensement de 18 couples (7 plantaient), tests
+  108 → 115 sites ; `sed` retiré de `skills/tache` (une plage se lit par `Read` offset/limit, inutilisable sans Git).
+  Preuve sur Cairn-VlpLib, dont la ligne « fichier de fiches courant » débordait : avant, `carte` et `feuille`
+  rendent `GARDE:` et 1 ; ligne remise droite (une seule ligne, pause du chantier `C` sur sa propre puce), après
+  `PROCHAINE=P6f` et `FEUILLE todo 0 · encours oui` en code 0 — **0 traceback** dans les deux jeux. Laissé ouvert :
+  les 2 renvois absents et les fichiers de tête hors seuil de Cairn-VlpLib (TODO n° 22) ; le 23 est retiré,
+  le 24 ouvert (bruit « Python est introuvable » du relais de la carte) ; 11 093 368 tokens.
+
 ## La TODO ordonnée — les chantiers possibles
 
 C'est d'ici que `/chantier` tire ses propositions. Un chantier par entrée,
@@ -87,13 +97,17 @@ ordonné par ce qui débloque le reste. Le détail de chacun est dans
 | # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |
 |---|---|---|---|---|
 | 22 | Les projets équipés ne suivent plus le kit | Mesuré le 2026-09-17 : les 4 projets portent une copie locale de la méthode (87 à 102 lignes) d'avant le plugin — la doctrine interdit la copie ; le bac pointe une variable dans un fichier de données (bug n° 3 de l'audit). Aussi : Cairn-VlpLib 2 renvois absents, `CLAUDE.md` 89/80, index 111/80, table des clos encore dans `CHANTIER.md` ; MapDecorator 84/80 ; TrackGen `CHANTIER.md` 51/50 ; feuille de route en écart sur 3 projets, absente sur le bac. Écrire de quoi remettre un projet équipé à niveau, au lieu de le faire à la main cinq fois | 3 fiches | — |
-| 23 | `vlp.py feuille` plante au lieu de garder | Mesuré le 2026-09-17 sur Cairn-VlpLib, dont la ligne « fichier de fiches courant » déborde sur plusieurs lignes : `carte` rend proprement `GARDE: fichier de fiches introuvable`, `feuille` rend un `FileNotFoundError` — et sort 0, donc rien ne l'attrape (règle 2). Toute sous-commande qui lit un chemin venu de `CHANTIER.md` doit rendre une `GARDE:`. Aussi : `skills/tache/SKILL.md` apprend encore aux fiches à citer une plage par `sed`, inutilisable sans Git (relevé hors frontière au chantier Q) | 2 fiches | — |
+| 24 | La carte crie « Python est introuvable » | Mesuré le 2026-09-17 : le relais `python3` de `carte --relais` écrit sur la sortie le message du raccourci Microsoft Store, collé au milieu de la carte injectée dans chaque commande. Rien ne casse, mais la carte ment sur son propre état et le bruit se paye à chaque tour 1 | 1 fiche | — |
 
 ## Journal des décisions
 
 Une ligne par décision imprévue tranchée en cours de fiche — jamais un résumé
 de ce que le code dit déjà.
 
+- **2026-09-17** — Z3 : une plage de fichier *du projet* ne se lit par aucune
+  sous-commande (`vlp.py lire` refuse tout chemin hors du kit) ; le remplaçant
+  de `sed -n 'A,Bp'` est l'outil `Read` avec `offset`/`limit`, déjà dans
+  `allowed-tools` — pas de nouvelle sous-commande.
 - **2026-09-10** — les fichiers de projet du kit (`CHANTIER.md`, `CLAUDE.md`,
   `context AI/`) sont publiés sur GitHub avec lui : le kit s'utilise et se
   développe en groupe.

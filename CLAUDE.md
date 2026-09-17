@@ -13,11 +13,11 @@ https://github.com/SebastienGrana/Claude-vlpWorkFlow — cloné et utilisé en g
 - Équipés : Cairn-VlpLib, MapDecorator, ProjetONZSM, TrackGen — et ce kit lui-même.
 - Chaque chantier clos a sa ligne dans `context AI/00-INDEX.md`, son détail daté dans
   `context AI/08-etat.md` ; ici, les derniers seulement (`vlp.py clore` les tient).
-- Clos le 2026-09-17 : l'ouverture et la clôture écrites par `vlp.py ouvrir` et `clore` (chantier O).
 - Clos le 2026-09-17 : les fichiers de tête sous seuil, clore compacte au lieu d'empiler (chantier J).
 - Clos le 2026-09-17 : le kit sans Git (Python seul), sondé sous PowerShell et Ubuntu (chantier Y).
 - Clos le 2026-09-17 : /vlp:tache sans refus sous PowerShell : lire, cocher, carte py d'abord, refus 9 → 1 (chantier U).
 - Clos le 2026-09-17 : /vlp:enchainer sans Git : l'agent vlp:fiche prend PowerShell et lit le kit par vlp.py lire ; bac sans .git : refus 3 → 0, deux fiches jouées ; enchaîné 0,176 $/fiche contre 0,42 $ à la main (fiches triviales) ; plugin 3.4.2, TODO vide (chantier Q).
+- Clos le 2026-09-17 : toute lecture d'un chemin de CHANTIER.md rend une GARDE au lieu d'un traceback, prouve sur Cairn-VlpLib (chantier Z).
 
 ## Quatre règles non négociables
 

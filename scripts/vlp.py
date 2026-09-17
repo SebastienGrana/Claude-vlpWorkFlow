@@ -138,6 +138,32 @@ def lignes_de(chemin):
     return lignes
 
 
+class Absent(ValueError):
+    """Un chemin nommé par `CHANTIER.md` ne désigne pas de fichier. Sous-classe
+    de `ValueError` : les `except ValueError` qui gardent déjà leur contexte la
+    voient ; sinon `main` l'attrape — c'est le seul endroit où la règle vit."""
+
+
+def chemin_garde(chemin, libelle="fichier", nom=None):
+    """Le chemin, ou `Absent` : le point unique où un chemin venu de
+    `CHANTIER.md` est vérifié. `nom` : ce qu'on montre quand le relatif parle
+    mieux que l'absolu."""
+    if not os.path.isfile(chemin):
+        raise Absent("%s introuvable : %s" % (libelle, nom or chemin))
+    return chemin
+
+
+def lignes_gardees(chemin, libelle="fichier", nom=None):
+    """Les lignes d'un chemin gardé : toute lecture d'un chemin de `CHANTIER.md`
+    passe par ici."""
+    return lignes_de(chemin_garde(chemin, libelle, nom))
+
+
+def lignes_du_projet(projet, chemin_relatif, libelle):
+    """Les lignes d'un chemin relatif au projet, gardées."""
+    return lignes_gardees(os.path.join(projet, chemin_relatif), libelle, chemin_relatif)
+
+
 # --- carte -------------------------------------------------------------------
 
 def equipe(d):
@@ -197,17 +223,19 @@ def carte(depart, sortie):
     if courant is None:
         sortie.write("--- fichier de fiches courant : aucun ---\n")
         return 0
-    chemin = os.path.join(racine, courant)
-    if not os.path.isfile(chemin):
-        sortie.write("GARDE: fichier de fiches introuvable : %s\n" % courant)
-        return 0
-    n, titres, prochaine = fiches(chemin)
+    try:
+        n, titres, prochaine = fiches(chemin_garde(os.path.join(racine, courant),
+                                                  "fichier de fiches", courant))
+    except Absent as e:
+        # `cmd_equiper` appelle `carte` en direct : elle garde, elle ne lève pas.
+        sortie.write("GARDE: %s\n" % e)
+        return 1
     sortie.write("--- fiches : %s (%d lignes, %d titres) ---\n" % (courant, n, len(titres)))
     for i, l in titres:
         sortie.write("%d:%s\n" % (i, l))
     if n and not titres:
         sortie.write("GARDE: aucun titre de fiche au format '## X1' — ne rien conclure\n")
-        return 0
+        return 1
     sortie.write("PROCHAINE=%s\n" % (prochaine or "aucune"))
     return 0
 
@@ -1052,12 +1080,13 @@ def feuille(projet, html, todo, date):
     """(page régénérée, bilan) : encours, todo et lettres depuis `CHANTIER.md` et le fichier d'état."""
     carte_ = lignes_de(os.path.join(projet, "CHANTIER.md"))
     etat = champ(carte_, "fichier d'état")
-    if not etat or not os.path.isfile(os.path.join(projet, etat)):
-        raise ValueError("fichier d'état introuvable : %s" % etat)
+    if not etat:
+        raise ValueError("fichier d'état introuvable : aucun")
+    lignes_etat = lignes_du_projet(projet, etat, "fichier d'état")
     courant = fichier_courant("\n".join(carte_))
     lettres = lettres_prises(carte_)
     if courant:
-        lignes = lignes_de(os.path.join(projet, courant))
+        lignes = lignes_du_projet(projet, courant, "fichier de fiches courant")
         ids = [l.split()[1] for l in lignes if TITRE.match(l)]
         titre = next((re.sub(r"^# Chantier \S+ — ", "", l) for l in lignes if l.startswith("# ")), courant)
         url = champ(carte_, "artefact du chantier", "aucun")
@@ -1073,7 +1102,7 @@ def feuille(projet, html, todo, date):
     if todo is None and courant:
         m = re.search(r'<tr><td class="mono">(\d+)</td><td>(?:(?!</td>).)*?' + re.escape(BADGE_COURS), html[d:f])
         todo = m.group(1) if m else None
-    rangs = todo_du_fichier(lignes_de(os.path.join(projet, etat)))
+    rangs = todo_du_fichier(lignes_etat)
     if todo is not None and todo not in [r[0] for r in rangs]:
         raise ValueError("--todo %s absent de la TODO de %s" % (todo, etat))
     corps = "".join('          <tr><td class="mono">%s</td><td>%s%s</td><td>%s</td><td class="mono">%s</td>'
@@ -1162,7 +1191,7 @@ def cmd_clore(a, sortie):
         sortie.write("GARDE: aucun chantier ouvert — rien à clore\n")
         return 1
     chemin_fiches = os.path.join(projet, courant)
-    fiches_ = lignes_de(chemin_fiches)
+    fiches_ = lignes_du_projet(projet, courant, "fichier de fiches")
     ids = [l.split()[1] for l in fiches_ if TITRE.match(l)]
     if not ids:
         sortie.write("GARDE: aucune fiche dans %s\n" % courant)
@@ -1331,14 +1360,12 @@ def cmd_ouvrir(a, sortie):
         return 1
     fichier = a.fiches.replace("\\", "/")
     chemin_fiches = os.path.join(projet, fichier)
-    if not os.path.isfile(chemin_fiches):
-        sortie.write("GARDE: fichier de fiches introuvable : %s\n" % fichier)
-        return 1
-    ids = [l.split()[1] for l in lignes_de(chemin_fiches) if TITRE.match(l)]
+    fiches_ = lignes_gardees(chemin_fiches, "fichier de fiches", fichier)
+    ids = [l.split()[1] for l in fiches_ if TITRE.match(l)]
     if not ids:
         sortie.write("GARDE: aucune fiche dans %s\n" % fichier)
         return 1
-    if any(l.startswith("**CLOS**") for l in lignes_de(chemin_fiches)):
+    if any(l.startswith("**CLOS**") for l in fiches_):
         sortie.write("GARDE: %s porte **CLOS** — un chantier clos ne se rouvre pas\n" % fichier)
         return 1
     chemin_carte = os.path.join(projet, "CHANTIER.md")
@@ -1485,6 +1512,16 @@ def main(argv, sortie=None, entree=None, erreur=None):
     co2.add_argument("--resolu")
     co2.add_argument("--date")
     a = p.parse_args(argv)
+    try:
+        return repartir(a, sortie, entree, erreur)
+    except Absent as e:
+        sortie.write("GARDE: %s\n" % e)
+        return 1
+
+
+def repartir(a, sortie, entree, erreur):
+    """Le dispatch. Une `Absent` levée ici est gardée par `main`, et nulle part
+    ailleurs : un chemin de `CHANTIER.md` ne fait plus tomber le script."""
     if a.cmd == "lire":
         return cmd_lire(a.chemins, sortie)
     if a.cmd == "ouvrir":
@@ -1501,9 +1538,7 @@ def main(argv, sortie=None, entree=None, erreur=None):
     if a.cmd == "hook":
         return cmd_hook(entree or sys.stdin, sortie, erreur or sys.stderr)
     if a.cmd == "page":
-        if not os.path.isfile(a.fichier):
-            sortie.write("GARDE: fichier introuvable : %s\n" % a.fichier)
-            return 1
+        chemin_garde(a.fichier)
         if a.page is None:
             a.page = os.path.join(os.path.dirname(a.fichier), "artefacts",
                                   os.path.splitext(os.path.basename(a.fichier))[0] + ".html")
@@ -1518,9 +1553,7 @@ def main(argv, sortie=None, entree=None, erreur=None):
         return cmd_equiper(a.dossier, a.contexte, sortie)
     if a.cmd == "lignes":
         return cmd_lignes(a.chemins, sortie)
-    if not os.path.isfile(a.fichier):
-        sortie.write("GARDE: fichier introuvable : %s\n" % a.fichier)
-        return 1
+    chemin_garde(a.fichier)
     if a.cmd == "extraire":
         return cmd_extraire(a.fichier, a.fiche, sortie)
     if a.cmd == "cocher":

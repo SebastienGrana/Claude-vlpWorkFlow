@@ -83,7 +83,7 @@
         </thead>
         <tbody>
           <tr><td class="mono">22</td><td>Les projets équipés ne suivent plus le kit</td><td>Mesuré le 2026-09-17 : les 4 projets portent une copie locale de la méthode (87 à 102 lignes) d'avant le plugin — la doctrine interdit la copie ; le bac pointe une variable dans un fichier de données (bug n° 3 de l'audit). Aussi : Cairn-VlpLib 2 renvois absents, <span class="mono">CLAUDE.md</span> 89/80, index 111/80, table des clos encore dans <span class="mono">CHANTIER.md</span> ; MapDecorator 84/80 ; TrackGen <span class="mono">CHANTIER.md</span> 51/50 ; feuille de route en écart sur 3 projets, absente sur le bac. Écrire de quoi remettre un projet équipé à niveau, au lieu de le faire à la main cinq fois</td><td class="mono">3 fiches</td><td class="mono">—</td></tr>
-          <tr><td class="mono">23</td><td><span class="mono">vlp.py feuille</span> plante au lieu de garder</td><td>Mesuré le 2026-09-17 sur Cairn-VlpLib, dont la ligne « fichier de fiches courant » déborde sur plusieurs lignes : <span class="mono">carte</span> rend proprement <span class="mono">GARDE: fichier de fiches introuvable</span>, <span class="mono">feuille</span> rend un <span class="mono">FileNotFoundError</span> — et sort 0, donc rien ne l'attrape (règle 2). Toute sous-commande qui lit un chemin venu de <span class="mono">CHANTIER.md</span> doit rendre une <span class="mono">GARDE:</span>. Aussi : <span class="mono">skills/tache/SKILL.md</span> apprend encore aux fiches à citer une plage par <span class="mono">sed</span>, inutilisable sans Git (relevé hors frontière au chantier Q)</td><td class="mono">2 fiches</td><td class="mono">—</td></tr>
+          <tr><td class="mono">24</td><td>La carte crie « Python est introuvable »</td><td>Mesuré le 2026-09-17 : le relais <span class="mono">python3</span> de <span class="mono">carte --relais</span> écrit sur la sortie le message du raccourci Microsoft Store, collé au milieu de la carte injectée dans chaque commande. Rien ne casse, mais la carte ment sur son propre état et le bruit se paye à chaque tour 1</td><td class="mono">1 fiche</td><td class="mono">—</td></tr>
         </tbody>
       </table>
     </div>
@@ -98,6 +98,12 @@
           <tr><th>Chantier</th><th>Fiches</th><th>Clos le</th><th>Tokens</th><th>Ce qu'il a livré</th></tr>
         </thead>
         <tbody>
+          <tr>
+            <td><a href="https://claude.ai/artifact/QQxmj1U8isNTaJKAfMxLyP">Une GARDE au lieu d'un traceback</a> <span class="badge" data-etat="clos">clos</span></td>
+            <td class="mono">Z1–Z4</td><td class="mono">2026-09-17</td>
+            <td class="mono">≈11,1M (11 093 368)</td>
+            <td>Toute lecture d'un chemin venu de CHANTIER.md rend une GARDE: en clair et sort 1, au lieu d'un traceback — prouvé sur Cairn-VlpLib</td>
+          </tr>
           <tr>
             <td><a href="https://claude.ai/artifact/4QHw2nEwQfRzYdxhXsKjRH"><span class="mono">/vlp:enchainer</span> sans Git</a> <span class="badge" data-etat="clos">clos</span></td>
             <td class="mono">Q1–Q5</td><td class="mono">2026-09-17</td>
@@ -278,14 +284,14 @@
           </tr>
         </tbody>
         <tfoot>
-          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈264,0M (264 026 756)</strong></td><td></td></tr>
+          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈275,1M (275 120 124)</strong></td><td></td></tr>
         </tfoot>
       </table>
     </div>
   </section>
 
   <footer>
-    <span>Lettres de fiche prises : <span class="mono">E, M, C, T, B, R, S, H, V, D, I, K, N, L, P, A, G, W, X, F, O, J, Y, U, Q</span></span>
+    <span>Lettres de fiche prises : <span class="mono">E, M, C, T, B, R, S, H, V, D, I, K, N, L, P, A, G, W, X, F, O, J, Y, U, Q, Z</span></span>
     <span>État détaillé : <span class="mono">context AI/08-etat.md</span></span>
     <span>Mis à jour le <span class="mono">2026-09-17</span></span>
   </footer>

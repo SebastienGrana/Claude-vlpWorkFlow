@@ -671,4 +671,45 @@ with tempfile.TemporaryDirectory() as t:
     code, s = appel(["page", f, "--verifier"])
     verifier("page --verifier sans chemin : la même page", code == 0 and s.startswith("À JOUR 3 fiches"), s)
 
+# --- Z2 : un chemin de CHANTIER.md ne fait plus tomber une sous-commande ---
+# Un cas par ligne « plante » de la table de Z1, plus le point de lecture unique.
+GABARIT_FEUILLE = os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html")
+ETAT_Z = ("# État\n\n## TODO\n\n| n° | Chantier | Apport | Coût | Décidé |\n|---|---|---|---|---|\n"
+          "| 1 | un truc | utile | bas | 2026-01-02 |\n")
+CARTE_Z = ("# Chantier courant\n\n- **alias** : z\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n"
+           "- **fichier d'état** : ctx/08-etat.md\n- **fichier de fiches courant** : %s\n"
+           "- **artefact du chantier** : aucun\n")
+
+with tempfile.TemporaryDirectory() as t:
+    proj = os.path.join(t, "proj")
+    ecrire(os.path.join(proj, "CHANTIER.md"), CARTE_Z % "ctx/absent.md (Z1..Z2)")
+    ecrire(os.path.join(proj, "ctx", "08-etat.md"), ETAT_Z)
+    os.makedirs(os.path.join(proj, "ctx", "artefacts"))
+    shutil.copy(GABARIT_FEUILLE, os.path.join(proj, "ctx", "artefacts", "feuille-de-route.html"))
+    manque = "GARDE: fichier de fiches introuvable : ctx/absent.md\n"
+
+    code, s = appel(["carte", proj])
+    verifier("Z2 carte : fiches courant absent, GARDE et 1", code == 1 and manque in s, s)
+    code, s = appel(["feuille", proj])
+    verifier("Z2 feuille : fiches courant absent, GARDE et 1 (plantait)",
+             code == 1 and s == "GARDE: fichier de fiches courant introuvable : ctx/absent.md\n", s)
+    code, s = appel(["clore", proj, "--livre", "rien"])
+    verifier("Z2 clore : fiches courant absent, GARDE et 1 (plantait)", code == 1 and s == manque, s)
+    code, s = appel(["ouvrir", proj, "--fiches", "ctx/absent.md", "--titre", "T"])
+    verifier("Z2 ouvrir : fiches absent, GARDE et 1", code == 1 and s == manque, s)
+
+    absent = os.path.join(proj, "ctx", "absent.md")
+    for sous in (["extraire", absent, "Z1"], ["socle", absent], ["cocher", absent, "Z1"],
+                 ["cout", absent], ["page", absent]):
+        code, s = appel(sous)
+        verifier("Z2 %s : chemin absent, GARDE du point unique et 1" % sous[0],
+                 code == 1 and s == "GARDE: fichier introuvable : %s\n" % absent, s)
+
+    try:
+        mod.lignes_du_projet(proj, "ctx/absent.md", "fichier de fiches")
+        verifier("Z2 point unique : lève Absent", False, "rien levé")
+    except mod.Absent as e:
+        verifier("Z2 point unique : Absent est une ValueError, les gardes locales la voient",
+                 isinstance(e, ValueError) and str(e) == "fichier de fiches introuvable : ctx/absent.md", str(e))
+
 print("OK")

@@ -77,9 +77,10 @@ différent — et si tu n'as rien de différent, ne retente pas : demande.
 
 ## 2. Lire ce que la fiche cite en plage
 
-Une plage citée (« maquette : `sed -n 'A,Bp' …` », « corpus : … ») s'exécute
-telle quelle. **Les libellés d'interface viennent de là et de nulle part
-ailleurs** — ni inventés, ni traduits, ni reformulés. Pas de plage : saute.
+Une plage citée — « **Maquette** : `<fichier>` lignes A–B », « corpus : … » —
+se lit par `Read`, `offset` A et `limit` B−A+1 ; jamais `sed`, absent sans Git.
+**Les libellés d'interface viennent de là et de nulle part ailleurs** — ni
+inventés, ni traduits, ni reformulés. Pas de plage : saute.
 
 ## 3. Lire les fichiers de code que la fiche nomme
 

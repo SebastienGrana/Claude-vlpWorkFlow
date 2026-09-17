@@ -43,7 +43,7 @@ la reprise pour ne pas les rejouer. Il ne se met pas à la main.>
 
 **Dépend de** : rien.
 **Fichiers** : <chemin/a.ext>, <chemin/b.ext> — et rien d'autre.
-**Maquette** : <sed -n '120,148p' mockups/src/body.html>   (si des libellés existent)
+**Maquette** : <mockups/src/body.html lignes 120–148>   (si des libellés existent)
 
 **Prompt**
 <Ce qu'il faut écrire, en clair, à la deuxième personne. Nomme les fonctions,
@@ -75,7 +75,8 @@ l'utilisateur doit constater à l'écran quand lui seul peut le faire.>
 ---
 
 **Les marqueurs `<!-- FICHE:… -->` / `<!-- /FICHE -->` ne sont pas décoratifs.**
-`/vlp:tache` extrait une fiche entre eux, d'un seul `sed`. Sans eux, elle retombe
-sur un motif de titres, qui rate en silence dès qu'un titre est reformulé — et
+`/vlp:tache` extrait une fiche entre eux, d'un seul `vlp.py extraire`. Sans
+eux, elle retombe sur un motif de titres, qui rate en silence dès qu'un titre
+est reformulé — et
 une extraction vide ressemble à une fiche vide. Le nom du marqueur ouvrant est
 exactement celui de la fiche : `<!-- FICHE:D3 -->` pour `## D3 [ ] — …`.
