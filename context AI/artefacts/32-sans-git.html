@@ -68,9 +68,9 @@
     <p>Le kit tourne de bout en bout sans Git Bash (hook, carte, corps des skills, clôture), prouvé par une sonde /vlp:tache simulée sans Git et les evals ; le README n'exige plus Git.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">5 fiches · 2 faites · en cours : Y3</p>
+    <p class="mono" style="margin-top:.5rem">5 fiches · 3 faites · en cours : Y4</p>
   </header>
 
   <section>
@@ -87,14 +87,14 @@
         <span class="etat">faite</span>
         <span class="note">vlp.py cout [--session], valider --plan, equiper : 4 passages Unix remplacés ; diff vide sur 10/3/17 lignes, init 1 écart voulu (DOSSIER= natif) ; tests 96 → 102 OK</span>
       </li>
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">Y3</span><span class="titre">Passer le hook et les injections sans sh</span>
-        <span class="etat">en cours</span>
-        <span class="note">Hook en forme exec et 4 injections sans sh, sondés sous Git Bash, PowerShell et Ubuntu. Dépend de Y1.</span>
+        <span class="etat">faite</span>
+        <span class="note">hook = paire exec python3 + py, 4 injections python3 …; py … --relais; echo fin ; sondes Git Bash, PowerShell, Ubuntu : hook VALIDE (l'autre Python exit 49 / 1), PYTHON= et PROJET= en tête ; tests 103 OK, validate OK ; 0,127 $</span>
       </li>
-      <li class="fiche">
+      <li class="fiche" data-etat="encours">
         <span class="id">Y4</span><span class="titre">Passer le corps des skills et cloture.md sans sh</span>
-        <span class="etat">à faire</span>
+        <span class="etat">en cours</span>
         <span class="note">Les appels sh du corps des skills et de cloture.md à zéro, allowed-tools au diapason. Dépend de Y1 et Y2.</span>
       </li>
       <li class="fiche">

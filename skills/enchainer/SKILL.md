@@ -2,7 +2,7 @@
 description: Enchaîne plusieurs fiches du chantier courant, chacune dans un sous-agent neuf, jusqu'à un arrêt prévu ou le plafond
 argument-hint: (rien) | <alias>
 model: sonnet
-allowed-tools: Bash(sh:*), Bash(grep:*), Bash(cat:*), Bash(ls:*), Bash(pwd:*), Bash(cd:*), Skill, Artifact
+allowed-tools: Bash(sh:*), Bash(python3:*), Bash(py:*), Bash(echo:*), PowerShell(python3:*), PowerShell(py:*), PowerShell(echo:*), Bash(grep:*), Bash(cat:*), Bash(ls:*), Bash(pwd:*), Bash(cd:*), Skill, Artifact
 ---
 
 Arguments reçus :
@@ -22,7 +22,7 @@ passait bien.
 
 La carte du projet, lue avant ton premier tour :
 
-!`sh "${CLAUDE_PLUGIN_ROOT}/scripts/vlp" carte`
+!`python3 "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python python3; py "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python py --relais; echo fin`
 
 `PROJET=` : c'est le projet, `CHANTIER.md` suit. `VOISIN=… alias=…` : un
 workspace — `vlp:jouer` ne joue que le projet du dossier courant ; dis-le, et

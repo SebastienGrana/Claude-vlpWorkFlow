@@ -5,7 +5,7 @@ context: fork
 agent: vlp:fiche
 background: false
 user-invocable: false
-allowed-tools: Bash(sh:*)
+allowed-tools: Bash(sh:*), Bash(python3:*), Bash(py:*), Bash(echo:*), PowerShell(python3:*), PowerShell(py:*), PowerShell(echo:*)
 ---
 
 Fiche à jouer :
@@ -17,7 +17,7 @@ Kit : ${CLAUDE_PLUGIN_ROOT}
 La carte du projet — `PROJET=`, puis `CHANTIER.md` en entier : fichier de fiches
 courant, livraison, vérification, contraintes d'écriture :
 
-!`sh "${CLAUDE_PLUGIN_ROOT}/scripts/vlp" carte`
+!`python3 "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python python3; py "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python py --relais; echo fin`
 
 La racine est le dossier de `PROJET=` ; le fichier de fiches, la ligne « fichier
 de fiches courant » sans sa plage. Dans ton premier appel, avec les lectures de

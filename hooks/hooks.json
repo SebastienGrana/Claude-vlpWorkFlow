@@ -6,7 +6,19 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/scripts/vlp\" hook"
+            "command": "python3",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py",
+              "hook"
+            ]
+          },
+          {
+            "type": "command",
+            "command": "py",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py",
+              "hook"
+            ]
           }
         ]
       }

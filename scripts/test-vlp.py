@@ -179,6 +179,12 @@ with tempfile.TemporaryDirectory() as t:
 
     code, s = appel(["carte", os.path.join(t, "nulle-part")])
     verifier("carte par main, sortie 0", code == 0 and s == "AUCUN_PROJET\n", s)
+    nulle = os.path.join(t, "nulle-part")
+    r1 = appel(["carte", nulle, "--python", "python3"])
+    r2 = appel(["carte", nulle, "--python", "py", "--relais"])
+    r3 = appel(["carte", nulle, "--python", "py", "--relais"])
+    verifier("carte --python : ligne vide, PYTHON=, relais muet puis relais seul",
+             (r1, r2, r3) == ((0, "\nPYTHON=python3\nAUCUN_PROJET\n"), (0, ""), (0, "\nPYTHON=py\nAUCUN_PROJET\n")), (r1, r2, r3))
 
 SAIN = """# Chantier V
 

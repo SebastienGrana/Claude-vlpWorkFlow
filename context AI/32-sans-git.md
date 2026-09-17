@@ -148,7 +148,7 @@ l'attendu du test (`ccc.jsonl` compté 2 au lieu de 3 : la ligne `appels`).
 ---
 
 <!-- FICHE:Y3 -->
-## Y3 [ ] — Passer le hook et les injections sans `sh`
+## Y3 [x] — Passer le hook et les injections sans `sh`
 
 **Dépend de** : `Y1`.
 **Fichiers** : `scripts/vlp.py` (`carte`, voir « Reste pour Y3 » en Y1), `hooks/hooks.json`, `skills/{chantier,enchainer,jouer,tache}/SKILL.md` (ligne d'injection et
@@ -164,6 +164,21 @@ le hook (`--include-hook-events`) et `/vlp:tache` à 0 tour d'action (la carte s
 `"$C" plugin validate .` OK (1 avertissement) ; `python scripts/test-vlp.py` → `OK` ; tableau 3 environnements ×
 {hook `VALIDE` dans `hook_response.stdout`, `PROJET=` en tête de ligne dans le transcript}, sorties brutes et coût
 ≤ 1 $ ; `grep -c 'sh "' hooks/hooks.json` = 0.
+
+**Mesuré** (2026-09-17) — `vlp.py carte --python NOM [--relais]` (ligne vide, `PYTHON=NOM`, tampon de 30 s dans le
+dossier temporaire : le relais se tait si le premier a répondu) ; injection des 4 skills : `python3 …/vlp.py carte
+--python python3; py …/vlp.py carte --python py --relais; echo fin` ; `allowed-tools` + `Bash|PowerShell(python3|py|echo:*)`
+(`Bash(sh:*)` gardé pour le corps, Y4) ; hook = paire exec `python3` + `py`. `test-vlp.py` → `OK`, 102 → 103 ;
+`plugin validate .` passé (1 avertissement CLAUDE.md) ; `grep -c 'sh "' hooks/hooks.json` → 0. Sondes Haiku, bac `yb`
+(carte « aucun ») — `/vlp:tache` du plugin, `/tachep` = sa copie `shell: powershell` :
+
+| Environnement | hook (`hook_response` PostToolUse:Write) | injection (transcript) | coût |
+|---|---|---|---|
+| Git Bash (w1, w2) | python3 exit 49 (Store) · py exit 0 `VALIDE 1 fiches · socle 2 lignes` | lancée, `Store…\r\nPYTHON=py\r\nPROJET=` en tête | 0,030 + 0,027 |
+| PowerShell (w3) | exec : shell ignoré, identique à w2 | lancée, idem | 0,023 |
+| Ubuntu, `--plugin-dir` (u1, u2) | py exit 1 « Executable not found » · python3 exit 0 `VALIDE` | lancée, `PYTHON=python3\nPROJET=` | 0,027 + 0,021 |
+
+Total **0,127 $**. Non joué en vrai : le relais sur un poste à deux Python réels (test unitaire seulement).
 <!-- /FICHE -->
 
 ---

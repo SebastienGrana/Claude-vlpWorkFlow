@@ -1,7 +1,7 @@
 ---
 description: Ouvre une séance de travail : propose les chantiers possibles, puis cadre celui qu'on choisit en fiches
 argument-hint: (rien) | <nom du chantier> | <alias> <nom du chantier>
-allowed-tools: Bash(sh:*), Bash(pwd:*), Bash(cd:*), Bash(ls:*), Bash(grep:*), Bash(cat:*), Bash(wc:*), Bash(mkdir:*), Bash(cp:*), Read, Edit, Write, Artifact
+allowed-tools: Bash(sh:*), Bash(python3:*), Bash(py:*), Bash(echo:*), PowerShell(python3:*), PowerShell(py:*), PowerShell(echo:*), Bash(pwd:*), Bash(cd:*), Bash(ls:*), Bash(grep:*), Bash(cat:*), Bash(wc:*), Bash(mkdir:*), Bash(cp:*), Read, Edit, Write, Artifact
 ---
 
 Arguments reçus :
@@ -15,7 +15,7 @@ rien d'autre. Le code viendra après, une fiche par session, via `/vlp:tache`.
 
 ## La carte du projet — lue avant ton premier tour
 
-!`sh "${CLAUDE_PLUGIN_ROOT}/scripts/vlp" carte`
+!`python3 "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python python3; py "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python py --relais; echo fin`
 
 ## La règle qui prime sur tout : cadrer coûte moins cher que se tromper
 

@@ -11,6 +11,9 @@ Sous-commandes :
   mais aucun titre au format attendu. Pas trouvé : une ligne `VOISIN=` par
   sous-dossier équipé, avec son alias, ou `AUCUN_PROJET`. Sort toujours 0 : la
   commande lit la sortie, elle ne doit pas se faire refuser l'injection.
+  `--python NOM` : une ligne vide, `PYTHON=NOM`, puis la carte, et un tampon dans
+  le dossier temporaire ; `--relais` en plus : n'écrit rien si un tampon de moins
+  de `RELAIS_SECONDES` existe (le premier Python a déjà répondu), et le retire.
 - `extraire <fichier> <fiche>` — la fiche entre ses marqueurs, marqueurs
   compris, puis `--- fiche, lignes : N`. Sans marqueurs, repli sur le titre
   jusqu'au premier `---`, annoncé par une `GARDE`. Absente : sort 1. Critère
@@ -194,6 +197,36 @@ def carte(depart, sortie):
         return 0
     sortie.write("PROCHAINE=%s\n" % (prochaine or "aucune"))
     return 0
+
+
+RELAIS_SECONDES = 30
+
+
+def carte_injectee(depart, python, relais, sortie):
+    """La carte d'une injection `python3 … --python python3; py … --python py --relais; echo fin`
+    (chantier Y, Y1) : une ligne vide d'abord (le message du Store se colle devant), `PYTHON=<nom>`
+    pour le corps de la skill, et rien au relais si le premier lancement a déjà écrit la carte."""
+    import hashlib
+    import tempfile
+    import time
+    cle = hashlib.sha1(os.path.abspath(depart).encode("utf-8")).hexdigest()[:16]
+    tampon = os.path.join(tempfile.gettempdir(), "vlp-carte-%s" % cle)
+    if relais:
+        try:
+            recent = time.time() - os.path.getmtime(tampon) < RELAIS_SECONDES
+            os.remove(tampon)
+        except OSError:
+            recent = False
+        if recent:
+            return 0
+    else:
+        try:
+            with open(tampon, "w", encoding="utf-8") as f:
+                f.write(python)
+        except OSError:
+            pass
+    sortie.write("\nPYTHON=%s\n" % python)
+    return carte(depart, sortie)
 
 
 # --- extraire, socle, sessions -----------------------------------------------
@@ -1303,6 +1336,8 @@ def main(argv, sortie=None, entree=None, erreur=None):
     sous = p.add_subparsers(dest="cmd", required=True)
     c = sous.add_parser("carte")
     c.add_argument("dossier", nargs="?", default=None)
+    c.add_argument("--python")
+    c.add_argument("--relais", action="store_true")
     e = sous.add_parser("extraire")
     e.add_argument("fichier")
     e.add_argument("fiche")
@@ -1374,6 +1409,8 @@ def main(argv, sortie=None, entree=None, erreur=None):
             return 1
         return cmd_page(a, sortie)
     if a.cmd == "carte":
+        if a.python:
+            return carte_injectee(a.dossier or os.getcwd(), a.python, a.relais, sortie)
         return carte(a.dossier or os.getcwd(), sortie)
     if a.cmd == "valider":
         return cmd_valider(a.fichiers, sortie, a.plan)
