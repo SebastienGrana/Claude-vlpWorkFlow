@@ -60,7 +60,7 @@ Rien n'est parallélisable : chaque fiche lit la décision de la précédente.
 ---
 
 <!-- FICHE:N1 -->
-## N1 [ ] — Mesurer une fiche jouée par une skill forkée
+## N1 [x] — Mesurer une fiche jouée par une skill forkée
 
 **Dépend de** : rien.
 **Fichiers** : un bac à sable dans le scratchpad ; `agents/fiche.md` et `enchainement.md` en lecture.

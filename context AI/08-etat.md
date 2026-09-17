@@ -422,3 +422,12 @@ de ce que le code dit déjà.
   `slash_commands`, mais le modèle ne peut plus l'appeler — or les evals et « lance /vlp:… » passent par `Skill`).
   `commands/check.md` → `skills/check/SKILL.md` sans changer un octet ; `${CLAUDE_PLUGIN_ROOT}` substitué selon la
   doc des skills, non relu dans une trace (le run réussi n'a pas `--keep-temp`).
+- **2026-09-17** — N1 : une skill `context: fork` + `agent: vlp:fiche` + `background: false` **joue une fiche** (meta
+  `agentType: vlp:fiche`, foreground) ; `$ARGUMENTS` et `` !`python … vlp.py socle|extraire` `` substitués avant le
+  sous-agent — la doc ne nomme pas les agents de plugin, ils passent. Sonde headless (`claude -p`, Sonnet 5 en chef,
+  Haiku en sous-agent) sur 2 fiches triviales. Essai 1 : chef 3 tours, 2 `Skill`, S1 `RETOUR` (le `cat` du kit bloqué hors
+  du dossier de travail), S2 `FAITE`, 0,30 $. Essai 2, `--add-dir` du kit : **chef 3 tours pour 2 fiches** (2 `Skill`,
+  ctx 46 238 → 47 230, 140 841 tokens, 0,06 $) ; sous-agents 6 et 8 tours (5 et 10 appels, 68 455 et 93 569 tokens,
+  0,03 $ chacun) ; **2 fiches cochées sur 2** ; 0,12 $. Total sonde 0,42 $. Surprise : S2 a atteint `maxTurns: 8` après sa
+  coche, sans compte rendu — le chef reçoit « Skill execution completed » et le lit comme un statut. Les transcripts d'un
+  bac à sable du scratchpad dépassent 260 caractères : Python ne les ouvre qu'après copie.

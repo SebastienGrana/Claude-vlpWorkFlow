@@ -68,23 +68,23 @@
     <p>/vlp:enchainer réparé par une skill forkée si le chef tient en 3 tours par fiche, sinon retiré — décidé aux chiffres d'une sonde</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="encours"></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="encours"></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">3 fiches · 0 faite · en cours : N1</p>
+    <p class="mono" style="margin-top:.5rem">3 fiches · 1 faite · en cours : N2</p>
   </header>
 
   <section>
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">N1</span><span class="titre">Mesurer une fiche jouée par une skill forkée</span>
-        <span class="etat">en cours</span>
-        <span class="note">sonde headless : chef et sous-agent mesurés sur 2 fiches factices, plafond 1 $</span>
+        <span class="etat">faite</span>
+        <span class="note">fork + vlp:fiche marche : chef 3 tours / 2 fiches (2 Skill), sous-agents 6 et 8 tours, 2/2 cochées, sonde 0,42 $ (2 essais) ; maxTurns 8 atteint sur S2, compte rendu perdu</span>
       </li>
-      <li class="fiche">
+      <li class="fiche" data-etat="encours">
         <span class="id">N2</span><span class="titre">Réparer ou retirer /vlp:enchainer, aux chiffres de N1</span>
-        <span class="etat">à faire</span>
+        <span class="etat">en cours</span>
         <span class="note">réparer ou retirer selon N1 ; plugin 3.3.0</span>
       </li>
       <li class="fiche">
