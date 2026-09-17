@@ -8,7 +8,7 @@
 `sed`/`awk` et de HTML retapé par le modèle (points 9, 12, 15 de `12-audit.md`).
 Le chantier met cette mécanique dans un script testé, que les commandes appellent.
 
-**Fait.** S1, S2, S3 (2026-09-17). Ouvert le 2026-09-17, cadré en 5 fiches, `S4` à jouer.
+**Fait.** S1 à S4 (2026-09-17). Ouvert le 2026-09-17, cadré en 5 fiches, `S5` à jouer.
 
 ## Le socle commun
 
@@ -170,8 +170,9 @@ comptées, sous 250.
 ---
 
 <!-- FICHE:S4 -->
-## S4 [ ] — Brancher `tache`, `enchainer`, `fiche`, `tache-page`, `cloture`
+## S4 [x] — Brancher `tache`, `enchainer`, `fiche`, `tache-page`, `cloture`
 
+**Session** : f5582775-9c45-44ee-b587-e774d46f25ed
 **Dépend de** : `S1`, `S3`.
 **Fichiers** : `commands/tache.md`, `commands/enchainer.md`,
 `agents/fiche.md`, `references/tache-page.md`, `cloture.md` — et rien d'autre.

@@ -1,7 +1,7 @@
 ---
 description: Enchaîne plusieurs fiches du chantier courant, chacune dans un sous-agent neuf, jusqu'à un arrêt prévu ou le plafond
 argument-hint: (rien) | <alias>
-allowed-tools: Bash(python3:*), Bash(python:*), Bash(sed:*), Bash(grep:*), Bash(awk:*), Bash(cat:*), Bash(wc:*), Bash(ls:*), Bash(pwd:*), Bash(cd:*), Bash(dirname:*), Agent, Artifact
+allowed-tools: Bash(python3:*), Bash(python:*), Bash(grep:*), Bash(cat:*), Bash(ls:*), Bash(pwd:*), Bash(cd:*), Agent, Artifact
 ---
 
 Arguments reçus :
@@ -33,12 +33,14 @@ lequel. Sortie vide ou consigne de la lancer : lance-la toi-même, une fois.
 
 ## 2. Annoncer le plan
 
-Liste, dans l'ordre du fichier, les titres et les lignes `**Critère de
-fin**` :
+Valide le fichier — un `(visuel)` hors de sa ligne ne se verrait pas —, puis
+liste, dans l'ordre du fichier, les titres et les lignes `**Critère de fin**` :
 
 ```bash
-grep -n -E '^## [A-Z][0-9]|^\*\*Critère de fin\*\*' "<fichier de fiches courant>"
+PY=$(for p in python3 python; do "$p" -c "" 2>/dev/null && { echo "$p"; break; }; done); "$PY" "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" valider "<fichier de fiches courant>"; grep -n -E '^## [A-Z][0-9]|^\*\*Critère de fin\*\*' "<fichier de fiches courant>"
 ```
+
+Un écart de `valider` : arrête-toi et montre-le.
 
 **Garde.** Si le fichier compte des lignes mais que ce `grep` n'en rend
 aucune, arrête-toi et montre la sortie brute — comme une `GARDE:` de la
@@ -59,15 +61,15 @@ Une fois, avant la première fiche, extrais le socle — il vaut pour toutes.
 S'il ne rend rien, arrête-toi (garde de `tache.md` étape 1) :
 
 ```bash
-awk '/^## Le socle/{f=1} f && /^## L.*ordre des fiches/{exit} f' "<fichier de fiches courant>"
+PY=$(for p in python3 python; do "$p" -c "" 2>/dev/null && { echo "$p"; break; }; done); "$PY" "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" socle "<fichier de fiches courant>"
 ```
 
 Puis pour chaque fiche de la série, dans l'ordre :
 
-0. Extrais la fiche. Moins de cinq lignes rendues : arrête-toi et montre la
-   sortie brute (garde de `tache.md` étape 1).
+0. Extrais la fiche. Moins de cinq lignes rendues ou une `GARDE:` : arrête-toi
+   et montre la sortie brute (garde de `tache.md` étape 1).
    ```bash
-   sed -n '/^<!-- FICHE:<fiche> -->$/,/^<!-- \/FICHE -->$/p' "<fichier de fiches courant>"
+   PY=$(for p in python3 python; do "$p" -c "" 2>/dev/null && { echo "$p"; break; }; done); "$PY" "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" extraire "<fichier de fiches courant>" <fiche>
    ```
    Si sa ligne **Dépend de** nomme une fiche non cochée — titres de l'étape 2,
    plus celles cochées depuis —, ou qu'elle porte déjà un bloc **Tentatives**,
@@ -83,13 +85,13 @@ Puis pour chaque fiche de la série, dans l'ordre :
    Livraison : <ligne de CHANTIER.md>
    Vérification : <ligne de CHANTIER.md>
    Contraintes d'écriture : <section de CHANTIER.md>
-   Socle : <sortie de l'awk>
-   Fiche : <sortie du sed>
+   Socle : <sortie de socle>
+   Fiche : <sortie de extraire>
    ```
 2. Lis le premier mot du compte rendu, et note pour le bilan les tokens et
    les appels d'outils du bloc `<usage>` que rend `Agent`.
-   - `FAITE` : vérifie par `grep -n '^## [A-Z][0-9]'` s'il reste une fiche non
-     cochée dans le fichier de fiches. S'il n'en reste aucune, c'est la
+   - `FAITE` : relance la carte (`vlp.py carte`) ; `PROCHAINE=aucune` : il ne
+     reste aucune fiche non cochée. C'est alors la
      dernière du chantier : va à l'étape 5 (Clore le chantier), sans jouer la
      suite. Sinon, passe à la fiche suivante de la série — sauf si c'est la
      5ᵉ fiche jouée dans ce lancement : passe alors directement au bilan.
@@ -119,7 +121,8 @@ comptes bruts, jamais estimés ; « — » pour une fiche arrêtée avant sous-a
 
 Puis régénère la page du chantier, **une seule fois** pour tout le lancement —
 sauf si la ligne « artefact du chantier » vaut « aucun », ou si l'étape 5 suit
-(la clôture la republie elle-même) : les quatre gestes de la page,
+(la clôture la republie elle-même) : `vlp.py page`, un `--note` par fiche
+faite, puis la publication,
 
 ```bash
 cat "${CLAUDE_PLUGIN_ROOT}/references/tache-page.md"

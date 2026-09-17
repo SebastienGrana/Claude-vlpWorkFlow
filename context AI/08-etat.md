@@ -243,3 +243,10 @@ de ce que le code dit déjà.
   une page close remet donc ses coûts à jour : sur R, la session a continué après la
   clôture (11 840 151 → 13 103 584 tokens) et R4 prend l'écart — les pages closes ne
   se régénèrent pas. `--verifier` ne compare que les états et l'avancement.
+- **2026-09-17** — S4 : `/vlp:tache` prescrit 5 appels sur le chemin heureux au lieu
+  de 9 (1 : fiche, socle, contraintes et `tache-page.md` ; 5 : vérifier ; 6 : coche
+  et Session ; 6 bis : coût + `vlp.py page`, puis publier) ; octets relus par fiche
+  11 530 → 9 463. La publication part sans `read` : dans une session neuve elle
+  peut être refusée une fois (le refus rend la version en ligne) — à rejouer pour de
+  vrai. `Bash(sed:*)` reste dans `tache.md` pour les plages citées par les fiches.
+  `agents/fiche.md` n'avait aucun `sed`/`awk` : inchangé.

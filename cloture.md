@@ -43,7 +43,7 @@ ce total : rien à afficher.
 
 ```bash
 PY=$(for p in python3 python; do "$p" -c "" 2>/dev/null && { echo "$p"; break; }; done)
-sed -n 's/^\*\*Session\*\* : //p' "<fichier de fiches>" | tr -d '\r' | tr '\n' '\0' | xargs -0 "$PY" "${CLAUDE_PLUGIN_ROOT}/scripts/mesure-tokens.py"
+"$PY" "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" sessions "<fichier de fiches>" | tr -d '\r' | tr '\n' '\0' | xargs -0 "$PY" "${CLAUDE_PLUGIN_ROOT}/scripts/mesure-tokens.py"
 ```
 
 Une ligne de bilan, datée : ce que le chantier a livré, et ce qu'il a laissé
