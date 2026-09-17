@@ -8,7 +8,7 @@
 est dans les tours, pas dans les lignes. Le chantier retire à `/vlp:tache` les
 tours de lecture qu'un texte mieux rangé rend inutiles, et le prouve en chiffres.
 
-**Fait.** Rien. Ouvert le 2026-09-17, cadré en 4 fiches, `R1` à jouer.
+**Fait.** R1 (2026-09-17). Ouvert le 2026-09-17, cadré en 4 fiches, `R2` à jouer.
 
 ## Le socle commun
 
@@ -34,7 +34,18 @@ blocage, page et contraintes partagées dans `references/` ; point 13 de
 
 **Mesure « avant »** (`12-audit.md`, six sessions `/vlp:tache`) : 28 à 66 tours,
 22 à 82 appels, 1,06 à 5,73 $ ; 1er tour 81 903–83 021 tokens dont
-commande + `CHANTIER.md` ≈ 6–7 k.
+commande + `CHANTIER.md` ≈ 6–7 k. Appels prescrits (R1, chemin heureux de
+`/vlp:tache` sans argument) : **14** — 0 : 2 · 0 bis : 1 · 1 : 1 · 4 : 1 ·
+5 : 1 · 6 : 3 (coche, coût, Session) · 6 bis : 5 (grep, read, réécrire, wc,
+publier) ; hors lectures de code et écritures propres à la fiche.
+
+**Injection `` !`…` `` prouvée en R1** (sondes `vlp:sonde`, `vlp:sonde2`) :
+marche — `pwd` (rend `/c/…`, le dossier de session), `${CLAUDE_PLUGIN_ROOT}`
+substitué, `head` relatif, `a && b`, un script du plugin
+(`python "${CLAUDE_PLUGIN_ROOT}/scripts/…"` avec `Bash(python:*)`) ; ne marche
+pas — la boucle `while` + `$(…)` de l'étape 0, rendue au modèle en « run this
+first » (un tour). Une commande **modifiée** n'est pas relue sans
+`/reload-plugins` ; une commande **neuve** est vue après un tour ou deux.
 
 **Noms retenus.**
 
@@ -76,8 +87,9 @@ R1 et R2 sont indépendantes ; R3 et R4 non.
 ---
 
 <!-- FICHE:R1 -->
-## R1 [ ] — Prouver l'injection, figer l'« avant »
+## R1 [x] — Prouver l'injection, figer l'« avant »
 
+**Session** : 588d8fcf-c7d9-4857-ae7e-c6662c524a90
 **Dépend de** : rien.
 **Fichiers** : `commands/sonde.md` (jetable, créé puis retiré), `commands/tache.md` (lecture), `context AI/15-reduire.md` (socle), `context AI/08-etat.md`.
 

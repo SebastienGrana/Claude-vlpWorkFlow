@@ -170,3 +170,11 @@ de ce que le code dit déjà.
   sur cette session : 41 tours, 48 appels, input 82, output 35 226,
   cache_creation 147 563, cache_read 5 159 640, **total 5 342 511 tokens**,
   4,94 $.
+- **2026-09-17** — R1 : dans une commande de plugin, `` !`…` `` exécute `pwd`,
+  `head`, `a && b` et un script du plugin (`python "${CLAUDE_PLUGIN_ROOT}/…"`,
+  variable substituée) ; la boucle `while` + `$(…)` de l'étape 0 n'est pas
+  exécutée mais rendue au modèle (« run this first »), soit un tour. Une
+  commande modifiée n'est pas relue sans `/reload-plugins` ; une neuve est vue
+  en différé. `tache.md` prescrit 14 appels fixes sur le chemin heureux.
+  L'essai sur `check.md` (sonde glissée dans une commande chargée) a été
+  refusé par le mode auto, non contourné.
