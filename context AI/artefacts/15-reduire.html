@@ -57,9 +57,9 @@
     <p>tache.md tient en 150 lignes de corps, reçoit CHANTIER.md avant le premier tour, lit fiche, titres et socle en un seul appel, range le rare dans references/ — et le gain est prouvé avant/après, en tours et en dollars.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">4 fiches · 1 faite · en cours : R2</p>
+    <p class="mono" style="margin-top:.5rem">4 fiches · 2 faites · en cours : R3</p>
   </header>
 
   <section>
@@ -72,14 +72,15 @@
         <span class="note">!`…` : 5 essais sur 6 marchent (pwd, variable du plugin, head, a &amp;&amp; b, script python) ; la boucle de l'étape 0 non. Avant : 14 appels prescrits. Sondes retirées.</span>
         <span class="cout mono">≈1,5M (1 505 630) · 11 tours · 1,06 $</span>
       </li>
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">R2</span><span class="titre">Sortir le rare et le partagé dans references/</span>
-        <span class="etat">en cours</span>
-        <span class="note">Blocage, page et contraintes en fichiers ; plus de sed sur tache.md ailleurs · dépend de rien</span>
+        <span class="etat">faite</span>
+        <span class="note">references/ : contraintes 8, blocage 35, page 74 lignes ; tache.md 385 → 289 ; seul enchainer.md:26 lit encore tache.md (étape 0, pour R3).</span>
+        <span class="cout mono">≈1,9M (1 944 716) · 12 tours · 1,54 $</span>
       </li>
-      <li class="fiche">
+      <li class="fiche" data-etat="encours">
         <span class="id">R3</span><span class="titre">Injecter la carte, grouper les lectures, corriger le point 13</span>
-        <span class="etat">à faire</span>
+        <span class="etat">en cours</span>
         <span class="note">CHANTIER.md injecté, titres + fiche + socle en un appel · dépend de R1, R2</span>
       </li>
       <li class="fiche">
@@ -88,7 +89,7 @@
         <span class="note">Corps court, table avant/après, comptes bruts · dépend de R3</span>
       </li>
     </ul>
-    <p class="mono cout-total">Coût du chantier, cadrage compris : ≈3,9M (3 902 950) · 3,54 $</p>
+    <p class="mono cout-total">Coût du chantier, cadrage compris : ≈5,8M (5 847 666) · 5,08 $</p>
   </section>
 
   <!-- ZONE:blocage — publiée quand /tache s'arrête après deux tentatives ; retirée dès que la fiche repasse -->
@@ -105,6 +106,7 @@
     <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
     <ul class="journal">
       <li><time datetime="2026-09-17">2026-09-17</time><span>R1 : !`…` exécute pwd, head, a &amp;&amp; b et un script du plugin ; la boucle while + $(…) est rendue au modèle (un tour). Une commande modifiée n'est pas relue sans /reload-plugins.</span></li>
+      <li><time datetime="2026-09-17">2026-09-17</time><span>R2 : les contraintes se lisent dans le même appel que le socle ; la règle « artefact = aucun → sauter » reste dans tache.md seul.</span></li>
     </ul>
   </section>
 

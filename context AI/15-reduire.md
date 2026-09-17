@@ -8,7 +8,7 @@
 est dans les tours, pas dans les lignes. Le chantier retire à `/vlp:tache` les
 tours de lecture qu'un texte mieux rangé rend inutiles, et le prouve en chiffres.
 
-**Fait.** R1 (2026-09-17). Ouvert le 2026-09-17, cadré en 4 fiches, `R2` à jouer.
+**Fait.** R1, R2 (2026-09-17). Ouvert le 2026-09-17, cadré en 4 fiches, `R3` à jouer.
 
 ## Le socle commun
 
@@ -115,8 +115,9 @@ appels prescrits avant, total et détail ; `ls commands/sonde.md` échoue.
 ---
 
 <!-- FICHE:R2 -->
-## R2 [ ] — Sortir le rare et le partagé dans `references/`
+## R2 [x] — Sortir le rare et le partagé dans `references/`
 
+**Session** : 588d8fcf-c7d9-4857-ae7e-c6662c524a90
 **Dépend de** : rien.
 **Fichiers** : `commands/tache.md`, `commands/enchainer.md`, `agents/fiche.md`, `references/tache-blocage.md`, `references/tache-page.md`, `references/tache-contraintes.md` (créés).
 

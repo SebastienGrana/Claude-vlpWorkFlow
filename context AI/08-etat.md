@@ -178,3 +178,8 @@ de ce que le code dit déjà.
   en différé. `tache.md` prescrit 14 appels fixes sur le chemin heureux.
   L'essai sur `check.md` (sonde glissée dans une commande chargée) a été
   refusé par le mode auto, non contourné.
+- **2026-09-17** — R2 : `references/` créé (contraintes 8, blocage 35, page 74
+  lignes) ; `tache.md` 385 → 289 lignes. Les contraintes se lisent dans le même
+  appel que le socle (aucun appel ajouté) ; la règle « artefact du chantier =
+  aucun → sauter » reste dans `tache.md` seul. `enchainer.md` et
+  `agents/fiche.md` ne découpent plus `tache.md`, sauf l'étape 0 (R3).

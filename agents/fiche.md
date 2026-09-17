@@ -15,7 +15,7 @@ la fiche nomme. Chemins absolus, depuis la racine reçue.
 
 1. En un seul tour : lis le contrat de retour et deux règles du kit,
    ```bash
-   cat "<kit>/enchainement.md"; awk '/^Trois contraintes/,/affiche toujours sa raison/' "<kit>/commands/tache.md"; awk '/^Ajoute donc/,/ouvre pas un second/' "<kit>/commands/tache.md"
+   cat "<kit>/enchainement.md" "<kit>/references/tache-contraintes.md" "<kit>/references/tache-blocage.md"
    ```
    et, dans le même tour, les plages que la fiche cite et les fichiers de sa
    ligne **Fichiers** — la zone utile, pas plus.

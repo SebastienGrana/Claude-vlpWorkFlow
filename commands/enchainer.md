@@ -120,16 +120,16 @@ comptes bruts, jamais estimés ; « — » pour une fiche arrêtée avant sous-a
 
 Puis régénère la page du chantier, **une seule fois** pour tout le lancement —
 sauf si la ligne « artefact du chantier » vaut « aucun », ou si l'étape 5 suit
-(la clôture la republie elle-même) : les quatre gestes de `tache.md` 6 bis,
+(la clôture la republie elle-même) : les quatre gestes de la page,
 
 ```bash
-sed -n '/^## 6 bis/,/^## 7\./p' "${CLAUDE_PLUGIN_ROOT}/commands/tache.md"
+cat "${CLAUDE_PLUGIN_ROOT}/references/tache-page.md"
 ```
 
-et, si un `BLOQUÉE` a clos la série, le marquage de blocage de son étape 5 :
+et, si un `BLOQUÉE` a clos la série, le marquage de la page bloquée :
 
 ```bash
-awk '/marque le blocage/,/Cette section se retire/' "${CLAUDE_PLUGIN_ROOT}/commands/tache.md"
+cat "${CLAUDE_PLUGIN_ROOT}/references/tache-blocage.md"
 ```
 
 `label` : les fiches jouées, par exemple `E5→E7`.
