@@ -115,7 +115,7 @@ et rien au second lancement si le premier a déjà écrit la carte (poste à deu
 ---
 
 <!-- FICHE:Y2 -->
-## Y2 [ ] — Faire absorber les outils Unix du corps par `vlp.py`
+## Y2 [x] — Faire absorber les outils Unix du corps par `vlp.py`
 
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py` (docstring, `cmd_sessions`, parseur), `scripts/test-vlp.py`, `skills/tache/SKILL.md`
@@ -131,6 +131,18 @@ bloc « **Mesuré** » : passage → remplaçant → sortie avant/après identiq
 **Critère de fin**
 `python scripts/test-vlp.py` → `OK`, assertions 96 → n affichées ; pour chaque passage, l'ancienne commande et la
 nouvelle lancées sur le kit, `diff` des deux sorties vide (ou écart écrit) dans le bloc « Mesuré ».
+
+**Mesuré** (2026-09-17, sorties comparées par `diff --strip-trailing-cr` — Python écrit CRLF sous Windows) :
+
+| Passage | Remplaçant | Lignes avant/après | diff |
+|---|---|---|---|
+| `tache` 132 : `[ -n "$S" ] && mesure "$S" && sessions \| tr \| xargs -0 mesure "$S"` | `cout <fichier> --session` (lit `CLAUDE_CODE_SESSION_ID` lui-même) | 10/10 (`31-jauge.md`) | vide |
+| `cloture.md` 22 : `sessions \| tr \| xargs -0 mesure` | `cout <fichier>` | 3/3 | vide ; sans session : `SESSIONS 0 — pas de total`, sort 0 (avant : usage de mesure, sort 1) |
+| `enchainer` 41 : `valider; grep -n -E '^## [A-Z][0-9]\|…'` | `valider <fichier> --plan` | 17/17 (`32-sans-git.md`) | vide |
+| `init` 23 : `cd; pwd; ls -d */ \| head -20; ls CLAUDE.md; carte . \| grep -E …; etat "context AI"` | `equiper <dossier> [--contexte C]` | 13/13 (le kit) | 1 ligne : `pwd` → `DOSSIER=C:\…` (chemin natif) |
+
+`python scripts/test-vlp.py` → `OK`, assertions 96 → 102 (cout ×4, valider --plan, equiper) ; 1 écart en route, dans
+l'attendu du test (`ccc.jsonl` compté 2 au lieu de 3 : la ligne `appels`).
 <!-- /FICHE -->
 
 ---

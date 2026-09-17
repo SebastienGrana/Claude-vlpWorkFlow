@@ -570,6 +570,39 @@ with tempfile.TemporaryDirectory() as t:
     verifier("ouvrir : fichier CLOS, refus sans écrire", code == 1 and s.startswith("GARDE: ctx/32-s.md porte **CLOS**")
              and "aucun" in lire(os.path.join(t, "CHANTIER.md")), s)
 
+with tempfile.TemporaryDirectory() as t:
+    f = os.path.join(t, "y.md")
+    ecrire(f, SANS)
+    verifier("cout : aucune session", appel(["cout", f]) == (0, "SESSIONS 0 — pas de total\n"), appel(["cout", f]))
+    ecrire(f, AVEC)
+    for s_ in ("aaa", "bbb", "ccc"):
+        os.makedirs(os.path.join(t, ".claude", "projects", "p"), exist_ok=True)
+        transcript(os.path.join(t, ".claude", "projects", "p", s_ + ".jsonl"), 2)
+    garde_env = dict(os.environ)
+    os.environ.update(HOME=t, USERPROFILE=t, CLAUDE_CODE_SESSION_ID="ccc")
+    try:
+        code, s = appel(["cout", f])
+        verifier("cout : toutes les sessions du fichier, un total", code == 0 and "aaa.jsonl\t" in s and "bbb.jsonl\t" in s
+                 and "ccc.jsonl\t" not in s and s.count("TOTAL\t") == 1, s)
+        code, s = appel(["cout", f, "--session"])
+        verifier("cout --session : la session seule, puis le cumul", code == 0 and s.startswith("SESSION=ccc\nfichier\t")
+                 and s.split("TOTAL\t")[0].count("ccc.jsonl\t") == 3 and s.count("TOTAL\t") == 1, s)
+        os.environ["CLAUDE_CODE_SESSION_ID"] = ""
+        verifier("cout --session : id vide, rien mesuré", appel(["cout", f, "--session"]) == (0, "SESSION=\n"), appel(["cout", f, "--session"]))
+    finally:
+        os.environ.clear()
+        os.environ.update(garde_env)
+    code, s = appel(["valider", f, "--plan"])
+    verifier("valider --plan : titres de fiche, grep -n", s.endswith("\n12:## Y1 [x] — faite\n24:## Y2 [ ] — à faire\n")
+             and "pas un titre" not in s, s)
+    d = os.path.join(t, "projet")
+    for n in ("b", "A", ".cache"):
+        os.makedirs(os.path.join(d, n))
+    ecrire(os.path.join(d, "CLAUDE.md"), "# C\n")
+    verifier("equiper : dossier, sous-dossiers, CLAUDE.md, carte, état",
+             appel(["equiper", d]) == (0, "DOSSIER=%s\nA/\nb/\nCLAUDE.md\nAUCUN_PROJET\nETAT=01-etat.md\n" % os.path.abspath(d)),
+             appel(["equiper", d]))
+
 SH = shutil.which("sh")
 if SH is None:
     print("lanceur : sh absent du PATH, tests du lanceur sautés")

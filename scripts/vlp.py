@@ -19,10 +19,19 @@ Sous-commandes :
   fiches` (exclu), puis `--- socle, lignes : N`. Vide : sort 1.
 - `sessions <fichier>` — un id de ligne `**Session**` par ligne, dédoublonnés,
   dans l'ordre du fichier.
-- `valider <fichier>…` — les écarts d'un fichier de fiches, un par ligne
+- `cout <fichier> [--session]` — `mesure-tokens.py` sur toutes les sessions du
+  fichier (aucune : `SESSIONS 0 — pas de total`, sort 0). `--session` :
+  `SESSION=<CLAUDE_CODE_SESSION_ID>`, puis (id non vide) la table de cette
+  session seule, et celle de cette session plus celles du fichier.
+- `valider <fichier>… [--plan]` — les écarts d'un fichier de fiches, un par ligne
   `fichier:ligne: message`, puis `VALIDE|INVALIDE <n> fiches · socle <n> lignes
   · <n> écarts · <n> avertissements — <fichier>`. Avertit si une fiche ou le
-  socle dépasse son seuil. Un écart : sort 1.
+  socle dépasse son seuil. Un écart : sort 1. `--plan` : ensuite, `<n>:<ligne>`
+  pour chaque titre de fiche, `**Dépend de**`, `**Tentatives**`, `**Critère de fin**`.
+- `equiper <dossier> [--contexte C]` — ce que `/vlp:init` regarde : `DOSSIER=`,
+  les 20 premiers sous-dossiers `nom/` (sans les cachés), `CLAUDE.md` s'il est
+  là, les lignes `PROJET=`, `VOISIN=`, `AUCUN_PROJET` de la carte, et `ETAT=`
+  pour `<dossier>/C` (défaut `context AI`). Sort 0.
 - `page <fichier> <page.html>` — régénère la page du chantier depuis le fichier
   de fiches : états, avancement, comptage, coûts (`**Session**`), date. Garde
   de la page l'en-tête, les notes, le journal, le blocage et le bilan.
@@ -257,6 +266,51 @@ def cmd_sessions(chemin, sortie):
     return 0
 
 
+def cmd_cout(chemin, session, sortie):
+    """`mesure-tokens.py` sur les sessions du fichier, sans `tr` ni `xargs` : les
+    commandes du kit tournent aussi sous PowerShell (chantier Y)."""
+    import contextlib
+    ids = sessions_de(lignes_de(chemin))
+    tables = []
+    if session:
+        s = os.environ.get("CLAUDE_CODE_SESSION_ID", "").strip()
+        sortie.write("SESSION=%s\n" % s)
+        if not s:
+            return 0
+        tables = [[s], [s] + [i for i in ids if i != s]]
+    elif ids:
+        tables = [ids]
+    else:
+        sortie.write("SESSIONS 0 — pas de total\n")
+        return 0
+    code = 0
+    for argv in tables:
+        with contextlib.redirect_stdout(sortie):
+            code = mesure().main(argv) or code
+    return code
+
+
+PLAN = re.compile(r"^## [A-Z][0-9]|^\*\*(Dépend de|Tentatives|Critère de fin)\*\*")
+
+
+def cmd_equiper(dossier, contexte, sortie):
+    """Ce que `/vlp:init` regarde avant d'équiper, sans `pwd`, `ls`, `head` ni `grep`."""
+    d = os.path.abspath(dossier)
+    sortie.write("DOSSIER=%s\n" % d)
+    sous = sorted((n for n in os.listdir(d) if not n.startswith(".") and os.path.isdir(os.path.join(d, n))), key=str.lower)
+    for n in sous[:20]:
+        sortie.write("%s/\n" % n)
+    if "CLAUDE.md" in os.listdir(d):
+        sortie.write("CLAUDE.md\n")
+    c = io.StringIO()
+    carte(d, c)
+    for l in c.getvalue().splitlines():
+        if re.match(r"^(PROJET|VOISIN)=|^AUCUN_PROJET", l):
+            sortie.write(l + "\n")
+    sortie.write("ETAT=%s\n" % nom_etat(os.path.join(d, contexte)))
+    return 0
+
+
 # --- valider -----------------------------------------------------------------
 
 OUVRANT = re.compile(r"^<!-- FICHE:(\S+) -->$")
@@ -356,7 +410,16 @@ def valider_lignes(lignes):
     return sorted(ecarts), avert, len(vus), len(socle)
 
 
-def cmd_valider(chemins, sortie):
+def cmd_valider(chemins, sortie, plan=False):
+    code = cmd_valider_seul(chemins, sortie)
+    for chemin in chemins if plan else []:
+        for n, l in enumerate(lignes_de(chemin) if os.path.isfile(chemin) else [], 1):
+            if PLAN.match(l):
+                sortie.write("%s%d:%s\n" % (chemin + ":" if len(chemins) > 1 else "", n, l))
+    return code
+
+
+def cmd_valider_seul(chemins, sortie):
     code = 0
     for chemin in chemins:
         if not os.path.isfile(chemin):
@@ -1247,8 +1310,15 @@ def main(argv, sortie=None, entree=None, erreur=None):
     s.add_argument("fichier")
     se = sous.add_parser("sessions")
     se.add_argument("fichier")
+    co = sous.add_parser("cout")
+    co.add_argument("fichier")
+    co.add_argument("--session", action="store_true")
+    eq = sous.add_parser("equiper")
+    eq.add_argument("dossier")
+    eq.add_argument("--contexte", default="context AI")
     v = sous.add_parser("valider")
     v.add_argument("fichiers", nargs="+")
+    v.add_argument("--plan", action="store_true")
     pg = sous.add_parser("page")
     pg.add_argument("fichier")
     pg.add_argument("page")
@@ -1306,7 +1376,9 @@ def main(argv, sortie=None, entree=None, erreur=None):
     if a.cmd == "carte":
         return carte(a.dossier or os.getcwd(), sortie)
     if a.cmd == "valider":
-        return cmd_valider(a.fichiers, sortie)
+        return cmd_valider(a.fichiers, sortie, a.plan)
+    if a.cmd == "equiper":
+        return cmd_equiper(a.dossier, a.contexte, sortie)
     if not os.path.isfile(a.fichier):
         sortie.write("GARDE: fichier introuvable : %s\n" % a.fichier)
         return 1
@@ -1314,6 +1386,8 @@ def main(argv, sortie=None, entree=None, erreur=None):
         return cmd_extraire(a.fichier, a.fiche, sortie)
     if a.cmd == "socle":
         return cmd_socle(a.fichier, sortie)
+    if a.cmd == "cout":
+        return cmd_cout(a.fichier, a.session, sortie)
     return cmd_sessions(a.fichier, sortie)
 
 
