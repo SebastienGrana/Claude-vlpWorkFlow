@@ -14,7 +14,7 @@ celle-là. Suis ces étapes dans l'ordre, sans en sauter ni en ajouter.
 
 ## La carte du projet — lue avant ton premier tour
 
-!`python3 "${CLAUDE_PLUGIN_ROOT}/scripts/carte.py" 2>/dev/null || python "${CLAUDE_PLUGIN_ROOT}/scripts/carte.py"`
+!`python3 "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte 2>/dev/null || python "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte`
 
 ## La règle qui prime sur tout : n'ouvre que ce qui est nommé
 
@@ -36,7 +36,7 @@ demande de l'autoriser — pas de contournement.
   fichier d'état, chantiers clos (qui ne se rejouent jamais).
 - **`VOISIN=… alias=…`** : un workspace. Si le premier argument est un de ces
   alias, relance la carte sur ce dossier —
-  `python "${CLAUDE_PLUGIN_ROOT}/scripts/carte.py" "<dossier>"` ; sinon
+  `python "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte "<dossier>"` ; sinon
   **demande lequel** et n'ouvre rien avant la réponse.
 - **`AUCUN_PROJET`** : arrête-toi — c'est `/vlp:init` puis `/vlp:chantier`.
 - **Sortie vide, ou consigne de la lancer** : lance-la toi-même, une fois.

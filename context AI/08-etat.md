@@ -225,3 +225,8 @@ de ce que le code dit déjà.
   mesuré sur cette session à la clôture : 75 tours, 87 appels, input 150,
   output 77 488, cache_creation 197 055, cache_read 11 565 458, **total
   11 840 151 tokens**, 9,69 $.
+- **2026-09-17** — S1 : `vlp.py extraire` s'arrête au marqueur ouvrant suivant quand
+  un fermant manque, avec une `GARDE` — le `sed` de `tache.md` avalait la fiche
+  suivante sans rien dire. Sur les fichiers sains, sortie identique au `sed`.
+  S1 à S5 jouées d'affilée dans la session du cadrage, à la demande : le coût
+  d'une fiche y est l'écart du compteur de session.

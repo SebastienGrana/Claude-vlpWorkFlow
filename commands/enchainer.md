@@ -22,11 +22,11 @@ passait bien.
 La carte du projet, lue avant ton premier tour par le script que `tache.md`
 injecte aussi :
 
-!`python3 "${CLAUDE_PLUGIN_ROOT}/scripts/carte.py" 2>/dev/null || python "${CLAUDE_PLUGIN_ROOT}/scripts/carte.py"`
+!`python3 "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte 2>/dev/null || python "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte`
 
 `PROJET=` : c'est le projet, `CHANTIER.md` suit. `VOISIN=… alias=…` : si le
 premier argument est l'un de ces alias, relance la carte sur ce dossier
-(`python "${CLAUDE_PLUGIN_ROOT}/scripts/carte.py" "<dossier>"`), sinon demande
+(`python "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte "<dossier>"`), sinon demande
 lequel. Sortie vide ou consigne de la lancer : lance-la toi-même, une fois.
 `AUCUN_PROJET`, `GARDE:`, fichier de fiches courant à « aucun », ou
 `PROCHAINE=aucune` : arrête-toi ici — il n'y a rien à enchaîner.

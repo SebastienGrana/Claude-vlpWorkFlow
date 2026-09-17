@@ -8,7 +8,7 @@
 `sed`/`awk` et de HTML retapé par le modèle (points 9, 12, 15 de `12-audit.md`).
 Le chantier met cette mécanique dans un script testé, que les commandes appellent.
 
-**Fait.** Rien. Ouvert le 2026-09-17, cadré en 5 fiches, `S1` à jouer.
+**Fait.** S1 (2026-09-17). Ouvert le 2026-09-17, cadré en 5 fiches, `S2` à jouer.
 
 ## Le socle commun
 
@@ -35,9 +35,9 @@ chemin de machine. Une commande l'appelle par
 `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" … 2>/dev/null || python "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" …`
 — le repli prouvé en R3 (`python3` Windows = faux raccourci). Un test imprime
 `OK` et sort 0, ou le premier écart et sort 1, sans fixture sur disque
-(modèle : `scripts/test-carte.py`).
+(modèle : `scripts/test-vlp.py`, depuis S1).
 
-**Ce qui existe et se réutilise.** `scripts/carte.py` : `equipe`, `trouver`,
+**Ce qui existe et se réutilise.** `scripts/vlp.py` (S1, ex-`carte.py`) : `lignes_de`, `extraire_lignes`, `socle_lignes`, `sessions_de`, `equipe`, `trouver`,
 `fichier_courant`, `fiches`, `carte`. `scripts/mesure-tokens.py` : `resoudre(arg)`
 → (chemin, erreur) ; `mesurer(chemin)` → (dict `tours`, `total`, `usd`…, erreur),
 importé par `importlib` (tiret dans le nom). Format du coût : convention en tête
@@ -75,8 +75,9 @@ S2 et S3 sont parallélisables ; S4 et S5 non.
 ---
 
 <!-- FICHE:S1 -->
-## S1 [ ] — Créer `vlp.py` : carte, extraire, socle, sessions
+## S1 [x] — Créer `vlp.py` : carte, extraire, socle, sessions
 
+**Session** : f5582775-9c45-44ee-b587-e774d46f25ed
 **Dépend de** : rien.
 **Fichiers** : `scripts/carte.py`, `scripts/test-carte.py` (lus puis retirés),
 `scripts/vlp.py`, `scripts/test-vlp.py` (créés), `commands/tache.md`,
