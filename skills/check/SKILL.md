@@ -1,7 +1,7 @@
 ---
 description: Vérifie qu'un projet équipé est cohérent — fichiers, cases cochées, page publiée, coûts
 argument-hint: (rien) | <chemin du projet>
-allowed-tools: Bash(python3:*), Bash(py:*), Bash(echo:*), PowerShell(python3:*), PowerShell(py:*), PowerShell(echo:*), Bash(ls:*), PowerShell(ls:*), PowerShell(cat:*), Read, Artifact
+allowed-tools: Bash(python3:*), Bash(py:*), Bash(echo:*), PowerShell(python3:*), PowerShell(py:*), PowerShell(echo:*), Read, Artifact
 ---
 
 Contrôle un projet équipé de la méthode. **Cette commande n'écrit rien.** Elle
@@ -61,11 +61,8 @@ la régénérer, sans le faire tant que l'utilisateur n'a pas répondu.
 
 **D — Les lettres de fiches ne se marchent pas dessus.**
 
-La ligne « Lettres de fiche déjà prises » est dans la carte.
-
-```bash
-ls "<contexte>"
-```
+La ligne « Lettres de fiche déjà prises » est dans la carte, les fichiers du
+dossier de contexte dans la sortie de **A** — rien à relancer.
 
 Chaque fichier de chantier consomme une lettre. Une lettre réutilisée fait que
 `/vlp:tache D2` trouve deux fiches et en joue une au hasard.

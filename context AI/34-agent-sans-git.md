@@ -140,7 +140,7 @@ en revanche pas porter `permissionMode` (ignoré), ce qui se vérifiera en `Q4`.
 ---
 
 <!-- FICHE:Q3 -->
-## Q3 [ ] — Chasser `Bash` et `cat` partout où un sous-agent lit
+## Q3 [x] — Chasser `Bash` et `cat` partout où un sous-agent lit
 
 **Dépend de** : `Q1`.
 **Fichiers** : les six `skills/*/SKILL.md`, `agents/fiche.md`, `enchainement.md`, `skills/tache/references/` (les fichiers que l'agent lit à son étape 1).
@@ -156,6 +156,25 @@ Vérifie aussi les `allowed-tools` : un couple `Bash(...)` sans son `PowerShell(
 Table des motifs avec compte avant et après par fichier ; les motifs bannis comptés à 0 dans `agents/` et dans les six
 `skills/*/SKILL.md` (sortie de `grep` recopiée) ; chaque `Bash(` des `allowed-tools` a son `PowerShell(` ;
 `py scripts/test-vlp.py` rend « OK » ; `py scripts/vlp.py valider` sans écart sur les fichiers touchés.
+
+**Mesuré** (2026-09-17) — corpus : les 6 `skills/*/SKILL.md`, `agents/fiche.md`, `enchainement.md`, les 3
+`skills/tache/references/*.md`. Compté en **tête de ligne** (la forme d'une commande dans un bloc), pas au mot :
+une occurrence en prose (« jamais `cat`, `ls` ») n'est pas une commande.
+
+| Motif | Avant | Après | Où |
+|---|---|---|---|
+| `ls` en commande | 2 | 0 | `chantier` 179 et `check` 67 → `vlp.py lignes "<contexte>/*.md"` ; en `check`, **D** pointe la sortie de **A** au lieu de relancer |
+| `cat`, `grep`, `sed`, `awk`, `head`, `tail`, `wc`, `tr`, `xargs`, `sh`, `mkdir`, `cp`, `pwd`, `cd` en commande | 0 | 0 | rien à corriger — `agents/fiche.md` traité en `Q2` |
+| `&&`, `\|\|`, `$env:`, `2>/dev/null`, tuyau | 0 | 0 | — |
+| entrées `Bash(`/`PowerShell(` des `allowed-tools` | 55 | 36 | **19 mortes retirées** : `chantier` 8, `init` 6, `check` 3, `enchainer` 2 — aucune de ces commandes n'apparaît plus dans un corps |
+| entrées dépareillées (`Bash(` sans son `PowerShell(`, ou l'inverse) | 11 | **0** | `pwd`, `cd`, `grep`, `wc`, `mkdir`, `cp`, `cat` |
+
+**Hors frontière, noté** : `skills/tache/SKILL.md` 80 cite `sed -n 'A,Bp'` comme exemple de plage qu'une *fiche*
+peut citer — sans Git Bash, `sed` n'existe pas. Ce n'est pas une commande de la skill : c'est la façon dont les
+fiches citent une plage qui devrait changer, et elle est hors de ce chantier.
+
+Preuves : commandes bannies en tête de ligne **0** sur les 11 fichiers ; `test-vlp.py` « OK » ;
+`renvois .` 45 nommés · 0 absents ; `plugin validate .` « Validation passed ».
 <!-- /FICHE -->
 
 ---

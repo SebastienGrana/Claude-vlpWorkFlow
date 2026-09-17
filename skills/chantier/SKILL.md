@@ -1,7 +1,7 @@
 ---
 description: Ouvre une séance de travail : propose les chantiers possibles, puis cadre celui qu'on choisit en fiches
 argument-hint: (rien) | <nom du chantier> | <alias> <nom du chantier>
-allowed-tools: Bash(python3:*), Bash(py:*), Bash(echo:*), PowerShell(python3:*), PowerShell(py:*), PowerShell(echo:*), PowerShell(ls:*), Bash(pwd:*), Bash(cd:*), Bash(ls:*), Bash(grep:*), Bash(wc:*), Bash(mkdir:*), Bash(cp:*), Read, Edit, Write, Artifact
+allowed-tools: Bash(python3:*), Bash(py:*), Bash(echo:*), PowerShell(python3:*), PowerShell(py:*), PowerShell(echo:*), Read, Edit, Write, Artifact
 ---
 
 Arguments reçus :
@@ -176,7 +176,7 @@ Le numéro `NN` se prend **à la suite de ce qui existe**, jamais deviné — la
 convention interdit de renuméroter, un numéro repris ment aux vieux commits :
 
 ```bash
-ls "<contexte>/"
+<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" lignes "<contexte>/*.md"
 ```
 
 Le fichier prend le premier nombre à deux chiffres libre après le plus grand.

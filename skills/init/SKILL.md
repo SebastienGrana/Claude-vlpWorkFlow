@@ -1,7 +1,7 @@
 ---
 description: Équipe un projet de la méthode chantiers/fiches — pose CHANTIER.md et le dossier de contexte
 argument-hint: (rien) | <chemin du projet>
-allowed-tools: Bash(python3:*), Bash(py:*), Bash(echo:*), PowerShell(python3:*), PowerShell(py:*), PowerShell(echo:*), PowerShell(ls:*), PowerShell(cat:*), Bash(ls:*), Bash(cat:*), Bash(mkdir:*), Bash(cp:*), Read, Edit, Write, Artifact
+allowed-tools: Bash(python3:*), Bash(py:*), Bash(echo:*), PowerShell(python3:*), PowerShell(py:*), PowerShell(echo:*), Read, Edit, Write, Artifact
 ---
 
 Arguments reçus :
