@@ -67,7 +67,7 @@ du run `-p` fait foi.
 ---
 
 <!-- FICHE:Q1 -->
-## Q1 [ ] — Mesurer l'enchaînement sans Git — refus, tours, coût
+## Q1 [x] — Mesurer l'enchaînement sans Git — refus, tours, coût
 
 **Dépend de** : rien.
 **Fichiers** : `context AI/33-sans-refus.md` (socle seul, lecture) ; les scripts du scratchpad de `U` nommés dans le socle — recopiés, jamais modifiés en place. Aucun fichier du kit touché.
@@ -85,6 +85,24 @@ le sous-agent a reçu : la carte y est-elle, et avec quel `PYTHON=` ? Écris un 
 Bloc Mesuré présent : `permission_denials` = <n> classés par cause (somme = n), tours et coût affichés, statut rendu
 recopié, `grep -c '\[x\]'` du fichier de fiches du bac, présence ou absence de la carte dans le message du sous-agent ;
 `git status --short` ne montre que ce fichier.
+
+**Mesuré** (2026-09-17) — bac `scratchpad/bacq1` (`bac.py bacq1`, deux fiches `Z1` puis `Z2`), Sonnet, pwsh 7,
+`--tools PowerShell Skill Read Edit Write` — **sans `Bash` : c'est la simulation du poste sans Git**. Lancement :
+**4 tours, 0,1357 $, 7 appels**. **3 refus** (`permission_denials`), tous `Read` hors projet, tous du sous-agent :
+`plugz/enchainement.md`, `skills/tache/references/tache-contraintes.md`, `…/tache-blocage.md` — c'est le repli
+« permission refusée sur le kit : `Read` sur les mêmes fichiers » de l'étape 1 de `agents/fiche.md`. Classement :
+lecture hors projet 3 · shell absent 0 (somme 3) — l'outil `Bash` n'étant pas *refusé* mais **absent**, aucune
+tentative n'entre dans `permission_denials` : le sous-agent n'a lancé ni `vlp.py socle` ni `extraire`, donc ni socle
+ni fiche extraite. Statut rendu : **`RETOUR`** (« Permission refusée sur les fichiers du kit »), le chef a ensuite
+posé la question à l'utilisateur. Résultat : `[x]` = **0** sur 2, `sortie.txt` et `sortie2.txt` **absents**, 0 fiche
+jouée. **La carte reçue par le sous-agent n'est pas journalisée** : l'exécution forkée n'apparaît dans aucun des 3
+transcripts du bac (0 message `isSidechain`, 0 « Fiche à jouer ») — seul son compte rendu remonte au chef.
+Deux pièges de sonde, imprévus : ① le nom du plugin est **en dur** (`enchainer` appelle `skill: "vlp:jouer"`,
+`jouer` déclare `agent: vlp:fiche`) — sans les renommer dans la copie, le chef du bac appelle la skill du plugin
+**réel** (chargé en `-p` sous Windows, sans `shell: powershell`) et la sonde mesure autre chose (1er lancement :
+4 appels, 0,1218 $, blocage `Bash` sur l'injection du vrai `vlp:jouer`) ; ② `--plugin-dir` veut un chemin
+**Windows** — un chemin MSYS `/c/…` avec `MSYS_NO_PATHCONV=1` donne « Unknown command: /vlpz:enchainer », 0 tour.
+Sondes : 3 lancements, **0,26 $** au total.
 <!-- /FICHE -->
 
 ---
