@@ -142,6 +142,12 @@ with tempfile.TemporaryDirectory() as t:
     code, s = appel(["extraire", f, "Y1"])
     verifier("extraire : marqueurs, --- dans un bloc de code", code == 0 and s.startswith("<!-- FICHE:Y1 -->\n## Y1")
              and "## pas un titre\n```\n<!-- /FICHE -->\n--- fiche, lignes : 9\n" in s and "GARDE" not in s, s)
+    verifier("extraire : fiche scriptable, pas d'ARRÊT", "ARRÊT" not in s, s)
+    ecrire(f, AVEC.replace("**Prompt**\n", "**Critère de fin** (visuel)\n"))
+    code, s = appel(["extraire", f, "Y1"])
+    verifier("extraire : fiche (visuel), ARRÊT avant le compte", code == 0
+             and s.endswith("<!-- /FICHE -->\n" + mod.ARRET + "\n--- fiche, lignes : 9\n"), s)
+    ecrire(f, AVEC)
     code, s = appel(["extraire", f, "Y9"])
     verifier("extraire : fiche absente", code == 1 and "GARDE: fiche introuvable : Y9" in s, s)
     code, s = appel(["socle", f])

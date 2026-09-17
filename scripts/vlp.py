@@ -13,7 +13,8 @@ Sous-commandes :
   commande lit la sortie, elle ne doit pas se faire refuser l'injection.
 - `extraire <fichier> <fiche>` — la fiche entre ses marqueurs, marqueurs
   compris, puis `--- fiche, lignes : N`. Sans marqueurs, repli sur le titre
-  jusqu'au premier `---`, annoncé par une `GARDE`. Absente : sort 1.
+  jusqu'au premier `---`, annoncé par une `GARDE`. Absente : sort 1. Critère
+  `(visuel)` : une ligne `ARRÊT:` avant le compte.
 - `socle <fichier>` — de `## Le socle commun` (compris) à `## L'ordre des
   fiches` (exclu), puis `--- socle, lignes : N`. Vide : sort 1.
 - `sessions <fichier>` — un id de ligne `**Session**` par ligne, dédoublonnés,
@@ -194,7 +195,13 @@ def cmd_extraire(chemin, fiche, sortie):
     if not extrait:
         sortie.write("GARDE: fiche introuvable : %s\n--- fiche, lignes : 0\n" % fiche)
         return 1
-    sortie.write("\n".join(extrait) + "\n--- fiche, lignes : %d\n" % len(extrait))
+    sortie.write("\n".join(extrait) + "\n")
+    if any(CRITERE_VISUEL.match(l) for l in extrait):
+        # Le sous-agent de /vlp:enchainer a rendu FAITE sur une fiche visuelle (P3) :
+        # la consigne vient du script, pas de sa mémoire. Pas GARDE: — vlp:jouer
+        # rendrait RETOUR avant tout travail.
+        sortie.write(ARRET + "\n")
+    sortie.write("--- fiche, lignes : %d\n" % len(extrait))
     return 0
 
 
@@ -217,6 +224,7 @@ def cmd_sessions(chemin, sortie):
 OUVRANT = re.compile(r"^<!-- FICHE:(\S+) -->$")
 CRITERE = "**Critère de fin**"
 CRITERE_VISUEL = re.compile(r"^\*\*Critère de fin\*\* \(visuel\)")
+ARRET = "ARRÊT: critère de fin (visuel) — livre, puis rends RETOUR sans cocher"
 CODE_EN_LIGNE = re.compile(r"`[^`]*`")
 # Les seuils vivent ici ; la doc dit « le seuil de vlp.py » et n'écrit pas le chiffre.
 SEUIL_FICHE = 50

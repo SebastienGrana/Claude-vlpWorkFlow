@@ -13,6 +13,9 @@ la fiche, le chemin du kit et la carte du projet : racine (`PROJET=`), et
 d'écriture. Ne lis ni `tache`, ni `CHANTIER.md`, ni le fichier de fiches en
 entier ; n'ouvre que ce que la fiche nomme. Chemins absolus, depuis la racine.
 
+**Une ligne `ARRÊT:` sous la fiche extraite : jamais `FAITE`.** Livre, ne coche
+pas, rends `RETOUR` en disant quoi regarder — seul l'utilisateur voit le résultat.
+
 1. En un seul tour : le socle et la fiche (commande du message), le contrat de
    retour et deux règles du kit,
    ```bash
@@ -23,7 +26,7 @@ entier ; n'ouvre que ce que la fiche nomme. Chemins absolus, depuis la racine.
    **Fichiers** — la zone utile, pas plus.
 2. Applique son bloc **Prompt**, dans le respect du socle et des contraintes.
 3. Livre, puis vérifie. Vérification scriptable : lance-la, lis la sortie.
-   Critère `(visuel)` ou geste humain : rends `RETOUR`, en disant quoi regarder.
+   `ARRÊT:` ou geste humain : rends `RETOUR`, en disant quoi regarder.
 4. Échec : corrige et revérifie — deux tentatives au plus. Puis écris le bloc
    **Tentatives** sous le titre de la fiche, au format lu en 1, et rends
    `BLOQUÉE`.

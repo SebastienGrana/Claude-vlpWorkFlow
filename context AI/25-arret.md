@@ -56,7 +56,7 @@ En série : A2 mesure ce que A1 a posé.
 ---
 
 <!-- FICHE:A1 -->
-## A1 [ ] — Poser les deux verrous
+## A1 [x] — Poser les deux verrous
 
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py`, `skills/enchainer/SKILL.md`, `agents/fiche.md`,
