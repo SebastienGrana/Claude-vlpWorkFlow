@@ -59,7 +59,10 @@ Sous-commandes :
   <fait, sinon livre>` à la place de `**Fait.**` ou `**Où on en est.**` ; les
   lignes ouvertes de l'index et du routage de `CLAUDE.md` passées à « clos » ;
   dans la page du chantier, `ZONE:bilan` visible (Livré, Surpris) et
-  `ZONE:blocage` cachée — absentes : `GARDE:`, le reste est écrit ; dans `CHANTIER.md`, courant et artefact à `aucun`,
+  `ZONE:blocage` cachée — absentes : `GARDE:`, le reste est écrit ; avec
+  `--resume T`, dans « Où on en est » de `CLAUDE.md`, `  puis T (chantier L).`
+  si la dernière chaîne « Clos le » est du jour, sinon `  Clos le <date> : T
+  (chantier L).` (déjà là : rien) ; dans `CHANTIER.md`, courant et artefact à `aucun`,
   une ligne à la table des clos, la lettre aux lettres prises ; dans la feuille
   de route, une ligne en tête de `ZONE:clos`, le total cumulé resommé des
   comptes bruts, puis `feuille`. Tout est calculé avant la première écriture.
@@ -923,6 +926,27 @@ CLOS_LIGNE = "**CLOS** le %s. Ne se rejoue pas — ne sert plus qu'à relire son
 BRUT = re.compile(r'<td class="mono">[^<]*\(([\d  ]+)\)</td>')
 
 
+def resume_claude(cl, lettre, texte, date, gardes):
+    """Ajoute le chantier clos à la section « Où on en est » de `CLAUDE.md`, en place.
+    Vrai si une ligne est écrite ; déjà là : rien."""
+    debut = next((k for k, l in enumerate(cl) if l.startswith("## Où on en est")), None)
+    if debut is None:
+        gardes.append("section « Où on en est » absente de CLAUDE.md")
+        return False
+    fin = next((k for k in range(debut + 1, len(cl)) if cl[k].startswith("## ")), len(cl))
+    if any("(chantier %s)" % lettre in l for l in cl[debut:fin]):
+        return False
+    dernier = max(k for k in range(debut, fin) if cl[k].strip())
+    chaines = [k for k in range(debut, fin) if re.match(r"^\s*-?\s*Clos le (\S+?) ?[:,]", cl[k])]
+    texte = texte.rstrip(".")
+    if chaines and re.match(r"^\s*-?\s*Clos le %s\b" % re.escape(date), cl[chaines[-1]]) and cl[dernier].endswith("."):
+        cl[dernier] = cl[dernier][:-1] + " ;"
+        cl.insert(dernier + 1, "  puis %s (chantier %s)." % (texte, lettre))
+    else:
+        cl.insert(dernier + 1, "  Clos le %s : %s (chantier %s)." % (date, texte, lettre))
+    return True
+
+
 def cmd_clore(a, sortie):
     projet = a.projet
     if not equipe(projet):
@@ -992,8 +1016,12 @@ def cmd_clore(a, sortie):
         else:
             m = re.match(r"^\| jouer une fiche du chantier \S+ \((.*)\) \| ", cl[k])
             cl[k] = "| relire le chantier %s (%s) | `%s` — chantier **clos** |" % (lettre, m.group(1), courant)
-            ecritures.append((chemin_claude, "\n".join(cl) + "\n"))
             faits["routage"] = 1
+        if a.resume:
+            if resume_claude(cl, lettre, a.resume, date, gardes):
+                faits["résumé"] = 1
+        if faits["routage"] or faits.get("résumé"):
+            ecritures.append((chemin_claude, "\n".join(cl) + "\n"))
 
     # 1 ter. la ZONE:bilan de la page du chantier
     chemin_page = os.path.join(projet, os.path.dirname(courant), "artefacts", nom[:-3] + ".html")
@@ -1090,8 +1118,9 @@ def cmd_clore(a, sortie):
         with open(page, "w", encoding="utf-8", newline="") as fh:
             fh.write(html)
         sortie.write(bilan + " · réécrite — %s\n" % page)
-    sortie.write("CLOS %s %s · total %s · routage %d · index %d · bilan %d — %s\n" % (
-        lettre, fait, "non mesuré" if total is None else milliers(total), faits["routage"], faits["index"], faits["bilan"], projet))
+    sortie.write("CLOS %s %s · total %s · routage %d · index %d · bilan %d%s — %s\n" % (
+        lettre, fait, "non mesuré" if total is None else milliers(total), faits["routage"], faits["index"], faits["bilan"],
+        " · résumé %d" % faits.get("résumé", 0) if a.resume else "", projet))
     return 0
 
 
@@ -1231,6 +1260,7 @@ def main(argv, sortie=None, entree=None, erreur=None):
     cl.add_argument("--abandon")
     cl.add_argument("--fait")
     cl.add_argument("--surpris")
+    cl.add_argument("--resume")
     cl.add_argument("--date")
     ou = sous.add_parser("ouvrir")
     ou.add_argument("projet")

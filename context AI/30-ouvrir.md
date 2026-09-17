@@ -120,7 +120,7 @@ Une ligne absente (index, routage, page) : `GARDE:` nommée, le reste s'écrit q
 ---
 
 <!-- FICHE:O4 -->
-## O4 [ ] — `vlp.py clore` écrit « Où on en est » de `CLAUDE.md`
+## O4 [x] — `vlp.py clore` écrit « Où on en est » de `CLAUDE.md`
 
 **Dépend de** : `O3`.
 **Fichiers** : `scripts/vlp.py` (`cmd_clore`), `scripts/test-vlp.py`, `CLAUDE.md` (section « Où on en est », pour le format).

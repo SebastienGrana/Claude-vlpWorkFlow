@@ -68,9 +68,9 @@
     <p>Une ouverture et une clôture ne gardent à la main que les publications Artifact et le texte de jugement ; tours à la main comptés avant (O1) et après (O5).</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">5 fiches · 3 faites · en cours : O4</p>
+    <p class="mono" style="margin-top:.5rem">5 fiches · 4 faites · en cours : O5</p>
   </header>
 
   <section>
@@ -92,14 +92,14 @@
         <span class="etat">faite</span>
         <span class="note">clore étendu : tests OK, 81 → 87 assertions ; bac copié : routage clos 20 → 21, index clos 20 → 21, section hidden 2 → 1 ; Fait. remplace Où on en est ; bilan gardé par page.</span>
       </li>
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">O4</span><span class="titre">vlp.py clore écrit « Où on en est » de CLAUDE.md</span>
-        <span class="etat">en cours</span>
-        <span class="note">vlp.py clore --resume : la ligne « Où on en est » de CLAUDE.md ; tests. Dépend de O3.</span>
+        <span class="etat">faite</span>
+        <span class="note">clore --resume : tests OK, 87 → 91 assertions (même date, autre date, déjà là, section absente) ; bac copié : (chantier O) 0 → 1 dans CLAUDE.md, chaîne du jour prolongée.</span>
       </li>
-      <li class="fiche">
+      <li class="fiche" data-etat="encours">
         <span class="id">O5</span><span class="titre">Brancher dans /vlp:chantier et cloture.md, mesurer l'après</span>
-        <span class="etat">à faire</span>
+        <span class="etat">en cours</span>
         <span class="note">Branchement dans /vlp:chantier et cloture.md, plugin 3.3.5, eval chantier WSL2, tours après. Dépend de O2 et O4.</span>
       </li>
     </ul>
