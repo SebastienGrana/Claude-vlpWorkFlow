@@ -63,7 +63,7 @@ Rien n'est parallélisable : K1 prouve la forme que K2 recopie, K3 décrit ce qu
 ---
 
 <!-- FICHE:K1 -->
-## K1 [ ] — Migrer `check` en skill pilote, mesurer `disable-model-invocation`
+## K1 [x] — Migrer `check` en skill pilote, mesurer `disable-model-invocation`
 
 **Dépend de** : rien.
 **Fichiers** : `commands/check.md` → `skills/check/SKILL.md`, `evals/check/`, `context AI/08-etat.md` (journal).

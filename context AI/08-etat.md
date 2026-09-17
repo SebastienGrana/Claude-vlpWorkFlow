@@ -404,3 +404,8 @@ de ce que le code dit déjà.
   numérote encore par `ls`. Cadrage, I1 à I3 et clôture dans une seule session, à la demande. Total brut
   mesuré : 45 tours, 59 appels, input 90, output 32 373, cache_creation 155 279, cache_read
   6 355 087, **total 6 542 829 tokens**, 5,54 $, plus 0,37 $ d'eval.
+- **2026-09-17** — K1 : `disable-model-invocation: true` **écarté** — mesuré sur l'eval `check` : sans, score 1, 19 tours,
+  0,19 $ ; avec, score 0,5, `Skill` appelé 0 fois, 9 tours, 0,11 $ (la skill reste tapable, `vlp:check` dans
+  `slash_commands`, mais le modèle ne peut plus l'appeler — or les evals et « lance /vlp:… » passent par `Skill`).
+  `commands/check.md` → `skills/check/SKILL.md` sans changer un octet ; `${CLAUDE_PLUGIN_ROOT}` substitué selon la
+  doc des skills, non relu dans une trace (le run réussi n'a pas `--keep-temp`).
