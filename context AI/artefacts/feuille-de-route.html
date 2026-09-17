@@ -68,8 +68,8 @@
     <!-- ZONE:encours — remplacé à chaque ouverture, remis à « aucun » à chaque clôture.
          /tache n'y touche pas : l'avancement fiche par fiche est sur la page du chantier. -->
     <div class="encours">
-      <div class="titre">Aucun chantier ouvert</div>
-      <div>Lancer <span class="mono">/vlp:chantier</span> pour en ouvrir un.</div>
+      <div class="titre"><span class="mono">/vlp:enchainer</span> sans Git <span class="badge" data-etat="cours">en cours</span></div>
+      <div>Fiches <span class="mono">Q1–Q5</span> — <a href="https://claude.ai/artifact/4QHw2nEwQfRzYdxhXsKjRH">la page du chantier</a></div>
     </div>
   </section>
 
@@ -82,7 +82,7 @@
           <tr><th>#</th><th>Chantier</th><th>Ce qu'il apporte</th><th>Coût</th><th>Dépend de</th></tr>
         </thead>
         <tbody>
-          <tr><td class="mono">21</td><td><span class="mono">/vlp:enchainer</span> sans Git</td><td>Lu au chantier U, non sondé : l'agent <span class="mono">vlp:fiche</span> n'a que l'outil <span class="mono">Bash</span> (<span class="mono">agents/fiche.md</span>) — sans Git Bash, un sous-agent ne lance rien ; <span class="mono">enchainer</span> et <span class="mono">jouer</span> portent la carte PowerShell mais pas leur sous-agent. Sonder dans un bac (<span class="mono">33-sans-refus.md</span>, socle), puis ajouter <span class="mono">PowerShell</span> à l'agent ou le dire au README. Aussi : clôture de <span class="mono">/vlp:tache</span> sous PowerShell (1 refus improvisé, <span class="mono">Test-Path</span> hors projet), PowerShell 5.1 sur un poste sans <span class="mono">pwsh</span> 7, macOS</td><td class="mono">2 fiches</td><td class="mono">—</td></tr>
+          <tr><td class="mono">21</td><td><span class="mono">/vlp:enchainer</span> sans Git <span class="badge" data-etat="cours">en cours</span></td><td>Lu au chantier U, non sondé : l'agent <span class="mono">vlp:fiche</span> n'a que l'outil <span class="mono">Bash</span> (<span class="mono">agents/fiche.md</span>) — sans Git Bash, un sous-agent ne lance rien ; <span class="mono">enchainer</span> et <span class="mono">jouer</span> portent la carte PowerShell mais pas leur sous-agent. Sonder dans un bac (<span class="mono">33-sans-refus.md</span>, socle), puis ajouter <span class="mono">PowerShell</span> à l'agent ou le dire au README. Aussi : clôture de <span class="mono">/vlp:tache</span> sous PowerShell (1 refus improvisé, <span class="mono">Test-Path</span> hors projet), PowerShell 5.1 sur un poste sans <span class="mono">pwsh</span> 7, macOS</td><td class="mono">2 fiches</td><td class="mono">—</td></tr>
         </tbody>
       </table>
     </div>
@@ -278,7 +278,7 @@
   </section>
 
   <footer>
-    <span>Lettres de fiche prises : <span class="mono">E, M, C, T, B, R, S, H, V, D, I, K, N, L, P, A, G, W, X, F, O, J, Y, U</span></span>
+    <span>Lettres de fiche prises : <span class="mono">E, M, C, T, B, R, S, H, V, D, I, K, N, L, P, A, G, W, X, F, O, J, Y, U, Q</span></span>
     <span>État détaillé : <span class="mono">context AI/08-etat.md</span></span>
     <span>Mis à jour le <span class="mono">2026-09-17</span></span>
   </footer>
