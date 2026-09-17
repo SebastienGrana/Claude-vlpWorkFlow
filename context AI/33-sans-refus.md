@@ -59,7 +59,7 @@ U4 ne touche que l'injection : elle peut se jouer avant U2 ; U5 rejoue la sonde 
 ---
 
 <!-- FICHE:U1 -->
-## U1 [ ] — Mesurer les refus avant
+## U1 [x] — Mesurer les refus avant
 
 **Dépend de** : rien.
 **Fichiers** : `context AI/32-sans-git.md` (bloc Mesuré de Y5, lecture seule) — et rien d'autre ; aucun fichier du kit modifié.
@@ -75,6 +75,19 @@ par le message du Store ? Puis cherche comment faire jouer à Claude Code `power
 **Critère de fin**
 Bloc Mesuré présent : `permission_denials` = <n> classés par cause (somme = n), tours et coût affichés, fiche du bac
 cochée ou non (`grep -c '\[x\]'`), méthode 5.1 trouvée ou source qui dit non ; `git status --short` n'a que ce fichier.
+
+**Mesuré** (2026-09-17) — bac `scratchpad/bacu1` (script `scratchpad/bac.py <nom>`, lecture `PYTHONUTF8=1 py lire.py
+<sortie.jsonl> <nom>`), Sonnet, pwsh 7.6.6. **Deux prompts** : `/vlpz:tache Z1` s'arrête à l'étape 6 (« Confirmes-tu ? »),
+puis `--resume <id> -p "Confirmé, continue."`. Prompt 1 : 7 tours, 0,123 $, 6 appels, **1 refus** (`cat` de
+`tache-contraintes.md` hors projet → 2 `Read`). Prompt 2 : 10 tours, 0,129 $, 9 appels, **8 refus** : 5 `$env:CLAUDE_CODE_SESSION_ID`
+(dont `[Environment]::…` et un `dangerouslyDisableSandbox`), 3 `py …vlp.py` (`cout` ×2, `socle`) — **les `allowed-tools` d'une
+skill ne valent plus après la confirmation** (nouveau prompt) : `cout` et `page` refusés, page non régénérée. Total **9 refus**
+(cat 1 · $env 5 · allowed-tools perdus 3 · nom de page 0, `page` jamais atteinte) ; fiche du bac cochée (`[x]` = 1),
+Session absente. Carte injectée : « Python est introuvable ; ex�cutez… » avant `PYTHON=py`. Au montage, `page --creer`
+échoue si `artefacts/` n'existe pas (FileNotFoundError). **PowerShell 5.1 non forçable** : doc `tools-reference.md`
+(« auto-detects `pwsh.exe` … fallback to `powershell.exe` ») ; binaire 2.1.271 : chemins en dur, « PATH is never
+consulted » ; sondes Haiku `CLAUDE_CODE_TEST_NO_PWSH=1` et `ProgramFiles` faussé → 7.6.6 (0,02 $ chacune). Seule voie :
+un poste sans pwsh 7 (geste de l'utilisateur). Sondes : 0,25 $ Sonnet + 0,14 $ Haiku.
 <!-- /FICHE -->
 
 ---
