@@ -8,7 +8,9 @@
 des plugins garde pour l'existant (« Use `skills/` for new plugins ») ; K les passe en
 `skills/<nom>/SKILL.md`, un dossier par commande avec ses références (TODO n° 8).
 
-**Fait.** Rien. Ouvert le 2026-09-17, cadré en 3 fiches, `K1` à jouer.
+**CLOS** le 2026-09-17. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** K1 à K3 : les cinq commandes et `references/` vivent dans `skills/`, evals Windows 3/3.
 
 ## Le socle commun
 

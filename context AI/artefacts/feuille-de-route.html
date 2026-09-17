@@ -68,8 +68,8 @@
     <!-- ZONE:encours — remplacé à chaque ouverture, remis à « aucun » à chaque clôture.
          /tache n'y touche pas : l'avancement fiche par fiche est sur la page du chantier. -->
     <div class="encours">
-      <div class="titre">Migrer commands/ → skills/ <span class="badge" data-etat="cours">en cours</span></div>
-      <div>Fiches <span class="mono">K1–K3</span> · <a href="https://claude.ai/artifact/SnRg17z3ojPU3jTk9pQpD7">la page du chantier</a></div>
+      <div class="titre">Aucun chantier ouvert</div>
+      <div>Lancer <span class="mono">/vlp:chantier</span> pour en ouvrir un.</div>
     </div>
   </section>
 
@@ -82,8 +82,7 @@
           <tr><th>#</th><th>Chantier</th><th>Ce qu'il apporte</th><th>Coût</th><th>Dépend de</th></tr>
         </thead>
         <tbody>
-          <tr><td class="mono">8</td><td>Migrer commands/ → skills/ <span class="badge" data-etat="cours">en cours</span></td><td>Un dossier par commande, disable-model-invocation, variante context: fork + vlp:fiche</td><td class="mono">3 fiches</td><td class="mono">—</td></tr>
-          <tr data-etat="bloque"><td class="mono">9</td><td><span class="mono">/vlp:enchainer</span> : réparer ou retirer</td><td>Chef ≤ 3 tours par fiche via la skill forkée, ou suppression — aux chiffres de 2</td><td class="mono">3 fiches</td><td class="mono">8</td></tr>
+          <tr><td class="mono">9</td><td><span class="mono">/vlp:enchainer</span> : réparer ou retirer</td><td>Chef ≤ 3 tours par fiche via la skill forkée (context: fork + vlp:fiche), ou suppression — aux chiffres de 2</td><td class="mono">3 fiches</td><td class="mono">—</td></tr>
           <tr><td class="mono">11</td><td>Evals sous WSL2</td><td>Jouer les tests qui exigent Bash (tache, chantier) : Windows n'a pas de sandbox ; initialiser Ubuntu sous WSL2, y installer Claude Code, bubblewrap et socat, s'y connecter, lancer la suite depuis Linux</td><td class="mono">2 fiches</td><td class="mono">6</td></tr>
         </tbody>
       </table>
@@ -99,6 +98,13 @@
           <tr><th>Chantier</th><th>Fiches</th><th>Clos le</th><th>Tokens</th><th>Ce qu'il a livré</th></tr>
         </thead>
         <tbody>
+          <tr>
+            <td><a href="https://claude.ai/artifact/SnRg17z3ojPU3jTk9pQpD7">Migrer commands/ → skills/</a> <span class="badge" data-etat="clos">clos</span></td>
+            <td class="mono">K1–K3</td><td class="mono">2026-09-17</td>
+            <td class="mono">≈6,2M (6 203 651)</td>
+            <td>Les cinq commandes vivent dans skills/, un dossier chacune ; plugin 3.2.0 ; evals Windows 3/3 ;
+              disable-model-invocation écarté aux chiffres (5,11 $, plus 0,85 $ d'evals).</td>
+          </tr>
           <tr>
             <td><a href="https://claude.ai/artifact/8p27CpH1GuMgtE9ECWcwoj">Un projet neuf qui ne ment pas</a> <span class="badge" data-etat="clos">clos</span></td>
             <td class="mono">I1–I3</td><td class="mono">2026-09-17</td>
@@ -187,14 +193,14 @@
           </tr>
         </tbody>
         <tfoot>
-          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈117,4M (117 422 178)</strong></td><td></td></tr>
+          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈123,6M (123 625 829)</strong></td><td></td></tr>
         </tfoot>
       </table>
     </div>
   </section>
 
   <footer>
-    <span>Lettres de fiche prises : <span class="mono">E, M, C, T, B, R, S, H, V, D, I</span></span>
+    <span>Lettres de fiche prises : <span class="mono">E, M, C, T, B, R, S, H, V, D, I, K</span></span>
     <span>État détaillé : <span class="mono">context AI/08-etat.md</span></span>
     <span>Mis à jour le <span class="mono">2026-09-17</span></span>
   </footer>

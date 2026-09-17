@@ -37,6 +37,8 @@
   racine, chaque seuil dans `vlp.py` ; le 7 est retiré.
 - **2026-09-17** — chantier I clos (TODO n° 10) : `/vlp:init` nomme son fichier d'état
   par `vlp.py etat`, `/vlp:check` voit les renvois morts ; le 10 est retiré.
+- **2026-09-17** — chantier K clos (TODO n° 8) : les cinq commandes vivent dans `skills/` (v3.2.0) ;
+  le 8 est retiré, 9 ne dépend plus de rien.
 
 ## La TODO ordonnée — les chantiers possibles
 
@@ -46,8 +48,7 @@ ordonné par ce qui débloque le reste. Le détail de chacun est dans
 
 | # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |
 |---|---|---|---|---|
-| 8 | Migrer `commands/` → `skills/` | un dossier par commande, `disable-model-invocation`, variante `context: fork` + `vlp:fiche` | 3 fiches | rien |
-| 9 | `/vlp:enchainer` : réparer ou retirer | chef ≤ 3 tours par fiche via la skill forkée, ou suppression — aux chiffres de 2 | 3 fiches | 8 |
+| 9 | `/vlp:enchainer` : réparer ou retirer | chef ≤ 3 tours par fiche via la skill forkée (`context: fork` + `agent: vlp:fiche`), ou suppression — aux chiffres de 2 | 3 fiches | rien |
 | 11 | Evals sous WSL2 | Jouer les cas d'eval qui exigent Bash (`tache`, `chantier`, sans doute `init`) : Windows n'a pas de sandbox, `claude plugin eval` les refuse ; il faut initialiser Ubuntu sous WSL2, y installer Claude Code, `bubblewrap` et `socat`, s'y connecter, et lancer la suite depuis Linux | 2 fiches | 6 |
 
 ## Journal des décisions
@@ -404,6 +405,18 @@ de ce que le code dit déjà.
   numérote encore par `ls`. Cadrage, I1 à I3 et clôture dans une seule session, à la demande. Total brut
   mesuré : 45 tours, 59 appels, input 90, output 32 373, cache_creation 155 279, cache_read
   6 355 087, **total 6 542 829 tokens**, 5,54 $, plus 0,37 $ d'eval.
+- **2026-09-17** — K3 : une commande déplacée en cours de session **disparaît** de la session : `Skill vlp:tache` rend
+  `Unknown skill` après K2 (l'ancienne `commands/tache.md` n'existe plus, la skill n'est vue qu'après
+  `/reload-plugins`) — K3 et la clôture jouées en suivant la procédure déjà en contexte.
+- **2026-09-17** — Chantier K **clos**. Livré : `commands/*.md` → `skills/<nom>/SKILL.md` (5 renommages sans
+  changer un octet), `references/` → `skills/tache/references/` (5 chemins réécrits dans `tache`, `enchainer`,
+  `agents/fiche.md`) ; renvois de la doc 17 → 12 lignes, 0 mort ; `vlp.py renvois` 41 nommés · 0 absent ;
+  plugin 3.2.0 ; `validate` 1 avertissement voulu ; evals Windows 3/3 (check 15, hook 2, init 22 tours ; 0,55 $).
+  Écarté aux chiffres : `disable-model-invocation` (eval `check` score 1 → 0,5, `Skill` 0 appel). Laissé ouvert :
+  `context: fork` (TODO n° 9) ; la substitution de `${CLAUDE_PLUGIN_ROOT}` et `` !`…` `` dans une skill n'est
+  lue dans aucune trace (les cas qui injectent sont tag `wsl2`) ; rejouer `/vlp:tache` après `/reload-plugins`.
+  Cadrage, K1 à K3 et clôture dans une seule session, à la demande. Total brut mesuré : 47 tours, 61 appels, input 94, output 31 360, cache_creation 130 838, cache_read
+  6 041 359, **total 6 203 651 tokens**, 5,11 $, plus 0,85 $ d'evals.
 - **2026-09-17** — K1 : `disable-model-invocation: true` **écarté** — mesuré sur l'eval `check` : sans, score 1, 19 tours,
   0,19 $ ; avec, score 0,5, `Skill` appelé 0 fois, 9 tours, 0,11 $ (la skill reste tapable, `vlp:check` dans
   `slash_commands`, mais le modèle ne peut plus l'appeler — or les evals et « lance /vlp:… » passent par `Skill`).
