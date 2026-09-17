@@ -54,6 +54,7 @@ ordonné par ce qui débloque le reste. Le détail de chacun est dans
 
 | # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |
 |---|---|---|---|---|
+| 15 | Le kit sans Git Bash — **en cours** (chantier G, `26-gitbash.md`) | Sous PowerShell seul, `sh` est introuvable : établir quel shell lance hook, injection et outils, rendre le hook sûr ou écrire le prérequis | 2 fiches | — |
 | 11 | Evals sous WSL2 | Jouer les cas d'eval qui exigent Bash (`tache`, `chantier`, sans doute `init`) : Windows n'a pas de sandbox, `claude plugin eval` les refuse ; il faut initialiser Ubuntu sous WSL2, y installer Claude Code, `bubblewrap` et `socat`, s'y connecter, et lancer la suite depuis Linux | 2 fiches | 6 |
 
 ## Journal des décisions
