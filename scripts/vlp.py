@@ -53,6 +53,14 @@ Sous-commandes :
   pied (plus celle du chantier courant) ; la date seulement si la page change.
   `FEUILLE todo <n> · encours <oui|non> · lettres <n> · <réécrite|inchangée>
   — <page>`. `--verifier` n'écrit rien, dit `identique|écart`, sort 1 sur écart.
+- `clore <projet> --livre T [--tokens N] [--abandon T] [--date D]` — les
+  écritures mécaniques de `cloture.md` : `**CLOS**` (et les abandonnées) dans le
+  fichier de fiches courant ; dans `CHANTIER.md`, courant et artefact à `aucun`,
+  une ligne à la table des clos, la lettre aux lettres prises ; dans la feuille
+  de route, une ligne en tête de `ZONE:clos`, le total cumulé resommé des
+  comptes bruts, puis `feuille`. Tout est calculé avant la première écriture.
+  `CLOS <lettre> <plage> · total <brut> — <projet>`. Aucun chantier ouvert, ou
+  déjà `**CLOS**` : `GARDE:`, sort 1.
 
 Python 3 sans dépendance, zéro appel modèle.
 """
@@ -895,6 +903,119 @@ def cmd_feuille(a, sortie):
     return 0
 
 
+# --- clore -------------------------------------------------------------------
+
+CLOS_LIGNE = "**CLOS** le %s. Ne se rejoue pas — ne sert plus qu'à relire son socle."
+BRUT = re.compile(r'<td class="mono">[^<]*\(([\d  ]+)\)</td>')
+
+
+def cmd_clore(a, sortie):
+    projet = a.projet
+    if not equipe(projet):
+        sortie.write("GARDE: pas de CHANTIER.md dans %s\n" % projet)
+        return 1
+    date = a.date or __import__("datetime").date.today().isoformat()
+    chemin_carte = os.path.join(projet, "CHANTIER.md")
+    carte_ = lignes_de(chemin_carte)
+    courant = fichier_courant("\n".join(carte_))
+    if not courant:
+        sortie.write("GARDE: aucun chantier ouvert — rien à clore\n")
+        return 1
+    chemin_fiches = os.path.join(projet, courant)
+    fiches_ = lignes_de(chemin_fiches)
+    ids = [l.split()[1] for l in fiches_ if TITRE.match(l)]
+    if not ids:
+        sortie.write("GARDE: aucune fiche dans %s\n" % courant)
+        return 1
+    if any(l.startswith("**CLOS**") for l in fiches_):
+        sortie.write("GARDE: %s porte déjà **CLOS**\n" % courant)
+        return 1
+    lettre = ids[0][0]
+    titre = next((re.sub(r"^# Chantier \S+ — ", "", l) for l in fiches_ if l.startswith("# ")), courant)
+    url = champ(carte_, "artefact du chantier", "aucun")
+    fait = "%s..%s" % (ids[0], ids[-1]) + (" (%s)" % a.abandon if a.abandon else "")
+
+    # 1. le fichier de fiches
+    entete = [CLOS_LIGNE % date] + (["", "Abandonnées : %s." % a.abandon.rstrip(".")] if a.abandon else []) + [""]
+    i = next((k for k, l in enumerate(fiches_) if l.startswith("**Fait.**")), None)
+    if i is None:
+        i = next(k for k, l in enumerate(fiches_) if l.startswith("# ")) + 2
+    fiches_[i:i] = entete
+
+    # 2. CHANTIER.md
+    for k, l in enumerate(carte_):
+        m = re.match(r"^(\s*-\s*\*\*(?:fichier de fiches courant|artefact du chantier)\*\*\s*:\s*)", l)
+        if m:
+            carte_[k] = m.group(1) + "aucun"
+    table = next((k for k, l in enumerate(carte_) if l.startswith("| Fichier de fiches |")), None)
+    if table is None:
+        sortie.write("GARDE: table « Chantiers clos » absente de CHANTIER.md\n")
+        return 1
+    fin = table
+    while fin + 1 < len(carte_) and carte_[fin + 1].startswith("|"):
+        fin += 1
+    carte_.insert(fin + 1, "| %s | %s | %s | %s |" % (courant, fait, date, url))
+    texte = "\n".join(carte_) + "\n"
+    j = texte.find("Lettres de fiche déjà prises")
+    if j < 0:
+        sortie.write("GARDE: ligne « Lettres de fiche déjà prises » absente de CHANTIER.md\n")
+        return 1
+    if lettre not in lettres_prises(carte_):
+        k = texte.find(". Un nouveau chantier", j)
+        k = k if k >= 0 else texte.find("\n", j)
+        texte = texte[:k] + ", %s (%s)" % (lettre, titre) + texte[k:]
+
+    # 3. la feuille de route
+    page = page_feuille(projet)
+    html = lire(page) if os.path.isfile(page) else None
+    total = None
+    if html is not None:
+        try:
+            d, f = zone(html, "clos", "<tbody>\n", "        </tbody>")
+        except ValueError as e:
+            sortie.write("GARDE: %s\n" % e)
+            return 1
+        anciens = re.findall(r"          <tr>\n.*?          </tr>\n", html[d:f], re.S)
+        anciens = [r for r in anciens if "&lt;" not in r]
+        lien = cellule_md(titre) if url.lower().startswith("aucun") else '<a href="%s">%s</a>' % (esc(url), cellule_md(titre))
+        ligne = ('          <tr>\n            <td>%s <span class="badge" data-etat="clos">clos</span></td>\n'
+                 '            <td class="mono">%s</td><td class="mono">%s</td>\n'
+                 '            <td class="mono">%s</td>\n            <td>%s</td>\n          </tr>\n'
+                 % (lien, plage(ids), date, "non mesuré" if a.tokens is None else arrondi(a.tokens), cellule_md(a.livre)))
+        corps = ligne + "".join(anciens)
+        html = html[:d] + corps + html[f:]
+        total = sum(int(re.sub(r"\D", "", n)) for n in BRUT.findall(corps)) + (a.tokens if a.tokens is not None and a.tokens < 1000 else 0)
+        html = re.sub(r"(Total cumulé</td><td class=\"mono\"><strong>).*?(</strong>)",
+                      lambda m: m.group(1) + arrondi(total) + m.group(2), html, count=1)
+        etat = champ(carte_, "fichier d'état")
+        try:
+            zone(html, "todo", "<tbody>\n", "        </tbody>")
+            zone(html, "encours", "\n", "  </section>")
+            if not etat or not os.path.isfile(os.path.join(projet, etat)):
+                raise ValueError("fichier d'état introuvable : %s" % etat)
+        except ValueError as e:
+            sortie.write("GARDE: %s — rien d'écrit\n" % e)
+            return 1
+
+    with open(chemin_fiches, "w", encoding="utf-8", newline="") as fh:
+        fh.write("\n".join(fiches_) + "\n")
+    with open(chemin_carte, "w", encoding="utf-8", newline="") as fh:
+        fh.write(texte)
+    if html is None:
+        sortie.write("GARDE: feuille de route introuvable : %s — CHANTIER.md et fiches écrits\n" % page)
+    else:
+        try:
+            html, bilan = feuille(projet, html, None, date)
+        except ValueError as e:
+            sortie.write("GARDE: %s — CHANTIER.md et fiches écrits, feuille non écrite\n" % e)
+            return 1
+        with open(page, "w", encoding="utf-8", newline="") as fh:
+            fh.write(html)
+        sortie.write(bilan + " · réécrite — %s\n" % page)
+    sortie.write("CLOS %s %s · total %s — %s\n" % (lettre, fait, "non mesuré" if total is None else milliers(total), projet))
+    return 0
+
+
 # --- entrée ------------------------------------------------------------------
 
 def main(argv, sortie=None, entree=None, erreur=None):
@@ -933,7 +1054,15 @@ def main(argv, sortie=None, entree=None, erreur=None):
     fe.add_argument("--todo")
     fe.add_argument("--verifier", action="store_true")
     fe.add_argument("--date")
+    cl = sous.add_parser("clore")
+    cl.add_argument("projet")
+    cl.add_argument("--livre", required=True)
+    cl.add_argument("--tokens", type=int)
+    cl.add_argument("--abandon")
+    cl.add_argument("--date")
     a = p.parse_args(argv)
+    if a.cmd == "clore":
+        return cmd_clore(a, sortie)
     if a.cmd == "feuille":
         return cmd_feuille(a, sortie)
     if a.cmd == "renvois":

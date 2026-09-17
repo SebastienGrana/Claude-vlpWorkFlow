@@ -467,6 +467,32 @@ with tempfile.TemporaryDirectory() as t:
     verifier("feuille : refermé, badge ôté", code == 0 and "Aucun chantier ouvert" in html
              and 'data-etat="cours"' not in html.split("ZONE:encours")[1] and "E, M</span>" in html, s)
 
+    ecrire(os.path.join(t, "CHANTIER.md"), carte_ % ("ctx/30-q.md (Q1..Q2)", "https://exemple/q")
+           + "\n| Fichier de fiches | Fiches | Clos le | Artefact |\n|---|---|---|---|\n| ctx/10-e.md | E1..E2 | 2026-01-01 | u |\n\nFin.\n")
+    ecrire(os.path.join(t, "ctx", "30-q.md"), "# Chantier Q — Un `titre`\n\n**À quoi il sert.** x\n\n**Fait.** Rien.\n\n## Q1 [x] — a\n## Q2 [ ] — b\n")
+    html = lire(fdr)
+    for gabarit, vrai in (('&lt;≈2,3k (2 312)&gt;', "≈2,3k (2 312)"), ('&lt;≈15,3k (15 342)&gt;', "?"), ("&lt;une ligne&gt;", "ligne"),
+                          ('<a href="&lt;URL de son artefact&gt;">&lt;nom&gt;</a>', '<a href="u">E</a>'), ("&lt;U1..U6&gt;", "E1–E2"),
+                          ("&lt;AAAA-MM-JJ&gt;", "2026-01-01")):
+        html = html.replace(gabarit, vrai)
+    ecrire(fdr, html)
+    code, s = appel(["clore", t, "--livre", "Livré `a` <b>", "--tokens", "1500", "--abandon", "Q2 abandonnée", "--date", "2026-05-06"])
+    carte_lue, fiches_lues, html = lire(os.path.join(t, "CHANTIER.md")), lire(os.path.join(t, "ctx", "30-q.md")), lire(fdr)
+    verifier("clore : bilan", code == 0 and "CLOS Q Q1..Q2 (Q2 abandonnée) · total 3 812" in s and "encours non" in s, s)
+    verifier("clore : fichier de fiches", "**CLOS** le 2026-05-06. Ne se rejoue pas" in fiches_lues
+             and fiches_lues.index("**CLOS**") < fiches_lues.index("**Fait.**") and "Abandonnées : Q2 abandonnée." in fiches_lues, fiches_lues)
+    verifier("clore : CHANTIER.md", "**fichier de fiches courant** : aucun" in carte_lue and "**artefact du chantier** : aucun" in carte_lue
+             and "| ctx/10-e.md | E1..E2 | 2026-01-01 | u |\n| ctx/30-q.md | Q1..Q2 (Q2 abandonnée) | 2026-05-06 | https://exemple/q |\n\nFin." in carte_lue
+             and "M (Deux `x`), Q (Un `titre`). Un nouveau chantier" in carte_lue, carte_lue)
+    clos = html.split("<!-- ZONE:clos")[1]
+    verifier("clore : feuille de route", '<a href="https://exemple/q">Un <span class="mono">titre</span></a>' in clos
+             and '<td class="mono">Q1–Q2</td><td class="mono">2026-05-06</td>' in clos and "≈1,5k (1 500)" in clos
+             and "Livré <span class=\"mono\">a</span> &lt;b&gt;" in clos and clos.index("Q1–Q2") < clos.index("2 312")
+             and "<strong>≈3,8k (3 812)</strong>" in clos and "Aucun chantier ouvert" in html and "E, M, Q</span>" in html, clos)
+    code, s = appel(["clore", t, "--livre", "x"])
+    verifier("clore : second appel refusé", code == 1 and s.startswith("GARDE: aucun chantier ouvert")
+             and lire(os.path.join(t, "CHANTIER.md")) == carte_lue, s)
+
 SH = shutil.which("sh")
 if SH is None:
     print("lanceur : sh absent du PATH, tests du lanceur sautés")

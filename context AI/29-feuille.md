@@ -90,7 +90,7 @@ Docstring, puis tests dans `test-vlp.py` sur un bac temporaire : encours ouvert 
 ---
 
 <!-- FICHE:F3 -->
-## F3 [ ] — Écrire `vlp.py clore`
+## F3 [x] — Écrire `vlp.py clore`
 
 **Dépend de** : `F2`.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py`, `cloture.md` (sections 1, 2 et 5, pour le format).
