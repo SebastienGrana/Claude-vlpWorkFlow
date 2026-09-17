@@ -86,6 +86,8 @@ ordonné par ce qui débloque le reste. Le détail de chacun est dans
 
 | # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |
 |---|---|---|---|---|
+| 22 | Les projets équipés ne suivent plus le kit | Mesuré le 2026-09-17 : les 4 projets portent une copie locale de la méthode (87 à 102 lignes) d'avant le plugin — la doctrine interdit la copie ; le bac pointe une variable dans un fichier de données (bug n° 3 de l'audit). Aussi : Cairn-VlpLib 2 renvois absents, `CLAUDE.md` 89/80, index 111/80, table des clos encore dans `CHANTIER.md` ; MapDecorator 84/80 ; TrackGen `CHANTIER.md` 51/50 ; feuille de route en écart sur 3 projets, absente sur le bac. Écrire de quoi remettre un projet équipé à niveau, au lieu de le faire à la main cinq fois | 3 fiches | — |
+| 23 | `vlp.py feuille` plante au lieu de garder | Mesuré le 2026-09-17 sur Cairn-VlpLib, dont la ligne « fichier de fiches courant » déborde sur plusieurs lignes : `carte` rend proprement `GARDE: fichier de fiches introuvable`, `feuille` rend un `FileNotFoundError` — et sort 0, donc rien ne l'attrape (règle 2). Toute sous-commande qui lit un chemin venu de `CHANTIER.md` doit rendre une `GARDE:`. Aussi : `skills/tache/SKILL.md` apprend encore aux fiches à citer une plage par `sed`, inutilisable sans Git (relevé hors frontière au chantier Q) | 2 fiches | — |
 
 ## Journal des décisions
 
@@ -583,3 +585,10 @@ de ce que le code dit déjà.
 - **2026-09-17** — Y1 : la recette de X ne tient pas hors bypassPermissions — PowerShell refuse toute chaîne || (« control-flow or chain statement »), 5.1 ne l'analyse pas ; forme retenue : injection python3 …; py …; echo fin, corps en commande simple ; bin/ d'un plugin n'est que dans le PATH de l'outil Bash (0,463 $ de sondes).
 - **2026-09-17** — U4 : le message du raccourci Store de `python3` ne se tait pas (stderr, code 49) ; injection inversée `py …; python3 … --relais; py … --relais; echo fin` — le 3e appel remet à 0 le `$LASTEXITCODE` de PowerShell (sans lui la skill avorte), le relais ne retire plus son tampon ; bruit à la fin sous Windows, « py: command not found » en tête sous Ubuntu, ligne README pour désactiver l'alias.
 - **2026-09-17** — Q1 : un bac de sonde doit **renommer les références en dur au plugin** — `skills/enchainer/SKILL.md` appelle `skill: "vlp:jouer"` et `skills/jouer/SKILL.md` déclare `agent: vlp:fiche` : sans le renommage, le chef du bac `vlpz` appelle la skill du plugin **réel** (chargé en `-p` sous Windows) et la sonde mesure autre chose. `--plugin-dir` veut un chemin Windows : un chemin MSYS `/c/…` donne « Unknown command », 0 tour.
+- **2026-09-17** — bilan des 22 chantiers écrit (`35-bilan.md`), README doté
+  d'une section « Ce qui est prouvé — et ce qui ne l'est pas », dépôt public
+  poussé (40 commits, `31be407..bdfb455` : F, O, J, Y, U, Q y manquaient).
+- **2026-09-17** — les 5 projets équipés passés à `vlp.py renvois` et
+  `feuille --verifier` : aucun n'est à jour du kit d'aujourd'hui. Deux
+  chantiers en sortent, TODO n° 22 et 23 — le second est un bug du kit,
+  trouvé parce qu'on a lancé la mécanique sur autre chose que le kit.
