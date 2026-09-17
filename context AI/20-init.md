@@ -104,8 +104,9 @@ pour y passer `19-doctrine.md` à **clos**.
 ---
 
 <!-- FICHE:I3 -->
-## I3 [ ] — Prouver sur l'eval `init`
+## I3 [x] — Prouver sur l'eval `init`
 
+**Session** : fe47ec13-a1eb-4ee8-8e9a-7b0130cdec35
 **Dépend de** : `I1`, `I2`.
 **Fichiers** : `evals/init/case.yaml` — et rien d'autre.
 

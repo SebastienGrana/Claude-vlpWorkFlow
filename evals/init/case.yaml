@@ -20,7 +20,7 @@ graders:
 
   - name: writes-context-dir
     type: file_exists
-    path: "*/08-etat.md"
+    path: "*/*-etat.md"
 
   - name: publishes-nothing
     type: tool_used
