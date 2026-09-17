@@ -287,6 +287,5 @@ de ce que le code dit déjà.
   seraient validés à chaque édition. Le gabarit de fiches passe (`VALIDE 0 fiches`) ;
   `exemples/fichier-de-fiches-cairn.md` (N1 sans marqueurs) et `11-conso.md:88`
   seront signalés s'ils sont édités : archives, laissées telles quelles. Un appel :
-  0,19 à 0,21 s. Sous Git Bash, un heredoc passé à `python -` perd un `\` sur deux :
-  un patch avec `
-` s'écrit dans un fichier, pas dans un heredoc.
+  0,19 à 0,21 s. Sous Git Bash, un patch Python passé en heredoc à `python -` a
+  perdu ses échappements de saut de ligne (deux fois) ; écrit dans un fichier, il passe.
