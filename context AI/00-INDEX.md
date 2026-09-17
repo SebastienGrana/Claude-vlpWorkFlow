@@ -32,6 +32,7 @@ a l'air proche.
 | `17-hooks.md` | on joue une fiche `H*` — chantier **clos** « Hooks du kit », `H1..H4` |
 | `18-evals.md` | on joue une fiche `V*` — chantier **clos** « Evals du plugin », `V1..V4` |
 | `19-doctrine.md` | on joue une fiche `D*` — chantier **clos** « Fusionner la doctrine », `D1..D6` |
+| `21-skills.md` | on joue une fiche `K*` — chantier **en cours** « Migrer commands/ → skills/ », `K1..K3` |
 | `20-init.md` | on joue une fiche `I*` — chantier **clos** « Un projet neuf qui ne ment pas », `I1..I3` |
 
 ## Le kit lui-même — à la racine, hors de ce dossier
