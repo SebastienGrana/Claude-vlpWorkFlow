@@ -15,7 +15,7 @@ rien d'autre. Le code viendra après, une fiche par session, via `/vlp:tache`.
 
 ## La carte du projet — lue avant ton premier tour
 
-!`py "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python py; python3 "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python python3 --relais; py "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python py --relais; echo fin`
+!`py "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python py 2>"${CLAUDE_PLUGIN_ROOT}/relais-python.err"; python3 "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python python3 --relais 2>>"${CLAUDE_PLUGIN_ROOT}/relais-python.err"; py "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python py --relais 2>>"${CLAUDE_PLUGIN_ROOT}/relais-python.err"; echo fin`
 
 ## La règle qui prime sur tout : cadrer coûte moins cher que se tromper
 

@@ -784,4 +784,31 @@ with tempfile.TemporaryDirectory() as t:
     verifier("3 lettres : une entrée de clos est reconnue",
              bool(mod.ENTREE_CLOS.match("- Clos le 2026-09-17 : un titre (chantier RNV).")), "non")
 
+# NIV1 — la ligne d'injection ne laisse entrer aucun message de lanceur dans la carte.
+RACINE = os.path.dirname(ICI)
+lignes_injection = []
+for skill in ("chantier", "tache"):
+    texte = io.open(os.path.join(RACINE, "skills", skill, "SKILL.md"), encoding="utf-8").read()
+    lignes_injection.append([l for l in texte.splitlines() if l.startswith("!`") and "vlp.py" in l])
+
+verifier("NIV1 : une ligne d'injection par skill, les deux identiques",
+         [len(x) for x in lignes_injection] == [1, 1] and lignes_injection[0] == lignes_injection[1],
+         repr(lignes_injection))
+
+injection = lignes_injection[0][0]
+verifier("NIV1 : chaque appel de lanceur detourne sa sortie d'erreur",
+         injection.count('/scripts/vlp.py" carte') == 3
+         == injection.count('"${CLAUDE_PLUGIN_ROOT}/relais-python.err"')
+         and injection.count('2>"') == 1 and injection.count('2>>"') == 2, injection)
+
+verifier("NIV1 : aucune syntaxe propre a un seul shell",
+         "$null" not in injection and "/dev/null" not in injection, injection)
+
+s_niv1 = io.StringIO()
+mod.carte_injectee(os.path.join(RACINE, "scripts"), "py", False, s_niv1)
+lu = s_niv1.getvalue()
+verifier("NIV1 : la carte ne dit que PYTHON= et le projet",
+         lu.splitlines()[:2] == ["", "PYTHON=py"] and "introuvable" not in lu and "not found" not in lu
+         and "PROJET=" in lu, lu[:200])
+
 print("OK")

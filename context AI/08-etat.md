@@ -615,3 +615,9 @@ de ce que le code dit déjà.
   `feuille --verifier` : aucun n'est à jour du kit d'aujourd'hui. Deux
   chantiers en sortent, TODO n° 22 et 23 — le second est un bug du kit,
   trouvé parce qu'on a lancé la mécanique sur autre chose que le kit.
+- **2026-09-17** — NIV1 : `2>"<chemin>"` est la **seule** redirection d'erreur que PowerShell et
+  bash lisent pareil — `2>$null` est une erreur de syntaxe sous bash, `2>/dev/null` un chemin
+  `C:/dev/null` absent sous PowerShell, et aucun ordre d'appels ne peut faire taire les deux
+  lanceurs (celui qui manque parle avant que Python démarre). L'injection écrit donc sa sortie
+  d'erreur dans `relais-python.err` à la racine du plugin (`2>` puis deux `2>>`, ignoré par Git) :
+  la raison reste lisible au lieu d'être jetée.

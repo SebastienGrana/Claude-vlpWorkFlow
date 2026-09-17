@@ -59,8 +59,9 @@ ordre ; `NIV3` puis `NIV4` s'enchaînent.
 ---
 
 <!-- FICHE:NIV1 -->
-## NIV1 [ ] — Faire taire le relais de la carte
+## NIV1 [x] — Faire taire le relais de la carte
 
+**Session** : 13d25719-7b36-44b8-81a7-5cb45dbbec0e
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py`, `skills/chantier/SKILL.md`, `skills/tache/SKILL.md`,
 `scripts/test-vlp.py` — et rien d'autre.
