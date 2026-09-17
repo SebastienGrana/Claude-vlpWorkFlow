@@ -60,6 +60,7 @@ et seulement dans ce cas, ouvrir l'index.
 | relire un chantier clos | `context AI/00-INDEX.md` — sa ligne y nomme le fichier de fiches |
 | reprendre après une longue interruption | `context AI/08-etat.md` |
 | choisir le prochain chantier du kit, ou retrouver la preuve d'un bug relevé le 2026-09-17 | `context AI/12-audit.md` |
+| expliquer le kit, ou citer un gain chiffré | `context AI/35-bilan.md` |
 
 ## Économie de contexte
 

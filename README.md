@@ -130,6 +130,30 @@ en remontant depuis le dossier courant, puis d'un cran plus bas :
   `/vlp:tache cairn N2` ;
 - aucun `CHANTIER.md` → elles renvoient vers `/vlp:init`.
 
+## Ce qui est prouvé — et ce qui ne l'est pas
+
+Le kit ne se croit pas sur parole : chaque promesse ci-dessous a une mesure
+avant/après, dans le fichier de fiches du chantier qui l'a faite.
+
+- **Il tourne sans Git** — hook et commandes en Python seul, sondés dans un bac
+  sans `.git` : `/vlp:tache` 9 refus → 1, `/vlp:enchainer` 3 refus → 0 et deux
+  fiches jouées sur deux (chantiers Y, U, Q).
+- **Il se teste** — `claude plugin validate`, 100 assertions sur la mécanique,
+  et des evals qui passent sous Windows (1/1) et Ubuntu WSL2 (4/4).
+- **Il se mesure** — `mesure-tokens.py` compte un tour par `message.id` et rend
+  des dollars ; une fiche coûte 28 à 66 tours. C'est ce qui a fait **écarter**
+  trois idées séduisantes, et renoncer à un chantier entier.
+- **Il s'arrête tout seul** — un hook valide le fichier de fiches à l'écriture,
+  et une fiche `(visuel)` interrompt l'enchaînement au lieu de la cocher.
+
+Ce qui n'est **pas** prouvé, et n'est donc pas promis : **macOS** (non sondé),
+**PowerShell 5.1** (non sondable tant que `pwsh` 7 est installé), et le gain de
+`/vlp:enchainer` hors des séries de fiches mécaniques — un seul `RETOUR`
+l'annule.
+
+Le détail chiffré des 22 chantiers qui ont mené là est dans
+`context AI/35-bilan.md`.
+
 ## Ce qu'il y a dans le dossier
 
 ```
