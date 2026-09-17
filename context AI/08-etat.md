@@ -35,6 +35,8 @@
   Windows, `validate` avant commit ; le 6 est retiré, ses cas Bash passent au 11.
 - **2026-09-17** — chantier D clos (TODO n° 7) : la doctrine tient en trois docs à la
   racine, chaque seuil dans `vlp.py` ; le 7 est retiré.
+- **2026-09-17** — chantier I clos (TODO n° 10) : `/vlp:init` nomme son fichier d'état
+  par `vlp.py etat`, `/vlp:check` voit les renvois morts ; le 10 est retiré.
 
 ## La TODO ordonnée — les chantiers possibles
 
@@ -46,7 +48,6 @@ ordonné par ce qui débloque le reste. Le détail de chacun est dans
 |---|---|---|---|---|
 | 8 | Migrer `commands/` → `skills/` | un dossier par commande, `disable-model-invocation`, variante `context: fork` + `vlp:fiche` | 3 fiches | rien |
 | 9 | `/vlp:enchainer` : réparer ou retirer | chef ≤ 3 tours par fiche via la skill forkée, ou suppression — aux chiffres de 2 | 3 fiches | 8 |
-| 10 | Un projet neuf qui ne ment pas | `/vlp:init` crée ce que l'index et le routage nomment ; numéro d'état pris à la suite | 2 fiches | rien |
 | 11 | Evals sous WSL2 | Jouer les cas d'eval qui exigent Bash (`tache`, `chantier`, sans doute `init`) : Windows n'a pas de sandbox, `claude plugin eval` les refuse ; il faut initialiser Ubuntu sous WSL2, y installer Claude Code, `bubblewrap` et `socat`, s'y connecter, et lancer la suite depuis Linux | 2 fiches | 6 |
 
 ## Journal des décisions
@@ -392,3 +393,14 @@ de ce que le code dit déjà.
   sous-agent D1 : 24 tours, 945 694 tokens, 0,20 $ ; soit **7 164 227 tokens**, 5,41 $,
   plus 0,55 $ d'evals ; cadrage non mesuré (pas de ligne `**Session**`).
 - **2026-09-17** — I2 : vlp.py renvois lit la 1re cellule des tables de l'index et la dernière du routage de CLAUDE.md — toutes les cellules prenaient vlp.py, cité dans un intitulé de tâche, pour un fichier. Sur ce kit : 39 nommés, 1 absent (scripts/carte.py, retiré en S) → 0.
+- **2026-09-17** — Chantier I **clos**. Livré : `vlp.py etat` (fichier d'état présent, sinon le premier
+  numéro libre) appelé par `/vlp:init`, gabarits en `<NN>-etat.md` (`08-etat` en dur dans `templates/` et
+  `commands/` 7 → 0) ; `vlp.py renvois` (fichiers nommés par l'index et le routage, absents) en
+  vérification H de `/vlp:check` — sur ce kit 39 nommés, 1 → 0 absent (`scripts/carte.py`) ; `init.md`
+  3 ter ne recopie plus les outils de `/vlp:tache` (`awk` 1 → 0) ; tests `OK` (7 cas ajoutés). Prouvé :
+  eval `init` seule, score 1, 25 tours, 0,37 $ ; sur le projet posé, `renvois` 2 nommés · 0 absent,
+  `01-etat.md` = `ETAT=01-etat.md`. Laissé ouvert : les projets équipés ne sont pas repassés à
+  `renvois` ; l'eval `init` a pris 25 tours pour `max_turns: 25` — à la limite ; `/vlp:chantier` étape 5
+  numérote encore par `ls`. Cadrage, I1 à I3 et clôture dans une seule session, à la demande. Total brut
+  mesuré : 45 tours, 59 appels, input 90, output 32 373, cache_creation 155 279, cache_read
+  6 355 087, **total 6 542 829 tokens**, 5,54 $, plus 0,37 $ d'eval.

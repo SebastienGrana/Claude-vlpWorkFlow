@@ -4,10 +4,12 @@
 
 # Chantier I — Un projet neuf qui ne ment pas
 
+**CLOS** le 2026-09-17. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
 **À quoi il sert.** `/vlp:init` pose un projet dont l'index et le routage nomment des
 fichiers absents, et fige `08-etat.md` ; ce chantier le rend vrai, et le prouve par script.
 
-**Fait.** Rien. Ouvert le 2026-09-17 (TODO n° 10, audit point 8), cadré en 3 fiches, `I1` à jouer.
+**Fait.** I1 à I3, le 2026-09-17 (TODO n° 10, audit point 8).
 
 ## Le socle commun
 

@@ -68,8 +68,8 @@
     <!-- ZONE:encours — remplacé à chaque ouverture, remis à « aucun » à chaque clôture.
          /tache n'y touche pas : l'avancement fiche par fiche est sur la page du chantier. -->
     <div class="encours">
-      <div class="titre"><a href="https://claude.ai/artifact/8p27CpH1GuMgtE9ECWcwoj">Un projet neuf qui ne ment pas</a> <span class="badge" data-etat="cours">en cours</span></div>
-      <div>Fiches <span class="mono">I1–I3</span> · <span class="mono">context AI/20-init.md</span> · TODO n° 10</div>
+      <div class="titre">Aucun chantier ouvert</div>
+      <div>Lancer <span class="mono">/vlp:chantier</span> pour en ouvrir un.</div>
     </div>
   </section>
 
@@ -84,7 +84,6 @@
         <tbody>
           <tr><td class="mono">8</td><td>Migrer commands/ → skills/</td><td>Un dossier par commande, disable-model-invocation, variante context: fork + vlp:fiche</td><td class="mono">3 fiches</td><td class="mono">—</td></tr>
           <tr data-etat="bloque"><td class="mono">9</td><td><span class="mono">/vlp:enchainer</span> : réparer ou retirer</td><td>Chef ≤ 3 tours par fiche via la skill forkée, ou suppression — aux chiffres de 2</td><td class="mono">3 fiches</td><td class="mono">8</td></tr>
-          <tr><td class="mono">10</td><td>Un projet neuf qui ne ment pas <span class="badge" data-etat="cours">en cours</span></td><td><span class="mono">/vlp:init</span> crée ce que l'index et le routage nomment ; numéro d'état pris à la suite</td><td class="mono">2 fiches</td><td class="mono">—</td></tr>
           <tr><td class="mono">11</td><td>Evals sous WSL2</td><td>Jouer les tests qui exigent Bash (tache, chantier) : Windows n'a pas de sandbox ; initialiser Ubuntu sous WSL2, y installer Claude Code, bubblewrap et socat, s'y connecter, lancer la suite depuis Linux</td><td class="mono">2 fiches</td><td class="mono">6</td></tr>
         </tbody>
       </table>
@@ -100,6 +99,13 @@
           <tr><th>Chantier</th><th>Fiches</th><th>Clos le</th><th>Tokens</th><th>Ce qu'il a livré</th></tr>
         </thead>
         <tbody>
+          <tr>
+            <td><a href="https://claude.ai/artifact/8p27CpH1GuMgtE9ECWcwoj">Un projet neuf qui ne ment pas</a> <span class="badge" data-etat="clos">clos</span></td>
+            <td class="mono">I1–I3</td><td class="mono">2026-09-17</td>
+            <td class="mono">≈6,5M (6 542 829)</td>
+            <td>/vlp:init nomme son fichier d'état par script ; /vlp:check voit les renvois morts ;
+              eval init score 1, projet posé sans renvoi mort (5,54 $, plus 0,37 $ d'eval).</td>
+          </tr>
           <tr>
             <td><a href="https://claude.ai/artifact/Pnfr1vfuHWiqM4XHuFP8Eh">Fusionner la doctrine</a> <span class="badge" data-etat="clos">clos</span></td>
             <td class="mono">D1–D6</td><td class="mono">2026-09-17</td>
@@ -181,7 +187,7 @@
           </tr>
         </tbody>
         <tfoot>
-          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈110,9M (110 879 349)</strong></td><td></td></tr>
+          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈117,4M (117 422 178)</strong></td><td></td></tr>
         </tfoot>
       </table>
     </div>

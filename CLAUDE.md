@@ -24,7 +24,8 @@ https://github.com/SebastienGrana/Claude-vlpWorkFlow — cloné et utilisé en g
   mécanique dans `scripts/vlp.py`, `sed`/`awk` 11 → 1, 9 → 5 appels (chantier S) ;
   puis un hook `PostToolUse` valide les fichiers de fiches à l'écriture (chantier H) ;
   puis `claude plugin eval` : 3 cas sous Windows, `validate` avant commit (chantier V) ;
-  puis la doctrine en trois docs, chaque seuil dans `vlp.py` (chantier D).
+  puis la doctrine en trois docs, chaque seuil dans `vlp.py` (chantier D) ;
+  puis `/vlp:init` sans renvoi mort, `vlp.py etat` et `renvois` (chantier I).
 
 ## Quatre règles non négociables
 
@@ -64,7 +65,7 @@ et seulement dans ce cas, ouvrir l'index.
 | savoir où vit quoi dans un projet équipé | `methode-chantier.md`, section « Où vit quoi » |
 | toucher aux pages publiées | `ARTEFACTS.md`, puis le gabarit dans `templates/` |
 | ouvrir un chantier, ou le découper en fiches | **lancer `/vlp:chantier`** |
-| jouer une fiche I (un projet neuf qui ne ment pas) | `context AI/20-init.md` — chantier **en cours** |
+| relire le chantier I (un projet neuf qui ne ment pas) | `context AI/20-init.md` — chantier **clos** |
 | relire le chantier D (fusionner la doctrine) | `context AI/19-doctrine.md` — chantier **clos** |
 | relire le chantier V (evals du plugin) | `context AI/18-evals.md` — chantier **clos**, V2 abandonnée (TODO n° 11) |
 | relire le chantier H (hooks du kit) | `context AI/17-hooks.md` — chantier **clos** |
