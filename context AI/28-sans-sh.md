@@ -92,7 +92,7 @@ Sondes : 10 × 2 tours, 0,313 $.
 ---
 
 <!-- FICHE:X2 -->
-## X2 [ ] — Sonder la carte injectée sans `sh`
+## X2 [x] — Sonder la carte injectée sans `sh`
 
 **Dépend de** : `X1`.
 **Fichiers** : `context AI/28-sans-sh.md` (le tableau, sous cette fiche) ; un bac à sable dans le scratchpad — rien
@@ -107,6 +107,25 @@ Ubuntu. Mesure surtout si une injection dont une commande échoue (code non nul,
 **Critère de fin**
 Sous cette fiche, un tableau candidat × système → skill lancée oui/non, carte présente (`PROJET=` lu dans le premier
 message) oui/non, message d'erreur brut ; au moins 4 candidats, chacun sur les 2 systèmes ; coût total recopié.
+
+**Constaté** (2026-09-17, skill de bac `-p "/sonde" --model haiku --permission-mode bypassPermissions`, texte
+injecté relu dans le transcript) — Windows `shell: powershell` = **pwsh 7.6.6**, même pwsh ôté du PATH (`w51`) ;
+Ubuntu = `/bin/bash`. Hors Claude : `powershell.exe` 5.1 refuse `||` (« Le jeton « || » n'est pas un séparateur
+d'instruction valide », exit 1) ; une injection sous 5.1 : non sondé.
+
+| Candidat | Windows (pwsh 7) | Ubuntu | Source |
+|---|---|---|---|
+| `python3 … carte` | skill non lancée, 0 tour, « Shell command failed … Python est introuvable … Store » | lancée, `PROJET=` oui | sonde |
+| `python … carte` | lancée, `PROJET=` oui | non lancée, « /bin/bash: line 1: python: command not found » | sonde |
+| `py … carte` | lancée, `PROJET=` oui | non lancée, « py: command not found » | sonde |
+| `python3 … carte; python … carte` | lancée, `PROJET=` **collé** derrière le message du Store (pas en début de ligne) | non lancée, « Shell command failed » (le 2e échoue, la carte était sortie) | sonde |
+| `python3 … carte \|\| python … carte` | lancée, `PROJET=` oui, précédé du message du Store (même pwsh ôté du PATH) | lancée, `PROJET=` oui | sonde |
+| deux injections `python3` puis `py` | non lancée, « Shell command failed » (python3) | non lancée, « py: command not found » | sonde |
+
+Une injection dont la **dernière** commande sort en erreur fait échouer la skill avant tout tour (0 $) ; seul `||`
+passe les 2 systèmes, avec le message du Store dans la carte sous Windows. Sondes : 13 + 10 relancées ; la
+1re série Windows invalide (Git Bash a converti `"/sonde"` en `C:/Program Files/Git/sonde` : `MSYS_NO_PATHCONV=1`) ;
+coût 0,266 $ + 0,178 $ = 0,443 $.
 <!-- /FICHE -->
 
 ---
