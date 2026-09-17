@@ -105,8 +105,9 @@ après, et la ligne de décision du journal cite le seuil et le chiffre de N1.
 ---
 
 <!-- FICHE:N3 -->
-## N3 [ ] — Aligner la doc, la version et les evals
+## N3 [x] — Aligner la doc, la version et les evals
 
+**Session** : 0b3db2da-073b-40ea-a10b-22db831522b6
 **Dépend de** : `N2`.
 **Fichiers** : les renvois listés au socle, `context AI/08-etat.md` (TODO n° 9), `CLAUDE.md`.
 

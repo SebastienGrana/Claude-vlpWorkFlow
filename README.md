@@ -28,7 +28,7 @@ La parade tient en une phrase :
   les chantiers possibles, questionne, découpe en fiches, puis rend la main.
 - **Exécution** — `/vlp:tache R1`, `/clear`, `/vlp:tache R2`… Une fiche par
   session, jamais deux. `/vlp:enchainer` les joue à la suite, chacune dans un
-  sous-agent neuf — commode, mais plus cher en tokens qu'à la main.
+  sous-agent neuf, par la skill forkée `vlp:jouer` : le chef ne lit ni socle ni fiche.
 - **Clôture** — à la dernière case cochée, le chantier est marqué clos et ne se
   rejoue plus.
 
@@ -74,7 +74,8 @@ ln -s "<chemin>/Claude-vlpWorkflow" ~/.claude/skills/vlp
 ```
 
 Les commandes deviennent `/vlp:init`, `/vlp:chantier`, `/vlp:tache`,
-`/vlp:enchainer` et `/vlp:check`, avec l'agent `vlp:fiche`. Le préfixe `vlp:`
+`/vlp:enchainer` et `/vlp:check`, avec l'agent `vlp:fiche` et la skill interne
+`vlp:jouer`, que seul `/vlp:enchainer` appelle. Le préfixe `vlp:`
 évite qu'un `/tache` d'ailleurs prenne la place du tien. **Si tu déplaces le
 kit**, refais le lien ; `/vlp:check` dira quels `CHANTIER.md` le citent encore
 à l'ancien endroit.
@@ -124,9 +125,9 @@ en remontant depuis le dossier courant, puis d'un cran plus bas :
 
 ```
 .claude-plugin/            LE MANIFESTE — plugin.json (nom, version), marketplace.json
-skills/                    LE MOTEUR — init, chantier, tache, enchainer, check
+skills/                    LE MOTEUR — init, chantier, tache, enchainer, check ; jouer (interne)
   tache/references/        les morceaux partagés : blocage, page, contraintes
-agents/fiche.md            le sous-agent qui joue une fiche pour /vlp:enchainer
+agents/fiche.md            le sous-agent qui joue une fiche, lancé par la skill jouer
 hooks/hooks.json           valide un fichier de fiches à chaque écriture
 scripts/                   LA MÉCANIQUE — Python sans dépendance, zéro appel modèle
   vlp.py                   carte, extraire, socle, valider, page… (docstring)

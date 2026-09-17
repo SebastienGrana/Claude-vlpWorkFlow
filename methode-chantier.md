@@ -40,9 +40,9 @@ ne se repaye pas à chaque fiche.
 **2. Exécution — une fiche, une session.** `/vlp:tache X1`, puis `/clear`, puis
 `/vlp:tache X2`. Jamais deux fiches dans la même session : la seconde traînerait
 derrière elle tout le contexte de la première. `/vlp:enchainer` tient la même
-règle autrement — chaque fiche dans un sous-agent neuf, jusqu'au premier arrêt
-— mais son chef relit tout son contexte à chaque appel : mesuré, l'ensemble
-coûte plus cher en tokens que les fiches jouées à la main.
+règle autrement — chaque fiche dans un sous-agent neuf, jusqu'au premier arrêt,
+par la skill forkée `vlp:jouer` : le chef ne lit ni socle ni fiche, un appel par
+fiche (mesures au journal du fichier d'état du kit, chantier N).
 
 **3. Clôture.** Elle est décrite dans `cloture.md` à la racine du kit, que
 `/vlp:tache`, `/vlp:enchainer` et `/vlp:chantier` lisent au moment de clore :
