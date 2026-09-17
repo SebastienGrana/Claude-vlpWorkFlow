@@ -69,45 +69,45 @@
     <p>claude plugin eval passe 5 cas sur un bac à sable (init, chantier, tache, check, hook), graders gratuits seuls ; validate rend 0 avertissement et tourne avant chaque commit</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="encours"></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="bloquee"></span><span data-etat="faite"></span><span data-etat="faite"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">4 fiches · 0 faite · en cours : V1</p>
+    <p class="mono" style="margin-top:.5rem">4 fiches · 3 faites · bloquée : V2</p>
   </header>
 
   <section>
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">V1</span><span class="titre">Poser le premier cas (check) et le chiffrer</span>
-        <span class="etat">en cours</span>
-        <span class="note">Le premier cas (check) posé, lancé une fois et chiffré en tours et en dollars ; le plafond de la suite fixé. Ne dépend de rien.</span>
+        <span class="etat">faite</span>
+        <span class="note">Cas check : score 1, 26 tours, 0,24 $ (après 3 runs ratés à 0,24 $ au total) ; fixtures par scaffold_script.</span>
       </li>
-      <li class="fiche">
+      <li class="fiche" data-etat="bloquee">
         <span class="id">V2</span><span class="titre">Écrire les cas tache et chantier</span>
-        <span class="etat">à faire</span>
-        <span class="note">Les cas tache (bonne fiche extraite) et chantier (propose depuis la TODO), une baseline sans plugin sur l'un des deux. Dépend de V1.</span>
+        <span class="etat">bloquée</span>
+        <span class="note">Bloquée : tache et chantier exigent Bash, refusé sous Windows (pas de sandbox). Cas écrits, tag wsl2 ; TODO n° 11.</span>
       </li>
-      <li class="fiche">
+      <li class="fiche" data-etat="faite">
         <span class="id">V3</span><span class="titre">Écrire les cas init et hook</span>
-        <span class="etat">à faire</span>
-        <span class="note">Les cas init (fichiers créés, aucune page publiée) et hook (fichier de fiches cassé → INVALIDE). Dépend de V1.</span>
+        <span class="etat">faite</span>
+        <span class="note">init : score 1, 19 tours, 0,39 $, 0 Artifact ; hook : score 1, 2 tours, 0,10 $, INVALIDE prouvé dans la trace.</span>
       </li>
-      <li class="fiche">
+      <li class="fiche" data-etat="faite">
         <span class="id">V4</span><span class="titre">Rendre validate propre, le lancer avant commit, jouer la suite</span>
-        <span class="etat">à faire</span>
-        <span class="note">validate sans avertissement, garde git avant commit, la suite des 5 cas jouée et mesurée. Dépend de V2 et V3.</span>
+        <span class="etat">faite</span>
+        <span class="note">validate marketplace 1 → 0 avertissement ; pre-commit refuse un plugin.json cassé ; suite Windows 3/3, 39 tours, 0,93 $.</span>
       </li>
     </ul>
     <!-- ligne de total, absente si aucune fiche n'a de coût mesuré -->
   </section>
 
   <!-- ZONE:blocage — publiée quand /tache s'arrête après deux tentatives ; retirée dès que la fiche repasse -->
-  <section hidden>
+  <section>
     <h2>Arrêt sur blocage</h2>
     <div class="blocage">
-      <p></p>
-      <pre></pre>
+      <p>V2 — 1. sans Bash, /vlp:tache s'arrête au 2e tour (injection de la carte refusée) ; 2. avec --allow-tools Bash, run refusé avant de tourner (0,00 $). À jouer sous WSL2 : TODO n° 11.</p>
+      <pre>sandbox required but unavailable: sandbox is enabled but the Windows sandbox is not active on this session (feature gate off)</pre>
     </div>
   </section>
 
@@ -115,6 +115,7 @@
     <h2>Journal des décisions</h2>
     <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
     <ul class="journal">
+      <li><time datetime="2026-09-17">2026-09-17</time><span>V2 bloquée sous Windows : les cas qui exigent Bash se jouent sous WSL2 (TODO n° 11) ; V4 ne l'attend plus.</span></li>
     </ul>
   </section>
 
