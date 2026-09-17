@@ -64,7 +64,7 @@
 
 <div class="page">
   <header>
-    <div class="eyebrow">vlp · fiches B1–B3</div>
+    <div class="eyebrow">vlp · fiches B1–B3 · clos</div>
     <h1>Corriger les bugs de l'audit</h1>
     <p>Chaque bug relevé par l'audit du 2026-09-17 (1, 2, 3, 5, 6, 7, 8, 10, 11) a un grep
       qui le montrait avant, et le même grep le montre corrigé.</p>
@@ -72,7 +72,7 @@
     <div class="avancement">
       <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">3 fiches · 3 faites</p>
+    <p class="mono" style="margin-top:.5rem">3 fiches · 3 faites · chantier clos</p>
   </header>
 
   <section>
@@ -98,7 +98,7 @@
         <span class="cout mono">≈1,2M (1 190 568)</span>
       </li>
     </ul>
-    <p class="mono cout-total">Coût du chantier : ≈4,8M (4 781 905)</p>
+    <p class="mono cout-total">Coût du chantier : ≈5,3M (5 342 511)</p>
   </section>
 
   <!-- ZONE:blocage — publiée quand /tache s'arrête après deux tentatives ; retirée dès que la fiche repasse -->
@@ -119,9 +119,11 @@
   </section>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
-  <section hidden>
-    <h2>Chantier clos le </h2>
+  <section>
+    <h2>Chantier clos le 2026-09-17</h2>
     <div class="bilan">
+      <p>Livré : neuf bugs de l'audit corrigés, chacun prouvé par un grep avant/après — /vlp:check D trouve sa ligne, $ARGUMENTS dans quatre commandes, plus de variable dans les fichiers de données, gabarits sans fichiers fantômes, .gitignore, page orpheline retirée, titres alignés, lignes Session réduites à l'id.</p>
+      <p>A surpris : $1 désigne le second argument, pas le premier. Reste à rejouer pour de vrai : /reload-plugins, puis /vlp:tache et /vlp:chantier avec arguments. Total : 41 tours, 5 342 511 tokens, 4,94 $.</p>
     </div>
   </section>
 

@@ -23,6 +23,8 @@
   chantiers qui en sortent sont la TODO ci-dessous.
 - **2026-09-17** — chantier T clos (TODO n° 2) : les tours et le coût pondéré
   se mesurent ; les numéros de la TODO sont gardés, le 2 est retiré.
+- **2026-09-17** — chantier B clos (TODO n° 1) : les bugs de l'audit sont
+  corrigés ; le 1 est retiré, 6 et 10 ne dépendent plus de rien.
 
 ## La TODO ordonnée — les chantiers possibles
 
@@ -32,15 +34,14 @@ ordonné par ce qui débloque le reste. Le détail de chacun est dans
 
 | # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |
 |---|---|---|---|---|
-| 1 | Corriger les bugs de l'audit | `/vlp:check` D honnête, `$ARGUMENTS`, page orpheline, titres, chemins `**Session**`, gabarits sans fichiers fantômes, README, `.gitignore` | 2 fiches | rien |
 | 3 | Réduire les tours de `/vlp:tache` | carte injectée par `` !`cat CHANTIER.md` ``, lectures groupées, corps ≤ 150 lignes, le rare en fichiers de référence | 4 fiches | rien |
 | 4 | Un script `vlp.py` pour la mécanique | extraire, socle, état, régénérer la page, valider — remplace les `sed`/`awk` et le HTML retapé par le modèle | 5 fiches | rien |
 | 5 | Hooks du kit | `PostToolUse` valide un fichier de fiches à l'écriture ; `SessionStart` injecte la carte ; fin des « recopie à l'identique » | 3 fiches | 4 |
-| 6 | Evals du plugin | `claude plugin eval` sur un bac à sable, graders gratuits, baseline sans plugin ; `validate` avant commit | 3 fiches | 1 |
+| 6 | Evals du plugin | `claude plugin eval` sur un bac à sable, graders gratuits, baseline sans plugin ; `validate` avant commit | 3 fiches | rien |
 | 7 | Fusionner la doctrine | cinq fichiers de doc → trois ; chaque nombre vit une fois | 3 fiches | rien |
 | 8 | Migrer `commands/` → `skills/` | un dossier par commande, `disable-model-invocation`, variante `context: fork` + `vlp:fiche` | 3 fiches | 3 |
 | 9 | `/vlp:enchainer` : réparer ou retirer | chef ≤ 3 tours par fiche via la skill forkée, ou suppression — aux chiffres de 2 | 3 fiches | 8 |
-| 10 | Un projet neuf qui ne ment pas | `/vlp:init` crée ce que l'index et le routage nomment ; numéro d'état pris à la suite | 2 fiches | 1 |
+| 10 | Un projet neuf qui ne ment pas | `/vlp:init` crée ce que l'index et le routage nomment ; numéro d'état pris à la suite | 2 fiches | rien |
 
 ## Journal des décisions
 
@@ -155,3 +156,17 @@ de ce que le code dit déjà.
   commandes lisent `$ARGUMENTS` ; sans lui, Claude Code ajoute `ARGUMENTS: …` en
   fin de texte. Reste à rejouer pour de vrai : `/reload-plugins`, puis
   `/vlp:tache` et `/vlp:chantier` avec arguments sur un projet équipé.
+- **2026-09-17** — Chantier B **clos**. Livré : bugs 1, 2, 3, 5, 6, 7, 8, 10
+  et 11 de `12-audit.md` corrigés, chacun prouvé par un grep avant/après —
+  `/vlp:check` D trouve sa ligne ; `$ARGUMENTS` dans les quatre commandes ; plus
+  de `${CLAUDE_PLUGIN_ROOT}` dans un fichier de données ; gabarits sans fichiers
+  fantômes ni titre inversé ; `.gitignore` ; page orpheline retirée ; titres des
+  pages E et M alignés ; lignes `**Session**` réduites à l'id (M et C : totaux
+  identiques). Laissé ouvert : le rejeu réel de `/vlp:tache` et
+  `/vlp:chantier` avec arguments après `/reload-plugins` ; les `CHANTIER.md`
+  des autres projets équipés gardent `${CLAUDE_PLUGIN_ROOT}` sur la ligne
+  « méthode » (inoffensif : `chantier.md` nomme le chemin lui-même). B1 à B3
+  jouées d'affilée dans la session du cadrage, à la demande. Total brut mesuré
+  sur cette session : 41 tours, 48 appels, input 82, output 35 226,
+  cache_creation 147 563, cache_read 5 159 640, **total 5 342 511 tokens**,
+  4,94 $.

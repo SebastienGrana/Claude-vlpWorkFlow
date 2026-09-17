@@ -1,14 +1,16 @@
-> **QUAND LIRE** : on joue une fiche `B*` de ce chantier, ou on se demande où
+> **QUAND LIRE** : on relit le socle du chantier B (clos), ou on se demande où
 > il en est. `/vlp:tache B<n>` n'en lit que le socle commun et sa fiche — jamais
 > ce fichier en entier.
 
 # Chantier B — Corriger les bugs de l'audit
 
+**CLOS** le 2026-09-17. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
 **À quoi il sert.** L'audit du 2026-09-17 (`12-audit.md`) a relevé des bugs qui
 font mentir le kit : un grep muet, des arguments substitués avant lecture, des
 gabarits qui promettent des fichiers absents. Le chantier les corrige un par un.
 
-**Fait.** Rien. Ouvert le 2026-09-17, cadré en 3 fiches, `B1` à jouer.
+**Fait.** B1, B2, B3 — les trois fiches, le 2026-09-17.
 
 ## Le socle commun
 

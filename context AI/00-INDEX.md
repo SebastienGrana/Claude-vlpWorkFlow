@@ -26,7 +26,7 @@ a l'air proche.
 | `10-mesure.md` | on joue une fiche `M*` — chantier **clos** « Mesurer les tokens », `M1..M4` |
 | `11-conso.md` | on joue une fiche `C*` — chantier **clos** « Afficher la conso sur toutes les pages », `C1..C2` |
 | `13-tours.md` | on joue une fiche `T*` — chantier **clos** « Compter les tours, pondérer le coût », `T1..T5` |
-| `14-bugs.md` | on joue une fiche `B*` — chantier **ouvert** « Corriger les bugs de l'audit », `B1..B3` |
+| `14-bugs.md` | on joue une fiche `B*` — chantier **clos** « Corriger les bugs de l'audit », `B1..B3` |
 
 ## Le kit lui-même — à la racine, hors de ce dossier
 
