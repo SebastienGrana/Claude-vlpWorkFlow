@@ -347,3 +347,14 @@ de ce que le code dit déjà.
   `vlp.py hook` (« marqueur ouvrant sans fermant », `INVALIDE 1 fiches`) — les hooks du
   plugin tournent dans un run, sous Windows, hors sandbox. Grader resserré sur
   `INVALIDE [0-9]+ fiches`. La trace d'un run réussi est effacée sans `--keep-temp`.
+- **2026-09-17** — V4 : `marketplace.json` reçoit sa `description` ; `claude plugin
+  validate` sur le marketplace : 1 avertissement → 0. Sur `plugin.json`, 1 avertissement
+  **gardé** : « CLAUDE.md at the plugin root is not loaded » — voulu, le kit est aussi un
+  projet ; d'où pas de `--strict`. `.githooks/pre-commit` valide les deux manifestes,
+  activé par `git config core.hooksPath .githooks` (ligne dans `INSTALLATION.md`). Prouvé :
+  sans `claude` dans le PATH, il le dit et laisse passer (exit 0) ; un `plugin.json`
+  cassé est refusé (exit 1, aucun commit), le message nommant `marketplace.json` qui
+  l'embarque ; ce commit-ci est passé par la garde. Suite Windows (`check`, `init`,
+  `hook`) : 3 cas sur 3, score 1 chacun ; 3 runs, 39 tours (17, 20, 2), 0,93 $ (0,563,
+  0,315, 0,054) — `check` coûtait 0,24 $ en V1 : le coût d'un cas varie du simple au
+  double, le plafond vaut pour le lancement. Non joués (tag `wsl2`) : `tache`, `chantier`.

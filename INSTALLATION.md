@@ -20,6 +20,8 @@ en a qu'un :
 git clone https://github.com/SebastienGrana/Claude-vlpWorkFlow.git
 ```
 
+Pour modifier le kit : `git config core.hooksPath .githooks` dans le clone, et chaque commit passe par `claude plugin validate`.
+
 Le dossier cloné se place **à côté** des projets, jamais dedans :
 
 ```

@@ -1,6 +1,9 @@
 {
   "name": "vlp-local",
-  "owner": { "name": "znorr" },
+  "description": "Le kit vlp : la méthode des chantiers et des fiches pour Claude Code.",
+  "owner": {
+    "name": "znorr"
+  },
   "plugins": [
     {
       "name": "vlp",

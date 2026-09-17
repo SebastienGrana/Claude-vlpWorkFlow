@@ -38,9 +38,13 @@ gratuits : `regex`, `tool_used`, `tool_order`, `file_exists` (audit) ; `llm` et
 copiée, ou `scaffold_script` qui exige `--scaffold`) ; ce qu'un cas voit du hook ;
 si l'outil `Artifact` existe dans un run.
 
-**Lancer — toujours ainsi**, plafond chiffré par V1 :
-`claude plugin eval <racine-projet> --runs 1 --no-publish --ablation none --scaffold --trust-plugin --max-cost-usd 0.35`, plus `--allow-tools Bash` si le sandbox tourne. Un run se mesure : `mesure-tokens.py` sur son transcript, tours et
-`usd` — la sortie `--json` de `eval` à côté, si elle donne un coût.
+**Lancer — toujours ainsi** (suite Windows, V4 : 3 runs, 39 tours, 0,93 $) :
+`claude plugin eval <racine> --tag check --tag init --tag hook --runs 1 --ablation none
+--no-publish --scaffold --allow-tools Write Edit --trust-plugin --max-cost-usd 1.5 -j 3`.
+`--max-cost-usd` plafonne le lancement entier, pas un cas. Les cas tag `wsl2` exigent
+`--allow-tools Bash`, refusé sous Windows (TODO n° 11). Coût et tours : `costUsd` et
+`turns` de `aggregate-result.json` ; la trace d'un run réussi n'est gardée qu'avec
+`--keep-temp`.
 
 **Invariants.** Aucun cas ne publie de page ni ne touche un projet réel : tout se joue
 dans un dossier jetable. Les questionnaires ne sont pas testés (personne ne répond) ;
@@ -163,7 +167,7 @@ La sortie montre `init` et `hook` réussis, scores bruts, 0 appel `Artifact` com
 ---
 
 <!-- FICHE:V4 -->
-## V4 [ ] — Rendre `validate` propre, le lancer avant commit, jouer la suite
+## V4 [x] — Rendre `validate` propre, le lancer avant commit, jouer la suite
 
 **Dépend de** : `V3`.
 **Fichiers** : `.claude-plugin/marketplace.json`, `.githooks/pre-commit`,
