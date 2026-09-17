@@ -57,7 +57,7 @@ Pas de parallélisation : C2 réutilise la convention et les zones que C1 crée.
 <!-- FICHE:C1 -->
 ## C1 [x] — Afficher le coût des fiches et le total, sur les deux gabarits
 
-**Session** : C:\Users\znorr\.claude\projects\C--Users-znorr-Documents-ProgPerso-Claude-vlpWorkflow\ca51f6e9-70dc-4fde-bb13-1eafb1e538db.jsonl
+**Session** : ca51f6e9-70dc-4fde-bb13-1eafb1e538db
 **Dépend de** : rien.
 **Fichiers** : `templates/artefact-chantier.html`, `templates/artefact-feuille-de-route.html`, `commands/tache.md`, `cloture.md` — et rien d'autre.
 
@@ -95,7 +95,7 @@ réelles vient en C2. **Critère de fin** (visuel) pour la convention elle-même
 <!-- FICHE:C2 -->
 ## C2 [x] — Régénérer rétroactivement la feuille de route et l'artefact M
 
-**Session** : C:\Users\znorr\.claude\projects\C--Users-znorr-Documents-ProgPerso-Claude-vlpWorkflow\9fed64c1-1851-4f12-8b99-7d65fcb6d956.jsonl
+**Session** : 9fed64c1-1851-4f12-8b99-7d65fcb6d956
 **Dépend de** : `C1`.
 **Fichiers** : aucun fichier local à modifier — deux artefacts distants (leurs
 URL sont dans `CHANTIER.md`, table des chantiers clos et ligne « artefact

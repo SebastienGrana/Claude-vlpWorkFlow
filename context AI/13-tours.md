@@ -88,7 +88,7 @@ T4 change les commandes qui l'appellent ; T5 vient en dernier.
 <!-- FICHE:T1 -->
 ## T1 [x] — Dédoublonner par tour, et tester
 
-**Session** : C:\Users\znorr\.claude\projects\C--Users-znorr-Documents-ProgPerso-Claude-vlpWorkflow\0239e4db-1265-485d-ab3c-bb5097b2ecb8.jsonl
+**Session** : 0239e4db-1265-485d-ab3c-bb5097b2ecb8
 **Dépend de** : rien.
 **Fichiers** : scripts/mesure-tokens.py, scripts/test-mesure-tokens.py (à créer)
 — et rien d'autre.
@@ -118,7 +118,7 @@ de `context AI/11-conso.md:60` (C1) rend `tours = 31`, `divergents = 0`, et un
 <!-- FICHE:T2 -->
 ## T2 [x] — Compter les appels d'outils, résoudre les chemins
 
-**Session** : C:\Users\znorr\.claude\projects\C--Users-znorr-Documents-ProgPerso-Claude-vlpWorkflow\0239e4db-1265-485d-ab3c-bb5097b2ecb8.jsonl
+**Session** : 0239e4db-1265-485d-ab3c-bb5097b2ecb8
 **Dépend de** : `T1`.
 **Fichiers** : scripts/mesure-tokens.py, scripts/test-mesure-tokens.py — et
 rien d'autre.
@@ -147,7 +147,7 @@ Affiche-les.
 <!-- FICHE:T3 -->
 ## T3 [x] — Pondérer le coût : équivalents et dollars
 
-**Session** : C:\Users\znorr\.claude\projects\C--Users-znorr-Documents-ProgPerso-Claude-vlpWorkflow\0239e4db-1265-485d-ab3c-bb5097b2ecb8.jsonl
+**Session** : 0239e4db-1265-485d-ab3c-bb5097b2ecb8
 **Dépend de** : `T1`.
 **Fichiers** : scripts/mesure-tokens.py, scripts/test-mesure-tokens.py — et
 rien d'autre.

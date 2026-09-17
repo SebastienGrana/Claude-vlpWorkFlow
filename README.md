@@ -48,8 +48,8 @@ chaque appel.
 jour, une ligne dans l'état. Un chantier clos ne se rejoue pas.
 
 Et en parallèle, sans rien coûter aux sessions : **deux pages publiées**. Une
-feuille de route par projet, un artefact par chantier, tenus à jour à chaque
-fiche — pour savoir où l'on en est depuis un téléphone, sans ouvrir de session.
+feuille de route par projet, un artefact par chantier — seul le second suit
+les fiches (`ARTEFACTS.md`) — pour savoir où l'on en est depuis un téléphone, sans ouvrir de session.
 Ils ne sont jamais la vérité : les fichiers du projet le restent.
 
 ## Ce qu'il y a dans le dossier

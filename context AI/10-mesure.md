@@ -102,7 +102,7 @@ détail.
 <!-- FICHE:M3 -->
 ## M3 [x] — tache.md : afficher le coût en fin de fiche
 
-**Session** : ~/.claude/projects/C--Users-znorr-Documents-ProgPerso-Claude-vlpWorkflow/c49b72aa-2742-43b5-a9e2-d293736ee715.jsonl
+**Session** : c49b72aa-2742-43b5-a9e2-d293736ee715
 **Dépend de** : `M2`.
 **Fichiers** : commands/tache.md (étape 6, juste après la case cochée).
 
@@ -130,7 +130,7 @@ avant que la main soit rendue.
 <!-- FICHE:M4 -->
 ## M4 [x] — cloture.md : total du chantier + proposition commit/push
 
-**Session** : C:\Users\znorr\.claude\projects\C--Users-znorr-Documents-ProgPerso-Claude-vlpWorkflow\dd7e5a7f-b756-4575-a2dd-f0f6cf8621ac.jsonl
+**Session** : dd7e5a7f-b756-4575-a2dd-f0f6cf8621ac
 **Dépend de** : `M2`, `M3`.
 **Fichiers** : cloture.md (étape 3 « Le fichier d'état », et après l'étape 5
 « Pour finir »).

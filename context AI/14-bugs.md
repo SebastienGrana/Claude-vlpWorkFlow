@@ -114,7 +114,9 @@ Et le grep de `check.md` D, exécuté tel qu'écrit, trouve la ligne de `CHANTIE
 ---
 
 <!-- FICHE:B3 -->
-## B3 [ ] — Nettoyer le dépôt
+## B3 [x] — Nettoyer le dépôt
+
+**Session** : 7bb64701-bdad-4be9-8287-3ede11e93e49
 
 **Dépend de** : rien.
 **Fichiers** : .gitignore (nouveau), context AI/artefacts/00-route.html,
