@@ -1272,7 +1272,7 @@ def cmd_clore(a, sortie):
             sortie.write("GARDE: %s\n" % e)
             return 1
         anciens = re.findall(r"          <tr>\n.*?          </tr>\n", html[d:f], re.S)
-        anciens = [r for r in anciens if "&lt;" not in r]
+        anciens = [r for r in anciens if '<td class="mono">&lt;' not in r]
         lien = cellule_md(titre) if url.lower().startswith("aucun") else '<a href="%s">%s</a>' % (esc(url), cellule_md(titre))
         ligne = ('          <tr>\n            <td>%s <span class="badge" data-etat="clos">clos</span></td>\n'
                  '            <td class="mono">%s</td><td class="mono">%s</td>\n'

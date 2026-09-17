@@ -68,8 +68,8 @@
     <!-- ZONE:encours — remplacé à chaque ouverture, remis à « aucun » à chaque clôture.
          /tache n'y touche pas : l'avancement fiche par fiche est sur la page du chantier. -->
     <div class="encours">
-      <div class="titre"><span class="mono">/vlp:tache</span> sans refus sous PowerShell <span class="badge" data-etat="cours">en cours</span></div>
-      <div>Fiches <span class="mono">U1–U5</span> — <a href="https://claude.ai/artifact/PRskc6e4VoLwnS2aYb2Jw7">la page du chantier</a></div>
+      <div class="titre">Aucun chantier ouvert</div>
+      <div>Lancer <span class="mono">/vlp:chantier</span> pour en ouvrir un.</div>
     </div>
   </section>
 
@@ -82,7 +82,7 @@
           <tr><th>#</th><th>Chantier</th><th>Ce qu'il apporte</th><th>Coût</th><th>Dépend de</th></tr>
         </thead>
         <tbody>
-          <tr><td class="mono">20</td><td><span class="mono">/vlp:tache</span> sans refus sous PowerShell <span class="badge" data-etat="cours">en cours</span></td><td>Mesuré (chantier Y, <span class="mono">32-sans-git.md</span>, Y5) : sans Git, une fiche passe mais paie des tours de refus — <span class="mono">cat</span> d'une référence hors du projet (repli <span class="mono">Read</span>), <span class="mono">$env:CLAUDE_CODE_SESSION_ID</span> (l'id est déjà dans <span class="mono">SESSION=</span> de <span class="mono">cout</span>), variables inventées ; nom de page deviné (<span class="mono">page</span> rend <span class="mono">GARDE:</span>). Aussi : sonder PowerShell 5.1 en vrai, macOS, relais de carte sur un poste à deux Python</td><td class="mono">2 fiches</td><td class="mono">—</td></tr>
+          <tr><td class="mono">21</td><td><span class="mono">/vlp:enchainer</span> sans Git</td><td>Lu au chantier U, non sondé : l'agent <span class="mono">vlp:fiche</span> n'a que l'outil <span class="mono">Bash</span> (<span class="mono">agents/fiche.md</span>) — sans Git Bash, un sous-agent ne lance rien ; <span class="mono">enchainer</span> et <span class="mono">jouer</span> portent la carte PowerShell mais pas leur sous-agent. Sonder dans un bac (<span class="mono">33-sans-refus.md</span>, socle), puis ajouter <span class="mono">PowerShell</span> à l'agent ou le dire au README. Aussi : clôture de <span class="mono">/vlp:tache</span> sous PowerShell (1 refus improvisé, <span class="mono">Test-Path</span> hors projet), PowerShell 5.1 sur un poste sans <span class="mono">pwsh</span> 7, macOS</td><td class="mono">2 fiches</td><td class="mono">—</td></tr>
         </tbody>
       </table>
     </div>
@@ -97,6 +97,12 @@
           <tr><th>Chantier</th><th>Fiches</th><th>Clos le</th><th>Tokens</th><th>Ce qu'il a livré</th></tr>
         </thead>
         <tbody>
+          <tr>
+            <td><a href="https://claude.ai/artifact/PRskc6e4VoLwnS2aYb2Jw7"><span class="mono">/vlp:tache</span> sans refus sous PowerShell</a> <span class="badge" data-etat="clos">clos</span></td>
+            <td class="mono">U1–U5</td><td class="mono">2026-09-17</td>
+            <td class="mono">≈15,9M (15 933 829)</td>
+            <td>vlp.py lire, cocher et page sans chemin ; tache sans cat ni $env ni attente sur critère scriptable ; carte py d'abord ; bac PowerShell refus 9 → 1 (fiche 0) ; evals Windows 1/1, Ubuntu 4/4 ; plugin 3.4.1</td>
+          </tr>
           <tr>
             <td><a href="https://claude.ai/artifact/4Ds6mG8JcZWVtgrKVs6YXE">Le kit entier sans <span class="mono">sh</span></a> <span class="badge" data-etat="clos">clos</span></td>
             <td class="mono">Y1–Y5</td><td class="mono">2026-09-17</td>
@@ -265,7 +271,7 @@
           </tr>
         </tbody>
         <tfoot>
-          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈224,3M (224 339 013)</strong></td><td></td></tr>
+          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈240,3M (240 272 842)</strong></td><td></td></tr>
         </tfoot>
       </table>
     </div>

@@ -7,7 +7,9 @@
 **À quoi il sert.** Sans Git, une fiche passe mais paie des refus de permission (`cat` hors du projet, `$env:…`,
 nom de page deviné) et la carte s'ouvre sur le message du raccourci Store. Le kit doit tourner sous PowerShell sans un refus.
 
-**Fait.** Rien. Ouvert le 2026-09-17, cadré en 5 fiches, `U1` à jouer.
+**CLOS** le 2026-09-17. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** U1..U5 (2026-09-17) : refus mesurés (9) et 5.1 non forçable, lire/cocher/page déduite dans vlp.py, corps sans cat ni $env et sans attente, carte py d'abord avec relais prouvé, preuve refus 9 → 1 et evals.
 
 ## Le socle commun
 

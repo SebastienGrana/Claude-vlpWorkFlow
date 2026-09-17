@@ -62,6 +62,11 @@
   corps en `<python> "…/vlp.py"` (`cout`, `valider --plan`, `equiper`, `lignes`), `scripts/vlp` retiré (plugin 3.4.0, tests 96 → 100) ;
   bac PowerShell sans `.git` : 0 appel `sh`, fiche cochée ; evals Windows `hook` 1/1, Ubuntu 4/4 (un run d'eval Windows
   n'accorde aucun shell : toute skill à injection se joue en `wsl2`) ; le 16 est retiré, reste le 20 ; 21 917 062 tokens.
+- **2026-09-17** — chantier U clos (TODO n° 20) : `/vlp:tache` sans refus sous PowerShell — `vlp.py lire` (plus de `cat` hors projet),
+  `cocher` (Session sans `$env:`), `page` sans chemin ; pas d'attente de confirmation sur un critère scriptable (les `allowed-tools`
+  tombent au prompt suivant) ; carte `py …; python3 … --relais; py … --relais; echo fin` (plugin 3.4.1, tests 100 → 108) ; bac
+  PowerShell : refus 9 → 1 (partie fiche 0) ; evals Windows `hook` 1/1, Ubuntu 4/4 ; laissé ouvert : 5.1 non sondable avec `pwsh` 7,
+  macOS, `/vlp:enchainer` sans Git (TODO n° 21) ; 15 933 829 tokens.
 
 ## La TODO ordonnée — les chantiers possibles
 
