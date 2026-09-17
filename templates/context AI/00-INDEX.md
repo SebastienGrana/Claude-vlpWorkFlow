@@ -14,7 +14,7 @@ a l'air proche.
 
 | Fichier | Lire quand |
 |---|---|
-| `08-etat.md` | on reprend après une interruption, ou on choisit quoi faire ensuite |
+| `<NN>-etat.md` | on reprend après une interruption, ou on choisit quoi faire ensuite |
 | *(hors dossier)* `methode-chantier.md`, à la racine du kit | on ouvre un chantier, ou on le découpe en fiches — la méthode n'est pas recopiée ici, elle voyage avec le plugin `vlp` et sert tous les projets |
 
 ## Chantiers — un fichier de fiches par chantier

@@ -7,7 +7,7 @@ ailleurs.>
 ## Où on en est — en cinq lignes
 
 <Ce qui est prouvé, ce qui est ouvert, ce qui n'est pas commencé. Cinq lignes,
-pas dix. Le détail daté est dans `<contexte>/08-etat.md` — l'ouvrir seulement
+pas dix. Le détail daté est dans `<contexte>/<NN>-etat.md` — l'ouvrir seulement
 quand ces cinq lignes ne suffisent pas.>
 
 ## Quatre règles non négociables
@@ -30,7 +30,7 @@ et seulement dans ce cas, ouvrir l'index.
 |---|---|
 | ouvrir un chantier, ou le découper en fiches | **lancer `/vlp:chantier`** — la méthode vit dans le kit, pas ici |
 | jouer une fiche `<X>*` | `<contexte>/<NN>-<chantier>.md` — chantier **ouvert** |
-| reprendre après une longue interruption | `<contexte>/08-etat.md` |
+| reprendre après une longue interruption | `<contexte>/<NN>-etat.md` |
 
 ## Économie de contexte
 

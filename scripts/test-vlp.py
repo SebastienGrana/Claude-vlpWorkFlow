@@ -389,4 +389,15 @@ with tempfile.TemporaryDirectory() as t:
     code, o, e = hook(json_de("y.md"))
     verifier("hook : titre de section reformulé, sort 2", code == 2 and "section absente : ## Le socle commun" in e, o + e)
 
+with tempfile.TemporaryDirectory() as t:
+    c = os.path.join(t, "ctx")
+    verifier("etat : dossier absent", appel(["etat", c]) == (0, "ETAT=01-etat.md\n"), appel(["etat", c]))
+    os.makedirs(c)
+    verifier("etat : dossier vide", appel(["etat", c]) == (0, "ETAT=01-etat.md\n"), appel(["etat", c]))
+    ecrire(os.path.join(c, "03-a.md"), "a\n")
+    ecrire(os.path.join(c, "07-b.md"), "b\n")
+    verifier("etat : à la suite du plus grand", appel(["etat", c]) == (0, "ETAT=08-etat.md\n"), appel(["etat", c]))
+    ecrire(os.path.join(c, "10-etat.md"), "état\n")
+    verifier("etat : déjà présent", appel(["etat", c]) == (0, "ETAT=10-etat.md\n"), appel(["etat", c]))
+
 print("OK")

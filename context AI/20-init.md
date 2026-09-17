@@ -53,7 +53,7 @@ I1 et I2 sont indépendantes ; I3 les rejoue ensemble sur un projet réellement 
 ---
 
 <!-- FICHE:I1 -->
-## I1 [ ] — Nommer le fichier d'état par script
+## I1 [x] — Nommer le fichier d'état par script
 
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py`, `commands/init.md`,

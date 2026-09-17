@@ -20,7 +20,7 @@ session neuve.
 Si un argument est donné, c'est ce dossier ; sinon le dossier courant.
 
 ```bash
-cd "<dossier>"; pwd; ls -d */ 2>/dev/null | head -20; ls CLAUDE.md 2>/dev/null; PY=$(for p in python3 python; do "$p" -c "" 2>/dev/null && { echo "$p"; break; }; done); "$PY" "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte . | grep -E '^(PROJET|VOISIN)=|^AUCUN_PROJET'
+cd "<dossier>"; pwd; ls -d */ 2>/dev/null | head -20; ls CLAUDE.md 2>/dev/null; PY=$(for p in python3 python; do "$p" -c "" 2>/dev/null && { echo "$p"; break; }; done); "$PY" "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte . | grep -E '^(PROJET|VOISIN)=|^AUCUN_PROJET'; "$PY" "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" etat "context AI"
 ```
 
 La carte cherche `CHANTIER.md` à la casse exacte — un `ls` sous Windows ou
@@ -82,14 +82,16 @@ Pose-les d'un coup, avec une proposition par défaut pour chacune :
 
 ## 3. Poser les fichiers
 
-Recopie depuis le kit, en remplaçant les `<…>` par les réponses :
+Recopie depuis le kit, en remplaçant les `<…>` par les réponses — et `<NN>` par
+la ligne `ETAT=` de l'étape 0, relancée sur le dossier de contexte s'il n'est pas
+celui par défaut ; sans Bash, le premier numéro libre de ce dossier :
 
 | Depuis `${CLAUDE_PLUGIN_ROOT}` | Vers le projet | Rôle |
 |---|---|---|
 | `templates/CHANTIER.md` | `CHANTIER.md` (racine) | la carte que lisent `/vlp:chantier` et `/vlp:tache` |
 | `templates/CLAUDE.md` | `CLAUDE.md` (racine) | l'entrée : identité, état, règles, routage |
 | `templates/context AI/00-INDEX.md` | `<contexte>/00-INDEX.md` | un fichier = un sujet |
-| `templates/context AI/NN-etat.md` | `<contexte>/08-etat.md` | l'état daté et la TODO ordonnée |
+| `templates/context AI/NN-etat.md` | `<contexte>/<NN>-etat.md` | l'état daté et la TODO ordonnée |
 | `templates/artefact-feuille-de-route.html` | `<contexte>/artefacts/feuille-de-route.html` | la page publiable du projet |
 
 **Ce qui ne se copie pas, et pourquoi.** `methode-chantier.md`, `cloture.md`

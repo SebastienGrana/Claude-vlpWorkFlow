@@ -10,8 +10,8 @@
   s'en servent plus, elles voyagent avec lui>
 - **contexte** : <context AI/>
 - **méthode** : methode-chantier.md, à la racine du kit — il voyage avec le plugin
-- **chantiers possibles** : <context AI/08-etat.md>
-- **fichier d'état** : <context AI/08-etat.md>
+- **chantiers possibles** : <context AI/NN-etat.md>
+- **fichier d'état** : <context AI/NN-etat.md>
 - **index** : <context AI/00-INDEX.md>
 - **fichier de fiches courant** : aucun
 - **artefact feuille de route** : <https://… — posé par /vlp:init>

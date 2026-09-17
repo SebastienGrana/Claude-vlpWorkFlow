@@ -35,6 +35,9 @@ Sous-commandes :
   code. Sinon `valider` : écart → écarts, bilan et consigne sur stderr, sort 2 ;
   valide → le JSON `hookSpecificOutput` dont `additionalContext` est le bilan,
   sort 0.
+- `etat <contexte>` — `ETAT=<NN>-etat.md` : le fichier d'état déjà présent,
+  sinon le premier nombre à deux chiffres libre après le plus grand (`01` si le
+  dossier est vide ou absent). Sort 0.
 
 Python 3 sans dépendance, zéro appel modèle.
 """
@@ -657,6 +660,24 @@ def cmd_page(a, sortie):
     return 0
 
 
+# --- etat --------------------------------------------------------------------
+
+NUMERO = re.compile(r"^(\d\d)-")
+
+
+def nom_etat(contexte):
+    """Le `*-etat.md` présent, sinon le premier numéro libre après le plus grand."""
+    try:
+        noms = sorted(os.listdir(contexte))
+    except OSError:
+        noms = []
+    for n in noms:
+        if NUMERO.match(n) and n.endswith("-etat.md"):
+            return n
+    pris = [int(NUMERO.match(n).group(1)) for n in noms if NUMERO.match(n)]
+    return "%02d-etat.md" % (max(pris) + 1 if pris else 1)
+
+
 # --- entrée ------------------------------------------------------------------
 
 def main(argv, sortie=None, entree=None, erreur=None):
@@ -686,7 +707,12 @@ def main(argv, sortie=None, entree=None, erreur=None):
     pg.add_argument("--verifier", action="store_true")
     pg.add_argument("--date")
     sous.add_parser("hook")
+    et = sous.add_parser("etat")
+    et.add_argument("contexte")
     a = p.parse_args(argv)
+    if a.cmd == "etat":
+        sortie.write("ETAT=%s\n" % nom_etat(a.contexte))
+        return 0
     if a.cmd == "hook":
         return cmd_hook(entree or sys.stdin, sortie, erreur or sys.stderr)
     if a.cmd == "page":
