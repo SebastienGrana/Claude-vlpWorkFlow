@@ -68,8 +68,7 @@
     <!-- ZONE:encours — remplacé à chaque ouverture, remis à « aucun » à chaque clôture.
          /tache n'y touche pas : l'avancement fiche par fiche est sur la page du chantier. -->
     <div class="encours">
-      <div class="titre">Hooks du kit</div>
-      <div>Fiches <span class="mono">H1–H4</span> · <a href="https://claude.ai/artifact/MTMEspegQa2HCZxww8Tqfq">la page du chantier</a></div>
+      <div class="rien">Aucun chantier ouvert — <span class="mono">/vlp:chantier</span> pour en ouvrir un.</div>
     </div>
   </section>
 
@@ -82,7 +81,6 @@
           <tr><th>#</th><th>Chantier</th><th>Ce qu'il apporte</th><th>Coût</th><th>Dépend de</th></tr>
         </thead>
         <tbody>
-          <tr><td class="mono">5</td><td>Hooks du kit <span class="badge" data-etat="cours">en cours</span></td><td>PostToolUse valide un fichier de fiches à l'écriture ; SessionStart injecte la carte ; fin des « recopie à l'identique »</td><td class="mono">4 fiches</td><td class="mono">—</td></tr>
           <tr><td class="mono">6</td><td>Evals du plugin</td><td><span class="mono">claude plugin eval</span> sur un bac à sable, graders gratuits, baseline sans plugin ; validate avant commit</td><td class="mono">3 fiches</td><td class="mono">—</td></tr>
           <tr><td class="mono">7</td><td>Fusionner la doctrine</td><td>Cinq fichiers de doc → trois ; chaque nombre vit une fois</td><td class="mono">3 fiches</td><td class="mono">—</td></tr>
           <tr><td class="mono">8</td><td>Migrer commands/ → skills/</td><td>Un dossier par commande, disable-model-invocation, variante context: fork + vlp:fiche</td><td class="mono">3 fiches</td><td class="mono">—</td></tr>
@@ -102,6 +100,15 @@
           <tr><th>Chantier</th><th>Fiches</th><th>Clos le</th><th>Tokens</th><th>Ce qu'il a livré</th></tr>
         </thead>
         <tbody>
+          <tr>
+            <td><a href="https://claude.ai/artifact/MTMEspegQa2HCZxww8Tqfq">Hooks du kit</a> <span class="badge" data-etat="clos">clos</span></td>
+            <td class="mono">H1–H4</td><td class="mono">2026-09-17</td>
+            <td class="mono">≈14,6M (14 649 178)</td>
+            <td>Un hook PostToolUse valide un fichier de fiches à chaque écriture
+              (vlp.py hook, testé, prouvé en vrai) ; /vlp:chantier n'appelle plus
+              valider ; SessionStart écarté aux chiffres (+1 974 tokens par tour)
+              (11,02 $).</td>
+          </tr>
           <tr>
             <td><a href="https://claude.ai/artifact/MDYKgdDhAKsPJE4cp1TK6u">Un script vlp.py pour la mécanique</a> <span class="badge" data-etat="clos">clos</span></td>
             <td class="mono">S1–S5</td><td class="mono">2026-09-17</td>
@@ -159,7 +166,7 @@
           </tr>
         </tbody>
         <tfoot>
-          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈69,7M (69 749 269)</strong></td><td></td></tr>
+          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈84,4M (84 398 447)</strong></td><td></td></tr>
         </tfoot>
       </table>
     </div>

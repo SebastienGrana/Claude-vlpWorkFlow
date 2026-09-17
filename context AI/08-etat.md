@@ -29,6 +29,8 @@
   appels au lieu de 14 ; le 3 est retiré, 8 ne dépend plus de rien.
 - **2026-09-17** — chantier S clos (TODO n° 4) : la mécanique vit dans
   `scripts/vlp.py` ; le 4 est retiré, 5 ne dépend plus de rien.
+- **2026-09-17** — chantier H clos (TODO n° 5) : un hook `PostToolUse` valide
+  un fichier de fiches à l'écriture ; `SessionStart` écarté ; le 5 est retiré.
 
 ## La TODO ordonnée — les chantiers possibles
 
@@ -38,7 +40,6 @@ ordonné par ce qui débloque le reste. Le détail de chacun est dans
 
 | # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |
 |---|---|---|---|---|
-| 5 | Hooks du kit | `PostToolUse` valide un fichier de fiches à l'écriture ; `SessionStart` injecte la carte ; fin des « recopie à l'identique » | 3 fiches | rien |
 | 6 | Evals du plugin | `claude plugin eval` sur un bac à sable, graders gratuits, baseline sans plugin ; `validate` avant commit | 3 fiches | rien |
 | 7 | Fusionner la doctrine | cinq fichiers de doc → trois ; chaque nombre vit une fois | 3 fiches | rien |
 | 8 | Migrer `commands/` → `skills/` | un dossier par commande, `disable-model-invocation`, variante `context: fork` + `vlp:fiche` | 3 fiches | rien |
@@ -300,4 +301,27 @@ de ce que le code dit déjà.
   16 → 15. Règle 4 de `CLAUDE.md` : `${CLAUDE_PLUGIN_ROOT}` vaut aussi dans
   `hooks/hooks.json`. Non couvert : les écritures par Bash (`sed -i`, heredoc), que
   `Write|Edit` ne voit pas — `vlp.py page` et les coches scriptées y échappent.
-
+- **2026-09-17** — H4 : `SessionStart` (`startup|clear` → `vlp.py carte`) **écarté**.
+  Mesuré sur deux sessions neuves d'un seul mot : avec, ctx_1er 60 609, 2 tours,
+  122 861 tokens (`01afcef7`, carte injectée, `PROCHAINE=H4` présent) ; sans,
+  ctx_1er 58 635, 1 tour, 58 936 tokens (`b50ef5e2`). La carte (65 lignes,
+  4 111 octets) ajoute 1 974 tokens à chaque tour de toute session du projet,
+  vlp ou non, et ne retire aucune injection : elle ne part qu'au démarrage et
+  après `/clear`, alors que `PROCHAINE` change en cours de session (H1 → H4 dans
+  celle du chantier). Le second tour de la session « avec » (un `git diff`) n'est
+  pas attribuable à la carte.
+- **2026-09-17** — Chantier H **clos**. Livré : `vlp.py hook` (testé, 5 cas) et
+  `hooks/hooks.json` — un `PostToolUse` `Write|Edit` qui valide un fichier de
+  fiches à l'écriture : sain → la ligne `VALIDE` en contexte, cassé → l'écart et
+  la consigne, prouvé en vrai après `/reload-plugins` ; `commands/chantier.md`
+  n'appelle plus `valider` dans un bloc (1 → 0), consignes `identique|marqueur`
+  16 → 15 ; règle 4 étendue à `hooks/hooks.json` ; `tache-page.md` lit avant de
+  publier ; `/vlp:check` et `/vlp:init` rejoués. Laissé ouvert : les écritures par
+  Bash échappent au hook ; sans Git Bash, Windows lance les hooks en PowerShell et
+  la forme `PY=$(…)` y casse (non testé) ; appels prescrits de `/vlp:chantier`
+  étape 6 inchangés (1, `wc -l`). Constat qui vaut au-delà de H : un kit lié dans
+  `~/.claude/skills/` charge ses hooks, et `python3` y échoue muet sous Windows.
+  Fiches jouées d'affilée dans la session du cadrage, à la demande. Total brut
+  mesuré sur cette session : 87 tours, 95 appels, input 174, output 66 514,
+  cache_creation 217 798, cache_read 14 364 692, **total 14 649 178 tokens**,
+  11,02 $.

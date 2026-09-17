@@ -4,11 +4,13 @@
 
 # Chantier H — Hooks du kit
 
+**CLOS** le 2026-09-17. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
 **À quoi il sert.** Le kit a 0 hook : la validation d'un fichier de fiches est un
 appel prescrit à la main, et une coche écrite par `/vlp:tache` n'est jamais validée.
 Le chantier met `vlp.py valider` dans un hook `PostToolUse` du plugin (TODO n° 5).
 
-**Fait.** Rien. Ouvert le 2026-09-17, cadré en 4 fiches, `H1` à jouer.
+**Fait.** H1 à H4 (2026-09-17). Ouvert et clos le 2026-09-17, 4 fiches jouées.
 
 ## Le socle commun
 
@@ -163,8 +165,9 @@ ligne `VALIDE` ; `grep -c "valider" commands/chantier.md` 1 → 0 ; lignes
 ---
 
 <!-- FICHE:H4 -->
-## H4 [ ] — Décider `SessionStart` aux chiffres
+## H4 [x] — Décider `SessionStart` aux chiffres
 
+**Session** : c6648728-7227-4c69-ba9a-24c6670987bd
 **Dépend de** : `H3`.
 **Fichiers** : `hooks/hooks.json`, `context AI/08-etat.md` (journal) — et rien d'autre.
 
