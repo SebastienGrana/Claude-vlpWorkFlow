@@ -38,10 +38,8 @@ gratuits : `regex`, `tool_used`, `tool_order`, `file_exists` (audit) ; `llm` et
 copiée, ou `scaffold_script` qui exige `--scaffold`) ; ce qu'un cas voit du hook ;
 si l'outil `Artifact` existe dans un run.
 
-**Lancer — toujours ainsi**, plafond écrit par V1 après son premier chiffre :
-`claude plugin eval <kit> --runs 1 --no-publish --max-cost-usd <plafond>`, plus
-`--ablation none` sauf sur le cas où la baseline prouve l'effet du plugin (un seul,
-choisi en V2). Un run se mesure : `mesure-tokens.py` sur son transcript, tours et
+**Lancer — toujours ainsi**, plafond chiffré par V1 :
+`claude plugin eval <racine-projet> --runs 1 --no-publish --ablation none --scaffold --trust-plugin --max-cost-usd 0.35`, plus `--allow-tools Bash` si le sandbox tourne. Un run se mesure : `mesure-tokens.py` sur son transcript, tours et
 `usd` — la sortie `--json` de `eval` à côté, si elle donne un coût.
 
 **Invariants.** Aucun cas ne publie de page ni ne touche un projet réel : tout se joue
@@ -73,7 +71,7 @@ Git Bash (non testable sur cette machine). Tous deux restent « laissés ouverts
 ---
 
 <!-- FICHE:V1 -->
-## V1 [ ] — Poser le premier cas (`check`) et le chiffrer
+## V1 [x] — Poser le premier cas (`check`) et le chiffrer
 
 **Dépend de** : rien.
 **Fichiers** : `evals/check/`, `.gitignore`, `commands/check.md` (lu, pour l'incohérence
