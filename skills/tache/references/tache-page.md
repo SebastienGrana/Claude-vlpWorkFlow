@@ -1,4 +1,4 @@
-<!-- Lu par /vlp:tache (étape 1) et /vlp:enchainer (étape 4). -->
+<!-- Lu par /vlp:tache (étape 1) ; /vlp:enchainer porte sa propre commande. -->
 
 # Régénérer l'artefact du chantier
 

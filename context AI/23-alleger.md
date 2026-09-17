@@ -54,7 +54,7 @@ L1 et L2 touchent deux étapes distinctes du même fichier : jouables dans n'imp
 ---
 
 <!-- FICHE:L1 -->
-## L1 [ ] — Donner la page au chef en un appel
+## L1 [x] — Donner la page au chef en un appel
 
 **Dépend de** : rien.
 **Fichiers** : `skills/enchainer/SKILL.md` (étape 4), `skills/tache/references/tache-page.md`, `scripts/vlp.py` (aide de `page`).

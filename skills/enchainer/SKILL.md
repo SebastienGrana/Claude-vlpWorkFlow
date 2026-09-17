@@ -82,20 +82,25 @@ comptes bruts du critère compris ; « — » pour un arrêt sans sous-agent. Le
 coût se lit sur la session, pas ici : un `Result` ne porte pas d'usage.
 
 Puis régénère la page du chantier, **une seule fois** pour tout le lancement —
-sauf si « artefact du chantier » vaut « aucun », ou si l'étape 5 suit :
-`vlp.py page`, un `--note` par fiche faite, puis la publication,
+sauf si « artefact du chantier » vaut « aucun », ou si l'étape 5 suit. La page
+porte le nom du fichier de fiches, en `.html`, dans `<contexte>/artefacts/` ;
+un `--note` par fiche faite, le critère constaté en une ligne :
 
 ```bash
-cat "${CLAUDE_PLUGIN_ROOT}/skills/tache/references/tache-page.md"
+PY=$(for p in python3 python; do "$p" -c "" 2>/dev/null && { echo "$p"; break; }; done); "$PY" "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" page "<fichier de fiches courant>" "<contexte>/artefacts/<NN>-<chantier>.html" --note <fiche> "<critère constaté>"
 ```
 
-et, si un `BLOQUÉE` a clos la série, le marquage de la page bloquée :
+Une `GARDE:` ou une sortie non nulle : une ligne, et continue. Sinon, deux
+appels : `Artifact` `action: "read"` sur l'`url` de « artefact du chantier »,
+puis `Artifact` avec le `file_path` de la page **et** cette `url`, sans
+`favicon`, `label` : les fiches jouées (`E5→E7`). Rien d'autre à lire : les règles de la page sont dans
+`skills/tache/references/tache-page.md`, pour `/vlp:tache`.
+
+Si un `BLOQUÉE` a clos la série, marque aussi la page bloquée :
 
 ```bash
 cat "${CLAUDE_PLUGIN_ROOT}/skills/tache/references/tache-blocage.md"
 ```
-
-`label` : les fiches jouées, par exemple `E5→E7`.
 
 ## 5. Clore le chantier
 

@@ -68,23 +68,23 @@
     <p>Tours du chef mesurés avant (15) → après, sur une fiche FAITE et une RETOUR ; page en un appel, chef en Sonnet</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="encours"></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="encours"></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">3 fiches · 0 faite · en cours : L1</p>
+    <p class="mono" style="margin-top:.5rem">3 fiches · 1 faite · en cours : L2</p>
   </header>
 
   <section>
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">L1</span><span class="titre">Donner la page au chef en un appel</span>
-        <span class="etat">en cours</span>
-        <span class="note">La page régénérée et publiée en un appel, sans lire tache-page.md ; ne dépend de rien</span>
+        <span class="etat">faite</span>
+        <span class="note">Étape 4 d'enchainer : cat tache-page.md 1 → 0, commande vlp.py page 0 → 1, SKILL.md 105 → 110 lignes, renvois 46 nommés · 0 absent</span>
       </li>
-      <li class="fiche">
+      <li class="fiche" data-etat="encours">
         <span class="id">L2</span><span class="titre">Questionner sans agir, et régler modèle et maxTurns</span>
-        <span class="etat">à faire</span>
+        <span class="etat">en cours</span>
         <span class="note">Après un RETOUR, une question et rien d'autre ; model: sonnet sur le chef ; maxTurns 25 → 30 ; ne dépend de rien</span>
       </li>
       <li class="fiche">
