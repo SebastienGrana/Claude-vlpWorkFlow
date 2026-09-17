@@ -1,0 +1,301 @@
+<title>Bilan des 22 chantiers</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Source+Sans+3:wght@400;600&display=swap">
+<style>
+  :root {
+    --ground: #f4f5f7; --surface: #ffffff; --line: #d9dce3; --line-fort: #b9bec9;
+    --texte: #1a222e; --doux: #5c6675; --accent: #2f5d8c;
+    --apres: #2f7a55; --avant: #9c4a33; --tiede: #a86a12;
+    --ombre: 0 1px 2px rgba(26,34,46,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #11161d; --surface: #19202a; --line: #2b3542; --line-fort: #3d4a5a;
+      --texte: #e5e9ef; --doux: #98a2b1; --accent: #7fb0e0;
+      --apres: #5fbb8b; --avant: #d98c72; --tiede: #d9a441; --ombre: none;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #11161d; --surface: #19202a; --line: #2b3542; --line-fort: #3d4a5a;
+    --texte: #e5e9ef; --doux: #98a2b1; --accent: #7fb0e0;
+    --apres: #5fbb8b; --avant: #d98c72; --tiede: #d9a441; --ombre: none;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--ground); color: var(--texte);
+    font-family: "Source Sans 3", system-ui, sans-serif; font-size: 16px; line-height: 1.6;
+  }
+  .page {
+    max-width: 52rem; margin: 0 auto; padding-inline: 1.25rem;
+    padding-block: 2.5rem 4rem; display: flex; flex-direction: column; gap: 2.75rem;
+  }
+  h1, h2, h3 { font-family: Archivo, system-ui, sans-serif; text-wrap: balance; margin: 0; }
+  h1 { font-size: 2.1rem; font-weight: 700; letter-spacing: -.02em; line-height: 1.15; }
+  h2 { font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--doux); }
+  h3 { font-size: 1.05rem; font-weight: 600; }
+  p { margin: 0; max-width: 65ch; }
+  a { color: var(--accent); }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  code, .mono { font-family: "IBM Plex Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+  code { font-size: .88em; }
+  .eyebrow { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: .74rem; letter-spacing: .07em; text-transform: uppercase; color: var(--accent); }
+
+  header { display: flex; flex-direction: column; gap: .5rem; border-bottom: 2px solid var(--line-fort); padding-bottom: 1.5rem; }
+  header p { color: var(--doux); }
+
+  .chiffres { display: flex; flex-wrap: wrap; gap: 1.5rem 2.5rem; margin-top: .75rem; }
+  .chiffre { display: flex; flex-direction: column; }
+  .chiffre b { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 1.6rem; font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+  .chiffre span { font-size: .8rem; color: var(--doux); text-transform: uppercase; letter-spacing: .06em; }
+
+  section { display: flex; flex-direction: column; gap: 1rem; }
+  .prose { display: flex; flex-direction: column; gap: .8rem; }
+
+  ul { margin: 0; padding-left: 1.15rem; display: flex; flex-direction: column; gap: .45rem; }
+  li { max-width: 65ch; }
+
+  .bascules { display: flex; flex-direction: column; gap: .75rem; counter-reset: b; }
+  .bascule {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 3px;
+    padding: .9rem 1.1rem; display: grid; grid-template-columns: 2rem 1fr; gap: .2rem .9rem;
+    box-shadow: var(--ombre);
+  }
+  .bascule::before {
+    counter-increment: b; content: counter(b);
+    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 1.1rem; font-weight: 600;
+    color: var(--accent); grid-row: 1 / span 2; align-self: start; line-height: 1.5;
+  }
+  .bascule p { color: var(--doux); font-size: .95rem; }
+
+  .deltas { display: flex; flex-direction: column; border-top: 1px solid var(--line-fort); }
+  .delta {
+    display: grid; grid-template-columns: 1fr auto; gap: .15rem 1.25rem;
+    align-items: baseline; padding: .7rem 0; border-bottom: 1px solid var(--line);
+  }
+  .delta .quoi { font-size: .97rem; }
+  .delta .src { grid-column: 1; font-size: .78rem; color: var(--doux); }
+  .delta .val { grid-column: 2; grid-row: 1 / span 2; white-space: nowrap; font-family: "IBM Plex Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; font-size: .95rem; }
+  .delta .av { color: var(--avant); }
+  .delta .fl { color: var(--doux); padding: 0 .35rem; }
+  .delta .ap { color: var(--apres); font-weight: 600; }
+
+  .possible { width: 100%; border-collapse: collapse; font-size: .95rem; }
+  .possible th { text-align: left; font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; color: var(--doux); font-weight: 600; padding: 0 1rem .5rem 0; border-bottom: 1px solid var(--line-fort); }
+  .possible td { padding: .6rem 1rem .6rem 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+  .possible td:first-child { color: var(--doux); }
+  .possible td:last-child { padding-right: 0; }
+  .tableau { overflow-x: auto; }
+
+  .phrases { display: flex; flex-direction: column; gap: .9rem; counter-reset: p; }
+  .phrase { border-left: 3px solid var(--accent); padding: .1rem 0 .1rem 1rem; }
+  .phrase b { font-weight: 600; }
+  .phrase span { display: block; color: var(--doux); font-size: .93rem; margin-top: .15rem; max-width: 62ch; }
+
+  .reserve { background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--tiede); border-radius: 3px; padding: 1rem 1.15rem; display: flex; flex-direction: column; gap: .6rem; box-shadow: var(--ombre); }
+  .reserve h3 { font-size: 1rem; }
+
+  footer { border-top: 1px solid var(--line); padding-top: 1rem; font-size: .82rem; color: var(--doux); display: flex; flex-wrap: wrap; gap: .3rem 1.5rem; }
+
+  @media (max-width: 30rem) {
+    h1 { font-size: 1.7rem; }
+    .delta { grid-template-columns: 1fr; }
+    .delta .val { grid-column: 1; grid-row: auto; }
+  }
+</style>
+
+<div class="page">
+  <header>
+    <div class="eyebrow">Kit vlp · du commit cf59276 au commit a291cfc</div>
+    <h1>Ce que 22 chantiers ont changé</h1>
+    <p>Le kit « vlp » est un plugin Claude Code qui porte la méthode des chantiers
+      et des fiches. En deux jours, il est passé d'une méthode écrite en prose à
+      une méthode dont la mécanique est du code testé, et dont chaque promesse
+      est mesurée. Voici ce qui a changé, et ce qui ne l'est pas.</p>
+    <div class="chiffres">
+      <div class="chiffre"><b>22</b><span>chantiers clos</span></div>
+      <div class="chiffre"><b>128</b><span>commits</span></div>
+      <div class="chiffre"><b>3.1.0 → 3.4.2</b><span>version du plugin</span></div>
+      <div class="chiffre"><b>≈ 245 M</b><span>tokens, soit ≈ 210 $</span></div>
+    </div>
+  </header>
+
+  <section>
+    <h2>Le point de départ</h2>
+    <div class="prose">
+      <p>Tout est parti d'un audit écrit, pas d'une impression. Il a relevé, preuves
+        à l'appui :</p>
+      <ul>
+        <li><b>11 bugs</b> — <code>/vlp:check</code> cherchait un libellé qui n'existait pas ;
+          <code>$1</code> et <code>$2</code> étaient remplacés <i>avant</i> que le modèle lise ;
+          l'index d'un projet neuf citait des fichiers jamais créés.</li>
+        <li><b>7 fragilités</b> — les commandes se découpaient l'une l'autre au <code>sed</code>
+          sur de la <b>prose</b>, ce qui cassait en silence à la première reformulation ; la même
+          règle vivait dans cinq à sept fichiers ; la page d'un chantier était <b>retapée à la
+          main</b>, 130 lignes de HTML à 120 000 tokens de contexte.</li>
+        <li><b>Une mesure fausse</b> — la première table de coûts comptait les lignes de réponse :
+          erreur de <b>×1,7 à ×4,6</b>.</li>
+        <li><b>Aucun test, aucune eval.</b> On croyait le kit sur parole.</li>
+      </ul>
+      <p>Le constat qui a tout réorienté : <b>le coût est dans les tours, pas dans les
+        lignes.</b> Une fiche coûte 28 à 66 tours ; la commande elle-même ne pèse que
+        8 % du premier tour. On optimisait donc la mauvaise chose.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Les cinq bascules</h2>
+    <div class="bascules">
+      <div class="bascule">
+        <h3>Du bavardage au script</h3>
+        <p><code>scripts/vlp.py</code> : 1 543 lignes, 17 sous-commandes, zéro appel modèle,
+          100 assertions de test. Extraire une fiche, valider des marqueurs, régénérer une
+          page, resommer un total — c'est déterministe, donc c'est du code, donc c'est testé.</p>
+      </div>
+      <div class="bascule">
+        <h3>De la règle répétée à la règle unique</h3>
+        <p>La doctrine tient en trois documents, et chaque nombre vit dans <code>vlp.py</code>
+          seul. Ailleurs, on pointe.</p>
+      </div>
+      <div class="bascule">
+        <h3>De la mesure en lignes à la mesure en dollars</h3>
+        <p>Un tour compté par <code>message.id</code>, pondéré sur la grille de prix. C'est ce
+          qui a permis d'<b>écarter</b> trois idées séduisantes — et de renoncer à un chantier
+          entier, sondé puis abandonné sans rien appliquer.</p>
+      </div>
+      <div class="bascule">
+        <h3>De « ça devrait marcher » à « c'est sondé »</h3>
+        <p>Quatre filets : un hook valide le fichier de fiches <b>à l'écriture</b> ; les tests
+          attrapent une régression ; les evals attrapent une commande qui ne tient plus sa
+          promesse ; et un bac rejoue le kit sur une machine simulée sans Git.</p>
+      </div>
+      <div class="bascule">
+        <h3>Du kit « Windows + Git » au kit « Python seul »</h3>
+        <p>Avant, un collègue sans Git for Windows ne pouvait rien lancer — et personne ne le
+          savait, parce que le hook échouait <i>en silence</i>. Aujourd'hui : Python 3, et
+          rien d'autre.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Avant → après, mesuré</h2>
+    <div class="deltas">
+      <div class="delta">
+        <div class="quoi">Refus de permission, <code>/vlp:tache</code> sur un poste sans Git</div>
+        <div class="src">Bac PowerShell, même prompt — chantier U</div>
+        <div class="val"><span class="av">9</span><span class="fl">→</span><span class="ap">1</span></div>
+      </div>
+      <div class="delta">
+        <div class="quoi">Refus de permission, <code>/vlp:enchainer</code> sur un poste sans Git</div>
+        <div class="src">Même bac, mêmes outils — chantier Q</div>
+        <div class="val"><span class="av">3</span><span class="fl">→</span><span class="ap">0</span></div>
+      </div>
+      <div class="delta">
+        <div class="quoi">Fiches jouées jusqu'au bout dans ce bac</div>
+        <div class="src">Le sous-agent n'avait que l'outil <code>Bash</code> — chantier Q</div>
+        <div class="val"><span class="av">0 / 2</span><span class="fl">→</span><span class="ap">2 / 2</span></div>
+      </div>
+      <div class="delta">
+        <div class="quoi">Corps de <code>/vlp:tache</code>, relu à chaque fiche</div>
+        <div class="src">En lignes — chantier R</div>
+        <div class="val"><span class="av">377</span><span class="fl">→</span><span class="ap">150</span></div>
+      </div>
+      <div class="delta">
+        <div class="quoi">Appels d'outils prescrits par fiche</div>
+        <div class="src">Chantiers R puis S</div>
+        <div class="val"><span class="av">14</span><span class="fl">→</span><span class="ap">5</span></div>
+      </div>
+      <div class="delta">
+        <div class="quoi">Découpage d'une commande par une autre, au <code>sed</code> sur de la prose</div>
+        <div class="src">La casse silencieuse — chantiers S puis Y</div>
+        <div class="val"><span class="av">11</span><span class="fl">→</span><span class="ap">0</span></div>
+      </div>
+      <div class="delta">
+        <div class="quoi">Tours du chef de <code>/vlp:enchainer</code></div>
+        <div class="src">Chantiers L puis A</div>
+        <div class="val"><span class="av">15</span><span class="fl">→</span><span class="ap">5</span></div>
+      </div>
+      <div class="delta">
+        <div class="quoi">Coût d'une fiche mécanique, dans le même bac</div>
+        <div class="src">À la main, puis enchaînée — chantiers U et Q</div>
+        <div class="val"><span class="av">0,42 $</span><span class="fl">→</span><span class="ap">0,176 $</span></div>
+      </div>
+      <div class="delta">
+        <div class="quoi">Fichier d'entrée <code>CLAUDE.md</code>, relu à chaque session</div>
+        <div class="src">Il grossissait de 2 lignes par chantier, sans fin — chantier J</div>
+        <div class="val"><span class="av">118</span><span class="fl">→</span><span class="ap">79</span></div>
+      </div>
+      <div class="delta">
+        <div class="quoi">Assertions qui testent la mécanique</div>
+        <div class="src">Chantiers S à Y</div>
+        <div class="val"><span class="av">0</span><span class="fl">→</span><span class="ap">100</span></div>
+      </div>
+      <div class="delta">
+        <div class="quoi">Evals du plugin qui passent</div>
+        <div class="src">Windows, puis Ubuntu sous WSL2 — chantiers V et W</div>
+        <div class="val"><span class="av">0</span><span class="fl">→</span><span class="ap">1/1 et 4/4</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Ce qui n'était pas possible, et l'est devenu</h2>
+    <div class="tableau">
+      <table class="possible">
+        <thead>
+          <tr><th>Avant</th><th>Maintenant</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Faire tourner le kit sans Git</td><td>Prouvé deux fois, dans un bac sans dépôt Git</td></tr>
+          <tr><td>Savoir ce que coûte une fiche</td><td>Tours, appels, contexte, tokens pondérés, dollars</td></tr>
+          <tr><td>Faire confiance à une page publiée</td><td>Régénérée par script ; une option dit si elle a dérivé</td></tr>
+          <tr><td>Attraper un fichier de fiches cassé</td><td>Le hook le dit à l'écriture, avant tout dégât</td></tr>
+          <tr><td>Modifier une commande sans en casser une autre</td><td>Ce qui est partagé vit dans un fichier ou un script commun</td></tr>
+          <tr><td>Tester le kit</td><td>Validation, 100 assertions, evals sur deux systèmes</td></tr>
+          <tr><td>Ouvrir ou clore un chantier sans 5 à 12 tours d'écriture</td><td>Deux sous-commandes, 1 à 3 tours</td></tr>
+          <tr><td>Poser un projet neuf sans lien mort</td><td>Corrigé, et vérifié par une eval</td></tr>
+          <tr><td>Utiliser <code>/vlp:enchainer</code></td><td>Réparé : chaque fiche dans un sous-agent neuf</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Les cinq phrases pour l'expliquer</h2>
+    <div class="phrases">
+      <div class="phrase"><b>On ne corrige plus ce qu'on n'a pas mesuré.</b>
+        <span>Trois bonnes idées ont été rejetées sur un chiffre. Sans instrument, on les aurait gardées.</span></div>
+      <div class="phrase"><b>Ce qui est déterministe est devenu du code.</b>
+        <span>Un modèle qui retape 130 lignes de HTML à chaque fiche, c'est cher et ça dérive.</span></div>
+      <div class="phrase"><b>Le kit ne demande plus que Python.</b>
+        <span>La panne d'avant était invisible : le hook échouait sans rien dire.</span></div>
+      <div class="phrase"><b>Une règle vit à un seul endroit.</b>
+        <span>Le kit avait souffert de six copies divergentes de la même règle.</span></div>
+      <div class="phrase"><b>Le coût est dans les tours, pas dans les lignes.</b>
+        <span>C'est la phrase qui explique tout le reste.</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Ce qui n'est toujours pas prouvé</h2>
+    <div class="reserve">
+      <h3>Dit en clair, plutôt que caché</h3>
+      <ul>
+        <li><b>macOS n'est pas sondé.</b> C'est écrit dans le README.</li>
+        <li><b>PowerShell 5.1 n'est pas sondable</b> tant que PowerShell 7 est installé sur la machine.</li>
+        <li><b>Le gain de <code>/vlp:enchainer</code> a deux conditions</b> : des fiches mécaniques,
+          et aucun retour vers l'utilisateur — un seul annule le gain. Les deux mesures complètes
+          portent sur des fiches triviales, où le socle de session est mince.</li>
+        <li><b>Le contexte d'un sous-agent n'est pas journalisé</b> : on ne peut pas relire ce qu'il
+          a reçu, seulement son compte rendu.</li>
+        <li><b>Un <code>sed</code> reste dans la méthode</b> : les fiches citent encore une plage de
+          fichier par une commande qui n'existe pas sans Git. C'est le prochain chantier.</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>
+    <span>Détail chiffré : <code>context AI/35-bilan.md</code></span>
+    <span>Dépôt : <a href="https://github.com/SebastienGrana/Claude-vlpWorkFlow">Claude-vlpWorkFlow</a></span>
+    <span>Mis à jour le <code>2026-09-17</code></span>
+  </footer>
+</div>

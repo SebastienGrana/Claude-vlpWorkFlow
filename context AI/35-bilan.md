@@ -14,6 +14,9 @@ l'a produit, ou la table de `12-audit.md`. Rien n'est estimé sauf les deux
 coûts marqués « ≈ » des chantiers Y et U, dont les pages ne portent pas de
 montant.
 
+**Page publiée** (la même chose, lisible sans ouvrir de session, à donner au
+groupe) : <https://claude.ai/artifact/9bA9VftEvzmTi2t32VmYn3>
+
 ## 1. Le point de départ — ce que l'audit a trouvé
 
 `12-audit.md`, écrit le 2026-09-17 avant le premier de ces chantiers :
