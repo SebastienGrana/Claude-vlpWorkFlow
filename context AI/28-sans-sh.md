@@ -52,7 +52,7 @@ X2 reprend les candidats de X1 ; X3 ne tranche que sur leurs deux tableaux.
 ---
 
 <!-- FICHE:X1 -->
-## X1 [ ] — Sonder le hook sans `sh`
+## X1 [x] — Sonder le hook sans `sh`
 
 **Dépend de** : rien.
 **Fichiers** : `context AI/28-sans-sh.md` (le tableau, sous cette fiche) ; un bac à sable dans le scratchpad — rien
@@ -69,6 +69,24 @@ sous Ubuntu. Note aussi ce que voit le modèle quand un des deux hooks échoue, 
 Sous cette fiche, un tableau candidat × système (Windows PowerShell, Ubuntu) → `exit_code`, `stdout` brut
 (`VALIDE <n> fiches` ou erreur), source (doc ou sonde) ; au moins 5 candidats, chacun sur les 2 systèmes ; coût
 total des sondes recopié.
+
+**Constaté** (2026-09-17, `claude -p --model haiku --include-hook-events`, Windows 2.1.271, Ubuntu 2.1.274) — présents :
+Windows `python` (3.14), `py`, `python3` = raccourci du Store, pwsh 7.6.6 ; Ubuntu `python3` seul. Doc `hooks` : exec
+« resolves `command` as an executable on `PATH` », `${CLAUDE_PLUGIN_ROOT}` substitué dans `args`, `shell` ignoré.
+
+| Candidat | Windows (`shell: powershell` pour la forme shell) | Ubuntu | Source |
+|---|---|---|---|
+| exec `python3` | `exit_code 49`, stderr « Python est introuvable ; exécutez sans arguments… Store » | `0`, `VALIDE 1 fiches` | sonde |
+| exec `python` | `0`, `VALIDE 1 fiches` | `1`, « Executable not found in $PATH: "python" » | sonde |
+| exec `py` | `0`, `VALIDE 1 fiches` | `1`, « Executable not found in $PATH: "py" » | sonde |
+| shell `python "<kit>/scripts/vlp.py" hook` | `0`, `VALIDE 1 fiches` | `127`, « /bin/sh: 1: python: not found » | sonde |
+| paire exec `python3` + `py` | `49` (python3) puis `0` `VALIDE` (py) | `1` (py) puis `0` `VALIDE` (python3) | sonde |
+
+Aucun candidat seul ne passe les 2 systèmes ; la paire `python3` + `py` passe les deux, une erreur non bloquante de
+chaque côté. Ce que voit le modèle : un hook en échec seul → « AUCUN » (muet) ; la paire → `VALIDE` une fois. Double
+`VALIDE` si `python3` et `py` sont vrais tous deux (Windows avec Python du Store) : non sondé, ni macOS. Sous Windows
+chaque sonde a une réponse `0 VALIDE` de plus : le hook `sh` du plugin vlp, chargé en `-p` (Git Bash présent).
+Sondes : 10 × 2 tours, 0,313 $.
 <!-- /FICHE -->
 
 ---
