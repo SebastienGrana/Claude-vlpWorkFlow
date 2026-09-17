@@ -8,7 +8,7 @@
 est dans les tours, pas dans les lignes. Le chantier retire à `/vlp:tache` les
 tours de lecture qu'un texte mieux rangé rend inutiles, et le prouve en chiffres.
 
-**Fait.** R1, R2 (2026-09-17). Ouvert le 2026-09-17, cadré en 4 fiches, `R3` à jouer.
+**Fait.** R1, R2, R3 (2026-09-17). Ouvert le 2026-09-17, cadré en 4 fiches, `R4` à jouer.
 
 ## Le socle commun
 
@@ -142,8 +142,9 @@ plus que la ligne de l'étape 0 (`enchainer.md:26`) ; chaque `cat` de
 ---
 
 <!-- FICHE:R3 -->
-## R3 [ ] — Injecter la carte, grouper les lectures, corriger le point 13
+## R3 [x] — Injecter la carte, grouper les lectures, corriger le point 13
 
+**Session** : 588d8fcf-c7d9-4857-ae7e-c6662c524a90
 **Dépend de** : `R1`, `R2`.
 **Fichiers** : `commands/tache.md`, `commands/enchainer.md`, `references/tache-projet.md` (si R1 exige un repli).
 

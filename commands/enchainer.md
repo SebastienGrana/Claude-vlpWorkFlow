@@ -1,7 +1,7 @@
 ---
 description: Enchaîne plusieurs fiches du chantier courant, chacune dans un sous-agent neuf, jusqu'à un arrêt prévu ou le plafond
 argument-hint: (rien) | <alias>
-allowed-tools: Bash(sed:*), Bash(grep:*), Bash(awk:*), Bash(cat:*), Bash(wc:*), Bash(ls:*), Bash(pwd:*), Bash(cd:*), Bash(dirname:*), Agent, Artifact
+allowed-tools: Bash(python3:*), Bash(python:*), Bash(sed:*), Bash(grep:*), Bash(awk:*), Bash(cat:*), Bash(wc:*), Bash(ls:*), Bash(pwd:*), Bash(cd:*), Bash(dirname:*), Agent, Artifact
 ---
 
 Arguments reçus :
@@ -19,18 +19,17 @@ passait bien.
 
 ## 1. Trouver le projet et le fichier de fiches courant
 
-Ce repérage est celui de `tache.md`, étapes 0 et 0 bis — à l'identique, sans
-le recopier ici :
+La carte du projet, lue avant ton premier tour par le script que `tache.md`
+injecte aussi :
 
-```bash
-sed -n '/^## 0\. /,/^## 1\. /p' "${CLAUDE_PLUGIN_ROOT}/commands/tache.md"
-```
+!`python3 "${CLAUDE_PLUGIN_ROOT}/scripts/carte.py" 2>/dev/null || python "${CLAUDE_PLUGIN_ROOT}/scripts/carte.py"`
 
-Applique ce que cette plage dit, avec les arguments de cette commande à la
-place de ceux de `tache.md` (le premier argument est l'alias s'il y a plusieurs projets
-voisins, sinon rien — il n'y a pas de fiche à distinguer ici). Si le repérage
-s'arrête — aucun `CHANTIER.md`, alias ambigu, fichier de fiches courant à
-« aucun » — arrête-toi ici, de la même façon : il n'y a rien à enchaîner.
+`PROJET=` : c'est le projet, `CHANTIER.md` suit. `VOISIN=… alias=…` : si le
+premier argument est l'un de ces alias, relance la carte sur ce dossier
+(`python "${CLAUDE_PLUGIN_ROOT}/scripts/carte.py" "<dossier>"`), sinon demande
+lequel. Sortie vide ou consigne de la lancer : lance-la toi-même, une fois.
+`AUCUN_PROJET`, `GARDE:`, fichier de fiches courant à « aucun », ou
+`PROCHAINE=aucune` : arrête-toi ici — il n'y a rien à enchaîner.
 
 ## 2. Annoncer le plan
 
@@ -42,8 +41,8 @@ grep -n -E '^## [A-Z][0-9]|^\*\*Critère de fin\*\*' "<fichier de fiches courant
 ```
 
 **Garde.** Si le fichier compte des lignes mais que ce `grep` n'en rend
-aucune, arrête-toi et montre la sortie brute — comme à l'étape 0 bis de
-`tache.md`.
+aucune, arrête-toi et montre la sortie brute — comme une `GARDE:` de la
+carte.
 
 Retiens les fiches non cochées (sans `[x]`), dans l'ordre du fichier. La série
 à jouer s'arrête à la première rencontrée dont la ligne `**Critère de fin**`
@@ -57,7 +56,7 @@ E5 → E7, arrêt prévu à E7 (visuel) ». Tu n'attends pas de réponse.
 ## 3. Jouer chaque fiche
 
 Une fois, avant la première fiche, extrais le socle — il vaut pour toutes.
-S'il ne rend rien, arrête-toi (garde de `tache.md` étape 4) :
+S'il ne rend rien, arrête-toi (garde de `tache.md` étape 1) :
 
 ```bash
 awk '/^## Le socle/{f=1} f && /^## L.*ordre des fiches/{exit} f' "<fichier de fiches courant>"

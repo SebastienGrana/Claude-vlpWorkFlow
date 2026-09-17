@@ -38,6 +38,8 @@ Ces fichiers ne se lisent pas en série : chacun répond à une question précis
 | `commands/<nom>.md` | on modifie cette commande-là |
 | `agents/fiche.md`, `enchainement.md` | on touche au sous-agent de `/vlp:enchainer`, ou à son contrat de retour |
 | `scripts/mesure-tokens.py` | on touche à la mesure des tokens |
+| `scripts/carte.py` | on touche à la carte injectée par `/vlp:tache` et `/vlp:enchainer` avant leur 1er tour |
+| `references/` | on touche au blocage, à la page de chantier ou aux trois contraintes d'une fiche |
 | `cloture.md` | on touche aux cinq écritures d'une clôture |
 | `CONVENTION-FICHIERS.md` | on se demande où vit quoi dans un projet équipé |
 | `ARTEFACTS.md` | on touche aux pages publiées : nommage, URL, budget |

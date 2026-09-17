@@ -183,3 +183,15 @@ de ce que le code dit déjà.
   appel que le socle (aucun appel ajouté) ; la règle « artefact du chantier =
   aucun → sauter » reste dans `tache.md` seul. `enchainer.md` et
   `agents/fiche.md` ne découpent plus `tache.md`, sauf l'étape 0 (R3).
+- **2026-09-17** — R3 : l'étape 0 devient `scripts/carte.py` (testé,
+  `test-carte.py`), injecté par `tache.md` et `enchainer.md` via
+  `` !`python3 … 2>/dev/null || python …` `` — repli prouvé par une sonde, le
+  `python3` de Windows étant un faux raccourci (sortie 49). Choix validé par
+  l'utilisateur, au lieu du repli en prose prévu par la fiche ; il anticipe un
+  morceau du chantier `vlp.py`. Bug trouvé : sous Windows et macOS,
+  `[ -f "$d/CHANTIER.md" ]` prend `commands/chantier.md` pour la carte — la
+  boucle de l'étape 0 remontait donc au mauvais dossier depuis `commands/` ;
+  `carte.py` compare le nom exact. `tache.md` 289 → 228 lignes ; l'étape 0 bis
+  disparaît (`PROCHAINE=` dans la carte) ; fiche, socle et contraintes en un
+  appel. Reste à rejouer pour de vrai : `/reload-plugins`, puis `/vlp:tache`
+  sans argument sur un projet équipé.
