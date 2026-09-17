@@ -75,8 +75,9 @@ H1 et H2 sont parallélisables ; H3 et H4 non.
 ---
 
 <!-- FICHE:H1 -->
-## H1 [ ] — Sonder le chargement des hooks, solder les restes de S
+## H1 [x] — Sonder le chargement des hooks, solder les restes de S
 
+**Session** : c6648728-7227-4c69-ba9a-24c6670987bd
 **Dépend de** : rien.
 **Fichiers** : `hooks/hooks.json` (nouveau), `references/tache-page.md`,
 `context AI/08-etat.md` (journal) — et rien d'autre.

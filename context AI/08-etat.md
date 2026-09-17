@@ -270,3 +270,14 @@ de ce que le code dit déjà.
   `/vlp:chantier`, `/vlp:init`, `/vlp:check` après `/reload-plugins` ;
   `tache-page.md` (« republie » → `read` puis publier) ; `init.md` 3 ter dit
   encore que `/vlp:tache` ne lit qu'au `sed`/`awk` (TODO 10).
+- **2026-09-17** — H1 : un kit lié dans `~/.claude/skills/vlp` **charge** ses hooks
+  après `/reload-plugins` (« 3 hooks » annoncés pour 4 posés). Sur Windows avec Git
+  Bash, en forme shell : `python` et `py` parlent (exit 2 → stderr rendu au modèle,
+  `${CLAUDE_PLUGIN_ROOT}` substitué en `C:/Users/znorr/.claude/skills/vlp`) ; `python3`
+  (faux raccourci) échoue **muet** ; la forme `args` (sans shell) ne se déclenche pas.
+  Forme retenue pour H3 : la boucle `PY=$(for p in python3 python; …)` des commandes,
+  qui ne relance pas le script en double. Restes de S soldés : `tache-page.md` lit
+  avant de publier (« republie » 2 → 0) ; `/vlp:check` rejoué, A–G passent (socle 51,
+  page 133) ; `/vlp:init` rejoué sur un dossier vide du scratchpad : `AUCUN_PROJET`
+  puis `PROJET=` après pose, questionnaire répondu par défaut et publication
+  **neutralisée** (pas d'artefact de test) ; `init.md` 3 ter reste faux (TODO 10).

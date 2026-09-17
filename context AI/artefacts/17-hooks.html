@@ -69,23 +69,24 @@
     <p>Un fichier de fiches cassé est refusé dès son écriture par un hook PostToolUse du plugin, prouvé après /reload-plugins ; l'appel valider prescrit dans /vlp:chantier disparaît ; SessionStart gardé seulement si les chiffres le justifient.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="encours"></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">4 fiches · 0 faite · en cours : H1</p>
+    <p class="mono" style="margin-top:.5rem">4 fiches · 1 faite · en cours : H2</p>
   </header>
 
   <section>
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">H1</span><span class="titre">Sonder le chargement des hooks, solder les restes de S</span>
-        <span class="etat">en cours</span>
-        <span class="note">Sonde : le kit lié dans skills/ charge-t-il ses hooks, avec quel Python ; restes de S (tache-page lit avant de publier, check et init rejoués). Ne dépend de rien.</span>
+        <span class="etat">faite</span>
+        <span class="note">Hooks chargés après /reload-plugins : python et py parlent (exit 2, racine substituée), python3 et la forme args muets ; « republie » 2 → 0 ; check A–G passent ; init rejoué sur un bac à sable, publication neutralisée.</span>
+        <span class="cout mono">≈6,3M (6 292 530) · 50 tours · 5,36 $</span>
       </li>
-      <li class="fiche">
+      <li class="fiche" data-etat="encours">
         <span class="id">H2</span><span class="titre">Écrire vlp.py hook</span>
-        <span class="etat">à faire</span>
+        <span class="etat">en cours</span>
         <span class="note">vlp.py hook : lit le JSON du hook, valide un fichier de fiches, exit 2 sur écart, une ligne de bilan sinon ; testé. Ne dépend de rien.</span>
       </li>
       <li class="fiche">
@@ -99,6 +100,7 @@
         <span class="note">SessionStart posé, ctx_1er mesuré avec et sans ; gardé ou écarté aux chiffres. Dépend de H3.</span>
       </li>
     </ul>
+    <p class="mono cout-total">Coût du chantier : ≈6,3M (6 292 530) · 50 tours · 5,36 $</p>
     <!-- ligne de total, absente si aucune fiche n'a de coût mesuré -->
   </section>
 
@@ -115,6 +117,7 @@
     <h2>Journal des décisions</h2>
     <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
     <ul class="journal">
+      <li><time datetime="2026-09-17">2026-09-17</time><span>H1 : le kit lié dans skills/ charge ses hooks ; forme retenue : la boucle PY des commandes (python3 muet sous Windows, forme args non déclenchée).</span></li>
     </ul>
   </section>
 

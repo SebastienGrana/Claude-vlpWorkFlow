@@ -18,12 +18,13 @@ Lis sa sortie. Une `GARDE:` : une session non mesurée, ou une page au-delà du
 seuil — dis-le en une ligne. Une sortie non nulle : la page n'est pas écrite,
 dis-le et continue, le fichier de fiches est à jour.
 
-Puis publie : `Artifact` avec le `file_path` local **et** l'`url` — sans `url`,
-tu crées un doublon. Pas de `favicon`, pas de nouveau titre, `label` :
-`<fiche> faite`. Si la publication est refusée parce que la session n'a pas lu
-la page, le refus rend la version en ligne : si elle ne dit rien que la page
-locale ne dise, republie ; sinon reporte l'écart par `--note` ou `--journal`,
-régénère, republie. Échec : une ligne, et continue.
+Puis publie, si la session n'a ni publié ni lu cette page : d'abord `Artifact`
+`action: "read"` sur l'`url` — sans lecture, la publication est refusée, et
+refusée encore au second essai. Si la version lue dit quelque chose que la page
+locale ne dit pas, reporte-le par `--note` ou `--journal` et régénère. Enfin
+`Artifact` avec le `file_path` local **et** l'`url` — sans `url`, tu crées un
+doublon. Pas de `favicon`, pas de nouveau titre, `label` : `<fiche> faite`.
+Échec : une ligne, et continue.
 
 **Ne touche pas à la feuille de route** : elle ne bouge qu'à l'ouverture et à la
 clôture d'un chantier.
