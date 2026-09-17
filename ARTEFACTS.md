@@ -88,7 +88,8 @@ première session interrompue. `/vlp:check` compare les deux quand on doute.
 
 La feuille de route non plus : `vlp.py feuille` réécrit le chantier en cours,
 la TODO et les lettres depuis `CHANTIER.md` et le fichier d'état ; `vlp.py
-clore` y ajoute la ligne d'un chantier clos et le total cumulé. Leurs options
+clore` y ajoute la ligne d'un chantier clos et le total cumulé, et rend visible
+la `ZONE:bilan` de la page du chantier. Leurs options
 sont dans la docstring du script.
 
 ## Le budget de contexte

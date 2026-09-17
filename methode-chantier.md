@@ -46,9 +46,9 @@ fiche (mesures au journal du fichier d'état du kit, chantier N).
 
 **3. Clôture.** Elle est décrite dans `cloture.md` à la racine du kit, que
 `/vlp:tache`, `/vlp:enchainer` et `/vlp:chantier` lisent au moment de clore :
-cinq écritures — l'en-tête **CLOS**, les quatre lignes de `CHANTIER.md`, le
-bilan daté dans le fichier d'état, le routage de `CLAUDE.md`, et les deux pages
-republiées. Un fichier de fiches clos ne se rejoue pas : il ne sert plus qu'à
+le bilan daté dans le fichier d'état, puis `vlp.py clore` pour tout ce qui s'en
+déduit (`CLOS`, `CHANTIER.md`, index, `CLAUDE.md`, pages locales), et les deux
+pages republiées. Un fichier de fiches clos ne se rejoue pas : il ne sert plus qu'à
 relire un socle d'API quand une fiche l'y renvoie.
 
 Un chantier peut aussi se clore **inachevé** : les fiches non jouées y sont

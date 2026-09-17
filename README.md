@@ -138,7 +138,7 @@ scripts/                   LA MÉCANIQUE — Python sans dépendance, zéro appe
   vlp.py                   carte, extraire, socle, valider, page… (docstring)
   mesure-tokens.py         le coût en tokens d'une session, en comptes bruts
 methode-chantier.md        LA DOCTRINE, et où vit quoi — lue depuis le kit, jamais recopiée
-cloture.md                 les cinq écritures d'une clôture, décrites une fois
+cloture.md                 les quatre temps d'une clôture, décrits une fois
 enchainement.md            le contrat de retour d'une fiche enchaînée, décrit une fois
 ARTEFACTS.md               les deux pages publiées : nommage, URL, budget
 templates/                 LES GABARITS — instanciés dans un projet

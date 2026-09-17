@@ -139,8 +139,9 @@ passe de 0 à 1 dans `CLAUDE.md`, et un cas de date différente est testé.
 ---
 
 <!-- FICHE:O5 -->
-## O5 [ ] — Brancher dans `/vlp:chantier` et `cloture.md`, mesurer l'après
+## O5 [x] — Brancher dans `/vlp:chantier` et `cloture.md`, mesurer l'après
 
+**Session** : 07062717-6d3e-4d77-9da9-1f32d8b26c1e
 **Dépend de** : `O2`, `O4`.
 **Fichiers** : `skills/chantier/SKILL.md` (étapes 5 bis et 6), `cloture.md` (étapes 2 à 4), `ARTEFACTS.md`, `.claude-plugin/plugin.json`.
 

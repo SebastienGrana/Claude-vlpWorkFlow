@@ -3,9 +3,9 @@
 > Lu par `/vlp:tache` (étape 7), par `/vlp:enchainer` (étape 5) et par
 > `/vlp:chantier` (étape 0 ter), qui l'appliquent sans la réécrire.
 
-# Clore un chantier — les cinq écritures, dans cet ordre
+# Clore un chantier — les quatre temps, dans cet ordre
 
-Une clôture qui s'arrête au milieu laisse un projet qui ment. Si l'une des cinq
+Une clôture qui s'arrête au milieu laisse un projet qui ment. Si l'un des quatre
 échoue, **dis laquelle et où tu t'es arrêté** : la reprise saura quoi finir.
 
 Des fiches restent non cochées (clôture décidée, pas atteinte) : elles sont
@@ -29,38 +29,29 @@ Retire la ligne du chantier de la TODO, ou reformule-la s'il en reste.
 Une piste qui a échoué pour une raison qui **vaut au-delà de ce chantier** va
 ici aussi : c'est le seul endroit que la prochaine session lira.
 
-## 2. Le fichier de fiches, `CHANTIER.md` et la feuille de route locale — un appel
+## 2. Tout ce qui se déduit — un appel
 
 ```bash
-sh "${CLAUDE_PLUGIN_ROOT}/scripts/vlp" clore . --livre "<ce qu'il a livré, une ligne>" --tokens <total brut de l'étape 1> --abandon "<fiches abandonnées et pourquoi>"
+sh "${CLAUDE_PLUGIN_ROOT}/scripts/vlp" clore . --livre "<ce qu'il a livré, une ligne>" --tokens <total brut de l'étape 1> --abandon "<fiches abandonnées et pourquoi>" --surpris "<ce qui a surpris, une ligne>" --resume "<ce qu'il a livré, en quelques mots>"
 ```
 
 Sans total, pas de `--tokens` ; sans abandon, pas de `--abandon`. Le script
-pose `**CLOS**`, remet les deux lignes de `CHANTIER.md` à `aucun`, ajoute la
-ligne des clos avec l'URL et la lettre, puis écrit la feuille de route locale
-(ligne des clos, total cumulé, chantier en cours, TODO de l'étape 1). Lis les
-lignes `FEUILLE` et `CLOS` ; une `GARDE:` dit ce qui n'est pas écrit.
+pose `**CLOS**` et `**Fait.**` dans le fichier de fiches ; remet les deux lignes
+de `CHANTIER.md` à `aucun` et ajoute la ligne des clos ; passe à « clos » les
+lignes de l'index et du routage de `CLAUDE.md`, et prolonge sa section « Où on
+en est » par `--resume` ; rend visible la `ZONE:bilan` de la page du chantier ;
+puis écrit la feuille de route locale (ligne des clos, total cumulé, chantier
+en cours, TODO de l'étape 1). Lis les lignes `FEUILLE` et `CLOS` ; une `GARDE:`
+dit ce qui n'est pas écrit — écris-le alors à la main.
 
-## 3. `CLAUDE.md`
+## 3. L'artefact du chantier
 
-La ligne de routage du chantier dit désormais **clos**. Un routage qui envoie
-vers un chantier clos coûte une session entière.
+Déjà écrit à l'étape 2 : `Artifact`, `action: "read"` sur son `url` (sans
+lecture, la republication est refusée), puis republication : `file_path` local
+**et** `url`, pas de `favicon`, `label` : `clos`. Des fiches abandonnées y
+restent **non faites**.
 
-## 4. L'artefact du chantier
-
-Lire, réécrire, republier :
-
-- `Artifact`, `action: "read"`, son `url` (la lecture est imposée : sans elle
-  la republication est refusée) ;
-- `ZONE:bilan` rendue visible — retire son `hidden` — avec la date, ce que le
-  chantier a livré, ce qui a surpris ;
-- `ZONE:blocage` remise en `hidden` ;
-- les fiches abandonnées, s'il y en a, laissées **non faites** et dites comme
-  telles ;
-- republication : `file_path` local **et** `url`, pas de `favicon`,
-  `label` : `clos`.
-
-## 5. La feuille de route
+## 4. La feuille de route
 
 Déjà écrite à l'étape 2 : `action: "read"` sur son `url` (« **artefact feuille
 de route** » de `CHANTIER.md`), puis republication du fichier local avec cette `url`,
@@ -76,7 +67,7 @@ le suivant.
 
 ## Commit et push — jamais sans confirmation
 
-Une fois les cinq écritures faites, propose un `git commit` (message résumant
+Une fois les quatre temps faits, propose un `git commit` (message résumant
 le chantier clos) puis un `git push` — deux gestes irréversibles, deux
 questionnaires séparés. Ne commit ni ne push sans confirmation explicite à
 chaque fois, même si l'utilisateur a déjà confirmé pour un chantier

@@ -226,37 +226,28 @@ ni le socle d'API, ni de code. Lis la ligne `PAGE … · N lignes` : une `GARDE:
 dit une page au-delà du seuil, ou déjà existante — `--creer` n'écrase rien.
 
 Publie avec `favicon` `🧱`, un `title` `<Projet> — <Nom du chantier>` et pour
-`description` `Les fiches de <chantier>, et où on en est.` Puis **recopie
-l'URL** dans la ligne « **artefact du chantier** » de `CHANTIER.md`.
-
-Mets enfin la feuille de route à jour. Écris d'abord la ligne « **fichier de
-fiches courant** » (étape 6), puis — `--todo` seulement si le chantier a un
-numéro dans la TODO :
-
-```bash
-sh "${CLAUDE_PLUGIN_ROOT}/scripts/vlp" feuille . --todo <N>
-```
-
-Lis la ligne `FEUILLE`. `action: "read"` sur l'URL de la feuille de route
-(`CHANTIER.md`), puis republie le fichier local avec cette `url`, sans
-`favicon`, et `label` `<chantier> ouvert`.
-
-Si une publication échoue, dis-le en une ligne et continue : le chantier est
-cadré, c'est ce qui compte. La ligne de `CHANTIER.md` reste alors à « aucun ».
+`description` `Les fiches de <chantier>, et où on en est.`
 
 ## 6. Déclarer, puis rendre la main
 
-Quatre écritures, le jour même — un index qui ment coûte plus cher que le
-fichier lui-même :
+Les écritures du jour — un index qui ment coûte plus cher que le fichier
+lui-même — sont un appel : `CHANTIER.md` (fichier de fiches courant et URL de
+l'artefact), la ligne d'index, la ligne de routage de `CLAUDE.md` ; puis la
+feuille de route locale, `--todo` seulement si le chantier a un numéro dans la TODO :
 
-1. une ligne dans l'index du dossier de contexte ;
-2. une ligne dans la table de routage de `CLAUDE.md` ;
-3. la ligne « **fichier de fiches courant** » de `CHANTIER.md`, avec la plage
-   de fiches (`R1..R5`) ;
-4. la ligne « **artefact du chantier** » de `CHANTIER.md`, avec l'URL rendue.
+```bash
+sh "${CLAUDE_PLUGIN_ROOT}/scripts/vlp" ouvrir . --fiches "<contexte>/<NN>-<chantier>.md" --titre "<Nom du chantier>" --artefact <URL> && sh "${CLAUDE_PLUGIN_ROOT}/scripts/vlp" feuille . --todo <N>
+```
 
-Et une cinquième **si l'étape 4 bis a dû chercher le kit** : sa ligne
-« **kit** » dans `CHANTIER.md`, avec le chemin trouvé.
+Publication échouée : pas de `--artefact`, la ligne reste à « aucun ». Lis les
+lignes `OUVERT` et `FEUILLE` ; une `GARDE:` dit ce qui n'est pas écrit — écris-le
+à la main. Puis `action: "read"` sur l'URL de la feuille de route
+(`CHANTIER.md`), et republie le fichier local avec cette `url`, sans `favicon`,
+`label` `<chantier> ouvert`. Si une publication échoue, dis-le en une ligne et
+continue : le chantier est cadré, c'est ce qui compte.
+
+**Si l'étape 4 bis a dû chercher le kit**, écris aussi sa ligne « **kit** »
+dans `CHANTIER.md`, avec le chemin trouvé.
 
 Puis **mesure ce que chaque fiche va coûter**, et annonce-le — un chiffre tient
 mieux qu'une règle :
