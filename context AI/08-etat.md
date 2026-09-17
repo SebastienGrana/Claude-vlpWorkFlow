@@ -39,6 +39,8 @@
   par `vlp.py etat`, `/vlp:check` voit les renvois morts ; le 10 est retiré.
 - **2026-09-17** — chantier K clos (TODO n° 8) : les cinq commandes vivent dans `skills/` (v3.2.0) ;
   le 8 est retiré, 9 ne dépend plus de rien.
+- **2026-09-17** — chantier N clos (TODO n° 9) : `/vlp:enchainer` réparé par la skill forkée `vlp:jouer` (v3.3.0) ;
+  le 9 est retiré.
 
 ## La TODO ordonnée — les chantiers possibles
 
@@ -48,7 +50,6 @@ ordonné par ce qui débloque le reste. Le détail de chacun est dans
 
 | # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |
 |---|---|---|---|---|
-| 9 | `/vlp:enchainer` : réparer ou retirer | chef ≤ 3 tours par fiche via la skill forkée (`context: fork` + `agent: vlp:fiche`), ou suppression — aux chiffres de 2 | 3 fiches | rien |
 | 11 | Evals sous WSL2 | Jouer les cas d'eval qui exigent Bash (`tache`, `chantier`, sans doute `init`) : Windows n'a pas de sandbox, `claude plugin eval` les refuse ; il faut initialiser Ubuntu sous WSL2, y installer Claude Code, `bubblewrap` et `socat`, s'y connecter, et lancer la suite depuis Linux | 2 fiches | 6 |
 
 ## Journal des décisions
@@ -439,3 +440,17 @@ de ce que le code dit déjà.
   3 tours, 2 `Skill` ; sous-agents 7 et 7 tours (9 et 10 appels) ; 2/2 `FAITE` ; 321 021 tokens, 0,14 $ —
   `${CLAUDE_PLUGIN_ROOT}` et `` !`…` `` **substitués dans une skill de plugin** (trace : `Kit : C:/Users/znorr/.claude/skills/vlp`,
   `PROJET=C:…`). Plugin 3.3.0 ; `validate` : marketplace passe, `plugin.json` 1 avertissement voulu.
+- **2026-09-17** — Chantier N **clos**. Livré : `/vlp:enchainer` **réparé** — skill interne `vlp:jouer`
+  (`context: fork`, `agent: vlp:fiche`, `background: false`, `user-invocable: false`) qui injecte la carte ; le chef
+  fait un `Skill` par fiche et ne lit ni socle ni fiche (`enchainer` 145 → 105 lignes) ; `maxTurns` 8 → 25 ; un
+  compte rendu sans statut vaut `RETOUR` (`enchainement.md`) ; doc alignée (renvois périmés 4 → 0, `vlp.py renvois`
+  44 nommés · 0 absent) ; plugin 3.3.0 ; evals Windows 3/3 (check 21, hook 2, init 26 tours ; 0,62 $). Mesuré en
+  headless : chef 3 tours pour 2 fiches, 2/2 `FAITE`, 0,14 $. Laissé ouvert : `background: false` n'est prouvé qu'en
+  `-p`, où une skill forkée attend toujours — à rejouer en session interactive après `/reload-plugins`, sur un vrai
+  chantier ; un workspace (`VOISIN=`) n'est pas joué par `vlp:jouer` ; l'eval `init` a pris 26 tours pour
+  `max_turns: 25` et passe. Constats qui valent au-delà de N : une skill de plugin substitue `${CLAUDE_PLUGIN_ROOT}`
+  et `` !`…` `` (prouvé par trace) ; en `-p`, un `cat` du kit hors du dossier de travail est bloqué — `--add-dir` ;
+  les transcripts d'un bac à sable du scratchpad dépassent 260 caractères, Python ne les ouvre qu'après copie.
+  Cadrage, N1 à N3 et clôture dans une seule session, à la demande. Total brut mesuré au bilan : 45 tours, 54 appels,
+  input 92, output 42 158, cache_creation 163 490, cache_read 6 285 334, **total 6 491 074 tokens**, 5,83 $, plus
+  0,56 $ de sondes headless (3 lancements) et 0,62 $ d'evals.

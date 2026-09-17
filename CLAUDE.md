@@ -26,7 +26,8 @@ https://github.com/SebastienGrana/Claude-vlpWorkFlow — cloné et utilisé en g
   puis `claude plugin eval` : 3 cas sous Windows, `validate` avant commit (chantier V) ;
   puis la doctrine en trois docs, chaque seuil dans `vlp.py` (chantier D) ;
   puis `/vlp:init` sans renvoi mort, `vlp.py etat` et `renvois` (chantier I) ;
-  puis les commandes dans `skills/<nom>/SKILL.md` (chantier K).
+  puis les commandes dans `skills/<nom>/SKILL.md` (chantier K) ;
+  puis `/vlp:enchainer` réparé par la skill forkée `vlp:jouer` (chantier N).
 
 ## Quatre règles non négociables
 
@@ -66,7 +67,7 @@ et seulement dans ce cas, ouvrir l'index.
 | savoir où vit quoi dans un projet équipé | `methode-chantier.md`, section « Où vit quoi » |
 | toucher aux pages publiées | `ARTEFACTS.md`, puis le gabarit dans `templates/` |
 | ouvrir un chantier, ou le découper en fiches | **lancer `/vlp:chantier`** |
-| jouer une fiche du chantier N (`/vlp:enchainer` : réparer ou retirer) | `context AI/22-fork.md` — par `/vlp:tache` |
+| relire le chantier N (`/vlp:enchainer` réparé par `vlp:jouer`) | `context AI/22-fork.md` — chantier **clos** |
 | relire le chantier K (migrer `commands/` → `skills/`) | `context AI/21-skills.md` — chantier **clos** |
 | relire le chantier I (un projet neuf qui ne ment pas) | `context AI/20-init.md` — chantier **clos** |
 | relire le chantier D (fusionner la doctrine) | `context AI/19-doctrine.md` — chantier **clos** |

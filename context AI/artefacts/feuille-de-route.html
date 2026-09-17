@@ -68,8 +68,8 @@
     <!-- ZONE:encours — remplacé à chaque ouverture, remis à « aucun » à chaque clôture.
          /tache n'y touche pas : l'avancement fiche par fiche est sur la page du chantier. -->
     <div class="encours">
-      <div class="titre">/vlp:enchainer : réparer ou retirer</div>
-      <div>Fiches <span class="mono">N1–N3</span> · <a href="https://claude.ai/artifact/PF7Ud3UWBNAdytYTs1yV7D">la page du chantier</a></div>
+      <div class="titre">Aucun chantier ouvert</div>
+      <div>Lancer <span class="mono">/vlp:chantier</span> pour en ouvrir un.</div>
     </div>
   </section>
 
@@ -82,7 +82,6 @@
           <tr><th>#</th><th>Chantier</th><th>Ce qu'il apporte</th><th>Coût</th><th>Dépend de</th></tr>
         </thead>
         <tbody>
-          <tr><td class="mono">9</td><td><span class="mono">/vlp:enchainer</span> : réparer ou retirer <span class="badge" data-etat="cours">en cours</span></td><td>Chef ≤ 3 tours par fiche via la skill forkée (context: fork + vlp:fiche), ou suppression — aux chiffres de 2</td><td class="mono">3 fiches</td><td class="mono">—</td></tr>
           <tr><td class="mono">11</td><td>Evals sous WSL2</td><td>Jouer les tests qui exigent Bash (tache, chantier) : Windows n'a pas de sandbox ; initialiser Ubuntu sous WSL2, y installer Claude Code, bubblewrap et socat, s'y connecter, lancer la suite depuis Linux</td><td class="mono">2 fiches</td><td class="mono">6</td></tr>
         </tbody>
       </table>
@@ -98,6 +97,13 @@
           <tr><th>Chantier</th><th>Fiches</th><th>Clos le</th><th>Tokens</th><th>Ce qu'il a livré</th></tr>
         </thead>
         <tbody>
+          <tr>
+            <td><a href="https://claude.ai/artifact/PF7Ud3UWBNAdytYTs1yV7D">/vlp:enchainer : réparer ou retirer</a> <span class="badge" data-etat="clos">clos</span></td>
+            <td class="mono">N1–N3</td><td class="mono">2026-09-17</td>
+            <td class="mono">≈6,5M (6 491 074)</td>
+            <td>/vlp:enchainer réparé par la skill forkée vlp:jouer : un appel par fiche, le chef ne lit ni socle ni fiche ;
+              plugin 3.3.0 ; evals Windows 3/3 (5,83 $, plus 0,56 $ de sondes et 0,62 $ d'evals).</td>
+          </tr>
           <tr>
             <td><a href="https://claude.ai/artifact/SnRg17z3ojPU3jTk9pQpD7">Migrer commands/ → skills/</a> <span class="badge" data-etat="clos">clos</span></td>
             <td class="mono">K1–K3</td><td class="mono">2026-09-17</td>
@@ -193,7 +199,7 @@
           </tr>
         </tbody>
         <tfoot>
-          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈123,6M (123 625 829)</strong></td><td></td></tr>
+          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈130,1M (130 116 903)</strong></td><td></td></tr>
         </tfoot>
       </table>
     </div>

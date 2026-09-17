@@ -4,10 +4,12 @@
 
 # Chantier N — `/vlp:enchainer` : réparer ou retirer
 
+**CLOS** le 2026-09-17. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
 **À quoi il sert.** Le chef de `/vlp:enchainer` relit tout son contexte à chaque appel : il coûte plus que
 les fiches jouées à la main. On mesure la skill forkée, puis on répare ou on retire — aux chiffres.
 
-**Fait.** Rien. Ouvert le 2026-09-17, cadré en 3 fiches, `N1` à jouer.
+**Fait.** N1 à N3 : réparé par la skill forkée `vlp:jouer`.
 
 ## Le socle commun
 
