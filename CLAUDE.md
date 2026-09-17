@@ -74,6 +74,7 @@ et seulement dans ce cas, ouvrir l'index.
 | savoir où vit quoi dans un projet équipé | `methode-chantier.md`, section « Où vit quoi » |
 | toucher aux pages publiées | `ARTEFACTS.md`, puis le gabarit dans `templates/` |
 | ouvrir un chantier, ou le découper en fiches | **lancer `/vlp:chantier`** |
+| jouer une fiche du chantier O (ouvrir et clore par script) | `context AI/30-ouvrir.md` — chantier **ouvert**, par `/vlp:tache O<n>` |
 | relire le chantier F (la feuille de route par script) | `context AI/29-feuille.md` — chantier **clos** |
 | relire le chantier X (le kit sans `sh`, sondé puis renoncé) | `context AI/28-sans-sh.md` — chantier **clos** |
 | relire le chantier W (evals sous WSL2) | `context AI/27-wsl.md` — chantier **clos** |

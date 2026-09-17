@@ -62,6 +62,7 @@ ordonné par ce qui débloque le reste. Le détail de chacun est dans
 
 | # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |
 |---|---|---|---|---|
+| 18 | Ouvrir et clore par script | Après F, l'ouverture et la clôture gardent des écritures mécaniques à la main : index, routage et « Où on en est » de `CLAUDE.md`, lignes de `CHANTIER.md`, « Fait. », `ZONE:bilan`. `vlp.py ouvrir` et `clore` étendu les écrivent (`30-ouvrir.md`) | 5 fiches | — |
 | 16 | Le kit sans `sh` | Faire tourner le kit sous Windows sans Git Bash. Mesuré (chantier X, `28-sans-sh.md`) : hook = paire exec `python3` + `py` (une erreur non bloquante à chaque écriture, partout) ; carte injectée = `py … carte \|\| python3 … carte` (propre sous pwsh 7, Git Bash et Ubuntu). Reste avant tout gain visible : les 17 appels `sh` du corps des skills et de `cloture.md`, les allowed-tools (sondes faites en `bypassPermissions`), PowerShell 5.1 (refuse `\|\|`), macOS, Python du Store seul | 3 fiches | — |
 
 ## Journal des décisions
