@@ -69,9 +69,9 @@
     <p>Trois docs à la racine (README, méthode, ARTEFACTS) ; chaque seuil dans vlp.py seul, chaque règle dans la méthode seule — comptes bruts avant/après, evals 3/3</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">6 fiches · 1 faite · en cours : D2</p>
+    <p class="mono" style="margin-top:.5rem">6 fiches · 2 faites · en cours : D3</p>
   </header>
 
   <section>
@@ -83,14 +83,14 @@
         <span class="etat">faite</span>
         <span class="note">test-vlp.py OK, verifier() 45 → 47 ; grep ARTEFACTS dans vlp.py : 0 ligne ; SEUIL_SOCLE = 80 avertit</span>
       </li>
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">D2</span><span class="titre">Fondre CONVENTION-FICHIERS dans la méthode</span>
-        <span class="etat">en cours</span>
-        <span class="note">CONVENTION-FICHIERS fondu dans la méthode, puis supprimé ; dépend de D1</span>
+        <span class="etat">faite</span>
+        <span class="note">grep CONVENTION-FICHIERS hors context AI/archive/exemples : rien ; méthode 202 lignes (127 + 121 = 248 avant) ; tests OK</span>
       </li>
-      <li class="fiche">
+      <li class="fiche" data-etat="encours">
         <span class="id">D3</span><span class="titre">Fondre INSTALLATION et le TLDR dans le README</span>
-        <span class="etat">à faire</span>
+        <span class="etat">en cours</span>
         <span class="note">INSTALLATION et le TLDR fondus dans le README, puis supprimés</span>
       </li>
       <li class="fiche">

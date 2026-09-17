@@ -60,7 +60,7 @@ et seulement dans ce cas, ouvrir l'index.
 | modifier une commande | `commands/<nom>.md` — celle-là seule |
 | modifier le sous-agent ou le contrat de `/vlp:enchainer` | `agents/fiche.md`, ou `enchainement.md` |
 | changer une règle de méthode | `methode-chantier.md`, ou `cloture.md` pour la clôture |
-| savoir où vit quoi dans un projet équipé | `CONVENTION-FICHIERS.md` |
+| savoir où vit quoi dans un projet équipé | `methode-chantier.md`, section « Où vit quoi » |
 | toucher aux pages publiées | `ARTEFACTS.md`, puis le gabarit dans `templates/` |
 | ouvrir un chantier, ou le découper en fiches | **lancer `/vlp:chantier`** |
 | jouer une fiche du chantier D (fusionner la doctrine) | `context AI/19-doctrine.md` — **en cours**, via `/vlp:tache D<n>` |

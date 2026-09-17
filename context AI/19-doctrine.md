@@ -95,7 +95,7 @@ affiché ; `grep -n "ARTEFACTS" scripts/vlp.py` ne rend plus le seuil.
 ---
 
 <!-- FICHE:D2 -->
-## D2 [ ] — Fondre CONVENTION-FICHIERS dans la méthode
+## D2 [x] — Fondre CONVENTION-FICHIERS dans la méthode
 
 **Dépend de** : `D1`.
 **Fichiers** : methode-chantier.md, CONVENTION-FICHIERS.md (supprimé), CLAUDE.md, context AI/00-INDEX.md.

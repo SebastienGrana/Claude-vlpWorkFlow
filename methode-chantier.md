@@ -1,6 +1,7 @@
 > **QUAND LIRE** : on ouvre un nouveau chantier, on découpe un chantier en
-> fiches, ou on se demande comment une fiche est faite. Pas besoin de ce
-> fichier pour *exécuter* une fiche : `/vlp:tache` est autoportante.
+> fiches, on se demande comment une fiche est faite, ou où vit quoi dans un
+> projet équipé. Pas besoin de ce fichier pour *exécuter* une fiche :
+> `/vlp:tache` est autoportante.
 
 # Mener un chantier — la méthode qui économise le contexte
 
@@ -9,6 +10,21 @@ d'un seul tenant, il coûte cher pour une raison mécanique : une session relit
 tout son passé à chaque tour, donc la fin d'un long chantier se paye au prix de
 son début. La parade : **un chantier s'écrit une fois en fiches, puis chaque
 fiche s'exécute dans sa propre session.**
+
+## Deux règles qui valent partout
+
+Elles sont écrites ici, et nulle part ailleurs : le reste du kit y renvoie.
+
+- **Une règle vit à un seul endroit — un nombre aussi.** Ailleurs, on pointe ;
+  on ne recopie jamais. Une doctrine recopiée existe en plusieurs exemplaires,
+  et une correction n'en atteint aucun : c'est ainsi que le kit a divergé sur
+  six copies sans qu'aucune alarme ne sonne. Un seuil vit dans
+  `scripts/vlp.py`, qui avertit quand il est dépassé ; la doc dit « le seuil de
+  `vlp.py` » et n'écrit pas le chiffre.
+- **Les comptes bruts s'affichent à côté du verdict.** « OK », « plus court »,
+  « moins cher » ne se croient pas seuls : on montre les nombres qui les
+  fondent, avant et après. Un instrument muet rend son propre échec
+  indiagnosticable.
 
 ## Les trois temps
 
@@ -28,11 +44,12 @@ règle autrement — chaque fiche dans un sous-agent neuf, jusqu'au premier arr�
 — mais son chef relit tout son contexte à chaque appel : mesuré, l'ensemble
 coûte plus cher en tokens que les fiches jouées à la main.
 
-**3. Clôture.** Elle est décrite **à un seul endroit**, `cloture.md` à la racine
-du kit, que `/vlp:tache`, `/vlp:enchainer` et `/vlp:chantier` lisent au moment de clore : cinq
-écritures — l'en-tête **CLOS**, les quatre lignes de `CHANTIER.md`, le bilan
-daté dans le fichier d'état, le routage de `CLAUDE.md`, et les deux pages
-republiées. Un fichier de fiches clos ne se rejoue pas.
+**3. Clôture.** Elle est décrite dans `cloture.md` à la racine du kit, que
+`/vlp:tache`, `/vlp:enchainer` et `/vlp:chantier` lisent au moment de clore :
+cinq écritures — l'en-tête **CLOS**, les quatre lignes de `CHANTIER.md`, le
+bilan daté dans le fichier d'état, le routage de `CLAUDE.md`, et les deux pages
+republiées. Un fichier de fiches clos ne se rejoue pas : il ne sert plus qu'à
+relire un socle d'API quand une fiche l'y renvoie.
 
 Un chantier peut aussi se clore **inachevé** : les fiches non jouées y sont
 dites **abandonnées**, jamais cochées. Mieux vaut un chantier clos honnête
@@ -51,17 +68,75 @@ tranche, pas la mémoire de la session.
 
 `/vlp:check` vérifie cet accord sans rien écrire, quand on a un doute.
 
+## Où vit quoi — les six familles, et rien d'autre
+
+| Fichier | À la racine ? | Qui le lit | Longueur visée |
+|---|---|---|---|
+| `CLAUDE.md` | oui | **toute** session, en entier, en premier | 60 lignes |
+| `CHANTIER.md` | oui | `/vlp:chantier`, `/vlp:tache` et `/vlp:enchainer`, en entier | 30 lignes |
+| `<contexte>/00-INDEX.md` | non | seulement quand le routage de `CLAUDE.md` ne répond pas | 40 lignes |
+| le **fichier d'état** | non | reprise à froid, choix du prochain chantier | libre |
+| les **fichiers de fiches**, un par chantier | non | `/vlp:tache` et `/vlp:enchainer`, **par plages**, jamais en entier | libre |
+| `<contexte>/artefacts/*.html` | non | publié pour l'utilisateur ; relu par `/vlp:tache` à chaque fiche, par `/vlp:enchainer` une fois par lancement | le seuil de `vlp.py` |
+
+Le dossier de contexte s'appelle `context AI/` par défaut. Son nom importe peu ;
+ce qui compte est qu'il soit **un seul dossier**, à plat, numéroté.
+
+**Les numéros ne sont pas la convention — les libellés le sont.** L'état
+s'appelle `08-etat.md` dans un projet et `10-etat.md` dans un autre. Ce qui ne
+varie pas, ce sont les libellés en gras de `CHANTIER.md` — « **fichier
+d'état** », « **méthode** », « **fichier de fiches courant** » — que les
+commandes lisent tels quels : elles lisent la ligne, et la ligne dit le nom.
+
+**Le moteur est dans le kit, les données sont dans le projet.** Ne descendent
+jamais dans un projet : `commands/`, `agents/`, `hooks/`, `scripts/`, cette
+méthode, `cloture.md`, `enchainement.md` et les gabarits de `templates/` —
+instanciés, pas recopiés. Un projet équipé avant cette règle garde sa copie de
+la méthode — sa ligne « méthode » la nomme ; on cesse seulement d'en fabriquer.
+
+**Cinq règles de rangement :**
+
+1. **Un fichier = un sujet.** Le voisin d'un fichier utile n'est pas utile ; il
+   n'est que du volume. Un fichier qui répond à deux questions se scinde. Les
+   artefacts y font exception : ce sont des **vues**, pas du contexte, et une
+   session ne s'en sert jamais pour se renseigner.
+2. **Chaque fichier s'ouvre sur une ligne « QUAND LIRE »**, qui décrit la
+   *tâche* justifiant l'ouverture, pas le contenu.
+3. **`CLAUDE.md` porte une table de routage « tâche → fichier ».** Elle remplace
+   la lecture de l'index dans presque tous les cas ; l'index n'est que le filet.
+4. **Ce qui s'ouvre se déclare le jour même** : numéro, ligne d'index, ligne de
+   routage. Un index qui ment coûte plus cher que le fichier lui-même.
+5. **Rien de ce qui ne sert pas** : pas de résumé de ce que le code dit déjà
+   (une table `fichier:ligne` vaut mieux qu'une paraphrase), pas d'historique
+   narratif — le journal prend une ligne par décision *imprévue*, datée ; le
+   reste est dans git.
+
+**Numérotation.** Un nombre à deux chiffres, attribué dans l'ordre de création,
+jamais renuméroté : les journaux et les vieux commits citent les numéros. `00`
+est l'index ; les suffixes `20a`, `20b` éclatent un fichier trop gros sans
+toucher aux voisins. Le **préfixe de fiche** d'un chantier — `R`, `N`, `U`… —
+est indépendant du numéro et ne se réemploie jamais : `CHANTIER.md` garde les
+lettres prises. `/vlp:chantier` en propose une, l'utilisateur tranche ; le seul
+refus possible est « déjà prise », en disant par quel chantier.
+
+**Ce qui ne part pas dans git.** Le dossier de contexte — artefacts compris —,
+`CLAUDE.md` et `CHANTIER.md` décrivent une manière de travailler, pas le
+produit ; beaucoup de projets les gardent hors du dépôt. Le choix se prend
+**une fois**, et `.gitignore` nomme alors les trois, pas deux sur trois.
+
 ## Le fichier de fiches
 
 Un chantier = un fichier du dossier de contexte, numéroté comme les autres et
-déclaré dans l'index et dans la table de `CLAUDE.md` **le jour même**.
+déclaré le jour même : l'index, le routage de `CLAUDE.md`, et les lignes
+« fichier de fiches courant » et « artefact du chantier » de `CHANTIER.md`.
 
 Il s'ouvre sur trois choses, et rien de plus :
 
 - **L'état du chantier** en deux lignes : à quoi il sert, ce qui est fait.
 - **Le socle commun** : les API, invariants et noms que *toutes* les fiches
-  utilisent, dans une section délimitée que `/vlp:tache` lit d'un seul `sed`. Ce
-  qui est ici n'est pas répété dans les fiches.
+  utilisent, dans une section délimitée que `/vlp:tache` extrait d'un appel. Ce
+  qui est ici n'est pas répété dans les fiches ; au-delà du seuil de `vlp.py`,
+  `valider` avertit.
 - **L'ordre des fiches** : la liste, et qui dépend de qui.
 
 Puis les fiches, séparées par `---`, **chacune encadrée de ses marqueurs** :
@@ -82,8 +157,9 @@ le hook du plugin (`hooks/hooks.json`) valide un fichier de fiches à chaque
 
 ## Anatomie d'une fiche
 
-Une fiche tient en **~20 lignes**. Si elle en fait 50, c'est deux fiches.
-Le squelette complet est dans `<kit>/templates/context AI/fichier-de-fiches.md`.
+Une fiche tient en **~20 lignes** ; au-delà du seuil de `vlp.py`, c'est deux
+fiches, et `valider` avertit. Le squelette complet est dans
+`<kit>/templates/context AI/fichier-de-fiches.md`.
 
 Quatre exigences, apprises en cassant :
 
@@ -93,8 +169,7 @@ Quatre exigences, apprises en cassant :
    maquette citée ; tant qu'une mesure n'existe pas, la fiche demande la
    mesure, elle n'annonce pas son résultat.
 3. **Un critère de fin observable**, sinon la fiche ne peut pas être cochée. Il
-   affiche ses comptes bruts : un instrument muet rend son propre échec
-   indiagnosticable.
+   affiche ses comptes bruts (voir « Deux règles qui valent partout »).
 4. **Les fiches sont indépendantes autant que possible** ; les dépendances
    réelles sont écrites, pas devinées.
 

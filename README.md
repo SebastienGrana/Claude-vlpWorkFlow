@@ -69,10 +69,9 @@ agents/                    LES SOUS-AGENTS — chargés depuis ici, comme les co
 scripts/                   L'OUTIL DE MESURE — lit les transcripts, zéro appel modèle
   mesure-tokens.py         le coût en tokens d'une session, en comptes bruts
 archive/                   ce qui a servi et ne sert plus — gardé, pas supprimé
-methode-chantier.md        LA DOCTRINE — lue depuis le kit, jamais recopiée
+methode-chantier.md        LA DOCTRINE, et où vit quoi — lue depuis le kit, jamais recopiée
 cloture.md                 les cinq écritures d'une clôture, décrites une fois
 enchainement.md            le contrat de retour d'une fiche enchaînée, décrit une fois
-CONVENTION-FICHIERS.md     où vit quoi, et qui a le droit de l'ouvrir
 ARTEFACTS.md               les deux pages publiées : nommage, URL, budget
 INSTALLATION.md            la mise en place
 templates/                 LES GABARITS — instanciés dans un projet

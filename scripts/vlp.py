@@ -209,11 +209,8 @@ OUVRANT = re.compile(r"^<!-- FICHE:(\S+) -->$")
 CRITERE = "**Critère de fin**"
 CRITERE_VISUEL = re.compile(r"^\*\*Critère de fin\*\* \(visuel\)")
 CODE_EN_LIGNE = re.compile(r"`[^`]*`")
-# Le seuil vit dans methode-chantier.md (« Si elle en fait 50, c'est deux
-# fiches ») : ici, il n'est que cité.
+# Les seuils vivent ici ; la doc dit « le seuil de vlp.py » et n'écrit pas le chiffre.
 SEUIL_FICHE = 50
-# Le seuil vit dans methode-chantier.md (« Le socle fait au maximum 80 lignes ») :
-# ici, il n'est que cité.
 SEUIL_SOCLE = 80
 
 
@@ -272,7 +269,7 @@ def valider_lignes(lignes):
 
     if socle and len(socle) > SEUIL_SOCLE:
         debut_socle = next((i for i, l in enumerate(lignes) if l.startswith("## Le socle")), 1)
-        avert.append((debut_socle + 1, "socle : %d lignes, au-delà du seuil de methode-chantier.md (%d)"
+        avert.append((debut_socle + 1, "socle : %d lignes, au-delà du seuil de vlp.py (%d)"
                       % (len(socle), SEUIL_SOCLE)))
 
     for ident, debut, fin in fiches_:
@@ -294,7 +291,7 @@ def valider_lignes(lignes):
                 ecarts.append((j, "fiche %s : (visuel) hors de la ligne « %s (visuel) » — /vlp:enchainer ne s'y arrêtera pas"
                                % (ident, CRITERE)))
         if len(corps) > SEUIL_FICHE:
-            avert.append((debut + 1, "fiche %s : %d lignes, au-delà du seuil de methode-chantier.md (%d)"
+            avert.append((debut + 1, "fiche %s : %d lignes, au-delà du seuil de vlp.py (%d)"
                           % (ident, len(corps), SEUIL_FICHE)))
     return sorted(ecarts), avert, len(vus), len(socle)
 
