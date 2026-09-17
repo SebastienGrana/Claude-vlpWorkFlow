@@ -28,6 +28,7 @@ a l'air proche.
 | `13-tours.md` | on joue une fiche `T*` — chantier **clos** « Compter les tours, pondérer le coût », `T1..T5` |
 | `14-bugs.md` | on joue une fiche `B*` — chantier **clos** « Corriger les bugs de l'audit », `B1..B3` |
 | `15-reduire.md` | on joue une fiche `R*` — chantier **clos** « Réduire les tours de `/vlp:tache` », `R1..R4` |
+| `16-script.md` | on joue une fiche `S*` — chantier **en cours** « Un script `vlp.py` pour la mécanique », `S1..S5` |
 
 ## Le kit lui-même — à la racine, hors de ce dossier
 
