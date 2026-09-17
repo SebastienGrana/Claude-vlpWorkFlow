@@ -431,3 +431,11 @@ de ce que le code dit déjà.
   0,03 $ chacun) ; **2 fiches cochées sur 2** ; 0,12 $. Total sonde 0,42 $. Surprise : S2 a atteint `maxTurns: 8` après sa
   coche, sans compte rendu — le chef reçoit « Skill execution completed » et le lit comme un statut. Les transcripts d'un
   bac à sable du scratchpad dépassent 260 caractères : Python ne les ouvre qu'après copie.
+- **2026-09-17** — N2 : `/vlp:enchainer` **réparé** — seuil chef ≤ 3 tours par fiche, mesuré en N1 à 3 tours pour
+  2 fiches. Une skill forkée ne boucle pas : nouvelle skill `vlp:jouer` (`context: fork`, `agent: vlp:fiche`,
+  `background: false`, `user-invocable: false`) qui injecte la carte ; le chef ne lit plus ni socle ni fiche, un
+  `Skill` par fiche. `maxTurns` 8 → 25 (D1 : 24 tours en trois relances). Lignes : `enchainer` 145 → 105,
+  `fiche.md` 35 → 38, `enchainement.md` 14 → 14, `jouer` 0 → 31. Rejeu réel headless sur le bac à sable : chef
+  3 tours, 2 `Skill` ; sous-agents 7 et 7 tours (9 et 10 appels) ; 2/2 `FAITE` ; 321 021 tokens, 0,14 $ —
+  `${CLAUDE_PLUGIN_ROOT}` et `` !`…` `` **substitués dans une skill de plugin** (trace : `Kit : C:/Users/znorr/.claude/skills/vlp`,
+  `PROJET=C:…`). Plugin 3.3.0 ; `validate` : marketplace passe, `plugin.json` 1 avertissement voulu.

@@ -84,7 +84,7 @@ sous-agent, fiches cochées sur 2, coût total ≤ 1 $ — ou dit pourquoi la so
 ---
 
 <!-- FICHE:N2 -->
-## N2 [ ] — Réparer ou retirer `/vlp:enchainer`, aux chiffres de N1
+## N2 [x] — Réparer ou retirer `/vlp:enchainer`, aux chiffres de N1
 
 **Dépend de** : `N1`.
 **Fichiers** : `skills/enchainer/SKILL.md`, `agents/fiche.md`, `enchainement.md`, `.claude-plugin/plugin.json`.

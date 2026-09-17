@@ -1,6 +1,6 @@
 # Contrat de retour — fiche enchaînée
 
-Lu par `/vlp:enchainer` et l'agent `vlp:fiche`.
+Lu par `/vlp:enchainer` et l'agent `vlp:fiche`, que la skill `vlp:jouer` lance.
 
 L'agent `vlp:fiche` rend un compte rendu dont le **premier mot** est l'un des
 trois statuts suivants, et rien d'autre à la première ligne.
@@ -11,4 +11,4 @@ trois statuts suivants, et rien d'autre à la première ligne.
 
 **Arrêts imprévus** (rendent `RETOUR`) : décision que la fiche ne tranche pas,
 dépendance non cochée, permission refusée, fiche portant déjà un bloc
-Tentatives.
+Tentatives, compte rendu sans statut (plafond de tours atteint).
