@@ -76,7 +76,9 @@ Puis les fiches, séparées par `---`, **chacune encadrée de ses marqueurs** :
 Les deux titres `## Le socle commun` et `## L'ordre des fiches` se recopient à
 l'identique, et les marqueurs ne s'omettent pas : `/vlp:tache` extrait le socle et
 la fiche par eux. Un titre reformulé ou un marqueur manquant casse l'extraction
-**en silence** — et une extraction vide ressemble à une fiche vide.
+**en silence** — et une extraction vide ressemble à une fiche vide. C'est pourquoi
+le hook du plugin (`hooks/hooks.json`) valide un fichier de fiches à chaque
+écriture par `Write` ou `Edit`, et rend l'écart aussitôt.
 
 ## Anatomie d'une fiche
 

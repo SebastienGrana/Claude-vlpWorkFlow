@@ -135,8 +135,9 @@ reformulé.
 ---
 
 <!-- FICHE:H3 -->
-## H3 [ ] — Brancher le hook et alléger les commandes
+## H3 [x] — Brancher le hook et alléger les commandes
 
+**Session** : c6648728-7227-4c69-ba9a-24c6670987bd
 **Dépend de** : `H1`, `H2`.
 **Fichiers** : `hooks/hooks.json`, `commands/chantier.md`, `methode-chantier.md`,
 `CLAUDE.md` (règle 4 seulement), `context AI/08-etat.md` (journal) — et rien d'autre.

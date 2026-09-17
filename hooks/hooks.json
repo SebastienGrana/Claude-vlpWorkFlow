@@ -1,3 +1,15 @@
 {
-  "hooks": {}
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "PY=$(for p in python3 python; do \"$p\" -c \"\" 2>/dev/null && { echo \"$p\"; break; }; done); \"$PY\" \"${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py\" hook"
+          }
+        ]
+      }
+    ]
+  }
 }

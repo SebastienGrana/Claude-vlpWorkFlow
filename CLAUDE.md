@@ -40,7 +40,8 @@ https://github.com/SebastienGrana/Claude-vlpWorkFlow — cloné et utilisé en g
    sous-commandes sont dans sa docstring), `mesure-tokens.py` le coût — et une
    commande les appelle en un tour, elle ne décrit pas leur algorithme. Rien de propre à une machine dans
    `commands/`, `templates/` ni `scripts/` : un chemin passe par
-   `${CLAUDE_PLUGIN_ROOT}`, **dans le texte des commandes seulement** — la
+   `${CLAUDE_PLUGIN_ROOT}`, **dans le texte des commandes et `hooks/hooks.json`
+   seulement** — la
    variable n'existe ni dans le shell ni dans un fichier de données. Exception
    ouverte le 2026-09-10 pour le seul `mesure-tokens.py`, étendue à toute la
    mécanique le 2026-09-17 (audit, `context AI/12-audit.md`).

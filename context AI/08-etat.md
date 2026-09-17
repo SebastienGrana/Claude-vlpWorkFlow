@@ -289,3 +289,15 @@ de ce que le code dit déjà.
   seront signalés s'ils sont édités : archives, laissées telles quelles. Un appel :
   0,19 à 0,21 s. Sous Git Bash, un patch Python passé en heredoc à `python -` a
   perdu ses échappements de saut de ligne (deux fois) ; écrit dans un fichier, il passe.
+- **2026-09-17** — H3 : le hook `PostToolUse` est branché (`hooks/hooks.json`, forme
+  `PY=$(for p in python3 python; …)`) ; `/reload-plugins` annonce « 1 hook ». Prouvé
+  en vrai : un `Write` intact rend `VALIDE 1 fiches · socle 4 lignes` en contexte
+  additionnel, sans bloquer ; un `Edit` qui retire `<!-- /FICHE -->` rend l'écart
+  (ligne 15, `INVALIDE`) et la consigne ; la coche de H3 par `Edit` rend
+  `VALIDE 4 fiches · socle 51 lignes`. `commands/chantier.md` : appel `valider` dans
+  un bloc 1 → 0 (nommé une fois en prose, repli si le hook ne tourne pas), appels
+  prescrits de l'étape 6 inchangés (1 : `wc -l`) ; lignes `identique|marqueur`
+  16 → 15. Règle 4 de `CLAUDE.md` : `${CLAUDE_PLUGIN_ROOT}` vaut aussi dans
+  `hooks/hooks.json`. Non couvert : les écritures par Bash (`sed -i`, heredoc), que
+  `Write|Edit` ne voit pas — `vlp.py page` et les coches scriptées y échappent.
+

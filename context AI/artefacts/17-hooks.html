@@ -69,9 +69,9 @@
     <p>Un fichier de fiches cassé est refusé dès son écriture par un hook PostToolUse du plugin, prouvé après /reload-plugins ; l'appel valider prescrit dans /vlp:chantier disparaît ; SessionStart gardé seulement si les chiffres le justifient.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">4 fiches · 2 faites · en cours : H3</p>
+    <p class="mono" style="margin-top:.5rem">4 fiches · 3 faites · en cours : H4</p>
   </header>
 
   <section>
@@ -90,18 +90,19 @@
         <span class="note">test-vlp.py OK (5 cas hook) ; 16-script.md → JSON VALIDE 5 fiches, exit 0 ; 11-conso.md → écart ligne 88 sur stderr, exit 2 ; méthode et commands/chantier.md muets ; 0,19–0,21 s par appel.</span>
         <span class="cout mono">≈2,8M (2 790 678) · 14 tours · 2,06 $</span>
       </li>
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">H3</span><span class="titre">Brancher le hook et alléger les commandes</span>
-        <span class="etat">en cours</span>
-        <span class="note">Branche le hook dans hooks/hooks.json, retire le valider de /vlp:chantier, allège les consignes de marqueurs ; preuve en vrai. Dépend de H1 et H2.</span>
+        <span class="etat">faite</span>
+        <span class="note">Après /reload-plugins (1 hook) : Write intact → VALIDE en contexte ; Edit sans &lt;!-- /FICHE --&gt; → écart ligne 15, INVALIDE ; coche de H3 → VALIDE 4 fiches · socle 51 lignes. valider dans un bloc de chantier.md 1 → 0 ; identique|marqueur 16 → 15.</span>
+        <span class="cout mono">≈2,7M (2 737 279) · 12 tours · 1,80 $</span>
       </li>
-      <li class="fiche">
+      <li class="fiche" data-etat="encours">
         <span class="id">H4</span><span class="titre">Décider SessionStart aux chiffres</span>
-        <span class="etat">à faire</span>
+        <span class="etat">en cours</span>
         <span class="note">SessionStart posé, ctx_1er mesuré avec et sans ; gardé ou écarté aux chiffres. Dépend de H3.</span>
       </li>
     </ul>
-    <p class="mono cout-total">Coût du chantier : ≈9,1M (9 083 208) · 64 tours · 7,42 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈11,8M (11 820 487) · 76 tours · 9,22 $</p>
     <!-- ligne de total, absente si aucune fiche n'a de coût mesuré -->
   </section>
 
@@ -120,6 +121,7 @@
     <ul class="journal">
       <li><time datetime="2026-09-17">2026-09-17</time><span>H1 : le kit lié dans skills/ charge ses hooks ; forme retenue : la boucle PY des commandes (python3 muet sous Windows, forme args non déclenchée).</span></li>
       <li><time datetime="2026-09-17">2026-09-17</time><span>H2 : un fichier de fiches se reconnaît hors bloc de code — la méthode, chantier.md et le gabarit en montrent sans en être.</span></li>
+      <li><time datetime="2026-09-17">2026-09-17</time><span>H3 : hook branché et prouvé en vrai ; les écritures par Bash (sed -i, heredoc) lui échappent.</span></li>
     </ul>
   </section>
 

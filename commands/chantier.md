@@ -194,12 +194,9 @@ ordre :
 4. une section `## L'ordre des fiches` : la liste et les dépendances ;
 5. les fiches, séparées par `---`, au format donné par le fichier « méthode ».
 
-Ces deux titres de section se recopient **à l'identique** : `vlp.py socle` les
-cherche tels quels, un titre reformulé casse l'extraction. Le squelette est dans
-`${CLAUDE_PLUGIN_ROOT}/templates/context AI/fichier-de-fiches.md`.
-
-**Encadre chaque fiche de ses marqueurs**, exactement ainsi, seuls sur leur
-ligne :
+Ces deux titres et les marqueurs de fiche se recopient tels quels — le squelette
+est dans `${CLAUDE_PLUGIN_ROOT}/templates/context AI/fichier-de-fiches.md`, la
+raison dans la méthode. Chaque fiche, marqueurs seuls sur leur ligne :
 
 ```
 <!-- FICHE:D1 -->
@@ -208,10 +205,9 @@ ligne :
 <!-- /FICHE -->
 ```
 
-C'est par eux que `vlp.py extraire` isole la fiche. Sans marqueurs, il se rabat sur
-le premier `---` venu — et un `---` ou un `##` dans un bloc de code de la fiche
-la tronque **sans rien dire**. Deux lignes par fiche, et le problème n'existe
-plus.
+À chaque écriture, le hook du plugin valide le fichier : un écart revient
+aussitôt (`INVALIDE`) et se corrige avant d'aller plus loin ; sinon il rend la
+ligne `VALIDE <n> fiches · socle <n> lignes`.
 
 ## 5 bis. Publier l'artefact du chantier
 
@@ -260,11 +256,12 @@ Puis **mesure ce que chaque fiche va coûter**, et annonce-le — un chiffre tie
 mieux qu'une règle :
 
 ```bash
-PY=$(for p in python3 python; do "$p" -c "" 2>/dev/null && { echo "$p"; break; }; done); "$PY" "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" valider "<contexte>/<NN>-<chantier>.md"; wc -l "<contexte>/<NN>-<chantier>.md"
+wc -l "<contexte>/<NN>-<chantier>.md"
 ```
 
-Le bilan compte les fiches et le socle ; la page, c'est la ligne `PAGE` de
-l'étape 5 bis. Un écart (`INVALIDE`) se corrige avant de rendre la main. Dis
+Fiches et socle : la dernière ligne `VALIDE` du hook, à l'étape 5 — s'il n'a
+rien dit, il ne tourne pas : lance `vlp.py valider` sur le fichier. La page,
+c'est la ligne `PAGE` de l'étape 5 bis. Dis
 en une ligne : « socle N lignes + fiche ~M lignes + page P lignes = coût
 fixe par session ». Si le socle dépasse **80 lignes** ou la page **250**,
 propose d'alléger **avant** de rendre la main : ce gras sera relu à chaque
