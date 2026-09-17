@@ -50,7 +50,7 @@ ordonné par ce qui débloque le reste. Le détail de chacun est dans
 
 | # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |
 |---|---|---|---|---|
-| 13 | Un lanceur Python sans accolade | Mesuré en L3 : en `-p`, le motif `PY=$(for p in python3 python; …)` est refusé (« Contains brace with quote character ») — 1 tour de chef, 2 à 3 tours par sous-agent, qui retombe ensuite sur `python3`, le faux Python du Microsoft Store (exit 49). Le remplacer partout (skills, `cloture.md`, références) par un appel sans accolade, et vérifier s'il est aussi refusé en session interactive | 1 fiche | rien |
+| 14 | Une fiche visuelle arrête `/vlp:enchainer` | Mesuré en P3 : le sous-agent `vlp:fiche` a rendu `FAITE` sur une fiche `**Critère de fin** (visuel)` (il a relu `b.txt` lui-même) ; le chef a donc continué jusqu'à la clôture d'un bac à sable (10 appels de plus). Faire rendre `RETOUR` sur `(visuel)` — contrat `enchainement.md`, `agents/fiche.md` — et le prouver en `-p` | 1 fiche | rien |
 | 11 | Evals sous WSL2 | Jouer les cas d'eval qui exigent Bash (`tache`, `chantier`, sans doute `init`) : Windows n'a pas de sandbox, `claude plugin eval` les refuse ; il faut initialiser Ubuntu sous WSL2, y installer Claude Code, `bubblewrap` et `socat`, s'y connecter, et lancer la suite depuis Linux | 2 fiches | 6 |
 
 ## Journal des décisions
@@ -500,3 +500,10 @@ de ce que le code dit déjà.
   le lanceur prend `mesure` en premier argument (test ajouté) ; `tache` 6 bis portait un second bloc `{ echo "$S"; … }`
   (accolade + guillemet) → `sh …/vlp sessions "$F" | … | xargs -0 sh …/vlp mesure "$S"`, même liste d'ids. Comptes :
   anciens motifs 0 ; appels au lanceur 25 ; `allowed-tools` `Bash(python3:*), Bash(python:*)` → `Bash(sh:*)` (6 skills).
+- **2026-09-17** — P3 : sonde `/vlp:enchainer` en `-p` (Opus en session, chef `model: sonnet`), bac à sable à deux
+  fiches (Z2 en `(visuel)`), `--allowedTools Skill`, 0,45 $ : **0** « Contains brace », **0** exit 49, **0** `python3`,
+  0 refus de permission ; `sh …/scripts/vlp` passe sous `Bash(sh:*)` chez le chef (`valider`, `carte`) et dans les deux
+  sous-agents (`socle`, `extraire`). Chef 14 tours, 19 appels, 0,38 $ — dont 4 appels jusqu'au second `Skill` et la carte,
+  15 pour une clôture ; sous-agents 8 tours / 9 appels (0,04 $) et 6 tours / 8 appels (0,03 $). L3 : chef 9 tours / 7
+  appels, sous-agents 9 et 6 tours. Surprise : le sous-agent a rendu `FAITE` sur Z2 `(visuel)` — le chef n'a pas
+  demandé, il a clos (TODO n° 14). Evals Windows 3/3 (check 18, hook 2, init 21 tours ; 0,59 $). TODO n° 13 retirée.

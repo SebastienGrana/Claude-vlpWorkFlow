@@ -107,8 +107,9 @@ cloture.md hooks` → comptes bruts affichés (≥ 18) ; `vlp.py renvois` 0 abse
 ---
 
 <!-- FICHE:P3 -->
-## P3 [ ] — Prouver de bout en bout, et livrer
+## P3 [x] — Prouver de bout en bout, et livrer
 
+**Session** : b59e04ab-d2e0-4f45-bbf7-669a63809773
 **Dépend de** : `P2`.
 **Fichiers** : le bac à sable du scratchpad, `context AI/08-etat.md` (journal, TODO n° 13) — et rien d'autre.
 
