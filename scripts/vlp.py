@@ -44,7 +44,10 @@ Sous-commandes :
   qui n'existent ni contre le dossier de contexte ni contre la racine : une
   ligne `ABSENT: <source>:<ligne>: <nom>` chacun, puis `RENVOIS <n> nommés ·
   <n> absents`. Ignorés : un nom à `<…>` ou `*`, sans `.`, une ligne dont la 1re
-  cellule commence par `*(`. Un absent : sort 1.
+  cellule commence par `*(`. Un absent : sort 1. Avant `RENVOIS`, une ligne
+  `AVERTISSEMENT: <fichier> <n> lignes > <seuil>` par fichier de tête au-delà
+  de son seuil, puis `POIDS CLAUDE.md <n>/<seuil> · CHANTIER.md <n>/<seuil> ·
+  index <n>/<seuil>` (`absent` pour <n>) ; un poids ne change pas la sortie.
 - `feuille <projet> [--todo N] [--verifier]` — régénère dans
   `<contexte>/artefacts/feuille-de-route.html` la `ZONE:encours` (depuis le
   fichier de fiches courant et l'artefact du chantier), la `ZONE:todo` (depuis
@@ -262,6 +265,11 @@ CODE_EN_LIGNE = re.compile(r"`[^`]*`")
 # Les seuils vivent ici ; la doc dit « le seuil de vlp.py » et n'écrit pas le chiffre.
 SEUIL_FICHE = 50
 SEUIL_SOCLE = 80
+# Fichiers de tête, lus à chaque session ou chaque fiche (mesure : chantier J, J1).
+SEUIL_CLAUDE = 80
+SEUIL_CHANTIER = 50
+SEUIL_INDEX = 80
+CLOS_GARDES = 5  # chantiers clos gardés dans « Où on en est » de CLAUDE.md
 
 
 def valider_lignes(lignes):
@@ -777,6 +785,15 @@ def cmd_renvois(projet, sortie):
             if not any(os.path.exists(os.path.join(projet, base, nom)) for base in (contexte, "")):
                 absents += 1
                 sortie.write("ABSENT: %s:%d: %s\n" % (source, i, nom))
+    poids = []
+    for nom, source, seuil in (("CLAUDE.md", "CLAUDE.md", SEUIL_CLAUDE), ("CHANTIER.md", "CHANTIER.md", SEUIL_CHANTIER),
+                               ("index", index, SEUIL_INDEX)):
+        chemin = os.path.join(projet, source)
+        n = len(lignes_de(chemin)) if os.path.isfile(chemin) else None
+        if n is not None and n > seuil:
+            sortie.write("AVERTISSEMENT: %s %d lignes > %d\n" % (source, n, seuil))
+        poids.append("%s %s/%d" % (nom, "absent" if n is None else n, seuil))
+    sortie.write("POIDS %s\n" % " · ".join(poids))
     sortie.write("RENVOIS %d nommés · %d absents\n" % (nommes, absents))
     return 1 if absents else 0
 

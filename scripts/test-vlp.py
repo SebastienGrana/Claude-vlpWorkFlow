@@ -419,10 +419,22 @@ with tempfile.TemporaryDirectory() as t:
     ecrire(os.path.join(t, "CLAUDE.md"),
            "# P\n\n| hors routage | `perdu.md` |\n\n## Routage — ouvrir ceci\n\n| La tâche | Ouvrir |\n|---|---|\n"
            "| lire `vlp.py` | `ctx/01-a.md` |\n| lancer | **`/vlp:chantier`** |\n\n## Économie\n\n| x | `loin.md` |\n")
-    verifier("renvois : tout présent", appel(["renvois", t]) == (0, "RENVOIS 3 nommés · 0 absents\n"), appel(["renvois", t]))
+    verifier("renvois : tout présent, poids sous seuil", appel(["renvois", t]) == (0, "POIDS CLAUDE.md 14/80 · CHANTIER.md 2/50 · index 9/80\n"
+             "RENVOIS 3 nommés · 0 absents\n"), appel(["renvois", t]))
+    ecrire(os.path.join(t, "CHANTIER.md"), "- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n" + "x\n" * 49)
+    code, s = appel(["renvois", t])
+    verifier("renvois : poids au-delà, avertit sans changer la sortie", code == 0 and s.startswith(
+        "AVERTISSEMENT: CHANTIER.md 51 lignes > 50\nPOIDS CLAUDE.md 14/80 · CHANTIER.md 51/50 · index 9/80\n"), s)
+    os.remove(os.path.join(t, "CLAUDE.md"))
+    code, s = appel(["renvois", t])
+    verifier("renvois : CLAUDE.md absent dans les poids", code == 0 and "POIDS CLAUDE.md absent/80 · CHANTIER.md 51/50" in s, s)
+    ecrire(os.path.join(t, "CLAUDE.md"),
+           "# P\n\n| hors routage | `perdu.md` |\n\n## Routage — ouvrir ceci\n\n| La tâche | Ouvrir |\n|---|---|\n"
+           "| lire `vlp.py` | `ctx/01-a.md` |\n| lancer | **`/vlp:chantier`** |\n\n## Économie\n\n| x | `loin.md` |\n")
     ecrire(os.path.join(t, "ctx", "00-INDEX.md"), "| Fichier | Lire |\n|---|---|\n| `99-mort.md` | jamais |\n")
     code, s = appel(["renvois", t])
-    verifier("renvois : absent, sort 1", code == 1 and s == "ABSENT: ctx/00-INDEX.md:3: 99-mort.md\nRENVOIS 2 nommés · 1 absents\n", s)
+    verifier("renvois : absent, sort 1", code == 1 and s.startswith("ABSENT: ctx/00-INDEX.md:3: 99-mort.md\n")
+             and s.endswith("index 3/80\nRENVOIS 2 nommés · 1 absents\n"), s)
     os.remove(os.path.join(t, "CHANTIER.md"))
     verifier("renvois : pas équipé", appel(["renvois", t])[0] == 1, appel(["renvois", t]))
 

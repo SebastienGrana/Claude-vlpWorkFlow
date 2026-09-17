@@ -117,7 +117,8 @@ sh "${CLAUDE_PLUGIN_ROOT}/scripts/vlp" renvois .
 
 Chaque ligne `ABSENT:` est un fichier que l'index ou le routage de `CLAUDE.md`
 nomme et qui n'existe pas : une session l'ouvrira pour rien. Propose de retirer
-la ligne, ou de créer le fichier s'il manque vraiment.
+la ligne, ou de créer le fichier s'il manque vraiment. Un `AVERTISSEMENT:` avant
+`POIDS` dit un fichier de tête au-delà du seuil de `vlp.py` : à compacter, pas une erreur.
 
 ## 3. Rendre le verdict
 

@@ -90,7 +90,7 @@ avertit dans ~20 chantiers, c'est voulu) ; `CLOS_GARDES` 5 (la section s'appelle
 ---
 
 <!-- FICHE:J2 -->
-## J2 [ ] — Poser les seuils dans `vlp.py`, avertis par `renvois`
+## J2 [x] — Poser les seuils dans `vlp.py`, avertis par `renvois`
 
 **Dépend de** : `J1`.
 **Fichiers** : `scripts/vlp.py` (seuils, `cmd_renvois`, docstring), `scripts/test-vlp.py`, `skills/check/SKILL.md` (étape H).
