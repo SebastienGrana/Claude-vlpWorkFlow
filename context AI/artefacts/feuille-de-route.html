@@ -68,8 +68,8 @@
     <!-- ZONE:encours — remplacé à chaque ouverture, remis à « aucun » à chaque clôture.
          /tache n'y touche pas : l'avancement fiche par fiche est sur la page du chantier. -->
     <div class="encours">
-      <div class="titre">Le kit sans Git Bash <span class="badge" data-etat="cours">en cours</span></div>
-      <div>Fiches <span class="mono">G1..G2</span> — <a href="https://claude.ai/artifact/UWhqsTpQNUmwnztwz85auy">la page du chantier</a></div>
+      <div class="titre">Aucun chantier ouvert</div>
+      <div>Lancer <span class="mono">/vlp:chantier</span> pour en ouvrir un.</div>
     </div>
   </section>
 
@@ -82,7 +82,7 @@
           <tr><th>#</th><th>Chantier</th><th>Ce qu'il apporte</th><th>Coût</th><th>Dépend de</th></tr>
         </thead>
         <tbody>
-          <tr><td class="mono">15</td><td>Le kit sans Git Bash <span class="badge" data-etat="cours">en cours</span></td><td>Sous PowerShell seul, sh est introuvable : établir quel shell lance hook et commandes, rendre le hook sûr ou écrire le prérequis</td><td class="mono">2 fiches</td><td class="mono">—</td></tr>
+          <tr><td class="mono">16</td><td>Le kit sans sh</td><td>Faire tourner hook et skills sous Windows sans Git Bash, sans casser macOS/Linux où seul python3 existe ; ni champ os de hook, ni || en PowerShell 5.1</td><td class="mono">3 fiches</td><td class="mono">—</td></tr>
           <tr><td class="mono">11</td><td>Evals sous WSL2</td><td>Jouer les tests qui exigent Bash (tache, chantier) : Windows n'a pas de sandbox ; initialiser Ubuntu sous WSL2, y installer Claude Code, bubblewrap et socat, s'y connecter, lancer la suite depuis Linux</td><td class="mono">2 fiches</td><td class="mono">6</td></tr>
         </tbody>
       </table>
@@ -98,6 +98,13 @@
           <tr><th>Chantier</th><th>Fiches</th><th>Clos le</th><th>Tokens</th><th>Ce qu'il a livré</th></tr>
         </thead>
         <tbody>
+          <tr>
+            <td><a href="https://claude.ai/artifact/UWhqsTpQNUmwnztwz85auy">Le kit sans Git Bash</a> <span class="badge" data-etat="clos">clos</span></td>
+            <td class="mono">G1–G2</td><td class="mono">2026-09-17</td>
+            <td class="mono">≈8,0M (7 997 540)</td>
+            <td>Sans Git Bash, le hook sh se tait (exit 1) et les skills à !`sh …` échouent : prouvé par 3 sondes -p (shell: powershell) ;
+              Git for Windows écrit requis dans le README ; le kit sans sh en TODO n° 16 (6,56 $, plus 0,115 $ de sondes).</td>
+          </tr>
           <tr>
             <td><a href="https://claude.ai/artifact/Q3xC4KRxoecmTC9SfRTowB">Une fiche visuelle arrête /vlp:enchainer</a> <span class="badge" data-etat="clos">clos</span></td>
             <td class="mono">A1–A2</td><td class="mono">2026-09-17</td>
@@ -221,7 +228,7 @@
           </tr>
         </tbody>
         <tfoot>
-          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈150,0M (149 993 661)</strong></td><td></td></tr>
+          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈158,0M (157 991 201)</strong></td><td></td></tr>
         </tfoot>
       </table>
     </div>

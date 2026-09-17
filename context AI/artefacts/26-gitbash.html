@@ -86,10 +86,10 @@
         <span class="id">G2</span><span class="titre">Corriger le hook ou écrire le prérequis</span>
         <span class="etat">faite</span>
         <span class="note">Prérequis Git for Windows écrit dans README (doc citée, erreur mesurée) ; hook inchangé (VALIDE 1 fiches) ; tests OK 59 assertions, renvois 0 absent, validate 1 avertissement voulu ; TODO n° 16 ouverte.</span>
-        <span class="cout mono">≈7,2M (7 213 480) · 53 tours · 6,02 $</span>
+        <span class="cout mono">≈8,4M (8 406 843) · 59 tours · 6,91 $</span>
       </li>
     </ul>
-    <p class="mono cout-total">Coût du chantier : ≈7,2M (7 213 480) · 53 tours · 6,02 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈8,4M (8 406 843) · 59 tours · 6,91 $</p>
     <!-- ligne de total, absente si aucune fiche n'a de coût mesuré -->
   </section>
 
@@ -111,10 +111,11 @@
   </section>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
-  <section hidden>
-    <h2>Chantier clos le </h2>
+  <section>
+    <h2>Chantier clos le 2026-09-17</h2>
     <div class="bilan">
-      <p></p>
+      <p>Livré : la preuve, par la doc et 3 sondes -p, que sans Git Bash le hook sh rend exit 1 sans rien dire, et qu'une skill à !`sh …` échoue avant tout tour. Git for Windows est désormais écrit requis dans le README.</p>
+      <p>Surpris : un poste sans Git ne se simule pas par l'environnement, parce que Claude Code retrouve Git Bash hors PATH. Il se simule par shell: powershell. Aucun hook ne se réserve à un OS : le kit sans sh part en TODO n° 16.</p>
     </div>
   </section>
 

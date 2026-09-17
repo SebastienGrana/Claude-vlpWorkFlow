@@ -45,6 +45,8 @@
   est retiré, le 14 ouvert (une fiche visuelle n'arrête pas `/vlp:enchainer`).
 - **2026-09-17** — chantier A clos (TODO n° 14) : une fiche `(visuel)` arrête `/vlp:enchainer` (v3.3.3) ; le 14
   est retiré, reste le 11.
+- **2026-09-17** — chantier G clos (TODO n° 15) : Git for Windows requis par le kit, écrit dans `README.md` ; le 15
+  est retiré, le 16 ouvert (le kit sans `sh`).
 
 ## La TODO ordonnée — les chantiers possibles
 
@@ -54,8 +56,7 @@ ordonné par ce qui débloque le reste. Le détail de chacun est dans
 
 | # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |
 |---|---|---|---|---|
-| 15 | Le kit sans Git Bash — **en cours** (chantier G, `26-gitbash.md`) | Sous PowerShell seul, `sh` est introuvable : établir quel shell lance hook, injection et outils, rendre le hook sûr ou écrire le prérequis | 2 fiches | — |
-| 16 | Le kit sans `sh` | Faire tourner hook et skills sous Windows sans Git Bash (mesuré en G1 : `!`sh …`` fait échouer la skill, le hook `sh` se tait) — sans casser macOS/Linux, où seul `python3` existe ; ni champ `os` de hook, ni `\|\|` en PowerShell 5.1 (doc, G2) | 3 fiches | 15 |
+| 16 | Le kit sans `sh` | Faire tourner hook et skills sous Windows sans Git Bash (mesuré en G1 : `!`sh …`` fait échouer la skill, le hook `sh` se tait) — sans casser macOS/Linux, où seul `python3` existe ; ni champ `os` de hook, ni `\|\|` en PowerShell 5.1 (doc, G2) | 3 fiches | — |
 | 11 | Evals sous WSL2 | Jouer les cas d'eval qui exigent Bash (`tache`, `chantier`, sans doute `init`) : Windows n'a pas de sandbox, `claude plugin eval` les refuse ; il faut initialiser Ubuntu sous WSL2, y installer Claude Code, `bubblewrap` et `socat`, s'y connecter, et lancer la suite depuis Linux | 2 fiches | 6 |
 
 ## Journal des décisions
@@ -537,3 +538,9 @@ de ce que le code dit déjà.
   Total brut mesuré au bilan : 39 tours, 55 appels, input 82, output 27 984, cache_creation 155 030, cache_read
   5 582 393, **total 5 765 489 tokens**, 5,04 $, plus 0,22 $ de sonde headless (1 lancement) et 0,81 $ d'evals.
 - **2026-09-17** — G1 : un poste Windows sans Git ne se simule pas par l'environnement (PATH sans Git, CLAUDE_CODE_GIT_BASH_PATH faux : l'outil Bash reste) ; on le simule par shell: powershell sur le hook ou la skill. Sans Git Bash, sh casse hook (exit 1, muet) et injection (skill en échec) ; la forme exec python …/vlp.py hook passe.
+- **2026-09-17** — Chantier G **clos** (`26-gitbash.md`, G1..G2). Livré : preuve, par la doc et 3 sondes `-p`
+  (`shell: powershell` sur un hook et une skill de bac à sable), que sans Git Bash le hook `sh` rend exit 1 sans
+  rien dire au modèle et qu'une skill à `!`sh …`` échoue avant tout tour ; Git for Windows écrit requis dans
+  `README.md`. Laissé ouvert : le kit sans `sh` (TODO n° 16). Total brut mesuré au bilan : 57 tours, 82 appels,
+  input 114, output 44 487, cache_creation 155 316, cache_read 7 797 623, **total 7 997 540 tokens**, 6,56 $,
+  plus 0,115 $ de sondes headless (5 lancements), 0 $ d'evals (non rejouées : aucun fichier chargé n'a changé).

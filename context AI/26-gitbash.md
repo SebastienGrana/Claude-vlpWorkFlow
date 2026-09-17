@@ -4,10 +4,12 @@
 
 # Chantier G — Le kit sans Git Bash
 
+**CLOS** le 2026-09-17. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
 **À quoi il sert.** Le hook et toutes les commandes lancent `sh …/scripts/vlp` ; sous PowerShell seul, `sh` est
 introuvable. On établit par la doc et une sonde quel shell Claude Code emploie, puis on rend le hook sûr ou on écrit le prérequis.
 
-**Fait.** Rien. Ouvert le 2026-09-17, cadré en 2 fiches, `G1` à jouer.
+**Fait.** G1 et G2 : sans Git Bash, hook `sh` muet et skills en échec (3 sondes `-p`) ; Git for Windows requis, écrit dans `README.md` ; le « tout compatible » en TODO n° 16.
 
 ## Le socle commun
 
