@@ -141,7 +141,7 @@ même prompt ; seul un critère visuel attend le retour de l'utilisateur.
 ---
 
 <!-- FICHE:U4 -->
-## U4 [ ] — Nettoyer la carte et prouver le relais à deux Python
+## U4 [x] — Nettoyer la carte et prouver le relais à deux Python
 
 **Dépend de** : `U1`.
 **Fichiers** : `skills/*/SKILL.md` (ligne d'injection des 6), `scripts/vlp.py` (`carte`, `--relais`), `scripts/test-vlp.py`.
@@ -159,6 +159,16 @@ garde l'injection, dis pourquoi dans un bloc Mesuré, et arrête-toi pour demand
 **Critère de fin**
 Texte injecté lu dans les transcripts : PowerShell, Git Bash, Ubuntu → `PYTHON=` en tête, 0 ligne « Python est
 introuvable » ; avec le shim → 1 seule ligne `PYTHON=` ; `grep -c` de la nouvelle injection = 6 ; `test-vlp.py` OK.
+
+**Mesuré** (2026-09-17) — le message du Store sort sur **stderr** (code 49), capturé par l'injection ; rien ne le tait
+sans `2>` (recherche web : seule parade, désactiver l'alias dans Windows). Aucun ordre ne donne 0 bruit partout :
+**décidé avec l'utilisateur** : ordre inversé + une ligne README. Tentative 1 `py …; python3 … --relais; echo fin` :
+Git Bash OK, Ubuntu OK, **PowerShell avorte** (« Shell command failed » : `$LASTEXITCODE` = 49, `echo` n'est pas natif).
+Tentative 2 : `py …; python3 … --relais; py … --relais; echo fin` et le relais **ne retire plus** le tampon (sinon le
+3e appel réécrit la carte). Sondes Haiku, bac `scratchpad/bacu4` (skills `sondeps|sondebash|sondeubu`, `injecte.py`) :
+PowerShell et Git Bash → `PYTHON=` en tête, 1 message Store à la fin, OK ; Ubuntu → « py: command not found » ×2 (1 en
+tête), 1 `PYTHON=`, OK ; shim venv `python3.exe` en tête du PATH (format `/c/…` : un `C:/` dans PATH Git Bash est coupé
+au `:`) → 1 seule carte, 0 message, OK. Injection ×6, tests OK. Sondes : 0,046 $ + 0,063 $.
 <!-- /FICHE -->
 
 ---

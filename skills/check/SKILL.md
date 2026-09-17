@@ -14,7 +14,7 @@ chantier laissé de côté, ou quand la page publiée ne ressemble plus au fichi
 
 ## 1. Lire la carte
 
-!`python3 "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python python3; py "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python py --relais; echo fin`
+!`py "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python py; python3 "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python python3 --relais; py "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python py --relais; echo fin`
 
 `<python>`, plus bas : la valeur de `PYTHON=` ci-dessus.
 

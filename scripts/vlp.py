@@ -13,7 +13,7 @@ Sous-commandes :
   commande lit la sortie, elle ne doit pas se faire refuser l'injection.
   `--python NOM` : une ligne vide, `PYTHON=NOM`, puis la carte, et un tampon dans
   le dossier temporaire ; `--relais` en plus : n'écrit rien si un tampon de moins
-  de `RELAIS_SECONDES` existe (le premier Python a déjà répondu), et le retire.
+  de `RELAIS_SECONDES` existe (le premier Python a déjà répondu), sans le retirer.
 - `extraire <fichier> <fiche>` — la fiche entre ses marqueurs, marqueurs
   compris, puis `--- fiche, lignes : N`. Sans marqueurs, repli sur le titre
   jusqu'au premier `---`, annoncé par une `GARDE`. Absente : sort 1. Critère
@@ -216,18 +216,20 @@ RELAIS_SECONDES = 30
 
 
 def carte_injectee(depart, python, relais, sortie):
-    """La carte d'une injection `python3 … --python python3; py … --python py --relais; echo fin`
-    (chantier Y, Y1) : une ligne vide d'abord (le message du Store se colle devant), `PYTHON=<nom>`
-    pour le corps de la skill, et rien au relais si le premier lancement a déjà écrit la carte."""
+    """La carte d'une injection `py … --python py; python3 … --python python3 --relais; py … --python py
+    --relais; echo fin` (chantier Y, Y1 ; ordre inversé en U4 : sous Windows le message du raccourci Store
+    de `python3` tombe après la carte, sous Ubuntu « py: command not found » avant ; le 3e appel remet à 0
+    le `$LASTEXITCODE` de PowerShell, que `echo` ne touche pas) : une ligne vide d'abord,
+    `PYTHON=<nom>` pour le corps de la skill, et rien au relais si le premier lancement a déjà écrit la carte."""
     import hashlib
     import tempfile
     import time
     cle = hashlib.sha1(os.path.abspath(depart).encode("utf-8")).hexdigest()[:16]
     tampon = os.path.join(tempfile.gettempdir(), "vlp-carte-%s" % cle)
     if relais:
+        # Le tampon reste : le 3e appel de l'injection (`py … --relais`) doit se taire aussi.
         try:
             recent = time.time() - os.path.getmtime(tampon) < RELAIS_SECONDES
-            os.remove(tampon)
         except OSError:
             recent = False
         if recent:

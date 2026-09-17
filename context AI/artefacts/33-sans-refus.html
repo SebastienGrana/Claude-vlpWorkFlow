@@ -68,9 +68,9 @@
     <p>La sonde de U1 rejouée en U5 : 0 refus de permission sous PowerShell 7, fiche du bac cochée, page régénérée sans GARDE ; 5.1 sondé ; carte sans message du Store.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">5 fiches · 3 faites · en cours : U4</p>
+    <p class="mono" style="margin-top:.5rem">5 fiches · 4 faites · en cours : U5</p>
   </header>
 
   <section>
@@ -92,14 +92,14 @@
         <span class="etat">faite</span>
         <span class="note">cat " 6 → 0, CLAUDE_CODE_SESSION_ID 1 → 0 ; tache 149 → 150 lignes (cocher + cout + page en un appel, pas d'attente sur critère scriptable) ; renvois 44 · 0 absent ; tests OK ; validate OK</span>
       </li>
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">U4</span><span class="titre">Nettoyer la carte et prouver le relais à deux Python</span>
-        <span class="etat">en cours</span>
-        <span class="note">Carte injectée sans message du Store, relais à deux Python prouvé ; dépend de U1.</span>
+        <span class="etat">faite</span>
+        <span class="note">4 sondes Haiku OK : PowerShell et Git Bash PYTHON= en tête (Store à la fin), Ubuntu 1 carte (py absent en tête), shim deux Python 1 seule carte ; injection ×6, tests OK (108), validate OK ; 0,11 $</span>
       </li>
-      <li class="fiche">
+      <li class="fiche" data-etat="encours">
         <span class="id">U5</span><span class="titre">Prouver sans refus, sous PowerShell 7 et 5.1</span>
-        <span class="etat">à faire</span>
+        <span class="etat">en cours</span>
         <span class="note">Refus avant/après sous pwsh 7 et 5.1, evals, plugin 3.4.1 ; dépend de U3 et U4.</span>
       </li>
     </ul>
@@ -119,6 +119,7 @@
     <h2>Journal des décisions</h2>
     <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
     <ul class="journal">
+      <li><time datetime="2026-09-17">2026-09-17</time><span>U4 : injection py; python3 --relais; py --relais; echo fin — le 3e appel remet à 0 le $LASTEXITCODE de PowerShell ; le relais garde son tampon ; README : désactiver l'alias python3 du Store.</span></li>
     </ul>
   </section>
 
