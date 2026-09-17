@@ -13,11 +13,11 @@ https://github.com/SebastienGrana/Claude-vlpWorkFlow — cloné et utilisé en g
 - Équipés : Cairn-VlpLib, MapDecorator, ProjetONZSM, TrackGen — et ce kit lui-même.
 - Chaque chantier clos a sa ligne dans `context AI/00-INDEX.md`, son détail daté dans
   `context AI/08-etat.md` ; ici, les derniers seulement (`vlp.py clore` les tient).
-- Clos le 2026-09-17 : Git for Windows requis, prouvé et écrit dans le README (chantier G).
 - Clos le 2026-09-17 : les evals `tache` et `chantier` jouées sous Ubuntu WSL2, 3/3 chacune (chantier W).
 - Clos le 2026-09-17 : le kit sans `sh` sondé, renoncé : recette dans la TODO n° 16 (chantier X).
 - Clos le 2026-09-17 : la feuille de route et la clôture écrites par `vlp.py feuille` et `clore` (chantier F).
 - Clos le 2026-09-17 : l'ouverture et la clôture écrites par `vlp.py ouvrir` et `clore` (chantier O).
+- Clos le 2026-09-17 : les fichiers de tête sous seuil, clore compacte au lieu d'empiler (chantier J).
 
 ## Quatre règles non négociables
 
@@ -57,7 +57,6 @@ et seulement dans ce cas, ouvrir l'index.
 | savoir où vit quoi dans un projet équipé | `methode-chantier.md`, section « Où vit quoi » |
 | toucher aux pages publiées | `ARTEFACTS.md`, puis le gabarit dans `templates/` |
 | ouvrir un chantier, ou le découper en fiches | **lancer `/vlp:chantier`** |
-| jouer une fiche du chantier J (des fichiers de tête qui ne grossissent plus) | `context AI/31-jauge.md` — chantier **ouvert**, par `/vlp:tache J<n>` |
 | relire un chantier clos | `context AI/00-INDEX.md` — sa ligne y nomme le fichier de fiches |
 | reprendre après une longue interruption | `context AI/08-etat.md` |
 | choisir le prochain chantier du kit, ou retrouver la preuve d'un bug relevé le 2026-09-17 | `context AI/12-audit.md` |

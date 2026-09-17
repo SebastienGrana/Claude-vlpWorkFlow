@@ -55,6 +55,9 @@
   de `CHANTIER.md` (plugin 3.3.4, tests 59 → 73, eval chantier 3/3) ; avant : 15 tours sur 77 (X), 11 sur 61 (W) ; 8 781 743 tokens.
 - **2026-09-17** — chantier O clos (TODO n° 18) : `vlp.py ouvrir` et `clore` étendu écrivent index, routage et « Où on en est »
   de `CLAUDE.md`, « Fait. » et `ZONE:bilan` (plugin 3.3.5, tests 73 → 91, eval chantier 3/3) ; avant : 12 tours sur 64 (F), 8 sur 77 (X) ; 9 842 371 tokens.
+- **2026-09-17** — chantier J clos (TODO n° 19) : seuils des fichiers de tête dans `vlp.py` (`renvois` écrit `POIDS`), `clore` compacte
+  (routage retiré, 5 derniers clos, plus de table dans `CHANTIER.md`) ; `CLAUDE.md` 118 → 80, `CHANTIER.md` 71 → 47 (plugin 3.3.6, tests 92 → 96) ;
+  gain estimé ≈ 0,1 $ par session ; ouverture par `ouvrir` : 1 tour d'écriture sur 12 ; 7 579 062 tokens.
 
 ## La TODO ordonnée — les chantiers possibles
 
@@ -65,7 +68,6 @@ ordonné par ce qui débloque le reste. Le détail de chacun est dans
 | # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |
 |---|---|---|---|---|
 | 16 | Le kit sans `sh` | Faire tourner le kit sous Windows sans Git Bash. Mesuré (chantier X, `28-sans-sh.md`) : hook = paire exec `python3` + `py` (une erreur non bloquante à chaque écriture, partout) ; carte injectée = `py … carte \|\| python3 … carte` (propre sous pwsh 7, Git Bash et Ubuntu). Reste avant tout gain visible : les 17 appels `sh` du corps des skills et de `cloture.md`, les allowed-tools (sondes faites en `bypassPermissions`), PowerShell 5.1 (refuse `\|\|`), macOS, Python du Store seul | 3 fiches | — |
-| 19 | Des fichiers de tête qui ne grossissent plus | Mesuré le 2026-09-17 : `CLAUDE.md` 117 lignes (visé 60), `CHANTIER.md` 71 (visé 30), index 60 (visé 40), et `vlp.py clore` en ajoute à chaque chantier. Seuils dans `vlp.py`, `clore` qui compacte, le kit remis sous seuil | 4 fiches | — |
 
 ## Journal des décisions
 

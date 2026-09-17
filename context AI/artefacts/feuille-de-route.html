@@ -68,8 +68,8 @@
     <!-- ZONE:encours — remplacé à chaque ouverture, remis à « aucun » à chaque clôture.
          /tache n'y touche pas : l'avancement fiche par fiche est sur la page du chantier. -->
     <div class="encours">
-      <div class="titre">Des fichiers de tête qui ne grossissent plus <span class="badge" data-etat="cours">en cours</span></div>
-      <div>Fiches <span class="mono">J1–J4</span> — <a href="https://claude.ai/artifact/CHfV4GdKDQ35zXxFa5FbR8">la page du chantier</a></div>
+      <div class="titre">Aucun chantier ouvert</div>
+      <div>Lancer <span class="mono">/vlp:chantier</span> pour en ouvrir un.</div>
     </div>
   </section>
 
@@ -83,7 +83,6 @@
         </thead>
         <tbody>
           <tr><td class="mono">16</td><td>Le kit sans <span class="mono">sh</span></td><td>Faire tourner le kit sous Windows sans Git Bash. Mesuré (chantier X, <span class="mono">28-sans-sh.md</span>) : hook = paire exec <span class="mono">python3</span> + <span class="mono">py</span> (une erreur non bloquante à chaque écriture, partout) ; carte injectée = <span class="mono">py … carte || python3 … carte</span> (propre sous pwsh 7, Git Bash et Ubuntu). Reste avant tout gain visible : les 17 appels <span class="mono">sh</span> du corps des skills et de <span class="mono">cloture.md</span>, les allowed-tools (sondes faites en <span class="mono">bypassPermissions</span>), PowerShell 5.1 (refuse <span class="mono">||</span>), macOS, Python du Store seul</td><td class="mono">3 fiches</td><td class="mono">—</td></tr>
-          <tr><td class="mono">19</td><td>Des fichiers de tête qui ne grossissent plus <span class="badge" data-etat="cours">en cours</span></td><td>Mesuré le 2026-09-17 : <span class="mono">CLAUDE.md</span> 117 lignes (visé 60), <span class="mono">CHANTIER.md</span> 71 (visé 30), index 60 (visé 40), et <span class="mono">vlp.py clore</span> en ajoute à chaque chantier. Seuils dans <span class="mono">vlp.py</span>, <span class="mono">clore</span> qui compacte, le kit remis sous seuil</td><td class="mono">4 fiches</td><td class="mono">—</td></tr>
         </tbody>
       </table>
     </div>
@@ -98,6 +97,12 @@
           <tr><th>Chantier</th><th>Fiches</th><th>Clos le</th><th>Tokens</th><th>Ce qu'il a livré</th></tr>
         </thead>
         <tbody>
+          <tr>
+            <td><a href="https://claude.ai/artifact/CHfV4GdKDQ35zXxFa5FbR8">Des fichiers de tête qui ne grossissent plus</a> <span class="badge" data-etat="clos">clos</span></td>
+            <td class="mono">J1–J4</td><td class="mono">2026-09-17</td>
+            <td class="mono">≈7,6M (7 579 062)</td>
+            <td>Seuils des fichiers de tête dans vlp.py (renvois écrit POIDS), clore et ouvrir compactent ; CLAUDE.md 118 → 80, CHANTIER.md 71 → 47 ; plugin 3.3.6, tests 92 → 96 (6,83 $ à la mesure)</td>
+          </tr>
           <tr>
             <td><a href="https://claude.ai/artifact/Srsfk2hqchvLPSuQ6BXc9e">Ouvrir et clore par script</a> <span class="badge" data-etat="clos">clos</span></td>
             <td class="mono">O1–O5</td><td class="mono">2026-09-17</td>
@@ -254,7 +259,7 @@
           </tr>
         </tbody>
         <tfoot>
-          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈194,8M (194 842 889)</strong></td><td></td></tr>
+          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈202,4M (202 421 951)</strong></td><td></td></tr>
         </tfoot>
       </table>
     </div>

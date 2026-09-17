@@ -7,7 +7,9 @@
 **À quoi il sert.** `CLAUDE.md` (117 lignes, visé 60), `CHANTIER.md` (71, visé 30) et l'index (60, visé 40) grossissent
 à chaque `vlp.py clore`. Des seuils dans `vlp.py`, une clôture qui compacte, et le kit remis sous seuil.
 
-**Où on en est.** Ouvert le 2026-09-17, cadré en 4 fiches, `J1` à jouer.
+**CLOS** le 2026-09-17. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** J1..J4 (2026-09-17) : croissance mesurée (+2/+1/+1 lignes par chantier), seuils 80/50/80 et 5 clos gardés, clore et ouvrir compactent, kit sous seuil.
 
 ## Le socle commun
 

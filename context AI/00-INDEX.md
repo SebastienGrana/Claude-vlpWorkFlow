@@ -40,7 +40,7 @@ a l'air proche.
 | `28-sans-sh.md` | on relit le socle du chantier X — **clos** « Le kit sans sh », `X1..X3` |
 | `29-feuille.md` | on relit le socle du chantier F — **clos** « La feuille de route par script », `F1..F4` |
 | `30-ouvrir.md` | on relit le socle du chantier O — **clos** « Ouvrir et clore par script », `O1..O5` |
-| `31-jauge.md` | on joue une fiche `J*` — chantier **ouvert** « Des fichiers de tête qui ne grossissent plus », `J1..J4` |
+| `31-jauge.md` | on relit le socle du chantier J — **clos** « Des fichiers de tête qui ne grossissent plus », `J1..J4` |
 | `25-arret.md` | on relit le socle du chantier A — **clos** « Une fiche visuelle arrête `/vlp:enchainer` », `A1..A2` |
 | `21-skills.md` | on relit le socle du chantier K — **clos** « Migrer commands/ → skills/ », `K1..K3` |
 | `20-init.md` | on joue une fiche `I*` — chantier **clos** « Un projet neuf qui ne ment pas », `I1..I3` |
