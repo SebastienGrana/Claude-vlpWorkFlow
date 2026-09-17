@@ -20,7 +20,8 @@ Sous-commandes :
   dans l'ordre du fichier.
 - `valider <fichier>…` — les écarts d'un fichier de fiches, un par ligne
   `fichier:ligne: message`, puis `VALIDE|INVALIDE <n> fiches · socle <n> lignes
-  · <n> écarts · <n> avertissements — <fichier>`. Un écart : sort 1.
+  · <n> écarts · <n> avertissements — <fichier>`. Avertit si une fiche ou le
+  socle dépasse son seuil. Un écart : sort 1.
 - `page <fichier> <page.html>` — régénère la page du chantier depuis le fichier
   de fiches : états, avancement, comptage, coûts (`**Session**`), date. Garde
   de la page l'en-tête, les notes, le journal, le blocage et le bilan.
@@ -211,6 +212,9 @@ CODE_EN_LIGNE = re.compile(r"`[^`]*`")
 # Le seuil vit dans methode-chantier.md (« Si elle en fait 50, c'est deux
 # fiches ») : ici, il n'est que cité.
 SEUIL_FICHE = 50
+# Le seuil vit dans methode-chantier.md (« Le socle fait au maximum 80 lignes ») :
+# ici, il n'est que cité.
+SEUIL_SOCLE = 80
 
 
 def valider_lignes(lignes):
@@ -256,6 +260,7 @@ def valider_lignes(lignes):
             fiches_.append((ident, bloc[1], bloc[2]))
 
     premiere = min([i for i, _ in titres] + [b[1] for b in blocs] + [len(lignes)])
+    socle = socle_lignes(lignes)
     for nom, motif in (("## Le socle commun", r"^## Le socle"), ("## L'ordre des fiches", r"^## L.*ordre des fiches")):
         ou = [i for i, l in enumerate(lignes) if re.match(motif, l)]
         if not ou:
@@ -264,6 +269,11 @@ def valider_lignes(lignes):
             ecarts.append((ou[1] + 1, "section en double : %s (déjà ligne %d)" % (nom, ou[0] + 1)))
         elif ou[0] > premiere:
             ecarts.append((ou[0] + 1, "section après la première fiche : %s" % nom))
+
+    if socle and len(socle) > SEUIL_SOCLE:
+        debut_socle = next((i for i, l in enumerate(lignes) if l.startswith("## Le socle")), 1)
+        avert.append((debut_socle + 1, "socle : %d lignes, au-delà du seuil de methode-chantier.md (%d)"
+                      % (len(socle), SEUIL_SOCLE)))
 
     for ident, debut, fin in fiches_:
         corps = lignes[debut:fin + 1]
@@ -286,7 +296,7 @@ def valider_lignes(lignes):
         if len(corps) > SEUIL_FICHE:
             avert.append((debut + 1, "fiche %s : %d lignes, au-delà du seuil de methode-chantier.md (%d)"
                           % (ident, len(corps), SEUIL_FICHE)))
-    return sorted(ecarts), avert, len(vus), len(socle_lignes(lignes))
+    return sorted(ecarts), avert, len(vus), len(socle)
 
 
 def cmd_valider(chemins, sortie):
@@ -359,8 +369,7 @@ def cmd_hook(entree, sortie, erreur):
 
 # --- page --------------------------------------------------------------------
 
-# Le seuil vit dans ARTEFACTS.md (« 250 lignes au maximum, gabarit compris ») :
-# ici, il n'est que cité.
+# Le seuil vit dans le script (SEUIL_PAGE) : ici, il est défini et cité.
 SEUIL_PAGE = 250
 GABARIT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "templates", "artefact-chantier.html")
 LI_FICHE = re.compile(r'[ \t]*<li class="fiche"[^>]*>.*?</li>\n?', re.S)
@@ -646,7 +655,7 @@ def cmd_page(a, sortie):
     sortie.write("PAGE %s · %s · %d lignes · total %s\n"
                  % (a.page, comptage(fiches_, etat), n, ligne_cout(*total) if total else "non mesuré"))
     if n > SEUIL_PAGE:
-        sortie.write("GARDE: %d lignes, au-delà du seuil d'ARTEFACTS.md (%d) — la page est relue à chaque fiche\n"
+        sortie.write("GARDE: %d lignes, au-delà du seuil du script (%d) — la page est relue à chaque fiche\n"
                      % (n, SEUIL_PAGE))
     return 0
 

@@ -73,7 +73,7 @@ ne change pas.
 ---
 
 <!-- FICHE:D1 -->
-## D1 [ ] — Loger les seuils dans le script
+## D1 [x] — Loger les seuils dans le script
 
 **Dépend de** : rien.
 **Fichiers** : scripts/vlp.py, scripts/test-vlp.py — et rien d'autre.

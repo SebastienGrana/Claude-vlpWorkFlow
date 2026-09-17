@@ -69,23 +69,23 @@
     <p>Trois docs à la racine (README, méthode, ARTEFACTS) ; chaque seuil dans vlp.py seul, chaque règle dans la méthode seule — comptes bruts avant/après, evals 3/3</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">6 fiches · 0 faite · en cours : D1</p>
+    <p class="mono" style="margin-top:.5rem">6 fiches · 1 faite · en cours : D2</p>
   </header>
 
   <section>
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">D1</span><span class="titre">Loger les seuils dans le script</span>
-        <span class="etat">en cours</span>
-        <span class="note">vlp.py porte 250, 80 et 50 ; valider avertit au-delà de 80 lignes de socle</span>
+        <span class="etat">faite</span>
+        <span class="note">test-vlp.py OK, verifier() 45 → 47 ; grep ARTEFACTS dans vlp.py : 0 ligne ; SEUIL_SOCLE = 80 avertit</span>
       </li>
-      <li class="fiche">
+      <li class="fiche" data-etat="encours">
         <span class="id">D2</span><span class="titre">Fondre CONVENTION-FICHIERS dans la méthode</span>
-        <span class="etat">à faire</span>
+        <span class="etat">en cours</span>
         <span class="note">CONVENTION-FICHIERS fondu dans la méthode, puis supprimé ; dépend de D1</span>
       </li>
       <li class="fiche">
@@ -125,6 +125,7 @@
     <h2>Journal des décisions</h2>
     <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
     <ul class="journal">
+      <li><time datetime="2026-09-17">2026-09-17</time><span>D1 jouée par /vlp:enchainer : sous-agent fiche (haiku, maxTurns 8) coupé 3 fois ; D2→D5 à jouer à la main via /vlp:tache</span></li>
     </ul>
   </section>
 

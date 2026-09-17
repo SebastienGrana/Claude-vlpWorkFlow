@@ -237,6 +237,12 @@ for nom, texte, attendu in CAS:
 code, s = valide(SAIN.replace("Une commande.\n", "Une commande.\n" + "x\n" * 60))
 verifier("valider : avertissement de longueur, pas écart", code == 0
          and "F:11: avertissement : fiche V1 : 68 lignes, au-delà du seuil" in s and "0 écarts · 1 avertissements" in s, s)
+code, s = valide(SAIN.replace("Un socle.\n", "Un socle.\n" + "x\n" * 77))
+verifier("valider : socle de 81 lignes avertit", code == 0
+         and "F:3: avertissement : socle : 81 lignes, au-delà du seuil" in s and "1 avertissements" in s, s)
+code, s = valide(SAIN.replace("Un socle.\n", "Un socle.\n" + "x\n" * 76))
+verifier("valider : socle de 80 lignes n'avertit pas", code == 0
+         and "socle : 80 lignes" not in s and "0 avertissements" in s, s)
 code, s = appel(["valider", "absent-1.md", "absent-2.md"])
 verifier("valider : un bilan par fichier", code == 1 and s.count("INVALIDE 0 fiches") == 2, s)
 
