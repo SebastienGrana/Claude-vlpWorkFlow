@@ -42,7 +42,7 @@ Quatre gestes, dans cet ordre :
    - la ligne de comptage de l'en-tête, et la date du pied de page ;
    - si la fiche jouée a une ligne `**Session**` : son coût en `.cout`, sous sa
      `.note`, et le total du chantier en `.cout-total` sous la liste — les deux
-     déjà calculés par « Coût de la fiche », étape 6 de `/vlp:tache`, convention
+     déjà calculés à l'étape 6 de `/vlp:tache`, convention
      d'affichage dans `templates/artefact-chantier.html`. Pas un second appel à
      `mesure-tokens.py`.
 

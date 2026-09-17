@@ -8,7 +8,7 @@
 est dans les tours, pas dans les lignes. Le chantier retire à `/vlp:tache` les
 tours de lecture qu'un texte mieux rangé rend inutiles, et le prouve en chiffres.
 
-**Fait.** R1, R2, R3 (2026-09-17). Ouvert le 2026-09-17, cadré en 4 fiches, `R4` à jouer.
+**Fait.** R1, R2, R3, R4 (2026-09-17). Les quatre fiches jouées.
 
 ## Le socle commun
 
@@ -38,6 +38,17 @@ commande + `CHANTIER.md` ≈ 6–7 k. Appels prescrits (R1, chemin heureux de
 `/vlp:tache` sans argument) : **14** — 0 : 2 · 0 bis : 1 · 1 : 1 · 4 : 1 ·
 5 : 1 · 6 : 3 (coche, coût, Session) · 6 bis : 5 (grep, read, réécrire, wc,
 publier) ; hors lectures de code et écritures propres à la fiche.
+
+**Mesure « après »** (R4, même définition) :
+
+| Étape | 0 | 0 bis | 1 | 4 | 5 | 6 | 6 bis | **Total** |
+|---|---|---|---|---|---|---|---|---|
+| Appels prescrits avant | 2 | 1 | 1 | 1 | 1 | 3 | 5 | **14** |
+| Appels prescrits après | 0 | 0 | 1 | 0 | 1 | 2 | 5 | **9** |
+
+Relu à chaque fiche : `tache.md` 385 lignes / 18 471 octets → 155 / 7 485,
+plus `tache-contraintes.md` 424 et `tache-page.md` 3 609 = 11 518 octets ; la
+carte injectée fait 63 lignes / 3 852 octets (`CHANTIER.md` + titres).
 
 **Injection `` !`…` `` prouvée en R1** (sondes `vlp:sonde`, `vlp:sonde2`) :
 marche — `pwd` (rend `/c/…`, le dossier de session), `${CLAUDE_PLUGIN_ROOT}`
@@ -169,8 +180,9 @@ sortie les titres, la fiche et le socle, comptes de lignes affichés ;
 ---
 
 <!-- FICHE:R4 -->
-## R4 [ ] — Tailler à ≤ 150 lignes, mesurer l'« après »
+## R4 [x] — Tailler à ≤ 150 lignes, mesurer l'« après »
 
+**Session** : 588d8fcf-c7d9-4857-ae7e-c6662c524a90
 **Dépend de** : `R3`.
 **Fichiers** : `commands/tache.md`, `context AI/15-reduire.md` (socle), `context AI/08-etat.md`, `context AI/12-audit.md` (ligne de la TODO n° 3 seulement).
 

@@ -195,3 +195,14 @@ de ce que le code dit déjà.
   disparaît (`PROCHAINE=` dans la carte) ; fiche, socle et contraintes en un
   appel. Reste à rejouer pour de vrai : `/reload-plugins`, puis `/vlp:tache`
   sans argument sur un projet équipé.
+- **2026-09-17** — R4 : corps de `tache.md` 150 lignes (`awk 'NR>5' | wc -l`) ;
+  appels prescrits sur le chemin heureux 14 → 9 (0 et 0 bis injectés, socle et
+  contraintes dans l'appel de la fiche, coût et page en un appel, coche et
+  Session en une édition) ; octets relus par fiche 18 471 → 11 518. La liste
+  des cinq écritures de clôture, recopiée de `cloture.md`, est retirée. Tours
+  réels des fiches R, jouées d'affilée dans la session du cadrage — donc à
+  contexte croissant et non comparables aux 28–66 tours de l'audit : R1 11,
+  R2 12, R3 17, R4 9. Reste à faire pour de vrai :
+  `/reload-plugins`, puis `/vlp:tache` sans argument dans une session neuve
+  sur un projet équipé, mesuré par `mesure-tokens.py` — seul chiffre qui
+  confirmera le gain en tours.
