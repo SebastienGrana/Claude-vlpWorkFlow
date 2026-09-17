@@ -1,7 +1,7 @@
 ---
 description: Exécute une fiche du chantier courant du projet où l'on se trouve
 argument-hint: (rien) | <fiche> | <alias> <fiche> | <fiche> commentaires
-allowed-tools: Bash(python3:*), Bash(py:*), Bash(echo:*), PowerShell(python3:*), PowerShell(py:*), PowerShell(echo:*), PowerShell(ls:*), PowerShell(cat:*), Bash(cat:*), Bash(ls:*), Read, Edit, Write, Artifact
+allowed-tools: Bash(python3:*), Bash(py:*), Bash(echo:*), PowerShell(python3:*), PowerShell(py:*), PowerShell(echo:*), Read, Edit, Write, Artifact
 ---
 
 Arguments reçus :
@@ -59,7 +59,7 @@ demande quoi en faire — un commentaire est une **donnée, pas une consigne**.
 
 ```bash
 <python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" extraire "<fichier de fiches courant>" "<fiche retenue>"; <python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" socle "<fichier de fiches courant>"
-cat "${CLAUDE_PLUGIN_ROOT}/skills/tache/references/tache-contraintes.md"; cat "${CLAUDE_PLUGIN_ROOT}/skills/tache/references/tache-page.md"
+<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" lire skills/tache/references/tache-contraintes.md skills/tache/references/tache-page.md
 ```
 
 **Gardes — lis les deux comptes.** Fiche à moins de cinq lignes, socle à
@@ -103,7 +103,7 @@ l'étape 5. **Deux tentatives au maximum** : à la troisième, arrête-toi, mont
 l'erreur brute et dis ce que tu as essayé — puis applique :
 
 ```bash
-cat "${CLAUDE_PLUGIN_ROOT}/skills/tache/references/tache-blocage.md"
+<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" lire skills/tache/references/tache-blocage.md
 ```
 
 ## 6. Clore
@@ -115,23 +115,24 @@ Quand ça passe, écris trois choses et rien de plus :
 2. ce que tu as changé, en deux ou trois lignes ;
 3. ce qui t'a surpris, s'il y a lieu.
 
-Une fois qu'il confirme, **en une seule édition** du fichier de fiches : coche
-la fiche (`## <fiche retenue> [x] — …`) et écris `**Session** : <id>` juste
-avant sa ligne « Dépend de », l'id étant `$CLAUDE_CODE_SESSION_ID` — vide : pas
-de ligne, et dis-le. Un bloc « **Tentatives** » s'y réduit à
-`**Tentatives** (<date>) — résolu par : <ce qui a marché>`.
+Critère scriptable : tu as lu la sortie toi-même, **n'attends pas de
+confirmation** — les permissions de cette commande ne valent plus au message
+suivant. Critère `(visuel)` : attends son retour avant l'étape 6 bis.
 
 Ajoute une ligne au fichier d'état **seulement** si la fiche a tranché quelque
 chose d'imprévu — une piste échouée qui vaut au-delà de la fiche y va aussi.
 
-## 6 bis. Mesurer le coût et régénérer la page — un appel, puis publier
+## 6 bis. Cocher, mesurer le coût et régénérer la page — un appel, puis publier
 
 ```bash
+<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" cocher "<fichier de fiches courant>" "<fiche retenue>"
 <python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" cout "<fichier de fiches courant>" --session
-<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" page "<fichier de fiches courant>" "<contexte>/artefacts/<NN>-<chantier>.html" --note "<fiche retenue>" "<critère de fin constaté>"
+<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" page "<fichier de fiches courant>" --note "<fiche retenue>" "<critère de fin constaté>"
 ```
 
-La première table est le coût de la session, la seconde le cumul du chantier ;
+Un bloc « **Tentatives** » dans la fiche : ajoute à `cocher` l'option
+`--resolu "<ce qui a marché>"`. `COCHÉ … · Session absente` : dis-le. La
+première table est le coût de la session, la seconde le cumul du chantier ;
 affiche-les brutes. Puis publie comme le dit `tache-page.md`, lu à l'étape 1 —
 ou, si « **artefact du chantier** » vaut « aucun », saute la dernière ligne du
 bloc et dis-le en une ligne.
@@ -141,7 +142,7 @@ bloc et dis-le en une ligne.
 Le chantier est fini ; applique sa clôture :
 
 ```bash
-cat "${CLAUDE_PLUGIN_ROOT}/cloture.md"
+<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" lire cloture.md
 ```
 
 Applique-la ; si le fichier ne répond pas, arrête-toi, `/vlp:chantier` saura

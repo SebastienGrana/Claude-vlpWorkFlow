@@ -2,7 +2,7 @@
 description: Enchaîne plusieurs fiches du chantier courant, chacune dans un sous-agent neuf, jusqu'à un arrêt prévu ou le plafond
 argument-hint: (rien) | <alias>
 model: sonnet
-allowed-tools: Bash(python3:*), Bash(py:*), Bash(echo:*), PowerShell(python3:*), PowerShell(py:*), PowerShell(echo:*), PowerShell(ls:*), PowerShell(cat:*), Bash(cat:*), Bash(ls:*), Bash(pwd:*), Bash(cd:*), Skill, Artifact
+allowed-tools: Bash(python3:*), Bash(py:*), Bash(echo:*), PowerShell(python3:*), PowerShell(py:*), PowerShell(echo:*), Bash(pwd:*), Bash(cd:*), Skill, Artifact
 ---
 
 Arguments reçus :
@@ -93,7 +93,7 @@ porte le nom du fichier de fiches, en `.html`, dans `<contexte>/artefacts/` ;
 un `--note` par fiche faite, le critère constaté en une ligne :
 
 ```bash
-<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" page "<fichier de fiches courant>" "<contexte>/artefacts/<NN>-<chantier>.html" --note <fiche> "<critère constaté>"
+<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" page "<fichier de fiches courant>" --note <fiche> "<critère constaté>"
 ```
 
 Une `GARDE:` ou une sortie non nulle : une ligne, et continue. Sinon, deux
@@ -105,7 +105,7 @@ puis `Artifact` avec le `file_path` de la page **et** cette `url`, sans
 Si un `BLOQUÉE` a clos la série, marque aussi la page bloquée :
 
 ```bash
-cat "${CLAUDE_PLUGIN_ROOT}/skills/tache/references/tache-blocage.md"
+<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" lire skills/tache/references/tache-blocage.md
 ```
 
 ## 5. Clore le chantier

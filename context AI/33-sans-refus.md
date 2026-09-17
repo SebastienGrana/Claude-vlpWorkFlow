@@ -117,7 +117,7 @@ Garde les ajouts de tests dans le style existant ; calcule les attendus, ne les 
 ---
 
 <!-- FICHE:U3 -->
-## U3 [ ] — Réécrire les corps des skills sans `cat` ni `$…`
+## U3 [x] — Réécrire les corps des skills sans `cat` ni `$…`
 
 **Dépend de** : `U2`.
 **Fichiers** : `skills/tache/SKILL.md`, `skills/chantier/SKILL.md`, `skills/enchainer/SKILL.md`, `cloture.md` (s'il
@@ -129,7 +129,9 @@ appel pour plusieurs fichiers). Étape 6 de `tache` : la coche et la Session pas
 de `$CLAUDE_CODE_SESSION_ID` dans le texte) ; `page` sans chemin de sortie dans `tache` et `chantier`. Retire de
 `allowed-tools` ce qui ne sert plus (`cat`, `ls` si plus aucun appel). Une commande simple par ligne, `;` entre deux,
 jamais `||`, `&&`, `$…`, tuyau. Aucun ajout de prose au-delà du remplacement. Relis `tache-page.md` et
-`tache-blocage.md` : s'ils nomment `cat` ou le coche par `Edit`, aligne-les.
+`tache-blocage.md` : s'ils nomment `cat` ou le coche par `Edit`, aligne-les. Décidé après U1 (les `allowed-tools`
+tombent au prompt suivant) : un critère scriptable ne fait plus attendre de confirmation — coche, coût et page dans le
+même prompt ; seul un critère visuel attend le retour de l'utilisateur.
 
 **Critère de fin**
 `grep -c 'cat "' skills/*/SKILL.md cloture.md` → 0 partout (6 avant) ; `grep -c 'CLAUDE_CODE_SESSION_ID' skills/*/SKILL.md`

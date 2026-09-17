@@ -1,7 +1,7 @@
 ---
 description: Ouvre une séance de travail : propose les chantiers possibles, puis cadre celui qu'on choisit en fiches
 argument-hint: (rien) | <nom du chantier> | <alias> <nom du chantier>
-allowed-tools: Bash(python3:*), Bash(py:*), Bash(echo:*), PowerShell(python3:*), PowerShell(py:*), PowerShell(echo:*), PowerShell(ls:*), PowerShell(cat:*), Bash(pwd:*), Bash(cd:*), Bash(ls:*), Bash(grep:*), Bash(cat:*), Bash(wc:*), Bash(mkdir:*), Bash(cp:*), Read, Edit, Write, Artifact
+allowed-tools: Bash(python3:*), Bash(py:*), Bash(echo:*), PowerShell(python3:*), PowerShell(py:*), PowerShell(echo:*), PowerShell(ls:*), Bash(pwd:*), Bash(cd:*), Bash(ls:*), Bash(grep:*), Bash(wc:*), Bash(mkdir:*), Bash(cp:*), Read, Edit, Write, Artifact
 ---
 
 Arguments reçus :
@@ -84,7 +84,7 @@ là si c'est `/vlp:tache` : rappelle `/clear` d'abord.
 une fois, et `/vlp:tache` applique la même.
 
 ```bash
-cat "${CLAUDE_PLUGIN_ROOT}/cloture.md"
+<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" lire cloture.md
 ```
 
 Les fiches non jouées y sont dites **abandonnées**, pas cochées : une case
@@ -216,7 +216,7 @@ La page se crée par le script, depuis le gabarit du kit et le fichier de
 fiches — **même `<NN>`** que lui. Tu ne retapes pas son HTML :
 
 ```bash
-<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" page "<contexte>/<NN>-<chantier>.md" "<contexte>/artefacts/<NN>-<chantier>.html" --creer --projet "<Projet>" --titre "<Nom du chantier>" --resultat "<le résultat visible de l'étape 3>" --note <fiche> "<ce qu'elle produit, de quoi elle dépend>"
+<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" page "<contexte>/<NN>-<chantier>.md" --creer --projet "<Projet>" --titre "<Nom du chantier>" --resultat "<le résultat visible de l'étape 3>" --note <fiche> "<ce qu'elle produit, de quoi elle dépend>"
 ```
 
 Une option `--note` par fiche. Rien d'autre n'y va : ni le prompt des fiches,
