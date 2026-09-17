@@ -1,0 +1,16 @@
+#!/bin/sh
+# Lance scripts/vlp.py avec le premier Python qui répond : python3, python, py.
+# Les commandes du kit l'appellent sans accolade : sh "<kit>/scripts/vlp" <sous-commande> …
+# Sous Windows, python3 est souvent le faux raccourci du Store : « -c "" » l'écarte.
+case $0 in
+  */*) ici=${0%/*} ;;
+  *\\*) ici=${0%\\*} ;;
+  *) ici=. ;;
+esac
+for p in python3 python py; do
+  if "$p" -c "" >/dev/null 2>&1; then
+    exec "$p" "$ici/vlp.py" "$@"
+  fi
+done
+echo "vlp : aucun Python ne répond (python3, python, py)" >&2
+exit 127

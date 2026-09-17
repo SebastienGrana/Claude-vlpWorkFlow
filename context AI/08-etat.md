@@ -486,3 +486,13 @@ de ce que le code dit déjà.
   la demande. Total brut mesuré au bilan : 52 tours, 58 appels, input 106, output 37 918, cache_creation 154 946,
   cache_read 7 131 593, **total 7 324 563 tokens**, 6,06 $, plus 1,26 $ de sondes headless (3 lancements) et 1,00 $
   d'evals.
+- **2026-09-17** — P1 : lanceur `scripts/vlp` (sh, essaie `python3`, `python`, `py` par `-c ""`, puis `exec` ; aucun →
+  exit 127) ; 3 tests ajoutés à `test-vlp.py` (relaie la sortie, relaie le code, 127) ; `.gitattributes` force LF.
+  Surprise : `${0%/*}` ne coupe pas un chemin en `\` (appel depuis Python) — `case` sur les deux séparateurs.
+  Sondes `-p` en Sonnet, bac à sable vide, une commande imposée : (a) ancien motif, `Bash(python3:*) Bash(python:*)` →
+  **refusé** « Contains brace with quote character (expansion obfuscation) », 2 tours, 1 appel, 0,20 $ ; (b) `sh
+  "<kit>/scripts/vlp" etat ctx`, `Bash(sh:*)` → **passe**, `ETAT=01-etat.md`, 2 tours, 1 appel, 0,05 $ ; (c) même
+  commande sans `--allowedTools` → « This command requires approval », 2 tours, 0,05 $ : `Bash(sh:*)` est nécessaire.
+  Interactif (cette session, mode auto) : l'ancien motif **passe** sans refus (`PY=python`). PowerShell sans Git Bash :
+  `sh` introuvable (le PATH n'a que `Git/cmd` et `Git/mingw64/bin`) et l'ancien motif y est une `ParserError` — pas
+  de régression, les deux cassent pareil.

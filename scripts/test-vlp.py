@@ -7,6 +7,8 @@ Imprime `OK` et sort 0, ou le premier écart et sort 1.
 import importlib.util
 import io
 import os
+import shutil
+import subprocess
 import sys
 import tempfile
 
@@ -417,5 +419,21 @@ with tempfile.TemporaryDirectory() as t:
     verifier("renvois : absent, sort 1", code == 1 and s == "ABSENT: ctx/00-INDEX.md:3: 99-mort.md\nRENVOIS 2 nommés · 1 absents\n", s)
     os.remove(os.path.join(t, "CHANTIER.md"))
     verifier("renvois : pas équipé", appel(["renvois", t])[0] == 1, appel(["renvois", t]))
+
+SH = shutil.which("sh")
+if SH is None:
+    print("lanceur : sh absent du PATH, tests du lanceur sautés")
+else:
+    def lancer(argv, env=None):
+        r = subprocess.run([SH, os.path.join(ICI, "vlp")] + argv, capture_output=True, env=env,
+                           encoding="utf-8", errors="replace")
+        return r.returncode, r.stdout.replace("\r", ""), r.stderr
+    with tempfile.TemporaryDirectory() as t:
+        r = lancer(["etat", os.path.join(t, "ctx")])
+        verifier("lanceur : relaie la sous-commande, sort 0", r[:2] == (0, "ETAT=01-etat.md\n"), r)
+        r = lancer(["renvois", t])
+        verifier("lanceur : relaie le code de sortie", r[0] == 1, r)
+        r = lancer(["etat", t], env=dict(os.environ, PATH=t))
+        verifier("lanceur : aucun Python, sort 127", r[0] == 127 and "aucun Python" in r[2], r)
 
 print("OK")

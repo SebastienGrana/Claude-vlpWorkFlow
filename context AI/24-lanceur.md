@@ -57,7 +57,7 @@ Strictement en série : P2 applique la forme que P1 a prouvée, P3 mesure ce que
 ---
 
 <!-- FICHE:P1 -->
-## P1 [ ] — Sonder les formes, écrire le lanceur
+## P1 [x] — Sonder les formes, écrire le lanceur
 
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp` (neuf), `scripts/test-vlp.py` (un test du lanceur),
