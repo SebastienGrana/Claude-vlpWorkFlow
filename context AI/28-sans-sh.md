@@ -1,0 +1,115 @@
+> **QUAND LIRE** : on joue une fiche `X*` de ce chantier, ou on se demande où
+> il en est. `/vlp:tache X<n>` n'en lit que le socle commun et sa fiche — jamais
+> ce fichier en entier.
+
+# Chantier X — Le kit sans `sh` : sonder puis trancher
+
+**À quoi il sert.** Sans Git Bash, le hook `sh` se tait et les skills à `!`sh …`` échouent (G1). On mesure, sous
+Windows et sous Ubuntu, s'il existe un lancement de Python sans `sh` qui passe partout ; puis on l'applique ou on renonce.
+
+**Fait.** Rien encore (ouvert le 2026-09-17, TODO n° 16).
+
+## Le socle commun
+
+**Ce qui existe** (lu au cadrage, le 2026-09-17) :
+
+| Où | Ce qui s'y joue |
+|---|---|
+| `hooks/hooks.json` | `PostToolUse` `Write\|Edit`, forme shell : `sh "${CLAUDE_PLUGIN_ROOT}/scripts/vlp" hook` |
+| `skills/{chantier,enchainer,jouer,tache}/SKILL.md` | une injection chacune : `!`sh "${CLAUDE_PLUGIN_ROOT}/scripts/vlp" carte`` |
+| `scripts/vlp` | lanceur `sh` : premier de `python3`, `python`, `py` qui répond à `-c ""` |
+| `context AI/26-gitbash.md`, fiche G1 | le tableau « mécanisme → shell sans Git Bash » : hook forme shell → PowerShell, `exit_code 1`, muet ; forme exec (`command` + `args`) → sans shell, `python …/vlp.py hook` passe ; injection → skill en échec avant tout tour, 0 $ |
+
+**Frontière** (tranchée au cadrage) : dedans, le hook et les 4 injections de carte. Dehors : les 17 appels `sh` du
+corps des skills et de `cloture.md`, les `Bash(sh:*)` des allowed-tools, `scripts/vlp` lui-même.
+
+**Contraintes connues** (G2, doc) : aucun champ `os`/`platform` de hook ; PowerShell 5.1 ignore `||` (pwsh 7 l'a) ;
+sous Windows `python3` est souvent le raccourci du Store ; `python` peut manquer sous macOS/Linux ; sous PowerShell
+`bash` est WSL, jamais un remplaçant de `sh`. Un résultat non mesuré ne s'écrit pas : la fiche note « non sondé ».
+
+**Simuler et prouver** :
+- Windows sans Git : `shell: powershell` sur un hook (`.claude/settings.json` d'un bac à sable du scratchpad) ou dans
+  le frontmatter d'une skill de bac (`.claude/skills/<nom>/SKILL.md`, lancée par `-p "/<nom>"`) ;
+- Ubuntu : le même bac lancé par `wsl.exe -d Ubuntu -- bash -lc '…' | tr -d '\0'` (`claude` 2.1.274, `python3`) ;
+- preuve d'un hook : `claude -p … --output-format stream-json --verbose --include-hook-events` → `hook_response`
+  (`stdout`, `stderr`, `exit_code`) ; preuve d'une injection : le texte de la carte dans le premier message, ou l'échec ;
+- sondes en `--model haiku --max-budget-usd 0.3` ; coût = `total_cost_usd` de la dernière ligne. Plafond : 1 $ de
+  sondes par fiche ; au-delà, la fiche s'arrête.
+
+**Outils de preuve** : `sh scripts/vlp valider <fichier>`, `python scripts/test-vlp.py` (« OK »), `sh scripts/vlp
+renvois .`, `claude.exe plugin validate .` (1 avertissement voulu) — `claude.exe` sous `%APPDATA%/Claude/claude-code/<version>/`.
+
+## L'ordre des fiches
+
+| Fiche | Titre | Dépend de |
+|---|---|---|
+| `X1` | Sonder le hook sans `sh` | rien |
+| `X2` | Sonder la carte injectée sans `sh` | `X1` |
+| `X3` | Appliquer ou renoncer | `X1`, `X2` |
+
+X2 reprend les candidats de X1 ; X3 ne tranche que sur leurs deux tableaux.
+
+---
+
+<!-- FICHE:X1 -->
+## X1 [ ] — Sonder le hook sans `sh`
+
+**Dépend de** : rien.
+**Fichiers** : `context AI/28-sans-sh.md` (le tableau, sous cette fiche) ; un bac à sable dans le scratchpad — rien
+d'autre dans le kit.
+
+**Prompt**
+Relève dans la doc des hooks (code.claude.com, `hooks` : forme exec, `shell`, code de sortie non bloquant) les formes
+utiles, puis sonde au moins ces candidats pour un hook `PostToolUse` qui lance `vlp.py hook` sur un fichier de fiches
+écrit par `Write` : forme exec `python3`, `python`, `py` ; forme shell `python "<kit>/scripts/vlp.py" hook` ; deux
+hooks exec côte à côte (`python3` et `py`), dont l'un échoue sans bruit. Chacun sous Windows `shell: powershell` et
+sous Ubuntu. Note aussi ce que voit le modèle quand un des deux hooks échoue, et si `VALIDE` sort deux fois.
+
+**Critère de fin**
+Sous cette fiche, un tableau candidat × système (Windows PowerShell, Ubuntu) → `exit_code`, `stdout` brut
+(`VALIDE <n> fiches` ou erreur), source (doc ou sonde) ; au moins 5 candidats, chacun sur les 2 systèmes ; coût
+total des sondes recopié.
+<!-- /FICHE -->
+
+---
+
+<!-- FICHE:X2 -->
+## X2 [ ] — Sonder la carte injectée sans `sh`
+
+**Dépend de** : `X1`.
+**Fichiers** : `context AI/28-sans-sh.md` (le tableau, sous cette fiche) ; un bac à sable dans le scratchpad — rien
+d'autre dans le kit.
+
+**Prompt**
+Lis le tableau de X1. Dans une skill de bac, sonde une injection `!`…`` qui lance `vlp.py carte` sans `sh` : les
+candidats de X1 qui passaient, plus `python3 … carte; python … carte` (deux commandes, une en échec) et `python3 …
+carte || python … carte`. Chacun sous Windows `shell: powershell` (dis si c'est pwsh 7 ou powershell.exe 5.1) et sous
+Ubuntu. Mesure surtout si une injection dont une commande échoue (code non nul, stderr) fait échouer la skill.
+
+**Critère de fin**
+Sous cette fiche, un tableau candidat × système → skill lancée oui/non, carte présente (`PROJET=` lu dans le premier
+message) oui/non, message d'erreur brut ; au moins 4 candidats, chacun sur les 2 systèmes ; coût total recopié.
+<!-- /FICHE -->
+
+---
+
+<!-- FICHE:X3 -->
+## X3 [ ] — Appliquer ou renoncer
+
+**Dépend de** : `X1`, `X2`.
+**Fichiers** : `hooks/hooks.json`, les 4 `skills/*/SKILL.md` du socle (ligne d'injection seule),
+`.claude-plugin/plugin.json` (version), `scripts/test-vlp.py` si le hook change, `README.md` (prérequis),
+`context AI/08-etat.md` (ligne n° 16 de la TODO) — et rien d'autre.
+
+**Prompt**
+Lis les tableaux de X1 et X2. Un candidat passe sur les 2 systèmes pour un mécanisme : applique-le à ce mécanisme
+seulement, plugin 3.3.4, et écris dans `README.md` ce qui marche désormais sans Git Bash. Aucun ne passe : ne change
+aucun code, écris la raison mesurée dans la ligne n° 16 (reformulée, ou retirée si rien ne reste à essayer). Un choix
+que les tableaux ne tranchent pas (deux candidats, un compromis de tours) : rends la main.
+
+**Critère de fin**
+Branche « appliquer » : la sonde gagnante rejouée avec le plugin réel sous les 2 systèmes (sorties brutes) ;
+`test-vlp.py` OK (nombre d'assertions) ; `validate` propre (1 avertissement voulu) ; `renvois .` 0 absent ; evals
+`hook` sous Windows et `tache`, `chantier` sous Ubuntu passées. Branche « renoncer » : la ligne n° 16 citée, `git diff
+--stat` sans fichier du plugin.
+<!-- /FICHE -->

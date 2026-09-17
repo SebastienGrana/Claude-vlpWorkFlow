@@ -37,6 +37,7 @@ a l'air proche.
 | `24-lanceur.md` | on relit le socle du chantier P — **clos** « Un lanceur Python sans accolade », `P1..P3` |
 | `26-gitbash.md` | on relit le socle du chantier G — **clos** « Le kit sans Git Bash », `G1..G2` |
 | `27-wsl.md` | on relit le socle du chantier W — **clos** « Evals sous WSL2 », `W1..W2` |
+| `28-sans-sh.md` | on joue une fiche du chantier X — **en cours** « Le kit sans sh », `X1..X3` |
 | `25-arret.md` | on relit le socle du chantier A — **clos** « Une fiche visuelle arrête `/vlp:enchainer` », `A1..A2` |
 | `21-skills.md` | on relit le socle du chantier K — **clos** « Migrer commands/ → skills/ », `K1..K3` |
 | `20-init.md` | on joue une fiche `I*` — chantier **clos** « Un projet neuf qui ne ment pas », `I1..I3` |
