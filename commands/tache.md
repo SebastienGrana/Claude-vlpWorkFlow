@@ -4,6 +4,10 @@ argument-hint: (rien) | <fiche> | <alias> <fiche> | <fiche> commentaires
 allowed-tools: Bash(sed:*), Bash(grep:*), Bash(awk:*), Bash(cat:*), Bash(tail:*), Bash(head:*), Bash(ls:*), Bash(wc:*), Bash(pwd:*), Bash(cd:*), Bash(dirname:*), Read, Edit, Write, Artifact
 ---
 
+Arguments reçus :
+
+$ARGUMENTS
+
 Exécute **une** fiche du chantier courant. Si une fiche est donnée en
 argument, c'est celle-là ; sinon c'est la première fiche non cochée du fichier
 de fiches courant, que l'étape 0 bis détermine. Dans toute la suite, « la fiche
@@ -56,7 +60,7 @@ Résous dans cet ordre, et arrête-toi au premier cas qui s'applique :
 1. **Une ligne `PROJET=…`** → c'est ce projet. Ne demande rien.
 2. **Aucun `PROJET=`, un seul voisin** → c'est celui-là. Ne demande rien.
 3. **Aucun `PROJET=`, plusieurs voisins** → on est dans un workspace. Lis la
-   ligne `**alias**` de chacun. Si `$1` est l'un de ces alias, c'est ce
+   ligne `**alias**` de chacun. Si le premier argument est l'un de ces alias, c'est ce
    projet-là ; sinon **demande lequel**, et n'ouvre rien avant la réponse :
    deviner ferait jouer la fiche d'un autre projet.
 4. **Aucun `CHANTIER.md` nulle part** → dis-le et arrête-toi : c'est
@@ -79,9 +83,9 @@ Si « fichier de fiches courant » vaut **aucun**, arrête-toi et dis-le : c'est
 Un fichier de fiches listé comme **clos** ne se rejoue jamais ; il ne sert plus
 qu'à relire un socle d'API à l'étape 4, si une fiche l'y renvoie.
 
-**Ce que valent `$1` et `$2`.** Si `$1` est l'alias d'un projet trouvé
-ci-dessus, la fiche est `$2`. Sinon `$1` est la fiche elle-même (`R3`, `N1`…),
-et s'il est vide, l'étape 0 bis la trouve.
+**Ce que valent les arguments.** Si le premier argument est l'alias d'un projet
+trouvé ci-dessus, la fiche est le second. Sinon le premier est la fiche
+elle-même (`R3`, `N1`…), et s'il n'y en a pas, l'étape 0 bis la trouve.
 
 Le mot **`commentaires`**, où qu'il soit dans les arguments, n'est ni un projet
 ni une fiche : il demande de lire les fils de commentaires de l'artefact du

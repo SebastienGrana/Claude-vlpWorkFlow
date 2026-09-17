@@ -4,6 +4,10 @@ argument-hint: (rien) | <chemin du projet>
 allowed-tools: Bash(pwd:*), Bash(cd:*), Bash(ls:*), Bash(cat:*), Bash(grep:*), Bash(mkdir:*), Bash(cp:*), Bash(dirname:*), Read, Edit, Write, Artifact
 ---
 
+Arguments reçus :
+
+$ARGUMENTS
+
 Équipe **un** projet de la méthode « chantiers et fiches » : après ça,
 `/vlp:chantier` et `/vlp:tache` marchent dedans sans qu'on ait à leur dire où on est.
 
@@ -13,7 +17,7 @@ session neuve.
 
 ## 0. Le projet à équiper
 
-Si `$1` est donné, c'est ce dossier. Sinon :
+Si un argument est donné, c'est ce dossier. Sinon :
 
 ```bash
 pwd; ls -d */ 2>/dev/null | head -20; ls CHANTIER.md CLAUDE.md 2>/dev/null

@@ -149,3 +149,9 @@ de ce que le code dit déjà.
   Total brut mesuré sur la session de T1..T5 : 89 tours, 95 appels, input 478,
   output 121 027, cache_creation 512 926, cache_read 15 560 204, **total
   16 194 635 tokens**, 16,55 $.
+- **2026-09-17** — B1 : `$1` n'est pas le premier argument mais le **second**
+  (index à partir de 0) — mesuré sur deux textes reçus : `/vlp:chantier chantier
+  n° 1 …` a lu `n°` et `1` ; `/vlp:tache B1` a laissé `$1` littéral. Les quatre
+  commandes lisent `$ARGUMENTS` ; sans lui, Claude Code ajoute `ARGUMENTS: …` en
+  fin de texte. Reste à rejouer pour de vrai : `/reload-plugins`, puis
+  `/vlp:tache` et `/vlp:chantier` avec arguments sur un projet équipé.

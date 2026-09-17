@@ -56,7 +56,9 @@ Les trois sont indépendantes ; l'ordre ne sert qu'à commiter proprement.
 ---
 
 <!-- FICHE:B1 -->
-## B1 [ ] — Remplacer `$1` et `$2` par `$ARGUMENTS`
+## B1 [x] — Remplacer `$1` et `$2` par `$ARGUMENTS`
+
+**Session** : 7bb64701-bdad-4be9-8287-3ede11e93e49
 
 **Dépend de** : rien.
 **Fichiers** : commands/chantier.md, commands/tache.md, commands/init.md,

@@ -4,6 +4,10 @@ argument-hint: (rien) | <nom du chantier> | <alias> <nom du chantier>
 allowed-tools: Bash(pwd:*), Bash(cd:*), Bash(ls:*), Bash(sed:*), Bash(grep:*), Bash(awk:*), Bash(cat:*), Bash(wc:*), Bash(mkdir:*), Bash(cp:*), Bash(dirname:*), Read, Edit, Write, Artifact
 ---
 
+Arguments reçus :
+
+$ARGUMENTS
+
 Ouvre une séance de travail sur le projet où l'on se trouve.
 
 Cette session **n'écrit pas de code** : elle produit un fichier de fiches, et
@@ -35,7 +39,7 @@ Résous dans cet ordre, et arrête-toi au premier cas qui s'applique :
    voisins existent : on est déjà dedans.
 2. **Aucun `PROJET=`, un seul voisin** → c'est celui-là. Ne demande rien.
 3. **Aucun `PROJET=`, plusieurs voisins** → on est dans un workspace. Lis la
-   ligne `**alias**` de chacun. Si `$1` est l'un de ces alias, c'est ce
+   ligne `**alias**` de chacun. Si le premier argument est l'un de ces alias, c'est ce
    projet-là ; sinon **pose un questionnaire** listant les alias, et n'ouvre
    rien avant la réponse.
 4. **Aucun `CHANTIER.md` nulle part** → le projet n'est pas équipé. Dis-le, et
@@ -52,8 +56,9 @@ carte dont tu as besoin. Il nomme la **méthode**, les **chantiers possibles**,
 le **fichier de fiches courant**, l'**index**, le **fichier d'état**, et le
 **kit** — le dossier où sont les gabarits.
 
-**Ce que valent `$1` et `$2`.** Si `$1` est l'alias d'un projet trouvé à
-l'étape 0, il désigne le projet et le chantier est `$2`. Sinon, l'alias n'était
+**Ce que valent les arguments.** Si le premier argument est l'alias d'un projet
+trouvé à l'étape 0, il désigne le projet et les suivants forment le nom du
+chantier. Sinon, l'alias n'était
 pas nécessaire : tous les arguments forment le **nom du chantier**.
 
 ## 0 ter. Si un chantier est déjà ouvert : reprendre, pas rouvrir

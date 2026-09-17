@@ -4,6 +4,10 @@ argument-hint: (rien) | <alias>
 allowed-tools: Bash(sed:*), Bash(grep:*), Bash(awk:*), Bash(cat:*), Bash(wc:*), Bash(ls:*), Bash(pwd:*), Bash(cd:*), Bash(dirname:*), Agent, Artifact
 ---
 
+Arguments reçus :
+
+$ARGUMENTS
+
 Joue à la suite les fiches non cochées du fichier de fiches courant, chacune
 dans un sous-agent neuf `vlp:fiche` (`agents/fiche.md`) — jamais deux fiches
 dans le même contexte. Le contrat qu'il rend (`FAITE`, `RETOUR`, `BLOQUÉE`)
@@ -23,7 +27,7 @@ sed -n '/^## 0\. /,/^## 1\. /p' "${CLAUDE_PLUGIN_ROOT}/commands/tache.md"
 ```
 
 Applique ce que cette plage dit, avec les arguments de cette commande à la
-place de ceux de `tache.md` (`$1` est l'alias s'il y a plusieurs projets
+place de ceux de `tache.md` (le premier argument est l'alias s'il y a plusieurs projets
 voisins, sinon rien — il n'y a pas de fiche à distinguer ici). Si le repérage
 s'arrête — aucun `CHANTIER.md`, alias ambigu, fichier de fiches courant à
 « aucun » — arrête-toi ici, de la même façon : il n'y a rien à enchaîner.
