@@ -281,3 +281,12 @@ de ce que le code dit déjà.
   page 133) ; `/vlp:init` rejoué sur un dossier vide du scratchpad : `AUCUN_PROJET`
   puis `PROJET=` après pose, questionnaire répondu par défaut et publication
   **neutralisée** (pas d'artefact de test) ; `init.md` 3 ter reste faux (TODO 10).
+- **2026-09-17** — H2 : `vlp.py hook` reconnaît un fichier de fiches à un marqueur
+  `<!-- FICHE:X1 -->` ou à `## Le socle commun` **hors bloc de code** — sinon
+  `methode-chantier.md`, `commands/chantier.md` et le gabarit, qui en montrent,
+  seraient validés à chaque édition. Le gabarit de fiches passe (`VALIDE 0 fiches`) ;
+  `exemples/fichier-de-fiches-cairn.md` (N1 sans marqueurs) et `11-conso.md:88`
+  seront signalés s'ils sont édités : archives, laissées telles quelles. Un appel :
+  0,19 à 0,21 s. Sous Git Bash, un heredoc passé à `python -` perd un `\` sur deux :
+  un patch avec `
+` s'écrit dans un fichier, pas dans un heredoc.

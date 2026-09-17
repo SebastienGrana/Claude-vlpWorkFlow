@@ -69,9 +69,9 @@
     <p>Un fichier de fiches cassé est refusé dès son écriture par un hook PostToolUse du plugin, prouvé après /reload-plugins ; l'appel valider prescrit dans /vlp:chantier disparaît ; SessionStart gardé seulement si les chiffres le justifient.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">4 fiches · 1 faite · en cours : H2</p>
+    <p class="mono" style="margin-top:.5rem">4 fiches · 2 faites · en cours : H3</p>
   </header>
 
   <section>
@@ -84,14 +84,15 @@
         <span class="note">Hooks chargés après /reload-plugins : python et py parlent (exit 2, racine substituée), python3 et la forme args muets ; « republie » 2 → 0 ; check A–G passent ; init rejoué sur un bac à sable, publication neutralisée.</span>
         <span class="cout mono">≈6,3M (6 292 530) · 50 tours · 5,36 $</span>
       </li>
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">H2</span><span class="titre">Écrire vlp.py hook</span>
-        <span class="etat">en cours</span>
-        <span class="note">vlp.py hook : lit le JSON du hook, valide un fichier de fiches, exit 2 sur écart, une ligne de bilan sinon ; testé. Ne dépend de rien.</span>
+        <span class="etat">faite</span>
+        <span class="note">test-vlp.py OK (6 cas hook) ; 16-script.md → JSON VALIDE 5 fiches, exit 0 ; 11-conso.md → écart ligne 88 sur stderr, exit 2 ; méthode et commands/chantier.md muets ; 0,19–0,21 s par appel.</span>
+        <span class="cout mono">≈2,4M (2 364 569) · 12 tours · 1,74 $</span>
       </li>
-      <li class="fiche">
+      <li class="fiche" data-etat="encours">
         <span class="id">H3</span><span class="titre">Brancher le hook et alléger les commandes</span>
-        <span class="etat">à faire</span>
+        <span class="etat">en cours</span>
         <span class="note">Branche le hook dans hooks/hooks.json, retire le valider de /vlp:chantier, allège les consignes de marqueurs ; preuve en vrai. Dépend de H1 et H2.</span>
       </li>
       <li class="fiche">
@@ -100,7 +101,7 @@
         <span class="note">SessionStart posé, ctx_1er mesuré avec et sans ; gardé ou écarté aux chiffres. Dépend de H3.</span>
       </li>
     </ul>
-    <p class="mono cout-total">Coût du chantier : ≈6,3M (6 292 530) · 50 tours · 5,36 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈8,7M (8 657 099) · 62 tours · 7,10 $</p>
     <!-- ligne de total, absente si aucune fiche n'a de coût mesuré -->
   </section>
 
@@ -118,6 +119,7 @@
     <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
     <ul class="journal">
       <li><time datetime="2026-09-17">2026-09-17</time><span>H1 : le kit lié dans skills/ charge ses hooks ; forme retenue : la boucle PY des commandes (python3 muet sous Windows, forme args non déclenchée).</span></li>
+      <li><time datetime="2026-09-17">2026-09-17</time><span>H2 : un fichier de fiches se reconnaît hors bloc de code — la méthode, chantier.md et le gabarit en montrent sans en être.</span></li>
     </ul>
   </section>
 

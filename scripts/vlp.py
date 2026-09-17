@@ -27,11 +27,20 @@ Sous-commandes :
   `--note <fiche> <texte>`, `--journal <texte>` (répétables) ; `--creer
   --projet P --titre T --resultat R` part du gabarit ; `--verifier` n'écrit
   rien et sort 1 si états ou avancement diffèrent du fichier.
+- `hook` — le hook `PostToolUse` (`Write|Edit`) du plugin : lit sur stdin le
+  JSON du hook, prend `tool_input.file_path` (relatif : contre `cwd`). Sort 0
+  muet si ce n'est pas un fichier de fiches — JSON illisible, chemin absent, pas
+  `.md`, ou ni marqueur `<!-- FICHE:X1 -->` ni `## Le socle commun` hors bloc de
+  code. Sinon `valider` : écart → écarts, bilan et consigne sur stderr, sort 2 ;
+  valide → le JSON `hookSpecificOutput` dont `additionalContext` est le bilan,
+  sort 0.
 
 Python 3 sans dépendance, zéro appel modèle.
 """
 import argparse
 import glob
+import io
+import json
 import os
 import re
 import sys
@@ -288,16 +297,64 @@ def cmd_valider(chemins, sortie):
                          % (chemin, chemin))
             code = 1
             continue
-        ecarts, avert, n, socle = valider_lignes(lignes_de(chemin))
-        for ligne, message in ecarts:
-            sortie.write("%s:%d: %s\n" % (chemin, ligne, message))
-        for ligne, message in avert:
-            sortie.write("%s:%d: avertissement : %s\n" % (chemin, ligne, message))
-        sortie.write("%s %d fiches · socle %d lignes · %d écarts · %d avertissements — %s\n"
-                     % ("INVALIDE" if ecarts else "VALIDE", n, socle, len(ecarts), len(avert), chemin))
-        if ecarts:
+        if rapport(chemin, lignes_de(chemin), sortie):
             code = 1
     return code
+
+
+def rapport(chemin, lignes, sortie):
+    """Écrit les écarts, les avertissements et le bilan ; rend le nombre d'écarts."""
+    ecarts, avert, n, socle = valider_lignes(lignes)
+    for ligne, message in ecarts:
+        sortie.write("%s:%d: %s\n" % (chemin, ligne, message))
+    for ligne, message in avert:
+        sortie.write("%s:%d: avertissement : %s\n" % (chemin, ligne, message))
+    sortie.write("%s %d fiches · socle %d lignes · %d écarts · %d avertissements — %s\n"
+                 % ("INVALIDE" if ecarts else "VALIDE", n, socle, len(ecarts), len(avert), chemin))
+    return len(ecarts)
+
+
+# --- hook --------------------------------------------------------------------
+
+MARQUE = re.compile(r"^<!-- FICHE:[A-Z][0-9]+ -->$")
+
+
+def est_fichier_de_fiches(lignes):
+    """Un marqueur de fiche ou le titre du socle, hors bloc de code : la méthode
+    et les commandes en montrent dans des blocs, elles ne sont pas des fiches."""
+    code = False
+    for l in lignes:
+        if l.lstrip().startswith("```"):
+            code = not code
+        elif not code and (MARQUE.match(l.strip()) or l.startswith("## Le socle commun")):
+            return True
+    return False
+
+
+def cmd_hook(entree, sortie, erreur):
+    try:
+        d = json.loads(entree.read())
+    except ValueError:
+        return 0
+    ti = d.get("tool_input") if isinstance(d, dict) else None
+    chemin = ti.get("file_path") if isinstance(ti, dict) else None
+    if not isinstance(chemin, str) or not chemin.lower().endswith(".md"):
+        return 0
+    if not os.path.isabs(chemin) and isinstance(d.get("cwd"), str):
+        chemin = os.path.join(d["cwd"], chemin)
+    if not os.path.isfile(chemin):
+        return 0
+    lignes = lignes_de(chemin)
+    if not est_fichier_de_fiches(lignes):
+        return 0
+    texte = io.StringIO()
+    if rapport(chemin, lignes, texte):
+        erreur.write(texte.getvalue() + "Corrige ce fichier de fiches avant de continuer.\n")
+        return 2
+    bilan = texte.getvalue().strip().splitlines()[-1]
+    sortie.write(json.dumps({"hookSpecificOutput": {"hookEventName": "PostToolUse", "additionalContext": bilan}},
+                            ensure_ascii=False) + "\n")
+    return 0
 
 
 # --- page --------------------------------------------------------------------
@@ -596,7 +653,7 @@ def cmd_page(a, sortie):
 
 # --- entrée ------------------------------------------------------------------
 
-def main(argv, sortie=None):
+def main(argv, sortie=None, entree=None, erreur=None):
     sortie = sortie or sys.stdout
     p = argparse.ArgumentParser(prog="vlp.py", description="La mécanique du kit vlp.")
     sous = p.add_subparsers(dest="cmd", required=True)
@@ -622,7 +679,10 @@ def main(argv, sortie=None):
     pg.add_argument("--resultat")
     pg.add_argument("--verifier", action="store_true")
     pg.add_argument("--date")
+    sous.add_parser("hook")
     a = p.parse_args(argv)
+    if a.cmd == "hook":
+        return cmd_hook(entree or sys.stdin, sortie, erreur or sys.stderr)
     if a.cmd == "page":
         if not os.path.isfile(a.fichier):
             sortie.write("GARDE: fichier introuvable : %s\n" % a.fichier)
@@ -645,7 +705,7 @@ def main(argv, sortie=None):
 if __name__ == "__main__":
     # Sous Windows, la console n'est pas en UTF-8 : sans ceci, les accents
     # sortent illisibles.
-    for flux in (sys.stdout, sys.stderr):
+    for flux in (sys.stdin, sys.stdout, sys.stderr):
         try:
             flux.reconfigure(encoding="utf-8")
         except (AttributeError, ValueError):

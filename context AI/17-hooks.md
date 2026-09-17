@@ -105,8 +105,9 @@ references/tache-page.md` avant → après ; `check` et `init` rejoués, écarts
 ---
 
 <!-- FICHE:H2 -->
-## H2 [ ] — Écrire `vlp.py hook`
+## H2 [x] — Écrire `vlp.py hook`
 
+**Session** : c6648728-7227-4c69-ba9a-24c6670987bd
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` — et rien d'autre.
 

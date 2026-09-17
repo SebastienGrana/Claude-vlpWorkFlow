@@ -352,4 +352,35 @@ with tempfile.TemporaryDirectory() as t:
     code, s = appel(["page", fiches, os.path.join(t, "absente.html")])
     verifier("page absente sans --creer", code == 1 and "--creer" in s, s)
 
+
+# --- hook : le PostToolUse du plugin -----------------------------------------
+
+def hook(texte):
+    o, e = io.StringIO(), io.StringIO()
+    code = mod.main(["hook"], o, io.StringIO(texte), e)
+    return code, o.getvalue(), e.getvalue()
+
+
+with tempfile.TemporaryDirectory() as t:
+    def json_de(nom):
+        return '{"tool_input": {"file_path": "%s"}, "cwd": "%s"}' % (nom, t.replace("\\", "/"))
+
+    code, o, e = hook("pas du json")
+    verifier("hook : JSON illisible, muet", (code, o, e) == (0, "", ""), o + e)
+    ecrire(os.path.join(t, "notes.md"), "# Notes\n\n```\n<!-- FICHE:D1 -->\n## Le socle commun\n```\n")
+    code, o, e = hook(json_de("notes.md"))
+    verifier("hook : .md ordinaire (marqueur en bloc de code), muet", (code, o, e) == (0, "", ""), o + e)
+    ecrire(os.path.join(t, "y.md"), AVEC.replace("\n**Prompt**\n```\n---\n## pas un titre\n```", "\n**Critère de fin**")
+           .replace("**Session** : bbb", "**Critère de fin**"))
+    code, o, e = hook(json_de("y.md"))
+    verifier("hook : fiches valides, bilan en JSON, sort 0", code == 0 and e == ""
+             and '"additionalContext": "VALIDE 2 fiches' in o and '"hookEventName": "PostToolUse"' in o, o + e)
+    ecrire(os.path.join(t, "y.md"), lire(os.path.join(t, "y.md")).replace("<!-- /FICHE -->\n\n---", "\n---", 1))
+    code, o, e = hook(json_de("y.md"))
+    verifier("hook : fermant manquant, sort 2 sur stderr", code == 2 and o == "" and "marqueur" in e
+             and "INVALIDE" in e and e.endswith("Corrige ce fichier de fiches avant de continuer.\n"), o + e)
+    ecrire(os.path.join(t, "y.md"), AVEC.replace("## Le socle commun", "## Socle"))
+    code, o, e = hook(json_de("y.md"))
+    verifier("hook : titre de section reformulé, sort 2", code == 2 and "section absente : ## Le socle commun" in e, o + e)
+
 print("OK")
