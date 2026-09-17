@@ -68,9 +68,9 @@
     <p>Une sous-commande vlp.py diagnostique et remet à niveau un projet équipé ; les cinq projets y passent, et la carte injectée ne crie plus.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">4 fiches · 1 faite · en cours : NIV2</p>
+    <p class="mono" style="margin-top:.5rem">4 fiches · 2 faites · en cours : NIV3</p>
   </header>
 
   <section>
@@ -81,16 +81,17 @@
         <span class="id">NIV1</span><span class="titre">Faire taire le relais de la carte</span>
         <span class="etat">faite</span>
         <span class="note">Ligne d'injection sous PowerShell : kit 60 -&gt; 59 lignes, 1 -&gt; 0 message de lanceur ; dossier non equipe 6 -&gt; 5, 1 -&gt; 0 ; relue par bash 58 lignes, 0 ; py scripts/test-vlp.py imprime OK</span>
-        <span class="cout mono">≈2,9M (2 865 633) · 28 tours · 3,52 $</span>
+        <span class="cout mono">≈4,3M (4 283 778) · 38 tours · 4,57 $</span>
+      </li>
+      <li class="fiche" data-etat="faite">
+        <span class="id">NIV2</span><span class="titre">Diagnostiquer un projet équipé en un appel</span>
+        <span class="etat">faite</span>
+        <span class="note">5 bilans bruts : Cairn 3 ecarts/2 avert., MapDecorator 2/1, TrackGen 2/1, ProjetONZSM 2/0, bac 5/0 — Cairn CLAUDE.md 89/80 et 2 renvois absents, TrackGen CHANTIER.md 51/50, feuille absente du bac tous retrouves ; test-vlp.py imprime OK</span>
+        <span class="cout mono">≈3,7M (3 730 700) · 37 tours · 3,46 $</span>
       </li>
       <li class="fiche" data-etat="encours">
-        <span class="id">NIV2</span><span class="titre">Diagnostiquer un projet équipé en un appel</span>
-        <span class="etat">en cours</span>
-        <span class="note">Écrit vlp.py niveau : le diagnostic d'un projet équipé, sans rien écrire. Dépend de rien.</span>
-      </li>
-      <li class="fiche">
         <span class="id">NIV3</span><span class="titre">Écrire ce que le diagnostic sait corriger</span>
-        <span class="etat">à faire</span>
+        <span class="etat">en cours</span>
         <span class="note">Ajoute --ecrire : corrige les écarts mécaniques, laisse le jugement à la main. Dépend de NIV2.</span>
       </li>
       <li class="fiche">
@@ -99,7 +100,7 @@
         <span class="note">Passe les cinq projets à niveau, script puis main. Dépend de NIV3.</span>
       </li>
     </ul>
-    <p class="mono cout-total">Coût du chantier : ≈2,9M (2 865 633) · 28 tours · 3,52 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈8,0M (8 014 478) · 75 tours · 8,03 $</p>
     <!-- ligne de total, absente si aucune fiche n'a de coût mesuré -->
   </section>
 
@@ -117,6 +118,7 @@
     <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
     <ul class="journal">
       <li><time datetime="2026-09-17">2026-09-17</time><span>2&gt;"&lt;chemin&gt;" est la seule redirection d'erreur que PowerShell et bash lisent pareil ; la trace part dans relais-python.err au lieu d'etre jetee</span></li>
+      <li><time datetime="2026-09-17">2026-09-17</time><span>vlp.py niveau diagnostique un projet equipe sans rien ecrire ; imprevu : la table des clos traine dans les CINQ CHANTIER.md, pas le seul Cairn — NIV4 s'elargit ; entree n. 22 de la TODO corrigee (une copie locale de methode-chantier.md n'est pas un ecart)</span></li>
     </ul>
   </section>
 

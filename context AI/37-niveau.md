@@ -90,8 +90,9 @@ après, avec le nombre de lignes de chaque. `py scripts/test-vlp.py` imprime `OK
 ---
 
 <!-- FICHE:NIV2 -->
-## NIV2 [ ] — Diagnostiquer un projet équipé en un appel
+## NIV2 [x] — Diagnostiquer un projet équipé en un appel
 
+**Session** : b697fc32-c187-4b57-9062-a5bccc79a190
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py`, `context AI/08-etat.md`
 — et rien d'autre.

@@ -811,4 +811,103 @@ verifier("NIV1 : la carte ne dit que PYTHON= et le projet",
          lu.splitlines()[:2] == ["", "PYTHON=py"] and "introuvable" not in lu and "not found" not in lu
          and "PROJET=" in lu, lu[:200])
 
+# --- NIV2 : `niveau` dit en quoi un projet équipé a dérivé du kit -------------
+
+ETAT_NIV = ("# État\n\n"
+            "Le plugin pose `${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py` — prose, pas un chemin lu.\n\n"
+            "## TODO\n\n| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |\n"
+            "|---|---|---|---|---|\n| 1 | un truc | utile | bas | — |\n")
+CARTE_SALE = """# Chantier courant
+
+- **alias** : sale
+- **contexte** : ctx/
+- **index** : ctx/00-INDEX.md
+- **fichier d'état** : ctx/08-etat.md
+- **méthode** : ${CLAUDE_PLUGIN_ROOT}/methode-chantier.md
+- **fichier de fiches courant** : aucun
+
+## Chantiers clos — ne se rejouent pas
+
+| Fichier de fiches | Fiches | Clos le |
+|---|---|---|
+| ctx/10-a.md | A1..A2 | 2026-01-01 |
+"""
+INDEX_SALE = ("# Index\n\n| Fichier | On l'ouvre quand |\n|---|---|\n"
+              "| `99-fantome.md` | jamais, il n'existe pas |\n"
+              "| *(hors dossier)* `${CLAUDE_PLUGIN_ROOT}/methode-chantier.md` | la méthode |\n")
+
+with tempfile.TemporaryDirectory() as t:
+    proj = os.path.join(t, "sale")
+    ecrire(os.path.join(proj, "CHANTIER.md"), CARTE_SALE)
+    ecrire(os.path.join(proj, "ctx", "00-INDEX.md"), INDEX_SALE)
+    ecrire(os.path.join(proj, "ctx", "08-etat.md"), ETAT_NIV)
+
+    code, s = appel(["niveau", proj])
+    cat = [l.split(":")[1].strip() for l in s.splitlines() if l.startswith("ÉCART:")]
+    verifier("NIV2 : les cinq catégories d'écart, sauf `page` (aucun courant)",
+             code == 1 and cat == ["renvois", "feuille", "variable", "variable", "clos"], s)
+    verifier("NIV2 : le renvoi absent est nommé avec sa source et sa ligne",
+             "ÉCART: renvois: ctx/00-INDEX.md:5: 99-fantome.md — nommé, introuvable\n" in s, s)
+    verifier("NIV2 : la feuille de route absente est un écart",
+             "ÉCART: feuille: feuille de route introuvable :" in s, s)
+    verifier("NIV2 : la variable est lue en champ et en cellule, jamais en prose",
+             "ÉCART: variable: CHANTIER.md:7 cite ${CLAUDE_PLUGIN_ROOT}" in s
+             and "08-etat.md:3" not in s, s)
+    verifier("NIV2 : la table des clos est repérée à son titre",
+             "ÉCART: clos: CHANTIER.md:10 —" in s, s)
+    verifier("NIV2 : le poids sort brut, et le bilan compte les deux genres",
+             "POIDS CLAUDE.md absent/80 · CHANTIER.md 14/50 · index 6/80\n" in s
+             and s.rstrip().endswith("NIVEAU 5 écarts · 0 avertissements — %s" % proj), s)
+
+CARTE_NETTE = """# Chantier courant
+
+- **alias** : net
+- **contexte** : ctx/
+- **index** : ctx/00-INDEX.md
+- **fichier d'état** : ctx/08-etat.md
+- **méthode** : methode-chantier.md, copie d'avant la règle
+- **fichier de fiches courant** : aucun
+
+## Chantiers clos — dans l'index, pas ici
+"""
+INDEX_NET = ("# Index\n\n| Fichier | On l'ouvre quand |\n|---|---|\n"
+             "| `08-etat.md` | on reprend |\n")
+
+with tempfile.TemporaryDirectory() as t:
+    proj = os.path.join(t, "net")
+    ecrire(os.path.join(proj, "CHANTIER.md"), CARTE_NETTE)
+    ecrire(os.path.join(proj, "ctx", "00-INDEX.md"), INDEX_NET)
+    ecrire(os.path.join(proj, "ctx", "08-etat.md"), ETAT_NIV)
+    ecrire(os.path.join(proj, "methode-chantier.md"), "la copie locale, tolérée\n")
+    os.makedirs(os.path.join(proj, "ctx", "artefacts"))
+    shutil.copy(GABARIT_FEUILLE, os.path.join(proj, "ctx", "artefacts", "feuille-de-route.html"))
+    appel(["feuille", proj])
+
+    code, s = appel(["niveau", proj])
+    verifier("NIV2 : un projet à niveau ne sort aucun écart, et 0",
+             code == 0 and "ÉCART:" not in s
+             and s.rstrip().endswith("NIVEAU 0 écarts · 0 avertissements — %s" % proj), s)
+    verifier("NIV2 : une copie locale de methode-chantier.md n'est pas un écart",
+             "methode-chantier" not in s, s)
+
+    ecrire(os.path.join(proj, "CLAUDE.md"), "x\n" * (mod.SEUIL_CLAUDE + 1))
+    code, s = appel(["niveau", proj])
+    verifier("NIV2 : un fichier de tête trop lourd avertit, il ne fait pas un écart",
+             code == 0 and "AVERTISSEMENT: poids: CLAUDE.md %d lignes > %d\n"
+             % (mod.SEUIL_CLAUDE + 1, mod.SEUIL_CLAUDE) in s
+             and "NIVEAU 0 écarts · 1 avertissements" in s, s)
+
+    code, s = appel(["niveau", os.path.join(t, "pas-un-projet")])
+    verifier("NIV2 : sans CHANTIER.md, une GARDE et 1",
+             code == 1 and s.startswith("GARDE: pas de CHANTIER.md dans "), s)
+
+# `niveau` lit les chemins du projet par le point unique : il hérite des GARDE.
+with tempfile.TemporaryDirectory() as t:
+    proj = os.path.join(t, "garde")
+    ecrire(os.path.join(proj, "CHANTIER.md"), CARTE_NETTE.replace("ctx/00-INDEX.md", "ctx/absent.md"))
+    ecrire(os.path.join(proj, "ctx", "08-etat.md"), ETAT_NIV)
+    code, s = appel(["niveau", proj])
+    verifier("NIV2 : un chemin de CHANTIER.md introuvable rend une GARDE, pas un traceback",
+             code == 1 and "GARDE: index introuvable : ctx/absent.md\n" in s, s)
+
 print("OK")

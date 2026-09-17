@@ -88,6 +88,13 @@
   les 2 renvois absents et les fichiers de tête hors seuil de Cairn-VlpLib (TODO n° 22) ; le 23 est retiré,
   le 24 ouvert (bruit « Python est introuvable » du relais de la carte) ; 11 093 368 tokens.
 
+- **2026-09-17** — `vlp.py niveau <projet>` diagnostique un projet équipé sans rien
+  écrire (fiche `NIV2`). Imprévu, et ça élargit `NIV4` : la table des chantiers clos
+  traîne dans `CHANTIER.md` des **cinq** projets, pas du seul Cairn-VlpLib comme le
+  disait la mesure du matin. Bilans : Cairn 3 écarts · 2 avertissements, MapDecorator
+  2 · 1, TrackGen 2 · 1, ProjetONZSM 2 · 0, le bac 5 · 0. L'entrée n° 22 est corrigée :
+  une copie locale de `methode-chantier.md` n'est pas un écart, la méthode la tolère.
+
 ## La TODO ordonnée — les chantiers possibles
 
 C'est d'ici que `/chantier` tire ses propositions. Un chantier par entrée,
@@ -96,7 +103,7 @@ ordonné par ce qui débloque le reste. Le détail de chacun est dans
 
 | # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |
 |---|---|---|---|---|
-| 22 | Les projets équipés ne suivent plus le kit | Mesuré le 2026-09-17 : les 4 projets portent une copie locale de la méthode (87 à 102 lignes) d'avant le plugin — la doctrine interdit la copie ; le bac pointe une variable dans un fichier de données (bug n° 3 de l'audit). Aussi : Cairn-VlpLib 2 renvois absents, `CLAUDE.md` 89/80, index 111/80, table des clos encore dans `CHANTIER.md` ; MapDecorator 84/80 ; TrackGen `CHANTIER.md` 51/50 ; feuille de route en écart sur 3 projets, absente sur le bac. Écrire de quoi remettre un projet équipé à niveau, au lieu de le faire à la main cinq fois | 3 fiches | — |
+| 22 | Les projets équipés ne suivent plus le kit | Mesuré le 2026-09-17 : le bac pointe une variable dans un fichier de données (bug n° 3 de l'audit). Les copies locales de la méthode n'en sont pas un : `methode-chantier.md` dit qu'un projet équipé avant la règle garde la sienne, on a seulement cessé d'en fabriquer (corrigé le 2026-09-17, fiche `NIV2`). Aussi : Cairn-VlpLib 2 renvois absents, `CLAUDE.md` 89/80, index 111/80, table des clos encore dans `CHANTIER.md` ; MapDecorator 84/80 ; TrackGen `CHANTIER.md` 51/50 ; feuille de route en écart sur 3 projets, absente sur le bac. Écrire de quoi remettre un projet équipé à niveau, au lieu de le faire à la main cinq fois | 3 fiches | — |
 | 24 | La carte crie « Python est introuvable » (absorbé par le chantier NIV, fiche `NIV1`) | Mesuré le 2026-09-17 : le relais `python3` de `carte --relais` écrit sur la sortie le message du raccourci Microsoft Store, collé au milieu de la carte injectée dans chaque commande. Rien ne casse, mais la carte ment sur son propre état et le bruit se paye à chaque tour 1 | 1 fiche | — |
 
 ## Journal des décisions

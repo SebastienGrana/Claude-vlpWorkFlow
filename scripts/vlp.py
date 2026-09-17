@@ -73,6 +73,16 @@ Sous-commandes :
   `AVERTISSEMENT: <fichier> <n> lignes > <seuil>` par fichier de tête au-delà
   de son seuil, puis `POIDS CLAUDE.md <n>/<seuil> · CHANTIER.md <n>/<seuil> ·
   index <n>/<seuil>` (`absent` pour <n>) ; un poids ne change pas la sortie.
+- `niveau <projet>` — en quoi un projet équipé a dérivé du kit ; n'écrit rien.
+  Agrège `renvois` (renvois absents en écarts, poids en avertissements, la ligne
+  `POIDS` telle quelle), `feuille --verifier` et, si un fichier de fiches est
+  courant, `page --verifier` ; ajoute ce que rien ne voyait : un `${…}` cité sur
+  une ligne de champ ou de table de `CHANTIER.md`, de l'index ou du fichier
+  d'état, et la table des chantiers clos restée dans `CHANTIER.md`. Une copie
+  locale de `methode-chantier.md` n'est pas un écart : la méthode la tolère
+  pour un projet équipé avant la règle. Une ligne `ÉCART: <catégorie>: <phrase>`
+  par écart (`renvois`, `feuille`, `page`, `variable`, `clos`), puis `NIVEAU <n>
+  écarts · <n> avertissements — <projet>`. Un écart : sort 1.
 - `feuille <projet> [--todo N] [--verifier]` — régénère dans
   `<contexte>/artefacts/feuille-de-route.html` la `ZONE:encours` (depuis le
   fichier de fiches courant et l'artefact du chantier), la `ZONE:todo` (depuis
@@ -910,6 +920,12 @@ def verifier_page(html, fichier, sortie):
     return 1 if ecarts else 0
 
 
+def page_du_fichier(fichier):
+    """La page par défaut d'un fichier de fiches : `<dossier>/artefacts/<nom>.html`."""
+    return os.path.join(os.path.dirname(fichier), "artefacts",
+                        os.path.splitext(os.path.basename(fichier))[0] + ".html")
+
+
 def cmd_page(a, sortie):
     date = a.date or __import__("datetime").date.today().isoformat()
     if a.creer:
@@ -1174,6 +1190,114 @@ def cmd_feuille(a, sortie):
         f.write(neuf)
     sortie.write("%s · %s — %s\n" % (bilan, "inchangée" if neuf == html else "réécrite", page))
     return 0
+
+
+# --- niveau ------------------------------------------------------------------
+
+# Ce qu'on ne regarde pas : une copie locale de `methode-chantier.md`. La
+# méthode dit qu'un projet équipé avant la règle garde la sienne — on a
+# seulement cessé d'en fabriquer.
+VARIABLE = re.compile(r"\$\{[A-Za-z_][A-Za-z0-9_]*\}")
+# Une variable ne compte que là où une commande lit un chemin : le champ d'une
+# ligne `- **nom** : …`, ou une cellule de table. Ailleurs c'est de la prose qui
+# cite la règle, et le fichier d'état en cite beaucoup.
+PORTEUSE = re.compile(r"^\s*(?:-\s*\*\*[^*]+\*\*\s*:|\|)")
+TITRE_CLOS = re.compile(r"^#+\s.*\bclos\b", re.I)
+
+
+def capte(fn, *args):
+    """(code, lignes) d'une sous-commande rejouée pour son texte : `niveau`
+    n'invente aucun contrôle que les autres savent déjà faire."""
+    s = io.StringIO()
+    code = fn(*(args + (s,)))
+    return code, s.getvalue().splitlines()
+
+
+def variables_citees(projet, sources):
+    """(chemin, numéro, variable) de chaque `${…}` posée en chemin lisible."""
+    for libelle, chemin in sources:
+        for i, l in enumerate(lignes_du_projet(projet, chemin, libelle), 1):
+            if PORTEUSE.match(l):
+                for v in VARIABLE.findall(l):
+                    yield chemin, i, v
+
+
+def table_des_clos(lignes):
+    """Le numéro du titre « Chantiers clos » suivi d'une table, ou None : le
+    titre seul ne gêne pas, c'est la table qui double l'index."""
+    debut = None
+    for i, l in enumerate(lignes, 1):
+        if l.startswith("#"):
+            debut = i if TITRE_CLOS.match(l) else None
+        elif debut and l.startswith("|"):
+            return debut
+    return None
+
+
+def cmd_niveau(projet, sortie):
+    """En quoi un projet équipé a dérivé du kit. N'écrit rien nulle part."""
+    if not equipe(projet):
+        sortie.write("GARDE: pas de CHANTIER.md dans %s\n" % projet)
+        return 1
+    ecarts = avertissements = 0
+    carte_ = lignes_du_projet(projet, "CHANTIER.md", "carte")
+
+    _, lignes = capte(cmd_renvois, projet)
+    poids = "POIDS non mesuré"
+    for l in lignes:
+        if l.startswith("ABSENT: "):
+            ecarts += 1
+            sortie.write("ÉCART: renvois: %s — nommé, introuvable\n" % l[8:])
+        elif l.startswith("AVERTISSEMENT: "):
+            avertissements += 1
+            sortie.write("AVERTISSEMENT: poids: %s\n" % l[15:])
+        elif l.startswith("POIDS "):
+            poids = l
+        elif l.startswith("GARDE: "):
+            ecarts += 1
+            sortie.write("ÉCART: renvois: %s\n" % l[7:])
+
+    code, lignes = capte(cmd_feuille, argparse.Namespace(
+        projet=projet, todo=None, verifier=True, date=None))
+    fin = lignes[-1] if lignes else "aucune sortie"
+    if fin.startswith("GARDE: "):
+        ecarts += 1
+        sortie.write("ÉCART: feuille: %s\n" % fin[7:])
+    elif code:
+        ecarts += 1
+        sortie.write("ÉCART: feuille: %s — « vlp.py feuille %s » la régénère\n" % (fin, projet))
+
+    courant = fichier_courant("\n".join(carte_))
+    if courant:
+        fichier = chemin_garde(os.path.join(projet, courant), "fichier de fiches courant", courant)
+        code, lignes = capte(cmd_page, argparse.Namespace(
+            fichier=fichier, page=page_du_fichier(fichier), note=None, journal=None,
+            creer=False, projet=None, titre=None, resultat=None, verifier=True, date=None))
+        for l in lignes:
+            if l.startswith("ÉCART: ") or l.startswith("GARDE: "):
+                ecarts += 1
+                sortie.write("ÉCART: page: %s\n" % l[7:])
+
+    contexte = champ(carte_, "contexte", "context AI/")
+    sources = [("carte", "CHANTIER.md"),
+               ("index", champ(carte_, "index", contexte.rstrip("/") + "/00-INDEX.md"))]
+    etat = champ(carte_, "fichier d'état")
+    if etat:
+        sources.append(("fichier d'état", etat))
+    for chemin, i, v in variables_citees(projet, sources):
+        ecarts += 1
+        sortie.write("ÉCART: variable: %s:%d cite %s — une variable ne vaut que dans"
+                     " le texte d'une commande, pas dans un fichier de données\n" % (chemin, i, v))
+
+    rang = table_des_clos(carte_)
+    if rang is not None:
+        ecarts += 1
+        sortie.write("ÉCART: clos: CHANTIER.md:%d — la table des chantiers clos vit"
+                     " dans l'index, pas dans la carte\n" % rang)
+
+    sortie.write(poids + "\n")
+    sortie.write("NIVEAU %d écarts · %d avertissements — %s\n" % (ecarts, avertissements, projet))
+    return 1 if ecarts else 0
 
 
 # --- clore -------------------------------------------------------------------
@@ -1517,6 +1641,8 @@ def main(argv, sortie=None, entree=None, erreur=None):
     et.add_argument("contexte")
     rv = sous.add_parser("renvois")
     rv.add_argument("projet")
+    nv = sous.add_parser("niveau")
+    nv.add_argument("projet")
     fe = sous.add_parser("feuille")
     fe.add_argument("projet")
     fe.add_argument("--todo")
@@ -1564,6 +1690,8 @@ def repartir(a, sortie, entree, erreur):
         return cmd_feuille(a, sortie)
     if a.cmd == "renvois":
         return cmd_renvois(a.projet, sortie)
+    if a.cmd == "niveau":
+        return cmd_niveau(a.projet, sortie)
     if a.cmd == "etat":
         sortie.write("ETAT=%s\n" % nom_etat(a.contexte))
         return 0
@@ -1572,8 +1700,7 @@ def repartir(a, sortie, entree, erreur):
     if a.cmd == "page":
         chemin_garde(a.fichier)
         if a.page is None:
-            a.page = os.path.join(os.path.dirname(a.fichier), "artefacts",
-                                  os.path.splitext(os.path.basename(a.fichier))[0] + ".html")
+            a.page = page_du_fichier(a.fichier)
         return cmd_page(a, sortie)
     if a.cmd == "carte":
         if a.python:
