@@ -41,8 +41,7 @@ ligne de bilan, sans arrondi (règle des comptes bruts : `methode-chantier.md`).
 ce total : rien à afficher.
 
 ```bash
-PY=$(for p in python3 python; do "$p" -c "" 2>/dev/null && { echo "$p"; break; }; done)
-"$PY" "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" sessions "<fichier de fiches>" | tr -d '\r' | tr '\n' '\0' | xargs -0 "$PY" "${CLAUDE_PLUGIN_ROOT}/scripts/mesure-tokens.py"
+sh "${CLAUDE_PLUGIN_ROOT}/scripts/vlp" sessions "<fichier de fiches>" | tr -d '\r' | tr '\n' '\0' | xargs -0 sh "${CLAUDE_PLUGIN_ROOT}/scripts/vlp" mesure
 ```
 
 Une ligne de bilan, datée : ce que le chantier a livré, et ce qu'il a laissé

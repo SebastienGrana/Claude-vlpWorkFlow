@@ -1,7 +1,7 @@
 ---
 description: Vérifie qu'un projet équipé est cohérent — fichiers, cases cochées, page publiée, coûts
 argument-hint: (rien) | <chemin du projet>
-allowed-tools: Bash(python3:*), Bash(python:*), Bash(ls:*), Bash(cat:*), Bash(grep:*), Bash(wc:*), Bash(pwd:*), Read, Artifact
+allowed-tools: Bash(sh:*), Bash(ls:*), Bash(cat:*), Bash(grep:*), Bash(wc:*), Bash(pwd:*), Read, Artifact
 ---
 
 Contrôle un projet équipé de la méthode. **Cette commande n'écrit rien.** Elle
@@ -41,7 +41,7 @@ clos est l'erreur inverse : un chantier orphelin, que plus rien ne rouvrira.
 **B — Les fiches sont extractibles.**
 
 ```bash
-PY=$(for p in python3 python; do "$p" -c "" 2>/dev/null && { echo "$p"; break; }; done); "$PY" "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" valider "<fichier de fiches courant>"
+sh "${CLAUDE_PLUGIN_ROOT}/scripts/vlp" valider "<fichier de fiches courant>"
 ```
 
 Une ligne par écart — marqueurs, sections, critère —, puis le bilan
@@ -52,7 +52,7 @@ extractible du tout.
 **C — Les cases cochées et la page publiée disent la même chose.**
 
 ```bash
-"$PY" "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" page "<fichier de fiches courant>" "<artefact du chantier local>" --verifier
+sh "${CLAUDE_PLUGIN_ROOT}/scripts/vlp" page "<fichier de fiches courant>" "<artefact du chantier local>" --verifier
 ```
 
 `--verifier` n'écrit rien. Le fichier a raison : sur `EN RETARD`, **la page
@@ -112,7 +112,7 @@ Trois choses à lire dans cette sortie :
 **H — Les renvois mènent quelque part.**
 
 ```bash
-"$PY" "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" renvois .
+sh "${CLAUDE_PLUGIN_ROOT}/scripts/vlp" renvois .
 ```
 
 Chaque ligne `ABSENT:` est un fichier que l'index ou le routage de `CLAUDE.md`

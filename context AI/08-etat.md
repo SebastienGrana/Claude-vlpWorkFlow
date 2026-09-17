@@ -496,3 +496,7 @@ de ce que le code dit déjà.
   Interactif (cette session, mode auto) : l'ancien motif **passe** sans refus (`PY=python`). PowerShell sans Git Bash :
   `sh` introuvable (le PATH n'a que `Git/cmd` et `Git/mingw64/bin`) et l'ancien motif y est une `ParserError` — pas
   de régression, les deux cassent pareil.
+- **2026-09-17** — P2 : deux imprévus. `tache` 6 bis et `cloture.md` lançaient aussi `mesure-tokens.py` par `"$PY"` →
+  le lanceur prend `mesure` en premier argument (test ajouté) ; `tache` 6 bis portait un second bloc `{ echo "$S"; … }`
+  (accolade + guillemet) → `sh …/vlp sessions "$F" | … | xargs -0 sh …/vlp mesure "$S"`, même liste d'ids. Comptes :
+  anciens motifs 0 ; appels au lanceur 25 ; `allowed-tools` `Bash(python3:*), Bash(python:*)` → `Bash(sh:*)` (6 skills).

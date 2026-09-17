@@ -68,9 +68,9 @@
     <p>Plus aucun PY=$(for …) dans le moteur : un lanceur scripts/vlp unique, une sonde -p sans refus « brace » ni exit 49, evals 3/3</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="encours"></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">3 fiches · 1 faite · en cours : P2</p>
+    <p class="mono" style="margin-top:.5rem">3 fiches · 2 faites · en cours : P3</p>
   </header>
 
   <section>
@@ -82,14 +82,14 @@
         <span class="etat">faite</span>
         <span class="note">scripts/vlp posé, test-vlp OK (+3 cas) ; -p : ancien motif refusé (brace, 0,20 $), sh + Bash(sh:*) passe (0,05 $), sans allowlist → approval ; interactif : passe ; PowerShell : sh introuvable, ancien motif ParserError</span>
       </li>
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">P2</span><span class="titre">Remplacer partout</span>
-        <span class="etat">en cours</span>
-        <span class="note">les 12 motifs, 4 injections et 2 renvois remplacés ; plugin 3.3.2 (dépend de P1)</span>
+        <span class="etat">faite</span>
+        <span class="note">anciens motifs 18 → 0 ; 25 appels sh …/scripts/vlp (mesure inclus) ; Bash(sh:*) ×6 ; renvois 0 absent ; validate OK (1 avertissement voulu) ; plugin 3.3.2</span>
       </li>
-      <li class="fiche">
+      <li class="fiche" data-etat="encours">
         <span class="id">P3</span><span class="titre">Prouver de bout en bout, et livrer</span>
-        <span class="etat">à faire</span>
+        <span class="etat">en cours</span>
         <span class="note">la sonde /vlp:enchainer en -p et les evals, comparées à L3 (dépend de P2)</span>
       </li>
     </ul>

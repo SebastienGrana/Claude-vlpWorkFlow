@@ -2,7 +2,7 @@
 description: Enchaîne plusieurs fiches du chantier courant, chacune dans un sous-agent neuf, jusqu'à un arrêt prévu ou le plafond
 argument-hint: (rien) | <alias>
 model: sonnet
-allowed-tools: Bash(python3:*), Bash(python:*), Bash(grep:*), Bash(cat:*), Bash(ls:*), Bash(pwd:*), Bash(cd:*), Skill, Artifact
+allowed-tools: Bash(sh:*), Bash(grep:*), Bash(cat:*), Bash(ls:*), Bash(pwd:*), Bash(cd:*), Skill, Artifact
 ---
 
 Arguments reçus :
@@ -22,7 +22,7 @@ passait bien.
 
 La carte du projet, lue avant ton premier tour :
 
-!`python3 "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte 2>/dev/null || python "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte`
+!`sh "${CLAUDE_PLUGIN_ROOT}/scripts/vlp" carte`
 
 `PROJET=` : c'est le projet, `CHANTIER.md` suit. `VOISIN=… alias=…` : un
 workspace — `vlp:jouer` ne joue que le projet du dossier courant ; dis-le, et
@@ -38,7 +38,7 @@ liste, dans l'ordre du fichier, titres, dépendances, blocs Tentatives et
 critères de fin :
 
 ```bash
-PY=$(for p in python3 python; do "$p" -c "" 2>/dev/null && { echo "$p"; break; }; done); "$PY" "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" valider "<fichier de fiches courant>"; grep -n -E '^## [A-Z][0-9]|^\*\*(Dépend de|Tentatives|Critère de fin)\*\*' "<fichier de fiches courant>"
+sh "${CLAUDE_PLUGIN_ROOT}/scripts/vlp" valider "<fichier de fiches courant>"; grep -n -E '^## [A-Z][0-9]|^\*\*(Dépend de|Tentatives|Critère de fin)\*\*' "<fichier de fiches courant>"
 ```
 
 Un écart de `valider` : arrête-toi et montre-le. **Garde** : fichier non vide
@@ -91,7 +91,7 @@ porte le nom du fichier de fiches, en `.html`, dans `<contexte>/artefacts/` ;
 un `--note` par fiche faite, le critère constaté en une ligne :
 
 ```bash
-PY=$(for p in python3 python; do "$p" -c "" 2>/dev/null && { echo "$p"; break; }; done); "$PY" "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" page "<fichier de fiches courant>" "<contexte>/artefacts/<NN>-<chantier>.html" --note <fiche> "<critère constaté>"
+sh "${CLAUDE_PLUGIN_ROOT}/scripts/vlp" page "<fichier de fiches courant>" "<contexte>/artefacts/<NN>-<chantier>.html" --note <fiche> "<critère constaté>"
 ```
 
 Une `GARDE:` ou une sortie non nulle : une ligne, et continue. Sinon, deux

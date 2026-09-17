@@ -1,7 +1,7 @@
 ---
 description: Ouvre une séance de travail : propose les chantiers possibles, puis cadre celui qu'on choisit en fiches
 argument-hint: (rien) | <nom du chantier> | <alias> <nom du chantier>
-allowed-tools: Bash(python3:*), Bash(python:*), Bash(pwd:*), Bash(cd:*), Bash(ls:*), Bash(grep:*), Bash(cat:*), Bash(wc:*), Bash(mkdir:*), Bash(cp:*), Read, Edit, Write, Artifact
+allowed-tools: Bash(sh:*), Bash(pwd:*), Bash(cd:*), Bash(ls:*), Bash(grep:*), Bash(cat:*), Bash(wc:*), Bash(mkdir:*), Bash(cp:*), Read, Edit, Write, Artifact
 ---
 
 Arguments reçus :
@@ -15,7 +15,7 @@ rien d'autre. Le code viendra après, une fiche par session, via `/vlp:tache`.
 
 ## La carte du projet — lue avant ton premier tour
 
-!`python3 "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte 2>/dev/null || python "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte`
+!`sh "${CLAUDE_PLUGIN_ROOT}/scripts/vlp" carte`
 
 ## La règle qui prime sur tout : cadrer coûte moins cher que se tromper
 
@@ -44,7 +44,7 @@ s'applique :
    `/vlp:init` ; n'improvise pas la structure toi-même.
 
 Dans les cas 2 et 3, relance la carte sur le dossier retenu —
-`python "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte "<dossier>"`. Sortie vide
+`sh "${CLAUDE_PLUGIN_ROOT}/scripts/vlp" carte "<dossier>"`. Sortie vide
 ou consigne de la lancer : lance-la toi-même, une fois. Toutes les commandes
 qui suivent partent de la racine du projet retenu.
 
@@ -218,7 +218,7 @@ La page se crée par le script, depuis le gabarit du kit et le fichier de
 fiches — **même `<NN>`** que lui. Tu ne retapes pas son HTML :
 
 ```bash
-PY=$(for p in python3 python; do "$p" -c "" 2>/dev/null && { echo "$p"; break; }; done); "$PY" "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" page "<contexte>/<NN>-<chantier>.md" "<contexte>/artefacts/<NN>-<chantier>.html" --creer --projet "<Projet>" --titre "<Nom du chantier>" --resultat "<le résultat visible de l'étape 3>" --note <fiche> "<ce qu'elle produit, de quoi elle dépend>"
+sh "${CLAUDE_PLUGIN_ROOT}/scripts/vlp" page "<contexte>/<NN>-<chantier>.md" "<contexte>/artefacts/<NN>-<chantier>.html" --creer --projet "<Projet>" --titre "<Nom du chantier>" --resultat "<le résultat visible de l'étape 3>" --note <fiche> "<ce qu'elle produit, de quoi elle dépend>"
 ```
 
 Une option `--note` par fiche. Rien d'autre n'y va : ni le prompt des fiches,

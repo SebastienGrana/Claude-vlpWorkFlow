@@ -83,7 +83,7 @@ les trois mesures `-p` (refus/passage, tours, $), la mesure interactive et la me
 ---
 
 <!-- FICHE:P2 -->
-## P2 [ ] — Remplacer partout
+## P2 [x] — Remplacer partout
 
 **Dépend de** : `P1`.
 **Fichiers** : `skills/{tache,enchainer,chantier,check,init,jouer}/SKILL.md`, `cloture.md`, `hooks/hooks.json`,

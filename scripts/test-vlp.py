@@ -433,6 +433,8 @@ else:
         verifier("lanceur : relaie la sous-commande, sort 0", r[:2] == (0, "ETAT=01-etat.md\n"), r)
         r = lancer(["renvois", t])
         verifier("lanceur : relaie le code de sortie", r[0] == 1, r)
+        r = lancer(["mesure"])
+        verifier("lanceur : mesure lance mesure-tokens.py", r[0] == 1 and "usage: mesure-tokens.py" in r[1] + r[2], r)
         r = lancer(["etat", t], env=dict(os.environ, PATH=t))
         verifier("lanceur : aucun Python, sort 127", r[0] == 127 and "aucun Python" in r[2], r)
 

@@ -1,7 +1,7 @@
 ---
 description: Équipe un projet de la méthode chantiers/fiches — pose CHANTIER.md et le dossier de contexte
 argument-hint: (rien) | <chemin du projet>
-allowed-tools: Bash(python3:*), Bash(python:*), Bash(pwd:*), Bash(cd:*), Bash(ls:*), Bash(cat:*), Bash(grep:*), Bash(mkdir:*), Bash(cp:*), Bash(dirname:*), Read, Edit, Write, Artifact
+allowed-tools: Bash(sh:*), Bash(pwd:*), Bash(cd:*), Bash(ls:*), Bash(cat:*), Bash(grep:*), Bash(mkdir:*), Bash(cp:*), Bash(dirname:*), Read, Edit, Write, Artifact
 ---
 
 Arguments reçus :
@@ -20,7 +20,7 @@ session neuve.
 Si un argument est donné, c'est ce dossier ; sinon le dossier courant.
 
 ```bash
-cd "<dossier>"; pwd; ls -d */ 2>/dev/null | head -20; ls CLAUDE.md 2>/dev/null; PY=$(for p in python3 python; do "$p" -c "" 2>/dev/null && { echo "$p"; break; }; done); "$PY" "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte . | grep -E '^(PROJET|VOISIN)=|^AUCUN_PROJET'; "$PY" "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" etat "context AI"
+cd "<dossier>"; pwd; ls -d */ 2>/dev/null | head -20; ls CLAUDE.md 2>/dev/null; sh "${CLAUDE_PLUGIN_ROOT}/scripts/vlp" carte . | grep -E '^(PROJET|VOISIN)=|^AUCUN_PROJET'; sh "${CLAUDE_PLUGIN_ROOT}/scripts/vlp" etat "context AI"
 ```
 
 La carte cherche `CHANTIER.md` à la casse exacte — un `ls` sous Windows ou
