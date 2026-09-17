@@ -71,7 +71,7 @@ ordonné par ce qui débloque le reste. Le détail de chacun est dans
 
 | # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |
 |---|---|---|---|---|
-| 20 | `/vlp:tache` sans refus sous PowerShell | Mesuré (chantier Y, `32-sans-git.md`, Y5) : sans Git, une fiche passe mais paie des tours de refus — `cat` d'une référence hors du projet (repli `Read`), `$env:CLAUDE_CODE_SESSION_ID` (l'id est déjà dans `SESSION=` de `cout`), variables inventées ; nom de page deviné (`page` rend `GARDE:`). Aussi : sonder PowerShell 5.1 en vrai, macOS, relais de carte sur un poste à deux Python | 2 fiches | — |
+| 21 | `/vlp:enchainer` sans Git | Lu au chantier U, non sondé : l'agent `vlp:fiche` n'a que l'outil `Bash` (`agents/fiche.md`) — sans Git Bash, un sous-agent ne lance rien ; `enchainer` et `jouer` portent la carte PowerShell mais pas leur sous-agent. Sonder dans un bac (`33-sans-refus.md`, socle), puis ajouter `PowerShell` à l'agent ou le dire au README. Aussi : clôture de `/vlp:tache` sous PowerShell (1 refus improvisé, `Test-Path` hors projet), PowerShell 5.1 sur un poste sans `pwsh` 7, macOS | 2 fiches | — |
 
 ## Journal des décisions
 

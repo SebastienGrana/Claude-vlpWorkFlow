@@ -174,8 +174,9 @@ au `:`) → 1 seule carte, 0 message, OK. Injection ×6, tests OK. Sondes : 0,04
 ---
 
 <!-- FICHE:U5 -->
-## U5 [ ] — Prouver sans refus, sous PowerShell 7 et 5.1
+## U5 [x] — Prouver sans refus, sous PowerShell 7 et 5.1
 
+**Session** : 1b086951-ecc7-4072-8bdd-86bf3948ebee
 **Dépend de** : `U3`, `U4`.
 **Fichiers** : `README.md` (prérequis, ce qui est sondé), `.claude-plugin/plugin.json` (version), `context AI/08-etat.md` (TODO n° 20).
 
@@ -189,4 +190,13 @@ en plus. TODO n° 20 : retirée ; ajoute l'entrée « `/vlp:enchainer` sans Git 
 Table avant/après : `permission_denials` U1 → U5 (cible 0 sous pwsh 7), tours, coût, fiche du bac cochée
 (`grep -c '\[x\]'` = 1) et page régénérée sans `GARDE:` ; 5.1 : mêmes comptes ou « non sondable » sourcé ; evals
 réussis/total par cas ; `validate` OK ; `renvois .` 0 absent.
+
+**Mesuré** (2026-09-17) — même bac (`bac.py bacu5`), Sonnet, pwsh 7.6.6, **un seul prompt** (plus d'attente de
+confirmation). Avant (U1) → après : refus **9 → 1** ; partie fiche (lecture, écriture, `cocher` + `cout` + `page` en un
+appel) : **0 refus**, 5 tours, 0,19 $ ; Session **absente → écrite** (`COCHÉ Z1 · Session f52d…`) ; page **non
+régénérée → « 1 faite »**, 0 `GARDE:` de `page`. Le refus restant vient de la clôture du bac (`Test-Path` sur
+`plugz/scripts/mesure-tokens.py`, hors projet, improvisé). Run entier : 18 tours, 0,42 $ (clôture comprise ; U1 : 17
+tours, 0,25 $ sans page ni clôture). Carte : `PYTHON=py` en tête. **5.1 non sondable** ici (U1). Evals : Windows `hook`
+1/1 (0,05 $) ; Ubuntu `chantier` 1/1, `check` 1/1, `init` 1/1, `tache` 1/1 (1,50 $, 163 s). Plugin 3.4.1 ; TODO n° 20
+retirée, n° 21 ajoutée (`/vlp:enchainer` sans Git : l'agent n'a que `Bash`).
 <!-- /FICHE -->
