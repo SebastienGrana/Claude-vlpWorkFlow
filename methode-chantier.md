@@ -68,6 +68,19 @@ tranche, pas la mémoire de la session.
 
 `/vlp:check` vérifie cet accord sans rien écrire, quand on a un doute.
 
+## Git — un commit par fiche, un push par chantier
+
+**Une fiche cochée, un commit**, aussitôt et **sans demander** : message
+`<PRÉFIXE><n> : <titre de la fiche>`. Un commit local se défait ; un commit par
+fiche rend chaque pas annulable seul, et une fiche qui a mal tourné se reprend
+par un `git revert` au lieu d'une reconstitution à la main.
+
+**Un push à la clôture seulement, et jamais sans confirmation** : il publie, et
+ne se reprend pas. `cloture.md` le porte.
+
+Le sous-agent de `/vlp:enchainer` ne commite pas — il n'a ni le contexte ni le
+droit : c'est le chef qui commite, après chaque `FAITE`.
+
 ## Où vit quoi — les six familles, et rien d'autre
 
 | Fichier | À la racine ? | Qui le lit | Longueur visée |

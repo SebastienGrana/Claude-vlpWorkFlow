@@ -33,3 +33,19 @@ fichier d'état.
 
 Cette section se retire — `hidden` remis — dès que la fiche repasse, lors de la
 mise à jour de l'étape 6.
+
+## Un blocage arrête une fiche, pas le chantier
+
+Avant de rendre la main, dis quelle **fiche suivante reste jouable** — celle
+dont la ligne « Dépend de » ne cite pas la fiche bloquée — et propose-la. Sans
+ça, un blocage isolé gèle tout le chantier.
+
+Les essais de cette fiche ne sont **pas commités** : la fiche n'a pas été
+cochée. S'ils ne servent à rien, propose de les jeter (`git checkout -- .`)
+plutôt que de les laisser polluer la fiche suivante ; s'ils gardent une piste,
+laisse-les et dis-le.
+
+**L'agent `vlp:fiche` ne touche pas à git** : ni commit, ni `revert`, ni
+`checkout`. Il *dit* ce qu'il propose, et rend `BLOQUÉE` — c'est le chef, ou
+l'utilisateur, qui exécute. Un geste git dans un sous-agent détruit du travail
+que personne n'a vu.

@@ -62,7 +62,9 @@ Pour chaque fiche de la série, dans l'ordre :
 2. Lis le premier mot du `Result` rendu.
    - `FAITE` sur la fiche `(visuel)` de l'étape 2 : c'est un `RETOUR`. Case
      cochée par le sous-agent : remets `## <fiche> [ ]` (une ligne), puis 3 bis.
-   - `FAITE` : passe à la suivante. Après la dernière de la série, relance la
+   - `FAITE` : commite la fiche — `git add -A; git commit -m "<fiche> : <titre>"`,
+     sans demander (`methode-chantier.md`) ; le sous-agent ne commite jamais.
+     Puis passe à la suivante. Après la dernière de la série, relance la
      carte (`vlp.py carte`) : `PROCHAINE=aucune` → étape 5 ; sinon étape 4.
    - `RETOUR` ou `BLOQUÉE` : étape 3 bis.
    - Aucun statut (le sous-agent s'est arrêté avant son compte rendu) : c'est

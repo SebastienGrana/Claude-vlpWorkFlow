@@ -138,6 +138,16 @@ affiche-les brutes. Puis publie comme le dit `tache-page.md`, lu à l'étape 1 �
 ou, si « **artefact du chantier** » vaut « aucun », saute la dernière ligne du
 bloc et dis-le en une ligne.
 
+Le travail écrit, **commite sans demander** (`methode-chantier.md`) :
+
+```bash
+git add -A; git commit -m "<fiche retenue> : <titre de la fiche>"
+```
+
+La fiche tient ainsi dans un commit à elle : mauvaise, elle se défait par un
+`git revert` seul. Finis par la jauge, une ligne — les titres de fiches sont
+dans la carte de l'étape 0, rien à relancer : `fiche 3/7 ✅✅✅⬜⬜⬜⬜`.
+
 ## 7. Si c'était la dernière fiche
 
 Le chantier est fini ; applique sa clôture :

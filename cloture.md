@@ -62,15 +62,42 @@ de route** » de `CHANTIER.md`), puis republication du fichier local avec cette 
 Si une publication échoue, dis-le en une ligne et continue : les écritures
 locales sont ce qui compte, les pages se rattrapent.
 
+## Le commit de clôture, et la rétro coût — sans demander
+
+Les écritures des quatre temps se commitent **aussitôt, sans confirmation**
+(règle du commit par fiche, `methode-chantier.md`) :
+
+```bash
+git add -A; git commit -m "Chantier <X> clos : <ce qu'il a livré, une ligne>"
+```
+
+Puis, en une ligne et sans rien relancer : **quelle fiche a coûté le plus
+cher**, et pourquoi — les chiffres sont ceux de l'étape 1.
+
+## Ce que le chantier laisse — un menu, rien d'obligatoire
+
+Propose ces six choix, numérotés, et **n'exécute que ce qui est demandé** :
+plusieurs à la fois se font, aucun aussi.
+
+1. **Le prompt du chantier suivant** — prêt à coller après un `/clear` : le
+   sujet, ce que celui-ci vient de livrer, et les seuls fichiers à ouvrir.
+2. **Brainstorm** — des idées de chantiers pour ce projet. Ce qui est retenu va
+   dans la **TODO du fichier d'état**, et nulle part ailleurs : c'est là que
+   `/vlp:chantier` ira les chercher.
+3. **Ce qui a été appris** — ce chantier a-t-il tranché quelque chose qui vaut
+   au-delà de lui ? Une règle de méthode va dans `methode-chantier.md` ; une
+   façon de travailler propre à l'utilisateur va **en mémoire**, un fait par
+   fiche. C'est ainsi que le kit apprend au fur et à mesure, au lieu de
+   réapprendre la même chose à chaque chantier.
+4. **Essaimer** — remettre les autres projets équipés à niveau :
+   `<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" niveau <projet>`.
+5. **La dette repérée** — verser dans la TODO ce qu'on a vu passer sans le
+   traiter : ce qui n'y est pas écrit est perdu au `/clear`.
+6. **Le push** — `git push`, **jamais sans confirmation explicite**, même si
+   l'utilisateur a confirmé pour un chantier précédent : un push publie, et une
+   confirmation ne vaut que pour celui qu'elle nomme.
+
 ## Pour finir
 
 Donne les deux liens, et dis la suite : `/clear`, puis `/vlp:chantier` pour ouvrir
 le suivant.
-
-## Commit et push — jamais sans confirmation
-
-Une fois les quatre temps faits, propose un `git commit` (message résumant
-le chantier clos) puis un `git push` — deux gestes irréversibles, deux
-questionnaires séparés. Ne commit ni ne push sans confirmation explicite à
-chaque fois, même si l'utilisateur a déjà confirmé pour un chantier
-précédent : une clôture ne vaut que pour elle-même.
