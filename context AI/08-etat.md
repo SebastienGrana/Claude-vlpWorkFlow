@@ -337,3 +337,13 @@ de ce que le code dit déjà.
   sous-agent `vlp:fiche` a exécuté une fixture à la racine du kit (`CHANTIER.md` et
   `08-etat.md` écrasés) — restaurés par `git checkout`, rien perdu ; la fiche est reprise
   par le chef, le sous-agent (8 tours par reprise) relancé 4 fois pour V1.
+- **2026-09-17** — V3 : les cas `init` et `hook` passent **sous Windows**, sans Bash.
+  `init` : `allowed_tools` sans Bash, `--allow-tools Write Edit` (ce ne sont pas des
+  shells, ils s'accordent sans sandbox) — le modèle se passe des blocs Bash de
+  `init.md` ; score 1, 19 tours, 0,385 $ ; `CHANTIER.md` et `*/08-etat.md` posés,
+  `Artifact` appelé 0 fois (l'outil est off dans un run). `hook` : `Write` d'un fichier
+  de fiches sans `<!-- /FICHE -->` ; score 1, 2 tours, 0,096 $, puis 0,05 $ au rejeu
+  `--keep-temp` qui prouve l'origine : la trace porte l'erreur `PostToolUse:Write` de
+  `vlp.py hook` (« marqueur ouvrant sans fermant », `INVALIDE 1 fiches`) — les hooks du
+  plugin tournent dans un run, sous Windows, hors sandbox. Grader resserré sur
+  `INVALIDE [0-9]+ fiches`. La trace d'un run réussi est effacée sans `--keep-temp`.

@@ -136,7 +136,7 @@ chiffrée sur le cas retenu, et le coût de chaque run (tours, total, `usd`).
 ---
 
 <!-- FICHE:V3 -->
-## V3 [ ] — Écrire les cas `init` et `hook`
+## V3 [x] — Écrire les cas `init` et `hook`
 
 **Dépend de** : `V1`.
 **Fichiers** : `evals/init/`, `evals/hook/`, `evals/check/` (lu, modèle),
