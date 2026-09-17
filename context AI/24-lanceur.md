@@ -4,10 +4,12 @@
 
 # Chantier P — Un lanceur Python sans accolade
 
+**CLOS** le 2026-09-17. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
 **À quoi il sert.** En `-p`, le motif `PY=$(for p in python3 python; …)` est refusé (« Contains brace with quote
 character ») et coûte des tours. Un seul lanceur `scripts/vlp` choisit le Python ; toutes les commandes l'appellent.
 
-**Fait.** Rien. Ouvert le 2026-09-17, cadré en 3 fiches, `P1` à jouer.
+**Fait.** P1 à P3 : lanceur `scripts/vlp`, 18 motifs → 0, sonde `-p` sans refus « brace » ni exit 49.
 
 ## Le socle commun
 

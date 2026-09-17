@@ -28,7 +28,8 @@ https://github.com/SebastienGrana/Claude-vlpWorkFlow — cloné et utilisé en g
   puis la doctrine en trois docs, chaque seuil dans `vlp.py` (chantier D) ;
   puis `/vlp:init` sans renvoi mort, `vlp.py etat` et `renvois` (chantier I) ;
   puis les commandes dans `skills/<nom>/SKILL.md` (chantier K) ;
-  puis `/vlp:enchainer` réparé par la skill forkée `vlp:jouer` (chantier N).
+  puis `/vlp:enchainer` réparé par la skill forkée `vlp:jouer` (chantier N) ;
+  puis Python lancé par `sh …/scripts/vlp`, sans accolade (chantier P).
 
 ## Quatre règles non négociables
 
@@ -68,7 +69,7 @@ et seulement dans ce cas, ouvrir l'index.
 | savoir où vit quoi dans un projet équipé | `methode-chantier.md`, section « Où vit quoi » |
 | toucher aux pages publiées | `ARTEFACTS.md`, puis le gabarit dans `templates/` |
 | ouvrir un chantier, ou le découper en fiches | **lancer `/vlp:chantier`** |
-| jouer une fiche du chantier P (un lanceur Python sans accolade) | **lancer `/vlp:tache P<n>`** — `context AI/24-lanceur.md`, chantier **en cours** |
+| relire le chantier P (un lanceur Python sans accolade) | `context AI/24-lanceur.md` — chantier **clos** |
 | relire le chantier L (`/vlp:enchainer` : alléger le chef) | `context AI/23-alleger.md` — chantier **clos** |
 | relire le chantier N (`/vlp:enchainer` réparé par `vlp:jouer`) | `context AI/22-fork.md` — chantier **clos** |
 | relire le chantier K (migrer `commands/` → `skills/`) | `context AI/21-skills.md` — chantier **clos** |

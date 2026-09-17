@@ -41,6 +41,8 @@
   le 8 est retiré, 9 ne dépend plus de rien.
 - **2026-09-17** — chantier N clos (TODO n° 9) : `/vlp:enchainer` réparé par la skill forkée `vlp:jouer` (v3.3.0) ;
   le 9 est retiré.
+- **2026-09-17** — chantier P clos (TODO n° 13) : un lanceur `scripts/vlp` sans accolade (v3.3.2) ; le 13
+  est retiré, le 14 ouvert (une fiche visuelle n'arrête pas `/vlp:enchainer`).
 
 ## La TODO ordonnée — les chantiers possibles
 
@@ -507,3 +509,12 @@ de ce que le code dit déjà.
   15 pour une clôture ; sous-agents 8 tours / 9 appels (0,04 $) et 6 tours / 8 appels (0,03 $). L3 : chef 9 tours / 7
   appels, sous-agents 9 et 6 tours. Surprise : le sous-agent a rendu `FAITE` sur Z2 `(visuel)` — le chef n'a pas
   demandé, il a clos (TODO n° 14). Evals Windows 3/3 (check 18, hook 2, init 21 tours ; 0,59 $). TODO n° 13 retirée.
+- **2026-09-17** — Chantier P **clos**. Livré : le lanceur `scripts/vlp` (sh ; `python3`, `python`, `py` testés par `-c ""`,
+  `exec` ; `mesure` lance `mesure-tokens.py` ; 4 tests) ; les 18 lancements `PY=$(for …)` et `python3 … || python …`
+  remplacés par 25 appels `sh …/scripts/vlp`, `allowed-tools` → `Bash(sh:*)` ; plugin 3.3.2 ; evals Windows 3/3
+  (0,59 $). Prouvé en `-p` : ancien motif refusé, lanceur passant ; sonde `/vlp:enchainer` sans refus ni exit 49.
+  Laissé ouvert : sans Git Bash (PowerShell), `sh` est introuvable — l'ancien motif y cassait aussi ; le sous-agent
+  rend `FAITE` sur une fiche `(visuel)` (TODO n° 14). Cadrage, P1 à P3 et clôture dans une seule session, à la
+  demande. Total brut mesuré au bilan : 49 tours, 61 appels, input 98, output 42 838, cache_creation 162 143,
+  cache_read 6 581 627, **total 6 786 706 tokens**, 5,98 $, plus 0,75 $ de sondes headless (4 lancements) et
+  0,59 $ d'evals.
