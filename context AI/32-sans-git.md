@@ -60,7 +60,7 @@ Y1 et Y2 sont indépendantes ; Y3 et Y4 appliquent la forme choisie en Y1.
 ---
 
 <!-- FICHE:Y1 -->
-## Y1 [ ] — Sonder les trous et choisir la forme d'appel
+## Y1 [x] — Sonder les trous et choisir la forme d'appel
 
 **Dépend de** : rien.
 **Fichiers** : `context AI/28-sans-sh.md` (socle et bloc « Constaté » de X2 seulement), un bac dans le scratchpad ;
@@ -81,6 +81,35 @@ repli** sinon. Si aucune forme ne passe partout, arrête-toi et présente le tab
 **Critère de fin**
 Le bloc « Mesuré » sous la fiche : un tableau cas × environnement (Git Bash, pwsh 7, 5.1, Ubuntu) avec la sortie brute
 de chaque sonde et son coût, total ≤ 1 $ ; la forme retenue écrite en une ligne ; le sort de `scripts/vlp` écrit.
+
+**Mesuré** (2026-09-17, bac du scratchpad, `-p "/<sonde>" --model haiku` **sans** `--permission-mode`, transcript relu ;
+Windows : Claude Code 2.1.271, pwsh 7.6.6 installé ; Ubuntu : 2.1.274) — doc (`skills.md`, `tools-reference.md`) :
+« auto-detects `pwsh.exe` for PowerShell 7+ with a fallback to `powershell.exe` for PowerShell 5.1 » ; sans Git
+Bash, une injection sans `shell:` passe par l'outil PowerShell ; une injection non permise avorte la skill
+(« Shell command permission check failed »), `allowed-tools` la permet.
+
+| Sonde | Git Bash | pwsh 7 | 5.1 | Ubuntu |
+|---|---|---|---|---|
+| injection `py … \|\| python … carte`, sans allowed-tools (s1, s2) | avortée, permission | avortée, permission | — | — |
+| corps `py … \|\| python3 …` avec `Bash(py:*)`… `PowerShell(py:*)`… (s3, s6) | — | **refusé** : « py appears inside a control-flow or chain statement … requires manual approval » | `\|\|` refusé à l'analyse (hors Claude) | passe ; témoin sans allowed-tools (s8) refusé |
+| corps `py … renvois .` seul, `PowerShell(py:*)` (t4 ; t5 `--tools PowerShell Skill Read`) | — | passe, 0 refus (t4, t5) | — | — |
+| injection `py …; python3 …; echo fin` (t1, t2, u1) | lancée, `PROJET=` en tête | **avortée** : python3 du Store (49) reste `$LASTEXITCODE` | analyse OK, exit 1 (hors Claude) | lancée |
+| injection `pyx …; python …; echo fin` = Store seul simulé (t3) | — | lancée, 2 lignes d'erreur `pyx` puis `PROJET=` en tête | — | — |
+| injection `python3 …; py …; echo fin` (t7, t8, u2) | lancée, message Store **collé** devant `PROJET=` | lancée, idem collé | analyse OK (hors Claude) | lancée, `PROJET=` en tête |
+| `--disallowedTools Bash` (s4) / `--tools PowerShell` + injection sans `shell:` (t6) | ôte **aussi** PowerShell / avortée, permission | | | |
+| lanceur deux faces `vlp` + `vlp.cmd`, chemin nu (local) | `SH:carte` | exit 0, **rien** (le `.cmd` n'est pas pris) | idem | — |
+| `bin/sondevlp` + `bin/sondevlp.cmd` d'un plugin (`--plugin-dir`), appel nu : injection (p1, p2, q1) · corps (p3, q3) · hook `UserPromptSubmit` shell et `powershell` (p1, q1) | injection passe ; hook 127 « command not found » | injection avortée, corps « n'est pas reconnu », hook exit 1 — `bin/` n'est que dans le PATH de l'outil Bash (doc) ; hors Claude, 5.1 et 7 prennent le `.cmd` | — | injection et corps passent ; hook 127 |
+
+Coûts : s3 0,078 · s5 0,028 · s4 0,070 · s6 0,026 · s8 0,019 · u1 0,013 · t2 0,016 · t3 0,016 · t4 0,021 · t5 0,041 ·
+t7 0,016 · t8 0,016 · u2 0,013 · p1 0,016 · p3 0,046 · q1 0,013 · q3 0,016 · s1, s2, t1, t6, p2 0 (avortées) = **0,463 $**.
+
+**Forme retenue** : injection `!`python3 "<kit>/scripts/vlp.py" carte; py "<kit>/scripts/vlp.py" carte; echo fin`` —
+jamais `||` ni `&&` (refusés par PowerShell) ; le dernier natif qui réussit remet `$LASTEXITCODE` à 0, `echo fin`
+couvre bash. Corps : **une commande simple** `<python> "<kit>/scripts/vlp.py" …`, le nom lu dans la carte.
+`allowed-tools` : `Bash(<nom>:*)` et `PowerShell(<nom>:*)` pour `python3`, `py`, `echo`. Reste pour Y3 (dans
+`vlp.py carte`) : une ligne vide avant `PROJET=` (message Store collé), une ligne `PYTHON=<nom>` (nom passé en option),
+et rien au second lancement si le premier a déjà écrit la carte (poste à deux Python). Simuler « sans Git » :
+`shell: powershell` pour l'injection, `--tools PowerShell …` pour le corps. **`scripts/vlp` : retirer** (en Y5).
 <!-- /FICHE -->
 
 ---
@@ -110,7 +139,7 @@ nouvelle lancées sur le kit, `diff` des deux sorties vide (ou écart écrit) da
 ## Y3 [ ] — Passer le hook et les injections sans `sh`
 
 **Dépend de** : `Y1`.
-**Fichiers** : `hooks/hooks.json`, `skills/{chantier,enchainer,jouer,tache}/SKILL.md` (ligne d'injection et
+**Fichiers** : `scripts/vlp.py` (`carte`, voir « Reste pour Y3 » en Y1), `hooks/hooks.json`, `skills/{chantier,enchainer,jouer,tache}/SKILL.md` (ligne d'injection et
 `allowed-tools` seulement), `scripts/test-vlp.py` si un test lit `hooks.json`.
 
 **Prompt**
