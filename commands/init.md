@@ -146,9 +146,9 @@ continue : le projet est équipé quand même.
 
 ## 3 ter. Autoriser la livraison et la vérification
 
-`/vlp:tache` n'a **pas** `Bash` ouvert : elle ne peut lire que `sed`, `grep`,
-`awk`, `cat`, `tail`, `head`, `ls`, `wc`. Les commandes des réponses 4 et 5 —
-`./deploy.sh`, `mvn -q test`, `npm run build`… — n'en font pas partie, et
+`/vlp:tache` n'a **pas** `Bash` ouvert : seulement les commandes de son
+frontmatter `allowed-tools` (`commands/tache.md`). Les commandes des réponses 4
+et 5 — `./deploy.sh`, `mvn -q test`, `npm run build`… — n'en font pas partie, et
 seront **refusées** à chaque fiche si rien ne les autorise.
 
 Elles se déclarent une fois, dans `.claude/settings.json` **du projet** :

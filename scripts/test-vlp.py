@@ -400,4 +400,22 @@ with tempfile.TemporaryDirectory() as t:
     ecrire(os.path.join(c, "10-etat.md"), "état\n")
     verifier("etat : déjà présent", appel(["etat", c]) == (0, "ETAT=10-etat.md\n"), appel(["etat", c]))
 
+with tempfile.TemporaryDirectory() as t:
+    ecrire(os.path.join(t, "CHANTIER.md"), "- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n")
+    ecrire(os.path.join(t, "ctx", "01-a.md"), "a\n")
+    ecrire(os.path.join(t, "outils", "b.py"), "b\n")
+    ecrire(os.path.join(t, "ctx", "00-INDEX.md"),
+           "# Index\n\n| Fichier | Lire quand |\n|---|---|\n| `01-a.md` | on lit `z.md` |\n"
+           "| `<NN>-x.md` | gabarit |\n| *(hors dossier)* `m.md` | ailleurs |\n"
+           "| `commands/<nom>.md`, `outils/b.py` | code |\n| `references/` | dossier |\n")
+    ecrire(os.path.join(t, "CLAUDE.md"),
+           "# P\n\n| hors routage | `perdu.md` |\n\n## Routage — ouvrir ceci\n\n| La tâche | Ouvrir |\n|---|---|\n"
+           "| lire `vlp.py` | `ctx/01-a.md` |\n| lancer | **`/vlp:chantier`** |\n\n## Économie\n\n| x | `loin.md` |\n")
+    verifier("renvois : tout présent", appel(["renvois", t]) == (0, "RENVOIS 3 nommés · 0 absents\n"), appel(["renvois", t]))
+    ecrire(os.path.join(t, "ctx", "00-INDEX.md"), "| Fichier | Lire |\n|---|---|\n| `99-mort.md` | jamais |\n")
+    code, s = appel(["renvois", t])
+    verifier("renvois : absent, sort 1", code == 1 and s == "ABSENT: ctx/00-INDEX.md:3: 99-mort.md\nRENVOIS 2 nommés · 1 absents\n", s)
+    os.remove(os.path.join(t, "CHANTIER.md"))
+    verifier("renvois : pas équipé", appel(["renvois", t])[0] == 1, appel(["renvois", t]))
+
 print("OK")

@@ -38,6 +38,12 @@ Sous-commandes :
 - `etat <contexte>` — `ETAT=<NN>-etat.md` : le fichier d'état déjà présent,
   sinon le premier nombre à deux chiffres libre après le plus grand (`01` si le
   dossier est vide ou absent). Sort 0.
+- `renvois <projet>` — les fichiers que l'index (1re cellule de ses tables) et
+  le routage de `CLAUDE.md` (dernière cellule) nomment entre accents graves et
+  qui n'existent ni contre le dossier de contexte ni contre la racine : une
+  ligne `ABSENT: <source>:<ligne>: <nom>` chacun, puis `RENVOIS <n> nommés ·
+  <n> absents`. Ignorés : un nom à `<…>` ou `*`, sans `.`, une ligne dont la 1re
+  cellule commence par `*(`. Un absent : sort 1.
 
 Python 3 sans dépendance, zéro appel modèle.
 """
@@ -678,6 +684,62 @@ def nom_etat(contexte):
     return "%02d-etat.md" % (max(pris) + 1 if pris else 1)
 
 
+# --- renvois -----------------------------------------------------------------
+
+LIGNE_CHEMIN = re.compile(r"^\s*-\s*\*\*(contexte|index)\*\*\s*:\s*(.+?)\s*$")
+CODE = re.compile(r"`([^`]+)`")
+
+
+def noms_de_table(lignes, colonne, debut=None):
+    """(numéro, nom) des noms entre accents graves dans la cellule `colonne`
+    (0 ou -1) des lignes de table ; à partir du titre `debut` s'il est donné,
+    jusqu'au titre `## ` suivant."""
+    dedans = debut is None
+    for i, l in enumerate(lignes, 1):
+        if debut is not None and l.startswith("## "):
+            dedans = l.startswith(debut)
+            continue
+        if not dedans or not l.startswith("|") or re.match(r"^\|[\s|:-]+\|?$", l):
+            continue
+        cellules = [c.strip() for c in l.strip().strip("|").split("|")]
+        if cellules[0].startswith("*("):
+            continue
+        for nom in CODE.findall(cellules[colonne]):
+            if "<" in nom or "*" in nom or "." not in nom:
+                continue
+            yield i, nom
+
+
+def cmd_renvois(projet, sortie):
+    carte_ = os.path.join(projet, "CHANTIER.md")
+    if not equipe(projet):
+        sortie.write("GARDE: pas de CHANTIER.md dans %s\n" % projet)
+        return 1
+    chemins = {"contexte": "context AI/"}
+    for l in lignes_de(carte_):
+        m = LIGNE_CHEMIN.match(l)
+        if m:
+            chemins[m.group(1)] = m.group(2)
+    contexte = chemins["contexte"]
+    index = chemins.get("index", contexte.rstrip("/") + "/00-INDEX.md")
+    sources = [(index, 0, None), ("CLAUDE.md", -1, "## Routage")]
+    nommes, absents = 0, 0
+    for source, colonne, debut in sources:
+        chemin = os.path.join(projet, source)
+        if not os.path.isfile(chemin):
+            if source == index:
+                absents += 1
+                sortie.write("ABSENT: CHANTIER.md: %s\n" % index)
+            continue
+        for i, nom in noms_de_table(lignes_de(chemin), colonne, debut):
+            nommes += 1
+            if not any(os.path.exists(os.path.join(projet, base, nom)) for base in (contexte, "")):
+                absents += 1
+                sortie.write("ABSENT: %s:%d: %s\n" % (source, i, nom))
+    sortie.write("RENVOIS %d nommés · %d absents\n" % (nommes, absents))
+    return 1 if absents else 0
+
+
 # --- entrée ------------------------------------------------------------------
 
 def main(argv, sortie=None, entree=None, erreur=None):
@@ -709,7 +771,11 @@ def main(argv, sortie=None, entree=None, erreur=None):
     sous.add_parser("hook")
     et = sous.add_parser("etat")
     et.add_argument("contexte")
+    rv = sous.add_parser("renvois")
+    rv.add_argument("projet")
     a = p.parse_args(argv)
+    if a.cmd == "renvois":
+        return cmd_renvois(a.projet, sortie)
     if a.cmd == "etat":
         sortie.write("ETAT=%s\n" % nom_etat(a.contexte))
         return 0

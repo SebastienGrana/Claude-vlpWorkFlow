@@ -24,7 +24,7 @@ courant**, l'**artefact du chantier**, l'**artefact feuille de route**.
 Si `CHANTIER.md` n'existe pas, le projet n'est pas équipé : dis-le, propose
 `/vlp:init`, et arrête-toi. Rien d'autre n'a de sens sans lui.
 
-## 2. Les sept vérifications
+## 2. Les huit vérifications
 
 Lance-les d'un bloc, puis commente la sortie ligne à ligne.
 
@@ -109,9 +109,19 @@ Trois choses à lire dans cette sortie :
    préfixe, qui ne sont plus mis à jour et qui divergeront. Propose de les
    déplacer — pas de les supprimer.
 
+**H — Les renvois mènent quelque part.**
+
+```bash
+"$PY" "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" renvois .
+```
+
+Chaque ligne `ABSENT:` est un fichier que l'index ou le routage de `CLAUDE.md`
+nomme et qui n'existe pas : une session l'ouvrira pour rien. Propose de retirer
+la ligne, ou de créer le fichier s'il manque vraiment.
+
 ## 3. Rendre le verdict
 
-Une liste, une ligne par vérification, de `A` à `G` : `A ✓` ou
+Une liste, une ligne par vérification, de `A` à `H` : `A ✓` ou
 `A ✗ — <ce qui cloche>`.
 Affiche **les comptes bruts à côté du verdict** (« 4 contre 6 »).
 

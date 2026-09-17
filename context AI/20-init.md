@@ -28,8 +28,8 @@ fichiers absents, et fige `08-etat.md` ; ce chantier le rend vrai, et le prouve 
   sinon le premier nombre à deux chiffres libre après le plus grand (`01` si vide). Sort 0.
 - `vlp.py renvois <projet>` → une ligne `ABSENT: <source>:<ligne>: <nom>` par renvoi mort,
   puis `RENVOIS <n> nommés · <n> absents`. Sort 1 s'il y a un absent.
-  Lit les noms entre accents graves dans les tables de l'index et dans la table de
-  routage de `CLAUDE.md` ; un nom existe s'il existe contre le dossier de contexte ou
+  Lit les noms entre accents graves dans la 1re cellule des tables de l'index et dans
+  la dernière de la table de routage de `CLAUDE.md` ; un nom existe s'il existe contre le dossier de contexte ou
   contre la racine. Ignorés : un nom à `<…>`, une ligne dont la 1re cellule commence par
   `*(` (hors dossier), un nom sans `.` (commande, dossier).
 
@@ -78,7 +78,7 @@ remplacer `<NN>` comme les autres `<…>`.
 ---
 
 <!-- FICHE:I2 -->
-## I2 [ ] — Lister les renvois morts, dans `/vlp:check`
+## I2 [x] — Lister les renvois morts, dans `/vlp:check`
 
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py`, `commands/check.md`,
