@@ -13,9 +13,9 @@
 - **chantiers possibles** : context AI/08-etat.md
 - **fichier d'état** : context AI/08-etat.md
 - **index** : context AI/00-INDEX.md
-- **fichier de fiches courant** : context AI/13-tours.md — `T1..T5`
+- **fichier de fiches courant** : aucun
 - **artefact feuille de route** : https://claude.ai/code/artifact/ff1fc060-daca-486f-b4c6-e1f55114c0f7
-- **artefact du chantier** : https://claude.ai/artifact/G7oHVSDZnVJdYXiEPD63CU
+- **artefact du chantier** : aucun
 - **livraison** : aucune — le plugin est chargé en place ; `/reload-plugins` pour
   que la session en cours voie une modification
 - **vérification** : geste de l'utilisateur — rejouer la commande modifiée sur un
@@ -47,7 +47,8 @@ Ils ne servent plus qu'à relire un socle d'API, si une fiche y renvoie.
 | context AI/09-enchainer.md | E1..E8 (E7, E8 abandonnées) | 2026-09-10 | https://claude.ai/code/artifact/305e604c-23a1-4899-a3ad-37013b45ff4c |
 | context AI/10-mesure.md | M1..M4 | 2026-09-11 | https://claude.ai/code/artifact/6736d2af-e88e-4e72-b485-d9dbef1951fa |
 | context AI/11-conso.md | C1..C2 | 2026-09-17 | https://claude.ai/code/artifact/b72f8b89-f4c3-4cb1-aa35-344efd08ea23 |
+| context AI/13-tours.md | T1..T5 | 2026-09-17 | https://claude.ai/artifact/G7oHVSDZnVJdYXiEPD63CU |
 
-Lettres de fiche déjà prises : E (Enchaîner les fiches), M (Mesurer les tokens), C (Afficher la conso). Un nouveau chantier en choisit une autre —
+Lettres de fiche déjà prises : E (Enchaîner les fiches), M (Mesurer les tokens), C (Afficher la conso), T (Compter les tours). Un nouveau chantier en choisit une autre —
 elles ne se réemploient jamais, même après clôture. `/vlp:chantier` la propose,
 l'utilisateur tranche ; c'est cette ligne qui rend le refus possible.

@@ -15,7 +15,8 @@ https://github.com/SebastienGrana/Claude-vlpWorkFlow — cloné et utilisé en g
   les fiches jouées à la main. Remis tel quel le 2026-09-17, coût non corrigé.
 - Clos le 2026-09-11 : mesurer les tokens consommés (chantier M) — script
   `scripts/mesure-tokens.py`, coût affiché en fin de fiche et à la clôture.
-  Clos le 2026-09-17 : ce coût affiché sur toutes les pages (chantier C).
+  Clos le 2026-09-17 : ce coût affiché sur toutes les pages (chantier C), puis
+  compté par tour et pondéré en dollars (chantier T).
 - Audité le 2026-09-17 : dix chantiers possibles dans la TODO de
   `context AI/08-etat.md`, preuves et détail dans `context AI/12-audit.md`.
 
@@ -55,7 +56,7 @@ et seulement dans ce cas, ouvrir l'index.
 | savoir où vit quoi dans un projet équipé | `CONVENTION-FICHIERS.md` |
 | toucher aux pages publiées | `ARTEFACTS.md`, puis le gabarit dans `templates/` |
 | ouvrir un chantier, ou le découper en fiches | **lancer `/vlp:chantier`** |
-| jouer une fiche `T*` | `context AI/13-tours.md` — chantier **ouvert** « Compter les tours, pondérer le coût », `T1..T5` |
+| relire le chantier T (compter les tours) | `context AI/13-tours.md` — chantier **clos** |
 | relire le chantier E (enchaîner les fiches) | `context AI/09-enchainer.md` — chantier **clos**, abandonné puis remis tel quel |
 | relire le chantier M (mesurer les tokens) | `context AI/10-mesure.md` — chantier **clos** |
 | relire le chantier C (afficher la conso) | `context AI/11-conso.md` — chantier **clos** |

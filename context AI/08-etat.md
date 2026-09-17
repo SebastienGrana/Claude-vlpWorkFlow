@@ -21,6 +21,8 @@
   fragilités, 19 transcripts mesurés. Constat central : une fiche coûte
   28 à 66 tours (recompté par le chantier T) ; la commande ne pèse que ~8 % du premier tour. Les dix
   chantiers qui en sortent sont la TODO ci-dessous.
+- **2026-09-17** — chantier T clos (TODO n° 2) : les tours et le coût pondéré
+  se mesurent ; les numéros de la TODO sont gardés, le 2 est retiré.
 
 ## La TODO ordonnée — les chantiers possibles
 
@@ -31,14 +33,13 @@ ordonné par ce qui débloque le reste. Le détail de chacun est dans
 | # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |
 |---|---|---|---|---|
 | 1 | Corriger les bugs de l'audit | `/vlp:check` D honnête, `$ARGUMENTS`, page orpheline, titres, chemins `**Session**`, gabarits sans fichiers fantômes, README, `.gitignore` | 2 fiches | rien |
-| 2 | Compter les tours, pondérer le coût | `mesure-tokens.py` rend tours, appels d'outils, contexte 1er/dernier tour, coût pondéré (cache ≠ frais) ; `**Session**` via `${CLAUDE_CODE_SESSION_ID}` | 5 fiches | rien |
-| 3 | Réduire les tours de `/vlp:tache` | carte injectée par `` !`cat CHANTIER.md` ``, lectures groupées, corps ≤ 150 lignes, le rare en fichiers de référence | 4 fiches | 2 |
-| 4 | Un script `vlp.py` pour la mécanique | extraire, socle, état, régénérer la page, valider — remplace les `sed`/`awk` et le HTML retapé par le modèle | 5 fiches | 2 |
+| 3 | Réduire les tours de `/vlp:tache` | carte injectée par `` !`cat CHANTIER.md` ``, lectures groupées, corps ≤ 150 lignes, le rare en fichiers de référence | 4 fiches | rien |
+| 4 | Un script `vlp.py` pour la mécanique | extraire, socle, état, régénérer la page, valider — remplace les `sed`/`awk` et le HTML retapé par le modèle | 5 fiches | rien |
 | 5 | Hooks du kit | `PostToolUse` valide un fichier de fiches à l'écriture ; `SessionStart` injecte la carte ; fin des « recopie à l'identique » | 3 fiches | 4 |
 | 6 | Evals du plugin | `claude plugin eval` sur un bac à sable, graders gratuits, baseline sans plugin ; `validate` avant commit | 3 fiches | 1 |
 | 7 | Fusionner la doctrine | cinq fichiers de doc → trois ; chaque nombre vit une fois | 3 fiches | rien |
 | 8 | Migrer `commands/` → `skills/` | un dossier par commande, `disable-model-invocation`, variante `context: fork` + `vlp:fiche` | 3 fiches | 3 |
-| 9 | `/vlp:enchainer` : réparer ou retirer | chef ≤ 3 tours par fiche via la skill forkée, ou suppression — aux chiffres de 2 | 3 fiches | 2, 8 |
+| 9 | `/vlp:enchainer` : réparer ou retirer | chef ≤ 3 tours par fiche via la skill forkée, ou suppression — aux chiffres de 2 | 3 fiches | 8 |
 | 10 | Un projet neuf qui ne ment pas | `/vlp:init` crée ce que l'index et le routage nomment ; numéro d'état pris à la suite | 2 fiches | 1 |
 
 ## Journal des décisions
@@ -135,3 +136,16 @@ de ce que le code dit déjà.
   E7 (128 lignes pour 28 tours : appels d'outils en parallèle). Le bilan de M
   ne baisse que de ×1,15 : il avait été pris avant la fin de ses sessions.
   Les pages de chantier M et C gardent les anciens chiffres : archives.
+- **2026-09-17** — Chantier T **clos**. Livré : `scripts/mesure-tokens.py`
+  compte une fois par tour (`message.id`) et rend tours, appels d'outils par
+  outil, contexte du premier et du dernier tour, coût pondéré `equiv` et `usd`
+  (`--grille`) ; il accepte un id de session seul et ne compte un fichier
+  qu'une fois ; `scripts/test-mesure-tokens.py` le teste. La ligne `**Session**`
+  s'écrit par `CLAUDE_CODE_SESSION_ID`. M et C recomptés. Laissé ouvert : le
+  rejeu réel de `/vlp:tache` sur un projet équipé (T4) ; les pages de M et C
+  gardent leurs anciens chiffres. Constat qui vaut au-delà de T : cinq fiches
+  jouées d'affilée dans une session coûtent de plus en plus par tour (181 k en
+  T3, 247 k en T4, 293 k en T5) — `/clear` entre deux fiches reste la règle.
+  Total brut mesuré sur la session de T1..T5 : 89 tours, 95 appels, input 478,
+  output 121 027, cache_creation 512 926, cache_read 15 560 204, **total
+  16 194 635 tokens**, 16,55 $.

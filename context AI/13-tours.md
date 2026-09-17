@@ -4,6 +4,8 @@
 
 # Chantier T — Compter les tours, pondérer le coût
 
+**CLOS** le 2026-09-17. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
 **À quoi il sert.** `mesure-tokens.py` additionne chaque ligne `assistant` du
 transcript, or un tour d'API s'y écrit sur plusieurs lignes qui répètent le même
 `usage` : les totaux publiés comptent ×1,9 et personne ne compte les tours. Le
