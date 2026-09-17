@@ -121,3 +121,8 @@ de ce que le code dit déjà.
   inconnu, la grille ne donnant pas le prix de son cache ; `--grille` affiche
   la table de ratios. Les ratios ne sont pas communs (cache lu 0,025 sur
   Fable 5.1, 0,1 ailleurs) : modèle inconnu → `equiv` et `usd` valent `?`.
+- **2026-09-17** — T4 : le cumul passe l'id de la session en tête du flux
+  envoyé à `xargs -0` : sous macOS, `xargs` ne lance rien sur une entrée vide.
+  Vérification jouée sans geste de l'utilisateur (fiches enchaînées) : les
+  blocs de `tache.md` et `cloture.md` exécutés tels qu'écrits ; le rejeu réel
+  de `/vlp:tache` sur un projet équipé reste à faire.

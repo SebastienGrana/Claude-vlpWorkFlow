@@ -259,16 +259,20 @@ fichier d'état.
 
 **Coût de la fiche.** Ne fais ceci que si
 `${CLAUDE_PLUGIN_ROOT}/scripts/mesure-tokens.py` existe — sinon saute ce
-paragraphe, rien à afficher. Détermine le chemin du fichier JSONL de la
-session courante (repéré dans un chemin déjà exposé à la session, par exemple
-le dossier scratchpad ; ne devine jamais l'id de session). Écris
-`**Session** : <chemin du jsonl>` sous le titre de la fiche qui vient d'être
-cochée — même emplacement que le bloc « Tentatives », juste avant « Dépend
-de ». Appelle ensuite `${CLAUDE_PLUGIN_ROOT}/scripts/mesure-tokens.py` sur ce
-seul fichier — coût de la fiche — puis sur tous les fichiers listés par les
-lignes `**Session**` déjà présentes dans le fichier de fiches, fiche courante
-comprise — cumul du chantier. Affiche les deux tables brutes avant de rendre
-la main.
+paragraphe, rien à afficher. Un seul appel lit l'id de session et mesure : la
+session seule — coût de la fiche —, puis elle et les lignes `**Session**` du
+fichier de fiches, anciennes comprises et passées telles quelles — cumul du
+chantier :
+
+```bash
+PY=$(for p in python3 python; do "$p" -c "" 2>/dev/null && { echo "$p"; break; }; done); S="$CLAUDE_CODE_SESSION_ID"; echo "SESSION=$S"
+[ -n "$S" ] && "$PY" "${CLAUDE_PLUGIN_ROOT}/scripts/mesure-tokens.py" "$S" && { echo "$S"; sed -n 's/^\*\*Session\*\* : //p' "<fichier de fiches courant>"; } | tr -d '\r' | tr '\n' '\0' | xargs -0 "$PY" "${CLAUDE_PLUGIN_ROOT}/scripts/mesure-tokens.py"
+```
+
+Si `SESSION=` sort vide, n'écris aucune ligne et dis-le en une phrase : sans
+id, pas de coût. Sinon écris `**Session** : <id>` sous le titre de la fiche qui
+vient d'être cochée — même emplacement que le bloc « Tentatives », juste avant
+« Dépend de ». Affiche les deux tables brutes avant de rendre la main.
 
 ## 6 bis. Régénérer l'artefact du chantier
 

@@ -36,10 +36,15 @@ Quatre lignes, à la racine du projet :
 ## 3. Le fichier d'état
 
 Avant d'écrire la ligne de bilan, si `${CLAUDE_PLUGIN_ROOT}/scripts/mesure-tokens.py`
-existe : relève toutes les lignes `**Session**` du fichier de fiches qu'on
-clôture, appelle le script sur l'ensemble, et verse le total brut dans la
-ligne de bilan — comptes bruts, pas d'estimation, pas d'arrondi. S'il
-n'existe pas, saute ce total : rien à afficher.
+existe et que le fichier de fiches qu'on clôture porte des lignes
+`**Session**` : appelle le script sur toutes, et verse le total brut dans la
+ligne de bilan — comptes bruts, pas d'estimation, pas d'arrondi. Sinon, saute
+ce total : rien à afficher.
+
+```bash
+PY=$(for p in python3 python; do "$p" -c "" 2>/dev/null && { echo "$p"; break; }; done)
+sed -n 's/^\*\*Session\*\* : //p' "<fichier de fiches>" | tr -d '\r' | tr '\n' '\0' | xargs -0 "$PY" "${CLAUDE_PLUGIN_ROOT}/scripts/mesure-tokens.py"
+```
 
 Une ligne de bilan, datée : ce que le chantier a livré, et ce qu'il a laissé
 ouvert. Pas un récit — le détail est dans git et dans le fichier de fiches.

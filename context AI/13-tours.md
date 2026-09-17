@@ -175,8 +175,9 @@ comptes bruts, et `equiv` < `total`. Affiche la table et la table de ratios.
 ---
 
 <!-- FICHE:T4 -->
-## T4 [ ] — Écrire la ligne Session par la variable
+## T4 [x] — Écrire la ligne Session par la variable
 
+**Session** : 0239e4db-1265-485d-ab3c-bb5097b2ecb8
 **Dépend de** : `T2`.
 **Fichiers** : commands/tache.md (paragraphe « Coût de la fiche », l.260-273),
 cloture.md (l.38-42), CONVENTION-FICHIERS.md (seulement si `grep -n Session`
