@@ -58,6 +58,10 @@
 - **2026-09-17** — chantier J clos (TODO n° 19) : seuils des fichiers de tête dans `vlp.py` (`renvois` écrit `POIDS`), `clore` compacte
   (routage retiré, 5 derniers clos, plus de table dans `CHANTIER.md`) ; `CLAUDE.md` 118 → 80, `CHANTIER.md` 71 → 47 (plugin 3.3.6, tests 92 → 96) ;
   gain estimé ≈ 0,1 $ par session ; ouverture par `ouvrir` : 1 tour d'écriture sur 12 ; 7 579 062 tokens.
+- **2026-09-17** — chantier Y clos (TODO n° 16) : le kit sans Git — hook en paire exec, carte `python3 …; py … --relais; echo fin`,
+  corps en `<python> "…/vlp.py"` (`cout`, `valider --plan`, `equiper`, `lignes`), `scripts/vlp` retiré (plugin 3.4.0, tests 96 → 100) ;
+  bac PowerShell sans `.git` : 0 appel `sh`, fiche cochée ; evals Windows `hook` 1/1, Ubuntu 4/4 (un run d'eval Windows
+  n'accorde aucun shell : toute skill à injection se joue en `wsl2`) ; le 16 est retiré, reste le 20 ; 21 917 062 tokens.
 
 ## La TODO ordonnée — les chantiers possibles
 
@@ -67,7 +71,7 @@ ordonné par ce qui débloque le reste. Le détail de chacun est dans
 
 | # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |
 |---|---|---|---|---|
-| 16 | Le kit sans `sh` | Faire tourner le kit sous Windows sans Git Bash. Mesuré (chantier X, `28-sans-sh.md`) : hook = paire exec `python3` + `py` (une erreur non bloquante à chaque écriture, partout) ; carte injectée = `py … carte \|\| python3 … carte` (propre sous pwsh 7, Git Bash et Ubuntu). Reste avant tout gain visible : les 17 appels `sh` du corps des skills et de `cloture.md`, les allowed-tools (sondes faites en `bypassPermissions`), PowerShell 5.1 (refuse `\|\|`), macOS, Python du Store seul | 3 fiches | — |
+| 20 | `/vlp:tache` sans refus sous PowerShell | Mesuré (chantier Y, `32-sans-git.md`, Y5) : sans Git, une fiche passe mais paie des tours de refus — `cat` d'une référence hors du projet (repli `Read`), `$env:CLAUDE_CODE_SESSION_ID` (l'id est déjà dans `SESSION=` de `cout`), variables inventées ; nom de page deviné (`page` rend `GARDE:`). Aussi : sonder PowerShell 5.1 en vrai, macOS, relais de carte sur un poste à deux Python | 2 fiches | — |
 
 ## Journal des décisions
 

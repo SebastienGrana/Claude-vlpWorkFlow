@@ -7,7 +7,9 @@
 **À quoi il sert.** Sans Git Bash, le hook se tait, les skills à `!`sh …`` échouent avant tout tour, et le corps
 appelle `sh`, `grep`, `wc`, `tr`, `xargs`. Le kit doit tourner de bout en bout sans Git, et le README cesser de l'exiger.
 
-**Fait.** Rien. Ouvert le 2026-09-17, cadré en 5 fiches, `Y1` à jouer.
+**CLOS** le 2026-09-17. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** Y1..Y5 (2026-09-17) : forme d'appel choisie par sondes, outils Unix absorbés par vlp.py (cout, valider --plan, equiper, lignes), hook et injections puis corps passés sans sh, preuve de bout en bout sans Git et README.
 
 ## Le socle commun
 

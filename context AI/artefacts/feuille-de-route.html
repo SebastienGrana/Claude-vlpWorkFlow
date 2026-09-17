@@ -68,8 +68,8 @@
     <!-- ZONE:encours — remplacé à chaque ouverture, remis à « aucun » à chaque clôture.
          /tache n'y touche pas : l'avancement fiche par fiche est sur la page du chantier. -->
     <div class="encours">
-      <div class="titre">Le kit entier sans <span class="mono">sh</span> <span class="badge" data-etat="cours">en cours</span></div>
-      <div>Fiches <span class="mono">Y1–Y5</span> — <a href="https://claude.ai/artifact/4Ds6mG8JcZWVtgrKVs6YXE">la page du chantier</a></div>
+      <div class="titre">Aucun chantier ouvert</div>
+      <div>Lancer <span class="mono">/vlp:chantier</span> pour en ouvrir un.</div>
     </div>
   </section>
 
@@ -82,7 +82,7 @@
           <tr><th>#</th><th>Chantier</th><th>Ce qu'il apporte</th><th>Coût</th><th>Dépend de</th></tr>
         </thead>
         <tbody>
-          <tr><td class="mono">16</td><td>Le kit sans <span class="mono">sh</span> <span class="badge" data-etat="cours">en cours</span></td><td>Faire tourner le kit sous Windows sans Git Bash. Mesuré (chantier X, <span class="mono">28-sans-sh.md</span>) : hook = paire exec <span class="mono">python3</span> + <span class="mono">py</span> (une erreur non bloquante à chaque écriture, partout) ; carte injectée = <span class="mono">py … carte || python3 … carte</span> (propre sous pwsh 7, Git Bash et Ubuntu). Reste avant tout gain visible : les 17 appels <span class="mono">sh</span> du corps des skills et de <span class="mono">cloture.md</span>, les allowed-tools (sondes faites en <span class="mono">bypassPermissions</span>), PowerShell 5.1 (refuse <span class="mono">||</span>), macOS, Python du Store seul</td><td class="mono">3 fiches</td><td class="mono">—</td></tr>
+          <tr><td class="mono">20</td><td><span class="mono">/vlp:tache</span> sans refus sous PowerShell</td><td>Mesuré (chantier Y, <span class="mono">32-sans-git.md</span>, Y5) : sans Git, une fiche passe mais paie des tours de refus — <span class="mono">cat</span> d'une référence hors du projet (repli <span class="mono">Read</span>), <span class="mono">$env:CLAUDE_CODE_SESSION_ID</span> (l'id est déjà dans <span class="mono">SESSION=</span> de <span class="mono">cout</span>), variables inventées ; nom de page deviné (<span class="mono">page</span> rend <span class="mono">GARDE:</span>). Aussi : sonder PowerShell 5.1 en vrai, macOS, relais de carte sur un poste à deux Python</td><td class="mono">2 fiches</td><td class="mono">—</td></tr>
         </tbody>
       </table>
     </div>
@@ -97,6 +97,12 @@
           <tr><th>Chantier</th><th>Fiches</th><th>Clos le</th><th>Tokens</th><th>Ce qu'il a livré</th></tr>
         </thead>
         <tbody>
+          <tr>
+            <td><a href="https://claude.ai/artifact/4Ds6mG8JcZWVtgrKVs6YXE">Le kit entier sans <span class="mono">sh</span></a> <span class="badge" data-etat="clos">clos</span></td>
+            <td class="mono">Y1–Y5</td><td class="mono">2026-09-17</td>
+            <td class="mono">≈21,9M (21 917 062)</td>
+            <td>le kit tourne sans Git : hook en paire exec python3 + py, carte injectée sans sh, corps des skills en &lt;python&gt; "…/vlp.py", scripts/vlp retiré ; bac PowerShell 0 appel sh, evals Windows 1/1 et Ubuntu 4/4 ; plugin 3.4.0</td>
+          </tr>
           <tr>
             <td><a href="https://claude.ai/artifact/CHfV4GdKDQ35zXxFa5FbR8">Des fichiers de tête qui ne grossissent plus</a> <span class="badge" data-etat="clos">clos</span></td>
             <td class="mono">J1–J4</td><td class="mono">2026-09-17</td>
@@ -259,7 +265,7 @@
           </tr>
         </tbody>
         <tfoot>
-          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈202,4M (202 421 951)</strong></td><td></td></tr>
+          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈224,3M (224 339 013)</strong></td><td></td></tr>
         </tfoot>
       </table>
     </div>
