@@ -59,14 +59,16 @@ Sous-commandes :
 - `clore <projet> --livre T [--tokens N] [--abandon T] [--fait T] [--surpris T]
   [--date D]` — les écritures mécaniques de `cloture.md` : `**CLOS**` (et les
   abandonnées) dans le fichier de fiches courant, et `**Fait.** L1..Ln (date) :
-  <fait, sinon livre>` à la place de `**Fait.**` ou `**Où on en est.**` ; les
-  lignes ouvertes de l'index et du routage de `CLAUDE.md` passées à « clos » ;
+  <fait, sinon livre>` à la place de `**Fait.**` ou `**Où on en est.**` ; la
+  ligne ouverte de l'index passée à « clos » ; la ligne « jouer une fiche » du
+  routage de `CLAUDE.md` retirée, et `| relire un chantier clos | <index> |`
+  posée à sa place si elle manque ;
   dans la page du chantier, `ZONE:bilan` visible (Livré, Surpris) et
   `ZONE:blocage` cachée — absentes : `GARDE:`, le reste est écrit ; avec
-  `--resume T`, dans « Où on en est » de `CLAUDE.md`, `  puis T (chantier L).`
-  si la dernière chaîne « Clos le » est du jour, sinon `  Clos le <date> : T
-  (chantier L).` (déjà là : rien) ; dans `CHANTIER.md`, courant et artefact à `aucun`,
-  une ligne à la table des clos, la lettre aux lettres prises ; dans la feuille
+  `--resume T`, dans « Où on en est » de `CLAUDE.md`, `- Clos le <date> : T
+  (chantier L).` (déjà là : rien), et seules les `CLOS_GARDES` dernières lignes de
+  cette forme restent ; dans `CHANTIER.md`, courant et artefact à `aucun`,
+  la lettre aux lettres prises (plus de table des clos) ; dans la feuille
   de route, une ligne en tête de `ZONE:clos`, le total cumulé resommé des
   comptes bruts, puis `feuille`. Tout est calculé avant la première écriture.
   `CLOS <lettre> <plage> · total <brut> · routage <0|1> · index <0|1> · bilan
@@ -76,11 +78,11 @@ Sous-commandes :
   mécaniques de l'ouverture : dans `CHANTIER.md`, courant = `F (L1..Ln)` et
   artefact = l'URL (sinon `aucun`, ou l'ancienne si F est déjà courant) ; une
   ligne « on joue une fiche » après la ligne de l'index au plus grand numéro ;
-  une ligne « jouer une fiche du chantier » avant le premier « relire le
-  chantier » du routage de `CLAUDE.md`. Une ligne déjà là n'est pas redoublée.
+  une ligne « jouer une fiche du chantier » avant « relire un chantier clos »
+  (sinon le premier « relire le chantier ») du routage de `CLAUDE.md`. Une ligne déjà là n'est pas redoublée.
   `OUVERT <lettre> <plage> · index +<n> · routage +<n> · artefact <url> —
   <projet>` ; index ou routage introuvable : `GARDE:`, le reste est écrit.
-  Un autre chantier déjà ouvert : `GARDE:`, sort 1.
+  Un autre chantier déjà ouvert, ou F porte `**CLOS**` : `GARDE:`, sort 1.
 
 Python 3 sans dépendance, zéro appel modèle.
 """
@@ -941,11 +943,14 @@ def cmd_feuille(a, sortie):
 
 CLOS_LIGNE = "**CLOS** le %s. Ne se rejoue pas — ne sert plus qu'à relire son socle."
 BRUT = re.compile(r'<td class="mono">[^<]*\(([\d  ]+)\)</td>')
+ENTREE_CLOS = re.compile(r"^- Clos le \S+ : .* \(chantier [A-Z]\)\.$")
+ROUTAGE_CLOS = "| relire un chantier clos |"
 
 
 def resume_claude(cl, lettre, texte, date, gardes):
-    """Ajoute le chantier clos à la section « Où on en est » de `CLAUDE.md`, en place.
-    Vrai si une ligne est écrite ; déjà là : rien."""
+    """Ajoute `- Clos le <date> : T (chantier L).` à la section « Où on en est » de `CLAUDE.md`,
+    en place, puis n'en garde que les CLOS_GARDES dernières de cette forme. Vrai si une ligne
+    est écrite ; déjà là : rien."""
     debut = next((k for k, l in enumerate(cl) if l.startswith("## Où on en est")), None)
     if debut is None:
         gardes.append("section « Où on en est » absente de CLAUDE.md")
@@ -954,13 +959,11 @@ def resume_claude(cl, lettre, texte, date, gardes):
     if any("(chantier %s)" % lettre in l for l in cl[debut:fin]):
         return False
     dernier = max(k for k in range(debut, fin) if cl[k].strip())
-    chaines = [k for k in range(debut, fin) if re.match(r"^\s*-?\s*Clos le (\S+?) ?[:,]", cl[k])]
     texte = re.sub(r"\s*\(chantier %s\)$" % re.escape(lettre), "", texte.rstrip("."))
-    if chaines and re.match(r"^\s*-?\s*Clos le %s\b" % re.escape(date), cl[chaines[-1]]) and cl[dernier].endswith("."):
-        cl[dernier] = cl[dernier][:-1] + " ;"
-        cl.insert(dernier + 1, "  puis %s (chantier %s)." % (texte, lettre))
-    else:
-        cl.insert(dernier + 1, "  Clos le %s : %s (chantier %s)." % (date, texte, lettre))
+    cl.insert(dernier + 1, "- Clos le %s : %s (chantier %s)." % (date, texte, lettre))
+    entrees = [k for k in range(debut, fin + 1) if ENTREE_CLOS.match(cl[k])]
+    for k in reversed(entrees[:max(0, len(entrees) - CLOS_GARDES)]):
+        del cl[k]
     return True
 
 
@@ -1031,8 +1034,9 @@ def cmd_clore(a, sortie):
         if k is None:
             gardes.append("ligne « jouer une fiche du chantier %s » absente de CLAUDE.md" % lettre)
         else:
-            m = re.match(r"^\| jouer une fiche du chantier \S+ \((.*)\) \| ", cl[k])
-            cl[k] = "| relire le chantier %s (%s) | `%s` — chantier **clos** |" % (lettre, m.group(1), courant)
+            del cl[k]
+            if not any(l.startswith(ROUTAGE_CLOS) for l in cl):
+                cl.insert(k, "%s `%s` — sa ligne y nomme le fichier de fiches |" % (ROUTAGE_CLOS, index or "00-INDEX.md"))
             faits["routage"] = 1
         if a.resume:
             if resume_claude(cl, lettre, a.resume, date, gardes):
@@ -1065,14 +1069,6 @@ def cmd_clore(a, sortie):
         m = re.match(r"^(\s*-\s*\*\*(?:fichier de fiches courant|artefact du chantier)\*\*\s*:\s*)", l)
         if m:
             carte_[k] = m.group(1) + "aucun"
-    table = next((k for k, l in enumerate(carte_) if l.startswith("| Fichier de fiches |")), None)
-    if table is None:
-        sortie.write("GARDE: table « Chantiers clos » absente de CHANTIER.md\n")
-        return 1
-    fin = table
-    while fin + 1 < len(carte_) and carte_[fin + 1].startswith("|"):
-        fin += 1
-    carte_.insert(fin + 1, "| %s | %s | %s | %s |" % (courant, fait, date, url))
     texte = "\n".join(carte_) + "\n"
     j = texte.find("Lettres de fiche déjà prises")
     if j < 0:
@@ -1160,6 +1156,9 @@ def cmd_ouvrir(a, sortie):
     if not ids:
         sortie.write("GARDE: aucune fiche dans %s\n" % fichier)
         return 1
+    if any(l.startswith("**CLOS**") for l in lignes_de(chemin_fiches)):
+        sortie.write("GARDE: %s porte **CLOS** — un chantier clos ne se rouvre pas\n" % fichier)
+        return 1
     chemin_carte = os.path.join(projet, "CHANTIER.md")
     carte_ = lignes_de(chemin_carte)
     courant = fichier_courant("\n".join(carte_))
@@ -1211,9 +1210,10 @@ def cmd_ouvrir(a, sortie):
     else:
         cl = lignes_de(chemin_claude)
         if not any("`%s`" % fichier in l for l in cl if l.startswith("|")):
-            rang = next((k for k, l in enumerate(cl) if l.startswith("| relire le chantier")), None)
+            rang = next((k for k, l in enumerate(cl) if l.startswith(ROUTAGE_CLOS)),
+                        next((k for k, l in enumerate(cl) if l.startswith("| relire le chantier")), None))
             if rang is None:
-                gardes.append("aucune ligne « relire le chantier » dans CLAUDE.md")
+                gardes.append("aucune ligne « relire un chantier clos » ni « relire le chantier » dans CLAUDE.md")
             else:
                 titre = a.titre[:1].lower() + a.titre[1:]
                 cl.insert(rang, "| jouer une fiche du chantier %s (%s) | `%s` — chantier **ouvert**, par `/vlp:tache %s<n>` |"

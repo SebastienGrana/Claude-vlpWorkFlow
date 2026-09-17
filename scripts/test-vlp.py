@@ -499,18 +499,23 @@ with tempfile.TemporaryDirectory() as t:
     code, s = appel(["clore", t, "--livre", "Livré `a` <b>", "--tokens", "1500", "--abandon", "Q2 abandonnée", "--date", "2026-05-06", "--surpris", "x < y", "--resume", "b `c`."])
     carte_lue, fiches_lues, html = lire(os.path.join(t, "CHANTIER.md")), lire(os.path.join(t, "ctx", "30-q.md")), lire(fdr)
     verifier("clore : routage, index, bilan, résumé comptés", "· routage 1 · index 1 · bilan 1 · résumé 1 —" in s and "GARDE" not in s, s)
-    verifier("clore : résumé, même date", "- Clos le 2026-05-06 : a (chantier E) ;\n  puis b `c` (chantier Q).\n\n## Routage" in lire(os.path.join(t, "CLAUDE.md")), lire(os.path.join(t, "CLAUDE.md")))
+    verifier("clore : résumé, une ligne par clos", "- Clos le 2026-05-06 : a (chantier E).\n- Clos le 2026-05-06 : b `c` (chantier Q).\n\n## Routage" in lire(os.path.join(t, "CLAUDE.md")), lire(os.path.join(t, "CLAUDE.md")))
     cl, g = ["## Où on en est", "", "- Clos le 2026-01-01 : a (chantier E).", "", "## Règles"], []
-    verifier("résumé : autre date", mod.resume_claude(cl, "Q", "b", "2026-02-02", g)
-             and cl[3] == "  Clos le 2026-02-02 : b (chantier Q)." and cl[2].endswith("E).") and not g, cl)
+    verifier("résumé : ligne ajoutée après la dernière", mod.resume_claude(cl, "Q", "b", "2026-02-02", g)
+             and cl[3] == "- Clos le 2026-02-02 : b (chantier Q)." and cl[2].endswith("E).") and not g, cl)
     cl2 = ["## Où on en est", "- Clos le 2026-01-01 : a (chantier E)."]
     verifier("résumé : suffixe (chantier Q) déjà dans le texte, pas doublé", mod.resume_claude(cl2, "Q", "b (chantier Q).", "2026-01-01", g)
-             and cl2[-1] == "  puis b (chantier Q).", cl2)
+             and cl2[-1] == "- Clos le 2026-01-01 : b (chantier Q).", cl2)
     verifier("résumé : déjà là, rien", not mod.resume_claude(cl, "Q", "b", "2026-02-02", g) and len(cl) == 6, cl)
+    cl3 = ["## Où on en est", "- Prouvé : x.", "  puis vieux (chantier A) ;"] + ["- Clos le 2026-01-0%d : c%d (chantier %s)." % (i, i, "BCDEF"[i - 1]) for i in range(1, 6)] + ["", "## R"]
+    verifier("résumé : garde les CLOS_GARDES derniers, le plus ancien sorti", mod.resume_claude(cl3, "G", "g", "2026-01-09", g)
+             and mod.CLOS_GARDES == 5 and not any("(chantier B)" in l for l in cl3) and cl3[:3] == ["## Où on en est", "- Prouvé : x.", "  puis vieux (chantier A) ;"]
+             and sum(1 for l in cl3 if l.startswith("- Clos le")) == 5 and cl3[-3] == "- Clos le 2026-01-09 : g (chantier G).", cl3)
     verifier("résumé : section absente, garde", not mod.resume_claude(["# x"], "Q", "b", "d", g) and g and "Où on en est" in g[0], g)
     verifier("clore : Fait. remplacé", "**Fait.** Q1..Q2 (2026-05-06) : Livré `a` <b>.\n" in fiches_lues and "**Fait.** Rien." not in fiches_lues, fiches_lues)
     verifier("clore : index clos", "| `30-q.md` | on relit le socle du chantier Q — **clos** « Un (vrai) titre », `Q1..Q2` |\n" == lire(os.path.join(t, "ctx", "00-INDEX.md")).split("---|\n")[1], lire(os.path.join(t, "ctx", "00-INDEX.md")))
-    verifier("clore : routage clos", "| relire le chantier Q (un (vrai) titre) | `ctx/30-q.md` — chantier **clos** |\n| relire le chantier E" in lire(os.path.join(t, "CLAUDE.md")), lire(os.path.join(t, "CLAUDE.md")))
+    verifier("clore : routage ouvert retiré, une ligne vers l'index", "|---|---|\n| relire un chantier clos | `ctx/00-INDEX.md` — sa ligne y nomme le fichier de fiches |\n| relire le chantier E" in lire(os.path.join(t, "CLAUDE.md"))
+             and "chantier Q" not in lire(os.path.join(t, "CLAUDE.md")).split("## Routage")[1], lire(os.path.join(t, "CLAUDE.md")))
     pq = lire(page_q)
     verifier("clore : ZONE:bilan visible, blocage caché", "<section>\n    <h2>Chantier clos le 2026-05-06</h2>\n    <div class=\"bilan\">\n      <p>Livré : Livré `a` &lt;b&gt;</p>\n      <p>Surpris : x &lt; y</p>\n    </div>\n  </section>" in pq
              and pq.split("<!-- ZONE:blocage")[1].split("-->\n")[1].startswith("  <section hidden>") and pq.count("<section hidden>") == 1, pq)
@@ -518,7 +523,7 @@ with tempfile.TemporaryDirectory() as t:
     verifier("clore : fichier de fiches", "**CLOS** le 2026-05-06. Ne se rejoue pas" in fiches_lues
              and fiches_lues.index("**CLOS**") < fiches_lues.index("**Fait.**") and "Abandonnées : Q2 abandonnée." in fiches_lues, fiches_lues)
     verifier("clore : CHANTIER.md", "**fichier de fiches courant** : aucun" in carte_lue and "**artefact du chantier** : aucun" in carte_lue
-             and "| ctx/10-e.md | E1..E2 | 2026-01-01 | u |\n| ctx/30-q.md | Q1..Q2 (Q2 abandonnée) | 2026-05-06 | https://exemple/q |\n\nFin." in carte_lue
+             and "| ctx/10-e.md | E1..E2 | 2026-01-01 | u |\n\nFin." in carte_lue and "| ctx/30-q.md |" not in carte_lue
              and "M (Deux `x`), Q (Un `titre`). Un nouveau chantier" in carte_lue, carte_lue)
     clos = html.split("<!-- ZONE:clos")[1]
     verifier("clore : feuille de route", '<a href="https://exemple/q">Un <span class="mono">titre</span></a>' in clos
@@ -535,14 +540,14 @@ with tempfile.TemporaryDirectory() as t:
                "- **fichier de fiches courant** : %s\n- **artefact du chantier** : %s\n")
     ecrire(os.path.join(t, "CHANTIER.md"), carte_o % ("aucun", "aucun"))
     ecrire(os.path.join(t, "ctx", "00-INDEX.md"), "| Fichier | Lire |\n|---|---|\n| `10-e.md` | on relit |\n| `05-d.md` | vieux |\n\nFin.\n")
-    ecrire(os.path.join(t, "CLAUDE.md"), "| La tâche | Ouvrir |\n|---|---|\n| modifier | x |\n| relire le chantier E (e) | `ctx/10-e.md` — chantier **clos** |\n")
+    ecrire(os.path.join(t, "CLAUDE.md"), "| La tâche | Ouvrir |\n|---|---|\n| modifier | x |\n| relire le chantier E (e) | `ctx/10-e.md` — chantier **clos** |\n| relire un chantier clos | `ctx/00-INDEX.md` |\n")
     ecrire(os.path.join(t, "ctx", "30-q.md"), "# Chantier Q — Un titre\n\n## Q1 [ ] — a\n## Q2 [ ] — b\n")
     code, s = appel(["ouvrir", t, "--fiches", "ctx/30-q.md", "--titre", "Un `titre`"])
     carte_lue, index_lu, claude_lu = lire(os.path.join(t, "CHANTIER.md")), lire(os.path.join(t, "ctx", "00-INDEX.md")), lire(os.path.join(t, "CLAUDE.md"))
     verifier("ouvrir : bilan", code == 0 and s == "OUVERT Q Q1..Q2 · index +1 · routage +1 · artefact aucun — %s\n" % t, s)
     verifier("ouvrir : CHANTIER.md", "**fichier de fiches courant** : ctx/30-q.md (Q1..Q2)\n- **artefact du chantier** : aucun\n" in carte_lue, carte_lue)
     verifier("ouvrir : index, après le plus grand numéro", "| `10-e.md` | on relit |\n| `30-q.md` | on joue une fiche `Q*` — chantier **ouvert** « Un `titre` », `Q1..Q2` |\n| `05-d.md`" in index_lu, index_lu)
-    verifier("ouvrir : routage", "| modifier | x |\n| jouer une fiche du chantier Q (un `titre`) | `ctx/30-q.md` — chantier **ouvert**, par `/vlp:tache Q<n>` |\n| relire" in claude_lu, claude_lu)
+    verifier("ouvrir : routage, avant « relire un chantier clos »", "**clos** |\n| jouer une fiche du chantier Q (un `titre`) | `ctx/30-q.md` — chantier **ouvert**, par `/vlp:tache Q<n>` |\n| relire" in claude_lu, claude_lu)
     code, s = appel(["ouvrir", t, "--fiches", "ctx/30-q.md", "--titre", "Un `titre`", "--artefact", "https://exemple/q"])
     verifier("ouvrir : relance, artefact seul", code == 0 and "index +0 · routage +0 · artefact https://exemple/q" in s
              and lire(os.path.join(t, "CLAUDE.md")) == claude_lu and lire(os.path.join(t, "ctx", "00-INDEX.md")) == index_lu
@@ -559,6 +564,11 @@ with tempfile.TemporaryDirectory() as t:
     code, s = appel(["ouvrir", t, "--fiches", "ctx/31-r.md", "--titre", "r"])
     verifier("ouvrir : CLAUDE.md absent, garde, le reste écrit", code == 0 and "GARDE: CLAUDE.md introuvable" in s
              and "routage +0" in s and "index +1" in s and "ctx/31-r.md (R1..R1)" in lire(os.path.join(t, "CHANTIER.md")), s)
+    ecrire(os.path.join(t, "CHANTIER.md"), carte_o % ("aucun", "aucun"))
+    ecrire(os.path.join(t, "ctx", "32-s.md"), "# Chantier S — s\n\n**CLOS** le 2026-01-01. Ne se rejoue pas.\n\n## S1 [x] — a\n")
+    code, s = appel(["ouvrir", t, "--fiches", "ctx/32-s.md", "--titre", "s"])
+    verifier("ouvrir : fichier CLOS, refus sans écrire", code == 1 and s.startswith("GARDE: ctx/32-s.md porte **CLOS**")
+             and "aucun" in lire(os.path.join(t, "CHANTIER.md")), s)
 
 SH = shutil.which("sh")
 if SH is None:

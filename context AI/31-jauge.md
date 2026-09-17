@@ -110,7 +110,7 @@ ligne `POIDS` avec les trois comptes bruts (au-delà : 3 avertissements attendus
 ---
 
 <!-- FICHE:J3 -->
-## J3 [ ] — `ouvrir` et `clore` compactent au lieu d'empiler
+## J3 [x] — `ouvrir` et `clore` compactent au lieu d'empiler
 
 **Dépend de** : `J2`.
 **Fichiers** : `scripts/vlp.py` (`cmd_ouvrir`, `cmd_clore`, `resume_claude`, docstring), `scripts/test-vlp.py`.
