@@ -4,6 +4,10 @@
 
 # Chantier Q — `/vlp:enchainer` sans Git
 
+**CLOS** le 2026-09-17. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** Q1..Q5 (2026-09-17) : sonde avant (3 refus, RETOUR, 0 fiche), PowerShell et vlp.py lire dans l'agent, chasse des motifs bannis dans les six skills, preuve à 0 refus, coût comparé et verdict.
+
 **À quoi il sert.** Depuis le chantier Y (v3.4.0), le kit annonce « Python 3 seul, Git facultatif ». Une commande
 sur cinq dément la promesse : le sous-agent `vlp:fiche` n'a que l'outil `Bash` et fait un `cat` hors du projet.
 
@@ -224,8 +228,9 @@ Piège : `wsl.exe` veut le chemin `/mnt/c/…` du script, pas son chemin MSYS `/
 ---
 
 <!-- FICHE:Q5 -->
-## Q5 [ ] — Chiffrer enchaîner contre jouer à la main, écrire le verdict
+## Q5 [x] — Chiffrer enchaîner contre jouer à la main, écrire le verdict
 
+**Session** : d3864b7b-4cbc-4af2-8913-1173d14e241f
 **Dépend de** : `Q4`.
 **Fichiers** : `README.md` (prérequis, ce qui est sondé), `.claude-plugin/plugin.json` (version), `context AI/08-etat.md` (TODO n° 21).
 
@@ -240,4 +245,22 @@ non) ; plugin en 3.4.2 ; TODO n° 21 retirée du fichier d'état.
 Table à deux lignes — à la main / enchaîné — avec coût par fiche et la source de chaque chiffre ; verdict écrit en
 deux lignes ; `grep -c '3.4.2' .claude-plugin/plugin.json` = 1 ; la TODO n° 21 absente de `context AI/08-etat.md` ;
 `"$C" plugin validate .` passe.
+
+**Mesuré** (2026-09-17) — le coût par fiche, chaque chiffre avec sa source.
+
+| Manière | Coût par fiche | Source |
+|---|---|---|
+| **à la main**, bac, fiche triviale | **0,42 $** (18 tours, 1 fiche + clôture) | chantier `U`, bloc Mesuré de `U5`, `context AI/33-sans-refus.md` |
+| **enchaîné**, même bac, mêmes fiches | **0,176 $** (0,3526 $ / 2 fiches, 12 tours, clôture comprise) | `Q4` passe 2, ci-dessus |
+| à la main, session réelle, fiche réelle | 1,06 à 2,64 $ | `context AI/12-audit.md`, 5 sessions `/vlp:tache` |
+| enchaîné, chef seul, session réelle | 0,20 $ — 6 tours, **aucune fiche finie** | `context AI/12-audit.md`, ligne `37331eef` |
+
+**Verdict.** Sur des fiches courtes et scriptables, l'enchaînement coûte **2,4 fois moins cher par fiche** que le
+jeu à la main dans le même bac : le chef ne relit ni socle ni fiche, et chaque fiche part d'un contexte neuf.
+La condition est double, et elle n'est pas confortable : les deux seules mesures d'enchaînement complet portent sur
+des fiches **triviales en `-p`**, où le socle de session est mince — en session réelle le chef part de ~78 000 tokens
+(`37331eef`, `ctx_1er`), qui ne sont pas dans ce ratio ; et un `RETOUR` rend la main à l'utilisateur, ce qui annule
+le gain. `/vlp:enchainer` reste donc l'outil des séries de fiches mécaniques, pas des chantiers qui décident.
+Écrit : `README.md` (une ligne : `/vlp:enchainer` sondé sans Git, 2 fiches, 0 refus), plugin **3.4.2**, TODO n° 21
+retirée — **la TODO est désormais vide**.
 <!-- /FICHE -->

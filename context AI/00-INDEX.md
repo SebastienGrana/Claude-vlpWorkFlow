@@ -43,7 +43,7 @@ a l'air proche.
 | `31-jauge.md` | on relit le socle du chantier J — **clos** « Des fichiers de tête qui ne grossissent plus », `J1..J4` |
 | `32-sans-git.md` | on relit le socle du chantier Y — **clos** « Le kit entier sans sh », `Y1..Y5` |
 | `33-sans-refus.md` | on relit le socle du chantier U — **clos** « /vlp:tache sans refus sous PowerShell », `U1..U5` |
-| `34-agent-sans-git.md` | on joue une fiche `Q*` — chantier **ouvert** « /vlp:enchainer sans Git », `Q1..Q5` |
+| `34-agent-sans-git.md` | on relit le socle du chantier Q — **clos** « /vlp:enchainer sans Git », `Q1..Q5` |
 | `25-arret.md` | on relit le socle du chantier A — **clos** « Une fiche visuelle arrête `/vlp:enchainer` », `A1..A2` |
 | `21-skills.md` | on relit le socle du chantier K — **clos** « Migrer commands/ → skills/ », `K1..K3` |
 | `20-init.md` | on joue une fiche `I*` — chantier **clos** « Un projet neuf qui ne ment pas », `I1..I3` |

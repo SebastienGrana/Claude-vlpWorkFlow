@@ -68,6 +68,16 @@
   PowerShell : refus 9 → 1 (partie fiche 0) ; evals Windows `hook` 1/1, Ubuntu 4/4 ; laissé ouvert : 5.1 non sondable avec `pwsh` 7,
   macOS, `/vlp:enchainer` sans Git (TODO n° 21) ; 15 933 829 tokens.
 
+- **2026-09-17** — chantier Q clos (TODO n° 21) : `/vlp:enchainer` sans Git — `agents/fiche.md` prend l'outil
+  `PowerShell`, lit le kit par `vlp.py lire` (plus de `cat` ni de repli `Read`), coche par `vlp.py cocher` et
+  repère une ligne par `valider --plan` (plus de `grep -n`) ; les deux `ls` de `chantier` et `check` passent à
+  `vlp.py lignes "<contexte>/*.md"` ; `allowed-tools` 55 → 36 entrées, 19 mortes retirées, 11 dépareillées → 0 ;
+  l'étape 5 d'`enchainer` porte enfin `vlp.py lire cloture.md`. Bac PowerShell sans `.git` ni outil `Bash` :
+  refus **3 → 0**, deux fiches jouées, cochées et chantier du bac clos (12 tours, 0,3526 $) ; evals Windows
+  `hook` 1/1, Ubuntu 4/4. Coût mesuré : enchaîné **0,176 $/fiche** contre **0,42 $/fiche** à la main dans le même
+  bac (2,4×) — mais sur fiches triviales en `-p` : en session réelle le chef part de ~78k tokens hors ratio, et un
+  `RETOUR` annule le gain. Plugin 3.4.2 ; le 21 est retiré, **la TODO est vide** ; 23 753 914 tokens.
+
 ## La TODO ordonnée — les chantiers possibles
 
 C'est d'ici que `/chantier` tire ses propositions. Un chantier par entrée,
@@ -76,7 +86,6 @@ ordonné par ce qui débloque le reste. Le détail de chacun est dans
 
 | # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |
 |---|---|---|---|---|
-| 21 | `/vlp:enchainer` sans Git | Lu au chantier U, non sondé : l'agent `vlp:fiche` n'a que l'outil `Bash` (`agents/fiche.md`) — sans Git Bash, un sous-agent ne lance rien ; `enchainer` et `jouer` portent la carte PowerShell mais pas leur sous-agent. Sonder dans un bac (`33-sans-refus.md`, socle), puis ajouter `PowerShell` à l'agent ou le dire au README. Aussi : clôture de `/vlp:tache` sous PowerShell (1 refus improvisé, `Test-Path` hors projet), PowerShell 5.1 sur un poste sans `pwsh` 7, macOS | 2 fiches | — |
 
 ## Journal des décisions
 

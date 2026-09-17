@@ -44,7 +44,8 @@ La méthode entière — anatomie d'une fiche, préfixes, où vit quoi — est d
 **Prérequis** : Python 3, lancé par `python3` ou `py` — rien d'autre. Sous Windows,
 [Git for Windows](https://git-scm.com/downloads/win) est **facultatif** : sans lui, hook et commandes
 passent par PowerShell (7 sondé ; 5.1 non sondable tant que `pwsh` 7 est installé), et `/vlp:tache` joue une fiche jusqu'à la
-cocher sans refus de permission (sondé au chantier U, `context AI/33-sans-refus.md`). Ubuntu (WSL2) sondé ; **macOS non sondé**. Un message
+cocher sans refus de permission (sondé au chantier U, `context AI/33-sans-refus.md`) — `/vlp:enchainer` aussi, deux
+fiches jouées, cochées et le chantier clos, 0 refus (chantier Q, `context AI/34-agent-sans-git.md`). Ubuntu (WSL2) sondé ; **macOS non sondé**. Un message
 « Python est introuvable… » à la fin de la carte vient du raccourci `python3` du Store : désactivez-le dans
 Paramètres > Applications > Alias d'exécution d'application.
 
