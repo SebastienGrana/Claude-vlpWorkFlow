@@ -82,8 +82,9 @@ sans `ARRÊT:`, et sur une fiche `(visuel)` de test avec ; le `grep -c "visuel"`
 ---
 
 <!-- FICHE:A2 -->
-## A2 [ ] — Prouver l'arrêt en `-p`, et livrer
+## A2 [x] — Prouver l'arrêt en `-p`, et livrer
 
+**Session** : 72b06e7b-f562-4584-a400-bbfd70de2c34
 **Dépend de** : `A1`.
 **Fichiers** : le bac à sable du scratchpad, `context AI/08-etat.md` (journal, TODO n° 14) — et rien d'autre.
 

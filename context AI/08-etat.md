@@ -52,7 +52,6 @@ ordonné par ce qui débloque le reste. Le détail de chacun est dans
 
 | # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |
 |---|---|---|---|---|
-| 14 | Une fiche visuelle arrête `/vlp:enchainer` | Mesuré en P3 : le sous-agent `vlp:fiche` a rendu `FAITE` sur une fiche `**Critère de fin** (visuel)` (il a relu `b.txt` lui-même) ; le chef a donc continué jusqu'à la clôture d'un bac à sable (10 appels de plus). Faire rendre `RETOUR` sur `(visuel)` — contrat `enchainement.md`, `agents/fiche.md` — et le prouver en `-p` | 1 fiche | rien |
 | 11 | Evals sous WSL2 | Jouer les cas d'eval qui exigent Bash (`tache`, `chantier`, sans doute `init`) : Windows n'a pas de sandbox, `claude plugin eval` les refuse ; il faut initialiser Ubuntu sous WSL2, y installer Claude Code, `bubblewrap` et `socat`, s'y connecter, et lancer la suite depuis Linux | 2 fiches | 6 |
 
 ## Journal des décisions
@@ -518,3 +517,10 @@ de ce que le code dit déjà.
   demande. Total brut mesuré au bilan : 49 tours, 61 appels, input 98, output 42 838, cache_creation 162 143,
   cache_read 6 581 627, **total 6 786 706 tokens**, 5,98 $, plus 0,75 $ de sondes headless (4 lancements) et
   0,59 $ d'evals.
+- **2026-09-17** — A2 : sonde `/vlp:enchainer` en `-p` (Opus en session, chef `model: sonnet`), bac à deux fiches (Z2 en
+  `(visuel)`), `--allowedTools Skill "Bash(sh:*)"`, 0,22 $ : le sous-agent de Z2 lit la ligne `ARRÊT:` et rend **`RETOUR`**
+  sans cocher ; le chef pose la question en texte et **ne clôt pas** — bac après sonde : `## Z2 [ ]` 1, `CLOS` 0,
+  `CHANTIER.md` inchangé. Chef **5 tours, 4 appels** (Skill 2, Bash 1, ToolSearch 1), 254 530 tokens, 0,14 $ ; P3 : 14 tours,
+  19 appels dont 15 de clôture, 0,38 $. Sous-agents Z1 6 tours / 8 appels (0,06 $), Z2 4 tours / 4 appels (0,03 $) ; P3 : 8
+  et 6 tours. 0 « Contains brace », 0 exit 49. Non exercé : le verrou du chef (`FAITE` sur `(visuel)` → décocher), le
+  sous-agent n'ayant pas désobéi. Evals Windows 3/3 (check 5, hook 2, init 22 tours ; 0,81 $). TODO n° 14 retirée.
