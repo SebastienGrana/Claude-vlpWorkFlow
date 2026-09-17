@@ -8,7 +8,7 @@
 `sed`/`awk` et de HTML retapé par le modèle (points 9, 12, 15 de `12-audit.md`).
 Le chantier met cette mécanique dans un script testé, que les commandes appellent.
 
-**Fait.** S1 (2026-09-17). Ouvert le 2026-09-17, cadré en 5 fiches, `S2` à jouer.
+**Fait.** S1, S2 (2026-09-17). Ouvert le 2026-09-17, cadré en 5 fiches, `S3` à jouer.
 
 ## Le socle commun
 
@@ -106,8 +106,9 @@ rend 0 ligne.
 ---
 
 <!-- FICHE:S2 -->
-## S2 [ ] — Ajouter `valider`
+## S2 [x] — Ajouter `valider`
 
+**Session** : f5582775-9c45-44ee-b587-e774d46f25ed
 **Dépend de** : `S1`.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py`, `methode-chantier.md`
 (lu : les règles d'un fichier de fiches) — et rien d'autre.

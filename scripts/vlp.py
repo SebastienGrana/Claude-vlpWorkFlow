@@ -18,6 +18,9 @@ Sous-commandes :
   fiches` (exclu), puis `--- socle, lignes : N`. Vide : sort 1.
 - `sessions <fichier>` — un id de ligne `**Session**` par ligne, dédoublonnés,
   dans l'ordre du fichier.
+- `valider <fichier>…` — les écarts d'un fichier de fiches, un par ligne
+  `fichier:ligne: message`, puis `VALIDE|INVALIDE <n> fiches · socle <n> lignes
+  · <n> écarts · <n> avertissements — <fichier>`. Un écart : sort 1.
 
 Python 3 sans dépendance, zéro appel modèle.
 """
@@ -184,6 +187,113 @@ def cmd_sessions(chemin, sortie):
     return 0
 
 
+# --- valider -----------------------------------------------------------------
+
+OUVRANT = re.compile(r"^<!-- FICHE:(\S+) -->$")
+CRITERE = "**Critère de fin**"
+CRITERE_VISUEL = re.compile(r"^\*\*Critère de fin\*\* \(visuel\)")
+CODE_EN_LIGNE = re.compile(r"`[^`]*`")
+# Le seuil vit dans methode-chantier.md (« Si elle en fait 50, c'est deux
+# fiches ») : ici, il n'est que cité.
+SEUIL_FICHE = 50
+
+
+def valider_lignes(lignes):
+    """(écarts, avertissements, nombre de fiches, lignes du socle) ; un écart
+    ou un avertissement est un couple (numéro de ligne, message)."""
+    ecarts, avert = [], []
+    blocs = []          # (id du marqueur, début, fin) — indices 0
+    ouvert = None       # (id, début)
+    for i, l in enumerate(lignes):
+        s = l.strip()
+        m = OUVRANT.match(s)
+        if m:
+            if ouvert:
+                ecarts.append((i + 1, "marqueur imbriqué : <!-- FICHE:%s --> ouvert ligne %d sans fermant"
+                               % (ouvert[0], ouvert[1] + 1)))
+                blocs.append((ouvert[0], ouvert[1], i - 1))
+            ouvert = (m.group(1), i)
+        elif s == FERMANT:
+            if ouvert:
+                blocs.append((ouvert[0], ouvert[1], i))
+                ouvert = None
+            else:
+                ecarts.append((i + 1, "marqueur fermant sans ouvrant"))
+    if ouvert:
+        ecarts.append((ouvert[1] + 1, "marqueur ouvrant sans fermant : <!-- FICHE:%s -->" % ouvert[0]))
+        blocs.append((ouvert[0], ouvert[1], len(lignes) - 1))
+
+    titres = [(i, l.split()[1]) for i, l in enumerate(lignes) if TITRE.match(l)]
+    vus, fiches_ = {}, []
+    for n, (i, ident) in enumerate(titres):
+        if ident in vus:
+            ecarts.append((i + 1, "identifiant en double : %s (déjà ligne %d)" % (ident, vus[ident] + 1)))
+        vus.setdefault(ident, i)
+        bloc = next((b for b in blocs if b[1] < i <= b[2]), None)
+        if bloc is None:
+            ecarts.append((i + 1, "titre sans marqueurs : %s" % ident))
+            suivant = titres[n + 1][0] if n + 1 < len(titres) else len(lignes)
+            fin = next((j for j in range(i + 1, suivant) if lignes[j].rstrip() == "---"), suivant) - 1
+            fiches_.append((ident, i, fin))
+        else:
+            if bloc[0] != ident:
+                ecarts.append((i + 1, "marqueur %s ≠ titre %s" % (bloc[0], ident)))
+            fiches_.append((ident, bloc[1], bloc[2]))
+
+    premiere = min([i for i, _ in titres] + [b[1] for b in blocs] + [len(lignes)])
+    for nom, motif in (("## Le socle commun", r"^## Le socle"), ("## L'ordre des fiches", r"^## L.*ordre des fiches")):
+        ou = [i for i, l in enumerate(lignes) if re.match(motif, l)]
+        if not ou:
+            ecarts.append((1, "section absente : %s" % nom))
+        elif len(ou) > 1:
+            ecarts.append((ou[1] + 1, "section en double : %s (déjà ligne %d)" % (nom, ou[0] + 1)))
+        elif ou[0] > premiere:
+            ecarts.append((ou[0] + 1, "section après la première fiche : %s" % nom))
+
+    for ident, debut, fin in fiches_:
+        corps = lignes[debut:fin + 1]
+        if not any(l.startswith(CRITERE) for l in corps):
+            ecarts.append((debut + 1, "fiche %s sans ligne %s" % (ident, CRITERE)))
+        ouvert_code = False   # un code en ligne peut commencer sur la ligne d'avant
+        for j, l in enumerate(corps, debut + 1):
+            if not l.strip() or l.lstrip().startswith("```"):
+                ouvert_code = False
+                continue
+            # Une mention entre accents graves parle du marqueur, elle ne le pose pas.
+            hors_code = CODE_EN_LIGNE.sub("", ("`" if ouvert_code else "") + l)
+            if hors_code.count("`") % 2:
+                ouvert_code, hors_code = True, hors_code[:hors_code.index("`")]
+            else:
+                ouvert_code = False
+            if "(visuel)" in hors_code and not CRITERE_VISUEL.match(l):
+                ecarts.append((j, "fiche %s : (visuel) hors de la ligne « %s (visuel) » — /vlp:enchainer ne s'y arrêtera pas"
+                               % (ident, CRITERE)))
+        if len(corps) > SEUIL_FICHE:
+            avert.append((debut + 1, "fiche %s : %d lignes, au-delà du seuil de methode-chantier.md (%d)"
+                          % (ident, len(corps), SEUIL_FICHE)))
+    return sorted(ecarts), avert, len(vus), len(socle_lignes(lignes))
+
+
+def cmd_valider(chemins, sortie):
+    code = 0
+    for chemin in chemins:
+        if not os.path.isfile(chemin):
+            sortie.write("%s:0: fichier introuvable\nINVALIDE 0 fiches · socle 0 lignes · 1 écarts · 0 avertissements — %s\n"
+                         % (chemin, chemin))
+            code = 1
+            continue
+        ecarts, avert, n, socle = valider_lignes(lignes_de(chemin))
+        for ligne, message in ecarts:
+            sortie.write("%s:%d: %s\n" % (chemin, ligne, message))
+        for ligne, message in avert:
+            sortie.write("%s:%d: avertissement : %s\n" % (chemin, ligne, message))
+        sortie.write("%s %d fiches · socle %d lignes · %d écarts · %d avertissements — %s\n"
+                     % ("INVALIDE" if ecarts else "VALIDE", n, socle, len(ecarts), len(avert), chemin))
+        if ecarts:
+            code = 1
+    return code
+
+
 # --- entrée ------------------------------------------------------------------
 
 def main(argv, sortie=None):
@@ -199,9 +309,13 @@ def main(argv, sortie=None):
     s.add_argument("fichier")
     se = sous.add_parser("sessions")
     se.add_argument("fichier")
+    v = sous.add_parser("valider")
+    v.add_argument("fichiers", nargs="+")
     a = p.parse_args(argv)
     if a.cmd == "carte":
         return carte(a.dossier or os.getcwd(), sortie)
+    if a.cmd == "valider":
+        return cmd_valider(a.fichiers, sortie)
     if not os.path.isfile(a.fichier):
         sortie.write("GARDE: fichier introuvable : %s\n" % a.fichier)
         return 1

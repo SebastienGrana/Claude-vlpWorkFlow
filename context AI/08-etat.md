@@ -230,3 +230,8 @@ de ce que le code dit déjà.
   suivante sans rien dire. Sur les fichiers sains, sortie identique au `sed`.
   S1 à S5 jouées d'affilée dans la session du cadrage, à la demande : le coût
   d'une fiche y est l'écart du compteur de session.
+- **2026-09-17** — S2 : `vlp.py valider` ignore `(visuel)` entre accents graves,
+  même quand le code en ligne commence sur la ligne d'avant (E5 le faisait passer
+  pour un marqueur). Sur 09 à 16 : un seul écart, le `(visuel)` de C1
+  (`11-conso.md:88`), laissé tel quel (archive). La commande rechargée injecte
+  déjà `vlp.py carte` : l'injection du nouveau script est prouvée en vrai.

@@ -172,4 +172,72 @@ with tempfile.TemporaryDirectory() as t:
     code, s = appel(["carte", os.path.join(t, "nulle-part")])
     verifier("carte par main, sortie 0", code == 0 and s == "AUCUN_PROJET\n", s)
 
+SAIN = """# Chantier V
+
+## Le socle commun
+
+Un socle.
+
+## L'ordre des fiches
+
+---
+
+<!-- FICHE:V1 -->
+## V1 [ ] — scriptable
+On parle de `(visuel)` entre accents graves : ce n'est pas le marqueur.
+Un code en ligne `**Critère de
+fin**` coupé, puis l'arrêt (`(visuel)`) : pas le marqueur.
+**Critère de fin**
+Une commande.
+<!-- /FICHE -->
+
+---
+
+<!-- FICHE:V2 -->
+## V2 [ ] — visuelle
+**Critère de fin** (visuel)
+L'utilisateur regarde.
+<!-- /FICHE -->
+"""
+
+
+def valide(texte):
+    with tempfile.TemporaryDirectory() as d:
+        f = os.path.join(d, "v.md")
+        ecrire(f, texte)
+        code, s = appel(["valider", f])
+        return code, s.replace(f, "F")
+
+
+code, s = valide(SAIN)
+verifier("valider : sain", code == 0 and s == "VALIDE 2 fiches · socle 4 lignes · 0 écarts · 0 avertissements — F\n", s)
+
+CAS = [
+    ("fermant absent", SAIN.replace("L'utilisateur regarde.\n<!-- /FICHE -->", "L'utilisateur regarde."),
+     "F:22: marqueur ouvrant sans fermant : <!-- FICHE:V2 -->"),
+    ("imbriqué", SAIN.replace("Une commande.\n<!-- /FICHE -->", "Une commande."),
+     "F:21: marqueur imbriqué : <!-- FICHE:V1 --> ouvert ligne 11 sans fermant"),
+    ("fermant orphelin", SAIN + "<!-- /FICHE -->\n", "F:27: marqueur fermant sans ouvrant"),
+    ("marqueur ≠ titre", SAIN.replace("<!-- FICHE:V2 -->", "<!-- FICHE:V9 -->"), "F:23: marqueur V9 ≠ titre V2"),
+    ("titre sans marqueurs", SAIN + "\n---\n\n## V3 [ ] — nue\n**Critère de fin**\n", "F:30: titre sans marqueurs : V3"),
+    ("double", SAIN.replace("## V2 [ ] — visuelle", "## V1 [ ] — visuelle").replace("FICHE:V2", "FICHE:V1"),
+     "F:23: identifiant en double : V1 (déjà ligne 12)"),
+    ("socle absent", SAIN.replace("## Le socle commun", "## Socle"), "F:1: section absente : ## Le socle commun"),
+    ("ordre en double", SAIN + "\n## L'ordre des fiches\n", "F:28: section en double : ## L'ordre des fiches (déjà ligne 7)"),
+    ("section après une fiche", SAIN.replace("## L'ordre des fiches\n", "").replace("L'utilisateur regarde.\n", "L'utilisateur regarde.\n## L'ordre des fiches\n"),
+     "F:25: section après la première fiche : ## L'ordre des fiches"),
+    ("sans critère", SAIN.replace("**Critère de fin**\nUne commande.", "Une commande."), "F:11: fiche V1 sans ligne **Critère de fin**"),
+    ("visuel hors ligne (point 9)", SAIN.replace("**Critère de fin** (visuel)", "Voici le **Critère de fin** (visuel)"),
+     "F:24: fiche V2 : (visuel) hors de la ligne"),
+]
+for nom, texte, attendu in CAS:
+    code, s = valide(texte)
+    verifier("valider : " + nom, code == 1 and attendu in s and s.splitlines()[-1].startswith("INVALIDE"), s)
+
+code, s = valide(SAIN.replace("Une commande.\n", "Une commande.\n" + "x\n" * 60))
+verifier("valider : avertissement de longueur, pas écart", code == 0
+         and "F:11: avertissement : fiche V1 : 68 lignes, au-delà du seuil" in s and "0 écarts · 1 avertissements" in s, s)
+code, s = appel(["valider", "absent-1.md", "absent-2.md"])
+verifier("valider : un bilan par fichier", code == 1 and s.count("INVALIDE 0 fiches") == 2, s)
+
 print("OK")
