@@ -68,23 +68,23 @@
     <p>Une ouverture et une clôture ne gardent à la main que les publications Artifact et le texte de jugement ; tours à la main comptés avant (O1) et après (O5).</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="encours"></span><span></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">5 fiches · 0 faite · en cours : O1</p>
+    <p class="mono" style="margin-top:.5rem">5 fiches · 1 faite · en cours : O2</p>
   </header>
 
   <section>
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">O1</span><span class="titre">Mesurer les écritures encore à la main</span>
-        <span class="etat">en cours</span>
-        <span class="note">Table des appels et tours passés à la main sur index, CLAUDE.md, CHANTIER.md, Fait., ZONE:bilan — sessions F et X.</span>
+        <span class="etat">faite</span>
+        <span class="note">Mesuré : à la main, F 12 tours sur 64 (ouverture 7, clôture 5), X 8 sur 77 (5, 3), O ouverture 7 sur 20 ; 0 refus. Formats réels relevés, O2/O3 recalés.</span>
       </li>
-      <li class="fiche">
+      <li class="fiche" data-etat="encours">
         <span class="id">O2</span><span class="titre">Écrire vlp.py ouvrir</span>
-        <span class="etat">à faire</span>
+        <span class="etat">en cours</span>
         <span class="note">vlp.py ouvrir : CHANTIER.md, ligne d'index, routage de CLAUDE.md ; tests. Dépend de O1.</span>
       </li>
       <li class="fiche">

@@ -44,7 +44,7 @@ O2 et O3 sont indépendantes ; O5 vient en dernier.
 ---
 
 <!-- FICHE:O1 -->
-## O1 [ ] — Mesurer les écritures encore à la main
+## O1 [x] — Mesurer les écritures encore à la main
 
 **Dépend de** : rien.
 **Fichiers** : `context AI/29-feuille.md` et `context AI/28-sans-sh.md` (lignes `**Session**`, par `sh scripts/vlp sessions`), leurs transcripts sous `~/.claude/projects/`.
@@ -59,6 +59,19 @@ les refus et les reprises. Note au passage le format exact des lignes écrites, 
 **Critère de fin**
 Une table de comptes bruts (fichier × F/X × ouverture/clôture : appels, tours, refus) écrite dans ce bloc,
 sous « Mesuré », avec le total des tours de chaque session.
+
+**Mesuré** (2026-09-17, script du scratchpad sur les `.jsonl` ; phases : ouverture ≤ commit « ouvert », clôture > dernier commit « faite ») —
+appels et tours dont l'entrée nomme la cible (lectures comprises ; un appel à plusieurs cibles compte une fois au total ; page du chantier hors total, déjà scriptée) :
+
+| Session | tours | ouverture : index / CLAUDE.md / CHANTIER.md / Fait. | total ouverture | clôture : index / CLAUDE.md / CHANTIER.md / Fait. / bilan | total clôture | refus |
+|---|---|---|---|---|---|---|
+| F `52dde2c9` | 64 | 4 / 3 / 3 / 1 | 7 appels, 7 tours | 0 / 1 / 3 / 1 / 1 | 5 appels, 5 tours | 0 |
+| X `fd4ebe27` | 77 | 4 / 2 / 2 / 1 | 5 appels, 5 tours | 2 / 2 / 2 / 1 / 1 | 4 appels, 3 tours | 0 |
+| O (cette session, ouverture) | 20 | 3 / 3 / 3 / 1 | 8 appels, 7 tours | — | — | 0 |
+
+Soit 10 à 12 tours à la main par chantier (F 12 sur 64, X 8 sur 77). Formats réels (git `be749a8`, `5b01fd9`) : routage ouvert
+`| jouer une fiche du chantier L (<titre>) | `<fichier>` — chantier **ouvert**, par `/vlp:tache L<n>` |`, clos `| relire le chantier L (<titre>) | `<fichier>` — chantier **clos** |` ;
+index ouvert « on joue une fiche `L*` — chantier **ouvert** « Titre », `L1..Ln` » ; `**Fait.** Rien. Ouvert le <date>…` (X, F) ou `**Où on en est.** …` (O).
 <!-- /FICHE -->
 
 ---
@@ -74,7 +87,7 @@ Ajoute `ouvrir <projet> --fiches <context AI/NN-nom.md> --titre "<titre>" [--art
 lisent dans le fichier de fiches (titres `## L1 [ ] —`). Elle écrit, dans l'ordre :
 1. `CHANTIER.md` : « fichier de fiches courant » = `<fichier> (L1..Ln)`, « artefact du chantier » = l'url ou `aucun` ;
 2. l'index : la ligne au format du socle (« on joue une fiche `L*` »), après la dernière ligne de fichier ;
-3. le routage de `CLAUDE.md` : `| relire le chantier L (<titre>) | `<fichier>` — chantier **ouvert** |`, en tête des chantiers.
+3. le routage de `CLAUDE.md` : la ligne ouverte au format mesuré en O1, en tête des lignes « relire le chantier ».
 Refuse si un chantier est déjà courant (sauf même fichier : alors met seulement l'artefact à jour — relance sans effet).
 Bilan : `OUVERT <lettre> <plage> · index +<n> · routage +<n> — <projet>`. Docstring et tests (refus, relance idempotente).
 
@@ -93,8 +106,8 @@ Bilan : `OUVERT <lettre> <plage> · index +<n> · routage +<n> — <projet>`. Do
 
 **Prompt**
 Ajoute à `clore` : `--fait "<texte>"`, `--surpris "<texte>"`. En plus de ce qu'elle fait :
-1. la ligne `**Fait.** L1..Ln (<date>) : <fait>` sous `**CLOS**` (défaut : le texte de `--livre`) ;
-2. l'index et le routage : la ligne du chantier passe à « on relit le socle du chantier L — **clos** » et « chantier **clos** » ;
+1. la ligne `**Fait.** L1..Ln (<date>) : <fait>` (défaut : `--livre`), qui remplace `**Fait.** …` ou `**Où on en est.** …` s'il existe ;
+2. l'index et le routage : la ligne ouverte passe au format clos mesuré en O1 (titre du routage gardé) ;
 3. la page du chantier (`<contexte>/artefacts/<NN-nom>.html`, même `NN-nom` que le fichier) : `ZONE:bilan` sans `hidden`,
    `<h2>Chantier clos le <date></h2>`, `Livré : <livre>`, `Surpris : <surpris>` (échappés par `esc`) ; `ZONE:blocage` en `hidden`.
 Une ligne absente (index, routage, page) : `GARDE:` nommée, le reste s'écrit quand même. Bilan : la ligne `CLOS` gagne ` · routage · index · bilan`.
