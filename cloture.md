@@ -76,7 +76,8 @@ cher**, et pourquoi — les chiffres sont ceux de l'étape 1.
 
 ## Ce que le chantier laisse — un menu, rien d'obligatoire
 
-Propose ces six choix, numérotés, et **n'exécute que ce qui est demandé** :
+Un **questionnaire à cases multiples**, jamais une liste à taper : une case par
+choix, une ligne d'explication chacune. N'exécute que ce qui est coché —
 plusieurs à la fois se font, aucun aussi.
 
 1. **Le prompt du chantier suivant** — prêt à coller après un `/clear` : le
@@ -93,9 +94,12 @@ plusieurs à la fois se font, aucun aussi.
    `<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" niveau <projet>`.
 5. **La dette repérée** — verser dans la TODO ce qu'on a vu passer sans le
    traiter : ce qui n'y est pas écrit est perdu au `/clear`.
-6. **Le push** — `git push`, **jamais sans confirmation explicite**, même si
-   l'utilisateur a confirmé pour un chantier précédent : un push publie, et une
-   confirmation ne vaut que pour celui qu'elle nomme.
+
+Le menu compte cinq cases, pas six : **le push n'y est pas**. Il se demande
+**après**, dans une question à lui seul — `git push`, jamais sans confirmation
+explicite, même si l'utilisateur a confirmé pour un chantier précédent. Une
+case cochée au milieu de quatre autres n'est pas une confirmation : un push
+publie, et ne se reprend pas.
 
 ## Pour finir
 
