@@ -66,6 +66,7 @@ et seulement dans ce cas, ouvrir l'index.
 | savoir où vit quoi dans un projet équipé | `methode-chantier.md`, section « Où vit quoi » |
 | toucher aux pages publiées | `ARTEFACTS.md`, puis le gabarit dans `templates/` |
 | ouvrir un chantier, ou le découper en fiches | **lancer `/vlp:chantier`** |
+| jouer une fiche du chantier N (`/vlp:enchainer` : réparer ou retirer) | `context AI/22-fork.md` — par `/vlp:tache` |
 | relire le chantier K (migrer `commands/` → `skills/`) | `context AI/21-skills.md` — chantier **clos** |
 | relire le chantier I (un projet neuf qui ne ment pas) | `context AI/20-init.md` — chantier **clos** |
 | relire le chantier D (fusionner la doctrine) | `context AI/19-doctrine.md` — chantier **clos** |
