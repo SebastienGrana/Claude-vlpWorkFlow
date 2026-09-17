@@ -49,7 +49,7 @@ Rien n'est parallélisable : W2 exige la distribution de W1.
 ---
 
 <!-- FICHE:W1 -->
-## W1 [ ] — Préparer Ubuntu sous WSL2
+## W1 [x] — Préparer Ubuntu sous WSL2
 
 **Dépend de** : rien.
 **Fichiers** : `context AI/27-wsl.md` (le relevé, sous cette fiche) — et rien d'autre dans le kit.
@@ -64,6 +64,23 @@ Rends la main : ces gestes sont les siens. À son retour, relève par script la 
 **Critère de fin** (visuel)
 L'utilisateur dit Ubuntu installé et Claude Code connecté ; puis `wsl.exe -d Ubuntu -- bash -lc "claude --version;
 bwrap --version; socat -V | head -1"` rend trois versions, recopiées ici.
+
+**Constaté** (2026-09-17, Ubuntu 26.04.1 LTS) : `2.1.274 (Claude Code)` · `bubblewrap 0.11.1` · `socat version 1.8.1.1` ;
+`claude auth status` → `"loggedIn": true`, `claude.ai`. AppArmor : clé `sysctl` absente, rien à faire. Piège : `claude: command not
+found` dans le terminal ouvert avant l'installation — `exec bash -l`.
+
+**Les gestes** (doc lue le 2026-09-17) — `setup` : « WSL 2 … Sandboxing Supported », « WSL 1 … Not supported » ;
+installeur Linux `curl -fsSL https://claude.ai/install.sh | bash`, « You install and launch `claude` inside the WSL
+terminal ». `sandboxing` : « On Linux and WSL2, the sandbox relies on two packages » (`bubblewrap`, `socat`) ;
+sous Ubuntu 24.04+, AppArmor peut bloquer `bwrap` (`sysctl kernel.apparmor_restrict_unprivileged_userns` = 1).
+
+```
+wsl --install -d Ubuntu                       # PowerShell ; au 1er lancement : nom d'utilisateur + mot de passe
+sudo apt-get update && sudo apt-get install -y bubblewrap socat    # dans Ubuntu, la suite aussi
+curl -fsSL https://claude.ai/install.sh | bash
+sysctl kernel.apparmor_restrict_unprivileged_userns                # 1 : profil bwrap de la doc sandboxing
+claude                                        # se connecter (navigateur), puis /exit
+```
 <!-- /FICHE -->
 
 ---
