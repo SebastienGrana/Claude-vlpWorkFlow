@@ -50,7 +50,9 @@ Rien n'est parallélisable : G2 choisit sa branche sur le tableau de G1.
 ---
 
 <!-- FICHE:G1 -->
-## G1 [ ] — Établir quel shell lance hook, injection et outil
+## G1 [x] — Établir quel shell lance hook, injection et outil
+
+**Tentatives** (2026-09-17) — résolu par : simuler par la config (`shell: powershell` sur le hook et la skill) ; retirer Git du PATH ou fausser `CLAUDE_CODE_GIT_BASH_PATH` laisse l'outil Bash (Claude Code retrouve Git Bash).
 
 **Dépend de** : rien.
 **Fichiers** : `context AI/26-gitbash.md` (le tableau, sous cette fiche) — et rien d'autre dans le kit.
@@ -69,6 +71,18 @@ Outil PowerShell impossible à activer en `-p`, ou budget dépassé : arrête-to
 **Critère de fin**
 Le tableau couvre 4 mécanismes (hook, injection, outil Bash, outil PowerShell), chacun avec sa source ; la sortie
 brute du hook de la sonde et son coût (`sh scripts/vlp mesure <id>`) y sont recopiés.
+
+**Constaté** (doc code.claude.com, `setup`, `hooks`, `skills` ; sondes `-p` 2.1.271, Git retiré du PATH) :
+
+| Mécanisme | Shell sans Git Bash | `sh` trouvé | Source |
+|---|---|---|---|
+| hook `type: command`, forme shell | PowerShell — « or to "powershell" on Windows when Git Bash isn't installed » | non : `exit_code 1`, « sh n'est pas reconnu », **muet** pour le modèle | doc + sonde 3 (`shell: powershell`) |
+| hook, forme exec (`command` + `args`) | aucun — exécutable lancé direct | sans objet : `python …/vlp.py hook` → `VALIDE 1 fiches` | doc + sonde 3 |
+| injection `!`…`` | outil Bash s'il existe, sinon PowerShell | non : skill en échec avant tout tour, 0 $ | doc + sonde 2 (`shell: powershell`) |
+| outil Bash | absent — « Git for Windows … optional » | — | doc `setup` |
+| outil PowerShell | l'outil shell — « Claude Code uses PowerShell as the shell tool instead » | non (PATH sans Git) | doc + `Get-Command` |
+
+`--disallowedTools Bash` ne bascule pas l'injection : « Permission to use Bash has been denied » (sonde 1). Sondes : 0,069 + 0,015 + 0 + 0 + 0,031 = 0,115 $.
 <!-- /FICHE -->
 
 ---

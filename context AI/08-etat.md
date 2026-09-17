@@ -535,3 +535,4 @@ de ce que le code dit déjà.
   rejoué ; sans Git Bash, `sh` introuvable (inchangé). Cadrage, A1, A2 et clôture dans une seule session, à la demande.
   Total brut mesuré au bilan : 39 tours, 55 appels, input 82, output 27 984, cache_creation 155 030, cache_read
   5 582 393, **total 5 765 489 tokens**, 5,04 $, plus 0,22 $ de sonde headless (1 lancement) et 0,81 $ d'evals.
+- 2026-09-17 — G1 : un poste Windows sans Git ne se simule pas par l'environnement (PATH sans Git, CLAUDE_CODE_GIT_BASH_PATH faux : l'outil Bash reste) ; on le simule par shell: powershell sur le hook ou la skill. Sans Git Bash, sh casse hook (exit 1, muet) et injection (skill en échec) ; la forme exec python …/vlp.py hook passe.
