@@ -7,7 +7,7 @@
 **À quoi il sert.** Les cas d'eval `tache` et `chantier` (tag `wsl2`) exigent l'outil Bash, que `claude plugin eval`
 refuse sous Windows faute de sandbox (V2). On prépare Ubuntu sous WSL2 et on les joue depuis Linux.
 
-**Fait.** Rien. Ouvert le 2026-09-17, cadré en 2 fiches, `W1` à jouer.
+**Fait.** W1 et W2 (2026-09-17) : Ubuntu prêt, `chantier` 3/3 et `tache` 3/3 sous Linux, 0,67 $ d'evals.
 
 ## Le socle commun
 
@@ -86,8 +86,9 @@ claude                                        # se connecter (navigateur), puis 
 ---
 
 <!-- FICHE:W2 -->
-## W2 [ ] — Jouer les cas `wsl2` sous Linux
+## W2 [x] — Jouer les cas `wsl2` sous Linux
 
+**Session** : 20b6f6d2-b753-45d0-9f79-4e0e0aa0deed
 **Dépend de** : `W1`.
 **Fichiers** : `evals/tache/`, `evals/chantier/`, `context AI/27-wsl.md` (le relevé) — et rien d'autre.
 
@@ -102,4 +103,16 @@ coût → cause ». Plafond de 3 $ atteint, ou deux lancements ratés : arrête-
 Le tableau couvre `tache` et `chantier` avec leurs comptes bruts (graders, tours, coût) lus dans
 `aggregate-result.json` ; coût total des lancements ≤ 3 $ ; `python scripts/test-vlp.py` OK et
 `claude.exe plugin validate .` propre (1 avertissement voulu) si un cas a changé.
+
+**Constaté** (2026-09-17, `claude plugin eval` 2.1.274 sous Ubuntu, plugin 3.3.3 lu sur `/mnt/c`) :
+
+| Cas | Lancement | Graders | Tours | Coût | Cause |
+|---|---|---|---|---|---|
+| `chantier` | 1 | 3/3 | 5 | 0,27 $ | — |
+| `tache` | 1 | 2/3 (`CITRON-T2` absent) | 4 | 0,20 $ | **cas** : la fixture faisait dépendre T2 de T1 non cochée ; la skill a demandé, comme elle le doit |
+| `tache` | 2, fixture corrigée | 3/3 | 4 | 0,20 $ | — |
+
+Evals : 0,47 + 0,20 = **0,67 $** sur 3 $. `test-vlp.py` OK ; `validate` passé, 1 avertissement voulu. Bruit sans effet :
+`/bin/bash: …/home/.bashrc: Permission denied` à chaque appel Bash du run (home scellé). Dossiers gardés par
+`--keep-temp` : `/tmp/claude-eval-A8kD9X`, `/tmp/claude-eval-cA3EVT` (dans Ubuntu).
 <!-- /FICHE -->

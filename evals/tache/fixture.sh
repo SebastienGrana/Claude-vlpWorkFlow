@@ -50,7 +50,7 @@ Pas de socle pour ce cas.
 | Fiche | Titre | Dépend de |
 |---|---|---|
 | `T1` | Première fiche | rien |
-| `T2` | Deuxième fiche | `T1` |
+| `T2` | Deuxième fiche | rien |
 
 ---
 
@@ -72,7 +72,7 @@ Le mot demandé est affiché.
 <!-- FICHE:T2 -->
 ## T2 [ ] — Deuxième fiche
 
-**Dépend de** : `T1`.
+**Dépend de** : rien.
 **Fichiers** : aucun.
 
 **Prompt**

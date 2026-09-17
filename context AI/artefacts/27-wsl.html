@@ -68,9 +68,9 @@
     <p>Les cas d'eval tache et chantier joués depuis Ubuntu sous WSL2, avec graders, tours et coût relevés</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="encours"></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">2 fiches · 1 faite · en cours : W2</p>
+    <p class="mono" style="margin-top:.5rem">2 fiches · 2 faites</p>
   </header>
 
   <section>
@@ -82,12 +82,14 @@
         <span class="etat">faite</span>
         <span class="note">Ubuntu 26.04.1 : claude 2.1.274, bubblewrap 0.11.1, socat 1.8.1.1 ; loggedIn true (claude.ai) ; AppArmor sans objet</span>
       </li>
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">W2</span><span class="titre">Jouer les cas wsl2 sous Linux</span>
-        <span class="etat">en cours</span>
-        <span class="note">La suite wsl2 jouée depuis Linux, tableau cas → graders → tours → coût ; dépend de W1</span>
+        <span class="etat">faite</span>
+        <span class="note">Sous Ubuntu : chantier 3/3 (5 tours, 0,27 $) ; tache 2/3 puis 3/3 après fixture corrigée (4 tours, 0,20 $ chacun) ; 0,67 $ d'evals sur 3 $</span>
+        <span class="cout mono">≈7,3M (7 305 939) · 54 tours · 5,66 $</span>
       </li>
     </ul>
+    <p class="mono cout-total">Coût du chantier : ≈7,3M (7 305 939) · 54 tours · 5,66 $</p>
     <!-- ligne de total, absente si aucune fiche n'a de coût mesuré -->
   </section>
 
@@ -104,6 +106,7 @@
     <h2>Journal des décisions</h2>
     <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
     <ul class="journal">
+      <li><time datetime="2026-09-17">2026-09-17</time><span>W2 : le cas tache échouait par sa fixture (T2 dépendait de T1 non cochée), pas par la skill ; dépendance retirée, 3/3.</span></li>
     </ul>
   </section>
 

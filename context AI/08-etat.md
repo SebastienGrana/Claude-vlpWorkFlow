@@ -544,3 +544,5 @@ de ce que le code dit déjà.
   `README.md`. Laissé ouvert : le kit sans `sh` (TODO n° 16). Total brut mesuré au bilan : 57 tours, 82 appels,
   input 114, output 44 487, cache_creation 155 316, cache_read 7 797 623, **total 7 997 540 tokens**, 6,56 $,
   plus 0,115 $ de sondes headless (5 lancements), 0 $ d'evals (non rejouées : aucun fichier chargé n'a changé).
+- **2026-09-17** — W2 : le cas `tache` (V2) échouait sous Linux par sa fixture, pas par la skill — T2 dépendait de T1
+  non cochée, et `/vlp:tache` s'arrête alors pour demander ; dépendance retirée, 3/3. Écrit sous Windows, jamais joué avant.
