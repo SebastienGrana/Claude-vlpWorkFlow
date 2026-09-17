@@ -426,6 +426,47 @@ with tempfile.TemporaryDirectory() as t:
     os.remove(os.path.join(t, "CHANTIER.md"))
     verifier("renvois : pas équipé", appel(["renvois", t])[0] == 1, appel(["renvois", t]))
 
+with tempfile.TemporaryDirectory() as t:
+    carte_ = ("# C\n\n- **contexte** : ctx/\n- **fichier d'état** : ctx/08-etat.md\n"
+              "- **fichier de fiches courant** : %s\n- **artefact du chantier** : %s\n\n"
+              "Lettres de fiche déjà prises : E (Un), M (Deux `x`). Un nouveau chantier en choisit une autre.\n")
+    ecrire(os.path.join(t, "CHANTIER.md"), carte_ % ("aucun", "aucun"))
+    ecrire(os.path.join(t, "ctx", "08-etat.md"),
+           "# État\n\n| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |\n|---|---|---|---|---|\n"
+           "| 3 | Le `sh` | a \\|\\| b <c> | 2 fiches | — |\n| 4 | Quatre | rien | 1 fiche | 3 |\n\n## Journal\n")
+    ecrire(os.path.join(t, "ctx", "30-q.md"), "# Chantier Q — Un titre\n\n## Q1 [x] — a\n## Q2 [ ] — b\n")
+    fdr = os.path.join(t, "ctx", "artefacts", "feuille-de-route.html")
+    ecrire(fdr, open(os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html"), encoding="utf-8").read())
+    lire = lambda c: open(c, encoding="utf-8").read()
+    code, s = appel(["feuille", t, "--date", "2026-01-02"])
+    html = lire(fdr)
+    verifier("feuille : fermé, réécrite", code == 0 and "FEUILLE todo 2 · encours non · lettres 2 · réécrite" in s
+             and "Aucun chantier ouvert" in html and '<span class="mono">E, M</span>' in html
+             and '<span class="mono">2026-01-02</span>' in html, s + html)
+    verifier("feuille : TODO rendue", '<td>Le <span class="mono">sh</span></td><td>a || b &lt;c&gt;</td>' in html
+             and "&lt;U, R&gt;" not in html and 'data-etat="cours"' not in html.split("ZONE:todo")[1], html)
+    code, s = appel(["feuille", t, "--date", "2026-03-04"])
+    verifier("feuille : idempotente, date gardée", code == 0 and "inchangée" in s and "2026-01-02" in lire(fdr), s)
+    ecrire(os.path.join(t, "CHANTIER.md"), carte_ % ("ctx/30-q.md (Q1..Q2)", "https://exemple/q"))
+    code, s = appel(["feuille", t, "--verifier"])
+    verifier("feuille : --verifier voit l'écart sans écrire", code == 1 and "écart" in s and "Aucun chantier" in lire(fdr), s)
+    code, s = appel(["feuille", t, "--todo", "4", "--date", "2026-03-04"])
+    html = lire(fdr)
+    verifier("feuille : ouvert, badge, lettre", code == 0 and "encours oui · lettres 3" in s
+             and 'Un titre <span class="badge" data-etat="cours">' in html and '<span class="mono">Q1–Q2</span>' in html
+             and 'href="https://exemple/q"' in html and "E, M, Q" in html
+             and '<td class="mono">4</td><td>Quatre <span class="badge" data-etat="cours">' in html, s + html)
+    code, s = appel(["feuille", t])
+    verifier("feuille : badge gardé sans --todo", code == 0 and "inchangée" in s, s)
+    verifier("feuille : --verifier identique", appel(["feuille", t, "--verifier"])[0] == 0, appel(["feuille", t, "--verifier"]))
+    code, s = appel(["feuille", t, "--todo", "9"])
+    verifier("feuille : --todo absent, garde", code == 1 and s.startswith("GARDE:"), s)
+    ecrire(os.path.join(t, "CHANTIER.md"), carte_ % ("aucun", "aucun"))
+    code, s = appel(["feuille", t])
+    html = lire(fdr)
+    verifier("feuille : refermé, badge ôté", code == 0 and "Aucun chantier ouvert" in html
+             and 'data-etat="cours"' not in html.split("ZONE:encours")[1] and "E, M</span>" in html, s)
+
 SH = shutil.which("sh")
 if SH is None:
     print("lanceur : sh absent du PATH, tests du lanceur sautés")

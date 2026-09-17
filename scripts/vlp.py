@@ -45,6 +45,14 @@ Sous-commandes :
   ligne `ABSENT: <source>:<ligne>: <nom>` chacun, puis `RENVOIS <n> nommés ·
   <n> absents`. Ignorés : un nom à `<…>` ou `*`, sans `.`, une ligne dont la 1re
   cellule commence par `*(`. Un absent : sort 1.
+- `feuille <projet> [--todo N] [--verifier]` — régénère dans
+  `<contexte>/artefacts/feuille-de-route.html` la `ZONE:encours` (depuis le
+  fichier de fiches courant et l'artefact du chantier), la `ZONE:todo` (depuis
+  la TODO du fichier d'état ; `--todo N` y pose le badge « en cours », gardé
+  d'un appel à l'autre tant qu'un chantier est ouvert) et les lettres prises du
+  pied (plus celle du chantier courant) ; la date seulement si la page change.
+  `FEUILLE todo <n> · encours <oui|non> · lettres <n> · <réécrite|inchangée>
+  — <page>`. `--verifier` n'écrit rien, dit `identique|écart`, sort 1 sur écart.
 
 Python 3 sans dépendance, zéro appel modèle.
 """
@@ -748,6 +756,145 @@ def cmd_renvois(projet, sortie):
     return 1 if absents else 0
 
 
+# --- feuille -----------------------------------------------------------------
+
+AUCUN_ENCOURS = ('    <div class="encours">\n      <div class="titre">Aucun chantier ouvert</div>\n'
+                 '      <div>Lancer <span class="mono">/vlp:chantier</span> pour en ouvrir un.</div>\n    </div>\n')
+BADGE_COURS = ' <span class="badge" data-etat="cours">en cours</span>'
+
+
+def champ(lignes, nom, defaut=None):
+    """La valeur d'une ligne `- **nom** : valeur` de `CHANTIER.md`."""
+    motif = re.compile(r"^\s*-\s*\*\*%s\*\*\s*:\s*(.+?)\s*$" % re.escape(nom))
+    for l in lignes:
+        m = motif.match(l)
+        if m:
+            return m.group(1)
+    return defaut
+
+
+def lettres_prises(lignes):
+    texte = " ".join(l for l in lignes if l.strip())
+    i = texte.find("Lettres de fiche déjà prises")
+    if i < 0:
+        return []
+    fin = texte.find("Un nouveau chantier", i)
+    return re.findall(r"(?:: |, )([A-Z]) \(", texte[i:fin if fin > 0 else None])
+
+
+def plage(ids):
+    return "%s–%s" % (ids[0], ids[-1]) if len(ids) > 1 else ids[0]
+
+
+def cellule_md(texte):
+    texte = esc(texte.replace("\\|", "|"))
+    return CODE.sub(lambda m: '<span class="mono">%s</span>' % m.group(1), texte)
+
+
+def todo_du_fichier(lignes):
+    """[(numéro, chantier, apporte, coût, dépend)] de la table `| # | Chantier |`."""
+    rangs, dedans = [], False
+    for l in lignes:
+        if l.startswith("| # | Chantier"):
+            dedans = True
+            continue
+        if not dedans:
+            continue
+        if not l.startswith("|"):
+            break
+        if re.match(r"^\|[\s|:-]+\|?$", l):
+            continue
+        cellules = [c.strip() for c in re.split(r"(?<!\\)\|", l.strip())[1:-1]]
+        if len(cellules) >= 5:
+            rangs.append(cellules[:5])
+    return rangs
+
+
+def zone(html, nom, ouvre, ferme):
+    """(début, fin) du contenu entre `ouvre` (après le marqueur `ZONE:nom`) et `ferme`."""
+    i = html.find("<!-- ZONE:%s" % nom)
+    if i < 0:
+        raise ValueError("marqueur ZONE:%s absent de la page" % nom)
+    debut = html.find(ouvre, html.find("-->", i))
+    fin = html.find(ferme, debut)
+    if debut < 0 or fin < 0:
+        raise ValueError("ZONE:%s sans %s … %s" % (nom, ouvre.strip(), ferme.strip()))
+    return debut + len(ouvre), fin
+
+
+def feuille(projet, html, todo, date):
+    """(page régénérée, bilan) : encours, todo et lettres depuis `CHANTIER.md` et le fichier d'état."""
+    carte_ = lignes_de(os.path.join(projet, "CHANTIER.md"))
+    etat = champ(carte_, "fichier d'état")
+    if not etat or not os.path.isfile(os.path.join(projet, etat)):
+        raise ValueError("fichier d'état introuvable : %s" % etat)
+    courant = fichier_courant("\n".join(carte_))
+    lettres = lettres_prises(carte_)
+    if courant:
+        lignes = lignes_de(os.path.join(projet, courant))
+        ids = [l.split()[1] for l in lignes if TITRE.match(l)]
+        titre = next((re.sub(r"^# Chantier \S+ — ", "", l) for l in lignes if l.startswith("# ")), courant)
+        url = champ(carte_, "artefact du chantier", "aucun")
+        lien = "" if url.lower().startswith("aucun") else ' — <a href="%s">la page du chantier</a>' % esc(url)
+        encours = ('    <div class="encours">\n      <div class="titre">%s%s</div>\n'
+                   '      <div>Fiches <span class="mono">%s</span>%s</div>\n    </div>\n'
+                   % (cellule_md(titre), BADGE_COURS, plage(ids) if ids else "?", lien))
+        if ids and ids[0][0] not in lettres:
+            lettres.append(ids[0][0])
+    else:
+        encours = AUCUN_ENCOURS
+    d, f = zone(html, "todo", "<tbody>\n", "        </tbody>")
+    if todo is None and courant:
+        m = re.search(r'<tr><td class="mono">(\d+)</td><td>(?:(?!</td>).)*?' + re.escape(BADGE_COURS), html[d:f])
+        todo = m.group(1) if m else None
+    rangs = todo_du_fichier(lignes_de(os.path.join(projet, etat)))
+    if todo is not None and todo not in [r[0] for r in rangs]:
+        raise ValueError("--todo %s absent de la TODO de %s" % (todo, etat))
+    corps = "".join('          <tr><td class="mono">%s</td><td>%s%s</td><td>%s</td><td class="mono">%s</td>'
+                    '<td class="mono">%s</td></tr>\n'
+                    % (esc(n), cellule_md(ch), BADGE_COURS if n == todo else "", cellule_md(ap),
+                       cellule_md(co), cellule_md(de)) for n, ch, ap, co, de in rangs) \
+        or '          <tr><td colspan="5" class="rien-cell">Rien en attente.</td></tr>\n'
+    neuf = html[:d] + corps + html[f:]
+    d, f = zone(neuf, "encours", "\n", "  </section>")
+    neuf = neuf[:d] + encours + neuf[f:]
+    neuf = re.sub(r'(Lettres de fiche prises : <span class="mono">).*?(</span>)',
+                  lambda m: m.group(1) + ", ".join(lettres) + m.group(2), neuf, count=1)
+    if neuf != html:
+        neuf = re.sub(r'(Mis à jour le <span class="mono">).*?(</span>)',
+                      lambda m: m.group(1) + date + m.group(2), neuf, count=1)
+    bilan = "FEUILLE todo %d · encours %s · lettres %d" % (len(rangs), "oui" if courant else "non", len(lettres))
+    return neuf, bilan
+
+
+def page_feuille(projet):
+    contexte = champ(lignes_de(os.path.join(projet, "CHANTIER.md")), "contexte", "context AI/")
+    return os.path.join(projet, contexte, "artefacts", "feuille-de-route.html")
+
+
+def cmd_feuille(a, sortie):
+    if not equipe(a.projet):
+        sortie.write("GARDE: pas de CHANTIER.md dans %s\n" % a.projet)
+        return 1
+    page = page_feuille(a.projet)
+    if not os.path.isfile(page):
+        sortie.write("GARDE: feuille de route introuvable : %s\n" % page)
+        return 1
+    html = lire(page)
+    try:
+        neuf, bilan = feuille(a.projet, html, a.todo, a.date or __import__("datetime").date.today().isoformat())
+    except ValueError as e:
+        sortie.write("GARDE: %s\n" % e)
+        return 1
+    if a.verifier:
+        sortie.write("%s · %s — %s\n" % (bilan, "identique" if neuf == html else "écart", page))
+        return 0 if neuf == html else 1
+    with open(page, "w", encoding="utf-8", newline="") as f:
+        f.write(neuf)
+    sortie.write("%s · %s — %s\n" % (bilan, "inchangée" if neuf == html else "réécrite", page))
+    return 0
+
+
 # --- entrée ------------------------------------------------------------------
 
 def main(argv, sortie=None, entree=None, erreur=None):
@@ -781,7 +928,14 @@ def main(argv, sortie=None, entree=None, erreur=None):
     et.add_argument("contexte")
     rv = sous.add_parser("renvois")
     rv.add_argument("projet")
+    fe = sous.add_parser("feuille")
+    fe.add_argument("projet")
+    fe.add_argument("--todo")
+    fe.add_argument("--verifier", action="store_true")
+    fe.add_argument("--date")
     a = p.parse_args(argv)
+    if a.cmd == "feuille":
+        return cmd_feuille(a, sortie)
     if a.cmd == "renvois":
         return cmd_renvois(a.projet, sortie)
     if a.cmd == "etat":

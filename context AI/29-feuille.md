@@ -66,7 +66,7 @@ Le script affiche, pour X et W : appels feuille, appels `CHANTIER.md`, tours con
 ---
 
 <!-- FICHE:F2 -->
-## F2 [ ] — Écrire `vlp.py feuille`
+## F2 [x] — Écrire `vlp.py feuille`
 
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py`, `context AI/artefacts/feuille-de-route.html`, `context AI/08-etat.md` (sa TODO seule).
