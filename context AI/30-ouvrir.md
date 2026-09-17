@@ -7,7 +7,9 @@
 **À quoi il sert.** Après le chantier F, l'ouverture et la clôture gardent des écritures mécaniques à la main :
 ligne d'index, routage et « Où on en est » de `CLAUDE.md`, lignes de `CHANTIER.md`, « Fait. », `ZONE:bilan`. Un script les écrit.
 
-**Où on en est.** Ouvert le 2026-09-17, aucune fiche jouée.
+**CLOS** le 2026-09-17. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** O1..O5 (2026-09-17) : l'avant mesuré (F 12 tours sur 64, X 8 sur 77), vlp.py ouvrir écrit, clore étendu (Fait., index, routage, ZONE:bilan, --resume), branchés ; plugin 3.3.5, tests 73 → 91, eval chantier 3/3.
 
 ## Le socle commun
 
@@ -154,4 +156,9 @@ le script) ; l'étape 4 ne garde que lire et republier. Pointe `ARTEFACTS.md` ve
 **Critère de fin**
 validate OK (1 avertissement voulu), `RENVOIS … 0 absent`, eval chantier 3/3 (tours et coût affichés) ; puis, à la clôture
 de ce chantier, les appels à la main comptés comme en O1 sur cette session, affichés à côté des comptes O1.
+
+**Mesuré après** (script de O1, session `07062717`, 64 tours au comptage) — clôture : 4 appels, 3 tours, 0 refus
+(avant : F 5 tours, X 3) ; dont 1 tour d'écriture (état + `clore`), 1 de correction (`(chantier O)` doublé par l'argument
+`--resume`, le script l'ôte désormais, tests 91 → 92), 1 de vérification. Ouverture « après » non mesurée : celle de O s'est faite
+avant `ouvrir` (7 tours), l'eval `chantier` s'arrête à la proposition.
 <!-- /FICHE -->

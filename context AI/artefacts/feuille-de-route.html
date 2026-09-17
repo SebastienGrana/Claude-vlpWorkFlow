@@ -68,8 +68,8 @@
     <!-- ZONE:encours — remplacé à chaque ouverture, remis à « aucun » à chaque clôture.
          /tache n'y touche pas : l'avancement fiche par fiche est sur la page du chantier. -->
     <div class="encours">
-      <div class="titre">Ouvrir et clore par script <span class="badge" data-etat="cours">en cours</span></div>
-      <div>Fiches <span class="mono">O1–O5</span> — <a href="https://claude.ai/artifact/Srsfk2hqchvLPSuQ6BXc9e">la page du chantier</a></div>
+      <div class="titre">Aucun chantier ouvert</div>
+      <div>Lancer <span class="mono">/vlp:chantier</span> pour en ouvrir un.</div>
     </div>
   </section>
 
@@ -82,7 +82,6 @@
           <tr><th>#</th><th>Chantier</th><th>Ce qu'il apporte</th><th>Coût</th><th>Dépend de</th></tr>
         </thead>
         <tbody>
-          <tr><td class="mono">18</td><td>Ouvrir et clore par script <span class="badge" data-etat="cours">en cours</span></td><td>Après F, l'ouverture et la clôture gardent des écritures mécaniques à la main : index, routage et « Où on en est » de <span class="mono">CLAUDE.md</span>, lignes de <span class="mono">CHANTIER.md</span>, « Fait. », <span class="mono">ZONE:bilan</span>. <span class="mono">vlp.py ouvrir</span> et <span class="mono">clore</span> étendu les écrivent (<span class="mono">30-ouvrir.md</span>)</td><td class="mono">5 fiches</td><td class="mono">—</td></tr>
           <tr><td class="mono">16</td><td>Le kit sans <span class="mono">sh</span></td><td>Faire tourner le kit sous Windows sans Git Bash. Mesuré (chantier X, <span class="mono">28-sans-sh.md</span>) : hook = paire exec <span class="mono">python3</span> + <span class="mono">py</span> (une erreur non bloquante à chaque écriture, partout) ; carte injectée = <span class="mono">py … carte || python3 … carte</span> (propre sous pwsh 7, Git Bash et Ubuntu). Reste avant tout gain visible : les 17 appels <span class="mono">sh</span> du corps des skills et de <span class="mono">cloture.md</span>, les allowed-tools (sondes faites en <span class="mono">bypassPermissions</span>), PowerShell 5.1 (refuse <span class="mono">||</span>), macOS, Python du Store seul</td><td class="mono">3 fiches</td><td class="mono">—</td></tr>
         </tbody>
       </table>
@@ -98,6 +97,12 @@
           <tr><th>Chantier</th><th>Fiches</th><th>Clos le</th><th>Tokens</th><th>Ce qu'il a livré</th></tr>
         </thead>
         <tbody>
+          <tr>
+            <td><a href="https://claude.ai/artifact/Srsfk2hqchvLPSuQ6BXc9e">Ouvrir et clore par script</a> <span class="badge" data-etat="clos">clos</span></td>
+            <td class="mono">O1–O5</td><td class="mono">2026-09-17</td>
+            <td class="mono">≈9,8M (9 842 371)</td>
+            <td>vlp.py ouvrir et clore étendu écrivent index, routage et Où on en est de CLAUDE.md, CHANTIER.md, Fait. et ZONE:bilan ; branchés dans /vlp:chantier et cloture.md ; plugin 3.3.5, tests 73 → 91, eval chantier 3/3 (8,25 $, plus 0,29 $ d'eval).</td>
+          </tr>
           <tr>
             <td><a href="https://claude.ai/artifact/7q6Wp1j14p7oJ7ssRHyge4">La feuille de route par script</a> <span class="badge" data-etat="clos">clos</span></td>
             <td class="mono">F1–F4</td><td class="mono">2026-09-17</td>
@@ -248,7 +253,7 @@
           </tr>
         </tbody>
         <tfoot>
-          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈185,0M (185 000 518)</strong></td><td></td></tr>
+          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈194,8M (194 842 889)</strong></td><td></td></tr>
         </tfoot>
       </table>
     </div>

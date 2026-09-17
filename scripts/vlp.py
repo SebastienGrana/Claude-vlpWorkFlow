@@ -938,7 +938,7 @@ def resume_claude(cl, lettre, texte, date, gardes):
         return False
     dernier = max(k for k in range(debut, fin) if cl[k].strip())
     chaines = [k for k in range(debut, fin) if re.match(r"^\s*-?\s*Clos le (\S+?) ?[:,]", cl[k])]
-    texte = texte.rstrip(".")
+    texte = re.sub(r"\s*\(chantier %s\)$" % re.escape(lettre), "", texte.rstrip("."))
     if chaines and re.match(r"^\s*-?\s*Clos le %s\b" % re.escape(date), cl[chaines[-1]]) and cl[dernier].endswith("."):
         cl[dernier] = cl[dernier][:-1] + " ;"
         cl.insert(dernier + 1, "  puis %s (chantier %s)." % (texte, lettre))

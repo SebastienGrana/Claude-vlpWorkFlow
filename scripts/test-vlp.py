@@ -491,6 +491,9 @@ with tempfile.TemporaryDirectory() as t:
     cl, g = ["## Où on en est", "", "- Clos le 2026-01-01 : a (chantier E).", "", "## Règles"], []
     verifier("résumé : autre date", mod.resume_claude(cl, "Q", "b", "2026-02-02", g)
              and cl[3] == "  Clos le 2026-02-02 : b (chantier Q)." and cl[2].endswith("E).") and not g, cl)
+    cl2 = ["## Où on en est", "- Clos le 2026-01-01 : a (chantier E)."]
+    verifier("résumé : suffixe (chantier Q) déjà dans le texte, pas doublé", mod.resume_claude(cl2, "Q", "b (chantier Q).", "2026-01-01", g)
+             and cl2[-1] == "  puis b (chantier Q).", cl2)
     verifier("résumé : déjà là, rien", not mod.resume_claude(cl, "Q", "b", "2026-02-02", g) and len(cl) == 6, cl)
     verifier("résumé : section absente, garde", not mod.resume_claude(["# x"], "Q", "b", "d", g) and g and "Où on en est" in g[0], g)
     verifier("clore : Fait. remplacé", "**Fait.** Q1..Q2 (2026-05-06) : Livré `a` <b>.\n" in fiches_lues and "**Fait.** Rien." not in fiches_lues, fiches_lues)

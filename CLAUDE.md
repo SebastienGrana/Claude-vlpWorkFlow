@@ -34,7 +34,8 @@ https://github.com/SebastienGrana/Claude-vlpWorkFlow — cloné et utilisé en g
   Clos le 2026-09-17 : Git for Windows requis, prouvé et écrit dans le README (chantier G) ;
   puis les evals `tache` et `chantier` jouées sous Ubuntu WSL2, 3/3 chacune (chantier W) ;
   puis le kit sans `sh` sondé, renoncé : recette dans la TODO n° 16 (chantier X) ;
-  puis la feuille de route et la clôture écrites par `vlp.py feuille` et `clore` (chantier F).
+  puis la feuille de route et la clôture écrites par `vlp.py feuille` et `clore` (chantier F) ;
+  puis l'ouverture et la clôture écrites par `vlp.py ouvrir` et `clore` (chantier O).
 
 ## Quatre règles non négociables
 
@@ -74,7 +75,7 @@ et seulement dans ce cas, ouvrir l'index.
 | savoir où vit quoi dans un projet équipé | `methode-chantier.md`, section « Où vit quoi » |
 | toucher aux pages publiées | `ARTEFACTS.md`, puis le gabarit dans `templates/` |
 | ouvrir un chantier, ou le découper en fiches | **lancer `/vlp:chantier`** |
-| jouer une fiche du chantier O (ouvrir et clore par script) | `context AI/30-ouvrir.md` — chantier **ouvert**, par `/vlp:tache O<n>` |
+| relire le chantier O (ouvrir et clore par script) | `context AI/30-ouvrir.md` — chantier **clos** |
 | relire le chantier F (la feuille de route par script) | `context AI/29-feuille.md` — chantier **clos** |
 | relire le chantier X (le kit sans `sh`, sondé puis renoncé) | `context AI/28-sans-sh.md` — chantier **clos** |
 | relire le chantier W (evals sous WSL2) | `context AI/27-wsl.md` — chantier **clos** |
