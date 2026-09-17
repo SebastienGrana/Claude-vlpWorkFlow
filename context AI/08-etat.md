@@ -27,6 +27,8 @@
   corrigés ; le 1 est retiré, 6 et 10 ne dépendent plus de rien.
 - **2026-09-17** — chantier R clos (TODO n° 3) : `/vlp:tache` prescrit 9
   appels au lieu de 14 ; le 3 est retiré, 8 ne dépend plus de rien.
+- **2026-09-17** — chantier S clos (TODO n° 4) : la mécanique vit dans
+  `scripts/vlp.py` ; le 4 est retiré, 5 ne dépend plus de rien.
 
 ## La TODO ordonnée — les chantiers possibles
 
@@ -36,8 +38,7 @@ ordonné par ce qui débloque le reste. Le détail de chacun est dans
 
 | # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |
 |---|---|---|---|---|
-| 4 | Un script `vlp.py` pour la mécanique | extraire, socle, état, régénérer la page, valider — remplace les `sed`/`awk` et le HTML retapé par le modèle | 5 fiches | rien |
-| 5 | Hooks du kit | `PostToolUse` valide un fichier de fiches à l'écriture ; `SessionStart` injecte la carte ; fin des « recopie à l'identique » | 3 fiches | 4 |
+| 5 | Hooks du kit | `PostToolUse` valide un fichier de fiches à l'écriture ; `SessionStart` injecte la carte ; fin des « recopie à l'identique » | 3 fiches | rien |
 | 6 | Evals du plugin | `claude plugin eval` sur un bac à sable, graders gratuits, baseline sans plugin ; `validate` avant commit | 3 fiches | rien |
 | 7 | Fusionner la doctrine | cinq fichiers de doc → trois ; chaque nombre vit une fois | 3 fiches | rien |
 | 8 | Migrer `commands/` → `skills/` | un dossier par commande, `disable-model-invocation`, variante `context: fork` + `vlp:fiche` | 3 fiches | rien |
@@ -259,3 +260,13 @@ de ce que le code dit déjà.
   est arrivé : republier le même contenu est **refusé une seconde fois** — il faut
   `Artifact action: "read"` sur l'URL, puis publier (3 appels). `tache-page.md`
   dit encore « republie » : à corriger.
+- **2026-09-17** — Chantier S **clos**. Livré : `scripts/vlp.py` (carte, extraire,
+  socle, sessions, valider, page), testé par `scripts/test-vlp.py` ; `carte.py`
+  retiré ; les cinq commandes, `tache-page.md` et `cloture.md` l'appellent. Avant → après :
+  lignes `sed`/`awk` 11 → 1 (prose), appels à `carte.py` 4 → 0, appels prescrits
+  de `/vlp:tache` 9 → 5, de `/vlp:chantier` étape 0 2 → 0, page retapée à chaque
+  fiche → régénérée par le script. Coût : 17 193 402 tokens · 106 tours ·
+  15,72 $ (2 sessions, S1 à S4 dans celle du cadrage). Laissé ouvert : rejouer
+  `/vlp:chantier`, `/vlp:init`, `/vlp:check` après `/reload-plugins` ;
+  `tache-page.md` (« republie » → `read` puis publier) ; `init.md` 3 ter dit
+  encore que `/vlp:tache` ne lit qu'au `sed`/`awk` (TODO 10).

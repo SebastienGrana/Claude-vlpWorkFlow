@@ -13,9 +13,9 @@
 - **chantiers possibles** : context AI/08-etat.md
 - **fichier d'état** : context AI/08-etat.md
 - **index** : context AI/00-INDEX.md
-- **fichier de fiches courant** : context AI/16-script.md (S1..S5)
+- **fichier de fiches courant** : aucun
 - **artefact feuille de route** : https://claude.ai/code/artifact/ff1fc060-daca-486f-b4c6-e1f55114c0f7
-- **artefact du chantier** : https://claude.ai/artifact/MDYKgdDhAKsPJE4cp1TK6u
+- **artefact du chantier** : aucun
 - **livraison** : aucune — le plugin est chargé en place ; `/reload-plugins` pour
   que la session en cours voie une modification
 - **vérification** : geste de l'utilisateur — rejouer la commande modifiée sur un
@@ -50,6 +50,7 @@ Ils ne servent plus qu'à relire un socle d'API, si une fiche y renvoie.
 | context AI/13-tours.md | T1..T5 | 2026-09-17 | https://claude.ai/artifact/G7oHVSDZnVJdYXiEPD63CU |
 | context AI/14-bugs.md | B1..B3 | 2026-09-17 | https://claude.ai/artifact/NSx145qiALVfwmHc57Yrdq |
 | context AI/15-reduire.md | R1..R4 | 2026-09-17 | https://claude.ai/artifact/CWC5awkprtgXwgyyP1CoeC |
+| context AI/16-script.md | S1..S5 | 2026-09-17 | https://claude.ai/artifact/MDYKgdDhAKsPJE4cp1TK6u |
 
 Lettres de fiche déjà prises : E (Enchaîner les fiches), M (Mesurer les tokens), C (Afficher la conso), T (Compter les tours), B (Corriger les bugs de l'audit), R (Réduire les tours de `/vlp:tache`), S (Un script `vlp.py` pour la mécanique). Un nouveau chantier en choisit une autre —
 elles ne se réemploient jamais, même après clôture. `/vlp:chantier` la propose,

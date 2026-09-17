@@ -100,16 +100,16 @@
         <span class="id">S4</span><span class="titre">Brancher tache, enchainer, fiche, tache-page, cloture</span>
         <span class="etat">faite</span>
         <span class="note">sed/awk de mécanique : tache 5→0 (1 exemple de plage), enchainer 2→0, cloture 1→0. Blocs 1 et 6 bis exécutés tels qu'écrits. Appels prescrits 9→5, octets relus 11 530→9 463.</span>
-        <span class="cout mono">≈3,7M (3 727 395) · 14 tours · 3,35 $</span>
+        <span class="cout mono">≈3,7M (3 727 395) · 14 tours · 3,34 $</span>
       </li>
       <li class="fiche" data-etat="faite">
         <span class="id">S5</span><span class="titre">Brancher chantier, init, check, mesurer l'« après »</span>
         <span class="etat">faite</span>
         <span class="note">sed/awk 11 → 1 (prose), carte.py 4 → 0, /vlp:chantier étape 0 : 2 appels → 0 ; valider VALIDE 5 fiches · socle 50 · 0 écarts</span>
-        <span class="cout mono">≈2,2M (2 236 226) · 22 tours · 2,38 $</span>
+        <span class="cout mono">≈3,9M (3 894 975) · 34 tours · 3,65 $</span>
       </li>
     </ul>
-    <p class="mono cout-total">Coût du chantier, cadrage compris : ≈16,0M (15 974 867) · 97 tours · 14,76 $</p>
+    <p class="mono cout-total">Coût du chantier, cadrage compris : ≈17,6M (17 633 616) · 109 tours · 16,03 $</p>
   </section>
 
   <!-- ZONE:blocage — publiée quand /tache s'arrête après deux tentatives ; retirée dès que la fiche repasse -->
@@ -130,14 +130,18 @@
       <li><time datetime="2026-09-17">2026-09-17</time><span>S3 : page remesure les sessions à chaque régénération ; une session partagée garde les coûts déjà affichés, retire la part que l'ancienne page n'attribuait à aucune fiche (le cadrage) et donne le reste à la dernière. Une page close ne se régénère pas (sur R, la session a continué après la clôture).</span></li>
       <li><time datetime="2026-09-17">2026-09-17</time><span>S4 : /vlp:tache prescrit 5 appels au lieu de 9 ; la publication part sans read — dans une session neuve, un refus possible, à rejouer pour de vrai. Bash(sed:*) reste pour les plages des fiches ; agents/fiche.md inchangé (aucun sed/awk).</span></li>
       <li><time datetime="2026-09-17">2026-09-17</time><span>S5 : le repli python3 || python ne vaut que pour carte (sortie toujours 0) ; valider, page, extraire passent par PY=$(…). À rejouer après /reload-plugins : /vlp:chantier, /vlp:init, /vlp:check.</span></li>
+      <li><time datetime="2026-09-17">2026-09-17</time><span>S5 : republier le même contenu après un refus est refusé une seconde fois — il faut lire l'URL, puis publier (3 appels) ; tache-page.md dit encore « republie ».</span></li>
     </ul>
   </section>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
-  <section hidden>
-    <h2>Chantier clos le </h2>
+  <section>
+    <h2>Chantier clos le 2026-09-17</h2>
     <div class="bilan">
-      <p></p>
+      <p>Livré : scripts/vlp.py (carte, extraire, socle, sessions, valider, page), testé par test-vlp.py ; carte.py retiré ; tache, enchainer, chantier, init, check, tache-page.md et cloture.md l'appellent.</p>
+      <p>Avant → après : lignes sed/awk 11 → 1 (prose) · appels à carte.py 4 → 0 · appels prescrits de /vlp:tache 9 → 5 · /vlp:chantier étape 0 2 → 0 · page retapée à chaque fiche → régénérée par le script.</p>
+      <p>Coût à l'étape 3 de la clôture : ≈17,2M (17 193 402) · 106 tours · 15,72 $ ; le total ci-dessus compte la session jusqu'à la régénération de la page.</p>
+      <p>Surpris : le repli python3 || python double un appel qui sort 1 ; un refus de publication se répète si l'on ne relit pas l'URL. Reste ouvert : rejouer chantier, init et check après /reload-plugins ; corriger tache-page.md.</p>
     </div>
   </section>
 

@@ -4,11 +4,13 @@
 
 # Chantier S — Un script `vlp.py` pour la mécanique
 
+**CLOS** le 2026-09-17. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
 **À quoi il sert.** Les commandes extraient, valident et régénèrent à coups de
 `sed`/`awk` et de HTML retapé par le modèle (points 9, 12, 15 de `12-audit.md`).
 Le chantier met cette mécanique dans un script testé, que les commandes appellent.
 
-**Fait.** S1 à S4 (2026-09-17). Ouvert le 2026-09-17, cadré en 5 fiches, `S5` à jouer.
+**Fait.** S1 à S5 (2026-09-17). Ouvert et clos le 2026-09-17, 5 fiches jouées.
 
 ## Le socle commun
 

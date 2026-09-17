@@ -20,7 +20,8 @@ https://github.com/SebastienGrana/Claude-vlpWorkFlow — cloné et utilisé en g
 - Audité le 2026-09-17 : dix chantiers possibles dans la TODO de
   `context AI/08-etat.md`, preuves et détail dans `context AI/12-audit.md`.
   Clos le 2026-09-17 : ses bugs corrigés (chantier B), puis `/vlp:tache`
-  allégée — carte injectée, 14 → 9 appels prescrits (chantier R).
+  allégée — carte injectée, 14 → 9 appels prescrits (chantier R) ; puis la
+  mécanique dans `scripts/vlp.py`, `sed`/`awk` 11 → 1, 9 → 5 appels (chantier S).
 
 ## Quatre règles non négociables
 
@@ -59,7 +60,7 @@ et seulement dans ce cas, ouvrir l'index.
 | savoir où vit quoi dans un projet équipé | `CONVENTION-FICHIERS.md` |
 | toucher aux pages publiées | `ARTEFACTS.md`, puis le gabarit dans `templates/` |
 | ouvrir un chantier, ou le découper en fiches | **lancer `/vlp:chantier`** |
-| jouer une fiche du chantier S (un script `vlp.py` pour la mécanique) | **lancer `/vlp:tache S<n>`** — `context AI/16-script.md`, chantier **en cours** |
+| relire le chantier S (un script `vlp.py` pour la mécanique) | `context AI/16-script.md` — chantier **clos** |
 | relire le chantier R (réduire les tours de `/vlp:tache`) | `context AI/15-reduire.md` — chantier **clos** |
 | relire le chantier B (corriger les bugs de l'audit) | `context AI/14-bugs.md` — chantier **clos** |
 | relire le chantier T (compter les tours) | `context AI/13-tours.md` — chantier **clos** |
