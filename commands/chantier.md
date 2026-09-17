@@ -102,8 +102,9 @@ cochée est un mensonge que la table des clos gardera.
 
 Dans cet ordre, ces fichiers, en entier — ils sont courts — et rien d'autre :
 
-1. le fichier nommé « **méthode** » par `CHANTIER.md` : ce qu'est un fichier de
-   fiches, à quoi ressemble une fiche ;
+1. la méthode, `${CLAUDE_PLUGIN_ROOT}/methode-chantier.md` — celle que nomme la
+   ligne « **méthode** » de `CHANTIER.md` : ce qu'est un fichier de fiches, à
+   quoi ressemble une fiche ;
 2. le ou les fichiers nommés « **chantiers possibles** » : ce qui reste à
    faire, et ce qui est déjà fait — pour ne pas refiche du travail existant.
 

@@ -9,7 +9,7 @@
 - **kit** : <le dossier réel du kit — pour un humain ; les commandes ne
   s'en servent plus, elles voyagent avec lui>
 - **contexte** : <context AI/>
-- **méthode** : ${CLAUDE_PLUGIN_ROOT}/methode-chantier.md
+- **méthode** : methode-chantier.md, à la racine du kit — il voyage avec le plugin
 - **chantiers possibles** : <context AI/08-etat.md>
 - **fichier d'état** : <context AI/08-etat.md>
 - **index** : <context AI/00-INDEX.md>

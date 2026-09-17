@@ -82,7 +82,9 @@ geste de l'utilisateur : noter dans le journal ce qui reste à rejouer.
 ---
 
 <!-- FICHE:B2 -->
-## B2 [ ] — Rendre justes les libellés et les gabarits
+## B2 [x] — Rendre justes les libellés et les gabarits
+
+**Session** : 7bb64701-bdad-4be9-8287-3ede11e93e49
 
 **Dépend de** : rien.
 **Fichiers** : commands/check.md, commands/chantier.md, commands/init.md,

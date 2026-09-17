@@ -108,8 +108,8 @@ de routage vers le fichier de méthode et la section « Économie de contexte »
 du gabarit, si elle manque.
 
 Renseigne dans `CHANTIER.md` tout ce que le questionnaire a donné, la ligne
-« **méthode** » avec `${CLAUDE_PLUGIN_ROOT}/methode-chantier.md` — **écris ces
-accolades telles quelles**, c'est le plugin qui les remplace à la lecture — **et
+« **méthode** » telle que le gabarit l'écrit, sans variable : une variable n'est
+remplacée que dans le texte d'une commande, jamais dans un fichier du projet — **et
 la ligne `- **kit** :` avec le chemin réel résolu à l'étape 1**. Cette
 dernière ne sert plus à trouver quoi que ce soit : elle dit à un humain où vit
 le kit. Laisse « fichier de fiches courant : **aucun** » — c'est

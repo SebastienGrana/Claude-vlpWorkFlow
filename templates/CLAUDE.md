@@ -28,8 +28,6 @@ et seulement dans ce cas, ouvrir l'index.
 
 | La tâche | Ouvrir |
 |---|---|
-| écrire ou modifier du code | `<contexte>/18-code.md` |
-| créer un module, chercher où va un bout de code | `<contexte>/02-architecture.md` |
 | ouvrir un chantier, ou le découper en fiches | **lancer `/vlp:chantier`** — la méthode vit dans le kit, pas ici |
 | jouer une fiche `<X>*` | `<contexte>/<NN>-<chantier>.md` — chantier **ouvert** |
 | reprendre après une longue interruption | `<contexte>/08-etat.md` |

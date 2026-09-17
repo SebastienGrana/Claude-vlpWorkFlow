@@ -62,7 +62,7 @@ faire tant que l'utilisateur n'a pas répondu.
 **D — Les lettres de fiches ne se marchent pas dessus.**
 
 ```bash
-grep -n 'Lettres prises' CHANTIER.md; ls "<contexte>"/*.md | sed 's/.*\///'
+grep -n 'Lettres de fiche déjà prises' CHANTIER.md; ls "<contexte>"/*.md | sed 's/.*\///'
 ```
 
 Chaque fichier de chantier consomme une lettre. Une lettre réutilisée fait que
