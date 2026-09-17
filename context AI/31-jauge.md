@@ -133,8 +133,9 @@ fichiers avant et après, relance + `diff -r`.
 ---
 
 <!-- FICHE:J4 -->
-## J4 [ ] — Remettre le kit sous seuil, doc et gabarits
+## J4 [x] — Remettre le kit sous seuil, doc et gabarits
 
+**Session** : f4841d72-f944-45a6-8e6b-b4fa153e1372
 **Dépend de** : `J3`.
 **Fichiers** : `CLAUDE.md`, `CHANTIER.md`, `context AI/00-INDEX.md`, `methode-chantier.md` (« Où vit quoi »),
 `templates/CLAUDE.md`, `templates/CHANTIER.md`, `skills/init/SKILL.md` (l. ~131), `cloture.md` (étape 2), `.claude-plugin/plugin.json`.

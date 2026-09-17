@@ -8,7 +8,8 @@ ailleurs.>
 
 <Ce qui est prouvé, ce qui est ouvert, ce qui n'est pas commencé. Cinq lignes,
 pas dix. Le détail daté est dans `<contexte>/<NN>-etat.md` — l'ouvrir seulement
-quand ces cinq lignes ne suffisent pas.>
+quand ces cinq lignes ne suffisent pas. Un chantier clos y prend une ligne
+`- Clos le <date> : … (chantier <X>).`, écrite par `vlp.py clore`, qui ne garde que les dernières.>
 
 ## Quatre règles non négociables
 
@@ -30,6 +31,7 @@ et seulement dans ce cas, ouvrir l'index.
 |---|---|
 | ouvrir un chantier, ou le découper en fiches | **lancer `/vlp:chantier`** — la méthode vit dans le kit, pas ici |
 | jouer une fiche `<X>*` | `<contexte>/<NN>-<chantier>.md` — chantier **ouvert** |
+| relire un chantier clos | `<contexte>/00-INDEX.md` — sa ligne y nomme le fichier de fiches |
 | reprendre après une longue interruption | `<contexte>/<NN>-etat.md` |
 
 ## Économie de contexte

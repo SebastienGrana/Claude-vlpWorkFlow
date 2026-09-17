@@ -72,9 +72,9 @@ tranche, pas la mémoire de la session.
 
 | Fichier | À la racine ? | Qui le lit | Longueur visée |
 |---|---|---|---|
-| `CLAUDE.md` | oui | **toute** session, en entier, en premier | 60 lignes |
-| `CHANTIER.md` | oui | `/vlp:chantier`, `/vlp:tache` et `/vlp:enchainer`, en entier | 30 lignes |
-| `<contexte>/00-INDEX.md` | non | seulement quand le routage de `CLAUDE.md` ne répond pas | 40 lignes |
+| `CLAUDE.md` | oui | **toute** session, en entier, en premier | le seuil de `vlp.py` |
+| `CHANTIER.md` | oui | `/vlp:chantier`, `/vlp:tache` et `/vlp:enchainer`, en entier | le seuil de `vlp.py` |
+| `<contexte>/00-INDEX.md` | non | seulement quand le routage de `CLAUDE.md` ne répond pas | le seuil de `vlp.py` |
 | le **fichier d'état** | non | reprise à froid, choix du prochain chantier | libre |
 | les **fichiers de fiches**, un par chantier | non | `/vlp:tache` et `/vlp:enchainer`, **par plages**, jamais en entier | libre |
 | `<contexte>/artefacts/*.html` | non | publié pour l'utilisateur ; relu par `/vlp:tache` à chaque fiche, par `/vlp:enchainer` une fois par lancement | le seuil de `vlp.py` |

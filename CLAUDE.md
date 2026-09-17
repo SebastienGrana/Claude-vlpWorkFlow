@@ -7,35 +7,17 @@ https://github.com/SebastienGrana/Claude-vlpWorkFlow — cloné et utilisé en g
 
 ## Où on en est — en cinq lignes
 
-- Prouvé : le kit est un plugin (v3.3.0, « degré 3 »), chargé en place par un lien
-  dans `~/.claude/skills/vlp` ; cinq commandes `/vlp:init`, `/vlp:chantier`,
-  `/vlp:tache`, `/vlp:enchainer`, `/vlp:check`, et l'agent `vlp:fiche`.
+- Prouvé : le kit est un plugin (« degré 3 », version dans `.claude-plugin/plugin.json`),
+  chargé en place par un lien dans `~/.claude/skills/vlp` ; cinq commandes `/vlp:init`,
+  `/vlp:chantier`, `/vlp:tache`, `/vlp:enchainer`, `/vlp:check`, et l'agent `vlp:fiche`.
 - Équipés : Cairn-VlpLib, MapDecorator, ProjetONZSM, TrackGen — et ce kit lui-même.
-- Clos le 2026-09-10, abandonné : enchaîner les fiches — le chef coûtait plus que
-  les fiches jouées à la main. Remis tel quel le 2026-09-17, puis réparé (chantier N) ; chef allégé
-  15 → 9 tours, en Sonnet (chantier L).
-- Clos le 2026-09-11 : mesurer les tokens consommés (chantier M) — script
-  `scripts/mesure-tokens.py`, coût affiché en fin de fiche et à la clôture.
-  Clos le 2026-09-17 : ce coût affiché sur toutes les pages (chantier C), puis
-  compté par tour et pondéré en dollars (chantier T).
-- Audité le 2026-09-17 : dix chantiers possibles dans la TODO de
-  `context AI/08-etat.md`, preuves et détail dans `context AI/12-audit.md`.
-  Clos le 2026-09-17 : ses bugs corrigés (chantier B), puis `/vlp:tache`
-  allégée — carte injectée, 14 → 9 appels prescrits (chantier R) ; puis la
-  mécanique dans `scripts/vlp.py`, `sed`/`awk` 11 → 1, 9 → 5 appels (chantier S) ;
-  puis un hook `PostToolUse` valide les fichiers de fiches à l'écriture (chantier H) ;
-  puis `claude plugin eval` : 3 cas sous Windows, `validate` avant commit (chantier V) ;
-  puis la doctrine en trois docs, chaque seuil dans `vlp.py` (chantier D) ;
-  puis `/vlp:init` sans renvoi mort, `vlp.py etat` et `renvois` (chantier I) ;
-  puis les commandes dans `skills/<nom>/SKILL.md` (chantier K) ;
-  puis `/vlp:enchainer` réparé par la skill forkée `vlp:jouer` (chantier N) ;
-  puis Python lancé par `sh …/scripts/vlp`, sans accolade (chantier P) ;
-  puis une fiche `(visuel)` arrête `/vlp:enchainer`, ligne `ARRÊT:` (chantier A).
-  Clos le 2026-09-17 : Git for Windows requis, prouvé et écrit dans le README (chantier G) ;
-  puis les evals `tache` et `chantier` jouées sous Ubuntu WSL2, 3/3 chacune (chantier W) ;
-  puis le kit sans `sh` sondé, renoncé : recette dans la TODO n° 16 (chantier X) ;
-  puis la feuille de route et la clôture écrites par `vlp.py feuille` et `clore` (chantier F) ;
-  puis l'ouverture et la clôture écrites par `vlp.py ouvrir` et `clore` (chantier O).
+- Chaque chantier clos a sa ligne dans `context AI/00-INDEX.md`, son détail daté dans
+  `context AI/08-etat.md` ; ici, les derniers seulement (`vlp.py clore` les tient).
+- Clos le 2026-09-17 : Git for Windows requis, prouvé et écrit dans le README (chantier G).
+- Clos le 2026-09-17 : les evals `tache` et `chantier` jouées sous Ubuntu WSL2, 3/3 chacune (chantier W).
+- Clos le 2026-09-17 : le kit sans `sh` sondé, renoncé : recette dans la TODO n° 16 (chantier X).
+- Clos le 2026-09-17 : la feuille de route et la clôture écrites par `vlp.py feuille` et `clore` (chantier F).
+- Clos le 2026-09-17 : l'ouverture et la clôture écrites par `vlp.py ouvrir` et `clore` (chantier O).
 
 ## Quatre règles non négociables
 
@@ -76,27 +58,7 @@ et seulement dans ce cas, ouvrir l'index.
 | toucher aux pages publiées | `ARTEFACTS.md`, puis le gabarit dans `templates/` |
 | ouvrir un chantier, ou le découper en fiches | **lancer `/vlp:chantier`** |
 | jouer une fiche du chantier J (des fichiers de tête qui ne grossissent plus) | `context AI/31-jauge.md` — chantier **ouvert**, par `/vlp:tache J<n>` |
-| relire le chantier O (ouvrir et clore par script) | `context AI/30-ouvrir.md` — chantier **clos** |
-| relire le chantier F (la feuille de route par script) | `context AI/29-feuille.md` — chantier **clos** |
-| relire le chantier X (le kit sans `sh`, sondé puis renoncé) | `context AI/28-sans-sh.md` — chantier **clos** |
-| relire le chantier W (evals sous WSL2) | `context AI/27-wsl.md` — chantier **clos** |
-| relire le chantier G (le kit sans Git Bash) | `context AI/26-gitbash.md` — chantier **clos** |
-| relire le chantier A (une fiche visuelle arrête `/vlp:enchainer`) | `context AI/25-arret.md` — chantier **clos** |
-| relire le chantier P (un lanceur Python sans accolade) | `context AI/24-lanceur.md` — chantier **clos** |
-| relire le chantier L (`/vlp:enchainer` : alléger le chef) | `context AI/23-alleger.md` — chantier **clos** |
-| relire le chantier N (`/vlp:enchainer` réparé par `vlp:jouer`) | `context AI/22-fork.md` — chantier **clos** |
-| relire le chantier K (migrer `commands/` → `skills/`) | `context AI/21-skills.md` — chantier **clos** |
-| relire le chantier I (un projet neuf qui ne ment pas) | `context AI/20-init.md` — chantier **clos** |
-| relire le chantier D (fusionner la doctrine) | `context AI/19-doctrine.md` — chantier **clos** |
-| relire le chantier V (evals du plugin) | `context AI/18-evals.md` — chantier **clos**, V2 abandonnée (TODO n° 11) |
-| relire le chantier H (hooks du kit) | `context AI/17-hooks.md` — chantier **clos** |
-| relire le chantier S (un script `vlp.py` pour la mécanique) | `context AI/16-script.md` — chantier **clos** |
-| relire le chantier R (réduire les tours de `/vlp:tache`) | `context AI/15-reduire.md` — chantier **clos** |
-| relire le chantier B (corriger les bugs de l'audit) | `context AI/14-bugs.md` — chantier **clos** |
-| relire le chantier T (compter les tours) | `context AI/13-tours.md` — chantier **clos** |
-| relire le chantier E (enchaîner les fiches) | `context AI/09-enchainer.md` — chantier **clos**, abandonné puis remis tel quel |
-| relire le chantier M (mesurer les tokens) | `context AI/10-mesure.md` — chantier **clos** |
-| relire le chantier C (afficher la conso) | `context AI/11-conso.md` — chantier **clos** |
+| relire un chantier clos | `context AI/00-INDEX.md` — sa ligne y nomme le fichier de fiches |
 | reprendre après une longue interruption | `context AI/08-etat.md` |
 | choisir le prochain chantier du kit, ou retrouver la preuve d'un bug relevé le 2026-09-17 | `context AI/12-audit.md` |
 

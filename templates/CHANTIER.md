@@ -2,7 +2,7 @@
 
 > Fichier lu **en entier** par `/vlp:chantier` et `/vlp:tache`, depuis la racine du
 > projet. C'est la seule table à tenir : rien à mettre à jour ailleurs quand un
-> chantier s'ouvre ou se clôt. Garde-le court — vingt à trente lignes.
+> chantier s'ouvre ou se clôt. Garde-le sous le seuil de `scripts/vlp.py` : `renvois` avertit.
 > Les libellés en gras se recopient **à l'identique** : ils sont lus tels quels.
 
 - **alias** : <md>
@@ -30,13 +30,9 @@ pas quinze — celles qu'on regrette de ne pas avoir écrites.
 - <Aucun chemin absolu dans le code.>
 - <Vérification d'API par grep dans `<fichier de référence>`.>
 
-## Chantiers clos — ne se rejouent pas
+## Chantiers clos — dans l'index, pas ici
 
-Ils ne servent plus qu'à relire un socle d'API, si une fiche y renvoie.
-
-| Fichier de fiches | Fiches | Clos le | Artefact |
-|---|---|---|---|
-| <context AI/15-annulation.md> | <U1..U6> | <2026-09-04> | <https://…> |
+Chacun a sa ligne dans l'**index** ; sa page reste sur la feuille de route.
 
 Lettres de fiche déjà prises : <U>. Un nouveau chantier en choisit une autre —
 elles ne se réemploient jamais, même après clôture. `/vlp:chantier` la propose,
