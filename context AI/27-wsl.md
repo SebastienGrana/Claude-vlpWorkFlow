@@ -4,6 +4,8 @@
 
 # Chantier W — Evals sous WSL2
 
+**CLOS** le 2026-09-17. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
 **À quoi il sert.** Les cas d'eval `tache` et `chantier` (tag `wsl2`) exigent l'outil Bash, que `claude plugin eval`
 refuse sous Windows faute de sandbox (V2). On prépare Ubuntu sous WSL2 et on les joue depuis Linux.
 

@@ -68,8 +68,8 @@
     <!-- ZONE:encours — remplacé à chaque ouverture, remis à « aucun » à chaque clôture.
          /tache n'y touche pas : l'avancement fiche par fiche est sur la page du chantier. -->
     <div class="encours">
-      <div class="titre">Evals sous WSL2 — fiches W1..W2</div>
-      <div><a href="https://claude.ai/artifact/BTzA23mPmYQKAnUvT1Pkpd">La page du chantier</a> — Ubuntu préparé sous WSL2, puis les cas tache et chantier joués depuis Linux.</div>
+      <div class="titre">Aucun chantier ouvert</div>
+      <div>Lancer <span class="mono">/vlp:chantier</span> pour en ouvrir un.</div>
     </div>
   </section>
 
@@ -83,7 +83,6 @@
         </thead>
         <tbody>
           <tr><td class="mono">16</td><td>Le kit sans sh</td><td>Faire tourner hook et skills sous Windows sans Git Bash, sans casser macOS/Linux où seul python3 existe ; ni champ os de hook, ni || en PowerShell 5.1</td><td class="mono">3 fiches</td><td class="mono">—</td></tr>
-          <tr><td class="mono">11</td><td>Evals sous WSL2 <span class="badge" data-etat="cours">en cours</span></td><td>Jouer les tests qui exigent Bash (tache, chantier) : Windows n'a pas de sandbox ; initialiser Ubuntu sous WSL2, y installer Claude Code, bubblewrap et socat, s'y connecter, lancer la suite depuis Linux</td><td class="mono">2 fiches</td><td class="mono">6</td></tr>
         </tbody>
       </table>
     </div>
@@ -98,6 +97,13 @@
           <tr><th>Chantier</th><th>Fiches</th><th>Clos le</th><th>Tokens</th><th>Ce qu'il a livré</th></tr>
         </thead>
         <tbody>
+          <tr>
+            <td><a href="https://claude.ai/artifact/BTzA23mPmYQKAnUvT1Pkpd">Evals sous WSL2</a> <span class="badge" data-etat="clos">clos</span></td>
+            <td class="mono">W1–W2</td><td class="mono">2026-09-17</td>
+            <td class="mono">≈7,3M (7 305 939)</td>
+            <td>Les evals tache et chantier jouées sous Ubuntu WSL2 : 3/3 chacune, après une fixture tache corrigée (T2 dépendait de T1) ;
+              Ubuntu 26.04.1, Claude Code 2.1.274, bubblewrap, socat (5,66 $, plus 0,67 $ d'evals).</td>
+          </tr>
           <tr>
             <td><a href="https://claude.ai/artifact/UWhqsTpQNUmwnztwz85auy">Le kit sans Git Bash</a> <span class="badge" data-etat="clos">clos</span></td>
             <td class="mono">G1–G2</td><td class="mono">2026-09-17</td>
@@ -228,7 +234,7 @@
           </tr>
         </tbody>
         <tfoot>
-          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈158,0M (157 991 201)</strong></td><td></td></tr>
+          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈165,3M (165 297 140)</strong></td><td></td></tr>
         </tfoot>
       </table>
     </div>

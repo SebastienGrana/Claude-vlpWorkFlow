@@ -31,7 +31,8 @@ https://github.com/SebastienGrana/Claude-vlpWorkFlow — cloné et utilisé en g
   puis `/vlp:enchainer` réparé par la skill forkée `vlp:jouer` (chantier N) ;
   puis Python lancé par `sh …/scripts/vlp`, sans accolade (chantier P) ;
   puis une fiche `(visuel)` arrête `/vlp:enchainer`, ligne `ARRÊT:` (chantier A).
-  Clos le 2026-09-17 : Git for Windows requis, prouvé et écrit dans le README (chantier G).
+  Clos le 2026-09-17 : Git for Windows requis, prouvé et écrit dans le README (chantier G) ;
+  puis les evals `tache` et `chantier` jouées sous Ubuntu WSL2, 3/3 chacune (chantier W).
 
 ## Quatre règles non négociables
 
@@ -71,7 +72,7 @@ et seulement dans ce cas, ouvrir l'index.
 | savoir où vit quoi dans un projet équipé | `methode-chantier.md`, section « Où vit quoi » |
 | toucher aux pages publiées | `ARTEFACTS.md`, puis le gabarit dans `templates/` |
 | ouvrir un chantier, ou le découper en fiches | **lancer `/vlp:chantier`** |
-| jouer une fiche du chantier W (evals sous WSL2) | `context AI/27-wsl.md` — chantier **en cours**, par `/vlp:tache W<n>` |
+| relire le chantier W (evals sous WSL2) | `context AI/27-wsl.md` — chantier **clos** |
 | relire le chantier G (le kit sans Git Bash) | `context AI/26-gitbash.md` — chantier **clos** |
 | relire le chantier A (une fiche visuelle arrête `/vlp:enchainer`) | `context AI/25-arret.md` — chantier **clos** |
 | relire le chantier P (un lanceur Python sans accolade) | `context AI/24-lanceur.md` — chantier **clos** |
