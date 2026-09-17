@@ -13,9 +13,9 @@
 - **chantiers possibles** : context AI/08-etat.md
 - **fichier d'état** : context AI/08-etat.md
 - **index** : context AI/00-INDEX.md
-- **fichier de fiches courant** : context AI/23-alleger.md (L1..L3)
+- **fichier de fiches courant** : aucun
 - **artefact feuille de route** : https://claude.ai/code/artifact/ff1fc060-daca-486f-b4c6-e1f55114c0f7
-- **artefact du chantier** : https://claude.ai/artifact/Y4gMbrQmjNSpxCsDKiTxrq
+- **artefact du chantier** : aucun
 - **livraison** : aucune — le plugin est chargé en place ; `/reload-plugins` pour
   que la session en cours voie une modification
 - **vérification** : geste de l'utilisateur — rejouer la commande modifiée sur un
@@ -57,6 +57,7 @@ Ils ne servent plus qu'à relire un socle d'API, si une fiche y renvoie.
 | context AI/20-init.md | I1..I3 | 2026-09-17 | https://claude.ai/artifact/8p27CpH1GuMgtE9ECWcwoj |
 | context AI/21-skills.md | K1..K3 | 2026-09-17 | https://claude.ai/artifact/SnRg17z3ojPU3jTk9pQpD7 |
 | context AI/22-fork.md | N1..N3 | 2026-09-17 | https://claude.ai/artifact/PF7Ud3UWBNAdytYTs1yV7D |
+| context AI/23-alleger.md | L1..L3 | 2026-09-17 | https://claude.ai/artifact/Y4gMbrQmjNSpxCsDKiTxrq |
 
 Lettres de fiche déjà prises : E (Enchaîner les fiches), M (Mesurer les tokens), C (Afficher la conso), T (Compter les tours), B (Corriger les bugs de l'audit), R (Réduire les tours de `/vlp:tache`), S (Un script `vlp.py` pour la mécanique), H (Hooks du kit), V (Evals du plugin), D (Fusionner la doctrine), I (Un projet neuf qui ne ment pas), K (Migrer `commands/` → `skills/`), N (`/vlp:enchainer` : réparer ou retirer), L (`/vlp:enchainer` : alléger le chef). Un nouveau chantier en choisit une autre —
 elles ne se réemploient jamais, même après clôture. `/vlp:chantier` la propose,

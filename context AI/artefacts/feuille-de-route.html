@@ -68,8 +68,8 @@
     <!-- ZONE:encours — remplacé à chaque ouverture, remis à « aucun » à chaque clôture.
          /tache n'y touche pas : l'avancement fiche par fiche est sur la page du chantier. -->
     <div class="encours">
-      <div class="titre"><a href="https://claude.ai/artifact/Y4gMbrQmjNSpxCsDKiTxrq">/vlp:enchainer : alléger le chef</a> <span class="badge" data-etat="cours">en cours</span></div>
-      <div>Fiches <span class="mono">L1–L3</span> · <span class="mono">context AI/23-alleger.md</span></div>
+      <div class="titre">Aucun chantier ouvert</div>
+      <div>Lancer <span class="mono">/vlp:chantier</span> pour en ouvrir un.</div>
     </div>
   </section>
 
@@ -82,7 +82,7 @@
           <tr><th>#</th><th>Chantier</th><th>Ce qu'il apporte</th><th>Coût</th><th>Dépend de</th></tr>
         </thead>
         <tbody>
-          <tr><td class="mono">12</td><td><a href="https://claude.ai/artifact/Y4gMbrQmjNSpxCsDKiTxrq">/vlp:enchainer : alléger le chef</a> <span class="badge" data-etat="cours">en cours</span></td><td>Mesuré sur MapDecorator : 15 tours de chef pour une fiche déléguée ; la page en un appel, questionner sans agir après un RETOUR, chef en Sonnet, maxTurns revu</td><td class="mono">3 fiches</td><td class="mono">rien</td></tr>
+          <tr><td class="mono">13</td><td>Un lanceur Python sans accolade</td><td>Mesuré en L3 : en -p, le motif PY=$(for p in python3 python; …) est refusé — 1 tour de chef, 2 à 3 par sous-agent ; le remplacer partout et vérifier en session interactive</td><td class="mono">1 fiche</td><td class="mono">rien</td></tr>
           <tr><td class="mono">11</td><td>Evals sous WSL2</td><td>Jouer les tests qui exigent Bash (tache, chantier) : Windows n'a pas de sandbox ; initialiser Ubuntu sous WSL2, y installer Claude Code, bubblewrap et socat, s'y connecter, lancer la suite depuis Linux</td><td class="mono">2 fiches</td><td class="mono">6</td></tr>
         </tbody>
       </table>
@@ -98,6 +98,13 @@
           <tr><th>Chantier</th><th>Fiches</th><th>Clos le</th><th>Tokens</th><th>Ce qu'il a livré</th></tr>
         </thead>
         <tbody>
+          <tr>
+            <td><a href="https://claude.ai/artifact/Y4gMbrQmjNSpxCsDKiTxrq">/vlp:enchainer : alléger le chef</a> <span class="badge" data-etat="clos">clos</span></td>
+            <td class="mono">L1–L3</td><td class="mono">2026-09-17</td>
+            <td class="mono">≈7,3M (7 324 563)</td>
+            <td>Chef de /vlp:enchainer allégé : page en un appel, rien après un RETOUR hors la question, model: sonnet ;
+              15 → 9 tours, 14 → 7 appels ; plugin 3.3.1, evals 3/3 (6,06 $, plus 1,26 $ de sondes et 1,00 $ d'evals).</td>
+          </tr>
           <tr>
             <td><a href="https://claude.ai/artifact/PF7Ud3UWBNAdytYTs1yV7D">/vlp:enchainer : réparer ou retirer</a> <span class="badge" data-etat="clos">clos</span></td>
             <td class="mono">N1–N3</td><td class="mono">2026-09-17</td>
@@ -200,7 +207,7 @@
           </tr>
         </tbody>
         <tfoot>
-          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈130,1M (130 116 903)</strong></td><td></td></tr>
+          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈137,4M (137 441 466)</strong></td><td></td></tr>
         </tfoot>
       </table>
     </div>

@@ -12,8 +12,8 @@ https://github.com/SebastienGrana/Claude-vlpWorkFlow — cloné et utilisé en g
   `/vlp:tache`, `/vlp:enchainer`, `/vlp:check`, et l'agent `vlp:fiche`.
 - Équipés : Cairn-VlpLib, MapDecorator, ProjetONZSM, TrackGen — et ce kit lui-même.
 - Clos le 2026-09-10, abandonné : enchaîner les fiches — le chef coûtait plus que
-  les fiches jouées à la main. Remis tel quel le 2026-09-17, puis réparé (chantier N) ; chef encore
-  à 15 tours par fiche en vrai (TODO n° 12).
+  les fiches jouées à la main. Remis tel quel le 2026-09-17, puis réparé (chantier N) ; chef allégé
+  15 → 9 tours, en Sonnet (chantier L).
 - Clos le 2026-09-11 : mesurer les tokens consommés (chantier M) — script
   `scripts/mesure-tokens.py`, coût affiché en fin de fiche et à la clôture.
   Clos le 2026-09-17 : ce coût affiché sur toutes les pages (chantier C), puis
@@ -68,7 +68,7 @@ et seulement dans ce cas, ouvrir l'index.
 | savoir où vit quoi dans un projet équipé | `methode-chantier.md`, section « Où vit quoi » |
 | toucher aux pages publiées | `ARTEFACTS.md`, puis le gabarit dans `templates/` |
 | ouvrir un chantier, ou le découper en fiches | **lancer `/vlp:chantier`** |
-| jouer une fiche du chantier L (`/vlp:enchainer` : alléger le chef) | **lancer `/vlp:tache L<n>`** — fiches dans `context AI/23-alleger.md`, chantier **en cours** |
+| relire le chantier L (`/vlp:enchainer` : alléger le chef) | `context AI/23-alleger.md` — chantier **clos** |
 | relire le chantier N (`/vlp:enchainer` réparé par `vlp:jouer`) | `context AI/22-fork.md` — chantier **clos** |
 | relire le chantier K (migrer `commands/` → `skills/`) | `context AI/21-skills.md` — chantier **clos** |
 | relire le chantier I (un projet neuf qui ne ment pas) | `context AI/20-init.md` — chantier **clos** |

@@ -33,7 +33,7 @@ a l'air proche.
 | `18-evals.md` | on joue une fiche `V*` — chantier **clos** « Evals du plugin », `V1..V4` |
 | `19-doctrine.md` | on joue une fiche `D*` — chantier **clos** « Fusionner la doctrine », `D1..D6` |
 | `22-fork.md` | on relit le socle du chantier N — **clos** « `/vlp:enchainer` : réparer ou retirer », `N1..N3` |
-| `23-alleger.md` | on joue une fiche du chantier L — **en cours** « `/vlp:enchainer` : alléger le chef », `L1..L3` |
+| `23-alleger.md` | on relit le socle du chantier L — **clos** « `/vlp:enchainer` : alléger le chef », `L1..L3` |
 | `21-skills.md` | on relit le socle du chantier K — **clos** « Migrer commands/ → skills/ », `K1..K3` |
 | `20-init.md` | on joue une fiche `I*` — chantier **clos** « Un projet neuf qui ne ment pas », `I1..I3` |
 

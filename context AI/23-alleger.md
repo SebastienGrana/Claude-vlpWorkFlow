@@ -4,10 +4,12 @@
 
 # Chantier L — `/vlp:enchainer` : alléger le chef
 
+**CLOS** le 2026-09-17. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
 **À quoi il sert.** Mesuré sur MapDecorator : le chef fait 15 tours (2,07 $) pour une seule fiche déléguée.
 On lui donne la page en un appel, on lui interdit d'agir après un arrêt, et on le fait tourner sur un modèle léger.
 
-**Fait.** Rien. Ouvert le 2026-09-17, cadré en 3 fiches, `L1` à jouer.
+**Fait.** L1 à L3 : page en un appel, chef en Sonnet, 15 → 9 tours mesurés.
 
 ## Le socle commun
 

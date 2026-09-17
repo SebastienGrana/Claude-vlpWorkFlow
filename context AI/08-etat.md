@@ -477,3 +477,12 @@ de ce que le code dit déjà.
   en Opus (la reprise : 0,51 $ pour 2 tours). En `-p`, `Artifact` existe, `AskUserQuestion` non. Surprise : le motif
   `PY=$(for p in …)` est refusé en `-p` (« Contains brace with quote character ») — TODO n° 13. Plugin 3.3.1 ; evals
   Windows 3/3 (check 19, hook 2, init 23 tours ; 1,00 $). Sondes : 1,26 $ en 3 lancements.
+- **2026-09-17** — Chantier L **clos**. Livré : le chef de `/vlp:enchainer` allégé — page en un appel (plus de `cat
+  tache-page.md`), aucune action après un `RETOUR` hors la question et la case, `model: sonnet` sur la skill,
+  `maxTurns` de `vlp:fiche` 25 → 30 ; plugin 3.3.1 ; evals Windows 3/3 (1,00 $). Mesuré en headless : chef 15 → 9
+  tours, 14 → 7 appels, 2,07 $ → 0,78 $ pondéré. Laissé ouvert : la publication de la page n'est pas mesurée (plafond
+  de budget) ; en session interactive, une réponse par `AskUserQuestion` devrait garder Sonnet (même tour), non
+  prouvé ; le motif `PY=$(for …)` refusé en `-p` (TODO n° 13). Cadrage, L1 à L3 et clôture dans une seule session, à
+  la demande. Total brut mesuré au bilan : 52 tours, 58 appels, input 106, output 37 918, cache_creation 154 946,
+  cache_read 7 131 593, **total 7 324 563 tokens**, 6,06 $, plus 1,26 $ de sondes headless (3 lancements) et 1,00 $
+  d'evals.
