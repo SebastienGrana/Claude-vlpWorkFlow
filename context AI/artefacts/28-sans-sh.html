@@ -68,9 +68,9 @@
     <p>Deux tableaux mesurés (hook, carte injectée) sous Windows PowerShell et Ubuntu, puis le candidat appliqué — ou le n° 16 reformulé avec sa raison</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">3 fiches · 2 faites · en cours : X3</p>
+    <p class="mono" style="margin-top:.5rem">3 fiches · 3 faites</p>
   </header>
 
   <section>
@@ -87,12 +87,14 @@
         <span class="etat">faite</span>
         <span class="note">6 candidats × 2 systèmes : seul python3 … || python … lance la skill partout (Windows pwsh 7.6.6, message du Store dans la carte ; 5.1 refuse ||) ; une dernière commande en erreur fait échouer la skill à 0 tour ; 23 sondes, 0,443 $</span>
       </li>
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">X3</span><span class="titre">Appliquer ou renoncer</span>
-        <span class="etat">en cours</span>
-        <span class="note">Appliquer au hook et aux 4 injections, ou renoncer par écrit ; dépend de X1 et X2</span>
+        <span class="etat">faite</span>
+        <span class="note">Renoncé (choix de l'utilisateur) : ordre inversé sondé, py … || python3 … propre sous pwsh 7, Git Bash et Ubuntu (6 sondes, 0,141 $) ; rien d'appliqué, recette dans la TODO n° 16 ; git diff sans fichier du plugin</span>
+        <span class="cout mono">≈10,7M (10 667 382) · 67 tours · 8,73 $</span>
       </li>
     </ul>
+    <p class="mono cout-total">Coût du chantier : ≈10,7M (10 667 382) · 67 tours · 8,73 $</p>
     <!-- ligne de total, absente si aucune fiche n'a de coût mesuré -->
   </section>
 
@@ -113,10 +115,12 @@
   </section>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
-  <section hidden>
-    <h2>Chantier clos le </h2>
+  <section>
+    <h2>Chantier clos le 2026-09-17</h2>
     <div class="bilan">
-      <p></p>
+      <p>Sondé, puis renoncé. Sans sh, aucun nom de Python n'est commun à Windows et Ubuntu : le hook ne passe partout qu'en paire exec python3 + py (une erreur non bloquante de chaque côté), la carte injectée qu'en py … || python3 … (propre sous pwsh 7, Git Bash et Ubuntu).</p>
+      <p>Rien d'appliqué : tous les postes qui font tourner le kit ont déjà sh, et sans Git les 17 appels sh du corps des skills échoueraient encore. La recette est dans la TODO n° 16.</p>
+      <p>Surprises : python3 … || python … colle le message du Store devant PROJET= ; une injection dont la dernière commande échoue fait échouer la skill à 0 tour ; Git Bash réécrit -p "/sonde" en chemin Windows. 68 tours, 10 921 635 tokens, 8,96 $, plus 0,90 $ de sondes.</p>
     </div>
   </section>
 

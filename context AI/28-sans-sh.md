@@ -7,7 +7,9 @@
 **À quoi il sert.** Sans Git Bash, le hook `sh` se tait et les skills à `!`sh …`` échouent (G1). On mesure, sous
 Windows et sous Ubuntu, s'il existe un lancement de Python sans `sh` qui passe partout ; puis on l'applique ou on renonce.
 
-**Fait.** Rien encore (ouvert le 2026-09-17, TODO n° 16).
+**CLOS** le 2026-09-17. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** X1, X2, X3 (2026-09-17) : hook et carte sans `sh` sondés sous Windows et Ubuntu ; X3 tranchée « renoncer » — rien d'appliqué, recette dans la TODO n° 16.
 
 ## Le socle commun
 
@@ -131,8 +133,9 @@ coût 0,266 $ + 0,178 $ = 0,443 $.
 ---
 
 <!-- FICHE:X3 -->
-## X3 [ ] — Appliquer ou renoncer
+## X3 [x] — Appliquer ou renoncer
 
+**Session** : fd4ebe27-5975-4250-89c7-13c5e861cc33
 **Dépend de** : `X1`, `X2`.
 **Fichiers** : `hooks/hooks.json`, les 4 `skills/*/SKILL.md` du socle (ligne d'injection seule),
 `.claude-plugin/plugin.json` (version), `scripts/test-vlp.py` si le hook change, `README.md` (prérequis),
@@ -149,4 +152,16 @@ Branche « appliquer » : la sonde gagnante rejouée avec le plugin réel sous l
 `test-vlp.py` OK (nombre d'assertions) ; `validate` propre (1 avertissement voulu) ; `renvois .` 0 absent ; evals
 `hook` sous Windows et `tache`, `chantier` sous Ubuntu passées. Branche « renoncer » : la ligne n° 16 citée, `git diff
 --stat` sans fichier du plugin.
+
+**Sonde complémentaire** (2026-09-17, décidée par l'utilisateur avant de trancher X3 ; même bac que X2, texte injecté
+relu dans le transcript) — l'ordre inversé, sous 3 shells :
+
+| Candidat | Windows pwsh 7 | Windows Git Bash (sans `shell`) | Ubuntu |
+|---|---|---|---|
+| `python … carte \|\| python3 … carte` | lancée, `PROJET=` en 1re ligne, sans message | lancée, `PROJET=` en 1re ligne, sans message | lancée, `PROJET=` oui, « /bin/bash: line 1: python: command not found » à part |
+| `py … carte \|\| python3 … carte` | lancée, `PROJET=` en 1re ligne, sans message | lancée, `PROJET=` oui, sans message | lancée, `PROJET=` oui, « py: command not found » à part |
+
+6 sondes, 0,141 $. Non sondé : un Windows sans `py` ni `python` réel (Python du Store seul), PowerShell 5.1, macOS.
+
+**Constaté** : branche « renoncer », tranchée par l'utilisateur — appliquer n'apporte rien de visible (tous les postes qui font tourner le kit ont `sh` ; sans Git, les 17 appels `sh` du corps échouent encore), et coûte le bruit du hook double, des allowed-tools non sondés et une version poussée au groupe. Ligne n° 16 de `08-etat.md` reformulée avec la recette ; `git diff --stat` : `08-etat.md`, `28-sans-sh.md`, aucun fichier du plugin. Sondes du chantier : 0,313 + 0,443 + 0,141 = 0,897 $.
 <!-- /FICHE -->

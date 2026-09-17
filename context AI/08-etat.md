@@ -49,6 +49,8 @@
   est retiré, le 16 ouvert (le kit sans `sh`).
 - **2026-09-17** — chantier W clos (TODO n° 11) : les evals `tache` et `chantier` passent sous Ubuntu (WSL2) ; le 11
   est retiré, reste le 16.
+- **2026-09-17** — chantier X clos (TODO n° 16, renoncé) : hook et carte sans `sh` sondés sous Windows et Ubuntu ;
+  rien d'appliqué — gain visible nul tant que le corps des skills exige `sh` ; le 16 est reformulé avec la recette.
 
 ## La TODO ordonnée — les chantiers possibles
 
@@ -58,7 +60,7 @@ ordonné par ce qui débloque le reste. Le détail de chacun est dans
 
 | # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |
 |---|---|---|---|---|
-| 16 | Le kit sans `sh` | Faire tourner hook et skills sous Windows sans Git Bash (mesuré en G1 : `!`sh …`` fait échouer la skill, le hook `sh` se tait) — sans casser macOS/Linux, où seul `python3` existe ; ni champ `os` de hook, ni `\|\|` en PowerShell 5.1 (doc, G2) | 3 fiches | — |
+| 16 | Le kit sans `sh` | Faire tourner le kit sous Windows sans Git Bash. Mesuré (chantier X, `28-sans-sh.md`) : hook = paire exec `python3` + `py` (une erreur non bloquante à chaque écriture, partout) ; carte injectée = `py … carte \|\| python3 … carte` (propre sous pwsh 7, Git Bash et Ubuntu). Reste avant tout gain visible : les 17 appels `sh` du corps des skills et de `cloture.md`, les allowed-tools (sondes faites en `bypassPermissions`), PowerShell 5.1 (refuse `\|\|`), macOS, Python du Store seul | 3 fiches | — |
 
 ## Journal des décisions
 
@@ -550,3 +552,6 @@ de ce que le code dit déjà.
 - **2026-09-17** — **Chantier W clos** (`27-wsl.md`, W1..W2) : Ubuntu 26.04.1 sous WSL2 (Claude Code 2.1.274, bubblewrap 0.11.1, socat 1.8.1.1) ; les cas d'eval wsl2 joués depuis Linux : chantier 3/3 (5 tours), tache 3/3 (4 tours) après une fixture corrigée — T2 dépendait de T1 non cochée, la skill demandait à raison ; 0,67 $ d'evals. Laissé ouvert : le kit sans `sh`
   (TODO n° 16) ; l'eval `init` reste jouée sous Windows. Total brut mesuré au bilan : 54 tours, 53 appels, input 110,
   output 26 896, cache_creation 141 808, cache_read 7 137 125, **total 7 305 939 tokens**, 5,66 $, plus 0,67 $ d'evals.
+- **2026-09-17** — **Chantier X clos** (`28-sans-sh.md`, X1..X3, X3 tranchée « renoncer ») : sans `sh`, aucun nom de Python commun (Windows : `python3` = Store, exit 49 ; Ubuntu : `python3` seul) ; hook = paire exec `python3` + `py` (une erreur non bloquante de chaque côté) ; carte = `python3 … || python …` salie par le message du Store collé devant `PROJET=` (pwsh 7 et Git Bash), `py … || python3 …` propre sous pwsh 7, Git Bash et Ubuntu ; une injection dont la dernière commande échoue fait échouer la skill à 0 tour ; `shell: powershell` = pwsh 7.6.6 même ôté du PATH, 5.1 refuse `||`. Rien
+  d'appliqué : tous les postes qui font tourner le kit ont déjà `sh` ; la recette est dans la TODO n° 16. Piège : Git Bash convertit `-p "/sonde"` en `C:/Program Files/Git/sonde` (`MSYS_NO_PATHCONV=1`). Total brut mesuré au bilan : 68 tours, 72 appels, input 136,
+  output 64 657, cache_creation 201 370, cache_read 10 655 472, **total 10 921 635 tokens**, 8,96 $, plus 0,90 $ de sondes.
