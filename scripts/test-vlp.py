@@ -476,8 +476,23 @@ with tempfile.TemporaryDirectory() as t:
                           ("&lt;AAAA-MM-JJ&gt;", "2026-01-01")):
         html = html.replace(gabarit, vrai)
     ecrire(fdr, html)
-    code, s = appel(["clore", t, "--livre", "Livré `a` <b>", "--tokens", "1500", "--abandon", "Q2 abandonnée", "--date", "2026-05-06"])
+    ecrire(os.path.join(t, "CHANTIER.md"), lire(os.path.join(t, "CHANTIER.md")) + "- **index** : ctx/00-INDEX.md\n")
+    ecrire(os.path.join(t, "ctx", "00-INDEX.md"), "| F | L |\n|---|---|\n| `30-q.md` | on joue une fiche `Q*` — chantier **ouvert** « Un (vrai) titre », `Q1..Q2` |\n")
+    ecrire(os.path.join(t, "CLAUDE.md"), "| T | O |\n|---|---|\n| jouer une fiche du chantier Q (un (vrai) titre) | `ctx/30-q.md` — chantier **ouvert**, par `/vlp:tache Q<n>` |\n| relire le chantier E (e) | `ctx/10-e.md` — chantier **clos** |\n")
+    page_q = os.path.join(t, "ctx", "artefacts", "30-q.html")
+    ecrire(page_q, open(os.path.join(ICI, "..", "templates", "artefact-chantier.html"), encoding="utf-8").read()
+           .replace("<!-- ZONE:blocage — publiée quand /tache s'arrête après deux tentatives ; retirée dès que la fiche repasse -->\n  <section hidden>",
+                    "<!-- ZONE:blocage — publiée quand /tache s'arrête après deux tentatives ; retirée dès que la fiche repasse -->\n  <section>"))
+    verifier("clore : gabarit, blocage visible avant", page_q and "<!-- ZONE:blocage" in lire(page_q) and lire(page_q).count("<section hidden>") == 1, lire(page_q))
+    code, s = appel(["clore", t, "--livre", "Livré `a` <b>", "--tokens", "1500", "--abandon", "Q2 abandonnée", "--date", "2026-05-06", "--surpris", "x < y"])
     carte_lue, fiches_lues, html = lire(os.path.join(t, "CHANTIER.md")), lire(os.path.join(t, "ctx", "30-q.md")), lire(fdr)
+    verifier("clore : routage, index, bilan comptés", "· routage 1 · index 1 · bilan 1 —" in s and "GARDE" not in s, s)
+    verifier("clore : Fait. remplacé", "**Fait.** Q1..Q2 (2026-05-06) : Livré `a` <b>.\n" in fiches_lues and "**Fait.** Rien." not in fiches_lues, fiches_lues)
+    verifier("clore : index clos", "| `30-q.md` | on relit le socle du chantier Q — **clos** « Un (vrai) titre », `Q1..Q2` |\n" == lire(os.path.join(t, "ctx", "00-INDEX.md")).split("---|\n")[1], lire(os.path.join(t, "ctx", "00-INDEX.md")))
+    verifier("clore : routage clos", "| relire le chantier Q (un (vrai) titre) | `ctx/30-q.md` — chantier **clos** |\n| relire le chantier E" in lire(os.path.join(t, "CLAUDE.md")), lire(os.path.join(t, "CLAUDE.md")))
+    pq = lire(page_q)
+    verifier("clore : ZONE:bilan visible, blocage caché", "<section>\n    <h2>Chantier clos le 2026-05-06</h2>\n    <div class=\"bilan\">\n      <p>Livré : Livré `a` &lt;b&gt;</p>\n      <p>Surpris : x &lt; y</p>\n    </div>\n  </section>" in pq
+             and pq.split("<!-- ZONE:blocage")[1].split("-->\n")[1].startswith("  <section hidden>") and pq.count("<section hidden>") == 1, pq)
     verifier("clore : bilan", code == 0 and "CLOS Q Q1..Q2 (Q2 abandonnée) · total 3 812" in s and "encours non" in s, s)
     verifier("clore : fichier de fiches", "**CLOS** le 2026-05-06. Ne se rejoue pas" in fiches_lues
              and fiches_lues.index("**CLOS**") < fiches_lues.index("**Fait.**") and "Abandonnées : Q2 abandonnée." in fiches_lues, fiches_lues)

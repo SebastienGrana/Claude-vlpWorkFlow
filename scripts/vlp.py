@@ -53,13 +53,18 @@ Sous-commandes :
   pied (plus celle du chantier courant) ; la date seulement si la page change.
   `FEUILLE todo <n> · encours <oui|non> · lettres <n> · <réécrite|inchangée>
   — <page>`. `--verifier` n'écrit rien, dit `identique|écart`, sort 1 sur écart.
-- `clore <projet> --livre T [--tokens N] [--abandon T] [--date D]` — les
-  écritures mécaniques de `cloture.md` : `**CLOS**` (et les abandonnées) dans le
-  fichier de fiches courant ; dans `CHANTIER.md`, courant et artefact à `aucun`,
+- `clore <projet> --livre T [--tokens N] [--abandon T] [--fait T] [--surpris T]
+  [--date D]` — les écritures mécaniques de `cloture.md` : `**CLOS**` (et les
+  abandonnées) dans le fichier de fiches courant, et `**Fait.** L1..Ln (date) :
+  <fait, sinon livre>` à la place de `**Fait.**` ou `**Où on en est.**` ; les
+  lignes ouvertes de l'index et du routage de `CLAUDE.md` passées à « clos » ;
+  dans la page du chantier, `ZONE:bilan` visible (Livré, Surpris) et
+  `ZONE:blocage` cachée — absentes : `GARDE:`, le reste est écrit ; dans `CHANTIER.md`, courant et artefact à `aucun`,
   une ligne à la table des clos, la lettre aux lettres prises ; dans la feuille
   de route, une ligne en tête de `ZONE:clos`, le total cumulé resommé des
   comptes bruts, puis `feuille`. Tout est calculé avant la première écriture.
-  `CLOS <lettre> <plage> · total <brut> — <projet>`. Aucun chantier ouvert, ou
+  `CLOS <lettre> <plage> · total <brut> · routage <0|1> · index <0|1> · bilan
+  <0|1> — <projet>`. Aucun chantier ouvert, ou
   déjà `**CLOS**` : `GARDE:`, sort 1.
 - `ouvrir <projet> --fiches F --titre T [--artefact URL]` — les écritures
   mécaniques de l'ouverture : dans `CHANTIER.md`, courant = `F (L1..Ln)` et
@@ -946,10 +951,69 @@ def cmd_clore(a, sortie):
 
     # 1. le fichier de fiches
     entete = [CLOS_LIGNE % date] + (["", "Abandonnées : %s." % a.abandon.rstrip(".")] if a.abandon else []) + [""]
-    i = next((k for k, l in enumerate(fiches_) if l.startswith("**Fait.**")), None)
+    ligne_fait = "**Fait.** %s..%s (%s) : %s" % (ids[0], ids[-1], date, (a.fait or a.livre).rstrip("."))  + "."
+    i = next((k for k, l in enumerate(fiches_) if l.startswith(("**Fait.**", "**Où on en est.**"))), None)
     if i is None:
         i = next(k for k, l in enumerate(fiches_) if l.startswith("# ")) + 2
-    fiches_[i:i] = entete
+        fiches_[i:i] = entete + [ligne_fait, ""]
+    else:
+        fin_para = i
+        while fin_para + 1 < len(fiches_) and fiches_[fin_para + 1].strip():
+            fin_para += 1
+        fiches_[i:fin_para + 1] = entete + [ligne_fait]
+    gardes, ecritures, faits = [], [], {"routage": 0, "index": 0, "bilan": 0}
+    nom = os.path.basename(courant)
+
+    # 1 bis. l'index et le routage de CLAUDE.md passent à « clos »
+    index = champ(carte_, "index")
+    chemin_index = os.path.join(projet, index) if index else None
+    if not chemin_index or not os.path.isfile(chemin_index):
+        gardes.append("index introuvable : %s" % index)
+    else:
+        idx = lignes_de(chemin_index)
+        k = next((k for k, l in enumerate(idx) if l.startswith("| `%s` |" % nom) and "**ouvert**" in l), None)
+        if k is None:
+            gardes.append("ligne ouverte de %s absente de l'index" % nom)
+        else:
+            m = re.search(r"« (.*) »", idx[k])
+            idx[k] = "| `%s` | on relit le socle du chantier %s — **clos** « %s », `%s..%s` |" % (
+                nom, lettre, m.group(1) if m else titre, ids[0], ids[-1])
+            ecritures.append((chemin_index, "\n".join(idx) + "\n"))
+            faits["index"] = 1
+    chemin_claude = os.path.join(projet, "CLAUDE.md")
+    if not os.path.isfile(chemin_claude):
+        gardes.append("CLAUDE.md introuvable")
+    else:
+        cl = lignes_de(chemin_claude)
+        k = next((k for k, l in enumerate(cl) if l.startswith("| jouer une fiche du chantier %s (" % lettre)
+                  and "`%s`" % courant in l), None)
+        if k is None:
+            gardes.append("ligne « jouer une fiche du chantier %s » absente de CLAUDE.md" % lettre)
+        else:
+            m = re.match(r"^\| jouer une fiche du chantier \S+ \((.*)\) \| ", cl[k])
+            cl[k] = "| relire le chantier %s (%s) | `%s` — chantier **clos** |" % (lettre, m.group(1), courant)
+            ecritures.append((chemin_claude, "\n".join(cl) + "\n"))
+            faits["routage"] = 1
+
+    # 1 ter. la ZONE:bilan de la page du chantier
+    chemin_page = os.path.join(projet, os.path.dirname(courant), "artefacts", nom[:-3] + ".html")
+    if not os.path.isfile(chemin_page):
+        gardes.append("page du chantier introuvable : %s" % chemin_page)
+    else:
+        pg = lire(chemin_page)
+        try:
+            d, f = zone(pg, "bilan", "\n", "  </section>")
+            db, fb = zone(pg, "blocage", "\n", "  </section>")
+        except ValueError as e:
+            gardes.append("page du chantier : %s" % e)
+        else:
+            corps = ('  <section>\n    <h2>Chantier clos le %s</h2>\n    <div class="bilan">\n      <p>Livré : %s</p>\n'
+                     % (date, esc(a.livre))) + ('      <p>Surpris : %s</p>\n' % esc(a.surpris) if a.surpris else "") + "    </div>\n"
+            bloc = pg[db:fb]
+            bloc = re.sub(r"^  <section>", "  <section hidden>", bloc, count=1)
+            pg = pg[:db] + bloc + pg[fb:d] + corps + pg[f:] if db < d else pg[:d] + corps + pg[f:db] + bloc + pg[fb:]
+            ecritures.append((chemin_page, pg))
+            faits["bilan"] = 1
 
     # 2. CHANTIER.md
     for k, l in enumerate(carte_):
@@ -1010,6 +1074,11 @@ def cmd_clore(a, sortie):
         fh.write("\n".join(fiches_) + "\n")
     with open(chemin_carte, "w", encoding="utf-8", newline="") as fh:
         fh.write(texte)
+    for chemin, contenu in ecritures:
+        with open(chemin, "w", encoding="utf-8", newline="") as fh:
+            fh.write(contenu)
+    for g in gardes:
+        sortie.write("GARDE: %s — le reste est écrit\n" % g)
     if html is None:
         sortie.write("GARDE: feuille de route introuvable : %s — CHANTIER.md et fiches écrits\n" % page)
     else:
@@ -1021,7 +1090,8 @@ def cmd_clore(a, sortie):
         with open(page, "w", encoding="utf-8", newline="") as fh:
             fh.write(html)
         sortie.write(bilan + " · réécrite — %s\n" % page)
-    sortie.write("CLOS %s %s · total %s — %s\n" % (lettre, fait, "non mesuré" if total is None else milliers(total), projet))
+    sortie.write("CLOS %s %s · total %s · routage %d · index %d · bilan %d — %s\n" % (
+        lettre, fait, "non mesuré" if total is None else milliers(total), faits["routage"], faits["index"], faits["bilan"], projet))
     return 0
 
 
@@ -1159,6 +1229,8 @@ def main(argv, sortie=None, entree=None, erreur=None):
     cl.add_argument("--livre", required=True)
     cl.add_argument("--tokens", type=int)
     cl.add_argument("--abandon")
+    cl.add_argument("--fait")
+    cl.add_argument("--surpris")
     cl.add_argument("--date")
     ou = sous.add_parser("ouvrir")
     ou.add_argument("projet")

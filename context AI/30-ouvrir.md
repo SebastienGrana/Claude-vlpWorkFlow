@@ -99,7 +99,7 @@ Bilan : `OUVERT <lettre> <plage> · index +<n> · routage +<n> — <projet>`. Do
 ---
 
 <!-- FICHE:O3 -->
-## O3 [ ] — Étendre `vlp.py clore` : routage, index, « Fait. », `ZONE:bilan`
+## O3 [x] — Étendre `vlp.py clore` : routage, index, « Fait. », `ZONE:bilan`
 
 **Dépend de** : `O1`.
 **Fichiers** : `scripts/vlp.py` (`cmd_clore`), `scripts/test-vlp.py`, `cloture.md` (étapes 3 et 4), `templates/artefact-chantier.html` (`ZONE:bilan`).
