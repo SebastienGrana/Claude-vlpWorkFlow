@@ -1,12 +1,14 @@
 ---
 description: Équipe un projet de la méthode chantiers/fiches — pose CHANTIER.md et le dossier de contexte
 argument-hint: (rien) | <chemin du projet>
-allowed-tools: Bash(sh:*), Bash(pwd:*), Bash(cd:*), Bash(ls:*), Bash(cat:*), Bash(grep:*), Bash(mkdir:*), Bash(cp:*), Bash(dirname:*), Read, Edit, Write, Artifact
+allowed-tools: Bash(python3:*), Bash(py:*), Bash(echo:*), PowerShell(python3:*), PowerShell(py:*), PowerShell(echo:*), PowerShell(ls:*), PowerShell(cat:*), Bash(ls:*), Bash(cat:*), Bash(mkdir:*), Bash(cp:*), Read, Edit, Write, Artifact
 ---
 
 Arguments reçus :
 
 $ARGUMENTS
+
+Python du poste — `<python>`, plus bas, vaut ce `PYTHON=` : !`python3 "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python python3; py "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python py --relais; echo fin`
 
 Équipe **un** projet de la méthode « chantiers et fiches » : après ça,
 `/vlp:chantier` et `/vlp:tache` marchent dedans sans qu'on ait à leur dire où on est.
@@ -20,7 +22,7 @@ session neuve.
 Si un argument est donné, c'est ce dossier ; sinon le dossier courant.
 
 ```bash
-cd "<dossier>"; pwd; ls -d */ 2>/dev/null | head -20; ls CLAUDE.md 2>/dev/null; sh "${CLAUDE_PLUGIN_ROOT}/scripts/vlp" carte . | grep -E '^(PROJET|VOISIN)=|^AUCUN_PROJET'; sh "${CLAUDE_PLUGIN_ROOT}/scripts/vlp" etat "context AI"
+<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" equiper "<dossier>"
 ```
 
 La carte cherche `CHANTIER.md` à la casse exacte — un `ls` sous Windows ou
@@ -42,7 +44,7 @@ Les gabarits à recopier sont dans **le même plugin que cette commande**, à
 kit — il ira dans la ligne « kit » de `CHANTIER.md` :
 
 ```bash
-ls -d "${CLAUDE_PLUGIN_ROOT}/templates" 2>/dev/null && ls -Ld "${CLAUDE_PLUGIN_ROOT}" || ls -d ../Claude-vlpWorkflow ~/Claude-vlpWorkflow 2>/dev/null
+<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" lignes "${CLAUDE_PLUGIN_ROOT}/templates" "${CLAUDE_PLUGIN_ROOT}" ../Claude-vlpWorkflow ~/Claude-vlpWorkflow
 ```
 
 **La seconde moitié de la ligne est un repli, pas une recherche.** Il ne sert

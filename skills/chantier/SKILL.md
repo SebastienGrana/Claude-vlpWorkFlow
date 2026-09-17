@@ -1,7 +1,7 @@
 ---
 description: Ouvre une séance de travail : propose les chantiers possibles, puis cadre celui qu'on choisit en fiches
 argument-hint: (rien) | <nom du chantier> | <alias> <nom du chantier>
-allowed-tools: Bash(sh:*), Bash(python3:*), Bash(py:*), Bash(echo:*), PowerShell(python3:*), PowerShell(py:*), PowerShell(echo:*), Bash(pwd:*), Bash(cd:*), Bash(ls:*), Bash(grep:*), Bash(cat:*), Bash(wc:*), Bash(mkdir:*), Bash(cp:*), Read, Edit, Write, Artifact
+allowed-tools: Bash(python3:*), Bash(py:*), Bash(echo:*), PowerShell(python3:*), PowerShell(py:*), PowerShell(echo:*), PowerShell(ls:*), PowerShell(cat:*), Bash(pwd:*), Bash(cd:*), Bash(ls:*), Bash(grep:*), Bash(cat:*), Bash(wc:*), Bash(mkdir:*), Bash(cp:*), Read, Edit, Write, Artifact
 ---
 
 Arguments reçus :
@@ -44,7 +44,7 @@ s'applique :
    `/vlp:init` ; n'improvise pas la structure toi-même.
 
 Dans les cas 2 et 3, relance la carte sur le dossier retenu —
-`sh "${CLAUDE_PLUGIN_ROOT}/scripts/vlp" carte "<dossier>"`. Sortie vide
+`<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte "<dossier>"` (`<python>` : la valeur de `PYTHON=` dans la carte). Sortie vide
 ou consigne de la lancer : lance-la toi-même, une fois. Toutes les commandes
 qui suivent partent de la racine du projet retenu.
 
@@ -153,14 +153,12 @@ commande**, à `${CLAUDE_PLUGIN_ROOT}`. Il n'y a rien à chercher : ils sont là
 construction. Vérifie seulement qu'ils répondent :
 
 ```bash
-ls "${CLAUDE_PLUGIN_ROOT}/templates/context AI/fichier-de-fiches.md" "${CLAUDE_PLUGIN_ROOT}/templates/artefact-chantier.html" "${CLAUDE_PLUGIN_ROOT}/cloture.md" 2>/dev/null || ls -d ../Claude-vlpWorkflow ~/Claude-vlpWorkflow 2>/dev/null
+<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" lignes "${CLAUDE_PLUGIN_ROOT}/templates/context AI/fichier-de-fiches.md" "${CLAUDE_PLUGIN_ROOT}/templates/artefact-chantier.html" "${CLAUDE_PLUGIN_ROOT}/cloture.md"
 ```
 
-**La seconde moitié de la ligne est un repli, pas une recherche.** Il ne sert
-qu'à un cas : cette commande lancée **hors du plugin**, en copie simple dans
-`~/.claude/commands/`. Là, `${CLAUDE_PLUGIN_ROOT}` n'est pas remplacé, le premier
-`ls` échoue, et le repli retrouve le kit à côté des projets. Si tu tombes dans
-ce cas, **dis-le en une ligne** : la copie simple est précisément ce que le
+**Hors du plugin**, en copie simple dans `~/.claude/commands/`, `${CLAUDE_PLUGIN_ROOT}`
+n'est pas remplacé et la commande échoue : cherche le kit à côté des projets
+(`../Claude-vlpWorkflow`, `~/Claude-vlpWorkflow`) et **dis-le en une ligne** : la copie simple est précisément ce que le
 plugin remplace, et elle peut avoir divergé.
 
 Si rien ne répond, **demande le chemin et arrête-toi là** : ne réinvente pas
@@ -218,7 +216,7 @@ La page se crée par le script, depuis le gabarit du kit et le fichier de
 fiches — **même `<NN>`** que lui. Tu ne retapes pas son HTML :
 
 ```bash
-sh "${CLAUDE_PLUGIN_ROOT}/scripts/vlp" page "<contexte>/<NN>-<chantier>.md" "<contexte>/artefacts/<NN>-<chantier>.html" --creer --projet "<Projet>" --titre "<Nom du chantier>" --resultat "<le résultat visible de l'étape 3>" --note <fiche> "<ce qu'elle produit, de quoi elle dépend>"
+<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" page "<contexte>/<NN>-<chantier>.md" "<contexte>/artefacts/<NN>-<chantier>.html" --creer --projet "<Projet>" --titre "<Nom du chantier>" --resultat "<le résultat visible de l'étape 3>" --note <fiche> "<ce qu'elle produit, de quoi elle dépend>"
 ```
 
 Une option `--note` par fiche. Rien d'autre n'y va : ni le prompt des fiches,
@@ -236,7 +234,7 @@ l'artefact), la ligne d'index, la ligne de routage de `CLAUDE.md` ; puis la
 feuille de route locale, `--todo` seulement si le chantier a un numéro dans la TODO :
 
 ```bash
-sh "${CLAUDE_PLUGIN_ROOT}/scripts/vlp" ouvrir . --fiches "<contexte>/<NN>-<chantier>.md" --titre "<Nom du chantier>" --artefact <URL> && sh "${CLAUDE_PLUGIN_ROOT}/scripts/vlp" feuille . --todo <N>
+<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" ouvrir . --fiches "<contexte>/<NN>-<chantier>.md" --titre "<Nom du chantier>" --artefact <URL>; <python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" feuille . --todo <N>
 ```
 
 Publication échouée : pas de `--artefact`, la ligne reste à « aucun ». Lis les
@@ -253,7 +251,7 @@ Puis **mesure ce que chaque fiche va coûter**, et annonce-le — un chiffre tie
 mieux qu'une règle :
 
 ```bash
-wc -l "<contexte>/<NN>-<chantier>.md"
+<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" lignes "<contexte>/<NN>-<chantier>.md"
 ```
 
 Fiches et socle : la dernière ligne `VALIDE` du hook, à l'étape 5 — s'il n'a

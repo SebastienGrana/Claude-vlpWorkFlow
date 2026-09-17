@@ -601,6 +601,9 @@ with tempfile.TemporaryDirectory() as t:
     code, s = appel(["valider", f, "--plan"])
     verifier("valider --plan : titres de fiche, grep -n", s.endswith("\n12:## Y1 [x] — faite\n24:## Y2 [ ] — à faire\n")
              and "pas un titre" not in s, s)
+    code, s = appel(["lignes", f, t, os.path.join(t, "absent.md"), os.path.join(t, "*.md")])
+    verifier("lignes : fichier, dossier, absent, motif", code == 0 and s == "%d %s\nDOSSIER %s\nABSENT %s\n%d %s\nSEUILS page %d · fiche %d · socle %d\n"
+             % (len(mod.lignes_de(f)), f, t, os.path.join(t, "absent.md"), len(mod.lignes_de(f)), f, mod.SEUIL_PAGE, mod.SEUIL_FICHE, mod.SEUIL_SOCLE), s)
     d = os.path.join(t, "projet")
     for n in ("b", "A", ".cache"):
         os.makedirs(os.path.join(d, n))

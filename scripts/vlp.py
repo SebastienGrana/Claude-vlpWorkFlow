@@ -31,6 +31,8 @@ Sous-commandes :
   · <n> écarts · <n> avertissements — <fichier>`. Avertit si une fiche ou le
   socle dépasse son seuil. Un écart : sort 1. `--plan` : ensuite, `<n>:<ligne>`
   pour chaque titre de fiche, `**Dépend de**`, `**Tentatives**`, `**Critère de fin**`.
+- `lignes <chemin>…` — `<n> <fichier>`, `DOSSIER <d>` (` → <réel>` si lien) ou
+  `ABSENT <chemin>` ; `~` et `*` développés ; puis `SEUILS page · fiche · socle`. Sort 0.
 - `equiper <dossier> [--contexte C]` — ce que `/vlp:init` regarde : `DOSSIER=`,
   les 20 premiers sous-dossiers `nom/` (sans les cachés), `CLAUDE.md` s'il est
   là, les lignes `PROJET=`, `VOISIN=`, `AUCUN_PROJET` de la carte, et `ETAT=`
@@ -321,6 +323,22 @@ def cmd_cout(chemin, session, sortie):
         with contextlib.redirect_stdout(sortie):
             code = mesure().main(argv) or code
     return code
+
+
+def cmd_lignes(chemins, sortie):
+    """`wc -l` et `ls` sans shell : une ligne par chemin (motif `*` et `~` compris)."""
+    for motif in chemins:
+        trouves = sorted(glob.glob(os.path.expanduser(motif))) or [os.path.expanduser(motif)]
+        for c in trouves:
+            if os.path.isdir(c):
+                reel = os.path.realpath(c)
+                sortie.write("DOSSIER %s%s\n" % (c, "" if os.path.normcase(reel) == os.path.normcase(os.path.abspath(c)) else " → " + reel))
+            elif os.path.isfile(c):
+                sortie.write("%d %s\n" % (len(lignes_de(c)), c))
+            else:
+                sortie.write("ABSENT %s\n" % motif)
+    sortie.write("SEUILS page %d · fiche %d · socle %d\n" % (SEUIL_PAGE, SEUIL_FICHE, SEUIL_SOCLE))
+    return 0
 
 
 PLAN = re.compile(r"^## [A-Z][0-9]|^\*\*(Dépend de|Tentatives|Critère de fin)\*\*")
@@ -1348,6 +1366,8 @@ def main(argv, sortie=None, entree=None, erreur=None):
     co = sous.add_parser("cout")
     co.add_argument("fichier")
     co.add_argument("--session", action="store_true")
+    li = sous.add_parser("lignes")
+    li.add_argument("chemins", nargs="+")
     eq = sous.add_parser("equiper")
     eq.add_argument("dossier")
     eq.add_argument("--contexte", default="context AI")
@@ -1416,6 +1436,8 @@ def main(argv, sortie=None, entree=None, erreur=None):
         return cmd_valider(a.fichiers, sortie, a.plan)
     if a.cmd == "equiper":
         return cmd_equiper(a.dossier, a.contexte, sortie)
+    if a.cmd == "lignes":
+        return cmd_lignes(a.chemins, sortie)
     if not os.path.isfile(a.fichier):
         sortie.write("GARDE: fichier introuvable : %s\n" % a.fichier)
         return 1

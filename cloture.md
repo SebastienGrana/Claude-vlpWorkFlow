@@ -19,8 +19,10 @@ existe et que le fichier de fiches qu'on clôture porte des lignes
 arrondi (règle des comptes bruts : `methode-chantier.md`). Sinon, pas de total.
 
 ```bash
-sh "${CLAUDE_PLUGIN_ROOT}/scripts/vlp" sessions "<fichier de fiches>" | tr -d '\r' | tr '\n' '\0' | xargs -0 sh "${CLAUDE_PLUGIN_ROOT}/scripts/vlp" mesure
+<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" cout "<fichier de fiches>"
 ```
+
+`<python>` : la valeur de `PYTHON=` dans la carte de la commande qui clôt.
 
 Une ligne de bilan, datée : ce que le chantier a livré, ce qu'il a laissé
 ouvert, et ce total. Pas un récit — le détail est dans git et dans le fichier de fiches.
@@ -32,7 +34,7 @@ ici aussi : c'est le seul endroit que la prochaine session lira.
 ## 2. Tout ce qui se déduit — un appel
 
 ```bash
-sh "${CLAUDE_PLUGIN_ROOT}/scripts/vlp" clore . --livre "<ce qu'il a livré, une ligne>" --tokens <total brut de l'étape 1> --abandon "<fiches abandonnées et pourquoi>" --surpris "<ce qui a surpris, une ligne>" --resume "<ce qu'il a livré, en quelques mots>"
+<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" clore . --livre "<ce qu'il a livré, une ligne>" --tokens <total brut de l'étape 1> --abandon "<fiches abandonnées et pourquoi>" --surpris "<ce qui a surpris, une ligne>" --resume "<ce qu'il a livré, en quelques mots>"
 ```
 
 Sans total, pas de `--tokens` ; sans abandon, pas de `--abandon`. Le script

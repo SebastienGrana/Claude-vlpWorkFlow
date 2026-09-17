@@ -1,7 +1,7 @@
 ---
 description: Vérifie qu'un projet équipé est cohérent — fichiers, cases cochées, page publiée, coûts
 argument-hint: (rien) | <chemin du projet>
-allowed-tools: Bash(sh:*), Bash(ls:*), Bash(cat:*), Bash(grep:*), Bash(wc:*), Bash(pwd:*), Read, Artifact
+allowed-tools: Bash(python3:*), Bash(py:*), Bash(echo:*), PowerShell(python3:*), PowerShell(py:*), PowerShell(echo:*), Bash(ls:*), PowerShell(ls:*), PowerShell(cat:*), Read, Artifact
 ---
 
 Contrôle un projet équipé de la méthode. **Cette commande n'écrit rien.** Elle
@@ -14,14 +14,14 @@ chantier laissé de côté, ou quand la page publiée ne ressemble plus au fichi
 
 ## 1. Lire la carte
 
-```bash
-cat CHANTIER.md
-```
+!`python3 "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python python3; py "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python py --relais; echo fin`
+
+`<python>`, plus bas : la valeur de `PYTHON=` ci-dessus.
 
 Retiens : le **kit**, le **dossier de contexte**, le **fichier de fiches
 courant**, l'**artefact du chantier**, l'**artefact feuille de route**.
 
-Si `CHANTIER.md` n'existe pas, le projet n'est pas équipé : dis-le, propose
+Si la carte ne dit pas `PROJET=`, le projet n'est pas équipé : dis-le, propose
 `/vlp:init`, et arrête-toi. Rien d'autre n'a de sens sans lui.
 
 ## 2. Les huit vérifications
@@ -31,7 +31,7 @@ Lance-les d'un bloc, puis commente la sortie ligne à ligne.
 **A — Le fichier de fiches courant existe.**
 
 ```bash
-ls -la "<fichier de fiches courant>" 2>&1; ls "<contexte>"/*.md
+<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" lignes "<fichier de fiches courant>" "<contexte>/*.md"
 ```
 
 Une ligne « courant » qui nomme un fichier absent envoie chaque `/vlp:tache` dans
@@ -41,7 +41,7 @@ clos est l'erreur inverse : un chantier orphelin, que plus rien ne rouvrira.
 **B — Les fiches sont extractibles.**
 
 ```bash
-sh "${CLAUDE_PLUGIN_ROOT}/scripts/vlp" valider "<fichier de fiches courant>"
+<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" valider "<fichier de fiches courant>"
 ```
 
 Une ligne par écart — marqueurs, sections, critère —, puis le bilan
@@ -52,7 +52,7 @@ extractible du tout.
 **C — Les cases cochées et la page publiée disent la même chose.**
 
 ```bash
-sh "${CLAUDE_PLUGIN_ROOT}/scripts/vlp" page "<fichier de fiches courant>" "<artefact du chantier local>" --verifier
+<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" page "<fichier de fiches courant>" "<artefact du chantier local>" --verifier
 ```
 
 `--verifier` n'écrit rien. Le fichier a raison : sur `EN RETARD`, **la page
@@ -61,8 +61,10 @@ la régénérer, sans le faire tant que l'utilisateur n'a pas répondu.
 
 **D — Les lettres de fiches ne se marchent pas dessus.**
 
+La ligne « Lettres de fiche déjà prises » est dans la carte.
+
 ```bash
-grep -n 'Lettres de fiche déjà prises' CHANTIER.md; ls "<contexte>"
+ls "<contexte>"
 ```
 
 Chaque fichier de chantier consomme une lettre. Une lettre réutilisée fait que
@@ -71,7 +73,7 @@ Chaque fichier de chantier consomme une lettre. Une lettre réutilisée fait que
 **E — Le coût par session.**
 
 ```bash
-wc -l "<fichier de fiches courant>" "<artefact du chantier local>"; grep -m1 "^SEUIL_PAGE" "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py"
+<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" lignes "<fichier de fiches courant>" "<artefact du chantier local>"
 ```
 
 Le socle est compté dans le bilan de `valider`, en B.
@@ -92,12 +94,12 @@ de mesurer un coût, pas de le doubler.
 **G — Le plugin est bien chargé, et c'est le bon kit.**
 
 ```bash
-ls -Ld "${CLAUDE_PLUGIN_ROOT}" 2>&1; ls "${CLAUDE_PLUGIN_ROOT}/methode-chantier.md" "${CLAUDE_PLUGIN_ROOT}/cloture.md" 2>&1; ls ~/.claude/commands/*.md 2>/dev/null
+<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" lignes "${CLAUDE_PLUGIN_ROOT}" "${CLAUDE_PLUGIN_ROOT}/methode-chantier.md" "${CLAUDE_PLUGIN_ROOT}/cloture.md" "~/.claude/commands/*.md"
 ```
 
 Trois choses à lire dans cette sortie :
 
-1. **Le chemin rendu par le premier `ls`** doit être le kit réel — celui que la
+1. **Le chemin réel de la ligne `DOSSIER`** doit être le kit réel — celui que la
    ligne « kit » de `CHANTIER.md` nomme. S'ils diffèrent, deux kits coexistent :
    dis lesquels, et lequel des deux les commandes utilisent vraiment (c'est
    celui du plugin).
@@ -112,7 +114,7 @@ Trois choses à lire dans cette sortie :
 **H — Les renvois mènent quelque part.**
 
 ```bash
-sh "${CLAUDE_PLUGIN_ROOT}/scripts/vlp" renvois .
+<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" renvois .
 ```
 
 Chaque ligne `ABSENT:` est un fichier que l'index ou le routage de `CLAUDE.md`

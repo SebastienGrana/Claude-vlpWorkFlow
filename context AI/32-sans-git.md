@@ -184,7 +184,7 @@ Total **0,127 $**. Non joué en vrai : le relais sur un poste à deux Python ré
 ---
 
 <!-- FICHE:Y4 -->
-## Y4 [ ] — Passer le corps des skills et `cloture.md` sans `sh`
+## Y4 [x] — Passer le corps des skills et `cloture.md` sans `sh`
 
 **Dépend de** : `Y1`, `Y2`.
 **Fichiers** : `skills/{chantier,check,enchainer,init,tache}/SKILL.md`, `cloture.md`, `skills/tache/references/` si
@@ -199,6 +199,11 @@ diapason de Y1. Pas de phrase nouvelle hors du strict nécessaire : chaque ligne
 **Critère de fin**
 `grep -rn 'sh "${CLAUDE_PLUGIN_ROOT}' skills cloture.md | wc -l` → n avant, 0 après ; `grep -rnE '\| *(tr|xargs|head|wc|grep)
 ' skills cloture.md` → 0 ; `"$C" plugin validate .` OK ; `python scripts/test-vlp.py` → `OK`.
+
+**Mesuré** (2026-09-17) — appels `sh` 15 → 0 ; tuyaux 3 → 0 ; `2>/dev/null`, `&&`, `$F` → 0 ; validate OK
+(1 avertissement voulu) ; tests 103 → 104, OK. Ajouté : `vlp.py lignes` (remplace `wc -l`, `ls` de repli, `grep
+SEUIL_PAGE`). `init` et `check` injectent la carte (pour `PYTHON=`) ; `tache/references` : 0 appel. Non sondé en vrai :
+le corps sous PowerShell (Y5).
 <!-- /FICHE -->
 
 ---

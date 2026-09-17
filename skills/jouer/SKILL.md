@@ -5,7 +5,7 @@ context: fork
 agent: vlp:fiche
 background: false
 user-invocable: false
-allowed-tools: Bash(sh:*), Bash(python3:*), Bash(py:*), Bash(echo:*), PowerShell(python3:*), PowerShell(py:*), PowerShell(echo:*)
+allowed-tools: Bash(python3:*), Bash(py:*), Bash(echo:*), PowerShell(python3:*), PowerShell(py:*), PowerShell(echo:*)
 ---
 
 Fiche à jouer :
@@ -21,10 +21,10 @@ courant, livraison, vérification, contraintes d'écriture :
 
 La racine est le dossier de `PROJET=` ; le fichier de fiches, la ligne « fichier
 de fiches courant » sans sa plage. Dans ton premier appel, avec les lectures de
-ton étape 1, extrais le socle et la fiche :
+ton étape 1, extrais le socle et la fiche (`<python>` : la valeur de `PYTHON=` dans la carte) :
 
 ```bash
-sh "<kit>/scripts/vlp" socle "<fichier de fiches>"; sh "<kit>/scripts/vlp" extraire "<fichier de fiches>" <fiche>
+<python> "<kit>/scripts/vlp.py" socle "<fichier de fiches>"; <python> "<kit>/scripts/vlp.py" extraire "<fichier de fiches>" <fiche>
 ```
 
 Pas de `PROJET=`, une `GARDE:`, ou une fiche de moins de cinq lignes : rends
