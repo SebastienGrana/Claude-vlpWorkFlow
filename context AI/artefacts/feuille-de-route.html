@@ -68,8 +68,8 @@
     <!-- ZONE:encours — remplacé à chaque ouverture, remis à « aucun » à chaque clôture.
          /tache n'y touche pas : l'avancement fiche par fiche est sur la page du chantier. -->
     <div class="encours">
-      <div class="titre">Aucun chantier ouvert</div>
-      <div>Lancer <span class="mono">/vlp:chantier</span> pour en ouvrir un.</div>
+      <div class="titre">Une fiche visuelle arrête /vlp:enchainer <span class="badge" data-etat="cours">en cours</span></div>
+      <div>Fiches <span class="mono">A1–A2</span> · <a href="https://claude.ai/artifact/Q3xC4KRxoecmTC9SfRTowB">la page du chantier</a></div>
     </div>
   </section>
 
@@ -82,7 +82,7 @@
           <tr><th>#</th><th>Chantier</th><th>Ce qu'il apporte</th><th>Coût</th><th>Dépend de</th></tr>
         </thead>
         <tbody>
-          <tr><td class="mono">14</td><td>Une fiche visuelle arrête /vlp:enchainer</td><td>Mesuré en P3 : le sous-agent rend FAITE sur une fiche (visuel), le chef continue jusqu'à la clôture ; faire rendre RETOUR et le prouver en -p</td><td class="mono">1 fiche</td><td class="mono">rien</td></tr>
+          <tr><td class="mono">14</td><td>Une fiche visuelle arrête /vlp:enchainer <span class="badge" data-etat="cours">en cours</span></td><td>Mesuré en P3 : le sous-agent rend FAITE sur une fiche (visuel), le chef continue jusqu'à la clôture ; faire rendre RETOUR et le prouver en -p</td><td class="mono">1 fiche</td><td class="mono">rien</td></tr>
           <tr><td class="mono">11</td><td>Evals sous WSL2</td><td>Jouer les tests qui exigent Bash (tache, chantier) : Windows n'a pas de sandbox ; initialiser Ubuntu sous WSL2, y installer Claude Code, bubblewrap et socat, s'y connecter, lancer la suite depuis Linux</td><td class="mono">2 fiches</td><td class="mono">6</td></tr>
         </tbody>
       </table>
@@ -221,7 +221,7 @@
   </section>
 
   <footer>
-    <span>Lettres de fiche prises : <span class="mono">E, M, C, T, B, R, S, H, V, D, I, K, N, L, P</span></span>
+    <span>Lettres de fiche prises : <span class="mono">E, M, C, T, B, R, S, H, V, D, I, K, N, L, P, A</span></span>
     <span>État détaillé : <span class="mono">context AI/08-etat.md</span></span>
     <span>Mis à jour le <span class="mono">2026-09-17</span></span>
   </footer>

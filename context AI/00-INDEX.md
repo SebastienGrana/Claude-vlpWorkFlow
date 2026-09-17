@@ -35,6 +35,7 @@ a l'air proche.
 | `22-fork.md` | on relit le socle du chantier N — **clos** « `/vlp:enchainer` : réparer ou retirer », `N1..N3` |
 | `23-alleger.md` | on relit le socle du chantier L — **clos** « `/vlp:enchainer` : alléger le chef », `L1..L3` |
 | `24-lanceur.md` | on relit le socle du chantier P — **clos** « Un lanceur Python sans accolade », `P1..P3` |
+| `25-arret.md` | on joue une fiche `A*` — chantier **en cours** « Une fiche visuelle arrête `/vlp:enchainer` », `A1..A2` |
 | `21-skills.md` | on relit le socle du chantier K — **clos** « Migrer commands/ → skills/ », `K1..K3` |
 | `20-init.md` | on joue une fiche `I*` — chantier **clos** « Un projet neuf qui ne ment pas », `I1..I3` |
 
