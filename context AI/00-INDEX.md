@@ -42,6 +42,7 @@ a l'air proche.
 | `30-ouvrir.md` | on relit le socle du chantier O — **clos** « Ouvrir et clore par script », `O1..O5` |
 | `31-jauge.md` | on relit le socle du chantier J — **clos** « Des fichiers de tête qui ne grossissent plus », `J1..J4` |
 | `32-sans-git.md` | on relit le socle du chantier Y — **clos** « Le kit entier sans sh », `Y1..Y5` |
+| `33-sans-refus.md` | on joue une fiche `U*` — chantier **ouvert** « /vlp:tache sans refus sous PowerShell », `U1..U5` |
 | `25-arret.md` | on relit le socle du chantier A — **clos** « Une fiche visuelle arrête `/vlp:enchainer` », `A1..A2` |
 | `21-skills.md` | on relit le socle du chantier K — **clos** « Migrer commands/ → skills/ », `K1..K3` |
 | `20-init.md` | on joue une fiche `I*` — chantier **clos** « Un projet neuf qui ne ment pas », `I1..I3` |
