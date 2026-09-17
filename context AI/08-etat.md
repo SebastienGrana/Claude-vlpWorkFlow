@@ -43,6 +43,8 @@
   le 9 est retiré.
 - **2026-09-17** — chantier P clos (TODO n° 13) : un lanceur `scripts/vlp` sans accolade (v3.3.2) ; le 13
   est retiré, le 14 ouvert (une fiche visuelle n'arrête pas `/vlp:enchainer`).
+- **2026-09-17** — chantier A clos (TODO n° 14) : une fiche `(visuel)` arrête `/vlp:enchainer` (v3.3.3) ; le 14
+  est retiré, reste le 11.
 
 ## La TODO ordonnée — les chantiers possibles
 
@@ -524,3 +526,11 @@ de ce que le code dit déjà.
   19 appels dont 15 de clôture, 0,38 $. Sous-agents Z1 6 tours / 8 appels (0,06 $), Z2 4 tours / 4 appels (0,03 $) ; P3 : 8
   et 6 tours. 0 « Contains brace », 0 exit 49. Non exercé : le verrou du chef (`FAITE` sur `(visuel)` → décocher), le
   sous-agent n'ayant pas désobéi. Evals Windows 3/3 (check 5, hook 2, init 22 tours ; 0,81 $). TODO n° 14 retirée.
+- **2026-09-17** — Chantier A **clos**. Livré : `vlp.py extraire` écrit `ARRÊT: critère de fin (visuel) — livre, puis rends
+  RETOUR sans cocher` sous une fiche `(visuel)` (tests 58 → 60) ; `agents/fiche.md` en fait sa règle de tête ; le contrat et
+  `/vlp:enchainer` lisent `FAITE` sur une `(visuel)` en `RETOUR`, case décochée ; plugin 3.3.3 ; evals 3/3. Mesuré en `-p` :
+  Z2 rendue `RETOUR`, non cochée, 0 clôture ; chef 14 → 5 tours, 19 → 4 appels, 0,38 → 0,14 $. Laissé ouvert : le verrou du
+  chef n'est pas exercé (le sous-agent a obéi) ; en session interactive, la question passe par `AskUserQuestion`, non
+  rejoué ; sans Git Bash, `sh` introuvable (inchangé). Cadrage, A1, A2 et clôture dans une seule session, à la demande.
+  Total brut mesuré au bilan : 39 tours, 55 appels, input 82, output 27 984, cache_creation 155 030, cache_read
+  5 582 393, **total 5 765 489 tokens**, 5,04 $, plus 0,22 $ de sonde headless (1 lancement) et 0,81 $ d'evals.

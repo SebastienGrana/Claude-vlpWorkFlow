@@ -4,11 +4,13 @@
 
 # Chantier A — Une fiche visuelle arrête `/vlp:enchainer`
 
+**CLOS** le 2026-09-17. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
 **À quoi il sert.** Mesuré en P3 : le sous-agent `vlp:fiche` a rendu `FAITE` sur une fiche `(visuel)`, et le chef a
 continué jusqu'à la clôture (TODO n° 14). Deux verrous : le chef traite toute `(visuel)` en `RETOUR`, et le script
 marque la fiche extraite.
 
-**Fait.** Rien. Ouvert le 2026-09-17, cadré en 2 fiches, `A1` à jouer.
+**Fait.** A1 et A2 : ligne `ARRÊT:` de `vlp.py extraire`, chef qui lit `FAITE` en `RETOUR` ; sonde `-p` : Z2 non cochée, pas de clôture.
 
 ## Le socle commun
 
