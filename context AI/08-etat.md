@@ -95,6 +95,19 @@
   2 · 1, TrackGen 2 · 1, ProjetONZSM 2 · 0, le bac 5 · 0. L'entrée n° 22 est corrigée :
   une copie locale de `methode-chantier.md` n'est pas un écart, la méthode la tolère.
 
+- **2026-09-18** — chantier NIV clos (TODO n° 22 et 24) : les projets équipés se remettent
+  à niveau par script — `vlp.py niveau <projet>` diagnostique (renvois, poids, feuille,
+  page, variables, table des clos), `--ecrire` corrige ce qui se déduit, et la carte
+  injectée ne crie plus le message du Store. Les cinq passés : Cairn **3 écarts → 0**
+  (`CLAUDE.md` 89 → 80, index 111 → 71, 2 renvois morts retirés, 7 chantiers clos du
+  routage remplacés par un renvoi à l'index), MapDecorator **3 → 0** (`CLAUDE.md` 84 → 79,
+  `mockups/TACHES-UI.md` déclaré à l'index), TrackGen **3 → 0** (`CHANTIER.md` 51 → 47),
+  ProjetONZSM **3 → 0**, le bac **5 → 1 écart assumé** : `niveau` réclame la page HTML du
+  chantier courant même quand `CHANTIER.md` dit « artefact du chantier : aucun », ce que
+  le socle du bac impose. Deux limites laissées : le script ne retire la table des clos
+  que si l'index nomme chacun de ses fichiers, et abréger un fichier de tête reste du
+  jugement, donc à la main. Les 22 et 24 sont retirés, la TODO est vide ; 21 827 897 tokens.
+
 ## La TODO ordonnée — les chantiers possibles
 
 C'est d'ici que `/chantier` tire ses propositions. Un chantier par entrée,
@@ -103,13 +116,17 @@ ordonné par ce qui débloque le reste. Le détail de chacun est dans
 
 | # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |
 |---|---|---|---|---|
-| 22 | Les projets équipés ne suivent plus le kit | Mesuré le 2026-09-17 : le bac pointe une variable dans un fichier de données (bug n° 3 de l'audit). Les copies locales de la méthode n'en sont pas un : `methode-chantier.md` dit qu'un projet équipé avant la règle garde la sienne, on a seulement cessé d'en fabriquer (corrigé le 2026-09-17, fiche `NIV2`). Aussi : Cairn-VlpLib 2 renvois absents, `CLAUDE.md` 89/80, index 111/80, table des clos encore dans `CHANTIER.md` ; MapDecorator 84/80 ; TrackGen `CHANTIER.md` 51/50 ; feuille de route en écart sur 3 projets, absente sur le bac. Écrire de quoi remettre un projet équipé à niveau, au lieu de le faire à la main cinq fois | 3 fiches | — |
-| 24 | La carte crie « Python est introuvable » (absorbé par le chantier NIV, fiche `NIV1`) | Mesuré le 2026-09-17 : le relais `python3` de `carte --relais` écrit sur la sortie le message du raccourci Microsoft Store, collé au milieu de la carte injectée dans chaque commande. Rien ne casse, mais la carte ment sur son propre état et le bruit se paye à chaque tour 1 | 1 fiche | — |
 
 ## Journal des décisions
 
 Une ligne par décision imprévue tranchée en cours de fiche — jamais un résumé
 de ce que le code dit déjà.
+
+- **2026-09-18** — NIV3 : la fiche supposait que `clore` retirait la table des
+  chantiers clos de `CHANTIER.md` ; il ne l'a jamais fait (il n'entretient que la
+  ligne des lettres prises). `niveau --ecrire` la retire donc lui-même, et sous
+  garde : **jamais** si l'index ne nomme pas chacun des fichiers de la table —
+  sinon la retirer perdrait leur trace. NIV4 doit le vérifier projet par projet.
 
 - **2026-09-17** — cadrage NIV : l'alphabet des préfixes de fiche était
   **épuisé** (26 chantiers, 26 lettres) et `vlp.py` n'acceptait qu'une majuscule :

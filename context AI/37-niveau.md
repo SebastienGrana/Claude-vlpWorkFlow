@@ -10,7 +10,9 @@ injectée à chaque tour 1 crache le message du raccourci Microsoft Store. Le
 chantier écrit de quoi diagnostiquer et remettre à niveau **par script**, au lieu
 de le refaire à la main cinq fois.
 
-**Fait.** Rien. Ouvert le 2026-09-17, cadré en 4 fiches, `NIV1` à jouer.
+**CLOS** le 2026-09-18. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** NIV1..NIV4 (2026-09-18) : vlp.py niveau : un projet équipé se diagnostique et se corrige en un appel, et les cinq projets équipés sont passés — quatre à 0 écart, le bac à 1 écart assumé.
 
 ## Le socle commun
 
@@ -122,8 +124,9 @@ prétend l'inverse.
 ---
 
 <!-- FICHE:NIV3 -->
-## NIV3 [ ] — Écrire ce que le diagnostic sait corriger
+## NIV3 [x] — Écrire ce que le diagnostic sait corriger
 
+**Session** : 31745619-86aa-4c00-93e6-c2ed926aa357
 **Dépend de** : `NIV2`.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` — et rien d'autre.
 
@@ -152,8 +155,9 @@ imprime `OK`.
 ---
 
 <!-- FICHE:NIV4 -->
-## NIV4 [ ] — Passer les cinq projets à niveau
+## NIV4 [x] — Passer les cinq projets à niveau
 
+**Session** : 27c8c0ee-6f3a-4dee-b4e0-45f5b7105329
 **Dépend de** : `NIV3`.
 **Fichiers** : les `CHANTIER.md`, `CLAUDE.md` et dossiers de contexte des cinq
 projets listés au socle — et rien du kit.

@@ -17,6 +17,7 @@ https://github.com/SebastienGrana/Claude-vlpWorkFlow — cloné et utilisé en g
 - Clos le 2026-09-17 : /vlp:tache sans refus sous PowerShell : lire, cocher, carte py d'abord, refus 9 → 1 (chantier U).
 - Clos le 2026-09-17 : /vlp:enchainer sans Git : l'agent vlp:fiche prend PowerShell et lit le kit par vlp.py lire ; bac sans .git : refus 3 → 0, deux fiches jouées ; enchaîné 0,176 $/fiche contre 0,42 $ à la main (fiches triviales) ; plugin 3.4.2, TODO vide (chantier Q).
 - Clos le 2026-09-17 : toute lecture d'un chemin de CHANTIER.md rend une GARDE au lieu d'un traceback, prouve sur Cairn-VlpLib (chantier Z).
+- Clos le 2026-09-18 : les projets équipés se remettent à niveau par vlp.py niveau ; les cinq passés, quatre à 0 écart, le bac à 1 assumé (chantier NIV).
 
 ## Quatre règles non négociables
 
@@ -56,7 +57,6 @@ et seulement dans ce cas, ouvrir l'index.
 | savoir où vit quoi dans un projet équipé | `methode-chantier.md`, section « Où vit quoi » |
 | toucher aux pages publiées | `ARTEFACTS.md`, puis le gabarit dans `templates/` |
 | ouvrir un chantier, ou le découper en fiches | **lancer `/vlp:chantier`** |
-| jouer une fiche du chantier NIV (remettre les projets équipés à niveau) | `context AI/37-niveau.md` — chantier **ouvert**, par `/vlp:tache NIV<n>` |
 | relire un chantier clos | `context AI/00-INDEX.md` — sa ligne y nomme le fichier de fiches |
 | reprendre après une longue interruption | `context AI/08-etat.md` |
 | choisir le prochain chantier du kit, ou retrouver la preuve d'un bug relevé le 2026-09-17 | `context AI/12-audit.md` |

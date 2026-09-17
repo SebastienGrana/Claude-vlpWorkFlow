@@ -910,4 +910,122 @@ with tempfile.TemporaryDirectory() as t:
     verifier("NIV2 : un chemin de CHANTIER.md introuvable rend une GARDE, pas un traceback",
              code == 1 and "GARDE: index introuvable : ctx/absent.md\n" in s, s)
 
+# --- NIV3 : `niveau --ecrire` corrige les écarts mécaniques, et eux seuls ----
+
+# Une feuille de route d'avant le 2026-09-17 : le gabarit sans le bloc repliable
+# ni ses règles CSS — le reste à l'identique, marqueurs et indentation compris.
+def feuille_ancienne():
+    lignes = io.open(GABARIT_FEUILLE, encoding="utf-8").read().splitlines(True)
+    return "".join(l for l in lignes
+                   if not l.lstrip().startswith(("details.clos", ".resume-clos", "<details class=\"clos\">",
+                                                 "<summary><span class=\"resume-clos\">", "</details>")))
+
+
+CARTE_NIV3 = """# Chantier courant
+
+- **alias** : niv3
+- **contexte** : ctx/
+- **index** : ctx/00-INDEX.md
+- **fichier d'état** : ctx/08-etat.md
+- **fichier de fiches courant** : aucun
+
+## Chantiers clos — ne se rejouent pas
+
+| Fichier de fiches | Fiches | Clos le |
+|---|---|---|
+| ctx/10-a.md | `A1`..`A2` | 2026-01-01 |
+
+Lettres de fiche déjà prises : A. Un nouveau chantier en choisit une autre.
+"""
+INDEX_NIV3 = ("# Index\n\n| Fichier | On l'ouvre quand |\n|---|---|\n"
+              "| `10-a.md` | on relit le chantier A |\n"
+              "| `99-fantome.md` | jamais, il n'existe pas |\n")
+
+
+def bac_niv3(t, feuille=True, index=INDEX_NIV3):
+    proj = os.path.join(t, "niv3")
+    ecrire(os.path.join(proj, "CHANTIER.md"), CARTE_NIV3)
+    ecrire(os.path.join(proj, "ctx", "00-INDEX.md"), index)
+    ecrire(os.path.join(proj, "ctx", "08-etat.md"), ETAT_NIV)
+    ecrire(os.path.join(proj, "ctx", "10-a.md"), "# Chantier A\n")
+    if feuille:
+        ecrire(os.path.join(proj, "ctx", "artefacts", "feuille-de-route.html"), feuille_ancienne())
+    return proj
+
+
+def compte(s, prefixe):
+    return len([l for l in s.splitlines() if l.startswith(prefixe)])
+
+
+with tempfile.TemporaryDirectory() as t:
+    proj = bac_niv3(t)
+    code, avant = appel(["niveau", proj])
+    n = compte(avant, "ÉCART:")
+    verifier("NIV3 avant : quatre écarts, dont le renvoi absent que rien ne sait corriger",
+             code == 1 and n == 4 and "ÉCART: renvois: " in avant
+             and "ÉCART: feuille: le bloc repliable" in avant and "ÉCART: clos: " in avant,
+             avant)
+
+    code, pendant = appel(["niveau", proj, "--ecrire", "--date", "2026-09-18"])
+    m = compte(pendant, "CORRIGÉ:")
+    verifier("NIV3 : trois corrigés, le renvoi absent reste à la main",
+             code == 1 and m == 3 and compte(pendant, "ÉCART:") == 1
+             and "CORRIGÉ: feuille: bloc repliable des chantiers clos posé\n" in pendant
+             and "CORRIGÉ: feuille: régénérée\n" in pendant
+             and "CORRIGÉ: clos: table des chantiers clos retirée de CHANTIER.md:9" in pendant
+             and pendant.rstrip().endswith("NIVEAU 3 corrigés · 1 à la main — %s" % proj), pendant)
+
+    code, apres = appel(["niveau", proj])
+    verifier("NIV3 après : %d écarts, %d corrigés, %d restants — le compte se ferme"
+             % (n, m, n - m),
+             code == 1 and compte(apres, "ÉCART:") == n - m and "ÉCART: renvois: " in apres, apres)
+
+    carte_niv3 = io.open(os.path.join(proj, "CHANTIER.md"), encoding="utf-8").read()
+    verifier("NIV3 : la table est partie, le titre et la phrase du gabarit la remplacent,"
+             " les lettres prises restent",
+             "| ctx/10-a.md |" not in carte_niv3 and "## Chantiers clos — dans l'index, pas ici" in carte_niv3
+             and "Lettres de fiche déjà prises : A." in carte_niv3, carte_niv3)
+
+    html_niv3 = io.open(os.path.join(proj, "ctx", "artefacts", "feuille-de-route.html"),
+                        encoding="utf-8").read()
+    verifier("NIV3 : le bloc repliable, son résumé et ses règles CSS sont posés",
+             '<details class="clos">' in html_niv3 and '<span class="resume-clos">' in html_niv3
+             and "details.clos > summary {" in html_niv3, html_niv3[:200])
+    verifier("NIV3 : les lignes de ZONE:clos gardent les dix espaces que `clore` repère",
+             '\n          <tr>\n' in html_niv3, "indentation changée")
+    verifier("NIV3 : la feuille est aussi régénérée — la TODO du fichier d'état y passe",
+             "<td>un truc</td>" in html_niv3 and "2026-09-18" in html_niv3, html_niv3[-600:])
+
+    code, encore = appel(["niveau", proj, "--ecrire", "--date", "2026-09-18"])
+    verifier("NIV3 : rejoué, il ne corrige plus rien — les corrections sont idempotentes",
+             "NIVEAU 0 corrigés · 1 à la main" in encore, encore)
+
+# La feuille absente : posée depuis le gabarit, puis régénérée.
+with tempfile.TemporaryDirectory() as t:
+    proj = bac_niv3(t, feuille=False)
+    page = os.path.join(proj, "ctx", "artefacts", "feuille-de-route.html")
+    code, s = appel(["niveau", proj])
+    verifier("NIV3 : sans --ecrire, rien n'est posé", not os.path.exists(page)
+             and "ÉCART: feuille: feuille de route introuvable :" in s, s)
+    code, s = appel(["niveau", proj, "--ecrire", "--date", "2026-09-18"])
+    verifier("NIV3 : la feuille absente est posée depuis le gabarit puis régénérée",
+             os.path.isfile(page) and "CORRIGÉ: feuille: posée depuis le gabarit" in s
+             and "<td>un truc</td>" in io.open(page, encoding="utf-8").read(), s)
+
+# L'index ne nomme pas un fichier de la table : la retirer le perdrait.
+with tempfile.TemporaryDirectory() as t:
+    proj = bac_niv3(t, index="# Index\n\n| Fichier | On l'ouvre quand |\n|---|---|\n"
+                           "| `08-etat.md` | on reprend |\n")
+    code, s = appel(["niveau", proj, "--ecrire", "--date", "2026-09-18"])
+    verifier("NIV3 : une table dont l'index ne nomme pas les fichiers reste à la main",
+             "ÉCART: clos: " in s and "CORRIGÉ: clos: " not in s
+             and "| ctx/10-a.md |" in io.open(os.path.join(proj, "CHANTIER.md"), encoding="utf-8").read(), s)
+
+# Rien n'est écrit tant qu'un calcul peut échouer : un projet sans CHANTIER.md.
+with tempfile.TemporaryDirectory() as t:
+    code, s = appel(["niveau", os.path.join(t, "rien"), "--ecrire"])
+    verifier("NIV3 : sans CHANTIER.md, --ecrire s'arrête sur une GARDE et n'écrit rien",
+             code == 1 and s.startswith("GARDE: pas de CHANTIER.md dans ") and not os.listdir(t), s)
+
+
 print("OK")

@@ -83,6 +83,13 @@ Sous-commandes :
   pour un projet équipé avant la règle. Une ligne `ÉCART: <catégorie>: <phrase>`
   par écart (`renvois`, `feuille`, `page`, `variable`, `clos`), puis `NIVEAU <n>
   écarts · <n> avertissements — <projet>`. Un écart : sort 1.
+  `--ecrire` corrige les seuls écarts mécaniques — la table des chantiers clos
+  retirée de `CHANTIER.md` (jamais si l'index ne nomme pas chacun de ses
+  fichiers), la feuille de route posée depuis le gabarit puis régénérée, et le
+  bloc repliable des clos posé sur une feuille d'avant le 2026-09-17. Les
+  renvois absents et les fichiers de tête hors seuil restent en `ÉCART:`. Tout
+  se calcule avant la première écriture. Bilan `NIVEAU <n> corrigés · <n> à la
+  main — <projet>` ; un écart restant : sort 1. `--date` fige la date.
 - `feuille <projet> [--todo N] [--verifier]` — régénère dans
   `<contexte>/artefacts/feuille-de-route.html` la `ZONE:encours` (depuis le
   fichier de fiches courant et l'artefact du chantier), la `ZONE:todo` (depuis
@@ -1192,6 +1199,73 @@ def cmd_feuille(a, sortie):
     return 0
 
 
+# --- la ZONE:clos d'une feuille de route -------------------------------------
+# Lue par `clore`, qui y ajoute une ligne à chaque clôture, et par
+# `niveau --ecrire`, qui pose sur une feuille d'avant le 2026-09-17 ce que le
+# gabarit a depuis : le bloc repliable et l'estimation en dollars du pied.
+
+BRUT = re.compile(r'<td class="mono">[^<]*\(([\d  ]+)\)</td>')
+# `clore` écrit ses lignes à dix espaces, et les repère à dix espaces.
+RANG_CLOS = re.compile(r"          <tr>\n.*?          </tr>\n", re.S)
+PIED_CLOS = re.compile(r'(Total cumulé</td><td class="mono"><strong>.*?</strong></td>)<td[^>]*>([^<]*)</td>', re.S)
+GABARIT_FEUILLE = "templates/artefact-feuille-de-route.html"
+
+
+def lignes_clos(corps):
+    """Les `<tr>` de chantiers clos d'un corps de table — les lignes d'exemple
+    du gabarit, reconnaissables à leurs `<…>`, n'en sont pas."""
+    return [r for r in RANG_CLOS.findall(corps) if '<td class="mono">&lt;' not in r]
+
+
+def total_clos(corps):
+    """La somme des coûts bruts — ceux entre parenthèses — d'un corps de table."""
+    return sum(int(re.sub(r"\D", "", n)) for n in BRUT.findall(corps))
+
+
+def resume_clos(n, total):
+    """Ce que le bloc repliable montre sans être déplié."""
+    if not n:
+        return "aucun chantier clos"
+    if not total:  # aucun des clos ne porte de coût mesuré : pas de 0 $ inventé.
+        return "%d chantiers clos · coût non mesuré" % n
+    return "%d chantiers clos · %s tokens · %s" % (n, arrondi(total), estimation_usd(total))
+
+
+def regles_clos():
+    """Les règles CSS du bloc repliable, lues dans le gabarit : elles n'ont pas
+    de second exemplaire ici."""
+    return [l for l in lire(os.path.join(KIT, GABARIT_FEUILLE)).splitlines(True)
+            if l.lstrip().startswith(("details.clos", ".resume-clos"))]
+
+
+def migrer_feuille(html):
+    """Une feuille de route d'avant le 2026-09-17 n'a ni bloc repliable ni
+    cellule d'estimation au pied de la table des clos : les poser, sans toucher
+    à l'indentation des lignes de `ZONE:clos`. Rend le HTML — le même s'il les
+    a déjà."""
+    if "details.clos" not in html:
+        i = html.find("tfoot td {")
+        i = html.find("\n", i) + 1 if i >= 0 else html.find("</style>")
+        html = html[:i] + "".join(regles_clos()) + html[i:]
+    i = html.find("<!-- ZONE:clos")
+    if i < 0:
+        return html
+    fin = html.find("  </section>", i)
+    debut = html.find('    <div class="tableau">', i)
+    if not 0 <= debut < fin:
+        return html
+    corps = html[debut:fin]
+    total = total_clos(corps)
+    # Une cellule qui porte déjà des dollars est celle que `clore` entretient.
+    corps = PIED_CLOS.sub(lambda m: m.group(0) if "$" in m.group(2)
+                          else m.group(1) + '<td class="mono">%s</td>' % estimation_usd(total),
+                          corps, count=1)
+    if '<details class="clos">' not in html[i:fin]:
+        corps = ('    <details class="clos">\n      <summary><span class="resume-clos">%s</span>'
+                 '</summary>\n' % resume_clos(len(lignes_clos(corps)), total)) + corps + "    </details>\n"
+    return html[:debut] + corps + html[fin:]
+
+
 # --- niveau ------------------------------------------------------------------
 
 # Ce qu'on ne regarde pas : une copie locale de `methode-chantier.md`. La
@@ -1234,12 +1308,48 @@ def table_des_clos(lignes):
     return None
 
 
-def cmd_niveau(projet, sortie):
-    """En quoi un projet équipé a dérivé du kit. N'écrit rien nulle part."""
+FICHIER_MD = re.compile(r"[\w][\w./ -]*\.md")
+
+
+def entete_clos():
+    """Le titre et la phrase que le gabarit de `CHANTIER.md` pose à la place
+    d'une table des chantiers clos."""
+    g = lignes_de(os.path.join(KIT, "templates", "CHANTIER.md"))
+    i = next(k for k, l in enumerate(g) if TITRE_CLOS.match(l))
+    j = next(k for k in range(i, len(g)) if g[k].startswith("Lettres de fiche déjà prises"))
+    return g[i:j]
+
+
+def sans_table_des_clos(carte_, index):
+    """`CHANTIER.md` sans sa table des chantiers clos, ou None si la retirer
+    perdrait quelque chose : la ligne des lettres prises doit suivre la table,
+    et l'index nommer chacun de ses fichiers."""
+    i = table_des_clos(carte_)
+    if i is None:
+        return None
+    i -= 1
+    j = next((k for k in range(i, len(carte_)) if carte_[k].startswith("Lettres de fiche déjà prises")), None)
+    if j is None:
+        return None
+    vus = "\n".join(index)
+    for l in carte_[i:j]:
+        if l.startswith("|") and any(os.path.basename(nom) not in vus for nom in FICHIER_MD.findall(l)):
+            return None
+    return carte_[:i] + entete_clos() + carte_[j:]
+
+
+def cmd_niveau(a, sortie):
+    """En quoi un projet équipé a dérivé du kit. Sans `--ecrire`, n'écrit rien
+    nulle part ; avec, corrige les écarts dont la bonne valeur se déduit sans
+    jugement, et laisse les autres en `ÉCART:`. Comme `clore`, tout se calcule
+    avant la première écriture."""
+    projet = a.projet
     if not equipe(projet):
         sortie.write("GARDE: pas de CHANTIER.md dans %s\n" % projet)
         return 1
-    ecarts = avertissements = 0
+    date = a.date or __import__("datetime").date.today().isoformat()
+    ecarts = avertissements = corriges = 0
+    ecritures = []
     carte_ = lignes_du_projet(projet, "CHANTIER.md", "carte")
 
     _, lignes = capte(cmd_renvois, projet)
@@ -1257,15 +1367,41 @@ def cmd_niveau(projet, sortie):
             ecarts += 1
             sortie.write("ÉCART: renvois: %s\n" % l[7:])
 
-    code, lignes = capte(cmd_feuille, argparse.Namespace(
-        projet=projet, todo=None, verifier=True, date=None))
-    fin = lignes[-1] if lignes else "aucune sortie"
-    if fin.startswith("GARDE: "):
+    page = page_feuille(projet)
+    absente = not os.path.isfile(page)
+    html = lire(os.path.join(KIT, GABARIT_FEUILLE)) if absente else lire(page)
+    migre = migrer_feuille(html)
+    try:
+        neuf, _ = feuille(projet, migre, None, date)
+    except ValueError as e:
+        neuf = None
         ecarts += 1
-        sortie.write("ÉCART: feuille: %s\n" % fin[7:])
-    elif code:
-        ecarts += 1
-        sortie.write("ÉCART: feuille: %s — « vlp.py feuille %s » la régénère\n" % (fin, projet))
+        sortie.write("ÉCART: feuille: %s\n" % e)
+    if neuf is None:
+        pass
+    elif absente:
+        if a.ecrire:
+            ecritures.append((page, neuf))
+            corriges += 1
+            sortie.write("CORRIGÉ: feuille: posée depuis le gabarit puis régénérée — %s\n" % page)
+        else:
+            ecarts += 1
+            sortie.write("ÉCART: feuille: feuille de route introuvable : %s — le gabarit la pose\n" % page)
+    else:
+        for present, manque, pose in (
+                (migre != html, "le bloc repliable des chantiers clos manque, et son estimation en"
+                                " dollars — le gabarit les a", "bloc repliable des chantiers clos posé"),
+                (neuf != migre, "écart — « vlp.py feuille %s » la régénère" % projet, "régénérée")):
+            if not present:
+                continue
+            if a.ecrire:
+                corriges += 1
+                sortie.write("CORRIGÉ: feuille: %s\n" % pose)
+            else:
+                ecarts += 1
+                sortie.write("ÉCART: feuille: %s\n" % manque)
+        if a.ecrire and neuf != html:
+            ecritures.append((page, neuf))
 
     courant = fichier_courant("\n".join(carte_))
     if courant:
@@ -1279,8 +1415,8 @@ def cmd_niveau(projet, sortie):
                 sortie.write("ÉCART: page: %s\n" % l[7:])
 
     contexte = champ(carte_, "contexte", "context AI/")
-    sources = [("carte", "CHANTIER.md"),
-               ("index", champ(carte_, "index", contexte.rstrip("/") + "/00-INDEX.md"))]
+    index = champ(carte_, "index", contexte.rstrip("/") + "/00-INDEX.md")
+    sources = [("carte", "CHANTIER.md"), ("index", index)]
     etat = champ(carte_, "fichier d'état")
     if etat:
         sources.append(("fichier d'état", etat))
@@ -1291,19 +1427,34 @@ def cmd_niveau(projet, sortie):
 
     rang = table_des_clos(carte_)
     if rang is not None:
-        ecarts += 1
-        sortie.write("ÉCART: clos: CHANTIER.md:%d — la table des chantiers clos vit"
-                     " dans l'index, pas dans la carte\n" % rang)
+        neuve = sans_table_des_clos(carte_, lignes_du_projet(projet, index, "index")) if a.ecrire else None
+        if neuve is None:
+            ecarts += 1
+            sortie.write("ÉCART: clos: CHANTIER.md:%d — la table des chantiers clos vit"
+                         " dans l'index, pas dans la carte\n" % rang)
+        else:
+            ecritures.append((os.path.join(projet, "CHANTIER.md"), "\n".join(neuve) + "\n"))
+            corriges += 1
+            sortie.write("CORRIGÉ: clos: table des chantiers clos retirée de CHANTIER.md:%d —"
+                         " l'index nomme chacun de ses fichiers\n" % rang)
 
+    for chemin, contenu in ecritures:
+        dossier = os.path.dirname(chemin)
+        if dossier and not os.path.isdir(dossier):
+            os.makedirs(dossier)
+        with open(chemin, "w", encoding="utf-8", newline="") as fh:
+            fh.write(contenu)
     sortie.write(poids + "\n")
-    sortie.write("NIVEAU %d écarts · %d avertissements — %s\n" % (ecarts, avertissements, projet))
+    if a.ecrire:
+        sortie.write("NIVEAU %d corrigés · %d à la main — %s\n" % (corriges, ecarts, projet))
+    else:
+        sortie.write("NIVEAU %d écarts · %d avertissements — %s\n" % (ecarts, avertissements, projet))
     return 1 if ecarts else 0
 
 
 # --- clore -------------------------------------------------------------------
 
 CLOS_LIGNE = "**CLOS** le %s. Ne se rejoue pas — ne sert plus qu'à relire son socle."
-BRUT = re.compile(r'<td class="mono">[^<]*\(([\d  ]+)\)</td>')
 ENTREE_CLOS = re.compile(r"^- Clos le \S+ : .* \(chantier [A-Z]{1,3}\)\.$")
 ROUTAGE_CLOS = "| relire un chantier clos |"
 
@@ -1450,8 +1601,7 @@ def cmd_clore(a, sortie):
         except ValueError as e:
             sortie.write("GARDE: %s\n" % e)
             return 1
-        anciens = re.findall(r"          <tr>\n.*?          </tr>\n", html[d:f], re.S)
-        anciens = [r for r in anciens if '<td class="mono">&lt;' not in r]
+        anciens = lignes_clos(html[d:f])
         lien = cellule_md(titre) if url.lower().startswith("aucun") else '<a href="%s">%s</a>' % (esc(url), cellule_md(titre))
         ligne = ('          <tr>\n            <td>%s <span class="badge" data-etat="clos">clos</span></td>\n'
                  '            <td class="mono">%s</td><td class="mono">%s</td>\n'
@@ -1459,14 +1609,13 @@ def cmd_clore(a, sortie):
                  % (lien, plage(ids), date, "non mesuré" if a.tokens is None else arrondi(a.tokens), cellule_md(a.livre)))
         corps = ligne + "".join(anciens)
         html = html[:d] + corps + html[f:]
-        total = sum(int(re.sub(r"\D", "", n)) for n in BRUT.findall(corps)) + (a.tokens if a.tokens is not None and a.tokens < 1000 else 0)
+        total = total_clos(corps) + (a.tokens if a.tokens is not None and a.tokens < 1000 else 0)
         html = re.sub(r"(Total cumulé</td><td class=\"mono\"><strong>).*?(</strong></td><td[^>]*>).*?(</td>)",
                       lambda m: m.group(1) + arrondi(total) + m.group(2) + estimation_usd(total) + m.group(3),
                       html, count=1)
         # Le résumé du bloc repliable : ce qu'on voit sans déplier.
         html = re.sub(r"(<span class=\"resume-clos\">).*?(</span>)",
-                      lambda m: m.group(1) + "%d chantiers clos · %s tokens · %s"
-                      % (len(anciens) + 1, arrondi(total), estimation_usd(total)) + m.group(2),
+                      lambda m: m.group(1) + resume_clos(len(anciens) + 1, total) + m.group(2),
                       html, count=1)
         etat = champ(carte_, "fichier d'état")
         try:
@@ -1643,6 +1792,8 @@ def main(argv, sortie=None, entree=None, erreur=None):
     rv.add_argument("projet")
     nv = sous.add_parser("niveau")
     nv.add_argument("projet")
+    nv.add_argument("--ecrire", action="store_true")
+    nv.add_argument("--date")
     fe = sous.add_parser("feuille")
     fe.add_argument("projet")
     fe.add_argument("--todo")
@@ -1691,7 +1842,7 @@ def repartir(a, sortie, entree, erreur):
     if a.cmd == "renvois":
         return cmd_renvois(a.projet, sortie)
     if a.cmd == "niveau":
-        return cmd_niveau(a.projet, sortie)
+        return cmd_niveau(a, sortie)
     if a.cmd == "etat":
         sortie.write("ETAT=%s\n" % nom_etat(a.contexte))
         return 0
