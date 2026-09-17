@@ -46,4 +46,4 @@ Ces fichiers ne se lisent pas en série : chacun répond à une question précis
 | `references/` | on touche au blocage, à la page de chantier ou aux trois contraintes d'une fiche |
 | `cloture.md` | on touche aux cinq écritures d'une clôture |
 | `ARTEFACTS.md` | on touche aux pages publiées : nommage, URL, budget |
-| `INSTALLATION.md` | on change la mise en place |
+| `README.md` | on change la mise en place, ou la présentation du kit |

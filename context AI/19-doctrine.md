@@ -118,7 +118,7 @@ ne rend rien ; `wc -l methode-chantier.md` affiché, à comparer à 127 + 121.
 ---
 
 <!-- FICHE:D3 -->
-## D3 [ ] — Fondre INSTALLATION et le TLDR dans le README
+## D3 [x] — Fondre INSTALLATION et le TLDR dans le README
 
 **Dépend de** : rien.
 **Fichiers** : README.md, INSTALLATION.md (supprimé), TLDR README.txt (supprimé), CLAUDE.md, templates/CLAUDE.md.

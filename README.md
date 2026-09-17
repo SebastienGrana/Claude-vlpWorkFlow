@@ -3,7 +3,7 @@
 Un kit portable — **un seul exemplaire, à côté des projets**, jamais recopié
 dedans. C'est un **plugin Claude Code** : il est chargé là où il est, il n'en
 existe aucune copie. Il apporte cinq commandes, les gabarits de fichiers, et
-la convention qui les tient ensemble.
+la méthode qui les tient ensemble.
 
 Le partage tient en une ligne : **le kit porte le moteur, le projet porte ses
 données.** La méthode, la clôture et les gabarits restent ici et servent tous
@@ -22,140 +22,120 @@ La parade tient en une phrase :
 > **Un chantier s'écrit une fois en fiches, puis chaque fiche s'exécute dans sa
 > propre session.**
 
-Le cadrage — comprendre, découper, nommer les fichiers à ouvrir — est payé
-**une fois**. Chaque fiche démarre ensuite à froid, avec vingt lignes
-d'instructions et trois fichiers nommés, au lieu de traîner tout l'historique.
-
 ## Les trois temps
 
-**1. Cadrage.** `/vlp:chantier` — une session qui **ne code pas**. Elle propose les
-chantiers possibles avec un avis, questionne le résultat visible / la frontière
-/ les inconnues, propose le découpage, écrit le fichier de fiches, puis rend la
-main.
+- **Cadrage** — `/vlp:chantier`, une session qui **ne code pas** : elle propose
+  les chantiers possibles, questionne, découpe en fiches, puis rend la main.
+- **Exécution** — `/vlp:tache R1`, `/clear`, `/vlp:tache R2`… Une fiche par
+  session, jamais deux. `/vlp:enchainer` les joue à la suite, chacune dans un
+  sous-agent neuf — commode, mais plus cher en tokens qu'à la main.
+- **Clôture** — à la dernière case cochée, le chantier est marqué clos et ne se
+  rejoue plus.
 
-**2. Exécution.** `/vlp:tache R1`, `/clear`, `/vlp:tache R2`, `/clear`… Une fiche par
-session, jamais deux. La commande est **autoportante** : elle n'ouvre que ce
-qu'elle nomme, lit elle-même la sortie de vérification, s'arrête à deux
-tentatives, et finit par le critère de fin recopié.
+`/vlp:check` vérifie un projet sans rien écrire. Deux pages publiées suivent
+l'avancement, lisibles depuis un téléphone ; elles ne sont jamais la vérité,
+les fichiers du projet le restent.
 
-`/vlp:enchainer` évite de relancer à la main : il joue les fiches à la suite,
-chacune dans un sous-agent neuf, pose la question quand l'une attend un humain,
-et s'arrête au premier blocage ou après cinq fiches. Commode, mais plus cher en
-tokens que les fiches jouées une à une : son chef relit tout son contexte à
-chaque appel.
+La méthode entière — anatomie d'une fiche, préfixes, où vit quoi — est dans
+`methode-chantier.md` ; les pages publiées, dans `ARTEFACTS.md`.
 
-**3. Clôture.** Dernière case cochée, fichier marqué clos, `CHANTIER.md` mis à
-jour, une ligne dans l'état. Un chantier clos ne se rejoue pas.
+## Installer — un lien, et c'est tout
 
-Et en parallèle, sans rien coûter aux sessions : **deux pages publiées**. Une
-feuille de route par projet, un artefact par chantier — seul le second suit
-les fiches (`ARTEFACTS.md`) — pour savoir où l'on en est depuis un téléphone, sans ouvrir de session.
-Ils ne sont jamais la vérité : les fichiers du projet le restent.
-
-## Ce qu'il y a dans le dossier
-
-```
-.claude-plugin/            LE MANIFESTE — ce qui fait de ce dossier un plugin
-  plugin.json              son nom (`vlp`), sa version
-  marketplace.json         de quoi l'installer aussi par marketplace locale
-commands/                  LE MOTEUR — chargé depuis ici, jamais copié
-  init.md                  /vlp:init      — équiper un projet, en sept questions
-  chantier.md              /vlp:chantier  — cadrer un chantier en fiches
-  tache.md                 /vlp:tache     — exécuter une fiche, une seule
-  enchainer.md             /vlp:enchainer — jouer les fiches à la suite, une par sous-agent
-  check.md                 /vlp:check     — vérifier un projet, sans rien écrire
-agents/                    LES SOUS-AGENTS — chargés depuis ici, comme les commandes
-  fiche.md                 vlp:fiche      — exécuter une seule fiche, pour /vlp:enchainer
-scripts/                   L'OUTIL DE MESURE — lit les transcripts, zéro appel modèle
-  mesure-tokens.py         le coût en tokens d'une session, en comptes bruts
-archive/                   ce qui a servi et ne sert plus — gardé, pas supprimé
-methode-chantier.md        LA DOCTRINE, et où vit quoi — lue depuis le kit, jamais recopiée
-cloture.md                 les cinq écritures d'une clôture, décrites une fois
-enchainement.md            le contrat de retour d'une fiche enchaînée, décrit une fois
-ARTEFACTS.md               les deux pages publiées : nommage, URL, budget
-INSTALLATION.md            la mise en place
-templates/                 LES GABARITS — instanciés dans un projet
-  CHANTIER.md              la carte à la racine du projet : la seule table à tenir
-  CLAUDE.md                l'entrée du projet : identité, état, règles, routage
-  artefact-feuille-de-route.html  la page publiable du projet : TODO, en cours, clos
-  artefact-chantier.html   la page publiable d'un chantier : les fiches et leur état
-  context AI/
-    fichier-de-fiches.md   le squelette d'un chantier découpé
-    00-INDEX.md            l'index du dossier de contexte
-    NN-etat.md             l'état daté, la TODO ordonnée, le journal des décisions
-exemples/
-  CHANTIER-mapdecorator.md vérification visuelle (un jeu : l'utilisateur regarde)
-  CHANTIER-cairn.md        vérification scriptable (la session lance et lit)
-  fichier-de-fiches-cairn.md  extrait réel : socle, ordre, une fiche entière
-```
-
-## Pas de préfixe si le dossier suffit
-
-Un projet équipé porte un `CHANTIER.md` **à sa racine**. Les commandes le
-cherchent en remontant depuis le dossier courant, puis d'un cran plus bas :
-
-- session ouverte **dans le projet** → `/vlp:tache R3`, rien à préciser ;
-- session ouverte **dans un workspace** avec un seul projet équipé → pareil ;
-- workspace avec plusieurs projets équipés → elles demandent lequel, ou
-  acceptent l'alias : `/vlp:tache cairn N2` ;
-- aucun `CHANTIER.md` → elles renvoient vers `/vlp:init` au lieu d'improviser.
-
-C'est aussi ce qui remplace la table centrale des versions précédentes : l'état
-d'un projet vit **dans le projet**, et rien n'est à tenir à jour ailleurs.
-
-## Les quatre exigences d'une fiche
-
-Apprises en cassant, elles font toute la différence entre une fiche qui tient
-en une séance et une qui déborde :
-
-1. **Tout fichier à ouvrir est nommé dans la fiche.** Une fiche qui laisse
-   chercher fait ouvrir trois fichiers au hasard — plus cher que le chantier.
-2. **Aucun libellé ni chiffre inventé.** Les libellés viennent d'une plage de
-   maquette citée ; une mesure qui n'existe pas se demande, elle ne s'annonce
-   pas.
-3. **Un critère de fin observable**, sinon la fiche ne peut pas être cochée —
-   et il affiche ses comptes bruts à côté de son verdict.
-4. **Les fiches sont indépendantes autant que possible** ; les dépendances
-   réelles sont écrites, pas devinées.
-
-Une fiche tient en **~20 lignes**. Si elle en fait 50, c'est deux fiches.
-
-## Les deux pages publiées
-
-Un projet équipé publie une **feuille de route** — la TODO ordonnée, le
-chantier en cours, la table des clos — et, par chantier, une page qui montre
-**les fiches et où l'on en est**, jusqu'à son bilan de clôture.
-
-- `/vlp:init` pose et publie la feuille de route ;
-- `/vlp:chantier` publie l'artefact du chantier qu'il vient de cadrer, et bascule
-  la feuille de route sur « en cours » ;
-- `/vlp:tache` coche la fiche sur la **page du chantier**, marque la suivante, y
-  porte les décisions imprévues — et signale un **arrêt sur blocage** quand il
-  abandonne après deux tentatives. Il ne touche pas à la feuille de route : sa
-  session est la plus serrée de toutes, et une seconde page relue à chaque
-  fiche y coûterait le prix de la fiche ;
-- `/vlp:enchainer` fait de même pour toute une série de fiches, mais ne
-  régénère la page du chantier qu'**une fois**, en fin de lancement ;
-- à la dernière fiche, le chantier passe en « clos » des deux côtés.
-
-Les URL vivent dans `CHANTIER.md` ; elles ne changent jamais. Les fils de
-commentaires d'une page sont le canal de retour entre deux sessions :
-`/vlp:chantier` les lit à la reprise, `/vlp:tache` seulement si on le lui demande,
-`/vlp:enchainer` jamais.
-Détail complet dans `ARTEFACTS.md`.
-
-## Par où commencer
+**1. Récupérer le kit**, une fois, **à côté** des projets, jamais dedans :
 
 ```bash
 git clone https://github.com/SebastienGrana/Claude-vlpWorkFlow.git
 ```
 
-Puis `INSTALLATION.md` — un lien à poser une fois par machine — et `/vlp:init`
-dans le projet. Ensuite `/vlp:chantier`.
+```
+ProgPerso/
+  Claude-vlpWorkflow/   <- le kit, une fois
+  MonProjet/            <- les projets, à côté
+```
 
-Et une règle qui n'a plus besoin d'être retenue, parce qu'elle est devenue
-impossible à enfreindre : **il n'y a plus de copie installée.** Le kit est un
-plugin, chargé là où il est. On l'édite, et la prochaine session lit ce qu'on
-vient d'écrire — il n'y a rien à repousser, rien à synchroniser, rien qui puisse
-diverger. C'est ce qui a remplacé les six exemplaires qui avaient divergé de
-cinq cents lignes.
+Pour modifier le kit : `git config core.hooksPath .githooks` dans le clone, et
+chaque commit passe par `claude plugin validate`.
+
+**2. Le déclarer à Claude Code**, une fois par machine. Un dossier posé dans
+`~/.claude/skills/` et portant un `.claude-plugin/plugin.json` se charge tout
+seul, dans tous les projets ; ce dossier peut être un **lien** vers le kit —
+donc rien n'est copié.
+
+Sur Windows (PowerShell, sans droits administrateur) :
+
+```powershell
+New-Item -ItemType Junction -Path "$env:USERPROFILE\.claude\skills\vlp" -Target "<chemin>\Claude-vlpWorkflow"
+```
+
+Sur macOS ou Linux :
+
+```bash
+ln -s "<chemin>/Claude-vlpWorkflow" ~/.claude/skills/vlp
+```
+
+Les commandes deviennent `/vlp:init`, `/vlp:chantier`, `/vlp:tache`,
+`/vlp:enchainer` et `/vlp:check`, avec l'agent `vlp:fiche`. Le préfixe `vlp:`
+évite qu'un `/tache` d'ailleurs prenne la place du tien. **Si tu déplaces le
+kit**, refais le lien ; `/vlp:check` dira quels `CHANTIER.md` le citent encore
+à l'ancien endroit.
+
+**3. Équiper le projet** : une session ouverte **dans le dossier du projet**,
+puis `/vlp:init`. Sept questions, à préparer :
+
+1. le projet en une phrase — ce qu'il fait, ce qu'il ne fait pas ;
+2. un alias court (`md`, `cairn`, `api`) — il ne sert que dans un workspace ;
+3. le nom du dossier de contexte (`context AI/` par défaut) ;
+4. la **livraison** : la commande qui met le code en place, ou « aucune » ;
+5. la **vérification** : une commande que la session lance et lit elle-même,
+   ou un geste que seul l'utilisateur peut faire ;
+6. trois ou quatre **contraintes d'écriture** propres au projet ;
+7. les **chantiers qu'on voit venir** : deux à cinq, une ligne chacun.
+
+`CHANTIER.md`, `CLAUDE.md` et le dossier de contexte sont posés, la feuille de
+route est publiée. Puis `/clear`, et `/vlp:chantier`. Sans commande, le même
+résultat s'obtient en instanciant soi-même les gabarits de `templates/`.
+
+## Vérifier que ça marche
+
+Depuis le dossier du projet, `/vlp:chantier` doit annoncer le projet **sans
+rien demander**. S'il demande lequel, `CHANTIER.md` n'est pas à la racine, ou
+la session a été ouverte au niveau du workspace. Plus tard, au moindre doute —
+page qui ne ressemble plus au fichier, session interrompue —, `/vlp:check`
+mesure et compare, et propose des corrections sans rien écrire.
+
+## Quand le kit change
+
+Tu édites le fichier dans le kit, et c'est fini : **rien à synchroniser**, il
+n'y a pas de copie. `/reload-plugins` pour que la session en cours le voie ;
+sinon la suivante le verra d'elle-même.
+
+## Dans un workspace, plusieurs projets équipés
+
+Chaque projet porte son `CHANTIER.md` à sa racine. Les commandes le cherchent
+en remontant depuis le dossier courant, puis d'un cran plus bas :
+
+- session ouverte **dans le projet**, ou dans un workspace à un seul projet
+  équipé → `/vlp:tache R3`, rien à préciser ;
+- plusieurs projets équipés → elles demandent lequel, ou acceptent l'alias :
+  `/vlp:tache cairn N2` ;
+- aucun `CHANTIER.md` → elles renvoient vers `/vlp:init`.
+
+## Ce qu'il y a dans le dossier
+
+```
+.claude-plugin/            LE MANIFESTE — plugin.json (nom, version), marketplace.json
+commands/                  LE MOTEUR — init, chantier, tache, enchainer, check
+agents/fiche.md            le sous-agent qui joue une fiche pour /vlp:enchainer
+hooks/hooks.json           valide un fichier de fiches à chaque écriture
+scripts/                   LA MÉCANIQUE — Python sans dépendance, zéro appel modèle
+  vlp.py                   carte, extraire, socle, valider, page… (docstring)
+  mesure-tokens.py         le coût en tokens d'une session, en comptes bruts
+references/                les morceaux partagés que les commandes lisent
+methode-chantier.md        LA DOCTRINE, et où vit quoi — lue depuis le kit, jamais recopiée
+cloture.md                 les cinq écritures d'une clôture, décrites une fois
+enchainement.md            le contrat de retour d'une fiche enchaînée, décrit une fois
+ARTEFACTS.md               les deux pages publiées : nommage, URL, budget
+templates/                 LES GABARITS — instanciés dans un projet
+archive/                   ce qui a servi et ne sert plus — gardé, pas supprimé
+exemples/                  un CHANTIER.md visuel, un scriptable, un extrait de fiches
+```
