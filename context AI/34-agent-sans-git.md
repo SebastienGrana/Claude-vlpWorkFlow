@@ -108,7 +108,7 @@ Sondes : 3 lancements, **0,26 $** au total.
 ---
 
 <!-- FICHE:Q2 -->
-## Q2 [ ] — Donner `PowerShell` au sous-agent et lui retirer `cat`
+## Q2 [x] — Donner `PowerShell` au sous-agent et lui retirer `cat`
 
 **Dépend de** : `Q1`.
 **Fichiers** : `agents/fiche.md`, `skills/jouer/SKILL.md`, `scripts/test-vlp.py`.
@@ -124,6 +124,17 @@ règles du socle (une commande simple par ligne, `;` entre deux, pas de `&&` ni 
 `grep -c 'cat "' agents/fiche.md` = 0 et `grep -c 'PowerShell' agents/fiche.md` ≥ 1, comptes avant/après affichés ;
 `py scripts/test-vlp.py` rend « OK » ; `"$C" plugin validate .` passe (1 avertissement voulu) ;
 `py scripts/vlp.py renvois .` sans ligne `0 absent` en défaut.
+
+**Mesuré** (2026-09-17) — `agents/fiche.md`, comptes avant → après : `cat "` **1 → 0**, `PowerShell` **0 → 1**
+(la ligne `tools:`), `grep -n` **1 → 0**. Trois gestes : `tools: … Bash, PowerShell` ; l'étape 1 lit le kit par
+`<python> "<kit>/scripts/vlp.py" lire enchainement.md skills/tache/references/…` (chemins relatifs au kit, `lire`
+les y résout) au lieu du `cat` et de son repli `Read` ; l'étape 5 coche par `vlp.py cocher`, et le repérage d'une
+ligne avant `Edit` passe de `grep -n` à `valider --plan`. L'intro dit d'où vient `<python>` (`PYTHON=` de la carte)
+et interdit `cat`, `ls`, `&&`, `||`, les tuyaux. `skills/jouer/SKILL.md` porte déjà la carte et `<python>` :
+rien à y changer. Preuves : `test-vlp.py` « OK », `renvois .` 45 nommés · 0 absents, `plugin validate .`
+« Validation passed ». Doc lue (`code.claude.com/docs/en/sub-agents.md`) : `PowerShell` est un nom d'outil valide
+pour un sous-agent, et un **fork reçoit le pool exact de la conversation principale** — un agent de plugin ne peut
+en revanche pas porter `permissionMode` (ignoré), ce qui se vérifiera en `Q4`.
 <!-- /FICHE -->
 
 ---
