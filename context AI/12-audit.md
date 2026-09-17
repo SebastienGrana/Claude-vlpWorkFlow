@@ -12,35 +12,37 @@ le détail de ce que chaque chantier vise.
 
 ## Les mesures brutes
 
-Script ad hoc sur `~/.claude/projects/<kit slugifié>/*.jsonl` — tours =
-messages `assistant` ; contexte d'un tour = input + cache_creation +
-cache_read.
+Recompté le 2026-09-17 par `scripts/mesure-tokens.py` (chantier T) — un
+tour = un `message.id` ; contexte d'un tour = input + cache_creation +
+cache_read ; `equiv` et `usd` pondérés sur la grille de prix. La première
+version de cette table comptait les lignes `assistant` : ×1,7 à ×4,6.
 
-| Session | Commande | Tours | Ctx 1er tour | Ctx dernier | Total brut |
-|---|---|---|---|---|---|
-| ba2e8409 | `/vlp:tache` | 51 | 82 562 | 135 729 | 5 473 891 |
-| ca51f6e9 | `/vlp:tache` (C1) | 59 | 82 823 | 130 801 | 6 406 759 |
-| c49b72aa | `/vlp:tache` (M3) | 70 | 82 497 | 129 446 | 7 308 953 |
-| a70a363d | `/vlp:tache` | 72 | 81 903 | 127 541 | 7 483 331 |
-| dd7e5a7f | `/vlp:tache` (M4) | 122 | 82 830 | 152 347 | 14 227 064 |
-| c6c476f5 | `/vlp:tache` (E7) | 128 | 70 016 | 121 708 | 14 668 174 |
-| be0a1961 | `/vlp:chantier` | 88 | 80 901 | 166 647 | 10 794 674 |
-| 37331eef | `/vlp:enchainer` | 13 | 77 917 | 84 656 | 1 057 612 (chef seul) |
-| c65ff31d | *(aucune commande vlp)* | 10 | 75 190 | 81 883 | 807 834 |
+| Session | Commande | tours | appels | ctx_1er | ctx_dernier | input | output | cache_creation | cache_1h | cache_read | total | equiv | usd |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| ba2e8409 | `/vlp:tache` | 29 | 22 | 82 562 | 135 729 | 58 | 21 401 | 74 805 | 74 805 | 3 078 226 | 3 174 490 | 564 496 | 1.13 |
+| ca51f6e9 | `/vlp:tache` (C1) | 31 | 32 | 82 823 | 130 801 | 62 | 17 171 | 74 353 | 26 375 | 3 326 286 | 3 417 872 | 531 268 | 1.06 |
+| c49b72aa | `/vlp:tache` (M3) | 34 | 31 | 82 497 | 129 446 | 68 | 10 219 | 71 477 | 71 477 | 3 517 106 | 3 598 870 | 545 828 | 1.09 |
+| a70a363d | `/vlp:tache` | 40 | 40 | 81 903 | 127 541 | 80 | 21 177 | 75 962 | 75 962 | 4 128 698 | 4 225 917 | 670 759 | 1.34 |
+| dd7e5a7f | `/vlp:tache` (M4) | 66 | 63 | 82 830 | 152 347 | 132 | 35 388 | 194 394 | 194 394 | 7 533 470 | 7 763 384 | 1 319 207 | 2.64 |
+| c6c476f5 | `/vlp:tache` (E7) | 28 | 82 | 70 016 | 121 708 | 690 | 66 396 | 376 245 | 94 040 | 2 718 975 | 3 162 306 | 1 145 404 | 5.73 |
+| be0a1961 | `/vlp:chantier` | 45 | 43 | 80 901 | 166 647 | 90 | 36 263 | 110 199 | 104 577 | 5 452 566 | 5 599 118 | 942 843 | 1.89 |
+| 37331eef | `/vlp:enchainer` (chef seul) | 6 | 6 | 77 917 | 84 656 | 12 | 1 073 | 27 528 | 20 789 | 459 026 | 487 639 | 101 281 | 0.20 |
+| c65ff31d | *(aucune commande vlp)* | 5 | 0 | 75 190 | 81 883 | 10 | 8 528 | 27 205 | 27 205 | 368 174 | 403 917 | 133 877 | 0.27 |
 
 Ce que ça dit :
 
 - socle de session **sans** commande vlp : 75 113–76 788 (4 sessions) ; avec
   `/vlp:tache` au 1er tour : 81 903–83 021 → commande + `CHANTIER.md`
   ≈ 6–7 k tokens, **~8 % du 1er tour** ;
-- une fiche = **51 à 128 tours**, 22 à 82 appels d'outils ; `Bash` 10–32,
-  `Edit` 1–34, `Artifact` 2–8 par fiche ;
+- une fiche = **28 à 66 tours**, 22 à 82 appels d'outils ; `Bash` 11–32,
+  `Edit` 3–34, `Artifact` 2–6 par fiche (les six `/vlp:tache`) ;
 - coût ≈ contexte × tours : **le kit optimise les lignes, la facture est
   dans les tours** — un tour de plus à 120 k pèse 100 fois un socle de
   80 lignes ;
 - `scripts/mesure-tokens.py` compte `cache_read` au même poids qu'un token
   frais ; la facturation, non (fraction du prix — à vérifier sur la grille).
-  Les « 15,4 M » du chantier C sont surtout du cache relu.
+  Les 7,8 M du chantier C sont surtout du cache relu. Pondéré depuis le
+  chantier T : colonnes `equiv` et `usd`.
 
 ## Bugs — ça casse ou ça ment aujourd'hui
 
@@ -133,7 +135,7 @@ Ce que ça dit :
 - 18 ko pour dire « lis peu ». « 250 lignes » vit à six endroits.
 - `/vlp:check` vérifie une ligne qui n'existe pas, muet depuis le 1er jour.
 - La TODO du projet qui explique comment tenir une TODO était vide.
-- Une fiche fait 20 lignes et 70 tours ; le kit compte les lignes.
+- Une fiche fait 20 lignes et jusqu'à 66 tours ; le kit compte les lignes.
 - « Aucun code applicatif » — la mécanique est en prose, exécutée par le
   modèle à 1 000 tokens le tour : du code, en plus cher, sans test.
 - Le cœur est bon ; c'est le moteur qui est en prose.

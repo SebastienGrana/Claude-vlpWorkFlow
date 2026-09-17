@@ -73,7 +73,7 @@ dans cet ordre :
 - **Une tâche, une session.** `/clear` entre deux tâches : une session laissée
   ouverte relit tout son passé à chaque tour.
 - **Le coût est dans les tours, pas dans les lignes** (mesuré : une fiche =
-  51–128 tours, la commande = 8 % du premier tour). Grouper les lectures en un
+  28–66 tours, la commande = 8 % du premier tour). Grouper les lectures en un
   appel, injecter la carte avant le premier tour, ne jamais retaper ce qu'un
   script régénère.
 - **Explorer et lire avec un modèle léger**, garder le lourd pour ce qui décide.

@@ -19,7 +19,7 @@
   `vlp:fiche` déclarés dans toute la doc.
 - **2026-09-17** — audit complet du kit (`12-audit.md`) : 11 bugs, 7
   fragilités, 19 transcripts mesurés. Constat central : une fiche coûte
-  51 à 128 tours ; la commande ne pèse que ~8 % du premier tour. Les dix
+  28 à 66 tours (recompté par le chantier T) ; la commande ne pèse que ~8 % du premier tour. Les dix
   chantiers qui en sortent sont la TODO ci-dessous.
 
 ## La TODO ordonnée — les chantiers possibles
@@ -84,8 +84,9 @@ de ce que le code dit déjà.
   fiche (`tache.md`) et à la clôture (`cloture.md`), proposition de
   commit/push à la clôture — jamais sans confirmation, à chaque fois. Total
   brut mesuré sur les sessions de M3 et M4 (seules fiches à porter une ligne
-  `**Session**`) : input 258, output 54 987, cache_creation 612 191,
-  cache_read 12 363 023, **total 13 030 459 tokens**.
+  `**Session**`), recompté par T5 : 100 tours, 94 appels, input 200, output
+  45 607, cache_creation 265 871, cache_read 11 050 576, **total 11 362 254
+  tokens**, 3,73 $.
 - **2026-09-17** — `/vlp:enchainer` **remis tel quel**, à la demande, coût
   connu. `commands/enchainer.md`, `agents/fiche.md` et `enchainement.md`
   (version E7) n'avaient jamais été commités : reconstitués depuis les
@@ -98,14 +99,15 @@ de ce que le code dit déjà.
 - **2026-09-17** — Chantier C **clos**. Livré : le coût en tokens sur toutes
   les pages — par fiche et en total sur l'artefact de chantier (fiches à ligne
   `**Session**`), colonne Tokens et total cumulé dans la table des clos de la
-  feuille de route, au format `≈15,4M (15 389 496)` ; M reporté après coup, E
+  feuille de route, au format `≈7,8M (7 816 316)` ; M reporté après coup, E
   « non mesurable ». Laissé ouvert : pas de cumul entre projets (exclu) ; une
   fiche jouée par `/vlp:enchainer` n'a pas de ligne `**Session**`, donc aucun
   coût affiché. Constat qui vaut au-delà de C : le coût affiché en fin de fiche
   est un instantané, la session consomme encore après (C1 : 4 393 030 affichés
   sur la page à la fiche, 6 406 759 mesurés à la clôture). Total brut mesuré
-  sur les sessions de C1 et C2 : input 272, output 104 483, cache_creation
-  372 768, cache_read 14 911 973, **total 15 389 496 tokens**.
+  sur les sessions de C1 et C2, recompté par T5 : 68 tours, 68 appels, input
+  136, output 50 466, cache_creation 173 480, cache_read 7 592 234, **total
+  7 816 316 tokens**, 2,54 $.
 - **2026-09-17** — T1 : sans `message.id`, `mesure-tokens.py` repère un tour
   par `requestId`, puis par sa ligne ; sur la ligne `TOTAL`, `ctx_1er` et
   `ctx_dernier` valent `-`, un contexte ne se somme pas. Mesuré sur C1 : le
@@ -126,3 +128,10 @@ de ce que le code dit déjà.
   Vérification jouée sans geste de l'utilisateur (fiches enchaînées) : les
   blocs de `tache.md` et `cloture.md` exécutés tels qu'écrits ; le rejeu réel
   de `/vlp:tache` sur un projet équipé reste à faire.
+- **2026-09-17** — T5 : M et C recomptés ; anciens chiffres : M 13 030 459, C 15 389 496, une fiche « 51 à 128 tours ».
+  Nouveaux : M 11 362 254 (100 tours), C 7 816 316 (68 tours), une fiche
+  `/vlp:tache` = 28 à 66 tours. L'ancien script comptait chaque ligne
+  `assistant` : ×1,7 à ×2,2 sur huit des neuf sessions de l'audit, ×4,6 sur
+  E7 (128 lignes pour 28 tours : appels d'outils en parallèle). Le bilan de M
+  ne baisse que de ×1,15 : il avait été pris avant la fin de ses sessions.
+  Les pages de chantier M et C gardent les anciens chiffres : archives.

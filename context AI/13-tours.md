@@ -206,8 +206,9 @@ sur cet id rendent une table. Affiche les trois sorties.
 ---
 
 <!-- FICHE:T5 -->
-## T5 [ ] — Rejouer les mesures de M et C
+## T5 [x] — Rejouer les mesures de M et C
 
+**Session** : 0239e4db-1265-485d-ab3c-bb5097b2ecb8
 **Dépend de** : `T1`, `T2`, `T3`.
 **Fichiers** : context AI/08-etat.md (bilans M l.85-88 et C l.104-107, journal),
 context AI/12-audit.md (table l.13-44 et la phrase « 51 à 128 tours »),

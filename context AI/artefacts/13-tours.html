@@ -60,9 +60,9 @@
       de session, sans deviner. Les totaux de M et C sont recomptés.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">5 fiches · 4 faites · en cours : T5</p>
+    <p class="mono" style="margin-top:.5rem">5 fiches · 5 faites</p>
   </header>
 
   <section>
@@ -93,13 +93,14 @@
         <span class="note">grep scratchpad dans Coût de la fiche : 0 ; grep CLAUDE_CODE_SESSION_ID : 1 ; SESSION non vide et table rendue. Blocs exécutés tels qu'écrits ; rejeu réel de /vlp:tache à faire.</span>
         <span class="cout mono">≈3,2M (3 215 759)</span>
       </li>
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">T5</span><span class="titre">Rejouer les mesures de M et C</span>
-        <span class="etat">en cours</span>
-        <span class="note">Totaux de M et C recomptés dans l'état, l'audit, CLAUDE.md et la feuille de route · dépend de T1, T2, T3</span>
+        <span class="etat">faite</span>
+        <span class="note">M : 100 tours, total 11362254 ; C : 68 tours, total 7816316 ; grep des anciens chiffres : seule la ligne datée du journal ; feuille de route republiée.</span>
+        <span class="cout mono">≈5,3M (5 282 597)</span>
       </li>
     </ul>
-    <p class="mono cout-total">Coût du chantier : ≈10,1M (10 087 696)</p>
+    <p class="mono cout-total">Coût du chantier : ≈15,4M (15 370 293)</p>
   </section>
 
   <!-- ZONE:blocage — publiée quand /tache s'arrête après deux tentatives ; retirée dès que la fiche repasse -->
@@ -119,6 +120,7 @@
       <li><time>2026-09-17</time><span>T2 : un fichier passé plusieurs fois à mesure-tokens.py n'est compté qu'une fois. T2 à T5 jouées d'affilée dans la session de T1 : le coût d'une fiche y est l'écart du compteur de session depuis la fiche précédente.</span></li>
       <li><time>2026-09-17</time><span>T3 : un tour à comptes nuls (&lt;synthetic&gt;) coûte 0 ; un tour fast compte comme modèle inconnu, la grille ne donnant pas le prix de son cache. Ratios non communs (cache lu 0,025 sur Fable 5.1) : modèle inconnu, equiv et usd valent « ? ».</span></li>
       <li><time>2026-09-17</time><span>T4 : le cumul passe l'id de session en tête du flux de xargs -0, qui sous macOS ne lance rien sur une entrée vide. Vérifié en exécutant les blocs tels qu'écrits ; le rejeu réel de /vlp:tache sur un projet équipé reste à faire.</span></li>
+      <li><time>2026-09-17</time><span>T5 : M et C recomptés (anciens : M 13 030 459, C 15 389 496, une fiche « 51 à 128 tours »). Nouveaux : M 11 362 254, C 7 816 316, une fiche /vlp:tache = 28 à 66 tours. L'ancien script comptait chaque ligne assistant : ×1,7 à ×2,2, ×4,6 sur E7. Pages de M et C gardées en archives.</span></li>
     </ul>
   </section>
 
