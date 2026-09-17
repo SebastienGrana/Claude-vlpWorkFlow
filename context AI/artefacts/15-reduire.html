@@ -91,7 +91,7 @@
         <span class="cout mono">≈2,0M (1 995 372) · 9 tours · 1,57 $</span>
       </li>
     </ul>
-    <p class="mono cout-total">Coût du chantier, cadrage compris : ≈11,1M (11 125 440) · 9,21 $</p>
+    <p class="mono cout-total">Coût du chantier, cadrage compris : ≈11,8M (11 840 151) · 75 tours · 9,69 $</p>
   </section>
 
   <!-- ZONE:blocage — publiée quand /tache s'arrête après deux tentatives ; retirée dès que la fiche repasse -->
@@ -115,10 +115,11 @@
   </section>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
-  <section hidden>
-    <h2>Chantier clos le </h2>
+  <section>
+    <h2>Chantier clos le 2026-09-17</h2>
     <div class="bilan">
-      <p></p>
+      <p>Livré : tache.md en 150 lignes de corps (385 avant), la carte du projet injectée avant le premier tour par scripts/carte.py, fiche + socle + contraintes en un appel, coût + page en un appel, le rare dans references/. Appels prescrits 14 → 9 ; octets relus par fiche 18 471 → 11 518.</p>
+      <p>Ce qui a surpris : sous Windows et macOS, la recherche du projet prenait commands/chantier.md pour CHANTIER.md ; une commande modifiée n'est pas relue sans /reload-plugins. Reste à mesurer le gain en tours réels, sur un rejeu dans une session neuve.</p>
     </div>
   </section>
 

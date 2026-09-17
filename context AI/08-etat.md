@@ -25,6 +25,8 @@
   se mesurent ; les numéros de la TODO sont gardés, le 2 est retiré.
 - **2026-09-17** — chantier B clos (TODO n° 1) : les bugs de l'audit sont
   corrigés ; le 1 est retiré, 6 et 10 ne dépendent plus de rien.
+- **2026-09-17** — chantier R clos (TODO n° 3) : `/vlp:tache` prescrit 9
+  appels au lieu de 14 ; le 3 est retiré, 8 ne dépend plus de rien.
 
 ## La TODO ordonnée — les chantiers possibles
 
@@ -34,12 +36,11 @@ ordonné par ce qui débloque le reste. Le détail de chacun est dans
 
 | # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |
 |---|---|---|---|---|
-| 3 | Réduire les tours de `/vlp:tache` | carte injectée par `` !`cat CHANTIER.md` ``, lectures groupées, corps ≤ 150 lignes, le rare en fichiers de référence | 4 fiches | rien |
 | 4 | Un script `vlp.py` pour la mécanique | extraire, socle, état, régénérer la page, valider — remplace les `sed`/`awk` et le HTML retapé par le modèle | 5 fiches | rien |
 | 5 | Hooks du kit | `PostToolUse` valide un fichier de fiches à l'écriture ; `SessionStart` injecte la carte ; fin des « recopie à l'identique » | 3 fiches | 4 |
 | 6 | Evals du plugin | `claude plugin eval` sur un bac à sable, graders gratuits, baseline sans plugin ; `validate` avant commit | 3 fiches | rien |
 | 7 | Fusionner la doctrine | cinq fichiers de doc → trois ; chaque nombre vit une fois | 3 fiches | rien |
-| 8 | Migrer `commands/` → `skills/` | un dossier par commande, `disable-model-invocation`, variante `context: fork` + `vlp:fiche` | 3 fiches | 3 |
+| 8 | Migrer `commands/` → `skills/` | un dossier par commande, `disable-model-invocation`, variante `context: fork` + `vlp:fiche` | 3 fiches | rien |
 | 9 | `/vlp:enchainer` : réparer ou retirer | chef ≤ 3 tours par fiche via la skill forkée, ou suppression — aux chiffres de 2 | 3 fiches | 8 |
 | 10 | Un projet neuf qui ne ment pas | `/vlp:init` crée ce que l'index et le routage nomment ; numéro d'état pris à la suite | 2 fiches | rien |
 
@@ -206,3 +207,21 @@ de ce que le code dit déjà.
   `/reload-plugins`, puis `/vlp:tache` sans argument dans une session neuve
   sur un projet équipé, mesuré par `mesure-tokens.py` — seul chiffre qui
   confirmera le gain en tours.
+- **2026-09-17** — Chantier R **clos**. Livré : `commands/tache.md` en 150
+  lignes de corps (385 avant) ; la carte du projet injectée avant le 1er tour
+  par `scripts/carte.py` (testé, `test-carte.py`), aussi dans `enchainer.md` ;
+  fiche, socle et contraintes en un appel ; coût et page en un appel ; blocage,
+  page et contraintes dans `references/`, lus aussi par `enchainer.md` et
+  `agents/fiche.md` — plus aucune commande ne découpe `tache.md` ; point 13
+  corrigé. Appels prescrits sur le chemin heureux 14 → 9 ; octets relus par
+  fiche 18 471 → 11 518. Laissé ouvert : le gain en **tours réels** n'est pas
+  mesuré — il faut `/reload-plugins`, puis `/vlp:tache` dans une session neuve
+  sur un projet équipé, et `mesure-tokens.py` sur cette session ; la page
+  (6 bis) coûte toujours 5 appels, c'est le chantier `vlp.py`. Constat qui vaut
+  au-delà de R : `[ -f "$d/CHANTIER.md" ]` est vrai pour `chantier.md` sous
+  Windows et macOS — `/vlp:chantier` et `/vlp:init` gardent cette boucle ; et
+  une commande de plugin modifiée n'est pas relue sans `/reload-plugins`. R1 à
+  R4 jouées d'affilée dans la session du cadrage, à la demande. Total brut
+  mesuré sur cette session à la clôture : 75 tours, 87 appels, input 150,
+  output 77 488, cache_creation 197 055, cache_read 11 565 458, **total
+  11 840 151 tokens**, 9,69 $.

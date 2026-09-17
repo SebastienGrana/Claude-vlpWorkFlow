@@ -1,8 +1,10 @@
-> **QUAND LIRE** : on joue une fiche `R*` de ce chantier, ou on se demande où
+> **QUAND LIRE** : on relit le socle du chantier R (clos), ou on se demande où
 > il en est. `/vlp:tache R<n>` n'en lit que le socle commun et sa fiche — jamais
 > ce fichier en entier.
 
 # Chantier R — Réduire les tours de `/vlp:tache`
+
+**CLOS** le 2026-09-17. Ne se rejoue pas — ne sert plus qu'à relire son socle.
 
 **À quoi il sert.** Une fiche coûte 28 à 66 tours (`12-audit.md`) : la facture
 est dans les tours, pas dans les lignes. Le chantier retire à `/vlp:tache` les
