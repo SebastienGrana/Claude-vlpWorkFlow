@@ -47,7 +47,7 @@ Aucune n'est parallélisable : chacune fixe ce que la suivante écrit.
 ---
 
 <!-- FICHE:J1 -->
-## J1 [ ] — Mesurer la croissance des trois fichiers
+## J1 [x] — Mesurer la croissance des trois fichiers
 
 **Dépend de** : rien.
 **Fichiers** : `CLAUDE.md`, `CHANTIER.md`, `context AI/00-INDEX.md` (par `git show <commit>:<fichier>`), `git log --grep="clos :"`.
@@ -62,6 +62,29 @@ Propose les trois seuils et le nombre de clos gardés dans « Où on en est », 
 **Critère de fin**
 Un bloc « **Mesuré** » sous cette fiche : table commit × fichier (lignes, octets), croissance par chantier, estimation
 de coût, et les seuils retenus avec leur raison.
+
+**Mesuré** (2026-09-17, `git show <c>:<f> | tr -d '\r' | wc -lc` ; sections par `awk`/`grep -c`) — lignes/octets :
+
+| Commit | `CLAUDE.md` | `CHANTIER.md` | index | « Où on en est » | routage clos | table clos | index clos |
+|---|---|---|---|---|---|---|---|
+| `7e0eebc` L clos | 103/6958 | 64/4526 | 53/3588 | 24 | 14 | 14 | 14 |
+| `c147e3d` P | 105/7144 | 65/4666 | 54/3703 | 25 | 15 | 15 | 15 |
+| `753611f` A | 107/7349 | 66/4816 | 55/3828 | 26 | 16 | 16 | 16 |
+| `061e287` G | 109/7542 | 67/4945 | 56/3932 | 27 | 17 | 17 | 17 |
+| `1d087dc` W | 111/7724 | 68/5065 | 57/4027 | 28 | 18 | 18 | 18 |
+| `31be407` X | 113/7927 | 69/5206 | 58/4125 | 29 | 19 | 19 | 19 |
+| `5b01fd9` F | 115/8134 | 70/5345 | 59/4239 | 30 | 20 | 20 | 20 |
+| `cdfb351` O | 117/8327 | 71/5479 | 60/4348 | 31 | 21 | 21 | 21 |
+
+Croissance par chantier, constante sur 7 clôtures : `CLAUDE.md` +2 lignes (+196 octets : 1 routage, 1 « puis »),
+`CHANTIER.md` +1 (+136, la table), index +1 (+109). Compactable aujourd'hui : routage clos 2 258 octets, table des clos
+2 251, « Où on en est » 2 343 (dont ~2/3 hors 5 derniers clos).
+**Estimation** (octets / 3,5, cache lu à 0,5 $/M — grille Opus 5 de `mesure-tokens.py`) : `CLAUDE.md` −~1 100 tokens par
+tour × 67 tours ≈ 0,04 $ par session de chantier ; `CHANTIER.md` −~640 tokens par injection (6 par session comme O) ≈ 0,07 $.
+Soit ≈ 0,1 $ sur ~10 $ (≈ 1 %) : le gain est la croissance stoppée et la lecture, pas l'argent.
+**Seuils retenus** : `SEUIL_CLAUDE` 80 (117 − 20 routage − ~19 « Où on en est » ≈ 78 : juste, J4 peut resserrer la prose) ;
+`SEUIL_CHANTIER` 50 (71 − 21 lignes de table − 4 d'en-tête ≈ 46) ; `SEUIL_INDEX` 80 (l'index garde tout, +1 par chantier :
+avertit dans ~20 chantiers, c'est voulu) ; `CLOS_GARDES` 5 (la section s'appelle « en cinq lignes »).
 <!-- /FICHE -->
 
 ---

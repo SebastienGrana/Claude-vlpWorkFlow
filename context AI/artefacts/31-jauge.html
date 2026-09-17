@@ -68,23 +68,23 @@
     <p>CLAUDE.md et CHANTIER.md du kit sous leur seuil de vlp.py, et une clôture simulée n'y ajoute plus de ligne</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="encours"></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">4 fiches · 0 faite · en cours : J1</p>
+    <p class="mono" style="margin-top:.5rem">4 fiches · 1 faite · en cours : J2</p>
   </header>
 
   <section>
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">J1</span><span class="titre">Mesurer la croissance des trois fichiers</span>
-        <span class="etat">en cours</span>
-        <span class="note">La croissance des trois fichiers mesurée sur 8 clôtures, et les seuils retenus</span>
+        <span class="etat">faite</span>
+        <span class="note">8 clôtures mesurées : CLAUDE.md +2 lignes/chantier (103 → 117), CHANTIER.md +1 (64 → 71), index +1 (53 → 60) ; gain estimé ≈ 0,1 $/session ; seuils 80/50/80, 5 clos gardés</span>
       </li>
-      <li class="fiche">
+      <li class="fiche" data-etat="encours">
         <span class="id">J2</span><span class="titre">Poser les seuils dans vlp.py, avertis par renvois</span>
-        <span class="etat">à faire</span>
+        <span class="etat">en cours</span>
         <span class="note">Les seuils dans vlp.py, une ligne POIDS dans renvois — dépend de J1</span>
       </li>
       <li class="fiche">
