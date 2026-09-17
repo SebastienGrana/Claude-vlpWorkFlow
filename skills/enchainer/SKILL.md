@@ -1,6 +1,7 @@
 ---
 description: Enchaîne plusieurs fiches du chantier courant, chacune dans un sous-agent neuf, jusqu'à un arrêt prévu ou le plafond
 argument-hint: (rien) | <alias>
+model: sonnet
 allowed-tools: Bash(python3:*), Bash(python:*), Bash(grep:*), Bash(cat:*), Bash(ls:*), Bash(pwd:*), Bash(cd:*), Skill, Artifact
 ---
 
@@ -43,7 +44,8 @@ PY=$(for p in python3 python; do "$p" -c "" 2>/dev/null && { echo "$p"; break; }
 Un écart de `valider` : arrête-toi et montre-le. **Garde** : fichier non vide
 mais `grep` muet → arrête-toi et montre la sortie brute.
 
-Retiens les fiches non cochées, dans l'ordre. La série s'arrête à la première
+Retiens les fiches non cochées, dans l'ordre ; une fiche cochée n'est ni
+rejouée ni vérifiée, même écrite dans cette session. La série s'arrête à la première
 dont la ligne `**Critère de fin**` porte `(visuel)` — incluse —, ou au plafond
 de 5. Annonce-la en une ligne (« je joue E5 → E7, arrêt prévu à E7
 (visuel) ») ; tu n'attends pas de réponse.
@@ -70,6 +72,8 @@ Pour chaque fiche de la série, dans l'ordre :
 `Result`, ou depuis les lignes de l'étape 2 pour un arrêt imprévu : ce qu'on
 attend de l'utilisateur, et pourquoi. Si la réponse lève le blocage, coche la
 fiche (`## <fiche> [ ]` → `[x]`, une seule ligne) ; sinon, laisse la case.
+Aucun autre outil : ni lecture, ni copie, ni vérification, ni correction —
+c'est le travail d'une fiche, pas du chef.
 Puis prolonge la série — jusqu'à la prochaine `(visuel)` incluse, sans
 dépasser le plafond compté depuis le début — et reprends l'étape 3.
 

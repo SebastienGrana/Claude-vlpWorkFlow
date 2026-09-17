@@ -77,7 +77,7 @@ par son nom pour le cas d'une `GARDE:`.
 ---
 
 <!-- FICHE:L2 -->
-## L2 [ ] — Questionner sans agir, et régler modèle et `maxTurns`
+## L2 [x] — Questionner sans agir, et régler modèle et `maxTurns`
 
 **Dépend de** : rien.
 **Fichiers** : `skills/enchainer/SKILL.md` (étapes 3 et 3 bis), `agents/fiche.md`, doc des skills (frontmatter `model`).

@@ -3,7 +3,7 @@ name: fiche
 description: Exécute une seule fiche vlp et rend FAITE, RETOUR ou BLOQUÉE. Lancé par la skill vlp:jouer, que /vlp:enchainer appelle — jamais seul.
 model: haiku
 effort: low
-maxTurns: 25
+maxTurns: 30
 tools: Read, Edit, Write, Bash
 ---
 

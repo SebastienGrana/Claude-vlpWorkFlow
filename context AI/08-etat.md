@@ -463,3 +463,8 @@ de ce que le code dit déjà.
   Loin du « un appel par fiche » : P1, déjà écrite dans la session, vérifiée et cochée par le chef ; ≈ 5 tours
   d'action du chef après le `RETOUR` (copie de fichier, lecture du log) ; ≈ 6 tours pour la page (lecture de
   `tache-page.md`, `vlp.py page --help`, `ls` du HTML, `page`, `read`, publier). Devient la TODO n° 12.
+- **2026-09-17** — L2 : la doc des skills confirme `model:` (« The override applies for the rest of the current turn ») ;
+  `model: sonnet` posé sur `skills/enchainer/SKILL.md` — tout le lancement, questions comprises, puis la session
+  reprend son modèle. `maxTurns` de `vlp:fiche` 25 → 30 : 22 tours mesurés sur MapDecorator laissaient 3 tours de
+  marge, et un plafond atteint rend un compte rendu sans statut. `enchainer` 110 → 114 lignes (étape 3 bis : aucun
+  autre outil que la question et la case ; étape 2 : une fiche cochée n'est ni rejouée ni vérifiée).
