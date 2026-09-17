@@ -22,7 +22,8 @@ https://github.com/SebastienGrana/Claude-vlpWorkFlow — cloné et utilisé en g
   Clos le 2026-09-17 : ses bugs corrigés (chantier B), puis `/vlp:tache`
   allégée — carte injectée, 14 → 9 appels prescrits (chantier R) ; puis la
   mécanique dans `scripts/vlp.py`, `sed`/`awk` 11 → 1, 9 → 5 appels (chantier S) ;
-  puis un hook `PostToolUse` valide les fichiers de fiches à l'écriture (chantier H).
+  puis un hook `PostToolUse` valide les fichiers de fiches à l'écriture (chantier H) ;
+  puis `claude plugin eval` : 3 cas sous Windows, `validate` avant commit (chantier V).
 
 ## Quatre règles non négociables
 
@@ -62,7 +63,7 @@ et seulement dans ce cas, ouvrir l'index.
 | savoir où vit quoi dans un projet équipé | `CONVENTION-FICHIERS.md` |
 | toucher aux pages publiées | `ARTEFACTS.md`, puis le gabarit dans `templates/` |
 | ouvrir un chantier, ou le découper en fiches | **lancer `/vlp:chantier`** |
-| jouer une fiche du chantier V (evals du plugin) | **lancer `/vlp:tache V<n>`** — `context AI/18-evals.md`, chantier **en cours** |
+| relire le chantier V (evals du plugin) | `context AI/18-evals.md` — chantier **clos**, V2 abandonnée (TODO n° 11) |
 | relire le chantier H (hooks du kit) | `context AI/17-hooks.md` — chantier **clos** |
 | relire le chantier S (un script `vlp.py` pour la mécanique) | `context AI/16-script.md` — chantier **clos** |
 | relire le chantier R (réduire les tours de `/vlp:tache`) | `context AI/15-reduire.md` — chantier **clos** |

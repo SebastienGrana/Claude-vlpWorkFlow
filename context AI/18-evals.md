@@ -4,11 +4,14 @@
 
 # Chantier V — Evals du plugin
 
+**CLOS** le 2026-09-17. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+V2 **abandonnée**, non cochée : ses cas exigent Bash, refusé sous Windows — repris par la TODO n° 11 (WSL2).
+
 **À quoi il sert.** Le kit ne se teste pas : 0 cas d'eval, chaque commande se vérifie
 par un rejeu à la main (TODO n° 6, point 16 de `12-audit.md`). Le chantier pose une
 suite `claude plugin eval` de 5 cas, graders gratuits, et `validate` avant commit.
 
-**Fait.** Rien. Ouvert le 2026-09-17, cadré en 4 fiches, `V1` à jouer.
+**Fait.** V1, V3, V4 (2026-09-17) ; V2 abandonnée. Ouvert et clos le 2026-09-17.
 
 ## Le socle commun
 

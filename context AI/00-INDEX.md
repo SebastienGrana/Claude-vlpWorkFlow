@@ -30,7 +30,7 @@ a l'air proche.
 | `15-reduire.md` | on joue une fiche `R*` — chantier **clos** « Réduire les tours de `/vlp:tache` », `R1..R4` |
 | `16-script.md` | on joue une fiche `S*` — chantier **clos** « Un script `vlp.py` pour la mécanique », `S1..S5` |
 | `17-hooks.md` | on joue une fiche `H*` — chantier **clos** « Hooks du kit », `H1..H4` |
-| `18-evals.md` | on joue une fiche `V*` — chantier **en cours** « Evals du plugin », `V1..V4` |
+| `18-evals.md` | on joue une fiche `V*` — chantier **clos** « Evals du plugin », `V1..V4` |
 
 ## Le kit lui-même — à la racine, hors de ce dossier
 

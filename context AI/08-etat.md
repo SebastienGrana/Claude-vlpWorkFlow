@@ -31,6 +31,8 @@
   `scripts/vlp.py` ; le 4 est retiré, 5 ne dépend plus de rien.
 - **2026-09-17** — chantier H clos (TODO n° 5) : un hook `PostToolUse` valide
   un fichier de fiches à l'écriture ; `SessionStart` écarté ; le 5 est retiré.
+- **2026-09-17** — chantier V clos (TODO n° 6) : `claude plugin eval` passe 3 cas sous
+  Windows, `validate` avant commit ; le 6 est retiré, ses cas Bash passent au 11.
 
 ## La TODO ordonnée — les chantiers possibles
 
@@ -40,7 +42,6 @@ ordonné par ce qui débloque le reste. Le détail de chacun est dans
 
 | # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |
 |---|---|---|---|---|
-| 6 | Evals du plugin | `claude plugin eval` sur un bac à sable, graders gratuits, baseline sans plugin ; `validate` avant commit | 3 fiches | rien |
 | 7 | Fusionner la doctrine | cinq fichiers de doc → trois ; chaque nombre vit une fois | 3 fiches | rien |
 | 8 | Migrer `commands/` → `skills/` | un dossier par commande, `disable-model-invocation`, variante `context: fork` + `vlp:fiche` | 3 fiches | rien |
 | 9 | `/vlp:enchainer` : réparer ou retirer | chef ≤ 3 tours par fiche via la skill forkée, ou suppression — aux chiffres de 2 | 3 fiches | 8 |
@@ -358,3 +359,20 @@ de ce que le code dit déjà.
   `hook`) : 3 cas sur 3, score 1 chacun ; 3 runs, 39 tours (17, 20, 2), 0,93 $ (0,563,
   0,315, 0,054) — `check` coûtait 0,24 $ en V1 : le coût d'un cas varie du simple au
   double, le plafond vaut pour le lancement. Non joués (tag `wsl2`) : `tache`, `chantier`.
+- **2026-09-17** — Chantier V **clos**, V2 abandonnée. Livré : `evals/` et trois cas qui
+  passent sous Windows — `check` (incohérence vue), `init` (fichiers posés, 0 `Artifact`),
+  `hook` (`INVALIDE` du hook dans la trace) : 3 runs, 39 tours, 0,93 $ ;
+  `.githooks/pre-commit` qui lance `claude plugin validate` (manifeste cassé refusé) ;
+  `marketplace.json` 1 → 0 avertissement ; `.gitattributes` garde les `.sh` en LF.
+  Laissé ouvert : `tache` et `chantier` écrits (tag `wsl2`) mais jamais passés — Bash est
+  refusé sous Windows faute de sandbox (TODO n° 11) ; 1 avertissement voulu sur
+  `plugin.json` (`CLAUDE.md` à la racine) ; la garde se saute si `claude` n'est pas dans
+  le PATH (cas de cette machine). Constats qui valent au-delà de V : une commande qui
+  injecte par `` !`…` `` ne se teste pas sous Windows ; les hooks du plugin tournent
+  dans un run d'eval ; le sous-agent `vlp:fiche` (8 tours) ne tient pas une fiche
+  d'essais — relancé 4 fois pour V1, il a exécuté une fixture à la racine du kit ; V3 et
+  V4 jouées par le chef. Total brut mesuré à la clôture — session du cadrage et des
+  fiches : 104 tours, 114 appels, input 216, output 75 395, cache_creation 199 167,
+  cache_read 16 479 432, **total 16 754 210 tokens**, 12,12 $ ; sous-agents : 49 tours,
+  71 appels, total 2 562 465 tokens, 0,68 $ ; soit **19 316 675 tokens**, 12,80 $ — plus
+  17 lancements d'eval, 2,25 $ (prix catalogue, hors transcripts).

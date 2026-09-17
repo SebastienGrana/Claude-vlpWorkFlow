@@ -69,9 +69,9 @@
     <p>claude plugin eval passe 5 cas sur un bac à sable (init, chantier, tache, check, hook), graders gratuits seuls ; validate rend 0 avertissement et tourne avant chaque commit</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="bloquee"></span><span data-etat="faite"></span><span data-etat="faite"></span>
+      <span data-etat="faite"></span><span></span><span data-etat="faite"></span><span data-etat="faite"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">4 fiches · 3 faites · bloquée : V2</p>
+    <p class="mono" style="margin-top:.5rem">4 fiches · 3 faites · V2 abandonnée · clos</p>
   </header>
 
   <section>
@@ -83,9 +83,9 @@
         <span class="etat">faite</span>
         <span class="note">Cas check : score 1, 26 tours, 0,24 $ (après 3 runs ratés à 0,24 $ au total) ; fixtures par scaffold_script.</span>
       </li>
-      <li class="fiche" data-etat="bloquee">
+      <li class="fiche">
         <span class="id">V2</span><span class="titre">Écrire les cas tache et chantier</span>
-        <span class="etat">bloquée</span>
+        <span class="etat">abandonnée</span>
         <span class="note">Bloquée : tache et chantier exigent Bash, refusé sous Windows (pas de sandbox). Cas écrits, tag wsl2 ; TODO n° 11.</span>
       </li>
       <li class="fiche" data-etat="faite">
@@ -103,7 +103,7 @@
   </section>
 
   <!-- ZONE:blocage — publiée quand /tache s'arrête après deux tentatives ; retirée dès que la fiche repasse -->
-  <section>
+  <section hidden>
     <h2>Arrêt sur blocage</h2>
     <div class="blocage">
       <p>V2 — 1. sans Bash, /vlp:tache s'arrête au 2e tour (injection de la carte refusée) ; 2. avec --allow-tools Bash, run refusé avant de tourner (0,00 $). À jouer sous WSL2 : TODO n° 11.</p>
@@ -120,10 +120,12 @@
   </section>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
-  <section hidden>
-    <h2>Chantier clos le </h2>
+  <section>
+    <h2>Chantier clos le 2026-09-17</h2>
     <div class="bilan">
-      <p></p>
+      <p>Livré : trois tests automatiques qui passent sous Windows — check, init, hook (3 runs, 39 tours, 0,93 $) — et un contrôle avant commit qui refuse un manifeste cassé ; validate sans avertissement sur le marketplace.</p>
+      <p>V2 abandonnée, non faite : tache et chantier exigent Bash, que Claude Code refuse sous Windows faute de sandbox. Leurs cas sont écrits ; ils se joueront sous WSL2 (TODO n° 11).</p>
+      <p>Surprise : le sous-agent limité à 8 tours ne tient pas une fiche d'essais — relancé 4 fois pour V1, il a écrasé deux fichiers du kit (restaurés). Coût : ≈19,3M (19 316 675) tokens, 12,80 $, plus 2,25 $ de runs d'eval.</p>
     </div>
   </section>
 

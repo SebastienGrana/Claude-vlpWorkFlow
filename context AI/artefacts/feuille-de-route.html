@@ -68,9 +68,7 @@
     <!-- ZONE:encours — remplacé à chaque ouverture, remis à « aucun » à chaque clôture.
          /tache n'y touche pas : l'avancement fiche par fiche est sur la page du chantier. -->
     <div class="encours">
-      <div class="titre">Evals du plugin <span class="badge" data-etat="cours">en cours</span></div>
-      <div>Fiches <span class="mono">V1–V4</span> · ouvert le <span class="mono">2026-09-17</span> · <span class="mono">V1</span> à jouer</div>
-      <div><a href="https://claude.ai/artifact/HuzF1uSZeEvW89uUaoGS5e">La page du chantier →</a></div>
+      <div class="rien">Aucun chantier ouvert — <span class="mono">/vlp:chantier</span> pour en ouvrir un.</div>
     </div>
   </section>
 
@@ -83,11 +81,11 @@
           <tr><th>#</th><th>Chantier</th><th>Ce qu'il apporte</th><th>Coût</th><th>Dépend de</th></tr>
         </thead>
         <tbody>
-          <tr><td class="mono">6</td><td>Evals du plugin <span class="badge" data-etat="cours">en cours</span></td><td><span class="mono">claude plugin eval</span> sur un bac à sable, graders gratuits, baseline sans plugin ; validate avant commit</td><td class="mono">3 fiches</td><td class="mono">—</td></tr>
           <tr><td class="mono">7</td><td>Fusionner la doctrine</td><td>Cinq fichiers de doc → trois ; chaque nombre vit une fois</td><td class="mono">3 fiches</td><td class="mono">—</td></tr>
           <tr><td class="mono">8</td><td>Migrer commands/ → skills/</td><td>Un dossier par commande, disable-model-invocation, variante context: fork + vlp:fiche</td><td class="mono">3 fiches</td><td class="mono">—</td></tr>
           <tr data-etat="bloque"><td class="mono">9</td><td><span class="mono">/vlp:enchainer</span> : réparer ou retirer</td><td>Chef ≤ 3 tours par fiche via la skill forkée, ou suppression — aux chiffres de 2</td><td class="mono">3 fiches</td><td class="mono">8</td></tr>
           <tr><td class="mono">10</td><td>Un projet neuf qui ne ment pas</td><td><span class="mono">/vlp:init</span> crée ce que l'index et le routage nomment ; numéro d'état pris à la suite</td><td class="mono">2 fiches</td><td class="mono">—</td></tr>
+          <tr><td class="mono">11</td><td>Evals sous WSL2</td><td>Jouer les tests qui exigent Bash (tache, chantier) : Windows n'a pas de sandbox ; initialiser Ubuntu sous WSL2, y installer Claude Code, bubblewrap et socat, s'y connecter, lancer la suite depuis Linux</td><td class="mono">2 fiches</td><td class="mono">6</td></tr>
         </tbody>
       </table>
     </div>
@@ -102,6 +100,14 @@
           <tr><th>Chantier</th><th>Fiches</th><th>Clos le</th><th>Tokens</th><th>Ce qu'il a livré</th></tr>
         </thead>
         <tbody>
+          <tr>
+            <td><a href="https://claude.ai/artifact/HuzF1uSZeEvW89uUaoGS5e">Evals du plugin</a> <span class="badge" data-etat="clos">clos</span></td>
+            <td class="mono">V1–V4</td><td class="mono">2026-09-17</td>
+            <td class="mono">≈19,3M (19 316 675)</td>
+            <td>Trois tests d'eval passent sous Windows (check, init, hook ; 0,93 $), contrôle
+              validate avant commit ; V2 abandonnée — les tests Bash attendent WSL2
+              (TODO n° 11) (12,80 $, plus 2,25 $ de runs).</td>
+          </tr>
           <tr>
             <td><a href="https://claude.ai/artifact/MTMEspegQa2HCZxww8Tqfq">Hooks du kit</a> <span class="badge" data-etat="clos">clos</span></td>
             <td class="mono">H1–H4</td><td class="mono">2026-09-17</td>
@@ -168,7 +174,7 @@
           </tr>
         </tbody>
         <tfoot>
-          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈84,4M (84 398 447)</strong></td><td></td></tr>
+          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈103,7M (103 715 122)</strong></td><td></td></tr>
         </tfoot>
       </table>
     </div>
