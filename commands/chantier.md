@@ -1,7 +1,7 @@
 ---
 description: Ouvre une séance de travail : propose les chantiers possibles, puis cadre celui qu'on choisit en fiches
 argument-hint: (rien) | <nom du chantier> | <alias> <nom du chantier>
-allowed-tools: Bash(pwd:*), Bash(cd:*), Bash(ls:*), Bash(sed:*), Bash(grep:*), Bash(awk:*), Bash(cat:*), Bash(wc:*), Bash(mkdir:*), Bash(cp:*), Bash(dirname:*), Read, Edit, Write, Artifact
+allowed-tools: Bash(python3:*), Bash(python:*), Bash(pwd:*), Bash(cd:*), Bash(ls:*), Bash(grep:*), Bash(cat:*), Bash(wc:*), Bash(mkdir:*), Bash(cp:*), Read, Edit, Write, Artifact
 ---
 
 Arguments reçus :
@@ -13,6 +13,10 @@ Ouvre une séance de travail sur le projet où l'on se trouve.
 Cette session **n'écrit pas de code** : elle produit un fichier de fiches, et
 rien d'autre. Le code viendra après, une fiche par session, via `/vlp:tache`.
 
+## La carte du projet — lue avant ton premier tour
+
+!`python3 "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte 2>/dev/null || python "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte`
+
 ## La règle qui prime sur tout : cadrer coûte moins cher que se tromper
 
 Le cadrage se paye **une fois** ; ce qu'il oublie se repaye à chaque fiche.
@@ -23,38 +27,26 @@ choix ouvert — quel chantier, l'ordre des fiches, une frontière, un compromis
 N'ouvre aucun fichier que les étapes ci-dessous ne nomment pas. Pas d'agent,
 pas de recherche large.
 
-## 0. Trouver le projet — sans le demander si c'est évident
+## 0. Lire la carte — rien à lancer
 
-Un projet équipé de cette méthode porte un fichier **`CHANTIER.md` à sa
-racine**. C'est lui qui dit où sont la méthode, les chantiers possibles et le
-fichier de fiches courant : il n'y a **aucune table à tenir ailleurs**.
+Un projet équipé porte **`CHANTIER.md` à sa racine** : c'est la seule table à
+tenir. La carte ci-dessus l'a déjà cherché. Arrête-toi au premier cas qui
+s'applique :
 
-```bash
-d=$(pwd); while [ "$d" != "/" ] && [ "$d" != "." ]; do [ -f "$d/CHANTIER.md" ] && { echo "PROJET=$d"; break; }; d=$(dirname "$d"); done; echo "--- voisins ---"; ls -d */CHANTIER.md 2>/dev/null || echo "(aucun)"
-```
+1. **`PROJET=…`** → c'est ce projet, même si des voisins existent. La carte
+   donne ensuite `CHANTIER.md` en entier : **méthode**, **chantiers possibles**, **fichier de
+   fiches courant**, **index**, **fichier d'état**, **kit**.
+2. **Un seul `VOISIN=`** → c'est celui-là ; ne demande rien.
+3. **Plusieurs `VOISIN=… alias=…`** → un workspace. Si le premier argument est
+   l'un de ces alias, c'est ce projet-là ; sinon **pose un questionnaire**
+   listant les alias, et n'ouvre rien avant la réponse.
+4. **`AUCUN_PROJET`** → le projet n'est pas équipé. Dis-le, et propose
+   `/vlp:init` ; n'improvise pas la structure toi-même.
 
-Résous dans cet ordre, et arrête-toi au premier cas qui s'applique :
-
-1. **Une ligne `PROJET=…`** → c'est ce projet. Ne demande rien, même si des
-   voisins existent : on est déjà dedans.
-2. **Aucun `PROJET=`, un seul voisin** → c'est celui-là. Ne demande rien.
-3. **Aucun `PROJET=`, plusieurs voisins** → on est dans un workspace. Lis la
-   ligne `**alias**` de chacun. Si le premier argument est l'un de ces alias, c'est ce
-   projet-là ; sinon **pose un questionnaire** listant les alias, et n'ouvre
-   rien avant la réponse.
-4. **Aucun `CHANTIER.md` nulle part** → le projet n'est pas équipé. Dis-le, et
-   propose `/vlp:init` ; n'improvise pas la structure toi-même.
-
-Puis place-toi à la racine du projet retenu :
-
-```bash
-cd "<racine du projet>" && cat CHANTIER.md
-```
-
-`CHANTIER.md` fait une vingtaine de lignes : lis-le en entier, c'est la seule
-carte dont tu as besoin. Il nomme la **méthode**, les **chantiers possibles**,
-le **fichier de fiches courant**, l'**index**, le **fichier d'état**, et le
-**kit** — le dossier où sont les gabarits.
+Dans les cas 2 et 3, relance la carte sur le dossier retenu —
+`python "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte "<dossier>"`. Sortie vide
+ou consigne de la lancer : lance-la toi-même, une fois. Toutes les commandes
+qui suivent partent de la racine du projet retenu.
 
 **Ce que valent les arguments.** Si le premier argument est l'alias d'un projet
 trouvé à l'étape 0, il désigne le projet et les suivants forment le nom du
@@ -70,8 +62,8 @@ possibles — ils ne servent qu'à en cadrer un nouveau.
 
 Fais, dans cet ordre :
 
-1. les titres de fiches, pour savoir où on en est — les titres seuls :
-   `grep -n '^## [A-Z][0-9]' "<fichier de fiches courant>"` ;
+1. les titres de fiches et `PROCHAINE=`, pour savoir où on en est — ils sont
+   dans la carte, rien à relancer ;
 2. l'artefact du chantier, s'il est nommé dans `CHANTIER.md` : `Artifact` avec
    `action: "comments"` et son `url`. Les fils non résolus sont des remarques
    laissées entre deux sessions ; **présente-les avant toute proposition**, en
@@ -173,8 +165,8 @@ plugin remplace, et elle peut avoir divergé.
 
 Si rien ne répond, **demande le chemin et arrête-toi là** : ne réinvente pas
 les gabarits de mémoire. Ils portent des titres de sections et des marqueurs
-que `/vlp:tache` lit au `sed` — un titre reformulé casse l'extraction dans
-toutes les fiches du chantier.
+que `scripts/vlp.py` lit — un titre reformulé casse l'extraction dans toutes
+les fiches du chantier.
 
 La ligne « **kit** » de `CHANTIER.md` reste vraie et reste lue : elle nomme le
 dossier réel du kit, celui que le plugin pointe. Elle ne sert plus à trouver
@@ -202,8 +194,8 @@ ordre :
 4. une section `## L'ordre des fiches` : la liste et les dépendances ;
 5. les fiches, séparées par `---`, au format donné par le fichier « méthode ».
 
-Ces deux titres de section se recopient **à l'identique** : `/vlp:tache` les lit
-par `sed`, un titre reformulé casse l'extraction. Le squelette est dans
+Ces deux titres de section se recopient **à l'identique** : `vlp.py socle` les
+cherche tels quels, un titre reformulé casse l'extraction. Le squelette est dans
 `${CLAUDE_PLUGIN_ROOT}/templates/context AI/fichier-de-fiches.md`.
 
 **Encadre chaque fiche de ses marqueurs**, exactement ainsi, seuls sur leur
@@ -216,7 +208,7 @@ ligne :
 <!-- /FICHE -->
 ```
 
-C'est par eux que `/vlp:tache` extrait la fiche. Sans marqueurs, elle se rabat sur
+C'est par eux que `vlp.py extraire` isole la fiche. Sans marqueurs, il se rabat sur
 le premier `---` venu — et un `---` ou un `##` dans un bloc de code de la fiche
 la tronque **sans rien dire**. Deux lignes par fiche, et le problème n'existe
 plus.
@@ -226,21 +218,16 @@ plus.
 Le fichier de fiches est fait pour la session ; l'artefact est fait pour
 l'utilisateur, qui doit pouvoir dire où on en est sans ouvrir de session.
 
-Recopie `${CLAUDE_PLUGIN_ROOT}/templates/artefact-chantier.html` vers
-`<contexte>/artefacts/<NN>-<chantier>.html` — **même `<NN>`** que le fichier de
-fiches — et remplis :
+La page se crée par le script, depuis le gabarit du kit et le fichier de
+fiches — **même `<NN>`** que lui. Tu ne retapes pas son HTML :
 
-- l'en-tête : nom du projet, plage de fiches, **le résultat visible** issu de
-  l'étape 3 ;
-- `ZONE:fiches` : une entrée par fiche, dans l'ordre du fichier — identifiant,
-  titre, et une ligne qui dit ce qu'elle produit et de quoi elle dépend. Toutes
-  sont « à faire », sauf la première qui est déjà « en cours » — c'est elle
-  qu'on va jouer ;
-- `ZONE:avancement` : autant de segments que de fiches ;
-- les zones `blocage` et `bilan` restent `hidden`, `ZONE:journal` reste vide.
+```bash
+PY=$(for p in python3 python; do "$p" -c "" 2>/dev/null && { echo "$p"; break; }; done); "$PY" "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" page "<contexte>/<NN>-<chantier>.md" "<contexte>/artefacts/<NN>-<chantier>.html" --creer --projet "<Projet>" --titre "<Nom du chantier>" --resultat "<le résultat visible de l'étape 3>" --note <fiche> "<ce qu'elle produit, de quoi elle dépend>"
+```
 
-Rien d'autre n'y va : ni le prompt des fiches, ni le socle d'API, ni de code.
-La page reste sous 250 lignes, parce que `/vlp:tache` la relira à chaque fiche.
+Une option `--note` par fiche. Rien d'autre n'y va : ni le prompt des fiches,
+ni le socle d'API, ni de code. Lis la ligne `PAGE … · N lignes` : une `GARDE:`
+dit une page au-delà du seuil, ou déjà existante — `--creer` n'écrase rien.
 
 Publie avec `favicon` `🧱`, un `title` `<Projet> — <Nom du chantier>` et pour
 `description` `Les fiches de <chantier>, et où on en est.` Puis **recopie
@@ -273,10 +260,12 @@ Puis **mesure ce que chaque fiche va coûter**, et annonce-le — un chiffre tie
 mieux qu'une règle :
 
 ```bash
-awk '/^## Le socle/{f=1} f && /^## L.*ordre des fiches/{exit} f' "<contexte>/<NN>-<chantier>.md" | wc -l; wc -l "<contexte>/<NN>-<chantier>.md" "<contexte>/artefacts/<NN>-<chantier>.html"
+PY=$(for p in python3 python; do "$p" -c "" 2>/dev/null && { echo "$p"; break; }; done); "$PY" "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" valider "<contexte>/<NN>-<chantier>.md"; wc -l "<contexte>/<NN>-<chantier>.md"
 ```
 
-Dis-le en une ligne : « socle N lignes + fiche ~M lignes + page P lignes = coût
+Le bilan compte les fiches et le socle ; la page, c'est la ligne `PAGE` de
+l'étape 5 bis. Un écart (`INVALIDE`) se corrige avant de rendre la main. Dis
+en une ligne : « socle N lignes + fiche ~M lignes + page P lignes = coût
 fixe par session ». Si le socle dépasse **80 lignes** ou la page **250**,
 propose d'alléger **avant** de rendre la main : ce gras sera relu à chaque
 fiche, autant de fois qu'il y a de fiches.

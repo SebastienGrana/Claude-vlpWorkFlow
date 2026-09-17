@@ -199,8 +199,9 @@ coût et page ; appels prescrits 9 → N, octets relus par fiche 11 518 → N.
 ---
 
 <!-- FICHE:S5 -->
-## S5 [ ] — Brancher `chantier`, `init`, `check`, mesurer l'« après »
+## S5 [x] — Brancher `chantier`, `init`, `check`, mesurer l'« après »
 
+**Session** : 079e6e4d-d957-41f3-a1fe-754e17548f00
 **Dépend de** : `S2`, `S3`, `S4`.
 **Fichiers** : `commands/chantier.md`, `commands/init.md`, `commands/check.md`,
 `CLAUDE.md` (règle 4 seulement) — et rien d'autre.

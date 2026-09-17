@@ -1,7 +1,7 @@
 ---
 description: Équipe un projet de la méthode chantiers/fiches — pose CHANTIER.md et le dossier de contexte
 argument-hint: (rien) | <chemin du projet>
-allowed-tools: Bash(pwd:*), Bash(cd:*), Bash(ls:*), Bash(cat:*), Bash(grep:*), Bash(mkdir:*), Bash(cp:*), Bash(dirname:*), Read, Edit, Write, Artifact
+allowed-tools: Bash(python3:*), Bash(python:*), Bash(pwd:*), Bash(cd:*), Bash(ls:*), Bash(cat:*), Bash(grep:*), Bash(mkdir:*), Bash(cp:*), Bash(dirname:*), Read, Edit, Write, Artifact
 ---
 
 Arguments reçus :
@@ -17,17 +17,23 @@ session neuve.
 
 ## 0. Le projet à équiper
 
-Si un argument est donné, c'est ce dossier. Sinon :
+Si un argument est donné, c'est ce dossier ; sinon le dossier courant.
 
 ```bash
-pwd; ls -d */ 2>/dev/null | head -20; ls CHANTIER.md CLAUDE.md 2>/dev/null
+cd "<dossier>"; pwd; ls -d */ 2>/dev/null | head -20; ls CLAUDE.md 2>/dev/null; PY=$(for p in python3 python; do "$p" -c "" 2>/dev/null && { echo "$p"; break; }; done); "$PY" "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte . | grep -E '^(PROJET|VOISIN)=|^AUCUN_PROJET'
 ```
 
-- Si le dossier courant ressemble à un projet (du code, un dépôt), c'est lui.
-- S'il ressemble à un workspace (plusieurs projets côte à côte), **demande
-  lequel** — n'en équipe qu'un à la fois.
-- Si `CHANTIER.md` existe déjà, arrête-toi : le projet est déjà équipé. Dis ce
-  qu'il contient plutôt que de l'écraser.
+La carte cherche `CHANTIER.md` à la casse exacte — un `ls` sous Windows ou
+macOS prendrait `chantier.md` pour lui.
+
+- **`PROJET=` vaut ce dossier** : il est déjà équipé. Arrête-toi, et dis ce
+  que contient son `CHANTIER.md` plutôt que de l'écraser.
+- **`PROJET=` vaut un dossier parent** : on est dans un projet déjà équipé.
+  Dis lequel, et demande s'il faut vraiment en équiper un second dedans.
+- **`VOISIN=`**, ou des projets côte à côte : un workspace — **demande
+  lequel** équiper, un seul à la fois.
+- **`AUCUN_PROJET`** et le dossier ressemble à un projet (du code, un dépôt) :
+  c'est lui.
 
 ## 1. Le kit — il voyage avec la commande
 
@@ -49,8 +55,8 @@ une copie posée là ne se met jamais à jour, et c'est comme ça que le kit a
 divergé sur quatre projets sans que rien ne le signale.
 
 Si rien ne répond, demande le chemin. Ne réinvente pas les gabarits de
-mémoire : ils portent des titres de sections et des marqueurs que `/vlp:tache`
-lit au `sed`.
+mémoire : ils portent des titres de sections et des marqueurs que
+`scripts/vlp.py` lit.
 
 ## 2. Le questionnaire — sept réponses, pas une de plus
 

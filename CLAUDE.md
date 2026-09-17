@@ -35,8 +35,9 @@ https://github.com/SebastienGrana/Claude-vlpWorkFlow — cloné et utilisé en g
    recopie pas ; ailleurs, on pointe.
 4. **Le déterministe est un script, le jugement est de la prose.** Extraire,
    valider, régénérer, mesurer vivent dans `scripts/` — Python 3 sans
-   dépendance, zéro appel modèle, testé — et une commande les appelle en un
-   tour, elle ne décrit pas leur algorithme. Rien de propre à une machine dans
+   dépendance, zéro appel modèle, testé : `vlp.py` porte la mécanique (ses
+   sous-commandes sont dans sa docstring), `mesure-tokens.py` le coût — et une
+   commande les appelle en un tour, elle ne décrit pas leur algorithme. Rien de propre à une machine dans
    `commands/`, `templates/` ni `scripts/` : un chemin passe par
    `${CLAUDE_PLUGIN_ROOT}`, **dans le texte des commandes seulement** — la
    variable n'existe ni dans le shell ni dans un fichier de données. Exception

@@ -1,7 +1,7 @@
 ---
 description: Vérifie qu'un projet équipé est cohérent — fichiers, cases cochées, page publiée, coûts
 argument-hint: (rien) | <chemin du projet>
-allowed-tools: Bash(ls:*), Bash(cat:*), Bash(grep:*), Bash(awk:*), Bash(sed:*), Bash(wc:*), Bash(pwd:*), Read, Artifact
+allowed-tools: Bash(python3:*), Bash(python:*), Bash(ls:*), Bash(cat:*), Bash(grep:*), Bash(wc:*), Bash(pwd:*), Read, Artifact
 ---
 
 Contrôle un projet équipé de la méthode. **Cette commande n'écrit rien.** Elle
@@ -41,28 +41,28 @@ clos est l'erreur inverse : un chantier orphelin, que plus rien ne rouvrira.
 **B — Les fiches sont extractibles.**
 
 ```bash
-grep -c '^<!-- FICHE:' "<fichier de fiches courant>"; grep -c '^<!-- /FICHE -->' "<fichier de fiches courant>"; grep -n '^## [A-Z][0-9]' "<fichier de fiches courant>"
+PY=$(for p in python3 python; do "$p" -c "" 2>/dev/null && { echo "$p"; break; }; done); "$PY" "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" valider "<fichier de fiches courant>"
 ```
 
-Les trois comptes doivent concorder. Un marqueur ouvrant sans son fermant fait
-que `sed` avale tout jusqu'à la fin du fichier — la fiche « extraite » serait
-le chantier entier. Un titre sans marqueurs n'est pas extractible du tout.
+Une ligne par écart — marqueurs, sections, critère —, puis le bilan
+`VALIDE|INVALIDE`. Un marqueur ouvrant sans son fermant ferait avaler à
+l'extraction tout le reste du fichier ; un titre sans marqueurs n'est pas
+extractible du tout.
 
 **C — Les cases cochées et la page publiée disent la même chose.**
 
 ```bash
-grep -n '^## [A-Z][0-9] \[x\]' "<fichier de fiches courant>" | wc -l
-grep -c 'data-etat="faite"' "<artefact du chantier local>"
+"$PY" "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" page "<fichier de fiches courant>" "<artefact du chantier local>" --verifier
 ```
 
-Le fichier a raison. Si les deux nombres diffèrent, **la page est en retard** :
-dis-le, nomme les fiches concernées, et propose de la régénérer — sans le
-faire tant que l'utilisateur n'a pas répondu.
+`--verifier` n'écrit rien. Le fichier a raison : sur `EN RETARD`, **la page
+est en retard** — dis-le, nomme les fiches des lignes `ÉCART:`, et propose de
+la régénérer, sans le faire tant que l'utilisateur n'a pas répondu.
 
 **D — Les lettres de fiches ne se marchent pas dessus.**
 
 ```bash
-grep -n 'Lettres de fiche déjà prises' CHANTIER.md; ls "<contexte>"/*.md | sed 's/.*\///'
+grep -n 'Lettres de fiche déjà prises' CHANTIER.md; ls "<contexte>"
 ```
 
 Chaque fichier de chantier consomme une lettre. Une lettre réutilisée fait que
@@ -71,9 +71,10 @@ Chaque fichier de chantier consomme une lettre. Une lettre réutilisée fait que
 **E — Le coût par session.**
 
 ```bash
-awk '/^## Le socle/{f=1} f && /^## L.*ordre des fiches/{exit} f' "<fichier de fiches courant>" | wc -l
 wc -l "<fichier de fiches courant>" "<artefact du chantier local>"
 ```
+
+Le socle est compté dans le bilan de `valider`, en B.
 
 Repères : socle **≤ 80 lignes**, page de chantier **≤ 250 lignes**. Ces deux
 là se relisent à *chaque* fiche : ce qu'ils portent en trop se paye autant de

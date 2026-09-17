@@ -250,3 +250,12 @@ de ce que le code dit déjà.
   peut être refusée une fois (le refus rend la version en ligne) — à rejouer pour de
   vrai. `Bash(sed:*)` reste dans `tache.md` pour les plages citées par les fiches.
   `agents/fiche.md` n'avait aucun `sed`/`awk` : inchangé.
+- **2026-09-17** — S5 : le repli `python3 … || python …` ne vaut que pour une
+  sous-commande qui sort toujours 0 (`carte`) ; sur `valider`, `page` ou
+  `extraire`, un écart relance le script en double — ces appels passent par
+  `PY=$(for p in python3 python; …)`. `/vlp:chantier` étape 0 : 2 appels → 0.
+  À rejouer après `/reload-plugins` : `/vlp:chantier`, `/vlp:init`, `/vlp:check`
+  sur un projet équipé et sur le bac à sable. Le refus de publication prévu en S4
+  est arrivé : republier le même contenu est **refusé une seconde fois** — il faut
+  `Artifact action: "read"` sur l'URL, puis publier (3 appels). `tache-page.md`
+  dit encore « republie » : à corriger.

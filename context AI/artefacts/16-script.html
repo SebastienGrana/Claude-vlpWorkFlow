@@ -69,9 +69,9 @@
     <p>scripts/vlp.py, testé, offre carte, extraire, socle, sessions, valider et page ; carte.py est retiré ; les commandes l'appellent au lieu des sed/awk et du HTML retapé — gain prouvé avant/après, comptes bruts à côté.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">5 fiches · 4 faites · en cours : S5</p>
+    <p class="mono" style="margin-top:.5rem">5 fiches · 5 faites</p>
   </header>
 
   <section>
@@ -100,15 +100,16 @@
         <span class="id">S4</span><span class="titre">Brancher tache, enchainer, fiche, tache-page, cloture</span>
         <span class="etat">faite</span>
         <span class="note">sed/awk de mécanique : tache 5→0 (1 exemple de plage), enchainer 2→0, cloture 1→0. Blocs 1 et 6 bis exécutés tels qu'écrits. Appels prescrits 9→5, octets relus 11 530→9 463.</span>
-        <span class="cout mono">≈3,2M (3 230 272) · 11 tours · 2,58 $</span>
+        <span class="cout mono">≈3,7M (3 727 395) · 14 tours · 3,35 $</span>
       </li>
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">S5</span><span class="titre">Brancher chantier, init, check, mesurer l'« après »</span>
-        <span class="etat">en cours</span>
-        <span class="note">Carte injectée dans /vlp:chantier, check par le script · dépend de S2, S3, S4</span>
+        <span class="etat">faite</span>
+        <span class="note">sed/awk 11 → 1 (prose), carte.py 4 → 0, /vlp:chantier étape 0 : 2 appels → 0 ; valider VALIDE 5 fiches · socle 50 · 0 écarts</span>
+        <span class="cout mono">≈2,2M (2 236 226) · 22 tours · 2,38 $</span>
       </li>
     </ul>
-    <p class="mono cout-total">Coût du chantier, cadrage compris : ≈13,2M (13 241 518) · 72 tours · 11,60 $</p>
+    <p class="mono cout-total">Coût du chantier, cadrage compris : ≈16,0M (15 974 867) · 97 tours · 14,76 $</p>
   </section>
 
   <!-- ZONE:blocage — publiée quand /tache s'arrête après deux tentatives ; retirée dès que la fiche repasse -->
@@ -128,6 +129,7 @@
       <li><time datetime="2026-09-17">2026-09-17</time><span>S2 : valider ignore (visuel) cité entre accents graves, même sur deux lignes. Seul écart des archives : C1. La commande rechargée injecte déjà vlp.py carte — prouvé en vrai.</span></li>
       <li><time datetime="2026-09-17">2026-09-17</time><span>S3 : page remesure les sessions à chaque régénération ; une session partagée garde les coûts déjà affichés, retire la part que l'ancienne page n'attribuait à aucune fiche (le cadrage) et donne le reste à la dernière. Une page close ne se régénère pas (sur R, la session a continué après la clôture).</span></li>
       <li><time datetime="2026-09-17">2026-09-17</time><span>S4 : /vlp:tache prescrit 5 appels au lieu de 9 ; la publication part sans read — dans une session neuve, un refus possible, à rejouer pour de vrai. Bash(sed:*) reste pour les plages des fiches ; agents/fiche.md inchangé (aucun sed/awk).</span></li>
+      <li><time datetime="2026-09-17">2026-09-17</time><span>S5 : le repli python3 || python ne vaut que pour carte (sortie toujours 0) ; valider, page, extraire passent par PY=$(…). À rejouer après /reload-plugins : /vlp:chantier, /vlp:init, /vlp:check.</span></li>
     </ul>
   </section>
 
