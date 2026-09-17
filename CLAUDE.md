@@ -33,7 +33,8 @@ https://github.com/SebastienGrana/Claude-vlpWorkFlow — cloné et utilisé en g
   puis une fiche `(visuel)` arrête `/vlp:enchainer`, ligne `ARRÊT:` (chantier A).
   Clos le 2026-09-17 : Git for Windows requis, prouvé et écrit dans le README (chantier G) ;
   puis les evals `tache` et `chantier` jouées sous Ubuntu WSL2, 3/3 chacune (chantier W) ;
-  puis le kit sans `sh` sondé, renoncé : recette dans la TODO n° 16 (chantier X).
+  puis le kit sans `sh` sondé, renoncé : recette dans la TODO n° 16 (chantier X) ;
+  puis la feuille de route et la clôture écrites par `vlp.py feuille` et `clore` (chantier F).
 
 ## Quatre règles non négociables
 
@@ -73,7 +74,7 @@ et seulement dans ce cas, ouvrir l'index.
 | savoir où vit quoi dans un projet équipé | `methode-chantier.md`, section « Où vit quoi » |
 | toucher aux pages publiées | `ARTEFACTS.md`, puis le gabarit dans `templates/` |
 | ouvrir un chantier, ou le découper en fiches | **lancer `/vlp:chantier`** |
-| jouer une fiche du chantier F (la feuille de route par script) | `context AI/29-feuille.md` — chantier **ouvert**, par `/vlp:tache F<n>` |
+| relire le chantier F (la feuille de route par script) | `context AI/29-feuille.md` — chantier **clos** |
 | relire le chantier X (le kit sans `sh`, sondé puis renoncé) | `context AI/28-sans-sh.md` — chantier **clos** |
 | relire le chantier W (evals sous WSL2) | `context AI/27-wsl.md` — chantier **clos** |
 | relire le chantier G (le kit sans Git Bash) | `context AI/26-gitbash.md` — chantier **clos** |

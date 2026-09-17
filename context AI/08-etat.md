@@ -51,6 +51,8 @@
   est retiré, reste le 16.
 - **2026-09-17** — chantier X clos (TODO n° 16, renoncé) : hook et carte sans `sh` sondés sous Windows et Ubuntu ;
   rien d'appliqué — gain visible nul tant que le corps des skills exige `sh` ; le 16 est reformulé avec la recette.
+- **2026-09-17** — chantier F clos (TODO n° 17) : `vlp.py feuille` et `vlp.py clore` écrivent la feuille de route et la clôture
+  de `CHANTIER.md` (plugin 3.3.4, tests 59 → 73, eval chantier 3/3) ; avant : 15 tours sur 77 (X), 11 sur 61 (W) ; 8 781 743 tokens.
 
 ## La TODO ordonnée — les chantiers possibles
 
@@ -61,7 +63,6 @@ ordonné par ce qui débloque le reste. Le détail de chacun est dans
 | # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |
 |---|---|---|---|---|
 | 16 | Le kit sans `sh` | Faire tourner le kit sous Windows sans Git Bash. Mesuré (chantier X, `28-sans-sh.md`) : hook = paire exec `python3` + `py` (une erreur non bloquante à chaque écriture, partout) ; carte injectée = `py … carte \|\| python3 … carte` (propre sous pwsh 7, Git Bash et Ubuntu). Reste avant tout gain visible : les 17 appels `sh` du corps des skills et de `cloture.md`, les allowed-tools (sondes faites en `bypassPermissions`), PowerShell 5.1 (refuse `\|\|`), macOS, Python du Store seul | 3 fiches | — |
-| 17 | La feuille de route par script | `vlp.py feuille` et `vlp.py clore` écrivent la feuille de route et la clôture de `CHANTIER.md` au lieu de les retoucher à la main (badge, lettres, TODO, ligne des clos, total) — chantier F, `29-feuille.md` | 4 fiches | — |
 
 ## Journal des décisions
 

@@ -38,7 +38,7 @@ a l'air proche.
 | `26-gitbash.md` | on relit le socle du chantier G — **clos** « Le kit sans Git Bash », `G1..G2` |
 | `27-wsl.md` | on relit le socle du chantier W — **clos** « Evals sous WSL2 », `W1..W2` |
 | `28-sans-sh.md` | on relit le socle du chantier X — **clos** « Le kit sans sh », `X1..X3` |
-| `29-feuille.md` | on joue une fiche `F*` — chantier **ouvert** « La feuille de route par script », `F1..F4` |
+| `29-feuille.md` | on relit le socle du chantier F — **clos** « La feuille de route par script », `F1..F4` |
 | `25-arret.md` | on relit le socle du chantier A — **clos** « Une fiche visuelle arrête `/vlp:enchainer` », `A1..A2` |
 | `21-skills.md` | on relit le socle du chantier K — **clos** « Migrer commands/ → skills/ », `K1..K3` |
 | `20-init.md` | on joue une fiche `I*` — chantier **clos** « Un projet neuf qui ne ment pas », `I1..I3` |

@@ -13,9 +13,9 @@
 - **chantiers possibles** : context AI/08-etat.md
 - **fichier d'état** : context AI/08-etat.md
 - **index** : context AI/00-INDEX.md
-- **fichier de fiches courant** : context AI/29-feuille.md (F1..F4)
+- **fichier de fiches courant** : aucun
 - **artefact feuille de route** : https://claude.ai/code/artifact/ff1fc060-daca-486f-b4c6-e1f55114c0f7
-- **artefact du chantier** : https://claude.ai/artifact/7q6Wp1j14p7oJ7ssRHyge4
+- **artefact du chantier** : aucun
 - **livraison** : aucune — le plugin est chargé en place ; `/reload-plugins` pour
   que la session en cours voie une modification
 - **vérification** : geste de l'utilisateur — rejouer la commande modifiée sur un
@@ -63,7 +63,8 @@ Ils ne servent plus qu'à relire un socle d'API, si une fiche y renvoie.
 | context AI/26-gitbash.md | G1..G2 | 2026-09-17 | https://claude.ai/artifact/UWhqsTpQNUmwnztwz85auy |
 | context AI/27-wsl.md | W1..W2 | 2026-09-17 | https://claude.ai/artifact/BTzA23mPmYQKAnUvT1Pkpd |
 | context AI/28-sans-sh.md | X1..X3 (X3 : renoncé) | 2026-09-17 | https://claude.ai/artifact/3kr8HUKbmuFbt7QQ3awLcg |
+| context AI/29-feuille.md | F1..F4 | 2026-09-17 | https://claude.ai/artifact/7q6Wp1j14p7oJ7ssRHyge4 |
 
-Lettres de fiche déjà prises : E (Enchaîner les fiches), M (Mesurer les tokens), C (Afficher la conso), T (Compter les tours), B (Corriger les bugs de l'audit), R (Réduire les tours de `/vlp:tache`), S (Un script `vlp.py` pour la mécanique), H (Hooks du kit), V (Evals du plugin), D (Fusionner la doctrine), I (Un projet neuf qui ne ment pas), K (Migrer `commands/` → `skills/`), N (`/vlp:enchainer` : réparer ou retirer), L (`/vlp:enchainer` : alléger le chef), P (Un lanceur Python sans accolade), A (Une fiche visuelle arrête `/vlp:enchainer`), G (Le kit sans Git Bash), W (Evals sous WSL2), X (Le kit sans `sh`). Un nouveau chantier en choisit une autre —
+Lettres de fiche déjà prises : E (Enchaîner les fiches), M (Mesurer les tokens), C (Afficher la conso), T (Compter les tours), B (Corriger les bugs de l'audit), R (Réduire les tours de `/vlp:tache`), S (Un script `vlp.py` pour la mécanique), H (Hooks du kit), V (Evals du plugin), D (Fusionner la doctrine), I (Un projet neuf qui ne ment pas), K (Migrer `commands/` → `skills/`), N (`/vlp:enchainer` : réparer ou retirer), L (`/vlp:enchainer` : alléger le chef), P (Un lanceur Python sans accolade), A (Une fiche visuelle arrête `/vlp:enchainer`), G (Le kit sans Git Bash), W (Evals sous WSL2), X (Le kit sans `sh`), F (La feuille de route par script). Un nouveau chantier en choisit une autre —
 elles ne se réemploient jamais, même après clôture. `/vlp:chantier` la propose,
 l'utilisateur tranche ; c'est cette ligne qui rend le refus possible.

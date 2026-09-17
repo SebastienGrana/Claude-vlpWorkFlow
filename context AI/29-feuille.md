@@ -7,7 +7,9 @@
 **À quoi il sert.** La feuille de route et la clôture de `CHANTIER.md` se retouchent à la main à chaque
 ouverture et clôture (badge, lettres, TODO, ligne des clos, total) : du déterministe en prose. Un script les écrit.
 
-**Fait.** Rien. Ouvert le 2026-09-17, cadré en 4 fiches, `F1` à jouer.
+**CLOS** le 2026-09-17. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** F1..F4 (2026-09-17) : l'avant mesuré, `vlp.py feuille` et `clore` écrits et testés (59 → 73), branchés ; plugin 3.3.4, eval chantier 3/3.
 
 ## Le socle commun
 
