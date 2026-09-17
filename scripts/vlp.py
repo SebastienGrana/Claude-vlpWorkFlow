@@ -61,6 +61,15 @@ Sous-commandes :
   comptes bruts, puis `feuille`. Tout est calculé avant la première écriture.
   `CLOS <lettre> <plage> · total <brut> — <projet>`. Aucun chantier ouvert, ou
   déjà `**CLOS**` : `GARDE:`, sort 1.
+- `ouvrir <projet> --fiches F --titre T [--artefact URL]` — les écritures
+  mécaniques de l'ouverture : dans `CHANTIER.md`, courant = `F (L1..Ln)` et
+  artefact = l'URL (sinon `aucun`, ou l'ancienne si F est déjà courant) ; une
+  ligne « on joue une fiche » après la ligne de l'index au plus grand numéro ;
+  une ligne « jouer une fiche du chantier » avant le premier « relire le
+  chantier » du routage de `CLAUDE.md`. Une ligne déjà là n'est pas redoublée.
+  `OUVERT <lettre> <plage> · index +<n> · routage +<n> · artefact <url> —
+  <projet>` ; index ou routage introuvable : `GARDE:`, le reste est écrit.
+  Un autre chantier déjà ouvert : `GARDE:`, sort 1.
 
 Python 3 sans dépendance, zéro appel modèle.
 """
@@ -1016,6 +1025,97 @@ def cmd_clore(a, sortie):
     return 0
 
 
+# --- ouvrir ------------------------------------------------------------------
+
+LIGNE_FICHIER = re.compile(r"^\| `\d\d")
+
+
+def cmd_ouvrir(a, sortie):
+    projet = a.projet
+    if not equipe(projet):
+        sortie.write("GARDE: pas de CHANTIER.md dans %s\n" % projet)
+        return 1
+    fichier = a.fiches.replace("\\", "/")
+    chemin_fiches = os.path.join(projet, fichier)
+    if not os.path.isfile(chemin_fiches):
+        sortie.write("GARDE: fichier de fiches introuvable : %s\n" % fichier)
+        return 1
+    ids = [l.split()[1] for l in lignes_de(chemin_fiches) if TITRE.match(l)]
+    if not ids:
+        sortie.write("GARDE: aucune fiche dans %s\n" % fichier)
+        return 1
+    chemin_carte = os.path.join(projet, "CHANTIER.md")
+    carte_ = lignes_de(chemin_carte)
+    courant = fichier_courant("\n".join(carte_))
+    if courant and courant != fichier:
+        sortie.write("GARDE: un chantier est déjà ouvert : %s\n" % courant)
+        return 1
+    lettre, fait = ids[0][0], "%s..%s" % (ids[0], ids[-1])
+    url = a.artefact or (champ(carte_, "artefact du chantier", "aucun") if courant else "aucun")
+    gardes = []
+
+    # 1. CHANTIER.md
+    vus = set()
+    for k, l in enumerate(carte_):
+        m = re.match(r"^(\s*-\s*\*\*(fichier de fiches courant|artefact du chantier)\*\*\s*:\s*)", l)
+        if m:
+            carte_[k] = m.group(1) + ("%s (%s)" % (fichier, fait) if m.group(2).startswith("fichier") else url)
+            vus.add(m.group(2))
+    for nom in ("fichier de fiches courant", "artefact du chantier"):
+        if nom not in vus:
+            sortie.write("GARDE: ligne « %s » absente de CHANTIER.md — rien d'écrit\n" % nom)
+            return 1
+
+    # 2. l'index
+    ecritures = []
+    nom = os.path.basename(fichier)
+    index = champ(carte_, "index")
+    chemin_index = os.path.join(projet, index) if index else None
+    n_index = 0
+    if not chemin_index or not os.path.isfile(chemin_index):
+        gardes.append("index introuvable : %s" % index)
+    else:
+        idx = lignes_de(chemin_index)
+        if not any(l.startswith("| `%s` |" % nom) for l in idx):
+            rangs = [k for k, l in enumerate(idx) if LIGNE_FICHIER.match(l)]
+            if not rangs:
+                gardes.append("aucune ligne de fichier dans %s" % index)
+            else:
+                rang = max(rangs, key=lambda k: int(idx[k][3:5]))
+                idx.insert(rang + 1,"| `%s` | on joue une fiche `%s*` — chantier **ouvert** « %s », `%s` |"
+                           % (nom, lettre, a.titre, fait))
+                ecritures.append((chemin_index, idx))
+                n_index = 1
+
+    # 3. le routage de CLAUDE.md
+    chemin_claude = os.path.join(projet, "CLAUDE.md")
+    n_routage = 0
+    if not os.path.isfile(chemin_claude):
+        gardes.append("CLAUDE.md introuvable")
+    else:
+        cl = lignes_de(chemin_claude)
+        if not any("`%s`" % fichier in l for l in cl if l.startswith("|")):
+            rang = next((k for k, l in enumerate(cl) if l.startswith("| relire le chantier")), None)
+            if rang is None:
+                gardes.append("aucune ligne « relire le chantier » dans CLAUDE.md")
+            else:
+                titre = a.titre[:1].lower() + a.titre[1:]
+                cl.insert(rang, "| jouer une fiche du chantier %s (%s) | `%s` — chantier **ouvert**, par `/vlp:tache %s<n>` |"
+                          % (lettre, titre, fichier, lettre))
+                ecritures.append((chemin_claude, cl))
+                n_routage = 1
+
+    ecritures.append((chemin_carte, carte_))
+    for chemin, lignes in ecritures:
+        with open(chemin, "w", encoding="utf-8", newline="") as fh:
+            fh.write("\n".join(lignes) + "\n")
+    for g in gardes:
+        sortie.write("GARDE: %s — le reste est écrit\n" % g)
+    sortie.write("OUVERT %s %s · index +%d · routage +%d · artefact %s — %s\n"
+                 % (lettre, fait, n_index, n_routage, url, projet))
+    return 0
+
+
 # --- entrée ------------------------------------------------------------------
 
 def main(argv, sortie=None, entree=None, erreur=None):
@@ -1060,7 +1160,14 @@ def main(argv, sortie=None, entree=None, erreur=None):
     cl.add_argument("--tokens", type=int)
     cl.add_argument("--abandon")
     cl.add_argument("--date")
+    ou = sous.add_parser("ouvrir")
+    ou.add_argument("projet")
+    ou.add_argument("--fiches", required=True)
+    ou.add_argument("--titre", required=True)
+    ou.add_argument("--artefact")
     a = p.parse_args(argv)
+    if a.cmd == "ouvrir":
+        return cmd_ouvrir(a, sortie)
     if a.cmd == "clore":
         return cmd_clore(a, sortie)
     if a.cmd == "feuille":

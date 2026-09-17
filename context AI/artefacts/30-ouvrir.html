@@ -68,9 +68,9 @@
     <p>Une ouverture et une clôture ne gardent à la main que les publications Artifact et le texte de jugement ; tours à la main comptés avant (O1) et après (O5).</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">5 fiches · 1 faite · en cours : O2</p>
+    <p class="mono" style="margin-top:.5rem">5 fiches · 2 faites · en cours : O3</p>
   </header>
 
   <section>
@@ -82,14 +82,14 @@
         <span class="etat">faite</span>
         <span class="note">Mesuré : à la main, F 12 tours sur 64 (ouverture 7, clôture 5), X 8 sur 77 (5, 3), O ouverture 7 sur 20 ; 0 refus. Formats réels relevés, O2/O3 recalés.</span>
       </li>
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">O2</span><span class="titre">Écrire vlp.py ouvrir</span>
-        <span class="etat">en cours</span>
-        <span class="note">vlp.py ouvrir : CHANTIER.md, ligne d'index, routage de CLAUDE.md ; tests. Dépend de O1.</span>
+        <span class="etat">faite</span>
+        <span class="note">vlp.py ouvrir : tests OK, 73 → 81 assertions ; bac copié : grep -c 0 → 1 pour CLAUDE.md, index, CHANTIER.md, les trois identiques au vrai ; relance : diff -r vide.</span>
       </li>
-      <li class="fiche">
+      <li class="fiche" data-etat="encours">
         <span class="id">O3</span><span class="titre">Étendre vlp.py clore : routage, index, « Fait. », ZONE:bilan</span>
-        <span class="etat">à faire</span>
+        <span class="etat">en cours</span>
         <span class="note">vlp.py clore étendu : routage et index à clos, Fait., ZONE:bilan de la page ; tests. Dépend de O1.</span>
       </li>
       <li class="fiche">

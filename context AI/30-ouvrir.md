@@ -77,7 +77,7 @@ index ouvert « on joue une fiche `L*` — chantier **ouvert** « Titre », `L1.
 ---
 
 <!-- FICHE:O2 -->
-## O2 [ ] — Écrire `vlp.py ouvrir`
+## O2 [x] — Écrire `vlp.py ouvrir`
 
 **Dépend de** : `O1`.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py`, `skills/chantier/SKILL.md` (étapes 5 bis et 6, pour le format).

@@ -493,6 +493,37 @@ with tempfile.TemporaryDirectory() as t:
     verifier("clore : second appel refusé", code == 1 and s.startswith("GARDE: aucun chantier ouvert")
              and lire(os.path.join(t, "CHANTIER.md")) == carte_lue, s)
 
+with tempfile.TemporaryDirectory() as t:
+    lire = lambda c: open(c, encoding="utf-8").read()
+    carte_o = ("# C\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n"
+               "- **fichier de fiches courant** : %s\n- **artefact du chantier** : %s\n")
+    ecrire(os.path.join(t, "CHANTIER.md"), carte_o % ("aucun", "aucun"))
+    ecrire(os.path.join(t, "ctx", "00-INDEX.md"), "| Fichier | Lire |\n|---|---|\n| `10-e.md` | on relit |\n| `05-d.md` | vieux |\n\nFin.\n")
+    ecrire(os.path.join(t, "CLAUDE.md"), "| La tâche | Ouvrir |\n|---|---|\n| modifier | x |\n| relire le chantier E (e) | `ctx/10-e.md` — chantier **clos** |\n")
+    ecrire(os.path.join(t, "ctx", "30-q.md"), "# Chantier Q — Un titre\n\n## Q1 [ ] — a\n## Q2 [ ] — b\n")
+    code, s = appel(["ouvrir", t, "--fiches", "ctx/30-q.md", "--titre", "Un `titre`"])
+    carte_lue, index_lu, claude_lu = lire(os.path.join(t, "CHANTIER.md")), lire(os.path.join(t, "ctx", "00-INDEX.md")), lire(os.path.join(t, "CLAUDE.md"))
+    verifier("ouvrir : bilan", code == 0 and s == "OUVERT Q Q1..Q2 · index +1 · routage +1 · artefact aucun — %s\n" % t, s)
+    verifier("ouvrir : CHANTIER.md", "**fichier de fiches courant** : ctx/30-q.md (Q1..Q2)\n- **artefact du chantier** : aucun\n" in carte_lue, carte_lue)
+    verifier("ouvrir : index, après le plus grand numéro", "| `10-e.md` | on relit |\n| `30-q.md` | on joue une fiche `Q*` — chantier **ouvert** « Un `titre` », `Q1..Q2` |\n| `05-d.md`" in index_lu, index_lu)
+    verifier("ouvrir : routage", "| modifier | x |\n| jouer une fiche du chantier Q (un `titre`) | `ctx/30-q.md` — chantier **ouvert**, par `/vlp:tache Q<n>` |\n| relire" in claude_lu, claude_lu)
+    code, s = appel(["ouvrir", t, "--fiches", "ctx/30-q.md", "--titre", "Un `titre`", "--artefact", "https://exemple/q"])
+    verifier("ouvrir : relance, artefact seul", code == 0 and "index +0 · routage +0 · artefact https://exemple/q" in s
+             and lire(os.path.join(t, "CLAUDE.md")) == claude_lu and lire(os.path.join(t, "ctx", "00-INDEX.md")) == index_lu
+             and "**artefact du chantier** : https://exemple/q" in lire(os.path.join(t, "CHANTIER.md")), s)
+    avant = lire(os.path.join(t, "CHANTIER.md"))
+    code, s = appel(["ouvrir", t, "--fiches", "ctx/30-q.md", "--titre", "Un `titre`"])
+    verifier("ouvrir : relance sans artefact, rien ne change", code == 0 and lire(os.path.join(t, "CHANTIER.md")) == avant, s)
+    ecrire(os.path.join(t, "ctx", "31-r.md"), "# Chantier R — r\n\n## R1 [ ] — a\n")
+    code, s = appel(["ouvrir", t, "--fiches", "ctx/31-r.md", "--titre", "r"])
+    verifier("ouvrir : autre chantier ouvert, refus", code == 1 and s.startswith("GARDE: un chantier est déjà ouvert")
+             and lire(os.path.join(t, "CHANTIER.md")) == avant, s)
+    ecrire(os.path.join(t, "CHANTIER.md"), carte_o % ("aucun", "aucun"))
+    os.remove(os.path.join(t, "CLAUDE.md"))
+    code, s = appel(["ouvrir", t, "--fiches", "ctx/31-r.md", "--titre", "r"])
+    verifier("ouvrir : CLAUDE.md absent, garde, le reste écrit", code == 0 and "GARDE: CLAUDE.md introuvable" in s
+             and "routage +0" in s and "index +1" in s and "ctx/31-r.md (R1..R1)" in lire(os.path.join(t, "CHANTIER.md")), s)
+
 SH = shutil.which("sh")
 if SH is None:
     print("lanceur : sh absent du PATH, tests du lanceur sautés")
