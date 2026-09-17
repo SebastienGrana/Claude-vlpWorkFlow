@@ -1,8 +1,7 @@
 > **QUAND LIRE** : la dernière fiche d'un chantier vient d'être cochée, ou on
 > décide de clore un chantier tel quel sans jouer les fiches restantes.
 > Lu par `/vlp:tache` (étape 7), par `/vlp:enchainer` (étape 5) et par
-> `/vlp:chantier` (étape 0 ter). C'est la **seule** description de la clôture :
-> les trois commandes l'appliquent, aucune ne la réécrit de son côté.
+> `/vlp:chantier` (étape 0 ter), qui l'appliquent sans la réécrire.
 
 # Clore un chantier — les cinq écritures, dans cet ordre
 
@@ -38,7 +37,7 @@ Quatre lignes, à la racine du projet :
 Avant d'écrire la ligne de bilan, si `${CLAUDE_PLUGIN_ROOT}/scripts/mesure-tokens.py`
 existe et que le fichier de fiches qu'on clôture porte des lignes
 `**Session**` : appelle le script sur toutes, et verse le total brut dans la
-ligne de bilan — comptes bruts, pas d'estimation, pas d'arrondi. Sinon, saute
+ligne de bilan, sans arrondi (règle des comptes bruts : `methode-chantier.md`). Sinon, saute
 ce total : rien à afficher.
 
 ```bash

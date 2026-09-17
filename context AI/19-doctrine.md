@@ -141,7 +141,7 @@ ne rend rien ; `wc -l README.md` affiché, à comparer à 162 + 163 + 73.
 ---
 
 <!-- FICHE:D4 -->
-## D4 [ ] — Nettoyer ARTEFACTS, cloture et enchainement
+## D4 [x] — Nettoyer ARTEFACTS, cloture et enchainement
 
 **Dépend de** : `D1`, `D2`.
 **Fichiers** : ARTEFACTS.md, cloture.md, enchainement.md.
