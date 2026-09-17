@@ -33,6 +33,8 @@
   un fichier de fiches à l'écriture ; `SessionStart` écarté ; le 5 est retiré.
 - **2026-09-17** — chantier V clos (TODO n° 6) : `claude plugin eval` passe 3 cas sous
   Windows, `validate` avant commit ; le 6 est retiré, ses cas Bash passent au 11.
+- **2026-09-17** — chantier D clos (TODO n° 7) : la doctrine tient en trois docs à la
+  racine, chaque seuil dans `vlp.py` ; le 7 est retiré.
 
 ## La TODO ordonnée — les chantiers possibles
 
@@ -42,7 +44,6 @@ ordonné par ce qui débloque le reste. Le détail de chacun est dans
 
 | # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |
 |---|---|---|---|---|
-| 7 | Fusionner la doctrine | cinq fichiers de doc → trois ; chaque nombre vit une fois | 3 fiches | rien |
 | 8 | Migrer `commands/` → `skills/` | un dossier par commande, `disable-model-invocation`, variante `context: fork` + `vlp:fiche` | 3 fiches | rien |
 | 9 | `/vlp:enchainer` : réparer ou retirer | chef ≤ 3 tours par fiche via la skill forkée, ou suppression — aux chiffres de 2 | 3 fiches | 8 |
 | 10 | Un projet neuf qui ne ment pas | `/vlp:init` crée ce que l'index et le routage nomment ; numéro d'état pris à la suite | 2 fiches | rien |
@@ -376,3 +377,17 @@ de ce que le code dit déjà.
   cache_read 16 479 432, **total 16 754 210 tokens**, 12,12 $ ; sous-agents : 49 tours,
   71 appels, total 2 562 465 tokens, 0,68 $ ; soit **19 316 675 tokens**, 12,80 $ — plus
   17 lancements d'eval, 2,25 $ (prix catalogue, hors transcripts).
+- **2026-09-17** — Chantier D **clos**. Livré : docs racine 8 → 5 (`README` absorbe
+  `INSTALLATION` et le TLDR, 398 → 141 lignes ; la méthode absorbe `CONVENTION-FICHIERS`,
+  248 → 202, et porte seule « un seul endroit » et « comptes bruts ») ; `SEUIL_SOCLE = 80`
+  dans `vlp.py`, qui avertit ; `250` dans 6 fichiers → 1 (`vlp.py`), `80 lignes` 2 → 1
+  (`test-vlp.py`) ; ARTEFACTS, cloture, enchainement 265 → 233 lignes ; commandes 872 → 868.
+  `validate` propre ; evals Windows 3/3, 40 tours (16, 2, 22), 0,55 $ (V4 : 39 tours,
+  0,93 $). Laissé ouvert : `comptes bruts` reste dans 10 fichiers comme ordre d'agir
+  (commandes, gabarits), pas comme règle recopiée. Constat qui vaut au-delà de D :
+  `/vlp:enchainer` a joué D1 avec un sous-agent `vlp:fiche` coupé 3 fois à 8 tours
+  (`maxTurns: 8`) — D2 à D6 jouées à la main dans une seule session ; `claude` absent
+  du PATH, trouvé sous `%APPDATA%/Claude/claude-code/<version>/claude.exe`. Total brut
+  mesuré — session des fiches : 54 tours, 62 appels, total 6 218 533 tokens, 5,21 $ ;
+  sous-agent D1 : 24 tours, 945 694 tokens, 0,20 $ ; soit **7 164 227 tokens**, 5,41 $,
+  plus 0,55 $ d'evals ; cadrage non mesuré (pas de ligne `**Session**`).

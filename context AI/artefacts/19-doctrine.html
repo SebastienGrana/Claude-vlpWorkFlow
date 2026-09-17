@@ -69,9 +69,9 @@
     <p>Trois docs à la racine (README, méthode, ARTEFACTS) ; chaque seuil dans vlp.py seul, chaque règle dans la méthode seule — comptes bruts avant/après, evals 3/3</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">6 fiches · 5 faites · en cours : D6</p>
+    <p class="mono" style="margin-top:.5rem">6 fiches · 6 faites</p>
   </header>
 
   <section>
@@ -103,12 +103,14 @@
         <span class="etat">faite</span>
         <span class="note">grep 250|80 lignes dans commands et templates : rien ; commands 274/122/146/179/151 = 872 → 273/120/145/179/151 = 868 ; tests OK</span>
       </li>
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">D6</span><span class="titre">Compter, puis rejouer les evals</span>
-        <span class="etat">en cours</span>
-        <span class="note">Grep avant/après, validate, evals Windows rejouées ; dépend de D3, D4, D5</span>
+        <span class="etat">faite</span>
+        <span class="note">motifs : 250 6 → 1 fichier (vlp.py), 80 lignes 2 → 1 (test-vlp.py), comptes bruts 9 → 10 (ordres d'agir), un seul endroit|une seule fois 5 → 3 ; validate propre ; evals 3/3, 40 tours, 0,55 $ (V4 : 39 tours, 0,93 $)</span>
+        <span class="cout mono">≈7,3M (7 277 093) · 60 tours · 6,06 $</span>
       </li>
     </ul>
+    <p class="mono cout-total">Coût du chantier : ≈7,3M (7 277 093) · 60 tours · 6,06 $</p>
     <!-- ligne de total, absente si aucune fiche n'a de coût mesuré -->
   </section>
 
@@ -130,10 +132,11 @@
   </section>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
-  <section hidden>
-    <h2>Chantier clos le </h2>
+  <section>
+    <h2>Chantier clos le 2026-09-17</h2>
     <div class="bilan">
-      <p></p>
+      <p>Livré : trois docs à la racine (README 141 lignes, 398 avant ; méthode 202, 248 avant ; ARTEFACTS) ; chaque seuil dans vlp.py seul (250 : 6 fichiers → 1) ; validate propre, evals 3/3, 40 tours, 0,55 $.</p>
+      <p>Surpris : /vlp:enchainer a joué D1 avec un sous-agent coupé 3 fois à 8 tours ; D2 à D6 jouées à la main.</p>
     </div>
   </section>
 

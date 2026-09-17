@@ -68,8 +68,8 @@
     <!-- ZONE:encours — remplacé à chaque ouverture, remis à « aucun » à chaque clôture.
          /tache n'y touche pas : l'avancement fiche par fiche est sur la page du chantier. -->
     <div class="encours">
-      <div class="titre">Fusionner la doctrine <span class="badge" data-etat="cours">en cours</span></div>
-      <div>Fiches <span class="mono">D1–D6</span> · <span class="mono">context AI/19-doctrine.md</span> · <a href="https://claude.ai/artifact/Pnfr1vfuHWiqM4XHuFP8Eh">la page du chantier</a></div>
+      <div class="titre">Aucun chantier ouvert</div>
+      <div>Lancer <span class="mono">/vlp:chantier</span> pour en ouvrir un.</div>
     </div>
   </section>
 
@@ -82,7 +82,6 @@
           <tr><th>#</th><th>Chantier</th><th>Ce qu'il apporte</th><th>Coût</th><th>Dépend de</th></tr>
         </thead>
         <tbody>
-          <tr><td class="mono">7</td><td>Fusionner la doctrine <span class="badge" data-etat="cours">en cours</span></td><td>Cinq fichiers de doc → trois ; chaque nombre vit une fois</td><td class="mono">3 fiches</td><td class="mono">—</td></tr>
           <tr><td class="mono">8</td><td>Migrer commands/ → skills/</td><td>Un dossier par commande, disable-model-invocation, variante context: fork + vlp:fiche</td><td class="mono">3 fiches</td><td class="mono">—</td></tr>
           <tr data-etat="bloque"><td class="mono">9</td><td><span class="mono">/vlp:enchainer</span> : réparer ou retirer</td><td>Chef ≤ 3 tours par fiche via la skill forkée, ou suppression — aux chiffres de 2</td><td class="mono">3 fiches</td><td class="mono">8</td></tr>
           <tr><td class="mono">10</td><td>Un projet neuf qui ne ment pas</td><td><span class="mono">/vlp:init</span> crée ce que l'index et le routage nomment ; numéro d'état pris à la suite</td><td class="mono">2 fiches</td><td class="mono">—</td></tr>
@@ -101,6 +100,13 @@
           <tr><th>Chantier</th><th>Fiches</th><th>Clos le</th><th>Tokens</th><th>Ce qu'il a livré</th></tr>
         </thead>
         <tbody>
+          <tr>
+            <td><a href="https://claude.ai/artifact/Pnfr1vfuHWiqM4XHuFP8Eh">Fusionner la doctrine</a> <span class="badge" data-etat="clos">clos</span></td>
+            <td class="mono">D1–D6</td><td class="mono">2026-09-17</td>
+            <td class="mono">≈7,2M (7 164 227)</td>
+            <td>La doctrine en trois docs à la racine (README, méthode, ARTEFACTS) ; chaque
+              seuil dans vlp.py seul ; evals 3/3 à 0,55 $ (5,41 $).</td>
+          </tr>
           <tr>
             <td><a href="https://claude.ai/artifact/HuzF1uSZeEvW89uUaoGS5e">Evals du plugin</a> <span class="badge" data-etat="clos">clos</span></td>
             <td class="mono">V1–V4</td><td class="mono">2026-09-17</td>
@@ -175,14 +181,14 @@
           </tr>
         </tbody>
         <tfoot>
-          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈103,7M (103 715 122)</strong></td><td></td></tr>
+          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈110,9M (110 879 349)</strong></td><td></td></tr>
         </tfoot>
       </table>
     </div>
   </section>
 
   <footer>
-    <span>Lettres de fiche prises : <span class="mono">E, M, C, T, B, R, S, H, V</span></span>
+    <span>Lettres de fiche prises : <span class="mono">E, M, C, T, B, R, S, H, V, D</span></span>
     <span>État détaillé : <span class="mono">context AI/08-etat.md</span></span>
     <span>Mis à jour le <span class="mono">2026-09-17</span></span>
   </footer>

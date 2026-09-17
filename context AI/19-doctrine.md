@@ -4,6 +4,8 @@
 
 # Chantier D — Fusionner la doctrine
 
+**CLOS** le 2026-09-17. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
 **À quoi il sert.** Cinq fichiers de doc racontent la même histoire, et les
 seuils (250, 80, 50) sont recopiés jusque dans les commandes. Le chantier ramène
 la doc à trois fichiers et loge chaque nombre dans `scripts/vlp.py`, seul.
@@ -185,8 +187,9 @@ raccourcir. Ne touche pas aux étapes, titres ni marqueurs que `vlp.py` lit.
 ---
 
 <!-- FICHE:D6 -->
-## D6 [ ] — Compter, puis rejouer les evals
+## D6 [x] — Compter, puis rejouer les evals
 
+**Session** : ade9067b-76ee-465e-9be1-669ccea06eb1
 **Dépend de** : `D3`, `D4`, `D5`.
 **Fichiers** : aucun à modifier, sauf correction d'un écart trouvé.
 
