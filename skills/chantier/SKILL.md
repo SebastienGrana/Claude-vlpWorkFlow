@@ -229,11 +229,17 @@ Publie avec `favicon` `🧱`, un `title` `<Projet> — <Nom du chantier>` et pou
 `description` `Les fiches de <chantier>, et où on en est.` Puis **recopie
 l'URL** dans la ligne « **artefact du chantier** » de `CHANTIER.md`.
 
-Mets enfin la feuille de route à jour — son URL est dans `CHANTIER.md` :
-`action: "read"` sur cette URL, puis reporte sur la version rendue le bloc
-`ZONE:encours` (nom du chantier, plage de fiches, lien vers son artefact) et le
-badge « en cours » de la ligne correspondante de `ZONE:todo`. Republie avec
-cette même `url`, sans `favicon`, et `label` `<chantier> ouvert`.
+Mets enfin la feuille de route à jour. Écris d'abord la ligne « **fichier de
+fiches courant** » (étape 6), puis — `--todo` seulement si le chantier a un
+numéro dans la TODO :
+
+```bash
+sh "${CLAUDE_PLUGIN_ROOT}/scripts/vlp" feuille . --todo <N>
+```
+
+Lis la ligne `FEUILLE`. `action: "read"` sur l'URL de la feuille de route
+(`CHANTIER.md`), puis republie le fichier local avec cette `url`, sans
+`favicon`, et `label` `<chantier> ouvert`.
 
 Si une publication échoue, dis-le en une ligne et continue : le chantier est
 cadré, c'est ce qui compte. La ligne de `CHANTIER.md` reste alors à « aucun ».

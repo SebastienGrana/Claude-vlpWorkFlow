@@ -68,9 +68,9 @@
     <p>La clôture de ce chantier met à jour CHANTIER.md et la feuille de route en un appel vlp.py clore</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">4 fiches · 3 faites · en cours : F4</p>
+    <p class="mono" style="margin-top:.5rem">4 fiches · 4 faites</p>
   </header>
 
   <section>
@@ -92,12 +92,14 @@
         <span class="etat">faite</span>
         <span class="note">test-vlp.py OK, 68 → 73 assertions ; bac copié : CHANTIER.md 4 lignes justes, CLOS posé, total 176 218 775 + 1 234 567 = 177 453 342, second appel GARDE exit 1</span>
       </li>
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">F4</span><span class="titre">Brancher les deux scripts dans /vlp:chantier et cloture.md</span>
-        <span class="etat">en cours</span>
-        <span class="note">Les deux scripts branchés dans /vlp:chantier et cloture.md, eval chantier ; dépend de F2, F3</span>
+        <span class="etat">faite</span>
+        <span class="note">validate OK (1 avertissement voulu), renvois 58 · 0 absent, grep ZONE:encours 0 et 0, eval chantier WSL2 3/3 (5 tours, 0,29 $), test-vlp OK 73 ; plugin 3.3.4</span>
+        <span class="cout mono">≈8,8M (8 781 743) · 56 tours · 7,45 $</span>
       </li>
     </ul>
+    <p class="mono cout-total">Coût du chantier : ≈8,8M (8 781 743) · 56 tours · 7,45 $</p>
     <!-- ligne de total, absente si aucune fiche n'a de coût mesuré -->
   </section>
 

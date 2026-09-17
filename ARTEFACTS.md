@@ -86,6 +86,11 @@ avancement, coûts, date. On ne retouche pas son HTML à la main : une ligne
 corrigée à la main fait de la page une seconde source, qui dérive dès la
 première session interrompue. `/vlp:check` compare les deux quand on doute.
 
+La feuille de route non plus : `vlp.py feuille` réécrit le chantier en cours,
+la TODO et les lettres depuis `CHANTIER.md` et le fichier d'état ; `vlp.py
+clore` y ajoute la ligne d'un chantier clos et le total cumulé. Leurs options
+sont dans la docstring du script.
+
 ## Le budget de contexte
 
 `/vlp:tache` relit la page du chantier à chaque fiche : sa taille se paye

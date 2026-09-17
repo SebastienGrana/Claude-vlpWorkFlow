@@ -115,8 +115,9 @@ projet dans le scratchpad, `clore` lancé, montre `CHANTIER.md` et la page corre
 ---
 
 <!-- FICHE:F4 -->
-## F4 [ ] — Brancher les deux scripts dans `/vlp:chantier` et `cloture.md`
+## F4 [x] — Brancher les deux scripts dans `/vlp:chantier` et `cloture.md`
 
+**Session** : 52dde2c9-8f44-4b20-b5da-6798fe2683d3
 **Dépend de** : `F2`, `F3`.
 **Fichiers** : `skills/chantier/SKILL.md` (étape 5 bis), `cloture.md`, `ARTEFACTS.md`, `.claude-plugin/plugin.json`.
 

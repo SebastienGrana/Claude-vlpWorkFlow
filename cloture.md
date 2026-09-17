@@ -8,56 +8,47 @@
 Une clôture qui s'arrête au milieu laisse un projet qui ment. Si l'une des cinq
 échoue, **dis laquelle et où tu t'es arrêté** : la reprise saura quoi finir.
 
-## 1. Le fichier de fiches
+Des fiches restent non cochées (clôture décidée, pas atteinte) : elles sont
+**abandonnées**, pas faites — ne les coche pas, et dis lesquelles et pourquoi.
 
-En tête du fichier, sous le titre, la ligne :
-
-```
-**CLOS** le <date>. Ne se rejoue pas — ne sert plus qu'à relire son socle.
-```
-
-Si des fiches restent non cochées (clôture décidée, pas atteinte), ajoute
-en une ligne **lesquelles et pourquoi on les abandonne**. Une fiche abandonnée
-n'est pas une fiche faite : ne la coche pas.
-
-## 2. `CHANTIER.md`
-
-Quatre lignes, à la racine du projet :
-
-- « **fichier de fiches courant** » repasse à `aucun` ;
-- « **artefact du chantier** » repasse à `aucun` ;
-- la ligne du chantier entre dans la table **Chantiers clos** : fichier, plage
-  de fiches, date, et **l'URL de son artefact** dans la colonne « Artefact » —
-  sans elle, la page est perdue ;
-- « **Lettres de fiche déjà prises** » reçoit la lettre du chantier. Elle ne se
-  réemploiera jamais, même clos.
-
-## 3. Le fichier d'état
+## 1. Le fichier d'état
 
 Avant d'écrire la ligne de bilan, si `${CLAUDE_PLUGIN_ROOT}/scripts/mesure-tokens.py`
 existe et que le fichier de fiches qu'on clôture porte des lignes
-`**Session**` : appelle le script sur toutes, et verse le total brut dans la
-ligne de bilan, sans arrondi (règle des comptes bruts : `methode-chantier.md`). Sinon, saute
-ce total : rien à afficher.
+`**Session**` : appelle le script sur toutes, et garde le total brut, sans
+arrondi (règle des comptes bruts : `methode-chantier.md`). Sinon, pas de total.
 
 ```bash
 sh "${CLAUDE_PLUGIN_ROOT}/scripts/vlp" sessions "<fichier de fiches>" | tr -d '\r' | tr '\n' '\0' | xargs -0 sh "${CLAUDE_PLUGIN_ROOT}/scripts/vlp" mesure
 ```
 
-Une ligne de bilan, datée : ce que le chantier a livré, et ce qu'il a laissé
-ouvert. Pas un récit — le détail est dans git et dans le fichier de fiches.
+Une ligne de bilan, datée : ce que le chantier a livré, ce qu'il a laissé
+ouvert, et ce total. Pas un récit — le détail est dans git et dans le fichier de fiches.
+Retire la ligne du chantier de la TODO, ou reformule-la s'il en reste.
 
 Une piste qui a échoué pour une raison qui **vaut au-delà de ce chantier** va
 ici aussi : c'est le seul endroit que la prochaine session lira.
 
-## 4. `CLAUDE.md`
+## 2. Le fichier de fiches, `CHANTIER.md` et la feuille de route locale — un appel
+
+```bash
+sh "${CLAUDE_PLUGIN_ROOT}/scripts/vlp" clore . --livre "<ce qu'il a livré, une ligne>" --tokens <total brut de l'étape 1> --abandon "<fiches abandonnées et pourquoi>"
+```
+
+Sans total, pas de `--tokens` ; sans abandon, pas de `--abandon`. Le script
+pose `**CLOS**`, remet les deux lignes de `CHANTIER.md` à `aucun`, ajoute la
+ligne des clos avec l'URL et la lettre, puis écrit la feuille de route locale
+(ligne des clos, total cumulé, chantier en cours, TODO de l'étape 1). Lis les
+lignes `FEUILLE` et `CLOS` ; une `GARDE:` dit ce qui n'est pas écrit.
+
+## 3. `CLAUDE.md`
 
 La ligne de routage du chantier dit désormais **clos**. Un routage qui envoie
 vers un chantier clos coûte une session entière.
 
-## 5. Les deux pages
+## 4. L'artefact du chantier
 
-D'abord **l'artefact du chantier** — lire, réécrire, republier :
+Lire, réécrire, republier :
 
 - `Artifact`, `action: "read"`, son `url` (la lecture est imposée : sans elle
   la republication est refusée) ;
@@ -69,22 +60,14 @@ D'abord **l'artefact du chantier** — lire, réécrire, republier :
 - republication : `file_path` local **et** `url`, pas de `favicon`,
   `label` : `clos`.
 
-Puis la **feuille de route**, même séquence, son `url` est dans
-`CHANTIER.md` :
+## 5. La feuille de route
 
-- `ZONE:encours` remis à « aucun chantier ouvert » ;
-- une ligne en tête de `ZONE:clos`, avec le lien vers l'artefact du chantier,
-  et sa colonne Tokens — le total déjà calculé à l'étape 3, pas un second
-  calcul (convention d'affichage dans `templates/artefact-chantier.html`) ;
-- la ligne de total cumulé en pied de `ZONE:clos` mise à jour (somme des
-  chantiers clos qui portent un total) ;
-- la ligne correspondante retirée de `ZONE:todo` ;
-- la TODO reportée depuis le **fichier d'état** si elle a bougé — c'est le
-  fichier qui fait foi, la page n'en est que le miroir ;
-- `label` : `<chantier> clos`.
+Déjà écrite à l'étape 2 : `action: "read"` sur son `url` (« **artefact feuille
+de route** » de `CHANTIER.md`), puis republication du fichier local avec cette `url`,
+`label` : `<chantier> clos`.
 
-Si une publication échoue, dis-le en une ligne et continue : les quatre
-écritures locales sont ce qui compte, les pages se rattrapent.
+Si une publication échoue, dis-le en une ligne et continue : les écritures
+locales sont ce qui compte, les pages se rattrapent.
 
 ## Pour finir
 
