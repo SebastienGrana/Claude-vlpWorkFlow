@@ -71,14 +71,13 @@ Chaque fichier de chantier consomme une lettre. Une lettre réutilisée fait que
 **E — Le coût par session.**
 
 ```bash
-wc -l "<fichier de fiches courant>" "<artefact du chantier local>"
+wc -l "<fichier de fiches courant>" "<artefact du chantier local>"; grep -m1 "^SEUIL_PAGE" "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py"
 ```
 
 Le socle est compté dans le bilan de `valider`, en B.
 
-Repères : socle **≤ 80 lignes**, page de chantier **≤ 250 lignes**. Ces deux
-là se relisent à *chaque* fiche : ce qu'ils portent en trop se paye autant de
-fois qu'il reste de fiches. Au-delà, dis de combien et propose quoi retirer.
+Un avertissement de socle en B, ou une page au-delà de `SEUIL_PAGE` : ils se
+relisent à *chaque* fiche. Dis de combien et propose quoi retirer.
 
 **F — Les URL sont écrites.**
 
@@ -114,8 +113,7 @@ Trois choses à lire dans cette sortie :
 
 Une liste, une ligne par vérification, de `A` à `G` : `A ✓` ou
 `A ✗ — <ce qui cloche>`.
-Affiche **les comptes bruts à côté du verdict** : un contrôle qui dit « ✗ »
-sans dire 4 contre 6 ne se diagnostique pas.
+Affiche **les comptes bruts à côté du verdict** (« 4 contre 6 »).
 
 Puis les corrections proposées, **par ordre de gravité**, chacune en une ligne
 avec le geste exact. Et rien de plus : c'est l'utilisateur qui décide laquelle

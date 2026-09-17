@@ -163,7 +163,7 @@ ne rend que des renvois, cités un par un ; `wc -l` des trois affiché avant/apr
 ---
 
 <!-- FICHE:D5 -->
-## D5 [ ] — Nettoyer les commandes et les gabarits
+## D5 [x] — Nettoyer les commandes et les gabarits
 
 **Dépend de** : `D1`, `D2`.
 **Fichiers** : commands/*.md, templates/artefact-chantier.html, templates/CLAUDE.md, templates/context AI/fichier-de-fiches.md.

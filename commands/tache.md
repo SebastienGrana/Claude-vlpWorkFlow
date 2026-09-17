@@ -140,7 +140,7 @@ bloc et dis-le en une ligne.
 
 ## 7. Si c'était la dernière fiche
 
-Le chantier est fini ; sa clôture est décrite à un seul endroit :
+Le chantier est fini ; applique sa clôture :
 
 ```bash
 cat "${CLAUDE_PLUGIN_ROOT}/cloture.md"

@@ -11,8 +11,7 @@ $ARGUMENTS
 Joue à la suite les fiches non cochées du fichier de fiches courant, chacune
 dans un sous-agent neuf `vlp:fiche` (`agents/fiche.md`) — jamais deux fiches
 dans le même contexte. Le contrat qu'il rend (`FAITE`, `RETOUR`, `BLOQUÉE`)
-est décrit une seule fois, dans `${CLAUDE_PLUGIN_ROOT}/enchainement.md` ;
-c'est lui qui fait foi, cette commande ne le recopie pas.
+est dans `${CLAUDE_PLUGIN_ROOT}/enchainement.md`, qui fait foi.
 
 Plafond : **5 fiches** par lancement, puis arrêt avec bilan même si tout se
 passait bien.

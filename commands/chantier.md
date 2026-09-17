@@ -263,9 +263,8 @@ Fiches et socle : la dernière ligne `VALIDE` du hook, à l'étape 5 — s'il n'
 rien dit, il ne tourne pas : lance `vlp.py valider` sur le fichier. La page,
 c'est la ligne `PAGE` de l'étape 5 bis. Dis
 en une ligne : « socle N lignes + fiche ~M lignes + page P lignes = coût
-fixe par session ». Si le socle dépasse **80 lignes** ou la page **250**,
-propose d'alléger **avant** de rendre la main : ce gras sera relu à chaque
-fiche, autant de fois qu'il y a de fiches.
+fixe par session ». Un avertissement de `valider` ou une `GARDE:` de `page` :
+propose d'alléger **avant** de rendre la main — ce gras sera relu à chaque fiche.
 
 Puis arrête-toi : donne le lien de l'artefact du chantier, annonce la première
 fiche à jouer, et rappelle de faire

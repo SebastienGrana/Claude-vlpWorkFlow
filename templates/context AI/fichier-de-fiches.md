@@ -47,8 +47,8 @@ la reprise pour ne pas les rejouer. Il ne se met pas à la main.>
 
 **Prompt**
 <Ce qu'il faut écrire, en clair, à la deuxième personne. Nomme les fonctions,
-pas les lignes. Une fiche décrit une intention, pas un diff. ~20 lignes : si
-elle en fait 50, c'est deux fiches.>
+pas les lignes. Une fiche décrit une intention, pas un diff. ~20 lignes :
+au-delà du seuil de vlp.py, `valider` avertit — c'est deux fiches.>
 
 **Critère de fin**
 <Ce qu'on doit voir pour dire que c'est fait. Une phrase. Soit une commande et
