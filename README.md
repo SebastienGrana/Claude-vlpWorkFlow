@@ -41,6 +41,11 @@ La méthode entière — anatomie d'une fiche, préfixes, où vit quoi — est d
 
 ## Installer — un lien, et c'est tout
 
+**Prérequis** : Python 3 et un `sh`. Sous Windows, [Git for Windows](https://git-scm.com/downloads/win)
+est donc **requis** pour le kit, bien que Claude Code le dise « optional » : sans lui, hooks et
+`` !`…` `` passent par PowerShell, où `/vlp:tache` échoue avant tout tour (« sh n'est pas reconnu »)
+et le hook de validation se tait (mesuré au chantier G, `context AI/26-gitbash.md`).
+
 **1. Récupérer le kit**, une fois, **à côté** des projets, jamais dedans :
 
 ```bash

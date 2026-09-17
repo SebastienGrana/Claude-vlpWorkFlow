@@ -68,9 +68,9 @@
     <p>Une session -p avec l'outil PowerShell seul : le hook rend VALIDE sans erreur, et le prérequis des commandes est écrit, cité de la doc.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="encours"></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">2 fiches · 1 faite · en cours : G2</p>
+    <p class="mono" style="margin-top:.5rem">2 fiches · 2 faites</p>
   </header>
 
   <section>
@@ -82,12 +82,14 @@
         <span class="etat">faite</span>
         <span class="note">Tableau 5 mécanismes, sourcés doc + 3 sondes -p (0,115 $) : sans Git Bash, hook sh → exit 1 muet, injection → skill en échec ; forme exec python …/vlp.py hook → VALIDE 1 fiches.</span>
       </li>
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">G2</span><span class="titre">Corriger le hook ou écrire le prérequis</span>
-        <span class="etat">en cours</span>
-        <span class="note">Hook sûr sans sh, ou prérequis écrit dans README et INSTALLATION ; dépend de G1.</span>
+        <span class="etat">faite</span>
+        <span class="note">Prérequis Git for Windows écrit dans README (doc citée, erreur mesurée) ; hook inchangé (VALIDE 1 fiches) ; tests OK 59 assertions, renvois 0 absent, validate 1 avertissement voulu ; TODO n° 16 ouverte.</span>
+        <span class="cout mono">≈7,2M (7 213 480) · 53 tours · 6,02 $</span>
       </li>
     </ul>
+    <p class="mono cout-total">Coût du chantier : ≈7,2M (7 213 480) · 53 tours · 6,02 $</p>
     <!-- ligne de total, absente si aucune fiche n'a de coût mesuré -->
   </section>
 

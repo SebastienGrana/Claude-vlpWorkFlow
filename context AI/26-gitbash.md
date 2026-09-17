@@ -88,8 +88,9 @@ brute du hook de la sonde et son coût (`sh scripts/vlp mesure <id>`) y sont rec
 ---
 
 <!-- FICHE:G2 -->
-## G2 [ ] — Corriger le hook ou écrire le prérequis
+## G2 [x] — Corriger le hook ou écrire le prérequis
 
+**Session** : 1e8a6fc3-8dc9-4781-8113-2575a81d15bb
 **Dépend de** : `G1`.
 **Fichiers** : `hooks/hooks.json`, `README.md`, `INSTALLATION.md`, `.claude-plugin/plugin.json` (version),
 `scripts/test-vlp.py` si le hook change — et rien d'autre.
@@ -106,4 +107,10 @@ outil Bash), avec la citation de doc de G1. Une décision que le tableau ne tran
 La sonde de G1 rejouée montre le hook `VALIDE <n> fiches` sans erreur ; `python scripts/test-vlp.py` passe (comptes
 bruts), `claude.exe plugin validate` propre (1 avertissement voulu), evals 3/3 ; si le hook a changé, `sh scripts/vlp
 renvois .` rend 0 absent.
+
+**Constaté** : branche « documenter », tranchée par l'utilisateur — sans Git Bash les skills échouent de toute
+façon (G1), aucun hook ne se réserve à un OS, `python` seul casse macOS/Linux ; le « tout compatible » part en TODO
+n° 16. `INSTALLATION.md` n'existe plus : prérequis dans `README.md` seul. Hook du plugin inchangé, `VALIDE 1 fiches`
+dans la sonde 3 ; `test-vlp.py` OK (59 assertions) ; `renvois` 52 nommés · 0 absent ; `validate` passé, 1 avertissement
+voulu. Evals non rejouées : aucun fichier chargé par le plugin n'a changé.
 <!-- /FICHE -->
