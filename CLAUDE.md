@@ -60,6 +60,7 @@ et seulement dans ce cas, ouvrir l'index.
 | savoir où vit quoi dans un projet équipé | `CONVENTION-FICHIERS.md` |
 | toucher aux pages publiées | `ARTEFACTS.md`, puis le gabarit dans `templates/` |
 | ouvrir un chantier, ou le découper en fiches | **lancer `/vlp:chantier`** |
+| jouer une fiche du chantier H (hooks du kit) | **lancer `/vlp:tache H<n>`** — `context AI/17-hooks.md`, chantier **en cours** |
 | relire le chantier S (un script `vlp.py` pour la mécanique) | `context AI/16-script.md` — chantier **clos** |
 | relire le chantier R (réduire les tours de `/vlp:tache`) | `context AI/15-reduire.md` — chantier **clos** |
 | relire le chantier B (corriger les bugs de l'audit) | `context AI/14-bugs.md` — chantier **clos** |
