@@ -54,6 +54,11 @@
   .badge { font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .05em; text-transform: uppercase; border: 1px solid currentColor; border-radius: 2px; padding: .05rem .35rem; color: var(--attente); white-space: nowrap; }
   .badge[data-etat="cours"] { color: var(--cours); }
   .badge[data-etat="clos"] { color: var(--fait); }
+  details.clos > summary { cursor: pointer; padding: .55rem .8rem; border: 1px solid var(--line); border-radius: 3px; background: var(--surface); color: var(--doux); font-size: .9rem; box-shadow: var(--ombre); }
+  details.clos > summary:hover { color: var(--texte); border-color: var(--line-fort); }
+  details.clos > summary::marker { color: var(--accent); }
+  details.clos[open] > summary { margin-bottom: .85rem; }
+  .resume-clos { font-family: "IBM Plex Mono", monospace; font-variant-numeric: tabular-nums; }
   footer { border-top: 1px solid var(--line); padding-top: .9rem; font-size: .82rem; color: var(--doux); display: flex; flex-wrap: wrap; gap: .25rem 1.25rem; }
 </style>
 
@@ -104,6 +109,8 @@
     <!-- ZONE:clos — une ligne ajoutée à chaque clôture, la plus récente en haut.
          Colonne Tokens et total en pied de table absents tant qu'aucun
          chantier clos ne porte de coût mesuré. -->
+    <details class="clos">
+      <summary><span class="resume-clos">&lt;n&gt; chantiers clos · &lt;≈15,3k (15 342)&gt; tokens · &lt;≈13 $&gt;</span></summary>
     <div class="tableau">
       <table>
         <thead>
@@ -118,10 +125,11 @@
           </tr>
         </tbody>
         <tfoot>
-          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>&lt;≈15,3k (15 342)&gt;</strong></td><td></td></tr>
+          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>&lt;≈15,3k (15 342)&gt;</strong></td><td class="mono">&lt;≈13 $&gt;</td></tr>
         </tfoot>
       </table>
     </div>
+    </details>
   </section>
 
   <footer>

@@ -59,13 +59,13 @@ extractible du tout.
 est en retard** — dis-le, nomme les fiches des lignes `ÉCART:`, et propose de
 la régénérer, sans le faire tant que l'utilisateur n'a pas répondu.
 
-**D — Les lettres de fiches ne se marchent pas dessus.**
+**D — Les préfixes de fiches ne se marchent pas dessus.**
 
 La ligne « Lettres de fiche déjà prises » est dans la carte, les fichiers du
 dossier de contexte dans la sortie de **A** — rien à relancer.
 
-Chaque fichier de chantier consomme une lettre. Une lettre réutilisée fait que
-`/vlp:tache D2` trouve deux fiches et en joue une au hasard.
+Chaque fichier de chantier consomme un préfixe. Un préfixe réutilisé fait que
+`/vlp:tache DEC2` trouve deux fiches et en joue une au hasard.
 
 **E — Le coût par session.**
 

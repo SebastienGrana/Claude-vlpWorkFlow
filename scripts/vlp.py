@@ -119,7 +119,8 @@ import os
 import re
 import sys
 
-TITRE = re.compile(r"^## [A-Z][0-9]")
+TITRE = re.compile(r"^## [A-Z]{1,3}[0-9]")
+PREFIXE = re.compile(r"^[A-Z]{1,3}")
 COURANT = re.compile(r"^\s*-\s*\*\*fichier de fiches courant\*\*\s*:\s*(.+?)\s*$")
 ALIAS = re.compile(r"^\s*-\s*\*\*alias\*\*\s*:\s*(\S+)")
 SESSION = re.compile(r"^\*\*Session\*\* : (.+?)\s*$")
@@ -436,7 +437,7 @@ def cmd_lignes(chemins, sortie):
     return 0
 
 
-PLAN = re.compile(r"^## [A-Z][0-9]|^\*\*(Dépend de|Tentatives|Critère de fin)\*\*")
+PLAN = re.compile(r"^## [A-Z]{1,3}[0-9]|^\*\*(Dépend de|Tentatives|Critère de fin)\*\*")
 
 
 def cmd_equiper(dossier, contexte, sortie):
@@ -592,7 +593,7 @@ def rapport(chemin, lignes, sortie):
 
 # --- hook --------------------------------------------------------------------
 
-MARQUE = re.compile(r"^<!-- FICHE:[A-Z][0-9]+ -->$")
+MARQUE = re.compile(r"^<!-- FICHE:[A-Z]{1,3}[0-9]+ -->$")
 
 
 def est_fichier_de_fiches(lignes):
@@ -658,6 +659,19 @@ def mesure():
 
 def esc(texte):
     return texte.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
+# Dollars par million de tokens, moyenne des 19 chantiers dont le coût a ete
+# mesure par mesure-tokens.py (183 243 381 tokens pour 153,40 $ ; etendue
+# 0,663 a 1,022 selon la part de cache). Sert aux ESTIMATIONS de page, jamais
+# a un cout annonce : un cout mesure vient toujours de mesure-tokens.py.
+USD_PAR_MTOKENS = 0.8371
+
+
+def estimation_usd(n):
+    """Le cout approximatif de `n` tokens, en dollars, comme `≈230 $`."""
+    v = n / 1_000_000.0 * USD_PAR_MTOKENS
+    return "≈%s $" % (("%.2f" % v).replace(".", ",") if v < 10 else "%d" % round(v))
 
 
 def milliers(n):
@@ -852,7 +866,7 @@ def regenerer(html, fichier, notes, journal, date, gardes):
         raise ValueError("page : avancement ou ligne de comptage introuvable")
     blocage = re.search(r'<section( hidden)?>(\s*<h2>Arrêt sur blocage</h2>\s*<div class="blocage">\s*<p>)(.*?)</p>', html, re.S)
     if blocage and not blocage.group(1):
-        fiche_bloquee = re.match(r"\s*([A-Z][0-9]+)", blocage.group(3))
+        fiche_bloquee = re.match(r"\s*([A-Z]{1,3}[0-9]+)", blocage.group(3))
         if fiche_bloquee and etat.get(fiche_bloquee.group(1)) == "faite":
             html = html[:blocage.start()] + "<section hidden>" + html[blocage.start() + len("<section>"):]
     for texte in journal:
@@ -1027,13 +1041,19 @@ def champ(lignes, nom, defaut=None):
     return defaut
 
 
+def lettre_de(id_fiche):
+    """Le préfixe d'un id de fiche : `RNV` pour `RNV12`, `Z` pour `Z3`."""
+    m = PREFIXE.match(id_fiche)
+    return m.group(0) if m else id_fiche[:1]
+
+
 def lettres_prises(lignes):
     texte = " ".join(l for l in lignes if l.strip())
     i = texte.find("Lettres de fiche déjà prises")
     if i < 0:
         return []
     fin = texte.find("Un nouveau chantier", i)
-    return re.findall(r"(?:: |, )([A-Z]) \(", texte[i:fin if fin > 0 else None])
+    return re.findall(r"(?:: |, )([A-Z]{1,3}) \(", texte[i:fin if fin > 0 else None])
 
 
 def plage(ids):
@@ -1094,8 +1114,8 @@ def feuille(projet, html, todo, date):
         encours = ('    <div class="encours">\n      <div class="titre">%s%s</div>\n'
                    '      <div>Fiches <span class="mono">%s</span>%s</div>\n    </div>\n'
                    % (cellule_md(titre), BADGE_COURS, plage(ids) if ids else "?", lien))
-        if ids and ids[0][0] not in lettres:
-            lettres.append(ids[0][0])
+        if ids and lettre_de(ids[0]) not in lettres:
+            lettres.append(lettre_de(ids[0]))
     else:
         encours = AUCUN_ENCOURS
     d, f = zone(html, "todo", "<tbody>\n", "        </tbody>")
@@ -1154,7 +1174,7 @@ def cmd_feuille(a, sortie):
 
 CLOS_LIGNE = "**CLOS** le %s. Ne se rejoue pas — ne sert plus qu'à relire son socle."
 BRUT = re.compile(r'<td class="mono">[^<]*\(([\d  ]+)\)</td>')
-ENTREE_CLOS = re.compile(r"^- Clos le \S+ : .* \(chantier [A-Z]\)\.$")
+ENTREE_CLOS = re.compile(r"^- Clos le \S+ : .* \(chantier [A-Z]{1,3}\)\.$")
 ROUTAGE_CLOS = "| relire un chantier clos |"
 
 
@@ -1199,7 +1219,7 @@ def cmd_clore(a, sortie):
     if any(l.startswith("**CLOS**") for l in fiches_):
         sortie.write("GARDE: %s porte déjà **CLOS**\n" % courant)
         return 1
-    lettre = ids[0][0]
+    lettre = lettre_de(ids[0])
     titre = next((re.sub(r"^# Chantier \S+ — ", "", l) for l in fiches_ if l.startswith("# ")), courant)
     url = champ(carte_, "artefact du chantier", "aucun")
     fait = "%s..%s" % (ids[0], ids[-1]) + (" (%s)" % a.abandon if a.abandon else "")
@@ -1310,8 +1330,14 @@ def cmd_clore(a, sortie):
         corps = ligne + "".join(anciens)
         html = html[:d] + corps + html[f:]
         total = sum(int(re.sub(r"\D", "", n)) for n in BRUT.findall(corps)) + (a.tokens if a.tokens is not None and a.tokens < 1000 else 0)
-        html = re.sub(r"(Total cumulé</td><td class=\"mono\"><strong>).*?(</strong>)",
-                      lambda m: m.group(1) + arrondi(total) + m.group(2), html, count=1)
+        html = re.sub(r"(Total cumulé</td><td class=\"mono\"><strong>).*?(</strong></td><td[^>]*>).*?(</td>)",
+                      lambda m: m.group(1) + arrondi(total) + m.group(2) + estimation_usd(total) + m.group(3),
+                      html, count=1)
+        # Le résumé du bloc repliable : ce qu'on voit sans déplier.
+        html = re.sub(r"(<span class=\"resume-clos\">).*?(</span>)",
+                      lambda m: m.group(1) + "%d chantiers clos · %s tokens · %s"
+                      % (len(anciens) + 1, arrondi(total), estimation_usd(total)) + m.group(2),
+                      html, count=1)
         etat = champ(carte_, "fichier d'état")
         try:
             zone(html, "todo", "<tbody>\n", "        </tbody>")
@@ -1374,7 +1400,7 @@ def cmd_ouvrir(a, sortie):
     if courant and courant != fichier:
         sortie.write("GARDE: un chantier est déjà ouvert : %s\n" % courant)
         return 1
-    lettre, fait = ids[0][0], "%s..%s" % (ids[0], ids[-1])
+    lettre, fait = lettre_de(ids[0]), "%s..%s" % (ids[0], ids[-1])
     url = a.artefact or (champ(carte_, "artefact du chantier", "aucun") if courant else "aucun")
     gardes = []
 

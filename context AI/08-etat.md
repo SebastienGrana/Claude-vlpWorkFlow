@@ -97,12 +97,21 @@ ordonné par ce qui débloque le reste. Le détail de chacun est dans
 | # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |
 |---|---|---|---|---|
 | 22 | Les projets équipés ne suivent plus le kit | Mesuré le 2026-09-17 : les 4 projets portent une copie locale de la méthode (87 à 102 lignes) d'avant le plugin — la doctrine interdit la copie ; le bac pointe une variable dans un fichier de données (bug n° 3 de l'audit). Aussi : Cairn-VlpLib 2 renvois absents, `CLAUDE.md` 89/80, index 111/80, table des clos encore dans `CHANTIER.md` ; MapDecorator 84/80 ; TrackGen `CHANTIER.md` 51/50 ; feuille de route en écart sur 3 projets, absente sur le bac. Écrire de quoi remettre un projet équipé à niveau, au lieu de le faire à la main cinq fois | 3 fiches | — |
-| 24 | La carte crie « Python est introuvable » | Mesuré le 2026-09-17 : le relais `python3` de `carte --relais` écrit sur la sortie le message du raccourci Microsoft Store, collé au milieu de la carte injectée dans chaque commande. Rien ne casse, mais la carte ment sur son propre état et le bruit se paye à chaque tour 1 | 1 fiche | — |
+| 24 | La carte crie « Python est introuvable » (absorbé par le chantier NIV, fiche `NIV1`) | Mesuré le 2026-09-17 : le relais `python3` de `carte --relais` écrit sur la sortie le message du raccourci Microsoft Store, collé au milieu de la carte injectée dans chaque commande. Rien ne casse, mais la carte ment sur son propre état et le bruit se paye à chaque tour 1 | 1 fiche | — |
 
 ## Journal des décisions
 
 Une ligne par décision imprévue tranchée en cours de fiche — jamais un résumé
 de ce que le code dit déjà.
+
+- **2026-09-17** — cadrage NIV : l'alphabet des préfixes de fiche était
+  **épuisé** (26 chantiers, 26 lettres) et `vlp.py` n'acceptait qu'une majuscule :
+  aucun 27e chantier ne pouvait s'ouvrir. Tranché en séance de cadrage, hors
+  fiche : le préfixe officiel passe à **trois majuscules**, `vlp.py` accepte
+  `[A-Z]{1,3}` (6 regex + `lettre_de`, car `ids[0][0]` ne prenait qu'un
+  caractère), les chantiers d'avant gardent leur lettre. Plugin 3.4.3 → 3.5.0,
+  8 vérifications ajoutées aux tests, 16 fichiers de fiches existants toujours
+  `VALIDE`.
 
 - **2026-09-17** — Z3 : une plage de fichier *du projet* ne se lit par aucune
   sous-commande (`vlp.py lire` refuse tout chemin hors du kit) ; le remplaçant

@@ -537,6 +537,12 @@ with tempfile.TemporaryDirectory() as t:
              and '<td class="mono">Q1–Q2</td><td class="mono">2026-05-06</td>' in clos and "≈1,5k (1 500)" in clos
              and "Livré <span class=\"mono\">a</span> &lt;b&gt;" in clos and clos.index("Q1–Q2") < clos.index("2 312")
              and "<strong>≈3,8k (3 812)</strong>" in clos and "Aucun chantier ouvert" in html and "E, M, Q</span>" in html, clos)
+    verifier("clore : estimation en dollars au pied de table",
+             '<strong>≈3,8k (3 812)</strong></td><td class="mono">≈0,00 $</td>' in clos, clos)
+    verifier("clore : résumé du bloc repliable des clos",
+             '<span class="resume-clos">2 chantiers clos · ≈3,8k (3 812) tokens · ≈0,00 $</span>' in clos, clos)
+    verifier("clore : la table des clos reste dans un details repliable",
+             '<details class="clos">' in clos and "</details>" in clos, clos)
     code, s = appel(["clore", t, "--livre", "x"])
     verifier("clore : second appel refusé", code == 1 and s.startswith("GARDE: aucun chantier ouvert")
              and lire(os.path.join(t, "CHANTIER.md")) == carte_lue, s)
@@ -711,5 +717,71 @@ with tempfile.TemporaryDirectory() as t:
     except mod.Absent as e:
         verifier("Z2 point unique : Absent est une ValueError, les gardes locales la voient",
                  isinstance(e, ValueError) and str(e) == "fichier de fiches introuvable : ctx/absent.md", str(e))
+
+
+# Préfixe à trois lettres : le format officiel depuis le chantier RNV.
+CHANTIER_3 = """# Chantier courant
+
+- **alias** : p3
+- **contexte** : ctx
+- **fichier de fiches courant** : ctx/30-rnv.md (RNV1..RNV2)
+
+Lettres de fiche déjà prises : Z (Zed), RNV (Remise à niveau). Un nouveau chantier en choisit une autre.
+"""
+
+FICHES_3 = """# Chantier RNV
+
+## Le socle commun
+
+rien
+
+## L'ordre des fiches
+
+RNV1 puis RNV2
+
+<!-- FICHE:RNV1 -->
+## RNV1 [ ] — première
+**Dépend de** : rien
+**Critère de fin** : rien
+<!-- /FICHE -->
+
+---
+
+<!-- FICHE:RNV2 -->
+## RNV2 [ ] — seconde
+**Dépend de** : RNV1
+**Critère de fin** : rien
+<!-- /FICHE -->
+"""
+
+with tempfile.TemporaryDirectory() as t:
+    proj = os.path.join(t, "p3")
+    fiches3 = os.path.join(proj, "ctx", "30-rnv.md")
+    ecrire(os.path.join(proj, "CHANTIER.md"), CHANTIER_3)
+    ecrire(fiches3, FICHES_3)
+
+    s3 = rendu(proj)
+    verifier("3 lettres : titres lus par la carte", "## RNV1 [ ] — première" in s3, s3)
+    verifier("3 lettres : PROCHAINE", s3.rstrip().endswith("PROCHAINE=RNV1"), s3)
+
+    code, s3 = appel(["valider", fiches3])
+    verifier("3 lettres : marqueurs valides", code == 0 and "VALIDE 2 fiches" in s3, s3)
+
+    code, s3 = appel(["extraire", fiches3, "RNV2"])
+    verifier("3 lettres : extraire", code == 0 and "## RNV2 [ ] — seconde" in s3, s3)
+
+    code, s3 = appel(["cocher", fiches3, "RNV1"])
+    verifier("3 lettres : cocher", code == 0 and "COCHÉ RNV1" in s3, s3)
+
+    lettres3 = mod.lettres_prises(CHANTIER_3.splitlines())
+    verifier("3 lettres : lettres prises, une et trois lettres mêlées",
+             lettres3 == ["Z", "RNV"], repr(lettres3))
+
+    verifier("3 lettres : lettre_de isole le préfixe",
+             (mod.lettre_de("RNV12"), mod.lettre_de("Z3")) == ("RNV", "Z"),
+             repr((mod.lettre_de("RNV12"), mod.lettre_de("Z3"))))
+
+    verifier("3 lettres : une entrée de clos est reconnue",
+             bool(mod.ENTREE_CLOS.match("- Clos le 2026-09-17 : un titre (chantier RNV).")), "non")
 
 print("OK")

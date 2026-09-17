@@ -79,4 +79,5 @@ l'utilisateur doit constater à l'écran quand lui seul peut le faire.>
 eux, elle retombe sur un motif de titres, qui rate en silence dès qu'un titre
 est reformulé — et
 une extraction vide ressemble à une fiche vide. Le nom du marqueur ouvrant est
-exactement celui de la fiche : `<!-- FICHE:D3 -->` pour `## D3 [ ] — …`.
+exactement celui de la fiche : `<!-- FICHE:DEC3 -->` pour `## DEC3 [ ] — …`
+(`<X>` est le préfixe du chantier : trois majuscules).

@@ -34,6 +34,6 @@ pas quinze — celles qu'on regrette de ne pas avoir écrites.
 
 Chacun a sa ligne dans l'**index** ; sa page reste sur la feuille de route.
 
-Lettres de fiche déjà prises : <U>. Un nouveau chantier en choisit une autre —
-elles ne se réemploient jamais, même après clôture. `/vlp:chantier` la propose,
-l'utilisateur tranche ; c'est cette ligne qui rend le refus possible.
+Lettres de fiche déjà prises : <UNE>. Un nouveau chantier en choisit un autre —
+trois majuscules, jamais réemployées, même après clôture. `/vlp:chantier` le
+propose, l'utilisateur tranche ; c'est cette ligne qui rend le refus possible.

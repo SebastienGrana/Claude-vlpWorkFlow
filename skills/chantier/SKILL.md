@@ -136,14 +136,15 @@ et les dépendances. Demande validation, et propose explicitement de fusionner
 ou de scinder. Une fiche vise **une séance** : si son prompt fait plus de vingt
 lignes, c'est deux fiches.
 
-Annonce dans la même proposition le **préfixe de fiche** — la lettre qui
-nommera `D1`, `D2`… — avec les lettres déjà prises, lues sur la ligne « Lettres
-de fiche déjà prises » de `CHANTIER.md`. Elle **se choisit, elle ne s'impose
-pas** : si l'utilisateur en dicte une, c'est la sienne, même si tu en aurais
-proposé une autre ; refuse seulement une lettre déjà prise, en disant par quel
-chantier, et redemande. À défaut d'instruction, propose une initiale du sujet
-(décor → `D`) plutôt que la suivante de l'alphabet, et laisse-lui le dernier
-mot avant l'étape 5.
+Annonce dans la même proposition le **préfixe de fiche** — les **trois
+majuscules** qui nommeront `DEC1`, `DEC2`… — avec les préfixes déjà pris, lus
+sur la ligne « Lettres de fiche déjà prises » de `CHANTIER.md`. Il **se choisit,
+il ne s'impose pas** : si l'utilisateur en dicte un, c'est le sien, même si tu
+en aurais proposé un autre ; refuse seulement un préfixe déjà pris, en disant
+par quel chantier, et redemande. À défaut d'instruction, propose une
+abréviation du sujet (décor → `DEC`), jamais la suite de l'alphabet, et
+laisse-lui le dernier mot avant l'étape 5. Un préfixe d'une seule lettre reste
+lu pour les chantiers d'avant le 2026-09-17 ; on n'en fabrique plus.
 
 ## 4 bis. Le kit — il voyage avec la commande
 

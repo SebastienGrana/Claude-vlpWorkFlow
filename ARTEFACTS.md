@@ -92,6 +92,12 @@ clore` y ajoute la ligne d'un chantier clos et le total cumulé, et rend visible
 la `ZONE:bilan` de la page du chantier. Leurs options
 sont dans la docstring du script.
 
+Les chantiers clos tiennent dans un bloc repliable, dont le résumé — leur
+nombre, les tokens cumulés, le coût — reste lu sans déplier. Ce coût est une
+**estimation** : `USD_PAR_MTOKENS` dans `scripts/vlp.py`, la moyenne des
+chantiers réellement mesurés, jamais un coût annoncé — un coût mesuré vient
+toujours de `mesure-tokens.py`.
+
 ## Le budget de contexte
 
 `/vlp:tache` relit la page du chantier à chaque fiche : sa taille se paye

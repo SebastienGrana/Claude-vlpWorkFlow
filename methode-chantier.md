@@ -114,10 +114,16 @@ la méthode — sa ligne « méthode » la nomme ; on cesse seulement d'en fabri
 **Numérotation.** Un nombre à deux chiffres, attribué dans l'ordre de création,
 jamais renuméroté : les journaux et les vieux commits citent les numéros. `00`
 est l'index ; les suffixes `20a`, `20b` éclatent un fichier trop gros sans
-toucher aux voisins. Le **préfixe de fiche** d'un chantier — `R`, `N`, `U`… —
+toucher aux voisins. Le **préfixe de fiche** d'un chantier — `RNV`, `PRJ`, `CAR`… —
 est indépendant du numéro et ne se réemploie jamais : `CHANTIER.md` garde les
-lettres prises. `/vlp:chantier` en propose une, l'utilisateur tranche ; le seul
-refus possible est « déjà prise », en disant par quel chantier.
+préfixes pris. `/vlp:chantier` en propose un, l'utilisateur tranche ; le seul
+refus possible est « déjà pris », en disant par quel chantier.
+
+**Trois lettres, depuis le 2026-09-17.** Un préfixe s'écrit en trois majuscules
+— une abréviation du sujet, pas la suivante de l'alphabet. Les chantiers d'avant
+gardent leur lettre unique et restent lisibles : `vlp.py` accepte une à trois
+majuscules. L'alphabet à une lettre avait été épuisé au 26e chantier, et aucun
+27e n'aurait pu s'ouvrir.
 
 **Ce qui ne part pas dans git.** Le dossier de contexte — artefacts compris —,
 `CLAUDE.md` et `CHANTIER.md` décrivent une manière de travailler, pas le
