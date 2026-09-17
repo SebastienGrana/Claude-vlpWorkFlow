@@ -110,7 +110,12 @@ Si un `BLOQUÉE` a clos la série, marque aussi la page bloquée :
 
 ## 5. Clore le chantier
 
-Plus aucune fiche non cochée : applique la clôture décrite dans
-`${CLAUDE_PLUGIN_ROOT}/cloture.md`, à l'identique de `/vlp:tache` à sa propre
-étape 7 — cette commande ne la recopie pas. Affiche ensuite le bilan de
-l'étape 4, puis les deux liens et la suite que `cloture.md` demande.
+Plus aucune fiche non cochée : applique la clôture, à l'identique de
+`/vlp:tache` à sa propre étape 7 — cette commande ne la recopie pas.
+
+```bash
+<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" lire cloture.md
+```
+
+Affiche ensuite le bilan de l'étape 4, puis les deux liens et la suite que
+`cloture.md` demande.

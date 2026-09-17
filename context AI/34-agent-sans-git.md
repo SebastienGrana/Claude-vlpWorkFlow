@@ -180,7 +180,7 @@ Preuves : commandes bannies en tête de ligne **0** sur les 11 fichiers ; `test-
 ---
 
 <!-- FICHE:Q4 -->
-## Q4 [ ] — Prouver sans refus dans le même bac
+## Q4 [x] — Prouver sans refus dans le même bac
 
 **Dépend de** : `Q2`, `Q3`.
 **Fichiers** : aucun fichier du kit modifié — sauf correction rendue nécessaire par la sonde.
@@ -195,6 +195,30 @@ seulement si un fichier chargé par le plugin et couvert par une eval a changé 
 Table avant/après : `permission_denials` `Q1` → `Q4` (cible 0 hors clôture du bac), tours, `total_cost_usd`, statut
 rendu par le sous-agent, `grep -c '\[x\]'` du bac = 2 ; evals rejouées avec réussis/total, ou la phrase qui dit
 pourquoi non.
+
+**Mesuré** (2026-09-17) — même bac, même prompt, mêmes `--tools` sans `Bash`, Sonnet, pwsh 7.
+
+| | `Q1` (avant) | `Q4` passe 1 | `Q4` passe 2 |
+|---|---|---|---|
+| refus (`permission_denials`) | 3 | 5 | **0** |
+| tours · appels | 4 · 7 | 16 · 25 | 12 · 22 |
+| `total_cost_usd` | 0,1357 $ | 0,4369 $ | 0,3526 $ |
+| statut rendu | `RETOUR` | `FAITE` ×2 | `FAITE` ×2 |
+| fiches cochées | 0 / 2 | 2 / 2 | **2 / 2** |
+| fichiers écrits | 0 | 2 | **2** (`bonjour`, `salut`) |
+
+La passe 1 joue déjà les deux fiches : `PowerShell` dans `tools:` et `vlp.py lire` suffisent à débloquer
+l'enchaînement. Ses 5 refus, classés : **2** du sous-agent, qui improvise `$file = "…"; Test-Path …` pour vérifier
+`sortie2.txt` (variable de shell, refusée) ; **3** de la clôture du bac, sur `cloture.md` — l'étape 5 de
+`skills/enchainer/SKILL.md` disait « applique la clôture décrite dans `…/cloture.md` » **sans donner la commande**,
+là où `/vlp:tache` écrit `vlp.py lire cloture.md` : le chef a tenté `Read` deux fois, puis `Get-Content`.
+Deux correctifs, puis passe 2 : l'étape 5 d'`enchainer` porte le bloc `vlp.py lire cloture.md` ; `agents/fiche.md`
+interdit aussi la **variable de shell** et dit que vérifier un fichier, c'est `Read`. Le coût monte de `Q1` à `Q4`
+parce qu'en `Q1` rien ne se faisait : 12 tours, c'est deux fiches jouées **et** le chantier du bac clos.
+Evals rejouées (`chantier`, `check`, `init`, `enchainer`, `agents/fiche.md` ont changé) : Windows `hook` **1/1**
+(0,05 $) ; Ubuntu `chantier` 1/1, `check` 1/1, `init` 1/1, `tache` 1/1 — **4/4**, 166 s, 1,53 $. `test-vlp.py`
+« OK », `renvois .` 0 absents, `plugin validate .` passed. Sondes de la fiche : 2 lancements, **0,79 $**.
+Piège : `wsl.exe` veut le chemin `/mnt/c/…` du script, pas son chemin MSYS `/c/…` (sortie vide, exit 0).
 <!-- /FICHE -->
 
 ---

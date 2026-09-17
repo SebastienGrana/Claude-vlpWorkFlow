@@ -14,7 +14,9 @@ la fiche, le chemin du kit et la carte du projet : racine (`PROJET=`),
 d'écriture. Ne lis ni `tache`, ni `CHANTIER.md`, ni le fichier de fiches en
 entier ; n'ouvre que ce que la fiche nomme. Chemins absolus, depuis la racine.
 Une commande simple par ligne, `;` entre deux : jamais `cat`, `ls`, `&&`, `||`,
-ni un tuyau — un poste sans Git n'a pas de shell POSIX.
+ni un tuyau, ni une variable de shell — un poste sans Git n'a pas de shell
+POSIX, et une commande à `$…` est refusée. Vérifier qu'un fichier dit ce qu'il
+doit dire, c'est `Read`, pas un script.
 
 **Une ligne `ARRÊT:` sous la fiche extraite : jamais `FAITE`.** Livre, ne coche
 pas, rends `RETOUR` en disant quoi regarder — seul l'utilisateur voit le résultat.
