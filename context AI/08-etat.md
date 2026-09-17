@@ -65,6 +65,7 @@ ordonné par ce qui débloque le reste. Le détail de chacun est dans
 | # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |
 |---|---|---|---|---|
 | 16 | Le kit sans `sh` | Faire tourner le kit sous Windows sans Git Bash. Mesuré (chantier X, `28-sans-sh.md`) : hook = paire exec `python3` + `py` (une erreur non bloquante à chaque écriture, partout) ; carte injectée = `py … carte \|\| python3 … carte` (propre sous pwsh 7, Git Bash et Ubuntu). Reste avant tout gain visible : les 17 appels `sh` du corps des skills et de `cloture.md`, les allowed-tools (sondes faites en `bypassPermissions`), PowerShell 5.1 (refuse `\|\|`), macOS, Python du Store seul | 3 fiches | — |
+| 19 | Des fichiers de tête qui ne grossissent plus | Mesuré le 2026-09-17 : `CLAUDE.md` 117 lignes (visé 60), `CHANTIER.md` 71 (visé 30), index 60 (visé 40), et `vlp.py clore` en ajoute à chaque chantier. Seuils dans `vlp.py`, `clore` qui compacte, le kit remis sous seuil | 4 fiches | — |
 
 ## Journal des décisions
 
