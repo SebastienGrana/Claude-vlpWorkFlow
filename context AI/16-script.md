@@ -8,7 +8,7 @@
 `sed`/`awk` et de HTML retapé par le modèle (points 9, 12, 15 de `12-audit.md`).
 Le chantier met cette mécanique dans un script testé, que les commandes appellent.
 
-**Fait.** S1, S2 (2026-09-17). Ouvert le 2026-09-17, cadré en 5 fiches, `S3` à jouer.
+**Fait.** S1, S2, S3 (2026-09-17). Ouvert le 2026-09-17, cadré en 5 fiches, `S4` à jouer.
 
 ## Le socle commun
 
@@ -136,8 +136,9 @@ de bilan par fichier, comptes affichés, et relève le `(visuel)` de C1 dans
 ---
 
 <!-- FICHE:S3 -->
-## S3 [ ] — Ajouter `page`
+## S3 [x] — Ajouter `page`
 
+**Session** : f5582775-9c45-44ee-b587-e774d46f25ed
 **Dépend de** : `S1`.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py`,
 `templates/artefact-chantier.html`, `context AI/artefacts/15-reduire.html`

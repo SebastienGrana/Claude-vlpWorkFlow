@@ -235,3 +235,11 @@ de ce que le code dit déjà.
   pour un marqueur). Sur 09 à 16 : un seul écart, le `(visuel)` de C1
   (`11-conso.md:88`), laissé tel quel (archive). La commande rechargée injecte
   déjà `vlp.py carte` : l'injection du nouveau script est prouvée en vrai.
+- **2026-09-17** — S3 : `vlp.py page` remesure chaque session `**Session**` à chaque
+  régénération ; une session portée par plusieurs fiches (jouées d'affilée) garde
+  sur les premières le coût déjà affiché et donne le reste à la dernière, moins la
+  part que l'ancienne page n'attribuait à aucune fiche (le cadrage) — sans cette
+  soustraction, S3 affichait 5 673 095 au lieu de 3 830 649. Régénérer
+  une page close remet donc ses coûts à jour : sur R, la session a continué après la
+  clôture (11 840 151 → 13 103 584 tokens) et R4 prend l'écart — les pages closes ne
+  se régénèrent pas. `--verifier` ne compare que les états et l'avancement.

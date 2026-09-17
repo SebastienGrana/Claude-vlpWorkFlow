@@ -21,6 +21,12 @@ Sous-commandes :
 - `valider <fichier>…` — les écarts d'un fichier de fiches, un par ligne
   `fichier:ligne: message`, puis `VALIDE|INVALIDE <n> fiches · socle <n> lignes
   · <n> écarts · <n> avertissements — <fichier>`. Un écart : sort 1.
+- `page <fichier> <page.html>` — régénère la page du chantier depuis le fichier
+  de fiches : états, avancement, comptage, coûts (`**Session**`), date. Garde
+  de la page l'en-tête, les notes, le journal, le blocage et le bilan.
+  `--note <fiche> <texte>`, `--journal <texte>` (répétables) ; `--creer
+  --projet P --titre T --resultat R` part du gabarit ; `--verifier` n'écrit
+  rien et sort 1 si états ou avancement diffèrent du fichier.
 
 Python 3 sans dépendance, zéro appel modèle.
 """
@@ -294,6 +300,300 @@ def cmd_valider(chemins, sortie):
     return code
 
 
+# --- page --------------------------------------------------------------------
+
+# Le seuil vit dans ARTEFACTS.md (« 250 lignes au maximum, gabarit compris ») :
+# ici, il n'est que cité.
+SEUIL_PAGE = 250
+GABARIT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "templates", "artefact-chantier.html")
+LI_FICHE = re.compile(r'[ \t]*<li class="fiche"[^>]*>.*?</li>\n?', re.S)
+UL_FICHES = re.compile(r'(<ul class="fiches">)(.*?)(\n[ \t]*</ul>)', re.S)
+COUT = re.compile(r"\((\d[\d ]*)\) · (\d+) tours · ([\d,]+) \$")
+_mesure = None
+
+
+def mesure():
+    """`mesure-tokens.py`, importé une fois (le tiret interdit `import`)."""
+    global _mesure
+    if _mesure is None:
+        import importlib.util
+        spec = importlib.util.spec_from_file_location(
+            "mesure_tokens", os.path.join(os.path.dirname(os.path.abspath(__file__)), "mesure-tokens.py"))
+        _mesure = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(_mesure)
+    return _mesure
+
+
+def esc(texte):
+    return texte.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
+def milliers(n):
+    return "{:,}".format(n).replace(",", " ")
+
+
+def arrondi(n):
+    """La convention de coût en tête de templates/artefact-chantier.html."""
+    if n < 1000:
+        return str(n)
+    valeur, unite = (n / 1_000_000, "M") if n >= 1_000_000 else (n / 1000, "k")
+    return "≈%s%s (%s)" % (("%.1f" % valeur).replace(".", ","), unite, milliers(n))
+
+
+def ligne_cout(total, tours, usd):
+    return "%s · %d tours · %s $" % (arrondi(total), tours, "?" if usd is None else ("%.2f" % usd).replace(".", ","))
+
+
+def fiches_du_fichier(lignes):
+    """[(id, titre, coché, sessions)] dans l'ordre du fichier."""
+    titres = [(i, l) for i, l in enumerate(lignes) if TITRE.match(l)]
+    rendu = []
+    for n, (i, l) in enumerate(titres):
+        suivant = titres[n + 1][0] if n + 1 < len(titres) else len(lignes)
+        ident = l.split()[1]
+        titre = l.split(" — ", 1)[1] if " — " in l else l
+        rendu.append((ident, titre.replace("`", "").strip(), "[x]" in l, sessions_de(lignes[i:suivant])))
+    return rendu
+
+
+def lis_page(html):
+    """{id: (data-etat ou None, note html ou None, cout html ou None)}."""
+    vues = {}
+    for li in LI_FICHE.findall(html):
+        ident = re.search(r'<span class="id">(.*?)</span>', li)
+        if not ident:
+            continue
+        etat = re.search(r'data-etat="(\w+)"', li)
+        note = re.search(r'<span class="note">(.*?)</span>', li, re.S)
+        cout = re.search(r'<span class="cout mono">(.*?)</span>', li, re.S)
+        vues[ident.group(1)] = (etat and etat.group(1), note and note.group(1), cout and cout.group(1))
+    return vues
+
+
+def etats(fiches_, anciens):
+    """{id: faite | encours | bloquee | None} — le fichier a raison ; seul
+    `bloquee` vient de la page, et ne survit pas à la case cochée."""
+    rendu, premiere = {}, True
+    for ident, _, coche, _ in fiches_:
+        if coche:
+            rendu[ident] = "faite"
+        elif premiere:
+            rendu[ident] = "bloquee" if anciens.get(ident, (None,))[0] == "bloquee" else "encours"
+            premiere = False
+        else:
+            rendu[ident] = None
+    return rendu
+
+
+def triplet(texte):
+    """(total, tours, usd) lus sur une ligne de coût affichée, ou None."""
+    c = texte and COUT.search(texte)
+    if not c:
+        return None
+    from decimal import Decimal
+    return int(c.group(1).replace(" ", "")), int(c.group(2)), Decimal(c.group(3).replace(",", "."))
+
+
+def couts(fiches_, anciens, ancien_total, gardes):
+    """({id: ligne de coût}, (total, tours, usd) ou None). Une session portée
+    par plusieurs fiches : les premières gardent le coût déjà affiché (l'écart
+    du compteur à leur clôture), la dernière prend le reste — moins la part que
+    l'ancienne page n'attribuait à aucune fiche (le cadrage joué dans la même
+    session), si une seule session est partagée."""
+    m = mesure()
+    mesures = {}
+    for _, _, _, sessions in fiches_:
+        for s in sessions:
+            if s in mesures:
+                continue
+            chemin, erreur = m.resoudre(s)
+            r = None
+            if not erreur:
+                r, erreur = m.mesurer(chemin)
+            if erreur:
+                gardes.append("GARDE: session non mesurée : %s — %s" % (s, erreur))
+            mesures[s] = r
+    # La part non attribuée de l'ancienne page : son total moins ses coûts affichés.
+    base = triplet(ancien_total)
+    for ident in anciens:
+        c = triplet(anciens[ident][2])
+        if base and c:
+            base = (base[0] - c[0], base[1] - c[1], base[2] - c[2])
+    partagees = [s for s in mesures if mesures[s] and sum(1 for f in fiches_ if s in f[3]) > 1]
+    if not base or len(partagees) != 1 or base[0] < 0 or base[1] < 0:
+        base = (0, 0, 0)
+    rendu = {}
+    for s, r in mesures.items():
+        if r is None:
+            continue
+        porteurs = [f[0] for f in fiches_ if s in f[3]]
+        total, tours, usd = r["total"], r["tours"], r["usd_exact"]
+        if len(porteurs) > 1:
+            total, tours = total - base[0], tours - base[1]
+            usd = None if usd is None else usd - base[2]
+        for ident in porteurs[:-1]:
+            ancien = anciens.get(ident, (None, None, None))[2]
+            c = triplet(ancien)
+            if not c:
+                gardes.append("GARDE: %s partage la session %s sans coût affiché — tout le coût va sur %s"
+                              % (ident, s, porteurs[-1]))
+                continue
+            rendu[ident] = ancien
+            total, tours = total - c[0], tours - c[1]
+            usd = None if usd is None else usd - c[2]
+        rendu[porteurs[-1]] = ligne_cout(total, tours, usd)
+    mesurees = [r for r in mesures.values() if r]
+    if not mesurees:
+        return rendu, None
+    usd = None if any(r["usd_exact"] is None for r in mesurees) else sum(r["usd_exact"] for r in mesurees)
+    return rendu, (sum(r["total"] for r in mesurees), sum(r["tours"] for r in mesurees), usd)
+
+
+def comptage(fiches_, etat):
+    faites = sum(1 for e in etat.values() if e == "faite")
+    texte = "%d fiches · %d %s" % (len(fiches_), faites, "faite" if faites <= 1 else "faites")
+    courante = next((i for i, e in etat.items() if e in ("encours", "bloquee")), None)
+    if courante:
+        texte += " · %s : %s" % ("bloquée" if etat[courante] == "bloquee" else "en cours", courante)
+    return texte
+
+
+def creer(fichier, projet, titre, resultat):
+    html = lire(GABARIT)
+    fiches_ = fiches_du_fichier(lignes_de(fichier))
+    plage = "%s–%s" % (fiches_[0][0], fiches_[-1][0]) if fiches_ else ""
+    remplacements = [
+        (r"<title>.*?</title>", "<title>%s — %s</title>" % (esc(projet), esc(titre))),
+        (r'(<div class="eyebrow">).*?(</div>)', r"\g<1>%s · fiches %s\g<2>" % (esc(projet), plage)),
+        (r"<h1>.*?</h1>", "<h1>%s</h1>" % esc(titre)),
+        (r"(</h1>\s*<p>).*?(</p>)", r"\g<1>%s\g<2>" % esc(resultat).replace("\\", "\\\\")),
+        (r'(<ul class="journal">).*?(\n[ \t]*</ul>)', r"\g<1>\g<2>"),
+        (r'(<div class="blocage">\s*<p>).*?(</p>\s*<pre>).*?(</pre>)', r"\g<1>\g<2>\g<3>"),
+        (r"(<h2>Chantier clos le ).*?(</h2>\s*<div class=\"bilan\">).*?(\n[ \t]*</div>)", r"\g<1>\g<2>\n      <p></p>\g<3>"),
+        (r'(Fichier de fiches : <span class="mono">).*?(</span>)', r"\g<1>%s\g<2>" % esc(fichier.replace("\\", "/"))),
+    ]
+    for motif, rempl in remplacements:
+        html, n = re.subn(motif, rempl, html, count=1, flags=re.S)
+        if not n:
+            raise ValueError("gabarit : motif introuvable : %s" % motif)
+    return html
+
+
+def regenerer(html, fichier, notes, journal, date, gardes):
+    lignes = lignes_de(fichier)
+    fiches_ = fiches_du_fichier(lignes)
+    if not fiches_:
+        raise ValueError("aucun titre de fiche au format '## X1' dans %s" % fichier)
+    anciens = lis_page(html)
+    etat = etats(fiches_, anciens)
+    ancien_total = re.search(r'<p class="mono cout-total">(.*?)</p>', html, re.S)
+    cout, total = couts(fiches_, anciens, ancien_total and ancien_total.group(1), gardes)
+    etiquette = {"faite": "faite", "encours": "en cours", "bloquee": "bloquée", None: "à faire"}
+    items = []
+    for ident, titre, _, _ in fiches_:
+        e = etat[ident]
+        note = esc(notes[ident]) if ident in notes else anciens.get(ident, (None, None))[1]
+        li = ['      <li class="fiche"%s>' % (' data-etat="%s"' % e if e else ""),
+              '        <span class="id">%s</span><span class="titre">%s</span>' % (ident, esc(titre)),
+              '        <span class="etat">%s</span>' % etiquette[e]]
+        if note:
+            li.append('        <span class="note">%s</span>' % note)
+        if ident in cout:
+            li.append('        <span class="cout mono">%s</span>' % cout[ident])
+        items.append("\n".join(li + ["      </li>"]))
+    prefixe = re.search(r'<p class="mono cout-total">(.*?) : ', html)
+    prefixe = prefixe.group(1) if prefixe else "Coût du chantier"
+    html = re.sub(r'\n[ \t]*<p class="mono cout-total">.*?</p>', "", html, flags=re.S)
+    bloc = "\n" + "\n".join(items)
+    if total:
+        bloc_total = '\n    <p class="mono cout-total">%s : %s</p>' % (prefixe, ligne_cout(*total))
+    else:
+        bloc_total = ""
+    html, n = UL_FICHES.subn(lambda m: m.group(1) + bloc + m.group(3) + bloc_total, html, count=1)
+    if not n:
+        raise ValueError("page : liste des fiches introuvable")
+    spans = "".join('<span%s></span>' % (' data-etat="%s"' % etat[f[0]] if etat[f[0]] else "") for f in fiches_)
+    html, n = re.subn(r'(<div class="avancement">\s*).*?(\s*</div>)', lambda m: m.group(1) + spans + m.group(2), html, count=1, flags=re.S)
+    html, n2 = re.subn(r'(<p class="mono" style="margin-top:.5rem">).*?(</p>)',
+                       lambda m: m.group(1) + comptage(fiches_, etat) + m.group(2), html, count=1, flags=re.S)
+    if not (n and n2):
+        raise ValueError("page : avancement ou ligne de comptage introuvable")
+    blocage = re.search(r'<section( hidden)?>(\s*<h2>Arrêt sur blocage</h2>\s*<div class="blocage">\s*<p>)(.*?)</p>', html, re.S)
+    if blocage and not blocage.group(1):
+        fiche_bloquee = re.match(r"\s*([A-Z][0-9]+)", blocage.group(3))
+        if fiche_bloquee and etat.get(fiche_bloquee.group(1)) == "faite":
+            html = html[:blocage.start()] + "<section hidden>" + html[blocage.start() + len("<section>"):]
+    for texte in journal:
+        ligne = '      <li><time datetime="%s">%s</time><span>%s</span></li>' % (date, date, esc(texte))
+        html, n = re.subn(r'(<ul class="journal">.*?)(\n[ \t]*</ul>)', lambda m: m.group(1) + "\n" + ligne + m.group(2),
+                          html, count=1, flags=re.S)
+        if not n:
+            raise ValueError("page : journal introuvable")
+    html = re.sub(r'(Mis à jour le <span class="mono">).*?(</span>)', lambda m: m.group(1) + date + m.group(2), html, count=1)
+    return html, fiches_, etat, total
+
+
+def verifier_page(html, fichier, sortie):
+    fiches_ = fiches_du_fichier(lignes_de(fichier))
+    anciens = lis_page(html)
+    etat = etats(fiches_, anciens)
+    ecarts = []
+    for ident, _, _, _ in fiches_:
+        if ident not in anciens:
+            ecarts.append("%s : absente de la page" % ident)
+        elif anciens[ident][0] != etat[ident]:
+            ecarts.append("%s : page %s, fichier %s" % (ident, anciens[ident][0] or "à faire", etat[ident] or "à faire"))
+    for ident in anciens:
+        if ident not in etat:
+            ecarts.append("%s : sur la page, absente du fichier" % ident)
+    avancement = re.search(r'<div class="avancement">(.*?)</div>', html, re.S)
+    spans = re.findall(r'<span(?: data-etat="(\w+)")?></span>', avancement.group(1)) if avancement else []
+    attendu = [etat[f[0]] or "" for f in fiches_]
+    if spans != attendu:
+        ecarts.append("avancement : page %s, fichier %s" % (spans, attendu))
+    for e in ecarts:
+        sortie.write("ÉCART: %s\n" % e)
+    sortie.write("%s %d fiches · %d écarts (états et avancement seulement)\n"
+                 % ("À JOUR" if not ecarts else "EN RETARD", len(fiches_), len(ecarts)))
+    return 1 if ecarts else 0
+
+
+def cmd_page(a, sortie):
+    date = a.date or __import__("datetime").date.today().isoformat()
+    if a.creer:
+        if os.path.exists(a.page):
+            sortie.write("GARDE: la page existe déjà : %s — --creer n'écrase rien\n" % a.page)
+            return 1
+        if not (a.projet and a.titre and a.resultat):
+            sortie.write("GARDE: --creer demande --projet, --titre et --resultat\n")
+            return 1
+        html = creer(a.fichier, a.projet, a.titre, a.resultat)
+    elif not os.path.isfile(a.page):
+        sortie.write("GARDE: page introuvable : %s — --creer pour la créer\n" % a.page)
+        return 1
+    else:
+        html = lire(a.page)
+    if a.verifier:
+        return verifier_page(html, a.fichier, sortie)
+    gardes = []
+    try:
+        html, fiches_, etat, total = regenerer(html, a.fichier, dict(a.note or []), a.journal or [], date, gardes)
+    except ValueError as e:
+        sortie.write("GARDE: %s\n" % e)
+        return 1
+    with open(a.page, "w", encoding="utf-8", newline="") as f:
+        f.write(html)
+    n = html.count("\n") + (0 if html.endswith("\n") else 1)
+    for g in gardes:
+        sortie.write(g + "\n")
+    sortie.write("PAGE %s · %s · %d lignes · total %s\n"
+                 % (a.page, comptage(fiches_, etat), n, ligne_cout(*total) if total else "non mesuré"))
+    if n > SEUIL_PAGE:
+        sortie.write("GARDE: %d lignes, au-delà du seuil d'ARTEFACTS.md (%d) — la page est relue à chaque fiche\n"
+                     % (n, SEUIL_PAGE))
+    return 0
+
+
 # --- entrée ------------------------------------------------------------------
 
 def main(argv, sortie=None):
@@ -311,7 +611,23 @@ def main(argv, sortie=None):
     se.add_argument("fichier")
     v = sous.add_parser("valider")
     v.add_argument("fichiers", nargs="+")
+    pg = sous.add_parser("page")
+    pg.add_argument("fichier")
+    pg.add_argument("page")
+    pg.add_argument("--note", nargs=2, action="append", metavar=("FICHE", "TEXTE"))
+    pg.add_argument("--journal", action="append")
+    pg.add_argument("--creer", action="store_true")
+    pg.add_argument("--projet")
+    pg.add_argument("--titre")
+    pg.add_argument("--resultat")
+    pg.add_argument("--verifier", action="store_true")
+    pg.add_argument("--date")
     a = p.parse_args(argv)
+    if a.cmd == "page":
+        if not os.path.isfile(a.fichier):
+            sortie.write("GARDE: fichier introuvable : %s\n" % a.fichier)
+            return 1
+        return cmd_page(a, sortie)
     if a.cmd == "carte":
         return carte(a.dossier or os.getcwd(), sortie)
     if a.cmd == "valider":

@@ -240,4 +240,116 @@ verifier("valider : avertissement de longueur, pas écart", code == 0
 code, s = appel(["valider", "absent-1.md", "absent-2.md"])
 verifier("valider : un bilan par fichier", code == 1 and s.count("INVALIDE 0 fiches") == 2, s)
 
+import json
+
+lire = mod.lire
+
+
+def transcript(chemin, tours):
+    """Un jsonl de `tours` tours, 100 000 tokens d'entrée chacun, sur claude-opus-5 (5 $ le million)."""
+    with open(chemin, "w", encoding="utf-8") as f:
+        for n in range(tours):
+            f.write(json.dumps({"type": "assistant", "requestId": "r%d" % n, "message": {
+                "id": "m%d" % n, "model": "claude-opus-5", "content": [],
+                "usage": {"input_tokens": 100000, "output_tokens": 0,
+                          "cache_creation_input_tokens": 0, "cache_read_input_tokens": 0}}}) + "\n")
+
+
+verifier("arrondi", [mod.arrondi(n) for n in (999, 1000, 1505630)] == ["999", "≈1,0k (1 000)", "≈1,5M (1 505 630)"],
+         [mod.arrondi(n) for n in (999, 1000, 1505630)])
+
+PAGE = """# Chantier P
+
+## Le socle commun
+
+## L'ordre des fiches
+
+<!-- FICHE:P1 -->
+## P1 [%s] — Créer `a.py`
+%s**Critère de fin**
+<!-- /FICHE -->
+<!-- FICHE:P2 -->
+## P2 [%s] — Brancher
+%s**Critère de fin**
+<!-- /FICHE -->
+<!-- FICHE:P3 -->
+## P3 [ ] — Finir
+**Critère de fin**
+<!-- /FICHE -->
+"""
+
+with tempfile.TemporaryDirectory() as t:
+    fiches = os.path.join(t, "p.md")
+    page = os.path.join(t, "p.html")
+    sa, sb = os.path.join(t, "a.jsonl"), os.path.join(t, "b.jsonl")
+    transcript(sa, 2)
+    transcript(sb, 1)
+
+    ecrire(fiches, PAGE % (" ", "", " ", ""))
+    code, s = appel(["page", fiches, page, "--creer", "--projet", "Proj", "--titre", "Le <titre>",
+                     "--resultat", "Fini quand.", "--note", "P1", "Produit a.py", "--date", "2026-01-02"])
+    html = lire(page) if os.path.exists(page) else ""
+    verifier("page --creer", code == 0 and "<title>Proj — Le &lt;titre&gt;</title>" in html
+             and "Proj · fiches P1–P3" in html and "<p>Fini quand.</p>" in html
+             and '<span data-etat="encours"></span><span></span><span></span>' in html
+             and "3 fiches · 0 faite · en cours : P1" in html and '<span class="note">Produit a.py</span>' in html
+             and "&lt;" not in html.split("<ul class=\"journal\">")[1].split("</ul>")[0]
+             and '<p class="mono cout-total">' not in html and "Mis à jour le <span class=\"mono\">2026-01-02</span>" in html
+             and "lignes · total non mesuré" in s, s + html)
+    code, s = appel(["page", fiches, page, "--creer", "--projet", "P", "--titre", "T", "--resultat", "R"])
+    verifier("page --creer n'écrase pas", code == 1 and "existe déjà" in s, s)
+
+    ecrire(fiches, PAGE % ("x", "**Session** : %s\n" % sa, " ", ""))
+    code, s = appel(["page", fiches, page, "--verifier"])
+    verifier("page --verifier : en retard", code == 1 and "ÉCART: P1 : page encours, fichier faite" in s
+             and "EN RETARD 3 fiches · 3 écarts" in s, s)
+    code, s = appel(["page", fiches, page, "--note", "P1", "a.py : <3 tests>", "--journal", "P1 : tranché.", "--date", "2026-01-03"])
+    html = lire(page)
+    verifier("page : fiche faite, coût, note échappée, journal", code == 0
+             and '<li class="fiche" data-etat="faite">' in html and "a.py : &lt;3 tests&gt;" in html
+             and '<span class="cout mono">≈200,0k (200 000) · 2 tours · 1,00 $</span>' in html
+             and '<p class="mono cout-total">Coût du chantier : ≈200,0k (200 000) · 2 tours · 1,00 $</p>' in html
+             and '<time datetime="2026-01-03">2026-01-03</time><span>P1 : tranché.</span>' in html
+             and "3 fiches · 1 faite · en cours : P2" in html, s + html)
+    code, s = appel(["page", fiches, page, "--verifier"])
+    verifier("page --verifier : à jour", code == 0 and s == "À JOUR 3 fiches · 0 écarts (états et avancement seulement)\n", s)
+    avant = lire(page)
+    appel(["page", fiches, page, "--date", "2026-01-03"])
+    verifier("page : régénérer deux fois ne change rien", lire(page) == avant, lire(page))
+
+    # P2 partage la session de P1 : P1 garde son coût affiché, P2 prend le reste ; b s'ajoute au total.
+    # L'ancien total compte 1 tour de cadrage (100 000) qu'aucune fiche ne porte : il reste hors de P2.
+    ecrire(page, lire(page).replace("Coût du chantier : ≈200,0k (200 000) · 2 tours · 1,00 $",
+                                    "Coût du chantier : ≈300,0k (300 000) · 3 tours · 1,50 $"))
+    transcript(sa, 4)
+    ecrire(fiches, PAGE % ("x", "**Session** : %s\n" % sa, "x", "**Session** : %s\n**Session** : %s\n" % (sa, sb)))
+    code, s = appel(["page", fiches, page, "--date", "2026-01-04"])
+    html = lire(page)
+    verifier("page : session partagée, le reste à la dernière", code == 0
+             and '<span class="cout mono">≈200,0k (200 000) · 2 tours · 1,00 $</span>' in html
+             and '<span class="cout mono">≈100,0k (100 000) · 1 tours · 0,50 $</span>' in html
+             and "Coût du chantier : ≈500,0k (500 000) · 5 tours · 2,50 $" in html
+             and "3 fiches · 2 faites · en cours : P3" in html, s + html)
+    avant = lire(page)
+    appel(["page", fiches, page, "--date", "2026-01-04"])
+    verifier("page : session partagée, régénérer deux fois ne change rien", lire(page) == avant, lire(page))
+
+    # Blocage : bloquée reste bloquée tant que non cochée ; le bloc se masque quand elle l'est.
+    html = lire(page).replace('<li class="fiche" data-etat="encours">', '<li class="fiche" data-etat="bloquee">')
+    html = html.replace("<section hidden>\n    <h2>Arrêt sur blocage</h2>", "<section>\n    <h2>Arrêt sur blocage</h2>")
+    html = html.replace('<div class="blocage">\n      <p></p>', '<div class="blocage">\n      <p>P3 — deux essais.</p>')
+    ecrire(page, html)
+    appel(["page", fiches, page])
+    html = lire(page)
+    verifier("page : bloquée gardée", '<li class="fiche" data-etat="bloquee">' in html and "bloquée : P3" in html
+             and "<section>\n    <h2>Arrêt sur blocage</h2>" in html, html)
+    ecrire(fiches, lire(fiches).replace("## P3 [ ]", "## P3 [x]"))
+    code, s = appel(["page", fiches, page])
+    html = lire(page)
+    verifier("page : blocage masqué une fois cochée", code == 0 and "<section hidden>\n    <h2>Arrêt sur blocage</h2>" in html
+             and "3 fiches · 3 faites</p>" in html and 'data-etat="bloquee"' not in html.split('<div class="page">')[1], s + html.split("<div class=\"page\">")[1])
+
+    code, s = appel(["page", fiches, os.path.join(t, "absente.html")])
+    verifier("page absente sans --creer", code == 1 and "--creer" in s, s)
+
 print("OK")
