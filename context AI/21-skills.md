@@ -88,7 +88,7 @@ d'avertissements qu'avant (1 sur `plugin.json`, voulu).
 ---
 
 <!-- FICHE:K2 -->
-## K2 [ ] — Migrer les quatre autres commandes et `references/`
+## K2 [x] — Migrer les quatre autres commandes et `references/`
 
 **Dépend de** : `K1`.
 **Fichiers** : `commands/{init,chantier,tache,enchainer}.md`, `references/*.md`, `agents/fiche.md`, `evals/init/case.yaml`, `context AI/08-etat.md` (journal).

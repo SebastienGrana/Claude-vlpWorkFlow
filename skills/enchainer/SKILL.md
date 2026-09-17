@@ -124,13 +124,13 @@ sauf si la ligne « artefact du chantier » vaut « aucun », ou si l'étape 5 s
 faite, puis la publication,
 
 ```bash
-cat "${CLAUDE_PLUGIN_ROOT}/references/tache-page.md"
+cat "${CLAUDE_PLUGIN_ROOT}/skills/tache/references/tache-page.md"
 ```
 
 et, si un `BLOQUÉE` a clos la série, le marquage de la page bloquée :
 
 ```bash
-cat "${CLAUDE_PLUGIN_ROOT}/references/tache-blocage.md"
+cat "${CLAUDE_PLUGIN_ROOT}/skills/tache/references/tache-blocage.md"
 ```
 
 `label` : les fiches jouées, par exemple `E5→E7`.

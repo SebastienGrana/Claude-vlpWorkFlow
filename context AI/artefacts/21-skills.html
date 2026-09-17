@@ -68,9 +68,9 @@
     <p>commands/ n'existe plus, les cinq commandes vivent dans skills/, evals Windows 3/3, validate propre, 0 renvoi mort</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="encours"></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">3 fiches · 1 faite · en cours : K2</p>
+    <p class="mono" style="margin-top:.5rem">3 fiches · 2 faites · en cours : K3</p>
   </header>
 
   <section>
@@ -82,14 +82,14 @@
         <span class="etat">faite</span>
         <span class="note">skills/check/SKILL.md (renommage 100 %) ; eval check score 1, 19 tours, 0,19 $ ; avec disable-model-invocation score 0,5, Skill 0 appel, 9 tours, 0,11 $ → écarté ; validate 1 avertissement voulu</span>
       </li>
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">K2</span><span class="titre">Migrer les quatre autres commandes et references/</span>
-        <span class="etat">en cours</span>
-        <span class="note">init, chantier, tache, enchainer et references/ migrés ; suite d'evals 3/3 ; dépend de K1</span>
+        <span class="etat">faite</span>
+        <span class="note">commands/ et references/ absents, skills/ 5 dossiers ; references/ 5 lignes → skills/tache/references/ ; tests OK ; suite Windows 3/3 : check 15 tours 0,19 $, hook 2 tours 0,05 $, init 22 tours 0,30 $ (0,55 $)</span>
       </li>
-      <li class="fiche">
+      <li class="fiche" data-etat="encours">
         <span class="id">K3</span><span class="titre">Mettre les renvois de la doc à jour</span>
-        <span class="etat">à faire</span>
+        <span class="etat">en cours</span>
         <span class="note">CLAUDE.md, méthode, README, index pointent skills/ ; plugin 3.2.0 ; dépend de K2</span>
       </li>
     </ul>
