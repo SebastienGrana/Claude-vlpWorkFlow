@@ -43,7 +43,7 @@ https://github.com/SebastienGrana/Claude-vlpWorkFlow — cloné et utilisé en g
    dépendance, zéro appel modèle, testé : `vlp.py` porte la mécanique (ses
    sous-commandes sont dans sa docstring), `mesure-tokens.py` le coût — et une
    commande les appelle en un tour, elle ne décrit pas leur algorithme. Rien de propre à une machine dans
-   `commands/`, `templates/` ni `scripts/` : un chemin passe par
+   `skills/`, `templates/` ni `scripts/` : un chemin passe par
    `${CLAUDE_PLUGIN_ROOT}`, **dans le texte des commandes et `hooks/hooks.json`
    seulement** — la
    variable n'existe ni dans le shell ni dans un fichier de données. Exception
@@ -59,7 +59,7 @@ et seulement dans ce cas, ouvrir l'index.
 
 | La tâche | Ouvrir |
 |---|---|
-| modifier une commande | `commands/<nom>.md` — celle-là seule |
+| modifier une commande | `skills/<nom>/SKILL.md` — celle-là seule |
 | modifier le sous-agent ou le contrat de `/vlp:enchainer` | `agents/fiche.md`, ou `enchainement.md` |
 | changer une règle de méthode | `methode-chantier.md`, ou `cloture.md` pour la clôture |
 | savoir où vit quoi dans un projet équipé | `methode-chantier.md`, section « Où vit quoi » |

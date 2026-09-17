@@ -78,7 +78,7 @@ def lignes_de(chemin):
 
 def equipe(d):
     """Vrai si `d` porte `CHANTIER.md` à la casse exacte : sous Windows et
-    macOS, `isfile` prendrait `commands/chantier.md` pour la carte."""
+    macOS, `isfile` prendrait un `chantier.md` pour la carte."""
     try:
         return "CHANTIER.md" in os.listdir(d) and os.path.isfile(os.path.join(d, "CHANTIER.md"))
     except OSError:

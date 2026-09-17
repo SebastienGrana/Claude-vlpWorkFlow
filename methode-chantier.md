@@ -89,7 +89,7 @@ d'état** », « **méthode** », « **fichier de fiches courant** » — que le
 commandes lisent tels quels : elles lisent la ligne, et la ligne dit le nom.
 
 **Le moteur est dans le kit, les données sont dans le projet.** Ne descendent
-jamais dans un projet : `commands/`, `agents/`, `hooks/`, `scripts/`, cette
+jamais dans un projet : `skills/`, `agents/`, `hooks/`, `scripts/`, cette
 méthode, `cloture.md`, `enchainement.md` et les gabarits de `templates/` —
 instanciés, pas recopiés. Un projet équipé avant cette règle garde sa copie de
 la méthode — sa ligne « méthode » la nomme ; on cesse seulement d'en fabriquer.

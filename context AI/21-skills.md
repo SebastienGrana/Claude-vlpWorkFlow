@@ -113,8 +113,9 @@ tests `OK` ; suite Windows 3/3 score 1 (tours et `costUsd` par cas).
 ---
 
 <!-- FICHE:K3 -->
-## K3 [ ] — Mettre les renvois de la doc à jour
+## K3 [x] — Mettre les renvois de la doc à jour
 
+**Session** : f275a5ae-993c-40a4-ba8b-685a32a3800b
 **Dépend de** : `K2`.
 **Fichiers** : `CLAUDE.md`, `methode-chantier.md`, `README.md`, `scripts/vlp.py` (commentaire), `.claude-plugin/plugin.json`, `context AI/00-INDEX.md`.
 

@@ -124,13 +124,13 @@ en remontant depuis le dossier courant, puis d'un cran plus bas :
 
 ```
 .claude-plugin/            LE MANIFESTE — plugin.json (nom, version), marketplace.json
-commands/                  LE MOTEUR — init, chantier, tache, enchainer, check
+skills/                    LE MOTEUR — init, chantier, tache, enchainer, check
+  tache/references/        les morceaux partagés : blocage, page, contraintes
 agents/fiche.md            le sous-agent qui joue une fiche pour /vlp:enchainer
 hooks/hooks.json           valide un fichier de fiches à chaque écriture
 scripts/                   LA MÉCANIQUE — Python sans dépendance, zéro appel modèle
   vlp.py                   carte, extraire, socle, valider, page… (docstring)
   mesure-tokens.py         le coût en tokens d'une session, en comptes bruts
-references/                les morceaux partagés que les commandes lisent
 methode-chantier.md        LA DOCTRINE, et où vit quoi — lue depuis le kit, jamais recopiée
 cloture.md                 les cinq écritures d'une clôture, décrites une fois
 enchainement.md            le contrat de retour d'une fiche enchaînée, décrit une fois
