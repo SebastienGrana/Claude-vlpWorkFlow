@@ -11,7 +11,7 @@ tout son passé à chaque tour, donc la fin d'un long chantier se paye au prix d
 son début. La parade : **un chantier s'écrit une fois en fiches, puis chaque
 fiche s'exécute dans sa propre session.**
 
-## Deux règles qui valent partout
+## Trois règles qui valent partout
 
 Elles sont écrites ici, et nulle part ailleurs : le reste du kit y renvoie.
 
@@ -25,6 +25,18 @@ Elles sont écrites ici, et nulle part ailleurs : le reste du kit y renvoie.
   « moins cher » ne se croient pas seuls : on montre les nombres qui les
   fondent, avant et après. Un instrument muet rend son propre échec
   indiagnosticable.
+- **Un résultat inchangé ne prouve pas qu'on a mesuré la même chose.** Un
+  chiffre qui ne bouge pas rassure, et c'est exactement pour cela qu'il faut
+  regarder derrière lui. Trois cas, tous trois rencontrés le même jour sur un
+  seul chantier : un **seuil** revalidé à l'identique alors que ce qu'il
+  découpe avait changé de 7 % ; un chiffre publié qui bouge de 0,2 point parce
+  que **deux correctifs le montaient pendant qu'un troisième le descendait** ;
+  et une case qui perd 10 % sans qu'**aucune règle** n'ait changé, seulement
+  parce qu'on a cessé de compter deux fois la même donnée. Le remède est
+  toujours le même : une table **avant / après par cause**, en comptes bruts,
+  jamais un verdict net unique. Un chantier qui joue plusieurs correctifs
+  d'un coup doit pouvoir dire lequel explique quoi — sinon il a corrigé sans
+  savoir quoi.
 
 ## Les trois temps
 
@@ -188,7 +200,7 @@ Quatre exigences, apprises en cassant :
    maquette citée ; tant qu'une mesure n'existe pas, la fiche demande la
    mesure, elle n'annonce pas son résultat.
 3. **Un critère de fin observable**, sinon la fiche ne peut pas être cochée. Il
-   affiche ses comptes bruts (voir « Deux règles qui valent partout »).
+   affiche ses comptes bruts (voir « Trois règles qui valent partout »).
 4. **Les fiches sont indépendantes autant que possible** ; les dépendances
    réelles sont écrites, pas devinées.
 
