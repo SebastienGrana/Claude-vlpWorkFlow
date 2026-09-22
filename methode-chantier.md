@@ -25,6 +25,21 @@ Elles sont écrites ici, et nulle part ailleurs : le reste du kit y renvoie.
   « moins cher » ne se croient pas seuls : on montre les nombres qui les
   fondent, avant et après. Un instrument muet rend son propre échec
   indiagnosticable.
+- **Une ligne de mesure nomme les quantités qu'elle compare.** Un compte juste
+  ne prouve rien s'il ne dit pas de quoi il est le compte, et c'est ainsi qu'on
+  publie une cause qu'on n'a pas mesurée. Mesuré : un chantier a conclu « la
+  cause dominante est l'autosave périmée » à partir de « 35 autosaves seules /
+  10 ghosts » — un compte de **quels fichiers existent sur le disque**, c'est-
+  à-dire un fait sur l'**outillage**. Les deux nombres étaient exacts ; le pont
+  entre eux n'existait pas. Rejoué en croisant la vraie variable, la source
+  **ne triait pas** (19 / 7, la proportion du corpus) et la cause était
+  ailleurs. ⚠️ Le piège n'est pas l'erreur de calcul — il n'y en avait pas —
+  c'est la **mauvaise quantité comparée**, qu'aucune relecture de chiffres
+  n'attrape. Écrire, dans la ligne même : *ce compte compare X à Y*.
+- **Un énoncé renversé se garde, marqué.** On ne remplace pas un chiffre publié
+  en silence : le paragraphe périmé reste, avec un renvoi vers ce qui le
+  renverse et **par quoi**. Quelqu'un qui grep tombe sur l'ancien texte avant
+  le nouveau ; sans marqueur il le lit comme vrai.
 - **Un résultat inchangé ne prouve pas qu'on a mesuré la même chose.** Un
   chiffre qui ne bouge pas rassure, et c'est exactement pour cela qu'il faut
   regarder derrière lui. Trois cas, tous trois rencontrés le même jour sur un
