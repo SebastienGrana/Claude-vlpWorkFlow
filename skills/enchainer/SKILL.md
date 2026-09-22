@@ -1,5 +1,5 @@
 ---
-description: Enchaîne plusieurs fiches du chantier courant, chacune dans un sous-agent neuf, jusqu'à un arrêt prévu ou le plafond
+description: Enchaîne les fiches du chantier courant une après l'autre, chacune sur une page blanche (sous-agent neuf), jusqu'à un arrêt prévu ou le plafond
 argument-hint: (rien) | <alias>
 model: sonnet
 allowed-tools: Bash(python3:*), Bash(py:*), Bash(echo:*), PowerShell(python3:*), PowerShell(py:*), PowerShell(echo:*), Skill, Artifact
@@ -48,7 +48,8 @@ Retiens les fiches non cochées, dans l'ordre ; une fiche cochée n'est ni
 rejouée ni vérifiée, même écrite dans cette session. La série s'arrête à la première
 dont la ligne `**Critère de fin**` porte `(visuel)` — incluse —, ou au plafond
 de 5. Annonce-la en une ligne (« je joue E5 → E7, arrêt prévu à E7
-(visuel) ») ; tu n'attends pas de réponse.
+(visuel) ») ; tu n'attends pas de réponse. Dis aussi où suivre : « suivi :
+panneau Tâches de l'app, clique sur le sous-agent ; Ctrl+O pour le détail ».
 
 ## 3. Jouer chaque fiche
 
