@@ -11,7 +11,7 @@ tout son passé à chaque tour, donc la fin d'un long chantier se paye au prix d
 son début. La parade : **un chantier s'écrit une fois en fiches, puis chaque
 fiche s'exécute dans sa propre session.**
 
-## Trois règles qui valent partout
+## Les règles qui valent partout
 
 Elles sont écrites ici, et nulle part ailleurs : le reste du kit y renvoie.
 
@@ -37,6 +37,68 @@ Elles sont écrites ici, et nulle part ailleurs : le reste du kit y renvoie.
   jamais un verdict net unique. Un chantier qui joue plusieurs correctifs
   d'un coup doit pouvoir dire lequel explique quoi — sinon il a corrigé sans
   savoir quoi.
+- **Un arrondi n'est pas une tolérance.** Grouper des mesures par une clé
+  arrondie coupe à une frontière **arbitraire** : deux valeurs voisines tombent
+  de part et d'autre, deux valeurs éloignées tombent ensemble. Mesuré : une
+  carte s'est retrouvée seule dans son groupe pour **3 cm**, quand ses cinq
+  sœurs portaient le même décalage à un flottement physique près. Quand ce
+  qu'on groupe est une **quantité continue**, la clé est une **distance sous
+  tolérance**, pas un arrondi — et la tolérance se justifie par ce qui fait
+  flotter la mesure, jamais par le chiffre rond le plus proche.
+- **Une norme n'est pas un vecteur, et deux quantités voisines ne sont pas la
+  même.** Résumer un vecteur par sa longueur perd sa direction, donc fait
+  coïncider ce qui n'a rien à voir : une mesure a innocenté une carte à tort
+  parce qu'elle partageait la **norme** de ses voisines, avec **10,9 m**
+  d'écart sur une composante. Avant de conclure d'une coïncidence de nombres,
+  vérifier qu'on compare bien la même **grandeur**, et la comparer **entière**.
+  Le corollaire vaut aussi à l'écriture : deux quantités voisines — la distance
+  à une ligne entière, et la distance à son début — portent des noms distincts,
+  sinon un lecteur les échange sans le voir.
+- **Un commentaire périmé coûte plus cher qu'un chiffre périmé.** Un chiffre
+  faux se remarque — il détonne, on le recoupe. Un commentaire faux *oriente*,
+  et il oriente en silence : il décrit un code qui n'existe plus, et le lecteur
+  suivant part chercher le coupable là où on le lui montre. Mesuré : sur un même
+  chantier, **quatre angles d'analyse indépendants ont accusé le même innocent
+  le même jour**, tous les quatre conduits par deux commentaires périmés —
+  alors qu'une **troisième ligne du même fichier** énonçait déjà le fait juste.
+  Quand une relecture change une règle, le commentaire qui la décrit fait partie
+  de la règle : il se corrige dans le même geste, ou il devient un piège daté.
+- **Un seuil calé sur une distribution qui ne pouvait pas répondre reste
+  arbitraire, même quand il tombe juste.** Avant de lire un histogramme pour
+  choisir une borne, vérifier que la population mesurée peut *contenir* des
+  valeurs des deux côtés de cette borne. Mesuré : une largeur de bande a été
+  choisie sur la distribution des écarts manqués, alors que par construction
+  cette distribution ne pouvait contenir **aucune** valeur sous le seuil
+  envisagé. Le chiffre retenu est resté le bon, mais pour une autre raison que
+  celle écrite — et la raison écrite est ce que la session suivante relira.
+- **Un instrument qui *montre* peut réfuter ce que la mesure *confortait*.**
+  Une sonde qui rend un taux dit *quelle* chose est douteuse, jamais *pourquoi*,
+  et un taux se lit trop facilement comme un taux d'échec. Une vue par cas —
+  une page, un dessin, un rendu — fait apparaître ce qu'aucune colonne ne
+  portait : qu'une partie de l'écart n'est pas un défaut de l'instrument mais la
+  description exacte de la réalité. **Le meilleur résultat d'un chantier de vue
+  peut être négatif** : *aucune règle n'est fausse*. Ce n'est pas un chantier
+  raté, c'est une hypothèse coûteuse écartée pour de bon.
+- **Un chantier se cite par son code, jamais par son rang** — décision de
+  l'utilisateur, prise sur un compte. Un rang bouge à chaque re-tri, et chaque
+  re-tri rend faux tous les renvois qui le citent : un tri a rendu faux
+  **21 renvois vivants dans cinq fichiers** d'un coup, et l'audit revenait à
+  chaque fois. Donner à chaque chantier un code court et stable (`POR`, `LIG`,
+  `GBX`), garder le `#` pour le seul tri, et écrire la correspondance
+  ancien rang → code une fois, en tête du fichier qui les décrit.
+- **Une conclusion recopiée d'une table à l'autre se dégrade en silence.** Un
+  chiffre faux détonne, on le recoupe ; un **énoncé** faux, non — il a la bonne
+  forme, et rien dans le texte ne dit qu'il compare autre chose que ce qu'il
+  annonce. Mesuré : une table de douze énoncés republiée sans être rejouée
+  écrivait **deux fois la même quantité** dans ses deux premières lignes,
+  testait **un autre énoncé que le sien** dans deux autres, portait les chiffres
+  d'après dans sa colonne d'avant, et annonçait en prose **quatre**
+  renversements quand sa propre table en cochait **cinq** — dont un qui, rejoué,
+  **tenait**. Quatre défauts, aucune alarme, et la conclusion fausse a servi de
+  socle au chantier suivant. La parade tient en deux gestes : **chaque ligne
+  nomme les quantités qu'elle compare**, jamais deux nombres nus ; et un
+  **script re-dérive** le verdict depuis les nombres écrits, avant publication.
+  Un verdict qu'aucune machine ne recalcule n'est qu'une phrase.
 
 ## Les trois temps
 
@@ -200,7 +262,7 @@ Quatre exigences, apprises en cassant :
    maquette citée ; tant qu'une mesure n'existe pas, la fiche demande la
    mesure, elle n'annonce pas son résultat.
 3. **Un critère de fin observable**, sinon la fiche ne peut pas être cochée. Il
-   affiche ses comptes bruts (voir « Trois règles qui valent partout »).
+   affiche ses comptes bruts (voir « Les règles qui valent partout »).
 4. **Les fiches sont indépendantes autant que possible** ; les dépendances
    réelles sont écrites, pas devinées.
 
