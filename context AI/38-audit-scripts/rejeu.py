@@ -2,7 +2,7 @@
 (les hauteurs en écrans viennent du navigateur, les coûts de lecture des
 transcriptions : scripts à part). Python 3, sans dépendance.
 
-    python rejeu.py <racine ProgPerso>
+    python rejeu.py <racine ProgPerso> [<clos.json>]
 """
 import glob, json, os, re, sys
 
@@ -73,5 +73,7 @@ r["clos_total_tokens"] = sum(d["tokens"] for d in donnees if d["tokens"])
 
 for k, v in r.items():
     print("%-34s %s" % (k, v))
-json.dump(donnees, open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "clos.json"), "w", encoding="utf-8"),
-          ensure_ascii=False, indent=1)
+# Les données du graphique des clos : écrites seulement si on en donne le chemin,
+# pour ne rien laisser dans le dépôt (troisième avis, 2026-09-23).
+if len(sys.argv) > 2:
+    json.dump(donnees, open(sys.argv[2], "w", encoding="utf-8"), ensure_ascii=False, indent=1)

@@ -170,10 +170,10 @@
       <li>Les pages publiées de Cairn marchent bien quand elles sont neuves.</li>
       <li>Mais elles deviennent trop longues : la feuille de route fait 13 écrans sur ordinateur, 20 sur téléphone. Et trois défauts s'y voient aujourd'hui.</li>
       <li>Je propose six chantiers : réparer, mettre à l'abri le texte des notes (il n'existe aujourd'hui que dans la page), puis rendre les pages lisibles avec des blocs repliables et un sommaire.</li>
-      <li>Rien n'est coupé : un bloc replié reste lu par Claude. Plus court, oui ; plus pauvre pour Claude, non.</li>
-      <li>Déplié, une page peut rester longue ; replié, elle retombe court : la plus grosse page de chantier tient alors en un écran d'ordinateur (mesuré).</li>
+      <li>Rien n'est coupé : un bloc replié reste dans la page, et Claude y a accès comme avant. Plus court, oui ; plus pauvre pour Claude, non.</li>
+      <li>Déplié, une page peut rester longue ; replié, elle retombe court : la plus grosse page de chantier tient alors en à peine plus d'un écran d'ordinateur (1,09, mesuré sur maquette).</li>
       <li>Ces chantiers coûtent plus de tokens qu'ils n'en font gagner : leur intérêt est la lisibilité, pas l'économie.</li>
-      <li>Deux relecteurs ont vérifié l'audit, puis tes questions du 2026-09-23 ; tout est intégré.</li>
+      <li>Trois relecteurs ont vérifié l'audit, le dernier après tes questions du 2026-09-23 ; ce qui tenait est intégré.</li>
     </ul>
   </section>
 
@@ -269,7 +269,7 @@
             <tr><td>page 41</td><td class="nb">1,4</td><td class="nb">2,35</td></tr>
           </tbody>
         </table></div>
-        <p class="doux petit">En écrans. Ordinateur : 1536 × 864 px, un écran d'ordinateur portable courant. Téléphone : 375 × 812 px. Mesuré le 2026-09-23.</p>
+        <p class="doux petit">En écrans. Ordinateur : 1536 × 864 px, un écran d'ordinateur portable courant. Téléphone : 375 × 812 px. Mesuré le 2026-09-23. ⚠️ 864 px, c'est l'écran entier : dans claude.ai, la partie visible est plus petite (barre des tâches, navigateur, cadre de la page), donc les vrais nombres d'écrans sont plus grands. D'un montage de mesure à l'autre, jusqu'à 1,5 écran d'écart : on ne compare que dans un même montage.</p>
         <div class="graphique" id="g-ecrans">
           <h3>Hauteur de chaque page, en écrans de téléphone (375 × 812 px)</h3>
           <div class="barres"></div>
@@ -280,7 +280,7 @@
           <li>📱 Sur téléphone seulement : son tableau fait <strong>641 px dans une boîte de 319 px</strong>, il défile de côté.</li>
           <li>📱 Sur téléphone seulement : la page 29 déborde en largeur (496 px pour un écran de 375).</li>
           <li>❌ <strong>La garde de taille ne dit rien</strong> : elle compte des lignes (250). La feuille fait 246 lignes pour 52 Ko et 19,6 écrans.</li>
-          <li>Une note de la page 39 dépasse 730 caractères, alors que la règle dit « une ligne » (<code>ARTEFACTS.md:111</code>). Et cette note n'existe nulle part ailleurs : la couper la perdrait.</li>
+          <li>Une note de la page 39 dépasse 730 caractères, alors que la règle dit « une ligne » (<code>ARTEFACTS.md:111</code>–<code>:112</code>). Et cette note n'existe nulle part ailleurs : la couper la perdrait.</li>
         </ul>
       </div>
     </details>
@@ -351,12 +351,13 @@
             <tr><td>Feuilles de route : rangs de TODO (Cairn, TrackGen, ProjetONZSM)</td><td class="nb">✅ 38 / 38</td></tr>
           </tbody>
         </table></div>
-        <p class="doux petit">Comparaison sans accents, sans casse ni ponctuation. Chez Cairn, 43 blocs sur 198 ont au moins un morceau de 40 caractères ailleurs, et 121 des 139 blocs chiffrés y ont au moins la moitié de leurs nombres : les faits survivent en partie, pas le texte qui les relie. Scripts : <code>page_vs_source.py</code>, <code>chiffres_vs_source.py</code>.</p>
+        <p class="doux petit">Comparaison sans accents, sans casse ni ponctuation. Chez Cairn, 43 blocs sur 198 ont au moins un morceau de 40 caractères ailleurs, et 121 des 139 blocs chiffrés ont au moins la moitié de leurs nombres qui réapparaissent ailleurs, n'importe où (sans les dates : 119 sur 138 ; nombres d'au moins 1 000 seuls : 90 sur 107) : les faits survivent en partie, pas le texte qui les relie. Scripts : <code>page_vs_source.py</code>, <code>chiffres_vs_source.py</code>.</p>
         <ul class="puces">
-          <li>❌ C'est l'inverse de la règle : « La page dérive du fichier de fiches, jamais l'inverse » (<code>tache-page.md:5</code>).</li>
+          <li>❌ Journal : une règle non appliquée — une entrée doit être « la même ligne » que dans le fichier d'état (<code>tache-page.md:14</code>–<code>:15</code>) ; chez Cairn, 0 sur 80.</li>
+          <li>⚠️ Notes : un trou de conception — « la page dérive du fichier » ne vise que les états, l'avancement, les coûts et la date (<code>tache-page.md:5</code>–<code>:7</code>) ; rien n'écrit la note ailleurs.</li>
           <li>❌ Le dossier de contexte de Cairn n'est pas suivi par git : pas d'historique non plus.</li>
           <li>✅ La TODO des feuilles de route, elle, est une vraie copie des fichiers d'état.</li>
-          <li>➡️ <strong>Replier ne perd rien</strong> : le texte reste dans la page, que Claude lit en entier.</li>
+          <li>➡️ <strong>Replier ne perd rien</strong> : le texte reste dans la page ; ce que Claude en lit dépend de la lecture (§ 2.5 du rapport).</li>
           <li>➡️ <strong>Couper perdrait pour de bon</strong> : le chantier B est réécrit pour mettre ce texte à l'abri d'abord.</li>
         </ul>
       </div>
@@ -382,7 +383,7 @@
           <li>La page se régénère par script, jamais à la main.</li>
           <li><code>vlp.py page --verifier</code> compare la page au fichier de fiches.</li>
           <li>Thème clair et sombre complet.</li>
-          <li>Une page neuve est propre : 1,9 écran. Et repliée, même la plus grosse y retombe : page 30, 1,4 écran de téléphone, 1,1 d'ordinateur (maquette).</li>
+          <li>Une page neuve est propre : 1,9 écran de téléphone. Et repliée, même la plus grosse retombe plus bas qu'une page neuve, dans un même montage (maquettes) : page 30, 1,4 écran de téléphone contre 2,3 pour la page 41 neuve ; 1,1 contre 1,4 sur ordinateur.</li>
         </ul>
       </div>
     </details>
@@ -519,7 +520,7 @@ flowchart TB
         </tbody>
       </table></div>
     </div>
-    <p class="encadre idee">📏 <strong>Ta seconde consigne</strong> : déplié, une page peut rester longue ; replié, elle doit retomber court. Mesuré sur maquettes : tout replié, la page 30 passe de 9,0 à 1,1 écran d'ordinateur, la feuille de 14,1 à 3,8. Graphique dans « Voir en vrai ».</p>
+    <p class="encadre idee">📏 <strong>Ta seconde consigne</strong> : déplié, une page peut rester longue ; replié, elle doit retomber court. Mesuré sur maquettes : tout replié, la page 30 passe de 9,0 à 1,1 écran d'ordinateur, la feuille de 14,1 à 3,8. Les maquettes sont un montage à part : la feuille y mesure 14,1 écrans, contre 13,1 plus haut ; on ne compare que dans un même montage. Graphique dans « Voir en vrai ».</p>
     <div class="tableau"><table>
       <thead><tr><th>Ordre</th><th>Chantier</th><th class="nb">Fiches</th><th class="nb">Coût estimé</th></tr></thead>
       <tbody>
@@ -551,7 +552,8 @@ flowchart TB
         <li><code>vlp.py page --note</code> et <code>--journal</code> écrivent d'abord le texte entier dans un <code>.md</code> ; la page le recopie.</li>
         <li>🟡 Où, exactement : sous la fiche, ou dans le fichier d'état pour le journal. À trancher dans le chantier.</li>
         <li>Une migration, une fois : les blocs existants passent de la page au <code>.md</code> (Cairn 198, le kit 148, MapDecorator 11).</li>
-        <li>Rien n'est coupé : la page montre la première phrase, le reste est replié (D).</li>
+        <li>Rien n'est coupé : la note entière, dans son bloc replié (D).</li>
+        <li>⚠️ Une note reste une seule balise : le script n'en relit qu'une (<code>vlp.py:736</code>). Coupée en deux, sa suite serait perdue à la régénération suivante. Donc <strong>B avant D</strong>.</li>
         <li>La garde de taille compte en caractères, garde aussi la feuille, et prévient sans rien couper.</li>
         <li><strong>Fini quand</strong> : toutes les notes et entrées de journal sont retrouvées en entier dans un <code>.md</code> (Cairn aujourd'hui : 0 sur 198).</li>
       </ul></div>
@@ -574,7 +576,9 @@ flowchart TB
           <li>✅ C'est ce que la plateforme conseille pour un suivi ou un journal.</li>
           <li>❌ Mais la page est vide sans la base : ouverte en local, en aperçu, et peut-être par lien public.</li>
           <li>⚠️ <strong>B d'abord</strong> : sinon, l'information ne vivrait plus que sur claude.ai.</li>
-          <li>🟡 À prouver : le coût d'une écriture, et si chacune demande ton accord.</li>
+          <li>❌ La base dépend du compte : chacun, dans le groupe, devrait l'avoir.</li>
+          <li>❌ Afficher depuis la base demande un script dans la page, relu à chaque fiche.</li>
+          <li>🟡 À prouver : le coût d'une écriture, et si chacune demande ton accord — probable : l'outil parle d'une approbation par lot.</li>
         </ul>
         <p>Avant D et E : ils sauront où écrire leur CSS et leurs données. Une seule migration.</p>
       </div>
@@ -583,9 +587,9 @@ flowchart TB
       <summary><span class="icone">D</span><span>La page de chantier plus courte et lisible</span></summary>
       <div class="corps"><ul class="puces">
         <li>Chaque fiche dans un bloc repliable ; celle en cours ouverte.</li>
-        <li>🔒 Aucune perte : replié, le texte reste dans la page, que Claude lit en entier.</li>
+        <li>🔒 Aucune perte : replié, le texte reste dans la page. La note reste une seule balise : <strong>B avant D</strong>.</li>
         <li>Deux niveaux de pli : la liste des fiches et le journal se replient aussi. Chantier clos : tout replié d'office sous le bilan.</li>
-        <li>💡 « Tout replier » passe de F à D : pour retomber court à tout moment.</li>
+        <li>💡 « Tout replier » passe de F à D : pour retomber court à tout moment. Son script, court, est le seul de la page ; il est relu à chaque fiche.</li>
         <li>Le journal : les 3 dernières entrées visibles, le reste replié. <strong>C'est le vrai levier.</strong></li>
         <li>Chantier clos : le bilan monte sous l'en-tête.</li>
         <li>Un sommaire, des titres sans majuscules, les petites tailles relevées.</li>
@@ -639,13 +643,14 @@ flowchart TB
   <!-- Relectures -->
   <section id="relectures">
     <div class="tete-section"><h2>Les relectures</h2><button type="button" class="commenter" hidden>💬 Commenter</button></div>
-    <p class="doux">Ta méthode de double vérification, en cinq étapes.</p>
+    <p class="doux">Ta méthode de double vérification, en six étapes : la sixième, un troisième avis, demandé avant le push.</p>
     <ol class="etapes">
       <li><span class="n">1</span><div><strong>Plan et propositions</strong> ✅<br><span class="doux petit">Écrits dans <code>38-audit-artefacts.md</code>.</span></div></li>
       <li><span class="n">2</span><div><strong>Ma relecture critique</strong> ✅<br><span class="doux petit">16 questions posées au plan (tableau complet : § 5 du rapport). Extrait ci-dessous.</span></div></li>
       <li><span class="n">3</span><div><strong>Contre-expertise par un sous-agent neuf</strong> ✅<br><span class="doux petit">Verdict : « le plan tient en partie ». 16 points, revérifiés un par un : 14 confirmés, 1 en partie, 1 rejeté.</span></div></li>
       <li><span class="n">4</span><div><strong>Chiffres rejoués par script</strong> ✅<br><span class="doux petit">26 valeurs tirées des fichiers, toutes identiques ; 2 chiffres écrits à la main étaient faux, corrigés. Les hauteurs d'écran, remesurées : 4 valeurs ont bougé (page 30 : 20,6 → 20,3), corrigées. Le coût, rejoué avec les scripts de la contre-expertise : divisé par environ 2.</span></div></li>
-      <li><span class="n">5</span><div><strong>Toi, sur ton écran</strong> ✅<br><span class="doux petit">Relu et validé le 2026-09-23. Tes questions — un résumé et un sommaire, l'ordinateur d'abord, aucune perte pour Claude, pourquoi pas de base de données, replier et retomber court — sont toutes intégrées.</span></div></li>
+      <li><span class="n">5</span><div><strong>Toi, sur ton écran</strong> ✅<br><span class="doux petit">Validé le 2026-09-23. Tes questions — un résumé et un sommaire, l'ordinateur d'abord, aucune perte pour Claude, pourquoi pas de base de données, replier et retomber court — sont toutes intégrées ; les deux dernières, après ta validation.</span></div></li>
+      <li><span class="n">6</span><div><strong>Troisième avis, un autre sous-agent neuf</strong> ✅<br><span class="doux petit">Demandé par toi avant le push. Verdict : « l'audit tient — ne pas pousser avant correction ». 13 points revérifiés : 11 confirmés, 1 en partie, 1 à ta décision (du contenu de Cairn, dépôt privé, dans ce dépôt public).</span></div></li>
     </ol>
     <details class="bloc">
       <summary><span class="icone">2</span><span>Ce que ma relecture a changé</span></summary>
@@ -664,7 +669,7 @@ flowchart TB
           <tr><td>Mon script de vérification est-il juste ?</td><td>❌ pas sa 1<sup>re</sup> version</td><td>il trouvait 14 rangs sur 19 au lieu de 19 : réécrit, chiffres remplacés</td></tr>
           <tr><td>La base de données était-elle bien écartée ? (ta question)</td><td>❌ trop vite</td><td>passée à l'essai, dans le chantier C, après B</td></tr>
           <tr><td>Repliée, une page retombe-t-elle court ? (ta consigne)</td><td>✅ mesuré</td><td>page 30 : 9,02 → 1,09 écran d'ordinateur ; critère ajouté à D et E</td></tr>
-          <tr><td>Mes hauteurs tiennent-elles d'un montage à l'autre ?</td><td>❌ à un écran près</td><td>comparaisons dans un même montage seulement</td></tr>
+          <tr><td>Mes hauteurs tiennent-elles d'un montage à l'autre ?</td><td>❌ jusqu'à 1,5 écran d'écart</td><td>comparaisons dans un même montage seulement</td></tr>
         </tbody>
       </table></div></div>
     </details>
@@ -688,6 +693,28 @@ flowchart TB
       </table></div>
       <p class="doux petit">Tableau complet, 16 lignes : § 6 du rapport.</p></div>
     </details>
+    <details class="bloc">
+      <summary><span class="icone">6</span><span>Ce que le troisième avis a changé</span></summary>
+      <div class="corps"><div class="tableau"><table>
+        <thead><tr><th>Il dit</th><th>Revérifié</th><th>Changement</th></tr></thead>
+        <tbody>
+          <tr><td>La page dit « validé » alors qu'une relecture est en cours</td><td>🟡 en partie : validé, mais avant tes deux dernières questions</td><td>étape 5 reformulée, étape 6 ajoutée</td></tr>
+          <tr><td>Du contenu de Cairn part dans un dépôt public</td><td>✅ et le dépôt de Cairn est privé</td><td>🟡 à ta décision, avant tout push</td></tr>
+          <tr><td>« Un écran » : la mesure dit 1,09 ; 864 px est l'écran entier</td><td>✅</td><td>« à peine plus d'un écran » ; l'unité expliquée</td></tr>
+          <tr><td>« Que Claude lit en entier » n'est pas établi</td><td>✅</td><td>« reste dans la page » ; la conclusion tient</td></tr>
+          <tr><td>D : « pas de script », puis un script</td><td>✅</td><td>« sauf un script court »</td></tr>
+          <tr><td>Le montage fait bouger jusqu'à 1,5 écran, pas un</td><td>✅</td><td>chiffre corrigé ; comparaisons dans un même montage</td></tr>
+          <tr><td>Un prototype en écrans de téléphone, sans le dire</td><td>✅</td><td>étiqueté, maquette ajoutée</td></tr>
+          <tr><td>« L'inverse de la règle » est faux pour les notes</td><td>✅</td><td>notes : un trou de conception ; journal : une règle non appliquée</td></tr>
+          <tr><td>Couper une note en deux balises casserait le script</td><td>✅ et la suite serait perdue</td><td>une note, une balise : B avant D</td></tr>
+          <tr><td>La base de données : trois « contre » manquent</td><td>✅</td><td>le compte, le script, un accord par écriture</td></tr>
+          <tr><td>Rejouer un script laisse un fichier dans le dépôt</td><td>✅</td><td>il n'écrit plus que si on le lui demande</td></tr>
+          <tr><td>Le compte des nombres est permissif</td><td>✅ rejoué</td><td>121 / 139 ; sans les dates 119 / 138 ; ≥ 1 000 seuls 90 / 107</td></tr>
+          <tr><td>Deux sources ne sont pas publiques</td><td>✅ mineur</td><td>dit dans les sources</td></tr>
+        </tbody>
+      </table></div>
+      <p class="doux petit">Rejoué par lui et trouvé juste : 0 / 198, les références fichier:ligne, l'arithmétique (48 à 88 M, 40 à 73 $), les 26 valeurs du rejeu, l'accord de la page et du rapport. Tableau complet : § 6 bis du rapport.</p></div>
+    </details>
   </section>
 
   <!-- Sources -->
@@ -699,8 +726,8 @@ flowchart TB
     <div class="tableau"><table>
       <thead><tr><th>Source</th><th>Rang</th><th>Ce qu'elle établit</th></tr></thead>
       <tbody>
-        <tr><td>Contrat de page et de capacités de l'outil Artifact (contrat 0.2.54) ; liste des types de page</td><td>doc de la plateforme</td><td>ce qu'une page peut et ne peut pas faire</td></tr>
-        <tr><td>Description de l'outil <code>ArtifactData</code> (la base de données des pages)</td><td>doc de la plateforme</td><td>écrire sans relire la page, par un fichier JSON</td></tr>
+        <tr><td>Contrat de page et de capacités de l'outil Artifact (contrat 0.2.54) ; liste des types de page</td><td>doc de la plateforme · ⚠️ non publique</td><td>ce qu'une page peut et ne peut pas faire</td></tr>
+        <tr><td>Description de l'outil <code>ArtifactData</code> (la base de données des pages)</td><td>doc de la plateforme · ⚠️ non publique</td><td>écrire sans relire la page, par un fichier JSON</td></tr>
         <tr><td><a href="https://ako.ac.nz/assets/Knowledge-centre/ALNACC-Resources/Dyslexia-resources/230907-Dyslexia-Friendly-Style-Guide.pdf">Dyslexia-Friendly Style Guide</a>, Ako Aotearoa, juillet 2023</td><td>organisme public</td><td>majuscules, titres, sommaire, abréviations, schémas</td></tr>
         <tr><td><a href="https://cdn.bdadyslexia.org.uk/uploads/documents/Advice/style-guide/BDA-Style-Guide-2023.pdf">BDA Style Guide 2023</a></td><td>association</td><td>❌ non lu : accès refusé</td></tr>
         <tr><td><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/details">MDN, &lt;details&gt;</a>, modifiée le 2026-04-24</td><td>doc officielle</td><td>accordéon par <code>name</code>, événement <code>toggle</code></td></tr>

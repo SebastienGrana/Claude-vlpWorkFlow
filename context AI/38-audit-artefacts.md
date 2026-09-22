@@ -19,14 +19,15 @@ Statuts : ✅ établi (source citée) · 🟡 à décider ou à prouver · 💡 
 - Je propose six chantiers : réparer, mettre à l'abri le texte des notes (il
   n'existe aujourd'hui que dans la page), puis rendre les pages lisibles avec des
   blocs repliables et un sommaire.
-- Rien n'est coupé : un bloc replié reste lu par Claude. Plus court, oui ; plus
-  pauvre pour Claude, non.
+- Rien n'est coupé : un bloc replié reste dans la page, et Claude y a accès comme
+  avant. Plus court, oui ; plus pauvre pour Claude, non.
 - Déplié, une page peut rester longue ; replié, elle retombe court : la plus
-  grosse page de chantier tient alors en un écran d'ordinateur (mesuré).
+  grosse page de chantier tient alors en à peine plus d'un écran d'ordinateur
+  (1,09, mesuré sur maquette ; un écran = 864 px, l'écran entier, § 1).
 - Ces chantiers coûtent plus de tokens qu'ils n'en font gagner : leur intérêt est
   la lisibilité, pas l'économie.
-- Deux relecteurs ont vérifié l'audit, puis tes questions du 2026-09-23 ; tout est
-  intégré.
+- Trois relecteurs ont vérifié l'audit, le dernier après tes questions du
+  2026-09-23 ; ce qui tenait est intégré (§ 6).
 
 ## Sommaire
 
@@ -38,7 +39,7 @@ Statuts : ✅ établi (source citée) · 🟡 à décider ou à prouver · 💡 
 | 3 | Ce qui existe | ce qu'une page sait faire, ce qu'elle ne peut pas faire |
 | 4 | Propositions | la règle « aucune perte pour Claude » ; les six chantiers A à F, leur ordre, leur coût ; ce qui est écarté |
 | 5 | Relecture critique | ma propre relecture, et ce qu'elle a changé |
-| 6 | Contre-expertise | la relecture du sous-agent, point par point |
+| 6 | Contre-expertise | les relectures de deux sous-agents neufs, point par point ; le troisième avis en 6 bis |
 | 7 | Sources web | les liens, leur date, leur rang |
 | 8 | Annexe | les scripts de mesure |
 
@@ -90,6 +91,16 @@ Statuts : ✅ établi (source citée) · 🟡 à décider ou à prouver · 💡 
 - ⚠️ Limites : cet écart contient aussi le texte glissé entre deux tours (rappels
   système) et, quand la lecture partage son tour avec d'autres outils, leurs
   résultats. § 2.5 donne la fourchette corrigée.
+- ⚠️ Unité « écran d'ordinateur » : 864 px, la hauteur de l'**écran entier**
+  d'un portable courant, pas ce qu'on voit. Dans claude.ai, la barre des tâches,
+  le navigateur et le cadre de la page en prennent une part, non mesurée : les
+  vrais nombres d'écrans sont plus grands. D'une page à l'autre, la comparaison
+  tient (même unité). 🟡 À mesurer : la hauteur visible d'une page ouverte dans
+  claude.ai, sur ton écran.
+- ⚠️ Précision : une même page, remesurée le lendemain, a bougé jusqu'à 0,4 écran
+  (§ 5, cause non établie) ; d'un montage à l'autre, jusqu'à 1,55 écran (feuille :
+  12,5 contre 14,05, § 4). Les décimales ne sont pas significatives, et on ne
+  compare que dans un même montage. *Ajouté le 2026-09-23 (troisième avis).*
 
 ## 2. Constats
 
@@ -240,23 +251,27 @@ messages de commit. Comparaison sans accents, sans casse ni ponctuation.
 | Cairn : notes de fiches (118) et entrées de journal (80) | **0 / 198** ; 8 par leur début, 43 par un morceau de 40 caractères | `page_vs_source.py` |
 | Le kit lui-même : notes et journal | 6 / 148 | idem |
 | MapDecorator : notes et journal | 1 / 11 | idem |
-| Les nombres de ces blocs, chez Cairn | 121 des 139 blocs chiffrés ont au moins la moitié de leurs nombres ailleurs | `chiffres_vs_source.py` |
+| Les nombres de ces blocs, chez Cairn | 121 des 139 blocs chiffrés ont au moins la moitié de leurs nombres qui réapparaissent ailleurs — n'importe où, dates comprises ; sans les dates, 119 / 138 ; nombres d'au moins 1 000 seuls, 90 / 107 | `chiffres_vs_source.py` ; les deux variantes : troisième avis (§ 6 bis) |
 | TODO de la feuille : Cairn, TrackGen, ProjetONZSM | ✅ **19 / 19**, 11 / 11, 8 / 8 rangs, chaque cellule entière (Cairn : dans `10-etat.md`) | `page_vs_source.py` |
 
 - ❌ Les notes et le journal n'existent, en entier, **que dans la page** : le
   fichier local et ses versions publiées. Le dossier de contexte de Cairn n'est
   même pas suivi par git (`Cairn-VlpLib/.gitignore:13`), celui de MapDecorator
   non plus (0 fichier suivi) : pas d'historique.
-- ❌ C'est l'inverse de la doctrine : « La page dérive du fichier de fiches,
-  jamais l'inverse » (`tache-page.md:5`) ; une entrée de journal doit être « la
-  **même ligne** que celle ajoutée au fichier d'état » (`:14`–`:15`). Chez Cairn :
-  0 entrée sur 80 retrouvée en entier.
+- ❌ Pour le journal, une règle non appliquée : une entrée doit être « la
+  **même ligne** que celle ajoutée au fichier d'état » (`tache-page.md:14`–`:15`).
+  Chez Cairn : 0 entrée sur 80 retrouvée en entier.
+- ⚠️ Pour les notes, un trou de conception, pas un écart : « La page dérive du
+  fichier de fiches, jamais l'inverse » ne vise que les états, l'avancement, le
+  comptage, les coûts et la date (`tache-page.md:5`–`:7`) ; la note est une option
+  de jugement (`:10`–`:13`), que rien n'écrit ailleurs. *Corrigé le 2026-09-23
+  (troisième avis) : ce point disait « l'inverse de la doctrine » pour les deux.*
 - ➡️ Les faits chiffrés survivent en bonne partie ailleurs ; le texte qui les
   relie, non.
 - ✅ La feuille de route, elle, est une vraie copie : sa TODO se retrouve en entier
   dans les fichiers d'état.
-- ➡️ Conséquence : **replier ne perd rien** (le texte reste dans le HTML, lu en
-  entier) ; **couper une note, ou reconstruire une page sans reprendre ses notes,
+- ➡️ Conséquence : **replier ne perd rien** (le texte reste dans le HTML ; ce que
+  Claude en lit dépend de la lecture, 🟡 § 2.5) ; **couper une note, ou reconstruire une page sans reprendre ses notes,
   la perd pour de bon**. Les chantiers B, D et E en tiennent compte (§ 4).
 - ⚠️ Limites : les transcriptions de session contiennent aussi ce texte, mais
   Claude ne les relit pas en travail normal. Et la comparaison rate un texte
@@ -267,8 +282,10 @@ messages de commit. Comparaison sans accents, sans casse ni ponctuation.
 - La page se régénère par script (`vlp.py page`), jamais à la main.
 - `vlp.py page --verifier` compare la page au fichier de fiches.
 - Thème clair et sombre complet, jetons de couleur, largeur de lecture tenue.
-- Une page neuve tient en 1,9 écran de téléphone. Et repliée, même la plus grosse
-  y retombe : page 30, 1,42 écran de téléphone, 1,09 d'ordinateur (maquette, § 4).
+- Une page neuve tient en 1,9 écran de téléphone (§ 2.2). Et repliée, même la plus
+  grosse retombe plus bas qu'une page neuve, dans un même montage (maquettes,
+  § 4) : page 30 tout repliée, 1,42 écran de téléphone contre 2,28 pour la page 41
+  neuve telle quelle ; 1,09 contre 1,43 sur ordinateur.
 - La règle « un artefact ne bloque jamais une fiche » (`ARTEFACTS.md`).
 
 ## 3. Ce qui existe — le catalogue
@@ -354,7 +371,8 @@ faut ; replié, elle doit retomber court.** Mesuré sur des maquettes
   viewport, marge nulle) et servie en local, le même jour. Les valeurs « telle
   quelle » ne sont pas celles du § 2.2 : page 30, 9,02 contre 9,0 sur ordinateur,
   mais 19,24 contre 20,3 sur téléphone ; feuille, 14,05 contre 13,1 (et 12,5 sans
-  charset). La hauteur absolue dépend du montage, jusqu'à un écran ; la table de
+  charset). La hauteur absolue dépend du montage, jusqu'à 1,5 écran (feuille : 12,5
+  contre 14,05) ; la table de
   la feuille, qui ajuste ses colonnes au texte, y est la plus sensible. Cause
   exacte non établie. Les comparaisons ne se font donc qu'à l'intérieur d'un même
   montage.
@@ -399,14 +417,21 @@ limitait la longueur des notes. Elle aurait coupé du texte qui n'existe nulle p
 ailleurs (§ 2.6).
 
 - `vlp.py page --note` et `--journal` écrivent **d'abord** le texte entier dans un
-  `.md`, puis la page le recopie. La page redevient dérivée, comme le dit
-  `tache-page.md:5`. 🟡 L'endroit est à trancher : sous la fiche, dans le fichier
+  `.md`, puis la page le recopie. La page devient dérivée pour eux aussi
+  (`tache-page.md:5`–`:7` ne la dit dérivée que pour les états, l'avancement, le
+  comptage, les coûts et la date). 🟡 L'endroit est à trancher : sous la fiche, dans le fichier
   de fiches ; ou, pour le journal, dans le fichier d'état, où il est déjà censé
   être (`tache-page.md:14`–`:15`).
 - Une migration, une fois : les blocs existants passent de la page au `.md`, par
   script (Cairn 198, le kit 148, MapDecorator 11).
-- Rien n'est coupé. La règle « une ligne » (`ARTEFACTS.md:111`) devient une affaire
-  d'affichage : la page montre la première phrase, le reste est replié (D).
+- Rien n'est coupé. La règle « une ligne » (`ARTEFACTS.md:111`–`:112`) devient une
+  affaire d'affichage : la note entière, dans son bloc replié (D).
+- ⚠️ Une note reste **une seule balise** : `lis_page` n'en relit qu'une
+  (`scripts/vlp.py:736`), et `regenerer` recopie ce qu'il a relu (`:864`). Coupée
+  en deux balises — la première phrase visible, la suite repliée —, sa suite
+  serait perdue à la régénération suivante. Montrer la première phrase à part ne
+  se fait donc qu'après B, quand la note vit entière dans le `.md`. *Précisé le
+  2026-09-23 (troisième avis) : B disait « la page montre la première phrase ».*
 - La garde de taille compte en **caractères**, plus en lignes, et garde aussi la
   feuille. Elle prévient ; elle ne coupe rien.
 - **Fini quand** : `page_vs_source.py` retrouve **en entier** toutes les notes et
@@ -451,20 +476,31 @@ tokens (médiane, § 2.5).
   la base.
 - ❌ Le fichier local ne serait plus qu'une coquille : sans B, l'information ne
   vivrait plus que sur claude.ai. **Donc B d'abord** : la base n'est qu'une copie.
+- ❌ La capacité dépend du compte : `db` n'existe que pour les comptes qui l'ont
+  (liste des capacités, propre à chaque utilisateur) ; le kit sert à un groupe,
+  chacun devrait l'avoir.
+- ❌ Afficher depuis la base demande un script dans la page
+  (`claude.use("db")`), relu à chaque fiche — alors que D se limite à un script
+  court (« Tout replier »).
 - 🟡 À prouver : ce que coûte une écriture, et si chaque écriture demande ton
-  accord (ce qui gênerait `/vlp:enchainer`).
+  accord (ce qui gênerait `/vlp:enchainer`). C'est probable : l'outil regroupe
+  plusieurs écritures « sous une seule approbation » par lot (`batch`), donc une
+  par écriture hors lot. *Ces trois points : troisième avis, 2026-09-23.*
 
 **Fini quand** : pour chaque piste, le coût d'une republication mesuré avant et
 après, et une décision écrite : on l'adopte ou non.
 
 ### D — La page de chantier plus courte et lisible
 
-Tout en HTML natif : pas de script. Aucune perte : replié, le texte reste dans le
-HTML, que Claude lit en entier.
+Tout en HTML natif, sauf un script court : le bouton « Tout replier » (plus bas).
+Aucune perte : replié, le texte reste dans le HTML (ce que Claude en lit dépend de
+la lecture, 🟡 § 2.5). *Corrigé le 2026-09-23 (troisième avis) : disait « pas de
+script » et « que Claude lit en entier ».*
 
 - Chaque fiche dans un `<details>` : identifiant, titre et état visibles ; note
   et coût repliés ; la fiche en cours ouverte. Garder le `<li class="fiche">`
-  autour, pour `LI_FICHE` (`scripts/vlp.py:665`).
+  autour, pour `LI_FICHE` (`scripts/vlp.py:665`), et la note en une seule balise,
+  pour `lis_page` (`scripts/vlp.py:736`) : **B avant D** (voir B).
 - Chantier clos : le bilan **monte sous l'en-tête**.
 - Deux niveaux de pli : la liste des fiches et le journal se replient aussi,
   chacun en une ligne. Sur un chantier clos, tout est replié d'office sous le
@@ -474,8 +510,10 @@ HTML, que Claude lit en entier.
   ouvert ne survit pas au rechargement). Son script est court (une dizaine de
   lignes), relu à chaque fiche.
 - Journal : les trois dernières entrées visibles, le reste replié. C'est le vrai
-  levier : prototype sur la page 30, notes repliées 20,3 → 14,2 écrans, puis
-  journal réduit à 3 entrées → **5,4**.
+  levier : prototype du 2026-09-22 sur la page 30, en écrans de **téléphone** :
+  notes repliées 20,3 → 14,2, puis journal réduit à 3 entrées → **5,4**. La
+  maquette du 2026-09-23, même dessin, autre montage (§ 4) : 19,24 → 6,08 sur
+  téléphone, 9,02 → 3,19 sur ordinateur.
 - Un sommaire ; titres sans majuscules, au moins 1,2 fois le texte ; petites
   tailles relevées (§ 2.3).
 - ⚠️ **Outil à écrire** : `vlp.py niveau` ne migre aucune page de chantier (il ne
@@ -562,7 +600,7 @@ Numérotation d'avant la contre-expertise, reprise aussi au § 6 : 1 = A,
 | Question posée au plan | Verdict | Changement |
 |---|---|---|
 | Mes médianes et comptes écrits à la main sont-ils justes ? | ❌ deux faux : médiane 4,4 au lieu de 4,75 écrans (puis **4,7** au rejeu, ligne suivante), 6,5 au lieu de **6** fiches ; 5 lignes sans accents au lieu de **6** | corrigés, et recomptés par script |
-| Mes hauteurs d'écran se rejouent-elles ? | ❌ pas toutes : le 2026-09-23, page 30 20,6 → **20,3**, 29 : 7,8 → 7,7, 31 : 7,2 → 7,1, bilan de 30 : 20,1 → 19,7, médiane 4,75 → **4,7** ; feuille (19,6) et page 41 (1,9) identiques | remesurées en mode téléphone, polices chargées, pages inchangées depuis le 2026-09-22 ; valeurs remplacées. Cause de l'écart inconnue (polices pas encore chargées la première fois ? non prouvé) ; une mesure en iframe donne encore ±0,2 écran |
+| Mes hauteurs d'écran se rejouent-elles ? | ❌ pas toutes : le 2026-09-23, page 30 20,6 → **20,3**, 29 : 7,8 → 7,7, 31 : 7,2 → 7,1, bilan de 30 : 20,1 → 19,7, médiane 4,75 → **4,7** ; feuille (19,6) et page 41 (1,9) identiques | remesurées en mode téléphone, polices chargées, pages inchangées depuis le 2026-09-22 ; valeurs remplacées. Cause de l'écart inconnue (polices pas encore chargées la première fois ? non prouvé) ; une mesure en iframe donne encore ±0,2 écran ; écarts de 0,1 à 0,4 écran, de l'ordre de la précision d'une remesure (§ 1) |
 | Les cibles « ≤ 5 écrans » et « ≤ 4 écrans » sont-elles réalistes ? | ❌ non mesurées | prototype au navigateur : **5,4** et **5,4 à 5,9** ; cibles remplacées |
 | Replier allège-t-il la relecture ? | ❌ non : le modèle lit aussi ce qui est replié | lisibilité (2, 3) et coût (4) séparés ; seule l'option « détail hors page » allège sans le chantier 4 |
 | Le chantier 4 respecte-t-il « deux artefacts, et pas un de plus » ? | ❌ non, dans ma première version (un artefact « kit ») | copie locale déposée par `vlp.py`, jointe par `files` |
@@ -576,7 +614,7 @@ Numérotation d'avant la contre-expertise, reprise aussi au § 6 : 1 = A,
 | Mon script de vérification est-il juste ? | ❌ non, sa première version : il retirait les `<…>` aussi dans le Markdown, un « < 10 » avalait du texte ; il trouvait 14 rangs de TODO sur 19 dans `10-etat.md`, au lieu de 19 | réécrit : comparaison sans accents ni ponctuation, trois niveaux ; chiffres remplacés |
 | La base de données était-elle bien écartée ? (ta question du 2026-09-23) | ❌ trop vite : sa raison, « écrite par le modèle, pas par un script », est à moitié fausse — l'outil accepte un fichier JSON écrit par script | passée en 🟡 à essayer, dans l'essai C, après B |
 | Repliée, une page retombe-t-elle court ? (ta consigne du 2026-09-23) | ✅ mesuré : page 30, 1,09 écran d'ordinateur tout replié, contre 9,02 | D : deux niveaux de pli, « Tout replier » avancé en D ; D et E : « Fini quand » mesuré replié |
-| Mes hauteurs tiennent-elles d'un montage à l'autre ? | ❌ non : jusqu'à un écran d'écart (feuille : 12,5, 13,1, 14,05) | comparaisons dans un même montage seulement, écrit au § 4 |
+| Mes hauteurs tiennent-elles d'un montage à l'autre ? | ❌ non : jusqu'à 1,5 écran d'écart (feuille : 12,5, 13,1, 14,05 ; « un écran » avant le troisième avis) | comparaisons dans un même montage seulement, écrit au § 1 et au § 4 |
 
 ## 6. Contre-expertise (étape 3 : un sous-agent neuf)
 
@@ -608,6 +646,44 @@ Ce qu'il n'a pas pu vérifier : les hauteurs d'écran (remesurées par moi, voir
 « 2 fois sur 128 », « version publiée identique ». Ces trois derniers restent
 sur ma seule parole.
 
+### 6 bis. Troisième avis (étape 6 : un second sous-agent neuf)
+
+Demandé par toi le 2026-09-23, avant le push. Un autre sous-agent, sans
+l'historique de la session, a relu le rapport, la page et les scripts après le
+commit `11ba645`, avec la consigne de réfuter (191 499 tokens, environ 28 appels
+d'outils ; interrompu une fois par un arrêt de l'application, puis repris). Son
+verdict : « l'audit tient — ne pas pousser avant correction ». J'ai revérifié
+chaque point avant de l'intégrer.
+
+| # | Ce qu'il dit | Revérifié | Changement |
+|---|---|---|---|
+| 1 | La page dit « relu et validé » alors qu'une troisième relecture est en cours | 🟡 en partie : tu as validé le 2026-09-23, mais **avant** tes deux dernières questions (base de données, replier et retomber court) | page, étape 5 : « validé ; les deux dernières questions, après » ; étape 6 ajoutée |
+| 2 | Du contenu de Cairn part dans un dépôt public : une vraie note (P1), le rang 18 de sa TODO, 9 totaux de chantiers, 37 lectures datées | ✅ et plus : le dépôt de Cairn est **privé** (API GitHub, 2026-09-23 : 404 ; le kit : 200), et son dossier de contexte est hors de git (`Cairn-VlpLib/.gitignore:13`) | 🟡 **à ta décision**, avant tout push |
+| 3 | « Tient en un écran » : sa mesure dit 1,09 ; et 864 px est l'écran entier, pas ce qu'on voit | ✅ | résumé : « à peine plus d'un écran » ; l'unité et sa limite écrites au § 1 |
+| 4 | « Que Claude lit en entier » n'est pas établi : le § 2.5 dit qu'une lecture peut ne rendre que le début (lecture complète : 2 fois sur 128) | ✅ | « reste dans le HTML », avec renvoi au 🟡 du § 2.5 (§ 2.6, D, page) ; la conclusion « replier ne perd rien » tient : replier ne retire rien du HTML |
+| 5 | D dit « pas de script », puis avance « Tout replier » et son script | ✅ | D : « sauf un script court » |
+| 6 | L'écart de montage va jusqu'à 1,55 écran, pas un ; le § 2.7 compare deux montages ; la page donne 13,1 puis 14,1 pour la feuille sans le dire | ✅ ; les corrections du § 5 (0,1 à 0,4 écran) sont de l'ordre de la précision d'une remesure | § 1 : précision écrite ; § 2.7 : même montage (1,42 contre 2,28) ; § 4 et § 5 : « jusqu'à 1,5 » ; page : une phrase |
+| 7 | D cite un prototype en écrans de téléphone, sans le dire | ✅ | étiqueté « téléphone », la maquette ajoutée |
+| 8 | « L'inverse de la doctrine » est faux pour les notes | ✅ `tache-page.md:5`–`:7` ne vise que états, avancement, comptage, coûts, date | § 2.6 : trou de conception (notes), règle non appliquée (journal) ; ancien énoncé marqué |
+| 9 | B montre la première phrase, D replie la note entière ; deux balises casseraient `lis_page` | ✅ et plus : `regenerer` recopie ce que `lis_page` a lu (`scripts/vlp.py:736`, `:864`) — la suite de la note serait perdue | B et D : une note, une balise ; **B avant D** rappelé aux deux endroits |
+| 10 | C2 : il manque trois « contre » | ✅ (descriptions des outils Artifact et `ArtifactData`) | C2 : le compte, le script, un accord par écriture |
+| 11 | `rejeu.py` écrit `clos.json` dans le dépôt, fichier non ignoré | ✅ `rejeu.py:70` | n'écrit plus que si on lui donne un chemin ; ses 26 valeurs, rejouées : identiques (§ 8) |
+| 12 | `chiffres_vs_source.py` compte un nombre trouvé n'importe où | ✅ rejoué : 121 / 139 ; sans les dates 119 / 138 ; nombres d'au moins 1 000 seuls 90 / 107 | § 2.6 reformulé, variantes écrites |
+| 13 | Publication : l'URL d'un artefact privé (en tête), des morceaux d'identifiants d'artefacts de Cairn (`feuille_detail.py:31`), une source non publique au § 7 | ✅, mineur : un lien privé ne s'ouvre pas sans accès | § 7 : « non publique » |
+| — | `ARTEFACTS.md:111` : la règle finit à la ligne 112 | ✅ | B : `:111`–`:112` |
+
+Ce qu'il a rejoué et trouvé juste — son rejeu, pas le mien, sauf le n° 12 :
+`page_vs_source.py` sur les 5 projets (0 / 198, 6 / 148, 1 / 11 ; TODO 19 / 19,
+11 / 11, 8 / 8) ; le 0 / 198 tient sur un corpus élargi (166 fichiers et le
+`git log`, suites de 5 mots : 2 blocs sur 198 retrouvés à 80 % ou plus) ;
+`replie.py` ne perd aucun mot ; toutes les références `fichier:ligne` de
+`11ba645` ; l'arithmétique du § 4 (47,96 et 87,6 M ; 40,15 et 73,33 $) ; les 26
+valeurs de `rejeu.py` ; l'accord du rapport et de la page.
+
+Ce qu'il n'a pas pu vérifier : les hauteurs d'écran (le navigateur intégré refuse
+le JavaScript sur un fichier local), le coût du § 2.5 (il ne devait pas lire les
+transcriptions), la version publiée.
+
 ## 7. Sources web
 
 | Source | Rang | Consultée | Ce qu'elle établit |
@@ -618,7 +694,7 @@ sur ma seule parole.
 | [Chromium, « Intent to Ship: Auto-expand details elements »](https://groups.google.com/a/chromium.org/g/blink-dev/c/a6iO__pqI_E/m/Asj1sUABBAAJ), 2021-09-17 | source primaire | 2026-09-22 | Ctrl+F ouvre un bloc replié ; cible Chrome 96 |
 | [Coywolf, auto-expand details](https://coywolf.com/news/seo/details-disclosure-element-can-now-auto-expand-using-the-browsers-find-on-page-feature/) | blog d'actualité | 2026-09-22, extrait de recherche | Firefox 139 et Safari 26.2 — ⚠️ une seule source, secondaire, page non ouverte |
 | [GOV.UK Design System, Details](https://design-system.service.gov.uk/components/details/) | design system public | 2026-09-22, extrait de recherche | un seul bloc → Details ; plusieurs → accordéon |
-| Contrat de page et de capacités de l'outil Artifact (contrat 0.2.54), liste des types de page ; description de l'outil `ArtifactData` | doc de la plateforme | 2026-09-22 et 2026-09-23 | ce qu'une page peut et ne peut pas faire ; écriture en base sans relire la page, par `file_path` ; « suivi ou journal → base plutôt que republier » |
+| Contrat de page et de capacités de l'outil Artifact (contrat 0.2.54), liste des types de page ; description de l'outil `ArtifactData` | doc de la plateforme — ⚠️ non publique : lue dans la session, un lecteur du dépôt ne peut pas la vérifier | 2026-09-22 et 2026-09-23 | ce qu'une page peut et ne peut pas faire ; écriture en base sans relire la page, par `file_path` ; « suivi ou journal → base plutôt que republier » |
 | [Smashing Magazine, tableaux responsives](https://www.smashingmagazine.com/2022/12/accessible-front-end-patterns-responsive-tables-part1/), 2022-12 | magazine | 2026-09-22, extrait de recherche | le motif « cartes empilées » sur téléphone |
 
 Coût web : 4 recherches, 4 pages ouvertes (dont 1 refusée) ; les trois dernières
@@ -631,7 +707,7 @@ dépendance, zéro appel modèle.
 
 | Script | Ce qu'il mesure |
 |---|---|
-| `rejeu.py <racine ProgPerso>` | les 26 valeurs tirées des fichiers de Cairn (§ 2.1 à 2.4) ; écrit `clos.json` |
+| `rejeu.py <racine ProgPerso> [<clos.json>]` | les 26 valeurs tirées des fichiers de Cairn (§ 2.1 à 2.4) ; écrit les données du graphique des clos seulement si on lui donne un chemin (avant le troisième avis : toujours, à côté de lui, donc dans le dépôt) |
 | `cout_lecture.py <transcriptions>` | l'écart de contexte autour de chaque `Artifact read` ou `publish` |
 | `poids_reel.py <transcriptions>` | la méthode d'origine : écart × tours restants (surestimée, § 2.5) |
 | `ce_biais.py`, `ce_poids2.py`, `ce_double.py` | les biais relevés par la contre-expertise, et la fourchette corrigée |
