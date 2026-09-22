@@ -111,16 +111,32 @@
 ## La TODO ordonnée — les chantiers possibles
 
 C'est d'ici que `/chantier` tire ses propositions. Un chantier par entrée,
-ordonné par ce qui débloque le reste. Le détail de chacun est dans
-`12-audit.md`.
+ordonné par ce qui débloque le reste, cité par son code. Le détail de chacun
+est dans `38-audit-artefacts.md` § 4, qui les nomme A à F ; les rangs 1 à 24,
+tous retirés, venaient de `12-audit.md`.
 
 | # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |
 |---|---|---|---|---|
+| 25 | `REP` — Réparer les pages publiées | Plus de Markdown brut ni de lien cassé sur les feuilles de route de Cairn, MapDecorator, TrackGen et ProjetONZSM : réparé dans `vlp.py`, puis sur les cinq projets par `niveau`. Ouvert le 2026-09-23 : `39-reparer-pages.md`. | 4 fiches | — |
+| 26 | `ABR` — Mettre notes et journal à l'abri dans un `.md` | Les notes et le journal d'une page de chantier n'existent aujourd'hui que dans la page. `page --note` et `--journal` écriront d'abord le texte entier dans un `.md`, et la page le recopiera. | ~3 fiches | — |
+| 27 | `ALE` — Essai : alléger la republication | Deux pistes, mesurées : le CSS en fichier joint, puis les données dans la base de claude.ai. Décide où vivent le CSS et les données avant `PLI` et `FEU`. | 2 fiches | `ABR` |
+| 28 | `PLI` — La page de chantier plus courte et lisible | Chaque fiche dans un bloc repliable, le journal replié sauf ses dernières entrées, le bilan en haut d'un chantier clos. Rien n'est coupé : replié, le texte reste dans la page. | ~5 fiches | `ABR`, `ALE` |
+| 29 | `FEU` — La feuille de route plus courte et lisible | La TODO en cartes, le détail replié, un sommaire. 🟡 Une décision à prendre : la feuille garde-t-elle tout le détail de la TODO ? | ~4 fiches | `REP`, `ALE` |
+| 30 | `BTN` — Des boutons, en dernier | Commenter une fiche, tout déplier, filtrer, copier la commande d'une fiche, un graphique des coûts. Optionnel. | ~4 à 6 fiches | `PLI`, `FEU` |
 
 ## Journal des décisions
 
 Une ligne par décision imprévue tranchée en cours de fiche — jamais un résumé
 de ce que le code dit déjà.
+
+- **2026-09-23** — cadrage REP, fait sans l'utilisateur, à sa demande (« fait ce que
+  tu dois faire », avant d'aller dormir) : 🟡 à valider. Les six chantiers de l'audit
+  des pages (`38-audit-artefacts.md` § 4, A à F) entrent dans la TODO, rangs 25 à 30,
+  avec des codes proposés — `REP`, `ABR`, `ALE`, `PLI`, `FEU`, `BTN` — que chaque
+  ouverture peut changer. `REP` (le A) s'ouvre le premier : l'ordre de l'audit, et le
+  seul des six sans décision en attente. `rejeu.py` n'est pas rangé dans `scripts/`,
+  contre l'audit : il code Cairn en dur ; ses trois compteurs passent dans
+  `vlp.py niveau` (REP3).
 
 - **2026-09-18** — NIV3 : la fiche supposait que `clore` retirait la table des
   chantiers clos de `CHANTIER.md` ; il ne l'a jamais fait (il n'entretient que la

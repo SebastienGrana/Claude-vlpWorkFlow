@@ -393,6 +393,8 @@ Total ≈ 22 à 24 fiches, ≈ 48 à 88 M tokens, soit ≈ 40 à 73 $ au tarif m
 
 ### A — Réparer ce qui est cassé
 
+➡️ Ouvert le 2026-09-23 : chantier `REP`, `39-reparer-pages.md`, 4 fiches.
+
 - `cellule_md` (`scripts/vlp.py:1092`) : `**x**` → `<strong>`, `[t](u)` → `<a>` ;
   un test par cas.
 - Les chevrons d'une URL `<…>` : les retirer à la lecture (`champ()`,
@@ -407,7 +409,9 @@ Total ≈ 22 à 24 fiches, ≈ 48 à 88 M tokens, soit ≈ 40 à 73 $ au tarif m
 - Signaler, sans réécrire à la main : pages 23 (bilan), 24 (hors gabarit),
   27 (enveloppe claude.ai), rangs ✅ de la TODO, accents perdus.
 - Ranger `rejeu.py` dans `scripts/`, étendu aux 5 projets équipés : c'est lui qui
-  dit « fini ».
+  dit « fini ». ➡️ *Changé à l'ouverture de `REP` (2026-09-23, 🟡 à valider) :
+  `rejeu.py` code Cairn en dur ; ses trois compteurs passent dans `vlp.py niveau`
+  (`39-reparer-pages.md`, REP3).*
 - **Fini quand** : sur les 5 projets, 0 `**`, 0 lien Markdown, 0 `href="&lt;`.
 
 ### B — Mettre notes et journal à l'abri dans un `.md`
@@ -724,4 +728,6 @@ await document.fonts.ready;
 document.documentElement.scrollHeight / 812
 ```
 
-🟡 À ranger dans `scripts/` si le chantier A reprend `rejeu.py`.
+🟡 À ranger dans `scripts/` si le chantier A reprend `rejeu.py`. ➡️ *Non : ses
+compteurs passent dans `vlp.py niveau` (chantier `REP`, fiche REP3 ; 2026-09-23,
+🟡 à valider).*
