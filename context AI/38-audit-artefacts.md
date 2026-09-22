@@ -16,11 +16,17 @@ Statuts : ✅ établi (source citée) · 🟡 à décider ou à prouver · 💡 
 - Les pages publiées de Cairn marchent bien quand elles sont neuves.
 - Mais elles deviennent trop longues : la feuille de route fait 13 écrans sur
   ordinateur, 20 sur téléphone. Et trois défauts s'y voient aujourd'hui.
-- Je propose six chantiers : réparer, limiter la longueur des notes, puis rendre
-  les pages lisibles avec des blocs repliables et un sommaire.
+- Je propose six chantiers : réparer, mettre à l'abri le texte des notes (il
+  n'existe aujourd'hui que dans la page), puis rendre les pages lisibles avec des
+  blocs repliables et un sommaire.
+- Rien n'est coupé : un bloc replié reste lu par Claude. Plus court, oui ; plus
+  pauvre pour Claude, non.
+- Déplié, une page peut rester longue ; replié, elle retombe court : la plus
+  grosse page de chantier tient alors en un écran d'ordinateur (mesuré).
 - Ces chantiers coûtent plus de tokens qu'ils n'en font gagner : leur intérêt est
   la lisibilité, pas l'économie.
-- Deux relecteurs ont vérifié l'audit ; leurs corrections sont intégrées.
+- Deux relecteurs ont vérifié l'audit, puis tes questions du 2026-09-23 ; tout est
+  intégré.
 
 ## Sommaire
 
@@ -28,9 +34,9 @@ Statuts : ✅ établi (source citée) · 🟡 à décider ou à prouver · 💡 
 |---|---|---|
 | 0 | En une minute | les cinq constats principaux |
 | 1 | Comment c'est mesuré | les commandes pour rejouer chaque chiffre |
-| 2 | Constats | 2.1 ce qui est cassé · 2.2 longueur, ordinateur et téléphone · 2.3 dyslexie · 2.4 tes cinq axes · 2.5 coût · 2.6 ce qui va bien |
+| 2 | Constats | 2.1 ce qui est cassé · 2.2 longueur, ordinateur et téléphone · 2.3 dyslexie · 2.4 tes cinq axes · 2.5 coût · 2.6 ce qui n'existe que dans la page · 2.7 ce qui va bien |
 | 3 | Ce qui existe | ce qu'une page sait faire, ce qu'elle ne peut pas faire |
-| 4 | Propositions | les six chantiers A à F, leur ordre, leur coût ; ce qui est écarté |
+| 4 | Propositions | la règle « aucune perte pour Claude » ; les six chantiers A à F, leur ordre, leur coût ; ce qui est écarté |
 | 5 | Relecture critique | ma propre relecture, et ce qu'elle a changé |
 | 6 | Contre-expertise | la relecture du sous-agent, point par point |
 | 7 | Sources web | les liens, leur date, leur rang |
@@ -50,11 +56,17 @@ Statuts : ✅ établi (source citée) · 🟡 à décider ou à prouver · 💡 
   1,65 % de ses sessions principales — et la feuille de route pèse de plus en plus
   lourd. Ma première estimation (41,8 M) comptait environ le double : la
   contre-expertise l'a relevé, le rejeu l'a confirmé (§ 6).
-- 💡 **Six chantiers proposés**, ~20 fiches : réparer, borner la page par script,
-  un essai de fichier joint, rendre lisibles les deux pages, puis des boutons.
+- 🔒 **Aucune perte pour Claude** (ta consigne du 2026-09-23) : aujourd'hui, les
+  notes et le journal n'existent **que dans la page** — 0 bloc sur 198 retrouvé en
+  entier ailleurs chez Cairn (§ 2.6). Replier ne perd rien, et fait retomber la
+  page 30 de 9,0 à 1,1 écran d'ordinateur (maquette, § 4) ; couper perdrait pour
+  de bon.
+- 💡 **Six chantiers proposés**, ~23 fiches : réparer, mettre notes et journal à
+  l'abri dans un `.md`, un essai pour alléger la republication (fichier joint, base
+  de données), rendre lisibles les deux pages, puis des boutons.
 - ⚠️ **Ils ne se remboursent pas en tokens** : le plan coûte plus que tout ce que
-  les relectures ont coûté à Cairn. Leur but est la lisibilité. Le levier le moins
-  cher : faire respecter par script la règle « une ligne par fiche ».
+  les relectures ont coûté à Cairn. Leur but est la lisibilité. Ce qui allège sans
+  rien faire perdre à Claude reste à l'essai (C) ou à ta décision (E).
 
 ## 1. Comment c'est mesuré — tout est rejouable
 
@@ -67,6 +79,9 @@ Statuts : ✅ établi (source citée) · 🟡 à décider ou à prouver · 💡 
 | Poids réel (lecture × tours restants) | `python poids_reel.py <même dossier>` |
 | Biais du coût : tours partagés, compactage, sous-agents, lectures doubles | `python ce_biais.py <même dossier>`, `ce_poids2.py`, `ce_double.py` (écrits par la contre-expertise) |
 | Lectures de la feuille une par une ; coût par fiche du kit | `python feuille_detail.py <même dossier> <racine ProgPerso>` |
+| Texte d'une page retrouvé ailleurs : notes, journal, TODO (§ 2.6) | `python page_vs_source.py <racine du projet> "context AI"` |
+| Nombres d'une page retrouvés ailleurs (§ 2.6) | `python chiffres_vs_source.py <racine du projet> "context AI"` |
+| Hauteur repliée : maquettes « telle quelle », « une ligne par fiche », « tout replié » (§ 4) | `python replie.py <artefacts de Cairn> <sortie>`, puis chaque maquette au navigateur, comme ci-dessus |
 
 - Les scripts sont rangés à côté de ce fichier, dans `38-audit-scripts/` (§ 8),
   Python 3 sans dépendance.
@@ -202,14 +217,58 @@ dans le contexte jusqu'à la fin de la session.
   imposé, chaque republication coûtera en plus la lecture du fichier entier.
   Les sessions de Cairn ne l'ont fait que 2 fois sur 128 : à vérifier.
 - ⚠️ Un bloc **replié** est lu quand même par le modèle : replier rend lisible,
-  pas moins cher.
+  pas moins cher. C'est aussi ce qui le rend sûr : rien de replié n'est perdu
+  pour Claude (§ 2.6).
 
-### 2.6 Ce qui va bien ✅
+### 2.6 Ce qui n'existe que dans la page ⚠️
+
+Ta question du 2026-09-23 : rendre les pages plus courtes ferait-il perdre de
+l'information à Claude ? Car Claude les lit aussi.
+
+Quand Claude lit une page : pour la republier. La lecture est imposée
+(`skills/tache/references/tache-page.md:22`, `skills/enchainer/SKILL.md:105`,
+`skills/chantier/SKILL.md:243`, `ARTEFACTS.md:70`), et Claude doit reporter ce
+que la version publiée dit de plus que la page locale (`tache-page.md:23`–`:24`).
+Et `vlp.py page` garde une note d'une régénération à l'autre en la **relisant
+dans la page** elle-même (`scripts/vlp.py:856`, `:864`).
+
+« Ailleurs » : tous les `.md` du dossier de contexte, `CHANTIER.md` et les
+messages de commit. Comparaison sans accents, sans casse ni ponctuation.
+
+| Ce que la page contient | Retrouvé en entier ailleurs | Mesure |
+|---|---|---|
+| Cairn : notes de fiches (118) et entrées de journal (80) | **0 / 198** ; 8 par leur début, 43 par un morceau de 40 caractères | `page_vs_source.py` |
+| Le kit lui-même : notes et journal | 6 / 148 | idem |
+| MapDecorator : notes et journal | 1 / 11 | idem |
+| Les nombres de ces blocs, chez Cairn | 121 des 139 blocs chiffrés ont au moins la moitié de leurs nombres ailleurs | `chiffres_vs_source.py` |
+| TODO de la feuille : Cairn, TrackGen, ProjetONZSM | ✅ **19 / 19**, 11 / 11, 8 / 8 rangs, chaque cellule entière (Cairn : dans `10-etat.md`) | `page_vs_source.py` |
+
+- ❌ Les notes et le journal n'existent, en entier, **que dans la page** : le
+  fichier local et ses versions publiées. Le dossier de contexte de Cairn n'est
+  même pas suivi par git (`Cairn-VlpLib/.gitignore:13`), celui de MapDecorator
+  non plus (0 fichier suivi) : pas d'historique.
+- ❌ C'est l'inverse de la doctrine : « La page dérive du fichier de fiches,
+  jamais l'inverse » (`tache-page.md:5`) ; une entrée de journal doit être « la
+  **même ligne** que celle ajoutée au fichier d'état » (`:14`–`:15`). Chez Cairn :
+  0 entrée sur 80 retrouvée en entier.
+- ➡️ Les faits chiffrés survivent en bonne partie ailleurs ; le texte qui les
+  relie, non.
+- ✅ La feuille de route, elle, est une vraie copie : sa TODO se retrouve en entier
+  dans les fichiers d'état.
+- ➡️ Conséquence : **replier ne perd rien** (le texte reste dans le HTML, lu en
+  entier) ; **couper une note, ou reconstruire une page sans reprendre ses notes,
+  la perd pour de bon**. Les chantiers B, D et E en tiennent compte (§ 4).
+- ⚠️ Limites : les transcriptions de session contiennent aussi ce texte, mais
+  Claude ne les relit pas en travail normal. Et la comparaison rate un texte
+  reformulé : « absent » veut dire « pas recopié », pas « jamais dit ».
+
+### 2.7 Ce qui va bien ✅
 
 - La page se régénère par script (`vlp.py page`), jamais à la main.
 - `vlp.py page --verifier` compare la page au fichier de fiches.
 - Thème clair et sombre complet, jetons de couleur, largeur de lecture tenue.
-- Une page neuve tient en 1,9 écran.
+- Une page neuve tient en 1,9 écran de téléphone. Et repliée, même la plus grosse
+  y retombe : page 30, 1,42 écran de téléphone, 1,09 d'ordinateur (maquette, § 4).
 - La règle « un artefact ne bloque jamais une fiche » (`ARTEFACTS.md`).
 
 ## 3. Ce qui existe — le catalogue
@@ -236,7 +295,7 @@ dans le contexte jusqu'à la fin de la session.
 | **`comments`** forme `composer_only` | un bouton « commenter ceci » ouvre le composeur ancré sur l'élément ; aucun consentement, partage public conservé | ✅ **oui** — le canal de retour existe déjà (`ARTEFACTS.md:114`) |
 | `comments` forme complète | écrire, répondre, résoudre depuis la page ; « envoyer à Claude » | 🟡 plus tard — demande un consentement ; les visiteurs par lien public n'y ont pas accès |
 | `sample` | la page pose une question à Claude (payée par le lecteur) | 🟡 à essayer — un bouton « 🔊 résumer simplement » |
-| `db` | base de documents partagée, écrite par `ArtifactData` | ❌ non — seconde source de vérité, et écrite par le modèle, pas par script |
+| `db` | base de documents rattachée à la page, hébergée par claude.ai (rien à installer) ; écrite par l'outil `ArtifactData`, qui accepte un fichier JSON local | 🟡 à essayer, après B (chantier C) — une écriture ne demande pas de relire la page ; mais la page ne s'affiche plus sans la base |
 | `artifact` | la page se republie elle-même (sondage, liste) | ❌ non — une TODO modifiée depuis le téléphone ne rejoindrait pas le fichier |
 | `files` (projet) | la page lit les fichiers d'un projet Claude Code | 🟡 inconnu — le dossier de contexte n'est pas dans git |
 | `downloads`, `assets`, `room`, `user`, `mcp` | fichier à télécharger, stockage, présence, identité, connecteurs | ❌ sans usage ici |
@@ -260,19 +319,59 @@ Chiffrage : nombre de fiches × coût par fiche des 26 chantiers clos **du kit**
 
 ⚠️ **Avant tout : ces chantiers ne se remboursent pas en tokens.** Tout ce que les
 relectures de pages ont coûté à Cairn depuis le début fait 17 à 23 M (§ 2.5) ; le
-plan complet coûte 44 à 80 M. Leur raison d'être est la **lisibilité** (longueur,
-dyslexie). Seuls B et la décision 🟡 de E allègent vraiment.
+plan complet coûte 48 à 88 M. Leur raison d'être est la **lisibilité** (longueur,
+dyslexie). Seuls l'essai C, s'il tient, et l'option 🟡 de E allègent vraiment.
+
+🔒 **Règle posée le 2026-09-23 : plus court, jamais au prix d'une information que
+Claude relit.** Chaque chantier passé à ce crible :
+
+| Chantier | Ce qui sort de ce que Claude lit |
+|---|---|
+| A · réparer | rien |
+| B · mettre à l'abri | rien : le texte gagne une copie dans un `.md` |
+| C · alléger la republication | le CSS (de la présentation, pas de l'information) ; la base de données seulement **après** B |
+| D · page de chantier | rien : replié, le texte reste dans le HTML |
+| E · feuille de route | rien en cartes repliées ; l'option 🟡 « sortir le détail » ne perd rien pour Claude (il est entier dans `10-etat.md`), mais toi, tu ne le verrais plus sur la page |
+| F · boutons | rien |
+
+Ta seconde consigne, même jour : **déplié, une page peut être aussi longue qu'il
+faut ; replié, elle doit retomber court.** Mesuré sur des maquettes
+(`replie.py`), aucune ne perdant un mot. En écrans :
+
+| Page | Écran | Telle quelle | Une ligne par fiche, ou cartes | Tout replié |
+|---|---|---|---|---|
+| page 30 (27 fiches) | ordinateur | 9,02 | 3,19 | **1,09** |
+| | téléphone | 19,24 | 6,08 | **1,42** |
+| page 41 (neuve) | ordinateur | 1,43 | — | 1,00 |
+| | téléphone | 2,28 | — | 1,04 |
+| feuille de route | ordinateur | 14,05 | 5,20 (cartes et première phrase) | **3,84** (cartes, tête seule) |
+| | téléphone | 20,94 | 6,93 | **5,20** |
+
+- ✅ Repliée, la plus grosse page de chantier retombe **sous** une page neuve :
+  1,09 écran d'ordinateur, contre 1,43 pour la page 41.
+- ⚠️ La feuille retombe moins bas : 19 cartes restent 19 lignes.
+- ⚠️ Montage : chaque maquette est enveloppée comme sur claude.ai (charset,
+  viewport, marge nulle) et servie en local, le même jour. Les valeurs « telle
+  quelle » ne sont pas celles du § 2.2 : page 30, 9,02 contre 9,0 sur ordinateur,
+  mais 19,24 contre 20,3 sur téléphone ; feuille, 14,05 contre 13,1 (et 12,5 sans
+  charset). La hauteur absolue dépend du montage, jusqu'à un écran ; la table de
+  la feuille, qui ajuste ses colonnes au texte, y est la plus sensible. Cause
+  exacte non établie. Les comparaisons ne se font donc qu'à l'intérieur d'un même
+  montage.
+- ✅ Aucune maquette ne perd de mot (contrôle par script) : seuls les trois titres
+  de colonnes de la TODO disparaissent avec le tableau.
+- « 1,00 » : la page tient dans un écran (le rapport ne descend pas sous 1).
 
 | Ordre | Chantier | Fiches | Coût estimé | Pourquoi à ce rang |
 |---|---|---|---|---|
 | A | Réparer ce qui est cassé | ~4 | 8,7 à 14,6 M | défauts visibles, dans 4 projets |
-| B | Borner la page par script | ~2 | 4,4 à 7,3 M | le levier le moins cher, pour les écrans **et** le coût |
-| C | Essai : le CSS en fichier joint | 1 | 2,2 à 3,7 M | décide où vit le CSS **avant** que D et E le touchent |
+| B | Mettre notes et journal à l'abri dans un `.md` | ~3 | 6,5 à 11,0 M | **avant** D : on ne remanie pas une page qui est la seule copie de son texte |
+| C | Essai : alléger la republication (fichier joint, base de données) | 2 | 4,4 à 7,3 M | décide où vivent le CSS et les données **avant** que D et E les touchent |
 | D | La page de chantier plus courte et lisible | ~5 | 10,9 à 18,3 M | après C |
 | E | La feuille de route plus courte et lisible | ~4 | 8,7 à 14,6 M | après C ; 🟡 une décision à prendre |
 | F | Des boutons (et le CSS joint partout, si C tient) | ~4 à 6 | 8,7 à 21,9 M | en dernier, optionnel |
 
-Total ≈ 20 à 22 fiches, ≈ 44 à 80 M tokens, soit ≈ 37 à 67 $ au tarif moyen du kit.
+Total ≈ 22 à 24 fiches, ≈ 48 à 88 M tokens, soit ≈ 40 à 73 $ au tarif moyen du kit.
 
 ### A — Réparer ce qui est cassé
 
@@ -293,20 +392,33 @@ Total ≈ 20 à 22 fiches, ≈ 44 à 80 M tokens, soit ≈ 37 à 67 $ au tarif m
   dit « fini ».
 - **Fini quand** : sur les 5 projets, 0 `**`, 0 lien Markdown, 0 `href="&lt;`.
 
-### B — Borner la page par script
+### B — Mettre notes et journal à l'abri dans un `.md`
 
-Venu de la contre-expertise.
+Venu de la contre-expertise, **réécrit le 2026-09-23** : la première version
+limitait la longueur des notes. Elle aurait coupé du texte qui n'existe nulle part
+ailleurs (§ 2.6).
 
-- La règle existe déjà : une fiche « s'y résume à son identifiant, son titre, son
-  état et une ligne » (`ARTEFACTS.md:111`). Rien ne la fait respecter (§ 2.2).
-- `vlp.py page` : une longueur maximale pour `--note` et `--journal`, avec une
-  `GARDE:` au-delà. 🟡 Le nombre est à fixer ; il vivra dans le script (règle 3).
+- `vlp.py page --note` et `--journal` écrivent **d'abord** le texte entier dans un
+  `.md`, puis la page le recopie. La page redevient dérivée, comme le dit
+  `tache-page.md:5`. 🟡 L'endroit est à trancher : sous la fiche, dans le fichier
+  de fiches ; ou, pour le journal, dans le fichier d'état, où il est déjà censé
+  être (`tache-page.md:14`–`:15`).
+- Une migration, une fois : les blocs existants passent de la page au `.md`, par
+  script (Cairn 198, le kit 148, MapDecorator 11).
+- Rien n'est coupé. La règle « une ligne » (`ARTEFACTS.md:111`) devient une affaire
+  d'affichage : la page montre la première phrase, le reste est replié (D).
 - La garde de taille compte en **caractères**, plus en lignes, et garde aussi la
-  feuille.
-- **Fini quand** : une note trop longue est refusée par un test ; la feuille de
-  Cairn déclenche la garde.
+  feuille. Elle prévient ; elle ne coupe rien.
+- **Fini quand** : `page_vs_source.py` retrouve **en entier** toutes les notes et
+  entrées de journal des 5 projets (Cairn aujourd'hui : 0 sur 198) ; un test garde
+  entière une note de 800 caractères ; la feuille de Cairn déclenche la garde.
 
-### C — Essai : le CSS en fichier joint (une fiche)
+### C — Essai : alléger la republication (deux fiches)
+
+Deux pistes, mesurées l'une après l'autre. Avant : une lecture seule coûte 5 379
+tokens (médiane, § 2.5).
+
+**C1 · Le CSS en fichier joint**
 
 - Publier une page dont le CSS est un fichier joint, la republier, mesurer ce que
   coûte la relecture (avant : médiane 5 379 tokens pour une lecture seule).
@@ -321,14 +433,46 @@ Venu de la contre-expertise.
 - Effet de bord utile : le CSS, recopié aujourd'hui dans les deux gabarits, ne
   vivrait plus qu'à un endroit (règle 3 de `CLAUDE.md`).
 
+**C2 · Les données en base (`db`)** — ajouté le 2026-09-23, sur ta question
+
+- Une base de documents rattachée à la page, **hébergée par claude.ai** : rien à
+  installer, ni Docker ni SQLite.
+- La page ne porte plus que sa structure ; fiches, notes et journal viennent de la
+  base. `vlp.py` écrit un fichier JSON ; `ArtifactData` l'envoie par `file_path`,
+  sans le retaper.
+- ✅ Une écriture ne demande pas de relire le document (`if_version` y est
+  facultatif), alors que republier une page demande de la lire
+  (`tache-page.md:22`). C'est là que serait le gain.
+- ✅ C'est ce que la plateforme conseille pour un suivi ou un journal : écrire des
+  lignes par `ArtifactData` plutôt que republier la page (description de l'outil
+  Artifact, § 7).
+- ❌ La page ne s'affiche plus sans la base : fichier ouvert en local, aperçu, et
+  🟡 peut-être visiteur par lien public. `vlp.py page --verifier` ne peut pas lire
+  la base.
+- ❌ Le fichier local ne serait plus qu'une coquille : sans B, l'information ne
+  vivrait plus que sur claude.ai. **Donc B d'abord** : la base n'est qu'une copie.
+- 🟡 À prouver : ce que coûte une écriture, et si chaque écriture demande ton
+  accord (ce qui gênerait `/vlp:enchainer`).
+
+**Fini quand** : pour chaque piste, le coût d'une republication mesuré avant et
+après, et une décision écrite : on l'adopte ou non.
+
 ### D — La page de chantier plus courte et lisible
 
-Tout en HTML natif : pas de script.
+Tout en HTML natif : pas de script. Aucune perte : replié, le texte reste dans le
+HTML, que Claude lit en entier.
 
 - Chaque fiche dans un `<details>` : identifiant, titre et état visibles ; note
   et coût repliés ; la fiche en cours ouverte. Garder le `<li class="fiche">`
   autour, pour `LI_FICHE` (`scripts/vlp.py:665`).
 - Chantier clos : le bilan **monte sous l'en-tête**.
+- Deux niveaux de pli : la liste des fiches et le journal se replient aussi,
+  chacun en une ligne. Sur un chantier clos, tout est replié d'office sous le
+  bilan ; sur un chantier en cours, la liste reste ouverte, une ligne par fiche.
+- 💡 Le bouton « Tout replier » passe de F à D : ta consigne est de pouvoir
+  retomber court à tout moment. Sans lui, recharger la page suffit (un pli
+  ouvert ne survit pas au rechargement). Son script est court (une dizaine de
+  lignes), relu à chaque fiche.
 - Journal : les trois dernières entrées visibles, le reste replié. C'est le vrai
   levier : prototype sur la page 30, notes repliées 20,3 → 14,2 écrans, puis
   journal réduit à 3 entrées → **5,4**.
@@ -337,10 +481,14 @@ Tout en HTML natif : pas de script.
 - ⚠️ **Outil à écrire** : `vlp.py niveau` ne migre aucune page de chantier (il ne
   lance que `page --verifier` sur la page en cours), et `regenerer` ne touche ni
   au CSS ni à la structure. Il faut une migration des pages, et adapter l'ajout
-  au journal (`regenerer`) et l'échange bilan/blocage (`clore`).
-- **Fini quand** : page 30 régénérée ≈ 5,5 écrans de téléphone (prototype : 5,4 ;
-  aujourd'hui : 20,3, soit 9,0 sur ordinateur), bilan visible sans défiler,
-  `page --verifier` vert.
+  au journal (`regenerer`) et l'échange bilan/blocage (`clore`). Cette migration
+  doit reprendre chaque note et chaque entrée de journal à l'identique : après B,
+  elle les relit dans le `.md`.
+- **Fini quand** : page 30 régénérée, **tout replié ≈ 1 écran d'ordinateur**
+  (maquette du 2026-09-23 : 1,09 ; une ligne par fiche : 3,19 ; telle quelle :
+  9,02, même montage), bilan visible sans défiler,
+  `page --verifier` vert ; `page_vs_source.py` : aucun bloc perdu entre avant et
+  après.
 
 ### E — La feuille de route plus courte et lisible
 
@@ -352,15 +500,24 @@ Tout en HTML natif : pas de script.
   `clore` (`scripts/vlp.py:1150`, `:1622`) ; le motif de la ligne en cours
   (`scripts/vlp.py:1152`) ; `migrer_feuille` ; les feuilles des 5 projets ;
   `rejeu.py`.
-- **Fini quand** : feuille de Cairn ≈ 6 écrans de téléphone (prototype : 5,4 en
-  tableau replié, 5,9 en cartes ; aujourd'hui : 19,6, soit 13,1 sur ordinateur),
-  plus aucun défilement de côté.
+- **Fini quand** : feuille de Cairn repliée ≈ 4 à 5 écrans d'ordinateur
+  (maquette du 2026-09-23, même montage : cartes, tête seule 3,84 ; cartes avec
+  leur première phrase 5,20 ; telle quelle 14,05), plus aucun défilement de côté.
+- 🟡 La première phrase de chaque carte, visible ou repliée : 5,20 contre 3,84
+  écrans d'ordinateur. À trancher dans le chantier.
 - 🟡 **À décider (toi)** : la feuille doit-elle porter **tout** le détail de la
   TODO ? La colonne « Ce qu'il apporte » pèse **58 %** de la page (29 785
   caractères sur 51 151). Sans elle, une lecture passerait d'environ 24 k à
-  environ 10 k tokens (règle de trois, donc estimation). Le détail resterait dans
-  `10-etat.md`. 💡 La contre-expertise la juge plus rentable que C ; je suis
-  d'accord : c'est presque gratuit, et elle allège sans fichier joint.
+  environ 10 k tokens (règle de trois, donc estimation).
+  - ✅ Pour Claude, aucune perte : les 19 rangs de la TODO sont recopiés **en
+    entier** de `10-etat.md`, cellule par cellule (`page_vs_source.py`,
+    2026-09-23).
+  - ⚠️ Pour toi, une perte sur la page : le détail n'y serait plus ; il faudrait
+    ouvrir `10-etat.md`, ou demander à Claude.
+  - 💡 **Ma recommandation change** (2026-09-23) : d'abord les cartes repliées —
+    rien ne se perd, ni pour toi ni pour Claude. Sortir le détail seulement si le
+    coût de relecture gêne. La contre-expertise préférait le sortir, pour le
+    coût ; tu as dit lire la page toi aussi, et c'est ce qui me fait changer.
 
 ### F — Des boutons, en dernier
 
@@ -368,7 +525,7 @@ Optionnel. Leur script va dans le fichier joint si C tient ; sinon il reste en
 ligne, relu à chaque fiche.
 
 - 💬 « Commenter cette fiche » : `comments` en forme `composer_only`.
-- « Tout déplier » / « Tout replier ».
+- « Tout déplier » (« Tout replier » passe en D).
 - Filtres : 🔴 🟠 🟡 sur la TODO ; à faire / faites sur les fiches.
 - « Copier la commande » : `/vlp:tache <fiche>` dans le presse-papiers.
 - Un graphique des tokens par chantier clos, sur la feuille.
@@ -378,8 +535,13 @@ ligne, relu à chaque fiche.
 
 ### Écarté, et pourquoi
 
-- `db` pour les fiches : seconde source de vérité, écrite par le modèle et non par
-  un script (règle 4 de `CLAUDE.md`).
+- Couper les notes et le journal trop longs (première version de B) : ce texte
+  n'existe que dans la page (§ 2.6) ; le couper le perdrait.
+- Une base de données locale — SQLite (déjà dans Python) ou un serveur sous
+  Docker : Claude lit un `.md` d'un seul coup, alors qu'une base demande une
+  requête à chaque lecture ; un fichier `.db` ne se lit pas dans un diff git ; et
+  Docker serait une dépendance de plus pour tout le groupe (règle 4 de
+  `CLAUDE.md` : Python 3 sans dépendance). Le `.md` suffit pour ne rien perdre.
 - `artifact` pour modifier la TODO depuis le téléphone : la modification ne
   rejoindrait jamais `10-etat.md`.
 - Bouton « imprimer / PDF » : la plateforme l'interdit.
@@ -410,6 +572,11 @@ Numérotation d'avant la contre-expertise, reprise aussi au § 6 : 1 = A,
 | Le « 35 $ » est-il un coût ? | ⚠️ un plafond | écrit comme plafond : surtout des relectures de cache |
 | Ma source sur la dyslexie fait-elle autorité ? | ⚠️ à moitié | organisme public, cite le guide BDA 2023 ; le guide BDA lui-même n'a pas pu être lu (403) — dit en § 7 |
 | Un bloc `<details>` casse-t-il `vlp.py page --verifier` ? | 🟡 probablement pas | `LI_FICHE` (`scripts/vlp.py:665`) cherche `<li class="fiche" …>…</li>` : garder ce `li` autour du `details` ; à couvrir par un test au chantier 2 |
+| « Plus court » fait-il perdre de l'information à Claude ? (ta question du 2026-09-23) | ❌ oui, pour B dans sa première version : notes et journal n'existent que dans la page | § 2.6 ajouté ; B réécrit ; D et E : « rien ne se perd » écrit noir sur blanc ; recommandation d'E changée |
+| Mon script de vérification est-il juste ? | ❌ non, sa première version : il retirait les `<…>` aussi dans le Markdown, un « < 10 » avalait du texte ; il trouvait 14 rangs de TODO sur 19 dans `10-etat.md`, au lieu de 19 | réécrit : comparaison sans accents ni ponctuation, trois niveaux ; chiffres remplacés |
+| La base de données était-elle bien écartée ? (ta question du 2026-09-23) | ❌ trop vite : sa raison, « écrite par le modèle, pas par un script », est à moitié fausse — l'outil accepte un fichier JSON écrit par script | passée en 🟡 à essayer, dans l'essai C, après B |
+| Repliée, une page retombe-t-elle court ? (ta consigne du 2026-09-23) | ✅ mesuré : page 30, 1,09 écran d'ordinateur tout replié, contre 9,02 | D : deux niveaux de pli, « Tout replier » avancé en D ; D et E : « Fini quand » mesuré replié |
+| Mes hauteurs tiennent-elles d'un montage à l'autre ? | ❌ non : jusqu'à un écran d'écart (feuille : 12,5, 13,1, 14,05) | comparaisons dans un même montage seulement, écrit au § 4 |
 
 ## 6. Contre-expertise (étape 3 : un sous-agent neuf)
 
@@ -428,8 +595,8 @@ plan tient en partie ». J'ai revérifié chaque point avant de l'intégrer.
 | 5b | Prototype à 20,3 écrans, tableau à 20,6 | ✅ c'est le tableau qui ne se rejouait pas | § 2.2 remesuré, § 5 |
 | 6 | Les cartes cassent la zone `todo`, le motif de la ligne en cours, `migrer_feuille` | ✅ `scripts/vlp.py:1150`, `:1152`, `:1622` | listé au chantier E |
 | 7 | L'essai doit passer avant 2 et 3 ; le plan ne se rembourse pas | ✅ d'accord | ordre A → F ; avertissement en tête du § 4 |
-| 7b | Chiffrage optimiste | ✅ | fiches × quartiles du kit : 44 à 80 M |
-| 8 | Garde de taille muette ; règle « une ligne » non tenue ; fréquence de republication non étudiée | ✅ 246 lignes ; `ARTEFACTS.md:111` ; `ARTEFACTS.md:17` | chantier B ; fréquence en question ouverte |
+| 7b | Chiffrage optimiste | ✅ | fiches × quartiles du kit : 44 à 80 M (48 à 88 M depuis le 2026-09-23) |
+| 8 | Garde de taille muette ; règle « une ligne » non tenue ; fréquence de republication non étudiée | ✅ 246 lignes ; `ARTEFACTS.md:111` ; `ARTEFACTS.md:17` | chantier B (réécrit le 2026-09-23 : il ne coupe plus rien) ; fréquence en question ouverte |
 | 9 | « 12 pt conforme » vaut pour le corps seulement | ✅ | § 2.3 |
 | 10 | Comptes à reformuler ; page 41 changée après la mesure | ✅ page 41 : 2,35 écrans aujourd'hui | § 2.1, § 2.2 |
 | 11 | Le catalogue n'a pas de source | ⚠️ en partie : la source existe (contrat de page de l'outil Artifact, liste des types) mais n'était pas citée | § 3 et § 7 la citent |
@@ -451,6 +618,7 @@ sur ma seule parole.
 | [Chromium, « Intent to Ship: Auto-expand details elements »](https://groups.google.com/a/chromium.org/g/blink-dev/c/a6iO__pqI_E/m/Asj1sUABBAAJ), 2021-09-17 | source primaire | 2026-09-22 | Ctrl+F ouvre un bloc replié ; cible Chrome 96 |
 | [Coywolf, auto-expand details](https://coywolf.com/news/seo/details-disclosure-element-can-now-auto-expand-using-the-browsers-find-on-page-feature/) | blog d'actualité | 2026-09-22, extrait de recherche | Firefox 139 et Safari 26.2 — ⚠️ une seule source, secondaire, page non ouverte |
 | [GOV.UK Design System, Details](https://design-system.service.gov.uk/components/details/) | design system public | 2026-09-22, extrait de recherche | un seul bloc → Details ; plusieurs → accordéon |
+| Contrat de page et de capacités de l'outil Artifact (contrat 0.2.54), liste des types de page ; description de l'outil `ArtifactData` | doc de la plateforme | 2026-09-22 et 2026-09-23 | ce qu'une page peut et ne peut pas faire ; écriture en base sans relire la page, par `file_path` ; « suivi ou journal → base plutôt que republier » |
 | [Smashing Magazine, tableaux responsives](https://www.smashingmagazine.com/2022/12/accessible-front-end-patterns-responsive-tables-part1/), 2022-12 | magazine | 2026-09-22, extrait de recherche | le motif « cartes empilées » sur téléphone |
 
 Coût web : 4 recherches, 4 pages ouvertes (dont 1 refusée) ; les trois dernières
@@ -468,6 +636,9 @@ dépendance, zéro appel modèle.
 | `poids_reel.py <transcriptions>` | la méthode d'origine : écart × tours restants (surestimée, § 2.5) |
 | `ce_biais.py`, `ce_poids2.py`, `ce_double.py` | les biais relevés par la contre-expertise, et la fourchette corrigée |
 | `feuille_detail.py <transcriptions> <racine>` | les 37 lectures de la feuille ; le coût par fiche du kit (§ 4) |
+| `page_vs_source.py <racine du projet> <dossier de contexte>` | le texte des notes, du journal et de la TODO, retrouvé ou non ailleurs que dans la page (§ 2.6) |
+| `chiffres_vs_source.py <racine du projet> <dossier de contexte>` | les nombres de ces blocs, retrouvés ou non ailleurs (§ 2.6) |
+| `replie.py <artefacts de Cairn> <sortie>` | les maquettes « telle quelle », « une ligne par fiche » et « tout replié » des pages 30, 41 et de la feuille, à mesurer au navigateur (§ 4) |
 
 Hauteur d'écran, dans le navigateur intégré en mode téléphone (375 × 812), une
 page à la fois :

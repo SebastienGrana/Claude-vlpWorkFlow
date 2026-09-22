@@ -80,6 +80,7 @@
 
   .encadre { border-left:4px solid var(--warn); background:var(--warn-fond); border-radius:0 8px 8px 0; padding:.7rem .9rem; }
   .encadre.idee { border-color:var(--idee); background:var(--idee-fond); }
+  div.encadre { display:flex; flex-direction:column; gap:.5rem; }
 
   .tableau { overflow-x:auto; }
   table { border-collapse:collapse; width:100%; font-size:.93rem; }
@@ -168,9 +169,11 @@
     <ul class="puces">
       <li>Les pages publiées de Cairn marchent bien quand elles sont neuves.</li>
       <li>Mais elles deviennent trop longues : la feuille de route fait 13 écrans sur ordinateur, 20 sur téléphone. Et trois défauts s'y voient aujourd'hui.</li>
-      <li>Je propose six chantiers : réparer, limiter la longueur des notes, puis rendre les pages lisibles avec des blocs repliables et un sommaire.</li>
+      <li>Je propose six chantiers : réparer, mettre à l'abri le texte des notes (il n'existe aujourd'hui que dans la page), puis rendre les pages lisibles avec des blocs repliables et un sommaire.</li>
+      <li>Rien n'est coupé : un bloc replié reste lu par Claude. Plus court, oui ; plus pauvre pour Claude, non.</li>
+      <li>Déplié, une page peut rester longue ; replié, elle retombe court : la plus grosse page de chantier tient alors en un écran d'ordinateur (mesuré).</li>
       <li>Ces chantiers coûtent plus de tokens qu'ils n'en font gagner : leur intérêt est la lisibilité, pas l'économie.</li>
-      <li>Deux relecteurs ont vérifié l'audit ; leurs corrections sont intégrées.</li>
+      <li>Deux relecteurs ont vérifié l'audit, puis tes questions du 2026-09-23 ; tout est intégré.</li>
     </ul>
   </section>
 
@@ -178,10 +181,10 @@
     <h2 id="t-sommaire">Sommaire</h2>
     <ol>
       <li><a href="#bref"><span class="num">1</span><span class="titre">En une minute</span><span class="desc">les chiffres clés</span></a></li>
-      <li><a href="#constats"><span class="num">2</span><span class="titre">Ce qui ne va pas</span><span class="desc">sept constats, un bloc chacun, et ce qui va bien</span></a></li>
+      <li><a href="#constats"><span class="num">2</span><span class="titre">Ce qui ne va pas</span><span class="desc">huit constats, un bloc chacun, et ce qui va bien</span></a></li>
       <li><a href="#existe"><span class="num">3</span><span class="titre">Ce qui existe</span><span class="desc">ce qu'une page sait faire, avec des filtres</span></a></li>
-      <li><a href="#voir"><span class="num">4</span><span class="titre">Voir en vrai</span><span class="desc">avant et après, un graphique, un schéma</span></a></li>
-      <li><a href="#propositions"><span class="num">5</span><span class="titre">Six chantiers proposés</span><span class="desc">l'ordre, le coût, ce qui est à décider</span></a></li>
+      <li><a href="#voir"><span class="num">4</span><span class="titre">Voir en vrai</span><span class="desc">avant et après, replier puis retomber, un graphique, un schéma</span></a></li>
+      <li><a href="#propositions"><span class="num">5</span><span class="titre">Six chantiers proposés</span><span class="desc">aucune perte pour Claude ; l'ordre, le coût, ce qui est à décider</span></a></li>
       <li><a href="#relectures"><span class="num">6</span><span class="titre">Les relectures</span><span class="desc">comment l'audit a été vérifié</span></a></li>
       <li><a href="#sources"><span class="num">7</span><span class="titre">Sources</span><span class="desc">les liens et leur rang</span></a></li>
     </ol>
@@ -209,7 +212,8 @@
       <li>❌ <strong>Trois défauts visibles</strong> aujourd'hui sur la feuille de route : du Markdown brut, un lien cassé, deux lignes ✅ restées dans la TODO. Le lien cassé existe aussi chez MapDecorator.</li>
       <li>❌ <strong>Trop long</strong> quand un chantier grossit : 13 écrans sur ordinateur, 20 sur téléphone. Et le bilan d'un chantier clos est tout en bas.</li>
       <li>💰 <strong>Relire une page coûte</strong>, et la feuille de route coûte 4,5 fois plus cher à relire qu'il y a deux semaines.</li>
-      <li>💡 <strong>Six chantiers proposés</strong>, environ 20 fiches : réparer, borner, essayer, rendre lisible, puis des boutons.</li>
+      <li>🔒 <strong>Aucune perte pour Claude</strong> : les notes et le journal n'existent aujourd'hui <strong>que dans la page</strong> (0 sur 198 retrouvé en entier ailleurs, chez Cairn). Replier ne perd rien, et fait retomber la page 30 de 9 écrans d'ordinateur à 1,1 ; couper perdrait.</li>
+      <li>💡 <strong>Six chantiers proposés</strong>, environ 23 fiches : réparer, mettre à l'abri, essayer, rendre lisible, puis des boutons.</li>
       <li>⚠️ <strong>Ils ne se remboursent pas en tokens</strong> : leur but est la lisibilité, pas l'économie.</li>
     </ul>
     <div id="resume-ia" hidden>
@@ -276,7 +280,7 @@
           <li>📱 Sur téléphone seulement : son tableau fait <strong>641 px dans une boîte de 319 px</strong>, il défile de côté.</li>
           <li>📱 Sur téléphone seulement : la page 29 déborde en largeur (496 px pour un écran de 375).</li>
           <li>❌ <strong>La garde de taille ne dit rien</strong> : elle compte des lignes (250). La feuille fait 246 lignes pour 52 Ko et 19,6 écrans.</li>
-          <li>Une note de la page 39 dépasse 730 caractères, alors que la règle dit « une ligne » (<code>ARTEFACTS.md:111</code>).</li>
+          <li>Une note de la page 39 dépasse 730 caractères, alors que la règle dit « une ligne » (<code>ARTEFACTS.md:111</code>). Et cette note n'existe nulle part ailleurs : la couper la perdrait.</li>
         </ul>
       </div>
     </details>
@@ -330,7 +334,31 @@
           </tbody>
         </table></div>
         <p class="doux petit">Ma première estimation disait 41,8 M : elle comptait une page lue avant un compactage jusqu'à la fin de la session, et mettait sur la page tout un tour partagé. La contre-expertise l'a relevé ; le rejeu l'a confirmé.</p>
-        <p class="encadre">⚠️ <strong>Replier ne rend pas moins cher</strong> : le modèle lit aussi ce qui est replié. Replier rend lisible ; seuls le chantier B et la décision 🟡 du chantier E allègent.</p>
+        <p class="encadre">⚠️ <strong>Replier ne rend pas moins cher</strong> : le modèle lit aussi ce qui est replié. C'est aussi ce qui le rend sûr : rien de replié n'est perdu pour Claude. Seuls l'essai C et l'option 🟡 du chantier E allègent.</p>
+      </div>
+    </details>
+
+    <details class="bloc">
+      <summary><span class="icone">⚠️</span><span>Les notes et le journal n'existent que dans la page</span></summary>
+      <div class="corps">
+        <p>Ta question : rendre les pages plus courtes ferait-il perdre de l'information à Claude ? J'ai cherché chaque note et chaque entrée de journal partout où Claude peut les relire sans la page : les <code>.md</code> du contexte, <code>CHANTIER.md</code>, les messages de commit.</p>
+        <div class="tableau"><table>
+          <thead><tr><th>Ce que la page contient</th><th class="nb">Retrouvé en entier ailleurs</th></tr></thead>
+          <tbody>
+            <tr><td>Cairn : notes (118) et journal (80)</td><td class="nb"><strong>0 / 198</strong></td></tr>
+            <tr><td>Le kit : notes et journal</td><td class="nb">6 / 148</td></tr>
+            <tr><td>MapDecorator : notes et journal</td><td class="nb">1 / 11</td></tr>
+            <tr><td>Feuilles de route : rangs de TODO (Cairn, TrackGen, ProjetONZSM)</td><td class="nb">✅ 38 / 38</td></tr>
+          </tbody>
+        </table></div>
+        <p class="doux petit">Comparaison sans accents, sans casse ni ponctuation. Chez Cairn, 43 blocs sur 198 ont au moins un morceau de 40 caractères ailleurs, et 121 des 139 blocs chiffrés y ont au moins la moitié de leurs nombres : les faits survivent en partie, pas le texte qui les relie. Scripts : <code>page_vs_source.py</code>, <code>chiffres_vs_source.py</code>.</p>
+        <ul class="puces">
+          <li>❌ C'est l'inverse de la règle : « La page dérive du fichier de fiches, jamais l'inverse » (<code>tache-page.md:5</code>).</li>
+          <li>❌ Le dossier de contexte de Cairn n'est pas suivi par git : pas d'historique non plus.</li>
+          <li>✅ La TODO des feuilles de route, elle, est une vraie copie des fichiers d'état.</li>
+          <li>➡️ <strong>Replier ne perd rien</strong> : le texte reste dans la page, que Claude lit en entier.</li>
+          <li>➡️ <strong>Couper perdrait pour de bon</strong> : le chantier B est réécrit pour mettre ce texte à l'abri d'abord.</li>
+        </ul>
       </div>
     </details>
 
@@ -354,7 +382,7 @@
           <li>La page se régénère par script, jamais à la main.</li>
           <li><code>vlp.py page --verifier</code> compare la page au fichier de fiches.</li>
           <li>Thème clair et sombre complet.</li>
-          <li>Une page neuve est propre : 1,9 écran.</li>
+          <li>Une page neuve est propre : 1,9 écran. Et repliée, même la plus grosse y retombe : page 30, 1,4 écran de téléphone, 1,1 d'ordinateur (maquette).</li>
         </ul>
       </div>
     </details>
@@ -383,7 +411,7 @@
       <div class="carte" data-verdict="essai"><div class="haut"><h3>Demander à Claude</h3><span class="pastille p-warn">🟡 à essayer</span></div><p><code>sample</code> : un bouton « Résumer simplement ». Payé par le lecteur.</p></div>
       <div class="carte" data-verdict="essai"><div class="haut"><h3>Commentaires complets</h3><span class="pastille p-warn">🟡 plus tard</span></div><p>Écrire, répondre, « envoyer à Claude » depuis la page. Demande un accord ; les visiteurs par lien public n'y ont pas accès.</p></div>
       <div class="carte" data-verdict="essai"><div class="haut"><h3>Lire les fichiers du projet</h3><span class="pastille p-warn">🟡 inconnu</span></div><p><code>files</code> : la page lit un projet Claude Code. Le dossier de contexte n'est pas dans git.</p></div>
-      <div class="carte" data-verdict="non"><div class="haut"><h3>Base de données</h3><span class="pastille p-bad">❌ écarté</span></div><p><code>db</code> : une seconde source de vérité, écrite par le modèle et non par un script.</p></div>
+      <div class="carte" data-verdict="essai"><div class="haut"><h3>Base de données</h3><span class="pastille p-warn">🟡 à essayer</span></div><p><code>db</code> : une base hébergée par claude.ai, rien à installer. Écrire ne demande pas de relire la page. Mais la page est vide sans la base : à essayer après B (essai C).</p></div>
       <div class="carte" data-verdict="non"><div class="haut"><h3>Page qui se republie</h3><span class="pastille p-bad">❌ écarté</span></div><p><code>artifact</code> : une TODO modifiée depuis le téléphone ne rejoindrait jamais <code>10-etat.md</code>.</p></div>
       <div class="carte" data-verdict="non"><div class="haut"><h3>Types de page</h3><span class="pastille p-bad">❌ écarté</span></div><p>4 types de base : Design, Design System, Docs, Slides. Aucun ne suit un chantier.</p></div>
       <div class="carte" data-verdict="interdit"><div class="haut"><h3>Imprimer, PDF</h3><span class="pastille p-bad">⛔ interdit</span></div><p><code>window.print()</code> ne fait rien dans une page publiée.</p></div>
@@ -443,20 +471,29 @@
       </div>
     </div>
 
+    <div class="graphique" id="g-replie">
+      <h3>Replier, puis retomber court : hauteur en écrans d'ordinateur (1536 × 864)</h3>
+      <div class="barres"></div>
+      <p class="doux petit">Maquettes du 2026-09-23, même montage ; aucune ne perd un mot. Sur téléphone : page 30, 19,2 → 6,1 → 1,4 ; feuille, 20,9 → 6,9 → 5,2. Script : <code>replie.py</code>.</p>
+    </div>
+
     <div class="graphique" id="g-clos">
       <h3>Un graphique pour la feuille de route : tokens par chantier clos du kit</h3>
       <div class="barres"></div>
       <p class="doux petit">Les 9 derniers chantiers clos du kit, lus dans sa feuille de route (26 mesurés sur 27). Total des 9 : 131 650 881 tokens. Exemple neutre : les coûts de Cairn restent privés.</p>
     </div>
 
-    <h3>Un schéma : publier une page, aujourd'hui et avec fichiers joints</h3>
+    <h3>Un schéma : publier une page, aujourd'hui et avec les deux pistes de l'essai C</h3>
 <pre class="mermaid">
 flowchart TB
   subgraph A["Aujourd'hui, à chaque fiche"]
     A1["vlp.py page réécrit la page"] --> A2["Artifact read : page entière, CSS compris, dans le contexte"] --> A3["Artifact publish"]
   end
-  subgraph B["Chantier C, à prouver"]
+  subgraph B["Essai C1, fichier joint, à prouver"]
     B1["vlp.py page réécrit la page et dépose vlp.css"] --> B2["Artifact read : la page seule"] --> B3["Artifact publish + files vlp.css"]
+  end
+  subgraph C["Essai C2, base de données, à prouver, après B"]
+    C1["vlp.py écrit le .md, puis un JSON"] --> C2["ArtifactData update : le JSON, sans relire la page"]
   end
 </pre>
 
@@ -467,19 +504,34 @@ flowchart TB
   <!-- Propositions -->
   <section id="propositions">
     <div class="tete-section"><h2>Six chantiers proposés</h2><button type="button" class="commenter" hidden>💬 Commenter</button></div>
-    <p class="encadre">⚠️ <strong>Ils ne se remboursent pas en tokens.</strong> Tout ce que les relectures ont coûté à Cairn : 17 à 23 M. Le plan complet : 44 à 80 M. Leur but est la lisibilité : des pages plus courtes, et adaptées à la dyslexie.</p>
+    <p class="encadre">⚠️ <strong>Ils ne se remboursent pas en tokens.</strong> Tout ce que les relectures ont coûté à Cairn : 17 à 23 M. Le plan complet : 48 à 88 M. Leur but est la lisibilité : des pages plus courtes, et adaptées à la dyslexie.</p>
+    <div class="encadre idee">
+      <p>🔒 <strong>Règle posée le 2026-09-23 : plus court, jamais au prix d'une information que Claude relit.</strong> Chaque chantier passé à ce crible :</p>
+      <div class="tableau"><table>
+        <thead><tr><th>Chantier</th><th>Ce qui sort de ce que Claude lit</th></tr></thead>
+        <tbody>
+          <tr><td>A · réparer</td><td>rien</td></tr>
+          <tr><td>B · mettre à l'abri</td><td>rien : le texte gagne une copie dans un <code>.md</code></td></tr>
+          <tr><td>C · alléger la republication</td><td>le CSS, de la présentation ; la base de données seulement après B</td></tr>
+          <tr><td>D · page de chantier</td><td>rien : replié, le texte reste dans la page</td></tr>
+          <tr><td>E · feuille de route</td><td>rien en cartes repliées ; l'option 🟡 ne perd rien pour Claude, mais toi, tu ne verrais plus le détail</td></tr>
+          <tr><td>F · boutons</td><td>rien</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <p class="encadre idee">📏 <strong>Ta seconde consigne</strong> : déplié, une page peut rester longue ; replié, elle doit retomber court. Mesuré sur maquettes : tout replié, la page 30 passe de 9,0 à 1,1 écran d'ordinateur, la feuille de 14,1 à 3,8. Graphique dans « Voir en vrai ».</p>
     <div class="tableau"><table>
       <thead><tr><th>Ordre</th><th>Chantier</th><th class="nb">Fiches</th><th class="nb">Coût estimé</th></tr></thead>
       <tbody>
         <tr><td>A</td><td>Réparer ce qui est cassé</td><td class="nb">~4</td><td class="nb">8,7 à 14,6 M</td></tr>
-        <tr><td>B</td><td>Borner la page par script</td><td class="nb">~2</td><td class="nb">4,4 à 7,3 M</td></tr>
-        <tr><td>C</td><td>Essai : le CSS en fichier joint</td><td class="nb">1</td><td class="nb">2,2 à 3,7 M</td></tr>
+        <tr><td>B</td><td>Mettre notes et journal à l'abri dans un <code>.md</code></td><td class="nb">~3</td><td class="nb">6,5 à 11,0 M</td></tr>
+        <tr><td>C</td><td>Essai : alléger la republication (fichier joint, base de données)</td><td class="nb">2</td><td class="nb">4,4 à 7,3 M</td></tr>
         <tr><td>D</td><td>La page de chantier plus courte et lisible</td><td class="nb">~5</td><td class="nb">10,9 à 18,3 M</td></tr>
         <tr><td>E</td><td>La feuille de route plus courte et lisible</td><td class="nb">~4</td><td class="nb">8,7 à 14,6 M</td></tr>
         <tr><td>F</td><td>Des boutons, en dernier</td><td class="nb">~4 à 6</td><td class="nb">8,7 à 21,9 M</td></tr>
       </tbody>
     </table></div>
-    <p class="doux petit">Total ≈ 20 à 22 fiches, ≈ 44 à 80 M tokens, soit ≈ 37 à 67 $. Chiffrage : fiches × coût par fiche des 26 chantiers clos du kit (quartiles 2,18 et 3,65 M). Une estimation, pas une mesure.</p>
+    <p class="doux petit">Total ≈ 22 à 24 fiches, ≈ 48 à 88 M tokens, soit ≈ 40 à 73 $. Chiffrage : fiches × coût par fiche des 26 chantiers clos du kit (quartiles 2,18 et 3,65 M). Une estimation, pas une mesure.</p>
 
     <details class="bloc">
       <summary><span class="icone">A</span><span>Réparer ce qui est cassé</span></summary>
@@ -493,32 +545,52 @@ flowchart TB
       </ul></div>
     </details>
     <details class="bloc">
-      <summary><span class="icone">B</span><span>Borner la page par script</span></summary>
+      <summary><span class="icone">B</span><span>Mettre notes et journal à l'abri dans un <code>.md</code></span></summary>
       <div class="corps"><ul class="puces">
-        <li>La règle existe : une fiche = son code, son titre, son état et <strong>une ligne</strong> (<code>ARTEFACTS.md:111</code>). Rien ne la fait respecter.</li>
-        <li>Une longueur maximale pour la note et le journal ; 🟡 le nombre est à fixer.</li>
-        <li>La garde compte en caractères, plus en lignes, et garde aussi la feuille.</li>
-        <li>💡 Le levier le moins cher : moins d'écrans <strong>et</strong> moins de tokens.</li>
+        <li>✏️ Réécrit le 2026-09-23 : la première version <strong>coupait</strong> les notes trop longues. Elle aurait perdu du texte qui n'existe nulle part ailleurs.</li>
+        <li><code>vlp.py page --note</code> et <code>--journal</code> écrivent d'abord le texte entier dans un <code>.md</code> ; la page le recopie.</li>
+        <li>🟡 Où, exactement : sous la fiche, ou dans le fichier d'état pour le journal. À trancher dans le chantier.</li>
+        <li>Une migration, une fois : les blocs existants passent de la page au <code>.md</code> (Cairn 198, le kit 148, MapDecorator 11).</li>
+        <li>Rien n'est coupé : la page montre la première phrase, le reste est replié (D).</li>
+        <li>La garde de taille compte en caractères, garde aussi la feuille, et prévient sans rien couper.</li>
+        <li><strong>Fini quand</strong> : toutes les notes et entrées de journal sont retrouvées en entier dans un <code>.md</code> (Cairn aujourd'hui : 0 sur 198).</li>
       </ul></div>
     </details>
     <details class="bloc">
-      <summary><span class="icone">C</span><span>Essai : le CSS en fichier joint</span></summary>
-      <div class="corps"><ul class="puces">
-        <li>Une seule fiche : publier une page avec son CSS à côté, la republier, mesurer la relecture.</li>
-        <li>🟡 <strong>À prouver</strong> : que republier ne demande pas de relire le fichier joint.</li>
-        <li>Avant D et E : ils sauront où écrire leur CSS. Une seule migration.</li>
-        <li>Pas de troisième artefact : <code>ARTEFACTS.md</code> dit « deux, et pas un de plus ».</li>
-      </ul></div>
+      <summary><span class="icone">C</span><span>Essai : alléger la republication</span></summary>
+      <div class="corps">
+        <p>Deux fiches, deux pistes, mesurées l'une après l'autre. Avant : 5 379 tokens par relecture (médiane).</p>
+        <p><strong>C1 · Le CSS en fichier joint</strong></p>
+        <ul class="puces">
+          <li>Publier une page avec son CSS à côté, la republier, mesurer la relecture.</li>
+          <li>🟡 <strong>À prouver</strong> : que republier ne demande pas de relire le fichier joint.</li>
+          <li>Pas de troisième artefact : <code>ARTEFACTS.md</code> dit « deux, et pas un de plus ».</li>
+        </ul>
+        <p><strong>C2 · Les données en base</strong> — ajouté sur ta question</p>
+        <ul class="puces">
+          <li>Une base <strong>hébergée par claude.ai</strong> : rien à installer, ni Docker ni SQLite.</li>
+          <li>La page ne garde que sa structure ; fiches, notes et journal viennent de la base.</li>
+          <li>✅ Écrire dans la base ne demande pas de relire la page. C'est là que serait le gain.</li>
+          <li>✅ C'est ce que la plateforme conseille pour un suivi ou un journal.</li>
+          <li>❌ Mais la page est vide sans la base : ouverte en local, en aperçu, et peut-être par lien public.</li>
+          <li>⚠️ <strong>B d'abord</strong> : sinon, l'information ne vivrait plus que sur claude.ai.</li>
+          <li>🟡 À prouver : le coût d'une écriture, et si chacune demande ton accord.</li>
+        </ul>
+        <p>Avant D et E : ils sauront où écrire leur CSS et leurs données. Une seule migration.</p>
+      </div>
     </details>
     <details class="bloc">
       <summary><span class="icone">D</span><span>La page de chantier plus courte et lisible</span></summary>
       <div class="corps"><ul class="puces">
         <li>Chaque fiche dans un bloc repliable ; celle en cours ouverte.</li>
+        <li>🔒 Aucune perte : replié, le texte reste dans la page, que Claude lit en entier.</li>
+        <li>Deux niveaux de pli : la liste des fiches et le journal se replient aussi. Chantier clos : tout replié d'office sous le bilan.</li>
+        <li>💡 « Tout replier » passe de F à D : pour retomber court à tout moment.</li>
         <li>Le journal : les 3 dernières entrées visibles, le reste replié. <strong>C'est le vrai levier.</strong></li>
         <li>Chantier clos : le bilan monte sous l'en-tête.</li>
         <li>Un sommaire, des titres sans majuscules, les petites tailles relevées.</li>
-        <li>⚠️ Outil à écrire : aujourd'hui, rien ne migre une page de chantier déjà publiée.</li>
-        <li><strong>Fini quand</strong> : page 30 ≈ 5,5 écrans de téléphone (prototype mesuré : 5,4 ; aujourd'hui : 20,3, soit 9,0 sur ordinateur).</li>
+        <li>⚠️ Outil à écrire : aujourd'hui, rien ne migre une page de chantier déjà publiée. Il doit reprendre chaque note et chaque entrée de journal à l'identique.</li>
+        <li><strong>Fini quand</strong> : page 30 tout repliée ≈ 1 écran d'ordinateur (maquette : 1,09 ; telle quelle : 9,02, même montage).</li>
       </ul></div>
     </details>
     <details class="bloc">
@@ -527,19 +599,38 @@ flowchart TB
         <li>La TODO en cartes, le détail replié.</li>
         <li>Un sommaire, des titres sans majuscules.</li>
         <li>⚠️ Les cartes cassent trois endroits du script : à reprendre dans le même chantier.</li>
-        <li><strong>Fini quand</strong> : ≈ 6 écrans de téléphone (prototype mesuré : 5,4 à 5,9 ; aujourd'hui : 19,6, soit 13,1 sur ordinateur).</li>
+        <li><strong>Fini quand</strong> : repliée ≈ 4 à 5 écrans d'ordinateur (maquette : 3,84 tête seule, 5,20 avec la première phrase ; telle quelle : 14,05, même montage).</li>
+        <li>🟡 La première phrase de chaque carte, visible ou repliée : à trancher.</li>
       </ul>
-      <p class="encadre idee">🟡 <strong>À décider, par toi</strong> : la feuille doit-elle porter tout le détail de la TODO ? Il pèse <strong>58 %</strong> de la page. Sans lui, une lecture passerait d'environ 24 k à environ 10 k tokens (estimation). Le détail resterait dans <code>10-etat.md</code>. 💡 La contre-expertise et moi : c'est le gain le plus rentable.</p>
+      <div class="encadre idee">
+        <p>🟡 <strong>À décider, par toi</strong> : la feuille doit-elle porter tout le détail de la TODO ? Il pèse <strong>58 %</strong> de la page. Sans lui, une lecture passerait d'environ 24 k à environ 10 k tokens (estimation).</p>
+        <ul class="puces">
+          <li>✅ Pour Claude, aucune perte : les 19 rangs sont recopiés en entier de <code>10-etat.md</code>.</li>
+          <li>⚠️ Pour toi, une perte sur la page : le détail n'y serait plus.</li>
+          <li>💡 <strong>Ma recommandation change</strong> : d'abord les cartes repliées, où rien ne se perd. Sortir le détail seulement si le coût gêne.</li>
+        </ul>
+      </div>
       </div>
     </details>
     <details class="bloc">
       <summary><span class="icone">F</span><span>Des boutons, en dernier</span></summary>
       <div class="corps"><ul class="puces">
         <li>💬 Commenter une fiche.</li>
-        <li>Tout déplier, filtrer par 🔴 🟠 🟡, copier <code>/vlp:tache</code>.</li>
+        <li>Tout déplier (« Tout replier » passe en D), filtrer par 🔴 🟠 🟡, copier <code>/vlp:tache</code>.</li>
         <li>Un graphique des tokens par chantier clos.</li>
         <li>🟡 Option : 🔊 Résumer simplement.</li>
         <li>Optionnel : leur script est relu à chaque fiche, sauf si l'essai C tient.</li>
+      </ul></div>
+    </details>
+    <details class="bloc">
+      <summary><span class="icone">❌</span><span>Écarté, et pourquoi</span></summary>
+      <div class="corps"><ul class="puces">
+        <li><strong>Couper</strong> les notes trop longues : ce texte n'existe que dans la page.</li>
+        <li><strong>Une base locale</strong> (SQLite, ou un serveur sous Docker) : Claude lit un <code>.md</code> d'un coup, une base demande une requête à chaque fois ; un fichier <code>.db</code> ne se lit pas dans git ; Docker serait une dépendance pour tout le groupe. Le <code>.md</code> suffit pour ne rien perdre.</li>
+        <li><strong>Une page qui se republie</strong> depuis le téléphone : la modification ne rejoindrait jamais <code>10-etat.md</code>.</li>
+        <li><strong>Imprimer, PDF</strong> : la plateforme l'interdit.</li>
+        <li><strong>Un bouton « thème sombre »</strong> : la plateforme gère déjà le thème.</li>
+        <li><strong>Découper</strong> une page en plusieurs artefacts : « deux artefacts, et pas un de plus » (<code>ARTEFACTS.md:12</code>).</li>
       </ul></div>
     </details>
     <p class="doux petit">🟡 Pas étudié : republier moins souvent. Aujourd'hui, la page se republie à chaque fiche (<code>ARTEFACTS.md:17</code>).</p>
@@ -551,10 +642,10 @@ flowchart TB
     <p class="doux">Ta méthode de double vérification, en cinq étapes.</p>
     <ol class="etapes">
       <li><span class="n">1</span><div><strong>Plan et propositions</strong> ✅<br><span class="doux petit">Écrits dans <code>38-audit-artefacts.md</code>.</span></div></li>
-      <li><span class="n">2</span><div><strong>Ma relecture critique</strong> ✅<br><span class="doux petit">10 questions posées au plan, 7 changements. Détail ci-dessous.</span></div></li>
+      <li><span class="n">2</span><div><strong>Ma relecture critique</strong> ✅<br><span class="doux petit">16 questions posées au plan (tableau complet : § 5 du rapport). Extrait ci-dessous.</span></div></li>
       <li><span class="n">3</span><div><strong>Contre-expertise par un sous-agent neuf</strong> ✅<br><span class="doux petit">Verdict : « le plan tient en partie ». 16 points, revérifiés un par un : 14 confirmés, 1 en partie, 1 rejeté.</span></div></li>
       <li><span class="n">4</span><div><strong>Chiffres rejoués par script</strong> ✅<br><span class="doux petit">26 valeurs tirées des fichiers, toutes identiques ; 2 chiffres écrits à la main étaient faux, corrigés. Les hauteurs d'écran, remesurées : 4 valeurs ont bougé (page 30 : 20,6 → 20,3), corrigées. Le coût, rejoué avec les scripts de la contre-expertise : divisé par environ 2.</span></div></li>
-      <li><span class="n">5</span><div><strong>Toi, sur ton écran</strong> ➡️<br><span class="doux petit">Ce qu'aucun outil ne voit : est-ce lisible pour toi ?</span></div></li>
+      <li><span class="n">5</span><div><strong>Toi, sur ton écran</strong> ✅<br><span class="doux petit">Relu et validé le 2026-09-23. Tes questions — un résumé et un sommaire, l'ordinateur d'abord, aucune perte pour Claude, pourquoi pas de base de données, replier et retomber court — sont toutes intégrées.</span></div></li>
     </ol>
     <details class="bloc">
       <summary><span class="icone">2</span><span>Ce que ma relecture a changé</span></summary>
@@ -569,6 +660,11 @@ flowchart TB
           <tr><td>Un script dans la page est-il gratuit ?</td><td>❌ relu à chaque fiche</td><td>boutons en dernier (chantier F)</td></tr>
           <tr><td>Où est le volume de la page 30 ?</td><td>le journal</td><td>levier nommé au chantier D</td></tr>
           <tr><td>Le bug ne touche-t-il que Cairn ?</td><td>❌ non</td><td>TrackGen et ProjetONZSM ajoutés</td></tr>
+          <tr><td>« Plus court » fait-il perdre de l'information à Claude ? (ta question)</td><td>❌ oui, pour B</td><td>B réécrit ; nouveau constat ; recommandation d'E changée</td></tr>
+          <tr><td>Mon script de vérification est-il juste ?</td><td>❌ pas sa 1<sup>re</sup> version</td><td>il trouvait 14 rangs sur 19 au lieu de 19 : réécrit, chiffres remplacés</td></tr>
+          <tr><td>La base de données était-elle bien écartée ? (ta question)</td><td>❌ trop vite</td><td>passée à l'essai, dans le chantier C, après B</td></tr>
+          <tr><td>Repliée, une page retombe-t-elle court ? (ta consigne)</td><td>✅ mesuré</td><td>page 30 : 9,02 → 1,09 écran d'ordinateur ; critère ajouté à D et E</td></tr>
+          <tr><td>Mes hauteurs tiennent-elles d'un montage à l'autre ?</td><td>❌ à un écran près</td><td>comparaisons dans un même montage seulement</td></tr>
         </tbody>
       </table></div></div>
     </details>
@@ -584,7 +680,7 @@ flowchart TB
           <tr><td>Régénérer ne répare pas la ligne close</td><td>✅</td><td>migration ajoutée au chantier A</td></tr>
           <tr><td>Rien ne migre une page de chantier ; les cartes cassent le script</td><td>✅</td><td>chantiers D et E plus gros, et honnêtes</td></tr>
           <tr><td>L'essai doit passer avant ; le plan ne se rembourse pas</td><td>✅</td><td>ordre A → F, avertissement en tête</td></tr>
-          <tr><td>La garde de taille compte des lignes ; la règle « une ligne » n'est pas tenue</td><td>✅</td><td>nouveau chantier B</td></tr>
+          <tr><td>La garde de taille compte des lignes ; la règle « une ligne » n'est pas tenue</td><td>✅</td><td>nouveau chantier B (réécrit ensuite : il ne coupe plus rien)</td></tr>
           <tr><td>12 pt vaut pour le corps seulement</td><td>✅</td><td>ligne ajoutée au tableau dyslexie</td></tr>
           <tr><td>Le catalogue n'a pas de source</td><td>⚠️ en partie</td><td>la source existait, elle est maintenant citée</td></tr>
           <tr><td>Mermaid rendu nativement : douteux</td><td>❌ rejeté</td><td>le contrat de page le dit ; visible ci-dessus</td></tr>
@@ -598,12 +694,13 @@ flowchart TB
   <section id="sources">
     <div class="tete-section"><h2>Sources</h2></div>
     <details class="bloc">
-      <summary><span class="icone">🔗</span><span>7 sources, avec leur rang</span></summary>
+      <summary><span class="icone">🔗</span><span>8 sources, avec leur rang</span></summary>
       <div class="corps">
     <div class="tableau"><table>
       <thead><tr><th>Source</th><th>Rang</th><th>Ce qu'elle établit</th></tr></thead>
       <tbody>
         <tr><td>Contrat de page et de capacités de l'outil Artifact (contrat 0.2.54) ; liste des types de page</td><td>doc de la plateforme</td><td>ce qu'une page peut et ne peut pas faire</td></tr>
+        <tr><td>Description de l'outil <code>ArtifactData</code> (la base de données des pages)</td><td>doc de la plateforme</td><td>écrire sans relire la page, par un fichier JSON</td></tr>
         <tr><td><a href="https://ako.ac.nz/assets/Knowledge-centre/ALNACC-Resources/Dyslexia-resources/230907-Dyslexia-Friendly-Style-Guide.pdf">Dyslexia-Friendly Style Guide</a>, Ako Aotearoa, juillet 2023</td><td>organisme public</td><td>majuscules, titres, sommaire, abréviations, schémas</td></tr>
         <tr><td><a href="https://cdn.bdadyslexia.org.uk/uploads/documents/Advice/style-guide/BDA-Style-Guide-2023.pdf">BDA Style Guide 2023</a></td><td>association</td><td>❌ non lu : accès refusé</td></tr>
         <tr><td><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/details">MDN, &lt;details&gt;</a>, modifiée le 2026-04-24</td><td>doc officielle</td><td>accordéon par <code>name</code>, événement <code>toggle</code></td></tr>
@@ -612,7 +709,7 @@ flowchart TB
         <tr><td><a href="https://www.smashingmagazine.com/2022/12/accessible-front-end-patterns-responsive-tables-part1/">Smashing Magazine</a>, 2022-12</td><td>magazine</td><td>tableaux en cartes sur téléphone (extrait)</td></tr>
       </tbody>
     </table></div>
-    <p class="doux petit">Coût web : 4 recherches, 4 pages ouvertes (dont 1 refusée). Consultées le 2026-09-22.</p>
+    <p class="doux petit">Coût web : 4 recherches, 4 pages ouvertes (dont 1 refusée). Consultées le 2026-09-22 ; l'outil <code>ArtifactData</code>, le 2026-09-23.</p>
       </div>
     </details>
   </section>
@@ -620,7 +717,7 @@ flowchart TB
   <footer>
     <span>Rapport complet : <code>context AI/38-audit-artefacts.md</code>, dans le dépôt du kit.</span>
     <span>Cette page est elle-même une démonstration : sommaire, barre de navigation collante, blocs repliables, filtres, graphiques, schéma, boutons.</span>
-    <span>Mesures rejouables : 7 scripts dans <code>context AI/38-audit-scripts/</code>.</span>
+    <span>Mesures rejouables : 10 scripts dans <code>context AI/38-audit-scripts/</code>.</span>
     <span>Mis à jour le 2026-09-23.</span>
   </footer>
 </div>
@@ -669,6 +766,13 @@ flowchart TB
     ["U · /vlp:tache sans refus sous PowerShell", 15933829, "U1–U5"], ["Z · Une GARDE au lieu d'un traceback", 11093368, "Z1–Z4"], ["X · Le kit sans sh", 10921635, "X1–X3"],
     ["O · Ouvrir et clore par script", 9842371, "O1–O5"], ["F · La feuille de route par script", 8781743, "F1–F4"], ["J · Des fichiers de tête qui ne grossissent plus", 7579062, "J1–J4"]
   ].map(([n, v, f]) => ({ n, v, f })), v => nf.format(Math.round(v / 1e5) / 10) + " M", d => d.f + " · " + nf.format(d.v) + " tokens");
+
+  const nf2 = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 2 });
+  barres("g-replie", [
+    ["Page 30 · telle quelle", 9.02, "27 fiches et 25 décisions, tout déplié"], ["Page 30 · une ligne par fiche", 3.19, "notes et coûts repliés ; 3 décisions visibles"],
+    ["Page 30 · tout replié", 1.09, "bilan en haut ; fiches et journal repliés, une ligne chacun"], ["Page neuve (41) · telle quelle", 1.43, "6 fiches, 1 décision"],
+    ["Feuille · telle quelle", 14.05, "19 rangs de TODO en tableau"], ["Feuille · cartes et première phrase", 5.2, "le détail replié"], ["Feuille · cartes, tête seule", 3.84, "tout le détail replié"]
+  ].map(([n, v, t]) => ({ n, v, t })), v => nf2.format(v) + " écrans", d => d.t);
 
   // points : les 37 lectures de la feuille de route
   const lectures = "0 4796 0;0 4800 0;1 4631 0;1 4873 0;1 4877 0;1 4893 0;1 5212 0;1 9476 1;2 4719 0;2 4962 0;5 5041 0;5 10085 1;5 21852 1;6 5080 0;6 5730 0;6 6867 1;6 9823 1;6 21158 1;7 8999 1;7 10627 1;13 7839 0;13 9160 0;13 9533 1;13 11402 0;15 11559 1;15 13119 0;15 13382 1;15 19783 0;16 18363 0;16 18530 0;16 19147 0;16 20371 1;17 19035 0;17 21186 0;17 21383 0;17 22809 1;17 24281 1"
