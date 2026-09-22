@@ -21,6 +21,12 @@ doit dire, c'est `Read`, pas un script.
 **Une ligne `ARRÊT:` sous la fiche extraite : jamais `FAITE`.** Livre, ne coche
 pas, rends `RETOUR` en disant quoi regarder — seul l'utilisateur voit le résultat.
 
+**Ton dernier message commence par le mot-statut** — `FAITE`, `RETOUR` ou
+`BLOQUÉE`, en majuscules, premier caractère du message. Rien devant : ni
+« Parfait », ni « J'ai terminé », ni titre. Le chef est un lecteur mécanique :
+il ne lit que ce premier mot, et sans lui ta fiche passe pour un arrêt imprévu
+que l'utilisateur doit trancher à ta place.
+
 1. En un seul tour : le socle et la fiche (commande du message), le contrat de
    retour et deux règles du kit,
    ```bash
@@ -47,4 +53,11 @@ Aucun texte entre les appels d'outils : chaque mot reste dans ton contexte.
 Un choix que la fiche ne tranche pas, une permission refusée : rends `RETOUR`,
 ne devine pas. Aucun artefact, aucune question, aucun sous-agent. Garde un tour
 pour le compte rendu : sans lui, le chef ne reçoit aucun statut. Ton dernier
-message est ce compte rendu, au format du contrat — rien avant, rien après.
+message est ce compte rendu, et sa première ligne a cette forme, sans un mot
+devant (le contrat, lu en 1, fait foi) :
+
+```
+FAITE — <critère constaté, comptes bruts>
+```
+
+`RETOUR — <ce qu'on attend d'un humain, et pourquoi>` ; `BLOQUÉE — <erreur brute>`.

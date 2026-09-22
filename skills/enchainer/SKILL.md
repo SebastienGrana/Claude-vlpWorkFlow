@@ -60,7 +60,9 @@ Pour chaque fiche de la série, dans l'ordre :
    **Tentatives** (tout lu à l'étape 2). Traite-le comme un `RETOUR`
    (étape 3 bis).
 1. Un seul appel : `Skill`, `skill: "vlp:jouer"`, `args` : la fiche.
-2. Lis le premier mot du `Result` rendu.
+2. Lis le premier mot du `Result` rendu. Ce n'est pas un statut : prends la
+   première ligne qui **commence** par `FAITE`, `RETOUR` ou `BLOQUÉE` ; aucune,
+   c'est « aucun statut » ci-dessous.
    - `FAITE` sur la fiche `(visuel)` de l'étape 2 : c'est un `RETOUR`. Case
      cochée par le sous-agent : remets `## <fiche> [ ]` (une ligne), puis 3 bis.
    - `FAITE` : commite la fiche — `git add -A; git commit -m "<fiche> : <titre>"`,
