@@ -1,0 +1,716 @@
+<title>vlp — Audit des pages publiées</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Lexend:wght@500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --sol:#eef2f1; --surface:#fafcfb; --surface-2:#e3eae7; --trait:#cdd7d3; --trait-fort:#aebbb6;
+    --encre:#14201c; --doux:#4a5a54; --lien:#1d5fa8; --serie:#2a78d6;
+    --ok:#1f7a45; --ok-fond:#e1f1e7; --warn:#8f5500; --warn-fond:#f7ead3;
+    --bad:#ad3037; --bad-fond:#f7e1e1; --idee:#5646ad; --idee-fond:#eae7f8;
+    --ombre:0 1px 2px rgba(20,32,28,.07);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme:dark;
+      --sol:#0f1614; --surface:#17201d; --surface-2:#1f2a26; --trait:#2c3a35; --trait-fort:#40514a;
+      --encre:#e8efec; --doux:#a6b5af; --lien:#86b8f0; --serie:#3987e5;
+      --ok:#62c78f; --ok-fond:#173325; --warn:#e3a84f; --warn-fond:#3a2c14;
+      --bad:#ef8084; --bad-fond:#3d1d1f; --idee:#aca2f2; --idee-fond:#26223f; --ombre:none;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme:dark;
+    --sol:#0f1614; --surface:#17201d; --surface-2:#1f2a26; --trait:#2c3a35; --trait-fort:#40514a;
+    --encre:#e8efec; --doux:#a6b5af; --lien:#86b8f0; --serie:#3987e5;
+    --ok:#62c78f; --ok-fond:#173325; --warn:#e3a84f; --warn-fond:#3a2c14;
+    --bad:#ef8084; --bad-fond:#3d1d1f; --idee:#aca2f2; --idee-fond:#26223f; --ombre:none;
+  }
+  * { box-sizing:border-box; }
+  body { background:var(--sol); color:var(--encre); font-family:"Atkinson Hyperlegible",Verdana,system-ui,sans-serif; font-size:17px; line-height:1.6; }
+  @media (prefers-reduced-motion: no-preference) { html { scroll-behavior:smooth; } }
+  .page { max-width:48rem; margin:0 auto; padding-inline:16px; padding-block:0 4rem; display:flex; flex-direction:column; gap:2.5rem; }
+  h1,h2,h3 { font-family:Lexend,"Atkinson Hyperlegible",system-ui,sans-serif; font-weight:600; text-wrap:balance; margin:0; line-height:1.25; }
+  h1 { font-size:2.1rem; letter-spacing:-.01em; }
+  h2 { font-size:1.5rem; }
+  h3 { font-size:1.15rem; }
+  p { margin:0; max-width:65ch; }
+  a { color:var(--lien); }
+  :focus-visible { outline:2px solid var(--lien); outline-offset:2px; }
+  code,.mono { font-family:"JetBrains Mono",Consolas,monospace; font-size:.88em; }
+  .mono { font-variant-numeric:tabular-nums; }
+  ul.puces { margin:0; padding-left:1.2rem; display:flex; flex-direction:column; gap:.35rem; max-width:65ch; }
+  section { display:flex; flex-direction:column; gap:1rem; scroll-margin-top:4.5rem; }
+  .tete-section { display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:.5rem 1rem; }
+  .doux { color:var(--doux); }
+  .petit { font-size:.92rem; }
+
+  /* barre collante : le sommaire et les boutons */
+  .barre { position:sticky; top:env(safe-area-inset-top,0px); z-index:5; background:var(--sol); border-bottom:1px solid var(--trait); margin-inline:-16px; padding:.55rem 16px; }
+  .barre-int { max-width:48rem; margin:0 auto; display:flex; gap:.5rem; align-items:center; }
+  .sommaire { display:flex; gap:.4rem; overflow-x:auto; flex:1; scrollbar-width:thin; padding-bottom:2px; }
+  .sommaire a { white-space:nowrap; text-decoration:none; color:var(--encre); background:var(--surface); border:1px solid var(--trait); border-radius:999px; padding:.2rem .7rem; font-size:.9rem; }
+  .sommaire a:hover { border-color:var(--trait-fort); }
+  button { font:inherit; color:var(--encre); background:var(--surface); border:1px solid var(--trait-fort); border-radius:8px; padding:.35rem .75rem; cursor:pointer; font-size:.92rem; }
+  button:hover { background:var(--surface-2); }
+  button[aria-pressed="true"] { background:var(--encre); color:var(--sol); border-color:var(--encre); }
+  .barre button { white-space:nowrap; }
+
+  header.tete { padding-top:2.25rem; display:flex; flex-direction:column; gap:.6rem; }
+  .surtitre { color:var(--doux); font-size:.95rem; }
+
+  /* tuiles */
+  .tuiles { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.75rem; }
+  @media (min-width:44rem) { .tuiles { grid-template-columns:repeat(4,minmax(0,1fr)); } }
+  .tuile { background:var(--surface); border:1px solid var(--trait); border-radius:10px; padding:.8rem .9rem; display:flex; flex-direction:column; gap:.2rem; }
+  .tuile b { font-family:Lexend,system-ui,sans-serif; font-size:1.7rem; font-weight:600; line-height:1.1; font-variant-numeric:tabular-nums; }
+  .tuile span { font-size:.9rem; color:var(--doux); line-height:1.35; }
+
+  /* repliables */
+  details.bloc { background:var(--surface); border:1px solid var(--trait); border-radius:10px; box-shadow:var(--ombre); }
+  details.bloc > summary { list-style:none; cursor:pointer; padding:.8rem 1rem; display:flex; gap:.6rem; align-items:flex-start; font-weight:700; }
+  details.bloc > summary::-webkit-details-marker { display:none; }
+  details.bloc > summary::after { content:"＋"; margin-left:auto; color:var(--doux); font-weight:400; flex:none; }
+  details.bloc[open] > summary::after { content:"－"; }
+  details.bloc > summary:hover { background:var(--surface-2); border-radius:10px; }
+  .corps { padding:0 1rem 1rem; display:flex; flex-direction:column; gap:.8rem; }
+  .icone { flex:none; width:1.5rem; text-align:center; }
+
+  .pastille { display:inline-block; font-size:.8rem; font-weight:700; border-radius:999px; padding:.05rem .55rem; white-space:nowrap; }
+  .p-ok { background:var(--ok-fond); color:var(--ok); } .p-warn { background:var(--warn-fond); color:var(--warn); }
+  .p-bad { background:var(--bad-fond); color:var(--bad); } .p-idee { background:var(--idee-fond); color:var(--idee); }
+
+  .encadre { border-left:4px solid var(--warn); background:var(--warn-fond); border-radius:0 8px 8px 0; padding:.7rem .9rem; }
+  .encadre.idee { border-color:var(--idee); background:var(--idee-fond); }
+
+  .tableau { overflow-x:auto; }
+  table { border-collapse:collapse; width:100%; font-size:.93rem; }
+  th { text-align:left; font-weight:700; color:var(--doux); padding:.35rem .7rem .35rem 0; border-bottom:1px solid var(--trait-fort); }
+  td { padding:.45rem .7rem .45rem 0; border-bottom:1px solid var(--trait); vertical-align:top; }
+  td.nb, th.nb { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
+
+  /* graphiques */
+  .graphique { display:flex; flex-direction:column; gap:.5rem; }
+  .graphique h3 { font-size:1.02rem; }
+  .barres { display:flex; flex-direction:column; gap:.55rem; }
+  .rang { display:flex; flex-direction:column; gap:.1rem; }
+  .rang .nom { font-size:.88rem; color:var(--doux); line-height:1.3; }
+  .rang .piste { display:flex; align-items:center; gap:.45rem; }
+  .rang .barre-d { height:14px; background:var(--serie); border-radius:0 4px 4px 0; min-width:2px; }
+  .rang .val { font-size:.88rem; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .rang:hover .barre-d, .rang:focus-visible .barre-d { filter:brightness(1.15); }
+  .rang:focus-visible { outline:2px solid var(--lien); outline-offset:3px; border-radius:4px; }
+  svg text { fill:var(--doux); font-family:"Atkinson Hyperlegible",system-ui,sans-serif; font-size:12px; }
+  svg .grille { stroke:var(--trait); stroke-width:1; }
+  svg .point { fill:var(--serie); stroke:var(--surface); stroke-width:2; }
+  svg .point.partage { fill:var(--surface); stroke:var(--serie); }
+  svg .point:hover, svg .point:focus { stroke:var(--encre); outline:none; }
+  .legende { display:flex; flex-wrap:wrap; gap:.3rem 1rem; font-size:.88rem; color:var(--doux); }
+  .legende i { display:inline-block; width:10px; height:10px; border-radius:50%; background:var(--serie); margin-right:.35rem; vertical-align:-1px; }
+  .legende i.creux { background:transparent; border:2px solid var(--serie); }
+  .bulle { position:fixed; z-index:20; pointer-events:none; background:var(--encre); color:var(--sol); border-radius:6px; padding:.3rem .55rem; font-size:.85rem; line-height:1.35; max-width:16rem; }
+  .bulle strong { font-size:.95rem; }
+
+  /* catalogue */
+  .filtres { display:flex; flex-wrap:wrap; gap:.4rem; }
+  .cartes { display:grid; grid-template-columns:minmax(0,1fr); gap:.7rem; }
+  @media (min-width:44rem) { .cartes { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+  .carte { background:var(--surface); border:1px solid var(--trait); border-radius:10px; padding:.75rem .9rem; display:flex; flex-direction:column; gap:.35rem; }
+  .carte .haut { display:flex; justify-content:space-between; gap:.5rem; align-items:baseline; }
+  .carte h3 { font-size:1.02rem; }
+  .carte p { font-size:.93rem; }
+
+  /* avant / après */
+  .duo { display:grid; grid-template-columns:minmax(0,1fr); gap:.8rem; }
+  @media (min-width:44rem) { .duo { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+  .etiquette { font-weight:700; font-size:.9rem; margin-bottom:.3rem; display:block; }
+  .avant-fiche { display:grid; grid-template-columns:3.2rem 1fr; gap:.1rem .7rem; background:var(--surface); border:1px solid var(--trait); border-left:3px solid var(--ok); border-radius:3px; padding:.6rem .7rem; font-family:"Source Sans 3",system-ui,sans-serif; font-size:.92rem; line-height:1.5; }
+  .avant-fiche .af-id { font-family:"JetBrains Mono",monospace; color:var(--doux); }
+  .avant-fiche .af-etat { font-family:"JetBrains Mono",monospace; font-size:.66rem; letter-spacing:.07em; text-transform:uppercase; color:var(--ok); }
+  .avant-fiche .af-note,.avant-fiche .af-cout { grid-column:2; color:var(--doux); }
+  .avant-fiche .af-cout { font-family:"JetBrains Mono",monospace; font-size:.75rem; }
+  details.apres > summary { font-weight:400; align-items:baseline; }
+  .apres .id { font-family:"JetBrains Mono",monospace; font-weight:500; }
+  .avant-todo { overflow-x:auto; border:1px solid var(--trait); border-radius:3px; background:var(--surface); }
+  .avant-todo table { min-width:34rem; font-size:.85rem; }
+  .avant-todo td { padding:.4rem .5rem; }
+  .carte-todo { background:var(--surface); border:1px solid var(--trait); border-radius:10px; }
+  .carte-todo .ct-tete { padding:.7rem .9rem .3rem; display:flex; flex-direction:column; gap:.2rem; }
+  .carte-todo .ct-meta { font-size:.88rem; color:var(--doux); }
+  .carte-todo details > summary { padding:.3rem .9rem .7rem; cursor:pointer; color:var(--lien); font-size:.92rem; }
+  .carte-todo details > div { padding:0 .9rem .9rem; font-size:.93rem; }
+
+  .sortie { background:var(--surface-2); border-radius:8px; padding:.7rem .9rem; white-space:pre-wrap; }
+  .etapes { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:.6rem; }
+  .etapes li { display:grid; grid-template-columns:2rem 1fr; gap:.6rem; background:var(--surface); border:1px solid var(--trait); border-radius:10px; padding:.7rem .9rem; }
+  .etapes .n { font-family:Lexend,system-ui,sans-serif; font-weight:600; font-size:1.2rem; }
+  pre.mermaid { background:var(--surface); border:1px solid var(--trait); border-radius:10px; padding:1rem; overflow-x:auto; font-size:.8rem; }
+  footer { border-top:1px solid var(--trait); padding-top:1rem; font-size:.9rem; color:var(--doux); display:flex; flex-direction:column; gap:.3rem; }
+</style>
+
+<div class="page">
+  <header class="tete">
+    <div class="surtitre">Audit · les pages publiées de Cairn · 2026-09-23</div>
+    <h1>Audit des pages publiées</h1>
+    <p>Les 17 pages de Cairn, regardées sur un écran de téléphone, pesées en tokens, et comparées à un guide de lecture pour la dyslexie. <strong>Rien n'a été modifié</strong> : c'est un audit seul.</p>
+    <p class="doux petit">Cette page est elle-même une démonstration : sommaire collant, blocs repliables, filtres, graphiques, schéma, boutons. Rapport complet : <code>context AI/38-audit-artefacts.md</code>.</p>
+  </header>
+
+  <nav class="barre" aria-label="Sommaire">
+    <div class="barre-int">
+      <div class="sommaire">
+        <a href="#bref">En bref</a><a href="#constats">Constats</a><a href="#existe">Ce qui existe</a><a href="#voir">Voir en vrai</a><a href="#propositions">Propositions</a><a href="#relectures">Relectures</a><a href="#sources">Sources</a>
+      </div>
+      <button type="button" id="tout-ouvrir" title="Déplier tous les blocs">Tout déplier</button>
+    </div>
+  </nav>
+
+  <!-- En bref -->
+  <section id="bref">
+    <div class="tete-section"><h2>En une minute</h2><button type="button" class="commenter" hidden>💬 Commenter</button></div>
+    <div class="tuiles">
+      <div class="tuile"><b>19,6</b><span>écrans de téléphone pour la feuille de route</span></div>
+      <div class="tuile"><b>426</b><span>astérisques <code>**</code> affichés tels quels</span></div>
+      <div class="tuile"><b>17–23 M</b><span>tokens pour relire les pages (1,2 à 1,65 % des sessions de Cairn)</span></div>
+      <div class="tuile"><b>0</b><span>sommaire, bouton ou graphique sur 17 pages</span></div>
+    </div>
+    <ul class="puces">
+      <li>❌ <strong>Trois défauts visibles</strong> aujourd'hui sur la feuille de route : du Markdown brut, un lien cassé, deux lignes ✅ restées dans la TODO. Le lien cassé existe aussi chez MapDecorator.</li>
+      <li>❌ <strong>Illisible sur téléphone</strong> quand un chantier grossit, et le bilan d'un chantier clos est tout en bas.</li>
+      <li>💰 <strong>Relire une page coûte</strong>, et la feuille de route coûte 4,5 fois plus cher à relire qu'il y a deux semaines.</li>
+      <li>💡 <strong>Six chantiers proposés</strong>, environ 20 fiches : réparer, borner, essayer, rendre lisible, puis des boutons.</li>
+      <li>⚠️ <strong>Ils ne se remboursent pas en tokens</strong> : leur but est la lisibilité, pas l'économie.</li>
+    </ul>
+    <div id="resume-ia" hidden>
+      <button type="button" id="resumer">🔊 Résumer simplement cette page</button>
+      <p class="doux petit">Démonstration de la capacité <code>sample</code> : Claude résume la page en trois phrases. Payé par toi au clic ; ton accord est demandé la première fois.</p>
+      <div class="sortie" id="resume-sortie" aria-live="polite" hidden></div>
+    </div>
+  </section>
+
+  <!-- Constats -->
+  <section id="constats">
+    <div class="tete-section"><h2>Ce qui ne va pas</h2><button type="button" class="commenter" hidden>💬 Commenter</button></div>
+    <p class="doux">Un bloc par constat. Touche un titre pour l'ouvrir.</p>
+
+    <details class="bloc">
+      <summary><span class="icone">❌</span><span>Du Markdown brut dans la TODO : 426 <code>**</code> et un lien <code>[…](…)</code></span></summary>
+      <div class="corps">
+        <p>Ce que la feuille de route de Cairn affiche aujourd'hui — ici sur un texte d'exemple, le sien reste privé :</p>
+        <p class="sortie">**Règle 1.** « Mesurer avant de corriger » se compte en **tours**, jamais en lignes</p>
+        <p>Ce que tu devrais lire :</p>
+        <p class="sortie"><strong>Règle 1.</strong> « Mesurer avant de corriger » se compte en <strong>tours</strong>, jamais en lignes</p>
+        <ul class="puces">
+          <li><strong>Cause</strong> : <code>cellule_md</code> ne convertit que le <code>`code`</code> — <code>scripts/vlp.py:1092</code>.</li>
+          <li>Touche aussi <strong>TrackGen</strong> (4 <code>**</code>) et <strong>ProjetONZSM</strong> (2), dans leur TODO.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="bloc">
+      <summary><span class="icone">❌</span><span>Deux liens cassés : <code>href="&amp;lt;https://…&amp;gt;"</code></span></summary>
+      <div class="corps">
+        <p>Une adresse entourée de chevrons échappés : le lien ne mène nulle part.</p>
+        <ul class="puces">
+          <li><strong>Cairn</strong> : une ligne de chantier clos.</li>
+          <li><strong>MapDecorator</strong> : le lien du chantier en cours (<code>feuille-de-route.html:75</code>).</li>
+          <li>Cause : une URL écrite entre chevrons dans <code>CHANTIER.md</code>, <code>&lt;https://…&gt;</code> (exemple : <code>MapDecorator/CHANTIER.md:16</code>).</li>
+          <li><code>champ()</code> la rend telle quelle — <code>scripts/vlp.py:1063</code> ; <code>ouvrir --artefact</code> l'écrit telle quelle — <code>:1683</code>.</li>
+          <li>⚠️ Aucun script ne réécrit une ligne close : régénérer ne suffira pas.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="bloc">
+      <summary><span class="icone">❌</span><span>Trop long sur téléphone : jusqu'à 20,3 écrans</span></summary>
+      <div class="corps">
+        <div class="graphique" id="g-ecrans">
+          <h3>Hauteur de chaque page, en écrans de téléphone (375 × 812 px)</h3>
+          <div class="barres"></div>
+          <p class="doux petit">Mesuré le 2026-09-23, navigateur en mode téléphone, polices chargées. La page 41 tenait en 1,9 écran neuve, la veille ; elle grossit avec les notes et le journal.</p>
+        </div>
+        <ul class="puces">
+          <li>Feuille de route : la TODO fait <strong>67 %</strong> de la page, 19 lignes de 1 102 à 2 657 caractères.</li>
+          <li>Sur téléphone, son tableau fait <strong>641 px dans une boîte de 319 px</strong> : il défile de côté.</li>
+          <li>Page 29 : déborde en largeur (496 px pour un écran de 375).</li>
+          <li>❌ <strong>La garde de taille ne dit rien</strong> : elle compte des lignes (250). La feuille fait 246 lignes pour 52 Ko et 19,6 écrans.</li>
+          <li>Une note de la page 39 dépasse 730 caractères, alors que la règle dit « une ligne » (<code>ARTEFACTS.md:111</code>).</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="bloc">
+      <summary><span class="icone">❌</span><span>Le bilan d'un chantier clos est tout en bas</span></summary>
+      <div class="corps">
+        <p>Page 30 : le bilan — ce qu'on veut lire en premier sur un chantier fini — commence à <strong>19,7 écrans</strong> sur 20,3.</p>
+        <p>Page 23 : chantier clos, mais son bilan n'a jamais été affiché.</p>
+      </div>
+    </details>
+
+    <details class="bloc">
+      <summary><span class="icone">⚠️</span><span>Six écarts avec un guide de lecture pour la dyslexie</span></summary>
+      <div class="corps">
+        <p class="doux petit">Source : guide d'Ako Aotearoa, juillet 2023 (lien en bas de page).</p>
+        <div class="tableau"><table>
+          <thead><tr><th>Le guide recommande</th><th>Nos pages</th></tr></thead>
+          <tbody>
+            <tr><td>Éviter les majuscules pour les titres</td><td>titres de section, sur-titre et état en majuscules</td></tr>
+            <tr><td>Titres au moins 20 % plus grands que le texte</td><td>titres de section <strong>plus petits</strong> que le texte (0,8 contre 1)</td></tr>
+            <tr><td>Texte de 12 à 14 points ou plus</td><td>corps ✅ 12 pt ; mais notes 0,9, état 0,68, en-têtes de tableau 0,7 : sous 12 pt</td></tr>
+            <tr><td>Un sommaire dans un long document</td><td>aucun, sur 17 pages</td></tr>
+            <tr><td>Des paragraphes courts</td><td>cellules de TODO jusqu'à 2 657 caractères</td></tr>
+            <tr><td>Expliquer les abréviations</td><td>codes de chantier (trois lettres) jamais développés</td></tr>
+            <tr><td>Des schémas pour appuyer le texte</td><td>aucun</td></tr>
+          </tbody>
+        </table></div>
+        <p>✅ Conformes : interligne 1,55, police sans empattement, corps du texte à 16 px.</p>
+      </div>
+    </details>
+
+    <details class="bloc">
+      <summary><span class="icone">💰</span><span>Relire la feuille de route coûte 4,5 fois plus qu'il y a deux semaines</span></summary>
+      <div class="corps">
+        <p>Pour republier, il faut d'abord <strong>lire</strong> la page ; et ce qui est lu reste dans le contexte jusqu'à la fin de la session.</p>
+        <div class="graphique" id="g-lectures">
+          <h3>Tokens ajoutés par chaque lecture de la feuille de route de Cairn</h3>
+          <div class="svg-hote"></div>
+          <div class="legende"><span><i></i>lecture seule (23)</span><span><i class="creux"></i>tour partagé avec d'autres outils (14) : surestimé</span></div>
+          <p class="doux petit">37 lectures, mesurées dans les sessions de Cairn. Une lecture = l'écart de contexte entre deux tours.</p>
+        </div>
+        <div class="tableau"><table>
+          <tbody>
+            <tr><td>Lectures de page, tous chantiers</td><td class="nb">128</td></tr>
+            <tr><td>Tokens ajoutés par une lecture seule (médiane)</td><td class="nb">5 379</td></tr>
+            <tr><td>Poids réel (lecture × tours jusqu'au compactage)</td><td class="nb">17 à 23 M</td></tr>
+            <tr><td>Part des sessions principales de Cairn</td><td class="nb">1,2 à 1,65 %</td></tr>
+            <tr><td>En dollars, au tarif moyen du kit</td><td class="nb">≈ 14 à 19 $</td></tr>
+            <tr><td>Part du CSS dans une page de chantier (médiane)</td><td class="nb">37 %</td></tr>
+          </tbody>
+        </table></div>
+        <p class="doux petit">Ma première estimation disait 41,8 M : elle comptait une page lue avant un compactage jusqu'à la fin de la session, et mettait sur la page tout un tour partagé. La contre-expertise l'a relevé ; le rejeu l'a confirmé.</p>
+        <p class="encadre">⚠️ <strong>Replier ne rend pas moins cher</strong> : le modèle lit aussi ce qui est replié. Replier rend lisible ; seuls le chantier B et la décision 🟡 du chantier E allègent.</p>
+      </div>
+    </details>
+
+    <details class="bloc">
+      <summary><span class="icone">⚠️</span><span>Plus petits défauts</span></summary>
+      <div class="corps">
+        <ul class="puces">
+          <li>Page 24 : faite à la main, hors gabarit (aucune <code>ZONE:</code>).</li>
+          <li>Page 27 : le fichier local contient l'enveloppe de claude.ai.</li>
+          <li>Deux rangs ✅ (faits) restés dans la TODO : rangs 13 et 15.</li>
+          <li>Six lignes de chantiers clos sans leurs accents.</li>
+          <li>Les gabarits n'ont pas d'encodage déclaré : ouverts en local, les accents cassent.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="bloc">
+      <summary><span class="icone">✅</span><span>Ce qui va bien</span></summary>
+      <div class="corps">
+        <ul class="puces">
+          <li>La page se régénère par script, jamais à la main.</li>
+          <li><code>vlp.py page --verifier</code> compare la page au fichier de fiches.</li>
+          <li>Thème clair et sombre complet.</li>
+          <li>Une page neuve est propre : 1,9 écran.</li>
+        </ul>
+      </div>
+    </details>
+  </section>
+
+  <!-- Catalogue -->
+  <section id="existe">
+    <div class="tete-section"><h2>Ce qui existe</h2><button type="button" class="commenter" hidden>💬 Commenter</button></div>
+    <p class="doux">Tout ce qu'une page publiée sait faire, d'après le contrat de l'outil Artifact. Filtre par verdict :</p>
+    <div class="filtres" role="group" aria-label="Filtrer le catalogue">
+      <button type="button" data-filtre="tout" aria-pressed="false">Tout (17)</button>
+      <button type="button" data-filtre="oui" aria-pressed="true">✅ Utile</button>
+      <button type="button" data-filtre="essai" aria-pressed="false">🟡 À essayer</button>
+      <button type="button" data-filtre="non" aria-pressed="false">❌ Écarté</button>
+      <button type="button" data-filtre="interdit" aria-pressed="false">⛔ Interdit</button>
+    </div>
+    <div class="cartes" id="catalogue">
+      <div class="carte" data-verdict="oui"><div class="haut"><h3>Bloc repliable</h3><span class="pastille p-ok">✅ utile</span></div><p><code>&lt;details&gt;</code> : sans script. Ctrl+F l'ouvre tout seul dans Chrome.</p></div>
+      <div class="carte" data-verdict="oui"><div class="haut"><h3>Accordéon</h3><span class="pastille p-ok">✅ utile</span></div><p><code>&lt;details name="…"&gt;</code> : un seul bloc ouvert à la fois, sans script.</p></div>
+      <div class="carte" data-verdict="oui"><div class="haut"><h3>Sommaire collant</h3><span class="pastille p-ok">✅ utile</span></div><p>Ancres <code>#fiches</code> et barre qui reste en haut. Comme celle de cette page.</p></div>
+      <div class="carte" data-verdict="oui"><div class="haut"><h3>Fichiers joints</h3><span class="pastille p-ok">✅ utile</span></div><p>CSS, script ou données publiés <strong>à côté</strong> de la page. Le modèle ne les relirait plus à chaque fiche (à prouver).</p></div>
+      <div class="carte" data-verdict="oui"><div class="haut"><h3>Commenter un bloc</h3><span class="pastille p-ok">✅ utile</span></div><p><code>comments</code>, forme <code>composer_only</code> : ouvre la bulle de commentaire sur l'élément. Sans accord à donner, partage public gardé.</p></div>
+      <div class="carte" data-verdict="oui"><div class="haut"><h3>Graphiques</h3><span class="pastille p-ok">✅ utile</span></div><p>Barres et points dessinés par un petit script, avec bulle au survol. Comme ceux de cette page.</p></div>
+      <div class="carte" data-verdict="oui"><div class="haut"><h3>Schéma Mermaid</h3><span class="pastille p-ok">✅ utile</span></div><p>Rendu directement par claude.ai, sans bibliothèque.</p></div>
+      <div class="carte" data-verdict="oui"><div class="haut"><h3>Boutons</h3><span class="pastille p-ok">✅ utile</span></div><p>Tout déplier, filtrer, copier une commande dans le presse-papiers.</p></div>
+      <div class="carte" data-verdict="essai"><div class="haut"><h3>Demander à Claude</h3><span class="pastille p-warn">🟡 à essayer</span></div><p><code>sample</code> : un bouton « Résumer simplement ». Payé par le lecteur.</p></div>
+      <div class="carte" data-verdict="essai"><div class="haut"><h3>Commentaires complets</h3><span class="pastille p-warn">🟡 plus tard</span></div><p>Écrire, répondre, « envoyer à Claude » depuis la page. Demande un accord ; les visiteurs par lien public n'y ont pas accès.</p></div>
+      <div class="carte" data-verdict="essai"><div class="haut"><h3>Lire les fichiers du projet</h3><span class="pastille p-warn">🟡 inconnu</span></div><p><code>files</code> : la page lit un projet Claude Code. Le dossier de contexte n'est pas dans git.</p></div>
+      <div class="carte" data-verdict="non"><div class="haut"><h3>Base de données</h3><span class="pastille p-bad">❌ écarté</span></div><p><code>db</code> : une seconde source de vérité, écrite par le modèle et non par un script.</p></div>
+      <div class="carte" data-verdict="non"><div class="haut"><h3>Page qui se republie</h3><span class="pastille p-bad">❌ écarté</span></div><p><code>artifact</code> : une TODO modifiée depuis le téléphone ne rejoindrait jamais <code>10-etat.md</code>.</p></div>
+      <div class="carte" data-verdict="non"><div class="haut"><h3>Types de page</h3><span class="pastille p-bad">❌ écarté</span></div><p>4 types de base : Design, Design System, Docs, Slides. Aucun ne suit un chantier.</p></div>
+      <div class="carte" data-verdict="interdit"><div class="haut"><h3>Imprimer, PDF</h3><span class="pastille p-bad">⛔ interdit</span></div><p><code>window.print()</code> ne fait rien dans une page publiée.</p></div>
+      <div class="carte" data-verdict="interdit"><div class="haut"><h3>Télécharger par un lien</h3><span class="pastille p-bad">⛔ interdit</span></div><p>Un lien <code>&lt;a download&gt;</code> est inerte.</p></div>
+      <div class="carte" data-verdict="interdit"><div class="haut"><h3>Fenêtres d'alerte</h3><span class="pastille p-bad">⛔ interdit</span></div><p><code>alert()</code>, <code>confirm()</code> et <code>prompt()</code> sont inertes.</p></div>
+    </div>
+  </section>
+
+  <!-- Démonstrations -->
+  <section id="voir">
+    <div class="tete-section"><h2>Voir en vrai</h2><button type="button" class="commenter" hidden>💬 Commenter</button></div>
+    <p class="doux">Avec des exemples neutres, pris dans le kit : le contenu de Cairn reste dans son dépôt privé.</p>
+
+    <h3>Une fiche, avant et après</h3>
+    <div class="duo">
+      <div>
+        <span class="etiquette">Avant — tout est déplié</span>
+        <div class="avant-fiche">
+          <span class="af-id">K3</span><span>Mettre les renvois de la doc à jour</span>
+          <span class="af-etat">faite</span>
+          <span class="af-note">grep des renvois 17 → 12 lignes, 0 renvoi mort (3 replis ~/.claude/commands/, 1 donnée de test, 8 vers skills/tache/references/) ; vlp.py renvois 41 nommés · 0 absent ; validate 1 avertissement voulu ; tests OK ; plugin 3.2.0</span>
+          <span class="af-cout">≈5,9M (5 856 556) · 45 tours · 4,88 $</span>
+        </div>
+      </div>
+      <div>
+        <span class="etiquette">Après — une ligne, le détail au toucher</span>
+        <details class="bloc apres">
+          <summary><span class="icone">✅</span><span><span class="id">K3</span> · Mettre les renvois de la doc à jour</span></summary>
+          <div class="corps petit">
+            <p>grep des renvois 17 → 12 lignes, 0 renvoi mort (3 replis <code>~/.claude/commands/</code>, 1 donnée de test, 8 vers <code>skills/tache/references/</code>) ; <code>vlp.py renvois</code> 41 nommés · 0 absent ; validate 1 avertissement voulu ; tests OK ; plugin 3.2.0</p>
+            <p class="doux mono">≈5,9 M (5 856 556) · 45 tours · 4,88 $</p>
+          </div>
+        </details>
+      </div>
+    </div>
+
+    <h3>Une ligne de TODO, avant et après</h3>
+    <div class="duo">
+      <div>
+        <span class="etiquette">Avant — un tableau qui défile de côté <span class="doux">(extrait : 3 colonnes sur 5)</span></span>
+        <div class="avant-todo"><table>
+          <thead><tr><th>#</th><th>Chantier</th><th>Ce qu'il apporte</th></tr></thead>
+          <tbody><tr><td>26</td><td>ABR — Mettre notes et journal à l'abri dans un .md</td><td>Les notes et le journal d'une page de chantier n'existent aujourd'hui que dans la page. page --note et --journal écriront d'abord le texte entier dans un .md, et la page le recopiera.</td></tr></tbody>
+        </table></div>
+      </div>
+      <div>
+        <span class="etiquette">Après — une carte, le détail replié</span>
+        <div class="carte-todo">
+          <div class="ct-tete">
+            <strong>26 · <code>ABR</code> — Mettre notes et journal à l'abri dans un <code>.md</code></strong>
+            <span class="ct-meta">~3 fiches · dépend de : —</span>
+          </div>
+          <details><summary>Le détail</summary>
+            <div>Les notes et le journal d'une page de chantier n'existent aujourd'hui que dans la page. <code>page --note</code> et <code>--journal</code> écriront d'abord le texte entier dans un <code>.md</code>, et la page le recopiera.</div>
+          </details>
+        </div>
+      </div>
+    </div>
+
+    <div class="graphique" id="g-clos">
+      <h3>Un graphique pour la feuille de route : tokens par chantier clos du kit</h3>
+      <div class="barres"></div>
+      <p class="doux petit">Les 9 derniers chantiers clos du kit, lus dans sa feuille de route (26 mesurés sur 27). Total des 9 : 131 650 881 tokens. Exemple neutre : les coûts de Cairn restent privés.</p>
+    </div>
+
+    <h3>Un schéma : publier une page, aujourd'hui et avec fichiers joints</h3>
+<pre class="mermaid">
+flowchart TB
+  subgraph A["Aujourd'hui, à chaque fiche"]
+    A1["vlp.py page réécrit la page"] --> A2["Artifact read : page entière, CSS compris, dans le contexte"] --> A3["Artifact publish"]
+  end
+  subgraph B["Chantier C, à prouver"]
+    B1["vlp.py page réécrit la page et dépose vlp.css"] --> B2["Artifact read : la page seule"] --> B3["Artifact publish + files vlp.css"]
+  end
+</pre>
+
+    <h3>Un bouton « copier la commande »</h3>
+    <p><code id="cmd">/vlp:tache REP1</code> <button type="button" id="copier">Copier</button> <span id="copie-ok" class="doux petit" aria-live="polite"></span></p>
+  </section>
+
+  <!-- Propositions -->
+  <section id="propositions">
+    <div class="tete-section"><h2>Six chantiers proposés</h2><button type="button" class="commenter" hidden>💬 Commenter</button></div>
+    <p class="encadre">⚠️ <strong>Ils ne se remboursent pas en tokens.</strong> Tout ce que les relectures ont coûté à Cairn : 17 à 23 M. Le plan complet : 44 à 80 M. Leur but est la lisibilité, sur téléphone et pour la dyslexie.</p>
+    <div class="tableau"><table>
+      <thead><tr><th>Ordre</th><th>Chantier</th><th class="nb">Fiches</th><th class="nb">Coût estimé</th></tr></thead>
+      <tbody>
+        <tr><td>A</td><td>Réparer ce qui est cassé</td><td class="nb">~4</td><td class="nb">8,7 à 14,6 M</td></tr>
+        <tr><td>B</td><td>Borner la page par script</td><td class="nb">~2</td><td class="nb">4,4 à 7,3 M</td></tr>
+        <tr><td>C</td><td>Essai : le CSS en fichier joint</td><td class="nb">1</td><td class="nb">2,2 à 3,7 M</td></tr>
+        <tr><td>D</td><td>La page de chantier lisible sur téléphone</td><td class="nb">~5</td><td class="nb">10,9 à 18,3 M</td></tr>
+        <tr><td>E</td><td>La feuille de route lisible sur téléphone</td><td class="nb">~4</td><td class="nb">8,7 à 14,6 M</td></tr>
+        <tr><td>F</td><td>Des boutons, en dernier</td><td class="nb">~4 à 6</td><td class="nb">8,7 à 21,9 M</td></tr>
+      </tbody>
+    </table></div>
+    <p class="doux petit">Total ≈ 20 à 22 fiches, ≈ 44 à 80 M tokens, soit ≈ 37 à 67 $. Chiffrage : fiches × coût par fiche des 26 chantiers clos du kit (quartiles 2,18 et 3,65 M). Une estimation, pas une mesure.</p>
+
+    <details class="bloc">
+      <summary><span class="icone">A</span><span>Réparer ce qui est cassé</span></summary>
+      <div class="corps"><ul class="puces">
+        <li><code>cellule_md</code> : le gras et les liens Markdown deviennent du HTML.</li>
+        <li>Les chevrons autour d'une URL sont retirés, à la lecture et à l'écriture.</li>
+        <li>Une migration dans <code>vlp.py niveau</code> pour les lignes closes : aucun script ne les réécrit.</li>
+        <li>4 projets : Cairn, TrackGen, ProjetONZSM, MapDecorator.</li>
+        <li>Signalées, sans réécriture à la main : pages 23, 24 et 27.</li>
+        <li><strong>Fini quand</strong> : sur les 5 projets, 0 <code>**</code>, 0 lien Markdown, 0 lien cassé.</li>
+      </ul></div>
+    </details>
+    <details class="bloc">
+      <summary><span class="icone">B</span><span>Borner la page par script</span></summary>
+      <div class="corps"><ul class="puces">
+        <li>La règle existe : une fiche = son code, son titre, son état et <strong>une ligne</strong> (<code>ARTEFACTS.md:111</code>). Rien ne la fait respecter.</li>
+        <li>Une longueur maximale pour la note et le journal ; 🟡 le nombre est à fixer.</li>
+        <li>La garde compte en caractères, plus en lignes, et garde aussi la feuille.</li>
+        <li>💡 Le levier le moins cher : moins d'écrans <strong>et</strong> moins de tokens.</li>
+      </ul></div>
+    </details>
+    <details class="bloc">
+      <summary><span class="icone">C</span><span>Essai : le CSS en fichier joint</span></summary>
+      <div class="corps"><ul class="puces">
+        <li>Une seule fiche : publier une page avec son CSS à côté, la republier, mesurer la relecture.</li>
+        <li>🟡 <strong>À prouver</strong> : que republier ne demande pas de relire le fichier joint.</li>
+        <li>Avant D et E : ils sauront où écrire leur CSS. Une seule migration.</li>
+        <li>Pas de troisième artefact : <code>ARTEFACTS.md</code> dit « deux, et pas un de plus ».</li>
+      </ul></div>
+    </details>
+    <details class="bloc">
+      <summary><span class="icone">D</span><span>La page de chantier lisible sur téléphone</span></summary>
+      <div class="corps"><ul class="puces">
+        <li>Chaque fiche dans un bloc repliable ; celle en cours ouverte.</li>
+        <li>Le journal : les 3 dernières entrées visibles, le reste replié. <strong>C'est le vrai levier.</strong></li>
+        <li>Chantier clos : le bilan monte sous l'en-tête.</li>
+        <li>Un sommaire, des titres sans majuscules, les petites tailles relevées.</li>
+        <li>⚠️ Outil à écrire : aujourd'hui, rien ne migre une page de chantier déjà publiée.</li>
+        <li><strong>Fini quand</strong> : page 30 ≈ 5,5 écrans (prototype mesuré : 5,4 ; aujourd'hui : 20,3).</li>
+      </ul></div>
+    </details>
+    <details class="bloc">
+      <summary><span class="icone">E</span><span>La feuille de route lisible sur téléphone</span></summary>
+      <div class="corps"><ul class="puces">
+        <li>La TODO en cartes, le détail replié.</li>
+        <li>Un sommaire, des titres sans majuscules.</li>
+        <li>⚠️ Les cartes cassent trois endroits du script : à reprendre dans le même chantier.</li>
+        <li><strong>Fini quand</strong> : ≈ 6 écrans (prototype mesuré : 5,4 à 5,9 ; aujourd'hui : 19,6).</li>
+      </ul>
+      <p class="encadre idee">🟡 <strong>À décider, par toi</strong> : la feuille doit-elle porter tout le détail de la TODO ? Il pèse <strong>58 %</strong> de la page. Sans lui, une lecture passerait d'environ 24 k à environ 10 k tokens (estimation). Le détail resterait dans <code>10-etat.md</code>. 💡 La contre-expertise et moi : c'est le gain le plus rentable.</p>
+      </div>
+    </details>
+    <details class="bloc">
+      <summary><span class="icone">F</span><span>Des boutons, en dernier</span></summary>
+      <div class="corps"><ul class="puces">
+        <li>💬 Commenter une fiche.</li>
+        <li>Tout déplier, filtrer par 🔴 🟠 🟡, copier <code>/vlp:tache</code>.</li>
+        <li>Un graphique des tokens par chantier clos.</li>
+        <li>🟡 Option : 🔊 Résumer simplement.</li>
+        <li>Optionnel : leur script est relu à chaque fiche, sauf si l'essai C tient.</li>
+      </ul></div>
+    </details>
+    <p class="doux petit">🟡 Pas étudié : republier moins souvent. Aujourd'hui, la page se republie à chaque fiche (<code>ARTEFACTS.md:17</code>).</p>
+  </section>
+
+  <!-- Relectures -->
+  <section id="relectures">
+    <div class="tete-section"><h2>Les relectures</h2><button type="button" class="commenter" hidden>💬 Commenter</button></div>
+    <p class="doux">Ta méthode de double vérification, en cinq étapes.</p>
+    <ol class="etapes">
+      <li><span class="n">1</span><div><strong>Plan et propositions</strong> ✅<br><span class="doux petit">Écrits dans <code>38-audit-artefacts.md</code>.</span></div></li>
+      <li><span class="n">2</span><div><strong>Ma relecture critique</strong> ✅<br><span class="doux petit">10 questions posées au plan, 7 changements. Détail ci-dessous.</span></div></li>
+      <li><span class="n">3</span><div><strong>Contre-expertise par un sous-agent neuf</strong> ✅<br><span class="doux petit">Verdict : « le plan tient en partie ». 16 points, revérifiés un par un : 14 confirmés, 1 en partie, 1 rejeté.</span></div></li>
+      <li><span class="n">4</span><div><strong>Chiffres rejoués par script</strong> ✅<br><span class="doux petit">26 valeurs tirées des fichiers, toutes identiques ; 2 chiffres écrits à la main étaient faux, corrigés. Les hauteurs d'écran, remesurées : 4 valeurs ont bougé (page 30 : 20,6 → 20,3), corrigées. Le coût, rejoué avec les scripts de la contre-expertise : divisé par environ 2.</span></div></li>
+      <li><span class="n">5</span><div><strong>Toi, sur ton téléphone</strong> ➡️<br><span class="doux petit">Ce qu'aucun outil ne voit : est-ce lisible pour toi ?</span></div></li>
+    </ol>
+    <details class="bloc">
+      <summary><span class="icone">2</span><span>Ce que ma relecture a changé</span></summary>
+      <div class="corps"><div class="tableau"><table>
+        <thead><tr><th>Question</th><th>Verdict</th><th>Changement</th></tr></thead>
+        <tbody>
+          <tr><td>Mes chiffres écrits à la main sont-ils justes ?</td><td>❌ deux faux</td><td>6 fiches (pas 6,5) ; 6 lignes sans accents (pas 5)</td></tr>
+          <tr><td>Mes hauteurs d'écran se rejouent-elles ?</td><td>❌ pas toutes</td><td>page 30 : 20,3 (pas 20,6) ; médiane 4,7 ; cause de l'écart inconnue</td></tr>
+          <tr><td>Les cibles d'écrans sont-elles réalistes ?</td><td>❌ non mesurées</td><td>prototype : 5,4 et 5,4 à 5,9</td></tr>
+          <tr><td>Replier allège-t-il la relecture ?</td><td>❌ non</td><td>lisibilité et coût séparés</td></tr>
+          <tr><td>Un artefact « kit » pour le CSS ?</td><td>❌ contraire à « deux artefacts »</td><td>copie locale, jointe à la publication</td></tr>
+          <tr><td>Un script dans la page est-il gratuit ?</td><td>❌ relu à chaque fiche</td><td>boutons en dernier (chantier F)</td></tr>
+          <tr><td>Où est le volume de la page 30 ?</td><td>le journal</td><td>levier nommé au chantier D</td></tr>
+          <tr><td>Le bug ne touche-t-il que Cairn ?</td><td>❌ non</td><td>TrackGen et ProjetONZSM ajoutés</td></tr>
+        </tbody>
+      </table></div></div>
+    </details>
+    <details class="bloc">
+      <summary><span class="icone">3</span><span>Ce que la contre-expertise a changé</span></summary>
+      <div class="corps"><div class="tableau"><table>
+        <thead><tr><th>Elle dit</th><th>Revérifié</th><th>Changement</th></tr></thead>
+        <tbody>
+          <tr><td>Le coût est surestimé environ du double</td><td>✅ 17 à 23 M, pas 41,8 M</td><td>chiffres corrigés partout</td></tr>
+          <tr><td>« ×5 » choisit ses bornes</td><td>✅</td><td>≈ ×4,5 entre lectures seules</td></tr>
+          <tr><td>L'annexe est vide : rien n'est rejouable</td><td>✅</td><td>7 scripts rangés à côté du rapport</td></tr>
+          <tr><td>MapDecorator a aussi un lien cassé ; une preuve mal citée</td><td>✅</td><td>constat et chantier A</td></tr>
+          <tr><td>Régénérer ne répare pas la ligne close</td><td>✅</td><td>migration ajoutée au chantier A</td></tr>
+          <tr><td>Rien ne migre une page de chantier ; les cartes cassent le script</td><td>✅</td><td>chantiers D et E plus gros, et honnêtes</td></tr>
+          <tr><td>L'essai doit passer avant ; le plan ne se rembourse pas</td><td>✅</td><td>ordre A → F, avertissement en tête</td></tr>
+          <tr><td>La garde de taille compte des lignes ; la règle « une ligne » n'est pas tenue</td><td>✅</td><td>nouveau chantier B</td></tr>
+          <tr><td>12 pt vaut pour le corps seulement</td><td>✅</td><td>ligne ajoutée au tableau dyslexie</td></tr>
+          <tr><td>Le catalogue n'a pas de source</td><td>⚠️ en partie</td><td>la source existait, elle est maintenant citée</td></tr>
+          <tr><td>Mermaid rendu nativement : douteux</td><td>❌ rejeté</td><td>le contrat de page le dit ; visible ci-dessus</td></tr>
+        </tbody>
+      </table></div>
+      <p class="doux petit">Tableau complet, 16 lignes : § 6 du rapport.</p></div>
+    </details>
+  </section>
+
+  <!-- Sources -->
+  <section id="sources">
+    <div class="tete-section"><h2>Sources</h2></div>
+    <details class="bloc">
+      <summary><span class="icone">🔗</span><span>7 sources, avec leur rang</span></summary>
+      <div class="corps">
+    <div class="tableau"><table>
+      <thead><tr><th>Source</th><th>Rang</th><th>Ce qu'elle établit</th></tr></thead>
+      <tbody>
+        <tr><td>Contrat de page et de capacités de l'outil Artifact (contrat 0.2.54) ; liste des types de page</td><td>doc de la plateforme</td><td>ce qu'une page peut et ne peut pas faire</td></tr>
+        <tr><td><a href="https://ako.ac.nz/assets/Knowledge-centre/ALNACC-Resources/Dyslexia-resources/230907-Dyslexia-Friendly-Style-Guide.pdf">Dyslexia-Friendly Style Guide</a>, Ako Aotearoa, juillet 2023</td><td>organisme public</td><td>majuscules, titres, sommaire, abréviations, schémas</td></tr>
+        <tr><td><a href="https://cdn.bdadyslexia.org.uk/uploads/documents/Advice/style-guide/BDA-Style-Guide-2023.pdf">BDA Style Guide 2023</a></td><td>association</td><td>❌ non lu : accès refusé</td></tr>
+        <tr><td><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/details">MDN, &lt;details&gt;</a>, modifiée le 2026-04-24</td><td>doc officielle</td><td>accordéon par <code>name</code>, événement <code>toggle</code></td></tr>
+        <tr><td><a href="https://groups.google.com/a/chromium.org/g/blink-dev/c/a6iO__pqI_E/m/Asj1sUABBAAJ">Chromium, auto-expand details</a>, 2021-09-17</td><td>source primaire</td><td>Ctrl+F ouvre un bloc replié</td></tr>
+        <tr><td><a href="https://design-system.service.gov.uk/components/details/">GOV.UK, Details</a></td><td>design system public</td><td>un bloc → Details ; plusieurs → accordéon (extrait)</td></tr>
+        <tr><td><a href="https://www.smashingmagazine.com/2022/12/accessible-front-end-patterns-responsive-tables-part1/">Smashing Magazine</a>, 2022-12</td><td>magazine</td><td>tableaux en cartes sur téléphone (extrait)</td></tr>
+      </tbody>
+    </table></div>
+    <p class="doux petit">Coût web : 4 recherches, 4 pages ouvertes (dont 1 refusée). Consultées le 2026-09-22.</p>
+      </div>
+    </details>
+  </section>
+
+  <footer>
+    <span>Rapport complet : <code>context AI/38-audit-artefacts.md</code>, dans le dépôt du kit.</span>
+    <span>Mesures rejouables : 7 scripts dans <code>context AI/38-audit-scripts/</code>.</span>
+    <span>Mis à jour le 2026-09-23.</span>
+  </footer>
+</div>
+<div class="bulle" id="bulle" hidden></div>
+
+<script>
+(() => {
+  const nf = new Intl.NumberFormat("fr-FR"), nf1 = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 });
+  const bulle = document.getElementById("bulle");
+  function montrer(e, html) {
+    bulle.innerHTML = "";
+    html.forEach(([fort, txt]) => { const l = document.createElement("div"); if (fort) { const s = document.createElement("strong"); s.textContent = fort; l.appendChild(s); l.append(" "); } l.append(txt); bulle.appendChild(l); });
+    bulle.hidden = false;
+    const r = e.target.getBoundingClientRect();
+    const x = Math.min(window.innerWidth - bulle.offsetWidth - 8, Math.max(8, r.left));
+    const y = r.top > 70 ? r.top - bulle.offsetHeight - 6 : r.bottom + 6;
+    bulle.style.left = x + "px"; bulle.style.top = y + "px";
+  }
+  const cacher = () => { bulle.hidden = true; };
+
+  function barres(id, data, fmt, detail) {
+    const hote = document.querySelector("#" + id + " .barres");
+    const max = Math.max(...data.map(d => d.v));
+    data.forEach(d => {
+      const rang = document.createElement("div"); rang.className = "rang"; rang.tabIndex = 0;
+      const nom = document.createElement("span"); nom.className = "nom"; nom.textContent = d.n;
+      const piste = document.createElement("div"); piste.className = "piste";
+      const b = document.createElement("div"); b.className = "barre-d"; b.style.width = "calc((100% - 6.5rem) * " + (d.v / max).toFixed(4) + ")";
+      const val = document.createElement("span"); val.className = "val"; val.textContent = fmt(d.v);
+      piste.append(b, val); rang.append(nom, piste); hote.appendChild(rang);
+      const voir = e => montrer(e, [[fmt(d.v), ""], ["", detail(d)]]);
+      rang.addEventListener("pointerenter", voir); rang.addEventListener("focus", voir);
+      rang.addEventListener("pointerleave", cacher); rang.addEventListener("blur", cacher);
+    });
+  }
+
+  barres("g-ecrans", [
+    ["page 30", 20.29], ["feuille de route", 19.55], ["page 29", 7.72], ["page 31", 7.08],
+    ["page 35", 5.79], ["page 36", 5.56], ["page 25", 5.22], ["page 39", 5.05],
+    ["page 32", 4.85], ["page 27", 4.55], ["page 28", 3.74], ["page 26", 3.67],
+    ["page 23", 3.54], ["page 38", 3.17], ["page 24", 3.1], ["page 37", 2.84], ["page 41 (1 fiche jouée)", 2.35]
+  ].map(([n, v]) => ({ n, v })), v => nf1.format(v) + " écrans", d => d.n + " — " + nf.format(Math.round(d.v * 812)) + " px de haut");
+
+  barres("g-clos", [
+    ["Q · /vlp:enchainer sans Git", 23753914, "Q1–Q5"], ["Y · Le kit entier sans sh", 21917062, "Y1–Y5"], ["NIV · Remettre les projets équipés à niveau", 21827897, "NIV1–NIV4"],
+    ["U · /vlp:tache sans refus sous PowerShell", 15933829, "U1–U5"], ["Z · Une GARDE au lieu d'un traceback", 11093368, "Z1–Z4"], ["X · Le kit sans sh", 10921635, "X1–X3"],
+    ["O · Ouvrir et clore par script", 9842371, "O1–O5"], ["F · La feuille de route par script", 8781743, "F1–F4"], ["J · Des fichiers de tête qui ne grossissent plus", 7579062, "J1–J4"]
+  ].map(([n, v, f]) => ({ n, v, f })), v => nf.format(Math.round(v / 1e5) / 10) + " M", d => d.f + " · " + nf.format(d.v) + " tokens");
+
+  // points : les 37 lectures de la feuille de route
+  const lectures = "0 4796 0;0 4800 0;1 4631 0;1 4873 0;1 4877 0;1 4893 0;1 5212 0;1 9476 1;2 4719 0;2 4962 0;5 5041 0;5 10085 1;5 21852 1;6 5080 0;6 5730 0;6 6867 1;6 9823 1;6 21158 1;7 8999 1;7 10627 1;13 7839 0;13 9160 0;13 9533 1;13 11402 0;15 11559 1;15 13119 0;15 13382 1;15 19783 0;16 18363 0;16 18530 0;16 19147 0;16 20371 1;17 19035 0;17 21186 0;17 21383 0;17 22809 1;17 24281 1"
+    .split(";").map(s => { const [d, v, p] = s.split(" "); return { d: +d, v: +v, p: p === "1" }; });
+  const NS = "http://www.w3.org/2000/svg";
+  function el(nom, attrs, parent) { const e = document.createElementNS(NS, nom); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+  function points() {
+    const hote = document.querySelector("#g-lectures .svg-hote");
+    if (!hote.clientWidth) return;
+    hote.innerHTML = "";
+    const W = hote.clientWidth, H = 240, g = 44, d = 12, h = 14, b = 28;
+    const svg = el("svg", { width: W, height: H, viewBox: "0 0 " + W + " " + H, role: "img", "aria-label": "Tokens ajoutés par lecture de la feuille de route, sur dix-sept jours : lectures seules de 4 796 à 21 383." }, hote);
+    const t0 = 0, t1 = 17;
+    const X = t => g + (t - t0) / (t1 - t0) * (W - g - d);
+    const Y = v => H - b - v / 25000 * (H - b - h);
+    [0, 5000, 10000, 15000, 20000, 25000].forEach(v => {
+      el("line", { class: "grille", x1: g, x2: W - d, y1: Y(v), y2: Y(v) }, svg);
+      el("text", { x: g - 6, y: Y(v) + 4, "text-anchor": "end" }, svg).textContent = v ? nf.format(v / 1000) + " k" : "0";
+    });
+    [[0, "jour 0"], [7, "jour 7"], [17, "jour 17"]].forEach(([t, l], i) => {
+      el("text", { x: X(t), y: H - 8, "text-anchor": i === 0 ? "start" : i === 2 ? "end" : "middle" }, svg).textContent = l;
+    });
+    lectures.forEach(p => {
+      const c = el("circle", { class: p.p ? "point partage" : "point", cx: X(p.d), cy: Y(p.v), r: 5, tabindex: 0 }, svg);
+      const voir = e => montrer(e, [[nf.format(p.v) + " tokens", ""], ["", "lecture du jour " + p.d + (p.p ? " · tour partagé, surestimé" : " · lecture seule")]]);
+      c.addEventListener("pointerenter", voir); c.addEventListener("focus", voir);
+      c.addEventListener("pointerleave", cacher); c.addEventListener("blur", cacher);
+    });
+    const fin = lectures.filter(p => !p.p).pop();
+    el("text", { x: X(fin.d) - 10, y: Y(fin.v) + 4, "text-anchor": "end" }, svg).textContent = nf.format(fin.v);
+    el("text", { x: X(lectures[0].d) + 10, y: Y(lectures[0].v) - 8 }, svg).textContent = nf.format(lectures[0].v);
+  }
+  const blocLectures = document.querySelector("#g-lectures").closest("details");
+  blocLectures.addEventListener("toggle", points);
+  let attente; window.addEventListener("resize", () => { clearTimeout(attente); attente = setTimeout(points, 150); });
+
+  // tout déplier / replier
+  const bouton = document.getElementById("tout-ouvrir");
+  bouton.addEventListener("click", () => {
+    const blocs = [...document.querySelectorAll("details.bloc:not([hidden])")];
+    const ouvrir = blocs.some(b => !b.open);
+    blocs.forEach(b => { b.open = ouvrir; });
+    bouton.textContent = ouvrir ? "Tout replier" : "Tout déplier";
+  });
+
+  // filtres du catalogue : « Utile » d'office, sans script tout reste visible
+  const filtrer = v => {
+    document.querySelectorAll("[data-filtre]").forEach(x => x.setAttribute("aria-pressed", String(x.dataset.filtre === v)));
+    document.querySelectorAll("#catalogue .carte").forEach(c => { c.hidden = v !== "tout" && c.dataset.verdict !== v; });
+  };
+  document.querySelectorAll("[data-filtre]").forEach(f => f.addEventListener("click", () => filtrer(f.dataset.filtre)));
+  filtrer("oui");
+
+  // copier
+  document.getElementById("copier").addEventListener("click", async () => {
+    const ok = document.getElementById("copie-ok");
+    try { await navigator.clipboard.writeText(document.getElementById("cmd").textContent); ok.textContent = "Copié."; }
+    catch (e) { const r = document.createRange(); r.selectNodeContents(document.getElementById("cmd")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); ok.textContent = "Sélectionné : fais Ctrl+C."; }
+  });
+
+  // capacités : elles s'allument si la page en a le droit, sinon rien ne change
+  const claude = window.claude;
+  if (claude && claude.use) {
+    claude.use("comments").then(c => {
+      if (!c) return;
+      document.querySelectorAll(".commenter").forEach(b => {
+        b.hidden = false;
+        b.addEventListener("click", () => { c.openComposer({ element: b.closest("section") }).catch(() => {}); });
+      });
+    }).catch(() => {});
+    claude.use("sample").then(sample => {
+      if (!sample) return;
+      document.getElementById("resume-ia").hidden = false;
+      const btn = document.getElementById("resumer"), out = document.getElementById("resume-sortie");
+      btn.addEventListener("click", async () => {
+        btn.disabled = true; out.hidden = false; out.textContent = "Claude réfléchit…";
+        const texte = document.getElementById("bref").innerText + "\n\n" + [...document.querySelectorAll("#constats summary")].map(s => s.innerText).join("\n");
+        try {
+          const r = await sample("Résume cet audit en trois phrases très simples, en français, pour une personne dyslexique qui l'écoutera en synthèse vocale. Pas de liste, pas de symbole, pas de sigle. Texte :\n\n" + texte,
+            { modelTier: "quick", onText: ({ text }) => { out.textContent = text; } });
+          out.textContent = r.text;
+        } catch (e) {
+          if (e && e.code === "not_granted") { document.getElementById("resume-ia").hidden = true; }
+          else { out.textContent = "Le résumé n'a pas pu être fait (" + ((e && e.code) || "erreur") + "). Réessaie plus tard."; }
+        } finally { btn.disabled = false; }
+      });
+    }).catch(() => {});
+  }
+})();
+</script>
