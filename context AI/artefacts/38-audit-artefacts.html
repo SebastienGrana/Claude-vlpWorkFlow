@@ -143,6 +143,16 @@
   .etapes li { display:grid; grid-template-columns:2rem 1fr; gap:.6rem; background:var(--surface); border:1px solid var(--trait); border-radius:10px; padding:.7rem .9rem; }
   .etapes .n { font-family:Lexend,system-ui,sans-serif; font-weight:600; font-size:1.2rem; }
   pre.mermaid { background:var(--surface); border:1px solid var(--trait); border-radius:10px; padding:1rem; overflow-x:auto; font-size:.8rem; }
+  /* résumé et sommaire, en tête de page */
+  .resume { background:var(--surface); border:1px solid var(--trait); border-left:4px solid var(--serie); border-radius:0 10px 10px 0; padding:.9rem 1rem; display:flex; flex-direction:column; gap:.6rem; }
+  .resume h2, .table-matieres h2 { font-size:1.3rem; }
+  .table-matieres { display:flex; flex-direction:column; gap:.4rem; }
+  .table-matieres ol { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:.15rem; }
+  .table-matieres a { display:grid; grid-template-columns:1.6rem minmax(0,1fr); gap:0 .5rem; padding:.45rem .6rem; border-radius:8px; text-decoration:none; color:var(--encre); }
+  .table-matieres a:hover { background:var(--surface-2); }
+  .table-matieres .num { font-family:Lexend,system-ui,sans-serif; font-weight:600; color:var(--doux); }
+  .table-matieres .titre { font-weight:700; color:var(--lien); }
+  .table-matieres .desc { grid-column:2; color:var(--doux); font-size:.92rem; line-height:1.4; }
   footer { border-top:1px solid var(--trait); padding-top:1rem; font-size:.9rem; color:var(--doux); display:flex; flex-direction:column; gap:.3rem; }
 </style>
 
@@ -150,11 +160,34 @@
   <header class="tete">
     <div class="surtitre">Audit · les pages publiées de Cairn · 2026-09-23</div>
     <h1>Audit des pages publiées</h1>
-    <p>Les 17 pages de Cairn, regardées sur un écran de téléphone, pesées en tokens, et comparées à un guide de lecture pour la dyslexie. <strong>Rien n'a été modifié</strong> : c'est un audit seul.</p>
-    <p class="doux petit">Cette page est elle-même une démonstration : sommaire collant, blocs repliables, filtres, graphiques, schéma, boutons. Rapport complet : <code>context AI/38-audit-artefacts.md</code>.</p>
+    <p>Les 17 pages de Cairn, regardées sur ordinateur et sur téléphone, pesées en tokens, et comparées à un guide de lecture pour la dyslexie. <strong>Rien n'a été modifié</strong> : c'est un audit seul.</p>
   </header>
 
-  <nav class="barre" aria-label="Sommaire">
+  <section class="resume" aria-labelledby="t-resume">
+    <h2 id="t-resume">En résumé</h2>
+    <ul class="puces">
+      <li>Les pages publiées de Cairn marchent bien quand elles sont neuves.</li>
+      <li>Mais elles deviennent trop longues : la feuille de route fait 13 écrans sur ordinateur, 20 sur téléphone. Et trois défauts s'y voient aujourd'hui.</li>
+      <li>Je propose six chantiers : réparer, limiter la longueur des notes, puis rendre les pages lisibles avec des blocs repliables et un sommaire.</li>
+      <li>Ces chantiers coûtent plus de tokens qu'ils n'en font gagner : leur intérêt est la lisibilité, pas l'économie.</li>
+      <li>Deux relecteurs ont vérifié l'audit ; leurs corrections sont intégrées.</li>
+    </ul>
+  </section>
+
+  <nav class="table-matieres" aria-labelledby="t-sommaire">
+    <h2 id="t-sommaire">Sommaire</h2>
+    <ol>
+      <li><a href="#bref"><span class="num">1</span><span class="titre">En une minute</span><span class="desc">les chiffres clés</span></a></li>
+      <li><a href="#constats"><span class="num">2</span><span class="titre">Ce qui ne va pas</span><span class="desc">sept constats, un bloc chacun, et ce qui va bien</span></a></li>
+      <li><a href="#existe"><span class="num">3</span><span class="titre">Ce qui existe</span><span class="desc">ce qu'une page sait faire, avec des filtres</span></a></li>
+      <li><a href="#voir"><span class="num">4</span><span class="titre">Voir en vrai</span><span class="desc">avant et après, un graphique, un schéma</span></a></li>
+      <li><a href="#propositions"><span class="num">5</span><span class="titre">Six chantiers proposés</span><span class="desc">l'ordre, le coût, ce qui est à décider</span></a></li>
+      <li><a href="#relectures"><span class="num">6</span><span class="titre">Les relectures</span><span class="desc">comment l'audit a été vérifié</span></a></li>
+      <li><a href="#sources"><span class="num">7</span><span class="titre">Sources</span><span class="desc">les liens et leur rang</span></a></li>
+    </ol>
+  </nav>
+
+  <nav class="barre" aria-label="Navigation rapide">
     <div class="barre-int">
       <div class="sommaire">
         <a href="#bref">En bref</a><a href="#constats">Constats</a><a href="#existe">Ce qui existe</a><a href="#voir">Voir en vrai</a><a href="#propositions">Propositions</a><a href="#relectures">Relectures</a><a href="#sources">Sources</a>
@@ -167,14 +200,14 @@
   <section id="bref">
     <div class="tete-section"><h2>En une minute</h2><button type="button" class="commenter" hidden>💬 Commenter</button></div>
     <div class="tuiles">
-      <div class="tuile"><b>19,6</b><span>écrans de téléphone pour la feuille de route</span></div>
+      <div class="tuile"><b>13,1</b><span>écrans d'ordinateur pour la feuille de route (19,6 sur téléphone)</span></div>
       <div class="tuile"><b>426</b><span>astérisques <code>**</code> affichés tels quels</span></div>
       <div class="tuile"><b>17–23 M</b><span>tokens pour relire les pages (1,2 à 1,65 % des sessions de Cairn)</span></div>
       <div class="tuile"><b>0</b><span>sommaire, bouton ou graphique sur 17 pages</span></div>
     </div>
     <ul class="puces">
       <li>❌ <strong>Trois défauts visibles</strong> aujourd'hui sur la feuille de route : du Markdown brut, un lien cassé, deux lignes ✅ restées dans la TODO. Le lien cassé existe aussi chez MapDecorator.</li>
-      <li>❌ <strong>Illisible sur téléphone</strong> quand un chantier grossit, et le bilan d'un chantier clos est tout en bas.</li>
+      <li>❌ <strong>Trop long</strong> quand un chantier grossit : 13 écrans sur ordinateur, 20 sur téléphone. Et le bilan d'un chantier clos est tout en bas.</li>
       <li>💰 <strong>Relire une page coûte</strong>, et la feuille de route coûte 4,5 fois plus cher à relire qu'il y a deux semaines.</li>
       <li>💡 <strong>Six chantiers proposés</strong>, environ 20 fiches : réparer, borner, essayer, rendre lisible, puis des boutons.</li>
       <li>⚠️ <strong>Ils ne se remboursent pas en tokens</strong> : leur but est la lisibilité, pas l'économie.</li>
@@ -220,8 +253,19 @@
     </details>
 
     <details class="bloc">
-      <summary><span class="icone">❌</span><span>Trop long sur téléphone : jusqu'à 20,3 écrans</span></summary>
+      <summary><span class="icone">❌</span><span>Trop long : jusqu'à 13 écrans sur ordinateur, 20 sur téléphone</span></summary>
       <div class="corps">
+        <div class="tableau"><table>
+          <thead><tr><th>Page</th><th class="nb">Ordinateur</th><th class="nb">Téléphone</th></tr></thead>
+          <tbody>
+            <tr><td>feuille de route</td><td class="nb"><strong>13,1</strong></td><td class="nb">19,6</td></tr>
+            <tr><td>page 30</td><td class="nb"><strong>9,0</strong></td><td class="nb">20,3</td></tr>
+            <tr><td>page 29</td><td class="nb">3,9</td><td class="nb">7,7</td></tr>
+            <tr><td>page 31</td><td class="nb">3,5</td><td class="nb">7,1</td></tr>
+            <tr><td>page 41</td><td class="nb">1,4</td><td class="nb">2,35</td></tr>
+          </tbody>
+        </table></div>
+        <p class="doux petit">En écrans. Ordinateur : 1536 × 864 px, un écran d'ordinateur portable courant. Téléphone : 375 × 812 px. Mesuré le 2026-09-23.</p>
         <div class="graphique" id="g-ecrans">
           <h3>Hauteur de chaque page, en écrans de téléphone (375 × 812 px)</h3>
           <div class="barres"></div>
@@ -229,8 +273,8 @@
         </div>
         <ul class="puces">
           <li>Feuille de route : la TODO fait <strong>67 %</strong> de la page, 19 lignes de 1 102 à 2 657 caractères.</li>
-          <li>Sur téléphone, son tableau fait <strong>641 px dans une boîte de 319 px</strong> : il défile de côté.</li>
-          <li>Page 29 : déborde en largeur (496 px pour un écran de 375).</li>
+          <li>📱 Sur téléphone seulement : son tableau fait <strong>641 px dans une boîte de 319 px</strong>, il défile de côté.</li>
+          <li>📱 Sur téléphone seulement : la page 29 déborde en largeur (496 px pour un écran de 375).</li>
           <li>❌ <strong>La garde de taille ne dit rien</strong> : elle compte des lignes (250). La feuille fait 246 lignes pour 52 Ko et 19,6 écrans.</li>
           <li>Une note de la page 39 dépasse 730 caractères, alors que la règle dit « une ligne » (<code>ARTEFACTS.md:111</code>).</li>
         </ul>
@@ -240,7 +284,7 @@
     <details class="bloc">
       <summary><span class="icone">❌</span><span>Le bilan d'un chantier clos est tout en bas</span></summary>
       <div class="corps">
-        <p>Page 30 : le bilan — ce qu'on veut lire en premier sur un chantier fini — commence à <strong>19,7 écrans</strong> sur 20,3.</p>
+        <p>Page 30 : le bilan — ce qu'on veut lire en premier sur un chantier fini — commence à <strong>8,6 écrans</strong> sur 9 sur ordinateur, à 19,7 sur 20,3 sur téléphone.</p>
         <p>Page 23 : chantier clos, mais son bilan n'a jamais été affiché.</p>
       </div>
     </details>
@@ -423,15 +467,15 @@ flowchart TB
   <!-- Propositions -->
   <section id="propositions">
     <div class="tete-section"><h2>Six chantiers proposés</h2><button type="button" class="commenter" hidden>💬 Commenter</button></div>
-    <p class="encadre">⚠️ <strong>Ils ne se remboursent pas en tokens.</strong> Tout ce que les relectures ont coûté à Cairn : 17 à 23 M. Le plan complet : 44 à 80 M. Leur but est la lisibilité, sur téléphone et pour la dyslexie.</p>
+    <p class="encadre">⚠️ <strong>Ils ne se remboursent pas en tokens.</strong> Tout ce que les relectures ont coûté à Cairn : 17 à 23 M. Le plan complet : 44 à 80 M. Leur but est la lisibilité : des pages plus courtes, et adaptées à la dyslexie.</p>
     <div class="tableau"><table>
       <thead><tr><th>Ordre</th><th>Chantier</th><th class="nb">Fiches</th><th class="nb">Coût estimé</th></tr></thead>
       <tbody>
         <tr><td>A</td><td>Réparer ce qui est cassé</td><td class="nb">~4</td><td class="nb">8,7 à 14,6 M</td></tr>
         <tr><td>B</td><td>Borner la page par script</td><td class="nb">~2</td><td class="nb">4,4 à 7,3 M</td></tr>
         <tr><td>C</td><td>Essai : le CSS en fichier joint</td><td class="nb">1</td><td class="nb">2,2 à 3,7 M</td></tr>
-        <tr><td>D</td><td>La page de chantier lisible sur téléphone</td><td class="nb">~5</td><td class="nb">10,9 à 18,3 M</td></tr>
-        <tr><td>E</td><td>La feuille de route lisible sur téléphone</td><td class="nb">~4</td><td class="nb">8,7 à 14,6 M</td></tr>
+        <tr><td>D</td><td>La page de chantier plus courte et lisible</td><td class="nb">~5</td><td class="nb">10,9 à 18,3 M</td></tr>
+        <tr><td>E</td><td>La feuille de route plus courte et lisible</td><td class="nb">~4</td><td class="nb">8,7 à 14,6 M</td></tr>
         <tr><td>F</td><td>Des boutons, en dernier</td><td class="nb">~4 à 6</td><td class="nb">8,7 à 21,9 M</td></tr>
       </tbody>
     </table></div>
@@ -467,23 +511,23 @@ flowchart TB
       </ul></div>
     </details>
     <details class="bloc">
-      <summary><span class="icone">D</span><span>La page de chantier lisible sur téléphone</span></summary>
+      <summary><span class="icone">D</span><span>La page de chantier plus courte et lisible</span></summary>
       <div class="corps"><ul class="puces">
         <li>Chaque fiche dans un bloc repliable ; celle en cours ouverte.</li>
         <li>Le journal : les 3 dernières entrées visibles, le reste replié. <strong>C'est le vrai levier.</strong></li>
         <li>Chantier clos : le bilan monte sous l'en-tête.</li>
         <li>Un sommaire, des titres sans majuscules, les petites tailles relevées.</li>
         <li>⚠️ Outil à écrire : aujourd'hui, rien ne migre une page de chantier déjà publiée.</li>
-        <li><strong>Fini quand</strong> : page 30 ≈ 5,5 écrans (prototype mesuré : 5,4 ; aujourd'hui : 20,3).</li>
+        <li><strong>Fini quand</strong> : page 30 ≈ 5,5 écrans de téléphone (prototype mesuré : 5,4 ; aujourd'hui : 20,3, soit 9,0 sur ordinateur).</li>
       </ul></div>
     </details>
     <details class="bloc">
-      <summary><span class="icone">E</span><span>La feuille de route lisible sur téléphone</span></summary>
+      <summary><span class="icone">E</span><span>La feuille de route plus courte et lisible</span></summary>
       <div class="corps"><ul class="puces">
         <li>La TODO en cartes, le détail replié.</li>
         <li>Un sommaire, des titres sans majuscules.</li>
         <li>⚠️ Les cartes cassent trois endroits du script : à reprendre dans le même chantier.</li>
-        <li><strong>Fini quand</strong> : ≈ 6 écrans (prototype mesuré : 5,4 à 5,9 ; aujourd'hui : 19,6).</li>
+        <li><strong>Fini quand</strong> : ≈ 6 écrans de téléphone (prototype mesuré : 5,4 à 5,9 ; aujourd'hui : 19,6, soit 13,1 sur ordinateur).</li>
       </ul>
       <p class="encadre idee">🟡 <strong>À décider, par toi</strong> : la feuille doit-elle porter tout le détail de la TODO ? Il pèse <strong>58 %</strong> de la page. Sans lui, une lecture passerait d'environ 24 k à environ 10 k tokens (estimation). Le détail resterait dans <code>10-etat.md</code>. 💡 La contre-expertise et moi : c'est le gain le plus rentable.</p>
       </div>
@@ -510,7 +554,7 @@ flowchart TB
       <li><span class="n">2</span><div><strong>Ma relecture critique</strong> ✅<br><span class="doux petit">10 questions posées au plan, 7 changements. Détail ci-dessous.</span></div></li>
       <li><span class="n">3</span><div><strong>Contre-expertise par un sous-agent neuf</strong> ✅<br><span class="doux petit">Verdict : « le plan tient en partie ». 16 points, revérifiés un par un : 14 confirmés, 1 en partie, 1 rejeté.</span></div></li>
       <li><span class="n">4</span><div><strong>Chiffres rejoués par script</strong> ✅<br><span class="doux petit">26 valeurs tirées des fichiers, toutes identiques ; 2 chiffres écrits à la main étaient faux, corrigés. Les hauteurs d'écran, remesurées : 4 valeurs ont bougé (page 30 : 20,6 → 20,3), corrigées. Le coût, rejoué avec les scripts de la contre-expertise : divisé par environ 2.</span></div></li>
-      <li><span class="n">5</span><div><strong>Toi, sur ton téléphone</strong> ➡️<br><span class="doux petit">Ce qu'aucun outil ne voit : est-ce lisible pour toi ?</span></div></li>
+      <li><span class="n">5</span><div><strong>Toi, sur ton écran</strong> ➡️<br><span class="doux petit">Ce qu'aucun outil ne voit : est-ce lisible pour toi ?</span></div></li>
     </ol>
     <details class="bloc">
       <summary><span class="icone">2</span><span>Ce que ma relecture a changé</span></summary>
@@ -575,6 +619,7 @@ flowchart TB
 
   <footer>
     <span>Rapport complet : <code>context AI/38-audit-artefacts.md</code>, dans le dépôt du kit.</span>
+    <span>Cette page est elle-même une démonstration : sommaire, barre de navigation collante, blocs repliables, filtres, graphiques, schéma, boutons.</span>
     <span>Mesures rejouables : 7 scripts dans <code>context AI/38-audit-scripts/</code>.</span>
     <span>Mis à jour le 2026-09-23.</span>
   </footer>

@@ -11,13 +11,39 @@ Page publiée : <https://claude.ai/artifact/UaMrYTA1WGhJ9z1QSm2MPD> (privée).
 
 Statuts : ✅ établi (source citée) · 🟡 à décider ou à prouver · 💡 proposé.
 
+## En résumé
+
+- Les pages publiées de Cairn marchent bien quand elles sont neuves.
+- Mais elles deviennent trop longues : la feuille de route fait 13 écrans sur
+  ordinateur, 20 sur téléphone. Et trois défauts s'y voient aujourd'hui.
+- Je propose six chantiers : réparer, limiter la longueur des notes, puis rendre
+  les pages lisibles avec des blocs repliables et un sommaire.
+- Ces chantiers coûtent plus de tokens qu'ils n'en font gagner : leur intérêt est
+  la lisibilité, pas l'économie.
+- Deux relecteurs ont vérifié l'audit ; leurs corrections sont intégrées.
+
+## Sommaire
+
+| § | Section | Ce qu'on y trouve |
+|---|---|---|
+| 0 | En une minute | les cinq constats principaux |
+| 1 | Comment c'est mesuré | les commandes pour rejouer chaque chiffre |
+| 2 | Constats | 2.1 ce qui est cassé · 2.2 longueur, ordinateur et téléphone · 2.3 dyslexie · 2.4 tes cinq axes · 2.5 coût · 2.6 ce qui va bien |
+| 3 | Ce qui existe | ce qu'une page sait faire, ce qu'elle ne peut pas faire |
+| 4 | Propositions | les six chantiers A à F, leur ordre, leur coût ; ce qui est écarté |
+| 5 | Relecture critique | ma propre relecture, et ce qu'elle a changé |
+| 6 | Contre-expertise | la relecture du sous-agent, point par point |
+| 7 | Sources web | les liens, leur date, leur rang |
+| 8 | Annexe | les scripts de mesure |
+
 ## 0. En une minute
 
 - ❌ **Trois défauts visibles aujourd'hui** sur la feuille de route de Cairn :
   426 `**` de Markdown affichés tels quels, un lien cassé, deux lignes ✅ restées dans la TODO.
   Le même lien cassé existe chez MapDecorator.
-- ❌ **Illisible sur téléphone** quand un chantier grossit : la feuille fait
-  19,6 écrans, la page du plus gros chantier 20,3 écrans, et son bilan est tout en bas.
+- ❌ **Trop long** quand un chantier grossit : sur ordinateur, la feuille fait
+  13,1 écrans et la page du plus gros chantier 9,0 (sur téléphone : 19,6 et 20,3) ;
+  et son bilan est tout en bas.
 - ❌ **Tes cinq axes sont à zéro** : aucun sommaire, aucun bouton, aucun
   graphique ; un seul bloc repliable sur 17 pages.
 - 💰 **Relire les pages coûte** 17 à 23 M tokens de poids réel à Cairn, soit 1,2 à
@@ -35,6 +61,7 @@ Statuts : ✅ établi (source citée) · 🟡 à décider ou à prouver · 💡 
 | Mesure | Commande |
 |---|---|
 | Chiffres tirés des fichiers (tailles, balises, `**`, liens, bilans) | `python rejeu.py <racine ProgPerso>` |
+| Hauteur en écrans d'ordinateur (1536 × 864) | navigateur intégré à cette taille, une page à la fois : `scrollHeight / innerHeight` |
 | Hauteur en écrans de téléphone (375 × 812) | navigateur intégré en mode téléphone, une page à la fois, après `await document.fonts.ready` : `document.documentElement.scrollHeight / 812` |
 | Coût d'une lecture de page | `python cout_lecture.py <dossier des transcriptions de Cairn>` |
 | Poids réel (lecture × tours restants) | `python poids_reel.py <même dossier>` |
@@ -69,9 +96,25 @@ Statuts : ✅ établi (source citée) · 🟡 à décider ou à prouver · 💡 
   Sur claude.ai, l'enveloppe l'ajoute ; ouvert en local, le fichier s'affiche avec
   des accents cassés (constaté au navigateur).
 
-### 2.2 Lisibilité sur téléphone ❌
+### 2.2 Longueur — sur ordinateur et sur téléphone ❌
 
-Hauteur mesurée à 375 × 812 px (un écran = 812 px) :
+Tu lis surtout sur ordinateur, rarement sur téléphone (dit le 2026-09-23).
+Sur un écran d'ordinateur portable courant, 1536 × 864 px (un écran = 864 px) :
+
+| Page | Ordinateur | Téléphone |
+|---|---|---|
+| feuille de route | **13,1** | 19,6 |
+| page 30 | **9,0** (bilan à 8,6) | 20,3 (bilan à 19,7) |
+| page 29 | 3,9 | 7,7 |
+| page 31 | 3,5 | 7,1 |
+| page 41 | 1,4 | 2,35 |
+
+- ❌ Sur ordinateur aussi, la feuille et les gros chantiers sont trop longs, et
+  le bilan reste tout en bas. Le problème est environ deux fois plus petit.
+- ➡️ Les défauts de **largeur** (tableau qui défile de côté, page 29 qui déborde)
+  ne touchent que le téléphone : priorité basse pour toi.
+
+Sur téléphone, 375 × 812 px (un écran = 812 px) :
 
 | Page | Écrans | Fiches | Journal | Bilan à |
 |---|---|---|---|---|
@@ -217,7 +260,7 @@ Chiffrage : nombre de fiches × coût par fiche des 26 chantiers clos **du kit**
 
 ⚠️ **Avant tout : ces chantiers ne se remboursent pas en tokens.** Tout ce que les
 relectures de pages ont coûté à Cairn depuis le début fait 17 à 23 M (§ 2.5) ; le
-plan complet coûte 44 à 80 M. Leur raison d'être est la **lisibilité** (téléphone,
+plan complet coûte 44 à 80 M. Leur raison d'être est la **lisibilité** (longueur,
 dyslexie). Seuls B et la décision 🟡 de E allègent vraiment.
 
 | Ordre | Chantier | Fiches | Coût estimé | Pourquoi à ce rang |
@@ -225,8 +268,8 @@ dyslexie). Seuls B et la décision 🟡 de E allègent vraiment.
 | A | Réparer ce qui est cassé | ~4 | 8,7 à 14,6 M | défauts visibles, dans 4 projets |
 | B | Borner la page par script | ~2 | 4,4 à 7,3 M | le levier le moins cher, pour les écrans **et** le coût |
 | C | Essai : le CSS en fichier joint | 1 | 2,2 à 3,7 M | décide où vit le CSS **avant** que D et E le touchent |
-| D | La page de chantier lisible sur téléphone | ~5 | 10,9 à 18,3 M | après C |
-| E | La feuille de route lisible sur téléphone | ~4 | 8,7 à 14,6 M | après C ; 🟡 une décision à prendre |
+| D | La page de chantier plus courte et lisible | ~5 | 10,9 à 18,3 M | après C |
+| E | La feuille de route plus courte et lisible | ~4 | 8,7 à 14,6 M | après C ; 🟡 une décision à prendre |
 | F | Des boutons (et le CSS joint partout, si C tient) | ~4 à 6 | 8,7 à 21,9 M | en dernier, optionnel |
 
 Total ≈ 20 à 22 fiches, ≈ 44 à 80 M tokens, soit ≈ 37 à 67 $ au tarif moyen du kit.
@@ -278,7 +321,7 @@ Venu de la contre-expertise.
 - Effet de bord utile : le CSS, recopié aujourd'hui dans les deux gabarits, ne
   vivrait plus qu'à un endroit (règle 3 de `CLAUDE.md`).
 
-### D — La page de chantier lisible sur téléphone
+### D — La page de chantier plus courte et lisible
 
 Tout en HTML natif : pas de script.
 
@@ -295,10 +338,11 @@ Tout en HTML natif : pas de script.
   lance que `page --verifier` sur la page en cours), et `regenerer` ne touche ni
   au CSS ni à la structure. Il faut une migration des pages, et adapter l'ajout
   au journal (`regenerer`) et l'échange bilan/blocage (`clore`).
-- **Fini quand** : page 30 régénérée ≈ 5,5 écrans (prototype : 5,4 ;
-  aujourd'hui : 20,3), bilan visible sans défiler, `page --verifier` vert.
+- **Fini quand** : page 30 régénérée ≈ 5,5 écrans de téléphone (prototype : 5,4 ;
+  aujourd'hui : 20,3, soit 9,0 sur ordinateur), bilan visible sans défiler,
+  `page --verifier` vert.
 
-### E — La feuille de route lisible sur téléphone
+### E — La feuille de route plus courte et lisible
 
 - La TODO en **cartes** : une ligne de tête (rang, repères, code, titre, coût,
   dépendance) et la première phrase visibles ; le reste replié.
@@ -308,8 +352,9 @@ Tout en HTML natif : pas de script.
   `clore` (`scripts/vlp.py:1150`, `:1622`) ; le motif de la ligne en cours
   (`scripts/vlp.py:1152`) ; `migrer_feuille` ; les feuilles des 5 projets ;
   `rejeu.py`.
-- **Fini quand** : feuille de Cairn ≈ 6 écrans (prototype : 5,4 en tableau
-  replié, 5,9 en cartes ; aujourd'hui : 19,6), plus aucun défilement de côté.
+- **Fini quand** : feuille de Cairn ≈ 6 écrans de téléphone (prototype : 5,4 en
+  tableau replié, 5,9 en cartes ; aujourd'hui : 19,6, soit 13,1 sur ordinateur),
+  plus aucun défilement de côté.
 - 🟡 **À décider (toi)** : la feuille doit-elle porter **tout** le détail de la
   TODO ? La colonne « Ce qu'il apporte » pèse **58 %** de la page (29 785
   caractères sur 51 151). Sans elle, une lecture passerait d'environ 24 k à
