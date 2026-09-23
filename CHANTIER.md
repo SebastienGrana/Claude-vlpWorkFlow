@@ -13,9 +13,9 @@
 - **chantiers possibles** : context AI/08-etat.md
 - **fichier d'état** : context AI/08-etat.md
 - **index** : context AI/00-INDEX.md
-- **fichier de fiches courant** : aucun
+- **fichier de fiches courant** : context AI/43-case-relue.md (CAS1..CAS1)
 - **artefact feuille de route** : https://claude.ai/code/artifact/ff1fc060-daca-486f-b4c6-e1f55114c0f7
-- **artefact du chantier** : aucun
+- **artefact du chantier** : https://claude.ai/artifact/5MFYDtrUDQH2qVdgdiA32p
 - **livraison** : aucune — le plugin est chargé en place ; `/reload-plugins` pour
   que la session en cours voie une modification
 - **vérification** : geste de l'utilisateur — rejouer la commande modifiée sur un
