@@ -143,6 +143,18 @@
   Hors total : 0,46 $ d'essais `claude -p` (SAG2 0,2789 ; SAG4 0,0884613 + 0,08854675).
   20 128 626 tokens.
 
+- **2026-09-24** — chantier FIL clos (TODO n° 32) : le filet tire après tout outil. Une entrée
+  `PostToolUse` à lui, sur tout outil, une `PostToolUseFailure` pour les échecs, et `cmd_filet`
+  lit les chemins de 260 caractères et plus (FIL2). Éprouvé à plafond 10 (FIL3) : « 3 tours
+  restants » juste après un `Read` réussi, puis juste après un Bash à code non nul, chacun suivi
+  de `RETOUR` sur `end_turn`. Laissé ouvert : un `Read` raté déclenche-t-il `PostToolUseFailure` ?
+  Un appel refusé avant de s'exécuter n'en déclenche aucun (doc) ; le préfixe `\\?\` n'est éprouvé
+  que par test, les essais tenant en 254 caractères. Vu sans le traiter : « Python est
+  introuvable » vient désormais après **chaque** appel d'outil, 7 pour 7 dans chaque essai (n° 39
+  `PYT`) ; le `CLAUDE.md` de l'utilisateur est chargé dans le sous-agent, sa jauge comprise.
+  Hors total : 0,3125 $ d'essais `claude -p` (FIL3 0,14800575 + 0,06411505 + 0,10040705).
+  42 638 103 tokens.
+
 ## La TODO ordonnée — les chantiers possibles
 
 C'est d'ici que `/chantier` tire ses propositions. Un chantier par entrée,
@@ -153,7 +165,6 @@ tous retirés, venaient de `12-audit.md` ; 31 à 34, de la clôture de `REP` ; 3
 
 | # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |
 |---|---|---|---|---|
-| 32 | `FIL` — Le filet tire après tout outil, reste de `SAG` | Le filet (`vlp.py filet`, `SAG3`) ne tire qu'après un `Write` ou un `Edit` : dans l'essai `SAG4`, il a averti à 2 tours restants au lieu de 3, le tour 7 étant un `Read` — des derniers tours sans écriture, et le sous-agent est encore coupé muet. `cmd_filet` n'a pas non plus le préfixe des chemins longs de `mesurer` : muet au-delà de 260 caractères, comme dans les bacs de sonde. Une entrée à part dans `hooks/hooks.json`, sur tout outil, et le préfixe. Détail : journal du 2026-09-24. | ~1 fiche | — |
 | 38 | `CAS` — Le chef relit la case avant de commiter | Dans `SAG3`, le sous-agent a rendu `FAITE` sans cocher (0 appel à `cocher` sur 70), et le chef de `/vlp:enchainer`, qui commite sur `FAITE` sans relire la case (`skills/enchainer/SKILL.md:68`), a commité case vide ; la reprise à la main a coûté 0,55 $. Après `FAITE`, le chef — ou `vlp.py` — relira la case, et lira `RETOUR` si elle est vide. Détail : journal du 2026-09-23. | ~1 fiche | — |
 | 33 | `TAR` — Un test aller-retour par format écrit | Deux fois le même défaut dans `REP` : les chevrons d'une URL (`REP2`), puis la ligne `? $` (`CPT`) — `vlp.py` écrit un format qu'il ne sait pas relire. Un test écrit puis relit chaque format : ligne de coût, ligne close, rang de TODO, zone « en cours ». | ~2 fiches | — |
 | 34 | `VAL` — Le contrôle avant commit ne se saute plus | À chaque commit du 2026-09-23 : « pre-commit : claude introuvable dans le PATH, validate sauté ». Le hook cherchera aussi le `claude.exe` de l'app, comme le fait `34-agent-sans-git.md`. | ~1 fiche | — |

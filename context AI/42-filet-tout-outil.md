@@ -8,8 +8,9 @@
 `Edit`, et se tait sur un chemin de plus de 260 caractères. `FIL` le branche sur tout outil,
 échecs compris, et lui fait lire les chemins longs.
 
-**Fait.** `FIL1` et `FIL2` (2026-09-24) : le filet tire après tout outil, échecs compris, et au
-bout des chemins longs ; reste `FIL3`, l'épreuve — son essai 2 échoue par un Bash à code non nul.
+**CLOS** le 2026-09-24. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** FIL1..FIL3 (2026-09-24) : le filet prévient le sous-agent après tout outil, échecs compris, et au bout des chemins longs ; éprouvé à plafond 10 après un Read et après un Bash à code non nul.
 
 ## Le socle commun
 
