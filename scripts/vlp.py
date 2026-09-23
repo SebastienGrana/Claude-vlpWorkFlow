@@ -1060,13 +1060,20 @@ AUCUN_ENCOURS = ('    <div class="encours">\n      <div class="titre">Aucun chan
 BADGE_COURS = ' <span class="badge" data-etat="cours">en cours</span>'
 
 
+def retirer_chevrons_url(val):
+    """Retirer les chevrons d'une URL si elle est entièrement entre chevrons."""
+    if val and re.match(r"^<(https?://[^>]+)>$", val):
+        return val[1:-1]
+    return val
+
+
 def champ(lignes, nom, defaut=None):
     """La valeur d'une ligne `- **nom** : valeur` de `CHANTIER.md`."""
     motif = re.compile(r"^\s*-\s*\*\*%s\*\*\s*:\s*(.+?)\s*$" % re.escape(nom))
     for l in lignes:
         m = motif.match(l)
         if m:
-            return m.group(1)
+            return retirer_chevrons_url(m.group(1))
     return defaut
 
 
@@ -1715,7 +1722,7 @@ def cmd_ouvrir(a, sortie):
         sortie.write("GARDE: un chantier est déjà ouvert : %s\n" % courant)
         return 1
     lettre, fait = lettre_de(ids[0]), "%s..%s" % (ids[0], ids[-1])
-    url = a.artefact or (champ(carte_, "artefact du chantier", "aucun") if courant else "aucun")
+    url = retirer_chevrons_url(a.artefact) or (champ(carte_, "artefact du chantier", "aucun") if courant else "aucun")
     gardes = []
 
     # 1. CHANTIER.md

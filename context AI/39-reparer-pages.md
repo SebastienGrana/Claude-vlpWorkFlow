@@ -110,8 +110,9 @@ avant → après, au moins neuf de plus.
 ---
 
 <!-- FICHE:REP2 -->
-## REP2 [ ] — Retirer les chevrons d'une URL, à la lecture et à l'écriture
+## REP2 [x] — Retirer les chevrons d'une URL, à la lecture et à l'écriture
 
+**Session** : da8e3b04-adf4-426a-a7b1-3087bacb5724
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` — et rien d'autre.
 

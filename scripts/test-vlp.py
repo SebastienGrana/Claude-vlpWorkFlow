@@ -1058,5 +1058,83 @@ with tempfile.TemporaryDirectory() as t:
     verifier("NIV3 : sans CHANTIER.md, --ecrire s'arrête sur une GARDE et n'écrit rien",
              code == 1 and s.startswith("GARDE: pas de CHANTIER.md dans ") and not os.listdir(t), s)
 
+# REP2 : retirer les chevrons d'une URL
+with tempfile.TemporaryDirectory() as t:
+    # Test 1 : champ retire les chevrons d'une URL entre chevrons
+    carte_avec_chevrons = """# Chantier REP2
+- **artefact du chantier** : <https://example.com/path>
+"""
+    carte_sans_chevrons = """# Chantier REP2
+- **artefact du chantier** : https://example.com/path
+"""
+    carte_autre_chevrons = """# Chantier REP2
+- **artefact du chantier** : <contexte>
+"""
+
+    lignes = carte_avec_chevrons.strip().split('\n')
+    val = mod.champ(lignes, "artefact du chantier")
+    verifier("REP2 : champ retire les chevrons d'une URL https",
+             val == "https://example.com/path", "got: " + str(val))
+
+    lignes = carte_sans_chevrons.strip().split('\n')
+    val = mod.champ(lignes, "artefact du chantier")
+    verifier("REP2 : champ retourne une URL sans chevrons inchangée",
+             val == "https://example.com/path", "got: " + str(val))
+
+    lignes = carte_autre_chevrons.strip().split('\n')
+    val = mod.champ(lignes, "artefact du chantier")
+    verifier("REP2 : champ retourne <contexte> inchangé",
+             val == "<contexte>", "got: " + str(val))
+
+    # Test 2 : ouvrir --artefact retire les chevrons
+    proj = os.path.join(t, "proj-rep2")
+    ecrire(os.path.join(proj, "CHANTIER.md"),
+           """# Chantier courant
+- **alias** : rep
+- **fichier de fiches courant** : fiches.md
+- **artefact du chantier** : aucun
+""")
+    ecrire(os.path.join(proj, "fiches.md"), """# Chantier REP2
+
+## Le socle
+
+---
+
+## REP2 [ ] — à faire
+""")
+    ecrire(os.path.join(proj, "CLAUDE.md"), """| relire un chantier clos | exemple |
+""")
+    ecrire(os.path.join(proj, "context AI", "00-index.md"), "| `a` | b |\n")
+
+    code, s = appel(["ouvrir", proj, "--fiches", "fiches.md", "--titre", "REP2", "--artefact", "<https://example.com/artifact>"])
+    carte = io.open(os.path.join(proj, "CHANTIER.md"), encoding="utf-8").read()
+    verifier("REP2 : ouvrir retire les chevrons de --artefact",
+             "- **artefact du chantier** : https://example.com/artifact" in carte, carte)
+
+    # Test 3 : cmd_ouvrir avec URL sans chevrons
+    proj2 = os.path.join(t, "proj-rep2b")
+    ecrire(os.path.join(proj2, "CHANTIER.md"),
+           """# Chantier courant
+- **alias** : rep
+- **fichier de fiches courant** : fiches.md
+- **artefact du chantier** : aucun
+""")
+    ecrire(os.path.join(proj2, "fiches.md"), """# Chantier REP2
+
+## Le socle
+
+---
+
+## REP2b [ ] — à faire
+""")
+    ecrire(os.path.join(proj2, "CLAUDE.md"), """| relire un chantier clos | exemple |
+""")
+    ecrire(os.path.join(proj2, "context AI", "00-index.md"), "| `a` | b |\n")
+
+    code, s = appel(["ouvrir", proj2, "--fiches", "fiches.md", "--titre", "REP2b", "--artefact", "https://example.com/artifact"])
+    carte2 = io.open(os.path.join(proj2, "CHANTIER.md"), encoding="utf-8").read()
+    verifier("REP2 : ouvrir accepte une URL sans chevrons",
+             "- **artefact du chantier** : https://example.com/artifact" in carte2, carte2)
+
 
 print("OK")
