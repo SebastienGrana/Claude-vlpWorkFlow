@@ -182,8 +182,9 @@ consigne de `agents/fiche.md` est remplacée.
 ---
 
 <!-- FICHE:SAG4 -->
-## SAG4 [ ] — Éprouver le filet à plafond bas
+## SAG4 [x] — Éprouver le filet à plafond bas
 
+**Session** : 1cba232a-94a5-4599-9fce-b381f08f8a01
 **Dépend de** : `SAG3`.
 **Fichiers** : `agents/fiche.md` (le plafond, abaissé le temps de l'essai),
 l'entrée `SAG2` du journal de `context AI/08-etat.md` (la forme de l'essai), le

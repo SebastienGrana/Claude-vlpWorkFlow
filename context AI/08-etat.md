@@ -160,6 +160,28 @@ au-delà, de celle de `CPT`.
 Une ligne par décision imprévue tranchée en cours de fiche — jamais un résumé
 de ce que le code dit déjà.
 
+- **2026-09-24** — SAG4 : le filet **tient** à plafond bas. Essai `claude -p` 2.1.280 dans `b4`,
+  copie du bac `bacq4b` de Q, fiche factice `F1` (douze fichiers, un outil par tour) ;
+  `maxTurns` 80 → 10 le temps de l'essai, remis à 80 (`git diff` vide, `Read` de
+  `agents/fiche.md:6`). Commande : `claude -p "Appelle l'outil Skill avec skill \"vlp:jouer\" et
+  args \"F1\", puis recopie son resultat tel quel. Rien d'autre." --model haiku --max-budget-usd 1
+  --permission-mode acceptEdits --allowedTools "Skill" --output-format stream-json --verbose`.
+  Coût réel 0,0885 $ (`total_cost_usd` 0,08854675), 0 refus ; une première tentative sans
+  `--allowedTools "Skill"` : `Skill` refusé, aucun sous-agent, 0,0884613 $. Transcription
+  `072a491d-cb45-44f1-baba-a59a264a7d0e/subagents/agent-a6ac4da4bd223d228.jsonl` (9 tours) :
+  après le tour 8, `Write` de `n04.txt`, `hook_additional_context` (l. 65) « Attention : 2 tours
+  restants. Rends ton statut maintenant — RETOUR avec ce qui est fait et ce qui reste, si la
+  fiche n'est pas finie. » ; tour 9, `end_turn`, dernier message, ligne 1 : « RETOUR — Quatre
+  fichiers écrits (n01.txt à n04.txt, chacun contenant son numéro). Il en reste huit (n05.txt à
+  n12.txt). La fiche demande un seul appel d'outil par tour avec Read avant chaque Write ; cette
+  structure nécessite 23 tours au total (1 Write initial + 11 paires Read/Write pour les fichiers
+  restants). Deux tours m'attendent encore. », dernière ligne : « À faire : n05.txt à n12.txt. »
+  Constats : le matcher `Write|Edit` ne réveille le filet qu'après une écriture — averti à 2 tours
+  restants, pas 3, le tour 7 étant un `Read` ; chaque écriture rend deux `hook_non_blocking_error`
+  « Python est introuvable » (l. 62-63, les entrées `python3`) ; chemin de 254 caractères, sous
+  les 260 où `cmd_filet`, sans préfixe `\\?\`, resterait muet ; `vlp:jouer` est
+  `user-invocable: false` : le « `/vlp:jouer SAG3` » de SAG2 passe en fait par l'outil `Skill`.
+
 - **2026-09-23** — SAG3, témoin (`/vlp:jouer SAG3` après `/reload-plugins`) : le sous-agent
   rend `FAITE` en **68 tours**, fin sur `end_turn` — l'ancien plafond de 30 l'aurait coupé —,
   mais **sans cocher** : 0 appel à `cocher` sur 70 appels d'outils

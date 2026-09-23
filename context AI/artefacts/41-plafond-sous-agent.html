@@ -68,9 +68,9 @@
     <p>Une fiche de code jouée par /vlp:enchainer va au bout ; prévenu avant la coupe, le sous-agent rend toujours son statut ; son coût, sous-agent compris, est posé à côté de la main et de Q recompté.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">5 fiches · 3 faites · en cours : SAG4</p>
+    <p class="mono" style="margin-top:.5rem">5 fiches · 4 faites · en cours : SAG5</p>
   </header>
 
   <section>
@@ -95,19 +95,20 @@
         <span class="note">Témoin joué par `/vlp:jouer SAG3` : FAITE en 68 tours (end_turn), sous-agent 6 080 121 tokens · 0,97 $, chef 0,56 $, fiche 1,53 $ ; « 5 cas de test passants » selon le sous-agent — `test-vlp.py` OK et `plugin validate` passed revus par le chef. Case non cochée par le sous-agent (0 appel à `cocher`), cochée à la main.</span>
         <span class="cout mono">≈7,4M (7 355 914) · 73 tours · 1,53 $</span>
       </li>
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">SAG4</span><span class="titre">Éprouver le filet à plafond bas</span>
-        <span class="etat">en cours</span>
-        <span class="note">Un essai à plafond bas montre le filet en vrai. Après SAG3.</span>
+        <span class="etat">faite</span>
+        <span class="note">Transcription agent-a6ac4da4bd223d228.jsonl (9 tours) : avertissement « Attention : 2 tours restants… » après le tour 8 (l. 65), puis tour 9 sur end_turn, message ouvert par « RETOUR — Quatre fichiers écrits (n01.txt à n04.txt… » ; journal du 2026-09-24 le cite ; maxTurns: 80 revu par Read (agents/fiche.md:6). Essai 0,0885 $, 0 refus.</span>
+        <span class="cout mono">≈5,2M (5 188 455) · 25 tours · 2,79 $</span>
       </li>
-      <li class="fiche">
+      <li class="fiche" data-etat="encours">
         <span class="id">SAG5</span><span class="titre">Mesurer le témoin, et conclure</span>
-        <span class="etat">à faire</span>
+        <span class="etat">en cours</span>
         <span class="note">Mesure SAG3 par vlp.py cout, la compare à la main et à Q, corrige le 0,176 $ s'il le faut. Après SAG4.</span>
       </li>
     </ul>
     <p class="mono cout-hors">Hors fiches : 0 · 0 tours · 0,00 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈12,8M (12 825 721) · 107 tours · 5,97 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈18,0M (18 014 176) · 132 tours · 8,76 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -127,6 +128,7 @@
       <li><time datetime="2026-09-23">2026-09-23</time><span>SAG1 : `total_cost_usd` compte les sous-agents (doc : table des champs de `result`, https://code.claude.com/docs/en/agent-sdk/cost-tracking, lue le 2026-09-23 ; `usage` seul les exclut), et le 0,176 $ de Q tient : recompté 0,176 $ par fiche (0,3525749 $ ÷ 2, écart 0). Le 0,42 $ à la main se mesure pareil (`total_cost_usd`, Sonnet seul, 0,4237932 $) mais sur 1 fiche + clôture, contre (2 fiches + clôture) ÷ 2. Réserve : Q4 passe 1, 595 tokens de sortie Haiku de moins par `mesure-tokens.py` (0,0030 $), cause non établie.</span></li>
       <li><time datetime="2026-09-23">2026-09-23</time><span>SAG2 : un hook de plugin (`hooks/hooks.json`) atteint le sous-agent — le `hooks` du frontmatter est ignoré pour un sous-agent de plugin (doc sub-agents, lue le 2026-09-23). Essai : mot témoin injecté par `PostToolUse`, reçu et recopié par Haiku (0,2789 $, estimé 0,15). Surprise : `transcript_path` est la transcription du chef ; celle du sous-agent se retrouve par `agent_id`. `maxTurns` 30 → 80 : 66 tours à la main + 20 %.</span></li>
       <li><time datetime="2026-09-23">2026-09-23</time><span>SAG3 (témoin) : le sous-agent rend FAITE en 68 tours sans cocher (0 appel à `cocher` sur 70), et le chef, qui commite sur FAITE sans relire la case (`skills/enchainer/SKILL.md:68`), a commité case vide ; cochée à la main. Fiche 1,53 $ dont sous-agent 0,97 $.</span></li>
+      <li><time datetime="2026-09-24">2026-09-24</time><span>SAG4 : le filet tient à plafond bas — maxTurns 10, fiche factice F1 : averti après le tour 8, RETOUR au tour 9 sur end_turn (0,0885 $, plus 0,0885 $ d'une tentative où claude -p refusait l'outil Skill sans --allowedTools). Limites : le matcher Write|Edit ne réveille le filet qu'après une écriture — averti à 2 tours restants, pas 3 ; chemin de 254 caractères, sous les 260 où cmd_filet resterait muet.</span></li>
     </ul>
   </section>
 
@@ -140,6 +142,6 @@
 
   <footer>
     <span>Fichier de fiches : <span class="mono">context AI/41-plafond-sous-agent.md</span></span>
-    <span>Mis à jour le <span class="mono">2026-09-23</span></span>
+    <span>Mis à jour le <span class="mono">2026-09-24</span></span>
   </footer>
 </div>
