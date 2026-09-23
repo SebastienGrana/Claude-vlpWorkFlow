@@ -73,8 +73,8 @@
     <!-- ZONE:encours — remplacé à chaque ouverture, remis à « aucun » à chaque clôture.
          /tache n'y touche pas : l'avancement fiche par fiche est sur la page du chantier. -->
     <div class="encours">
-      <div class="titre">Le sous-agent ne bute plus sur 30 tours <span class="badge" data-etat="cours">en cours</span></div>
-      <div>Fiches <span class="mono">SAG1–SAG5</span> — <a href="https://claude.ai/artifact/A8DB3Tvd2JhEGiNDNMzv6n">la page du chantier</a></div>
+      <div class="titre">Aucun chantier ouvert</div>
+      <div>Lancer <span class="mono">/vlp:chantier</span> pour en ouvrir un.</div>
     </div>
   </section>
 
@@ -87,7 +87,7 @@
           <tr><th>#</th><th>Chantier</th><th>Ce qu'il apporte</th><th>Coût</th><th>Dépend de</th></tr>
         </thead>
         <tbody>
-          <tr><td class="mono">32</td><td><span class="mono">SAG</span> — Le sous-agent ne bute plus sur 30 tours <span class="badge" data-etat="cours">en cours</span></td><td><span class="mono">vlp:fiche</span> s'arrête à <span class="mono">maxTurns: 30</span> sans rendre de statut : quatre fois sur <span class="mono">REP2</span> et <span class="mono">REP3</span> (journal du 2026-09-23). Relever le plafond, ou lui faire écrire son statut avant, puis rejouer une fiche de code par <span class="mono">/vlp:enchainer</span> et la mesurer par <span class="mono">vlp.py cout</span>, sous-agent compris. Avant de comparer au 0,176 $/fiche de <span class="mono">Q</span> (fiches triviales) : il vient de <span class="mono">total_cost_usd</span> (<span class="mono">claude -p</span>, <span class="mono">34-agent-sans-git.md</span>) — 🟡 compte-t-il les sous-agents ? À vérifier.</td><td class="mono">~2 fiches</td><td class="mono">—</td></tr>
+          <tr><td class="mono">32</td><td><span class="mono">FIL</span> — Le filet tire après tout outil, reste de <span class="mono">SAG</span></td><td>Le filet (<span class="mono">vlp.py filet</span>, <span class="mono">SAG3</span>) ne tire qu'après un <span class="mono">Write</span> ou un <span class="mono">Edit</span> : dans l'essai <span class="mono">SAG4</span>, il a averti à 2 tours restants au lieu de 3, le tour 7 étant un <span class="mono">Read</span> — des derniers tours sans écriture, et le sous-agent est encore coupé muet. <span class="mono">cmd_filet</span> n'a pas non plus le préfixe des chemins longs de <span class="mono">mesurer</span> : muet au-delà de 260 caractères, comme dans les bacs de sonde. Une entrée à part dans <span class="mono">hooks/hooks.json</span>, sur tout outil, et le préfixe. Détail : journal du 2026-09-24.</td><td class="mono">~1 fiche</td><td class="mono">—</td></tr>
           <tr><td class="mono">33</td><td><span class="mono">TAR</span> — Un test aller-retour par format écrit</td><td>Deux fois le même défaut dans <span class="mono">REP</span> : les chevrons d'une URL (<span class="mono">REP2</span>), puis la ligne <span class="mono">? $</span> (<span class="mono">CPT</span>) — <span class="mono">vlp.py</span> écrit un format qu'il ne sait pas relire. Un test écrit puis relit chaque format : ligne de coût, ligne close, rang de TODO, zone « en cours ».</td><td class="mono">~2 fiches</td><td class="mono">—</td></tr>
           <tr><td class="mono">34</td><td><span class="mono">VAL</span> — Le contrôle avant commit ne se saute plus</td><td>À chaque commit du 2026-09-23 : « pre-commit : claude introuvable dans le PATH, validate sauté ». Le hook cherchera aussi le <span class="mono">claude.exe</span> de l'app, comme le fait <span class="mono">34-agent-sans-git.md</span>.</td><td class="mono">~1 fiche</td><td class="mono">—</td></tr>
           <tr><td class="mono">35</td><td><span class="mono">FIN</span> — Le coût juste jusqu'à la clôture</td><td>Trois bords vus à la clôture de <span class="mono">CPT</span>. Le total gardé au bilan ne compte pas la clôture, faute de commit au moment de la mesure (<span class="mono">CPT</span> : 19 266 526 sans elle). La page close garde le coût de sa dernière fiche mesuré avant son commit : <span class="mono">CPT4</span> y affiche 5 087 135, 6 048 820 au commit. Un tour joué dans une session après le commit de sa fiche compte à la suivante (<span class="mono">CPT4</span> : 30 tours à la mesure, 28 dans sa session). Piste : à la clôture, <span class="mono">cout</span> compte hors fiches jusqu'au bout du transcript, et <span class="mono">clore</span> régénère les coûts de la page.</td><td class="mono">~2 fiches</td><td class="mono">—</td></tr>
@@ -108,13 +108,19 @@
     <h2>Chantiers clos — ils ne se rejouent pas</h2>
     <!-- ZONE:clos — une ligne ajoutée à chaque clôture, la plus récente en haut -->
     <details class="clos">
-      <summary><span class="resume-clos">29 chantiers clos · ≈339,3M (339 340 811) tokens · ≈284 $</span></summary>
+      <summary><span class="resume-clos">30 chantiers clos · ≈359,5M (359 469 437) tokens · ≈301 $</span></summary>
     <div class="tableau">
       <table>
         <thead>
           <tr><th>Chantier</th><th>Fiches</th><th>Clos le</th><th>Tokens</th><th>Ce qu'il a livré</th></tr>
         </thead>
         <tbody>
+          <tr>
+            <td><a href="https://claude.ai/artifact/A8DB3Tvd2JhEGiNDNMzv6n">Le sous-agent ne bute plus sur 30 tours</a> <span class="badge" data-etat="clos">clos</span></td>
+            <td class="mono">SAG1–SAG5</td><td class="mono">2026-09-24</td>
+            <td class="mono">≈20,1M (20 128 626)</td>
+            <td>le sous-agent prévenu avant la coupe : maxTurns 30 → 80 et un filet PostToolUse ; à plafond bas il rend RETOUR au lieu d'être coupé ; une fiche de code enchaînée à 2,08 $, reprise comprise, contre 4,34 $ à la main</td>
+          </tr>
           <tr>
             <td><a href="https://claude.ai/artifact/FpVtjMX2wqNboLrfCbvxGk">Un coût juste, fiche par fiche et sous-agents compris</a> <span class="badge" data-etat="clos">clos</span></td>
             <td class="mono">CPT1–CPT4</td><td class="mono">2026-09-23</td>
@@ -319,7 +325,7 @@
           </tr>
         </tbody>
         <tfoot>
-          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈339,3M (339 340 811)</strong></td><td class="mono">≈284 $</td></tr>
+          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈359,5M (359 469 437)</strong></td><td class="mono">≈301 $</td></tr>
         </tfoot>
       </table>
     </div>
@@ -329,6 +335,6 @@
   <footer>
     <span>Lettres de fiche prises : <span class="mono">E, M, C, T, B, R, S, H, V, D, I, K, N, L, P, A, G, W, X, F, O, J, Y, U, Q, Z, NIV, REP, CPT, SAG</span></span>
     <span>État détaillé : <span class="mono">context AI/08-etat.md</span></span>
-    <span>Mis à jour le <span class="mono">2026-09-23</span></span>
+    <span>Mis à jour le <span class="mono">2026-09-24</span></span>
   </footer>
 </div>

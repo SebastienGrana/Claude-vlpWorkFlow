@@ -13,11 +13,11 @@ https://github.com/SebastienGrana/Claude-vlpWorkFlow — cloné et utilisé en g
 - Équipés : Cairn-VlpLib, MapDecorator, ProjetONZSM, TrackGen — et ce kit lui-même.
 - Chaque chantier clos a sa ligne dans `context AI/00-INDEX.md`, son détail daté dans
   `context AI/08-etat.md` ; ici, les derniers seulement (`vlp.py clore` les tient).
-- Clos le 2026-09-17 : /vlp:enchainer sans Git : l'agent vlp:fiche prend PowerShell et lit le kit par vlp.py lire ; bac sans .git : refus 3 → 0, deux fiches jouées ; enchaîné 0,176 $/fiche contre 0,42 $ à la main (fiches triviales) ; plugin 3.4.2, TODO vide (chantier Q).
 - Clos le 2026-09-17 : toute lecture d'un chemin de CHANTIER.md rend une GARDE au lieu d'un traceback, prouve sur Cairn-VlpLib (chantier Z).
 - Clos le 2026-09-18 : les projets équipés se remettent à niveau par vlp.py niveau ; les cinq passés, quatre à 0 écart, le bac à 1 assumé (chantier NIV).
 - Clos le 2026-09-23 : les feuilles de route sans Markdown brut ni lien cassé : vlp.py convertit, niveau compte et migre ; cinq feuilles à 0 · 0 · 0, Cairn republiée, trois voisines à finir (chantier REP).
 - Clos le 2026-09-23 : un coût juste par fiche : vlp.py cout et la page coupent aux commits, sous-agents compris, hors fiches à part ; REP recompté 23 126 264 → 35 996 461 tokens (chantier CPT).
+- Clos le 2026-09-24 : le sous-agent n'est plus coupé muet : maxTurns 80 et un filet qui le prévient à 3 tours du plafond, prouvé à plafond 10 ; une fiche de code enchaînée 2,08 $ contre 4,34 $ à la main, 0,176 $ de Q confirmé (chantier SAG).
 
 ## Quatre règles non négociables
 
@@ -57,7 +57,6 @@ et seulement dans ce cas, ouvrir l'index.
 | savoir où vit quoi dans un projet équipé | `methode-chantier.md`, section « Où vit quoi » |
 | toucher aux pages publiées | `ARTEFACTS.md`, puis le gabarit dans `templates/` |
 | ouvrir un chantier, ou le découper en fiches | **lancer `/vlp:chantier`** |
-| jouer une fiche du chantier SAG (le sous-agent ne bute plus sur 30 tours) | `context AI/41-plafond-sous-agent.md` — chantier **ouvert**, par `/vlp:tache SAG<n>` |
 | relire un chantier clos | `context AI/00-INDEX.md` — sa ligne y nomme le fichier de fiches |
 | reprendre après une longue interruption | `context AI/08-etat.md` |
 | choisir le prochain chantier du kit, ou retrouver la preuve d'un bug relevé le 2026-09-17 | `context AI/12-audit.md` |

@@ -132,6 +132,17 @@
   pas la clôture en cours, faute de commit ; un tour d'une session après le commit de sa
   fiche compte à la suivante. 19 266 526 tokens.
 
+- **2026-09-24** — chantier SAG clos (TODO n° 32) : le sous-agent ne bute plus sur 30 tours.
+  `maxTurns` 30 → 80, et un hook `PostToolUse` (`vlp.py filet`) prévient `vlp:fiche` à trois
+  tours du plafond : à plafond 10, il rend `RETOUR` sur `end_turn` au lieu d'être coupé (SAG4).
+  Une fiche de code enchaînée, SAG3 : 68 tours, `FAITE`, 1,53 $ — 2,08 $ avec sa reprise à la
+  main — contre 4,34 $ en moyenne à la main (CPT1–4) ; le gain vient du prix de Haiku. Le
+  0,176 $ de Q tient, sous-agents compris (SAG1). Laissé ouvert, reformulé en n° 32 (`FIL`) : le
+  filet ne tire qu'après `Write` ou `Edit`, et reste muet au-delà de 260 caractères. Vu sans le
+  traiter : le sous-agent a rendu `FAITE` sans cocher, et le chef commite sans relire la case.
+  Hors total : 0,46 $ d'essais `claude -p` (SAG2 0,2789 ; SAG4 0,0884613 + 0,08854675).
+  20 128 626 tokens.
+
 ## La TODO ordonnée — les chantiers possibles
 
 C'est d'ici que `/chantier` tire ses propositions. Un chantier par entrée,
@@ -142,7 +153,7 @@ au-delà, de celle de `CPT`.
 
 | # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |
 |---|---|---|---|---|
-| 32 | `SAG` — Le sous-agent ne bute plus sur 30 tours | `vlp:fiche` s'arrête à `maxTurns: 30` sans rendre de statut : quatre fois sur `REP2` et `REP3` (journal du 2026-09-23). Relever le plafond, ou lui faire écrire son statut avant, puis rejouer une fiche de code par `/vlp:enchainer` et la mesurer par `vlp.py cout`, sous-agent compris. Avant de comparer au 0,176 $/fiche de `Q` (fiches triviales) : il vient de `total_cost_usd` (`claude -p`, `34-agent-sans-git.md`) — 🟡 compte-t-il les sous-agents ? À vérifier. | ~2 fiches | — |
+| 32 | `FIL` — Le filet tire après tout outil, reste de `SAG` | Le filet (`vlp.py filet`, `SAG3`) ne tire qu'après un `Write` ou un `Edit` : dans l'essai `SAG4`, il a averti à 2 tours restants au lieu de 3, le tour 7 étant un `Read` — des derniers tours sans écriture, et le sous-agent est encore coupé muet. `cmd_filet` n'a pas non plus le préfixe des chemins longs de `mesurer` : muet au-delà de 260 caractères, comme dans les bacs de sonde. Une entrée à part dans `hooks/hooks.json`, sur tout outil, et le préfixe. Détail : journal du 2026-09-24. | ~1 fiche | — |
 | 33 | `TAR` — Un test aller-retour par format écrit | Deux fois le même défaut dans `REP` : les chevrons d'une URL (`REP2`), puis la ligne `? $` (`CPT`) — `vlp.py` écrit un format qu'il ne sait pas relire. Un test écrit puis relit chaque format : ligne de coût, ligne close, rang de TODO, zone « en cours ». | ~2 fiches | — |
 | 34 | `VAL` — Le contrôle avant commit ne se saute plus | À chaque commit du 2026-09-23 : « pre-commit : claude introuvable dans le PATH, validate sauté ». Le hook cherchera aussi le `claude.exe` de l'app, comme le fait `34-agent-sans-git.md`. | ~1 fiche | — |
 | 35 | `FIN` — Le coût juste jusqu'à la clôture | Trois bords vus à la clôture de `CPT`. Le total gardé au bilan ne compte pas la clôture, faute de commit au moment de la mesure (`CPT` : 19 266 526 sans elle). La page close garde le coût de sa dernière fiche mesuré avant son commit : `CPT4` y affiche 5 087 135, 6 048 820 au commit. Un tour joué dans une session après le commit de sa fiche compte à la suivante (`CPT4` : 30 tours à la mesure, 28 dans sa session). Piste : à la clôture, `cout` compte hors fiches jusqu'au bout du transcript, et `clore` régénère les coûts de la page. | ~2 fiches | — |

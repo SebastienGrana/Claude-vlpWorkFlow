@@ -8,7 +8,9 @@
 statut : quatre sous-agents sur cinq en REP. Le chantier relève son plafond, le
 prévient avant la coupe, puis mesure une fiche de code enchaînée, sous-agent compris.
 
-**Fait.** Rien. Ouvert le 2026-09-23, cadré en 5 fiches, `SAG1` à jouer.
+**CLOS** le 2026-09-24. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** SAG1..SAG5 (2026-09-24) : le sous-agent prévenu avant la coupe : maxTurns 30 → 80 et un filet PostToolUse ; à plafond bas il rend RETOUR au lieu d'être coupé ; une fiche de code enchaînée à 2,08 $, reprise comprise, contre 4,34 $ à la main.
 
 ## Le socle commun
 
