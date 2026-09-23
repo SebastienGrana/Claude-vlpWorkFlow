@@ -160,6 +160,20 @@ au-delà, de celle de `CPT`.
 Une ligne par décision imprévue tranchée en cours de fiche — jamais un résumé
 de ce que le code dit déjà.
 
+- **2026-09-23** — SAG1 : `total_cost_usd` **compte les sous-agents**, et le 0,176 $ de Q
+  tient. Doc : « Included. Counts subagent requests alongside the top-level loop » — table
+  de https://code.claude.com/docs/en/agent-sdk/cost-tracking, lue ce jour ; `usage` seul les
+  exclut. Brut (`q4b.jsonl`, scratchpad de la session Q `d3864b7b`, `Q4` passe 2) :
+  `modelUsage` Sonnet 0,2363536 $ + Haiku 0,1162213 $ = `total_cost_usd` 0,3525749 $.
+  Recompte : `py scripts/mesure-tokens.py a7de44ba-a760-4634-b947-8c38f7fe25e8` — chef
+  419 221 tokens, `Z1` 72 273, `Z2` 94 958, TOTAL 586 452 ; affiché 0,24 · 0,05 · 0,07 ·
+  0,35 $, soit 0,2364 + 0,0454 + 0,0708 par sa grille = 0,3525749 $ exact, écart 0.
+  **Par fiche : 0,176 $ annoncé, 0,176 $ recompté**, 293 226 tokens. Le 0,42 $ à la main
+  (`33-sans-refus.md:200`) se mesure pareil — `total_cost_usd`, Sonnet seul (`u5.jsonl` :
+  0,4237932 $) — mais sur 1 fiche + clôture, contre (2 fiches + clôture) ÷ 2. Réserve : sur
+  `Q4` passe 1, le script compte 595 tokens de sortie Haiku de moins que `modelUsage`
+  (0,0030 $), cause non établie. `34-agent-sans-git.md:56` est périmé depuis CPT2.
+
 - **2026-09-23** — CPT4 : l'« avant » de REP4 (4 840 313) ne contenait pas la clôture : la
   page à son commit dit 20 355 080, la somme des quatre fiches ; la clôture était dans les
   2 771 184 « à aucune fiche ». Le total d'une clôture ne compte plus la clôture en cours,

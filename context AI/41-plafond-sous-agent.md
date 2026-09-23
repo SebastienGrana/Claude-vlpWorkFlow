@@ -68,8 +68,9 @@ la compte.
 ---
 
 <!-- FICHE:SAG1 -->
-## SAG1 [ ] — Recompter Q, sous-agents compris
+## SAG1 [x] — Recompter Q, sous-agents compris
 
+**Session** : 1cba232a-94a5-4599-9fce-b381f08f8a01
 **Dépend de** : rien.
 **Fichiers** : `context AI/34-agent-sans-git.md` (par grep : `0,176`, `0,42`,
 `total_cost_usd`, `modelUsage`), `scripts/mesure-tokens.py` (sa docstring), le
