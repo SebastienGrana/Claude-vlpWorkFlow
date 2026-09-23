@@ -7,6 +7,7 @@ Imprime `OK` et sort 0, ou le premier écart et sort 1.
 import importlib.util
 import io
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -1135,6 +1136,92 @@ with tempfile.TemporaryDirectory() as t:
     carte2 = io.open(os.path.join(proj2, "CHANTIER.md"), encoding="utf-8").read()
     verifier("REP2 : ouvrir accepte une URL sans chevrons",
              "- **artefact du chantier** : https://example.com/artifact" in carte2, carte2)
+
+# --- REP3 : `niveau` compte le Markdown brut et migre `ZONE:clos` -------------
+
+# Une ligne close d'avant REP1 : gras et lien restés bruts, URL entre chevrons,
+# et un `**` dans du code cité, qui ne se compte ni ne se convertit.
+VIEILLE = ('          <tr>\n            <td><a href="&lt;https://v&gt;">Un <span class="mono">**c**</span></a>'
+           ' <span class="badge" data-etat="clos">clos</span></td>\n'
+           '            <td class="mono">A1–A2</td><td class="mono">2026-01-01</td>\n'
+           '            <td class="mono">≈1,5k (1 500)</td>\n'
+           '            <td>Livré **x** et [t](https://u)</td>\n          </tr>\n')
+
+
+def visible(h):
+    return re.sub(r"<[^>]+>", "", h)
+
+
+def rangs_clos(page):
+    html = io.open(page, encoding="utf-8").read()
+    d, f = mod.zone(html, "clos", "<tbody>\n", "        </tbody>")
+    return mod.lignes_clos(html[d:f])
+
+
+with tempfile.TemporaryDirectory() as t:
+    proj = os.path.join(t, "rep3")
+    ecrire(os.path.join(proj, "CHANTIER.md"), CARTE_NETTE)
+    ecrire(os.path.join(proj, "ctx", "00-INDEX.md"), INDEX_NET)
+    ecrire(os.path.join(proj, "ctx", "08-etat.md"), ETAT_NIV)
+    page = mod.page_feuille(proj)  # le chemin tel que `niveau` l'affiche
+    os.makedirs(os.path.dirname(page))
+    shutil.copy(GABARIT_FEUILLE, page)
+    appel(["feuille", proj, "--date", "2026-09-18"])
+
+    code, s = appel(["niveau", proj, "--date", "2026-09-18"])
+    verifier("REP3 : une feuille propre sort ses trois compteurs, à zéro, sans écart",
+             code == 0 and "ÉCART:" not in s
+             and "MARKDOWN 0 ** · 0 liens Markdown · 0 liens cassés — %s\n" % page in s, s)
+
+    html = io.open(page, encoding="utf-8").read()
+    d, f = mod.zone(html, "clos", "<tbody>\n", "        </tbody>")
+    ecrire(page, html[:d] + VIEILLE + html[d:])
+    code, s = appel(["niveau", proj, "--date", "2026-09-18"])
+    verifier("REP3 : la ligne close brute se compte hors code cité, fait un écart, et nomme --ecrire",
+             code == 1 and compte(s, "ÉCART:") == 1
+             and "MARKDOWN 2 ** · 1 liens Markdown · 1 liens cassés — %s\n" % page in s
+             and "ÉCART: feuille: Markdown brut ou lien cassé — « vlp.py niveau --ecrire »"
+                 " convertit les lignes closes\n" in s, s)
+
+    code, s = appel(["niveau", proj, "--ecrire", "--date", "2026-09-18"])
+    apres = io.open(page, encoding="utf-8").read()
+    verifier("REP3 : --ecrire convertit la ligne close en place, et les compteurs tombent à zéro",
+             code == 0 and "CORRIGÉ: feuille: 1 lignes closes converties\n" in s
+             and "MARKDOWN 0 ** · 0 liens Markdown · 0 liens cassés — %s\n" % page in s
+             and '<a href="&lt;URL de son artefact&gt;">' in apres, s)
+
+    ligne = rangs_clos(page)[0]
+    verifier("REP3 : aucun texte visible perdu, chaque URL dans un href, le code cité et les dix espaces intacts",
+             visible(ligne) == visible(VIEILLE).replace("**x**", "x").replace("[t](https://u)", "t")
+             and '<a href="https://v">' in ligne and '<a href="https://u">t</a>' in ligne
+             and "<strong>x</strong>" in ligne and '<span class="mono">**c**</span>' in ligne
+             and ligne.startswith("          <tr>\n"), ligne)
+
+    code, s = appel(["niveau", proj, "--ecrire", "--date", "2026-09-18"])
+    verifier("REP3 : rejoué, --ecrire ne change plus rien — deux passes = une",
+             io.open(page, encoding="utf-8").read() == apres and "CORRIGÉ: feuille:" not in s, s)
+
+    carte = io.open(os.path.join(proj, "CHANTIER.md"), encoding="utf-8").read()
+    ecrire(os.path.join(proj, "CHANTIER.md"), carte.replace(
+        "- **fichier de fiches courant** : aucun",
+        "- **fichier de fiches courant** : ctx/40-w.md (W1..W1)\n"
+        "- **artefact du chantier** : https://exemple/w")
+        + "\nLettres de fiche déjà prises : A. Un nouveau chantier en choisit une autre.\n")
+    ecrire(os.path.join(proj, "ctx", "40-w.md"), "# Chantier W — Un titre\n\n## W1 [x] — a\n")
+    code, s = appel(["clore", proj, "--livre", "y", "--date", "2026-09-19"])
+    rangs = rangs_clos(page)
+    verifier("REP3 : clore pose sa ligne au-dessus de la ligne convertie, sans la défaire",
+             len(rangs) == 2 and "2026-09-19" in rangs[0] and rangs[1] == ligne, s)
+
+# Une feuille qui ne se régénère pas : les compteurs ne sont pas mesurés, et le disent.
+with tempfile.TemporaryDirectory() as t:
+    proj = os.path.join(t, "rep3b")
+    ecrire(os.path.join(proj, "CHANTIER.md"), CARTE_NETTE.replace("- **fichier d'état** : ctx/08-etat.md\n", ""))
+    ecrire(os.path.join(proj, "ctx", "00-INDEX.md"), INDEX_NET)
+    code, s = appel(["niveau", proj])
+    verifier("REP3 : sans fichier d'état, la ligne MARKDOWN dit « non mesuré »",
+             code == 1 and "MARKDOWN non mesuré, la feuille ne se régénère pas — " in s
+             and "ÉCART: feuille: fichier d'état introuvable : aucun\n" in s, s)
 
 
 print("OK")

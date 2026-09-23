@@ -140,8 +140,9 @@ avant → après, au moins cinq de plus.
 ---
 
 <!-- FICHE:REP3 -->
-## REP3 [ ] — Compter le Markdown brut et migrer `ZONE:clos` dans `niveau`
+## REP3 [x] — Compter le Markdown brut et migrer `ZONE:clos` dans `niveau`
 
+**Session** : da8e3b04-adf4-426a-a7b1-3087bacb5724
 **Dépend de** : `REP1`, `REP2`.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` — et rien d'autre.
 

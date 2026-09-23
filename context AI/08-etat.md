@@ -129,6 +129,12 @@ tous retirés, venaient de `12-audit.md`.
 Une ligne par décision imprévue tranchée en cours de fiche — jamais un résumé
 de ce que le code dit déjà.
 
+- **2026-09-23** — REP3 : sous `/vlp:enchainer`, le sous-agent `vlp:fiche` (fork de
+  `vlp:jouer`) s'est arrêté sans statut quatre fois — une sur REP2, trois sur REP3 —,
+  traité chaque fois en `RETOUR`. REP2 est passée au rejeu ; REP3 s'est faite à la main,
+  par `/vlp:tache REP3`. Cause non diagnostiquée : à creuser avant de rejouer une fiche
+  de code par `/vlp:enchainer`.
+
 - **2026-09-23** — REP1 : la fiche ne disait pas comment `REP3` rejouerait une ligne
   close. Tranché : `gras_et_liens` prend la ligne `<tr>` entière, toute balise hors mono
   bornant le gras — sinon deux `**` seuls, dans deux cellules, s'apparient par-dessus

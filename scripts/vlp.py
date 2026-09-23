@@ -78,15 +78,19 @@ Sous-commandes :
   `POIDS` telle quelle), `feuille --verifier` et, si un fichier de fiches est
   courant, `page --verifier` ; ajoute ce que rien ne voyait : un `${…}` cité sur
   une ligne de champ ou de table de `CHANTIER.md`, de l'index ou du fichier
-  d'état, et la table des chantiers clos restée dans `CHANTIER.md`. Une copie
-  locale de `methode-chantier.md` n'est pas un écart : la méthode la tolère
-  pour un projet équipé avant la règle. Une ligne `ÉCART: <catégorie>: <phrase>`
+  d'état, et la table des chantiers clos restée dans `CHANTIER.md`. Compte le
+  Markdown resté brut de la feuille régénérée, toujours sur une ligne `MARKDOWN
+  <n> ** · <n> liens Markdown · <n> liens cassés — <page>` : un écart s'il n'est
+  pas nul. Une copie locale de `methode-chantier.md` n'est pas un écart : la
+  méthode la tolère pour un projet équipé avant la règle. Une ligne `ÉCART:
+  <catégorie>: <phrase>`
   par écart (`renvois`, `feuille`, `page`, `variable`, `clos`), puis `NIVEAU <n>
   écarts · <n> avertissements — <projet>`. Un écart : sort 1.
   `--ecrire` corrige les seuls écarts mécaniques — la table des chantiers clos
   retirée de `CHANTIER.md` (jamais si l'index ne nomme pas chacun de ses
-  fichiers), la feuille de route posée depuis le gabarit puis régénérée, et le
-  bloc repliable des clos posé sur une feuille d'avant le 2026-09-17. Les
+  fichiers), la feuille de route posée depuis le gabarit puis régénérée, le
+  bloc repliable des clos posé sur une feuille d'avant le 2026-09-17, et les
+  lignes closes écrites avant `gras_et_liens` converties en place. Les
   renvois absents et les fichiers de tête hors seuil restent en `ÉCART:`. Tout
   se calcule avant la première écriture. Bilan `NIVEAU <n> corrigés · <n> à la
   main — <projet>` ; un écart restant : sort 1. `--date` fige la date.
@@ -1244,7 +1248,8 @@ def cmd_feuille(a, sortie):
 # --- la ZONE:clos d'une feuille de route -------------------------------------
 # Lue par `clore`, qui y ajoute une ligne à chaque clôture, et par
 # `niveau --ecrire`, qui pose sur une feuille d'avant le 2026-09-17 ce que le
-# gabarit a depuis : le bloc repliable et l'estimation en dollars du pied.
+# gabarit a depuis : le bloc repliable et l'estimation en dollars du pied — et
+# convertit les lignes écrites avant `gras_et_liens`.
 
 BRUT = re.compile(r'<td class="mono">[^<]*\(([\d  ]+)\)</td>')
 # `clore` écrit ses lignes à dix espaces, et les repère à dix espaces.
@@ -1306,6 +1311,40 @@ def migrer_feuille(html):
         corps = ('    <details class="clos">\n      <summary><span class="resume-clos">%s</span>'
                  '</summary>\n' % resume_clos(len(lignes_clos(corps)), total)) + corps + "    </details>\n"
     return html[:debut] + corps + html[fin:]
+
+
+CHEVRONS_HREF = re.compile(r'href="&lt;([^"]*)&gt;"')
+
+
+def migrer_clos(html):
+    """(HTML, n) : les lignes de `ZONE:clos` écrites avant `gras_et_liens` y
+    passent, et un `href="&lt;URL&gt;"` redevient `href="URL"` ; n lignes changées.
+    Les dix espaces restent, la ligne d'exemple du gabarit aussi. Deux passes = une."""
+    d, f = zone(html, "clos", "<tbody>\n", "        </tbody>")
+    n = 0
+
+    def rang(m):
+        nonlocal n
+        avant = m.group(0)
+        if not lignes_clos(avant):  # la ligne d'exemple du gabarit
+            return avant
+        apres = CHEVRONS_HREF.sub(r'href="\1"', gras_et_liens(avant))
+        n += apres != avant
+        return apres
+    corps = RANG_CLOS.sub(rang, html[d:f])
+    return html[:d] + corps + html[f:], n
+
+
+def markdown_brut(html):
+    """(`**`, liens Markdown, liens cassés) restés dans les zones todo, encours et
+    clos d'une feuille de route, en occurrences — hors code cité, hors ligne
+    d'exemple du gabarit."""
+    (a, b), (c, d), (e, f) = (zone(html, "todo", "<tbody>\n", "        </tbody>"),
+                              zone(html, "encours", "\n", "  </section>"),
+                              zone(html, "clos", "<tbody>\n", "        </tbody>"))
+    clos = RANG_CLOS.sub(lambda m: "".join(lignes_clos(m.group(0))), html[e:f])
+    texte = MONO.sub("", html[a:b] + html[c:d] + clos)
+    return texte.count("**"), texte.count("](http"), texte.count('href="&lt;')
 
 
 # --- niveau ------------------------------------------------------------------
@@ -1415,15 +1454,17 @@ def cmd_niveau(a, sortie):
     migre = migrer_feuille(html)
     try:
         neuf, _ = feuille(projet, migre, None, date)
+        converti, n = migrer_clos(neuf)
+        md = markdown_brut(converti if a.ecrire else neuf)
     except ValueError as e:
-        neuf = None
+        neuf = md = None
         ecarts += 1
         sortie.write("ÉCART: feuille: %s\n" % e)
     if neuf is None:
         pass
     elif absente:
         if a.ecrire:
-            ecritures.append((page, neuf))
+            ecritures.append((page, converti))
             corriges += 1
             sortie.write("CORRIGÉ: feuille: posée depuis le gabarit puis régénérée — %s\n" % page)
         else:
@@ -1442,8 +1483,17 @@ def cmd_niveau(a, sortie):
             else:
                 ecarts += 1
                 sortie.write("ÉCART: feuille: %s\n" % manque)
-        if a.ecrire and neuf != html:
-            ecritures.append((page, neuf))
+        if a.ecrire and n:
+            corriges += 1
+            sortie.write("CORRIGÉ: feuille: %d lignes closes converties\n" % n)
+        if a.ecrire and converti != html:
+            ecritures.append((page, converti))
+    sortie.write("MARKDOWN non mesuré, la feuille ne se régénère pas — %s\n" % page if md is None
+                 else "MARKDOWN %d ** · %d liens Markdown · %d liens cassés — %s\n" % (md + (page,)))
+    if md and any(md):
+        ecarts += 1
+        sortie.write("ÉCART: feuille: Markdown brut ou lien cassé%s\n"
+                     % (" — « vlp.py niveau --ecrire » convertit les lignes closes" if n and not a.ecrire else ""))
 
     courant = fichier_courant("\n".join(carte_))
     if courant:
