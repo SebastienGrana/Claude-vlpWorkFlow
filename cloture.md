@@ -83,8 +83,10 @@ plusieurs à la fois se font, aucun aussi.
 
 1. **Le prompt du chantier suivant** — prêt à coller après un `/clear` : le
    sujet, ce que celui-ci vient de livrer, et les seuls fichiers à ouvrir.
-2. **Brainstorm** — des idées de chantiers pour ce projet. Ce qui est retenu va
-   dans la **TODO du fichier d'état**, et nulle part ailleurs : c'est là que
+2. **Brainstorm** — des idées de chantiers pour ce projet. **Lis d'abord en
+   entier la liste des chantiers possibles**, la TODO du fichier d'état, avant
+   de chercher : une idée qui en recoupe une ligne le dit, et la nomme. Ce qui
+   est retenu va dans cette TODO, et nulle part ailleurs : c'est là que
    `/vlp:chantier` ira les chercher.
 3. **Ce qui a été appris** — ce chantier a-t-il tranché quelque chose qui vaut
    au-delà de lui ? Une règle de méthode va dans `methode-chantier.md` ; une
