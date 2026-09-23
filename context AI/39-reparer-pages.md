@@ -8,7 +8,9 @@
 (`38-audit-artefacts.md` § 2.1 ; chantier A de son § 4). REP les répare dans `vlp.py`,
 puis sur les cinq projets équipés par `niveau --ecrire` — aucune page réécrite à la main.
 
-**Fait.** Rien. Ouvert le 2026-09-23, cadré en 4 fiches, `REP1` à jouer.
+**CLOS** le 2026-09-23. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** REP1..REP4 (2026-09-23) : plus de Markdown brut ni de lien cassé sur les feuilles de route : vlp.py convertit gras, liens et chevrons, niveau compte et migre les lignes closes ; cinq feuilles à 0 · 0 · 0, Cairn republiée.
 
 ## Le socle commun
 

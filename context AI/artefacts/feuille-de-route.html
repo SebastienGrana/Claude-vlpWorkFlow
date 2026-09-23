@@ -73,8 +73,8 @@
     <!-- ZONE:encours — remplacé à chaque ouverture, remis à « aucun » à chaque clôture.
          /tache n'y touche pas : l'avancement fiche par fiche est sur la page du chantier. -->
     <div class="encours">
-      <div class="titre">Réparer les pages publiées <span class="badge" data-etat="cours">en cours</span></div>
-      <div>Fiches <span class="mono">REP1–REP4</span> — <a href="https://claude.ai/artifact/FApkrdZqHKoyH2y6NSzrDv">la page du chantier</a></div>
+      <div class="titre">Aucun chantier ouvert</div>
+      <div>Lancer <span class="mono">/vlp:chantier</span> pour en ouvrir un.</div>
     </div>
   </section>
 
@@ -87,7 +87,7 @@
           <tr><th>#</th><th>Chantier</th><th>Ce qu'il apporte</th><th>Coût</th><th>Dépend de</th></tr>
         </thead>
         <tbody>
-          <tr><td class="mono">25</td><td><span class="mono">REP</span> — Réparer les pages publiées <span class="badge" data-etat="cours">en cours</span></td><td>Plus de Markdown brut ni de lien cassé sur les feuilles de route de Cairn, MapDecorator, TrackGen et ProjetONZSM : réparé dans <span class="mono">vlp.py</span>, puis sur les cinq projets par <span class="mono">niveau</span>. Ouvert le 2026-09-23 : <span class="mono">39-reparer-pages.md</span>.</td><td class="mono">4 fiches</td><td class="mono">—</td></tr>
+          <tr><td class="mono">25</td><td>Finir les feuilles voisines — reste de <span class="mono">REP</span>, code à choisir à l'ouverture</td><td>Ce que <span class="mono">REP</span> a laissé. La ligne <span class="mono">MARKDOWN</span> de <span class="mono">vlp.py niveau</span> compte, sans <span class="mono">--ecrire</span>, la page régénérée au lieu de celle du disque : elle ne voit ni la TODO ni la zone « en cours ». La régénération abîme trois feuilles voisines : TODO de MapDecorator hors table, donc lue vide ; lettres de fiche entre backticks ignorées ; source de TrackGen sans accents. Une fois corrigées, republier MapDecorator, TrackGen et ProjetONZSM. Détail : journal du 2026-09-23.</td><td class="mono">~3 fiches</td><td class="mono">—</td></tr>
           <tr><td class="mono">26</td><td><span class="mono">ABR</span> — Mettre notes et journal à l'abri dans un <span class="mono">.md</span></td><td>Les notes et le journal d'une page de chantier n'existent aujourd'hui que dans la page. <span class="mono">page --note</span> et <span class="mono">--journal</span> écriront d'abord le texte entier dans un <span class="mono">.md</span>, et la page le recopiera.</td><td class="mono">~3 fiches</td><td class="mono">—</td></tr>
           <tr><td class="mono">27</td><td><span class="mono">ALE</span> — Essai : alléger la republication</td><td>Deux pistes, mesurées : le CSS en fichier joint, puis les données dans la base de claude.ai. Décide où vivent le CSS et les données avant <span class="mono">PLI</span> et <span class="mono">FEU</span>.</td><td class="mono">2 fiches</td><td class="mono"><span class="mono">ABR</span></td></tr>
           <tr><td class="mono">28</td><td><span class="mono">PLI</span> — La page de chantier plus courte et lisible</td><td>Chaque fiche dans un bloc repliable, le journal replié sauf ses dernières entrées, le bilan en haut d'un chantier clos. Rien n'est coupé : replié, le texte reste dans la page.</td><td class="mono">~5 fiches</td><td class="mono"><span class="mono">ABR</span>, <span class="mono">ALE</span></td></tr>
@@ -102,13 +102,19 @@
     <h2>Chantiers clos — ils ne se rejouent pas</h2>
     <!-- ZONE:clos — une ligne ajoutée à chaque clôture, la plus récente en haut -->
     <details class="clos">
-      <summary><span class="resume-clos">27 chantiers clos · ≈296,9M (296 948 021) tokens · ≈249 $</span></summary>
+      <summary><span class="resume-clos">28 chantiers clos · ≈320,1M (320 074 285) tokens · ≈268 $</span></summary>
     <div class="tableau">
       <table>
         <thead>
           <tr><th>Chantier</th><th>Fiches</th><th>Clos le</th><th>Tokens</th><th>Ce qu'il a livré</th></tr>
         </thead>
         <tbody>
+          <tr>
+            <td><a href="https://claude.ai/artifact/FApkrdZqHKoyH2y6NSzrDv">Réparer les pages publiées</a> <span class="badge" data-etat="clos">clos</span></td>
+            <td class="mono">REP1–REP4</td><td class="mono">2026-09-23</td>
+            <td class="mono">≈23,1M (23 126 264)</td>
+            <td>plus de Markdown brut ni de lien cassé sur les feuilles de route : vlp.py convertit gras, liens et chevrons, niveau compte et migre les lignes closes ; cinq feuilles à 0 · 0 · 0, Cairn republiée</td>
+          </tr>
           <tr>
             <td><a href="https://claude.ai/artifact/JjSivR23MGDLhyFJeHtD4e">Remettre les projets équipés à niveau</a> <span class="badge" data-etat="clos">clos</span></td>
             <td class="mono">NIV1–NIV4</td><td class="mono">2026-09-18</td>
@@ -301,7 +307,7 @@
           </tr>
         </tbody>
         <tfoot>
-          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈296,9M (296 948 021)</strong></td><td class="mono">≈249 $</td></tr>
+          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈320,1M (320 074 285)</strong></td><td class="mono">≈268 $</td></tr>
         </tfoot>
       </table>
     </div>

@@ -108,6 +108,16 @@
   que si l'index nomme chacun de ses fichiers, et abréger un fichier de tête reste du
   jugement, donc à la main. Les 22 et 24 sont retirés, la TODO est vide ; 21 827 897 tokens.
 
+- **2026-09-23** — chantier REP clos (TODO n° 25) : les feuilles de route ne montrent
+  plus de Markdown brut ni de lien cassé. `cellule_md` convertit gras et liens, les
+  chevrons d'une URL tombent à la lecture et à l'écriture, et `vlp.py niveau` compte le
+  Markdown brut, puis migre les lignes closes avec `--ecrire`. Les cinq feuilles sont à
+  0 · 0 · 0 ; Cairn, à 426 · 1 · 1 avant, est republiée ; les trois autres gardent leur
+  page en ligne, déjà propre. Laissé ouvert, reformulé en n° 25 : la ligne `MARKDOWN`
+  muette sans `--ecrire`, et la régénération qui abîme trois feuilles voisines. Coût par
+  fiche, repris de git parce que la page l'a perdu (une ligne `? $` ne se relit pas) :
+  REP1 2 702 105 · REP2 4 227 906 · REP3 8 584 756 · REP4 4 840 313 ; 23 126 264 tokens.
+
 ## La TODO ordonnée — les chantiers possibles
 
 C'est d'ici que `/chantier` tire ses propositions. Un chantier par entrée,
@@ -117,7 +127,7 @@ tous retirés, venaient de `12-audit.md`.
 
 | # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |
 |---|---|---|---|---|
-| 25 | `REP` — Réparer les pages publiées | Plus de Markdown brut ni de lien cassé sur les feuilles de route de Cairn, MapDecorator, TrackGen et ProjetONZSM : réparé dans `vlp.py`, puis sur les cinq projets par `niveau`. Ouvert le 2026-09-23 : `39-reparer-pages.md`. | 4 fiches | — |
+| 25 | Finir les feuilles voisines — reste de `REP`, code à choisir à l'ouverture | Ce que `REP` a laissé. La ligne `MARKDOWN` de `vlp.py niveau` compte, sans `--ecrire`, la page régénérée au lieu de celle du disque : elle ne voit ni la TODO ni la zone « en cours ». La régénération abîme trois feuilles voisines : TODO de MapDecorator hors table, donc lue vide ; lettres de fiche entre backticks ignorées ; source de TrackGen sans accents. Une fois corrigées, republier MapDecorator, TrackGen et ProjetONZSM. Détail : journal du 2026-09-23. | ~3 fiches | — |
 | 26 | `ABR` — Mettre notes et journal à l'abri dans un `.md` | Les notes et le journal d'une page de chantier n'existent aujourd'hui que dans la page. `page --note` et `--journal` écriront d'abord le texte entier dans un `.md`, et la page le recopiera. | ~3 fiches | — |
 | 27 | `ALE` — Essai : alléger la republication | Deux pistes, mesurées : le CSS en fichier joint, puis les données dans la base de claude.ai. Décide où vivent le CSS et les données avant `PLI` et `FEU`. | 2 fiches | `ABR` |
 | 28 | `PLI` — La page de chantier plus courte et lisible | Chaque fiche dans un bloc repliable, le journal replié sauf ses dernières entrées, le bilan en haut d'un chantier clos. Rien n'est coupé : replié, le texte reste dans la page. | ~5 fiches | `ABR`, `ALE` |
