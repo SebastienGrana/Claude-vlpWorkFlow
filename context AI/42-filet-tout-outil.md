@@ -135,8 +135,9 @@ vide, avant (`FIL1`) et après, en ms.
 ---
 
 <!-- FICHE:FIL3 -->
-## FIL3 [ ] — Éprouver le filet après un `Read` et après un échec, à plafond bas
+## FIL3 [x] — Éprouver le filet après un `Read` et après un échec, à plafond bas
 
+**Session** : 49006a92-4cf9-4a41-9359-6e78dfe76de7
 **Dépend de** : `FIL2`.
 **Fichiers** : `agents/fiche.md` (frontmatter) — et rien d'autre ; la commande de l'essai est
 dans l'entrée `SAG4` du journal de `context AI/08-etat.md` (2026-09-24).

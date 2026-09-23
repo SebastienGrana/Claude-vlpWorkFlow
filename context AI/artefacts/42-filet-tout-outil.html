@@ -68,9 +68,9 @@
     <p>Le sous-agent est prévenu à trois tours du plafond, quel que soit l'outil qu'il vient d'appeler, même au bout d'un chemin de plus de 260 caractères — prouvé juste après un Read, et le prix du filet mesuré.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">3 fiches · 2 faites · en cours : FIL3</p>
+    <p class="mono" style="margin-top:.5rem">3 fiches · 3 faites</p>
   </header>
 
   <section>
@@ -89,14 +89,15 @@
         <span class="note">Tests OK, code 0, trois de plus (hooks.json ; après un échec ; chemin de 280 caractères), chacun tombé quand sa correction est cassée ; claude plugin validate code 0 sur les deux manifestes ; doc de PostToolUseFailure citée au journal ; filet à vide 327 · 328 · 300 · 316 · 298 ms avant, 324 · 307 · 311 · 346 · 311 ms après.</span>
         <span class="cout mono">≈4,8M (4 769 108) · 23 tours · 4,73 $</span>
       </li>
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">FIL3</span><span class="titre">Éprouver le filet après un Read et après un échec, à plafond bas</span>
-        <span class="etat">en cours</span>
-        <span class="note">Deux essais claude -p à plafond 10 : « 3 tours restants » juste après un Read réussi, puis juste après un Bash à code non nul, chacun suivi de RETOUR sur end_turn ; chiffrés avant (≈ 0,18 $). Dépend de FIL2.</span>
+        <span class="etat">faite</span>
+        <span class="note">F1 : 8 tours, averti « 3 tours restants » après le tour 7, un Read réussi (PostToolUse:Read, l. 54) ; F2 : 8 tours, averti après un exit 3 à is_error (PostToolUseFailure:Bash, l. 59) ; chacun 1 avertissement, 7 hook_non_blocking_error pour 7 appels, RETOUR sur end_turn ; maxTurns 80 relu ; essais 0,3125 $</span>
+        <span class="cout mono">≈4,4M (4 442 051) · 36 tours · 3,84 $</span>
       </li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈30,2M (30 230 692) · 195 tours · 16,13 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈37,6M (37 558 892) · 235 tours · 23,59 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈42,0M (42 000 943) · 271 tours · 27,43 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

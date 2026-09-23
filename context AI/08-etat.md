@@ -176,6 +176,35 @@ tous retirés, venaient de `12-audit.md` ; 31 à 34, de la clôture de `REP` ; 3
 Une ligne par décision imprévue tranchée en cours de fiche — jamais un résumé
 de ce que le code dit déjà.
 
+- **2026-09-24** — FIL3 : le filet **tire** après un `Read` réussi et après un Bash à code non nul,
+  à plafond bas. `claude.exe` 2.1.280 de l'app, dans le bac `f3` du scratchpad (`CHANTIER.md`, deux
+  fiches factices : `F1` douze `Read`, `F2` douze `exit 3`) ; `maxTurns` 80 → 10 le temps des
+  essais, remis à 80 (`Read` de `agents/fiche.md:6`, `git diff` vide). Commande de SAG4 :
+  `claude -p "Appelle l'outil Skill avec skill \"vlp:jouer\" et args \"F1\", puis recopie son
+  resultat tel quel. Rien d'autre." --model haiku --max-budget-usd 1 --permission-mode acceptEdits
+  --allowedTools "Skill" --output-format stream-json --verbose` ; pour `F2`, `"F2"`,
+  `--allowedTools "Skill" "Bash"` et `< /dev/null`. Coût réel 0,3125 $, 0 refus : 0,14800575 (premier essai raté),
+  0,06411505 (`F1`), 0,10040705 (`F2`). Comptes par message.id porteurs d'`usage` et attachments.
+  `F1` (`0045d27f-a411-4e70-8344-bdf4c15cec1e/subagents/agent-a8139dad1034ad64a.jsonl`) : 8 tours,
+  7 appels (2 `PowerShell`, 5 `Read`) ; averti après le tour 7, `Read` de `n05.txt` réussi (sans
+  `is_error`, « fichier 05 »), par `PostToolUse:Read` (l. 54) : « Attention : 3 tours restants.
+  Rends ton statut maintenant — RETOUR avec ce qui est fait et ce qui reste, si la fiche n'est pas
+  finie. » ; 1 avertissement en tout ; 7 `hook_non_blocking_error` pour 7 appels ; dernier message
+  `RETOUR`, `end_turn`, dernière ligne : « ⚠️ Imprévu — tourner limité, fiche inachevée. J'ai lu
+  cinq fichiers sur douze, dans l'ordre requis. Sept restent à lire (n06.txt à n12.txt), un
+  message à la fois. » — la jauge du `CLAUDE.md` de l'utilisateur, chargé dans le sous-agent.
+  `F2` (`707b23a4-8f0b-4d1b-9101-b70c64f73bb4/subagents/agent-a6a58391ed52b8c54.jsonl`) : 8 tours,
+  7 appels (1 `Bash` de mise en route, 6 `exit 3`) ; averti après le tour 7, `exit 3` à `is_error`
+  vrai (« Exit code 3 »), par `PostToolUseFailure:Bash` (l. 59), même texte ; 1 avertissement en
+  tout ; 7 `hook_non_blocking_error` pour 7 appels (1 `PostToolUse:Bash`, 6
+  `PostToolUseFailure:Bash`) ; dernier message `RETOUR`, `end_turn`, dernière ligne : « RETOUR —
+  Appel 6/12 complété (code 3 reçu). Fiche F2 incomplète : 6 appels restants sur 12. La fiche
+  demande douze appels `exit 3` successifs, un par message, chacun retournant le code 3. Continue
+  avec les appels 7 à 12. » Imprévu : écrite « un `Read` par tour », `F1` a d'abord rendu
+  `RETOUR — Tour 1/12` après un seul `Read` (3 tours) — Haiku lit « tour » comme une exécution ;
+  « un appel par message, d'affilée, dans cette même exécution » a suffi. Sans `< /dev/null`,
+  `claude -p` attend 3 s une entrée. Chemins : 254 caractères, sous les 260 du préfixe `\\?\`,
+  que ces essais n'éprouvent pas. Reste ouvert : un `Read` raté déclenche-t-il `PostToolUseFailure` ?
 - **2026-09-24** — Après FIL2, choix de l’utilisateur : l’essai 2 de `FIL3` échoue par un Bash à
   code non nul (`exit 3`), le déclencheur documenté de `PostToolUseFailure`, et non plus par un
   `Read` sur un fichier absent, qui n’en déclenche peut-être aucun ; `Bash` en plus dans
