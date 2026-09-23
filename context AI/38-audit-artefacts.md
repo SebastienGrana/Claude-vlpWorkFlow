@@ -409,7 +409,7 @@ Total ≈ 22 à 24 fiches, ≈ 48 à 88 M tokens, soit ≈ 40 à 73 $ au tarif m
 - Signaler, sans réécrire à la main : pages 23 (bilan), 24 (hors gabarit),
   27 (enveloppe claude.ai), rangs ✅ de la TODO, accents perdus.
 - Ranger `rejeu.py` dans `scripts/`, étendu aux 5 projets équipés : c'est lui qui
-  dit « fini ». ➡️ *Changé à l'ouverture de `REP` (2026-09-23, 🟡 à valider) :
+  dit « fini ». ➡️ *Changé à l'ouverture de `REP` (2026-09-23, ✅ validé par toi) :
   `rejeu.py` code Cairn en dur ; ses trois compteurs passent dans `vlp.py niveau`
   (`39-reparer-pages.md`, REP3).*
 - **Fini quand** : sur les 5 projets, 0 `**`, 0 lien Markdown, 0 `href="&lt;`.
@@ -662,7 +662,7 @@ chaque point avant de l'intégrer.
 | # | Ce qu'il dit | Revérifié | Changement |
 |---|---|---|---|
 | 1 | La page dit « relu et validé » alors qu'une troisième relecture est en cours | 🟡 en partie : tu as validé le 2026-09-23, mais **avant** tes deux dernières questions (base de données, replier et retomber court) | page, étape 5 : « validé ; les deux dernières questions, après » ; étape 6 ajoutée |
-| 2 | Du contenu de Cairn part dans un dépôt public : une vraie note (P1), le rang 18 de sa TODO, 9 totaux de chantiers, 37 lectures datées | ✅ et plus : le dépôt de Cairn est **privé** (API GitHub, 2026-09-23 : 404 ; le kit : 200), et son dossier de contexte est hors de git (`Cairn-VlpLib/.gitignore:13`) | 🟡 **à ta décision**, avant tout push |
+| 2 | Du contenu de Cairn part dans un dépôt public : une vraie note (P1), le rang 18 de sa TODO, 9 totaux de chantiers, 37 lectures datées | ✅ et plus : le dépôt de Cairn est **privé** (API GitHub, 2026-09-23 : 404 ; le kit : 200), et son dossier de contexte est hors de git (`Cairn-VlpLib/.gitignore:13`) | ✅ **tranché par toi** (2026-09-23) : neutralisé avant le push — les extraits remplacés par des numéros de page et des exemples du kit, les comptes gardés, les 5 commits locaux réécrits |
 | 3 | « Tient en un écran » : sa mesure dit 1,09 ; et 864 px est l'écran entier, pas ce qu'on voit | ✅ | résumé : « à peine plus d'un écran » ; l'unité et sa limite écrites au § 1 |
 | 4 | « Que Claude lit en entier » n'est pas établi : le § 2.5 dit qu'une lecture peut ne rendre que le début (lecture complète : 2 fois sur 128) | ✅ | « reste dans le HTML », avec renvoi au 🟡 du § 2.5 (§ 2.6, D, page) ; la conclusion « replier ne perd rien » tient : replier ne retire rien du HTML |
 | 5 | D dit « pas de script », puis avance « Tout replier » et son script | ✅ | D : « sauf un script court » |
@@ -730,4 +730,4 @@ document.documentElement.scrollHeight / 812
 
 🟡 À ranger dans `scripts/` si le chantier A reprend `rejeu.py`. ➡️ *Non : ses
 compteurs passent dans `vlp.py niveau` (chantier `REP`, fiche REP3 ; 2026-09-23,
-🟡 à valider).*
+✅ validé par toi).*

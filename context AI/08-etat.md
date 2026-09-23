@@ -129,8 +129,18 @@ tous retirés, venaient de `12-audit.md`.
 Une ligne par décision imprévue tranchée en cours de fiche — jamais un résumé
 de ce que le code dit déjà.
 
+- **2026-09-23** — contenu de Cairn neutralisé avant le push, sur décision de
+  l'utilisateur (« Neutraliser d'abord ») : le dépôt de Cairn est privé, celui du kit
+  public. Dans l'audit (rapport, page, `39-reparer-pages.md`, `rejeu.py`, `replie.py`),
+  titres de pages et de chantiers, codes, une note de fiche, une ligne de TODO, coûts
+  par chantier et dates des lectures de Cairn deviennent des numéros de page et des
+  exemples du kit ; les comptes restent. Les 5 commits locaux sont réécrits
+  (`git filter-branch`) : 0 motif interdit dans chacun, contre 184 à 201 avant ;
+  `rejeu.py` et `replie.py` rendent les mêmes résultats.
+
 - **2026-09-23** — cadrage REP, fait sans l'utilisateur, à sa demande (« fait ce que
-  tu dois faire », avant d'aller dormir) : 🟡 à valider. Les six chantiers de l'audit
+  tu dois faire », avant d'aller dormir) : ✅ validé par l'utilisateur le jour même
+  (« Oui, les trois »). Les six chantiers de l'audit
   des pages (`38-audit-artefacts.md` § 4, A à F) entrent dans la TODO, rangs 25 à 30,
   avec des codes proposés — `REP`, `ABR`, `ALE`, `PLI`, `FEU`, `BTN` — que chaque
   ouverture peut changer. `REP` (le A) s'ouvre le premier : l'ordre de l'audit, et le

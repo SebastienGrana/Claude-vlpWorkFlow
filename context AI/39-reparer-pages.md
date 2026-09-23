@@ -61,7 +61,7 @@ Code : `scripts/vlp.py`. Tests : `scripts/test-vlp.py` — `verifier(nom, cond, 
 - L'encodage des gabarits (`meta charset`), la longueur des pages : chantiers `PLI`, `FEU`.
 - Les notes et le journal des pages de chantier : chantier `ABR`.
 - `rejeu.py` reste dans `38-audit-scripts/` : il code Cairn en dur. Ses compteurs
-  passent dans `niveau` — choix du cadrage, 🟡 à valider.
+  passent dans `niveau` — choix du cadrage, ✅ validé le 2026-09-23.
 
 ## L'ordre des fiches
 
