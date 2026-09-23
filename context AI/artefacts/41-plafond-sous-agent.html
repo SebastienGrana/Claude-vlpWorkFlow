@@ -68,9 +68,9 @@
     <p>Une fiche de code jouée par /vlp:enchainer va au bout ; prévenu avant la coupe, le sous-agent rend toujours son statut ; son coût, sous-agent compris, est posé à côté de la main et de Q recompté.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">5 fiches · 1 faite · en cours : SAG2</p>
+    <p class="mono" style="margin-top:.5rem">5 fiches · 2 faites · en cours : SAG3</p>
   </header>
 
   <section>
@@ -81,16 +81,17 @@
         <span class="id">SAG1</span><span class="titre">Recompter Q, sous-agents compris</span>
         <span class="etat">faite</span>
         <span class="note">Journal du 2026-09-23 (08-etat.md) : `total_cost_usd` compte les sous-agents — doc officielle agent-sdk/cost-tracking, et `modelUsage` brut de Q4 passe 2 : Sonnet 0,2363536 $ + Haiku 0,1162213 $ = 0,3525749 $. Recompte `py scripts/mesure-tokens.py a7de44ba-a760-4634-b947-8c38f7fe25e8` : 586 452 tokens, 0,3525749 $, écart 0 → 0,176 $ par fiche annoncé = 0,176 $ recompté (293 226 tokens).</span>
-        <span class="cout mono">≈1,5M (1 522 848) · 14 tours · 1,96 $</span>
+        <span class="cout mono">≈2,0M (2 000 732) · 17 tours · 2,15 $</span>
+      </li>
+      <li class="fiche" data-etat="faite">
+        <span class="id">SAG2</span><span class="titre">Relever le plafond, et prouver qu'un hook atteint le sous-agent</span>
+        <span class="etat">faite</span>
+        <span class="note">Journal du 2026-09-23 : hook atteint le sous-agent — doc hooks + sub-agents, essai `claude -p` à 0,2789 $, 0 refus, mot témoin dans `agent-ac58853b89865a0e4.jsonl` (l. 13 et 19) ; `maxTurns` 30 → 80 (66 + 20 %) ; SAG3 seule = `/vlp:jouer SAG3` puis commit, estimé 0,3 à 1,1 $ de Haiku + le chef. SAG3 porte son bloc Prouvé par SAG2. `plugin validate` passed, `test-vlp.py` OK.</span>
+        <span class="cout mono">≈3,2M (3 225 308) · 16 tours · 2,08 $</span>
       </li>
       <li class="fiche" data-etat="encours">
-        <span class="id">SAG2</span><span class="titre">Relever le plafond, et prouver qu'un hook atteint le sous-agent</span>
-        <span class="etat">en cours</span>
-        <span class="note">Relève le plafond, et prouve par un essai qu'un hook parle au sous-agent. Après SAG1.</span>
-      </li>
-      <li class="fiche">
         <span class="id">SAG3</span><span class="titre">Prévenir le sous-agent avant qu'il soit coupé</span>
-        <span class="etat">à faire</span>
+        <span class="etat">en cours</span>
         <span class="note">Le filet : vlp.py filet prévient le sous-agent quand il lui reste peu de tours. Fiche témoin, jouée par /vlp:enchainer. Après SAG2.</span>
       </li>
       <li class="fiche">
@@ -104,7 +105,8 @@
         <span class="note">Mesure SAG3 par vlp.py cout, la compare à la main et à Q, corrige le 0,176 $ s'il le faut. Après SAG4.</span>
       </li>
     </ul>
-    <p class="mono cout-total">Coût du chantier : ≈1,5M (1 522 848) · 14 tours · 1,96 $</p>
+    <p class="mono cout-hors">Hors fiches : 0 · 0 tours · 0,00 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈5,2M (5 226 040) · 33 tours · 4,23 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -122,6 +124,7 @@
     <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
     <ul class="journal">
       <li><time datetime="2026-09-23">2026-09-23</time><span>SAG1 : `total_cost_usd` compte les sous-agents (doc : table des champs de `result`, https://code.claude.com/docs/en/agent-sdk/cost-tracking, lue le 2026-09-23 ; `usage` seul les exclut), et le 0,176 $ de Q tient : recompté 0,176 $ par fiche (0,3525749 $ ÷ 2, écart 0). Le 0,42 $ à la main se mesure pareil (`total_cost_usd`, Sonnet seul, 0,4237932 $) mais sur 1 fiche + clôture, contre (2 fiches + clôture) ÷ 2. Réserve : Q4 passe 1, 595 tokens de sortie Haiku de moins par `mesure-tokens.py` (0,0030 $), cause non établie.</span></li>
+      <li><time datetime="2026-09-23">2026-09-23</time><span>SAG2 : un hook de plugin (`hooks/hooks.json`) atteint le sous-agent — le `hooks` du frontmatter est ignoré pour un sous-agent de plugin (doc sub-agents, lue le 2026-09-23). Essai : mot témoin injecté par `PostToolUse`, reçu et recopié par Haiku (0,2789 $, estimé 0,15). Surprise : `transcript_path` est la transcription du chef ; celle du sous-agent se retrouve par `agent_id`. `maxTurns` 30 → 80 : 66 tours à la main + 20 %.</span></li>
     </ul>
   </section>
 

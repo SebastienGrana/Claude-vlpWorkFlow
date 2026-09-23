@@ -160,6 +160,24 @@ au-delà, de celle de `CPT`.
 Une ligne par décision imprévue tranchée en cours de fiche — jamais un résumé
 de ce que le code dit déjà.
 
+- **2026-09-23** — SAG2 : un hook **atteint** le sous-agent. Doc, lue ce jour : un hook de
+  plugin tourne dans le sous-agent, entrée marquée `agent_id` et `agent_type`
+  (https://code.claude.com/docs/en/hooks) ; le `hooks` du frontmatter est « Ignored for plugin
+  subagents » (https://code.claude.com/docs/en/sub-agents) — d'où `hooks/hooks.json`. Essai :
+  `claude -p` 2.1.280, copie `vlpt` du plugin dans le scratchpad, hook `PostToolUse` qui injecte
+  un mot absent du prompt ; 0,2789 $ (estimé 0,15), 0 refus. Le hook tire sur le `Read` du
+  sous-agent (`agent_type` = `vlpt:fiche`) ; sa transcription
+  `c14a8967-daef-4383-8cae-d7f63942ade2/subagents/agent-ac58853b89865a0e4.jsonl` porte
+  `hook_additional_context` (l. 13), puis la réponse de Haiku : « ORNITHORYNQUE-SAG2 » (l. 19).
+  `transcript_path` est celle du chef. **`maxTurns` 30 → 80** : 66 tours, le plus haut compte
+  connu à la main (`CLAUDE.md`), + 20 % = 79,2 ; quatre des cinq sous-agents de REP, coupés à
+  30, n'avaient pas fini. SAG3 seule : `/vlp:enchainer` ne se borne pas (argument : rien ou un
+  alias ; plafond 5 fiches), donc, dans une session neuve ou après `/reload-plugins`,
+  `/vlp:jouer SAG3` — le maillon que l'enchaîneur appelle —, puis le commit `SAG3 : …` qu'il
+  ferait (`skills/enchainer/SKILL.md:68`). Coût estimé : 0,3 à 1,1 $ de Haiku — 30 à 80 tours
+  à 0,010–0,014 $, le prix par tour des sous-agents de REP
+  (`py scripts/mesure-tokens.py da8e3b04-adf4-426a-a7b1-3087bacb5724`) —, plus le chef.
+
 - **2026-09-23** — SAG1 : `total_cost_usd` **compte les sous-agents**, et le 0,176 $ de Q
   tient. Doc : « Included. Counts subagent requests alongside the top-level loop » — table
   de https://code.claude.com/docs/en/agent-sdk/cost-tracking, lue ce jour ; `usage` seul les

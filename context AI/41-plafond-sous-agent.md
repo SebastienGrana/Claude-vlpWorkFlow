@@ -102,8 +102,9 @@ la commande qui l'a produit.
 ---
 
 <!-- FICHE:SAG2 -->
-## SAG2 [ ] — Relever le plafond, et prouver qu'un hook atteint le sous-agent
+## SAG2 [x] — Relever le plafond, et prouver qu'un hook atteint le sous-agent
 
+**Session** : 1cba232a-94a5-4599-9fce-b381f08f8a01
 **Dépend de** : `SAG1`.
 **Fichiers** : `agents/fiche.md`, `hooks/hooks.json`, `skills/enchainer/SKILL.md`
 (par grep : comment borner le nombre de fiches), le journal de
@@ -165,6 +166,12 @@ par SAG2** ci-dessous a établie.
 - Ajoute `filet` à la docstring de `vlp.py`, avec les autres sous-commandes.
 - Le test : une transcription factice donne l'avertissement au bon tour, et rien
   avant ; hors sous-agent, rien.
+
+**Prouvé par SAG2** (essai du 2026-09-23, détail au journal de `context AI/08-etat.md`) :
+- Hook : `PostToolUse` dans `hooks/hooks.json` — le `hooks` du frontmatter est ignoré pour un sous-agent de plugin ; il rend `hookSpecificOutput.additionalContext` comme `cmd_hook` (`scripts/vlp.py:681`), et le sous-agent le reçoit.
+- Entrée : `agent_type` = `<plugin>:fiche` (`vlp:fiche` ; `vlpt:fiche` dans l'essai) et `agent_id`, tous deux absents hors sous-agent ; `transcript_path` est la transcription du **chef**.
+- Tours : dans `<transcript_path sans .jsonl>/subagents/agent-<agent_id>.jsonl`, un tour = un `message.id` distinct des lignes `assistant` (les `tours` de `mesure-tokens.py`) ; écrite en différé, elle peut manquer le tour en cours.
+- Test : `scripts/test-vlp.py`, lancé par `py scripts/test-vlp.py` (« OK »).
 
 **Critère de fin**
 La commande de test du bloc passe, nombre de cas cité ; le hook est câblé ; la
