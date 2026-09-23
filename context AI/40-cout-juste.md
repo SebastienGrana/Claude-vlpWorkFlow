@@ -8,7 +8,9 @@
 se relit pas, Opus 5.5 sans prix, des sous-agents jamais lus. `CPT` coupe chaque session aux
 heures des commits de fiche, sous-agents compris, et `vlp.py cout` le montre fiche par fiche.
 
-**Fait.** Rien. Ouvert le 2026-09-23, cadré en 4 fiches, `CPT1` à jouer.
+**CLOS** le 2026-09-23. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** CPT1..CPT4 (2026-09-23) : vlp.py cout et la page coupent chaque session aux commits de fiche, sous-agents compris, avec une ligne hors fiches ; Opus 5.5 a son prix, une ligne ? $ se relit.
 
 ## Le socle commun
 

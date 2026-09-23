@@ -124,6 +124,14 @@
   +8 161 098 (REP2 2, REP3 3) ; la clôture comptée jusqu'à son dernier commit, +4 709 099
   hors fiches — elle n'était pas dans REP4.
 
+- **2026-09-23** — chantier CPT clos (TODO n° 31) : un coût juste, fiche par fiche.
+  `vlp.py cout` et la page coupent chaque session aux commits de fiche, sous-agents
+  compris, avec une ligne « hors fiches » ; `claude-opus-5-5` a son prix, une ligne `? $`
+  se relit, et `mesurer` lit les chemins de 260 caractères. REP recompté : 23 126 264 →
+  35 996 461 tokens (renvoi ci-dessus). Laissé ouvert : le total d'une clôture ne compte
+  pas la clôture en cours, faute de commit ; un tour d'une session après le commit de sa
+  fiche compte à la suivante. 19 266 526 tokens.
+
 ## La TODO ordonnée — les chantiers possibles
 
 C'est d'ici que `/chantier` tire ses propositions. Un chantier par entrée,
@@ -133,9 +141,8 @@ tous retirés, venaient de `12-audit.md` ; 31 à 34, de la clôture de `REP`.
 
 | # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |
 |---|---|---|---|---|
-| 31 | `CPT` — Un coût juste, fiche par fiche et sous-agents compris | Trois trous vus à la clôture de `REP`. `COUT` ne relit pas la ligne `? $` qu'écrit `ligne_cout` : à chaque régénération, la page perd le coût des fiches précédentes d'une session partagée — celui de `REP1` à `REP3`, repris de git. `claude-opus-5-5` manque à la grille de `mesure-tokens.py` : `usd` vaut `?`, prix à prendre sur la doc officielle. `cout` et `page` ne lisent pas `subagents/agent-*.jsonl` : 8 161 098 tokens · 1,69 $ hors du total de `REP`. Piste : couper la session aux heures des commits de chaque fiche — le coût par fiche ne dépend plus de l'ancienne page. | ~2 fiches | — |
-| 32 | `SAG` — Le sous-agent ne bute plus sur 30 tours | `vlp:fiche` s'arrête à `maxTurns: 30` sans rendre de statut : quatre fois sur `REP2` et `REP3` (journal du 2026-09-23). Relever le plafond, ou lui faire écrire son statut avant, puis rejouer une fiche de code par `/vlp:enchainer` et mesurer, sous-agent compris. | ~2 fiches | `CPT` |
-| 33 | `TAR` — Un test aller-retour par format écrit | Deux fois le même défaut dans `REP` : les chevrons d'une URL (`REP2`), puis la ligne `? $` (`CPT`) — `vlp.py` écrit un format qu'il ne sait pas relire. Un test écrit puis relit chaque format : ligne de coût, ligne close, rang de TODO, zone « en cours ». | ~2 fiches | `CPT` |
+| 32 | `SAG` — Le sous-agent ne bute plus sur 30 tours | `vlp:fiche` s'arrête à `maxTurns: 30` sans rendre de statut : quatre fois sur `REP2` et `REP3` (journal du 2026-09-23). Relever le plafond, ou lui faire écrire son statut avant, puis rejouer une fiche de code par `/vlp:enchainer` et mesurer, sous-agent compris. | ~2 fiches | — |
+| 33 | `TAR` — Un test aller-retour par format écrit | Deux fois le même défaut dans `REP` : les chevrons d'une URL (`REP2`), puis la ligne `? $` (`CPT`) — `vlp.py` écrit un format qu'il ne sait pas relire. Un test écrit puis relit chaque format : ligne de coût, ligne close, rang de TODO, zone « en cours ». | ~2 fiches | — |
 | 34 | `VAL` — Le contrôle avant commit ne se saute plus | À chaque commit du 2026-09-23 : « pre-commit : claude introuvable dans le PATH, validate sauté ». Le hook cherchera aussi le `claude.exe` de l'app, comme le fait `34-agent-sans-git.md`. | ~1 fiche | — |
 | 25 | `VOI` — Finir les feuilles voisines, reste de `REP` | Ce que `REP` a laissé. La ligne `MARKDOWN` de `vlp.py niveau` compte, sans `--ecrire`, la page régénérée au lieu de celle du disque : elle ne voit ni la TODO ni la zone « en cours ». La régénération abîme trois feuilles voisines : TODO de MapDecorator hors table, donc lue vide ; lettres de fiche entre backticks ignorées ; source de TrackGen sans accents. Une fois corrigées, republier MapDecorator, TrackGen et ProjetONZSM. Détail : journal du 2026-09-23. | ~3 fiches | — |
 | 26 | `ABR` — Mettre notes et journal à l'abri dans un `.md` | Les notes et le journal d'une page de chantier n'existent aujourd'hui que dans la page. `page --note` et `--journal` écriront d'abord le texte entier dans un `.md`, et la page le recopiera. | ~3 fiches | — |
