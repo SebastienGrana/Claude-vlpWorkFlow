@@ -190,8 +190,9 @@ fiche et une ligne « hors fiches » dont la somme égale le total affiché — 
 ---
 
 <!-- FICHE:CPT4 -->
-## CPT4 [ ] — Montrer le coût fiche par fiche dans `vlp.py cout`, et recalculer REP
+## CPT4 [x] — Montrer le coût fiche par fiche dans `vlp.py cout`, et recalculer REP
 
+**Session** : 834d2ba1-31ad-4918-9af3-373e66606173
 **Dépend de** : `CPT3`.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py`, `skills/tache/SKILL.md` (§ 6 bis),
 `cloture.md` (le total du bilan), `context AI/08-etat.md` (bilan de REP) — et rien d'autre.

@@ -117,6 +117,12 @@
   muette sans `--ecrire`, et la régénération qui abîme trois feuilles voisines. Coût par
   fiche, repris de git parce que la page l'a perdu (une ligne `? $` ne se relit pas) :
   REP1 2 702 105 · REP2 4 227 906 · REP3 8 584 756 · REP4 4 840 313 ; 23 126 264 tokens.
+  ↳ **Recompté le 2026-09-23 par CPT4** (`vlp.py cout`, coupé aux commits de fiche,
+  sous-agents compris) : REP1 3 211 466 · REP2 4 539 690 · REP3 16 480 389 · REP4
+  4 889 837 · hors fiches 6 875 079 ; 35 996 461 tokens · 20,61 $. Trois causes : une fiche
+  finit à son commit, non plus à sa mesure (REP2 −2 362 507, passés à REP3) ; 5 sous-agents,
+  +8 161 098 (REP2 2, REP3 3) ; la clôture comptée jusqu'à son dernier commit, +4 709 099
+  hors fiches — elle n'était pas dans REP4.
 
 ## La TODO ordonnée — les chantiers possibles
 
@@ -142,6 +148,12 @@ tous retirés, venaient de `12-audit.md` ; 31 à 34, de la clôture de `REP`.
 
 Une ligne par décision imprévue tranchée en cours de fiche — jamais un résumé
 de ce que le code dit déjà.
+
+- **2026-09-23** — CPT4 : l'« avant » de REP4 (4 840 313) ne contenait pas la clôture : la
+  page à son commit dit 20 355 080, la somme des quatre fiches ; la clôture était dans les
+  2 771 184 « à aucune fiche ». Le total d'une clôture ne compte plus la clôture en cours,
+  faute de commit après la dernière fiche. Et `cout` arrondit session et sous-agents au
+  centime chacun, pour que chaque ligne s'additionne : REP 20,63 → 20,61 $.
 
 - **2026-09-23** — CPT2 : un sous-agent écrit un `output_tokens` provisoire (1, 2…) sur les
   lignes d'un tour avant la dernière, qui porte le compte final (144 cas sur 144, les 5

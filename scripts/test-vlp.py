@@ -432,12 +432,16 @@ with tempfile.TemporaryDirectory() as t:
     transcript(os.path.join(t, "s", "subagents", "agent-a1.jsonl"), 2, [T0 + 450, T0 + 460])
     for d in (avec, sans):
         ecrire(os.path.join(d, "q.md"), QFICHES % (sq, sq))
-    h = mod.heures_commits(os.path.join(sans, "q.md"), ["Q1", "Q2"])
-    verifier("heures_commits : sans .git, rien", h is None, h)
+    pourquoi = []
+    h = mod.heures_commits(os.path.join(sans, "q.md"), ["Q1", "Q2"], pourquoi)
+    verifier("heures_commits : sans .git, rien, et pourquoi", h is None and len(pourquoi) == 1
+             and pourquoi[0].startswith(("git log en échec : ", "git ne se lance pas : ")), (h, pourquoi))
     mod.GIT = "git-absent-vlp"
-    h = mod.heures_commits(os.path.join(sans, "q.md"), ["Q1", "Q2"])
+    pourquoi = []
+    h = mod.heures_commits(os.path.join(sans, "q.md"), ["Q1", "Q2"], pourquoi)
     mod.GIT = "git"
-    verifier("heures_commits : sans git, rien — jamais un traceback", h is None, h)
+    verifier("heures_commits : sans git, rien — jamais un traceback", h is None
+             and pourquoi[0].startswith("git ne se lance pas : "), (h, pourquoi))
     if not shutil.which("git"):
         print("SAUTÉ: git absent — la découpe aux commits n'est pas testée")
     else:
@@ -477,6 +481,38 @@ with tempfile.TemporaryDirectory() as t:
                  and html.count('<span class="cout mono">≈200,0k (200 000) · 2 tours · 1,00 $</span>') == 2
                  and '<p class="mono cout-hors">' not in html
                  and "Coût du chantier : ≈600,0k (600 000) · 6 tours · 3,00 $" in html, s + html)
+        pourquoi = []
+        h = mod.heures_commits(os.path.join(avec, "q.md"), ["Z1"], pourquoi)
+        verifier("heures_commits : aucun commit de fiche, et pourquoi", h is None
+                 and pourquoi == ["aucun commit « Z1 : » ni d'une autre fiche"], (h, pourquoi))
+        # cout : la découpe de la page, en détail — la somme d'abord, puis session + sous-agents.
+        q = os.path.join(avec, "q.md")
+        code, s = appel(["cout", q])
+        attendu = ("DÉCOUPE aux commits de fiche — une fiche va du commit d'avant au sien, un sous-agent compte à son départ\n"
+                   "Q1 · ≈200,0k (200 000) · 2 tours · 1,00 $ = session ≈200,0k (200 000) · 2 tours · 1,00 $ + 0 sous-agent\n"
+                   "Q2 · ≈300,0k (300 000) · 3 tours · 1,50 $ = session ≈100,0k (100 000) · 1 tours · 0,50 $"
+                   " + 1 sous-agent ≈200,0k (200 000) · 2 tours · 1,00 $\n"
+                   "hors fiches · ≈200,0k (200 000) · 2 tours · 1,00 $ = session ≈200,0k (200 000) · 2 tours · 1,00 $"
+                   " + 0 sous-agent\n"
+                   "TOTAL (fiches + hors fiches) · ≈700,0k (700 000) · 7 tours · 3,50 $ = session ≈500,0k (500 000)"
+                   " · 5 tours · 2,50 $ + 1 sous-agent ≈200,0k (200 000) · 2 tours · 1,00 $\n")
+        verifier("cout coupé aux commits : une ligne par fiche, hors fiches, TOTAL", code == 0 and s == attendu, s)
+        verifier("cout : triplet relit la somme de chaque ligne, celle de la page",
+                 [mod.triplet(l)[:2] for l in s.splitlines()[1:]] == [(200000, 2), (300000, 3), (200000, 2), (700000, 7)], s)
+        garde_env = dict(os.environ)
+        os.environ["CLAUDE_CODE_SESSION_ID"] = sq
+        try:
+            code, s = appel(["cout", q, "--session"])
+        finally:
+            os.environ.clear()
+            os.environ.update(garde_env)
+        verifier("cout --session : la table de la session, puis la découpe", code == 0
+                 and s.startswith("SESSION=%s\nfichier\t" % sq) and "\nagent-a1.jsonl\t" in s
+                 and s.endswith("\n" + attendu), s)
+        code, s = appel(["cout", os.path.join(sans, "q.md")])
+        verifier("cout sans .git : la table d'avant, sous la raison", code == 0
+                 and s.startswith("DÉCOUPE aucune — git log en échec : ") and "\ns.jsonl\t" in s
+                 and "\nagent-a1.jsonl\t" in s and "\nTOTAL\t" in s, s)
 
 
 # --- hook : le PostToolUse du plugin -----------------------------------------
@@ -732,10 +768,11 @@ with tempfile.TemporaryDirectory() as t:
     try:
         code, s = appel(["cout", f])
         verifier("cout : toutes les sessions du fichier, un total", code == 0 and "aaa.jsonl\t" in s and "bbb.jsonl\t" in s
-                 and "ccc.jsonl\t" not in s and s.count("TOTAL\t") == 1, s)
+                 and "ccc.jsonl\t" not in s and s.count("TOTAL\t") == 1 and s.startswith("DÉCOUPE aucune — "), s)
         code, s = appel(["cout", f, "--session"])
         verifier("cout --session : la session seule, puis le cumul", code == 0 and s.startswith("SESSION=ccc\nfichier\t")
-                 and s.split("TOTAL\t")[0].count("ccc.jsonl\t") == 3 and s.count("TOTAL\t") == 1, s)
+                 and s.split("TOTAL\t")[0].count("ccc.jsonl\t") == 3 and s.count("TOTAL\t") == 1
+                 and s.count("\nDÉCOUPE aucune — ") == 1, s)
         os.environ["CLAUDE_CODE_SESSION_ID"] = ""
         verifier("cout --session : id vide, rien mesuré", appel(["cout", f, "--session"]) == (0, "SESSION=\n"), appel(["cout", f, "--session"]))
     finally:

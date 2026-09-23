@@ -15,8 +15,9 @@ Des fiches restent non cochées (clôture décidée, pas atteinte) : elles sont
 
 Avant d'écrire la ligne de bilan, si `${CLAUDE_PLUGIN_ROOT}/scripts/mesure-tokens.py`
 existe et que le fichier de fiches qu'on clôture porte des lignes
-`**Session**` : appelle le script sur toutes, et garde le total brut, sans
-arrondi (règle des comptes bruts : `methode-chantier.md`). Sinon, pas de total.
+`**Session**` : appelle le script sur toutes, et garde le total brut de la ligne
+`TOTAL` — fiches, hors fiches et sous-agents compris —, sans arrondi (règle des
+comptes bruts : `methode-chantier.md`). Sinon, pas de total.
 
 ```bash
 <python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" cout "<fichier de fiches>"

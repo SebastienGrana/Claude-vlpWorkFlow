@@ -133,10 +133,10 @@ chose d'imprévu — une piste échouée qui vaut au-delà de la fiche y va auss
 
 Un bloc « **Tentatives** » dans la fiche : ajoute à `cocher` l'option
 `--resolu "<ce qui a marché>"`. `COCHÉ … · Session absente` : dis-le. La
-première table est le coût de la session, la seconde le cumul du chantier ;
-affiche-les brutes. Puis publie comme le dit `tache-page.md`, lu à l'étape 1 —
-ou, si « **artefact du chantier** » vaut « aucun », saute la dernière ligne du
-bloc et dis-le en une ligne.
+table est le coût de la session ; les lignes suivantes, celui du chantier par
+fiche, puis hors fiches et `TOTAL` ; affiche-les brutes. Puis publie comme le
+dit `tache-page.md`, lu à l'étape 1 — ou, si « **artefact du chantier** » vaut
+« aucun », saute la dernière ligne du bloc et dis-le en une ligne.
 
 Le travail écrit, **commite sans demander** (`methode-chantier.md`) :
 

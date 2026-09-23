@@ -373,26 +373,46 @@ def cmd_sessions(chemin, sortie):
 
 
 def cmd_cout(chemin, session, sortie):
-    """`mesure-tokens.py` sur les sessions du fichier, sans `tr` ni `xargs` : les
-    commandes du kit tournent aussi sous PowerShell (chantier Y)."""
+    """Le coût du fichier de fiches, coupé aux commits comme la page : une ligne par fiche
+    (`ligne_parts`), puis hors fiches, puis `TOTAL`. Sans heures de commit, les tables
+    brutes de `mesure-tokens.py` sur les sessions entières, sous une ligne qui dit pourquoi.
+    `--session` met d'abord la table de la session courante, pour `/vlp:tache`. Sans `tr` ni
+    `xargs` : les commandes du kit tournent aussi sous PowerShell (chantier Y)."""
     import contextlib
-    ids = sessions_de(lignes_de(chemin))
-    tables = []
+    lignes = lignes_de(chemin)
+    ids = sessions_de(lignes)
+    code = 0
     if session:
         s = os.environ.get("CLAUDE_CODE_SESSION_ID", "").strip()
         sortie.write("SESSION=%s\n" % s)
         if not s:
             return 0
-        tables = [[s], [s] + [i for i in ids if i != s]]
-    elif ids:
-        tables = [ids]
-    else:
+        with contextlib.redirect_stdout(sortie):
+            code = mesure().main([s]) or 0
+        ids = [s] + [i for i in ids if i != s]
+    elif not ids:
         sortie.write("SESSIONS 0 — pas de total\n")
         return 0
-    code = 0
-    for argv in tables:
+    fiches_ = fiches_du_fichier(lignes)
+    pourquoi, gardes = [], []
+    heures = heures_commits(chemin, [f[0] for f in fiches_], pourquoi)
+    decoupe = heures and parts_aux_commits(fiches_, heures, gardes)
+    for g in gardes:
+        sortie.write(g + "\n")
+    if not decoupe:
+        if heures:
+            pourquoi.append("aucune session de fiche mesurée")
+        sortie.write("DÉCOUPE aucune — %s : sessions entières, sous-agents compris\n" % pourquoi[0])
         with contextlib.redirect_stdout(sortie):
-            code = mesure().main(argv) or code
+            return mesure().main(ids) or code
+    parts, hors = decoupe
+    sortie.write("DÉCOUPE aux commits de fiche — une fiche va du commit d'avant au sien, "
+                 "un sous-agent compte à son départ\n")
+    for ident, s_, a_ in parts:
+        sortie.write(ligne_parts(ident, s_, a_) + "\n")
+    sortie.write(ligne_parts("hors fiches", *hors) + "\n")
+    sortie.write(ligne_parts("TOTAL (fiches + hors fiches)", plus(*[p[1] for p in parts], hors[0]),
+                             plus(*[p[2] for p in parts], hors[1])) + "\n")
     return code
 
 
@@ -783,20 +803,25 @@ COMMIT_FICHE = re.compile(r"^([A-Z]{1,3}[0-9]+) :")
 INFINI = float("inf")
 
 
-def heures_commits(fichier, ids):
+def heures_commits(fichier, ids, pourquoi=None):
     """({id: heure}, [heures]) en secondes UTC, lus par `git log` dans le dossier du
     fichier : l'heure d'auteur du commit `<id> :` de chaque fiche — le plus ancien s'il y
     en a deux —, et celles de tous les commits qui nomment le préfixe (`REP`, `REP2`…).
-    None sans `git`, sans dépôt ou sans commit de fiche : le repli, jamais un traceback."""
+    None sans `git`, sans dépôt ou sans commit de fiche : le repli, jamais un traceback —
+    et sa raison, ajoutée à la liste `pourquoi` si on en donne une."""
     import subprocess
+    pourquoi = [] if pourquoi is None else pourquoi
     if not ids:
+        pourquoi.append("aucune fiche au fichier")
         return None
     try:
         r = subprocess.run([GIT, "log", "--format=%at %s"], cwd=os.path.dirname(os.path.abspath(fichier)),
                            capture_output=True, encoding="utf-8", errors="replace", timeout=60)
-    except (OSError, subprocess.SubprocessError):
+    except (OSError, subprocess.SubprocessError) as e:
+        pourquoi.append("git ne se lance pas : %s" % e)
         return None
     if r.returncode:
+        pourquoi.append("git log en échec : %s" % ((r.stderr or "").strip().splitlines() or ["code %d" % r.returncode])[0])
         return None
     nomme = re.compile(r"(?<![A-Za-z0-9])(?:%s)[0-9]*(?![A-Za-z0-9])"
                        % "|".join(sorted({PREFIXE.match(i).group(0) for i in ids})))
@@ -810,7 +835,10 @@ def heures_commits(fichier, ids):
         c = COMMIT_FICHE.match(sujet)
         if c and c.group(1) in ids:
             commits[c.group(1)] = min(int(heure), commits.get(c.group(1), int(heure)))
-    return (commits, sorted(prefixe)) if commits else None
+    if not commits:
+        pourquoi.append("aucun commit « %s : » ni d'une autre fiche" % ids[0])
+        return None
+    return commits, sorted(prefixe)
 
 
 def plages(fiches_, heures, gardes):
@@ -836,10 +864,12 @@ def plages(fiches_, heures, gardes):
     return rendu, [p for p in ((-INFINI, rendu[0][1][0]), (rendu[-1][1][1], fin)) if p[0] < p[1]]
 
 
-def couts_aux_commits(fiches_, heures, gardes):
-    """`couts` coupé aux commits : chaque fiche qui a une plage la prend dans chaque session
-    et ses sous-agents (la plage de `mesurer`) ; le reste fait « hors fiches ». Chaque part
-    est arrondie au centime et total = fiches + hors fiches : la page s'additionne."""
+def parts_aux_commits(fiches_, heures, gardes):
+    """([(id, session, sous-agents)], (session, sous-agents) hors fiches), ou None sans
+    transcript mesurable. Chaque fiche qui a une plage la prend dans chaque session et ses
+    sous-agents (la plage de `mesurer`) ; le reste fait « hors fiches ». Une part vaut
+    (total, tours, usd, n) — n : les transcripts qui y ont un tour —, usd arrondi au
+    centime : tout s'additionne, dans `cout` comme sur la page."""
     from decimal import ROUND_HALF_UP, Decimal
     m = mesure()
     sessions, fichiers = [], []
@@ -850,30 +880,56 @@ def couts_aux_commits(fiches_, heures, gardes):
         if erreur:
             gardes.append("GARDE: session non mesurée : %s — %s" % (s, erreur))
             continue
-        fichiers += [chemin] + m.sous_agents(chemin)
+        fichiers += [(chemin, 0)] + [(a, 1) for a in m.sous_agents(chemin)]    # 0 : session, 1 : sous-agent
     if not fichiers:
-        return {}, None, None
+        return None
     par_fiche, trous = plages(fiches_, heures, gardes)
 
-    def somme(bornes):
-        total, tours, usd = 0, 0, Decimal(0)
-        for chemin in fichiers:
+    def part(bornes):
+        rendu = [[0, 0, Decimal(0), 0], [0, 0, Decimal(0), 0]]
+        for chemin, sorte in fichiers:
+            p, tours = rendu[sorte], 0
             for plage in bornes:
                 r, erreur = m.mesurer(chemin, plage)
                 if erreur:
                     g = "GARDE: transcript non mesuré : %s — %s" % (chemin, erreur)
                     gardes.extend([] if g in gardes else [g])
                     continue
-                total, tours = total + r["total"], tours + r["tours"]
-                usd = None if usd is None or r["usd_exact"] is None else usd + r["usd_exact"]
-        return total, tours, None if usd is None else usd.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+                p[0], p[1], tours = p[0] + r["total"], p[1] + r["tours"], tours + r["tours"]
+                p[2] = None if p[2] is None or r["usd_exact"] is None else p[2] + r["usd_exact"]
+            p[3] += 1 if tours else 0
+        return tuple((t, n, None if u is None else u.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP), k)
+                     for t, n, u, k in rendu)
 
-    parts = {ident: somme([p]) for ident, p in par_fiche}
-    hors = somme(trous)
-    tout = list(parts.values()) + [hors]
-    usd = None if any(u is None for _, _, u in tout) else sum(u for _, _, u in tout)
-    return ({ident: ligne_cout(*v) for ident, v in parts.items()},
-            (sum(t for t, _, _ in tout), sum(n for _, n, _ in tout), usd), hors)
+    return [(ident,) + part([p]) for ident, p in par_fiche], part(trous)
+
+
+def plus(*parts):
+    """La somme de parts (total, tours, usd, n) ; usd None dès qu'un prix manque."""
+    usd = None if any(p[2] is None for p in parts) else sum(p[2] for p in parts)
+    return sum(p[0] for p in parts), sum(p[1] for p in parts), usd, sum(p[3] for p in parts)
+
+
+def ligne_parts(nom, session, agents):
+    """`<nom> · <somme> = session <…> + <n> sous-agents <…>` : une ligne de `cout` qui nomme
+    ce qu'elle compte. La somme d'abord : c'est le nombre de la page, et `triplet` la relit."""
+    n = agents[3]
+    return "%s · %s = session %s + %s" % (
+        nom, ligne_cout(*plus(session, agents)[:3]), ligne_cout(*session[:3]),
+        "%d sous-agent%s %s" % (n, "s" if n > 1 else "", ligne_cout(*agents[:3])) if n else "0 sous-agent")
+
+
+def couts_aux_commits(fiches_, heures, gardes):
+    """`couts` coupé aux commits (`parts_aux_commits`) : une ligne par fiche, session et
+    sous-agents sommés ; « hors fiches » à part, et total = fiches + hors fiches."""
+    decoupe = parts_aux_commits(fiches_, heures, gardes)
+    if decoupe is None:
+        return {}, None, None
+    parts, hors = decoupe
+    sommes = {ident: plus(s, a) for ident, s, a in parts}
+    hors = plus(*hors)
+    return ({ident: ligne_cout(*v[:3]) for ident, v in sommes.items()},
+            plus(*sommes.values(), hors)[:3], hors[:3])
 
 
 def couts(fiches_, anciens, ancien_total, gardes, heures=None):
