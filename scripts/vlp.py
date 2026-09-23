@@ -668,7 +668,9 @@ SEUIL_PAGE = 250
 GABARIT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "templates", "artefact-chantier.html")
 LI_FICHE = re.compile(r'[ \t]*<li class="fiche"[^>]*>.*?</li>\n?', re.S)
 UL_FICHES = re.compile(r'(<ul class="fiches">)(.*?)(\n[ \t]*</ul>)', re.S)
-COUT = re.compile(r"\((\d[\d ]*)\) · (\d+) tours · ([\d,]+) \$")
+# Relit tout ce que `ligne_cout` écrit : le total entre parenthèses, ou nu sous
+# 1 000 (`arrondi`) ; le prix, ou `?` quand il manque.
+COUT = re.compile(r"(?:\((\d[\d ]*)\)|(\d+)) · (\d+) tours · ([\d,]+|\?) \$")
 _mesure = None
 
 
@@ -759,12 +761,19 @@ def etats(fiches_, anciens):
 
 
 def triplet(texte):
-    """(total, tours, usd) lus sur une ligne de coût affichée, ou None."""
+    """(total, tours, usd) lus sur une ligne de coût affichée, ou None ; usd
+    vaut None sur `? $`."""
     c = texte and COUT.search(texte)
     if not c:
         return None
     from decimal import Decimal
-    return int(c.group(1).replace(" ", "")), int(c.group(2)), Decimal(c.group(3).replace(",", "."))
+    usd = None if c.group(4) == "?" else Decimal(c.group(4).replace(",", "."))
+    return int((c.group(1) or c.group(2)).replace(" ", "")), int(c.group(3)), usd
+
+
+def moins(a, b):
+    """a − b, ou None si l'un manque : un prix inconnu le reste."""
+    return None if a is None or b is None else a - b
 
 
 def couts(fiches_, anciens, ancien_total, gardes):
@@ -791,7 +800,7 @@ def couts(fiches_, anciens, ancien_total, gardes):
     for ident in anciens:
         c = triplet(anciens[ident][2])
         if base and c:
-            base = (base[0] - c[0], base[1] - c[1], base[2] - c[2])
+            base = (base[0] - c[0], base[1] - c[1], moins(base[2], c[2]))
     partagees = [s for s in mesures if mesures[s] and sum(1 for f in fiches_ if s in f[3]) > 1]
     if not base or len(partagees) != 1 or base[0] < 0 or base[1] < 0:
         base = (0, 0, 0)
@@ -803,7 +812,7 @@ def couts(fiches_, anciens, ancien_total, gardes):
         total, tours, usd = r["total"], r["tours"], r["usd_exact"]
         if len(porteurs) > 1:
             total, tours = total - base[0], tours - base[1]
-            usd = None if usd is None else usd - base[2]
+            usd = moins(usd, base[2])
         for ident in porteurs[:-1]:
             ancien = anciens.get(ident, (None, None, None))[2]
             c = triplet(ancien)
@@ -813,7 +822,7 @@ def couts(fiches_, anciens, ancien_total, gardes):
                 continue
             rendu[ident] = ancien
             total, tours = total - c[0], tours - c[1]
-            usd = None if usd is None else usd - c[2]
+            usd = moins(usd, c[2])
         rendu[porteurs[-1]] = ligne_cout(total, tours, usd)
     mesurees = [r for r in mesures.values() if r]
     if not mesurees:

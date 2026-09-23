@@ -89,8 +89,9 @@ attend `CPT3`.
 ---
 
 <!-- FICHE:CPT1 -->
-## CPT1 [ ] — Donner un prix à Opus 5.5, et relire la ligne `? $`
+## CPT1 [x] — Donner un prix à Opus 5.5, et relire la ligne `? $`
 
+**Session** : fc426e27-cf5c-499f-b5fb-34f4243ecd34
 **Dépend de** : rien.
 **Fichiers** : `scripts/mesure-tokens.py`, `scripts/test-mesure-tokens.py`, `scripts/vlp.py`,
 `scripts/test-vlp.py` — et rien d'autre ; sur le web, la page des prix de la documentation

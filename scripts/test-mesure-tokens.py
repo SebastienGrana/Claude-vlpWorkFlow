@@ -118,6 +118,13 @@ ATTENDU_INCONNU = {
     "inconnus": ["claude-opus-5 (fast)", "modele-inconnu"],
 }
 
+# claude-opus-5-5 est dans la grille depuis le 2026-09-23 : son usd se chiffre. Un million de
+# chaque compte, cache écrit 400 000 en 1 h et 600 000 en 5 min, aux prix de la page officielle :
+# 4 + 20 + 0,20 + 0,6 × 5 + 0,4 × 8 = 30,40 $.
+LIGNES_OPUS55 = [assistant("msg_O", 10**6, 10**6, 10**6, 10**6, sous_objet=(400_000, 600_000),
+                           modele="claude-opus-5-5")]
+ATTENDU_OPUS55 = {"tours": 1, "usd": "30.40", "inconnus": []}
+
 
 def ecrire(chemin, lignes):
     os.makedirs(os.path.dirname(chemin), exist_ok=True)
@@ -196,6 +203,7 @@ def main():
         ("divergent", LIGNES_DIVERGENT, ATTENDU_DIVERGENT),
         ("poids", LIGNES_POIDS, ATTENDU_POIDS),
         ("inconnu", LIGNES_INCONNU, {k: v for k, v in ATTENDU_INCONNU.items() if v is not None}),
+        ("opus-5-5", LIGNES_OPUS55, ATTENDU_OPUS55),
     ]:
         ecart = verifier(nom, lignes, attendu)
         if ecart:

@@ -143,6 +143,12 @@ tous retirés, venaient de `12-audit.md` ; 31 à 34, de la clôture de `REP`.
 Une ligne par décision imprévue tranchée en cours de fiche — jamais un résumé
 de ce que le code dit déjà.
 
+- **2026-09-23** — CPT1 : sous Windows, `open()` échoue sur un chemin de 260 caractères.
+  L'inventaire des modèles a eu 8 transcripts `subagents/` illisibles (« No such file »)
+  que `glob` liste pourtant : 8 chemins à 260 pile, tous de sessions de sonde. Avec le
+  préfixe `\\?\`, 0 illisible et +58 tours Haiku. `mesurer` n'a pas ce préfixe : laissé à
+  `CPT2`, qui compte les sous-agents.
+
 - **2026-09-23** — clôture REP : les quatre arrêts sans statut de REP2 et REP3 sont le
   plafond `maxTurns: 30` de `agents/fiche.md`. Les quatre sous-agents arrêtés ont fait
   30 tours pile et finissent sur `tool_use`, coupés en plein travail ; le seul qui a

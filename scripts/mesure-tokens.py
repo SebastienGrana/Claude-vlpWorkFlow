@@ -17,20 +17,22 @@ COLONNES = [
 # usd se somment à part (ils peuvent valoir « ? »).
 SOMMABLES = ["tours", "appels", "input", "output", "cache_creation", "cache_1h", "cache_read", "total", "invalides"]
 
-# La grille — dollars par million de tokens. Lue le 2026-09-17 dans la skill
-# claude-api (version 2.1.271), et nulle part ailleurs :
-#   - entrée, sortie : SKILL.md, table « Current Models (cached: 2026-06-24) » ;
-#   - cache : shared/prompt-caching.md:144 — lu 0,1 × l'entrée (0,025 × sur
-#     Fable 5.1 : $0.25, confirmé par shared/models.md:73), écrit 1,25 × à
-#     5 min et 2 × à 1 h ;
-#   - claude-haiku-4-5-20251001 : alias daté de claude-haiku-4-5,
-#     shared/models.md:70.
+# La grille — dollars par million de tokens, recopiés de la table des prix par
+# modèle de la documentation officielle, lue le 2026-09-23 :
+# https://platform.claude.com/docs/en/about-claude/pricing
+#   - claude-opus-5-5 : ligne « Claude Opus 5.5 », ajoutée ce jour-là ;
+#   - les sept autres, lues le 2026-09-17 dans la skill claude-api, y ont été
+#     relues sans écart ;
+#   - claude-haiku-4-5-20251001 : alias daté de claude-haiku-4-5, prix de la
+#     ligne « Claude Haiku 4.5 » — la page ne nomme pas les ids, la skill
+#     claude-api si (shared/models.md:70).
 # Seuls les modèles que nomment les transcripts y figurent. Le mode « fast »
-# n'y est pas : la grille donne son prix d'entrée et de sortie, pas celui de
-# son cache — un tour fast compte comme un modèle inconnu.
+# n'y est pas : le 2026-09-17, la skill claude-api donnait son prix d'entrée et
+# de sortie, pas celui de son cache — un tour fast compte comme un modèle inconnu.
 GRILLE = {
     # modèle:                    (entrée,  sortie, cache lu, écrit 5 min, écrit 1 h)
     "claude-fable-5-1":          ("10",    "50",   "0.25",   "12.5",      "20"),
+    "claude-opus-5-5":           ("4",     "20",   "0.20",   "5",         "8"),
     "claude-opus-5":             ("5",     "25",   "0.5",    "6.25",      "10"),
     "claude-opus-4-7":           ("5",     "25",   "0.5",    "6.25",      "10"),
     "claude-sonnet-5":           ("2",     "10",   "0.2",    "2.5",       "4"),

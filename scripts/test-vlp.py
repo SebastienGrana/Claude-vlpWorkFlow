@@ -280,6 +280,26 @@ def transcript(chemin, tours):
 verifier("arrondi", [mod.arrondi(n) for n in (999, 1000, 1505630)] == ["999", "≈1,0k (1 000)", "≈1,5M (1 505 630)"],
          [mod.arrondi(n) for n in (999, 1000, 1505630)])
 
+from decimal import Decimal
+
+# Tout ce que ligne_cout écrit, triplet le relit : total sous et au-dessus de 1 000, prix chiffré ou « ? ».
+allers = [(t, 3, u) for t in (999, 1505630) for u in (Decimal("1.25"), None)]
+verifier("triplet relit ligne_cout", all(mod.triplet(mod.ligne_cout(*a)) == a for a in allers),
+         [(mod.ligne_cout(*a), mod.triplet(mod.ligne_cout(*a))) for a in allers])
+
+# Un « ? $ » de l'ancienne page traverse les soustractions de couts : P1 garde son coût
+# affiché, P2 prend le reste, en « ? » puisque la part de P1 en dollars est inconnue.
+with tempfile.TemporaryDirectory() as t:
+    s = os.path.join(t, "s.jsonl")
+    transcript(s, 3)
+    gardes = []
+    cout, total = mod.couts([("P1", "a", True, [s]), ("P2", "b", True, [s])],
+                            {"P1": ("faite", None, "≈100,0k (100 000) · 1 tours · ? $")},
+                            "Coût du chantier : ≈100,0k (100 000) · 1 tours · ? $", gardes)
+    verifier("couts : « ? $ » relu sans planter",
+             cout == {"P1": "≈100,0k (100 000) · 1 tours · ? $", "P2": "≈200,0k (200 000) · 2 tours · ? $"}
+             and total == (300000, 3, Decimal("1.5")) and not gardes, (cout, total, gardes))
+
 PAGE = """# Chantier P
 
 ## Le socle commun
