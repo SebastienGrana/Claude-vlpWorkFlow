@@ -123,21 +123,31 @@
 C'est d'ici que `/chantier` tire ses propositions. Un chantier par entrée,
 ordonné par ce qui débloque le reste, cité par son code. Le détail de chacun
 est dans `38-audit-artefacts.md` § 4, qui les nomme A à F ; les rangs 1 à 24,
-tous retirés, venaient de `12-audit.md`.
+tous retirés, venaient de `12-audit.md` ; 31 à 34, de la clôture de `REP`.
 
 | # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |
 |---|---|---|---|---|
-| 25 | Finir les feuilles voisines — reste de `REP`, code à choisir à l'ouverture | Ce que `REP` a laissé. La ligne `MARKDOWN` de `vlp.py niveau` compte, sans `--ecrire`, la page régénérée au lieu de celle du disque : elle ne voit ni la TODO ni la zone « en cours ». La régénération abîme trois feuilles voisines : TODO de MapDecorator hors table, donc lue vide ; lettres de fiche entre backticks ignorées ; source de TrackGen sans accents. Une fois corrigées, republier MapDecorator, TrackGen et ProjetONZSM. Détail : journal du 2026-09-23. | ~3 fiches | — |
+| 31 | `CPT` — Un coût juste, fiche par fiche et sous-agents compris | Trois trous vus à la clôture de `REP`. `COUT` ne relit pas la ligne `? $` qu'écrit `ligne_cout` : à chaque régénération, la page perd le coût des fiches précédentes d'une session partagée — celui de `REP1` à `REP3`, repris de git. `claude-opus-5-5` manque à la grille de `mesure-tokens.py` : `usd` vaut `?`, prix à prendre sur la doc officielle. `cout` et `page` ne lisent pas `subagents/agent-*.jsonl` : 8 161 098 tokens · 1,69 $ hors du total de `REP`. Piste : couper la session aux heures des commits de chaque fiche — le coût par fiche ne dépend plus de l'ancienne page. | ~2 fiches | — |
+| 32 | `SAG` — Le sous-agent ne bute plus sur 30 tours | `vlp:fiche` s'arrête à `maxTurns: 30` sans rendre de statut : quatre fois sur `REP2` et `REP3` (journal du 2026-09-23). Relever le plafond, ou lui faire écrire son statut avant, puis rejouer une fiche de code par `/vlp:enchainer` et mesurer, sous-agent compris. | ~2 fiches | `CPT` |
+| 33 | `TAR` — Un test aller-retour par format écrit | Deux fois le même défaut dans `REP` : les chevrons d'une URL (`REP2`), puis la ligne `? $` (`CPT`) — `vlp.py` écrit un format qu'il ne sait pas relire. Un test écrit puis relit chaque format : ligne de coût, ligne close, rang de TODO, zone « en cours ». | ~2 fiches | `CPT` |
+| 34 | `VAL` — Le contrôle avant commit ne se saute plus | À chaque commit du 2026-09-23 : « pre-commit : claude introuvable dans le PATH, validate sauté ». Le hook cherchera aussi le `claude.exe` de l'app, comme le fait `34-agent-sans-git.md`. | ~1 fiche | — |
+| 25 | `VOI` — Finir les feuilles voisines, reste de `REP` | Ce que `REP` a laissé. La ligne `MARKDOWN` de `vlp.py niveau` compte, sans `--ecrire`, la page régénérée au lieu de celle du disque : elle ne voit ni la TODO ni la zone « en cours ». La régénération abîme trois feuilles voisines : TODO de MapDecorator hors table, donc lue vide ; lettres de fiche entre backticks ignorées ; source de TrackGen sans accents. Une fois corrigées, republier MapDecorator, TrackGen et ProjetONZSM. Détail : journal du 2026-09-23. | ~3 fiches | — |
 | 26 | `ABR` — Mettre notes et journal à l'abri dans un `.md` | Les notes et le journal d'une page de chantier n'existent aujourd'hui que dans la page. `page --note` et `--journal` écriront d'abord le texte entier dans un `.md`, et la page le recopiera. | ~3 fiches | — |
 | 27 | `ALE` — Essai : alléger la republication | Deux pistes, mesurées : le CSS en fichier joint, puis les données dans la base de claude.ai. Décide où vivent le CSS et les données avant `PLI` et `FEU`. | 2 fiches | `ABR` |
 | 28 | `PLI` — La page de chantier plus courte et lisible | Chaque fiche dans un bloc repliable, le journal replié sauf ses dernières entrées, le bilan en haut d'un chantier clos. Rien n'est coupé : replié, le texte reste dans la page. | ~5 fiches | `ABR`, `ALE` |
-| 29 | `FEU` — La feuille de route plus courte et lisible | La TODO en cartes, le détail replié, un sommaire. 🟡 Une décision à prendre : la feuille garde-t-elle tout le détail de la TODO ? | ~4 fiches | `REP`, `ALE` |
+| 29 | `FEU` — La feuille de route plus courte et lisible | La TODO en cartes, le détail replié, un sommaire. 🟡 Une décision à prendre : la feuille garde-t-elle tout le détail de la TODO ? | ~4 fiches | `VOI`, `ALE` |
 | 30 | `BTN` — Des boutons, en dernier | Commenter une fiche, tout déplier, filtrer, copier la commande d'une fiche, un graphique des coûts. Optionnel. | ~4 à 6 fiches | `PLI`, `FEU` |
 
 ## Journal des décisions
 
 Une ligne par décision imprévue tranchée en cours de fiche — jamais un résumé
 de ce que le code dit déjà.
+
+- **2026-09-23** — clôture REP : les quatre arrêts sans statut de REP2 et REP3 sont le
+  plafond `maxTurns: 30` de `agents/fiche.md`. Les quatre sous-agents arrêtés ont fait
+  30 tours pile et finissent sur `tool_use`, coupés en plein travail ; le seul qui a
+  rendu son statut a fait 25 tours et finit sur `end_turn`. Une fiche de code comme
+  REP3 ne tient pas en 30 tours de Haiku : TODO `SAG`.
 
 - **2026-09-23** — REP4 : MapDecorator, TrackGen et ProjetONZSM ne sont pas republiées,
   sur décision de l'utilisateur. Leurs pages en ligne, faites à la main, sont déjà à
