@@ -48,7 +48,9 @@ Sous-commandes :
   `COCHÉ <fiche> · Session <id|absente>`. Introuvable ou déjà cochée : `GARDE:`,
   rien écrit, sort 1.
 - `page <fichier> [<page.html>]` — régénère la page du chantier depuis le fichier
-  de fiches : états, avancement, comptage, coûts (`**Session**`), date. Sans
+  de fiches : états, avancement, comptage, coûts (`**Session**`), date. Les coûts
+  se coupent aux commits `<ID> :` (`git log`), sous-agents compris, plus une ligne
+  « hors fiches » ; sans Git ni commit de fiche, ils se tirent de l'ancienne page. Sans
   page : `<dossier du fichier>/artefacts/<même nom>.html`. Garde
   de la page l'en-tête, les notes, le journal, le blocage et le bilan.
   `--note <fiche> <texte>`, `--journal <texte>` (répétables) ; `--creer
@@ -776,12 +778,114 @@ def moins(a, b):
     return None if a is None or b is None else a - b
 
 
-def couts(fiches_, anciens, ancien_total, gardes):
-    """({id: ligne de coût}, (total, tours, usd) ou None). Une session portée
+GIT = "git"     # test-vlp.py le remplace pour simuler un poste sans Git
+COMMIT_FICHE = re.compile(r"^([A-Z]{1,3}[0-9]+) :")
+INFINI = float("inf")
+
+
+def heures_commits(fichier, ids):
+    """({id: heure}, [heures]) en secondes UTC, lus par `git log` dans le dossier du
+    fichier : l'heure d'auteur du commit `<id> :` de chaque fiche — le plus ancien s'il y
+    en a deux —, et celles de tous les commits qui nomment le préfixe (`REP`, `REP2`…).
+    None sans `git`, sans dépôt ou sans commit de fiche : le repli, jamais un traceback."""
+    import subprocess
+    if not ids:
+        return None
+    try:
+        r = subprocess.run([GIT, "log", "--format=%at %s"], cwd=os.path.dirname(os.path.abspath(fichier)),
+                           capture_output=True, encoding="utf-8", errors="replace", timeout=60)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if r.returncode:
+        return None
+    nomme = re.compile(r"(?<![A-Za-z0-9])(?:%s)[0-9]*(?![A-Za-z0-9])"
+                       % "|".join(sorted({PREFIXE.match(i).group(0) for i in ids})))
+    commits, prefixe = {}, []
+    for ligne in r.stdout.splitlines():
+        heure, _, sujet = ligne.partition(" ")
+        if not heure.isdigit():
+            continue
+        if nomme.search(sujet):
+            prefixe.append(int(heure))
+        c = COMMIT_FICHE.match(sujet)
+        if c and c.group(1) in ids:
+            commits[c.group(1)] = min(int(heure), commits.get(c.group(1), int(heure)))
+    return (commits, sorted(prefixe)) if commits else None
+
+
+def plages(fiches_, heures, gardes):
+    """([(id, (début, fin])] dans l'ordre des commits, [plages hors fiches]). Une fiche va
+    du commit de la précédente au sien ; la première part du dernier commit antérieur qui
+    nomme le préfixe, à défaut du début de la session ; une fiche à session sans commit va
+    jusqu'au bout du transcript. Hors fiches : avant la première, et après la dernière
+    jusqu'au dernier commit qui nomme le préfixe — au-delà, rien ne compte."""
+    commits, prefixe = heures
+    ordre = sorted(commits, key=commits.get)
+    debut = max((t for t in prefixe if t < commits[ordre[0]]), default=-INFINI)
+    rendu = []
+    for ident in ordre:
+        rendu.append((ident, (debut, commits[ident])))
+        debut = commits[ident]
+    sans = [f[0] for f in fiches_ if f[0] not in commits and f[3]]
+    for ident in sans[:-1]:
+        gardes.append("GARDE: %s porte une session sans commit « %s : » — ses tours comptent dans une autre plage"
+                      % (ident, ident))
+    if sans:
+        rendu.append((sans[-1], (debut, INFINI)))
+    fin = INFINI if sans else max(prefixe + [debut])
+    return rendu, [p for p in ((-INFINI, rendu[0][1][0]), (rendu[-1][1][1], fin)) if p[0] < p[1]]
+
+
+def couts_aux_commits(fiches_, heures, gardes):
+    """`couts` coupé aux commits : chaque fiche qui a une plage la prend dans chaque session
+    et ses sous-agents (la plage de `mesurer`) ; le reste fait « hors fiches ». Chaque part
+    est arrondie au centime et total = fiches + hors fiches : la page s'additionne."""
+    from decimal import ROUND_HALF_UP, Decimal
+    m = mesure()
+    sessions, fichiers = [], []
+    for f in fiches_:
+        sessions += [s for s in f[3] if s not in sessions]
+    for s in sessions:
+        chemin, erreur = m.resoudre(s)
+        if erreur:
+            gardes.append("GARDE: session non mesurée : %s — %s" % (s, erreur))
+            continue
+        fichiers += [chemin] + m.sous_agents(chemin)
+    if not fichiers:
+        return {}, None, None
+    par_fiche, trous = plages(fiches_, heures, gardes)
+
+    def somme(bornes):
+        total, tours, usd = 0, 0, Decimal(0)
+        for chemin in fichiers:
+            for plage in bornes:
+                r, erreur = m.mesurer(chemin, plage)
+                if erreur:
+                    g = "GARDE: transcript non mesuré : %s — %s" % (chemin, erreur)
+                    gardes.extend([] if g in gardes else [g])
+                    continue
+                total, tours = total + r["total"], tours + r["tours"]
+                usd = None if usd is None or r["usd_exact"] is None else usd + r["usd_exact"]
+        return total, tours, None if usd is None else usd.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+    parts = {ident: somme([p]) for ident, p in par_fiche}
+    hors = somme(trous)
+    tout = list(parts.values()) + [hors]
+    usd = None if any(u is None for _, _, u in tout) else sum(u for _, _, u in tout)
+    return ({ident: ligne_cout(*v) for ident, v in parts.items()},
+            (sum(t for t, _, _ in tout), sum(n for _, n, _ in tout), usd), hors)
+
+
+def couts(fiches_, anciens, ancien_total, gardes, heures=None):
+    """({id: ligne de coût}, total, hors fiches) — total et hors fiches en (total, tours,
+    usd), ou None. Avec les heures des commits (`heures_commits`) : `couts_aux_commits`.
+    Sans elles, tirés de l'ancienne page, sans hors fiches. Une session portée
     par plusieurs fiches : les premières gardent le coût déjà affiché (l'écart
     du compteur à leur clôture), la dernière prend le reste — moins la part que
     l'ancienne page n'attribuait à aucune fiche (le cadrage joué dans la même
     session), si une seule session est partagée."""
+    if heures:
+        return couts_aux_commits(fiches_, heures, gardes)
     m = mesure()
     mesures = {}
     for _, _, _, sessions in fiches_:
@@ -826,9 +930,9 @@ def couts(fiches_, anciens, ancien_total, gardes):
         rendu[porteurs[-1]] = ligne_cout(total, tours, usd)
     mesurees = [r for r in mesures.values() if r]
     if not mesurees:
-        return rendu, None
+        return rendu, None, None
     usd = None if any(r["usd_exact"] is None for r in mesurees) else sum(r["usd_exact"] for r in mesurees)
-    return rendu, (sum(r["total"] for r in mesurees), sum(r["tours"] for r in mesurees), usd)
+    return rendu, (sum(r["total"] for r in mesurees), sum(r["tours"] for r in mesurees), usd), None
 
 
 def comptage(fiches_, etat):
@@ -869,7 +973,8 @@ def regenerer(html, fichier, notes, journal, date, gardes):
     anciens = lis_page(html)
     etat = etats(fiches_, anciens)
     ancien_total = re.search(r'<p class="mono cout-total">(.*?)</p>', html, re.S)
-    cout, total = couts(fiches_, anciens, ancien_total and ancien_total.group(1), gardes)
+    heures = heures_commits(fichier, [f[0] for f in fiches_]) if any(f[3] for f in fiches_) else None
+    cout, total, hors = couts(fiches_, anciens, ancien_total and ancien_total.group(1), gardes, heures)
     etiquette = {"faite": "faite", "encours": "en cours", "bloquee": "bloquée", None: "à faire"}
     items = []
     for ident, titre, _, _ in fiches_:
@@ -885,12 +990,13 @@ def regenerer(html, fichier, notes, journal, date, gardes):
         items.append("\n".join(li + ["      </li>"]))
     prefixe = re.search(r'<p class="mono cout-total">(.*?) : ', html)
     prefixe = prefixe.group(1) if prefixe else "Coût du chantier"
-    html = re.sub(r'\n[ \t]*<p class="mono cout-total">.*?</p>', "", html, flags=re.S)
+    html = re.sub(r'\n[ \t]*<p class="mono cout-(?:total|hors)">.*?</p>', "", html, flags=re.S)
     bloc = "\n" + "\n".join(items)
+    bloc_total = ""
+    if hors:
+        bloc_total += '\n    <p class="mono cout-hors">Hors fiches : %s</p>' % ligne_cout(*hors)
     if total:
-        bloc_total = '\n    <p class="mono cout-total">%s : %s</p>' % (prefixe, ligne_cout(*total))
-    else:
-        bloc_total = ""
+        bloc_total += '\n    <p class="mono cout-total">%s : %s</p>' % (prefixe, ligne_cout(*total))
     html, n = UL_FICHES.subn(lambda m: m.group(1) + bloc + m.group(3) + bloc_total, html, count=1)
     if not n:
         raise ValueError("page : liste des fiches introuvable")
@@ -912,7 +1018,7 @@ def regenerer(html, fichier, notes, journal, date, gardes):
         if not n:
             raise ValueError("page : journal introuvable")
     html = re.sub(r'(Mis à jour le <span class="mono">).*?(</span>)', lambda m: m.group(1) + date + m.group(2), html, count=1)
-    return html, fiches_, etat, total
+    return html, fiches_, etat, total, hors
 
 
 def verifier_page(html, fichier, sortie):
@@ -966,7 +1072,7 @@ def cmd_page(a, sortie):
         return verifier_page(html, a.fichier, sortie)
     gardes = []
     try:
-        html, fiches_, etat, total = regenerer(html, a.fichier, dict(a.note or []), a.journal or [], date, gardes)
+        html, fiches_, etat, total, hors = regenerer(html, a.fichier, dict(a.note or []), a.journal or [], date, gardes)
     except ValueError as e:
         sortie.write("GARDE: %s\n" % e)
         return 1
@@ -975,8 +1081,9 @@ def cmd_page(a, sortie):
     n = html.count("\n") + (0 if html.endswith("\n") else 1)
     for g in gardes:
         sortie.write(g + "\n")
-    sortie.write("PAGE %s · %s · %d lignes · total %s\n"
-                 % (a.page, comptage(fiches_, etat), n, ligne_cout(*total) if total else "non mesuré"))
+    sortie.write("PAGE %s · %s · %d lignes · total %s%s\n"
+                 % (a.page, comptage(fiches_, etat), n, ligne_cout(*total) if total else "non mesuré",
+                    ", dont hors fiches %s" % ligne_cout(*hors) if hors else ""))
     if n > SEUIL_PAGE:
         sortie.write("GARDE: %d lignes, au-delà du seuil du script (%d) — la page est relue à chaque fiche\n"
                      % (n, SEUIL_PAGE))

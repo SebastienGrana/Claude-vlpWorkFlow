@@ -157,8 +157,9 @@ vérifications avant → après.
 ---
 
 <!-- FICHE:CPT3 -->
-## CPT3 [ ] — Couper la session aux heures des commits de fiche
+## CPT3 [x] — Couper la session aux heures des commits de fiche
 
+**Session** : 32d8a7aa-6915-4674-b476-9e040f455c75
 **Dépend de** : `CPT1` (le repli relit `? $`), `CPT2` (plage et sous-agents).
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py`, `templates/artefact-chantier.html` —
 et rien d'autre.

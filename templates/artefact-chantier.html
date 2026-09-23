@@ -38,7 +38,7 @@
   .fiche .titre { font-weight:600; }
   .fiche .note { grid-column:2; font-size:.9rem; color:var(--doux); }
   .fiche .cout { grid-column:2; font-size:.78rem; color:var(--doux); }
-  .cout-total { font-size:.85rem; color:var(--doux); }
+  .cout-total,.cout-hors { font-size:.85rem; color:var(--doux); }
   .fiche .etat { grid-column:1; font-size:.68rem; letter-spacing:.07em; text-transform:uppercase; color:var(--attente); }
   /* les trois états, partout où ils comptent */
   .avancement span[data-etat="faite"] { background:var(--fait); }
@@ -82,7 +82,7 @@
         <span class="id">&lt;R1&gt;</span><span class="titre">&lt;Titre de la fiche&gt;</span>
         <span class="etat">faite</span>
         <span class="note">&lt;Le critère de fin, constaté. Une ligne.&gt;</span>
-        <!-- .cout : présent seulement si la fiche porte une ligne **Session** -->
+        <!-- .cout : présent seulement si la fiche a une plage — commit `<ID> :`, ou ligne **Session** -->
         <span class="cout mono">&lt;≈2,3k (2 312)&gt;</span>
       </li>
       <li class="fiche" data-etat="encours">
@@ -96,7 +96,8 @@
         <span class="note">&lt;Ce qu'elle produit · dépend de &lt;R2&gt;&gt;</span>
       </li>
     </ul>
-    <!-- ligne de total, absente si aucune fiche n'a de coût mesuré -->
+    <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
+    <p class="mono cout-hors">Hors fiches : &lt;≈1,2k (1 234)&gt;</p>
     <p class="mono cout-total">Coût du chantier : &lt;≈15,3k (15 342)&gt;</p>
   </section>
 

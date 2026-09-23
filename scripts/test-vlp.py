@@ -262,19 +262,25 @@ verifier("valider : socle de 80 lignes n'avertit pas", code == 0
 code, s = appel(["valider", "absent-1.md", "absent-2.md"])
 verifier("valider : un bilan par fichier", code == 1 and s.count("INVALIDE 0 fiches") == 2, s)
 
+import datetime
 import json
 
 lire = mod.lire
 
 
-def transcript(chemin, tours):
-    """Un jsonl de `tours` tours, 100 000 tokens d'entrée chacun, sur claude-opus-5 (5 $ le million)."""
+def transcript(chemin, tours, heures=None):
+    """Un jsonl de `tours` tours, 100 000 tokens d'entrée chacun, sur claude-opus-5 (5 $ le million) ;
+    `heures` : celle de chaque tour, en secondes UTC — sans elles, aucun `timestamp`."""
     with open(chemin, "w", encoding="utf-8") as f:
         for n in range(tours):
-            f.write(json.dumps({"type": "assistant", "requestId": "r%d" % n, "message": {
+            ligne = {"type": "assistant", "requestId": "r%d" % n, "message": {
                 "id": "m%d" % n, "model": "claude-opus-5", "content": [],
                 "usage": {"input_tokens": 100000, "output_tokens": 0,
-                          "cache_creation_input_tokens": 0, "cache_read_input_tokens": 0}}}) + "\n")
+                          "cache_creation_input_tokens": 0, "cache_read_input_tokens": 0}}}
+            if heures:
+                ligne["timestamp"] = datetime.datetime.fromtimestamp(
+                    heures[n], datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z")
+            f.write(json.dumps(ligne) + "\n")
 
 
 verifier("arrondi", [mod.arrondi(n) for n in (999, 1000, 1505630)] == ["999", "≈1,0k (1 000)", "≈1,5M (1 505 630)"],
@@ -293,12 +299,12 @@ with tempfile.TemporaryDirectory() as t:
     s = os.path.join(t, "s.jsonl")
     transcript(s, 3)
     gardes = []
-    cout, total = mod.couts([("P1", "a", True, [s]), ("P2", "b", True, [s])],
-                            {"P1": ("faite", None, "≈100,0k (100 000) · 1 tours · ? $")},
-                            "Coût du chantier : ≈100,0k (100 000) · 1 tours · ? $", gardes)
+    cout, total, hors = mod.couts([("P1", "a", True, [s]), ("P2", "b", True, [s])],
+                                  {"P1": ("faite", None, "≈100,0k (100 000) · 1 tours · ? $")},
+                                  "Coût du chantier : ≈100,0k (100 000) · 1 tours · ? $", gardes)
     verifier("couts : « ? $ » relu sans planter",
              cout == {"P1": "≈100,0k (100 000) · 1 tours · ? $", "P2": "≈200,0k (200 000) · 2 tours · ? $"}
-             and total == (300000, 3, Decimal("1.5")) and not gardes, (cout, total, gardes))
+             and total == (300000, 3, Decimal("1.5")) and hors is None and not gardes, (cout, total, hors, gardes))
 
 PAGE = """# Chantier P
 
@@ -336,7 +342,8 @@ with tempfile.TemporaryDirectory() as t:
              and '<span data-etat="encours"></span><span></span><span></span>' in html
              and "3 fiches · 0 faite · en cours : P1" in html and '<span class="note">Produit a.py</span>' in html
              and "&lt;" not in html.split("<ul class=\"journal\">")[1].split("</ul>")[0]
-             and '<p class="mono cout-total">' not in html and "Mis à jour le <span class=\"mono\">2026-01-02</span>" in html
+             and '<p class="mono cout-total">' not in html and '<p class="mono cout-hors">' not in html
+             and "Mis à jour le <span class=\"mono\">2026-01-02</span>" in html
              and "lignes · total non mesuré" in s, s + html)
     code, s = appel(["page", fiches, page, "--creer", "--projet", "P", "--titre", "T", "--resultat", "R"])
     verifier("page --creer n'écrase pas", code == 1 and "existe déjà" in s, s)
@@ -393,6 +400,83 @@ with tempfile.TemporaryDirectory() as t:
 
     code, s = appel(["page", fiches, os.path.join(t, "absente.html")])
     verifier("page absente sans --creer", code == 1 and "--creer" in s, s)
+
+# Découpe aux commits : Q1 et Q2 partagent une session horodatée, un sous-agent part pendant Q2.
+# Commits : Q ouvert +100, Q1 +300, Q2 +600, Q clos +800, puis un qui ne nomme pas le préfixe.
+# Tours : +50 (cadrage) et +700 (clôture) hors fiches ; +200 et +250 à Q1 ; +400 et le
+# sous-agent (+450, 2 tours) à Q2 ; +1000, après le dernier commit du chantier, ne compte pas.
+QFICHES = """# Chantier Q
+
+## Le socle commun
+
+## L'ordre des fiches
+
+<!-- FICHE:Q1 -->
+## Q1 [x] — Créer
+**Session** : %s
+**Critère de fin**
+<!-- /FICHE -->
+<!-- FICHE:Q2 -->
+## Q2 [x] — Brancher
+**Session** : %s
+**Critère de fin**
+<!-- /FICHE -->
+"""
+T0 = 1790000000
+
+with tempfile.TemporaryDirectory() as t:
+    avec, sans = os.path.join(t, "avec"), os.path.join(t, "sans")
+    sq = os.path.join(t, "s.jsonl")
+    transcript(sq, 6, [T0 + d for d in (50, 200, 250, 400, 700, 1000)])
+    os.makedirs(os.path.join(t, "s", "subagents"))
+    transcript(os.path.join(t, "s", "subagents", "agent-a1.jsonl"), 2, [T0 + 450, T0 + 460])
+    for d in (avec, sans):
+        ecrire(os.path.join(d, "q.md"), QFICHES % (sq, sq))
+    h = mod.heures_commits(os.path.join(sans, "q.md"), ["Q1", "Q2"])
+    verifier("heures_commits : sans .git, rien", h is None, h)
+    mod.GIT = "git-absent-vlp"
+    h = mod.heures_commits(os.path.join(sans, "q.md"), ["Q1", "Q2"])
+    mod.GIT = "git"
+    verifier("heures_commits : sans git, rien — jamais un traceback", h is None, h)
+    if not shutil.which("git"):
+        print("SAUTÉ: git absent — la découpe aux commits n'est pas testée")
+    else:
+        # Un dépôt à part : ni la config globale (signature, hooks) ni celle du système.
+        env = dict(os.environ, GIT_CONFIG_GLOBAL=os.path.join(t, "gitconfig"), GIT_CONFIG_NOSYSTEM="1",
+                   GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t")
+        ecrire(env["GIT_CONFIG_GLOBAL"], "")
+        subprocess.run(["git", "init", "-q"], cwd=avec, env=env, check=True, capture_output=True)
+        for d, sujet in ((100, "Chantier Q ouvert : cadré"), (300, "Q1 : Créer"), (600, "Q2 : Brancher"),
+                         (800, "Chantier Q clos : fini"), (900, "Autre : QA et Q12x ne nomment pas le préfixe")):
+            date = "%d +0000" % (T0 + d)
+            subprocess.run(["git", "commit", "-q", "--allow-empty", "-m", sujet], cwd=avec, check=True,
+                           capture_output=True, env=dict(env, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date))
+        h = mod.heures_commits(os.path.join(avec, "q.md"), ["Q1", "Q2"])
+        verifier("heures_commits : heure d'auteur, commits qui nomment le préfixe",
+                 h == ({"Q1": T0 + 300, "Q2": T0 + 600}, [T0 + 100, T0 + 300, T0 + 600, T0 + 800]), h)
+        page = os.path.join(avec, "q.html")
+        code, s = appel(["page", os.path.join(avec, "q.md"), page, "--creer", "--projet", "P", "--titre", "T",
+                         "--resultat", "R", "--date", "2026-01-05"])
+        html = lire(page) if os.path.exists(page) else ""
+        verifier("page coupée aux commits : sous-agent compris, hors fiches à part, total = somme", code == 0
+                 and '<span class="cout mono">≈200,0k (200 000) · 2 tours · 1,00 $</span>' in html
+                 and '<span class="cout mono">≈300,0k (300 000) · 3 tours · 1,50 $</span>' in html
+                 and '<p class="mono cout-hors">Hors fiches : ≈200,0k (200 000) · 2 tours · 1,00 $</p>' in html
+                 and '<p class="mono cout-total">Coût du chantier : ≈700,0k (700 000) · 7 tours · 3,50 $</p>' in html
+                 and "Hors fiches : &lt;" not in html
+                 and ", dont hors fiches ≈200,0k (200 000) · 2 tours · 1,00 $" in s, s + html)
+        avant = lire(page)
+        appel(["page", os.path.join(avec, "q.md"), page, "--date", "2026-01-05"])
+        verifier("page coupée : régénérer deux fois ne change rien", lire(page) == avant, lire(page))
+        # Sans .git, la même page retombe sur l'ancienne logique : Q1 garde son coût affiché, Q2 prend
+        # la session moins Q1 et la part à aucune fiche ; ni sous-agent, ni ligne hors fiches.
+        ecrire(os.path.join(sans, "q.html"), avant)
+        code, s = appel(["page", os.path.join(sans, "q.md"), os.path.join(sans, "q.html"), "--date", "2026-01-05"])
+        html = lire(os.path.join(sans, "q.html"))
+        verifier("page sans .git : l'ancienne logique, sur l'ancienne page", code == 0
+                 and html.count('<span class="cout mono">≈200,0k (200 000) · 2 tours · 1,00 $</span>') == 2
+                 and '<p class="mono cout-hors">' not in html
+                 and "Coût du chantier : ≈600,0k (600 000) · 6 tours · 3,00 $" in html, s + html)
 
 
 # --- hook : le PostToolUse du plugin -----------------------------------------
