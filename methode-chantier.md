@@ -114,6 +114,14 @@ Elles sont écrites ici, et nulle part ailleurs : le reste du kit y renvoie.
   nomme les quantités qu'elle compare**, jamais deux nombres nus ; et un
   **script re-dérive** le verdict depuis les nombres écrits, avant publication.
   Un verdict qu'aucune machine ne recalcule n'est qu'une phrase.
+- **Une fiche se paie jusqu'à ce qu'elle soit faite — sa reprise comprise.** Un
+  statut `FAITE` n'est pas une fiche faite : une case restée vide, et le travail
+  continue hors de la fiche. Mesuré : une fiche enchaînée a coûté 1,53 $ à son
+  commit ; sa reprise à la main — cocher, journal, page — 0,55 $ de plus, que
+  `vlp.py cout`, qui coupe aux commits de fiche, rangeait dans la fiche
+  **suivante**. Le vrai prix, 2,08 $, n'était écrit nulle part, et la suivante
+  paraissait plus chère qu'elle n'était. Une reprise se mesure sur la plage de
+  ses propres commits, et s'ajoute à la fiche qu'elle termine.
 
 ## Les trois temps
 
