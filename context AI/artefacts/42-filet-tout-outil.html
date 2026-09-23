@@ -81,20 +81,21 @@
         <span class="id">FIL1</span><span class="titre">Vérifier et mesurer, avant d'écrire</span>
         <span class="etat">faite</span>
         <span class="note">Journal 2026-09-24 : tout outil = "*", "" ou matcher omis (doc) ; hooks en parallèle (doc, sonde inutile, 0 $) ; chemin long : 259 lu sans préfixe, à 260 et 280 isfile False, open FileNotFoundError, ouvrir lit ; filet à vide 327 · 328 · 300 · 316 · 298 ms. Imprévu : PostToolUseFailure, à trancher avant FIL2.</span>
-        <span class="cout mono">≈26,3M (26 329 991) · 142 tours · 17,75 $</span>
+        <span class="cout mono">≈2,6M (2 559 092) · 17 tours · 2,73 $</span>
       </li>
       <li class="fiche" data-etat="encours">
-        <span class="id">FIL2</span><span class="titre">Brancher le filet sur tout outil et sur les chemins longs</span>
+        <span class="id">FIL2</span><span class="titre">Brancher le filet sur tout outil, échecs compris, et sur les chemins longs</span>
         <span class="etat">en cours</span>
-        <span class="note">Le filet dans une entrée PostToolUse sur tout outil, le préfixe des chemins longs dans cmd_filet, deux tests ; le filet à vide chronométré avant et après. Dépend de FIL1.</span>
+        <span class="note">Le filet sur tout outil, après un succès (PostToolUse) et après un échec (PostToolUseFailure) ; le préfixe des chemins longs dans cmd_filet ; trois tests ; le filet à vide chronométré avant et après. Dépend de FIL1.</span>
       </li>
       <li class="fiche">
-        <span class="id">FIL3</span><span class="titre">Éprouver le filet après un Read, à plafond bas</span>
+        <span class="id">FIL3</span><span class="titre">Éprouver le filet après un Read et après un échec, à plafond bas</span>
         <span class="etat">à faire</span>
-        <span class="note">L'essai claude -p à plafond 10 : un avertissement « 3 tours restants » juste après un Read, puis RETOUR sur end_turn ; chiffré avant (~0,09 $). Dépend de FIL2.</span>
+        <span class="note">Deux essais claude -p à plafond 10 : « 3 tours restants » juste après un Read réussi, puis juste après un Read en échec, chacun suivi de RETOUR sur end_turn ; chiffrés avant (≈ 0,18 $). Dépend de FIL2.</span>
       </li>
     </ul>
-    <p class="mono cout-total">Coût du chantier : ≈26,3M (26 329 991) · 142 tours · 17,75 $</p>
+    <p class="mono cout-hors">Hors fiches : ≈30,2M (30 230 692) · 195 tours · 16,13 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈32,8M (32 789 784) · 212 tours · 18,86 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -112,6 +113,8 @@
     <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
     <ul class="journal">
       <li><time datetime="2026-09-24">2026-09-24</time><span>FIL1, coût : `cout` ne trouve aucun commit de fiche avant `FIL1` et compte à FIL1 la session entière — SAG4, SAG5, clôture de SAG, cadrage de FIL : 139 tours · 17,34 $. FIL1 seul, de `/vlp:tache FIL1` à la mesure (00:42:28 → 00:51:35, +02:00) : 10 tours · 1 578 463 tokens · 2,08 $, par `mesurer()` sur la plage, comme SAG5. ~158k tokens par tour (1 578 463 ÷ 10), contre 69 917 au premier tour de la session : session non vidée.</span></li>
+      <li><time datetime="2026-09-24">2026-09-24</time><span>Après FIL1, choix de l’utilisateur : le trou des échecs (`PostToolUseFailure`) est plié dans `FIL2` — la doc d’abord, une entrée de plus, un test — et dans `FIL3` : deux essais, ≈ 0,18 $, car le premier avertissement fait rendre `RETOUR` et un essai ne prouve qu’un cas ; le second sans aucun fichier, la mise en route de `SAG4` ayant pris 4 tours. La découpe de `cout` à l’ouverture va en TODO, n° 42 `OUV`.</span></li>
+      <li><time datetime="2026-09-24">2026-09-24</time><span>FIL1, coût, corrigé : le commit `FIL1 :` posé, `cout` coupe bien — 17 tours · 2,73 $ pour FIL1 (de l’ouverture `f694a99` au commit `174ffb1`, dont les 4 tours qui ont suivi l’ouverture), 195 tours · 16,13 $ hors fiches. Les 139 tours · 17,34 $ ne valaient qu’avant le commit, à l’étape 6 bis de `/vlp:tache` : c’est ce défaut que décrit la TODO n° 42.</span></li>
     </ul>
   </section>
 

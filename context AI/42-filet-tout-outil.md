@@ -6,9 +6,10 @@
 
 **À quoi il sert.** Le filet de `SAG` ne prévient le sous-agent qu'après un `Write` ou un
 `Edit`, et se tait sur un chemin de plus de 260 caractères. `FIL` le branche sur tout outil,
-et lui fait lire les chemins longs.
+échecs compris, et lui fait lire les chemins longs.
 
-**Fait.** Rien. Ouvert le 2026-09-24, cadré en 3 fiches, `FIL1` à jouer.
+**Fait.** `FIL1` (2026-09-24) : les trois inconnues tranchées ; le trou des échecs
+(`PostToolUseFailure`), trouvé en route, est plié dans `FIL2` et `FIL3`. `FIL2` à jouer.
 
 ## Le socle commun
 
@@ -35,7 +36,8 @@ et lui fait lire les chemins longs.
 
 **Décidé au cadrage.** Le filet passe sur tout outil, dans une entrée `PostToolUse` à lui ;
 `vlp.py hook` garde la sienne. Son prix — un filet à vide et un `python3` qui échoue à chaque
-appel d'outil, dans toute session — est accepté, et mesuré avant et après.
+appel d'outil, dans toute session — est accepté, et mesuré avant et après. Décidé après
+`FIL1` : il tire aussi après un échec, par une entrée `PostToolUseFailure` (journal du 2026-09-24).
 
 **Les règles du chantier.**
 - Tout `claude -p` se chiffre en $ **avant**, et le chiffre s'annonce ; `--allowedTools "Skill"`,
@@ -55,8 +57,8 @@ sous-agent. Le bruit `python3` est le n° 39 `PYT` ; la case non relue par le ch
 | Fiche | Titre | Dépend de |
 |---|---|---|
 | `FIL1` | Vérifier et mesurer, avant d'écrire | rien |
-| `FIL2` | Brancher le filet sur tout outil et sur les chemins longs | `FIL1` |
-| `FIL3` | Éprouver le filet après un `Read`, à plafond bas | `FIL2` |
+| `FIL2` | Brancher le filet sur tout outil, échecs compris, et sur les chemins longs | `FIL1` |
+| `FIL3` | Éprouver le filet après un `Read` et après un échec, à plafond bas | `FIL2` |
 
 Rien ne se joue en parallèle : chaque fiche s'appuie sur ce que la précédente a établi.
 
@@ -96,7 +98,7 @@ long et ce que rendent `isfile`, `open` et `ouvrir` ; cinq temps du filet à vid
 ---
 
 <!-- FICHE:FIL2 -->
-## FIL2 [ ] — Brancher le filet sur tout outil et sur les chemins longs
+## FIL2 [ ] — Brancher le filet sur tout outil, échecs compris, et sur les chemins longs
 
 **Dépend de** : `FIL1`.
 **Fichiers** : `hooks/hooks.json`, `scripts/vlp.py` (`cmd_filet`, `comptoir_tours`),
@@ -104,52 +106,63 @@ long et ce que rendent `isfile`, `open` et `ouvrir` ; cinq temps du filet à vid
 
 **Prompt**
 Relis au journal ce que `FIL1` a établi ; ne le revérifie pas.
-1. Dans `hooks/hooks.json`, sors les deux commandes de `filet` (`python3` puis `py`) dans une
-   entrée `PostToolUse` à elles, au matcher « tout outil » de `FIL1`. L'entrée des écritures
-   garde les deux commandes de `hook`, matcher inchangé.
-2. Dans `cmd_filet`, la transcription du sous-agent se teste et se lit par le préfixe des
-   chemins longs : `ouvrir` de `mesure-tokens.py`, chargé par `mesure()` — réutilisé, jamais
-   recopié. Le chargement vient **après** le test « sous-agent ou non » : un filet à vide ne
-   le paie pas.
-3. Dans `scripts/test-vlp.py` : un test lit `hooks/hooks.json` et vérifie les deux entrées —
-   `filet` sur tout outil, `hook` sur les écritures, chacun en paire `python3` + `py` ; un test
-   fait avertir le filet sur une transcription au bout d'un vrai chemin de plus de 260
-   caractères, construit comme dans `FIL1` — hors Windows, le test dit pourquoi il saute.
-4. Remesure cinq fois le filet à vide, comme `FIL1` : le temps ne doit pas avoir grossi.
+1. Dans la doc (https://code.claude.com/docs/en/hooks) : comment la sortie d'un hook
+   `PostToolUseFailure` atteint le modèle — `additionalContext`, ou stderr et code 2 — et si
+   son entrée porte `agent_id` et `agent_type`, comme `PostToolUse`. Cite-le au journal, daté.
+   Sans `agent_id` dans cette entrée, arrête-toi : le filet ne saurait pas qui prévenir.
+2. Dans `hooks/hooks.json`, sors les deux commandes de `filet` (`python3` puis `py`) dans une
+   entrée `PostToolUse` à elles, au matcher « tout outil » de `FIL1`, et mets la même paire
+   dans une entrée `PostToolUseFailure`, même matcher. L'entrée des écritures garde les deux
+   commandes de `hook`, matcher inchangé.
+3. Dans `cmd_filet`, la transcription du sous-agent se teste et se lit par le préfixe des
+   chemins longs : `ouvrir` de `mesure-tokens.py`, chargé par `mesure()`, réutilisé et jamais
+   recopié, **après** le test « sous-agent ou non ». L'avertissement répond à l'événement
+   reçu (`hook_event_name`), sous la forme que la doc donne au point 1.
+4. Dans `scripts/test-vlp.py` : un test lit `hooks/hooks.json` et vérifie les trois entrées —
+   `filet` sur tout outil, après un succès et après un échec, `hook` sur les écritures, chacun
+   en paire `python3` + `py` ; un test fait avertir le filet après un échec ; un autre, sur une
+   transcription au bout d'un vrai chemin de plus de 260 caractères, construit comme dans
+   `FIL1` — hors Windows, il dit pourquoi il saute.
+5. Remesure cinq fois le filet à vide, comme `FIL1` : le temps ne doit pas avoir grossi.
 
 **Critère de fin**
-`py scripts/test-vlp.py` rend « OK » avec les deux nouveaux tests ; `claude plugin validate`
-passe ; le journal donne les cinq temps du filet à vide, avant (`FIL1`) et après, en ms.
+`py scripts/test-vlp.py` rend « OK » avec les trois nouveaux tests ; `claude plugin validate`
+passe ; le journal cite la doc sur `PostToolUseFailure`, et donne les cinq temps du filet à
+vide, avant (`FIL1`) et après, en ms.
 <!-- /FICHE -->
 
 ---
 
 <!-- FICHE:FIL3 -->
-## FIL3 [ ] — Éprouver le filet après un `Read`, à plafond bas
+## FIL3 [ ] — Éprouver le filet après un `Read` et après un échec, à plafond bas
 
 **Dépend de** : `FIL2`.
 **Fichiers** : `agents/fiche.md` (frontmatter) — et rien d'autre ; la commande de l'essai est
 dans l'entrée `SAG4` du journal de `context AI/08-etat.md` (2026-09-24).
 
 **Prompt**
-Rejoue l'essai de `SAG4` pour prouver le cas qu'il a manqué : un avertissement juste après un
-`Read`. Chiffre-le avant, et annonce le chiffre (`SAG4` : 0,0885 $).
+Rejoue l'essai de `SAG4` deux fois : un avertissement juste après un `Read`, puis juste après
+un appel qui échoue (`FIL1`). Le premier avertissement fait rendre `RETOUR` : un essai ne
+prouve qu'un cas. Chiffre les deux avant, et annonce le chiffre (`SAG4` : 0,0885 $ l'essai).
 1. Reconstruis le bac dans le scratchpad : un `CHANTIER.md` qui pointe un fichier de fiches, et
-   une fiche factice où **chaque tour est un `Read`** — douze fichiers posés d'avance, lus un
-   par tour, un seul appel d'outil par tour. Vérifie d'abord que `vlp.py extraire` y lit la fiche.
-2. Abaisse `maxTurns` à 10 le temps de l'essai ; lance `claude -p` dans le bac, avec la commande
-   de `SAG4` ; remets `maxTurns` à 80, et vérifie-le par `Read`.
-3. Dans la transcription du sous-agent, compte : les tours ; l'outil du tour qui précède le
-   premier avertissement, et ce que dit cet avertissement ; les avertissements en tout ; les
-   `hook_non_blocking_error`, pour combien d'appels d'outils ; le premier mot et le
-   `stop_reason` du dernier message.
-4. Au journal : la commande, le coût réel, ces comptes bruts, et la dernière ligne du
+   une fiche factice où **chaque tour est un `Read`** — douze fichiers, lus un par tour, un seul
+   appel d'outil par tour ; un fichier absent se note, et on passe au suivant. Vérifie d'abord
+   que `vlp.py extraire` y lit la fiche.
+2. Abaisse `maxTurns` à 10 le temps des essais ; lance `claude -p` dans le bac avec la commande
+   de `SAG4`, une fois avec les douze fichiers, une fois sans aucun ; remets `maxTurns` à 80,
+   et vérifie-le par `Read`.
+3. Dans chaque transcription du sous-agent, compte : les tours ; l'outil du tour qui précède le
+   premier avertissement, s'il a échoué (`is_error`), et ce que dit l'avertissement ; les
+   avertissements en tout ; les `hook_non_blocking_error`, pour combien d'appels d'outils ; le
+   premier mot et le `stop_reason` du dernier message.
+4. Au journal : les commandes, le coût réel, ces comptes bruts, et la dernière ligne de chaque
    sous-agent, citée telle quelle.
-**Filet muet après un `Read`** : rends `RETOUR` avec la transcription — c'est `FIL2` qui est
-à reprendre.
+**Filet muet après un `Read` ou après un échec** : rends `RETOUR` avec la transcription —
+c'est `FIL2` qui est à reprendre.
 
 **Critère de fin**
-La transcription montre un premier avertissement, « 3 tours restants », juste après un `Read`,
-puis un dernier message qui commence par `RETOUR`, sur `end_turn` ; le journal le cite avec ses
-comptes bruts ; `maxTurns` est revenu à 80, vérifié par `Read`.
+Premier essai : un premier avertissement, « 3 tours restants », juste après un `Read` réussi ;
+second essai : juste après un `Read` en échec. Chacun finit par un dernier message qui commence
+par `RETOUR`, sur `end_turn` ; le journal les cite avec leurs comptes bruts ; `maxTurns` est
+revenu à 80, vérifié par `Read`.
 <!-- /FICHE -->

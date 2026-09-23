@@ -149,7 +149,7 @@ C'est d'ici que `/chantier` tire ses propositions. Un chantier par entrée,
 ordonné par ce qui débloque le reste, cité par son code. Le détail de chacun
 est dans `38-audit-artefacts.md` § 4, qui les nomme A à F ; les rangs 1 à 24,
 tous retirés, venaient de `12-audit.md` ; 31 à 34, de la clôture de `REP` ; 35 à
-37, de celle de `CPT` ; 38 et au-delà, de celle de `SAG`.
+37, de celle de `CPT` ; 38 à 41, de celle de `SAG` ; 42, de `FIL1`.
 
 | # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |
 |---|---|---|---|---|
@@ -163,6 +163,7 @@ tous retirés, venaient de `12-audit.md` ; 31 à 34, de la clôture de `REP` ; 3
 | 39 | `PYT` — Plus d'erreur « Python est introuvable » à chaque écriture | Sous Windows, les entrées `python3` de `hooks/hooks.json` échouent à chaque `Write` ou `Edit` du sous-agent : deux `hook_non_blocking_error` « Python est introuvable » par écriture (essai `SAG4`, l. 62-63 de sa transcription). 🟡 Le modèle les lit-il ? Pas vérifié. Faire taire l'entrée qui échoue sans perdre la paire `python3` + `py`. | ~1 fiche | — |
 | 40 | `MTK` — `mesure-tokens.py` : une docstring, et la plage en ligne de commande | Le socle de `SAG` renvoie à « sa docstring » pour la syntaxe : il n'en a pas, seulement une ligne `usage`. Sa ligne de commande n'expose pas la plage que `mesurer()` accepte : la reprise de `SAG3` s'est mesurée par un `py -c` d'une ligne entière (journal du 2026-09-24). Deux bornes, heures ou commits. | ~1 fiche | — |
 | 41 | `PER` — Marquer `34-agent-sans-git.md:56`, périmé depuis `CPT2` | Relevé par `SAG1` : la ligne dit que `mesure-tokens.py` ne compte pas les sous-agents ; il les compte depuis `CPT2`. Un énoncé renversé se garde, marqué (`methode-chantier.md`) : un renvoi vers `CPT2`, pas un effacement. | ~0,5 fiche | — |
+| 42 | `OUV` — Le coût d'une fiche, mesuré avant son commit | À l'étape 6 bis, `/vlp:tache` mesure avant de commiter. Sans commit de fiche plus ancien dans la session, `cout` ne découpe rien et rend la session entière : 139 tours · 17,34 $ pour `FIL1`, jouée sans `/clear` après le cadrage ; une fois son commit posé, 17 tours · 2,73 $ (journal du 2026-09-24). La page publiée « faite » montre la session entière jusqu'à sa régénération suivante. Faute du commit de la fiche, compter depuis le dernier commit de la session — ou depuis le message `/vlp:tache <fiche>`. | ~1 fiche | — |
 | 25 | `VOI` — Finir les feuilles voisines, reste de `REP` | Ce que `REP` a laissé. La ligne `MARKDOWN` de `vlp.py niveau` compte, sans `--ecrire`, la page régénérée au lieu de celle du disque : elle ne voit ni la TODO ni la zone « en cours ». La régénération abîme trois feuilles voisines : TODO de MapDecorator hors table, donc lue vide ; lettres de fiche entre backticks ignorées ; source de TrackGen sans accents. Une fois corrigées, republier MapDecorator, TrackGen et ProjetONZSM. Détail : journal du 2026-09-23. | ~3 fiches | — |
 | 26 | `ABR` — Mettre notes et journal à l'abri dans un `.md` | Les notes et le journal d'une page de chantier n'existent aujourd'hui que dans la page. `page --note` et `--journal` écriront d'abord le texte entier dans un `.md`, et la page le recopiera. | ~3 fiches | — |
 | 27 | `ALE` — Essai : alléger la republication | Deux pistes, mesurées : le CSS en fichier joint, puis les données dans la base de claude.ai. Décide où vivent le CSS et les données avant `PLI` et `FEU`. | 2 fiches | `ABR` |
@@ -175,11 +176,21 @@ tous retirés, venaient de `12-audit.md` ; 31 à 34, de la clôture de `REP` ; 3
 Une ligne par décision imprévue tranchée en cours de fiche — jamais un résumé
 de ce que le code dit déjà.
 
+- **2026-09-24** — FIL1, coût, corrigé : le commit `FIL1 :` posé, `cout` coupe bien — 17 tours ·
+  2,73 $ pour FIL1 (de l’ouverture `f694a99` au commit `174ffb1`, dont les 4 tours qui ont suivi
+  l’ouverture), 195 tours · 16,13 $ hors fiches. Les 139 tours · 17,34 $ ne valaient qu’avant le
+  commit, à l’étape 6 bis de `/vlp:tache` : c’est ce défaut que décrit la TODO n° 42.
+- **2026-09-24** — Après FIL1, choix de l’utilisateur : le trou des échecs (`PostToolUseFailure`)
+  est plié dans `FIL2` — la doc d’abord, une entrée de plus, un test — et dans `FIL3` : deux
+  essais, ≈ 0,18 $, car le premier avertissement fait rendre `RETOUR` et un essai ne prouve
+  qu’un cas ; le second sans aucun fichier, la mise en route de `SAG4` ayant pris 4 tours. La
+  découpe de `cout` à l’ouverture va en TODO, n° 42 `OUV`.
 - **2026-09-24** — FIL1, coût : `cout` ne trouve aucun commit de fiche avant `FIL1` et compte à
   FIL1 la session entière — SAG4, SAG5, clôture de SAG, cadrage de FIL : 139 tours · 17,34 $.
   FIL1 seul, de `/vlp:tache FIL1` à la mesure (00:42:28 → 00:51:35, +02:00) : 10 tours ·
   1 578 463 tokens · 2,08 $, par `mesurer()` sur la plage, comme SAG5. ~158k tokens par tour
   (1 578 463 ÷ 10), contre 69 917 au premier tour de la session : session non vidée.
+  Corrigé le jour même, plus haut : « FIL1, coût, corrigé ».
 - **2026-09-24** — FIL1 : les trois inconnues de `FIL` tranchées, et un trou de plus ; rien ne
   change dans le kit. Doc officielle, https://code.claude.com/docs/en/hooks, lue ce jour par
   WebFetch, puis revérifiée par `grep` sur la page brute (`…/hooks.md`) ; Claude Code 2.1.280.
