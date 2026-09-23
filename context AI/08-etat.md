@@ -129,6 +129,18 @@ tous retirés, venaient de `12-audit.md`.
 Une ligne par décision imprévue tranchée en cours de fiche — jamais un résumé
 de ce que le code dit déjà.
 
+- **2026-09-23** — REP4 : MapDecorator, TrackGen et ProjetONZSM ne sont pas republiées,
+  sur décision de l'utilisateur. Leurs pages en ligne, faites à la main, sont déjà à
+  0 · 0 · 0, et leur version régénérée perd du contenu : TODO de MapDecorator hors
+  table, donc lue vide ; lettres entre backticks ignorées ; source de TrackGen sans
+  accents. Les quatre feuilles voisines sont hors de git, pas la seule de Cairn :
+  quatre copies `.avant-REP`.
+
+- **2026-09-23** — REP4 : sans `--ecrire`, la ligne `MARKDOWN` de `niveau` compte la
+  page régénérée, pas celle du disque — muette sur la TODO et la zone « en cours ».
+  L'« avant » a donc été pris par `markdown_brut` sur le disque (Cairn 426 · 1 · 1,
+  comme l'audit). Défaut de `REP3`, laissé en suivi par l'utilisateur.
+
 - **2026-09-23** — REP3 : sous `/vlp:enchainer`, le sous-agent `vlp:fiche` (fork de
   `vlp:jouer`) s'est arrêté sans statut quatre fois — une sur REP2, trois sur REP3 —,
   traité chaque fois en `RETOUR`. REP2 est passée au rejeu ; REP3 s'est faite à la main,

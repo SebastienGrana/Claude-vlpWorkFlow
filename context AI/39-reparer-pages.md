@@ -175,8 +175,9 @@ avant → après, au moins cinq de plus.
 ---
 
 <!-- FICHE:REP4 -->
-## REP4 [ ] — Remettre les cinq feuilles de route à niveau, et les republier
+## REP4 [x] — Remettre les cinq feuilles de route à niveau, et les republier
 
+**Session** : da8e3b04-adf4-426a-a7b1-3087bacb5724
 **Dépend de** : `REP3`.
 **Fichiers** : la feuille de route seule, `<contexte>/artefacts/feuille-de-route.html`,
 du kit (`.`) et des quatre projets voisins : `../Cairn-VlpLib`, `../MapDecorator`,
