@@ -1365,4 +1365,53 @@ with tempfile.TemporaryDirectory() as t:
              and "ÉCART: feuille: fichier d'état introuvable : aucun\n" in s, s)
 
 
+
+# Simplifier les tests filet
+with tempfile.TemporaryDirectory() as t:
+    def filet_test(json_obj):
+        """Appelle vlp.py filet avec l'entrée JSON."""
+        o, e = io.StringIO(), io.StringIO()
+        code = mod.main(["filet"], o, io.StringIO(json.dumps(json_obj)), e)
+        return code, o.getvalue(), e.getvalue()
+
+    def creer_trans(chemin, tours):
+        """Crée un transcript factice."""
+        os.makedirs(os.path.dirname(chemin), exist_ok=True)
+        with open(chemin, "w", encoding="utf-8") as f:
+            for n in range(tours):
+                d = {"message": {"id": f"m{n}", "usage": {"input_tokens": 100, "output_tokens": 50}}}
+                f.write(json.dumps(d) + "\n")
+
+    # Pas d'agent_id
+    code, o, e = filet_test({"agent_type": "vlp:fiche"})
+    verifier("filet : pas agent_id, muet", (code, o, e) == (0, "", ""), o + e)
+
+    # agent_type ne contient pas 'fiche'
+    code, o, e = filet_test({"agent_type": "autre", "agent_id": "a1"})
+    verifier("filet : agent_type sans 'fiche', muet", (code, o, e) == (0, "", ""), o + e)
+
+    # Transcript absent
+    t_fwd = t.replace(os.sep, '/')
+    code, o, e = filet_test({"agent_type": "vlp:fiche", "agent_id": "a1", "transcript_path": t_fwd + "/chef.jsonl"})
+    verifier("filet : transcript absent, muet", (code, o, e) == (0, "", ""), o + e)
+
+    # 77 tours / 80 max = 3 restants → avertissement
+    sub_path = os.path.join(t, "s", "subagents", "agent-a1.jsonl")
+    creer_trans(sub_path, 77)
+    code, o, e = filet_test({"agent_type": "vlp:fiche", "agent_id": "a1", "transcript_path": t_fwd + "/s.jsonl"})
+    verifier("filet : 3 tours restants, avertissement",
+             code == 0 and '"additionalContext": "Attention : 3 tours restants' in o, o + e)
+
+    # 76 tours = 4 restants → muet
+    creer_trans(sub_path, 76)
+    code, o, e = filet_test({"agent_type": "vlp:fiche", "agent_id": "a1", "transcript_path": t_fwd + "/s.jsonl"})
+    verifier("filet : 4 tours restants, muet", code == 0 and o == "", o + e)
+
+    # 78 tours = 2 restants → avertissement
+    creer_trans(sub_path, 78)
+    code, o, e = filet_test({"agent_type": "vlp:fiche", "agent_id": "a1", "transcript_path": t_fwd + "/s.jsonl"})
+    verifier("filet : 2 tours restants, avertissement",
+             code == 0 and '"additionalContext": "Attention : 2 tours restants' in o, o + e)
+
+
 print("OK")

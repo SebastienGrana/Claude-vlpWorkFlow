@@ -63,6 +63,12 @@ Sous-commandes :
   code. Sinon `valider` : écart → écarts, bilan et consigne sur stderr, sort 2 ;
   valide → le JSON `hookSpecificOutput` dont `additionalContext` est le bilan,
   sort 0.
+- `filet` — le hook `PostToolUse` du sous-agent : lit sur stdin le JSON du hook.
+  Sort 0 muet si pas un sous-agent (`agent_id` absent, ou `agent_type` ne
+  contient pas « fiche »), ou si le transcript du sous-agent est absent. Sinon
+  compte les tours rendus et lit `maxTurns` d'`agents/fiche.md` ; si
+  `tours_restants <= 3`, rend un JSON `hookSpecificOutput` avec l'avertissement,
+  sort 0 ; sinon sort 0 muet.
 - `etat <contexte>` — `ETAT=<NN>-etat.md` : le fichier d'état déjà présent,
   sinon le premier nombre à deux chiffres libre après le plus grand (`01` si le
   dossier est vide ou absent). Sort 0.
@@ -681,6 +687,116 @@ def cmd_hook(entree, sortie, erreur):
     sortie.write(json.dumps({"hookSpecificOutput": {"hookEventName": "PostToolUse", "additionalContext": bilan}},
                             ensure_ascii=False) + "\n")
     return 0
+
+
+# --- filet -------------------------------------------------------------------
+
+SEUIL_FILET = 3  # Tours restants à partir desquels on avertit le sous-agent
+
+
+def cmd_filet(entree, sortie, erreur):
+    """Avertit quand le sous-agent approche du plafond de tours.
+
+    Lit le JSON du hook sur stdin. Si nous sommes dans un sous-agent
+    (agent_type contient 'fiche' et agent_id existe), compte les tours
+    déjà rendus et avertit si tours_restants <= SEUIL_FILET.
+    """
+    try:
+        d = json.loads(entree.read())
+    except (ValueError, AttributeError, TypeError):
+        return 0
+
+    # Vérifier que c'est un sous-agent de fiche
+    agent_type = d.get("agent_type", "")
+    agent_id = d.get("agent_id")
+    if "fiche" not in agent_type or not agent_id:
+        return 0
+
+    transcript_path = d.get("transcript_path")
+    if not isinstance(transcript_path, str):
+        return 0
+
+    # Chemin du transcript du sous-agent
+    # Sur Windows, les chemins JSON peuvent avoir des barres obliques
+    transcript_path_os = transcript_path.replace("/", os.sep)
+    base = os.path.splitext(transcript_path_os)[0]
+    subagent_path = os.path.join(base, "subagents", f"agent-{agent_id}.jsonl")
+
+    if not os.path.isfile(subagent_path):
+        return 0
+
+    # Compter les tours du sous-agent
+    tours = comptoir_tours(subagent_path)
+
+    # Lire maxTurns depuis agents/fiche.md
+    # Le chemin est relatif au kit — nous sommes dans scripts/vlp.py
+    kit_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    fiche_path = os.path.join(kit_root, "agents", "fiche.md")
+
+    max_turns = lire_max_turns(fiche_path)
+    if max_turns is None:
+        return 0
+
+    tours_restants = max_turns - tours
+    if 0 < tours_restants <= SEUIL_FILET:
+        tour_mot = "tour" if tours_restants == 1 else "tours"
+        message = f"Attention : {tours_restants} {tour_mot} restant{'s' if tours_restants > 1 else ''}. Rends ton statut maintenant — RETOUR avec ce qui est fait et ce qui reste, si la fiche n'est pas finie."
+        sortie.write(json.dumps(
+            {"hookSpecificOutput": {"hookEventName": "PostToolUse", "additionalContext": message}},
+            ensure_ascii=False
+        ) + "\n")
+
+    return 0
+
+
+def comptoir_tours(chemin):
+    """Compte les tours distincts (message.id) dans un transcript de sous-agent."""
+    tours = set()
+    try:
+        with open(chemin, "r", encoding="utf-8") as f:
+            for ligne in f:
+                ligne = ligne.strip()
+                if not ligne:
+                    continue
+                try:
+                    d = json.loads(ligne)
+                    message = d.get("message")
+                    if isinstance(message, dict):
+                        usage = message.get("usage")
+                        if isinstance(usage, dict):
+                            mid = message.get("id")
+                            if mid:
+                                tours.add(mid)
+                except json.JSONDecodeError:
+                    pass
+    except (OSError, UnicodeDecodeError):
+        pass
+    return len(tours)
+
+
+def lire_max_turns(chemin):
+    """Lit maxTurns depuis le frontmatter YAML d'un fichier."""
+    try:
+        with open(chemin, "r", encoding="utf-8") as f:
+            lignes = f.readlines()
+    except (OSError, UnicodeDecodeError):
+        return None
+
+    # Chercher le frontmatter YAML
+    if len(lignes) < 2 or not lignes[0].strip().startswith("---"):
+        return None
+
+    for i in range(1, len(lignes)):
+        ligne = lignes[i].strip()
+        if ligne.startswith("---"):
+            break
+        if ligne.startswith("maxTurns:"):
+            try:
+                return int(ligne.split(":", 1)[1].strip())
+            except (ValueError, IndexError):
+                pass
+
+    return None
 
 
 # --- page --------------------------------------------------------------------
@@ -2050,6 +2166,7 @@ def main(argv, sortie=None, entree=None, erreur=None):
     pg.add_argument("--verifier", action="store_true")
     pg.add_argument("--date")
     sous.add_parser("hook")
+    sous.add_parser("filet")
     et = sous.add_parser("etat")
     et.add_argument("contexte")
     rv = sous.add_parser("renvois")
@@ -2112,6 +2229,8 @@ def repartir(a, sortie, entree, erreur):
         return 0
     if a.cmd == "hook":
         return cmd_hook(entree or sys.stdin, sortie, erreur or sys.stderr)
+    if a.cmd == "filet":
+        return cmd_filet(entree or sys.stdin, sortie, erreur or sys.stderr)
     if a.cmd == "page":
         chemin_garde(a.fichier)
         if a.page is None:

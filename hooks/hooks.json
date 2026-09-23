@@ -9,6 +9,22 @@
             "command": "python3",
             "args": [
               "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py",
+              "filet"
+            ]
+          },
+          {
+            "type": "command",
+            "command": "py",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py",
+              "filet"
+            ]
+          },
+          {
+            "type": "command",
+            "command": "python3",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py",
               "hook"
             ]
           },
