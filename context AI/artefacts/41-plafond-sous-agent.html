@@ -68,9 +68,9 @@
     <p>Une fiche de code jouée par /vlp:enchainer va au bout ; prévenu avant la coupe, le sous-agent rend toujours son statut ; son coût, sous-agent compris, est posé à côté de la main et de Q recompté.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">5 fiches · 4 faites · en cours : SAG5</p>
+    <p class="mono" style="margin-top:.5rem">5 fiches · 5 faites</p>
   </header>
 
   <section>
@@ -99,16 +99,17 @@
         <span class="id">SAG4</span><span class="titre">Éprouver le filet à plafond bas</span>
         <span class="etat">faite</span>
         <span class="note">Transcription agent-a6ac4da4bd223d228.jsonl (9 tours) : avertissement « Attention : 2 tours restants… » après le tour 8 (l. 65), puis tour 9 sur end_turn, message ouvert par « RETOUR — Quatre fichiers écrits (n01.txt à n04.txt… » ; journal du 2026-09-24 le cite ; maxTurns: 80 revu par Read (agents/fiche.md:6). Essai 0,0885 $, 0 refus.</span>
-        <span class="cout mono">≈5,2M (5 188 455) · 25 tours · 2,79 $</span>
+        <span class="cout mono">≈5,4M (5 371 524) · 27 tours · 2,87 $</span>
       </li>
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">SAG5</span><span class="titre">Mesurer le témoin, et conclure</span>
-        <span class="etat">en cours</span>
-        <span class="note">Mesure SAG3 par vlp.py cout, la compare à la main et à Q, corrige le 0,176 $ s'il le faut. Après SAG4.</span>
+        <span class="etat">faite</span>
+        <span class="note">Journal du 2026-09-24 : table à trois lignes, comptes bruts — Q recompté 0,176 $ · 293 226 tokens · 12 tours · end_turn ; SAG3 enchaînée 1,53 $ (2,08 $ avec la reprise à la main) · 7 355 914 tokens · 73 tours · end_turn ; CPT à la main 4,34 $ en moyenne · 4 816 632 tokens · 29,25 tours — et quatre commandes, rejouées. 35-bilan.md:107, CLAUDE.md:16 et la mémoire citent 0,176 $ et 0,42 $, confirmés par SAG1 : rien à corriger.</span>
+        <span class="cout mono">≈1,7M (1 653 902) · 14 tours · 1,26 $</span>
       </li>
     </ul>
     <p class="mono cout-hors">Hors fiches : 0 · 0 tours · 0,00 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈18,0M (18 014 176) · 132 tours · 8,76 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈19,9M (19 851 147) · 148 tours · 10,10 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -129,6 +130,7 @@
       <li><time datetime="2026-09-23">2026-09-23</time><span>SAG2 : un hook de plugin (`hooks/hooks.json`) atteint le sous-agent — le `hooks` du frontmatter est ignoré pour un sous-agent de plugin (doc sub-agents, lue le 2026-09-23). Essai : mot témoin injecté par `PostToolUse`, reçu et recopié par Haiku (0,2789 $, estimé 0,15). Surprise : `transcript_path` est la transcription du chef ; celle du sous-agent se retrouve par `agent_id`. `maxTurns` 30 → 80 : 66 tours à la main + 20 %.</span></li>
       <li><time datetime="2026-09-23">2026-09-23</time><span>SAG3 (témoin) : le sous-agent rend FAITE en 68 tours sans cocher (0 appel à `cocher` sur 70), et le chef, qui commite sur FAITE sans relire la case (`skills/enchainer/SKILL.md:68`), a commité case vide ; cochée à la main. Fiche 1,53 $ dont sous-agent 0,97 $.</span></li>
       <li><time datetime="2026-09-24">2026-09-24</time><span>SAG4 : le filet tient à plafond bas — maxTurns 10, fiche factice F1 : averti après le tour 8, RETOUR au tour 9 sur end_turn (0,0885 $, plus 0,0885 $ d'une tentative où claude -p refusait l'outil Skill sans --allowedTools). Limites : le matcher Write|Edit ne réveille le filet qu'après une écriture — averti à 2 tours restants, pas 3 ; chemin de 254 caractères, sous les 260 où cmd_filet resterait muet.</span></li>
+      <li><time datetime="2026-09-24">2026-09-24</time><span>SAG5 : sur une fiche de code, l'enchaîné coûte moins qu'à la main — SAG3 2,08 $ reprise comprise (1,53 $ + 0,55 $), contre 4,34 $ en moyenne à la main (CPT1–4, de 2,80 à 5,02 $) ; mais 1,8 fois plus de tokens et 2,7 fois plus de tours : le gain vient du prix de Haiku. maxTurns reste à 80 (68 tours + 20 % = 81,6). SAG1 n'a démenti aucun chiffre : rien à corriger.</span></li>
     </ul>
   </section>
 

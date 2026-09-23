@@ -160,6 +160,34 @@ au-delà, de celle de `CPT`.
 Une ligne par décision imprévue tranchée en cours de fiche — jamais un résumé
 de ce que le code dit déjà.
 
+- **2026-09-24** — SAG5 : sur une fiche de code, `/vlp:enchainer` coûte **moins** qu'à la main.
+
+  | Mesure | $ par fiche | Tokens par fiche | Tours par fiche | Fin |
+  |---|---|---|---|---|
+  | Q recompté (`SAG1`) — 2 fiches triviales, chef Sonnet en `claude -p` | 0,176 $ (0,3525749 ÷ 2) | 293 226 (586 452 ÷ 2) | 12 (24 ÷ 2 : chef 12, Z1 6, Z2 6) | `end_turn` ×2, `FAITE` |
+  | `SAG3` enchaînée — fiche de code, chef Opus 5.5 | 1,53 $ (chef 0,56 + sous-agent 0,97) ; 2,08 $ avec la reprise à la main (0,55 $) | 7 355 914 ; 8 713 375 avec la reprise | 73 (chef 5, sous-agent 68) ; 78 avec la reprise | `end_turn`, `FAITE` sans cocher |
+  | CPT à la main — 4 fiches de code, Opus 5.5 | 4,34 $ en moyenne (2,80 · 4,61 · 5,02 · 4,93) | 4 816 632 en moyenne (19 266 526 ÷ 4) | 29,25 en moyenne (16 · 32 · 35 · 34) | commit, sans plafond |
+
+  Verdict : oui — 2,08 $ reprise comprise, contre 4,34 $ en moyenne et 2,80 $ au mieux à la main,
+  mais en 1,8 fois plus de tokens et 2,7 fois plus de tours : le gain vient du prix de Haiku, pas
+  d'un travail plus court. Commandes : `py scripts/vlp.py cout "context AI/41-plafond-sous-agent.md"`
+  (SAG3), `py scripts/vlp.py cout "context AI/40-cout-juste.md"` (CPT),
+  `py scripts/mesure-tokens.py a7de44ba-a760-4634-b947-8c38f7fe25e8` (Q) ; la reprise, que `cout`
+  range dans SAG4, par `mesurer()` sur la plage des commits `ac67aaa` → `a6c4453` — la ligne de
+  commande de `mesure-tokens.py` n'expose pas la plage :
+
+  ```
+  py -c "import importlib.util as u,datetime as d;s=u.spec_from_file_location('m','scripts/mesure-tokens.py');m=u.module_from_spec(s);s.loader.exec_module(m);t=lambda x:d.datetime.fromisoformat(x).timestamp();r=m.mesurer(m.resoudre('1cba232a-94a5-4599-9fce-b381f08f8a01')[0],(t('2026-09-23T23:57:57+02:00'),t('2026-09-23T23:59:23+02:00')))[0];print(r['total'],r['tours'],r['usd_exact'])"
+  ```
+
+  → `1357461 5 0.5482118`. Réserves : une seule fiche enchaînée, autre que celles de CPT ; le chef
+  de SAG3 et la reprise tournaient dans une session déjà lourde (≈255 k et ≈271 k tokens par
+  tour), plus chère qu'une session neuve. **`maxTurns` reste à 80** : SAG3 a pris 68 tours, 12 de
+  marge ; la règle de SAG2, plus haut compte + 20 %, donnerait 81,6 — deux tours, sous ce qu'une
+  seule mesure distingue —, et depuis SAG4 le plafond atteint rend un `RETOUR`, pas une coupe
+  muette. `SAG1` n'a démenti aucun chiffre : `35-bilan.md:107`, `CLAUDE.md:16` et la mémoire
+  citent 0,176 $ et 0,42 $, confirmés tous deux — rien à corriger.
+
 - **2026-09-24** — SAG4 : le filet **tient** à plafond bas. Essai `claude -p` 2.1.280 dans `b4`,
   copie du bac `bacq4b` de Q, fiche factice `F1` (douze fichiers, un outil par tour) ;
   `maxTurns` 80 → 10 le temps de l'essai, remis à 80 (`git diff` vide, `Read` de

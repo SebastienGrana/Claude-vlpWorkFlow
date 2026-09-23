@@ -217,8 +217,9 @@ de `SAG2`, vérifié par `Read`.
 ---
 
 <!-- FICHE:SAG5 -->
-## SAG5 [ ] — Mesurer le témoin, et conclure
+## SAG5 [x] — Mesurer le témoin, et conclure
 
+**Session** : 1cba232a-94a5-4599-9fce-b381f08f8a01
 **Dépend de** : `SAG4`.
 **Fichiers** : ce fichier de fiches et `context AI/40-cout-juste.md` (par
 `vlp.py cout`), `agents/fiche.md`, `context AI/35-bilan.md`, `CLAUDE.md`, le
