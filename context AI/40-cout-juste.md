@@ -125,8 +125,9 @@ vérifications avant → après.
 ---
 
 <!-- FICHE:CPT2 -->
-## CPT2 [ ] — Compter les sous-agents dans `mesure-tokens.py`, sur une plage de temps
+## CPT2 [x] — Compter les sous-agents dans `mesure-tokens.py`, sur une plage de temps
 
+**Session** : b8ed3e27-95e5-44f3-8eee-abebd7322646
 **Dépend de** : rien.
 **Fichiers** : `scripts/mesure-tokens.py`, `scripts/test-mesure-tokens.py` — et rien d'autre.
 

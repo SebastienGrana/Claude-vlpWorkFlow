@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 import collections
+import datetime
+import fnmatch
 import glob
 import json
 import os
@@ -72,6 +74,69 @@ def resoudre(argument):
     return trouves[0], None
 
 
+# Les sous-agents de la session `<dossier>/<id>.jsonl` : `<dossier>/<id>/subagents/agent-*.jsonl`
+# (socle de context AI/40-cout-juste.md). Leur `.meta.json` ne nomme pas la fiche.
+SOUS_AGENTS = ("subagents", "agent-*.jsonl")
+
+
+def sous_agents(chemin):
+    """Les transcripts de sous-agents d'une session, triés ; [] sans erreur si elle n'en a pas."""
+    dossier, motif = SOUS_AGENTS
+    return sorted(glob.glob(os.path.join(glob.escape(os.path.splitext(chemin)[0]), dossier, motif)))
+
+
+def est_sous_agent(chemin):
+    """Vrai pour un chemin que `sous_agents` rendrait."""
+    dossier, motif = SOUS_AGENTS
+    parent, nom = os.path.split(chemin)
+    return os.path.basename(parent) == dossier and fnmatch.fnmatch(nom, motif)
+
+
+def heure(d):
+    """L'heure d'une ligne de transcript, en secondes UTC ; None sans `timestamp` lisible."""
+    brut = d.get("timestamp")
+    if not isinstance(brut, str):
+        return None
+    if brut.endswith("Z"):      # fromisoformat ne lit « Z » que depuis Python 3.11
+        brut = brut[:-1] + "+00:00"
+    try:
+        t = datetime.datetime.fromisoformat(brut)
+    except ValueError:
+        return None
+    if t.tzinfo is None:        # sans fuseau, l'heure se lit en UTC
+        t = t.replace(tzinfo=datetime.timezone.utc)
+    return t.timestamp()
+
+
+def ouvrir(chemin):
+    """`open` en lecture, qui lit aussi un long chemin sous Windows."""
+    # Sans le préfixe \\?\, open() dit introuvable un chemin de 260 caractères que glob liste
+    # pourtant (vu le 2026-09-23 : 8 transcripts subagents/ à 260 pile, 8 illisibles).
+    if os.name == "nt":
+        absolu = os.path.abspath(chemin)
+        if len(absolu) >= 260 and not absolu.startswith("\\\\"):    # ni déjà préfixé, ni UNC
+            chemin = "\\\\?\\" + absolu
+    return open(chemin, encoding="utf-8")
+
+
+def depart(chemin):
+    """(heure de la première ligne horodatée, None) — heure None s'il n'y en a aucune —, ou
+    (None, erreur) si le transcript est illisible."""
+    try:
+        with ouvrir(chemin) as f:
+            for ligne in f:
+                try:
+                    d = json.loads(ligne)
+                except json.JSONDecodeError:
+                    continue
+                t = heure(d) if isinstance(d, dict) else None
+                if t is not None:
+                    return t, None
+    except OSError as e:
+        return None, f"illisible : {e}"
+    return None, None
+
+
 def _comptes(usage):
     """Les cinq nombres qu'on somme, tirés d'un `usage`."""
     cc = usage.get("cache_creation")
@@ -114,7 +179,7 @@ def arrondir_usd(x):
     return "?" if x is None else str(x.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
 
 
-def mesurer(chemin):
+def mesurer(chemin, plage=None):
     # Un tour = un `message.id` ; un tour s'écrit sur 1 à 3 lignes `assistant`.
     # On garde les comptes de la DERNIÈRE ligne de chaque id, dans l'ordre
     # d'apparition, et on note les ids dont les comptes changent d'une ligne
@@ -122,14 +187,29 @@ def mesurer(chemin):
     # Les appels d'outils, eux, se comptent par ligne : un bloc `tool_use`
     # n'apparaît que sur une seule ligne (vérifié le 2026-09-17 sur deux
     # transcripts : 56 blocs, 56 ids distincts).
+    #
+    # Une plage (debut, fin], en secondes UTC, ne garde que les tours dont la
+    # première ligne y tombe ; un transcript de sous-agent compte entier ou pas
+    # du tout, à l'heure de sa première ligne horodatée. Ce qui n'a pas d'heure
+    # compte, et se signale sur stderr ; une ligne invalide compte toujours,
+    # faute de pouvoir la dater. Sans plage, rien ne change.
     tours = {}          # id -> (comptes, modèle) de la dernière ligne, ordre du fichier
     divergents = set()
     outils = collections.Counter()
     lignes_invalides = 0
     n_ligne = 0
+    dedans = {}         # id -> le tour est-il dans la plage ? jugé à sa première ligne
+    sans_heure = 0
+
+    heure_de = heure
+    if plage is not None and est_sous_agent(chemin):
+        t0, erreur = depart(chemin)
+        if erreur:
+            return None, erreur
+        heure_de = lambda d: t0     # chacun de ses tours prend l'heure de départ
 
     try:
-        f = open(chemin, encoding="utf-8")
+        f = ouvrir(chemin)
     except OSError as e:
         return None, f"illisible : {e}"
 
@@ -147,16 +227,30 @@ def mesurer(chemin):
             message = d.get("message")
             if not isinstance(message, dict):
                 continue
+            usage = message.get("usage")
+            if not isinstance(usage, dict):
+                usage = None
+            # Sans id (vieux transcript), la ligne compte pour un tour à elle seule.
+            mid = (message.get("id") or d.get("requestId") or f"_ligne{n_ligne}") if usage else None
+            if plage is not None:
+                if mid in dedans:           # ligne suivante d'un tour déjà jugé
+                    garde = dedans[mid]
+                else:                       # première ligne d'un tour, ou ligne sans usage
+                    t = heure_de(d)
+                    garde = t is None or plage[0] < t <= plage[1]
+                    if mid is not None:
+                        dedans[mid] = garde
+                        if t is None:
+                            sans_heure += 1
+                if not garde:
+                    continue
             contenu = message.get("content")
             if isinstance(contenu, list):
                 for bloc in contenu:
                     if isinstance(bloc, dict) and bloc.get("type") == "tool_use":
                         outils[bloc.get("name") or "?"] += 1
-            usage = message.get("usage")
-            if not isinstance(usage, dict):
+            if usage is None:
                 continue
-            # Sans id (vieux transcript), la ligne compte pour un tour à elle seule.
-            mid = message.get("id") or d.get("requestId") or f"_ligne{n_ligne}"
             comptes = _comptes(usage)
             modele = str(message.get("model") or "?")
             if usage.get("speed") == "fast":
@@ -185,6 +279,10 @@ def mesurer(chemin):
     def ctx(c):
         return c[0] + c[2] + c[4]
 
+    if sans_heure:
+        print(f"{os.path.basename(chemin)}\tsans heure = {sans_heure} (tours sans timestamp, comptés dans la plage)",
+              file=sys.stderr)
+
     return {
         "tours": len(tours),
         "appels": sum(outils.values()),
@@ -204,6 +302,7 @@ def mesurer(chemin):
         "inconnus": sorted(inconnus),
         "invalides": lignes_invalides,
         "divergents": len(divergents),
+        "sans_heure": sans_heure,
     }, None
 
 
@@ -225,23 +324,21 @@ def main(argv):
     resultats = []
     vus = set()
 
-    for argument in argv:
-        chemin, erreur = resoudre(argument)
-        if erreur:
-            print(f"{argument}\t{erreur}", file=sys.stderr)
-            continue
+    def compter(chemin):
+        """Mesure un fichier et l'ajoute aux résultats ; False s'il était déjà compté."""
         nom = os.path.basename(chemin)
-        # Le même fichier passé deux fois (un id et son chemin, ou deux fiches
-        # jouées dans la même session) ne se compte qu'une fois.
+        # Le même fichier passé deux fois (un id et son chemin, deux fiches jouées
+        # dans la même session, un sous-agent passé aussi par sa session) ne se
+        # compte qu'une fois.
         cle = os.path.normcase(os.path.abspath(chemin))
         if cle in vus:
             print(f"{nom}\tdéjà compté : passé plus d'une fois, compté une", file=sys.stderr)
-            continue
+            return False
         vus.add(cle)
         r, erreur = mesurer(chemin)
         if erreur:
             print(f"{nom}\t{erreur}", file=sys.stderr)
-            continue
+            return True
         if r["divergents"] > 0:
             print(f"{nom}\tdivergents = {r['divergents']} (ids dont l'usage change d'une ligne à l'autre)",
                   file=sys.stderr)
@@ -249,6 +346,18 @@ def main(argv):
             print(f"{nom}\tmodèle absent de la grille : {', '.join(r['inconnus'])} — usd vaut ?",
                   file=sys.stderr)
         resultats.append((nom, r))
+        return True
+
+    for argument in argv:
+        chemin, erreur = resoudre(argument)
+        if erreur:
+            print(f"{argument}\t{erreur}", file=sys.stderr)
+            continue
+        # Une session amène ses sous-agents, une ligne chacun sous la sienne ;
+        # déjà comptée, elle les a déjà amenés.
+        if compter(chemin):
+            for sous_agent in sous_agents(chemin):
+                compter(sous_agent)
 
     if not resultats:
         print("aucun fichier n'a pu être lu", file=sys.stderr)

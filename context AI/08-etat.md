@@ -143,6 +143,11 @@ tous retirés, venaient de `12-audit.md` ; 31 à 34, de la clôture de `REP`.
 Une ligne par décision imprévue tranchée en cours de fiche — jamais un résumé
 de ce que le code dit déjà.
 
+- **2026-09-23** — CPT2 : un sous-agent écrit un `output_tokens` provisoire (1, 2…) sur les
+  lignes d'un tour avant la dernière, qui porte le compte final (144 cas sur 144, les 5
+  sous-agents de REP) : garder la dernière ligne est juste, et `divergents` y est bénin — la
+  session n'en a aucun. Le préfixe `\\?\` laissé par CPT1 est pris : 8 illisibles → 0 sur 96.
+
 - **2026-09-23** — CPT1 : sous Windows, `open()` échoue sur un chemin de 260 caractères.
   L'inventaire des modèles a eu 8 transcripts `subagents/` illisibles (« No such file »)
   que `glob` liste pourtant : 8 chemins à 260 pile, tous de sessions de sonde. Avec le
