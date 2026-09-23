@@ -73,8 +73,8 @@
     <!-- ZONE:encours — remplacé à chaque ouverture, remis à « aucun » à chaque clôture.
          /tache n'y touche pas : l'avancement fiche par fiche est sur la page du chantier. -->
     <div class="encours">
-      <div class="titre">Aucun chantier ouvert</div>
-      <div>Lancer <span class="mono">/vlp:chantier</span> pour en ouvrir un.</div>
+      <div class="titre">Un coût juste, fiche par fiche et sous-agents compris <span class="badge" data-etat="cours">en cours</span></div>
+      <div>Fiches <span class="mono">CPT1–CPT4</span> — <a href="https://claude.ai/artifact/FpVtjMX2wqNboLrfCbvxGk">la page du chantier</a></div>
     </div>
   </section>
 
@@ -87,7 +87,7 @@
           <tr><th>#</th><th>Chantier</th><th>Ce qu'il apporte</th><th>Coût</th><th>Dépend de</th></tr>
         </thead>
         <tbody>
-          <tr><td class="mono">31</td><td><span class="mono">CPT</span> — Un coût juste, fiche par fiche et sous-agents compris</td><td>Trois trous vus à la clôture de <span class="mono">REP</span>. <span class="mono">COUT</span> ne relit pas la ligne <span class="mono">? $</span> qu'écrit <span class="mono">ligne_cout</span> : à chaque régénération, la page perd le coût des fiches précédentes d'une session partagée — celui de <span class="mono">REP1</span> à <span class="mono">REP3</span>, repris de git. <span class="mono">claude-opus-5-5</span> manque à la grille de <span class="mono">mesure-tokens.py</span> : <span class="mono">usd</span> vaut <span class="mono">?</span>, prix à prendre sur la doc officielle. <span class="mono">cout</span> et <span class="mono">page</span> ne lisent pas <span class="mono">subagents/agent-*.jsonl</span> : 8 161 098 tokens · 1,69 $ hors du total de <span class="mono">REP</span>. Piste : couper la session aux heures des commits de chaque fiche — le coût par fiche ne dépend plus de l'ancienne page.</td><td class="mono">~2 fiches</td><td class="mono">—</td></tr>
+          <tr><td class="mono">31</td><td><span class="mono">CPT</span> — Un coût juste, fiche par fiche et sous-agents compris <span class="badge" data-etat="cours">en cours</span></td><td>Trois trous vus à la clôture de <span class="mono">REP</span>. <span class="mono">COUT</span> ne relit pas la ligne <span class="mono">? $</span> qu'écrit <span class="mono">ligne_cout</span> : à chaque régénération, la page perd le coût des fiches précédentes d'une session partagée — celui de <span class="mono">REP1</span> à <span class="mono">REP3</span>, repris de git. <span class="mono">claude-opus-5-5</span> manque à la grille de <span class="mono">mesure-tokens.py</span> : <span class="mono">usd</span> vaut <span class="mono">?</span>, prix à prendre sur la doc officielle. <span class="mono">cout</span> et <span class="mono">page</span> ne lisent pas <span class="mono">subagents/agent-*.jsonl</span> : 8 161 098 tokens · 1,69 $ hors du total de <span class="mono">REP</span>. Piste : couper la session aux heures des commits de chaque fiche — le coût par fiche ne dépend plus de l'ancienne page.</td><td class="mono">~2 fiches</td><td class="mono">—</td></tr>
           <tr><td class="mono">32</td><td><span class="mono">SAG</span> — Le sous-agent ne bute plus sur 30 tours</td><td><span class="mono">vlp:fiche</span> s'arrête à <span class="mono">maxTurns: 30</span> sans rendre de statut : quatre fois sur <span class="mono">REP2</span> et <span class="mono">REP3</span> (journal du 2026-09-23). Relever le plafond, ou lui faire écrire son statut avant, puis rejouer une fiche de code par <span class="mono">/vlp:enchainer</span> et mesurer, sous-agent compris.</td><td class="mono">~2 fiches</td><td class="mono"><span class="mono">CPT</span></td></tr>
           <tr><td class="mono">33</td><td><span class="mono">TAR</span> — Un test aller-retour par format écrit</td><td>Deux fois le même défaut dans <span class="mono">REP</span> : les chevrons d'une URL (<span class="mono">REP2</span>), puis la ligne <span class="mono">? $</span> (<span class="mono">CPT</span>) — <span class="mono">vlp.py</span> écrit un format qu'il ne sait pas relire. Un test écrit puis relit chaque format : ligne de coût, ligne close, rang de TODO, zone « en cours ».</td><td class="mono">~2 fiches</td><td class="mono"><span class="mono">CPT</span></td></tr>
           <tr><td class="mono">34</td><td><span class="mono">VAL</span> — Le contrôle avant commit ne se saute plus</td><td>À chaque commit du 2026-09-23 : « pre-commit : claude introuvable dans le PATH, validate sauté ». Le hook cherchera aussi le <span class="mono">claude.exe</span> de l'app, comme le fait <span class="mono">34-agent-sans-git.md</span>.</td><td class="mono">~1 fiche</td><td class="mono">—</td></tr>
@@ -319,7 +319,7 @@
   </section>
 
   <footer>
-    <span>Lettres de fiche prises : <span class="mono">E, M, C, T, B, R, S, H, V, D, I, K, N, L, P, A, G, W, X, F, O, J, Y, U, Q, Z, NIV, REP</span></span>
+    <span>Lettres de fiche prises : <span class="mono">E, M, C, T, B, R, S, H, V, D, I, K, N, L, P, A, G, W, X, F, O, J, Y, U, Q, Z, NIV, REP, CPT</span></span>
     <span>État détaillé : <span class="mono">context AI/08-etat.md</span></span>
     <span>Mis à jour le <span class="mono">2026-09-23</span></span>
   </footer>

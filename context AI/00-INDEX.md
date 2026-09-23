@@ -18,6 +18,7 @@ a l'air proche.
 | `12-audit.md` | on choisit le prochain chantier du kit, ou on cherche la preuve d'un bug ou d'une mesure de l'audit du 2026-09-17 |
 | `38-audit-artefacts.md` | on choisit un chantier sur les pages publiées (six proposés, A à F), ou on cherche la preuve d'un défaut de page relevé le 2026-09-22 ; ses scripts sont dans `38-audit-scripts/`, sa page dans `artefacts/` |
 | `39-reparer-pages.md` | on relit le socle du chantier REP — **clos** « Réparer les pages publiées », `REP1..REP4` |
+| `40-cout-juste.md` | on joue une fiche `CPT*` — chantier **ouvert** « Un coût juste, fiche par fiche et sous-agents compris », `CPT1..CPT4` |
 | `35-bilan.md` | on doit expliquer le kit — d'où il vient, ce qu'il sait faire aujourd'hui, ce qu'il ne promet pas ; les 22 chantiers chiffrés |
 | `36-gardes.md` | on relit le socle du chantier Z — **clos** « Une GARDE au lieu d'un traceback », `Z1..Z4` |
 | `37-niveau.md` | on relit le socle du chantier NIV — **clos** « Remettre les projets équipés à niveau », `NIV1..NIV4` |
