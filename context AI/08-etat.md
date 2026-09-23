@@ -176,6 +176,11 @@ tous retirés, venaient de `12-audit.md` ; 31 à 34, de la clôture de `REP` ; 3
 Une ligne par décision imprévue tranchée en cours de fiche — jamais un résumé
 de ce que le code dit déjà.
 
+- **2026-09-24** — Après FIL2, choix de l’utilisateur : l’essai 2 de `FIL3` échoue par un Bash à
+  code non nul (`exit 3`), le déclencheur documenté de `PostToolUseFailure`, et non plus par un
+  `Read` sur un fichier absent, qui n’en déclenche peut-être aucun ; `Bash` en plus dans
+  `--allowedTools`, car un refus de permission n’en déclenche aucun non plus. Coût inchangé,
+  ≈ 0,18 $. Reste ouvert : un `Read` raté déclenche-t-il `PostToolUseFailure` ?
 - **2026-09-24** — FIL2, doc de `PostToolUseFailure` ([Hooks reference](https://code.claude.com/docs/en/hooks),
   lue le 2026-09-24) : il part quand un outil déjà lancé échoue — exception, erreur MCP, Bash ou
   PowerShell à code non nul ; son entrée porte `tool_name`, `tool_input`, `error`, `is_interrupt`,

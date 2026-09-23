@@ -8,8 +8,8 @@
 `Edit`, et se tait sur un chemin de plus de 260 caractères. `FIL` le branche sur tout outil,
 échecs compris, et lui fait lire les chemins longs.
 
-**Fait.** `FIL1` (2026-09-24) : les trois inconnues tranchées ; le trou des échecs
-(`PostToolUseFailure`), trouvé en route, est plié dans `FIL2` et `FIL3`. `FIL2` à jouer.
+**Fait.** `FIL1` et `FIL2` (2026-09-24) : le filet tire après tout outil, échecs compris, et au
+bout des chemins longs ; reste `FIL3`, l'épreuve — son essai 2 échoue par un Bash à code non nul.
 
 ## Le socle commun
 
@@ -143,15 +143,16 @@ dans l'entrée `SAG4` du journal de `context AI/08-etat.md` (2026-09-24).
 
 **Prompt**
 Rejoue l'essai de `SAG4` deux fois : un avertissement juste après un `Read`, puis juste après
-un appel qui échoue (`FIL1`). Le premier avertissement fait rendre `RETOUR` : un essai ne
-prouve qu'un cas. Chiffre les deux avant, et annonce le chiffre (`SAG4` : 0,0885 $ l'essai).
-1. Reconstruis le bac dans le scratchpad : un `CHANTIER.md` qui pointe un fichier de fiches, et
-   une fiche factice où **chaque tour est un `Read`** — douze fichiers, lus un par tour, un seul
-   appel d'outil par tour ; un fichier absent se note, et on passe au suivant. Vérifie d'abord
-   que `vlp.py extraire` y lit la fiche.
+un Bash à code non nul, le déclencheur documenté de `PostToolUseFailure` (`FIL2`). Le premier
+avertissement fait rendre `RETOUR` : un essai ne prouve qu'un cas. Chiffre les deux avant, et
+annonce le chiffre (`SAG4` : 0,0885 $ l'essai).
+1. Reconstruis le bac dans le scratchpad : un `CHANTIER.md` qui pointe un fichier de deux fiches
+   factices, un seul appel d'outil par tour — dans la première, **chaque tour est un `Read`** de
+   l'un de douze fichiers présents ; dans la seconde, **chaque tour est un Bash à code non nul**
+   (`exit 3`), douze fois. Vérifie d'abord que `vlp.py extraire` y lit les deux fiches.
 2. Abaisse `maxTurns` à 10 le temps des essais ; lance `claude -p` dans le bac avec la commande
-   de `SAG4`, une fois avec les douze fichiers, une fois sans aucun ; remets `maxTurns` à 80,
-   et vérifie-le par `Read`.
+   de `SAG4`, une fois par fiche, la seconde avec `Bash` en plus dans `--allowedTools` — refusé,
+   il ne déclencherait aucun hook (`FIL2`) ; remets `maxTurns` à 80, et vérifie-le par `Read`.
 3. Dans chaque transcription du sous-agent, compte : les tours ; l'outil du tour qui précède le
    premier avertissement, s'il a échoué (`is_error`), et ce que dit l'avertissement ; les
    avertissements en tout ; les `hook_non_blocking_error`, pour combien d'appels d'outils ; le
@@ -163,7 +164,7 @@ c'est `FIL2` qui est à reprendre.
 
 **Critère de fin**
 Premier essai : un premier avertissement, « 3 tours restants », juste après un `Read` réussi ;
-second essai : juste après un `Read` en échec. Chacun finit par un dernier message qui commence
-par `RETOUR`, sur `end_turn` ; le journal les cite avec leurs comptes bruts ; `maxTurns` est
-revenu à 80, vérifié par `Read`.
+second essai : juste après un Bash à code non nul (`is_error`). Chacun finit par un dernier
+message qui commence par `RETOUR`, sur `end_turn` ; le journal les cite avec leurs comptes
+bruts ; `maxTurns` est revenu à 80, vérifié par `Read`.
 <!-- /FICHE -->
