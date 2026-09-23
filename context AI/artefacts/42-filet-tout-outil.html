@@ -68,23 +68,24 @@
     <p>Le sous-agent est prévenu à trois tours du plafond, quel que soit l'outil qu'il vient d'appeler, même au bout d'un chemin de plus de 260 caractères — prouvé juste après un Read, et le prix du filet mesuré.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="encours"></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="encours"></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">3 fiches · 0 faite · en cours : FIL1</p>
+    <p class="mono" style="margin-top:.5rem">3 fiches · 1 faite · en cours : FIL2</p>
   </header>
 
   <section>
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">FIL1</span><span class="titre">Vérifier et mesurer, avant d'écrire</span>
-        <span class="etat">en cours</span>
-        <span class="note">Trois inconnues tranchées au journal : la syntaxe « tout outil » (doc), parallèle ou en série, un vrai chemin de plus de 260 caractères ; et cinq temps du filet à vide. Dépend de rien.</span>
+        <span class="etat">faite</span>
+        <span class="note">Journal 2026-09-24 : tout outil = "*", "" ou matcher omis (doc) ; hooks en parallèle (doc, sonde inutile, 0 $) ; chemin long : 259 lu sans préfixe, à 260 et 280 isfile False, open FileNotFoundError, ouvrir lit ; filet à vide 327 · 328 · 300 · 316 · 298 ms. Imprévu : PostToolUseFailure, à trancher avant FIL2.</span>
+        <span class="cout mono">≈26,3M (26 329 991) · 142 tours · 17,75 $</span>
       </li>
-      <li class="fiche">
+      <li class="fiche" data-etat="encours">
         <span class="id">FIL2</span><span class="titre">Brancher le filet sur tout outil et sur les chemins longs</span>
-        <span class="etat">à faire</span>
+        <span class="etat">en cours</span>
         <span class="note">Le filet dans une entrée PostToolUse sur tout outil, le préfixe des chemins longs dans cmd_filet, deux tests ; le filet à vide chronométré avant et après. Dépend de FIL1.</span>
       </li>
       <li class="fiche">
@@ -93,6 +94,7 @@
         <span class="note">L'essai claude -p à plafond 10 : un avertissement « 3 tours restants » juste après un Read, puis RETOUR sur end_turn ; chiffré avant (~0,09 $). Dépend de FIL2.</span>
       </li>
     </ul>
+    <p class="mono cout-total">Coût du chantier : ≈26,3M (26 329 991) · 142 tours · 17,75 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -109,6 +111,7 @@
     <h2>Journal des décisions</h2>
     <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
     <ul class="journal">
+      <li><time datetime="2026-09-24">2026-09-24</time><span>FIL1, coût : `cout` ne trouve aucun commit de fiche avant `FIL1` et compte à FIL1 la session entière — SAG4, SAG5, clôture de SAG, cadrage de FIL : 139 tours · 17,34 $. FIL1 seul, de `/vlp:tache FIL1` à la mesure (00:42:28 → 00:51:35, +02:00) : 10 tours · 1 578 463 tokens · 2,08 $, par `mesurer()` sur la plage, comme SAG5. ~158k tokens par tour (1 578 463 ÷ 10), contre 69 917 au premier tour de la session : session non vidée.</span></li>
     </ul>
   </section>
 

@@ -175,6 +175,49 @@ tous retirés, venaient de `12-audit.md` ; 31 à 34, de la clôture de `REP` ; 3
 Une ligne par décision imprévue tranchée en cours de fiche — jamais un résumé
 de ce que le code dit déjà.
 
+- **2026-09-24** — FIL1, coût : `cout` ne trouve aucun commit de fiche avant `FIL1` et compte à
+  FIL1 la session entière — SAG4, SAG5, clôture de SAG, cadrage de FIL : 139 tours · 17,34 $.
+  FIL1 seul, de `/vlp:tache FIL1` à la mesure (00:42:28 → 00:51:35, +02:00) : 10 tours ·
+  1 578 463 tokens · 2,08 $, par `mesurer()` sur la plage, comme SAG5. ~158k tokens par tour
+  (1 578 463 ÷ 10), contre 69 917 au premier tour de la session : session non vidée.
+- **2026-09-24** — FIL1 : les trois inconnues de `FIL` tranchées, et un trou de plus ; rien ne
+  change dans le kit. Doc officielle, https://code.claude.com/docs/en/hooks, lue ce jour par
+  WebFetch, puis revérifiée par `grep` sur la page brute (`…/hooks.md`) ; Claude Code 2.1.280.
+  - **Tout outil** : la table des `matcher` donne `"*"`, `""` ou le matcher omis. ➡️ `FIL2`
+    prend l'une des trois ; `"*"` se lit et se teste le mieux (proposé).
+  - **En parallèle** : « All matching hooks run in parallel. » La sonde `claude -p` n'a pas
+    servi : 0 $. ➡️ Aucun ordre à tenir entre l'entrée du filet et celle de `hook`.
+  - **Chemin long** : Python 3.14.6, `LongPathsEnabled` = 0 (registre, lu seulement). Fichier
+    créé par le préfixe dans le scratchpad, à 259, 260 et 280 caractères. À 259 : `isfile`
+    True, `open` lit. À 260 et 280 : `isfile` False, `open` FileNotFoundError, `ouvrir` lit, et
+    `isfile` préfixé True. Le seuil `>= 260` d'`ouvrir` est juste, au caractère près.
+    ➡️ Le garde `os.path.isfile` de `cmd_filet` rend le filet muet **avant** toute lecture :
+    `FIL2` préfixe le test d'existence, pas seulement la lecture. Ma première sonde a reçu le
+    préfixe avec une barre de moins, et a planté : dans le test, le bâtir par `chr(92)` (proposé).
+  - **Filet à vide**, référence d'avant `FIL2` : 327 · 328 · 300 · 316 · 298 ms (ouverture :
+    332 · 320 · 310 · 292 · 318).
+  - **Imprévu** : un appel d'outil qui échoue lance `PostToolUseFailure`, un événement à part
+    (table des événements, même page). 🟡 Que `PostToolUse` se taise alors n'y est pas écrit en
+    toutes lettres, ni qu'`additionalContext` passe après un échec : le filet « tout outil »
+    resterait muet après un `Edit` raté. À trancher avant `FIL2`.
+  Rejouer depuis la racine du kit — les temps :
+  ```bash
+  for i in 1 2 3 4 5; do s=$(date +%s%N); echo {} | py scripts/vlp.py filet >/dev/null; e=$(date +%s%N); echo $(( (e-s)/1000000 )); done
+  ```
+  La sonde, `py sonde.py <dossier court>` → `259 True True ok ok`, puis pour `260` et `280` :
+  `False True FileNotFoundError ok`.
+  ```python
+  import os, sys, importlib.util as iu
+  s = iu.spec_from_file_location("mt", "scripts/mesure-tokens.py"); mt = iu.module_from_spec(s); s.loader.exec_module(mt)
+  B = chr(92); PREFIXE = B + B + "?" + B                    # le prefixe long, sans echappement
+  d = os.path.join(os.path.abspath(sys.argv[1]), "long"); os.makedirs(d, exist_ok=True)
+  for n in (259, 260, 280):                                 # n · isfile · isfile prefixe · open · ouvrir
+      p = os.path.join(d, "f" * (n - len(d) - 5) + ".txt")  # len(p) == n
+      with open(PREFIXE + p, "w", encoding="utf-8") as f: f.write("ok")
+      try: brut = open(p, encoding="utf-8").read()
+      except OSError as e: brut = type(e).__name__
+      print(len(p), os.path.isfile(p), os.path.isfile(PREFIXE + p), brut, mt.ouvrir(p).read())
+  ```
 - **2026-09-24** — SAG5 : sur une fiche de code, `/vlp:enchainer` coûte **moins** qu'à la main.
 
   | Mesure | $ par fiche | Tokens par fiche | Tours par fiche | Fin |

@@ -63,8 +63,9 @@ Rien ne se joue en parallèle : chaque fiche s'appuie sur ce que la précédente
 ---
 
 <!-- FICHE:FIL1 -->
-## FIL1 [ ] — Vérifier et mesurer, avant d'écrire
+## FIL1 [x] — Vérifier et mesurer, avant d'écrire
 
+**Session** : 1cba232a-94a5-4599-9fce-b381f08f8a01
 **Dépend de** : rien.
 **Fichiers** : `hooks/hooks.json`, `scripts/mesure-tokens.py` (`ouvrir`) — et rien d'autre.
 
