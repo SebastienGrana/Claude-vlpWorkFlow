@@ -160,6 +160,16 @@ au-delà, de celle de `CPT`.
 Une ligne par décision imprévue tranchée en cours de fiche — jamais un résumé
 de ce que le code dit déjà.
 
+- **2026-09-23** — SAG3, témoin (`/vlp:jouer SAG3` après `/reload-plugins`) : le sous-agent
+  rend `FAITE` en **68 tours**, fin sur `end_turn` — l'ancien plafond de 30 l'aurait coupé —,
+  mais **sans cocher** : 0 appel à `cocher` sur 70 appels d'outils
+  (`agent-a125a875d7a93dc39.jsonl`), fin sur des vérifications `py -c` improvisées. Le chef,
+  qui commite sur `FAITE` sans relire la case (`skills/enchainer/SKILL.md:68`), a commité
+  `SAG3 :` (`ac67aaa`) case vide ; cochée ensuite à la main. Coût, coupé au commit : sous-agent
+  6 080 121 tokens · 0,97 $, chef 5 tours · 0,56 $, fiche 1,53 $
+  (`py scripts/vlp.py cout "context AI/41-plafond-sous-agent.md"`). `test-vlp.py` « OK »,
+  `plugin validate` passed.
+
 - **2026-09-23** — SAG2 : un hook **atteint** le sous-agent. Doc, lue ce jour : un hook de
   plugin tourne dans le sous-agent, entrée marquée `agent_id` et `agent_type`
   (https://code.claude.com/docs/en/hooks) ; le `hooks` du frontmatter est « Ignored for plugin

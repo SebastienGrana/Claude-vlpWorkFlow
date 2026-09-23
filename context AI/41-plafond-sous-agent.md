@@ -142,8 +142,9 @@ coût estimé ; `SAG3` porte son bloc **Prouvé par SAG2**.
 ---
 
 <!-- FICHE:SAG3 -->
-## SAG3 [ ] — Prévenir le sous-agent avant qu'il soit coupé
+## SAG3 [x] — Prévenir le sous-agent avant qu'il soit coupé
 
+**Session** : 1cba232a-94a5-4599-9fce-b381f08f8a01
 **Dépend de** : `SAG2`.
 **Fichiers** : `scripts/vlp.py` et le test que nomme le bloc **Prouvé par
 SAG2**, `agents/fiche.md`, `hooks/hooks.json`.
