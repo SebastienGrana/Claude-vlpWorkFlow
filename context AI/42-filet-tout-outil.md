@@ -98,8 +98,9 @@ long et ce que rendent `isfile`, `open` et `ouvrir` ; cinq temps du filet à vid
 ---
 
 <!-- FICHE:FIL2 -->
-## FIL2 [ ] — Brancher le filet sur tout outil, échecs compris, et sur les chemins longs
+## FIL2 [x] — Brancher le filet sur tout outil, échecs compris, et sur les chemins longs
 
+**Session** : 1cba232a-94a5-4599-9fce-b381f08f8a01
 **Dépend de** : `FIL1`.
 **Fichiers** : `hooks/hooks.json`, `scripts/vlp.py` (`cmd_filet`, `comptoir_tours`),
 `scripts/test-vlp.py` (tests du filet), `scripts/mesure-tokens.py` (`ouvrir`) — et rien d'autre.

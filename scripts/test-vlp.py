@@ -1413,5 +1413,53 @@ with tempfile.TemporaryDirectory() as t:
     verifier("filet : 2 tours restants, avertissement",
              code == 0 and '"additionalContext": "Attention : 2 tours restants' in o, o + e)
 
+    # Après un échec (PostToolUseFailure) : même avertissement, au nom de l'événement reçu
+    creer_trans(sub_path, 77)
+    code, o, e = filet_test({"hook_event_name": "PostToolUseFailure", "agent_type": "vlp:fiche",
+                             "agent_id": "a1", "transcript_path": t_fwd + "/s.jsonl"})
+    verifier("filet : après un échec, avertissement au nom de PostToolUseFailure",
+             code == 0 and '"hookEventName": "PostToolUseFailure"' in o
+             and '"additionalContext": "Attention : 3 tours restants' in o, o + e)
+
+    # Un vrai chemin de plus de 260 caractères, bâti comme dans FIL1 : sans le préfixe,
+    # isfile et open y disent absent un transcript présent ; le filet doit avertir quand même
+    if os.name != "nt":
+        print("SAUTÉ: hors Windows — le chemin long du filet n'est pas testé (le préfixe est propre à Windows)")
+    else:
+        prefixe = chr(92) * 2 + "?" + chr(92)    # le préfixe des chemins longs, bâti sans échappement
+        long_base = os.path.join(os.path.abspath(t), "l" * (254 - len(os.path.abspath(t))))
+        long_sub = os.path.join(long_base, "subagents", "agent-a1.jsonl")
+        os.makedirs(prefixe + os.path.dirname(long_sub))
+        with open(prefixe + long_sub, "w", encoding="utf-8") as f:
+            for n in range(77):
+                f.write(json.dumps({"message": {"id": f"m{n}", "usage": {"input_tokens": 1}}}) + "\n")
+        try:
+            code, o, e = filet_test({"agent_type": "vlp:fiche", "agent_id": "a1",
+                                     "transcript_path": long_base.replace(os.sep, "/") + ".jsonl"})
+            verifier(f"filet : transcript à {len(long_sub)} caractères, avertissement",
+                     len(long_sub) > 260 and '"additionalContext": "Attention : 3 tours restants' in o, o + e)
+        finally:    # même après un écart : sans le préfixe, le nettoyage du dossier temporaire échouerait
+            shutil.rmtree(prefixe + long_base)
+
+
+# hooks.json : le filet sur tout outil, après un succès et après un échec ; hook sur les écritures
+with open(os.path.join(RACINE, "hooks", "hooks.json"), encoding="utf-8") as f:
+    crochets = json.load(f)["hooks"]
+
+
+def paire(groupe, sous):
+    """Les deux commandes d'un groupe : python3 puis py, sur `vlp.py <sous>`."""
+    return [(h.get("type"), h.get("command"), h.get("args")) for h in groupe.get("hooks", [])] == [
+        ("command", c, ["${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py", sous]) for c in ("python3", "py")]
+
+
+succes, echec = crochets.get("PostToolUse", []), crochets.get("PostToolUseFailure", [])
+verifier("hooks.json : filet sur tout outil après un succès et après un échec, hook sur Write|Edit",
+         len(succes) == 2 and len(echec) == 1
+         and any(g.get("matcher") == "*" and paire(g, "filet") for g in succes)
+         and any(g.get("matcher") == "Write|Edit" and paire(g, "hook") for g in succes)
+         and echec[0].get("matcher") == "*" and paire(echec[0], "filet"),
+         json.dumps(crochets, ensure_ascii=False))
+
 
 print("OK")

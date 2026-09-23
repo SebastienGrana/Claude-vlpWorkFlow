@@ -176,6 +176,25 @@ tous retirés, venaient de `12-audit.md` ; 31 à 34, de la clôture de `REP` ; 3
 Une ligne par décision imprévue tranchée en cours de fiche — jamais un résumé
 de ce que le code dit déjà.
 
+- **2026-09-24** — FIL2, doc de `PostToolUseFailure` ([Hooks reference](https://code.claude.com/docs/en/hooks),
+  lue le 2026-09-24) : il part quand un outil déjà lancé échoue — exception, erreur MCP, Bash ou
+  PowerShell à code non nul ; son entrée porte `tool_name`, `tool_input`, `error`, `is_interrupt`,
+  `duration_ms` et les champs communs, dont `agent_id` et `agent_type` dans un sous-agent ; sa
+  sortie rend `additionalContext` au modèle sous la même forme que `PostToolUse`, au nom
+  `PostToolUseFailure`. Imprévu : un appel refusé **avant** de s’exécuter — outil inconnu, schéma
+  ou validation propre à l’outil, permission refusée — ne déclenche aucun hook d’outil. Un `Read`
+  sur un fichier absent en est peut-être (non vérifié) : l’essai 2 de `FIL3`, « sans aucun
+  fichier », risque un faux « filet muet » ; un Bash à code non nul est le déclencheur documenté.
+- **2026-09-24** — FIL2, mesures : filet à vide, 5 fois (`echo {} | py scripts/vlp.py filet`,
+  boucle `date +%s%N` sous Git Bash) — avant (FIL1) 327 · 328 · 300 · 316 · 298 ms, après
+  324 · 307 · 311 · 346 · 311 ms, médianes 316 et 311 : rien de mesurable. Dans un sous-agent
+  (transcript factice de 60 tours) : 318 · 319 · 319 · 312 · 309 ms avant, 320 · 329 · 323 ·
+  323 · 378 après, médianes 318 et 323 — +5 ms, cause non isolée. Tests : « OK », code 0, trois
+  de plus ; chaque correction cassée exprès fait tomber le sien, code 1 — filet remis sur
+  `Write|Edit`, nom d’événement figé à `PostToolUse`, `open` sans préfixe (280 caractères).
+  Piège : un arbre de plus de 260 caractères laissé par un test en échec fait planter le
+  nettoyage de `TemporaryDirectory` (WinError 145) et cache la ligne `ÉCART` — d’où le `rmtree`
+  préfixé dans un `finally`.
 - **2026-09-24** — FIL1, coût, corrigé : le commit `FIL1 :` posé, `cout` coupe bien — 17 tours ·
   2,73 $ pour FIL1 (de l’ouverture `f694a99` au commit `174ffb1`, dont les 4 tours qui ont suivi
   l’ouverture), 195 tours · 16,13 $ hors fiches. Les 139 tours · 17,34 $ ne valaient qu’avant le

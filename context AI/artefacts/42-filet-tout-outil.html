@@ -68,9 +68,9 @@
     <p>Le sous-agent est prévenu à trois tours du plafond, quel que soit l'outil qu'il vient d'appeler, même au bout d'un chemin de plus de 260 caractères — prouvé juste après un Read, et le prix du filet mesuré.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="encours"></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">3 fiches · 1 faite · en cours : FIL2</p>
+    <p class="mono" style="margin-top:.5rem">3 fiches · 2 faites · en cours : FIL3</p>
   </header>
 
   <section>
@@ -83,19 +83,20 @@
         <span class="note">Journal 2026-09-24 : tout outil = "*", "" ou matcher omis (doc) ; hooks en parallèle (doc, sonde inutile, 0 $) ; chemin long : 259 lu sans préfixe, à 260 et 280 isfile False, open FileNotFoundError, ouvrir lit ; filet à vide 327 · 328 · 300 · 316 · 298 ms. Imprévu : PostToolUseFailure, à trancher avant FIL2.</span>
         <span class="cout mono">≈2,6M (2 559 092) · 17 tours · 2,73 $</span>
       </li>
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">FIL2</span><span class="titre">Brancher le filet sur tout outil, échecs compris, et sur les chemins longs</span>
-        <span class="etat">en cours</span>
-        <span class="note">Le filet sur tout outil, après un succès (PostToolUse) et après un échec (PostToolUseFailure) ; le préfixe des chemins longs dans cmd_filet ; trois tests ; le filet à vide chronométré avant et après. Dépend de FIL1.</span>
+        <span class="etat">faite</span>
+        <span class="note">Tests OK, code 0, trois de plus (hooks.json ; après un échec ; chemin de 280 caractères), chacun tombé quand sa correction est cassée ; claude plugin validate code 0 sur les deux manifestes ; doc de PostToolUseFailure citée au journal ; filet à vide 327 · 328 · 300 · 316 · 298 ms avant, 324 · 307 · 311 · 346 · 311 ms après.</span>
+        <span class="cout mono">≈4,4M (4 424 508) · 20 tours · 4,49 $</span>
       </li>
-      <li class="fiche">
+      <li class="fiche" data-etat="encours">
         <span class="id">FIL3</span><span class="titre">Éprouver le filet après un Read et après un échec, à plafond bas</span>
-        <span class="etat">à faire</span>
+        <span class="etat">en cours</span>
         <span class="note">Deux essais claude -p à plafond 10 : « 3 tours restants » juste après un Read réussi, puis juste après un Read en échec, chacun suivi de RETOUR sur end_turn ; chiffrés avant (≈ 0,18 $). Dépend de FIL2.</span>
       </li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈30,2M (30 230 692) · 195 tours · 16,13 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈32,8M (32 789 784) · 212 tours · 18,86 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈37,2M (37 214 292) · 232 tours · 23,35 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -115,6 +116,7 @@
       <li><time datetime="2026-09-24">2026-09-24</time><span>FIL1, coût : `cout` ne trouve aucun commit de fiche avant `FIL1` et compte à FIL1 la session entière — SAG4, SAG5, clôture de SAG, cadrage de FIL : 139 tours · 17,34 $. FIL1 seul, de `/vlp:tache FIL1` à la mesure (00:42:28 → 00:51:35, +02:00) : 10 tours · 1 578 463 tokens · 2,08 $, par `mesurer()` sur la plage, comme SAG5. ~158k tokens par tour (1 578 463 ÷ 10), contre 69 917 au premier tour de la session : session non vidée.</span></li>
       <li><time datetime="2026-09-24">2026-09-24</time><span>Après FIL1, choix de l’utilisateur : le trou des échecs (`PostToolUseFailure`) est plié dans `FIL2` — la doc d’abord, une entrée de plus, un test — et dans `FIL3` : deux essais, ≈ 0,18 $, car le premier avertissement fait rendre `RETOUR` et un essai ne prouve qu’un cas ; le second sans aucun fichier, la mise en route de `SAG4` ayant pris 4 tours. La découpe de `cout` à l’ouverture va en TODO, n° 42 `OUV`.</span></li>
       <li><time datetime="2026-09-24">2026-09-24</time><span>FIL1, coût, corrigé : le commit `FIL1 :` posé, `cout` coupe bien — 17 tours · 2,73 $ pour FIL1 (de l’ouverture `f694a99` au commit `174ffb1`, dont les 4 tours qui ont suivi l’ouverture), 195 tours · 16,13 $ hors fiches. Les 139 tours · 17,34 $ ne valaient qu’avant le commit, à l’étape 6 bis de `/vlp:tache` : c’est ce défaut que décrit la TODO n° 42.</span></li>
+      <li><time datetime="2026-09-24">2026-09-24</time><span>FIL2, imprévu : un appel refusé avant de s’exécuter (outil inconnu, validation propre à l’outil, permission refusée) ne déclenche aucun hook d’outil, selon la doc des hooks lue le 2026-09-24 ; un Read sur un fichier absent en est peut-être, non vérifié : l’essai 2 de FIL3 risque un faux « filet muet ». Un Bash à code non nul est le déclencheur documenté.</span></li>
     </ul>
   </section>
 

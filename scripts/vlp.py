@@ -697,9 +697,10 @@ SEUIL_FILET = 3  # Tours restants à partir desquels on avertit le sous-agent
 def cmd_filet(entree, sortie, erreur):
     """Avertit quand le sous-agent approche du plafond de tours.
 
-    Lit le JSON du hook sur stdin. Si nous sommes dans un sous-agent
-    (agent_type contient 'fiche' et agent_id existe), compte les tours
-    déjà rendus et avertit si tours_restants <= SEUIL_FILET.
+    Lit le JSON du hook sur stdin — `PostToolUse` ou `PostToolUseFailure`, après
+    tout outil. Si nous sommes dans un sous-agent (agent_type contient 'fiche'
+    et agent_id existe), compte les tours déjà rendus et avertit si
+    tours_restants <= SEUIL_FILET, au nom de l'événement reçu.
     """
     try:
         d = json.loads(entree.read())
@@ -722,11 +723,10 @@ def cmd_filet(entree, sortie, erreur):
     base = os.path.splitext(transcript_path_os)[0]
     subagent_path = os.path.join(base, "subagents", f"agent-{agent_id}.jsonl")
 
-    if not os.path.isfile(subagent_path):
-        return 0
-
-    # Compter les tours du sous-agent
+    # Compter les tours du sous-agent — None : le transcript ne s'ouvre pas
     tours = comptoir_tours(subagent_path)
+    if tours is None:
+        return 0
 
     # Lire maxTurns depuis agents/fiche.md
     # Le chemin est relatif au kit — nous sommes dans scripts/vlp.py
@@ -741,8 +741,11 @@ def cmd_filet(entree, sortie, erreur):
     if 0 < tours_restants <= SEUIL_FILET:
         tour_mot = "tour" if tours_restants == 1 else "tours"
         message = f"Attention : {tours_restants} {tour_mot} restant{'s' if tours_restants > 1 else ''}. Rends ton statut maintenant — RETOUR avec ce qui est fait et ce qui reste, si la fiche n'est pas finie."
+        # Même forme après un succès ou un échec (doc des hooks, lue le 2026-09-24) :
+        # seul le nom change, celui de l'événement reçu.
+        evenement = d.get("hook_event_name") or "PostToolUse"
         sortie.write(json.dumps(
-            {"hookSpecificOutput": {"hookEventName": "PostToolUse", "additionalContext": message}},
+            {"hookSpecificOutput": {"hookEventName": evenement, "additionalContext": message}},
             ensure_ascii=False
         ) + "\n")
 
@@ -750,10 +753,12 @@ def cmd_filet(entree, sortie, erreur):
 
 
 def comptoir_tours(chemin):
-    """Compte les tours distincts (message.id) dans un transcript de sous-agent."""
+    """Compte les tours distincts (message.id) dans un transcript de sous-agent ;
+    None s'il ne s'ouvre pas. Ouvert par `ouvrir` de mesure-tokens.py : sous
+    Windows, dès 260 caractères, isfile et open disent absent un fichier présent (FIL1)."""
     tours = set()
     try:
-        with open(chemin, "r", encoding="utf-8") as f:
+        with mesure().ouvrir(chemin) as f:
             for ligne in f:
                 ligne = ligne.strip()
                 if not ligne:
@@ -769,8 +774,10 @@ def comptoir_tours(chemin):
                                 tours.add(mid)
                 except json.JSONDecodeError:
                     pass
-    except (OSError, UnicodeDecodeError):
+    except UnicodeDecodeError:
         pass
+    except OSError:
+        return None
     return len(tours)
 
 
