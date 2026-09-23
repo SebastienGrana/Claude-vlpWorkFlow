@@ -445,6 +445,37 @@ with tempfile.TemporaryDirectory() as t:
     os.remove(os.path.join(t, "CHANTIER.md"))
     verifier("renvois : pas équipé", appel(["renvois", t])[0] == 1, appel(["renvois", t]))
 
+# REP1 : le gras et les liens Markdown d'une cellule — jamais dans du code cité.
+gras_liens, cellule = mod.gras_et_liens, mod.cellule_md
+s = gras_liens("un **mot** fort")
+verifier("gras_et_liens : un gras", s == "un <strong>mot</strong> fort", s)
+s = gras_liens("**a** puis **b**")
+verifier("gras_et_liens : deux gras dans une cellule", s == "<strong>a</strong> puis <strong>b</strong>", s)
+s = gras_liens("note **importante")
+verifier("gras_et_liens : un ** sans paire, inchangé", s == "note **importante", s)
+s = cellule("**le `sh` seul**")
+verifier("gras_et_liens : un gras qui contient du code", s == '<strong>le <span class="mono">sh</span> seul</strong>', s)
+s = cellule("`**x**` puis `**` et z**")
+verifier("gras_et_liens : un ** dans du code, inchangé, jamais apparié au-dehors",
+         s == '<span class="mono">**x**</span> puis <span class="mono">**</span> et z**', s)
+s = cellule("voir [la doc](https://exemple/a?b=1&c=2)")
+verifier("gras_et_liens : un lien https, l'URL échappée dans le href",
+         s == 'voir <a href="https://exemple/a?b=1&amp;c=2">la doc</a>', s)
+s = gras_liens("[x](javascript:alert(1))")
+verifier("gras_et_liens : un lien javascript:, inchangé", s == "[x](javascript:alert(1))", s)
+s = cellule("`[t](https://u)`")
+verifier("gras_et_liens : un lien dans du code, inchangé", s == '<span class="mono">[t](https://u)</span>', s)
+s = cellule("**voir [la doc](https://u) et `x`** puis **y")
+verifier("gras_et_liens : deux passes = une, un gras englobe lien et code", gras_liens(s) == s
+         and s == '<strong>voir <a href="https://u">la doc</a> et <span class="mono">x</span></strong> puis **y', s)
+s = gras_liens("[A](https://w/A_(b))")
+verifier("gras_et_liens : des parenthèses équilibrées dans l'URL", s == '<a href="https://w/A_(b)">A</a>', s)
+s = gras_liens('[t](https://u"x)')
+verifier("gras_et_liens : un guillemet dans l'URL, inchangé", s == '[t](https://u"x)', s)
+s = gras_liens('<td>**a</td><td>b**</td><a href="https://x/**y">t**</a>')
+verifier("gras_et_liens : une autre balise borne le gras, ses attributs intacts",
+         s == '<td>**a</td><td>b**</td><a href="https://x/**y">t**</a>', s)
+
 with tempfile.TemporaryDirectory() as t:
     carte_ = ("# C\n\n- **contexte** : ctx/\n- **fichier d'état** : ctx/08-etat.md\n"
               "- **fichier de fiches courant** : %s\n- **artefact du chantier** : %s\n\n"

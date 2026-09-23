@@ -68,23 +68,24 @@
     <p>Sur les cinq feuilles de route, plus de Markdown brut ni de lien cassé : 0 · 0 · 0 dans vlp.py niveau, et aucune page réécrite à la main.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="encours"></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">4 fiches · 0 faite · en cours : REP1</p>
+    <p class="mono" style="margin-top:.5rem">4 fiches · 1 faite · en cours : REP2</p>
   </header>
 
   <section>
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">REP1</span><span class="titre">Convertir le gras et les liens Markdown dans cellule_md</span>
-        <span class="etat">en cours</span>
-        <span class="note">cellule_md convertit le gras et les liens Markdown (http et https seulement), jamais dans du code ; tests par cas. Dépend de rien.</span>
+        <span class="etat">faite</span>
+        <span class="note">py scripts/test-vlp.py : OK, code 0 · grep -c verifier( : 154 → 166 (+12, 9 demandés) · feuille du kit --verifier : identique</span>
+        <span class="cout mono">≈2,7M (2 702 105) · 22 tours · ? $</span>
       </li>
-      <li class="fiche">
+      <li class="fiche" data-etat="encours">
         <span class="id">REP2</span><span class="titre">Retirer les chevrons d'une URL, à la lecture et à l'écriture</span>
-        <span class="etat">à faire</span>
+        <span class="etat">en cours</span>
         <span class="note">Les chevrons autour d'une URL sont retirés, à la lecture de CHANTIER.md et à l'écriture par ouvrir ; tests. Dépend de rien.</span>
       </li>
       <li class="fiche">
@@ -98,6 +99,7 @@
         <span class="note">Les cinq feuilles de route passées par niveau jusqu'à 0 · 0 · 0, puis republiées ; rien réécrit à la main. Dépend de REP3.</span>
       </li>
     </ul>
+    <p class="mono cout-total">Coût du chantier : ≈2,7M (2 702 105) · 22 tours · ? $</p>
     <!-- ligne de total, absente si aucune fiche n'a de coût mesuré -->
   </section>
 
@@ -114,6 +116,7 @@
     <h2>Journal des décisions</h2>
     <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
     <ul class="journal">
+      <li><time datetime="2026-09-23">2026-09-23</time><span>REP1 : la fiche ne disait pas comment `REP3` rejouerait une ligne close. Tranché : `gras_et_liens` prend la ligne `&lt;tr&gt;` entière, toute balise hors mono bornant le gras — sinon deux `**` seuls, dans deux cellules, s'apparient par-dessus `&lt;/td&gt;&lt;td&gt;`, et un `**` d'attribut `href` se convertit. `REP3` n'a pas à découper en cellules.</span></li>
     </ul>
   </section>
 

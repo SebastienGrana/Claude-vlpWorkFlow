@@ -129,6 +129,11 @@ tous retirés, venaient de `12-audit.md`.
 Une ligne par décision imprévue tranchée en cours de fiche — jamais un résumé
 de ce que le code dit déjà.
 
+- **2026-09-23** — REP1 : la fiche ne disait pas comment `REP3` rejouerait une ligne
+  close. Tranché : `gras_et_liens` prend la ligne `<tr>` entière, toute balise hors mono
+  bornant le gras — sinon deux `**` seuls, dans deux cellules, s'apparient par-dessus
+  `</td><td>`, et un `**` d'attribut `href` se convertit. `REP3` n'a pas à découper en cellules.
+
 - **2026-09-23** — contenu de Cairn neutralisé avant le push, sur décision de
   l'utilisateur (« Neutraliser d'abord ») : le dépôt de Cairn est privé, celui du kit
   public. Dans l'audit (rapport, page, `39-reparer-pages.md`, `rejeu.py`, `replie.py`),

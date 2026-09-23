@@ -78,8 +78,9 @@ Code : `scripts/vlp.py`. Tests : `scripts/test-vlp.py` — `verifier(nom, cond, 
 ---
 
 <!-- FICHE:REP1 -->
-## REP1 [ ] — Convertir le gras et les liens Markdown dans `cellule_md`
+## REP1 [x] — Convertir le gras et les liens Markdown dans `cellule_md`
 
+**Session** : da8e3b04-adf4-426a-a7b1-3087bacb5724
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` — et rien d'autre.
 

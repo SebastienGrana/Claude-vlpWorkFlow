@@ -1089,9 +1089,44 @@ def plage(ids):
     return "%s–%s" % (ids[0], ids[-1]) if len(ids) > 1 else ids[0]
 
 
+# Le gras et les liens Markdown d'un texte déjà échappé. Un <span class="mono"> y est mis
+# de côté sous un jeton `<n>` : hors des balises, un texte échappé n'a aucun `<`.
+MONO = re.compile(r'<span class="mono">[^<]*</span>')
+MORCEAU = re.compile(r"((?:%s|[^<])+)|<[^>]*>" % MONO.pattern)
+JETON = re.compile(r"<(\d+)>")
+GRAS = re.compile(r"\*\*(?!\s)(.+?)(?<!\s)\*\*")
+LIEN = re.compile(r'\[([^\[\]]+)\]\((https?://(?:[^\s"()<]|\([^\s"()<]*\))+)\)')
+
+
+def gras_et_liens(html):
+    """`**x**` → `<strong>`, `[t](http…)` → `<a>` ; deux passes = une.
+
+    Rien n'est converti dans un `<span class="mono">`, mais un gras peut l'englober.
+    Toute autre balise borne un gras et reste telle quelle : une ligne entière se
+    rejoue sans qu'un gras saute d'une cellule à l'autre. Un lien devient un jeton
+    entier, son gras converti dedans : un gras du dehors l'englobe, sans le couper.
+    """
+    def morceau(m):
+        if not m.group(1):
+            return m.group(0)
+        mis = []
+
+        def jeton(bout):
+            mis.append(bout)
+            return "<%d>" % (len(mis) - 1)
+
+        def rendu(t):
+            return JETON.sub(lambda j: mis[int(j.group(1))], GRAS.sub(r"<strong>\1</strong>", t))
+
+        t = MONO.sub(lambda j: jeton(j.group(0)), m.group(0))
+        t = LIEN.sub(lambda j: jeton('<a href="%s">%s</a>' % (j.group(2), rendu(j.group(1)))), t)
+        return rendu(t)
+    return MORCEAU.sub(morceau, html)
+
+
 def cellule_md(texte):
     texte = esc(texte.replace("\\|", "|"))
-    return CODE.sub(lambda m: '<span class="mono">%s</span>' % m.group(1), texte)
+    return gras_et_liens(CODE.sub(lambda m: '<span class="mono">%s</span>' % m.group(1), texte))
 
 
 def todo_du_fichier(lignes):
