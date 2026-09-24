@@ -38,3 +38,9 @@ contredit ; un mutant du critère qui survit. La ligne `REFUSÉE` porte les moti
 
 Le reste se remarque, sous la ligne du verdict, sans le changer : la lettre de la
 fiche, un `HORS FICHE`, le style, un écart sans effet sur une sortie.
+
+Un soupçon se tranche par une sortie, jamais au jugé : rejoue-le dans AVANT et APRÈS
+avant de le classer. Une remarque au conditionnel (« serait », « pourrait ») est un
+soupçon non rejoué. Un défaut que la copie montre compte, même si un clone neuf ferait
+autrement. Ne lis que la sortie de `relecture`, AVANT, APRÈS et ce contrat : le dépôt
+vivant raconte la suite, et fausse le jugement.
