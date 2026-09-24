@@ -88,7 +88,10 @@ plusieurs à la fois se font, aucun aussi.
    entier la liste des chantiers possibles**, la TODO du fichier d'état, avant
    de chercher : une idée qui en recoupe une ligne le dit, et la nomme. Ce qui
    est retenu va dans cette TODO, et nulle part ailleurs : c'est là que
-   `/vlp:chantier` ira les chercher.
+   `/vlp:chantier` ira les chercher. Les idées se présentent **vulgarisées**,
+   avant le choix : une image simple du kit d'abord (une salle d'examen, un
+   surveillant…), puis pour chacune, une ligne par point — le problème, le
+   risque, ce qu'elle ferait, son coût —, le jargon après ; enfin un avis.
 3. **Ce qui a été appris** — ce chantier a-t-il tranché quelque chose qui vaut
    au-delà de lui ? Une règle de méthode va dans `methode-chantier.md` ; une
    façon de travailler propre à l'utilisateur va **en mémoire**, un fait par
