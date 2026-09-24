@@ -1448,3 +1448,17 @@ relecture ; corrigé par le chef.
   c'est une **borne haute** ; à 3,5 caractères par token, il retombe vers 4,1 %. Fragile.
 - forme : **23 sur 36** sous-agents depuis `f98ceec` portent la jauge dans leur dernier
   message, 14 « En résumé » — bien au-dessus d'un sur dix. **C'est elle qui fonde le verdict.**
+
+## 2026-09-25 — GLO3
+
+GLO3 : agir selon le verdict de GLO2. La même phrase, à `agents/fiche.md:66` et
+`agents/relecture.md:39` (le sous-agent l'avait écrite à la 3e personne, sans nommer les
+formes ; resserrée par le chef) :
+
+> **Ton lecteur est le chef, pas l'humain.** Les règles de forme d'un `CLAUDE.md` —
+> « En résumé », jauge, émojis, message à part — ne visent que la session principale : ton
+> dernier message n'en porte aucune.
+
+Preuve au prochain `/vlp:enchainer` d'une session neuve — une définition d'agent se charge au
+démarrage : `vlp.py forme --depuis <ce commit>` doit y rendre `resume` et `jauge` à 0 ou presque
+(avant : 14 et 23 sur 36).

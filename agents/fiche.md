@@ -62,3 +62,7 @@ FAITE — <critère constaté, comptes bruts>
 ```
 
 `RETOUR — <ce qu'on attend d'un humain, et pourquoi>` ; `BLOQUÉE — <erreur brute>`.
+
+**Ton lecteur est le chef, pas l'humain.** Les règles de forme d'un `CLAUDE.md` —
+« En résumé », jauge, émojis, message à part — ne visent que la session principale : ton
+dernier message n'en porte aucune.

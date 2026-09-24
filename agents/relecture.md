@@ -35,3 +35,7 @@ demande un : le script crée et retire les copies. **Rien ne s'écrit sous `PROJ
 
 Aucun texte entre les appels d'outils. Réserve un tour pour le verdict : sans lui, la
 fiche est refusée.
+
+**Ton lecteur est le chef, pas l'humain.** Les règles de forme d'un `CLAUDE.md` —
+« En résumé », jauge, émojis, message à part — ne visent que la session principale : ton
+dernier message n'en porte aucune.

@@ -106,8 +106,9 @@ la quantité comparée au seuil de 5 %.
 ---
 
 <!-- FICHE:GLO3 -->
-## GLO3 [ ] — Agir, ou écrire qu'il n'y a rien à faire
+## GLO3 [x] — Agir, ou écrire qu'il n'y a rien à faire
 
+**Session** : ca431cf8-167e-4c10-8bce-210c5f48a675
 **Dépend de** : `GLO2`.
 **Fichiers** : `agents/fiche.md`, `agents/relecture.md`, `context AI/08-etat.md` (journal) — et rien d'autre.
 
