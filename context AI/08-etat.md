@@ -275,6 +275,27 @@ celle de `FIL` ; 48 à 51, de celle de `FIN` ; 52, des clôtures de la nuit du
 Une ligne par décision imprévue tranchée en cours de fiche — jamais un résumé
 de ce que le code dit déjà.
 
+- **2026-09-25** — REV4, quatrième passage, après la règle « fouiller au-delà du critère »
+  (`794eb0d`) et le critère réécrit. Même protocole ; Git intact après chacune, 0 dossier
+  `vlp-relecture-*` neuf, aucun fichier du dépôt vivant lu.
+
+  | Commit | Verdict | Motifs | Remarques | Tours | Tokens | $ |
+  |---|---|---|---|---|---|---|
+  | `CAD1 8bb748d` | `ACCEPTÉE` ✅ | — | sondes rejouées : sans socle, `## ` en bloc de code, CRLF — tous déjà `INVALIDE` avant | 16 | 727 952 | 0,64 |
+  | `PLA1 7d16873` | `REFUSÉE` ✅ | plage vide acceptée : `à venir` → `P1–P2à venir`, `P1-P3` → `P1–P4-P3` (sonde) | étape 3 ; deux `verifier` | 10 | 329 280 | 0,40 |
+  | `VAL1 c5123af` | `ACCEPTÉE` ❌ | — | message `marketplace.json` ; `Edit` dans AVANT, `$?` : consignes enfreintes, dit-il | 13 | 366 273 | 0,39 |
+  | `PLA1 eb2a6b0` | `REFUSÉE` ✅ | en-tête hors forme abîmé : 12 en-têtes × 3 fichiers sondés, `P1-P3` → `P1–P4-P3` | `plage()` prend la dernière fiche du fichier, pas la plus haute | 8 | 246 581 | 0,35 |
+
+  Quatre relectures : 47 tours, 1 670 086 tokens, 1,77 $, soit 0,44 $ l'une. **3 verdicts justes
+  sur 4**, les deux refus par une sonde. Critère non tenu, à cause de `c5123af` : le relecteur a
+  lancé `sh <APRÈS>/.githooks/pre-commit` depuis la racine du projet ; le hook prend
+  `git rev-parse --show-toplevel` (ligne 4), il a donc validé le dépôt vivant, déjà corrigé
+  (code 0). `agents/relecture.md` interdit de changer de dossier ; au passage d'avant, un autre
+  relecteur passait par `env -C <copie>`. Deux fautes du chef : le critère réécrit plus tôt dans la
+  journée attendait `eb2a6b0` `ACCEPTÉE`, alors que sa regex était déjà un défaut au premier passage
+  — corrigé ; et la carte que reçoit le relecteur liste les titres des fiches (« REV6 — Un
+  en-tête sans plage reste tel quel ») : un indice, déjà présent au passage d'avant, qui avait
+  raté `7d16873`. REV4 reste ouverte.
 - **2026-09-25** — REV4, troisième passage, après la règle durcie (`6a5a913` : un soupçon se
   rejoue avant d'être classé ; le dépôt vivant ne se lit pas). Même protocole ; après chacune,
   `git status` vide, `git worktree list` inchangé (3 lignes), 0 dossier `vlp-relecture-*` neuf.
