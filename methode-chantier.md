@@ -285,7 +285,13 @@ Quatre exigences, apprises en cassant :
    maquette citée ; tant qu'une mesure n'existe pas, la fiche demande la
    mesure, elle n'annonce pas son résultat.
 3. **Un critère de fin observable**, sinon la fiche ne peut pas être cochée. Il
-   affiche ses comptes bruts (voir « Les règles qui valent partout »).
+   affiche ses comptes bruts (voir « Les règles qui valent partout »). Pour du
+   code, il nomme le test, l'appel, la valeur attendue, et **le mutant** — le
+   code cassé exprès que ce test doit faire tomber : « les tests passent » ne
+   prouve rien, un test creux passe aussi (`FIN1`, puis `FIN2` alors que son
+   test était nommé avec ses valeurs, 2026-09-24). Un critère joué dans un
+   clone y copie d'abord le fichier modifié : un clone part du dernier commit,
+   et sans la copie le sous-agent commite pour l'y faire entrer (`VAL1`).
 4. **Les fiches sont indépendantes autant que possible** ; les dépendances
    réelles sont écrites, pas devinées.
 
