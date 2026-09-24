@@ -53,7 +53,8 @@ Sous-commandes :
   se coupent aux commits `<ID> :` (`git log`), sous-agents compris, plus une ligne
   « hors fiches » ; sans Git ni commit qui nomme le préfixe, ils se tirent de l'ancienne
   page. Sans page : `<dossier du fichier>/artefacts/<même nom>.html`. Garde
-  de la page l'en-tête, les notes, le journal, le blocage et le bilan.
+  de la page l'en-tête — sauf sa plage de fiches, refaite depuis le fichier —,
+  les notes, le journal, le blocage et le bilan.
   `--note <fiche> <texte>`, `--journal <texte>` (répétables) ; `--creer
   --projet P --titre T --resultat R` part du gabarit ; `--verifier` n'écrit
   rien et sort 1 si états ou avancement diffèrent du fichier.
@@ -1150,10 +1151,9 @@ def comptage(fiches_, etat):
 def creer(fichier, projet, titre, resultat):
     html = lire(GABARIT)
     fiches_ = fiches_du_fichier(lignes_de(fichier))
-    plage = "%s–%s" % (fiches_[0][0], fiches_[-1][0]) if fiches_ else ""
     remplacements = [
         (r"<title>.*?</title>", "<title>%s — %s</title>" % (esc(projet), esc(titre))),
-        (r'(<div class="eyebrow">).*?(</div>)', r"\g<1>%s · fiches %s\g<2>" % (esc(projet), plage)),
+        (r'(<div class="eyebrow">).*?(</div>)', r"\g<1>%s · fiches \g<2>" % esc(projet)),
         (r"<h1>.*?</h1>", "<h1>%s</h1>" % esc(titre)),
         (r"(</h1>\s*<p>).*?(</p>)", r"\g<1>%s\g<2>" % esc(resultat).replace("\\", "\\\\")),
         (r'(<ul class="journal">).*?(\n[ \t]*</ul>)', r"\g<1>\g<2>"),
@@ -1220,6 +1220,10 @@ def regenerer(html, fichier, notes, journal, date, gardes):
                           html, count=1, flags=re.S)
         if not n:
             raise ValueError("page : journal introuvable")
+    # La plage de l'en-tête, vide à la création (`creer`), suit le fichier ; ce qui la suit
+    # (« · clos », écrit à la main) reste (chantier PLA).
+    html = re.sub(r'(<div class="eyebrow">[^<]*? · fiches )(?:[A-Z]{1,3}\d+(?:–[A-Z]{1,3}\d+)?)?',
+                  lambda m: m.group(1) + plage([f[0] for f in fiches_]), html, count=1)
     html = re.sub(r'(Mis à jour le <span class="mono">).*?(</span>)', lambda m: m.group(1) + date + m.group(2), html, count=1)
     return html, fiches_, etat, total, hors
 

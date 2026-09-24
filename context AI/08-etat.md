@@ -230,6 +230,19 @@ tous retirés, venaient de `12-audit.md` ; 31 à 34, de la clôture de `REP` ; 3
 Une ligne par décision imprévue tranchée en cours de fiche — jamais un résumé
 de ce que le code dit déjà.
 
+- **2026-09-24** — PLA1, relue par le chef : `FAITE` en premier mot, test écrit d'abord
+  (`ÉCART: page : l'en-tête suit la plage du fichier`, appel 14 sur 22) — mais le compte rendu
+  ne cite pas l'`ÉCART:`, et le sous-agent **a commité seul** (`eb2a6b0`, défait par
+  `git reset --soft`, recommité par le chef). Sa transcription contient 0 fois « aucun commit » :
+  la définition d'agent chargée date d'avant `CAS` (`/reload-plugins` pas fait) ; et 4 fois
+  « commit par tâche » : le `CLAUDE.md` global de l'utilisateur. Troisième commit seul sur dix
+  sous-agents (`CAS1`, `VAL1`, `PLA1`). Repris : la plage s'écrivait deux fois, dans `creer` puis
+  aussitôt dans `regenerer` — un mutant de `creer` survivait. `creer` laisse la plage vide,
+  `regenerer` l'écrit seul, par `plage()`. Quatre mutants tombent (`page --creer` deux fois,
+  « page : l'en-tête suit la plage du fichier », « page : l'en-tête d'une fiche seule »). Sur les
+  36 vraies pages, la règle ne change que `44-pre-commit.html` (« VAL1–VAL1 » → « VAL1 »),
+  corrigée à la main et republiée. 26 `hook_non_blocking_error` pour 22 appels. Transcription :
+  `…/subagents/agent-ac97af92710782899.jsonl`.
 - **2026-09-24** — TAR3, relue par le chef : `FAITE` en premier mot, sur une seule ligne ; case
   cochée (appel 34 sur 34), aucun commit ; tests écrits d'abord, tels que nommés. Repris : son
   `lettres_prises` (45 lignes, caractère par caractère) acceptait `A1` (`isupper`) et une lettre

@@ -68,26 +68,29 @@
     <p>Une fiche ajoutée après l'ouverture ne laisse plus de plage figée : page et ouvrir relancés remettent l'en-tête de la page et la ligne d'index à la plage du fichier, et /vlp:chantier dit de les relancer après un redécoupage.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="encours"></span><span></span>
+      <span data-etat="faite"></span><span data-etat="encours"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">2 fiches · 0 faite · en cours : PLA1</p>
+    <p class="mono" style="margin-top:.5rem">2 fiches · 1 faite · en cours : PLA2</p>
   </header>
 
   <section>
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">PLA1</span><span class="titre">L'en-tête de la page suit le fichier</span>
-        <span class="etat">en cours</span>
+        <span class="etat">faite</span>
         <span class="note">regenerer réécrit la plage de l'en-tête par plage() ; une fiche seule s'affiche X1 ; ne dépend de rien.</span>
+        <span class="cout mono">≈3,5M (3 451 708) · 36 tours · 1,31 $</span>
       </li>
-      <li class="fiche">
+      <li class="fiche" data-etat="encours">
         <span class="id">PLA2</span><span class="titre">ouvrir relancé : la plage de l'index suit le fichier</span>
-        <span class="etat">à faire</span>
+        <span class="etat">en cours</span>
         <span class="note">ouvrir relancé rafraîchit la plage de sa ligne d'index (index ~1) ; /vlp:chantier le dit ; ne dépend de rien.</span>
       </li>
     </ul>
+    <p class="mono cout-hors">Hors fiches : ≈4,7M (4 692 050) · 29 tours · 2,64 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈8,1M (8 143 758) · 65 tours · 3,95 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -104,6 +107,7 @@
     <h2>Journal des décisions</h2>
     <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
     <ul class="journal">
+      <li><time datetime="2026-09-24">2026-09-24</time><span>PLA1 : le sous-agent a commité seul (définition d'agent d'avant CAS, CLAUDE.md global) ; commit défait et refait par le chef. La plage s'écrit à un seul endroit, regenerer ; quatre mutants tombent.</span></li>
     </ul>
   </section>
 

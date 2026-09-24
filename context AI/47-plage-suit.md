@@ -60,8 +60,9 @@ justes à une vingtaine près.
 ---
 
 <!-- FICHE:PLA1 -->
-## PLA1 [ ] — L'en-tête de la page suit le fichier
+## PLA1 [x] — L'en-tête de la page suit le fichier
 
+**Session** : 1ba64929-8274-42d4-93bb-a2d22fbdd600
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py` (`creer`, `regenerer`, docstring de `page`),
 `scripts/test-vlp.py` — et rien d'autre.

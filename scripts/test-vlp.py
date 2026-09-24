@@ -418,6 +418,20 @@ with tempfile.TemporaryDirectory() as t:
     verifier("page : blocage masqué une fois cochée", code == 0 and "<section hidden>\n    <h2>Arrêt sur blocage</h2>" in html
              and "3 fiches · 3 faites</p>" in html and 'data-etat="bloquee"' not in html.split('<div class="page">')[1], s + html.split("<div class=\"page\">")[1])
 
+    # L'en-tête suit la plage du fichier : quand on ajoute P4, la plage devient P1–P4, mais ce qui suit reste.
+    ecrire(page, lire(page).replace('Proj · fiches P1–P3</div>', 'Proj · fiches P1–P3 · clos</div>'))
+    ecrire(fiches, lire(fiches) + '\n<!-- FICHE:P4 -->\n## P4 [ ] — Ajoutée\n**Critère de fin**\n<!-- /FICHE -->\n')
+    code, s = appel(["page", fiches, page])
+    html = lire(page)
+    verifier("page : l'en-tête suit la plage du fichier", code == 0 and 'Proj · fiches P1–P4 · clos</div>' in html, s + html)
+
+    u_fiches = os.path.join(t, "u.md")
+    u_page = os.path.join(t, "u.html")
+    ecrire(u_fiches, "# Chantier U\n\n## Le socle commun\n\n## L'ordre des fiches\n\n<!-- FICHE:U1 -->\n## U1 [ ] — Seule\n**Critère de fin**\n<!-- /FICHE -->\n")
+    code, s = appel(["page", u_fiches, u_page, "--creer", "--projet", "Proj", "--titre", "U", "--resultat", "R."])
+    u_html = lire(u_page) if os.path.exists(u_page) else ""
+    verifier("page : l'en-tête d'une fiche seule", code == 0 and "Proj · fiches U1</div>" in u_html, s + u_html)
+
     code, s = appel(["page", fiches, os.path.join(t, "absente.html")])
     verifier("page absente sans --creer", code == 1 and "--creer" in s, s)
 
