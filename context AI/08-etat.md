@@ -240,6 +240,15 @@ tous retirés, venaient de `12-audit.md` ; 31 à 34, de la clôture de `REP` ; 3
 Une ligne par décision imprévue tranchée en cours de fiche — jamais un résumé
 de ce que le code dit déjà.
 
+- **2026-09-24** — MTK2, relue par le chef : `FAITE` en premier mot, case cochée (appel 14 sur
+  14), aucun commit, les quatre critères verts. Mais la docstring disait faux deux fois : « heure
+  ISO 8601 locale » (avec un décalage, l'heure est exacte) et « 0 si OK, 1 si erreur » (un id
+  inconnu à côté d'un bon sort 0) ; elle recopiait les treize noms de `COLONNES` (règle 3) ; le
+  marquage ne disait pas où lire la preuve. Repris : docstring en dix-neuf lignes, qui renvoie à
+  `COLONNES` et au socle ; code de sortie essayé sur trois cas (id inconnu seul : 1 ; borne
+  illisible : 1 ; un bon et un inconnu : 0) ; marquage avec `40-cout-juste.md`, fiche `CPT2`. Deux
+  fichiers lus deux fois chacun (appels 2 à 5). 16 `hook_non_blocking_error` pour 14 appels.
+  Transcription : `…/subagents/agent-acbba97acde5e699c.jsonl`.
 - **2026-09-24** — MTK1, relue par le chef : `FAITE` en premier mot, case cochée (appel 12 sur
   12), aucun commit — mais **tests écrits après le code** (appels 4 à 6 le code, 7 à 9 les
   tests), jamais lancés sur le code d'avant : aucun écart vu ni cité. Première fiche de code sur

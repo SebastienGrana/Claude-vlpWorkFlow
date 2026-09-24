@@ -92,8 +92,9 @@ cite l'écart de l'étape 1.
 <!-- /FICHE -->
 
 <!-- FICHE:MTK2 -->
-## MTK2 [ ] — Une docstring, et la ligne périmée marquée
+## MTK2 [x] — Une docstring, et la ligne périmée marquée
 
+**Session** : 1ba64929-8274-42d4-93bb-a2d22fbdd600
 **Dépend de** : `MTK1`.
 **Fichiers** : `scripts/mesure-tokens.py` (la docstring seule), `context AI/34-agent-sans-git.md`
 — et rien d'autre.

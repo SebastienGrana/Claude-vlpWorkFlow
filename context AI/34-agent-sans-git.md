@@ -54,7 +54,8 @@ le texte réellement injecté et le message du sous-agent se lisent dans le tran
 `Q`, s'arrête au premier écart), `py scripts/vlp.py renvois .`, `"$C" plugin validate .` (1 avertissement voulu),
 `C=$(ls -d "$APPDATA"/Claude/claude-code/*/claude.exe | tail -1)` ; evals : `hook` sous Windows, `wsl2` sous Ubuntu
 (pièges du prompt de chantier). `mesure-tokens.py` ne compte pas les sous-agents : pour eux, seul `total_cost_usd`
-du run `-p` fait foi.
+du run `-p` fait foi. *(Renversé le 2026-09-23 par `CPT2` : `mesure-tokens.py` compte les sous-agents
+d'une session, une ligne chacun, sur une plage de temps — `40-cout-juste.md`, fiche `CPT2`.)*
 
 ## L'ordre des fiches
 

@@ -1,4 +1,23 @@
 #!/usr/bin/env python3
+"""Ce qu'ont coûté des sessions Claude Code : tours, appels d'outil, tokens, leur équivalent
+en tokens d'entrée et leur prix — les colonnes de `COLONNES`, dans l'ordre du socle
+(`context AI/13-tours.md`).
+
+    mesure-tokens.py [--plage DEBUT FIN] <fichier.jsonl | id de session> [...]
+    mesure-tokens.py --grille
+
+Une session amène ses sous-agents, une ligne chacun sous la sienne ; un fichier passé deux
+fois ne compte qu'une fois. `--plage` ne garde que `(DEBUT, FIN]` : une borne est une heure
+ISO 8601 — sans décalage, l'heure locale — ou un commit Git, à son heure de commit dans le
+dossier courant. Un tour se juge à sa première ligne, un sous-agent entier à son départ.
+`--grille` imprime les prix par modèle.
+
+Sortie : une ligne par fichier, en tabulations, et une ligne `TOTAL` au-delà d'un fichier ;
+puis une ligne `appels` par fichier. Les remarques vont sur stderr. Sort 1 sur un usage faux,
+une borne illisible, ou quand aucun fichier n'a pu être lu ; 0 sinon.
+
+Python 3 sans dépendance, zéro appel modèle.
+"""
 import collections
 import datetime
 import fnmatch
