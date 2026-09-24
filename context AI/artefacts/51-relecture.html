@@ -65,12 +65,12 @@
   <header>
     <div class="eyebrow">vlp · fiches REV1–REV4</div>
     <h1>Relire chaque fiche avant son commit</h1>
-    <p>Chaque FAITE de /vlp:enchainer passe par un relecteur neuf (opus) avant son commit ; prouvé sur les trois commits fautifs de la nuit, refusés, et sur leurs versions corrigées, acceptées — coût d'une relecture mesuré.</p>
+    <p>Chaque FAITE de /vlp:enchainer passe par un relecteur neuf (opus) avant son commit ; prouvé sur quatre commits de la nuit — le corrigé sans bug accepté, les trois autres refusés pour leur vrai défaut — coût d'une relecture mesuré.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">4 fiches · 3 faites · en cours : REV4</p>
+    <p class="mono" style="margin-top:.5rem">8 fiches · 3 faites · en cours : REV5</p>
   </header>
 
   <section>
@@ -93,16 +93,37 @@
         <span class="id">REV3</span><span class="titre">Écrire le relecteur et le brancher</span>
         <span class="etat">faite</span>
         <span class="note">lire agents/relecture.md skills/relire/SKILL.md : sort 0, 64 lignes ; grep : vlp:relire ×1 et --refuser ×1 dans enchainer, ACCEPTÉE ×1 et REFUSÉE ×2 dans enchainement.md ; pre-commit : manifestes validés.</span>
-        <span class="cout mono">≈2,4M (2 367 502) · 8 tours · 1,21 $</span>
+        <span class="cout mono">≈2,7M (2 682 772) · 9 tours · 1,34 $</span>
       </li>
       <li class="fiche" data-etat="encours">
-        <span class="id">REV4</span><span class="titre">Prouver la relecture sur les commits de la nuit</span>
+        <span class="id">REV5</span><span class="titre">Un commit propre passe sur une copie en CRLF</span>
         <span class="etat">en cours</span>
-        <span class="note">La preuve : 3 fautifs refusés, 3 corrigés acceptés, coût d'une relecture mesuré. Après REV3.</span>
+        <span class="note">Un commit propre passe en CRLF : guillemets, *.md en LF, plugin.json nommé ; ne dépend de rien</span>
+      </li>
+      <li class="fiche">
+        <span class="id">REV6</span><span class="titre">Un en-tête sans plage reste tel quel</span>
+        <span class="etat">à faire</span>
+        <span class="note">Un en-tête sans plage reste tel quel (vlp.py:1457) ; ne dépend de rien</span>
+      </li>
+      <li class="fiche">
+        <span class="id">REV7</span><span class="titre">Le fichier d'état n'est plus hors fiche</span>
+        <span class="etat">à faire</span>
+        <span class="note">relecture ne sort plus HORS FICHE pour le fichier d'état ; ne dépend de rien</span>
+      </li>
+      <li class="fiche">
+        <span class="id">REV8</span><span class="titre">Refuser ou remarquer</span>
+        <span class="etat">à faire</span>
+        <span class="note">La règle refuser ou remarquer, dans enchainement.md ; ne dépend de rien</span>
+      </li>
+      <li class="fiche">
+        <span class="id">REV4</span><span class="titre">Prouver la relecture sur les commits de la nuit</span>
+        <span class="etat">à faire</span>
+        <span class="note">Rejoue 8bb748d, 7d16873, c5123af et eb2a6b0, critère réécrit ; dépend de REV5 à REV8</span>
+        <span class="cout mono">≈15,9M (15 852 749) · 141 tours · 20,13 $</span>
       </li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈6,0M (6 026 326) · 24 tours · 7,12 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈24,3M (24 285 210) · 142 tours · 16,32 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈40,5M (40 453 229) · 284 tours · 36,58 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
