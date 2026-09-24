@@ -220,6 +220,18 @@ tous retirés, venaient de `12-audit.md` ; 31 à 34, de la clôture de `REP` ; 3
 Une ligne par décision imprévue tranchée en cours de fiche — jamais un résumé
 de ce que le code dit déjà.
 
+- **2026-09-24** — TAR2, relue par le chef : `FAITE` en premier mot, suivi d'un « En résumé »
+  et de la jauge du `CLAUDE.md` de l'utilisateur (n° 44 `GLO`) ; case cochée (appel 17 sur 17),
+  aucun commit ; tests écrits d'abord, tels que nommés. Retouches : `total_clos` ramené à une
+  ligne (le sous-agent en avait fait huit), l'aide de test `l` renommée `ligne_close`. Le retrait
+  du rattrapage de `clore` n'était couvert par aucun test (la clôture testée vaut 1 500) : un
+  test de bout en bout ajouté, « clore : une clôture sous 1 000, comptée une fois » (banc `REP3`,
+  `--tokens 950`, total 2 450). Trois mutants tombent : l'alternative nue muette, l'alternative
+  nue qui avale plage et date, le rattrapage remis. La vraie feuille rend toujours 439 668 779.
+  Le `git checkout` de la reprise de `TAR1` a mis `scripts/*.py` en CRLF dans la copie de
+  travail (`core.autocrlf`) ; le dépôt reste en LF. 20 `hook_non_blocking_error` pour 17 appels.
+  Transcription : `…/subagents/agent-a3becca0201e99237.jsonl`.
+
 - **2026-09-24** — TAR1, relue par le chef : `FAITE` en premier mot, case cochée (appel 25 sur
   26), aucun commit ; tests écrits d'abord, `ÉCART: arrondi` cité. Mais le code déborde la fiche :
   `arrondi` écrivait un négatif en `-≈1,5k (1 500)`, et `COUT` exigeait « ≈…k ( » devant le brut

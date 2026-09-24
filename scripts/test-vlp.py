@@ -296,6 +296,23 @@ verifier("triplet relit ligne_cout", all(mod.triplet(mod.ligne_cout(*a)) == a fo
 verifier("triplet : le brut entre parenthèses suffit", mod.triplet("(5 284 442) · 42 tours · 1,83 $") == (5284442, 42, Decimal("1.83")),
          mod.triplet("(5 284 442) · 42 tours · 1,83 $"))
 
+# total_clos : relire aussi les lignes closes sous 1 000, qui n'ont pas de parenthèses.
+def ligne_close(c):
+    """Une ligne close au format de cmd_clore, avec plage Q1–Q2, date 2026-05-06, et coût c."""
+    return f'          <tr>\n            <td>Test <span class="badge" data-etat="clos">clos</span></td>\n            <td class="mono">Q1–Q2</td><td class="mono">2026-05-06</td>\n            <td class="mono">{c}</td>\n            <td>Test</td>\n          </tr>\n'
+
+verifier("total_clos : une ligne close sous 1 000",
+         mod.total_clos(ligne_close(mod.arrondi(950))) == 950 and
+         mod.total_clos(ligne_close(mod.arrondi(1500)) + ligne_close(mod.arrondi(950))) == 2450,
+         (mod.total_clos(ligne_close(mod.arrondi(950))),
+          mod.total_clos(ligne_close(mod.arrondi(1500)) + ligne_close(mod.arrondi(950)))))
+
+verifier("total_clos : ni plage, ni date, ni pied",
+         mod.total_clos(ligne_close("non mesuré")) == 0 and
+         mod.total_clos('<td class="mono"><strong>≈3,8k (3 812)</strong></td><td class="mono">≈0,00 $</td>') == 0,
+         (mod.total_clos(ligne_close("non mesuré")),
+          mod.total_clos('<td class="mono"><strong>≈3,8k (3 812)</strong></td><td class="mono">≈0,00 $</td>')))
+
 # Un « ? $ » de l'ancienne page traverse les soustractions de couts : P1 garde son coût
 # affiché, P2 prend le reste, en « ? » puisque la part de P1 en dollars est inconnue.
 with tempfile.TemporaryDirectory() as t:
@@ -1418,7 +1435,8 @@ with tempfile.TemporaryDirectory() as t:
         "- **artefact du chantier** : https://exemple/w")
         + "\nLettres de fiche déjà prises : A. Un nouveau chantier en choisit une autre.\n")
     ecrire(os.path.join(proj, "ctx", "40-w.md"), "# Chantier W — Un titre\n\n## W1 [x] — a\n")
-    code, s = appel(["clore", proj, "--livre", "y", "--date", "2026-09-19"])
+    code, s = appel(["clore", proj, "--livre", "y", "--tokens", "950", "--date", "2026-09-19"])
+    verifier("clore : une clôture sous 1 000, comptée une fois", code == 0 and "· total 2 450 ·" in s, s)
     rangs = rangs_clos(page)
     verifier("REP3 : clore pose sa ligne au-dessus de la ligne convertie, sans la défaire",
              len(rangs) == 2 and "2026-09-19" in rangs[0] and rangs[1] == ligne, s)

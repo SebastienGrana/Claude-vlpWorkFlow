@@ -86,8 +86,9 @@ Tu ne commites pas : le chef le fera.
 <!-- /FICHE -->
 
 <!-- FICHE:TAR2 -->
-## TAR2 [ ] — La ligne close sous 1 000 tokens se recompte
+## TAR2 [x] — La ligne close sous 1 000 tokens se recompte
 
+**Session** : 1ba64929-8274-42d4-93bb-a2d22fbdd600
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py` (`BRUT`, `total_clos`, `cmd_clore`), `scripts/test-vlp.py` — et
 rien d'autre.

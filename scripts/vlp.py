@@ -1570,7 +1570,9 @@ def cmd_feuille(a, sortie):
 # gabarit a depuis : le bloc repliable et l'estimation en dollars du pied — et
 # convertit les lignes écrites avant `gras_et_liens`.
 
-BRUT = re.compile(r'<td class="mono">[^<]*\(([\d  ]+)\)</td>')
+# Le coût brut d'une cellule : entre parenthèses (`≈1,5k (1 500)`), ou nu, fait de
+# chiffres seuls, sous 1 000 (`arrondi`) — plage, date et pied n'en sont pas (chantier TAR).
+BRUT = re.compile(r'<td class="mono">(?:[^<]*\((\d[\d ]*)\)|(\d+))</td>')
 # `clore` écrit ses lignes à dix espaces, et les repère à dix espaces.
 RANG_CLOS = re.compile(r"          <tr>\n.*?          </tr>\n", re.S)
 PIED_CLOS = re.compile(r'(Total cumulé</td><td class="mono"><strong>.*?</strong></td>)<td[^>]*>([^<]*)</td>', re.S)
@@ -1584,8 +1586,8 @@ def lignes_clos(corps):
 
 
 def total_clos(corps):
-    """La somme des coûts bruts — ceux entre parenthèses — d'un corps de table."""
-    return sum(int(re.sub(r"\D", "", n)) for n in BRUT.findall(corps))
+    """La somme des coûts bruts — entre parenthèses, ou nus sous 1 000 — d'un corps de table."""
+    return sum(int(re.sub(r"\D", "", entre or nu)) for entre, nu in BRUT.findall(corps))
 
 
 def resume_clos(n, total):
@@ -2026,7 +2028,7 @@ def cmd_clore(a, sortie):
                  % (lien, plage(ids), date, "non mesuré" if a.tokens is None else arrondi(a.tokens), cellule_md(a.livre)))
         corps = ligne + "".join(anciens)
         html = html[:d] + corps + html[f:]
-        total = total_clos(corps) + (a.tokens if a.tokens is not None and a.tokens < 1000 else 0)
+        total = total_clos(corps)
         html = re.sub(r"(Total cumulé</td><td class=\"mono\"><strong>).*?(</strong></td><td[^>]*>).*?(</td>)",
                       lambda m: m.group(1) + arrondi(total) + m.group(2) + estimation_usd(total) + m.group(3),
                       html, count=1)
