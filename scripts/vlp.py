@@ -24,7 +24,11 @@ Sous-commandes :
   dans l'ordre du fichier.
 - `cout <fichier> [--session]` — `mesure-tokens.py` sur toutes les sessions du
   fichier, celles des fiches et celle du cadrage, que `ouvrir` note en tête (aucune :
-  `SESSIONS 0 — pas de total`, sort 0). `--session` : `SESSION=<CLAUDE_CODE_SESSION_ID>`,
+  `SESSIONS 0 — pas de total`, sort 0), coupées aux commits comme la page : `DÉCOUPE
+  aux commits de fiche`, une ligne par fiche, `hors fiches`, `TOTAL (fiches + hors
+  fiches)` — aucun tour gardé : `GARDE: découpe à zéro`. Sans Git, sans commit qui
+  nomme le préfixe, ou clos sans commit de fiche : `DÉCOUPE aucune — <raison>`, puis
+  les tables des sessions entières. `--session` : `SESSION=<CLAUDE_CODE_SESSION_ID>`,
   puis (id non vide) la table de cette session seule, et celle de cette session plus
   celles du fichier.
 - `valider <fichier>… [--plan]` — les écarts d'un fichier de fiches, un par ligne
@@ -53,8 +57,9 @@ Sous-commandes :
   de fiches : états, avancement, comptage, coûts (`**Session**`), date. Les coûts
   se coupent aux commits `<ID> :` (`git log`), sous-agents compris, plus une ligne
   « hors fiches » ; la session du cadrage, notée en tête par `ouvrir`, se coupe comme
-  celles des fiches — ses tours d'avant l'ouverture vont hors fiches. Sans Git ni
-  commit qui nomme le préfixe, ils se tirent de l'ancienne page. Sans page :
+  celles des fiches — ses tours d'avant l'ouverture vont hors fiches. Sans Git, sans
+  commit qui nomme le préfixe, ou clos sans commit de fiche, ils se tirent de
+  l'ancienne page. Sans page :
   `<dossier du fichier>/artefacts/<même nom>.html`. Garde de la page l'en-tête — sauf
   sa plage de fiches, refaite depuis le fichier —, les notes, le journal, le blocage
   et le bilan.
@@ -418,7 +423,8 @@ def cmd_cout(chemin, session, sortie):
         return 0
     fiches_ = fiches_du_fichier(lignes)
     pourquoi, gardes = [], []
-    heures = heures_commits(chemin, [f[0] for f in fiches_], pourquoi)
+    heures = heures_commits(chemin, [f[0] for f in fiches_], pourquoi,
+                            any(l.startswith("**CLOS**") for l in lignes))
     decoupe = heures and parts_aux_commits(fiches_, heures, gardes, sessions_entete(lignes))
     for g in gardes:
         sortie.write(g + "\n")
@@ -950,14 +956,15 @@ COMMIT_FICHE = re.compile(r"^([A-Z]{1,3}[0-9]+) :")
 INFINI = float("inf")
 
 
-def heures_commits(fichier, ids, pourquoi=None):
+def heures_commits(fichier, ids, pourquoi=None, clos=False):
     """({id: heure}, [heures], [autres heures]) en secondes UTC, lus par `git log` dans le
     dossier du fichier : l'heure d'auteur du commit `<id> :` de chaque fiche — le plus ancien
     s'il y en a deux —, celles de tous les commits qui nomment le préfixe (`REP`, `REP2`…),
     puis celles des autres commits, triées : elles bornent le chantier (`plages`).
-    Sans commit de fiche, `{}` d'abord. None sans `git`, sans dépôt ou sans commit qui nomme
-    le préfixe : le repli, jamais un traceback — et sa raison, ajoutée à la liste `pourquoi`
-    si on en donne une."""
+    Sans commit de fiche, `{}` d'abord : un chantier en cours. None sans `git`, sans dépôt,
+    sans commit qui nomme le préfixe, ou sans commit de fiche d'un chantier `clos` — sa
+    dernière mention est sa clôture, rien ne tomberait après (chantier ZER) : le repli,
+    jamais un traceback — et sa raison, ajoutée à la liste `pourquoi` si on en donne une."""
     import subprocess
     pourquoi = [] if pourquoi is None else pourquoi
     if not ids:
@@ -987,6 +994,9 @@ def heures_commits(fichier, ids, pourquoi=None):
         if not prefixe:
             pourquoi.append("aucun commit qui nomme %s" % PREFIXE.match(ids[0]).group(0))
             return None
+        if clos:
+            pourquoi.append("chantier clos sans commit « %s : » ni d'une autre fiche" % ids[0])
+            return None
         return {}, sorted(prefixe), sorted(autres)
     return commits, sorted(prefixe), sorted(autres)
 
@@ -996,7 +1006,7 @@ def plages(fiches_, heures, gardes):
     du commit de la précédente au sien ; la première part du dernier commit antérieur qui
     nomme le préfixe, à défaut de l'origine ; une fiche à session sans commit va jusqu'au
     bout du transcript, et part de l'ouverture (le dernier commit qui nomme le préfixe)
-    tant qu'aucune fiche n'a de commit. L'origine : le dernier commit qui ne nomme pas le
+    tant qu'aucune fiche n'a de commit — en cours : clos, `heures_commits` rend le repli. L'origine : le dernier commit qui ne nomme pas le
     préfixe, avant ce début — le chantier d'avant, quand une session en enchaîne plusieurs ;
     à défaut, le début de la session. Hors fiches : de l'origine à la première fiche, et de
     la dernière au premier commit suivant qui nomme le préfixe — la clôture ; sans lui,
@@ -1031,7 +1041,8 @@ def parts_aux_commits(fiches_, heures, gardes, entete=()):
     `entete` — le cadrage (`sessions_entete`). Chaque fiche qui a une plage la prend dans
     chaque session et ses sous-agents (la plage de `mesurer`) ; le reste fait « hors fiches ». Une part vaut
     (total, tours, usd, n) — n : les transcripts qui y ont un tour —, usd arrondi au
-    centime : tout s'additionne, dans `cout` comme sur la page."""
+    centime : tout s'additionne, dans `cout` comme sur la page. Aucun tour gardé, ni aux
+    fiches ni hors fiches : une `GARDE:` le dit, les nombres restent (chantier ZER)."""
     from decimal import ROUND_HALF_UP, Decimal
     m = mesure()
     sessions, fichiers = [], []
@@ -1065,7 +1076,11 @@ def parts_aux_commits(fiches_, heures, gardes, entete=()):
         return tuple((t, n, None if u is None else u.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP), k)
                      for t, n, u, k in rendu)
 
-    return [(ident,) + part([p]) for ident, p in par_fiche], part(trous)
+    parts, hors = [(ident,) + part([p]) for ident, p in par_fiche], part(trous)
+    if not plus(*[q for _, s, a in parts for q in (s, a)], *hors)[1]:
+        gardes.append("GARDE: découpe à zéro — aucun tour de %d transcript%s ne tombe dans une plage"
+                      % (len(fichiers), "s" if len(fichiers) > 1 else ""))
+    return parts, hors
 
 
 def plus(*parts):
@@ -1192,7 +1207,8 @@ def regenerer(html, fichier, notes, journal, date, gardes):
     anciens = lis_page(html)
     etat = etats(fiches_, anciens)
     ancien_total = re.search(r'<p class="mono cout-total">(.*?)</p>', html, re.S)
-    heures = heures_commits(fichier, [f[0] for f in fiches_]) if any(f[3] for f in fiches_) else None
+    clos = any(l.startswith("**CLOS**") for l in lignes)
+    heures = heures_commits(fichier, [f[0] for f in fiches_], clos=clos) if any(f[3] for f in fiches_) else None
     cout, total, hors = couts(fiches_, anciens, ancien_total and ancien_total.group(1), gardes, heures,
                               sessions_entete(lignes))
     etiquette = {"faite": "faite", "encours": "en cours", "bloquee": "bloquée", None: "à faire"}

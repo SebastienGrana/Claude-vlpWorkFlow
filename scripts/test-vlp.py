@@ -581,6 +581,53 @@ with tempfile.TemporaryDirectory() as t:
         verifier("cout : la première fiche avant son commit", code == 0
                  and "\nQ1 · ≈700,0k (700 000) · 7 tours · 3,50 $ = " in s
                  and "\nTOTAL (fiches + hors fiches) · ≈700,0k (700 000) · 7 tours" in s, s)
+        # ZER1 : un chantier clos sans commit de fiche — sa dernière mention est sa clôture, et la
+        # plage qui en part ne voit aucun tour ; son travail commité sous d'autres messages (1050),
+        # hors fiches non plus. Il retombe sur les sessions entières, et le dit ; sans ligne **CLOS**,
+        # la découpe reste, et une garde dit qu'elle ne garde rien.
+        clq = os.path.join(t, "clq")
+        os.makedirs(clq)
+        subprocess.run(["git", "init", "-q"], cwd=clq, env=env, check=True, capture_output=True)
+        for d, sujet in ((60, "Chantier P clos : fini"), (100, "Chantier Q ouvert : cadré"),
+                         (1050, "Autre : le travail, sans nommer le préfixe"), (1100, "Chantier Q clos : fini")):
+            date = "%d +0000" % (T0 + d)
+            subprocess.run(["git", "commit", "-q", "--allow-empty", "-m", sujet], cwd=clq, check=True,
+                           capture_output=True, env=dict(env, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date))
+        ecrire(os.path.join(clq, "q.md"), lire(os.path.join(ouv, "q.md")))
+        clos_ = lambda texte: texte.replace("# Chantier Q\n", "# Chantier Q\n\n**CLOS** le 2026-01-06.\n", 1)
+        ecrire(os.path.join(clq, "qz.md"), clos_(lire(os.path.join(ouv, "q.md"))))
+        code, s = appel(["cout", os.path.join(clq, "qz.md")])
+        verifier("cout : clos sans commit de fiche, les sessions entières, et pourquoi", code == 0
+                 and s.startswith("DÉCOUPE aucune — chantier clos sans commit « Q1 : » ni d'une autre fiche : "
+                                  "sessions entières, sous-agents compris\n")
+                 and "\nTOTAL\t8\t0\t-\t-\t800000\t0\t0\t0\t0\t800000\t800000\t4.00\t0\n" in s, s)
+        code, s = appel(["page", os.path.join(clq, "qz.md"), os.path.join(clq, "qz.html"), "--creer", "--projet", "P",
+                         "--titre", "T", "--resultat", "R", "--date", "2026-01-05"])
+        html = lire(os.path.join(clq, "qz.html")) if code == 0 else ""
+        verifier("page : clos sans commit de fiche, les sessions entières, sans hors fiches", code == 0
+                 and '<p class="mono cout-hors">' not in html
+                 and "Coût du chantier : ≈600,0k (600 000) · 6 tours · 3,00 $" in html, s + html)
+        pourquoi = []
+        h = mod.heures_commits(os.path.join(clq, "qz.md"), ["Q1", "Q2"], pourquoi, clos=True)
+        verifier("heures_commits : clos sans commit de fiche, le repli et pourquoi", h is None
+                 and pourquoi == ["chantier clos sans commit « Q1 : » ni d'une autre fiche"], (h, pourquoi))
+        h = mod.heures_commits(os.path.join(clq, "q.md"), ["Q1", "Q2"])
+        verifier("heures_commits : en cours sans commit de fiche, la découpe",
+                 h == ({}, [T0 + 100, T0 + 1100], [T0 + 60, T0 + 1050]), h)
+        code, s = appel(["cout", os.path.join(clq, "q.md")])
+        verifier("cout : une découpe à zéro le dit", code == 0 and s.startswith(
+            "GARDE: découpe à zéro — aucun tour de 2 transcripts ne tombe dans une plage\n"
+            "DÉCOUPE aux commits de fiche") and "\nTOTAL (fiches + hors fiches) · 0 · 0 tours · 0,00 $ = " in s, s)
+        c2 = os.path.join(t, "c2.jsonl")
+        transcript(c2, 1, [T0 + 1080])
+        ecrire(os.path.join(clq, "q2.md"), lire(os.path.join(clq, "q.md")).replace(
+            "## Le socle commun", "**Session** : %s\n\n## Le socle commun" % c2, 1))
+        code, s = appel(["cout", os.path.join(clq, "q2.md")])
+        verifier("cout : fiches à zéro, un tour hors fiches — pas de garde", code == 0 and "GARDE" not in s
+                 and "\nhors fiches · ≈100,0k (100 000) · 1 tours · 0,50 $ = " in s, s)
+        ecrire(os.path.join(avec, "qk.md"), clos_(QFICHES % (sq, sq)))
+        code, s = appel(["cout", os.path.join(avec, "qk.md")])
+        verifier("cout : clos avec commits de fiche, la découpe", code == 0 and s == attendu, s)
         # CAD1 : le cadrage joué dans une autre session, notée en tête du fichier — deux tours avant
         # l'ouverture, un après la clôture : les deux premiers comptent, hors fiches.
         sc = os.path.join(t, "c.jsonl")

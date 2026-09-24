@@ -257,6 +257,16 @@ tous retirés, venaient de `12-audit.md` ; 31 à 34, de la clôture de `REP` ; 3
 Une ligne par décision imprévue tranchée en cours de fiche — jamais un résumé
 de ce que le code dit déjà.
 
+- **2026-09-24** — ZER1, jouée à la main par le chef, sans sous-agent. Deux écarts à la fiche.
+  Le cas « découpe à zéro » se bâtit dans un dépôt à clôture, avec un commit étranger juste
+  avant elle — comme M, dont le travail est commité sous d'autres messages : sans lui, la découpe
+  mettait les 7 tours hors fiches, pas à zéro, et le test n'aurait rien prouvé ; sa garde compte
+  donc 2 transcripts, pas 1. Et un mutant survivait, la garde sur les fiches seules (`Z6`) : un
+  cas de plus, fiches à zéro et un tour hors fiches, sans garde. Neuf mutants tombent. Sur le
+  réel, les dix clos sans commit de fiche rendent la sortie d'avant la nuit (`fda5816`), octet
+  pour octet hors la ligne `DÉCOUPE` : M 11 362 254, C 7 816 316. Pour `RCP` : en sessions
+  entières, un chantier dont la session en a enchaîné d'autres se sur-compte — Q 33 003 302,
+  contre 23 753 914 inscrits.
 - **2026-09-24** — CAD1, relue par le chef : `FAITE` en premier mot, mais **case vide**
   (`CASE CAD1 [ ]`, `cocher` jamais lancé) et **commit du sous-agent** (`e41925c`, défait par
   `reset --soft`). 80 appels sur 80 : le filet « 3 tours restants » a tiré, et l'appel 80 a

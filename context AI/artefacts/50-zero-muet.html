@@ -68,21 +68,24 @@
     <p>Un chantier clos sans commit de fiche retombe sur ses sessions entières, et le dit ; une découpe qui ne garde aucun tour le dit aussi.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="encours"></span>
+      <span data-etat="faite"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">1 fiches · 0 faite · en cours : ZER1</p>
+    <p class="mono" style="margin-top:.5rem">1 fiches · 1 faite</p>
   </header>
 
   <section>
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">ZER1</span><span class="titre">Le repli pour un chantier clos, et la découpe à zéro dite</span>
-        <span class="etat">en cours</span>
+        <span class="etat">faite</span>
         <span class="note">heures_commits passe au repli pour un chantier clos sans commit de fiche ; parts_aux_commits dit une découpe à zéro ; ne dépend de rien.</span>
+        <span class="cout mono">≈3,9M (3 876 314) · 21 tours · 1,85 $</span>
       </li>
     </ul>
+    <p class="mono cout-hors">Hors fiches : ≈6,7M (6 708 181) · 35 tours · 3,67 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈10,6M (10 584 495) · 56 tours · 5,52 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -99,6 +102,7 @@
     <h2>Journal des décisions</h2>
     <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
     <ul class="journal">
+      <li><time datetime="2026-09-24">2026-09-24</time><span>ZER1 : jouée à la main. Le test du zéro se bâtit avec un commit étranger juste avant la clôture, comme M ; Z6 survivait, un cas de plus l'a tué ; neuf mutants tombent. Les dix clos sans commit de fiche retrouvent, octet pour octet, leur sortie d'avant la nuit.</span></li>
     </ul>
   </section>
 

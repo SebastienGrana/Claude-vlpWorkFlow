@@ -61,8 +61,9 @@ couper. La feuille de route ne change pas.
 ---
 
 <!-- FICHE:ZER1 -->
-## ZER1 [ ] — Le repli pour un chantier clos, et la découpe à zéro dite
+## ZER1 [x] — Le repli pour un chantier clos, et la découpe à zéro dite
 
+**Session** : 1ba64929-8274-42d4-93bb-a2d22fbdd600
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py` (`heures_commits`, `parts_aux_commits`, `cmd_cout`, `regenerer`,
 la docstring), `scripts/test-vlp.py` — et rien d'autre.
