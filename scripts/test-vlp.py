@@ -13,16 +13,19 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from typing import Any
 
 for _flux in (sys.stdout, sys.stderr):
     try:
-        _flux.reconfigure(encoding="utf-8")
+        if isinstance(_flux, io.TextIOWrapper):
+            _flux.reconfigure(encoding="utf-8")
     except (AttributeError, ValueError):
         pass
 
 ICI = os.path.dirname(os.path.abspath(__file__))
 spec = importlib.util.spec_from_file_location("vlp", os.path.join(ICI, "vlp.py"))
-mod = importlib.util.module_from_spec(spec)
+assert spec and spec.loader
+mod: Any = importlib.util.module_from_spec(spec)  # ses attributs, GIT compris, se lisent et se changent
 spec.loader.exec_module(mod)
 
 # `ouvrir` et `cocher` notent CLAUDE_CODE_SESSION_ID : un test le fixe lui-même, jamais celui de la
@@ -851,18 +854,18 @@ with tempfile.TemporaryDirectory() as t:
     carte_lue, fiches_lues, html = lire(os.path.join(t, "CHANTIER.md")), lire(os.path.join(t, "ctx", "30-q.md")), lire(fdr)
     verifier("clore : routage, index, bilan, résumé comptés", "· routage 1 · index 1 · bilan 1 · résumé 1 —" in s and "GARDE" not in s, s)
     verifier("clore : résumé, une ligne par clos", "- Clos le 2026-05-06 : a (chantier E).\n- Clos le 2026-05-06 : b `c` (chantier Q).\n\n## Routage" in lire(os.path.join(t, "CLAUDE.md")), lire(os.path.join(t, "CLAUDE.md")))
-    cl, g = ["## Où on en est", "", "- Clos le 2026-01-01 : a (chantier E).", "", "## Règles"], []
-    verifier("résumé : ligne ajoutée après la dernière", mod.resume_claude(cl, "Q", "b", "2026-02-02", g)
-             and cl[3] == "- Clos le 2026-02-02 : b (chantier Q)." and cl[2].endswith("E).") and not g, cl)
+    cl, gr = ["## Où on en est", "", "- Clos le 2026-01-01 : a (chantier E).", "", "## Règles"], []
+    verifier("résumé : ligne ajoutée après la dernière", mod.resume_claude(cl, "Q", "b", "2026-02-02", gr)
+             and cl[3] == "- Clos le 2026-02-02 : b (chantier Q)." and cl[2].endswith("E).") and not gr, cl)
     cl2 = ["## Où on en est", "- Clos le 2026-01-01 : a (chantier E)."]
-    verifier("résumé : suffixe (chantier Q) déjà dans le texte, pas doublé", mod.resume_claude(cl2, "Q", "b (chantier Q).", "2026-01-01", g)
+    verifier("résumé : suffixe (chantier Q) déjà dans le texte, pas doublé", mod.resume_claude(cl2, "Q", "b (chantier Q).", "2026-01-01", gr)
              and cl2[-1] == "- Clos le 2026-01-01 : b (chantier Q).", cl2)
-    verifier("résumé : déjà là, rien", not mod.resume_claude(cl, "Q", "b", "2026-02-02", g) and len(cl) == 6, cl)
+    verifier("résumé : déjà là, rien", not mod.resume_claude(cl, "Q", "b", "2026-02-02", gr) and len(cl) == 6, cl)
     cl3 = ["## Où on en est", "- Prouvé : x.", "  puis vieux (chantier A) ;"] + ["- Clos le 2026-01-0%d : c%d (chantier %s)." % (i, i, "BCDEF"[i - 1]) for i in range(1, 6)] + ["", "## R"]
-    verifier("résumé : garde les CLOS_GARDES derniers, le plus ancien sorti", mod.resume_claude(cl3, "G", "g", "2026-01-09", g)
+    verifier("résumé : garde les CLOS_GARDES derniers, le plus ancien sorti", mod.resume_claude(cl3, "G", "g", "2026-01-09", gr)
              and mod.CLOS_GARDES == 5 and not any("(chantier B)" in l for l in cl3) and cl3[:3] == ["## Où on en est", "- Prouvé : x.", "  puis vieux (chantier A) ;"]
              and sum(1 for l in cl3 if l.startswith("- Clos le")) == 5 and cl3[-3] == "- Clos le 2026-01-09 : g (chantier G).", cl3)
-    verifier("résumé : section absente, garde", not mod.resume_claude(["# x"], "Q", "b", "d", g) and g and "Où on en est" in g[0], g)
+    verifier("résumé : section absente, garde", not mod.resume_claude(["# x"], "Q", "b", "d", gr) and gr and "Où on en est" in gr[0], gr)
     cl4, g4 = ["## Où on en est", "- Clos le 2026-01-01 : a (chantier E)."], []
     verifier("résumé : sur une ligne, relu par ENTREE_CLOS",
              mod.resume_claude(cl4, "Q", "deux lignes\nici.\n", "2026-09-24", g4)
@@ -959,10 +962,10 @@ with tempfile.TemporaryDirectory() as t:
         ecrire(os.path.join(t, "ctx", nom), texte)
     ecrire(os.path.join(t, "CHANTIER.md"), carte_o % ("aucun", "aucun"))
     code, s = appel(["ouvrir", t, "--fiches", "ctx/33-t.md", "--titre", "t"])
-    lu = lire(os.path.join(t, "ctx", "33-t.md"))
+    lu_o = lire(os.path.join(t, "ctx", "33-t.md"))
     verifier("ouvrir : un vrai fichier, la session avant le socle, hors de toute fiche", code == 0 and "· session +1 ·" in s
-             and lu == vrai.replace("## Le socle commun", "**Session** : cadre\n\n## Le socle commun")
-             and "**Session**" not in appel(["extraire", os.path.join(t, "ctx", "33-t.md"), "T1"])[1], s + lu)
+             and lu_o == vrai.replace("## Le socle commun", "**Session** : cadre\n\n## Le socle commun")
+             and "**Session**" not in appel(["extraire", os.path.join(t, "ctx", "33-t.md"), "T1"])[1], s + lu_o)
     ecrire(os.path.join(t, "CHANTIER.md"), carte_o % ("aucun", "aucun"))
     code, s = appel(["ouvrir", t, "--fiches", "ctx/34-u.md", "--titre", "u"])
     verifier("ouvrir : session déjà sur une ligne d'une fiche, pas redoublée", code == 0 and "· session +0 ·" in s
@@ -1255,10 +1258,10 @@ verifier("NIV1 : aucune syntaxe propre a un seul shell",
 
 s_niv1 = io.StringIO()
 mod.carte_injectee(os.path.join(RACINE, "scripts"), "py", False, s_niv1)
-lu = s_niv1.getvalue()
+lu_n = s_niv1.getvalue()
 verifier("NIV1 : la carte ne dit que PYTHON= et le projet",
-         lu.splitlines()[:2] == ["", "PYTHON=py"] and "introuvable" not in lu and "not found" not in lu
-         and "PROJET=" in lu, lu[:200])
+         lu_n.splitlines()[:2] == ["", "PYTHON=py"] and "introuvable" not in lu_n and "not found" not in lu_n
+         and "PROJET=" in lu_n, lu_n[:200])
 
 # --- NIV2 : `niveau` dit en quoi un projet équipé a dérivé du kit -------------
 

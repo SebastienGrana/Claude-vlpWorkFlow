@@ -693,7 +693,7 @@ def cmd_relecture(a, sortie):
     cmd_extraire(fichier, a.fiche, sortie)
     code, etat = git_texte(["diff", "--name-status", "--no-color", parent, sha], racine)
     sortie.write(etat if code == 0 else "GARDE: git diff --name-status en échec — %s\n" % etat)
-    fiches_rel, noms = prefixe + courant.replace("\\", "/"), noms_fichiers(fiche)
+    fiches_rel, noms = prefixe + (courant or "").replace("\\", "/"), noms_fichiers(fiche)
     # Le fichier d'état : toute fiche peut écrire à son journal (REV7).
     etat_val = champ(lignes_de(os.path.join(apres_projet, "CHANTIER.md")), "fichier d'état", "aucun")
     exclus = {fiches_rel} | (set() if etat_val.startswith("aucun") else {prefixe + etat_val.replace("\\", "/")})
@@ -1058,6 +1058,7 @@ def mesure():
         import importlib.util
         spec = importlib.util.spec_from_file_location(
             "mesure_tokens", os.path.join(os.path.dirname(os.path.abspath(__file__)), "mesure-tokens.py"))
+        assert spec and spec.loader
         _mesure = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(_mesure)
     return _mesure
@@ -1183,7 +1184,7 @@ def heures_commits(fichier, ids, pourquoi=None, clos=False):
         pourquoi.append("git log en échec : %s" % ((r.stderr or "").strip().splitlines() or ["code %d" % r.returncode])[0])
         return None
     nomme = re.compile(r"(?<![A-Za-z0-9])(?:%s)[0-9]*(?![A-Za-z0-9])"
-                       % "|".join(sorted({PREFIXE.match(i).group(0) for i in ids})))
+                       % "|".join(sorted({lettre_de(i) for i in ids})))
     commits, prefixe, autres = {}, [], []
     for ligne in r.stdout.splitlines():
         heure, _, sujet = ligne.partition(" ")
@@ -1195,7 +1196,7 @@ def heures_commits(fichier, ids, pourquoi=None, clos=False):
             commits[c.group(1)] = min(int(heure), commits.get(c.group(1), int(heure)))
     if not commits:
         if not prefixe:
-            pourquoi.append("aucun commit qui nomme %s" % PREFIXE.match(ids[0]).group(0))
+            pourquoi.append("aucun commit qui nomme %s" % lettre_de(ids[0]))
             return None
         if clos:
             pourquoi.append("chantier clos sans commit « %s : » ni d'une autre fiche" % ids[0])
@@ -1547,7 +1548,7 @@ def nom_etat(contexte):
     for n in noms:
         if NUMERO.match(n) and n.endswith("-etat.md"):
             return n
-    pris = [int(NUMERO.match(n).group(1)) for n in noms if NUMERO.match(n)]
+    pris = [int(m.group(1)) for n in noms if (m := NUMERO.match(n))]
     return "%02d-etat.md" % (max(pris) + 1 if pris else 1)
 
 
@@ -2024,6 +2025,7 @@ def cmd_niveau(a, sortie):
     absente = not os.path.isfile(page)
     html = lire(os.path.join(KIT, GABARIT_FEUILLE)) if absente else lire(page)
     migre = migrer_feuille(html)
+    converti, n = html, 0
     try:
         neuf, _ = feuille(projet, migre, None, date)
         converti, n = migrer_clos(neuf)
@@ -2582,7 +2584,8 @@ if __name__ == "__main__":
     # sortent illisibles.
     for flux in (sys.stdin, sys.stdout, sys.stderr):
         try:
-            flux.reconfigure(encoding="utf-8")
+            if isinstance(flux, io.TextIOWrapper):
+                flux.reconfigure(encoding="utf-8")
         except (AttributeError, ValueError):
             pass
     sys.exit(main(sys.argv[1:]))

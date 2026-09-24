@@ -17,6 +17,7 @@ from decimal import ROUND_HALF_UP, Decimal
 
 ICI = os.path.dirname(os.path.abspath(__file__))
 spec = importlib.util.spec_from_file_location("mesure_tokens", os.path.join(ICI, "mesure-tokens.py"))
+assert spec and spec.loader
 mod = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(mod)
 mesurer = mod.mesurer

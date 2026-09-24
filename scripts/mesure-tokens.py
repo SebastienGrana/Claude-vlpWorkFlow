@@ -22,6 +22,7 @@ import collections
 import datetime
 import fnmatch
 import glob
+import io
 import json
 import os
 import subprocess
@@ -434,9 +435,8 @@ def main(argv):
                 cumul[k] += r[k]
             equiv = None if (equiv is None or r["equiv_exact"] is None) else equiv + r["equiv_exact"]
             usd = None if (usd is None or r["usd_exact"] is None) else usd + r["usd_exact"]
-        cumul["equiv"] = arrondir_equiv(equiv)
-        cumul["usd"] = arrondir_usd(usd)
-        print("\t".join(str(x) for x in ["TOTAL"] + [cumul.get(k, "-") for k in COLONNES]))
+        total: dict[str, object] = {**cumul, "equiv": arrondir_equiv(equiv), "usd": arrondir_usd(usd)}
+        print("\t".join(str(x) for x in ["TOTAL"] + [total.get(k, "-") for k in COLONNES]))
 
     for nom, r in resultats:
         detail = " ".join(f"{n}={c}" for n, c in sorted(r["outils"].items(), key=lambda x: (-x[1], x[0])))
@@ -450,7 +450,8 @@ if __name__ == "__main__":
     # messages sortent illisibles.
     for flux in (sys.stdout, sys.stderr):
         try:
-            flux.reconfigure(encoding="utf-8")
+            if isinstance(flux, io.TextIOWrapper):
+                flux.reconfigure(encoding="utf-8")
         except (AttributeError, ValueError):
             pass
     sys.exit(main(sys.argv[1:]))
