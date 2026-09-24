@@ -248,6 +248,24 @@ tous retirés, venaient de `12-audit.md` ; 31 à 34, de la clôture de `REP` ; 3
 Une ligne par décision imprévue tranchée en cours de fiche — jamais un résumé
 de ce que le code dit déjà.
 
+- **2026-09-24** — CAD1, relue par le chef : `FAITE` en premier mot, mais **case vide**
+  (`CASE CAD1 [ ]`, `cocher` jamais lancé) et **commit du sous-agent** (`e41925c`, défait par
+  `reset --soft`). 80 appels sur 80 : le filet « 3 tours restants » a tiré, et l'appel 80 a
+  commité au lieu de cocher ou de rendre `RETOUR` (sa transcription : 4 « commit par tâche »,
+  1 « Tu ne commites pas »). Code avant les tests (appels 28 à 48, le test en 51). Lancés sous le
+  vrai `CLAUDE_CODE_SESSION_ID`, ses tests ont échoué, et il les a **relâchés** — l'égalité
+  exacte de « ouvrir : bilan » devenue cinq `in`, dont `"· session +"` — au lieu de fixer
+  l'environnement, comme la fiche le disait. Et un bug : la session allait avant le premier titre
+  de fiche, donc **entre `<!-- FICHE:X1 -->` et son titre**, dans la fiche que lit le
+  sous-agent. Repris : la session va avant la première ligne `## ` (le socle), cherchée dans
+  tout le fichier ; l'en-tête passe à `parts_aux_commits` en sessions (`entete`), après les
+  fiches ; la suite retire `CLAUDE_CODE_SESSION_ID` en tête, le bloc `ouvrir` le fixe à
+  `cadre` ; comparaisons exactes rétablies ; en plus, un vrai fichier (la fiche extraite sans
+  session), une session déjà dans une fiche, l'id vide, la page. Tests 224 → 230 `verifier(`.
+  Neuf mutants tombent, dont les deux choix du sous-agent ; le code d'avant rend
+  `ÉCART: cout : la session du cadrage, en tête, compte hors fiches`. 80 tours, 101
+  `hook_non_blocking_error`, 5 367 778 tokens, 0,90 $ (Haiku). Transcription :
+  `…/subagents/agent-ac8f3b1a183943b67.jsonl`.
 - **2026-09-24** — MTK2, relue par le chef : `FAITE` en premier mot, case cochée (appel 14 sur
   14), aucun commit, les quatre critères verts. Mais la docstring disait faux deux fois : « heure
   ISO 8601 locale » (avec un décalage, l'heure est exacte) et « 0 si OK, 1 si erreur » (un id

@@ -24,6 +24,10 @@ spec = importlib.util.spec_from_file_location("vlp", os.path.join(ICI, "vlp.py")
 mod = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(mod)
 
+# `ouvrir` et `cocher` notent CLAUDE_CODE_SESSION_ID : un test le fixe lui-même, jamais celui de la
+# session qui lance la suite (chantier CAD).
+os.environ.pop("CLAUDE_CODE_SESSION_ID", None)
+
 CHANTIER = "# Chantier courant\n\n- **alias** : %s\n- **fichier de fiches courant** : %s\n"
 FICHES = """# Chantier Z
 
@@ -577,6 +581,23 @@ with tempfile.TemporaryDirectory() as t:
         verifier("cout : la première fiche avant son commit", code == 0
                  and "\nQ1 · ≈700,0k (700 000) · 7 tours · 3,50 $ = " in s
                  and "\nTOTAL (fiches + hors fiches) · ≈700,0k (700 000) · 7 tours" in s, s)
+        # CAD1 : le cadrage joué dans une autre session, notée en tête du fichier — deux tours avant
+        # l'ouverture, un après la clôture : les deux premiers comptent, hors fiches.
+        sc = os.path.join(t, "c.jsonl")
+        transcript(sc, 3, [T0 + d for d in (20, 40, 1000)])
+        qc = os.path.join(avec, "qc.md")
+        ecrire(qc, (QFICHES % (sq, sq)).replace("## Le socle commun", "**Session** : %s\n\n## Le socle commun" % sc))
+        code, s = appel(["cout", qc])
+        verifier("cout : la session du cadrage, en tête, compte hors fiches", code == 0 and s.splitlines() == attendu.splitlines()[:3] + [
+            "hors fiches · ≈400,0k (400 000) · 4 tours · 2,00 $ = session ≈400,0k (400 000) · 4 tours · 2,00 $ + 0 sous-agent",
+            "TOTAL (fiches + hors fiches) · ≈900,0k (900 000) · 9 tours · 4,50 $ = session ≈700,0k (700 000) · 7 tours · 3,50 $"
+            " + 1 sous-agent ≈200,0k (200 000) · 2 tours · 1,00 $"], s)
+        code, s = appel(["page", qc, os.path.join(avec, "qc.html"), "--creer", "--projet", "P", "--titre", "T",
+                         "--resultat", "R", "--date", "2026-01-05"])
+        html = lire(os.path.join(avec, "qc.html")) if code == 0 else ""
+        verifier("page : la session du cadrage, en tête, compte hors fiches", code == 0
+                 and '<p class="mono cout-hors">Hors fiches : ≈400,0k (400 000) · 4 tours · 2,00 $</p>' in html
+                 and '<p class="mono cout-total">Coût du chantier : ≈900,0k (900 000) · 9 tours · 4,50 $</p>' in html, s + html)
 
 # FIN1 : les bornes de `plages`, en fonction pure — heures (commits de fiche, qui nomment, autres).
 P2, G = [("Q1", "a", True, ["s"]), ("Q2", "b", True, ["s"])], []
@@ -822,6 +843,7 @@ with tempfile.TemporaryDirectory() as t:
 
 with tempfile.TemporaryDirectory() as t:
     lire = lambda c: open(c, encoding="utf-8").read()
+    os.environ["CLAUDE_CODE_SESSION_ID"] = "cadre"     # la session du cadrage, que `ouvrir` note
     carte_o = ("# C\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n"
                "- **fichier de fiches courant** : %s\n- **artefact du chantier** : %s\n")
     ecrire(os.path.join(t, "CHANTIER.md"), carte_o % ("aucun", "aucun"))
@@ -830,12 +852,15 @@ with tempfile.TemporaryDirectory() as t:
     ecrire(os.path.join(t, "ctx", "30-q.md"), "# Chantier Q — Un titre\n\n## Q1 [ ] — a\n## Q2 [ ] — b\n")
     code, s = appel(["ouvrir", t, "--fiches", "ctx/30-q.md", "--titre", "Un `titre`"])
     carte_lue, index_lu, claude_lu = lire(os.path.join(t, "CHANTIER.md")), lire(os.path.join(t, "ctx", "00-INDEX.md")), lire(os.path.join(t, "CLAUDE.md"))
-    verifier("ouvrir : bilan", code == 0 and s == "OUVERT Q Q1..Q2 · index +1 · routage +1 · artefact aucun — %s\n" % t, s)
+    verifier("ouvrir : bilan", code == 0 and s == "OUVERT Q Q1..Q2 · index +1 · routage +1 · session +1 · artefact aucun — %s\n" % t, s)
+    verifier("ouvrir : la session du cadrage, avant la première ligne ##", lire(os.path.join(t, "ctx", "30-q.md"))
+             == "# Chantier Q — Un titre\n\n**Session** : cadre\n\n## Q1 [ ] — a\n## Q2 [ ] — b\n", lire(os.path.join(t, "ctx", "30-q.md")))
     verifier("ouvrir : CHANTIER.md", "**fichier de fiches courant** : ctx/30-q.md (Q1..Q2)\n- **artefact du chantier** : aucun\n" in carte_lue, carte_lue)
     verifier("ouvrir : index, après le plus grand numéro", "| `10-e.md` | on relit |\n| `30-q.md` | on joue une fiche `Q*` — chantier **ouvert** « Un `titre` », `Q1..Q2` |\n| `05-d.md`" in index_lu, index_lu)
     verifier("ouvrir : routage, avant « relire un chantier clos »", "**clos** |\n| jouer une fiche du chantier Q (un `titre`) | `ctx/30-q.md` — chantier **ouvert**, par `/vlp:tache Q<n>` |\n| relire" in claude_lu, claude_lu)
     code, s = appel(["ouvrir", t, "--fiches", "ctx/30-q.md", "--titre", "Un `titre`", "--artefact", "https://exemple/q"])
-    verifier("ouvrir : relance, artefact seul", code == 0 and "index +0 · routage +0 · artefact https://exemple/q" in s
+    verifier("ouvrir : relance, artefact seul", code == 0 and "index +0 · routage +0 · session +0 · artefact https://exemple/q" in s
+             and lire(os.path.join(t, "ctx", "30-q.md")).count("**Session**") == 1
              and lire(os.path.join(t, "CLAUDE.md")) == claude_lu and lire(os.path.join(t, "ctx", "00-INDEX.md")) == index_lu
              and "**artefact du chantier** : https://exemple/q" in lire(os.path.join(t, "CHANTIER.md")), s)
     avant = lire(os.path.join(t, "CHANTIER.md"))
@@ -849,7 +874,7 @@ with tempfile.TemporaryDirectory() as t:
     # Relancé avec un autre titre : seule la plage suit, sur la même et unique ligne.
     code, s = appel(["ouvrir", t, "--fiches", "ctx/30-q.md", "--titre", "Un autre titre"])
     index_q = [l for l in lire(os.path.join(t, "ctx", "00-INDEX.md")).split("\n") if l.startswith("| `30-q.md` |")]
-    verifier("ouvrir : relancé, la plage de l'index suit le fichier", code == 0 and "OUVERT Q Q1..Q3 · index ~1 · routage +0" in s
+    verifier("ouvrir : relancé, la plage de l'index suit le fichier", code == 0 and "OUVERT Q Q1..Q3 · index ~1 · routage +0 · session +1" in s
              and index_q == ["| `30-q.md` | on joue une fiche `Q*` — chantier **ouvert** « Un `titre` », `Q1..Q3` |"]
              and "ctx/30-q.md (Q1..Q3)" in lire(os.path.join(t, "CHANTIER.md")), s + repr(index_q))
     index_main = lire(os.path.join(t, "ctx", "00-INDEX.md")).replace("chantier **ouvert** « Un `titre` », `Q1..Q3`", "à la main `Q1..Q2`")
@@ -867,6 +892,30 @@ with tempfile.TemporaryDirectory() as t:
     code, s = appel(["ouvrir", t, "--fiches", "ctx/32-s.md", "--titre", "s"])
     verifier("ouvrir : fichier CLOS, refus sans écrire", code == 1 and s.startswith("GARDE: ctx/32-s.md porte **CLOS**")
              and "aucun" in lire(os.path.join(t, "CHANTIER.md")), s)
+    # Un vrai fichier : la session va avant `## Le socle commun`, jamais entre le marqueur d'une
+    # fiche et son titre — la fiche extraite n'en porte pas. Déjà sur une ligne `**Session**`, même
+    # d'une fiche, elle n'est pas redoublée ; un id vide ne note rien.
+    vrai = ("# Chantier T — t\n\nÀ quoi il sert.\n\n## Le socle commun\n\n## L'ordre des fiches\n\n"
+            "<!-- FICHE:T1 -->\n## T1 [ ] — a\n<!-- /FICHE -->\n")
+    for nom, texte in (("33-t.md", vrai), ("34-u.md", "# Chantier U — u\n\n## U1 [x] — a\n**Session** : cadre\n"),
+                       ("35-v.md", "# Chantier V — v\n\n## V1 [ ] — a\n")):
+        ecrire(os.path.join(t, "ctx", nom), texte)
+    ecrire(os.path.join(t, "CHANTIER.md"), carte_o % ("aucun", "aucun"))
+    code, s = appel(["ouvrir", t, "--fiches", "ctx/33-t.md", "--titre", "t"])
+    lu = lire(os.path.join(t, "ctx", "33-t.md"))
+    verifier("ouvrir : un vrai fichier, la session avant le socle, hors de toute fiche", code == 0 and "· session +1 ·" in s
+             and lu == vrai.replace("## Le socle commun", "**Session** : cadre\n\n## Le socle commun")
+             and "**Session**" not in appel(["extraire", os.path.join(t, "ctx", "33-t.md"), "T1"])[1], s + lu)
+    ecrire(os.path.join(t, "CHANTIER.md"), carte_o % ("aucun", "aucun"))
+    code, s = appel(["ouvrir", t, "--fiches", "ctx/34-u.md", "--titre", "u"])
+    verifier("ouvrir : session déjà sur une ligne d'une fiche, pas redoublée", code == 0 and "· session +0 ·" in s
+             and lire(os.path.join(t, "ctx", "34-u.md")).count("**Session**") == 1, s)
+    ecrire(os.path.join(t, "CHANTIER.md"), carte_o % ("aucun", "aucun"))
+    os.environ["CLAUDE_CODE_SESSION_ID"] = ""
+    code, s = appel(["ouvrir", t, "--fiches", "ctx/35-v.md", "--titre", "v"])
+    verifier("ouvrir : id vide, rien de noté", code == 0 and "· session +0 ·" in s
+             and lire(os.path.join(t, "ctx", "35-v.md")) == "# Chantier V — v\n\n## V1 [ ] — a\n", s)
+    os.environ.pop("CLAUDE_CODE_SESSION_ID", None)
 
 with tempfile.TemporaryDirectory() as t:
     f = os.path.join(t, "y.md")

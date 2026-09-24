@@ -58,8 +58,9 @@ de `plages` ne changent pas : un cadrage coupé par un commit étranger reste co
 ---
 
 <!-- FICHE:CAD1 -->
-## CAD1 [ ] — La session du cadrage notée et comptée
+## CAD1 [x] — La session du cadrage notée et comptée
 
+**Session** : 1ba64929-8274-42d4-93bb-a2d22fbdd600
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py` (`cmd_ouvrir`, `parts_aux_commits` et ses appelants, la
 docstring), `scripts/test-vlp.py` — et rien d'autre.

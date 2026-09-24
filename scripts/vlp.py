@@ -23,9 +23,10 @@ Sous-commandes :
 - `sessions <fichier>` — un id de ligne `**Session**` par ligne, dédoublonnés,
   dans l'ordre du fichier.
 - `cout <fichier> [--session]` — `mesure-tokens.py` sur toutes les sessions du
-  fichier (aucune : `SESSIONS 0 — pas de total`, sort 0). `--session` :
-  `SESSION=<CLAUDE_CODE_SESSION_ID>`, puis (id non vide) la table de cette
-  session seule, et celle de cette session plus celles du fichier.
+  fichier, celles des fiches et celle du cadrage, que `ouvrir` note en tête (aucune :
+  `SESSIONS 0 — pas de total`, sort 0). `--session` : `SESSION=<CLAUDE_CODE_SESSION_ID>`,
+  puis (id non vide) la table de cette session seule, et celle de cette session plus
+  celles du fichier.
 - `valider <fichier>… [--plan]` — les écarts d'un fichier de fiches, un par ligne
   `fichier:ligne: message`, puis `VALIDE|INVALIDE <n> fiches · socle <n> lignes
   · <n> écarts · <n> avertissements — <fichier>`. Avertit si une fiche ou le
@@ -51,10 +52,12 @@ Sous-commandes :
 - `page <fichier> [<page.html>]` — régénère la page du chantier depuis le fichier
   de fiches : états, avancement, comptage, coûts (`**Session**`), date. Les coûts
   se coupent aux commits `<ID> :` (`git log`), sous-agents compris, plus une ligne
-  « hors fiches » ; sans Git ni commit qui nomme le préfixe, ils se tirent de l'ancienne
-  page. Sans page : `<dossier du fichier>/artefacts/<même nom>.html`. Garde
-  de la page l'en-tête — sauf sa plage de fiches, refaite depuis le fichier —,
-  les notes, le journal, le blocage et le bilan.
+  « hors fiches » ; la session du cadrage, notée en tête par `ouvrir`, se coupe comme
+  celles des fiches — ses tours d'avant l'ouverture vont hors fiches. Sans Git ni
+  commit qui nomme le préfixe, ils se tirent de l'ancienne page. Sans page :
+  `<dossier du fichier>/artefacts/<même nom>.html`. Garde de la page l'en-tête — sauf
+  sa plage de fiches, refaite depuis le fichier —, les notes, le journal, le blocage
+  et le bilan.
   `--note <fiche> <texte>`, `--journal <texte>` (répétables) ; `--creer
   --projet P --titre T --resultat R` part du gabarit ; `--verifier` n'écrit
   rien et sort 1 si états ou avancement diffèrent du fichier.
@@ -137,9 +140,12 @@ Sous-commandes :
   une ligne « jouer une fiche du chantier » avant « relire un chantier clos »
   (sinon le premier « relire le chantier ») du routage de `CLAUDE.md`. Une ligne
   déjà là n'est pas redoublée ; relancé sur F, seule la plage de sa ligne
-  d'index `**ouvert**` suit le fichier. `OUVERT <lettre> <plage> · index
-  <+n|~1> · routage +<n> · artefact <url> — <projet>` (`~1` : plage refaite) ;
-  index ou routage introuvable : `GARDE:`, le reste est écrit.
+  d'index `**ouvert**` suit le fichier. `CLAUDE_CODE_SESSION_ID` non vide et sur
+  aucune ligne `**Session**` du fichier : `**Session** : <id>` avant sa première
+  ligne `## ` — la session du cadrage, que `cout` et `page` mesurent. `OUVERT
+  <lettre> <plage> · index <+n|~1> · routage +<n> · session +<0|1> · artefact <url>
+  — <projet>` (`~1` : plage refaite) ; index ou routage introuvable : `GARDE:`, le
+  reste est écrit.
   Un autre chantier déjà ouvert, ou F porte `**CLOS**` : `GARDE:`, sort 1.
 
 Python 3 sans dépendance, zéro appel modèle.
@@ -351,6 +357,13 @@ def sessions_de(lignes):
     return vues
 
 
+def sessions_entete(lignes):
+    """Les sessions de l'en-tête, avant le premier titre de fiche : le cadrage, que `ouvrir`
+    note (chantier CAD)."""
+    k = next((i for i, l in enumerate(lignes) if TITRE.match(l)), len(lignes))
+    return sessions_de(lignes[:k])
+
+
 def cmd_extraire(chemin, fiche, sortie):
     extrait, garde = extraire_lignes(lignes_de(chemin), fiche)
     if garde:
@@ -406,7 +419,7 @@ def cmd_cout(chemin, session, sortie):
     fiches_ = fiches_du_fichier(lignes)
     pourquoi, gardes = [], []
     heures = heures_commits(chemin, [f[0] for f in fiches_], pourquoi)
-    decoupe = heures and parts_aux_commits(fiches_, heures, gardes)
+    decoupe = heures and parts_aux_commits(fiches_, heures, gardes, sessions_entete(lignes))
     for g in gardes:
         sortie.write(g + "\n")
     if not decoupe:
@@ -1012,17 +1025,18 @@ def plages(fiches_, heures, gardes):
     return rendu, [p for p in ((origine, rendu[0][1][0]), (dernier, fin)) if p[0] < p[1]]
 
 
-def parts_aux_commits(fiches_, heures, gardes):
+def parts_aux_commits(fiches_, heures, gardes, entete=()):
     """([(id, session, sous-agents)], (session, sous-agents) hors fiches), ou None sans
-    transcript mesurable, ou sans fiche à découper. Chaque fiche qui a une plage la prend dans chaque session et ses
-    sous-agents (la plage de `mesurer`) ; le reste fait « hors fiches ». Une part vaut
+    transcript mesurable, ou sans fiche à découper. Les sessions : celles des fiches, puis
+    `entete` — le cadrage (`sessions_entete`). Chaque fiche qui a une plage la prend dans
+    chaque session et ses sous-agents (la plage de `mesurer`) ; le reste fait « hors fiches ». Une part vaut
     (total, tours, usd, n) — n : les transcripts qui y ont un tour —, usd arrondi au
     centime : tout s'additionne, dans `cout` comme sur la page."""
     from decimal import ROUND_HALF_UP, Decimal
     m = mesure()
     sessions, fichiers = [], []
-    for f in fiches_:
-        sessions += [s for s in f[3] if s not in sessions]
+    for groupe in [f[3] for f in fiches_] + [list(entete)]:
+        sessions += [s for s in groupe if s not in sessions]
     for s in sessions:
         chemin, erreur = m.resoudre(s)
         if erreur:
@@ -1069,10 +1083,10 @@ def ligne_parts(nom, session, agents):
         "%d sous-agent%s %s" % (n, "s" if n > 1 else "", ligne_cout(*agents[:3])) if n else "0 sous-agent")
 
 
-def couts_aux_commits(fiches_, heures, gardes):
+def couts_aux_commits(fiches_, heures, gardes, entete=()):
     """`couts` coupé aux commits (`parts_aux_commits`) : une ligne par fiche, session et
     sous-agents sommés ; « hors fiches » à part, et total = fiches + hors fiches."""
-    decoupe = parts_aux_commits(fiches_, heures, gardes)
+    decoupe = parts_aux_commits(fiches_, heures, gardes, entete)
     if decoupe is None:
         return {}, None, None
     parts, hors = decoupe
@@ -1082,7 +1096,7 @@ def couts_aux_commits(fiches_, heures, gardes):
             plus(*sommes.values(), hors)[:3], hors[:3])
 
 
-def couts(fiches_, anciens, ancien_total, gardes, heures=None):
+def couts(fiches_, anciens, ancien_total, gardes, heures=None, entete=()):
     """({id: ligne de coût}, total, hors fiches) — total et hors fiches en (total, tours,
     usd), ou None. Avec les heures des commits (`heures_commits`) : `couts_aux_commits`.
     Sans elles, tirés de l'ancienne page, sans hors fiches. Une session portée
@@ -1091,7 +1105,7 @@ def couts(fiches_, anciens, ancien_total, gardes, heures=None):
     l'ancienne page n'attribuait à aucune fiche (le cadrage joué dans la même
     session), si une seule session est partagée."""
     if heures:
-        return couts_aux_commits(fiches_, heures, gardes)
+        return couts_aux_commits(fiches_, heures, gardes, entete)
     m = mesure()
     mesures = {}
     for _, _, _, sessions in fiches_:
@@ -1179,7 +1193,8 @@ def regenerer(html, fichier, notes, journal, date, gardes):
     etat = etats(fiches_, anciens)
     ancien_total = re.search(r'<p class="mono cout-total">(.*?)</p>', html, re.S)
     heures = heures_commits(fichier, [f[0] for f in fiches_]) if any(f[3] for f in fiches_) else None
-    cout, total, hors = couts(fiches_, anciens, ancien_total and ancien_total.group(1), gardes, heures)
+    cout, total, hors = couts(fiches_, anciens, ancien_total and ancien_total.group(1), gardes, heures,
+                              sessions_entete(lignes))
     etiquette = {"faite": "faite", "encours": "en cours", "bloquee": "bloquée", None: "à faire"}
     items = []
     for ident, titre, _, _ in fiches_:
@@ -2180,14 +2195,25 @@ def cmd_ouvrir(a, sortie):
                 ecritures.append((chemin_claude, cl))
                 n_routage = 1
 
+    # 4. la session du cadrage, avant la première ligne `## ` : le socle dans un vrai fichier,
+    # jamais entre le marqueur d'une fiche et son titre (chantier CAD). Un titre de fiche en
+    # commence une : `next` la trouve toujours.
+    n_session = 0
+    s = os.environ.get("CLAUDE_CODE_SESSION_ID", "").strip()
+    if s and s not in sessions_de(fiches_):
+        k = next(k for k, l in enumerate(fiches_) if l.startswith("## "))
+        fiches_[k:k] = ["**Session** : %s" % s, ""]
+        ecritures.append((chemin_fiches, fiches_))
+        n_session = 1
+
     ecritures.append((chemin_carte, carte_))
     for chemin, lignes in ecritures:
         with open(chemin, "w", encoding="utf-8", newline="") as fh:
             fh.write("\n".join(lignes) + "\n")
     for g in gardes:
         sortie.write("GARDE: %s — le reste est écrit\n" % g)
-    sortie.write("OUVERT %s %s · index %s · routage +%d · artefact %s — %s\n"
-                 % (lettre, fait, n_index, n_routage, url, projet))
+    sortie.write("OUVERT %s %s · index %s · routage +%d · session +%d · artefact %s — %s\n"
+                 % (lettre, fait, n_index, n_routage, n_session, url, projet))
     return 0
 
 
