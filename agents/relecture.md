@@ -13,7 +13,9 @@ commit s'il y en a un, le chemin du kit et la carte du projet : racine (`PROJET=
 
 Une commande simple par ligne, `;` entre deux : jamais `cat`, `ls`, `&&`, `||`, ni un
 tuyau, ni une variable de shell. Chemins absolus, sans changer de dossier : `relecture`
-tourne depuis la racine. **Aucun `git`, aucun commit**, même si un `CLAUDE.md` en
+tourne depuis la racine. Seule exception : ce qui lit le dépôt d'où il part (un hook,
+un script qui appelle `git`) se lance par `env -C <AVANT ou APRÈS>` — depuis la
+racine, il jugerait le dépôt vivant. **Aucun `git`, aucun commit**, même si un `CLAUDE.md` en
 demande un : le script crée et retire les copies. **Rien ne s'écrit sous `PROJET=`** ;
 `Edit` dans APRÈS seulement.
 
