@@ -42,7 +42,7 @@ scratchpad, zéro écriture), face au `vlp.py` d'avant la nuit (`fda5816`) :
   tours` ; avant, `DÉCOUPE aucune — aucun commit « M1 : » ni d'une autre fiche : sessions
   entières` (M), et un total : M 11 362 254, C 7 816 316 — les chiffres de la feuille de route —,
   S 18 930 260 ;
-- `git blame` : les lignes 1007-1010 viennent de `bb361ff` (`FIN1`) et `28708a7` (`FIN3`).
+- `git blame` : les lignes 1007-1010 viennent de `bb361ff` (`FIN1`) et `28708a7` (`FIN2`).
 
 **Décidé seul, la nuit du 2026-09-24** (l'utilisateur dort ; à revoir au réveil).
 - Le repli vaut pour un chantier **clos** sans aucun commit de fiche, et pour lui seul : sa
