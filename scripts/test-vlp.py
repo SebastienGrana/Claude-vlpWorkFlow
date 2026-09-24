@@ -758,6 +758,8 @@ with tempfile.TemporaryDirectory() as t:
     pq = lire(page_q)
     verifier("clore : ZONE:bilan visible, blocage caché", "<section>\n    <h2>Chantier clos le 2026-05-06</h2>\n    <div class=\"bilan\">\n      <p>Livré : Livré `a` &lt;b&gt;</p>\n      <p>Surpris : x &lt; y</p>\n    </div>\n  </section>" in pq
              and pq.split("<!-- ZONE:blocage")[1].split("-->\n")[1].startswith("  <section hidden>") and pq.count("<section hidden>") == 1, pq)
+    verifier("clore : la page régénérée, fiches du fichier", '<span class="id">Q1</span>' in pq and '<span class="id">Q2</span>' in pq
+             and '<span class="id">&lt;R' not in pq and '<p class="mono cout-total">' not in pq, pq)
     verifier("clore : bilan", code == 0 and "CLOS Q Q1..Q2 (Q2 abandonnée) · total 3 812" in s and "encours non" in s, s)
     verifier("clore : fichier de fiches", "**CLOS** le 2026-05-06. Ne se rejoue pas" in fiches_lues
              and fiches_lues.index("**CLOS**") < fiches_lues.index("**Fait.**") and "Abandonnées : Q2 abandonnée." in fiches_lues, fiches_lues)

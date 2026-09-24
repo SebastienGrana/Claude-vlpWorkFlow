@@ -207,6 +207,13 @@ tous retirés, venaient de `12-audit.md` ; 31 à 34, de la clôture de `REP` ; 3
 Une ligne par décision imprévue tranchée en cours de fiche — jamais un résumé
 de ce que le code dit déjà.
 
+- **2026-09-24** — FIN3, relue par le chef : `FAITE` en premier mot, case cochée (appel 38 sur
+  38), aucun commit ; le test demandé est écrit tel que nommé, et un mutant (l'appel à
+  `regenerer` ôté) le fait échouer. Une retouche : `regenerer` préfixe déjà ses gardes de
+  « GARDE: », que `clore` aurait doublé ; elles passent par une liste à part. 44
+  `hook_non_blocking_error` pour 38 appels. Transcription :
+  `1ba64929-8274-42d4-93bb-a2d22fbdd600/subagents/agent-a28da69f9f04ffbb9.jsonl`.
+
 - **2026-09-24** — FIN2, relue par le chef : `FAITE`, case cochée cette fois (appel 35 sur 36),
   message ouvert par « ## En résumé », le mot-statut au dernier paragraphe ; aucun commit dans le
   projet (l'appel 25 commite dans un dépôt jetable). Malgré des tests nommés avec leurs valeurs,

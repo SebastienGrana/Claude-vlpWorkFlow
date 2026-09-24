@@ -145,8 +145,9 @@ nombres qu'après `FIN1`.
 <!-- /FICHE -->
 
 <!-- FICHE:FIN3 -->
-## FIN3 [ ] — `clore` régénère les coûts de la page
+## FIN3 [x] — `clore` régénère les coûts de la page
 
+**Session** : 1ba64929-8274-42d4-93bb-a2d22fbdd600
 **Dépend de** : `FIN1`.
 **Fichiers** : `scripts/vlp.py` (`cmd_clore`, docstring lignes 114 à 130), `scripts/test-vlp.py`,
 `cloture.md` (étape 2) — et rien d'autre.

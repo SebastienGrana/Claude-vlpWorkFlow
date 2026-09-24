@@ -118,7 +118,7 @@ Sous-commandes :
   ligne ouverte de l'index passée à « clos » ; la ligne « jouer une fiche » du
   routage de `CLAUDE.md` retirée, et `| relire un chantier clos | <index> |`
   posée à sa place si elle manque ;
-  dans la page du chantier, `ZONE:bilan` visible (Livré, Surpris) et
+  dans la page du chantier, `ZONE:bilan` visible (Livré, Surpris) et coûts régénérés,
   `ZONE:blocage` cachée — absentes : `GARDE:`, le reste est écrit ; avec
   `--resume T`, dans « Où on en est » de `CLAUDE.md`, `- Clos le <date> : T
   (chantier L).` (déjà là : rien), et seules les `CLOS_GARDES` dernières lignes de
@@ -1981,6 +1981,12 @@ def cmd_clore(a, sortie):
             bloc = pg[db:fb]
             bloc = re.sub(r"^  <section>", "  <section hidden>", bloc, count=1)
             pg = pg[:db] + bloc + pg[fb:d] + corps + pg[f:] if db < d else pg[:d] + corps + pg[f:db] + bloc + pg[fb:]
+            couts_page = []    # les gardes de regenerer portent déjà « GARDE: »
+            try:
+                pg = regenerer(pg, chemin_fiches, {}, [], date, couts_page)[0]
+            except ValueError as e:
+                couts_page.append("page du chantier : coûts non régénérés — %s" % e)
+            gardes.extend(re.sub(r"^GARDE: ", "", g) for g in couts_page)
             ecritures.append((chemin_page, pg))
             faits["bilan"] = 1
 
