@@ -13,11 +13,11 @@ https://github.com/SebastienGrana/Claude-vlpWorkFlow — cloné et utilisé en g
 - Équipés : Cairn-VlpLib, MapDecorator, ProjetONZSM, TrackGen — et ce kit lui-même.
 - Chaque chantier clos a sa ligne dans `context AI/00-INDEX.md`, son détail daté dans
   `context AI/08-etat.md` ; ici, les derniers seulement (`vlp.py clore` les tient).
-- Clos le 2026-09-24 : le sous-agent n'est plus coupé muet : maxTurns 80 et un filet qui le prévient à 3 tours du plafond, prouvé à plafond 10 ; une fiche de code enchaînée 2,08 $ contre 4,34 $ à la main, 0,176 $ de Q confirmé (chantier SAG).
 - Clos le 2026-09-24 : le filet prévient le sous-agent après tout outil, échecs (PostToolUseFailure) et chemins longs compris ; « 3 tours restants » prouvé à plafond 10 après un Read et après un Bash à code non nul (chantier FIL).
 - Clos le 2026-09-24 : le chef relit la case avant de commiter : cocher --verifier, RETOUR sur une case vide ; le sous-agent ne commite plus, écrit dans fiche.md, pas encore éprouvé (chantier CAS).
 - Clos le 2026-09-24 : le contrôle avant commit ne se saute plus : sans claude dans le PATH, le hook prend le claude.exe de l'app et refuse un manifeste cassé ; 1,8 s par commit au lieu de 147 ms (chantier VAL).
 - Clos le 2026-09-24 : chaque chantier ne compte que le sien, même quand une session en enchaîne plusieurs ; la première fiche se mesure avant son commit, et clore régénère les coûts de la page (chantier FIN).
+- Clos le 2026-09-24 : ce que vlp.py écrit, il le relit : coût négatif, ligne close sous 1 000, lettres prises et résumé passent par leur lecteur dans un test ; 11 mutants (chantier TAR).
 
 ## Quatre règles non négociables
 
@@ -57,7 +57,6 @@ et seulement dans ce cas, ouvrir l'index.
 | savoir où vit quoi dans un projet équipé | `methode-chantier.md`, section « Où vit quoi » |
 | toucher aux pages publiées | `ARTEFACTS.md`, puis le gabarit dans `templates/` |
 | ouvrir un chantier, ou le découper en fiches | **lancer `/vlp:chantier`** |
-| jouer une fiche du chantier TAR (ce que vlp.py écrit, il le relit) | `context AI/46-aller-retour.md` — chantier **ouvert**, par `/vlp:tache TAR<n>` |
 | relire un chantier clos | `context AI/00-INDEX.md` — sa ligne y nomme le fichier de fiches |
 | reprendre après une longue interruption | `context AI/08-etat.md` |
 | choisir le prochain chantier du kit, ou retrouver la preuve d'un bug relevé le 2026-09-17 | `context AI/12-audit.md` |

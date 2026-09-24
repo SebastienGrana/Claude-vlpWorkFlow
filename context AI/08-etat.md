@@ -182,6 +182,17 @@
   creux ou absents en FIN1 et FIN2 — même nommés avec leurs valeurs ; chaque reprise est prouvée
   par un mutant. Cadré et joué seul, la nuit. 21 871 718 tokens.
 
+- **2026-09-24** — chantier TAR clos (TODO n° 33) : ce que `vlp.py` écrit, il le relit. Une
+  sonde a repassé chaque format par son lecteur ; quatre défauts, quatre corrections, chacune
+  prouvée par un test écrit d'abord : un coût négatif relu avec son signe (63 allers ratés sur
+  198 avant), `arrondi` au million dès 999 950 ; une ligne close sous 1 000 tokens recomptée,
+  `clore` sans rattrapage ; une lettre relue hors d'un titre (« Tests, CI (rapide) ») ou sans
+  titre (« A. ») ; un résumé de `CLAUDE.md` sur une ligne. La vraie feuille reste à 439 668 779
+  et 34 lettres. Tests 214 → 220 `verifier(`. Imprévu : les trois sous-agents ont encore
+  débordé ou relâché la fiche — `COUT` plus strict qu'avant, un analyseur de 45 lignes, les blancs
+  réduits dans le mauvais ordre — ; repris, et 11 mutants tombent. Cadré et joué seul, la nuit.
+  17 642 733 tokens.
+
 ## La TODO ordonnée — les chantiers possibles
 
 C'est d'ici que `/chantier` tire ses propositions. Un chantier par entrée,
@@ -193,7 +204,6 @@ tous retirés, venaient de `12-audit.md` ; 31 à 34, de la clôture de `REP` ; 3
 
 | # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |
 |---|---|---|---|---|
-| 33 | `TAR` — Un test aller-retour par format écrit | Deux fois le même défaut dans `REP` : les chevrons d'une URL (`REP2`), puis la ligne `? $` (`CPT`) — `vlp.py` écrit un format qu'il ne sait pas relire. Un test écrit puis relit chaque format : ligne de coût, ligne close, rang de TODO, zone « en cours ». | ~2 fiches | — |
 | 36 | `EST` — L'estimé face au réel, à chaque clôture | La TODO estime chaque chantier ; rien ne compare ensuite. `CPT`, estimé « ~2 fiches », en a joué 4. Le bilan de clôture écrira l'estimé à côté du réel — fiches jouées, tokens —, pour que `/vlp:chantier` estime mieux les suivants. | ~1 fiche | — |
 | 37 | `RCP` — Recompter les chantiers clos au coût juste | Le total de la feuille de route (339 340 811 tokens, 29 clos) additionne des bilans comptés avant `CPT` : sans sous-agents ni découpe aux commits ; seul `REP` est recompté (`CPT4`). `vlp.py cout` recomptera les clos qui ont des lignes `**Session**` et dont les transcripts restent sur le disque ; chaque ancien chiffre reste, marqué (énoncé renversé, `methode-chantier.md`). 🟡 Combien de transcripts restent : pas vérifié. `FIN` clos le 2026-09-24 : la découpe est juste, le recompte ne se fera qu'une fois. | ~2 fiches | — |
 | 39 | `PYT` — Plus d'erreur « Python est introuvable » à chaque appel d'outil | Sous Windows, les entrées `python3` de `hooks/hooks.json` échouent à chaque appel d'outil du sous-agent depuis `FIL2` : une `hook_non_blocking_error` « Python est introuvable » par appel — 7 pour 7 dans chaque essai `FIL3`, `PostToolUseFailure` compris —, deux par écriture (essai `SAG4`, l. 62-63 de sa transcription). La nuit du 2026-09-24 : 201 pour 170 appels d'outil, sur les six sous-agents `CAS1` à `FIN3`. 🟡 Le modèle les lit-il ? Pas vérifié. Faire taire l'entrée qui échoue sans perdre la paire `python3` + `py`. | ~1 fiche | — |

@@ -4,6 +4,10 @@
 
 # Chantier TAR — Ce que vlp.py écrit, il le relit
 
+**CLOS** le 2026-09-24. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** TAR1..TAR3 (2026-09-24) : Ce que vlp.py écrit, il le relit : un coût négatif garde son signe, une ligne close sous 1 000 tokens se recompte, une lettre se lit hors d'un titre ou sans titre, un résumé tient sur une ligne.
+
 **À quoi il sert.** Deux fois dans `REP`, `vlp.py` a écrit un format qu'il ne savait pas relire :
 les chevrons d'une URL (`REP2`), puis la ligne `? $` (`CPT`). Mesuré à l'ouverture, il en reste
 quatre : un coût négatif, une ligne close sous 1 000 tokens, une lettre prise dans un titre ou
