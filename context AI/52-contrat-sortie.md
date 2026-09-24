@@ -142,8 +142,9 @@ L'utilisateur lit le tableau au journal et choisit le hook — `SubagentStop`,
 ---
 
 <!-- FICHE:CON4 -->
-## CON4 [ ] — Écrire le hook retenu
+## CON4 [x] — Écrire le hook retenu
 
+**Session** : 0d303b02-229a-40df-824e-65d205a4141e
 **Dépend de** : `CON3`.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py`, `hooks/hooks.json`.
 

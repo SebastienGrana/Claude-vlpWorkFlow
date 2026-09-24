@@ -1775,6 +1775,55 @@ with tempfile.TemporaryDirectory() as t:
     verifier("sonde : 4 entrées notées", len(notes) == 4, "\n".join(notes))
 
 
+# gardien (chantier CON4) : PreToolUse refuse l'écriture Git, SubagentStop renvoie sur statut ou case
+with tempfile.TemporaryDirectory() as t:
+    def gardien(d):
+        o = io.StringIO()
+        code = mod.main(["gardien"], o, io.StringIO(d if isinstance(d, str) else json.dumps(d)))
+        return code, o.getvalue()
+
+    fiche = {"agent_id": "a1", "agent_type": "vlp:fiche"}
+    commit = {"hook_event_name": "PreToolUse", "tool_name": "Bash",
+              "tool_input": {"command": 'git -C "C:/a b" commit -m "X1 : fin"'}}
+    code, s = gardien(dict(commit, agent_id="a2", agent_type="vlp:relecture"))
+    verifier("gardien : sous-agent vlp:relecture laissé passer", (code, s) == (0, ""), s)
+    code, s = gardien(dict(fiche, **commit))
+    verifier("gardien : git -C … commit refusé", code == 0 and '"permissionDecision": "deny"' in s, s)
+    code, s = gardien(dict(fiche, hook_event_name="PreToolUse", tool_name="PowerShell",
+                           tool_input={"command": "git status; git log -1"}))
+    verifier("gardien : git status laissé passer", (code, s) == (0, ""), s)
+    verifier("gardien : entrée illisible, muet", gardien("pas du json") == (0, ""), "")
+
+    proj = os.path.join(t, "proj")
+    ecrire(os.path.join(proj, "CHANTIER.md"), CHANTIER % ("px", "f.md (X1..X1)"))
+    ecrire(os.path.join(proj, "f.md"), "# X\n\n<!-- FICHE:X1 -->\n## X1 [ ] — une\n<!-- /FICHE -->\n")
+    trans = os.path.join(t, "agent-a1.jsonl")
+    ecrire(trans, json.dumps({"message": {"role": "user", "content": "Fiche à jouer :\n\nX1\n\nKit : k"}},
+                             ensure_ascii=False) + "\n")
+    fin = dict(fiche, hook_event_name="SubagentStop", stop_hook_active=False, cwd=proj,
+               agent_transcript_path=trans)
+    code, s = gardien(dict(fin, last_assistant_message="Parfait, la fiche est faite."))
+    verifier("gardien : statut absent, renvoyé", '"decision": "block"' in s and "« Parfait, »" in s, s)
+    code, s = gardien(dict(fin, last_assistant_message="Parfait.", stop_hook_active=True))
+    verifier("gardien : déjà renvoyé une fois, laissé", (code, s) == (0, ""), s)
+    code, s = gardien(dict(fin, last_assistant_message="FAITE — X1."))
+    verifier("gardien : FAITE sur case vide, renvoyé", '"decision": "block"' in s and "case de X1 est vide" in s, s)
+    ecrire(os.path.join(proj, "f.md"), "# X\n\n<!-- FICHE:X1 -->\n## X1 [x] — une\n<!-- /FICHE -->\n")
+    if not shutil.which("git"):
+        print("SAUTÉ: git absent — le gardien sur HEAD n'est pas testé")
+    else:
+        env = dict(os.environ, GIT_CONFIG_GLOBAL=os.path.join(t, "gitconfig"), GIT_CONFIG_NOSYSTEM="1",
+                   GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t")
+        ecrire(env["GIT_CONFIG_GLOBAL"], "")
+        for args in (["init", "-q"], ["add", "-A"], ["commit", "-q", "-m", "départ"]):
+            subprocess.run(["git"] + args, cwd=proj, env=env, check=True, capture_output=True)
+        code, s = gardien(dict(fin, last_assistant_message="FAITE — X1."))
+        verifier("gardien : FAITE sur case cochée, sans commit de fiche, laissé", (code, s) == (0, ""), s)
+        subprocess.run(["git", "commit", "-q", "--allow-empty", "-m", "X1 : une"], cwd=proj, env=env, check=True)
+        code, s = gardien(dict(fin, last_assistant_message="FAITE — X1."))
+        verifier("gardien : HEAD nomme la fiche, renvoyé", '"decision": "block"' in s and "tu as commité" in s, s)
+
+
 # hooks.json : le filet sur tout outil, après un succès et après un échec ; hook sur les écritures
 with open(os.path.join(RACINE, "hooks", "hooks.json"), encoding="utf-8") as f:
     crochets = json.load(f)["hooks"]
@@ -1792,6 +1841,11 @@ verifier("hooks.json : filet sur tout outil après un succès et après un éche
          and any(g.get("matcher") == "*" and paire(g, "filet") for g in succes)
          and any(g.get("matcher") == "Write|Edit" and paire(g, "hook") for g in succes)
          and echec[0].get("matcher") == "*" and paire(echec[0], "filet"),
+         json.dumps(crochets, ensure_ascii=False))
+avant, arret = crochets.get("PreToolUse", []), crochets.get("SubagentStop", [])
+verifier("hooks.json : gardien avant Bash|PowerShell et à l'arrêt d'un sous-agent",
+         len(avant) == 1 and avant[0].get("matcher") == "Bash|PowerShell" and paire(avant[0], "gardien")
+         and len(arret) == 1 and arret[0].get("matcher") == "*" and paire(arret[0], "gardien"),
          json.dumps(crochets, ensure_ascii=False))
 
 

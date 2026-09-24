@@ -66,6 +66,52 @@
           }
         ]
       }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py",
+              "gardien"
+            ]
+          },
+          {
+            "type": "command",
+            "command": "py",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py",
+              "gardien"
+            ]
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py",
+              "gardien"
+            ]
+          },
+          {
+            "type": "command",
+            "command": "py",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py",
+              "gardien"
+            ]
+          }
+        ]
+      }
     ]
   }
 }

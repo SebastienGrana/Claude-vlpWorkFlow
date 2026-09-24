@@ -181,6 +181,13 @@ Sous-commandes :
   sous-agent (ou de `SubagentStart`/`SubagentStop`) ajoutée à `<temp>/vlp-sonde.jsonl` ;
   dans un `vlp:fiche`, refuse un `PreToolUse` qui cite `SONDE-REFUS` et renvoie au travail
   son premier `SubagentStop`. Sort 0, muet sur une entrée illisible.
+- `gardien` — le hook du contrat (chantier CON), muet hors d'un sous-agent dont
+  l'`agent_type` contient « fiche » et sur une entrée illisible ; sort toujours 0.
+  `PreToolUse` : un appel `Bash`/`PowerShell` qui écrit dans Git (le motif de `contrat`) est
+  refusé, `permissionDecision` `deny` et sa raison. `SubagentStop`, sauf `stop_hook_active` :
+  renvoyé au travail (`decision` `block`, une raison d'une ligne) si `last_assistant_message` ne
+  commence pas par un statut, ou s'il dit `FAITE` et que `cocher --verifier` sur la fiche de
+  `Fiche à jouer :` (1er message de la transcription) rend une case vide ou une `TÊTE`.
 
 Python 3 sans dépendance, zéro appel modèle.
 """
@@ -1126,6 +1133,88 @@ def cmd_contrat(a, sortie):
         sans_statut += mot not in STATUTS
     sortie.write("CONTRAT %d sous-agents · %d écrivent dans Git · %d sans statut en tête\n"
                  % (n, commitent, sans_statut))
+    return 0
+
+
+FICHE_A_JOUER = re.compile(r"Fiche à jouer :\s*(\S+)")
+
+
+def fiche_jouee(chemin):
+    """La fiche que `vlp:jouer` a donnée au sous-agent : `Fiche à jouer :` suivi de son id, dans
+    le premier message utilisateur de sa transcription ; None si rien ne se lit."""
+    try:
+        with mesure().ouvrir(chemin) as f:
+            for ligne in f:
+                try:
+                    m = json.loads(ligne).get("message")
+                except (ValueError, AttributeError):
+                    continue
+                if not isinstance(m, dict) or m.get("role") != "user":
+                    continue
+                c = m.get("content")
+                texte = c if isinstance(c, str) else " ".join(
+                    b.get("text", "") for b in c if isinstance(b, dict)) if isinstance(c, list) else ""
+                t = FICHE_A_JOUER.search(texte)
+                return t.group(1) if t else None
+    except (OSError, UnicodeDecodeError):
+        return None
+    return None
+
+
+def verdict_fin(d):
+    """La raison de renvoyer au travail un sous-agent `vlp:fiche` qui s'arrête, ou None."""
+    message = d.get("last_assistant_message")
+    if not isinstance(message, str):
+        return None
+    mot = message.split()[0] if message.strip() else "(vide)"
+    if mot not in STATUTS:
+        return ("Ton dernier message commence par « %s » : son premier mot doit être FAITE, RETOUR ou "
+                "BLOQUÉE (agents/fiche.md). Réécris-le, statut en tête." % mot)
+    if mot != "FAITE" or not isinstance(d.get("agent_transcript_path"), str):
+        return None
+    fiche = fiche_jouee(d["agent_transcript_path"])
+    racine = trouver(d.get("cwd") or os.getcwd())
+    if fiche is None or racine is None:
+        return None
+    courant = fichier_courant(lire(os.path.join(racine, "CHANTIER.md")))
+    if courant is None:
+        return None
+    o = io.StringIO()
+    cmd_cocher(argparse.Namespace(fichier=os.path.join(racine, courant), fiche=fiche, verifier=True), o)
+    s = o.getvalue()
+    if "TÊTE " in s:
+        return ("Le dernier commit du dépôt nomme %s : tu as commité, contre agents/fiche.md. N'y touche "
+                "pas ; rends RETOUR en le disant, le chef décidera." % fiche)
+    if "CASE %s [ ]" % fiche in s:
+        return ("FAITE, mais la case de %s est vide : coche-la par vlp.py cocher, puis rends FAITE." % fiche)
+    return None
+
+
+def cmd_gardien(entree, sortie):
+    """Le contrat d'`agents/fiche.md` tenu à la sortie du sous-agent (chantier CON). Muet hors
+    d'un `vlp:fiche` et sur une entrée illisible : il ne bloque jamais sur ce qu'il ne lit pas."""
+    try:
+        d = json.loads(entree.read())
+    except (ValueError, AttributeError, TypeError):
+        return 0
+    if not isinstance(d, dict) or "fiche" not in str(d.get("agent_type") or ""):
+        return 0
+    ev = d.get("hook_event_name")
+    if ev == "PreToolUse" and d.get("tool_name") in ("Bash", "PowerShell"):
+        commande = (d.get("tool_input") or {}).get("command")
+        if isinstance(commande, str) and ECRIT_GIT.search(commande):
+            sortie.write(json.dumps({"hookSpecificOutput": {
+                "hookEventName": "PreToolUse", "permissionDecision": "deny",
+                "permissionDecisionReason": "Un sous-agent vlp:fiche n'écrit pas dans Git (agents/fiche.md) : "
+                                            "retire git commit/add/reset, le chef commite après ton statut."}},
+                ensure_ascii=False) + "\n")
+    elif ev == "SubagentStop" and not d.get("stop_hook_active"):
+        try:
+            raison = verdict_fin(d)
+        except (Absent, OSError, ValueError):
+            raison = None
+        if raison:
+            sortie.write(json.dumps({"decision": "block", "reason": raison}, ensure_ascii=False) + "\n")
     return 0
 
 
@@ -2654,6 +2743,7 @@ def main(argv, sortie=None, entree=None, erreur=None):
     ct.add_argument("transcriptions", nargs="*")
     ct.add_argument("--depuis")
     sous.add_parser("sonde")
+    sous.add_parser("gardien")
     a = p.parse_args(argv)
     try:
         return repartir(a, sortie, entree, erreur)
@@ -2705,6 +2795,8 @@ def repartir(a, sortie, entree, erreur):
         return cmd_contrat(a, sortie)
     if a.cmd == "sonde":
         return cmd_sonde(entree or sys.stdin, sortie)
+    if a.cmd == "gardien":
+        return cmd_gardien(entree or sys.stdin, sortie)
     chemin_garde(a.fichier)
     if a.cmd == "extraire":
         return cmd_extraire(a.fichier, a.fiche, sortie)
