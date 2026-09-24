@@ -246,6 +246,17 @@
   relecteur liste les titres des fiches, un indice ; la relecture n'a pas encore tourné dans un
   vrai `/vlp:enchainer`. 614 tours, 74 789 054 tokens, 56,10 $.
 
+- **2026-09-25** — chantier CON clos (TODO n° 49) : le contrat d'`agents/fiche.md` se lit et se
+  tient. `vlp.py contrat` le lit dans les transcriptions (après `f98ceec` : 8 sous-agents, 0
+  écrivent dans Git, 5 sans statut en tête — c'est le statut qui casse) ; `vlp.py gardien`,
+  branché sur `PreToolUse` (`Bash|PowerShell`) et `SubagentStop`, refuse l'écriture Git et
+  renvoie un sous-agent sans statut en tête, sur case vide ou dont le commit nomme la fiche.
+  Prouvé en vrai : `SubagentStop` renvoie (sonde, `CON3`), `PreToolUse` refuse et `HEAD` reste
+  `60ef683` (témoin, `CON5`). `CON2` sautée (8 ≥ 5). Laissé ouvert : le renvoi du gardien n'a
+  tiré que sur la sonde, pas encore sur un vrai statut manquant ; chaque hook tourne deux fois
+  (`python3` et `py` ouvrent le même Python). Joué à la main, une session. 108 tours,
+  13 910 638 tokens, 6,83 $.
+
 ## La TODO ordonnée — les chantiers possibles
 
 C'est d'ici que `/chantier` tire ses propositions. Un chantier par entrée, cité
@@ -262,7 +273,6 @@ celle de `FIL` ; 48 à 51, de celle de `FIN` ; 52, des clôtures de la nuit du
 
 | # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |
 |---|---|---|---|---|
-| 49 | `CON` — Le contrat du sous-agent, vérifié à sa sortie | Quatorze sous-agents la nuit du 2026-09-24 (`CAS1` à `CAD1`). Statut pas en tête 3 fois : `VAL1`, `FIN1`, `FIN2` ont mis leur `FAITE` en dernière ligne (12e, 27e, 11e), rattrapé par l'étape 2 de `/vlp:enchainer`. `FAITE` sur case vide 3 fois (`VAL1`, `FIN1`, `CAD1`), rattrapé par `CAS` ou par le chef. Commit par le sous-agent 4 fois : `CAS1`, avant la règle ; `VAL1`, par `git -C` ; `PLA1`, par `git add -A` ; `CAD1`, à son 80e appel — le plafond, juste après que le filet a tiré — au lieu de cocher ou de rendre `RETOUR`. `CAD1` a aussi relâché ses tests au lieu de fixer l'environnement que sa fiche nommait. La règle « aucun commit » d'`agents/fiche.md`, écrite pendant `VAL`, attend `/reload-plugins` — une définition d'agent se charge au démarrage de la session : aucun de ces sous-agents ne l'a eue. 🟡 La définition de l'agent n'est pas dans sa transcription : qu'elle soit chargée ne s'y lit pas. 💡 Un hook `SubagentStop` qui renvoie le sous-agent tant que le mot n'est pas en tête, que la case est vide ou que `HEAD` a bougé. 🟡 Qu'un tel hook puisse le renvoyer : pas vérifié. Mesurer d'abord la règle « aucun commit » une fois chargée. | ~1 fiche | — |
 | 44 | `GLO` — Le `CLAUDE.md` de l'utilisateur dans le sous-agent | `vlp:fiche` reçoit le `CLAUDE.md` global de l'utilisateur (attachment `instructions`), et en suit la forme comme le fond. Sondé la nuit du 2026-09-24 sur `CAD1` : l'attachment fait 13 104 caractères, porte « Dyslexie » et 2 fois « commit par tâche » (`~/.claude/CLAUDE.md` : 5 053 caractères). La forme : « En résumé » et la jauge dans `FIN2`, `TAR2`, `MTK2` et `CAD1` ; le `FAITE` de `FIN2` en 11e et dernière ligne. Le fond : `PLA1` et `CAD1` ont commité seuls, contre leur fiche — leurs transcriptions portent chacune 4 fois « commit par tâche ». 💡 Sans doute la cause amont des commits de `CON`. 🟡 Ce qu'il pèse en tokens par sous-agent : pas isolé (1er tour de `CAD1` : 16 202 tokens de création de cache, tout compris). Vu aussi le 2026-09-25 : le relecteur `vlp:relecture` finit par une jauge et un « En résumé » ; son « ⚠️ Imprévu » sur un vieux commit, relayé tel quel, a été pris par l'utilisateur pour une erreur du chef. Mesurer d'abord ; n'agir que si ça coûte. | ~0,5 fiche | — |
 | 52 | `UNI` — Un seul chiffre par clôture | `clore --tokens N` écrit N au bilan et sur la feuille de route, puis régénère la page, qui recompte quelques tours plus tard : deux chiffres pour un même chantier. La nuit du 2026-09-24 : `MTK` 12 192 684 au bilan, 12 738 440 sur sa page ; `PLA` 11 938 808 et 12 587 599 ; `CAD` 14 603 596 et 15 154 579 ; `ZER` 11 209 181 et 11 633 997. Règle 3 : un nombre vit à un seul endroit. `clore` mesurera le total lui-même, et l'écrira partout. 🟡 À trancher : garder `--tokens` comme contrôle, ou le retirer. | ~1 fiche | — |
 | 37 | `RCP` — Recompter les chantiers clos au coût juste | Le total de la feuille de route (507 255 781 tokens, 39 clos) additionne des bilans comptés de trois façons : avant `CPT`, sessions entières sans sous-agents ; depuis, coupés aux commits ; `REP` recompté (`CPT4`). À blanc la nuit du 2026-09-24, sans rien écrire : 36 fichiers clos à lignes `**Session**`, 49 transcriptions sur 49 présentes. 26 se coupent aux commits ; dix n'ont aucun commit de fiche — M, C, T, S, L, W, X, F, O, Q — et retombent, depuis `ZER`, sur leurs sessions entières, qui sur-comptent quand une session a enchaîné plusieurs chantiers : Q 33 003 302 contre 23 753 914 inscrits. `FIL` passe de 42 638 103 à 20 319 194 : l'ancien découpage lui comptait le sous-agent de `SAG`, leur session étant partagée. 🟡 Pour les dix : garder l'ancien chiffre, ou prendre les sessions entières. Chaque ancien chiffre reste, marqué (énoncé renversé, `methode-chantier.md`). | ~2 fiches | — |

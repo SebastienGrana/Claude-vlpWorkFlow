@@ -9,7 +9,11 @@ commité eux-mêmes, et le chef ne rattrape pas un commit (TODO n° 49). CON mes
 si la règle « aucun commit », maintenant chargée, tient ; puis essaie un hook qui
 l'impose.
 
-**Fait.** Rien. Ouvert le 2026-09-25, cadré en 5 fiches, `CON1` à jouer.
+**CLOS** le 2026-09-25. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+Abandonnées : CON2 sautée, non jouée : 8 sous-agents au-delà du seuil de 5.
+
+**Fait.** CON1..CON5 (2026-09-25) : vlp.py contrat lit le contrat du sous-agent ; vlp.py gardien le tient — PreToolUse refuse l'écriture Git, SubagentStop renvoie sans statut en tête, prouvés en vrai.
 
 **Session** : 86153e75-a87d-48cf-97d5-2532aad54754
 

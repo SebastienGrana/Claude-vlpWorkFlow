@@ -105,11 +105,11 @@
         <span class="id">CON5</span><span class="titre">Le prouver sur un sous-agent</span>
         <span class="etat">faite</span>
         <span class="note">HEAD 60ef683 avant et après le témoin qui devait commiter ; PreToolUse:Bash hook error « Un sous-agent vlp:fiche n'écrit pas dans Git » dans sa transcription ; statut RETOUR ; 4 tours, 0,04 $</span>
-        <span class="cout mono">≈1,6M (1 641 170) · 11 tours · 0,53 $</span>
+        <span class="cout mono">≈1,9M (1 874 150) · 12 tours · 0,63 $</span>
       </li>
     </ul>
-    <p class="mono cout-hors">Hors fiches : ≈2,9M (2 906 894) · 26 tours · 1,98 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈13,4M (13 441 023) · 106 tours · 6,64 $</p>
+    <p class="mono cout-hors">Hors fiches : ≈3,9M (3 864 414) · 30 tours · 2,29 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈14,6M (14 631 523) · 111 tours · 7,05 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -132,10 +132,11 @@
   </section>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
-  <section hidden>
-    <h2>Chantier clos le </h2>
+  <section>
+    <h2>Chantier clos le 2026-09-25</h2>
     <div class="bilan">
-      <p></p>
+      <p>Livré : vlp.py contrat lit le contrat du sous-agent ; vlp.py gardien le tient — PreToolUse refuse l'écriture Git, SubagentStop renvoie sans statut en tête, prouvés en vrai</p>
+      <p>Surpris : Après la règle, aucun sous-agent n'a commité : c'est le statut en tête qui casse (5 sur 8) ; et SubagentStop peut renvoyer, contre un résumé de la doc</p>
     </div>
   </section>
 
