@@ -11,7 +11,9 @@ qu'après son propre commit, jamais au bilan. Les deux bords seront bornés au c
 première fiche se mesurera avant son commit (n° 42 `OUV`), et `clore` régénérera les coûts de
 la page.
 
-**Fait.** Rien. Ouvert le 2026-09-24, cadré en 3 fiches, `FIN1` à jouer.
+**CLOS** le 2026-09-24. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** FIN1..FIN3 (2026-09-24) : Chaque chantier ne compte que le sien : hors fiches part du dernier commit étranger avant l'ouverture et finit à la clôture ; la première fiche se mesure avant son commit ; clore régénère les coûts de la page.
 
 ## Le socle commun
 

@@ -23,7 +23,7 @@ a l'air proche.
 | `42-filet-tout-outil.md` | on relit le socle du chantier FIL — **clos** « Le filet tire après tout outil », `FIL1..FIL3` |
 | `43-case-relue.md` | on relit le socle du chantier CAS — **clos** « Le chef relit la case avant de commiter », `CAS1..CAS2` |
 | `44-pre-commit.md` | on relit le socle du chantier VAL — **clos** « Le contrôle avant commit ne se saute plus », `VAL1..VAL1` |
-| `45-cout-aux-bords.md` | on joue une fiche `FIN*` — chantier **ouvert** « Le coût juste, aux deux bords du chantier », `FIN1..FIN3` |
+| `45-cout-aux-bords.md` | on relit le socle du chantier FIN — **clos** « Le coût juste, aux deux bords du chantier », `FIN1..FIN3` |
 | `35-bilan.md` | on doit expliquer le kit — d'où il vient, ce qu'il sait faire aujourd'hui, ce qu'il ne promet pas ; les 22 chantiers chiffrés |
 | `36-gardes.md` | on relit le socle du chantier Z — **clos** « Une GARDE au lieu d'un traceback », `Z1..Z4` |
 | `37-niveau.md` | on relit le socle du chantier NIV — **clos** « Remettre les projets équipés à niveau », `NIV1..NIV4` |
