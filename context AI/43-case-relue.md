@@ -8,7 +8,9 @@
 `/vlp:enchainer`, qui commite sur `FAITE` sans relire la case, a commité case vide. Après
 `FAITE`, le chef relira la case par script, et lira `RETOUR` si elle est vide.
 
-**Fait.** `CAS1` (2026-09-24). Cadrage revu après elle : `CAS2` ajoutée, à jouer.
+**CLOS** le 2026-09-24. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** CAS1..CAS2 (2026-09-24) : vlp.py cocher --verifier relit la case ; le chef de /vlp:enchainer lit RETOUR sur une case vide ; le sous-agent n'a plus le droit de commiter.
 
 ## Le socle commun
 

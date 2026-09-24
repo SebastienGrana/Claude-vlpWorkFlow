@@ -155,6 +155,15 @@
   Hors total : 0,3125 $ d'essais `claude -p` (FIL3 0,14800575 + 0,06411505 + 0,10040705).
   42 638 103 tokens.
 
+- **2026-09-24** — chantier CAS clos (TODO n° 38) : le chef relit la case avant de commiter.
+  `vlp.py cocher --verifier` n'écrit rien et rend `CASE <fiche> [x]` (sort 0) ou `CASE <fiche> [ ]`
+  (sort 1) ; tests 200 → 203 `verifier(`. La puce `FAITE` de `/vlp:enchainer` s'en sert et lit un
+  `RETOUR` sur une case vide ; le contrat (`enchainement.md`) le dit. Imprévu, `CAS1` : le
+  sous-agent a commité lui-même — son contexte porte le `CLAUDE.md` de l'utilisateur, qui demande
+  un commit par tâche (cause probable, pas prouvée) ; `agents/fiche.md` le lui interdit depuis
+  `CAS2`, pas encore éprouvé. Dans `CAS2`, la fiche disait « Tu ne commites pas » : aucun commit.
+  Cadré et joué seul, la nuit, l'utilisateur dormant. 10 041 615 tokens.
+
 ## La TODO ordonnée — les chantiers possibles
 
 C'est d'ici que `/chantier` tire ses propositions. Un chantier par entrée,
@@ -165,7 +174,6 @@ tous retirés, venaient de `12-audit.md` ; 31 à 34, de la clôture de `REP` ; 3
 
 | # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |
 |---|---|---|---|---|
-| 38 | `CAS` — Le chef relit la case avant de commiter | Dans `SAG3`, le sous-agent a rendu `FAITE` sans cocher (0 appel à `cocher` sur 70), et le chef de `/vlp:enchainer`, qui commite sur `FAITE` sans relire la case (`skills/enchainer/SKILL.md:68`), a commité case vide ; la reprise à la main a coûté 0,55 $. Après `FAITE`, le chef — ou `vlp.py` — relira la case, et lira `RETOUR` si elle est vide. Détail : journal du 2026-09-23. | ~1 fiche | — |
 | 33 | `TAR` — Un test aller-retour par format écrit | Deux fois le même défaut dans `REP` : les chevrons d'une URL (`REP2`), puis la ligne `? $` (`CPT`) — `vlp.py` écrit un format qu'il ne sait pas relire. Un test écrit puis relit chaque format : ligne de coût, ligne close, rang de TODO, zone « en cours ». | ~2 fiches | — |
 | 34 | `VAL` — Le contrôle avant commit ne se saute plus | À chaque commit du 2026-09-23 : « pre-commit : claude introuvable dans le PATH, validate sauté ». Le hook cherchera aussi le `claude.exe` de l'app, comme le fait `34-agent-sans-git.md`. | ~1 fiche | — |
 | 35 | `FIN` — Le coût juste jusqu'à la clôture | Trois bords vus à la clôture de `CPT`. Le total gardé au bilan ne compte pas la clôture, faute de commit au moment de la mesure (`CPT` : 19 266 526 sans elle). La page close garde le coût de sa dernière fiche mesuré avant son commit : `CPT4` y affiche 5 087 135, 6 048 820 au commit. Un tour joué dans une session après le commit de sa fiche compte à la suivante (`CPT4` : 30 tours à la mesure, 28 dans sa session). Piste : à la clôture, `cout` compte hors fiches jusqu'au bout du transcript, et `clore` régénère les coûts de la page. | ~2 fiches | — |
