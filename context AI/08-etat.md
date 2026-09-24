@@ -274,6 +274,12 @@ celle de `FIL` ; 48 à 51, de celle de `FIN` ; 52, des clôtures de la nuit du
 Une ligne par décision imprévue tranchée en cours de fiche — jamais un résumé
 de ce que le code dit déjà.
 
+- **2026-09-24** — REV5 : l'app Claude est un paquet MSIX. Son `claude.exe` est en vrai sous
+  `%LOCALAPPDATA%\Packages\Claude_*\LocalCache\Roaming\Claude\claude-code\` ; `%APPDATA%\Claude\claude-code`
+  n'existe que pour les processus qu'elle lance. `py scripts/test-vlp.py` suit le shebang `python3` vers
+  `pythoncore-3.14-64`, le Python du paquet « Python install manager », qui ne le voit pas : le hook y
+  disait « validate sauté » (attendu aussi depuis un terminal hors de l'app, non mesuré). Décidé avec
+  l'utilisateur : le hook cherche aussi `Packages\Claude_*` — test « hook : claude trouvé hors de l'app ».
 - **2026-09-24** — REV4, jouée à la main par le chef : les six témoins relus par `vlp:relecture`,
   un à un. Après chacun : `git status` propre, `HEAD` inchangé, `git worktree list` inchangé
   (deux lignes dès le départ : `.claude/worktrees/hopeful-brattain-2284cd`, un worktree de l'app),

@@ -1,5 +1,5 @@
 ---
-description: Ouvre une séance de travail : propose les chantiers possibles, puis cadre celui qu'on choisit en fiches
+description: "Ouvre une séance de travail : propose les chantiers possibles, puis cadre celui qu'on choisit en fiches"
 argument-hint: (rien) | <nom du chantier> | <alias> <nom du chantier>
 allowed-tools: Bash(python3:*), Bash(py:*), Bash(echo:*), PowerShell(python3:*), PowerShell(py:*), PowerShell(echo:*), Read, Edit, Write, Artifact
 ---

@@ -68,9 +68,9 @@
     <p>Chaque FAITE de /vlp:enchainer passe par un relecteur neuf (opus) avant son commit ; prouvé sur quatre commits de la nuit — le corrigé sans bug accepté, les trois autres refusés pour leur vrai défaut — coût d'une relecture mesuré.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">8 fiches · 3 faites · en cours : REV5</p>
+    <p class="mono" style="margin-top:.5rem">8 fiches · 4 faites · en cours : REV6</p>
   </header>
 
   <section>
@@ -95,14 +95,14 @@
         <span class="note">lire agents/relecture.md skills/relire/SKILL.md : sort 0, 64 lignes ; grep : vlp:relire ×1 et --refuser ×1 dans enchainer, ACCEPTÉE ×1 et REFUSÉE ×2 dans enchainement.md ; pre-commit : manifestes validés.</span>
         <span class="cout mono">≈2,7M (2 682 772) · 9 tours · 1,34 $</span>
       </li>
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">REV5</span><span class="titre">Un commit propre passe sur une copie en CRLF</span>
-        <span class="etat">en cours</span>
-        <span class="note">Un commit propre passe en CRLF : guillemets, *.md en LF, plugin.json nommé ; ne dépend de rien</span>
+        <span class="etat">faite</span>
+        <span class="note">py scripts/test-vlp.py : OK, code 0, 0 ligne « SAUTÉ: claude » ; 4 tests vus en échec avant leur correction ; 4 mutants (guillemets, ordre de la boucle, ligne *.md, recherche Packages) attrapés, code 1, chacun par son test</span>
       </li>
-      <li class="fiche">
+      <li class="fiche" data-etat="encours">
         <span class="id">REV6</span><span class="titre">Un en-tête sans plage reste tel quel</span>
-        <span class="etat">à faire</span>
+        <span class="etat">en cours</span>
         <span class="note">Un en-tête sans plage reste tel quel (vlp.py:1457) ; ne dépend de rien</span>
       </li>
       <li class="fiche">
@@ -119,11 +119,11 @@
         <span class="id">REV4</span><span class="titre">Prouver la relecture sur les commits de la nuit</span>
         <span class="etat">à faire</span>
         <span class="note">Rejoue 8bb748d, 7d16873, c5123af et eb2a6b0, critère réécrit ; dépend de REV5 à REV8</span>
-        <span class="cout mono">≈15,9M (15 852 749) · 141 tours · 20,13 $</span>
+        <span class="cout mono">≈24,9M (24 868 534) · 196 tours · 25,76 $</span>
       </li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈6,0M (6 026 326) · 24 tours · 7,12 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈40,5M (40 453 229) · 284 tours · 36,58 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈49,5M (49 469 014) · 339 tours · 42,21 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -143,6 +143,7 @@
       <li><time datetime="2026-09-24">2026-09-24</time><span>REV1, commencée par un sous-agent vlp:fiche, finie à la main par le chef : arrêté à 51 appels, sans commit, il sortait de la fiche (relecture &lt;dossier&gt; &lt;fichier&gt; au lieu de relecture &lt;fiche&gt;, un test --retirer à vide) ; l'instantané par index temporaire est repris, le reste réécrit. Son appel 34, python3 sans argument, a ouvert le Microsoft Store : python3 installé depuis, les deux entrées de chaque hook réussissent, le bilan VALIDE sort deux fois — à savoir pour PYT (n° 39).</span></li>
       <li><time datetime="2026-09-24">2026-09-24</time><span>REV2, jouée à la main par le chef : un bloc Tentatives « résolu par » que rouvre un refus redevient « non résolu » ; --verifier et --refuser s'excluent ; les deux tests existants de --verifier prennent la ligne SANS GIT. À savoir pour REV3 : --verifier se lance avant le commit du chef — après, TÊTE nomme ce commit-là (vu sur e1d7f36).</span></li>
       <li><time datetime="2026-09-24">2026-09-24</time><span>REV3, jouée à la main par le chef : le relecteur ne change jamais de dossier (Windows ne retire pas un worktree où l'on se tient) ; pas d'effort fixé ; maxTurns 80 recopié de fiche.md, faute de renvoi en frontmatter ; le filet ne prévient que les agents fiche. claude plugin validate ne lit que le manifeste : l'agent se prouve en tournant, à REV4.</span></li>
+      <li><time datetime="2026-09-24">2026-09-24</time><span>REV5 : l'app Claude est un paquet MSIX. Son claude.exe est en vrai sous %LOCALAPPDATA%\Packages\Claude_*\LocalCache\Roaming\Claude\claude-code\ ; %APPDATA%\Claude\claude-code n'existe que pour les processus qu'elle lance. py scripts/test-vlp.py suit le shebang python3 vers pythoncore-3.14-64, le Python du paquet « Python install manager », qui ne le voit pas : le hook y disait « validate sauté » (attendu aussi depuis un terminal hors de l'app, non mesuré). Décidé avec l'utilisateur : le hook cherche aussi Packages\Claude_* — test « hook : claude trouvé hors de l'app ».</span></li>
     </ul>
   </section>
 

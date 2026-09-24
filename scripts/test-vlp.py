@@ -4,6 +4,7 @@
 Construit des projets dans un dossier temporaire, appelle les sous-commandes, compare.
 Imprime `OK` et sort 0, ou le premier écart et sort 1.
 """
+import glob
 import importlib.util
 import io
 import os
@@ -1802,5 +1803,55 @@ else:
             mod.GIT = "git"
             tempfile.tempdir = tmp
             os.chdir(ici)
+
+
+# pre-commit (chantier REV) : lancé par `git commit`, dans un dépôt où le plugin est copié, ses .md en CRLF —
+# comme une copie de `relecture` quand core.autocrlf vaut true.
+if not shutil.which("git"):
+    print("SAUTÉ: git absent — le hook pre-commit n'est pas testé")
+else:
+    with tempfile.TemporaryDirectory() as t:
+        env = dict(os.environ, GIT_CONFIG_GLOBAL=os.path.join(t, "gitconfig"), GIT_CONFIG_NOSYSTEM="1",
+                   GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t")
+        ecrire(env["GIT_CONFIG_GLOBAL"], "")
+        depot = os.path.join(t, "plugin")
+        for nom in (".claude-plugin", ".githooks", "agents", "hooks", "skills"):
+            shutil.copytree(os.path.join(RACINE, nom), os.path.join(depot, nom))
+        shutil.copy(os.path.join(RACINE, ".gitattributes"), depot)
+        for dossier, _, noms in os.walk(depot):
+            for nom in (n for n in noms if n.endswith(".md")):
+                with open(os.path.join(dossier, nom), "rb") as f:
+                    octets = f.read().replace(b"\r\n", b"\n")
+                with open(os.path.join(dossier, nom), "wb") as f:
+                    f.write(octets.replace(b"\n", b"\r\n"))
+
+        def git(*args):
+            r = subprocess.run(["git"] + list(args), cwd=depot, env=env, capture_output=True, encoding="utf-8",
+                               errors="replace")
+            return r.returncode, r.stdout + r.stderr
+
+        git("init", "-q")
+        git("config", "core.hooksPath", ".githooks")
+        git("add", "-A")
+        code, s = git("commit", "-q", "-m", "copie")
+        # L'app Claude en MSIX : son claude.exe n'est dans %APPDATA% que pour les processus qu'elle lance.
+        paquet = os.environ.get("LOCALAPPDATA") and glob.glob(os.path.join(
+            os.environ["LOCALAPPDATA"], "Packages", "Claude_*", "LocalCache", "Roaming", "Claude", "claude-code", "*",
+            "claude.exe"))
+        if not paquet:
+            print("SAUTÉ: pas de claude.exe sous Packages\\Claude_* — la recherche hors de l'app n'est pas testée")
+        else:
+            verifier("hook : claude trouvé hors de l'app", "validate sauté" not in s, s)
+        if "validate sauté" in s:
+            print("SAUTÉ: claude introuvable — le hook pre-commit n'est pas testé")
+        else:
+            verifier("hook : une copie en CRLF passe", code == 0, s)
+            ecrire(os.path.join(depot, ".claude-plugin", "plugin.json"), "{")
+            git("add", "-A")
+            code, s = git("commit", "-q", "-m", "casse")
+            verifier("hook : plugin.json cassé est nommé", code == 1
+                     and "pre-commit : .claude-plugin/plugin.json invalide" in s and "marketplace.json" not in s, s)
+        code, s = git("check-attr", "eol", "--", "skills/chantier/SKILL.md")
+        verifier(".gitattributes : les .md en LF", s == "skills/chantier/SKILL.md: eol: lf\n", s)
 
 print("OK")

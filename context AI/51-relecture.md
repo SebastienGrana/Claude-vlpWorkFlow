@@ -208,8 +208,9 @@ de la fiche passe le hook `pre-commit`, qui valide les manifestes.
 ---
 
 <!-- FICHE:REV5 -->
-## REV5 [ ] — Un commit propre passe sur une copie en CRLF
+## REV5 [x] — Un commit propre passe sur une copie en CRLF
 
+**Session** : a95644fe-1182-42ab-bb60-1a06f533661b
 **Dépend de** : rien.
 **Fichiers** : `skills/chantier/SKILL.md` (ligne 2), `.gitattributes`, `.githooks/pre-commit`,
 `scripts/test-vlp.py` — et rien d'autre.

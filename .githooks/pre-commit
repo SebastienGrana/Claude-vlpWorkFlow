@@ -11,12 +11,18 @@ elif [ -n "$APPDATA" ]; then
   # La plus haute version : sort -V, car un tri alphabétique met 2.1.99 après 2.1.280.
   claude_exe=$(ls -d "$APPDATA"/Claude/claude-code/*/claude.exe 2>/dev/null | sort -V | tail -1)
 fi
+# L'app Claude en MSIX range claude-code dans son dossier de paquet : %APPDATA% ne le montre qu'aux
+# processus qu'elle lance — ni à un terminal, ni à un Python d'un autre paquet (chantier REV).
+if [ -z "$claude_exe" ] && [ -n "$LOCALAPPDATA" ]; then
+  claude_exe=$(ls -d "$LOCALAPPDATA"/Packages/Claude_*/LocalCache/Roaming/Claude/claude-code/*/claude.exe 2>/dev/null | sort -V | tail -1)
+fi
 if [ -z "$claude_exe" ]; then
   echo "pre-commit : claude introuvable, ni dans le PATH ni dans l'app, validate sauté." >&2
   exit 0
 fi
 
-for m in .claude-plugin/marketplace.json .claude-plugin/plugin.json; do
+# plugin.json d'abord : valider marketplace.json le relit, et nommerait le mauvais fichier (chantier REV).
+for m in .claude-plugin/plugin.json .claude-plugin/marketplace.json; do
   if ! sortie=$("$claude_exe" plugin validate "$racine/$m" 2>&1); then
     printf '%s\n' "$sortie" >&2
     echo "pre-commit : $m invalide, commit refusé." >&2
