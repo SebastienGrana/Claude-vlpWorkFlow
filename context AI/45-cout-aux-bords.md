@@ -17,14 +17,14 @@ la page.
 
 | Nom | Où | Ce qu'il fait ou rend |
 |---|---|---|
-| `heures_commits` | `scripts/vlp.py:934` | `({id: heure}, [heures des commits qui nomment le préfixe])`, heures d'auteur ; `None` sans Git, sans dépôt ou sans commit de fiche, et sa raison dans `pourquoi` |
-| `plages` | `scripts/vlp.py:972` | `([(id, (début, fin))], [plages hors fiches])` ; la première fiche part du dernier commit antérieur qui nomme le préfixe ; hors fiches : de `-INFINI` à ce début, et du dernier commit de fiche au dernier commit qui nomme le préfixe |
-| `parts_aux_commits` | `scripts/vlp.py:995` | mesure chaque plage dans chaque session et ses sous-agents ; `None` sans transcript mesurable |
-| `regenerer` | `scripts/vlp.py:1152` | régénère fiches, coûts, avancement et date d'une page ; lève `ValueError` si une zone manque |
-| le bilan de page de `clore` | `scripts/vlp.py:1951` à `1969` | pose `ZONE:bilan`, cache `ZONE:blocage` ; ne touche pas aux coûts |
+| `heures_commits` | `scripts/vlp.py:934` | depuis `FIN1` : `({id: heure}, [heures des commits qui nomment le préfixe], [heures des autres])`, heures d'auteur ; `None` sans Git, sans dépôt ou sans commit de fiche, et sa raison dans `pourquoi` |
+| `plages` | `scripts/vlp.py:972` | `([(id, (début, fin))], [plages hors fiches])` ; depuis `FIN1` : la première fiche part du dernier commit antérieur qui nomme le préfixe, à défaut de l'origine (le dernier des autres avant ce début) ; hors fiches : de l'origine à ce début, et du dernier commit de fiche au premier suivant qui nomme le préfixe, sinon jusqu'au bout |
+| `parts_aux_commits` | `scripts/vlp.py:1002` | mesure chaque plage dans chaque session et ses sous-agents ; `None` sans transcript mesurable |
+| `regenerer` | `scripts/vlp.py:1159` | régénère fiches, coûts, avancement et date d'une page ; lève `ValueError` si une zone manque |
+| le bilan de page de `clore` | `scripts/vlp.py:1958` à `1976` | pose `ZONE:bilan`, cache `ZONE:blocage` ; ne touche pas aux coûts |
 | la docstring du module | `scripts/vlp.py:51` à `56` (`page`), `114` à `130` (`clore`) | ce que `page` et `clore` promettent |
-| les tests de découpe | `scripts/test-vlp.py:427` à `499` | dépôt `avec` : tours aux heures `T0` + 50, 200, 250, 400, 700, 1000 ; commits à 100 « Chantier Q ouvert », 300 `Q1`, 600 `Q2`, 800 « Chantier Q clos », 900 « Autre » |
-| les tests de `clore` | `scripts/test-vlp.py:620` à `720` | projet bâti à la main, page tirée du gabarit `artefact-chantier.html` |
+| les tests de découpe | `scripts/test-vlp.py:427` à `553` | dépôt `avec` : tours aux heures `T0` + 50, 200, 250, 400, 700, 1000 ; commits à 100 « Chantier Q ouvert », 300 `Q1`, 600 `Q2`, 800 « Chantier Q clos », 900 « Autre » ; dépôt `multi` et tests « plages : … » de `FIN1` à la fin |
+| les tests de `clore` | `scripts/test-vlp.py:657` à `757` | projet bâti à la main, page tirée du gabarit `artefact-chantier.html` (fiches `&lt;R1&gt;` à `&lt;R3&gt;`) |
 
 **Mesuré à l'ouverture, le 2026-09-24.** Toute la nuit tient dans une session (`1ba64929…`).
 - `vlp.py cout` sur `43-case-relue.md` (CAS) : TOTAL 11 729 608 · 94 tours. Son bilan en dit
@@ -121,11 +121,21 @@ la session entière (`FIL1` : 139 tours à la mesure, 17 une fois commitée).
    `cout` retombe sur les sessions entières, comme aujourd'hui.
 3. La docstring du module, lignes 51 à 56, dit le repli juste : sans Git, ou sans commit qui
    nomme le préfixe.
-4. Des tests : un dépôt où seul « Chantier Q ouvert » nomme `Q`, précédé d'un autre commit, et
-   un fichier de fiches où `Q1` est cochée avec sa ligne `**Session**` — `Q1` va de
-   l'ouverture au bout, hors fiches va de l'autre commit à l'ouverture, et un tour d'avant
-   l'autre commit ne compte pas. Le test « heures_commits : aucun commit de fiche, et
-   pourquoi » (ligne 485) suit la nouvelle raison.
+4. Ces tests, avec ces noms et ces valeurs, dans `scripts/test-vlp.py` après ceux de `FIN1`
+   (« plages : … ») :
+   - « plages : sans commit de fiche, la fiche cochée part de l'ouverture » :
+     `mod.plages([("Q1", "a", True, ["s"]), ("Q2", "b", False, [])], ({}, [100], [30, 900]), G)`
+     rend `([("Q1", (100, mod.INFINI))], [(30, 100)])` ;
+   - « plages : sans commit de fiche ni session, rien » :
+     `mod.plages([("Q1", "a", False, [])], ({}, [100], [30]), G)` rend `([], [])` ;
+   - « cout : la première fiche avant son commit » : un dépôt à part, sur le moule du dépôt
+     `multi` de `FIN1`, commits à `T0` + 60 « Chantier P clos : fini » et `T0` + 100 « Chantier
+     Q ouvert : cadré » ; le fichier de fiches de `QFICHES`, mais `Q2` décochée et sans ligne
+     `**Session**` ; `cout` rend `Q1 · ≈700,0k (700 000) · 7 tours · 3,50 $` et
+     `TOTAL (fiches + hors fiches) · ≈700,0k (700 000) · 7 tours` — le tour de `T0` + 50 ne
+     compte pas ;
+   - le test « heures_commits : aucun commit de fiche, et pourquoi » attend la raison
+     `aucun commit qui nomme Z`.
 Tu ne commites pas : le chef le fera.
 
 **Critère de fin**
@@ -149,9 +159,11 @@ coûts ; la page close garde donc ce coût d'avant le commit, et ne compte pas l
    s'écrit avec son seul bilan.
 2. La docstring de `clore` (lignes 114 à 130) et l'étape 2 de `cloture.md` le disent, en
    quelques mots : `clore` rend visible la `ZONE:bilan` **et régénère les coûts** de la page.
-3. Un test, dans le bloc de `clore` (lignes 620 à 720) : après `clore`, la liste des fiches
-   de la page est celle du fichier — `Q1` faite, `Q2` à faire — et plus celle du gabarit.
-   Les assertions existantes du bloc passent sans changer.
+3. Un test nommé « clore : la page régénérée, fiches du fichier », dans le bloc de `clore`
+   juste après « clore : ZONE:bilan visible, blocage caché » : `pq` contient
+   `<span class="id">Q1</span>` et `<span class="id">Q2</span>`, et ne contient plus ni
+   `&lt;R1&gt;` (une fiche du gabarit) ni `<p class="mono cout-total">`. Les assertions
+   existantes du bloc passent sans changer.
 Tu ne commites pas : le chef le fera.
 
 **Critère de fin**
