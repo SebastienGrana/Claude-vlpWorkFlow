@@ -1722,6 +1722,36 @@ with tempfile.TemporaryDirectory() as t:
             shutil.rmtree(prefixe + long_base)
 
 
+# contrat (chantier CON) : deux sous-agents fabriqués, un propre et un qui commite par `git -C`
+with tempfile.TemporaryDirectory() as t:
+    def agent(id_, texte, commandes, type_="vlp:fiche"):
+        chemin = os.path.join(t, "p", "sess", "subagents", f"agent-{id_}.jsonl")
+        lignes = [{"message": {"role": "assistant", "content": [
+            {"type": "tool_use", "name": outil, "input": {"command": c}}]}} for outil, c in commandes]
+        lignes.append({"message": {"role": "assistant", "content": [{"type": "text", "text": texte}]}})
+        ecrire(chemin, "".join(json.dumps(d, ensure_ascii=False) + "\n" for d in lignes))
+        ecrire(chemin[:-len(".jsonl")] + ".meta.json", json.dumps({"agentType": type_}))
+        return chemin
+
+    ecrire(os.path.join(t, "p", "sess.jsonl"), json.dumps({"timestamp": "2026-09-24T10:00:00Z"}) + "\n")
+    propre = agent("propre", "FAITE — X1 cochée.", [("Bash", 'py vlp.py cocher "f.md" X1'),
+                                                     ("PowerShell", "git status; git log -1")])
+    sale = agent("sale", "✅ X1 faite", [("Bash", 'git -C "C:/a b/proj" commit -m "X1 : fin"'),
+                                        ("PowerShell", "git add -A"), ("Bash", "echo git")])
+    code, s = appel(["contrat", propre, sale])
+    verifier("contrat : témoin propre, aucun appel qui écrit dans Git",
+             "propre vlp:fiche 2026-09-24T10:00:00Z FAITE git 0\n" in s, s)
+    verifier("contrat : témoin sale, git -C … commit et git add comptés",
+             "sale vlp:fiche 2026-09-24T10:00:00Z ✅ git 2\n" in s, s)
+    verifier("contrat : bilan", code == 0 and s.endswith(
+        "CONTRAT 2 sous-agents · 1 écrivent dans Git · 1 sans statut en tête\n"), s)
+    code, s = appel(["contrat", propre, "--depuis", "2026-09-24T10:00:01+00:00"])
+    verifier("contrat : --depuis écarte une session partie avant",
+             code == 0 and s == "CONTRAT 0 sous-agents · 0 écrivent dans Git · 0 sans statut en tête\n", s)
+    code, s = appel(["contrat", "--depuis", "pas-une-borne-zz"])
+    verifier("contrat : borne illisible, GARDE", code == 1 and s.startswith("GARDE: --depuis pas-une-borne-zz"), s)
+
+
 # hooks.json : le filet sur tout outil, après un succès et après un échec ; hook sur les écritures
 with open(os.path.join(RACINE, "hooks", "hooks.json"), encoding="utf-8") as f:
     crochets = json.load(f)["hooks"]

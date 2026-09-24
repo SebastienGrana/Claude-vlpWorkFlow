@@ -168,6 +168,15 @@ Sous-commandes :
   — <projet>` (`~1` : plage refaite) ; index ou routage introuvable : `GARDE:`, le
   reste est écrit.
   Un autre chantier déjà ouvert, ou F porte `**CLOS**` : `GARDE:`, sort 1.
+- `contrat [<transcription>…] [--depuis D]` — le contrat d'`agents/fiche.md` lu dans des
+  transcriptions de sous-agent (chantier CON). Sans argument : toutes celles dont le
+  `.meta.json` voisin dit `vlp:fiche`, sous `~/.claude/projects/*/*/subagents/`. Une ligne
+  chacune : `<id> <agentType> <départ de la session parente, UTC | ?> <premier mot du dernier
+  message texte | (vide)> git <n>` — n : appels `Bash`/`PowerShell` qui lancent `git commit`,
+  `add` ou `reset`, `-C`/`-c` compris ; illisible : `ILLISIBLE <chemin>`. `--depuis` (heure
+  ISO ou commit, comme `mesure-tokens.py --plage`) : celles dont la session parente a démarré
+  à D ou après. Puis `CONTRAT <n> sous-agents · <n> écrivent dans Git · <n> sans statut en
+  tête` (ni `FAITE`, ni `RETOUR`, ni `BLOQUÉE`). Borne illisible : `GARDE:`, sort 1.
 
 Python 3 sans dépendance, zéro appel modèle.
 """
@@ -178,6 +187,7 @@ import json
 import os
 import re
 import sys
+import time
 
 TITRE = re.compile(r"^## [A-Z]{1,3}[0-9]")
 PREFIXE = re.compile(r"^[A-Z]{1,3}")
@@ -1034,6 +1044,85 @@ def lire_max_turns(chemin):
                 pass
 
     return None
+
+
+# --- contrat (chantier CON) ----------------------------------------------------
+
+# Un appel qui écrit dans Git : `git [-C chemin | -c clé=val]… commit|add|reset`.
+ECRIT_GIT = re.compile(r"""\bgit(?:\.exe)?(?:\s+-[Cc]\s+(?:"[^"]*"|'[^']*'|\S+))*\s+(?:commit|add|reset)\b""")
+STATUTS = ("FAITE", "RETOUR", "BLOQUÉE")
+
+
+def lire_contrat(chemin):
+    """(premier mot du dernier message texte, appels Bash/PowerShell qui écrivent dans Git)
+    d'une transcription ; (None, 0) si elle ne s'ouvre pas."""
+    mot, git = "", 0
+    try:
+        with mesure().ouvrir(chemin) as f:
+            for ligne in f:
+                try:
+                    d = json.loads(ligne)
+                except json.JSONDecodeError:
+                    continue
+                m = d.get("message") if isinstance(d, dict) else None
+                if not isinstance(m, dict) or m.get("role") != "assistant" or not isinstance(m.get("content"), list):
+                    continue
+                for b in m["content"]:
+                    if not isinstance(b, dict):
+                        continue
+                    if b.get("type") == "text" and b.get("text", "").strip():
+                        mot = b["text"].split()[0]
+                    elif b.get("type") == "tool_use" and b.get("name") in ("Bash", "PowerShell"):
+                        commande = (b.get("input") or {}).get("command")
+                        if isinstance(commande, str) and ECRIT_GIT.search(commande):
+                            git += 1
+    except (OSError, UnicodeDecodeError):
+        return None, 0
+    return mot, git
+
+
+def type_agent(chemin):
+    """L'`agentType` du `.meta.json` voisin ; `?` s'il manque ou ne se lit pas."""
+    try:
+        with mesure().ouvrir(chemin[:-len(".jsonl")] + ".meta.json") as f:
+            return json.load(f).get("agentType") or "?"
+    except (OSError, ValueError, AttributeError):
+        return "?"
+
+
+def cmd_contrat(a, sortie):
+    """Une ligne par transcription de sous-agent : id, type, départ de la session parente,
+    premier mot du dernier message, appels qui écrivent dans Git ; puis le bilan."""
+    m = mesure()
+    depuis = None
+    if a.depuis:
+        depuis, err = m.borne(a.depuis)
+        if err:
+            sortie.write("GARDE: --depuis %s : %s\n" % (a.depuis, err))
+            return 1
+    chemins = a.transcriptions
+    if not chemins:
+        motif = os.path.join(os.path.expanduser("~"), ".claude", "projects", "*", "*", *m.SOUS_AGENTS)
+        chemins = [c for c in sorted(glob.glob(motif)) if type_agent(c) == "vlp:fiche"]
+    n = commitent = sans_statut = 0
+    for c in chemins:
+        parent = os.path.dirname(os.path.dirname(c)) + ".jsonl"
+        t, _ = m.depart(parent)     # absente ou illisible : t None
+        if depuis is not None and (t is None or t < depuis):
+            continue
+        mot, git = lire_contrat(c)
+        if mot is None:
+            sortie.write("ILLISIBLE %s\n" % c)
+            continue
+        heure_ = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(t)) if t is not None else "?"
+        id_ = os.path.basename(c)[len("agent-"):-len(".jsonl")]
+        sortie.write("%s %s %s %s git %d\n" % (id_, type_agent(c), heure_, mot or "(vide)", git))
+        n += 1
+        commitent += git > 0
+        sans_statut += mot not in STATUTS
+    sortie.write("CONTRAT %d sous-agents · %d écrivent dans Git · %d sans statut en tête\n"
+                 % (n, commitent, sans_statut))
+    return 0
 
 
 # --- page --------------------------------------------------------------------
@@ -2520,6 +2609,9 @@ def main(argv, sortie=None, entree=None, erreur=None):
     rl.add_argument("fiche", nargs="?")
     rl.add_argument("--sha")
     rl.add_argument("--retirer", action="store_true")
+    ct = sous.add_parser("contrat")
+    ct.add_argument("transcriptions", nargs="*")
+    ct.add_argument("--depuis")
     a = p.parse_args(argv)
     try:
         return repartir(a, sortie, entree, erreur)
@@ -2567,6 +2659,8 @@ def repartir(a, sortie, entree, erreur):
         return cmd_lignes(a.chemins, sortie)
     if a.cmd == "relecture":
         return cmd_relecture(a, sortie)
+    if a.cmd == "contrat":
+        return cmd_contrat(a, sortie)
     chemin_garde(a.fichier)
     if a.cmd == "extraire":
         return cmd_extraire(a.fichier, a.fiche, sortie)

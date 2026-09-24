@@ -61,8 +61,9 @@ réserve : l'arrêt de `CON3` peut les redécouper.
 ---
 
 <!-- FICHE:CON1 -->
-## CON1 [ ] — Lire le contrat dans une transcription
+## CON1 [x] — Lire le contrat dans une transcription
 
+**Session** : 0d303b02-229a-40df-824e-65d205a4141e
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py`, `scripts/mesure-tokens.py` lignes 82–114 — et rien d'autre.
 

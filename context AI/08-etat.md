@@ -289,6 +289,13 @@ celle de `FIL` ; 48 à 51, de celle de `FIN` ; 52, des clôtures de la nuit du
 Une ligne par décision imprévue tranchée en cours de fiche — jamais un résumé
 de ce que le code dit déjà.
 
+- **2026-09-25** — CON1, `py scripts/vlp.py contrat --depuis f98ceec` : `CONTRAT 8 sous-agents ·
+  0 écrivent dans Git · 5 sans statut en tête` — 8 au-delà du seuil de 5, `CON2` sautée. Sans
+  `--depuis` : `CONTRAT 77 sous-agents · 4 écrivent dans Git · 42 sans statut en tête` ; les 4
+  (`a10d85004cb7139db`, `ab869d46397c611ec`, `ac8f3b1a183943b67`, `ac97af92710782899`) sont
+  d'une même session partie à 2026-09-23T23:50:57Z, 17 min avant `f98ceec` : la règle est
+  entrée pendant la session qui la violait. Après, les 5 sans statut ouvrent par `Parfait`,
+  `---`, `Excellent`, `**Écrit`, `The` — c'est la clause qui casse, pas « aucun commit ».
 - **2026-09-25** — REV4, `c5123af` rejouée seule après `96b607b` (`agents/relecture.md` : ce qui
   lit le dépôt d'où il part se lance par `env -C <copie>`) et `/reload-plugins` : `REFUSÉE` ✅, le
   hook sort 1 sur l'arbre intact d'APRÈS (`skills/chantier/SKILL.md` en CRLF, YAML illisible ;
