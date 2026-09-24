@@ -275,6 +275,13 @@ celle de `FIL` ; 48 à 51, de celle de `FIN` ; 52, des clôtures de la nuit du
 Une ligne par décision imprévue tranchée en cours de fiche — jamais un résumé
 de ce que le code dit déjà.
 
+- **2026-09-25** — REV4, `c5123af` rejouée seule après `96b607b` (`agents/relecture.md` : ce qui
+  lit le dépôt d'où il part se lance par `env -C <copie>`) et `/reload-plugins` : `REFUSÉE` ✅, le
+  hook sort 1 sur l'arbre intact d'APRÈS (`skills/chantier/SKILL.md` en CRLF, YAML illisible ;
+  passé en LF, code 0), AVANT sort 0. 12 lancements du hook, tous par `env -C`. 21 tours,
+  648 515 tokens, 0,53 $ ; Git intact. Avec les trois autres lignes du quatrième passage : 4
+  verdicts justes sur 4, pour des motifs attendus — table faite de deux passages, les trois autres
+  sans hook ni `git` lancé depuis la racine.
 - **2026-09-25** — REV4, quatrième passage, après la règle « fouiller au-delà du critère »
   (`794eb0d`) et le critère réécrit. Même protocole ; Git intact après chacune, 0 dossier
   `vlp-relecture-*` neuf, aucun fichier du dépôt vivant lu.
