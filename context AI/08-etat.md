@@ -246,7 +246,7 @@ pages est dans `38-audit-artefacts.md` § 4, qui les nomme A à F ; les rangs 1 
 24, tous retirés, venaient de `12-audit.md` ; 31 à 34, de la clôture de `REP` ; 35
 à 37, de celle de `CPT` ; 38 à 41, de celle de `SAG` ; 42, de `FIL1` ; 43 à 47, de
 celle de `FIL` ; 48 à 51, de celle de `FIN` ; 52, des clôtures de la nuit du
-2026-09-24 ; 53, du cadrage de `REV`.
+2026-09-24 ; 53, du cadrage de `REV` ; 54, d'une demande de l'utilisateur pendant `REV5`.
 
 | # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |
 |---|---|---|---|---|
@@ -268,6 +268,7 @@ celle de `FIL` ; 48 à 51, de celle de `FIN` ; 52, des clôtures de la nuit du
 | 29 | `FEU` — La feuille de route plus courte et lisible | La TODO en cartes, le détail replié, un sommaire. 🟡 Une décision à prendre : la feuille garde-t-elle tout le détail de la TODO ? | ~4 fiches | `VOI`, `ALE` |
 | 30 | `BTN` — Des boutons, en dernier | Commenter une fiche, tout déplier, filtrer, copier la commande d'une fiche, un graphique des coûts. Optionnel. | ~4 à 6 fiches | `PLI`, `FEU` |
 | 53 | `LEC` — `/vlp:chantier` ne lit plus l'état en entier | L'étape 1 de `/vlp:chantier` lit « en entier » le fichier que `CHANTIER.md` nomme « chantiers possibles » — ici `context AI/08-etat.md`. Mesuré au cadrage de `REV`, le 2026-09-24, avant l'ajout de cette entrée : 1 223 lignes, 57 260 tokens selon l'outil `Read`, qui n'en rend que 453 lignes d'un coup (plafond de 25 000 tokens) ; relus à chaque tour de la séance (`methode-chantier.md:9`). Pour choisir, la TODO suffit : le journal fait 78 % des lignes (271 à 1 223). 🟡 À trancher au cadrage : lire la seule TODO par script, ou sortir le journal dans son propre fichier (« Un fichier = un sujet », `methode-chantier.md`). Ajoutée à la demande de l'utilisateur ; rang pas encore fixé, d'où la fin de table. | 🟡 pas estimé | — |
+| 54 | `TYP` — pyright sans erreur, puis gardé au commit | Demandé par l'utilisateur le 2026-09-24, pendant `REV5`. La règle « pyright avant le commit » vit dans `~/.claude/CLAUDE.md` ; pour le kit, décidé avec lui : nettoyer d'abord, puis zéro erreur, gardé par `.githooks/pre-commit`. Mesuré le 2026-09-24, `pyright scripts/` (paquet pip `pyright` 1.1.414, sans configuration) : 37 erreurs, 0 avertissement, 8,6 s — `test-vlp.py` 18, `vlp.py` 13, `mesure-tokens.py` 3, `test-mesure-tokens.py` 3 ; par règle, `reportOptionalMemberAccess` 10, `reportAttributeAccessIssue` 8, `reportPossiblyUnboundVariable` 5, `reportArgumentType` 5, `reportOperatorIssue` 3, `reportAssignmentType` 3, `reportIndexIssue` 2, `reportFunctionMemberAccess` 1. Dans `test-vlp.py`, surtout des noms de module réemployés (`lu`, `g`) et `mod.GIT` posé sur un module chargé par `importlib`. Le kit est cloné en groupe : sans pyright, le hook saute en le disant. Tests d'abord, mutants. 🟡 À trancher au cadrage : `context AI/38-audit-scripts/` (10 fichiers `.py`) dedans ou non ; le mode de pyright, dans un `pyrightconfig.json` ; lancer pyright à chaque commit, ou seulement quand un `.py` est touché (8,6 s par passage). Ajoutée à la demande de l'utilisateur ; rang pas encore fixé, d'où la fin de table. | 🟡 pas estimé | — |
 
 ## Journal des décisions
 
