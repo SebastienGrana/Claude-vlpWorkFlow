@@ -366,7 +366,8 @@ de `08-etat.md`, datée.
 **Critère de fin**
 Une table de quatre lignes — commit · verdict · motifs · remarques · tours · tokens · $ — où
 `8bb748d` est `ACCEPTÉE` (`REV7`, `REV8`) ; `7d16873` `REFUSÉE` pour sa plage facultative
-(`REV6`) ; `c5123af` `REFUSÉE` pour le commit propre refusé en CRLF (`REV5`) ; `eb2a6b0`
-`REFUSÉE`, le mutant de `creer` qui survit en motif. Dessous, le coût moyen d'une
-relecture, face au premier passage.
+(`REV6`) ; `c5123af` `REFUSÉE` pour le hook qui refuse un commit propre (`REV5`) ; `eb2a6b0`
+`ACCEPTÉE`, le mutant de `creer` rejoué et sa survie en remarque, sortie citée — il n'est pas
+celui du critère de `PLA1` (`context AI/47-plage-suit.md:31`), `REV8` le range en remarque.
+Dessous, le coût moyen d'une relecture, face au premier passage.
 <!-- /FICHE -->
