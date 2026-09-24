@@ -277,8 +277,9 @@ l'en-tête d'une fiche seule » (`scripts/test-vlp.py:430`, `:437`) passent touj
 ---
 
 <!-- FICHE:REV7 -->
-## REV7 [ ] — Le fichier d'état n'est plus hors fiche
+## REV7 [x] — Le fichier d'état n'est plus hors fiche
 
+**Session** : fedafcd5-3d99-48d7-ac85-c9f0d96b67ba
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py` (`cmd_relecture`, docstring du module lignes 67–68),
 `scripts/test-vlp.py` — et rien d'autre.

@@ -1761,9 +1761,10 @@ else:
         FICHE_X = ("# Chantier X\n\n## Le socle commun\n\nSocle X.\n\n## L'ordre des fiches\n\n---\n\n"
                    "<!-- FICHE:X1 -->\n## X1 %s — relire\n\n**Fichiers** : `a.py` — et rien d'autre.\n\n"
                    "**Prompt**\nb.py n'est pas nommé.\n<!-- /FICHE -->\n")
-        ecrire(os.path.join(depot, "CHANTIER.md"), CHANTIER % ("px", "f.md (X1..X1)"))
+        ecrire(os.path.join(depot, "CHANTIER.md"), CHANTIER % ("px", "f.md (X1..X1)") + "- **fichier d'état** : ctx d/etat.md\n")
         ecrire(os.path.join(depot, "f.md"), FICHE_X % "[ ]")
         ecrire(os.path.join(depot, "a.py"), "a\n")
+        ecrire(os.path.join(depot, "ctx d", "etat.md"), "journal\n")
         g("init", "-q")
         g("add", "-A")
         g("commit", "-q", "-m", "init")
@@ -1771,6 +1772,7 @@ else:
         ecrire(os.path.join(depot, "a.py"), "a2\n")
         ecrire(os.path.join(depot, "b.py"), "b\n")
         ecrire(os.path.join(depot, "f.md"), FICHE_X % "[x]")
+        ecrire(os.path.join(depot, "ctx d", "etat.md"), "journal\nune décision\n")  # le journal, jamais hors fiche (REV7)
         tete, etat = g("rev-parse", "HEAD"), g("status", "--porcelain")
         ici, tmp = os.getcwd(), tempfile.tempdir
         tempfile.tempdir = t
@@ -1798,7 +1800,7 @@ else:
             code, s = appel(["relecture", "X1", "--sha", "HEAD"])
             liste = g("worktree", "list")
             verifier("relecture --sha : le commit contre son parent, ceux de l'appel d'avant retirés", code == 0
-                     and "M\ta.py\nA\tb.py\nM\tf.md\n" in s and "HORS FICHE b.py\n" in s
+                     and "M\ta.py\nA\tb.py\nM\tctx d/etat.md\nM\tf.md\nHORS FICHE b.py\ndiff --git" in s
                      and len(liste.splitlines()) == 3 and appel(["relecture", "--retirer"]) == (0, "RETIRÉ 2\n"),
                      s + liste)
             gardes = [appel(["relecture", "X9"]), appel(["relecture", "X1", "--sha", "0badc0de"])]

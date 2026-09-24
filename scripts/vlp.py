@@ -65,7 +65,8 @@ Sous-commandes :
   APRÈS sur le commit, AVANT sur son parent. Imprime `APRÈS=`, `AVANT=`, `FICHIER=` (le fichier de
   fiches courant du `CHANTIER.md` d'APRÈS), le socle et la fiche comme `socle` et `extraire`,
   `git diff --name-status`, une ligne `HORS FICHE <chemin>` par fichier changé que la ligne
-  **Fichiers** ne nomme pas — hors le fichier de fiches et `artefacts/` —, puis le diff. `--retirer` :
+  **Fichiers** ne nomme pas — hors le fichier de fiches, le **fichier d'état** du `CHANTIER.md`
+  d'APRÈS et `artefacts/` —, puis le diff. `--retirer` :
   retire ces worktrees, `RETIRÉ <n>`. Pas de dépôt, commit inconnu ou sans parent, fiche absente :
   `GARDE:`, aucun worktree ne reste, sort 1.
 - `page <fichier> [<page.html>]` — régénère la page du chantier depuis le fichier
@@ -693,9 +694,12 @@ def cmd_relecture(a, sortie):
     code, etat = git_texte(["diff", "--name-status", "--no-color", parent, sha], racine)
     sortie.write(etat if code == 0 else "GARDE: git diff --name-status en échec — %s\n" % etat)
     fiches_rel, noms = prefixe + courant.replace("\\", "/"), noms_fichiers(fiche)
+    # Le fichier d'état : toute fiche peut écrire à son journal (REV7).
+    etat_val = champ(lignes_de(os.path.join(apres_projet, "CHANTIER.md")), "fichier d'état", "aucun")
+    exclus = {fiches_rel} | (set() if etat_val.startswith("aucun") else {prefixe + etat_val.replace("\\", "/")})
     for ligne in etat.splitlines() if code == 0 else []:
         chemin = ligne.split("\t")[-1]
-        if chemin != fiches_rel and "/artefacts/" not in "/" + chemin and not nomme(chemin, noms):
+        if chemin not in exclus and "/artefacts/" not in "/" + chemin and not nomme(chemin, noms):
             sortie.write("HORS FICHE %s\n" % chemin)
     code, diff = git_texte(["diff", "--no-color", "--no-ext-diff", parent, sha], racine)
     sortie.write(diff if code == 0 else "GARDE: git diff en échec — %s\n" % diff)
