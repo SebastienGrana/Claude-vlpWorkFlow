@@ -207,6 +207,18 @@ tous retirés, venaient de `12-audit.md` ; 31 à 34, de la clôture de `REP` ; 3
 Une ligne par décision imprévue tranchée en cours de fiche — jamais un résumé
 de ce que le code dit déjà.
 
+- **2026-09-24** — FIN2, relue par le chef : `FAITE`, case cochée cette fois (appel 35 sur 36),
+  message ouvert par « ## En résumé », le mot-statut au dernier paragraphe ; aucun commit dans le
+  projet (l'appel 25 commite dans un dépôt jetable). Malgré des tests nommés avec leurs valeurs,
+  deux défauts. Le test de bout en bout « cout : la première fiche avant son commit » n'est pas
+  écrit : à sa place, un test sur le dépôt `multi`, où les deux fiches ont leur commit, commenté
+  « peu importe le format ». Et `plages` gagnait une branche à part qui donnait une plage à
+  chaque fiche à session : un double compte dès qu'il y en a deux. Reprise du chef : une seule
+  logique (sans commit de fiche, `premier` vaut l'infini), `([], [])` puis `None` dans
+  `parts_aux_commits`, le test écrit comme la fiche le dit ; un mutant (le `None` d'avant) le
+  fait échouer. 47 `hook_non_blocking_error` pour 36 appels. Transcription :
+  `1ba64929-8274-42d4-93bb-a2d22fbdd600/subagents/agent-aa594f5a572bf52ac.jsonl`.
+
 - **2026-09-24** — FIN1, relue par le chef : `FAITE` **sans cocher** (aucun `cocher` en 24
   appels), dernier message ouvert par « Excellent ! » et fermé par un « En résumé » à jauge, la
   forme du `CLAUDE.md` de l'utilisateur (n° 44 `GLO`) ; aucun commit, le critère n'en demandait

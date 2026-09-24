@@ -484,7 +484,7 @@ with tempfile.TemporaryDirectory() as t:
         pourquoi = []
         h = mod.heures_commits(os.path.join(avec, "q.md"), ["Z1"], pourquoi)
         verifier("heures_commits : aucun commit de fiche, et pourquoi", h is None
-                 and pourquoi == ["aucun commit « Z1 : » ni d'une autre fiche"], (h, pourquoi))
+                 and pourquoi == ["aucun commit qui nomme Z"], (h, pourquoi))
         # cout : la découpe de la page, en détail — la somme d'abord, puis session + sous-agents.
         q = os.path.join(avec, "q.md")
         code, s = appel(["cout", q])
@@ -528,6 +528,21 @@ with tempfile.TemporaryDirectory() as t:
         verifier("cout : P clos borne Q par le bas, sans clôture hors fiches va au bout", code == 0
                  and "\nhors fiches · ≈200,0k (200 000) · 2 tours · 1,00 $ = session" in s
                  and "\nTOTAL (fiches + hors fiches) · ≈700,0k (700 000) · 7 tours · 3,50 $ = " in s, s)
+        # FIN2 : Q1 cochée, mesurée avant son commit — seule l'ouverture nomme Q. Elle part de
+        # l'ouverture (100), pas du début de la session : le tour de 50 ne compte pas.
+        ouv = os.path.join(t, "ouv")
+        os.makedirs(ouv)
+        subprocess.run(["git", "init", "-q"], cwd=ouv, env=env, check=True, capture_output=True)
+        for d, sujet in ((60, "Chantier P clos : fini"), (100, "Chantier Q ouvert : cadré")):
+            date = "%d +0000" % (T0 + d)
+            subprocess.run(["git", "commit", "-q", "--allow-empty", "-m", sujet], cwd=ouv, check=True,
+                           capture_output=True, env=dict(env, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date))
+        ecrire(os.path.join(ouv, "q.md"), (QFICHES % (sq, "")).replace("## Q2 [x]", "## Q2 [ ]")
+               .replace("**Session** : \n", ""))
+        code, s = appel(["cout", os.path.join(ouv, "q.md")])
+        verifier("cout : la première fiche avant son commit", code == 0
+                 and "\nQ1 · ≈700,0k (700 000) · 7 tours · 3,50 $ = " in s
+                 and "\nTOTAL (fiches + hors fiches) · ≈700,0k (700 000) · 7 tours" in s, s)
 
 # FIN1 : les bornes de `plages`, en fonction pure — heures (commits de fiche, qui nomment, autres).
 P2, G = [("Q1", "a", True, ["s"]), ("Q2", "b", True, ["s"])], []
@@ -550,6 +565,14 @@ verifier("plages : une mention juste avant l'ouverture y fait entrer son travail
 verifier("plages : fiche à session sans commit, au bout, rien après",
          bornes(({"Q1": 300}, [100, 300], [30])) == ([("Q1", (100, 300)), ("Q2", (300, mod.INFINI))], [(30, 100)])
          and not G, (bornes(({"Q1": 300}, [100, 300], [30])), G))
+
+# FIN2 : sans commit de fiche, la première fiche part du dernier commit qui nomme le préfixe
+COCHEE, VIDE = [("Q1", "a", True, ["s"]), ("Q2", "b", False, [])], [("Q1", "a", False, [])]
+verifier("plages : sans commit de fiche, la fiche cochée part de l'ouverture",
+         bornes(({}, [100], [30, 900]), COCHEE) == ([("Q1", (100, mod.INFINI))], [(30, 100)]) and not G,
+         (bornes(({}, [100], [30, 900]), COCHEE), G))
+verifier("plages : sans commit de fiche ni session, rien",
+         bornes(({}, [100], [30]), VIDE) == ([], []) and not G, (bornes(({}, [100], [30]), VIDE), G))
 
 
 # --- hook : le PostToolUse du plugin -----------------------------------------

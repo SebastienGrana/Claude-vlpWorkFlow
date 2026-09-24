@@ -51,8 +51,8 @@ Sous-commandes :
 - `page <fichier> [<page.html>]` — régénère la page du chantier depuis le fichier
   de fiches : états, avancement, comptage, coûts (`**Session**`), date. Les coûts
   se coupent aux commits `<ID> :` (`git log`), sous-agents compris, plus une ligne
-  « hors fiches » ; sans Git ni commit de fiche, ils se tirent de l'ancienne page. Sans
-  page : `<dossier du fichier>/artefacts/<même nom>.html`. Garde
+  « hors fiches » ; sans Git ni commit qui nomme le préfixe, ils se tirent de l'ancienne
+  page. Sans page : `<dossier du fichier>/artefacts/<même nom>.html`. Garde
   de la page l'en-tête, les notes, le journal, le blocage et le bilan.
   `--note <fiche> <texte>`, `--journal <texte>` (répétables) ; `--creer
   --projet P --titre T --resultat R` part du gabarit ; `--verifier` n'écrit
@@ -936,8 +936,9 @@ def heures_commits(fichier, ids, pourquoi=None):
     dossier du fichier : l'heure d'auteur du commit `<id> :` de chaque fiche — le plus ancien
     s'il y en a deux —, celles de tous les commits qui nomment le préfixe (`REP`, `REP2`…),
     puis celles des autres commits, triées : elles bornent le chantier (`plages`).
-    None sans `git`, sans dépôt ou sans commit de fiche : le repli, jamais un traceback —
-    et sa raison, ajoutée à la liste `pourquoi` si on en donne une."""
+    Sans commit de fiche, `{}` d'abord. None sans `git`, sans dépôt ou sans commit qui nomme
+    le préfixe : le repli, jamais un traceback — et sa raison, ajoutée à la liste `pourquoi`
+    si on en donne une."""
     import subprocess
     pourquoi = [] if pourquoi is None else pourquoi
     if not ids:
@@ -964,8 +965,10 @@ def heures_commits(fichier, ids, pourquoi=None):
         if c and c.group(1) in ids:
             commits[c.group(1)] = min(int(heure), commits.get(c.group(1), int(heure)))
     if not commits:
-        pourquoi.append("aucun commit « %s : » ni d'une autre fiche" % ids[0])
-        return None
+        if not prefixe:
+            pourquoi.append("aucun commit qui nomme %s" % PREFIXE.match(ids[0]).group(0))
+            return None
+        return {}, sorted(prefixe), sorted(autres)
     return commits, sorted(prefixe), sorted(autres)
 
 
@@ -973,14 +976,16 @@ def plages(fiches_, heures, gardes):
     """([(id, (début, fin])] dans l'ordre des commits, [plages hors fiches]). Une fiche va
     du commit de la précédente au sien ; la première part du dernier commit antérieur qui
     nomme le préfixe, à défaut de l'origine ; une fiche à session sans commit va jusqu'au
-    bout du transcript. L'origine : le dernier commit qui ne nomme pas le préfixe, avant ce
-    début — le chantier d'avant, quand une session en enchaîne plusieurs ; à défaut, le
-    début de la session. Hors fiches : de l'origine à la première fiche, et de la dernière
-    au premier commit suivant qui nomme le préfixe — la clôture ; sans lui, jusqu'au bout.
-    Au-delà, rien ne compte : une mention plus tardive du préfixe n'étire rien."""
+    bout du transcript, et part de l'ouverture (le dernier commit qui nomme le préfixe)
+    tant qu'aucune fiche n'a de commit. L'origine : le dernier commit qui ne nomme pas le
+    préfixe, avant ce début — le chantier d'avant, quand une session en enchaîne plusieurs ;
+    à défaut, le début de la session. Hors fiches : de l'origine à la première fiche, et de
+    la dernière au premier commit suivant qui nomme le préfixe — la clôture ; sans lui,
+    jusqu'au bout. Au-delà, rien ne compte : une mention plus tardive n'étire rien. Ni
+    commit de fiche ni fiche à session : ([], [])."""
     commits, prefixe, autres = heures
     ordre = sorted(commits, key=commits.get)
-    premier = commits[ordre[0]]
+    premier = commits[ordre[0]] if ordre else INFINI    # sans commit de fiche : le dernier qui nomme
     debut = max((t for t in prefixe if t < premier), default=-INFINI)
     origine = max((t for t in autres if t < (premier if debut == -INFINI else debut)), default=-INFINI)
     debut = max(debut, origine)
@@ -994,6 +999,8 @@ def plages(fiches_, heures, gardes):
                       % (ident, ident))
     if sans:
         rendu.append((sans[-1], (debut, INFINI)))
+    if not rendu:
+        return [], []
     dernier = rendu[-1][1][1]
     fin = min((t for t in prefixe if t > dernier), default=INFINI)
     return rendu, [p for p in ((origine, rendu[0][1][0]), (dernier, fin)) if p[0] < p[1]]
@@ -1001,7 +1008,7 @@ def plages(fiches_, heures, gardes):
 
 def parts_aux_commits(fiches_, heures, gardes):
     """([(id, session, sous-agents)], (session, sous-agents) hors fiches), ou None sans
-    transcript mesurable. Chaque fiche qui a une plage la prend dans chaque session et ses
+    transcript mesurable, ou sans fiche à découper. Chaque fiche qui a une plage la prend dans chaque session et ses
     sous-agents (la plage de `mesurer`) ; le reste fait « hors fiches ». Une part vaut
     (total, tours, usd, n) — n : les transcripts qui y ont un tour —, usd arrondi au
     centime : tout s'additionne, dans `cout` comme sur la page."""
@@ -1019,6 +1026,8 @@ def parts_aux_commits(fiches_, heures, gardes):
     if not fichiers:
         return None
     par_fiche, trous = plages(fiches_, heures, gardes)
+    if not par_fiche:
+        return None
 
     def part(bornes):
         rendu = [[0, 0, Decimal(0), 0], [0, 0, Decimal(0), 0]]

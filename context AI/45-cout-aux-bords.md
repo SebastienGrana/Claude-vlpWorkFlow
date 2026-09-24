@@ -102,8 +102,9 @@ Tu ne commites pas : le chef le fera.
 <!-- /FICHE -->
 
 <!-- FICHE:FIN2 -->
-## FIN2 [ ] — Mesurer la première fiche avant son commit
+## FIN2 [x] — Mesurer la première fiche avant son commit
 
+**Session** : 1ba64929-8274-42d4-93bb-a2d22fbdd600
 **Dépend de** : `FIN1`.
 **Fichiers** : `scripts/vlp.py` (`heures_commits`, `plages`, docstring du module lignes 51 à
 56), `scripts/test-vlp.py` — et rien d'autre.
