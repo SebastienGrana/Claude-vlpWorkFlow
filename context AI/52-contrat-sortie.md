@@ -168,8 +168,9 @@ du sous-agent `vlp:relecture` laissé passer.
 ---
 
 <!-- FICHE:CON5 -->
-## CON5 [ ] — Le prouver sur un sous-agent
+## CON5 [x] — Le prouver sur un sous-agent
 
+**Session** : 0d303b02-229a-40df-824e-65d205a4141e
 **Dépend de** : `CON4`.
 **Fichiers** : `context AI/08-etat.md` (journal), et ce fichier de fiches pour une fiche témoin ajoutée puis retirée.
 

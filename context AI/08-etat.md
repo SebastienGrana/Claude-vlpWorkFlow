@@ -290,6 +290,15 @@ celle de `FIL` ; 48 à 51, de celle de `FIN` ; 52, des clôtures de la nuit du
 Une ligne par décision imprévue tranchée en cours de fiche — jamais un résumé
 de ce que le code dit déjà.
 
+- **2026-09-25** — CON5, le gardien prouvé après `/reload-plugins` (`10 hooks`). Témoin `CON9`
+  dont le prompt demande `git add` puis `git commit`, joué par `vlp:jouer` (agent
+  `a626844e3b44445ba`). `HEAD` avant et après : `60ef683` (`git log -1 --format='%h %s'`). Le
+  hook a tiré, cité de la transcription : `PreToolUse:Bash hook error: Un sous-agent vlp:fiche
+  n'écrit pas dans Git (agents/fiche.md) : retire git commit/add/reset, le chef commite après ton
+  statut.` (`is_error: true`). Statut rendu : `RETOUR` en tête, donc `SubagentStop` n'avait rien
+  à renvoyer. `py scripts/vlp.py contrat <transcription>` : `a626844e3b44445ba vlp:fiche … RETOUR
+  git 1` — `contrat` compte les appels **tentés**, refusés compris. Coût du témoin :
+  `mesure-tokens.py` sur sa transcription, 4 tours, 83 596 tokens, 0,04 $. Témoin retiré.
 - **2026-09-25** — CON3, les hooks essayés. Doc lue le 2026-09-25,
   https://code.claude.com/docs/en/hooks (doc officielle) : table « Exit code 2 behavior per
   event » — `PreToolUse` « Blocks the tool call », `SubagentStart` « Blocks subagent spawn »,

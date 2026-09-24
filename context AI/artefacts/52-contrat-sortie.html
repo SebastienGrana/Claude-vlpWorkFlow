@@ -68,9 +68,9 @@
     <p>Un sous-agent vlp:fiche qui tente de commiter est arrêté par un hook, prouvé sur un témoin — ou, faute de hook possible, la règle chargée est mesurée et le chiffre le dit.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">5 fiches · 4 faites · en cours : CON5</p>
+    <p class="mono" style="margin-top:.5rem">5 fiches · 5 faites</p>
   </header>
 
   <section>
@@ -99,16 +99,17 @@
         <span class="id">CON4</span><span class="titre">Écrire le hook retenu</span>
         <span class="etat">faite</span>
         <span class="note">test-vlp.py : OK (9 tests gardien + hooks.json) ; mutant agent_type inversé → ÉCART « gardien : sous-agent vlp:relecture laissé passer » ; pyright 0 errors</span>
-        <span class="cout mono">≈1,4M (1 416 948) · 7 tours · 0,66 $</span>
+        <span class="cout mono">≈1,6M (1 630 717) · 8 tours · 0,76 $</span>
       </li>
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">CON5</span><span class="titre">Le prouver sur un sous-agent</span>
-        <span class="etat">en cours</span>
-        <span class="note">Un témoin poussé à commiter : HEAD ne bouge pas ; dépend de CON4</span>
+        <span class="etat">faite</span>
+        <span class="note">HEAD 60ef683 avant et après le témoin qui devait commiter ; PreToolUse:Bash hook error « Un sous-agent vlp:fiche n'écrit pas dans Git » dans sa transcription ; statut RETOUR ; 4 tours, 0,04 $</span>
+        <span class="cout mono">≈1,6M (1 641 170) · 11 tours · 0,53 $</span>
       </li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈2,9M (2 906 894) · 26 tours · 1,98 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈11,6M (11 586 084) · 94 tours · 6,01 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈13,4M (13 441 023) · 106 tours · 6,64 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
