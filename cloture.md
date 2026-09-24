@@ -109,7 +109,9 @@ publie, et ne se reprend pas.
 
 ## Pour finir
 
-Le **dernier message** de la clôture, après le push et toute question, dans cet ordre :
+Le **dernier message** de la clôture, après le push et toute question — le dernier
+texte du tour, **sans aucun appel d'outil après lui** : l'app replie le texte écrit
+entre deux appels, et il n'est pas vu (constaté le 2026-09-25). Dans cet ordre :
 
 1. le **prompt du chantier suivant**, toujours, même si rien n'est coché, dans un
    bloc de code `text` : le sujet, ce que celui-ci vient de livrer, et les seuls
