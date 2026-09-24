@@ -437,6 +437,15 @@ with tempfile.TemporaryDirectory() as t:
     u_html = lire(u_page) if os.path.exists(u_page) else ""
     verifier("page : l'en-tête d'une fiche seule", code == 0 and "Proj · fiches U1</div>" in u_html, s + u_html)
 
+    # Un en-tête sans plage reconnue reste tel quel : ni texte libre, ni parenthèses, ni trait d'union (REV6).
+    for entete in ("fiches à venir", "fiches (X1–X2)", "fiches X1-X2"):
+        ecrire(u_page, u_html.replace("Proj · fiches U1</div>", "Proj · %s</div>" % entete))
+        code, s = appel(["page", u_fiches, u_page])
+        html = lire(u_page)
+        verifier("page : un en-tête sans plage reste tel quel (%s)" % entete,
+                 code == 0 and "Proj · %s</div>" % entete in html, s + html)
+    ecrire(u_page, u_html)
+
     code, s = appel(["page", fiches, os.path.join(t, "absente.html")])
     verifier("page absente sans --creer", code == 1 and "--creer" in s, s)
 

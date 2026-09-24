@@ -1453,8 +1453,8 @@ def regenerer(html, fichier, notes, journal, date, gardes):
         if not n:
             raise ValueError("page : journal introuvable")
     # La plage de l'en-tête, vide à la création (`creer`), suit le fichier ; ce qui la suit
-    # (« · clos », écrit à la main) reste (chantier PLA).
-    html = re.sub(r'(<div class="eyebrow">[^<]*? · fiches )(?:[A-Z]{1,3}\d+(?:–[A-Z]{1,3}\d+)?)?',
+    # (« · clos », écrit à la main) reste (chantier PLA). Tout autre en-tête reste tel quel (REV6).
+    html = re.sub(r'(<div class="eyebrow">[^<]*? · fiches )(?:[A-Z]{1,3}\d+(?:–[A-Z]{1,3}\d+)?)?(?=</div>| · )',
                   lambda m: m.group(1) + plage([f[0] for f in fiches_]), html, count=1)
     html = re.sub(r'(Mis à jour le <span class="mono">).*?(</span>)', lambda m: m.group(1) + date + m.group(2), html, count=1)
     return html, fiches_, etat, total, hors

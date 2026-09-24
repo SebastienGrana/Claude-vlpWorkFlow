@@ -246,8 +246,9 @@ boucle. « .gitattributes : les .md en LF » — `git check-attr eol` rend `lf` 
 ---
 
 <!-- FICHE:REV6 -->
-## REV6 [ ] — Un en-tête sans plage reste tel quel
+## REV6 [x] — Un en-tête sans plage reste tel quel
 
+**Session** : fedafcd5-3d99-48d7-ac85-c9f0d96b67ba
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py` (`regenerer`, ligne 1457), `scripts/test-vlp.py` — et rien
 d'autre.
