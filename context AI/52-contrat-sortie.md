@@ -90,8 +90,9 @@ et la commande qui les donne.
 ---
 
 <!-- FICHE:CON2 -->
-## CON2 [ ] — Jouer des témoins, si le compte est maigre
+## CON2 [x] — Jouer des témoins, si le compte est maigre
 
+**Session** : 0d303b02-229a-40df-824e-65d205a4141e
 **Dépend de** : `CON1`.
 **Fichiers** : `context AI/08-etat.md` (journal), et ce fichier de fiches pour trois fiches témoins ajoutées puis retirées.
 
