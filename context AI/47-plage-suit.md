@@ -4,6 +4,10 @@
 
 # Chantier PLA — La plage des fiches suit le fichier
 
+**CLOS** le 2026-09-24. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** PLA1..PLA2 (2026-09-24) : La plage des fiches suit le fichier : l'en-tête de la page et la ligne d'index d'un chantier ouvert suivent le fichier, et /vlp:chantier dit de relancer ouvrir, page et feuille après un redécoupage.
+
 **À quoi il sert.** Une fiche ajoutée après l'ouverture — `CAS2`, la nuit du 2026-09-24 — laisse
 deux traces figées : l'en-tête de la page (« fiches CAS1–CAS1 ») et la ligne d'index
 (`CAS1..CAS1`), corrigés à la main. `CHANTIER.md` et la feuille de route, eux, suivent déjà le
