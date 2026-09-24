@@ -307,8 +307,9 @@ Sur le vrai dépôt, `relecture CAD1 --sha 8bb748d` n'imprime aucune ligne `HORS
 ---
 
 <!-- FICHE:REV8 -->
-## REV8 [ ] — Refuser ou remarquer
+## REV8 [x] — Refuser ou remarquer
 
+**Session** : fedafcd5-3d99-48d7-ac85-c9f0d96b67ba
 **Dépend de** : rien.
 **Fichiers** : `enchainement.md` (section « Relecture ») — et rien d'autre.
 

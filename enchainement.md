@@ -29,10 +29,12 @@ verdicts, rien devant, le détail sur la même ligne :
 
 ```
 ACCEPTÉE — <ce qui a été rejoué, comptes bruts>
-REFUSÉE — <les défauts, une ligne>
+REFUSÉE — <les motifs, une ligne>
 ```
 
-Aucun verdict vaut `REFUSÉE`. Un défaut : ce que la fiche ne demande pas ; un test
-qui ne tombe pas sur le mutant du critère ; un bug ; une doc qui dit faux ; une sortie
-qui change entre AVANT et APRÈS sans que la fiche l'explique ; un `HORS FICHE` que la
-fiche ne justifie pas.
+Aucun verdict vaut `REFUSÉE`. Trois motifs refusent, et eux seuls : le critère de fin
+non tenu ; un bug qu'une sortie prouve — du code, ou une doc qu'une commande rejouée
+contredit ; un mutant du critère qui survit. La ligne `REFUSÉE` porte les motifs seuls.
+
+Le reste se remarque, sous la ligne du verdict, sans le changer : la lettre de la
+fiche, un `HORS FICHE`, le style, un écart sans effet sur une sortie.
