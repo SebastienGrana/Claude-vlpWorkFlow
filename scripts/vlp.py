@@ -932,9 +932,10 @@ INFINI = float("inf")
 
 
 def heures_commits(fichier, ids, pourquoi=None):
-    """({id: heure}, [heures]) en secondes UTC, lus par `git log` dans le dossier du
-    fichier : l'heure d'auteur du commit `<id> :` de chaque fiche — le plus ancien s'il y
-    en a deux —, et celles de tous les commits qui nomment le préfixe (`REP`, `REP2`…).
+    """({id: heure}, [heures], [autres heures]) en secondes UTC, lus par `git log` dans le
+    dossier du fichier : l'heure d'auteur du commit `<id> :` de chaque fiche — le plus ancien
+    s'il y en a deux —, celles de tous les commits qui nomment le préfixe (`REP`, `REP2`…),
+    puis celles des autres commits, triées : elles bornent le chantier (`plages`).
     None sans `git`, sans dépôt ou sans commit de fiche : le repli, jamais un traceback —
     et sa raison, ajoutée à la liste `pourquoi` si on en donne une."""
     import subprocess
@@ -953,31 +954,36 @@ def heures_commits(fichier, ids, pourquoi=None):
         return None
     nomme = re.compile(r"(?<![A-Za-z0-9])(?:%s)[0-9]*(?![A-Za-z0-9])"
                        % "|".join(sorted({PREFIXE.match(i).group(0) for i in ids})))
-    commits, prefixe = {}, []
+    commits, prefixe, autres = {}, [], []
     for ligne in r.stdout.splitlines():
         heure, _, sujet = ligne.partition(" ")
         if not heure.isdigit():
             continue
-        if nomme.search(sujet):
-            prefixe.append(int(heure))
+        (prefixe if nomme.search(sujet) else autres).append(int(heure))
         c = COMMIT_FICHE.match(sujet)
         if c and c.group(1) in ids:
             commits[c.group(1)] = min(int(heure), commits.get(c.group(1), int(heure)))
     if not commits:
         pourquoi.append("aucun commit « %s : » ni d'une autre fiche" % ids[0])
         return None
-    return commits, sorted(prefixe)
+    return commits, sorted(prefixe), sorted(autres)
 
 
 def plages(fiches_, heures, gardes):
     """([(id, (début, fin])] dans l'ordre des commits, [plages hors fiches]). Une fiche va
     du commit de la précédente au sien ; la première part du dernier commit antérieur qui
-    nomme le préfixe, à défaut du début de la session ; une fiche à session sans commit va
-    jusqu'au bout du transcript. Hors fiches : avant la première, et après la dernière
-    jusqu'au dernier commit qui nomme le préfixe — au-delà, rien ne compte."""
-    commits, prefixe = heures
+    nomme le préfixe, à défaut de l'origine ; une fiche à session sans commit va jusqu'au
+    bout du transcript. L'origine : le dernier commit qui ne nomme pas le préfixe, avant ce
+    début — le chantier d'avant, quand une session en enchaîne plusieurs ; à défaut, le
+    début de la session. Hors fiches : de l'origine à la première fiche, et de la dernière
+    au premier commit suivant qui nomme le préfixe — la clôture ; sans lui, jusqu'au bout.
+    Au-delà, rien ne compte : une mention plus tardive du préfixe n'étire rien."""
+    commits, prefixe, autres = heures
     ordre = sorted(commits, key=commits.get)
-    debut = max((t for t in prefixe if t < commits[ordre[0]]), default=-INFINI)
+    premier = commits[ordre[0]]
+    debut = max((t for t in prefixe if t < premier), default=-INFINI)
+    origine = max((t for t in autres if t < (premier if debut == -INFINI else debut)), default=-INFINI)
+    debut = max(debut, origine)
     rendu = []
     for ident in ordre:
         rendu.append((ident, (debut, commits[ident])))
@@ -988,8 +994,9 @@ def plages(fiches_, heures, gardes):
                       % (ident, ident))
     if sans:
         rendu.append((sans[-1], (debut, INFINI)))
-    fin = INFINI if sans else max(prefixe + [debut])
-    return rendu, [p for p in ((-INFINI, rendu[0][1][0]), (rendu[-1][1][1], fin)) if p[0] < p[1]]
+    dernier = rendu[-1][1][1]
+    fin = min((t for t in prefixe if t > dernier), default=INFINI)
+    return rendu, [p for p in ((origine, rendu[0][1][0]), (dernier, fin)) if p[0] < p[1]]
 
 
 def parts_aux_commits(fiches_, heures, gardes):

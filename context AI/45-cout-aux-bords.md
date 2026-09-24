@@ -66,8 +66,9 @@ session sans ligne `**Session**` : il n'est mesuré nulle part, autre chantier.
 ---
 
 <!-- FICHE:FIN1 -->
-## FIN1 [ ] — Borner « hors fiches » au chantier : l'origine, la clôture
+## FIN1 [x] — Borner « hors fiches » au chantier : l'origine, la clôture
 
+**Session** : 1ba64929-8274-42d4-93bb-a2d22fbdd600
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py` (`heures_commits`, `plages`), `scripts/test-vlp.py` — et rien
 d'autre.

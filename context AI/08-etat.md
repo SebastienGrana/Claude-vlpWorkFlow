@@ -207,6 +207,18 @@ tous retirés, venaient de `12-audit.md` ; 31 à 34, de la clôture de `REP` ; 3
 Une ligne par décision imprévue tranchée en cours de fiche — jamais un résumé
 de ce que le code dit déjà.
 
+- **2026-09-24** — FIN1, relue par le chef : `FAITE` **sans cocher** (aucun `cocher` en 24
+  appels), dernier message ouvert par « Excellent ! » et fermé par un « En résumé » à jauge, la
+  forme du `CLAUDE.md` de l'utilisateur (n° 44 `GLO`) ; aucun commit, le critère n'en demandait
+  pas. Deux défauts. La fin prenait le `max` des commits suivants, pas le premier : une mention
+  tardive du préfixe aurait encore étiré la plage — le critère sur VAL ne pouvait pas le voir, un
+  seul commit y suit `VAL1`. Ses quatre tests ne vérifiaient que la forme de `heures_commits` (un
+  triplet), aucune borne. Reprise du chef : `min`, code et docstrings récrits ; sept tests, six
+  de `plages` en fonction pure et un `cout` de bout en bout ; deux mutants (`max`, origine ôtée)
+  font chacun échouer un test. Leçon de cadrage : une fiche de code nomme ses tests et leurs
+  valeurs attendues, sinon Haiku en écrit de creux. 27 `hook_non_blocking_error` pour 24 appels.
+  Transcription : `1ba64929-8274-42d4-93bb-a2d22fbdd600/subagents/agent-a96aea95a4119f835.jsonl`.
+
 - **2026-09-24** — VAL1, relue par le chef : le sous-agent rend `FAITE` **case vide** ; la règle
   de CAS l'attrape (`CASE VAL1 [ ]`, code 1) et le chef la lit comme un `RETOUR`. Il **commite
   encore** (`72035f2`, « VAL1: » sans espace, que `COMMIT_FICHE` ne voit pas), cette fois à cause

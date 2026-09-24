@@ -457,7 +457,7 @@ with tempfile.TemporaryDirectory() as t:
                            capture_output=True, env=dict(env, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date))
         h = mod.heures_commits(os.path.join(avec, "q.md"), ["Q1", "Q2"])
         verifier("heures_commits : heure d'auteur, commits qui nomment le préfixe",
-                 h == ({"Q1": T0 + 300, "Q2": T0 + 600}, [T0 + 100, T0 + 300, T0 + 600, T0 + 800]), h)
+                 h == ({"Q1": T0 + 300, "Q2": T0 + 600}, [T0 + 100, T0 + 300, T0 + 600, T0 + 800], [T0 + 900]), h)
         page = os.path.join(avec, "q.html")
         code, s = appel(["page", os.path.join(avec, "q.md"), page, "--creer", "--projet", "P", "--titre", "T",
                          "--resultat", "R", "--date", "2026-01-05"])
@@ -513,6 +513,43 @@ with tempfile.TemporaryDirectory() as t:
         verifier("cout sans .git : la table d'avant, sous la raison", code == 0
                  and s.startswith("DÉCOUPE aucune — git log en échec : ") and "\ns.jsonl\t" in s
                  and "\nagent-a1.jsonl\t" in s and "\nTOTAL\t" in s, s)
+        # FIN1 : dans une session qui enchaîne plusieurs chantiers, « Chantier P clos » (60) borne
+        # Q par le bas — le tour de 50 ne compte nulle part ; sans clôture, hors fiches va au bout.
+        multi = os.path.join(t, "multi")
+        os.makedirs(multi)
+        subprocess.run(["git", "init", "-q"], cwd=multi, env=env, check=True, capture_output=True)
+        for d, sujet in ((60, "Chantier P clos : fini"), (100, "Chantier Q ouvert : cadré"), (300, "Q1 : Créer"),
+                         (600, "Q2 : Brancher")):
+            date = "%d +0000" % (T0 + d)
+            subprocess.run(["git", "commit", "-q", "--allow-empty", "-m", sujet], cwd=multi, check=True,
+                           capture_output=True, env=dict(env, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date))
+        ecrire(os.path.join(multi, "q.md"), QFICHES % (sq, sq))
+        code, s = appel(["cout", os.path.join(multi, "q.md")])
+        verifier("cout : P clos borne Q par le bas, sans clôture hors fiches va au bout", code == 0
+                 and "\nhors fiches · ≈200,0k (200 000) · 2 tours · 1,00 $ = session" in s
+                 and "\nTOTAL (fiches + hors fiches) · ≈700,0k (700 000) · 7 tours · 3,50 $ = " in s, s)
+
+# FIN1 : les bornes de `plages`, en fonction pure — heures (commits de fiche, qui nomment, autres).
+P2, G = [("Q1", "a", True, ["s"]), ("Q2", "b", True, ["s"])], []
+bornes = lambda h, f=P2: mod.plages(f, h, G)
+verifier("plages : l'origine, le chantier d'avant, borne hors fiches",
+         bornes(({"Q1": 300, "Q2": 600}, [100, 300, 600, 800], [30, 900]))
+         == ([("Q1", (100, 300)), ("Q2", (300, 600))], [(30, 100), (600, 800)]), bornes(({"Q1": 300, "Q2": 600}, [100, 300, 600, 800], [30, 900])))
+verifier("plages : sans clôture, hors fiches va au bout",
+         bornes(({"Q1": 300, "Q2": 600}, [100, 300, 600], [30]))[1] == [(30, 100), (600, mod.INFINI)],
+         bornes(({"Q1": 300, "Q2": 600}, [100, 300, 600], [30])))
+verifier("plages : une mention après la clôture n'étire rien",
+         bornes(({"Q1": 300, "Q2": 600}, [100, 300, 600, 800, 950], [30, 900]))[1] == [(30, 100), (600, 800)],
+         bornes(({"Q1": 300, "Q2": 600}, [100, 300, 600, 800, 950], [30, 900])))
+verifier("plages : sans commit qui nomme avant, la première fiche part de l'origine",
+         bornes(({"Q1": 300, "Q2": 600}, [300, 600, 800], [30, 200]))
+         == ([("Q1", (200, 300)), ("Q2", (300, 600))], [(600, 800)]), bornes(({"Q1": 300, "Q2": 600}, [300, 600, 800], [30, 200])))
+verifier("plages : une mention juste avant l'ouverture y fait entrer son travail",
+         bornes(({"Q1": 300}, [20, 100, 300, 800], [10]), P2[:1])[1] == [(10, 100), (300, 800)],
+         bornes(({"Q1": 300}, [20, 100, 300, 800], [10]), P2[:1]))
+verifier("plages : fiche à session sans commit, au bout, rien après",
+         bornes(({"Q1": 300}, [100, 300], [30])) == ([("Q1", (100, 300)), ("Q2", (300, mod.INFINI))], [(30, 100)])
+         and not G, (bornes(({"Q1": 300}, [100, 300], [30])), G))
 
 
 # --- hook : le PostToolUse du plugin -----------------------------------------
