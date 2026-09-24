@@ -192,6 +192,16 @@ tous retirés, venaient de `12-audit.md` ; 31 à 34, de la clôture de `REP` ; 3
 Une ligne par décision imprévue tranchée en cours de fiche — jamais un résumé
 de ce que le code dit déjà.
 
+- **2026-09-24** — CAS1, relue par le chef : le sous-agent rend `FAITE`, case cochée, mais
+  **commite lui-même** (`85f5efc`, « Maintenant je crée le commit. », 27ᵉ appel sur 27), quand la
+  méthode réserve le commit au chef. Son contexte porte le `~/.claude/CLAUDE.md` de l'utilisateur
+  (attachment `instructions`, 12 935 caractères), qui demande un commit après chaque tâche : cause
+  probable, pas prouvée. Sa puce `FAITE` de `skills/enchainer/SKILL.md` tient sur une ligne de
+  414 caractères (la plus longue avant : 222) et perd trois choses : le renvoi à
+  `methode-chantier.md`, « le sous-agent ne commite jamais », `(vlp.py carte)`. Vu aussi :
+  33 `hook_non_blocking_error` « Python est introuvable » pour 27 appels (n° 39 `PYT`). D'où
+  `CAS2`. Transcription : `1ba64929-8274-42d4-93bb-a2d22fbdd600/subagents/agent-a10d85004cb7139db.jsonl`.
+
 - **2026-09-24** — FIL3 : le filet **tire** après un `Read` réussi et après un Bash à code non nul,
   à plafond bas. `claude.exe` 2.1.280 de l'app, dans le bac `f3` du scratchpad (`CHANTIER.md`, deux
   fiches factices : `F1` douze `Read`, `F2` douze `exit 3`) ; `maxTurns` 80 → 10 le temps des

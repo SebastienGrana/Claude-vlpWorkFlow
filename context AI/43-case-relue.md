@@ -8,7 +8,7 @@
 `/vlp:enchainer`, qui commite sur `FAITE` sans relire la case, a commité case vide. Après
 `FAITE`, le chef relira la case par script, et lira `RETOUR` si elle est vide.
 
-**Fait.** Rien. Ouvert le 2026-09-24, cadré en 1 fiche, `CAS1` à jouer.
+**Fait.** `CAS1` (2026-09-24). Cadrage revu après elle : `CAS2` ajoutée, à jouer.
 
 ## Le socle commun
 
@@ -27,18 +27,18 @@
   titre vit déjà dans `cmd_cocher`.
 - Case vide après `FAITE` : le chef lit un `RETOUR` (étape 3 bis), comme le dit la TODO.
 
-**Ce qu'on ne fait pas.** Toucher `agents/fiche.md` : son étape 5 dit déjà de cocher, et le
-contrat, qu'il lit à son premier tour, portera la règle. Provoquer un `FAITE` sans cocher
-dans un bac `claude -p` : rien ne le déclenche à coup sûr ; les tests et l'usage du chef
-suffisent.
+**Ce qu'on ne fait pas.** Provoquer un `FAITE` sans cocher dans un bac `claude -p` : rien ne
+le déclenche à coup sûr ; les tests et l'usage du chef suffisent. **Revu après `CAS1`** :
+`agents/fiche.md` reçoit une phrase — son sous-agent a commité lui-même (journal du 2026-09-24).
 
 ## L'ordre des fiches
 
 | Fiche | Titre | Dépend de |
 |---|---|---|
 | `CAS1` | Relire la case avant de commiter | rien |
+| `CAS2` | Reprendre la puce `FAITE`, et dire au sous-agent qu'il ne commite pas | `CAS1` |
 
-Une seule fiche : rien à paralléliser.
+`CAS2` reprend ce que `CAS1` a livré : rien à paralléliser.
 
 ---
 
@@ -72,4 +72,36 @@ Une seule fiche : rien à paralléliser.
 `py scripts/vlp.py cocher "context AI/43-case-relue.md" CAS1 --verifier` rend
 `CASE CAS1 [ ]` et sort 1 ; `git diff --stat` ne nomme que les quatre fichiers, plus ce
 fichier de fiches.
+<!-- /FICHE -->
+
+---
+
+<!-- FICHE:CAS2 -->
+## CAS2 [ ] — Reprendre la puce `FAITE`, et dire au sous-agent qu'il ne commite pas
+
+**Dépend de** : `CAS1`.
+**Fichiers** : `skills/enchainer/SKILL.md` (étape 3, puce `FAITE` qui commite),
+`agents/fiche.md`, `scripts/vlp.py` (docstring, entrée `cocher`) — et rien d'autre.
+
+**Prompt**
+Relu par le chef après `CAS1` (journal du 2026-09-24) : la puce `FAITE` tient sur une ligne de
+414 caractères, et le sous-agent de `CAS1` a commité lui-même.
+1. Dans `skills/enchainer/SKILL.md`, récris la puce `FAITE` qui commite, coupée comme ses
+   voisines (retrait de cinq espaces sous le tiret). Garde le sens de `CAS1` : relire la case
+   par `cocher --verifier` ; `[ ]` : `RETOUR`, étape 3 bis ; `[x]` : commit. Remets ce qu'elle a
+   perdu : `(methode-chantier.md)` après « sans demander », la phrase « le sous-agent ne commite
+   jamais », et `(vlp.py carte)` après « relance la carte ».
+2. Dans `agents/fiche.md`, au paragraphe qui dit « Aucun artefact, aucune question, aucun
+   sous-agent » : aucun commit non plus — le chef commite après ton statut, même si un
+   `CLAUDE.md` demande un commit par tâche. Une phrase courte.
+3. Dans la docstring de `scripts/vlp.py`, entrée `cocher` : `--verifier` n'écrit rien, et rend
+   `CASE <fiche> [x]` (sort 0) ou `CASE <fiche> [ ]` (sort 1).
+Tu ne commites pas : le chef le fera.
+
+**Critère de fin**
+`py scripts/test-vlp.py` rend `OK` ; la plus longue ligne de `skills/enchainer/SKILL.md`
+(`py -c` qui la mesure) revient à 222 caractères au plus, contre 414 ; la puce porte
+`--verifier`, `methode-chantier.md`, « ne commite jamais » et `vlp.py carte` ;
+`agents/fiche.md` porte la phrase ; `git diff --stat` ne nomme que les trois fichiers, plus
+ce fichier de fiches.
 <!-- /FICHE -->
