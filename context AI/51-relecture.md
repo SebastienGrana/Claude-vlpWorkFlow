@@ -87,8 +87,9 @@ relecture n'existe pas encore.
 ---
 
 <!-- FICHE:REV1 -->
-## REV1 [ ] — Préparer la relecture par script
+## REV1 [x] — Préparer la relecture par script
 
+**Session** : 2f9a46f3-70ad-4145-a7c8-ada5aefa0034
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py` (sous-commande `relecture`, docstring du module),
 `scripts/test-vlp.py` — et rien d'autre.

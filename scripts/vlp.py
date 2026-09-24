@@ -53,6 +53,16 @@ Sous-commandes :
   `COCHÉ <fiche> · Session <id|absente>`. Introuvable ou déjà cochée : `GARDE:`,
   rien écrit, sort 1. `--verifier` n'écrit rien, et rend `CASE <fiche> [x]` (sort 0) ou
   `CASE <fiche> [ ]` (sort 1).
+- `relecture <fiche> [--sha S]` — ce que lit le relecteur de `/vlp:enchainer` (chantier REV). Sans
+  `--sha`, un instantané de l'arbre — suivis et non suivis, selon `.gitignore` — en commit de parent
+  `HEAD`, par un index temporaire : ni `HEAD` ni l'index ne bougent ; avec, ce commit. Deux worktrees
+  détachés `vlp-relecture-*` dans le dossier temporaire, ceux d'un appel précédent retirés d'abord :
+  APRÈS sur le commit, AVANT sur son parent. Imprime `APRÈS=`, `AVANT=`, `FICHIER=` (le fichier de
+  fiches courant du `CHANTIER.md` d'APRÈS), le socle et la fiche comme `socle` et `extraire`,
+  `git diff --name-status`, une ligne `HORS FICHE <chemin>` par fichier changé que la ligne
+  **Fichiers** ne nomme pas — hors le fichier de fiches et `artefacts/` —, puis le diff. `--retirer` :
+  retire ces worktrees, `RETIRÉ <n>`. Pas de dépôt, commit inconnu ou sans parent, fiche absente :
+  `GARDE:`, aucun worktree ne reste, sort 1.
 - `page <fichier> [<page.html>]` — régénère la page du chantier depuis le fichier
   de fiches : états, avancement, comptage, coûts (`**Session**`), date. Les coûts
   se coupent aux commits `<ID> :` (`git log`), sous-agents compris, plus une ligne
@@ -500,6 +510,143 @@ def cmd_cocher(a, sortie):
     with open(a.fichier, "w", encoding="utf-8", newline="") as f:
         f.write("\n".join(lignes) + "\n")
     sortie.write("COCHÉ %s · Session %s\n" % (a.fiche, s or "absente"))
+    return 0
+
+
+# --- relecture ---------------------------------------------------------------
+
+RELECTURE = "vlp-relecture-"    # le préfixe des worktrees de relecture : `--retirer` ne retire qu'eux
+
+
+def git_texte(args, cwd, env=None):
+    """(code, texte) de `git <args>` dans `cwd` : la sortie si le code vaut 0, sinon la première ligne
+    d'erreur. Git qui ne se lance pas : (None, raison) — jamais un traceback."""
+    import subprocess
+    try:
+        r = subprocess.run([GIT, "-c", "core.quotepath=false"] + args, cwd=cwd, env=env, capture_output=True,
+                           encoding="utf-8", errors="replace", timeout=120)
+    except (OSError, subprocess.SubprocessError) as e:
+        return None, "git ne se lance pas : %s" % e
+    if r.returncode:
+        return r.returncode, ((r.stderr or "").strip().splitlines() or ["code %d" % r.returncode])[0]
+    return 0, r.stdout
+
+
+def retirer_relectures(racine):
+    """Retire les worktrees `vlp-relecture-*` du dépôt, puis `prune` : le nombre retiré."""
+    code, liste = git_texte(["worktree", "list", "--porcelain"], racine)
+    n = 0
+    for ligne in liste.splitlines() if code == 0 else []:
+        chemin = ligne[len("worktree "):] if ligne.startswith("worktree ") else ""
+        if os.path.basename(chemin.rstrip("/\\")).startswith(RELECTURE):
+            n += git_texte(["worktree", "remove", "--force", chemin], racine)[0] == 0
+    git_texte(["worktree", "prune"], racine)
+    return n
+
+
+def instantane(racine):
+    """(code, sha) : l'arbre de travail — suivis et non suivis, selon `.gitignore` — en commit de
+    parent `HEAD`, par un index temporaire : ni `HEAD` ni l'index réel ne bougent."""
+    import tempfile
+    with tempfile.TemporaryDirectory(prefix="vlp-index-") as d:
+        env = dict(os.environ, GIT_INDEX_FILE=os.path.join(d, "index"))
+        for args in (["read-tree", "HEAD"], ["add", "-A"], ["write-tree"]):
+            code, arbre = git_texte(args, racine, env)
+            if code != 0:
+                return code, arbre
+    # Une identité à lui : l'instantané ne dépend pas de la configuration du poste.
+    env = dict(os.environ, GIT_AUTHOR_NAME="vlp", GIT_AUTHOR_EMAIL="vlp@relecture",
+               GIT_COMMITTER_NAME="vlp", GIT_COMMITTER_EMAIL="vlp@relecture")
+    return git_texte(["commit-tree", arbre.strip(), "-p", "HEAD", "-m", "vlp relecture : instantané"], racine, env)
+
+
+def noms_fichiers(fiche):
+    """Ce que nomme la ligne **Fichiers** d'une fiche, jusqu'à la ligne vide ou au champ suivant :
+    chaque `…` entre backticks, et chaque mot hors d'eux — le gabarit n'en met pas."""
+    k = next((i for i, l in enumerate(fiche) if l.startswith("**Fichiers**")), None)
+    if k is None:
+        return set()
+    para = [fiche[k][len("**Fichiers**"):]]
+    for l in fiche[k + 1:]:
+        if not l.strip() or l.startswith(("**", "<!--")):
+            break
+        para.append(l)
+    texte = " ".join(para)
+    return (set(re.findall(r"`([^`]+)`", texte))
+            | set(re.split(r"[\s,;:()]+", re.sub(r"`[^`]*`", " ", texte)))) - {""}
+
+
+def nomme(chemin, noms):
+    """Vrai si `chemin` (relatif au dépôt, en `/`) est nommé : égal, fin de chemin après un `/`
+    (`vlp.py` pour `scripts/vlp.py`), ou sous un dossier nommé (`templates/`)."""
+    return any(chemin == n or chemin.endswith("/" + n) or (n.endswith("/") and "/" + n in "/" + chemin)
+               for n in noms)
+
+
+def cmd_relecture(a, sortie):
+    """La relecture d'une fiche (chantier REV) : ce qu'en dit la docstring du module."""
+    import tempfile
+    projet = trouver(os.getcwd())
+    code, racine = git_texte(["rev-parse", "--show-toplevel"], projet or os.getcwd())
+    if code != 0:
+        sortie.write("GARDE: pas de dépôt Git — %s\n" % racine)
+        return 1
+    racine = racine.strip()
+    if a.retirer:
+        sortie.write("RETIRÉ %d\n" % retirer_relectures(racine))
+        return 0
+    if not a.fiche or projet is None:
+        sortie.write("GARDE: %s\n" % ("relecture <fiche> [--sha S], ou relecture --retirer" if not a.fiche
+                                      else "pas de CHANTIER.md au-dessus de %s" % os.getcwd()))
+        return 1
+    retirer_relectures(racine)
+    if a.sha:
+        code, sha = git_texte(["rev-parse", "--verify", "--quiet", a.sha + "^{commit}"], racine)
+        pourquoi = "commit inconnu : %s" % a.sha
+    else:
+        code, sha = instantane(racine)
+        pourquoi = "instantané impossible — %s" % sha
+    if code != 0:
+        sortie.write("GARDE: %s\n" % pourquoi)
+        return 1
+    sha = sha.strip()
+    code, parent = git_texte(["rev-parse", "--verify", "--quiet", sha + "^"], racine)
+    if code != 0:
+        sortie.write("GARDE: commit sans parent : %s\n" % sha[:12])
+        return 1
+    parent = parent.strip()
+    dossiers = []
+    for nom, rev in (("apres", sha), ("avant", parent)):
+        d = tempfile.mkdtemp(prefix=RELECTURE + nom + "-")
+        code, err = git_texte(["worktree", "add", "--detach", d, rev], racine)
+        dossiers.append(d)
+        if code != 0:
+            retirer_relectures(racine)
+            sortie.write("GARDE: worktree %s impossible — %s\n" % (nom, err))
+            return 1
+    # Le fichier de fiches que nomme CHANTIER.md dans APRÈS, au même endroit du dépôt que le projet.
+    code, prefixe = git_texte(["rev-parse", "--show-prefix"], projet)
+    prefixe = prefixe.strip() if code == 0 else ""
+    apres_projet = os.path.normpath(os.path.join(dossiers[0], prefixe))
+    courant = fichier_courant(lire(os.path.join(apres_projet, "CHANTIER.md"))) if equipe(apres_projet) else None
+    fichier = os.path.normpath(os.path.join(apres_projet, courant)) if courant else ""
+    fiche, _ = extraire_lignes(lignes_de(fichier) if os.path.isfile(fichier) else [], a.fiche)
+    if not fiche:
+        retirer_relectures(racine)
+        sortie.write("GARDE: fiche %s absente du fichier de fiches courant d'APRÈS : %s\n" % (a.fiche, courant or "aucun"))
+        return 1
+    sortie.write("APRÈS=%s\nAVANT=%s\nFICHIER=%s\n" % (dossiers[0], dossiers[1], fichier))
+    cmd_socle(fichier, sortie)
+    cmd_extraire(fichier, a.fiche, sortie)
+    code, etat = git_texte(["diff", "--name-status", "--no-color", parent, sha], racine)
+    sortie.write(etat if code == 0 else "GARDE: git diff --name-status en échec — %s\n" % etat)
+    fiches_rel, noms = prefixe + courant.replace("\\", "/"), noms_fichiers(fiche)
+    for ligne in etat.splitlines() if code == 0 else []:
+        chemin = ligne.split("\t")[-1]
+        if chemin != fiches_rel and "/artefacts/" not in "/" + chemin and not nomme(chemin, noms):
+            sortie.write("HORS FICHE %s\n" % chemin)
+    code, diff = git_texte(["diff", "--no-color", "--no-ext-diff", parent, sha], racine)
+    sortie.write(diff if code == 0 else "GARDE: git diff en échec — %s\n" % diff)
     return 0
 
 
@@ -2309,6 +2456,10 @@ def main(argv, sortie=None, entree=None, erreur=None):
     co2.add_argument("--resolu")
     co2.add_argument("--date")
     co2.add_argument("--verifier", action="store_true")
+    rl = sous.add_parser("relecture")
+    rl.add_argument("fiche", nargs="?")
+    rl.add_argument("--sha")
+    rl.add_argument("--retirer", action="store_true")
     a = p.parse_args(argv)
     try:
         return repartir(a, sortie, entree, erreur)
@@ -2354,6 +2505,8 @@ def repartir(a, sortie, entree, erreur):
         return cmd_equiper(a.dossier, a.contexte, sortie)
     if a.cmd == "lignes":
         return cmd_lignes(a.chemins, sortie)
+    if a.cmd == "relecture":
+        return cmd_relecture(a, sortie)
     chemin_garde(a.fichier)
     if a.cmd == "extraire":
         return cmd_extraire(a.fichier, a.fiche, sortie)

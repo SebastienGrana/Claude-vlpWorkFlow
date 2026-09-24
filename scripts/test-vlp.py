@@ -1680,4 +1680,78 @@ verifier("hooks.json : filet sur tout outil après un succès et après un éche
          json.dumps(crochets, ensure_ascii=False))
 
 
+# relecture (chantier REV) : un dépôt à part, et ses worktrees dans le dossier temporaire du test
+# (`tempfile.tempdir`) — un test qui échoue n'en laisse aucun dans celui du système.
+if not shutil.which("git"):
+    print("SAUTÉ: git absent — relecture n'est pas testée")
+else:
+    with tempfile.TemporaryDirectory() as t:
+        env = dict(os.environ, GIT_CONFIG_GLOBAL=os.path.join(t, "gitconfig"), GIT_CONFIG_NOSYSTEM="1",
+                   GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t")
+        ecrire(env["GIT_CONFIG_GLOBAL"], "")
+        depot = os.path.join(t, "r")
+
+        def g(*args):
+            return subprocess.run(["git"] + list(args), cwd=depot, env=env, check=True, capture_output=True,
+                                  encoding="utf-8").stdout
+
+        def lu(*chemin):
+            c = os.path.join(*chemin)
+            return mod.lire(c) if os.path.isfile(c) else None
+
+        FICHE_X = ("# Chantier X\n\n## Le socle commun\n\nSocle X.\n\n## L'ordre des fiches\n\n---\n\n"
+                   "<!-- FICHE:X1 -->\n## X1 %s — relire\n\n**Fichiers** : `a.py` — et rien d'autre.\n\n"
+                   "**Prompt**\nb.py n'est pas nommé.\n<!-- /FICHE -->\n")
+        ecrire(os.path.join(depot, "CHANTIER.md"), CHANTIER % ("px", "f.md (X1..X1)"))
+        ecrire(os.path.join(depot, "f.md"), FICHE_X % "[ ]")
+        ecrire(os.path.join(depot, "a.py"), "a\n")
+        g("init", "-q")
+        g("add", "-A")
+        g("commit", "-q", "-m", "init")
+        # Une fiche finie, pas encore commitée : a.py changé, b.py nouveau, la case cochée.
+        ecrire(os.path.join(depot, "a.py"), "a2\n")
+        ecrire(os.path.join(depot, "b.py"), "b\n")
+        ecrire(os.path.join(depot, "f.md"), FICHE_X % "[x]")
+        tete, etat = g("rev-parse", "HEAD"), g("status", "--porcelain")
+        ici, tmp = os.getcwd(), tempfile.tempdir
+        tempfile.tempdir = t
+        os.chdir(depot)
+        try:
+            code, s = appel(["relecture", "X1"])
+            vu = dict(l.split("=", 1) for l in s.splitlines() if l.startswith(("APRÈS=", "AVANT=")))
+            apres, avant = vu.get("APRÈS", "?"), vu.get("AVANT", "?")
+            verifier("relecture : l'instantané prend l'arbre sans bouger HEAD", code == 0
+                     and g("rev-parse", "HEAD") == tete and g("status", "--porcelain") == etat
+                     and lu(apres, "a.py") == "a2\n" and lu(apres, "b.py") == "b\n"
+                     and lu(avant, "a.py") == "a\n" and lu(avant, "b.py") is None, s + g("status", "--porcelain"))
+            reperes = [s.find(r) for r in ("APRÈS=", "AVANT=", "FICHIER=%s\n" % os.path.join(apres, "f.md"),
+                                           "Socle X.", "--- socle, lignes : ", "## X1 [x] — relire",
+                                           "--- fiche, lignes : ", "M\ta.py", "HORS FICHE", "diff --git")]
+            verifier("relecture : un fichier hors fiche",
+                     [l for l in s.splitlines() if l.startswith("HORS FICHE")] == ["HORS FICHE b.py"]
+                     and -1 not in reperes and reperes == sorted(reperes), s)
+            code, s = appel(["relecture", "--retirer"])
+            verifier("relecture : --retirer", code == 0 and s == "RETIRÉ 2\n"
+                     and len(g("worktree", "list").splitlines()) == 1, s + g("worktree", "list"))
+            g("add", "-A")
+            g("commit", "-q", "-m", "X1 : relire")
+            appel(["relecture", "X1", "--sha", "HEAD"])
+            code, s = appel(["relecture", "X1", "--sha", "HEAD"])
+            liste = g("worktree", "list")
+            verifier("relecture --sha : le commit contre son parent, ceux de l'appel d'avant retirés", code == 0
+                     and "M\ta.py\nA\tb.py\nM\tf.md\n" in s and "HORS FICHE b.py\n" in s
+                     and len(liste.splitlines()) == 3 and appel(["relecture", "--retirer"]) == (0, "RETIRÉ 2\n"),
+                     s + liste)
+            gardes = [appel(["relecture", "X9"]), appel(["relecture", "X1", "--sha", "0badc0de"])]
+            mod.GIT = "git-absent-vlp"
+            gardes.append(appel(["relecture", "X1"]))
+            mod.GIT = "git"
+            verifier("relecture : fiche absente, commit inconnu, sans Git — GARDE, sort 1, aucun worktree",
+                     all(c == 1 and s.startswith("GARDE: ") for c, s in gardes)
+                     and len(g("worktree", "list").splitlines()) == 1, gardes)
+        finally:
+            mod.GIT = "git"
+            tempfile.tempdir = tmp
+            os.chdir(ici)
+
 print("OK")

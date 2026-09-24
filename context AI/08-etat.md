@@ -274,6 +274,16 @@ celle de `FIL` ; 48 à 51, de celle de `FIN` ; 52, des clôtures de la nuit du
 Une ligne par décision imprévue tranchée en cours de fiche — jamais un résumé
 de ce que le code dit déjà.
 
+- **2026-09-24** — REV1, commencée par un sous-agent `vlp:fiche`, finie à la main par le chef.
+  Arrêté par l'utilisateur à 51 appels, sans commit, il sortait de la fiche : `relecture <dossier>
+  <fichier> --fichiers-fiche` au lieu de `relecture <fiche>`, un test `--retirer` qui passait à
+  vide (`RETIRÉ 0`), 12 dossiers `vlp-relecture-*` orphelins dans `%TEMP%` (2 de la relance de ses
+  tests par le chef). Son diff (204 lignes) reste hors dépôt ; l'instantané par index temporaire
+  est repris, le reste réécrit. Son appel 34, `python3 << 'EOF'` sans argument, a ouvert le
+  Microsoft Store, et l'utilisateur a installé Python Install Manager : `python3` rend 3.14.7, les
+  deux entrées de chaque hook de `hooks/hooks.json` réussissent, et le bilan `VALIDE` sort deux
+  fois — à savoir pour `PYT` (n° 39). Tranché : `FICHIER=` est le chemin dans APRÈS ; la ligne
+  **Fichiers** se lit entre backticks et hors d'eux, le gabarit n'en met pas.
 - **2026-09-24** — ZER1, jouée à la main par le chef, sans sous-agent. Deux écarts à la fiche.
   Le cas « découpe à zéro » se bâtit dans un dépôt à clôture, avec un commit étranger juste
   avant elle — comme M, dont le travail est commité sous d'autres messages : sans lui, la découpe
