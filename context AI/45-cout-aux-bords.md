@@ -39,7 +39,7 @@ la page.
 - Des sujets nomment un préfixe avant son ouverture : `4ef74e7` (FIN, EST, RCP), `bf058b0`
   (PYT, MTK, PER), `8463f13` (PYT).
 
-**Décidé seul, la nuit du 2026-09-24** (l'utilisateur dort ; à revoir au réveil).
+**Décidé seul, la nuit du 2026-09-24** (l'utilisateur dormait ; validé au réveil).
 - FIN est élargi : au bord de début, vu cette nuit, et à `OUV` (n° 42), qui touche la même
   fonction.
 - Début : le dernier commit qui ne nomme pas le préfixe, avant le début de la première fiche.

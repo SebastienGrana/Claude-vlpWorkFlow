@@ -23,7 +23,7 @@
 | la puce `FAITE` du chef | `skills/enchainer/SKILL.md`, étape 3, puce 2 | commite sur `FAITE`, sans relire la case |
 | le contrat de retour | `enchainement.md`, ligne `FAITE` | « case cochée » — rien ne dit ce que le chef fait d'une case vide |
 
-**Décidé seul, la nuit du 2026-09-24** (l'utilisateur dort ; à revoir au réveil).
+**Décidé seul, la nuit du 2026-09-24** (l'utilisateur dormait ; validé au réveil).
 - Une option `--verifier` de `cocher`, pas une sous-commande neuve : l'idiome `--verifier`
   (n'écrit rien, sort 1 sur écart) existe déjà pour `page` et `feuille`, et la recherche du
   titre vit déjà dans `cmd_cocher`.

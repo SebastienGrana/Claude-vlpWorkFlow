@@ -41,7 +41,7 @@ d'une fiche »). Puis elle corrige, et relance : `OK`.
 - Résumé : « deux lignes\nici » écrit une entrée que `ENTREE_CLOS` ne relit pas — jamais élaguée.
 - `arrondi(999 999)` écrit `≈1000,0k (999 999)` : relu juste, mais faux à l'œil.
 
-**Décidé seul, la nuit du 2026-09-24** (l'utilisateur dort ; à revoir au réveil).
+**Décidé seul, la nuit du 2026-09-24** (l'utilisateur dormait ; validé au réveil).
 - Un coût négatif se relit avec son signe, au lieu d'être interdit : la somme garde son
   arithmétique, et la page montre l'anomalie au lieu de la taire.
 - Sous 1 000, `clore` garde l'écriture nue du gabarit ; c'est la lecture qui s'élargit.

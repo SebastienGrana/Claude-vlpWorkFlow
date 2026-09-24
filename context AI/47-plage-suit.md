@@ -40,7 +40,7 @@ d'une fiche »). Puis elle corrige, et relance : `OK`.
   `14-bugs.html` suivies de « · clos », écrit à la main — à garder ; `44-pre-commit.html`
   affiche « VAL1–VAL1 » pour une seule fiche.
 
-**Décidé seul, la nuit du 2026-09-24** (l'utilisateur dort ; à revoir au réveil).
+**Décidé seul, la nuit du 2026-09-24** (l'utilisateur dormait ; validé au réveil).
 - Seule la plage se réécrit — ni le titre, ni ce qui suit la plage : une ligne ou un en-tête
   retouchés à la main gardent le reste.
 - `ouvrir` ne rafraîchit que la ligne qu'il a écrite (`**ouvert**`, la garde de `clore`) ; il le

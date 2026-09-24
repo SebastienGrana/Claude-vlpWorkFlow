@@ -37,7 +37,7 @@ corrige, et relance : `OK`.
   puis la session **entière** mesurée, code 0. L'échec est muet.
 - `ast.get_docstring` du fichier : `None`.
 
-**Décidé seul, la nuit du 2026-09-24** (l'utilisateur dort ; à revoir au réveil).
+**Décidé seul, la nuit du 2026-09-24** (l'utilisateur dormait ; validé au réveil).
 - Une option, deux valeurs : `--plage DEBUT FIN`, comme la paire de `mesurer`.
 - Une borne est une heure ISO 8601 — sans décalage, l'heure locale — ou un commit Git, pris à son
   heure de commit dans le dossier courant.

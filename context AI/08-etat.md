@@ -238,7 +238,7 @@
 
 C'est d'ici que `/chantier` tire ses propositions. Un chantier par entrée, cité
 par son code, rangé par importance d'implémentation — rangée la nuit du
-2026-09-24, décidé seul (l'utilisateur dort ; à revoir au réveil) : d'abord ce qui
+2026-09-24, décidé seul (l'utilisateur dormait ; validé au réveil) : d'abord ce qui
 garde juste le code livré (`REV`, `CON`, `GLO`), puis les chiffres (`UNI`, `RCP`,
 `ESS`, `EST`), l'outillage d'essai (`RAT`, `BAC`, `EVF`, `PYT`), enfin les pages,
 dans l'ordre de leurs dépendances. Le numéro reste celui d'entrée. Le détail des

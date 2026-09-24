@@ -24,7 +24,7 @@ l'app existe. Le hook le cherchera, et validera vraiment les manifestes.
 Les deux `plugin validate` par l'exécutable de l'app : 1 569 · 1 566 · 1 569 ms. `sort -V` existe
 dans le `sh` de Git (GNU coreutils 8.32).
 
-**Décidé seul, la nuit du 2026-09-24** (l'utilisateur dort ; à revoir au réveil).
+**Décidé seul, la nuit du 2026-09-24** (l'utilisateur dormait ; validé au réveil).
 - Seul le chemin Windows de l'app est cherché : c'est le seul vérifié sur une machine.
 - Plusieurs versions : la plus haute, par `sort -V` — un tri alphabétique mettrait `2.1.99`
   après `2.1.280`.

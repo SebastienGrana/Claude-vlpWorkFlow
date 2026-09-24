@@ -44,7 +44,7 @@ scratchpad, zéro écriture), face au `vlp.py` d'avant la nuit (`fda5816`) :
   S 18 930 260 ;
 - `git blame` : les lignes 1007-1010 viennent de `bb361ff` (`FIN1`) et `28708a7` (`FIN2`).
 
-**Décidé seul, la nuit du 2026-09-24** (l'utilisateur dort ; à revoir au réveil).
+**Décidé seul, la nuit du 2026-09-24** (l'utilisateur dormait ; validé au réveil).
 - Le repli vaut pour un chantier **clos** sans aucun commit de fiche, et pour lui seul : sa
   ligne `**CLOS**` le dit, sans deviner d'après les messages de commit. En cours, la première
   fiche part toujours de l'ouverture (`FIN2`).

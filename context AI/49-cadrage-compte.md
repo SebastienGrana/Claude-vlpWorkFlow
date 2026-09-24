@@ -42,7 +42,7 @@ clôture.
 - `ouvrir` avec `CLAUDE_CODE_SESSION_ID=cadre` : `OUVERT Q Q1..Q1 · index +1 · routage +0 ·
   artefact aucun`, et le fichier de fiches inchangé.
 
-**Décidé seul, la nuit du 2026-09-24** (l'utilisateur dort ; à revoir au réveil).
+**Décidé seul, la nuit du 2026-09-24** (l'utilisateur dormait ; validé au réveil).
 - La session du cadrage se note par `ouvrir`, dans la forme des fiches : `**Session** : <id>`,
   juste avant la première ligne `## ` du fichier — `## Le socle commun` dans un vrai fichier.
 - Une session d'en-tête se mesure comme celle d'une fiche : ses tours comptent dans la plage où
