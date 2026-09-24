@@ -123,11 +123,11 @@
         <span class="id">REV4</span><span class="titre">Prouver la relecture sur les commits de la nuit</span>
         <span class="etat">en cours</span>
         <span class="note">Rejoue 8bb748d, 7d16873, c5123af et eb2a6b0, critère réécrit ; dépend de REV5 à REV8</span>
-        <span class="cout mono">≈4,4M (4 391 335) · 69 tours · 2,73 $</span>
+        <span class="cout mono">≈8,0M (7 967 554) · 122 tours · 4,87 $</span>
       </li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈6,0M (6 026 326) · 24 tours · 7,12 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈61,7M (61 667 250) · 460 tours · 49,16 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈65,2M (65 243 469) · 513 tours · 51,30 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -149,6 +149,7 @@
       <li><time datetime="2026-09-24">2026-09-24</time><span>REV3, jouée à la main par le chef : le relecteur ne change jamais de dossier (Windows ne retire pas un worktree où l'on se tient) ; pas d'effort fixé ; maxTurns 80 recopié de fiche.md, faute de renvoi en frontmatter ; le filet ne prévient que les agents fiche. claude plugin validate ne lit que le manifeste : l'agent se prouve en tournant, à REV4.</span></li>
       <li><time datetime="2026-09-24">2026-09-24</time><span>REV5 : l'app Claude est un paquet MSIX. Son claude.exe est en vrai sous %LOCALAPPDATA%\Packages\Claude_*\LocalCache\Roaming\Claude\claude-code\ ; %APPDATA%\Claude\claude-code n'existe que pour les processus qu'elle lance. py scripts/test-vlp.py suit le shebang python3 vers pythoncore-3.14-64, le Python du paquet « Python install manager », qui ne le voit pas : le hook y disait « validate sauté » (attendu aussi depuis un terminal hors de l'app, non mesuré). Décidé avec l'utilisateur : le hook cherche aussi Packages\Claude_* — test « hook : claude trouvé hors de l'app ».</span></li>
       <li><time datetime="2026-09-24">2026-09-24</time><span>REV4, deuxième passage : 4 relectures, 51 tours, 1,69 $ (0,42 $ l'une contre 1,78 $). 8bb748d ACCEPTÉE ; 7d16873 ACCEPTÉE à tort (plage facultative non rejouée) ; c5123af et eb2a6b0 REFUSÉE, pour d'autres motifs que le critère. Critère non tenu : 1 ligne sur 4 en entier, 3 verdicts justes sur 4. REV4 reste ouverte.</span></li>
+      <li><time datetime="2026-09-25">2026-09-25</time><span>REV4, troisième passage, règle durcie : 4 relectures, 40 tours, 1,28 $. 8bb748d ACCEPTÉE et c5123af REFUSÉE, justes ; 7d16873 et eb2a6b0 ACCEPTÉE à tort. Le critère de REV4 contredit REV8 sur eb2a6b0 (le mutant de creer n'est pas celui du critère de PLA1). REV4 reste ouverte.</span></li>
     </ul>
   </section>
 
@@ -162,6 +163,6 @@
 
   <footer>
     <span>Fichier de fiches : <span class="mono">context AI/51-relecture.md</span></span>
-    <span>Mis à jour le <span class="mono">2026-09-24</span></span>
+    <span>Mis à jour le <span class="mono">2026-09-25</span></span>
   </footer>
 </div>

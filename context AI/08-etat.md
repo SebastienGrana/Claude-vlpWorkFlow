@@ -275,6 +275,24 @@ celle de `FIL` ; 48 à 51, de celle de `FIN` ; 52, des clôtures de la nuit du
 Une ligne par décision imprévue tranchée en cours de fiche — jamais un résumé
 de ce que le code dit déjà.
 
+- **2026-09-25** — REV4, troisième passage, après la règle durcie (`6a5a913` : un soupçon se
+  rejoue avant d'être classé ; le dépôt vivant ne se lit pas). Même protocole ; après chacune,
+  `git status` vide, `git worktree list` inchangé (3 lignes), 0 dossier `vlp-relecture-*` neuf.
+
+  | Commit | Verdict | Motifs | Remarques | Tours | Tokens | $ |
+  |---|---|---|---|---|---|---|
+  | `CAD1 8bb748d` | `ACCEPTÉE` ✅ | — | journal et page hors liste ; « je ne l'ai pas rejoué », dit hors périmètre | 11 | 407 215 | 0,40 |
+  | `PLA1 7d16873` | `ACCEPTÉE` ❌ | — | `ÉCART:` absent du compte rendu ; étape 3 ; deux `verifier` — la regex n'est plus soupçonnée | 7 | 202 967 | 0,27 |
+  | `VAL1 c5123af` | `REFUSÉE` ✅ | le hook sort 1 sur le dépôt intact | cause rejouée : la `description` sans guillemets de `skills/chantier/SKILL.md` ; guillemets, code 0 | 16 | 458 025 | 0,39 |
+  | `PLA1 eb2a6b0` | `ACCEPTÉE` ❌ | — | « le changement de `creer` n'a pas de test qui échoue seul — pas rejoué comme mutant » | 6 | 158 629 | 0,22 |
+
+  Quatre relectures : 40 tours, 1 226 836 tokens, 1,28 $, soit 0,32 $ l'une. **Critère non tenu** :
+  2 verdicts justes sur 4. Sans le dépôt vivant, `eb2a6b0` ne trouve plus le trait d'union : au
+  passage d'avant, la fiche REV6 l'avait sans doute guidé. `eb2a6b0` enfreint la règle neuve (un
+  soupçon écrit, non rejoué). Mais le critère de REV4 contredit REV8 : le critère de `PLA1`
+  (`context AI/47-plage-suit.md:31`) ne nomme que « le code d'avant » ; le mutant de `creer` n'est
+  pas celui du critère, et se remarque. `7d16873` : aucun soupçon, donc la règle neuve ne mord pas.
+  Hook de `HEAD` : code 0, `description` entre guillemets. REV4 reste ouverte.
 - **2026-09-24** — REV4, deuxième passage, après REV5 à REV8 : quatre relectures par
   `Skill` `vlp:relire`, une à la fois, accord de l'utilisateur après la première. Après chacune :
   `git status` vide, `git worktree list` inchangé (3 lignes), 0 dossier `vlp-relecture-*` neuf
