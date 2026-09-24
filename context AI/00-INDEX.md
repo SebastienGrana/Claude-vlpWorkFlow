@@ -26,7 +26,7 @@ a l'air proche.
 | `45-cout-aux-bords.md` | on relit le socle du chantier FIN — **clos** « Le coût juste, aux deux bords du chantier », `FIN1..FIN3` |
 | `46-aller-retour.md` | on relit le socle du chantier TAR — **clos** « Ce que vlp.py écrit, il le relit », `TAR1..TAR3` |
 | `47-plage-suit.md` | on relit le socle du chantier PLA — **clos** « La plage des fiches suit le fichier », `PLA1..PLA2` |
-| `48-mesure-plage.md` | on joue une fiche `MTK*` — chantier **ouvert** « mesure-tokens.py se lit et se borne en ligne de commande », `MTK1..MTK2` |
+| `48-mesure-plage.md` | on relit le socle du chantier MTK — **clos** « mesure-tokens.py se lit et se borne en ligne de commande », `MTK1..MTK2` |
 | `35-bilan.md` | on doit expliquer le kit — d'où il vient, ce qu'il sait faire aujourd'hui, ce qu'il ne promet pas ; les 22 chantiers chiffrés |
 | `36-gardes.md` | on relit le socle du chantier Z — **clos** « Une GARDE au lieu d'un traceback », `Z1..Z4` |
 | `37-niveau.md` | on relit le socle du chantier NIV — **clos** « Remettre les projets équipés à niveau », `NIV1..NIV4` |

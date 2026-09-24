@@ -73,8 +73,8 @@
     <!-- ZONE:encours — remplacé à chaque ouverture, remis à « aucun » à chaque clôture.
          /tache n'y touche pas : l'avancement fiche par fiche est sur la page du chantier. -->
     <div class="encours">
-      <div class="titre">mesure-tokens.py se lit et se borne en ligne de commande <span class="badge" data-etat="cours">en cours</span></div>
-      <div>Fiches <span class="mono">MTK1–MTK2</span> — <a href="https://claude.ai/artifact/AQoaT856X9GdAwddf4mTrJ">la page du chantier</a></div>
+      <div class="titre">Aucun chantier ouvert</div>
+      <div>Lancer <span class="mono">/vlp:chantier</span> pour en ouvrir un.</div>
     </div>
   </section>
 
@@ -90,8 +90,6 @@
           <tr><td class="mono">36</td><td><span class="mono">EST</span> — L'estimé face au réel, à chaque clôture</td><td>La TODO estime chaque chantier ; rien ne compare ensuite. <span class="mono">CPT</span>, estimé « ~2 fiches », en a joué 4. Le bilan de clôture écrira l'estimé à côté du réel — fiches jouées, tokens —, pour que <span class="mono">/vlp:chantier</span> estime mieux les suivants.</td><td class="mono">~1 fiche</td><td class="mono">—</td></tr>
           <tr><td class="mono">37</td><td><span class="mono">RCP</span> — Recompter les chantiers clos au coût juste</td><td>Le total de la feuille de route (339 340 811 tokens, 29 clos) additionne des bilans comptés avant <span class="mono">CPT</span> : sans sous-agents ni découpe aux commits ; seul <span class="mono">REP</span> est recompté (<span class="mono">CPT4</span>). <span class="mono">vlp.py cout</span> recomptera les clos qui ont des lignes <span class="mono">**Session**</span> et dont les transcripts restent sur le disque ; chaque ancien chiffre reste, marqué (énoncé renversé, <span class="mono">methode-chantier.md</span>). 🟡 Combien de transcripts restent : pas vérifié. <span class="mono">FIN</span> clos le 2026-09-24 : la découpe est juste, le recompte ne se fera qu'une fois.</td><td class="mono">~2 fiches</td><td class="mono">—</td></tr>
           <tr><td class="mono">39</td><td><span class="mono">PYT</span> — Plus d'erreur « Python est introuvable » à chaque appel d'outil</td><td>Sous Windows, les entrées <span class="mono">python3</span> de <span class="mono">hooks/hooks.json</span> échouent à chaque appel d'outil du sous-agent depuis <span class="mono">FIL2</span> : une <span class="mono">hook_non_blocking_error</span> « Python est introuvable » par appel — 7 pour 7 dans chaque essai <span class="mono">FIL3</span>, <span class="mono">PostToolUseFailure</span> compris —, deux par écriture (essai <span class="mono">SAG4</span>, l. 62-63 de sa transcription). La nuit du 2026-09-24 : 353 pour 292 appels d'outil, sur les onze sous-agents <span class="mono">CAS1</span> à <span class="mono">PLA2</span>. 🟡 Le modèle les lit-il ? Pas vérifié. Faire taire l'entrée qui échoue sans perdre la paire <span class="mono">python3</span> + <span class="mono">py</span>.</td><td class="mono">~1 fiche</td><td class="mono">—</td></tr>
-          <tr><td class="mono">40</td><td><span class="mono">MTK</span> — <span class="mono">mesure-tokens.py</span> : une docstring, et la plage en ligne de commande <span class="badge" data-etat="cours">en cours</span></td><td>Le socle de <span class="mono">SAG</span> renvoie à « sa docstring » pour la syntaxe : il n'en a pas, seulement une ligne <span class="mono">usage</span>. Sa ligne de commande n'expose pas la plage que <span class="mono">mesurer()</span> accepte : la reprise de <span class="mono">SAG3</span> s'est mesurée par un <span class="mono">py -c</span> d'une ligne entière (journal du 2026-09-24). Deux bornes, heures ou commits.</td><td class="mono">~1 fiche</td><td class="mono">—</td></tr>
-          <tr><td class="mono">41</td><td><span class="mono">PER</span> — Marquer <span class="mono">34-agent-sans-git.md:56</span>, périmé depuis <span class="mono">CPT2</span></td><td>Relevé par <span class="mono">SAG1</span> : la ligne dit que <span class="mono">mesure-tokens.py</span> ne compte pas les sous-agents ; il les compte depuis <span class="mono">CPT2</span>. Un énoncé renversé se garde, marqué (<span class="mono">methode-chantier.md</span>) : un renvoi vers <span class="mono">CPT2</span>, pas un effacement.</td><td class="mono">~0,5 fiche</td><td class="mono">—</td></tr>
           <tr><td class="mono">43</td><td><span class="mono">RAT</span> — Un <span class="mono">Read</span> raté réveille-t-il le filet ?</td><td>Reste de <span class="mono">FIL</span> : le filet tire après un <span class="mono">Read</span> réussi et après un Bash à code non nul (<span class="mono">FIL3</span>), mais un <span class="mono">Read</span> sur un fichier absent n'est pas éprouvé. La doc range dans <span class="mono">PostToolUseFailure</span> l'outil lancé qui échoue, pas l'appel refusé avant de s'exécuter (journal du 2026-09-24). S'il n'en déclenche aucun, des derniers tours de <span class="mono">Read</span> ratés laissent le sous-agent coupé muet. Un essai à plafond 10, comme <span class="mono">FIL3</span> (≈ 0,1 $).</td><td class="mono">~0,5 fiche</td><td class="mono">—</td></tr>
           <tr><td class="mono">44</td><td><span class="mono">GLO</span> — Le <span class="mono">CLAUDE.md</span> de l'utilisateur dans le sous-agent</td><td>Vu dans <span class="mono">FIL3</span> : <span class="mono">vlp:fiche</span> reçoit le <span class="mono">CLAUDE.md</span> global de l'utilisateur (attachment <span class="mono">instructions</span>) et en suit la forme — son dernier message finit par la jauge « ⚠️ Imprévu — … ». Le déplacement est vu depuis : <span class="mono">FIN2</span> (2026-09-24) ouvre son compte rendu par « ## En résumé » et la jauge « ✅ <strong>Tout va bien</strong> », son <span class="mono">FAITE</span> en 11e et dernière ligne — rattrapé par l'étape 2 de <span class="mono">/vlp:enchainer</span>. Et il pèse sur le fond : <span class="mono">PLA1</span> a commité seul, contre sa fiche — sa transcription porte 4 fois « commit par tâche ». 🟡 Ce qu'il pèse par sous-agent : pas mesuré. Mesurer d'abord ; n'agir que si ça coûte.</td><td class="mono">~0,5 fiche</td><td class="mono">—</td></tr>
           <tr><td class="mono">45</td><td><span class="mono">BAC</span> — Un bac d'essai par script</td><td><span class="mono">SAG4</span> et <span class="mono">FIL3</span> ont rebâti leur bac à la main — <span class="mono">CHANTIER.md</span>, fiches factices, fichiers —, puis compté la transcription du sous-agent par un script jetable. <span class="mono">FIL3</span> y a buté deux fois : la section <span class="mono">## L'ordre des fiches</span> exigée par le hook, et « un appel par tour », lu par Haiku comme « par exécution » (0,148 $ perdus). <span class="mono">vlp.py</span> posera le bac en un appel, et comptera la transcription : tours, avertissements du filet et l'outil qui les précède, <span class="mono">hook_non_blocking_error</span>, premier mot et <span class="mono">stop_reason</span> du dernier message. Le lancement <span class="mono">claude -p</span> reste à la main, chiffré avant.</td><td class="mono">~1 fiche</td><td class="mono">—</td></tr>
@@ -115,13 +113,19 @@
     <h2>Chantiers clos — ils ne se rejouent pas</h2>
     <!-- ZONE:clos — une ligne ajoutée à chaque clôture, la plus récente en haut -->
     <details class="clos">
-      <summary><span class="resume-clos">36 chantiers clos · ≈469,3M (469 250 320) tokens · ≈393 $</span></summary>
+      <summary><span class="resume-clos">37 chantiers clos · ≈481,4M (481 443 004) tokens · ≈403 $</span></summary>
     <div class="tableau">
       <table>
         <thead>
           <tr><th>Chantier</th><th>Fiches</th><th>Clos le</th><th>Tokens</th><th>Ce qu'il a livré</th></tr>
         </thead>
         <tbody>
+          <tr>
+            <td><a href="https://claude.ai/artifact/AQoaT856X9GdAwddf4mTrJ">mesure-tokens.py se lit et se borne en ligne de commande</a> <span class="badge" data-etat="clos">clos</span></td>
+            <td class="mono">MTK1–MTK2</td><td class="mono">2026-09-24</td>
+            <td class="mono">≈12,2M (12 192 684)</td>
+            <td>mesure-tokens.py se borne en ligne de commande : --plage DEBUT FIN, heures ISO ou commits Git, une borne illisible sort 1 ; une docstring dit la syntaxe ; la phrase périmée de 34-agent-sans-git.md est marquée d'un renvoi vers CPT2</td>
+          </tr>
           <tr>
             <td><a href="https://claude.ai/artifact/BQkFrqxxJvCnu7vn7q55TS">La plage des fiches suit le fichier</a> <span class="badge" data-etat="clos">clos</span></td>
             <td class="mono">PLA1–PLA2</td><td class="mono">2026-09-24</td>
@@ -368,7 +372,7 @@
           </tr>
         </tbody>
         <tfoot>
-          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈469,3M (469 250 320)</strong></td><td class="mono">≈393 $</td></tr>
+          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈481,4M (481 443 004)</strong></td><td class="mono">≈403 $</td></tr>
         </tfoot>
       </table>
     </div>

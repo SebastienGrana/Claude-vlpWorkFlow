@@ -4,6 +4,10 @@
 
 # Chantier MTK — mesure-tokens.py se lit et se borne en ligne de commande
 
+**CLOS** le 2026-09-24. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** MTK1..MTK2 (2026-09-24) : mesure-tokens.py se borne en ligne de commande : --plage DEBUT FIN, heures ISO ou commits Git, une borne illisible sort 1 ; une docstring dit la syntaxe ; la phrase périmée de 34-agent-sans-git.md est marquée d'un renvoi vers CPT2.
+
 **À quoi il sert.** `mesure-tokens.py` n'a pas de docstring : le socle de `SAG` y renvoyait
 pour la syntaxe, il n'y a trouvé qu'une ligne `usage`. Sa ligne de commande n'expose pas la plage
 que `mesurer()` accepte : la reprise de `SAG3` s'est mesurée par un `py -c` d'une ligne entière
