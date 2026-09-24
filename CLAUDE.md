@@ -13,11 +13,11 @@ https://github.com/SebastienGrana/Claude-vlpWorkFlow — cloné et utilisé en g
 - Équipés : Cairn-VlpLib, MapDecorator, ProjetONZSM, TrackGen — et ce kit lui-même.
 - Chaque chantier clos a sa ligne dans `context AI/00-INDEX.md`, son détail daté dans
   `context AI/08-etat.md` ; ici, les derniers seulement (`vlp.py clore` les tient).
-- Clos le 2026-09-24 : ce que vlp.py écrit, il le relit : coût négatif, ligne close sous 1 000, lettres prises et résumé passent par leur lecteur dans un test ; 11 mutants (chantier TAR).
 - Clos le 2026-09-24 : une fiche ajoutée ne fige plus de plage : page refait l'en-tête, ouvrir relancé la ligne d'index (index ~1) ; 9 mutants, et le sous-agent PLA1 a commité seul (chantier PLA).
 - Clos le 2026-09-24 : mesure-tokens.py se borne en ligne de commande : --plage DEBUT FIN, heures ISO ou commits, une borne illisible sort 1 ; une docstring ; 7 mutants, et MTK1 a écrit ses tests après le code (chantier MTK).
 - Clos le 2026-09-24 : un cadrage joué dans sa propre session compte : ouvrir note sa session en tête, cout et la page la mesurent hors fiches ; 9 mutants, et le sous-agent a commité au 80e appel, case vide (chantier CAD).
 - Clos le 2026-09-24 : un vieux chantier ne se recompte plus à zéro : sans commit de fiche, vlp.py cout et la page retombent sur ses sessions entières et le disent ; les dix touchés retrouvent leur sortie d'avant la nuit (chantier ZER).
+- Clos le 2026-09-25 : chaque FAITE d'/vlp:enchainer est relu avant son commit par un relecteur neuf : trois motifs refusent, un soupçon se rejoue, la sonde va au-delà du critère ; 4 verdicts justes sur 4 sur les témoins de la nuit, 0,50 $ la relecture (chantier REV).
 
 ## Quatre règles non négociables
 
@@ -57,7 +57,6 @@ et seulement dans ce cas, ouvrir l'index.
 | savoir où vit quoi dans un projet équipé | `methode-chantier.md`, section « Où vit quoi » |
 | toucher aux pages publiées | `ARTEFACTS.md`, puis le gabarit dans `templates/` |
 | ouvrir un chantier, ou le découper en fiches | **lancer `/vlp:chantier`** |
-| jouer une fiche du chantier REV (relire chaque fiche avant son commit) | `context AI/51-relecture.md` — chantier **ouvert**, par `/vlp:tache REV<n>` |
 | relire un chantier clos | `context AI/00-INDEX.md` — sa ligne y nomme le fichier de fiches |
 | reprendre après une longue interruption | `context AI/08-etat.md` |
 | choisir le prochain chantier du kit, ou retrouver la preuve d'un bug relevé le 2026-09-17 | `context AI/12-audit.md` |

@@ -8,8 +8,9 @@
 nuit du 2026-09-24, dix fiches de code sur dix étaient à reprendre (TODO n° 48). Un
 relecteur neuf relira chaque `FAITE` avant le commit, et un refus arrêtera la chaîne.
 
-**Fait.** `REV1` à `REV3`. `REV4` jouée une fois, critère non tenu (journal) ; redécoupé le
-2026-09-24 : `REV5` à `REV8` avant elle, `REV5` à jouer.
+**CLOS** le 2026-09-25. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** REV1..REV4 (2026-09-25) : chaque FAITE d'/vlp:enchainer relu avant son commit par un agent vlp:relecture neuf ; 4 verdicts justes sur 4 sur les témoins de la nuit, 0,50 $ la relecture.
 
 **Session** : 2f9a46f3-70ad-4145-a7c8-ada5aefa0034
 
