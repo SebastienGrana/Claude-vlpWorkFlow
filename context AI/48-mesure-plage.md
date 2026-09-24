@@ -53,8 +53,9 @@ sonde, sont connus et bénins (`08-etat.md:560`).
 ---
 
 <!-- FICHE:MTK1 -->
-## MTK1 [ ] — La plage en ligne de commande
+## MTK1 [x] — La plage en ligne de commande
 
+**Session** : 1ba64929-8274-42d4-93bb-a2d22fbdd600
 **Dépend de** : rien.
 **Fichiers** : `scripts/mesure-tokens.py` (`main`, une fonction `borne`),
 `scripts/test-mesure-tokens.py` — et rien d'autre.

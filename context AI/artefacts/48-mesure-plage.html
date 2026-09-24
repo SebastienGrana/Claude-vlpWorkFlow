@@ -68,26 +68,29 @@
     <p>--plage DEBUT FIN borne la mesure, heures ou commits ; la docstring dit la syntaxe ; la ligne périmée de 34-agent-sans-git.md est marquée.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="encours"></span><span></span>
+      <span data-etat="faite"></span><span data-etat="encours"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">2 fiches · 0 faite · en cours : MTK1</p>
+    <p class="mono" style="margin-top:.5rem">2 fiches · 1 faite · en cours : MTK2</p>
   </header>
 
   <section>
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">MTK1</span><span class="titre">La plage en ligne de commande</span>
-        <span class="etat">en cours</span>
+        <span class="etat">faite</span>
         <span class="note">borne() lit une heure ISO ou un commit ; main passe la plage à mesurer ; ne dépend de rien.</span>
+        <span class="cout mono">≈4,4M (4 360 564) · 26 tours · 1,69 $</span>
       </li>
-      <li class="fiche">
+      <li class="fiche" data-etat="encours">
         <span class="id">MTK2</span><span class="titre">Une docstring, et la ligne périmée marquée</span>
-        <span class="etat">à faire</span>
+        <span class="etat">en cours</span>
         <span class="note">une docstring de module ; la phrase périmée marquée, renvoi daté vers CPT2 ; dépend de MTK1.</span>
       </li>
     </ul>
+    <p class="mono cout-hors">Hors fiches : ≈4,1M (4 144 106) · 16 tours · 1,37 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈8,5M (8 504 670) · 42 tours · 3,06 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -104,6 +107,7 @@
     <h2>Journal des décisions</h2>
     <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
     <ul class="journal">
+      <li><time datetime="2026-09-24">2026-09-24</time><span>MTK1 : le sous-agent a écrit ses tests après le code, sans écart vu ; le chef a rejoué le mutant. Repris : un fichier suivi par Git passait pour un commit (sans --) ; sept mutants tombent.</span></li>
     </ul>
   </section>
 

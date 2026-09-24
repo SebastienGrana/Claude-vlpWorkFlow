@@ -5,6 +5,7 @@ import fnmatch
 import glob
 import json
 import os
+import subprocess
 import sys
 from decimal import ROUND_HALF_UP, Decimal
 
@@ -92,16 +93,21 @@ def est_sous_agent(chemin):
     return os.path.basename(parent) == dossier and fnmatch.fnmatch(nom, motif)
 
 
-def heure(d):
-    """L'heure d'une ligne de transcript, en secondes UTC ; None sans `timestamp` lisible."""
-    brut = d.get("timestamp")
-    if not isinstance(brut, str):
-        return None
+def lire_iso(brut):
+    """Une heure ISO 8601, `Z` compris ; None si elle ne se lit pas."""
     if brut.endswith("Z"):      # fromisoformat ne lit « Z » que depuis Python 3.11
         brut = brut[:-1] + "+00:00"
     try:
-        t = datetime.datetime.fromisoformat(brut)
+        return datetime.datetime.fromisoformat(brut)
     except ValueError:
+        return None
+
+
+def heure(d):
+    """L'heure d'une ligne de transcript, en secondes UTC ; None sans `timestamp` lisible."""
+    brut = d.get("timestamp")
+    t = lire_iso(brut) if isinstance(brut, str) else None
+    if t is None:
         return None
     if t.tzinfo is None:        # sans fuseau, l'heure se lit en UTC
         t = t.replace(tzinfo=datetime.timezone.utc)
@@ -313,12 +319,46 @@ def afficher_grille():
         print("\t".join([modele] + [str(p) for p in prix] + [str(r.normalize()) for r in ratios(prix)]))
 
 
+def borne(texte):
+    """Une borne de `--plage`, en secondes UTC : une heure ISO 8601 — sans décalage, l'heure
+    locale —, sinon un commit Git, à son heure de commit dans le dossier courant. Rend
+    (secondes, None) ou (None, erreur)."""
+    t = lire_iso(texte)
+    if t is not None:
+        return t.timestamp(), None      # sans fuseau, timestamp() lit l'heure locale
+    # `--` : le texte est une révision, jamais un chemin — un fichier suivi n'est pas une borne.
+    try:
+        r = subprocess.run(["git", "log", "-1", "--format=%ct", texte, "--"], capture_output=True, text=True)
+    except OSError:
+        return None, "ni heure ISO 8601, ni commit : git introuvable"
+    if r.returncode == 0 and r.stdout.strip().isdigit():
+        return int(r.stdout), None
+    return None, "ni heure ISO 8601, ni commit Git"
+
+
+USAGE = "usage: mesure-tokens.py [--plage DEBUT FIN] <fichier.jsonl | id de session> [...] | --grille"
+
+
 def main(argv):
     if argv == ["--grille"]:
         afficher_grille()
         return 0
+    plage = None
+    if "--plage" in argv:
+        k = argv.index("--plage")
+        textes, argv = argv[k + 1:k + 3], argv[:k] + argv[k + 3:]
+        if len(textes) < 2:
+            print(USAGE, file=sys.stderr)
+            return 1
+        plage = []
+        for texte in textes:
+            secondes, erreur = borne(texte)
+            if erreur:
+                print(f"{texte}\t{erreur}", file=sys.stderr)
+                return 1
+            plage.append(secondes)
     if not argv:
-        print("usage: mesure-tokens.py <fichier.jsonl | id de session> [...] | --grille", file=sys.stderr)
+        print(USAGE, file=sys.stderr)
         return 1
 
     resultats = []
@@ -335,7 +375,7 @@ def main(argv):
             print(f"{nom}\tdéjà compté : passé plus d'une fois, compté une", file=sys.stderr)
             return False
         vus.add(cle)
-        r, erreur = mesurer(chemin)
+        r, erreur = mesurer(chemin, plage)
         if erreur:
             print(f"{nom}\t{erreur}", file=sys.stderr)
             return True

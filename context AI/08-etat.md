@@ -240,6 +240,19 @@ tous retirés, venaient de `12-audit.md` ; 31 à 34, de la clôture de `REP` ; 3
 Une ligne par décision imprévue tranchée en cours de fiche — jamais un résumé
 de ce que le code dit déjà.
 
+- **2026-09-24** — MTK1, relue par le chef : `FAITE` en premier mot, case cochée (appel 12 sur
+  12), aucun commit — mais **tests écrits après le code** (appels 4 à 6 le code, 7 à 9 les
+  tests), jamais lancés sur le code d'avant : aucun écart vu ni cité. Première fiche de code sur
+  six à sauter la règle depuis `FIN` (`TAR1` à `PLA2` l'ont tenue). Le chef a rejoué le mutant :
+  le code d'avant rend la session entière, `(tours, total) = ('4', '2222')`. Repris : sans `--`,
+  `git log` lisait un **fichier suivi** comme un chemin et rendait l'heure de son dernier commit
+  (essayé : `f` → 1790000000) ; l'erreur répétait le texte fautif ; la ligne `usage` était écrite
+  deux fois ; ses tests (88 lignes) ne vérifiaient pas `tours`. `borne` passe `--`, dit « ni heure
+  ISO 8601, ni commit Git » ; `lire_iso` lit `Z` pour `heure` et `borne` (Python < 3.11) ; tests
+  resserrés en 40 lignes, un fichier suivi et une plage incomplète après la session en plus. Sept
+  mutants tombent, le code d'avant compris ; la plage incomplète acceptée tombe par `IndexError`,
+  pas par un écart nommé. 18 `hook_non_blocking_error` pour 12 appels. Transcription :
+  `…/subagents/agent-a30c38bc0e301159b.jsonl`.
 - **2026-09-24** — PLA2, relue par le chef : `FAITE` en premier mot, case cochée (appel 23 sur
   23), aucun commit ; test écrit d'abord (`ÉCART: ouvrir : relancé, la plage de l'index suit le
   fichier`, appel 7) — le compte rendu en cite le contenu, pas la ligne. Repris : sa ligne d'index

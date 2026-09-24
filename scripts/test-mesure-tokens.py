@@ -10,6 +10,7 @@ import importlib.util
 import io
 import json
 import os
+import subprocess
 import sys
 import tempfile
 from decimal import ROUND_HALF_UP, Decimal
@@ -308,6 +309,50 @@ def verifier_chemin_long():
     return None
 
 
+def verifier_plage_cli():
+    """`--plage DEBUT FIN` : bornes en heures ISO, UTC ou locales, ou en commits Git ; une borne
+    illisible — un fichier suivi par Git compris — ou une plage incomplète sort 1."""
+    def lancer(*argv):
+        sortie, erreurs = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(sortie), contextlib.redirect_stderr(erreurs):
+            code = mod.main(list(argv))
+        lignes = [l.split("\t") for l in sortie.getvalue().splitlines()]
+        ligne = next((dict(zip(mod.COLONNES, l[1:])) for l in lignes if l[0] == "sess-p.jsonl"), {})
+        return code, (ligne.get("tours"), ligne.get("total")), erreurs.getvalue()
+
+    locale = lambda m: (ORIGINE + datetime.timedelta(minutes=m)).astimezone().replace(tzinfo=None).isoformat()
+    with tempfile.TemporaryDirectory() as tmp:
+        ecrire(os.path.join(tmp, ".claude", "projects", "projet-x", "sess-p.jsonl"), LIGNES_PLAGE)
+        ecrire(os.path.join(tmp, "suivi.txt"), ["x"])
+        # Deux commits datés -60 et +15 minutes ; le premier suit `suivi.txt`.
+        git = ["git", "-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false"]
+        subprocess.run(git + ["init", "-q"], cwd=tmp, capture_output=True)
+        subprocess.run(git + ["add", "suivi.txt"], cwd=tmp, capture_output=True)
+        for m in (-60, 15):
+            date = "%d +0000" % sec(m)
+            subprocess.run(git + ["commit", "-q", "--allow-empty", "-m", str(m)], cwd=tmp, capture_output=True,
+                           env=dict(os.environ, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date))
+        ancien = os.getcwd()
+        os.chdir(tmp)
+        try:
+            with home(tmp):
+                for nom, bornes in (("heures UTC", (iso(-60), iso(15))), ("heures locales", (locale(-60), locale(15))),
+                                    ("commits", ("HEAD~1", "HEAD"))):
+                    code, ligne, erreurs = lancer("--plage", *bornes, "sess-p")
+                    if code != 0 or ligne != ("3", "2022"):
+                        return f"--plage en {nom} : code {code}, (tours, total) = {ligne}, stderr {erreurs!r}"
+                for nom, texte in (("borne illisible", "ni-heure-ni-commit"), ("fichier suivi par Git", "suivi.txt")):
+                    code, _, erreurs = lancer("--plage", texte, "HEAD", "sess-p")
+                    if code != 1 or texte not in erreurs:
+                        return f"--plage, {nom} : code {code}, stderr {erreurs!r}"
+                code, _, _ = lancer("sess-p", "--plage", iso(0))
+                if code != 1:
+                    return f"--plage incomplète : code {code}"
+        finally:
+            os.chdir(ancien)
+    return None
+
+
 def main():
     for nom, lignes, attendu, *options in [
         ("trois-tours", LIGNES, ATTENDU),
@@ -320,7 +365,7 @@ def main():
         if ecart:
             print(ecart)
             return 1
-    for bloc in (verifier_resolution, verifier_sous_agents, verifier_chemin_long):
+    for bloc in (verifier_resolution, verifier_sous_agents, verifier_chemin_long, verifier_plage_cli):
         ecart = bloc()
         if ecart:
             print(ecart)
