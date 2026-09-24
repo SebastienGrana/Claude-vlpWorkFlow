@@ -274,6 +274,35 @@ celle de `FIL` ; 48 à 51, de celle de `FIN` ; 52, des clôtures de la nuit du
 Une ligne par décision imprévue tranchée en cours de fiche — jamais un résumé
 de ce que le code dit déjà.
 
+- **2026-09-24** — REV4, jouée à la main par le chef : les six témoins relus par `vlp:relecture`,
+  un à un. Après chacun : `git status` propre, `HEAD` inchangé, `git worktree list` inchangé
+  (deux lignes dès le départ : `.claude/worktrees/hopeful-brattain-2284cd`, un worktree de l'app),
+  0 dossier `vlp-relecture-*` neuf dans `%TEMP%`.
+
+  | Commit | Verdict | Défauts nommés | Défaut des témoins retrouvé | Tours | Tokens | $ |
+  |---|---|---|---|---|---|---|
+  | `CAD1 e41925c` | `REFUSÉE` | 11 — session dans le bloc de la fiche, et en double ; 3 mutants survivent ; 2 docstrings ; case vide | oui, les deux, en motif | 18 | 1 824 622 | 1,98 |
+  | `PLA1 eb2a6b0` | `REFUSÉE` | test hors fiche ; regex `[^·]*` | oui, en remarque : le mutant de `creer` rend `OK` | 18 | 1 167 165 | 1,52 |
+  | `VAL1 72035f2` | `REFUSÉE` | hook qui sort 1 (en-tête YAML de `skills/chantier/SKILL.md`) ; `marketplace.json` nommé ; case vide | en partie : `claude_exe` et README en remarques ; commentaire et message manqués | 9 | 469 188 | 1,31 |
+  | `CAD1 8bb748d` | `REFUSÉE` | ni `try` ni `finally` ; `pop` en tête de suite ; `HORS FICHE` du journal | non — corrigé, son mutant tombe | 22 | 2 508 041 | 2,72 |
+  | `PLA1 7d16873` | `REFUSÉE` | plage facultative (« fiches à venir » → « fiches PLA1–PLA2à venir ») ; test hors fiche | non — corrigé, et la correction crée ce défaut | 10 | 789 428 | 1,74 |
+  | `VAL1 c5123af` | `REFUSÉE` | commit propre refusé en CRLF ; `marketplace.json` nommé ; message « introuvable » réécrit ; `HORS FICHE` du journal | non — corrigé | 8 | 466 092 | 1,43 |
+
+  Six relectures : 85 tours, 7 224 536 tokens, 10,70 $, soit 1,78 $ l'une — contre 1,18 $ la fiche
+  pour la reprise de la nuit (16,51 $ pour 14 fiches, n° 48). Extrapolé après la première : 9,90 $
+  pour les cinq autres ; mesuré : 8,72 $. **Critère non tenu** : 3 fautifs refusés sur 3, un seul
+  pour le défaut de sa ligne ; 0 corrigé accepté sur 3. Causes : le `HORS FICHE` du fichier d'état,
+  que la méthode prévoit (motif deux fois, remarque une fois) ; la lettre de la fiche — le message
+  de `VAL1`, la fiche le voulait inchangé ; et deux bugs que le chef n'avait pas vus, toujours dans
+  `HEAD` : `scripts/vlp.py:1457` (latent, aucune page touchée) et le hook, qui refuse un commit
+  propre sur une copie en CRLF (`core.autocrlf` vaut `true` ici ; un clone neuf n'est pas rejoué).
+  Pour ce hook, la relecture de `72035f2` accuse le « : » de la description, celle de `c5123af` les
+  fins de ligne, octets comparés et code 0 en LF : seule la seconde est prouvée. Transcriptions :
+  `dbf37a72-d55e-44f2-8cb7-9d3731712ba1/subagents/`. Décidé avec l'utilisateur : REV4 reste
+  ouverte, sa séance notée par une ligne **Session** posée à la main — `cocher` ne la pose pas
+  sans cocher ; quatre fiches à cadrer par `/vlp:chantier`, le hook en CRLF d'abord, puis la
+  regex `:1457`, le fichier d'état admis par `relecture`, une règle « refuser ou remarquer » dans
+  `enchainement.md` ; puis REV4 rejouée sur les trois corrigés (≈ 5,89 $), critère réécrit.
 - **2026-09-24** — REV3, jouée à la main par le chef. Tranché hors fiche : l'agent
   `vlp:relecture` ne change jamais de dossier — `relecture` cherche le projet depuis le
   dossier courant, et Windows ne retire pas un worktree où l'on se tient ; pas d'`effort`,

@@ -202,6 +202,7 @@ de la fiche passe le hook `pre-commit`, qui valide les manifestes.
 <!-- FICHE:REV4 -->
 ## REV4 [ ] — Prouver la relecture sur les commits de la nuit
 
+**Session** : dbf37a72-d55e-44f2-8cb7-9d3731712ba1
 **Dépend de** : `REV3`.
 **Fichiers** : `context AI/08-etat.md` (une entrée au journal) — et rien d'autre.
 
