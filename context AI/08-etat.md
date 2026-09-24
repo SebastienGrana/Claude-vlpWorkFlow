@@ -163,6 +163,14 @@
   un commit par tâche (cause probable, pas prouvée) ; `agents/fiche.md` le lui interdit depuis
   `CAS2`, pas encore éprouvé. Dans `CAS2`, la fiche disait « Tu ne commites pas » : aucun commit.
   Cadré et joué seul, la nuit, l'utilisateur dormant. 10 041 615 tokens.
+- **2026-09-24** — chantier VAL clos (TODO n° 34) : le contrôle avant commit ne se saute plus.
+  Sans `claude` dans le PATH, `.githooks/pre-commit` prend le `claude.exe` de l'app (la plus haute
+  version, `sort -V`) et valide vraiment les deux manifestes ; un `plugin.json` réduit à `{` refuse
+  le commit (code 1). Le hook prend 1 755 · 1 846 · 1 948 ms au lieu de 147 ms. Imprévu : la règle
+  de CAS a servi dès la fiche suivante (`FAITE`, case vide, lue comme un `RETOUR`) ; le sous-agent
+  a encore commité, poussé cette fois par le critère — un clone prend le hook de `HEAD`. Cadré et
+  joué seul, la nuit. 5 647 906 tokens, recomptés par plage : `vlp.py cout` en rend 17 185 705,
+  CAS compris, car son « hors fiches » part du début de la session.
 
 ## La TODO ordonnée — les chantiers possibles
 
@@ -175,7 +183,6 @@ tous retirés, venaient de `12-audit.md` ; 31 à 34, de la clôture de `REP` ; 3
 | # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |
 |---|---|---|---|---|
 | 33 | `TAR` — Un test aller-retour par format écrit | Deux fois le même défaut dans `REP` : les chevrons d'une URL (`REP2`), puis la ligne `? $` (`CPT`) — `vlp.py` écrit un format qu'il ne sait pas relire. Un test écrit puis relit chaque format : ligne de coût, ligne close, rang de TODO, zone « en cours ». | ~2 fiches | — |
-| 34 | `VAL` — Le contrôle avant commit ne se saute plus | À chaque commit du 2026-09-23 : « pre-commit : claude introuvable dans le PATH, validate sauté ». Le hook cherchera aussi le `claude.exe` de l'app, comme le fait `34-agent-sans-git.md`. | ~1 fiche | — |
 | 35 | `FIN` — Le coût juste jusqu'à la clôture | Trois bords vus à la clôture de `CPT`. Le total gardé au bilan ne compte pas la clôture, faute de commit au moment de la mesure (`CPT` : 19 266 526 sans elle). La page close garde le coût de sa dernière fiche mesuré avant son commit : `CPT4` y affiche 5 087 135, 6 048 820 au commit. Un tour joué dans une session après le commit de sa fiche compte à la suivante (`CPT4` : 30 tours à la mesure, 28 dans sa session). Piste : à la clôture, `cout` compte hors fiches jusqu'au bout du transcript, et `clore` régénère les coûts de la page. | ~2 fiches | — |
 | 36 | `EST` — L'estimé face au réel, à chaque clôture | La TODO estime chaque chantier ; rien ne compare ensuite. `CPT`, estimé « ~2 fiches », en a joué 4. Le bilan de clôture écrira l'estimé à côté du réel — fiches jouées, tokens —, pour que `/vlp:chantier` estime mieux les suivants. | ~1 fiche | — |
 | 37 | `RCP` — Recompter les chantiers clos au coût juste | Le total de la feuille de route (339 340 811 tokens, 29 clos) additionne des bilans comptés avant `CPT` : sans sous-agents ni découpe aux commits ; seul `REP` est recompté (`CPT4`). `vlp.py cout` recomptera les clos qui ont des lignes `**Session**` et dont les transcripts restent sur le disque ; chaque ancien chiffre reste, marqué (énoncé renversé, `methode-chantier.md`). 🟡 Combien de transcripts restent : pas vérifié. Après `FIN`, pour ne recompter qu'une fois. | ~2 fiches | `FIN` |

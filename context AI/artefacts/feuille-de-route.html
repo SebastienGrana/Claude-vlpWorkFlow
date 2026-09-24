@@ -73,8 +73,8 @@
     <!-- ZONE:encours — remplacé à chaque ouverture, remis à « aucun » à chaque clôture.
          /tache n'y touche pas : l'avancement fiche par fiche est sur la page du chantier. -->
     <div class="encours">
-      <div class="titre">Le contrôle avant commit ne se saute plus <span class="badge" data-etat="cours">en cours</span></div>
-      <div>Fiches <span class="mono">VAL1</span> — <a href="https://claude.ai/artifact/9UtnkEizPx5Td2M6tgVo9n">la page du chantier</a></div>
+      <div class="titre">Aucun chantier ouvert</div>
+      <div>Lancer <span class="mono">/vlp:chantier</span> pour en ouvrir un.</div>
     </div>
   </section>
 
@@ -88,7 +88,6 @@
         </thead>
         <tbody>
           <tr><td class="mono">33</td><td><span class="mono">TAR</span> — Un test aller-retour par format écrit</td><td>Deux fois le même défaut dans <span class="mono">REP</span> : les chevrons d'une URL (<span class="mono">REP2</span>), puis la ligne <span class="mono">? $</span> (<span class="mono">CPT</span>) — <span class="mono">vlp.py</span> écrit un format qu'il ne sait pas relire. Un test écrit puis relit chaque format : ligne de coût, ligne close, rang de TODO, zone « en cours ».</td><td class="mono">~2 fiches</td><td class="mono">—</td></tr>
-          <tr><td class="mono">34</td><td><span class="mono">VAL</span> — Le contrôle avant commit ne se saute plus <span class="badge" data-etat="cours">en cours</span></td><td>À chaque commit du 2026-09-23 : « pre-commit : claude introuvable dans le PATH, validate sauté ». Le hook cherchera aussi le <span class="mono">claude.exe</span> de l'app, comme le fait <span class="mono">34-agent-sans-git.md</span>.</td><td class="mono">~1 fiche</td><td class="mono">—</td></tr>
           <tr><td class="mono">35</td><td><span class="mono">FIN</span> — Le coût juste jusqu'à la clôture</td><td>Trois bords vus à la clôture de <span class="mono">CPT</span>. Le total gardé au bilan ne compte pas la clôture, faute de commit au moment de la mesure (<span class="mono">CPT</span> : 19 266 526 sans elle). La page close garde le coût de sa dernière fiche mesuré avant son commit : <span class="mono">CPT4</span> y affiche 5 087 135, 6 048 820 au commit. Un tour joué dans une session après le commit de sa fiche compte à la suivante (<span class="mono">CPT4</span> : 30 tours à la mesure, 28 dans sa session). Piste : à la clôture, <span class="mono">cout</span> compte hors fiches jusqu'au bout du transcript, et <span class="mono">clore</span> régénère les coûts de la page.</td><td class="mono">~2 fiches</td><td class="mono">—</td></tr>
           <tr><td class="mono">36</td><td><span class="mono">EST</span> — L'estimé face au réel, à chaque clôture</td><td>La TODO estime chaque chantier ; rien ne compare ensuite. <span class="mono">CPT</span>, estimé « ~2 fiches », en a joué 4. Le bilan de clôture écrira l'estimé à côté du réel — fiches jouées, tokens —, pour que <span class="mono">/vlp:chantier</span> estime mieux les suivants.</td><td class="mono">~1 fiche</td><td class="mono">—</td></tr>
           <tr><td class="mono">37</td><td><span class="mono">RCP</span> — Recompter les chantiers clos au coût juste</td><td>Le total de la feuille de route (339 340 811 tokens, 29 clos) additionne des bilans comptés avant <span class="mono">CPT</span> : sans sous-agents ni découpe aux commits ; seul <span class="mono">REP</span> est recompté (<span class="mono">CPT4</span>). <span class="mono">vlp.py cout</span> recomptera les clos qui ont des lignes <span class="mono">**Session**</span> et dont les transcripts restent sur le disque ; chaque ancien chiffre reste, marqué (énoncé renversé, <span class="mono">methode-chantier.md</span>). 🟡 Combien de transcripts restent : pas vérifié. Après <span class="mono">FIN</span>, pour ne recompter qu'une fois.</td><td class="mono">~2 fiches</td><td class="mono"><span class="mono">FIN</span></td></tr>
@@ -116,13 +115,19 @@
     <h2>Chantiers clos — ils ne se rejouent pas</h2>
     <!-- ZONE:clos — une ligne ajoutée à chaque clôture, la plus récente en haut -->
     <details class="clos">
-      <summary><span class="resume-clos">32 chantiers clos · ≈412,1M (412 149 155) tokens · ≈345 $</span></summary>
+      <summary><span class="resume-clos">33 chantiers clos · ≈417,8M (417 797 061) tokens · ≈350 $</span></summary>
     <div class="tableau">
       <table>
         <thead>
           <tr><th>Chantier</th><th>Fiches</th><th>Clos le</th><th>Tokens</th><th>Ce qu'il a livré</th></tr>
         </thead>
         <tbody>
+          <tr>
+            <td><a href="https://claude.ai/artifact/9UtnkEizPx5Td2M6tgVo9n">Le contrôle avant commit ne se saute plus</a> <span class="badge" data-etat="clos">clos</span></td>
+            <td class="mono">VAL1</td><td class="mono">2026-09-24</td>
+            <td class="mono">≈5,6M (5 647 906)</td>
+            <td>Sans claude dans le PATH, le hook avant commit prend le claude.exe de l'app et valide vraiment les manifestes ; un manifeste cassé refuse le commit</td>
+          </tr>
           <tr>
             <td><a href="https://claude.ai/artifact/5MFYDtrUDQH2qVdgdiA32p">Le chef relit la case avant de commiter</a> <span class="badge" data-etat="clos">clos</span></td>
             <td class="mono">CAS1–CAS2</td><td class="mono">2026-09-24</td>
@@ -345,7 +350,7 @@
           </tr>
         </tbody>
         <tfoot>
-          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈412,1M (412 149 155)</strong></td><td class="mono">≈345 $</td></tr>
+          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈417,8M (417 797 061)</strong></td><td class="mono">≈350 $</td></tr>
         </tfoot>
       </table>
     </div>

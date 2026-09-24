@@ -8,7 +8,9 @@
 PATH, validate sauté » : `claude` n'est pas dans le PATH de ce poste, seul le `claude.exe` de
 l'app existe. Le hook le cherchera, et validera vraiment les manifestes.
 
-**Fait.** Rien. Ouvert le 2026-09-24, cadré en 1 fiche, `VAL1` à jouer.
+**CLOS** le 2026-09-24. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** VAL1..VAL1 (2026-09-24) : Sans claude dans le PATH, le hook avant commit prend le claude.exe de l'app et valide vraiment les manifestes ; un manifeste cassé refuse le commit.
 
 ## Le socle commun
 
