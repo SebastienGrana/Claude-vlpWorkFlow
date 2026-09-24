@@ -161,8 +161,9 @@ lignes exactes ; un second refus donne `2.`, un seul `**Tentatives**`, un seul
 ---
 
 <!-- FICHE:REV3 -->
-## REV3 [ ] — Écrire le relecteur et le brancher
+## REV3 [x] — Écrire le relecteur et le brancher
 
+**Session** : 2f9a46f3-70ad-4145-a7c8-ada5aefa0034
 **Dépend de** : `REV1`, `REV2`.
 **Fichiers** : `enchainement.md`, `agents/relecture.md` (nouveau),
 `skills/relire/SKILL.md` (nouveau), `skills/enchainer/SKILL.md` (étape 3),

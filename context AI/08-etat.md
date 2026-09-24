@@ -274,6 +274,14 @@ celle de `FIL` ; 48 à 51, de celle de `FIN` ; 52, des clôtures de la nuit du
 Une ligne par décision imprévue tranchée en cours de fiche — jamais un résumé
 de ce que le code dit déjà.
 
+- **2026-09-24** — REV3, jouée à la main par le chef. Tranché hors fiche : l'agent
+  `vlp:relecture` ne change jamais de dossier — `relecture` cherche le projet depuis le
+  dossier courant, et Windows ne retire pas un worktree où l'on se tient ; pas d'`effort`,
+  celui du modèle (`fiche.md` dit `low`) ; la `GARDE:` se traite dans la skill, comme pour
+  `vlp:jouer`. Deux limites connues : `maxTurns: 80` est recopié de `fiche.md` — un
+  frontmatter ne renvoie pas —, et le hook `filet` ne prévient que les agents `fiche`,
+  d'où « réserve un tour pour le verdict ». `claude plugin validate` sur le dossier ne lit
+  que `marketplace.json` : l'agent ne se prouve qu'en tournant, à REV4.
 - **2026-09-24** — REV2, jouée à la main par le chef. Tranché hors fiche : un bloc
   **Tentatives** « résolu par » que rouvre un refus redevient « non résolu », daté du refus ;
   `--verifier` et `--refuser` s'excluent. Les deux tests existants de `--verifier` prennent la

@@ -176,7 +176,8 @@ par un `git revert` au lieu d'une reconstitution à la main.
 ne se reprend pas. `cloture.md` le porte.
 
 Le sous-agent de `/vlp:enchainer` ne commite pas — il n'a ni le contexte ni le
-droit : c'est le chef qui commite, après chaque `FAITE`.
+droit : c'est le chef qui commite, après chaque `FAITE` accepté à la relecture
+(`enchainement.md`, « Relecture »).
 
 ## Où vit quoi — les six familles, et rien d'autre
 
