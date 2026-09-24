@@ -292,7 +292,10 @@ Quatre exigences, apprises en cassant :
    prouve rien, un test creux passe aussi (`FIN1`, puis `FIN2` alors que son
    test était nommé avec ses valeurs, 2026-09-24). Un critère joué dans un
    clone y copie d'abord le fichier modifié : un clone part du dernier commit,
-   et sans la copie le sous-agent commite pour l'y faire entrer (`VAL1`).
+   et sans la copie le sous-agent commite pour l'y faire entrer (`VAL1`). Un
+   critère qui prouve un juge — relecteur, eval — écrit son attendu selon les
+   règles de ce juge, et le juge ne voit rien qui raconte la suite : un attendu
+   contraire à la règle, ou un juge qui a lu la réponse, ne prouvent rien (`REV4`).
 4. **Les fiches sont indépendantes autant que possible** ; les dépendances
    réelles sont écrites, pas devinées.
 
