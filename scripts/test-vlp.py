@@ -834,6 +834,10 @@ with tempfile.TemporaryDirectory() as t:
         verifier("cocher : déjà cochée, refus sans écrire", code == 1 and s == "GARDE: U1 déjà cochée — rien écrit\n"
                  and lire(f) == avant, s)
         verifier("cocher : fiche introuvable", appel(["cocher", f, "U9"]) == (1, "GARDE: fiche introuvable : U9\n"), appel(["cocher", f, "U9"]))
+        verifier("cocher --verifier : cochée", appel(["cocher", f, "U1", "--verifier"]) == (0, "CASE U1 [x]\n"), appel(["cocher", f, "U1", "--verifier"]))
+        avant2 = lire(f)
+        verifier("cocher --verifier : non cochée, pas d'écriture", appel(["cocher", f, "U2", "--verifier"]) == (1, "CASE U2 [ ]\n") and lire(f) == avant2, appel(["cocher", f, "U2", "--verifier"]))
+        verifier("cocher --verifier : fiche introuvable", appel(["cocher", f, "U9", "--verifier"]) == (1, "GARDE: fiche introuvable : U9\n"), appel(["cocher", f, "U9", "--verifier"]))
         os.environ["CLAUDE_CODE_SESSION_ID"] = ""
         code, s = appel(["cocher", f, "U2"])
         verifier("cocher : id vide, pas de ligne Session", code == 0 and s == "COCHÉ U2 · Session absente\n"

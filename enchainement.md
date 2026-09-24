@@ -6,7 +6,7 @@ L'agent `vlp:fiche` rend un compte rendu dont le **premier mot** est l'un des
 trois statuts suivants — rien devant, et le détail sur la même ligne.
 
 - `FAITE` — critère de fin constaté, avec ses comptes bruts (voir `methode-chantier.md`) ; case cochée.
-  Jamais sur une fiche `(visuel)` : le chef l'y lit comme un `RETOUR`.
+  Jamais sur une fiche `(visuel)`, ni case vide : le chef l'y lit comme un `RETOUR`.
 - `RETOUR` — ce qu'elle attend d'un humain et pourquoi ; case non cochée.
 - `BLOQUÉE` — deux tentatives épuisées, erreur brute ; bloc Tentatives écrit.
 

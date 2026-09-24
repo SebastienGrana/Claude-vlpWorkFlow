@@ -41,12 +41,13 @@ Sous-commandes :
   (le parent de `scripts/`) : remplace un `cat` hors du projet, que PowerShell
   refuse. Hors du kit : `GARDE:` ; absent : `ABSENT <chemin>` ; l'un ou l'autre
   sort 1, les autres fichiers sont imprimés.
-- `cocher <fichier> <fiche> [--resolu T] [--date D]` — `[ ]` → `[x]` sur le titre
+- `cocher <fichier> <fiche> [--resolu T] [--date D] [--verifier]` — `[ ]` → `[x]` sur le titre
   de la fiche et, si `CLAUDE_CODE_SESSION_ID` n'est pas vide, `**Session** : <id>`
   avant sa ligne `**Dépend de**` (déjà là : pas redoublée) ; `--resolu` réduit
   un bloc `**Tentatives**` à `**Tentatives** (<date>) — résolu par : T`.
   `COCHÉ <fiche> · Session <id|absente>`. Introuvable ou déjà cochée : `GARDE:`,
-  rien écrit, sort 1.
+  rien écrit, sort 1. `--verifier` : lit l'état de la case sans écrire, sort 0 si
+  cochée, sort 1 sinon.
 - `page <fichier> [<page.html>]` — régénère la page du chantier depuis le fichier
   de fiches : états, avancement, comptage, coûts (`**Session**`), date. Les coûts
   se coupent aux commits `<ID> :` (`git log`), sous-agents compris, plus une ligne
@@ -453,6 +454,10 @@ def cmd_cocher(a, sortie):
     if debut is None:
         sortie.write("GARDE: fiche introuvable : %s\n" % a.fiche)
         return 1
+    if a.verifier:
+        cocher = lignes[debut].startswith("## %s [x]" % a.fiche)
+        sortie.write("CASE %s [%s]\n" % (a.fiche, "x" if cocher else " "))
+        return 0 if cocher else 1
     if not lignes[debut].startswith("## %s [ ]" % a.fiche):
         sortie.write("GARDE: %s déjà cochée — rien écrit\n" % a.fiche)
         return 1
@@ -2208,6 +2213,7 @@ def main(argv, sortie=None, entree=None, erreur=None):
     co2.add_argument("fiche")
     co2.add_argument("--resolu")
     co2.add_argument("--date")
+    co2.add_argument("--verifier", action="store_true")
     a = p.parse_args(argv)
     try:
         return repartir(a, sortie, entree, erreur)

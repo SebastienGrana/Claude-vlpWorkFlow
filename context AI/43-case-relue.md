@@ -43,8 +43,9 @@ Une seule fiche : rien à paralléliser.
 ---
 
 <!-- FICHE:CAS1 -->
-## CAS1 [ ] — Relire la case avant de commiter
+## CAS1 [x] — Relire la case avant de commiter
 
+**Session** : 1ba64929-8274-42d4-93bb-a2d22fbdd600
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py` (docstring, `cmd_cocher`, `main`), `scripts/test-vlp.py`
 (tests de `cocher`, section « chantier U »), `skills/enchainer/SKILL.md` (étape 3),
