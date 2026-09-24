@@ -115,8 +115,9 @@ feuille, `total_clos` rend toujours 439 668 779 :
 <!-- /FICHE -->
 
 <!-- FICHE:TAR3 -->
-## TAR3 [ ] — Lettres prises et résumé : relus comme `clore` les écrit
+## TAR3 [x] — Lettres prises et résumé : relus comme `clore` les écrit
 
+**Session** : 1ba64929-8274-42d4-93bb-a2d22fbdd600
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py` (`lettres_prises`, `resume_claude`), `scripts/test-vlp.py` — et
 rien d'autre.

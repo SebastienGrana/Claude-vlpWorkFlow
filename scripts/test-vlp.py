@@ -771,6 +771,11 @@ with tempfile.TemporaryDirectory() as t:
              and mod.CLOS_GARDES == 5 and not any("(chantier B)" in l for l in cl3) and cl3[:3] == ["## Où on en est", "- Prouvé : x.", "  puis vieux (chantier A) ;"]
              and sum(1 for l in cl3 if l.startswith("- Clos le")) == 5 and cl3[-3] == "- Clos le 2026-01-09 : g (chantier G).", cl3)
     verifier("résumé : section absente, garde", not mod.resume_claude(["# x"], "Q", "b", "d", g) and g and "Où on en est" in g[0], g)
+    cl4, g4 = ["## Où on en est", "- Clos le 2026-01-01 : a (chantier E)."], []
+    verifier("résumé : sur une ligne, relu par ENTREE_CLOS",
+             mod.resume_claude(cl4, "Q", "deux lignes\nici.\n", "2026-09-24", g4)
+             and cl4[-1] == "- Clos le 2026-09-24 : deux lignes ici (chantier Q)."
+             and bool(mod.ENTREE_CLOS.match(cl4[-1])) and not g4, repr(cl4[-1]))
     verifier("clore : Fait. remplacé", "**Fait.** Q1..Q2 (2026-05-06) : Livré `a` <b>.\n" in fiches_lues and "**Fait.** Rien." not in fiches_lues, fiches_lues)
     verifier("clore : index clos", "| `30-q.md` | on relit le socle du chantier Q — **clos** « Un (vrai) titre », `Q1..Q2` |\n" == lire(os.path.join(t, "ctx", "00-INDEX.md")).split("---|\n")[1], lire(os.path.join(t, "ctx", "00-INDEX.md")))
     verifier("clore : routage ouvert retiré, une ligne vers l'index", "|---|---|\n| relire un chantier clos | `ctx/00-INDEX.md` — sa ligne y nomme le fichier de fiches |\n| relire le chantier E" in lire(os.path.join(t, "CLAUDE.md"))
@@ -1035,6 +1040,10 @@ with tempfile.TemporaryDirectory() as t:
     lettres3 = mod.lettres_prises(CHANTIER_3.splitlines())
     verifier("3 lettres : lettres prises, une et trois lettres mêlées",
              lettres3 == ["Z", "RNV"], repr(lettres3))
+
+    prises = [mod.lettres_prises(["Lettres de fiche déjà prises : %s Un nouveau chantier en choisit une autre." % e])
+              for e in ("E (Un), Q (Tests, CI (rapide)).", "A.", "aucune.")]
+    verifier("lettres prises : titre à virgule, lettre sans titre", prises == [["E", "Q"], ["A"], []], repr(prises))
 
     verifier("3 lettres : lettre_de isole le préfixe",
              (mod.lettre_de("RNV12"), mod.lettre_de("Z3")) == ("RNV", "Z"),

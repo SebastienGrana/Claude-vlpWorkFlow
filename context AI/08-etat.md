@@ -220,6 +220,16 @@ tous retirés, venaient de `12-audit.md` ; 31 à 34, de la clôture de `REP` ; 3
 Une ligne par décision imprévue tranchée en cours de fiche — jamais un résumé
 de ce que le code dit déjà.
 
+- **2026-09-24** — TAR3, relue par le chef : `FAITE` en premier mot, sur une seule ligne ; case
+  cochée (appel 34 sur 34), aucun commit ; tests écrits d'abord, tels que nommés. Repris : son
+  `lettres_prises` (45 lignes, caractère par caractère) acceptait `A1` (`isupper`) et une lettre
+  suivie de n'importe quel mot ; réécrit en 17 lignes, la regex de la fiche (` (` ou la fin) sur
+  des entrées coupées hors parenthèses. Son `resume_claude` réduisait les blancs **après**
+  `rstrip(".")` : « ici.\n » aurait écrit « ici.  (chantier Q). » ; l'ordre inversé, et le test
+  le prend (« deux lignes\nici.\n »). Quatre mutants tombent chacun sur son test, l'ordre du
+  sous-agent compris. Le vrai `CHANTIER.md` : `lettres 35 · identique`. 39
+  `hook_non_blocking_error` pour 34 appels. Transcription : `…/subagents/agent-ab1cc2f79f30e5669.jsonl`.
+
 - **2026-09-24** — TAR2, relue par le chef : `FAITE` en premier mot, suivi d'un « En résumé »
   et de la jauge du `CLAUDE.md` de l'utilisateur (n° 44 `GLO`) ; case cochée (appel 17 sur 17),
   aucun commit ; tests écrits d'abord, tels que nommés. Retouches : `total_clos` ramené à une

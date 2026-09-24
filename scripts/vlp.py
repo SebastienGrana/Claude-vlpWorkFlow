@@ -1407,12 +1407,23 @@ def lettre_de(id_fiche):
 
 
 def lettres_prises(lignes):
+    """Les lettres de la ligne « Lettres de fiche déjà prises » : une par entrée, `X (titre)`
+    ou `X` seule ; les entrées se séparent aux virgules hors parenthèses, et un titre à
+    virgule n'en ajoute pas (chantier TAR)."""
     texte = " ".join(l for l in lignes if l.strip())
     i = texte.find("Lettres de fiche déjà prises")
     if i < 0:
         return []
     fin = texte.find("Un nouveau chantier", i)
-    return re.findall(r"(?:: |, )([A-Z]{1,3}) \(", texte[i:fin if fin > 0 else None])
+    liste = texte[i:fin if fin > 0 else None].split(":", 1)[-1]
+    entrees, profondeur, debut = [], 0, 0
+    for k, c in enumerate(liste):
+        profondeur += {"(": 1, ")": -1}.get(c, 0)
+        if c == "," and not profondeur:
+            entrees.append(liste[debut:k])
+            debut = k + 1
+    entrees.append(liste[debut:])
+    return [m.group(1) for m in (re.match(r"\s*([A-Z]{1,3})(?: \(|\.?\s*$)", e) for e in entrees) if m]
 
 
 def plage(ids):
@@ -1884,7 +1895,8 @@ def resume_claude(cl, lettre, texte, date, gardes):
     if any("(chantier %s)" % lettre in l for l in cl[debut:fin]):
         return False
     dernier = max(k for k in range(debut, fin) if cl[k].strip())
-    texte = re.sub(r"\s*\(chantier %s\)$" % re.escape(lettre), "", texte.rstrip("."))
+    # Une ligne, blancs réduits : `ENTREE_CLOS` la relit, et l'élagage la trouve (chantier TAR).
+    texte = re.sub(r"\s*\(chantier %s\)$" % re.escape(lettre), "", " ".join(texte.split()).rstrip("."))
     cl.insert(dernier + 1, "- Clos le %s : %s (chantier %s)." % (date, texte, lettre))
     entrees = [k for k in range(debut, fin + 1) if ENTREE_CLOS.match(cl[k])]
     for k in reversed(entrees[:max(0, len(entrees) - CLOS_GARDES)]):
