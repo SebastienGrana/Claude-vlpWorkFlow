@@ -73,8 +73,8 @@
     <!-- ZONE:encours — remplacé à chaque ouverture, remis à « aucun » à chaque clôture.
          /tache n'y touche pas : l'avancement fiche par fiche est sur la page du chantier. -->
     <div class="encours">
-      <div class="titre">Un vieux chantier ne se recompte plus à zéro <span class="badge" data-etat="cours">en cours</span></div>
-      <div>Fiches <span class="mono">ZER1</span> — <a href="https://claude.ai/artifact/8DKPp5edNTJ5hAmoL1kfGw">la page du chantier</a></div>
+      <div class="titre">Aucun chantier ouvert</div>
+      <div>Lancer <span class="mono">/vlp:chantier</span> pour en ouvrir un.</div>
     </div>
   </section>
 
@@ -112,13 +112,19 @@
     <h2>Chantiers clos — ils ne se rejouent pas</h2>
     <!-- ZONE:clos — une ligne ajoutée à chaque clôture, la plus récente en haut -->
     <details class="clos">
-      <summary><span class="resume-clos">38 chantiers clos · ≈496,0M (496 046 600) tokens · ≈415 $</span></summary>
+      <summary><span class="resume-clos">39 chantiers clos · ≈507,3M (507 255 781) tokens · ≈425 $</span></summary>
     <div class="tableau">
       <table>
         <thead>
           <tr><th>Chantier</th><th>Fiches</th><th>Clos le</th><th>Tokens</th><th>Ce qu'il a livré</th></tr>
         </thead>
         <tbody>
+          <tr>
+            <td><a href="https://claude.ai/artifact/8DKPp5edNTJ5hAmoL1kfGw">Un vieux chantier ne se recompte plus à zéro</a> <span class="badge" data-etat="clos">clos</span></td>
+            <td class="mono">ZER1</td><td class="mono">2026-09-24</td>
+            <td class="mono">≈11,2M (11 209 181)</td>
+            <td>Un chantier clos sans commit de fiche retombe sur ses sessions entières, et le dit ; une découpe qui ne garde aucun tour le dit aussi</td>
+          </tr>
           <tr>
             <td><a href="https://claude.ai/artifact/3VpZLJALSxTaFfzbDHpGNF">Le cadrage compte dans le coût du chantier</a> <span class="badge" data-etat="clos">clos</span></td>
             <td class="mono">CAD1</td><td class="mono">2026-09-24</td>
@@ -377,7 +383,7 @@
           </tr>
         </tbody>
         <tfoot>
-          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈496,0M (496 046 600)</strong></td><td class="mono">≈415 $</td></tr>
+          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈507,3M (507 255 781)</strong></td><td class="mono">≈425 $</td></tr>
         </tfoot>
       </table>
     </div>

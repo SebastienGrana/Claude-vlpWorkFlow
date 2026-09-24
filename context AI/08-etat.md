@@ -224,6 +224,16 @@
   code avant les tests, puis relâché ceux-ci sous le vrai id de session ; sa session tombait dans
   la fiche. Repris ; neuf mutants tombent. Cadré et joué seul, la nuit. 14 603 596 tokens.
 
+- **2026-09-24** — chantier ZER clos (hors TODO, trouvé par le recompte à blanc de `RCP`) : un
+  vieux chantier ne se recompte plus à zéro. Depuis `FIN`, `cout` et la page rendaient 0 sur les
+  dix clos sans commit de fiche — M, C, T, S, L, W, X, F, O, Q —, six sans une garde : leur plage
+  partait de leur clôture. Un clos sans commit de fiche retombe sur ses sessions entières, sous
+  `DÉCOUPE aucune — chantier clos sans commit « X1 : » ni d'une autre fiche` ; en cours, rien ne
+  change (`FIN2`). Une découpe qui ne garde aucun tour le dit : `GARDE: découpe à zéro`. Tests
+  230 → 237 `verifier(` ; neuf mutants tombent ; les dix rendent leur sortie d'avant la nuit,
+  octet pour octet hors la ligne `DÉCOUPE`. Imprévu : une régression de la nuit même, faite par
+  `FIN`, reprise par le chef. Cadré et joué seul, à la main, la nuit. 11 209 181 tokens.
+
 ## La TODO ordonnée — les chantiers possibles
 
 C'est d'ici que `/chantier` tire ses propositions. Un chantier par entrée,

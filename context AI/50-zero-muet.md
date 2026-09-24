@@ -4,6 +4,10 @@
 
 # Chantier ZER — Un vieux chantier ne se recompte plus à zéro
 
+**CLOS** le 2026-09-24. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** ZER1..ZER1 (2026-09-24) : Un chantier clos sans commit de fiche retombe sur ses sessions entières, et le dit ; une découpe qui ne garde aucun tour le dit aussi.
+
 **À quoi il sert.** Depuis `FIN` (la nuit du 2026-09-24), `vlp.py cout` rend un total de **0** sur
 dix chantiers clos — M, C, T, S, L, W, X, F, O, Q —, six sans même une `GARDE:`. Aucun n'a de
 commit `<ID> :` de fiche : ils datent d'avant la convention. `heures_commits` rend alors `{}` dès
