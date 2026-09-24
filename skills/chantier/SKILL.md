@@ -80,6 +80,15 @@ les commentaires demandent. Puis propose le choix — reprendre par `/vlp:tache`
 redécouper les fiches restantes, ou clore le chantier tel quel — et arrête-toi
 là si c'est `/vlp:tache` : rappelle `/clear` d'abord.
 
+**Si c'est « redécouper »**, réécris les fiches restantes dans le même fichier,
+puis relance `ouvrir` sur ce fichier, `page` et `feuille` : la plage suit le
+fichier dans `CHANTIER.md`, l'index, la page et la feuille de route. Une fiche
+ajoutée prend sa note par `--note`. Republie la page et la feuille.
+
+```bash
+<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" ouvrir . --fiches "<fichier courant>" --titre "<Nom du chantier>"; <python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" page "<fichier courant>" --note <fiche ajoutée> "<ce qu'elle produit, de quoi elle dépend>"; <python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" feuille .
+```
+
 **Si c'est « clore tel quel »**, n'improvise pas la procédure : elle est écrite
 une fois, et `/vlp:tache` applique la même.
 

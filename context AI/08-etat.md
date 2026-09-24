@@ -230,6 +230,17 @@ tous retirés, venaient de `12-audit.md` ; 31 à 34, de la clôture de `REP` ; 3
 Une ligne par décision imprévue tranchée en cours de fiche — jamais un résumé
 de ce que le code dit déjà.
 
+- **2026-09-24** — PLA2, relue par le chef : `FAITE` en premier mot, case cochée (appel 23 sur
+  23), aucun commit ; test écrit d'abord (`ÉCART: ouvrir : relancé, la plage de l'index suit le
+  fichier`, appel 7) — le compte rendu en cite le contenu, pas la ligne. Repris : sa ligne d'index
+  se réécrivait en entier, **titre du jour compris** (la fiche : la plage seule) ; son test « une
+  seule ligne » vérifiait par `in`, qu'une ligne doublée passe aussi ; son bloc `bash` du skill
+  recopiait `--projet --titre --resultat` de la création — sans `--creer`, `page` les ignore en
+  silence (code 0, titre inchangé : essayé sur une copie). Réécrit en 7 lignes, une regex sur le
+  dernier jeton ; test relancé avec un autre titre, liste des lignes comparée ; commande `page`
+  ramenée à `--note`, `feuille .` sans `--todo`. Cinq mutants tombent, la version du sous-agent
+  comprise. 30 `hook_non_blocking_error` pour 23 appels. Transcription :
+  `…/subagents/agent-a5c89b25e7f7b3f65.jsonl`.
 - **2026-09-24** — PLA1, relue par le chef : `FAITE` en premier mot, test écrit d'abord
   (`ÉCART: page : l'en-tête suit la plage du fichier`, appel 14 sur 22) — mais le compte rendu
   ne cite pas l'`ÉCART:`, et le sous-agent **a commité seul** (`eb2a6b0`, défait par

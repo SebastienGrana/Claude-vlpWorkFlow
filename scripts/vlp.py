@@ -135,9 +135,11 @@ Sous-commandes :
   artefact = l'URL (sinon `aucun`, ou l'ancienne si F est déjà courant) ; une
   ligne « on joue une fiche » après la ligne de l'index au plus grand numéro ;
   une ligne « jouer une fiche du chantier » avant « relire un chantier clos »
-  (sinon le premier « relire le chantier ») du routage de `CLAUDE.md`. Une ligne déjà là n'est pas redoublée.
-  `OUVERT <lettre> <plage> · index +<n> · routage +<n> · artefact <url> —
-  <projet>` ; index ou routage introuvable : `GARDE:`, le reste est écrit.
+  (sinon le premier « relire le chantier ») du routage de `CLAUDE.md`. Une ligne
+  déjà là n'est pas redoublée ; relancé sur F, seule la plage de sa ligne
+  d'index `**ouvert**` suit le fichier. `OUVERT <lettre> <plage> · index
+  <+n|~1> · routage +<n> · artefact <url> — <projet>` (`~1` : plage refaite) ;
+  index ou routage introuvable : `GARDE:`, le reste est écrit.
   Un autre chantier déjà ouvert, ou F porte `**CLOS**` : `GARDE:`, sort 1.
 
 Python 3 sans dépendance, zéro appel modèle.
@@ -2135,7 +2137,7 @@ def cmd_ouvrir(a, sortie):
     nom = os.path.basename(fichier)
     index = champ(carte_, "index")
     chemin_index = os.path.join(projet, index) if index else None
-    n_index = 0
+    n_index = "+0"
     if not chemin_index or not os.path.isfile(chemin_index):
         gardes.append("index introuvable : %s" % index)
     else:
@@ -2149,7 +2151,15 @@ def cmd_ouvrir(a, sortie):
                 idx.insert(rang + 1,"| `%s` | on joue une fiche `%s*` — chantier **ouvert** « %s », `%s` |"
                            % (nom, lettre, a.titre, fait))
                 ecritures.append((chemin_index, idx))
-                n_index = 1
+                n_index = "+1"
+        else:
+            # Relancé sur le fichier ouvert : seule la plage de sa ligne suit le fichier (chantier PLA).
+            k = next(k for k, l in enumerate(idx) if l.startswith("| `%s` |" % nom))
+            ligne = re.sub(r"`[^`]*` \|$", "`%s` |" % fait, idx[k])
+            if "**ouvert**" in idx[k] and ligne != idx[k]:
+                idx[k] = ligne
+                ecritures.append((chemin_index, idx))
+                n_index = "~1"
 
     # 3. le routage de CLAUDE.md
     chemin_claude = os.path.join(projet, "CLAUDE.md")
@@ -2176,7 +2186,7 @@ def cmd_ouvrir(a, sortie):
             fh.write("\n".join(lignes) + "\n")
     for g in gardes:
         sortie.write("GARDE: %s — le reste est écrit\n" % g)
-    sortie.write("OUVERT %s %s · index +%d · routage +%d · artefact %s — %s\n"
+    sortie.write("OUVERT %s %s · index %s · routage +%d · artefact %s — %s\n"
                  % (lettre, fait, n_index, n_routage, url, projet))
     return 0
 

@@ -93,8 +93,9 @@ Tu ne commites pas : le chef le fera.
 <!-- /FICHE -->
 
 <!-- FICHE:PLA2 -->
-## PLA2 [ ] — `ouvrir` relancé : la plage de l'index suit le fichier
+## PLA2 [x] — `ouvrir` relancé : la plage de l'index suit le fichier
 
+**Session** : 1ba64929-8274-42d4-93bb-a2d22fbdd600
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py` (`cmd_ouvrir`, docstring de `ouvrir`), `scripts/test-vlp.py`,
 `skills/chantier/SKILL.md` — et rien d'autre.

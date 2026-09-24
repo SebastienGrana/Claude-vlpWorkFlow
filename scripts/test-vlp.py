@@ -845,6 +845,18 @@ with tempfile.TemporaryDirectory() as t:
     code, s = appel(["ouvrir", t, "--fiches", "ctx/31-r.md", "--titre", "r"])
     verifier("ouvrir : autre chantier ouvert, refus", code == 1 and s.startswith("GARDE: un chantier est déjà ouvert")
              and lire(os.path.join(t, "CHANTIER.md")) == avant, s)
+    ecrire(os.path.join(t, "ctx", "30-q.md"), "# Chantier Q — Un titre\n\n## Q1 [ ] — a\n## Q2 [ ] — b\n## Q3 [ ] — c\n")
+    # Relancé avec un autre titre : seule la plage suit, sur la même et unique ligne.
+    code, s = appel(["ouvrir", t, "--fiches", "ctx/30-q.md", "--titre", "Un autre titre"])
+    index_q = [l for l in lire(os.path.join(t, "ctx", "00-INDEX.md")).split("\n") if l.startswith("| `30-q.md` |")]
+    verifier("ouvrir : relancé, la plage de l'index suit le fichier", code == 0 and "OUVERT Q Q1..Q3 · index ~1 · routage +0" in s
+             and index_q == ["| `30-q.md` | on joue une fiche `Q*` — chantier **ouvert** « Un `titre` », `Q1..Q3` |"]
+             and "ctx/30-q.md (Q1..Q3)" in lire(os.path.join(t, "CHANTIER.md")), s + repr(index_q))
+    index_main = lire(os.path.join(t, "ctx", "00-INDEX.md")).replace("chantier **ouvert** « Un `titre` », `Q1..Q3`", "à la main `Q1..Q2`")
+    ecrire(os.path.join(t, "ctx", "00-INDEX.md"), index_main)
+    code, s = appel(["ouvrir", t, "--fiches", "ctx/30-q.md", "--titre", "Un `titre`"])
+    verifier("ouvrir : relancé, une ligne d'index écrite à la main reste", code == 0 and "index +0" in s
+             and lire(os.path.join(t, "ctx", "00-INDEX.md")) == index_main, s)
     ecrire(os.path.join(t, "CHANTIER.md"), carte_o % ("aucun", "aucun"))
     os.remove(os.path.join(t, "CLAUDE.md"))
     code, s = appel(["ouvrir", t, "--fiches", "ctx/31-r.md", "--titre", "r"])
