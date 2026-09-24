@@ -30,6 +30,7 @@ a l'air proche.
 | `49-cadrage-compte.md` | on relit le socle du chantier CAD — **clos** « Le cadrage compte dans le coût du chantier », `CAD1..CAD1` |
 | `50-zero-muet.md` | on relit le socle du chantier ZER — **clos** « Un vieux chantier ne se recompte plus à zéro », `ZER1..ZER1` |
 | `51-relecture.md` | on relit le socle du chantier REV — **clos** « Relire chaque fiche avant son commit », `REV1..REV4` |
+| `52-contrat-sortie.md` | on joue une fiche `CON*` — chantier **ouvert** « Le contrat du sous-agent, vérifié à sa sortie », `CON1..CON5` |
 | `35-bilan.md` | on doit expliquer le kit — d'où il vient, ce qu'il sait faire aujourd'hui, ce qu'il ne promet pas ; les 22 chantiers chiffrés |
 | `36-gardes.md` | on relit le socle du chantier Z — **clos** « Une GARDE au lieu d'un traceback », `Z1..Z4` |
 | `37-niveau.md` | on relit le socle du chantier NIV — **clos** « Remettre les projets équipés à niveau », `NIV1..NIV4` |
