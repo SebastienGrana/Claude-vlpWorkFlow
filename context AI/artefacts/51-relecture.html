@@ -68,9 +68,9 @@
     <p>Chaque FAITE de /vlp:enchainer passe par un relecteur neuf (opus) avant son commit ; prouvé sur quatre commits de la nuit — le corrigé sans bug accepté, les trois autres refusés pour leur vrai défaut — coût d'une relecture mesuré.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">8 fiches · 7 faites · en cours : REV4</p>
+    <p class="mono" style="margin-top:.5rem">8 fiches · 8 faites</p>
   </header>
 
   <section>
@@ -119,15 +119,15 @@
         <span class="note">Grep enchainement.md : « remarque » ×1, « les motifs » ×2 (l. 32, 37), « Un défaut : » ×0 ; « remarque » ×0 dans agents/relecture.md et skills/relire/SKILL.md ; commit passé par le hook</span>
         <span class="cout mono">≈1,9M (1 936 994) · 15 tours · 0,88 $</span>
       </li>
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">REV4</span><span class="titre">Prouver la relecture sur les commits de la nuit</span>
-        <span class="etat">en cours</span>
-        <span class="note">Rejoue 8bb748d, 7d16873, c5123af et eb2a6b0, critère réécrit ; dépend de REV5 à REV8</span>
-        <span class="cout mono">≈13,7M (13 719 082) · 189 tours · 7,96 $</span>
+        <span class="etat">faite</span>
+        <span class="note">Table de quatre lignes au journal de 08-etat.md : 8bb748d ACCEPTÉE, 7d16873 REFUSÉE (plage vide, sonde), c5123af REFUSÉE (hook qui refuse un arbre propre en CRLF, par env -C), eb2a6b0 REFUSÉE (regex, sonde de 12 en-têtes) — 4 sur 4, assemblée de deux passages. 0,50 $ la relecture (4ᵉ passage + c5123af), contre 1,78 $ au premier.</span>
+        <span class="cout mono">≈17,0M (16 988 674) · 221 tours · 9,43 $</span>
       </li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈6,0M (6 026 326) · 24 tours · 7,12 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈71,0M (70 994 997) · 580 tours · 54,39 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈74,3M (74 264 589) · 612 tours · 55,86 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

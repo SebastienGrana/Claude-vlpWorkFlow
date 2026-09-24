@@ -338,9 +338,10 @@ Prose courte : l'agent relit cette section à chaque relecture (`agents/relectur
 ---
 
 <!-- FICHE:REV4 -->
-## REV4 [ ] — Prouver la relecture sur les commits de la nuit
+## REV4 [x] — Prouver la relecture sur les commits de la nuit
 
 **Session** : dbf37a72-d55e-44f2-8cb7-9d3731712ba1
+**Session** : fedafcd5-3d99-48d7-ac85-c9f0d96b67ba
 **Dépend de** : `REV5`, `REV6`, `REV7`, `REV8`.
 **Fichiers** : `context AI/08-etat.md` (une entrée au journal) — et rien d'autre.
 
