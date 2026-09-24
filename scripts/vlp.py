@@ -177,6 +177,18 @@ Sous-commandes :
   ISO ou commit, comme `mesure-tokens.py --plage`) : celles dont la session parente a démarré
   à D ou après. Puis `CONTRAT <n> sous-agents · <n> écrivent dans Git · <n> sans statut en
   tête` (ni `FAITE`, ni `RETOUR`, ni `BLOQUÉE`). Borne illisible : `GARDE:`, sort 1.
+- `forme [<transcription>…] [--depuis D]` — la forme et le poids dans des
+  transcriptions de sous-agent. Sans argument : toutes celles dont le `.meta.json` voisin dit
+  `vlp:fiche` ou `vlp:relecture`, sous `~/.claude/projects/*/*/subagents/`. Une ligne
+  chacune : `<id> <agentType> <départ de la session parente, UTC | ?> user <c> projet <c>
+  memoire <c> resume <0|1> jauge <0|1> tete <0|1>` — `<c>` : caractères du `content` des
+  fichiers d'instructions de ce type (User, Project, AutoMem, somme si plusieurs, 0 si aucun) ;
+  `resume` 1 si le dernier message texte contient « En résumé » ; `jauge` 1 s'il contient l'un
+  des cinq libellés de `JAUGE` ; `tete` 1 s'il commence par un mot de `STATUTS` ou de
+  `VERDICTS` (le relecteur). Illisible :
+  `ILLISIBLE <chemin>`. `--depuis` (heure ISO ou commit) : celles dont la session parente a
+  démarré à D ou après. Puis `FORME <n> sous-agents · user <moyenne> car. · resume <k> ·
+  jauge <k> · tete <k>`. Borne illisible : `GARDE:`, sort 1.
 - `sonde` — hook d'essai (chantier CON), débranché hors essai : l'entrée JSON d'un hook de
   sous-agent (ou de `SubagentStart`/`SubagentStop`) ajoutée à `<temp>/vlp-sonde.jsonl` ;
   dans un `vlp:fiche`, refuse un `PreToolUse` qui cite `SONDE-REFUS` et renvoie au travail
@@ -1133,6 +1145,85 @@ def cmd_contrat(a, sortie):
         sans_statut += mot not in STATUTS
     sortie.write("CONTRAT %d sous-agents · %d écrivent dans Git · %d sans statut en tête\n"
                  % (n, commitent, sans_statut))
+    return 0
+
+
+VERDICTS = ("ACCEPTÉE", "REFUSÉE")     # les mots de tête de `vlp:relecture`
+JAUGE = ("Tout va bien", "Ça tient, mais", "Imprévu", "Pas bon", "Grosse erreur")
+
+
+def lire_forme(chemin):
+    """(caractères par type User/Project/AutoMem, resume 0|1, jauge 0|1, tete 0|1) d'une
+    transcription ; (None, 0, 0, 0) si elle ne s'ouvre pas. Les fichiers d'instructions sont
+    ceux du premier attachment `instructions` — une entrée de premier niveau
+    `{"attachment": {"type": "instructions", "files": […]}}`, pas un champ de `message`."""
+    chars = {"User": 0, "Project": 0, "AutoMem": 0}
+    vu, dernier = False, ""
+    try:
+        with mesure().ouvrir(chemin) as f:
+            for ligne in f:
+                try:
+                    d = json.loads(ligne)
+                except json.JSONDecodeError:
+                    continue
+                if not isinstance(d, dict):
+                    continue
+                att = d.get("attachment")
+                if not vu and isinstance(att, dict) and att.get("type") == "instructions":
+                    vu = True
+                    for fi in att.get("files") or []:
+                        if isinstance(fi, dict) and fi.get("type") in chars and isinstance(fi.get("content"), str):
+                            chars[fi["type"]] += len(fi["content"])
+                m = d.get("message")
+                if not isinstance(m, dict) or m.get("role") != "assistant" or not isinstance(m.get("content"), list):
+                    continue
+                for b in m["content"]:
+                    if isinstance(b, dict) and b.get("type") == "text" and b.get("text", "").strip():
+                        dernier = b["text"].strip()
+    except (OSError, UnicodeDecodeError):
+        return None, 0, 0, 0
+    resume = int("En résumé" in dernier)
+    jauge = int(any(j in dernier for j in JAUGE))
+    tete = int(bool(dernier) and dernier.split()[0] in STATUTS + VERDICTS)
+    return chars, resume, jauge, tete
+
+
+def cmd_forme(a, sortie):
+    """Une ligne par transcription de sous-agent : id, type, départ, et caractères
+    d'instructions par type, plus resume, jauge, tete ; puis le bilan."""
+    m = mesure()
+    depuis = None
+    if a.depuis:
+        depuis, err = m.borne(a.depuis)
+        if err:
+            sortie.write("GARDE: --depuis %s : %s\n" % (a.depuis, err))
+            return 1
+    chemins = a.transcriptions
+    if not chemins:
+        motif = os.path.join(os.path.expanduser("~"), ".claude", "projects", "*", "*", *m.SOUS_AGENTS)
+        chemins = [c for c in sorted(glob.glob(motif)) if type_agent(c) in ("vlp:fiche", "vlp:relecture")]
+    n = resume_total = jauge_total = tete_total = user_total = 0
+    for c in chemins:
+        parent = os.path.dirname(os.path.dirname(c)) + ".jsonl"
+        t, _ = m.depart(parent)
+        if depuis is not None and (t is None or t < depuis):
+            continue
+        chars, resume, jauge, tete = lire_forme(c)
+        if chars is None:
+            sortie.write("ILLISIBLE %s\n" % c)
+            continue
+        heure_ = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(t)) if t is not None else "?"
+        id_ = os.path.basename(c)[len("agent-"):-len(".jsonl")]
+        sortie.write("%s %s %s user %d projet %d memoire %d resume %d jauge %d tete %d\n" % (
+            id_, type_agent(c), heure_, chars["User"], chars["Project"], chars["AutoMem"], resume, jauge, tete))
+        n += 1
+        user_total += chars["User"]
+        resume_total += resume
+        jauge_total += jauge
+        tete_total += tete
+    user_moyenne = user_total // n if n > 0 else 0
+    sortie.write("FORME %d sous-agents · user %d car. · resume %d · jauge %d · tete %d\n"
+                 % (n, user_moyenne, resume_total, jauge_total, tete_total))
     return 0
 
 
@@ -2742,6 +2833,9 @@ def main(argv, sortie=None, entree=None, erreur=None):
     ct = sous.add_parser("contrat")
     ct.add_argument("transcriptions", nargs="*")
     ct.add_argument("--depuis")
+    fm = sous.add_parser("forme")
+    fm.add_argument("transcriptions", nargs="*")
+    fm.add_argument("--depuis")
     sous.add_parser("sonde")
     sous.add_parser("gardien")
     a = p.parse_args(argv)
@@ -2793,6 +2887,8 @@ def repartir(a, sortie, entree, erreur):
         return cmd_relecture(a, sortie)
     if a.cmd == "contrat":
         return cmd_contrat(a, sortie)
+    if a.cmd == "forme":
+        return cmd_forme(a, sortie)
     if a.cmd == "sonde":
         return cmd_sonde(entree or sys.stdin, sortie)
     if a.cmd == "gardien":

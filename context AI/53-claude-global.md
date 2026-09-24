@@ -47,8 +47,9 @@ Rien n'est parallélisable : chaque fiche lit ce que la précédente a écrit.
 ---
 
 <!-- FICHE:GLO1 -->
-## GLO1 [ ] — Lire la forme et le poids dans une transcription
+## GLO1 [x] — Lire la forme et le poids dans une transcription
 
+**Session** : ca431cf8-167e-4c10-8bce-210c5f48a675
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` — et rien d'autre.
 

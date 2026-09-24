@@ -1975,4 +1975,50 @@ else:
         code, s = git("check-attr", "eol", "--", "skills/chantier/SKILL.md")
         verifier(".gitattributes : les .md en LF", s == "skills/chantier/SKILL.md: eol: lf\n", s)
 
+# GLO1 : forme et poids dans les transcriptions
+with tempfile.TemporaryDirectory() as t:
+    sa = os.path.join(t, "sa.jsonl")
+    sb = os.path.join(t, "sb.jsonl")
+    # Transcription 1 : User de 100 caractères + "FAITE — … En résumé … Tout va bien"
+    with open(sa, "w", encoding="utf-8") as f:
+        # le format réel : une entrée de premier niveau, pas un champ de `message`
+        f.write(json.dumps({"type": "attachment", "attachment": {
+            "type": "instructions", "files": [{
+                "type": "User", "path": "user.md", "content": "x" * 100
+            }]
+        }}) + "\n")
+        f.write(json.dumps({"type": "assistant", "requestId": "r2", "message": {
+            "role": "assistant", "content": [{
+                "type": "text", "text": "FAITE — début En résumé détails Tout va bien fin"
+            }]
+        }}) + "\n")
+    # Transcription 2 : sans attachements + "Parfait"
+    with open(sb, "w", encoding="utf-8") as f:
+        f.write(json.dumps({"type": "assistant", "requestId": "r1", "message": {
+            "role": "assistant", "content": [{
+                "type": "text", "text": "Parfait"
+            }]
+        }}) + "\n")
+    # Créer les .meta.json
+    meta_a = sa[:-len(".jsonl")] + ".meta.json"
+    meta_b = sb[:-len(".jsonl")] + ".meta.json"
+    ecrire(meta_a, json.dumps({"agentType": "vlp:fiche"}))
+    ecrire(meta_b, json.dumps({"agentType": "vlp:relecture"}))
+    # Créer la structure de répertoires pour que le motif glob trouve les fichiers
+    proj_dir = os.path.join(t, "projects", "test", "test", "subagents")
+    os.makedirs(proj_dir)
+    shutil.move(sa, os.path.join(proj_dir, "agent-id1.jsonl"))
+    shutil.move(sb, os.path.join(proj_dir, "agent-id2.jsonl"))
+    shutil.move(meta_a, os.path.join(proj_dir, "agent-id1.meta.json"))
+    shutil.move(meta_b, os.path.join(proj_dir, "agent-id2.meta.json"))
+    sa = os.path.join(proj_dir, "agent-id1.jsonl")
+    sb = os.path.join(proj_dir, "agent-id2.jsonl")
+    # Appel direct (pas par glob)
+    code, s = appel(["forme", sa, sb])
+    lignes = s.strip().split("\n")
+    verifier("forme : deux transcriptions, bilan attendu", code == 0
+             and len(lignes) == 3  # deux lignes de données + une ligne de bilan
+             and lignes[2].startswith("FORME 2 sous-agents · user 50 car. · resume 1 · jauge 1 · tete 1"),
+             s)
+
 print("OK")
