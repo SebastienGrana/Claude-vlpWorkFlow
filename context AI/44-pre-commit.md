@@ -41,8 +41,9 @@ Une seule fiche : rien à paralléliser.
 ---
 
 <!-- FICHE:VAL1 -->
-## VAL1 [ ] — Chercher le `claude.exe` de l'app quand `claude` manque
+## VAL1 [x] — Chercher le `claude.exe` de l'app quand `claude` manque
 
+**Session** : 1ba64929-8274-42d4-93bb-a2d22fbdd600
 **Dépend de** : rien.
 **Fichiers** : `.githooks/pre-commit`, `README.md` (lignes 65–66) — et rien d'autre.
 

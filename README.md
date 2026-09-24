@@ -63,7 +63,8 @@ ProgPerso/
 ```
 
 Pour modifier le kit : `git config core.hooksPath .githooks` dans le clone, et
-chaque commit passe par `claude plugin validate`.
+chaque commit passe par `claude plugin validate`. Sans `claude` dans le PATH, le
+hook prend le `claude.exe` de l'app Claude sous Windows.
 
 **2. Le déclarer à Claude Code**, une fois par machine. Un dossier posé dans
 `~/.claude/skills/` et portant un `.claude-plugin/plugin.json` se charge tout

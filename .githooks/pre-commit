@@ -2,12 +2,22 @@
 # Valide les manifestes du plugin avant chaque commit (chantier V).
 # Activer une fois par clone : git config core.hooksPath .githooks
 racine=$(git rev-parse --show-toplevel) || exit 1
-if ! command -v claude >/dev/null 2>&1; then
-  echo "pre-commit : claude introuvable dans le PATH, validate sauté." >&2
+
+# claude : celui du PATH, sinon celui de l'app Claude sous Windows (chantier VAL).
+claude_exe=
+if command -v claude >/dev/null 2>&1; then
+  claude_exe="claude"
+elif [ -n "$APPDATA" ]; then
+  # La plus haute version : sort -V, car un tri alphabétique met 2.1.99 après 2.1.280.
+  claude_exe=$(ls -d "$APPDATA"/Claude/claude-code/*/claude.exe 2>/dev/null | sort -V | tail -1)
+fi
+if [ -z "$claude_exe" ]; then
+  echo "pre-commit : claude introuvable, ni dans le PATH ni dans l'app, validate sauté." >&2
   exit 0
 fi
+
 for m in .claude-plugin/marketplace.json .claude-plugin/plugin.json; do
-  if ! sortie=$(claude plugin validate "$racine/$m" 2>&1); then
+  if ! sortie=$("$claude_exe" plugin validate "$racine/$m" 2>&1); then
     printf '%s\n' "$sortie" >&2
     echo "pre-commit : $m invalide, commit refusé." >&2
     exit 1

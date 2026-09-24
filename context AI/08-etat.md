@@ -200,6 +200,20 @@ tous retirés, venaient de `12-audit.md` ; 31 à 34, de la clôture de `REP` ; 3
 Une ligne par décision imprévue tranchée en cours de fiche — jamais un résumé
 de ce que le code dit déjà.
 
+- **2026-09-24** — VAL1, relue par le chef : le sous-agent rend `FAITE` **case vide** ; la règle
+  de CAS l'attrape (`CASE VAL1 [ ]`, code 1) et le chef la lit comme un `RETOUR`. Il **commite
+  encore** (`72035f2`, « VAL1: » sans espace, que `COMMIT_FICHE` ne voit pas), cette fois à cause
+  du critère : « le clone récupère une version non modifiée du hook. Je dois committer d'abord »
+  (appel 19 sur 26). Un critère joué dans un clone teste `HEAD` : il doit dire d'y copier le
+  fichier modifié. La règle « aucun commit » de `agents/fiche.md` n'a pas joué : 0 occurrence
+  dans la transcription, le plugin reste en cache jusqu'à `/reload-plugins`. Reprise du chef :
+  `claude_exe=` initialisé, le commentaire dit pourquoi `sort -V`, message « ni dans le PATH ni
+  dans l'app », README replié ; commit refait au format `VAL1 :`. Le refus nomme
+  `marketplace.json` alors que seul `plugin.json` est cassé : la validation du premier échoue
+  aussi. Durées : 1 755 · 1 846 · 1 948 ms, contre 147 ms quand tout était sauté.
+  28 `hook_non_blocking_error` pour 26 appels (n° 39 `PYT`). Transcription :
+  `1ba64929-8274-42d4-93bb-a2d22fbdd600/subagents/agent-ab869d46397c611ec.jsonl`.
+
 - **2026-09-24** — CAS1, relue par le chef : le sous-agent rend `FAITE`, case cochée, mais
   **commite lui-même** (`85f5efc`, « Maintenant je crée le commit. », 27ᵉ appel sur 27), quand la
   méthode réserve le commit au chef. Son contexte porte le `~/.claude/CLAUDE.md` de l'utilisateur
