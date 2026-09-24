@@ -82,9 +82,7 @@ Un **questionnaire à cases multiples**, jamais une liste à taper : une case pa
 choix, une ligne d'explication chacune. N'exécute que ce qui est coché —
 plusieurs à la fois se font, aucun aussi.
 
-1. **Le prompt du chantier suivant** — prêt à coller après un `/clear` : le
-   sujet, ce que celui-ci vient de livrer, et les seuls fichiers à ouvrir.
-2. **Brainstorm** — des idées de chantiers pour ce projet. **Lis d'abord en
+1. **Brainstorm** — des idées de chantiers pour ce projet. **Lis d'abord en
    entier la liste des chantiers possibles**, la TODO du fichier d'état, avant
    de chercher : une idée qui en recoupe une ligne le dit, et la nomme. Ce qui
    est retenu va dans cette TODO, et nulle part ailleurs : c'est là que
@@ -92,23 +90,29 @@ plusieurs à la fois se font, aucun aussi.
    avant le choix : une image simple du kit d'abord (une salle d'examen, un
    surveillant…), puis pour chacune, une ligne par point — le problème, le
    risque, ce qu'elle ferait, son coût —, le jargon après ; enfin un avis.
-3. **Ce qui a été appris** — ce chantier a-t-il tranché quelque chose qui vaut
+2. **Ce qui a été appris** — ce chantier a-t-il tranché quelque chose qui vaut
    au-delà de lui ? Une règle de méthode va dans `methode-chantier.md` ; une
    façon de travailler propre à l'utilisateur va **en mémoire**, un fait par
    fiche. C'est ainsi que le kit apprend au fur et à mesure, au lieu de
    réapprendre la même chose à chaque chantier.
-4. **Essaimer** — remettre les autres projets équipés à niveau :
+3. **Essaimer** — remettre les autres projets équipés à niveau :
    `<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" niveau <projet>`.
-5. **La dette repérée** — verser dans la TODO ce qu'on a vu passer sans le
+4. **La dette repérée** — verser dans la TODO ce qu'on a vu passer sans le
    traiter : ce qui n'y est pas écrit est perdu au `/clear`.
 
-Le menu compte cinq cases, pas six : **le push n'y est pas**. Il se demande
+Le menu compte quatre cases, pas cinq : **le push n'y est pas**, ni le prompt du
+chantier suivant, qui n'est pas facultatif (« Pour finir »). Il se demande
 **après**, dans une question à lui seul — `git push`, jamais sans confirmation
 explicite, même si l'utilisateur a confirmé pour un chantier précédent. Une
-case cochée au milieu de quatre autres n'est pas une confirmation : un push
+case cochée au milieu de trois autres n'est pas une confirmation : un push
 publie, et ne se reprend pas.
 
 ## Pour finir
 
-Donne les deux liens, et dis la suite : `/clear`, puis `/vlp:chantier` pour ouvrir
-le suivant.
+Le **dernier message** de la clôture, après le push et toute question, dans cet ordre :
+
+1. le **prompt du chantier suivant**, toujours, même si rien n'est coché, dans un
+   bloc de code `text` : le sujet, ce que celui-ci vient de livrer, et les seuls
+   fichiers à ouvrir — jamais avant une question, où il n'est pas vu ;
+2. les deux liens ;
+3. la suite : `/clear`, puis coller le prompt.
