@@ -65,7 +65,13 @@ Pour chaque fiche de la série, dans l'ordre :
    c'est « aucun statut » ci-dessous.
    - `FAITE` sur la fiche `(visuel)` de l'étape 2 : c'est un `RETOUR`. Case
      cochée par le sous-agent : remets `## <fiche> [ ]` (une ligne), puis 3 bis.
-   - `FAITE` : relis la case — `<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" cocher "<fichier de fiches courant>" <fiche> --verifier`. Case vide `[ ]` : c'est un `RETOUR` (étape 3 bis) ; cochée `[x]` : commite — `git add -A; git commit -m "<fiche> : <titre>"`, sans demander. Puis passe à la suivante. Après la dernière de la série, relance la carte : `PROCHAINE=aucune` → étape 5 ; sinon étape 4.
+   - `FAITE` : relis d'abord la case —
+     `<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" cocher "<fichier de fiches courant>" <fiche> --verifier`.
+     `[ ]` : c'est un `RETOUR` (étape 3 bis). `[x]` : commite la fiche —
+     `git add -A; git commit -m "<fiche> : <titre>"`, sans demander
+     (`methode-chantier.md`) ; le sous-agent ne commite jamais. Puis passe à la
+     suivante. Après la dernière de la série, relance la carte (`vlp.py carte`) :
+     `PROCHAINE=aucune` → étape 5 ; sinon étape 4.
    - `RETOUR` ou `BLOQUÉE` : étape 3 bis.
    - Aucun statut (le sous-agent s'est arrêté avant son compte rendu) : c'est
      un `RETOUR` — dis-le, avec le `Result` brut.

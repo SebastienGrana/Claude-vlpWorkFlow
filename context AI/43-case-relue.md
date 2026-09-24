@@ -77,8 +77,9 @@ fichier de fiches.
 ---
 
 <!-- FICHE:CAS2 -->
-## CAS2 [ ] — Reprendre la puce `FAITE`, et dire au sous-agent qu'il ne commite pas
+## CAS2 [x] — Reprendre la puce `FAITE`, et dire au sous-agent qu'il ne commite pas
 
+**Session** : 1ba64929-8274-42d4-93bb-a2d22fbdd600
 **Dépend de** : `CAS1`.
 **Fichiers** : `skills/enchainer/SKILL.md` (étape 3, puce `FAITE` qui commite),
 `agents/fiche.md`, `scripts/vlp.py` (docstring, entrée `cocher`) — et rien d'autre.

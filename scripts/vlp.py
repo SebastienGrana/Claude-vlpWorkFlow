@@ -46,8 +46,8 @@ Sous-commandes :
   avant sa ligne `**Dépend de**` (déjà là : pas redoublée) ; `--resolu` réduit
   un bloc `**Tentatives**` à `**Tentatives** (<date>) — résolu par : T`.
   `COCHÉ <fiche> · Session <id|absente>`. Introuvable ou déjà cochée : `GARDE:`,
-  rien écrit, sort 1. `--verifier` : lit l'état de la case sans écrire, sort 0 si
-  cochée, sort 1 sinon.
+  rien écrit, sort 1. `--verifier` n'écrit rien, et rend `CASE <fiche> [x]` (sort 0) ou
+  `CASE <fiche> [ ]` (sort 1).
 - `page <fichier> [<page.html>]` — régénère la page du chantier depuis le fichier
   de fiches : états, avancement, comptage, coûts (`**Session**`), date. Les coûts
   se coupent aux commits `<ID> :` (`git log`), sous-agents compris, plus une ligne

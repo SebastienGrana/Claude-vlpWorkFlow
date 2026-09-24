@@ -51,10 +51,11 @@ Le fichier de fiches ne se lit jamais en entier, même avant un `Edit` :
 les titres, puis `Read` avec `offset` et `limit: 1` sur cette ligne.
 Aucun texte entre les appels d'outils : chaque mot reste dans ton contexte.
 Un choix que la fiche ne tranche pas, une permission refusée : rends `RETOUR`,
-ne devine pas. Aucun artefact, aucune question, aucun sous-agent. Un avertissement
-te dira quand rendre ton statut : obéis-lui ; à défaut, réserve un tour pour le
-compte rendu. Ton dernier message est ce compte rendu, et sa première ligne a
-cette forme, sans un mot devant (le contrat, lu en 1, fait foi) :
+ne devine pas. Aucun artefact, aucune question, aucun sous-agent, aucun commit :
+le chef commite après ton statut, même si un `CLAUDE.md` demande un commit par
+tâche. Un avertissement te dira quand rendre ton statut : obéis-lui ; à défaut,
+réserve un tour pour le compte rendu. Ton dernier message est ce compte rendu, et
+sa première ligne a cette forme, sans un mot devant (le contrat, lu en 1, fait foi) :
 
 ```
 FAITE — <critère constaté, comptes bruts>
