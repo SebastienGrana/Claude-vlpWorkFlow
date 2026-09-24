@@ -128,8 +128,9 @@ et la fiche `CAD1` ; `--retirer` rend `RETIRÉ 2`.
 ---
 
 <!-- FICHE:REV2 -->
-## REV2 [ ] — Contrôler la tête et refuser par script
+## REV2 [x] — Contrôler la tête et refuser par script
 
+**Session** : 2f9a46f3-70ad-4145-a7c8-ada5aefa0034
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py` (`cmd_cocher`, son analyseur d'options, docstring de
 `cocher`), `scripts/test-vlp.py` — et rien d'autre.

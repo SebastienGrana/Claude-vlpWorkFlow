@@ -1043,9 +1043,9 @@ with tempfile.TemporaryDirectory() as t:
         verifier("cocher : déjà cochée, refus sans écrire", code == 1 and s == "GARDE: U1 déjà cochée — rien écrit\n"
                  and lire(f) == avant, s)
         verifier("cocher : fiche introuvable", appel(["cocher", f, "U9"]) == (1, "GARDE: fiche introuvable : U9\n"), appel(["cocher", f, "U9"]))
-        verifier("cocher --verifier : cochée", appel(["cocher", f, "U1", "--verifier"]) == (0, "CASE U1 [x]\n"), appel(["cocher", f, "U1", "--verifier"]))
+        verifier("cocher --verifier : cochée", appel(["cocher", f, "U1", "--verifier"]) == (0, "CASE U1 [x]\nSANS GIT\n"), appel(["cocher", f, "U1", "--verifier"]))
         avant2 = lire(f)
-        verifier("cocher --verifier : non cochée, pas d'écriture", appel(["cocher", f, "U2", "--verifier"]) == (1, "CASE U2 [ ]\n") and lire(f) == avant2, appel(["cocher", f, "U2", "--verifier"]))
+        verifier("cocher --verifier : non cochée, pas d'écriture", appel(["cocher", f, "U2", "--verifier"]) == (1, "CASE U2 [ ]\nSANS GIT\n") and lire(f) == avant2, appel(["cocher", f, "U2", "--verifier"]))
         verifier("cocher --verifier : fiche introuvable", appel(["cocher", f, "U9", "--verifier"]) == (1, "GARDE: fiche introuvable : U9\n"), appel(["cocher", f, "U9", "--verifier"]))
         os.environ["CLAUDE_CODE_SESSION_ID"] = ""
         code, s = appel(["cocher", f, "U2"])
@@ -1062,6 +1062,55 @@ with tempfile.TemporaryDirectory() as t:
              and s.startswith("PAGE %s · 3 fiches" % page), s)
     code, s = appel(["page", f, "--verifier"])
     verifier("page --verifier sans chemin : la même page", code == 0 and s.startswith("À JOUR 3 fiches"), s)
+
+# cocher --verifier et --refuser (chantier REV) : la tête du dépôt, puis le refus du relecteur.
+REFUS = """<!-- FICHE:VAL1 -->
+## VAL1 [x] — Valider
+
+**Dépend de** : rien.
+<!-- /FICHE -->
+<!-- FICHE:VAL10 -->
+## VAL10 [x] — Dixième
+**Dépend de** : `VAL1`.
+<!-- /FICHE -->
+"""
+
+with tempfile.TemporaryDirectory() as t:
+    f = os.path.join(t, "ctx", "06-v.md")
+    ecrire(f, REFUS)
+    verifier("cocher --verifier : sans Git", appel(["cocher", f, "VAL1", "--verifier"]) == (0, "CASE VAL1 [x]\nSANS GIT\n"),
+             appel(["cocher", f, "VAL1", "--verifier"]))
+    code, s = appel(["cocher", f, "VAL1", "--refuser", "motif un", "--date", "2026-01-03"])
+    premier = lire(f)
+    code2, s2 = appel(["cocher", f, "VAL1", "--refuser", "motif deux", "--date", "2026-01-04"])
+    bloc = "**Tentatives** (2026-01-03) — non résolu.\n1. FAITE refusée à la relecture.\n"
+    un = REFUS.replace("## VAL1 [x] — Valider\n\n", "## VAL1 [ ] — Valider\n\n" + bloc + "Erreur : motif un\n\n")
+    deux = un.replace(bloc + "Erreur : motif un\n", bloc + "2. FAITE refusée à la relecture.\nErreur : motif deux\n")
+    verifier("cocher --refuser", (code, s, code2, s2) == (0, "REFUSÉ VAL1\n", 0, "REFUSÉ VAL1\n")
+             and premier == un and lire(f) == deux and lire(f).count("**Tentatives**") == 1
+             and lire(f).count("Erreur :") == 1
+             and appel(["cocher", f, "VAL9", "--refuser", "m"]) == (1, "GARDE: fiche introuvable : VAL9\n"),
+             premier + "\n---\n" + lire(f))
+    if not shutil.which("git"):
+        print("SAUTÉ: git absent — la tête de cocher --verifier n'est pas testée")
+    else:
+        env = dict(os.environ, GIT_CONFIG_GLOBAL=os.path.join(t, "gitconfig"), GIT_CONFIG_NOSYSTEM="1",
+                   GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t")
+        ecrire(env["GIT_CONFIG_GLOBAL"], "")
+        ecrire(f, REFUS)
+        subprocess.run(["git", "init", "-q"], cwd=t, env=env, check=True, capture_output=True)
+        vus = []
+        for sujet in ("VAL1: x", "VAL1 : x", "VAL10 : y"):
+            subprocess.run(["git", "commit", "-q", "--allow-empty", "-m", sujet], cwd=t, env=env, check=True,
+                           capture_output=True)
+            # Lu comme vlp.py le lit, config du poste comprise : même longueur d'abréviation.
+            sha = subprocess.run(["git", "log", "-1", "--format=%h"], cwd=t, capture_output=True,
+                                 encoding="utf-8").stdout.strip()
+            vus.append((appel(["cocher", f, "VAL1", "--verifier"]), sha))
+        verifier("cocher --verifier : un commit du sous-agent",
+                 [v for v, _ in vus] == [(1, "CASE VAL1 [x]\nTÊTE %s VAL1: x\n" % vus[0][1]),
+                                        (1, "CASE VAL1 [x]\nTÊTE %s VAL1 : x\n" % vus[1][1]),
+                                        (0, "CASE VAL1 [x]\n")], vus)
 
 # --- Z2 : un chemin de CHANTIER.md ne fait plus tomber une sous-commande ---
 # Un cas par ligne « plante » de la table de Z1, plus le point de lecture unique.

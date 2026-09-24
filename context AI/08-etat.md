@@ -274,6 +274,13 @@ celle de `FIL` ; 48 à 51, de celle de `FIN` ; 52, des clôtures de la nuit du
 Une ligne par décision imprévue tranchée en cours de fiche — jamais un résumé
 de ce que le code dit déjà.
 
+- **2026-09-24** — REV2, jouée à la main par le chef. Tranché hors fiche : un bloc
+  **Tentatives** « résolu par » que rouvre un refus redevient « non résolu », daté du refus ;
+  `--verifier` et `--refuser` s'excluent. Les deux tests existants de `--verifier` prennent la
+  ligne `SANS GIT` — leur dossier temporaire n'est pas un dépôt —, et le mutant « tête lue sans
+  tester le dépôt » tombe d'abord sur l'un d'eux ; le bloc REV2 rejoué seul le fait tomber sur
+  « sans Git ». À savoir pour REV3 : `--verifier` se lance avant le commit du chef — après,
+  `TÊTE` nomme ce commit-là (vu sur `e1d7f36`, le commit de REV1).
 - **2026-09-24** — REV1, commencée par un sous-agent `vlp:fiche`, finie à la main par le chef.
   Arrêté par l'utilisateur à 51 appels, sans commit, il sortait de la fiche : `relecture <dossier>
   <fichier> --fichiers-fiche` au lieu de `relecture <fiche>`, un test `--retirer` qui passait à

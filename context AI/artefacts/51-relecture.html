@@ -68,9 +68,9 @@
     <p>Chaque FAITE de /vlp:enchainer passe par un relecteur neuf (opus) avant son commit ; prouvé sur les trois commits fautifs de la nuit, refusés, et sur leurs versions corrigées, acceptées — coût d'une relecture mesuré.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">4 fiches · 1 faite · en cours : REV2</p>
+    <p class="mono" style="margin-top:.5rem">4 fiches · 2 faites · en cours : REV3</p>
   </header>
 
   <section>
@@ -81,16 +81,17 @@
         <span class="id">REV1</span><span class="titre">Préparer la relecture par script</span>
         <span class="etat">faite</span>
         <span class="note">Suite OK : trois tests vus en échec sur un bouchon, trois mutants tués chacun par le sien ; relecture CAD1 --sha e41925c : FICHIER= sur context AI/49-cadrage-compte.md, socle 37 lignes, fiche 41 ; --retirer : RETIRÉ 2.</span>
-        <span class="cout mono">≈10,3M (10 321 918) · 87 tours · 5,46 $</span>
+        <span class="cout mono">≈10,9M (10 948 663) · 90 tours · 5,67 $</span>
+      </li>
+      <li class="fiche" data-etat="faite">
+        <span class="id">REV2</span><span class="titre">Contrôler la tête et refuser par script</span>
+        <span class="etat">faite</span>
+        <span class="note">Suite OK : trois tests vus en échec (bloc rejoué seul), trois mutants tués chacun par le sien ; vrai dépôt : REV1 --verifier rend TÊTE e1d7f36 et sort 1, REV2 rend CASE [ ] sans TÊTE.</span>
+        <span class="cout mono">≈4,7M (4 668 757) · 19 tours · 2,19 $</span>
       </li>
       <li class="fiche" data-etat="encours">
-        <span class="id">REV2</span><span class="titre">Contrôler la tête et refuser par script</span>
-        <span class="etat">en cours</span>
-        <span class="note">cocher --verifier repère un commit du sous-agent ; cocher --refuser décoche et écrit le motif. Ne dépend de rien.</span>
-      </li>
-      <li class="fiche">
         <span class="id">REV3</span><span class="titre">Écrire le relecteur et le brancher</span>
-        <span class="etat">à faire</span>
+        <span class="etat">en cours</span>
         <span class="note">L'agent vlp:relecture (opus), la skill vlp:relire, le contrat, la chaîne branchée. Après REV1 et REV2.</span>
       </li>
       <li class="fiche">
@@ -100,7 +101,7 @@
       </li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈6,0M (6 026 326) · 24 tours · 7,12 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈16,3M (16 348 244) · 111 tours · 12,58 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈21,6M (21 643 746) · 133 tours · 14,98 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -118,6 +119,7 @@
     <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
     <ul class="journal">
       <li><time datetime="2026-09-24">2026-09-24</time><span>REV1, commencée par un sous-agent vlp:fiche, finie à la main par le chef : arrêté à 51 appels, sans commit, il sortait de la fiche (relecture &lt;dossier&gt; &lt;fichier&gt; au lieu de relecture &lt;fiche&gt;, un test --retirer à vide) ; l'instantané par index temporaire est repris, le reste réécrit. Son appel 34, python3 sans argument, a ouvert le Microsoft Store : python3 installé depuis, les deux entrées de chaque hook réussissent, le bilan VALIDE sort deux fois — à savoir pour PYT (n° 39).</span></li>
+      <li><time datetime="2026-09-24">2026-09-24</time><span>REV2, jouée à la main par le chef : un bloc Tentatives « résolu par » que rouvre un refus redevient « non résolu » ; --verifier et --refuser s'excluent ; les deux tests existants de --verifier prennent la ligne SANS GIT. À savoir pour REV3 : --verifier se lance avant le commit du chef — après, TÊTE nomme ce commit-là (vu sur e1d7f36).</span></li>
     </ul>
   </section>
 

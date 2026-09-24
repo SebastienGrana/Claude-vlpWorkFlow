@@ -46,13 +46,18 @@ Sous-commandes :
   (le parent de `scripts/`) : remplace un `cat` hors du projet, que PowerShell
   refuse. Hors du kit : `GARDE:` ; absent : `ABSENT <chemin>` ; l'un ou l'autre
   sort 1, les autres fichiers sont imprimés.
-- `cocher <fichier> <fiche> [--resolu T] [--date D] [--verifier]` — `[ ]` → `[x]` sur le titre
-  de la fiche et, si `CLAUDE_CODE_SESSION_ID` n'est pas vide, `**Session** : <id>`
+- `cocher <fichier> <fiche> [--resolu T] [--date D] [--verifier | --refuser M]` — `[ ]` → `[x]`
+  sur le titre de la fiche et, si `CLAUDE_CODE_SESSION_ID` n'est pas vide, `**Session** : <id>`
   avant sa ligne `**Dépend de**` (déjà là : pas redoublée) ; `--resolu` réduit
   un bloc `**Tentatives**` à `**Tentatives** (<date>) — résolu par : T`.
   `COCHÉ <fiche> · Session <id|absente>`. Introuvable ou déjà cochée : `GARDE:`,
   rien écrit, sort 1. `--verifier` n'écrit rien, et rend `CASE <fiche> [x]` (sort 0) ou
-  `CASE <fiche> [ ]` (sort 1).
+  `CASE <fiche> [ ]` (sort 1) ; puis, si le sujet du dernier commit du dépôt du fichier commence
+  par `<fiche>:` ou `<fiche> :` (le sous-agent a commité), `TÊTE <sha> <sujet>` et sort 1 ; hors d'un
+  dépôt, `SANS GIT`, et la case seule décide. `--refuser M` (chantier REV) : `[x]` → `[ ]`, et
+  sous le titre le bloc `**Tentatives** (<date>) — non résolu.`, `1. FAITE refusée à la
+  relecture.`, `Erreur : M` ; déjà là, il gagne la ligne numérotée suivante et son `Erreur :`
+  prend M, sans se doubler. `REFUSÉ <fiche>`.
 - `relecture <fiche> [--sha S]` — ce que lit le relecteur de `/vlp:enchainer` (chantier REV). Sans
   `--sha`, un instantané de l'arbre — suivis et non suivis, selon `.gitignore` — en commit de parent
   `HEAD`, par un index temporaire : ni `HEAD` ni l'index ne bougent ; avec, ce commit. Deux worktrees
@@ -489,7 +494,20 @@ def cmd_cocher(a, sortie):
     if a.verifier:
         cocher = lignes[debut].startswith("## %s [x]" % a.fiche)
         sortie.write("CASE %s [%s]\n" % (a.fiche, "x" if cocher else " "))
+        # La tête du dépôt (chantier REV) : un dernier commit qui nomme la fiche est celui du
+        # sous-agent — `VAL1:` compris, que `COMMIT_FICHE` laisse passer.
+        dossier = os.path.dirname(os.path.abspath(a.fichier))
+        if git_texte(["rev-parse", "--git-dir"], dossier)[0] != 0:
+            sortie.write("SANS GIT\n")
+            return 0 if cocher else 1
+        code, tete = git_texte(["log", "-1", "--format=%h %s"], dossier)
+        sha, _, sujet = tete.strip().partition(" ") if code == 0 else ("", "", "")
+        if re.match(r"%s\s*:" % re.escape(a.fiche), sujet):
+            sortie.write("TÊTE %s %s\n" % (sha, sujet))
+            return 1
         return 0 if cocher else 1
+    if a.refuser is not None:
+        return refuser(a, lignes, debut, sortie)
     if not lignes[debut].startswith("## %s [ ]" % a.fiche):
         sortie.write("GARDE: %s déjà cochée — rien écrit\n" % a.fiche)
         return 1
@@ -510,6 +528,40 @@ def cmd_cocher(a, sortie):
     with open(a.fichier, "w", encoding="utf-8", newline="") as f:
         f.write("\n".join(lignes) + "\n")
     sortie.write("COCHÉ %s · Session %s\n" % (a.fiche, s or "absente"))
+    return 0
+
+
+def refuser(a, lignes, debut, sortie):
+    """Le refus du relecteur (chantier REV) : la case rouverte, et sous le titre le bloc de
+    `tache-blocage.md` — déjà là, il gagne la ligne numérotée suivante et son `Erreur :` prend
+    le nouveau motif ; il ne se double jamais."""
+    fin = next((i for i in range(debut + 1, len(lignes))
+                if lignes[i].strip() == FERMANT or TITRE.match(lignes[i])), len(lignes))
+    lignes[debut] = lignes[debut].replace("[x]", "[ ]", 1)
+    date = a.date or __import__("datetime").date.today().isoformat()
+    essai, erreur = "FAITE refusée à la relecture.", "Erreur : %s" % a.refuser
+    bloc = next((i for i in range(debut + 1, fin) if lignes[i].startswith("**Tentatives**")), None)
+    if bloc is None:
+        # Sous le titre, après sa ligne vide s'il en a une — comme les blocs écrits à la main.
+        k = debut + 2 if debut + 1 < fin and not lignes[debut + 1].strip() else debut + 1
+        lignes[k:k] = (["**Tentatives** (%s) — non résolu." % date, "1. " + essai, erreur]
+                       + ([""] if k == debut + 2 else []))
+    else:
+        n = next((i for i in range(bloc + 1, fin) if not lignes[i].strip() or lignes[i].startswith("**")), fin)
+        if "non résolu" not in lignes[bloc]:
+            lignes[bloc] = "**Tentatives** (%s) — non résolu." % date
+        numeros = [i for i in range(bloc + 1, n) if re.match(r"[0-9]+\. ", lignes[i])]
+        p = numeros[-1] + 1 if numeros else bloc + 1
+        suivant = int(lignes[numeros[-1]].split(".")[0]) + 1 if numeros else 1
+        lignes.insert(p, "%d. %s" % (suivant, essai))
+        e = next((i for i in range(p + 1, n + 1) if lignes[i].startswith("Erreur :")), None)
+        if e is None:
+            lignes.insert(p + 1, erreur)
+        else:
+            lignes[e] = erreur
+    with open(a.fichier, "w", encoding="utf-8", newline="") as f:
+        f.write("\n".join(lignes) + "\n")
+    sortie.write("REFUSÉ %s\n" % a.fiche)
     return 0
 
 
@@ -2455,7 +2507,9 @@ def main(argv, sortie=None, entree=None, erreur=None):
     co2.add_argument("fiche")
     co2.add_argument("--resolu")
     co2.add_argument("--date")
-    co2.add_argument("--verifier", action="store_true")
+    cv = co2.add_mutually_exclusive_group()
+    cv.add_argument("--verifier", action="store_true")
+    cv.add_argument("--refuser")
     rl = sous.add_parser("relecture")
     rl.add_argument("fiche", nargs="?")
     rl.add_argument("--sha")
