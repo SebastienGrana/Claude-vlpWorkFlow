@@ -819,8 +819,10 @@ GABARIT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "templa
 LI_FICHE = re.compile(r'[ \t]*<li class="fiche"[^>]*>.*?</li>\n?', re.S)
 UL_FICHES = re.compile(r'(<ul class="fiches">)(.*?)(\n[ \t]*</ul>)', re.S)
 # Relit tout ce que `ligne_cout` écrit : le total entre parenthèses, ou nu sous
-# 1 000 (`arrondi`) ; le prix, ou `?` quand il manque.
-COUT = re.compile(r"(?:\((\d[\d ]*)\)|(\d+)) · (\d+) tours · ([\d,]+|\?) \$")
+# 1 000 (`arrondi`), négatif compris ; le prix, négatif compris, ou `?` quand il
+# manque. Un négatif, `couts` l'écrit sans Git quand l'ancienne page affiche plus
+# que la session mesurée : il se relit avec son signe (chantier TAR).
+COUT = re.compile(r"(?:\((\d[\d ]*)\)|(-?\d+)) · (\d+) tours · (-?[\d,]+|\?) \$")
 _mesure = None
 
 
@@ -861,7 +863,8 @@ def arrondi(n):
     """La convention de coût en tête de templates/artefact-chantier.html."""
     if n < 1000:
         return str(n)
-    valeur, unite = (n / 1_000_000, "M") if n >= 1_000_000 else (n / 1000, "k")
+    # Dès 999 950, les milliers s'arrondiraient à « 1000,0k » : c'est déjà le million.
+    valeur, unite = (n / 1_000_000, "M") if n >= 999_950 else (n / 1000, "k")
     return "≈%s%s (%s)" % (("%.1f" % valeur).replace(".", ","), unite, milliers(n))
 
 

@@ -60,8 +60,9 @@ justes à une vingtaine près.
 ---
 
 <!-- FICHE:TAR1 -->
-## TAR1 [ ] — La ligne de coût garde son signe
+## TAR1 [x] — La ligne de coût garde son signe
 
+**Session** : 1ba64929-8274-42d4-93bb-a2d22fbdd600
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py` (`COUT`, `triplet`, `arrondi`), `scripts/test-vlp.py` — et rien
 d'autre.

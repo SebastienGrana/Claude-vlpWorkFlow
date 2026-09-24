@@ -283,15 +283,18 @@ def transcript(chemin, tours, heures=None):
             f.write(json.dumps(ligne) + "\n")
 
 
-verifier("arrondi", [mod.arrondi(n) for n in (999, 1000, 1505630)] == ["999", "≈1,0k (1 000)", "≈1,5M (1 505 630)"],
-         [mod.arrondi(n) for n in (999, 1000, 1505630)])
+verifier("arrondi", [mod.arrondi(n) for n in (999, 1000, 999949, 999950, 1505630)] == ["999", "≈1,0k (1 000)", "≈999,9k (999 949)", "≈1,0M (999 950)", "≈1,5M (1 505 630)"],
+         [mod.arrondi(n) for n in (999, 1000, 999949, 999950, 1505630)])
 
 from decimal import Decimal
 
-# Tout ce que ligne_cout écrit, triplet le relit : total sous et au-dessus de 1 000, prix chiffré ou « ? ».
-allers = [(t, 3, u) for t in (999, 1505630) for u in (Decimal("1.25"), None)]
+# Tout ce que ligne_cout écrit, triplet le relit : total sous et au-dessus de 1 000, prix chiffré, « ? », et négatifs.
+allers = [(t, tours, u) for t in (0, 7, 999, 1000, 999999, 1000000, 123456789, -5, -1500) for tours in (0, 1, 42) for u in (None, Decimal("0"), Decimal("1.83"), Decimal("-0.05"))]
 verifier("triplet relit ligne_cout", all(mod.triplet(mod.ligne_cout(*a)) == a for a in allers),
-         [(mod.ligne_cout(*a), mod.triplet(mod.ligne_cout(*a))) for a in allers])
+         [(a, mod.ligne_cout(*a), mod.triplet(mod.ligne_cout(*a)) == a) for a in allers if mod.triplet(mod.ligne_cout(*a)) != a])
+# Le brut entre parenthèses suffit, sans l'arrondi devant : une page d'un autre format se relit.
+verifier("triplet : le brut entre parenthèses suffit", mod.triplet("(5 284 442) · 42 tours · 1,83 $") == (5284442, 42, Decimal("1.83")),
+         mod.triplet("(5 284 442) · 42 tours · 1,83 $"))
 
 # Un « ? $ » de l'ancienne page traverse les soustractions de couts : P1 garde son coût
 # affiché, P2 prend le reste, en « ? » puisque la part de P1 en dollars est inconnue.

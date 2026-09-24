@@ -220,6 +220,16 @@ tous retirés, venaient de `12-audit.md` ; 31 à 34, de la clôture de `REP` ; 3
 Une ligne par décision imprévue tranchée en cours de fiche — jamais un résumé
 de ce que le code dit déjà.
 
+- **2026-09-24** — TAR1, relue par le chef : `FAITE` en premier mot, case cochée (appel 25 sur
+  26), aucun commit ; tests écrits d'abord, `ÉCART: arrondi` cité. Mais le code déborde la fiche :
+  `arrondi` écrivait un négatif en `-≈1,5k (1 500)`, et `COUT` exigeait « ≈…k ( » devant le brut
+  — plus strict que l'ancien, qui relit tout brut entre parenthèses (le repli sans Git relit les
+  anciennes pages). Repris au plus près de la fiche : le seuil d'`arrondi` seul, `COUT` d'origine
+  plus un signe sur le total nu et le prix, `triplet` inchangé. Un test ajouté, « triplet : le
+  brut entre parenthèses suffit », que la version du sous-agent fait tomber ; trois mutants
+  (signe du total, signe du prix, seuil) tombent chacun sur son test. 37
+  `hook_non_blocking_error` pour 26 appels. Transcription : `…/subagents/agent-a1e187c75b0e51d20.jsonl`.
+
 - **2026-09-24** — FIN3, relue par le chef : `FAITE` en premier mot, case cochée (appel 38 sur
   38), aucun commit ; le test demandé est écrit tel que nommé, et un mutant (l'appel à
   `regenerer` ôté) le fait échouer. Une retouche : `regenerer` préfixe déjà ses gardes de
