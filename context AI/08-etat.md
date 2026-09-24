@@ -289,6 +289,30 @@ celle de `FIL` ; 48 à 51, de celle de `FIN` ; 52, des clôtures de la nuit du
 Une ligne par décision imprévue tranchée en cours de fiche — jamais un résumé
 de ce que le code dit déjà.
 
+- **2026-09-25** — CON3, les hooks essayés. Doc lue le 2026-09-25,
+  https://code.claude.com/docs/en/hooks (doc officielle) : table « Exit code 2 behavior per
+  event » — `PreToolUse` « Blocks the tool call », `SubagentStart` « Blocks subagent spawn »,
+  `SubagentStop` « Prevents subagent from stopping, continues the subagent » (un résumé de la
+  même page disait l'inverse : l'essai tranche). Sonde `vlp.py sonde` branchée sur les trois,
+  témoin `CON9` joué par `vlp:jouer` (agent `a17390a4be2ecc6da`, 24 entrées, chaque hook lancé
+  deux fois — `python3` et `py` ouvrent le même `python.exe`) ; débranchée, témoin retiré,
+  `HEAD` resté `32f114a`. Champs reçus :
+  `SubagentStart` : `session_id`, `transcript_path`, `cwd`, `scratchpad_dir`, `prompt_id`,
+  `agent_id`, `agent_type` — ni `permission_mode`, ni rien à rendre d'utile. `PreToolUse` :
+  mêmes champs plus `permission_mode`, `hook_event_name`, `tool_name`, `tool_input`
+  (`agent_type` = `vlp:fiche`). `SubagentStop` : plus `effort`, `stop_hook_active`,
+  `agent_transcript_path`, `last_assistant_message`, `background_tasks`.
+
+  | Hook | Ce qu'il peut faire | Preuve |
+  |---|---|---|
+  | `PreToolUse` | refuser un appel du sous-agent, raison lue par lui | **prouvé** : `PreToolUse:Bash hook error: Sonde CON3 : appel refusé…` en `tool_result` `is_error`, le témoin continue sans relancer |
+  | `SubagentStop` | renvoyer le sous-agent au travail, consigne lue par lui ; lire son dernier message sans ouvrir la transcription | **prouvé** : `Stop hook feedback: Sonde CON3 : renvoyé…` en message utilisateur, le témoin écrit « renvoyé » puis rend `FAITE` ; 2e arrêt `stop_hook_active: true` |
+  | `SubagentStart` | voir partir un sous-agent (noter `HEAD`) ; bloquer son départ | départ **prouvé** (reçu, `agent_type` `vlp:fiche`) ; blocage **lu** seulement |
+
+  Imprévu : un `SubagentStop` d'`agent_type` **vide** (`last_assistant_message` « ok », agent
+  `a021622b7058691f7`, qui n'est pas le témoin) — un hook filtre donc sur `agent_type`, jamais
+  sur la seule présence d'`agent_id`. **Choix de l'utilisateur : les deux** — `PreToolUse`
+  refuse l'écriture Git, `SubagentStop` renvoie sur statut ou case.
 - **2026-09-25** — CON1, `py scripts/vlp.py contrat --depuis f98ceec` : `CONTRAT 8 sous-agents ·
   0 écrivent dans Git · 5 sans statut en tête` — 8 au-delà du seuil de 5, `CON2` sautée. Sans
   `--depuis` : `CONTRAT 77 sous-agents · 4 écrivent dans Git · 42 sans statut en tête` ; les 4

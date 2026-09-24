@@ -1752,6 +1752,29 @@ with tempfile.TemporaryDirectory() as t:
     verifier("contrat : borne illisible, GARDE", code == 1 and s.startswith("GARDE: --depuis pas-une-borne-zz"), s)
 
 
+# sonde (chantier CON3) : note l'entrée, refuse SONDE-REFUS, renvoie une seule fois
+with tempfile.TemporaryDirectory() as t:
+    def sonde(d):
+        o = io.StringIO()
+        code = mod.cmd_sonde(io.StringIO(d if isinstance(d, str) else json.dumps(d)), o, t)
+        return code, o.getvalue()
+
+    fiche = {"agent_id": "a1", "agent_type": "vlp:fiche"}
+    verifier("sonde : illisible, muette", sonde("pas du json") == (0, "") and not os.listdir(t), os.listdir(t))
+    verifier("sonde : hors sous-agent, rien noté", sonde({"hook_event_name": "PreToolUse"}) == (0, "")
+             and not os.listdir(t), os.listdir(t))
+    code, s = sonde(dict(fiche, hook_event_name="PreToolUse", tool_input={"command": "echo SONDE-REFUS"}))
+    verifier("sonde : PreToolUse refuse SONDE-REFUS", '"permissionDecision": "deny"' in s, s)
+    code, s = sonde(dict(fiche, hook_event_name="SubagentStop"))
+    verifier("sonde : premier SubagentStop renvoyé", '"decision": "block"' in s, s)
+    code, s2 = sonde(dict(fiche, hook_event_name="SubagentStop"))
+    code, s3 = sonde({"agent_id": "a2", "agent_type": "vlp:relecture", "hook_event_name": "SubagentStop"})
+    verifier("sonde : second SubagentStop et autre type laissés", s2 == "" and s3 == "", s2 + s3)
+    with open(os.path.join(t, mod.SONDE), encoding="utf-8") as f:
+        notes = f.read().splitlines()
+    verifier("sonde : 4 entrées notées", len(notes) == 4, "\n".join(notes))
+
+
 # hooks.json : le filet sur tout outil, après un succès et après un échec ; hook sur les écritures
 with open(os.path.join(RACINE, "hooks", "hooks.json"), encoding="utf-8") as f:
     crochets = json.load(f)["hooks"]

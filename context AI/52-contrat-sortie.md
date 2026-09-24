@@ -115,8 +115,9 @@ Le journal porte soit « sautée » et le compte de `CON1`, soit trois lignes de
 ---
 
 <!-- FICHE:CON3 -->
-## CON3 [ ] — Essayer les deux hooks
+## CON3 [x] — Essayer les deux hooks
 
+**Session** : 0d303b02-229a-40df-824e-65d205a4141e
 **Dépend de** : `CON1`.
 **Fichiers** : `hooks/hooks.json`, `scripts/vlp.py`, `context AI/08-etat.md` (journal).
 
