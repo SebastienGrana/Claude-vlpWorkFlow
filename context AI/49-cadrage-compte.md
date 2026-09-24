@@ -4,6 +4,10 @@
 
 # Chantier CAD — Le cadrage compte dans le coût du chantier
 
+**CLOS** le 2026-09-24. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** CAD1..CAD1 (2026-09-24) : ouvrir note la session du cadrage avant la première ligne ## du fichier de fiches ; cout et la page la mesurent comme celles des fiches, ses tours d'avant l'ouverture dans hors fiches.
+
 **À quoi il sert.** Seul `cocher` pose une ligne `**Session**`, dans la fiche qu'il coche. Un
 cadrage joué dans sa session, puis `/clear` (« une tâche, une session »), n'est donc mesuré nulle
 part : `cout` et la page ne lisent que les sessions des fiches. Il pèse : celui de `VAL`, mesuré
