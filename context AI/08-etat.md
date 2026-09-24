@@ -275,6 +275,25 @@ celle de `FIL` ; 48 à 51, de celle de `FIN` ; 52, des clôtures de la nuit du
 Une ligne par décision imprévue tranchée en cours de fiche — jamais un résumé
 de ce que le code dit déjà.
 
+- **2026-09-24** — REV4, deuxième passage, après REV5 à REV8 : quatre relectures par
+  `Skill` `vlp:relire`, une à la fois, accord de l'utilisateur après la première. Après chacune :
+  `git status` vide, `git worktree list` inchangé (3 lignes), 0 dossier `vlp-relecture-*` neuf
+  dans `%TEMP%` (les 12 présents datent de 09:16–09:20). Coûts par `scripts/mesure-tokens.py`.
+
+  | Commit | Verdict | Motifs | Remarques | Tours | Tokens | $ |
+  |---|---|---|---|---|---|---|
+  | `CAD1 8bb748d` | `ACCEPTÉE` ✅ | — | `pop` au lieu de `try`/`finally` ; fichiers du chef | 8 | 277 222 | 0,34 |
+  | `PLA1 7d16873` | `ACCEPTÉE` ❌ | — | lettre de l'étape 3 ; deux `verifier` ; « un nom hors format serait dupliqué », non rejoué | 12 | 375 978 | 0,36 |
+  | `VAL1 c5123af` | `REFUSÉE` 🟡 | critère de `VAL1` non tenu : le message nomme `marketplace.json` | hook qui refuse sur la copie en CRLF, dit « faux défaut dû à la copie » ; `sort -V` sans test | 14 | 418 078 | 0,44 |
+  | `PLA1 eb2a6b0` | `REFUSÉE` 🟡 | en-tête au trait d'union abîmé (`Q1-Q2` → `Q1–Q2-Q2`), sonde de six en-têtes | test coupé en deux ; `u.md` hors prompt ; mutant de `creer` non rejoué | 17 | 554 317 | 0,55 |
+
+  Quatre relectures : 51 tours, 1 625 595 tokens, 1,69 $, soit 0,42 $ l'une — contre 1,78 $ au
+  premier passage (entrée plus bas) ; les trois corrigés : 1,14 $, estimés à 5,89 $. **Critère non
+  tenu** : 1 ligne sur 4 tenue en entier, 3 verdicts justes sur 4. REV7 et REV8 ont porté sur
+  `8bb748d`. Règle mal appliquée, deux fois (`enchainement.md`, « Relecture ») : un défaut rangé
+  « sans effet sur une sortie » sans rejouer la sortie qui l'aurait prouvé (`7d16873`), ou déclassé
+  après l'avoir vu (`c5123af`). Sur `eb2a6b0`, le relecteur cite `context AI/51-relecture.md:249`
+  (REV6) : il a lu le dépôt vivant, sa sonde en a pu être guidée. Modèle inchangé (`opus`).
 - **2026-09-24** — REV5 : l'app Claude est un paquet MSIX. Son `claude.exe` est en vrai sous
   `%LOCALAPPDATA%\Packages\Claude_*\LocalCache\Roaming\Claude\claude-code\` ; `%APPDATA%\Claude\claude-code`
   n'existe que pour les processus qu'elle lance. `py scripts/test-vlp.py` suit le shebang `python3` vers

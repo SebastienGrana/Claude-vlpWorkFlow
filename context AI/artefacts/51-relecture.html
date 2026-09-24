@@ -117,16 +117,17 @@
         <span class="id">REV8</span><span class="titre">Refuser ou remarquer</span>
         <span class="etat">faite</span>
         <span class="note">Grep enchainement.md : « remarque » ×1, « les motifs » ×2 (l. 32, 37), « Un défaut : » ×0 ; « remarque » ×0 dans agents/relecture.md et skills/relire/SKILL.md ; commit passé par le hook</span>
+        <span class="cout mono">≈1,9M (1 936 994) · 15 tours · 0,88 $</span>
       </li>
       <li class="fiche" data-etat="encours">
         <span class="id">REV4</span><span class="titre">Prouver la relecture sur les commits de la nuit</span>
         <span class="etat">en cours</span>
         <span class="note">Rejoue 8bb748d, 7d16873, c5123af et eb2a6b0, critère réécrit ; dépend de REV5 à REV8</span>
-        <span class="cout mono">≈1,9M (1 936 994) · 15 tours · 0,88 $</span>
+        <span class="cout mono">≈4,4M (4 391 335) · 69 tours · 2,73 $</span>
       </li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈6,0M (6 026 326) · 24 tours · 7,12 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈57,3M (57 275 915) · 391 tours · 46,43 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈61,7M (61 667 250) · 460 tours · 49,16 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -147,6 +148,7 @@
       <li><time datetime="2026-09-24">2026-09-24</time><span>REV2, jouée à la main par le chef : un bloc Tentatives « résolu par » que rouvre un refus redevient « non résolu » ; --verifier et --refuser s'excluent ; les deux tests existants de --verifier prennent la ligne SANS GIT. À savoir pour REV3 : --verifier se lance avant le commit du chef — après, TÊTE nomme ce commit-là (vu sur e1d7f36).</span></li>
       <li><time datetime="2026-09-24">2026-09-24</time><span>REV3, jouée à la main par le chef : le relecteur ne change jamais de dossier (Windows ne retire pas un worktree où l'on se tient) ; pas d'effort fixé ; maxTurns 80 recopié de fiche.md, faute de renvoi en frontmatter ; le filet ne prévient que les agents fiche. claude plugin validate ne lit que le manifeste : l'agent se prouve en tournant, à REV4.</span></li>
       <li><time datetime="2026-09-24">2026-09-24</time><span>REV5 : l'app Claude est un paquet MSIX. Son claude.exe est en vrai sous %LOCALAPPDATA%\Packages\Claude_*\LocalCache\Roaming\Claude\claude-code\ ; %APPDATA%\Claude\claude-code n'existe que pour les processus qu'elle lance. py scripts/test-vlp.py suit le shebang python3 vers pythoncore-3.14-64, le Python du paquet « Python install manager », qui ne le voit pas : le hook y disait « validate sauté » (attendu aussi depuis un terminal hors de l'app, non mesuré). Décidé avec l'utilisateur : le hook cherche aussi Packages\Claude_* — test « hook : claude trouvé hors de l'app ».</span></li>
+      <li><time datetime="2026-09-24">2026-09-24</time><span>REV4, deuxième passage : 4 relectures, 51 tours, 1,69 $ (0,42 $ l'une contre 1,78 $). 8bb748d ACCEPTÉE ; 7d16873 ACCEPTÉE à tort (plage facultative non rejouée) ; c5123af et eb2a6b0 REFUSÉE, pour d'autres motifs que le critère. Critère non tenu : 1 ligne sur 4 en entier, 3 verdicts justes sur 4. REV4 reste ouverte.</span></li>
     </ul>
   </section>
 
