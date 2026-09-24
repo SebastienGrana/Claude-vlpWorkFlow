@@ -1415,3 +1415,36 @@ de ce que le code dit déjà.
   lanceurs (celui qui manque parle avant que Python démarre). L'injection écrit donc sa sortie
   d'erreur dans `relais-python.err` à la racine du plugin (`2>` puis deux `2>>`, ignoré par Git) :
   la raison reste lisible au lieu d'être jetée.
+
+## 2026-09-25 — GLO2
+
+Commande 1 (tous les sous-agents) :
+```
+py "C:/Users/znorr/.claude/skills/vlp/scripts/vlp.py" forme
+```
+Bilan brut : `FORME 105 sous-agents · user 4298 car. · resume 29 · jauge 38 · tete 59`
+
+Commande 2 (depuis commit f98ceec, 2026-09-24T00:07:40Z) :
+```
+py "C:/Users/znorr/.claude/skills/vlp/scripts/vlp.py" forme --depuis 2026-09-24T00:07:40Z
+```
+Bilan brut : `FORME 36 sous-agents · user 5507 car. · resume 14 · jauge 23 · tete 27`
+
+**Calculs, en borne haute (tokens ≤ caractères ÷ 2), prix Haiku du socle.** Tailles en
+caractères, lues le 2026-09-25 par `len(open(p, encoding="utf-8").read())` — la première
+écriture de cette entrée avait pris des octets UTF-8 (6262 / 5801 / 3459), relevé par la
+relecture ; corrigé par le chef.
+
+| Fichier | Caractères | Tokens ≤ | Coût ≤ par sous-agent | Part de 0,176 $ |
+|---|---|---|---|---|
+| `~/.claude/CLAUDE.md` (`User`) | 6000 | 3000 | 3000 × 4,25 ÷ 10⁶ = 0,01275 $ | 7,24 % |
+| `CLAUDE.md` du kit (`Project`) | 5669 | 2834,5 | 0,01205 $ | 6,84 % |
+| `MEMORY.md` (`AutoMem`) | 3317 | 1658,5 | 0,00705 $ | 4,00 % |
+
+4,25 = 1,25 (une écriture de cache) + 30 × 0,1 (trente lectures), en $/MTok.
+
+**Verdict : agir**, sur deux quantités, chacune comparée à son seuil du socle :
+- coût : le `CLAUDE.md` utilisateur ≤ 7,24 % d'une fiche triviale, au-dessus de 5 % — mais
+  c'est une **borne haute** ; à 3,5 caractères par token, il retombe vers 4,1 %. Fragile.
+- forme : **23 sur 36** sous-agents depuis `f98ceec` portent la jauge dans leur dernier
+  message, 14 « En résumé » — bien au-dessus d'un sur dix. **C'est elle qui fonde le verdict.**

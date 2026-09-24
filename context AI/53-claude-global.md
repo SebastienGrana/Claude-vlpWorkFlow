@@ -78,8 +78,9 @@ ne plus sommer le `type` `User` (le laisser à 0) fait tomber ce test.
 ---
 
 <!-- FICHE:GLO2 -->
-## GLO2 [ ] — Mesurer sur tous les sous-agents
+## GLO2 [x] — Mesurer sur tous les sous-agents
 
+**Session** : ca431cf8-167e-4c10-8bce-210c5f48a675
 **Dépend de** : `GLO1`.
 **Fichiers** : `context AI/08-etat.md` (journal, en fin de fichier) — et rien d'autre.
 
