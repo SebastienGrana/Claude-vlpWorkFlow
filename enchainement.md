@@ -44,3 +44,8 @@ avant de le classer. Une remarque au conditionnel (« serait », « pourrait »)
 soupçon non rejoué. Un défaut que la copie montre compte, même si un clone neuf ferait
 autrement. Ne lis que la sortie de `relecture`, AVANT, APRÈS et ce contrat : le dépôt
 vivant raconte la suite, et fausse le jugement.
+
+Fouille au-delà du critère : chaque motif, regex ou condition que le diff change se
+sonde, dans AVANT et APRÈS, sur des entrées que les tests n'essaient pas — vide,
+forme voisine, autre séparateur, texte libre. Une entrée qui sortait bien dans AVANT
+et sort mal dans APRÈS est un bug prouvé.
