@@ -8,7 +8,9 @@
 +1 771 130 pour `ESD`, de +434 097 à +2 682 260 sur 19 clos (TODO n° 67). APC mesure d'où vient
 l'écart, sur `ESD` puis sur les 19, et fait que le chiffre inscrit le rattrape.
 
-**Fait.** Rien. Ouvert le 2026-09-25, cadré en 3 fiches, `APC1` à jouer.
+**CLOS** le 2026-09-25. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** APC1..APC3 (2026-09-25) : le chiffre de clôture égale le recompté : la recompte d'un clos s'arrête à l'appel clore ; recompter --a-clore décompose l'écart des 19 clos.
 
 **Session** : 017ee825-1356-4f4f-b03c-776d16c1a7a4
 

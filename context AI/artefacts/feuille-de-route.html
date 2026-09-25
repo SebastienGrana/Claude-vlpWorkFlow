@@ -73,8 +73,8 @@
     <!-- ZONE:encours — remplacé à chaque ouverture, remis à « aucun » à chaque clôture.
          /tache n'y touche pas : l'avancement fiche par fiche est sur la page du chantier. -->
     <div class="encours">
-      <div class="titre">Ce que le chiffre de clôture ne voit pas <span class="badge" data-etat="cours">en cours</span></div>
-      <div>Fiches <span class="mono">APC1–APC3</span> — <a href="https://claude.ai/artifact/X4cHWn5EP1baX4WcFSCnr7">la page du chantier</a></div>
+      <div class="titre">Aucun chantier ouvert</div>
+      <div>Lancer <span class="mono">/vlp:chantier</span> pour en ouvrir un.</div>
     </div>
   </section>
 
@@ -107,7 +107,6 @@
           <tr><td class="mono">63</td><td><span class="mono">ECH</span> — <span class="mono">ECRIT_GIT</span> ne lit pas le texte d'un heredoc</td><td>Le gardien a refusé à deux relecteurs de <span class="mono">RLG1</span> (2026-09-25) un heredoc ou un <span class="mono">echo</span> qui ne faisait qu'écrire les mots <span class="mono">git commit</span> ou <span class="mono">git add</span> dans un fichier de sonde. <span class="mono">ECRIT_GIT</span> cherche le motif dans toute la commande. Vrai aussi pour <span class="mono">vlp:fiche</span>, depuis <span class="mono">CON</span>. 🟡 Jusqu'où lire le shell : couper les chaînes citées ne suffit pas pour un heredoc.</td><td class="mono">~0,5 fiche</td><td class="mono">—</td></tr>
           <tr><td class="mono">64</td><td><span class="mono">SON</span> — Rejouer un hook à la main sans le tampon</td><td><span class="mono">une_fois</span> (chantier <span class="mono">PYT</span>) fait taire la même entrée rejouée en moins de 60 s, même par une autre copie de <span class="mono">vlp.py</span> : un relecteur de <span class="mono">RLG1</span> a dû ajouter un <span class="mono">nonce</span> pour comparer AVANT et APRÈS. Une variable d'environnement, ou une option, qui saute le tampon hors d'un vrai hook.</td><td class="mono">~0,5 fiche</td><td class="mono">—</td></tr>
           <tr><td class="mono">66</td><td><span class="mono">OUV</span> — Une ligne qui s'ouvre par un mot de jauge, sans être une jauge</td><td>Reste de <span class="mono">JUG</span> : le gardien (règle <span class="mono">tete</span>) renvoie une ligne qui <strong>commence</strong> par « Imprévu », « Pas bon »… même quand ce n'est pas la jauge — une puce <span class="mono">- Imprévu : j'ai dû…</span>, un <span class="mono">REFUSÉE</span> dont une ligne s'ouvre par « Pas bon ». Absent des 29 sous-agents mesurés en <span class="mono">JUG1</span> ; <span class="mono">stop_hook_active</span> borne le coût à un renvoi. 🟡 Exiger l'émoji de la jauge devant le mot, ou le mot suivi de <span class="mono">—</span>/<span class="mono">…</span>/fin de ligne : à mesurer sur le corpus comme en <span class="mono">JUG1</span> (<span class="mono">forme --regle</span>).</td><td class="mono">~0,5 fiche</td><td class="mono">—</td></tr>
-          <tr><td class="mono">67</td><td><span class="mono">APC</span> — Ce que le chiffre de clôture ne voit pas <span class="badge" data-etat="cours">en cours</span></td><td>Reste de <span class="mono">REC</span> : pour 19 clos (causes 4a et 4b du journal <span class="mono">REC2</span>), l'écart recompté − inscrit tient tout entier dans « hors fiches », côté clôture, et reste sous lui (<span class="mono">CAS</span> : égal, 1 687 993) ; de +434 097 (<span class="mono">RLG</span>) à +2 682 260 (<span class="mono">FOR</span>) — pas « quelques milliers », comme l'estimait le bilan d'<span class="mono">UNI</span>. 🟡 Hypothèse, non prouvée : les tours d'après <span class="mono">clore</span> (republication, menu, push) sont hors du chiffre. <span class="mono">NIV</span> et <span class="mono">H</span> (4c : +3 136 302 et +2 249 049) restent sans explication. Le bilan de <span class="mono">H</span> ne cite aucun chiffre : rien n'y est marqué. <span class="mono">REC</span> lui-même, vu par <span class="mono">ESS4</span> : +651 030, 0 essai — le même motif (menu de clôture <span class="mono">1f92f30</span> après <span class="mono">clore</span>). <span class="mono">ESS</span> (+763 058, 0 essai, tout en <span class="mono">hors fiches</span>).</td><td class="mono">~1 fiche</td><td class="mono">—</td></tr>
         </tbody>
       </table>
     </div>
@@ -117,13 +116,19 @@
     <h2>Chantiers clos — ils ne se rejouent pas</h2>
     <!-- ZONE:clos — une ligne ajoutée à chaque clôture, la plus récente en haut -->
     <details class="clos">
-      <summary><span class="resume-clos">51 chantiers clos · ≈758,6M (758 613 268) tokens · ≈635 $</span></summary>
+      <summary><span class="resume-clos">52 chantiers clos · ≈772,4M (772 408 633) tokens · ≈647 $</span></summary>
     <div class="tableau">
       <table>
         <thead>
           <tr><th>Chantier</th><th>Fiches</th><th>Clos le</th><th>Tokens</th><th>Ce qu'il a livré</th></tr>
         </thead>
         <tbody>
+          <tr>
+            <td><a href="https://claude.ai/artifact/X4cHWn5EP1baX4WcFSCnr7">Ce que le chiffre de clôture ne voit pas</a> <span class="badge" data-etat="clos">clos</span></td>
+            <td class="mono">APC1–APC3</td><td class="mono">2026-09-25</td>
+            <td class="mono">≈13,8M (13 795 365)</td>
+            <td>le chiffre de clôture égale le recompté : la recompte d'un clos s'arrête à l'appel clore ; recompter --a-clore décompose l'écart des 19 clos</td>
+          </tr>
           <tr>
             <td><a href="https://claude.ai/artifact/Xu5NRp6v9G2VzkP5NtJmHU">Les essais d'un chantier sans découpe, puis republier</a> <span class="badge" data-etat="clos">clos</span></td>
             <td class="mono">ESD1–ESD3</td><td class="mono">2026-09-25</td>
@@ -460,7 +465,7 @@
           </tr>
         </tbody>
         <tfoot>
-          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈758,6M (758 613 268)</strong></td><td class="mono">≈635 $</td></tr>
+          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈772,4M (772 408 633)</strong></td><td class="mono">≈647 $</td></tr>
         </tfoot>
       </table>
     </div>

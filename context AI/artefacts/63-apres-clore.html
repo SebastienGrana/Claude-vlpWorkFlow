@@ -93,11 +93,11 @@
         <span class="id">APC3</span><span class="titre">Appliquer le correctif choisi</span>
         <span class="etat">faite</span>
         <span class="note">Tests OK (code 0) ; mutant sans arrêt à clore : ÉCART, recompté 400 000 contre 300 000 inscrit (code 1) ; test : clore inscrit 300 000 = TOTAL cout 300 000 · 3 tours ; ESD : TOTAL 18 506 516 → 16 735 386, après clore 1 771 130 → 0 ; pyright scripts/ 0 → 0 erreur</span>
-        <span class="cout mono">≈2,5M (2 497 814) · 15 tours · 1,03 $</span>
+        <span class="cout mono">≈2,7M (2 679 574) · 16 tours · 1,08 $</span>
       </li>
     </ul>
-    <p class="mono cout-hors">Hors fiches : ≈4,4M (4 373 393) · 29 tours · 2,40 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈13,2M (13 241 455) · 99 tours · 7,16 $</p>
+    <p class="mono cout-hors">Hors fiches : ≈4,7M (4 745 543) · 31 tours · 2,52 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈13,8M (13 795 365) · 102 tours · 7,33 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -118,10 +118,11 @@
   </section>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
-  <section hidden>
-    <h2>Chantier clos le </h2>
+  <section>
+    <h2>Chantier clos le 2026-09-25</h2>
     <div class="bilan">
-      <p></p>
+      <p>Livré : le chiffre de clôture égale le recompté : la recompte d'un clos s'arrête à l'appel clore ; recompter --a-clore décompose l'écart des 19 clos</p>
+      <p>Surpris : 14 des 19 clos gardent un reste de 10 952 704 que l'après-clore n'explique pas : leur inscrit est sous ce que clore voyait</p>
     </div>
   </section>
 

@@ -13,11 +13,11 @@ https://github.com/SebastienGrana/Claude-vlpWorkFlow — cloné et utilisé en g
 - Équipés : Cairn-VlpLib, MapDecorator, ProjetONZSM, TrackGen — et ce kit lui-même.
 - Chaque chantier clos a sa ligne dans `context AI/00-INDEX.md`, son détail daté dans
   `context AI/08-etat.md` ; ici, les derniers seulement (`vlp.py clore` les tient).
-- Clos le 2026-09-25 : vlp.py forme se fie au bon départ ; le gardien renvoie une fin hors forme, fiche et relecteur (chantier FOR).
 - Clos le 2026-09-25 : Clos le 2026-09-25 : le gardien ne juge que la tête des lignes ; une citation passe, un résumé à part est renvoyé une fois (chantier JUG).
 - Clos le 2026-09-25 : la feuille de route recomptée au coût juste : 23 clos recomptés, 25 gardés, total 700 725 374 (chantier REC).
 - Clos le 2026-09-25 : cout compte les essais claude -p dans leur fiche ; seuls SAG et FIL en profitent, 9 clos sans découpe restent (TODO 68) (chantier ESS).
 - Clos le 2026-09-25 : les essais des 9 clos sans découpe, SAG et FIL entrent dans leur chiffre : +12 991 756 sur la feuille de route (chantier ESD).
+- Clos le 2026-09-25 : la recompte s'arrête à l'appel clore : inscrit = recompté ; les republications sortent du coût (chantier APC).
 
 ## Quatre règles non négociables
 
@@ -57,7 +57,6 @@ et seulement dans ce cas, ouvrir l'index.
 | savoir où vit quoi dans un projet équipé | `methode-chantier.md`, section « Où vit quoi » |
 | toucher aux pages publiées | `ARTEFACTS.md`, puis le gabarit dans `templates/` |
 | ouvrir un chantier, ou le découper en fiches | **lancer `/vlp:chantier`** |
-| jouer une fiche du chantier APC (ce que le chiffre de clôture ne voit pas) | `context AI/63-apres-clore.md` — chantier **ouvert**, par `/vlp:tache APC<n>` |
 | relire un chantier clos | `context AI/00-INDEX.md` — sa ligne y nomme le fichier de fiches |
 | reprendre après une longue interruption | `context AI/08-etat.md` |
 | choisir le prochain chantier du kit, ou retrouver la preuve d'un bug relevé le 2026-09-17 | `context AI/12-audit.md` |
