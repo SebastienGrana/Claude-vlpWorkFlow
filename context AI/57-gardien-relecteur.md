@@ -8,8 +8,9 @@
 relecteur `vlp:relecture` lance des commandes sans que rien ne l'empêche d'écrire dans Git.
 RLG étend le refus de `PreToolUse` au relecteur (TODO n° 60).
 
-**Fait.** Rien. Ouvert le 2026-09-25, cadré en 1 fiche, `RLG1` à jouer. Cadré seul :
-l'utilisateur dormait ; les 🟡 tranchés ici sont à valider au réveil.
+**CLOS** le 2026-09-25. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** RLG1..RLG1 (2026-09-25) : vlp.py gardien refuse git commit, add et reset au relecteur vlp:relecture comme au vlp:fiche ; son verdict de fin n'est pas jugé ; une entrée mal formée ne le fait plus planter.
 
 **Session** : ca431cf8-167e-4c10-8bce-210c5f48a675
 
