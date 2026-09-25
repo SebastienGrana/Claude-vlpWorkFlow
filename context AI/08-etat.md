@@ -333,6 +333,7 @@
   +9 982 170 (sous-agents avant `CPT`), 17 clos à fiches inchangées au token près, écart tout
   en hors fiches. `--ecrire` (`REC3`) ; appliqué (`REC4`) : total 681 541 003 → 700 725 374,
   second passage `ÉCRIT 0`, 22 bilans marqués (H, 23e écart, ne cite pas de chiffre).
+  Laissé ouvert : la cause des 4b et de `NIV`/`H` n'est pas établie. `CLOS` : 15 906 689 tokens.
 
 - **2026-09-25** — chantier ESS clos (TODO n° 47) : `vlp.py cout` compte les essais `claude -p`
   dans le prix de leur fiche, part `essais` à côté, `TOTAL` compris (`essais_de`, relié par le
@@ -346,7 +347,6 @@
   feuille : 11 clos, +12 991 756. `ESD2` refusée une fois (mutant « ignorer la marque » vivant,
   test sur le vrai dépôt), reprise par le chef. Laissé ouvert : `REC` et `ESS` (TODO n° 67).
   `CLOS` : 16 735 386 tokens.
-  Laissé ouvert : la cause des 4b et de `NIV`/`H` n'est pas établie. `CLOS` : 15 906 689 tokens.
 - **2026-09-25** — chantier APC clos (TODO n° 67) : `recompter --a-clore` décompose l'écart des
   19 clos de `REC2` — après-clore l'explique en entier pour 5, en partie pour 14, jamais 0 ; reste
   10 952 704, cause non établie. Choix (b) : un fichier clos se recompte jusqu'à l'appel `clore`
