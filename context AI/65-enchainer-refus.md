@@ -93,8 +93,9 @@ chacun fait tomber le test : `<n>` = toutes les lignes numérotées (le cas nouv
 ---
 
 <!-- FICHE:ENC2 -->
-## ENC2 [ ] — Faire dire au relecteur d'où vient la faute
+## ENC2 [x] — Faire dire au relecteur d'où vient la faute
 
+**Session** : 78a94c41-8003-4614-be9a-2dc15bc057ee
 **Dépend de** : rien.
 **Fichiers** : enchainement.md — et rien d'autre.
 

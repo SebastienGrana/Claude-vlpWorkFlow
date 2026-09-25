@@ -18,8 +18,10 @@ FAITE — <critère constaté, comptes bruts>
 ```
 
 **Arrêts imprévus** (rendent `RETOUR`) : décision que la fiche ne tranche pas,
-dépendance non cochée, permission refusée, fiche portant déjà un bloc
-Tentatives, compte rendu sans statut (plafond de tours atteint).
+dépendance non cochée, permission refusée, fiche portant déjà un bloc Tentatives
+— sauf si toutes ses lignes numérotées sont `FAITE refusée à la relecture.`,
+l'agent lisant alors `Erreur :` comme ce qu'il ne doit pas refaire —, compte
+rendu sans statut (plafond de tours atteint).
 
 ## Relecture
 
@@ -29,12 +31,19 @@ verdicts, rien devant, le détail sur la même ligne :
 
 ```
 ACCEPTÉE — <ce qui a été rejoué, comptes bruts>
-REFUSÉE — <les motifs, une ligne>
+REFUSÉE — fiche : <motifs>
+REFUSÉE — copie : <motifs>
 ```
 
 Aucun verdict vaut `REFUSÉE`. Trois motifs refusent, et eux seuls : le critère de fin
 non tenu ; un bug qu'une sortie prouve — du code, ou une doc qu'une commande rejouée
-contredit ; un mutant du critère qui survit. La ligne `REFUSÉE` porte les motifs seuls.
+contredit ; un mutant du critère qui survit. `REFUSÉE` porte sa cause avant les
+motifs, `fiche` ou `copie`. `fiche` : la faute reviendrait avec tout exécutant qui
+suit la fiche à la lettre — critère qui vérifie un signe au lieu de ce que le socle
+décide, fiche et socle qui se contredisent, règle inapplicable sur les vraies lignes,
+fichier utile non nommé ; sous ce verdict, une ligne `RÉÉCRITURE : <phrase de la
+fiche> → <ce qu'elle devient>` — le relecteur n'écrit jamais dans la fiche, seulement
+cette ligne. `copie` : la fiche le disait clairement, le sous-agent ne l'a pas fait.
 
 Le reste se remarque, sous la ligne du verdict, sans le changer : la lettre de la
 fiche, un `HORS FICHE`, le style, un écart sans effet sur une sortie.
