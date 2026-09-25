@@ -1542,3 +1542,23 @@ Commande : pour chaque `tool_use` `Edit`/`Write` de la transcription, compter le
 En chemin, `0bef88a` : `filet` et `hook` reçoivent la même entrée sur une écriture — sans le
 nom de sous-commande dans l'empreinte, `hook` se serait tu derrière `filet`, et le fichier de
 fiches n'aurait plus été validé. Mutant (empreinte sans le nom) : le test tombe.
+
+## 2026-09-25 — FOR2
+
+Commande :
+```bash
+py "<kit>/scripts/vlp.py" forme --depuis 029770b
+```
+
+Sortie brute :
+```
+FORME 3 sous-agents · user 5999 car. · resume 0 · jauge 1 · tete 2
+```
+
+Sous-agents de FOR1 (tete ≠ 0) :
+- a0de5d54a20561c92 vlp:fiche resume 0 jauge 1 tete 1
+- a90355e9dff2e59bf vlp:relecture resume 0 jauge 0 tete 1
+
+Compte avant GLO3 (journal GLO2) : jauge 23 sur 36, « En résumé » 14 sur 36.
+
+Compte FOR1 : resume 0/2, jauge 1/2. Échantillon très petit (2 sous-agents) : 0 sur 2 ne prouve pas que la phrase tient.

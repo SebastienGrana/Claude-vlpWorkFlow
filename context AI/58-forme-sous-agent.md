@@ -80,7 +80,7 @@ remettre `m.depart(parent)` ➡️ le nouveau test tombe (`FORME 0 sous-agents`)
 ---
 
 <!-- FICHE:FOR2 -->
-## FOR2 [ ] — Mesurer `GLO3` en session neuve
+## FOR2 [x] — Mesurer `GLO3` en session neuve
 
 **Dépend de** : `FOR1`.
 **Fichiers** : `context AI/08-etat.md` (fin du journal) — et rien d'autre.
@@ -110,8 +110,11 @@ L'utilisateur la lit et décide : `FOR3` se joue, ou il est abandonné.
 ---
 
 <!-- FICHE:FOR3 -->
-## FOR3 [ ] — Renvoyer la fin hors forme, fiche et relecteur
+## FOR3 [x] — Renvoyer la fin hors forme, fiche et relecteur
 
+**Tentatives** (2026-09-25) — résolu par : `\b` borne chaque mot de `JAUGE`, ne matche plus en sous-chaîne ; relu et accepté.
+
+**Session** : 669739ec-48a1-4796-aab1-ff74eaf24dd5
 **Dépend de** : `FOR2`, et la décision de l'utilisateur de la jouer.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` — et rien d'autre.
 

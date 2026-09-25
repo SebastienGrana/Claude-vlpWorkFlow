@@ -1859,6 +1859,19 @@ with tempfile.TemporaryDirectory() as t:
     verifier("gardien : relecteur ACCEPTÉE muet", (code, s) == (0, ""), s)
     code, s = gardien(dict(fin_relecture, last_assistant_message="REFUSÉE — erreur"))
     verifier("gardien : relecteur REFUSÉE muet", (code, s) == (0, ""), s)
+    code, s = gardien(dict(fin, last_assistant_message="RETOUR — x\n\n---\n✅ Tout va bien"))
+    verifier("gardien : fiche jauge « Tout va bien », renvoyée", '"decision": "block"' in s and "« En résumé » ou une jauge" in s, s)
+    code, s = gardien(dict(fin, last_assistant_message="RETOUR — x\n\n---\n✅ Tout va bien", stop_hook_active=True))
+    verifier("gardien : fiche jauge sous stop_hook_active, muet", (code, s) == (0, ""), s)
+    code, s = gardien(dict(fin_relecture, last_assistant_message="ACCEPTÉE — ok\nEn résumé : y"))
+    verifier("gardien : relecteur « En résumé », renvoyé", '"decision": "block"' in s and "« En résumé » ou une jauge" in s, s)
+    code, s = gardien(dict(fin_relecture, last_assistant_message="ACCEPTÉE — ok"))
+    verifier("gardien : relecteur sans « En résumé » ni jauge, muet", (code, s) == (0, ""), s)
+    # Mutation test : les tests « renvoyé » reposent sur forme_texte (chantier FOR3)
+    code, s = gardien(dict(fin, last_assistant_message="RETOUR — Pas bonne action"))
+    verifier("gardien : fiche « Pas bonne » (pas jauge), muet — substring bug", (code, s) == (0, ""), s)
+    code, s = gardien(dict(fin, last_assistant_message="RETOUR — Grosse bonne nouvelle"))
+    verifier("gardien : fiche « Grosse bonne » (pas jauge), muet — substring bug", (code, s) == (0, ""), s)
 
 
 # hooks.json : le filet sur tout outil, après un succès et après un échec ; hook sur les écritures

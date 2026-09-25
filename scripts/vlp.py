@@ -201,7 +201,9 @@ Sous-commandes :
   `SubagentStop` : `vlp:fiche` — renvoyé au travail (`decision` `block`, une raison d'une ligne) si
   `last_assistant_message` ne commence pas par un statut — sauf `stop_hook_active`, déjà renvoyé —, ou s'il dit `FAITE` et
   que `cocher --verifier` sur la fiche de `Fiche à jouer :` (1er message de la transcription)
-  rend une case vide ou une `TÊTE`, même sous `stop_hook_active` (chantier GAR) ; `vlp:relecture` — muet (chantier RLG).
+  rend une case vide ou une `TÊTE`, même sous `stop_hook_active` (chantier GAR), ou si le dernier message
+  porte « En résumé » ou une jauge et que `stop_hook_active` est faux (chantier FOR) ; `vlp:relecture` — renvoyé si
+  le dernier message porte « En résumé » ou une jauge et que `stop_hook_active` est faux, sinon muet (chantier RLG—FOR).
 
 Python 3 sans dépendance, zéro appel modèle.
 
@@ -1193,6 +1195,16 @@ VERDICTS = ("ACCEPTÉE", "REFUSÉE")     # les mots de tête de `vlp:relecture`
 JAUGE = ("Tout va bien", "Ça tient, mais", "Imprévu", "Pas bon", "Grosse erreur")
 
 
+def forme_texte(texte):
+    """(resume 0|1, jauge 0|1) du texte ; (0, 0) si vide ou absent."""
+    if not isinstance(texte, str):
+        return 0, 0
+    resume = int("En résumé" in texte)
+    # Matcher en mots entiers, pas en substring : «Pas bon» ne matche pas «Pas bonne»
+    jauge = int(any(re.search(r'\b' + re.escape(j) + r'\b', texte) for j in JAUGE))
+    return resume, jauge
+
+
 def lire_forme(chemin):
     """(caractères par type User/Project/AutoMem, resume 0|1, jauge 0|1, tete 0|1) d'une
     transcription ; (None, 0, 0, 0) si elle ne s'ouvre pas. Les fichiers d'instructions sont
@@ -1223,8 +1235,7 @@ def lire_forme(chemin):
                         dernier = b["text"].strip()
     except (OSError, UnicodeDecodeError):
         return None, 0, 0, 0
-    resume = int("En résumé" in dernier)
-    jauge = int(any(j in dernier for j in JAUGE))
+    resume, jauge = forme_texte(dernier)
     tete = int(bool(dernier) and dernier.split()[0] in STATUTS + VERDICTS)
     return chars, resume, jauge, tete
 
@@ -1325,9 +1336,11 @@ def verdict_fin(d, deja_renvoye=False):
 
 
 def cmd_gardien(entree, sortie):
-    """Le contrat d'`agents/fiche.md` tenu à la sortie du sous-agent (chantier CON), et le refus
-    de l'écriture Git étendu à `vlp:relecture` (chantier RLG). Muet hors de ces deux agents et
-    sur une entrée illisible : il ne bloque jamais sur ce qu'il ne lit pas."""
+    """Le contrat d'`agents/fiche.md` tenu à la sortie du sous-agent (chantier CON), le refus
+    de l'écriture Git étendu à `vlp:relecture` (chantier RLG), et le filtrage de la forme (résumé
+    et jauge) pour les deux agents — renvoi si le dernier message porte « En résumé » ou un mot
+    de JAUGE (chantier FOR). Muet hors de ces deux agents et sur une entrée illisible : il ne
+    bloque jamais sur ce qu'il ne lit pas."""
     try:
         d = json.loads(entree.read())
     except (ValueError, AttributeError, TypeError):
@@ -1352,13 +1365,27 @@ def cmd_gardien(entree, sortie):
                                             "retire git commit/add/reset, le chef commite après %s."
                                             % (agent, agent, fin)}},
                 ensure_ascii=False) + "\n")
-    elif ev == "SubagentStop" and not relecteur:
-        try:
-            raison = verdict_fin(d, deja_renvoye=bool(d.get("stop_hook_active")))
-        except (Absent, OSError, ValueError):
-            raison = None
-        if raison:
-            sortie.write(json.dumps({"decision": "block", "reason": raison}, ensure_ascii=False) + "\n")
+    elif ev == "SubagentStop":
+        dernier_msg = d.get("last_assistant_message", "")
+        resume, jauge = forme_texte(dernier_msg)
+        stop_hook_active = bool(d.get("stop_hook_active"))
+
+        # Pour vlp:fiche : d'abord verdict_fin (statut, case, commit), puis forme si aucune raison et pas déjà renvoyé
+        if not relecteur:
+            try:
+                raison = verdict_fin(d, deja_renvoye=stop_hook_active)
+            except (Absent, OSError, ValueError):
+                raison = None
+            if raison:
+                sortie.write(json.dumps({"decision": "block", "reason": raison}, ensure_ascii=False) + "\n")
+            elif (resume or jauge) and not stop_hook_active:
+                raison = "Ton dernier message porte un « En résumé » ou une jauge : ton lecteur est le chef (agents/fiche.md). Réécris-le sans eux, statut en tête."
+                sortie.write(json.dumps({"decision": "block", "reason": raison}, ensure_ascii=False) + "\n")
+        # Pour vlp:relecture : seulement forme
+        else:
+            if (resume or jauge) and not stop_hook_active:
+                raison = "Ton dernier message porte un « En résumé » ou une jauge : ton lecteur est le chef (agents/relecture.md). Réécris-le sans eux, statut en tête."
+                sortie.write(json.dumps({"decision": "block", "reason": raison}, ensure_ascii=False) + "\n")
     return 0
 
 
