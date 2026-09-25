@@ -120,8 +120,9 @@ le défaut à `tout` ➡️ le test du relecteur renvoyé à tort tombe, puis r�
 ---
 
 <!-- FICHE:JUG3 -->
-## JUG3 [ ] — Essayer le gardien sur un vrai sous-agent
+## JUG3 [x] — Essayer le gardien sur un vrai sous-agent
 
+**Session** : b9951712-2f7d-4821-a7ac-5e131a03b7c5
 **Dépend de** : `JUG2`.
 **Fichiers** : `context AI/08-etat.md` (fin du journal) — et rien d'autre.
 

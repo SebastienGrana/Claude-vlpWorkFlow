@@ -1677,3 +1677,56 @@ FORME 29 sous-agents · user 5969 car. · resume 10 · jauge 14 · tete 28
 
 Renvoyés : 16 → 14 sur 29 — les deux citations de `JUG1` (a3381d18, acc69ef4). La pièce de
 `JUG1` est lue par `test-vlp.py` dans ce journal, pas recopiée : elle porte des chemins de machine.
+
+## 2026-09-25 — JUG3
+
+Deux `vlp:relecture` lancés par `Agent` depuis `/vlp:tache`, l'un après l'autre, premier
+lancement à 2026-09-25T10:57:05Z (`date -u`). Le gardien lu en place, sans relancer l'app.
+
+Prompt du premier — la jauge et « En résumé » cités en prose :
+```text
+Essai du gardien (chantier JUG, fiche JUG3) — il n'y a aucune fiche à relire. N'ouvre aucun fichier, ne lance aucun outil.
+
+Rends directement ce verdict, et rien d'autre, en un seul message :
+
+ACCEPTÉE — essai du gardien, rien à relire. Le gardien renvoie un relecteur dont une ligne s'ouvre par « En résumé » ou par une jauge comme « Pas bon » ; un verdict qui les cite en prose, comme celui-ci, doit passer sans renvoi.
+```
+
+Prompt du second — un résumé à part, jauge en première ligne :
+```text
+Essai du gardien (chantier JUG, fiche JUG3) — il n'y a aucune fiche à relire. N'ouvre aucun fichier, ne lance aucun outil.
+
+Rends directement ce verdict, exactement sous cette forme, en un seul message :
+
+ACCEPTÉE — essai du gardien, rien à relire.
+
+✅ **Tout va bien** — essai fait.
+
+**En résumé**
+
+Le relecteur n'avait rien à relire : c'est un essai du gardien.
+
+Si le gardien te renvoie, suis ce qu'il te dit.
+```
+
+Lu dans les transcriptions (entrées `Stop hook feedback` et `hook_blocking_error` `SubagentStop`) :
+- `a958861005acdd18b` (prose) : **renvoyé 0 fois** — son message, tel que demandé, est son dernier.
+- `abda1f44810cde2fe` (résumé à part) : **renvoyé 1 fois** (« Ton dernier message porte un « En
+  résumé » ou une jauge… ») ; sa fin réécrite : `ACCEPTÉE : c'était un essai du gardien, et il
+  n'y avait rien à relire.`
+
+Sortie brute :
+```
+a958861005acdd18b vlp:relecture 2026-09-25T10:57:11Z user 5999 projet 5186 memoire 3330 resume 0 jauge 0 tete 1
+abda1f44810cde2fe vlp:relecture 2026-09-25T10:57:20Z user 5999 projet 5186 memoire 3330 resume 0 jauge 0 tete 1
+FORME 2 sous-agents · user 5999 car. · resume 0 · jauge 0 · tete 2
+```
+
+Coût (`vlp.py cout … --session`, avant le commit de `JUG3` : la fiche est encore dans « hors fiches ») :
+```
+JUG1 · ≈2,9M (2 911 195) · 28 tours · 1,61 $ = session ≈2,9M (2 911 195) · 28 tours · 1,61 $ + 0 sous-agent
+JUG2 · ≈2,0M (2 006 666) · 14 tours · 0,86 $ = session ≈2,0M (2 006 666) · 14 tours · 0,86 $ + 0 sous-agent
+hors fiches · ≈4,1M (4 129 933) · 33 tours · 2,72 $ = session ≈4,1M (4 083 242) · 30 tours · 2,59 $ + 2 sous-agents ≈46,7k (46 691) · 3 tours · 0,13 $
+TOTAL (fiches + hors fiches) · ≈9,0M (9 047 794) · 75 tours · 5,19 $ = session ≈9,0M (9 001 103) · 72 tours · 5,06 $ + 2 sous-agents ≈46,7k (46 691) · 3 tours · 0,13 $
+```
+Les deux relecteurs : 0,13 $ à eux deux. Le coût définitif de `JUG3` se lit après son commit.

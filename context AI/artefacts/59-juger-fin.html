@@ -68,9 +68,9 @@
     <p>Un verdict qui cite la jauge ou « En résumé » en prose n'est plus renvoyé ; une vraie fin hors contrat l'est toujours — prouvé sur un vrai sous-agent.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">3 fiches · 2 faites · en cours : JUG3</p>
+    <p class="mono" style="margin-top:.5rem">3 fiches · 3 faites</p>
   </header>
 
   <section>
@@ -87,16 +87,17 @@
         <span class="id">JUG2</span><span class="titre">Faire juger la règle retenue, au gardien et à la mesure</span>
         <span class="etat">faite</span>
         <span class="note">test-vlp.py OK, verifier( 287 → 289 ; mutant REGLE=tout : le relecteur de FOR3 tombe ; FORME tout resume 12 jauge 14 → tete resume 10 jauge 14, renvoyés 16 → 14 sur 29</span>
-        <span class="cout mono">≈1,9M (1 852 369) · 13 tours · 0,81 $</span>
+        <span class="cout mono">≈2,0M (2 006 666) · 14 tours · 0,86 $</span>
       </li>
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">JUG3</span><span class="titre">Essayer le gardien sur un vrai sous-agent</span>
-        <span class="etat">en cours</span>
-        <span class="note">Essai sur deux vrais relecteurs : une citation passe, un résumé est renvoyé ; dépend de JUG2.</span>
+        <span class="etat">faite</span>
+        <span class="note">relecteur en prose : renvoyé 0 fois ; relecteur à résumé à part : renvoyé 1 fois puis fin réécrite ; FORME 2 sous-agents · resume 0 · jauge 0 · tete 2 ; 0,13 $ les deux</span>
+        <span class="cout mono">≈1,9M (1 871 042) · 14 tours · 0,76 $</span>
       </li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈2,8M (2 771 949) · 22 tours · 2,14 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈7,5M (7 535 513) · 63 tours · 4,56 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈9,6M (9 560 852) · 78 tours · 5,37 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
