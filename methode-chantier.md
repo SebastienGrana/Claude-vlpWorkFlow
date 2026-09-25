@@ -36,6 +36,11 @@ Elles sont écrites ici, et nulle part ailleurs : le reste du kit y renvoie.
   ailleurs. ⚠️ Le piège n'est pas l'erreur de calcul — il n'y en avait pas —
   c'est la **mauvaise quantité comparée**, qu'aucune relecture de chiffres
   n'attrape. Écrire, dans la ligne même : *ce compte compare X à Y*.
+- **Une hypothèse vraie sur un cas se revérifie sur tous.** Un cas qui colle au token près
+  ne dit rien des autres. Mesuré (chantier `APC`) : « l'écart est fait des tours d'après
+  `clore` » tenait au token près pour `ESD` ; sur les 19 clos à expliquer, il tenait en entier
+  pour 5, en partie pour 14. Avant de corriger sur la foi d'un cas, la même mesure passe sur
+  tout le lot, et les trois comptes (en entier, en partie, pas du tout) s'écrivent.
 - **Un énoncé renversé se garde, marqué.** On ne remplace pas un chiffre publié
   en silence : le paragraphe périmé reste, avec un renvoi vers ce qui le
   renverse et **par quoi**. Quelqu'un qui grep tombe sur l'ancien texte avant
