@@ -101,8 +101,9 @@ pour A, 1 pour B, 0 pour une session inconnue. **Mutant** : le motif sans `-scra
 ---
 
 <!-- FICHE:ESS3 -->
-## ESS3 [ ] — Compter les essais dans `cout`
+## ESS3 [x] — Compter les essais dans `cout`
 
+**Session** : f11bd1c7-b0df-49c4-8d78-4e609513bec3
 **Dépend de** : `ESS2`.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py`.
 

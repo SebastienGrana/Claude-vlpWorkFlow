@@ -548,8 +548,8 @@ def cmd_cout(chemin, session, sortie):
     parts, hors = decoupe
     sortie.write("DÉCOUPE aux commits de fiche — une fiche va du commit d'avant au sien, "
                  "un sous-agent compte à son départ\n")
-    for ident, s_, a_ in parts:
-        sortie.write(ligne_parts(ident, s_, a_) + "\n")
+    for ident, *r in parts:
+        sortie.write(ligne_parts(ident, *r) + "\n")
     sortie.write(ligne_parts("hors fiches", *hors) + "\n")
     sortie.write(ligne_parts("TOTAL (fiches + hors fiches)", *totaux(decoupe)) + "\n")
     return code
@@ -571,10 +571,10 @@ def decouper(chemin, lignes=None):
 
 
 def totaux(decoupe):
-    """(session, sous-agents) d'une découpe, fiches et hors fiches sommées : la ligne `TOTAL` de
-    `cout`, dont `plus(*totaux(d))[0]` est le nombre."""
+    """(session, sous-agents, essais) d'une découpe, fiches et hors fiches sommées : la ligne
+    `TOTAL` de `cout`, dont `plus(*totaux(d))[0]` est le nombre."""
     parts, hors = decoupe
-    return plus(*[p[1] for p in parts], hors[0]), plus(*[p[2] for p in parts], hors[1])
+    return tuple(plus(*[p[k + 1] for p in parts], hors[k]) for k in range(3))
 
 
 KIT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -1659,10 +1659,11 @@ def plages(fiches_, heures, gardes):
 
 
 def parts_aux_commits(fiches_, heures, gardes, entete=()):
-    """([(id, session, sous-agents)], (session, sous-agents) hors fiches), ou None sans
-    transcript mesurable, ou sans fiche à découper. Les sessions : celles des fiches, puis
-    `entete` — le cadrage (`sessions_entete`). Chaque fiche qui a une plage la prend dans
-    chaque session et ses sous-agents (la plage de `mesurer`) ; le reste fait « hors fiches ». Une part vaut
+    """([(id, session, sous-agents, essais)], (session, sous-agents, essais) hors fiches), ou None
+    sans transcript mesurable, ou sans fiche à découper. Les sessions : celles des fiches, puis
+    `entete` — le cadrage (`sessions_entete`). Les essais : ceux de chaque session (`essais_de`),
+    leurs sous-agents compris, qui ne comptent pas dans leur n (chantier ESS). Chaque fiche qui a
+    une plage la prend dans chaque transcript (la plage de `mesurer`) ; le reste fait « hors fiches ». Une part vaut
     (total, tours, usd, n) — n : les transcripts qui y ont un tour —, usd arrondi au
     centime : tout s'additionne, dans `cout` comme sur la page. Aucun tour gardé, ni aux
     fiches ni hors fiches : une `GARDE:` le dit, les nombres restent (chantier ZER)."""
@@ -1677,6 +1678,8 @@ def parts_aux_commits(fiches_, heures, gardes, entete=()):
             gardes.append("GARDE: session non mesurée : %s — %s" % (s, erreur))
             continue
         fichiers += [(chemin, 0)] + [(a, 1) for a in m.sous_agents(chemin)]    # 0 : session, 1 : sous-agent
+        for e in essais_de(s):      # 2 : essai, 3 : sous-agent d'un essai, rangé avec lui
+            fichiers += [(e, 2)] + [(a, 3) for a in m.sous_agents(e)]
     if not fichiers:
         return None
     par_fiche, trous = plages(fiches_, heures, gardes)
@@ -1684,9 +1687,9 @@ def parts_aux_commits(fiches_, heures, gardes, entete=()):
         return None
 
     def part(bornes):
-        rendu = [[0, 0, Decimal(0), 0], [0, 0, Decimal(0), 0]]
+        rendu = [[0, 0, Decimal(0), 0], [0, 0, Decimal(0), 0], [0, 0, Decimal(0), 0]]
         for chemin, sorte in fichiers:
-            p, tours = rendu[sorte], 0
+            p, tours = rendu[min(sorte, 2)], 0
             for plage in bornes:
                 r, erreur = m.mesurer(chemin, plage)
                 if erreur:
@@ -1695,12 +1698,12 @@ def parts_aux_commits(fiches_, heures, gardes, entete=()):
                     continue
                 p[0], p[1], tours = p[0] + r["total"], p[1] + r["tours"], tours + r["tours"]
                 p[2] = None if p[2] is None or r["usd_exact"] is None else p[2] + r["usd_exact"]
-            p[3] += 1 if tours else 0
+            p[3] += 1 if tours and sorte != 3 else 0
         return tuple((t, n, None if u is None else u.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP), k)
                      for t, n, u, k in rendu)
 
     parts, hors = [(ident,) + part([p]) for ident, p in par_fiche], part(trous)
-    if not plus(*[q for _, s, a in parts for q in (s, a)], *hors)[1]:
+    if not plus(*[q for _, *r in parts for q in r], *hors)[1]:
         gardes.append("GARDE: découpe à zéro — aucun tour de %d transcript%s ne tombe dans une plage"
                       % (len(fichiers), "s" if len(fichiers) > 1 else ""))
     return parts, hors
@@ -1712,13 +1715,15 @@ def plus(*parts):
     return sum(p[0] for p in parts), sum(p[1] for p in parts), usd, sum(p[3] for p in parts)
 
 
-def ligne_parts(nom, session, agents):
-    """`<nom> · <somme> = session <…> + <n> sous-agents <…>` : une ligne de `cout` qui nomme
-    ce qu'elle compte. La somme d'abord : c'est le nombre de la page, et `triplet` la relit."""
-    n = agents[3]
-    return "%s · %s = session %s + %s" % (
-        nom, ligne_cout(*plus(session, agents)[:3]), ligne_cout(*session[:3]),
-        "%d sous-agent%s %s" % (n, "s" if n > 1 else "", ligne_cout(*agents[:3])) if n else "0 sous-agent")
+def ligne_parts(nom, session, agents, essais=(0, 0, 0, 0)):
+    """`<nom> · <somme> = session <…> + <n> sous-agents <…>`, puis `+ <n> essais <…>` s'il y en a
+    un tour : une ligne de `cout` qui nomme ce qu'elle compte. La somme d'abord : c'est le
+    nombre de la page, et `triplet` la relit."""
+    n, k = agents[3], essais[3]
+    return "%s · %s = session %s + %s%s" % (
+        nom, ligne_cout(*plus(session, agents, essais)[:3]), ligne_cout(*session[:3]),
+        "%d sous-agent%s %s" % (n, "s" if n > 1 else "", ligne_cout(*agents[:3])) if n else "0 sous-agent",
+        " + %d essai%s %s" % (k, "s" if k > 1 else "", ligne_cout(*essais[:3])) if essais[1] else "")
 
 
 def couts_aux_commits(fiches_, heures, gardes, entete=()):
@@ -1728,7 +1733,7 @@ def couts_aux_commits(fiches_, heures, gardes, entete=()):
     if decoupe is None:
         return {}, None, None
     parts, hors = decoupe
-    sommes = {ident: plus(s, a) for ident, s, a in parts}
+    sommes = {ident: plus(*r) for ident, *r in parts}
     hors = plus(*hors)
     return ({ident: ligne_cout(*v[:3]) for ident, v in sommes.items()},
             plus(*sommes.values(), hors)[:3], hors[:3])

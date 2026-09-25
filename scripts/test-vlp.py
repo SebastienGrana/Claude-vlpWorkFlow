@@ -1111,6 +1111,45 @@ with tempfile.TemporaryDirectory() as t:
     verifier("essais_de : le bac de B seul", len(b) == 1 and "bbbb-2-scratchpad-b1" in b[0], b)
     verifier("essais_de : session inconnue, liste vide", z == [], z)
 
+# cout : un essai dans la plage de Q1 (et son sous-agent) compte à Q1, l'autre hors fiches.
+with tempfile.TemporaryDirectory() as t:
+    pr, dep = os.path.join(t, ".claude", "projects"), os.path.join(t, "depot")
+    os.makedirs(os.path.join(pr, "p"))
+    transcript(os.path.join(pr, "p", "sss.jsonl"), 2, [T0 + 200, T0 + 400])
+    for bac, h_ in (("b1", 250), ("b2", 700)):
+        os.makedirs(os.path.join(pr, "C--x-sss-scratchpad-" + bac))
+        transcript(os.path.join(pr, "C--x-sss-scratchpad-" + bac, "e.jsonl"), 1, [T0 + h_])
+    os.makedirs(os.path.join(pr, "C--x-sss-scratchpad-b1", "e", "subagents"))
+    transcript(os.path.join(pr, "C--x-sss-scratchpad-b1", "e", "subagents", "agent-a1.jsonl"), 1, [T0 + 260])
+    ecrire(os.path.join(dep, "q.md"), QFICHES % ("sss", "sss"))
+    if not shutil.which("git"):
+        print("SAUTÉ: git absent — les essais dans la découpe ne sont pas testés")
+    else:
+        env = dict(os.environ, GIT_CONFIG_GLOBAL=os.path.join(t, "gitconfig"), GIT_CONFIG_NOSYSTEM="1",
+                   GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t")
+        ecrire(env["GIT_CONFIG_GLOBAL"], "")
+        subprocess.run(["git", "init", "-q"], cwd=dep, env=env, check=True, capture_output=True)
+        for d, sujet in ((100, "Chantier Q ouvert : cadré"), (300, "Q1 : Créer"), (600, "Q2 : Brancher")):
+            date = "%d +0000" % (T0 + d)
+            subprocess.run(["git", "commit", "-q", "--allow-empty", "-m", sujet], cwd=dep, check=True,
+                           capture_output=True, env=dict(env, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date))
+        garde_env = dict(os.environ)
+        os.environ.update(HOME=t, USERPROFILE=t)
+        try:
+            code, s = appel(["cout", os.path.join(dep, "q.md")])
+        finally:
+            os.environ.clear()
+            os.environ.update(garde_env)
+        cent, deux, trois = "≈100,0k (100 000) · 1 tours · 0,50 $", "≈200,0k (200 000) · 2 tours · 1,00 $", "≈300,0k (300 000) · 3 tours · 1,50 $"
+        attendu = ("DÉCOUPE aux commits de fiche — une fiche va du commit d'avant au sien, un sous-agent compte à son départ\n"
+                   "Q1 · %s = session %s + 0 sous-agent + 1 essai %s\n" % (trois, cent, deux)
+                   + "Q2 · %s = session %s + 0 sous-agent\n" % (cent, cent)
+                   + "hors fiches · %s = session 0 · 0 tours · 0,00 $ + 0 sous-agent + 1 essai %s\n" % (cent, cent)
+                   + "TOTAL (fiches + hors fiches) · ≈500,0k (500 000) · 5 tours · 2,50 $ = session %s"
+                     " + 0 sous-agent + 2 essais %s\n" % (deux, trois))
+        verifier("cout : l'essai de la plage à Q1, sous-agent compris ; l'autre hors fiches ; TOTAL les deux",
+                 code == 0 and s == attendu, s)
+
 # --- chantier U : lire, cocher, page déduite ----------------------------------
 
 attendu = mod.lire(os.path.join(mod.KIT, "cloture.md"))
