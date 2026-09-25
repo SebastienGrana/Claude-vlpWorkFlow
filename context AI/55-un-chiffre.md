@@ -46,8 +46,9 @@ commit).
 ---
 
 <!-- FICHE:UNI1 -->
-## UNI1 [ ] — Faire mesurer le total par clore
+## UNI1 [x] — Faire mesurer le total par clore
 
+**Session** : ca431cf8-167e-4c10-8bce-210c5f48a675
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` — et rien d'autre.
 

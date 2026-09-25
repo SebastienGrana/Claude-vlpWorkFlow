@@ -151,8 +151,13 @@ Sous-commandes :
   la lettre aux lettres prises (plus de table des clos) ; dans la feuille
   de route, une ligne en tête de `ZONE:clos`, le total cumulé resommé des
   comptes bruts, puis `feuille`. Tout est calculé avant la première écriture.
-  `CLOS <lettre> <plage> · total <brut> · routage <0|1> · index <0|1> · bilan
-  <0|1> — <projet>`. Aucun chantier ouvert, ou
+  La ligne du chantier sur la feuille prend le total mesuré (étape « 1 ter ») ;
+  sans page ou sans mesure, elle retombe sur `--tokens`, puis sur « non mesuré ».
+  Si `--tokens N` est donné et diffère du mesuré, écrit `ÉCART tokens <N> donné
+  · <mesuré> mesuré — le mesuré fait foi` ; un total mesuré à 0 (découpe vide) ne
+  l'emporte pas.
+  `CLOS <lettre> <plage> · chantier <n> · cumul <brut> · routage <0|1> · index
+  <0|1> · bilan <0|1> — <projet>`. Aucun chantier ouvert, ou
   déjà `**CLOS**` : `GARDE:`, sort 1.
 - `ouvrir <projet> --fiches F --titre T [--artefact URL]` — les écritures
   mécaniques de l'ouverture : dans `CHANTIER.md`, courant = `F (L1..Ln)` et
@@ -2459,6 +2464,7 @@ def cmd_clore(a, sortie):
         fiches_[i:fin_para + 1] = entete + [ligne_fait]
     gardes, ecritures, faits = [], [], {"routage": 0, "index": 0, "bilan": 0}
     nom = os.path.basename(courant)
+    total_mesure = None     # le total que `regenerer` écrit sur la page, en 1 ter (chantier UNI)
 
     # 1 bis. l'index et le routage de CLAUDE.md passent à « clos »
     index = champ(carte_, "index")
@@ -2515,7 +2521,7 @@ def cmd_clore(a, sortie):
             pg = pg[:db] + bloc + pg[fb:d] + corps + pg[f:] if db < d else pg[:d] + corps + pg[f:db] + bloc + pg[fb:]
             couts_page = []    # les gardes de regenerer portent déjà « GARDE: »
             try:
-                pg = regenerer(pg, chemin_fiches, {}, [], date, couts_page)[0]
+                pg, _, _, total_mesure, _ = regenerer(pg, chemin_fiches, {}, [], date, couts_page)
             except ValueError as e:
                 couts_page.append("page du chantier : coûts non régénérés — %s" % e)
             gardes.extend(re.sub(r"^GARDE: ", "", g) for g in couts_page)
@@ -2541,6 +2547,10 @@ def cmd_clore(a, sortie):
     page = page_feuille(projet)
     html = lire(page) if os.path.isfile(page) else None
     total = None
+    # Un seul chiffre (chantier UNI) : le total de la page, sinon --tokens ; --tokens différent
+    # du mesuré n'est qu'un contrôle, qui le dit.
+    total_chantier = total_mesure[0] if total_mesure and total_mesure[0] else a.tokens
+    ecart = bool(total_mesure and total_mesure[0]) and a.tokens is not None and a.tokens != total_chantier
     if html is not None:
         try:
             d, f = zone(html, "clos", "<tbody>\n", "        </tbody>")
@@ -2552,7 +2562,8 @@ def cmd_clore(a, sortie):
         ligne = ('          <tr>\n            <td>%s <span class="badge" data-etat="clos">clos</span></td>\n'
                  '            <td class="mono">%s</td><td class="mono">%s</td>\n'
                  '            <td class="mono">%s</td>\n            <td>%s</td>\n          </tr>\n'
-                 % (lien, plage(ids), date, "non mesuré" if a.tokens is None else arrondi(a.tokens), cellule_md(a.livre)))
+                 % (lien, plage(ids), date, "non mesuré" if total_chantier is None else arrondi(total_chantier),
+                    cellule_md(a.livre)))
         corps = ligne + "".join(anciens)
         html = html[:d] + corps + html[f:]
         total = total_clos(corps)
@@ -2593,8 +2604,12 @@ def cmd_clore(a, sortie):
         with open(page, "w", encoding="utf-8", newline="") as fh:
             fh.write(html)
         sortie.write(bilan + " · réécrite — %s\n" % page)
-    sortie.write("CLOS %s %s · total %s · routage %d · index %d · bilan %d%s — %s\n" % (
-        lettre, fait, "non mesuré" if total is None else milliers(total), faits["routage"], faits["index"], faits["bilan"],
+    if ecart:
+        sortie.write("ÉCART tokens %s donné · %s mesuré — le mesuré fait foi\n"
+                     % (milliers(a.tokens), milliers(total_chantier)))
+    champ_chantier = "non mesuré" if total_chantier is None else milliers(total_chantier)
+    sortie.write("CLOS %s %s · chantier %s · cumul %s · routage %d · index %d · bilan %d%s — %s\n" % (
+        lettre, fait, champ_chantier, "non mesuré" if total is None else milliers(total), faits["routage"], faits["index"], faits["bilan"],
         " · résumé %d" % faits.get("résumé", 0) if a.resume else "", projet))
     return 0
 

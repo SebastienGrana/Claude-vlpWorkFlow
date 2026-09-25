@@ -880,7 +880,7 @@ with tempfile.TemporaryDirectory() as t:
              and pq.split("<!-- ZONE:blocage")[1].split("-->\n")[1].startswith("  <section hidden>") and pq.count("<section hidden>") == 1, pq)
     verifier("clore : la page régénérée, fiches du fichier", '<span class="id">Q1</span>' in pq and '<span class="id">Q2</span>' in pq
              and '<span class="id">&lt;R' not in pq and '<p class="mono cout-total">' not in pq, pq)
-    verifier("clore : bilan", code == 0 and "CLOS Q Q1..Q2 (Q2 abandonnée) · total 3 812" in s and "encours non" in s, s)
+    verifier("clore : bilan", code == 0 and "CLOS Q Q1..Q2 (Q2 abandonnée) · chantier 1 500 · cumul 3 812" in s and "encours non" in s, s)
     verifier("clore : fichier de fiches", "**CLOS** le 2026-05-06. Ne se rejoue pas" in fiches_lues
              and fiches_lues.index("**CLOS**") < fiches_lues.index("**Fait.**") and "Abandonnées : Q2 abandonnée." in fiches_lues, fiches_lues)
     verifier("clore : CHANTIER.md", "**fichier de fiches courant** : aucun" in carte_lue and "**artefact du chantier** : aucun" in carte_lue
@@ -1629,10 +1629,46 @@ with tempfile.TemporaryDirectory() as t:
         + "\nLettres de fiche déjà prises : A. Un nouveau chantier en choisit une autre.\n")
     ecrire(os.path.join(proj, "ctx", "40-w.md"), "# Chantier W — Un titre\n\n## W1 [x] — a\n")
     code, s = appel(["clore", proj, "--livre", "y", "--tokens", "950", "--date", "2026-09-19"])
-    verifier("clore : une clôture sous 1 000, comptée une fois", code == 0 and "· total 2 450 ·" in s, s)
+    verifier("clore : une clôture sous 1 000, comptée une fois", code == 0 and "· chantier 950 · cumul 2 450 ·" in s, s)
     rangs = rangs_clos(page)
     verifier("REP3 : clore pose sa ligne au-dessus de la ligne convertie, sans la défaire",
              len(rangs) == 2 and "2026-09-19" in rangs[0] and rangs[1] == ligne, s)
+
+# UNI1 : clore utilise le total mesuré ; sans mesure, retombe sur --tokens
+with tempfile.TemporaryDirectory() as t:
+    proj = os.path.join(t, "uni")
+    os.makedirs(proj)
+    ecrire(os.path.join(proj, "CHANTIER.md"), "# Chantier\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n- **fichier de fiches courant** : ctx/50-u.md (U1..U1)\n- **artefact du chantier** : https://u\n\nLettres de fiche déjà prises : U (test).\n")
+    ecrire(os.path.join(proj, "ctx", "50-u.md"), "# Chantier U — test\n\n## U1 [x] — a\n")
+    ecrire(os.path.join(proj, "ctx", "00-INDEX.md"), "| F | L |\n|---|---|\n| `50-u.md` | on joue `U*` |\n")
+    ecrire(os.path.join(proj, "CLAUDE.md"), "| T | O |\n|---|---|\n| jouer U | `ctx/50-u.md` **ouvert** |\n| relire un clos | `ctx/00-INDEX.md` |\n")
+    page_u = os.path.join(proj, "ctx", "artefacts", "50-u.html")
+    ecrire(page_u, open(os.path.join(ICI, "..", "templates", "artefact-chantier.html"), encoding="utf-8").read())
+    code, s = appel(["clore", proj, "--livre", "fini", "--tokens", "950", "--date", "2026-09-25"])
+    verifier("UNI1 : sans mesure, --tokens utilisé, pas d'ÉCART", code == 0 and "chantier 950" in s and "ÉCART" not in s, s)
+
+# UNI1 : mesuré, le total de la page gagne sur un --tokens faux, et le dit
+with tempfile.TemporaryDirectory() as t:
+    proj = os.path.join(t, "uni2")
+    ecrire(os.path.join(proj, "ctx", "08-etat.md"), "# État\n\n## La TODO\n\n| # | Chantier | Apporte | Coût | Dépend |\n|---|---|---|---|---|\n")
+    ecrire(os.path.join(proj, "CHANTIER.md"), "# Chantier\n\n- **contexte** : ctx/\n- **fichier d'état** : ctx/08-etat.md\n- **index** : ctx/00-INDEX.md\n- **fichier de fiches courant** : ctx/50-u.md (U1..U1)\n- **artefact du chantier** : https://u\n\nLettres de fiche déjà prises : U (test).\n")
+    ecrire(os.path.join(proj, "ctx", "50-u.md"), "# Chantier U — test\n\n## U1 [x] — a\n")
+    ecrire(os.path.join(proj, "ctx", "00-INDEX.md"), "| F | L |\n|---|---|\n| `50-u.md` | on joue `U*` |\n")
+    ecrire(os.path.join(proj, "CLAUDE.md"), "| T | O |\n|---|---|\n| jouer U | `ctx/50-u.md` **ouvert** |\n| relire un clos | `ctx/00-INDEX.md` |\n")
+    ecrire(os.path.join(proj, "ctx", "artefacts", "50-u.html"),
+           open(os.path.join(ICI, "..", "templates", "artefact-chantier.html"), encoding="utf-8").read())
+    feuille_u = os.path.join(proj, "ctx", "artefacts", "feuille-de-route.html")
+    ecrire(feuille_u, open(os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html"), encoding="utf-8").read())
+    regenerer_vrai = mod.regenerer
+    mod.regenerer = lambda *x: (lambda r: r[:3] + ((4321, 3, None), r[4]))(regenerer_vrai(*x))
+    try:
+        code, s = appel(["clore", proj, "--livre", "fini", "--tokens", "950", "--date", "2026-09-25"])
+    finally:
+        mod.regenerer = regenerer_vrai
+    fu = open(feuille_u, encoding="utf-8").read()
+    verifier("UNI1 : --tokens faux, ÉCART et le mesuré écrit sur la feuille", code == 0
+             and "ÉCART tokens 950 donné · 4 321 mesuré — le mesuré fait foi" in s and "· chantier 4 321 ·" in s
+             and "(4 321)" in fu and ">950<" not in fu, s + fu[-800:])
 
 # Une feuille qui ne se régénère pas : les compteurs ne sont pas mesurés, et le disent.
 with tempfile.TemporaryDirectory() as t:
