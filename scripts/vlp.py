@@ -78,8 +78,8 @@ Sous-commandes :
   `--sha`, un instantané de l'arbre — suivis et non suivis, selon `.gitignore` — en commit de parent
   `HEAD`, par un index temporaire : ni `HEAD` ni l'index ne bougent ; avec, ce commit. Deux worktrees
   détachés `vlp-relecture-*` dans le dossier temporaire, ceux d'un appel précédent retirés d'abord :
-  APRÈS sur le commit, AVANT sur son parent. Imprime `APRÈS=`, `AVANT=`, `FICHIER=` (le fichier de
-  fiches courant du `CHANTIER.md` d'APRÈS), le socle et la fiche comme `socle` et `extraire`,
+  APRÈS sur le commit, AVANT sur son parent. Imprime `APRÈS=`, `AVANT=`, puis, lus dans le fichier de
+  fiches courant du `CHANTIER.md` d'APRÈS — sans son chemin (FFE) —, le socle et la fiche comme `socle` et `extraire`,
   `git diff --name-status`, une ligne `HORS FICHE <chemin>` par fichier changé que la ligne
   **Fichiers** ne nomme pas — hors le fichier de fiches, le **fichier d'état** du `CHANTIER.md`
   d'APRÈS et `artefacts/` —, puis le diff. `--retirer` :
@@ -1005,7 +1005,8 @@ def cmd_relecture(a, sortie):
         retirer_relectures(racine)
         sortie.write("GARDE: fiche %s absente du fichier de fiches courant d'APRÈS : %s\n" % (a.fiche, courant or "aucun"))
         return 1
-    sortie.write("APRÈS=%s\nAVANT=%s\nFICHIER=%s\n" % (dossiers[0], dossiers[1], fichier))
+    # Pas de `FICHIER=` : le fichier entier porte la suite du chantier (FFE, REL1 : 1 lecture sur 42).
+    sortie.write("APRÈS=%s\nAVANT=%s\n" % (dossiers[0], dossiers[1]))
     cmd_socle(fichier, sortie)
     cmd_extraire(fichier, a.fiche, sortie)
     code, etat = git_texte(["diff", "--name-status", "--no-color", parent, sha], racine)

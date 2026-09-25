@@ -21,8 +21,9 @@ demande un : le script crée et retire les copies. **Rien ne s'écrit sous `PROJ
 
 1. En un seul tour : la commande `relecture` du message, et le contrat —
    `<python> "<kit>/scripts/vlp.py" lire enchainement.md`. La sortie de `relecture` :
-   `APRÈS=`, `AVANT=`, `FICHIER=`, le socle, la fiche, les fichiers changés, les
-   lignes `HORS FICHE`, puis le diff entier.
+   `APRÈS=`, `AVANT=`, le socle, la fiche, les fichiers changés, les
+   lignes `HORS FICHE`, puis le diff entier. La fiche et le socle sont là : n'ouvre
+   pas le fichier de fiches, il porte la suite du chantier.
 2. Lis le diff entier contre la fiche et le socle : tout ce qu'elle demande, rien de
    plus.
 3. Rejoue le critère de fin et les commandes que le diff touche, dans AVANT puis dans

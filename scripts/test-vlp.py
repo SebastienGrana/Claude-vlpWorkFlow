@@ -2459,12 +2459,12 @@ else:
                      and g("rev-parse", "HEAD") == tete and g("status", "--porcelain") == etat
                      and lu(apres, "a.py") == "a2\n" and lu(apres, "b.py") == "b\n"
                      and lu(avant, "a.py") == "a\n" and lu(avant, "b.py") is None, s + g("status", "--porcelain"))
-            reperes = [s.find(r) for r in ("APRÈS=", "AVANT=", "FICHIER=%s\n" % os.path.join(apres, "f.md"),
-                                           "Socle X.", "--- socle, lignes : ", "## X1 [x] — relire",
+            reperes = [s.find(r) for r in ("APRÈS=", "AVANT=", "Socle X.", "--- socle, lignes : ", "## X1 [x] — relire",
                                            "--- fiche, lignes : ", "M\ta.py", "HORS FICHE", "diff --git")]
             verifier("relecture : un fichier hors fiche",
                      [l for l in s.splitlines() if l.startswith("HORS FICHE")] == ["HORS FICHE b.py"]
-                     and -1 not in reperes and reperes == sorted(reperes), s)
+                     and -1 not in reperes and reperes == sorted(reperes)
+                     and "\nFICHIER=" not in "\n" + s, s)  # FFE
             code, s = appel(["relecture", "--retirer"])
             verifier("relecture : --retirer", code == 0 and s == "RETIRÉ 2\n"
                      and len(g("worktree", "list").splitlines()) == 1, s + g("worktree", "list"))

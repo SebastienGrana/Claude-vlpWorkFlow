@@ -45,8 +45,9 @@ Les deux sont indépendantes ; FFE1 d'abord, puisque c'est elle qui rend FFE2 n�
 ---
 
 <!-- FICHE:FFE1 -->
-## FFE1 [ ] — Retirer `FICHIER=` de `relecture`
+## FFE1 [x] — Retirer `FICHIER=` de `relecture`
 
+**Session** : 555d49cb-4290-478c-b89c-a33e35bf87b4
 **Dépend de** : rien.
 **Fichiers** : scripts/vlp.py, scripts/test-vlp.py, agents/relecture.md — et rien d'autre.
 
