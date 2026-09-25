@@ -24,7 +24,8 @@ Sous-commandes :
   se faire refuser l'injection. `--python NOM` : une ligne vide, `PYTHON=NOM`,
   puis la carte, et un tampon dans le dossier temporaire ; `--relais` en plus :
   n'écrit rien si un tampon de moins de `RELAIS_SECONDES` existe (le premier
-  Python a déjà répondu), sans le retirer.
+  Python a déjà répondu), sans le retirer. `--relecteur` : ni titres de fiches
+  ni `PROCHAINE=` — le relecteur ne voit pas la suite (chantier REL).
 - `extraire <fichier> <fiche>` — la fiche entre ses marqueurs, marqueurs
   compris, puis `--- fiche, lignes : N`. Sans marqueurs, repli sur le titre
   jusqu'au premier `---`, annoncé par une `GARDE`. Absente : sort 1. Critère
@@ -475,7 +476,7 @@ def fiches(chemin):
     return len(lignes), titres, prochaine
 
 
-def carte(depart, sortie):
+def carte(depart, sortie, relecteur=False):
     racine = trouver(depart)
     if racine is None:
         voisins = sorted(os.path.join(v, "CHANTIER.md") for v in glob.glob(os.path.join(os.path.abspath(depart), "*"))
@@ -504,11 +505,14 @@ def carte(depart, sortie):
         sortie.write("GARDE: %s\n" % e)
         return 1
     sortie.write("--- fiches : %s (%d lignes, %d titres) ---\n" % (courant, n, len(titres)))
-    for i, l in titres:
-        sortie.write("%d:%s\n" % (i, l))
     if n and not titres:
         sortie.write("GARDE: aucun titre de fiche au format '## X1' — ne rien conclure\n")
         return 1
+    if relecteur:
+        # REL1 : 15 relecteurs sur 42 citaient d'autres titres — la suite du chantier, pas un besoin.
+        return 0
+    for i, l in titres:
+        sortie.write("%d:%s\n" % (i, l))
     sortie.write("PROCHAINE=%s\n" % (prochaine or "aucune"))
     return 0
 
@@ -516,7 +520,7 @@ def carte(depart, sortie):
 RELAIS_SECONDES = 30
 
 
-def carte_injectee(depart, python, relais, sortie):
+def carte_injectee(depart, python, relais, sortie, relecteur=False):
     """La carte d'une injection `py … --python py 2>"…/relais-python.err"; python3 … --relais 2>…;
     py … --relais 2>…; echo fin` (chantier Y, Y1 ; ordre inversé en U4 : sous Windows le message du raccourci
     Store de `python3` tombe après la carte, sous Ubuntu « py: command not found » avant ; le 3e appel remet
@@ -548,7 +552,7 @@ def carte_injectee(depart, python, relais, sortie):
         except OSError:
             pass
     sortie.write("\nPYTHON=%s\n" % python)
-    return carte(depart, sortie)
+    return carte(depart, sortie, relecteur)
 
 
 # --- extraire, socle, sessions -----------------------------------------------
@@ -3288,6 +3292,7 @@ def main(argv, sortie=None, entree=None, erreur=None):
     c.add_argument("dossier", nargs="?", default=None)
     c.add_argument("--python")
     c.add_argument("--relais", action="store_true")
+    c.add_argument("--relecteur", action="store_true")
     e = sous.add_parser("extraire")
     e.add_argument("fichier")
     e.add_argument("fiche")
@@ -3411,8 +3416,8 @@ def repartir(a, sortie, entree, erreur):
         return cmd_page(a, sortie)
     if a.cmd == "carte":
         if a.python:
-            return carte_injectee(a.dossier or os.getcwd(), a.python, a.relais, sortie)
-        return carte(a.dossier or os.getcwd(), sortie)
+            return carte_injectee(a.dossier or os.getcwd(), a.python, a.relais, sortie, a.relecteur)
+        return carte(a.dossier or os.getcwd(), sortie, a.relecteur)
     if a.cmd == "valider":
         return cmd_valider(a.fichiers, sortie, a.plan)
     if a.cmd == "equiper":

@@ -113,6 +113,30 @@ with tempfile.TemporaryDirectory() as t:
     verifier("aucun projet", s == "AUCUN_PROJET\n", s)
 
 
+def test_carte_relecteur():
+    """REL2 : `carte --relecteur` tait les titres de fiches et `PROCHAINE=` ; sans l'option, rien ne change."""
+    with tempfile.TemporaryDirectory() as bac:
+        pr = os.path.join(bac, "pr")
+        ecrire(os.path.join(pr, "CHANTIER.md"), CHANTIER % ("pr", "context AI/20-z.md (ZZZ1..ZZZ2)"))
+        ecrire(os.path.join(pr, "context AI", "20-z.md"),
+               "# Chantier ZZZ\n\n## ZZZ1 [ ] — à relire\n---\n## ZZZ2 [x] — piège\n")
+        s = rendu(pr)
+        verifier("carte sans --relecteur : titres et PROCHAINE inchangés",
+                 s.endswith("--- fiches : context AI/20-z.md (5 lignes, 2 titres) ---\n"
+                            "3:## ZZZ1 [ ] — à relire\n5:## ZZZ2 [x] — piège\nPROCHAINE=ZZZ1\n"), s)
+        r = io.StringIO()
+        mod.carte(pr, r, relecteur=True)
+        r = r.getvalue()
+        verifier("carte --relecteur : ni titre ni PROCHAINE=, mais PROJET=",
+                 "piège" not in r and "PROCHAINE=" not in r and "PROJET=%s\n" % pr in r, r)
+        verifier("carte --relecteur : le reste à l'octet près", s.startswith(r) and "- **alias** : pr" in r, r)
+        j = io.StringIO()
+        mod.carte_injectee(pr, "py", False, j, relecteur=True)
+        j = j.getvalue()
+        verifier("carte --python --relecteur : l'option passe l'injection",
+                 j.startswith("\nPYTHON=py\n") and "piège" not in j and "PROCHAINE=" not in j, j)
+
+
 def test_carte_todo():
     """LEC2 : la TODO des chantiers possibles, quand aucun chantier n'est ouvert."""
     with tempfile.TemporaryDirectory() as t:
@@ -2590,6 +2614,7 @@ with tempfile.TemporaryDirectory() as t:
              s)
 
 # Test de carte avec TODO
+test_carte_relecteur()
 test_carte_todo()
 test_carte_methode()
 

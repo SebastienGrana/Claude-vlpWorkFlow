@@ -122,8 +122,9 @@ libellés que `LEC2` modifie ; un titre cité peut venir du `Dépend de` de la f
 ---
 
 <!-- FICHE:REL2 -->
-## REL2 [ ] — Donner à `vlp.py carte` l'option `--relecteur`
+## REL2 [x] — Donner à `vlp.py carte` l'option `--relecteur`
 
+**Session** : 5b3e3765-b1bb-439f-b05d-e0461e1e6541
 **Dépend de** : `REL1` — lis son bloc `**Verdict REL1**` avant d'écrire.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` — et rien d'autre.
 
