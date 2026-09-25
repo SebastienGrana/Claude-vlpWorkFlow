@@ -36,6 +36,7 @@ a l'air proche.
 | `55-un-chiffre.md` | on relit le socle du chantier UNI — **clos** « Un seul chiffre par clôture », `UNI1..UNI2` |
 | `56-hook-une-fois.md` | on relit le socle du chantier PYT — **clos** « Un hook n'agit qu'une fois », `PYT1..PYT2` |
 | `57-gardien-relecteur.md` | on relit le socle du chantier RLG — **clos** « Le gardien derrière le relecteur », `RLG1..RLG1` |
+| `58-forme-sous-agent.md` | on joue une fiche `FOR*` — chantier **ouvert** « La forme du sous-agent, pour de vrai », `FOR1..FOR3` |
 | `35-bilan.md` | on doit expliquer le kit — d'où il vient, ce qu'il sait faire aujourd'hui, ce qu'il ne promet pas ; les 22 chantiers chiffrés |
 | `36-gardes.md` | on relit le socle du chantier Z — **clos** « Une GARDE au lieu d'un traceback », `Z1..Z4` |
 | `37-niveau.md` | on relit le socle du chantier NIV — **clos** « Remettre les projets équipés à niveau », `NIV1..NIV4` |
