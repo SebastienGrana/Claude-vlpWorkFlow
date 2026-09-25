@@ -107,6 +107,10 @@ dire, et proposer d'en jouer une — ne rien estimer à sa place.
 <!-- FICHE:LEC2 -->
 ## LEC2 [ ] — Faire imprimer la TODO par la carte
 
+**Tentatives** (2026-09-25) — non résolu.
+1. FAITE refusée à la relecture.
+Erreur : REFUSÉE — critère de fin non tenu : sur une copie du kit mise à « aucun », `py scripts/vlp.py carte` n'imprime aucun bloc `--- TODO : context AI/08-etat.md (lignes A–B) ---`. Deux causes. `extraire_chemins_md` ne trouve que les chemins entre backticks. Et la ligne « chantiers possibles » absente ne produit rien, alors que la fiche demande `TODO=absente (pas de ligne « chantiers possibles »)`.
+
 **Session** : e41e8069-96d6-419d-8454-665a2f96394b
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` — et rien d'autre.
