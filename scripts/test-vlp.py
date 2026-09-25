@@ -1047,7 +1047,7 @@ with tempfile.TemporaryDirectory() as t:
 
     ecrire(os.path.join(t, "CHANTIER.md"), carte_ % ("ctx/30-q.md (Q1..Q2)", "https://exemple/q")
            + "\n| Fichier de fiches | Fiches | Clos le | Artefact |\n|---|---|---|---|\n| ctx/10-e.md | E1..E2 | 2026-01-01 | u |\n\nFin.\n")
-    ecrire(os.path.join(t, "ctx", "30-q.md"), "# Chantier Q — Un `titre`\n\n**À quoi il sert.** x\n\n**Fait.** Rien.\n\n## Q1 [x] — a\n## Q2 [ ] — b\n")
+    ecrire(os.path.join(t, "ctx", "30-q.md"), "# Chantier Q — Un `titre`\n\n**À quoi il sert.** x\n\n**Estimé.** 2 fiches · ≈0,40 $ — ≈0,20 $/fiche sur 3 clos (le 2026-05-01).\n\n**Fait.** Rien.\n\n## Q1 [x] — a\n## Q2 [ ] — b\n")
     html = lire(fdr)
     for gabarit, vrai in (('&lt;≈2,3k (2 312)&gt;', "≈2,3k (2 312)"), ('&lt;≈15,3k (15 342)&gt;', "?"), ("&lt;une ligne&gt;", "ligne &lt;python&gt;"),
                           ('<a href="&lt;URL de son artefact&gt;">&lt;nom&gt;</a>', '<a href="u">E</a>'), ("&lt;U1..U6&gt;", "E1–E2"),
@@ -1064,7 +1064,7 @@ with tempfile.TemporaryDirectory() as t:
     verifier("clore : gabarit, blocage visible avant", page_q and "<!-- ZONE:blocage" in lire(page_q) and lire(page_q).count("<section hidden>") == 1, lire(page_q))
     code, s = appel(["clore", t, "--livre", "Livré `a` <b>", "--tokens", "1500", "--abandon", "Q2 abandonnée", "--date", "2026-05-06", "--surpris", "x < y", "--resume", "b `c`."])
     carte_lue, fiches_lues, html = lire(os.path.join(t, "CHANTIER.md")), lire(os.path.join(t, "ctx", "30-q.md")), lire(fdr)
-    verifier("clore : routage, index, bilan, résumé comptés", "· routage 1 · index 1 · bilan 1 · résumé 1 —" in s and "GARDE" not in s, s)
+    verifier("clore : routage, index, bilan, résumé comptés", "· routage 1 · index 1 · bilan 1 · résumé 1 ·" in s and "GARDE" not in s, s)
     verifier("clore : résumé, une ligne par clos", "- Clos le 2026-05-06 : a (chantier E).\n- Clos le 2026-05-06 : b `c` (chantier Q).\n\n## Routage" in lire(os.path.join(t, "CLAUDE.md")), lire(os.path.join(t, "CLAUDE.md")))
     cl, gr = ["## Où on en est", "", "- Clos le 2026-01-01 : a (chantier E).", "", "## Règles"], []
     verifier("résumé : ligne ajoutée après la dernière", mod.resume_claude(cl, "Q", "b", "2026-02-02", gr)
@@ -1083,16 +1083,16 @@ with tempfile.TemporaryDirectory() as t:
              mod.resume_claude(cl4, "Q", "deux lignes\nici.\n", "2026-09-24", g4)
              and cl4[-1] == "- Clos le 2026-09-24 : deux lignes ici (chantier Q)."
              and bool(mod.ENTREE_CLOS.match(cl4[-1])) and not g4, repr(cl4[-1]))
-    verifier("clore : Fait. remplacé", "**Fait.** Q1..Q2 (2026-05-06) : Livré `a` <b>.\n" in fiches_lues and "**Fait.** Rien." not in fiches_lues, fiches_lues)
+    verifier("clore : Fait. remplacé", "**Fait.** Q1..Q2 (2026-05-06) : Livré `a` <b> — estimé 2 fiches ≈0,40 $ · cadré 2 · joué 1 fiches ≈? $.\n" in fiches_lues and "**Fait.** Rien." not in fiches_lues, fiches_lues)
     verifier("clore : index clos", "| `30-q.md` | on relit le socle du chantier Q — **clos** « Un (vrai) titre », `Q1..Q2` |\n" == lire(os.path.join(t, "ctx", "00-INDEX.md")).split("---|\n")[1], lire(os.path.join(t, "ctx", "00-INDEX.md")))
     verifier("clore : routage ouvert retiré, une ligne vers l'index", "|---|---|\n| relire un chantier clos | `ctx/00-INDEX.md` — sa ligne y nomme le fichier de fiches |\n| relire le chantier E" in lire(os.path.join(t, "CLAUDE.md"))
              and "chantier Q" not in lire(os.path.join(t, "CLAUDE.md")).split("## Routage")[1], lire(os.path.join(t, "CLAUDE.md")))
     pq = lire(page_q)
-    verifier("clore : ZONE:bilan visible, blocage caché", "<section>\n    <h2>Chantier clos le 2026-05-06</h2>\n    <div class=\"bilan\">\n      <p>Livré : Livré `a` &lt;b&gt;</p>\n      <p>Surpris : x &lt; y</p>\n    </div>\n  </section>" in pq
+    verifier("clore : ZONE:bilan visible, blocage caché", "<section>\n    <h2>Chantier clos le 2026-05-06</h2>\n    <div class=\"bilan\">\n      <p>Livré : Livré `a` &lt;b&gt;</p>\n      <p>Surpris : x &lt; y</p>\n      <p>Estimé : estimé 2 fiches ≈0,40 $ · cadré 2 · joué 1 fiches ≈? $</p>\n    </div>\n  </section>" in pq
              and pq.split("<!-- ZONE:blocage")[1].split("-->\n")[1].startswith("  <section hidden>") and pq.count("<section hidden>") == 1, pq)
     verifier("clore : la page régénérée, fiches du fichier", '<span class="id">Q1</span>' in pq and '<span class="id">Q2</span>' in pq
              and '<span class="id">&lt;R' not in pq and '<p class="mono cout-total">' not in pq, pq)
-    verifier("clore : bilan", code == 0 and "CLOS Q Q1..Q2 (Q2 abandonnée) · chantier 1 500 · cumul 3 812" in s and "encours non" in s, s)
+    verifier("clore : bilan", code == 0 and "CLOS Q Q1..Q2 (Q2 abandonnée) · chantier 1 500 · cumul 3 812 · routage 1 · index 1 · bilan 1 · résumé 1 · estimé 2 fiches ≈0,40 $ · cadré 2 · joué 1 fiches ≈? $ — " in s and "encours non" in s, s)
     verifier("clore : fichier de fiches", "**CLOS** le 2026-05-06. Ne se rejoue pas" in fiches_lues
              and fiches_lues.index("**CLOS**") < fiches_lues.index("**Fait.**") and "Abandonnées : Q2 abandonnée." in fiches_lues, fiches_lues)
     verifier("clore : CHANTIER.md", "**fichier de fiches courant** : aucun" in carte_lue and "**artefact du chantier** : aucun" in carte_lue
@@ -1231,9 +1231,39 @@ def test_estime():
         verifier("EST1 : aucun clos mesuré, GARDE, le reste écrit", code == 0 and "GARDE: aucun chantier clos mesuré" in s
                  and "ctx/31-r.md (R1..R1)" in lire(os.path.join(te, "CHANTIER.md")), s)
         os.environ.pop("CLAUDE_CODE_SESSION_ID", None)
+    # `clore` sans ligne **Estimé.** (chantier ouvert avant EST) : « estimé non noté », sans GARDE
+    # d'estimé ; le réel en dollars vient du total mesuré, `≈? $` sans lui (chantier EST).
+    with tempfile.TemporaryDirectory() as te:
+        ecrire(os.path.join(te, "CHANTIER.md"), "# C\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n"
+               "- **fichier de fiches courant** : ctx/50-u.md (U1..U2)\n- **artefact du chantier** : aucun\n\n"
+               "Lettres de fiche déjà prises : U (test).\n")
+        ecrire(os.path.join(te, "ctx", "50-u.md"), "# Chantier U — u\n\n**Fait.** Rien.\n\n## U1 [x] — a\n## U2 [x] — b\n")
+        code, s = appel(["clore", te, "--livre", "fini", "--date", "2026-09-26"])
+        verifier("EST2 : sans **Estimé.**, estimé non noté, réel ≈? $", code == 0
+                 and " · estimé non noté · cadré 2 · joué 2 fiches ≈? $ — " in s and "stim" not in s.split("CLOS ")[0]
+                 and "**Fait.** U1..U2 (2026-09-26) : fini — estimé non noté · cadré 2 · joué 2 fiches ≈? $.\n"
+                 in open(os.path.join(te, "ctx", "50-u.md"), encoding="utf-8").read(), s)
+    with tempfile.TemporaryDirectory() as te:
+        ecrire(os.path.join(te, "CHANTIER.md"), "# C\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n"
+               "- **fichier de fiches courant** : ctx/50-u.md (U1..U1)\n- **artefact du chantier** : aucun\n\n"
+               "Lettres de fiche déjà prises : U (test).\n")
+        ecrire(os.path.join(te, "ctx", "50-u.md"), "# Chantier U — u\n\n**Estimé.** 3 fiches · ≈9,00 $ — ≈3,00 $/fiche sur 2 clos (le 2026-09-01).\n\n**Fait.** Rien.\n\n## U1 [x] — a\n")
+        ecrire(os.path.join(te, "ctx", "artefacts", "50-u.html"),
+               open(os.path.join(ICI, "..", "templates", "artefact-chantier.html"), encoding="utf-8").read())
+        regenerer_vrai = mod.regenerer
+        mod.regenerer = lambda *x: (lambda r: r[:3] + ((2_000_000, 3, None), r[4]))(regenerer_vrai(*x))
+        try:
+            code, s = appel(["clore", te, "--livre", "fini", "--date", "2026-09-26"])
+        finally:
+            mod.regenerer = regenerer_vrai
+        verifier("EST2 : total mesuré, le réel en dollars, sur la page aussi", code == 0
+                 and " · estimé 3 fiches ≈9,00 $ · cadré 1 · joué 1 fiches ≈1,67 $ — " in s
+                 and "<p>Estimé : estimé 3 fiches ≈9,00 $ · cadré 1 · joué 1 fiches ≈1,67 $</p>"
+                 in open(os.path.join(te, "ctx", "artefacts", "50-u.html"), encoding="utf-8").read(), s)
 
 
 test_estime()
+
 
 with tempfile.TemporaryDirectory() as t:
     f = os.path.join(t, "y.md")

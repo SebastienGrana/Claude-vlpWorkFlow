@@ -87,8 +87,9 @@ tombe. Un second appel : `estimé gardé`, une seule ligne `**Estimé.**`.
 ---
 
 <!-- FICHE:EST2 -->
-## EST2 [ ] — Écrire l'estimé à côté du réel à la clôture
+## EST2 [x] — Écrire l'estimé à côté du réel à la clôture
 
+**Session** : f86e52fa-fbd8-4e04-848e-240a52ae8542
 **Dépend de** : `EST1`.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` — et rien d'autre.
 

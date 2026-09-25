@@ -68,9 +68,9 @@
     <p>À la clôture, vlp.py clore écrit seul l'estimé (fiches et $) à côté du réel, dans la ligne CLOS, la ligne Fait. et le bilan de la page.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="encours"></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">3 fiches · 1 faite · en cours : EST2</p>
+    <p class="mono" style="margin-top:.5rem">3 fiches · 2 faites · en cours : EST3</p>
   </header>
 
   <section>
@@ -81,21 +81,22 @@
         <span class="id">EST1</span><span class="titre">Noter l'estimé à l'ouverture</span>
         <span class="etat">faite</span>
         <span class="note">test-vlp.py : OK, 0 échec ; test EST1 (A1–A3 3 000 000 + B1 1 000 000 → ≈1,67 $ pour 2 fiches), mutant « une fiche par ligne » tombe ; 2e appel : estimé gardé, 1 ligne ; pyright scripts/ : 0 errors</span>
-        <span class="cout mono">≈2,4M (2 426 127) · 22 tours · 1,50 $</span>
+        <span class="cout mono">≈2,7M (2 660 631) · 24 tours · 1,60 $</span>
+      </li>
+      <li class="fiche" data-etat="faite">
+        <span class="id">EST2</span><span class="titre">Écrire l'estimé à côté du réel à la clôture</span>
+        <span class="etat">faite</span>
+        <span class="note">test-vlp.py : OK, 0 échec ; CLOS « estimé 2 fiches ≈0,40 $ · cadré 2 · joué 1 fiches ≈? $ », même texte page et Fait ; sans ligne : estimé non noté ; mutant cadrées=jouées : ÉCART clore : Fait. remplacé ; pyright scripts/ : 0 errors</span>
+        <span class="cout mono">≈4,1M (4 107 241) · 37 tours · 1,97 $</span>
       </li>
       <li class="fiche" data-etat="encours">
-        <span class="id">EST2</span><span class="titre">Écrire l'estimé à côté du réel à la clôture</span>
-        <span class="etat">en cours</span>
-        <span class="note">clore écrit estimé, cadré, joué et $ réel à trois endroits ; après EST1</span>
-      </li>
-      <li class="fiche">
         <span class="id">EST3</span><span class="titre">Faire passer l'estimé par /vlp:chantier</span>
-        <span class="etat">à faire</span>
+        <span class="etat">en cours</span>
         <span class="note">/vlp:chantier passe l'estimé à ouvrir, et EST note le sien ; après EST1</span>
       </li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈2,2M (2 232 622) · 20 tours · 1,81 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈4,7M (4 658 749) · 42 tours · 3,31 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈9,0M (9 000 494) · 81 tours · 5,38 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

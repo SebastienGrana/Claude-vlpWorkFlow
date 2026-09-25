@@ -174,8 +174,13 @@ Sous-commandes :
   Si `--tokens N` est donné et diffère du mesuré, écrit `ÉCART tokens <N> donné
   · <mesuré> mesuré — le mesuré fait foi` ; un total mesuré à 0 (découpe vide) ne
   l'emporte pas.
+  L'estimé face au réel (chantier EST) : `estimé <N> fiches ≈<X> $ · cadré <C> · joué <J>
+  fiches ≈<Y> $` — N et X relus de la ligne `**Estimé.**`, C les titres de fiche, J les `[x]`,
+  Y le total mesuré (`≈? $` sans mesure) ; sans `**Estimé.**` : `estimé non noté · …`, pas de
+  `GARDE:`. Écrit en fin de `**Fait.**` (` — <estimé>.`), en `<p>Estimé : …</p>` après Surpris
+  dans `ZONE:bilan`, et dans `CLOS` avant ` — <projet>`.
   `CLOS <lettre> <plage> · chantier <n> · cumul <brut> · routage <0|1> · index
-  <0|1> · bilan <0|1> — <projet>`. Aucun chantier ouvert, ou
+  <0|1> · bilan <0|1> · <estimé> — <projet>`. Aucun chantier ouvert, ou
   déjà `**CLOS**` : `GARDE:`, sort 1.
 - `ouvrir <projet> --fiches F --titre T [--artefact URL] [--estime-fiches N]` — les écritures
   mécaniques de l'ouverture : dans `CHANTIER.md`, courant = `F (L1..Ln)` et
@@ -2974,6 +2979,9 @@ def cmd_niveau(a, sortie):
 CLOS_LIGNE = "**CLOS** le %s. Ne se rejoue pas — ne sert plus qu'à relire son socle."
 ENTREE_CLOS = re.compile(r"^- Clos le \S+ : .* \(chantier [A-Z]{1,3}\)\.$")
 ROUTAGE_CLOS = "| relire un chantier clos |"
+# La ligne que `ouvrir --estime-fiches` pose : N fiches et leur coût, relus par `clore` (chantier EST).
+ESTIME = re.compile(r"^\*\*Estimé\.\*\* (\S+) fiches · (≈\S+ \$)")
+ESTIME_A_ECRIRE = "\x00estimé\x00"   # posé dans la ZONE:bilan, remplacé une fois le total mesuré connu
 
 
 def resume_claude(cl, lettre, texte, date, gardes):
@@ -3022,6 +3030,9 @@ def cmd_clore(a, sortie):
     titre = next((re.sub(r"^# Chantier \S+ — ", "", l) for l in fiches_ if l.startswith("# ")), courant)
     url = champ(carte_, "artefact du chantier", "aucun")
     fait = "%s..%s" % (ids[0], ids[-1]) + (" (%s)" % a.abandon if a.abandon else "")
+    # L'estimé de l'ouverture, relu ici pour être écrit à côté du réel (chantier EST).
+    estime = next((m for m in map(ESTIME.match, fiches_) if m), None)
+    joue = sum(1 for l in fiches_ if TITRE.match(l) and l.split()[2] == "[x]")
 
     # 1. le fichier de fiches
     entete = [CLOS_LIGNE % date] + (["", "Abandonnées : %s." % a.abandon.rstrip(".")] if a.abandon else []) + [""]
@@ -3035,6 +3046,7 @@ def cmd_clore(a, sortie):
         while fin_para + 1 < len(fiches_) and fiches_[fin_para + 1].strip():
             fin_para += 1
         fiches_[i:fin_para + 1] = entete + [ligne_fait]
+    k_fait = i + len(entete)
     gardes, ecritures, faits = [], [], {"routage": 0, "index": 0, "bilan": 0}
     nom = os.path.basename(courant)
     total_mesure = None     # le total que `regenerer` écrit sur la page, en 1 ter (chantier UNI)
@@ -3088,7 +3100,8 @@ def cmd_clore(a, sortie):
             gardes.append("page du chantier : %s" % e)
         else:
             corps = ('  <section>\n    <h2>Chantier clos le %s</h2>\n    <div class="bilan">\n      <p>Livré : %s</p>\n'
-                     % (date, esc(a.livre))) + ('      <p>Surpris : %s</p>\n' % esc(a.surpris) if a.surpris else "") + "    </div>\n"
+                     % (date, esc(a.livre))) + ('      <p>Surpris : %s</p>\n' % esc(a.surpris) if a.surpris else "") \
+                + "      <p>Estimé : %s</p>\n    </div>\n" % ESTIME_A_ECRIRE
             bloc = pg[db:fb]
             bloc = re.sub(r"^  <section>", "  <section hidden>", bloc, count=1)
             pg = pg[:db] + bloc + pg[fb:d] + corps + pg[f:] if db < d else pg[:d] + corps + pg[f:db] + bloc + pg[fb:]
@@ -3100,6 +3113,13 @@ def cmd_clore(a, sortie):
             gardes.extend(re.sub(r"^GARDE: ", "", g) for g in couts_page)
             ecritures.append((chemin_page, pg))
             faits["bilan"] = 1
+
+    # 1 quater. l'estimé à côté du réel : page, `**Fait.**`, ligne CLOS (chantier EST)
+    reel = "cadré %d · joué %d fiches %s" % (
+        len(ids), joue, estimation_usd(total_mesure[0]) if total_mesure and total_mesure[0] else "≈? $")
+    texte_estime = ("estimé %s fiches %s" % estime.groups() if estime else "estimé non noté") + " · " + reel
+    fiches_[k_fait] = ligne_fait[:-1] + " — " + texte_estime + "."
+    ecritures = [(c, t.replace(ESTIME_A_ECRIRE, esc(texte_estime), 1) if c == chemin_page else t) for c, t in ecritures]
 
     # 2. CHANTIER.md
     for k, l in enumerate(carte_):
@@ -3175,9 +3195,9 @@ def cmd_clore(a, sortie):
         sortie.write("ÉCART tokens %s donné · %s mesuré — le mesuré fait foi\n"
                      % (milliers(a.tokens), milliers(total_chantier)))
     champ_chantier = "non mesuré" if total_chantier is None else milliers(total_chantier)
-    sortie.write("CLOS %s %s · chantier %s · cumul %s · routage %d · index %d · bilan %d%s — %s\n" % (
+    sortie.write("CLOS %s %s · chantier %s · cumul %s · routage %d · index %d · bilan %d%s · %s — %s\n" % (
         lettre, fait, champ_chantier, "non mesuré" if total is None else milliers(total), faits["routage"], faits["index"], faits["bilan"],
-        " · résumé %d" % faits.get("résumé", 0) if a.resume else "", projet))
+        " · résumé %d" % faits.get("résumé", 0) if a.resume else "", texte_estime, projet))
     return 0
 
 
