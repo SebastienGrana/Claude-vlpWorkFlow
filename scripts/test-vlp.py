@@ -663,6 +663,53 @@ with tempfile.TemporaryDirectory() as t:
         verifier("page : la session du cadrage, en tête, compte hors fiches", code == 0
                  and '<p class="mono cout-hors">Hors fiches : ≈400,0k (400 000) · 4 tours · 2,00 $</p>' in html
                  and '<p class="mono cout-total">Coût du chantier : ≈900,0k (900 000) · 9 tours · 4,50 $</p>' in html, s + html)
+        # REC1 : recompter lit la feuille, l'index et les fichiers clos, et n'écrit rien. Q se coupe
+        # aux commits (le TOTAL de cout, 700 000) ; M partage sa session sans commit qui le nomme,
+        # N n'a pas de session, P une transcription absente, K n'est pas à l'index : gardés, écart 0.
+        rc = os.path.join(t, "rc")
+        os.makedirs(rc)
+        subprocess.run(["git", "init", "-q"], cwd=rc, env=env, check=True, capture_output=True)
+        for d, sujet in ((100, "Chantier Q ouvert : cadré"), (300, "Q1 : Créer"), (600, "Q2 : Brancher"),
+                         (800, "Chantier Q clos : fini"), (900, "Autre : QA et Q12x ne nomment pas le préfixe")):
+            date = "%d +0000" % (T0 + d)
+            subprocess.run(["git", "commit", "-q", "--allow-empty", "-m", sujet], cwd=rc, check=True,
+                           capture_output=True, env=dict(env, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date))
+        seule = ("# Chantier %s\n\n**CLOS** le 2026-01-06.\n\n## Le socle commun\n\n## L'ordre des fiches\n\n"
+                 "<!-- FICHE:%s1 -->\n## %s1 [x] — Seule\n%s**Critère de fin**\n<!-- /FICHE -->\n")
+        ecrire(os.path.join(rc, "CHANTIER.md"), "# Chantier courant\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n")
+        ecrire(os.path.join(rc, "ctx", "00-INDEX.md"), "| Fichier | Lire quand |\n|---|---|\n"
+               "| `q.md` | chantier **clos** « Q », `Q1..Q2` |\n| `m.md` | chantier **clos** « M », `M1..M1` |\n"
+               "| `n.md` | chantier **clos** « N », `N1..N1` |\n| `p.md` | chantier **clos** « P », `P1..P1` |\n")
+        ecrire(os.path.join(rc, "ctx", "q.md"), clos_(QFICHES % (sq, sq)))
+        ecrire(os.path.join(rc, "ctx", "m.md"), seule % ("M", "M", "M", "**Session** : %s\n" % sq))
+        ecrire(os.path.join(rc, "ctx", "n.md"), seule % ("N", "N", "N", ""))
+        ecrire(os.path.join(rc, "ctx", "p.md"), seule % ("P", "P", "P", "**Session** : rec1-transcription-absente\n"))
+        ecrire(os.path.join(rc, "ctx", "artefacts", "feuille-de-route.html"),
+               '    <!-- ZONE:clos — test -->\n      <table>\n        <tbody>\n'
+               + "".join(ligne_close(c).replace("Q1–Q2", pl) for pl, c in (
+                   ("Q1–Q2", mod.arrondi(650000)), ("M1", mod.arrondi(300000)), ("N1", mod.arrondi(999)),
+                   ("P1", mod.arrondi(2000)), ("K1–K3", mod.arrondi(1500)), ("E1–E8", "non mesurable")))
+               + "        </tbody>\n      </table>\n")
+        disque = lambda: {os.path.relpath(os.path.join(r, n), rc): lire(os.path.join(r, n))
+                          for r, _, ns in os.walk(rc) if ".git" not in r.split(os.sep) for n in ns}
+        avant = disque()
+        code, s = appel(["recompter", rc])
+        verifier("recompter : un clos découpé, des gardés à écart 0, la somme avec les gardés — mutants :"
+                 " un gardé compté dans l'écart, la somme sans les gardés", code == 0 and s.splitlines() == [
+                     "Q inscrit 650 000 · recompté 700 000 · écart +50 000 · découpe · partagée avec M",
+                     "M inscrit 300 000 · recompté gardé · écart +0 · gardé — DÉCOUPE aucune (aucun commit qui nomme M)"
+                     " · partagée avec Q",
+                     "N inscrit 999 · recompté gardé · écart +0 · gardé — sans session",
+                     "P inscrit 2 000 · recompté gardé · écart +0 · gardé — transcription absente (rec1-transcription-absente)",
+                     "K inscrit 1 500 · recompté gardé · écart +0 · gardé — fichier introuvable",
+                     "E inscrit 0 · recompté gardé · écart +0 · gardé — fichier introuvable",
+                     "RECOMPTE 6 clos · 1 recomptés · 5 gardés · inscrit 954 499 · recompté 1 004 499 · écart +50 000"], s)
+        code2, s2 = appel(["cout", os.path.join(rc, "ctx", "q.md")])
+        verifier("recompter : le recompté de Q est le TOTAL de cout", code2 == 0
+                 and "\nTOTAL (fiches + hors fiches) · ≈700,0k (700 000) · 7 tours" in s2, s2)
+        verifier("recompter n'écrit rien", disque() == avant, sorted(disque()))
+        code, s = appel(["recompter", os.path.join(t, "clq")])
+        verifier("recompter : pas de CHANTIER.md, une garde", code == 1 and s.startswith("GARDE: pas de CHANTIER.md"), s)
 
 # FIN1 : les bornes de `plages`, en fonction pure — heures (commits de fiche, qui nomment, autres).
 P2, G = [("Q1", "a", True, ["s"]), ("Q2", "b", True, ["s"])], []

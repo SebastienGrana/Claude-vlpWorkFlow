@@ -57,8 +57,9 @@
 ---
 
 <!-- FICHE:REC1 -->
-## REC1 [ ] — Recompter en lecture seule
+## REC1 [x] — Recompter en lecture seule
 
+**Session** : b05877e2-d5f3-4870-a05a-8489820bb815
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` — et rien d'autre.
 

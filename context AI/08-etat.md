@@ -1740,3 +1740,13 @@ hors fiches · ≈4,1M (4 129 933) · 33 tours · 2,72 $ = session ≈4,1M (4 08
 TOTAL (fiches + hors fiches) · ≈9,0M (9 047 794) · 75 tours · 5,19 $ = session ≈9,0M (9 001 103) · 72 tours · 5,06 $ + 2 sous-agents ≈46,7k (46 691) · 3 tours · 0,13 $
 ```
 Les deux relecteurs : 0,13 $ à eux deux. Le coût définitif de `JUG3` se lit après son commit.
+
+## 2026-09-25 — REC1
+
+`py scripts/vlp.py recompter .` : `RECOMPTE 48 clos · 23 recomptés · 25 gardés · inscrit 681 541 003
+· recompté 700 725 374 · écart +19 184 371`. Imprévu : le socle de REC comptait **dix** clos sans
+commit de fiche (M, C, T, S, L, W, X, F, O, Q) ; `recompter` en trouve **23** en `DÉCOUPE aucune`
+— Z, Q, U, Y, J, O, F, X, W, G, A, P, L, N, K, I, D, S, R, B, T, C, M —, plus V sans ligne
+`**Session**` et E sans plage à l'index. H seul, des chantiers du 2026-09-17, se découpe. Les 23
+recomptés ont presque tous un écart positif, de +434 097 (RLG) à +3 136 302 (NIV) ; deux écarts
+sortent du lot : FIL −22 318 909, REP +9 982 170. À ranger par cause en REC2.

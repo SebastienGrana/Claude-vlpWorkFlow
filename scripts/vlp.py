@@ -207,6 +207,15 @@ Sous-commandes :
   dernier message s'ouvre par « En résumé » ou une jauge (`forme_texte`, règle `REGLE` : une citation
   ne compte pas) et que `stop_hook_active` est faux (chantier FOR—JUG) ; `vlp:relecture` — renvoyé si
   la même règle le dit et que `stop_hook_active` est faux, sinon muet (chantier RLG—FOR—JUG).
+- `recompter <projet>` — n'écrit rien (chantier REC). Pour chaque ligne de `ZONE:clos` de la
+  feuille de route, le fichier de fiches que l'index nomme au même préfixe (`JUG1..JUG3` pour
+  `JUG1–JUG3`), et une ligne `<préfixe> inscrit <n> · recompté <n|gardé> · écart <±n> ·
+  <méthode>` : le recompté est le nombre de la ligne `TOTAL` de `cout` ; la méthode, `découpe`
+  ou `gardé — <raison>` (sans session, transcription absente, `DÉCOUPE aucune`, découpe à zéro,
+  fichier introuvable), écart 0 ; ` · partagée avec <préfixes>` si une de ses sessions est
+  aussi dans le fichier d'un autre clos. Puis `RECOMPTE <n> clos · <n> recomptés · <n> gardés ·
+  inscrit <n> · recompté <n> · écart <±n>`, recompté = inscrit + écarts. Pas de feuille, pas de
+  `ZONE:clos`, pas d'index : `GARDE:`, sort 1.
 
 Python 3 sans dépendance, zéro appel modèle.
 
@@ -517,16 +526,10 @@ def cmd_cout(chemin, session, sortie):
     elif not ids:
         sortie.write("SESSIONS 0 — pas de total\n")
         return 0
-    fiches_ = fiches_du_fichier(lignes)
-    pourquoi, gardes = [], []
-    heures = heures_commits(chemin, [f[0] for f in fiches_], pourquoi,
-                            any(l.startswith("**CLOS**") for l in lignes))
-    decoupe = heures and parts_aux_commits(fiches_, heures, gardes, sessions_entete(lignes))
+    decoupe, pourquoi, gardes = decouper(chemin, lignes)
     for g in gardes:
         sortie.write(g + "\n")
     if not decoupe:
-        if heures:
-            pourquoi.append("aucune session de fiche mesurée")
         sortie.write("DÉCOUPE aucune — %s : sessions entières, sous-agents compris\n" % pourquoi[0])
         with contextlib.redirect_stdout(sortie):
             return mesure().main(ids) or code
@@ -536,9 +539,30 @@ def cmd_cout(chemin, session, sortie):
     for ident, s_, a_ in parts:
         sortie.write(ligne_parts(ident, s_, a_) + "\n")
     sortie.write(ligne_parts("hors fiches", *hors) + "\n")
-    sortie.write(ligne_parts("TOTAL (fiches + hors fiches)", plus(*[p[1] for p in parts], hors[0]),
-                             plus(*[p[2] for p in parts], hors[1])) + "\n")
+    sortie.write(ligne_parts("TOTAL (fiches + hors fiches)", *totaux(decoupe)) + "\n")
     return code
+
+
+def decouper(chemin, lignes=None):
+    """(découpe, pourquoi, gardes) d'un fichier de fiches : `parts_aux_commits` sur les heures de
+    `heures_commits`, ou None — `pourquoi` dit alors la raison. `cout` l'imprime, `recompter` en
+    tire le total (`totaux`) : une découpe, deux lecteurs."""
+    lignes = lignes_de(chemin) if lignes is None else lignes
+    fiches_ = fiches_du_fichier(lignes)
+    pourquoi, gardes = [], []
+    heures = heures_commits(chemin, [f[0] for f in fiches_], pourquoi,
+                            any(l.startswith("**CLOS**") for l in lignes))
+    decoupe = heures and parts_aux_commits(fiches_, heures, gardes, sessions_entete(lignes))
+    if not decoupe and heures:
+        pourquoi.append("aucune session de fiche mesurée")
+    return decoupe or None, pourquoi, gardes
+
+
+def totaux(decoupe):
+    """(session, sous-agents) d'une découpe, fiches et hors fiches sommées : la ligne `TOTAL` de
+    `cout`, dont `plus(*totaux(d))[0]` est le nombre."""
+    parts, hors = decoupe
+    return plus(*[p[1] for p in parts], hors[0]), plus(*[p[2] for p in parts], hors[1])
 
 
 KIT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -2225,6 +2249,82 @@ def total_clos(corps):
     return sum(int(re.sub(r"\D", "", entre or nu)) for entre, nu in BRUT.findall(corps))
 
 
+PLAGE_CLOS = re.compile(r'<td class="mono">([A-Z]{1,3})[0-9]+(?:–[A-Z]{1,3}[0-9]+)?</td>')
+PLAGE_INDEX = re.compile(r"^\|\s*`([^`]+)`\s*\|.*`([A-Z]{1,3})[0-9]+\.\.[A-Z]{1,3}[0-9]+`")
+
+
+def signe(n):
+    return ("-" if n < 0 else "+") + milliers(abs(n))
+
+
+def recompte(chemin):
+    """(recompté ou None, méthode) d'un fichier de fiches clos : le nombre de la ligne `TOTAL` de
+    `cout`, ou None et la raison de le garder — sans session, transcription absente, `DÉCOUPE
+    aucune`, découpe à zéro (chantier REC)."""
+    lignes = lignes_de(chemin)
+    ids = sessions_de(lignes)
+    if not ids:
+        return None, "gardé — sans session"
+    for s in ids:
+        if mesure().resoudre(s)[1]:
+            return None, "gardé — transcription absente (%s)" % s
+    decoupe, pourquoi, gardes = decouper(chemin, lignes)
+    if not decoupe:
+        return None, "gardé — DÉCOUPE aucune (%s)" % pourquoi[0]
+    if any(g.startswith("GARDE: découpe à zéro") for g in gardes):
+        return None, "gardé — découpe à zéro"
+    return plus(*totaux(decoupe))[0], "découpe"
+
+
+def cmd_recompter(projet, sortie):
+    """Chaque ligne de `ZONE:clos` recomptée par `cout` sur son fichier de fiches, que l'index
+    nomme au même préfixe ; n'écrit rien (chantier REC)."""
+    if not equipe(projet):
+        sortie.write("GARDE: pas de CHANTIER.md dans %s\n" % projet)
+        return 1
+    page = page_feuille(projet)
+    if not os.path.isfile(page):
+        sortie.write("GARDE: feuille de route introuvable : %s\n" % page)
+        return 1
+    html = lire(page)
+    try:
+        d, f = zone(html, "clos", "<tbody>\n", "        </tbody>")
+    except ValueError as e:
+        sortie.write("GARDE: %s\n" % e)
+        return 1
+    carte_ = lignes_de(os.path.join(projet, "CHANTIER.md"))
+    contexte = champ(carte_, "contexte", "context AI/")
+    index = champ(carte_, "index", os.path.join(contexte, "00-INDEX.md"))
+    fichiers = {}
+    for l in lignes_du_projet(projet, index, "index"):
+        m = PLAGE_INDEX.match(l)
+        if m:
+            fichiers.setdefault(m.group(2), os.path.join(projet, contexte, m.group(1)))
+    rangs = []
+    for r in lignes_clos(html[d:f]):
+        m = PLAGE_CLOS.search(r)
+        if m:
+            chemin = fichiers.get(m.group(1))
+            rangs.append((m.group(1), total_clos(r), chemin if chemin and os.path.isfile(chemin) else None))
+    porteurs = {}
+    for prefixe, _, chemin in rangs:
+        for s in sessions_de(lignes_de(chemin)) if chemin else []:
+            porteurs.setdefault(s, set()).add(prefixe)
+    n = inscrit = ecart = 0
+    for prefixe, brut, chemin in rangs:
+        recompte_, methode = recompte(chemin) if chemin else (None, "gardé — fichier introuvable")
+        autres = sorted({p for s in (sessions_de(lignes_de(chemin)) if chemin else [])
+                         for p in porteurs[s]} - {prefixe})
+        e = 0 if recompte_ is None else recompte_ - brut
+        n, inscrit, ecart = n + (recompte_ is not None), inscrit + brut, ecart + e
+        sortie.write("%s inscrit %s · recompté %s · écart %s · %s%s\n" % (
+            prefixe, milliers(brut), "gardé" if recompte_ is None else milliers(recompte_), signe(e), methode,
+            " · partagée avec %s" % ", ".join(autres) if autres else ""))
+    sortie.write("RECOMPTE %d clos · %d recomptés · %d gardés · inscrit %s · recompté %s · écart %s\n" % (
+        len(rangs), n, len(rangs) - n, milliers(inscrit), milliers(inscrit + ecart), signe(ecart)))
+    return 0
+
+
 def resume_clos(n, total):
     """Ce que le bloc repliable montre sans être déplié."""
     if not n:
@@ -2921,6 +3021,8 @@ def main(argv, sortie=None, entree=None, erreur=None):
     fm.add_argument("--depuis")
     fm.add_argument("--regle", choices=REGLES, default=REGLE)
     sous.add_parser("gardien")
+    rc = sous.add_parser("recompter")
+    rc.add_argument("projet")
     a = p.parse_args(argv)
     try:
         return repartir(a, sortie, entree, erreur)
@@ -2974,6 +3076,8 @@ def repartir(a, sortie, entree, erreur):
         return cmd_forme(a, sortie)
     if a.cmd == "gardien":
         return une_fois(entree, cmd_gardien, sortie)
+    if a.cmd == "recompter":
+        return cmd_recompter(a.projet, sortie)
     chemin_garde(a.fichier)
     if a.cmd == "extraire":
         return cmd_extraire(a.fichier, a.fiche, sortie)
