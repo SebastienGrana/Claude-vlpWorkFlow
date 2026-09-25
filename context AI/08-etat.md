@@ -2173,3 +2173,30 @@ Deux séances sur deux sujets : l'écart ne s'attribue pas à la seule lecture d
   de 393 et la décision 2 l'inclut.
 - MapDecorator et Cairn sortiront `METHODE=absente` ; Cairn sortira aussi `TODO=absente` pour
   `20a-chantiers.md`.
+
+## 2026-09-25 — LEC5
+
+Ce compte compare trois séances `/vlp:chantier` sans argument sur le kit, du début au premier
+`AskUserQuestion` : la dernière d'avant `LEC` (lecture de `08-etat.md` par `Read`), le cadrage
+fait à la main, et l'après, où la carte imprime la TODO et le format des fiches.
+Commande : `py scripts/mesure-tokens.py --plage <début> <fin> <id>`.
+
+| Séance | id | tours | appels | ctx_dernier | equiv | usd |
+|---|---|---|---|---|---|---|
+| avant | `2f9a46f3-70ad-4145-a7c8-ada5aefa0034` | 3 | 4 | 110 515 | 285 200 | 1.14 |
+| cadrage à la main | `44909b3f-749f-48b6-b44b-9fdfb6a43588` | 6 | 6 | 85 624 | 122 263 | 0.49 |
+| après | `3aeb5082-062a-484c-8232-a4fde9bd995b` | 5 | 5 | 89 437 | 148 740 | 0.59 |
+
+Plage de l'après : `2026-09-25T21:21:15.307Z` → `2026-09-25T21:22:31.586Z` ; appels `Bash`=4
+`AskUserQuestion`=1, `ctx_1er` 74 672, `output` 6 641. Aucun `Read` de `08-etat.md` ni de la
+méthode : la carte les a donnés.
+
+- ⚠️ **L'après est gonflé par le montage.** Pour que la carte prenne la branche « aucun », le chef
+  avait mis `CHANTIER.md` à « aucun » **sans commit**. La séance l'a vu et a lancé `git diff`,
+  `grep`, `sed` pour comprendre : 3 appels sur 5 que la commande seule ne fait pas.
+- Face à l'avant : `equiv` −48 % (285 200 → 148 740), `usd` 1.14 → 0.59, malgré ces 3 appels.
+  L'avant ne lisait que 453 lignes sur 1 222 (`Read` tronqué, journal `LEC1`) ; le fichier en
+  fait 2 175 aujourd'hui.
+- Face au cadrage à la main : **l'après ne baisse pas** — `equiv` 122 263 → 148 740, `usd` 0.49 →
+  0.59. Deux séances différentes, et l'après porte les 3 appels du montage : l'écart ne se lit
+  pas comme le prix de la carte.
