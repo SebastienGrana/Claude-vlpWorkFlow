@@ -347,7 +347,7 @@ pages est dans `38-audit-artefacts.md` § 4, qui les nomme A à F ; les rangs 1 
 24, tous retirés, venaient de `12-audit.md` ; 31 à 34, de la clôture de `REP` ; 35
 à 37, de celle de `CPT` ; 38 à 41, de celle de `SAG` ; 42, de `FIL1` ; 43 à 47, de
 celle de `FIL` ; 48 à 51, de celle de `FIN` ; 52, des clôtures de la nuit du
-2026-09-24 ; 53, du cadrage de `REV` ; 54, d'une demande de l'utilisateur pendant `REV5` ; 55 à 57, de la clôture de `REV` ; 58, d'une demande de l'utilisateur le 2026-09-25 ; 59 à 61, de la clôture de `CON` ; 66, de celle de `JUG`.
+2026-09-24 ; 53, du cadrage de `REV` ; 54, d'une demande de l'utilisateur pendant `REV5` ; 55 à 57, de la clôture de `REV` ; 58, d'une demande de l'utilisateur le 2026-09-25 ; 59 à 61, de la clôture de `CON` ; 66, de celle de `JUG` ; 67, de celle de `REC`.
 
 | # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |
 |---|---|---|---|---|
@@ -372,6 +372,7 @@ celle de `FIL` ; 48 à 51, de celle de `FIN` ; 52, des clôtures de la nuit du
 | 63 | `ECH` — `ECRIT_GIT` ne lit pas le texte d'un heredoc | Le gardien a refusé à deux relecteurs de `RLG1` (2026-09-25) un heredoc ou un `echo` qui ne faisait qu'écrire les mots `git commit` ou `git add` dans un fichier de sonde. `ECRIT_GIT` cherche le motif dans toute la commande. Vrai aussi pour `vlp:fiche`, depuis `CON`. 🟡 Jusqu'où lire le shell : couper les chaînes citées ne suffit pas pour un heredoc. | ~0,5 fiche | — |
 | 64 | `SON` — Rejouer un hook à la main sans le tampon | `une_fois` (chantier `PYT`) fait taire la même entrée rejouée en moins de 60 s, même par une autre copie de `vlp.py` : un relecteur de `RLG1` a dû ajouter un `nonce` pour comparer AVANT et APRÈS. Une variable d'environnement, ou une option, qui saute le tampon hors d'un vrai hook. | ~0,5 fiche | — |
 | 66 | `OUV` — Une ligne qui s'ouvre par un mot de jauge, sans être une jauge | Reste de `JUG` : le gardien (règle `tete`) renvoie une ligne qui **commence** par « Imprévu », « Pas bon »… même quand ce n'est pas la jauge — une puce `- Imprévu : j'ai dû…`, un `REFUSÉE` dont une ligne s'ouvre par « Pas bon ». Absent des 29 sous-agents mesurés en `JUG1` ; `stop_hook_active` borne le coût à un renvoi. 🟡 Exiger l'émoji de la jauge devant le mot, ou le mot suivi de `—`/`…`/fin de ligne : à mesurer sur le corpus comme en `JUG1` (`forme --regle`). | ~0,5 fiche | — |
+| 67 | `APC` — Ce que le chiffre de clôture ne voit pas | Reste de `REC` : pour 19 clos (causes 4a et 4b du journal `REC2`), l'écart recompté − inscrit tient tout entier dans « hors fiches », côté clôture, et reste sous lui (`CAS` : égal, 1 687 993) ; de +434 097 (`RLG`) à +2 682 260 (`FOR`) — pas « quelques milliers », comme l'estimait le bilan d'`UNI`. 🟡 Hypothèse, non prouvée : les tours d'après `clore` (republication, menu, push) sont hors du chiffre. `NIV` et `H` (4c : +3 136 302 et +2 249 049) restent sans explication. Le bilan de `H` ne cite aucun chiffre : rien n'y est marqué. | ~1 fiche | — |
 
 ## Journal des décisions
 
