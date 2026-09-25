@@ -182,7 +182,7 @@ Sous-commandes :
   ISO ou commit, comme `mesure-tokens.py --plage`) : celles dont la session parente a démarré
   à D ou après. Puis `CONTRAT <n> sous-agents · <n> écrivent dans Git · <n> sans statut en
   tête` (ni `FAITE`, ni `RETOUR`, ni `BLOQUÉE`). Borne illisible : `GARDE:`, sort 1.
-- `forme [<transcription>…] [--depuis D]` — la forme et le poids dans des
+- `forme [<transcription>…] [--depuis D] [--regle R]` — la forme et le poids dans des
   transcriptions de sous-agent. Sans argument : toutes celles dont le `.meta.json` voisin dit
   `vlp:fiche` ou `vlp:relecture`, sous `~/.claude/projects/*/*/subagents/`. Une ligne
   chacune : `<id> <agentType> <départ de la transcription, UTC | ?> user <c> projet <c>
@@ -190,7 +190,8 @@ Sous-commandes :
   fichiers d'instructions de ce type (User, Project, AutoMem, somme si plusieurs, 0 si aucun) ;
   `resume` 1 si le dernier message texte contient « En résumé » ; `jauge` 1 s'il contient l'un
   des cinq libellés de `JAUGE` ; `tete` 1 s'il commence par un mot de `STATUTS` ou de
-  `VERDICTS` (le relecteur). Illisible :
+  `VERDICTS` (le relecteur). `--regle` (`tout` par défaut, comme le gardien) : la partie du
+  dernier message que jugent `resume` et `jauge` — `tiret`, `deux`, `tete` (chantier JUG). Illisible :
   `ILLISIBLE <chemin>`. `--depuis` (heure ISO ou commit) : celles dont la transcription a
   démarré à D ou après. Puis `FORME <n> sous-agents · user <moyenne> car. · resume <k> ·
   jauge <k> · tete <k>`. Borne illisible : `GARDE:`, sort 1.
@@ -221,6 +222,7 @@ import re
 import sys
 import tempfile
 import time
+import unicodedata
 
 TAMPON_HOOKS = tempfile.gettempdir()
 
@@ -1195,19 +1197,43 @@ VERDICTS = ("ACCEPTÉE", "REFUSÉE")     # les mots de tête de `vlp:relecture`
 JAUGE = ("Tout va bien", "Ça tient, mais", "Imprévu", "Pas bon", "Grosse erreur")
 
 
-def forme_texte(texte):
-    """(resume 0|1, jauge 0|1) du texte ; (0, 0) si vide ou absent."""
+REGLES = ("tout", "tiret", "deux", "tete")     # la partie du texte que juge `forme_texte` (chantier JUG)
+
+
+def ouvre(ligne):
+    """La ligne sans ses marques de tête — espaces, `#`, `*`, `-`, `>` et émojis ; `«` reste."""
+    i = 0
+    while i < len(ligne) and (ligne[i] in " \t#*->" or unicodedata.category(ligne[i]) in ("So", "Mn", "Cf")):
+        i += 1
+    return ligne[i:]
+
+
+def forme_texte(texte, regle="tout"):
+    """(resume 0|1, jauge 0|1) de la partie du texte que juge `regle` ; (0, 0) si vide ou absent.
+    `tout` : le texte entier ; `tiret` : après la dernière ligne `---`, sinon tout ; `deux` : les
+    deux dernières lignes non vides ; `tete` : le mot doit ouvrir une ligne, marques retirées."""
     if not isinstance(texte, str):
         return 0, 0
+    lignes = texte.splitlines()
+    if regle == "tete":
+        tetes = [ouvre(l) for l in lignes]
+        return (int(any(t.startswith("En résumé") for t in tetes)),
+                int(any(re.match(re.escape(j) + r'\b', t) for t in tetes for j in JAUGE)))
+    if regle == "tiret":
+        tirets = [i for i, l in enumerate(lignes) if l.strip() == "---"]
+        if tirets:
+            texte = "\n".join(lignes[tirets[-1] + 1:])
+    elif regle == "deux":
+        texte = "\n".join([l for l in lignes if l.strip()][-2:])
     resume = int("En résumé" in texte)
     # Matcher en mots entiers, pas en substring : «Pas bon» ne matche pas «Pas bonne»
     jauge = int(any(re.search(r'\b' + re.escape(j) + r'\b', texte) for j in JAUGE))
     return resume, jauge
 
 
-def lire_forme(chemin):
+def lire_forme(chemin, regle="tout"):
     """(caractères par type User/Project/AutoMem, resume 0|1, jauge 0|1, tete 0|1) d'une
-    transcription ; (None, 0, 0, 0) si elle ne s'ouvre pas. Les fichiers d'instructions sont
+    transcription, resume et jauge selon `regle` ; (None, 0, 0, 0) si elle ne s'ouvre pas. Les fichiers d'instructions sont
     ceux du premier attachment `instructions` — une entrée de premier niveau
     `{"attachment": {"type": "instructions", "files": […]}}`, pas un champ de `message`."""
     chars = {"User": 0, "Project": 0, "AutoMem": 0}
@@ -1235,7 +1261,7 @@ def lire_forme(chemin):
                         dernier = b["text"].strip()
     except (OSError, UnicodeDecodeError):
         return None, 0, 0, 0
-    resume, jauge = forme_texte(dernier)
+    resume, jauge = forme_texte(dernier, regle)
     tete = int(bool(dernier) and dernier.split()[0] in STATUTS + VERDICTS)
     return chars, resume, jauge, tete
 
@@ -1259,7 +1285,7 @@ def cmd_forme(a, sortie):
         t, _ = m.depart(c)
         if depuis is not None and (t is None or t < depuis):
             continue
-        chars, resume, jauge, tete = lire_forme(c)
+        chars, resume, jauge, tete = lire_forme(c, a.regle)
         if chars is None:
             sortie.write("ILLISIBLE %s\n" % c)
             continue
@@ -2889,6 +2915,7 @@ def main(argv, sortie=None, entree=None, erreur=None):
     fm = sous.add_parser("forme")
     fm.add_argument("transcriptions", nargs="*")
     fm.add_argument("--depuis")
+    fm.add_argument("--regle", choices=REGLES, default="tout")
     sous.add_parser("gardien")
     a = p.parse_args(argv)
     try:

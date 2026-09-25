@@ -2071,6 +2071,17 @@ with tempfile.TemporaryDirectory() as t:
              and lignes[2].startswith("FORME 2 sous-agents · user 50 car. · resume 1 · jauge 1 · tete 1"),
              s)
 
+# GLO1 (JUG1) : forme_texte ne juge que la partie du texte que dit sa règle
+cite = "FAITE — la fiche cite « En résumé » et « Pas bon » en milieu de phrase."
+verifier("forme_texte tete : une citation en milieu de phrase ne compte pas",
+         mod.forme_texte(cite, "tete") == (0, 0), mod.forme_texte(cite, "tete"))
+a_part = "✅ **Tout va bien** — fait\n\n**En résumé**\n\nLa fiche est faite."
+verifier("forme_texte tete : le résumé à part, jauge en tête",
+         mod.forme_texte(a_part, "tete") == (1, 1), mod.forme_texte(a_part, "tete"))
+verifier("forme_texte tiret : seul l'après-dernier --- est jugé",
+         mod.forme_texte("x\n---\n✅ Tout va bien", "tiret") == (0, 1),
+         mod.forme_texte("x\n---\n✅ Tout va bien", "tiret"))
+
 # GLO1 (FOR1) : forme --depuis filtre sur le départ de la transcription, pas de la session
 with tempfile.TemporaryDirectory() as t:
     # Créer la structure de répertoires pour que le motif glob trouve les fichiers

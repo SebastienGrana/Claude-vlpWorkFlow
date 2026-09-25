@@ -68,23 +68,24 @@
     <p>Un verdict qui cite la jauge ou « En résumé » en prose n'est plus renvoyé ; une vraie fin hors contrat l'est toujours — prouvé sur un vrai sous-agent.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="encours"></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="encours"></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">3 fiches · 0 faite · en cours : JUG1</p>
+    <p class="mono" style="margin-top:.5rem">3 fiches · 1 faite · en cours : JUG2</p>
   </header>
 
   <section>
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">JUG1</span><span class="titre">Mesurer les trois règles sur les vraies transcriptions</span>
-        <span class="etat">en cours</span>
-        <span class="note">Mesure trois règles (tiret, deux lignes, tête de ligne) sur les vraies transcriptions ; tu retiens une règle.</span>
+        <span class="etat">faite</span>
+        <span class="note">test-vlp.py OK, verifier( 284 → 287 ; mutant tete=tout tombe au 1er test ; FORME renvoyés tout 16 · tiret 16 · deux 11 · tete 14 sur 29 ; règle retenue : tete</span>
+        <span class="cout mono">≈2,5M (2 544 283) · 25 tours · 1,47 $</span>
       </li>
-      <li class="fiche">
+      <li class="fiche" data-etat="encours">
         <span class="id">JUG2</span><span class="titre">Faire juger la règle retenue, au gardien et à la mesure</span>
-        <span class="etat">à faire</span>
+        <span class="etat">en cours</span>
         <span class="note">Gardien et mesure suivent la règle retenue ; dépend de ton choix en JUG1.</span>
       </li>
       <li class="fiche">
@@ -93,6 +94,8 @@
         <span class="note">Essai sur deux vrais relecteurs : une citation passe, un résumé est renvoyé ; dépend de JUG2.</span>
       </li>
     </ul>
+    <p class="mono cout-hors">Hors fiches : ≈2,8M (2 771 949) · 22 tours · 2,14 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈5,3M (5 316 232) · 47 tours · 3,61 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -109,6 +112,7 @@
     <h2>Journal des décisions</h2>
     <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
     <ul class="journal">
+      <li><time datetime="2026-09-25">2026-09-25</time><span>JUG1 : sur 29 sous-agents, tete retire les 2 citations et garde les 14 fins hors forme ; tiret = tout (aucun ---), deux rate 3 vraies fins ; règle retenue : tete</span></li>
     </ul>
   </section>
 

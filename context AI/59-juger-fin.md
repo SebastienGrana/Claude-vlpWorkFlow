@@ -59,8 +59,9 @@ Rien n'est parallèle : chaque fiche part du résultat de la précédente.
 ---
 
 <!-- FICHE:JUG1 -->
-## JUG1 [ ] — Mesurer les trois règles sur les vraies transcriptions
+## JUG1 [x] — Mesurer les trois règles sur les vraies transcriptions
 
+**Session** : b9951712-2f7d-4821-a7ac-5e131a03b7c5
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py`, `context AI/08-etat.md` (fin du journal) — et rien d'autre.
 

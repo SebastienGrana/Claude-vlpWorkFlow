@@ -1575,3 +1575,83 @@ Sous-agents de FOR1 (tete ≠ 0) :
 Compte avant GLO3 (journal GLO2) : jauge 23 sur 36, « En résumé » 14 sur 36.
 
 Compte FOR1 : resume 0/2, jauge 1/2. Échantillon très petit (2 sous-agents) : 0 sur 2 ne prouve pas que la phrase tient.
+
+## 2026-09-25 — JUG1
+
+Commande (sha de « Chantier GLO ouvert » : `2281227`), une fois par règle :
+```bash
+py "<kit>/scripts/vlp.py" forme --depuis 2281227 --regle <r>
+```
+
+Sorties brutes, dans l'ordre `tout`, `tiret`, `deux`, `tete` :
+```
+FORME 29 sous-agents · user 5969 car. · resume 12 · jauge 14 · tete 28
+FORME 29 sous-agents · user 5969 car. · resume 12 · jauge 14 · tete 28
+FORME 29 sous-agents · user 5969 car. · resume 1 · jauge 11 · tete 28
+FORME 29 sous-agents · user 5969 car. · resume 10 · jauge 14 · tete 28
+```
+
+Renvoyés (`resume` ou `jauge` à 1) : `tout` 16 · `tiret` 16 · `deux` 11 · `tete` 14, sur 29.
+Ce compte compare les sous-agents *renvoyés* par règle, pas leur qualité.
+
+Sous-agents dont le verdict change — `resume jauge` par règle, et où tombe le mot :
+
+| id | type | tout | tiret | deux | tete | Le mot dans le dernier message |
+|---|---|---|---|---|---|---|
+| a3381d18662212bd2 | relecture | 10 | 10 | 00 | 00 | « En résumé » cité en milieu de ligne (L6/31) |
+| acc69ef4998b2c1ed | relecture | 10 | 10 | 00 | 00 | « En résumé » cité en milieu de ligne (L10/34) — le relecteur de FOR3 |
+| a4e06d782ad915aec | fiche | 11 | 11 | 00 | 11 | jauge L5, « En résumé » L7, sur 10 lignes |
+| a197ee7f87df684d7 | relecture | 11 | 11 | 00 | 11 | « En résumé » L53, jauge L55, sur 59 lignes |
+| a4e885046ff9cc898 | relecture | 11 | 11 | 00 | 11 | jauge L31, « En résumé » L35, sur 41 lignes |
+| a48c79a59b280d0d2 | relecture | 11 | 11 | 01 | 11 | « En résumé » L31/35 hors des deux dernières |
+| ae0b1e231109d1ec3, a9ce00d839ade76fc, ae2b8913e96167c54, a860169308600a92b, ab1dc9f4aa83b01ac | relecture | 11 | 11 | 01 | 11 | idem : la jauge répétée reste, « En résumé » sort |
+
+- `tiret` = `tout` sur ce corpus : aucun dernier message n'a de ligne `---`.
+- `deux` perd trois fins hors forme vraies (a4e06d78, a197ee7f, a4e88504) : le résumé à part
+  est suivi de 2 à 4 lignes d'explication.
+- `tete` retire exactement les deux citations (a3381d18, acc69ef4) et garde les 14 autres.
+
+Le message **renvoyé** du relecteur de FOR3 (`acc69ef4998b2c1ed`, ligne 55 de sa transcription,
+2026-09-25T10:20:08Z ; son dernier message est la réécriture, ligne 59). Jugé :
+`tout` (1, 1) · `tiret` (1, 1) · `deux` (0, 0) · `tete` (0, 0). La pièce, pour `JUG2` :
+
+```text
+ACCEPTÉE — critère tenu : `py scripts/test-vlp.py` rend `OK` dans AVANT (279 `verifier(`) et dans APRÈS (285, soit 6 de plus). Le mutant du critère tombe : `ÉCART: gardien : fiche jauge « Tout va bien », renvoyée`.
+
+**Ce que j'ai rejoué**
+- **Suite de tests** : lancée dans AVANT, puis dans APRÈS. Les deux sortent `OK`.
+- **Mutant** : dans `cmd_gardien`, j'ai remplacé `resume, jauge = forme_texte(dernier_msg)` par `resume, jauge = 0, 0`.
+  - La suite s'arrête au premier écart, sur le test « fiche renvoyée ».
+  - Le lanceur s'arrête au premier écart : le test « relecteur renvoyé » n'a donc pas pu tomber dans la suite. Je l'ai vérifié en appel direct : sous le mutant, le gardien se tait sur les deux cas, fiche et relecteur.
+  - Ligne rétablie ensuite.
+- **Sondage du gardien**, 19 entrées, dans AVANT puis dans APRÈS :
+  - Renvoyés dans APRÈS seulement :
+    - `Pas bon.`
+    - `**Pas bon**`
+    - `Ça tient, mais…`
+    - `✅ Tout va bien`
+    - un relecteur avec `En résumé`
+    - `Bonjour ✅ Tout va bien`
+  - Muets : `Pas bonne`, `Imprévue`, `maison`, `Grosse erreurs`, ainsi que `None`, `42`, un agent `general-purpose`, et tout message sous `stop_hook_active`.
+  - Sur les renvois de `verdict_fin` (`Parfait`, vide), APRÈS rend la même sortie qu'AVANT.
+  - Le bug du premier refus (la jauge cherchée comme bout de mot, « bonne » contient « Pas bon ») est corrigé : `\b` borne maintenant chaque mot de `JAUGE`.
+- **Hook** : `hooks/hooks.json` déclare `SubagentStop` avec `matcher: "*"`. Le relecteur reçoit donc bien le gardien.
+
+**Remarques, sans effet sur le verdict**
+- **Tests** : 6 ajoutés, la fiche en demandait 4. Les 2 de plus visent la correction du premier refus. Leur commentaire `# Mutation test : …` est mal nommé : ce sont des tests de mot entier, pas des mutants.
+- **Mesure `forme`** : `lire_forme` juge maintenant en mot entier, et plus en bout de mot. La mesure change donc un peu, par exemple « Pas bonne » ne compte plus comme une jauge. C'est voulu par le prompt (« la même chose »), mais la fiche ne l'annonce pas.
+- **Faux positifs voulus** : un statut qui cite un mot de la jauge sera renvoyé une fois. Exemples : `Imprévu : …`, ou un `REFUSÉE` qui cite « Pas bon ». C'est ce que dit la fiche (« un mot de `JAUGE` »), et `stop_hook_active` empêche un second renvoi.
+- **État incohérent** :
+  - La fiche porte `[x]` et garde son bloc **Tentatives** « non résolu ».
+  - L'artefact `context AI/artefacts/58-forme-sous-agent.html` affiche FOR3 « bloquée », avec sa section blocage.
+  - Les deux sont à remettre d'accord avant le commit.
+- **Fichiers hors de la liste de FOR3** : `context AI/08-etat.md` et le diff FOR2 viennent de FOR2 et de l'état du chantier, pas du code de FOR3. Pour le code, seuls `scripts/vlp.py` et `scripts/test-vlp.py` sont touchés.
+
+Copies retirées (`RETIRÉ 2`). Fichiers en jeu :
+- `C:\Users\znorr\Documents\ProgPerso\Claude-vlpWorkflow\scripts\vlp.py`
+- `C:\Users\znorr\Documents\ProgPerso\Claude-vlpWorkflow\scripts\test-vlp.py`
+- `C:\Users\znorr\Documents\ProgPerso\Claude-vlpWorkflow\context AI\58-forme-sous-agent.md`
+- `C:\Users\znorr\Documents\ProgPerso\Claude-vlpWorkflow\context AI\artefacts\58-forme-sous-agent.html`
+```
+
+**Règle retenue** (par l'utilisateur, 2026-09-25) : `tete` — elle retire les 2 citations et garde les 14 fins hors forme vraies.
