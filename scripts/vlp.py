@@ -189,10 +189,6 @@ Sous-commandes :
   `ILLISIBLE <chemin>`. `--depuis` (heure ISO ou commit) : celles dont la session parente a
   démarré à D ou après. Puis `FORME <n> sous-agents · user <moyenne> car. · resume <k> ·
   jauge <k> · tete <k>`. Borne illisible : `GARDE:`, sort 1.
-- `sonde` — hook d'essai (chantier CON), débranché hors essai : l'entrée JSON d'un hook de
-  sous-agent (ou de `SubagentStart`/`SubagentStop`) ajoutée à `<temp>/vlp-sonde.jsonl` ;
-  dans un `vlp:fiche`, refuse un `PreToolUse` qui cite `SONDE-REFUS` et renvoie au travail
-  son premier `SubagentStop`. Sort 0, muet sur une entrée illisible.
 - `gardien` — le hook du contrat (chantier CON), muet hors d'un sous-agent dont
   l'`agent_type` contient « fiche » et sur une entrée illisible ; sort toujours 0.
   `PreToolUse` : un appel `Bash`/`PowerShell` qui écrit dans Git (le motif de `contrat`) est
@@ -1310,43 +1306,6 @@ def cmd_gardien(entree, sortie):
             raison = None
         if raison:
             sortie.write(json.dumps({"decision": "block", "reason": raison}, ensure_ascii=False) + "\n")
-    return 0
-
-
-SONDE = "vlp-sonde.jsonl"
-
-
-def cmd_sonde(entree, sortie, dossier=None):
-    """Le hook d'essai de CON3 : ajoute l'entrée brute d'un hook de sous-agent à
-    `<temp>/vlp-sonde.jsonl`, avec l'interpréteur. Dans un `vlp:fiche`, refuse un
-    `PreToolUse` qui cite `SONDE-REFUS`, et renvoie au travail le premier `SubagentStop`
-    de chaque agent (un fichier `<sonde>.<agent_id>` l'empêche de boucler)."""
-    import tempfile
-    dossier = dossier or tempfile.gettempdir()
-    try:
-        d = json.loads(entree.read())
-    except (ValueError, AttributeError, TypeError):
-        return 0
-    if not isinstance(d, dict):
-        return 0
-    ev, agent = d.get("hook_event_name"), d.get("agent_id")
-    if not agent and ev not in ("SubagentStart", "SubagentStop"):
-        return 0
-    with open(os.path.join(dossier, SONDE), "a", encoding="utf-8") as f:
-        f.write(json.dumps(dict(d, _python=sys.executable), ensure_ascii=False) + "\n")
-    if "fiche" not in str(d.get("agent_type") or ""):
-        return 0
-    if ev == "PreToolUse" and "SONDE-REFUS" in json.dumps(d.get("tool_input"), ensure_ascii=False):
-        sortie.write(json.dumps({"hookSpecificOutput": {
-            "hookEventName": "PreToolUse", "permissionDecision": "deny",
-            "permissionDecisionReason": "Sonde CON3 : appel refusé par PreToolUse, continue sans lui."}},
-            ensure_ascii=False) + "\n")
-    marque = os.path.join(dossier, "%s.%s" % (SONDE, agent))
-    if ev == "SubagentStop" and agent and not os.path.exists(marque):
-        open(marque, "w").close()
-        sortie.write(json.dumps({"decision": "block", "reason": "Sonde CON3 : renvoyé par SubagentStop. "
-                                 "Ajoute la ligne « renvoyé » au fichier écrit, puis rends ton statut."},
-                                ensure_ascii=False) + "\n")
     return 0
 
 
@@ -2840,7 +2799,6 @@ def main(argv, sortie=None, entree=None, erreur=None):
     fm = sous.add_parser("forme")
     fm.add_argument("transcriptions", nargs="*")
     fm.add_argument("--depuis")
-    sous.add_parser("sonde")
     sous.add_parser("gardien")
     a = p.parse_args(argv)
     try:
@@ -2893,8 +2851,6 @@ def repartir(a, sortie, entree, erreur):
         return cmd_contrat(a, sortie)
     if a.cmd == "forme":
         return cmd_forme(a, sortie)
-    if a.cmd == "sonde":
-        return cmd_sonde(entree or sys.stdin, sortie)
     if a.cmd == "gardien":
         return cmd_gardien(entree or sys.stdin, sortie)
     chemin_garde(a.fichier)

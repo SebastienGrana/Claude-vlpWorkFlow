@@ -71,8 +71,9 @@ test (`ÉCART`). pyright : 0 erreur sur `scripts/vlp.py` et `scripts/test-vlp.py
 ---
 
 <!-- FICHE:GAR2 -->
-## GAR2 [ ] — Retirer la sonde
+## GAR2 [x] — Retirer la sonde
 
+**Session** : ca431cf8-167e-4c10-8bce-210c5f48a675
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` — et rien d'autre.
 
