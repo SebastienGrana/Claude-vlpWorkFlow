@@ -326,6 +326,15 @@
   s'ouvre par « Imprévu » ou « Pas bon » pour une autre raison serait encore renvoyée une fois
   — absent des 29 mesurés. `CLOS` : 10 273 570 (recompté par REC : 11 306 457) tokens.
 
+- **2026-09-25** — chantier REC clos (TODO n° 37, `RCP`) : la feuille de route recomptée par
+  `cout`. `vlp.py recompter` (`REC1`) ; 23 clos recomptés, 25 gardés et marqués « non
+  recompté » — 23 en `DÉCOUPE aucune` (dix attendus au cadrage), V sans session, E sans plage. Écarts
+  rangés par cause (`REC2`) : `FIL` −22 318 909 (session partagée avec `SAG`), `REP`
+  +9 982 170 (sous-agents avant `CPT`), 17 clos à fiches inchangées au token près, écart tout
+  en hors fiches. `--ecrire` (`REC3`) ; appliqué (`REC4`) : total 681 541 003 → 700 725 374,
+  second passage `ÉCRIT 0`, 22 bilans marqués (H, 23e écart, ne cite pas de chiffre).
+  Laissé ouvert : la cause des 4b et de `NIV`/`H` n'est pas établie. `CLOS` : 15 906 689 tokens.
+
 ## La TODO ordonnée — les chantiers possibles
 
 C'est d'ici que `/chantier` tire ses propositions. Un chantier par entrée, cité
@@ -342,7 +351,6 @@ celle de `FIL` ; 48 à 51, de celle de `FIN` ; 52, des clôtures de la nuit du
 
 | # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |
 |---|---|---|---|---|
-| 37 | `RCP` — Recompter les chantiers clos au coût juste | Le total de la feuille de route (507 255 781 tokens, 39 clos) additionne des bilans comptés de trois façons : avant `CPT`, sessions entières sans sous-agents ; depuis, coupés aux commits ; `REP` recompté (`CPT4`). À blanc la nuit du 2026-09-24, sans rien écrire : 36 fichiers clos à lignes `**Session**`, 49 transcriptions sur 49 présentes. 26 se coupent aux commits ; dix n'ont aucun commit de fiche — M, C, T, S, L, W, X, F, O, Q — et retombent, depuis `ZER`, sur leurs sessions entières, qui sur-comptent quand une session a enchaîné plusieurs chantiers : Q 33 003 302 contre 23 753 914 inscrits. `FIL` passe de 42 638 103 à 20 319 194 : l'ancien découpage lui comptait le sous-agent de `SAG`, leur session étant partagée. 🟡 Pour les dix : garder l'ancien chiffre, ou prendre les sessions entières. Chaque ancien chiffre reste, marqué (énoncé renversé, `methode-chantier.md`). | ~2 fiches | — |
 | 47 | `ESS` — Les essais `claude -p` dans le coût | Un essai `claude -p` tourne dans une autre session, que `cout` ne voit pas : il s'ajoute à la main, « hors total ». Au moins 14 chantiers clos en portent — 12 sur la feuille de route, `SAG` et `FIL` au fichier d'état —, ≈ 12,32 $ absents de tout total (somme faite à la main). `cout` ira chercher les sessions des bacs lancées pendant la fiche. 🟡 Les relier à leur fiche — dossier du bac, heure —, et le sort des evals : à trancher au cadrage. Même but que `FIN`, autre mécanisme. | ~1 fiche | — |
 | 36 | `EST` — L'estimé face au réel, à chaque clôture | La TODO estime chaque chantier ; rien ne compare ensuite. `CPT`, estimé « ~2 fiches », en a joué 4. Le bilan de clôture écrira l'estimé à côté du réel — fiches jouées, tokens —, pour que `/vlp:chantier` estime mieux les suivants. | ~1 fiche | — |
 | 43 | `RAT` — Un `Read` raté réveille-t-il le filet ? | Reste de `FIL` : le filet tire après un `Read` réussi et après un Bash à code non nul (`FIL3`), mais un `Read` sur un fichier absent n'est pas éprouvé. La doc range dans `PostToolUseFailure` l'outil lancé qui échoue, pas l'appel refusé avant de s'exécuter (journal du 2026-09-24). S'il n'en déclenche aucun, des derniers tours de `Read` ratés laissent le sous-agent coupé muet. Un essai à plafond 10, comme `FIL3` (≈ 0,1 $). | ~0,5 fiche | — |

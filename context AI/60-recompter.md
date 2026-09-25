@@ -7,7 +7,9 @@
 **À quoi il sert.** Le total de la feuille de route (48 clos, 681 541 003 tokens le
 2026-09-25) additionne des chiffres comptés de trois façons ; REC les recompte d'une seule.
 
-**Fait.** Rien. Ouvert le 2026-09-25, cadré en 4 fiches, `REC1` à jouer.
+**CLOS** le 2026-09-25. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** REC1..REC4 (2026-09-25) : la feuille de route recomptée par cout : 23 clos recomptés, 25 gardés et marqués non recomptés, total 681 541 003 → 700 725 374 ; 22 bilans marqués (recompté par REC).
 
 **Session** : b9600304-33a7-463b-a219-534ddbe25f1d
 

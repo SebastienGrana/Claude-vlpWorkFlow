@@ -13,11 +13,11 @@ https://github.com/SebastienGrana/Claude-vlpWorkFlow — cloné et utilisé en g
 - Équipés : Cairn-VlpLib, MapDecorator, ProjetONZSM, TrackGen — et ce kit lui-même.
 - Chaque chantier clos a sa ligne dans `context AI/00-INDEX.md`, son détail daté dans
   `context AI/08-etat.md` ; ici, les derniers seulement (`vlp.py clore` les tient).
-- Clos le 2026-09-25 : un seul chiffre par clôture : clore mesure le total et l'écrit sur la page, la feuille et au bilan (chantier UNI).
 - Clos le 2026-09-25 : un hook n'agit qu'une fois : un tampon exclusif fait taire le second lanceur ; 2 VALIDE par écriture avant, 1 après (chantier PYT).
 - Clos le 2026-09-25 : le gardien refuse l'écriture Git au relecteur aussi ; refusé deux fois à la relecture, deux vrais défauts corrigés (chantier RLG).
 - Clos le 2026-09-25 : vlp.py forme se fie au bon départ ; le gardien renvoie une fin hors forme, fiche et relecteur (chantier FOR).
 - Clos le 2026-09-25 : Clos le 2026-09-25 : le gardien ne juge que la tête des lignes ; une citation passe, un résumé à part est renvoyé une fois (chantier JUG).
+- Clos le 2026-09-25 : la feuille de route recomptée au coût juste : 23 clos recomptés, 25 gardés, total 700 725 374 (chantier REC).
 
 ## Quatre règles non négociables
 
@@ -57,7 +57,6 @@ et seulement dans ce cas, ouvrir l'index.
 | savoir où vit quoi dans un projet équipé | `methode-chantier.md`, section « Où vit quoi » |
 | toucher aux pages publiées | `ARTEFACTS.md`, puis le gabarit dans `templates/` |
 | ouvrir un chantier, ou le découper en fiches | **lancer `/vlp:chantier`** |
-| jouer une fiche du chantier REC (recompter les chantiers clos au coût juste) | `context AI/60-recompter.md` — chantier **ouvert**, par `/vlp:tache REC<n>` |
 | relire un chantier clos | `context AI/00-INDEX.md` — sa ligne y nomme le fichier de fiches |
 | reprendre après une longue interruption | `context AI/08-etat.md` |
 | choisir le prochain chantier du kit, ou retrouver la preuve d'un bug relevé le 2026-09-17 | `context AI/12-audit.md` |
