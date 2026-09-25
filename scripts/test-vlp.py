@@ -1150,6 +1150,34 @@ with tempfile.TemporaryDirectory() as t:
         verifier("cout : l'essai de la plage à Q1, sous-agent compris ; l'autre hors fiches ; TOTAL les deux",
                  code == 0 and s == attendu, s)
 
+# ESD1 : sans découpe (pas de .git), les essais des sessions entières en une ligne à part, sous
+# les tables ; une session sans essai n'en a pas.
+with tempfile.TemporaryDirectory() as t:
+    pr, dep = os.path.join(t, ".claude", "projects"), os.path.join(t, "depot")
+    os.makedirs(os.path.join(pr, "p"))
+    for s_ in ("sss", "ttt"):
+        transcript(os.path.join(pr, "p", s_ + ".jsonl"), 2, [T0 + 200, T0 + 400])
+    for bac in ("b1", "b2"):
+        os.makedirs(os.path.join(pr, "C--x-sss-scratchpad-" + bac))
+        transcript(os.path.join(pr, "C--x-sss-scratchpad-" + bac, "e.jsonl"), 1, [T0 + 250])
+    os.makedirs(os.path.join(pr, "C--x-sss-scratchpad-b1", "e", "subagents"))
+    transcript(os.path.join(pr, "C--x-sss-scratchpad-b1", "e", "subagents", "agent-a1.jsonl"), 1, [T0 + 260])
+    ecrire(os.path.join(dep, "avec.md"), QFICHES % ("sss", "sss"))
+    ecrire(os.path.join(dep, "sans.md"), QFICHES % ("ttt", "ttt"))
+    garde_env = dict(os.environ)
+    os.environ.update(HOME=t, USERPROFILE=t)
+    try:
+        (code, s), (code2, s2) = appel(["cout", os.path.join(dep, "avec.md")]), appel(["cout", os.path.join(dep, "sans.md")])
+    finally:
+        os.environ.clear()
+        os.environ.update(garde_env)
+    verifier("cout sans découpe : une ligne essais, 2 essais sous-agent compris, après les tables",
+             code == 0 and s.startswith("DÉCOUPE aucune — ") and "\nsss.jsonl\t2\t" in s
+             and s.endswith("\nessais · ≈300,0k (300 000) · 3 tours · 1,50 $ = session 0 · 0 tours · 0,00 $"
+                            " + 0 sous-agent + 2 essais ≈300,0k (300 000) · 3 tours · 1,50 $\n"), s)
+    verifier("cout sans découpe, sans essai : pas de ligne essais", code2 == 0
+             and s2.startswith("DÉCOUPE aucune — ") and "essai" not in s2 and s2.endswith("\n"), s2)
+
 # --- chantier U : lire, cocher, page déduite ----------------------------------
 
 attendu = mod.lire(os.path.join(mod.KIT, "cloture.md"))

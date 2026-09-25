@@ -68,23 +68,24 @@
     <p>recompter ne laisse plus d'essai hors du chiffre : les 9 clos sans découpe, SAG et FIL portent leurs essais sur la feuille de route republiée ; REC et ESS inchangés.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="encours"></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="encours"></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">3 fiches · 0 faite · en cours : ESD1</p>
+    <p class="mono" style="margin-top:.5rem">3 fiches · 1 faite · en cours : ESD2</p>
   </header>
 
   <section>
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">ESD1</span><span class="titre">Montrer les essais d'un chantier sans découpe</span>
-        <span class="etat">en cours</span>
-        <span class="note">cout montre une ligne essais sur DÉCOUPE aucune ; ne dépend de rien</span>
+        <span class="etat">faite</span>
+        <span class="note">test : ligne essais « 2 essais » (300 000 · 3 tours · 1,50 $), sans essai pas de ligne ; mutant sans essais_de → 1 ÉCART ; cout de L : essais 677 922 · 25 tours · 1,26 $ ; Z identique octet pour octet ; pyright 0 errors avant et après</span>
+        <span class="cout mono">≈1,8M (1 751 966) · 18 tours · 1,45 $</span>
       </li>
-      <li class="fiche">
+      <li class="fiche" data-etat="encours">
         <span class="id">ESD2</span><span class="titre">Ajouter les essais au chiffre recompté, une fois</span>
-        <span class="etat">à faire</span>
+        <span class="etat">en cours</span>
         <span class="note">recompter ajoute les essais au chiffre, une seule fois ; dépend d'ESD1</span>
       </li>
       <li class="fiche">
@@ -93,6 +94,8 @@
         <span class="note">écrit les essais sur la feuille de route et la republie ; dépend d'ESD2</span>
       </li>
     </ul>
+    <p class="mono cout-hors">Hors fiches : ≈2,7M (2 744 991) · 23 tours · 2,45 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈4,5M (4 496 957) · 41 tours · 3,90 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

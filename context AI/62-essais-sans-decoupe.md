@@ -56,8 +56,9 @@ Rien n'est parallélisable : chaque fiche se sert de la précédente.
 ---
 
 <!-- FICHE:ESD1 -->
-## ESD1 [ ] — Montrer les essais d'un chantier sans découpe
+## ESD1 [x] — Montrer les essais d'un chantier sans découpe
 
+**Session** : 781aa7d0-555e-494b-b1cf-48e832940163
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py`.
 

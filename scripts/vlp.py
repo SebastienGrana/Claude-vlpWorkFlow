@@ -544,7 +544,14 @@ def cmd_cout(chemin, session, sortie):
     if not decoupe:
         sortie.write("DÉCOUPE aucune — %s : sessions entières, sous-agents compris\n" % pourquoi[0])
         with contextlib.redirect_stdout(sortie):
-            return mesure().main(ids) or code
+            code = mesure().main(ids) or code
+        gardes, zero = [], (0, 0, 0, 0)
+        essais = essais_entiers(ids, gardes)
+        for g in gardes:
+            sortie.write(g + "\n")
+        if essais[1]:
+            sortie.write(ligne_parts("essais", zero, zero, essais) + "\n")
+        return code
     parts, hors = decoupe
     sortie.write("DÉCOUPE aux commits de fiche — une fiche va du commit d'avant au sien, "
                  "un sous-agent compte à son départ\n")
@@ -1707,6 +1714,29 @@ def parts_aux_commits(fiches_, heures, gardes, entete=()):
         gardes.append("GARDE: découpe à zéro — aucun tour de %d transcript%s ne tombe dans une plage"
                       % (len(fichiers), "s" if len(fichiers) > 1 else ""))
     return parts, hors
+
+
+def essais_entiers(sessions, gardes):
+    """La part essais de sessions entières, sans plage : chaque essai (`essais_de`) mesuré en
+    entier, ses sous-agents compris, comme `parts_aux_commits` le fait sur une plage. Une part
+    (total, tours, usd, n) — n : les essais qui ont un tour —, usd arrondi au centime ; pour
+    `cout` sans découpe (chantier ESD)."""
+    from decimal import ROUND_HALF_UP, Decimal
+    m = mesure()
+    p = [0, 0, Decimal(0), 0]
+    for s in sessions:
+        for e in essais_de(s):
+            tours = 0
+            for chemin in [e] + m.sous_agents(e):
+                r, erreur = m.mesurer(chemin)
+                if erreur:
+                    gardes.append("GARDE: transcript non mesuré : %s — %s" % (chemin, erreur))
+                    continue
+                p[0], p[1] = p[0] + r["total"], p[1] + r["tours"]
+                tours += r["tours"] if chemin == e else 0
+                p[2] = None if p[2] is None or r["usd_exact"] is None else p[2] + r["usd_exact"]
+            p[3] += 1 if tours else 0
+    return p[0], p[1], None if p[2] is None else p[2].quantize(Decimal("0.01"), rounding=ROUND_HALF_UP), p[3]
 
 
 def plus(*parts):
