@@ -88,8 +88,9 @@ un gardé compté dans l'écart, et la somme finale faite sans les gardés. Sur 
 ---
 
 <!-- FICHE:REC2 -->
-## REC2 [ ] — Ranger les écarts réels par cause
+## REC2 [x] — Ranger les écarts réels par cause
 
+**Session** : b05877e2-d5f3-4870-a05a-8489820bb815
 **Dépend de** : `REC1`.
 **Fichiers** : `context AI/08-etat.md` (journal seulement) — et rien d'autre.
 

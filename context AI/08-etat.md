@@ -1750,3 +1750,131 @@ commit de fiche (M, C, T, S, L, W, X, F, O, Q) ; `recompter` en trouve **23** en
 `**Session**` et E sans plage à l'index. H seul, des chantiers du 2026-09-17, se découpe. Les 23
 recomptés ont presque tous un écart positif, de +434 097 (RLG) à +3 136 302 (NIV) ; deux écarts
 sortent du lot : FIL −22 318 909, REP +9 982 170. À ranger par cause en REC2.
+
+## 2026-09-25 — REC2
+
+Rien de publié n'a changé. `py scripts/vlp.py recompter .`, sortie brute :
+
+```
+JUG inscrit 10 273 570 · recompté 11 306 457 · écart +1 032 887 · découpe
+FOR inscrit 17 689 317 · recompté 20 371 577 · écart +2 682 260 · découpe
+RLG inscrit 8 745 720 · recompté 9 179 817 · écart +434 097 · découpe · partagée avec GAR, GLO, PYT, UNI
+PYT inscrit 11 561 195 · recompté 12 279 871 · écart +718 676 · découpe · partagée avec GAR, GLO, RLG, UNI
+UNI inscrit 15 942 182 · recompté 16 613 231 · écart +671 049 · découpe · partagée avec GAR, GLO, PYT, RLG
+GAR inscrit 7 588 840 · recompté 8 426 745 · écart +837 905 · découpe · partagée avec GLO, PYT, RLG, UNI
+GLO inscrit 13 784 706 · recompté 15 674 582 · écart +1 889 876 · découpe · partagée avec GAR, PYT, RLG, UNI
+CON inscrit 13 910 638 · recompté 15 711 661 · écart +1 801 023 · découpe
+REV inscrit 74 789 054 · recompté 76 440 498 · écart +1 651 444 · découpe
+ZER inscrit 11 209 181 · recompté 12 079 243 · écart +870 062 · découpe · partagée avec CAD, CAS, FIN, MTK, PLA, TAR, VAL
+CAD inscrit 14 603 596 · recompté 15 724 492 · écart +1 120 896 · découpe · partagée avec CAS, FIN, MTK, PLA, TAR, VAL, ZER
+MTK inscrit 12 192 684 · recompté 13 588 111 · écart +1 395 427 · découpe · partagée avec CAD, CAS, FIN, PLA, TAR, VAL, ZER
+PLA inscrit 11 938 808 · recompté 13 033 400 · écart +1 094 592 · découpe · partagée avec CAD, CAS, FIN, MTK, TAR, VAL, ZER
+TAR inscrit 17 642 733 · recompté 19 399 198 · écart +1 756 465 · découpe · partagée avec CAD, CAS, FIN, MTK, PLA, VAL, ZER
+FIN inscrit 21 871 718 · recompté 22 962 798 · écart +1 091 080 · découpe · partagée avec CAD, CAS, MTK, PLA, TAR, VAL, ZER
+VAL inscrit 5 647 906 · recompté 6 924 438 · écart +1 276 532 · découpe · partagée avec CAD, CAS, FIN, MTK, PLA, TAR, ZER
+CAS inscrit 10 041 615 · recompté 11 729 608 · écart +1 687 993 · découpe · partagée avec CAD, FIN, MTK, PLA, TAR, VAL, ZER
+FIL inscrit 42 638 103 · recompté 20 319 194 · écart -22 318 909 · découpe · partagée avec SAG
+SAG inscrit 20 128 626 · recompté 21 912 236 · écart +1 783 610 · découpe · partagée avec FIL
+CPT inscrit 19 266 526 · recompté 21 606 411 · écart +2 339 885 · découpe
+REP inscrit 23 126 264 · recompté 33 108 434 · écart +9 982 170 · découpe
+NIV inscrit 21 827 897 · recompté 24 964 199 · écart +3 136 302 · découpe
+Z inscrit 11 093 368 · recompté gardé · écart +0 · gardé — DÉCOUPE aucune (chantier clos sans commit « Z1 : » ni d'une autre fiche)
+Q inscrit 23 753 914 · recompté gardé · écart +0 · gardé — DÉCOUPE aucune (chantier clos sans commit « Q1 : » ni d'une autre fiche)
+U inscrit 15 933 829 · recompté gardé · écart +0 · gardé — DÉCOUPE aucune (chantier clos sans commit « U1 : » ni d'une autre fiche)
+Y inscrit 21 917 062 · recompté gardé · écart +0 · gardé — DÉCOUPE aucune (chantier clos sans commit « Y1 : » ni d'une autre fiche)
+J inscrit 7 579 062 · recompté gardé · écart +0 · gardé — DÉCOUPE aucune (chantier clos sans commit « J1 : » ni d'une autre fiche)
+O inscrit 9 842 371 · recompté gardé · écart +0 · gardé — DÉCOUPE aucune (chantier clos sans commit « O1 : » ni d'une autre fiche)
+F inscrit 8 781 743 · recompté gardé · écart +0 · gardé — DÉCOUPE aucune (chantier clos sans commit « F1 : » ni d'une autre fiche)
+X inscrit 10 921 635 · recompté gardé · écart +0 · gardé — DÉCOUPE aucune (chantier clos sans commit « X1 : » ni d'une autre fiche)
+W inscrit 7 305 939 · recompté gardé · écart +0 · gardé — DÉCOUPE aucune (chantier clos sans commit « W1 : » ni d'une autre fiche)
+G inscrit 7 997 540 · recompté gardé · écart +0 · gardé — DÉCOUPE aucune (chantier clos sans commit « G1 : » ni d'une autre fiche)
+A inscrit 5 765 489 · recompté gardé · écart +0 · gardé — DÉCOUPE aucune (chantier clos sans commit « A1 : » ni d'une autre fiche)
+P inscrit 6 786 706 · recompté gardé · écart +0 · gardé — DÉCOUPE aucune (chantier clos sans commit « P1 : » ni d'une autre fiche)
+L inscrit 7 324 563 · recompté gardé · écart +0 · gardé — DÉCOUPE aucune (chantier clos sans commit « L1 : » ni d'une autre fiche)
+N inscrit 6 491 074 · recompté gardé · écart +0 · gardé — DÉCOUPE aucune (chantier clos sans commit « N1 : » ni d'une autre fiche)
+K inscrit 6 203 651 · recompté gardé · écart +0 · gardé — DÉCOUPE aucune (chantier clos sans commit « K1 : » ni d'une autre fiche)
+I inscrit 6 542 829 · recompté gardé · écart +0 · gardé — DÉCOUPE aucune (chantier clos sans commit « I1 : » ni d'une autre fiche)
+D inscrit 7 164 227 · recompté gardé · écart +0 · gardé — DÉCOUPE aucune (chantier clos sans commit « D1 : » ni d'une autre fiche)
+V inscrit 19 316 675 · recompté gardé · écart +0 · gardé — sans session
+H inscrit 14 649 178 · recompté 16 898 227 · écart +2 249 049 · découpe
+S inscrit 17 193 402 · recompté gardé · écart +0 · gardé — DÉCOUPE aucune (chantier clos sans commit « S1 : » ni d'une autre fiche)
+R inscrit 11 840 151 · recompté gardé · écart +0 · gardé — DÉCOUPE aucune (chantier clos sans commit « R1 : » ni d'une autre fiche)
+B inscrit 5 342 511 · recompté gardé · écart +0 · gardé — DÉCOUPE aucune (chantier clos sans commit « B1 : » ni d'une autre fiche)
+T inscrit 16 194 635 · recompté gardé · écart +0 · gardé — DÉCOUPE aucune (chantier clos sans commit « T1 : » ni d'une autre fiche)
+C inscrit 7 816 316 · recompté gardé · écart +0 · gardé — DÉCOUPE aucune (chantier clos sans commit « C1 : » ni d'une autre fiche)
+M inscrit 11 362 254 · recompté gardé · écart +0 · gardé — DÉCOUPE aucune (chantier clos sans commit « M1 : » ni d'une autre fiche)
+E inscrit 0 · recompté gardé · écart +0 · gardé — fichier introuvable
+RECOMPTE 48 clos · 23 recomptés · 25 gardés · inscrit 681 541 003 · recompté 700 725 374 · écart +19 184 371
+```
+
+**Comment chaque écart est rangé.** Une seule cause par clos, prouvée par les nombres du tableau
+plus bas, mesurés par les fonctions de `vlp.py` (`plages`, `mesurer`) sur les mêmes plages que
+`cout`, et par la page du chantier (`context AI/artefacts/<fichier>.html`, lignes « Coût du
+chantier » et « Hors fiches »). Dates de clôture lues plus haut dans ce fichier : `REP` et `CPT`
+le 2026-09-23 (`REP` avant `CPT`), `CAD` le 2026-09-24 ; `NIV` et `H` sont d'avant (feuille de
+route, colonne « Clos le » : 2026-09-18 et 2026-09-17).
+
+1. **Session partagée avec un autre clos** — `FIL`. La sortie dit « partagée avec SAG » ; la page
+   donnait 30 230 692 hors fiches, le recompte en trouve 7 911 783 (6 270 808 + 1 640 975).
+   Ce qui a déplacé ces tours n'est pas établi ici.
+2. **Sous-agents non comptés avant `CPT`** — `REP`, clos avant `CPT`. Recompté : 8 161 098 de
+   sous-agents. L'écart ne vient pas que d'eux : +9 982 170 = 8 161 098 (sous-agents)
+   + 3 987 052 (hors fiches, côté clôture) − 2 165 980 (sessions des fiches : 20 960 284 contre
+   23 126 264 inscrits).
+3. **Cadrage non compté avant `CAD`** — aucun clos. Aucun fichier clos avant `CAD` ne porte de
+   session de cadrage en tête (`sessions_entete` vide pour les 12 recomptés d'avant `CAD`, et pour `CAD`) : le recompte ne voit pas plus
+   ce cadrage que l'inscrit.
+4. **Autre** — trois groupes, décrits par ce qui est mesuré, sans cause supposée :
+   - 4a, `SAG` et `CPT` : l'inscrit égale **au token près** les fiches recomptées (20 128 626 ;
+     19 266 526), et l'écart égale exactement le hors fiches, côté clôture (1 783 610 ; 2 339 885).
+   - 4b, 17 clos : les fiches recomptées (session + sous-agents) égalent **au token près** celles de
+     la page (total − hors fiches de la page) ; tout l'écart est dans hors fiches, et il reste
+     sous le hors fiches côté clôture, dans les 17 cas (`CAS` : égal, 1 687 993). 13 de ces 17
+     portent « partagée avec » dans la sortie, mais leurs fiches n'ont pas bougé : ce n'est pas
+     la cause mesurée.
+   - 4c, `NIV` et `H`, clos avant `CPT`, sans sous-agent recompté : aucune explication.
+
+Preuves par clos — colonnes : écart ; fiches recomptées, sessions puis sous-agents ; hors fiches
+recompté, côté cadrage puis côté clôture ; page du chantier, total puis hors fiches (— : la page
+n'a pas de ligne hors fiches).
+
+| Clos | Cause | Écart | Fiches : sessions | Fiches : sous-agents | Hors : cadrage | Hors : clôture | Page : total | Page : hors |
+|---|---|---:|---:|---:|---:|---:|---:|---:|
+| JUG | 4b | +1 032 887 | 6 915 183 | 46 691 | 2 771 949 | 1 572 634 | 10 273 570 | 3 311 696 |
+| FOR | 4b | +2 682 260 | 7 431 684 | 5 517 937 | 3 806 364 | 3 615 592 | 17 689 317 | 4 739 696 |
+| RLG | 4b | +434 097 | 2 905 604 | 2 747 743 | 1 863 578 | 1 662 892 | 8 745 720 | 3 092 373 |
+| PYT | 4b | +718 676 | 7 090 753 | 2 201 811 | 2 053 359 | 933 948 | 11 561 195 | 2 268 631 |
+| UNI | 4b | +671 049 | 8 181 965 | 5 409 750 | 2 020 500 | 1 001 016 | 15 942 182 | 2 350 467 |
+| GAR | 4b | +837 905 | 3 755 306 | 2 018 224 | 1 540 101 | 1 113 114 | 7 864 973 | 2 091 443 |
+| GLO | 4b | +1 889 876 | 6 298 224 | 3 208 326 | 3 825 523 | 2 342 509 | 15 182 315 | 5 675 765 |
+| CON | 4b | +1 801 023 | 10 455 203 | 311 906 | 2 906 894 | 2 037 658 | 14 631 523 | 3 864 414 |
+| REV | 4b | +1 651 444 | 52 826 427 | 15 672 178 | 6 026 326 | 1 915 567 | 75 866 013 | 7 367 408 |
+| ZER | 4b | +870 062 | 4 291 766 | 0 | 6 708 181 | 1 079 296 | 11 633 997 | 7 342 231 |
+| CAD | 4b | +1 120 896 | 5 308 597 | 5 367 778 | 3 654 434 | 1 393 683 | 15 154 579 | 4 478 204 |
+| MTK | 4b | +1 395 427 | 7 049 685 | 897 222 | 4 144 106 | 1 497 098 | 12 738 440 | 4 791 533 |
+| PLA | 4b | +1 094 592 | 5 250 344 | 1 783 266 | 4 692 050 | 1 307 740 | 12 587 599 | 5 553 989 |
+| TAR | 4b | +1 756 465 | 8 893 259 | 3 044 459 | 5 418 305 | 2 043 175 | 18 799 875 | 6 862 157 |
+| FIN | 4b | +1 091 080 | 11 719 698 | 5 435 742 | 4 411 421 | 1 395 937 | 22 487 850 | 5 332 410 |
+| VAL | 4b | +1 276 532 | 2 558 849 | 809 903 | 2 087 345 | 1 468 341 | 6 924 438 | 3 555 686 |
+| CAS | 4b | +1 687 993 | 4 939 709 | 1 444 431 | 3 657 475 | 1 687 993 | 11 729 608 | 5 345 468 |
+| FIL | 1 | −22 318 909 | 12 407 411 | 0 | 6 270 808 | 1 640 975 | 42 000 943 | 30 230 692 |
+| SAG | 4a | +1 783 610 | 14 048 505 | 6 080 121 | 0 | 1 783 610 | 19 851 147 | 0 |
+| CPT | 4a | +2 339 885 | 19 266 526 | 0 | 0 | 2 339 885 | 18 304 841 | 0 |
+| REP | 2 | +9 982 170 | 20 960 284 | 8 161 098 | 0 | 3 987 052 | 20 355 080 | — |
+| NIV | 4c | +3 136 302 | 24 964 199 | 0 | 0 | 0 | 21 298 361 | — |
+| H | 4c | +2 249 049 | 8 241 128 | 0 | 8 657 099 | 0 | 15 461 826 | — |
+
+**Avant / après, par cause :**
+
+| Cause | Clos | Inscrit | Recompté | Écart |
+|---|---:|---:|---:|---:|
+| Session partagée avec un autre clos | 1 | 42 638 103 | 20 319 194 | −22 318 909 |
+| Sous-agents non comptés avant `CPT` | 1 | 23 126 264 | 33 108 434 | +9 982 170 |
+| Cadrage non compté avant `CAD` | 0 | 0 | 0 | +0 |
+| Autre — hors fiches absent de l'inscrit | 2 | 39 395 152 | 43 518 647 | +4 123 495 |
+| Autre — fiches inchangées, hors fiches plus gros | 17 | 279 433 463 | 301 445 727 | +22 012 264 |
+| Autre — sans explication | 2 | 36 477 075 | 41 862 426 | +5 385 351 |
+| Gardés — écart 0 par règle | 25 | 260 470 946 | 260 470 946 | +0 |
+| **Total** | 48 | 681 541 003 | 700 725 374 | +19 184 371 |
+
+Somme des écarts par cause **+19 184 371** · écart de la ligne `RECOMPTE` **+19 184 371**.
