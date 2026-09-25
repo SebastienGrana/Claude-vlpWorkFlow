@@ -7,6 +7,7 @@ Imprime `OK` et sort 0, ou le premier écart et sort 1.
 import glob
 import importlib.util
 import io
+import json
 import os
 import re
 import shutil
@@ -27,6 +28,10 @@ spec = importlib.util.spec_from_file_location("vlp", os.path.join(ICI, "vlp.py")
 assert spec and spec.loader
 mod: Any = importlib.util.module_from_spec(spec)  # ses attributs, GIT compris, se lisent et se changent
 spec.loader.exec_module(mod)
+
+# Les tests rejouent des entrées identiques : le tampon de hook serait créé une fois,
+# et les rejoues se tairaient. `TAMPON_HOOKS = None` : toujours vrai (FIL3, PYT1).
+mod.TAMPON_HOOKS = None
 
 # `ouvrir` et `cocher` notent CLAUDE_CODE_SESSION_ID : un test le fixe lui-même, jamais celui de la
 # session qui lance la suite (chantier CAD).
@@ -2036,5 +2041,55 @@ with tempfile.TemporaryDirectory() as t:
              and len(lignes) == 3  # deux lignes de données + une ligne de bilan
              and lignes[2].startswith("FORME 2 sous-agents · user 50 car. · resume 1 · jauge 1 · tete 1"),
              s)
+
+# PYT1 : premier lancement des hooks — restaurer TAMPON_HOOKS pour ce test
+def gardien_test(texte):
+    """Appelle vlp.py gardien avec l'entrée JSON."""
+    o, e = io.StringIO(), io.StringIO()
+    code = mod.main(["gardien"], o, io.StringIO(texte), e)
+    return code, o.getvalue(), e.getvalue()
+
+# Sauvegarder et restaurer TAMPON_HOOKS pour ce test
+ancien_tampon = mod.TAMPON_HOOKS
+mod.TAMPON_HOOKS = tempfile.mkdtemp()     # neuf : un tampon d'un run d'avant ferait taire le 1er appel
+
+try:
+    # Entrée PreToolUse qui essaie de commiter
+    entree_commit = json.dumps({
+        "hook_event_name": "PreToolUse",
+        "tool_name": "Bash",
+        "tool_input": {"command": "git commit -m 'test'"},
+        "agent_type": "vlp:fiche"
+    })
+
+    # Entrée différente (PowerShell au lieu de Bash)
+    entree_commit_ps = json.dumps({
+        "hook_event_name": "PreToolUse",
+        "tool_name": "PowerShell",
+        "tool_input": {"command": "git commit -m 'test ps'"},
+        "agent_type": "vlp:fiche"
+    })
+
+    # Premier appel : doit refuser (écrit en JSON)
+    code1, out1, err1 = gardien_test(entree_commit)
+    verifier("gardien : premier lancement, refuse le git commit",
+             code1 == 0 and "permissionDecision" in out1 and "deny" in out1 and err1 == "",
+             out1 + err1)
+
+    # Deuxième appel avec la même entrée : doit être muet (retourne 0 sans rien écrire)
+    code2, out2, err2 = gardien_test(entree_commit)
+    verifier("gardien : deuxième lancement de la même entrée, muet",
+             code2 == 0 and out2 == "" and err2 == "",
+             "out=%s err=%s" % (out2, err2))
+
+    # Troisième appel avec une entrée différente : doit refuser (écrit en JSON)
+    code3, out3, err3 = gardien_test(entree_commit_ps)
+    verifier("gardien : entrée différente, refuse le git commit",
+             code3 == 0 and "permissionDecision" in out3 and "deny" in out3 and err3 == "",
+             out3 + err3)
+finally:
+    # Restaurer TAMPON_HOOKS à None pour les tests suivants
+    shutil.rmtree(mod.TAMPON_HOOKS, ignore_errors=True)
+    mod.TAMPON_HOOKS = ancien_tampon
 
 print("OK")

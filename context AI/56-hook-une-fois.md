@@ -43,8 +43,9 @@ Windows sans alias `python3` ; la paire reste.
 ---
 
 <!-- FICHE:PYT1 -->
-## PYT1 [ ] — Faire taire le second lancement d'un hook
+## PYT1 [x] — Faire taire le second lancement d'un hook
 
+**Session** : ca431cf8-167e-4c10-8bce-210c5f48a675
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` — et rien d'autre.
 

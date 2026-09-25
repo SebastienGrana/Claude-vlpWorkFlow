@@ -204,15 +204,23 @@ Sous-commandes :
   rend une case vide ou une `TÊTE`, même sous `stop_hook_active` (chantier GAR).
 
 Python 3 sans dépendance, zéro appel modèle.
+
+Un hook (`hook`, `filet`, `gardien`) n'agit qu'une fois quand `python3` et `py` le lancent
+tous deux : le premier qui crée `<TAMPON_HOOKS>/vlp-hook-<sha1 de l'entrée>` agit, l'autre se tait
+(chantier PYT).
 """
 import argparse
 import glob
+import hashlib
 import io
 import json
 import os
 import re
 import sys
+import tempfile
 import time
+
+TAMPON_HOOKS = tempfile.gettempdir()
 
 TITRE = re.compile(r"^## [A-Z]{1,3}[0-9]")
 PREFIXE = re.compile(r"^[A-Z]{1,3}")
@@ -220,6 +228,36 @@ COURANT = re.compile(r"^\s*-\s*\*\*fichier de fiches courant\*\*\s*:\s*(.+?)\s*$
 ALIAS = re.compile(r"^\s*-\s*\*\*alias\*\*\s*:\s*(\S+)")
 SESSION = re.compile(r"^\*\*Session\*\* : (.+?)\s*$")
 FERMANT = "<!-- /FICHE -->"
+
+
+def premier_lancement(texte):
+    """Vrai si ce lancement est le premier à traiter cette entrée de hook : création exclusive de
+    `<TAMPON_HOOKS>/vlp-hook-<sha1>` (les deux lanceurs partent ensemble, un tampon daté les
+    laisserait passer tous deux). Retire au passage les tampons de plus de 60 s. `TAMPON_HOOKS` à
+    `None` (tests) : toujours vrai ; une autre `OSError` : vrai — mieux vaut deux fois que zéro."""
+    if TAMPON_HOOKS is None:
+        return True
+    try:
+        for nom in os.listdir(TAMPON_HOOKS):
+            chemin = os.path.join(TAMPON_HOOKS, nom)
+            if nom.startswith("vlp-hook-") and time.time() - os.path.getmtime(chemin) > 60:
+                os.unlink(chemin)
+    except OSError:
+        pass
+    chemin = os.path.join(TAMPON_HOOKS, "vlp-hook-" + hashlib.sha1(texte.encode("utf-8")).hexdigest())
+    try:
+        os.close(os.open(chemin, os.O_CREAT | os.O_EXCL | os.O_WRONLY))
+    except FileExistsError:
+        return False
+    except OSError:
+        pass
+    return True
+
+
+def une_fois(entree, commande, *args):
+    """L'entrée d'un hook lue une fois : 0, muet, si un autre lanceur l'a déjà traitée."""
+    texte = (entree or sys.stdin).read()
+    return commande(io.StringIO(texte), *args) if premier_lancement(texte) else 0
 
 
 def lire(chemin):
@@ -2842,9 +2880,9 @@ def repartir(a, sortie, entree, erreur):
         sortie.write("ETAT=%s\n" % nom_etat(a.contexte))
         return 0
     if a.cmd == "hook":
-        return cmd_hook(entree or sys.stdin, sortie, erreur or sys.stderr)
+        return une_fois(entree, cmd_hook, sortie, erreur or sys.stderr)
     if a.cmd == "filet":
-        return cmd_filet(entree or sys.stdin, sortie, erreur or sys.stderr)
+        return une_fois(entree, cmd_filet, sortie, erreur or sys.stderr)
     if a.cmd == "page":
         chemin_garde(a.fichier)
         if a.page is None:
@@ -2867,7 +2905,7 @@ def repartir(a, sortie, entree, erreur):
     if a.cmd == "forme":
         return cmd_forme(a, sortie)
     if a.cmd == "gardien":
-        return cmd_gardien(entree or sys.stdin, sortie)
+        return une_fois(entree, cmd_gardien, sortie)
     chemin_garde(a.fichier)
     if a.cmd == "extraire":
         return cmd_extraire(a.fichier, a.fiche, sortie)
