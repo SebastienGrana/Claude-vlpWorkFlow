@@ -1178,6 +1178,66 @@ with tempfile.TemporaryDirectory() as t:
     verifier("cout sans découpe, sans essai : pas de ligne essais", code2 == 0
              and s2.startswith("DÉCOUPE aucune — ") and "essai" not in s2 and s2.endswith("\n"), s2)
 
+# ESD2 : recompter --essais, sur un projet sans .git — M (session sss, 1 essai + son sous-agent) est
+# gardé DÉCOUPE aucune et reçoit ses essais ; N (session ttt, sans essai) ne change pas. Un second
+# passage ne change plus rien : la marque est lue avant l'ajout, à l'affichage comme à l'écriture.
+with tempfile.TemporaryDirectory() as t:
+    pr, rc = os.path.join(t, ".claude", "projects"), os.path.join(t, "rc")
+    os.makedirs(os.path.join(pr, "p"))
+    for s_ in ("sss", "ttt"):
+        transcript(os.path.join(pr, "p", s_ + ".jsonl"), 1, [T0 + 200])
+    os.makedirs(os.path.join(pr, "C--x-sss-scratchpad-b1", "e", "subagents"))
+    transcript(os.path.join(pr, "C--x-sss-scratchpad-b1", "e.jsonl"), 1, [T0 + 250])
+    transcript(os.path.join(pr, "C--x-sss-scratchpad-b1", "e", "subagents", "agent-a1.jsonl"), 1, [T0 + 260])
+    seule = ("# Chantier %s\n\n**CLOS** le 2026-01-06.\n\n## Le socle commun\n\n## L'ordre des fiches\n\n"
+             "<!-- FICHE:%s1 -->\n## %s1 [x] — Seule\n**Session** : %s\n**Critère de fin**\n<!-- /FICHE -->\n")
+    ecrire(os.path.join(rc, "CHANTIER.md"), "# Chantier courant\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n")
+    ecrire(os.path.join(rc, "ctx", "00-INDEX.md"), "| Fichier | Lire quand |\n|---|---|\n"
+           "| `m.md` | chantier **clos** « M », `M1..M1` |\n| `n.md` | chantier **clos** « N », `N1..N1` |\n")
+    ecrire(os.path.join(rc, "ctx", "m.md"), seule % ("M", "M", "M", "sss"))
+    ecrire(os.path.join(rc, "ctx", "n.md"), seule % ("N", "N", "N", "ttt"))
+    fr = os.path.join(rc, "ctx", "artefacts", "feuille-de-route.html")
+    ecrire(fr, '    <!-- ZONE:clos — test -->\n      <table>\n        <tbody>\n'
+           + "".join(ligne_close(c).replace("Q1–Q2", pl) for pl, c in (("M1", mod.arrondi(300000)), ("N1", mod.arrondi(2000))))
+           + "        </tbody>\n      </table>\n")
+    garde_env = dict(os.environ)
+    os.environ.update(HOME=t, USERPROFILE=t)
+    try:
+        initial = lire(fr)
+        simule = appel(["recompter", rc, "--essais"])
+        avant = lire(fr)
+        un = appel(["recompter", rc, "--essais", "--ecrire"])
+        feuille_ = lire(fr)
+        deux = appel(["recompter", rc, "--essais", "--ecrire"])
+        resimule = appel(["recompter", rc, "--essais"])
+    finally:
+        os.environ.clear()
+        os.environ.update(garde_env)
+    l_ = simule[1].splitlines()
+    verifier("recompter --essais : le gardé DÉCOUPE aucune reçoit ses essais, sous-agent compris ; l'autre +0 ;"
+             " rien d'écrit", simule[0] == 0 and len(l_) == 3 and avant == initial
+             and l_[0].startswith("M inscrit 300 000 · essais 200 000 · ajout +200 000 · gardé — DÉCOUPE aucune (")
+             and l_[1].startswith("N inscrit 2 000 · essais 0 · ajout +0 · gardé — DÉCOUPE aucune (")
+             and l_[2] == "ESSAIS 2 clos · 1 reçoivent · inscrit 302 000 · avec essais 502 000 · ajout +200 000", simule[1])
+    verifier("recompter --essais --ecrire : le chiffre + l'essai, la marque en tête, BRUT le relit",
+             un[0] == 0 and un[1].splitlines()[-1] == "ÉCRIT 1 cellules · total 302 000 → 502 000"
+             and '<td class="mono">essais (ESD) +200 000 · ≈500,0k (500 000)</td>' in feuille_
+             and '<td class="mono">≈2,0k (2 000)</td>' in feuille_ and mod.total_clos(feuille_) == 502000, un[1] + feuille_)
+    verifier("recompter --essais --ecrire, second passage : cellule identique — mutant : ignorer la marque",
+             deux[0] == 0 and lire(fr) == feuille_ and deux[1].splitlines()[-1] == "ÉCRIT 0 cellules · total 502 000 → 502 000",
+             deux[1] + lire(fr))
+    verifier("recompter --essais après écriture : la simulation dit +0, déjà ajoutés",
+             resimule[0] == 0 and resimule[1].splitlines()[0].startswith("M inscrit 500 000 · essais 200 000 · ajout +0 · ")
+             and resimule[1].splitlines()[0].endswith(" · déjà ajoutés (ESD)")
+             and resimule[1].splitlines()[-1].endswith(" · 0 reçoivent · inscrit 502 000 · avec essais 502 000 · ajout +0"),
+             resimule[1])
+    # La règle du découpé, en fonction pure : les essais sans passer le recompté.
+    verifier("ajout_essais : découpé borné par l'écart ; autre gardé, rien ; marque, rien",
+             [mod.ajout_essais("x", 100, 150, "découpe", 80), mod.ajout_essais("x", 100, 300, "découpe", 80),
+              mod.ajout_essais("x", 100, 90, "découpe", 80), mod.ajout_essais("x", 100, None, "gardé — sans session", 80),
+              mod.ajout_essais(mod.MARQUE_ESSAIS + "+5 · (105)", 105, None, "gardé — DÉCOUPE aucune (r)", 5)]
+             == [50, 80, 0, 0, 0], "")
+
 # --- chantier U : lire, cocher, page déduite ----------------------------------
 
 attendu = mod.lire(os.path.join(mod.KIT, "cloture.md"))

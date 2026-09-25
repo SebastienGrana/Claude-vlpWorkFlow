@@ -80,8 +80,11 @@ montre ≈ 1,26 $ (table ESS4) ; celui de `Z` : aucune ligne.
 ---
 
 <!-- FICHE:ESD2 -->
-## ESD2 [ ] — Ajouter les essais au chiffre recompté, une fois
+## ESD2 [x] — Ajouter les essais au chiffre recompté, une fois
 
+**Tentatives** (2026-09-25) — résolu par : le chef a repris le code : règle dans ajout_essais seule, marque lue avant l'affichage et l'écriture, test sur faux projet sans .git
+
+**Session** : 781aa7d0-555e-494b-b1cf-48e832940163
 **Dépend de** : `ESD1`.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py`.
 

@@ -2305,22 +2305,26 @@ def signe(n):
 
 
 def recompte(chemin):
-    """(recompté ou None, méthode) d'un fichier de fiches clos : le nombre de la ligne `TOTAL` de
+    """(recompté ou None, méthode, essais) d'un fichier de fiches clos : le nombre de la ligne `TOTAL` de
     `cout`, ou None et la raison de le garder — sans session, transcription absente, `DÉCOUPE
-    aucune`, découpe à zéro (chantier REC)."""
+    aucune`, découpe à zéro (chantier REC). `essais` : les tokens de ses essais, ceux de la découpe
+    ou, sans découpe, des sessions entières (`essais_entiers`) — pour `--essais` (chantier ESD)."""
     lignes = lignes_de(chemin)
     ids = sessions_de(lignes)
     if not ids:
-        return None, "gardé — sans session"
+        return None, "gardé — sans session", 0
     for s in ids:
         if mesure().resoudre(s)[1]:
-            return None, "gardé — transcription absente (%s)" % s
+            return None, "gardé — transcription absente (%s)" % s, 0
     decoupe, pourquoi, gardes = decouper(chemin, lignes)
     if not decoupe:
-        return None, "gardé — DÉCOUPE aucune (%s)" % pourquoi[0]
+        gardes = []
+        essais = essais_entiers(ids, gardes)[0]
+        manque = " · %d transcript(s) d'essai non mesuré(s)" % len(gardes) if gardes else ""
+        return None, "gardé — DÉCOUPE aucune (%s)%s" % (pourquoi[0], manque), essais
     if any(g.startswith("GARDE: découpe à zéro") for g in gardes):
-        return None, "gardé — découpe à zéro"
-    return plus(*totaux(decoupe))[0], "découpe"
+        return None, "gardé — découpe à zéro", 0
+    return plus(*totaux(decoupe))[0], "découpe", totaux(decoupe)[2][0]
 
 
 # La cellule de coût d'une ligne close, seule sur sa ligne (`clore`), et les marques de
@@ -2328,6 +2332,7 @@ def recompte(chemin):
 CELLULE_CLOS = re.compile(r'(\n            <td class="mono">)([^<\n]*)(</td>\n)')
 MARQUE_REC = "recompté (REC), était "
 MARQUE_GARDE = "non recompté — "
+MARQUE_ESSAIS = "essais (ESD) "
 
 
 def marquer(cellule, brut, recompte_, methode):
@@ -2344,9 +2349,33 @@ def marquer(cellule, brut, recompte_, methode):
     return "%s · %s" % (marque, entre(arrondi(recompte_)))
 
 
-def cmd_recompter(projet, sortie, ecrire=False):
+def ajout_essais(cellule, brut, recompte_, methode, essais):
+    """Ce que `recompter --essais` ajoute à une cellule close (chantier ESD) : rien si elle porte
+    déjà la marque ; un gardé `DÉCOUPE aucune`, ses essais ; un découpé, ses essais sans passer
+    le recompté ; tout autre gardé, rien. Seul endroit de la règle : l'affichage et l'écriture."""
+    if MARQUE_ESSAIS in cellule:
+        return 0
+    if methode.startswith("gardé — DÉCOUPE aucune"):
+        return essais
+    if methode == "découpe":
+        return max(0, min(essais, recompte_ - brut))
+    return 0
+
+
+def marquer_essais(cellule, brut, ajout):
+    """La cellule après `recompter --essais --ecrire` : la marque et l'ajout en tête, la cellule
+    d'avant sans son chiffre, puis le chiffre + l'ajout en fin, où `BRUT` le lit."""
+    if not ajout:
+        return cellule
+    tete = cellule.rsplit(" · ", 1)[0] + " · " if " · " in cellule else ""
+    n = arrondi(brut + ajout)
+    return "%s%s · %s%s" % (MARQUE_ESSAIS, signe(ajout), tete, n if "(" in n else "(%s)" % n)
+
+
+def cmd_recompter(projet, sortie, ecrire=False, essais=False):
     """Chaque ligne de `ZONE:clos` recomptée par `cout` sur son fichier de fiches, que l'index
-    nomme au même préfixe ; n'écrit rien sans `ecrire` (chantier REC)."""
+    nomme au même préfixe ; n'écrit rien sans `ecrire` (chantier REC). Avec `--essais`,
+    n'ajoute que la part essais (chantier ESD)."""
     if not equipe(projet):
         sortie.write("GARDE: pas de CHANTIER.md dans %s\n" % projet)
         return 1
@@ -2378,21 +2407,36 @@ def cmd_recompter(projet, sortie, ecrire=False):
     for _, prefixe, _, chemin in rangs:
         for s in sessions_de(lignes_de(chemin)) if chemin else []:
             porteurs.setdefault(s, set()).add(prefixe)
-    n = inscrit = ecart = 0
+    n = inscrit = ecart = recoivent = ajoute = 0
     neufs = {}      # chaque ligne et sa réécriture, toutes calculées avant d'écrire
     for r, prefixe, brut, chemin in rangs:
-        recompte_, methode = recompte(chemin) if chemin else (None, "gardé — fichier introuvable")
+        recompte_, methode, part = recompte(chemin) if chemin else (None, "gardé — fichier introuvable", 0)
         autres = sorted({p for s in (sessions_de(lignes_de(chemin)) if chemin else [])
                          for p in porteurs[s]} - {prefixe})
+        partage = " · partagée avec %s" % ", ".join(autres) if autres else ""
+        if essais:
+            c = CELLULE_CLOS.search(r)
+            a = ajout_essais(c.group(2), brut, recompte_, methode, part) if c else 0
+            inscrit, recoivent, ajoute = inscrit + brut, recoivent + (a > 0), ajoute + a
+            sortie.write("%s inscrit %s · essais %s · ajout %s · %s%s%s\n" % (
+                prefixe, milliers(brut), milliers(part), signe(a), methode, partage,
+                " · déjà ajoutés (ESD)" if c and MARQUE_ESSAIS in c.group(2) else ""))
+            neufs[r] = CELLULE_CLOS.sub(lambda c: c.group(1) + marquer_essais(c.group(2), brut, a)
+                                        + c.group(3), r, count=1)
+            continue
         e = 0 if recompte_ is None else recompte_ - brut
         n, inscrit, ecart = n + (recompte_ is not None), inscrit + brut, ecart + e
         sortie.write("%s inscrit %s · recompté %s · écart %s · %s%s\n" % (
             prefixe, milliers(brut), "gardé" if recompte_ is None else milliers(recompte_), signe(e), methode,
-            " · partagée avec %s" % ", ".join(autres) if autres else ""))
+            partage))
         neufs[r] = CELLULE_CLOS.sub(lambda c: c.group(1) + marquer(c.group(2), brut, recompte_, methode)
                                     + c.group(3), r, count=1)
-    sortie.write("RECOMPTE %d clos · %d recomptés · %d gardés · inscrit %s · recompté %s · écart %s\n" % (
-        len(rangs), n, len(rangs) - n, milliers(inscrit), milliers(inscrit + ecart), signe(ecart)))
+    if essais:
+        sortie.write("ESSAIS %d clos · %d reçoivent · inscrit %s · avec essais %s · ajout %s\n" % (
+            len(rangs), recoivent, milliers(inscrit), milliers(inscrit + ajoute), signe(ajoute)))
+    else:
+        sortie.write("RECOMPTE %d clos · %d recomptés · %d gardés · inscrit %s · recompté %s · écart %s\n" % (
+            len(rangs), n, len(rangs) - n, milliers(inscrit), milliers(inscrit + ecart), signe(ecart)))
     if not ecrire:
         return 0
     corps = html[d:f]
@@ -3110,6 +3154,7 @@ def main(argv, sortie=None, entree=None, erreur=None):
     rc = sous.add_parser("recompter")
     rc.add_argument("projet")
     rc.add_argument("--ecrire", action="store_true")
+    rc.add_argument("--essais", action="store_true")
     a = p.parse_args(argv)
     try:
         return repartir(a, sortie, entree, erreur)
@@ -3164,7 +3209,7 @@ def repartir(a, sortie, entree, erreur):
     if a.cmd == "gardien":
         return une_fois(entree, cmd_gardien, sortie)
     if a.cmd == "recompter":
-        return cmd_recompter(a.projet, sortie, a.ecrire)
+        return cmd_recompter(a.projet, sortie, a.ecrire, a.essais)
     chemin_garde(a.fichier)
     if a.cmd == "extraire":
         return cmd_extraire(a.fichier, a.fiche, sortie)
