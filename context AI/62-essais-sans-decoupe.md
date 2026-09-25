@@ -106,8 +106,9 @@ recompter . --essais` : `SAG` +506 675, `FIL` +583 782, `REC` et `ESS` +0, les 9
 ---
 
 <!-- FICHE:ESD3 -->
-## ESD3 [ ] — Écrire les essais et republier
+## ESD3 [x] — Écrire les essais et republier
 
+**Session** : 781aa7d0-555e-494b-b1cf-48e832940163
 **Dépend de** : `ESD2`.
 **Fichiers** : la feuille de route locale (`page_feuille`), `context AI/08-etat.md`.
 
