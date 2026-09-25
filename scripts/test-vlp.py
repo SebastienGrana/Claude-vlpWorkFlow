@@ -129,7 +129,10 @@ def test_carte_relecteur():
         r = r.getvalue()
         verifier("carte --relecteur : ni titre ni PROCHAINE=, mais PROJET=",
                  "piège" not in r and "PROCHAINE=" not in r and "PROJET=%s\n" % pr in r, r)
-        verifier("carte --relecteur : le reste à l'octet près", s.startswith(r) and "- **alias** : pr" in r, r)
+        verifier("carte --relecteur : ni l'étendue des fiches (dette REL), mais le chemin",
+                 "ZZZ2" not in r and "- **fichier de fiches courant** : context AI/20-z.md\n" in r, r)
+        verifier("carte --relecteur : le reste à l'octet près",
+                 s.replace(" (ZZZ1..ZZZ2)", "").startswith(r) and "- **alias** : pr" in r, r)
         j = io.StringIO()
         mod.carte_injectee(pr, "py", False, j, relecteur=True)
         j = j.getvalue()

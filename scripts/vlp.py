@@ -24,8 +24,8 @@ Sous-commandes :
   se faire refuser l'injection. `--python NOM` : une ligne vide, `PYTHON=NOM`,
   puis la carte, et un tampon dans le dossier temporaire ; `--relais` en plus :
   n'écrit rien si un tampon de moins de `RELAIS_SECONDES` existe (le premier
-  Python a déjà répondu), sans le retirer. `--relecteur` : ni titres de fiches
-  ni `PROCHAINE=` — le relecteur ne voit pas la suite (chantier REL).
+  Python a déjà répondu), sans le retirer. `--relecteur` : ni titres de fiches,
+  ni `PROCHAINE=`, ni l'étendue `(X1..X3)` du fichier courant — le relecteur ne voit pas la suite (chantier REL).
 - `extraire <fichier> <fiche>` — la fiche entre ses marqueurs, marqueurs
   compris, puis `--- fiche, lignes : N`. Sans marqueurs, repli sur le titre
   jusqu'au premier `---`, annoncé par une `GARDE`. Absente : sort 1. Critère
@@ -488,7 +488,12 @@ def carte(depart, sortie, relecteur=False):
             sortie.write("AUCUN_PROJET\n")
         return 0
     texte = lire(os.path.join(racine, "CHANTIER.md"))
-    sortie.write("PROJET=%s\n--- CHANTIER.md ---\n%s" % (racine, texte))
+    montre = texte
+    if relecteur:
+        # L'étendue `(X1..X3)` de la ligne du fichier courant dit aussi la suite (dette REL).
+        montre = "\n".join(re.sub(r"\s+\([^)]*\)$", "", l) if COURANT.match(l) else l
+                           for l in texte.split("\n"))
+    sortie.write("PROJET=%s\n--- CHANTIER.md ---\n%s" % (racine, montre))
     if not texte.endswith("\n"):
         sortie.write("\n")
     courant = fichier_courant(texte)
