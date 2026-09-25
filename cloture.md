@@ -11,42 +11,35 @@ Une clôture qui s'arrête au milieu laisse un projet qui ment. Si l'un des quat
 Des fiches restent non cochées (clôture décidée, pas atteinte) : elles sont
 **abandonnées**, pas faites — ne les coche pas, et dis lesquelles et pourquoi.
 
-## 1. Le fichier d'état
+## 1. La TODO
 
-Avant d'écrire la ligne de bilan, si `${CLAUDE_PLUGIN_ROOT}/scripts/mesure-tokens.py`
-existe et que le fichier de fiches qu'on clôture porte des lignes
-`**Session**` : appelle le script sur toutes, et garde le total brut de la ligne
-`TOTAL` — fiches, hors fiches et sous-agents compris —, sans arrondi (règle des
-comptes bruts : `methode-chantier.md`). Sinon, pas de total.
-
-```bash
-<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" cout "<fichier de fiches>"
-```
-
-`<python>` : la valeur de `PYTHON=` dans la carte de la commande qui clôt.
-
-Une ligne de bilan, datée : ce que le chantier a livré, ce qu'il a laissé
-ouvert, et ce total. Pas un récit — le détail est dans git et dans le fichier de fiches.
-Retire la ligne du chantier de la TODO, ou reformule-la s'il en reste.
-
-Une piste qui a échoué pour une raison qui **vaut au-delà de ce chantier** va
-ici aussi : c'est le seul endroit que la prochaine session lira.
+Au fichier d'état, retire la ligne du chantier de la TODO, ou reformule-la s'il en
+reste : la feuille de route que l'étape 2 écrit la relit.
 
 ## 2. Tout ce qui se déduit — un appel
 
 ```bash
-<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" clore . --livre "<ce qu'il a livré, une ligne>" --tokens <total brut de l'étape 1> --abandon "<fiches abandonnées et pourquoi>" --surpris "<ce qui a surpris, une ligne>" --resume "<ce qu'il a livré, en quelques mots>"
+<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" clore . --livre "<ce qu'il a livré, une ligne>" --abandon "<fiches abandonnées et pourquoi>" --surpris "<ce qui a surpris, une ligne>" --resume "<ce qu'il a livré, en quelques mots>"
 ```
 
-Sans total, pas de `--tokens` ; sans abandon, pas de `--abandon`. Le script
+`<python>` : la valeur de `PYTHON=` dans la carte de la commande qui clôt. Sans
+abandon, pas de `--abandon`. Le script
 pose `**CLOS**` et `**Fait.**` dans le fichier de fiches ; remet les deux lignes
 de `CHANTIER.md` à `aucun` ; passe à « clos » la ligne de l'index, retire celle
 du routage de `CLAUDE.md`, et ajoute `--resume` à sa section « Où on en est »,
 qui ne garde que les derniers clos ; rend visible la `ZONE:bilan` de la page du
 chantier et en régénère les coûts ; puis écrit la feuille de route locale (ligne
-des clos, total cumulé, chantier en cours, TODO de l'étape 1). Lis les lignes
+des clos, total cumulé, chantier en cours, TODO de l'étape 1). Le total du
+chantier — fiches, hors fiches et sous-agents — est celui qu'il vient d'écrire sur
+la page : la ligne `CLOS … · chantier <n>` le donne, le même partout. Lis les lignes
 `FEUILLE` et `CLOS` ; une `GARDE:` dit ce qui n'est pas écrit — écris-le alors à
 la main.
+
+Puis, au fichier d'état, une ligne de bilan datée : ce que le chantier a livré, ce
+qu'il a laissé ouvert, et ce `<n>` tel quel, sans arrondi (règle des comptes bruts :
+`methode-chantier.md`). Pas un récit — le détail est dans git et dans le fichier de
+fiches. Une piste qui a échoué pour une raison qui **vaut au-delà de ce chantier** va
+ici aussi : c'est le seul endroit que la prochaine session lira.
 
 ## 3. L'artefact du chantier
 
@@ -73,8 +66,9 @@ Les écritures des quatre temps se commitent **aussitôt, sans confirmation**
 git add -A; git commit -m "Chantier <X> clos : <ce qu'il a livré, une ligne>"
 ```
 
-Puis, en une ligne et sans rien relancer : **quelle fiche a coûté le plus
-cher**, et pourquoi — les chiffres sont ceux de l'étape 1.
+Puis, en une ligne : **quelle fiche a coûté le plus cher**, et pourquoi — `cout`
+les donne, une ligne par fiche :
+`<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" cout "<fichier de fiches>"`.
 
 ## Ce que le chantier laisse — un menu, rien d'obligatoire
 

@@ -70,8 +70,9 @@ feuille fait tomber le nouveau test. pyright : 0 erreur sur les deux fichiers.
 ---
 
 <!-- FICHE:UNI2 -->
-## UNI2 [ ] — Citer le chiffre de clore au bilan
+## UNI2 [x] — Citer le chiffre de clore au bilan
 
+**Session** : ca431cf8-167e-4c10-8bce-210c5f48a675
 **Dépend de** : `UNI1`.
 **Fichiers** : `cloture.md` — et rien d'autre.
 
