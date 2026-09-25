@@ -68,26 +68,29 @@
     <p>vlp.py bac pose le bac en un appel ; vlp.py transcription retrouve, sur les deux vraies transcriptions de FIL3, les chiffres de son journal</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="encours"></span><span></span>
+      <span data-etat="faite"></span><span data-etat="encours"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">2 fiches · 0 faite · en cours : BAC1</p>
+    <p class="mono" style="margin-top:.5rem">2 fiches · 1 faite · en cours : BAC2</p>
   </header>
 
   <section>
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">BAC1</span><span class="titre">Poser le bac d'essai en un appel</span>
-        <span class="etat">en cours</span>
-        <span class="note">vlp.py bac : CHANTIER.md, fiches F1 et F2, douze fichiers, et les deux commandes claude -p à lancer à la main. Ne dépend de rien.</span>
+        <span class="etat">faite</span>
+        <span class="note">test-vlp.py OK ; valider sort 0 (VALIDE 2 fiches, 0 écarts) ; extraire F1/F2 non vides ; 12 n*.txt ; « un appel par message » 2 (grep -o | wc -l) ; claude -p 2 ; 2e appel GARDE, code 1 ; mutant sans « L'ordre des fiches » → ÉCART ; pyright 0 errors</span>
+        <span class="cout mono">≈2,5M (2 478 652) · 23 tours · 1,33 $</span>
       </li>
-      <li class="fiche">
+      <li class="fiche" data-etat="encours">
         <span class="id">BAC2</span><span class="titre">Compter la transcription d'un sous-agent</span>
-        <span class="etat">à faire</span>
+        <span class="etat">en cours</span>
         <span class="note">vlp.py transcription : tours, appels, avertissements du filet et l'outil qui les précède, erreurs de hook, dernier message ; rejoué sur FIL3. Ne dépend de rien.</span>
       </li>
     </ul>
+    <p class="mono cout-hors">Hors fiches : ≈3,1M (3 144 749) · 26 tours · 2,20 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈5,6M (5 623 401) · 49 tours · 3,53 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

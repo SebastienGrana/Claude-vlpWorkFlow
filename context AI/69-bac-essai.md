@@ -73,8 +73,9 @@ Les deux fiches sont indépendantes : elles touchent les mêmes fichiers, donc o
 ---
 
 <!-- FICHE:BAC1 -->
-## BAC1 [ ] — Poser le bac d'essai en un appel
+## BAC1 [x] — Poser le bac d'essai en un appel
 
+**Session** : 20118231-b233-444d-82c2-f7a46302b131
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` ; pour la forme des fiches
 factices et la commande, l'entrée « 2026-09-24 — FIL3 » de `context AI/08-etat.md` — et rien d'autre.

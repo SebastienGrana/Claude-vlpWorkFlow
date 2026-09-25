@@ -249,6 +249,9 @@ Sous-commandes :
   (`resommer`) ; relancé, rien ne change. Dernière ligne `ÉCRIT <n> cellules · total <avant> → <après>`.
   `--a-clore` : chaque ligne recomptée finit par ` · à clore <n> · après clore <n>` (le calcul de
   `cout --a-clore`, après clore = recompté − à clore), ou ` · sans appel clore`.
+- `bac <dossier>` — pose le bac d'essai de FIL3 dans un dossier absent ou vide (sinon `GARDE:`,
+  rien d'écrit) : `CHANTIER.md`, `fiches.md` (`F1` douze `Read`, `F2` douze `exit 3`), `n01.txt`…
+  `n12.txt`. Imprime `BAC <dossier>` et les deux commandes `claude -p`, sans les lancer (chantier BAC).
 
 Python 3 sans dépendance, zéro appel modèle.
 
@@ -3371,6 +3374,79 @@ def cmd_ouvrir(a, sortie):
 
 # --- entrée ------------------------------------------------------------------
 
+# --- bac ---------------------------------------------------------------------
+
+# Le bac d'essai de FIL3 (journal du 2026-09-24) : fixe, en constantes.
+BAC_FICHES = "fiches.md"
+BAC_CHANTIER = """# Chantier courant — bac d'essai
+
+- **fichier de fiches courant** : %s (F1..F2)
+- **artefact du chantier** : aucun
+- **livraison** : aucune
+- **vérification** : aucune — lire le statut rendu
+""" % BAC_FICHES
+BAC_FICHIER = """# Bac d'essai — deux fiches factices
+
+## Le socle commun
+
+Un bac d'essai : rien à écrire, rien à commiter.
+
+## L'ordre des fiches
+
+F1, puis F2.
+
+---
+
+<!-- FICHE:F1 -->
+## F1 [ ] — Lire douze fichiers
+
+**Prompt**
+Lis `n01.txt`, `n02.txt`, … jusqu'à `n12.txt`, dans l'ordre, par l'outil `Read` :
+un appel par message, d'affilée, dans cette même exécution.
+
+**Critère de fin**
+Les douze fichiers lus.
+<!-- /FICHE -->
+
+---
+
+<!-- FICHE:F2 -->
+## F2 [ ] — Lancer douze fois exit 3
+
+**Prompt**
+Lance douze fois `exit 3` par l'outil `Bash` : un appel par message, d'affilée,
+dans cette même exécution.
+
+**Critère de fin**
+Douze appels lancés.
+<!-- /FICHE -->
+"""
+BAC_COMMANDES = (
+    'claude -p "Appelle l\'outil Skill avec skill \\"vlp:jouer\\" et args \\"F1\\", puis recopie son'
+    ' resultat tel quel. Rien d\'autre." --model haiku --max-budget-usd 1 --permission-mode acceptEdits'
+    ' --allowedTools "Skill" --output-format stream-json --verbose',
+    'claude -p "Appelle l\'outil Skill avec skill \\"vlp:jouer\\" et args \\"F2\\", puis recopie son'
+    ' resultat tel quel. Rien d\'autre." --model haiku --max-budget-usd 1 --permission-mode acceptEdits'
+    ' --allowedTools "Skill" "Bash" --output-format stream-json --verbose < /dev/null',
+)
+
+
+def cmd_bac(dossier, sortie):
+    if os.path.exists(dossier) and (not os.path.isdir(dossier) or os.listdir(dossier)):
+        sortie.write("GARDE: %s existe et n'est pas un dossier vide — rien d'écrit\n" % dossier)
+        return 1
+    os.makedirs(dossier, exist_ok=True)
+    fichiers = {"CHANTIER.md": BAC_CHANTIER, BAC_FICHES: BAC_FICHIER}
+    fichiers.update(("n%02d.txt" % k, "fichier %02d\n" % k) for k in range(1, 13))
+    for nom, texte in fichiers.items():
+        with open(os.path.join(dossier, nom), "w", encoding="utf-8", newline="") as f:
+            f.write(texte)
+    sortie.write("BAC %s\n" % dossier)
+    for c in BAC_COMMANDES:
+        sortie.write(c + "\n")
+    return 0
+
+
 def main(argv, sortie=None, entree=None, erreur=None):
     sortie = sortie or sys.stdout
     p = argparse.ArgumentParser(prog="vlp.py", description="La mécanique du kit vlp.")
@@ -3467,6 +3543,8 @@ def main(argv, sortie=None, entree=None, erreur=None):
     rc.add_argument("--ecrire", action="store_true")
     rc.add_argument("--essais", action="store_true")
     rc.add_argument("--a-clore", action="store_true")
+    bc = sous.add_parser("bac")
+    bc.add_argument("dossier")
     a = p.parse_args(argv)
     try:
         return repartir(a, sortie, entree, erreur)
@@ -3522,6 +3600,8 @@ def repartir(a, sortie, entree, erreur):
         return une_fois(entree, cmd_gardien, sortie)
     if a.cmd == "recompter":
         return cmd_recompter(a.projet, sortie, a.ecrire, a.essais, a.a_clore)
+    if a.cmd == "bac":
+        return cmd_bac(a.dossier, sortie)
     chemin_garde(a.fichier)
     if a.cmd == "extraire":
         return cmd_extraire(a.fichier, a.fiche, sortie)

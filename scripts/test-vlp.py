@@ -2715,51 +2715,80 @@ def gardien_test(texte):
     code = mod.main(["gardien"], o, io.StringIO(texte), e)
     return code, o.getvalue(), e.getvalue()
 
-# Sauvegarder et restaurer TAMPON_HOOKS pour ce test
-ancien_tampon = mod.TAMPON_HOOKS
-mod.TAMPON_HOOKS = tempfile.mkdtemp()     # neuf : un tampon d'un run d'avant ferait taire le 1er appel
+def test_premier_lancement():
+    # Sauvegarder et restaurer TAMPON_HOOKS pour ce test
+    ancien_tampon = mod.TAMPON_HOOKS
+    mod.TAMPON_HOOKS = tempfile.mkdtemp()     # neuf : un tampon d'un run d'avant ferait taire le 1er appel
 
-try:
-    # Entrée PreToolUse qui essaie de commiter
-    entree_commit = json.dumps({
-        "hook_event_name": "PreToolUse",
-        "tool_name": "Bash",
-        "tool_input": {"command": "git commit -m 'test'"},
-        "agent_type": "vlp:fiche"
-    })
+    try:
+        # Entrée PreToolUse qui essaie de commiter
+        entree_commit = json.dumps({
+            "hook_event_name": "PreToolUse",
+            "tool_name": "Bash",
+            "tool_input": {"command": "git commit -m 'test'"},
+            "agent_type": "vlp:fiche"
+        })
 
-    # Entrée différente (PowerShell au lieu de Bash)
-    entree_commit_ps = json.dumps({
-        "hook_event_name": "PreToolUse",
-        "tool_name": "PowerShell",
-        "tool_input": {"command": "git commit -m 'test ps'"},
-        "agent_type": "vlp:fiche"
-    })
+        # Entrée différente (PowerShell au lieu de Bash)
+        entree_commit_ps = json.dumps({
+            "hook_event_name": "PreToolUse",
+            "tool_name": "PowerShell",
+            "tool_input": {"command": "git commit -m 'test ps'"},
+            "agent_type": "vlp:fiche"
+        })
 
-    # Premier appel : doit refuser (écrit en JSON)
-    code1, out1, err1 = gardien_test(entree_commit)
-    verifier("gardien : premier lancement, refuse le git commit",
-             code1 == 0 and "permissionDecision" in out1 and "deny" in out1 and err1 == "",
-             out1 + err1)
+        # Premier appel : doit refuser (écrit en JSON)
+        code1, out1, err1 = gardien_test(entree_commit)
+        verifier("gardien : premier lancement, refuse le git commit",
+                 code1 == 0 and "permissionDecision" in out1 and "deny" in out1 and err1 == "",
+                 out1 + err1)
 
-    # Deuxième appel avec la même entrée : doit être muet (retourne 0 sans rien écrire)
-    code2, out2, err2 = gardien_test(entree_commit)
-    verifier("gardien : deuxième lancement de la même entrée, muet",
-             code2 == 0 and out2 == "" and err2 == "",
-             "out=%s err=%s" % (out2, err2))
+        # Deuxième appel avec la même entrée : doit être muet (retourne 0 sans rien écrire)
+        code2, out2, err2 = gardien_test(entree_commit)
+        verifier("gardien : deuxième lancement de la même entrée, muet",
+                 code2 == 0 and out2 == "" and err2 == "",
+                 "out=%s err=%s" % (out2, err2))
 
-    # Troisième appel avec une entrée différente : doit refuser (écrit en JSON)
-    code3, out3, err3 = gardien_test(entree_commit_ps)
-    verifier("gardien : entrée différente, refuse le git commit",
-             code3 == 0 and "permissionDecision" in out3 and "deny" in out3 and err3 == "",
-             out3 + err3)
-    # PYT2 : sur une écriture, `filet` et `hook` reçoivent la même entrée — chacun agit une fois
-    verifier("premier_lancement : même entrée, deux sous-commandes, chacune une fois",
-             mod.premier_lancement("{}", "cmd_filet") and mod.premier_lancement("{}", "cmd_hook")
-             and not mod.premier_lancement("{}", "cmd_hook"), "")
-finally:
-    # Restaurer TAMPON_HOOKS à None pour les tests suivants
-    shutil.rmtree(mod.TAMPON_HOOKS, ignore_errors=True)
-    mod.TAMPON_HOOKS = ancien_tampon
+        # Troisième appel avec une entrée différente : doit refuser (écrit en JSON)
+        code3, out3, err3 = gardien_test(entree_commit_ps)
+        verifier("gardien : entrée différente, refuse le git commit",
+                 code3 == 0 and "permissionDecision" in out3 and "deny" in out3 and err3 == "",
+                 out3 + err3)
+        # PYT2 : sur une écriture, `filet` et `hook` reçoivent la même entrée — chacun agit une fois
+        verifier("premier_lancement : même entrée, deux sous-commandes, chacune une fois",
+                 mod.premier_lancement("{}", "cmd_filet") and mod.premier_lancement("{}", "cmd_hook")
+                 and not mod.premier_lancement("{}", "cmd_hook"), "")
+    finally:
+        # Restaurer TAMPON_HOOKS à None pour les tests suivants
+        shutil.rmtree(mod.TAMPON_HOOKS, ignore_errors=True)
+        mod.TAMPON_HOOKS = ancien_tampon
+
+
+test_premier_lancement()
+
+# BAC1 : `bac` pose le bac d'essai de FIL3, dans un dossier temporaire à lui
+def test_bac():
+    with tempfile.TemporaryDirectory() as tbac:
+        dbac = os.path.join(tbac, "bac")
+        code, s = appel(["bac", dbac])
+        verifier("bac : sort 0 et annonce le dossier", code == 0 and s.startswith("BAC %s\n" % dbac), s)
+        verifier("bac : deux commandes claude -p", s.count("claude -p") == 2, s)
+        fbac = os.path.join(dbac, mod.BAC_FICHES)
+        code, sv = appel(["valider", fbac])
+        verifier("bac : le fichier de fiches se valide", code == 0, sv)
+        for ident in ("F1", "F2"):
+            code, se_ = appel(["extraire", fbac, ident])
+            verifier("bac : extraire %s non vide" % ident, code == 0 and ("## %s [ ]" % ident) in se_, se_)
+        ns = [n for n in os.listdir(dbac) if re.match(r"^n\d\d\.txt$", n)]
+        verifier("bac : douze fichiers n*.txt", len(ns) == 12, " ".join(sorted(ns)))
+        with open(fbac, encoding="utf-8") as f:
+            texte_bac = f.read()
+        verifier("bac : « un appel par message » deux fois", texte_bac.count("un appel par message") == 2, texte_bac)
+        verifier("bac : jamais « par tour »", "par tour" not in texte_bac, texte_bac)
+        code, s2 = appel(["bac", dbac])
+        verifier("bac : un 2e appel rend une GARDE", code == 1 and s2.startswith("GARDE:"), s2)
+
+
+test_bac()
 
 print("OK")
