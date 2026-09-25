@@ -125,8 +125,9 @@ avant/après : sortie identique si REC n'a aucun essai, sinon l'écart affiché.
 ---
 
 <!-- FICHE:ESS4 -->
-## ESS4 [ ] — Recompter les chantiers clos
+## ESS4 [x] — Recompter les chantiers clos
 
+**Session** : 770f94ec-a301-4b84-b75f-900295865046
 **Dépend de** : `ESS3`.
 **Fichiers** : `context AI/08-etat.md` (la table d'ESS1), `scripts/vlp.py`.
 

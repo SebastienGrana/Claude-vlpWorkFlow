@@ -347,7 +347,7 @@ pages est dans `38-audit-artefacts.md` § 4, qui les nomme A à F ; les rangs 1 
 24, tous retirés, venaient de `12-audit.md` ; 31 à 34, de la clôture de `REP` ; 35
 à 37, de celle de `CPT` ; 38 à 41, de celle de `SAG` ; 42, de `FIL1` ; 43 à 47, de
 celle de `FIL` ; 48 à 51, de celle de `FIN` ; 52, des clôtures de la nuit du
-2026-09-24 ; 53, du cadrage de `REV` ; 54, d'une demande de l'utilisateur pendant `REV5` ; 55 à 57, de la clôture de `REV` ; 58, d'une demande de l'utilisateur le 2026-09-25 ; 59 à 61, de la clôture de `CON` ; 66, de celle de `JUG` ; 67, de celle de `REC`.
+2026-09-24 ; 53, du cadrage de `REV` ; 54, d'une demande de l'utilisateur pendant `REV5` ; 55 à 57, de la clôture de `REV` ; 58, d'une demande de l'utilisateur le 2026-09-25 ; 59 à 61, de la clôture de `CON` ; 66, de celle de `JUG` ; 67, de celle de `REC` ; 68, d'`ESS4`.
 
 | # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |
 |---|---|---|---|---|
@@ -373,6 +373,7 @@ celle de `FIL` ; 48 à 51, de celle de `FIN` ; 52, des clôtures de la nuit du
 | 64 | `SON` — Rejouer un hook à la main sans le tampon | `une_fois` (chantier `PYT`) fait taire la même entrée rejouée en moins de 60 s, même par une autre copie de `vlp.py` : un relecteur de `RLG1` a dû ajouter un `nonce` pour comparer AVANT et APRÈS. Une variable d'environnement, ou une option, qui saute le tampon hors d'un vrai hook. | ~0,5 fiche | — |
 | 66 | `OUV` — Une ligne qui s'ouvre par un mot de jauge, sans être une jauge | Reste de `JUG` : le gardien (règle `tete`) renvoie une ligne qui **commence** par « Imprévu », « Pas bon »… même quand ce n'est pas la jauge — une puce `- Imprévu : j'ai dû…`, un `REFUSÉE` dont une ligne s'ouvre par « Pas bon ». Absent des 29 sous-agents mesurés en `JUG1` ; `stop_hook_active` borne le coût à un renvoi. 🟡 Exiger l'émoji de la jauge devant le mot, ou le mot suivi de `—`/`…`/fin de ligne : à mesurer sur le corpus comme en `JUG1` (`forme --regle`). | ~0,5 fiche | — |
 | 67 | `APC` — Ce que le chiffre de clôture ne voit pas | Reste de `REC` : pour 19 clos (causes 4a et 4b du journal `REC2`), l'écart recompté − inscrit tient tout entier dans « hors fiches », côté clôture, et reste sous lui (`CAS` : égal, 1 687 993) ; de +434 097 (`RLG`) à +2 682 260 (`FOR`) — pas « quelques milliers », comme l'estimait le bilan d'`UNI`. 🟡 Hypothèse, non prouvée : les tours d'après `clore` (republication, menu, push) sont hors du chiffre. `NIV` et `H` (4c : +3 136 302 et +2 249 049) restent sans explication. Le bilan de `H` ne cite aucun chiffre : rien n'y est marqué. | ~1 fiche | — |
+| 68 | `ESD` — Les essais d'un chantier sans découpe, puis republier | Reste d'`ESS` : sur `DÉCOUPE aucune`, `cout` mesure les sessions entières sans `essais_de` (`scripts/vlp.py:545`) et `recompter` les garde. 9 clos (`X` `G` `A` `P` `L` `N` `Y` `U` `Q`) ont 7,1299 $ d'essais en dossier que rien ne compte ; seuls `SAG` et `FIL` passent (0,77 $). Puis `recompter --ecrire` (+1 090 457 d'essais sur `SAG` et `FIL`) et republier la feuille de route : leurs bilans notent encore les essais à côté du total, pas dedans. Table : `## 2026-09-25 — ESS4`. | ~1 fiche, plus la republication | — |
 
 ## Journal des décisions
 
@@ -387,6 +388,9 @@ de ce que le code dit déjà.
 - **2026-09-25** — ESS1, `X` : 0,6171 $ en 19 dossiers pour 0,90 $ notés (−0,2829 $), seul écart
   au-delà du centime. Tous ses bacs sont en `-w-` (Windows) ; des sondes Ubuntu hors de ce disque
   l'expliqueraient — non vérifié.
+- **2026-09-25** — ESS4, `cout` ne rattrape que 0,77 $ des 4,5734 $ d'essais notés : sur 11 clos à
+  bacs, 9 sont en `DÉCOUPE aucune`, que `cout` mesure sans `essais_de` et que `recompter` garde
+  (7,1299 $ de dossiers). Versé en TODO n° 68. Table : `## 2026-09-25 — ESS4`.
 - **2026-09-25** — ESS1, un sous-agent voit le scratchpad **à l'id de son chef** : 83 transcripts
   `subagents/` sur 83 qui citent un scratchpad. Mais aucun des 39 bacs n'a été lancé par un
   sous-agent : le cas « essai d'un `vlp:fiche` » reste non observé.
@@ -1937,3 +1941,39 @@ Face au ≈ 12,32 $ de la TODO : 4,5734 (sondes) + 7,74 (evals) = **12,3134 $** 
 arrondissait `SAG` à 0,46. Dossiers : 4,3001 (notés) + 3,5982 (sans note) = **7,8983 $**, le total du
 script. Critère d'arrêt (plus d'un noté sur quatre sans dossier) : **0 / 8** sur les sondes ; 10 / 18
 si l'on compte les evals, que le cadrage a mises dehors.
+
+## 2026-09-25 — ESS4
+
+`py scripts/vlp.py recompter .` (sans `--ecrire`) : `RECOMPTE 49 clos · 24 recomptés · 25 gardés ·
+inscrit 716 632 063 · recompté 718 373 550 · écart +1 741 487`. Trois écarts non nuls : `FIL`
++583 782 et `SAG` +506 675 — **exactement** leur part `essais` dans `cout` (`3 essais ≈583,8k
+(583 782)`, `3 essais ≈506,7k (506 675)`) — et `REC` +651 030, **0 essai** (cause non vérifiée : la
+session a pu grandir après l'inscription, menu de clôture `1f92f30`). 583 782 + 506 675 + 651 030
+= 1 741 487. Les dollars viennent de `py scripts/vlp.py cout "context AI/<fichier>.md"`, au centime.
+
+| Chantier | Noté à la main | Dossier (ESS1) | Trouvé par `cout` | Écart (trouvé − noté) | Cause |
+|---|---:|---:|---:|---:|---|
+| `X` | 0,90 | 0,6171 | 0 | −0,90 | chantier gardé (`DÉCOUPE aucune`) ; dont −0,2829 dossier absent |
+| `G` | 0,115 | 0,1153 | 0 | −0,115 | chantier gardé (`DÉCOUPE aucune`) |
+| `A` | 0,22 | 0,2211 | 0 | −0,22 | chantier gardé (`DÉCOUPE aucune`) |
+| `P` | 0,75 | 0,7503 | 0 | −0,75 | chantier gardé (`DÉCOUPE aucune`) |
+| `L` | 1,26 | 1,2636 | 0 | −1,26 | chantier gardé (`DÉCOUPE aucune`) |
+| `N` | 0,56 | 0,5643 | 0 | −0,56 | chantier gardé (`DÉCOUPE aucune`) |
+| `SAG` | 0,45590805 | 0,4559 | 0,46 (SAG2 0,28 · SAG4 0,18) | +0,0041 | arrondi (`cout` au centime) |
+| `FIL` | 0,31252785 | 0,3125 | 0,31 (FIL3) | −0,0025 | arrondi (`cout` au centime) |
+| **8 notés** | **4,5734** | **4,3001** | **0,77** | **−3,8034** | |
+| `Y` · `U` · `Q` (sans note) | 0 | 3,5982 | 0 | 0 | chantier gardé (`DÉCOUPE aucune`) |
+| 10 evals (dehors) | 7,74 | 0 | 0 | −7,74 | hors d'`ESS` par le cadrage |
+
+Face au ≈ 12,32 $ de la TODO n° 47 : noté **12,3134** (4,5734 sondes + 7,74 evals), trouvé par
+`cout` **0,77**, écart **−11,5434** — dont 7,74 d'evals dehors et 3,8034 de sondes.
+
+Causes, en comptes bruts : **chantier gardé 9** (`X` `G` `A` `P` `L` `N` `Y` `U` `Q`, 7,1299 $ de
+dossiers : 7,8983 − 0,4559 − 0,3125) · **dossier absent 1** (`X`, 0,2829, déjà dans ESS1) ·
+**arrondi 2** (`SAG`, `FIL`) · **essai hors plage 0** (la somme des fiches égale le `TOTAL`, `hors
+fiches` sans essai) · **sous-agent de l'essai 0**. La cause « chantier gardé » n'était pas prévue par
+la fiche : sur `DÉCOUPE aucune`, `cmd_cout` mesure les sessions entières par `mesure().main(ids)`
+(`scripts/vlp.py:545`), sans `essais_de`, et `recompter` garde ces chantiers.
+
+Écart au-delà de 0,05 $ : **6 chantiers sur 8 notés** (`X` `G` `A` `P` `L` `N`) ; les 10 evals aussi,
+mais dehors.
