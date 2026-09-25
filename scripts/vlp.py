@@ -185,13 +185,13 @@ Sous-commandes :
 - `forme [<transcription>…] [--depuis D]` — la forme et le poids dans des
   transcriptions de sous-agent. Sans argument : toutes celles dont le `.meta.json` voisin dit
   `vlp:fiche` ou `vlp:relecture`, sous `~/.claude/projects/*/*/subagents/`. Une ligne
-  chacune : `<id> <agentType> <départ de la session parente, UTC | ?> user <c> projet <c>
+  chacune : `<id> <agentType> <départ de la transcription, UTC | ?> user <c> projet <c>
   memoire <c> resume <0|1> jauge <0|1> tete <0|1>` — `<c>` : caractères du `content` des
   fichiers d'instructions de ce type (User, Project, AutoMem, somme si plusieurs, 0 si aucun) ;
   `resume` 1 si le dernier message texte contient « En résumé » ; `jauge` 1 s'il contient l'un
   des cinq libellés de `JAUGE` ; `tete` 1 s'il commence par un mot de `STATUTS` ou de
   `VERDICTS` (le relecteur). Illisible :
-  `ILLISIBLE <chemin>`. `--depuis` (heure ISO ou commit) : celles dont la session parente a
+  `ILLISIBLE <chemin>`. `--depuis` (heure ISO ou commit) : celles dont la transcription a
   démarré à D ou après. Puis `FORME <n> sous-agents · user <moyenne> car. · resume <k> ·
   jauge <k> · tete <k>`. Borne illisible : `GARDE:`, sort 1.
 - `gardien` — le hook du contrat (chantier CON et RLG), muet hors d'un sous-agent dont
@@ -1245,8 +1245,7 @@ def cmd_forme(a, sortie):
         chemins = [c for c in sorted(glob.glob(motif)) if type_agent(c) in ("vlp:fiche", "vlp:relecture")]
     n = resume_total = jauge_total = tete_total = user_total = 0
     for c in chemins:
-        parent = os.path.dirname(os.path.dirname(c)) + ".jsonl"
-        t, _ = m.depart(parent)
+        t, _ = m.depart(c)
         if depuis is not None and (t is None or t < depuis):
             continue
         chars, resume, jauge, tete = lire_forme(c)

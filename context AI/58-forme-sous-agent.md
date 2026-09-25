@@ -53,8 +53,9 @@ justifie.
 ---
 
 <!-- FICHE:FOR1 -->
-## FOR1 [ ] — Filtrer `forme --depuis` sur le départ du sous-agent
+## FOR1 [x] — Filtrer `forme --depuis` sur le départ du sous-agent
 
+**Session** : 669739ec-48a1-4796-aab1-ff74eaf24dd5
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` — et rien d'autre.
 

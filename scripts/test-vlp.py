@@ -2058,6 +2058,37 @@ with tempfile.TemporaryDirectory() as t:
              and lignes[2].startswith("FORME 2 sous-agents · user 50 car. · resume 1 · jauge 1 · tete 1"),
              s)
 
+# GLO1 (FOR1) : forme --depuis filtre sur le départ de la transcription, pas de la session
+with tempfile.TemporaryDirectory() as t:
+    # Créer la structure de répertoires pour que le motif glob trouve les fichiers
+    proj_dir = os.path.join(t, "projects", "test", "test", "subagents")
+    os.makedirs(proj_dir)
+    # Transcription de sous-agent avec timestamp 2026-09-25T12:00:00Z
+    sc = os.path.join(proj_dir, "agent-for1.jsonl")
+    with open(sc, "w", encoding="utf-8") as f:
+        f.write(json.dumps({"type": "attachment", "timestamp": "2026-09-25T12:00:00Z", "attachment": {
+            "type": "instructions", "files": [{
+                "type": "User", "path": "user.md", "content": "test"
+            }]
+        }}) + "\n")
+        f.write(json.dumps({"type": "assistant", "requestId": "r1", "message": {
+            "role": "assistant", "content": [{
+                "type": "text", "text": "FAITE — test En résumé test Tout va bien"
+            }]
+        }}) + "\n")
+    # Créer le .meta.json
+    meta_c = sc[:-len(".jsonl")] + ".meta.json"
+    ecrire(meta_c, json.dumps({"agentType": "vlp:fiche"}))
+    # Parent session avec timestamp 2026-09-25T08:00:00Z (antérieur à --depuis 10:00:00Z)
+    parent_session = os.path.join(t, "session.jsonl")
+    with open(parent_session, "w", encoding="utf-8") as f:
+        f.write(json.dumps({"type": "session", "timestamp": "2026-09-25T08:00:00Z"}) + "\n")
+    # Appel avec --depuis après le timestamp du sous-agent mais avant celui de la parent session
+    code, s = appel(["forme", "--depuis", "2026-09-25T10:00:00Z", sc])
+    verifier("forme --depuis filtre sur le départ du sous-agent", code == 0
+             and "FORME 1 sous-agents" in s,
+             s)
+
 # PYT1 : premier lancement des hooks — restaurer TAMPON_HOOKS pour ce test
 def gardien_test(texte):
     """Appelle vlp.py gardien avec l'entrée JSON."""
