@@ -46,7 +46,7 @@ a l'air proche.
 | `65-enchainer-refus.md` | on relit le socle du chantier ENC — **clos** « /vlp:enchainer rejoue une fiche floue », `ENC1..ENC3` |
 | `66-relecteur-sans-suite.md` | on relit le socle du chantier REL — **clos** « Le relecteur ne voit pas la suite », `REL1..REL3` |
 | `67-relecteur-sans-fichier.md` | on relit le socle du chantier FFE — **clos** « Le relecteur ne lit plus le fichier de fiches entier », `FFE1..FFE2` |
-| `68-estime-reel.md` | on joue une fiche `EST*` — chantier **ouvert** « L'estimé face au réel, à chaque clôture », `EST1..EST3` |
+| `68-estime-reel.md` | on relit le socle du chantier EST — **clos** « L'estimé face au réel, à chaque clôture », `EST1..EST3` |
 | `35-bilan.md` | on doit expliquer le kit — d'où il vient, ce qu'il sait faire aujourd'hui, ce qu'il ne promet pas ; les 22 chantiers chiffrés |
 | `36-gardes.md` | on relit le socle du chantier Z — **clos** « Une GARDE au lieu d'un traceback », `Z1..Z4` |
 | `37-niveau.md` | on relit le socle du chantier NIV — **clos** « Remettre les projets équipés à niveau », `NIV1..NIV4` |

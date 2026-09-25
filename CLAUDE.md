@@ -13,11 +13,11 @@ https://github.com/SebastienGrana/Claude-vlpWorkFlow — cloné et utilisé en g
 - Équipés : Cairn-VlpLib, MapDecorator, ProjetONZSM, TrackGen — et ce kit lui-même.
 - Chaque chantier clos a sa ligne dans `context AI/00-INDEX.md`, son détail daté dans
   `context AI/08-etat.md` ; ici, les derniers seulement (`vlp.py clore` les tient).
-- Clos le 2026-09-25 : la recompte s'arrête à l'appel clore : inscrit = recompté ; les republications sortent du coût (chantier APC).
 - Clos le 2026-09-25 : la carte imprime la TODO et le format des fiches ; /vlp:chantier ne relit plus l'état en entier : 0,59 $ contre 1,14 $ avant (chantier LEC).
 - Clos le 2026-09-26 : Clos le 2026-09-26 : /vlp:enchainer distingue refus de fiche et de copie, propose réécriture, rejeu, main ou arrêt (chantier ENC).
 - Clos le 2026-09-26 : le relecteur ne voit plus la suite : carte --relecteur sans titres ni PROCHAINE= (chantier REL).
 - Clos le 2026-09-26 : le relecteur ne reçoit plus FICHIER= ; rel1-carte.py mesure sans lui (chantier FFE).
+- Clos le 2026-09-26 : ouvrir note l'estimé, clore l'écrit à côté du réel (chantier EST).
 
 ## Quatre règles non négociables
 
@@ -57,7 +57,6 @@ et seulement dans ce cas, ouvrir l'index.
 | savoir où vit quoi dans un projet équipé | `methode-chantier.md`, section « Où vit quoi » |
 | toucher aux pages publiées | `ARTEFACTS.md`, puis le gabarit dans `templates/` |
 | ouvrir un chantier, ou le découper en fiches | **lancer `/vlp:chantier`** |
-| jouer une fiche du chantier EST (l'estimé face au réel, à chaque clôture) | `context AI/68-estime-reel.md` — chantier **ouvert**, par `/vlp:tache EST<n>` |
 | relire un chantier clos | `context AI/00-INDEX.md` — sa ligne y nomme le fichier de fiches |
 | reprendre après une longue interruption | `context AI/08-etat.md` |
 | choisir le prochain chantier du kit, ou retrouver la preuve d'un bug relevé le 2026-09-17 | `context AI/12-audit.md` |

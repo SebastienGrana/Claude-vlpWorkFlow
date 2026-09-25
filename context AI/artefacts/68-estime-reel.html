@@ -93,11 +93,11 @@
         <span class="id">EST3</span><span class="titre">Faire passer l'estimé par /vlp:chantier</span>
         <span class="etat">faite</span>
         <span class="note">grep --estime-fiches SKILL.md = 1 ; grep **Estimé.** 1 fiches = 1 ; ouvrir rend « estimé 1 fiches ≈3,91 $ » ; VALIDE 3 fiches, 0 écarts</span>
-        <span class="cout mono">≈830,1k (830 107) · 9 tours · 0,55 $</span>
+        <span class="cout mono">≈1,0M (1 002 562) · 11 tours · 0,65 $</span>
       </li>
     </ul>
-    <p class="mono cout-hors">Hors fiches : ≈2,2M (2 232 622) · 20 tours · 1,81 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈10,1M (10 097 605) · 92 tours · 6,04 $</p>
+    <p class="mono cout-hors">Hors fiches : ≈2,6M (2 610 413) · 24 tours · 1,96 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈10,6M (10 647 851) · 98 tours · 6,29 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -118,10 +118,12 @@
   </section>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
-  <section hidden>
-    <h2>Chantier clos le </h2>
+  <section>
+    <h2>Chantier clos le 2026-09-26</h2>
     <div class="bilan">
-      <p></p>
+      <p>Livré : vlp.py ouvrir note l'estimé (fiches et $, moyenne des clos), clore l'écrit à côté du réel ; /vlp:chantier passe --estime-fiches</p>
+      <p>Surpris : EST, estimé à 1 fiche, en a joué 3 : la TODO estime encore au doigt mouillé</p>
+      <p>Estimé : estimé 1 fiches ≈3,91 $ · cadré 3 · joué 3 fiches ≈8,91 $</p>
     </div>
   </section>
 

@@ -10,7 +10,9 @@ fiches et $ —, `clore` l'écrira à côté du réel, sans que personne le reco
 
 **Estimé.** 1 fiches · ≈3,91 $ — ≈3,91 $/fiche sur 55 clos (le 2026-09-26).
 
-**Fait.** Rien. Ouvert le 2026-09-26, cadré en 3 fiches, `EST1` à jouer.
+**CLOS** le 2026-09-26. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** EST1..EST3 (2026-09-26) : vlp.py ouvrir note l'estimé (fiches et $, moyenne des clos), clore l'écrit à côté du réel ; /vlp:chantier passe --estime-fiches — estimé 1 fiches ≈3,91 $ · cadré 3 · joué 3 fiches ≈8,91 $.
 
 **Session** : 75f1eda3-6e28-4b15-ac57-920dcc7f7125
 
