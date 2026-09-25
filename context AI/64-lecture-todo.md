@@ -107,32 +107,44 @@ dire, et proposer d'en jouer une — ne rien estimer à sa place.
 <!-- FICHE:LEC2 -->
 ## LEC2 [ ] — Faire imprimer la TODO par la carte
 
-**Tentatives** (2026-09-25) — non résolu.
-1. FAITE refusée à la relecture.
-2. FAITE refusée à la relecture.
-Erreur : REFUSÉE — le mutant du critère survit (tests `OK` avec `section` coupée au dernier `## `) ; le critère n'est pas tenu (`test_carte_todo` n'a ni cas « deux fichiers → deux blocs » ni fichier sans titre TODO) ; la carte n'imprime que l'en-tête, pas le texte de la section TODO ; un chemin entre backticks ou suivi de prose produit le faux message « pas de ligne « chantiers possibles » ».
-
 **Session** : e41e8069-96d6-419d-8454-665a2f96394b
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` — et rien d'autre.
 
 **Prompt**
 Écris une fonction pure `section(lignes, debut, fin)` → `(a, b)` numéros de ligne 1-basés, ou
-`None` : `debut` et `fin` sont des prédicats sur un titre `## `, la section s'arrête avant le
-premier titre `## ` qui suit celui qui vérifie `fin`. `LEC3` la réemploie.
+`None` : `debut` et `fin` sont des prédicats sur un titre `## `, la section va du premier titre
+qui vérifie `debut` jusqu'avant le premier titre `## ` qui **suit** celui qui vérifie `fin` (fin
+de fichier s'il n'y en a pas). `None` si aucun titre ne vérifie `debut`, ou aucun après lui ne
+vérifie `fin` — `LEC3` en a besoin pour `METHODE=absente`. Un `## ` dans un bloc ```` ``` ```` n'est
+pas un titre. `LEC3` la réemploie ; la TODO l'appelle avec `fin` = le titre de début lui-même.
 Dans la branche « aucun » de `carte`, après sa ligne `--- fichier de fiches courant : aucun ---`,
-lis la ligne **chantiers possibles** (motif à la manière de `COURANT`), tires-en chaque chemin
-`*.md` — Cairn en nomme deux —, et imprime pour chacun la sortie retenue au socle (décisions 2 à 4).
-Fichier introuvable : `GARDE:` par `Absent`, sans lever. Ligne absente : `TODO=absente (pas de
-ligne « chantiers possibles »)`. Mets à jour l'entrée `carte` de la docstring de `vlp.py`.
+lis la ligne **chantiers possibles** (motif à la manière de `COURANT`) et **cherches-y** chaque
+chemin en `.md` — backticks ôtés, prose autour ignorée : `` `a.md`, puis `b.md` `` en donne deux,
+`context AI/08-etat.md (section TODO)` en donne un ; ne découpe pas sur des séparateurs. Pour
+chacun, imprime la sortie du socle (décisions 2 à 4) : l'en-tête `--- TODO : <chemin> (lignes
+A–B) ---` **suivi du texte des lignes A à B**, tel quel — c'est lui que `/vlp:chantier` lira à la
+place du fichier ; ou `TODO=absente <chemin>`. Fichier introuvable : `GARDE: <chemin>` par
+`Absent`, sans lever, et on passe au suivant. Ligne absente : `TODO=absente (pas de ligne
+« chantiers possibles »)`. Rien sur la méthode : c'est `LEC3`. Mets à jour l'entrée `carte` de
+la docstring de `vlp.py`.
 
 **Critère de fin**
-`py scripts/test-vlp.py` passe, dont un `test_carte_todo` bâti dans un dossier temporaire :
-deux titres TODO → le premier seul, lignes A–B exactes ; aucun titre → `TODO=absente` ; deux
-fichiers → deux blocs ; chantier ouvert → aucun bloc. Mutant : `section` qui s'arrête au dernier
-`## ` au lieu du suivant — le premier cas tombe. `py scripts/vlp.py carte` sur le kit imprime
-`--- TODO : context AI/08-etat.md (lignes A–B) ---`, A–B égales au `grep -n "^## "` du fichier.
-`pyright scripts/vlp.py scripts/test-vlp.py` : `0 errors`.
+`py scripts/test-vlp.py` passe, dont une fonction `test_carte_todo` bâtie dans un dossier
+temporaire, avec ces cas, chacun son `verifier` :
+- un fichier à **trois** titres après la TODO et **deux** titres TODO → le premier seul, lignes
+  A–B exactes, **et** la dernière ligne du texte de la section présente dans la sortie, la
+  première ligne du titre suivant absente ;
+- un fichier sans titre TODO → `TODO=absente <chemin>` ;
+- une ligne `` `a.md`, puis `b.md` `` → deux blocs, dans l'ordre ;
+- un chemin suivi de prose entre parenthèses → un bloc ;
+- un fichier nommé mais absent → `GARDE:` et le bloc du suivant quand même ;
+- un chantier ouvert → aucun bloc.
+
+Mutant : `section` qui s'arrête au **dernier** `## ` au lieu du suivant — `test-vlp.py` échoue ;
+donne la sortie. `py scripts/vlp.py carte` sur une copie du kit dont le fichier de fiches courant
+vaut « aucun » imprime `--- TODO : context AI/08-etat.md (lignes A–B) ---` puis B−A+1 lignes, A–B
+égales au `grep -n "^## "` du fichier. `pyright scripts/vlp.py scripts/test-vlp.py` : `0 errors`.
 <!-- /FICHE -->
 
 ---
