@@ -39,6 +39,10 @@ la recompte ne les voit pas non plus. L'heure de l'appel `clore` : la ligne `tim
 **Ce qu'on ne fait pas.** `NIV` et `H` (écarts sans explication, TODO n° 67) restent dehors.
 Les chiffres des clos déjà recomptés (`REC`, `ESD`) ne se réécrivent pas. Un test bâtit son
 projet dans un dossier temporaire (`methode-chantier.md`, « Anatomie d'une fiche »).
+Choix de l'utilisateur en `APC2` (2026-09-25) : **(b)**, la recompte s'arrête à l'appel `clore`,
+et les republications sortent du coût, par une règle écrite. On ne fait pas (a), réécrire le
+chiffre après le commit de clôture, ni (c), ne rien changer. Les 19 clos déjà réécrits gardent
+leur chiffre (écart affiché −15 183 055 dans `recompter`) ; le reste de 10 952 704 n'est pas corrigé.
 
 ## L'ordre des fiches
 
@@ -82,8 +86,9 @@ et sinon de combien il s'en écarte.
 ---
 
 <!-- FICHE:APC2 -->
-## APC2 [ ] — Décomposer l'écart des 19 clos, puis choisir le correctif
+## APC2 [x] — Décomposer l'écart des 19 clos, puis choisir le correctif
 
+**Session** : 2bb1a1be-0e2d-4204-93ac-25d8239cd0e0
 **Dépend de** : `APC1`.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py`, `context AI/08-etat.md` (table `## 2026-09-25 — REC2`, causes 4a et 4b ; journal) — et rien d'autre.
 

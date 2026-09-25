@@ -1180,11 +1180,23 @@ with tempfile.TemporaryDirectory() as t:
             date = "%d +0000" % (T0 + d)
             subprocess.run(["git", "commit", "-q", "--allow-empty", "-m", sujet], cwd=dep, check=True,
                            capture_output=True, env=dict(env, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date))
+        # APC2 : recompter --a-clore, un projet par fichier (q.md et r.md portent le même préfixe Q),
+        # inscrit 250 000 : ni le recompté (400 000) ni l'à-clore (300 000).
+        for p_, f_ in (("pq", "q.md"), ("pr", "r.md")):
+            ecrire(os.path.join(dep, p_, "CHANTIER.md"), "# C\n\n- **contexte** : ./\n- **index** : 00-INDEX.md\n")
+            ecrire(os.path.join(dep, p_, "00-INDEX.md"), "| Fichier | Lire quand |\n|---|---|\n"
+                   "| `../%s` | chantier **clos** « Q », `Q1..Q2` |\n" % f_)
+            ecrire(os.path.join(dep, p_, "artefacts", "feuille-de-route.html"),
+                   "    <!-- ZONE:clos — test -->\n      <table>\n        <tbody>\n"
+                   + ligne_close(mod.arrondi(250000)) + "        </tbody>\n      </table>\n")
         garde_env = dict(os.environ)
         os.environ.update(HOME=t, USERPROFILE=t)
         try:
             (code, s), (code2, s2) = (appel(["cout", os.path.join(dep, "q.md"), "--a-clore"]),
                                       appel(["cout", os.path.join(dep, "r.md"), "--a-clore"]))
+            (code3, s3), (code4, s4), (code5, s5) = (appel(["recompter", os.path.join(dep, "pq"), "--a-clore"]),
+                                                     appel(["recompter", os.path.join(dep, "pr"), "--a-clore"]),
+                                                     appel(["recompter", os.path.join(dep, "pq")]))
         finally:
             os.environ.clear()
             os.environ.update(garde_env)
@@ -1197,6 +1209,13 @@ with tempfile.TemporaryDirectory() as t:
         verifier("cout --a-clore : sans appel clore, une GARDE et pas de ligne", code2 == 0
                  and s2.splitlines()[-1] == "GARDE: aucun appel « vlp.py clore » dans la dernière plage hors fiches"
                  " — pas de ligne à clore" and "à clore ·" not in s2, s2)
+        verifier("recompter --a-clore : à clore 300 000, après clore = recompté − à clore — mutant :"
+                 " après clore = recompté − inscrit", code3 == 0 and s3.splitlines()[0] ==
+                 "Q inscrit 250 000 · recompté 400 000 · écart +150 000 · découpe · à clore 300 000 · après clore 100 000", s3)
+        verifier("recompter --a-clore : sans appel clore, la ligne le dit", code4 == 0 and s4.splitlines()[0] ==
+                 "Q inscrit 250 000 · recompté 300 000 · écart +50 000 · découpe · sans appel clore", s4)
+        verifier("recompter sans --a-clore : la ligne d'avant APC2", code5 == 0 and s5.splitlines()[0] ==
+                 "Q inscrit 250 000 · recompté 400 000 · écart +150 000 · découpe", s5)
 
 # ESD1 : sans découpe (pas de .git), les essais des sessions entières en une ligne à part, sous
 # les tables ; une session sans essai n'en a pas.

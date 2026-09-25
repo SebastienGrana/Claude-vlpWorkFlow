@@ -2030,3 +2030,104 @@ tours joués entre l'appel `clore` et le commit de clôture.
 | Recompté (`TOTAL`, plage jusqu'au commit de clôture) | 18 506 516 | 206 |
 | `après clore` (recompté − `à clore`, session seule, 0 sous-agent) | 1 771 130 | 8 |
 | Reste non expliqué (recompté − inscrit − `après clore`) | 0 | — |
+
+## 2026-09-25 — APC2
+
+`py scripts/vlp.py recompter . --a-clore` (code 0), sortie brute :
+
+```
+ESD inscrit 16 735 386 · recompté 18 506 516 · écart +1 771 130 · découpe · à clore 16 735 386 · après clore 1 771 130
+ESS inscrit 12 254 063 · recompté 13 017 121 · écart +763 058 · découpe · à clore 12 254 063 · après clore 763 058
+REC inscrit 15 906 689 · recompté 16 557 719 · écart +651 030 · découpe · à clore 15 906 689 · après clore 651 030
+JUG inscrit 11 306 457 · recompté 11 306 457 · écart +0 · découpe · à clore 10 273 570 · après clore 1 032 887
+FOR inscrit 20 371 577 · recompté 20 371 577 · écart +0 · découpe · à clore 17 689 317 · après clore 2 682 260
+RLG inscrit 9 179 817 · recompté 9 179 817 · écart +0 · découpe · partagée avec GAR, GLO, PYT, UNI · à clore 8 745 720 · après clore 434 097
+PYT inscrit 12 279 871 · recompté 12 279 871 · écart +0 · découpe · partagée avec GAR, GLO, RLG, UNI · à clore 11 561 195 · après clore 718 676
+UNI inscrit 16 613 231 · recompté 16 613 231 · écart +0 · découpe · partagée avec GAR, GLO, PYT, RLG · à clore 15 942 182 · après clore 671 049
+GAR inscrit 8 426 745 · recompté 8 426 745 · écart +0 · découpe · partagée avec GLO, PYT, RLG, UNI · à clore 7 864 973 · après clore 561 772
+GLO inscrit 15 674 582 · recompté 15 674 582 · écart +0 · découpe · partagée avec GAR, PYT, RLG, UNI · à clore 15 182 315 · après clore 492 267
+CON inscrit 15 711 661 · recompté 15 711 661 · écart +0 · découpe · à clore 14 631 523 · après clore 1 080 138
+REV inscrit 76 440 498 · recompté 76 440 498 · écart +0 · découpe · à clore 75 866 013 · après clore 574 485
+ZER inscrit 12 079 243 · recompté 12 079 243 · écart +0 · découpe · partagée avec CAD, CAS, FIN, MTK, PLA, TAR, VAL · à clore 11 633 997 · après clore 445 246
+CAD inscrit 15 724 492 · recompté 15 724 492 · écart +0 · découpe · partagée avec CAS, FIN, MTK, PLA, TAR, VAL, ZER · à clore 15 154 579 · après clore 569 913
+MTK inscrit 13 588 111 · recompté 13 588 111 · écart +0 · découpe · partagée avec CAD, CAS, FIN, PLA, TAR, VAL, ZER · à clore 12 738 440 · après clore 849 671
+PLA inscrit 13 033 400 · recompté 13 033 400 · écart +0 · découpe · partagée avec CAD, CAS, FIN, MTK, TAR, VAL, ZER · à clore 12 587 599 · après clore 445 801
+TAR inscrit 19 399 198 · recompté 19 399 198 · écart +0 · découpe · partagée avec CAD, CAS, FIN, MTK, PLA, VAL, ZER · à clore 18 799 875 · après clore 599 323
+FIN inscrit 22 962 798 · recompté 22 962 798 · écart +0 · découpe · partagée avec CAD, CAS, MTK, PLA, TAR, VAL, ZER · à clore 22 487 850 · après clore 474 948
+VAL inscrit 6 924 438 · recompté 6 924 438 · écart +0 · découpe · partagée avec CAD, CAS, FIN, MTK, PLA, TAR, ZER · à clore 6 467 267 · après clore 457 171
+CAS inscrit 11 729 608 · recompté 11 729 608 · écart +0 · découpe · partagée avec CAD, FIN, MTK, PLA, TAR, VAL, ZER · à clore 10 591 273 · après clore 1 138 335
+FIL inscrit 20 902 976 · recompté 20 902 976 · écart +0 · découpe · partagée avec SAG · à clore 20 121 243 · après clore 781 733
+SAG inscrit 22 418 911 · recompté 22 418 911 · écart +0 · découpe · partagée avec FIL · à clore 21 552 508 · après clore 866 403
+CPT inscrit 21 606 411 · recompté 21 606 411 · écart +0 · découpe · à clore 20 517 798 · après clore 1 088 613
+REP inscrit 33 108 434 · recompté 33 108 434 · écart +0 · découpe · sans appel clore
+NIV inscrit 24 964 199 · recompté 24 964 199 · écart +0 · découpe · sans appel clore
+Z inscrit 11 093 368 · recompté gardé · écart +0 · gardé — DÉCOUPE aucune (chantier clos sans commit « Z1 : » ni d'une autre fiche)
+Q inscrit 25 347 954 · recompté gardé · écart +0 · gardé — DÉCOUPE aucune (chantier clos sans commit « Q1 : » ni d'une autre fiche)
+U inscrit 17 833 383 · recompté gardé · écart +0 · gardé — DÉCOUPE aucune (chantier clos sans commit « U1 : » ni d'une autre fiche)
+Y inscrit 25 724 260 · recompté gardé · écart +0 · gardé — DÉCOUPE aucune (chantier clos sans commit « Y1 : » ni d'une autre fiche)
+J inscrit 7 579 062 · recompté gardé · écart +0 · gardé — DÉCOUPE aucune (chantier clos sans commit « J1 : » ni d'une autre fiche)
+O inscrit 9 842 371 · recompté gardé · écart +0 · gardé — DÉCOUPE aucune (chantier clos sans commit « O1 : » ni d'une autre fiche)
+F inscrit 8 781 743 · recompté gardé · écart +0 · gardé — DÉCOUPE aucune (chantier clos sans commit « F1 : » ni d'une autre fiche)
+X inscrit 12 066 918 · recompté gardé · écart +0 · gardé — DÉCOUPE aucune (chantier clos sans commit « X1 : » ni d'une autre fiche)
+W inscrit 7 305 939 · recompté gardé · écart +0 · gardé — DÉCOUPE aucune (chantier clos sans commit « W1 : » ni d'une autre fiche)
+G inscrit 8 173 778 · recompté gardé · écart +0 · gardé — DÉCOUPE aucune (chantier clos sans commit « G1 : » ni d'une autre fiche)
+A inscrit 6 156 300 · recompté gardé · écart +0 · gardé — DÉCOUPE aucune (chantier clos sans commit « A1 : » ni d'une autre fiche)
+P inscrit 8 044 250 · recompté gardé · écart +0 · gardé — DÉCOUPE aucune (chantier clos sans commit « P1 : » ni d'une autre fiche)
+L inscrit 8 002 485 · recompté gardé · écart +0 · gardé — DÉCOUPE aucune (chantier clos sans commit « L1 : » ni d'une autre fiche)
+N inscrit 7 443 783 · recompté gardé · écart +0 · gardé — DÉCOUPE aucune (chantier clos sans commit « N1 : » ni d'une autre fiche)
+K inscrit 6 203 651 · recompté gardé · écart +0 · gardé — DÉCOUPE aucune (chantier clos sans commit « K1 : » ni d'une autre fiche)
+I inscrit 6 542 829 · recompté gardé · écart +0 · gardé — DÉCOUPE aucune (chantier clos sans commit « I1 : » ni d'une autre fiche)
+D inscrit 7 164 227 · recompté gardé · écart +0 · gardé — DÉCOUPE aucune (chantier clos sans commit « D1 : » ni d'une autre fiche)
+V inscrit 19 316 675 · recompté gardé · écart +0 · gardé — sans session
+H inscrit 16 898 227 · recompté 16 898 227 · écart +0 · découpe · sans appel clore
+S inscrit 17 193 402 · recompté gardé · écart +0 · gardé — DÉCOUPE aucune (chantier clos sans commit « S1 : » ni d'une autre fiche)
+R inscrit 11 840 151 · recompté gardé · écart +0 · gardé — DÉCOUPE aucune (chantier clos sans commit « R1 : » ni d'une autre fiche)
+B inscrit 5 342 511 · recompté gardé · écart +0 · gardé — DÉCOUPE aucune (chantier clos sans commit « B1 : » ni d'une autre fiche)
+T inscrit 16 194 635 · recompté gardé · écart +0 · gardé — DÉCOUPE aucune (chantier clos sans commit « T1 : » ni d'une autre fiche)
+C inscrit 7 816 316 · recompté gardé · écart +0 · gardé — DÉCOUPE aucune (chantier clos sans commit « C1 : » ni d'une autre fiche)
+M inscrit 11 362 254 · recompté gardé · écart +0 · gardé — DÉCOUPE aucune (chantier clos sans commit « M1 : » ni d'une autre fiche)
+E inscrit 0 · recompté gardé · écart +0 · gardé — fichier introuvable
+RECOMPTE 51 clos · 26 recomptés · 25 gardés · inscrit 758 613 268 · recompté 761 798 486 · écart +3 185 218
+```
+
+Les 19 clos des causes 4a et 4b de `REC2` portent déjà le recompté (écart +0 ci-dessus) : l'écart
+est celui de `REC2` (recompté − inscrit d'alors). Reste = écart − `après clore`. Calcul croisé par
+script sur la sortie et la table `REC2` (colonne « Page : total »), pas à la main.
+
+| Clos | Cause `REC2` | Écart | `après clore` | Reste | L'après-clore l'explique |
+|---|---|---:|---:|---:|---|
+| JUG | 4b | +1 032 887 | 1 032 887 | 0 | entièrement |
+| FOR | 4b | +2 682 260 | 2 682 260 | 0 | entièrement |
+| RLG | 4b | +434 097 | 434 097 | 0 | entièrement |
+| PYT | 4b | +718 676 | 718 676 | 0 | entièrement |
+| UNI | 4b | +671 049 | 671 049 | 0 | entièrement |
+| GAR | 4b | +837 905 | 561 772 | 276 133 | en partie — page = à clore |
+| GLO | 4b | +1 889 876 | 492 267 | 1 397 609 | en partie — page = à clore |
+| CON | 4b | +1 801 023 | 1 080 138 | 720 885 | en partie — page = à clore |
+| REV | 4b | +1 651 444 | 574 485 | 1 076 959 | en partie — page = à clore |
+| ZER | 4b | +870 062 | 445 246 | 424 816 | en partie — page = à clore |
+| CAD | 4b | +1 120 896 | 569 913 | 550 983 | en partie — page = à clore |
+| MTK | 4b | +1 395 427 | 849 671 | 545 756 | en partie — page = à clore |
+| PLA | 4b | +1 094 592 | 445 801 | 648 791 | en partie — page = à clore |
+| TAR | 4b | +1 756 465 | 599 323 | 1 157 142 | en partie — page = à clore |
+| FIN | 4b | +1 091 080 | 474 948 | 616 132 | en partie — page = à clore |
+| VAL | 4b | +1 276 532 | 457 171 | 819 361 | en partie — page = recompté |
+| CAS | 4b | +1 687 993 | 1 138 335 | 549 658 | en partie — page = recompté |
+| SAG | 4a | +1 783 610 | 866 403 | 917 207 | en partie — reste = hors fiches clôture avant `clore` |
+| CPT | 4a | +2 339 885 | 1 088 613 | 1 251 272 | en partie — reste = hors fiches clôture avant `clore` |
+| **19** | | **+26 135 759** | **15 183 055** | **10 952 704** | |
+
+**Comptes.** Entièrement : **5** (`JUG`, `FOR`, `RLG`, `PYT`, `UNI`) · en partie : **14** · pas du
+tout : **0** — 5 + 14 + 0 = 19. Sans appel `clore` retrouvé : **0** des 19 ; 3 sur tous les
+recomptés (`REP`, `NIV`, `H`). Les 3 clos non recomptés
+(`ESD`, `ESS`, `REC`) : `à clore` = inscrit au token près, `après clore` = écart, somme +3 185 218 =
+écart de la ligne `RECOMPTE`.
+
+**Ce que dit le reste, sans cause supposée.** 10 clos (`GAR` à `FIN`) : `à clore` égale **au token
+près** le total de la page du chantier ; c'est l'inscrit de la feuille qui est plus bas. `VAL`,
+`CAS` : la page égale le recompté, l'inscrit est sous `à clore`. `SAG`, `CPT` (4a, l'inscrit = les
+fiches seules) : reste + `après clore` = hors fiches côté clôture de `REC2` (917 207 + 866 403 =
+1 783 610 ; 1 251 272 + 1 088 613 = 2 339 885). `SAG` : son `à clore` compte 506 675 d'essais
+(`ESD`) absents de `REC2` ; le reste n'en dépend pas. L'hypothèse du socle `APC` tient **en
+entier pour les 3 clos les plus récents et 5 des 19** ; pour les 14 autres, l'inscrit est sous
+`à clore` : ce qui l'a fait plus bas n'est pas établi ici.

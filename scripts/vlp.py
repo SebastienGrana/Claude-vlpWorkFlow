@@ -221,6 +221,8 @@ Sous-commandes :
   écart non nul prend `recompté (REC), était <n> · <arrondi>`, un gardé `non recompté — <raison> ·
   <chiffre>` — la marque en tête, que `BRUT` ne lit qu'en fin —, puis pied et résumé resommés
   (`resommer`) ; relancé, rien ne change. Dernière ligne `ÉCRIT <n> cellules · total <avant> → <après>`.
+  `--a-clore` : chaque ligne recomptée finit par ` · à clore <n> · après clore <n>` (le calcul de
+  `cout --a-clore`, après clore = recompté − à clore), ou ` · sans appel clore`.
 
 Python 3 sans dépendance, zéro appel modèle.
 
@@ -565,12 +567,12 @@ def cmd_cout(chemin, session, sortie, a_clore=False):
     sortie.write(ligne_parts("hors fiches", *hors) + "\n")
     sortie.write(ligne_parts("TOTAL (fiches + hors fiches)", *totaux(decoupe)) + "\n")
     if a_clore:
-        t = heure_clore(chemin, lignes)
-        if t is None:
+        avant = totaux_a_clore(chemin, lignes)
+        if avant is None:
             sortie.write("GARDE: aucun appel « vlp.py clore » dans la dernière plage hors fiches"
                          " — pas de ligne à clore\n")
             return code
-        avant, tout = totaux(decouper(chemin, lignes, t)[0]), totaux(decoupe)
+        tout = totaux(decoupe)
         sortie.write(ligne_parts("à clore", *avant) + "\n")
         sortie.write(ligne_parts("après clore", *[(a[0] - b[0], a[1] - b[1], moins(a[2], b[2]), a[3] - b[3])
                                                   for a, b in zip(tout, avant)]) + "\n")
@@ -613,6 +615,13 @@ def heure_clore(chemin, lignes):
                 if t is not None and debut < t <= fin:
                     vu = t if vu is None else max(vu, t)
     return vu
+
+
+def totaux_a_clore(chemin, lignes):
+    """Les `totaux` de la découpe dont la dernière plage hors fiches s'arrête à `heure_clore`, ou
+    None sans appel `clore` : le calcul de `cout --a-clore` et de `recompter --a-clore`."""
+    t = heure_clore(chemin, lignes)
+    return None if t is None else totaux(decouper(chemin, lignes, t)[0])
 
 
 def decouper(chemin, lignes=None, fin=None):
@@ -2430,10 +2439,11 @@ def marquer_essais(cellule, brut, ajout):
     return "%s%s · %s%s" % (MARQUE_ESSAIS, signe(ajout), tete, n if "(" in n else "(%s)" % n)
 
 
-def cmd_recompter(projet, sortie, ecrire=False, essais=False):
+def cmd_recompter(projet, sortie, ecrire=False, essais=False, a_clore=False):
     """Chaque ligne de `ZONE:clos` recomptée par `cout` sur son fichier de fiches, que l'index
     nomme au même préfixe ; n'écrit rien sans `ecrire` (chantier REC). Avec `--essais`,
-    n'ajoute que la part essais (chantier ESD)."""
+    n'ajoute que la part essais (chantier ESD). `a_clore` : chaque ligne recomptée finit par
+    `à clore` et `après clore` (`totaux_a_clore`), ou `sans appel clore` (chantier APC)."""
     if not equipe(projet):
         sortie.write("GARDE: pas de CHANTIER.md dans %s\n" % projet)
         return 1
@@ -2484,9 +2494,14 @@ def cmd_recompter(projet, sortie, ecrire=False, essais=False):
             continue
         e = 0 if recompte_ is None else recompte_ - brut
         n, inscrit, ecart = n + (recompte_ is not None), inscrit + brut, ecart + e
-        sortie.write("%s inscrit %s · recompté %s · écart %s · %s%s\n" % (
+        clore_ = ""
+        if a_clore and recompte_ is not None:
+            avant = totaux_a_clore(chemin, lignes_de(chemin))
+            clore_ = " · sans appel clore" if avant is None else " · à clore %s · après clore %s" % (
+                milliers(plus(*avant)[0]), milliers(recompte_ - plus(*avant)[0]))
+        sortie.write("%s inscrit %s · recompté %s · écart %s · %s%s%s\n" % (
             prefixe, milliers(brut), "gardé" if recompte_ is None else milliers(recompte_), signe(e), methode,
-            partage))
+            partage, clore_))
         neufs[r] = CELLULE_CLOS.sub(lambda c: c.group(1) + marquer(c.group(2), brut, recompte_, methode)
                                     + c.group(3), r, count=1)
     if essais:
@@ -3214,6 +3229,7 @@ def main(argv, sortie=None, entree=None, erreur=None):
     rc.add_argument("projet")
     rc.add_argument("--ecrire", action="store_true")
     rc.add_argument("--essais", action="store_true")
+    rc.add_argument("--a-clore", action="store_true")
     a = p.parse_args(argv)
     try:
         return repartir(a, sortie, entree, erreur)
@@ -3268,7 +3284,7 @@ def repartir(a, sortie, entree, erreur):
     if a.cmd == "gardien":
         return une_fois(entree, cmd_gardien, sortie)
     if a.cmd == "recompter":
-        return cmd_recompter(a.projet, sortie, a.ecrire, a.essais)
+        return cmd_recompter(a.projet, sortie, a.ecrire, a.essais, a.a_clore)
     chemin_garde(a.fichier)
     if a.cmd == "extraire":
         return cmd_extraire(a.fichier, a.fiche, sortie)
