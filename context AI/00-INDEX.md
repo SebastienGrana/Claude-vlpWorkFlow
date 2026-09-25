@@ -33,7 +33,7 @@ a l'air proche.
 | `52-contrat-sortie.md` | on relit le socle du chantier CON — **clos** « Le contrat du sous-agent, vérifié à sa sortie », `CON1..CON5` |
 | `53-claude-global.md` | on relit le socle du chantier GLO — **clos** « Le CLAUDE.md de l'utilisateur dans le sous-agent », `GLO1..GLO3` |
 | `54-gardien-renvoie.md` | on relit le socle du chantier GAR — **clos** « Le gardien renvoie pour de vrai », `GAR1..GAR3` |
-| `55-un-chiffre.md` | on joue une fiche `UNI*` — chantier **ouvert** « Un seul chiffre par clôture », `UNI1..UNI2` |
+| `55-un-chiffre.md` | on relit le socle du chantier UNI — **clos** « Un seul chiffre par clôture », `UNI1..UNI2` |
 | `35-bilan.md` | on doit expliquer le kit — d'où il vient, ce qu'il sait faire aujourd'hui, ce qu'il ne promet pas ; les 22 chantiers chiffrés |
 | `36-gardes.md` | on relit le socle du chantier Z — **clos** « Une GARDE au lieu d'un traceback », `Z1..Z4` |
 | `37-niveau.md` | on relit le socle du chantier NIV — **clos** « Remettre les projets équipés à niveau », `NIV1..NIV4` |

@@ -68,26 +68,30 @@
     <p>clore mesure lui-même le total du chantier et l'écrit sur la page, la feuille de route et au bilan : un seul chiffre.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="encours"></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">2 fiches · 0 faite · en cours : UNI1</p>
+    <p class="mono" style="margin-top:.5rem">2 fiches · 2 faites</p>
   </header>
 
   <section>
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">UNI1</span><span class="titre">Faire mesurer le total par clore</span>
-        <span class="etat">en cours</span>
+        <span class="etat">faite</span>
         <span class="note">clore reprend le total de regenerer ; --tokens devient un contrôle (ÉCART)</span>
+        <span class="cout mono">≈11,7M (11 734 125) · 86 tours · 3,01 $</span>
       </li>
-      <li class="fiche">
+      <li class="fiche" data-etat="faite">
         <span class="id">UNI2</span><span class="titre">Citer le chiffre de clore au bilan</span>
-        <span class="etat">à faire</span>
+        <span class="etat">faite</span>
         <span class="note">cloture.md cite le chiffre de clore au bilan — dépend de UNI1</span>
+        <span class="cout mono">≈1,9M (1 857 590) · 12 tours · 0,75 $</span>
       </li>
     </ul>
+    <p class="mono cout-hors">Hors fiches : ≈2,4M (2 350 467) · 8 tours · 0,71 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈15,9M (15 942 182) · 106 tours · 4,47 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -108,10 +112,11 @@
   </section>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
-  <section hidden>
-    <h2>Chantier clos le </h2>
+  <section>
+    <h2>Chantier clos le 2026-09-25</h2>
     <div class="bilan">
-      <p></p>
+      <p>Livré : clore mesure le total du chantier et l'écrit partout ; --tokens n'est plus qu'un contrôle ; cloture.md cite ce chiffre au bilan</p>
+      <p>Surpris : UNI1 rendue FAITE avec l'ÉCART dans une branche morte et sans son test : aucune relecture ne l'aurait vu sans ce test</p>
     </div>
   </section>
 

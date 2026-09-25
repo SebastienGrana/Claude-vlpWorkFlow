@@ -276,6 +276,15 @@
   renvoi arrive deux fois (`python3` et `py`, chantier `PYT`) ; aucun test ne garde l'absence
   de `sonde`. 89 tours, 7 588 840 tokens, 2,54 $.
 
+- **2026-09-25** — chantier UNI clos (TODO n° 52) : un seul chiffre par clôture. `clore`
+  écrit sur la feuille de route le total que `regenerer` vient de mettre sur la page, et le
+  rend (`CLOS … · chantier <n> · cumul <m>`) ; `--tokens` n'est plus qu'un contrôle
+  (`ÉCART`) ; `cloture.md` fait `clore` d'abord et cite ce chiffre au bilan. Prouvé sur UNI
+  elle-même : page et `CLOS` à 15 942 182. UNI1 rendue `FAITE` avec l'`ÉCART` dans une branche
+  morte et sans son test, corrigée par le chef ; UNI2 écrite par le chef. Laissé ouvert : la
+  ligne de bilan s'écrit après la page, donc ses propres tours n'y sont pas — quelques
+  milliers, hors du chiffre. 106 tours, 15 942 182 tokens, 4,47 $.
+
 ## La TODO ordonnée — les chantiers possibles
 
 C'est d'ici que `/chantier` tire ses propositions. Un chantier par entrée, cité
@@ -292,7 +301,6 @@ celle de `FIL` ; 48 à 51, de celle de `FIN` ; 52, des clôtures de la nuit du
 
 | # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |
 |---|---|---|---|---|
-| 52 | `UNI` — Un seul chiffre par clôture | `clore --tokens N` écrit N au bilan et sur la feuille de route, puis régénère la page, qui recompte quelques tours plus tard : deux chiffres pour un même chantier. La nuit du 2026-09-24 : `MTK` 12 192 684 au bilan, 12 738 440 sur sa page ; `PLA` 11 938 808 et 12 587 599 ; `CAD` 14 603 596 et 15 154 579 ; `ZER` 11 209 181 et 11 633 997. Règle 3 : un nombre vit à un seul endroit. `clore` mesurera le total lui-même, et l'écrira partout. 🟡 À trancher : garder `--tokens` comme contrôle, ou le retirer. | ~1 fiche | — |
 | 37 | `RCP` — Recompter les chantiers clos au coût juste | Le total de la feuille de route (507 255 781 tokens, 39 clos) additionne des bilans comptés de trois façons : avant `CPT`, sessions entières sans sous-agents ; depuis, coupés aux commits ; `REP` recompté (`CPT4`). À blanc la nuit du 2026-09-24, sans rien écrire : 36 fichiers clos à lignes `**Session**`, 49 transcriptions sur 49 présentes. 26 se coupent aux commits ; dix n'ont aucun commit de fiche — M, C, T, S, L, W, X, F, O, Q — et retombent, depuis `ZER`, sur leurs sessions entières, qui sur-comptent quand une session a enchaîné plusieurs chantiers : Q 33 003 302 contre 23 753 914 inscrits. `FIL` passe de 42 638 103 à 20 319 194 : l'ancien découpage lui comptait le sous-agent de `SAG`, leur session étant partagée. 🟡 Pour les dix : garder l'ancien chiffre, ou prendre les sessions entières. Chaque ancien chiffre reste, marqué (énoncé renversé, `methode-chantier.md`). | ~2 fiches | — |
 | 47 | `ESS` — Les essais `claude -p` dans le coût | Un essai `claude -p` tourne dans une autre session, que `cout` ne voit pas : il s'ajoute à la main, « hors total ». Au moins 14 chantiers clos en portent — 12 sur la feuille de route, `SAG` et `FIL` au fichier d'état —, ≈ 12,32 $ absents de tout total (somme faite à la main). `cout` ira chercher les sessions des bacs lancées pendant la fiche. 🟡 Les relier à leur fiche — dossier du bac, heure —, et le sort des evals : à trancher au cadrage. Même but que `FIN`, autre mécanisme. | ~1 fiche | — |
 | 36 | `EST` — L'estimé face au réel, à chaque clôture | La TODO estime chaque chantier ; rien ne compare ensuite. `CPT`, estimé « ~2 fiches », en a joué 4. Le bilan de clôture écrira l'estimé à côté du réel — fiches jouées, tokens —, pour que `/vlp:chantier` estime mieux les suivants. | ~1 fiche | — |

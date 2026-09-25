@@ -9,8 +9,9 @@
 tours plus tard, en affiche un autre (TODO n° 52). Ce soir encore : `GLO` 13 784 706 au
 bilan, 15 182 315 sur sa page ; `GAR` 7 588 840 et 7 864 973. Un nombre, un seul endroit.
 
-**Fait.** Rien. Ouvert le 2026-09-25, cadré en 2 fiches, `UNI1` à jouer. Cadré seul :
-l'utilisateur dormait ; les 🟡 tranchés ici sont à valider au réveil.
+**CLOS** le 2026-09-25. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** UNI1..UNI2 (2026-09-25) : clore mesure le total du chantier et l'écrit partout ; --tokens n'est plus qu'un contrôle ; cloture.md cite ce chiffre au bilan.
 
 **Session** : ca431cf8-167e-4c10-8bce-210c5f48a675
 
