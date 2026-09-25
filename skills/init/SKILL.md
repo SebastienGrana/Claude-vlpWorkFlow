@@ -8,7 +8,7 @@ Arguments reçus :
 
 $ARGUMENTS
 
-Python du poste — `<python>`, plus bas, vaut ce `PYTHON=` : !`py "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python py; python3 "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python python3 --relais; py "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python py --relais; echo fin`
+Python du poste — `<python>`, plus bas, vaut ce `PYTHON=` : !`py "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python py 2>"${CLAUDE_PLUGIN_ROOT}/relais-python.err"; python3 "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python python3 --relais 2>>"${CLAUDE_PLUGIN_ROOT}/relais-python.err"; py "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python py --relais 2>>"${CLAUDE_PLUGIN_ROOT}/relais-python.err"; echo fin`
 
 Équipe **un** projet de la méthode « chantiers et fiches » : après ça,
 `/vlp:chantier` et `/vlp:tache` marchent dedans sans qu'on ait à leur dire où on est.

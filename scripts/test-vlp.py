@@ -1750,6 +1750,17 @@ verifier("NIV1 : chaque appel de lanceur detourne sa sortie d'erreur",
 verifier("NIV1 : aucune syntaxe propre a un seul shell",
          "$null" not in injection and "/dev/null" not in injection, injection)
 
+# Dette REL : NIV1 n'avait passé que chantier et tache ; toute injection de carte détourne ses erreurs.
+sans_relais = []
+for chemin_skill in sorted(glob.glob(os.path.join(RACINE, "skills", "*", "SKILL.md"))):
+    for bout in io.open(chemin_skill, encoding="utf-8").read().split("!`")[1:]:
+        bout = bout.split("`")[0]
+        appels = bout.count('/scripts/vlp.py" carte')
+        if appels and not (appels == 3 == bout.count('"${CLAUDE_PLUGIN_ROOT}/relais-python.err"')
+                           and bout.count('2>"') == 1 and bout.count('2>>"') == 2):
+            sans_relais.append(os.path.basename(os.path.dirname(chemin_skill)))
+verifier("NIV1 : toute skill qui injecte la carte détourne ses erreurs", sans_relais == [], repr(sans_relais))
+
 s_niv1 = io.StringIO()
 mod.carte_injectee(os.path.join(RACINE, "scripts"), "py", False, s_niv1)
 lu_n = s_niv1.getvalue()
