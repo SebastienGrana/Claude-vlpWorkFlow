@@ -397,7 +397,6 @@ celle de `FIL` ; 48 à 51, de celle de `FIN` ; 52, des clôtures de la nuit du
 | 63 | `ECH` — `ECRIT_GIT` ne lit pas le texte d'un heredoc | Le gardien a refusé à deux relecteurs de `RLG1` (2026-09-25) un heredoc ou un `echo` qui ne faisait qu'écrire les mots `git commit` ou `git add` dans un fichier de sonde. `ECRIT_GIT` cherche le motif dans toute la commande. Vrai aussi pour `vlp:fiche`, depuis `CON`. 🟡 Jusqu'où lire le shell : couper les chaînes citées ne suffit pas pour un heredoc. | ~0,5 fiche | — |
 | 64 | `SON` — Rejouer un hook à la main sans le tampon | `une_fois` (chantier `PYT`) fait taire la même entrée rejouée en moins de 60 s, même par une autre copie de `vlp.py` : un relecteur de `RLG1` a dû ajouter un `nonce` pour comparer AVANT et APRÈS. Une variable d'environnement, ou une option, qui saute le tampon hors d'un vrai hook. | ~0,5 fiche | — |
 | 66 | `OUV` — Une ligne qui s'ouvre par un mot de jauge, sans être une jauge | Reste de `JUG` : le gardien (règle `tete`) renvoie une ligne qui **commence** par « Imprévu », « Pas bon »… même quand ce n'est pas la jauge — une puce `- Imprévu : j'ai dû…`, un `REFUSÉE` dont une ligne s'ouvre par « Pas bon ». Absent des 29 sous-agents mesurés en `JUG1` ; `stop_hook_active` borne le coût à un renvoi. 🟡 Exiger l'émoji de la jauge devant le mot, ou le mot suivi de `—`/`…`/fin de ligne : à mesurer sur le corpus comme en `JUG1` (`forme --regle`). | ~0,5 fiche | — |
-| 69 | `ENC` — `/vlp:enchainer` rejoue une fiche floue | Vu le 2026-09-25 sur `LEC2` : 4 `FAITE` refusées à la relecture, 6,96 $ (`vlp.py cout` : session 3,53 $ + 8 sous-agents 3,43 $). Refus 1 et 2 : la fiche (critère qui ne vérifiait que l'en-tête, socle qui voulait toute la section) ; refus 3 : le sous-agent ; refus 4 : une règle du chef, réécrite sans essai sur les vraies lignes, inapplicable (`context AI/` a une espace). Jouée à la main, elle passe du premier coup (`c17ac4d`). Rien dans la commande ne demande « la fiche ou le sous-agent ? » avant de rejouer. L'argument `main` (aucun sous-agent) est posé le même jour, jamais essayé en vrai. 🟡 À trancher : le relecteur dit-il dans son verdict si la faute est dans la fiche ; au 2ᵉ refus, proposer `main`. Demandé par l'utilisateur ; rang pas encore fixé, d'où la fin de table. | ~1 fiche | — |
 
 ## Journal des décisions
 
@@ -2208,3 +2207,13 @@ méthode : la carte les a donnés.
 - Face au cadrage à la main : **l'après ne baisse pas** — `equiv` 122 263 → 148 740, `usd` 0.49 →
   0.59. Deux séances différentes, et l'après porte les 3 appels du montage : l'écart ne se lit
   pas comme le prix de la carte.
+
+## 2026-09-26 — ENC (clos)
+
+Livré : `cocher --refuser` dit le rang du refus (`· refus <n>`, ENC1) ; le relecteur
+classe `REFUSÉE` en `fiche` ou `copie` et propose une `RÉÉCRITURE` sous la première
+(ENC2) ; le chef pose un questionnaire à quatre options — réécrire, rejouer telle
+quelle, jouer à la main, s'arrêter — avant de rejouer un refus, sans jamais réécrire
+une fiche de lui-même (ENC3). Joué en `main` de bout en bout : l'essai grandeur
+nature n'a rencontré aucune permission refusée. Laissé ouvert : rien, les trois
+fiches sont faites. Coût du chantier : 17 228 202 (`vlp.py cout`).

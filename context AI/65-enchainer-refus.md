@@ -8,7 +8,9 @@
 chez le sous-agent : `LEC2`, 4 refus, 6,96 $ (TODO 69). Le relecteur dira la cause, le chef
 la montrera dans un questionnaire, et proposera `main` au 2ᵉ refus.
 
-**Fait.** Rien. Ouvert le 2026-09-25, cadré en 3 fiches, `ENC1` à jouer.
+**CLOS** le 2026-09-26. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** ENC1..ENC3 (2026-09-26) : cocher --refuser dit le rang du refus (ENC1) ; le relecteur classe REFUSÉE en fiche ou copie et propose une RÉÉCRITURE (ENC2) ; le chef pose un questionnaire à 4 options avant de rejouer un refus (ENC3).
 
 **Session** : 584acc32-1973-4176-ab5c-7f2ebade2388
 
