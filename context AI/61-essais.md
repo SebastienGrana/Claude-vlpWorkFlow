@@ -53,8 +53,9 @@ Rien n'est parallélisable : chaque fiche lit ce que la précédente établit.
 ---
 
 <!-- FICHE:ESS1 -->
-## ESS1 [ ] — Mesurer les bacs contre les essais notés
+## ESS1 [x] — Mesurer les bacs contre les essais notés
 
+**Session** : f11bd1c7-b0df-49c4-8d78-4e609513bec3
 **Dépend de** : rien.
 **Fichiers** : `context AI/08-etat.md`, `context AI/30-ouvrir.md`, `context AI/40-cout-juste.md`,
 `context AI/artefacts/feuille-de-route.html` (grep `hors total` seulement) ; `~/.claude/projects/`.

@@ -68,23 +68,24 @@
     <p>vlp.py cout compte les essais claude -p dans le prix de leur fiche, avec une part essais à côté ; les 14 clos recomptés face aux ≈ 12,32 $ notés à la main</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="encours"></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">4 fiches · 0 faite · en cours : ESS1</p>
+    <p class="mono" style="margin-top:.5rem">4 fiches · 1 faite · en cours : ESS2</p>
   </header>
 
   <section>
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">ESS1</span><span class="titre">Mesurer les bacs contre les essais notés</span>
-        <span class="etat">en cours</span>
-        <span class="note">Table des essais notés à la main face aux dossiers des bacs ; aucune dépendance</span>
+        <span class="etat">faite</span>
+        <span class="note">8 sondes notées, 8 trouvées, 0 absente (4,5734 $ notés, 4,3001 $ mesurés) ; 10 evals notées, 0 dossier (7,74 $, dehors) ; 13 dossiers sans note (Y, U, Q : 3,5982 $) ; 39 dossiers = 7,8983 $</span>
+        <span class="cout mono">≈2,4M (2 387 694) · 23 tours · 1,51 $</span>
       </li>
-      <li class="fiche">
+      <li class="fiche" data-etat="encours">
         <span class="id">ESS2</span><span class="titre">Trouver les essais d'une session</span>
-        <span class="etat">à faire</span>
+        <span class="etat">en cours</span>
         <span class="note">Fonction essais_de et son test à mutant ; dépend d'ESS1</span>
       </li>
       <li class="fiche">
@@ -98,6 +99,8 @@
         <span class="note">Les clos recomptés, écarts rangés par cause, sans republier ; dépend d'ESS3</span>
       </li>
     </ul>
+    <p class="mono cout-hors">Hors fiches : ≈2,7M (2 704 051) · 22 tours · 2,00 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈5,1M (5 091 745) · 45 tours · 3,51 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -114,6 +117,7 @@
     <h2>Journal des décisions</h2>
     <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
     <ul class="journal">
+      <li><time datetime="2026-09-25">2026-09-25</time><span>ESS1 : les 12,32 $ de la TODO = 4,57 $ de sondes + 7,74 $ d'evals (dehors) ; Y, U, Q ont 3,60 $ de bacs jamais notés</span></li>
     </ul>
   </section>
 

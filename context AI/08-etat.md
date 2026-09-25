@@ -379,6 +379,17 @@ celle de `FIL` ; 48 à 51, de celle de `FIN` ; 52, des clôtures de la nuit du
 Une ligne par décision imprévue tranchée en cours de fiche — jamais un résumé
 de ce que le code dit déjà.
 
+- **2026-09-25** — ESS1, les ≈ 12,32 $ de la TODO n° 47 sont **deux choses** : 4,57 $ de sondes
+  `claude -p` (8 notes) et 7,74 $ d'evals (10 notes). Les evals sont dehors par le cadrage :
+  `ESS` ne rattrape que les 4,57 $ notés — 4,30 $ trouvés en dossier. Table : `## 2026-09-25 — ESS1`.
+- **2026-09-25** — ESS1, trois clos ont des bacs **sans aucune note** : `Y` 1,6679 $, `U` 0,8862 $,
+  `Q` 1,0441 $ (3,5982 $, 13 dossiers). `ESS` les ajoutera — au-delà de ce que la TODO chiffrait.
+- **2026-09-25** — ESS1, `X` : 0,6171 $ en 19 dossiers pour 0,90 $ notés (−0,2829 $), seul écart
+  au-delà du centime. Tous ses bacs sont en `-w-` (Windows) ; des sondes Ubuntu hors de ce disque
+  l'expliqueraient — non vérifié.
+- **2026-09-25** — ESS1, un sous-agent voit le scratchpad **à l'id de son chef** : 83 transcripts
+  `subagents/` sur 83 qui citent un scratchpad. Mais aucun des 39 bacs n'a été lancé par un
+  sous-agent : le cas « essai d'un `vlp:fiche` » reste non observé.
 - **2026-09-25** — CON5, le gardien prouvé après `/reload-plugins` (`10 hooks`). Témoin `CON9`
   dont le prompt demande `git add` puis `git commit`, joué par `vlp:jouer` (agent
   `a626844e3b44445ba`). `HEAD` avant et après : `60ef683` (`git log -1 --format='%h %s'`). Le
@@ -1887,3 +1898,42 @@ n'a pas de ligne hors fiches).
 | **Total** | 48 | 681 541 003 | 700 725 374 | +19 184 371 |
 
 Somme des écarts par cause **+19 184 371** · écart de la ligne `RECOMPTE` **+19 184 371**.
+
+## 2026-09-25 — ESS1
+
+Script jetable du scratchpad (`bacs.py`, rien dans `scripts/`) sur `~/.claude/projects/*-scratchpad-*` :
+**39 dossiers**, **11 sessions parentes**, 89 `.jsonl` de tête, **7,8983 $** (`mesure-tokens.py`,
+`usd_exact`, sous-agents des essais compris). Les 11 parents ont leur `<id>.jsonl` dans le dossier
+du kit, et chacun est cité par un fichier de fiches de `context AI/`. Tous lancés par le chef : les
+sessions à lanceur non lu dans la commande (`X`, `Y`, `P`, témoin de `L`) n'ont aucun sous-agent.
+
+Notes relevées : 12 lignes de la feuille de route (« plus … $ de sondes / d'evals / de runs ») et
+2 du fichier d'état (« Hors total : … »). Le mot « hors total » n'est écrit qu'une fois en minuscule,
+dans la TODO n° 47 elle-même : le grep de la fiche ne trouvait rien d'autre.
+
+**Essais notés → dossier** (sondes `claude -p`, le périmètre d'`ESS`) :
+
+| Chantier | Noté | Dossiers (parent · bacs) | Mesuré | Écart |
+|---|---:|---|---:|---:|
+| `X` | 0,90 | `fd4ebe27` · 19 bacs `x1-w-*`, `x2-w*`, `x3-w*` | 0,6171 | −0,2829 |
+| `G` | 0,115 | `1e8a6fc3` · `bacg` | 0,1153 | +0,0003 |
+| `A` | 0,22 | `72b06e7b` · `bacA` | 0,2211 | +0,0011 |
+| `P` | 0,75 | `b59e04ab` · `bac-p1`, `bac-p3` | 0,7503 | +0,0003 |
+| `L` | 1,26 | `93b3a242` · `sonde-l3`, `temoin` | 1,2636 | +0,0036 |
+| `N` | 0,56 | `0b3db2da` · `sonde-n1` | 0,5643 | +0,0043 |
+| `SAG` | 0,45590805 | `1cba232a` · `bacsag2`, `b4` | 0,4559 | −0,0000 |
+| `FIL` | 0,31252785 | `49006a92` · `f3` | 0,3125 | −0,0000 |
+| **8 notés** | **4,5734** | **8 trouvés · 0 absent** | **4,3001** | −0,2733 |
+
+**Evals notées → dossier** (dehors par le cadrage) : `O` 0,29 · `F` 0,29 · `W` 0,67 · `A` 0,81 ·
+`P` 0,59 · `L` 1,00 · `N` 0,62 · `K` 0,85 · `I` 0,37 · `V` 2,25 (runs) — **10 notées, 0 trouvée,
+7,74 $**. Attendu : un eval ne tourne pas dans un bac du scratchpad.
+
+**Dossiers sans note** : `Y` (`6a0eaab3` · `y1-ya`, `y3-yb`, `y5-zb`) 1,6679 · `U` (`1b086951` ·
+`ps51`, `bacu1`, `bacu4`, `bacu5`) 0,8862 · `Q` (`d3864b7b` · `bacq1`, `bacq4`, `bacq4b`) 1,0441 —
+**13 dossiers, 3 chantiers, 3,5982 $**.
+
+Face au ≈ 12,32 $ de la TODO : 4,5734 (sondes) + 7,74 (evals) = **12,3134 $** — le « 12,32 »
+arrondissait `SAG` à 0,46. Dossiers : 4,3001 (notés) + 3,5982 (sans note) = **7,8983 $**, le total du
+script. Critère d'arrêt (plus d'un noté sur quatre sans dossier) : **0 / 8** sur les sondes ; 10 / 18
+si l'on compte les evals, que le cadrage a mises dehors.
