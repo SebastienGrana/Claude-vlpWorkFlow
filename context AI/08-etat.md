@@ -2135,3 +2135,40 @@ fiches seules) : reste + `après clore` = hors fiches côté clôture de `REC2` 
 (`ESD`) absents de `REC2` ; le reste n'en dépend pas. L'hypothèse du socle `APC` tient **en
 entier pour les 3 clos les plus récents et 5 des 19** ; pour les 14 autres, l'inscrit est sous
 `à clore` : ce qui l'a fait plus bas n'est pas établi ici.
+
+## 2026-09-25 — LEC1
+
+**La séance d'avant.** `2f9a46f3-70ad-4145-a7c8-ada5aefa0034` (2026-09-24, `/vlp:chantier` sans
+argument) : la dernière qui lit `08-etat.md` par un `Read` sans `offset`. Les deux plus récentes
+(`2d0c4c56`, `2ff884ef`) recevaient le chantier en argument et lisaient par `grep` ou plage.
+⚠️ Ce `Read` est **tronqué par l'outil** : lignes 1–453 rendues sur 1 222 (commit `637bbf0`),
+47 938 caractères. L'« avant » mesuré est donc une lecture de 453 lignes, pas du fichier entier ;
+le fichier en fait 2 137 aujourd'hui. Rien n'est estimé à la place.
+
+Plage `2026-09-24T06:41:13.306Z` → `2026-09-24T06:45:44.475Z` (1er `AskUserQuestion`) :
+`tours` 3, appels 4 (`Read`=2 `Bash`=1 `AskUserQuestion`=1), `ctx_1er` 72 733, `ctx_dernier`
+110 515, `output` 28 673, `equiv` 285 200, `usd` 1.14.
+
+**L'après fait à la main.** `44909b3f-749f-48b6-b44b-9fdfb6a43588`, plage
+`2026-09-25T18:11:24.470Z` → `2026-09-25T18:12:18.718Z` : `tours` 6, appels 6 (`Bash`=2 `Read`=1
+`Grep`=1 `Skill`=1 `AskUserQuestion`=1), `ctx_1er` 67 539, `ctx_dernier` 85 624, `output` 3 685,
+`equiv` 122 263, `usd` 0.49. Commande : `py scripts/mesure-tokens.py --plage <début> <fin> <id>`.
+Deux séances sur deux sujets : l'écart ne s'attribue pas à la seule lecture de la TODO.
+
+**Les cinq projets** (décisions 2 et 5 du socle `LEC`, calculées sur les titres `## `) :
+
+| Projet | Fichier TODO (lignes) | Titre TODO | Section | Méthode : titres trouvés |
+|---|---|---|---|---|
+| kit | `context AI/08-etat.md` (2 137) | `:356` | 356–392 (37) | 2 — bloc 288–361 (74) |
+| MapDecorator | `context AI/08-etat.md` (215) | `:120` | 120–177 (58) | 1 — « Les deux formes… » absent |
+| ProjetONZSM | `context AI/08-etat.md` (64) | `:29` | 29–44 (16) | 2 — bloc 33–77 (45) |
+| TrackGen | `context AI/08-etat.md` (679) | `:30`, `:124` | 30–49 (20) | 2 — bloc 33–77 (45) |
+| Cairn-VlpLib | `20a-chantiers.md` (854) ; `10-etat.md` (4 500) | aucun ; `:158` | — ; 158–434 (277) | 1 |
+
+- TrackGen : la TODO vivante est `:30` — elle dit que `/chantier` en tire ses propositions, table
+  de 11 chantiers lignes 36–48. `:124` est une liste arbitrée le 2026-08-28 (sous-titre `:126`),
+  jusqu'à la fin du fichier (124–679). La décision 4 (le premier titre) prend la bonne.
+- Kit : la section fait 37 lignes, pas 36 comme au socle — la ligne 392, vide, précède le `## `
+  de 393 et la décision 2 l'inclut.
+- MapDecorator et Cairn sortiront `METHODE=absente` ; Cairn sortira aussi `TODO=absente` pour
+  `20a-chantiers.md`.

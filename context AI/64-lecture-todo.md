@@ -75,8 +75,9 @@ l'étape 0 ter, `feuille`, `todo_du_fichier` ou `/vlp:tache` ; alléger le reste
 ---
 
 <!-- FICHE:LEC1 -->
-## LEC1 [ ] — Mesurer l'avant
+## LEC1 [x] — Mesurer l'avant
 
+**Session** : 819d1b08-9d1c-421c-b547-43124bc57994
 **Dépend de** : rien.
 **Fichiers** : `~/.claude/projects/C--Users-znorr-Documents-ProgPerso-Claude-vlpWorkflow/*.jsonl`,
 `scripts/mesure-tokens.py`, le `CHANTIER.md` et les fichiers du tableau « projets équipés » du

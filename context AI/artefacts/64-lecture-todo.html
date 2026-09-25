@@ -68,23 +68,24 @@
     <p>La carte imprime la TODO et le format des fiches ; /vlp:chantier ne lit plus 08-etat.md (2 137 lignes) ni la méthode (376) en entier, et une vraie séance mesurée avant/après le prouve en tokens.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="encours"></span><span></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">5 fiches · 0 faite · en cours : LEC1</p>
+    <p class="mono" style="margin-top:.5rem">5 fiches · 1 faite · en cours : LEC2</p>
   </header>
 
   <section>
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">LEC1</span><span class="titre">Mesurer l'avant</span>
-        <span class="etat">en cours</span>
-        <span class="note">Mesure une vraie séance /vlp:chantier d'avant, et relève les titres TODO et de méthode des 5 projets. Sans dépendance.</span>
+        <span class="etat">faite</span>
+        <span class="note">avant 2f9a46f3 (Read tronqué à 453/1 222 l.) : tours 3, ctx_dernier 110 515, equiv 285 200, 1.14 $ ; après à la main 44909b3f : tours 6, ctx_dernier 85 624, equiv 122 263, 0.49 $ ; table des 5 projets au journal</span>
+        <span class="cout mono">≈1,9M (1 921 323) · 19 tours · 1,15 $</span>
       </li>
-      <li class="fiche">
+      <li class="fiche" data-etat="encours">
         <span class="id">LEC2</span><span class="titre">Faire imprimer la TODO par la carte</span>
-        <span class="etat">à faire</span>
+        <span class="etat">en cours</span>
         <span class="note">La carte imprime la section TODO de chaque fichier « chantiers possibles », ou TODO=absente. Sans dépendance.</span>
       </li>
       <li class="fiche">
@@ -103,6 +104,8 @@
         <span class="note">Une vraie séance après, mesurée et comparée à LEC1 — ton geste d'abord. Après LEC1 et LEC4.</span>
       </li>
     </ul>
+    <p class="mono cout-hors">Hors fiches : ≈3,2M (3 185 546) · 28 tours · 2,39 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈5,1M (5 106 869) · 47 tours · 3,54 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
