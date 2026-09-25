@@ -68,9 +68,9 @@
     <p>La carte imprime la TODO et le format des fiches ; /vlp:chantier ne lit plus 08-etat.md (2 137 lignes) ni la méthode (376) en entier, et une vraie séance mesurée avant/après le prouve en tokens.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">5 fiches · 3 faites · en cours : LEC4</p>
+    <p class="mono" style="margin-top:.5rem">5 fiches · 4 faites · en cours : LEC5</p>
   </header>
 
   <section>
@@ -93,21 +93,22 @@
         <span class="id">LEC3</span><span class="titre">Faire imprimer le format des fiches par la carte</span>
         <span class="etat">faite</span>
         <span class="note">joué à la main : test-vlp.py OK, pyright 0 errors, mutant tué (ÉCART trois sections) ; kit : méthode 288–361 puis 74 lignes, texte imprimé ; Cairn et MapDecorator sans « Les deux formes de critère de fin » → METHODE=absente</span>
-        <span class="cout mono">≈7,3M (7 281 242) · 49 tours · 4,05 $</span>
+        <span class="cout mono">≈7,5M (7 509 014) · 50 tours · 4,12 $</span>
+      </li>
+      <li class="fiche" data-etat="faite">
+        <span class="id">LEC4</span><span class="titre">Brancher /vlp:chantier sur la carte</span>
+        <span class="etat">faite</span>
+        <span class="note">joué à la main : SKILL.md 278 → 277 lignes ; étape 1 : « en entier » 0, TODO=absente 1, METHODE=absente 1 ; pre-commit RC 0 ; « Où vit quoi » : la TODO par la carte</span>
+        <span class="cout mono">≈1,4M (1 402 885) · 6 tours · 0,45 $</span>
       </li>
       <li class="fiche" data-etat="encours">
-        <span class="id">LEC4</span><span class="titre">Brancher /vlp:chantier sur la carte</span>
-        <span class="etat">en cours</span>
-        <span class="note">L'étape 1 de /vlp:chantier lit la carte au lieu des fichiers entiers. Après LEC2 et LEC3.</span>
-      </li>
-      <li class="fiche">
         <span class="id">LEC5</span><span class="titre">Mesurer l'après</span>
-        <span class="etat">à faire</span>
+        <span class="etat">en cours</span>
         <span class="note">Une vraie séance après, mesurée et comparée à LEC1 — ton geste d'abord. Après LEC1 et LEC4.</span>
       </li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈3,2M (3 185 546) · 28 tours · 2,39 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈36,0M (36 012 273) · 442 tours · 14,65 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈37,6M (37 642 930) · 449 tours · 15,17 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

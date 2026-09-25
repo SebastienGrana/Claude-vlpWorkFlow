@@ -189,8 +189,9 @@ du `grep -n "^## " methode-chantier.md`. `pyright` sur les deux fichiers : `0 er
 ---
 
 <!-- FICHE:LEC4 -->
-## LEC4 [ ] — Brancher `/vlp:chantier` sur la carte
+## LEC4 [x] — Brancher `/vlp:chantier` sur la carte
 
+**Session** : e41e8069-96d6-419d-8454-665a2f96394b
 **Dépend de** : `LEC2`, `LEC3`.
 **Fichiers** : `skills/chantier/SKILL.md` (étapes 0 et 1 seulement), `methode-chantier.md`
 (la ligne « fichier d'état » de « Où vit quoi ») — et rien d'autre.

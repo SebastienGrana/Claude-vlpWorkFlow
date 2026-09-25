@@ -101,13 +101,12 @@ cochée est un mensonge que la table des clos gardera.
 
 ## 1. Lire la méthode, puis les chantiers possibles
 
-Dans cet ordre, ces fichiers, en entier — ils sont courts — et rien d'autre :
-
-1. la méthode, `${CLAUDE_PLUGIN_ROOT}/methode-chantier.md` — celle que nomme la
-   ligne « **méthode** » de `CHANTIER.md` : ce qu'est un fichier de fiches, à
-   quoi ressemble une fiche ;
-2. le ou les fichiers nommés « **chantiers possibles** » : ce qui reste à
-   faire, et ce qui est déjà fait — pour ne pas refiche du travail existant.
+La carte les a déjà imprimés, après `--- fichier de fiches courant : aucun ---` :
+la TODO de chaque fichier « **chantiers possibles** » (`--- TODO : …`), ce qui
+reste à faire, et le format des fiches de la « **méthode** » (`--- méthode : …`).
+Ne rouvre pas ces fichiers. Une ligne `TODO=absente` ou `METHODE=absente` :
+lis ce fichier-là, comme avant ; une `GARDE:` : dis-la. Le reste de la méthode
+se pointe au besoin, il ne se lit pas d'office.
 
 ## 2. Si le chantier n'est pas donné : le proposer
 
