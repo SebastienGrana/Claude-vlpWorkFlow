@@ -73,8 +73,8 @@
     <!-- ZONE:encours — remplacé à chaque ouverture, remis à « aucun » à chaque clôture.
          /tache n'y touche pas : l'avancement fiche par fiche est sur la page du chantier. -->
     <div class="encours">
-      <div class="titre">Aucun chantier ouvert</div>
-      <div>Lancer <span class="mono">/vlp:chantier</span> pour en ouvrir un.</div>
+      <div class="titre">Le gardien ne juge que la fin du message, pas tout le texte <span class="badge" data-etat="cours">en cours</span></div>
+      <div>Fiches <span class="mono">JUG1–JUG3</span> — <a href="https://claude.ai/artifact/4PsfU81wC6KeJk3Sj7kdkW">la page du chantier</a></div>
     </div>
   </section>
 
@@ -108,7 +108,7 @@
           <tr><td class="mono">61</td><td><span class="mono">CHK</span> — <span class="mono">/vlp:check</span> lit le contrat</td><td><span class="mono">vlp.py contrat</span> (chantier <span class="mono">CON</span>) ne tourne qu'à la main. <span class="mono">/vlp:check</span> le lancera <span class="mono">--depuis</span> l'ouverture du chantier courant et dira, sans rien rejouer, combien de sous-agents, combien ont écrit dans Git, combien sans statut en tête — le bulletin du gardien. 🟡 L'heure d'ouverture : commit <span class="mono">Chantier … ouvert</span>, ou session du cadrage notée par <span class="mono">ouvrir</span>.</td><td class="mono">~0,5 fiche</td><td class="mono">—</td></tr>
           <tr><td class="mono">63</td><td><span class="mono">ECH</span> — <span class="mono">ECRIT_GIT</span> ne lit pas le texte d'un heredoc</td><td>Le gardien a refusé à deux relecteurs de <span class="mono">RLG1</span> (2026-09-25) un heredoc ou un <span class="mono">echo</span> qui ne faisait qu'écrire les mots <span class="mono">git commit</span> ou <span class="mono">git add</span> dans un fichier de sonde. <span class="mono">ECRIT_GIT</span> cherche le motif dans toute la commande. Vrai aussi pour <span class="mono">vlp:fiche</span>, depuis <span class="mono">CON</span>. 🟡 Jusqu'où lire le shell : couper les chaînes citées ne suffit pas pour un heredoc.</td><td class="mono">~0,5 fiche</td><td class="mono">—</td></tr>
           <tr><td class="mono">64</td><td><span class="mono">SON</span> — Rejouer un hook à la main sans le tampon</td><td><span class="mono">une_fois</span> (chantier <span class="mono">PYT</span>) fait taire la même entrée rejouée en moins de 60 s, même par une autre copie de <span class="mono">vlp.py</span> : un relecteur de <span class="mono">RLG1</span> a dû ajouter un <span class="mono">nonce</span> pour comparer AVANT et APRÈS. Une variable d'environnement, ou une option, qui saute le tampon hors d'un vrai hook.</td><td class="mono">~0,5 fiche</td><td class="mono">—</td></tr>
-          <tr><td class="mono">65</td><td><span class="mono">JUG</span> — Le gardien ne juge que la fin du message, pas tout le texte</td><td><span class="mono">FOR3</span> (2026-09-25) : le gardien renvoie tout dernier message qui <strong>cite</strong> un mot de <span class="mono">JAUGE</span> ou « En résumé », même en train de décrire la règle — prouvé sur le relecteur de <span class="mono">FOR3</span> lui-même, renvoyé une fois en citant ces mots dans son verdict. Juger seulement la fin du message (après le dernier <span class="mono">---</span>, ou les deux dernières lignes) éviterait ce faux positif.</td><td class="mono">~0,5 fiche</td><td class="mono">—</td></tr>
+          <tr><td class="mono">65</td><td><span class="mono">JUG</span> — Le gardien ne juge que la fin du message, pas tout le texte <span class="badge" data-etat="cours">en cours</span></td><td><span class="mono">FOR3</span> (2026-09-25) : le gardien renvoie tout dernier message qui <strong>cite</strong> un mot de <span class="mono">JAUGE</span> ou « En résumé », même en train de décrire la règle — prouvé sur le relecteur de <span class="mono">FOR3</span> lui-même, renvoyé une fois en citant ces mots dans son verdict. Juger seulement la fin du message (après le dernier <span class="mono">---</span>, ou les deux dernières lignes) éviterait ce faux positif.</td><td class="mono">~0,5 fiche</td><td class="mono">—</td></tr>
         </tbody>
       </table>
     </div>
@@ -445,7 +445,7 @@
   </section>
 
   <footer>
-    <span>Lettres de fiche prises : <span class="mono">E, M, C, T, B, R, S, H, V, D, I, K, N, L, P, A, G, W, X, F, O, J, Y, U, Q, Z, NIV, REP, CPT, SAG, FIL, CAS, VAL, FIN, TAR, PLA, MTK, CAD, ZER, REV, CON, GLO, GAR, UNI, PYT, RLG, FOR</span></span>
+    <span>Lettres de fiche prises : <span class="mono">E, M, C, T, B, R, S, H, V, D, I, K, N, L, P, A, G, W, X, F, O, J, Y, U, Q, Z, NIV, REP, CPT, SAG, FIL, CAS, VAL, FIN, TAR, PLA, MTK, CAD, ZER, REV, CON, GLO, GAR, UNI, PYT, RLG, FOR, JUG</span></span>
     <span>État détaillé : <span class="mono">context AI/08-etat.md</span></span>
     <span>Mis à jour le <span class="mono">2026-09-25</span></span>
   </footer>
