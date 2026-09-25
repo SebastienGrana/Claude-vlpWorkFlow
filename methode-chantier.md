@@ -359,6 +359,11 @@ Elles ne se transportent pas d'un projet à l'autre.
   alors la marque `**Critère de fin** (visuel)`, qu'un grep retrouve sans
   lire la fiche — c'est là que `/vlp:enchainer` s'arrête pour poser la question.
 
+Un critère vérifie ce que le socle décide, pas un signe qui en tient lieu (un
+en-tête n'est pas le texte qu'il annonce). Une règle qui lit les fichiers des
+projets s'essaie sur leurs vraies lignes avant d'être écrite dans une fiche
+(`LEC2`, quatre refus, journal du 2026-09-25).
+
 ## Ce que `/vlp:tache` garantit, et qu'il ne faut pas défaire
 
 `/vlp:tache` est **autoportante** : elle n'ouvre que ce qu'elle nomme, jamais
