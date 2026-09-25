@@ -8,8 +8,9 @@
 `CLAUDE.md` de l'utilisateur, que le chef lit et paye (TODO n° 62). FOR mesure si la phrase de
 `GLO3` tient en session neuve, et sinon fait renvoyer cette fin par le gardien.
 
-**Fait.** Rien. Ouvert le 2026-09-25, cadré en 3 fiches, `FOR1` à jouer. ⚠️ Relancer l'app
-avant `/vlp:enchainer` : une définition d'agent se charge au démarrage.
+**CLOS** le 2026-09-25. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** FOR1..FOR3 (2026-09-25) : forme --depuis compare au départ du sous-agent ; le gardien renvoie une fois une fin qui porte En résumé ou la jauge, fiche et relecteur, en mot entier.
 
 **Session** : 669739ec-48a1-4796-aab1-ff74eaf24dd5
 
