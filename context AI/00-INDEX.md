@@ -38,6 +38,7 @@ a l'air proche.
 | `57-gardien-relecteur.md` | on relit le socle du chantier RLG — **clos** « Le gardien derrière le relecteur », `RLG1..RLG1` |
 | `58-forme-sous-agent.md` | on relit le socle du chantier FOR — **clos** « La forme du sous-agent, pour de vrai », `FOR1..FOR3` |
 | `59-juger-fin.md` | on relit le socle du chantier JUG — **clos** « Le gardien ne juge que la fin du message », `JUG1..JUG3` |
+| `60-recompter.md` | on joue une fiche `REC*` — chantier **ouvert** « Recompter les chantiers clos au coût juste », `REC1..REC4` |
 | `35-bilan.md` | on doit expliquer le kit — d'où il vient, ce qu'il sait faire aujourd'hui, ce qu'il ne promet pas ; les 22 chantiers chiffrés |
 | `36-gardes.md` | on relit le socle du chantier Z — **clos** « Une GARDE au lieu d'un traceback », `Z1..Z4` |
 | `37-niveau.md` | on relit le socle du chantier NIV — **clos** « Remettre les projets équipés à niveau », `NIV1..NIV4` |
