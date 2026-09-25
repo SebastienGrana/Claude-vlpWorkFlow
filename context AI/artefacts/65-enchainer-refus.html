@@ -68,9 +68,9 @@
     <p>Après un refus, le relecteur dit si la faute est dans la fiche ou chez le sous-agent ; le chef le montre dans un questionnaire, et propose de jouer à la main dès le 2e refus. ENC lui-même se joue en main : l'essai grandeur nature.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">3 fiches · 2 faites · en cours : ENC3</p>
+    <p class="mono" style="margin-top:.5rem">3 fiches · 3 faites</p>
   </header>
 
   <section>
@@ -87,16 +87,17 @@
         <span class="id">ENC2</span><span class="titre">Faire dire au relecteur d'où vient la faute</span>
         <span class="etat">faite</span>
         <span class="note">grep -c des 3 chaînes REFUSÉE — fiche :, REFUSÉE — copie :, RÉÉCRITURE : = 1 chacune ; exception FAITE refusée présente ; enchainement.md = 60 lignes (≤60)</span>
-        <span class="cout mono">≈3,1M (3 057 524) · 19 tours · 0,90 $</span>
+        <span class="cout mono">≈3,8M (3 759 747) · 23 tours · 1,06 $</span>
       </li>
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">ENC3</span><span class="titre">Faire demander le chef avant de rejouer</span>
-        <span class="etat">en cours</span>
-        <span class="note">le chef lit refus.md sur un refus et pose le questionnaire à quatre options ; dépend d'ENC1 et ENC2</span>
+        <span class="etat">faite</span>
+        <span class="note">SKILL.md=145 lignes (≤146) ; refus.md=24 lignes (≤30) ; grep refus.md dans SKILL.md=1 ; 4 options + · refus dans refus.md=1 chacune</span>
+        <span class="cout mono">≈2,5M (2 536 519) · 13 tours · 1,46 $</span>
       </li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈3,3M (3 298 408) · 25 tours · 2,50 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈12,3M (12 293 815) · 94 tours · 5,42 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈15,5M (15 532 557) · 111 tours · 7,04 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

@@ -62,8 +62,8 @@ Pour chaque fiche de la série, dans l'ordre :
 
 0. **Arrêt imprévu, sans sous-agent** : sa ligne **Dépend de** nomme une fiche
    ni cochée ni rendue `FAITE` dans ce lancement, ou elle porte un bloc
-   **Tentatives** (tout lu à l'étape 2). Traite-le comme un `RETOUR`
-   (étape 3 bis).
+   **Tentatives** dont une ligne numérotée n'est pas `FAITE refusée à la
+   relecture.` (tout lu à l'étape 2). Traite-le comme un `RETOUR` (étape 3 bis).
 1. Un seul appel : `Skill`, `skill: "vlp:jouer"`, `args` : la fiche.
    Avec `main` : `skill: "vlp:tache"` à la place — elle coche, publie et
    commite elle-même ; le point 2 ne s'applique pas. Fiche cochée ensuite :
@@ -83,9 +83,11 @@ Pour chaque fiche de la série, dans l'ordre :
      sans demander (`methode-chantier.md`) ; le sous-agent ne commite jamais. Puis
      passe à la suivante. `REFUSÉE`, ou aucun verdict →
      `<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" cocher "<fichier de fiches courant>" <fiche> --refuser "<première ligne du Result>"`,
-     puis traite-le comme un `BLOQUÉE` (étape 3 bis). Après la dernière de la
-     série, relance la carte (`vlp.py carte`) : `PROCHAINE=aucune` → étape 5 ;
-     sinon étape 4.
+     puis, sur `REFUSÉE`, `<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" lire
+     skills/enchainer/references/refus.md` et suis-le ; sur aucun verdict,
+     traite-le comme un `BLOQUÉE` (étape 3 bis). Après la dernière de la série,
+     relance la carte (`vlp.py carte`) : `PROCHAINE=aucune` → étape 5 ; sinon
+     étape 4.
    - `RETOUR` ou `BLOQUÉE` : étape 3 bis.
    - Aucun statut (le sous-agent s'est arrêté avant son compte rendu) : c'est
      un `RETOUR` — dis-le, avec le `Result` brut.

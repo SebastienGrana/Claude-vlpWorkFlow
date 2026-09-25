@@ -122,8 +122,9 @@ enchainement.md` ≤ 60.
 ---
 
 <!-- FICHE:ENC3 -->
-## ENC3 [ ] — Faire demander le chef avant de rejouer
+## ENC3 [x] — Faire demander le chef avant de rejouer
 
+**Session** : 78a94c41-8003-4614-be9a-2dc15bc057ee
 **Dépend de** : `ENC1`, `ENC2`.
 **Fichiers** : skills/enchainer/SKILL.md, skills/enchainer/references/refus.md (nouveau).
 
