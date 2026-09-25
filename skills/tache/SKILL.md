@@ -88,7 +88,7 @@ Ceux de la ligne « **Fichiers** », rien d'autre — la zone utile s'ils sont l
 
 ## 4. Écrire
 
-Applique le bloc « Prompt », dans le respect du socle, des trois contraintes et
+Applique le bloc « Prompt », dans le respect du socle, des contraintes et
 des « **Contraintes d'écriture** » de `CHANTIER.md`.
 
 ## 5. Livrer, puis vérifier

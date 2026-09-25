@@ -86,7 +86,7 @@ Ces fichiers ne se lisent pas en série : chacun répond à une question précis
 | `agents/fiche.md`, `enchainement.md` | on touche au sous-agent de `/vlp:enchainer`, ou à son contrat de retour |
 | `scripts/mesure-tokens.py` | on touche à la mesure des tokens |
 | `scripts/vlp.py` | on touche à la mécanique des commandes — carte, extraction, validation, page, hook ; ses sous-commandes sont dans sa docstring |
-| `skills/tache/references/` | on touche au blocage, à la page de chantier ou aux trois contraintes d'une fiche |
+| `skills/tache/references/` | on touche au blocage, à la page de chantier ou aux contraintes d'une fiche |
 | `cloture.md` | on touche aux cinq écritures d'une clôture |
 | `ARTEFACTS.md` | on touche aux pages publiées : nommage, URL, budget |
 | `README.md` | on change la mise en place, ou la présentation du kit |

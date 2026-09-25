@@ -13,8 +13,9 @@ Des fiches restent non cochées (clôture décidée, pas atteinte) : elles sont
 
 ## 1. La TODO
 
-Au fichier d'état, retire la ligne du chantier de la TODO, ou reformule-la s'il en
-reste : la feuille de route que l'étape 2 écrit la relit.
+Au fichier d'état, retire la ligne du chantier de la TODO : la feuille de
+route que l'étape 2 écrit la relit. Un reste qui garderait la ligne ouverte
+demande d'abord deux oui (`methode-chantier.md`, règle « La TODO ne grossit pas »).
 
 ## 2. Tout ce qui se déduit — un appel
 
@@ -79,7 +80,7 @@ plusieurs à la fois se font, aucun aussi.
 1. **Brainstorm** — des idées de chantiers pour ce projet. **Lis d'abord en
    entier la liste des chantiers possibles**, la TODO du fichier d'état, avant
    de chercher : une idée qui en recoupe une ligne le dit, et la nomme. Ce qui
-   est retenu va dans cette TODO, et nulle part ailleurs : c'est là que
+   est retenu va dans cette TODO — après deux oui (`methode-chantier.md`, règle « La TODO ne grossit pas ») —, et nulle part ailleurs : c'est là que
    `/vlp:chantier` ira les chercher. Les idées se présentent **vulgarisées**,
    avant le choix : une image simple du kit d'abord (une salle d'examen, un
    surveillant…), puis pour chacune, une ligne par point — le problème, le
@@ -96,7 +97,7 @@ plusieurs à la fois se font, aucun aussi.
    test et mutant s'il y a du code —, dans un commit à elle
    (`Dette <chantier> : …`), avant la question du push. Plus grosse : elle se
    présente comme un chantier, et l'utilisateur tranche sur le moment — ouvert
-   tout de suite, ou versé dans la TODO. Ce qui n'est écrit nulle part est perdu
+   tout de suite, ou versé dans la TODO après deux oui (`methode-chantier.md`, règle « La TODO ne grossit pas »). Ce qui n'est écrit nulle part est perdu
    au `/clear`.
 
 Le menu compte quatre cases, pas cinq : **le push n'y est pas**, ni le prompt du

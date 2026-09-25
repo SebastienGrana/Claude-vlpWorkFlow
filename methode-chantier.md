@@ -139,6 +139,25 @@ Elles sont écrites ici, et nulle part ailleurs : le reste du kit y renvoie.
   « le mot ouvre une ligne » retirait les 2 faux renvois sans rien rater. La règle
   devient un paramètre, chaque candidate se mesure, l'utilisateur retient ; l'ancienne
   reste rejouable (`--regle tout`), et les chiffres qu'elle a produits restent, marqués.
+- **La TODO ne grossit pas sans deux oui de l'utilisateur** — décision de
+  l'utilisateur, le 2026-09-25, contre le *scope creep*. Chaque chantier laisse
+  des restes ; versés tels quels, ils ouvrent du travail que personne n'a choisi.
+  Mesuré le 2026-09-25 dans `context AI/08-etat.md` : des entrées 31 à 68, soit
+  38, le kit en a créé 32 de lui-même (clôtures, cadrages, une fiche), 2 sont
+  nées d'une demande de l'utilisateur, 4 sans origine notée ; 21 lignes restent
+  ouvertes. D'où :
+  - **Ce qu'on repère en passant ne se fait pas, et ne s'écrit pas seul dans la
+    TODO.** Une fiche le signale dans son compte rendu, sans plus.
+  - **Premier oui — l'idée.** Une question à elle seule, précédée de sa
+    justification : **pourquoi elle fait grossir le périmètre** (quel travail
+    neuf elle ouvre, que le chantier ne promettait pas), son coût estimé, la TODO
+    avant → après en lignes ouvertes. Trois réponses : verser, fondre dans une
+    entrée existante qu'on nomme, abandonner — abandonner est une réponse normale.
+  - **Deuxième oui — la ligne écrite.** Relue par l'utilisateur, puis confirmée
+    avant son commit : une ligne écrite dit souvent plus que l'idée acceptée.
+  - Une case cochée dans un menu n'est pas un oui, pas plus que pour le push
+    (`cloture.md`). Retirer une entrée ou en fondre deux ne fait pas grossir la
+    TODO : cette règle ne s'y applique pas.
 
 ## Les trois temps
 

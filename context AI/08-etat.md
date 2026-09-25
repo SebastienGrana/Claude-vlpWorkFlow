@@ -391,6 +391,10 @@ celle de `FIL` ; 48 à 51, de celle de `FIN` ; 52, des clôtures de la nuit du
 Une ligne par décision imprévue tranchée en cours de fiche — jamais un résumé
 de ce que le code dit déjà.
 
+- **2026-09-25** — hors chantier, demandé par l'utilisateur contre le *scope creep* (« il y a trop
+  de todo ») : la TODO ne grossit plus sans deux oui, justifiés — règle écrite dans
+  `methode-chantier.md`, renvoyée par `cloture.md` et `tache-contraintes.md`. Compté : des entrées
+  31 à 68, 32 sur 38 créées par le kit lui-même ; 21 lignes ouvertes.
 - **2026-09-25** — ESS1, les ≈ 12,32 $ de la TODO n° 47 sont **deux choses** : 4,57 $ de sondes
   `claude -p` (8 notes) et 7,74 $ d'evals (10 notes). Les evals sont dehors par le cadrage :
   `ESS` ne rattrape que les 4,57 $ notés — 4,30 $ trouvés en dossier. Table : `## 2026-09-25 — ESS1`.
