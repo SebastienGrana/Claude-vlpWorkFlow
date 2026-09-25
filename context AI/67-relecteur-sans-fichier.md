@@ -72,8 +72,9 @@ tombe. `pyright scripts/vlp.py scripts/test-vlp.py` : 0 erreur.
 ---
 
 <!-- FICHE:FFE2 -->
-## FFE2 [ ] — Faire trouver le fichier à `rel1-carte.py` sans `FICHIER=`
+## FFE2 [x] — Faire trouver le fichier à `rel1-carte.py` sans `FICHIER=`
 
+**Session** : 604feeb1-8133-4ead-812f-c613e4dc1688
 **Dépend de** : rien.
 **Fichiers** : context AI/38-audit-scripts/rel1-carte.py — et rien d'autre.
 

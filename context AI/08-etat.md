@@ -2227,3 +2227,5 @@ entière du fichier de fiches (`rel1-carte.py`) ; `vlp.py carte --relecteur` tai
 la ligne **fichier de fiches courant** donne encore l'étendue (`REL1..REL3`) ; `FICHIER=`
 entier, TODO n° 70 `FFE` ; la section « Chantiers clos » reste dans la carte. Retiré de
 la TODO : n° 55 `FUI`. Coût du chantier : 8 399 715 (`vlp.py clore`).
+
+- 2026-09-26 (FFE2) : sans `FICHIER=`, `rel1-carte.py` rejoint `APRÈS=` et la ligne **fichier de fiches courant** de la carte ; juste sur les 20 relecteurs réels, faux sur les 19 rejeux REV (carte à `51-relecture.md`, fiche relue ailleurs) : `entier 1 · plage 2` → `0 · 0` en `--sans-fichier`, lectures toutes venues de ces rejeux. Critère accepté ainsi par l'utilisateur.

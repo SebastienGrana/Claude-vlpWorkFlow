@@ -1,15 +1,20 @@
 """REL1 (jetable) : ce que chaque relecteur `vlp:relecture` tire de la carte injectée.
 Comptes seulement, jamais un extrait. Python 3, sans dépendance.
 
-    py "context AI/38-audit-scripts/rel1-carte.py" [--detail]
+    py "context AI/38-audit-scripts/rel1-carte.py" [--detail] [--sans-fichier]
 
 `--detail` ajoute, après le total, une ligne par libellé cité : son compte.
+`--sans-fichier` ignore `FICHIER=` et force la reconstitution du chemin (voir plus bas).
+
+Le fichier de fiches relu : la ligne `FICHIER=` du premier résultat d'outil, si elle y est
+(avant FFE1). Sinon, le dossier `APRÈS=` de ce même résultat joint au chemin de la ligne
+« fichier de fiches courant » de la carte (premier message), étendue `(X1..X3)` retirée.
 
 Par transcription, dans les messages de l'assistant (texte et entrées d'outil) :
   autres   identifiants de fiche de la carte (`n:## ID [`) cités, hors la fiche relue
   prochaine  `PROCHAINE` cité
   libelles  libellés en gras de `CHANTIER.md` cités comme libellés (`**x**`, « x », "x")
-  entier / plage / grep  `Read` du chemin `FICHIER=` sans puis avec offset/limit, `Grep` dessus
+  entier / plage / grep  `Read` du fichier de fiches sans puis avec offset/limit, `Grep` dessus
 """
 import glob, importlib.util, io, json, os, re, sys
 
@@ -42,6 +47,7 @@ def texte_resultat(b):
     return x or ""
 
 
+SANS_FICHIER = "--sans-fichier" in sys.argv
 COLS = ("autres", "prochaine", "libelles", "entier", "plage", "grep")
 total = dict.fromkeys(COLS, 0)
 avec = dict.fromkeys(COLS, 0)
@@ -55,7 +61,9 @@ for c in chemins:
     relue = relue.group(1) if relue else "?"
     ids = set(re.findall(r"^\d+:## (\S+) \[", carte, re.M)) - {relue}
     libelles = set(re.findall(r"^- \*\*([^*]+)\*\* :", carte, re.M))
+    courant = re.search(r"^- \*\*fichier de fiches courant\*\* : (.+?)(?:\s*\([^)]*\))?\s*$", carte, re.M)
     fichier = ""
+    vu = False   # premier résultat d'outil lu
     dit = []     # ce que l'assistant écrit : texte et entrées d'outil
     appels = []
     for d in lignes:
@@ -66,9 +74,15 @@ for c in chemins:
             elif d.get("type") == "assistant" and t == "tool_use":
                 dit.append(json.dumps(b.get("input"), ensure_ascii=False))
                 appels.append((b.get("name"), b.get("input") or {}))
-            elif t == "tool_result" and not fichier:
-                f = re.search(r"^FICHIER=(.+)$", texte_resultat(b), re.M)
-                fichier = norme(f.group(1)) if f else ""
+            elif t == "tool_result" and not vu:
+                vu = True
+                r = texte_resultat(b)
+                f = None if SANS_FICHIER else re.search(r"^FICHIER=(.+)$", r, re.M)
+                a = re.search(r"^APRÈS=(.+)$", r, re.M)
+                if f:
+                    fichier = norme(f.group(1))
+                elif a and courant:
+                    fichier = norme(os.path.join(a.group(1).strip(), courant.group(1)))
     dit = "\n".join(dit)
     n = dict.fromkeys(COLS, 0)
     n["autres"] = sum(len(re.findall(r"(?<![A-Za-z0-9])%s(?![0-9])" % re.escape(i), dit)) for i in ids)
@@ -90,7 +104,7 @@ for c in chemins:
         avec[k] += n[k] > 0
     ident = os.path.basename(c)[len("agent-"):-len(".jsonl")]
     print("%-18s %-7s %s%s" % (ident, relue, " ".join("%9d" % n[k] for k in COLS),
-                               "" if fichier else "  (pas de FICHIER=)"))
+                               "" if fichier else "  (pas de chemin)"))
 print("TOTAL %d transcriptions · %s" % (len(chemins), " · ".join(
     "%s %d (%d transcr.)" % (k, total[k], avec[k]) for k in COLS)))
 if "--detail" in sys.argv:
