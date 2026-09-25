@@ -308,7 +308,7 @@
   sans `/reload-plugins` ; une définition d'agent se charge au démarrage. `FOR1` corrige
   `forme --depuis` (compare au départ du sous-agent, plus de la session parente). `FOR2`,
   en session neuve après relance de l'app : `resume 0/2`, `jauge 1/2` — contre 14/36 et
-  23/36 avant `GLO3` ; échantillon minuscule, mais net. Décision : jouer `FOR3`. Premier
+  23/36 avant `GLO3` (mesurés en texte entier, voir `JUG2`) ; échantillon minuscule, mais net. Décision : jouer `FOR3`. Premier
   essai refusé à la relecture — `JAUGE` matchait en sous-chaîne (« bonne » contenait
   « Pas bon »), un faux positif prouvé sur le relecteur lui-même ; corrigé par `\b`. Le
   gardien renvoie maintenant une fois une fin qui porte « En résumé » ou la jauge, fiche
@@ -1572,9 +1572,9 @@ Sous-agents de FOR1 (tete ≠ 0) :
 - a0de5d54a20561c92 vlp:fiche resume 0 jauge 1 tete 1
 - a90355e9dff2e59bf vlp:relecture resume 0 jauge 0 tete 1
 
-Compte avant GLO3 (journal GLO2) : jauge 23 sur 36, « En résumé » 14 sur 36.
+Compte avant GLO3 (journal GLO2) : jauge 23 sur 36, « En résumé » 14 sur 36 (mesurés en texte entier, voir `JUG2`).
 
-Compte FOR1 : resume 0/2, jauge 1/2. Échantillon très petit (2 sous-agents) : 0 sur 2 ne prouve pas que la phrase tient.
+Compte FOR1 : resume 0/2, jauge 1/2 (mesurés en texte entier, voir `JUG2`). Échantillon très petit (2 sous-agents) : 0 sur 2 ne prouve pas que la phrase tient.
 
 ## 2026-09-25 — JUG1
 
@@ -1655,3 +1655,25 @@ Copies retirées (`RETIRÉ 2`). Fichiers en jeu :
 ```
 
 **Règle retenue** (par l'utilisateur, 2026-09-25) : `tete` — elle retire les 2 citations et garde les 14 fins hors forme vraies.
+
+## 2026-09-25 — JUG2
+
+La règle `tete`, retenue en `JUG1`, est le défaut de `forme_texte` (constante `REGLE` de
+`scripts/vlp.py`) : le gardien la suit sans changer son appel, `forme --regle tout` rejoue
+l'ancienne mesure. Les chiffres d'avant (`GLO2`, `FOR2`, bilan `FOR`) sont marqués « mesurés en
+texte entier ».
+
+Commande, avant puis après :
+```bash
+py "<kit>/scripts/vlp.py" forme --depuis 2281227 --regle tout
+py "<kit>/scripts/vlp.py" forme --depuis 2281227
+```
+
+Sorties brutes :
+```
+FORME 29 sous-agents · user 5969 car. · resume 12 · jauge 14 · tete 28
+FORME 29 sous-agents · user 5969 car. · resume 10 · jauge 14 · tete 28
+```
+
+Renvoyés : 16 → 14 sur 29 — les deux citations de `JUG1` (a3381d18, acc69ef4). La pièce de
+`JUG1` est lue par `test-vlp.py` dans ce journal, pas recopiée : elle porte des chemins de machine.

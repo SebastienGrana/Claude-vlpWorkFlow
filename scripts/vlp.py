@@ -188,10 +188,11 @@ Sous-commandes :
   chacune : `<id> <agentType> <départ de la transcription, UTC | ?> user <c> projet <c>
   memoire <c> resume <0|1> jauge <0|1> tete <0|1>` — `<c>` : caractères du `content` des
   fichiers d'instructions de ce type (User, Project, AutoMem, somme si plusieurs, 0 si aucun) ;
-  `resume` 1 si le dernier message texte contient « En résumé » ; `jauge` 1 s'il contient l'un
-  des cinq libellés de `JAUGE` ; `tete` 1 s'il commence par un mot de `STATUTS` ou de
-  `VERDICTS` (le relecteur). `--regle` (`tout` par défaut, comme le gardien) : la partie du
-  dernier message que jugent `resume` et `jauge` — `tiret`, `deux`, `tete` (chantier JUG). Illisible :
+  `resume` 1 si une ligne du dernier message texte s'ouvre par « En résumé » ; `jauge` 1 si
+  l'une s'ouvre par un des cinq libellés de `JAUGE` — marques de tête retirées (`REGLE`, celle
+  du gardien) ; `tete` 1 s'il commence par un mot de `STATUTS` ou de `VERDICTS` (le relecteur).
+  `--regle` : la partie du message que jugent `resume` et `jauge` — `tout` (le texte entier,
+  la mesure d'avant `JUG2`), `tiret`, `deux`, `tete` (chantier JUG). Illisible :
   `ILLISIBLE <chemin>`. `--depuis` (heure ISO ou commit) : celles dont la transcription a
   démarré à D ou après. Puis `FORME <n> sous-agents · user <moyenne> car. · resume <k> ·
   jauge <k> · tete <k>`. Borne illisible : `GARDE:`, sort 1.
@@ -202,9 +203,10 @@ Sous-commandes :
   `SubagentStop` : `vlp:fiche` — renvoyé au travail (`decision` `block`, une raison d'une ligne) si
   `last_assistant_message` ne commence pas par un statut — sauf `stop_hook_active`, déjà renvoyé —, ou s'il dit `FAITE` et
   que `cocher --verifier` sur la fiche de `Fiche à jouer :` (1er message de la transcription)
-  rend une case vide ou une `TÊTE`, même sous `stop_hook_active` (chantier GAR), ou si le dernier message
-  porte « En résumé » ou une jauge et que `stop_hook_active` est faux (chantier FOR) ; `vlp:relecture` — renvoyé si
-  le dernier message porte « En résumé » ou une jauge et que `stop_hook_active` est faux, sinon muet (chantier RLG—FOR).
+  rend une case vide ou une `TÊTE`, même sous `stop_hook_active` (chantier GAR), ou si une ligne du
+  dernier message s'ouvre par « En résumé » ou une jauge (`forme_texte`, règle `REGLE` : une citation
+  ne compte pas) et que `stop_hook_active` est faux (chantier FOR—JUG) ; `vlp:relecture` — renvoyé si
+  la même règle le dit et que `stop_hook_active` est faux, sinon muet (chantier RLG—FOR—JUG).
 
 Python 3 sans dépendance, zéro appel modèle.
 
@@ -1198,6 +1200,7 @@ JAUGE = ("Tout va bien", "Ça tient, mais", "Imprévu", "Pas bon", "Grosse erreu
 
 
 REGLES = ("tout", "tiret", "deux", "tete")     # la partie du texte que juge `forme_texte` (chantier JUG)
+REGLE = "tete"     # retenue en JUG1 : le défaut du gardien et de `forme` ; `tout` rejoue l'ancienne mesure
 
 
 def ouvre(ligne):
@@ -1208,10 +1211,11 @@ def ouvre(ligne):
     return ligne[i:]
 
 
-def forme_texte(texte, regle="tout"):
+def forme_texte(texte, regle=REGLE):
     """(resume 0|1, jauge 0|1) de la partie du texte que juge `regle` ; (0, 0) si vide ou absent.
-    `tout` : le texte entier ; `tiret` : après la dernière ligne `---`, sinon tout ; `deux` : les
-    deux dernières lignes non vides ; `tete` : le mot doit ouvrir une ligne, marques retirées."""
+    `tete` (défaut, celle du gardien) : le mot doit ouvrir une ligne, marques retirées — une
+    citation en milieu de phrase ne compte pas ; `tout` : le texte entier ; `tiret` : après la
+    dernière ligne `---`, sinon tout ; `deux` : les deux dernières lignes non vides."""
     if not isinstance(texte, str):
         return 0, 0
     lignes = texte.splitlines()
@@ -1226,12 +1230,12 @@ def forme_texte(texte, regle="tout"):
     elif regle == "deux":
         texte = "\n".join([l for l in lignes if l.strip()][-2:])
     resume = int("En résumé" in texte)
-    # Matcher en mots entiers, pas en substring : «Pas bon» ne matche pas «Pas bonne»
+    # Mots entiers, pas sous-chaîne : « Pas bon » ne matche pas « Pas bonne » ; `tete` borne de même
     jauge = int(any(re.search(r'\b' + re.escape(j) + r'\b', texte) for j in JAUGE))
     return resume, jauge
 
 
-def lire_forme(chemin, regle="tout"):
+def lire_forme(chemin, regle=REGLE):
     """(caractères par type User/Project/AutoMem, resume 0|1, jauge 0|1, tete 0|1) d'une
     transcription, resume et jauge selon `regle` ; (None, 0, 0, 0) si elle ne s'ouvre pas. Les fichiers d'instructions sont
     ceux du premier attachment `instructions` — une entrée de premier niveau
@@ -1364,8 +1368,8 @@ def verdict_fin(d, deja_renvoye=False):
 def cmd_gardien(entree, sortie):
     """Le contrat d'`agents/fiche.md` tenu à la sortie du sous-agent (chantier CON), le refus
     de l'écriture Git étendu à `vlp:relecture` (chantier RLG), et le filtrage de la forme (résumé
-    et jauge) pour les deux agents — renvoi si le dernier message porte « En résumé » ou un mot
-    de JAUGE (chantier FOR). Muet hors de ces deux agents et sur une entrée illisible : il ne
+    et jauge) pour les deux agents — renvoi si une ligne du dernier message s'ouvre par « En
+    résumé » ou un mot de JAUGE, selon `forme_texte` et sa règle par défaut (chantiers FOR, JUG). Muet hors de ces deux agents et sur une entrée illisible : il ne
     bloque jamais sur ce qu'il ne lit pas."""
     try:
         d = json.loads(entree.read())
@@ -2915,7 +2919,7 @@ def main(argv, sortie=None, entree=None, erreur=None):
     fm = sous.add_parser("forme")
     fm.add_argument("transcriptions", nargs="*")
     fm.add_argument("--depuis")
-    fm.add_argument("--regle", choices=REGLES, default="tout")
+    fm.add_argument("--regle", choices=REGLES, default=REGLE)
     sous.add_parser("gardien")
     a = p.parse_args(argv)
     try:

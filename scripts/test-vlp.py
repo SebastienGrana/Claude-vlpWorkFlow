@@ -1867,6 +1867,17 @@ with tempfile.TemporaryDirectory() as t:
     verifier("gardien : relecteur « En résumé », renvoyé", '"decision": "block"' in s and "« En résumé » ou une jauge" in s, s)
     code, s = gardien(dict(fin_relecture, last_assistant_message="ACCEPTÉE — ok"))
     verifier("gardien : relecteur sans « En résumé » ni jauge, muet", (code, s) == (0, ""), s)
+    # JUG2 : la pièce de JUG1 se lit au journal, jamais recopiée ici (elle porte des chemins de machine)
+    with open(os.path.join(RACINE, "context AI", "08-etat.md"), encoding="utf-8") as f:
+        piece = re.search(r"La pièce, pour `JUG2` :\n\n```text\n(.*?)\n```", f.read(), re.S)
+    piece = piece.group(1) if piece else ""
+    code, s = gardien(dict(fin_relecture, last_assistant_message=piece))
+    verifier("gardien : relecteur de FOR3 qui cite la jauge en prose (JUG1), muet",
+             piece.startswith("ACCEPTÉE") and "« Tout va bien »" in piece and (code, s) == (0, ""), s or piece[:80])
+    code, s = gardien(dict(fin_relecture, last_assistant_message=(
+        "ACCEPTÉE — ok\n\n✅ **Tout va bien** — relu\n\n**En résumé**\n\nLa fiche tient.")))
+    verifier("gardien : relecteur ACCEPTÉE puis résumé à part, renvoyé",
+             '"decision": "block"' in s and "« En résumé » ou une jauge" in s, s)
     # Mutation test : les tests « renvoyé » reposent sur forme_texte (chantier FOR3)
     code, s = gardien(dict(fin, last_assistant_message="RETOUR — Pas bonne action"))
     verifier("gardien : fiche « Pas bonne » (pas jauge), muet — substring bug", (code, s) == (0, ""), s)
@@ -2064,7 +2075,7 @@ with tempfile.TemporaryDirectory() as t:
     sa = os.path.join(proj_dir, "agent-id1.jsonl")
     sb = os.path.join(proj_dir, "agent-id2.jsonl")
     # Appel direct (pas par glob)
-    code, s = appel(["forme", sa, sb])
+    code, s = appel(["forme", "--regle", "tout", sa, sb])     # le texte entier : la mesure d'avant JUG2
     lignes = s.strip().split("\n")
     verifier("forme : deux transcriptions, bilan attendu", code == 0
              and len(lignes) == 3  # deux lignes de données + une ligne de bilan

@@ -91,8 +91,9 @@ l'utilisateur la lit et **retient une règle**, écrite sous l'entrée.
 ---
 
 <!-- FICHE:JUG2 -->
-## JUG2 [ ] — Faire juger la règle retenue, au gardien et à la mesure
+## JUG2 [x] — Faire juger la règle retenue, au gardien et à la mesure
 
+**Session** : b9951712-2f7d-4821-a7ac-5e131a03b7c5
 **Dépend de** : `JUG1`, et la règle retenue par l'utilisateur sous l'entrée `JUG1` du journal.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py`, `context AI/08-etat.md` — et rien d'autre.
 
