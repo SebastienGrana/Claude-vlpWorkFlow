@@ -139,8 +139,9 @@ non resommé. pyright : compte brut.
 ---
 
 <!-- FICHE:REC4 -->
-## REC4 [ ] — Appliquer, marquer les bilans, republier
+## REC4 [x] — Appliquer, marquer les bilans, republier
 
+**Session** : 9f9f121e-06ec-4a28-b35f-ef220051ceb7
 **Dépend de** : `REC2`, `REC3`.
 **Fichiers** : `context AI/artefacts/feuille-de-route.html`, `context AI/08-etat.md` — et rien d'autre.
 

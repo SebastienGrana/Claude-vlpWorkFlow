@@ -106,7 +106,7 @@
   chantier courant même quand `CHANTIER.md` dit « artefact du chantier : aucun », ce que
   le socle du bac impose. Deux limites laissées : le script ne retire la table des clos
   que si l'index nomme chacun de ses fichiers, et abréger un fichier de tête reste du
-  jugement, donc à la main. Les 22 et 24 sont retirés, la TODO est vide ; 21 827 897 tokens.
+  jugement, donc à la main. Les 22 et 24 sont retirés, la TODO est vide ; 21 827 897 (recompté par REC : 24 964 199) tokens.
 
 - **2026-09-23** — chantier REP clos (TODO n° 25) : les feuilles de route ne montrent
   plus de Markdown brut ni de lien cassé. `cellule_md` convertit gras et liens, les
@@ -116,7 +116,7 @@
   page en ligne, déjà propre. Laissé ouvert, reformulé en n° 25 : la ligne `MARKDOWN`
   muette sans `--ecrire`, et la régénération qui abîme trois feuilles voisines. Coût par
   fiche, repris de git parce que la page l'a perdu (une ligne `? $` ne se relit pas) :
-  REP1 2 702 105 · REP2 4 227 906 · REP3 8 584 756 · REP4 4 840 313 ; 23 126 264 tokens.
+  REP1 2 702 105 · REP2 4 227 906 · REP3 8 584 756 · REP4 4 840 313 ; 23 126 264 (recompté par REC : 33 108 434) tokens.
   ↳ **Recompté le 2026-09-23 par CPT4** (`vlp.py cout`, coupé aux commits de fiche,
   sous-agents compris) : REP1 3 211 466 · REP2 4 539 690 · REP3 16 480 389 · REP4
   4 889 837 · hors fiches 6 875 079 ; 35 996 461 tokens · 20,61 $. Trois causes : une fiche
@@ -130,7 +130,7 @@
   se relit, et `mesurer` lit les chemins de 260 caractères. REP recompté : 23 126 264 →
   35 996 461 tokens (renvoi ci-dessus). Laissé ouvert : le total d'une clôture ne compte
   pas la clôture en cours, faute de commit ; un tour d'une session après le commit de sa
-  fiche compte à la suivante. 19 266 526 tokens.
+  fiche compte à la suivante. 19 266 526 (recompté par REC : 21 606 411) tokens.
 
 - **2026-09-24** — chantier SAG clos (TODO n° 32) : le sous-agent ne bute plus sur 30 tours.
   `maxTurns` 30 → 80, et un hook `PostToolUse` (`vlp.py filet`) prévient `vlp:fiche` à trois
@@ -141,7 +141,7 @@
   filet ne tire qu'après `Write` ou `Edit`, et reste muet au-delà de 260 caractères. Vu sans le
   traiter : le sous-agent a rendu `FAITE` sans cocher, et le chef commite sans relire la case.
   Hors total : 0,46 $ d'essais `claude -p` (SAG2 0,2789 ; SAG4 0,0884613 + 0,08854675).
-  20 128 626 tokens.
+  20 128 626 (recompté par REC : 21 912 236) tokens.
 
 - **2026-09-24** — chantier FIL clos (TODO n° 32) : le filet tire après tout outil. Une entrée
   `PostToolUse` à lui, sur tout outil, une `PostToolUseFailure` pour les échecs, et `cmd_filet`
@@ -153,7 +153,7 @@
   introuvable » vient désormais après **chaque** appel d'outil, 7 pour 7 dans chaque essai (n° 39
   `PYT`) ; le `CLAUDE.md` de l'utilisateur est chargé dans le sous-agent, sa jauge comprise.
   Hors total : 0,3125 $ d'essais `claude -p` (FIL3 0,14800575 + 0,06411505 + 0,10040705).
-  42 638 103 tokens.
+  42 638 103 (recompté par REC : 20 319 194) tokens.
 
 - **2026-09-24** — chantier CAS clos (TODO n° 38) : le chef relit la case avant de commiter.
   `vlp.py cocher --verifier` n'écrit rien et rend `CASE <fiche> [x]` (sort 0) ou `CASE <fiche> [ ]`
@@ -162,14 +162,14 @@
   sous-agent a commité lui-même — son contexte porte le `CLAUDE.md` de l'utilisateur, qui demande
   un commit par tâche (cause probable, pas prouvée) ; `agents/fiche.md` le lui interdit depuis
   `CAS2`, pas encore éprouvé. Dans `CAS2`, la fiche disait « Tu ne commites pas » : aucun commit.
-  Cadré et joué seul, la nuit, l'utilisateur dormant. 10 041 615 tokens.
+  Cadré et joué seul, la nuit, l'utilisateur dormant. 10 041 615 (recompté par REC : 11 729 608) tokens.
 - **2026-09-24** — chantier VAL clos (TODO n° 34) : le contrôle avant commit ne se saute plus.
   Sans `claude` dans le PATH, `.githooks/pre-commit` prend le `claude.exe` de l'app (la plus haute
   version, `sort -V`) et valide vraiment les deux manifestes ; un `plugin.json` réduit à `{` refuse
   le commit (code 1). Le hook prend 1 755 · 1 846 · 1 948 ms au lieu de 147 ms. Imprévu : la règle
   de CAS a servi dès la fiche suivante (`FAITE`, case vide, lue comme un `RETOUR`) ; le sous-agent
   a encore commité, poussé cette fois par le critère — un clone prend le hook de `HEAD`. Cadré et
-  joué seul, la nuit. 5 647 906 tokens, recomptés par plage : `vlp.py cout` en rend 17 185 705,
+  joué seul, la nuit. 5 647 906 (recompté par REC : 6 924 438) tokens, recomptés par plage : `vlp.py cout` en rend 17 185 705,
   CAS compris, car son « hors fiches » part du début de la session.
 - **2026-09-24** — chantier FIN clos (TODO n° 35, avec n° 42 `OUV`) : le coût juste, aux deux
   bords du chantier. « Hors fiches » part de l'origine — le dernier commit qui ne nomme pas le
@@ -180,7 +180,7 @@
   Tests 203 → 214 `verifier(`. Imprévu : les trois sous-agents ont rendu du code à reprendre
   (`max` au lieu du premier commit, une plage en double, des gardes doublées), et des tests
   creux ou absents en FIN1 et FIN2 — même nommés avec leurs valeurs ; chaque reprise est prouvée
-  par un mutant. Cadré et joué seul, la nuit. 21 871 718 tokens.
+  par un mutant. Cadré et joué seul, la nuit. 21 871 718 (recompté par REC : 22 962 798) tokens.
 
 - **2026-09-24** — chantier TAR clos (TODO n° 33) : ce que `vlp.py` écrit, il le relit. Une
   sonde a repassé chaque format par son lecteur ; quatre défauts, quatre corrections, chacune
@@ -191,7 +191,7 @@
   et 34 lettres. Tests 214 → 220 `verifier(`. Imprévu : les trois sous-agents ont encore
   débordé ou relâché la fiche — `COUT` plus strict qu'avant, un analyseur de 45 lignes, les blancs
   réduits dans le mauvais ordre — ; repris, et 11 mutants tombent. Cadré et joué seul, la nuit.
-  17 642 733 tokens.
+  17 642 733 (recompté par REC : 19 399 198) tokens.
 
 - **2026-09-24** — chantier PLA clos (TODO n° 51) : la plage des fiches suit le fichier. Une
   fiche ajoutée après l'ouverture ne laisse plus de plage figée : `page` refait la plage de
@@ -202,7 +202,7 @@
   `verifier(`. Imprévu : le sous-agent PLA1 a commité seul (définition d'agent d'avant `CAS`,
   `CLAUDE.md` global « commit par tâche ») ; les deux ont rendu du code à reprendre — une plage
   écrite deux fois, une ligne réécrite titre compris, un test « une seule ligne » creux ; 9
-  mutants tombent. Cadré et joué seul, la nuit. 11 938 808 tokens.
+  mutants tombent. Cadré et joué seul, la nuit. 11 938 808 (recompté par REC : 13 033 400) tokens.
 
 - **2026-09-24** — chantier MTK clos (TODO n° 40 et 41, `MTK` et `PER`) : `mesure-tokens.py` se
   lit et se borne en ligne de commande. `--plage DEBUT FIN` ne garde que `(DEBUT, FIN]` — une
@@ -212,7 +212,7 @@
   périmée de `34-agent-sans-git.md` reste, marquée d'un renvoi daté vers `CPT2`. Imprévu : le
   sous-agent `MTK1` a écrit ses tests après le code, sans écart vu, et un fichier suivi par Git
   passait pour un commit (sans `--`) ; la docstring de `MTK2` disait faux deux fois et recopiait
-  `COLONNES`. Repris ; sept mutants tombent. Cadré et joué seul, la nuit. 12 192 684 tokens.
+  `COLONNES`. Repris ; sept mutants tombent. Cadré et joué seul, la nuit. 12 192 684 (recompté par REC : 13 588 111) tokens.
 
 - **2026-09-24** — chantier CAD clos (TODO n° 50) : le cadrage compte dans le coût du chantier.
   `ouvrir` note `**Session** : <id>` avant la première ligne `## ` du fichier de fiches — le
@@ -222,7 +222,7 @@
   lance. Tests 224 → 230 `verifier(`. Imprévu : le sous-agent a plafonné à 80 appels ; le filet a
   tiré, et il a commité au lieu de cocher — case vide, `FAITE` quand même ; il avait écrit le
   code avant les tests, puis relâché ceux-ci sous le vrai id de session ; sa session tombait dans
-  la fiche. Repris ; neuf mutants tombent. Cadré et joué seul, la nuit. 14 603 596 tokens.
+  la fiche. Repris ; neuf mutants tombent. Cadré et joué seul, la nuit. 14 603 596 (recompté par REC : 15 724 492) tokens.
 
 - **2026-09-24** — chantier ZER clos (hors TODO, trouvé par le recompte à blanc de `RCP`) : un
   vieux chantier ne se recompte plus à zéro. Depuis `FIN`, `cout` et la page rendaient 0 sur les
@@ -232,7 +232,7 @@
   change (`FIN2`). Une découpe qui ne garde aucun tour le dit : `GARDE: découpe à zéro`. Tests
   230 → 237 `verifier(` ; neuf mutants tombent ; les dix rendent leur sortie d'avant la nuit,
   octet pour octet hors la ligne `DÉCOUPE`. Imprévu : une régression de la nuit même, faite par
-  `FIN`, reprise par le chef. Cadré et joué seul, à la main, la nuit. 11 209 181 tokens.
+  `FIN`, reprise par le chef. Cadré et joué seul, à la main, la nuit. 11 209 181 (recompté par REC : 12 079 243) tokens.
 
 - **2026-09-25** — chantier REV clos (TODO n° 48) : chaque `FAITE` d'`/vlp:enchainer` est relu
   avant son commit par un agent `vlp:relecture` neuf (`opus`) — `vlp.py relecture` (instantané
@@ -244,7 +244,7 @@
   dernier état, contre 1,78 $ au premier. En route, trois bugs du kit prouvés et corrigés (hook
   en CRLF, regex de l'en-tête, fichier d'état hors fiche). Laissé ouvert : la carte donnée au
   relecteur liste les titres des fiches, un indice ; la relecture n'a pas encore tourné dans un
-  vrai `/vlp:enchainer`. 614 tours, 74 789 054 tokens, 56,10 $.
+  vrai `/vlp:enchainer`. 614 tours, 74 789 054 (recompté par REC : 76 440 498) tokens, 56,10 $.
 
 - **2026-09-25** — chantier CON clos (TODO n° 49) : le contrat d'`agents/fiche.md` se lit et se
   tient. `vlp.py contrat` le lit dans les transcriptions (après `f98ceec` : 8 sous-agents, 0
@@ -255,7 +255,7 @@
   `60ef683` (témoin, `CON5`). `CON2` sautée (8 ≥ 5). Laissé ouvert : le renvoi du gardien n'a
   tiré que sur la sonde, pas encore sur un vrai statut manquant ; chaque hook tourne deux fois
   (`python3` et `py` ouvrent le même Python). Joué à la main, une session. 108 tours,
-  13 910 638 tokens, 6,83 $.
+  13 910 638 (recompté par REC : 15 711 661) tokens, 6,83 $.
 
 - **2026-09-25** — chantier GLO clos (TODO n° 44) : les `CLAUDE.md` de l'utilisateur et du
   projet, et sa mémoire, entrent dans chaque sous-agent (attachment `instructions`, premier
@@ -267,14 +267,14 @@
   neuve (`forme --depuis 5e37964`). Enchaîné la nuit, l'utilisateur dormant : GLO1 rendue
   `FAITE` sur case vide et fausse (lisait `message.attachments`, 0 partout), corrigée par le
   chef ; GLO2 et GLO3 refusées à la relecture (octets pris pour des caractères ; journal citant
-  une phrase retouchée), recalées par le chef. 134 tours, 13 784 706 tokens, 5,67 $.
+  une phrase retouchée), recalées par le chef. 134 tours, 13 784 706 (recompté par REC : 15 674 582) tokens, 5,67 $.
 
 - **2026-09-25** — chantier GAR clos (TODO n° 59) : le gardien juge encore un `FAITE` après
   un premier renvoi (`stop_hook_active`) — case vide et `TÊTE` —, plus la tête ; la sonde de
   `CON3` est retirée. Prouvé en vrai sur un témoin (`GAR3`) : renvoi sur « Parfait, », puis
   sur la case vide sous `stop_hook_active`, et le sous-agent coche. Laissé ouvert : chaque
   renvoi arrive deux fois (`python3` et `py`, chantier `PYT`) ; aucun test ne garde l'absence
-  de `sonde`. 89 tours, 7 588 840 tokens, 2,54 $.
+  de `sonde`. 89 tours, 7 588 840 (recompté par REC : 8 426 745) tokens, 2,54 $.
 
 - **2026-09-25** — chantier UNI clos (TODO n° 52) : un seul chiffre par clôture. `clore`
   écrit sur la feuille de route le total que `regenerer` vient de mettre sur la page, et le
@@ -283,7 +283,7 @@
   elle-même : page et `CLOS` à 15 942 182. UNI1 rendue `FAITE` avec l'`ÉCART` dans une branche
   morte et sans son test, corrigée par le chef ; UNI2 écrite par le chef. Laissé ouvert : la
   ligne de bilan s'écrit après la page, donc ses propres tours n'y sont pas — quelques
-  milliers, hors du chiffre. 106 tours, 15 942 182 tokens, 4,47 $.
+  milliers, hors du chiffre. 106 tours, 15 942 182 (recompté par REC : 16 613 231) tokens, 4,47 $.
 
 - **2026-09-25** — chantier PYT clos (TODO n° 39) : un hook n'agit qu'une fois. La paire
   `python3` + `py` reste ; `une_fois` lit l'entrée, et seul le lanceur qui crée
@@ -292,7 +292,7 @@
   deux lanceurs marchent (mesuré au cadrage). Surpris : `filet` et `hook` reçoivent la même
   entrée — sans le nom dans l'empreinte, `hook` se taisait derrière `filet` (`0bef88a`).
   Laissé ouvert : sous `SubagentStop`, le renvoi en double n'a pas été recompté après le
-  correctif. `CLOS` : 11 561 195 tokens ; `cout`, quelques tours plus tard : 83 tours, 3,81 $.
+  correctif. `CLOS` : 11 561 195 (recompté par REC : 12 279 871) tokens ; `cout`, quelques tours plus tard : 83 tours, 3,81 $.
 
 - **2026-09-25** — chantier RLG clos (TODO n° 60) : le gardien refuse `git commit/add/reset`
   au relecteur comme au `vlp:fiche` ; le `SubagentStop` du relecteur n'est pas jugé. `RLG1`,
@@ -301,7 +301,7 @@
   depuis `CON`) —, corrigés par le chef, acceptée à la troisième. Le 🟡 des `git worktree`
   est tombé : l'agent n'en tape jamais. Vu en chemin, versé en TODO : la phrase de forme de
   `GLO3` n'a rien changé (`FOR`), `ECRIT_GIT` lit le texte d'un heredoc (`ECH`), le tampon
-  de `PYT` gêne une sonde à la main (`SON`). `CLOS` : 8 745 720 tokens, 109 tours, 3,61 $.
+  de `PYT` gêne une sonde à la main (`SON`). `CLOS` : 8 745 720 (recompté par REC : 9 179 817) tokens, 109 tours, 3,61 $.
 
 - **2026-09-25** — chantier FOR clos (TODO n° 62) : la mesure « sans effet » de `GLO3`
   était fausse — la session `ca431cf8` avait démarré 21 min avant le commit `5e37964`,
@@ -314,7 +314,7 @@
   gardien renvoie maintenant une fois une fin qui porte « En résumé » ou la jauge, fiche
   et relecteur. Laissé ouvert : un verdict qui *cite* la jauge en la décrivant se fait
   renvoyer à tort — ne juger que la fin du message serait plus juste. `CLOS` :
-  17 689 317 tokens.
+  17 689 317 (recompté par REC : 20 371 577) tokens.
 
 - **2026-09-25** — chantier JUG clos (TODO n° 65) : trois règles mesurées sur 29 vrais
   sous-agents depuis `GLO` (`JUG1`) — renvoyés `tout` 16, `tiret` 16 (aucun `---` dans le
@@ -324,7 +324,7 @@
   marqués « mesurés en texte entier ». `JUG3`, en vrai : relecteur en prose renvoyé 0 fois,
   résumé à part renvoyé 1 fois puis réécrit (0,13 $ les deux). Laissé ouvert : une ligne qui
   s'ouvre par « Imprévu » ou « Pas bon » pour une autre raison serait encore renvoyée une fois
-  — absent des 29 mesurés. `CLOS` : 10 273 570 tokens.
+  — absent des 29 mesurés. `CLOS` : 10 273 570 (recompté par REC : 11 306 457) tokens.
 
 ## La TODO ordonnée — les chantiers possibles
 
