@@ -150,6 +150,9 @@ questionnaire sur le résultat visible, la frontière et les inconnues,
 proposition du découpage, écriture du fichier de fiches, mise à jour de
 `CHANTIER.md`, et la main rendue. Le coût du cadrage est payé **une fois** ; il
 ne se repaye pas à chaque fiche.
+Avant de promettre un chiffre de la TODO, le cadrage vérifie que les cas visés
+passent par le code qu'on va changer : `ESS` visait 11 clos, 9 étaient en
+`DÉCOUPE aucune`, hors du chemin modifié (journal `ESS4` du fichier d'état).
 
 **2. Exécution — une fiche, une session.** `/vlp:tache X1`, puis `/clear`, puis
 `/vlp:tache X2`. Jamais deux fiches dans la même session : la seconde traînerait
