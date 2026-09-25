@@ -107,6 +107,11 @@ dire, et proposer d'en jouer une — ne rien estimer à sa place.
 <!-- FICHE:LEC2 -->
 ## LEC2 [ ] — Faire imprimer la TODO par la carte
 
+**Tentatives** (2026-09-25) — non résolu.
+1. FAITE refusée à la relecture.
+Erreur : REFUSÉE — la carte n'imprime que la ligne d'en-tête, pas le texte de la section TODO ; une ligne « a.md, puis b.md » donne le faux chemin « puis b.md » ; un fichier absent donne `TODO=absente` au lieu d'une `GARDE:` ; `section` s'arrête au titre qui vérifie `fin`, pas au titre `## ` qui le suit, comme le demande la fiche.
+
+**Session** : e41e8069-96d6-419d-8454-665a2f96394b
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` — et rien d'autre.
 

@@ -68,9 +68,9 @@
     <p>La carte imprime la TODO et le format des fiches ; /vlp:chantier ne lit plus 08-etat.md (2 137 lignes) ni la méthode (376) en entier, et une vraie séance mesurée avant/après le prouve en tokens.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="bloquee"></span><span></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">5 fiches · 1 faite · en cours : LEC2</p>
+    <p class="mono" style="margin-top:.5rem">5 fiches · 1 faite · bloquée : LEC2</p>
   </header>
 
   <section>
@@ -81,12 +81,13 @@
         <span class="id">LEC1</span><span class="titre">Mesurer l'avant</span>
         <span class="etat">faite</span>
         <span class="note">avant 2f9a46f3 (Read tronqué à 453/1 222 l.) : tours 3, ctx_dernier 110 515, equiv 285 200, 1.14 $ ; après à la main 44909b3f : tours 6, ctx_dernier 85 624, equiv 122 263, 0.49 $ ; table des 5 projets au journal</span>
-        <span class="cout mono">≈1,9M (1 921 323) · 19 tours · 1,15 $</span>
+        <span class="cout mono">≈2,1M (2 136 551) · 21 tours · 1,25 $</span>
       </li>
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="bloquee">
         <span class="id">LEC2</span><span class="titre">Faire imprimer la TODO par la carte</span>
-        <span class="etat">en cours</span>
+        <span class="etat">bloquée</span>
         <span class="note">La carte imprime la section TODO de chaque fichier « chantiers possibles », ou TODO=absente. Sans dépendance.</span>
+        <span class="cout mono">≈5,0M (5 029 011) · 84 tours · 1,40 $</span>
       </li>
       <li class="fiche">
         <span class="id">LEC3</span><span class="titre">Faire imprimer le format des fiches par la carte</span>
@@ -105,16 +106,16 @@
       </li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈3,2M (3 185 546) · 28 tours · 2,39 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈5,1M (5 106 869) · 47 tours · 3,54 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈10,4M (10 351 108) · 133 tours · 5,04 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
   <!-- ZONE:blocage — publiée quand /tache s'arrête après deux tentatives ; retirée dès que la fiche repasse -->
-  <section hidden>
+  <section>
     <h2>Arrêt sur blocage</h2>
     <div class="blocage">
-      <p></p>
-      <pre></pre>
+      <p>LEC2 (2026-09-25) — 1. FAITE refusée à la relecture.</p>
+      <pre>REFUSÉE — la carte n'imprime que la ligne d'en-tête, pas le texte de la section TODO ; une ligne « a.md, puis b.md » donne le faux chemin « puis b.md » ; un fichier absent donne `TODO=absente` au lieu d'une `GARDE:` ; `section` s'arrête au titre qui vérifie `fin`, pas au titre `## ` qui le suit, comme le demande la fiche.</pre>
     </div>
   </section>
 
