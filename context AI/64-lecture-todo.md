@@ -8,7 +8,9 @@
 et la méthode (376), quand choisir et cadrer n'en demandent que la TODO et le format des fiches.
 La carte les imprimera, avant le premier tour ; la commande ne lira plus le reste.
 
-**Fait.** Rien. Ouvert le 2026-09-25, cadré en 5 fiches, `LEC1` à jouer.
+**CLOS** le 2026-09-25. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** LEC1..LEC5 (2026-09-25) : sans chantier ouvert, la carte imprime la TODO et le format des fiches ; /vlp:chantier ne relit plus 08-etat.md ni la méthode.
 
 **Session** : 44909b3f-749f-48b6-b44b-9fdfb6a43588
 
@@ -213,8 +215,9 @@ apparaissent une fois chacun. `.githooks/pre-commit` passe sans `--no-verify`.
 ---
 
 <!-- FICHE:LEC5 -->
-## LEC5 [ ] — Mesurer l'après
+## LEC5 [x] — Mesurer l'après
 
+**Session** : e41e8069-96d6-419d-8454-665a2f96394b
 **Dépend de** : `LEC1`, `LEC4`.
 **Fichiers** : `scripts/mesure-tokens.py`, `context AI/08-etat.md` (journal `LEC1`, puis en fin) —
 et rien d'autre.
