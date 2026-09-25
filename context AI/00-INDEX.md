@@ -45,6 +45,7 @@ a l'air proche.
 | `64-lecture-todo.md` | on relit le socle du chantier LEC — **clos** « /vlp:chantier ne lit plus l'état en entier », `LEC1..LEC5` |
 | `65-enchainer-refus.md` | on relit le socle du chantier ENC — **clos** « /vlp:enchainer rejoue une fiche floue », `ENC1..ENC3` |
 | `66-relecteur-sans-suite.md` | on relit le socle du chantier REL — **clos** « Le relecteur ne voit pas la suite », `REL1..REL3` |
+| `67-relecteur-sans-fichier.md` | on joue une fiche `FFE*` — chantier **ouvert** « Le relecteur ne lit plus le fichier de fiches entier », `FFE1..FFE2` |
 | `35-bilan.md` | on doit expliquer le kit — d'où il vient, ce qu'il sait faire aujourd'hui, ce qu'il ne promet pas ; les 22 chantiers chiffrés |
 | `36-gardes.md` | on relit le socle du chantier Z — **clos** « Une GARDE au lieu d'un traceback », `Z1..Z4` |
 | `37-niveau.md` | on relit le socle du chantier NIV — **clos** « Remettre les projets équipés à niveau », `NIV1..NIV4` |

@@ -73,8 +73,8 @@
     <!-- ZONE:encours — remplacé à chaque ouverture, remis à « aucun » à chaque clôture.
          /tache n'y touche pas : l'avancement fiche par fiche est sur la page du chantier. -->
     <div class="encours">
-      <div class="titre">Aucun chantier ouvert</div>
-      <div>Lancer <span class="mono">/vlp:chantier</span> pour en ouvrir un.</div>
+      <div class="titre">Le relecteur ne lit plus le fichier de fiches entier <span class="badge" data-etat="cours">en cours</span></div>
+      <div>Fiches <span class="mono">FFE1–FFE2</span> — <a href="https://claude.ai/artifact/1gHM68m8ZBH5BNUbdU31Dm">la page du chantier</a></div>
     </div>
   </section>
 
@@ -106,7 +106,7 @@
           <tr><td class="mono">63</td><td><span class="mono">ECH</span> — <span class="mono">ECRIT_GIT</span> ne lit pas le texte d'un heredoc</td><td>Le gardien a refusé à deux relecteurs de <span class="mono">RLG1</span> (2026-09-25) un heredoc ou un <span class="mono">echo</span> qui ne faisait qu'écrire les mots <span class="mono">git commit</span> ou <span class="mono">git add</span> dans un fichier de sonde. <span class="mono">ECRIT_GIT</span> cherche le motif dans toute la commande. Vrai aussi pour <span class="mono">vlp:fiche</span>, depuis <span class="mono">CON</span>. 🟡 Jusqu'où lire le shell : couper les chaînes citées ne suffit pas pour un heredoc.</td><td class="mono">~0,5 fiche</td><td class="mono">—</td></tr>
           <tr><td class="mono">64</td><td><span class="mono">SON</span> — Rejouer un hook à la main sans le tampon</td><td><span class="mono">une_fois</span> (chantier <span class="mono">PYT</span>) fait taire la même entrée rejouée en moins de 60 s, même par une autre copie de <span class="mono">vlp.py</span> : un relecteur de <span class="mono">RLG1</span> a dû ajouter un <span class="mono">nonce</span> pour comparer AVANT et APRÈS. Une variable d'environnement, ou une option, qui saute le tampon hors d'un vrai hook.</td><td class="mono">~0,5 fiche</td><td class="mono">—</td></tr>
           <tr><td class="mono">66</td><td><span class="mono">OUV</span> — Une ligne qui s'ouvre par un mot de jauge, sans être une jauge</td><td>Reste de <span class="mono">JUG</span> : le gardien (règle <span class="mono">tete</span>) renvoie une ligne qui <strong>commence</strong> par « Imprévu », « Pas bon »… même quand ce n'est pas la jauge — une puce <span class="mono">- Imprévu : j'ai dû…</span>, un <span class="mono">REFUSÉE</span> dont une ligne s'ouvre par « Pas bon ». Absent des 29 sous-agents mesurés en <span class="mono">JUG1</span> ; <span class="mono">stop_hook_active</span> borne le coût à un renvoi. 🟡 Exiger l'émoji de la jauge devant le mot, ou le mot suivi de <span class="mono">—</span>/<span class="mono">…</span>/fin de ligne : à mesurer sur le corpus comme en <span class="mono">JUG1</span> (<span class="mono">forme --regle</span>).</td><td class="mono">~0,5 fiche</td><td class="mono">—</td></tr>
-          <tr><td class="mono">70</td><td><span class="mono">FFE</span> — Le relecteur ne lit plus le fichier de fiches entier</td><td><span class="mono">vlp.py relecture</span> rend <span class="mono">FICHIER=</span>, le fichier de fiches entier : <span class="mono">REL1</span> (2026-09-26, <span class="mono">rel1-carte.py</span>) compte 1 <span class="mono">Read</span> sans plage sur 42 relecteurs (<span class="mono">aa4bcfe2930531dd6</span>, PLA1), 2 par plage, 0 <span class="mono">Grep</span>. Tout le fichier, c'est aussi les fiches suivantes : la fuite que <span class="mono">REL</span> ferme dans la carte. 🟡 Rendre la fiche seule (<span class="mono">extraire</span>) au lieu du chemin, ou garder le chemin pour le diff.</td><td class="mono">~0,5 fiche</td><td class="mono">—</td></tr>
+          <tr><td class="mono">70</td><td><span class="mono">FFE</span> — Le relecteur ne lit plus le fichier de fiches entier <span class="badge" data-etat="cours">en cours</span></td><td><span class="mono">vlp.py relecture</span> rend <span class="mono">FICHIER=</span>, le fichier de fiches entier : <span class="mono">REL1</span> (2026-09-26, <span class="mono">rel1-carte.py</span>) compte 1 <span class="mono">Read</span> sans plage sur 42 relecteurs (<span class="mono">aa4bcfe2930531dd6</span>, PLA1), 2 par plage, 0 <span class="mono">Grep</span>. Tout le fichier, c'est aussi les fiches suivantes : la fuite que <span class="mono">REL</span> ferme dans la carte. 🟡 Rendre la fiche seule (<span class="mono">extraire</span>) au lieu du chemin, ou garder le chemin pour le diff.</td><td class="mono">~0,5 fiche</td><td class="mono">—</td></tr>
         </tbody>
       </table>
     </div>
@@ -491,7 +491,7 @@
   </section>
 
   <footer>
-    <span>Lettres de fiche prises : <span class="mono">E, M, C, T, B, R, S, H, V, D, I, K, N, L, P, A, G, W, X, F, O, J, Y, U, Q, Z, NIV, REP, CPT, SAG, FIL, CAS, VAL, FIN, TAR, PLA, MTK, CAD, ZER, REV, CON, GLO, GAR, UNI, PYT, RLG, FOR, JUG, REC, ESS, ESD, APC, LEC, ENC, REL</span></span>
+    <span>Lettres de fiche prises : <span class="mono">E, M, C, T, B, R, S, H, V, D, I, K, N, L, P, A, G, W, X, F, O, J, Y, U, Q, Z, NIV, REP, CPT, SAG, FIL, CAS, VAL, FIN, TAR, PLA, MTK, CAD, ZER, REV, CON, GLO, GAR, UNI, PYT, RLG, FOR, JUG, REC, ESS, ESD, APC, LEC, ENC, REL, FFE</span></span>
     <span>État détaillé : <span class="mono">context AI/08-etat.md</span></span>
     <span>Mis à jour le <span class="mono">2026-09-26</span></span>
   </footer>
