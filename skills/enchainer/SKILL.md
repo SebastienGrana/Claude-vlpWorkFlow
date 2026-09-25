@@ -1,6 +1,6 @@
 ---
-description: Enchaîne les fiches du chantier courant une après l'autre, chacune sur une page blanche (sous-agent neuf), jusqu'à un arrêt prévu ou le plafond
-argument-hint: (rien) | <alias>
+description: Enchaîne les fiches du chantier courant une après l'autre, chacune sur une page blanche (sous-agent neuf) ou à la main (main), jusqu'à un arrêt prévu ou le plafond
+argument-hint: (rien) | main | <alias> | <alias> main
 model: sonnet
 allowed-tools: Bash(python3:*), Bash(py:*), Bash(echo:*), PowerShell(python3:*), PowerShell(py:*), PowerShell(echo:*), Skill, Artifact
 ---
@@ -17,6 +17,11 @@ skill les donne au sous-agent. Le contrat qu'il rend (`FAITE`, `RETOUR`,
 
 Plafond : **5 fiches** par lancement, puis arrêt avec bilan même si tout se
 passait bien.
+
+**`main` dans les arguments : aucun sous-agent.** Tu joues chaque fiche
+toi-même, par `vlp:tache`, dans cette session (étape 3, point 1) ; ni
+`vlp:jouer` ni `vlp:relire`. Le contexte grossit d'une fiche à l'autre : c'est
+le choix de l'utilisateur.
 
 ## 1. Trouver le projet et le fichier de fiches courant
 
@@ -48,8 +53,8 @@ Retiens les fiches non cochées, dans l'ordre ; une fiche cochée n'est ni
 rejouée ni vérifiée, même écrite dans cette session. La série s'arrête à la première
 dont la ligne `**Critère de fin**` porte `(visuel)` — incluse —, ou au plafond
 de 5. Annonce-la en une ligne (« je joue E5 → E7, arrêt prévu à E7
-(visuel) ») ; tu n'attends pas de réponse. Dis aussi où suivre : « suivi :
-panneau Tâches de l'app, clique sur le sous-agent ; Ctrl+O pour le détail ».
+(visuel) ») ; tu n'attends pas de réponse. Sans `main`, dis aussi où suivre :
+« suivi : panneau Tâches de l'app, clique sur le sous-agent ; Ctrl+O pour le détail ».
 
 ## 3. Jouer chaque fiche
 
@@ -60,6 +65,9 @@ Pour chaque fiche de la série, dans l'ordre :
    **Tentatives** (tout lu à l'étape 2). Traite-le comme un `RETOUR`
    (étape 3 bis).
 1. Un seul appel : `Skill`, `skill: "vlp:jouer"`, `args` : la fiche.
+   Avec `main` : `skill: "vlp:tache"` à la place — elle coche, publie et
+   commite elle-même ; le point 2 ne s'applique pas. Fiche cochée ensuite :
+   passe à la suivante ; sinon, c'est un `RETOUR` (étape 3 bis).
 2. Lis le premier mot du `Result` rendu. Ce n'est pas un statut : prends la
    première ligne qui **commence** par `FAITE`, `RETOUR` ou `BLOQUÉE` ; aucune,
    c'est « aucun statut » ci-dessous.
