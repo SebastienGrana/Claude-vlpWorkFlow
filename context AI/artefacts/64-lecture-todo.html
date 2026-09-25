@@ -87,7 +87,7 @@
         <span class="id">LEC2</span><span class="titre">Faire imprimer la TODO par la carte</span>
         <span class="etat">bloquée</span>
         <span class="note">La carte imprime la section TODO de chaque fichier « chantiers possibles », ou TODO=absente. Sans dépendance.</span>
-        <span class="cout mono">≈5,0M (5 029 011) · 84 tours · 1,40 $</span>
+        <span class="cout mono">≈13,0M (12 993 677) · 192 tours · 4,10 $</span>
       </li>
       <li class="fiche">
         <span class="id">LEC3</span><span class="titre">Faire imprimer le format des fiches par la carte</span>
@@ -106,7 +106,7 @@
       </li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈3,2M (3 185 546) · 28 tours · 2,39 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈10,4M (10 351 108) · 133 tours · 5,04 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈18,3M (18 315 774) · 241 tours · 7,74 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -114,8 +114,8 @@
   <section>
     <h2>Arrêt sur blocage</h2>
     <div class="blocage">
-      <p>LEC2 (2026-09-25) — 1. FAITE refusée à la relecture.</p>
-      <pre>REFUSÉE — la carte n'imprime que la ligne d'en-tête, pas le texte de la section TODO ; une ligne « a.md, puis b.md » donne le faux chemin « puis b.md » ; un fichier absent donne `TODO=absente` au lieu d'une `GARDE:` ; `section` s'arrête au titre qui vérifie `fin`, pas au titre `## ` qui le suit, comme le demande la fiche.</pre>
+      <p>LEC2 (2026-09-25) — 1. FAITE refusée à la relecture. 2. FAITE refusée à la relecture.</p>
+      <pre>REFUSÉE — le mutant du critère survit (tests `OK` avec `section` coupée au dernier `## `) ; le critère n'est pas tenu (`test_carte_todo` n'a ni cas « deux fichiers → deux blocs » ni fichier sans titre TODO) ; la carte n'imprime que l'en-tête, pas le texte de la section TODO ; un chemin entre backticks ou suivi de prose produit le faux message « pas de ligne « chantiers possibles » ».</pre>
     </div>
   </section>
 

@@ -109,7 +109,8 @@ dire, et proposer d'en jouer une — ne rien estimer à sa place.
 
 **Tentatives** (2026-09-25) — non résolu.
 1. FAITE refusée à la relecture.
-Erreur : REFUSÉE — la carte n'imprime que la ligne d'en-tête, pas le texte de la section TODO ; une ligne « a.md, puis b.md » donne le faux chemin « puis b.md » ; un fichier absent donne `TODO=absente` au lieu d'une `GARDE:` ; `section` s'arrête au titre qui vérifie `fin`, pas au titre `## ` qui le suit, comme le demande la fiche.
+2. FAITE refusée à la relecture.
+Erreur : REFUSÉE — le mutant du critère survit (tests `OK` avec `section` coupée au dernier `## `) ; le critère n'est pas tenu (`test_carte_todo` n'a ni cas « deux fichiers → deux blocs » ni fichier sans titre TODO) ; la carte n'imprime que l'en-tête, pas le texte de la section TODO ; un chemin entre backticks ou suivi de prose produit le faux message « pas de ligne « chantiers possibles » ».
 
 **Session** : e41e8069-96d6-419d-8454-665a2f96394b
 **Dépend de** : rien.
