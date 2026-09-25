@@ -87,11 +87,11 @@
         <span class="id">FFE2</span><span class="titre">Faire trouver le fichier à rel1-carte.py sans FICHIER=</span>
         <span class="etat">faite</span>
         <span class="note">--sans-fichier : 20/20 relecteurs réels au même chemin que FICHIER= ; TOTAL entier 1→0, plage 2→0, grep 0→0 (rejeux REV, carte à 51-relecture.md) ; 3 sans chemin des deux côtés ; pyright 0 errors</span>
-        <span class="cout mono">≈1,3M (1 285 437) · 13 tours · 0,94 $</span>
+        <span class="cout mono">≈1,5M (1 496 636) · 15 tours · 1,04 $</span>
       </li>
     </ul>
-    <p class="mono cout-hors">Hors fiches : ≈2,6M (2 587 142) · 22 tours · 1,92 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈6,9M (6 873 993) · 50 tours · 3,73 $</p>
+    <p class="mono cout-hors">Hors fiches : ≈2,8M (2 812 296) · 24 tours · 2,02 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈7,3M (7 310 346) · 54 tours · 3,93 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -113,10 +113,11 @@
   </section>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
-  <section hidden>
-    <h2>Chantier clos le </h2>
+  <section>
+    <h2>Chantier clos le 2026-09-26</h2>
     <div class="bilan">
-      <p></p>
+      <p>Livré : vlp.py relecture ne rend plus FICHIER= ; l'agent vlp:relecture n'ouvre pas le fichier de fiches ; rel1-carte.py le retrouve par APRÈS= et la carte (--sans-fichier)</p>
+      <p>Surpris : sans FICHIER=, rel1-carte.py rate les 19 rejeux REV : leur carte nommait 51-relecture.md, pas le fichier relu</p>
     </div>
   </section>
 

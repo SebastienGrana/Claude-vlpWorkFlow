@@ -7,7 +7,9 @@
 **À quoi il sert.** `vlp.py relecture` rend `FICHIER=`, le chemin du fichier de fiches entier — la suite
 du chantier que `REL` a retirée de la carte. `REL1` : 1 `Read` entier sur 42 relecteurs, 2 par plage.
 
-**Fait.** Rien. Ouvert le 2026-09-26, cadré en 2 fiches, `FFE1` à jouer.
+**CLOS** le 2026-09-26. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** FFE1..FFE2 (2026-09-26) : vlp.py relecture ne rend plus FICHIER= ; l'agent vlp:relecture n'ouvre pas le fichier de fiches ; rel1-carte.py le retrouve par APRÈS= et la carte (--sans-fichier).
 
 **Session** : 555d49cb-4290-478c-b89c-a33e35bf87b4
 
