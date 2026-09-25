@@ -215,7 +215,10 @@ Sous-commandes :
   fichier introuvable), écart 0 ; ` · partagée avec <préfixes>` si une de ses sessions est
   aussi dans le fichier d'un autre clos. Puis `RECOMPTE <n> clos · <n> recomptés · <n> gardés ·
   inscrit <n> · recompté <n> · écart <±n>`, recompté = inscrit + écarts. Pas de feuille, pas de
-  `ZONE:clos`, pas d'index : `GARDE:`, sort 1.
+  `ZONE:clos`, pas d'index : `GARDE:`, sort 1. `--ecrire` : tout calculé d'abord, un recompté à
+  écart non nul prend `recompté (REC), était <n> · <arrondi>`, un gardé `non recompté — <raison> ·
+  <chiffre>` — la marque en tête, que `BRUT` ne lit qu'en fin —, puis pied et résumé resommés
+  (`resommer`) ; relancé, rien ne change. Dernière ligne `ÉCRIT <n> cellules · total <avant> → <après>`.
 
 Python 3 sans dépendance, zéro appel modèle.
 
@@ -2276,9 +2279,30 @@ def recompte(chemin):
     return plus(*totaux(decoupe))[0], "découpe"
 
 
-def cmd_recompter(projet, sortie):
+# La cellule de coût d'une ligne close, seule sur sa ligne (`clore`), et les marques de
+# `recompter --ecrire` : en tête, jamais après le brut, que `BRUT` ne lit qu'en fin de cellule.
+CELLULE_CLOS = re.compile(r'(\n            <td class="mono">)([^<\n]*)(</td>\n)')
+MARQUE_REC = "recompté (REC), était "
+MARQUE_GARDE = "non recompté — "
+
+
+def marquer(cellule, brut, recompte_, methode):
+    """La cellule de coût après `--ecrire` : le recompté au format de `clore` et l'ancien chiffre,
+    ou le chiffre gardé et sa raison — la même cellule si rien n'est à marquer."""
+    entre = lambda v: v if "(" in v or not v.isdigit() else "(%s)" % v   # un nu sous 1 000 reste lu
+    if recompte_ is None:
+        if MARQUE_GARDE in cellule:
+            return cellule
+        return "%s%s · %s" % (MARQUE_GARDE, esc(methode.replace("gardé — ", "", 1)), entre(cellule))
+    if recompte_ == brut:
+        return cellule
+    marque = cellule.split(" · ")[0] if cellule.startswith(MARQUE_REC) else MARQUE_REC + milliers(brut)
+    return "%s · %s" % (marque, entre(arrondi(recompte_)))
+
+
+def cmd_recompter(projet, sortie, ecrire=False):
     """Chaque ligne de `ZONE:clos` recomptée par `cout` sur son fichier de fiches, que l'index
-    nomme au même préfixe ; n'écrit rien (chantier REC)."""
+    nomme au même préfixe ; n'écrit rien sans `ecrire` (chantier REC)."""
     if not equipe(projet):
         sortie.write("GARDE: pas de CHANTIER.md dans %s\n" % projet)
         return 1
@@ -2305,13 +2329,14 @@ def cmd_recompter(projet, sortie):
         m = PLAGE_CLOS.search(r)
         if m:
             chemin = fichiers.get(m.group(1))
-            rangs.append((m.group(1), total_clos(r), chemin if chemin and os.path.isfile(chemin) else None))
+            rangs.append((r, m.group(1), total_clos(r), chemin if chemin and os.path.isfile(chemin) else None))
     porteurs = {}
-    for prefixe, _, chemin in rangs:
+    for _, prefixe, _, chemin in rangs:
         for s in sessions_de(lignes_de(chemin)) if chemin else []:
             porteurs.setdefault(s, set()).add(prefixe)
     n = inscrit = ecart = 0
-    for prefixe, brut, chemin in rangs:
+    neufs = {}      # chaque ligne et sa réécriture, toutes calculées avant d'écrire
+    for r, prefixe, brut, chemin in rangs:
         recompte_, methode = recompte(chemin) if chemin else (None, "gardé — fichier introuvable")
         autres = sorted({p for s in (sessions_de(lignes_de(chemin)) if chemin else [])
                          for p in porteurs[s]} - {prefixe})
@@ -2320,8 +2345,21 @@ def cmd_recompter(projet, sortie):
         sortie.write("%s inscrit %s · recompté %s · écart %s · %s%s\n" % (
             prefixe, milliers(brut), "gardé" if recompte_ is None else milliers(recompte_), signe(e), methode,
             " · partagée avec %s" % ", ".join(autres) if autres else ""))
+        neufs[r] = CELLULE_CLOS.sub(lambda c: c.group(1) + marquer(c.group(2), brut, recompte_, methode)
+                                    + c.group(3), r, count=1)
     sortie.write("RECOMPTE %d clos · %d recomptés · %d gardés · inscrit %s · recompté %s · écart %s\n" % (
         len(rangs), n, len(rangs) - n, milliers(inscrit), milliers(inscrit + ecart), signe(ecart)))
+    if not ecrire:
+        return 0
+    corps = html[d:f]
+    neuf_corps = RANG_CLOS.sub(lambda m: neufs.get(m.group(0), m.group(0)), corps)
+    avant, apres = total_clos(corps), total_clos(neuf_corps)
+    neuf = resommer(html[:d] + neuf_corps + html[f:], len(lignes_clos(neuf_corps)), apres)
+    if neuf != html:
+        with open(page, "w", encoding="utf-8", newline="") as fh:
+            fh.write(neuf)
+    sortie.write("ÉCRIT %d cellules · total %s → %s\n" % (
+        sum(neufs[r] != r for r, _, _, _ in rangs), milliers(avant), milliers(apres)))
     return 0
 
 
@@ -2332,6 +2370,16 @@ def resume_clos(n, total):
     if not total:  # aucun des clos ne porte de coût mesuré : pas de 0 $ inventé.
         return "%d chantiers clos · coût non mesuré" % n
     return "%d chantiers clos · %s tokens · %s" % (n, arrondi(total), estimation_usd(total))
+
+
+def resommer(html, n, total):
+    """Le pied « Total cumulé » et le résumé du bloc repliable d'une feuille, pour `n` clos qui
+    coûtent `total` — écrits par `clore` et `recompter --ecrire`."""
+    html = re.sub(r"(Total cumulé</td><td class=\"mono\"><strong>).*?(</strong></td><td[^>]*>).*?(</td>)",
+                  lambda m: m.group(1) + arrondi(total) + m.group(2) + estimation_usd(total) + m.group(3),
+                  html, count=1)
+    return re.sub(r"(<span class=\"resume-clos\">).*?(</span>)",
+                  lambda m: m.group(1) + resume_clos(n, total) + m.group(2), html, count=1)
 
 
 def regles_clos():
@@ -2772,13 +2820,7 @@ def cmd_clore(a, sortie):
         corps = ligne + "".join(anciens)
         html = html[:d] + corps + html[f:]
         total = total_clos(corps)
-        html = re.sub(r"(Total cumulé</td><td class=\"mono\"><strong>).*?(</strong></td><td[^>]*>).*?(</td>)",
-                      lambda m: m.group(1) + arrondi(total) + m.group(2) + estimation_usd(total) + m.group(3),
-                      html, count=1)
-        # Le résumé du bloc repliable : ce qu'on voit sans déplier.
-        html = re.sub(r"(<span class=\"resume-clos\">).*?(</span>)",
-                      lambda m: m.group(1) + resume_clos(len(anciens) + 1, total) + m.group(2),
-                      html, count=1)
+        html = resommer(html, len(anciens) + 1, total)
         etat = champ(carte_, "fichier d'état")
         try:
             zone(html, "todo", "<tbody>\n", "        </tbody>")
@@ -3023,6 +3065,7 @@ def main(argv, sortie=None, entree=None, erreur=None):
     sous.add_parser("gardien")
     rc = sous.add_parser("recompter")
     rc.add_argument("projet")
+    rc.add_argument("--ecrire", action="store_true")
     a = p.parse_args(argv)
     try:
         return repartir(a, sortie, entree, erreur)
@@ -3077,7 +3120,7 @@ def repartir(a, sortie, entree, erreur):
     if a.cmd == "gardien":
         return une_fois(entree, cmd_gardien, sortie)
     if a.cmd == "recompter":
-        return cmd_recompter(a.projet, sortie)
+        return cmd_recompter(a.projet, sortie, a.ecrire)
     chemin_garde(a.fichier)
     if a.cmd == "extraire":
         return cmd_extraire(a.fichier, a.fiche, sortie)

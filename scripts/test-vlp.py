@@ -708,6 +708,31 @@ with tempfile.TemporaryDirectory() as t:
         verifier("recompter : le recompté de Q est le TOTAL de cout", code2 == 0
                  and "\nTOTAL (fiches + hors fiches) · ≈700,0k (700 000) · 7 tours" in s2, s2)
         verifier("recompter n'écrit rien", disque() == avant, sorted(disque()))
+        # REC3 : --ecrire marque les six lignes en tête de cellule, resomme pied et résumé, puis ne
+        # change plus rien.
+        fr = os.path.join(rc, "ctx", "artefacts", "feuille-de-route.html")
+        ecrire(fr, lire(fr).replace("      <table>\n", '      <summary><span class="resume-clos">vieux</span></summary>\n'
+                                    "      <table>\n", 1).replace("      </table>\n",
+               '        <tfoot>\n          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>vieux'
+               '</strong></td><td class="mono">vieux</td></tr>\n        </tfoot>\n      </table>\n', 1))
+        code, s = appel(["recompter", rc, "--ecrire"])
+        feuille_ = lire(fr)
+        corps_ = feuille_[:feuille_.find("<tfoot>")]
+        verifier("recompter --ecrire : total_clos égale le recompté — mutants : la marque posée en parenthèses,"
+                 " la marque dans une balise", code == 0 and mod.total_clos(corps_) == 1004499
+                 and s.splitlines()[-2:] == [
+                     "RECOMPTE 6 clos · 1 recomptés · 5 gardés · inscrit 954 499 · recompté 1 004 499 · écart +50 000",
+                     "ÉCRIT 6 cellules · total 954 499 → 1 004 499"]
+                 and '<td class="mono">recompté (REC), était 650 000 · ≈700,0k (700 000)</td>' in feuille_
+                 and '<td class="mono">non recompté — sans session · (999)</td>' in feuille_
+                 and '<td class="mono">non recompté — fichier introuvable · non mesurable</td>' in feuille_, s + feuille_)
+        verifier("recompter --ecrire : pied et résumé resommés — mutant : le pied non resommé",
+                 "<strong>%s</strong></td><td class=\"mono\">%s</td>" % (mod.arrondi(1004499), mod.estimation_usd(1004499))
+                 in feuille_ and '<span class="resume-clos">%s</span>' % mod.resume_clos(6, 1004499) in feuille_, feuille_)
+        code, s = appel(["recompter", rc, "--ecrire"])
+        verifier("recompter --ecrire relancé : rien ne change", code == 0 and lire(fr) == feuille_
+                 and s.splitlines()[-1] == "ÉCRIT 0 cellules · total 1 004 499 → 1 004 499"
+                 and "Q inscrit 700 000 · recompté 700 000 · écart +0 · découpe · partagée avec M" in s, s)
         code, s = appel(["recompter", os.path.join(t, "clq")])
         verifier("recompter : pas de CHANTIER.md, une garde", code == 1 and s.startswith("GARDE: pas de CHANTIER.md"), s)
 

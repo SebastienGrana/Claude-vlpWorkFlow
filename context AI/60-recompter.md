@@ -113,8 +113,9 @@ fichier modifié (`git status`).
 ---
 
 <!-- FICHE:REC3 -->
-## REC3 [ ] — Écrire le recompte dans la feuille
+## REC3 [x] — Écrire le recompte dans la feuille
 
+**Session** : b42199e6-9ed4-48b8-8da0-ea2aedff47d7
 **Dépend de** : `REC1`.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` — et rien d'autre.
 
