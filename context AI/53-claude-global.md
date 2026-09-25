@@ -8,8 +8,9 @@
 `CLAUDE.md` de l'utilisateur et du projet, et sa mémoire (TODO n° 44). GLO mesure ce
 qu'ils pèsent et s'ils poussent à la forme (« En résumé », jauge) ; n'agit que si ça coûte.
 
-**Fait.** Rien. Ouvert le 2026-09-25, cadré en 3 fiches, `GLO1` à jouer. Cadré seul :
-l'utilisateur dormait ; les 🟡 tranchés ici sont à valider au réveil.
+**CLOS** le 2026-09-25. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** GLO1..GLO3 (2026-09-25) : vlp.py forme mesure les CLAUDE.md et la forme de chaque sous-agent ; une phrase dans les deux agents : ton lecteur est le chef, pas l'humain.
 
 **Session** : ca431cf8-167e-4c10-8bce-210c5f48a675
 
