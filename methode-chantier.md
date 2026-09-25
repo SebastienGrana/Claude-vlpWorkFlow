@@ -130,7 +130,15 @@ Elles sont écrites ici, et nulle part ailleurs : le reste du kit y renvoie.
   (chantier `FOR`). Rejouée après relance de l'app, la même phrase changeait
   nettement la mesure. Avant de mesurer la forme d'un sous-agent après un
   changement d'agent : relancer l'app, ou au moins vérifier que la session
-  parente a démarré après le commit.
+  parente a démarré après le commit. Un **script de hook**, lui, est relu à chaque
+  appel : le gardien changé a jugé en vrai sans relance (chantier `JUG`).
+- **Un filtre qui se trompe se change sur le vrai corpus, règles candidates côte à
+  côte.** La règle intuitive n'est pas la bonne. Mesuré (chantier `JUG`) sur 29 vrais
+  sous-agents : « après le dernier `---` » ne changeait rien — aucun message n'en
+  portait — et « les deux dernières lignes » laissait passer 3 vraies fautes ; seule
+  « le mot ouvre une ligne » retirait les 2 faux renvois sans rien rater. La règle
+  devient un paramètre, chaque candidate se mesure, l'utilisateur retient ; l'ancienne
+  reste rejouable (`--regle tout`), et les chiffres qu'elle a produits restent, marqués.
 
 ## Les trois temps
 
