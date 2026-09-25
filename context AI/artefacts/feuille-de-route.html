@@ -73,8 +73,8 @@
     <!-- ZONE:encours — remplacé à chaque ouverture, remis à « aucun » à chaque clôture.
          /tache n'y touche pas : l'avancement fiche par fiche est sur la page du chantier. -->
     <div class="encours">
-      <div class="titre">Un hook n'agit qu'une fois <span class="badge" data-etat="cours">en cours</span></div>
-      <div>Fiches <span class="mono">PYT1–PYT2</span> — <a href="https://claude.ai/artifact/2R2w8zMfCKbEhkU8Gm9bdG">la page du chantier</a></div>
+      <div class="titre">Aucun chantier ouvert</div>
+      <div>Lancer <span class="mono">/vlp:chantier</span> pour en ouvrir un.</div>
     </div>
   </section>
 
@@ -93,7 +93,6 @@
           <tr><td class="mono">43</td><td><span class="mono">RAT</span> — Un <span class="mono">Read</span> raté réveille-t-il le filet ?</td><td>Reste de <span class="mono">FIL</span> : le filet tire après un <span class="mono">Read</span> réussi et après un Bash à code non nul (<span class="mono">FIL3</span>), mais un <span class="mono">Read</span> sur un fichier absent n'est pas éprouvé. La doc range dans <span class="mono">PostToolUseFailure</span> l'outil lancé qui échoue, pas l'appel refusé avant de s'exécuter (journal du 2026-09-24). S'il n'en déclenche aucun, des derniers tours de <span class="mono">Read</span> ratés laissent le sous-agent coupé muet. Un essai à plafond 10, comme <span class="mono">FIL3</span> (≈ 0,1 $).</td><td class="mono">~0,5 fiche</td><td class="mono">—</td></tr>
           <tr><td class="mono">45</td><td><span class="mono">BAC</span> — Un bac d'essai par script</td><td><span class="mono">SAG4</span> et <span class="mono">FIL3</span> ont rebâti leur bac à la main — <span class="mono">CHANTIER.md</span>, fiches factices, fichiers —, puis compté la transcription du sous-agent par un script jetable. <span class="mono">FIL3</span> y a buté deux fois : la section <span class="mono">## L'ordre des fiches</span> exigée par le hook, et « un appel par tour », lu par Haiku comme « par exécution » (0,148 $ perdus). <span class="mono">vlp.py</span> posera le bac en un appel, et comptera la transcription : tours, avertissements du filet et l'outil qui les précède, <span class="mono">hook_non_blocking_error</span>, premier mot et <span class="mono">stop_reason</span> du dernier message. Le lancement <span class="mono">claude -p</span> reste à la main, chiffré avant.</td><td class="mono">~1 fiche</td><td class="mono">—</td></tr>
           <tr><td class="mono">46</td><td><span class="mono">EVF</span> — Le filet en eval rejouable</td><td>Les deux essais de <span class="mono">FIL3</span> en eval du plugin (chantier <span class="mono">V</span>) : un changement de <span class="mono">hooks/hooks.json</span> ou de <span class="mono">vlp.py filet</span> se reprouve en un appel, ≈ 0,16 $ le passage (0,06411505 + 0,10040705). 🟡 Qu'un eval lise la transcription d'un sous-agent : pas vérifié.</td><td class="mono">~2 fiches</td><td class="mono"><span class="mono">BAC</span></td></tr>
-          <tr><td class="mono">39</td><td><span class="mono">PYT</span> — Plus d'erreur « Python est introuvable » à chaque appel d'outil <span class="badge" data-etat="cours">en cours</span></td><td>Sous Windows, les entrées <span class="mono">python3</span> de <span class="mono">hooks/hooks.json</span> échouent à chaque appel d'outil : une <span class="mono">hook_non_blocking_error</span> « Python est introuvable » par appel, deux par écriture. Compté la nuit du 2026-09-24 : 598 dans la session principale (73,1 s) et 488 dans les quatorze sous-agents (60,1 s), toutes de l'entrée <span class="mono">python3</span>. Aucune n'a paru dans le contexte du modèle de la session principale ; pour les sous-agents, 🟡 déduit, pas vérifié. Le coût : ≈ 133 s et du bruit à l'écran, pas des tokens. Faire taire l'entrée qui échoue sans perdre la paire <span class="mono">python3</span> + <span class="mono">py</span>. Vu le 2026-09-25 (<span class="mono">CON3</span>, sonde) : <span class="mono">python3</span> et <span class="mono">py</span> ont <strong>tous deux</strong> tourné, ouvrant le même <span class="mono">python.exe</span> — 24 entrées pour 12 événements ; chaque hook agit donc deux fois (le gardien refuse deux fois, le filet avertit deux fois). 🟡 Contredit « échouent à chaque appel » ci-dessus : l'alias <span class="mono">python3</span> a pu changer depuis ; à remesurer au cadrage.</td><td class="mono">~1 fiche</td><td class="mono">—</td></tr>
           <tr><td class="mono">25</td><td><span class="mono">VOI</span> — Finir les feuilles voisines, reste de <span class="mono">REP</span></td><td>Ce que <span class="mono">REP</span> a laissé. La ligne <span class="mono">MARKDOWN</span> de <span class="mono">vlp.py niveau</span> compte, sans <span class="mono">--ecrire</span>, la page régénérée au lieu de celle du disque : elle ne voit ni la TODO ni la zone « en cours ». La régénération abîme trois feuilles voisines : TODO de MapDecorator hors table, donc lue vide ; lettres de fiche entre backticks ignorées ; source de TrackGen sans accents. Une fois corrigées, republier MapDecorator, TrackGen et ProjetONZSM. Détail : journal du 2026-09-23.</td><td class="mono">~3 fiches</td><td class="mono">—</td></tr>
           <tr><td class="mono">26</td><td><span class="mono">ABR</span> — Mettre notes et journal à l'abri dans un <span class="mono">.md</span></td><td>Les notes et le journal d'une page de chantier n'existent aujourd'hui que dans la page. <span class="mono">page --note</span> et <span class="mono">--journal</span> écriront d'abord le texte entier dans un <span class="mono">.md</span>, et la page le recopiera.</td><td class="mono">~3 fiches</td><td class="mono">—</td></tr>
           <tr><td class="mono">27</td><td><span class="mono">ALE</span> — Essai : alléger la republication</td><td>Deux pistes, mesurées : le CSS en fichier joint, puis les données dans la base de claude.ai. Décide où vivent le CSS et les données avant <span class="mono">PLI</span> et <span class="mono">FEU</span>.</td><td class="mono">2 fiches</td><td class="mono"><span class="mono">ABR</span></td></tr>
@@ -117,13 +116,19 @@
     <h2>Chantiers clos — ils ne se rejouent pas</h2>
     <!-- ZONE:clos — une ligne ajoutée à chaque clôture, la plus récente en haut -->
     <details class="clos">
-      <summary><span class="resume-clos">44 chantiers clos · ≈633,3M (633 271 201) tokens · ≈530 $</span></summary>
+      <summary><span class="resume-clos">45 chantiers clos · ≈644,8M (644 832 396) tokens · ≈540 $</span></summary>
     <div class="tableau">
       <table>
         <thead>
           <tr><th>Chantier</th><th>Fiches</th><th>Clos le</th><th>Tokens</th><th>Ce qu'il a livré</th></tr>
         </thead>
         <tbody>
+          <tr>
+            <td><a href="https://claude.ai/artifact/2R2w8zMfCKbEhkU8Gm9bdG">Un hook n'agit qu'une fois</a> <span class="badge" data-etat="clos">clos</span></td>
+            <td class="mono">PYT1–PYT2</td><td class="mono">2026-09-25</td>
+            <td class="mono">≈11,6M (11 561 195)</td>
+            <td>un hook n'agit qu'une fois : python3 et py partent tous deux, le premier qui crée le tampon agit, l'autre se tait ; 2 VALIDE par écriture avant, 1 après</td>
+          </tr>
           <tr>
             <td><a href="https://claude.ai/artifact/VFTA2oAtpsiUacSbZTMEfE">Un seul chiffre par clôture</a> <span class="badge" data-etat="clos">clos</span></td>
             <td class="mono">UNI1–UNI2</td><td class="mono">2026-09-25</td>
@@ -418,7 +423,7 @@
           </tr>
         </tbody>
         <tfoot>
-          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈633,3M (633 271 201)</strong></td><td class="mono">≈530 $</td></tr>
+          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈644,8M (644 832 396)</strong></td><td class="mono">≈540 $</td></tr>
         </tfoot>
       </table>
     </div>

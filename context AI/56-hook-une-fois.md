@@ -9,8 +9,9 @@ tourner partout (TODO n° 39). Là où les deux existent, il agit deux fois : ce
 renvoi du gardien et chaque `VALIDE` du hook d'écriture sont arrivés en double. PYT garde la
 paire, et fait taire le second.
 
-**Fait.** Rien. Ouvert le 2026-09-25, cadré en 2 fiches, `PYT1` à jouer. Cadré seul :
-l'utilisateur dormait ; les 🟡 tranchés ici sont à valider au réveil.
+**CLOS** le 2026-09-25. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** PYT1..PYT2 (2026-09-25) : un hook n'agit qu'une fois : python3 et py partent tous deux, le premier qui crée le tampon agit, l'autre se tait ; 2 VALIDE par écriture avant, 1 après.
 
 **Session** : ca431cf8-167e-4c10-8bce-210c5f48a675
 

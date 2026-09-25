@@ -13,11 +13,11 @@ https://github.com/SebastienGrana/Claude-vlpWorkFlow — cloné et utilisé en g
 - Équipés : Cairn-VlpLib, MapDecorator, ProjetONZSM, TrackGen — et ce kit lui-même.
 - Chaque chantier clos a sa ligne dans `context AI/00-INDEX.md`, son détail daté dans
   `context AI/08-etat.md` ; ici, les derniers seulement (`vlp.py clore` les tient).
-- Clos le 2026-09-25 : chaque FAITE d'/vlp:enchainer est relu avant son commit par un relecteur neuf : trois motifs refusent, un soupçon se rejoue, la sonde va au-delà du critère ; 4 verdicts justes sur 4 sur les témoins de la nuit, 0,50 $ la relecture (chantier REV).
 - Clos le 2026-09-25 : un sous-agent vlp:fiche ne commite plus : vlp.py gardien refuse git sur PreToolUse et renvoie sur SubagentStop un statut absent ou une case vide ; HEAD 60ef683 intact sur le témoin, 6,83 $ (chantier CON).
 - Clos le 2026-09-25 : vlp.py forme : depuis f98ceec, 23 sous-agents sur 36 finissent par la jauge ; une phrase dans fiche.md et relecture.md leur dit que leur lecteur est le chef ; preuve à la prochaine session (chantier GLO).
 - Clos le 2026-09-25 : le gardien renvoie un FAITE sur case vide même après un premier renvoi ; prouvé sur un témoin (chantier GAR).
 - Clos le 2026-09-25 : un seul chiffre par clôture : clore mesure le total et l'écrit sur la page, la feuille et au bilan (chantier UNI).
+- Clos le 2026-09-25 : un hook n'agit qu'une fois : un tampon exclusif fait taire le second lanceur ; 2 VALIDE par écriture avant, 1 après (chantier PYT).
 
 ## Quatre règles non négociables
 
@@ -57,7 +57,6 @@ et seulement dans ce cas, ouvrir l'index.
 | savoir où vit quoi dans un projet équipé | `methode-chantier.md`, section « Où vit quoi » |
 | toucher aux pages publiées | `ARTEFACTS.md`, puis le gabarit dans `templates/` |
 | ouvrir un chantier, ou le découper en fiches | **lancer `/vlp:chantier`** |
-| jouer une fiche du chantier PYT (un hook n'agit qu'une fois) | `context AI/56-hook-une-fois.md` — chantier **ouvert**, par `/vlp:tache PYT<n>` |
 | relire un chantier clos | `context AI/00-INDEX.md` — sa ligne y nomme le fichier de fiches |
 | reprendre après une longue interruption | `context AI/08-etat.md` |
 | choisir le prochain chantier du kit, ou retrouver la preuve d'un bug relevé le 2026-09-17 | `context AI/12-audit.md` |

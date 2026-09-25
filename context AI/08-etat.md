@@ -285,6 +285,15 @@
   ligne de bilan s'écrit après la page, donc ses propres tours n'y sont pas — quelques
   milliers, hors du chiffre. 106 tours, 15 942 182 tokens, 4,47 $.
 
+- **2026-09-25** — chantier PYT clos (TODO n° 39) : un hook n'agit qu'une fois. La paire
+  `python3` + `py` reste ; `une_fois` lit l'entrée, et seul le lanceur qui crée
+  `<temp>/vlp-hook-<sha1 du nom et de l'entrée>` agit. Compté dans la session : 2 `VALIDE`
+  par écriture avant, 1 après. Le « Python est introuvable » de la TODO était périmé : les
+  deux lanceurs marchent (mesuré au cadrage). Surpris : `filet` et `hook` reçoivent la même
+  entrée — sans le nom dans l'empreinte, `hook` se taisait derrière `filet` (`0bef88a`).
+  Laissé ouvert : sous `SubagentStop`, le renvoi en double n'a pas été recompté après le
+  correctif. `CLOS` : 11 561 195 tokens ; `cout`, quelques tours plus tard : 83 tours, 3,81 $.
+
 ## La TODO ordonnée — les chantiers possibles
 
 C'est d'ici que `/chantier` tire ses propositions. Un chantier par entrée, cité
@@ -307,7 +316,6 @@ celle de `FIL` ; 48 à 51, de celle de `FIN` ; 52, des clôtures de la nuit du
 | 43 | `RAT` — Un `Read` raté réveille-t-il le filet ? | Reste de `FIL` : le filet tire après un `Read` réussi et après un Bash à code non nul (`FIL3`), mais un `Read` sur un fichier absent n'est pas éprouvé. La doc range dans `PostToolUseFailure` l'outil lancé qui échoue, pas l'appel refusé avant de s'exécuter (journal du 2026-09-24). S'il n'en déclenche aucun, des derniers tours de `Read` ratés laissent le sous-agent coupé muet. Un essai à plafond 10, comme `FIL3` (≈ 0,1 $). | ~0,5 fiche | — |
 | 45 | `BAC` — Un bac d'essai par script | `SAG4` et `FIL3` ont rebâti leur bac à la main — `CHANTIER.md`, fiches factices, fichiers —, puis compté la transcription du sous-agent par un script jetable. `FIL3` y a buté deux fois : la section `## L'ordre des fiches` exigée par le hook, et « un appel par tour », lu par Haiku comme « par exécution » (0,148 $ perdus). `vlp.py` posera le bac en un appel, et comptera la transcription : tours, avertissements du filet et l'outil qui les précède, `hook_non_blocking_error`, premier mot et `stop_reason` du dernier message. Le lancement `claude -p` reste à la main, chiffré avant. | ~1 fiche | — |
 | 46 | `EVF` — Le filet en eval rejouable | Les deux essais de `FIL3` en eval du plugin (chantier `V`) : un changement de `hooks/hooks.json` ou de `vlp.py filet` se reprouve en un appel, ≈ 0,16 $ le passage (0,06411505 + 0,10040705). 🟡 Qu'un eval lise la transcription d'un sous-agent : pas vérifié. | ~2 fiches | `BAC` |
-| 39 | `PYT` — Plus d'erreur « Python est introuvable » à chaque appel d'outil | Sous Windows, les entrées `python3` de `hooks/hooks.json` échouent à chaque appel d'outil : une `hook_non_blocking_error` « Python est introuvable » par appel, deux par écriture. Compté la nuit du 2026-09-24 : 598 dans la session principale (73,1 s) et 488 dans les quatorze sous-agents (60,1 s), toutes de l'entrée `python3`. Aucune n'a paru dans le contexte du modèle de la session principale ; pour les sous-agents, 🟡 déduit, pas vérifié. Le coût : ≈ 133 s et du bruit à l'écran, pas des tokens. Faire taire l'entrée qui échoue sans perdre la paire `python3` + `py`. Vu le 2026-09-25 (`CON3`, sonde) : `python3` et `py` ont **tous deux** tourné, ouvrant le même `python.exe` — 24 entrées pour 12 événements ; chaque hook agit donc deux fois (le gardien refuse deux fois, le filet avertit deux fois). 🟡 Contredit « échouent à chaque appel » ci-dessus : l'alias `python3` a pu changer depuis ; à remesurer au cadrage. | ~1 fiche | — |
 | 25 | `VOI` — Finir les feuilles voisines, reste de `REP` | Ce que `REP` a laissé. La ligne `MARKDOWN` de `vlp.py niveau` compte, sans `--ecrire`, la page régénérée au lieu de celle du disque : elle ne voit ni la TODO ni la zone « en cours ». La régénération abîme trois feuilles voisines : TODO de MapDecorator hors table, donc lue vide ; lettres de fiche entre backticks ignorées ; source de TrackGen sans accents. Une fois corrigées, republier MapDecorator, TrackGen et ProjetONZSM. Détail : journal du 2026-09-23. | ~3 fiches | — |
 | 26 | `ABR` — Mettre notes et journal à l'abri dans un `.md` | Les notes et le journal d'une page de chantier n'existent aujourd'hui que dans la page. `page --note` et `--journal` écriront d'abord le texte entier dans un `.md`, et la page le recopiera. | ~3 fiches | — |
 | 27 | `ALE` — Essai : alléger la republication | Deux pistes, mesurées : le CSS en fichier joint, puis les données dans la base de claude.ai. Décide où vivent le CSS et les données avant `PLI` et `FEU`. | 2 fiches | `ABR` |
