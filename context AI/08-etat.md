@@ -340,6 +340,12 @@
   (dehors). `recompter` : +1 090 457 sur `SAG` et `FIL`, seuls rattrapés (0,77 $) ; 9 clos à bacs
   sont en `DÉCOUPE aucune`, mesurés sans essais (7,1299 $ de dossiers) — laissé ouvert en TODO
   n° 68, avec la republication. `CLOS` : 12 254 063 tokens.
+- **2026-09-25** — chantier ESD clos (TODO n° 68) : `cout` sans découpe montre une ligne `essais`
+  (`essais_entiers`) ; `recompter --essais` ajoute les essais une seule fois, sous une marque que
+  l'affichage et l'écriture lisent (`ajout_essais`, seul endroit de la règle). Écrit sur la
+  feuille : 11 clos, +12 991 756. `ESD2` refusée une fois (mutant « ignorer la marque » vivant,
+  test sur le vrai dépôt), reprise par le chef. Laissé ouvert : `REC` et `ESS` (TODO n° 67).
+  `CLOS` : 16 735 386 tokens.
   Laissé ouvert : la cause des 4b et de `NIV`/`H` n'est pas établie. `CLOS` : 15 906 689 tokens.
 
 ## La TODO ordonnée — les chantiers possibles
@@ -379,7 +385,6 @@ celle de `FIL` ; 48 à 51, de celle de `FIN` ; 52, des clôtures de la nuit du
 | 64 | `SON` — Rejouer un hook à la main sans le tampon | `une_fois` (chantier `PYT`) fait taire la même entrée rejouée en moins de 60 s, même par une autre copie de `vlp.py` : un relecteur de `RLG1` a dû ajouter un `nonce` pour comparer AVANT et APRÈS. Une variable d'environnement, ou une option, qui saute le tampon hors d'un vrai hook. | ~0,5 fiche | — |
 | 66 | `OUV` — Une ligne qui s'ouvre par un mot de jauge, sans être une jauge | Reste de `JUG` : le gardien (règle `tete`) renvoie une ligne qui **commence** par « Imprévu », « Pas bon »… même quand ce n'est pas la jauge — une puce `- Imprévu : j'ai dû…`, un `REFUSÉE` dont une ligne s'ouvre par « Pas bon ». Absent des 29 sous-agents mesurés en `JUG1` ; `stop_hook_active` borne le coût à un renvoi. 🟡 Exiger l'émoji de la jauge devant le mot, ou le mot suivi de `—`/`…`/fin de ligne : à mesurer sur le corpus comme en `JUG1` (`forme --regle`). | ~0,5 fiche | — |
 | 67 | `APC` — Ce que le chiffre de clôture ne voit pas | Reste de `REC` : pour 19 clos (causes 4a et 4b du journal `REC2`), l'écart recompté − inscrit tient tout entier dans « hors fiches », côté clôture, et reste sous lui (`CAS` : égal, 1 687 993) ; de +434 097 (`RLG`) à +2 682 260 (`FOR`) — pas « quelques milliers », comme l'estimait le bilan d'`UNI`. 🟡 Hypothèse, non prouvée : les tours d'après `clore` (republication, menu, push) sont hors du chiffre. `NIV` et `H` (4c : +3 136 302 et +2 249 049) restent sans explication. Le bilan de `H` ne cite aucun chiffre : rien n'y est marqué. `REC` lui-même, vu par `ESS4` : +651 030, 0 essai — le même motif (menu de clôture `1f92f30` après `clore`). `ESS` (+763 058, 0 essai, tout en `hors fiches`). | ~1 fiche | — |
-| 68 | `ESD` — Les essais d'un chantier sans découpe, puis republier | Reste d'`ESS` : sur `DÉCOUPE aucune`, `cout` mesure les sessions entières sans `essais_de` (`scripts/vlp.py:545`) et `recompter` les garde. 9 clos (`X` `G` `A` `P` `L` `N` `Y` `U` `Q`) ont 7,1299 $ d'essais en dossier que rien ne compte ; seuls `SAG` et `FIL` passent (0,77 $). Puis `recompter --ecrire` (+1 090 457 d'essais sur `SAG` et `FIL`) et republier la feuille de route : leurs bilans notent encore les essais à côté du total, pas dedans. Table : `## 2026-09-25 — ESS4`. | ~1 fiche, plus la republication | — |
 
 ## Journal des décisions
 

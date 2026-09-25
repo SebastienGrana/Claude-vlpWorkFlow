@@ -7,7 +7,9 @@
 **À quoi il sert.** `ESS` compte les essais `claude -p` dans le prix de leur fiche, mais pas sur
 `DÉCOUPE aucune` : 9 clos (`X` `G` `A` `P` `L` `N` `Y` `U` `Q`) gardent 7,1299 $ d'essais hors chiffre.
 
-**Fait.** Rien. Ouvert le 2026-09-25, cadré en 3 fiches, `ESD1` à jouer.
+**CLOS** le 2026-09-25. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** ESD1..ESD3 (2026-09-25) : cout et recompter comptent les essais des chantiers sans découpe ; 11 clos marqués sur la feuille de route (+12 991 756).
 
 **Session** : 09d96d28-50bd-4b5e-916b-bc2b413e33f2
 

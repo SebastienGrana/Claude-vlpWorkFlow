@@ -68,9 +68,9 @@
     <p>recompter ne laisse plus d'essai hors du chiffre : les 9 clos sans découpe, SAG et FIL portent leurs essais sur la feuille de route republiée ; REC et ESS inchangés.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">3 fiches · 2 faites · en cours : ESD3</p>
+    <p class="mono" style="margin-top:.5rem">3 fiches · 3 faites</p>
   </header>
 
   <section>
@@ -87,16 +87,17 @@
         <span class="id">ESD2</span><span class="titre">Ajouter les essais au chiffre recompté, une fois</span>
         <span class="etat">faite</span>
         <span class="note">test sur faux projet : +200 000 puis ÉCRIT 0 au second passage ; mutant sans marque → 1 ÉCART ; dépôt : SAG +506 675, FIL +583 782, REC et ESS +0, 11 reçoivent, +12 991 756 ; pyright 0</span>
-        <span class="cout mono">≈7,9M (7 914 604) · 101 tours · 3,68 $</span>
+        <span class="cout mono">≈8,1M (8 090 096) · 102 tours · 3,74 $</span>
       </li>
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">ESD3</span><span class="titre">Écrire les essais et republier</span>
-        <span class="etat">en cours</span>
+        <span class="etat">faite</span>
         <span class="note">écrit les essais sur la feuille de route et la republie ; dépend d'ESD2</span>
+        <span class="cout mono">≈2,9M (2 875 934) · 47 tours · 0,93 $</span>
       </li>
     </ul>
-    <p class="mono cout-hors">Hors fiches : ≈2,7M (2 744 991) · 23 tours · 2,45 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈12,7M (12 733 097) · 145 tours · 7,71 $</p>
+    <p class="mono cout-hors">Hors fiches : ≈3,7M (3 695 854) · 28 tours · 2,73 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈16,7M (16 735 386) · 198 tours · 8,98 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -117,10 +118,11 @@
   </section>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
-  <section hidden>
-    <h2>Chantier clos le </h2>
+  <section>
+    <h2>Chantier clos le 2026-09-25</h2>
     <div class="bilan">
-      <p></p>
+      <p>Livré : cout et recompter comptent les essais des chantiers sans découpe ; 11 clos marqués sur la feuille de route (+12 991 756)</p>
+      <p>Surpris : ESD2 refusée au relecteur (mutant non attrapé, test sur le vrai dépôt) puis reprise par le chef</p>
     </div>
   </section>
 
