@@ -92,8 +92,9 @@ erreur sur les deux fichiers.
 ---
 
 <!-- FICHE:GAR3 -->
-## GAR3 [ ] — Le prouver sur un témoin
+## GAR3 [x] — Le prouver sur un témoin
 
+**Session** : ca431cf8-167e-4c10-8bce-210c5f48a675
 **Dépend de** : `GAR1`.
 **Fichiers** : ce fichier de fiches (une fiche témoin ajoutée puis retirée), `context AI/08-etat.md` (journal).
 

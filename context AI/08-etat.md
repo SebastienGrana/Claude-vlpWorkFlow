@@ -1473,3 +1473,21 @@ formes ; resserrée par le chef) :
 Preuve au prochain `/vlp:enchainer` d'une session neuve — une définition d'agent se charge au
 démarrage : `vlp.py forme --depuis <ce commit>` doit y rendre `resume` et `jauge` à 0 ou presque
 (avant : 14 et 23 sur 36).
+
+## 2026-09-25 — GAR3
+
+Joué à la main par le chef : une fiche témoin `GAR9` ajoutée en fin de
+`context AI/54-gardien-renvoie.md`, jouée par `vlp:jouer`, puis retirée avec son fichier.
+Transcription `agent-aba306969ff0ed624` (session `ca431cf8-…`), dans l'ordre :
+
+| Ligne | Ce qui se passe |
+|---|---|
+| 19 | le sous-agent finit par « Parfait, c'est fait. » |
+| 20, 22 | `Stop hook feedback` : « Ton dernier message commence par « Parfait, » : son premier mot doit être FAITE, RETOUR ou BLOQUÉE (agents/fiche.md). Réécris-le, statut en tête. » — deux fois, `python3` puis `py` (chantier `PYT`) |
+| 25 | « FAITE — témoin écrit », sans `cocher` — cet arrêt porte `stop_hook_active` |
+| 26, 28 | `Stop hook feedback` : « FAITE, mais la case de GAR9 est vide : coche-la par vlp.py cocher, puis rends FAITE. » — deux fois ; **avant `GAR1`, cet arrêt passait sans contrôle** (`GLO1`) |
+| 31 | le sous-agent lance `vlp.py cocher … GAR9` |
+| 35 | « FAITE — témoin du gardien écrit et vérifié » ; premier mot rendu au chef : `FAITE` |
+
+Case de `GAR9` à la fin : `[x]` (`cocher --verifier` : `CASE GAR9 [x]`). Le gardien a donc
+tenu les deux renvois de la séquence, le second sous `stop_hook_active`.
