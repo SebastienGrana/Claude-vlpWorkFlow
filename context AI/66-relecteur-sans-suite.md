@@ -8,7 +8,9 @@
 fiches compris : en `REV4`, il y lisait « REV6 [x] — … », le défaut à trouver (TODO 55, `FUI`).
 Le relecteur recevra une carte réduite, sans titres de fiches ni `PROCHAINE=`.
 
-**Fait.** Rien. Ouvert le 2026-09-26, cadré en 3 fiches, `REL1` à jouer.
+**CLOS** le 2026-09-26. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** REL1..REL3 (2026-09-26) : le relecteur reçoit une carte sans titres de fiches ni PROCHAINE= (vlp.py carte --relecteur, injecté par vlp:relire) ; test et mutant.
 
 **Session** : a0c37d8b-64b2-4c7f-b1d6-cbf416b76457
 

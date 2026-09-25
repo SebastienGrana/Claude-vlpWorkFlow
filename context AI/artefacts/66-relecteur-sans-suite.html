@@ -93,11 +93,11 @@
         <span class="id">REL3</span><span class="titre">Injecter la carte réduite dans vlp:relire</span>
         <span class="etat">faite</span>
         <span class="note">--relecteur : 3 occurrences sur 1 ligne dans relire (grep -c 1, grep -o 3), 0 dans jouer et enchainer ; ligne injectée dans un bac : 0 titre · 1 PROJET= · 0 PROCHAINE=</span>
-        <span class="cout mono">≈876,5k (876 500) · 6 tours · 0,29 $</span>
+        <span class="cout mono">≈1,0M (1 029 489) · 7 tours · 0,37 $</span>
       </li>
     </ul>
-    <p class="mono cout-hors">Hors fiches : ≈2,8M (2 840 507) · 24 tours · 2,05 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈8,1M (8 093 220) · 68 tours · 4,46 $</p>
+    <p class="mono cout-hors">Hors fiches : ≈3,0M (2 994 013) · 25 tours · 2,10 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈8,4M (8 399 715) · 70 tours · 4,59 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -118,10 +118,11 @@
   </section>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
-  <section hidden>
-    <h2>Chantier clos le </h2>
+  <section>
+    <h2>Chantier clos le 2026-09-26</h2>
     <div class="bilan">
-      <p></p>
+      <p>Livré : le relecteur reçoit une carte sans titres de fiches ni PROCHAINE= (vlp.py carte --relecteur, injecté par vlp:relire) ; test et mutant</p>
+      <p>Surpris : 15 relecteurs sur 42 citaient les titres d'autres fiches ; la ligne fichier de fiches courant donne encore l'étendue (REL1..REL3) ; 1 relecteur a lu le fichier de fiches entier (TODO 70 FFE)</p>
     </div>
   </section>
 
