@@ -196,10 +196,11 @@ Sous-commandes :
 - `gardien` — le hook du contrat (chantier CON), muet hors d'un sous-agent dont
   l'`agent_type` contient « fiche » et sur une entrée illisible ; sort toujours 0.
   `PreToolUse` : un appel `Bash`/`PowerShell` qui écrit dans Git (le motif de `contrat`) est
-  refusé, `permissionDecision` `deny` et sa raison. `SubagentStop`, sauf `stop_hook_active` :
+  refusé, `permissionDecision` `deny` et sa raison. `SubagentStop` :
   renvoyé au travail (`decision` `block`, une raison d'une ligne) si `last_assistant_message` ne
-  commence pas par un statut, ou s'il dit `FAITE` et que `cocher --verifier` sur la fiche de
-  `Fiche à jouer :` (1er message de la transcription) rend une case vide ou une `TÊTE`.
+  commence pas par un statut — sauf `stop_hook_active`, déjà renvoyé —, ou s'il dit `FAITE` et
+  que `cocher --verifier` sur la fiche de `Fiche à jouer :` (1er message de la transcription)
+  rend une case vide ou une `TÊTE`, même sous `stop_hook_active` (chantier GAR).
 
 Python 3 sans dépendance, zéro appel modèle.
 """
@@ -1252,15 +1253,18 @@ def fiche_jouee(chemin):
     return None
 
 
-def verdict_fin(d):
-    """La raison de renvoyer au travail un sous-agent `vlp:fiche` qui s'arrête, ou None."""
+def verdict_fin(d, deja_renvoye=False):
+    """La raison de renvoyer au travail un sous-agent `vlp:fiche` qui s'arrête, ou None.
+    `deja_renvoye` (`stop_hook_active`) : la tête n'est plus jugée — un troisième renvoi ne la
+    corrigerait pas —, un `FAITE` l'est encore (chantier GAR)."""
     message = d.get("last_assistant_message")
     if not isinstance(message, str):
         return None
     mot = message.split()[0] if message.strip() else "(vide)"
     if mot not in STATUTS:
-        return ("Ton dernier message commence par « %s » : son premier mot doit être FAITE, RETOUR ou "
-                "BLOQUÉE (agents/fiche.md). Réécris-le, statut en tête." % mot)
+        return None if deja_renvoye else (
+            "Ton dernier message commence par « %s » : son premier mot doit être FAITE, RETOUR ou "
+            "BLOQUÉE (agents/fiche.md). Réécris-le, statut en tête." % mot)
     if mot != "FAITE" or not isinstance(d.get("agent_transcript_path"), str):
         return None
     fiche = fiche_jouee(d["agent_transcript_path"])
@@ -1299,9 +1303,9 @@ def cmd_gardien(entree, sortie):
                 "permissionDecisionReason": "Un sous-agent vlp:fiche n'écrit pas dans Git (agents/fiche.md) : "
                                             "retire git commit/add/reset, le chef commite après ton statut."}},
                 ensure_ascii=False) + "\n")
-    elif ev == "SubagentStop" and not d.get("stop_hook_active"):
+    elif ev == "SubagentStop":
         try:
-            raison = verdict_fin(d)
+            raison = verdict_fin(d, deja_renvoye=bool(d.get("stop_hook_active")))
         except (Absent, OSError, ValueError):
             raison = None
         if raison:

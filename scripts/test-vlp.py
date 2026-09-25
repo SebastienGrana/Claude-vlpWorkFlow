@@ -1806,6 +1806,8 @@ with tempfile.TemporaryDirectory() as t:
     verifier("gardien : statut absent, renvoyé", '"decision": "block"' in s and "« Parfait, »" in s, s)
     code, s = gardien(dict(fin, last_assistant_message="Parfait.", stop_hook_active=True))
     verifier("gardien : déjà renvoyé une fois, laissé", (code, s) == (0, ""), s)
+    code, s = gardien(dict(fin, last_assistant_message="FAITE — X1.", stop_hook_active=True))
+    verifier("gardien : FAITE sur case vide sous stop_hook_active, renvoyé", '"decision": "block"' in s and "case de X1 est vide" in s, s)
     code, s = gardien(dict(fin, last_assistant_message="FAITE — X1."))
     verifier("gardien : FAITE sur case vide, renvoyé", '"decision": "block"' in s and "case de X1 est vide" in s, s)
     ecrire(os.path.join(proj, "f.md"), "# X\n\n<!-- FICHE:X1 -->\n## X1 [x] — une\n<!-- /FICHE -->\n")

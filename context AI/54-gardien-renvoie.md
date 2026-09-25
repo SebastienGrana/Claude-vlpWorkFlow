@@ -46,8 +46,9 @@ de sous-agent.
 ---
 
 <!-- FICHE:GAR1 -->
-## GAR1 [ ] — Juger un FAITE même après un renvoi
+## GAR1 [x] — Juger un FAITE même après un renvoi
 
+**Session** : ca431cf8-167e-4c10-8bce-210c5f48a675
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` — et rien d'autre.
 
