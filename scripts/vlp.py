@@ -194,14 +194,14 @@ Sous-commandes :
   `ILLISIBLE <chemin>`. `--depuis` (heure ISO ou commit) : celles dont la session parente a
   démarré à D ou après. Puis `FORME <n> sous-agents · user <moyenne> car. · resume <k> ·
   jauge <k> · tete <k>`. Borne illisible : `GARDE:`, sort 1.
-- `gardien` — le hook du contrat (chantier CON), muet hors d'un sous-agent dont
-  l'`agent_type` contient « fiche » et sur une entrée illisible ; sort toujours 0.
+- `gardien` — le hook du contrat (chantier CON et RLG), muet hors d'un sous-agent dont
+  l'`agent_type` contient « fiche » ou « relecture » et sur une entrée illisible ; sort toujours 0.
   `PreToolUse` : un appel `Bash`/`PowerShell` qui écrit dans Git (le motif de `contrat`) est
-  refusé, `permissionDecision` `deny` et sa raison. `SubagentStop` :
-  renvoyé au travail (`decision` `block`, une raison d'une ligne) si `last_assistant_message` ne
-  commence pas par un statut — sauf `stop_hook_active`, déjà renvoyé —, ou s'il dit `FAITE` et
+  refusé, `permissionDecision` `deny` et sa raison — elle nomme l'agent (`vlp:fiche` ou `vlp:relecture`) et son fichier.
+  `SubagentStop` : `vlp:fiche` — renvoyé au travail (`decision` `block`, une raison d'une ligne) si
+  `last_assistant_message` ne commence pas par un statut — sauf `stop_hook_active`, déjà renvoyé —, ou s'il dit `FAITE` et
   que `cocher --verifier` sur la fiche de `Fiche à jouer :` (1er message de la transcription)
-  rend une case vide ou une `TÊTE`, même sous `stop_hook_active` (chantier GAR).
+  rend une case vide ou une `TÊTE`, même sous `stop_hook_active` (chantier GAR) ; `vlp:relecture` — muet (chantier RLG).
 
 Python 3 sans dépendance, zéro appel modèle.
 
@@ -1326,24 +1326,34 @@ def verdict_fin(d, deja_renvoye=False):
 
 
 def cmd_gardien(entree, sortie):
-    """Le contrat d'`agents/fiche.md` tenu à la sortie du sous-agent (chantier CON). Muet hors
-    d'un `vlp:fiche` et sur une entrée illisible : il ne bloque jamais sur ce qu'il ne lit pas."""
+    """Le contrat d'`agents/fiche.md` tenu à la sortie du sous-agent (chantier CON), et le refus
+    de l'écriture Git étendu à `vlp:relecture` (chantier RLG). Muet hors de ces deux agents et
+    sur une entrée illisible : il ne bloque jamais sur ce qu'il ne lit pas."""
     try:
         d = json.loads(entree.read())
     except (ValueError, AttributeError, TypeError):
         return 0
-    if not isinstance(d, dict) or "fiche" not in str(d.get("agent_type") or ""):
+    if not isinstance(d, dict):
+        return 0
+    agent_type = d.get("agent_type")
+    if not isinstance(agent_type, str):
+        return 0
+    relecteur = "relecture" in agent_type
+    if "fiche" not in agent_type and not relecteur:
         return 0
     ev = d.get("hook_event_name")
     if ev == "PreToolUse" and d.get("tool_name") in ("Bash", "PowerShell"):
-        commande = (d.get("tool_input") or {}).get("command")
+        outil = d.get("tool_input")
+        commande = outil.get("command") if isinstance(outil, dict) else None
         if isinstance(commande, str) and ECRIT_GIT.search(commande):
+            agent, fin = ("relecture", "ton verdict") if relecteur else ("fiche", "ton statut")
             sortie.write(json.dumps({"hookSpecificOutput": {
                 "hookEventName": "PreToolUse", "permissionDecision": "deny",
-                "permissionDecisionReason": "Un sous-agent vlp:fiche n'écrit pas dans Git (agents/fiche.md) : "
-                                            "retire git commit/add/reset, le chef commite après ton statut."}},
+                "permissionDecisionReason": "Un sous-agent vlp:%s n'écrit pas dans Git (agents/%s.md) : "
+                                            "retire git commit/add/reset, le chef commite après %s."
+                                            % (agent, agent, fin)}},
                 ensure_ascii=False) + "\n")
-    elif ev == "SubagentStop":
+    elif ev == "SubagentStop" and not relecteur:
         try:
             raison = verdict_fin(d, deja_renvoye=bool(d.get("stop_hook_active")))
         except (Absent, OSError, ValueError):

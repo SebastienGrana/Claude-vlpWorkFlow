@@ -1802,16 +1802,26 @@ with tempfile.TemporaryDirectory() as t:
         return code, o.getvalue()
 
     fiche = {"agent_id": "a1", "agent_type": "vlp:fiche"}
+    relecture = {"agent_id": "a2", "agent_type": "vlp:relecture"}
     commit = {"hook_event_name": "PreToolUse", "tool_name": "Bash",
               "tool_input": {"command": 'git -C "C:/a b" commit -m "X1 : fin"'}}
-    code, s = gardien(dict(commit, agent_id="a2", agent_type="vlp:relecture"))
-    verifier("gardien : sous-agent vlp:relecture laissé passer", (code, s) == (0, ""), s)
+    code, s = gardien(dict(commit, **relecture))
+    verifier("gardien : sous-agent vlp:relecture git commit refusé", code == 0 and '"permissionDecision": "deny"' in s and "vlp:relecture" in s, s)
     code, s = gardien(dict(fiche, **commit))
-    verifier("gardien : git -C … commit refusé", code == 0 and '"permissionDecision": "deny"' in s, s)
+    verifier("gardien : git -C … commit refusé pour vlp:fiche", code == 0 and '"permissionDecision": "deny"' in s and "vlp:fiche" in s, s)
+    code, s = gardien(dict(relecture, hook_event_name="PreToolUse", tool_name="Bash",
+                           tool_input={"command": "git diff HEAD~1"}))
+    verifier("gardien : relecteur git diff laissé passer", (code, s) == (0, ""), s)
     code, s = gardien(dict(fiche, hook_event_name="PreToolUse", tool_name="PowerShell",
                            tool_input={"command": "git status; git log -1"}))
-    verifier("gardien : git status laissé passer", (code, s) == (0, ""), s)
+    verifier("gardien : fiche git status laissé passer", (code, s) == (0, ""), s)
     verifier("gardien : entrée illisible, muet", gardien("pas du json") == (0, ""), "")
+    verifier("gardien : JSON qui n'est pas un objet, muet",
+             gardien('[43, "sonde"]') == (0, "") and gardien('"x"') == (0, ""), "")
+    verifier("gardien : tool_input ou agent_type qui ne sont pas ce qu'on attend, muet", all(
+        gardien(dict(agent, hook_event_name="PreToolUse", tool_name="Bash", tool_input=ti)) == (0, "")
+        for agent in (fiche, relecture) for ti in ("git commit", ["git commit"], 7)) and gardien(dict(
+            commit, agent_id="a3", agent_type=["vlp:relecture"])) == (0, ""), "")
 
     proj = os.path.join(t, "proj")
     ecrire(os.path.join(proj, "CHANTIER.md"), CHANTIER % ("px", "f.md (X1..X1)"))
@@ -1843,6 +1853,12 @@ with tempfile.TemporaryDirectory() as t:
         subprocess.run(["git", "commit", "-q", "--allow-empty", "-m", "X1 : une"], cwd=proj, env=env, check=True)
         code, s = gardien(dict(fin, last_assistant_message="FAITE — X1."))
         verifier("gardien : HEAD nomme la fiche, renvoyé", '"decision": "block"' in s and "tu as commité" in s, s)
+    fin_relecture = dict(relecture, hook_event_name="SubagentStop", stop_hook_active=False, cwd=proj,
+                         agent_transcript_path=trans)
+    code, s = gardien(dict(fin_relecture, last_assistant_message="ACCEPTÉE — tout va bien"))
+    verifier("gardien : relecteur ACCEPTÉE muet", (code, s) == (0, ""), s)
+    code, s = gardien(dict(fin_relecture, last_assistant_message="REFUSÉE — erreur"))
+    verifier("gardien : relecteur REFUSÉE muet", (code, s) == (0, ""), s)
 
 
 # hooks.json : le filet sur tout outil, après un succès et après un échec ; hook sur les écritures

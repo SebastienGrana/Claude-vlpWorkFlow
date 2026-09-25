@@ -38,8 +38,14 @@ pose ») tombe — l'agent ne tape jamais `git worktree`, et `ECRIT_GIT` ne le v
 ---
 
 <!-- FICHE:RLG1 -->
-## RLG1 [ ] — Refuser l'écriture Git au relecteur
+## RLG1 [x] — Refuser l'écriture Git au relecteur
 
+**Tentatives** (2026-09-25) — résolu par le chef : garde `dict` sur l'entrée et sur `tool_input`, `agent_type` chaîne ou muet ; deux tests ajoutés.
+1. FAITE refusée à la relecture.
+2. FAITE refusée à la relecture.
+Erreur : REFUSÉE — régression prouvée : gardien plante pour un vlp:relecture dont le tool_input n'est pas un objet
+
+**Session** : ca431cf8-167e-4c10-8bce-210c5f48a675
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` — et rien d'autre.
 
