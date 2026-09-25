@@ -146,8 +146,10 @@ Sous-commandes :
   `<contexte>/artefacts/feuille-de-route.html` la `ZONE:encours` (depuis le
   fichier de fiches courant et l'artefact du chantier), la `ZONE:todo` (depuis
   la TODO du fichier d'état ; `--todo N` y pose le badge « en cours », gardé
-  d'un appel à l'autre tant qu'un chantier est ouvert) et les lettres prises du
-  pied (plus celle du chantier courant) ; la date seulement si la page change.
+  d'un appel à l'autre tant qu'un chantier est ouvert), son décompte
+  « <n> chantiers possibles » au-dessus du tableau (posé s'il manque), et les
+  lettres prises du pied (plus celle du chantier courant) ; la date seulement si
+  la page change.
   `FEUILLE todo <n> · encours <oui|non> · lettres <n> · <réécrite|inchangée>
   — <page>`. `--verifier` n'écrit rien, dit `identique|écart`, sort 1 sur écart.
 - `clore <projet> --livre T [--tokens N] [--abandon T] [--fait T] [--surpris T]
@@ -2412,7 +2414,7 @@ def feuille(projet, html, todo, date):
                     % (esc(n), cellule_md(ch), BADGE_COURS if n == todo else "", cellule_md(ap),
                        cellule_md(co), cellule_md(de)) for n, ch, ap, co, de in rangs) \
         or '          <tr><td colspan="5" class="rien-cell">Rien en attente.</td></tr>\n'
-    neuf = html[:d] + corps + html[f:]
+    neuf = compte_todo(html[:d] + corps + html[f:], len(rangs))
     d, f = zone(neuf, "encours", "\n", "  </section>")
     neuf = neuf[:d] + encours + neuf[f:]
     neuf = re.sub(r'(Lettres de fiche prises : <span class="mono">).*?(</span>)',
@@ -2422,6 +2424,27 @@ def feuille(projet, html, todo, date):
                       lambda m: m.group(1) + date + m.group(2), neuf, count=1)
     bilan = "FEUILLE todo %d · encours %s · lettres %d" % (len(rangs), "oui" if courant else "non", len(lettres))
     return neuf, bilan
+
+
+RESUME_TODO = re.compile(r'    <p class="mono resume-todo"[^>]*>.*?</p>\n')
+
+
+def resume_todo(n):
+    """Le décompte posé au-dessus de la TODO, comme `resume_clos` au-dessus des clos."""
+    if not n:
+        return "aucun chantier possible"
+    return "1 chantier possible" if n == 1 else "%d chantiers possibles" % n
+
+
+def compte_todo(html, n):
+    """La ligne du décompte, remplacée ; ou posée juste avant `ZONE:todo` sur une
+    feuille d'avant qui ne l'a pas."""
+    ligne = ('    <p class="mono resume-todo" style="margin:0;color:var(--doux);font-size:.9rem">%s</p>\n'
+             % resume_todo(n))
+    if RESUME_TODO.search(html):
+        return RESUME_TODO.sub(lambda _: ligne, html, count=1)
+    i = html.rfind("\n", 0, html.index("<!-- ZONE:todo")) + 1
+    return html[:i] + ligne + html[i:]
 
 
 def page_feuille(projet):

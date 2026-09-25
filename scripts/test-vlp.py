@@ -987,8 +987,17 @@ with tempfile.TemporaryDirectory() as t:
              and '<span class="mono">2026-01-02</span>' in html, s + html)
     verifier("feuille : TODO rendue", '<td>Le <span class="mono">sh</span></td><td>a || b &lt;c&gt;</td>' in html
              and "&lt;U, R&gt;" not in html and 'data-etat="cours"' not in html.split("ZONE:todo")[1], html)
+    avant_todo = html.split("<!-- ZONE:todo")[0].split("Les chantiers possibles")[1]
+    verifier("feuille : décompte au-dessus de la TODO", avant_todo.count("resume-todo") == 1
+             and ">2 chantiers possibles</p>" in avant_todo and "&lt;n&gt; chantiers possibles" not in html, html)
     code, s = appel(["feuille", t, "--date", "2026-03-04"])
     verifier("feuille : idempotente, date gardée", code == 0 and "inchangée" in s and "2026-01-02" in lire(fdr), s)
+    ecrire(fdr, mod.RESUME_TODO.sub("", lire(fdr)))
+    code, s = appel(["feuille", t, "--date", "2026-01-02"])
+    verifier("feuille : décompte posé sur une feuille d'avant", code == 0 and lire(fdr).count("resume-todo") == 1
+             and ">2 chantiers possibles</p>\n    <!-- ZONE:todo" in lire(fdr), s + lire(fdr))
+    verifier("feuille : décompte au singulier et vide",
+             mod.resume_todo(1) == "1 chantier possible" and mod.resume_todo(0) == "aucun chantier possible", "")
     ecrire(os.path.join(t, "CHANTIER.md"), carte_ % ("ctx/30-q.md (Q1..Q2)", "https://exemple/q"))
     code, s = appel(["feuille", t, "--verifier"])
     verifier("feuille : --verifier voit l'écart sans écrire", code == 1 and "écart" in s and "Aucun chantier" in lire(fdr), s)
