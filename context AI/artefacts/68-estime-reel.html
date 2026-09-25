@@ -68,9 +68,9 @@
     <p>À la clôture, vlp.py clore écrit seul l'estimé (fiches et $) à côté du réel, dans la ligne CLOS, la ligne Fait. et le bilan de la page.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">3 fiches · 2 faites · en cours : EST3</p>
+    <p class="mono" style="margin-top:.5rem">3 fiches · 3 faites</p>
   </header>
 
   <section>
@@ -87,16 +87,17 @@
         <span class="id">EST2</span><span class="titre">Écrire l'estimé à côté du réel à la clôture</span>
         <span class="etat">faite</span>
         <span class="note">test-vlp.py : OK, 0 échec ; CLOS « estimé 2 fiches ≈0,40 $ · cadré 2 · joué 1 fiches ≈? $ », même texte page et Fait ; sans ligne : estimé non noté ; mutant cadrées=jouées : ÉCART clore : Fait. remplacé ; pyright scripts/ : 0 errors</span>
-        <span class="cout mono">≈4,1M (4 107 241) · 37 tours · 1,97 $</span>
+        <span class="cout mono">≈4,4M (4 374 245) · 39 tours · 2,08 $</span>
       </li>
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">EST3</span><span class="titre">Faire passer l'estimé par /vlp:chantier</span>
-        <span class="etat">en cours</span>
-        <span class="note">/vlp:chantier passe l'estimé à ouvrir, et EST note le sien ; après EST1</span>
+        <span class="etat">faite</span>
+        <span class="note">grep --estime-fiches SKILL.md = 1 ; grep **Estimé.** 1 fiches = 1 ; ouvrir rend « estimé 1 fiches ≈3,91 $ » ; VALIDE 3 fiches, 0 écarts</span>
+        <span class="cout mono">≈830,1k (830 107) · 9 tours · 0,55 $</span>
       </li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈2,2M (2 232 622) · 20 tours · 1,81 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈9,0M (9 000 494) · 81 tours · 5,38 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈10,1M (10 097 605) · 92 tours · 6,04 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

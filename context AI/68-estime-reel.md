@@ -8,9 +8,13 @@
 ensuite (`CPT`, estimé « ~2 fiches », en a joué 4). `ouvrir` notera l'estimé —
 fiches et $ —, `clore` l'écrira à côté du réel, sans que personne le recopie.
 
+**Estimé.** 1 fiches · ≈3,91 $ — ≈3,91 $/fiche sur 55 clos (le 2026-09-26).
+
 **Fait.** Rien. Ouvert le 2026-09-26, cadré en 3 fiches, `EST1` à jouer.
 
 **Session** : 75f1eda3-6e28-4b15-ac57-920dcc7f7125
+
+**Session** : f09814fe-9212-4e08-b35d-79e1fa2f3be1
 
 ## Le socle commun
 
@@ -117,8 +121,9 @@ Mutant : compter les fiches cadrées comme jouées — le test tombe.
 ---
 
 <!-- FICHE:EST3 -->
-## EST3 [ ] — Faire passer l'estimé par /vlp:chantier
+## EST3 [x] — Faire passer l'estimé par /vlp:chantier
 
+**Session** : f09814fe-9212-4e08-b35d-79e1fa2f3be1
 **Dépend de** : `EST1`.
 **Fichiers** : `skills/chantier/SKILL.md`, `context AI/68-estime-reel.md`
 (ce fichier) — et rien d'autre.
