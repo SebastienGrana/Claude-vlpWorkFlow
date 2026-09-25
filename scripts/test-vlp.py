@@ -1547,7 +1547,7 @@ with tempfile.TemporaryDirectory() as t:
     bloc = "**Tentatives** (2026-01-03) — non résolu.\n1. FAITE refusée à la relecture.\n"
     un = REFUS.replace("## VAL1 [x] — Valider\n\n", "## VAL1 [ ] — Valider\n\n" + bloc + "Erreur : motif un\n\n")
     deux = un.replace(bloc + "Erreur : motif un\n", bloc + "2. FAITE refusée à la relecture.\nErreur : motif deux\n")
-    verifier("cocher --refuser", (code, s, code2, s2) == (0, "REFUSÉ VAL1\n", 0, "REFUSÉ VAL1\n")
+    verifier("cocher --refuser", (code, s, code2, s2) == (0, "REFUSÉ VAL1 · refus 1\n", 0, "REFUSÉ VAL1 · refus 2\n")
              and premier == un and lire(f) == deux and lire(f).count("**Tentatives**") == 1
              and lire(f).count("Erreur :") == 1
              and appel(["cocher", f, "VAL9", "--refuser", "m"]) == (1, "GARDE: fiche introuvable : VAL9\n"),
@@ -1572,6 +1572,28 @@ with tempfile.TemporaryDirectory() as t:
                  [v for v, _ in vus] == [(1, "CASE VAL1 [x]\nTÊTE %s VAL1: x\n" % vus[0][1]),
                                         (1, "CASE VAL1 [x]\nTÊTE %s VAL1 : x\n" % vus[1][1]),
                                         (0, "CASE VAL1 [x]\n")], vus)
+
+# refus dans un bloc déjà existant mais dont l'unique tentative n'est PAS un refus de
+# relecture (une piste écrite à la main, ou une BLOQUÉE) : le rang repart à 1, pas à 2 —
+# distingue de « <n> = toutes les lignes numérotées ».
+REFUS_PISTE = """<!-- FICHE:VAL2 -->
+## VAL2 [x] — Deuxième
+
+**Tentatives** (2026-01-05) — non résolu.
+1. <une piste>
+Erreur : blocage initial
+**Dépend de** : rien.
+<!-- /FICHE -->
+"""
+with tempfile.TemporaryDirectory() as t:
+    f2 = os.path.join(t, "ctx", "07-v2.md")
+    ecrire(f2, REFUS_PISTE)
+    code3, s3 = appel(["cocher", f2, "VAL2", "--refuser", "motif trois", "--date", "2026-01-06"])
+    attendu2 = REFUS_PISTE.replace("## VAL2 [x]", "## VAL2 [ ]").replace(
+        "1. <une piste>\nErreur : blocage initial\n",
+        "1. <une piste>\n2. FAITE refusée à la relecture.\nErreur : motif trois\n")
+    verifier("cocher --refuser : bloc existant sans refus de relecture, rang repart à 1",
+             (code3, s3) == (0, "REFUSÉ VAL2 · refus 1\n") and lire(f2) == attendu2, s3 + lire(f2))
 
 # --- Z2 : un chemin de CHANTIER.md ne fait plus tomber une sous-commande ---
 # Un cas par ligne « plante » de la table de Z1, plus le point de lecture unique.

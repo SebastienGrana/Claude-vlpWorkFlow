@@ -68,8 +68,9 @@ notés s'ils bloquent l'essai, pas corrigés ici.
 ---
 
 <!-- FICHE:ENC1 -->
-## ENC1 [ ] — Dire le rang du refus
+## ENC1 [x] — Dire le rang du refus
 
+**Session** : 78a94c41-8003-4614-be9a-2dc15bc057ee
 **Dépend de** : rien.
 **Fichiers** : scripts/vlp.py, scripts/test-vlp.py — et rien d'autre.
 

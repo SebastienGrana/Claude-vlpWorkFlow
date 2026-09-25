@@ -68,23 +68,24 @@
     <p>Après un refus, le relecteur dit si la faute est dans la fiche ou chez le sous-agent ; le chef le montre dans un questionnaire, et propose de jouer à la main dès le 2e refus. ENC lui-même se joue en main : l'essai grandeur nature.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="encours"></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="encours"></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">3 fiches · 0 faite · en cours : ENC1</p>
+    <p class="mono" style="margin-top:.5rem">3 fiches · 1 faite · en cours : ENC2</p>
   </header>
 
   <section>
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">ENC1</span><span class="titre">Dire le rang du refus</span>
-        <span class="etat">en cours</span>
-        <span class="note">cocher --refuser dit le rang du refus (· refus n), testé avec deux mutants ; ne dépend de rien</span>
+        <span class="etat">faite</span>
+        <span class="note">test-vlp.py : OK, 0 échec ; 2 mutants testés (n=toutes lignes, n=1 fixe) tombent tous les deux ; pyright : 0 errors</span>
+        <span class="cout mono">≈5,5M (5 524 296) · 47 tours · 1,91 $</span>
       </li>
-      <li class="fiche">
+      <li class="fiche" data-etat="encours">
         <span class="id">ENC2</span><span class="titre">Faire dire au relecteur d'où vient la faute</span>
-        <span class="etat">à faire</span>
+        <span class="etat">en cours</span>
         <span class="note">le contrat du relecteur : REFUSÉE — fiche / copie, et une ligne RÉÉCRITURE ; un bloc de refus seuls n'arrête plus ; ne dépend de rien</span>
       </li>
       <li class="fiche">
@@ -93,6 +94,8 @@
         <span class="note">le chef lit refus.md sur un refus et pose le questionnaire à quatre options ; dépend d'ENC1 et ENC2</span>
       </li>
     </ul>
+    <p class="mono cout-hors">Hors fiches : ≈3,3M (3 298 408) · 25 tours · 2,50 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈8,8M (8 822 704) · 72 tours · 4,41 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -122,6 +125,6 @@
 
   <footer>
     <span>Fichier de fiches : <span class="mono">context AI/65-enchainer-refus.md</span></span>
-    <span>Mis à jour le <span class="mono">2026-09-25</span></span>
+    <span>Mis à jour le <span class="mono">2026-09-26</span></span>
   </footer>
 </div>

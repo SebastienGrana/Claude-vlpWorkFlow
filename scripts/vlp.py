@@ -71,7 +71,8 @@ Sous-commandes :
   dépôt, `SANS GIT`, et la case seule décide. `--refuser M` (chantier REV) : `[x]` → `[ ]`, et
   sous le titre le bloc `**Tentatives** (<date>) — non résolu.`, `1. FAITE refusée à la
   relecture.`, `Erreur : M` ; déjà là, il gagne la ligne numérotée suivante et son `Erreur :`
-  prend M, sans se doubler. `REFUSÉ <fiche>`.
+  prend M, sans se doubler. `REFUSÉ <fiche> · refus <n>` : `<n>` compte, dans le bloc après
+  l'ajout, les seules lignes numérotées `FAITE refusée à la relecture.`.
 - `relecture <fiche> [--sha S]` — ce que lit le relecteur de `/vlp:enchainer` (chantier REV). Sans
   `--sha`, un instantané de l'arbre — suivis et non suivis, selon `.gitignore` — en commit de parent
   `HEAD`, par un index temporaire : ni `HEAD` ni l'index ne bougent ; avec, ce commit. Deux worktrees
@@ -851,11 +852,14 @@ def refuser(a, lignes, debut, sortie):
         k = debut + 2 if debut + 1 < fin and not lignes[debut + 1].strip() else debut + 1
         lignes[k:k] = (["**Tentatives** (%s) — non résolu." % date, "1. " + essai, erreur]
                        + ([""] if k == debut + 2 else []))
+        n_refus = 1
     else:
         n = next((i for i in range(bloc + 1, fin) if not lignes[i].strip() or lignes[i].startswith("**")), fin)
         if "non résolu" not in lignes[bloc]:
             lignes[bloc] = "**Tentatives** (%s) — non résolu." % date
         numeros = [i for i in range(bloc + 1, n) if re.match(r"[0-9]+\. ", lignes[i])]
+        # Compte avant l'ajout : seules les tentatives qui étaient déjà un refus de relecture.
+        n_refus = 1 + sum(1 for i in numeros if lignes[i].split(". ", 1)[1] == essai)
         p = numeros[-1] + 1 if numeros else bloc + 1
         suivant = int(lignes[numeros[-1]].split(".")[0]) + 1 if numeros else 1
         lignes.insert(p, "%d. %s" % (suivant, essai))
@@ -866,7 +870,7 @@ def refuser(a, lignes, debut, sortie):
             lignes[e] = erreur
     with open(a.fichier, "w", encoding="utf-8", newline="") as f:
         f.write("\n".join(lignes) + "\n")
-    sortie.write("REFUSÉ %s\n" % a.fiche)
+    sortie.write("REFUSÉ %s · refus %d\n" % (a.fiche, n_refus))
     return 0
 
 
