@@ -56,8 +56,9 @@ Strictement en série : chaque fiche lit le verdict de la précédente.
 ---
 
 <!-- FICHE:REL1 -->
-## REL1 [ ] — Mesurer ce que le relecteur tire de la carte
+## REL1 [x] — Mesurer ce que le relecteur tire de la carte
 
+**Session** : 5b3e3765-b1bb-439f-b05d-e0461e1e6541
 **Dépend de** : rien.
 **Fichiers** : `context AI/38-audit-scripts/rel1-carte.py` (nouveau, jetable),
 `context AI/66-relecteur-sans-suite.md` (le verdict, sous cette fiche) — et rien d'autre.
@@ -81,6 +82,41 @@ au moins une fois : ajoute une ligne à la TODO de `context AI/08-etat.md`.
 une ligne de total, avec un compte de transcriptions égal à celui de `vlp:relecture`
 dans `py scripts/vlp.py forme`, soit 42 au 2026-09-26 ou plus. Le bloc `**Verdict REL1**`
 recopie ce total tel quel.
+
+**Verdict REL1** (2026-09-26, `py "context AI/38-audit-scripts/rel1-carte.py" --detail`)
+
+Total, tel quel :
+`TOTAL 42 transcriptions · autres 56 (15 transcr.) · prochaine 1 (1 transcr.) · libelles 54 (11 transcr.) · entier 1 (1 transcr.) · plage 2 (1 transcr.) · grep 0 (0 transcr.)`
+
+| Ce qui est cité | Citations | Transcriptions (sur 42) |
+|---|---|---|
+| titres de la carte, hors fiche relue | 56 | 15 |
+| `PROCHAINE` | 1 | 1 |
+| libellés en gras de `CHANTIER.md` | 54 | 11 |
+| `FICHIER=` lu en entier (`Read` sans plage) | 1 | 1 (`aa4bcfe2930531dd6`, PLA1) |
+| `FICHIER=` lu par plage | 2 | 1 (`a2291dbbf95c5e50b`, CAD1) |
+| `Grep` sur `FICHIER=` | 0 | 0 |
+
+Libellés cités : fichier de fiches courant 16, chantiers possibles 16, contexte 12, alias 4,
+index 2, artefact du chantier 2, méthode 1, kit 1. Deux transcriptions (essais du gardien,
+`JUG3`) n'ont ni carte ni fiche : comptées, à zéro.
+
+⚠️ Limite : le script ne sépare pas « cité parce que lu dans la carte » de « cité parce que
+la fiche ou le diff le nomme ». Les 9 citations par relecteur de `LEC2` portent sur des
+libellés que `LEC2` modifie ; un titre cité peut venir du `Dépend de` de la fiche.
+
+**Ce que `--relecteur` garde, et pourquoi.**
+
+- ✅ `PYTHON=` et `PROJET=` : le relecteur lance `vlp.py relecture` et lit le dépôt par eux.
+- ✅ `CHANTIER.md`, ses lignes `- **libellé** :` et « Contraintes d'écriture » : 8 libellés
+  cités sur 11 transcriptions ; les contraintes sont ce contre quoi la fiche se juge.
+- ❌ Les titres `n:## ID [ ] — …` : cités 56 fois dans 15 relecteurs sur 42 — c'est la fuite
+  que le chantier ferme (décidé au cadrage), pas un besoin.
+- ❌ `PROCHAINE=` : cité une fois, dans `a41a9ef3bd317ca87` ; décidé au cadrage.
+- 💡 La section « Chantiers clos » (lettres prises) : non mesurée ici, rien du relecteur ne
+  s'en sert à première vue ; `REL2` peut la retirer.
+
+`FICHIER=` lu en entier une fois : ligne `FFE` (n° 70) ajoutée à la TODO de `08-etat.md`.
 <!-- /FICHE -->
 
 ---
