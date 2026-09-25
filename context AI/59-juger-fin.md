@@ -8,7 +8,9 @@
 de `JAUGE`, même en prose — prouvé sur le relecteur de `FOR3` (TODO n° 65). JUG mesure trois
 façons de ne juger que la fin, l'utilisateur en retient une, et gardien et mesure la suivent.
 
-**Fait.** Rien. Ouvert le 2026-09-25, cadré en 3 fiches, `JUG1` à jouer.
+**CLOS** le 2026-09-25. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** JUG1..JUG3 (2026-09-25) : le gardien ne renvoie plus une citation : un mot de jauge ou « En résumé » ne compte que s'il ouvre une ligne (règle tete, mesurée sur 29 sous-agents, essayée sur deux vrais relecteurs).
 
 **Session** : 7d3fa883-9860-4d26-b74b-bfc5119c1c51
 

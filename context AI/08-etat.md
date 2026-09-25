@@ -316,6 +316,16 @@
   renvoyer à tort — ne juger que la fin du message serait plus juste. `CLOS` :
   17 689 317 tokens.
 
+- **2026-09-25** — chantier JUG clos (TODO n° 65) : trois règles mesurées sur 29 vrais
+  sous-agents depuis `GLO` (`JUG1`) — renvoyés `tout` 16, `tiret` 16 (aucun `---` dans le
+  corpus), `deux` 11 (rate 3 vraies fins), `tete` 14 (retire exactement les 2 citations).
+  Retenue par l'utilisateur : `tete`, un mot ne compte que s'il ouvre une ligne. `JUG2` en fait
+  le défaut (`REGLE`), `--regle tout` rejoue l'ancienne mesure ; les chiffres d'avant sont
+  marqués « mesurés en texte entier ». `JUG3`, en vrai : relecteur en prose renvoyé 0 fois,
+  résumé à part renvoyé 1 fois puis réécrit (0,13 $ les deux). Laissé ouvert : une ligne qui
+  s'ouvre par « Imprévu » ou « Pas bon » pour une autre raison serait encore renvoyée une fois
+  — absent des 29 mesurés. `CLOS` : 10 273 570 tokens.
+
 ## La TODO ordonnée — les chantiers possibles
 
 C'est d'ici que `/chantier` tire ses propositions. Un chantier par entrée, cité
@@ -353,7 +363,6 @@ celle de `FIL` ; 48 à 51, de celle de `FIN` ; 52, des clôtures de la nuit du
 | 61 | `CHK` — `/vlp:check` lit le contrat | `vlp.py contrat` (chantier `CON`) ne tourne qu'à la main. `/vlp:check` le lancera `--depuis` l'ouverture du chantier courant et dira, sans rien rejouer, combien de sous-agents, combien ont écrit dans Git, combien sans statut en tête — le bulletin du gardien. 🟡 L'heure d'ouverture : commit `Chantier … ouvert`, ou session du cadrage notée par `ouvrir`. | ~0,5 fiche | — |
 | 63 | `ECH` — `ECRIT_GIT` ne lit pas le texte d'un heredoc | Le gardien a refusé à deux relecteurs de `RLG1` (2026-09-25) un heredoc ou un `echo` qui ne faisait qu'écrire les mots `git commit` ou `git add` dans un fichier de sonde. `ECRIT_GIT` cherche le motif dans toute la commande. Vrai aussi pour `vlp:fiche`, depuis `CON`. 🟡 Jusqu'où lire le shell : couper les chaînes citées ne suffit pas pour un heredoc. | ~0,5 fiche | — |
 | 64 | `SON` — Rejouer un hook à la main sans le tampon | `une_fois` (chantier `PYT`) fait taire la même entrée rejouée en moins de 60 s, même par une autre copie de `vlp.py` : un relecteur de `RLG1` a dû ajouter un `nonce` pour comparer AVANT et APRÈS. Une variable d'environnement, ou une option, qui saute le tampon hors d'un vrai hook. | ~0,5 fiche | — |
-| 65 | `JUG` — Le gardien ne juge que la fin du message, pas tout le texte | `FOR3` (2026-09-25) : le gardien renvoie tout dernier message qui **cite** un mot de `JAUGE` ou « En résumé », même en train de décrire la règle — prouvé sur le relecteur de `FOR3` lui-même, renvoyé une fois en citant ces mots dans son verdict. Juger seulement la fin du message (après le dernier `---`, ou les deux dernières lignes) éviterait ce faux positif. | ~0,5 fiche | — |
 
 ## Journal des décisions
 
