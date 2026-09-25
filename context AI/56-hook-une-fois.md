@@ -70,7 +70,7 @@ tomber le nouveau test. pyright : 0 erreur sur les deux fichiers.
 ---
 
 <!-- FICHE:PYT2 -->
-## PYT2 [ ] — Le compter en vrai
+## PYT2 [x] — Le compter en vrai
 
 **Dépend de** : `PYT1`.
 **Fichiers** : `context AI/08-etat.md` (journal) — et rien d'autre.

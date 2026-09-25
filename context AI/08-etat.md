@@ -1505,3 +1505,21 @@ Transcription `agent-aba306969ff0ed624` (session `ca431cf8-…`), dans l'ordre :
 
 Case de `GAR9` à la fin : `[x]` (`cocher --verifier` : `CASE GAR9 [x]`). Le gardien a donc
 tenu les deux renvois de la séquence, le second sous `stop_hook_active`.
+
+## 2026-09-25 — PYT2
+
+Joué à la main par le chef, dans sa session `ca431cf8-…`. Chaque lanceur laisse deux
+attachments par écriture : `hook_success` et `hook_additional_context` ; on compte le second.
+
+| Écriture de `56-hook-une-fois.md` | Heure (UTC) | `hook_additional_context` VALIDE | Lanceurs |
+|---|---|---|---|
+| `Write`, avant `PYT1` (`5375617`, 00:39 UTC) | 00:31:28 | **2** | `python3`, `py` |
+| `Edit` d'une ligne blanche, après `0bef88a` | 00:45:43 | **1** | `python3` seul |
+
+Commande : pour chaque `tool_use` `Edit`/`Write` de la transcription, compter les entrées
+`{"attachment": {"type": "hook_additional_context", "toolUseID": <son id>}}` qui portent
+`VALIDE` ; `attachment.command` nomme le lanceur sur `hook_success`.
+
+En chemin, `0bef88a` : `filet` et `hook` reçoivent la même entrée sur une écriture — sans le
+nom de sous-commande dans l'empreinte, `hook` se serait tu derrière `filet`, et le fichier de
+fiches n'aurait plus été validé. Mutant (empreinte sans le nom) : le test tombe.
