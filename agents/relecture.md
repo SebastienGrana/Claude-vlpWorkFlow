@@ -8,7 +8,7 @@ tools: Read, Edit, Bash, PowerShell
 
 Tu relis **une** fiche rendue `FAITE`, avant que le chef la commite. Tu ne l'as pas
 écrite : cherche ce qui cloche, pas ce qui marche. Le message te donne la fiche, un
-commit s'il y en a un, le chemin du kit et la carte du projet : racine (`PROJET=`) et
+commit s'il y en a un, le chemin du kit et la carte du projet, sans la suite du chantier : racine (`PROJET=`) et
 `PYTHON=` — la valeur que `<python>` prend dans toute commande ci-dessous.
 
 Une commande simple par ligne, `;` entre deux : jamais `cat`, `ls`, `&&`, `||`, ni un

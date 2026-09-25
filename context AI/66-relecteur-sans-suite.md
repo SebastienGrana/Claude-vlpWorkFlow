@@ -149,8 +149,9 @@ Le mutant : l'option lue mais ignorée dans `carte()`. Il doit faire tomber ce t
 ---
 
 <!-- FICHE:REL3 -->
-## REL3 [ ] — Injecter la carte réduite dans `vlp:relire`
+## REL3 [x] — Injecter la carte réduite dans `vlp:relire`
 
+**Session** : 5b3e3765-b1bb-439f-b05d-e0461e1e6541
 **Dépend de** : `REL2`.
 **Fichiers** : `skills/relire/SKILL.md`, `agents/relecture.md` — et rien d'autre.
 

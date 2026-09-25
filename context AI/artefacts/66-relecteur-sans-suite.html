@@ -68,9 +68,9 @@
     <p>Le relecteur reçoit une carte sans titres de fiches ni PROCHAINE= : un test et son mutant le prouvent, et la skill vlp:relire l'injecte.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">3 fiches · 2 faites · en cours : REL3</p>
+    <p class="mono" style="margin-top:.5rem">3 fiches · 3 faites</p>
   </header>
 
   <section>
@@ -87,16 +87,17 @@
         <span class="id">REL2</span><span class="titre">Donner à vlp.py carte l'option --relecteur</span>
         <span class="etat">faite</span>
         <span class="note">test-vlp.py OK (verifier( 331 → 335), test_carte_relecteur ; mutant « option ignorée » → ÉCART ; carte sans option identique à l'octet ; pyright scripts/ 0 erreur</span>
-        <span class="cout mono">≈1,6M (1 581 788) · 12 tours · 0,64 $</span>
+        <span class="cout mono">≈1,7M (1 723 804) · 13 tours · 0,69 $</span>
       </li>
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">REL3</span><span class="titre">Injecter la carte réduite dans vlp:relire</span>
-        <span class="etat">en cours</span>
-        <span class="note">Les trois appels de skills/relire/SKILL.md passent en --relecteur ; dépend de REL2.</span>
+        <span class="etat">faite</span>
+        <span class="note">--relecteur : 3 occurrences sur 1 ligne dans relire (grep -c 1, grep -o 3), 0 dans jouer et enchainer ; ligne injectée dans un bac : 0 titre · 1 PROJET= · 0 PROCHAINE=</span>
+        <span class="cout mono">≈876,5k (876 500) · 6 tours · 0,29 $</span>
       </li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈2,8M (2 840 507) · 24 tours · 2,05 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈7,1M (7 074 704) · 61 tours · 4,12 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈8,1M (8 093 220) · 68 tours · 4,46 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
