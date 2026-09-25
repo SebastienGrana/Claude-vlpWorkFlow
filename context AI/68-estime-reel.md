@@ -57,8 +57,9 @@ Hors chantier : une colonne « estimé » sur la feuille de route (son gabarit),
 ---
 
 <!-- FICHE:EST1 -->
-## EST1 [ ] — Noter l'estimé à l'ouverture
+## EST1 [x] — Noter l'estimé à l'ouverture
 
+**Session** : 90bf84ae-82bc-4221-92ea-2a25673b4dbf
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` — et rien d'autre.
 

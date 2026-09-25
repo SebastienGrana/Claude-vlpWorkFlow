@@ -1189,6 +1189,52 @@ with tempfile.TemporaryDirectory() as t:
              and lire(os.path.join(t, "ctx", "35-v.md")) == "# Chantier V — v\n\n## V1 [ ] — a\n", s)
     os.environ.pop("CLAUDE_CODE_SESSION_ID", None)
 
+def test_estime():
+    with tempfile.TemporaryDirectory() as te:
+        # `ouvrir --estime-fiches` (chantier EST) : A1–A3 à 3 000 000 et B1 à 1 000 000 font 1 000 000
+        # par fiche — une fiche par ligne en ferait 2 000 000. La ligne non mesurable ne compte pas.
+        lire = lambda c: open(c, encoding="utf-8").read()
+        os.environ["CLAUDE_CODE_SESSION_ID"] = ""
+        rang = ('          <tr>\n            <td>x</td>\n            <td class="mono">%s</td><td class="mono">2026-01-01</td>\n'
+                '            <td class="mono">%s</td>\n            <td>y</td>\n          </tr>\n')
+        carte_e = ("# C\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n"
+                   "- **fichier de fiches courant** : aucun\n- **artefact du chantier** : aucun\n")
+        fiches_e = "# Chantier Q — q\n\n**Fait.** Rien.\n\n## Q1 [ ] — a\n"
+        ecrire(os.path.join(te, "CHANTIER.md"), carte_e)
+        ecrire(os.path.join(te, "ctx", "30-q.md"), fiches_e)
+        code, s = appel(["ouvrir", te, "--fiches", "ctx/30-q.md", "--titre", "q", "--estime-fiches", "2"])
+        verifier("EST1 : sans feuille, GARDE, le reste écrit", code == 0 and "GARDE: feuille de route introuvable" in s
+                 and "estimé" not in s.split("\n")[-2] and "**Estimé.**" not in lire(os.path.join(te, "ctx", "30-q.md"))
+                 and "ctx/30-q.md (Q1..Q1)" in lire(os.path.join(te, "CHANTIER.md")), s)
+        ecrire(os.path.join(te, "ctx", "artefacts", "feuille-de-route.html"),
+               "<!-- ZONE:clos -->\n<tbody>\n" + rang % ("A1–A3", "≈3,0M (3 000 000)") + rang % ("B1", "≈1,0M (1 000 000)")
+               + rang % ("E1–E8", "non recompté — fichier introuvable · non mesurable") + "</tbody>\n")
+        code, s = appel(["ouvrir", te, "--fiches", "ctx/30-q.md", "--titre", "q", "--estime-fiches", "2"])
+        lu_e = lire(os.path.join(te, "ctx", "30-q.md"))
+        verifier("EST1 : l'estimé avant **Fait.**, fiches lues sur la plage", code == 0
+                 and "· estimé 2 fiches ≈1,67 $ — " in s
+                 and "\n**Estimé.** 2 fiches · ≈1,67 $ — ≈0,84 $/fiche sur 2 clos (le " in lu_e
+                 and lu_e.index("**Estimé.**") < lu_e.index("**Fait.**"), s + lu_e)
+        code, s = appel(["ouvrir", te, "--fiches", "ctx/30-q.md", "--titre", "q", "--estime-fiches", "0,5"])
+        verifier("EST1 : second appel, estimé gardé, une seule ligne", code == 0 and "· estimé gardé — " in s
+                 and lire(os.path.join(te, "ctx", "30-q.md")).count("**Estimé.**") == 1, s)
+        code, s = appel(["ouvrir", te, "--fiches", "ctx/30-q.md", "--titre", "q"])
+        verifier("EST1 : sans l'option, rien ne change", code == 0 and "estimé" not in s
+                 and lire(os.path.join(te, "ctx", "30-q.md")) == lu_e, s)
+        verifier("EST1 : 0,5 et 0.5 acceptés", mod.nombre_fiches("0,5") == mod.nombre_fiches("0.5") == 0.5
+                 and mod.decimal_fr(0.5) == "0,5" and mod.decimal_fr(2.0) == "2", "")
+        ecrire(os.path.join(te, "CHANTIER.md"), carte_e)
+        ecrire(os.path.join(te, "ctx", "31-r.md"), "# Chantier R — r\n\n**Fait.** Rien.\n\n## R1 [ ] — a\n")
+        ecrire(os.path.join(te, "ctx", "artefacts", "feuille-de-route.html"),
+               "<!-- ZONE:clos -->\n<tbody>\n" + rang % ("E1–E8", "non mesurable") + "</tbody>\n")
+        code, s = appel(["ouvrir", te, "--fiches", "ctx/31-r.md", "--titre", "r", "--estime-fiches", "1"])
+        verifier("EST1 : aucun clos mesuré, GARDE, le reste écrit", code == 0 and "GARDE: aucun chantier clos mesuré" in s
+                 and "ctx/31-r.md (R1..R1)" in lire(os.path.join(te, "CHANTIER.md")), s)
+        os.environ.pop("CLAUDE_CODE_SESSION_ID", None)
+
+
+test_estime()
+
 with tempfile.TemporaryDirectory() as t:
     f = os.path.join(t, "y.md")
     ecrire(f, SANS)

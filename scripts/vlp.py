@@ -177,7 +177,7 @@ Sous-commandes :
   `CLOS <lettre> <plage> · chantier <n> · cumul <brut> · routage <0|1> · index
   <0|1> · bilan <0|1> — <projet>`. Aucun chantier ouvert, ou
   déjà `**CLOS**` : `GARDE:`, sort 1.
-- `ouvrir <projet> --fiches F --titre T [--artefact URL]` — les écritures
+- `ouvrir <projet> --fiches F --titre T [--artefact URL] [--estime-fiches N]` — les écritures
   mécaniques de l'ouverture : dans `CHANTIER.md`, courant = `F (L1..Ln)` et
   artefact = l'URL (sinon `aucun`, ou l'ancienne si F est déjà courant) ; une
   ligne « on joue une fiche » après la ligne de l'index au plus grand numéro ;
@@ -189,7 +189,12 @@ Sous-commandes :
   ligne `## ` — la session du cadrage, que `cout` et `page` mesurent. `OUVERT
   <lettre> <plage> · index <+n|~1> · routage +<n> · session +<0|1> · artefact <url>
   — <projet>` (`~1` : plage refaite) ; index ou routage introuvable : `GARDE:`, le
-  reste est écrit.
+  reste est écrit. `--estime-fiches N` (`0,5` ou `0.5`) : `**Estimé.** <N> fiches · ≈<X> $
+  — ≈<Y> $/fiche sur <K> clos (le <date>).` juste avant `**Fait.**` de F — Y, la moyenne
+  des lignes de `ZONE:clos` au total mesuré, fiches comptées sur leur plage ; X = N × Y ;
+  `OUVERT` gagne ` · estimé <N> fiches ≈<X> $`, ou ` · estimé gardé` si la ligne y est
+  déjà (non réécrite). Pas de feuille, aucun clos mesuré, pas de `**Fait.**` : `GARDE:`,
+  le reste est écrit (chantier EST).
   Un autre chantier déjà ouvert, ou F porte `**CLOS**` : `GARDE:`, sort 1.
 - `contrat [<transcription>…] [--depuis D]` — le contrat d'`agents/fiche.md` lu dans des
   transcriptions de sous-agent (chantier CON). Sans argument : toutes celles dont le
@@ -3179,6 +3184,38 @@ def cmd_clore(a, sortie):
 # --- ouvrir ------------------------------------------------------------------
 
 LIGNE_FICHIER = re.compile(r"^\| `\d\d")
+# Une ligne close : sa plage `X1–Xn` (ou `X1` seule) et son total mesuré, le dernier nombre entre
+# parenthèses de la cellule — `non mesurable` n'en a pas (chantier EST).
+PLAGE_FICHES = re.compile(r'<td class="mono">[A-Z]{1,3}([0-9]+)(?:–[A-Z]{1,3}([0-9]+))?</td>')
+TOTAL_MESURE = re.compile(r"\((\d[\d ]*)\)</td>")
+
+
+def moyenne_clos(html):
+    """(tokens, fiches, clos) des lignes de `ZONE:clos` au total mesuré ; fiches d'une ligne =
+    `n − 1 + 1` de sa plage `X1–Xn`, une seule pour `X1` (chantier EST)."""
+    i = html.find("ZONE:clos")
+    tokens = fiches = clos = 0
+    for r in lignes_clos(html[i:]) if i >= 0 else []:
+        p, m = PLAGE_FICHES.search(r), TOTAL_MESURE.findall(r)
+        if p and m:
+            tokens += int(m[-1].replace(" ", ""))
+            fiches += int(p.group(2) or p.group(1)) - int(p.group(1)) + 1
+            clos += 1
+    return tokens, fiches, clos
+
+
+def decimal_fr(v):
+    return ("%g" % v).replace(".", ",")
+
+
+def nombre_fiches(s):
+    try:
+        v = float(s.replace(",", "."))
+    except ValueError:
+        raise argparse.ArgumentTypeError("nombre de fiches attendu : %s" % s)
+    if v <= 0:
+        raise argparse.ArgumentTypeError("nombre de fiches positif attendu : %s" % s)
+    return v
 
 
 def cmd_ouvrir(a, sortie):
@@ -3277,14 +3314,38 @@ def cmd_ouvrir(a, sortie):
         ecritures.append((chemin_fiches, fiches_))
         n_session = 1
 
+    # 5. l'estimé, juste avant `**Fait.**` : la moyenne $/fiche des clos mesurés × N (chantier EST).
+    estime = ""
+    if a.estime_fiches is not None:
+        fait_ = next((k for k, l in enumerate(fiches_) if l.startswith(("**Fait.**", "**Où on en est.**"))), None)
+        feuille_ = page_feuille(projet)
+        tokens, n_fiches, n_clos = moyenne_clos(lire(feuille_)) if os.path.isfile(feuille_) else (0, 0, 0)
+        if any(l.startswith("**Estimé.**") for l in fiches_):
+            estime = " · estimé gardé"
+        elif not os.path.isfile(feuille_):
+            gardes.append("feuille de route introuvable : %s — pas d'estimé" % feuille_)
+        elif not n_fiches:
+            gardes.append("aucun chantier clos mesuré sur la feuille de route — pas d'estimé")
+        elif fait_ is None:
+            gardes.append("pas de ligne **Fait.** dans %s — pas d'estimé" % fichier)
+        else:
+            par_fiche = tokens / n_fiches
+            usd = estimation_usd(round(a.estime_fiches * par_fiche))
+            fiches_[fait_:fait_] = ["**Estimé.** %s fiches · %s — %s/fiche sur %d clos (le %s)."
+                                    % (decimal_fr(a.estime_fiches), usd, estimation_usd(round(par_fiche)), n_clos,
+                                       __import__("datetime").date.today().isoformat()), ""]
+            if not n_session:
+                ecritures.append((chemin_fiches, fiches_))
+            estime = " · estimé %s fiches %s" % (decimal_fr(a.estime_fiches), usd)
+
     ecritures.append((chemin_carte, carte_))
     for chemin, lignes in ecritures:
         with open(chemin, "w", encoding="utf-8", newline="") as fh:
             fh.write("\n".join(lignes) + "\n")
     for g in gardes:
         sortie.write("GARDE: %s — le reste est écrit\n" % g)
-    sortie.write("OUVERT %s %s · index %s · routage +%d · session +%d · artefact %s — %s\n"
-                 % (lettre, fait, n_index, n_routage, n_session, url, projet))
+    sortie.write("OUVERT %s %s · index %s · routage +%d · session +%d · artefact %s%s — %s\n"
+                 % (lettre, fait, n_index, n_routage, n_session, url, estime, projet))
     return 0
 
 
@@ -3358,6 +3419,7 @@ def main(argv, sortie=None, entree=None, erreur=None):
     ou.add_argument("--fiches", required=True)
     ou.add_argument("--titre", required=True)
     ou.add_argument("--artefact")
+    ou.add_argument("--estime-fiches", type=nombre_fiches)
     lr = sous.add_parser("lire")
     lr.add_argument("chemins", nargs="+")
     co2 = sous.add_parser("cocher")
