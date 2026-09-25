@@ -87,7 +87,7 @@
         <span class="id">LEC2</span><span class="titre">Faire imprimer la TODO par la carte</span>
         <span class="etat">bloquée</span>
         <span class="note">La carte imprime la section TODO de chaque fichier « chantiers possibles », ou TODO=absente. Sans dépendance.</span>
-        <span class="cout mono">≈18,3M (18 295 796) · 267 tours · 5,46 $</span>
+        <span class="cout mono">≈22,7M (22 651 763) · 339 tours · 6,60 $</span>
       </li>
       <li class="fiche">
         <span class="id">LEC3</span><span class="titre">Faire imprimer le format des fiches par la carte</span>
@@ -106,7 +106,7 @@
       </li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈3,2M (3 185 546) · 28 tours · 2,39 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈23,6M (23 617 893) · 316 tours · 9,10 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈28,0M (27 973 860) · 388 tours · 10,24 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -114,8 +114,8 @@
   <section>
     <h2>Arrêt sur blocage</h2>
     <div class="blocage">
-      <p>LEC2 (2026-09-25), fiche réécrite après deux refus — 1. FAITE refusée à la relecture.</p>
-      <pre>REFUSÉE — critère de fin non tenu : sur une copie du kit mise à « aucun », `py scripts/vlp.py carte` n'imprime aucun bloc `--- TODO : context AI/08-etat.md (lignes A–B) ---`. Deux causes. `extraire_chemins_md` ne trouve que les chemins entre backticks. Et la ligne « chantiers possibles » absente ne produit rien, alors que la fiche demande `TODO=absente (pas de ligne « chantiers possibles »)`.</pre>
+      <p>LEC2 (2026-09-25), fiche réécrite après deux refus — 1. FAITE refusée à la relecture. 2. FAITE refusée à la relecture.</p>
+      <pre>REFUSÉE — bug prouvé par une sortie : `extraire_chemins_md` n'ignore pas la prose autour des chemins écrits sans backticks, alors que la fiche l'exige. Avec la ligne `context AI/20a-chantiers.md, puis context AI/10-etat.md`, la carte d'APRÈS imprime `GARDE: puis context AI/10-etat.md`.</pre>
     </div>
   </section>
 
