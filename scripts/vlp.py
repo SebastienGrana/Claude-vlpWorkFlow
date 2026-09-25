@@ -477,6 +477,15 @@ def sessions_entete(lignes):
     return sessions_de(lignes[:k])
 
 
+def essais_de(session):
+    """Les transcripts des essais `claude -p` lancés depuis un bac du scratchpad de `session`,
+    triés : `~/.claude/projects/<projet>-<session>-scratchpad-<bac>/<essai>.jsonl` (ESS1 :
+    39 dossiers de cette forme). Leurs sous-agents n'y sont pas ; [] sans dossier."""
+    motif = os.path.join(os.path.expanduser("~"), ".claude", "projects",
+                         "*-" + glob.escape(session) + "-scratchpad-*", "*.jsonl")
+    return sorted(set(glob.glob(motif)))
+
+
 def cmd_extraire(chemin, fiche, sortie):
     extrait, garde = extraire_lignes(lignes_de(chemin), fiche)
     if garde:

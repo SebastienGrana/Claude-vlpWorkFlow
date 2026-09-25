@@ -1091,6 +1091,26 @@ with tempfile.TemporaryDirectory() as t:
              appel(["equiper", d]) == (0, "DOSSIER=%s\nA/\nb/\nCLAUDE.md\nAUCUN_PROJET\nETAT=01-etat.md\n" % os.path.abspath(d)),
              appel(["equiper", d]))
 
+# --- chantier ESS : les essais d'une session, par le dossier de leur bac -------
+
+with tempfile.TemporaryDirectory() as t:
+    pr = os.path.join(t, ".claude", "projects")
+    for bac in ("C--tmp-sa-aaaa-1-scratchpad-b1", "C--tmp-sa-aaaa-1-scratchpad-b2", "C--tmp-sa-bbbb-2-scratchpad-b1",
+                "C--tmp-sa-aaaa-1-intrus"):     # le dernier n'est pas un bac : pas de `-scratchpad-`
+        ecrire(os.path.join(pr, bac, "e.jsonl"), "{}\n")
+    garde_env = dict(os.environ)
+    os.environ.update(HOME=t, USERPROFILE=t)
+    try:
+        a, b, z = mod.essais_de("aaaa-1"), mod.essais_de("bbbb-2"), mod.essais_de("zzzz-9")
+    finally:
+        os.environ.clear()
+        os.environ.update(garde_env)
+    verifier("essais_de : les deux bacs de A, triés, sans l'intrus",
+             a == [os.path.join(pr, "C--tmp-sa-aaaa-1-scratchpad-b1", "e.jsonl"),
+                   os.path.join(pr, "C--tmp-sa-aaaa-1-scratchpad-b2", "e.jsonl")], a)
+    verifier("essais_de : le bac de B seul", len(b) == 1 and "bbbb-2-scratchpad-b1" in b[0], b)
+    verifier("essais_de : session inconnue, liste vide", z == [], z)
+
 # --- chantier U : lire, cocher, page déduite ----------------------------------
 
 attendu = mod.lire(os.path.join(mod.KIT, "cloture.md"))

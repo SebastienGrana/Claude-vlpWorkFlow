@@ -78,8 +78,9 @@ TODO. Si plus d'un essai noté sur quatre n'a pas de dossier : s'arrêter, le m�
 ---
 
 <!-- FICHE:ESS2 -->
-## ESS2 [ ] — Trouver les essais d'une session
+## ESS2 [x] — Trouver les essais d'une session
 
+**Session** : f11bd1c7-b0df-49c4-8d78-4e609513bec3
 **Dépend de** : `ESS1`.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py`.
 

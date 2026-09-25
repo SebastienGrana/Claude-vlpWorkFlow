@@ -68,9 +68,9 @@
     <p>vlp.py cout compte les essais claude -p dans le prix de leur fiche, avec une part essais à côté ; les 14 clos recomptés face aux ≈ 12,32 $ notés à la main</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">4 fiches · 1 faite · en cours : ESS2</p>
+    <p class="mono" style="margin-top:.5rem">4 fiches · 2 faites · en cours : ESS3</p>
   </header>
 
   <section>
@@ -81,16 +81,17 @@
         <span class="id">ESS1</span><span class="titre">Mesurer les bacs contre les essais notés</span>
         <span class="etat">faite</span>
         <span class="note">8 sondes notées, 8 trouvées, 0 absente (4,5734 $ notés, 4,3001 $ mesurés) ; 10 evals notées, 0 dossier (7,74 $, dehors) ; 13 dossiers sans note (Y, U, Q : 3,5982 $) ; 39 dossiers = 7,8983 $</span>
-        <span class="cout mono">≈2,4M (2 387 694) · 23 tours · 1,51 $</span>
+        <span class="cout mono">≈2,6M (2 640 838) · 25 tours · 1,61 $</span>
+      </li>
+      <li class="fiche" data-etat="faite">
+        <span class="id">ESS2</span><span class="titre">Trouver les essais d'une session</span>
+        <span class="etat">faite</span>
+        <span class="note">test-vlp.py OK (verifier( 297 → 300) : A 2 chemins, B 1, inconnue 0 ; mutant sans -scratchpad- : ÉCART, l'intrus pris ; pyright 0 errors avant et après ; vrai disque : SAG 3, X 26</span>
+        <span class="cout mono">≈1,7M (1 724 915) · 12 tours · 0,68 $</span>
       </li>
       <li class="fiche" data-etat="encours">
-        <span class="id">ESS2</span><span class="titre">Trouver les essais d'une session</span>
-        <span class="etat">en cours</span>
-        <span class="note">Fonction essais_de et son test à mutant ; dépend d'ESS1</span>
-      </li>
-      <li class="fiche">
         <span class="id">ESS3</span><span class="titre">Compter les essais dans cout</span>
-        <span class="etat">à faire</span>
+        <span class="etat">en cours</span>
         <span class="note">Les essais dans cout, fiche, hors fiches et TOTAL ; dépend d'ESS2</span>
       </li>
       <li class="fiche">
@@ -100,7 +101,7 @@
       </li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈2,7M (2 704 051) · 22 tours · 2,00 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈5,1M (5 091 745) · 45 tours · 3,51 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈7,1M (7 069 804) · 59 tours · 4,29 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
