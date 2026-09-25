@@ -114,8 +114,9 @@ sommés font 19 ; le choix de l'utilisateur est écrit dans le socle.
 ---
 
 <!-- FICHE:APC3 -->
-## APC3 [ ] — Appliquer le correctif choisi
+## APC3 [x] — Appliquer le correctif choisi
 
+**Session** : 2bb1a1be-0e2d-4204-93ac-25d8239cd0e0
 **Dépend de** : `APC2`.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py`, `cloture.md` — et rien d'autre.
 

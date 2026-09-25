@@ -1217,6 +1217,49 @@ with tempfile.TemporaryDirectory() as t:
         verifier("recompter sans --a-clore : la ligne d'avant APC2", code5 == 0 and s5.splitlines()[0] ==
                  "Q inscrit 250 000 · recompté 400 000 · écart +150 000 · découpe", s5)
 
+# APC3 : un vrai `clore` — Q1 (200), Q2 (400), l'appel clore (700) —, puis un tour après lui (800) et
+# le commit de clôture (900) : le chiffre inscrit égale le TOTAL de cout, le recompté.
+with tempfile.TemporaryDirectory() as t:
+    proj, s3 = os.path.join(t, "apc3"), os.path.join(t, "s3.jsonl")
+    transcript(s3, 3, [T0 + 200, T0 + 400, T0 + 700])
+    lignes_ = [json.loads(l) for l in lire(s3).splitlines()]
+    lignes_[2]["message"]["content"] = [{"type": "tool_use", "id": "t2", "name": "Bash",
+                                         "input": {"command": 'py "C:/k/scripts/vlp.py" clore . --livre x'}}]
+    ecrire(s3, "".join(json.dumps(l) + "\n" for l in lignes_))
+    ecrire(os.path.join(proj, "CHANTIER.md"), "# Chantier\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n"
+           "- **fichier de fiches courant** : ctx/q.md (Q1..Q2)\n- **artefact du chantier** : https://u\n\n"
+           "Lettres de fiche déjà prises : Q (test).\n")
+    ecrire(os.path.join(proj, "ctx", "q.md"), QFICHES % (s3, s3))
+    ecrire(os.path.join(proj, "ctx", "00-INDEX.md"), "| F | L |\n|---|---|\n| `q.md` | on joue `Q*` — **ouvert** |\n")
+    ecrire(os.path.join(proj, "CLAUDE.md"), "| T | O |\n|---|---|\n| jouer Q | `ctx/q.md` **ouvert** |\n")
+    ecrire(os.path.join(proj, "ctx", "artefacts", "q.html"),
+           open(os.path.join(ICI, "..", "templates", "artefact-chantier.html"), encoding="utf-8").read())
+    if not shutil.which("git"):
+        print("SAUTÉ: git absent — clore = recompte n'est pas testé")
+    else:
+        env = dict(os.environ, GIT_CONFIG_GLOBAL=os.path.join(t, "gitconfig"), GIT_CONFIG_NOSYSTEM="1",
+                   GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t")
+        ecrire(env["GIT_CONFIG_GLOBAL"], "")
+        subprocess.run(["git", "init", "-q"], cwd=proj, env=env, check=True, capture_output=True)
+
+        def commit_(d, sujet):
+            date = "%d +0000" % (T0 + d)
+            subprocess.run(["git", "commit", "-q", "--allow-empty", "-m", sujet], cwd=proj, check=True,
+                           capture_output=True, env=dict(env, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date))
+        for d, sujet in ((100, "Chantier Q ouvert : cadré"), (300, "Q1 : Créer"), (600, "Q2 : Brancher")):
+            commit_(d, sujet)
+        code, s = appel(["clore", proj, "--livre", "fini", "--tokens", "1", "--date", "2026-09-25"])
+        with open(s3, "a", encoding="utf-8") as f:
+            f.write(json.dumps(dict(lignes_[0], requestId="r9", timestamp=datetime.datetime.fromtimestamp(
+                T0 + 800, datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z"),
+                message=dict(lignes_[0]["message"], id="m9"))) + "\n")
+        commit_(900, "Chantier Q clos : fini")
+        code2, s2 = appel(["cout", os.path.join(proj, "ctx", "q.md")])
+        verifier("APC3 : inscrit par clore = recompté, 300 000 · 3 tours ; le tour d'après clore n'y est pas"
+                 " — mutant : decouper sans heure_clore (recompté 400 000)", code == 0 and code2 == 0
+                 and "chantier 300 000" in s and "**CLOS**" in lire(os.path.join(proj, "ctx", "q.md"))
+                 and "\nTOTAL (fiches + hors fiches) · ≈300,0k (300 000) · 3 tours" in s2, s + s2)
+
 # ESD1 : sans découpe (pas de .git), les essais des sessions entières en une ligne à part, sous
 # les tables ; une session sans essai n'en a pas.
 with tempfile.TemporaryDirectory() as t:

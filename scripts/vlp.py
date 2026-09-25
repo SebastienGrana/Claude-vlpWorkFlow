@@ -26,7 +26,8 @@ Sous-commandes :
   fichier, celles des fiches et celle du cadrage, que `ouvrir` note en tête (aucune :
   `SESSIONS 0 — pas de total`, sort 0), coupées aux commits comme la page : `DÉCOUPE
   aux commits de fiche`, une ligne par fiche, `hors fiches`, `TOTAL (fiches + hors
-  fiches)` — aucun tour gardé : `GARDE: découpe à zéro`. Sans Git, sans commit qui
+  fiches)` — aucun tour gardé : `GARDE: découpe à zéro` ; un fichier clos s'arrête à son
+  dernier appel `vlp.py clore`, le chiffre que `clore` inscrit (`decouper`). Sans Git, sans commit qui
   nomme le préfixe, ou clos sans commit de fiche : `DÉCOUPE aucune — <raison>`, puis
   les tables des sessions entières. `--session` : `SESSION=<CLAUDE_CODE_SESSION_ID>`,
   puis (id non vide) la table de cette session seule, et celle de cette session plus
@@ -627,12 +628,16 @@ def totaux_a_clore(chemin, lignes):
 def decouper(chemin, lignes=None, fin=None):
     """(découpe, pourquoi, gardes) d'un fichier de fiches : `parts_aux_commits` sur les heures de
     `heures_commits`, ou None — `pourquoi` dit alors la raison. `cout` l'imprime, `recompter` en
-    tire le total (`totaux`) : une découpe, deux lecteurs. `fin` : voir `parts_aux_commits`."""
+    tire le total (`totaux`) : une découpe, deux lecteurs. `fin` : voir `parts_aux_commits`. Un
+    fichier clos s'arrête, sans `fin`, au dernier appel `clore` (`heure_clore`), où `clore` a pris
+    son chiffre : ce qui le suit — republications, commit — sort du coût (chantier APC, choix b)."""
     lignes = lignes_de(chemin) if lignes is None else lignes
     fiches_ = fiches_du_fichier(lignes)
     pourquoi, gardes = [], []
-    heures = heures_commits(chemin, [f[0] for f in fiches_], pourquoi,
-                            any(l.startswith("**CLOS**") for l in lignes))
+    clos = any(l.startswith("**CLOS**") for l in lignes)
+    heures = heures_commits(chemin, [f[0] for f in fiches_], pourquoi, clos)
+    if fin is None and clos and heures:
+        fin = heure_clore(chemin, lignes)
     decoupe = heures and parts_aux_commits(fiches_, heures, gardes, sessions_entete(lignes), fin)
     if not decoupe and heures:
         pourquoi.append("aucune session de fiche mesurée")

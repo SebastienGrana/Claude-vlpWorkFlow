@@ -32,7 +32,9 @@ qui ne garde que les derniers clos ; rend visible la `ZONE:bilan` de la page du
 chantier et en régénère les coûts ; puis écrit la feuille de route locale (ligne
 des clos, total cumulé, chantier en cours, TODO de l'étape 1). Le total du
 chantier — fiches, hors fiches et sous-agents — est celui qu'il vient d'écrire sur
-la page : la ligne `CLOS … · chantier <n>` le donne, le même partout. Lis les lignes
+la page : la ligne `CLOS … · chantier <n>` le donne, le même partout. Ce qui suit cet
+appel — republications, commit, menu — n'y entre pas, et la recompte non plus
+(`vlp.py`, `decouper`). Lis les lignes
 `FEUILLE` et `CLOS` ; une `GARDE:` dit ce qui n'est pas écrit — écris-le alors à
 la main.
 

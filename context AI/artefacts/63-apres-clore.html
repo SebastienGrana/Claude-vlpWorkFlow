@@ -68,9 +68,9 @@
     <p>Le chiffre que clore inscrit égale celui que cout recompte ensuite ; l'écart d'ESD et des 19 clos est expliqué, cause par cause, en comptes bruts.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">3 fiches · 2 faites · en cours : APC3</p>
+    <p class="mono" style="margin-top:.5rem">3 fiches · 3 faites</p>
   </header>
 
   <section>
@@ -87,16 +87,17 @@
         <span class="id">APC2</span><span class="titre">Décomposer l'écart des 19 clos, puis choisir le correctif</span>
         <span class="etat">faite</span>
         <span class="note">Tests OK (code 0), mutant tombé (code 1) ; table APC2 : 5 entièrement + 14 en partie + 0 pas du tout = 19, 0 sans appel clore ; choix (b) écrit au socle</span>
-        <span class="cout mono">≈3,1M (3 092 598) · 27 tours · 1,87 $</span>
+        <span class="cout mono">≈3,4M (3 378 501) · 29 tours · 1,99 $</span>
       </li>
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">APC3</span><span class="titre">Appliquer le correctif choisi</span>
-        <span class="etat">en cours</span>
-        <span class="note">Le correctif choisi, testé avec son mutant. Après APC2.</span>
+        <span class="etat">faite</span>
+        <span class="note">Tests OK (code 0) ; mutant sans arrêt à clore : ÉCART, recompté 400 000 contre 300 000 inscrit (code 1) ; test : clore inscrit 300 000 = TOTAL cout 300 000 · 3 tours ; ESD : TOTAL 18 506 516 → 16 735 386, après clore 1 771 130 → 0 ; pyright scripts/ 0 → 0 erreur</span>
+        <span class="cout mono">≈2,5M (2 497 814) · 15 tours · 1,03 $</span>
       </li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈4,4M (4 373 393) · 29 tours · 2,40 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈10,5M (10 457 738) · 82 tours · 6,01 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈13,2M (13 241 455) · 99 tours · 7,16 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
