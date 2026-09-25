@@ -1150,6 +1150,54 @@ with tempfile.TemporaryDirectory() as t:
         verifier("cout : l'essai de la plage à Q1, sous-agent compris ; l'autre hors fiches ; TOTAL les deux",
                  code == 0 and s == attendu, s)
 
+# APC1 : cout --a-clore. Q1 (200), Q2 (400), l'appel clore (700), un tour après lui (800), le commit
+# de clôture (900), un clore rejoué après lui (1000), hors plage : à clore = 3 tours, après = 1.
+with tempfile.TemporaryDirectory() as t:
+    pr, dep = os.path.join(t, ".claude", "projects"), os.path.join(t, "depot")
+    os.makedirs(os.path.join(pr, "p"))
+    for s_, heures_ in (("sss", [T0 + 200, T0 + 400, T0 + 700, T0 + 800, T0 + 1000]), ("ttt", [T0 + 200, T0 + 400, T0 + 700])):
+        chemin_ = os.path.join(pr, "p", s_ + ".jsonl")
+        transcript(chemin_, len(heures_), heures_)
+        if s_ == "sss":
+            lignes_ = [json.loads(l) for l in lire(chemin_).splitlines()]
+            for k in (2, 4):
+                lignes_[k]["message"]["content"] = [{"type": "tool_use", "id": "t%d" % k, "name": "Bash", "input": {
+                    "command": 'py "C:/k/scripts/vlp.py" clore . --livre x'}}]
+            lignes_[3]["message"]["content"] = [{"type": "tool_use", "id": "t3", "name": "Bash",
+                                                 "input": {"command": 'grep -n "clore" scripts/vlp.py'}}]
+            ecrire(chemin_, "".join(json.dumps(l) + "\n" for l in lignes_))
+    ecrire(os.path.join(dep, "q.md"), QFICHES % ("sss", "sss"))
+    ecrire(os.path.join(dep, "r.md"), QFICHES % ("ttt", "ttt"))
+    if not shutil.which("git"):
+        print("SAUTÉ: git absent — cout --a-clore n'est pas testé")
+    else:
+        env = dict(os.environ, GIT_CONFIG_GLOBAL=os.path.join(t, "gitconfig"), GIT_CONFIG_NOSYSTEM="1",
+                   GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t")
+        ecrire(env["GIT_CONFIG_GLOBAL"], "")
+        subprocess.run(["git", "init", "-q"], cwd=dep, env=env, check=True, capture_output=True)
+        for d, sujet in ((100, "Chantier Q ouvert : cadré"), (300, "Q1 : Créer"), (600, "Q2 : Brancher"),
+                         (900, "Chantier Q clos : fini")):
+            date = "%d +0000" % (T0 + d)
+            subprocess.run(["git", "commit", "-q", "--allow-empty", "-m", sujet], cwd=dep, check=True,
+                           capture_output=True, env=dict(env, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date))
+        garde_env = dict(os.environ)
+        os.environ.update(HOME=t, USERPROFILE=t)
+        try:
+            (code, s), (code2, s2) = (appel(["cout", os.path.join(dep, "q.md"), "--a-clore"]),
+                                      appel(["cout", os.path.join(dep, "r.md"), "--a-clore"]))
+        finally:
+            os.environ.clear()
+            os.environ.update(garde_env)
+        lignes_ = s.splitlines()
+        verifier("cout --a-clore : TOTAL 4 tours, à clore 3, après clore 1 — le clore hors plage et le grep ignorés",
+                 code == 0 and len(lignes_) == 7 and lignes_[4].startswith("TOTAL ")
+                 and mod.triplet(lignes_[4])[:2] == (400000, 4)
+                 and lignes_[5].startswith("à clore · ") and mod.triplet(lignes_[5])[:2] == (300000, 3)
+                 and lignes_[6].startswith("après clore · ") and mod.triplet(lignes_[6])[:3] == (100000, 1, Decimal("0.50")), s)
+        verifier("cout --a-clore : sans appel clore, une GARDE et pas de ligne", code2 == 0
+                 and s2.splitlines()[-1] == "GARDE: aucun appel « vlp.py clore » dans la dernière plage hors fiches"
+                 " — pas de ligne à clore" and "à clore ·" not in s2, s2)
+
 # ESD1 : sans découpe (pas de .git), les essais des sessions entières en une ligne à part, sous
 # les tables ; une session sans essai n'en a pas.
 with tempfile.TemporaryDirectory() as t:

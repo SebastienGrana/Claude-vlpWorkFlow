@@ -68,23 +68,24 @@
     <p>Le chiffre que clore inscrit égale celui que cout recompte ensuite ; l'écart d'ESD et des 19 clos est expliqué, cause par cause, en comptes bruts.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="encours"></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="encours"></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">3 fiches · 0 faite · en cours : APC1</p>
+    <p class="mono" style="margin-top:.5rem">3 fiches · 1 faite · en cours : APC2</p>
   </header>
 
   <section>
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">APC1</span><span class="titre">Décomposer l'écart d'ESD</span>
-        <span class="etat">en cours</span>
-        <span class="note">cout --a-clore, testé ; la table de l'écart d'ESD. Rien avant.</span>
+        <span class="etat">faite</span>
+        <span class="note">test-vlp.py OK (code 0) ; mutant sans borne : ÉCART, à clore = TOTAL 400 000 · 4 tours (code 1) ; cout --a-clore sur ESD : à clore 16 735 386 · 198 tours = inscrit 16 735 386 (écart 0) ; après clore 1 771 130 · 8 tours ; reste non expliqué 0</span>
+        <span class="cout mono">≈2,6M (2 596 672) · 23 tours · 1,60 $</span>
       </li>
-      <li class="fiche">
+      <li class="fiche" data-etat="encours">
         <span class="id">APC2</span><span class="titre">Décomposer l'écart des 19 clos, puis choisir le correctif</span>
-        <span class="etat">à faire</span>
+        <span class="etat">en cours</span>
         <span class="note">recompter --a-clore ; la table des 19 clos, puis ton choix du correctif (arrêt). Après APC1.</span>
       </li>
       <li class="fiche">
@@ -93,6 +94,8 @@
         <span class="note">Le correctif choisi, testé avec son mutant. Après APC2.</span>
       </li>
     </ul>
+    <p class="mono cout-hors">Hors fiches : ≈4,4M (4 373 393) · 29 tours · 2,40 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈7,0M (6 970 065) · 52 tours · 4,00 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

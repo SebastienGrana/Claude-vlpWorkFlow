@@ -30,7 +30,9 @@ Sous-commandes :
   nomme le préfixe, ou clos sans commit de fiche : `DÉCOUPE aucune — <raison>`, puis
   les tables des sessions entières. `--session` : `SESSION=<CLAUDE_CODE_SESSION_ID>`,
   puis (id non vide) la table de cette session seule, et celle de cette session plus
-  celles du fichier.
+  celles du fichier. `--a-clore` : après `TOTAL`, `à clore` — le total si la dernière
+  plage hors fiches s'arrêtait au dernier appel `vlp.py clore` qu'elle contient — et
+  `après clore`, la différence ; sans cet appel, une `GARDE:` et pas de ligne.
 - `valider <fichier>… [--plan]` — les écarts d'un fichier de fiches, un par ligne
   `fichier:ligne: message`, puis `VALIDE|INVALIDE <n> fiches · socle <n> lignes
   · <n> écarts · <n> avertissements — <fichier>`. Avertit si une fiche ou le
@@ -517,11 +519,12 @@ def cmd_sessions(chemin, sortie):
     return 0
 
 
-def cmd_cout(chemin, session, sortie):
+def cmd_cout(chemin, session, sortie, a_clore=False):
     """Le coût du fichier de fiches, coupé aux commits comme la page : une ligne par fiche
     (`ligne_parts`), puis hors fiches, puis `TOTAL`. Sans heures de commit, les tables
     brutes de `mesure-tokens.py` sur les sessions entières, sous une ligne qui dit pourquoi.
-    `--session` met d'abord la table de la session courante, pour `/vlp:tache`. Sans `tr` ni
+    `--session` met d'abord la table de la session courante, pour `/vlp:tache`. `a_clore` : deux
+    lignes après `TOTAL`, `à clore` et `après clore` (chantier APC). Sans `tr` ni
     `xargs` : les commandes du kit tournent aussi sous PowerShell (chantier Y)."""
     import contextlib
     lignes = lignes_de(chemin)
@@ -551,6 +554,8 @@ def cmd_cout(chemin, session, sortie):
             sortie.write(g + "\n")
         if essais[1]:
             sortie.write(ligne_parts("essais", zero, zero, essais) + "\n")
+        if a_clore:
+            sortie.write("GARDE: --a-clore sans découpe — pas de ligne à clore\n")
         return code
     parts, hors = decoupe
     sortie.write("DÉCOUPE aux commits de fiche — une fiche va du commit d'avant au sien, "
@@ -559,19 +564,67 @@ def cmd_cout(chemin, session, sortie):
         sortie.write(ligne_parts(ident, *r) + "\n")
     sortie.write(ligne_parts("hors fiches", *hors) + "\n")
     sortie.write(ligne_parts("TOTAL (fiches + hors fiches)", *totaux(decoupe)) + "\n")
+    if a_clore:
+        t = heure_clore(chemin, lignes)
+        if t is None:
+            sortie.write("GARDE: aucun appel « vlp.py clore » dans la dernière plage hors fiches"
+                         " — pas de ligne à clore\n")
+            return code
+        avant, tout = totaux(decouper(chemin, lignes, t)[0]), totaux(decoupe)
+        sortie.write(ligne_parts("à clore", *avant) + "\n")
+        sortie.write(ligne_parts("après clore", *[(a[0] - b[0], a[1] - b[1], moins(a[2], b[2]), a[3] - b[3])
+                                                  for a, b in zip(tout, avant)]) + "\n")
     return code
 
 
-def decouper(chemin, lignes=None):
+APPEL_CLORE = re.compile(r"""vlp\.py["']?\s+clore\b""")
+
+
+def heure_clore(chemin, lignes):
+    """L'heure, en secondes UTC, du dernier `tool_use` dont la commande appelle `vlp.py clore`,
+    dans les sessions du fichier et dans sa dernière plage hors fiches — celle que le commit de
+    clôture ferme ; None sans lui. Ce que `clore` a vu en inscrivant son chiffre (chantier APC)."""
+    fiches_ = fiches_du_fichier(lignes)
+    heures = heures_commits(chemin, [f[0] for f in fiches_], [], any(l.startswith("**CLOS**") for l in lignes))
+    trous = plages(fiches_, heures, [])[1] if heures else []
+    if not trous:
+        return None
+    debut, fin = trous[-1]
+    m, vu, sessions = mesure(), None, []
+    for groupe in [f[3] for f in fiches_] + [sessions_entete(lignes)]:
+        sessions += [s for s in groupe if s not in sessions]
+    for s in sessions:
+        transcript, erreur = m.resoudre(s)
+        if erreur:
+            continue
+        with m.ouvrir(transcript) as f:
+            for ligne in f:
+                if "clore" not in ligne:
+                    continue
+                try:
+                    d = json.loads(ligne)
+                except ValueError:
+                    continue
+                contenu = (d.get("message") or {}).get("content") if isinstance(d, dict) else None
+                appel = isinstance(contenu, list) and any(
+                    isinstance(c, dict) and c.get("type") == "tool_use"
+                    and APPEL_CLORE.search(str((c.get("input") or {}).get("command", ""))) for c in contenu)
+                t = m.heure(d) if appel else None
+                if t is not None and debut < t <= fin:
+                    vu = t if vu is None else max(vu, t)
+    return vu
+
+
+def decouper(chemin, lignes=None, fin=None):
     """(découpe, pourquoi, gardes) d'un fichier de fiches : `parts_aux_commits` sur les heures de
     `heures_commits`, ou None — `pourquoi` dit alors la raison. `cout` l'imprime, `recompter` en
-    tire le total (`totaux`) : une découpe, deux lecteurs."""
+    tire le total (`totaux`) : une découpe, deux lecteurs. `fin` : voir `parts_aux_commits`."""
     lignes = lignes_de(chemin) if lignes is None else lignes
     fiches_ = fiches_du_fichier(lignes)
     pourquoi, gardes = [], []
     heures = heures_commits(chemin, [f[0] for f in fiches_], pourquoi,
                             any(l.startswith("**CLOS**") for l in lignes))
-    decoupe = heures and parts_aux_commits(fiches_, heures, gardes, sessions_entete(lignes))
+    decoupe = heures and parts_aux_commits(fiches_, heures, gardes, sessions_entete(lignes), fin)
     if not decoupe and heures:
         pourquoi.append("aucune session de fiche mesurée")
     return decoupe or None, pourquoi, gardes
@@ -1665,7 +1718,7 @@ def plages(fiches_, heures, gardes):
     return rendu, [p for p in ((origine, rendu[0][1][0]), (dernier, fin)) if p[0] < p[1]]
 
 
-def parts_aux_commits(fiches_, heures, gardes, entete=()):
+def parts_aux_commits(fiches_, heures, gardes, entete=(), fin=None):
     """([(id, session, sous-agents, essais)], (session, sous-agents, essais) hors fiches), ou None
     sans transcript mesurable, ou sans fiche à découper. Les sessions : celles des fiches, puis
     `entete` — le cadrage (`sessions_entete`). Les essais : ceux de chaque session (`essais_de`),
@@ -1673,7 +1726,8 @@ def parts_aux_commits(fiches_, heures, gardes, entete=()):
     une plage la prend dans chaque transcript (la plage de `mesurer`) ; le reste fait « hors fiches ». Une part vaut
     (total, tours, usd, n) — n : les transcripts qui y ont un tour —, usd arrondi au
     centime : tout s'additionne, dans `cout` comme sur la page. Aucun tour gardé, ni aux
-    fiches ni hors fiches : une `GARDE:` le dit, les nombres restent (chantier ZER)."""
+    fiches ni hors fiches : une `GARDE:` le dit, les nombres restent (chantier ZER). `fin` : la
+    dernière plage hors fiches s'y arrête — l'heure de l'appel `clore` (chantier APC)."""
     from decimal import ROUND_HALF_UP, Decimal
     m = mesure()
     sessions, fichiers = [], []
@@ -1692,6 +1746,8 @@ def parts_aux_commits(fiches_, heures, gardes, entete=()):
     par_fiche, trous = plages(fiches_, heures, gardes)
     if not par_fiche:
         return None
+    if fin is not None and trous:
+        trous = trous[:-1] + [(trous[-1][0], min(trous[-1][1], fin))]
 
     def part(bornes):
         rendu = [[0, 0, Decimal(0), 0], [0, 0, Decimal(0), 0], [0, 0, Decimal(0), 0]]
@@ -3083,6 +3139,7 @@ def main(argv, sortie=None, entree=None, erreur=None):
     co = sous.add_parser("cout")
     co.add_argument("fichier")
     co.add_argument("--session", action="store_true")
+    co.add_argument("--a-clore", action="store_true")
     li = sous.add_parser("lignes")
     li.add_argument("chemins", nargs="+")
     eq = sous.add_parser("equiper")
@@ -3220,7 +3277,7 @@ def repartir(a, sortie, entree, erreur):
     if a.cmd == "socle":
         return cmd_socle(a.fichier, sortie)
     if a.cmd == "cout":
-        return cmd_cout(a.fichier, a.session, sortie)
+        return cmd_cout(a.fichier, a.session, sortie, a.a_clore)
     return cmd_sessions(a.fichier, sortie)
 
 

@@ -53,8 +53,9 @@ Rien n'est parallélisable : chaque fiche lit la mesure de la précédente.
 ---
 
 <!-- FICHE:APC1 -->
-## APC1 [ ] — Décomposer l'écart d'`ESD`
+## APC1 [x] — Décomposer l'écart d'`ESD`
 
+**Session** : e7f318cf-d991-4985-b746-0fccf3648249
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py`, `context AI/08-etat.md` (journal) — et rien d'autre.
 

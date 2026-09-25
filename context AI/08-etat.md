@@ -2014,3 +2014,19 @@ mais dehors.
 | **Total des 11** | **149 123 242** | **+12 991 756** |
 
 Feuille entière (50 clos) : 728 886 126 → 741 877 882.
+
+## 2026-09-25 — APC1
+
+`py scripts/vlp.py cout "context AI/62-essais-sans-decoupe.md" --a-clore`. Appel `clore` trouvé
+à 19:13:18 (heure locale), dans la dernière plage hors fiches : `ESD3` 19:12:50 → `Chantier ESD
+clos` 19:14:08. L'hypothèse du socle APC tient pour `ESD` : l'écart est **entièrement** fait des
+tours joués entre l'appel `clore` et le commit de clôture.
+
+| Ce qu'on compare | Tokens | Tours |
+|---|---:|---:|
+| Inscrit (feuille de route, chiffre de `clore`) | 16 735 386 | — |
+| `à clore` (dernière plage hors fiches arrêtée à l'appel `clore`) | 16 735 386 | 198 |
+| `à clore` − inscrit | 0 | — |
+| Recompté (`TOTAL`, plage jusqu'au commit de clôture) | 18 506 516 | 206 |
+| `après clore` (recompté − `à clore`, session seule, 0 sous-agent) | 1 771 130 | 8 |
+| Reste non expliqué (recompté − inscrit − `après clore`) | 0 | — |
