@@ -8,8 +8,9 @@
 `GLO1` (« Excellent! »), mais le `FAITE` sur case vide qui a suivi est passé : un arrêt
 déjà renvoyé n'est plus jugé (TODO n° 59). GAR ferme ce trou, retire la sonde, et le prouve.
 
-**Fait.** Rien. Ouvert le 2026-09-25, cadré en 3 fiches, `GAR1` à jouer. Cadré seul :
-l'utilisateur dormait ; les 🟡 tranchés ici sont à valider au réveil.
+**CLOS** le 2026-09-25. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** GAR1..GAR3 (2026-09-25) : le gardien juge encore un FAITE après un premier renvoi ; sonde retirée ; prouvé sur un témoin.
 
 **Session** : ca431cf8-167e-4c10-8bce-210c5f48a675
 
