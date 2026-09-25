@@ -14,7 +14,11 @@ Sous-commandes :
   `--- TODO : <chemin> (lignes A–B) ---` suivi du texte de la section TODO (du
   premier titre qui contient « TODO » jusqu'avant le titre suivant), ou
   `TODO=absente <chemin>`, ou `GARDE:` s'il est introuvable. Ligne absente :
-  `TODO=absente (pas de ligne « chantiers possibles »)`.
+  `TODO=absente (pas de ligne « chantiers possibles »)`. Puis le format des
+  fiches : premier chemin de la ligne **méthode**, dans le projet sinon sous le
+  kit, de `## Le fichier de fiches` jusqu'avant le titre qui suit `## Les deux
+  formes de critère de fin` — `--- méthode : <chemin> (lignes A–B) ---` et le
+  texte, ou `METHODE=absente <chemin>` si un titre manque, ou `GARDE:`.
   Pas trouvé : une ligne `VOISIN=` par sous-dossier équipé, avec son alias, ou
   `AUCUN_PROJET`. Sort toujours 0 : la commande lit la sortie, elle ne doit pas
   se faire refuser l'injection. `--python NOM` : une ligne vide, `PYTHON=NOM`,
@@ -260,6 +264,8 @@ ALIAS = re.compile(r"^\s*-\s*\*\*alias\*\*\s*:\s*(\S+)")
 SESSION = re.compile(r"^\*\*Session\*\* : (.+?)\s*$")
 FERMANT = "<!-- /FICHE -->"
 CHANTIERS_POSSIBLES = re.compile(r"^\s*-\s*\*\*chantiers possibles\*\*\s*:\s*(.+?)\s*$", re.MULTILINE)
+METHODE = re.compile(r"^\s*-\s*\*\*méthode\*\*\s*:\s*(.+?)\s*$", re.MULTILINE)
+FORMAT_DEBUT, FORMAT_FIN = "## Le fichier de fiches", "## Les deux formes de critère de fin"
 
 
 def section(lignes, debut, fin):
@@ -411,6 +417,53 @@ def chemins_md(texte, racine):
     return trouves
 
 
+def imprimer_section(sortie, nom, chemin, lignes, plage):
+    """L'en-tête `--- <nom> : <chemin> (lignes A–B) ---`, puis le texte."""
+    sortie.write("--- %s : %s (lignes %d–%d) ---\n" % (nom, chemin, plage[0], plage[1]))
+    sortie.write("".join(l + "\n" for l in lignes[plage[0] - 1:plage[1]]))
+
+
+def imprimer_todo(texte, racine, sortie):
+    """La TODO de chaque fichier que nomme la ligne **chantiers possibles**."""
+    possibles = CHANTIERS_POSSIBLES.search(texte)
+    if possibles is None:
+        sortie.write("TODO=absente (pas de ligne « chantiers possibles »)\n")
+        return
+    for chemin in chemins_md(possibles.group(1), racine):
+        try:
+            lignes = lignes_du_projet(racine, chemin, "fichier")
+        except Absent as e:
+            sortie.write("GARDE: %s\n" % e)
+            continue
+        plage = section(lignes, lambda t: "TODO" in t, lambda t: "TODO" in t)
+        if plage is None:
+            sortie.write("TODO=absente %s\n" % chemin)
+        else:
+            imprimer_section(sortie, "TODO", chemin, lignes, plage)
+
+
+def imprimer_methode(texte, racine, sortie):
+    """Le format des fiches, dans le premier chemin de la ligne **méthode** :
+    cherché dans le projet, sinon sous `KIT` (la ligne du kit est de la prose)."""
+    methode = METHODE.search(texte)
+    chemins = chemins_md(methode.group(1), racine) if methode else []
+    if not chemins:
+        sortie.write("METHODE=absente (pas de ligne « méthode »)\n")
+        return
+    chemin = chemins[0]
+    lieu = racine if os.path.isfile(os.path.join(racine, chemin)) else KIT
+    try:
+        lignes = lignes_gardees(os.path.join(lieu, chemin), "fichier", chemin)
+    except Absent as e:
+        sortie.write("GARDE: %s\n" % e)
+        return
+    plage = section(lignes, lambda t: t.rstrip() == FORMAT_DEBUT, lambda t: t.rstrip() == FORMAT_FIN)
+    if plage is None:
+        sortie.write("METHODE=absente %s\n" % chemin)
+    else:
+        imprimer_section(sortie, "méthode", chemin, lignes, plage)
+
+
 def fiches(chemin):
     """(nombre de lignes, [(numéro, titre)], prochaine ou None)."""
     lignes = lignes_de(chemin)
@@ -437,22 +490,8 @@ def carte(depart, sortie):
     courant = fichier_courant(texte)
     if courant is None:
         sortie.write("--- fichier de fiches courant : aucun ---\n")
-        possibles = CHANTIERS_POSSIBLES.search(texte)
-        if possibles is None:
-            sortie.write("TODO=absente (pas de ligne « chantiers possibles »)\n")
-            return 0
-        for chemin in chemins_md(possibles.group(1), racine):
-            try:
-                lignes = lignes_du_projet(racine, chemin, "fichier")
-            except Absent as e:
-                sortie.write("GARDE: %s\n" % e)
-                continue
-            plage = section(lignes, lambda t: "TODO" in t, lambda t: "TODO" in t)
-            if plage is None:
-                sortie.write("TODO=absente %s\n" % chemin)
-                continue
-            sortie.write("--- TODO : %s (lignes %d–%d) ---\n" % (chemin, plage[0], plage[1]))
-            sortie.write("".join(l + "\n" for l in lignes[plage[0] - 1:plage[1]]))
+        imprimer_todo(texte, racine, sortie)
+        imprimer_methode(texte, racine, sortie)
         return 0
     try:
         n, titres, prochaine = fiches(chemin_garde(os.path.join(racine, courant),

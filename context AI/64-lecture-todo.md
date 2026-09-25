@@ -164,8 +164,9 @@ vaut « aucun » imprime `--- TODO : context AI/08-etat.md (lignes A–B) ---` p
 ---
 
 <!-- FICHE:LEC3 -->
-## LEC3 [ ] — Faire imprimer le format des fiches par la carte
+## LEC3 [x] — Faire imprimer le format des fiches par la carte
 
+**Session** : e41e8069-96d6-419d-8454-665a2f96394b
 **Dépend de** : `LEC2` (la fonction `section`).
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` — et rien d'autre.
 

@@ -170,6 +170,48 @@ def test_carte_todo():
         verifier("carte TODO : chantier ouvert, aucun bloc", "--- TODO :" not in s and "TODO=absente" not in s, s)
 
 
+def test_carte_methode():
+    """LEC3 : le format des fiches de la ligne **méthode**, quand aucun chantier n'est ouvert."""
+    kit = mod.KIT
+    with tempfile.TemporaryDirectory() as t:
+        pr, faux_kit = os.path.join(t, "pr"), os.path.join(t, "kit")
+        def chantier(methode):
+            ecrire(os.path.join(pr, "CHANTIER.md"), "# C\n\n- **alias** : pr\n"
+                   "- **fichier de fiches courant** : aucun\n" + ("- **méthode** : %s\n" % methode if methode else ""))
+        trois = ("# M\n## Avant\nx\n## Le fichier de fiches\na\n## Anatomie d'une fiche\nb\n"
+                 "## Les deux formes de critère de fin\nc\n## Après\nd\n")
+
+        ecrire(os.path.join(pr, "m.md"), trois)
+        chantier("m.md")
+        s = rendu(pr)
+        verifier("carte méthode : trois sections, le titre qui suit exclu",
+                 "--- méthode : m.md (lignes 4–9) ---\n## Le fichier de fiches\na\n## Anatomie d'une fiche\nb\n"
+                 "## Les deux formes de critère de fin\nc\n" in s and "## Après" not in s, s)
+
+        ecrire(os.path.join(pr, "sans.md"), "# M\n## Le fichier de fiches\na\n## Anatomie d'une fiche\nb\n")
+        chantier("sans.md")
+        s = rendu(pr)
+        verifier("carte méthode : titre de fin manquant", "METHODE=absente sans.md\n" in s and "--- méthode" not in s, s)
+
+        ecrire(os.path.join(faux_kit, "methode-chantier.md"), trois)
+        mod.KIT = faux_kit
+        try:
+            chantier("methode-chantier.md, à la racine du kit")
+            s = rendu(pr)
+            verifier("carte méthode : absente du projet, trouvée sous le kit",
+                     "--- méthode : methode-chantier.md (lignes 4–9) ---\n" in s, s)
+            chantier("nulle-part.md")
+            s = rendu(pr)
+            verifier("carte méthode : introuvable des deux côtés",
+                     "GARDE: fichier introuvable : nulle-part.md\n" in s and "--- méthode" not in s, s)
+        finally:
+            mod.KIT = kit
+
+        chantier(None)
+        s = rendu(pr)
+        verifier("carte méthode : pas de ligne", "METHODE=absente (pas de ligne « méthode »)\n" in s, s)
+
+
 def appel(argv):
     s = io.StringIO()
     code = mod.main(argv, s)
@@ -2518,6 +2560,7 @@ with tempfile.TemporaryDirectory() as t:
 
 # Test de carte avec TODO
 test_carte_todo()
+test_carte_methode()
 
 # PYT1 : premier lancement des hooks — restaurer TAMPON_HOOKS pour ce test
 def gardien_test(texte):
