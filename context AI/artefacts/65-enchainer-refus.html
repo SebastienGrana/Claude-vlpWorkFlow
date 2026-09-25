@@ -1,0 +1,127 @@
+<title>vlp — /vlp:enchainer rejoue une fiche floue</title>
+<!--
+  GABARIT — artefact d'un chantier. Publié par /chantier à l'ouverture,
+  mis à jour par /tache à chaque fiche. Remplace les <…> et ne renomme pas
+  les marqueurs `ZONE:…` : les commandes les cherchent tels quels.
+
+  Convention de coût — posée ici, référencée (jamais recopiée) par
+  artefact-feuille-de-route.html, tache.md et cloture.md : un nombre < 1000
+  s'affiche tel quel ; au-delà, "≈<arrondi 1 décimale><k|M> (<compte brut>)"
+  — virgule française, k = mille, M = million. Le compte brut reste toujours
+  visible à côté de l'arrondi.
+-->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700&family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:wght@400;600&display=swap">
+<style>
+  /* Compact volontairement : /tache relit cette page à chaque fiche, et le CSS
+     ne change jamais. Chaque ligne gagnée ici est gagnée à chaque fiche. */
+  :root { --ground:#f4f5f7; --surface:#fff; --line:#d9dce3; --line-fort:#b9bec9; --texte:#1a222e; --doux:#5c6675; --accent:#2f5d8c; --fait:#2f7a55; --cours:#a86a12; --bloque:#a63d40; --attente:#8d95a3; --ombre:0 1px 2px rgba(26,34,46,.06); }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --ground:#11161d; --surface:#19202a; --line:#2b3542; --line-fort:#3d4a5a; --texte:#e5e9ef; --doux:#98a2b1; --accent:#7fb0e0; --fait:#5fbb8b; --cours:#d9a441; --bloque:#e0777a; --attente:#6d7787; --ombre:none; } }
+  :root[data-theme="dark"] { --ground:#11161d; --surface:#19202a; --line:#2b3542; --line-fort:#3d4a5a; --texte:#e5e9ef; --doux:#98a2b1; --accent:#7fb0e0; --fait:#5fbb8b; --cours:#d9a441; --bloque:#e0777a; --attente:#6d7787; --ombre:none; }
+  * { box-sizing:border-box; } [hidden] { display:none !important; }
+  body { background:var(--ground); color:var(--texte); font-family:"Source Sans 3",system-ui,sans-serif; font-size:16px; line-height:1.55; }
+  .page { max-width:46rem; margin:0 auto; padding:2.5rem 1.25rem 4rem; display:flex; flex-direction:column; gap:2rem; }
+  h1,h2 { font-family:Archivo,system-ui,sans-serif; text-wrap:balance; margin:0; }
+  h1 { font-size:1.9rem; font-weight:700; letter-spacing:-.015em; }
+  h2 { font-size:.8rem; font-weight:700; text-transform:uppercase; letter-spacing:.09em; color:var(--doux); }
+  .eyebrow { font-family:"IBM Plex Mono",monospace; font-size:.75rem; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); }
+  .mono,.fiche .id,.fiche .etat,.journal time,.blocage pre { font-family:"IBM Plex Mono",monospace; }
+  .mono { font-variant-numeric:tabular-nums; }
+  header { display:flex; flex-direction:column; gap:.35rem; border-bottom:2px solid var(--line-fort); padding-bottom:1.25rem; }
+  header p { margin:.4rem 0 0; color:var(--doux); max-width:62ch; }
+  .avancement { display:flex; gap:.25rem; margin-top:.9rem; }
+  .avancement span { height:.4rem; flex:1; border-radius:1px; background:var(--line); }
+  section { display:flex; flex-direction:column; gap:.85rem; }
+  .fiches,.journal { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
+  .fiches { gap:.5rem; } .journal { gap:.6rem; }
+  .fiche { display:grid; grid-template-columns:3.5rem 1fr; gap:.1rem .9rem; background:var(--surface); border:1px solid var(--line); border-left:3px solid var(--attente); border-radius:3px; padding:.7rem .9rem; box-shadow:var(--ombre); }
+  .fiche .id { font-weight:500; color:var(--doux); }
+  .fiche .titre { font-weight:600; }
+  .fiche .note { grid-column:2; font-size:.9rem; color:var(--doux); }
+  .fiche .cout { grid-column:2; font-size:.78rem; color:var(--doux); }
+  .cout-total,.cout-hors { font-size:.85rem; color:var(--doux); }
+  .fiche .etat { grid-column:1; font-size:.68rem; letter-spacing:.07em; text-transform:uppercase; color:var(--attente); }
+  /* les trois états, partout où ils comptent */
+  .avancement span[data-etat="faite"] { background:var(--fait); }
+  .avancement span[data-etat="encours"] { background:var(--cours); }
+  .avancement span[data-etat="bloquee"] { background:var(--bloque); }
+  .fiche[data-etat="faite"] { border-left-color:var(--fait); }
+  .fiche[data-etat="encours"] { border-left-color:var(--cours); }
+  .fiche[data-etat="bloquee"] { border-left-color:var(--bloque); }
+  .fiche[data-etat="faite"] .etat { color:var(--fait); }
+  .fiche[data-etat="encours"] .etat { color:var(--cours); }
+  .fiche[data-etat="bloquee"] .etat { color:var(--bloque); }
+  .fiche[data-etat="faite"] .titre { color:var(--doux); font-weight:400; }
+  .fiche[data-etat="encours"] .id,.fiche[data-etat="bloquee"] .id { color:var(--texte); }
+  .blocage { background:var(--surface); border:1px solid var(--bloque); border-radius:3px; padding:.8rem .9rem; }
+  .blocage pre { margin:.5rem 0 0; overflow-x:auto; font-size:.82rem; color:var(--texte); }
+  .journal li { display:grid; grid-template-columns:6rem 1fr; gap:.9rem; border-top:1px solid var(--line); padding-top:.6rem; }
+  .journal time { font-size:.85rem; color:var(--doux); }
+  .bilan { background:var(--surface); border:1px solid var(--line); border-top:3px solid var(--fait); border-radius:3px; padding:1rem 1.1rem; }
+  .bilan p { margin:0 0 .6rem; } .bilan p:last-child { margin-bottom:0; }
+  footer { border-top:1px solid var(--line); padding-top:.9rem; font-size:.82rem; color:var(--doux); display:flex; flex-wrap:wrap; gap:.25rem 1.25rem; }
+</style>
+
+<div class="page">
+  <header>
+    <div class="eyebrow">vlp · fiches ENC1–ENC3</div>
+    <h1>/vlp:enchainer rejoue une fiche floue</h1>
+    <p>Après un refus, le relecteur dit si la faute est dans la fiche ou chez le sous-agent ; le chef le montre dans un questionnaire, et propose de jouer à la main dès le 2e refus. ENC lui-même se joue en main : l'essai grandeur nature.</p>
+    <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
+    <div class="avancement">
+      <span data-etat="encours"></span><span></span><span></span>
+    </div>
+    <p class="mono" style="margin-top:.5rem">3 fiches · 0 faite · en cours : ENC1</p>
+  </header>
+
+  <section>
+    <h2>Les fiches, dans l'ordre des dépendances</h2>
+    <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
+    <ul class="fiches">
+      <li class="fiche" data-etat="encours">
+        <span class="id">ENC1</span><span class="titre">Dire le rang du refus</span>
+        <span class="etat">en cours</span>
+        <span class="note">cocher --refuser dit le rang du refus (· refus n), testé avec deux mutants ; ne dépend de rien</span>
+      </li>
+      <li class="fiche">
+        <span class="id">ENC2</span><span class="titre">Faire dire au relecteur d'où vient la faute</span>
+        <span class="etat">à faire</span>
+        <span class="note">le contrat du relecteur : REFUSÉE — fiche / copie, et une ligne RÉÉCRITURE ; un bloc de refus seuls n'arrête plus ; ne dépend de rien</span>
+      </li>
+      <li class="fiche">
+        <span class="id">ENC3</span><span class="titre">Faire demander le chef avant de rejouer</span>
+        <span class="etat">à faire</span>
+        <span class="note">le chef lit refus.md sur un refus et pose le questionnaire à quatre options ; dépend d'ENC1 et ENC2</span>
+      </li>
+    </ul>
+    <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
+  </section>
+
+  <!-- ZONE:blocage — publiée quand /tache s'arrête après deux tentatives ; retirée dès que la fiche repasse -->
+  <section hidden>
+    <h2>Arrêt sur blocage</h2>
+    <div class="blocage">
+      <p></p>
+      <pre></pre>
+    </div>
+  </section>
+
+  <section>
+    <h2>Journal des décisions</h2>
+    <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
+    <ul class="journal">
+    </ul>
+  </section>
+
+  <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
+  <section hidden>
+    <h2>Chantier clos le </h2>
+    <div class="bilan">
+      <p></p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Fichier de fiches : <span class="mono">context AI/65-enchainer-refus.md</span></span>
+    <span>Mis à jour le <span class="mono">2026-09-25</span></span>
+  </footer>
+</div>
