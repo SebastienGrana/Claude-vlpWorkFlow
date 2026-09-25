@@ -2087,6 +2087,10 @@ try:
     verifier("gardien : entrée différente, refuse le git commit",
              code3 == 0 and "permissionDecision" in out3 and "deny" in out3 and err3 == "",
              out3 + err3)
+    # PYT2 : sur une écriture, `filet` et `hook` reçoivent la même entrée — chacun agit une fois
+    verifier("premier_lancement : même entrée, deux sous-commandes, chacune une fois",
+             mod.premier_lancement("{}", "cmd_filet") and mod.premier_lancement("{}", "cmd_hook")
+             and not mod.premier_lancement("{}", "cmd_hook"), "")
 finally:
     # Restaurer TAMPON_HOOKS à None pour les tests suivants
     shutil.rmtree(mod.TAMPON_HOOKS, ignore_errors=True)
