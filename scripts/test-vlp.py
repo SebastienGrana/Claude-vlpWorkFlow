@@ -93,7 +93,7 @@ with tempfile.TemporaryDirectory() as t:
 
     ecrire(os.path.join(p, "CHANTIER.md"), CHANTIER % ("pz", "aucun"))
     s = rendu(p)
-    verifier("aucun courant", s.endswith("--- fichier de fiches courant : aucun ---\n"), s)
+    verifier("aucun courant", "--- fichier de fiches courant : aucun ---\n" in s and "TODO=absente (pas de ligne « chantiers possibles »)" in s, s)
 
     ecrire(os.path.join(p, "CHANTIER.md"), CHANTIER % ("pz", "context AI/99-absent.md"))
     s = rendu(p)
@@ -111,6 +111,63 @@ with tempfile.TemporaryDirectory() as t:
     os.makedirs(vide)
     s = rendu(vide)
     verifier("aucun projet", s == "AUCUN_PROJET\n", s)
+
+
+def test_carte_todo():
+    """LEC2 : la TODO des chantiers possibles, quand aucun chantier n'est ouvert."""
+    with tempfile.TemporaryDirectory() as t:
+        pr = os.path.join(t, "pr")
+        def chantier(possibles, courant="aucun"):
+            ecrire(os.path.join(pr, "CHANTIER.md"), "# C\n\n- **alias** : pr\n"
+                   "- **chantiers possibles** : %s\n- **fichier de fiches courant** : %s\n" % (possibles, courant))
+        todo = lambda n: "## TODO %s\n\nTexte%s.\n## Suite\n\nFin.\n" % (n, n)
+
+        ecrire(os.path.join(pr, "08-etat.md"), "# État\n\n## TODO première\n\nLigne 1.\nLigne 2.\n"
+               "## TODO deuxième\n\nLigne TODO2.\n## Autre\n\nAprès.\n## Quatre\n\nFin.\n")
+        chantier("`08-etat.md`")
+        s = rendu(pr)
+        verifier("carte TODO : premier titre TODO seul, texte jusqu'avant le titre suivant",
+                 "--- TODO : 08-etat.md (lignes 3–6) ---\n## TODO première\n\nLigne 1.\nLigne 2.\n" in s
+                 and "## TODO deuxième" not in s, s)
+
+        ecrire(os.path.join(pr, "sans.md"), "# X\n\n## Un\n\nTexte.\n## Deux\n")
+        chantier("`sans.md`")
+        s = rendu(pr)
+        verifier("carte TODO : sans titre TODO", "TODO=absente sans.md\n" in s, s)
+
+        ecrire(os.path.join(pr, "a.md"), todo("A"))
+        ecrire(os.path.join(pr, "b.md"), todo("B"))
+        chantier("`a.md`, puis `b.md`")
+        s = rendu(pr)
+        verifier("carte TODO : deux chemins entre backticks, dans l'ordre",
+                 "--- TODO : a.md (lignes 1–3) ---\n## TODO A\n\nTexteA.\n--- TODO : b.md (lignes 1–3) ---" in s, s)
+
+        chantier("`a.md` (section TODO)")
+        s = rendu(pr)
+        verifier("carte TODO : prose entre parenthèses", s.count("--- TODO :") == 1 and "--- TODO : a.md " in s, s)
+
+        chantier("`absent.md`, puis `b.md`")
+        s = rendu(pr)
+        verifier("carte TODO : absent → GARDE, le suivant quand même",
+                 "GARDE: fichier introuvable : absent.md\n--- TODO : b.md " in s, s)
+
+        ecrire(os.path.join(pr, "context AI", "a.md"), todo("CA"))
+        ecrire(os.path.join(pr, "context AI", "b.md"), todo("CB"))
+        ecrire(os.path.join(pr, "context AI", "état.md"), todo("E"))
+        for possibles, attendus in (
+                ("context AI/a.md, puis context AI/b.md", ["context AI/a.md", "context AI/b.md"]),
+                ("voir context AI/a.md.", ["context AI/a.md"]),
+                ("`a.md` ; context AI/b.md", ["a.md", "context AI/b.md"]),
+                ("context AI/état.md", ["context AI/état.md"])):
+            chantier(possibles)
+            s = rendu(pr)
+            vus = re.findall(r"^--- TODO : (.+) \(lignes", s, re.M)
+            verifier("carte TODO : le disque tranche — %s" % possibles, vus == attendus and "GARDE" not in s, s)
+
+        chantier("`a.md`", "fiches.md")
+        ecrire(os.path.join(pr, "fiches.md"), "## Z1 [ ] — Fiche\n")
+        s = rendu(pr)
+        verifier("carte TODO : chantier ouvert, aucun bloc", "--- TODO :" not in s and "TODO=absente" not in s, s)
 
 
 def appel(argv):
@@ -2458,6 +2515,9 @@ with tempfile.TemporaryDirectory() as t:
     verifier("forme --depuis filtre sur le départ du sous-agent", code == 0
              and "FORME 1 sous-agents" in s,
              s)
+
+# Test de carte avec TODO
+test_carte_todo()
 
 # PYT1 : premier lancement des hooks — restaurer TAMPON_HOOKS pour ce test
 def gardien_test(texte):

@@ -105,9 +105,9 @@ dire, et proposer d'en jouer une — ne rien estimer à sa place.
 ---
 
 <!-- FICHE:LEC2 -->
-## LEC2 [ ] — Faire imprimer la TODO par la carte
+## LEC2 [x] — Faire imprimer la TODO par la carte
 
-**Tentatives** (2026-09-25) — non résolu.
+**Tentatives** (2026-09-25) — résolu à la main, le même jour.
 1. FAITE refusée à la relecture.
 2. FAITE refusée à la relecture.
 Erreur : REFUSÉE — bug prouvé par une sortie : `extraire_chemins_md` n'ignore pas la prose autour des chemins écrits sans backticks, alors que la fiche l'exige. Avec la ligne `context AI/20a-chantiers.md, puis context AI/10-etat.md`, la carte d'APRÈS imprime `GARDE: puis context AI/10-etat.md`.

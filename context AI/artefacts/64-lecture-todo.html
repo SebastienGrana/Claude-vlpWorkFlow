@@ -68,9 +68,9 @@
     <p>La carte imprime la TODO et le format des fiches ; /vlp:chantier ne lit plus 08-etat.md (2 137 lignes) ni la méthode (376) en entier, et une vraie séance mesurée avant/après le prouve en tokens.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="bloquee"></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">5 fiches · 1 faite · bloquée : LEC2</p>
+    <p class="mono" style="margin-top:.5rem">5 fiches · 2 faites · en cours : LEC3</p>
   </header>
 
   <section>
@@ -83,15 +83,15 @@
         <span class="note">avant 2f9a46f3 (Read tronqué à 453/1 222 l.) : tours 3, ctx_dernier 110 515, equiv 285 200, 1.14 $ ; après à la main 44909b3f : tours 6, ctx_dernier 85 624, equiv 122 263, 0.49 $ ; table des 5 projets au journal</span>
         <span class="cout mono">≈2,1M (2 136 551) · 21 tours · 1,25 $</span>
       </li>
-      <li class="fiche" data-etat="bloquee">
+      <li class="fiche" data-etat="faite">
         <span class="id">LEC2</span><span class="titre">Faire imprimer la TODO par la carte</span>
-        <span class="etat">bloquée</span>
-        <span class="note">La carte imprime la section TODO de chaque fichier « chantiers possibles », ou TODO=absente. Sans dépendance.</span>
-        <span class="cout mono">≈22,7M (22 651 763) · 339 tours · 6,60 $</span>
+        <span class="etat">faite</span>
+        <span class="note">joué à la main après 4 refus : test-vlp.py OK, pyright 0 errors, mutant tué (ÉCART premier titre TODO) ; kit à « aucun » : TODO 356–392 puis 37 lignes ; 5 projets : chemins justes, Cairn 20a sans TODO, 10-etat 158–434</span>
+        <span class="cout mono">≈23,4M (23 408 934) · 344 tours · 6,96 $</span>
       </li>
-      <li class="fiche">
+      <li class="fiche" data-etat="encours">
         <span class="id">LEC3</span><span class="titre">Faire imprimer le format des fiches par la carte</span>
-        <span class="etat">à faire</span>
+        <span class="etat">en cours</span>
         <span class="note">La carte imprime le format des fiches de la méthode (lignes 288–361), ou METHODE=absente. Réemploie la fonction de LEC2.</span>
       </li>
       <li class="fiche">
@@ -105,13 +105,13 @@
         <span class="note">Une vraie séance après, mesurée et comparée à LEC1 — ton geste d'abord. Après LEC1 et LEC4.</span>
       </li>
     </ul>
-    <p class="mono cout-hors">Hors fiches : ≈3,2M (3 185 546) · 28 tours · 2,39 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈28,0M (27 973 860) · 388 tours · 10,24 $</p>
+    <p class="mono cout-hors">Hors fiches : ≈6,7M (6 666 542) · 59 tours · 3,85 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈32,2M (32 212 027) · 424 tours · 12,06 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
   <!-- ZONE:blocage — publiée quand /tache s'arrête après deux tentatives ; retirée dès que la fiche repasse -->
-  <section>
+  <section hidden>
     <h2>Arrêt sur blocage</h2>
     <div class="blocage">
       <p>LEC2 (2026-09-25), fiche réécrite après deux refus — 1. FAITE refusée à la relecture. 2. FAITE refusée à la relecture.</p>

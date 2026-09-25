@@ -8,12 +8,19 @@ Sous-commandes :
   le fichier en entier, puis — si un fichier de fiches est courant — ses titres
   de fiches numérotés, `PROCHAINE=<fiche>` (la première non cochée, dans l'ordre
   du fichier) ou `PROCHAINE=aucune`, et une `GARDE` si le fichier a des lignes
-  mais aucun titre au format attendu. Pas trouvé : une ligne `VOISIN=` par
-  sous-dossier équipé, avec son alias, ou `AUCUN_PROJET`. Sort toujours 0 : la
-  commande lit la sortie, elle ne doit pas se faire refuser l'injection.
-  `--python NOM` : une ligne vide, `PYTHON=NOM`, puis la carte, et un tampon dans
-  le dossier temporaire ; `--relais` en plus : n'écrit rien si un tampon de moins
-  de `RELAIS_SECONDES` existe (le premier Python a déjà répondu), sans le retirer.
+  mais aucun titre au format attendu. Aucun fichier courant : pour chaque
+  chemin `.md` de la ligne **chantiers possibles** (backticks ôtés, prose
+  ignorée ; sans backticks, le disque tranche où le chemin commence), l'en-tête
+  `--- TODO : <chemin> (lignes A–B) ---` suivi du texte de la section TODO (du
+  premier titre qui contient « TODO » jusqu'avant le titre suivant), ou
+  `TODO=absente <chemin>`, ou `GARDE:` s'il est introuvable. Ligne absente :
+  `TODO=absente (pas de ligne « chantiers possibles »)`.
+  Pas trouvé : une ligne `VOISIN=` par sous-dossier équipé, avec son alias, ou
+  `AUCUN_PROJET`. Sort toujours 0 : la commande lit la sortie, elle ne doit pas
+  se faire refuser l'injection. `--python NOM` : une ligne vide, `PYTHON=NOM`,
+  puis la carte, et un tampon dans le dossier temporaire ; `--relais` en plus :
+  n'écrit rien si un tampon de moins de `RELAIS_SECONDES` existe (le premier
+  Python a déjà répondu), sans le retirer.
 - `extraire <fichier> <fiche>` — la fiche entre ses marqueurs, marqueurs
   compris, puis `--- fiche, lignes : N`. Sans marqueurs, repli sur le titre
   jusqu'au premier `---`, annoncé par une `GARDE`. Absente : sort 1. Critère
@@ -246,11 +253,34 @@ import unicodedata
 TAMPON_HOOKS = tempfile.gettempdir()
 
 TITRE = re.compile(r"^## [A-Z]{1,3}[0-9]")
+TITRE_GENERIQUE = re.compile(r"^##\s+\S")
 PREFIXE = re.compile(r"^[A-Z]{1,3}")
 COURANT = re.compile(r"^\s*-\s*\*\*fichier de fiches courant\*\*\s*:\s*(.+?)\s*$")
 ALIAS = re.compile(r"^\s*-\s*\*\*alias\*\*\s*:\s*(\S+)")
 SESSION = re.compile(r"^\*\*Session\*\* : (.+?)\s*$")
 FERMANT = "<!-- /FICHE -->"
+CHANTIERS_POSSIBLES = re.compile(r"^\s*-\s*\*\*chantiers possibles\*\*\s*:\s*(.+?)\s*$", re.MULTILINE)
+
+
+def section(lignes, debut, fin):
+    """(a, b), lignes 1-basées incluses, ou None : du premier titre `## ` qui
+    vérifie `debut` jusqu'avant le premier titre qui suit celui qui vérifie
+    `fin` — cherché à partir du titre de début —, ou jusqu'à la fin du fichier.
+    None si aucun titre ne vérifie `debut`, ou aucun ensuite `fin`. Un `## `
+    dans un bloc ``` n'est pas un titre."""
+    titres, en_bloc = [], False
+    for i, ligne in enumerate(lignes):
+        if ligne.lstrip().startswith("```"):
+            en_bloc = not en_bloc
+        elif not en_bloc and TITRE_GENERIQUE.match(ligne):
+            titres.append(i)
+    d = next((k for k, i in enumerate(titres) if debut(lignes[i])), None)
+    if d is None:
+        return None
+    f = next((k for k in range(d, len(titres)) if fin(lignes[titres[k]])), None)
+    if f is None:
+        return None
+    return titres[d] + 1, titres[f + 1] if f + 1 < len(titres) else len(lignes)
 
 
 def premier_lancement(texte, nom=""):
@@ -354,6 +384,33 @@ def fichier_courant(carte_texte):
     return None
 
 
+def chemins_md(texte, racine):
+    """Les chemins `.md` d'une ligne de prose, dans l'ordre. Entre
+    backticks : le contenu tel quel. Hors backticks, un chemin peut contenir
+    une espace (`context AI/`) : pour chaque `.md` non suivi d'une lettre, la
+    plus longue fin du texte qui le précède, coupée à une espace, `,`, `;` ou
+    une parenthèse, qui existe sous `racine` — le disque tranche ; aucune : la
+    plus courte, que la lecture gardée refusera."""
+    trouves = []
+    for n, morceau in enumerate(re.split(r"(`[^`]*`)", texte)):
+        if n % 2:
+            if morceau[1:-1].endswith(".md"):
+                trouves.append(morceau[1:-1])
+            continue
+        depart = 0
+        for m in re.finditer(r"\.md(?![^\W\d_])", morceau):
+            avant = morceau[depart:m.end()]
+            depart = m.end()
+            coupes = [-1] + [i for i, ch in enumerate(avant) if ch in " ,;()"]
+            fins = [avant[i + 1:].strip() for i in coupes]
+            fins = [f for f in fins if f and f != ".md"]
+            if not fins:
+                continue
+            bon = next((f for f in fins if os.path.isfile(os.path.join(racine, f))), None)
+            trouves.append(bon or fins[-1])
+    return trouves
+
+
 def fiches(chemin):
     """(nombre de lignes, [(numéro, titre)], prochaine ou None)."""
     lignes = lignes_de(chemin)
@@ -380,6 +437,22 @@ def carte(depart, sortie):
     courant = fichier_courant(texte)
     if courant is None:
         sortie.write("--- fichier de fiches courant : aucun ---\n")
+        possibles = CHANTIERS_POSSIBLES.search(texte)
+        if possibles is None:
+            sortie.write("TODO=absente (pas de ligne « chantiers possibles »)\n")
+            return 0
+        for chemin in chemins_md(possibles.group(1), racine):
+            try:
+                lignes = lignes_du_projet(racine, chemin, "fichier")
+            except Absent as e:
+                sortie.write("GARDE: %s\n" % e)
+                continue
+            plage = section(lignes, lambda t: "TODO" in t, lambda t: "TODO" in t)
+            if plage is None:
+                sortie.write("TODO=absente %s\n" % chemin)
+                continue
+            sortie.write("--- TODO : %s (lignes %d–%d) ---\n" % (chemin, plage[0], plage[1]))
+            sortie.write("".join(l + "\n" for l in lignes[plage[0] - 1:plage[1]]))
         return 0
     try:
         n, titres, prochaine = fiches(chemin_garde(os.path.join(racine, courant),
