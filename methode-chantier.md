@@ -122,6 +122,15 @@ Elles sont écrites ici, et nulle part ailleurs : le reste du kit y renvoie.
   **suivante**. Le vrai prix, 2,08 $, n'était écrit nulle part, et la suivante
   paraissait plus chère qu'elle n'était. Une reprise se mesure sur la plage de
   ses propres commits, et s'ajoute à la fiche qu'elle termine.
+- **Une définition d'agent se charge au démarrage de la session — pas à la
+  volée.** Mesurer l'effet d'un changement dans `agents/*.md` sur une session
+  déjà ouverte mesure l'ancienne définition. Mesuré : une phrase ajoutée à
+  `agents/fiche.md` (chantier `GLO`) a été jugée « sans effet » sur une session
+  qui avait démarré 21 minutes **avant** le commit, sans `/reload-plugins`
+  (chantier `FOR`). Rejouée après relance de l'app, la même phrase changeait
+  nettement la mesure. Avant de mesurer la forme d'un sous-agent après un
+  changement d'agent : relancer l'app, ou au moins vérifier que la session
+  parente a démarré après le commit.
 
 ## Les trois temps
 
