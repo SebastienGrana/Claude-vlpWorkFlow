@@ -91,8 +91,13 @@ plusieurs à la fois se font, aucun aussi.
    réapprendre la même chose à chaque chantier.
 3. **Essaimer** — remettre les autres projets équipés à niveau :
    `<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" niveau <projet>`.
-4. **La dette repérée** — verser dans la TODO ce qu'on a vu passer sans le
-   traiter : ce qui n'y est pas écrit est perdu au `/clear`.
+4. **La dette repérée** — ce qu'on a vu passer sans le traiter. Petite (une
+   fiche ou moins) : elle se corrige **tout de suite**, une tâche par dette —
+   test et mutant s'il y a du code —, dans un commit à elle
+   (`Dette <chantier> : …`), avant la question du push. Plus grosse : elle se
+   présente comme un chantier, et l'utilisateur tranche sur le moment — ouvert
+   tout de suite, ou versé dans la TODO. Ce qui n'est écrit nulle part est perdu
+   au `/clear`.
 
 Le menu compte quatre cases, pas cinq : **le push n'y est pas**, ni le prompt du
 chantier suivant, qui n'est pas facultatif (« Pour finir »). Il se demande

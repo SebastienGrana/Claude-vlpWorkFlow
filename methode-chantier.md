@@ -316,6 +316,10 @@ Quatre exigences, apprises en cassant :
    critère qui prouve un juge — relecteur, eval — écrit son attendu selon les
    règles de ce juge, et le juge ne voit rien qui raconte la suite : un attendu
    contraire à la règle, ou un juge qui a lu la réponse, ne prouvent rien (`REV4`).
+   Un test bâtit son propre projet dans un dossier temporaire : lire le vrai
+   dépôt ou les transcripts de la machine le fait casser dès qu'une fiche
+   suivante écrit, et échouer chez un autre membre du groupe (`ESD2`, refusée à
+   la relecture pour ça).
 4. **Les fiches sont indépendantes autant que possible** ; les dépendances
    réelles sont écrites, pas devinées.
 
