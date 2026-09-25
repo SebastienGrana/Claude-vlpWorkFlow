@@ -73,8 +73,8 @@
     <!-- ZONE:encours — remplacé à chaque ouverture, remis à « aucun » à chaque clôture.
          /tache n'y touche pas : l'avancement fiche par fiche est sur la page du chantier. -->
     <div class="encours">
-      <div class="titre">Aucun chantier ouvert</div>
-      <div>Lancer <span class="mono">/vlp:chantier</span> pour en ouvrir un.</div>
+      <div class="titre">Les essais <span class="mono">claude -p</span> dans le coût <span class="badge" data-etat="cours">en cours</span></div>
+      <div>Fiches <span class="mono">ESS1–ESS4</span> — <a href="https://claude.ai/artifact/AhWBb31gZnFz1zEHvuGhrQ">la page du chantier</a></div>
     </div>
   </section>
 
@@ -87,7 +87,7 @@
           <tr><th>#</th><th>Chantier</th><th>Ce qu'il apporte</th><th>Coût</th><th>Dépend de</th></tr>
         </thead>
         <tbody>
-          <tr><td class="mono">47</td><td><span class="mono">ESS</span> — Les essais <span class="mono">claude -p</span> dans le coût</td><td>Un essai <span class="mono">claude -p</span> tourne dans une autre session, que <span class="mono">cout</span> ne voit pas : il s'ajoute à la main, « hors total ». Au moins 14 chantiers clos en portent — 12 sur la feuille de route, <span class="mono">SAG</span> et <span class="mono">FIL</span> au fichier d'état —, ≈ 12,32 $ absents de tout total (somme faite à la main). <span class="mono">cout</span> ira chercher les sessions des bacs lancées pendant la fiche. 🟡 Les relier à leur fiche — dossier du bac, heure —, et le sort des evals : à trancher au cadrage. Même but que <span class="mono">FIN</span>, autre mécanisme.</td><td class="mono">~1 fiche</td><td class="mono">—</td></tr>
+          <tr><td class="mono">47</td><td><span class="mono">ESS</span> — Les essais <span class="mono">claude -p</span> dans le coût <span class="badge" data-etat="cours">en cours</span></td><td>Un essai <span class="mono">claude -p</span> tourne dans une autre session, que <span class="mono">cout</span> ne voit pas : il s'ajoute à la main, « hors total ». Au moins 14 chantiers clos en portent — 12 sur la feuille de route, <span class="mono">SAG</span> et <span class="mono">FIL</span> au fichier d'état —, ≈ 12,32 $ absents de tout total (somme faite à la main). <span class="mono">cout</span> ira chercher les sessions des bacs lancées pendant la fiche. 🟡 Les relier à leur fiche — dossier du bac, heure —, et le sort des evals : à trancher au cadrage. Même but que <span class="mono">FIN</span>, autre mécanisme.</td><td class="mono">~1 fiche</td><td class="mono">—</td></tr>
           <tr><td class="mono">36</td><td><span class="mono">EST</span> — L'estimé face au réel, à chaque clôture</td><td>La TODO estime chaque chantier ; rien ne compare ensuite. <span class="mono">CPT</span>, estimé « ~2 fiches », en a joué 4. Le bilan de clôture écrira l'estimé à côté du réel — fiches jouées, tokens —, pour que <span class="mono">/vlp:chantier</span> estime mieux les suivants.</td><td class="mono">~1 fiche</td><td class="mono">—</td></tr>
           <tr><td class="mono">43</td><td><span class="mono">RAT</span> — Un <span class="mono">Read</span> raté réveille-t-il le filet ?</td><td>Reste de <span class="mono">FIL</span> : le filet tire après un <span class="mono">Read</span> réussi et après un Bash à code non nul (<span class="mono">FIL3</span>), mais un <span class="mono">Read</span> sur un fichier absent n'est pas éprouvé. La doc range dans <span class="mono">PostToolUseFailure</span> l'outil lancé qui échoue, pas l'appel refusé avant de s'exécuter (journal du 2026-09-24). S'il n'en déclenche aucun, des derniers tours de <span class="mono">Read</span> ratés laissent le sous-agent coupé muet. Un essai à plafond 10, comme <span class="mono">FIL3</span> (≈ 0,1 $).</td><td class="mono">~0,5 fiche</td><td class="mono">—</td></tr>
           <tr><td class="mono">45</td><td><span class="mono">BAC</span> — Un bac d'essai par script</td><td><span class="mono">SAG4</span> et <span class="mono">FIL3</span> ont rebâti leur bac à la main — <span class="mono">CHANTIER.md</span>, fiches factices, fichiers —, puis compté la transcription du sous-agent par un script jetable. <span class="mono">FIL3</span> y a buté deux fois : la section <span class="mono">## L'ordre des fiches</span> exigée par le hook, et « un appel par tour », lu par Haiku comme « par exécution » (0,148 $ perdus). <span class="mono">vlp.py</span> posera le bac en un appel, et comptera la transcription : tours, avertissements du filet et l'outil qui les précède, <span class="mono">hook_non_blocking_error</span>, premier mot et <span class="mono">stop_reason</span> du dernier message. Le lancement <span class="mono">claude -p</span> reste à la main, chiffré avant.</td><td class="mono">~1 fiche</td><td class="mono">—</td></tr>
@@ -457,7 +457,7 @@
   </section>
 
   <footer>
-    <span>Lettres de fiche prises : <span class="mono">E, M, C, T, B, R, S, H, V, D, I, K, N, L, P, A, G, W, X, F, O, J, Y, U, Q, Z, NIV, REP, CPT, SAG, FIL, CAS, VAL, FIN, TAR, PLA, MTK, CAD, ZER, REV, CON, GLO, GAR, UNI, PYT, RLG, FOR, JUG, REC</span></span>
+    <span>Lettres de fiche prises : <span class="mono">E, M, C, T, B, R, S, H, V, D, I, K, N, L, P, A, G, W, X, F, O, J, Y, U, Q, Z, NIV, REP, CPT, SAG, FIL, CAS, VAL, FIN, TAR, PLA, MTK, CAD, ZER, REV, CON, GLO, GAR, UNI, PYT, RLG, FOR, JUG, REC, ESS</span></span>
     <span>État détaillé : <span class="mono">context AI/08-etat.md</span></span>
     <span>Mis à jour le <span class="mono">2026-09-25</span></span>
   </footer>

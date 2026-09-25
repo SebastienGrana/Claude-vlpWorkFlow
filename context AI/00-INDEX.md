@@ -39,6 +39,7 @@ a l'air proche.
 | `58-forme-sous-agent.md` | on relit le socle du chantier FOR — **clos** « La forme du sous-agent, pour de vrai », `FOR1..FOR3` |
 | `59-juger-fin.md` | on relit le socle du chantier JUG — **clos** « Le gardien ne juge que la fin du message », `JUG1..JUG3` |
 | `60-recompter.md` | on relit le socle du chantier REC — **clos** « Recompter les chantiers clos au coût juste », `REC1..REC4` |
+| `61-essais.md` | on joue une fiche `ESS*` — chantier **ouvert** « Les essais claude -p dans le coût », `ESS1..ESS4` |
 | `35-bilan.md` | on doit expliquer le kit — d'où il vient, ce qu'il sait faire aujourd'hui, ce qu'il ne promet pas ; les 22 chantiers chiffrés |
 | `36-gardes.md` | on relit le socle du chantier Z — **clos** « Une GARDE au lieu d'un traceback », `Z1..Z4` |
 | `37-niveau.md` | on relit le socle du chantier NIV — **clos** « Remettre les projets équipés à niveau », `NIV1..NIV4` |
