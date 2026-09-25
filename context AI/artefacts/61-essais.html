@@ -99,11 +99,11 @@
         <span class="id">ESS4</span><span class="titre">Recompter les chantiers clos</span>
         <span class="etat">faite</span>
         <span class="note">noté 12,3134 $ (4,5734 sondes + 7,74 evals) · trouvé par cout 0,77 $ (SAG 0,46 · FIL 0,31) · écart −11,5434 $ · 6 chantiers sur 8 au-delà de 0,05 $ · causes : chantier gardé 9, dossier absent 1, arrondi 2, hors plage 0, sous-agent 0</span>
-        <span class="cout mono">≈2,0M (1 987 098) · 20 tours · 1,52 $</span>
+        <span class="cout mono">≈2,2M (2 198 859) · 22 tours · 1,62 $</span>
       </li>
     </ul>
-    <p class="mono cout-hors">Hors fiches : ≈2,7M (2 704 051) · 22 tours · 2,00 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈11,8M (11 820 029) · 95 tours · 8,00 $</p>
+    <p class="mono cout-hors">Hors fiches : ≈2,9M (2 926 324) · 24 tours · 2,09 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈12,3M (12 254 063) · 99 tours · 8,19 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -126,10 +126,11 @@
   </section>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
-  <section hidden>
-    <h2>Chantier clos le </h2>
+  <section>
+    <h2>Chantier clos le 2026-09-25</h2>
     <div class="bilan">
-      <p></p>
+      <p>Livré : vlp.py cout compte les essais claude -p dans le prix de leur fiche (part essais, TOTAL compris) ; recompter rend +1 090 457 sur SAG et FIL</p>
+      <p>Surpris : 9 clos sur 11 à bacs sont en DÉCOUPE aucune, que cout mesure sans essais : 0,77 $ rattrapés sur 4,5734 $ notés (TODO n° 68)</p>
     </div>
   </section>
 

@@ -73,8 +73,8 @@
     <!-- ZONE:encours — remplacé à chaque ouverture, remis à « aucun » à chaque clôture.
          /tache n'y touche pas : l'avancement fiche par fiche est sur la page du chantier. -->
     <div class="encours">
-      <div class="titre">Les essais <span class="mono">claude -p</span> dans le coût <span class="badge" data-etat="cours">en cours</span></div>
-      <div>Fiches <span class="mono">ESS1–ESS4</span> — <a href="https://claude.ai/artifact/AhWBb31gZnFz1zEHvuGhrQ">la page du chantier</a></div>
+      <div class="titre">Aucun chantier ouvert</div>
+      <div>Lancer <span class="mono">/vlp:chantier</span> pour en ouvrir un.</div>
     </div>
   </section>
 
@@ -87,7 +87,6 @@
           <tr><th>#</th><th>Chantier</th><th>Ce qu'il apporte</th><th>Coût</th><th>Dépend de</th></tr>
         </thead>
         <tbody>
-          <tr><td class="mono">47</td><td><span class="mono">ESS</span> — Les essais <span class="mono">claude -p</span> dans le coût <span class="badge" data-etat="cours">en cours</span></td><td>Un essai <span class="mono">claude -p</span> tourne dans une autre session, que <span class="mono">cout</span> ne voit pas : il s'ajoute à la main, « hors total ». Au moins 14 chantiers clos en portent — 12 sur la feuille de route, <span class="mono">SAG</span> et <span class="mono">FIL</span> au fichier d'état —, ≈ 12,32 $ absents de tout total (somme faite à la main). <span class="mono">cout</span> ira chercher les sessions des bacs lancées pendant la fiche. 🟡 Les relier à leur fiche — dossier du bac, heure —, et le sort des evals : à trancher au cadrage. Même but que <span class="mono">FIN</span>, autre mécanisme.</td><td class="mono">~1 fiche</td><td class="mono">—</td></tr>
           <tr><td class="mono">36</td><td><span class="mono">EST</span> — L'estimé face au réel, à chaque clôture</td><td>La TODO estime chaque chantier ; rien ne compare ensuite. <span class="mono">CPT</span>, estimé « ~2 fiches », en a joué 4. Le bilan de clôture écrira l'estimé à côté du réel — fiches jouées, tokens —, pour que <span class="mono">/vlp:chantier</span> estime mieux les suivants.</td><td class="mono">~1 fiche</td><td class="mono">—</td></tr>
           <tr><td class="mono">43</td><td><span class="mono">RAT</span> — Un <span class="mono">Read</span> raté réveille-t-il le filet ?</td><td>Reste de <span class="mono">FIL</span> : le filet tire après un <span class="mono">Read</span> réussi et après un Bash à code non nul (<span class="mono">FIL3</span>), mais un <span class="mono">Read</span> sur un fichier absent n'est pas éprouvé. La doc range dans <span class="mono">PostToolUseFailure</span> l'outil lancé qui échoue, pas l'appel refusé avant de s'exécuter (journal du 2026-09-24). S'il n'en déclenche aucun, des derniers tours de <span class="mono">Read</span> ratés laissent le sous-agent coupé muet. Un essai à plafond 10, comme <span class="mono">FIL3</span> (≈ 0,1 $).</td><td class="mono">~0,5 fiche</td><td class="mono">—</td></tr>
           <tr><td class="mono">45</td><td><span class="mono">BAC</span> — Un bac d'essai par script</td><td><span class="mono">SAG4</span> et <span class="mono">FIL3</span> ont rebâti leur bac à la main — <span class="mono">CHANTIER.md</span>, fiches factices, fichiers —, puis compté la transcription du sous-agent par un script jetable. <span class="mono">FIL3</span> y a buté deux fois : la section <span class="mono">## L'ordre des fiches</span> exigée par le hook, et « un appel par tour », lu par Haiku comme « par exécution » (0,148 $ perdus). <span class="mono">vlp.py</span> posera le bac en un appel, et comptera la transcription : tours, avertissements du filet et l'outil qui les précède, <span class="mono">hook_non_blocking_error</span>, premier mot et <span class="mono">stop_reason</span> du dernier message. Le lancement <span class="mono">claude -p</span> reste à la main, chiffré avant.</td><td class="mono">~1 fiche</td><td class="mono">—</td></tr>
@@ -109,6 +108,7 @@
           <tr><td class="mono">64</td><td><span class="mono">SON</span> — Rejouer un hook à la main sans le tampon</td><td><span class="mono">une_fois</span> (chantier <span class="mono">PYT</span>) fait taire la même entrée rejouée en moins de 60 s, même par une autre copie de <span class="mono">vlp.py</span> : un relecteur de <span class="mono">RLG1</span> a dû ajouter un <span class="mono">nonce</span> pour comparer AVANT et APRÈS. Une variable d'environnement, ou une option, qui saute le tampon hors d'un vrai hook.</td><td class="mono">~0,5 fiche</td><td class="mono">—</td></tr>
           <tr><td class="mono">66</td><td><span class="mono">OUV</span> — Une ligne qui s'ouvre par un mot de jauge, sans être une jauge</td><td>Reste de <span class="mono">JUG</span> : le gardien (règle <span class="mono">tete</span>) renvoie une ligne qui <strong>commence</strong> par « Imprévu », « Pas bon »… même quand ce n'est pas la jauge — une puce <span class="mono">- Imprévu : j'ai dû…</span>, un <span class="mono">REFUSÉE</span> dont une ligne s'ouvre par « Pas bon ». Absent des 29 sous-agents mesurés en <span class="mono">JUG1</span> ; <span class="mono">stop_hook_active</span> borne le coût à un renvoi. 🟡 Exiger l'émoji de la jauge devant le mot, ou le mot suivi de <span class="mono">—</span>/<span class="mono">…</span>/fin de ligne : à mesurer sur le corpus comme en <span class="mono">JUG1</span> (<span class="mono">forme --regle</span>).</td><td class="mono">~0,5 fiche</td><td class="mono">—</td></tr>
           <tr><td class="mono">67</td><td><span class="mono">APC</span> — Ce que le chiffre de clôture ne voit pas</td><td>Reste de <span class="mono">REC</span> : pour 19 clos (causes 4a et 4b du journal <span class="mono">REC2</span>), l'écart recompté − inscrit tient tout entier dans « hors fiches », côté clôture, et reste sous lui (<span class="mono">CAS</span> : égal, 1 687 993) ; de +434 097 (<span class="mono">RLG</span>) à +2 682 260 (<span class="mono">FOR</span>) — pas « quelques milliers », comme l'estimait le bilan d'<span class="mono">UNI</span>. 🟡 Hypothèse, non prouvée : les tours d'après <span class="mono">clore</span> (republication, menu, push) sont hors du chiffre. <span class="mono">NIV</span> et <span class="mono">H</span> (4c : +3 136 302 et +2 249 049) restent sans explication. Le bilan de <span class="mono">H</span> ne cite aucun chiffre : rien n'y est marqué.</td><td class="mono">~1 fiche</td><td class="mono">—</td></tr>
+          <tr><td class="mono">68</td><td><span class="mono">ESD</span> — Les essais d'un chantier sans découpe, puis republier</td><td>Reste d'<span class="mono">ESS</span> : sur <span class="mono">DÉCOUPE aucune</span>, <span class="mono">cout</span> mesure les sessions entières sans <span class="mono">essais_de</span> (<span class="mono">scripts/vlp.py:545</span>) et <span class="mono">recompter</span> les garde. 9 clos (<span class="mono">X</span> <span class="mono">G</span> <span class="mono">A</span> <span class="mono">P</span> <span class="mono">L</span> <span class="mono">N</span> <span class="mono">Y</span> <span class="mono">U</span> <span class="mono">Q</span>) ont 7,1299 $ d'essais en dossier que rien ne compte ; seuls <span class="mono">SAG</span> et <span class="mono">FIL</span> passent (0,77 $). Puis <span class="mono">recompter --ecrire</span> (+1 090 457 d'essais sur <span class="mono">SAG</span> et <span class="mono">FIL</span>) et republier la feuille de route : leurs bilans notent encore les essais à côté du total, pas dedans. Table : <span class="mono">## 2026-09-25 — ESS4</span>.</td><td class="mono">~1 fiche, plus la republication</td><td class="mono">—</td></tr>
         </tbody>
       </table>
     </div>
@@ -118,13 +118,19 @@
     <h2>Chantiers clos — ils ne se rejouent pas</h2>
     <!-- ZONE:clos — une ligne ajoutée à chaque clôture, la plus récente en haut -->
     <details class="clos">
-      <summary><span class="resume-clos">49 chantiers clos · ≈716,6M (716 632 063) tokens · ≈600 $</span></summary>
+      <summary><span class="resume-clos">50 chantiers clos · ≈728,9M (728 886 126) tokens · ≈610 $</span></summary>
     <div class="tableau">
       <table>
         <thead>
           <tr><th>Chantier</th><th>Fiches</th><th>Clos le</th><th>Tokens</th><th>Ce qu'il a livré</th></tr>
         </thead>
         <tbody>
+          <tr>
+            <td><a href="https://claude.ai/artifact/AhWBb31gZnFz1zEHvuGhrQ">Les essais <span class="mono">claude -p</span> dans le coût</a> <span class="badge" data-etat="clos">clos</span></td>
+            <td class="mono">ESS1–ESS4</td><td class="mono">2026-09-25</td>
+            <td class="mono">≈12,3M (12 254 063)</td>
+            <td>vlp.py cout compte les essais claude -p dans le prix de leur fiche (part essais, TOTAL compris) ; recompter rend +1 090 457 sur SAG et FIL</td>
+          </tr>
           <tr>
             <td><a href="https://claude.ai/artifact/FVUYKGBisHJK5HEv2RmRnB">Recompter les chantiers clos au coût juste</a> <span class="badge" data-etat="clos">clos</span></td>
             <td class="mono">REC1–REC4</td><td class="mono">2026-09-25</td>
@@ -449,7 +455,7 @@
           </tr>
         </tbody>
         <tfoot>
-          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈716,6M (716 632 063)</strong></td><td class="mono">≈600 $</td></tr>
+          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈728,9M (728 886 126)</strong></td><td class="mono">≈610 $</td></tr>
         </tfoot>
       </table>
     </div>

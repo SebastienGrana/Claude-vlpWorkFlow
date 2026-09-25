@@ -333,6 +333,13 @@
   +9 982 170 (sous-agents avant `CPT`), 17 clos à fiches inchangées au token près, écart tout
   en hors fiches. `--ecrire` (`REC3`) ; appliqué (`REC4`) : total 681 541 003 → 700 725 374,
   second passage `ÉCRIT 0`, 22 bilans marqués (H, 23e écart, ne cite pas de chiffre).
+
+- **2026-09-25** — chantier ESS clos (TODO n° 47) : `vlp.py cout` compte les essais `claude -p`
+  dans le prix de leur fiche, part `essais` à côté, `TOTAL` compris (`essais_de`, relié par le
+  dossier du bac puis l'heure). Les ≈ 12,32 $ de la TODO = 4,5734 $ de sondes + 7,74 $ d'evals
+  (dehors). `recompter` : +1 090 457 sur `SAG` et `FIL`, seuls rattrapés (0,77 $) ; 9 clos à bacs
+  sont en `DÉCOUPE aucune`, mesurés sans essais (7,1299 $ de dossiers) — laissé ouvert en TODO
+  n° 68, avec la republication. `CLOS` : 12 254 063 tokens.
   Laissé ouvert : la cause des 4b et de `NIV`/`H` n'est pas établie. `CLOS` : 15 906 689 tokens.
 
 ## La TODO ordonnée — les chantiers possibles
@@ -351,7 +358,6 @@ celle de `FIL` ; 48 à 51, de celle de `FIN` ; 52, des clôtures de la nuit du
 
 | # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |
 |---|---|---|---|---|
-| 47 | `ESS` — Les essais `claude -p` dans le coût | Un essai `claude -p` tourne dans une autre session, que `cout` ne voit pas : il s'ajoute à la main, « hors total ». Au moins 14 chantiers clos en portent — 12 sur la feuille de route, `SAG` et `FIL` au fichier d'état —, ≈ 12,32 $ absents de tout total (somme faite à la main). `cout` ira chercher les sessions des bacs lancées pendant la fiche. 🟡 Les relier à leur fiche — dossier du bac, heure —, et le sort des evals : à trancher au cadrage. Même but que `FIN`, autre mécanisme. | ~1 fiche | — |
 | 36 | `EST` — L'estimé face au réel, à chaque clôture | La TODO estime chaque chantier ; rien ne compare ensuite. `CPT`, estimé « ~2 fiches », en a joué 4. Le bilan de clôture écrira l'estimé à côté du réel — fiches jouées, tokens —, pour que `/vlp:chantier` estime mieux les suivants. | ~1 fiche | — |
 | 43 | `RAT` — Un `Read` raté réveille-t-il le filet ? | Reste de `FIL` : le filet tire après un `Read` réussi et après un Bash à code non nul (`FIL3`), mais un `Read` sur un fichier absent n'est pas éprouvé. La doc range dans `PostToolUseFailure` l'outil lancé qui échoue, pas l'appel refusé avant de s'exécuter (journal du 2026-09-24). S'il n'en déclenche aucun, des derniers tours de `Read` ratés laissent le sous-agent coupé muet. Un essai à plafond 10, comme `FIL3` (≈ 0,1 $). | ~0,5 fiche | — |
 | 45 | `BAC` — Un bac d'essai par script | `SAG4` et `FIL3` ont rebâti leur bac à la main — `CHANTIER.md`, fiches factices, fichiers —, puis compté la transcription du sous-agent par un script jetable. `FIL3` y a buté deux fois : la section `## L'ordre des fiches` exigée par le hook, et « un appel par tour », lu par Haiku comme « par exécution » (0,148 $ perdus). `vlp.py` posera le bac en un appel, et comptera la transcription : tours, avertissements du filet et l'outil qui les précède, `hook_non_blocking_error`, premier mot et `stop_reason` du dernier message. Le lancement `claude -p` reste à la main, chiffré avant. | ~1 fiche | — |

@@ -7,7 +7,9 @@
 **À quoi il sert.** Un essai `claude -p` tourne dans une autre session, que `vlp.py cout` ne
 voit pas : ≈ 12,32 $ sur 14 chantiers clos, notés « hors total » à la main (TODO n° 47).
 
-**Fait.** Rien. Ouvert le 2026-09-25, cadré en 4 fiches, `ESS1` à jouer.
+**CLOS** le 2026-09-25. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** ESS1..ESS4 (2026-09-25) : vlp.py cout compte les essais claude -p dans le prix de leur fiche (part essais, TOTAL compris) ; recompter rend +1 090 457 sur SAG et FIL.
 
 **Session** : 2d0c4c56-7dba-4f2c-9091-7f8e63857158
 
