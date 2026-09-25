@@ -126,7 +126,13 @@ pas un titre. `LEC3` la réemploie ; la TODO l'appelle avec `fin` = le titre de 
 Dans la branche « aucun » de `carte`, après sa ligne `--- fichier de fiches courant : aucun ---`,
 lis la ligne **chantiers possibles** (motif à la manière de `COURANT`) et **cherches-y** chaque
 chemin en `.md` — backticks ôtés, prose autour ignorée : `` `a.md`, puis `b.md` `` en donne deux,
-`context AI/08-etat.md (section TODO)` en donne un ; ne découpe pas sur des séparateurs. Pour
+`context AI/08-etat.md (section TODO)` en donne un ; ne découpe pas sur des séparateurs.
+**Le disque tranche** (un chemin peut contenir une espace, `context AI/`) : entre backticks, le
+chemin est le contenu tel quel ; hors backticks, pour chaque `.md` non suivi d'une lettre, essaie
+les fins du texte qui le précède, en coupant à chaque espace, virgule, point-virgule ou
+parenthèse, de la plus longue à la plus courte, et garde la première qui existe sous le dossier
+du projet ; aucune n'existe → `GARDE:` avec la plus courte. Les deux formes peuvent se mêler dans
+une ligne ; accents permis ; un point final ne compte pas. Pour
 chacun, imprime la sortie du socle (décisions 2 à 4) : l'en-tête `--- TODO : <chemin> (lignes
 A–B) ---` **suivi du texte des lignes A à B**, tel quel — c'est lui que `/vlp:chantier` lira à la
 place du fichier ; ou `TODO=absente <chemin>`. Fichier introuvable : `GARDE: <chemin>` par
@@ -143,6 +149,9 @@ temporaire, avec ces cas, chacun son `verifier` :
 - un fichier sans titre TODO → `TODO=absente <chemin>` ;
 - une ligne `` `a.md`, puis `b.md` `` → deux blocs, dans l'ordre ;
 - un chemin suivi de prose entre parenthèses → un bloc ;
+- sans backticks, fichiers présents sous un dossier à espace : `context AI/a.md, puis context
+  AI/b.md` → deux blocs aux bons chemins ; `voir context AI/a.md.` → un bloc ; `` `a.md` ; context
+  AI/b.md `` → deux blocs ; `context AI/état.md` → un bloc ;
 - un fichier nommé mais absent → `GARDE:` et le bloc du suivant quand même ;
 - un chantier ouvert → aucun bloc.
 
