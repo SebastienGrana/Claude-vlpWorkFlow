@@ -2345,8 +2345,10 @@ def marquer(cellule, brut, recompte_, methode):
         return "%s%s · %s" % (MARQUE_GARDE, esc(methode.replace("gardé — ", "", 1)), entre(cellule))
     if recompte_ == brut:
         return cellule
-    marque = cellule.split(" · ")[0] if cellule.startswith(MARQUE_REC) else MARQUE_REC + milliers(brut)
-    return "%s · %s" % (marque, entre(arrondi(recompte_)))
+    esd = cellule.split(" · ")[0] + " · " if cellule.startswith(MARQUE_ESSAIS) else ""   # gardée en tête
+    reste = cellule[len(esd):]
+    marque = reste.split(" · ")[0] if reste.startswith(MARQUE_REC) else MARQUE_REC + milliers(brut)
+    return "%s%s · %s" % (esd, marque, entre(arrondi(recompte_)))
 
 
 def ajout_essais(cellule, brut, recompte_, methode, essais):

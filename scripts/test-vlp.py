@@ -1237,6 +1237,12 @@ with tempfile.TemporaryDirectory() as t:
               mod.ajout_essais("x", 100, 90, "découpe", 80), mod.ajout_essais("x", 100, None, "gardé — sans session", 80),
               mod.ajout_essais(mod.MARQUE_ESSAIS + "+5 · (105)", 105, None, "gardé — DÉCOUPE aucune (r)", 5)]
              == [50, 80, 0, 0, 0], "")
+    # Dette d'ESD : un `recompter --ecrire` sur une cellule marquée ESD garde la marque en tête.
+    marques = [mod.marquer("essais (ESD) +200 000 · recompté (REC), était 650 000 · ≈850,0k (850 000)", 850000, 900000, "découpe"),
+               mod.marquer("essais (ESD) +50 000 · ≈700,0k (700 000)", 700000, 750000, "découpe")]
+    verifier("marquer : la marque ESD reste en tête — mutant : la marque ESD perdue", marques == [
+        "essais (ESD) +200 000 · recompté (REC), était 650 000 · ≈900,0k (900 000)",
+        "essais (ESD) +50 000 · recompté (REC), était 700 000 · ≈750,0k (750 000)"], marques)
 
 # --- chantier U : lire, cocher, page déduite ----------------------------------
 
