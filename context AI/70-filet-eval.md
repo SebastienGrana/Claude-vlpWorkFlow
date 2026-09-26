@@ -114,8 +114,9 @@ négatif **échoue** — sinon le verdict ne vaut rien et la fiche rend `RETOUR`
 ---
 
 <!-- FICHE:EVF2 -->
-## EVF2 [ ] — Le cas `F1` avec le filet, à plafond bas
+## EVF2 [x] — Le cas `F1` avec le filet, à plafond bas
 
+**Session** : 81f28c74-89aa-4815-b804-db93de007ebc
 **Dépend de** : `EVF1`, réponse **oui**. Réponse non : ne pas jouer, redécouper.
 **Fichiers** : `evals/filet-vue/` (d'`EVF1`) ; `agents/fiche.md` (lecture seule, la
 ligne `maxTurns`) ; `scripts/vlp.py`, `scripts/test-vlp.py` — et rien d'autre.
@@ -129,12 +130,12 @@ plafond 10. Graders : `regex` `target: trace` sur « Attention : 3 tours restant
 `regex` `last_message` sur `RETOUR`. Lance une fois ; puis le témoin : même cas sur une
 copie à plafond 80.
 
-**Critère de fin**
-Plafond 10 : les deux graders passent ; plafond 80 : « Attention » **échoue**. Sorties
-brutes, `costUsd` et `turns` au journal. Test de `kit-essai` : `maxTurns: 10` dans la
-copie, `maxTurns` inchangé dans le kit, 2ᵉ appel sur le même dossier → `GARDE:`.
-**Mutant** : ne pas réécrire `maxTurns` fait tomber le test.
-`pyright scripts/vlp.py scripts/test-vlp.py` : `0 errors`.
+**Critère de fin** — réécrit le 2026-09-26 après mesure, la nuit, à valider : la trace de
+l'eval ne porte pas le contexte des hooks (grader `filet-warns` muet à 6 comme à 80).
+Plafond 6 : `vlp.py transcription` de la transcription gardée compte `AVERTISSEMENTS=1` ;
+plafond 80 : `AVERTISSEMENTS=0` ; l'eval voit les `Read` du sous-agent. Test de `kit-essai` :
+`maxTurns 6` dans la copie, inchangé dans le kit, 2ᵉ appel → `GARDE:`. **Mutant** : ne pas
+réécrire `maxTurns` fait tomber le test. `pyright scripts/vlp.py scripts/test-vlp.py` : `0 errors`.
 <!-- /FICHE -->
 
 ---

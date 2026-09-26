@@ -68,9 +68,9 @@
     <p>Une commande rejoue les deux essais de FIL3 en eval du plugin ; un changement du filet se reprouve en un appel, ≈ 0,16 $ le passage.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">4 fiches · 2 faites · en cours : EVF2</p>
+    <p class="mono" style="margin-top:.5rem">4 fiches · 3 faites · en cours : EVF3</p>
   </header>
 
   <section>
@@ -89,19 +89,20 @@
         <span class="note">OUI : Read called 12x, matched fichier 05, témoin fichier 13 échoue ; 0,15195725 $ ; transcription sous-agent 5 tours, 15 appels, FAITE.</span>
         <span class="cout mono">≈5,3M (5 348 278) · 19 tours · 1,21 $</span>
       </li>
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">EVF2</span><span class="titre">Le cas F1 avec le filet, à plafond bas</span>
-        <span class="etat">en cours</span>
-        <span class="note">vlp.py kit-essai (copie du kit à plafond bas) et le cas F1 : l'avertissement à plafond 10, absent à 80. Dépend d'EVF1 = oui.</span>
+        <span class="etat">faite</span>
+        <span class="note">kit-essai + test + mutant ; plafond 6 : 1 avertissement (transcription), 80 : 0 ; la trace de l'eval ne voit pas les hooks — critère réécrit la nuit, à valider.</span>
+        <span class="cout mono">≈4,9M (4 942 564) · 14 tours · 1,56 $</span>
       </li>
-      <li class="fiche">
+      <li class="fiche" data-etat="encours">
         <span class="id">EVF3</span><span class="titre">Le cas F2 (Bash, exit 3)</span>
-        <span class="etat">à faire</span>
+        <span class="etat">en cours</span>
         <span class="note">Le cas F2 (Bash, exit 3) sous WSL2, et la commande qui rejoue les deux cas. Dépend d'EVF2.</span>
       </li>
     </ul>
-    <p class="mono cout-hors">Hors fiches : ≈15,4M (15 389 675) · 75 tours · 6,10 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈30,8M (30 836 989) · 126 tours · 12,15 $</p>
+    <p class="mono cout-hors">Hors fiches : ≈14,4M (14 364 826) · 72 tours · 5,79 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈34,8M (34 754 704) · 137 tours · 13,40 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -119,6 +120,7 @@
     <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
     <ul class="journal">
       <li><time datetime="2026-09-26">2026-09-26</time><span>EVF4 : la redirection de NIV1 retirée des 7 injections — seule variante qui passe sous eval ; décidé seul la nuit, à valider.</span></li>
+      <li><time datetime="2026-09-26">2026-09-26</time><span>EVF2 : la trace de l'eval ne porte pas le contexte des hooks ; le filet se prouve par la transcription gardée — critère réécrit la nuit, à valider.</span></li>
     </ul>
   </section>
 

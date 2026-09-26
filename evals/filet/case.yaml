@@ -1,0 +1,28 @@
+schema_version: "1.1"
+name: filet
+runs: 1
+tags: [filet, wsl2]
+
+execution:
+  max_turns: 80
+  timeout_seconds: 300
+  # Skill pour le chef ; Read pour le sous-agent vlp:fiche que vlp:jouer forke —
+  # le allowed_tools du cas vaut pour tout le run, sous-agent compris. Bash (la carte
+  # injectée par vlp:jouer, et l'agent) se donne à l'invocation : --allow-tools Bash,
+  # sous WSL2 seulement (pas de sandbox sous Windows natif). EVF1, 2026-09-26.
+  # Se lance sur une copie à plafond bas : vlp.py kit-essai <copie> --max-turns 6 (EVF2).
+  allowed_tools: [Skill, Read]
+
+context:
+  scaffold_script: fixture.sh
+
+graders:
+  # Le sous-agent a travaillé : ses Read sont dans la trace (EVF1).
+  - name: subagent-reads
+    type: tool_used
+    tool: Read
+
+  # Pas de grader du filet ici : la trace de l'eval porte les appels d'outils du
+  # sous-agent, pas le contexte que ses hooks lui injectent (EVF2 : à plafond 6, la
+  # transcription compte 1 avertissement, la trace aucun). La preuve du filet est la
+  # transcription gardée par --keep-temp, comptée par `vlp.py transcription`.

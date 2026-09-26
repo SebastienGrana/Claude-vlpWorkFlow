@@ -2796,6 +2796,36 @@ def test_bac():
 test_bac()
 
 
+# EVF2 : `kit-essai` copie un kit factice à plafond bas, dans un dossier temporaire à lui
+def test_kit_essai():
+    with tempfile.TemporaryDirectory() as tke:
+        src = os.path.join(tke, "kit")
+        for sous_dossier in ("agents", "scripts", ".git", "context AI", os.path.join("evals", "results"),
+                             os.path.join("evals", "cas")):
+            os.makedirs(os.path.join(src, sous_dossier))
+        fiche_src = os.path.join(src, "agents", "fiche.md")
+        with open(fiche_src, "w", encoding="utf-8") as f:
+            f.write("---\nname: fiche\nmaxTurns: 80\ntools: Read\n---\n\nCorps.\n")
+        for rel in ("scripts/x.py", ".git/HEAD", "context AI/08-etat.md", "evals/results/r.json", "evals/cas/case.yaml"):
+            with open(os.path.join(src, rel), "w", encoding="utf-8") as f:
+                f.write("x\n")
+        dke = os.path.join(tke, "copie")
+        code, s = appel(["kit-essai", dke, "--max-turns", "6", "--kit", src])
+        verifier("kit-essai : sort 0 et annonce 80 → 6", code == 0 and s == "KIT %s · maxTurns 80 → 6\n" % dke, s)
+        verifier("kit-essai : maxTurns 6 dans la copie", mod.lire_max_turns(os.path.join(dke, "agents", "fiche.md")) == 6,
+                 repr(mod.lire_max_turns(os.path.join(dke, "agents", "fiche.md"))))
+        verifier("kit-essai : maxTurns inchangé dans le kit", mod.lire_max_turns(fiche_src) == 80, "")
+        presents = [rel for rel in ("scripts/x.py", "evals/cas/case.yaml") if os.path.exists(os.path.join(dke, rel))]
+        absents = [rel for rel in (".git", "context AI", "evals/results") if not os.path.exists(os.path.join(dke, rel))]
+        verifier("kit-essai : copie le kit, sans .git, context AI ni evals/results",
+                 len(presents) == 2 and len(absents) == 3, "%r %r" % (presents, absents))
+        code, s2 = appel(["kit-essai", dke, "--max-turns", "6", "--kit", src])
+        verifier("kit-essai : un 2e appel rend une GARDE", code == 1 and s2.startswith("GARDE:"), s2)
+
+
+test_kit_essai()
+
+
 # BAC2 : `transcription` compte une transcription de sous-agent factice, dans un dossier à lui
 def test_transcription():
     u = {"input_tokens": 1}

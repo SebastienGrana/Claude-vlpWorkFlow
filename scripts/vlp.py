@@ -257,6 +257,11 @@ Sous-commandes :
   `AVERTISSEMENTS=`, `PREMIER_AVERTISSEMENT tour= outil= is_error=<oui|non> hook=` (l'appel que
   désigne son `toolUseID`) et `TEXTE=`, ou `PREMIER_AVERTISSEMENT aucun` ; `HOOK_ERREURS=<n> pour
   <n> appels`, `DERNIER mot= stop_reason=`, `DERNIERE_LIGNE=`. Illisible : `GARDE:`, sort 1 (chantier BAC).
+- `kit-essai <dossier> --max-turns <n> [--kit <source>]` — copie le kit (par défaut celui de ce
+  script ; sans `.git`, `.claude`, `context AI`, `evals/results`, `__pycache__`) dans un dossier absent
+  ou vide, et y réécrit `maxTurns` d'`agents/fiche.md` : un plafond bas sans toucher au vrai kit.
+  Dossier plein, ou pas de ligne `maxTurns` : `GARDE:`, rien d'écrit, sort 1. Imprime
+  `KIT <dossier> · maxTurns <avant> → <n>` (chantier EVF).
 
 Python 3 sans dépendance, zéro appel modèle.
 
@@ -3449,6 +3454,39 @@ def cmd_bac(dossier, sortie):
     return 0
 
 
+KIT_EXCLUS = (".git", ".claude", "context AI", "__pycache__", "relais-python.err")
+
+
+def cmd_kit_essai(dossier, max_turns, source, sortie):
+    """Une copie jetable du kit à plafond bas (EVF2) : l'eval se lance sur elle, le vrai kit ne bouge pas."""
+    import shutil
+    source = os.path.abspath(source or os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    if os.path.exists(dossier) and (not os.path.isdir(dossier) or os.listdir(dossier)):
+        sortie.write("GARDE: %s existe et n'est pas un dossier vide — rien d'écrit\n" % dossier)
+        return 1
+    fiche = os.path.join(source, "agents", "fiche.md")
+    avant = lire_max_turns(fiche)
+    if avant is None:
+        sortie.write("GARDE: pas de ligne maxTurns dans %s — rien d'écrit\n" % fiche)
+        return 1
+
+    def exclus(racine, noms):
+        rel = os.path.relpath(racine, source).replace(os.sep, "/")
+        return [n for n in noms if n in KIT_EXCLUS or (rel == "evals" and n == "results")]
+
+    if os.path.isdir(dossier):
+        os.rmdir(dossier)
+    shutil.copytree(source, dossier, ignore=exclus)
+    copie = os.path.join(dossier, "agents", "fiche.md")
+    with open(copie, encoding="utf-8", newline="") as f:
+        texte = f.read()
+    texte = re.sub(r"(?m)^maxTurns:.*$", "maxTurns: %d" % max_turns, texte, count=1)
+    with open(copie, "w", encoding="utf-8", newline="") as f:
+        f.write(texte)
+    sortie.write("KIT %s · maxTurns %d → %d\n" % (dossier, avant, max_turns))
+    return 0
+
+
 def cmd_transcription(chemin, sortie):
     """Compte la transcription d'un sous-agent (chantier BAC) : tours comme `comptoir_tours`,
     appels, avertissements du filet et l'appel qui les précède, erreurs de hook, dernier message."""
@@ -3623,6 +3661,10 @@ def main(argv, sortie=None, entree=None, erreur=None):
     rc.add_argument("--a-clore", action="store_true")
     bc = sous.add_parser("bac")
     bc.add_argument("dossier")
+    ke = sous.add_parser("kit-essai")
+    ke.add_argument("dossier")
+    ke.add_argument("--max-turns", type=int, required=True)
+    ke.add_argument("--kit")
     tr = sous.add_parser("transcription")
     tr.add_argument("jsonl")
     a = p.parse_args(argv)
@@ -3682,6 +3724,8 @@ def repartir(a, sortie, entree, erreur):
         return cmd_recompter(a.projet, sortie, a.ecrire, a.essais, a.a_clore)
     if a.cmd == "bac":
         return cmd_bac(a.dossier, sortie)
+    if a.cmd == "kit-essai":
+        return cmd_kit_essai(a.dossier, a.max_turns, a.kit, sortie)
     if a.cmd == "transcription":
         return cmd_transcription(a.jsonl, sortie)
     chemin_garde(a.fichier)
