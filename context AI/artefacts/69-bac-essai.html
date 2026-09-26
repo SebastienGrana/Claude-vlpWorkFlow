@@ -87,11 +87,11 @@
         <span class="id">BAC2</span><span class="titre">Compter la transcription d'un sous-agent</span>
         <span class="etat">faite</span>
         <span class="note">test OK, 2 mutants tombent ; rejeu F1/F2 : TOURS=8, 7 appels, averti tour 7 (Read non / Bash oui), HOOK_ERREURS=7 pour 7, RETOUR end_turn — sans écart avec FIL3 ; pyright 0 errors</span>
-        <span class="cout mono">≈1,9M (1 923 840) · 19 tours · 1,20 $</span>
+        <span class="cout mono">≈2,2M (2 160 715) · 21 tours · 1,31 $</span>
       </li>
     </ul>
-    <p class="mono cout-hors">Hors fiches : ≈3,1M (3 144 749) · 26 tours · 2,20 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈7,8M (7 780 455) · 70 tours · 4,83 $</p>
+    <p class="mono cout-hors">Hors fiches : ≈3,3M (3 269 908) · 27 tours · 2,27 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈8,1M (8 142 489) · 73 tours · 5,01 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -112,10 +112,12 @@
   </section>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
-  <section hidden>
-    <h2>Chantier clos le </h2>
+  <section>
+    <h2>Chantier clos le 2026-09-26</h2>
     <div class="bilan">
-      <p></p>
+      <p>Livré : vlp.py bac pose le bac d'essai de FIL3 en un appel ; vlp.py transcription compte la transcription d'un sous-agent et retrouve, sur F1 et F2, les chiffres du journal FIL3</p>
+      <p>Surpris : rien : le rejeu tombe juste du premier coup, is_error absent sur un Read réussi vaut non</p>
+      <p>Estimé : estimé 1 fiches ≈3,90 $ · cadré 2 · joué 2 fiches ≈6,82 $</p>
     </div>
   </section>
 

@@ -73,14 +73,14 @@
     <!-- ZONE:encours — remplacé à chaque ouverture, remis à « aucun » à chaque clôture.
          /tache n'y touche pas : l'avancement fiche par fiche est sur la page du chantier. -->
     <div class="encours">
-      <div class="titre">Un bac d'essai par script <span class="badge" data-etat="cours">en cours</span></div>
-      <div>Fiches <span class="mono">BAC1–BAC2</span> — <a href="https://claude.ai/artifact/MGhXaCPyDFwXztJrPRuKFd">la page du chantier</a></div>
+      <div class="titre">Aucun chantier ouvert</div>
+      <div>Lancer <span class="mono">/vlp:chantier</span> pour en ouvrir un.</div>
     </div>
   </section>
 
   <section>
     <h2>Les chantiers possibles, dans l'ordre</h2>
-    <p class="mono resume-todo" style="margin:0;color:var(--doux);font-size:.9rem">17 chantiers possibles</p>
+    <p class="mono resume-todo" style="margin:0;color:var(--doux);font-size:.9rem">16 chantiers possibles</p>
     <!-- ZONE:todo — miroir de la TODO ordonnée du fichier d'état ; le fichier reste la vérité -->
     <div class="tableau">
       <table>
@@ -89,7 +89,6 @@
         </thead>
         <tbody>
           <tr><td class="mono">43</td><td><span class="mono">RAT</span> — Un <span class="mono">Read</span> raté réveille-t-il le filet ?</td><td>Reste de <span class="mono">FIL</span> : le filet tire après un <span class="mono">Read</span> réussi et après un Bash à code non nul (<span class="mono">FIL3</span>), mais un <span class="mono">Read</span> sur un fichier absent n'est pas éprouvé. La doc range dans <span class="mono">PostToolUseFailure</span> l'outil lancé qui échoue, pas l'appel refusé avant de s'exécuter (journal du 2026-09-24). S'il n'en déclenche aucun, des derniers tours de <span class="mono">Read</span> ratés laissent le sous-agent coupé muet. Un essai à plafond 10, comme <span class="mono">FIL3</span> (≈ 0,1 $).</td><td class="mono">~0,5 fiche</td><td class="mono">—</td></tr>
-          <tr><td class="mono">45</td><td><span class="mono">BAC</span> — Un bac d'essai par script <span class="badge" data-etat="cours">en cours</span></td><td><span class="mono">SAG4</span> et <span class="mono">FIL3</span> ont rebâti leur bac à la main — <span class="mono">CHANTIER.md</span>, fiches factices, fichiers —, puis compté la transcription du sous-agent par un script jetable. <span class="mono">FIL3</span> y a buté deux fois : la section <span class="mono">## L'ordre des fiches</span> exigée par le hook, et « un appel par tour », lu par Haiku comme « par exécution » (0,148 $ perdus). <span class="mono">vlp.py</span> posera le bac en un appel, et comptera la transcription : tours, avertissements du filet et l'outil qui les précède, <span class="mono">hook_non_blocking_error</span>, premier mot et <span class="mono">stop_reason</span> du dernier message. Le lancement <span class="mono">claude -p</span> reste à la main, chiffré avant.</td><td class="mono">~1 fiche</td><td class="mono">—</td></tr>
           <tr><td class="mono">46</td><td><span class="mono">EVF</span> — Le filet en eval rejouable</td><td>Les deux essais de <span class="mono">FIL3</span> en eval du plugin (chantier <span class="mono">V</span>) : un changement de <span class="mono">hooks/hooks.json</span> ou de <span class="mono">vlp.py filet</span> se reprouve en un appel, ≈ 0,16 $ le passage (0,06411505 + 0,10040705). 🟡 Qu'un eval lise la transcription d'un sous-agent : pas vérifié.</td><td class="mono">~2 fiches</td><td class="mono"><span class="mono">BAC</span></td></tr>
           <tr><td class="mono">25</td><td><span class="mono">VOI</span> — Finir les feuilles voisines, reste de <span class="mono">REP</span></td><td>Ce que <span class="mono">REP</span> a laissé. La ligne <span class="mono">MARKDOWN</span> de <span class="mono">vlp.py niveau</span> compte, sans <span class="mono">--ecrire</span>, la page régénérée au lieu de celle du disque : elle ne voit ni la TODO ni la zone « en cours ». La régénération abîme trois feuilles voisines : TODO de MapDecorator hors table, donc lue vide ; lettres de fiche entre backticks ignorées ; source de TrackGen sans accents. Une fois corrigées, republier MapDecorator, TrackGen et ProjetONZSM. Détail : journal du 2026-09-23.</td><td class="mono">~3 fiches</td><td class="mono">—</td></tr>
           <tr><td class="mono">26</td><td><span class="mono">ABR</span> — Mettre notes et journal à l'abri dans un <span class="mono">.md</span></td><td>Les notes et le journal d'une page de chantier n'existent aujourd'hui que dans la page. <span class="mono">page --note</span> et <span class="mono">--journal</span> écriront d'abord le texte entier dans un <span class="mono">.md</span>, et la page le recopiera.</td><td class="mono">~3 fiches</td><td class="mono">—</td></tr>
@@ -114,13 +113,19 @@
     <h2>Chantiers clos — ils ne se rejouent pas</h2>
     <!-- ZONE:clos — une ligne ajoutée à chaque clôture, la plus récente en haut -->
     <details class="clos">
-      <summary><span class="resume-clos">57 chantiers clos · ≈857,2M (857 154 845) tokens · ≈718 $</span></summary>
+      <summary><span class="resume-clos">58 chantiers clos · ≈865,3M (865 297 334) tokens · ≈724 $</span></summary>
     <div class="tableau">
       <table>
         <thead>
           <tr><th>Chantier</th><th>Fiches</th><th>Clos le</th><th>Tokens</th><th>Ce qu'il a livré</th></tr>
         </thead>
         <tbody>
+          <tr>
+            <td><a href="https://claude.ai/artifact/MGhXaCPyDFwXztJrPRuKFd">Un bac d'essai par script</a> <span class="badge" data-etat="clos">clos</span></td>
+            <td class="mono">BAC1–BAC2</td><td class="mono">2026-09-26</td>
+            <td class="mono">≈8,1M (8 142 489)</td>
+            <td>vlp.py bac pose le bac d'essai de FIL3 en un appel ; vlp.py transcription compte la transcription d'un sous-agent et retrouve, sur F1 et F2, les chiffres du journal FIL3</td>
+          </tr>
           <tr>
             <td><a href="https://claude.ai/artifact/Fre8eWqQkrmvQFanE5z3jr">L'estimé face au réel, à chaque clôture</a> <span class="badge" data-etat="clos">clos</span></td>
             <td class="mono">EST1–EST3</td><td class="mono">2026-09-26</td>
@@ -493,7 +498,7 @@
           </tr>
         </tbody>
         <tfoot>
-          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈857,2M (857 154 845)</strong></td><td class="mono">≈718 $</td></tr>
+          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈865,3M (865 297 334)</strong></td><td class="mono">≈724 $</td></tr>
         </tfoot>
       </table>
     </div>
