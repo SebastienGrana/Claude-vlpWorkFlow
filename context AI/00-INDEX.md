@@ -49,7 +49,7 @@ a l'air proche.
 | `68-estime-reel.md` | on relit le socle du chantier EST — **clos** « L'estimé face au réel, à chaque clôture », `EST1..EST3` |
 | `69-bac-essai.md` | on relit le socle du chantier BAC — **clos** « Un bac d'essai par script », `BAC1..BAC2` |
 | `70-filet-eval.md` | on relit le socle du chantier EVF — **clos** « Le filet en eval rejouable », `EVF4..EVF3` |
-| `71-read-rate.md` | on joue une fiche `RAT*` — chantier **ouvert** « Un Read raté réveille-t-il le filet ? », `RAT1..RAT1` |
+| `71-read-rate.md` | on relit le socle du chantier RAT — **clos** « Un Read raté réveille-t-il le filet ? », `RAT1..RAT1` |
 | `35-bilan.md` | on doit expliquer le kit — d'où il vient, ce qu'il sait faire aujourd'hui, ce qu'il ne promet pas ; les 22 chantiers chiffrés |
 | `36-gardes.md` | on relit le socle du chantier Z — **clos** « Une GARDE au lieu d'un traceback », `Z1..Z4` |
 | `37-niveau.md` | on relit le socle du chantier NIV — **clos** « Remettre les projets équipés à niveau », `NIV1..NIV4` |

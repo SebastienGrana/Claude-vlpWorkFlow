@@ -9,7 +9,9 @@
 
 **Estimé.** 0,5 fiches · ≈2,03 $ — ≈4,05 $/fiche sur 58 clos (le 2026-09-26).
 
-**Fait.** Rien. Ouvert le 2026-09-26, la nuit, cadré seul en 1 fiche (à valider), `RAT1` à jouer.
+**CLOS** le 2026-09-26. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** RAT1..RAT1 (2026-09-26) : un Read raté réveille le filet : PostToolUseFailure:Read, prouvé à plafond 5 par evals/filet-rate/ (témoin 80 muet) — estimé 0,5 fiches ≈2,03 $ · cadré 1 · joué 1 fiches ≈1,43 $.
 
 **Session** : 81f28c74-89aa-4815-b804-db93de007ebc
 
