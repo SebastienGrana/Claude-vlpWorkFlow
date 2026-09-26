@@ -156,8 +156,9 @@ tombe. Tests et pyright comptés comme en `ABR1`.
 ---
 
 <!-- FICHE:ABR4 -->
-## ABR4 [ ] — Dire dans la doctrine que le `.md` est la source
+## ABR4 [x] — Dire dans la doctrine que le `.md` est la source
 
+**Session** : 72de750c-600b-43d1-b5e7-94c21b471768
 **Dépend de** : `ABR2`, `ABR3`.
 **Fichiers** : `ARTEFACTS.md` — et rien d'autre.
 
