@@ -1786,6 +1786,19 @@ def cmd_gardien(entree, sortie):
 # Le seuil vit dans le script (SEUIL_PAGE) : ici, il est défini et cité.
 SEUIL_PAGE = 250
 GABARIT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "templates", "artefact-chantier.html")
+GABARIT_VLPCSS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "templates", "vlp.css")
+
+
+def recopier_vlp_css(dossier):
+    """Copie `templates/vlp.css` du kit dans `dossier`, à chaque appel de `page` et
+    `feuille` — la source ne bouge qu'au commit, la copie peut avoir été modifiée à
+    la main entre deux appels (chantier PLI). Rend le chemin de la copie."""
+    dest = os.path.join(dossier, "vlp.css")
+    with open(GABARIT_VLPCSS, "rb") as f:
+        contenu = f.read()
+    with open(dest, "wb") as f:
+        f.write(contenu)
+    return dest
 LI_FICHE = re.compile(r'[ \t]*<li class="fiche"[^>]*>.*?</li>\n?', re.S)
 UL_FICHES = re.compile(r'(<ul class="fiches">)(.*?)(\n[ \t]*</ul>)', re.S)
 # Relit tout ce que `ligne_cout` écrit : le total entre parenthèses, ou nu sous
@@ -2425,6 +2438,8 @@ def cmd_page(a, sortie):
     sortie.write("PAGE %s · %s · %d lignes · total %s%s\n"
                  % (a.page, comptage(fiches_, etat), n, ligne_cout(*total) if total else "non mesuré",
                     ", dont hors fiches %s" % ligne_cout(*hors) if hors else ""))
+    css = recopier_vlp_css(os.path.dirname(os.path.abspath(a.page)))
+    sortie.write("CSS %s\n" % css)
     if n > SEUIL_PAGE:
         sortie.write("GARDE: %d lignes, au-delà du seuil du script (%d) — la page est relue à chaque fiche\n"
                      % (n, SEUIL_PAGE))
@@ -2730,6 +2745,8 @@ def cmd_feuille(a, sortie):
         return 0 if neuf == html else 1
     with open(page, "w", encoding="utf-8", newline="") as f:
         f.write(neuf)
+    css = recopier_vlp_css(os.path.dirname(os.path.abspath(page)))
+    sortie.write("CSS %s\n" % css)
     sortie.write("%s · %s — %s\n" % (bilan, "inchangée" if neuf == html else "réécrite", page))
     return 0
 
@@ -2943,9 +2960,9 @@ def resommer(html, n, total):
 
 
 def regles_clos():
-    """Les règles CSS du bloc repliable, lues dans le gabarit : elles n'ont pas
-    de second exemplaire ici."""
-    return [l for l in lire(os.path.join(KIT, GABARIT_FEUILLE)).splitlines(True)
+    """Les règles CSS du bloc repliable, lues dans `templates/vlp.css` (chantier PLI —
+    avant, dans le gabarit) : elles n'ont pas de second exemplaire ici."""
+    return [l for l in lire(GABARIT_VLPCSS).splitlines(True)
             if l.lstrip().startswith(("details.clos", ".resume-clos"))]
 
 
@@ -2953,8 +2970,9 @@ def migrer_feuille(html):
     """Une feuille de route d'avant le 2026-09-17 n'a ni bloc repliable ni
     cellule d'estimation au pied de la table des clos : les poser, sans toucher
     à l'indentation des lignes de `ZONE:clos`. Rend le HTML — le même s'il les
-    a déjà."""
-    if "details.clos" not in html:
+    a déjà. Une page liée à `vlp.css` (chantier PLI) les a toujours : n'y touche pas,
+    elle n'a plus de `<style>` où les insérer."""
+    if "details.clos" not in html and 'href="vlp.css"' not in html:
         i = html.find("tfoot td {")
         i = html.find("\n", i) + 1 if i >= 0 else html.find("</style>")
         html = html[:i] + "".join(regles_clos()) + html[i:]

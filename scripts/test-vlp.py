@@ -1998,12 +1998,20 @@ with tempfile.TemporaryDirectory() as t:
 
 # --- NIV3 : `niveau --ecrire` corrige les écarts mécaniques, et eux seuls ----
 
-# Une feuille de route d'avant le 2026-09-17 : le gabarit sans le bloc repliable
-# ni ses règles CSS — le reste à l'identique, marqueurs et indentation compris.
+# Une feuille de route d'avant le 2026-09-17 : le CSS inline (comme avant le
+# chantier PLI, pas de <link href="vlp.css">), sans le bloc repliable ni ses
+# règles CSS — le reste à l'identique, marqueurs et indentation compris.
+GABARIT_VLPCSS = os.path.join(ICI, "..", "templates", "vlp.css")
+
+
 def feuille_ancienne():
-    lignes = io.open(GABARIT_FEUILLE, encoding="utf-8").read().splitlines(True)
+    css = "".join(l for l in io.open(GABARIT_VLPCSS, encoding="utf-8").read().splitlines(True)
+                  if not l.lstrip().startswith(("details.clos", ".resume-clos")))
+    gabarit = io.open(GABARIT_FEUILLE, encoding="utf-8").read()
+    gabarit = gabarit.replace('<link rel="stylesheet" href="vlp.css">', "<style>\n%s</style>" % css)
+    lignes = gabarit.splitlines(True)
     return "".join(l for l in lignes
-                   if not l.lstrip().startswith(("details.clos", ".resume-clos", "<details class=\"clos\">",
+                   if not l.lstrip().startswith(("<details class=\"clos\">",
                                                  "<summary><span class=\"resume-clos\">", "</details>")))
 
 
@@ -3223,5 +3231,69 @@ def tester_abr2():
 
 
 tester_abr2()
+
+
+# --- PLI1 (fiche PLI2) : `page` et `feuille` recopient `templates/vlp.css` ----
+
+FICHES_PLI2 = """# Chantier PLI2
+
+## Le socle commun
+
+## L'ordre des fiches
+
+<!-- FICHE:P1 -->
+## P1 [ ] — Un
+**Critère de fin**
+x
+<!-- /FICHE -->
+"""
+
+
+def tester_vlp_css_recopie():
+    source = io.open(os.path.join(ICI, "..", "templates", "vlp.css"), "rb").read()
+
+    # `page --creer`, puis `page` sans --creer (régénération) : les deux recopient.
+    with tempfile.TemporaryDirectory() as tab:
+        fiches = os.path.join(tab, "p.md")
+        page = os.path.join(tab, "artefacts", "p.html")
+        css = os.path.join(tab, "artefacts", "vlp.css")
+        ecrire(fiches, FICHES_PLI2)
+        code, s = appel(["page", fiches, page, "--creer", "--projet", "Proj", "--titre", "T", "--resultat", "R0"])
+        verifier("PLI2 : page --creer recopie vlp.css, le dit en sortie",
+                 code == 0 and os.path.isfile(css) and io.open(css, "rb").read() == source
+                 and "CSS %s\n" % css in s, s)
+        with open(css, "wb") as f:
+            f.write(b"/* modifie a la main */")
+        code, s = appel(["page", fiches, page])
+        verifier("PLI2 : page (régénération, sans --creer) remet vlp.css à l'identique"
+                 " — mutant : ne copier qu'à --creer",
+                 code == 0 and io.open(css, "rb").read() == source, s)
+
+    # `feuille`, sur un projet équipé, recopie aussi.
+    with tempfile.TemporaryDirectory() as tab:
+        proj = os.path.join(tab, "proj")
+        ecrire(os.path.join(proj, "CHANTIER.md"),
+               "# C\n\n- **contexte** : ctx/\n- **fichier d'état** : ctx/08-etat.md\n"
+               "- **fichier de fiches courant** : aucun\n"
+               "- **artefact du chantier** : aucun\n\nLettres de fiche déjà prises : U (test).\n")
+        ecrire(os.path.join(proj, "ctx", "08-etat.md"),
+               "# État\n\n## La TODO\n\n| # | Chantier | Apporte | Coût | Dépend |\n|---|---|---|---|---|\n")
+        fdr = os.path.join(proj, "ctx", "artefacts", "feuille-de-route.html")
+        ecrire(fdr, io.open(os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html"),
+                            encoding="utf-8").read())
+        css = os.path.join(proj, "ctx", "artefacts", "vlp.css")
+        code, s = appel(["feuille", proj])
+        verifier("PLI2 : feuille recopie vlp.css, le dit en sortie",
+                 code == 0 and os.path.isfile(css) and io.open(css, "rb").read() == source
+                 and "CSS %s\n" % css in s, s)
+
+    # Les deux gabarits ne portent plus de <style> inline (chantier PLI, fiche PLI2).
+    for nom in ("artefact-chantier.html", "artefact-feuille-de-route.html"):
+        gabarit = io.open(os.path.join(ICI, "..", "templates", nom), encoding="utf-8").read()
+        verifier("PLI2 : %s sans <style> — %d" % (nom, gabarit.count("<style")),
+                 gabarit.count("<style") == 0 and 'href="vlp.css"' in gabarit, gabarit[:400])
+
+
+tester_vlp_css_recopie()
 
 print("OK")

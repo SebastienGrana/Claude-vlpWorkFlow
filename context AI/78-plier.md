@@ -106,8 +106,9 @@ hauteur en écrans (hauteur brute en px à côté) et l'écart en tokens (`ctx_1
 ---
 
 <!-- FICHE:PLI2 -->
-## PLI2 [ ] — Poser `vlp.css` dans le kit
+## PLI2 [x] — Poser `vlp.css` dans le kit
 
+**Session** : 30b330e2-4593-4cb3-8abc-4a109ec7890d
 **Dépend de** : rien.
 **Fichiers** : `templates/artefact-chantier.html`, `templates/artefact-feuille-de-route.html`, `context AI/artefacts/essai-ale/vlp.css`, `scripts/vlp.py` (`cmd_page`, `cmd_feuille`, `creer`), `scripts/test-vlp.py` — et rien d'autre.
 
