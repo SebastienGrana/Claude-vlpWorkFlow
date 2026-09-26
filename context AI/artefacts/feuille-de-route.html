@@ -73,14 +73,14 @@
     <!-- ZONE:encours — remplacé à chaque ouverture, remis à « aucun » à chaque clôture.
          /tache n'y touche pas : l'avancement fiche par fiche est sur la page du chantier. -->
     <div class="encours">
-      <div class="titre">Rejouer un hook à la main sans le tampon <span class="badge" data-etat="cours">en cours</span></div>
-      <div>Fiches <span class="mono">SON1</span> — <a href="https://claude.ai/artifact/8BxqxGXaupVUVQRp6cCrFE">la page du chantier</a></div>
+      <div class="titre">Aucun chantier ouvert</div>
+      <div>Lancer <span class="mono">/vlp:chantier</span> pour en ouvrir un.</div>
     </div>
   </section>
 
   <section>
     <h2>Les chantiers possibles, dans l'ordre</h2>
-    <p class="mono resume-todo" style="margin:0;color:var(--doux);font-size:.9rem">14 chantiers possibles</p>
+    <p class="mono resume-todo" style="margin:0;color:var(--doux);font-size:.9rem">13 chantiers possibles</p>
     <!-- ZONE:todo — miroir de la TODO ordonnée du fichier d'état ; le fichier reste la vérité -->
     <div class="tableau">
       <table>
@@ -100,7 +100,6 @@
           <tr><td class="mono">58</td><td><span class="mono">PAR</span> — Deux chantiers en parallèle, s'ils ne se chevauchent pas</td><td>Tout le kit suppose un seul chantier à la fois : <span class="mono">CHANTIER.md</span> s'intitule « Chantier courant » et ne porte qu'un <strong>fichier de fiches courant</strong> et qu'un <strong>artefact du chantier</strong> (<span class="mono">CHANTIER.md:1</span>, <span class="mono">:16</span>, <span class="mono">:18</span>) ; <span class="mono">/vlp:tache</span> et <span class="mono">/vlp:enchainer</span> jouent « une fiche du chantier courant » ; <span class="mono">vlp.py ouvrir</span> et <span class="mono">clore</span> écrivent ces lignes uniques. Deux chantiers dont les fichiers touchés sont disjoints pourraient tourner en même temps, dans deux sessions. 🟡 À trancher au cadrage : comment <span class="mono">CHANTIER.md</span> porte deux chantiers courants sans devenir ambigu (il est lu <strong>en entier</strong> par <span class="mono">/vlp:chantier</span> et <span class="mono">/vlp:tache</span>) ; comment une commande sait duquel il s'agit (argument, ou lettre de fiche) ; qui vérifie le non-chevauchement, et sur quoi — les fichiers que les fiches nomment, ou une liste déclarée à l'ouverture ; un seul dépôt ou deux worktrees, et l'ordre des commits ; ce que deviennent la page publiée et le coût, que <span class="mono">cout</span> coupe aux commits de fiche. Ajoutée à la demande de l'utilisateur ; rang pas encore fixé, d'où la fin de table.</td><td class="mono">🟡 pas estimé</td><td class="mono">—</td></tr>
           <tr><td class="mono">61</td><td><span class="mono">CHK</span> — <span class="mono">/vlp:check</span> lit le contrat</td><td><span class="mono">vlp.py contrat</span> (chantier <span class="mono">CON</span>) ne tourne qu'à la main. <span class="mono">/vlp:check</span> le lancera <span class="mono">--depuis</span> l'ouverture du chantier courant et dira, sans rien rejouer, combien de sous-agents, combien ont écrit dans Git, combien sans statut en tête — le bulletin du gardien. 🟡 L'heure d'ouverture : commit <span class="mono">Chantier … ouvert</span>, ou session du cadrage notée par <span class="mono">ouvrir</span>.</td><td class="mono">~0,5 fiche</td><td class="mono">—</td></tr>
           <tr><td class="mono">63</td><td><span class="mono">ECH</span> — <span class="mono">ECRIT_GIT</span> ne lit pas le texte d'un heredoc</td><td>Le gardien a refusé à deux relecteurs de <span class="mono">RLG1</span> (2026-09-25) un heredoc ou un <span class="mono">echo</span> qui ne faisait qu'écrire les mots <span class="mono">git commit</span> ou <span class="mono">git add</span> dans un fichier de sonde. <span class="mono">ECRIT_GIT</span> cherche le motif dans toute la commande. Vrai aussi pour <span class="mono">vlp:fiche</span>, depuis <span class="mono">CON</span>. 🟡 Jusqu'où lire le shell : couper les chaînes citées ne suffit pas pour un heredoc.</td><td class="mono">~0,5 fiche</td><td class="mono">—</td></tr>
-          <tr><td class="mono">64</td><td><span class="mono">SON</span> — Rejouer un hook à la main sans le tampon <span class="badge" data-etat="cours">en cours</span></td><td><span class="mono">une_fois</span> (chantier <span class="mono">PYT</span>) fait taire la même entrée rejouée en moins de 60 s, même par une autre copie de <span class="mono">vlp.py</span> : un relecteur de <span class="mono">RLG1</span> a dû ajouter un <span class="mono">nonce</span> pour comparer AVANT et APRÈS. Une variable d'environnement, ou une option, qui saute le tampon hors d'un vrai hook.</td><td class="mono">~0,5 fiche</td><td class="mono">—</td></tr>
           <tr><td class="mono">66</td><td><span class="mono">OUV</span> — Une ligne qui s'ouvre par un mot de jauge, sans être une jauge</td><td>Reste de <span class="mono">JUG</span> : le gardien (règle <span class="mono">tete</span>) renvoie une ligne qui <strong>commence</strong> par « Imprévu », « Pas bon »… même quand ce n'est pas la jauge — une puce <span class="mono">- Imprévu : j'ai dû…</span>, un <span class="mono">REFUSÉE</span> dont une ligne s'ouvre par « Pas bon ». Absent des 29 sous-agents mesurés en <span class="mono">JUG1</span> ; <span class="mono">stop_hook_active</span> borne le coût à un renvoi. 🟡 Exiger l'émoji de la jauge devant le mot, ou le mot suivi de <span class="mono">—</span>/<span class="mono">…</span>/fin de ligne : à mesurer sur le corpus comme en <span class="mono">JUG1</span> (<span class="mono">forme --regle</span>).</td><td class="mono">~0,5 fiche</td><td class="mono">—</td></tr>
         </tbody>
       </table>
@@ -111,13 +110,19 @@
     <h2>Chantiers clos — ils ne se rejouent pas</h2>
     <!-- ZONE:clos — une ligne ajoutée à chaque clôture, la plus récente en haut -->
     <details class="clos">
-      <summary><span class="resume-clos">60 chantiers clos · ≈902,6M (902 597 567) tokens · ≈756 $</span></summary>
+      <summary><span class="resume-clos">61 chantiers clos · ≈904,6M (904 572 091) tokens · ≈757 $</span></summary>
     <div class="tableau">
       <table>
         <thead>
           <tr><th>Chantier</th><th>Fiches</th><th>Clos le</th><th>Tokens</th><th>Ce qu'il a livré</th></tr>
         </thead>
         <tbody>
+          <tr>
+            <td><a href="https://claude.ai/artifact/8BxqxGXaupVUVQRp6cCrFE">Rejouer un hook à la main sans le tampon</a> <span class="badge" data-etat="clos">clos</span></td>
+            <td class="mono">SON1</td><td class="mono">2026-09-26</td>
+            <td class="mono">≈2,0M (1 974 524)</td>
+            <td>VLP_SANS_TAMPON=1 : un hook rejoué à la main agit à chaque fois, sans nonce ; test et mutant</td>
+          </tr>
           <tr>
             <td><a href="https://claude.ai/artifact/LwBycLXrBXgoWzEHzMVH77">Un <span class="mono">Read</span> raté réveille-t-il le filet ?</a> <span class="badge" data-etat="clos">clos</span></td>
             <td class="mono">RAT1</td><td class="mono">2026-09-26</td>
@@ -508,7 +513,7 @@
           </tr>
         </tbody>
         <tfoot>
-          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈902,6M (902 597 567)</strong></td><td class="mono">≈756 $</td></tr>
+          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈904,6M (904 572 091)</strong></td><td class="mono">≈757 $</td></tr>
         </tfoot>
       </table>
     </div>
