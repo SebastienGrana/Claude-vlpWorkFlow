@@ -2975,4 +2975,11 @@ with tempfile.TemporaryDirectory() as tc:
     code, s = appel(["comparer", anc, os.path.join(tc, "absente.html")])
     verifier("VOI2 : fichier absent — GARDE, code 1", code == 1 and s.startswith("GARDE:"), s)
 
+# --- VOI3 : `lettres_prises` tolère une lettre entre backticks (MapDecorator) -
+
+LIGNE_MAPDECORATOR = "Lettres de fiche déjà prises : `T`, `U`, `R`, `M`. Un nouveau chantier en choisit"
+verifier("VOI3 : lettres entre backticks (ligne réelle de MapDecorator)",
+         mod.lettres_prises([LIGNE_MAPDECORATOR]) == ["T", "U", "R", "M"],
+         repr(mod.lettres_prises([LIGNE_MAPDECORATOR])))
+
 print("OK")

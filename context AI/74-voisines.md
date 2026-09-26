@@ -115,8 +115,9 @@ texte de la TODO. Mutant « ne jamais écrire `PERDU` » : le test tombe. `pyrig
 ---
 
 <!-- FICHE:VOI3 -->
-## VOI3 [ ] — Lire les lettres de fiche entre backticks
+## VOI3 [x] — Lire les lettres de fiche entre backticks
 
+**Session** : 75214987-1d49-4d93-8532-3920557c9c7b
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py` (`lettres_prises`), `scripts/test-vlp.py` — et rien d'autre.
 

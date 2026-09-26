@@ -2338,8 +2338,8 @@ def lettre_de(id_fiche):
 
 def lettres_prises(lignes):
     """Les lettres de la ligne « Lettres de fiche déjà prises » : une par entrée, `X (titre)`
-    ou `X` seule ; les entrées se séparent aux virgules hors parenthèses, et un titre à
-    virgule n'en ajoute pas (chantier TAR)."""
+    ou `X` seule, une lettre entre backticks tolérée (chantier VOI) ; les entrées se séparent
+    aux virgules hors parenthèses, et un titre à virgule n'en ajoute pas (chantier TAR)."""
     texte = " ".join(l for l in lignes if l.strip())
     i = texte.find("Lettres de fiche déjà prises")
     if i < 0:
@@ -2353,7 +2353,7 @@ def lettres_prises(lignes):
             entrees.append(liste[debut:k])
             debut = k + 1
     entrees.append(liste[debut:])
-    return [m.group(1) for m in (re.match(r"\s*([A-Z]{1,3})(?: \(|\.?\s*$)", e) for e in entrees) if m]
+    return [m.group(1) for m in (re.match(r"\s*`?([A-Z]{1,3})`?(?: \(|\.?\s*$)", e) for e in entrees) if m]
 
 
 def plage(ids):
