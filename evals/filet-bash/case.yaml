@@ -1,0 +1,24 @@
+schema_version: "1.1"
+name: filet-bash
+runs: 1
+tags: [filet, wsl2]
+
+execution:
+  max_turns: 80
+  timeout_seconds: 300
+  # Le cas F2 de FIL3 (douze `exit 3`) : même forme que evals/filet/ (EVF2), Bash donné
+  # à l'invocation (--allow-tools Bash, sous WSL2). Un dossier par cas : F2 ne peut pas
+  # vivre dans evals/filet/ ; le tag commun `filet` rejoue les deux en un appel (EVF3).
+  allowed_tools: [Skill, Read]
+
+context:
+  scaffold_script: fixture.sh
+
+graders:
+  # Le sous-agent a lancé ses `exit 3` : ses Bash sont dans la trace.
+  - name: subagent-bash
+    type: tool_used
+    tool: Bash
+
+  # Pas de grader du filet : la trace ne porte pas le contexte des hooks (EVF2).
+  # La preuve est la transcription gardée, comptée par `vlp.py transcription`.

@@ -141,8 +141,9 @@ réécrire `maxTurns` fait tomber le test. `pyright scripts/vlp.py scripts/test-
 ---
 
 <!-- FICHE:EVF3 -->
-## EVF3 [ ] — Le cas `F2` (Bash, `exit 3`)
+## EVF3 [x] — Le cas `F2` (Bash, `exit 3`)
 
+**Session** : 81f28c74-89aa-4815-b804-db93de007ebc
 **Dépend de** : `EVF2`.
 **Fichiers** : `evals/filet/` (d'`EVF2`) ; `evals/tache/case.yaml` (forme d'un cas tag
 `wsl2`) — et rien d'autre.
@@ -155,8 +156,9 @@ plafond 80, « Attention » doit échouer. Si WSL2 n'est pas jouable ce jour-là
 `RETOUR` avec l'erreur brute : 🟡 une variante PowerShell est à trancher par l'utilisateur,
 pas ici.
 
-**Critère de fin**
-Plafond 10 : les trois graders passent ; plafond 80 : « Attention » échoue. Au journal :
-sorties brutes, `costUsd` et `turns`, et **la commande qui rejoue les deux cas en un
-appel** — c'est le résultat du chantier.
+**Critère de fin** — réécrit le 2026-09-26 après EVF2, la nuit, à valider : F2 vit dans
+`evals/filet-bash/` (un dossier par cas), même tag `filet`. `bash evals/filet/rejouer.sh 6` :
+graders `subagent-reads` et `subagent-bash` passent, chaque transcription compte
+`AVERTISSEMENTS` ≥ 1 ; `bash evals/filet/rejouer.sh 80` : `AVERTISSEMENTS=0` aux deux. Au journal :
+sorties brutes, `costUsd` et `turns`, et cette commande — c'est le résultat du chantier.
 <!-- /FICHE -->
