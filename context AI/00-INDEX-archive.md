@@ -67,3 +67,4 @@ QUAND LIRE : on relit un chantier clos ; l'index n'en garde qu'une ligne qui ren
 | `72-sans-tampon.md` | on relit le socle du chantier SON — **clos** « Rejouer un hook à la main sans le tampon », `SON1..SON1` |
 | `73-un-par-tour.md` | on relit le socle du chantier TOU — **clos** « Le filet n'avertit qu'une fois par tour », `TOU1..TOU3` |
 | `74-voisines.md` | on relit le socle du chantier VOI — **clos** « Finir les feuilles voisines, reste de REP », `VOI1..VOI6` |
+| `75-index-archive.md` | on relit le socle du chantier IDX — **clos** « L'index ne garde que le vivant », `IDX1..IDX3` |

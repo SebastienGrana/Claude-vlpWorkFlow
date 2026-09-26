@@ -18,7 +18,6 @@ a l'air proche.
 | `12-audit.md` | on choisit le prochain chantier du kit, ou on cherche la preuve d'un bug ou d'une mesure de l'audit du 2026-09-17 |
 | `38-audit-artefacts.md` | on choisit un chantier sur les pages publiées (six proposés, A à F), ou on cherche la preuve d'un défaut de page relevé le 2026-09-22 ; ses scripts sont dans `38-audit-scripts/`, sa page dans `artefacts/` |
 | `00-INDEX-archive.md` | on relit un chantier clos — chacun y a sa ligne, triée par numéro |
-| `75-index-archive.md` | on joue une fiche `IDX*` — chantier **ouvert** « L'index ne garde que le vivant », `IDX1..IDX3` |
 | `35-bilan.md` | on doit expliquer le kit — d'où il vient, ce qu'il sait faire aujourd'hui, ce qu'il ne promet pas ; les 22 chantiers chiffrés |
 | *(racine du kit)* `methode-chantier.md` | on ouvre un chantier, ou on le découpe en fiches — ici le projet **est** le kit, la méthode est donc à la racine |
 

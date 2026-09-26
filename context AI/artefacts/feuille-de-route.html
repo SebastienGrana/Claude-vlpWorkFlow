@@ -73,8 +73,8 @@
     <!-- ZONE:encours — remplacé à chaque ouverture, remis à « aucun » à chaque clôture.
          /tache n'y touche pas : l'avancement fiche par fiche est sur la page du chantier. -->
     <div class="encours">
-      <div class="titre">L'index ne garde que le vivant, les clos vont à l'archive <span class="badge" data-etat="cours">en cours</span></div>
-      <div>Fiches <span class="mono">IDX1–IDX3</span> — <a href="https://claude.ai/artifact/8J9f3sDCdc7NVpAFRZEyi5">la page du chantier</a></div>
+      <div class="titre">Aucun chantier ouvert</div>
+      <div>Lancer <span class="mono">/vlp:chantier</span> pour en ouvrir un.</div>
     </div>
   </section>
 
@@ -110,13 +110,19 @@
     <h2>Chantiers clos — ils ne se rejouent pas</h2>
     <!-- ZONE:clos — une ligne ajoutée à chaque clôture, la plus récente en haut -->
     <details class="clos">
-      <summary><span class="resume-clos">63 chantiers clos · ≈938,3M (938 309 773) tokens · ≈785 $</span></summary>
+      <summary><span class="resume-clos">64 chantiers clos · ≈949,1M (949 091 901) tokens · ≈794 $</span></summary>
     <div class="tableau">
       <table>
         <thead>
           <tr><th>Chantier</th><th>Fiches</th><th>Clos le</th><th>Tokens</th><th>Ce qu'il a livré</th></tr>
         </thead>
         <tbody>
+          <tr>
+            <td><a href="https://claude.ai/artifact/8J9f3sDCdc7NVpAFRZEyi5">L'index ne garde que le vivant, les clos vont à l'archive</a> <span class="badge" data-etat="clos">clos</span></td>
+            <td class="mono">IDX1–IDX3</td><td class="mono">2026-09-26</td>
+            <td class="mono">≈10,8M (10 782 128)</td>
+            <td>l'index ne garde que le vivant : 63 lignes de clos dans 00-INDEX-archive.md, lue par recompter et niveau, et clore y range chaque nouveau clos (vlp.py archiver)</td>
+          </tr>
           <tr>
             <td><a href="https://claude.ai/artifact/VRWQkwQen7EJRRdGZx8Xem">Finir les feuilles voisines, reste de REP</a> <span class="badge" data-etat="clos">clos</span></td>
             <td class="mono">VOI1–VOI6</td><td class="mono">2026-09-26</td>
@@ -525,7 +531,7 @@
           </tr>
         </tbody>
         <tfoot>
-          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈938,3M (938 309 773)</strong></td><td class="mono">≈785 $</td></tr>
+          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈949,1M (949 091 901)</strong></td><td class="mono">≈794 $</td></tr>
         </tfoot>
       </table>
     </div>

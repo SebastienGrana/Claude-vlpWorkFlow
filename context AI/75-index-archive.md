@@ -8,7 +8,9 @@
 2026-09-26), dont 63 lignes de chantiers **clos** : chaque clôture en ajoute une. Les
 lignes clos partent dans une archive voisine, sans perte, et `clore` le fait seul.
 
-**Fait.** Rien. Ouvert le 2026-09-26, cadré en 3 fiches, `IDX1` à jouer.
+**CLOS** le 2026-09-26. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** IDX1..IDX3 (2026-09-26) : l'index ne garde que le vivant : 63 lignes de clos dans 00-INDEX-archive.md, lue par recompter et niveau, et clore y range chaque nouveau clos (vlp.py archiver) — estimé non noté · cadré 3 · joué 3 fiches ≈9,03 $.
 
 **Session** : bb3d3301-a011-4a38-8cf4-76ba9d0f8933
 
