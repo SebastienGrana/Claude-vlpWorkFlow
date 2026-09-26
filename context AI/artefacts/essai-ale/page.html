@@ -1,0 +1,100 @@
+<title>Essai ALE</title>
+<!--
+  GABARIT — artefact d'un chantier. Publié par /chantier à l'ouverture,
+  mis à jour par /tache à chaque fiche. Remplace les <…> et ne renomme pas
+  les marqueurs `ZONE:…` : les commandes les cherchent tels quels.
+
+  Convention de coût — posée ici, référencée (jamais recopiée) par
+  artefact-feuille-de-route.html, tache.md et cloture.md : un nombre < 1000
+  s'affiche tel quel ; au-delà, "≈<arrondi 1 décimale><k|M> (<compte brut>)"
+  — virgule française, k = mille, M = million. Le compte brut reste toujours
+  visible à côté de l'arrondi.
+-->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700&family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:wght@400;600&display=swap">
+<link rel="stylesheet" href="vlp.css">
+
+<div class="page">
+  <header>
+    <div class="eyebrow">vlp · fiches ABR1–ABR5</div>
+    <h1>Mettre notes et journal à l'abri dans un .md</h1>
+    <p>Résultat, notes, journal et bilan d'un chantier vivent dans un .md à côté de sa page ; la page les recopie, et les pages de Cairn ont leur .md.</p>
+    <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
+    <div class="avancement">
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span>
+    </div>
+    <p class="mono" style="margin-top:.5rem">5 fiches · 5 faites</p>
+  </header>
+
+  <section>
+    <h2>Les fiches, dans l'ordre des dépendances</h2>
+    <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
+    <ul class="fiches">
+      <li class="fiche" data-etat="faite">
+        <span class="id">ABR1</span><span class="titre">Écrire le .md et l'amorcer depuis une page</span>
+        <span class="etat">faite</span>
+        <span class="note">abri : notes 2 · journal 3 · bilan 1, &amp; relu, page identique, DÉJÀ au 2e ; mutant sans unescape tombe ; verifier 380 → 387, OK ; pyright 0 errors ; mesure : 0/221 notes et 4/88 journal balisés (65 pages)</span>
+        <span class="cout mono">≈2,0M (2 046 022) · 19 tours · 1,26 $</span>
+      </li>
+      <li class="fiche" data-etat="faite">
+        <span class="id">ABR2</span><span class="titre">Faire écrire page dans le .md d'abord</span>
+        <span class="etat">faite</span>
+        <span class="note">creer/note/journal ecrits d'abord dans le .md ; page effacee reprend x/y depuis le .md ; note retiree du .md -&gt; disparait de la page (mutant capte) ; ancienne page sans .md garde ses notes ; verifier 387 -&gt; 396, OK ; pyright 0 errors</span>
+        <span class="cout mono">≈7,8M (7 791 229) · 47 tours · 2,58 $</span>
+      </li>
+      <li class="fiche" data-etat="faite">
+        <span class="id">ABR3</span><span class="titre">Faire écrire le bilan de clore dans le .md</span>
+        <span class="etat">faite</span>
+        <span class="note">bilan (Livre/Surpris/Estime) recopie dans la ZONE:bilan depuis le .md, ecrit apres resolution de l'estime (jamais le marqueur) ; test de clore verifie le .md sans \x00 ; mutant (ecriture prematuree) capte ; verifier 396 -&gt; 397, OK ; pyright 0 errors</span>
+        <span class="cout mono">≈7,3M (7 306 825) · 33 tours · 1,83 $</span>
+      </li>
+      <li class="fiche" data-etat="faite">
+        <span class="id">ABR4</span><span class="titre">Dire dans la doctrine que le .md est la source</span>
+        <span class="etat">faite</span>
+        <span class="note">ARTEFACTS.md : 4 lignes ajoutees (5 avec la ligne vide), grep les montre, renvois 0 absents</span>
+        <span class="cout mono">≈2,0M (1 970 445) · 8 tours · 0,48 $</span>
+      </li>
+      <li class="fiche" data-etat="faite">
+        <span class="id">ABR5</span><span class="titre">Mettre les pages de Cairn à l'abri</span>
+        <span class="etat">faite</span>
+        <span class="note">23 pages Cairn (hors feuille-de-route), 23 .md crees (abri), git status Cairn : 0 .html modifie, seuls les .md nouveaux ; commit 1eb321a dans Cairn, sans pousser</span>
+        <span class="cout mono">≈4,6M (4 566 662) · 17 tours · 1,11 $</span>
+      </li>
+    </ul>
+    <p class="mono cout-hors">Hors fiches : ≈4,4M (4 419 892) · 29 tours · 2,47 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈28,1M (28 101 075) · 153 tours · 9,73 $</p>
+    <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
+  </section>
+
+  <!-- ZONE:blocage — publiée quand /tache s'arrête après deux tentatives ; retirée dès que la fiche repasse -->
+  <section hidden>
+    <h2>Arrêt sur blocage</h2>
+    <div class="blocage">
+      <p></p>
+      <pre></pre>
+    </div>
+  </section>
+
+  <section>
+    <h2>Journal des décisions</h2>
+    <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
+    <ul class="journal">
+      <li><time>2026-09-26</time><span>Essai ALE témoin : CSS dans la page.</span></li>
+      <li><time>2026-09-26</time><span>Essai ALE : CSS joint.</span></li>
+    </ul>
+  </section>
+
+  <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
+  <section>
+    <h2>Chantier clos le 2026-09-26</h2>
+    <div class="bilan">
+      <p>Livré : Resultat, notes, journal et bilan vivent d'abord dans un .md a cote de la page ; page et clore l'ecrivent d'abord puis la page le recopie ; vlp.py abri l'amorce ; 23 pages Cairn mises a l'abri</p>
+      <p>Surpris : gitignore de Cairn exclut tout context AI/ : les .md ont demande un git add -f, decide avec l'utilisateur</p>
+      <p>Estimé : estimé 3 fiches ≈12 $ · cadré 5 · joué 5 fiches ≈24 $</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>Fichier de fiches : <span class="mono">context AI/76-abri.md</span></span>
+    <span>Mis à jour le <span class="mono">2026-09-26</span></span>
+  </footer>
+</div>

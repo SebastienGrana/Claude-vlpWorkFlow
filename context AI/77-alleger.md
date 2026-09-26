@@ -24,7 +24,7 @@ caractères). On essaie deux pistes, on les mesure, on écrit une décision pour
 - **La page jetable** : une copie de `context AI/artefacts/76-abri.html`, dans
   `context AI/artefacts/essai-ale/` (sous le dossier de travail : l'outil refuse
   une source hors de lui). Jamais une page en ligne du kit. Son URL s'écrit ici,
-  ligne suivante, par `ALE1` : **URL de la page jetable** : aucune.
+  ligne suivante, par `ALE1` : **URL de la page jetable** : https://claude.ai/artifact/UHPu5YwRDT9Dcsgkj9t9mG
 - **La même modification à chaque essai** : ajouter une entrée de journal d'une
   ligne dans la page. Rien d'autre ne change entre deux mesures.
 - **La mesure** : l'heure lue par `date` juste avant la lecture et juste après la
@@ -49,8 +49,9 @@ Rien n'est parallélisable : `ALE2` reprend la page jetable d'`ALE1`.
 ---
 
 <!-- FICHE:ALE1 -->
-## ALE1 [ ] — Essayer le CSS en fichier joint
+## ALE1 [x] — Essayer le CSS en fichier joint
 
+**Session** : e2536015-4263-47cd-ba7e-6c0cf89df306
 **Dépend de** : rien.
 **Fichiers** : `context AI/artefacts/76-abri.html` (lu, copié), `context AI/artefacts/essai-ale/`, `ARTEFACTS.md` (la section « Republier : lire d'abord »), ce fichier (la ligne d'URL du socle).
 
@@ -130,3 +131,31 @@ le dossier `essai-ale/`.
 dont la dernière colonne ne nomme plus `ALE` ; la page jetable est supprimée,
 ou le refus de l'utilisateur est noté dans `## Mesures`.
 <!-- /FICHE -->
+
+## Mesures
+
+Une republication = `Artifact read` + une ligne de journal + `Artifact` publish,
+même session (`e2536015-4263-47cd-ba7e-6c0cf89df306`), 2026-09-26. Le tour de
+lecture est le premier de la plage ; `ctx_dernier − ctx_1er` ≈ ce que la page lue
+a ajouté au contexte.
+
+| Essai (ALE1) | Commande | tours | ctx_1er | ctx_dernier | écart | total |
+|---|---|---|---|---|---|---|
+| témoin, CSS dans la page | `py scripts/mesure-tokens.py --plage 2026-09-26T23:24:57 2026-09-26T23:25:10 e2536015-4263-47cd-ba7e-6c0cf89df306` | 2 | 85885 | 91645 | 5760 | 178395 |
+| CSS joint (`vlp.css`) | `py scripts/mesure-tokens.py --plage 2026-09-26T23:26:00 2026-09-26T23:26:09 e2536015-4263-47cd-ba7e-6c0cf89df306` | 2 | 98252 | 101538 | 3286 | 200403 |
+
+- **Écart** : 5760 → 3286, soit −2474 tokens par lecture (−43 %). Le `total`
+  monte (178395 → 200403) parce que le contexte de départ est plus gros
+  (85885 → 98252) : il suit la longueur de la session, pas la page.
+- **Le CSS joint est-il relu : non.** La sortie de `read` porte
+  `[This version has 2 published files, this page included; …]` puis
+  `<link rel="stylesheet" href="vlp.css">` à la place du `<style>` — aucune
+  règle CSS dans le texte rendu. `list` `scope: "files"` : `index.html` 6524
+  octets, `vlp.css` 4584 octets.
+- **Republier sans `files`** garde `vlp.css` (version 4 : toujours 2 fichiers).
+- **Borne de plage** : l'heure lue dans le même message que le `read` tombe
+  après le tour qui la lance ; la borne témoin a été reculée à 23:24:57, heure
+  du tour de lecture relevée dans le `.jsonl`. L'essai 2 lit l'heure dans un
+  tour à part, avant le `read`.
+- **Affichage stylé** : non vérifié par Claude (navigateur intégré non connecté
+  à claude.ai) — geste de l'utilisateur.
