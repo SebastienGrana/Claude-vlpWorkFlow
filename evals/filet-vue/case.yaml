@@ -1,16 +1,15 @@
 schema_version: "1.1"
 name: filet-vue
 runs: 1
-tags: [filet-vue]
+tags: [filet-vue, wsl2]
 
 execution:
   max_turns: 80
   timeout_seconds: 300
-  # Skill pour le chef ; Read pour que le sous-agent vlp:fiche (forké par
-  # vlp:jouer) puisse réellement lire les n*.txt. Bash(python3:*)/Bash(py:*)/
-  # Bash(echo:*) — nécessaires à la carte que vlp:jouer lance en préambule —
-  # ne sont PAS dans ce set en lecture seule : ils se donnent par --allow-tools
-  # à l'invocation (opérateur), pas ici (EVF1, 1er essai : refusés sans ça).
+  # Skill pour le chef ; Read pour le sous-agent vlp:fiche que vlp:jouer forke —
+  # le allowed_tools du cas vaut pour tout le run, sous-agent compris. Bash (la carte
+  # injectée par vlp:jouer, et l'agent) se donne à l'invocation : --allow-tools Bash,
+  # sous WSL2 seulement (pas de sandbox sous Windows natif). EVF1, 2026-09-26.
   allowed_tools: [Skill, Read]
 
 context:
