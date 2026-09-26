@@ -65,7 +65,7 @@ def boucle(t, faux, plafond, rate=""):
     env = dict(os.environ, VLP_FAUX_VLP=os.path.join(ICI, "vlp.py"), VLP_FAUX_RATE=rate,
                PYTHONIOENCODING="utf-8")
     r = subprocess.run([sys.executable, os.path.join(ICI, "boucle.py"), t, "--plafond", str(plafond),
-                        "--claude", faux], env=env, capture_output=True, text=True, encoding="utf-8")
+                        "--claude", faux, "--traces", t], env=env, capture_output=True, text=True, encoding="utf-8")
     with open(os.path.join(t, "fiches.md"), encoding="utf-8") as h:
         texte = h.read()
     cases = "".join("x" if ("## %s [x]" % f) in texte else "." for f in ("F1", "F2", "F3"))
@@ -85,6 +85,10 @@ with tempfile.TemporaryDirectory() as t:
              code == 0 and cases == "xx." and "ARRÊT plafond de 2 fiches" in s, s + cases)
     verifier("le prompt est /vlp:tache <fiche> et le mode auto par défaut",
              "joué F1 · -p,/vlp:tache F1," in s and "--permission-mode,auto" in s, s)
+    verifier("git add et git commit autorisés, --amend et --no-verify interdits, rien d'autre",
+             "--allowedTools,Bash(git add:*),Bash(git commit:*),PowerShell(git add:*),"
+             "PowerShell(git commit:*),--disallowedTools,Bash(git commit --amend:*)," in s
+             and "PowerShell(git commit --no-verify:*)" in s and "push" not in s, s)
     verifier("TOTAL additionne tours et coût", "TOTAL 2 fiches · 6 tours · 0.0200 $" in s, s)
 
 with tempfile.TemporaryDirectory() as t:

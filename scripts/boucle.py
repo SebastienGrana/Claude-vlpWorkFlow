@@ -6,7 +6,7 @@ processus `claude` neuf, sans rien de la fiche d'avant, dans le dossier du proje
 Seul script du kit qui appelle un modèle ; `vlp.py` reste sans appel modèle.
 
     boucle.py [dossier] --plafond N [--claude C] [--model M] [--permission-mode P]
-              [--budget USD]
+              [--budget USD] [--traces DOSSIER]
 
 Avant chaque fiche : `vlp.py carte` donne `PROCHAINE=` ; `aucune` arrête. Une fiche
 à bloc **Tentatives** arrête sans être jouée. Une fiche `(visuel)` (ligne `ARRÊT:`
@@ -22,7 +22,9 @@ tours · <coût> $ · <s> s`. Sort 0 sur un arrêt prévu (plafond, aucune, visu
 `claude` : `--claude`, sinon `VLP_CLAUDE`, sinon le PATH, sinon le plus récent
 `%APPDATA%/Claude/claude-code/*/claude.exe` (le CLI de l'app de bureau Windows).
 Un `--claude` en `.py` se lance par ce Python : c'est le faux `claude` des tests.
-Permissions : `--permission-mode`, `auto` par défaut — personne ne répond en `-p`.
+Permissions : `--permission-mode`, `auto` par défaut — personne ne répond en `-p` —,
+plus `git add` et `git commit` (`AUTORISES`), sauf `--amend` et `--no-verify` en tête.
+Traces : `--traces`, sinon un dossier temporaire neuf `vlp-boucle-*`, gardé.
 """
 import argparse
 import glob
@@ -46,6 +48,12 @@ ICI = os.path.dirname(os.path.abspath(__file__))
 VLP = os.path.join(ICI, "vlp.py")
 # Variables de la session qui lance la boucle : la session fille a les siennes.
 HERITEES = ("CLAUDECODE", "CLAUDE_CODE_SESSION_ID")
+# En `auto`, `vlp.py` passe déjà ; `git add` et `git commit` sont refusés (essai du bac,
+# 2026-09-26). Seuls ces deux-là s'ajoutent : ni push, ni reset, ni checkout, ni clean.
+AUTORISES = [outil + "(git %s:*)" % c for outil in ("Bash", "PowerShell") for c in ("add", "commit")]
+# Réécrire le commit d'avant, ou sauter le hook : refusés, écrits en tête de commande.
+INTERDITS = [outil + "(git commit %s:*)" % o for outil in ("Bash", "PowerShell")
+             for o in ("--amend", "--no-verify", "-n")]
 
 
 def vlp(argv, dossier):
@@ -91,7 +99,8 @@ def jouer(claude, fiche, racine, a, trace):
     """Lance une session neuve sur `/vlp:tache <fiche>`. Rend (tours, coût, texte)."""
     cmd = [sys.executable, claude] if claude.endswith(".py") else [claude]
     cmd += ["-p", "/vlp:tache %s" % fiche, "--output-format", "stream-json", "--verbose",
-            "--permission-mode", a.permission_mode]
+            "--permission-mode", a.permission_mode,
+            "--allowedTools"] + AUTORISES + ["--disallowedTools"] + INTERDITS
     if a.model:
         cmd += ["--model", a.model]
     if a.budget:
@@ -122,6 +131,7 @@ def main(argv):
     p.add_argument("--model")
     p.add_argument("--permission-mode", default="auto")
     p.add_argument("--budget")
+    p.add_argument("--traces")
     a = p.parse_args(argv)
 
     claude = trouver_claude(a.claude)
@@ -137,7 +147,7 @@ def main(argv):
         print("ARRÊT aucun projet ou aucun fichier de fiches courant")
         return 1
     print("PROJET=%s · FICHIER=%s" % (racine, fichier))
-    traces = tempfile.mkdtemp(prefix="vlp-boucle-")
+    traces = a.traces or tempfile.mkdtemp(prefix="vlp-boucle-")
     jouees, total_tours, total_cout, t_debut = 0, 0, 0.0, time.time()
     code, raison = 0, "plafond de %d fiches" % a.plafond
 
