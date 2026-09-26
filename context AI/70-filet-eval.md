@@ -46,9 +46,39 @@ absent, doit échouer) — un grader qui passe toujours ne prouve rien.
 
 ## L'ordre des fiches
 
-- `EVF1` — l'eval voit-il le sous-agent ? Aucune dépendance.
+- `EVF4` — la carte injectée n'écrit plus dans le dossier du plugin. Aucune dépendance ;
+  ajoutée le 2026-09-26 après le blocage d'`EVF1`.
+- `EVF1` — l'eval voit-il le sous-agent ? Dépend de `EVF4`.
 - `EVF2` — le cas `F1` avec le filet, à plafond bas. Dépend de `EVF1` (réponse oui).
 - `EVF3` — le cas `F2` (Bash, `exit 3`). Dépend de `EVF2`.
+
+---
+
+<!-- FICHE:EVF4 -->
+## EVF4 [x] — La carte injectée n'écrit plus dans le dossier du plugin
+
+**Session** : 81f28c74-89aa-4815-b804-db93de007ebc
+**Dépend de** : rien.
+**Fichiers** : les 7 `skills/*/SKILL.md` (ligne `` !` `` de la carte) ; `scripts/vlp.py`
+(docstring de `carte_injectee`) ; `scripts/test-vlp.py` (tests NIV1 et dette REL, vers
+la ligne 1812) ; `evals/filet-vue/` — et rien d'autre.
+
+**Prompt**
+Sous eval, le préambule `` !` `` de `vlp:jouer` est refusé même `--allow-tools Bash`
+(`EVF1`, tentative 4) ; cause supposée : `2>"${CLAUDE_PLUGIN_ROOT}/relais-python.err"`,
+écrit hors du workspace. Prouve-le d'abord, sur une **copie jetable** du kit sous WSL2,
+cas `filet-vue` : variante A sans aucune redirection ; variante B vers
+`${CLAUDE_PLUGIN_DATA}/relais-python.err` (doc plugins-reference : dossier du plugin,
+créé à la première référence, substitué dans le corps d'une skill). Retiens la variante
+qui laisse `vlp:jouer` forker ; applique-la aux 7 copies, au test et à la docstring.
+Aucune ne passe : `RETOUR` avec les deux sorties brutes.
+
+**Critère de fin**
+Au journal : `costUsd`, `turns` et la première ligne de résultat de chaque variante.
+`scripts/test-vlp.py` passe ; **mutant** : une copie qui garde
+`${CLAUDE_PLUGIN_ROOT}/relais-python.err` fait tomber le test.
+`pyright scripts/vlp.py scripts/test-vlp.py` : `0 errors`.
+<!-- /FICHE -->
 
 ---
 
@@ -62,7 +92,7 @@ absent, doit échouer) — un grader qui passe toujours ne prouve rien.
 4. WSL2 relancé par l'utilisateur : l'eval tourne (sandbox OK), mais la carte de `vlp:jouer` reste refusée, même `--allow-tools Bash` entier — probablement sa redirection `2>` vers `${CLAUDE_PLUGIN_ROOT}/relais-python.err`, hors workspace. Aucun sous-agent n'a tourné : question encore ouverte.
 Erreur : `exit 1: sandbox required but unavailable … Windows sandbox is not active on this session (feature gate off)` (essais 1–2) ; `Wsl/Service/E_UNEXPECTED` (essai 3, environnement cassé par ma faute). Tout grant Bash sous eval exige WSL2 (doc), et `vlp:jouer` shell systématiquement — donc `EVF2` aussi, pas seulement `EVF3`.
 
-**Dépend de** : rien.
+**Dépend de** : `EVF4`.
 **Fichiers** : `claude plugin eval --help` ; la doc https://code.claude.com/docs/en/plugin-evals
 (mot pour mot, la partie graders et `target`) ; `evals/hook/case.yaml`,
 `evals/chantier/case.yaml`, `evals/chantier/fixture.sh` — et rien d'autre.

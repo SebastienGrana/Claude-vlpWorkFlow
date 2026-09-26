@@ -14,7 +14,7 @@ celle-là. Suis ces étapes dans l'ordre, sans en sauter ni en ajouter.
 
 ## La carte du projet — lue avant ton premier tour
 
-!`py "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python py 2>"${CLAUDE_PLUGIN_ROOT}/relais-python.err"; python3 "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python python3 --relais 2>>"${CLAUDE_PLUGIN_ROOT}/relais-python.err"; py "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python py --relais 2>>"${CLAUDE_PLUGIN_ROOT}/relais-python.err"; echo fin`
+!`py "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python py; python3 "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python python3 --relais; py "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python py --relais; echo fin`
 
 ## La règle qui prime sur tout : n'ouvre que ce qui est nommé
 

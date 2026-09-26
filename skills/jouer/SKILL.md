@@ -17,7 +17,7 @@ Kit : ${CLAUDE_PLUGIN_ROOT}
 La carte du projet — `PROJET=`, puis `CHANTIER.md` en entier : fichier de fiches
 courant, livraison, vérification, contraintes d'écriture :
 
-!`py "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python py 2>"${CLAUDE_PLUGIN_ROOT}/relais-python.err"; python3 "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python python3 --relais 2>>"${CLAUDE_PLUGIN_ROOT}/relais-python.err"; py "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python py --relais 2>>"${CLAUDE_PLUGIN_ROOT}/relais-python.err"; echo fin`
+!`py "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python py; python3 "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python python3 --relais; py "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python py --relais; echo fin`
 
 La racine est le dossier de `PROJET=` ; le fichier de fiches, la ligne « fichier
 de fiches courant » sans sa plage. Dans ton premier appel, avec les lectures de

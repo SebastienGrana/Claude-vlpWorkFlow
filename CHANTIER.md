@@ -13,7 +13,7 @@
 - **chantiers possibles** : context AI/08-etat.md
 - **fichier d'état** : context AI/08-etat.md
 - **index** : context AI/00-INDEX.md
-- **fichier de fiches courant** : context AI/70-filet-eval.md (EVF1..EVF3)
+- **fichier de fiches courant** : context AI/70-filet-eval.md (EVF4..EVF3)
 - **artefact feuille de route** : https://claude.ai/code/artifact/ff1fc060-daca-486f-b4c6-e1f55114c0f7
 - **artefact du chantier** : https://claude.ai/artifact/Q4TySCaXvCVZuQ6f91Hpgm
 - **livraison** : aucune — le plugin est chargé en place ; `/reload-plugins` pour

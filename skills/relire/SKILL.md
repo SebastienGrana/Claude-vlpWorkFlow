@@ -16,7 +16,7 @@ Kit : ${CLAUDE_PLUGIN_ROOT}
 
 La carte du projet — `PROJET=` et `CHANTIER.md`, sans titres de fiches ni `PROCHAINE=` : la suite du chantier peut contenir la réponse.
 
-!`py "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python py --relecteur 2>"${CLAUDE_PLUGIN_ROOT}/relais-python.err"; python3 "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python python3 --relais --relecteur 2>>"${CLAUDE_PLUGIN_ROOT}/relais-python.err"; py "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python py --relais --relecteur 2>>"${CLAUDE_PLUGIN_ROOT}/relais-python.err"; echo fin`
+!`py "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python py --relecteur; python3 "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python python3 --relais --relecteur; py "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python py --relais --relecteur; echo fin`
 
 La racine est le dossier de `PROJET=`. Ton premier appel, depuis elle, avec la
 lecture de ton étape 1 (`<python>` : la valeur de `PYTHON=` dans la carte ; `--sha`

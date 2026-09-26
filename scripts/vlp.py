@@ -544,17 +544,14 @@ RELAIS_SECONDES = 30
 
 
 def carte_injectee(depart, python, relais, sortie, relecteur=False):
-    """La carte d'une injection `py … --python py 2>"…/relais-python.err"; python3 … --relais 2>…;
-    py … --relais 2>…; echo fin` (chantier Y, Y1 ; ordre inversé en U4 : sous Windows le message du raccourci
+    """La carte d'une injection `py … --python py; python3 … --relais; py … --relais; echo fin` (chantier Y, Y1 ; ordre inversé en U4 : sous Windows le message du raccourci
     Store de `python3` tombe après la carte, sous Ubuntu « py: command not found » avant ; le 3e appel remet
     à 0 le `$LASTEXITCODE` de PowerShell, que `echo` ne touche pas) : une ligne vide d'abord,
     `PYTHON=<nom>` pour le corps de la skill, et rien au relais si le premier lancement a déjà écrit la carte.
 
-    Le `2>"<fichier>"` de chaque appel (NIV1) : le lanceur absent parle avant que Python démarre, et son
-    message entrait dans la carte injectée. `2>` vers un chemin est la seule écriture que PowerShell et bash
-    lisent pareil — `2>$null` est une erreur de syntaxe sous bash, `2>/dev/null` un chemin `C:/dev/null` absent
-    sous PowerShell. Le message n'est pas perdu : le 1er appel repart de zéro (`2>`), les deux suivants ajoutent (`2>>`),
-    et `relais-python.err`, à la racine du plugin, garde la trace d'une injection entière."""
+    Sans redirection (EVF4) : NIV1 envoyait l'erreur du lanceur absent vers `${CLAUDE_PLUGIN_ROOT}/relais-python.err`,
+    une écriture hors du workspace que l'eval refuse même Bash accordé — `vlp:jouer` n'y forkait plus. Le prix :
+    `py: command not found` entre dans la carte là où `py` manque (2 lignes sous Ubuntu, 0 sous Windows)."""
     import hashlib
     import tempfile
     import time

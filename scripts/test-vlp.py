@@ -1821,24 +1821,28 @@ verifier("NIV1 : une ligne d'injection par skill, les deux identiques",
          repr(lignes_injection))
 
 injection = lignes_injection[0][0]
-verifier("NIV1 : chaque appel de lanceur detourne sa sortie d'erreur",
-         injection.count('/scripts/vlp.py" carte') == 3
-         == injection.count('"${CLAUDE_PLUGIN_ROOT}/relais-python.err"')
-         and injection.count('2>"') == 1 and injection.count('2>>"') == 2, injection)
+# EVF4 : plus aucune redirection — `2>"${CLAUDE_PLUGIN_ROOT}/…"` écrivait hors du workspace, refusé sous
+# eval même Bash accordé (variante A, seule à laisser forker vlp:jouer). Le prix : `py: command not found`
+# entre dans la carte là où `py` manque (2 lignes sur 60 sous Ubuntu, 0 sous Windows, mesuré le 2026-09-26).
+verifier("EVF4 : trois appels de lanceur, aucune redirection",
+         injection.count('/scripts/vlp.py" carte') == 3 and ">" not in injection, injection)
 
 verifier("NIV1 : aucune syntaxe propre a un seul shell",
          "$null" not in injection and "/dev/null" not in injection, injection)
 
-# Dette REL : NIV1 n'avait passé que chantier et tache ; toute injection de carte détourne ses erreurs.
-sans_relais = []
+# Dette REL, puis EVF4 : toute injection de carte (7 skills) — trois appels, et aucune écriture de fichier.
+ecrit_fichier = []
+injections = 0
 for chemin_skill in sorted(glob.glob(os.path.join(RACINE, "skills", "*", "SKILL.md"))):
     for bout in io.open(chemin_skill, encoding="utf-8").read().split("!`")[1:]:
         bout = bout.split("`")[0]
         appels = bout.count('/scripts/vlp.py" carte')
-        if appels and not (appels == 3 == bout.count('"${CLAUDE_PLUGIN_ROOT}/relais-python.err"')
-                           and bout.count('2>"') == 1 and bout.count('2>>"') == 2):
-            sans_relais.append(os.path.basename(os.path.dirname(chemin_skill)))
-verifier("NIV1 : toute skill qui injecte la carte détourne ses erreurs", sans_relais == [], repr(sans_relais))
+        if appels:
+            injections += 1
+            if appels != 3 or ">" in bout:
+                ecrit_fichier.append(os.path.basename(os.path.dirname(chemin_skill)))
+verifier("EVF4 : les 7 injections de carte n'écrivent aucun fichier",
+         injections == 7 and ecrit_fichier == [], "%d injections, fautives : %r" % (injections, ecrit_fichier))
 
 s_niv1 = io.StringIO()
 mod.carte_injectee(os.path.join(RACINE, "scripts"), "py", False, s_niv1)

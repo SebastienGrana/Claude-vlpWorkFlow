@@ -63,24 +63,31 @@
 
 <div class="page">
   <header>
-    <div class="eyebrow">vlp · fiches EVF1–EVF3</div>
+    <div class="eyebrow">vlp · fiches EVF4–EVF3</div>
     <h1>Le filet en eval rejouable</h1>
     <p>Une commande rejoue les deux essais de FIL3 en eval du plugin ; un changement du filet se reprouve en un appel, ≈ 0,16 $ le passage.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="bloquee"></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">3 fiches · 0 faite · bloquée : EVF1</p>
+    <p class="mono" style="margin-top:.5rem">4 fiches · 1 faite · en cours : EVF1</p>
   </header>
 
   <section>
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="bloquee">
+      <li class="fiche" data-etat="faite">
+        <span class="id">EVF4</span><span class="titre">La carte injectée n'écrit plus dans le dossier du plugin</span>
+        <span class="etat">faite</span>
+        <span class="note">Variante A (sans redirection) : 12 Read vus, « fichier 05 » trouvé, témoin échoue ; B (PLUGIN_DATA) refusée. 7 SKILL.md corrigés, test + mutant, pyright 0.</span>
+        <span class="cout mono">≈9,8M (9 760 225) · 31 tours · 4,75 $</span>
+      </li>
+      <li class="fiche" data-etat="encours">
         <span class="id">EVF1</span><span class="titre">L'eval voit-il le sous-agent ?</span>
-        <span class="etat">bloquée</span>
+        <span class="etat">en cours</span>
         <span class="note">Tranche si un eval voit le sous-agent ; verdict oui/non au journal, témoin négatif compris. Sans dépendance.</span>
+        <span class="cout mono">≈5,3M (5 348 278) · 19 tours · 1,21 $</span>
       </li>
       <li class="fiche">
         <span class="id">EVF2</span><span class="titre">Le cas F1 avec le filet, à plafond bas</span>
@@ -93,6 +100,8 @@
         <span class="note">Le cas F2 (Bash, exit 3) sous WSL2, et la commande qui rejoue les deux cas. Dépend d'EVF2.</span>
       </li>
     </ul>
+    <p class="mono cout-hors">Hors fiches : ≈14,4M (14 364 826) · 72 tours · 5,79 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈29,5M (29 473 329) · 122 tours · 11,75 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -109,6 +118,7 @@
     <h2>Journal des décisions</h2>
     <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
     <ul class="journal">
+      <li><time datetime="2026-09-26">2026-09-26</time><span>EVF4 : la redirection de NIV1 retirée des 7 injections — seule variante qui passe sous eval ; décidé seul la nuit, à valider.</span></li>
     </ul>
   </section>
 
