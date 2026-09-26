@@ -131,12 +131,12 @@ Tranché le 2026-09-26 par le chantier `ALE` ; chiffres et commandes dans
   fichier joint, et une republication sans `files` le garde. `PLI` et `FEU`
   écrivent le CSS des deux gabarits dans `vlp.css`, déposé dans
   `<contexte>/artefacts/` et joint par `files` : une seule migration.
-- **Les données : dans la page — la base `db` est en attente.** Une écriture en
-  base ajoute bien moins encore, sans relire la page ; mais la page ne montre
-  plus rien hors claude.ai, ne se partage plus par lien public, et on ne sait pas
-  si chaque écriture demande un accord, ce qui arrêterait `/vlp:enchainer`. Un
-  essai hors mode auto tranchera. `PLI` et `FEU` ne l'attendent pas : ils
-  restent en HTML statique, et le `.md` reste la source.
+- **Les données : dans la page pour l'instant — la base `db` adoptée pour
+  plus tard.** Une écriture en base ajoute bien moins encore, sans relire la
+  page, et ne demande aucun accord, même hors mode auto. En échange, la page ne
+  montre plus rien hors claude.ai et ne se partage plus par lien public. `PLI`
+  et `FEU` ne l'attendent pas : ils restent en HTML statique, et le `.md` reste
+  la source ; un chantier à part passera les données en base.
 
 ## Les commentaires — le canal de retour
 

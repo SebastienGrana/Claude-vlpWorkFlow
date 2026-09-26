@@ -195,3 +195,10 @@ groupe n'est pas un frein, seul compte son usage. Écrites dans `ARTEFACTS.md`,
 `UHPu5YwRDT9Dcsgkj9t9mG` **supprimée** avec son accord ; la variante base
 `KyNAVstNmYp1Afr7YbJago` et `essai-ale/page-db.html` + `vlp.css` **gardés** pour
 cet essai (choix « Pas encore ») ; `page.html` et `j3.json` retirés.
+
+**Après la clôture (dette, 2026-09-27) — point 1 tranché : aucun accord.**
+Session passée hors mode auto par l'utilisateur, puis `ArtifactData set`
+`journal/j4` : committed, version 1 ; l'utilisateur n'a vu **aucune fenêtre**
+(questionnaire). Aucune règle ne l'autorisait : `ArtifactData` absent de
+`.claude/` du projet et de `~/.claude/settings.json` (grep, 0 résultat).
+Décision C2 : **adoptée pour plus tard** (questionnaire).
