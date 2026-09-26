@@ -59,6 +59,7 @@ absent, doit échouer) — un grader qui passe toujours ne prouve rien.
 1. `evals/filet-vue/` (chef limité à `Skill`) : scaffold corrigé (`python` au lieu de `py`), mais `vlp:jouer` échoue avant de forker — sa carte est un `!` Bash, refusé (`allowed_tools` du cas ne couvre pas Bash).
 2. Ajout de `--allow-tools "Bash(python3:*)" "Bash(py:*)" "Bash(echo:*)"` : refusé net, sandbox Windows indisponible.
 3. Basculé sous WSL2 Ubuntu (`claude` 2.1.275 déjà installé, `bwrap`/`socat` présents) : un `wsl --shutdown` de diagnostic a arrêté `LxssManager`, qui ne redémarre plus tout seul (`wsl -l -v` répond, mais lancer la distro rend `Wsl/Service/E_UNEXPECTED`) ; `Start-Service LxssManager` refusé sans droits admin.
+4. WSL2 relancé par l'utilisateur : l'eval tourne (sandbox OK), mais la carte de `vlp:jouer` reste refusée, même `--allow-tools Bash` entier — probablement sa redirection `2>` vers `${CLAUDE_PLUGIN_ROOT}/relais-python.err`, hors workspace. Aucun sous-agent n'a tourné : question encore ouverte.
 Erreur : `exit 1: sandbox required but unavailable … Windows sandbox is not active on this session (feature gate off)` (essais 1–2) ; `Wsl/Service/E_UNEXPECTED` (essai 3, environnement cassé par ma faute). Tout grant Bash sous eval exige WSL2 (doc), et `vlp:jouer` shell systématiquement — donc `EVF2` aussi, pas seulement `EVF3`.
 
 **Dépend de** : rien.
