@@ -68,9 +68,9 @@
     <p>Pour chaque piste — CSS en fichier joint, données en base — le coût d'une republication mesuré avant et après, et une décision écrite dans ARTEFACTS.md : adoptée ou non.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">3 fiches · 2 faites · en cours : ALE3</p>
+    <p class="mono" style="margin-top:.5rem">3 fiches · 3 faites</p>
   </header>
 
   <section>
@@ -87,16 +87,17 @@
         <span class="id">ALE2</span><span class="titre">Essayer les données en base</span>
         <span class="etat">faite</span>
         <span class="note">base db : ecart 630 tokens (temoin 5760, CSS joint 3286), total 225363 ; fichier local : Base indisponible ; fenetre privee : ecran de connexion ; accord : non constate (mode auto)</span>
-        <span class="cout mono">≈2,4M (2 380 927) · 22 tours · 1,30 $</span>
+        <span class="cout mono">≈2,8M (2 753 197) · 25 tours · 1,44 $</span>
       </li>
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">ALE3</span><span class="titre">Écrire les deux décisions</span>
-        <span class="etat">en cours</span>
-        <span class="note">Les deux décisions écrites dans ARTEFACTS.md, la TODO de PLI, FEU et BTN mise à jour, la page jetable supprimée avec accord. Dépend d'ALE1 et ALE2.</span>
+        <span class="etat">faite</span>
+        <span class="note">C1 CSS joint adoptee, C2 db en attente (essai hors mode auto) ; ARTEFACTS.md : grep -c = 1 ; TODO 28/29/30 sans ALE ; page jetable supprimee, variante base gardee</span>
+        <span class="cout mono">≈1,8M (1 815 108) · 13 tours · 0,67 $</span>
       </li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈2,9M (2 922 634) · 25 tours · 1,91 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈11,7M (11 654 828) · 95 tours · 5,78 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈13,8M (13 842 206) · 111 tours · 6,59 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

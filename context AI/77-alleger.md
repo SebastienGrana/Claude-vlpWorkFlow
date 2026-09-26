@@ -108,8 +108,9 @@ les trois réponses. L'utilisateur confirme les points 1 et 3, que lui seul voit
 ---
 
 <!-- FICHE:ALE3 -->
-## ALE3 [ ] — Écrire les deux décisions
+## ALE3 [x] — Écrire les deux décisions
 
+**Session** : dfb6bb11-4da6-4dd5-b257-a4e52d9f7286
 **Dépend de** : `ALE1`, `ALE2`.
 **Fichiers** : ce fichier (`## Mesures`), `ARTEFACTS.md`, `context AI/08-etat.md` (entrées n° 28, 29 et 30 de la TODO).
 
@@ -184,3 +185,11 @@ lire la page**.
 - **3. Page en fenêtre privée : écran de connexion.** Constaté par l'utilisateur
   le 2026-09-26. Une page qui déclare `db` est réservée à l'organisation
   (`db.d.ts` : « cannot be shared publicly ») : pas de visiteur par lien public.
+
+**ALE3 — décisions (questionnaire, 2026-09-26).** C1 (CSS joint) **adoptée** ;
+C2 (base `db`) **en attente** d'un essai hors mode auto — l'utilisateur : le
+groupe n'est pas un frein, seul compte son usage. Écrites dans `ARTEFACTS.md`,
+« Où vivent le CSS et les données ». Page jetable
+`UHPu5YwRDT9Dcsgkj9t9mG` **supprimée** avec son accord ; la variante base
+`KyNAVstNmYp1Afr7YbJago` et `essai-ale/page-db.html` + `vlp.css` **gardés** pour
+cet essai (choix « Pas encore ») ; `page.html` et `j3.json` retirés.
