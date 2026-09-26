@@ -267,7 +267,8 @@ Python 3 sans dépendance, zéro appel modèle.
 
 Un hook (`hook`, `filet`, `gardien`) n'agit qu'une fois quand `python3` et `py` le lancent
 tous deux : le premier qui crée `<TAMPON_HOOKS>/vlp-hook-<sha1 du nom et de l'entrée>` agit, l'autre se tait
-(chantier PYT).
+(chantier PYT). Rejoué à la main, `VLP_SANS_TAMPON=1` dans l'environnement saute le tampon :
+chaque lancement agit (chantier SON).
 """
 import argparse
 import glob
@@ -321,8 +322,8 @@ def premier_lancement(texte, nom=""):
     `<TAMPON_HOOKS>/vlp-hook-<sha1 de nom + entrée>` — le nom, car `filet` et `hook` reçoivent la
     même entrée sur une écriture (PYT2) — (les deux lanceurs partent ensemble, un tampon daté les
     laisserait passer tous deux). Retire au passage les tampons de plus de 60 s. `TAMPON_HOOKS` à
-    `None` (tests) : toujours vrai ; une autre `OSError` : vrai — mieux vaut deux fois que zéro."""
-    if TAMPON_HOOKS is None:
+    `None` (tests) ou `VLP_SANS_TAMPON` non vide (rejeu à la main, SON) : toujours vrai ; une autre `OSError` : vrai — mieux vaut deux fois que zéro."""
+    if TAMPON_HOOKS is None or os.environ.get("VLP_SANS_TAMPON"):
         return True
     try:
         for tampon in os.listdir(TAMPON_HOOKS):

@@ -29,8 +29,9 @@ qu'on ne veut pas toucher, et la même commande rejouée à la main n'a qu'à la
 ---
 
 <!-- FICHE:SON1 -->
-## SON1 [ ] — `VLP_SANS_TAMPON` saute le tampon
+## SON1 [x] — `VLP_SANS_TAMPON` saute le tampon
 
+**Session** : 81f28c74-89aa-4815-b804-db93de007ebc
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py` (docstring du module, `premier_lancement`) ;
 `scripts/test-vlp.py` (`test_premier_lancement`) — et rien d'autre.

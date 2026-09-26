@@ -2762,6 +2762,16 @@ def test_premier_lancement():
         verifier("premier_lancement : même entrée, deux sous-commandes, chacune une fois",
                  mod.premier_lancement("{}", "cmd_filet") and mod.premier_lancement("{}", "cmd_hook")
                  and not mod.premier_lancement("{}", "cmd_hook"), "")
+        # SON : VLP_SANS_TAMPON saute le tampon — la même entrée rejouée agit à chaque fois
+        os.environ["VLP_SANS_TAMPON"] = "1"
+        try:
+            rejeux = [gardien_test(entree_commit)[1] for _ in range(2)]
+        finally:
+            del os.environ["VLP_SANS_TAMPON"]
+        verifier("SON : VLP_SANS_TAMPON, la même entrée rejouée deux fois refuse deux fois",
+                 all("deny" in r for r in rejeux), repr(rejeux))
+        verifier("SON : sans VLP_SANS_TAMPON, le tampon reprend (muet)",
+                 gardien_test(entree_commit)[1] == "", "")
     finally:
         # Restaurer TAMPON_HOOKS à None pour les tests suivants
         shutil.rmtree(mod.TAMPON_HOOKS, ignore_errors=True)
