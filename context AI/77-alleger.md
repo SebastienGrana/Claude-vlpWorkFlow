@@ -157,5 +157,5 @@ a ajouté au contexte.
   après le tour qui la lance ; la borne témoin a été reculée à 23:24:57, heure
   du tour de lecture relevée dans le `.jsonl`. L'essai 2 lit l'heure dans un
   tour à part, avant le `read`.
-- **Affichage stylé** : non vérifié par Claude (navigateur intégré non connecté
-  à claude.ai) — geste de l'utilisateur.
+- **Affichage stylé : oui.** Constaté par l'utilisateur le 2026-09-26 (fond
+  crème, cartes) ; le navigateur intégré de Claude n'est pas connecté à claude.ai.
