@@ -78,8 +78,9 @@ plus une ligne « le CSS joint est-il relu : oui/non », avec l'extrait de la so
 ---
 
 <!-- FICHE:ALE2 -->
-## ALE2 [ ] — Essayer les données en base
+## ALE2 [x] — Essayer les données en base
 
+**Session** : dfb6bb11-4da6-4dd5-b257-a4e52d9f7286
 **Dépend de** : `ALE1`.
 **Fichiers** : `context AI/artefacts/essai-ale/`, ce fichier (socle et `## Mesures`).
 
@@ -159,3 +160,27 @@ a ajouté au contexte.
   tour à part, avant le `read`.
 - **Affichage stylé : oui.** Constaté par l'utilisateur le 2026-09-26 (fond
   crème, cartes) ; le navigateur intégré de Claude n'est pas connecté à claude.ai.
+
+**ALE2 — base `db`.** `db` existe pour ce compte (liste des capacités de la skill
+`artifact-capabilities`, contrat 0.2.60). Variante : `essai-ale/page-db.html`,
+publiée avec `capabilities: {db: {}}` et `vlp.css` joint :
+https://claude.ai/artifact/KyNAVstNmYp1Afr7YbJago — le journal vient de la
+collection `journal` (champs `ordre`, `date`, `texte`), amorcée par un `batch` de
+2 documents hors mesure. Session `dfb6bb11-4da6-4dd5-b257-a4e52d9f7286`. Une
+modification = écrire `j3.json` + `ArtifactData set` depuis ce fichier, **sans
+lire la page**.
+
+| Essai (ALE2) | Commande | tours | ctx_1er | ctx_dernier | écart | total |
+|---|---|---|---|---|---|---|
+| base (`ArtifactData set`) | `py scripts/mesure-tokens.py --plage 2026-09-26T23:31:54 2026-09-26T23:32:04 dfb6bb11-4da6-4dd5-b257-a4e52d9f7286` | 2 | 112122 | 112752 | 630 | 225363 |
+
+- **Écart** : 630, contre 5760 (témoin) et 3286 (CSS joint). Le `total` suit
+  encore le contexte de départ (112122), pas l'écriture.
+- **1. Accord demandé à l'utilisateur : non constaté.** L'utilisateur ne sait pas
+  (questionnaire, 2026-09-26) ; la session tournait en mode auto, qui a pu valider
+  seul. 🟡 Reste ouvert : à trancher par un essai hors mode auto.
+- **2. Fichier local dans le navigateur intégré : non.** Il affiche « Base
+  indisponible dans cette vue : journal non affiché. » (`claude` absent hors claude.ai).
+- **3. Page en fenêtre privée : écran de connexion.** Constaté par l'utilisateur
+  le 2026-09-26. Une page qui déclare `db` est réservée à l'organisation
+  (`db.d.ts` : « cannot be shared publicly ») : pas de visiteur par lien public.
