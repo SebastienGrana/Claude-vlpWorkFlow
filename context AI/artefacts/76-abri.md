@@ -1,0 +1,11 @@
+# Mettre notes et journal à l'abri dans un .md — notes et journal
+## Résultat
+Résultat, notes, journal et bilan d'un chantier vivent dans un .md à côté de sa page ; la page les recopie, et les pages de Cairn ont leur .md.
+## Notes
+- ABR1 : abri : notes 2 · journal 3 · bilan 1, & relu, page identique, DÉJÀ au 2e ; mutant sans unescape tombe ; verifier 380 → 387, OK ; pyright 0 errors ; mesure : 0/221 notes et 4/88 journal balisés (65 pages)
+- ABR2 : creer/note/journal ecrits d'abord dans le .md ; page effacee reprend x/y depuis le .md ; note retiree du .md -> disparait de la page (mutant capte) ; ancienne page sans .md garde ses notes ; verifier 387 -> 396, OK ; pyright 0 errors
+- ABR3 : clore écrit le bilan dans le .md, la page le recopie · dépend de ABR1
+- ABR4 : ARTEFACTS.md dit que le .md est la source · dépend de ABR2, ABR3
+- ABR5 : Les 25 pages de Cairn reçoivent leur .md, sans changer · dépend de ABR2, ABR3
+## Journal
+## Bilan

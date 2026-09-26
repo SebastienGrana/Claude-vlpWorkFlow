@@ -487,7 +487,8 @@ PAGE = """# Chantier P
 
 with tempfile.TemporaryDirectory() as t:
     fiches = os.path.join(t, "p.md")
-    page = os.path.join(t, "p.html")
+    page = os.path.join(t, "artefacts", "p.html")  # comme en vrai : le .md de l'abri (même dossier que la
+    # page) ne collisionne pas avec le fichier de fiches, dans le dossier parent (chantier ABR)
     sa, sb = os.path.join(t, "a.jsonl"), os.path.join(t, "b.jsonl")
     transcript(sa, 2)
     transcript(sb, 1)
@@ -565,7 +566,7 @@ with tempfile.TemporaryDirectory() as t:
     verifier("page : l'en-tête suit la plage du fichier", code == 0 and 'Proj · fiches P1–P4 · clos</div>' in html, s + html)
 
     u_fiches = os.path.join(t, "u.md")
-    u_page = os.path.join(t, "u.html")
+    u_page = os.path.join(t, "artefacts", "u.html")
     ecrire(u_fiches, "# Chantier U\n\n## Le socle commun\n\n## L'ordre des fiches\n\n<!-- FICHE:U1 -->\n## U1 [ ] — Seule\n**Critère de fin**\n<!-- /FICHE -->\n")
     code, s = appel(["page", u_fiches, u_page, "--creer", "--projet", "Proj", "--titre", "U", "--resultat", "R."])
     u_html = lire(u_page) if os.path.exists(u_page) else ""
@@ -640,7 +641,7 @@ with tempfile.TemporaryDirectory() as t:
         h = mod.heures_commits(os.path.join(avec, "q.md"), ["Q1", "Q2"])
         verifier("heures_commits : heure d'auteur, commits qui nomment le préfixe",
                  h == ({"Q1": T0 + 300, "Q2": T0 + 600}, [T0 + 100, T0 + 300, T0 + 600, T0 + 800], [T0 + 900]), h)
-        page = os.path.join(avec, "q.html")
+        page = os.path.join(avec, "artefacts", "q.html")
         code, s = appel(["page", os.path.join(avec, "q.md"), page, "--creer", "--projet", "P", "--titre", "T",
                          "--resultat", "R", "--date", "2026-01-05"])
         html = lire(page) if os.path.exists(page) else ""
@@ -656,9 +657,9 @@ with tempfile.TemporaryDirectory() as t:
         verifier("page coupée : régénérer deux fois ne change rien", lire(page) == avant, lire(page))
         # Sans .git, la même page retombe sur l'ancienne logique : Q1 garde son coût affiché, Q2 prend
         # la session moins Q1 et la part à aucune fiche ; ni sous-agent, ni ligne hors fiches.
-        ecrire(os.path.join(sans, "q.html"), avant)
-        code, s = appel(["page", os.path.join(sans, "q.md"), os.path.join(sans, "q.html"), "--date", "2026-01-05"])
-        html = lire(os.path.join(sans, "q.html"))
+        ecrire(os.path.join(sans, "artefacts", "q.html"), avant)
+        code, s = appel(["page", os.path.join(sans, "q.md"), os.path.join(sans, "artefacts", "q.html"), "--date", "2026-01-05"])
+        html = lire(os.path.join(sans, "artefacts", "q.html"))
         verifier("page sans .git : l'ancienne logique, sur l'ancienne page", code == 0
                  and html.count('<span class="cout mono">≈200,0k (200 000) · 2 tours · 1,00 $</span>') == 2
                  and '<p class="mono cout-hors">' not in html
@@ -745,9 +746,9 @@ with tempfile.TemporaryDirectory() as t:
                  and s.startswith("DÉCOUPE aucune — chantier clos sans commit « Q1 : » ni d'une autre fiche : "
                                   "sessions entières, sous-agents compris\n")
                  and "\nTOTAL\t8\t0\t-\t-\t800000\t0\t0\t0\t0\t800000\t800000\t4.00\t0\n" in s, s)
-        code, s = appel(["page", os.path.join(clq, "qz.md"), os.path.join(clq, "qz.html"), "--creer", "--projet", "P",
+        code, s = appel(["page", os.path.join(clq, "qz.md"), os.path.join(clq, "artefacts", "qz.html"), "--creer", "--projet", "P",
                          "--titre", "T", "--resultat", "R", "--date", "2026-01-05"])
-        html = lire(os.path.join(clq, "qz.html")) if code == 0 else ""
+        html = lire(os.path.join(clq, "artefacts", "qz.html")) if code == 0 else ""
         verifier("page : clos sans commit de fiche, les sessions entières, sans hors fiches", code == 0
                  and '<p class="mono cout-hors">' not in html
                  and "Coût du chantier : ≈600,0k (600 000) · 6 tours · 3,00 $" in html, s + html)
@@ -783,9 +784,9 @@ with tempfile.TemporaryDirectory() as t:
             "hors fiches · ≈400,0k (400 000) · 4 tours · 2,00 $ = session ≈400,0k (400 000) · 4 tours · 2,00 $ + 0 sous-agent",
             "TOTAL (fiches + hors fiches) · ≈900,0k (900 000) · 9 tours · 4,50 $ = session ≈700,0k (700 000) · 7 tours · 3,50 $"
             " + 1 sous-agent ≈200,0k (200 000) · 2 tours · 1,00 $"], s)
-        code, s = appel(["page", qc, os.path.join(avec, "qc.html"), "--creer", "--projet", "P", "--titre", "T",
+        code, s = appel(["page", qc, os.path.join(avec, "artefacts", "qc.html"), "--creer", "--projet", "P", "--titre", "T",
                          "--resultat", "R", "--date", "2026-01-05"])
-        html = lire(os.path.join(avec, "qc.html")) if code == 0 else ""
+        html = lire(os.path.join(avec, "artefacts", "qc.html")) if code == 0 else ""
         verifier("page : la session du cadrage, en tête, compte hors fiches", code == 0
                  and '<p class="mono cout-hors">Hors fiches : ≈400,0k (400 000) · 4 tours · 2,00 $</p>' in html
                  and '<p class="mono cout-total">Coût du chantier : ≈900,0k (900 000) · 9 tours · 4,50 $</p>' in html, s + html)
@@ -3137,5 +3138,80 @@ def tester_abri():
 
 
 tester_abri()
+
+# --- ABR2 : `page` écrit d'abord dans le .md, puis le recopie en entier -------
+
+FICHES_ABR2 = """# Chantier ABR
+
+## Le socle commun
+
+## L'ordre des fiches
+
+<!-- FICHE:P1 -->
+## P1 [ ] — Un
+**Critère de fin**
+<!-- /FICHE -->
+"""
+
+
+def tester_abr2():
+    with tempfile.TemporaryDirectory() as tab:
+        fiches = os.path.join(tab, "abr.md")
+        page = os.path.join(tab, "artefacts", "abr.html")
+        md = mod.chemin_abri(page)
+        ecrire(fiches, FICHES_ABR2)
+        code, s = appel(["page", fiches, page, "--creer", "--projet", "Proj", "--titre", "T", "--resultat", "R0"])
+        verifier("ABR2 : --creer amorce le .md", code == 0 and os.path.exists(md), s)
+        code, s = appel(["page", fiches, page, "--note", "P1", "x", "--journal", "y", "--date", "2026-09-26"])
+        verifier("ABR2 : page — note et journal écrits d'abord dans le .md", code == 0
+                 and mod.lire_abri(md)["notes"] == {"P1": "x"}
+                 and mod.lire_abri(md)["journal"] == [("2026-09-26", "y")], s + lire(md))
+        html_avant = lire(page)
+        os.remove(page)
+        code, s = appel(["page", fiches, page, "--creer", "--projet", "Proj", "--titre", "T", "--resultat", "R0"])
+        html = lire(page)
+        verifier("ABR2 : la page effacée reprend x et y depuis le .md — mutant : lire l'ancienne page",
+                 code == 0 and '<span class="note">x</span>' in html
+                 and '<time datetime="2026-09-26">2026-09-26</time><span>y</span>' in html
+                 and "<p>R0</p>" in html, s + html)
+        verifier("ABR2 : le .md n'a pas bougé au second --creer — mutant : --creer réécrit le .md",
+                 mod.lire_abri(md)["notes"] == {"P1": "x"} and mod.lire_abri(md)["journal"] == [("2026-09-26", "y")],
+                 lire(md))
+
+        # Une page ancienne, sans .md : elle garde ses notes (pas de perte à l'amorçage).
+        ancienne = os.path.join(tab, "artefacts", "anc.html")
+        ecrire(ancienne, html_avant)
+        fiches_anc = os.path.join(tab, "anc.md")
+        ecrire(fiches_anc, FICHES_ABR2)
+        verifier("ABR2 : pas de .md avant ce test", not os.path.exists(mod.chemin_abri(ancienne)), "")
+        code, s = appel(["page", fiches_anc, ancienne, "--date", "2026-09-27"])
+        html = lire(ancienne)
+        verifier("ABR2 : page ancienne sans .md — garde ses notes", code == 0
+                 and '<span class="note">x</span>' in html
+                 and '<span>y</span>' in html, s + html)
+        verifier("ABR2 : l'amorçage a posé le .md de l'ancienne page",
+                 os.path.exists(mod.chemin_abri(ancienne)) and mod.lire_abri(mod.chemin_abri(ancienne))["notes"] == {"P1": "x"},
+                 lire(mod.chemin_abri(ancienne)))
+        # Le .md prime désormais sur l'ancienne page : une note différente dans le .md l'emporte
+        # — mutant : lire la note dans l'ancienne page (`anciens`) au lieu du .md.
+        code, s = appel(["page", fiches_anc, ancienne, "--note", "P1", "z", "--date", "2026-09-27"])
+        html = lire(ancienne)
+        verifier("ABR2 : le .md l'emporte sur l'ancienne note de la page — mutant : lire l'ancienne page",
+                 code == 0 and '<span class="note">z</span>' in html and '<span class="note">x</span>' not in html,
+                 s + html)
+        # Une note retirée du .md disparaît de la page — mutant : retomber sur l'ancienne page (`anciens`),
+        # qui la garde encore. C'est le seul cas où le mutant se distingue d'une note passée par --note.
+        md_anc = mod.chemin_abri(ancienne)
+        parts_anc = mod.lire_abri(md_anc)
+        del parts_anc["notes"]["P1"]
+        mod.ecrire_abri(md_anc, parts_anc)
+        code, s = appel(["page", fiches_anc, ancienne, "--date", "2026-09-28"])
+        html = lire(ancienne)
+        verifier("ABR2 : note retirée du .md — absente de la page — mutant : retombe sur l'ancienne page",
+                 code == 0 and '<span class="note">' not in html.split("<ul class=\"journal\">")[0].split('id">P1')[1].split("</li>")[0],
+                 s + html)
+
+
+tester_abr2()
 
 print("OK")

@@ -107,8 +107,9 @@ compte brut avant/après ; `pyright scripts/vlp.py scripts/test-vlp.py` : 0 erre
 ---
 
 <!-- FICHE:ABR2 -->
-## ABR2 [ ] — Faire écrire `page` dans le `.md` d'abord
+## ABR2 [x] — Faire écrire `page` dans le `.md` d'abord
 
+**Session** : 72de750c-600b-43d1-b5e7-94c21b471768
 **Dépend de** : `ABR1`.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` — et rien d'autre.
 

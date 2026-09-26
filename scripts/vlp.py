@@ -2179,7 +2179,9 @@ def creer(fichier, projet, titre, resultat):
     return html
 
 
-def regenerer(html, fichier, notes, journal, date, gardes):
+def regenerer(html, fichier, parts, date, gardes):
+    """`parts` (`lire_abri`/`abri_de_page`) fait foi pour résultat, notes et journal — recopiés
+    en entier dans la page, plus jamais lus dans son ancienne version (chantier ABR)."""
     lignes = lignes_de(fichier)
     fiches_ = fiches_du_fichier(lignes)
     if not fiches_:
@@ -2191,11 +2193,15 @@ def regenerer(html, fichier, notes, journal, date, gardes):
     heures = heures_commits(fichier, [f[0] for f in fiches_], clos=clos) if any(f[3] for f in fiches_) else None
     cout, total, hors = couts(fiches_, anciens, ancien_total and ancien_total.group(1), gardes, heures,
                               sessions_entete(lignes))
+    html, n = re.subn(r'(</h1>\s*<p>).*?(</p>)', lambda m: m.group(1) + esc(parts["resultat"]) + m.group(2),
+                      html, count=1, flags=re.S)
+    if not n:
+        raise ValueError("page : résultat introuvable")
     etiquette = {"faite": "faite", "encours": "en cours", "bloquee": "bloquée", None: "à faire"}
     items = []
     for ident, titre, _, _ in fiches_:
         e = etat[ident]
-        note = esc(notes[ident]) if ident in notes else anciens.get(ident, (None, None))[1]
+        note = esc(parts["notes"][ident]) if ident in parts["notes"] else None
         li = ['      <li class="fiche"%s>' % (' data-etat="%s"' % e if e else ""),
               '        <span class="id">%s</span><span class="titre">%s</span>' % (ident, esc(titre)),
               '        <span class="etat">%s</span>' % etiquette[e]]
@@ -2227,12 +2233,13 @@ def regenerer(html, fichier, notes, journal, date, gardes):
         fiche_bloquee = re.match(r"\s*([A-Z]{1,3}[0-9]+)", blocage.group(3))
         if fiche_bloquee and etat.get(fiche_bloquee.group(1)) == "faite":
             html = html[:blocage.start()] + "<section hidden>" + html[blocage.start() + len("<section>"):]
-    for texte in journal:
-        ligne = '      <li><time datetime="%s">%s</time><span>%s</span></li>' % (date, date, esc(texte))
-        html, n = re.subn(r'(<ul class="journal">.*?)(\n[ \t]*</ul>)', lambda m: m.group(1) + "\n" + ligne + m.group(2),
-                          html, count=1, flags=re.S)
-        if not n:
-            raise ValueError("page : journal introuvable")
+    lignes_journal = "\n".join('      <li><time datetime="%s">%s</time><span>%s</span></li>' % (d, d, esc(t))
+                               for d, t in parts["journal"])
+    html, n = re.subn(r'(<ul class="journal">).*?(\n[ \t]*</ul>)',
+                      lambda m: m.group(1) + ("\n" + lignes_journal if lignes_journal else "") + m.group(2),
+                      html, count=1, flags=re.S)
+    if not n:
+        raise ValueError("page : journal introuvable")
     # La plage de l'en-tête, vide à la création (`creer`), suit le fichier ; ce qui la suit
     # (« · clos », écrit à la main) reste (chantier PLA). Tout autre en-tête reste tel quel (REV6).
     html = re.sub(r'(<div class="eyebrow">[^<]*? · fiches )(?:[A-Z]{1,3}\d+(?:–[A-Z]{1,3}\d+)?)?(?=</div>| · )',
@@ -2392,9 +2399,21 @@ def cmd_page(a, sortie):
         html = lire(a.page)
     if a.verifier:
         return verifier_page(html, a.fichier, sortie)
+    md = chemin_abri(a.page)
+    if os.path.exists(md):
+        parts = lire_abri(md)
+    elif a.creer:
+        parts = {"titre": a.titre, "resultat": a.resultat, "notes": {}, "journal": [], "bilan": []}
+    else:
+        parts = abri_de_page(html)
+    for ident, texte in (a.note or []):
+        parts["notes"][ident] = texte
+    for texte in (a.journal or []):
+        parts["journal"].append((date, texte))
+    ecrire_abri(md, parts)
     gardes = []
     try:
-        html, fiches_, etat, total, hors = regenerer(html, a.fichier, dict(a.note or []), a.journal or [], date, gardes)
+        html, fiches_, etat, total, hors = regenerer(html, a.fichier, parts, date, gardes)
     except ValueError as e:
         sortie.write("GARDE: %s\n" % e)
         return 1
@@ -3412,8 +3431,10 @@ def cmd_clore(a, sortie):
             bloc = re.sub(r"^  <section>", "  <section hidden>", bloc, count=1)
             pg = pg[:db] + bloc + pg[fb:d] + corps + pg[f:] if db < d else pg[:d] + corps + pg[f:db] + bloc + pg[fb:]
             couts_page = []    # les gardes de regenerer portent déjà « GARDE: »
+            md_page = chemin_abri(chemin_page)
+            parts_page = lire_abri(md_page) if os.path.exists(md_page) else abri_de_page(pg)
             try:
-                pg, _, _, total_mesure, _ = regenerer(pg, chemin_fiches, {}, [], date, couts_page)
+                pg, _, _, total_mesure, _ = regenerer(pg, chemin_fiches, parts_page, date, couts_page)
             except ValueError as e:
                 couts_page.append("page du chantier : coûts non régénérés — %s" % e)
             gardes.extend(re.sub(r"^GARDE: ", "", g) for g in couts_page)
