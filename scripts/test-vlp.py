@@ -1516,6 +1516,10 @@ with tempfile.TemporaryDirectory() as t:
                  " — mutant : decouper sans heure_clore (recompté 400 000)", code == 0 and code2 == 0
                  and "chantier 300 000" in s and "**CLOS**" in lire(os.path.join(proj, "ctx", "q.md"))
                  and "\nTOTAL (fiches + hors fiches) · ≈300,0k (300 000) · 3 tours" in s2, s + s2)
+        code3, s3_ = appel(["page", os.path.join(proj, "ctx", "q.md"), os.path.join(proj, "ctx", "artefacts", "q.html")])
+        verifier("dette PLI : page d'un clos = cout, 300 000 · 3 tours — mutant : page sans heure_clore"
+                 " (400 000 · 4 tours)", code3 == 0 and "Coût du chantier : ≈300,0k (300 000) · 3 tours"
+                 in lire(os.path.join(proj, "ctx", "artefacts", "q.html")), s3_)
 
 # ESD1 : sans découpe (pas de .git), les essais des sessions entières en une ligne à part, sous
 # les tables ; une session sans essai n'en a pas.

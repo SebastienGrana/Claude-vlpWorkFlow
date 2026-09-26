@@ -25,6 +25,15 @@
     <p class="mono" style="margin-top:.5rem">8 fiches · 8 faites</p>
   </header>
 
+  <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
+  <section>
+    <h2>Chantier clos le 2026-09-25</h2>
+    <div class="bilan">
+      <p>Livré : chaque FAITE d'/vlp:enchainer relu avant son commit par un agent vlp:relecture neuf ; 4 verdicts justes sur 4 sur les témoins de la nuit, 0,50 $ la relecture</p>
+      <p>Surpris : le relecteur jugeait le dépôt vivant — par la fiche REV6 qu'il lisait, puis par un hook lancé depuis la racine</p>
+    </div>
+  </section>
+
   <section>
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
@@ -78,8 +87,8 @@
         <span class="cout mono">≈17,2M (17 249 016) · 222 tours · 9,58 $</span>
       </details></li>
     </ul>
-    <p class="mono cout-hors">Hors fiches : ≈7,9M (7 941 893) · 31 tours · 7,89 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈76,4M (76 440 498) · 620 tours · 56,78 $</p>
+    <p class="mono cout-hors">Hors fiches : ≈7,4M (7 367 408) · 29 tours · 7,55 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈75,9M (75 866 013) · 618 tours · 56,44 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -108,15 +117,6 @@
       <li><time datetime="2026-09-24">2026-09-24</time><span>REV5 : l'app Claude est un paquet MSIX. Son claude.exe est en vrai sous %LOCALAPPDATA%\Packages\Claude_*\LocalCache\Roaming\Claude\claude-code\ ; %APPDATA%\Claude\claude-code n'existe que pour les processus qu'elle lance. py scripts/test-vlp.py suit le shebang python3 vers pythoncore-3.14-64, le Python du paquet « Python install manager », qui ne le voit pas : le hook y disait « validate sauté » (attendu aussi depuis un terminal hors de l'app, non mesuré). Décidé avec l'utilisateur : le hook cherche aussi Packages\Claude_* — test « hook : claude trouvé hors de l'app ».</span></li>
     </ul>
     </details>
-  </section>
-
-  <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
-  <section>
-    <h2>Chantier clos le 2026-09-25</h2>
-    <div class="bilan">
-      <p>Livré : chaque FAITE d'/vlp:enchainer relu avant son commit par un agent vlp:relecture neuf ; 4 verdicts justes sur 4 sur les témoins de la nuit, 0,50 $ la relecture</p>
-      <p>Surpris : le relecteur jugeait le dépôt vivant — par la fiche REV6 qu'il lisait, puis par un hook lancé depuis la racine</p>
-    </div>
   </section>
 
   <footer>

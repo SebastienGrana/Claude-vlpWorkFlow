@@ -2096,10 +2096,10 @@ def ligne_parts(nom, session, agents, essais=(0, 0, 0, 0)):
         " + %d essai%s %s" % (k, "s" if k > 1 else "", ligne_cout(*essais[:3])) if essais[1] else "")
 
 
-def couts_aux_commits(fiches_, heures, gardes, entete=()):
+def couts_aux_commits(fiches_, heures, gardes, entete=(), fin=None):
     """`couts` coupé aux commits (`parts_aux_commits`) : une ligne par fiche, session et
     sous-agents sommés ; « hors fiches » à part, et total = fiches + hors fiches."""
-    decoupe = parts_aux_commits(fiches_, heures, gardes, entete)
+    decoupe = parts_aux_commits(fiches_, heures, gardes, entete, fin)
     if decoupe is None:
         return {}, None, None
     parts, hors = decoupe
@@ -2109,7 +2109,7 @@ def couts_aux_commits(fiches_, heures, gardes, entete=()):
             plus(*sommes.values(), hors)[:3], hors[:3])
 
 
-def couts(fiches_, anciens, ancien_total, gardes, heures=None, entete=()):
+def couts(fiches_, anciens, ancien_total, gardes, heures=None, entete=(), fin=None):
     """({id: ligne de coût}, total, hors fiches) — total et hors fiches en (total, tours,
     usd), ou None. Avec les heures des commits (`heures_commits`) : `couts_aux_commits`.
     Sans elles, tirés de l'ancienne page, sans hors fiches. Une session portée
@@ -2118,7 +2118,7 @@ def couts(fiches_, anciens, ancien_total, gardes, heures=None, entete=()):
     l'ancienne page n'attribuait à aucune fiche (le cadrage joué dans la même
     session), si une seule session est partagée."""
     if heures:
-        return couts_aux_commits(fiches_, heures, gardes, entete)
+        return couts_aux_commits(fiches_, heures, gardes, entete, fin)
     m = mesure()
     mesures = {}
     for _, _, _, sessions in fiches_:
@@ -2248,8 +2248,10 @@ def regenerer(html, fichier, parts, date, gardes):
     ancien_total = re.search(r'<p class="mono cout-total">(.*?)</p>', html, re.S)
     clos = any(l.startswith("**CLOS**") for l in lignes)
     heures = heures_commits(fichier, [f[0] for f in fiches_], clos=clos) if any(f[3] for f in fiches_) else None
+    # Un clos s'arrête à son appel clore, comme cout : un chantier, un seul chiffre (dette PLI).
+    fin = heure_clore(fichier, lignes) if clos and heures else None
     cout, total, hors = couts(fiches_, anciens, ancien_total and ancien_total.group(1), gardes, heures,
-                              sessions_entete(lignes))
+                              sessions_entete(lignes), fin)
     html, n = re.subn(r'(</h1>\s*<p>).*?(</p>)', lambda m: m.group(1) + esc(parts["resultat"]) + m.group(2),
                       html, count=1, flags=re.S)
     if not n:
