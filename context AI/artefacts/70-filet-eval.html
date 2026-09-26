@@ -68,9 +68,9 @@
     <p>Une commande rejoue les deux essais de FIL3 en eval du plugin ; un changement du filet se reprouve en un appel, ≈ 0,16 $ le passage.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">4 fiches · 3 faites · en cours : EVF3</p>
+    <p class="mono" style="margin-top:.5rem">4 fiches · 4 faites</p>
   </header>
 
   <section>
@@ -95,14 +95,15 @@
         <span class="note">kit-essai + test + mutant ; plafond 6 : 1 avertissement (transcription), 80 : 0 ; la trace de l'eval ne voit pas les hooks — critère réécrit la nuit, à valider.</span>
         <span class="cout mono">≈4,9M (4 942 564) · 14 tours · 1,56 $</span>
       </li>
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">EVF3</span><span class="titre">Le cas F2 (Bash, exit 3)</span>
-        <span class="etat">en cours</span>
+        <span class="etat">faite</span>
         <span class="note">Le cas F2 (Bash, exit 3) sous WSL2, et la commande qui rejoue les deux cas. Dépend d'EVF2.</span>
+        <span class="cout mono">≈725,3k (725 253) · 7 tours · 0,76 $</span>
       </li>
     </ul>
-    <p class="mono cout-hors">Hors fiches : ≈14,4M (14 364 826) · 72 tours · 5,79 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈34,8M (34 754 704) · 137 tours · 13,40 $</p>
+    <p class="mono cout-hors">Hors fiches : ≈14,5M (14 478 291) · 73 tours · 5,87 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈35,6M (35 593 422) · 145 tours · 14,24 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -125,10 +126,12 @@
   </section>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
-  <section hidden>
-    <h2>Chantier clos le </h2>
+  <section>
+    <h2>Chantier clos le 2026-09-26</h2>
     <div class="bilan">
-      <p></p>
+      <p>Livré : bash evals/filet/rejouer.sh rejoue les deux essais du filet (F1 Read, F2 exit 3) en eval du plugin sous WSL2, en un appel, ≈0,28 $ le passage</p>
+      <p>Surpris : la trace de l'eval voit les appels d'outils du sous-agent mais pas le contexte de ses hooks ; la redirection 2&gt; de la carte bloquait tout fork sous eval</p>
+      <p>Estimé : estimé 2 fiches ≈7,79 $ · cadré 4 · joué 4 fiches ≈30 $</p>
     </div>
   </section>
 
