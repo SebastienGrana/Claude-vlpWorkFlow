@@ -200,8 +200,9 @@ de #1, #2, #11 présents sous `Fait` (`grep -c` = 1 chacun) ; témoins inchangé
 ---
 
 <!-- FICHE:VOI6 -->
-## VOI6 [ ] — Régénérer, faire regarder, republier les trois pages
+## VOI6 [x] — Régénérer, faire regarder, republier les trois pages
 
+**Session** : 4dee71be-d139-449c-91da-4bea993b42c7
 **Dépend de** : `VOI1`, `VOI3`, `VOI5`.
 **Fichiers** : les trois `CHANTIER.md` et `context AI/artefacts/feuille-de-route.html` des voisins, `context AI/08-etat.md` du kit — et rien d'autre.
 
