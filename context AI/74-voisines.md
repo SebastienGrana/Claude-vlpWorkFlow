@@ -165,8 +165,9 @@ projet ou script, pour MapDecorator et pour TrackGen, et sa réponse est notée 
 ---
 
 <!-- FICHE:VOI5 -->
-## VOI5 [ ] — Passer la TODO de MapDecorator en table
+## VOI5 [x] — Passer la TODO de MapDecorator en table
 
+**Session** : 83db81cd-9578-4477-8067-1e1ad7cef7a5
 **Dépend de** : `VOI4` (tranché : correction dans le projet ; `vlp.py` ne change pas ; TrackGen et ProjetONZSM, aucune action).
 **Fichiers** : `../MapDecorator/context AI/08-etat.md` (section `## TODO`, `:120`) — seul fichier voisin écrit ; `context AI/08-etat.md` du kit (journal) — et rien d'autre.
 
