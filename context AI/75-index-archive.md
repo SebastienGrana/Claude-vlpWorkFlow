@@ -105,8 +105,9 @@ n'appelle pas `archiver`). Le test `clore : index clos` existant est adapté, pa
 ---
 
 <!-- FICHE:IDX3 -->
-## IDX3 [ ] — Archiver l'index du kit, et pointer la doctrine
+## IDX3 [x] — Archiver l'index du kit, et pointer la doctrine
 
+**Session** : 59ace845-e688-49ed-96b0-522ae53d051a
 **Dépend de** : `IDX2`.
 **Fichiers** : `context AI/00-INDEX.md`, `context AI/00-INDEX-archive.md` (créé par le
 script), `CLAUDE.md` (routage), `templates/CLAUDE.md`, `methode-chantier.md`, `cloture.md`.

@@ -26,7 +26,8 @@ demande d'abord deux oui (`methode-chantier.md`, règle « La TODO ne grossit pa
 `<python>` : la valeur de `PYTHON=` dans la carte de la commande qui clôt. Sans
 abandon, pas de `--abandon`. Le script
 pose `**CLOS**` et `**Fait.**` dans le fichier de fiches ; remet les deux lignes
-de `CHANTIER.md` à `aucun` ; passe à « clos » la ligne de l'index, retire celle
+de `CHANTIER.md` à `aucun` ; passe à « clos » la ligne de l'index et l'envoie
+dans l'archive voisine (`vlp.py archiver`), retire celle
 du routage de `CLAUDE.md`, et ajoute `--resume` à sa section « Où on en est »,
 qui ne garde que les derniers clos ; rend visible la `ZONE:bilan` de la page du
 chantier et en régénère les coûts ; puis écrit la feuille de route locale (ligne

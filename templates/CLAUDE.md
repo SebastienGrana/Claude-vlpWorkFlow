@@ -31,7 +31,7 @@ et seulement dans ce cas, ouvrir l'index.
 |---|---|
 | ouvrir un chantier, ou le découper en fiches | **lancer `/vlp:chantier`** — la méthode vit dans le kit, pas ici |
 | jouer une fiche `<X>*` | `<contexte>/<NN>-<chantier>.md` — chantier **ouvert** |
-| relire un chantier clos | `<contexte>/00-INDEX.md` — sa ligne y nomme le fichier de fiches |
+| relire un chantier clos | `<contexte>/00-INDEX-archive.md` — sa ligne y nomme le fichier de fiches |
 | reprendre après une longue interruption | `<contexte>/<NN>-etat.md` |
 
 ## Économie de contexte
