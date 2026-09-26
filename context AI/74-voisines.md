@@ -89,8 +89,9 @@ dans la branche sans `--ecrire` » fait tomber le nouveau test. `pyright scripts
 ---
 
 <!-- FICHE:VOI2 -->
-## VOI2 [ ] — Comparer deux feuilles par script
+## VOI2 [x] — Comparer deux feuilles par script
 
+**Session** : 75214987-1d49-4d93-8532-3920557c9c7b
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py` (nouvelle sous-commande `comparer`, docstring du module), `scripts/test-vlp.py` — et rien d'autre.
 

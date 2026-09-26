@@ -2952,4 +2952,27 @@ def test_transcription():
 
 test_transcription()
 
+# --- VOI2 : `comparer` dit ce qu'une régénération de page a perdu ou ajouté ---
+
+ANCIENNE_CMP = ("<html><body><table><tbody>\n"
+                "<tr><td>ligne A</td></tr>\n"
+                "<tr><td>TODO : un truc</td></tr>\n"
+                "</tbody></table></body></html>\n")
+NEUVE_CMP = ("<html><body><table><tbody>\n"
+             "<tr><td>ligne A</td></tr>\n"
+             "<tr><td>2026-09-26</td></tr>\n"
+             "</tbody></table></body></html>\n")
+
+with tempfile.TemporaryDirectory() as tc:
+    anc = os.path.join(tc, "ancienne.html")
+    neu = os.path.join(tc, "neuve.html")
+    ecrire(anc, ANCIENNE_CMP)
+    ecrire(neu, NEUVE_CMP)
+    code, s = appel(["comparer", anc, neu])
+    verifier("VOI2 : une ligne perdue, une ajoutée, code 0 — une mesure, pas une garde",
+             code == 0 and "PERDU: TODO : un truc\n" in s and "AJOUTÉ: 2026-09-26\n" in s
+             and s.rstrip().endswith("COMPARER 1 perdus · 1 ajoutés"), s)
+    code, s = appel(["comparer", anc, os.path.join(tc, "absente.html")])
+    verifier("VOI2 : fichier absent — GARDE, code 1", code == 1 and s.startswith("GARDE:"), s)
+
 print("OK")

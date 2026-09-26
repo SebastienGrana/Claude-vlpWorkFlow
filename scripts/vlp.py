@@ -123,6 +123,12 @@ Sous-commandes :
   `AVERTISSEMENT: <fichier> <n> lignes > <seuil>` par fichier de tête au-delà
   de son seuil, puis `POIDS CLAUDE.md <n>/<seuil> · CHANTIER.md <n>/<seuil> ·
   index <n>/<seuil>` (`absent` pour <n>) ; un poids ne change pas la sortie.
+- `comparer <ancienne.html> <neuve.html>` — le texte visible de chaque page
+  (balises, `<script>` et `<style>` retirés, entités décodées, blancs réduits),
+  par ligne de tableau ou par bloc : une ligne `PERDU: <texte>` par texte de
+  l'ancienne absent de la neuve, `AJOUTÉ: <texte>` pour l'inverse, puis
+  `COMPARER <n> perdus · <n> ajoutés`. Sort 0 même avec des pertes — une
+  mesure, pas une garde. Un fichier absent : `GARDE:`, sort 1.
 - `niveau <projet>` — en quoi un projet équipé a dérivé du kit ; n'écrit rien.
   Agrège `renvois` (renvois absents en écarts, poids en avertissements, la ligne
   `POIDS` telle quelle), `feuille --verifier` et, si un fichier de fiches est
@@ -272,8 +278,10 @@ tous deux : le premier qui crée `<TAMPON_HOOKS>/vlp-hook-<sha1 du nom et de l'e
 chaque lancement agit (chantier SON).
 """
 import argparse
+import collections
 import glob
 import hashlib
+import html.parser
 import io
 import json
 import os
@@ -2783,6 +2791,83 @@ def migrer_clos(html):
     return html[:d] + corps + html[f:], n
 
 
+# --- comparer -----------------------------------------------------------------
+
+BLOC = {"tr", "p", "div", "li", "h1", "h2", "h3", "h4", "h5", "h6", "section"}
+
+
+class Extracteur(html.parser.HTMLParser):
+    """Le texte visible d'une page, par ligne de tableau (`tr`) ou par bloc
+    (`p`, `div`, `li`, un titre, `section`) — la première rencontrée en
+    descendant, imbriquée ou non. `convert_charrefs` décode les entités."""
+
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.hors_texte = 0
+        self.pile = []
+        self.tampon = []
+        self.blocs = []
+
+    def handle_starttag(self, tag, attrs):
+        if tag in ("script", "style"):
+            self.hors_texte += 1
+        elif not self.hors_texte and tag in BLOC:
+            self.pile.append(tag)
+
+    def handle_endtag(self, tag):
+        if tag in ("script", "style"):
+            self.hors_texte = max(0, self.hors_texte - 1)
+        elif not self.hors_texte and tag in BLOC and tag in self.pile:
+            while self.pile[-1] != tag:
+                self.pile.pop()
+            self.pile.pop()
+            if not self.pile:
+                texte = " ".join("".join(self.tampon).split())
+                if texte:
+                    self.blocs.append(texte)
+                self.tampon = []
+
+    def handle_data(self, data):
+        if not self.hors_texte and self.pile:
+            self.tampon.append(data)
+
+
+def textes_visibles(html_):
+    """Les blocs de texte visible d'une page, dans leur ordre d'apparition."""
+    ex = Extracteur()
+    ex.feed(html_)
+    return ex.blocs
+
+
+def cmd_comparer(a, sortie):
+    """`PERDU:`/`AJOUTÉ:` entre le texte visible de deux pages, en multiset —
+    une mesure, pas une garde : sort 0 même avec des pertes."""
+    for chemin in (a.ancienne, a.neuve):
+        if not os.path.isfile(chemin):
+            sortie.write("GARDE: introuvable %s\n" % chemin)
+            return 1
+    anciens = textes_visibles(lire(a.ancienne))
+    neufs = textes_visibles(lire(a.neuve))
+    restant_neufs = collections.Counter(neufs)
+    perdus = 0
+    for t in anciens:
+        if restant_neufs[t] > 0:
+            restant_neufs[t] -= 1
+        else:
+            sortie.write("PERDU: %s\n" % t)
+            perdus += 1
+    restant_anciens = collections.Counter(anciens)
+    ajoutes = 0
+    for t in neufs:
+        if restant_anciens[t] > 0:
+            restant_anciens[t] -= 1
+        else:
+            sortie.write("AJOUTÉ: %s\n" % t)
+            ajoutes += 1
+    sortie.write("COMPARER %d perdus · %d ajoutés\n" % (perdus, ajoutes))
+    return 0
+
+
 def markdown_brut(html):
     """(`**`, liens Markdown, liens cassés) restés dans les zones todo, encours et
     clos d'une feuille de route, en occurrences — hors code cité, hors ligne
@@ -3627,6 +3712,9 @@ def main(argv, sortie=None, entree=None, erreur=None):
     nv.add_argument("projet")
     nv.add_argument("--ecrire", action="store_true")
     nv.add_argument("--date")
+    cp = sous.add_parser("comparer")
+    cp.add_argument("ancienne")
+    cp.add_argument("neuve")
     fe = sous.add_parser("feuille")
     fe.add_argument("projet")
     fe.add_argument("--todo")
@@ -3705,6 +3793,8 @@ def repartir(a, sortie, entree, erreur):
         return cmd_renvois(a.projet, sortie)
     if a.cmd == "niveau":
         return cmd_niveau(a, sortie)
+    if a.cmd == "comparer":
+        return cmd_comparer(a, sortie)
     if a.cmd == "etat":
         sortie.write("ETAT=%s\n" % nom_etat(a.contexte))
         return 0
