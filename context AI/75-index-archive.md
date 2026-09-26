@@ -55,8 +55,9 @@ Rien n'est parallélisable : sans `IDX1`, archiver casserait `recompter` et `niv
 ---
 
 <!-- FICHE:IDX1 -->
-## IDX1 [ ] — Faire lire l'archive aux lecteurs de l'index
+## IDX1 [x] — Faire lire l'archive aux lecteurs de l'index
 
+**Session** : dcba1d49-b559-4212-b8ce-bb9e29e16caf
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` — et rien d'autre.
 

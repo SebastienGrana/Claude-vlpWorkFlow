@@ -2070,6 +2070,49 @@ with tempfile.TemporaryDirectory() as t:
     verifier("NIV3 : sans CHANTIER.md, --ecrire s'arrête sur une GARDE et n'écrit rien",
              code == 1 and s.startswith("GARDE: pas de CHANTIER.md dans ") and not os.listdir(t), s)
 
+# IDX1 : la ligne clos a quitté l'index pour l'archive — les trois lecteurs de l'index la voient encore.
+def idx1():
+    verifier("IDX1 : l'archive se dérive de l'index, dans son dossier",
+             mod.chemin_archive("ctx/00-INDEX.md") == "ctx/00-INDEX-archive.md"
+             and mod.chemin_archive("00-INDEX.md") == "00-INDEX-archive.md", mod.chemin_archive("ctx/00-INDEX.md"))
+    with tempfile.TemporaryDirectory() as t:
+        rc = os.path.join(t, "rc")
+        ecrire(os.path.join(rc, "CHANTIER.md"), "# Chantier courant\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n")
+        ecrire(os.path.join(rc, "ctx", "00-INDEX.md"), "| Fichier | Lire quand |\n|---|---|\n| `08-etat.md` | on reprend |\n")
+        ecrire(os.path.join(rc, "ctx", "00-INDEX-archive.md"),
+               "| Fichier | Lire quand |\n|---|---|\n| `n.md` | chantier **clos** « N », `N1..N1` |\n")
+        ecrire(os.path.join(rc, "ctx", "n.md"), "# Chantier N\n\n**CLOS** le 2026-01-06.\n\n## Le socle commun\n\n"
+               "<!-- FICHE:N1 -->\n## N1 [x] — Seule\n**Critère de fin**\n<!-- /FICHE -->\n")
+        ecrire(os.path.join(rc, "ctx", "artefacts", "feuille-de-route.html"),
+               '    <!-- ZONE:clos — test -->\n      <table>\n        <tbody>\n'
+               + ligne_close(mod.arrondi(999)).replace("Q1–Q2", "N1") + "        </tbody>\n      </table>\n")
+        code, s = appel(["recompter", rc])
+        verifier("IDX1 : recompter trouve le fichier par l'archive — mutant : ne lire que l'index",
+                 code == 0 and s.splitlines()[0] == "N inscrit 999 · recompté gardé · écart +0 · gardé — sans session", s)
+
+    with tempfile.TemporaryDirectory() as t:
+        proj = bac_niv3(t, index="# Index\n\n| Fichier | On l'ouvre quand |\n|---|---|\n| `08-etat.md` | on reprend |\n")
+        ecrire(os.path.join(proj, "ctx", "00-INDEX-archive.md"),
+               "| Fichier | Lire quand |\n|---|---|\n| `10-a.md` | chantier **clos** « A », `A1..A2` |\n")
+        code, s = appel(["niveau", proj, "--ecrire", "--date", "2026-09-18"])
+        verifier("IDX1 : niveau retire la table des clos que l'archive nomme — mutant : ne lire que l'index",
+                 "CORRIGÉ: clos: table des chantiers clos retirée de CHANTIER.md:9" in s
+                 and "| ctx/10-a.md |" not in io.open(os.path.join(proj, "CHANTIER.md"), encoding="utf-8").read(), s)
+
+    with tempfile.TemporaryDirectory() as t:
+        ecrire(os.path.join(t, "CHANTIER.md"), "- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n")
+        ecrire(os.path.join(t, "ctx", "01-a.md"), "a\n")
+        ecrire(os.path.join(t, "ctx", "00-INDEX.md"), "| Fichier | Lire |\n|---|---|\n| `01-a.md` | on lit |\n")
+        ecrire(os.path.join(t, "ctx", "00-INDEX-archive.md"),
+               "| Fichier | Lire quand |\n|---|---|\n| `20-mort.md` | chantier **clos** « M », `M1..M1` |\n")
+        code, s = appel(["renvois", t])
+        verifier("IDX1 : renvois lit l'archive, sans poids — mutant : archive non lue",
+                 code == 1 and s == "ABSENT: ctx/00-INDEX-archive.md:3: 20-mort.md\n"
+                 "POIDS CLAUDE.md absent/80 · CHANTIER.md 2/50 · index 3/80\nRENVOIS 2 nommés · 1 absents\n", s)
+
+
+idx1()
+
 # REP2 : retirer les chevrons d'une URL
 with tempfile.TemporaryDirectory() as t:
     # Test 1 : champ retire les chevrons d'une URL entre chevrons

@@ -401,6 +401,20 @@ def lignes_du_projet(projet, chemin_relatif, libelle):
     return lignes_gardees(os.path.join(projet, chemin_relatif), libelle, chemin_relatif)
 
 
+def chemin_archive(index):
+    """L'archive des lignes clos, dans le dossier de l'index : son chemin ne se
+    retape jamais, il se dérive d'ici (chantier IDX)."""
+    dossier = os.path.dirname(index)
+    return (dossier.rstrip("/\\") + "/" if dossier else "") + "00-INDEX-archive.md"
+
+
+def lignes_index(projet, index):
+    """Les lignes de l'index, puis celles de son archive si elle existe : un
+    lecteur de l'index voit aussi les chantiers clos qu'on y a déplacés."""
+    archive = os.path.join(projet, chemin_archive(index))
+    return lignes_du_projet(projet, index, "index") + (lignes_de(archive) if os.path.isfile(archive) else [])
+
+
 # --- carte -------------------------------------------------------------------
 
 def equipe(d):
@@ -2279,7 +2293,7 @@ def cmd_renvois(projet, sortie):
             chemins[m.group(1)] = m.group(2)
     contexte = chemins["contexte"]
     index = chemins.get("index", contexte.rstrip("/") + "/00-INDEX.md")
-    sources = [(index, 0, None), ("CLAUDE.md", -1, "## Routage")]
+    sources = [(index, 0, None), (chemin_archive(index), 0, None), ("CLAUDE.md", -1, "## Routage")]
     nommes, absents = 0, 0
     for source, colonne, debut in sources:
         chemin = os.path.join(projet, source)
@@ -2652,7 +2666,7 @@ def cmd_recompter(projet, sortie, ecrire=False, essais=False, a_clore=False):
     contexte = champ(carte_, "contexte", "context AI/")
     index = champ(carte_, "index", os.path.join(contexte, "00-INDEX.md"))
     fichiers = {}
-    for l in lignes_du_projet(projet, index, "index"):
+    for l in lignes_index(projet, index):
         m = PLAGE_INDEX.match(l)
         if m:
             fichiers.setdefault(m.group(2), os.path.join(projet, contexte, m.group(1)))
@@ -3054,7 +3068,7 @@ def cmd_niveau(a, sortie):
 
     rang = table_des_clos(carte_)
     if rang is not None:
-        neuve = sans_table_des_clos(carte_, lignes_du_projet(projet, index, "index")) if a.ecrire else None
+        neuve = sans_table_des_clos(carte_, lignes_index(projet, index)) if a.ecrire else None
         if neuve is None:
             ecarts += 1
             sortie.write("ÉCART: clos: CHANTIER.md:%d — la table des chantiers clos vit"
