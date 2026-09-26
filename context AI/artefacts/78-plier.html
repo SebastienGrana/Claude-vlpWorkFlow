@@ -20,9 +20,9 @@
     <p>La page d'un chantier se replie : fiches finies et vieux journal repliés, bilan en haut une fois clos, rien de coupé ; son CSS vit dans un vlp.css joint. Mesuré avant/après en écrans et en tokens de relecture.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">7 fiches · 5 faites · en cours : PLI6</p>
+    <p class="mono" style="margin-top:.5rem">7 fiches · 6 faites · en cours : PLI7</p>
   </header>
 
   <section>
@@ -57,21 +57,22 @@
         <summary><span class="id">PLI5</span><span class="titre">Replier les fiches</span>
         <span class="etat">faite</span></summary>
         <span class="note">test-vlp.py OK ; tester_fiches_repliees : 3 blocs, 1 ouvert (en cours), comparer 0 perdus, ancienne forme lue ; mutants tout ouvrir et nouvelle forme seule : tombent ; pyright 0 erreur</span>
-        <span class="cout mono">≈3,4M (3 442 895) · 20 tours · 1,27 $</span>
+        <span class="cout mono">≈3,6M (3 628 893) · 21 tours · 1,33 $</span>
+      </details></li>
+      <li class="fiche" data-etat="faite"><details>
+        <summary><span class="id">PLI6</span><span class="titre">Replier le journal, bilan en haut</span>
+        <span class="etat">faite</span></summary>
+        <span class="note">test-vlp.py OK ; journal 7 → 3 visibles + 4 repliées, abri 7 dans l'ordre ; 2 → aucun bloc ; bilan avant les fiches après clore ; 2 mutants tombent ; pyright 0 erreur</span>
+        <span class="cout mono">≈3,1M (3 084 084) · 15 tours · 1,06 $</span>
       </details></li>
       <li class="fiche" data-etat="encours"><details open>
-        <summary><span class="id">PLI6</span><span class="titre">Replier le journal, bilan en haut</span>
-        <span class="etat">en cours</span></summary>
-        <span class="note">Journal : 3 dernières visibles ; bilan en haut si clos · dépend de PLI5</span>
-      </details></li>
-      <li class="fiche"><details>
         <summary><span class="id">PLI7</span><span class="titre">Mesurer après, republier la feuille</span>
-        <span class="etat">à faire</span></summary>
+        <span class="etat">en cours</span></summary>
         <span class="note">Mesure après, feuille du kit republiée, affichage constaté · dépend de PLI1, PLI4, PLI6</span>
       </details></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈3,5M (3 510 468) · 28 tours · 2,37 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈34,3M (34 312 431) · 211 tours · 13,29 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈37,6M (37 582 513) · 227 tours · 14,41 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

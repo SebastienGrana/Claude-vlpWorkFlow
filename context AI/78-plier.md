@@ -212,8 +212,9 @@ la seule nouvelle forme → le test tombe. Tests et pyright : comptes bruts.
 ---
 
 <!-- FICHE:PLI6 -->
-## PLI6 [ ] — Replier le journal, bilan en haut
+## PLI6 [x] — Replier le journal, bilan en haut
 
+**Session** : 30b330e2-4593-4cb3-8abc-4a109ec7890d
 **Dépend de** : `PLI5`.
 **Fichiers** : `scripts/vlp.py` (`regenerer`, `cmd_clore`, `abri_de_page`), `templates/artefact-chantier.html` (`ZONE:journal`, `ZONE:bilan`), `templates/vlp.css`, `scripts/test-vlp.py` — et rien d'autre.
 

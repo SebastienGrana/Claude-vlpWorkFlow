@@ -3396,4 +3396,61 @@ def tester_fiches_repliees():
 
 tester_fiches_repliees()
 
+
+# --- PLI6 : le journal replié au-delà de 3 entrées ; le bilan sous l'en-tête à la clôture ---
+
+def tester_journal_replie():
+    for n, visibles, repliees in ((7, 3, 4), (2, 2, 0)):
+        with tempfile.TemporaryDirectory() as tjr:
+            fiches = os.path.join(tjr, "q.md")
+            page = os.path.join(tjr, "artefacts", "q.html")
+            ecrire(fiches, FICHES_PLI5)
+            argv = ["page", fiches, page, "--creer", "--projet", "Proj", "--titre", "T", "--resultat", "R0"]
+            for k in range(1, n + 1):
+                argv += ["--journal", "j%d" % k]
+            code, s = appel(argv)
+            html = lire(page)
+            ancien = re.search(r'<details class="journal-ancien">.*?</details>', html, re.S)
+            premier = re.search(r'<ul class="journal">(.*?)</ul>', html, re.S)
+            vus = premier.group(1).count("<li>") if premier else -1
+            caches = ancien.group(0).count("<li>") if ancien else 0
+            textes = [t for _, t in mod.abri_de_page(html)["journal"]]
+            verifier("PLI6 : %d entrées → %d visibles, %d repliées, abri les relit dans l'ordre"
+                     " — mutant : garder tout visible" % (n, visibles, repliees),
+                     code == 0 and vus == visibles and caches == repliees and bool(ancien) == bool(repliees)
+                     and textes == ["j%d" % k for k in range(1, n + 1)]
+                     and (not ancien or "%d entrées plus anciennes" % repliees in ancien.group(0)),
+                     "%s\nvus=%d caches=%d %r\n%s" % (s, vus, caches, textes, html[html.find("Journal"):][:900]))
+
+
+tester_journal_replie()
+
+
+def tester_bilan_en_haut():
+    gabarit = io.open(os.path.join(ICI, "..", "templates", "artefact-chantier.html"), encoding="utf-8").read()
+    # une page d'avant PLI6 : le bilan en bas, juste avant le pied de page
+    i = gabarit.index("  <!-- ZONE:bilan")
+    fin = gabarit.index("  </section>\n", i) + len("  </section>\n\n")
+    bloc = gabarit[i:fin]
+    ancienne = (gabarit[:i] + gabarit[fin:]).replace("  <footer>", bloc + "  <footer>", 1)
+    with tempfile.TemporaryDirectory() as tb:
+        ecrire(os.path.join(tb, "CHANTIER.md"), "# C\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n"
+               "- **fichier de fiches courant** : ctx/50-u.md (U1..U1)\n- **artefact du chantier** : aucun\n\n"
+               "Lettres de fiche déjà prises : U (test).\n")
+        ecrire(os.path.join(tb, "ctx", "50-u.md"), "# Chantier U — u\n\n**Fait.** Rien.\n\n## U1 [x] — a\n")
+        page = os.path.join(tb, "ctx", "artefacts", "50-u.html")
+        ecrire(page, ancienne)
+        verifier("PLI6 : la page de départ a son bilan en bas",
+                 ancienne.index("ZONE:bilan") > ancienne.index("ZONE:fiches"), "")
+        code, s = appel(["clore", tb, "--livre", "fini", "--date", "2026-09-27"])
+        html = lire(page)
+        verifier("PLI6 : après clore, ZONE:bilan précède ZONE:fiches, visible, une seule fois"
+                 " — mutant : laisser le bilan en bas",
+                 code == 0 and html.count("ZONE:bilan") == 1
+                 and html.index("ZONE:bilan") < html.index("ZONE:fiches")
+                 and "<section>\n    <h2>Chantier clos le 2026-09-27</h2>" in html, s + html[:1500])
+
+
+tester_bilan_en_haut()
+
 print("OK")

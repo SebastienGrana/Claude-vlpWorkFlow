@@ -26,6 +26,16 @@
     <p class="mono" style="margin-top:.5rem">&lt;n&gt; fiches · &lt;n&gt; faites · en cours : &lt;R2&gt;</p>
   </header>
 
+  <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
+  <section hidden>
+    <h2>Chantier clos le &lt;AAAA-MM-JJ&gt;</h2>
+    <div class="bilan">
+      <p>&lt;Ce que le chantier a livré, en deux ou trois lignes.&gt;</p>
+      <p>&lt;Ce qui a surpris : une API qui ne se comporte pas comme annoncé, une
+        frontière déplacée.&gt;</p>
+    </div>
+  </section>
+
   <section>
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
@@ -70,16 +80,6 @@
       <li><time datetime="&lt;AAAA-MM-JJ&gt;">&lt;AAAA-MM-JJ&gt;</time><span>&lt;Ce qui a
         été tranché, et pourquoi.&gt;</span></li>
     </ul>
-  </section>
-
-  <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
-  <section hidden>
-    <h2>Chantier clos le &lt;AAAA-MM-JJ&gt;</h2>
-    <div class="bilan">
-      <p>&lt;Ce que le chantier a livré, en deux ou trois lignes.&gt;</p>
-      <p>&lt;Ce qui a surpris : une API qui ne se comporte pas comme annoncé, une
-        frontière déplacée.&gt;</p>
-    </div>
   </section>
 
   <footer>

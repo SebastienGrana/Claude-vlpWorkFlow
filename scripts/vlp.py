@@ -2213,6 +2213,28 @@ def migrer_style(html):
     return html
 
 
+JOURNAL_VISIBLE = 3
+JOURNAL_ANCIEN = re.compile(r'\n[ \t]*<details class="journal-ancien">.*?</details>', re.S)
+
+
+def bilan_en_haut(html):
+    """La section de `ZONE:bilan`, marqueur compris, déplacée juste sous l'en-tête — une page
+    close se lit par son bilan (chantier PLI). Rend le HTML, le même si elle y est déjà."""
+    i = html.find("<!-- ZONE:bilan")
+    tete = html.find("  </header>\n")
+    if i < 0 or tete < 0 or i < tete:
+        return html
+    debut = html.rfind("\n", 0, i) + 1
+    fin = html.find("  </section>\n", i)
+    if fin < 0:
+        return html
+    fin += len("  </section>\n")
+    bloc = html[debut:fin]
+    reste = html[:debut].rstrip("\n") + "\n\n" + html[fin:].lstrip("\n")
+    apres = reste.find("  </header>\n") + len("  </header>\n")
+    return reste[:apres] + "\n" + bloc + reste[apres:]
+
+
 def regenerer(html, fichier, parts, date, gardes):
     """`parts` (`lire_abri`/`abri_de_page`) fait foi pour résultat, notes et journal — recopiés
     en entier dans la page, plus jamais lus dans son ancienne version (chantier ABR)."""
@@ -2272,10 +2294,20 @@ def regenerer(html, fichier, parts, date, gardes):
         fiche_bloquee = re.match(r"\s*([A-Z]{1,3}[0-9]+)", blocage.group(3))
         if fiche_bloquee and etat.get(fiche_bloquee.group(1)) == "faite":
             html = html[:blocage.start()] + "<section hidden>" + html[blocage.start() + len("<section>"):]
-    lignes_journal = "\n".join('      <li><time datetime="%s">%s</time><span>%s</span></li>' % (d, d, esc(t))
-                               for d, t in parts["journal"])
+    # Les `JOURNAL_VISIBLE` dernières entrées restent visibles ; les plus anciennes, repliées à la
+    # suite (chantier PLI) — `abri_de_page` relit les deux, dans l'ordre.
+    def lis_journal(entrees):
+        return "".join('\n      <li><time datetime="%s">%s</time><span>%s</span></li>' % (d, d, esc(t))
+                       for d, t in entrees)
+    entrees = parts["journal"]
+    anciennes, visibles = entrees[:-JOURNAL_VISIBLE], entrees[-JOURNAL_VISIBLE:]
+    html = JOURNAL_ANCIEN.sub("", html)
+    replie = ('\n    <details class="journal-ancien"><summary>%d entrée%s plus ancienne%s</summary>'
+              '\n    <ul class="journal">%s\n    </ul>\n    </details>'
+              % (len(anciennes), "s" if len(anciennes) > 1 else "", "s" if len(anciennes) > 1 else "",
+                 lis_journal(anciennes))) if anciennes else ""
     html, n = re.subn(r'(<ul class="journal">).*?(\n[ \t]*</ul>)',
-                      lambda m: m.group(1) + ("\n" + lignes_journal if lignes_journal else "") + m.group(2),
+                      lambda m: m.group(1) + lis_journal(visibles) + m.group(2) + replie,
                       html, count=1, flags=re.S)
     if not n:
         raise ValueError("page : journal introuvable")
@@ -2382,8 +2414,12 @@ def abri_de_page(page):
     resultat = re.search(r"</h1>\s*<p>(.*?)</p>", page, re.S)
     notes = {i: brut(n) for i, (_, n, _) in lis_page(page).items() if n is not None and brut(n)}
     journal = []
-    ul = re.search(r'<ul class="journal">(.*?)\n[ \t]*</ul>', page, re.S)
-    for li in re.findall(r"<li>(.*?)</li>", ul.group(1) if ul else "", re.S):
+    # Les entrées repliées (les plus anciennes, chantier PLI) d'abord, puis les visibles.
+    ul = re.search(r'<ul class="journal">(.*?)\n[ \t]*</ul>', JOURNAL_ANCIEN.sub("", page), re.S)
+    ancien = JOURNAL_ANCIEN.search(page)
+    ul_ancien = ancien and re.search(r'<ul class="journal">(.*?)\n[ \t]*</ul>', ancien.group(0), re.S)
+    for li in re.findall(r"<li>(.*?)</li>", (ul_ancien.group(1) if ul_ancien else "")
+                         + (ul.group(1) if ul else ""), re.S):
         date = re.search(r"<time[^>]*>(.*?)</time>", li, re.S)
         texte = brut(li[date.end():] if date else li)
         if texte:
@@ -3471,6 +3507,7 @@ def cmd_clore(a, sortie):
             bloc = pg[db:fb]
             bloc = re.sub(r"^  <section>", "  <section hidden>", bloc, count=1)
             pg = pg[:db] + bloc + pg[fb:d] + corps + pg[f:] if db < d else pg[:d] + corps + pg[f:db] + bloc + pg[fb:]
+            pg = bilan_en_haut(pg)
             couts_page = []    # les gardes de regenerer portent déjà « GARDE: »
             try:
                 pg, _, _, total_mesure, _ = regenerer(pg, chemin_fiches, parts_page, date, couts_page)
