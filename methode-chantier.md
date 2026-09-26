@@ -216,6 +216,13 @@ tranche, pas la mémoire de la session.
 fiche rend chaque pas annulable seul, et une fiche qui a mal tourné se reprend
 par un `git revert` au lieu d'une reconstitution à la main.
 
+**Une fiche sans rien à commiter pose un commit vide** —
+`git commit --allow-empty -m "<PRÉFIXE><n> : <titre>"` : c'est la borne où
+`vlp.py cout` coupe. Décision de l'utilisateur, 2026-09-27, à la clôture de
+`SEG` (cairn) : tout y était hors git, aucun commit ne nommait `SEG`, et `cout`
+a rendu `DÉCOUPE aucune` — des sessions entières, dont une session parallèle,
+**18 147 448** tokens contre **11 262 523** pour le chantier seul (`clore`).
+
 **Un push à la clôture seulement, et jamais sans confirmation** : il publie, et
 ne se reprend pas. `cloture.md` le porte.
 
