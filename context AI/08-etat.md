@@ -2233,6 +2233,26 @@ l'utilisateur, jamais poussés depuis ce kit. Laissé ouvert : rien, les cinq fi
 sont faites. Retiré de la TODO : n° 26 `ABR`. Coût du chantier : 28 101 075
 (`vlp.py clore`).
 
+Appris (ABR2, la fiche la plus chère — 47 tours) : un mutant qui garde un
+`--note`/`--journal` explicite en argument ne distingue rien, puisque le
+chemin correct et le chemin fauté produisent alors la même sortie ; il faut
+retirer la donnée du `.md` sans repasser d'override pour forcer le chemin qui
+diverge. Autre piège du même chantier : une fixture de test qui loge la page
+et le fichier de fiches dans le même dossier sous le même nom fait collision
+avec `chemin_abri()` — les séparer (`artefacts/`) dès l'écriture de la
+fixture, pas après l'échec.
+
+Dette repérée : le `.gitignore` de Cairn-VlpLib exclut tout `context AI/` —
+en désaccord avec la convention « le `.md` est la source, il vit à côté de la
+page » posée par ABR. Réglé une fois par `git add -f` (décidé avec
+l'utilisateur, 2026-09-26), sans changer le `.gitignore` : si un futur
+chantier retouche `context AI/` dans Cairn, le même conflit reviendra.
+
+Essaimé (vérifié le 2026-09-26, `find … context AI/artefacts/*.html|*.md`) :
+Cairn-VlpLib a ses 23 `.md` ; MapDecorator (4 pages), ProjetONZSM (1) et
+TrackGen (1) — 6 pages en tout — n'ont **aucun** `.md` d'abri. Pas migrées
+par ce chantier : voir la tâche proposée en aparté.
+
 - 2026-09-26 (FFE2) : sans `FICHIER=`, `rel1-carte.py` rejoint `APRÈS=` et la ligne **fichier de fiches courant** de la carte ; juste sur les 20 relecteurs réels, faux sur les 19 rejeux REV (carte à `51-relecture.md`, fiche relue ailleurs) : `entier 1 · plage 2` → `0 · 0` en `--sans-fichier`, lectures toutes venues de ces rejeux. Critère accepté ainsi par l'utilisateur.
 
 - 2026-09-26 — **FFE clos** (FFE1..FFE2) : `vlp.py relecture` ne rend plus `FICHIER=` ; `agents/relecture.md` défend d'ouvrir le fichier de fiches ; `rel1-carte.py` le retrouve par `APRÈS=` + la carte (`--sans-fichier`), juste sur 20 relecteurs réels, aveugle sur les 19 rejeux REV. Laissé ouvert : mesurer l'après sur de vrais relecteurs. Retiré de la TODO : n° 70 `FFE`. Coût du chantier : 7 310 346 (`vlp.py clore`).
