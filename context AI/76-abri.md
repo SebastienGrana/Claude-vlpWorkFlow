@@ -178,8 +178,9 @@ Ne recopie ni le format ni un nombre : renvoie à la docstring de `vlp.py`.
 ---
 
 <!-- FICHE:ABR5 -->
-## ABR5 [ ] — Mettre les pages de Cairn à l'abri
+## ABR5 [x] — Mettre les pages de Cairn à l'abri
 
+**Session** : 72de750c-600b-43d1-b5e7-94c21b471768
 **Dépend de** : `ABR2`, `ABR3`.
 **Fichiers** : `../Cairn-VlpLib/context AI/artefacts/*.html` (lus, pas modifiés)
 — et rien d'autre.
