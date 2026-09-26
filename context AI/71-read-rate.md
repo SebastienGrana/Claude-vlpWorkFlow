@@ -33,8 +33,9 @@ journal avec `costUsd`, `turns`, sorties brutes ; témoin à plafond 80.
 ---
 
 <!-- FICHE:RAT1 -->
-## RAT1 [ ] — Le cas F3 : douze `Read` sur des fichiers absents
+## RAT1 [x] — Le cas F3 : douze `Read` sur des fichiers absents
 
+**Session** : 81f28c74-89aa-4815-b804-db93de007ebc
 **Dépend de** : rien.
 **Fichiers** : `evals/filet/` (forme du cas et de `rejouer.sh`) — et rien d'autre.
 

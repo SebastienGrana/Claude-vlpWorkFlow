@@ -68,21 +68,24 @@
     <p>Oui ou non, mesuré : un Read sur un fichier absent déclenche-t-il le filet, à plafond bas ?</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="encours"></span>
+      <span data-etat="faite"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">1 fiches · 0 faite · en cours : RAT1</p>
+    <p class="mono" style="margin-top:.5rem">1 fiches · 1 faite</p>
   </header>
 
   <section>
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">RAT1</span><span class="titre">Le cas F3 : douze Read sur des fichiers absents</span>
-        <span class="etat">en cours</span>
-        <span class="note">Le cas F3 en eval sous WSL2, plafonds 6 et 80. Sans dépendance.</span>
+        <span class="etat">faite</span>
+        <span class="note">OUI : plafond 5, PREMIER_AVERTISSEMENT tour=2 outil=Read is_error=oui hook=PostToolUseFailure:Read ; témoin 80 : 0. Imprévu : 13 avertissements dans un tour.</span>
+        <span class="cout mono">≈792,3k (792 267) · 5 tours · 0,37 $</span>
       </li>
     </ul>
+    <p class="mono cout-hors">Hors fiches : ≈748,9k (748 901) · 5 tours · 0,28 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈1,5M (1 541 168) · 10 tours · 0,65 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -99,6 +102,7 @@
     <h2>Journal des décisions</h2>
     <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
     <ul class="journal">
+      <li><time datetime="2026-09-26">2026-09-26</time><span>RAT1 : plafond 5 au lieu de 10, décidé seul la nuit — à 6, les Read tombaient trop tôt ; à valider.</span></li>
     </ul>
   </section>
 

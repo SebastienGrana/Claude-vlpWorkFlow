@@ -1,0 +1,20 @@
+schema_version: "1.1"
+name: filet-rate
+runs: 1
+tags: [filet-rate, wsl2]
+
+execution:
+  max_turns: 80
+  timeout_seconds: 300
+  # Même forme que evals/filet/ (EVF2) : Bash donné à l'invocation, sous WSL2.
+  # Tag à part : un Read raté réveille-t-il le filet ? (chantier RAT).
+  allowed_tools: [Skill, Read]
+
+context:
+  scaffold_script: fixture.sh
+
+graders:
+  # Le sous-agent a tenté ses Read.
+  - name: subagent-reads
+    type: tool_used
+    tool: Read
