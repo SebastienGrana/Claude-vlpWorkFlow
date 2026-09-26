@@ -324,16 +324,22 @@ def premier_lancement(texte, nom=""):
     même entrée sur une écriture (PYT2) — (les deux lanceurs partent ensemble, un tampon daté les
     laisserait passer tous deux). Retire au passage les tampons de plus de 60 s. `TAMPON_HOOKS` à
     `None` (tests) ou `VLP_SANS_TAMPON` non vide (rejeu à la main, SON) : toujours vrai ; une autre `OSError` : vrai — mieux vaut deux fois que zéro."""
+    return tampon_neuf("vlp-hook-" + hashlib.sha1((nom + "\n" + texte).encode("utf-8")).hexdigest())
+
+
+def tampon_neuf(nom):
+    """Vrai si `<TAMPON_HOOKS>/<nom>` se crée en exclusif ; mêmes replis que `premier_lancement`.
+    Retire au passage les tampons `vlp-hook-` et `vlp-filet-` de plus de 60 s."""
     if TAMPON_HOOKS is None or os.environ.get("VLP_SANS_TAMPON"):
         return True
     try:
         for tampon in os.listdir(TAMPON_HOOKS):
             chemin = os.path.join(TAMPON_HOOKS, tampon)
-            if tampon.startswith("vlp-hook-") and time.time() - os.path.getmtime(chemin) > 60:
+            if tampon.startswith(("vlp-hook-", "vlp-filet-")) and time.time() - os.path.getmtime(chemin) > 60:
                 os.unlink(chemin)
     except OSError:
         pass
-    chemin = os.path.join(TAMPON_HOOKS, "vlp-hook-" + hashlib.sha1((nom + "\n" + texte).encode("utf-8")).hexdigest())
+    chemin = os.path.join(TAMPON_HOOKS, nom)
     try:
         os.close(os.open(chemin, os.O_CREAT | os.O_EXCL | os.O_WRONLY))
     except FileExistsError:
@@ -1271,6 +1277,7 @@ def cmd_filet(entree, sortie, erreur):
     tout outil. Si nous sommes dans un sous-agent (agent_type contient 'fiche'
     et agent_id existe), compte les tours déjà rendus et avertit si
     tours_restants <= SEUIL_FILET, au nom de l'événement reçu.
+    Une fois par tour : le tampon `vlp-filet-<agent_id>-<tours>` (`tampon_neuf`) tait les suivants (TOU2).
     """
     try:
         d = json.loads(entree.read())
@@ -1308,7 +1315,7 @@ def cmd_filet(entree, sortie, erreur):
         return 0
 
     tours_restants = max_turns - tours
-    if 0 < tours_restants <= SEUIL_FILET:
+    if 0 < tours_restants <= SEUIL_FILET and tampon_neuf(f"vlp-filet-{agent_id}-{tours}"):
         tour_mot = "tour" if tours_restants == 1 else "tours"
         message = f"Attention : {tours_restants} {tour_mot} restant{'s' if tours_restants > 1 else ''}. Rends ton statut maintenant — RETOUR avec ce qui est fait et ce qui reste, si la fiche n'est pas finie."
         # Même forme après un succès ou un échec (doc des hooks, lue le 2026-09-24) :

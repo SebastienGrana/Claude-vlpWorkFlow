@@ -2325,6 +2325,29 @@ with tempfile.TemporaryDirectory() as t:
              code == 0 and '"hookEventName": "PostToolUseFailure"' in o
              and '"additionalContext": "Attention : 3 tours restants' in o, o + e)
 
+    # TOU2 : une fois par tour — tampon `vlp-filet-<agent_id>-<tours>` dans un TAMPON_HOOKS neuf
+    ancien_tampon = mod.TAMPON_HOOKS
+    mod.TAMPON_HOOKS = tempfile.mkdtemp()
+    try:
+        def salve(*ids):
+            """Un appel par id d'outil (entrées différentes) ; rend le nombre de sorties non vides."""
+            return sum(bool(filet_test({"agent_type": "vlp:fiche", "agent_id": "a1", "tool_use_id": i,
+                                        "transcript_path": t_fwd + "/s.jsonl"})[1]) for i in ids)
+        creer_trans(sub_path, 77)
+        verifier("TOU2 : deux appels du même tour, une seule sortie", salve("u1", "u2") == 1, "")
+        creer_trans(sub_path, 78)
+        verifier("TOU2 : un tour de plus, le filet avertit de nouveau", salve("u3") == 1, "")
+        creer_trans(sub_path, 77)
+        os.environ["VLP_SANS_TAMPON"] = "1"
+        try:
+            n = salve("u4", "u5")
+        finally:
+            del os.environ["VLP_SANS_TAMPON"]
+        verifier("TOU2 : VLP_SANS_TAMPON, deux sorties", n == 2, str(n))
+    finally:
+        shutil.rmtree(mod.TAMPON_HOOKS, ignore_errors=True)
+        mod.TAMPON_HOOKS = ancien_tampon
+
     # Un vrai chemin de plus de 260 caractères, bâti comme dans FIL1 : sans le préfixe,
     # isfile et open y disent absent un transcript présent ; le filet doit avertir quand même
     if os.name != "nt":

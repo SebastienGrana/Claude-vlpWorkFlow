@@ -73,8 +73,9 @@ clé de `TOU2` est confirmée ; sinon, rends `RETOUR` et dis ce que tu as vu.
 ---
 
 <!-- FICHE:TOU2 -->
-## TOU2 [ ] — Ne plus avertir qu'une fois par tour
+## TOU2 [x] — Ne plus avertir qu'une fois par tour
 
+**Session** : 05918332-a420-4ebd-8891-efe59052d1da
 **Dépend de** : `TOU1` (clé confirmée).
 **Fichiers** : `scripts/vlp.py` (`cmd_filet`), `scripts/test-vlp.py` — et rien d'autre.
 

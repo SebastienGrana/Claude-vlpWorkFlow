@@ -68,9 +68,9 @@
     <p>L'eval filet-rate rejouée à plafond 5 montre au plus un avertissement par tour, là où RAT1 en comptait 13 dans le même tour ; un test et ses mutants le gardent.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="encours"></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">3 fiches · 1 faite · en cours : TOU2</p>
+    <p class="mono" style="margin-top:.5rem">3 fiches · 2 faites · en cours : TOU3</p>
   </header>
 
   <section>
@@ -81,21 +81,22 @@
         <span class="id">TOU1</span><span class="titre">Mesurer avant : les avertissements, tour par tour</span>
         <span class="etat">faite</span>
         <span class="note">test + mutant (AVERTIS_PAR_TOUR=1:4 le fait tomber) ; eval filet-rate plafond 5 : TOURS=4, AVERTISSEMENTS=13, AVERTIS_PAR_TOUR=2:12,3:1, 0,155 $ — clé de TOU2 confirmée</span>
-        <span class="cout mono">≈1,4M (1 382 589) · 14 tours · 0,92 $</span>
+        <span class="cout mono">≈1,7M (1 705 430) · 17 tours · 1,04 $</span>
+      </li>
+      <li class="fiche" data-etat="faite">
+        <span class="id">TOU2</span><span class="titre">Ne plus avertir qu'une fois par tour</span>
+        <span class="etat">faite</span>
+        <span class="note">test-vlp.py : OK, code 0, 0 écart ; mutant sans tampon et mutant clé sans le tour tombent chacun sur leur test ; pyright 0 errors</span>
+        <span class="cout mono">≈1,5M (1 533 817) · 17 tours · 0,87 $</span>
       </li>
       <li class="fiche" data-etat="encours">
-        <span class="id">TOU2</span><span class="titre">Ne plus avertir qu'une fois par tour</span>
-        <span class="etat">en cours</span>
-        <span class="note">le filet pose un tampon agent + tour et se tait au 2e appel ; dépend de TOU1</span>
-      </li>
-      <li class="fiche">
         <span class="id">TOU3</span><span class="titre">Mesurer après, à plafond 5</span>
-        <span class="etat">à faire</span>
+        <span class="etat">en cours</span>
         <span class="note">mesure après, à plafond 5 et témoin 80 ; dépend de TOU2</span>
       </li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈2,2M (2 175 306) · 18 tours · 1,84 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈3,6M (3 557 895) · 32 tours · 2,76 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈5,4M (5 414 553) · 52 tours · 3,75 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
