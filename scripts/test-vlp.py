@@ -2085,9 +2085,9 @@ with tempfile.TemporaryDirectory() as t:
 
     html_niv3 = io.open(os.path.join(proj, "ctx", "artefacts", "feuille-de-route.html"),
                         encoding="utf-8").read()
-    verifier("NIV3 : le bloc repliable, son résumé et ses règles CSS sont posés",
+    verifier("NIV3 : le bloc repliable et son résumé sont posés, le style migré vers vlp.css (PLI3)",
              '<details class="clos">' in html_niv3 and '<span class="resume-clos">' in html_niv3
-             and "details.clos > summary {" in html_niv3, html_niv3[:200])
+             and html_niv3.count('href="vlp.css"') == 1 and "<style>" not in html_niv3, html_niv3[:200])
     verifier("NIV3 : les lignes de ZONE:clos gardent les dix espaces que `clore` repère",
              '\n          <tr>\n' in html_niv3, "indentation changée")
     verifier("NIV3 : la feuille est aussi régénérée — la TODO du fichier d'état y passe",
@@ -3295,5 +3295,40 @@ def tester_vlp_css_recopie():
 
 
 tester_vlp_css_recopie()
+
+
+# --- PLI3 : une page à <style> inline est migrée vers <link href="vlp.css"> ---
+
+def avec_style_inline(html):
+    """Une page déjà régénérée (donc liée à vlp.css), avec son <style> d'avant PLI3
+    remis en place — comme une page publiée avant ce chantier, jamais régénérée depuis."""
+    css = io.open(os.path.join(ICI, "..", "templates", "vlp.css"), encoding="utf-8").read()
+    return html.replace('<link rel="stylesheet" href="vlp.css">', "<style>\n%s</style>" % css, 1)
+
+
+def tester_style_migre():
+    with tempfile.TemporaryDirectory() as tab:
+        fiches = os.path.join(tab, "p.md")
+        page = os.path.join(tab, "artefacts", "p.html")
+        ancienne = os.path.join(tab, "avant.html")
+        ecrire(fiches, FICHES_PLI2)
+        appel(["page", fiches, page, "--creer", "--projet", "Proj", "--titre", "T", "--resultat", "R0"])
+        # Une page déjà correcte, mais encore au CSS inline (avant PLI3) — le seul écart voulu.
+        ecrire(page, avec_style_inline(lire(page)))
+        ecrire(ancienne, lire(page))
+        code, s = appel(["page", fiches, page])
+        html = lire(page)
+        verifier("PLI3 : régénérée, la page n'a plus de <style>, un seul <link> vers vlp.css"
+                 " — mutant : ajouter le <link> sans retirer le <style>",
+                 code == 0 and "<style>" not in html and html.count('href="vlp.css"') == 1, html[:400])
+        code, s = appel(["comparer", ancienne, page])
+        verifier("PLI3 : comparer ne dit aucune ligne de texte perdue",
+                 code == 0 and "PERDU:" not in s and s.rstrip().startswith("COMPARER 0 perdus"), s)
+        code, s = appel(["page", fiches, page])
+        verifier("PLI3 : régénérée deux fois, toujours un seul <link>",
+                 code == 0 and lire(page).count('href="vlp.css"') == 1, lire(page)[:400])
+
+
+tester_style_migre()
 
 print("OK")

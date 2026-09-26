@@ -134,8 +134,9 @@ l'identique. Mutant : ne copier qu'à `--creer` → le test tombe. `grep -c "<st
 ---
 
 <!-- FICHE:PLI3 -->
-## PLI3 [ ] — Migrer les pages existantes vers `vlp.css`
+## PLI3 [x] — Migrer les pages existantes vers `vlp.css`
 
+**Session** : 30b330e2-4593-4cb3-8abc-4a109ec7890d
 **Dépend de** : `PLI2`.
 **Fichiers** : `scripts/vlp.py` (`regenerer`, `feuille`, CSS `details.clos` injecté), `templates/vlp.css`, `scripts/test-vlp.py` — et rien d'autre.
 

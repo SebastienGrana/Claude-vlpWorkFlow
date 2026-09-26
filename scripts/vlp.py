@@ -2192,9 +2192,26 @@ def creer(fichier, projet, titre, resultat):
     return html
 
 
+STYLE_INLINE = re.compile(r"<style>.*?</style>\n?", re.S)
+
+
+def migrer_style(html):
+    """Une page qui porte encore son `<style>` inline (d'avant `vlp.css`, chantier PLI) le
+    remplace par le `<link>` — une fois, jamais deux. Rend le HTML, le même s'il n'y a rien
+    à migrer (déjà lié, ou pas de `<style>` du tout)."""
+    a_style = STYLE_INLINE.search(html)
+    a_lien = 'href="vlp.css"' in html
+    if a_style and not a_lien:
+        return STYLE_INLINE.sub('<link rel="stylesheet" href="vlp.css">\n', html, count=1)
+    if a_style and a_lien:
+        return STYLE_INLINE.sub("", html, count=1)
+    return html
+
+
 def regenerer(html, fichier, parts, date, gardes):
     """`parts` (`lire_abri`/`abri_de_page`) fait foi pour résultat, notes et journal — recopiés
     en entier dans la page, plus jamais lus dans son ancienne version (chantier ABR)."""
+    html = migrer_style(html)
     lignes = lignes_de(fichier)
     fiches_ = fiches_du_fichier(lignes)
     if not fiches_:
@@ -2656,6 +2673,7 @@ def zone(html, nom, ouvre, ferme):
 
 def feuille(projet, html, todo, date):
     """(page régénérée, bilan) : encours, todo et lettres depuis `CHANTIER.md` et le fichier d'état."""
+    html = migrer_style(html)
     carte_ = lignes_de(os.path.join(projet, "CHANTIER.md"))
     etat = champ(carte_, "fichier d'état")
     if not etat:
@@ -2959,23 +2977,13 @@ def resommer(html, n, total):
                   lambda m: m.group(1) + resume_clos(n, total) + m.group(2), html, count=1)
 
 
-def regles_clos():
-    """Les règles CSS du bloc repliable, lues dans `templates/vlp.css` (chantier PLI —
-    avant, dans le gabarit) : elles n'ont pas de second exemplaire ici."""
-    return [l for l in lire(GABARIT_VLPCSS).splitlines(True)
-            if l.lstrip().startswith(("details.clos", ".resume-clos"))]
-
-
 def migrer_feuille(html):
     """Une feuille de route d'avant le 2026-09-17 n'a ni bloc repliable ni
-    cellule d'estimation au pied de la table des clos : les poser, sans toucher
-    à l'indentation des lignes de `ZONE:clos`. Rend le HTML — le même s'il les
-    a déjà. Une page liée à `vlp.css` (chantier PLI) les a toujours : n'y touche pas,
-    elle n'a plus de `<style>` où les insérer."""
-    if "details.clos" not in html and 'href="vlp.css"' not in html:
-        i = html.find("tfoot td {")
-        i = html.find("\n", i) + 1 if i >= 0 else html.find("</style>")
-        html = html[:i] + "".join(regles_clos()) + html[i:]
+    cellule d'estimation au pied de la table des clos : poser le `<details class="clos">`
+    manquant, sans toucher à l'indentation des lignes de `ZONE:clos`. Rend le HTML — le
+    même s'il l'a déjà. Aucune règle CSS à poser ici (chantier PLI) : `migrer_style`,
+    dans `regenerer`/`feuille`, remplace tout `<style>` par le `<link>` vers `vlp.css`,
+    qui les porte déjà."""
     i = html.find("<!-- ZONE:clos")
     if i < 0:
         return html
