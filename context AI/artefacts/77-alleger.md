@@ -7,3 +7,6 @@ Pour chaque piste — CSS en fichier joint, données en base — le coût d'une 
 - ALE3 : C1 CSS joint adoptee, C2 db en attente (essai hors mode auto) ; ARTEFACTS.md : grep -c = 1 ; TODO 28/29/30 sans ALE ; page jetable supprimee, variante base gardee
 ## Journal
 ## Bilan
+- Livré : CSS des pages en vlp.css joint adopte (-43 % par relecture, 5760 -> 3286) ; base db en attente d'un essai hors mode auto (630, mais rien en local ni par lien public)
+- Surpris : une page qui declare db est reservee a l'organisation : ecran de connexion en fenetre privee
+- Estimé : estimé 2 fiches ≈7,98 $ · cadré 3 · joué 3 fiches ≈12 $
