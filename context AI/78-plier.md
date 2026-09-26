@@ -238,8 +238,9 @@ bas → le second tombe. Tests et pyright : comptes bruts.
 ---
 
 <!-- FICHE:PLI7 -->
-## PLI7 [ ] — Mesurer après, republier la feuille
+## PLI7 [x] — Mesurer après, republier la feuille
 
+**Session** : bc952e02-0c9b-4344-8f89-5daa400c0c5a
 **Dépend de** : `PLI1`, `PLI4`, `PLI6`.
 **Fichiers** : `context AI/78-plier.md` (section `## Mesures`), `context AI/artefacts/51-relecture.html`, `context AI/artefacts/feuille-de-route.html`, `CHANTIER.md` (URL de la feuille) — et rien d'autre.
 
@@ -269,6 +270,11 @@ Page mesurée : `context AI/artefacts/51-relecture.html` (15 535 octets, 8 fiche
 |---|---|---|---|---|
 | Hauteur, écrans d'ordinateur | avant | `py envelopper.py "context AI/artefacts/51-relecture.html" pli1-avant.html` (enveloppe de `38-audit-scripts/replie.py:25-27`), servi par `py -m http.server 8765`, navigateur intégré à 1536 × 864, `await document.fonts.ready; document.documentElement.scrollHeight / 864` | `scrollHeight` = 2977 px, `innerHeight` = 864, `innerWidth` = 1536 | **3,45 écrans** |
 | Coût d'un `Artifact read` | avant | `date` (22:25:02Z), `Artifact read` dans un tour à part, `date` (22:25:09Z), puis `py scripts/mesure-tokens.py --plage 2026-09-26T22:25:02Z 2026-09-26T22:25:09Z 30b330e2-4593-4cb3-8abc-4a109ec7890d` | `ctx_1er` = 92 462, `ctx_dernier` = 100 257, 2 tours (Artifact=1, PowerShell=1) | **7 795 tokens** |
+| Hauteur, écrans d'ordinateur | avant, remesuré par `PLI7` | même montage, `pli1-avant.html` = la page d'avant régénération (15 535 octets) | `scrollHeight` = 2977 px, 0 `details` | **3,45 écrans** (identique) |
+| Hauteur, écrans d'ordinateur | après, replié (défaut) | `py envelopper.py "context AI/artefacts/51-relecture.html" pli7-apres.html`, `vlp.css` copié à côté, `py -m http.server 8765`, 1536 × 864, `await document.fonts.ready; document.documentElement.scrollHeight / 864` | `scrollHeight` = 1886 px, 9 `details`, 0 ouvert, `vlp.css` chargé, fond `rgb(246, 239, 223)` | **2,18 écrans** (−1,27) |
+| Hauteur, écrans d'ordinateur | après, tout déplié | même page, `document.querySelectorAll('details').forEach(d=>d.open=true)` puis `scrollHeight / 864` | `scrollHeight` = 3133 px | **3,63 écrans** (+0,18) |
+| Coût d'un `Artifact read` | après | republication de l'URL jetable avec `files: {"vlp.css": …}` (version 2), puis `date` (23:14:00Z), `Artifact read` dans un tour à part, `date` (23:14:08Z), `py scripts/mesure-tokens.py --plage 2026-09-26T23:14:00Z 2026-09-26T23:14:08Z bc952e02-0c9b-4344-8f89-5daa400c0c5a` | `ctx_1er` = 100 893, `ctx_dernier` = 106 735, 2 tours (Artifact=1, Bash=1) | **5 842 tokens** (−1 953, −25 %) |
+| Texte perdu | après | `py scripts/vlp.py comparer 51-avant-regen.html "context AI/artefacts/51-relecture.html"` | `COMPARER 3 perdus · 4 ajoutés` : les 3 « perdus » sont hors fiches, coût total et date, retrouvés mis à jour ; l'ajout neuf est « 4 entrées plus anciennes » | **0 ligne perdue** |
 
 - URL jetable (à republier par `PLI7`, puis à supprimer) :
   https://claude.ai/artifact/VVNW7buXnTtffssZmd3knk
@@ -279,3 +285,10 @@ Page mesurée : `context AI/artefacts/51-relecture.html` (15 535 octets, 8 fiche
   petit serveur local, à refaire tel quel en `PLI7`.
 - ⚠️ L'écart contient aussi l'enveloppe que la plateforme ajoute à la lecture
   (en-tête `[Artifact …]`, `<head>` de claude.ai) : même biais avant et après.
+- Session « après » (`PLI7`) : `bc952e02-0c9b-4344-8f89-5daa400c0c5a`, 2026-09-27.
+- ⚠️ Déplié, la page est plus haute qu'avant (+156 px) : les cartes de `vlp.css`
+  ont des marges. Le gain ne vaut que replié, l'état par défaut.
+- ⚠️ Régénérée, la page de ce chantier clos garde son bilan **en bas** : `page`
+  ne déplace pas le bilan, seule `clore` le pose en haut (`PLI6`). Non corrigé ici.
+- ⚠️ Le coût hors fiches de `51-relecture` a bougé à la régénération (7,55 $ →
+  7,89 $, 29 → 31 tours) : un chantier clos recompté. Non instruit ici.

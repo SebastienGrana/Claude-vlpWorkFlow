@@ -11,55 +11,7 @@
   visible à côté de l'arrondi.
 -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700&family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:wght@400;600&display=swap">
-<style>
-  /* Compact volontairement : /tache relit cette page à chaque fiche, et le CSS
-     ne change jamais. Chaque ligne gagnée ici est gagnée à chaque fiche. */
-  :root { --ground:#f4f5f7; --surface:#fff; --line:#d9dce3; --line-fort:#b9bec9; --texte:#1a222e; --doux:#5c6675; --accent:#2f5d8c; --fait:#2f7a55; --cours:#a86a12; --bloque:#a63d40; --attente:#8d95a3; --ombre:0 1px 2px rgba(26,34,46,.06); }
-  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --ground:#11161d; --surface:#19202a; --line:#2b3542; --line-fort:#3d4a5a; --texte:#e5e9ef; --doux:#98a2b1; --accent:#7fb0e0; --fait:#5fbb8b; --cours:#d9a441; --bloque:#e0777a; --attente:#6d7787; --ombre:none; } }
-  :root[data-theme="dark"] { --ground:#11161d; --surface:#19202a; --line:#2b3542; --line-fort:#3d4a5a; --texte:#e5e9ef; --doux:#98a2b1; --accent:#7fb0e0; --fait:#5fbb8b; --cours:#d9a441; --bloque:#e0777a; --attente:#6d7787; --ombre:none; }
-  * { box-sizing:border-box; } [hidden] { display:none !important; }
-  body { background:var(--ground); color:var(--texte); font-family:"Source Sans 3",system-ui,sans-serif; font-size:16px; line-height:1.55; }
-  .page { max-width:46rem; margin:0 auto; padding:2.5rem 1.25rem 4rem; display:flex; flex-direction:column; gap:2rem; }
-  h1,h2 { font-family:Archivo,system-ui,sans-serif; text-wrap:balance; margin:0; }
-  h1 { font-size:1.9rem; font-weight:700; letter-spacing:-.015em; }
-  h2 { font-size:.8rem; font-weight:700; text-transform:uppercase; letter-spacing:.09em; color:var(--doux); }
-  .eyebrow { font-family:"IBM Plex Mono",monospace; font-size:.75rem; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); }
-  .mono,.fiche .id,.fiche .etat,.journal time,.blocage pre { font-family:"IBM Plex Mono",monospace; }
-  .mono { font-variant-numeric:tabular-nums; }
-  header { display:flex; flex-direction:column; gap:.35rem; border-bottom:2px solid var(--line-fort); padding-bottom:1.25rem; }
-  header p { margin:.4rem 0 0; color:var(--doux); max-width:62ch; }
-  .avancement { display:flex; gap:.25rem; margin-top:.9rem; }
-  .avancement span { height:.4rem; flex:1; border-radius:1px; background:var(--line); }
-  section { display:flex; flex-direction:column; gap:.85rem; }
-  .fiches,.journal { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
-  .fiches { gap:.5rem; } .journal { gap:.6rem; }
-  .fiche { display:grid; grid-template-columns:3.5rem 1fr; gap:.1rem .9rem; background:var(--surface); border:1px solid var(--line); border-left:3px solid var(--attente); border-radius:3px; padding:.7rem .9rem; box-shadow:var(--ombre); }
-  .fiche .id { font-weight:500; color:var(--doux); }
-  .fiche .titre { font-weight:600; }
-  .fiche .note { grid-column:2; font-size:.9rem; color:var(--doux); }
-  .fiche .cout { grid-column:2; font-size:.78rem; color:var(--doux); }
-  .cout-total,.cout-hors { font-size:.85rem; color:var(--doux); }
-  .fiche .etat { grid-column:1; font-size:.68rem; letter-spacing:.07em; text-transform:uppercase; color:var(--attente); }
-  /* les trois états, partout où ils comptent */
-  .avancement span[data-etat="faite"] { background:var(--fait); }
-  .avancement span[data-etat="encours"] { background:var(--cours); }
-  .avancement span[data-etat="bloquee"] { background:var(--bloque); }
-  .fiche[data-etat="faite"] { border-left-color:var(--fait); }
-  .fiche[data-etat="encours"] { border-left-color:var(--cours); }
-  .fiche[data-etat="bloquee"] { border-left-color:var(--bloque); }
-  .fiche[data-etat="faite"] .etat { color:var(--fait); }
-  .fiche[data-etat="encours"] .etat { color:var(--cours); }
-  .fiche[data-etat="bloquee"] .etat { color:var(--bloque); }
-  .fiche[data-etat="faite"] .titre { color:var(--doux); font-weight:400; }
-  .fiche[data-etat="encours"] .id,.fiche[data-etat="bloquee"] .id { color:var(--texte); }
-  .blocage { background:var(--surface); border:1px solid var(--bloque); border-radius:3px; padding:.8rem .9rem; }
-  .blocage pre { margin:.5rem 0 0; overflow-x:auto; font-size:.82rem; color:var(--texte); }
-  .journal li { display:grid; grid-template-columns:6rem 1fr; gap:.9rem; border-top:1px solid var(--line); padding-top:.6rem; }
-  .journal time { font-size:.85rem; color:var(--doux); }
-  .bilan { background:var(--surface); border:1px solid var(--line); border-top:3px solid var(--fait); border-radius:3px; padding:1rem 1.1rem; }
-  .bilan p { margin:0 0 .6rem; } .bilan p:last-child { margin-bottom:0; }
-  footer { border-top:1px solid var(--line); padding-top:.9rem; font-size:.82rem; color:var(--doux); display:flex; flex-wrap:wrap; gap:.25rem 1.25rem; }
-</style>
+<link rel="stylesheet" href="vlp.css">
 
 <div class="page">
   <header>
@@ -77,57 +29,57 @@
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="faite">
-        <span class="id">REV1</span><span class="titre">Préparer la relecture par script</span>
-        <span class="etat">faite</span>
+      <li class="fiche" data-etat="faite"><details>
+        <summary><span class="id">REV1</span><span class="titre">Préparer la relecture par script</span>
+        <span class="etat">faite</span></summary>
         <span class="note">Suite OK : trois tests vus en échec sur un bouchon, trois mutants tués chacun par le sien ; relecture CAD1 --sha e41925c : FICHIER= sur context AI/49-cadrage-compte.md, socle 37 lignes, fiche 41 ; --retirer : RETIRÉ 2.</span>
         <span class="cout mono">≈10,9M (10 948 663) · 90 tours · 5,67 $</span>
-      </li>
-      <li class="fiche" data-etat="faite">
-        <span class="id">REV2</span><span class="titre">Contrôler la tête et refuser par script</span>
-        <span class="etat">faite</span>
+      </details></li>
+      <li class="fiche" data-etat="faite"><details>
+        <summary><span class="id">REV2</span><span class="titre">Contrôler la tête et refuser par script</span>
+        <span class="etat">faite</span></summary>
         <span class="note">Suite OK : trois tests vus en échec (bloc rejoué seul), trois mutants tués chacun par le sien ; vrai dépôt : REV1 --verifier rend TÊTE e1d7f36 et sort 1, REV2 rend CASE [ ] sans TÊTE.</span>
         <span class="cout mono">≈4,9M (4 942 719) · 20 tours · 2,32 $</span>
-      </li>
-      <li class="fiche" data-etat="faite">
-        <span class="id">REV3</span><span class="titre">Écrire le relecteur et le brancher</span>
-        <span class="etat">faite</span>
+      </details></li>
+      <li class="fiche" data-etat="faite"><details>
+        <summary><span class="id">REV3</span><span class="titre">Écrire le relecteur et le brancher</span>
+        <span class="etat">faite</span></summary>
         <span class="note">lire agents/relecture.md skills/relire/SKILL.md : sort 0, 64 lignes ; grep : vlp:relire ×1 et --refuser ×1 dans enchainer, ACCEPTÉE ×1 et REFUSÉE ×2 dans enchainement.md ; pre-commit : manifestes validés.</span>
         <span class="cout mono">≈2,7M (2 682 772) · 9 tours · 1,34 $</span>
-      </li>
-      <li class="fiche" data-etat="faite">
-        <span class="id">REV5</span><span class="titre">Un commit propre passe sur une copie en CRLF</span>
-        <span class="etat">faite</span>
+      </details></li>
+      <li class="fiche" data-etat="faite"><details>
+        <summary><span class="id">REV5</span><span class="titre">Un commit propre passe sur une copie en CRLF</span>
+        <span class="etat">faite</span></summary>
         <span class="note">py scripts/test-vlp.py : OK, code 0, 0 ligne « SAUTÉ: claude » ; 4 tests vus en échec avant leur correction ; 4 mutants (guillemets, ordre de la boucle, ligne *.md, recherche Packages) attrapés, code 1, chacun par son test</span>
         <span class="cout mono">≈25,7M (25 707 441) · 200 tours · 26,23 $</span>
-      </li>
-      <li class="fiche" data-etat="faite">
-        <span class="id">REV6</span><span class="titre">Un en-tête sans plage reste tel quel</span>
-        <span class="etat">faite</span>
+      </details></li>
+      <li class="fiche" data-etat="faite"><details>
+        <summary><span class="id">REV6</span><span class="titre">Un en-tête sans plage reste tel quel</span>
+        <span class="etat">faite</span></summary>
         <span class="note">py scripts/test-vlp.py : OK, code 0 ; test neuf vu en échec (« fiches U1à venir ») ; mutants : regex actuelle casse 3/3 en-têtes, piste du relecteur casse le trait d'union ; pyright 31 avant, 31 après</span>
         <span class="cout mono">≈4,2M (4 186 397) · 25 tours · 2,48 $</span>
-      </li>
-      <li class="fiche" data-etat="faite">
-        <span class="id">REV7</span><span class="titre">Le fichier d'état n'est plus hors fiche</span>
-        <span class="etat">faite</span>
+      </details></li>
+      <li class="fiche" data-etat="faite"><details>
+        <summary><span class="id">REV7</span><span class="titre">Le fichier d'état n'est plus hors fiche</span>
+        <span class="etat">faite</span></summary>
         <span class="note">py scripts/test-vlp.py : OK, code 0 ; « relecture : un fichier hors fiche » étendu, vu en échec (HORS FICHE ctx d/etat.md) ; mutant (état plus exclu) : code 1 ; relecture CAD1 --sha 8bb748d : 0 HORS FICHE, --retirer : RETIRÉ 2 ; pyright 31 → 31</span>
         <span class="cout mono">≈844,6k (844 603) · 8 tours · 0,39 $</span>
-      </li>
-      <li class="fiche" data-etat="faite">
-        <span class="id">REV8</span><span class="titre">Refuser ou remarquer</span>
-        <span class="etat">faite</span>
+      </details></li>
+      <li class="fiche" data-etat="faite"><details>
+        <summary><span class="id">REV8</span><span class="titre">Refuser ou remarquer</span>
+        <span class="etat">faite</span></summary>
         <span class="note">Grep enchainement.md : « remarque » ×1, « les motifs » ×2 (l. 32, 37), « Un défaut : » ×0 ; « remarque » ×0 dans agents/relecture.md et skills/relire/SKILL.md ; commit passé par le hook</span>
         <span class="cout mono">≈1,9M (1 936 994) · 15 tours · 0,88 $</span>
-      </li>
-      <li class="fiche" data-etat="faite">
-        <span class="id">REV4</span><span class="titre">Prouver la relecture sur les commits de la nuit</span>
-        <span class="etat">faite</span>
+      </details></li>
+      <li class="fiche" data-etat="faite"><details>
+        <summary><span class="id">REV4</span><span class="titre">Prouver la relecture sur les commits de la nuit</span>
+        <span class="etat">faite</span></summary>
         <span class="note">Table de quatre lignes au journal de 08-etat.md : 8bb748d ACCEPTÉE, 7d16873 REFUSÉE (plage vide, sonde), c5123af REFUSÉE (hook qui refuse un arbre propre en CRLF, par env -C), eb2a6b0 REFUSÉE (regex, sonde de 12 en-têtes) — 4 sur 4, assemblée de deux passages. 0,50 $ la relecture (4ᵉ passage + c5123af), contre 1,78 $ au premier.</span>
         <span class="cout mono">≈17,2M (17 249 016) · 222 tours · 9,58 $</span>
-      </li>
+      </details></li>
     </ul>
-    <p class="mono cout-hors">Hors fiches : ≈7,4M (7 367 408) · 29 tours · 7,55 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈75,9M (75 866 013) · 618 tours · 56,44 $</p>
+    <p class="mono cout-hors">Hors fiches : ≈7,9M (7 941 893) · 31 tours · 7,89 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈76,4M (76 440 498) · 620 tours · 56,78 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -144,14 +96,18 @@
     <h2>Journal des décisions</h2>
     <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
     <ul class="journal">
-      <li><time datetime="2026-09-24">2026-09-24</time><span>REV1, commencée par un sous-agent vlp:fiche, finie à la main par le chef : arrêté à 51 appels, sans commit, il sortait de la fiche (relecture &lt;dossier&gt; &lt;fichier&gt; au lieu de relecture &lt;fiche&gt;, un test --retirer à vide) ; l'instantané par index temporaire est repris, le reste réécrit. Son appel 34, python3 sans argument, a ouvert le Microsoft Store : python3 installé depuis, les deux entrées de chaque hook réussissent, le bilan VALIDE sort deux fois — à savoir pour PYT (n° 39).</span></li>
-      <li><time datetime="2026-09-24">2026-09-24</time><span>REV2, jouée à la main par le chef : un bloc Tentatives « résolu par » que rouvre un refus redevient « non résolu » ; --verifier et --refuser s'excluent ; les deux tests existants de --verifier prennent la ligne SANS GIT. À savoir pour REV3 : --verifier se lance avant le commit du chef — après, TÊTE nomme ce commit-là (vu sur e1d7f36).</span></li>
-      <li><time datetime="2026-09-24">2026-09-24</time><span>REV3, jouée à la main par le chef : le relecteur ne change jamais de dossier (Windows ne retire pas un worktree où l'on se tient) ; pas d'effort fixé ; maxTurns 80 recopié de fiche.md, faute de renvoi en frontmatter ; le filet ne prévient que les agents fiche. claude plugin validate ne lit que le manifeste : l'agent se prouve en tournant, à REV4.</span></li>
-      <li><time datetime="2026-09-24">2026-09-24</time><span>REV5 : l'app Claude est un paquet MSIX. Son claude.exe est en vrai sous %LOCALAPPDATA%\Packages\Claude_*\LocalCache\Roaming\Claude\claude-code\ ; %APPDATA%\Claude\claude-code n'existe que pour les processus qu'elle lance. py scripts/test-vlp.py suit le shebang python3 vers pythoncore-3.14-64, le Python du paquet « Python install manager », qui ne le voit pas : le hook y disait « validate sauté » (attendu aussi depuis un terminal hors de l'app, non mesuré). Décidé avec l'utilisateur : le hook cherche aussi Packages\Claude_* — test « hook : claude trouvé hors de l'app ».</span></li>
       <li><time datetime="2026-09-24">2026-09-24</time><span>REV4, deuxième passage : 4 relectures, 51 tours, 1,69 $ (0,42 $ l'une contre 1,78 $). 8bb748d ACCEPTÉE ; 7d16873 ACCEPTÉE à tort (plage facultative non rejouée) ; c5123af et eb2a6b0 REFUSÉE, pour d'autres motifs que le critère. Critère non tenu : 1 ligne sur 4 en entier, 3 verdicts justes sur 4. REV4 reste ouverte.</span></li>
       <li><time datetime="2026-09-25">2026-09-25</time><span>REV4, troisième passage, règle durcie : 4 relectures, 40 tours, 1,28 $. 8bb748d ACCEPTÉE et c5123af REFUSÉE, justes ; 7d16873 et eb2a6b0 ACCEPTÉE à tort. Le critère de REV4 contredit REV8 sur eb2a6b0 (le mutant de creer n'est pas celui du critère de PLA1). REV4 reste ouverte.</span></li>
       <li><time datetime="2026-09-25">2026-09-25</time><span>REV4, quatrième passage, règle « fouiller » : 4 relectures, 47 tours, 1,77 $. 3 verdicts justes sur 4, les deux refus trouvés par une sonde. c5123af ACCEPTÉE à tort : le hook lancé depuis le projet a validé le dépôt vivant. Critère corrigé pour eb2a6b0 (REFUSÉE pour sa regex). REV4 reste ouverte.</span></li>
     </ul>
+    <details class="journal-ancien"><summary>4 entrées plus anciennes</summary>
+    <ul class="journal">
+      <li><time datetime="2026-09-24">2026-09-24</time><span>REV1, commencée par un sous-agent vlp:fiche, finie à la main par le chef : arrêté à 51 appels, sans commit, il sortait de la fiche (relecture &lt;dossier&gt; &lt;fichier&gt; au lieu de relecture &lt;fiche&gt;, un test --retirer à vide) ; l'instantané par index temporaire est repris, le reste réécrit. Son appel 34, python3 sans argument, a ouvert le Microsoft Store : python3 installé depuis, les deux entrées de chaque hook réussissent, le bilan VALIDE sort deux fois — à savoir pour PYT (n° 39).</span></li>
+      <li><time datetime="2026-09-24">2026-09-24</time><span>REV2, jouée à la main par le chef : un bloc Tentatives « résolu par » que rouvre un refus redevient « non résolu » ; --verifier et --refuser s'excluent ; les deux tests existants de --verifier prennent la ligne SANS GIT. À savoir pour REV3 : --verifier se lance avant le commit du chef — après, TÊTE nomme ce commit-là (vu sur e1d7f36).</span></li>
+      <li><time datetime="2026-09-24">2026-09-24</time><span>REV3, jouée à la main par le chef : le relecteur ne change jamais de dossier (Windows ne retire pas un worktree où l'on se tient) ; pas d'effort fixé ; maxTurns 80 recopié de fiche.md, faute de renvoi en frontmatter ; le filet ne prévient que les agents fiche. claude plugin validate ne lit que le manifeste : l'agent se prouve en tournant, à REV4.</span></li>
+      <li><time datetime="2026-09-24">2026-09-24</time><span>REV5 : l'app Claude est un paquet MSIX. Son claude.exe est en vrai sous %LOCALAPPDATA%\Packages\Claude_*\LocalCache\Roaming\Claude\claude-code\ ; %APPDATA%\Claude\claude-code n'existe que pour les processus qu'elle lance. py scripts/test-vlp.py suit le shebang python3 vers pythoncore-3.14-64, le Python du paquet « Python install manager », qui ne le voit pas : le hook y disait « validate sauté » (attendu aussi depuis un terminal hors de l'app, non mesuré). Décidé avec l'utilisateur : le hook cherche aussi Packages\Claude_* — test « hook : claude trouvé hors de l'app ».</span></li>
+    </ul>
+    </details>
   </section>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -165,6 +121,6 @@
 
   <footer>
     <span>Fichier de fiches : <span class="mono">context AI/51-relecture.md</span></span>
-    <span>Mis à jour le <span class="mono">2026-09-25</span></span>
+    <span>Mis à jour le <span class="mono">2026-09-27</span></span>
   </footer>
 </div>
