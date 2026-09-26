@@ -1,6 +1,6 @@
 ---
-description: Enchaîne les fiches du chantier courant une après l'autre, chacune sur une page blanche (sous-agent neuf) ou à la main (main), jusqu'à un arrêt prévu ou le plafond
-argument-hint: (rien) | main | <alias> | <alias> main
+description: Enchaîne les fiches du chantier courant une après l'autre, chacune sur une page blanche (sous-agent neuf), à la main (main) ou en session neuve par script (clear), jusqu'à un arrêt prévu ou le plafond
+argument-hint: (rien) | main | clear | <alias> | <alias> main
 model: sonnet
 allowed-tools: Bash(python3:*), Bash(py:*), Bash(echo:*), PowerShell(python3:*), PowerShell(py:*), PowerShell(echo:*), Skill, Artifact
 ---
@@ -22,6 +22,20 @@ passait bien.
 toi-même, par `vlp:tache`, dans cette session (étape 3, point 1) ; ni
 `vlp:jouer` ni `vlp:relire`. Le contexte grossit d'une fiche à l'autre : c'est
 le choix de l'utilisateur.
+
+**`clear` dans les arguments : une session neuve par fiche, par script.**
+Après l'étape 1, ni plan ni fiche jouée ici : un seul appel, en arrière-plan
+(`run_in_background`), depuis la racine du projet — `py -3` si `PYTHON=py`
+(le Python du Store ne voit pas `claude.exe`), sinon `python3` :
+
+```bash
+py -3 "${CLAUDE_PLUGIN_ROOT}/scripts/boucle.py" . --plafond <le plafond ci-dessus>
+```
+
+Chaque fiche y est jouée comme après `/clear` puis `/vlp:tache <fiche>` ; ses
+arrêts et sa sortie sont dans sa docstring. Annonce-le en une ligne, puis, à la
+notification de fin, recopie les lignes `FICHE`, `ARRÊT` et `TOTAL` telles
+quelles. `GARDE:` : montre-la, rien d'autre.
 
 ## 1. Trouver le projet et le fichier de fiches courant
 
