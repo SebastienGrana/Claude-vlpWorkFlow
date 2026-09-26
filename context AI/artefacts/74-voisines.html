@@ -68,23 +68,24 @@
     <p>La régénération ne perd plus rien : vlp.py niveau à 0 écart feuille sur MapDecorator, TrackGen et ProjetONZSM, et leurs trois pages republiées après ton accord.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">6 fiches · 0 faite · en cours : VOI1</p>
+    <p class="mono" style="margin-top:.5rem">6 fiches · 1 faite · en cours : VOI2</p>
   </header>
 
   <section>
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="faite">
         <span class="id">VOI1</span><span class="titre">Compter la page du disque sans --ecrire</span>
-        <span class="etat">en cours</span>
-        <span class="note">La ligne MARKDOWN de niveau compte la page du disque sans --ecrire. Indépendante.</span>
+        <span class="etat">faite</span>
+        <span class="note">test-vlp.py OK, 367 → 368 verifier ; mutant neuf fait tomber VOI1 (MARKDOWN 0 au lieu de 2) ; NIV3 : 5 écarts, lien cassé du gabarit ; pyright 0 errors</span>
+        <span class="cout mono">≈2,3M (2 303 460) · 24 tours · 1,18 $</span>
       </li>
-      <li class="fiche">
+      <li class="fiche" data-etat="encours">
         <span class="id">VOI2</span><span class="titre">Comparer deux feuilles par script</span>
-        <span class="etat">à faire</span>
+        <span class="etat">en cours</span>
         <span class="note">vlp.py comparer : les textes perdus entre deux feuilles. Indépendante.</span>
       </li>
       <li class="fiche">
@@ -108,6 +109,8 @@
         <span class="note">Régénère, tu regardes, on republie les trois pages. Dépend de VOI1, VOI3, VOI5.</span>
       </li>
     </ul>
+    <p class="mono cout-hors">Hors fiches : ≈3,2M (3 162 010) · 26 tours · 2,16 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈5,5M (5 465 470) · 50 tours · 3,34 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

@@ -2001,9 +2001,11 @@ with tempfile.TemporaryDirectory() as t:
     proj = bac_niv3(t)
     code, avant = appel(["niveau", proj])
     n = compte(avant, "ÉCART:")
-    verifier("NIV3 avant : quatre écarts, dont le renvoi absent que rien ne sait corriger",
-             code == 1 and n == 4 and "ÉCART: renvois: " in avant
-             and "ÉCART: feuille: le bloc repliable" in avant and "ÉCART: clos: " in avant,
+    # VOI1 : la page du disque, un gabarit jamais régénéré, porte un lien cassé — le cinquième
+    verifier("NIV3 avant : cinq écarts, dont le renvoi absent que rien ne sait corriger",
+             code == 1 and n == 5 and "ÉCART: renvois: " in avant
+             and "ÉCART: feuille: le bloc repliable" in avant and "ÉCART: clos: " in avant
+             and "ÉCART: feuille: Markdown brut ou lien cassé" in avant,
              avant)
 
     code, pendant = appel(["niveau", proj, "--ecrire", "--date", "2026-09-18"])
@@ -2016,9 +2018,10 @@ with tempfile.TemporaryDirectory() as t:
              and pendant.rstrip().endswith("NIVEAU 3 corrigés · 1 à la main — %s" % proj), pendant)
 
     code, apres = appel(["niveau", proj])
+    # la régénération corrige deux écarts d'un coup : la page, et le lien cassé qu'elle portait
     verifier("NIV3 après : %d écarts, %d corrigés, %d restants — le compte se ferme"
-             % (n, m, n - m),
-             code == 1 and compte(apres, "ÉCART:") == n - m and "ÉCART: renvois: " in apres, apres)
+             % (n, m, n - m - 1),
+             code == 1 and compte(apres, "ÉCART:") == n - m - 1 and "ÉCART: renvois: " in apres, apres)
 
     carte_niv3 = io.open(os.path.join(proj, "CHANTIER.md"), encoding="utf-8").read()
     verifier("NIV3 : la table est partie, le titre et la phrase du gabarit la remplacent,"
@@ -2221,6 +2224,23 @@ with tempfile.TemporaryDirectory() as t:
     rangs = rangs_clos(page)
     verifier("REP3 : clore pose sa ligne au-dessus de la ligne convertie, sans la défaire",
              len(rangs) == 2 and "2026-09-19" in rangs[0] and rangs[1] == ligne, s)
+
+# VOI1 : sans --ecrire, MARKDOWN compte la page du disque, pas la régénérée
+with tempfile.TemporaryDirectory() as tv:
+    projv = os.path.join(tv, "voi1")
+    ecrire(os.path.join(projv, "CHANTIER.md"), CARTE_NETTE)
+    ecrire(os.path.join(projv, "ctx", "00-INDEX.md"), INDEX_NET)
+    ecrire(os.path.join(projv, "ctx", "08-etat.md"), ETAT_NIV)
+    pagev = mod.page_feuille(projv)
+    os.makedirs(os.path.dirname(pagev))
+    shutil.copy(GABARIT_FEUILLE, pagev)
+    appel(["feuille", projv, "--date", "2026-09-18"])
+    htmlv = io.open(pagev, encoding="utf-8").read()
+    d, f = mod.zone(htmlv, "todo", "<tbody>\n", "        </tbody>")
+    ecrire(pagev, htmlv[:d] + "          <tr><td>**x**</td></tr>\n" + htmlv[d:])
+    code, s = appel(["niveau", projv, "--date", "2026-09-18"])
+    verifier("VOI1 : sans --ecrire, le ** brut de la page du disque se compte, même si la régénération le fait tomber",
+             "MARKDOWN 2 ** · 0 liens Markdown · 0 liens cassés — %s\n" % pagev in s, s)  # un **x** = deux **
 
 # UNI1 : clore utilise le total mesuré ; sans mesure, retombe sur --tokens
 with tempfile.TemporaryDirectory() as t:

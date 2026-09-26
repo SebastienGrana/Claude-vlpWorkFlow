@@ -2904,7 +2904,8 @@ def cmd_niveau(a, sortie):
     try:
         neuf, _ = feuille(projet, migre, None, date)
         converti, n = migrer_clos(neuf)
-        md = markdown_brut(converti if a.ecrire else neuf)
+        # sans --ecrire : la page que l'on voit ; absente, le gabarit régénéré, comme avant VOI1
+        md = markdown_brut(converti if a.ecrire else neuf if absente else html)
     except ValueError as e:
         neuf = md = None
         ecarts += 1

@@ -62,8 +62,11 @@ main, sont la référence : la régénération ne doit rien leur retirer.
 ---
 
 <!-- FICHE:VOI1 -->
-## VOI1 [ ] — Compter la page du disque sans `--ecrire`
+## VOI1 [x] — Compter la page du disque sans `--ecrire`
 
+**Tentatives** (2026-09-26) — résolu par : compter html si la page existe, neuf si absente ; NIV3 attend 5 écarts (choix utilisateur)
+
+**Session** : 8cef44d4-8634-4856-a1fc-f0559f6a0b36
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py` (`cmd_niveau`), `scripts/test-vlp.py` — et rien d'autre.
 
