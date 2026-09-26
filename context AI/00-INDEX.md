@@ -51,6 +51,7 @@ a l'air proche.
 | `70-filet-eval.md` | on relit le socle du chantier EVF — **clos** « Le filet en eval rejouable », `EVF4..EVF3` |
 | `71-read-rate.md` | on relit le socle du chantier RAT — **clos** « Un Read raté réveille-t-il le filet ? », `RAT1..RAT1` |
 | `72-sans-tampon.md` | on relit le socle du chantier SON — **clos** « Rejouer un hook à la main sans le tampon », `SON1..SON1` |
+| `73-un-par-tour.md` | on joue une fiche `TOU*` — chantier **ouvert** « Le filet n'avertit qu'une fois par tour », `TOU1..TOU3` |
 | `35-bilan.md` | on doit expliquer le kit — d'où il vient, ce qu'il sait faire aujourd'hui, ce qu'il ne promet pas ; les 22 chantiers chiffrés |
 | `36-gardes.md` | on relit le socle du chantier Z — **clos** « Une GARDE au lieu d'un traceback », `Z1..Z4` |
 | `37-niveau.md` | on relit le socle du chantier NIV — **clos** « Remettre les projets équipés à niveau », `NIV1..NIV4` |
