@@ -2231,3 +2231,31 @@ la TODO : n° 55 `FUI`. Coût du chantier : 8 399 715 (`vlp.py clore`).
 - 2026-09-26 — **FFE clos** (FFE1..FFE2) : `vlp.py relecture` ne rend plus `FICHIER=` ; `agents/relecture.md` défend d'ouvrir le fichier de fiches ; `rel1-carte.py` le retrouve par `APRÈS=` + la carte (`--sans-fichier`), juste sur 20 relecteurs réels, aveugle sur les 19 rejeux REV. Laissé ouvert : mesurer l'après sur de vrais relecteurs. Retiré de la TODO : n° 70 `FFE`. Coût du chantier : 7 310 346 (`vlp.py clore`).
 
 - 2026-09-26 — **EST clos** (EST1..EST3) : `vlp.py ouvrir --estime-fiches <n>` note `**Estimé.**` (fiches, $ = moyenne des clos mesurés × n) ; `clore` l'écrit à côté du réel (cadré, joué, $) dans la ligne CLOS, `**Fait.**` et le bilan ; `/vlp:chantier` passe l'option. EST : estimé 1 fiche ≈3,91 $, joué 3 fiches ≈8,91 $. Laissé ouvert : le $ réel de `clore` est au taux plat `estimation_usd` (≈8,91 $), pas le pondéré de `cout` (6,04 $). Retiré de la TODO : n° 36 `EST`. Coût du chantier : 10 647 851 (`vlp.py clore`).
+
+- 2026-09-26 (BAC2) : `vlp.py transcription` rejoué sur les deux transcriptions de `FIL3` ; aucun écart avec l'entrée du 2026-09-24. Sorties telles quelles :
+
+  `F1` (`0045d27f-…/subagents/agent-a8139dad1034ad64a.jsonl`) :
+
+  ```
+  TOURS=8
+  APPELS=7 — PowerShell 2, Read 5
+  AVERTISSEMENTS=1
+  PREMIER_AVERTISSEMENT tour=7 outil=Read is_error=non hook=PostToolUse:Read
+  TEXTE=Attention : 3 tours restants. Rends ton statut maintenant — RETOUR avec ce qui est fait et ce qui reste, si la fiche n'est pas finie.
+  HOOK_ERREURS=7 pour 7 appels
+  DERNIER mot=RETOUR stop_reason=end_turn
+  DERNIERE_LIGNE=⚠️ Imprévu — tourner limité, fiche inachevée. J'ai lu cinq fichiers sur douze, dans l'ordre requis. Sept restent à lire (n06.txt à n12.txt), un message à la fois.
+  ```
+
+  `F2` (`707b23a4-…/subagents/agent-a6a58391ed52b8c54.jsonl`) :
+
+  ```
+  TOURS=8
+  APPELS=7 — Bash 7
+  AVERTISSEMENTS=1
+  PREMIER_AVERTISSEMENT tour=7 outil=Bash is_error=oui hook=PostToolUseFailure:Bash
+  TEXTE=Attention : 3 tours restants. Rends ton statut maintenant — RETOUR avec ce qui est fait et ce qui reste, si la fiche n'est pas finie.
+  HOOK_ERREURS=7 pour 7 appels
+  DERNIER mot=RETOUR stop_reason=end_turn
+  DERNIERE_LIGNE=RETOUR — Appel 6/12 complété (code 3 reçu). Fiche F2 incomplète : 6 appels restants sur 12. La fiche demande douze appels `exit 3` successifs, un par message, chacun retournant le code 3. Continue avec les appels 7 à 12.
+  ```

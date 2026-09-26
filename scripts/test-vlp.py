@@ -2791,4 +2791,58 @@ def test_bac():
 
 test_bac()
 
+
+# BAC2 : `transcription` compte une transcription de sous-agent factice, dans un dossier à lui
+def test_transcription():
+    u = {"input_tokens": 1}
+    lignes = [
+        {"type": "user", "message": {"role": "user", "content": "fiche"}},
+        # tour 1 sur trois lignes assistant, deux appels : Bash en erreur, puis Read réussi
+        {"type": "assistant", "message": {"id": "m1", "usage": u, "stop_reason": None,
+                                          "content": [{"type": "thinking", "thinking": "…"}]}},
+        {"type": "assistant", "message": {"id": "m1", "usage": u, "stop_reason": None,
+                                          "content": [{"type": "tool_use", "id": "tA", "name": "Bash", "input": {}}]}},
+        {"type": "assistant", "message": {"id": "m1", "usage": u, "stop_reason": "tool_use",
+                                          "content": [{"type": "tool_use", "id": "tB", "name": "Read", "input": {}}]}},
+        {"type": "user", "message": {"role": "user", "content": [
+            {"type": "tool_result", "tool_use_id": "tA", "is_error": True, "content": "Exit code 3"}]}},
+        {"type": "user", "message": {"role": "user", "content": [
+            {"type": "tool_result", "tool_use_id": "tB", "content": "fichier 01"}]}},
+        {"type": "attachment", "attachment": {"type": "hook_non_blocking_error",
+                                              "hookName": "PostToolUseFailure:Bash", "toolUseID": "tA"}},
+        {"type": "attachment", "attachment": {"type": "hook_non_blocking_error",
+                                              "hookName": "PostToolUse:Read", "toolUseID": "tB"}},
+        {"type": "attachment", "attachment": {"type": "hook_additional_context", "hookName": "PostToolUseFailure:Bash",
+                                              "toolUseID": "tA", "content": ["Attention : 1 tour restant."]}},
+        {"type": "assistant", "message": {"id": "m2", "usage": u, "stop_reason": "end_turn",
+                                          "content": [{"type": "text", "text": "RETOUR — fait 1/2\n\nIl reste un appel.\n"}]}},
+    ]
+    with tempfile.TemporaryDirectory() as ttr:
+        jsonl = os.path.join(ttr, "agent.jsonl")
+        with open(jsonl, "w", encoding="utf-8") as f:
+            for ligne in lignes:
+                f.write(json.dumps(ligne, ensure_ascii=False) + "\n")
+        code, s = appel(["transcription", jsonl])
+        attendu = ("TOURS=2\n"
+                   "APPELS=2 — Bash 1, Read 1\n"
+                   "AVERTISSEMENTS=1\n"
+                   "PREMIER_AVERTISSEMENT tour=1 outil=Bash is_error=oui hook=PostToolUseFailure:Bash\n"
+                   "TEXTE=Attention : 1 tour restant.\n"
+                   "HOOK_ERREURS=2 pour 2 appels\n"
+                   "DERNIER mot=RETOUR stop_reason=end_turn\n"
+                   "DERNIERE_LIGNE=Il reste un appel.\n")
+        verifier("transcription : la sortie du socle, tours par message.id, is_error par toolUseID",
+                 code == 0 and s == attendu, s)
+        sans = os.path.join(ttr, "sans.jsonl")
+        with open(sans, "w", encoding="utf-8") as f:
+            f.write(json.dumps(lignes[-1]) + "\n")
+        code, s = appel(["transcription", sans])
+        verifier("transcription : sans avertissement, « aucun » et pas de TEXTE=",
+                 code == 0 and "PREMIER_AVERTISSEMENT aucun\n" in s and "TEXTE=" not in s, s)
+        code, s = appel(["transcription", os.path.join(ttr, "absent.jsonl")])
+        verifier("transcription : illisible rend une GARDE", code == 1 and s.startswith("GARDE:"), s)
+
+
+test_transcription()
+
 print("OK")

@@ -102,8 +102,9 @@ constante fait tomber le test. `pyright scripts/vlp.py scripts/test-vlp.py` : `0
 ---
 
 <!-- FICHE:BAC2 -->
-## BAC2 [ ] — Compter la transcription d'un sous-agent
+## BAC2 [x] — Compter la transcription d'un sous-agent
 
+**Session** : ccc2f0b0-d24d-4d65-ace4-af7bdb655ba2
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` ; pour le rejeu, l'entrée
 « 2026-09-24 — FIL3 » de `context AI/08-etat.md` — et rien d'autre.

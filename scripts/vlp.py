@@ -252,6 +252,11 @@ Sous-commandes :
 - `bac <dossier>` — pose le bac d'essai de FIL3 dans un dossier absent ou vide (sinon `GARDE:`,
   rien d'écrit) : `CHANTIER.md`, `fiches.md` (`F1` douze `Read`, `F2` douze `exit 3`), `n01.txt`…
   `n12.txt`. Imprime `BAC <dossier>` et les deux commandes `claude -p`, sans les lancer (chantier BAC).
+- `transcription <jsonl>` — compte la transcription d'un sous-agent, une clé par ligne : `TOURS=`
+  (`message.id` distincts porteurs d'`usage`, comme `comptoir_tours`), `APPELS=<n> — <outil> <n>, …`,
+  `AVERTISSEMENTS=`, `PREMIER_AVERTISSEMENT tour= outil= is_error=<oui|non> hook=` (l'appel que
+  désigne son `toolUseID`) et `TEXTE=`, ou `PREMIER_AVERTISSEMENT aucun` ; `HOOK_ERREURS=<n> pour
+  <n> appels`, `DERNIER mot= stop_reason=`, `DERNIERE_LIGNE=`. Illisible : `GARDE:`, sort 1 (chantier BAC).
 
 Python 3 sans dépendance, zéro appel modèle.
 
@@ -3447,6 +3452,82 @@ def cmd_bac(dossier, sortie):
     return 0
 
 
+def cmd_transcription(chemin, sortie):
+    """Compte la transcription d'un sous-agent (chantier BAC) : tours comme `comptoir_tours`,
+    appels, avertissements du filet et l'appel qui les précède, erreurs de hook, dernier message."""
+    tours, appels, erreurs_outil, avertis = [], {}, {}, []
+    hook_erreurs, dernier_id, stop, textes = 0, None, None, {}
+    try:
+        with mesure().ouvrir(chemin) as f:
+            for ligne in f:
+                try:
+                    d = json.loads(ligne)
+                except json.JSONDecodeError:
+                    continue
+                if not isinstance(d, dict):
+                    continue
+                att = d.get("attachment")
+                if isinstance(att, dict):
+                    if att.get("type") == "hook_additional_context":
+                        avertis.append(att)
+                    elif att.get("type") == "hook_non_blocking_error":
+                        hook_erreurs += 1
+                message = d.get("message")
+                if not isinstance(message, dict):
+                    continue
+                contenu = message.get("content")
+                blocs = contenu if isinstance(contenu, list) else []
+                if d.get("type") == "user":
+                    for b in blocs:
+                        if isinstance(b, dict) and b.get("type") == "tool_result":
+                            erreurs_outil[b.get("tool_use_id")] = bool(b.get("is_error"))
+                    continue
+                mid = message.get("id")
+                if d.get("type") != "assistant" or not mid or not isinstance(message.get("usage"), dict):
+                    continue
+                if mid not in tours:
+                    tours.append(mid)
+                if mid != dernier_id:
+                    dernier_id, stop = mid, None
+                stop = message.get("stop_reason") or stop
+                for b in blocs:
+                    if not isinstance(b, dict):
+                        continue
+                    if b.get("type") == "tool_use":
+                        appels[b.get("id")] = (len(tours), b.get("name") or "?")
+                    elif b.get("type") == "text":
+                        textes.setdefault(mid, []).append(b.get("text") or "")
+    except (OSError, UnicodeDecodeError) as e:
+        sortie.write("GARDE: transcription illisible : %s — %s\n" % (chemin, e))
+        return 1
+    par_outil = {}
+    for _, nom in appels.values():
+        par_outil[nom] = par_outil.get(nom, 0) + 1
+    sortie.write("TOURS=%d\n" % len(tours))
+    sortie.write("APPELS=%d — %s\n" % (len(appels), ", ".join("%s %d" % o for o in par_outil.items()) or "aucun"))
+    sortie.write("AVERTISSEMENTS=%d\n" % len(avertis))
+    if avertis:
+        a = avertis[0]
+        uid = a.get("toolUseID")
+        tour, outil = appels.get(uid, ("?", "?"))
+        is_error = erreurs_outil.get(uid)
+        sortie.write("PREMIER_AVERTISSEMENT tour=%s outil=%s is_error=%s hook=%s\n" % (
+            tour, outil, "?" if is_error is None else ("oui" if is_error else "non"), a.get("hookName")))
+        texte = a.get("content")
+        if isinstance(texte, list):
+            texte = " ".join(str(t) for t in texte)
+        sortie.write("TEXTE=%s\n" % " ".join(str(texte or "").split()))
+    else:
+        sortie.write("PREMIER_AVERTISSEMENT aucun\n")
+    sortie.write("HOOK_ERREURS=%d pour %d appels\n" % (hook_erreurs, len(appels)))
+    texte = "\n".join(textes.get(dernier_id, [])) if dernier_id else ""
+    mots = texte.split()
+    sortie.write("DERNIER mot=%s stop_reason=%s\n" % (mots[0] if mots else "", stop))
+    non_vides = [l.strip() for l in texte.splitlines() if l.strip()]
+    sortie.write("DERNIERE_LIGNE=%s\n" % (non_vides[-1] if non_vides else ""))
+    return 0
+
+
 def main(argv, sortie=None, entree=None, erreur=None):
     sortie = sortie or sys.stdout
     p = argparse.ArgumentParser(prog="vlp.py", description="La mécanique du kit vlp.")
@@ -3545,6 +3626,8 @@ def main(argv, sortie=None, entree=None, erreur=None):
     rc.add_argument("--a-clore", action="store_true")
     bc = sous.add_parser("bac")
     bc.add_argument("dossier")
+    tr = sous.add_parser("transcription")
+    tr.add_argument("jsonl")
     a = p.parse_args(argv)
     try:
         return repartir(a, sortie, entree, erreur)
@@ -3602,6 +3685,8 @@ def repartir(a, sortie, entree, erreur):
         return cmd_recompter(a.projet, sortie, a.ecrire, a.essais, a.a_clore)
     if a.cmd == "bac":
         return cmd_bac(a.dossier, sortie)
+    if a.cmd == "transcription":
+        return cmd_transcription(a.jsonl, sortie)
     chemin_garde(a.fichier)
     if a.cmd == "extraire":
         return cmd_extraire(a.fichier, a.fiche, sortie)
