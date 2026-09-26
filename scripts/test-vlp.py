@@ -3449,6 +3449,30 @@ def tester_bilan_en_haut():
                  code == 0 and html.count("ZONE:bilan") == 1
                  and html.index("ZONE:bilan") < html.index("ZONE:fiches")
                  and "<section>\n    <h2>Chantier clos le 2026-09-27</h2>" in html, s + html[:1500])
+        # un clos d'avant PLI6 : bilan visible, mais en bas — `page` le remonte aussi (dette PLI)
+        j = html.index("  <!-- ZONE:bilan")
+        fin_b = html.index("  </section>\n", j) + len("  </section>\n")
+        clos_bas = (html[:j] + html[fin_b:]).replace("  <footer>", html[j:fin_b] + "\n  <footer>", 1)
+        ecrire(page, clos_bas)
+        code, s = appel(["page", os.path.join(tb, "ctx", "50-u.md"), page])
+        html = lire(page)
+        verifier("dette PLI : page remonte le bilan d'un clos resté en bas, une seule fois"
+                 " — mutant : ne le remonter qu'à clore",
+                 code == 0 and clos_bas.index("ZONE:bilan") > clos_bas.index("ZONE:fiches")
+                 and html.count("ZONE:bilan") == 1 and html.index("ZONE:bilan") < html.index("ZONE:fiches"),
+                 s + html[:1500])
+    with tempfile.TemporaryDirectory() as tbo:
+        # témoin : une page ouverte à l'ancienne forme (bilan caché, en bas) n'est pas touchée
+        ouverte = os.path.join(tbo, "artefacts", "q.html")
+        fiches_o = os.path.join(tbo, "q.md")
+        ecrire(fiches_o, FICHES_PLI5)
+        ecrire(ouverte, ancienne)
+        code, s = appel(["page", fiches_o, ouverte])
+        html = lire(ouverte)
+        verifier("dette PLI : un chantier ouvert garde son bilan caché là où il est"
+                 " — mutant : toujours remonter le bilan",
+                 code == 0 and html.index("ZONE:bilan") > html.index("ZONE:fiches")
+                 and "<section hidden>\n    <h2>Chantier clos le" in html, s + html[-1500:])
 
 
 tester_bilan_en_haut()

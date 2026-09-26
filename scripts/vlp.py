@@ -2492,6 +2492,10 @@ def cmd_page(a, sortie):
     except ValueError as e:
         sortie.write("GARDE: %s\n" % e)
         return 1
+    # Un clos d'avant PLI6 a son bilan en bas : page le remonte aussi, pas seulement clore.
+    i = html.find("<!-- ZONE:bilan")
+    if i >= 0 and html.startswith("<section>", html.find("<section", i)):
+        html = bilan_en_haut(html)
     with open(a.page, "w", encoding="utf-8", newline="") as f:
         f.write(html)
     n = html.count("\n") + (0 if html.endswith("\n") else 1)
