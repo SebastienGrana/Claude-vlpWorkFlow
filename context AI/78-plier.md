@@ -160,8 +160,9 @@ le `<link>` sans retirer le `<style>` → le test tombe. `grep -c "details.clos 
 ---
 
 <!-- FICHE:PLI4 -->
-## PLI4 [ ] — Joindre `vlp.css` à chaque publication
+## PLI4 [x] — Joindre `vlp.css` à chaque publication
 
+**Session** : 30b330e2-4593-4cb3-8abc-4a109ec7890d
 **Dépend de** : `PLI2`.
 **Fichiers** : `ARTEFACTS.md` (« Où vivent le CSS et les données »), `skills/chantier/SKILL.md`, `skills/init/SKILL.md`, `skills/enchainer/SKILL.md`, `skills/tache/SKILL.md`, `cloture.md` — et rien d'autre.
 

@@ -136,7 +136,8 @@ un `--note` par fiche faite, le critère constaté en une ligne :
 
 Une `GARDE:` ou une sortie non nulle : une ligne, et continue. Sinon, deux
 appels : `Artifact` `action: "read"` sur l'`url` de « artefact du chantier »,
-puis `Artifact` avec le `file_path` de la page **et** cette `url`, sans
+puis `Artifact` avec le `file_path` de la page, cette `url` et `files: vlp.css`
+(`ARTEFACTS.md`, « Où vivent le CSS et les données »), sans
 `favicon`, `label` : les fiches jouées (`E5→E7`). Rien d'autre à lire : les règles de la page sont dans
 `skills/tache/references/tache-page.md`, pour `/vlp:tache`.
 

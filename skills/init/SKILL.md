@@ -138,6 +138,7 @@ Publie ensuite, une seule fois :
 - `favicon` : `🗺️` — c'est la première publication, c'est la seule fois où il
   se passe
 - `description` : `La TODO ordonnée de <Projet> et l'état de ses chantiers.`
+- `files` : `vlp.css` (`ARTEFACTS.md`, « Où vivent le CSS et les données »)
 
 Puis **recopie l'URL rendue** dans la ligne « **artefact feuille de route** »
 de `CHANTIER.md`, dans le même geste. Une URL non écrite est une URL perdue :

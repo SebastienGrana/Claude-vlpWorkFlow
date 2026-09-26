@@ -20,9 +20,9 @@
     <p>La page d'un chantier se replie : fiches finies et vieux journal repliés, bilan en haut une fois clos, rien de coupé ; son CSS vit dans un vlp.css joint. Mesuré avant/après en écrans et en tokens de relecture.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">7 fiches · 3 faites · en cours : PLI4</p>
+    <p class="mono" style="margin-top:.5rem">7 fiches · 4 faites · en cours : PLI5</p>
   </header>
 
   <section>
@@ -45,16 +45,17 @@
         <span class="id">PLI3</span><span class="titre">Migrer les pages existantes vers vlp.css</span>
         <span class="etat">faite</span>
         <span class="note">test-vlp.py OK (0 echec) ; pyright vlp.py+test-vlp.py 0 erreur ; grep -c "details.clos {" scripts/vlp.py = 0</span>
-        <span class="cout mono">≈6,8M (6 759 081) · 29 tours · 2,10 $</span>
+        <span class="cout mono">≈7,1M (7 102 278) · 32 tours · 2,20 $</span>
+      </li>
+      <li class="fiche" data-etat="faite">
+        <span class="id">PLI4</span><span class="titre">Joindre vlp.css à chaque publication</span>
+        <span class="etat">faite</span>
+        <span class="note">vlp.css par fichier (publiantes/mentions) : ARTEFACTS 9/3, chantier 4/2, init 4/1, enchainer 2/1, tache 2/1, cloture 4/2 ; renvois 0 absents ; pre-commit exit 0</span>
+        <span class="cout mono">≈4,3M (4 253 008) · 31 tours · 2,23 $</span>
       </li>
       <li class="fiche" data-etat="encours">
-        <span class="id">PLI4</span><span class="titre">Joindre vlp.css à chaque publication</span>
-        <span class="etat">en cours</span>
-        <span class="note">Chaque publication joint vlp.css par files · dépend de PLI2</span>
-      </li>
-      <li class="fiche">
         <span class="id">PLI5</span><span class="titre">Replier les fiches</span>
-        <span class="etat">à faire</span>
+        <span class="etat">en cours</span>
         <span class="note">Chaque fiche repliable, ouverte si en cours · dépend de PLI3</span>
       </li>
       <li class="fiche">
@@ -69,7 +70,7 @@
       </li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈3,5M (3 510 468) · 28 tours · 2,37 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈26,0M (25 974 347) · 155 tours · 9,60 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈30,6M (30 570 552) · 189 tours · 11,93 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
