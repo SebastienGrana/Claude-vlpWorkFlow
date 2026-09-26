@@ -78,8 +78,9 @@ de code. Cairn est privé : aucun extrait de son contenu dans ce dépôt, des co
 ---
 
 <!-- FICHE:ABR1 -->
-## ABR1 [ ] — Écrire le `.md` et l'amorcer depuis une page
+## ABR1 [x] — Écrire le `.md` et l'amorcer depuis une page
 
+**Session** : 72de750c-600b-43d1-b5e7-94c21b471768
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` — et rien d'autre.
 

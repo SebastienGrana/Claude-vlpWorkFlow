@@ -196,6 +196,10 @@ Sous-commandes :
   gagne une ligne qui renvoie à l'archive, si elle manque. Relancé : rien ne change.
   `ARCHIVÉ <n> · index <n> lignes · archive <n> lignes` ; pas de champ **index** : `GARDE:`,
   sort 1 (chantier IDX).
+- `abri <page.html>…` — crée à côté de chaque page son `.md` (résultat, notes, journal, bilan),
+  tiré de la page, texte désechappé et balises retirées, sans toucher la page ; un `.md` déjà là
+  n'est pas réécrit. `ABRI <md> · résultat <0|1> · notes <n> · journal <n> · bilan <0|1>`,
+  ou `DÉJÀ <md>` ; page absente : `GARDE:`, sort 1 (chantier ABR).
 - `ouvrir <projet> --fiches F --titre T [--artefact URL] [--estime-fiches N]` — les écritures
   mécaniques de l'ouverture : dans `CHANTIER.md`, courant = `F (L1..Ln)` et
   artefact = l'URL (sinon `aucun`, ou l'ancienne si F est déjà courant) ; une
@@ -2262,6 +2266,108 @@ def verifier_page(html, fichier, sortie):
     return 1 if ecarts else 0
 
 
+# --- abri : le .md d'une page, source de ses notes et de son journal (chantier ABR) ---
+
+ABRI_SECTIONS = ("Résultat", "Notes", "Journal", "Bilan")
+
+
+def chemin_abri(page):
+    """Le `.md` d'une page : même dossier, même nom, extension `.md`."""
+    return os.path.splitext(page)[0] + ".md"
+
+
+def une_ligne(texte):
+    return " ".join(texte.split())
+
+
+def lire_abri(chemin):
+    """{titre, resultat, notes {id: texte}, journal [(date, texte)], bilan [texte]}."""
+    parts = {"titre": "", "resultat": "", "notes": {}, "journal": [], "bilan": []}
+    section = None
+    for l in lignes_de(chemin):
+        if l.startswith("# ") and not parts["titre"]:
+            parts["titre"] = l[2:].rsplit(" — notes et journal", 1)[0].strip()
+        elif l.startswith("## "):
+            section = l[3:].strip()
+        elif not l.strip():
+            continue
+        elif section == "Résultat":
+            parts["resultat"] = une_ligne(parts["resultat"] + " " + l)
+        elif section in ("Notes", "Journal") and l.startswith("- ") and " : " in l:
+            cle, texte = l[2:].split(" : ", 1)
+            if section == "Notes":
+                parts["notes"][cle.strip()] = texte.strip()
+            else:
+                parts["journal"].append((cle.strip(), texte.strip()))
+        elif section == "Bilan" and l.startswith("- "):
+            parts["bilan"].append(l[2:].strip())
+    return parts
+
+
+def texte_abri(parts):
+    """Le `.md`, au format du socle : quatre sections, une entrée par ligne, texte brut."""
+    lignes = ["# %s — notes et journal" % une_ligne(parts["titre"]), "## Résultat"]
+    if parts["resultat"]:
+        lignes.append(une_ligne(parts["resultat"]))
+    lignes.append("## Notes")
+    lignes += ["- %s : %s" % (i, une_ligne(t)) for i, t in parts["notes"].items()]
+    lignes.append("## Journal")
+    lignes += ["- %s : %s" % (d, une_ligne(t)) for d, t in parts["journal"]]
+    lignes.append("## Bilan")
+    lignes += ["- %s" % une_ligne(t) for t in parts["bilan"]]
+    return "\n".join(lignes) + "\n"
+
+
+def ecrire_abri(chemin, parts):
+    with open(chemin, "w", encoding="utf-8", newline="") as f:
+        f.write(texte_abri(parts))
+
+
+def brut(fragment):
+    """Le texte d'un fragment de page : balises retirées, puis désechappé, sur une ligne.
+    Mesuré le 2026-09-26 : 0 note sur 221 et 4 lignes de journal sur 88 portent une balise
+    (`<span class="mono">`, `<code>`) dans les 65 pages du kit ; leur texte seul est gardé."""
+    return une_ligne(html.unescape(re.sub(r"<[^>]+>", "", fragment)))
+
+
+def abri_de_page(page):
+    """Les quatre parts du `.md`, tirées d'une page HTML existante (amorçage)."""
+    titre = re.search(r"<h1>(.*?)</h1>", page, re.S)
+    resultat = re.search(r"</h1>\s*<p>(.*?)</p>", page, re.S)
+    notes = {i: brut(n) for i, (_, n, _) in lis_page(page).items() if n is not None and brut(n)}
+    journal = []
+    ul = re.search(r'<ul class="journal">(.*?)\n[ \t]*</ul>', page, re.S)
+    for li in re.findall(r"<li>(.*?)</li>", ul.group(1) if ul else "", re.S):
+        date = re.search(r"<time[^>]*>(.*?)</time>", li, re.S)
+        texte = brut(li[date.end():] if date else li)
+        if texte:
+            journal.append((brut(date.group(1)) if date else "", texte))
+    bilan = re.search(r'<section>\s*<h2>Chantier clos le [^<]*</h2>\s*<div class="bilan">(.*?)</div>', page, re.S)
+    return {"titre": brut(titre.group(1)) if titre else "",
+            "resultat": brut(resultat.group(1)) if resultat else "",
+            "notes": notes, "journal": journal,
+            "bilan": [t for t in (brut(p) for p in re.findall(r"<p>(.*?)</p>", bilan.group(1), re.S)) if t]
+            if bilan else []}
+
+
+def cmd_abri(pages, sortie):
+    code = 0
+    for chemin in pages:
+        md = chemin_abri(chemin)
+        if not os.path.isfile(chemin):
+            sortie.write("GARDE: page introuvable : %s\n" % chemin)
+            code = 1
+        elif os.path.exists(md):
+            sortie.write("DÉJÀ %s\n" % md)
+        else:
+            parts = abri_de_page(lire(chemin))
+            ecrire_abri(md, parts)
+            sortie.write("ABRI %s · résultat %d · notes %d · journal %d · bilan %d\n"
+                         % (md, bool(parts["resultat"]), len(parts["notes"]), len(parts["journal"]),
+                            bool(parts["bilan"])))
+    return code
+
+
 def page_du_fichier(fichier):
     """La page par défaut d'un fichier de fiches : `<dossier>/artefacts/<nom>.html`."""
     return os.path.join(os.path.dirname(fichier), "artefacts",
@@ -3826,7 +3932,8 @@ def main(argv, sortie=None, entree=None, erreur=None):
     cl.add_argument("--resume")
     cl.add_argument("--date")
     sous.add_parser("archiver").add_argument("projet")
-    ou = sous.add_parser("ouvrir")
+    sous.add_parser("abri").add_argument("pages", nargs="+")
+    ou =sous.add_parser("ouvrir")
     ou.add_argument("projet")
     ou.add_argument("--fiches", required=True)
     ou.add_argument("--titre", required=True)
@@ -3886,6 +3993,8 @@ def repartir(a, sortie, entree, erreur):
         return cmd_clore(a, sortie)
     if a.cmd == "archiver":
         return cmd_archiver(a, sortie)
+    if a.cmd == "abri":
+        return cmd_abri(a.pages, sortie)
     if a.cmd == "feuille":
         return cmd_feuille(a, sortie)
     if a.cmd == "renvois":

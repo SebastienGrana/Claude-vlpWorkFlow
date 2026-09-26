@@ -3078,4 +3078,64 @@ verifier("VOI3 : lettres entre backticks (ligne réelle de MapDecorator)",
          mod.lettres_prises([LIGNE_MAPDECORATOR]) == ["T", "U", "R", "M"],
          repr(mod.lettres_prises([LIGNE_MAPDECORATOR])))
 
+# --- ABR1 : le .md d'une page, amorcé depuis la page sans la toucher ----------
+
+PAGE_ABR = """<title>kit — Abri</title>
+    <h1>Abri &amp; journal</h1>
+    <p>Notes &lt;à l'abri&gt;</p>
+    <ul class="fiches">
+      <li class="fiche" data-etat="faite">
+        <span class="id">ABR1</span><span class="titre">Un</span>
+        <span class="etat">faite</span>
+        <span class="note">test 3/3 &amp; pyright 0</span>
+      </li>
+      <li class="fiche">
+        <span class="id">ABR2</span><span class="titre">Deux</span>
+        <span class="etat">à faire</span>
+        <span class="note">dépend de ABR1</span>
+      </li>
+    </ul>
+    <ul class="journal">
+      <li><time datetime="2026-09-25">2026-09-25</time><span>Pierre &amp; Paul</span></li>
+      <li><time>2026-09-26</time><span>E3 : <span class="mono">allowed-tools</span> muet</span></li>
+      <li><time datetime="2026-09-26">2026-09-26</time><span>sur
+        deux lignes</span></li>
+    </ul>
+  <section>
+    <h2>Chantier clos le 2026-09-26</h2>
+    <div class="bilan">
+      <p>Livré : un <code>.md</code> &amp; une page</p>
+    </div>
+  </section>
+"""
+
+
+def tester_abri():
+    with tempfile.TemporaryDirectory() as tab:
+        page = os.path.join(tab, "artefacts", "76-abri.html")
+        ecrire(page, PAGE_ABR)
+        md = os.path.join(tab, "artefacts", "76-abri.md")
+        verifier("ABR1 : chemin du .md à côté de la page", mod.chemin_abri(page) == md, mod.chemin_abri(page))
+        code, s = appel(["abri", page])
+        verifier("ABR1 : abri — 2 notes, 3 lignes de journal, un bilan",
+                 code == 0 and s == "ABRI %s · résultat 1 · notes 2 · journal 3 · bilan 1\n" % md, s)
+        parts = mod.lire_abri(md)
+        verifier("ABR1 : .md relu, texte désechappé — mutant : ne pas désechapper",
+                 parts["titre"] == "Abri & journal" and parts["resultat"] == "Notes <à l'abri>"
+                 and parts["notes"] == {"ABR1": "test 3/3 & pyright 0", "ABR2": "dépend de ABR1"}
+                 and parts["journal"] == [("2026-09-25", "Pierre & Paul"), ("2026-09-26", "E3 : allowed-tools muet"),
+                                          ("2026-09-26", "sur deux lignes")]
+                 and parts["bilan"] == ["Livré : un .md & une page"], repr(parts))
+        with open(page, "rb") as f:
+            verifier("ABR1 : la page identique octet pour octet", f.read() == PAGE_ABR.encode("utf-8"), "page modifiée")
+        mod.ecrire_abri(md, parts)
+        verifier("ABR1 : écrire puis relire redonne les mêmes parts", mod.lire_abri(md) == parts, lire(md))
+        code, s = appel(["abri", page])
+        verifier("ABR1 : second abri — DÉJÀ, .md non réécrit", code == 0 and s == "DÉJÀ %s\n" % md, s)
+        code, s = appel(["abri", os.path.join(tab, "absente.html")])
+        verifier("ABR1 : page absente — GARDE, code 1", code == 1 and s.startswith("GARDE:"), s)
+
+
+tester_abri()
+
 print("OK")
