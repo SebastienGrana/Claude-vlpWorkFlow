@@ -3412,8 +3412,9 @@ def cmd_clore(a, sortie):
         if faits["routage"] or faits.get("résumé"):
             ecritures.append((chemin_claude, "\n".join(cl) + "\n"))
 
-    # 1 ter. la ZONE:bilan de la page du chantier
+    # 1 ter. la ZONE:bilan de la page du chantier, recopiée depuis le .md (chantier ABR)
     chemin_page = os.path.join(projet, os.path.dirname(courant), "artefacts", nom[:-3] + ".html")
+    md_page = parts_page = None
     if not os.path.isfile(chemin_page):
         gardes.append("page du chantier introuvable : %s" % chemin_page)
     else:
@@ -3424,15 +3425,18 @@ def cmd_clore(a, sortie):
         except ValueError as e:
             gardes.append("page du chantier : %s" % e)
         else:
-            corps = ('  <section>\n    <h2>Chantier clos le %s</h2>\n    <div class="bilan">\n      <p>Livré : %s</p>\n'
-                     % (date, esc(a.livre))) + ('      <p>Surpris : %s</p>\n' % esc(a.surpris) if a.surpris else "") \
-                + "      <p>Estimé : %s</p>\n    </div>\n" % ESTIME_A_ECRIRE
+            md_page = chemin_abri(chemin_page)
+            parts_page = lire_abri(md_page) if os.path.exists(md_page) else abri_de_page(pg)
+            # Le bilan final n'est écrit dans le .md qu'une fois l'estimé connu (1 quater) — jamais
+            # avec le marqueur `ESTIME_A_ECRIRE` (mutant : l'écrire ici le laisserait dans le .md).
+            parts_page["bilan"] = ["Livré : %s" % a.livre] + (["Surpris : %s" % a.surpris] if a.surpris else []) \
+                + ["Estimé : %s" % ESTIME_A_ECRIRE]
+            corps = ('  <section>\n    <h2>Chantier clos le %s</h2>\n    <div class="bilan">\n' % date
+                     + "".join("      <p>%s</p>\n" % esc(t) for t in parts_page["bilan"]) + "    </div>\n")
             bloc = pg[db:fb]
             bloc = re.sub(r"^  <section>", "  <section hidden>", bloc, count=1)
             pg = pg[:db] + bloc + pg[fb:d] + corps + pg[f:] if db < d else pg[:d] + corps + pg[f:db] + bloc + pg[fb:]
             couts_page = []    # les gardes de regenerer portent déjà « GARDE: »
-            md_page = chemin_abri(chemin_page)
-            parts_page = lire_abri(md_page) if os.path.exists(md_page) else abri_de_page(pg)
             try:
                 pg, _, _, total_mesure, _ = regenerer(pg, chemin_fiches, parts_page, date, couts_page)
             except ValueError as e:
@@ -3441,12 +3445,15 @@ def cmd_clore(a, sortie):
             ecritures.append((chemin_page, pg))
             faits["bilan"] = 1
 
-    # 1 quater. l'estimé à côté du réel : page, `**Fait.**`, ligne CLOS (chantier EST)
+    # 1 quater. l'estimé à côté du réel : page, `.md`, `**Fait.**`, ligne CLOS (chantier EST)
     reel = "cadré %d · joué %d fiches %s" % (
         len(ids), joue, estimation_usd(total_mesure[0]) if total_mesure and total_mesure[0] else "≈? $")
     texte_estime = ("estimé %s fiches %s" % estime.groups() if estime else "estimé non noté") + " · " + reel
     fiches_[k_fait] = ligne_fait[:-1] + " — " + texte_estime + "."
     ecritures = [(c, t.replace(ESTIME_A_ECRIRE, esc(texte_estime), 1) if c == chemin_page else t) for c, t in ecritures]
+    if md_page is not None and parts_page is not None:
+        parts_page["bilan"][-1] = "Estimé : %s" % texte_estime
+        ecritures.append((md_page, texte_abri(parts_page)))
 
     # 2. CHANTIER.md
     for k, l in enumerate(carte_):

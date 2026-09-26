@@ -996,6 +996,15 @@ s = gras_liens('<td>**a</td><td>b**</td><a href="https://x/**y">t**</a>')
 verifier("gras_et_liens : une autre balise borne le gras, ses attributs intacts",
          s == '<td>**a</td><td>b**</td><a href="https://x/**y">t**</a>', s)
 
+def tester_bilan_md_clore(page_q):
+    """Dans une fonction : au niveau du module, pyright jugeait le fichier trop complexe (ABR3)."""
+    bilan_md = mod.lire_abri(mod.chemin_abri(page_q))["bilan"]
+    verifier("clore : bilan écrit dans le .md, estimé résolu — mutant : écrire avant de remplacer ESTIME_A_ECRIRE",
+             bilan_md == ["Livré : Livré `a` <b>", "Surpris : x < y",
+                          "Estimé : estimé 2 fiches ≈0,40 $ · cadré 2 · joué 1 fiches ≈? $"]
+             and "\x00" not in "\n".join(bilan_md), bilan_md)
+
+
 with tempfile.TemporaryDirectory() as t:
     carte_ = ("# C\n\n- **contexte** : ctx/\n- **fichier d'état** : ctx/08-etat.md\n"
               "- **fichier de fiches courant** : %s\n- **artefact du chantier** : %s\n\n"
@@ -1096,6 +1105,7 @@ with tempfile.TemporaryDirectory() as t:
              and pq.split("<!-- ZONE:blocage")[1].split("-->\n")[1].startswith("  <section hidden>") and pq.count("<section hidden>") == 1, pq)
     verifier("clore : la page régénérée, fiches du fichier", '<span class="id">Q1</span>' in pq and '<span class="id">Q2</span>' in pq
              and '<span class="id">&lt;R' not in pq and '<p class="mono cout-total">' not in pq, pq)
+    tester_bilan_md_clore(page_q)
     verifier("clore : bilan", code == 0 and "CLOS Q Q1..Q2 (Q2 abandonnée) · chantier 1 500 · cumul 3 812 · routage 1 · index 1 · archivé 1 · bilan 1 · résumé 1 · estimé 2 fiches ≈0,40 $ · cadré 2 · joué 1 fiches ≈? $ — " in s and "encours non" in s, s)
     verifier("clore : fichier de fiches", "**CLOS** le 2026-05-06. Ne se rejoue pas" in fiches_lues
              and fiches_lues.index("**CLOS**") < fiches_lues.index("**Fait.**") and "Abandonnées : Q2 abandonnée." in fiches_lues, fiches_lues)

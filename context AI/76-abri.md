@@ -132,8 +132,9 @@ lieu du `.md` — le premier test tombe. Tests et pyright comptés comme en `ABR
 ---
 
 <!-- FICHE:ABR3 -->
-## ABR3 [ ] — Faire écrire le bilan de `clore` dans le `.md`
+## ABR3 [x] — Faire écrire le bilan de `clore` dans le `.md`
 
+**Session** : 72de750c-600b-43d1-b5e7-94c21b471768
 **Dépend de** : `ABR1`.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` — et rien d'autre.
 
