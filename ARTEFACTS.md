@@ -16,6 +16,11 @@ sont dérivés, et pourquoi une seule page suit les fiches : `methode-chantier.m
 | **Feuille de route** | un par projet, permanent | `/vlp:init` | `/vlp:chantier` (ouverture), `/vlp:tache` et `/vlp:enchainer` (clôture seulement) |
 | **Chantier** | un par chantier | `/vlp:chantier` (étape 5 bis) | `/vlp:tache` (chaque fiche), `/vlp:enchainer` (une fois par lancement) |
 
+Hors de ces deux, une page **ponctuelle** : le rapport à cartes ou la page de
+choix (`templates/rapport-choix.html`) — des décisions à garder ou revoir, des
+questions à options, un bouton qui copie les réponses. Elle ne suit aucun
+chantier et ne se republie pas.
+
 La feuille de route ne change **jamais** d'URL : elle porte la TODO ordonnée,
 le chantier en cours, et la table des chantiers clos avec un lien vers chacun.
 Elle ne porte **pas de compteur** de fiches — elle renvoie à la page du

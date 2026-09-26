@@ -1,0 +1,230 @@
+<title>&lt;Projet&gt; — &lt;Titre du rapport&gt;</title>
+<!--
+  GABARIT — rapport à cartes, ou page de choix. Page ponctuelle : un rapport de
+  séance (de nuit, d'audit…) ou une série de questions à trancher d'un coup. Elle
+  ne suit aucun chantier et ne se republie pas ; ce n'est ni la feuille de route
+  ni la page d'un chantier (ARTEFACTS.md, « Deux artefacts, et pas un de plus »).
+
+  Remplace les <…>. Une section sans objet se supprime entière : rapport seul,
+  garde « Les décisions » et retire « Les choix » ; page de choix seule, l'inverse.
+  Chaque carte porte un `name` unique sur ses boutons radio (D1, D2… pour les
+  décisions, Q1, Q2… pour les choix) : le script les trouve seul, dans l'ordre
+  de la page, et les recopie dans la zone « Tes réponses ». Rien à recoder.
+  `data-cle` sur <div class="page"> : une clé par rapport, sinon deux rapports
+  se partagent les coches gardées dans le navigateur.
+
+  Lisibilité (dyslexie) : fond chaud, texte sombre, aligné à gauche, une idée
+  par puce, gras pour l'info clé, jamais d'italique. Une option nommée par son
+  code se vulgarise (« c'est quoi tete ») : le libellé dit ce qu'elle fait.
+-->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --fond:#f7efdf; --carte:#fffaf0; --trait:#e2d6bf; --texte:#1f1a14; --doux:#5f5446;
+    --accent:#8a4b12; --ok:#2c6e48; --ok-fond:#e4f0e2; --warn:#8a5a0c; --warn-fond:#fbe9cc;
+    --ko:#9c3431; --ko-fond:#f8e0da; --q-fond:#fbe4d2;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --fond:#1a1510; --carte:#241d16; --trait:#3a3025; --texte:#f1e8da; --doux:#b9ab96;
+      --accent:#f0a860; --ok:#7cc796; --ok-fond:#1c2a1f; --warn:#e8b560; --warn-fond:#2e2414;
+      --ko:#ec8a80; --ko-fond:#2f1c19; --q-fond:#33241a;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --fond:#1a1510; --carte:#241d16; --trait:#3a3025; --texte:#f1e8da; --doux:#b9ab96;
+    --accent:#f0a860; --ok:#7cc796; --ok-fond:#1c2a1f; --warn:#e8b560; --warn-fond:#2e2414;
+    --ko:#ec8a80; --ko-fond:#2f1c19; --q-fond:#33241a;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--fond); color:var(--texte); font-family:"Atkinson Hyperlegible",Verdana,system-ui,sans-serif; font-size:18px; line-height:1.7; padding-inline:16px; text-align:left; }
+  .page { max-width:46rem; margin:0 auto; padding-block:2.5rem 4rem; display:flex; flex-direction:column; gap:2.6rem; }
+  h1,h2,h3 { margin:0; text-wrap:balance; line-height:1.25; }
+  h1 { font-size:2.1rem; }
+  h2 { font-size:1.35rem; color:var(--accent); }
+  h3 { font-size:1.08rem; }
+  p { margin:0; }
+  ul { margin:0; padding-left:1.2rem; display:flex; flex-direction:column; gap:.35rem; }
+  .mono { font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.85em; font-variant-numeric:tabular-nums; }
+  section { display:flex; flex-direction:column; gap:1rem; }
+  .sous { color:var(--doux); }
+  .jauge { align-self:flex-start; display:inline-flex; gap:.5rem; align-items:center; padding:.35rem .8rem; border-radius:6px; background:var(--ok-fond); color:var(--ok); font-weight:700; }
+  .jauge.moyen { background:var(--warn-fond); color:var(--warn); }
+  .jauge.ko { background:var(--ko-fond); color:var(--ko); }
+  .chiffres { display:grid; grid-template-columns:repeat(auto-fit,minmax(9.5rem,1fr)); gap:.75rem; }
+  .chiffre { background:var(--carte); border:1px solid var(--trait); border-radius:8px; padding:.8rem 1rem; display:flex; flex-direction:column; gap:.1rem; }
+  .chiffre b { font-size:1.6rem; font-variant-numeric:tabular-nums; }
+  .chiffre span { color:var(--doux); font-size:.9rem; line-height:1.4; }
+  .decision { background:var(--carte); border:1px solid var(--trait); border-radius:8px; padding:1rem 1.1rem; display:flex; flex-direction:column; gap:.6rem; }
+  .decision .tete { display:flex; flex-wrap:wrap; gap:.5rem; align-items:baseline; justify-content:space-between; }
+  .puce { font-size:.8rem; font-weight:700; letter-spacing:.04em; text-transform:uppercase; padding:.1rem .5rem; border-radius:4px; white-space:nowrap; }
+  .puce.faible { background:var(--ok-fond); color:var(--ok); }
+  .puce.moyen { background:var(--warn-fond); color:var(--warn); }
+  .grille { display:grid; grid-template-columns:7.5rem 1fr; gap:.25rem .9rem; margin:0; }
+  .grille dt { color:var(--doux); font-size:.92rem; }
+  .grille dd { margin:0; }
+  .choix { display:flex; flex-wrap:wrap; gap:.5rem; padding-top:.3rem; border-top:1px dashed var(--trait); }
+  .choix label { display:inline-flex; align-items:center; gap:.4rem; padding:.3rem .75rem; border:1px solid var(--trait); border-radius:999px; cursor:pointer; font-size:.95rem; background:var(--carte); }
+  .choix.options { flex-direction:column; }
+  .choix.options label { border-radius:8px; align-items:flex-start; }
+  .choix.options label span b { display:block; }
+  .choix input { accent-color:var(--accent); margin-top:.35rem; }
+  .choix label:has(input:checked) { border-color:var(--accent); background:var(--q-fond); }
+  .choix label:focus-within { outline:2px solid var(--accent); outline-offset:2px; }
+  .question { background:var(--q-fond); border-radius:8px; padding:1rem 1.1rem; display:flex; flex-direction:column; gap:.6rem; }
+  .alerte { background:var(--warn-fond); border-radius:8px; padding:1rem 1.1rem; display:flex; flex-direction:column; gap:.5rem; }
+  .erreur { background:var(--ko-fond); border-radius:8px; padding:1rem 1.1rem; display:flex; flex-direction:column; gap:.5rem; }
+  .fil { list-style:none; padding:0; gap:0; }
+  .fil li { display:grid; grid-template-columns:3.6rem 1fr; gap:.8rem; padding:.55rem 0; border-top:1px solid var(--trait); }
+  .fil time { font-family:"IBM Plex Mono",monospace; color:var(--doux); font-size:.9rem; padding-top:.15rem; }
+  .tableau { overflow-x:auto; }
+  table { border-collapse:collapse; width:100%; font-size:.95rem; }
+  th { text-align:left; color:var(--doux); font-weight:700; font-size:.82rem; text-transform:uppercase; letter-spacing:.05em; padding:.4rem .7rem .4rem 0; border-bottom:2px solid var(--trait); }
+  td { padding:.6rem .7rem .6rem 0; border-bottom:1px solid var(--trait); vertical-align:top; }
+  td.n { font-family:"IBM Plex Mono",monospace; white-space:nowrap; }
+  a { color:var(--accent); }
+  button { font:inherit; font-weight:700; color:#fff; background:var(--accent); border:0; border-radius:6px; padding:.6rem 1.1rem; cursor:pointer; }
+  :root[data-theme="dark"] button { color:#1a1510; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) button { color:#1a1510; } }
+  button:focus-visible { outline:2px solid var(--texte); outline-offset:2px; }
+  textarea { width:100%; min-height:8rem; font-family:"IBM Plex Mono",monospace; font-size:.85rem; background:var(--carte); color:var(--texte); border:1px solid var(--trait); border-radius:6px; padding:.6rem; }
+  .ligne { display:flex; flex-wrap:wrap; gap:.8rem; align-items:center; }
+  @media (max-width:480px) { .grille { grid-template-columns:1fr; } .grille dt { margin-top:.4rem; } }
+</style>
+
+<div class="page" data-cle="<projet>-<date>-<sujet>">
+
+  <header style="display:flex;flex-direction:column;gap:.8rem">
+    <p class="mono sous"><projet> · <date> · <plage : commits de HH:MM à HH:MM, heures lues></p>
+    <h1><Titre du rapport></h1>
+    <!-- Jauge : ✅ Tout va bien · 🟢 Ça tient, mais… · ⚠️ Imprévu (classe moyen) · ❌ Pas bon / 🔥 Grosse erreur (classe ko) -->
+    <span class="jauge">🟢 Ça tient, mais…</span>
+    <ul>
+      <li>✅ <ce qui est fait, en une ligne, l'info clé en gras></li>
+      <li>⚠️ <ce qui demande attention></li>
+      <li>➡️ <ce que le lecteur a à faire sur cette page></li>
+    </ul>
+  </header>
+
+  <section>
+    <h2>Les chiffres</h2>
+    <div class="chiffres">
+      <div class="chiffre"><b><N></b><span><ce qu'il compte></span></div>
+      <div class="chiffre"><b><N></b><span><ce qu'il compte></span></div>
+    </div>
+    <ul class="sous" style="font-size:.95rem">
+      <li><d'où vient chaque chiffre : la commande, recopiée telle quelle></li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Ce qui a été fait</h2>
+    <div class="tableau">
+      <table>
+        <thead><tr><th>Réf.</th><th>Quoi</th><th>Ce qu'il livre</th><th>Coût</th></tr></thead>
+        <tbody>
+          <tr><td class="n"><n° TODO></td><td><b><CODE></b><br><titre></td><td><ce qu'il livre, en une phrase></td><td class="n"><tokens ou $></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Les décisions prises seul — à valider</h2>
+    <p class="sous"><Une image simple qui dit ce que sont ces décisions.> Coche ce que tu gardes ; en bas, un bouton copie tes réponses.</p>
+
+    <div class="decision">
+      <div class="tete"><h3>D1 · <la décision, en clair></h3><span class="puce moyen"><sa portée></span></div>
+      <dl class="grille">
+        <dt>Le problème</dt><dd><ce qui obligeait à trancher></dd>
+        <dt>Mon choix</dt><dd><ce qui a été fait></dd>
+        <dt>Écarté</dt><dd><l'autre voie, et pourquoi></dd>
+        <dt>Le prix</dt><dd><ce que ce choix coûte></dd>
+        <dt>Défaire</dt><dd><span class="mono"><git revert … ou la commande></span></dd>
+      </dl>
+      <div class="choix"><label><input type="radio" name="D1" value="garder">Je garde</label><label><input type="radio" name="D1" value="revoir">À revoir</label></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Les choix à trancher</h2>
+    <p class="sous">Une carte par question. Chaque option dit ce qu'elle change.</p>
+
+    <div class="question">
+      <h3>🟡 Q1 · <la question, en clair></h3>
+      <ul>
+        <li><ce qui est en jeu, une idée par puce></li>
+      </ul>
+      <div class="choix options">
+        <label><input type="radio" name="Q1" value="<option-a>"><span><b><Option A> (recommandé)</b><ce qu'elle change concrètement></span></label>
+        <label><input type="radio" name="Q1" value="<option-b>"><span><b><Option B></b><ce qu'elle change concrètement></span></label>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Ce qui a mal tourné</h2>
+    <div class="erreur">
+      <h3>🔥 <ce qui a été cassé></h3>
+      <p><ce qui s'est passé, et ce qui change pour que ça ne revienne pas></p>
+    </div>
+    <div class="alerte">
+      <h3>⚠️ <l'imprévu></h3>
+      <p><ce qui s'est passé, et le commit qui le corrige></p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Le fil</h2>
+    <p class="sous" style="font-size:.95rem">Heures lues sur les commits.</p>
+    <ul class="fil">
+      <li><time><HH:MM></time><span><b><CODE></b> · <ce qui s'est passé></span></li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Tes réponses</h2>
+    <p class="sous">Le bouton copie un texte court. Colle-le dans la conversation.</p>
+    <div class="ligne"><button type="button" id="copier">Copier mes réponses</button><span id="etat" class="sous" aria-live="polite"></span></div>
+    <textarea id="reponses" readonly aria-label="Tes réponses"></textarea>
+  </section>
+
+  <footer class="sous" style="font-size:.9rem;border-top:1px solid var(--trait);padding-top:1rem">
+    Dépôt <span class="mono"><dépôt></span> · détail dans <span class="mono"><fichier d'état></span>.
+  </footer>
+</div>
+
+<script>
+  const page = document.querySelector(".page");
+  const cle = "rapport:" + (page.dataset.cle || document.title);
+  const titre = document.querySelector("h1").textContent.trim() || document.title;
+  const zone = document.getElementById("reponses");
+  const noms = [...new Set([...document.querySelectorAll('input[type="radio"]')].map(e => e.name))];
+  function lireStock() { try { return JSON.parse(localStorage.getItem(cle) || "{}"); } catch (e) { return {}; } }
+  function ecrireStock(v) { try { localStorage.setItem(cle, JSON.stringify(v)); } catch (e) {} }
+  function texte() {
+    const lignes = ["Mes réponses — " + titre + " :"];
+    for (const n of noms) {
+      const c = document.querySelector('input[name="' + n + '"]:checked');
+      lignes.push("- " + n + " : " + (c ? c.value : "pas répondu"));
+    }
+    return lignes.join("\n");
+  }
+  function maj() { zone.value = texte(); }
+  const stock = lireStock();
+  for (const n of noms) {
+    if (!stock[n]) continue;
+    for (const el of document.querySelectorAll('input[name="' + n + '"]')) if (el.value === stock[n]) el.checked = true;
+  }
+  document.addEventListener("change", e => {
+    if (e.target.matches('input[type="radio"]')) { const s = lireStock(); s[e.target.name] = e.target.value; ecrireStock(s); maj(); }
+  });
+  document.getElementById("copier").addEventListener("click", () => {
+    const etat = document.getElementById("etat");
+    navigator.clipboard.writeText(zone.value).then(() => { etat.textContent = "Copié."; })
+      .catch(() => { zone.focus(); zone.select(); etat.textContent = "Sélectionné : fais Ctrl+C."; });
+  });
+  maj();
+</script>
