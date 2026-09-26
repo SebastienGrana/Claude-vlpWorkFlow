@@ -99,8 +99,9 @@ nouveau ». `pyright scripts/vlp.py scripts/test-vlp.py` : 0 erreur.
 ---
 
 <!-- FICHE:TOU3 -->
-## TOU3 [ ] — Mesurer après, à plafond 5
+## TOU3 [x] — Mesurer après, à plafond 5
 
+**Session** : 4f8f72b2-9905-4f4b-a335-3ceb75f21141
 **Dépend de** : `TOU2`.
 **Fichiers** : `evals/filet/rejouer.sh` (lancé, pas modifié), `context AI/08-etat.md` — et rien d'autre.
 
