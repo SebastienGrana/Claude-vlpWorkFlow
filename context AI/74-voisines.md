@@ -14,6 +14,8 @@ répare la régénération, puis republie les trois pages (TODO n° 25, journal 
 
 **Session** : 382d47f9-b6fa-494b-8bb1-40222f22a6d9
 
+**Session** : e216f2f1-2f4f-49a6-a0ab-65533791a028
+
 ## Le socle commun
 
 | Symbole | Où | Ce qu'il fait |
@@ -54,10 +56,10 @@ main, sont la référence : la régénération ne doit rien leur retirer.
 | `VOI2` | Comparer deux feuilles par script | rien |
 | `VOI3` | Lire les lettres de fiche entre backticks | rien |
 | `VOI4` | Mesurer ce que chaque voisin perd, et faire trancher | `VOI2` |
-| `VOI5` | Appliquer ce que `VOI4` a tranché | `VOI4` |
+| `VOI5` | Passer la TODO de MapDecorator en table | `VOI4` |
 | `VOI6` | Régénérer, faire regarder, republier les trois pages | `VOI1`, `VOI3`, `VOI5` |
 
-`VOI1`, `VOI2` et `VOI3` sont indépendantes. `VOI5` sera réécrite après `VOI4`.
+`VOI1`, `VOI2` et `VOI3` sont indépendantes. `VOI5` réécrite après `VOI4` (2026-09-26).
 
 ---
 
@@ -163,18 +165,35 @@ projet ou script, pour MapDecorator et pour TrackGen, et sa réponse est notée 
 ---
 
 <!-- FICHE:VOI5 -->
-## VOI5 [ ] — Appliquer ce que `VOI4` a tranché
+## VOI5 [ ] — Passer la TODO de MapDecorator en table
 
-**Dépend de** : `VOI4`.
-**Fichiers** : ceux que la décision de `VOI4` désigne — à réécrire ici avant de jouer la fiche.
+**Dépend de** : `VOI4` (tranché : correction dans le projet ; `vlp.py` ne change pas ; TrackGen et ProjetONZSM, aucune action).
+**Fichiers** : `../MapDecorator/context AI/08-etat.md` (section `## TODO`, `:120`) — seul fichier voisin écrit ; `context AI/08-etat.md` du kit (journal) — et rien d'autre.
 
 **Prompt**
-Cette fiche se réécrit après `VOI4` (`/vlp:chantier`, « redécouper ») : elle nommera alors ses
-fichiers, son test et son mutant. En l'état, elle ne se joue pas.
+La TODO de MapDecorator est une liste `N. [ ]`/`[x]` ; `todo_du_fichier` ne lit que la table
+`| # | Chantier`, d'où `FEUILLE todo 0`. Réécris la section en table au format de TrackGen
+(`../TrackGen/context AI/08-etat.md:36`) : `| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |`.
+
+- Une ligne par item **ouvert** : #3, 4, 5, 6, 7, 8, 9, 10, 12 — numéros gardés, jamais renumérotés.
+- `Chantier` : le titre en gras de l'item ; `Ce qu'il apporte` : le reste de son texte sur une ligne, renvoi `→ fichier` compris, sans rien couper.
+- `Coût estimé` et `Dépend de` : `—` (rien n'est inventé). Un `|` dans le texte s'échappe `\|`.
+- Les items faits #1, #2, #11 : liste sous la table, sous un titre `Fait`, texte intact.
+
+Rien d'autre ne bouge dans ce fichier. MapDecorator a des modifications en cours sur d'autres
+fichiers : commite **ce seul fichier** dans son dépôt (`git add "context AI/08-etat.md"`), jamais `-a`.
+Écris au journal du kit les comptes avant et après.
+
+**Vérification**
+- `py scripts/vlp.py feuille ../MapDecorator --verifier` avant (mesuré au cadrage : `FEUILLE todo 0`) et après.
+- `py -c` qui importe `scripts/vlp.py` et imprime les numéros de `todo_du_fichier` sur le fichier réécrit.
+- `feuille --verifier` sur `../TrackGen` et `../ProjetONZSM` : témoins, rien n'y est écrit.
 
 **Critère de fin**
-Pour chaque voisin, `vlp.py comparer` entre la page du disque et la page régénérée dans le
-scratchpad affiche `COMPARER 0 perdus` ; le test et le mutant nommés à la réécriture.
+`FEUILLE todo 8` sur MapDecorator ; numéros lus `3 4 5 6 7 8 9 10 12`, 8 exactement ; les titres
+de #1, #2, #11 présents sous `Fait` (`grep -c` = 1 chacun) ; témoins inchangés, `todo 11` et
+`todo 8`. `COMPARER 1 perdus · 1 ajoutés` est accepté : la page est un seul bloc de texte
+(journal `VOI4`), `comparer` ne peut pas descendre à la ligne.
 <!-- /FICHE -->
 
 ---
@@ -196,6 +215,7 @@ pourquoi au journal. Termine par une entrée au journal : les comptes avant (`NI
 après, par projet.
 
 **Critère de fin** (visuel)
-Pour les trois voisins : `COMPARER 0 perdus`, `NIVEAU 0 écarts`, l'utilisateur a vu la page et
-dit oui, et la republication a répondu sans erreur.
+Pour les trois voisins : `FEUILLE todo` à 8, 11 et 8 (MapDecorator, TrackGen, ProjetONZSM),
+`NIVEAU 0 écarts`, l'utilisateur a vu la page et dit oui, et la republication a répondu sans
+erreur. `COMPARER 1 perdus · 1 ajoutés` est accepté : la page est un seul bloc (journal `VOI4`).
 <!-- /FICHE -->
