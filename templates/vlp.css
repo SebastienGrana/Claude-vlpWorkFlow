@@ -36,6 +36,13 @@ section { display:flex; flex-direction:column; gap:.85rem; }
 .fiche .cout { grid-column:2; font-size:.78rem; color:var(--doux); }
 .cout-total,.cout-hors { font-size:.85rem; color:var(--doux); }
 .fiche .etat { grid-column:1; font-size:.68rem; letter-spacing:.07em; text-transform:uppercase; color:var(--attente); }
+/* fiche repliable (chantier PLI) : en-tête toujours visible, note et coût dans le corps */
+.fiche > details { grid-column:1 / -1; }
+.fiche summary { display:grid; grid-template-columns:3.5rem 1fr; gap:.1rem .9rem; cursor:pointer; list-style:none; }
+.fiche summary::-webkit-details-marker { display:none; }
+.fiche details > .note,.fiche details > .cout { display:block; margin-left:4.4rem; }
+.fiche summary .titre::after { content:" ▸"; color:var(--doux); font-weight:400; }
+.fiche details[open] > summary .titre::after { content:" ▾"; }
 /* les trois états, partout où ils comptent */
 .avancement span[data-etat="faite"] { background:var(--fait); }
 .avancement span[data-etat="encours"] { background:var(--cours); }

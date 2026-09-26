@@ -1799,7 +1799,12 @@ def recopier_vlp_css(dossier):
     with open(dest, "wb") as f:
         f.write(contenu)
     return dest
-LI_FICHE = re.compile(r'[ \t]*<li class="fiche"[^>]*>.*?</li>\n?', re.S)
+
+
+# Une fiche de la page, dans ses deux formes : spans à plat (avant PLI), ou repliée dans un
+# `<details>` (depuis PLI) — les pages des projets équipés gardent l'ancienne jusqu'à leur
+# prochaine régénération.
+LI_FICHE =re.compile(r'[ \t]*<li class="fiche"[^>]*>.*?</li>\n?', re.S)
 UL_FICHES = re.compile(r'(<ul class="fiches">)(.*?)(\n[ \t]*</ul>)', re.S)
 # Relit tout ce que `ligne_cout` écrit : le total entre parenthèses, ou nu sous
 # 1 000 (`arrondi`), négatif compris ; le prix, négatif compris, ou `?` quand il
@@ -2232,14 +2237,18 @@ def regenerer(html, fichier, parts, date, gardes):
     for ident, titre, _, _ in fiches_:
         e = etat[ident]
         note = esc(parts["notes"][ident]) if ident in parts["notes"] else None
-        li = ['      <li class="fiche"%s>' % (' data-etat="%s"' % e if e else ""),
-              '        <span class="id">%s</span><span class="titre">%s</span>' % (ident, esc(titre)),
-              '        <span class="etat">%s</span>' % etiquette[e]]
+        # Repliée, sauf en cours ou bloquée (chantier PLI) ; `data-etat` reste sur le `<li>`,
+        # que `LI_FICHE` et `lis_page` lisent dans les deux formes. Mêmes lignes qu'avant, sans
+        # bloc ajouté : `comparer` découpe au `div`, le texte visible reste le même.
+        li = ['      <li class="fiche"%s><details%s>' % (' data-etat="%s"' % e if e else "",
+                                                     " open" if e in ("encours", "bloquee") else ""),
+              '        <summary><span class="id">%s</span><span class="titre">%s</span>' % (ident, esc(titre)),
+              '        <span class="etat">%s</span></summary>' % etiquette[e]]
         if note:
             li.append('        <span class="note">%s</span>' % note)
         if ident in cout:
             li.append('        <span class="cout mono">%s</span>' % cout[ident])
-        items.append("\n".join(li + ["      </li>"]))
+        items.append("\n".join(li + ["      </details></li>"]))
     prefixe = re.search(r'<p class="mono cout-total">(.*?) : ', html)
     prefixe = prefixe.group(1) if prefixe else "Coût du chantier"
     html = re.sub(r'\n[ \t]*<p class="mono cout-(?:total|hors)">.*?</p>', "", html, flags=re.S)

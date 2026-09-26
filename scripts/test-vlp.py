@@ -3331,4 +3331,69 @@ def tester_style_migre():
 
 tester_style_migre()
 
+
+# --- PLI5 : chaque fiche repliée, ouverte si en cours ; l'ancienne forme se lit encore ---
+
+FICHES_PLI5 = """# Chantier PLI5
+
+## Le socle commun
+
+## L'ordre des fiches
+
+<!-- FICHE:Q1 -->
+## Q1 [x] — Faite
+**Critère de fin**
+x
+<!-- /FICHE -->
+
+<!-- FICHE:Q2 -->
+## Q2 [ ] — En cours
+**Critère de fin**
+x
+<!-- /FICHE -->
+
+<!-- FICHE:Q3 -->
+## Q3 [ ] — À faire
+**Critère de fin**
+x
+<!-- /FICHE -->
+"""
+
+
+def forme_ancienne(html):
+    """Les fiches remises à plat, comme avant PLI5 : ni `<details>` ni `<summary>`."""
+    html = re.sub(r'(<li class="fiche"[^>]*)><details(?: open)?>', r"\1>", html)
+    return html.replace("<summary>", "").replace("</summary>", "").replace("</details></li>", "</li>")
+
+
+def tester_fiches_repliees():
+    with tempfile.TemporaryDirectory() as tfr:
+        fiches = os.path.join(tfr, "q.md")
+        page = os.path.join(tfr, "artefacts", "q.html")
+        ancienne = os.path.join(tfr, "avant.html")
+        ecrire(fiches, FICHES_PLI5)
+        code, s = appel(["page", fiches, page, "--creer", "--projet", "Proj", "--titre", "T", "--resultat", "R0",
+                         "--note", "Q1", "n1", "--note", "Q2", "n2", "--note", "Q3", "n3"])
+        html = lire(page)
+        ul = re.search(r'<ul class="fiches">.*?</ul>', html, re.S)
+        zone = ul.group(0) if ul else ""
+        verifier("PLI5 : 3 fiches, 3 blocs repliables, un seul ouvert — celui en cours"
+                 " — mutant : tout ouvrir",
+                 code == 0 and zone.count("<details") == 3 and zone.count("<details open>") == 1
+                 and '<li class="fiche" data-etat="encours"><details open>' in zone, s + zone)
+        ecrire(ancienne, forme_ancienne(html))
+        verifier("PLI5 : la forme ancienne du test n'a plus de bloc repliable",
+                 "<details" not in lire(ancienne) and lire(ancienne).count('<li class="fiche"') == 3, lire(ancienne))
+        code, s = appel(["comparer", ancienne, page])
+        verifier("PLI5 : comparer contre l'ancienne forme ne dit aucune ligne de texte perdue",
+                 code == 0 and "PERDU:" not in s and s.rstrip().startswith("COMPARER 0 perdus"), s)
+        vues_neuves, vues_anciennes = mod.lis_page(html), mod.lis_page(lire(ancienne))
+        verifier("PLI5 : une page à l'ancienne forme se lit encore, mêmes fiches"
+                 " — mutant : ne lire que la nouvelle forme",
+                 len(vues_neuves) == 3 and vues_anciennes == vues_neuves
+                 and vues_anciennes["Q2"][0] == "encours", "%r\n%r" % (vues_neuves, vues_anciennes))
+
+
+tester_fiches_repliees()
+
 print("OK")

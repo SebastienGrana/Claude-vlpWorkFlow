@@ -30,23 +30,24 @@
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="faite">
-        <span class="id">&lt;R1&gt;</span><span class="titre">&lt;Titre de la fiche&gt;</span>
-        <span class="etat">faite</span>
+      <!-- chaque fiche repliée ; `open` si en cours ou bloquée. .cout : présent seulement
+           si la fiche a une plage — commit `<ID> :`, ou ligne **Session** -->
+      <li class="fiche" data-etat="faite"><details>
+        <summary><span class="id">&lt;R1&gt;</span><span class="titre">&lt;Titre de la fiche&gt;</span>
+        <span class="etat">faite</span></summary>
         <span class="note">&lt;Le critère de fin, constaté. Une ligne.&gt;</span>
-        <!-- .cout : présent seulement si la fiche a une plage — commit `<ID> :`, ou ligne **Session** -->
         <span class="cout mono">&lt;≈2,3k (2 312)&gt;</span>
-      </li>
-      <li class="fiche" data-etat="encours">
-        <span class="id">&lt;R2&gt;</span><span class="titre">&lt;Titre de la fiche&gt;</span>
-        <span class="etat">en cours</span>
+      </details></li>
+      <li class="fiche" data-etat="encours"><details open>
+        <summary><span class="id">&lt;R2&gt;</span><span class="titre">&lt;Titre de la fiche&gt;</span>
+        <span class="etat">en cours</span></summary>
         <span class="note">&lt;Ce qu'elle produit, en une ligne.&gt;</span>
-      </li>
-      <li class="fiche">
-        <span class="id">&lt;R3&gt;</span><span class="titre">&lt;Titre de la fiche&gt;</span>
-        <span class="etat">à faire</span>
+      </details></li>
+      <li class="fiche"><details>
+        <summary><span class="id">&lt;R3&gt;</span><span class="titre">&lt;Titre de la fiche&gt;</span>
+        <span class="etat">à faire</span></summary>
         <span class="note">&lt;Ce qu'elle produit · dépend de &lt;R2&gt;&gt;</span>
-      </li>
+      </details></li>
     </ul>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
     <p class="mono cout-hors">Hors fiches : &lt;≈1,2k (1 234)&gt;</p>

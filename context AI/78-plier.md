@@ -185,8 +185,9 @@ aucune règle recopiée. `.githooks/pre-commit` passe.
 ---
 
 <!-- FICHE:PLI5 -->
-## PLI5 [ ] — Replier les fiches
+## PLI5 [x] — Replier les fiches
 
+**Session** : 30b330e2-4593-4cb3-8abc-4a109ec7890d
 **Dépend de** : `PLI3`.
 **Fichiers** : `scripts/vlp.py` (`regenerer`, `LI_FICHE` et ses lecteurs, `abri_de_page`), `templates/artefact-chantier.html` (`ZONE:fiches`), `templates/vlp.css`, `scripts/test-vlp.py` — et rien d'autre.
 
