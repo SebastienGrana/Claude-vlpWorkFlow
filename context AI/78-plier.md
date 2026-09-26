@@ -10,7 +10,9 @@ CSS part dans un `vlp.css` joint, que la relecture ne recharge plus (`ALE`).
 
 **Estimé.** 5 fiches · ≈20 $ — ≈3,99 $/fiche sur 65 clos (le 2026-09-27).
 
-**Fait.** Rien. Ouvert le 2026-09-27, cadré en 7 fiches, `PLI1` à jouer.
+**CLOS** le 2026-09-27. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** PLI1..PLI7 (2026-09-27) : Page de chantier repliée : fiches finies et vieux journal repliés, bilan en haut une fois clos, CSS dans vlp.css joint ; 3,45 → 2,18 écrans, relecture 7 795 → 5 842 tokens (−25 %), 0 ligne perdue — estimé 5 fiches ≈20 $ · cadré 7 · joué 7 fiches ≈39 $.
 
 **Session** : 566269ee-41a6-4c46-a3ce-85d9f2e86a8b
 

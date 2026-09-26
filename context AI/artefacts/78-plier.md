@@ -11,3 +11,6 @@ La page d'un chantier se replie : fiches finies et vieux journal repliés, bilan
 - PLI7 : Replié 3,45 → 2,18 écrans (2977 → 1886 px), déplié 3,63 ; Artifact read 7 795 → 5 842 tokens (−25 %) ; comparer 0 ligne perdue ; feuille republiée v153 avec vlp.css, pages vues stylées par l'utilisateur ; page jetable supprimée
 ## Journal
 ## Bilan
+- Livré : Page de chantier repliée : fiches finies et vieux journal repliés, bilan en haut une fois clos, CSS dans vlp.css joint ; 3,45 → 2,18 écrans, relecture 7 795 → 5 842 tokens (−25 %), 0 ligne perdue
+- Surpris : Déplié, la page est plus haute qu'avant (3,63 écrans) ; page ne remonte pas le bilan d'un clos, seul clore le fait ; le hors fiches d'un clos a bougé à la régénération (7,55 → 7,89 $)
+- Estimé : estimé 5 fiches ≈20 $ · cadré 7 · joué 7 fiches ≈39 $

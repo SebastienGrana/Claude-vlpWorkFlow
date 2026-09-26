@@ -70,3 +70,4 @@ QUAND LIRE : on relit un chantier clos ; l'index n'en garde qu'une ligne qui ren
 | `75-index-archive.md` | on relit le socle du chantier IDX — **clos** « L'index ne garde que le vivant », `IDX1..IDX3` |
 | `76-abri.md` | on relit le socle du chantier ABR — **clos** « Mettre notes et journal à l'abri dans un .md », `ABR1..ABR5` |
 | `77-alleger.md` | on relit le socle du chantier ALE — **clos** « Essai : alléger la republication », `ALE1..ALE3` |
+| `78-plier.md` | on relit le socle du chantier PLI — **clos** « La page de chantier plus courte et lisible », `PLI1..PLI7` |
