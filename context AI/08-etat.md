@@ -2278,3 +2278,5 @@ la TODO : n° 55 `FUI`. Coût du chantier : 8 399 715 (`vlp.py clore`).
 - 2026-09-26 — Chantier RAT clos : un `Read` raté déclenche `PostToolUseFailure:Read` et le filet y avertit (plafond 5, `evals/filet-rate/`) ; question ouverte depuis `FIL2` fermée. Laissé ouvert : le filet répète son avertissement à chaque appel d'un même tour (13 d'un coup), à mesurer ; cadré seul la nuit, 1 fiche, à valider. Chantier 1 706 811.
 
 - 2026-09-26 — Chantier SON clos : `VLP_SANS_TAMPON=1` dans l'environnement fait agir un hook rejoué à la main à chaque fois (`premier_lancement`), sans `nonce` ; test et mutant. Variable plutôt qu'option, choisie seule la nuit, à valider. Chantier 1 974 524.
+
+- 2026-09-26 (TOU1) : **mesure avant, clé de `TOU2` confirmée** — `bash evals/filet/rejouer.sh 5 filet-rate` (WSL `-d Ubuntu` : la distribution par défaut `docker-desktop` n'a pas bash) : `TOURS=4`, `APPELS=14 — Bash 2, Read 12`, `AVERTISSEMENTS=13`, `AVERTIS_PAR_TOUR=2:12,3:1` ; `costUsd` 0.15472195. Les 12 `Read` d'une même salve voient le même compte de tours : 12 avertissements pour un seul tour.

@@ -254,7 +254,8 @@ Sous-commandes :
   `n12.txt`. Imprime `BAC <dossier>` et les deux commandes `claude -p`, sans les lancer (chantier BAC).
 - `transcription <jsonl>` — compte la transcription d'un sous-agent, une clé par ligne : `TOURS=`
   (`message.id` distincts porteurs d'`usage`, comme `comptoir_tours`), `APPELS=<n> — <outil> <n>, …`,
-  `AVERTISSEMENTS=`, `PREMIER_AVERTISSEMENT tour= outil= is_error=<oui|non> hook=` (l'appel que
+  `AVERTISSEMENTS=`, `AVERTIS_PAR_TOUR=<tour>:<n>,…` (tour de l'appel que désigne le `toolUseID`,
+  `aucun` sans avertissement ; chantier TOU), `PREMIER_AVERTISSEMENT tour= outil= is_error=<oui|non> hook=` (l'appel que
   désigne son `toolUseID`) et `TEXTE=`, ou `PREMIER_AVERTISSEMENT aucun` ; `HOOK_ERREURS=<n> pour
   <n> appels`, `DERNIER mot= stop_reason=`, `DERNIERE_LIGNE=`. Illisible : `GARDE:`, sort 1 (chantier BAC).
 - `kit-essai <dossier> --max-turns <n> [--kit <source>]` — copie le kit (par défaut celui de ce
@@ -3542,6 +3543,11 @@ def cmd_transcription(chemin, sortie):
     sortie.write("TOURS=%d\n" % len(tours))
     sortie.write("APPELS=%d — %s\n" % (len(appels), ", ".join("%s %d" % o for o in par_outil.items()) or "aucun"))
     sortie.write("AVERTISSEMENTS=%d\n" % len(avertis))
+    par_tour = {}
+    for a in avertis:
+        tour = appels.get(a.get("toolUseID"), ("?", "?"))[0]
+        par_tour[tour] = par_tour.get(tour, 0) + 1
+    sortie.write("AVERTIS_PAR_TOUR=%s\n" % (",".join("%s:%d" % t for t in par_tour.items()) or "aucun"))
     if avertis:
         a = avertis[0]
         uid = a.get("toolUseID")

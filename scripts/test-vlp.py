@@ -2870,6 +2870,7 @@ def test_transcription():
         attendu = ("TOURS=2\n"
                    "APPELS=2 — Bash 1, Read 1\n"
                    "AVERTISSEMENTS=1\n"
+                   "AVERTIS_PAR_TOUR=1:1\n"
                    "PREMIER_AVERTISSEMENT tour=1 outil=Bash is_error=oui hook=PostToolUseFailure:Bash\n"
                    "TEXTE=Attention : 1 tour restant.\n"
                    "HOOK_ERREURS=2 pour 2 appels\n"
@@ -2882,7 +2883,26 @@ def test_transcription():
             f.write(json.dumps(lignes[-1]) + "\n")
         code, s = appel(["transcription", sans])
         verifier("transcription : sans avertissement, « aucun » et pas de TEXTE=",
-                 code == 0 and "PREMIER_AVERTISSEMENT aucun\n" in s and "TEXTE=" not in s, s)
+                 code == 0 and "PREMIER_AVERTISSEMENT aucun\n" in s and "TEXTE=" not in s
+                 and "AVERTIS_PAR_TOUR=aucun\n" in s, s)
+        # TOU1 : 3 avertissements au tour 2 (une salve de trois Read), 1 au tour 3
+        salve = [{"type": "assistant", "message": {"id": "m1", "usage": u, "stop_reason": "tool_use",
+                                                   "content": [{"type": "tool_use", "id": "s0", "name": "Read"}]}}]
+        salve += [{"type": "assistant", "message": {"id": "m2", "usage": u, "stop_reason": "tool_use",
+                                                    "content": [{"type": "tool_use", "id": i, "name": "Read"}]}}
+                  for i in ("s1", "s2", "s3")]
+        salve.append({"type": "assistant", "message": {"id": "m3", "usage": u, "stop_reason": "tool_use",
+                                                       "content": [{"type": "tool_use", "id": "s4", "name": "Read"}]}})
+        salve += [{"type": "attachment", "attachment": {"type": "hook_additional_context", "hookName": "PostToolUse:Read",
+                                                        "toolUseID": i, "content": "Attention"}}
+                  for i in ("s1", "s2", "s3", "s4")]
+        par_tour = os.path.join(ttr, "par-tour.jsonl")
+        with open(par_tour, "w", encoding="utf-8") as f:
+            for ligne in salve:
+                f.write(json.dumps(ligne) + "\n")
+        code, s = appel(["transcription", par_tour])
+        verifier("transcription : AVERTIS_PAR_TOUR range chaque avertissement au tour de son appel",
+                 code == 0 and "AVERTISSEMENTS=4\nAVERTIS_PAR_TOUR=2:3,3:1\n" in s, s)
         code, s = appel(["transcription", os.path.join(ttr, "absent.jsonl")])
         verifier("transcription : illisible rend une GARDE", code == 1 and s.startswith("GARDE:"), s)
 

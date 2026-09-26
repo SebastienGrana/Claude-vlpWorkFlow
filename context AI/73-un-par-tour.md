@@ -48,8 +48,9 @@ Rien n'est parallélisable : chaque fiche lit le résultat de la précédente.
 ---
 
 <!-- FICHE:TOU1 -->
-## TOU1 [ ] — Mesurer avant : les avertissements, tour par tour
+## TOU1 [x] — Mesurer avant : les avertissements, tour par tour
 
+**Session** : 288997c5-3d54-4aaf-82c5-71c78fb6b9da
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py` (`cmd_transcription`), `scripts/test-vlp.py`, `evals/filet/rejouer.sh` — et rien d'autre.
 
