@@ -76,8 +76,9 @@ de ce chantier, régénérée sans `<style>`, se republie sans `vlp.css` joint.
 ---
 
 <!-- FICHE:PLI1 -->
-## PLI1 [ ] — Mesurer la page avant
+## PLI1 [x] — Mesurer la page avant
 
+**Session** : 30b330e2-4593-4cb3-8abc-4a109ec7890d
 **Dépend de** : rien.
 **Fichiers** : `context AI/artefacts/51-relecture.html`, `context AI/38-audit-artefacts.md` (§ 4, le montage), `scripts/mesure-tokens.py`, `context AI/78-plier.md` — et rien d'autre.
 
@@ -253,3 +254,23 @@ La table `## Mesures` porte avant et après, comptes bruts et commandes ;
 `comparer` : 0 ligne perdue. L'utilisateur constate sur claude.ai la feuille de
 route du kit et la page jetable stylées (fond crème, cartes), fiches repliées.
 <!-- /FICHE -->
+
+## Mesures
+
+Page mesurée : `context AI/artefacts/51-relecture.html` (15 535 octets, 8 fiches,
+7 entrées de journal, close). Mesuré le 2026-09-27 par `PLI1`.
+
+| Mesure | Quand | Commande | Comptes bruts | Résultat |
+|---|---|---|---|---|
+| Hauteur, écrans d'ordinateur | avant | `py envelopper.py "context AI/artefacts/51-relecture.html" pli1-avant.html` (enveloppe de `38-audit-scripts/replie.py:25-27`), servi par `py -m http.server 8765`, navigateur intégré à 1536 × 864, `await document.fonts.ready; document.documentElement.scrollHeight / 864` | `scrollHeight` = 2977 px, `innerHeight` = 864, `innerWidth` = 1536 | **3,45 écrans** |
+| Coût d'un `Artifact read` | avant | `date` (22:25:02Z), `Artifact read` dans un tour à part, `date` (22:25:09Z), puis `py scripts/mesure-tokens.py --plage 2026-09-26T22:25:02Z 2026-09-26T22:25:09Z 30b330e2-4593-4cb3-8abc-4a109ec7890d` | `ctx_1er` = 92 462, `ctx_dernier` = 100 257, 2 tours (Artifact=1, PowerShell=1) | **7 795 tokens** |
+
+- URL jetable (à republier par `PLI7`, puis à supprimer) :
+  https://claude.ai/artifact/VVNW7buXnTtffssZmd3knk
+- Session : `30b330e2-4593-4cb3-8abc-4a109ec7890d`.
+- ⚠️ Montage : la fiche renvoyait au « § 4 » de `38-audit-artefacts.md` ; l'enveloppe
+  est dans `38-audit-scripts/replie.py:25-27` (§ 1 la cite). Un fichier hors du
+  projet ne s'ouvre qu'en instantané figé dans le navigateur intégré : d'où le
+  petit serveur local, à refaire tel quel en `PLI7`.
+- ⚠️ L'écart contient aussi l'enveloppe que la plateforme ajoute à la lecture
+  (en-tête `[Artifact …]`, `<head>` de claude.ai) : même biais avant et après.
