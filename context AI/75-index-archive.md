@@ -79,8 +79,9 @@ archive, les sorties des tests existants sont inchangées. `pyright scripts/` : 
 ---
 
 <!-- FICHE:IDX2 -->
-## IDX2 [ ] — Écrire `archiver`, et le faire appeler par `clore`
+## IDX2 [x] — Écrire `archiver`, et le faire appeler par `clore`
 
+**Session** : 7193426a-a52d-43fc-9c56-f4df21f8d909
 **Dépend de** : `IDX1`.
 **Fichiers** : `scripts/vlp.py` (fonction, sous-commande, docstring), `scripts/test-vlp.py`.
 

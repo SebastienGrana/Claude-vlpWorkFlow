@@ -68,9 +68,9 @@
     <p>L'index du kit passe sous 80 lignes ; ses 63 lignes de chantiers clos sont dans 00-INDEX-archive.md, sans perte, et clore y range chaque nouveau clos.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="encours"></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">3 fiches · 1 faite · en cours : IDX2</p>
+    <p class="mono" style="margin-top:.5rem">3 fiches · 2 faites · en cours : IDX3</p>
   </header>
 
   <section>
@@ -81,21 +81,22 @@
         <span class="id">IDX1</span><span class="titre">Faire lire l'archive aux lecteurs de l'index</span>
         <span class="etat">faite</span>
         <span class="note">test-vlp.py OK (3 cas neufs + 4 mutants attrapés), pyright scripts/ 0 errors, sorties sans archive inchangées</span>
-        <span class="cout mono">≈1,7M (1 738 564) · 17 tours · 1,04 $</span>
+        <span class="cout mono">≈2,0M (1 959 526) · 19 tours · 1,14 $</span>
+      </li>
+      <li class="fiche" data-etat="faite">
+        <span class="id">IDX2</span><span class="titre">Écrire archiver, et le faire appeler par clore</span>
+        <span class="etat">faite</span>
+        <span class="note">test-vlp.py OK (0 écart), archiver : ARCHIVÉ 2 puis 0, clore archivé 1 ; 3/3 mutants attrapés ; pyright 0 errors</span>
+        <span class="cout mono">≈2,1M (2 139 041) · 20 tours · 1,42 $</span>
       </li>
       <li class="fiche" data-etat="encours">
-        <span class="id">IDX2</span><span class="titre">Écrire archiver, et le faire appeler par clore</span>
-        <span class="etat">en cours</span>
-        <span class="note">archiver déplace les lignes clos, clore l'appelle ; dépend d'IDX1</span>
-      </li>
-      <li class="fiche">
         <span class="id">IDX3</span><span class="titre">Archiver l'index du kit, et pointer la doctrine</span>
-        <span class="etat">à faire</span>
+        <span class="etat">en cours</span>
         <span class="note">l'index du kit archivé, la doctrine pointée ; dépend d'IDX2</span>
       </li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈3,6M (3 583 183) · 28 tours · 2,48 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈5,3M (5 321 747) · 45 tours · 3,52 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈7,7M (7 681 750) · 67 tours · 5,04 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

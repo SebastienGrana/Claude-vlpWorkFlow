@@ -1064,7 +1064,7 @@ with tempfile.TemporaryDirectory() as t:
     verifier("clore : gabarit, blocage visible avant", page_q and "<!-- ZONE:blocage" in lire(page_q) and lire(page_q).count("<section hidden>") == 1, lire(page_q))
     code, s = appel(["clore", t, "--livre", "Livré `a` <b>", "--tokens", "1500", "--abandon", "Q2 abandonnée", "--date", "2026-05-06", "--surpris", "x < y", "--resume", "b `c`."])
     carte_lue, fiches_lues, html = lire(os.path.join(t, "CHANTIER.md")), lire(os.path.join(t, "ctx", "30-q.md")), lire(fdr)
-    verifier("clore : routage, index, bilan, résumé comptés", "· routage 1 · index 1 · bilan 1 · résumé 1 ·" in s and "GARDE" not in s, s)
+    verifier("clore : routage, index, bilan, résumé comptés", "· routage 1 · index 1 · archivé 1 · bilan 1 · résumé 1 ·" in s and "GARDE" not in s, s)
     verifier("clore : résumé, une ligne par clos", "- Clos le 2026-05-06 : a (chantier E).\n- Clos le 2026-05-06 : b `c` (chantier Q).\n\n## Routage" in lire(os.path.join(t, "CLAUDE.md")), lire(os.path.join(t, "CLAUDE.md")))
     cl, gr = ["## Où on en est", "", "- Clos le 2026-01-01 : a (chantier E).", "", "## Règles"], []
     verifier("résumé : ligne ajoutée après la dernière", mod.resume_claude(cl, "Q", "b", "2026-02-02", gr)
@@ -1084,15 +1084,18 @@ with tempfile.TemporaryDirectory() as t:
              and cl4[-1] == "- Clos le 2026-09-24 : deux lignes ici (chantier Q)."
              and bool(mod.ENTREE_CLOS.match(cl4[-1])) and not g4, repr(cl4[-1]))
     verifier("clore : Fait. remplacé", "**Fait.** Q1..Q2 (2026-05-06) : Livré `a` <b> — estimé 2 fiches ≈0,40 $ · cadré 2 · joué 1 fiches ≈? $.\n" in fiches_lues and "**Fait.** Rien." not in fiches_lues, fiches_lues)
-    verifier("clore : index clos", "| `30-q.md` | on relit le socle du chantier Q — **clos** « Un (vrai) titre », `Q1..Q2` |\n" == lire(os.path.join(t, "ctx", "00-INDEX.md")).split("---|\n")[1], lire(os.path.join(t, "ctx", "00-INDEX.md")))
-    verifier("clore : routage ouvert retiré, une ligne vers l'index", "|---|---|\n| relire un chantier clos | `ctx/00-INDEX.md` — sa ligne y nomme le fichier de fiches |\n| relire le chantier E" in lire(os.path.join(t, "CLAUDE.md"))
+    ligne_q = "| `30-q.md` | on relit le socle du chantier Q — **clos** « Un (vrai) titre », `Q1..Q2` |\n"
+    verifier("clore : index clos, passé à l'archive — mutant : clore n'appelle pas archiver",
+             lire(os.path.join(t, "ctx", "00-INDEX.md")).split("---|\n")[1].startswith("| `00-INDEX-archive.md` |") and "**clos**" not in lire(os.path.join(t, "ctx", "00-INDEX.md"))
+             and lire(os.path.join(t, "ctx", "00-INDEX-archive.md")).split("---|\n")[1] == ligne_q, lire(os.path.join(t, "ctx", "00-INDEX.md")))
+    verifier("clore : routage ouvert retiré, une ligne vers l'index", "|---|---|\n| relire un chantier clos | `ctx/00-INDEX-archive.md` — sa ligne y nomme le fichier de fiches |\n| relire le chantier E" in lire(os.path.join(t, "CLAUDE.md"))
              and "chantier Q" not in lire(os.path.join(t, "CLAUDE.md")).split("## Routage")[1], lire(os.path.join(t, "CLAUDE.md")))
     pq = lire(page_q)
     verifier("clore : ZONE:bilan visible, blocage caché", "<section>\n    <h2>Chantier clos le 2026-05-06</h2>\n    <div class=\"bilan\">\n      <p>Livré : Livré `a` &lt;b&gt;</p>\n      <p>Surpris : x &lt; y</p>\n      <p>Estimé : estimé 2 fiches ≈0,40 $ · cadré 2 · joué 1 fiches ≈? $</p>\n    </div>\n  </section>" in pq
              and pq.split("<!-- ZONE:blocage")[1].split("-->\n")[1].startswith("  <section hidden>") and pq.count("<section hidden>") == 1, pq)
     verifier("clore : la page régénérée, fiches du fichier", '<span class="id">Q1</span>' in pq and '<span class="id">Q2</span>' in pq
              and '<span class="id">&lt;R' not in pq and '<p class="mono cout-total">' not in pq, pq)
-    verifier("clore : bilan", code == 0 and "CLOS Q Q1..Q2 (Q2 abandonnée) · chantier 1 500 · cumul 3 812 · routage 1 · index 1 · bilan 1 · résumé 1 · estimé 2 fiches ≈0,40 $ · cadré 2 · joué 1 fiches ≈? $ — " in s and "encours non" in s, s)
+    verifier("clore : bilan", code == 0 and "CLOS Q Q1..Q2 (Q2 abandonnée) · chantier 1 500 · cumul 3 812 · routage 1 · index 1 · archivé 1 · bilan 1 · résumé 1 · estimé 2 fiches ≈0,40 $ · cadré 2 · joué 1 fiches ≈? $ — " in s and "encours non" in s, s)
     verifier("clore : fichier de fiches", "**CLOS** le 2026-05-06. Ne se rejoue pas" in fiches_lues
              and fiches_lues.index("**CLOS**") < fiches_lues.index("**Fait.**") and "Abandonnées : Q2 abandonnée." in fiches_lues, fiches_lues)
     verifier("clore : CHANTIER.md", "**fichier de fiches courant** : aucun" in carte_lue and "**artefact du chantier** : aucun" in carte_lue
@@ -1112,6 +1115,38 @@ with tempfile.TemporaryDirectory() as t:
     code, s = appel(["clore", t, "--livre", "x"])
     verifier("clore : second appel refusé", code == 1 and s.startswith("GARDE: aucun chantier ouvert")
              and lire(os.path.join(t, "CHANTIER.md")) == carte_lue, s)
+
+# archiver : les lignes clos quittent l'index pour l'archive, telles quelles (chantier IDX)
+def test_archiver():
+    with tempfile.TemporaryDirectory() as ta:
+        def lu(c):
+            with open(c, encoding="utf-8", newline="") as fh:
+                return fh.read()
+        def pose(c, x):
+            os.makedirs(os.path.dirname(c), exist_ok=True)
+            with open(c, "w", encoding="utf-8", newline="") as fh:
+                fh.write(x)
+        pose(os.path.join(ta, "CHANTIER.md"), "# C\n\n- **index** : ctx/00-INDEX.md\n")
+        clos_a = "| `41-b.md` | on relit le socle du chantier B — **clos** « Bé  (deux blancs) », `B1..B2` |"
+        clos_b = "| `39-a.md` | on relit le socle du chantier A — **clos** « A », `A1..A3` |"
+        ouvert = "| `42-c.md` | on joue une fiche `C*` — chantier **ouvert** « C », `C1..C2` |"
+        pose(os.path.join(ta, "ctx", "00-INDEX.md"), "# I\n\n| Fichier | Lire quand |\n|---|---|\n| `08-etat.md` | on reprend |\n%s\n%s\n%s\n" % (clos_a, clos_b, ouvert))
+        code, s = appel(["archiver", ta])
+        idx_a, arch_a = lu(os.path.join(ta, "ctx", "00-INDEX.md")), lu(os.path.join(ta, "ctx", "00-INDEX-archive.md"))
+        verifier("archiver : 2 clos déplacés, l'ouvert reste", code == 0 and s.startswith("ARCHIVÉ 2 · index 7 lignes · archive 8 lignes")
+                 and ouvert in idx_a and "**clos**" not in idx_a and idx_a.count("| `00-INDEX-archive.md` |") == 1, s + idx_a)
+        verifier("archiver : lignes identiques à l'octet, triées par numéro — mutant : réécrire la ligne",
+                 arch_a.endswith("|---|---|\n%s\n%s\n" % (clos_b, clos_a)) and arch_a.startswith("# ") and "QUAND LIRE" in arch_a, arch_a)
+        code, s = appel(["archiver", ta])
+        verifier("archiver : relancé, rien ne change — mutant : renvoi posé deux fois",
+                 code == 0 and s.startswith("ARCHIVÉ 0 ·") and lu(os.path.join(ta, "ctx", "00-INDEX.md")) == idx_a
+                 and lu(os.path.join(ta, "ctx", "00-INDEX-archive.md")) == arch_a, s)
+        pose(os.path.join(ta, "CHANTIER.md"), "# C\n")
+        code, s = appel(["archiver", ta])
+        verifier("archiver : pas de champ index, garde", code == 1 and s.startswith("GARDE:"), s)
+
+
+test_archiver()
 
 with tempfile.TemporaryDirectory() as t:
     lire = lambda c: open(c, encoding="utf-8").read()

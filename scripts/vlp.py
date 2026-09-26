@@ -185,9 +185,17 @@ Sous-commandes :
   Y le total mesuré (`≈? $` sans mesure) ; sans `**Estimé.**` : `estimé non noté · …`, pas de
   `GARDE:`. Écrit en fin de `**Fait.**` (` — <estimé>.`), en `<p>Estimé : …</p>` après Surpris
   dans `ZONE:bilan`, et dans `CLOS` avant ` — <projet>`.
+  Après l'index, `archiver` (ci-dessous) ; la ligne « relire un chantier clos »
+  que `clore` pose dans `CLAUDE.md` pointe l'archive.
   `CLOS <lettre> <plage> · chantier <n> · cumul <brut> · routage <0|1> · index
-  <0|1> · bilan <0|1> · <estimé> — <projet>`. Aucun chantier ouvert, ou
+  <0|1> · archivé <n> · bilan <0|1> · <estimé> — <projet>`. Aucun chantier ouvert, ou
   déjà `**CLOS**` : `GARDE:`, sort 1.
+- `archiver <projet>` — chaque ligne de table `**clos**` de l'index quitte l'index pour
+  `00-INDEX-archive.md`, dans son dossier (créée au besoin : titre, « QUAND LIRE », en-tête
+  `| Fichier | Lire quand |`), déplacée telle quelle et triée par numéro de fichier ; l'index
+  gagne une ligne qui renvoie à l'archive, si elle manque. Relancé : rien ne change.
+  `ARCHIVÉ <n> · index <n> lignes · archive <n> lignes` ; pas de champ **index** : `GARDE:`,
+  sort 1 (chantier IDX).
 - `ouvrir <projet> --fiches F --titre T [--artefact URL] [--estime-fiches N]` — les écritures
   mécaniques de l'ouverture : dans `CHANTIER.md`, courant = `F (L1..Ln)` et
   artefact = l'URL (sinon `aucun`, ou l'ancienne si F est déjà courant) ; une
@@ -413,6 +421,67 @@ def lignes_index(projet, index):
     lecteur de l'index voit aussi les chantiers clos qu'on y a déplacés."""
     archive = os.path.join(projet, chemin_archive(index))
     return lignes_du_projet(projet, index, "index") + (lignes_de(archive) if os.path.isfile(archive) else [])
+
+
+ARCHIVE_TETE = ["# Archive de l'index — les chantiers clos", "",
+                "QUAND LIRE : on relit un chantier clos ; l'index n'en garde qu'une ligne qui renvoie ici.", "",
+                "| Fichier | Lire quand |", "|---|---|"]
+NUMERO_LIGNE = re.compile(r"^\|\s*`(\d\d)")
+
+
+def numero_ligne(ligne):
+    """Le numéro de fichier d'une ligne de table (2 premiers chiffres) ; sans numéro : après tout."""
+    m = NUMERO_LIGNE.match(ligne)
+    return int(m.group(1)) if m else 100
+
+
+def archiver(idx, arch, nom_archive):
+    """Déplace chaque ligne de table `**clos**` de l'index `idx` vers l'archive `arch` (None :
+    créée avec `ARCHIVE_TETE`), triée par numéro ; pose dans l'index une ligne qui renvoie à
+    `nom_archive`, si elle manque. Une ligne se déplace telle quelle, jamais réécrite ; relancée,
+    rien ne change. Rend (index, archive ou None, lignes déplacées) (chantier IDX)."""
+    clos = [k for k, l in enumerate(idx) if l.startswith("|") and "**clos**" in l]
+    renvoi = "| `%s` |" % nom_archive
+    a_renvoi = any(l.startswith(renvoi) for l in idx)
+    if not clos and (a_renvoi or arch is None):
+        return idx, arch, 0
+    arch = list(ARCHIVE_TETE) if arch is None else list(arch)
+    sep = next((k for k, l in enumerate(arch) if l.startswith("|---")), None)
+    if sep is None:
+        arch += [""] + ARCHIVE_TETE[-2:]
+        sep = len(arch) - 1
+    fin = sep + 1
+    while fin < len(arch) and arch[fin].startswith("|"):
+        fin += 1
+    rangees = arch[sep + 1:fin]
+    rangees += [idx[k] for k in clos if idx[k] not in rangees]
+    arch[sep + 1:fin] = sorted(rangees, key=numero_ligne)
+    nouvel = [l for k, l in enumerate(idx) if k not in clos]
+    if not a_renvoi:
+        rang = clos[0] if clos else max((k + 1 for k, l in enumerate(nouvel) if LIGNE_FICHIER.match(l)), default=len(nouvel))
+        nouvel.insert(rang, renvoi + " on relit un chantier clos — chacun y a sa ligne, triée par numéro |")
+    return nouvel, arch, len(clos)
+
+
+def cmd_archiver(a, sortie):
+    projet = a.projet
+    if not equipe(projet):
+        sortie.write("GARDE: pas de CHANTIER.md dans %s\n" % projet)
+        return 1
+    index = champ(lignes_de(os.path.join(projet, "CHANTIER.md")), "index")
+    if not index:
+        sortie.write("GARDE: champ **index** absent de CHANTIER.md\n")
+        return 1
+    idx = lignes_du_projet(projet, index, "index")
+    chemin_arch = os.path.join(projet, chemin_archive(index))
+    arch = lignes_de(chemin_arch) if os.path.isfile(chemin_arch) else None
+    nidx, narch, n = archiver(idx, arch, os.path.basename(chemin_arch))
+    for chemin, avant, apres in ((os.path.join(projet, index), idx, nidx), (chemin_arch, arch, narch)):
+        if apres is not None and apres != avant:
+            with open(chemin, "w", encoding="utf-8", newline="") as fh:
+                fh.write("\n".join(apres) + "\n")
+    sortie.write("ARCHIVÉ %d · index %d lignes · archive %d lignes\n" % (n, len(nidx), len(narch or [])))
+    return 0
 
 
 # --- carte -------------------------------------------------------------------
@@ -3166,7 +3235,7 @@ def cmd_clore(a, sortie):
             fin_para += 1
         fiches_[i:fin_para + 1] = entete + [ligne_fait]
     k_fait = i + len(entete)
-    gardes, ecritures, faits = [], [], {"routage": 0, "index": 0, "bilan": 0}
+    gardes, ecritures, faits = [], [], {"routage": 0, "index": 0, "archivé": 0, "bilan": 0}
     nom = os.path.basename(courant)
     total_mesure = None     # le total que `regenerer` écrit sur la page, en 1 ter (chantier UNI)
 
@@ -3177,6 +3246,7 @@ def cmd_clore(a, sortie):
         gardes.append("index introuvable : %s" % index)
     else:
         idx = lignes_de(chemin_index)
+        avant = list(idx)
         k = next((k for k, l in enumerate(idx) if l.startswith("| `%s` |" % nom) and "**ouvert**" in l), None)
         if k is None:
             gardes.append("ligne ouverte de %s absente de l'index" % nom)
@@ -3184,8 +3254,15 @@ def cmd_clore(a, sortie):
             m = re.search(r"« (.*) »", idx[k])
             idx[k] = "| `%s` | on relit le socle du chantier %s — **clos** « %s », `%s..%s` |" % (
                 nom, lettre, m.group(1) if m else titre, ids[0], ids[-1])
-            ecritures.append((chemin_index, "\n".join(idx) + "\n"))
             faits["index"] = 1
+        # les lignes clos quittent l'index pour l'archive (chantier IDX)
+        chemin_arch = os.path.join(projet, chemin_archive(index))
+        arch = lignes_de(chemin_arch) if os.path.isfile(chemin_arch) else None
+        idx, narch, faits["archivé"] = archiver(idx, arch, os.path.basename(chemin_arch))
+        if idx != avant:
+            ecritures.append((chemin_index, "\n".join(idx) + "\n"))
+        if narch is not None and narch != arch:
+            ecritures.append((chemin_arch, "\n".join(narch) + "\n"))
     chemin_claude = os.path.join(projet, "CLAUDE.md")
     if not os.path.isfile(chemin_claude):
         gardes.append("CLAUDE.md introuvable")
@@ -3198,7 +3275,7 @@ def cmd_clore(a, sortie):
         else:
             del cl[k]
             if not any(l.startswith(ROUTAGE_CLOS) for l in cl):
-                cl.insert(k, "%s `%s` — sa ligne y nomme le fichier de fiches |" % (ROUTAGE_CLOS, index or "00-INDEX.md"))
+                cl.insert(k, "%s `%s` — sa ligne y nomme le fichier de fiches |" % (ROUTAGE_CLOS, chemin_archive(index or "00-INDEX.md")))
             faits["routage"] = 1
         if a.resume:
             if resume_claude(cl, lettre, a.resume, date, gardes):
@@ -3314,8 +3391,9 @@ def cmd_clore(a, sortie):
         sortie.write("ÉCART tokens %s donné · %s mesuré — le mesuré fait foi\n"
                      % (milliers(a.tokens), milliers(total_chantier)))
     champ_chantier = "non mesuré" if total_chantier is None else milliers(total_chantier)
-    sortie.write("CLOS %s %s · chantier %s · cumul %s · routage %d · index %d · bilan %d%s · %s — %s\n" % (
-        lettre, fait, champ_chantier, "non mesuré" if total is None else milliers(total), faits["routage"], faits["index"], faits["bilan"],
+    sortie.write("CLOS %s %s · chantier %s · cumul %s · routage %d · index %d · archivé %d · bilan %d%s · %s — %s\n" % (
+        lettre, fait, champ_chantier, "non mesuré" if total is None else milliers(total), faits["routage"], faits["index"],
+        faits["archivé"], faits["bilan"],
         " · résumé %d" % faits.get("résumé", 0) if a.resume else "", texte_estime, projet))
     return 0
 
@@ -3743,6 +3821,7 @@ def main(argv, sortie=None, entree=None, erreur=None):
     cl.add_argument("--surpris")
     cl.add_argument("--resume")
     cl.add_argument("--date")
+    sous.add_parser("archiver").add_argument("projet")
     ou = sous.add_parser("ouvrir")
     ou.add_argument("projet")
     ou.add_argument("--fiches", required=True)
@@ -3801,6 +3880,8 @@ def repartir(a, sortie, entree, erreur):
         return cmd_ouvrir(a, sortie)
     if a.cmd == "clore":
         return cmd_clore(a, sortie)
+    if a.cmd == "archiver":
+        return cmd_archiver(a, sortie)
     if a.cmd == "feuille":
         return cmd_feuille(a, sortie)
     if a.cmd == "renvois":
