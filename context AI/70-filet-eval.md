@@ -55,6 +55,11 @@ absent, doit échouer) — un grader qui passe toujours ne prouve rien.
 <!-- FICHE:EVF1 -->
 ## EVF1 [ ] — L'eval voit-il le sous-agent ?
 
+**Tentatives** (2026-09-26) — non résolu.
+1. `evals/filet-vue/` (chef limité à `Skill`) : scaffold corrigé (`python` au lieu de `py`), mais `vlp:jouer` échoue avant de forker — sa carte est un `!` Bash, refusé (`allowed_tools` du cas ne couvre pas Bash).
+2. Ajout de `--allow-tools "Bash(python3:*)" "Bash(py:*)" "Bash(echo:*)"` : refusé net, sandbox Windows indisponible.
+Erreur : `exit 1: sandbox required but unavailable … Windows sandbox is not active on this session (feature gate off)`. Tout grant Bash sous eval exige WSL2 (doc), et `vlp:jouer` shell systématiquement — donc `EVF2` aussi, pas seulement `EVF3`.
+
 **Dépend de** : rien.
 **Fichiers** : `claude plugin eval --help` ; la doc https://code.claude.com/docs/en/plugin-evals
 (mot pour mot, la partie graders et `target`) ; `evals/hook/case.yaml`,

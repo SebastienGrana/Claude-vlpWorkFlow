@@ -68,18 +68,18 @@
     <p>Une commande rejoue les deux essais de FIL3 en eval du plugin ; un changement du filet se reprouve en un appel, ≈ 0,16 $ le passage.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="encours"></span><span></span><span></span>
+      <span data-etat="bloquee"></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">3 fiches · 0 faite · en cours : EVF1</p>
+    <p class="mono" style="margin-top:.5rem">3 fiches · 0 faite · bloquée : EVF1</p>
   </header>
 
   <section>
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="encours">
+      <li class="fiche" data-etat="bloquee">
         <span class="id">EVF1</span><span class="titre">L'eval voit-il le sous-agent ?</span>
-        <span class="etat">en cours</span>
+        <span class="etat">bloquée</span>
         <span class="note">Tranche si un eval voit le sous-agent ; verdict oui/non au journal, témoin négatif compris. Sans dépendance.</span>
       </li>
       <li class="fiche">
@@ -97,11 +97,11 @@
   </section>
 
   <!-- ZONE:blocage — publiée quand /tache s'arrête après deux tentatives ; retirée dès que la fiche repasse -->
-  <section hidden>
+  <section>
     <h2>Arrêt sur blocage</h2>
     <div class="blocage">
-      <p></p>
-      <pre></pre>
+      <p>EVF1 : le fork <span class="mono">vlp:jouer</span> shelle systématiquement pour sa carte (un <span class="mono">!</span> Bash) avant même de forker <span class="mono">vlp:fiche</span> — donc tout cas d'eval qui l'appelle exige un grant Bash, et ce grant exige un backend de sandbox absent nativement sous Windows. Ça touche EVF2 aussi, pas seulement EVF3 (déjà taggée <span class="mono">wsl2</span>).</p>
+      <pre>exit 1: sandbox required but unavailable — sandbox is enabled but the Windows sandbox is not active on this session (feature gate off). sandbox.failIfUnavailable is set - refusing to start without a working sandbox.</pre>
     </div>
   </section>
 

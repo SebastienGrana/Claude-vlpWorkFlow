@@ -1,0 +1,38 @@
+schema_version: "1.1"
+name: filet-vue
+runs: 1
+tags: [filet-vue]
+
+execution:
+  max_turns: 80
+  timeout_seconds: 300
+  # Skill pour le chef ; Read pour que le sous-agent vlp:fiche (forké par
+  # vlp:jouer) puisse réellement lire les n*.txt. Bash(python3:*)/Bash(py:*)/
+  # Bash(echo:*) — nécessaires à la carte que vlp:jouer lance en préambule —
+  # ne sont PAS dans ce set en lecture seule : ils se donnent par --allow-tools
+  # à l'invocation (opérateur), pas ici (EVF1, 1er essai : refusés sans ça).
+  allowed_tools: [Skill, Read]
+
+context:
+  scaffold_script: fixture.sh
+
+graders:
+  # Le chef n'a que Skill : si un appel Read apparaît dans la trace, il vient
+  # forcément du sous-agent vlp:jouer/vlp:fiche — c'est la preuve qu'on cherche.
+  - name: read-appears-in-trace
+    type: tool_used
+    tool: Read
+
+  - name: subagent-content-in-trace
+    type: regex
+    target: trace
+    pattern: "fichier 05"
+    match: contains
+
+  # Témoin négatif : n13.txt n'existe pas (le bac n'a que n01..n12). Ce grader
+  # doit ÉCHOUER — sinon les deux graders ci-dessus ne prouvent rien.
+  - name: negative-witness-fichier-13
+    type: regex
+    target: trace
+    pattern: "fichier 13"
+    match: contains
