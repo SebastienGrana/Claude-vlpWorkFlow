@@ -138,8 +138,9 @@ test tombe. `pyright scripts/` : 0 erreur.
 ---
 
 <!-- FICHE:VOI4 -->
-## VOI4 [ ] — Mesurer ce que chaque voisin perd, et faire trancher
+## VOI4 [x] — Mesurer ce que chaque voisin perd, et faire trancher
 
+**Session** : 75214987-1d49-4d93-8532-3920557c9c7b
 **Dépend de** : `VOI2`.
 **Fichiers** : les trois `context AI/artefacts/feuille-de-route.html` des voisins (lus, jamais écrits), `../TrackGen/context AI/08-etat.md` et `../MapDecorator/context AI/08-etat.md` (lus), `context AI/08-etat.md` du kit (journal) — et rien d'autre.
 
