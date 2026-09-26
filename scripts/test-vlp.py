@@ -3053,6 +3053,24 @@ with tempfile.TemporaryDirectory() as tc:
     code, s = appel(["comparer", anc, os.path.join(tc, "absente.html")])
     verifier("VOI2 : fichier absent — GARDE, code 1", code == 1 and s.startswith("GARDE:"), s)
 
+# --- Dette IDX : une page enveloppée dans un `div` se compare ligne à ligne ---
+
+def tester_page_enveloppee():
+    """Dans une fonction : au niveau du module, pyright jugeait le fichier trop complexe."""
+    with tempfile.TemporaryDirectory() as tenv:
+        a = os.path.join(tenv, "ancienne.html")
+        n = os.path.join(tenv, "neuve.html")
+        for chemin, page in ((a, ANCIENNE_CMP), (n, NEUVE_CMP)):
+            ecrire(chemin, page.replace("<body>", "<body><div class=\"page\"><h2>Titre</h2>")
+                   .replace("</body>", "</div></body>"))
+        c, sortie = appel(["comparer", a, n])
+        verifier("Dette IDX : page dans un div — mutant : seul le bloc extérieur compte",
+                 c == 0 and "PERDU: TODO : un truc\n" in sortie and "AJOUTÉ: 2026-09-26\n" in sortie
+                 and sortie.rstrip().endswith("COMPARER 1 perdus · 1 ajoutés"), sortie)
+
+
+tester_page_enveloppee()
+
 # --- VOI3 : `lettres_prises` tolère une lettre entre backticks (MapDecorator) -
 
 LIGNE_MAPDECORATOR = "Lettres de fiche déjà prises : `T`, `U`, `R`, `M`. Un nouveau chantier en choisit"

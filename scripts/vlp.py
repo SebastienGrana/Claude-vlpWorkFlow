@@ -2881,8 +2881,9 @@ BLOC = {"tr", "p", "div", "li", "h1", "h2", "h3", "h4", "h5", "h6", "section"}
 
 class Extracteur(html.parser.HTMLParser):
     """Le texte visible d'une page, par ligne de tableau (`tr`) ou par bloc
-    (`p`, `div`, `li`, un titre, `section`) — la première rencontrée en
-    descendant, imbriquée ou non. `convert_charrefs` décode les entités."""
+    (`p`, `div`, `li`, un titre, `section`) — coupé à chaque frontière de
+    bloc, imbriqué ou non : une page enveloppée dans un `div` ne fait pas un
+    seul bloc. `convert_charrefs` décode les entités."""
 
     def __init__(self):
         super().__init__(convert_charrefs=True)
@@ -2891,10 +2892,17 @@ class Extracteur(html.parser.HTMLParser):
         self.tampon = []
         self.blocs = []
 
+    def couper(self):
+        texte = " ".join("".join(self.tampon).split())
+        if texte:
+            self.blocs.append(texte)
+        self.tampon = []
+
     def handle_starttag(self, tag, attrs):
         if tag in ("script", "style"):
             self.hors_texte += 1
         elif not self.hors_texte and tag in BLOC:
+            self.couper()
             self.pile.append(tag)
 
     def handle_endtag(self, tag):
@@ -2904,11 +2912,7 @@ class Extracteur(html.parser.HTMLParser):
             while self.pile[-1] != tag:
                 self.pile.pop()
             self.pile.pop()
-            if not self.pile:
-                texte = " ".join("".join(self.tampon).split())
-                if texte:
-                    self.blocs.append(texte)
-                self.tampon = []
+            self.couper()
 
     def handle_data(self, data):
         if not self.hors_texte and self.pile:
