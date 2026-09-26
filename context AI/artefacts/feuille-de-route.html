@@ -73,14 +73,14 @@
     <!-- ZONE:encours — remplacé à chaque ouverture, remis à « aucun » à chaque clôture.
          /tache n'y touche pas : l'avancement fiche par fiche est sur la page du chantier. -->
     <div class="encours">
-      <div class="titre">Finir les feuilles voisines, reste de REP <span class="badge" data-etat="cours">en cours</span></div>
-      <div>Fiches <span class="mono">VOI1–VOI6</span> — <a href="https://claude.ai/artifact/VRWQkwQen7EJRRdGZx8Xem">la page du chantier</a></div>
+      <div class="titre">Aucun chantier ouvert</div>
+      <div>Lancer <span class="mono">/vlp:chantier</span> pour en ouvrir un.</div>
     </div>
   </section>
 
   <section>
     <h2>Les chantiers possibles, dans l'ordre</h2>
-    <p class="mono resume-todo" style="margin:0;color:var(--doux);font-size:.9rem">14 chantiers possibles</p>
+    <p class="mono resume-todo" style="margin:0;color:var(--doux);font-size:.9rem">13 chantiers possibles</p>
     <!-- ZONE:todo — miroir de la TODO ordonnée du fichier d'état ; le fichier reste la vérité -->
     <div class="tableau">
       <table>
@@ -88,7 +88,6 @@
           <tr><th>#</th><th>Chantier</th><th>Ce qu'il apporte</th><th>Coût</th><th>Dépend de</th></tr>
         </thead>
         <tbody>
-          <tr><td class="mono">25</td><td><span class="mono">VOI</span> — Finir les feuilles voisines, reste de <span class="mono">REP</span> <span class="badge" data-etat="cours">en cours</span></td><td>Ce que <span class="mono">REP</span> a laissé. La ligne <span class="mono">MARKDOWN</span> de <span class="mono">vlp.py niveau</span> compte, sans <span class="mono">--ecrire</span>, la page régénérée au lieu de celle du disque : elle ne voit ni la TODO ni la zone « en cours ». La régénération abîme trois feuilles voisines : TODO de MapDecorator hors table, donc lue vide ; lettres de fiche entre backticks ignorées ; source de TrackGen sans accents. Une fois corrigées, republier MapDecorator, TrackGen et ProjetONZSM. Détail : journal du 2026-09-23.</td><td class="mono">~3 fiches</td><td class="mono">—</td></tr>
           <tr><td class="mono">26</td><td><span class="mono">ABR</span> — Mettre notes et journal à l'abri dans un <span class="mono">.md</span></td><td>Les notes et le journal d'une page de chantier n'existent aujourd'hui que dans la page. <span class="mono">page --note</span> et <span class="mono">--journal</span> écriront d'abord le texte entier dans un <span class="mono">.md</span>, et la page le recopiera.</td><td class="mono">~3 fiches</td><td class="mono">—</td></tr>
           <tr><td class="mono">27</td><td><span class="mono">ALE</span> — Essai : alléger la republication</td><td>Deux pistes, mesurées : le CSS en fichier joint, puis les données dans la base de claude.ai. Décide où vivent le CSS et les données avant <span class="mono">PLI</span> et <span class="mono">FEU</span>.</td><td class="mono">2 fiches</td><td class="mono"><span class="mono">ABR</span></td></tr>
           <tr><td class="mono">28</td><td><span class="mono">PLI</span> — La page de chantier plus courte et lisible</td><td>Chaque fiche dans un bloc repliable, le journal replié sauf ses dernières entrées, le bilan en haut d'un chantier clos. Rien n'est coupé : replié, le texte reste dans la page.</td><td class="mono">~5 fiches</td><td class="mono"><span class="mono">ABR</span>, <span class="mono">ALE</span></td></tr>
@@ -101,7 +100,7 @@
           <tr><td class="mono">61</td><td><span class="mono">CHK</span> — <span class="mono">/vlp:check</span> lit le contrat</td><td><span class="mono">vlp.py contrat</span> (chantier <span class="mono">CON</span>) ne tourne qu'à la main. <span class="mono">/vlp:check</span> le lancera <span class="mono">--depuis</span> l'ouverture du chantier courant et dira, sans rien rejouer, combien de sous-agents, combien ont écrit dans Git, combien sans statut en tête — le bulletin du gardien. 🟡 L'heure d'ouverture : commit <span class="mono">Chantier … ouvert</span>, ou session du cadrage notée par <span class="mono">ouvrir</span>.</td><td class="mono">~0,5 fiche</td><td class="mono">—</td></tr>
           <tr><td class="mono">63</td><td><span class="mono">ECH</span> — <span class="mono">ECRIT_GIT</span> ne lit pas le texte d'un heredoc</td><td>Le gardien a refusé à deux relecteurs de <span class="mono">RLG1</span> (2026-09-25) un heredoc ou un <span class="mono">echo</span> qui ne faisait qu'écrire les mots <span class="mono">git commit</span> ou <span class="mono">git add</span> dans un fichier de sonde. <span class="mono">ECRIT_GIT</span> cherche le motif dans toute la commande. Vrai aussi pour <span class="mono">vlp:fiche</span>, depuis <span class="mono">CON</span>. 🟡 Jusqu'où lire le shell : couper les chaînes citées ne suffit pas pour un heredoc.</td><td class="mono">~0,5 fiche</td><td class="mono">—</td></tr>
           <tr><td class="mono">66</td><td><span class="mono">OUV</span> — Une ligne qui s'ouvre par un mot de jauge, sans être une jauge</td><td>Reste de <span class="mono">JUG</span> : le gardien (règle <span class="mono">tete</span>) renvoie une ligne qui <strong>commence</strong> par « Imprévu », « Pas bon »… même quand ce n'est pas la jauge — une puce <span class="mono">- Imprévu : j'ai dû…</span>, un <span class="mono">REFUSÉE</span> dont une ligne s'ouvre par « Pas bon ». Absent des 29 sous-agents mesurés en <span class="mono">JUG1</span> ; <span class="mono">stop_hook_active</span> borne le coût à un renvoi. 🟡 Exiger l'émoji de la jauge devant le mot, ou le mot suivi de <span class="mono">—</span>/<span class="mono">…</span>/fin de ligne : à mesurer sur le corpus comme en <span class="mono">JUG1</span> (<span class="mono">forme --regle</span>).</td><td class="mono">~0,5 fiche</td><td class="mono">—</td></tr>
-          <tr><td class="mono">72</td><td><span class="mono">NUI</span> — <span class="mono">/vlp:chantier nuit</span> : les questions le soir, les chantiers la nuit</td><td>Demandé par l'utilisateur le 2026-09-26. Une séance de nuit enchaîne plusieurs chantiers sans humain ; le kit n'en fait aujourd'hui qu'un à la fois. Le soir, <span class="mono">/vlp:chantier nuit</span> trie la TODO — un script d'abord (🟡, dépendance non close), puis le modèle relit ce qui reste (décision cachée sans 🟡, comme <span class="mono">ENR</span>) — et rassemble toutes les questions de cadrage dans une page à cartes, vulgarisées, avec un bouton « copier » : l'utilisateur y répond d'un coup. Un 🟡 n'écarte plus un chantier s'il se tranche le soir ; restent écartés ce qui se juge à l'œil (<span class="mono">(visuel)</span>) et ce qui demande sa main (push). La borne de la nuit — budget en $ ou nombre de chantiers — se choisit au lancement. La nuit, les restes d'une clôture n'entrent pas dans la TODO : ils attendent les deux oui du matin. Tranché avec lui le 2026-09-26 : le nom, le tri en deux temps, la page, la borne au lancement. Estimé en séance, sans mesure — les estimations sous-estiment (<span class="mono">EST</span> 1 → 3, <span class="mono">CPT</span> 2 → 4). Ajoutée à la demande de l'utilisateur ; rang pas encore fixé, d'où la fin de table.</td><td class="mono">~6 fiches, plus une nuit d'essai</td><td class="mono">—</td></tr>
+          <tr><td class="mono">72</td><td><span class="mono">NUI</span> — <span class="mono">/vlp:chantier nuit</span> : les questions le soir, les chantiers la nuit</td><td>Demandé par l'utilisateur le 2026-09-26. Une séance de nuit enchaîne plusieurs chantiers sans humain ; le kit n'en fait aujourd'hui qu'un à la fois. Le soir, <span class="mono">/vlp:chantier nuit</span> trie la TODO — un script d'abord (🟡, dépendance non close), puis le modèle relit ce qui reste (décision cachée sans 🟡, comme <span class="mono">ENR</span>) — et rassemble toutes les questions de cadrage dans une page à cartes, vulgarisées, avec un bouton « copier » : l'utilisateur y répond d'un coup. Un 🟡 n'écarte plus un chantier s'il se tranche le soir ; restent écartés ce qui se juge à l'œil (<span class="mono">(visuel)</span>) et ce qui demande sa main (push). La borne de la nuit — budget en $ ou nombre de chantiers — se choisit au lancement. La nuit, les restes d'une clôture n'entrent pas dans la TODO : ils attendent les deux oui du matin. Tranché avec lui le 2026-09-26 : le nom, le tri en deux temps, la page, la borne au lancement. Estimé en séance, sans mesure — les estimations sous-estiment (<span class="mono">EST</span> 1 → 3, <span class="mono">CPT</span> 2 → 4). Ajoutée à la demande de l'utilisateur ; rang pas encore fixé, d'où la fin de table. Ajouté le 2026-09-26 : <span class="mono">/vlp:chantier nuit clear</span> — une session neuve pour chaque fiche <strong>et</strong> chaque clôture, comme <span class="mono">/clear</span> entre deux ; la brique existe pour les fiches (<span class="mono">scripts/boucle.py</span>, option <span class="mono">clear</span> de <span class="mono">/vlp:enchainer</span>, un essai réel sur le bac : fiche cochée), reste à l'étendre à « ouvrir → jouer → clore → chantier suivant ». Tranché avec lui le 2026-09-26 : la nuit, le découpage en fiches se fait seul, au plus logique et au plus sûr pour la qualité ; un chantier dont le découpage ne se tranche pas sans risque se découpe le soir, et l'utilisateur le valide.</td><td class="mono">~6 fiches, plus une nuit d'essai</td><td class="mono">—</td></tr>
         </tbody>
       </table>
     </div>
@@ -111,13 +110,19 @@
     <h2>Chantiers clos — ils ne se rejouent pas</h2>
     <!-- ZONE:clos — une ligne ajoutée à chaque clôture, la plus récente en haut -->
     <details class="clos">
-      <summary><span class="resume-clos">62 chantiers clos · ≈911,6M (911 568 250) tokens · ≈763 $</span></summary>
+      <summary><span class="resume-clos">63 chantiers clos · ≈938,3M (938 309 773) tokens · ≈785 $</span></summary>
     <div class="tableau">
       <table>
         <thead>
           <tr><th>Chantier</th><th>Fiches</th><th>Clos le</th><th>Tokens</th><th>Ce qu'il a livré</th></tr>
         </thead>
         <tbody>
+          <tr>
+            <td><a href="https://claude.ai/artifact/VRWQkwQen7EJRRdGZx8Xem">Finir les feuilles voisines, reste de REP</a> <span class="badge" data-etat="clos">clos</span></td>
+            <td class="mono">VOI1–VOI6</td><td class="mono">2026-09-26</td>
+            <td class="mono">≈26,7M (26 741 523)</td>
+            <td>vlp.py niveau compte la page du disque, comparer confronte deux pages, lettres entre backticks lues ; les trois voisins à NIVEAU 0 écarts, pages régénérées mais non republiées (projets en pause)</td>
+          </tr>
           <tr>
             <td><a href="https://claude.ai/artifact/4UNShx5pLGhqsSFxZ7H5u3">Le filet n'avertit qu'une fois par tour</a> <span class="badge" data-etat="clos">clos</span></td>
             <td class="mono">TOU1–TOU3</td><td class="mono">2026-09-26</td>
@@ -520,7 +525,7 @@
           </tr>
         </tbody>
         <tfoot>
-          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈911,6M (911 568 250)</strong></td><td class="mono">≈763 $</td></tr>
+          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈938,3M (938 309 773)</strong></td><td class="mono">≈785 $</td></tr>
         </tfoot>
       </table>
     </div>

@@ -10,7 +10,9 @@ répare la régénération, puis republie les trois pages (TODO n° 25, journal 
 
 **Estimé.** 3 fiches · ≈12 $ — ≈4,00 $/fiche sur 61 clos (le 2026-09-26).
 
-**Fait.** Rien. Ouvert le 2026-09-26, cadré en 6 fiches, `VOI1` à jouer.
+**CLOS** le 2026-09-26. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** VOI1..VOI6 (2026-09-26) : vlp.py niveau compte la page du disque, comparer confronte deux pages, lettres entre backticks lues ; les trois voisins à NIVEAU 0 écarts, pages régénérées mais non republiées (projets en pause) — estimé 3 fiches ≈12 $ · cadré 6 · joué 6 fiches ≈22 $.
 
 **Session** : 382d47f9-b6fa-494b-8bb1-40222f22a6d9
 
