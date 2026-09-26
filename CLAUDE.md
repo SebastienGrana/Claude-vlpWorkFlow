@@ -13,11 +13,11 @@ https://github.com/SebastienGrana/Claude-vlpWorkFlow — cloné et utilisé en g
 - Équipés : Cairn-VlpLib, MapDecorator, ProjetONZSM, TrackGen — et ce kit lui-même.
 - Chaque chantier clos a sa ligne dans `context AI/00-INDEX.md`, son détail daté dans
   `context AI/08-etat.md` ; ici, les derniers seulement (`vlp.py clore` les tient).
-- Clos le 2026-09-26 : ouvrir note l'estimé, clore l'écrit à côté du réel (chantier EST).
 - Clos le 2026-09-26 : vlp.py bac pose le bac d'essai ; vlp.py transcription retrouve les chiffres de FIL3 (chantier BAC).
 - Clos le 2026-09-26 : le filet se rejoue en eval sous WSL2 : bash evals/filet/rejouer.sh (chantier EVF).
 - Clos le 2026-09-26 : un Read raté réveille le filet, prouvé en eval (chantier RAT).
 - Clos le 2026-09-26 : VLP_SANS_TAMPON rejoue un hook sans le tampon (chantier SON).
+- Clos le 2026-09-26 : le filet n'avertit qu'une fois par tour, 13 → 3 à plafond 5 (chantier TOU).
 
 ## Quatre règles non négociables
 
@@ -57,7 +57,6 @@ et seulement dans ce cas, ouvrir l'index.
 | savoir où vit quoi dans un projet équipé | `methode-chantier.md`, section « Où vit quoi » |
 | toucher aux pages publiées | `ARTEFACTS.md`, puis le gabarit dans `templates/` |
 | ouvrir un chantier, ou le découper en fiches | **lancer `/vlp:chantier`** |
-| jouer une fiche du chantier TOU (le filet n'avertit qu'une fois par tour) | `context AI/73-un-par-tour.md` — chantier **ouvert**, par `/vlp:tache TOU<n>` |
 | relire un chantier clos | `context AI/00-INDEX.md` — sa ligne y nomme le fichier de fiches |
 | reprendre après une longue interruption | `context AI/08-etat.md` |
 | choisir le prochain chantier du kit, ou retrouver la preuve d'un bug relevé le 2026-09-17 | `context AI/12-audit.md` |
