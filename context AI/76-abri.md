@@ -10,7 +10,9 @@ Ils vivront d'abord dans un `.md` à côté de la page, et la page le recopiera.
 
 **Estimé.** 3 fiches · ≈12 $ — ≈3,97 $/fiche sur 63 clos (le 2026-09-26).
 
-**Fait.** Rien. Ouvert le 2026-09-26, cadré en 5 fiches, `ABR1` à jouer.
+**CLOS** le 2026-09-26. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** ABR1..ABR5 (2026-09-26) : Resultat, notes, journal et bilan vivent d'abord dans un .md a cote de la page ; page et clore l'ecrivent d'abord puis la page le recopie ; vlp.py abri l'amorce ; 23 pages Cairn mises a l'abri — estimé 3 fiches ≈12 $ · cadré 5 · joué 5 fiches ≈24 $.
 
 **Session** : 7c039d58-69d1-4e4f-838e-de0e34a55f40
 

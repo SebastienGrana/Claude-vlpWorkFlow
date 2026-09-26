@@ -9,3 +9,6 @@ Résultat, notes, journal et bilan d'un chantier vivent dans un .md à côté de
 - ABR5 : 23 pages Cairn (hors feuille-de-route), 23 .md crees (abri), git status Cairn : 0 .html modifie, seuls les .md nouveaux ; commit 1eb321a dans Cairn, sans pousser
 ## Journal
 ## Bilan
+- Livré : Resultat, notes, journal et bilan vivent d'abord dans un .md a cote de la page ; page et clore l'ecrivent d'abord puis la page le recopie ; vlp.py abri l'amorce ; 23 pages Cairn mises a l'abri
+- Surpris : gitignore de Cairn exclut tout context AI/ : les .md ont demande un git add -f, decide avec l'utilisateur
+- Estimé : estimé 3 fiches ≈12 $ · cadré 5 · joué 5 fiches ≈24 $

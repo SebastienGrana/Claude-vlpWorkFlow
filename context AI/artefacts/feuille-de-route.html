@@ -73,14 +73,14 @@
     <!-- ZONE:encours — remplacé à chaque ouverture, remis à « aucun » à chaque clôture.
          /tache n'y touche pas : l'avancement fiche par fiche est sur la page du chantier. -->
     <div class="encours">
-      <div class="titre">Mettre notes et journal à l'abri dans un <span class="mono">.md</span> <span class="badge" data-etat="cours">en cours</span></div>
-      <div>Fiches <span class="mono">ABR1–ABR5</span> — <a href="https://claude.ai/artifact/S4tQPZzjMMCL2iQAq5TPTV">la page du chantier</a></div>
+      <div class="titre">Aucun chantier ouvert</div>
+      <div>Lancer <span class="mono">/vlp:chantier</span> pour en ouvrir un.</div>
     </div>
   </section>
 
   <section>
     <h2>Les chantiers possibles, dans l'ordre</h2>
-    <p class="mono resume-todo" style="margin:0;color:var(--doux);font-size:.9rem">13 chantiers possibles</p>
+    <p class="mono resume-todo" style="margin:0;color:var(--doux);font-size:.9rem">12 chantiers possibles</p>
     <!-- ZONE:todo — miroir de la TODO ordonnée du fichier d'état ; le fichier reste la vérité -->
     <div class="tableau">
       <table>
@@ -88,7 +88,6 @@
           <tr><th>#</th><th>Chantier</th><th>Ce qu'il apporte</th><th>Coût</th><th>Dépend de</th></tr>
         </thead>
         <tbody>
-          <tr><td class="mono">26</td><td><span class="mono">ABR</span> — Mettre notes et journal à l'abri dans un <span class="mono">.md</span> <span class="badge" data-etat="cours">en cours</span></td><td>Les notes et le journal d'une page de chantier n'existent aujourd'hui que dans la page. <span class="mono">page --note</span> et <span class="mono">--journal</span> écriront d'abord le texte entier dans un <span class="mono">.md</span>, et la page le recopiera.</td><td class="mono">~3 fiches</td><td class="mono">—</td></tr>
           <tr><td class="mono">27</td><td><span class="mono">ALE</span> — Essai : alléger la republication</td><td>Deux pistes, mesurées : le CSS en fichier joint, puis les données dans la base de claude.ai. Décide où vivent le CSS et les données avant <span class="mono">PLI</span> et <span class="mono">FEU</span>.</td><td class="mono">2 fiches</td><td class="mono"><span class="mono">ABR</span></td></tr>
           <tr><td class="mono">28</td><td><span class="mono">PLI</span> — La page de chantier plus courte et lisible</td><td>Chaque fiche dans un bloc repliable, le journal replié sauf ses dernières entrées, le bilan en haut d'un chantier clos. Rien n'est coupé : replié, le texte reste dans la page.</td><td class="mono">~5 fiches</td><td class="mono"><span class="mono">ABR</span>, <span class="mono">ALE</span></td></tr>
           <tr><td class="mono">29</td><td><span class="mono">FEU</span> — La feuille de route plus courte et lisible</td><td>La TODO en cartes, le détail replié, un sommaire. 🟡 Une décision à prendre : la feuille garde-t-elle tout le détail de la TODO ?</td><td class="mono">~4 fiches</td><td class="mono"><span class="mono">VOI</span>, <span class="mono">ALE</span></td></tr>
@@ -110,13 +109,19 @@
     <h2>Chantiers clos — ils ne se rejouent pas</h2>
     <!-- ZONE:clos — une ligne ajoutée à chaque clôture, la plus récente en haut -->
     <details class="clos">
-      <summary><span class="resume-clos">64 chantiers clos · ≈949,1M (949 091 901) tokens · ≈794 $</span></summary>
+      <summary><span class="resume-clos">65 chantiers clos · ≈977,2M (977 192 976) tokens · ≈818 $</span></summary>
     <div class="tableau">
       <table>
         <thead>
           <tr><th>Chantier</th><th>Fiches</th><th>Clos le</th><th>Tokens</th><th>Ce qu'il a livré</th></tr>
         </thead>
         <tbody>
+          <tr>
+            <td><a href="https://claude.ai/artifact/S4tQPZzjMMCL2iQAq5TPTV">Mettre notes et journal à l'abri dans un <span class="mono">.md</span></a> <span class="badge" data-etat="clos">clos</span></td>
+            <td class="mono">ABR1–ABR5</td><td class="mono">2026-09-26</td>
+            <td class="mono">≈28,1M (28 101 075)</td>
+            <td>Resultat, notes, journal et bilan vivent d'abord dans un .md a cote de la page ; page et clore l'ecrivent d'abord puis la page le recopie ; vlp.py abri l'amorce ; 23 pages Cairn mises a l'abri</td>
+          </tr>
           <tr>
             <td><a href="https://claude.ai/artifact/8J9f3sDCdc7NVpAFRZEyi5">L'index ne garde que le vivant, les clos vont à l'archive</a> <span class="badge" data-etat="clos">clos</span></td>
             <td class="mono">IDX1–IDX3</td><td class="mono">2026-09-26</td>
@@ -531,7 +536,7 @@
           </tr>
         </tbody>
         <tfoot>
-          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈949,1M (949 091 901)</strong></td><td class="mono">≈794 $</td></tr>
+          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈977,2M (977 192 976)</strong></td><td class="mono">≈818 $</td></tr>
         </tfoot>
       </table>
     </div>

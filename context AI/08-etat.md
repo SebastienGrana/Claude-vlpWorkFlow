@@ -378,7 +378,6 @@ celle de `FIL` ; 48 à 51, de celle de `FIN` ; 52, des clôtures de la nuit du
 
 | # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |
 |---|---|---|---|---|
-| 26 | `ABR` — Mettre notes et journal à l'abri dans un `.md` | Les notes et le journal d'une page de chantier n'existent aujourd'hui que dans la page. `page --note` et `--journal` écriront d'abord le texte entier dans un `.md`, et la page le recopiera. | ~3 fiches | — |
 | 27 | `ALE` — Essai : alléger la republication | Deux pistes, mesurées : le CSS en fichier joint, puis les données dans la base de claude.ai. Décide où vivent le CSS et les données avant `PLI` et `FEU`. | 2 fiches | `ABR` |
 | 28 | `PLI` — La page de chantier plus courte et lisible | Chaque fiche dans un bloc repliable, le journal replié sauf ses dernières entrées, le bilan en haut d'un chantier clos. Rien n'est coupé : replié, le texte reste dans la page. | ~5 fiches | `ABR`, `ALE` |
 | 29 | `FEU` — La feuille de route plus courte et lisible | La TODO en cartes, le détail replié, un sommaire. 🟡 Une décision à prendre : la feuille garde-t-elle tout le détail de la TODO ? | ~4 fiches | `VOI`, `ALE` |
@@ -2221,6 +2220,18 @@ entière du fichier de fiches (`rel1-carte.py`) ; `vlp.py carte --relecteur` tai
 la ligne **fichier de fiches courant** donne encore l'étendue (`REL1..REL3`) ; `FICHIER=`
 entier, TODO n° 70 `FFE` ; la section « Chantiers clos » reste dans la carte. Retiré de
 la TODO : n° 55 `FUI`. Coût du chantier : 8 399 715 (`vlp.py clore`).
+
+## 2026-09-26 — ABR (clos)
+
+Livré : `<NN>-<nom>.md` — résultat, notes, journal, bilan — tient à côté de la page ;
+`vlp.py abri` l'amorce depuis une page existante (ABR1) ; `vlp.py page` l'écrit
+d'abord, la page le recopie en entier (ABR2) ; `clore` y écrit le bilan, l'estimé
+résolu avant l'écriture, jamais le marqueur (ABR3) ; `ARTEFACTS.md` le dit (ABR4) ;
+les 23 pages de Cairn ont leur `.md` (ABR5). Surpris : le `.gitignore` de Cairn
+exclut tout `context AI/` — les `.md` y sont entrés par `git add -f`, décidé avec
+l'utilisateur, jamais poussés depuis ce kit. Laissé ouvert : rien, les cinq fiches
+sont faites. Retiré de la TODO : n° 26 `ABR`. Coût du chantier : 28 101 075
+(`vlp.py clore`).
 
 - 2026-09-26 (FFE2) : sans `FICHIER=`, `rel1-carte.py` rejoint `APRÈS=` et la ligne **fichier de fiches courant** de la carte ; juste sur les 20 relecteurs réels, faux sur les 19 rejeux REV (carte à `51-relecture.md`, fiche relue ailleurs) : `entier 1 · plage 2` → `0 · 0` en `--sans-fichier`, lectures toutes venues de ces rejeux. Critère accepté ainsi par l'utilisateur.
 

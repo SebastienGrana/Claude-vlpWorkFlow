@@ -68,3 +68,4 @@ QUAND LIRE : on relit un chantier clos ; l'index n'en garde qu'une ligne qui ren
 | `73-un-par-tour.md` | on relit le socle du chantier TOU — **clos** « Le filet n'avertit qu'une fois par tour », `TOU1..TOU3` |
 | `74-voisines.md` | on relit le socle du chantier VOI — **clos** « Finir les feuilles voisines, reste de REP », `VOI1..VOI6` |
 | `75-index-archive.md` | on relit le socle du chantier IDX — **clos** « L'index ne garde que le vivant », `IDX1..IDX3` |
+| `76-abri.md` | on relit le socle du chantier ABR — **clos** « Mettre notes et journal à l'abri dans un .md », `ABR1..ABR5` |
