@@ -73,8 +73,8 @@
     <!-- ZONE:encours — remplacé à chaque ouverture, remis à « aucun » à chaque clôture.
          /tache n'y touche pas : l'avancement fiche par fiche est sur la page du chantier. -->
     <div class="encours">
-      <div class="titre">Aucun chantier ouvert</div>
-      <div>Lancer <span class="mono">/vlp:chantier</span> pour en ouvrir un.</div>
+      <div class="titre">Le filet en eval rejouable <span class="badge" data-etat="cours">en cours</span></div>
+      <div>Fiches <span class="mono">EVF1–EVF3</span> — <a href="https://claude.ai/artifact/Q4TySCaXvCVZuQ6f91Hpgm">la page du chantier</a></div>
     </div>
   </section>
 
@@ -89,7 +89,7 @@
         </thead>
         <tbody>
           <tr><td class="mono">43</td><td><span class="mono">RAT</span> — Un <span class="mono">Read</span> raté réveille-t-il le filet ?</td><td>Reste de <span class="mono">FIL</span> : le filet tire après un <span class="mono">Read</span> réussi et après un Bash à code non nul (<span class="mono">FIL3</span>), mais un <span class="mono">Read</span> sur un fichier absent n'est pas éprouvé. La doc range dans <span class="mono">PostToolUseFailure</span> l'outil lancé qui échoue, pas l'appel refusé avant de s'exécuter (journal du 2026-09-24). S'il n'en déclenche aucun, des derniers tours de <span class="mono">Read</span> ratés laissent le sous-agent coupé muet. Un essai à plafond 10, comme <span class="mono">FIL3</span> (≈ 0,1 $).</td><td class="mono">~0,5 fiche</td><td class="mono">—</td></tr>
-          <tr><td class="mono">46</td><td><span class="mono">EVF</span> — Le filet en eval rejouable</td><td>Les deux essais de <span class="mono">FIL3</span> en eval du plugin (chantier <span class="mono">V</span>) : un changement de <span class="mono">hooks/hooks.json</span> ou de <span class="mono">vlp.py filet</span> se reprouve en un appel, ≈ 0,16 $ le passage (0,06411505 + 0,10040705). 🟡 Qu'un eval lise la transcription d'un sous-agent : pas vérifié.</td><td class="mono">~2 fiches</td><td class="mono"><span class="mono">BAC</span></td></tr>
+          <tr><td class="mono">46</td><td><span class="mono">EVF</span> — Le filet en eval rejouable <span class="badge" data-etat="cours">en cours</span></td><td>Les deux essais de <span class="mono">FIL3</span> en eval du plugin (chantier <span class="mono">V</span>) : un changement de <span class="mono">hooks/hooks.json</span> ou de <span class="mono">vlp.py filet</span> se reprouve en un appel, ≈ 0,16 $ le passage (0,06411505 + 0,10040705). 🟡 Qu'un eval lise la transcription d'un sous-agent : pas vérifié.</td><td class="mono">~2 fiches</td><td class="mono"><span class="mono">BAC</span></td></tr>
           <tr><td class="mono">25</td><td><span class="mono">VOI</span> — Finir les feuilles voisines, reste de <span class="mono">REP</span></td><td>Ce que <span class="mono">REP</span> a laissé. La ligne <span class="mono">MARKDOWN</span> de <span class="mono">vlp.py niveau</span> compte, sans <span class="mono">--ecrire</span>, la page régénérée au lieu de celle du disque : elle ne voit ni la TODO ni la zone « en cours ». La régénération abîme trois feuilles voisines : TODO de MapDecorator hors table, donc lue vide ; lettres de fiche entre backticks ignorées ; source de TrackGen sans accents. Une fois corrigées, republier MapDecorator, TrackGen et ProjetONZSM. Détail : journal du 2026-09-23.</td><td class="mono">~3 fiches</td><td class="mono">—</td></tr>
           <tr><td class="mono">26</td><td><span class="mono">ABR</span> — Mettre notes et journal à l'abri dans un <span class="mono">.md</span></td><td>Les notes et le journal d'une page de chantier n'existent aujourd'hui que dans la page. <span class="mono">page --note</span> et <span class="mono">--journal</span> écriront d'abord le texte entier dans un <span class="mono">.md</span>, et la page le recopiera.</td><td class="mono">~3 fiches</td><td class="mono">—</td></tr>
           <tr><td class="mono">27</td><td><span class="mono">ALE</span> — Essai : alléger la republication</td><td>Deux pistes, mesurées : le CSS en fichier joint, puis les données dans la base de claude.ai. Décide où vivent le CSS et les données avant <span class="mono">PLI</span> et <span class="mono">FEU</span>.</td><td class="mono">2 fiches</td><td class="mono"><span class="mono">ABR</span></td></tr>
@@ -506,7 +506,7 @@
   </section>
 
   <footer>
-    <span>Lettres de fiche prises : <span class="mono">E, M, C, T, B, R, S, H, V, D, I, K, N, L, P, A, G, W, X, F, O, J, Y, U, Q, Z, NIV, REP, CPT, SAG, FIL, CAS, VAL, FIN, TAR, PLA, MTK, CAD, ZER, REV, CON, GLO, GAR, UNI, PYT, RLG, FOR, JUG, REC, ESS, ESD, APC, LEC, ENC, REL, FFE, EST, BAC</span></span>
+    <span>Lettres de fiche prises : <span class="mono">E, M, C, T, B, R, S, H, V, D, I, K, N, L, P, A, G, W, X, F, O, J, Y, U, Q, Z, NIV, REP, CPT, SAG, FIL, CAS, VAL, FIN, TAR, PLA, MTK, CAD, ZER, REV, CON, GLO, GAR, UNI, PYT, RLG, FOR, JUG, REC, ESS, ESD, APC, LEC, ENC, REL, FFE, EST, BAC, EVF</span></span>
     <span>État détaillé : <span class="mono">context AI/08-etat.md</span></span>
     <span>Mis à jour le <span class="mono">2026-09-26</span></span>
   </footer>
