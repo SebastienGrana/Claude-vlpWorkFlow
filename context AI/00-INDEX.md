@@ -53,6 +53,7 @@ a l'air proche.
 | `72-sans-tampon.md` | on relit le socle du chantier SON — **clos** « Rejouer un hook à la main sans le tampon », `SON1..SON1` |
 | `73-un-par-tour.md` | on relit le socle du chantier TOU — **clos** « Le filet n'avertit qu'une fois par tour », `TOU1..TOU3` |
 | `74-voisines.md` | on relit le socle du chantier VOI — **clos** « Finir les feuilles voisines, reste de REP », `VOI1..VOI6` |
+| `75-index-archive.md` | on joue une fiche `IDX*` — chantier **ouvert** « L'index ne garde que le vivant », `IDX1..IDX3` |
 | `35-bilan.md` | on doit expliquer le kit — d'où il vient, ce qu'il sait faire aujourd'hui, ce qu'il ne promet pas ; les 22 chantiers chiffrés |
 | `36-gardes.md` | on relit le socle du chantier Z — **clos** « Une GARDE au lieu d'un traceback », `Z1..Z4` |
 | `37-niveau.md` | on relit le socle du chantier NIV — **clos** « Remettre les projets équipés à niveau », `NIV1..NIV4` |
