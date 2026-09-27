@@ -3809,8 +3809,8 @@ def tester_pretes_et_paralleles():
         li = {m.group(1): m.group(0)
               for m in re.finditer(r'<li class="fiche".*?<span class="id">(\w+)</span>.*?</li>', html, re.S)}
         verifier("prêtes : une fiche pas prête dit ce qu'elle attend, pas ce qui est fait ni hors du fichier,"
-                 " et plus de deux au survol — mutant : attente ignorée",
-                 code == 0 and '<span class="dep attend mono" title="R2, R3, R4">attend 3 fiches</span>' in li.get("R5", "")
+                 " et tous les noms au-delà de deux — mutants : attente ignorée, seuil de la flèche",
+                 code == 0 and '<span class="dep attend mono">attend R2, R3, R4</span>' in li.get("R5", "")
                  and "←" not in li.get("R5", "") and '<span class="dep attend mono">attend R3</span>' in li.get("R7", ""),
                  s + html)
         verifier("prêtes : une fiche prête garde ses dépendances, sans « attend »",

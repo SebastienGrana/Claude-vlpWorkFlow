@@ -2049,11 +2049,12 @@ def pretes(fiches_, etat, apercu):
 def fleche(noms, unite="fiches", attend=False):
     """Les dépendances d'une carte, dans sa colonne de gauche : `← A, B` ; au-delà de deux,
     `← n fiches` et la liste au survol (`title`) — la colonne est étroite ; rien sans dépendance.
-    `attend` : une fiche pas prête, `attend A, B` — seulement ce qui n'est pas fait."""
+    `attend` : une fiche pas prête, `attend A, B, C` — seulement ce qui n'est pas fait, et tous
+    les noms, sans seuil : ce qu'il faut finir d'abord se lit sans survol (demandé le 2026-09-27)."""
     if not noms:
         return ""
     debut, signe = ('<span class="dep attend mono"', "attend") if attend else ('<span class="dep mono"', "←")
-    if len(noms) <= 2:
+    if len(noms) <= 2 or attend:
         return '%s>%s %s</span>' % (debut, signe, esc(", ".join(noms)))
     return '%s title="%s">%s %d %s</span>' % (debut, esc(", ".join(noms)), signe, len(noms), unite)
 
