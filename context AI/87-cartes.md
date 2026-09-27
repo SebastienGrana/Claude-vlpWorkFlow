@@ -257,8 +257,9 @@ retirée → deux liens après deux passages, le test tombe. Tous les tests vert
 ---
 
 <!-- FICHE:FEU8 -->
-## FEU8 [ ] — Le détail des chantiers possibles
+## FEU8 [x] — Le détail des chantiers possibles
 
+**Session** : 206644ce-75ee-40a0-a175-e09afdfe7b7c
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py` (`resume_todo` et `compte_todo` `:2920-2935`, leur appel dans `feuille` `:2905`, `lettres_prises` `:2768`), `scripts/test-vlp.py` — et rien d'autre.
 

@@ -20,9 +20,9 @@
     <p>La feuille de route de Cairn, cartes fermées, tient en 5 écrans d'ordinateur au plus ; la TODO ne défile plus de côté ; rien de son texte n'est perdu, seulement replié.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">8 fiches · 6 faites · en cours : FEU8</p>
+    <p class="mono" style="margin-top:.5rem">8 fiches · 7 faites · en cours : FEU6</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -71,20 +71,22 @@
         <summary><span class="id">FEU7</span><span class="titre">Un lien vers la feuille de route sur la page du chantier</span>
         <span class="etat">faite</span></summary>
         <span class="note">tests verts, pyright 0 erreur, grep -c "la feuille de route&lt;/a&gt;" context AI/artefacts/87-cartes.html rend 1</span>
-        <span class="cout mono">≈7,7M (7 738 430) · 53 tours · 2,80 $</span>
+        <span class="cout mono">≈8,4M (8 446 778) · 57 tours · 2,97 $</span>
+      </details></li>
+      <li class="fiche" data-etat="faite"><details>
+        <summary><span class="id">FEU8</span><span class="titre">Le détail des chantiers possibles</span>
+        <span class="etat">faite</span></summary>
+        <span class="note">tests verts, pyright 0 erreur, mutant (borne basse) tombe, vlp.py feuille sur copie kit à 7 rangs rend 7 chantiers possibles · 2 petits, 1 moyen, 2 gros, 2 pas estimés · 1 bloqué · ≈17 fiches estimées</span>
+        <span class="cout mono">≈7,3M (7 252 647) · 42 tours · 2,33 $</span>
       </details></li>
       <li class="fiche" data-etat="encours"><details open>
-        <summary><span class="id">FEU8</span><span class="titre">Le détail des chantiers possibles</span>
-        <span class="etat">en cours</span></summary>
-      </details></li>
-      <li class="fiche"><details>
         <summary><span class="id">FEU6</span><span class="titre">Régénérer, mesurer après, republier</span>
-        <span class="etat">à faire</span></summary>
+        <span class="etat">en cours</span></summary>
         <span class="note">Les feuilles du kit et de Cairn régénérées, mesurées, republiées ; tu les regardes. Après FEU1, FEU4, FEU5.</span>
       </details></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈6,3M (6 315 039) · 41 tours · 4,72 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈40,0M (40 027 503) · 242 tours · 18,67 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈48,0M (47 988 498) · 288 tours · 21,17 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

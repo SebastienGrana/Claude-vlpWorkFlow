@@ -1027,14 +1027,16 @@ with tempfile.TemporaryDirectory() as t:
              '2 fiches · dépend de : —</span></summary><div class="detail">a || b &lt;c&gt;</div>' in html
              and "&lt;U, R&gt;" not in html and 'data-etat="cours"' not in html.split("ZONE:todo")[1], html)
     avant_todo = html.split("<!-- ZONE:todo")[0].split("Les chantiers possibles")[1]
-    verifier("feuille : décompte au-dessus de la TODO", avant_todo.count("resume-todo") == 1
-             and ">2 chantiers possibles</p>" in avant_todo and "&lt;n&gt; chantiers possibles" not in html, html)
+    verifier("feuille : décompte au-dessus de la TODO, détaillé (FEU8)", avant_todo.count("resume-todo") == 1
+             and ">2 chantiers possibles · 1 petit, 1 moyen · 1 bloqué · ≈3 fiches estimées</p>" in avant_todo
+             and "&lt;n&gt; chantiers possibles" not in html, html)
     code, s = appel(["feuille", t, "--date", "2026-03-04"])
     verifier("feuille : idempotente, date gardée", code == 0 and "inchangée" in s and "2026-01-02" in lire(fdr), s)
     ecrire(fdr, mod.RESUME_TODO.sub("", lire(fdr)))
     code, s = appel(["feuille", t, "--date", "2026-01-02"])
     verifier("feuille : décompte posé sur une feuille d'avant", code == 0 and lire(fdr).count("resume-todo") == 1
-             and ">2 chantiers possibles</p>\n    <!-- ZONE:todo" in lire(fdr), s + lire(fdr))
+             and (">2 chantiers possibles · 1 petit, 1 moyen · 1 bloqué · ≈3 fiches estimées</p>\n    <!-- ZONE:todo"
+                  in lire(fdr)), s + lire(fdr))
     verifier("feuille : décompte au singulier et vide",
              mod.resume_todo(1) == "1 chantier possible" and mod.resume_todo(0) == "aucun chantier possible", "")
     ecrire(os.path.join(t, "CHANTIER.md"), carte_ % ("ctx/30-q.md (Q1..Q2)", "https://exemple/q"))
@@ -4169,5 +4171,37 @@ def tester_lien_feuille_de_route():
 
 
 tester_lien_feuille_de_route()
+
+
+# --- FEU8 : le décompte au-dessus de la TODO détaille tailles, bloqués, total estimé ---
+
+def tester_decompte_todo():
+    verifier("FEU8 : borne_haute_cout — borne haute, ou None sans nombre avant « fiche »",
+             mod.borne_haute_cout("~0,5 fiche") == 0.5 and mod.borne_haute_cout("~4 à 6 fiches") == 6.0
+             and mod.borne_haute_cout("2-3 fiches") == 3.0 and mod.borne_haute_cout("à cadrer") is None
+             and mod.borne_haute_cout("🟡 pas estimé") is None and mod.borne_haute_cout("—") is None,
+             (mod.borne_haute_cout("~0,5 fiche"), mod.borne_haute_cout("~4 à 6 fiches")))
+    verifier("FEU8 : est_bloque — code absent, numéro ou plage d'un rang présent, tiret non bloquant",
+             mod.est_bloque("`AAA`", ["AAA"], {"1", "2"}) is False
+             and mod.est_bloque("`ZZZ`", ["AAA"], {"1", "2"}) is True
+             and mod.est_bloque("3", ["AAA"], {"1", "3"}) is True
+             and mod.est_bloque("1..9", ["AAA"], {"5"}) is True
+             and mod.est_bloque("—", ["AAA"], {"1"}) is False, "")
+    # Fichier d'état en mémoire, comme demandé par le critère de fin de FEU8 : 4 rangs, un de
+    # chaque taille et un pas estimé ; deux bloqués (code `ZZZ` absent, numéro 1 encore présent).
+    lignes = ["| # | Chantier | Apporte | Coût | Dépend |", "|---|---|---|---|---|",
+              "| 1 | A | x | ~0,5 fiche | `AAA` |",
+              "| 2 | B | x | ~4 à 6 fiches | `ZZZ` |",
+              "| 3 | C | x | 2-3 fiches | 1 |",
+              "| 4 | D | x | à cadrer | — |"]
+    rangs = mod.todo_du_fichier(lignes)
+    verifier("FEU8 : todo_du_fichier lit les 4 rangs", len(rangs) == 4, rangs)
+    ligne = mod.resume_todo(len(rangs), *mod.decompte_todo(rangs, ["AAA"]))
+    verifier("FEU8 : décompte de la TODO — tailles, bloqués, total estimé — mutant : borne basse au lieu de haute",
+             ligne == "4 chantiers possibles · 1 petit, 1 moyen, 1 gros, 1 pas estimé · 2 bloqués · ≈9,5 fiches estimées",
+             ligne)
+
+
+tester_decompte_todo()
 
 print("OK")

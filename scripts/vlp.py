@@ -2966,6 +2966,9 @@ def feuille(projet, html, todo, date):
     lignes_etat = lignes_du_projet(projet, etat, "fichier d'état")
     courant = fichier_courant("\n".join(carte_))
     lettres = lettres_prises(carte_)
+    # Sans la lettre du chantier en cours : `feuille` l'ajoute plus bas pour l'affichage, mais un
+    # chantier possible qui en dépend n'est pas bloqué par ce seul ajout (chantier FEU).
+    lettres_todo = list(lettres)
     if courant:
         lignes = lignes_du_projet(projet, courant, "fichier de fiches courant")
         ids = [l.split()[1] for l in lignes if TITRE.match(l)]
@@ -2994,7 +2997,7 @@ def feuille(projet, html, todo, date):
         or '          <li class="rien">Rien en attente.</li>\n'
     cartes = en_cartes(html)
     d, f, _ = zone_todo(cartes)
-    neuf = compte_todo(cartes[:d] + corps + cartes[f:], len(rangs))
+    neuf = compte_todo(cartes[:d] + corps + cartes[f:], rangs, lettres_todo)
     d, f = zone(neuf, "encours", "\n", "  </section>")
     neuf = neuf[:d] + encours + neuf[f:]
     neuf = re.sub(r'(Lettres de fiche prises : <span class="mono">).*?(</span>)',
@@ -3010,18 +3013,77 @@ def feuille(projet, html, todo, date):
 RESUME_TODO = re.compile(r'    <p class="mono resume-todo"[^>]*>.*?</p>\n')
 
 
-def resume_todo(n):
-    """Le décompte posé au-dessus de la TODO, comme `resume_clos` au-dessus des clos."""
+def borne_haute_cout(cout):
+    """La borne haute d'un « Coût » de TODO, en fiches — `~4 à 6` → 6, `2-3` → 3, `~0,5` → 0,5 —,
+    ou `None` sans nombre avant le premier « fiche(s) » (`à cadrer`, `🟡 pas estimé`, `—`) (FEU8)."""
+    m = re.search(r"\bfiches?\b", cout)
+    if not m:
+        return None
+    nombres = re.findall(r"\d+(?:,\d+)?", cout[:m.start()])
+    return max(float(n.replace(",", ".")) for n in nombres) if nombres else None
+
+
+def est_bloque(depend, lettres_todo, rangs_presents):
+    """Vrai si `depend` (cellule « Dépend de ») nomme un code entre backticks absent de
+    `lettres_todo`, ou un numéro (`3`) ou une plage (`1..9`) qui touche un rang de
+    `rangs_presents` — encore dans la TODO (FEU8)."""
+    for code in re.findall(r"`([A-Za-z]+)`", depend):
+        if lettre_de(code) not in lettres_todo:
+            return True
+    reste = re.sub(r"`[^`]*`", "", depend)
+    for m in re.finditer(r"(\d+)(?:\.\.(\d+))?", reste):
+        bas, haut = int(m.group(1)), int(m.group(2)) if m.group(2) else int(m.group(1))
+        if any(str(r) in rangs_presents for r in range(bas, haut + 1)):
+            return True
+    return False
+
+
+def decompte_todo(rangs, lettres_todo):
+    """(petits, moyens, gros, pas_estimés, bloqués, total en fiches) des rangs d'une TODO —
+    petit ≤ 1, moyen ≤ 4, gros au-delà de la borne haute de leur « Coût » (FEU8)."""
+    presents = {r[0] for r in rangs}
+    petits = moyens = gros = pas_estimes = bloques = 0
+    total = 0.0
+    for _, _, _, cout, depend in rangs:
+        borne = borne_haute_cout(cout)
+        if borne is None:
+            pas_estimes += 1
+        else:
+            total += borne
+            if borne <= 1:
+                petits += 1
+            elif borne <= 4:
+                moyens += 1
+            else:
+                gros += 1
+        if est_bloque(depend, lettres_todo, presents):
+            bloques += 1
+    return petits, moyens, gros, pas_estimes, bloques, total
+
+
+def resume_todo(n, petits=0, moyens=0, gros=0, pas_estimes=0, bloques=0, total=0.0):
+    """Le décompte posé au-dessus de la TODO, comme `resume_clos` au-dessus des clos — parts à
+    zéro omises, singulier sous 2 (FEU8)."""
     if not n:
         return "aucun chantier possible"
-    return "1 chantier possible" if n == 1 else "%d chantiers possibles" % n
+    base = "1 chantier possible" if n == 1 else "%d chantiers possibles" % n
+    parts = ["%d %s" % (c, s if c < 2 else p) for c, s, p in
+             ((petits, "petit", "petits"), (moyens, "moyen", "moyens"),
+              (gros, "gros", "gros"), (pas_estimes, "pas estimé", "pas estimés")) if c]
+    if parts:
+        base += " · " + ", ".join(parts)
+    if bloques:
+        base += " · %d %s" % (bloques, "bloqué" if bloques < 2 else "bloqués")
+    if total:
+        base += " · ≈%s %s" % (decimal_fr(total), "fiche estimée" if total == 1 else "fiches estimées")
+    return base
 
 
-def compte_todo(html, n):
+def compte_todo(html, rangs, lettres_todo):
     """La ligne du décompte, remplacée ; ou posée juste avant `ZONE:todo` sur une
     feuille d'avant qui ne l'a pas."""
     ligne = ('    <p class="mono resume-todo" style="margin:0;color:var(--doux);font-size:.9rem">%s</p>\n'
-             % resume_todo(n))
+             % resume_todo(len(rangs), *decompte_todo(rangs, lettres_todo)))
     if RESUME_TODO.search(html):
         return RESUME_TODO.sub(lambda _: ligne, html, count=1)
     i = html.rfind("\n", 0, html.index("<!-- ZONE:todo")) + 1
