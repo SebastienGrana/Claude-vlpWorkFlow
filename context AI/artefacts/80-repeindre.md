@@ -16,3 +16,6 @@ Les 90 pages de chantiers clos (kit et Cairn) au format PLI, chiffres de coût i
 - 2026-09-27 : HAB5 : chaque publication réveille le chef par un avis « watch limit » (10 suivis au plus) : ~45 tours sans travail, 2,98 $ côté chef. À suivre : un lot de nuit qui publie beaucoup coûte aussi chez le chef.
 - 2026-09-27 : HAB6 : comparer a pris pour une perte une plage d'en-tête refaite depuis le fichier (une fiche ajoutée après la dernière publication) ; la page en ligne affichait déjà cette fiche : publiée à la main, 0 autre écart. Une page repeinte chez Cairn n'a pas de version Git : avant repeindre, vérifier ce que Git suit.
 ## Bilan
+- Livré : vlp.py page --forme et repeindre : 64 pages du kit et 17 de Cairn au format PLI, chiffres inchangés, toutes remises en ligne ; liens tirés dans chaque .md par vlp.py liens
+- Surpris : --forme a dû garder aussi titres, libellés, comptage et date (64/64 pages perdaient la date) ; les pages html de Cairn ne sont pas suivies par Git ; chaque publication réveille le chef (~45 tours vides)
+- Estimé : estimé 2 fiches ≈8,09 $ · cadré 6 · joué 6 fiches ≈68 $

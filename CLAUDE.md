@@ -13,11 +13,11 @@ https://github.com/SebastienGrana/Claude-vlpWorkFlow — cloné et utilisé en g
 - Équipés : Cairn-VlpLib, MapDecorator, ProjetONZSM, TrackGen — et ce kit lui-même.
 - Chaque chantier clos a sa ligne dans `context AI/00-INDEX-archive.md`, son détail daté dans
   `context AI/08-etat.md` ; ici, les derniers seulement (`vlp.py clore` les tient).
-- Clos le 2026-09-26 : l'index ne garde que le vivant, les clos vont à 00-INDEX-archive.md (chantier IDX).
 - Clos le 2026-09-26 : notes/journal/bilan d'un chantier vivent d'abord dans un .md, la page le recopie (chantier ABR).
 - Clos le 2026-09-26 : CSS joint adopté, base db en attente (chantier ALE).
 - Clos le 2026-09-27 : page de chantier repliée, 3,45 → 2,18 écrans et −25 % de tokens par relecture, CSS en vlp.css joint (chantier PLI).
 - Clos le 2026-09-27 : vlp.py vigile refuse une page cassée avant Artifact, essai réel réussi (chantier VID).
+- Clos le 2026-09-27 : 81 pages closes repeintes au format PLI et remises en ligne, chiffres inchangés (chantier HAB).
 
 ## Quatre règles non négociables
 
@@ -57,7 +57,6 @@ et seulement dans ce cas, ouvrir l'index.
 | savoir où vit quoi dans un projet équipé | `methode-chantier.md`, section « Où vit quoi » |
 | toucher aux pages publiées | `ARTEFACTS.md`, puis le gabarit dans `templates/` |
 | ouvrir un chantier, ou le découper en fiches | **lancer `/vlp:chantier`** |
-| jouer une fiche du chantier HAB (repeindre une page sans recompter) | `context AI/80-repeindre.md` — chantier **ouvert**, par `/vlp:tache HAB<n>` |
 | relire un chantier clos | `context AI/00-INDEX-archive.md` — sa ligne y nomme le fichier de fiches |
 | reprendre après une longue interruption | `context AI/08-etat.md` |
 | choisir le prochain chantier du kit, ou retrouver la preuve d'un bug relevé le 2026-09-17 | `context AI/12-audit.md` |
