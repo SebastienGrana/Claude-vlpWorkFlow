@@ -87,8 +87,9 @@ bilan en haut, `vigile` dit `PAGE SAINE`. Mutant : `--forme` ignoré → le test
 ---
 
 <!-- FICHE:HAB2 -->
-## HAB2 [ ] — Écrire `vlp.py repeindre <projet>`
+## HAB2 [x] — Écrire `vlp.py repeindre <projet>`
 
+**Session** : 5a12485e-8f92-4566-8eac-a08b630de356
 **Dépend de** : `HAB1`.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` — et rien d'autre.
 

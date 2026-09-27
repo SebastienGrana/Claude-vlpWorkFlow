@@ -258,6 +258,11 @@ Sous-commandes :
 - `vigile [fichier]` — une page cassée ne part pas (chantier VID, `defauts_page`) : sans argument,
   le hook `PreToolUse` sur `Artifact`, `deny` pour un `.html` à défauts, muet sinon ; avec un chemin,
   une ligne `GARDE:` par défaut (sort 1) ou `PAGE SAINE <n> blocs`.
+- `repeindre <projet> [--a-blanc]` — chaque page de chantier clos (parcours de `recompter`)
+  qui ne lie pas `vlp.css` passe par `page --forme` puis `vigile`, dans une copie :
+  `REPEINTE <page> · lien <url>` ou `· sans lien` (section `## Lien` de son `.md`), une
+  `GARDE:` si refusée — l'originale ne bouge pas. Puis `REPEINDRE <n> repeintes · <n> avec
+  lien · <n> sans lien · <n> refusées · <n> déjà · <n> sans page`. `--a-blanc` n'écrit rien.
 - `recompter <projet>` — n'écrit rien (chantier REC). Pour chaque ligne de `ZONE:clos` de la
   feuille de route, le fichier de fiches que l'index nomme au même préfixe (`JUG1..JUG3` pour
   `JUG1–JUG3`), et une ligne `<préfixe> inscrit <n> · recompté <n|gardé> · écart <±n> ·
@@ -2943,24 +2948,23 @@ def marquer_essais(cellule, brut, ajout):
     return "%s%s · %s%s" % (MARQUE_ESSAIS, signe(ajout), tete, n if "(" in n else "(%s)" % n)
 
 
-def cmd_recompter(projet, sortie, ecrire=False, essais=False, a_clore=False):
-    """Chaque ligne de `ZONE:clos` recomptée par `cout` sur son fichier de fiches, que l'index
-    nomme au même préfixe ; n'écrit rien sans `ecrire` (chantier REC). Avec `--essais`,
-    n'ajoute que la part essais (chantier ESD). `a_clore` : chaque ligne recomptée finit par
-    `à clore` et `après clore` (`totaux_a_clore`), ou `sans appel clore` (chantier APC)."""
+def clos_du_projet(projet, sortie):
+    """Les chantiers clos d'un projet : `(feuille, début, fin de ZONE:clos, rangs)`, chaque rang
+    `(ligne, préfixe, coût inscrit, fichier de fiches ou None)` — le fichier, que l'index (et son
+    archive) nomme au même préfixe. None après une `GARDE:` (`recompter`, `repeindre`)."""
     if not equipe(projet):
         sortie.write("GARDE: pas de CHANTIER.md dans %s\n" % projet)
-        return 1
+        return None
     page = page_feuille(projet)
     if not os.path.isfile(page):
         sortie.write("GARDE: feuille de route introuvable : %s\n" % page)
-        return 1
+        return None
     html = lire(page)
     try:
         d, f = zone(html, "clos", "<tbody>\n", "        </tbody>")
     except ValueError as e:
         sortie.write("GARDE: %s\n" % e)
-        return 1
+        return None
     carte_ = lignes_de(os.path.join(projet, "CHANTIER.md"))
     contexte = champ(carte_, "contexte", "context AI/")
     index = champ(carte_, "index", os.path.join(contexte, "00-INDEX.md"))
@@ -2975,6 +2979,68 @@ def cmd_recompter(projet, sortie, ecrire=False, essais=False, a_clore=False):
         if m:
             chemin = fichiers.get(m.group(1))
             rangs.append((r, m.group(1), total_clos(r), chemin if chemin and os.path.isfile(chemin) else None))
+    return html, d, f, rangs
+
+
+def cmd_repeindre(projet, sortie, a_blanc=False):
+    """Chaque page de chantier clos qui ne lie pas encore `vlp.css` passe par `page --forme`
+    puis par `vigile`, dans une copie : refusée, l'originale ne bouge pas (chantier HAB)."""
+    import shutil
+    import tempfile
+    parcours = clos_du_projet(projet, sortie)
+    if parcours is None:
+        return 1
+    vues, n = set(), {"repeintes": 0, "avec lien": 0, "sans lien": 0, "refusées": 0, "déjà": 0, "sans page": 0}
+    for _, prefixe, _, chemin in parcours[3]:
+        page = page_du_fichier(chemin) if chemin else None
+        if page in vues:
+            continue
+        vues.add(page)
+        if not chemin or not page or not os.path.isfile(page):
+            n["sans page"] += 1
+            sortie.write("SANS PAGE %s · %s\n" % (prefixe, page or "fichier de fiches introuvable"))
+            continue
+        if 'href="vlp.css"' in lire(page):
+            n["déjà"] += 1
+            continue
+        with tempfile.TemporaryDirectory() as tmp:
+            copie = os.path.join(tmp, os.path.basename(page))
+            shutil.copyfile(page, copie)
+            if os.path.isfile(chemin_abri(page)):
+                shutil.copyfile(chemin_abri(page), chemin_abri(copie))
+            rendu = io.StringIO()
+            code = main(["page", chemin, copie, "--forme"], rendu)
+            if code == 0:
+                rendu = io.StringIO()
+                code = main(["vigile", copie], rendu)
+            if code != 0:
+                n["refusées"] += 1
+                gardes = [l for l in rendu.getvalue().splitlines() if l.startswith("GARDE:")]
+                sortie.write("".join("%s · %s\n" % (g, page) for g in gardes) or "GARDE: refusée · %s\n" % page)
+                continue
+            if not a_blanc:
+                shutil.copyfile(copie, page)
+                shutil.copyfile(chemin_abri(copie), chemin_abri(page))
+                recopier_vlp_css(os.path.dirname(os.path.abspath(page)))
+            lien = lire_abri(chemin_abri(copie)).get("lien")
+        n["repeintes"] += 1
+        n["avec lien" if lien else "sans lien"] += 1
+        sortie.write("REPEINTE %s · %s\n" % (page, "lien %s" % lien if lien else "sans lien"))
+    sortie.write("REPEINDRE %s%s\n" % (" · ".join("%d %s" % (v, k) for k, v in n.items()),
+                                        " · à blanc, rien d'écrit" if a_blanc else ""))
+    return 0
+
+
+def cmd_recompter(projet, sortie, ecrire=False, essais=False, a_clore=False):
+    """Chaque ligne de `ZONE:clos` recomptée par `cout` sur son fichier de fiches, que l'index
+    nomme au même préfixe ; n'écrit rien sans `ecrire` (chantier REC). Avec `--essais`,
+    n'ajoute que la part essais (chantier ESD). `a_clore` : chaque ligne recomptée finit par
+    `à clore` et `après clore` (`totaux_a_clore`), ou `sans appel clore` (chantier APC)."""
+    parcours = clos_du_projet(projet, sortie)
+    if parcours is None:
+        return 1
+    html, d, f, rangs = parcours
+    page = page_feuille(projet)
     porteurs = {}
     for _, prefixe, _, chemin in rangs:
         for s in sessions_de(lignes_de(chemin)) if chemin else []:
@@ -4161,6 +4227,9 @@ def main(argv, sortie=None, entree=None, erreur=None):
     sous.add_parser("gardien")
     vg = sous.add_parser("vigile")
     vg.add_argument("fichier", nargs="?", default=None)
+    rp = sous.add_parser("repeindre")
+    rp.add_argument("projet")
+    rp.add_argument("--a-blanc", action="store_true")
     rc =sous.add_parser("recompter")
     rc.add_argument("projet")
     rc.add_argument("--ecrire", action="store_true")
@@ -4235,6 +4304,8 @@ def repartir(a, sortie, entree, erreur):
         return une_fois(entree, cmd_gardien, sortie)
     if a.cmd == "vigile":
         return cmd_vigile(a.fichier, sortie) if a.fichier else une_fois(entree, cmd_vigile_hook, sortie)
+    if a.cmd == "repeindre":
+        return cmd_repeindre(a.projet, sortie, a.a_blanc)
     if a.cmd == "recompter":
         return cmd_recompter(a.projet, sortie, a.ecrire, a.essais, a.a_clore)
     if a.cmd == "bac":

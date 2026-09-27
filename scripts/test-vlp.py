@@ -3624,4 +3624,46 @@ def tester_forme():
 
 tester_forme()
 
+
+def tester_repeindre():
+    """repeindre (chantier HAB2) : les pages closes d'un projet, repeintes par page --forme."""
+    with tempfile.TemporaryDirectory() as trp:
+        seule = ("# Chantier %s\n\n**CLOS** le 2026-01-06.\n\n## Le socle commun\n\n## L'ordre des fiches\n\n"
+                 "<!-- FICHE:%s1 -->\n## %s1 [x] — Seule\n**Critère de fin**\n<!-- /FICHE -->\n")
+        ecrire(os.path.join(trp, "CHANTIER.md"), "# Chantier courant\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n")
+        ecrire(os.path.join(trp, "ctx", "00-INDEX.md"), "| Fichier | Lire quand |\n|---|---|\n"
+               + "".join("| `%s.md` | chantier **clos** « %s », `%s1..%s1` |\n" % (x.lower(), x, x, x) for x in "ABC"))
+        for x in "ABC":
+            fiches = os.path.join(trp, "ctx", "%s.md" % x.lower())
+            page = os.path.join(trp, "ctx", "artefacts", "%s.html" % x.lower())
+            ecrire(fiches, seule % (x, x, x))
+            appel(["page", fiches, page, "--creer", "--projet", "P", "--titre", x, "--resultat", "R"])
+            if x != "C":   # A et B à l'ancien format, C déjà lié à vlp.css
+                ecrire(page, avec_style_inline(lire(page)))
+        ecrire(os.path.join(trp, "ctx", "artefacts", "feuille-de-route.html"),
+               '    <!-- ZONE:clos — test -->\n      <table>\n        <tbody>\n'
+               + "".join(ligne_close(mod.arrondi(1500)).replace("Q1–Q2", "%s1" % x) for x in "ABC")
+               + "        </tbody>\n      </table>\n")
+        disque = lambda: {os.path.relpath(os.path.join(r, n), trp): lire(os.path.join(r, n))
+                          for r, _, ns in os.walk(trp) for n in ns}
+        avant = disque()
+        code, s = appel(["repeindre", trp, "--a-blanc"])
+        verifier("HAB2 : --a-blanc annonce 2 repeintes et ne change aucun octet",
+                 code == 0 and "2 repeintes · 0 avec lien · 2 sans lien · 0 refusées · 1 déjà" in s
+                 and disque() == avant, s)
+        code, s = appel(["repeindre", trp])
+        pages = [lire(os.path.join(trp, "ctx", "artefacts", "%s.html" % x)) for x in "ab"]
+        verifier("HAB2 : repeindre, 2 repeintes · 0 avec lien · 2 sans lien · 0 refusées, 1 déjà"
+                 " — mutant : ne pas filtrer les pages déjà au format",
+                 code == 0 and s.splitlines()[-1] == "REPEINDRE 2 repeintes · 0 avec lien · 2 sans lien"
+                 " · 0 refusées · 1 déjà · 0 sans page" and s.count("REPEINTE ") == 2
+                 and all("<style>" not in p and 'href="vlp.css"' in p for p in pages), s)
+        code, s = appel(["repeindre", trp])
+        verifier("HAB2 : relancé, 0 repeintes, 3 déjà", code == 0 and "0 repeintes" in s and "3 déjà" in s, s)
+        code, s = appel(["repeindre", os.path.join(trp, "ctx")])
+        verifier("HAB2 : pas de CHANTIER.md, une GARDE", code == 1 and s.startswith("GARDE: pas de CHANTIER.md"), s)
+
+
+tester_repeindre()
+
 print("OK")
