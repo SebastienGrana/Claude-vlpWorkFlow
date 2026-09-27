@@ -75,3 +75,4 @@ QUAND LIRE : on relit un chantier clos ; l'index n'en garde qu'une ligne qui ren
 | `80-repeindre.md` | on relit le socle du chantier HAB — **clos** « Repeindre une page sans recompter », `HAB1..HAB6` |
 | `81-plage.md` | on relit le socle du chantier PLG — **clos** « La plage de l'en-tête et la dernière fiche », `PLG1..PLG1` |
 | `82-heredoc.md` | on relit le socle du chantier ECH — **clos** « ECRIT_GIT ne lit pas le texte d'un heredoc », `ECH1..ECH1` |
+| `83-jauge.md` | on relit le socle du chantier OUV — **clos** « Une ligne qui s'ouvre par un mot de jauge, sans être une jauge », `OUV1..OUV1` |

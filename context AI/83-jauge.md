@@ -10,7 +10,9 @@ jauge : un émoji devant, ou le mot suivi de `—`, `…` ou de la fin de ligne.
 
 **Estimé.** 0,5 fiches · ≈2,12 $ — ≈4,23 $/fiche sur 70 clos (le 2026-09-27).
 
-**Fait.** Rien. Ouvert le 2026-09-27, cadré en 1 fiche, `OUV1` à jouer.
+**CLOS** le 2026-09-27. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** OUV1..OUV1 (2026-09-27) : La règle tete exige la forme d'une jauge : émoji de jauge en tête, ou le mot suivi de —, … ou fin de ligne ; une puce « - Imprévu : » ne fait plus renvoyer — estimé 0,5 fiches ≈2,12 $ · cadré 1 · joué 1 fiches ≈2,64 $.
 
 **Session** : 5a12485e-8f92-4566-8eac-a08b630de356
 
