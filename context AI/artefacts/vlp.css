@@ -51,6 +51,13 @@ section { display:flex; flex-direction:column; gap:.85rem; }
 .carte-todo > .meta { max-width:10rem; }
 /* écran étroit : la colonne de droite passe sous le titre */
 @media (max-width:34rem) { .fiche,.carte-todo { grid-template-columns:4.6rem 1fr; } .fiche > :is(.cout,.visuel),.carte-todo > .meta { grid-column:2; justify-self:start; text-align:left; width:auto; max-width:none; } }
+/* à lancer en même temps (vlp.py, data-parallele) : un trait dans la marge, relié d'une carte à la
+   suivante, et le même devant la légende */
+.fiche[data-parallele],.parallele { position:relative; }
+.fiche[data-parallele]::before,.parallele::before { content:""; position:absolute; left:-.75rem; top:-1px; bottom:-1px; width:3px; border-radius:1px; background:var(--accent); }
+.parallele::before { left:calc(-.75rem + 3px); top:0; bottom:0; }
+.fiche[data-parallele] + .fiche[data-parallele]::before { top:calc(-.5rem - 1px); }
+.parallele { margin:0; font-size:.85rem; color:var(--doux); }
 .fiche summary .titre::after,.carte-todo summary .titre::after { content:" ▸"; color:var(--doux); font-weight:400; }
 .fiche details[open] > summary .titre::after,.carte-todo details[open] > summary .titre::after { content:" ▾"; }
 /* les trois états, partout où ils comptent */

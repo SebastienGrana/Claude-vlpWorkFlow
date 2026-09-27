@@ -37,6 +37,7 @@
   <section>
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
+    <p class="parallele">À lancer en même temps : BTN4, BTN5 (aucun fichier en commun)</p>
     <ul class="fiches">
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">BTN1</span><span class="etat">faite</span></span>
         <details><summary><span class="titre">Joindre vlp.js aux pages, et dire quoi joindre</span></summary>
@@ -50,17 +51,17 @@
         <details><summary><span class="titre">Tout déplier, et copier la commande d'une fiche</span></summary>
         <span class="note">UTF-8 ; Tout déplier 7/7 puis 0 (BTN et feuille) ; 5 Copier pour 5 fiches non faites ; clic → « Sélectionné : fais Ctrl+C » (presse-papiers refusé dans l'app), fiche non repliée ; 375 px : 375/375 (page enveloppée) ; mutant boucle retirée → 1→1 et 0→0 ; vu par l'utilisateur</span></details>
         <span class="cout mono">≈5,1M (5 069 068) · 41 tours · 2,57 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">BTN4</span><span class="etat">en cours</span><span class="dep mono">← BTN1</span></span>
+      <li class="fiche" data-etat="encours" data-parallele><span class="gauche"><span class="id">BTN4</span><span class="etat">en cours</span><span class="dep mono">← BTN1</span></span>
         <details open><summary><span class="titre">Filtrer la feuille par état</span></summary>
         <span class="note">filtre de la feuille par état : à faire, en cours, clos ; dépend de BTN1 ; visuel</span></details>
         <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
-      <li class="fiche"><span class="gauche"><span class="id">BTN5</span><span class="etat">à faire</span><span class="dep mono">← BTN1</span></span>
+      <li class="fiche" data-parallele><span class="gauche"><span class="id">BTN5</span><span class="etat">à faire</span><span class="dep mono">← BTN1</span></span>
         <details><summary><span class="titre">Dessiner le coût des chantiers clos</span></summary>
         <span class="note">couts.svg, une barre par chantier clos, écrit par vlp.py ; dépend de BTN1</span></details></li>
       <li class="fiche"><span class="gauche"><span class="id">BTN7</span><span class="etat">à faire</span></span>
         <details><summary><span class="titre">Le décompte en valeur, le texte d'avant la liste replié</span></summary>
         <span class="note">décompte en gras et plus grand, style dans vlp.css ; texte d'avant la liste replié (Cairn 177 mots) ; ajoutée sur commentaire (A1) ; ne dépend de rien</span></details></li>
-      <li class="fiche"><span class="gauche"><span class="id">BTN6</span><span class="etat">à faire</span><span class="dep mono" title="BTN1, BTN2, BTN3, BTN4, BTN5, BTN7">← 6 fiches</span></span>
+      <li class="fiche"><span class="gauche"><span class="id">BTN6</span><span class="etat">à faire</span><span class="dep attend mono" title="BTN4, BTN5, BTN7">attend 3 fiches</span></span>
         <details><summary><span class="titre">Régénérer, republier, et regarder</span></summary>
         <span class="note">régénérer et republier kit, Cairn et BTN, mesurer avant et après ; dépend de toutes ; visuel</span></details>
         <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>

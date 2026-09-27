@@ -2002,9 +2002,11 @@ VISUEL = '<span class="badge visuel" title="Critère de fin visuel : il faudra r
 
 
 def apercu_fiches(lignes):
-    """{id: (dépendances, critère visuel)} lus dans le bloc de chaque fiche : les identifiants de
-    sa ligne `**Dépend de**` et de ses suites, et vrai si son `**Critère de fin**` porte `(visuel)`
-    — la colonne de gauche et celle de droite de sa carte sur la page (gabarit en colonnes)."""
+    """{id: (dépendances, critère visuel, fichiers)} lus dans le bloc de chaque fiche : les
+    identifiants de sa ligne `**Dépend de**` et de ses suites, vrai si son `**Critère de fin**`
+    porte `(visuel)` — la colonne de gauche et celle de droite de sa carte sur la page (gabarit en
+    colonnes) —, et le nom seul de chaque fichier de sa ligne `**Fichiers**` : `vlp.css` pour
+    `templates/vlp.css`, pour qu'un même fichier nommé de deux façons compte comme commun."""
     titres = [i for i, l in enumerate(lignes) if TITRE.match(l)] + [len(lignes)]
     rendu = {}
     for i, suivant in zip(titres, titres[1:]):
@@ -2019,18 +2021,41 @@ def apercu_fiches(lignes):
             if dedans:
                 deps += [d for d in DEPEND.findall(l) if d not in deps]
             visuel = visuel or bool(CRITERE_VISUEL.match(l))
-        rendu[lignes[i].split()[1]] = (deps, visuel)
+        # Un fichier : un chemin, ou un nom à extension — pas `compte_todo`, `:3124` ni « rien ».
+        fichiers = {n.rstrip("/").rsplit("/", 1)[-1] for n in noms_fichiers(lignes[i + 1:suivant])
+                    if "/" in n or re.fullmatch(r"[\w-]+(?:\.[\w-]+)+", n)}
+        rendu[lignes[i].split()[1]] = (deps, visuel, fichiers)
     return rendu
 
 
-def fleche(noms, unite="fiches"):
+def pretes(fiches_, etat, apercu):
+    """({id: ce qu'elle attend}, [en même temps]) pour les fiches non faites. Une fiche attend ses
+    dépendances de ce fichier pas encore faites ; sans rien à attendre, elle est prête. En même
+    temps : les prêtes prises dans l'ordre, chacune seulement si elle n'a aucun fichier en commun
+    avec celles déjà prises — une prête sans ligne `**Fichiers**` n'en est pas : on ne sait pas ce
+    qu'elle touche. Moins de deux : aucune. Les fichiers sont ceux que la fiche annonce, pas ceux
+    qu'elle touchera — le repère prévient, il ne garantit rien (chantier BTN)."""
+    attend = {i: [d for d in apercu.get(i, ([],))[0] if etat.get(d, "faite") != "faite"]
+              for i, _, _, _ in fiches_ if etat[i] != "faite"}
+    ensemble, pris = [], set()
+    for i, _, _, _ in fiches_:
+        touche = apercu.get(i, ([], False, set()))[2]
+        if i in attend and not attend[i] and touche and not touche & pris:
+            ensemble.append(i)
+            pris |= touche
+    return attend, ensemble if len(ensemble) > 1 else []
+
+
+def fleche(noms, unite="fiches", attend=False):
     """Les dépendances d'une carte, dans sa colonne de gauche : `← A, B` ; au-delà de deux,
-    `← n fiches` et la liste au survol (`title`) — la colonne est étroite ; rien sans dépendance."""
+    `← n fiches` et la liste au survol (`title`) — la colonne est étroite ; rien sans dépendance.
+    `attend` : une fiche pas prête, `attend A, B` — seulement ce qui n'est pas fait."""
     if not noms:
         return ""
+    debut, signe = ('<span class="dep attend mono"', "attend") if attend else ('<span class="dep mono"', "←")
     if len(noms) <= 2:
-        return '<span class="dep mono">← %s</span>' % esc(", ".join(noms))
-    return '<span class="dep mono" title="%s">← %d %s</span>' % (esc(", ".join(noms)), len(noms), unite)
+        return '%s>%s %s</span>' % (debut, signe, esc(", ".join(noms)))
+    return '%s title="%s">%s %d %s</span>' % (debut, esc(", ".join(noms)), signe, len(noms), unite)
 
 
 def lis_page(html):
@@ -2456,11 +2481,15 @@ def regenerer(html, fichier, parts, date, gardes, forme=False):
         raise ValueError("page : résultat introuvable")
     etiquette = {"faite": "faite", "encours": "en cours", "bloquee": "bloquée", None: "à faire"}
     apercu = apercu_fiches(lignes)
+    attend, ensemble = pretes(fiches_, etat, apercu)
     items = []
     for ident, titre, _, _ in fiches_:
         e = etat[ident]
         note = esc(parts["notes"][ident]) if ident in parts["notes"] else None
-        deps, visuel = apercu.get(ident, ([], False))
+        deps, visuel, _ = apercu.get(ident, ([], False, set()))
+        # Une fiche pas prête dit ce qu'elle attend, à la place de ses dépendances — et `vlp.js`
+        # ne lui pose pas de Copier ; `data-parallele` : le trait des fiches à lancer en même temps.
+        gauche = fleche(attend[ident], attend=True) if attend.get(ident) else fleche(deps)
         # Trois colonnes (gabarit en colonnes, 2026-09-27) : à gauche l'identifiant, l'état et les
         # dépendances ; au milieu le titre, qui seul replie la note — repliée sauf en cours ou
         # bloquée (PLI) ; à droite le coût, ou « visuel » tant qu'une fiche à regarder n'est pas
@@ -2472,8 +2501,8 @@ def regenerer(html, fichier, parts, date, gardes, forme=False):
         items.append('      <li class="fiche"%s><span class="gauche"><span class="id">%s</span>'
                      '<span class="etat">%s</span>%s</span>\n'
                      '        <details%s><summary><span class="titre">%s</span></summary>%s</details>%s</li>'
-                     % (' data-etat="%s"' % e if e else "", ident,
-                        libelles[ident][1] if ident in libelles else etiquette.get(e, e), fleche(deps),
+                     % ((' data-etat="%s"' % e if e else "") + (" data-parallele" if ident in ensemble else ""), ident,
+                        libelles[ident][1] if ident in libelles else etiquette.get(e, e), gauche,
                         " open" if e in ("encours", "bloquee") else "",
                         libelles[ident][0] if ident in libelles else esc(titre),
                         '\n        <span class="note">%s</span>' % note if note else "",
@@ -2481,6 +2510,9 @@ def regenerer(html, fichier, parts, date, gardes, forme=False):
     prefixe = re.search(r'<p class="mono cout-total">(.*?) : ', html)
     prefixe = prefixe.group(1) if prefixe else "Coût du chantier"
     html = re.sub(r'\n[ \t]*<p class="mono cout-(?:total|hors)">.*?</p>', "", html, flags=re.S)
+    html = re.sub(r'<p class="parallele">[^\n]*</p>\n[ \t]*(?=<ul class="fiches">)', "", html)
+    legende = ('<p class="parallele">À lancer en même temps : %s (aucun fichier en commun)</p>\n    '
+               % ", ".join(ensemble) if ensemble else "")
     bloc = "\n" + "\n".join(items)
     bloc_total = ""
     if forme:
@@ -2490,7 +2522,7 @@ def regenerer(html, fichier, parts, date, gardes, forme=False):
             bloc_total += '\n    <p class="mono cout-hors">Hors fiches : %s</p>' % ligne_cout(*hors)
         if total:
             bloc_total += '\n    <p class="mono cout-total">%s : %s</p>' % (prefixe, ligne_cout(*total))
-    html, n = UL_FICHES.subn(lambda m: m.group(1) + bloc + m.group(3) + bloc_total, html, count=1)
+    html, n = UL_FICHES.subn(lambda m: legende + m.group(1) + bloc + m.group(3) + bloc_total, html, count=1)
     if not n:
         raise ValueError("page : liste des fiches introuvable")
     spans = "".join('<span%s></span>' % (' data-etat="%s"' % etat[f[0]] if etat[f[0]] else "") for f in fiches_)

@@ -7,7 +7,7 @@
   chargement, à partir des crochets que la page porte déjà ; il pose des
   classes, jamais d'attribut style — les styles vivent dans vlp.css.
   BTN3 : tout déplier et tout replier, sous le titre de chaque liste de
-  cartes ; copier la commande d'une fiche, dans la colonne de gauche. BTN4 (filtrer la feuille par état)
+  cartes ; copier la commande d'une fiche prête, dans la colonne de gauche. BTN4 (filtrer la feuille par état)
   viendra ici aussi.
 */
 (() => {
@@ -39,12 +39,13 @@
     titre.after(replis);
   });
 
-  // Copier : dans la colonne de gauche de chaque fiche non faite, sous son état et avant ses
-  // dépendances ; copie `/vlp:tache <ID>`.
+  // Copier : dans la colonne de gauche de chaque fiche prête — non faite, et sans « attend … »,
+  // que vlp.py écrit à la place des dépendances d'une fiche pas prête —, sous son état et avant
+  // ses dépendances ; copie `/vlp:tache <ID>`.
   page.querySelectorAll("li.fiche").forEach((li) => {
     const id = li.querySelector("span.id");
     const gauche = li.querySelector(".gauche");
-    if (li.dataset.etat === "faite" || !id || !gauche) return;
+    if (li.dataset.etat === "faite" || li.querySelector(".attend") || !id || !gauche) return;
     const commande = "/vlp:tache " + id.textContent.trim();
     const copier = bouton("Copier", "copier");
     copier.addEventListener("click", () => {

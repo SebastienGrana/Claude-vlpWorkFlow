@@ -3718,7 +3718,7 @@ def tester_carte_en_colonnes():
                  "<!-- /FICHE -->\n\n"
                  "<!-- FICHE:Q2 -->\n## Q2 [ ] — Visuelle\n**Dépend de** : `Q1`.\n**Critère de fin** (visuel)\nx\n"
                  "<!-- /FICHE -->\n\n"
-                 "<!-- FICHE:Q3 -->\n## Q3 [ ] — Trois dépendances\n**Dépend de** : `Q1`,\n`Q2` et `PLI3`.\n"
+                 "<!-- FICHE:Q3 -->\n## Q3 [ ] — Trois dépendances\n**Dépend de** : `Q1`,\n`PLI2` et `PLI3`.\n"
                  "**Critère de fin**\nx\n<!-- /FICHE -->\n")
     c1 = "≈1,1k (1 111) · 1 tours · 0,01 $"
     with tempfile.TemporaryDirectory() as tcc:
@@ -3737,7 +3737,7 @@ def tester_carte_en_colonnes():
                  "Q1" in li and 'class="dep' not in li["Q1"], "%r" % li)
         verifier("colonnes : au-delà de deux dépendances, leur nombre et la liste au survol, ligne suivante comprise"
                  " — mutant : seuil retiré",
-                 '<span class="dep mono" title="Q1, Q2, PLI3">← 3 fiches</span>' in li.get("Q3", ""), li.get("Q3", ""))
+                 '<span class="dep mono" title="Q1, PLI2, PLI3">← 3 fiches</span>' in li.get("Q3", ""), li.get("Q3", ""))
         verifier("colonnes : « visuel » à droite d'une fiche à regarder et non faite, seulement"
                  " — mutant : la fiche faite l'a aussi",
                  mod.VISUEL in li.get("Q2", "") and mod.VISUEL not in li.get("Q1", "")
@@ -3782,6 +3782,66 @@ def tester_carte_en_colonnes():
 
 
 tester_carte_en_colonnes()
+
+
+# Fiches prêtes, et à lancer en même temps (commentaire de la page BTN) : une fiche pas prête dit
+# ce qu'elle attend ; les prêtes sans fichier commun portent `data-parallele`, et la légende les nomme.
+def tester_pretes_et_paralleles():
+    def fiche(ident, case, dep, fichiers):
+        return ("<!-- FICHE:%s -->\n## %s [%s] — Fiche %s\n**Dépend de** : %s\n%s**Critère de fin**\nx\n"
+                "<!-- /FICHE -->\n\n" % (ident, ident, case, ident, dep, "**Fichiers** : %s\n" % fichiers if fichiers else ""))
+    def fichier_md(faites):
+        return ("# Chantier R\n\n## Le socle commun\n\n## L'ordre des fiches\n\n"
+                + fiche("R1", "x", "rien.", "`a.py`")
+                + fiche("R2", "x" if "R2" in faites else " ", "`R1`.", "`scripts/a.py`, `b.css`")
+                + fiche("R3", "x" if "R3" in faites else " ", "`R1`.", "`c.js` (nouveau) — et rien d'autre.")
+                + fiche("R4", "x" if "R4" in faites else " ", "rien.", "`templates/b.css` (`.x > y` `:12`), `compte_todo`")
+                + fiche("R5", " ", "`R2`, `R3`,\n`R4` et `PLI9`.", "`d.md`")
+                + fiche("R6", " ", "`R1`.", "")
+                + fiche("R7", "x" if "R7" in faites else " ", "`R3`.", "`e.md`"))
+    legende = '<p class="parallele">À lancer en même temps : %s (aucun fichier en commun)</p>\n    <ul class="fiches">'
+    with tempfile.TemporaryDirectory() as tpp:
+        fiches = os.path.join(tpp, "r.md")
+        page = os.path.join(tpp, "artefacts", "r.html")
+        ecrire(fiches, fichier_md(()))
+        code, s = appel(["page", fiches, page, "--creer", "--projet", "Proj", "--titre", "T", "--resultat", "R0"])
+        html = lire(page)
+        li = {m.group(1): m.group(0)
+              for m in re.finditer(r'<li class="fiche".*?<span class="id">(\w+)</span>.*?</li>', html, re.S)}
+        verifier("prêtes : une fiche pas prête dit ce qu'elle attend, pas ce qui est fait ni hors du fichier,"
+                 " et plus de deux au survol — mutant : attente ignorée",
+                 code == 0 and '<span class="dep attend mono" title="R2, R3, R4">attend 3 fiches</span>' in li.get("R5", "")
+                 and "←" not in li.get("R5", "") and '<span class="dep attend mono">attend R3</span>' in li.get("R7", ""),
+                 s + html)
+        verifier("prêtes : une fiche prête garde ses dépendances, sans « attend »",
+                 '<span class="dep mono">← R1</span>' in li.get("R2", "") and "attend" not in li.get("R2", "")
+                 and "attend" not in li.get("R4", ""), "%r" % li)
+        verifier("en même temps : les prêtes sans fichier commun (même nommé autrement), pas celle sans ligne Fichiers"
+                 " — mutant : fichiers communs ignorés",
+                 li.get("R2", "").startswith('<li class="fiche" data-etat="encours" data-parallele>')
+                 and li.get("R3", "").startswith('<li class="fiche" data-parallele>')
+                 and all("data-parallele" not in li.get(i, "-") for i in ("R1", "R4", "R5", "R6", "R7"))
+                 and html.count('<p class="parallele">') == 1 and legende % "R2, R3" in html, "%r" % li)
+        verifier("en même temps : la page se relit — lis_page lit l'état malgré data-parallele",
+                 mod.lis_page(html).get("R2", ("?",))[0] == "encours", "%r" % mod.lis_page(html))
+        code, s = appel(["page", fiches, page])
+        code2, s2 = appel(["page", fiches, page, "--forme"])
+        verifier("en même temps : régénérer, puis repeindre, ne change rien — mutant : ancienne légende gardée",
+                 code == 0 and code2 == 0 and lire(page) == html, s + s2 + lire(page))
+        ecrire(fiches, fichier_md(("R2", "R3")))
+        appel(["page", fiches, page])
+        apres = lire(page)
+        verifier("en même temps : la légende suit les cases — R2 et R3 faites, R4 et R7 prêtes",
+                 apres.count('<p class="parallele">') == 1 and legende % "R4, R7" in apres
+                 and '<span class="dep attend mono">attend R4</span>' in apres, apres)
+        ecrire(fiches, fichier_md(("R2", "R3", "R4", "R7")))
+        appel(["page", fiches, page])
+        apres = lire(page)
+        verifier("en même temps : une seule prête avec des fichiers — ni trait, ni légende",
+                 '<p class="parallele">' not in apres and "data-parallele" not in apres, apres)
+
+
+tester_pretes_et_paralleles()
 
 
 # --- PLI6 : le journal replié au-delà de 3 entrées ; le bilan sous l'en-tête à la clôture ---
