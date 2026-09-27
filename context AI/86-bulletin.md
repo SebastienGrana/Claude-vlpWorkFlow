@@ -51,8 +51,9 @@ l'heure de départ **du sous-agent lui-même** — seule borne juste des deux c�
 ---
 
 <!-- FICHE:CHK1 -->
-## CHK1 [ ] — `contrat --ouverture` : depuis l'ajout du fichier de fiches
+## CHK1 [x] — `contrat --ouverture` : depuis l'ajout du fichier de fiches
 
+**Session** : 5a12485e-8f92-4566-8eac-a08b630de356
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` — et rien d'autre.
 

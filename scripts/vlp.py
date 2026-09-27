@@ -225,7 +225,7 @@ Sous-commandes :
   déjà (non réécrite). Pas de feuille, aucun clos mesuré, pas de `**Fait.**` : `GARDE:`,
   le reste est écrit (chantier EST).
   Un autre chantier déjà ouvert, ou F porte `**CLOS**` : `GARDE:`, sort 1.
-- `contrat [<transcription>…] [--depuis D]` — le contrat d'`agents/fiche.md` lu dans des
+- `contrat [<transcription>…] [--depuis D] [--ouverture F]` — le contrat d'`agents/fiche.md` lu dans des
   transcriptions de sous-agent (chantier CON). Sans argument : toutes celles dont le
   `.meta.json` voisin dit `vlp:fiche`, sous `~/.claude/projects/*/*/subagents/`. Une ligne
   chacune : `<id> <agentType> <départ de la session parente, UTC | ?> <premier mot du dernier
@@ -233,8 +233,11 @@ Sous-commandes :
   `add` ou `reset`, `-C`/`-c` compris, hors corps d'un heredoc écrit par `cat` ou `tee`
   (chantier ECH) ; illisible : `ILLISIBLE <chemin>`. `--depuis` (heure
   ISO ou commit, comme `mesure-tokens.py --plage`) : celles dont la session parente a démarré
-  à D ou après. Puis `CONTRAT <n> sous-agents · <n> écrivent dans Git · <n> sans statut en
-  tête` (ni `FAITE`, ni `RETOUR`, ni `BLOQUÉE`). Borne illisible : `GARDE:`, sort 1.
+  à D ou après. `--ouverture` : ceux partis — leur heure à eux — depuis le plus ancien commit
+  qui ajoute le fichier de fiches F, sous une ligne `DEPUIS <heure UTC> · ouverture de F` ; F
+  dans aucun commit : `GARDE:`, sort 1 (chantier CHK). Puis `CONTRAT <n> sous-agents · <n>
+  écrivent dans Git · <n> sans statut en tête` (ni `FAITE`, ni `RETOUR`, ni `BLOQUÉE`). Borne
+  illisible : `GARDE:`, sort 1.
 - `forme [<transcription>…] [--depuis D] [--regle R]` — la forme et le poids dans des
   transcriptions de sous-agent. Sans argument : toutes celles dont le `.meta.json` voisin dit
   `vlp:fiche` ou `vlp:relecture`, sous `~/.claude/projects/*/*/subagents/`. Une ligne
@@ -1582,16 +1585,41 @@ def type_agent(chemin):
         return "?"
 
 
+def ouverture(chemin):
+    """(heure, None) : l'heure d'auteur du plus ancien commit qui ajoute le fichier de fiches —
+    « Chantier X ouvert » pour 69 fichiers sur 80 ; le premier commit qui nomme le préfixe est
+    souvent l'ajout à la TODO (chantier CHK). (None, raison) sans git ou sans ce commit."""
+    import subprocess
+    try:
+        r = subprocess.run([GIT, "log", "--diff-filter=A", "--format=%at", "--", os.path.basename(chemin)],
+                           cwd=os.path.dirname(os.path.abspath(chemin)), capture_output=True, encoding="utf-8",
+                           errors="replace", timeout=60)
+    except (OSError, subprocess.SubprocessError) as e:
+        return None, "git ne se lance pas : %s" % e
+    heures = r.stdout.split()
+    if r.returncode or not heures or not heures[-1].isdigit():
+        return None, "aucun commit n'ajoute ce fichier : l'ouverture n'est pas commitée"
+    return int(heures[-1]), None
+
+
 def cmd_contrat(a, sortie):
     """Une ligne par transcription de sous-agent : id, type, départ de la session parente,
-    premier mot du dernier message, appels qui écrivent dans Git ; puis le bilan."""
+    premier mot du dernier message, appels qui écrivent dans Git ; puis le bilan. `--ouverture` :
+    ceux partis — leur heure à eux, pas celle de la session parente — depuis l'ajout du fichier."""
     m = mesure()
-    depuis = None
+    depuis = ouvert = None
     if a.depuis:
         depuis, err = m.borne(a.depuis)
         if err:
             sortie.write("GARDE: --depuis %s : %s\n" % (a.depuis, err))
             return 1
+    if a.ouverture:
+        ouvert, err = ouverture(a.ouverture)
+        if err:
+            sortie.write("GARDE: --ouverture %s : %s\n" % (a.ouverture, err))
+            return 1
+        sortie.write("DEPUIS %s · ouverture de %s\n" % (time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(ouvert)),
+                                                        a.ouverture))
     chemins = a.transcriptions
     if not chemins:
         motif = os.path.join(os.path.expanduser("~"), ".claude", "projects", "*", "*", *m.SOUS_AGENTS)
@@ -1601,6 +1629,8 @@ def cmd_contrat(a, sortie):
         parent = os.path.dirname(os.path.dirname(c)) + ".jsonl"
         t, _ = m.depart(parent)     # absente ou illisible : t None
         if depuis is not None and (t is None or t < depuis):
+            continue
+        if ouvert is not None and (m.depart(c)[0] or 0) < ouvert:
             continue
         mot, git = lire_contrat(c)
         if mot is None:
@@ -4384,6 +4414,7 @@ def main(argv, sortie=None, entree=None, erreur=None):
     ct = sous.add_parser("contrat")
     ct.add_argument("transcriptions", nargs="*")
     ct.add_argument("--depuis")
+    ct.add_argument("--ouverture")
     fm = sous.add_parser("forme")
     fm.add_argument("transcriptions", nargs="*")
     fm.add_argument("--depuis")

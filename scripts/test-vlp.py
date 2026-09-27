@@ -14,6 +14,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 from typing import Any
 
 for _flux in (sys.stdout, sys.stderr):
@@ -3919,5 +3920,58 @@ def tester_hook_pyright():
 
 
 tester_hook_pyright()
+
+
+def tester_contrat_ouverture():
+    # CHK1 : --ouverture garde les sous-agents partis depuis l'ajout du fichier de fiches — leur heure à
+    # eux : la session parente, partie avant, ne les écarte pas.
+    if not shutil.which("git"):
+        print("SAUTÉ: git absent — contrat --ouverture n'est pas testé")
+        return
+
+    def iso(s):
+        return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(T0 + s))
+
+    with tempfile.TemporaryDirectory() as t:
+        depot = os.path.join(t, "depot")
+        env = dict(os.environ, GIT_CONFIG_GLOBAL=os.path.join(t, "gitconfig"), GIT_CONFIG_NOSYSTEM="1",
+                   GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t")
+        ecrire(env["GIT_CONFIG_GLOBAL"], "")
+
+        def git(quand, *args):
+            date = "@%d +0000" % (T0 + quand)
+            subprocess.run(["git"] + list(args), cwd=depot, capture_output=True, check=True,
+                           env=dict(env, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date))
+
+        ecrire(os.path.join(depot, "a.md"), "a\n")
+        git(0, "init", "-q")
+        git(0, "add", "a.md")
+        git(0, "commit", "-q", "-m", "TODO : Q ajouté")
+        q = os.path.join(depot, "q.md")
+        ecrire(q, "# Chantier Q\n")
+        git(1000, "add", "q.md")
+        git(1000, "commit", "-q", "-m", "Chantier Q ouvert")
+        ecrire(os.path.join(t, "p", "sess.jsonl"), json.dumps({"timestamp": iso(200)}) + "\n")
+
+        def agent(id_, quand):
+            chemin = os.path.join(t, "p", "sess", "subagents", "agent-%s.jsonl" % id_)
+            ecrire(chemin, json.dumps({"timestamp": iso(quand), "message": {"role": "assistant", "content": [
+                {"type": "text", "text": "FAITE — Q1 cochée."}]}}, ensure_ascii=False) + "\n")
+            ecrire(chemin[:-len(".jsonl")] + ".meta.json", json.dumps({"agentType": "vlp:fiche"}))
+            return chemin
+
+        avant, apres = agent("avant", 500), agent("apres", 1500)
+        code, s = appel(["contrat", avant, apres, "--ouverture", q])
+        verifier("CHK1 : --ouverture garde le sous-agent parti après, session parente partie avant", code == 0
+                 and s == "DEPUIS %s · ouverture de %s\napres vlp:fiche %s FAITE git 0\n"
+                 "CONTRAT 1 sous-agents · 0 écrivent dans Git · 0 sans statut en tête\n" % (iso(1000), q, iso(200)), s)
+        r = os.path.join(depot, "r.md")
+        ecrire(r, "r\n")
+        code, s = appel(["contrat", avant, "--ouverture", r])
+        verifier("CHK1 : fichier jamais commité, GARDE", code == 1 and s == "GARDE: --ouverture %s : aucun commit "
+                 "n'ajoute ce fichier : l'ouverture n'est pas commitée\n" % r, s)
+
+
+tester_contrat_ouverture()
 
 print("OK")

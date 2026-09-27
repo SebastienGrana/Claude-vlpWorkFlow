@@ -20,9 +20,9 @@
     <p>/vlp:check dit, sans rien rejouer, combien de sous-agents ont tourné depuis l'ouverture du chantier, combien ont écrit dans Git, combien sans statut en tête.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="encours"></span><span></span>
+      <span data-etat="faite"></span><span data-etat="encours"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">2 fiches · 0 faite · en cours : CHK1</p>
+    <p class="mono" style="margin-top:.5rem">2 fiches · 1 faite · en cours : CHK2</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -37,15 +37,19 @@
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="encours"><details open>
+      <li class="fiche" data-etat="faite"><details>
         <summary><span class="id">CHK1</span><span class="titre">contrat --ouverture : depuis l'ajout du fichier de fiches</span>
+        <span class="etat">faite</span></summary>
+        <span class="note">contrat --ouverture F : borne = plus ancien commit qui ajoute F (git log --diff-filter=A), filtre par l'heure du sous-agent lui-même, ligne DEPUIS ; F non commité : GARDE code 1 ; test dépôt temporaire (F à T0+1000, parent à 200, sous-agents à 500 et 1500 → CONTRAT 1) ; mutants heure parente → 0 listé, filtre retiré → 2 listés : ÉCART ; réel : CHK CONTRAT 0, depuis FOR CONTRAT 11 · 3 écrivent dans Git · 1 sans statut ; test-vlp OK ; pyright 0 errors</span>
+        <span class="cout mono">≈1,3M (1 316 463) · 8 tours · 0,54 $</span>
+      </details></li>
+      <li class="fiche" data-etat="encours"><details open>
+        <summary><span class="id">CHK2</span><span class="titre">/vlp:check rend le bulletin du gardien</span>
         <span class="etat">en cours</span></summary>
       </details></li>
-      <li class="fiche"><details>
-        <summary><span class="id">CHK2</span><span class="titre">/vlp:check rend le bulletin du gardien</span>
-        <span class="etat">à faire</span></summary>
-      </details></li>
     </ul>
+    <p class="mono cout-hors">Hors fiches : ≈2,7M (2 749 309) · 20 tours · 1,37 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈4,1M (4 065 772) · 28 tours · 1,91 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
