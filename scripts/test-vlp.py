@@ -2454,6 +2454,38 @@ def test_feuille_en_cartes():
 
 test_feuille_en_cartes()
 
+
+def test_sommaire():
+    """FEU4 : sommaire et `id` des trois sections, posés une seule fois sur une feuille sans eux."""
+    with tempfile.TemporaryDirectory() as ts:
+        ecrire(os.path.join(ts, "CHANTIER.md"),
+               "# C\n\n- **contexte** : ctx/\n- **fichier d'état** : ctx/08-etat.md\n"
+               "- **fichier de fiches courant** : aucun\n\n"
+               "Lettres de fiche déjà prises : E (Un). Un nouveau chantier en choisit une autre.\n")
+        ecrire(os.path.join(ts, "ctx", "08-etat.md"),
+               "# État\n\n| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |\n|---|---|---|---|---|\n"
+               "| 3 | Trois | a | 2 fiches | — |\n\n## Journal\n")
+        gabarit = io.open(os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html"), encoding="utf-8").read()
+        sans = re.sub(r' id="(?:encours|todo|clos)"', "", gabarit.replace("\n" + mod.SOMMAIRE, ""))
+        fdr = os.path.join(ts, "ctx", "artefacts", "feuille-de-route.html")
+        ecrire(fdr, sans)
+        code, s = appel(["feuille", ts, "--date", "2026-09-27"])
+        html = io.open(fdr, encoding="utf-8").read()
+        noms = ("encours", "todo", "clos")
+        verifier("FEU4 : un sommaire sous l'en-tête, trois liens, chaque cible id une fois",
+                 code == 0 and "sommaire" not in sans and 'id="' not in sans
+                 and html.count('class="sommaire"') == 1 and html.count("<nav") == 1
+                 and html.count('<a href="#') == 3
+                 and all(html.count('href="#%s"' % n) == 1 and html.count('id="%s"' % n) == 1 for n in noms)
+                 and html.index("</header>") < html.index("<nav") < html.index('id="encours"')
+                 < html.index('id="todo"') < html.index('id="clos"'),
+                 (s, html[:1500]))
+        code, s = appel(["feuille", ts, "--date", "2026-09-28"])
+        verifier("FEU4 : 2e appel inchangée", code == 0 and "inchangée" in s, s)
+
+
+test_sommaire()
+
 # UNI1 : clore utilise le total mesuré ; sans mesure, retombe sur --tokens
 with tempfile.TemporaryDirectory() as t:
     proj = os.path.join(t, "uni")

@@ -181,8 +181,9 @@ omis → le test tombe. Les tests de `test-vlp.py:1010-1040` passés à la forme
 ---
 
 <!-- FICHE:FEU4 -->
-## FEU4 [ ] — Poser le sommaire
+## FEU4 [x] — Poser le sommaire
 
+**Session** : bc14fab5-1e0d-472c-908e-b6dfeefa2dfd
 **Dépend de** : `FEU3`.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py`, `templates/artefact-feuille-de-route.html`, `templates/vlp.css` — et rien d'autre.
 

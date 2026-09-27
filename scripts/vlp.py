@@ -162,9 +162,9 @@ Sous-commandes :
   cartes (depuis la TODO du fichier d'état ; une feuille en tableau se
   convertit ; `--todo N` y pose le badge « en cours », gardé
   d'un appel à l'autre tant qu'un chantier est ouvert), son décompte
-  « <n> chantiers possibles » au-dessus des cartes (posé s'il manque), et les
-  lettres prises du pied (plus celle du chantier courant) ; la date seulement si
-  la page change.
+  « <n> chantiers possibles » au-dessus des cartes (posé s'il manque), les
+  lettres prises du pied (plus celle du chantier courant), et, une seule fois, le
+  sommaire sous l'en-tête ; la date seulement si la page change.
   `FEUILLE todo <n> · encours <oui|non> · lettres <n> · <réécrite|inchangée>
   — <page>`. `--verifier` n'écrit rien, dit `identique|écart`, sort 1 sur écart.
 - `clore <projet> --livre T [--tokens N] [--abandon T] [--fait T] [--surpris T]
@@ -2918,6 +2918,32 @@ def en_cartes(html):
     return html[:debut] + '<ol class="todo">\n        </ol>' + html[fin + len(ferme):]
 
 
+SOMMAIRE = ('  <nav class="sommaire" aria-label="Sommaire"><a href="#encours">Chantier en cours</a>'
+            '<a href="#todo">Chantiers possibles</a><a href="#clos">Chantiers clos</a></nav>\n')
+
+
+def sommaire(html):
+    """Le sommaire sous l'en-tête, et l'`id` des trois sections qu'il vise, posés **une seule
+    fois** : déjà là, la page reste telle quelle. Sans `</header>`, ou sans une section propre à
+    chacune des trois zones, rien n'est posé — un lien sans cible ne sert à rien (chantier FEU)."""
+    if 'class="sommaire"' in html:
+        return html
+    tete = html.find("</header>")
+    cibles = []
+    for nom in ("encours", "todo", "clos"):
+        z = html.find("<!-- ZONE:" + nom)
+        s = html.rfind("<section", 0, z) if z >= 0 else -1
+        if s < 0:
+            return html
+        cibles.append((s + len("<section"), nom))
+    if tete < 0 or len({i for i, _ in cibles}) < 3:
+        return html
+    for i, nom in sorted(cibles, reverse=True):
+        html = html[:i] + ' id="%s"' % nom + html[i:]
+    i = html.find("\n", tete) + 1
+    return html[:i] + "\n" + SOMMAIRE + html[i:]
+
+
 def feuille(projet, html, todo, date):
     """(page régénérée, bilan) : encours, todo et lettres depuis `CHANTIER.md` et le fichier d'état."""
     html = migrer_style(html)
@@ -2961,6 +2987,7 @@ def feuille(projet, html, todo, date):
     neuf = neuf[:d] + encours + neuf[f:]
     neuf = re.sub(r'(Lettres de fiche prises : <span class="mono">).*?(</span>)',
                   lambda m: m.group(1) + ", ".join(lettres) + m.group(2), neuf, count=1)
+    neuf = sommaire(neuf)
     if neuf != html:
         neuf = re.sub(r'(Mis à jour le <span class="mono">).*?(</span>)',
                       lambda m: m.group(1) + date + m.group(2), neuf, count=1)

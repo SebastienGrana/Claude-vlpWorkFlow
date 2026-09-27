@@ -17,7 +17,8 @@ h1 { font-size:1.9rem; font-weight:700; letter-spacing:-.015em; }
 h2 { font-size:.8rem; font-weight:700; text-transform:uppercase; letter-spacing:.09em; color:var(--doux); }
 a { color:var(--accent); }
 a:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
-.eyebrow { font-family:"IBM Plex Mono",monospace; font-size:.75rem; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); }
+.eyebrow,.sommaire { font-family:"IBM Plex Mono",monospace; font-size:.75rem; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); }
+.sommaire { display:flex; flex-wrap:wrap; gap:.3rem 1.25rem; }
 .mono,.fiche .id,.fiche .etat,.journal time,.blocage pre { font-family:"IBM Plex Mono",monospace; }
 .mono { font-variant-numeric:tabular-nums; }
 header { display:flex; flex-direction:column; gap:.35rem; border-bottom:2px solid var(--line-fort); padding-bottom:1.25rem; }
