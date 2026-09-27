@@ -8,6 +8,10 @@
 en établit chaque cause, répare les deux défauts de mesure trouvés, puis écrit le recompte sur la
 feuille de route.
 
+**Estimé.** 1,5 fiches · ≈6,34 $ — ≈4,22 $/fiche sur 71 clos (le 2026-09-27).
+
+**Fait.** Rien. Ouvert le 2026-09-27, cadré en 3 fiches, `ECA1` à jouer.
+
 **Session** : 5a12485e-8f92-4566-8eac-a08b630de356
 
 ## Le socle commun
