@@ -158,10 +158,11 @@ Sous-commandes :
   main — <projet>` ; un écart restant : sort 1. `--date` fige la date.
 - `feuille <projet> [--todo N] [--verifier]` — régénère dans
   `<contexte>/artefacts/feuille-de-route.html` la `ZONE:encours` (depuis le
-  fichier de fiches courant et l'artefact du chantier), la `ZONE:todo` (depuis
-  la TODO du fichier d'état ; `--todo N` y pose le badge « en cours », gardé
+  fichier de fiches courant et l'artefact du chantier), la `ZONE:todo` en
+  cartes (depuis la TODO du fichier d'état ; une feuille en tableau se
+  convertit ; `--todo N` y pose le badge « en cours », gardé
   d'un appel à l'autre tant qu'un chantier est ouvert), son décompte
-  « <n> chantiers possibles » au-dessus du tableau (posé s'il manque), et les
+  « <n> chantiers possibles » au-dessus des cartes (posé s'il manque), et les
   lettres prises du pied (plus celle du chantier courant) ; la date seulement si
   la page change.
   `FEUILLE todo <n> · encours <oui|non> · lettres <n> · <réécrite|inchangée>
@@ -2900,6 +2901,23 @@ def rang_en_cours(contenu, forme):
     return m.group(1) if m else None
 
 
+def en_cartes(html):
+    """La TODO d'une feuille en tableau passée en liste de cartes vide : le `<div class="tableau">`
+    de la zone (à défaut, sa `<table>`) cède la place à `<ol class="todo">` ; ce qui le précède
+    dans la zone reste — 4 feuilles sur 5 y ont du texte le 2026-09-27 (chantier FEU)."""
+    d, f, forme = zone_todo(html)
+    if forme == "cartes":
+        return html
+    depart = html.find("-->", html.find("<!-- ZONE:todo"))
+    debut, ferme = html.rfind('<div class="tableau">', depart, d), "</div>"
+    if debut < 0:
+        debut, ferme = html.rfind("<table", depart, d), "</table>"
+    fin = html.find(ferme, html.find("</table>", f))
+    if debut < 0 or fin < 0:
+        raise ValueError("ZONE:todo : tableau sans bloc à remplacer")
+    return html[:debut] + '<ol class="todo">\n        </ol>' + html[fin + len(ferme):]
+
+
 def feuille(projet, html, todo, date):
     """(page régénérée, bilan) : encours, todo et lettres depuis `CHANTIER.md` et le fichier d'état."""
     html = migrer_style(html)
@@ -2929,12 +2947,16 @@ def feuille(projet, html, todo, date):
     rangs = todo_du_fichier(lignes_etat)
     if todo is not None and todo not in [r[0] for r in rangs]:
         raise ValueError("--todo %s absent de la TODO de %s" % (todo, etat))
-    corps = "".join('          <tr><td class="mono">%s</td><td>%s%s</td><td>%s</td><td class="mono">%s</td>'
-                    '<td class="mono">%s</td></tr>\n'
-                    % (esc(n), cellule_md(ch), BADGE_COURS if n == todo else "", cellule_md(ap),
-                       cellule_md(co), cellule_md(de)) for n, ch, ap, co, de in rangs) \
-        or '          <tr><td colspan="5" class="rien-cell">Rien en attente.</td></tr>\n'
-    neuf = compte_todo(html[:d] + corps + html[f:], len(rangs))
+    # Une carte par rang : l'étiquette dans le `summary`, « Ce qu'il apporte » replié (chantier FEU).
+    corps = "".join('          <li class="carte-todo"><details><summary><span class="rang mono">%s</span>'
+                    '<span class="titre">%s%s</span><span class="meta mono">%s · dépend de : %s</span></summary>'
+                    '<div class="detail">%s</div></details></li>\n'
+                    % (esc(n), cellule_md(ch), BADGE_COURS if n == todo else "", cellule_md(co),
+                       cellule_md(de), cellule_md(ap)) for n, ch, ap, co, de in rangs) \
+        or '          <li class="rien">Rien en attente.</li>\n'
+    cartes = en_cartes(html)
+    d, f, _ = zone_todo(cartes)
+    neuf = compte_todo(cartes[:d] + corps + cartes[f:], len(rangs))
     d, f = zone(neuf, "encours", "\n", "  </section>")
     neuf = neuf[:d] + encours + neuf[f:]
     neuf = re.sub(r'(Lettres de fiche prises : <span class="mono">).*?(</span>)',

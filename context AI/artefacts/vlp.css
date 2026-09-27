@@ -27,22 +27,22 @@ section { display:flex; flex-direction:column; gap:.85rem; }
 /* --- page de chantier : avancement, fiches, journal, blocage, bilan --- */
 .avancement { display:flex; gap:.25rem; margin-top:.9rem; }
 .avancement span { height:.4rem; flex:1; border-radius:1px; background:var(--line); }
-.fiches,.journal { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
-.fiches { gap:.5rem; } .journal { gap:.6rem; }
-.fiche { display:grid; grid-template-columns:3.5rem 1fr; gap:.1rem .9rem; background:var(--surface); border:1px solid var(--line); border-left:3px solid var(--attente); border-radius:3px; padding:.7rem .9rem; box-shadow:var(--ombre); }
-.fiche .id { font-weight:500; color:var(--doux); }
-.fiche .titre { font-weight:600; }
+.fiches,.todo,.journal { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
+.fiches,.todo { gap:.5rem; } .journal { gap:.6rem; }
+.fiche,.carte-todo { display:grid; grid-template-columns:3.5rem 1fr; gap:.1rem .9rem; background:var(--surface); border:1px solid var(--line); border-left:3px solid var(--attente); border-radius:3px; padding:.7rem .9rem; box-shadow:var(--ombre); }
+.fiche .id,.carte-todo .rang { font-weight:500; color:var(--doux); }
+.fiche .titre,.carte-todo .titre { font-weight:600; }
 .fiche .note { grid-column:2; font-size:.9rem; color:var(--doux); }
-.fiche .cout { grid-column:2; font-size:.78rem; color:var(--doux); }
+.fiche .cout,.carte-todo .meta { grid-column:2; font-size:.78rem; color:var(--doux); }
 .cout-total,.cout-hors { font-size:.85rem; color:var(--doux); }
 .fiche .etat { grid-column:1; font-size:.68rem; letter-spacing:.07em; text-transform:uppercase; color:var(--attente); }
 /* fiche repliable (chantier PLI) : en-tête toujours visible, note et coût dans le corps */
-.fiche > details { grid-column:1 / -1; }
-.fiche summary { display:grid; grid-template-columns:3.5rem 1fr; gap:.1rem .9rem; cursor:pointer; list-style:none; }
-.fiche summary::-webkit-details-marker { display:none; }
-.fiche details > .note,.fiche details > .cout { display:block; margin-left:4.4rem; }
-.fiche summary .titre::after { content:" ▸"; color:var(--doux); font-weight:400; }
-.fiche details[open] > summary .titre::after { content:" ▾"; }
+.fiche > details,.carte-todo > details { grid-column:1 / -1; }
+.fiche summary,.carte-todo summary { display:grid; grid-template-columns:3.5rem 1fr; gap:.1rem .9rem; cursor:pointer; list-style:none; }
+.fiche summary::-webkit-details-marker,.carte-todo summary::-webkit-details-marker { display:none; }
+.fiche details > .note,.fiche details > .cout,.carte-todo details > .detail { display:block; margin-left:4.4rem; }
+.fiche summary .titre::after,.carte-todo summary .titre::after { content:" ▸"; color:var(--doux); font-weight:400; }
+.fiche details[open] > summary .titre::after,.carte-todo details[open] > summary .titre::after { content:" ▾"; }
 /* les trois états, partout où ils comptent */
 .avancement span[data-etat="faite"] { background:var(--fait); }
 .avancement span[data-etat="encours"] { background:var(--cours); }
@@ -68,7 +68,7 @@ section { display:flex; flex-direction:column; gap:.85rem; }
 /* --- feuille de route : chantier en cours, TODO, chantiers clos --- */
 .encours { background:var(--surface); border:1px solid var(--line); border-left:3px solid var(--cours); border-radius:3px; padding:1rem 1.1rem; display:flex; flex-direction:column; gap:.4rem; box-shadow:var(--ombre); }
 .encours .titre { font-family:Archivo,system-ui,sans-serif; font-size:1.15rem; font-weight:700; }
-.encours .rien { color:var(--doux); }
+.encours .rien,.todo .rien { color:var(--doux); }
 .tableau { overflow-x:auto; }
 table { border-collapse:collapse; width:100%; font-size:.95rem; }
 th { text-align:left; font-size:.7rem; text-transform:uppercase; letter-spacing:.08em; color:var(--doux); font-weight:600; padding:0 .8rem .5rem 0; border-bottom:1px solid var(--line-fort); }

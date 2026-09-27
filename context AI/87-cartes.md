@@ -152,8 +152,9 @@ essayé d'abord → le cas « cartes » rend le `<tbody>` des clos, le test tomb
 ---
 
 <!-- FICHE:FEU3 -->
-## FEU3 [ ] — Écrire la TODO en cartes
+## FEU3 [x] — Écrire la TODO en cartes
 
+**Session** : bc14fab5-1e0d-472c-908e-b6dfeefa2dfd
 **Dépend de** : `FEU2`.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py`, `templates/artefact-feuille-de-route.html`, `templates/vlp.css` — et rien d'autre.
 

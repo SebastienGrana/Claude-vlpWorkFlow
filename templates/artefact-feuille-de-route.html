@@ -33,24 +33,9 @@
     <h2>Les chantiers possibles, dans l'ordre</h2>
     <p class="mono resume-todo" style="margin:0;color:var(--doux);font-size:.9rem">&lt;n&gt; chantiers possibles</p>
     <!-- ZONE:todo — miroir de la TODO ordonnée du fichier d'état ; le fichier reste la vérité -->
-    <div class="tableau">
-      <table>
-        <thead>
-          <tr><th>#</th><th>Chantier</th><th>Ce qu'il apporte</th><th>Coût</th><th>Dépend de</th></tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="mono">1</td>
-            <td>&lt;nom&gt; <span class="badge" data-etat="cours">en cours</span></td>
-            <td>&lt;une ligne&gt;</td><td class="mono">&lt;n&gt; fiches</td><td class="mono">—</td>
-          </tr>
-          <tr data-etat="bloque">
-            <td class="mono">2</td><td>&lt;nom&gt;</td><td>&lt;une ligne&gt;</td>
-            <td class="mono">&lt;n&gt; fiches</td><td class="mono">1</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    <ol class="todo">
+          <li class="carte-todo"><details><summary><span class="rang mono">1</span><span class="titre">&lt;nom&gt; <span class="badge" data-etat="cours">en cours</span></span><span class="meta mono">&lt;n&gt; fiches · dépend de : —</span></summary><div class="detail">&lt;ce qu'il apporte&gt;</div></details></li>
+        </ol>
   </section>
 
   <section>

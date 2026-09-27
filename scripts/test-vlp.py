@@ -1023,7 +1023,8 @@ with tempfile.TemporaryDirectory() as t:
     verifier("feuille : fermé, réécrite", code == 0 and "FEUILLE todo 2 · encours non · lettres 2 · réécrite" in s
              and "Aucun chantier ouvert" in html and '<span class="mono">E, M</span>' in html
              and '<span class="mono">2026-01-02</span>' in html, s + html)
-    verifier("feuille : TODO rendue", '<td>Le <span class="mono">sh</span></td><td>a || b &lt;c&gt;</td>' in html
+    verifier("feuille : TODO rendue", '<span class="titre">Le <span class="mono">sh</span></span><span class="meta mono">'
+             '2 fiches · dépend de : —</span></summary><div class="detail">a || b &lt;c&gt;</div>' in html
              and "&lt;U, R&gt;" not in html and 'data-etat="cours"' not in html.split("ZONE:todo")[1], html)
     avant_todo = html.split("<!-- ZONE:todo")[0].split("Les chantiers possibles")[1]
     verifier("feuille : décompte au-dessus de la TODO", avant_todo.count("resume-todo") == 1
@@ -1044,7 +1045,7 @@ with tempfile.TemporaryDirectory() as t:
     verifier("feuille : ouvert, badge, lettre", code == 0 and "encours oui · lettres 3" in s
              and 'Un titre <span class="badge" data-etat="cours">' in html and '<span class="mono">Q1–Q2</span>' in html
              and 'href="https://exemple/q"' in html and "E, M, Q" in html
-             and '<td class="mono">4</td><td>Quatre <span class="badge" data-etat="cours">' in html, s + html)
+             and '<span class="rang mono">4</span><span class="titre">Quatre <span class="badge" data-etat="cours">' in html, s + html)
     code, s = appel(["feuille", t])
     verifier("feuille : badge gardé sans --todo", code == 0 and "inchangée" in s, s)
     verifier("feuille : --verifier identique", appel(["feuille", t, "--verifier"])[0] == 0, appel(["feuille", t, "--verifier"]))
@@ -2125,7 +2126,7 @@ with tempfile.TemporaryDirectory() as t:
     verifier("NIV3 : les lignes de ZONE:clos gardent les dix espaces que `clore` repère",
              '\n          <tr>\n' in html_niv3, "indentation changée")
     verifier("NIV3 : la feuille est aussi régénérée — la TODO du fichier d'état y passe",
-             "<td>un truc</td>" in html_niv3 and "2026-09-18" in html_niv3, html_niv3[-600:])
+             '<span class="titre">un truc</span>' in html_niv3 and "2026-09-18" in html_niv3, html_niv3[-600:])
 
     code, encore = appel(["niveau", proj, "--ecrire", "--date", "2026-09-18"])
     verifier("NIV3 : rejoué, il ne corrige plus rien — les corrections sont idempotentes",
@@ -2141,7 +2142,7 @@ with tempfile.TemporaryDirectory() as t:
     code, s = appel(["niveau", proj, "--ecrire", "--date", "2026-09-18"])
     verifier("NIV3 : la feuille absente est posée depuis le gabarit puis régénérée",
              os.path.isfile(page) and "CORRIGÉ: feuille: posée depuis le gabarit" in s
-             and "<td>un truc</td>" in io.open(page, encoding="utf-8").read(), s)
+             and '<span class="titre">un truc</span>' in io.open(page, encoding="utf-8").read(), s)
 
 # L'index ne nomme pas un fichier de la table : la retirer le perdrait.
 with tempfile.TemporaryDirectory() as t:
@@ -2409,6 +2410,49 @@ def test_zone_todo():
              erreur_feu2 is not None and "ZONE:todo" in erreur_feu2, erreur_feu2)
 
 test_zone_todo()
+
+
+def test_feuille_en_cartes():
+    """FEU3 : une feuille d'avant, TODO en tableau et badge sur un rang, passe en cartes."""
+    with tempfile.TemporaryDirectory() as tc:
+        ecrire(os.path.join(tc, "CHANTIER.md"),
+               "# C\n\n- **contexte** : ctx/\n- **fichier d'état** : ctx/08-etat.md\n"
+               "- **fichier de fiches courant** : ctx/30-q.md (Q1..Q2)\n- **artefact du chantier** : https://exemple/q\n\n"
+               "Lettres de fiche déjà prises : E (Un). Un nouveau chantier en choisit une autre.\n")
+        ecrire(os.path.join(tc, "ctx", "08-etat.md"),
+               "# État\n\n| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |\n|---|---|---|---|---|\n"
+               "| 3 | Le `sh` | a \\|\\| b <c> | 2 fiches | — |\n| 4 | **Quatre** | rien | 1 fiche | 3 |\n"
+               "| 7 | Sept | [un lien](https://x/y) | à cadrer | `E` |\n\n## Journal\n")
+        ecrire(os.path.join(tc, "ctx", "30-q.md"), "# Chantier Q — Un titre\n\n## Q1 [x] — a\n## Q2 [ ] — b\n")
+        gabarit = io.open(os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html"), encoding="utf-8").read()
+        d, f, _ = mod.zone_todo(gabarit)
+        debut, fin = gabarit.rindex('<ol class="todo">', 0, d), f + len("        </ol>")
+        tableau = ('<p>Un préambule gardé.</p>\n    <div class="tableau">\n      <table>\n        <thead>\n'
+                   '          <tr><th>#</th><th>Chantier</th></tr>\n        </thead>\n        <tbody>\n'
+                   '          <tr><td class="mono">3</td><td>vieux</td></tr>\n'
+                   '          <tr><td class="mono">4</td><td>vieux' + mod.BADGE_COURS + '</td></tr>\n'
+                   '        </tbody>\n      </table>\n    </div>')
+        fdr = os.path.join(tc, "ctx", "artefacts", "feuille-de-route.html")
+        ecrire(fdr, gabarit[:debut] + tableau + gabarit[fin:])
+        code, s = appel(["feuille", tc, "--date", "2026-09-27"])
+        html = io.open(fdr, encoding="utf-8").read()
+        d, f, forme = mod.zone_todo(html)
+        zone_t = html[html.index("<!-- ZONE:todo"):html.index("<!-- ZONE:clos")]
+        rangs = mod.todo_du_fichier(mod.lignes_de(os.path.join(tc, "ctx", "08-etat.md")))
+        absentes = [c for r in rangs for c in r if mod.cellule_md(c) not in html[d:f]]
+        verifier("FEU3 : tableau → cartes, une par rang, chaque cellule telle quelle, badge sur la carte 4, préambule gardé",
+                 code == 0 and forme == "cartes" and "<table" not in zone_t and "<tr" not in zone_t
+                 and html[d:f].count('<li class="carte-todo">') == len(rangs) == 3 and not absentes
+                 and html[d:f].count(mod.BADGE_COURS) == 1 and mod.rang_en_cours(html[d:f], forme) == "4"
+                 and "<p>Un préambule gardé.</p>" in zone_t and zone_t.count("resume-todo") == 0,
+                 (s, absentes, zone_t))
+        code, s = appel(["feuille", tc, "--date", "2026-09-28"])
+        verifier("FEU3 : 2e appel inchangée", code == 0 and "inchangée" in s, s)
+        code, s = appel(["vigile", fdr])
+        verifier("FEU3 : vigile sur la page en cartes", code == 0 and s.startswith("PAGE SAINE"), s)
+
+
+test_feuille_en_cartes()
 
 # UNI1 : clore utilise le total mesuré ; sans mesure, retombe sur --tokens
 with tempfile.TemporaryDirectory() as t:
