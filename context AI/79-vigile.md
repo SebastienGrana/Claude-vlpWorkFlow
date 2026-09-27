@@ -9,7 +9,9 @@ fermé, CSS et texte avalés) ; rien ne l'a vue avant l'utilisateur. Un vigile p
 
 **Estimé.** 0,5 fiches · ≈2,02 $ — ≈4,04 $/fiche sur 66 clos (le 2026-09-27).
 
-**Fait.** Rien. Ouvert le 2026-09-27, cadré en 2 fiches, `VID1` à jouer.
+**CLOS** le 2026-09-27. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** VID1..VID2 (2026-09-27) : vlp.py vigile et son hook PreToolUse sur Artifact : une page .html cassée (commentaire ouvert, aucun style, aucun bloc) est refusée avec sa raison, essayé pour de vrai — estimé 0,5 fiches ≈2,02 $ · cadré 2 · joué 2 fiches ≈9,92 $.
 
 **Session** : fe900b64-3cf4-4545-abb2-d0f62b776645
 
