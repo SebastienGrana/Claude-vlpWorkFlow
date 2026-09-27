@@ -94,6 +94,13 @@ details.clos[open] > summary { margin-bottom:.85rem; }
 /* Copier sous l'identifiant de la fiche ; son libellé long déborde sur la colonne vide à droite */
 .copier { grid-column:1; justify-self:start; width:max-content; font-size:.78rem; padding:.1rem .4rem; }
 .commande { grid-column:1 / -1; justify-self:start; }
+/* fiche dépliée : la colonne de gauche flotte, la note remonte sous le titre au lieu d'attendre Copier */
+.fiche details[open] > summary { display:block; }
+.fiche details[open] > summary > :is(.id,.etat,.copier) { float:left; clear:left; }
+.fiche details[open] > summary > :is(.id,.etat) { width:3.5rem; }
+.fiche details[open] > summary > :is(.etat,.copier) { margin-top:.1rem; }
+.fiche details[open] > summary > .titre { display:block; margin-left:4.4rem; }
+.fiche details[open] > summary > .commande { display:block; clear:both; }
 .commande { font-family:"IBM Plex Mono",monospace; font-size:.8rem; color:var(--texte); background:var(--ground); border:1px solid var(--line); border-radius:2px; padding:.15rem .4rem; width:100%; max-width:16rem; }
 
 footer { border-top:1px solid var(--line); padding-top:.9rem; font-size:.82rem; color:var(--doux); display:flex; flex-wrap:wrap; gap:.25rem 1.25rem; }
