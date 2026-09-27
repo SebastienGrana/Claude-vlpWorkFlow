@@ -91,8 +91,9 @@ details.clos[open] > summary { margin-bottom:.85rem; }
 .bouton:hover { border-color:var(--accent); }
 .bouton:focus-visible,.commande:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
 .deplier { align-self:flex-start; }
-.copier,.commande { grid-column:2; justify-self:start; }
-.copier { font-size:.78rem; padding:.1rem .6rem; }
+/* Copier sous l'identifiant de la fiche ; son libellé long déborde sur la colonne vide à droite */
+.copier { grid-column:1; justify-self:start; width:max-content; font-size:.78rem; padding:.1rem .4rem; }
+.commande { grid-column:1 / -1; justify-self:start; }
 .commande { font-family:"IBM Plex Mono",monospace; font-size:.8rem; color:var(--texte); background:var(--ground); border:1px solid var(--line); border-radius:2px; padding:.15rem .4rem; width:100%; max-width:16rem; }
 
 footer { border-top:1px solid var(--line); padding-top:.9rem; font-size:.82rem; color:var(--doux); display:flex; flex-wrap:wrap; gap:.25rem 1.25rem; }
