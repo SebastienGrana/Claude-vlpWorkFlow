@@ -1083,6 +1083,9 @@ with tempfile.TemporaryDirectory() as t:
     cl2 = ["## Où on en est", "- Clos le 2026-01-01 : a (chantier E)."]
     verifier("résumé : suffixe (chantier Q) déjà dans le texte, pas doublé", mod.resume_claude(cl2, "Q", "b (chantier Q).", "2026-01-01", gr)
              and cl2[-1] == "- Clos le 2026-01-01 : b (chantier Q).", cl2)
+    cl5 = ["## Où on en est", "- Clos le 2026-01-01 : a (chantier E)."]
+    verifier("résumé : préfixe Clos le déjà dans le texte, pas doublé", mod.resume_claude(cl5, "Q", "Clos le 2026-09-27 : b.", "2026-09-27", gr)
+             and cl5[-1] == "- Clos le 2026-09-27 : b (chantier Q).", cl5)
     verifier("résumé : déjà là, rien", not mod.resume_claude(cl, "Q", "b", "2026-02-02", gr) and len(cl) == 6, cl)
     cl3 = ["## Où on en est", "- Prouvé : x.", "  puis vieux (chantier A) ;"] + ["- Clos le 2026-01-0%d : c%d (chantier %s)." % (i, i, "BCDEF"[i - 1]) for i in range(1, 6)] + ["", "## R"]
     verifier("résumé : garde les CLOS_GARDES derniers, le plus ancien sorti", mod.resume_claude(cl3, "G", "g", "2026-01-09", gr)

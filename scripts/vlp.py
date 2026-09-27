@@ -176,7 +176,7 @@ Sous-commandes :
   dans la page du chantier, `ZONE:bilan` visible (Livré, Surpris) et coûts régénérés,
   `ZONE:blocage` cachée — absentes : `GARDE:`, le reste est écrit ; avec
   `--resume T`, dans « Où on en est » de `CLAUDE.md`, `- Clos le <date> : T
-  (chantier L).` (déjà là : rien), et seules les `CLOS_GARDES` dernières lignes de
+  (chantier L).` (déjà là : rien ; T déjà préfixé ou suffixé : pas doublé), et seules les `CLOS_GARDES` dernières lignes de
   cette forme restent ; dans `CHANTIER.md`, courant et artefact à `aucun`,
   la lettre aux lettres prises (plus de table des clos) ; dans la feuille
   de route, une ligne en tête de `ZONE:clos`, le total cumulé resommé des
@@ -3743,6 +3743,8 @@ def resume_claude(cl, lettre, texte, date, gardes):
     dernier = max(k for k in range(debut, fin) if cl[k].strip())
     # Une ligne, blancs réduits : `ENTREE_CLOS` la relit, et l'élagage la trouve (chantier TAR).
     texte = re.sub(r"\s*\(chantier %s\)$" % re.escape(lettre), "", " ".join(texte.split()).rstrip("."))
+    # Le préfixe aussi, s'il est déjà là : `--resume "Clos le … : T"` le doublait (chantier TYP).
+    texte = re.sub(r"^Clos le \S+ : ", "", texte)
     cl.insert(dernier + 1, "- Clos le %s : %s (chantier %s)." % (date, texte, lettre))
     entrees = [k for k in range(debut, fin + 1) if ENTREE_CLOS.match(cl[k])]
     for k in reversed(entrees[:max(0, len(entrees) - CLOS_GARDES)]):
