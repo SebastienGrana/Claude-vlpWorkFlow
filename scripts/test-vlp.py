@@ -4111,4 +4111,63 @@ def tester_contrat_ouverture():
 
 tester_contrat_ouverture()
 
+
+# --- FEU7 : l'eyebrow de la page du chantier finit par un lien vers la feuille de route ---
+
+FICHES_FEU7 = """# Chantier FEU7
+
+## Le socle commun
+
+## L'ordre des fiches
+
+<!-- FICHE:P1 -->
+## P1 [ ] — a
+**Critère de fin**
+<!-- /FICHE -->
+<!-- FICHE:P2 -->
+## P2 [ ] — b
+**Critère de fin**
+<!-- /FICHE -->
+"""
+
+
+def tester_lien_feuille_de_route():
+    with tempfile.TemporaryDirectory() as tab:
+        proj = os.path.join(tab, "proj")
+        fiches = os.path.join(proj, "p.md")
+        page = os.path.join(proj, "artefacts", "p.html")
+        carte = os.path.join(proj, "CHANTIER.md")
+        ecrire(fiches, FICHES_FEU7)
+        ecrire(carte, "# C\n\n- **artefact feuille de route** : https://exemple/route\n")
+        code, s = appel(["page", fiches, page, "--creer", "--projet", "Proj", "--titre", "T", "--resultat", "R0"])
+        html = lire(page)
+        verifier("FEU7 : eyebrow, un lien vers la feuille de route", code == 0
+                 and 'Proj · fiches P1–P2 · <a href="https://exemple/route">la feuille de route</a></div>' in html
+                 and html.count("la feuille de route</a>") == 1, html)
+        code, s = appel(["page", fiches, page])
+        html = lire(page)
+        verifier("FEU7 : régénérée deux fois, toujours un seul lien — mutant : garde d'unicité retirée",
+                 code == 0 and html.count("la feuille de route</a>") == 1
+                 and 'Proj · fiches P1–P2 · <a href="https://exemple/route">la feuille de route</a></div>' in html, html)
+        ecrire(carte, "# C\n\n- **artefact feuille de route** : https://exemple/autre\n")
+        code, s = appel(["page", fiches, page])
+        html = lire(page)
+        verifier("FEU7 : URL changée, la nouvelle seule", code == 0
+                 and 'Proj · fiches P1–P2 · <a href="https://exemple/autre">la feuille de route</a></div>' in html
+                 and "exemple/route" not in html and html.count("la feuille de route</a>") == 1, html)
+        ecrire(carte, "# C\n\n- **artefact feuille de route** : aucun\n")
+        code, s = appel(["page", fiches, page])
+        html = lire(page)
+        verifier("FEU7 : « aucun », le lien se retire", code == 0
+                 and "la feuille de route" not in html and "Proj · fiches P1–P2</div>" in html, html)
+        ecrire(carte, "# C\n\n- **artefact feuille de route** : https://exemple/route\n")
+        ecrire(fiches, lire(fiches) + '\n<!-- FICHE:P3 -->\n## P3 [ ] — c\n**Critère de fin**\n<!-- /FICHE -->\n')
+        code, s = appel(["page", fiches, page])
+        html = lire(page)
+        verifier("FEU7 : la plage reste intacte à côté du lien", code == 0
+                 and 'Proj · fiches P1–P3 · <a href="https://exemple/route">la feuille de route</a></div>' in html, html)
+
+
+tester_lien_feuille_de_route()
+
 print("OK")

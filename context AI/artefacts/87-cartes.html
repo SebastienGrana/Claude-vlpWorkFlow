@@ -15,14 +15,14 @@
 
 <div class="page">
   <header>
-    <div class="eyebrow">vlp · fiches FEU1–FEU8</div>
+    <div class="eyebrow">vlp · fiches FEU1–FEU8 · <a href="https://claude.ai/code/artifact/ff1fc060-daca-486f-b4c6-e1f55114c0f7">la feuille de route</a></div>
     <h1>La feuille de route plus courte et lisible</h1>
     <p>La feuille de route de Cairn, cartes fermées, tient en 5 écrans d'ordinateur au plus ; la TODO ne défile plus de côté ; rien de son texte n'est perdu, seulement replié.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">8 fiches · 5 faites · en cours : FEU7</p>
+    <p class="mono" style="margin-top:.5rem">8 fiches · 6 faites · en cours : FEU8</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -65,15 +65,17 @@
         <summary><span class="id">FEU5</span><span class="titre">Faire lire les cartes aux outils de l'audit</span>
         <span class="etat">faite</span></summary>
         <span class="note">page_vs_source Cairn tableau : ancien rangs 16 · entiers 15 (= FEU1), nouveau 16 · 16 — l'écart est le badge en cours, retiré comme FEU1 le demandait (badge gardé : 16 · 15). Copie en cartes : ancien 29 · 0 (table des clos), nouveau 16 · 16. rejeu.py code 0 sur les deux formes (todo_lignes 16, coches 2). Mutant (borne retirée, tableau d'abord) → 29 · 0. pyright 3 → 2 erreurs</span>
-        <span class="cout mono">≈1,9M (1 915 779) · 11 tours · 1,04 $</span>
+        <span class="cout mono">≈2,3M (2 297 802) · 13 tours · 1,15 $</span>
+      </details></li>
+      <li class="fiche" data-etat="faite"><details>
+        <summary><span class="id">FEU7</span><span class="titre">Un lien vers la feuille de route sur la page du chantier</span>
+        <span class="etat">faite</span></summary>
+        <span class="note">tests verts, pyright 0 erreur, grep -c "la feuille de route&lt;/a&gt;" context AI/artefacts/87-cartes.html rend 1</span>
+        <span class="cout mono">≈7,7M (7 738 430) · 53 tours · 2,80 $</span>
       </details></li>
       <li class="fiche" data-etat="encours"><details open>
-        <summary><span class="id">FEU7</span><span class="titre">Un lien vers la feuille de route sur la page du chantier</span>
-        <span class="etat">en cours</span></summary>
-      </details></li>
-      <li class="fiche"><details>
         <summary><span class="id">FEU8</span><span class="titre">Le détail des chantiers possibles</span>
-        <span class="etat">à faire</span></summary>
+        <span class="etat">en cours</span></summary>
       </details></li>
       <li class="fiche"><details>
         <summary><span class="id">FEU6</span><span class="titre">Régénérer, mesurer après, republier</span>
@@ -82,7 +84,7 @@
       </details></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈6,3M (6 315 039) · 41 tours · 4,72 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈31,9M (31 907 050) · 187 tours · 15,76 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈40,0M (40 027 503) · 242 tours · 18,67 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

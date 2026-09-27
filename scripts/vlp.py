@@ -2444,6 +2444,18 @@ def regenerer(html, fichier, parts, date, gardes, forme=False):
     # (« · clos », écrit à la main) reste (chantier PLA). Tout autre en-tête reste tel quel (REV6).
     html = re.sub(r'(<div class="eyebrow">[^<]*? · fiches )(?:[A-Z]{1,3}\d+(?:–[A-Z]{1,3}\d+)?)?(?=</div>| · )',
                   lambda m: m.group(1) + plage([f[0] for f in fiches_]), html, count=1)
+    # Le lien vers la feuille de route, en fin d'en-tête : `**artefact feuille de route**` du
+    # CHANTIER.md du projet, retrouvé en remontant depuis le fichier de fiches (chantier FEU).
+    # Un seul lien : celui d'avant se retire toujours, avant qu'un nouveau (ou aucun) ne s'ajoute.
+    racine = trouver(os.path.dirname(fichier))
+    carte_racine = lignes_de(os.path.join(racine, "CHANTIER.md")) if racine else []
+    url_route = champ(carte_racine, "artefact feuille de route", "aucun")
+    def maj_eyebrow(m):
+        reste = re.sub(r' · <a href="[^"]*">la feuille de route</a>$', "", m.group(1))
+        if not url_route.lower().startswith("aucun"):
+            reste += ' · <a href="%s">la feuille de route</a>' % esc(url_route)
+        return '<div class="eyebrow">' + reste + '</div>'
+    html = re.sub(r'<div class="eyebrow">(.*?)</div>', maj_eyebrow, html, count=1, flags=re.S)
     if not forme:
         html = re.sub(r'(Mis à jour le <span class="mono">).*?(</span>)', lambda m: m.group(1) + date + m.group(2),
                       html, count=1)

@@ -231,8 +231,9 @@ changent. `pyright` : pas une erreur de plus, compte avant / après donné.
 ---
 
 <!-- FICHE:FEU7 -->
-## FEU7 [ ] — Un lien vers la feuille de route sur la page du chantier
+## FEU7 [x] — Un lien vers la feuille de route sur la page du chantier
 
+**Session** : 206644ce-75ee-40a0-a175-e09afdfe7b7c
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py` (`regenerer` `:2338`, son motif de l'eyebrow `:2444`, `trouver` `:526`, `champ` `:2752`), `scripts/test-vlp.py` — et rien d'autre.
 
