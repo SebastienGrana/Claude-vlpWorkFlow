@@ -6,3 +6,6 @@
 - CHK2 : /vlp:check : vérification I, contrat --ouverture sur le fichier de fiches courant, sautée si « aucun » ; huit → neuf, A à H → A à I ; +12 −2 lignes ; grep -c contrat --ouverture 1, huit 0 ; bloc I lancé par le lien du plugin : DEPUIS puis CONTRAT 0 ; test-vlp OK ; rejouer /vlp:check après /reload-plugins : geste de l'utilisateur, au rapport
 ## Journal
 ## Bilan
+- Livré : vlp.py contrat --ouverture F : les sous-agents partis depuis le commit qui ajoute le fichier de fiches, par leur heure à eux ; /vlp:check le lance en vérification I
+- Surpris : Le premier commit qui nomme le préfixe est souvent l'ajout à la TODO ; 28 sous-agents sur 103 sont partis dans une session de cadrage, qu'aucune des deux bornes proposées ne rangeait juste
+- Estimé : estimé 0,5 fiches ≈2,07 $ · cadré 2 · joué 2 fiches ≈4,13 $

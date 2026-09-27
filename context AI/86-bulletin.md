@@ -10,7 +10,9 @@ Git, combien sans statut en tête — le bulletin du gardien, sans rien rejouer.
 
 **Estimé.** 0,5 fiches · ≈2,07 $ — ≈4,15 $/fiche sur 73 clos (le 2026-09-27).
 
-**Fait.** Rien. Ouvert le 2026-09-27, cadré en 2 fiches, `CHK1` à jouer.
+**CLOS** le 2026-09-27. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** CHK1..CHK2 (2026-09-27) : vlp.py contrat --ouverture F : les sous-agents partis depuis le commit qui ajoute le fichier de fiches, par leur heure à eux ; /vlp:check le lance en vérification I — estimé 0,5 fiches ≈2,07 $ · cadré 2 · joué 2 fiches ≈4,13 $.
 
 **Session** : 5a12485e-8f92-4566-8eac-a08b630de356
 
