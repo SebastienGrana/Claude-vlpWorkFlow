@@ -1029,14 +1029,14 @@ with tempfile.TemporaryDirectory() as t:
              and "&lt;U, R&gt;" not in html and 'data-etat="cours"' not in html.split("ZONE:todo")[1], html)
     avant_todo = html.split("<!-- ZONE:todo")[0].split("Les chantiers possibles")[1]
     verifier("feuille : décompte au-dessus de la TODO, détaillé (FEU8)", avant_todo.count("resume-todo") == 1
-             and ">2 chantiers possibles · 1 petit, 1 moyen · 1 bloqué · ≈3 fiches estimées</p>" in avant_todo
+             and "><strong>2 chantiers possibles</strong> · 1 petit, 1 moyen · 1 bloqué · ≈3 fiches estimées</p>" in avant_todo
              and "&lt;n&gt; chantiers possibles" not in html, html)
     code, s = appel(["feuille", t, "--date", "2026-03-04"])
     verifier("feuille : idempotente, date gardée", code == 0 and "inchangée" in s and "2026-01-02" in lire(fdr), s)
     ecrire(fdr, mod.RESUME_TODO.sub("", lire(fdr)))
     code, s = appel(["feuille", t, "--date", "2026-01-02"])
     verifier("feuille : décompte posé sur une feuille d'avant", code == 0 and lire(fdr).count("resume-todo") == 1
-             and (">2 chantiers possibles · 1 petit, 1 moyen · 1 bloqué · ≈3 fiches estimées</p>\n    <!-- ZONE:todo"
+             and ("><strong>2 chantiers possibles</strong> · 1 petit, 1 moyen · 1 bloqué · ≈3 fiches estimées</p>\n    <!-- ZONE:todo"
                   in lire(fdr)), s + lire(fdr))
     verifier("feuille : décompte au singulier et vide",
              mod.resume_todo(1) == "1 chantier possible" and mod.resume_todo(0) == "aucun chantier possible", "")
@@ -4369,6 +4369,48 @@ def tester_decompte_todo():
     verifier("FEU8 : décompte de la TODO — tailles, bloqués, total estimé — mutant : borne basse au lieu de haute",
              ligne == "4 chantiers possibles · 1 petit, 1 moyen, 1 gros, 1 pas estimé · 2 bloqués · ≈9,5 fiches estimées",
              ligne)
+    # BTN7 : le décompte en valeur, le texte d'avant la liste replié. Ici et non au niveau du
+    # module, déjà au seuil de pyright (BTN1, BTN5).
+    with tempfile.TemporaryDirectory() as tb:
+        ecrire(os.path.join(tb, "CHANTIER.md"),
+               "# C\n\n- **contexte** : ctx/\n- **fichier d'état** : ctx/08-etat.md\n"
+               "- **fichier de fiches courant** : aucun\n- **artefact du chantier** : aucun\n\n"
+               "Lettres de fiche déjà prises : E (Un). Un nouveau chantier en choisit une autre.\n")
+        ecrire(os.path.join(tb, "ctx", "08-etat.md"),
+               "# État\n\n| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |\n|---|---|---|---|---|\n"
+               "| 3 | Trois | a | 2 fiches | — |\n| 4 | Quatre | b | 1 fiche | 3 |\n\n## Journal\n")
+        fdr = os.path.join(tb, "ctx", "artefacts", "feuille-de-route.html")
+        lire_fdr = lambda: io.open(fdr, encoding="utf-8").read()
+        # Le gabarit porte le décompte d'avant (`mono`, `style=`) : deux `feuille` n'en laissent qu'un.
+        ecrire(fdr, io.open(os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html"),
+                            encoding="utf-8").read())
+        appel(["feuille", tb, "--date", "2026-09-27"])
+        code, s = appel(["feuille", tb, "--date", "2026-09-27"])
+        sans = lire_fdr()
+        decomptes = [l for l in sans.splitlines() if "resume-todo" in l]
+        css = io.open(os.path.join(tb, "ctx", "artefacts", "vlp.css"), encoding="utf-8").read()
+        verifier("BTN7 : décompte en <strong>, sans style=, un seul après deux feuille sur la forme d'avant,"
+                 " .resume-todo dans vlp.css — mutant : RESUME_TODO sans l'ancienne forme",
+                 code == 0 and decomptes == ['    <p class="resume-todo"><strong>2 chantiers possibles</strong>'
+                                             ' · 1 petit, 1 moyen · 1 bloqué · ≈3 fiches estimées</p>']
+                 and ".resume-todo {" in css and ".resume-todo strong" in css, (s, decomptes))
+        verifier("BTN7 : sans préambule, aucun details.lecture", 'class="lecture"' not in sans, "")
+        i = sans.index('<ol class="todo">')
+        ancienne = sans[:i] + "<p>Lire ainsi.</p>\n    <ul>\n      <li>un</li>\n    </ul>\n    " + sans[i:]
+        vieille = os.path.join(tb, "ancienne.html")
+        ecrire(vieille, ancienne)
+        ecrire(fdr, ancienne)
+        code, s = appel(["feuille", tb, "--date", "2026-09-27"])
+        neuve = lire_fdr()
+        code2, s2 = appel(["feuille", tb, "--date", "2026-09-27"])
+        _, sc = appel(["comparer", vieille, fdr])
+        verifier("BTN7 : préambule replié une fois dans un details.lecture fermé, texte intact, 2e feuille"
+                 " inchangée — mutant : details posé sans vérifier qu'il y est",
+                 code == 0 and code2 == 0 and neuve.count('<details class="lecture">') == 1
+                 and neuve == lire_fdr() and "inchangée" in s2 and "COMPARER 0 perdus" in sc
+                 and ('<details class="lecture"><summary>Comment lire cette liste</summary>\n    <p>Lire ainsi.</p>\n'
+                      '    <ul>\n      <li>un</li>\n    </ul>\n    </details>\n    <ol class="todo">') in neuve,
+                 (s, s2, sc))
 
 
 tester_decompte_todo()

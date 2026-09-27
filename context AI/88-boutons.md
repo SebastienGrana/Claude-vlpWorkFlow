@@ -261,8 +261,9 @@ passe, compte brut affiché. Mutants : hauteur constante → le rapport tombe ; 
 ---
 
 <!-- FICHE:BTN7 -->
-## BTN7 [ ] — Le décompte en valeur, le texte d'avant la liste replié
+## BTN7 [x] — Le décompte en valeur, le texte d'avant la liste replié
 
+**Session** : 9c178cca-e277-4ad4-b73b-e84a635aecb2
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py` (`compte_todo` `:3124`, `RESUME_TODO` `:3055`, `zone_todo` `:2930`,
 `feuille` `:3001`), `templates/vlp.css` (`.journal-ancien > summary` `:64`), `scripts/test-vlp.py`

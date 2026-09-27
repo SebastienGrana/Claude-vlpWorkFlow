@@ -164,7 +164,9 @@ Sous-commandes :
   cartes (depuis la TODO du fichier d'état ; une feuille en tableau se
   convertit ; `--todo N` y pose le badge « en cours », gardé
   d'un appel à l'autre tant qu'un chantier est ouvert), son décompte
-  « <n> chantiers possibles » au-dessus des cartes (posé s'il manque), les
+  « <n> chantiers possibles » au-dessus des cartes (posé s'il manque, le chiffre
+  en `<strong>`, la forme d'avant réécrite), le texte d'avant les cartes replié
+  une fois dans `details.lecture` (`replier_lecture`), les
   lettres prises du pied (plus celle du chantier courant), et, une seule fois, le
   sommaire sous l'en-tête ; la date seulement si la page change.
   `FEUILLE todo <n> · encours <oui|non> · lettres <n> · <réécrite|inchangée>
@@ -3067,6 +3069,26 @@ def en_cartes(html):
     return html[:debut] + '<ol class="todo">\n        </ol>' + html[fin + len(ferme):]
 
 
+LECTURE = '<details class="lecture"><summary>Comment lire cette liste</summary>'
+
+
+def replier_lecture(html):
+    """Le texte de `ZONE:todo` d'avant les cartes (`zone_todo`) replié dans un `details.lecture`
+    fermé, ni retouché ni retiré ; posé une fois — déjà replié, que du blanc ou pas de cartes : la
+    page reste (chantier BTN, Cairn en a 177 mots le 2026-09-27)."""
+    d, _, forme = zone_todo(html)
+    if forme != "cartes":
+        return html
+    depart = html.find("-->", html.find("<!-- ZONE:todo")) + len("-->")
+    avant = html[depart:html.rfind('<ol class="todo">', depart, d)]
+    if not avant.strip() or 'class="lecture"' in avant:
+        return html
+    i, j = depart + len(avant) - len(avant.lstrip()), depart + len(avant.rstrip())
+    ligne = html[html.rfind("\n", 0, i) + 1:i]
+    marge = ligne[:len(ligne) - len(ligne.lstrip(" \t"))]
+    return html[:i] + LECTURE + "\n" + marge + html[i:j] + "\n" + marge + "</details>" + html[j:]
+
+
 SOMMAIRE = ('  <nav class="sommaire" aria-label="Sommaire"><a href="#encours">Chantier en cours</a>'
             '<a href="#todo">Chantiers possibles</a><a href="#clos">Chantiers clos</a></nav>\n')
 
@@ -3142,7 +3164,7 @@ def feuille(projet, html, todo, date):
                     % (esc(n), BADGE_COURS if n == todo else "", depend_todo(de), cellule_md(ch), cellule_md(ap),
                        cellule_md(co)) for n, ch, ap, co, de in rangs) \
         or '          <li class="rien">Rien en attente.</li>\n'
-    cartes = en_cartes(html)
+    cartes = replier_lecture(en_cartes(html))
     d, f, _ = zone_todo(cartes)
     neuf = compte_todo(cartes[:d] + corps + cartes[f:], rangs, lettres_todo)
     d, f = zone(neuf, "encours", "\n", "  </section>")
@@ -3157,7 +3179,8 @@ def feuille(projet, html, todo, date):
     return neuf, bilan
 
 
-RESUME_TODO = re.compile(r'    <p class="mono resume-todo"[^>]*>.*?</p>\n')
+# Les deux formes : `<p class="resume-todo">` (chantier BTN) et celle d'avant, `mono` et `style=`.
+RESUME_TODO = re.compile(r'    <p class="(?:mono )?resume-todo"[^>]*>.*?</p>\n')
 
 
 def borne_haute_cout(cout):
@@ -3228,9 +3251,10 @@ def resume_todo(n, petits=0, moyens=0, gros=0, pas_estimes=0, bloques=0, total=0
 
 def compte_todo(html, rangs, lettres_todo):
     """La ligne du décompte, remplacée ; ou posée juste avant `ZONE:todo` sur une
-    feuille d'avant qui ne l'a pas."""
-    ligne = ('    <p class="mono resume-todo" style="margin:0;color:var(--doux);font-size:.9rem">%s</p>\n'
-             % resume_todo(len(rangs), *decompte_todo(rangs, lettres_todo)))
+    feuille d'avant qui ne l'a pas. Ce qui précède le premier ` · ` en `<strong>`, le style dans
+    `vlp.css` (`.resume-todo`, chantier BTN)."""
+    tete, sep, reste = resume_todo(len(rangs), *decompte_todo(rangs, lettres_todo)).partition(" · ")
+    ligne = '    <p class="resume-todo"><strong>%s</strong>%s%s</p>\n' % (tete, sep, reste)
     if RESUME_TODO.search(html):
         return RESUME_TODO.sub(lambda _: ligne, html, count=1)
     i = html.rfind("\n", 0, html.index("<!-- ZONE:todo")) + 1

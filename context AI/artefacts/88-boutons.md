@@ -8,7 +8,7 @@ Les pages du kit ont des boutons : tout déplier, copier la commande d'une fiche
 - BTN4 : Feuille régénérée, javascript_tool : À faire 5/6 cartes, #clos masqué ; En cours 1/6, #encours visible ; Clos : #todo masqué, details.clos ouvert ; Tout 6/6, replis rendus. 375 px (cadre) : scrollWidth = clientWidth = 360 sous les 4 filtres. Mutant « À faire » sans badge : 6/6, il tombe.
 - BTN5 : test-vlp.py OK (code 0), 9 contrôles BTN5 : 3 barres en 1:2:4, la plus récente à droite, FILES nomme couts.svg, balise une fois, feuille sans coût ni fichier ni balise ; mutants hauteur constante et ordre non retourné → tombent ; pyright 0 erreur (1 avant de ranger les tests dans tester_joints)
 - BTN6 : régénérer et republier kit, Cairn et BTN, mesurer avant et après ; dépend de toutes ; visuel
-- BTN7 : décompte en gras et plus grand, style dans vlp.css ; texte d'avant la liste replié (Cairn 177 mots) ; ajoutée sur commentaire (A1) ; ne dépend de rien
+- BTN7 : test-vlp.py OK (code 0), 3 contrôles BTN7 : décompte <p class=resume-todo><strong>…</strong> · …</p> sans style=, un seul après deux feuille ; details.lecture fermé une fois, comparer 0 perdus, 2e feuille inchangée ; sans préambule aucun ; FEU3 sans retouche ; mutants details sans vérifier → (b) tombe, RESUME_TODO sans l'ancienne forme → (a) tombe ; pyright 0 erreur
 ## Journal
 - 2026-09-27 : BTN1 : même une aide ou une constante au niveau du module fait tomber pyright sur test-vlp.py (Code is too complex to analyze) — les aides d'un test vont dans sa fonction tester_<nom>().
 - 2026-09-27 : BTN7 ajoutée (choix A1, sur un commentaire de la feuille du kit et une remarque sur celle de Cairn) : décompte mis en valeur, texte d'avant la liste replié ; jouée avant BTN6, qui republie les feuilles une seule fois.
