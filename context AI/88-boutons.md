@@ -19,6 +19,8 @@ graphique du coût des chantiers clos — sans alourdir la page relue à chaque 
 **Décidé au cadrage (deux pages à cartes, 2026-09-27).**
 - Dedans : **tout déplier** (les deux pages), **copier la commande** `/vlp:tache <ID>` (page du
   chantier), **filtrer par état** (feuille : à faire, en cours, clos), **graphique** (feuille).
+- Ajouté le 2026-09-27 (A1, sur un commentaire) : le **décompte** des chantiers possibles mis en
+  valeur, et le texte d'avant la liste **replié** (`BTN7`).
 - Le code des boutons dans un fichier joint **`vlp.js`**, comme `vlp.css` (D1). Le graphique dans
   un fichier joint **`couts.svg`**, écrit par `vlp.py` (D2, D3), **en tokens**, pas en dollars (D4).
 - `<meta charset="utf-8">` en **première ligne** des deux gabarits (D5).
@@ -72,7 +74,7 @@ graphique du coût des chantiers clos — sans alourdir la page relue à chaque 
 
 **Hors chantier.** Commenter une fiche (attend `BDD`, n° 73) ; la base `db` ; les feuilles de
 MapDecorator, ProjetONZSM, TrackGen (elles reçoivent les boutons à leur prochain `vlp.py feuille`) ;
-la typographie de `vlp.css`.
+la typographie de `vlp.css`, sauf le décompte (`BTN7`).
 
 ## L'ordre des fiches
 
@@ -83,10 +85,13 @@ la typographie de `vlp.css`.
 | `BTN3` | Tout déplier, et copier la commande d'une fiche | `BTN1` |
 | `BTN4` | Filtrer la feuille par état | `BTN1` |
 | `BTN5` | Dessiner le coût des chantiers clos | `BTN1` |
+| `BTN7` | Le décompte en valeur, le texte d'avant la liste replié | rien |
 | `BTN6` | Régénérer, republier, et regarder | toutes |
 
 Après `BTN1`, les fiches 2 à 5 sont indépendantes ; `BTN3` et `BTN4` touchent le même
-`templates/vlp.js`, donc jamais en même temps. `BTN3`, `BTN4`, `BTN6` sont **(visuel)**.
+`templates/vlp.js`, donc jamais en même temps. `BTN3`, `BTN4`, `BTN6` sont **(visuel)**. `BTN7`,
+ajoutée le 2026-09-27 sur un commentaire de l'utilisateur, passe avant `BTN6` : elle republie les
+feuilles une seule fois, décompte et repli compris.
 
 ---
 
@@ -251,10 +256,50 @@ passe, compte brut affiché. Mutants : hauteur constante → le rapport tombe ; 
 
 ---
 
+<!-- FICHE:BTN7 -->
+## BTN7 [ ] — Le décompte en valeur, le texte d'avant la liste replié
+
+**Dépend de** : rien.
+**Fichiers** : `scripts/vlp.py` (`compte_todo` `:3124`, `RESUME_TODO` `:3055`, `zone_todo` `:2930`,
+`feuille` `:3001`), `templates/vlp.css` (`.journal-ancien > summary` `:64`), `scripts/test-vlp.py`
+— et rien d'autre.
+
+**Prompt**
+Demandé par l'utilisateur le 2026-09-27 : en commentaire sur la feuille du kit, posé sur le
+décompte, « met plus en valeur le chiffre des chantiers possibles » ; puis, sur la feuille de
+Cairn, le texte entre le décompte et la liste va contre la page courte (choix A1).
+
+Le décompte : `compte_todo` écrit `<p class="resume-todo"><strong><n> chantiers possibles</strong>
+· <le reste></p>` — le `<strong>` prend ce qui précède le premier ` · ` de `resume_todo`, qui ne
+change pas (ses tests FEU8 restent). Plus d'attribut `style` : ses trois valeurs d'aujourd'hui
+passent dans une règle `.resume-todo` de `vlp.css`, et `.resume-todo strong` écrit le chiffre plus
+grand, en `var(--texte)`. `RESUME_TODO` lit l'ancienne forme (`mono`, `style=`) et la nouvelle : une
+feuille d'avant est réécrite une fois, jamais doublée.
+
+Le texte d'avant la liste : ce qui, dans `ZONE:todo`, sépare la fin du marqueur du début de la
+liste (`zone_todo`) et n'est pas du blanc passe dans un `<details class="lecture">` fermé, résumé
+« Comment lire cette liste » — une fois : déjà dans un `details.lecture`, rien ne bouge. Le texte
+n'est ni retouché ni retiré. Style du résumé : le sélecteur s'ajoute à la règle de
+`.journal-ancien > summary`. Relevé le 2026-09-27 : Cairn 177 mots (3 paragraphes, 6 puces),
+MapDecorator 35, ProjetONZSM 12, TrackGen 12, le kit 0 — chacun le reçoit à son prochain `feuille`.
+
+**Critère de fin**
+Nouveaux tests `BTN7 : …` dans `scripts/test-vlp.py` : (a) après `feuille`, le décompte est
+`<p class="resume-todo"><strong>…</strong> · …</p>`, sans `style=` ; une feuille à l'ancien décompte
+n'en a qu'un après deux `feuille` ; `vlp.css` porte `.resume-todo` ; (b) une feuille à préambule le
+reçoit dans un seul `details.lecture` fermé, texte intact (`comparer` : 0 perdu), et le 2ᵉ `feuille`
+dit « inchangée » ; sans préambule, aucun `details.lecture`. Le test FEU3 (« préambule gardé »,
+`:2449`) passe sans retouche. `py scripts/test-vlp.py` passe, compte brut affiché. Mutants : le
+`details` posé sans vérifier qu'il y est → (b) tombe ; `RESUME_TODO` sans l'ancienne forme → (a)
+tombe. `pyright` : 0 erreur sur les fichiers touchés, compte brut.
+<!-- /FICHE -->
+
+---
+
 <!-- FICHE:BTN6 -->
 ## BTN6 [ ] — Régénérer, republier, et regarder
 
-**Dépend de** : `BTN1`, `BTN2`, `BTN3`, `BTN4`, `BTN5`.
+**Dépend de** : `BTN1`, `BTN2`, `BTN3`, `BTN4`, `BTN5`, `BTN7`.
 **Fichiers** : `context AI/artefacts/feuille-de-route.html`, `context AI/artefacts/88-boutons.html`,
 `context AI/88-boutons.md`, et la feuille de Cairn :
 `C:/Users/znorr/Documents/ProgPerso/Cairn-VlpLib/context AI/artefacts/feuille-de-route.html` —
@@ -275,6 +320,7 @@ dans le kit, sauf des comptes.
 **Critère de fin** (visuel)
 Comptes bruts avant / après des trois pages dans le compte rendu. Puis l'utilisateur ouvre les
 trois pages en ligne, sur ordinateur (1536 × 864) et sur téléphone : « Tout déplier », « Copier »
-et les quatre filtres marchent ; le graphique s'affiche sur les deux feuilles ; rien ne défile de
-côté. Il le dit, et la fiche se coche.
+et les quatre filtres marchent ; le graphique s'affiche sur les deux feuilles ; le décompte
+ressort, et le texte d'avant la liste de Cairn est replié ; rien ne défile de côté. Il le dit, et
+la fiche se coche.
 <!-- /FICHE -->
