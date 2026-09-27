@@ -228,7 +228,8 @@ Sous-commandes :
   `.meta.json` voisin dit `vlp:fiche`, sous `~/.claude/projects/*/*/subagents/`. Une ligne
   chacune : `<id> <agentType> <départ de la session parente, UTC | ?> <premier mot du dernier
   message texte | (vide)> git <n>` — n : appels `Bash`/`PowerShell` qui lancent `git commit`,
-  `add` ou `reset`, `-C`/`-c` compris ; illisible : `ILLISIBLE <chemin>`. `--depuis` (heure
+  `add` ou `reset`, `-C`/`-c` compris, hors corps d'un heredoc écrit par `cat` ou `tee`
+  (chantier ECH) ; illisible : `ILLISIBLE <chemin>`. `--depuis` (heure
   ISO ou commit, comme `mesure-tokens.py --plage`) : celles dont la session parente a démarré
   à D ou après. Puis `CONTRAT <n> sous-agents · <n> écrivent dans Git · <n> sans statut en
   tête` (ni `FAITE`, ni `RETOUR`, ni `BLOQUÉE`). Borne illisible : `GARDE:`, sort 1.
