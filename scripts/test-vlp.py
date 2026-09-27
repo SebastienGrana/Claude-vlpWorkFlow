@@ -4204,4 +4204,128 @@ def tester_decompte_todo():
 
 tester_decompte_todo()
 
+
+# --- BTN1 : `vlp.js` joint aux pages, la ligne FILES ; charset et script posés une fois ---
+
+def tester_joints():
+    """Les aides vivent ici, pas au niveau du module : celui-ci est déjà au seuil de
+    complexité de pyright (« Code is too complex to analyze », mesuré sur BTN1)."""
+    META_BTN1 = '<meta charset="utf-8">'
+    SCRIPT_BTN1 = '<script src="vlp.js"></script>'
+
+    def files_de(s):
+        """Le dict de la ligne `FILES` d'une sortie, ou None."""
+        for l in s.splitlines():
+            if l.startswith("FILES "):
+                return json.loads(l[len("FILES "):])
+        return None
+
+    def joints_recopies(s, dossier):
+        """(a) : FILES a les clés `vlp.css` et `vlp.js`, chacune vers un fichier qui existe, en
+        barres obliques, dans `dossier`, identique à l'octet à sa source de `templates/`."""
+        files = files_de(s)
+        return (files is not None and sorted(files) == ["vlp.css", "vlp.js"]
+                and all("\\" not in c and os.path.isfile(c) and os.path.samefile(c, os.path.join(dossier, n))
+                        and io.open(c, "rb").read() == io.open(os.path.join(ICI, "..", "templates", n), "rb").read()
+                        for n, c in files.items()))
+
+    def balises_une_fois(html):
+        """(b) : le charset une fois, en première ligne ; le script une fois, en dernière."""
+        lignes = html.rstrip("\n").split("\n")
+        return (html.count(META_BTN1) == 1 and html.count(SCRIPT_BTN1) == 1
+                and lignes[0] == META_BTN1 and lignes[-1] == SCRIPT_BTN1)
+
+    def sans_balises(html):
+        return html.replace(META_BTN1 + "\n", "").replace(SCRIPT_BTN1 + "\n", "")
+
+    def projet_btn1(tab):
+        """Un projet équipé minimal, sa feuille posée depuis le gabarit (comme PLI2)."""
+        proj = os.path.join(tab, "proj")
+        ecrire(os.path.join(proj, "CHANTIER.md"),
+               "# C\n\n- **contexte** : ctx/\n- **fichier d'état** : ctx/08-etat.md\n"
+               "- **fichier de fiches courant** : aucun\n"
+               "- **artefact du chantier** : aucun\n\nLettres de fiche déjà prises : U (test).\n")
+        ecrire(os.path.join(proj, "ctx", "08-etat.md"),
+               "# État\n\n## La TODO\n\n| # | Chantier | Apporte | Coût | Dépend |\n|---|---|---|---|---|\n")
+        fdr = os.path.join(proj, "ctx", "artefacts", "feuille-de-route.html")
+        ecrire(fdr, io.open(os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html"),
+                            encoding="utf-8").read())
+        return proj, fdr
+
+    # (c) d'abord : une page d'avant, sans charset ni script, les reçoit une fois ; une seconde
+    # régénération n'en ajoute pas — page du chantier, puis feuille de route.
+    with tempfile.TemporaryDirectory() as tab:
+        fiches = os.path.join(tab, "p.md")
+        page = os.path.join(tab, "artefacts", "p.html")
+        ecrire(fiches, FICHES_PLI2)
+        appel(["page", fiches, page, "--creer", "--projet", "Proj", "--titre", "T", "--resultat", "R0"])
+        ecrire(page, sans_balises(lire(page)))
+        verifier("BTN1 : (c) la page d'avant n'a ni charset ni script",
+                 "<meta charset" not in lire(page) and "vlp.js" not in lire(page), lire(page)[:300])
+        code, s = appel(["page", fiches, page])
+        verifier("BTN1 : (c) page d'avant régénérée — charset et script reçus une fois chacun",
+                 code == 0 and balises_une_fois(lire(page)), s + lire(page)[:300])
+        code, s = appel(["page", fiches, page])
+        verifier("BTN1 : (c) régénérée deux fois, rien de plus — mutant : la balise posée sans vérifier sa présence",
+                 code == 0 and balises_une_fois(lire(page)), lire(page)[:300] + lire(page)[-300:])
+    with tempfile.TemporaryDirectory() as tab:
+        proj, fdr = projet_btn1(tab)
+        ecrire(fdr, sans_balises(lire(fdr)))
+        code, s = appel(["feuille", proj])
+        verifier("BTN1 : (c) feuille d'avant régénérée — charset et script reçus une fois chacun",
+                 code == 0 and balises_une_fois(lire(fdr)), s + lire(fdr)[:300])
+        code, s = appel(["feuille", proj])
+        verifier("BTN1 : (c) feuille régénérée deux fois, rien de plus",
+                 code == 0 and balises_une_fois(lire(fdr)), lire(fdr)[:300] + lire(fdr)[-300:])
+    # Un charset cité dans un commentaire n'est pas un charset posé.
+    cite = mod.migrer_joints("<!-- %s -->\n<p>x</p>\n" % META_BTN1)
+    verifier("BTN1 : (c) charset cité en commentaire — le vrai est posé quand même",
+             cite.startswith(META_BTN1 + "\n") and cite.count(META_BTN1) == 2, cite)
+
+    # (a) et (b) : `page --creer`, puis `page` sans --creer ; vlp.js modifié à la main entre deux.
+    with tempfile.TemporaryDirectory() as tab:
+        fiches = os.path.join(tab, "p.md")
+        art = os.path.join(tab, "artefacts")
+        page = os.path.join(art, "p.html")
+        ecrire(fiches, FICHES_PLI2)
+        code, s = appel(["page", fiches, page, "--creer", "--projet", "Proj", "--titre", "T", "--resultat", "R0"])
+        verifier("BTN1 : (a) page --creer recopie vlp.css et vlp.js à l'octet, FILES les nomme"
+                 " — mutant : vlp.js retiré de recopier_joints",
+                 code == 0 and joints_recopies(s, art) and "CSS %s\n" % os.path.join(art, "vlp.css") in s, s)
+        verifier("BTN1 : (b) page --creer — charset et script une fois chacun",
+                 balises_une_fois(lire(page)), lire(page)[:300])
+        with open(os.path.join(art, "vlp.js"), "wb") as f:
+            f.write(b"/* modifie a la main */")
+        code, s = appel(["page", fiches, page])
+        verifier("BTN1 : (a) page (régénération) remet vlp.js à l'octet, FILES les nomme",
+                 code == 0 and joints_recopies(s, art), s)
+        verifier("BTN1 : (b) page régénérée — charset et script une fois chacun",
+                 balises_une_fois(lire(page)), lire(page)[:300])
+    with tempfile.TemporaryDirectory() as tab:
+        proj, fdr = projet_btn1(tab)
+        art = os.path.dirname(fdr)
+        code, s = appel(["feuille", proj])
+        verifier("BTN1 : (a) feuille recopie vlp.css et vlp.js à l'octet, FILES les nomme",
+                 code == 0 and joints_recopies(s, art) and "CSS %s\n" % os.path.join(art, "vlp.css") in s, s)
+        verifier("BTN1 : (b) feuille régénérée — charset et script une fois chacun",
+                 balises_une_fois(lire(fdr)), lire(fdr)[:300])
+
+    # `joints <dossier>` : les deux copies, et la ligne FILES seule ; un dossier absent est gardé.
+    with tempfile.TemporaryDirectory() as tab:
+        code, s = appel(["joints", tab])
+        verifier("BTN1 : joints recopie les deux joints et n'écrit que la ligne FILES",
+                 code == 0 and joints_recopies(s, tab) and len(s.splitlines()) == 1, s)
+        code, s = appel(["joints", os.path.join(tab, "absent")])
+        verifier("BTN1 : joints sur un dossier absent — GARDE, sort 1",
+                 code == 1 and s.startswith("GARDE: dossier introuvable"), s)
+
+    # Les deux gabarits : charset en première ligne, script en dernière, une fois chacun.
+    for nom in ("artefact-chantier.html", "artefact-feuille-de-route.html"):
+        gabarit = io.open(os.path.join(ICI, "..", "templates", nom), encoding="utf-8").read()
+        verifier("BTN1 : (b) gabarit %s — charset et script une fois chacun" % nom,
+                 balises_une_fois(gabarit), gabarit[:300])
+
+
+tester_joints()
+
 print("OK")

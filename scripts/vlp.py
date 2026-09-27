@@ -102,6 +102,8 @@ Sous-commandes :
   rien et sort 1 si états ou avancement diffèrent du fichier. `--forme` : la forme seule
   (style lié, fiches et journal repliés, bilan en haut), rien ne se recompte — coûts des
   fiches, total et hors fiches recopiés de l'ancienne page ; refuse `--creer`.
+  Recopie les joints à côté de la page (`joints`), puis écrit `CSS <copie de vlp.css>` et
+  `FILES {…}` ; une page d'avant BTN1 reçoit une fois `<meta charset>` et `<script src="vlp.js">`.
 - `hook` — le hook `PostToolUse` (`Write|Edit`) du plugin : lit sur stdin le
   JSON du hook, prend `tool_input.file_path` (relatif : contre `cwd`). Sort 0
   muet si ce n'est pas un fichier de fiches — JSON illisible, chemin absent, pas
@@ -167,6 +169,10 @@ Sous-commandes :
   sommaire sous l'en-tête ; la date seulement si la page change.
   `FEUILLE todo <n> · encours <oui|non> · lettres <n> · <réécrite|inchangée>
   — <page>`. `--verifier` n'écrit rien, dit `identique|écart`, sort 1 sur écart.
+  Avant `FEUILLE`, les joints recopiés et les lignes `CSS` et `FILES`, comme `page`.
+- `joints <dossier>` — recopie `templates/vlp.css` et `templates/vlp.js` dans le dossier, et
+  n'écrit que `FILES {"vlp.css": <chemin>, "vlp.js": <chemin>}` : le JSON du paramètre `files`
+  d'`Artifact`, chemins en barres obliques (pour `/vlp:init`). Dossier absent : `GARDE:`, sort 1.
 - `clore <projet> --livre T [--tokens N] [--abandon T] [--fait T] [--surpris T]
   [--date D]` — les écritures mécaniques de `cloture.md` : `**CLOS**` (et les
   abandonnées) dans le fichier de fiches courant, et `**Fait.** L1..Ln (date) :
@@ -1884,19 +1890,39 @@ def cmd_gardien(entree, sortie):
 # Le seuil vit dans le script (SEUIL_PAGE) : ici, il est défini et cité.
 SEUIL_PAGE = 250
 GABARIT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "templates", "artefact-chantier.html")
-GABARIT_VLPCSS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "templates", "vlp.css")
+JOINTS = ("vlp.css", "vlp.js")
 
 
-def recopier_vlp_css(dossier):
-    """Copie `templates/vlp.css` du kit dans `dossier`, à chaque appel de `page` et
-    `feuille` — la source ne bouge qu'au commit, la copie peut avoir été modifiée à
-    la main entre deux appels (chantier PLI). Rend le chemin de la copie."""
-    dest = os.path.join(dossier, "vlp.css")
-    with open(GABARIT_VLPCSS, "rb") as f:
-        contenu = f.read()
-    with open(dest, "wb") as f:
-        f.write(contenu)
-    return dest
+def recopier_joints(dossier):
+    """Copie les joints du kit (`JOINTS`, sources dans `templates/`) dans `dossier`, à chaque
+    appel de `page` et `feuille` — la source ne bouge qu'au commit, la copie peut avoir été
+    modifiée à la main entre deux appels (chantiers PLI, BTN). Rend `{nom publié: chemin de
+    la copie}`, le paramètre `files` d'`Artifact` (`ligne_files`)."""
+    copies = {}
+    for nom in JOINTS:
+        dest = os.path.join(dossier, nom)
+        with open(os.path.join(os.path.dirname(GABARIT), nom), "rb") as f:
+            contenu = f.read()
+        with open(dest, "wb") as f:
+            f.write(contenu)
+        copies[nom] = dest
+    return copies
+
+
+def ligne_files(copies):
+    """`FILES {…}` : le JSON de `recopier_joints`, chemins en barres obliques — à passer
+    tel quel au paramètre `files` d'`Artifact` (chantier BTN)."""
+    return "FILES %s\n" % json.dumps({nom: chemin.replace("\\", "/") for nom, chemin in copies.items()},
+                                     ensure_ascii=False)
+
+
+def cmd_joints(dossier, sortie):
+    """Pour `/vlp:init`, qui remplit sa feuille sans `feuille` : la ligne `FILES` seule."""
+    if not os.path.isdir(dossier):
+        sortie.write("GARDE: dossier introuvable : %s\n" % dossier)
+        return 1
+    sortie.write(ligne_files(recopier_joints(os.path.abspath(dossier))))
+    return 0
 
 
 # Une fiche de la page, dans ses deux formes : spans à plat (avant PLI), ou repliée dans un
@@ -2314,6 +2340,21 @@ def migrer_style(html):
     return html
 
 
+META_CHARSET = '<meta charset="utf-8">'
+SCRIPT_VLPJS = '<script src="vlp.js"></script>'
+
+
+def migrer_joints(html):
+    """Une page d'avant BTN1 reçoit `META_CHARSET` en première ligne et `SCRIPT_VLPJS` en
+    dernière — une fois, jamais deux : cherchés hors commentaires, déjà là, rien ne bouge."""
+    hors = COMMENTAIRE.sub("", html)
+    if META_CHARSET not in hors:
+        html = META_CHARSET + "\n" + html
+    if SCRIPT_VLPJS not in hors:
+        html = html.rstrip("\n") + "\n" + SCRIPT_VLPJS + "\n"
+    return html
+
+
 JOURNAL_VISIBLE = 3
 JOURNAL_ANCIEN = re.compile(r'\n[ \t]*<details class="journal-ancien">.*?</details>', re.S)
 
@@ -2340,7 +2381,7 @@ def regenerer(html, fichier, parts, date, gardes, forme=False):
     """`parts` (`lire_abri`/`abri_de_page`) fait foi pour résultat, notes et journal — recopiés
     en entier dans la page, plus jamais lus dans son ancienne version (chantier ABR). `forme` :
     rien ne se recompte — coûts des fiches, total et hors fiches recopiés de l'ancienne page (HAB)."""
-    html = migrer_style(html)
+    html = migrer_joints(migrer_style(html))
     lignes = lignes_de(fichier)
     fiches_ = fiches_du_fichier(lignes)
     if not fiches_:
@@ -2657,8 +2698,9 @@ def cmd_page(a, sortie):
     sortie.write("PAGE %s · %s · %d lignes · total %s%s\n"
                  % (a.page, comptage(fiches_, etat), n, ligne_cout(*total) if total else "gardé" if a.forme else "non mesuré",
                     ", dont hors fiches %s" % ligne_cout(*hors) if hors else ""))
-    css = recopier_vlp_css(os.path.dirname(os.path.abspath(a.page)))
-    sortie.write("CSS %s\n" % css)
+    joints = recopier_joints(os.path.dirname(os.path.abspath(a.page)))
+    sortie.write("CSS %s\n" % joints["vlp.css"])
+    sortie.write(ligne_files(joints))
     if n > SEUIL_PAGE:
         sortie.write("GARDE: %d lignes, au-delà du seuil du script (%d) — la page est relue à chaque fiche\n"
                      % (n, SEUIL_PAGE))
@@ -2958,7 +3000,7 @@ def sommaire(html):
 
 def feuille(projet, html, todo, date):
     """(page régénérée, bilan) : encours, todo et lettres depuis `CHANTIER.md` et le fichier d'état."""
-    html = migrer_style(html)
+    html = migrer_joints(migrer_style(html))
     carte_ = lignes_de(os.path.join(projet, "CHANTIER.md"))
     etat = champ(carte_, "fichier d'état")
     if not etat:
@@ -3114,8 +3156,9 @@ def cmd_feuille(a, sortie):
         return 0 if neuf == html else 1
     with open(page, "w", encoding="utf-8", newline="") as f:
         f.write(neuf)
-    css = recopier_vlp_css(os.path.dirname(os.path.abspath(page)))
-    sortie.write("CSS %s\n" % css)
+    joints = recopier_joints(os.path.dirname(os.path.abspath(page)))
+    sortie.write("CSS %s\n" % joints["vlp.css"])
+    sortie.write(ligne_files(joints))
     sortie.write("%s · %s — %s\n" % (bilan, "inchangée" if neuf == html else "réécrite", page))
     return 0
 
@@ -3297,7 +3340,7 @@ def cmd_repeindre(projet, sortie, a_blanc=False):
             if not a_blanc:
                 shutil.copyfile(copie, page)
                 shutil.copyfile(chemin_abri(copie), chemin_abri(page))
-                recopier_vlp_css(os.path.dirname(os.path.abspath(page)))
+                recopier_joints(os.path.dirname(os.path.abspath(page)))
             lien = lire_abri(chemin_abri(copie)).get("lien")
         n["repeintes"] += 1
         n["avec lien" if lien else "sans lien"] += 1
@@ -4598,6 +4641,7 @@ def main(argv, sortie=None, entree=None, erreur=None):
     ke.add_argument("dossier")
     ke.add_argument("--max-turns", type=int, required=True)
     ke.add_argument("--kit")
+    sous.add_parser("joints").add_argument("dossier")
     tr = sous.add_parser("transcription")
     tr.add_argument("jsonl")
     a = p.parse_args(argv)
@@ -4673,6 +4717,8 @@ def repartir(a, sortie, entree, erreur):
         return cmd_bac(a.dossier, sortie)
     if a.cmd == "kit-essai":
         return cmd_kit_essai(a.dossier, a.max_turns, a.kit, sortie)
+    if a.cmd == "joints":
+        return cmd_joints(a.dossier, sortie)
     if a.cmd == "transcription":
         return cmd_transcription(a.jsonl, sortie)
     chemin_garde(a.fichier)

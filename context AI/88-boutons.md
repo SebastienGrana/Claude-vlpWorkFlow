@@ -91,8 +91,9 @@ Après `BTN1`, les fiches 2 à 5 sont indépendantes ; `BTN3` et `BTN4` touchent
 ---
 
 <!-- FICHE:BTN1 -->
-## BTN1 [ ] — Joindre `vlp.js` aux pages, et dire quoi joindre
+## BTN1 [x] — Joindre `vlp.js` aux pages, et dire quoi joindre
 
+**Session** : 9f0ccb7c-90c6-450f-b0a0-274fe4ed398d
 **Dépend de** : rien.
 **Fichiers** : `templates/vlp.js` (nouveau), `templates/artefact-chantier.html`,
 `templates/artefact-feuille-de-route.html`, `scripts/vlp.py`, `scripts/test-vlp.py` — et rien d'autre.
