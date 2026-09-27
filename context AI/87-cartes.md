@@ -87,8 +87,9 @@ elle, la première feuille en cartes verrait sa TODO écrite dans la table des c
 ---
 
 <!-- FICHE:FEU1 -->
-## FEU1 [ ] — Mesurer les feuilles avant
+## FEU1 [x] — Mesurer les feuilles avant
 
+**Session** : bc14fab5-1e0d-472c-908e-b6dfeefa2dfd
 **Dépend de** : rien.
 **Fichiers** : `context AI/87-cartes.md` (section `## Mesures`), `context AI/78-plier.md` (`## Mesures`, le montage), `context AI/38-audit-scripts/page_vs_source.py`, `scripts/mesure-tokens.py`, `CHANTIER.md` et `../Cairn-VlpLib/CHANTIER.md` (URL des feuilles) — et rien d'autre.
 
@@ -244,3 +245,41 @@ feuille : un commit dans son dépôt, jamais de push.
 la TODO ne défile plus de côté ; `page_vs_source.py` : rangs = entiers = rangs de la TODO de Cairn.
 L'utilisateur voit en ligne les deux feuilles : cartes fermées, sommaire en haut.
 <!-- /FICHE -->
+
+## Mesures
+
+Mesuré par `FEU1` le 2026-09-27, session `bc14fab5-1e0d-472c-908e-b6dfeefa2dfd`, sur les
+versions **en ligne** : kit `1790510770-a339` (TODO en tableau, **7 rangs**), Cairn
+`1790510183-4a9a` (TODO en tableau, **16 rangs**). Fichiers sauvés, base de `comparer` en `FEU6` :
+`tool-results/artifact-ff1fc060-1790510770-a339.html` et `tool-results/artifact-71823ec4-1790510183-4a9a.html`.
+
+| Mesure | Feuille | Quand | Commande | Comptes bruts | Résultat |
+|---|---|---|---|---|---|
+| Coût d'un `Artifact read` | kit | avant | `date` (12:07:03Z), `Artifact read` dans un tour à part, `date` (12:07:11Z), `py scripts/mesure-tokens.py --plage 2026-09-27T12:07:03Z 2026-09-27T12:07:11Z bc14fab5-1e0d-472c-908e-b6dfeefa2dfd` | `ctx_1er` = 155 048, `ctx_dernier` = 178 322, 2 tours (Artifact=1, Bash=1) | **23 274 tokens** |
+| Coût d'un `Artifact read` | Cairn | avant | `date` (12:07:14Z), `Artifact read`, `date` (12:07:22Z), `py scripts/mesure-tokens.py --plage 2026-09-27T12:07:14Z 2026-09-27T12:07:22Z bc14fab5-…` | `ctx_1er` = 178 694, `ctx_dernier` = 201 072, 2 tours (Artifact=1, Bash=1) | **22 378 tokens** |
+| Hauteur, écrans d'ordinateur | kit | avant, replié (défaut) | fichier sauvé copié en `scratchpad/feu1/kit/index.html` (l'enveloppe de la plateforme y est déjà), `vlp.css` du kit à côté, `py -m http.server 8765`, navigateur intégré à 1536 × 864, `await document.fonts.ready; document.documentElement.scrollHeight / 864` | `scrollHeight` = 2931 px, `innerHeight` = 864, `innerWidth` = 1536, 1 `details` fermé, `vlp.css` chargé, fond `rgb(246, 239, 223)` ; tableau TODO haut de 2125 px | **3,39 écrans** |
+| Hauteur, écrans d'ordinateur | kit | avant, tout déplié | même page, `details.open = true` | `scrollHeight` = 14 775 px (75 rangs clos) | **17,10 écrans** |
+| Hauteur, écrans d'ordinateur | Cairn | avant, replié (défaut) | même montage, `scratchpad/feu1/cairn/index.html`, `vlp.css` de Cairn (identique au kit, `cmp`) | `scrollHeight` = 11 913 px, 1 `details` fermé, `vlp.css` chargé ; tableau TODO haut de 10 519 px | **13,79 écrans** |
+| Hauteur, écrans d'ordinateur | Cairn | avant, tout déplié | même page, `details.open = true` | `scrollHeight` = 15 977 px (29 rangs clos) | **18,49 écrans** |
+| Défilement de côté, 1536 × 864 | kit | avant | même page : `scrollWidth > innerWidth`, puis chaque `.tableau` : `scrollWidth > clientWidth` (clos déplié) | page 1521 ≤ 1536 ; TODO 696 = 696 ; clos 696 = 696 | **aucun** |
+| Défilement de côté, 1536 × 864 | Cairn | avant | idem | page 1521 ≤ 1536 ; TODO 696 = 696 ; clos 696 = 696 | **aucun** |
+| Défilement de côté, 375 × 812 | kit | avant | idem, `resize_window` preset `mobile` | page 375 = 375 ; TODO 483 > 335 ; clos 545 > 335 | **TODO et clos** défilent |
+| Défilement de côté, 375 × 812 | Cairn | avant | idem | page 375 = 375 ; TODO 627 > 335 ; clos 488 > 335 | **TODO et clos** défilent |
+| Rien de perdu, départ | Cairn | avant | `py "context AI/38-audit-scripts/page_vs_source.py" ../Cairn-VlpLib "context AI"` | `feuille · TODO : rangs 16 · toutes cellules entières ailleurs 15` | 1 rang manquant : le rang 1 |
+| Rien de perdu, départ | kit | avant | `py "context AI/38-audit-scripts/page_vs_source.py" . "context AI"` | `feuille · TODO : rangs 7 · toutes cellules entières ailleurs 6` | 1 rang manquant : le rang 29 |
+
+- ⚠️ **Le défilement de côté ne se voit pas à 1536 × 864** : `.page` borne les tableaux à 696 px et
+  ils s'y plient. Il se voit à 375 × 812, sur les deux tableaux. Le critère de `FEU6` (« la TODO ne
+  défile plus de côté ») se remesure donc **à 375 × 812** ; la table des clos, hors chantier,
+  continuera d'y défiler.
+- ⚠️ **Le rang manquant de `page_vs_source.py` est celui qui porte le badge « en cours »**, sur les
+  deux feuilles (cellule « Chantier », index 1) : « en cours » n'est dans aucune source. Tant qu'un
+  chantier est ouvert, « rangs = entiers » (critère de `FEU6`) ne tient pas sans retirer le badge
+  avant de comparer — à régler en `FEU5`, qui fait lire les cartes à cet outil.
+  Commande : `scratchpad/pvs_rang.py`, tête de `page_vs_source.py` (l. 1-52) plus une boucle par rang.
+- ⚠️ Chez Cairn, `ZONE:todo` porte un **préambule** (paragraphes et listes) **avant** le tableau :
+  la conversion de `FEU3` ne remplace que le tableau, jamais ce préambule.
+- La TODO fait **88 %** de la hauteur repliée de Cairn (10 519 / 11 913 px) et 73 % de celle du kit
+  (2125 / 2931 px).
+- L'écart en tokens contient aussi l'enveloppe de la plateforme (en-tête `[Artifact …]`, `<head>` de
+  claude.ai) : même biais avant et après, comme en `PLI1`.
