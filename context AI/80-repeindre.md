@@ -158,8 +158,9 @@ est lisible. La taille des lots suivants se fixe sur ce coût.
 ---
 
 <!-- FICHE:HAB5 -->
-## HAB5 [ ] — Kit : les lots suivants
+## HAB5 [x] — Kit : les lots suivants
 
+**Session** : 5a12485e-8f92-4566-8eac-a08b630de356
 **Dépend de** : `HAB4`.
 **Fichiers** : `context AI/artefacts/` du kit — et rien d'autre.
 

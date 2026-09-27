@@ -20,9 +20,9 @@
     <p>Les 90 pages de chantiers clos (kit et Cairn) au format PLI, chiffres de coût inchangés, remises en ligne par lots ; les pages sans lien listées.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">6 fiches · 4 faites · en cours : HAB5</p>
+    <p class="mono" style="margin-top:.5rem">6 fiches · 5 faites · en cours : HAB6</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -59,21 +59,22 @@
         <summary><span class="id">HAB4</span><span class="titre">Kit : repeindre, et un premier lot en ligne mesuré</span>
         <span class="etat">faite</span></summary>
         <span class="note">repeindre . : 64 repeintes · 64 avec lien · 0 sans lien · 0 refusées · 3 déjà · 1 sans page ; chiffres identiques 64/64 (154 coûts de fiche, 99 lignes total/hors), COMPARER 0 perdus 64/64, PAGE SAINE 64/64. Lot en ligne : 15 publiées, 0 arrêtée, 0 refusée (2 à la main, 13 par un sous-agent Sonnet) ; coût du lot 104 tours · ≈1,7M (1 681 848) · 4,60 $, soit 0,31 $/page ; sous-agent seul 56 tours · 2,13 $ = 0,16 $/page. Vu à l'œil : en local seulement (bilan en haut, fiches repliées, libellé abandonnée gardé) ; en ligne, écran de connexion : à regarder par l'utilisateur. Lots suivants : 13 pages par sous-agent.</span>
-        <span class="cout mono">≈18,3M (18 262 363) · 126 tours · 5,97 $</span>
+        <span class="cout mono">≈18,5M (18 521 614) · 128 tours · 6,05 $</span>
+      </details></li>
+      <li class="fiche" data-etat="faite"><details>
+        <summary><span class="id">HAB5</span><span class="titre">Kit : les lots suivants</span>
+        <span class="etat">faite</span></summary>
+        <span class="note">Kit en ligne 64/64 : HAB4 15, puis 4 lots en parallèle 13/13/13/10 = 49 publiées, 0 arrêtée, 0 refusée (2 limites de débit, repassées au 2e essai). repeindre . --a-blanc : 0 repeintes · 67 déjà · 1 sans page. Coût des 4 sous-agents Sonnet : 6,12 $ pour 49 pages = 0,125 $/page (2,68 · 1,95 · 0,87 · 0,62).</span>
+        <span class="cout mono">≈48,1M (48 078 532) · 336 tours · 13,35 $</span>
       </details></li>
       <li class="fiche" data-etat="encours"><details open>
-        <summary><span class="id">HAB5</span><span class="titre">Kit : les lots suivants</span>
-        <span class="etat">en cours</span></summary>
-        <span class="note">Les lots suivants du kit, taille fixée par HAB4.</span>
-      </details></li>
-      <li class="fiche"><details>
         <summary><span class="id">HAB6</span><span class="titre">Cairn : repeindre et remettre en ligne</span>
-        <span class="etat">à faire</span></summary>
+        <span class="etat">en cours</span></summary>
         <span class="note">Cairn repeint et remis en ligne, rien de son contenu dans le kit ; dépend de HAB4.</span>
       </details></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈4,3M (4 304 446) · 32 tours · 2,66 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈32,3M (32 262 189) · 223 tours · 12,70 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈80,6M (80 599 972) · 561 tours · 26,13 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -90,10 +91,16 @@
     <h2>Journal des décisions</h2>
     <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
     <ul class="journal">
+      <li><time datetime="2026-09-27">2026-09-27</time><span>HAB4 : le lot passe par un sous-agent Sonnet (0,16 $/page, contexte principal épargné) ; lots suivants de 13 pages.</span></li>
+      <li><time datetime="2026-09-27">2026-09-27</time><span>HAB5 : un sous-agent Sonnet par lot, six lots en parallèle (4 kit, 2 Cairn), au lieu d'une session par lot : même page blanche, 13 minutes, 12,64 $ en tout dont 9,66 $ de sous-agents.</span></li>
+      <li><time datetime="2026-09-27">2026-09-27</time><span>HAB5 : chaque publication réveille le chef par un avis « watch limit » (10 suivis au plus) : ~45 tours sans travail, 2,98 $ côté chef. À suivre : un lot de nuit qui publie beaucoup coûte aussi chez le chef.</span></li>
+    </ul>
+    <details class="journal-ancien"><summary>2 entrées plus anciennes</summary>
+    <ul class="journal">
       <li><time datetime="2026-09-27">2026-09-27</time><span>HAB4 : --forme garde aussi titres, libellés d'état, ligne de comptage et date de l'ancienne page ; sans cela, 64/64 pages perdaient leur date et 4 du texte (18-evals V2 abandonnée → en cours, 10-mesure, 11-conso, 14-bugs).</span></li>
       <li><time datetime="2026-09-27">2026-09-27</time><span>HAB4 : critère visuel non vu en ligne (la page claude.ai demande une connexion, jamais faite par Claude) ; vu en local, fiche cochée avec cette réserve, la nuit, pour ne pas bloquer HAB5 et HAB6 ; le format est celui des pages PLI déjà vues en ligne.</span></li>
-      <li><time datetime="2026-09-27">2026-09-27</time><span>HAB4 : le lot passe par un sous-agent Sonnet (0,16 $/page, contexte principal épargné) ; lots suivants de 13 pages.</span></li>
     </ul>
+    </details>
   </section>
 
   <footer>
