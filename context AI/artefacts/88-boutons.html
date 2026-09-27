@@ -21,9 +21,9 @@
     <p>Les pages du kit ont des boutons : tout déplier, copier la commande d'une fiche, filtrer la feuille par état, et un graphique du coût des chantiers clos. La page relue à chaque fiche ne grossit que de quelques balises.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">7 fiches · 6 faites · en cours : BTN6</p>
+    <p class="mono" style="margin-top:.5rem">7 fiches · 7 faites</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -62,13 +62,13 @@
         <details><summary><span class="titre">Le décompte en valeur, le texte d'avant la liste replié</span><span class="etat">Faite</span></summary>
         <span class="note">test-vlp.py OK (code 0), 3 contrôles BTN7 : décompte &lt;p class=resume-todo&gt;&lt;strong&gt;…&lt;/strong&gt; · …&lt;/p&gt; sans style=, un seul après deux feuille ; details.lecture fermé une fois, comparer 0 perdus, 2e feuille inchangée ; sans préambule aucun ; FEU3 sans retouche ; mutants details sans vérifier → (b) tombe, RESUME_TODO sans l'ancienne forme → (a) tombe ; pyright 0 erreur</span></details>
         <span class="cout mono">≈3,8M (3 811 972) · 25 tours · 1,81 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">BTN6</span></span>
-        <details open><summary><span class="titre">Régénérer, republier, et regarder</span><span class="etat">En cours</span></summary>
-        <span class="note">régénérer et republier kit, Cairn et BTN, mesurer avant et après ; dépend de toutes ; visuel</span></details>
-        <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">BTN6</span></span>
+        <details><summary><span class="titre">Régénérer, republier, et regarder</span><span class="etat">Faite</span></summary>
+        <span class="note">Regard local (serveurs 8793/8794), validé par l'utilisateur : 6 boutons sur chaque feuille ; filtres kit 10/2/1/13 sur 13, Cairn 43/7/1/44 sur 44 ; déplier 6 puis 0 ; graphique 300×75 sur les deux ; décompte 20,8 px ; lecture de Cairn repliée ; 0 défilement de côté à 1536 et 375 px ; 0 erreur console ; Copier sélectionne /vlp:tache BTN6 (presse-papier non lisible) ; en ligne après 02:10</span></details>
+        <span class="cout mono">≈8,1M (8 109 363) · 52 tours · 5,06 $</span></li>
     </ul>
-    <p class="mono cout-hors">Hors fiches : ≈11,2M (11 229 115) · 72 tours · 6,47 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈87,8M (87 784 670) · 559 tours · 42,41 $</p>
+    <p class="mono cout-hors">Hors fiches : ≈9,5M (9 532 466) · 63 tours · 5,74 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈94,2M (94 197 384) · 602 tours · 46,74 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -98,7 +98,7 @@
 
   <footer>
     <span>Fichier de fiches : <span class="mono">context AI/88-boutons.md</span></span>
-    <span>Mis à jour le <span class="mono">2026-09-27</span></span>
+    <span>Mis à jour le <span class="mono">2026-09-28</span></span>
   </footer>
 </div>
 <script src="vlp.js"></script>

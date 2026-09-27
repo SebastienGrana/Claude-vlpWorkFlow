@@ -302,8 +302,9 @@ tombe. `pyright` : 0 erreur sur les fichiers touchés, compte brut.
 ---
 
 <!-- FICHE:BTN6 -->
-## BTN6 [ ] — Régénérer, republier, et regarder
+## BTN6 [x] — Régénérer, republier, et regarder
 
+**Session** : 9c178cca-e277-4ad4-b73b-e84a635aecb2
 **Dépend de** : `BTN1`, `BTN2`, `BTN3`, `BTN4`, `BTN5`, `BTN7`.
 **Fichiers** : `context AI/artefacts/feuille-de-route.html`, `context AI/artefacts/88-boutons.html`,
 `context AI/88-boutons.md`, et la feuille de Cairn :
