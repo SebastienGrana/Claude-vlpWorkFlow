@@ -1124,7 +1124,7 @@ with tempfile.TemporaryDirectory() as t:
     clos = html.split("<!-- ZONE:clos")[1]
     verifier("clore : feuille de route", '<a href="https://exemple/q">Un <span class="mono">titre</span></a>' in clos
              and '<td class="mono">Q1–Q2</td><td class="mono">2026-05-06</td>' in clos and "≈1,5k (1 500)" in clos
-             and "Livré <span class=\"mono\">a</span> &lt;b&gt;" in clos and clos.index("Q1–Q2") < clos.index("2 312")
+             and "Livré <span class=\"mono\">a</span> &lt;b&gt;" in clos and clos.index("Q1–Q2") < clos.index("2 312", clos.index("<tbody>"))
              and "<strong>≈3,8k (3 812)</strong>" in clos and "Aucun chantier ouvert" in html and "E, M, Q</span>" in html, clos)
     verifier("clore : estimation en dollars au pied de table",
              '<strong>≈3,8k (3 812)</strong></td><td class="mono">≈0,00 $</td>' in clos, clos)
@@ -4591,11 +4591,17 @@ def tester_joints():
                  "couts.svg" in files and "\\" not in files["couts.svg"]
                  and os.path.samefile(files["couts.svg"], svg), s)
         html = lire(fdr)
-        alt = re.search(r'<img src="couts\.svg" alt="([^"]*)">', html)
+        alt = re.search(r'<img src="couts\.svg" alt="([^"]*)"', html)
         verifier("BTN5 : la balise <img> une fois, avant details.clos ; alt : 3 barres, D le plus cher",
                  html.count(IMG) == 1 and html.index(IMG) < html.index('<details class="clos">')
                  and alt is not None and "3 barres" in alt.group(1) and alt.group(1).endswith("le plus cher : D"),
                  html[-3000:])
+        donnees = re.search(r'<img src="couts\.svg"[^>]* data-couts="([^"]*)">', html)
+        donnees = json.loads(mod.html.unescape(donnees.group(1))) if donnees else {}
+        verifier("Graphique : data-couts porte la couleur et les barres [chantier, tokens, arrondi],"
+                 " de la plus ancienne à la plus récente — mutant : attribut retiré",
+                 donnees == {"couleur": mod.COUTS_BARRE, "barres": [[n, t, mod.arrondi(t)] for n, t in
+                             (("A", 1000), ("B", 2000), ("D", 4000))]}, str(donnees))
         ecrire(fdr, mod.BALISE_COUTS.sub("", html))
         appel(["feuille", proj])
         verifier("BTN5 : une feuille d'avant, sans balise, la reçoit à sa régénération",

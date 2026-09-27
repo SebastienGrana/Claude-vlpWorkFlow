@@ -99,6 +99,7 @@ details.clos > summary::marker { color:var(--accent); }
 details.clos[open] > summary { margin-bottom:.85rem; }
 .resume-clos { font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; }
 /* le décompte des chantiers possibles : le chiffre ressort (chantier BTN) */
+.graphique { position:relative; height:200px; margin:.25rem 0 .75rem; }
 .resume-todo { margin:0; color:var(--doux); font-size:.9rem; }
 .resume-todo strong { font-size:1.3rem; color:var(--texte); }
 

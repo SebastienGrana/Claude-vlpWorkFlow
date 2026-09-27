@@ -139,6 +139,9 @@ Tranché le 2026-09-26 par le chantier `ALE` ; chiffres et commandes dans
 - **Les joints : `vlp.css`, `vlp.js`, et `couts.svg` pour la feuille (fiche
   `BTN5`).** `vlp.py` les recopie dans `<contexte>/artefacts/` et dit quoi joindre :
   une ligne `FILES {…}`, rendue par `page`, `feuille` et `joints` (chantier `BTN`).
+  Sur la feuille, `vlp.js` charge Chart.js (jsDelivr, MIT, version épinglée dans
+  `vlp.js`) et remplace `couts.svg` par un graphique à axe gradué et bulles ; sans
+  réseau, l'image reste (demande de l'utilisateur, 2026-09-28).
 - **Chaque publication, même une republication, passe `files` : le JSON de la
   ligne `FILES`** (chantier `PLI`) : `read` ne rend jamais le fichier
   joint, donc aucun coût de relecture — omettre `files` une fois ne coûte rien

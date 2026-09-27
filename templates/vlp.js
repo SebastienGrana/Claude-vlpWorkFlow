@@ -9,6 +9,8 @@
   BTN3 : tout déplier et tout replier, sous le titre de chaque liste de
   cartes ; copier la commande d'une fiche prête, dans la colonne de gauche.
   BTN4 : filtrer la feuille par état, sous son sommaire.
+  Le graphique des coûts : Chart.js (MIT), chargé à la demande sur la feuille —
+  pas de roue réinventée pour les axes et les bulles (demande du 2026-09-28).
 */
 (() => {
   const page = document.querySelector(".page");
@@ -73,6 +75,67 @@
     });
     gauche.append(copier);
   });
+
+  // Le graphique des coûts : l'image couts.svg porte ses barres dans `data-couts` (vlp.py,
+  // `donnees_couts`). Chart.js, chargé à la demande, la remplace par un graphique à axe gradué
+  // dont chaque barre, survolée ou touchée, dit son chantier et son coût. Sans Chart.js (hors
+  // ligne, bloqué), l'image reste.
+  const image = page.querySelector('img[src="couts.svg"][data-couts]');
+  if (image) {
+    const script = document.createElement("script");
+    script.src = "https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js";
+    script.addEventListener("load", () => {
+      let donnees;
+      try { donnees = JSON.parse(image.dataset.couts); } catch { return; }
+      const { couleur, barres } = donnees;
+      const style = getComputedStyle(document.documentElement);
+      const doux = style.getPropertyValue("--doux").trim();
+      const ligne = style.getPropertyValue("--line").trim();
+      const millions = (v) => v === 0 ? "0" : v >= 1e6
+        ? (v / 1e6).toLocaleString("fr-FR", { maximumFractionDigits: 1 }) + "M"
+        : (v / 1e3).toLocaleString("fr-FR", { maximumFractionDigits: 1 }) + "k";
+      const cadre = document.createElement("div");
+      cadre.className = "graphique";
+      const toile = document.createElement("canvas");
+      toile.setAttribute("role", "img");
+      toile.setAttribute("aria-label", image.alt);
+      cadre.append(toile);
+      image.before(cadre);
+      new window.Chart(toile, {
+        type: "bar",
+        data: {
+          labels: barres.map((b) => b[0]),
+          datasets: [{ data: barres.map((b) => b[1]), backgroundColor: couleur }],
+        },
+        options: {
+          maintainAspectRatio: false,
+          interaction: { mode: "index", intersect: false },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              titleFont: { size: 14 },
+              bodyFont: { size: 14 },
+              callbacks: { label: (c) => barres[c.dataIndex][2] + " tokens" },
+            },
+          },
+          scales: {
+            x: {
+              ticks: { display: false },
+              grid: { display: false },
+              title: { display: true, text: "du plus ancien au plus récent →", color: doux },
+            },
+            y: {
+              beginAtZero: true,
+              ticks: { color: doux, callback: millions },
+              grid: { color: ligne },
+            },
+          },
+        },
+      });
+      image.hidden = true;
+    });
+    document.head.append(script);
+  }
 
   // Filtrer par état : sur la feuille seulement (elle a #todo et #clos), quatre boutons sous le
   // sommaire, un seul enfoncé. Quitter « Tout » retient l'état des replis ; y revenir le rend.

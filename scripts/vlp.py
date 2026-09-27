@@ -173,7 +173,8 @@ Sous-commandes :
   — <page>`. `--verifier` n'écrit rien, dit `identique|écart`, sort 1 sur écart.
   Avant `FEUILLE`, les joints recopiés et les lignes `CSS` et `FILES`, comme `page`. Avec au
   moins un coût clos, `couts.svg` (`svg_couts`) écrit à côté et nommé dans `FILES`, sa balise
-  `<img>` posée une fois avant `details.clos` (`balise_couts`) ; sans coût, ni l'un ni l'autre.
+  `<img>` posée une fois avant `details.clos` (`balise_couts`), ses barres dans `data-couts`
+  pour `vlp.js` ; sans coût, ni l'un ni l'autre.
 - `joints <dossier>` — recopie `templates/vlp.css` et `templates/vlp.js` dans le dossier, et
   n'écrit que `FILES {"vlp.css": <chemin>, "vlp.js": <chemin>}` : le JSON du paramètre `files`
   d'`Artifact`, chemins en barres obliques (pour `/vlp:init`). Dossier absent : `GARDE:`, sort 1.
@@ -3364,10 +3365,19 @@ def svg_couts(html):
             % (largeur, hauteur, COUTS_TEXTE, arrondi(haut), barres, hauteur - 1, largeur, COUTS_TEXTE))
 
 
+def donnees_couts(couts):
+    """`data-couts` de la balise : le JSON `{"couleur", "barres": [[chantier, tokens, arrondi]]}`
+    que `vlp.js` donne à Chart.js — la couleur et l'arrondi restent ici —, échappé pour un attribut."""
+    brut = json.dumps({"couleur": COUTS_BARRE,
+                       "barres": [[html.unescape(n), t, arrondi(t)] for n, t in couts]}, ensure_ascii=False)
+    return brut.replace("&", "&amp;").replace('"', "&quot;").replace("<", "&lt;").replace(">", "&gt;")
+
+
 def balise_couts(html):
     """La balise `<img src="couts.svg">` de `#clos`, juste avant `details.clos` : posée une fois
-    (une feuille d'avant la reçoit), son `alt` refait — nombre de barres, chantier le plus cher ;
-    retirée sans aucun coût, ou sans `details.clos`."""
+    (une feuille d'avant la reçoit), son `alt` refait — nombre de barres, chantier le plus cher —
+    et ses barres dans `data-couts` (`donnees_couts`) ; retirée sans aucun coût, ou sans
+    `details.clos`."""
     sans = BALISE_COUTS.sub("", html)
     couts, m = couts_clos(sans), DETAILS_CLOS.search(sans)
     if not couts or not m:
@@ -3375,7 +3385,8 @@ def balise_couts(html):
     nom = max(couts, key=lambda c: c[1])[0]
     alt = ("Coût des chantiers clos en tokens : %d barres, du plus ancien au plus récent ; le plus cher : %s"
            % (len(couts), nom)).replace('"', "&quot;")
-    return sans[:m.start()] + '%s<img src="%s" alt="%s">\n' % (m.group(1), COUTS_SVG, alt) + sans[m.start():]
+    return sans[:m.start()] + '%s<img src="%s" alt="%s" data-couts="%s">\n' % (
+        m.group(1), COUTS_SVG, alt, donnees_couts(couts)) + sans[m.start():]
 
 
 def ecrire_couts(page, html):
