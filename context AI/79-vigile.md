@@ -53,8 +53,9 @@ Rien de parallèle : le hook appelle le script. Si `VID2` prouve que le hook ne 
 ---
 
 <!-- FICHE:VID1 -->
-## VID1 [ ] — Écrire `vlp.py vigile`, testé
+## VID1 [x] — Écrire `vlp.py vigile`, testé
 
+**Session** : aeb2fbf2-07df-4411-aa44-ce09d4a28413
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` — et rien d'autre.
 

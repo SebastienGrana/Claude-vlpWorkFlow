@@ -3486,4 +3486,68 @@ def tester_bilan_en_haut():
 
 tester_bilan_en_haut()
 
+
+def tester_vigile():
+    """vigile (chantier VID1) : une page cassée ne part pas — commentaire ouvert, aucun style, aucun bloc."""
+    def hook(d):
+        o = io.StringIO()
+        code = mod.main(["vigile"], o, io.StringIO(d if isinstance(d, str) else json.dumps(d)))
+        return code, o.getvalue()
+
+    with tempfile.TemporaryDirectory() as tvg:
+        saine = os.path.join(tvg, "saine.html")
+        ecrire(saine, "<!-- tête fermée -->\n<html><head><style>p{}</style></head>"
+                      "<body><h1>Titre</h1><p>Un texte.</p></body></html>\n")
+        cairn = os.path.join(tvg, "cairn.html")
+        ecrire(cairn, "<!-- Gabarit : remplis les <…>\n<html><head><style>p{}</style></head>"
+                      "<body><h1>Titre</h1><p>Un texte.</p></body></html>\n")
+        sans_style = os.path.join(tvg, "sans-style.html")
+        ecrire(sans_style, "<html><body><p>Un texte.</p></body></html>\n")
+        sans_bloc = os.path.join(tvg, "sans-bloc.html")
+        ecrire(sans_bloc, "<html><head><style>p{}</style></head><body><script>x()</script></body></html>\n")
+        lien = os.path.join(tvg, "lien.html")
+        ecrire(lien, '<html><head><link rel="stylesheet" href="vlp.css"></head><body><p>Un texte.</p></body></html>\n')
+
+        code, s = appel(["vigile", saine])
+        verifier("vigile : page saine, PAGE SAINE 2 blocs", (code, s) == (0, "PAGE SAINE 2 blocs\n"), s)
+        code, s = appel(["vigile", cairn])
+        verifier("vigile : page Cairn, commentaire ouvert ligne 1 — mutant : ne plus le chercher",
+                 code == 1 and "GARDE: %s — commentaire ouvert ligne 1" % cairn in s, s)
+        verifier("vigile : page Cairn, style et texte cachés dans le commentaire comptent pour rien",
+                 "aucun style" in s and "aucun bloc de texte visible" in s and s.count("GARDE:") == 3, s)
+        code, s = appel(["vigile", sans_style])
+        verifier("vigile : page sans style, GARDE — mutant : l'accepter",
+                 code == 1 and s == "GARDE: %s — aucun style (ni balise style, ni link rel=\"stylesheet\")\n"
+                 % sans_style, s)
+        code, s = appel(["vigile", sans_bloc])
+        verifier("vigile : page sans bloc, GARDE — mutant : accepter zéro bloc",
+                 code == 1 and s == "GARDE: %s — aucun bloc de texte visible\n" % sans_bloc, s)
+        code, s = appel(["vigile", lien])
+        verifier("vigile : page stylée par un seul link, saine", (code, s) == (0, "PAGE SAINE 1 blocs\n"), s)
+        code, s = appel(["vigile", os.path.join(tvg, "absente.html")])
+        verifier("vigile : fichier absent, GARDE introuvable", code == 1 and s.startswith("GARDE: introuvable"), s)
+
+        pub = {"hook_event_name": "PreToolUse", "tool_name": "Artifact"}
+        code, s = hook(dict(pub, tool_input={"file_path": cairn}))
+        verifier("vigile : hook, page Cairn refusée, raison nomme fichier et défauts",
+                 code == 0 and '"permissionDecision": "deny"' in s and json.dumps(cairn)[1:-1] in s
+                 and "commentaire ouvert" in s and "aucun style" in s and "aucun bloc" in s, s)
+        code, s = hook(dict(pub, tool_input={"file_path": "sans-style.html"}, cwd=tvg))
+        verifier("vigile : hook, chemin relatif au cwd refusé", '"permissionDecision": "deny"' in s, s)
+        verifier("vigile : hook, page saine, muet", hook(dict(pub, tool_input={"file_path": saine})) == (0, ""), "")
+        verifier("vigile : hook, asset vrai, muet",
+                 hook(dict(pub, tool_input={"file_path": cairn, "asset": True})) == (0, ""), "")
+        verifier("vigile : hook, un Bash, muet", hook({"hook_event_name": "PreToolUse", "tool_name": "Bash",
+                                                       "tool_input": {"command": "cat %s" % cairn}}) == (0, ""), "")
+        md = os.path.join(tvg, "page.md")
+        ecrire(md, "<!-- ouvert\n")
+        verifier("vigile : hook, un .md, muet", hook(dict(pub, tool_input={"file_path": md})) == (0, ""), "")
+        verifier("vigile : hook, JSON illisible, muet",
+                 hook("pas du json") == (0, "") and hook('[1, "x"]') == (0, ""), "")
+        verifier("vigile : hook, fichier illisible, muet",
+                 hook(dict(pub, tool_input={"file_path": os.path.join(tvg, "absente.html")})) == (0, ""), "")
+
+
+tester_vigile()
+
 print("OK")

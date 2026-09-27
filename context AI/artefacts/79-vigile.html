@@ -20,9 +20,9 @@
     <p>Une page vide ou cassée est refusée avant de partir en ligne, avec la raison ; une page saine passe sans bruit.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="encours"></span><span></span>
+      <span data-etat="faite"></span><span data-etat="encours"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">2 fiches · 0 faite · en cours : VID1</p>
+    <p class="mono" style="margin-top:.5rem">2 fiches · 1 faite · en cours : VID2</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -37,17 +37,20 @@
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="encours"><details open>
+      <li class="fiche" data-etat="faite"><details>
         <summary><span class="id">VID1</span><span class="titre">Écrire vlp.py vigile, testé</span>
-        <span class="etat">en cours</span></summary>
-        <span class="note">La sous-commande vlp.py vigile, qui repère les trois défauts d'une page ; testée, mutants compris. Ne dépend de rien.</span>
+        <span class="etat">faite</span></summary>
+        <span class="note">test-vlp.py OK, 413 → 428 verifier (15 « vigile : … ») ; 3 mutants (commentaire ouvert, sans style, zéro bloc) tombent chacun, défaits ; pyright scripts/ 0 errors</span>
+        <span class="cout mono">≈2,5M (2 543 960) · 19 tours · 1,30 $</span>
       </details></li>
-      <li class="fiche"><details>
+      <li class="fiche" data-etat="encours"><details open>
         <summary><span class="id">VID2</span><span class="titre">Brancher le hook avant Artifact, et l'essayer pour de vrai</span>
-        <span class="etat">à faire</span></summary>
+        <span class="etat">en cours</span></summary>
         <span class="note">Le hook qui appelle le vigile avant chaque publication, et un vrai essai : une page cassée refusée, une saine publiée. Dépend de VID1.</span>
       </details></li>
     </ul>
+    <p class="mono cout-hors">Hors fiches : ≈3,2M (3 188 479) · 22 tours · 1,85 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈5,7M (5 732 439) · 41 tours · 3,15 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

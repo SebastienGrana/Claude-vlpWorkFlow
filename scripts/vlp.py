@@ -253,6 +253,9 @@ Sous-commandes :
   dernier message s'ouvre par « En résumé » ou une jauge (`forme_texte`, règle `REGLE` : une citation
   ne compte pas) et que `stop_hook_active` est faux (chantier FOR—JUG) ; `vlp:relecture` — renvoyé si
   la même règle le dit et que `stop_hook_active` est faux, sinon muet (chantier RLG—FOR—JUG).
+- `vigile [fichier]` — une page cassée ne part pas (chantier VID, `defauts_page`) : sans argument,
+  le hook `PreToolUse` sur `Artifact`, `deny` pour un `.html` à défauts, muet sinon ; avec un chemin,
+  une ligne `GARDE:` par défaut (sort 1) ou `PAGE SAINE <n> blocs`.
 - `recompter <projet>` — n'écrit rien (chantier REC). Pour chaque ligne de `ZONE:clos` de la
   feuille de route, le fichier de fiches que l'index nomme au même préfixe (`JUG1..JUG3` pour
   `JUG1–JUG3`), et une ligne `<préfixe> inscrit <n> · recompté <n|gardé> · écart <±n> ·
@@ -284,7 +287,7 @@ Sous-commandes :
 
 Python 3 sans dépendance, zéro appel modèle.
 
-Un hook (`hook`, `filet`, `gardien`) n'agit qu'une fois quand `python3` et `py` le lancent
+Un hook (`hook`, `filet`, `gardien`, `vigile`) n'agit qu'une fois quand `python3` et `py` le lancent
 tous deux : le premier qui crée `<TAMPON_HOOKS>/vlp-hook-<sha1 du nom et de l'entrée>` agit, l'autre se tait
 (chantier PYT). Rejoué à la main, `VLP_SANS_TAMPON=1` dans l'environnement saute le tampon :
 chaque lancement agit (chantier SON).
@@ -3128,6 +3131,78 @@ def textes_visibles(html_):
     return ex.blocs
 
 
+COMMENTAIRE = re.compile(r"<!--.*?(?:-->|\Z)", re.S)
+BALISE_STYLE = re.compile(r"<style\b", re.I)
+LIEN_CSS = re.compile(r"<link\b[^>]*\brel\s*=\s*[\"']?stylesheet\b", re.I)
+
+
+def defauts_page(html_):
+    """Les défauts qui interdisent de publier une page (chantier VID) : un commentaire
+    ouvert sans `-->` après lui, aucun style hors commentaire (ni `style`, ni `link`
+    `rel="stylesheet"`), aucun bloc de texte visible. Liste vide : la page est saine."""
+    defauts = []
+    i = html_.find("<!--")
+    while i >= 0:
+        j = html_.find("-->", i + 4)
+        if j < 0:
+            defauts.append("commentaire ouvert ligne %d (<!-- sans --> après lui)" % (html_.count("\n", 0, i) + 1))
+            break
+        i = html_.find("<!--", j + 3)
+    hors_commentaires = COMMENTAIRE.sub("", html_)
+    if not BALISE_STYLE.search(hors_commentaires) and not LIEN_CSS.search(hors_commentaires):
+        defauts.append('aucun style (ni balise style, ni link rel="stylesheet")')
+    if not textes_visibles(html_):
+        defauts.append("aucun bloc de texte visible")
+    return defauts
+
+
+def cmd_vigile(chemin, sortie):
+    """Le repli à la main : une ligne `GARDE:` par défaut (sort 1), ou `PAGE SAINE <n> blocs`."""
+    if not os.path.isfile(chemin):
+        sortie.write("GARDE: introuvable %s\n" % chemin)
+        return 1
+    html_ = lire(chemin)
+    defauts = defauts_page(html_)
+    for d in defauts:
+        sortie.write("GARDE: %s — %s\n" % (chemin, d))
+    if defauts:
+        return 1
+    sortie.write("PAGE SAINE %d blocs\n" % len(textes_visibles(html_)))
+    return 0
+
+
+def cmd_vigile_hook(entree, sortie):
+    """Le hook `PreToolUse` sur `Artifact` : une page `.html` cassée est refusée (`deny`, la
+    raison nomme le fichier et chaque défaut). Muet sur tout le reste, entrée illisible,
+    `.md`, `asset` vrai ou fichier illisible compris : il ne bloque jamais ce qu'il ne lit pas."""
+    try:
+        d = json.loads(entree.read())
+    except (ValueError, AttributeError, TypeError):
+        return 0
+    if not isinstance(d, dict) or d.get("hook_event_name") != "PreToolUse" or d.get("tool_name") != "Artifact":
+        return 0
+    outil = d.get("tool_input")
+    if not isinstance(outil, dict) or outil.get("asset") is True:
+        return 0
+    chemin = outil.get("file_path")
+    if not isinstance(chemin, str) or not chemin.lower().endswith(".html"):
+        return 0
+    cwd = d.get("cwd")
+    if not os.path.isabs(chemin) and isinstance(cwd, str):
+        chemin = os.path.join(cwd, chemin)
+    try:
+        defauts = defauts_page(lire(chemin))
+    except OSError:
+        return 0
+    if defauts:
+        sortie.write(json.dumps({"hookSpecificOutput": {
+            "hookEventName": "PreToolUse", "permissionDecision": "deny",
+            "permissionDecisionReason": "Page cassée, publication refusée (vlp.py vigile) — %s : %s. "
+                                        "Corrige la page, puis republie." % (chemin, " ; ".join(defauts))}},
+            ensure_ascii=False) + "\n")
+    return 0
+
+
 def cmd_comparer(a, sortie):
     """`PERDU:`/`AJOUTÉ:` entre le texte visible de deux pages, en multiset —
     une mesure, pas une garde : sort 0 même avec des pertes."""
@@ -4067,7 +4142,9 @@ def main(argv, sortie=None, entree=None, erreur=None):
     fm.add_argument("--depuis")
     fm.add_argument("--regle", choices=REGLES, default=REGLE)
     sous.add_parser("gardien")
-    rc = sous.add_parser("recompter")
+    vg = sous.add_parser("vigile")
+    vg.add_argument("fichier", nargs="?", default=None)
+    rc =sous.add_parser("recompter")
     rc.add_argument("projet")
     rc.add_argument("--ecrire", action="store_true")
     rc.add_argument("--essais", action="store_true")
@@ -4139,6 +4216,8 @@ def repartir(a, sortie, entree, erreur):
         return cmd_forme(a, sortie)
     if a.cmd == "gardien":
         return une_fois(entree, cmd_gardien, sortie)
+    if a.cmd == "vigile":
+        return cmd_vigile(a.fichier, sortie) if a.fichier else une_fois(entree, cmd_vigile_hook, sortie)
     if a.cmd == "recompter":
         return cmd_recompter(a.projet, sortie, a.ecrire, a.essais, a.a_clore)
     if a.cmd == "bac":
