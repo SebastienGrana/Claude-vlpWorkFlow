@@ -3266,6 +3266,12 @@ def tester_plage_refaite():
         verifier("Dette HAB : texte changé autour de la plage — reste PERDU et AJOUTÉ",
                  "PERDU: kit · fiches P1–P7\n" in sortie and "PLAGE:" not in sortie
                  and sortie.rstrip().endswith("COMPARER 1 perdus · 1 ajoutés"), sortie)
+        for chemin, fin in ((a, "P7"), (n, "P8")):
+            ecrire(chemin, ANCIENNE_CMP.replace("<body>", "<body><div>Fiches P1–%s — la page</div>" % fin))
+        c, sortie = appel(["comparer", a, n])
+        verifier("Dette BTN : « Fiches » avec majuscule, plage refaite — PLAGE (mutant : minuscule seule)",
+                 "PLAGE: Fiches P1–P7 — la page → Fiches P1–P8 — la page\n" in sortie
+                 and "PERDU:" not in sortie, sortie)
 
 
 tester_plage_refaite()

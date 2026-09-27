@@ -3871,7 +3871,8 @@ def cmd_vigile_hook(entree, sortie):
     return 0
 
 
-PLAGE_TEXTE = re.compile(r"fiches [A-Z]{1,3}[0-9]+(?:–[A-Z]{1,3}[0-9]+)?")
+# « Fiches » avec majuscule aussi : l'encart du chantier en cours l'écrit ainsi (dette BTN).
+PLAGE_TEXTE = re.compile(r"[Ff]iches [A-Z]{1,3}[0-9]+(?:–[A-Z]{1,3}[0-9]+)?")
 
 
 def cmd_comparer(a, sortie):
