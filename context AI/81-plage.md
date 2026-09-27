@@ -42,8 +42,9 @@ Une seule fiche.
 ---
 
 <!-- FICHE:PLG1 -->
-## PLG1 [ ] — Borner la plage par numéro
+## PLG1 [x] — Borner la plage par numéro
 
+**Session** : 5a12485e-8f92-4566-8eac-a08b630de356
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` — et rien d'autre.
 

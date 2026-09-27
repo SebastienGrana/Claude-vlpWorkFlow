@@ -3124,6 +3124,29 @@ def tester_plage_refaite():
 
 tester_plage_refaite()
 
+
+def tester_bornes():
+    """PLG1 : une plage va du plus petit au plus grand numéro, pas de la première à la
+    dernière fiche du fichier."""
+    verifier("PLG1 : plage par numéro — mutant : bornes rend ids[0], ids[-1]",
+             mod.plage(["REV1", "REV2", "REV3", "REV5", "REV8", "REV4"]) == "REV1–REV8",
+             mod.plage(["REV1", "REV2", "REV3", "REV5", "REV8", "REV4"]))
+    verifier("PLG1 : numéro entier, X10 après X9", mod.plage(["X10", "X9"]) == "X9–X10", mod.plage(["X10", "X9"]))
+    verifier("PLG1 : une fiche seule, son id", mod.plage(["U1"]) == "U1", mod.plage(["U1"]))
+    with tempfile.TemporaryDirectory() as tb:
+        ecrire(os.path.join(tb, "CHANTIER.md"), "# C\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n"
+               "- **fichier de fiches courant** : aucun\n- **artefact du chantier** : aucun\n")
+        ecrire(os.path.join(tb, "ctx", "00-INDEX.md"), "| Fichier | Lire |\n|---|---|\n| `10-e.md` | on relit |\n")
+        ecrire(os.path.join(tb, "CLAUDE.md"), "| La tâche | Ouvrir |\n|---|---|\n| relire un chantier clos | `ctx/00-INDEX.md` |\n")
+        ecrire(os.path.join(tb, "ctx", "30-q.md"), "# Chantier Q — q\n\n## Q2 [ ] — b\n## Q1 [ ] — a\n")
+        c, sortie = appel(["ouvrir", tb, "--fiches", "ctx/30-q.md", "--titre", "q"])
+        carte = open(os.path.join(tb, "CHANTIER.md"), encoding="utf-8").read()
+        verifier("PLG1 : ouvrir sur Q2 puis Q1 écrit Q1..Q2", c == 0 and "OUVERT Q Q1..Q2 " in sortie
+                 and "ctx/30-q.md (Q1..Q2)" in carte, sortie + carte)
+
+
+tester_bornes()
+
 # --- VOI3 : `lettres_prises` tolère une lettre entre backticks (MapDecorator) -
 
 LIGNE_MAPDECORATOR = "Lettres de fiche déjà prises : `T`, `U`, `R`, `M`. Un nouveau chantier en choisit"

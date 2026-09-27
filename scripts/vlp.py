@@ -2702,8 +2702,15 @@ def lettres_prises(lignes):
     return [m.group(1) for m in (re.match(r"\s*`?([A-Z]{1,3})`?(?: \(|\.?\s*$)", e) for e in entrees) if m]
 
 
+def bornes(ids):
+    """La fiche au plus petit et au plus grand numéro, pas l'ordre du fichier : REV rangé
+    REV1…REV3, REV5…REV8, REV4 va de REV1 à REV8 (chantier PLG)."""
+    rang = sorted(ids, key=lambda i: int(re.sub(r"\D", "", i) or 0))
+    return rang[0], rang[-1]
+
+
 def plage(ids):
-    return "%s–%s" % (ids[0], ids[-1]) if len(ids) > 1 else ids[0]
+    return "%s–%s" % bornes(ids) if len(ids) > 1 else ids[0]
 
 
 # Le gras et les liens Markdown d'un texte déjà échappé. Un <span class="mono"> y est mis
@@ -3684,14 +3691,14 @@ def cmd_clore(a, sortie):
     lettre = lettre_de(ids[0])
     titre = next((re.sub(r"^# Chantier \S+ — ", "", l) for l in fiches_ if l.startswith("# ")), courant)
     url = champ(carte_, "artefact du chantier", "aucun")
-    fait = "%s..%s" % (ids[0], ids[-1]) + (" (%s)" % a.abandon if a.abandon else "")
+    fait = "%s..%s" % bornes(ids) + (" (%s)" % a.abandon if a.abandon else "")
     # L'estimé de l'ouverture, relu ici pour être écrit à côté du réel (chantier EST).
     estime = next((m for m in map(ESTIME.match, fiches_) if m), None)
     joue = sum(1 for l in fiches_ if TITRE.match(l) and l.split()[2] == "[x]")
 
     # 1. le fichier de fiches
     entete = [CLOS_LIGNE % date] + (["", "Abandonnées : %s." % a.abandon.rstrip(".")] if a.abandon else []) + [""]
-    ligne_fait = "**Fait.** %s..%s (%s) : %s" % (ids[0], ids[-1], date, (a.fait or a.livre).rstrip("."))  + "."
+    ligne_fait = "**Fait.** %s..%s (%s) : %s" % (bornes(ids) + (date, (a.fait or a.livre).rstrip(".")))  + "."
     i = next((k for k, l in enumerate(fiches_) if l.startswith(("**Fait.**", "**Où on en est.**"))), None)
     if i is None:
         i = next(k for k, l in enumerate(fiches_) if l.startswith("# ")) + 2
@@ -3720,7 +3727,7 @@ def cmd_clore(a, sortie):
         else:
             m = re.search(r"« (.*) »", idx[k])
             idx[k] = "| `%s` | on relit le socle du chantier %s — **clos** « %s », `%s..%s` |" % (
-                nom, lettre, m.group(1) if m else titre, ids[0], ids[-1])
+                (nom, lettre, m.group(1) if m else titre) + bornes(ids))
             faits["index"] = 1
         # les lignes clos quittent l'index pour l'archive (chantier IDX)
         chemin_arch = os.path.join(projet, chemin_archive(index))
@@ -3933,7 +3940,7 @@ def cmd_ouvrir(a, sortie):
     if courant and courant != fichier:
         sortie.write("GARDE: un chantier est déjà ouvert : %s\n" % courant)
         return 1
-    lettre, fait = lettre_de(ids[0]), "%s..%s" % (ids[0], ids[-1])
+    lettre, fait = lettre_de(ids[0]), "%s..%s" % bornes(ids)
     url = retirer_chevrons_url(a.artefact) or (champ(carte_, "artefact du chantier", "aucun") if courant else "aucun")
     gardes = []
 

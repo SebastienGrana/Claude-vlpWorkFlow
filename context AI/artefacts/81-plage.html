@@ -20,9 +20,9 @@
     <p>Une plage de fiches se borne par numéro : REV, rangé dans le désordre, s'affiche REV1–REV8 et non plus REV1–REV4, en-tête, feuille, index et CHANTIER.md compris.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="encours"></span>
+      <span data-etat="faite"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">1 fiches · 0 faite · en cours : PLG1</p>
+    <p class="mono" style="margin-top:.5rem">1 fiches · 1 faite</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -37,12 +37,15 @@
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="encours"><details open>
+      <li class="fiche" data-etat="faite"><details>
         <summary><span class="id">PLG1</span><span class="titre">Borner la plage par numéro</span>
-        <span class="etat">en cours</span></summary>
-        <span class="note">bornes(ids) : plus bas et plus haut numéro ; plage et les quatre .. de clore/ouvrir l'appellent. Dépend de rien.</span>
+        <span class="etat">faite</span></summary>
+        <span class="note">bornes(ids) par numéro entier ; plage + 4 plages .. de clore/ouvrir l'appellent, plus aucun ids[-1] ; 4 tests (REV1–REV8, X9–X10, U1, ouvrir Q2,Q1 → Q1..Q2) ; mutant ids[0], ids[-1] : ÉCART ; test-vlp OK ; pyright 0 errors</span>
+        <span class="cout mono">≈1,1M (1 069 470) · 8 tours · 0,43 $</span>
       </details></li>
     </ul>
+    <p class="mono cout-hors">Hors fiches : ≈1,5M (1 516 540) · 13 tours · 0,63 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈2,6M (2 586 010) · 21 tours · 1,06 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
