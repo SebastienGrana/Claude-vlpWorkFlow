@@ -1499,7 +1499,24 @@ def lire_max_turns(chemin):
 
 # Un appel qui écrit dans Git : `git [-C chemin | -c clé=val]… commit|add|reset`.
 ECRIT_GIT = re.compile(r"""\bgit(?:\.exe)?(?:\s+-[Cc]\s+(?:"[^"]*"|'[^']*'|\S+))*\s+(?:commit|add|reset)\b""")
+# Un heredoc `<<[-]MOT` (mot nu ou cité) : sa ligne d'ouverture, son corps (groupe 3), sa fin.
+HEREDOC = re.compile(r"<<-?[ \t]*(['\"]?)([A-Za-z_]\w*)\1([^\n]*)\n(.*?)\n[ \t]*\2[ \t]*$", re.S | re.M)
 STATUTS = ("FAITE", "RETOUR", "BLOQUÉE")
+
+
+def ecrit_git(commande):
+    """`ECRIT_GIT` sans le corps des heredocs qui ne font qu'écrire un fichier : reçus par
+    `cat` ou `tee`, hors `$(…)` et accents graves, sans `|` derrière — un heredoc reçu par
+    `py`, `bash`… s'exécute, il reste lu ; les chaînes citées aussi (`ssh '…'`) (chantier ECH)."""
+    def taire(m):
+        avant = commande[:m.start()]
+        mots = [w for w in re.split(r"[;&|(\n`]", avant)[-1].split() if not re.match(r"\w+=", w)]
+        recoit = os.path.basename(mots[0].strip("'\"")).lower() if mots else ""
+        dans_sous = re.search(r"(?:\$\(|`)[^;&|()\n`]*$", avant)
+        if recoit not in ("cat", "tee") or dans_sous or "|" in m.group(3):
+            return m.group(0)
+        return commande[m.start():m.start(4)] + commande[m.end(4):m.end()]
+    return bool(ECRIT_GIT.search(HEREDOC.sub(taire, commande)))
 
 
 def lire_contrat(chemin):
@@ -1523,7 +1540,7 @@ def lire_contrat(chemin):
                         mot = b["text"].split()[0]
                     elif b.get("type") == "tool_use" and b.get("name") in ("Bash", "PowerShell"):
                         commande = (b.get("input") or {}).get("command")
-                        if isinstance(commande, str) and ECRIT_GIT.search(commande):
+                        if isinstance(commande, str) and ecrit_git(commande):
                             git += 1
     except (OSError, UnicodeDecodeError):
         return None, 0
@@ -1766,7 +1783,7 @@ def cmd_gardien(entree, sortie):
     if ev == "PreToolUse" and d.get("tool_name") in ("Bash", "PowerShell"):
         outil = d.get("tool_input")
         commande = outil.get("command") if isinstance(outil, dict) else None
-        if isinstance(commande, str) and ECRIT_GIT.search(commande):
+        if isinstance(commande, str) and ecrit_git(commande):
             agent, fin = ("relecture", "ton verdict") if relecteur else ("fiche", "ton statut")
             sortie.write(json.dumps({"hookSpecificOutput": {
                 "hookEventName": "PreToolUse", "permissionDecision": "deny",

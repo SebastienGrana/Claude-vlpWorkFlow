@@ -3147,6 +3147,34 @@ def tester_bornes():
 
 tester_bornes()
 
+
+def tester_heredoc():
+    """ECH1 : le corps d'un heredoc reçu par cat ou tee est une donnée ; le reste est lu."""
+    def refuse(commande):
+        o = io.StringIO()
+        mod.main(["gardien"], o, io.StringIO(json.dumps({
+            "agent_id": "a1", "agent_type": "vlp:fiche", "hook_event_name": "PreToolUse",
+            "tool_name": "Bash", "tool_input": {"command": commande}})))
+        return '"permissionDecision": "deny"' in o.getvalue()
+    cas = [("cat > f <<'EOF'\ngit commit\nEOF", False),
+           ("tee f <<EOF\ngit add x\nEOF", False),
+           ("PYTHONUTF8=1 cat >> \"a b.md\" <<-\"FIN\"\n\tgit reset\n\tFIN\necho ok", False),
+           ("py - <<'EOF'\nimport os; os.system('git commit -m x')\nEOF", True),
+           ("cat <<'EOF' | bash\ngit commit\nEOF", True),
+           ("bash -c \"$(cat <<'EOF'\ngit commit\nEOF\n)\"", True),
+           ("cat > f <<'EOF'\nx\nEOF\ngit commit -m y", True),
+           ("cat > f <<'EOF'\ngit commit", True),
+           ("ssh h 'git reset --hard'", True)]
+    faux = [(c, attendu) for c, attendu in cas if refuse(c) != attendu]
+    verifier("ECH1 : heredoc de cat/tee muet, le reste refusé (%d cas) — mutant : rien retiré" % len(cas),
+             not faux, repr(faux))
+    verifier("ECH1 : lire_contrat ne compte pas le heredoc de cat",
+             mod.ecrit_git("cat > f <<'EOF'\ngit commit\nEOF") is False
+             and mod.ecrit_git("git -C x commit -m y") is True, "")
+
+
+tester_heredoc()
+
 # --- VOI3 : `lettres_prises` tolère une lettre entre backticks (MapDecorator) -
 
 LIGNE_MAPDECORATOR = "Lettres de fiche déjà prises : `T`, `U`, `R`, `M`. Un nouveau chantier en choisit"

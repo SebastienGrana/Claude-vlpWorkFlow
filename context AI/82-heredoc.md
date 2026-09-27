@@ -46,8 +46,9 @@ Une seule fiche.
 ---
 
 <!-- FICHE:ECH1 -->
-## ECH1 [ ] — Taire le corps d'un heredoc écrit par `cat` ou `tee`
+## ECH1 [x] — Taire le corps d'un heredoc écrit par `cat` ou `tee`
 
+**Session** : 5a12485e-8f92-4566-8eac-a08b630de356
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` — et rien d'autre.
 
