@@ -19,7 +19,7 @@
   const bouton = (texte, classe) => {
     const b = document.createElement("button");
     b.type = "button";
-    b.className = "bouton " + classe;
+    b.className = classe ? "bouton " + classe : "bouton";
     b.textContent = texte;
     return b;
   };
@@ -32,7 +32,7 @@
     const replis = document.createElement("span");
     replis.className = "replis";
     [["Tout déplier", true], ["Tout replier", false]].forEach(([texte, ouvrir]) => {
-      const b = bouton(texte, "deplier");
+      const b = bouton(texte);
       b.addEventListener("click", () => {
         liste.querySelectorAll("details").forEach((d) => { d.open = ouvrir; });
       });

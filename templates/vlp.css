@@ -38,8 +38,8 @@ section { display:flex; flex-direction:column; gap:.85rem; }
 .fiche .id,.carte-todo .rang { font-weight:500; color:var(--doux); }
 .fiche .titre,.carte-todo .titre { font-weight:600; }
 .fiche .note { font-size:.9rem; color:var(--doux); }
-.fiche .cout,.carte-todo .meta,.dep { font-size:.78rem; color:var(--doux); }
-.dep { font-size:.72rem; overflow-wrap:anywhere; }
+.fiche .cout,.carte-todo .meta { font-size:.78rem; color:var(--doux); }
+.dep { font-size:.72rem; color:var(--doux); overflow-wrap:anywhere; }
 /* « À lancer » (vlp.py) : ce qui se lance maintenant ressort */
 .fiche:not([data-etat]):not([data-attend]) .etat { color:var(--accent); }
 .cout-total,.cout-hors { font-size:.85rem; color:var(--doux); }
