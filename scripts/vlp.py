@@ -40,7 +40,8 @@ Sous-commandes :
   aux commits de fiche`, une ligne par fiche, `hors fiches`, `TOTAL (fiches + hors
   fiches)` — aucun tour gardé : `GARDE: découpe à zéro` ; un fichier clos s'arrête à son
   dernier appel `vlp.py clore` — lancé, pas cité dans un texte (`lance_clore`) —, le chiffre que
-  `clore` inscrit (`decouper`). Sans Git, sans commit qui
+  `clore` inscrit (`decouper`), et sa fiche sans commit au commit suivant qui nomme le préfixe
+  (`plages`). Sans Git, sans commit qui
   nomme le préfixe, ou clos sans commit de fiche : `DÉCOUPE aucune — <raison>`, puis
   les tables des sessions entières. `--session` : `SESSION=<CLAUDE_CODE_SESSION_ID>`,
   puis (id non vide) la table de cette session seule, et celle de cette session plus
@@ -871,7 +872,7 @@ def heure_clore(chemin, lignes):
     (chantier APC)."""
     fiches_ = fiches_du_fichier(lignes)
     heures = heures_commits(chemin, [f[0] for f in fiches_], [], any(l.startswith("**CLOS**") for l in lignes))
-    trous = plages(fiches_, heures, [])[1] if heures else []
+    trous = plages(fiches_, heures, [], clos=True)[1] if heures else []
     if not trous:
         return None
     debut, fin = trous[-1]
@@ -2034,11 +2035,13 @@ def heures_commits(fichier, ids, pourquoi=None, clos=False):
     return commits, sorted(prefixe), sorted(autres)
 
 
-def plages(fiches_, heures, gardes):
+def plages(fiches_, heures, gardes, clos=False):
     """([(id, (début, fin])] dans l'ordre des commits, [plages hors fiches]). Une fiche va
     du commit de la précédente au sien ; la première part du dernier commit antérieur qui
     nomme le préfixe, à défaut de l'origine ; une fiche à session sans commit va jusqu'au
-    bout du transcript, et part de l'ouverture (le dernier commit qui nomme le préfixe)
+    bout du transcript — d'un chantier `clos`, jusqu'au premier commit suivant qui nomme le
+    préfixe, comme la dernière plage hors fiches : la session a pu continuer après la clôture
+    (LEC5, chantier ECA) —, et part de l'ouverture (le dernier commit qui nomme le préfixe)
     tant qu'aucune fiche n'a de commit — en cours : clos, `heures_commits` rend le repli. L'origine : le dernier commit qui ne nomme pas le
     préfixe, avant ce début — le chantier d'avant, quand une session en enchaîne plusieurs ;
     à défaut, le début de la session. Hors fiches : de l'origine à la première fiche, et de
@@ -2060,7 +2063,7 @@ def plages(fiches_, heures, gardes):
         gardes.append("GARDE: %s porte une session sans commit « %s : » — ses tours comptent dans une autre plage"
                       % (ident, ident))
     if sans:
-        rendu.append((sans[-1], (debut, INFINI)))
+        rendu.append((sans[-1], (debut, min((t for t in prefixe if t > debut), default=INFINI) if clos else INFINI)))
     if not rendu:
         return [], []
     dernier = rendu[-1][1][1]
@@ -2077,7 +2080,8 @@ def parts_aux_commits(fiches_, heures, gardes, entete=(), fin=None):
     (total, tours, usd, n) — n : les transcripts qui y ont un tour —, usd arrondi au
     centime : tout s'additionne, dans `cout` comme sur la page. Aucun tour gardé, ni aux
     fiches ni hors fiches : une `GARDE:` le dit, les nombres restent (chantier ZER). `fin` : la
-    dernière plage hors fiches s'y arrête — l'heure de l'appel `clore` (chantier APC)."""
+    dernière plage hors fiches s'y arrête — l'heure de l'appel `clore` (chantier APC). Donné, le
+    chantier est clos : sa fiche sans commit s'arrête au commit suivant (`plages`, chantier ECA)."""
     from decimal import ROUND_HALF_UP, Decimal
     m = mesure()
     sessions, fichiers = [], []
@@ -2093,7 +2097,7 @@ def parts_aux_commits(fiches_, heures, gardes, entete=(), fin=None):
             fichiers += [(e, 2)] + [(a, 3) for a in m.sous_agents(e)]
     if not fichiers:
         return None
-    par_fiche, trous = plages(fiches_, heures, gardes)
+    par_fiche, trous = plages(fiches_, heures, gardes, clos=fin is not None)
     if not par_fiche:
         return None
     if fin is not None and trous:

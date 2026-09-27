@@ -20,9 +20,9 @@
     <p>Les 24 écarts de recompter ont chacun leur cause ; les deux défauts de mesure trouvés sont réparés, puis le recompte est écrit sur la feuille de route.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="encours"></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">3 fiches · 1 faite · en cours : ECA2</p>
+    <p class="mono" style="margin-top:.5rem">3 fiches · 2 faites · en cours : ECA3</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -43,17 +43,19 @@
         <span class="note">lance_clore : interprète Python en tête de segment, heredocs cat/tee tus (sans_heredoc sorti de ecrit_git) ; 13 cas ; mutants ancien motif (5 textes pris) et sans sans_heredoc : ÉCART ; recompter : BAC, EST, FFE, REL écart 0 ; corpus 82 appels gardés, 20 textes écartés ; test-vlp OK ; pyright 0 errors</span>
         <span class="cout mono">≈2,4M (2 443 976) · 13 tours · 0,94 $</span>
       </details></li>
-      <li class="fiche" data-etat="encours"><details open>
+      <li class="fiche" data-etat="faite"><details>
         <summary><span class="id">ECA2</span><span class="titre">La fiche sans commit d'un clos s'arrête au commit suivant</span>
-        <span class="etat">en cours</span></summary>
+        <span class="etat">faite</span></summary>
+        <span class="note">plages(clos) : la fiche sans commit d'un clos s'arrête au premier commit suivant qui nomme le préfixe ; heure_clore passe clos=True, parts_aux_commits clos=fin is not None ; test Q2 2 tours, TOTAL 400 000 · 4 tours ; mutant clos ignoré : 700 000 · 7 tours, ÉCART ; recompter : LEC écart 0, 0 positif, 19 négatifs = −15 390 303 ; test-vlp OK ; pyright 0 errors</span>
+        <span class="cout mono">≈1,2M (1 225 405) · 6 tours · 0,48 $</span>
       </details></li>
-      <li class="fiche"><details>
+      <li class="fiche" data-etat="encours"><details open>
         <summary><span class="id">ECA3</span><span class="titre">Écrire le recompte sur la feuille de route</span>
-        <span class="etat">à faire</span></summary>
+        <span class="etat">en cours</span></summary>
       </details></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈7,4M (7 363 675) · 45 tours · 3,97 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈9,8M (9 807 651) · 58 tours · 4,91 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈11,0M (11 033 056) · 64 tours · 5,39 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

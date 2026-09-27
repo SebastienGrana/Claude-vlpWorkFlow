@@ -3222,6 +3222,43 @@ def tester_lance_clore():
 
 tester_lance_clore()
 
+
+def tester_clos_sans_commit():
+    """ECA2 : un clos dont Q2 n'a pas de commit « Q2 : » — son travail est dans « Journal : … Q2 ».
+    Tours à 200 (Q1), 400 et 500 (Q2), l'appel clore à 700, puis 800, 1000, 1100 : la session a
+    continué après la clôture (900). Q2 s'arrête au journal (600), hors fiches à l'appel clore."""
+    if not shutil.which("git"):
+        print("SAUTÉ: git absent — ECA2 n'est pas testé")
+        return
+    with tempfile.TemporaryDirectory() as t:
+        dep, sq = os.path.join(t, "depot"), os.path.join(t, "s.jsonl")
+        transcript(sq, 7, [T0 + d for d in (200, 400, 500, 700, 800, 1000, 1100)])
+        lignes_ = [json.loads(l) for l in lire(sq).splitlines()]
+        lignes_[3]["message"]["content"] = [{"type": "tool_use", "id": "t3", "name": "Bash",
+                                             "input": {"command": "py scripts/vlp.py clore . --livre x"}}]
+        ecrire(sq, "".join(json.dumps(l) + "\n" for l in lignes_))
+        ecrire(os.path.join(dep, "q.md"), (QFICHES % (sq, sq)).replace("# Chantier Q\n",
+                                                                         "# Chantier Q\n\n**CLOS** le 2026-05-06.\n", 1))
+        env = dict(os.environ, GIT_CONFIG_GLOBAL=os.path.join(t, "gitconfig"), GIT_CONFIG_NOSYSTEM="1",
+                   GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t")
+        ecrire(env["GIT_CONFIG_GLOBAL"], "")
+        subprocess.run(["git", "init", "-q"], cwd=dep, env=env, check=True, capture_output=True)
+        for d, sujet in ((100, "Chantier Q ouvert : cadré"), (300, "Q1 : Créer"),
+                         (600, "Journal : la mesure de Q2"), (900, "Chantier Q clos : fini")):
+            date = "%d +0000" % (T0 + d)
+            subprocess.run(["git", "commit", "-q", "--allow-empty", "-m", sujet], cwd=dep, check=True,
+                           capture_output=True, env=dict(env, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date))
+        code, s = appel(["cout", os.path.join(dep, "q.md")])
+        lignes_ = s.splitlines()
+        q2 = [l for l in lignes_ if l.startswith("Q2 · ")]
+        total = [l for l in lignes_ if l.startswith("TOTAL ")]
+        verifier("ECA2 : clos, Q2 sans commit — Q2 2 tours, TOTAL 400 000 · 4 tours — mutant : clos ignoré"
+                 " (TOTAL 700 000 · 7 tours)", code == 0 and len(q2) == 1 and mod.triplet(q2[0])[:2] == (200000, 2)
+                 and len(total) == 1 and mod.triplet(total[0])[:2] == (400000, 4), s)
+
+
+tester_clos_sans_commit()
+
 # --- VOI3 : `lettres_prises` tolère une lettre entre backticks (MapDecorator) -
 
 LIGNE_MAPDECORATOR = "Lettres de fiche déjà prises : `T`, `U`, `R`, `M`. Un nouveau chantier en choisit"

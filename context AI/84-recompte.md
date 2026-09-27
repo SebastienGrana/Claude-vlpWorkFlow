@@ -85,8 +85,9 @@ l'appel. Mutant : l'ancien motif → ÉCART. `recompter .` : BAC, EST, FFE, REL 
 ---
 
 <!-- FICHE:ECA2 -->
-## ECA2 [ ] — La fiche sans commit d'un clos s'arrête au commit suivant
+## ECA2 [x] — La fiche sans commit d'un clos s'arrête au commit suivant
 
+**Session** : 5a12485e-8f92-4566-8eac-a08b630de356
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` — et rien d'autre.
 
