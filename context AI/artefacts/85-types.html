@@ -26,10 +26,12 @@
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
-  <section hidden>
-    <h2>Chantier clos le </h2>
+  <section>
+    <h2>Chantier clos le 2026-09-27</h2>
     <div class="bilan">
-      <p></p>
+      <p>Livré : pyrightconfig.json (scripts, mode standard) et un bloc pyright dans .githooks/pre-commit : un commit qui indexe un .py en erreur est refusé ; pyright absent, le hook le dit et laisse passer</p>
+      <p>Surpris : Le faux pyright sans extension est trouvé par le sh de Git sous Windows : il se dit exécutable par son #! ; 38-audit-scripts porte 12 erreurs d'avant, laissé dehors</p>
+      <p>Estimé : estimé 1 fiches ≈4,16 $ · cadré 1 · joué 1 fiches ≈2,51 $</p>
     </div>
   </section>
 
@@ -44,8 +46,8 @@
         <span class="cout mono">≈625,3k (625 271) · 6 tours · 0,34 $</span>
       </details></li>
     </ul>
-    <p class="mono cout-hors">Hors fiches : ≈2,3M (2 260 508) · 14 tours · 1,24 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈2,9M (2 885 779) · 20 tours · 1,58 $</p>
+    <p class="mono cout-hors">Hors fiches : ≈2,4M (2 369 823) · 15 tours · 1,30 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈3,0M (2 995 094) · 21 tours · 1,64 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

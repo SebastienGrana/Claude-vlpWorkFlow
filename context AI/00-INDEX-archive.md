@@ -77,3 +77,4 @@ QUAND LIRE : on relit un chantier clos ; l'index n'en garde qu'une ligne qui ren
 | `82-heredoc.md` | on relit le socle du chantier ECH — **clos** « ECRIT_GIT ne lit pas le texte d'un heredoc », `ECH1..ECH1` |
 | `83-jauge.md` | on relit le socle du chantier OUV — **clos** « Une ligne qui s'ouvre par un mot de jauge, sans être une jauge », `OUV1..OUV1` |
 | `84-recompte.md` | on relit le socle du chantier ECA — **clos** « Comprendre les écarts du recompte avant de l'écrire », `ECA1..ECA3` |
+| `85-types.md` | on relit le socle du chantier TYP — **clos** « pyright sans erreur, gardé au commit », `TYP1..TYP1` |
