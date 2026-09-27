@@ -2488,9 +2488,23 @@ def regenerer(html, fichier, parts, date, gardes, forme=False):
         e = etat[ident]
         note = esc(parts["notes"][ident]) if ident in parts["notes"] else None
         deps, visuel, _ = apercu.get(ident, ([], False, set()))
-        # Une fiche pas prête dit ce qu'elle attend, à la place de ses dépendances — et `vlp.js`
-        # ne lui pose pas de Copier ; `data-parallele` : le trait des fiches à lancer en même temps.
-        gauche = fleche(attend[ident], attend=True) if attend.get(ident) else fleche(deps)
+        # Une fiche à faire dit si elle se lance (commentaire de la page BTN, choix C) : « à
+        # lancer », ou « après A, B » — ce qu'elle attend encore, à la place de ses dépendances ;
+        # en cours ou bloquée, elle garde son état et dit « attend » à gauche. `data-attend` :
+        # `vlp.js` ne lui pose pas de Copier. « ∥ avec B » : prête, à lancer en même temps que B.
+        libelle, gauche = etiquette.get(e, e), fleche(deps)
+        if attend.get(ident):
+            libelle, gauche = (("après " + ", ".join(attend[ident]), "") if e is None
+                               else (libelle, fleche(attend[ident], attend=True)))
+        elif e is None:
+            libelle = "à lancer"
+        if ident in ensemble:
+            gauche += '<span class="avec mono">∥ avec %s</span>' % ", ".join(i for i in ensemble if i != ident)
+        # `forme` garde un libellé écrit à la main (« abandonnée ») ; un libellé que ce script
+        # écrit se recalcule — sinon « après A » resterait une fois A faite.
+        if ident in libelles and libelles[ident][1] not in set(etiquette.values()) | {"à lancer"} \
+                and not libelles[ident][1].startswith("après "):
+            libelle = libelles[ident][1]
         # Trois colonnes (gabarit en colonnes, 2026-09-27) : à gauche l'identifiant, l'état et les
         # dépendances ; au milieu le titre, qui seul replie la note — repliée sauf en cours ou
         # bloquée (PLI) ; à droite le coût, ou « visuel » tant qu'une fiche à regarder n'est pas
@@ -2502,8 +2516,8 @@ def regenerer(html, fichier, parts, date, gardes, forme=False):
         items.append('      <li class="fiche"%s><span class="gauche"><span class="id">%s</span>'
                      '<span class="etat">%s</span>%s</span>\n'
                      '        <details%s><summary><span class="titre">%s</span></summary>%s</details>%s</li>'
-                     % ((' data-etat="%s"' % e if e else "") + (" data-parallele" if ident in ensemble else ""), ident,
-                        libelles[ident][1] if ident in libelles else etiquette.get(e, e), gauche,
+                     % ((' data-etat="%s"' % e if e else "") + (" data-attend" if attend.get(ident) else ""), ident,
+                        libelle, gauche,
                         " open" if e in ("encours", "bloquee") else "",
                         libelles[ident][0] if ident in libelles else esc(titre),
                         '\n        <span class="note">%s</span>' % note if note else "",
@@ -2511,9 +2525,6 @@ def regenerer(html, fichier, parts, date, gardes, forme=False):
     prefixe = re.search(r'<p class="mono cout-total">(.*?) : ', html)
     prefixe = prefixe.group(1) if prefixe else "Coût du chantier"
     html = re.sub(r'\n[ \t]*<p class="mono cout-(?:total|hors)">.*?</p>', "", html, flags=re.S)
-    html = re.sub(r'<p class="parallele">[^\n]*</p>\n[ \t]*(?=<ul class="fiches">)', "", html)
-    legende = ('<p class="parallele">À lancer en même temps : %s (aucun fichier en commun)</p>\n    '
-               % ", ".join(ensemble) if ensemble else "")
     bloc = "\n" + "\n".join(items)
     bloc_total = ""
     if forme:
@@ -2523,7 +2534,7 @@ def regenerer(html, fichier, parts, date, gardes, forme=False):
             bloc_total += '\n    <p class="mono cout-hors">Hors fiches : %s</p>' % ligne_cout(*hors)
         if total:
             bloc_total += '\n    <p class="mono cout-total">%s : %s</p>' % (prefixe, ligne_cout(*total))
-    html, n = UL_FICHES.subn(lambda m: legende + m.group(1) + bloc + m.group(3) + bloc_total, html, count=1)
+    html, n = UL_FICHES.subn(lambda m: m.group(1) + bloc + m.group(3) + bloc_total, html, count=1)
     if not n:
         raise ValueError("page : liste des fiches introuvable")
     spans = "".join('<span%s></span>' % (' data-etat="%s"' % etat[f[0]] if etat[f[0]] else "") for f in fiches_)

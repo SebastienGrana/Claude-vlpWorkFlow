@@ -41,7 +41,9 @@
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <!-- trois colonnes : .gauche (id, état, dépendances « ← R1 »), le titre qui replie la note
+      <!-- trois colonnes : .gauche (id, état — « à lancer », ou « après R2 » et data-attend tant
+           qu'une dépendance n'est pas faite —, dépendances « ← R1 », « ∥ avec R4 » : à lancer en
+           même temps, aucun fichier en commun), le titre qui replie la note
            — `open` si en cours ou bloquée —, à droite .cout (présent seulement si la fiche a une
            plage : commit `<ID> :`, ou ligne **Session**) ou « visuel » tant qu'elle n'est pas faite -->
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">&lt;R1&gt;</span><span class="etat">faite</span></span>
@@ -52,7 +54,7 @@
         <details open><summary><span class="titre">&lt;Titre de la fiche&gt;</span></summary>
         <span class="note">&lt;Ce qu'elle produit, en une ligne.&gt;</span></details>
         <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
-      <li class="fiche"><span class="gauche"><span class="id">&lt;R3&gt;</span><span class="etat">à faire</span><span class="dep mono">← &lt;R2&gt;</span></span>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">&lt;R3&gt;</span><span class="etat">après &lt;R2&gt;</span></span>
         <details><summary><span class="titre">&lt;Titre de la fiche&gt;</span></summary>
         <span class="note">&lt;Ce qu'elle produit, en une ligne.&gt;</span></details></li>
     </ul>

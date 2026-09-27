@@ -38,7 +38,9 @@ section { display:flex; flex-direction:column; gap:.85rem; }
 .fiche .titre,.carte-todo .titre { font-weight:600; }
 .fiche .note { font-size:.9rem; color:var(--doux); }
 .fiche .cout,.carte-todo .meta,.dep { font-size:.78rem; color:var(--doux); }
-.dep { font-size:.72rem; overflow-wrap:anywhere; }
+.dep,.avec { font-size:.72rem; overflow-wrap:anywhere; }
+/* « à lancer » et « ∥ avec … » (vlp.py) : ce qui se lance maintenant ressort */
+.avec,.fiche:not([data-etat]):not([data-attend]) .etat { color:var(--accent); }
 .cout-total,.cout-hors { font-size:.85rem; color:var(--doux); }
 .fiche .etat { font-size:.68rem; letter-spacing:.07em; text-transform:uppercase; color:var(--attente); }
 .fiche > details,.carte-todo > details { min-width:0; }
@@ -51,13 +53,6 @@ section { display:flex; flex-direction:column; gap:.85rem; }
 .carte-todo > .meta { max-width:10rem; }
 /* écran étroit : la colonne de droite passe sous le titre */
 @media (max-width:34rem) { .fiche,.carte-todo { grid-template-columns:4.6rem 1fr; } .fiche > :is(.cout,.visuel),.carte-todo > .meta { grid-column:2; justify-self:start; text-align:left; width:auto; max-width:none; } }
-/* à lancer en même temps (vlp.py, data-parallele) : un trait dans la marge, relié d'une carte à la
-   suivante, et le même devant la légende */
-.fiche[data-parallele],.parallele { position:relative; }
-.fiche[data-parallele]::before,.parallele::before { content:""; position:absolute; left:-.75rem; top:-1px; bottom:-1px; width:3px; border-radius:1px; background:var(--accent); }
-.parallele::before { left:calc(-.75rem + 3px); top:0; bottom:0; }
-.fiche[data-parallele] + .fiche[data-parallele]::before { top:calc(-.5rem - 1px); }
-.parallele { margin:0; font-size:.85rem; color:var(--doux); }
 .fiche summary .titre::after,.carte-todo summary .titre::after { content:" ▸"; color:var(--doux); font-weight:400; }
 .fiche details[open] > summary .titre::after,.carte-todo details[open] > summary .titre::after { content:" ▾"; }
 /* les trois états, partout où ils comptent */

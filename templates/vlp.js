@@ -39,13 +39,13 @@
     titre.after(replis);
   });
 
-  // Copier : dans la colonne de gauche de chaque fiche prête — non faite, et sans « attend … »,
-  // que vlp.py écrit à la place des dépendances d'une fiche pas prête —, sous son état et avant
-  // ses dépendances ; copie `/vlp:tache <ID>`.
+  // Copier : dans la colonne de gauche de chaque fiche prête — non faite, et sans `data-attend`,
+  // que vlp.py pose sur une fiche dont une dépendance n'est pas faite —, sous son état et avant
+  // ses dépendances et son « ∥ avec … » ; copie `/vlp:tache <ID>`.
   page.querySelectorAll("li.fiche").forEach((li) => {
     const id = li.querySelector("span.id");
     const gauche = li.querySelector(".gauche");
-    if (li.dataset.etat === "faite" || li.querySelector(".attend") || !id || !gauche) return;
+    if (li.dataset.etat === "faite" || li.hasAttribute("data-attend") || !id || !gauche) return;
     const commande = "/vlp:tache " + id.textContent.trim();
     const copier = bouton("Copier", "copier");
     copier.addEventListener("click", () => {
@@ -71,6 +71,6 @@
           zone.select();
         });
     });
-    gauche.insertBefore(copier, gauche.querySelector(".dep"));
+    gauche.insertBefore(copier, gauche.querySelector(".dep, .avec"));
   });
 })();

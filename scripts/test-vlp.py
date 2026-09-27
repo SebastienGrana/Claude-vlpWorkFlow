@@ -3784,8 +3784,8 @@ def tester_carte_en_colonnes():
 tester_carte_en_colonnes()
 
 
-# Fiches prêtes, et à lancer en même temps (commentaire de la page BTN) : une fiche pas prête dit
-# ce qu'elle attend ; les prêtes sans fichier commun portent `data-parallele`, et la légende les nomme.
+# Fiches prêtes, et à lancer en même temps (commentaires de la page BTN, choix C) : une fiche à faire
+# dit « à lancer », ou « après A, B » et `data-attend` ; les prêtes sans fichier commun disent « ∥ avec … ».
 def tester_pretes_et_paralleles():
     def fiche(ident, case, dep, fichiers):
         return ("<!-- FICHE:%s -->\n## %s [%s] — Fiche %s\n**Dépend de** : %s\n%s**Critère de fin**\nx\n"
@@ -3799,46 +3799,71 @@ def tester_pretes_et_paralleles():
                 + fiche("R5", " ", "`R2`, `R3`,\n`R4` et `PLI9`.", "`d.md`")
                 + fiche("R6", " ", "`R1`.", "")
                 + fiche("R7", "x" if "R7" in faites else " ", "`R3`.", "`e.md`"))
-    legende = '<p class="parallele">À lancer en même temps : %s (aucun fichier en commun)</p>\n    <ul class="fiches">'
+    def cartes(html):
+        return {m.group(1): m.group(0)
+                for m in re.finditer(r'<li class="fiche".*?<span class="id">(\w+)</span>.*?</li>', html, re.S)}
+    def gauche(attributs, ident, etat, suite=""):
+        return ('<li class="fiche"%s><span class="gauche"><span class="id">%s</span><span class="etat">%s</span>%s</span>'
+                % (attributs, ident, etat, suite))
+    avec = '<span class="avec mono">∥ avec %s</span>'
     with tempfile.TemporaryDirectory() as tpp:
         fiches = os.path.join(tpp, "r.md")
         page = os.path.join(tpp, "artefacts", "r.html")
         ecrire(fiches, fichier_md(()))
         code, s = appel(["page", fiches, page, "--creer", "--projet", "Proj", "--titre", "T", "--resultat", "R0"])
         html = lire(page)
-        li = {m.group(1): m.group(0)
-              for m in re.finditer(r'<li class="fiche".*?<span class="id">(\w+)</span>.*?</li>', html, re.S)}
-        verifier("prêtes : une fiche pas prête dit ce qu'elle attend, pas ce qui est fait ni hors du fichier,"
-                 " et tous les noms au-delà de deux — mutants : attente ignorée, seuil de la flèche",
-                 code == 0 and '<span class="dep attend mono">attend R2, R3, R4</span>' in li.get("R5", "")
-                 and "←" not in li.get("R5", "") and '<span class="dep attend mono">attend R3</span>' in li.get("R7", ""),
-                 s + html)
-        verifier("prêtes : une fiche prête garde ses dépendances, sans « attend »",
-                 '<span class="dep mono">← R1</span>' in li.get("R2", "") and "attend" not in li.get("R2", "")
-                 and "attend" not in li.get("R4", ""), "%r" % li)
-        verifier("en même temps : les prêtes sans fichier commun (même nommé autrement), pas celle sans ligne Fichiers"
-                 " — mutant : fichiers communs ignorés",
-                 li.get("R2", "").startswith('<li class="fiche" data-etat="encours" data-parallele>')
-                 and li.get("R3", "").startswith('<li class="fiche" data-parallele>')
-                 and all("data-parallele" not in li.get(i, "-") for i in ("R1", "R4", "R5", "R6", "R7"))
-                 and html.count('<p class="parallele">') == 1 and legende % "R2, R3" in html, "%r" % li)
-        verifier("en même temps : la page se relit — lis_page lit l'état malgré data-parallele",
-                 mod.lis_page(html).get("R2", ("?",))[0] == "encours", "%r" % mod.lis_page(html))
+        li = cartes(html)
+        verifier("prêtes : une fiche qui attend dit « après » et tous les noms pas faits de ce fichier, sans ses"
+                 " dépendances — mutants : attente ignorée, seuil de la flèche",
+                 code == 0 and li.get("R5", "").startswith(gauche(" data-attend", "R5", "après R2, R3, R4"))
+                 and li.get("R7", "").startswith(gauche(" data-attend", "R7", "après R3")), s + html)
+        verifier("prêtes : une fiche qui se lance dit « à lancer » et garde ses dépendances ; en cours, son état",
+                 li.get("R4", "").startswith(gauche("", "R4", "à lancer"))
+                 and li.get("R6", "").startswith(gauche("", "R6", "à lancer", '<span class="dep mono">← R1</span>'))
+                 and li.get("R2", "").startswith(gauche(' data-etat="encours"', "R2", "en cours",
+                                                        '<span class="dep mono">← R1</span>' + avec % "R3")), "%r" % li)
+        verifier("en même temps : « ∥ avec » sur les prêtes sans fichier commun (même nommé autrement), pas sur celle"
+                 " sans ligne Fichiers — mutants : fichiers communs ignorés, prête sans Fichiers comptée",
+                 li.get("R3", "").startswith(gauche("", "R3", "à lancer", '<span class="dep mono">← R1</span>' + avec % "R2"))
+                 and all("avec" not in li.get(i, "avec") for i in ("R1", "R4", "R5", "R6", "R7")), "%r" % li)
+        verifier("prêtes : la page se relit — lis_page lit l'état malgré data-attend",
+                 mod.lis_page(html).get("R2", ("?",))[0] == "encours" and mod.lis_page(html).get("R5", ("?",))[0] is None,
+                 "%r" % mod.lis_page(html))
         code, s = appel(["page", fiches, page])
         code2, s2 = appel(["page", fiches, page, "--forme"])
-        verifier("en même temps : régénérer, puis repeindre, ne change rien — mutant : ancienne légende gardée",
+        verifier("prêtes : régénérer, puis repeindre, ne change rien",
                  code == 0 and code2 == 0 and lire(page) == html, s + s2 + lire(page))
+        # Une page d'avant : « à faire » partout, et un libellé écrit à la main.
+        vieille = re.sub(r'(<span class="id">R6</span><span class="etat">)[^<]*', r"\1abandonnée", html)
+        vieille = re.sub(r'(<span class="etat">)(?:à lancer|après [^<]*)', r"\1à faire", vieille)
+        ecrire(page, vieille)
+        code, s = appel(["page", fiches, page, "--forme"])
+        li = cartes(lire(page))
+        verifier("prêtes : --forme recalcule « à lancer » et « après », garde « abandonnée » — mutant : tout libellé gardé",
+                 code == 0 and all("à faire" not in c for c in li.values())
+                 and '<span class="etat">à lancer</span>' in li.get("R3", "")
+                 and gauche(" data-attend", "R5", "après R2, R3, R4") in li.get("R5", "")
+                 and '<span class="etat">abandonnée</span>' in li.get("R6", ""), s + lire(page))
         ecrire(fiches, fichier_md(("R2", "R3")))
         appel(["page", fiches, page])
-        apres = lire(page)
-        verifier("en même temps : la légende suit les cases — R2 et R3 faites, R4 et R7 prêtes",
-                 apres.count('<p class="parallele">') == 1 and legende % "R4, R7" in apres
-                 and '<span class="dep attend mono">attend R4</span>' in apres, apres)
+        li = cartes(lire(page))
+        verifier("en même temps : suit les cases — R2 et R3 faites, R4 en cours, R4 et R7 ensemble, R5 après R4",
+                 (avec % "R7") in li.get("R4", "") and (avec % "R4") in li.get("R7", "")
+                 and gauche(" data-attend", "R5", "après R4") in li.get("R5", ""), "%r" % li)
         ecrire(fiches, fichier_md(("R2", "R3", "R4", "R7")))
         appel(["page", fiches, page])
-        apres = lire(page)
-        verifier("en même temps : une seule prête avec des fichiers — ni trait, ni légende",
-                 '<p class="parallele">' not in apres and "data-parallele" not in apres, apres)
+        verifier("en même temps : une seule prête avec des fichiers — aucun « ∥ avec »",
+                 'class="avec' not in lire(page), lire(page))
+        # En cours, mais une dépendance plus bas n'est pas faite : l'état reste, « attend » à gauche.
+        ecrire(fiches, "# Chantier S\n\n" + fiche("S1", " ", "`S2`, `S3`, `S4`.", "`f.md`")
+               + "".join(fiche(i, " ", "rien.", "`g.md`") for i in ("S2", "S3", "S4")))
+        code, s = appel(["page", fiches, os.path.join(tpp, "artefacts", "s.html"), "--creer", "--projet", "P",
+                         "--titre", "T", "--resultat", "R"])
+        verifier("prêtes : en cours et en attente — « en cours », « attend » et tous les noms, data-attend"
+                 " — mutant : seuil de la flèche",
+                 code == 0 and gauche(' data-etat="encours" data-attend', "S1", "en cours",
+                                      '<span class="dep attend mono">attend S2, S3, S4</span>')
+                 in lire(os.path.join(tpp, "artefacts", "s.html")), s)
 
 
 tester_pretes_et_paralleles()
