@@ -79,10 +79,14 @@ les boutons (`BTN`) ; la base `db` (`BDD`) ; les trois petites feuilles (Q2).
 | `FEU3` | Écrire la TODO en cartes | `FEU2` |
 | `FEU4` | Poser le sommaire | `FEU3` |
 | `FEU5` | Faire lire les cartes aux outils de l'audit | `FEU3` |
-| `FEU6` | Régénérer, mesurer après, republier | `FEU1`, `FEU4`, `FEU5` |
+| `FEU7` | Un lien vers la feuille de route sur la page du chantier | rien |
+| `FEU8` | Le détail des chantiers possibles | rien |
+| `FEU6` | Régénérer, mesurer après, republier | `FEU1`, `FEU4`, `FEU5`, `FEU8` |
 
 `FEU1` et `FEU2` sont indépendantes, `FEU4` et `FEU5` aussi. `FEU2` avant toute carte : sans
-elle, la première feuille en cartes verrait sa TODO écrite dans la table des clos.
+elle, la première feuille en cartes verrait sa TODO écrite dans la table des clos. `FEU7` et
+`FEU8`, ajoutées le 2026-09-27 sur deux commentaires de l'utilisateur, passent avant `FEU6` :
+elle republie la feuille une seule fois, décompte compris.
 
 ---
 
@@ -222,10 +226,65 @@ changent. `pyright` : pas une erreur de plus, compte avant / après donné.
 
 ---
 
+<!-- FICHE:FEU7 -->
+## FEU7 [ ] — Un lien vers la feuille de route sur la page du chantier
+
+**Dépend de** : rien.
+**Fichiers** : `scripts/vlp.py` (`regenerer` `:2338`, son motif de l'eyebrow `:2444`, `trouver` `:526`, `champ` `:2752`), `scripts/test-vlp.py` — et rien d'autre.
+
+**Prompt**
+Demandé par l'utilisateur en commentaire sur la page de ce chantier, le 2026-09-27, posé sur
+l'eyebrow : « ajoute ici un lien vers la feuille de route ». `regenerer` lit la ligne
+`**artefact feuille de route**` du `CHANTIER.md` du projet (`trouver`, en remontant depuis le
+fichier de fiches) et finit l'eyebrow par ` · <a href="<url>">la feuille de route</a>` — le motif
+de `:2444` tolère déjà un ` · ` après la plage. Libellé calqué sur « la page du chantier » de
+l'encours (`feuille`, `:2885`). Un seul lien : régénérer n'en ajoute pas un second, une URL
+changée remplace l'ancienne ; ligne absente ou « aucun » : pas de lien, et celui d'avant se retire.
+
+**Critère de fin**
+Nouveau test dans `test-vlp.py`, projet temporaire : `CHANTIER.md` avec une URL → après deux
+`vlp.py page`, l'eyebrow porte exactement un `<a href="<url>">la feuille de route</a>`, plage
+intacte ; URL changée → la nouvelle seule ; « aucun » → aucun lien. Mutant : la garde d'unicité
+retirée → deux liens après deux passages, le test tombe. Tous les tests verts ; `pyright` 0 erreur.
+`grep -c "la feuille de route</a>" "context AI/artefacts/87-cartes.html"` rend 1 après `vlp.py page`.
+<!-- /FICHE -->
+
+---
+
+<!-- FICHE:FEU8 -->
+## FEU8 [ ] — Le détail des chantiers possibles
+
+**Dépend de** : rien.
+**Fichiers** : `scripts/vlp.py` (`resume_todo` et `compte_todo` `:2920-2935`, leur appel dans `feuille` `:2905`, `lettres_prises` `:2768`), `scripts/test-vlp.py` — et rien d'autre.
+
+**Prompt**
+Demandé par l'utilisateur en commentaire sur la feuille du kit, sur « 7 chantiers possibles » ;
+seuils et parts tranchés avec lui le 2026-09-27. La ligne du décompte devient, parts à zéro omises,
+singulier sous 2 : `7 chantiers possibles · 2 petits, 1 moyen, 2 gros, 2 pas estimés · 1 bloqué · ≈17 fiches estimées`.
+- **Taille** : les nombres de « Coût estimé » avant le premier mot « fiche », borne haute
+  (`~4 à 6` → 6, `2-3` → 3, `~0,5` → 0,5). Petit ≤ 1, moyen ≤ 4, gros au-delà ; aucun nombre
+  avant « fiche » (`à cadrer`, `🟡 pas estimé`, `—`) : pas estimé.
+- **Bloqué** : « Dépend de » nomme un code entre backticks absent des lettres prises de
+  `CHANTIER.md` — **sans** celle du chantier en cours, que `feuille` ajoute (`:2889`) —, ou un
+  numéro égal au rang d'une ligne encore dans la TODO (`3`, `1..9`).
+- **Total** : la somme des bornes hautes, virgule française.
+Essayé le 2026-09-27 sur les 52 rangs des cinq projets : kit et Cairn notent leurs dépendances en
+codes, les trois autres en numéros de rang.
+
+**Critère de fin**
+Nouveau test dans `test-vlp.py`, fichier d'état en mémoire : coûts `~0,5 fiche`, `~4 à 6 fiches`,
+`2-3 fiches`, `à cadrer` ; dépendances `` `AAA` `` (prise), `` `ZZZ` ``, le numéro d'un rang
+présent, `—` → `4 chantiers possibles · 1 petit, 1 moyen, 1 gros, 1 pas estimé · 2 bloqués · ≈9,5 fiches estimées`.
+Mutant : borne basse au lieu de haute → `~4 à 6` passe moyen, le test tombe. Tous les tests verts ;
+`pyright` 0 erreur. `vlp.py feuille` sur une copie du kit (scratchpad) rend la ligne ci-dessus à 7 rangs.
+<!-- /FICHE -->
+
+---
+
 <!-- FICHE:FEU6 -->
 ## FEU6 [ ] — Régénérer, mesurer après, republier
 
-**Dépend de** : `FEU1`, `FEU4`, `FEU5`.
+**Dépend de** : `FEU1`, `FEU4`, `FEU5`, `FEU8`.
 **Fichiers** : `context AI/87-cartes.md` (`## Mesures`), `context AI/artefacts/feuille-de-route.html`, `../Cairn-VlpLib/context AI/artefacts/feuille-de-route.html`, `CHANTIER.md` et `../Cairn-VlpLib/CHANTIER.md` (URL), `context AI/38-audit-scripts/page_vs_source.py`, `context AI/38-audit-scripts/rejeu.py` — et rien d'autre.
 
 **Prompt**
