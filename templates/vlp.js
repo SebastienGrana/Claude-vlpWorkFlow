@@ -6,8 +6,8 @@
   Aucun code de bouton dans le HTML : ce fichier fabrique ses boutons au
   chargement, à partir des crochets que la page porte déjà ; il pose des
   classes, jamais d'attribut style — les styles vivent dans vlp.css.
-  BTN3 : tout déplier, copier la commande d'une fiche — Copier se pose dans
-  la colonne de gauche de la carte. BTN4 (filtrer la feuille par état)
+  BTN3 : tout déplier et tout replier, sous le titre de chaque liste de
+  cartes ; copier la commande d'une fiche, dans la colonne de gauche. BTN4 (filtrer la feuille par état)
   viendra ici aussi.
 */
 (() => {
@@ -22,16 +22,22 @@
     return b;
   };
 
-  // Tout déplier : en tête de .page, si la page a au moins un details.
-  if (page.querySelector("details")) {
-    const deplier = bouton("Tout déplier", "deplier");
-    deplier.addEventListener("click", () => {
-      const ouvrir = deplier.textContent === "Tout déplier";
-      page.querySelectorAll("details").forEach((d) => { d.open = ouvrir; });
-      deplier.textContent = ouvrir ? "Tout replier" : "Tout déplier";
+  // Tout déplier, tout replier : deux boutons sous le titre de chaque liste de cartes — fiches
+  // du chantier, chantiers possibles —, qui n'ouvrent et ne ferment que les cartes de la liste.
+  page.querySelectorAll("ul.fiches, ol.todo").forEach((liste) => {
+    const titre = liste.closest("section")?.querySelector("h2");
+    if (!titre || !liste.querySelector("details")) return;
+    const replis = document.createElement("span");
+    replis.className = "replis";
+    [["Tout déplier", true], ["Tout replier", false]].forEach(([texte, ouvrir]) => {
+      const b = bouton(texte, "deplier");
+      b.addEventListener("click", () => {
+        liste.querySelectorAll("details").forEach((d) => { d.open = ouvrir; });
+      });
+      replis.append(b);
     });
-    page.prepend(deplier);
-  }
+    titre.after(replis);
+  });
 
   // Copier : dans la colonne de gauche de chaque fiche non faite, sous son état et avant ses
   // dépendances ; copie `/vlp:tache <ID>`.
