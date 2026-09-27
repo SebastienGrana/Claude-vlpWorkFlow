@@ -41,21 +41,22 @@
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <!-- trois colonnes : .gauche (id, état — « à lancer », ou « après R2 » et data-attend tant
-           qu'une dépendance n'est pas faite —, dépendances « ← R1 », « ∥ avec R4 » : à lancer en
-           même temps, aucun fichier en commun), le titre qui replie la note
-           — `open` si en cours ou bloquée —, à droite .cout (présent seulement si la fiche a une
-           plage : commit `<ID> :`, ou ligne **Session**) ou « visuel » tant qu'elle n'est pas faite -->
-      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">&lt;R1&gt;</span><span class="etat">faite</span></span>
-        <details><summary><span class="titre">&lt;Titre de la fiche&gt;</span></summary>
+      <!-- trois colonnes : .gauche (l'id ; vlp.js y pose Copier), le titre qui replie la note
+           — `open` si en cours ou bloquée — et l'état dessous, en une phrase : « Faite »,
+           « En cours », « À lancer », « Après R2 » et data-attend tant qu'une dépendance n'est pas
+           faite, puis « en même temps que R4 » pour des prêtes sans fichier commun ; à droite .cout
+           (présent seulement si la fiche a une plage : commit `<ID> :`, ou ligne **Session**) ou
+           « visuel » tant qu'elle n'est pas faite -->
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">&lt;R1&gt;</span></span>
+        <details><summary><span class="titre">&lt;Titre de la fiche&gt;</span><span class="etat">Faite</span></summary>
         <span class="note">&lt;Le critère de fin, constaté. Une ligne.&gt;</span></details>
         <span class="cout mono">&lt;≈2,3k (2 312)&gt;</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">&lt;R2&gt;</span><span class="etat">en cours</span><span class="dep mono">← &lt;R1&gt;</span></span>
-        <details open><summary><span class="titre">&lt;Titre de la fiche&gt;</span></summary>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">&lt;R2&gt;</span></span>
+        <details open><summary><span class="titre">&lt;Titre de la fiche&gt;</span><span class="etat">En cours</span></summary>
         <span class="note">&lt;Ce qu'elle produit, en une ligne.&gt;</span></details>
         <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
-      <li class="fiche" data-attend><span class="gauche"><span class="id">&lt;R3&gt;</span><span class="etat">après &lt;R2&gt;</span></span>
-        <details><summary><span class="titre">&lt;Titre de la fiche&gt;</span></summary>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">&lt;R3&gt;</span></span>
+        <details><summary><span class="titre">&lt;Titre de la fiche&gt;</span><span class="etat">Après &lt;R2&gt;</span></summary>
         <span class="note">&lt;Ce qu'elle produit, en une ligne.&gt;</span></details></li>
     </ul>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->

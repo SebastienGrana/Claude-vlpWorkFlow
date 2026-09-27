@@ -19,7 +19,7 @@ a { color:var(--accent); }
 a:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
 .eyebrow,.sommaire { font-family:"IBM Plex Mono",monospace; font-size:.75rem; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); }
 .sommaire { display:flex; flex-wrap:wrap; gap:.3rem 1.25rem; }
-.mono,.fiche .id,.fiche .etat,.journal time,.blocage pre { font-family:"IBM Plex Mono",monospace; }
+.mono,.fiche .id,.journal time,.blocage pre { font-family:"IBM Plex Mono",monospace; }
 .mono { font-variant-numeric:tabular-nums; }
 header { display:flex; flex-direction:column; gap:.35rem; border-bottom:2px solid var(--line-fort); padding-bottom:1.25rem; }
 header p { margin:.4rem 0 0; color:var(--doux); max-width:62ch; }
@@ -30,19 +30,20 @@ section { display:flex; flex-direction:column; gap:.85rem; }
 .avancement span { height:.4rem; flex:1; border-radius:1px; background:var(--line); }
 .fiches,.todo,.journal { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
 .fiches,.todo { gap:.5rem; } .journal { gap:.6rem; }
-/* carte en trois colonnes (fiche et chantier possible, 2026-09-27) : à gauche l'identifiant, l'état,
-   Copier et les dépendances ; au milieu le titre, qui seul replie le corps ; à droite le coût */
+/* carte en trois colonnes (fiche et chantier possible, 2026-09-27) : à gauche l'identifiant, Copier,
+   et les dépendances d'un chantier possible ; au milieu le titre, qui seul replie le corps, et
+   l'état d'une fiche en une phrase dessous ; à droite le coût */
 .fiche,.carte-todo { display:grid; grid-template-columns:4.6rem 1fr auto; gap:.1rem .9rem; align-items:start; background:var(--surface); border:1px solid var(--line); border-left:3px solid var(--attente); border-radius:3px; padding:.7rem .9rem; box-shadow:var(--ombre); }
 .gauche { display:flex; flex-direction:column; align-items:flex-start; gap:.15rem; min-width:0; }
 .fiche .id,.carte-todo .rang { font-weight:500; color:var(--doux); }
 .fiche .titre,.carte-todo .titre { font-weight:600; }
 .fiche .note { font-size:.9rem; color:var(--doux); }
 .fiche .cout,.carte-todo .meta,.dep { font-size:.78rem; color:var(--doux); }
-.dep,.avec { font-size:.72rem; overflow-wrap:anywhere; }
-/* « à lancer » et « ∥ avec … » (vlp.py) : ce qui se lance maintenant ressort */
-.avec,.fiche:not([data-etat]):not([data-attend]) .etat { color:var(--accent); }
+.dep { font-size:.72rem; overflow-wrap:anywhere; }
+/* « À lancer » (vlp.py) : ce qui se lance maintenant ressort */
+.fiche:not([data-etat]):not([data-attend]) .etat { color:var(--accent); }
 .cout-total,.cout-hors { font-size:.85rem; color:var(--doux); }
-.fiche .etat { font-size:.68rem; letter-spacing:.07em; text-transform:uppercase; color:var(--attente); }
+.fiche .etat { display:block; margin-top:.1rem; font-size:.88rem; color:var(--doux); }
 .fiche > details,.carte-todo > details { min-width:0; }
 .fiche summary,.carte-todo summary { cursor:pointer; list-style:none; }
 .fiche summary::-webkit-details-marker,.carte-todo summary::-webkit-details-marker { display:none; }

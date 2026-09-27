@@ -2046,17 +2046,22 @@ def pretes(fiches_, etat, apercu):
     return attend, ensemble if len(ensemble) > 1 else []
 
 
-def fleche(noms, unite="fiches", attend=False):
-    """Les dépendances d'une carte, dans sa colonne de gauche : `← A, B` ; au-delà de deux,
-    `← n fiches` et la liste au survol (`title`) — la colonne est étroite ; rien sans dépendance.
-    `attend` : une fiche pas prête, `attend A, B, C` — seulement ce qui n'est pas fait, et tous
-    les noms, sans seuil : ce qu'il faut finir d'abord se lit sans survol (demandé le 2026-09-27)."""
+def fleche(noms, unite):
+    """Les dépendances d'une carte de la feuille, dans sa colonne de gauche : `← A, B` ; au-delà de
+    deux, `← n <unite>` et la liste au survol (`title`) — la colonne est étroite ; rien sans dépendance."""
     if not noms:
         return ""
-    debut, signe = ('<span class="dep attend mono"', "attend") if attend else ('<span class="dep mono"', "←")
-    if len(noms) <= 2 or attend:
-        return '%s>%s %s</span>' % (debut, signe, esc(", ".join(noms)))
-    return '%s title="%s">%s %d %s</span>' % (debut, esc(", ".join(noms)), signe, len(noms), unite)
+    if len(noms) <= 2:
+        return '<span class="dep mono">← %s</span>' % esc(", ".join(noms))
+    return '<span class="dep mono" title="%s">← %d %s</span>' % (esc(", ".join(noms)), len(noms), unite)
+
+
+def libelle_calcule(texte):
+    """Vrai si `regenerer` a écrit ce libellé d'état, qui se recalcule ; faux pour un libellé écrit à la
+    main (« abandonnée »), que `--forme` garde. Toutes ses formes : « à faire » d'avant BTN, « à lancer »
+    et « après A » en minuscules, puis la phrase « À lancer · en même temps que B »."""
+    tete = texte.split(" · ")[0].strip().lower()
+    return tete in ("faite", "en cours", "bloquée", "à faire", "à lancer") or tete.startswith("après ")
 
 
 def lis_page(html):
@@ -2480,46 +2485,46 @@ def regenerer(html, fichier, parts, date, gardes, forme=False):
                       html, count=1, flags=re.S)
     if not n:
         raise ValueError("page : résultat introuvable")
-    etiquette = {"faite": "faite", "encours": "en cours", "bloquee": "bloquée", None: "à faire"}
+    etiquette = {"faite": "Faite", "encours": "En cours", "bloquee": "Bloquée"}
     apercu = apercu_fiches(lignes)
     attend, ensemble = pretes(fiches_, etat, apercu)
     items = []
     for ident, titre, _, _ in fiches_:
         e = etat[ident]
         note = esc(parts["notes"][ident]) if ident in parts["notes"] else None
-        deps, visuel, _ = apercu.get(ident, ([], False, set()))
-        # Une fiche à faire dit si elle se lance (commentaire de la page BTN, choix C) : « à
-        # lancer », ou « après A, B » — ce qu'elle attend encore, à la place de ses dépendances ;
-        # en cours ou bloquée, elle garde son état et dit « attend » à gauche. `data-attend` :
-        # `vlp.js` ne lui pose pas de Copier. « ∥ avec B » : prête, à lancer en même temps que B.
-        libelle, gauche = etiquette.get(e, e), fleche(deps)
-        if attend.get(ident):
-            libelle, gauche = (("après " + ", ".join(attend[ident]), "") if e is None
-                               else (libelle, fleche(attend[ident], attend=True)))
-        elif e is None:
-            libelle = "à lancer"
+        visuel = apercu.get(ident, ([], False, set()))[1]
+        # L'état en une phrase, sous le titre (commentaires de la page BTN, choix de l'utilisateur) :
+        # « À lancer », ou « Après A, B » — ce qu'elle attend encore de ce fichier, `data-attend`,
+        # pas de Copier (`vlp.js`) ; en cours ou bloquée, son état, puis « attend A » s'il en reste.
+        # « en même temps que B » : prêtes sans fichier commun (`pretes`). Une dépendance faite ne
+        # s'affiche plus : « À lancer » le dit déjà.
+        reste = ", ".join(attend.get(ident, []))
+        if e is None:
+            libelle = "Après " + reste if reste else "À lancer"
+        else:
+            libelle = etiquette[e] + (" · attend " + reste if reste else "")
+        autres = [i for i in ensemble if i != ident]
         if ident in ensemble:
-            gauche += '<span class="avec mono">∥ avec %s</span>' % ", ".join(i for i in ensemble if i != ident)
-        # `forme` garde un libellé écrit à la main (« abandonnée ») ; un libellé que ce script
-        # écrit se recalcule — sinon « après A » resterait une fois A faite.
-        if ident in libelles and libelles[ident][1] not in set(etiquette.values()) | {"à lancer"} \
-                and not libelles[ident][1].startswith("après "):
+            libelle += (" · en même temps que " + ", ".join(autres) if e is None else " · %s %s partir en même temps"
+                        % (", ".join(autres), "peut" if len(autres) == 1 else "peuvent"))
+        # `forme` garde un libellé écrit à la main (« abandonnée ») ; celui que ce script écrit se
+        # recalcule — sinon « Après A » resterait une fois A faite.
+        if ident in libelles and not libelle_calcule(libelles[ident][1]):
             libelle = libelles[ident][1]
-        # Trois colonnes (gabarit en colonnes, 2026-09-27) : à gauche l'identifiant, l'état et les
-        # dépendances ; au milieu le titre, qui seul replie la note — repliée sauf en cours ou
-        # bloquée (PLI) ; à droite le coût, ou « visuel » tant qu'une fiche à regarder n'est pas
-        # faite. `data-etat` reste sur le `<li>`, que `LI_FICHE` et `lis_page` lisent dans toutes
-        # les formes ; un `span` à gauche, pas un `div` : `comparer` coupe au `div`, la fiche
+        # Trois colonnes (gabarit en colonnes, 2026-09-27) : à gauche l'identifiant, où `vlp.js` pose
+        # Copier ; au milieu le titre, qui seul replie la note — repliée sauf en cours ou bloquée
+        # (PLI) —, et l'état dessous ; à droite le coût, ou « visuel » tant qu'une fiche à regarder
+        # n'est pas faite. `data-etat` reste sur le `<li>`, que `LI_FICHE` et `lis_page` lisent dans
+        # toutes les formes ; un `span` à gauche, pas un `div` : `comparer` coupe au `div`, la fiche
         # reste un seul bloc de texte.
         droite = ('<span class="cout mono">%s</span>' % cout[ident] if ident in cout
                   else VISUEL if visuel and e != "faite" else "")
-        items.append('      <li class="fiche"%s><span class="gauche"><span class="id">%s</span>'
-                     '<span class="etat">%s</span>%s</span>\n'
-                     '        <details%s><summary><span class="titre">%s</span></summary>%s</details>%s</li>'
+        items.append('      <li class="fiche"%s><span class="gauche"><span class="id">%s</span></span>\n'
+                     '        <details%s><summary><span class="titre">%s</span><span class="etat">%s</span></summary>'
+                     '%s</details>%s</li>'
                      % ((' data-etat="%s"' % e if e else "") + (" data-attend" if attend.get(ident) else ""), ident,
-                        libelle, gauche,
                         " open" if e in ("encours", "bloquee") else "",
-                        libelles[ident][0] if ident in libelles else esc(titre),
+                        libelles[ident][0] if ident in libelles else esc(titre), libelle,
                         '\n        <span class="note">%s</span>' % note if note else "",
                         "\n        " + droite if droite else ""))
     prefixe = re.search(r'<p class="mono cout-total">(.*?) : ', html)
