@@ -10,7 +10,9 @@ laisser passer un heredoc qui s'exécute.
 
 **Estimé.** 0,5 fiches · ≈2,12 $ — ≈4,24 $/fiche sur 69 clos (le 2026-09-27).
 
-**Fait.** Rien. Ouvert le 2026-09-27, cadré en 1 fiche, `ECH1` à jouer.
+**CLOS** le 2026-09-27. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** ECH1..ECH1 (2026-09-27) : ecrit_git : le corps d'un heredoc reçu par cat ou tee n'est plus lu par le gardien ni par contrat ; un heredoc qui s'exécute (py, | bash, $(…)) reste refusé — estimé 0,5 fiches ≈2,12 $ · cadré 1 · joué 1 fiches ≈3,03 $.
 
 **Session** : 5a12485e-8f92-4566-8eac-a08b630de356
 
