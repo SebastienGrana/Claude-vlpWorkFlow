@@ -3876,4 +3876,48 @@ def tester_liens():
 
 tester_liens()
 
+
+def tester_hook_pyright():
+    # TYP1 : le hook lance pyright quand un .py est indexé. claude caché (APPDATA, LOCALAPPDATA vides, PATH
+    # sans lui), le vrai pyright aussi : un faux, en tête du PATH, sort 1.
+    if not shutil.which("git"):
+        print("SAUTÉ: git absent — le bloc pyright du hook n'est pas testé")
+        return
+    with tempfile.TemporaryDirectory() as t:
+        depot = os.path.join(t, "depot")
+        shutil.copytree(os.path.join(RACINE, ".githooks"), os.path.join(depot, ".githooks"))
+        faux = os.path.join(t, "faux")
+        os.mkdir(faux)
+        ecrire(os.path.join(faux, "pyright"), '#!/bin/sh\necho "faux pyright : 1 error"\nexit 1\n')
+        os.chmod(os.path.join(faux, "pyright"), 0o755)
+        sans = [d for d in os.environ.get("PATH", "").split(os.pathsep)
+                if d and not shutil.which("pyright", path=d) and not shutil.which("claude", path=d)]
+        base = dict(os.environ, GIT_CONFIG_GLOBAL=os.path.join(t, "gitconfig"), GIT_CONFIG_NOSYSTEM="1",
+                    GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t",
+                    APPDATA="", LOCALAPPDATA="")
+        ecrire(base["GIT_CONFIG_GLOBAL"], "")
+
+        def git(chemins, *args):
+            r = subprocess.run(["git"] + list(args), cwd=depot, env=dict(base, PATH=os.pathsep.join(chemins)),
+                               capture_output=True, encoding="utf-8", errors="replace")
+            return r.returncode, r.stdout + r.stderr
+
+        git(sans, "init", "-q")
+        git(sans, "config", "core.hooksPath", ".githooks")
+        ecrire(os.path.join(depot, "a.md"), "a\n")
+        git(sans, "add", "a.md")
+        code, s = git([faux] + sans, "commit", "-q", "-m", "md")
+        verifier("hook pyright : un .md seul passe", code == 0 and "pyright" not in s, s)
+        ecrire(os.path.join(depot, "a.py"), "x = 1\n")
+        git(sans, "add", "a.py")
+        code, s = git([faux] + sans, "commit", "-q", "-m", "py")
+        verifier("hook pyright : un .py en erreur est refusé", code == 1 and "faux pyright : 1 error" in s
+                 and "pre-commit : pyright en erreur, commit refusé." in s, s)
+        code, s = git(sans, "commit", "-q", "-m", "py")
+        verifier("hook pyright : sans pyright, le .py passe en le disant", code == 0
+                 and "pre-commit : pyright introuvable, vérification de types sautée." in s, s)
+
+
+tester_hook_pyright()
+
 print("OK")

@@ -20,9 +20,9 @@
     <p>Un commit qui indexe un .py passe par pyright ; en erreur, il est refusé ; pyright absent, le hook le dit et laisse passer.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="encours"></span>
+      <span data-etat="faite"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">1 fiches · 0 faite · en cours : TYP1</p>
+    <p class="mono" style="margin-top:.5rem">1 fiches · 1 faite</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -37,11 +37,15 @@
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="encours"><details open>
+      <li class="fiche" data-etat="faite"><details>
         <summary><span class="id">TYP1</span><span class="titre">Garder pyright au commit</span>
-        <span class="etat">en cours</span></summary>
+        <span class="etat">faite</span></summary>
+        <span class="note">pyrightconfig.json (include scripts, mode standard) ; bloc pyright du pre-commit avant claude, seulement si un .py est indexé ; tester_hook_pyright, faux pyright : .md seul code 0, .py code 1 « pyright en erreur », sans pyright code 0 « introuvable » ; mutants condition .py retirée et code de sortie ignoré : ÉCART ; pyright racine 0 errors, 6 fichiers ; test-vlp OK, 0 SAUTÉ</span>
+        <span class="cout mono">≈625,3k (625 271) · 6 tours · 0,34 $</span>
       </details></li>
     </ul>
+    <p class="mono cout-hors">Hors fiches : ≈2,3M (2 260 508) · 14 tours · 1,24 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈2,9M (2 885 779) · 20 tours · 1,58 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

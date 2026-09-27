@@ -3,6 +3,20 @@
 # Activer une fois par clone : git config core.hooksPath .githooks
 racine=$(git rev-parse --show-toplevel) || exit 1
 
+# pyright, si le commit indexe un .py (chantier TYP) ; avant claude, dont l'absence sort par exit 0.
+# Il lit l'arbre de travail, pas l'index : un .py corrigé mais non indexé passe.
+if git diff --cached --name-only --diff-filter=ACMR | grep -q '\.py$'; then
+  if command -v pyright >/dev/null 2>&1; then
+    if ! sortie=$(cd "$racine" && pyright 2>&1); then
+      printf '%s\n' "$sortie" >&2
+      echo "pre-commit : pyright en erreur, commit refusé." >&2
+      exit 1
+    fi
+  else
+    echo "pre-commit : pyright introuvable, vérification de types sautée." >&2
+  fi
+fi
+
 # claude : celui du PATH, sinon celui de l'app Claude sous Windows (chantier VAL).
 claude_exe=
 if command -v claude >/dev/null 2>&1; then

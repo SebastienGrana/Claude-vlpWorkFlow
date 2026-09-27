@@ -49,8 +49,9 @@ Une seule fiche.
 ---
 
 <!-- FICHE:TYP1 -->
-## TYP1 [ ] — Garder pyright au commit
+## TYP1 [x] — Garder pyright au commit
 
+**Session** : 5a12485e-8f92-4566-8eac-a08b630de356
 **Dépend de** : rien.
 **Fichiers** : `pyrightconfig.json` (neuf), `.githooks/pre-commit`, `scripts/test-vlp.py` — et
 rien d'autre.
