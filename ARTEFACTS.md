@@ -18,7 +18,8 @@ sont dérivés, et pourquoi une seule page suit les fiches : `methode-chantier.m
 
 Hors de ces deux, une page **ponctuelle** : le rapport à cartes ou la page de
 choix (`templates/rapport-choix.html`) — des décisions à garder ou revoir, des
-questions à options, un bouton qui copie les réponses. Elle ne suit aucun
+questions à options, un commentaire libre replié sous chaque carte, un bouton
+qui copie les réponses et les commentaires. Elle ne suit aucun
 chantier et ne se republie pas.
 
 La feuille de route ne change **jamais** d'URL : elle porte la TODO ordonnée,
