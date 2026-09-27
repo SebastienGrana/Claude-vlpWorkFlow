@@ -199,8 +199,9 @@ d'ouverts ne bouge pas. L'entrée ajoutée à `launch.json` est retirée à la f
 ---
 
 <!-- FICHE:BTN4 -->
-## BTN4 [ ] — Filtrer la feuille par état
+## BTN4 [x] — Filtrer la feuille par état
 
+**Session** : 9c178cca-e277-4ad4-b73b-e84a635aecb2
 **Dépend de** : `BTN1`.
 **Fichiers** : `templates/vlp.js`, `templates/vlp.css`, `.claude/launch.json` (serveur local, hors
 Git) — et rien d'autre.

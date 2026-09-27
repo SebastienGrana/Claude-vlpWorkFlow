@@ -7,8 +7,8 @@
   chargement, à partir des crochets que la page porte déjà ; il pose des
   classes, jamais d'attribut style — les styles vivent dans vlp.css.
   BTN3 : tout déplier et tout replier, sous le titre de chaque liste de
-  cartes ; copier la commande d'une fiche prête, dans la colonne de gauche. BTN4 (filtrer la feuille par état)
-  viendra ici aussi.
+  cartes ; copier la commande d'une fiche prête, dans la colonne de gauche.
+  BTN4 : filtrer la feuille par état, sous son sommaire.
 */
 (() => {
   const page = document.querySelector(".page");
@@ -73,4 +73,49 @@
     });
     gauche.append(copier);
   });
+
+  // Filtrer par état : sur la feuille seulement (elle a #todo et #clos), quatre boutons sous le
+  // sommaire, un seul enfoncé. Quitter « Tout » retient l'état des replis ; y revenir le rend.
+  const sommaire = page.querySelector("nav.sommaire");
+  const encours = document.getElementById("encours");
+  const todo = document.getElementById("todo");
+  const clos = document.getElementById("clos");
+  if (!sommaire || !todo || !clos) return;
+  const cartes = [...todo.querySelectorAll("li.carte-todo")];
+  const enCours = (li) => !!li.querySelector('.badge[data-etat="cours"]');
+  const replisClos = [...clos.querySelectorAll("details")];
+  let avant = null; // l'état des replis de #clos au moment de quitter « Tout »
+  const filtres = {
+    tout: () => true,
+    afaire: (li) => !enCours(li),
+    cours: enCours,
+    clos: () => false,
+  };
+  const filtrer = (etat) => {
+    if (etat === "tout") {
+      if (avant) replisClos.forEach((d, i) => { d.open = avant[i]; });
+      avant = null;
+    } else if (!avant) {
+      avant = replisClos.map((d) => d.open);
+    }
+    if (encours) encours.hidden = !(etat === "tout" || etat === "cours");
+    todo.hidden = etat === "clos";
+    clos.hidden = !(etat === "tout" || etat === "clos");
+    cartes.forEach((li) => { li.hidden = !filtres[etat](li); });
+    if (etat === "clos") replisClos.forEach((d) => { d.open = true; });
+  };
+  const barre = document.createElement("div");
+  barre.className = "filtres";
+  barre.setAttribute("role", "group");
+  barre.setAttribute("aria-label", "Filtrer par état");
+  [["Tout", "tout"], ["À faire", "afaire"], ["En cours", "cours"], ["Clos", "clos"]].forEach(([texte, etat]) => {
+    const b = bouton(texte, "filtre");
+    b.setAttribute("aria-pressed", String(etat === "tout"));
+    b.addEventListener("click", () => {
+      barre.querySelectorAll(".filtre").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+      filtrer(etat);
+    });
+    barre.append(b);
+  });
+  sommaire.after(barre);
 })();
