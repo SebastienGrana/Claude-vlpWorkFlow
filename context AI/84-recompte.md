@@ -108,8 +108,9 @@ transcript. `heure_clore` passe `clos=True` ; `parts_aux_commits` passe `clos=fi
 ---
 
 <!-- FICHE:ECA3 -->
-## ECA3 [ ] — Écrire le recompte sur la feuille de route
+## ECA3 [x] — Écrire le recompte sur la feuille de route
 
+**Session** : 5a12485e-8f92-4566-8eac-a08b630de356
 **Dépend de** : `ECA1`, `ECA2`.
 **Fichiers** : `context AI/artefacts/feuille-de-route.html` — et rien d'autre.
 
