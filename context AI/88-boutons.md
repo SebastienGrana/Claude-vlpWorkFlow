@@ -228,8 +228,9 @@ L'entrée ajoutée à `launch.json` est retirée à la fin.
 ---
 
 <!-- FICHE:BTN5 -->
-## BTN5 [ ] — Dessiner le coût des chantiers clos
+## BTN5 [x] — Dessiner le coût des chantiers clos
 
+**Session** : 9c178cca-e277-4ad4-b73b-e84a635aecb2
 **Dépend de** : `BTN1`.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py`, `templates/artefact-feuille-de-route.html`
 — et rien d'autre.

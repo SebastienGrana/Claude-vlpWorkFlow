@@ -6,7 +6,7 @@ Les pages du kit ont des boutons : tout déplier, copier la commande d'une fiche
 - BTN2 : grep 'files: vlp.css' → 0 ligne ; FILES : chantier 2, enchainer 1, init 1, tache 1, cloture 1, ARTEFACTS 2 ; test-vlp.py OK (code 0, 500 verifier)
 - BTN3 : UTF-8 ; Tout déplier 7/7 puis 0 (BTN et feuille) ; 5 Copier pour 5 fiches non faites ; clic → « Sélectionné : fais Ctrl+C » (presse-papiers refusé dans l'app), fiche non repliée ; 375 px : 375/375 (page enveloppée) ; mutant boucle retirée → 1→1 et 0→0 ; vu par l'utilisateur
 - BTN4 : Feuille régénérée, javascript_tool : À faire 5/6 cartes, #clos masqué ; En cours 1/6, #encours visible ; Clos : #todo masqué, details.clos ouvert ; Tout 6/6, replis rendus. 375 px (cadre) : scrollWidth = clientWidth = 360 sous les 4 filtres. Mutant « À faire » sans badge : 6/6, il tombe.
-- BTN5 : couts.svg, une barre par chantier clos, écrit par vlp.py ; dépend de BTN1
+- BTN5 : test-vlp.py OK (code 0), 9 contrôles BTN5 : 3 barres en 1:2:4, la plus récente à droite, FILES nomme couts.svg, balise une fois, feuille sans coût ni fichier ni balise ; mutants hauteur constante et ordre non retourné → tombent ; pyright 0 erreur (1 avant de ranger les tests dans tester_joints)
 - BTN6 : régénérer et republier kit, Cairn et BTN, mesurer avant et après ; dépend de toutes ; visuel
 - BTN7 : décompte en gras et plus grand, style dans vlp.css ; texte d'avant la liste replié (Cairn 177 mots) ; ajoutée sur commentaire (A1) ; ne dépend de rien
 ## Journal

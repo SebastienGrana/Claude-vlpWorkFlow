@@ -2324,8 +2324,9 @@ with tempfile.TemporaryDirectory() as t:
     d, f = mod.zone(html, "clos", "<tbody>\n", "        </tbody>")
     ecrire(page, html[:d] + VIEILLE + html[d:])
     code, s = appel(["niveau", proj, "--date", "2026-09-18"])
+    # Le second écart (BTN5) : la ligne close a un coût, la feuille n'a pas encore la balise de couts.svg.
     verifier("REP3 : la ligne close brute se compte hors code cité, fait un écart, et nomme --ecrire",
-             code == 1 and compte(s, "ÉCART:") == 1
+             code == 1 and compte(s, "ÉCART:") == 2
              and "MARKDOWN 2 ** · 1 liens Markdown · 1 liens cassés — %s\n" % page in s
              and "ÉCART: feuille: Markdown brut ou lien cassé — « vlp.py niveau --ecrire »"
                  " convertit les lignes closes\n" in s, s)
@@ -4492,6 +4493,84 @@ def tester_joints():
         gabarit = io.open(os.path.join(ICI, "..", "templates", nom), encoding="utf-8").read()
         verifier("BTN1 : (b) gabarit %s — charset et script une fois chacun" % nom,
                  balises_une_fois(gabarit), gabarit[:300])
+
+    # --- BTN5 : le coût des chantiers clos en image, `couts.svg` et sa balise — imbriqué ici : le
+    # module est au seuil de complexité de pyright (BTN1), et couts.svg est un joint de plus.
+    IMG = '<img src="couts.svg"'
+
+    def projet_btn5(tab, rangs):
+        """Un projet équipé minimal, sa feuille posée depuis le gabarit, `rangs` en tête de ZONE:clos."""
+        proj = os.path.join(tab, "proj")
+        ecrire(os.path.join(proj, "CHANTIER.md"),
+               "# C\n\n- **contexte** : ctx/\n- **fichier d'état** : ctx/08-etat.md\n"
+               "- **fichier de fiches courant** : aucun\n"
+               "- **artefact du chantier** : aucun\n\nLettres de fiche déjà prises : U (test).\n")
+        ecrire(os.path.join(proj, "ctx", "08-etat.md"),
+               "# État\n\n## La TODO\n\n| # | Chantier | Apporte | Coût | Dépend |\n|---|---|---|---|---|\n")
+        fdr = os.path.join(proj, "ctx", "artefacts", "feuille-de-route.html")
+        gabarit = io.open(os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html"),
+                          encoding="utf-8").read()
+        i = gabarit.index("<tbody>\n", gabarit.index("<!-- ZONE:clos")) + len("<tbody>\n")
+        ecrire(fdr, gabarit[:i] + "".join(rangs) + gabarit[i:])
+        return proj, fdr
+
+    def rang(nom, cout):
+        return ligne_close(cout).replace("<td>Test ", "<td>%s " % nom)
+
+    def barres(chemin):
+        """[(x, hauteur)] des barres de `couts.svg`, de gauche à droite ; [] sans fichier."""
+        if not os.path.isfile(chemin):
+            return []
+        return sorted((float(x), float(h)) for x, h in re.findall(
+            r'<rect class="barre" x="([\d.]+)" y="[\d.]+" width="[\d.]+" height="([\d.]+)"', lire(chemin)))
+
+    # Quatre lignes closes, la plus récente en haut : D 4 000, C sans coût, B 2 000, A 1 000.
+    with tempfile.TemporaryDirectory() as tab:
+        proj, fdr = projet_btn5(tab, [rang("D", mod.arrondi(4000)), rang("C", "non mesuré"),
+                                      rang("B", mod.arrondi(2000)), rang("A", mod.arrondi(1000))])
+        svg = os.path.join(os.path.dirname(fdr), "couts.svg")
+        code, s = appel(["feuille", proj])
+        b = barres(svg)
+        h = [x[1] for x in b]
+        verifier("BTN5 : 4 lignes closes, une sans coût — couts.svg a 3 barres",
+                 code == 0 and len(b) == 3, s + str(b))
+        r = sorted(h)
+        verifier("BTN5 : hauteurs dans le rapport 1 : 2 : 4, à 1 px près — mutant : hauteur constante",
+                 abs(2 * r[0] - r[1]) <= 1 and abs(4 * r[0] - r[2]) <= 1, str(b))
+        verifier("BTN5 : la plus récente (la plus chère) à droite, la plus ancienne à gauche"
+                 " — mutant : ordre non retourné", b[-1][1] == max(h) and b[0][1] == min(h), str(b))
+        dessin = lire(svg)
+        formes = re.findall(r"<(?:rect|text)\b[^>]*>", dessin)
+        verifier("BTN5 : le maximum en haut à gauche (arrondi + « tokens »), chaque forme a son fill",
+                 "%s tokens</text>" % mod.arrondi(4000) in dessin and formes
+                 and all('fill="#' in f for f in formes), dessin)
+        files = files_de(s) or {}
+        verifier("BTN5 : FILES nomme couts.svg, à côté de la feuille",
+                 "couts.svg" in files and "\\" not in files["couts.svg"]
+                 and os.path.samefile(files["couts.svg"], svg), s)
+        html = lire(fdr)
+        alt = re.search(r'<img src="couts\.svg" alt="([^"]*)">', html)
+        verifier("BTN5 : la balise <img> une fois, avant details.clos ; alt : 3 barres, D le plus cher",
+                 html.count(IMG) == 1 and html.index(IMG) < html.index('<details class="clos">')
+                 and alt is not None and "3 barres" in alt.group(1) and alt.group(1).endswith("le plus cher : D"),
+                 html[-3000:])
+        ecrire(fdr, mod.BALISE_COUTS.sub("", html))
+        appel(["feuille", proj])
+        verifier("BTN5 : une feuille d'avant, sans balise, la reçoit à sa régénération",
+                 lire(fdr).count(IMG) == 1, lire(fdr)[-3000:])
+        appel(["feuille", proj])
+        verifier("BTN5 : régénérée encore, toujours une balise, même dessin",
+                 lire(fdr).count(IMG) == 1 and lire(svg) == dessin, lire(fdr)[-3000:])
+
+    # Sans coût (les lignes d'exemple du gabarit seules) : ni fichier — un ancien est retiré —, ni balise.
+    with tempfile.TemporaryDirectory() as tab:
+        proj, fdr = projet_btn5(tab, [rang("C", "non mesuré")])
+        svg = os.path.join(os.path.dirname(fdr), "couts.svg")
+        ecrire(svg, "<svg/>")
+        code, s = appel(["feuille", proj])
+        verifier("BTN5 : une feuille sans coût n'a ni couts.svg, ni balise, ni entrée FILES",
+                 code == 0 and not os.path.exists(svg) and IMG not in lire(fdr)
+                 and "couts.svg" not in (files_de(s) or {}), s + lire(fdr)[-2000:])
 
 
 tester_joints()

@@ -169,7 +169,9 @@ Sous-commandes :
   sommaire sous l'en-tête ; la date seulement si la page change.
   `FEUILLE todo <n> · encours <oui|non> · lettres <n> · <réécrite|inchangée>
   — <page>`. `--verifier` n'écrit rien, dit `identique|écart`, sort 1 sur écart.
-  Avant `FEUILLE`, les joints recopiés et les lignes `CSS` et `FILES`, comme `page`.
+  Avant `FEUILLE`, les joints recopiés et les lignes `CSS` et `FILES`, comme `page`. Avec au
+  moins un coût clos, `couts.svg` (`svg_couts`) écrit à côté et nommé dans `FILES`, sa balise
+  `<img>` posée une fois avant `details.clos` (`balise_couts`) ; sans coût, ni l'un ni l'autre.
 - `joints <dossier>` — recopie `templates/vlp.css` et `templates/vlp.js` dans le dossier, et
   n'écrit que `FILES {"vlp.css": <chemin>, "vlp.js": <chemin>}` : le JSON du paramètre `files`
   d'`Artifact`, chemins en barres obliques (pour `/vlp:init`). Dossier absent : `GARDE:`, sort 1.
@@ -187,7 +189,8 @@ Sous-commandes :
   cette forme restent ; dans `CHANTIER.md`, courant et artefact à `aucun`,
   la lettre aux lettres prises (plus de table des clos) ; dans la feuille
   de route, une ligne en tête de `ZONE:clos`, le total cumulé resommé des
-  comptes bruts, puis `feuille`. Tout est calculé avant la première écriture.
+  comptes bruts, puis `feuille`, et sa ligne `FILES` (joints et `couts.svg`, comme `feuille`).
+  Tout est calculé avant la première écriture.
   La ligne du chantier sur la feuille prend le total mesuré (étape « 1 ter ») ;
   sans page ou sans mesure, elle retombe sur `--tokens`, puis sur « non mesuré ».
   Si `--tokens N` est donné et diffère du mesuré, écrit `ÉCART tokens <N> donné
@@ -295,7 +298,8 @@ Sous-commandes :
   `ZONE:clos`, pas d'index : `GARDE:`, sort 1. `--ecrire` : tout calculé d'abord, un recompté à
   écart non nul prend `recompté (REC), était <n> · <arrondi>`, un gardé `non recompté — <raison> ·
   <chiffre>` — la marque en tête, que `BRUT` ne lit qu'en fin —, puis pied et résumé resommés
-  (`resommer`) ; relancé, rien ne change. Dernière ligne `ÉCRIT <n> cellules · total <avant> → <après>`.
+  (`resommer`), `couts.svg` et sa balise refaits (comme `feuille`, sans ligne `FILES` : republier
+  passe par `feuille`) ; relancé, rien ne change. Dernière ligne `ÉCRIT <n> cellules · total <avant> → <après>`.
   `--a-clore` : chaque ligne recomptée finit par ` · à clore <n> · après clore <n>` (le calcul de
   `cout --a-clore`, après clore = recompté − à clore), ou ` · sans appel clore`.
 - `bac <dossier>` — pose le bac d'essai de FIL3 dans un dossier absent ou vide (sinon `GARDE:`,
@@ -3145,7 +3149,7 @@ def feuille(projet, html, todo, date):
     neuf = neuf[:d] + encours + neuf[f:]
     neuf = re.sub(r'(Lettres de fiche prises : <span class="mono">).*?(</span>)',
                   lambda m: m.group(1) + ", ".join(lettres) + m.group(2), neuf, count=1)
-    neuf = sommaire(neuf)
+    neuf = balise_couts(sommaire(neuf))
     if neuf != html:
         neuf = re.sub(r'(Mis à jour le <span class="mono">).*?(</span>)',
                       lambda m: m.group(1) + date + m.group(2), neuf, count=1)
@@ -3259,6 +3263,7 @@ def cmd_feuille(a, sortie):
         f.write(neuf)
     joints = recopier_joints(os.path.dirname(os.path.abspath(page)))
     sortie.write("CSS %s\n" % joints["vlp.css"])
+    joints.update(ecrire_couts(page, neuf))
     sortie.write(ligne_files(joints))
     sortie.write("%s · %s — %s\n" % (bilan, "inchangée" if neuf == html else "réécrite", page))
     return 0
@@ -3288,6 +3293,79 @@ def lignes_clos(corps):
 def total_clos(corps):
     """La somme des coûts bruts — entre parenthèses, ou nus sous 1 000 — d'un corps de table."""
     return sum(int(re.sub(r"\D", "", entre or nu)) for entre, nu in BRUT.findall(corps))
+
+
+# Le coût des chantiers clos en image (chantier BTN), joint à la feuille comme vlp.css. Une image
+# ne lit pas les variables de la page : couleurs en dur, lisibles sur le fond crème comme sur le
+# fond sombre de vlp.css ; chaque forme porte son `fill`.
+COUTS_SVG = "couts.svg"
+COUTS_TAILLE = (640, 160, 24)  # largeur, hauteur, bandeau du maximum en haut
+COUTS_BARRE, COUTS_TEXTE = "#c47f1a", "#7d8796"
+BALISE_COUTS = re.compile(r'[ \t]*<img src="couts\.svg"[^>]*>\n')
+DETAILS_CLOS = re.compile(r'^([ \t]*)<details class="clos">', re.M)
+
+
+def couts_clos(html):
+    """[(chantier, tokens)] des lignes de `ZONE:clos` qui ont un coût brut (`BRUT`), du plus ancien
+    au plus récent — la table met le plus récent en haut. Pas de zone : []."""
+    try:
+        d, f = zone(html, "clos", "<tbody>\n", "        </tbody>")
+    except ValueError:
+        return []
+    couts = []
+    for r in lignes_clos(html[d:f]):
+        if BRUT.search(r):
+            nom = re.search(r"<td>(.*?)</td>", r, re.S)
+            nom = re.sub(r'<span class="badge".*?</span>', "", nom.group(1) if nom else "")
+            couts.append((re.sub(r"<[^>]+>", "", nom).strip(), total_clos(r)))
+    return couts[::-1]
+
+
+def svg_couts(html):
+    """Le SVG du coût des chantiers clos (`couts_clos`), ou None sans aucun coût : une barre par
+    chantier, du plus ancien à gauche au plus récent à droite, hauteur proportionnelle aux tokens,
+    la plus haute pleine hauteur ; en haut à gauche, le maximum (`arrondi`) suivi de « tokens »."""
+    couts = couts_clos(html)
+    if not couts:
+        return None
+    largeur, hauteur, bandeau = COUTS_TAILLE
+    haut = max(t for _, t in couts)
+    pas = largeur / len(couts)
+    barres = "".join('<rect class="barre" x="%.1f" y="%.1f" width="%.1f" height="%.1f" fill="%s"/>'
+                     % (i * pas + pas * .1, hauteur - h, pas * .8, h, COUTS_BARRE)
+                     for i, h in enumerate((hauteur - bandeau) * t / haut for _, t in couts))
+    return ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 %d %d">'
+            '<text x="0" y="16" font-family="system-ui,sans-serif" font-size="14" fill="%s">%s tokens</text>'
+            '%s<rect x="0" y="%d" width="%d" height="1" fill="%s"/></svg>\n'
+            % (largeur, hauteur, COUTS_TEXTE, arrondi(haut), barres, hauteur - 1, largeur, COUTS_TEXTE))
+
+
+def balise_couts(html):
+    """La balise `<img src="couts.svg">` de `#clos`, juste avant `details.clos` : posée une fois
+    (une feuille d'avant la reçoit), son `alt` refait — nombre de barres, chantier le plus cher ;
+    retirée sans aucun coût, ou sans `details.clos`."""
+    sans = BALISE_COUTS.sub("", html)
+    couts, m = couts_clos(sans), DETAILS_CLOS.search(sans)
+    if not couts or not m:
+        return sans
+    nom = max(couts, key=lambda c: c[1])[0]
+    alt = ("Coût des chantiers clos en tokens : %d barres, du plus ancien au plus récent ; le plus cher : %s"
+           % (len(couts), nom)).replace('"', "&quot;")
+    return sans[:m.start()] + '%s<img src="%s" alt="%s">\n' % (m.group(1), COUTS_SVG, alt) + sans[m.start():]
+
+
+def ecrire_couts(page, html):
+    """Écrit `couts.svg` à côté de la feuille `page` si `html` porte sa balise (`balise_couts`), le
+    retire sinon. Rend `{"couts.svg": chemin}`, à joindre à la ligne `FILES`, ou {}."""
+    chemin = os.path.join(os.path.dirname(os.path.abspath(page)), COUTS_SVG)
+    svg = svg_couts(html) if BALISE_COUTS.search(html) else None
+    if svg is None:
+        if os.path.isfile(chemin):
+            os.remove(chemin)
+        return {}
+    with open(chemin, "w", encoding="utf-8", newline="") as f:
+        f.write(svg)
+    return {COUTS_SVG: chemin}
 
 
 PLAGE_CLOS = re.compile(r'<td class="mono">([A-Z]{1,3})[0-9]+(?:–[A-Z]{1,3}[0-9]+)?</td>')
@@ -3557,10 +3635,11 @@ def cmd_recompter(projet, sortie, ecrire=False, essais=False, a_clore=False):
     corps = html[d:f]
     neuf_corps = RANG_CLOS.sub(lambda m: neufs.get(m.group(0), m.group(0)), corps)
     avant, apres = total_clos(corps), total_clos(neuf_corps)
-    neuf = resommer(html[:d] + neuf_corps + html[f:], len(lignes_clos(neuf_corps)), apres)
+    neuf = balise_couts(resommer(html[:d] + neuf_corps + html[f:], len(lignes_clos(neuf_corps)), apres))
     if neuf != html:
         with open(page, "w", encoding="utf-8", newline="") as fh:
             fh.write(neuf)
+    ecrire_couts(page, neuf)
     sortie.write("ÉCRIT %d cellules · total %s → %s\n" % (
         sum(neufs[r] != r for r, _, _, _ in rangs), milliers(avant), milliers(apres)))
     return 0
@@ -4010,6 +4089,8 @@ def cmd_niveau(a, sortie):
             os.makedirs(dossier)
         with open(chemin, "w", encoding="utf-8", newline="") as fh:
             fh.write(contenu)
+        if chemin == page:
+            ecrire_couts(page, contenu)
     sortie.write(poids + "\n")
     if a.ecrire:
         sortie.write("NIVEAU %d corrigés · %d à la main — %s\n" % (corriges, ecarts, projet))
@@ -4254,6 +4335,9 @@ def cmd_clore(a, sortie):
             return 1
         with open(page, "w", encoding="utf-8", newline="") as fh:
             fh.write(html)
+        joints = recopier_joints(os.path.dirname(os.path.abspath(page)))
+        joints.update(ecrire_couts(page, html))
+        sortie.write(ligne_files(joints))
         sortie.write(bilan + " · réécrite — %s\n" % page)
     if ecart:
         sortie.write("ÉCART tokens %s donné · %s mesuré — le mesuré fait foi\n"
