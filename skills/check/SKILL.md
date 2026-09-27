@@ -24,7 +24,7 @@ courant**, l'**artefact du chantier**, l'**artefact feuille de route**.
 Si la carte ne dit pas `PROJET=`, le projet n'est pas équipé : dis-le, propose
 `/vlp:init`, et arrête-toi. Rien d'autre n'a de sens sans lui.
 
-## 2. Les huit vérifications
+## 2. Les neuf vérifications
 
 Lance-les d'un bloc, puis commente la sortie ligne à ligne.
 
@@ -119,9 +119,19 @@ nomme et qui n'existe pas : une session l'ouvrira pour rien. Propose de retirer
 la ligne, ou de créer le fichier s'il manque vraiment. Un `AVERTISSEMENT:` avant
 `POIDS` dit un fichier de tête au-delà du seuil de `vlp.py` : à compacter, pas une erreur.
 
+**I — Le bulletin du gardien.** Sautée si le fichier de fiches courant est « aucun ».
+
+```bash
+<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" contrat --ouverture "<fichier de fiches courant>"
+```
+
+Une ligne par sous-agent `vlp:fiche` parti depuis l'ouverture du chantier, puis `CONTRAT`.
+Un `git` non nul, ou un sous-agent compté sans statut en tête, a enfreint
+`agents/fiche.md` : nomme-le par son id.
+
 ## 3. Rendre le verdict
 
-Une liste, une ligne par vérification, de `A` à `H` : `A ✓` ou
+Une liste, une ligne par vérification, de `A` à `I` : `A ✓` ou
 `A ✗ — <ce qui cloche>`.
 Affiche **les comptes bruts à côté du verdict** (« 4 contre 6 »).
 

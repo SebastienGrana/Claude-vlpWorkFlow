@@ -75,8 +75,9 @@ pyright 0.
 ---
 
 <!-- FICHE:CHK2 -->
-## CHK2 [ ] — `/vlp:check` rend le bulletin du gardien
+## CHK2 [x] — `/vlp:check` rend le bulletin du gardien
 
+**Session** : 5a12485e-8f92-4566-8eac-a08b630de356
 **Dépend de** : `CHK1`.
 **Fichiers** : `skills/check/SKILL.md` — et rien d'autre.
 
