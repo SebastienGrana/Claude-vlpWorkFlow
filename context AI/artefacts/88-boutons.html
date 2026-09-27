@@ -54,7 +54,7 @@
         <summary><span class="id">BTN3</span><span class="titre">Tout déplier, et copier la commande d'une fiche</span>
         <span class="etat">faite</span></summary>
         <span class="note">UTF-8 ; Tout déplier 7/7 puis 0 (BTN et feuille) ; 5 Copier pour 5 fiches non faites ; clic → « Sélectionné : fais Ctrl+C » (presse-papiers refusé dans l'app), fiche non repliée ; 375 px : 375/375 (page enveloppée) ; mutant boucle retirée → 1→1 et 0→0 ; vu par l'utilisateur</span>
-        <span class="cout mono">≈4,2M (4 160 988) · 35 tours · 2,25 $</span>
+        <span class="cout mono">≈5,1M (5 069 068) · 41 tours · 2,57 $</span>
       </details></li>
       <li class="fiche" data-etat="encours"><details open>
         <summary><span class="id">BTN4</span><span class="titre">Filtrer la feuille par état</span>
@@ -77,8 +77,8 @@
         <span class="note">régénérer et republier kit, Cairn et BTN, mesurer avant et après ; dépend de toutes ; visuel</span>
       </details></li>
     </ul>
-    <p class="mono cout-hors">Hors fiches : ≈9,5M (9 532 466) · 63 tours · 5,74 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈29,9M (29 937 083) · 207 tours · 15,92 $</p>
+    <p class="mono cout-hors">Hors fiches : ≈10,3M (10 335 133) · 68 tours · 6,02 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈31,6M (31 647 830) · 218 tours · 16,52 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -95,10 +95,15 @@
     <h2>Journal des décisions</h2>
     <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
     <ul class="journal">
-      <li><time datetime="2026-09-27">2026-09-27</time><span>BTN1 : même une aide ou une constante au niveau du module fait tomber pyright sur test-vlp.py (Code is too complex to analyze) — les aides d'un test vont dans sa fonction tester_&lt;nom&gt;().</span></li>
       <li><time datetime="2026-09-27">2026-09-27</time><span>BTN7 ajoutée (choix A1, sur un commentaire de la feuille du kit et une remarque sur celle de Cairn) : décompte mis en valeur, texte d'avant la liste replié ; jouée avant BTN6, qui republie les feuilles une seule fois.</span></li>
       <li><time datetime="2026-09-27">2026-09-27</time><span>clore n'écrit pas de ligne FILES : cloture.md prend celle de clore, sinon celle de vlp.py joints ; BTN5 rend ce repli inutile.</span></li>
+      <li><time datetime="2026-09-27">2026-09-27</time><span>BTN3 : une page servie en local telle quelle mesure 980 px de large à 375 × 812 (pas de meta viewport dans les gabarits ; claude.ai l'ajoute lui-même) — mesurer la largeur sur une copie enveloppée (38-audit-scripts/replie.py:25-27), comme FEU et PLI : là, 375 = 375. Vaut pour BTN4 et BTN6.</span></li>
     </ul>
+    <details class="journal-ancien"><summary>1 entrée plus ancienne</summary>
+    <ul class="journal">
+      <li><time datetime="2026-09-27">2026-09-27</time><span>BTN1 : même une aide ou une constante au niveau du module fait tomber pyright sur test-vlp.py (Code is too complex to analyze) — les aides d'un test vont dans sa fonction tester_&lt;nom&gt;().</span></li>
+    </ul>
+    </details>
   </section>
 
   <footer>

@@ -13,4 +13,5 @@ Les pages du kit ont des boutons : tout déplier, copier la commande d'une fiche
 - 2026-09-27 : BTN1 : même une aide ou une constante au niveau du module fait tomber pyright sur test-vlp.py (Code is too complex to analyze) — les aides d'un test vont dans sa fonction tester_<nom>().
 - 2026-09-27 : BTN7 ajoutée (choix A1, sur un commentaire de la feuille du kit et une remarque sur celle de Cairn) : décompte mis en valeur, texte d'avant la liste replié ; jouée avant BTN6, qui republie les feuilles une seule fois.
 - 2026-09-27 : clore n'écrit pas de ligne FILES : cloture.md prend celle de clore, sinon celle de vlp.py joints ; BTN5 rend ce repli inutile.
+- 2026-09-27 : BTN3 : une page servie en local telle quelle mesure 980 px de large à 375 × 812 (pas de meta viewport dans les gabarits ; claude.ai l'ajoute lui-même) — mesurer la largeur sur une copie enveloppée (38-audit-scripts/replie.py:25-27), comme FEU et PLI : là, 375 = 375. Vaut pour BTN4 et BTN6.
 ## Bilan
