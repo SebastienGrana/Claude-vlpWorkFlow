@@ -177,8 +177,9 @@ notée arrêtée, comptes bruts : publiées, arrêtées, sans lien.
 ---
 
 <!-- FICHE:HAB6 -->
-## HAB6 [ ] — Cairn : repeindre et remettre en ligne
+## HAB6 [x] — Cairn : repeindre et remettre en ligne
 
+**Session** : 5a12485e-8f92-4566-8eac-a08b630de356
 **Dépend de** : `HAB4`.
 **Fichiers** : `../Cairn-VlpLib/context AI/artefacts/` — et rien d'autre.
 
