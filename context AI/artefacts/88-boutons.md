@@ -4,7 +4,7 @@ Les pages du kit ont des boutons : tout déplier, copier la commande d'une fiche
 ## Notes
 - BTN1 : test-vlp.py OK, 15 contrôles BTN1 (16 joués) ; mutants : vlp.js retiré de recopier_joints → (a) tombe ; balise posée sans vérifier → (c) tombe (bloc seul ; suite entière : tombe d'abord sur « page : régénérer deux fois ne change rien ») ; pyright 0 erreur (1 avant de ranger les aides dans la fonction)
 - BTN2 : grep 'files: vlp.css' → 0 ligne ; FILES : chantier 2, enchainer 1, init 1, tache 1, cloture 1, ARTEFACTS 2 ; test-vlp.py OK (code 0, 500 verifier)
-- BTN3 : boutons Tout déplier et Copier la commande ; dépend de BTN1 ; visuel
+- BTN3 : UTF-8 ; Tout déplier 7/7 puis 0 (BTN et feuille) ; 5 Copier pour 5 fiches non faites ; clic → « Sélectionné : fais Ctrl+C » (presse-papiers refusé dans l'app), fiche non repliée ; 375 px : 375/375 (page enveloppée) ; mutant boucle retirée → 1→1 et 0→0 ; vu par l'utilisateur
 - BTN4 : filtre de la feuille par état : à faire, en cours, clos ; dépend de BTN1 ; visuel
 - BTN5 : couts.svg, une barre par chantier clos, écrit par vlp.py ; dépend de BTN1
 - BTN6 : régénérer et republier kit, Cairn et BTN, mesurer avant et après ; dépend de toutes ; visuel

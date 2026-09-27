@@ -21,9 +21,9 @@
     <p>Les pages du kit ont des boutons : tout déplier, copier la commande d'une fiche, filtrer la feuille par état, et un graphique du coût des chantiers clos. La page relue à chaque fiche ne grossit que de quelques balises.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">7 fiches · 2 faites · en cours : BTN3</p>
+    <p class="mono" style="margin-top:.5rem">7 fiches · 3 faites · en cours : BTN4</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -48,16 +48,17 @@
         <summary><span class="id">BTN2</span><span class="titre">Publier avec la ligne FILES dans les commandes</span>
         <span class="etat">faite</span></summary>
         <span class="note">grep 'files: vlp.css' → 0 ligne ; FILES : chantier 2, enchainer 1, init 1, tache 1, cloture 1, ARTEFACTS 2 ; test-vlp.py OK (code 0, 500 verifier)</span>
-        <span class="cout mono">≈8,2M (8 246 230) · 51 tours · 4,28 $</span>
+        <span class="cout mono">≈8,9M (8 894 788) · 55 tours · 4,52 $</span>
+      </details></li>
+      <li class="fiche" data-etat="faite"><details>
+        <summary><span class="id">BTN3</span><span class="titre">Tout déplier, et copier la commande d'une fiche</span>
+        <span class="etat">faite</span></summary>
+        <span class="note">UTF-8 ; Tout déplier 7/7 puis 0 (BTN et feuille) ; 5 Copier pour 5 fiches non faites ; clic → « Sélectionné : fais Ctrl+C » (presse-papiers refusé dans l'app), fiche non repliée ; 375 px : 375/375 (page enveloppée) ; mutant boucle retirée → 1→1 et 0→0 ; vu par l'utilisateur</span>
+        <span class="cout mono">≈4,2M (4 160 988) · 35 tours · 2,25 $</span>
       </details></li>
       <li class="fiche" data-etat="encours"><details open>
-        <summary><span class="id">BTN3</span><span class="titre">Tout déplier, et copier la commande d'une fiche</span>
-        <span class="etat">en cours</span></summary>
-        <span class="note">boutons Tout déplier et Copier la commande ; dépend de BTN1 ; visuel</span>
-      </details></li>
-      <li class="fiche"><details>
         <summary><span class="id">BTN4</span><span class="titre">Filtrer la feuille par état</span>
-        <span class="etat">à faire</span></summary>
+        <span class="etat">en cours</span></summary>
         <span class="note">filtre de la feuille par état : à faire, en cours, clos ; dépend de BTN1 ; visuel</span>
       </details></li>
       <li class="fiche"><details>
@@ -77,7 +78,7 @@
       </details></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈9,5M (9 532 466) · 63 tours · 5,74 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈25,1M (25 127 537) · 168 tours · 13,43 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈29,9M (29 937 083) · 207 tours · 15,92 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

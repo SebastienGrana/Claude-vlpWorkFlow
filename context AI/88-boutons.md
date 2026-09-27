@@ -166,8 +166,9 @@ republication, passe la ligne `FILES`. Le reste de la section ne bouge pas.
 ---
 
 <!-- FICHE:BTN3 -->
-## BTN3 [ ] — Tout déplier, et copier la commande d'une fiche
+## BTN3 [x] — Tout déplier, et copier la commande d'une fiche
 
+**Session** : 0237698c-66e3-4b2e-a320-a0a42d6d2896
 **Dépend de** : `BTN1`.
 **Fichiers** : `templates/vlp.js`, `templates/vlp.css`, `.claude/launch.json` (serveur local, hors
 Git) — et rien d'autre.
