@@ -30,18 +30,27 @@ section { display:flex; flex-direction:column; gap:.85rem; }
 .avancement span { height:.4rem; flex:1; border-radius:1px; background:var(--line); }
 .fiches,.todo,.journal { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
 .fiches,.todo { gap:.5rem; } .journal { gap:.6rem; }
-.fiche,.carte-todo { display:grid; grid-template-columns:3.5rem 1fr; gap:.1rem .9rem; background:var(--surface); border:1px solid var(--line); border-left:3px solid var(--attente); border-radius:3px; padding:.7rem .9rem; box-shadow:var(--ombre); }
+/* carte en trois colonnes (fiche et chantier possible, 2026-09-27) : à gauche l'identifiant, l'état,
+   Copier et les dépendances ; au milieu le titre, qui seul replie le corps ; à droite le coût */
+.fiche,.carte-todo { display:grid; grid-template-columns:4.6rem 1fr auto; gap:.1rem .9rem; align-items:start; background:var(--surface); border:1px solid var(--line); border-left:3px solid var(--attente); border-radius:3px; padding:.7rem .9rem; box-shadow:var(--ombre); }
+.gauche { display:flex; flex-direction:column; align-items:flex-start; gap:.15rem; min-width:0; }
 .fiche .id,.carte-todo .rang { font-weight:500; color:var(--doux); }
 .fiche .titre,.carte-todo .titre { font-weight:600; }
-.fiche .note { grid-column:2; font-size:.9rem; color:var(--doux); }
-.fiche .cout,.carte-todo .meta { grid-column:2; font-size:.78rem; color:var(--doux); }
+.fiche .note { font-size:.9rem; color:var(--doux); }
+.fiche .cout,.carte-todo .meta,.dep { font-size:.78rem; color:var(--doux); }
+.dep { font-size:.72rem; overflow-wrap:anywhere; }
 .cout-total,.cout-hors { font-size:.85rem; color:var(--doux); }
-.fiche .etat { grid-column:1; font-size:.68rem; letter-spacing:.07em; text-transform:uppercase; color:var(--attente); }
-/* fiche repliable (chantier PLI) : en-tête toujours visible, note et coût dans le corps */
-.fiche > details,.carte-todo > details { grid-column:1 / -1; }
-.fiche summary,.carte-todo summary { display:grid; grid-template-columns:3.5rem 1fr; gap:.1rem .9rem; cursor:pointer; list-style:none; }
+.fiche .etat { font-size:.68rem; letter-spacing:.07em; text-transform:uppercase; color:var(--attente); }
+.fiche > details,.carte-todo > details { min-width:0; }
+.fiche summary,.carte-todo summary { cursor:pointer; list-style:none; }
 .fiche summary::-webkit-details-marker,.carte-todo summary::-webkit-details-marker { display:none; }
-.fiche details > .note,.fiche details > .cout,.carte-todo details > .detail { display:block; margin-left:4.4rem; }
+.fiche details > .note,.carte-todo details > .detail { display:block; margin-top:.25rem; }
+/* à droite, le coût coupé après son brut : « ≈5,1M (5 069 068) · » puis « 41 tours · 2,57 $ » */
+.fiche > :is(.cout,.visuel),.carte-todo > .meta { justify-self:end; text-align:right; }
+.fiche > .cout { width:19ch; }
+.carte-todo > .meta { max-width:10rem; }
+/* écran étroit : la colonne de droite passe sous le titre */
+@media (max-width:34rem) { .fiche,.carte-todo { grid-template-columns:4.6rem 1fr; } .fiche > :is(.cout,.visuel),.carte-todo > .meta { grid-column:2; justify-self:start; text-align:left; width:auto; max-width:none; } }
 .fiche summary .titre::after,.carte-todo summary .titre::after { content:" ▸"; color:var(--doux); font-weight:400; }
 .fiche details[open] > summary .titre::after,.carte-todo details[open] > summary .titre::after { content:" ▾"; }
 /* les trois états, partout où ils comptent */
@@ -91,16 +100,9 @@ details.clos[open] > summary { margin-bottom:.85rem; }
 .bouton:hover { border-color:var(--accent); }
 .bouton:focus-visible,.commande:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
 .deplier { align-self:flex-start; }
-/* Copier sous l'identifiant de la fiche ; son libellé long déborde sur la colonne vide à droite */
-.copier { grid-column:1; justify-self:start; width:max-content; font-size:.78rem; padding:.1rem .4rem; }
-.commande { grid-column:1 / -1; justify-self:start; }
-/* fiche dépliée : la colonne de gauche flotte, la note remonte sous le titre au lieu d'attendre Copier */
-.fiche details[open] > summary { display:block; }
-.fiche details[open] > summary > :is(.id,.etat,.copier) { float:left; clear:left; }
-.fiche details[open] > summary > :is(.id,.etat) { width:3.5rem; }
-.fiche details[open] > summary > :is(.etat,.copier) { margin-top:.1rem; }
-.fiche details[open] > summary > .titre { display:block; margin-left:4.4rem; }
-.fiche details[open] > summary > .commande { display:block; clear:both; }
-.commande { font-family:"IBM Plex Mono",monospace; font-size:.8rem; color:var(--texte); background:var(--ground); border:1px solid var(--line); border-radius:2px; padding:.15rem .4rem; width:100%; max-width:16rem; }
+.copier { font-size:.78rem; padding:.1rem .4rem; margin:.1rem 0; }
+/* presse-papiers refusé : une ligne sous la carte, la commande sélectionnée et quoi faire */
+.copie { grid-column:1 / -1; display:flex; flex-wrap:wrap; align-items:center; gap:.3rem .6rem; margin-top:.35rem; font-size:.85rem; color:var(--doux); }
+.commande { font-family:"IBM Plex Mono",monospace; font-size:.8rem; color:var(--texte); background:var(--ground); border:1px solid var(--line); border-radius:2px; padding:.15rem .4rem; width:16rem; max-width:100%; }
 
 footer { border-top:1px solid var(--line); padding-top:.9rem; font-size:.82rem; color:var(--doux); display:flex; flex-wrap:wrap; gap:.25rem 1.25rem; }

@@ -1997,6 +1997,42 @@ def fiches_du_fichier(lignes):
     return rendu
 
 
+DEPEND = re.compile(r"\b[A-Z]{1,3}[0-9]+\b")
+VISUEL = '<span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span>'
+
+
+def apercu_fiches(lignes):
+    """{id: (dépendances, critère visuel)} lus dans le bloc de chaque fiche : les identifiants de
+    sa ligne `**Dépend de**` et de ses suites, et vrai si son `**Critère de fin**` porte `(visuel)`
+    — la colonne de gauche et celle de droite de sa carte sur la page (gabarit en colonnes)."""
+    titres = [i for i, l in enumerate(lignes) if TITRE.match(l)] + [len(lignes)]
+    rendu = {}
+    for i, suivant in zip(titres, titres[1:]):
+        deps, visuel, dedans = [], False, False
+        for l in lignes[i + 1:suivant]:
+            if l.startswith("<!-- /FICHE"):
+                break
+            if l.startswith("**Dépend de**"):
+                dedans = True
+            elif dedans and (not l.strip() or l.startswith("**")):
+                dedans = False
+            if dedans:
+                deps += [d for d in DEPEND.findall(l) if d not in deps]
+            visuel = visuel or bool(CRITERE_VISUEL.match(l))
+        rendu[lignes[i].split()[1]] = (deps, visuel)
+    return rendu
+
+
+def fleche(noms, unite="fiches"):
+    """Les dépendances d'une carte, dans sa colonne de gauche : `← A, B` ; au-delà de deux,
+    `← n fiches` et la liste au survol (`title`) — la colonne est étroite ; rien sans dépendance."""
+    if not noms:
+        return ""
+    if len(noms) <= 2:
+        return '<span class="dep mono">← %s</span>' % esc(", ".join(noms))
+    return '<span class="dep mono" title="%s">← %d %s</span>' % (esc(", ".join(noms)), len(noms), unite)
+
+
 def lis_page(html):
     """{id: (data-etat ou None, note html ou None, cout html ou None)}."""
     vues = {}
@@ -2419,24 +2455,29 @@ def regenerer(html, fichier, parts, date, gardes, forme=False):
     if not n:
         raise ValueError("page : résultat introuvable")
     etiquette = {"faite": "faite", "encours": "en cours", "bloquee": "bloquée", None: "à faire"}
+    apercu = apercu_fiches(lignes)
     items = []
     for ident, titre, _, _ in fiches_:
         e = etat[ident]
         note = esc(parts["notes"][ident]) if ident in parts["notes"] else None
-        # Repliée, sauf en cours ou bloquée (chantier PLI) ; `data-etat` reste sur le `<li>`,
-        # que `LI_FICHE` et `lis_page` lisent dans les deux formes. Mêmes lignes qu'avant, sans
-        # bloc ajouté : `comparer` découpe au `div`, le texte visible reste le même.
-        li = ['      <li class="fiche"%s><details%s>' % (' data-etat="%s"' % e if e else "",
-                                                     " open" if e in ("encours", "bloquee") else ""),
-              '        <summary><span class="id">%s</span><span class="titre">%s</span>'
-              % (ident, libelles[ident][0] if ident in libelles else esc(titre)),
-              '        <span class="etat">%s</span></summary>'
-              % (libelles[ident][1] if ident in libelles else etiquette.get(e, e))]
-        if note:
-            li.append('        <span class="note">%s</span>' % note)
-        if ident in cout:
-            li.append('        <span class="cout mono">%s</span>' % cout[ident])
-        items.append("\n".join(li + ["      </details></li>"]))
+        deps, visuel = apercu.get(ident, ([], False))
+        # Trois colonnes (gabarit en colonnes, 2026-09-27) : à gauche l'identifiant, l'état et les
+        # dépendances ; au milieu le titre, qui seul replie la note — repliée sauf en cours ou
+        # bloquée (PLI) ; à droite le coût, ou « visuel » tant qu'une fiche à regarder n'est pas
+        # faite. `data-etat` reste sur le `<li>`, que `LI_FICHE` et `lis_page` lisent dans toutes
+        # les formes ; un `span` à gauche, pas un `div` : `comparer` coupe au `div`, la fiche
+        # reste un seul bloc de texte.
+        droite = ('<span class="cout mono">%s</span>' % cout[ident] if ident in cout
+                  else VISUEL if visuel and e != "faite" else "")
+        items.append('      <li class="fiche"%s><span class="gauche"><span class="id">%s</span>'
+                     '<span class="etat">%s</span>%s</span>\n'
+                     '        <details%s><summary><span class="titre">%s</span></summary>%s</details>%s</li>'
+                     % (' data-etat="%s"' % e if e else "", ident,
+                        libelles[ident][1] if ident in libelles else etiquette.get(e, e), fleche(deps),
+                        " open" if e in ("encours", "bloquee") else "",
+                        libelles[ident][0] if ident in libelles else esc(titre),
+                        '\n        <span class="note">%s</span>' % note if note else "",
+                        "\n        " + droite if droite else ""))
     prefixe = re.search(r'<p class="mono cout-total">(.*?) : ', html)
     prefixe = prefixe.group(1) if prefixe else "Coût du chantier"
     html = re.sub(r'\n[ \t]*<p class="mono cout-(?:total|hors)">.*?</p>', "", html, flags=re.S)
@@ -2948,8 +2989,9 @@ def zone_todo(html):
 
 def rang_en_cours(contenu, forme):
     """Le rang qui porte le badge « en cours » dans le contenu de `zone_todo` : 2e cellule d'une
-    ligne de tableau, ou titre du `summary` d'une carte ; None sans badge."""
-    rang = (r'<span class="rang mono">(\d+)</span><span class="titre">' if forme == "cartes"
+    ligne de tableau ; sur une carte, avant la fin de son `summary` — colonne de gauche, ou titre
+    dans la forme d'avant les colonnes. None sans badge."""
+    rang = (r'<span class="rang mono">(\d+)</span>' if forme == "cartes"
             else r'<tr><td class="mono">(\d+)</td><td>')
     m = re.search(rang + r'(?:(?!</td>|</summary>).)*?' + re.escape(BADGE_COURS), contenu)
     return m.group(1) if m else None
@@ -2998,6 +3040,15 @@ def sommaire(html):
     return html[:i] + "\n" + SOMMAIRE + html[i:]
 
 
+def depend_todo(de):
+    """La cellule « Dépend de » d'un chantier possible, dans la colonne de gauche de sa carte : ses
+    codes entre backticks par `fleche` ; un rang (`3`) tel quel ; rien pour `—`."""
+    codes = re.findall(r"`([^`]+)`", de)
+    if codes:
+        return fleche(codes, "chantiers")
+    return "" if de.strip() in ("", "—", "-", "rien") else '<span class="dep mono">← %s</span>' % cellule_md(de)
+
+
 def feuille(projet, html, todo, date):
     """(page régénérée, bilan) : encours, todo et lettres depuis `CHANTIER.md` et le fichier d'état."""
     html = migrer_joints(migrer_style(html))
@@ -3030,12 +3081,13 @@ def feuille(projet, html, todo, date):
     rangs = todo_du_fichier(lignes_etat)
     if todo is not None and todo not in [r[0] for r in rangs]:
         raise ValueError("--todo %s absent de la TODO de %s" % (todo, etat))
-    # Une carte par rang : l'étiquette dans le `summary`, « Ce qu'il apporte » replié (chantier FEU).
-    corps = "".join('          <li class="carte-todo"><details><summary><span class="rang mono">%s</span>'
-                    '<span class="titre">%s%s</span><span class="meta mono">%s · dépend de : %s</span></summary>'
-                    '<div class="detail">%s</div></details></li>\n'
-                    % (esc(n), cellule_md(ch), BADGE_COURS if n == todo else "", cellule_md(co),
-                       cellule_md(de), cellule_md(ap)) for n, ch, ap, co, de in rangs) \
+    # Une carte par rang, en colonnes comme les fiches : rang, badge et dépendances à gauche, le
+    # titre qui replie « Ce qu'il apporte » (chantier FEU), le coût estimé à droite.
+    corps = "".join('          <li class="carte-todo"><span class="gauche"><span class="rang mono">%s</span>%s%s</span>'
+                    '<details><summary><span class="titre">%s</span></summary><div class="detail">%s</div></details>'
+                    '<span class="meta mono">%s</span></li>\n'
+                    % (esc(n), BADGE_COURS if n == todo else "", depend_todo(de), cellule_md(ch), cellule_md(ap),
+                       cellule_md(co)) for n, ch, ap, co, de in rangs) \
         or '          <li class="rien">Rien en attente.</li>\n'
     cartes = en_cartes(html)
     d, f, _ = zone_todo(cartes)

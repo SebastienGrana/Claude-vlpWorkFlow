@@ -41,24 +41,20 @@
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <!-- chaque fiche repliée ; `open` si en cours ou bloquée. .cout : présent seulement
-           si la fiche a une plage — commit `<ID> :`, ou ligne **Session** -->
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">&lt;R1&gt;</span><span class="titre">&lt;Titre de la fiche&gt;</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">&lt;Le critère de fin, constaté. Une ligne.&gt;</span>
-        <span class="cout mono">&lt;≈2,3k (2 312)&gt;</span>
-      </details></li>
-      <li class="fiche" data-etat="encours"><details open>
-        <summary><span class="id">&lt;R2&gt;</span><span class="titre">&lt;Titre de la fiche&gt;</span>
-        <span class="etat">en cours</span></summary>
-        <span class="note">&lt;Ce qu'elle produit, en une ligne.&gt;</span>
-      </details></li>
-      <li class="fiche"><details>
-        <summary><span class="id">&lt;R3&gt;</span><span class="titre">&lt;Titre de la fiche&gt;</span>
-        <span class="etat">à faire</span></summary>
-        <span class="note">&lt;Ce qu'elle produit · dépend de &lt;R2&gt;&gt;</span>
-      </details></li>
+      <!-- trois colonnes : .gauche (id, état, dépendances « ← R1 »), le titre qui replie la note
+           — `open` si en cours ou bloquée —, à droite .cout (présent seulement si la fiche a une
+           plage : commit `<ID> :`, ou ligne **Session**) ou « visuel » tant qu'elle n'est pas faite -->
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">&lt;R1&gt;</span><span class="etat">faite</span></span>
+        <details><summary><span class="titre">&lt;Titre de la fiche&gt;</span></summary>
+        <span class="note">&lt;Le critère de fin, constaté. Une ligne.&gt;</span></details>
+        <span class="cout mono">&lt;≈2,3k (2 312)&gt;</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">&lt;R2&gt;</span><span class="etat">en cours</span><span class="dep mono">← &lt;R1&gt;</span></span>
+        <details open><summary><span class="titre">&lt;Titre de la fiche&gt;</span></summary>
+        <span class="note">&lt;Ce qu'elle produit, en une ligne.&gt;</span></details>
+        <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
+      <li class="fiche"><span class="gauche"><span class="id">&lt;R3&gt;</span><span class="etat">à faire</span><span class="dep mono">← &lt;R2&gt;</span></span>
+        <details><summary><span class="titre">&lt;Titre de la fiche&gt;</span></summary>
+        <span class="note">&lt;Ce qu'elle produit, en une ligne.&gt;</span></details></li>
     </ul>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
     <p class="mono cout-hors">Hors fiches : &lt;≈1,2k (1 234)&gt;</p>

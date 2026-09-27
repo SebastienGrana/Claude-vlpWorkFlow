@@ -1023,8 +1023,9 @@ with tempfile.TemporaryDirectory() as t:
     verifier("feuille : fermé, réécrite", code == 0 and "FEUILLE todo 2 · encours non · lettres 2 · réécrite" in s
              and "Aucun chantier ouvert" in html and '<span class="mono">E, M</span>' in html
              and '<span class="mono">2026-01-02</span>' in html, s + html)
-    verifier("feuille : TODO rendue", '<span class="titre">Le <span class="mono">sh</span></span><span class="meta mono">'
-             '2 fiches · dépend de : —</span></summary><div class="detail">a || b &lt;c&gt;</div>' in html
+    verifier("feuille : TODO rendue", '<span class="gauche"><span class="rang mono">3</span></span><details><summary>'
+             '<span class="titre">Le <span class="mono">sh</span></span></summary><div class="detail">a || b &lt;c&gt;</div>'
+             '</details><span class="meta mono">2 fiches</span></li>' in html
              and "&lt;U, R&gt;" not in html and 'data-etat="cours"' not in html.split("ZONE:todo")[1], html)
     avant_todo = html.split("<!-- ZONE:todo")[0].split("Les chantiers possibles")[1]
     verifier("feuille : décompte au-dessus de la TODO, détaillé (FEU8)", avant_todo.count("resume-todo") == 1
@@ -1047,7 +1048,8 @@ with tempfile.TemporaryDirectory() as t:
     verifier("feuille : ouvert, badge, lettre", code == 0 and "encours oui · lettres 3" in s
              and 'Un titre <span class="badge" data-etat="cours">' in html and '<span class="mono">Q1–Q2</span>' in html
              and 'href="https://exemple/q"' in html and "E, M, Q" in html
-             and '<span class="rang mono">4</span><span class="titre">Quatre <span class="badge" data-etat="cours">' in html, s + html)
+             and ('<span class="rang mono">4</span>' + mod.BADGE_COURS + '<span class="dep mono">← 3</span></span>'
+                  '<details><summary><span class="titre">Quatre</span></summary>') in html, s + html)
     code, s = appel(["feuille", t])
     verifier("feuille : badge gardé sans --todo", code == 0 and "inchangée" in s, s)
     verifier("feuille : --verifier identique", appel(["feuille", t, "--verifier"])[0] == 0, appel(["feuille", t, "--verifier"]))
@@ -2441,8 +2443,11 @@ def test_feuille_en_cartes():
         d, f, forme = mod.zone_todo(html)
         zone_t = html[html.index("<!-- ZONE:todo"):html.index("<!-- ZONE:clos")]
         rangs = mod.todo_du_fichier(mod.lignes_de(os.path.join(tc, "ctx", "08-etat.md")))
-        absentes = [c for r in rangs for c in r if mod.cellule_md(c) not in html[d:f]]
-        verifier("FEU3 : tableau → cartes, une par rang, chaque cellule telle quelle, badge sur la carte 4, préambule gardé",
+        # « Dépend de » (5e cellule) passe en flèche à gauche de la carte (gabarit en colonnes).
+        absentes = ([c for r in rangs for c in r[:4] if mod.cellule_md(c) not in html[d:f]]
+                    + [r[4] for r in rangs if mod.depend_todo(r[4]) not in html[d:f]])
+        verifier("FEU3 : tableau → cartes, une par rang, chaque cellule telle quelle (« Dépend de » en flèche),"
+                 " badge sur la carte 4, préambule gardé",
                  code == 0 and forme == "cartes" and "<table" not in zone_t and "<tr" not in zone_t
                  and html[d:f].count('<li class="carte-todo">') == len(rangs) == 3 and not absentes
                  and html[d:f].count(mod.BADGE_COURS) == 1 and mod.rang_en_cours(html[d:f], forme) == "4"
@@ -3671,8 +3676,7 @@ x
 
 def forme_ancienne(html):
     """Les fiches remises à plat, comme avant PLI5 : ni `<details>` ni `<summary>`."""
-    html = re.sub(r'(<li class="fiche"[^>]*)><details(?: open)?>', r"\1>", html)
-    return html.replace("<summary>", "").replace("</summary>", "").replace("</details></li>", "</li>")
+    return mod.LI_FICHE.sub(lambda m: re.sub(r"</?details(?: open)?>|</?summary>", "", m.group(0)), html)
 
 
 def tester_fiches_repliees():
@@ -3689,7 +3693,7 @@ def tester_fiches_repliees():
         verifier("PLI5 : 3 fiches, 3 blocs repliables, un seul ouvert — celui en cours"
                  " — mutant : tout ouvrir",
                  code == 0 and zone.count("<details") == 3 and zone.count("<details open>") == 1
-                 and '<li class="fiche" data-etat="encours"><details open>' in zone, s + zone)
+                 and '<details open><summary><span class="titre">En cours</span></summary>' in zone, s + zone)
         ecrire(ancienne, forme_ancienne(html))
         verifier("PLI5 : la forme ancienne du test n'a plus de bloc repliable",
                  "<details" not in lire(ancienne) and lire(ancienne).count('<li class="fiche"') == 3, lire(ancienne))
@@ -3704,6 +3708,80 @@ def tester_fiches_repliees():
 
 
 tester_fiches_repliees()
+
+
+# --- Gabarit en colonnes (2026-09-27) : dépendances à gauche, coût ou « visuel » à droite ---
+
+def tester_carte_en_colonnes():
+    fiches_md = ("# Chantier Q\n\n## Le socle commun\n\n## L'ordre des fiches\n\n"
+                 "<!-- FICHE:Q1 -->\n## Q1 [x] — Faite\n**Dépend de** : rien.\n**Critère de fin** (visuel)\nx\n"
+                 "<!-- /FICHE -->\n\n"
+                 "<!-- FICHE:Q2 -->\n## Q2 [ ] — Visuelle\n**Dépend de** : `Q1`.\n**Critère de fin** (visuel)\nx\n"
+                 "<!-- /FICHE -->\n\n"
+                 "<!-- FICHE:Q3 -->\n## Q3 [ ] — Trois dépendances\n**Dépend de** : `Q1`,\n`Q2` et `PLI3`.\n"
+                 "**Critère de fin**\nx\n<!-- /FICHE -->\n")
+    c1 = "≈1,1k (1 111) · 1 tours · 0,01 $"
+    with tempfile.TemporaryDirectory() as tcc:
+        fiches = os.path.join(tcc, "q.md")
+        page = os.path.join(tcc, "artefacts", "q.html")
+        ecrire(fiches, fiches_md)
+        code, s = appel(["page", fiches, page, "--creer", "--projet", "Proj", "--titre", "T", "--resultat", "R0",
+                         "--note", "Q2", "n2"])
+        html = lire(page)
+        li = {m.group(1): m.group(0)
+              for m in re.finditer(r'<li class="fiche".*?<span class="id">(\w+)</span>.*?</li>', html, re.S)}
+        verifier("colonnes : à gauche l'identifiant, l'état puis la dépendance — mutant : dépendances ignorées",
+                 code == 0 and ('<span class="gauche"><span class="id">Q2</span><span class="etat">en cours</span>'
+                                '<span class="dep mono">← Q1</span></span>') in li.get("Q2", ""), s + html)
+        verifier("colonnes : aucune flèche sans dépendance (Q1 dépend de « rien »)",
+                 "Q1" in li and 'class="dep' not in li["Q1"], "%r" % li)
+        verifier("colonnes : au-delà de deux dépendances, leur nombre et la liste au survol, ligne suivante comprise"
+                 " — mutant : seuil retiré",
+                 '<span class="dep mono" title="Q1, Q2, PLI3">← 3 fiches</span>' in li.get("Q3", ""), li.get("Q3", ""))
+        verifier("colonnes : « visuel » à droite d'une fiche à regarder et non faite, seulement"
+                 " — mutant : la fiche faite l'a aussi",
+                 mod.VISUEL in li.get("Q2", "") and mod.VISUEL not in li.get("Q1", "")
+                 and mod.VISUEL not in li.get("Q3", ""), "%r" % li)
+        verifier("colonnes : le titre seul dans le summary, la note dans le corps, « visuel » après",
+                 ('<details open><summary><span class="titre">Visuelle</span></summary>\n'
+                  '        <span class="note">n2</span></details>\n        ' + mod.VISUEL + '</li>') in li.get("Q2", ""),
+                 li.get("Q2", ""))
+        # Le coût d'une page d'avant passe à droite : `--forme` le relit, puis le pose après le corps.
+        ecrire(page, html.replace('<span class="titre">Faite</span></summary></details></li>',
+                                  '<span class="titre">Faite</span></summary></details>\n'
+                                  '        <span class="cout mono">%s</span></li>' % c1))
+        code, s = appel(["page", fiches, page, "--forme"])
+        apres = lire(page)
+        verifier("colonnes : --forme garde le coût, à droite, et le relit — mutant : coût gardé dans le corps",
+                 code == 0 and ('<span class="titre">Faite</span></summary></details>\n'
+                                '        <span class="cout mono">%s</span></li>' % c1) in apres
+                 and mod.lis_page(apres)["Q1"][2] == c1, s + apres)
+    pli5 = ('      <li class="fiche" data-etat="encours"><details open>\n'
+            '        <summary><span class="id">Q2</span><span class="titre">Visuelle</span>\n'
+            '        <span class="etat">en cours</span></summary>\n'
+            '        <span class="note">n2</span>\n'
+            '        <span class="cout mono">%s</span>\n'
+            '      </details></li>\n' % c1)
+    verifier("colonnes : une fiche de la forme PLI5, en ligne partout, se lit encore",
+             mod.lis_page(pli5) == {"Q2": ("encours", "n2", c1)}, "%r" % mod.lis_page(pli5))
+    neuve = ('<li class="carte-todo"><span class="gauche"><span class="rang mono">7</span></span><details><summary>'
+             '<span class="titre">a</span></summary></details></li>\n<li class="carte-todo"><span class="gauche">'
+             '<span class="rang mono">8</span>' + mod.BADGE_COURS + '</span><details><summary><span class="titre">b'
+             '</span></summary></details></li>\n')
+    ancienne = ('<li class="carte-todo"><details><summary><span class="rang mono">5</span><span class="titre">a'
+                + mod.BADGE_COURS + '</span><span class="meta mono">1 fiche · dépend de : —</span></summary></details></li>\n')
+    verifier("colonnes : le badge « en cours » se lit à gauche d'une carte, et dans le titre d'une carte d'avant"
+             " — mutant : exiger le titre juste après le rang",
+             mod.rang_en_cours(neuve, "cartes") == "8" and mod.rang_en_cours(ancienne, "cartes") == "5",
+             "%r %r" % (mod.rang_en_cours(neuve, "cartes"), mod.rang_en_cours(ancienne, "cartes")))
+    verifier("colonnes : dépendances d'un chantier possible — code, rang, rien, et plus de deux codes",
+             mod.depend_todo("`PLI`") == '<span class="dep mono">← PLI</span>'
+             and mod.depend_todo("3") == '<span class="dep mono">← 3</span>' and mod.depend_todo("—") == ""
+             and mod.depend_todo("`A`, `B`, `C`") == '<span class="dep mono" title="A, B, C">← 3 chantiers</span>',
+             "%r" % [mod.depend_todo(d) for d in ("`PLI`", "3", "—", "`A`, `B`, `C`")])
+
+
+tester_carte_en_colonnes()
 
 
 # --- PLI6 : le journal replié au-delà de 3 entrées ; le bilan sous l'en-tête à la clôture ---
