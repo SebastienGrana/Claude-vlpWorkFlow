@@ -133,8 +133,9 @@ présence → (c) tombe. `pyright` : 0 erreur sur les fichiers touchés, compte 
 ---
 
 <!-- FICHE:BTN2 -->
-## BTN2 [ ] — Publier avec la ligne `FILES` dans les commandes
+## BTN2 [x] — Publier avec la ligne `FILES` dans les commandes
 
+**Session** : df441fa6-79e6-47a6-aa5f-8da3676d8563
 **Dépend de** : `BTN1`.
 **Fichiers** : `skills/chantier/SKILL.md`, `skills/enchainer/SKILL.md`, `skills/init/SKILL.md`,
 `skills/tache/SKILL.md`, `cloture.md`, `ARTEFACTS.md`, `scripts/test-vlp.py` (seulement si un test

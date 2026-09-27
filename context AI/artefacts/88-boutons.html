@@ -21,9 +21,9 @@
     <p>Les pages du kit ont des boutons : tout déplier, copier la commande d'une fiche, filtrer la feuille par état, et un graphique du coût des chantiers clos. La page relue à chaque fiche ne grossit que de quelques balises.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">7 fiches · 1 faite · en cours : BTN2</p>
+    <p class="mono" style="margin-top:.5rem">7 fiches · 2 faites · en cours : BTN3</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -44,14 +44,15 @@
         <span class="note">test-vlp.py OK, 15 contrôles BTN1 (16 joués) ; mutants : vlp.js retiré de recopier_joints → (a) tombe ; balise posée sans vérifier → (c) tombe (bloc seul ; suite entière : tombe d'abord sur « page : régénérer deux fois ne change rien ») ; pyright 0 erreur (1 avant de ranger les aides dans la fonction)</span>
         <span class="cout mono">≈7,3M (7 348 841) · 54 tours · 3,41 $</span>
       </details></li>
-      <li class="fiche" data-etat="encours"><details open>
+      <li class="fiche" data-etat="faite"><details>
         <summary><span class="id">BTN2</span><span class="titre">Publier avec la ligne FILES dans les commandes</span>
-        <span class="etat">en cours</span></summary>
-        <span class="note">les 7 files: vlp.css des commandes pointent vers la ligne FILES ; dépend de BTN1</span>
+        <span class="etat">faite</span></summary>
+        <span class="note">grep 'files: vlp.css' → 0 ligne ; FILES : chantier 2, enchainer 1, init 1, tache 1, cloture 1, ARTEFACTS 2 ; test-vlp.py OK (code 0, 500 verifier)</span>
+        <span class="cout mono">≈8,2M (8 246 230) · 51 tours · 4,28 $</span>
       </details></li>
-      <li class="fiche"><details>
+      <li class="fiche" data-etat="encours"><details open>
         <summary><span class="id">BTN3</span><span class="titre">Tout déplier, et copier la commande d'une fiche</span>
-        <span class="etat">à faire</span></summary>
+        <span class="etat">en cours</span></summary>
         <span class="note">boutons Tout déplier et Copier la commande ; dépend de BTN1 ; visuel</span>
       </details></li>
       <li class="fiche"><details>
@@ -75,8 +76,8 @@
         <span class="note">régénérer et republier kit, Cairn et BTN, mesurer avant et après ; dépend de toutes ; visuel</span>
       </details></li>
     </ul>
-    <p class="mono cout-hors">Hors fiches : ≈13,8M (13 802 396) · 84 tours · 7,57 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈21,2M (21 151 237) · 138 tours · 10,98 $</p>
+    <p class="mono cout-hors">Hors fiches : ≈9,5M (9 532 466) · 63 tours · 5,74 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈25,1M (25 127 537) · 168 tours · 13,43 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -95,6 +96,7 @@
     <ul class="journal">
       <li><time datetime="2026-09-27">2026-09-27</time><span>BTN1 : même une aide ou une constante au niveau du module fait tomber pyright sur test-vlp.py (Code is too complex to analyze) — les aides d'un test vont dans sa fonction tester_&lt;nom&gt;().</span></li>
       <li><time datetime="2026-09-27">2026-09-27</time><span>BTN7 ajoutée (choix A1, sur un commentaire de la feuille du kit et une remarque sur celle de Cairn) : décompte mis en valeur, texte d'avant la liste replié ; jouée avant BTN6, qui republie les feuilles une seule fois.</span></li>
+      <li><time datetime="2026-09-27">2026-09-27</time><span>clore n'écrit pas de ligne FILES : cloture.md prend celle de clore, sinon celle de vlp.py joints ; BTN5 rend ce repli inutile.</span></li>
     </ul>
   </section>
 

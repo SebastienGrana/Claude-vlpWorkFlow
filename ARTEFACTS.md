@@ -135,8 +135,11 @@ Tranché le 2026-09-26 par le chantier `ALE` ; chiffres et commandes dans
   fichier joint, et une republication sans `files` le garde. `PLI` et `FEU`
   écrivent le CSS des deux gabarits dans `vlp.css`, déposé dans
   `<contexte>/artefacts/` et joint par `files` : une seule migration.
-- **Chaque publication passe `files: {"vlp.css": "<contexte>/artefacts/vlp.css"}`,
-  même une republication** (chantier `PLI`) : `read` ne rend jamais le fichier
+- **Les joints : `vlp.css`, `vlp.js`, et `couts.svg` pour la feuille (fiche
+  `BTN5`).** `vlp.py` les recopie dans `<contexte>/artefacts/` et dit quoi joindre :
+  une ligne `FILES {…}`, rendue par `page`, `feuille` et `joints` (chantier `BTN`).
+- **Chaque publication, même une republication, passe `files` : le JSON de la
+  ligne `FILES`** (chantier `PLI`) : `read` ne rend jamais le fichier
   joint, donc aucun coût de relecture — omettre `files` une fois ne coûte rien
   tout de suite, mais désynchronise l'artefact du disque à la prochaine lecture.
 - **Les données : dans la page pour l'instant — la base `db` adoptée pour

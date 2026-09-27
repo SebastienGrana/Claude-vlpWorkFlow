@@ -233,8 +233,8 @@ ni le socle d'API, ni de code. Lis la ligne `PAGE … · N lignes` : une `GARDE:
 dit une page au-delà du seuil, ou déjà existante — `--creer` n'écrase rien.
 
 Publie avec `favicon` `🧱`, un `title` `<Projet> — <Nom du chantier>`, pour
-`description` `Les fiches de <chantier>, et où on en est.`, et `files: vlp.css`
-(`ARTEFACTS.md`, « Où vivent le CSS et les données »).
+`description` `Les fiches de <chantier>, et où on en est.`, et `files` : le JSON
+de la ligne `FILES` (`ARTEFACTS.md`).
 
 ## 6. Déclarer, puis rendre la main
 
@@ -252,8 +252,8 @@ feuille de route locale, `--todo` seulement si le chantier a un numéro dans la 
 Publication échouée : pas de `--artefact`, la ligne reste à « aucun ». Lis les
 lignes `OUVERT` et `FEUILLE` ; une `GARDE:` dit ce qui n'est pas écrit — écris-le
 à la main. Puis `action: "read"` sur l'URL de la feuille de route
-(`CHANTIER.md`), et republie le fichier local avec cette `url` et `files: vlp.css`
-(`ARTEFACTS.md`, « Où vivent le CSS et les données »), sans `favicon`,
+(`CHANTIER.md`), et republie le fichier local avec cette `url` et `files` : le
+JSON de la ligne `FILES` (`ARTEFACTS.md`), sans `favicon`,
 `label` `<chantier> ouvert`. Si une publication échoue, dis-le en une ligne et
 continue : le chantier est cadré, c'est ce qui compte.
 

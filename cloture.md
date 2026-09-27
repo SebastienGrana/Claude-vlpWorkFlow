@@ -49,14 +49,15 @@ ici aussi : c'est le seul endroit que la prochaine session lira.
 
 Déjà écrit à l'étape 2 : `Artifact`, `action: "read"` sur son `url` (sans
 lecture, la republication est refusée), puis republication : `file_path` local,
-`url` et `files: vlp.css` (`ARTEFACTS.md`, « Où vivent le CSS et les données »), pas de
-`favicon`, `label` : `clos`. Des fiches abandonnées y restent **non faites**.
+`url` et `files` : le JSON de la ligne `FILES` de `clore` — absente, celle de
+`<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" joints "<contexte>/artefacts"` (`ARTEFACTS.md`),
+pas de `favicon`, `label` : `clos`. Des fiches abandonnées y restent **non faites**.
 
 ## 4. La feuille de route
 
 Déjà écrite à l'étape 2 : `action: "read"` sur son `url` (« **artefact feuille
 de route** » de `CHANTIER.md`), puis republication du fichier local avec cette `url`
-et `files: vlp.css` (idem), `label` : `<chantier> clos`.
+et `files` : le même JSON, `label` : `<chantier> clos`.
 
 Si une publication échoue, dis-le en une ligne et continue : les écritures
 locales sont ce qui compte, les pages se rattrapent.

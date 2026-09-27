@@ -135,8 +135,8 @@ Un bloc « **Tentatives** » dans la fiche : ajoute à `cocher` l'option
 `--resolu "<ce qui a marché>"`. `COCHÉ … · Session absente` : dis-le. La
 table est le coût de la session ; les lignes suivantes, celui du chantier par
 fiche, puis hors fiches et `TOTAL` ; affiche-les brutes. Puis publie comme le
-dit `tache-page.md`, lu à l'étape 1, `files: vlp.css` compris (`ARTEFACTS.md`,
-« Où vivent le CSS et les données ») — ou, si « **artefact du chantier** » vaut
+dit `tache-page.md`, lu à l'étape 1, `files` : le JSON de la ligne `FILES`
+(`ARTEFACTS.md`) — ou, si « **artefact du chantier** » vaut
 « aucun », saute la dernière ligne du bloc et dis-le en une ligne.
 
 Le travail écrit, **commite sans demander** (`methode-chantier.md`) :

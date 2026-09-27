@@ -132,13 +132,14 @@ gabarit `<contexte>/artefacts/feuille-de-route.html`. Remplis aussi l'en-tête
 (nom du projet, alias, la phrase de la réponse 1), laisse « Chantier en cours »
 sur « aucun », et vide la table des clos.
 
-Publie ensuite, une seule fois :
+Lance `<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" joints "<contexte>/artefacts"`,
+puis publie, une seule fois :
 
 - `file_path` : `<contexte>/artefacts/feuille-de-route.html`
 - `favicon` : `🗺️` — c'est la première publication, c'est la seule fois où il
   se passe
 - `description` : `La TODO ordonnée de <Projet> et l'état de ses chantiers.`
-- `files` : `vlp.css` (`ARTEFACTS.md`, « Où vivent le CSS et les données »)
+- `files` : le JSON de la ligne `FILES` de `joints` (`ARTEFACTS.md`)
 
 Puis **recopie l'URL rendue** dans la ligne « **artefact feuille de route** »
 de `CHANTIER.md`, dans le même geste. Une URL non écrite est une URL perdue :
