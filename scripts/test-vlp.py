@@ -4351,6 +4351,10 @@ tester_lien_feuille_de_route()
 # --- FEU8 : le décompte au-dessus de la TODO détaille tailles, bloqués, total estimé ---
 
 def tester_decompte_todo():
+    gabarit = lire(os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html"))
+    verifier("Dette BTN : le gabarit porte le décompte en valeur, sans style= (mutant : ancienne forme)",
+             [l.strip() for l in gabarit.splitlines() if "resume-todo" in l]
+             == ['<p class="resume-todo"><strong>&lt;n&gt; chantiers possibles</strong></p>'], "")
     verifier("FEU8 : borne_haute_cout — borne haute, ou None sans nombre avant « fiche »",
              mod.borne_haute_cout("~0,5 fiche") == 0.5 and mod.borne_haute_cout("~4 à 6 fiches") == 6.0
              and mod.borne_haute_cout("2-3 fiches") == 3.0 and mod.borne_haute_cout("à cadrer") is None
