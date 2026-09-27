@@ -12,15 +12,23 @@ balises ni `**`. Trois niveaux :
     tiers, deux tiers) est retrouvé.
 Un bloc absent aux trois niveaux n'existe, en pratique, que dans la page.
 La TODO de la feuille se compte par rang : un rang est « entier » si chacune
-de ses cellules est retrouvée entière.
+de ses cellules est retrouvée entière. Elle se lit dans les bornes de
+`zone_todo` (`scripts/vlp.py` du kit, chargé par son chemin), en tableau comme
+en cartes, badge « en cours » retiré : il n'est dans aucune source (FEU1).
 
     python page_vs_source.py <racine du projet équipé> <nom du dossier de contexte>
 """
-import glob, html, os, re, subprocess, sys, unicodedata
+import glob, html, importlib.util, os, re, subprocess, sys, unicodedata
+from typing import Any
 
 sys.stdout.reconfigure(encoding="utf-8")
 racine, contexte = sys.argv[1], sys.argv[2]
 ctx = os.path.join(racine, contexte)
+spec = importlib.util.spec_from_file_location(
+    "vlp", os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "scripts", "vlp.py"))
+assert spec and spec.loader
+vlp: Any = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(vlp)
 
 
 def norm(s):
@@ -90,13 +98,24 @@ for page in sorted(glob.glob(os.path.join(ctx, "artefacts", "[0-9]*.html"))):
     compter(base + " · notes", notes)
     compter(base + " · journal", journal)
 
+def cellules_todo(page):
+    """Par rang : rang, chantier, apporte, coût, dépendance — ligne de tableau ou carte."""
+    d, f, forme = vlp.zone_todo(page)
+    contenu = page[d:f].replace(vlp.BADGE_COURS, "")
+    if forme == "tableau":
+        return [re.findall(r"<td[^>]*>(.*?)</td>", r, re.S) for r in re.findall(r"<tr>.*?</tr>", contenu, re.S)]
+    cartes = re.findall(r'<li class="carte-todo"><details><summary><span class="rang mono">(.*?)</span>'
+                        r'<span class="titre">(.*?)</span><span class="meta mono">(.*?) · dépend de : (.*?)'
+                        r'</span></summary><div class="detail">(.*?)</div></details></li>', contenu, re.S)
+    return [[n, ch, ap, co, de] for n, ch, co, de, ap in cartes]
+
+
 feuille = os.path.join(ctx, "artefacts", "feuille-de-route.html")
 if os.path.isfile(feuille):
     f = open(feuille, encoding="utf-8").read()
-    todo = re.search(r"ZONE:todo.*?<tbody>(.*?)</tbody>", f, re.S)
     rangs = entiers = 0
-    for rang in re.findall(r"<tr>.*?</tr>", todo.group(1) if todo else "", re.S):
-        cel = [de_html(c) for c in re.findall(r"<td[^>]*>(.*?)</td>", rang, re.S)]
+    for rang in cellules_todo(f):
+        cel = [de_html(c) for c in rang]
         if len(cel) >= 3:
             rangs += 1
             entiers += all(c in corpus for c in cel if c)

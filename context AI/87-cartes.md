@@ -204,8 +204,9 @@ Tous verts ; `pyright` 0 erreur.
 ---
 
 <!-- FICHE:FEU5 -->
-## FEU5 [ ] — Faire lire les cartes aux outils de l'audit
+## FEU5 [x] — Faire lire les cartes aux outils de l'audit
 
+**Session** : bc14fab5-1e0d-472c-908e-b6dfeefa2dfd
 **Dépend de** : `FEU3`.
 **Fichiers** : `context AI/38-audit-scripts/page_vs_source.py`, `context AI/38-audit-scripts/rejeu.py`, `scripts/vlp.py` (`zone_todo`, lu seulement), `context AI/87-cartes.md` (`## Mesures`, la ligne de départ de `FEU1`) — et rien d'autre.
 

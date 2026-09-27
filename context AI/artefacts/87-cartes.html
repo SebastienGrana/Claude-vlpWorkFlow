@@ -20,9 +20,9 @@
     <p>La feuille de route de Cairn, cartes fermées, tient en 5 écrans d'ordinateur au plus ; la TODO ne défile plus de côté ; rien de son texte n'est perdu, seulement replié.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">8 fiches · 4 faites · en cours : FEU5</p>
+    <p class="mono" style="margin-top:.5rem">8 fiches · 5 faites · en cours : FEU7</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -59,16 +59,17 @@
         <summary><span class="id">FEU4</span><span class="titre">Poser le sommaire</span>
         <span class="etat">faite</span></summary>
         <span class="note">test_sommaire vert : feuille sans sommaire → 1 nav sous &lt;/header&gt;, 3 liens, id encours/todo/clos 1 fois chacun, dans l'ordre ; 2e appel inchangée. Mutant (garde déjà posé retirée) → ÉCART feuille : idempotente ; seul, 2 nav et 2 id encours. Tests OK, pyright 0 erreur</span>
-        <span class="cout mono">≈2,2M (2 195 423) · 16 tours · 1,00 $</span>
+        <span class="cout mono">≈2,5M (2 498 724) · 18 tours · 1,09 $</span>
+      </details></li>
+      <li class="fiche" data-etat="faite"><details>
+        <summary><span class="id">FEU5</span><span class="titre">Faire lire les cartes aux outils de l'audit</span>
+        <span class="etat">faite</span></summary>
+        <span class="note">page_vs_source Cairn tableau : ancien rangs 16 · entiers 15 (= FEU1), nouveau 16 · 16 — l'écart est le badge en cours, retiré comme FEU1 le demandait (badge gardé : 16 · 15). Copie en cartes : ancien 29 · 0 (table des clos), nouveau 16 · 16. rejeu.py code 0 sur les deux formes (todo_lignes 16, coches 2). Mutant (borne retirée, tableau d'abord) → 29 · 0. pyright 3 → 2 erreurs</span>
+        <span class="cout mono">≈1,9M (1 915 779) · 11 tours · 1,04 $</span>
       </details></li>
       <li class="fiche" data-etat="encours"><details open>
-        <summary><span class="id">FEU5</span><span class="titre">Faire lire les cartes aux outils de l'audit</span>
-        <span class="etat">en cours</span></summary>
-        <span class="note">page_vs_source.py et rejeu.py lisent les cartes au lieu de la table des clos. Après FEU3.</span>
-      </details></li>
-      <li class="fiche"><details>
         <summary><span class="id">FEU7</span><span class="titre">Un lien vers la feuille de route sur la page du chantier</span>
-        <span class="etat">à faire</span></summary>
+        <span class="etat">en cours</span></summary>
       </details></li>
       <li class="fiche"><details>
         <summary><span class="id">FEU8</span><span class="titre">Le détail des chantiers possibles</span>
@@ -81,7 +82,7 @@
       </details></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈6,3M (6 315 039) · 41 tours · 4,72 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈29,7M (29 687 970) · 174 tours · 14,63 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈31,9M (31 907 050) · 187 tours · 15,76 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
