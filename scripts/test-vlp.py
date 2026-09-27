@@ -4545,6 +4545,11 @@ def tester_joints():
         gabarit = io.open(os.path.join(ICI, "..", "templates", nom), encoding="utf-8").read()
         verifier("BTN1 : (b) gabarit %s — charset et script une fois chacun" % nom,
                  balises_une_fois(gabarit), gabarit[:300])
+        # Dette BTN : /vlp:init publie la feuille remplie à la main, sans `feuille` — un lien local vers
+        # autre chose qu'un joint y reste sans fichier (l'image couts.svg y restait, cassée).
+        locaux = set(re.findall(r'(?:src|href)="(?!https?:|#|&lt;)([^"]+)"', gabarit))
+        verifier("Dette BTN : gabarit %s — ne lie en local que les joints — mutant : image couts.svg remise"
+                 % nom, locaux <= set(mod.JOINTS), str(sorted(locaux)))
 
     # --- BTN5 : le coût des chantiers clos en image, `couts.svg` et sa balise — imbriqué ici : le
     # module est au seuil de complexité de pyright (BTN1), et couts.svg est un joint de plus.
