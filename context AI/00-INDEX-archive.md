@@ -73,3 +73,4 @@ QUAND LIRE : on relit un chantier clos ; l'index n'en garde qu'une ligne qui ren
 | `78-plier.md` | on relit le socle du chantier PLI — **clos** « La page de chantier plus courte et lisible », `PLI1..PLI7` |
 | `79-vigile.md` | on relit le socle du chantier VID — **clos** « Une page vide ne part plus en ligne », `VID1..VID2` |
 | `80-repeindre.md` | on relit le socle du chantier HAB — **clos** « Repeindre une page sans recompter », `HAB1..HAB6` |
+| `81-plage.md` | on relit le socle du chantier PLG — **clos** « La plage de l'en-tête et la dernière fiche », `PLG1..PLG1` |

@@ -10,7 +10,9 @@ numéro, le plus bas et le plus haut, partout où `vlp.py` écrit une plage.
 
 **Estimé.** 0,5 fiches · ≈2,12 $ — ≈4,24 $/fiche sur 68 clos (le 2026-09-27).
 
-**Fait.** Rien. Ouvert le 2026-09-27, cadré en 1 fiche, `PLG1` à jouer.
+**CLOS** le 2026-09-27. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** PLG1..PLG1 (2026-09-27) : bornes(ids) : une plage de fiches va du plus petit au plus grand numéro, en-tête, feuille, index et CHANTIER.md compris — estimé 0,5 fiches ≈2,12 $ · cadré 1 · joué 1 fiches ≈2,52 $.
 
 **Session** : 5a12485e-8f92-4566-8eac-a08b630de356
 
