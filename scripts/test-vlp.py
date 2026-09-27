@@ -3553,4 +3553,75 @@ def tester_vigile():
 
 tester_vigile()
 
+def tester_forme():
+    """page --forme (chantier HAB1) : la forme d'une page ancienne refaite, ses chiffres gardés,
+    même dans un dépôt dont les commits de fiche feraient changer le coût."""
+    if not shutil.which("git"):
+        print("SAUTÉ: git absent — page --forme n'est pas testée")
+        return
+    with tempfile.TemporaryDirectory() as tfo:
+        sq = os.path.join(tfo, "s.jsonl")
+        transcript(sq, 6, [T0 + d for d in (50, 200, 250, 400, 700, 1000)])
+        fiches = os.path.join(tfo, "q.md")
+        ecrire(fiches, QFICHES % (sq, sq))
+        env = dict(os.environ, GIT_CONFIG_GLOBAL=os.path.join(tfo, "gitconfig"), GIT_CONFIG_NOSYSTEM="1",
+                   GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t")
+        ecrire(env["GIT_CONFIG_GLOBAL"], "")
+        subprocess.run(["git", "init", "-q"], cwd=tfo, env=env, check=True, capture_output=True)
+        for d, sujet in ((100, "Chantier Q ouvert : cadré"), (300, "Q1 : Créer"), (600, "Q2 : Brancher")):
+            date = "%d +0000" % (T0 + d)
+            subprocess.run(["git", "commit", "-q", "--allow-empty", "-m", sujet], cwd=tfo, check=True,
+                           capture_output=True, env=dict(env, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date))
+        page = os.path.join(tfo, "artefacts", "q.html")
+        code, s = appel(["page", fiches, page, "--creer", "--projet", "P", "--titre", "T", "--resultat", "R",
+                         "--date", "2026-01-05"])
+        verifier("HAB1 : la page de départ se crée", code == 0, s)
+        # L'ancien format : style dans la page, fiches à plat, bilan visible en bas, chiffres d'une autre mesure.
+        html = avec_style_inline(lire(page))
+        for balise in ("<details open>", "<details>", "</details>", "<summary>", "</summary>"):
+            html = html.replace(balise, "")
+        html = re.sub(r'<span class="cout mono">.*?</span>', "", html)
+        c1, c2 = "≈1,1k (1 111) · 1 tours · 0,01 $", "≈2,2k (2 222) · 2 tours · 0,02 $"
+        html = html.replace('<span class="id">Q1</span>', '<span class="id">Q1</span><span class="cout mono">%s</span>' % c1, 1)
+        html = html.replace('<span class="id">Q2</span>', '<span class="id">Q2</span><span class="cout mono">%s</span>' % c2, 1)
+        total = "Coût du chantier : ≈11,3M (11 262 523) · 42 tours · 3,40 $"
+        hors = "Hors fiches : ≈5,0k (5 000) · 1 tours · 0,05 $"
+        html = re.sub(r'<p class="mono cout-total">.*?</p>', '<p class="mono cout-total">%s</p>' % total, html, flags=re.S)
+        html = re.sub(r'<p class="mono cout-hors">.*?</p>', '<p class="mono cout-hors">%s</p>' % hors, html, flags=re.S)
+        i = html.index("  <!-- ZONE:bilan")
+        fin = html.index("  </section>\n", i) + len("  </section>\n\n")
+        bloc = html[i:fin].replace("<section hidden>", "<section>", 1).replace("<p></p>", "<p>Fini.</p>", 1)
+        html = (html[:i] + html[fin:]).replace("  <footer>", bloc + "  <footer>", 1)
+        verifier("HAB1 : la page de départ est à l'ancien format",
+                 "<style>" in html and "<details" not in html and total in html
+                 and html.index("ZONE:bilan") > html.index("ZONE:fiches"), html[:600])
+        ecrire(page, html)
+        code, s = appel(["page", fiches, page, "--forme", "--date", "2026-01-06"])
+        apres = lire(page)
+        lu = mod.lis_page(apres)
+        verifier("HAB1 : --forme garde le total 11 262 523 et le hors fiches — mutant : --forme ignoré",
+                 code == 0 and apres.count(total) == 1 and apres.count(hors) == 1
+                 and "total ≈11,3M (11 262 523) · 42 tours · 3,40 $" in s, s + apres)
+        verifier("HAB1 : --forme garde les deux coûts de fiche (%s ; %s)" % (c1, c2),
+                 lu["Q1"][2] == c1 and lu["Q2"][2] == c2, lu)
+        verifier("HAB1 : --forme lie vlp.css, replie les fiches, remonte le bilan",
+                 "<style>" not in apres and apres.count('href="vlp.css"') == 1 and apres.count("<details") >= 2
+                 and apres.index("ZONE:bilan") < apres.index("ZONE:fiches") and "<p>Fini.</p>" in apres, apres[:1500])
+        code, s = appel(["vigile", page])
+        verifier("HAB1 : la page repeinte, vigile PAGE SAINE", code == 0 and s.startswith("PAGE SAINE"), s)
+        avant = lire(page)
+        code, s = appel(["page", fiches, page, "--forme", "--date", "2026-01-06"])
+        verifier("HAB1 : --forme deux fois ne change rien", code == 0 and lire(page) == avant, s)
+        code, s = appel(["page", fiches, os.path.join(tfo, "neuve.html"), "--forme", "--creer", "--projet", "P",
+                         "--titre", "T", "--resultat", "R"])
+        verifier("HAB1 : --forme refuse --creer par une GARDE",
+                 code == 1 and s.startswith("GARDE: --forme ne va pas avec --creer")
+                 and not os.path.exists(os.path.join(tfo, "neuve.html")), s)
+        # Témoin : sans --forme, la même page recompte — la preuve que le dépôt ferait changer le total.
+        code, s = appel(["page", fiches, page, "--date", "2026-01-06"])
+        verifier("HAB1 : sans --forme, le total change (témoin)", code == 0 and total not in lire(page), s)
+
+
+tester_forme()
+
 print("OK")

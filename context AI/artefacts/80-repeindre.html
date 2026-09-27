@@ -20,9 +20,9 @@
     <p>Les 90 pages de chantiers clos (kit et Cairn) au format PLI, chiffres de coût inchangés, remises en ligne par lots ; les pages sans lien listées.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">6 fiches · 0 faite · en cours : HAB1</p>
+    <p class="mono" style="margin-top:.5rem">6 fiches · 1 faite · en cours : HAB2</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -37,14 +37,15 @@
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="encours"><details open>
+      <li class="fiche" data-etat="faite"><details>
         <summary><span class="id">HAB1</span><span class="titre">Écrire page --forme, testé</span>
-        <span class="etat">en cours</span></summary>
-        <span class="note">L'option page --forme : la forme seule, coûts recopiés ; testée, mutant compris.</span>
+        <span class="etat">faite</span></summary>
+        <span class="note">Test tester_forme : après --forme, total 11 262 523, hors 5 000 et coûts 1 111 / 2 222 identiques ; vlp.css lié, fiches repliées, bilan en haut, vigile PAGE SAINE ; --creer refusé ; mutant --forme ignoré → le test du total tombe ; pyright 0 erreur.</span>
+        <span class="cout mono">≈4,3M (4 269 679) · 30 tours · 2,02 $</span>
       </details></li>
-      <li class="fiche"><details>
+      <li class="fiche" data-etat="encours"><details open>
         <summary><span class="id">HAB2</span><span class="titre">Écrire vlp.py repeindre &lt;projet&gt;</span>
-        <span class="etat">à faire</span></summary>
+        <span class="etat">en cours</span></summary>
         <span class="note">vlp.py repeindre : toutes les pages closes d'un projet, vigile sur chacune ; dépend de HAB1.</span>
       </details></li>
       <li class="fiche"><details>
@@ -68,6 +69,8 @@
         <span class="note">Cairn repeint et remis en ligne, rien de son contenu dans le kit ; dépend de HAB4.</span>
       </details></li>
     </ul>
+    <p class="mono cout-hors">Hors fiches : ≈4,3M (4 304 446) · 32 tours · 2,66 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈8,6M (8 574 125) · 62 tours · 4,68 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

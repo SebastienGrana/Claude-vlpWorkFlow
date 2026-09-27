@@ -97,7 +97,9 @@ Sous-commandes :
   et le bilan.
   `--note <fiche> <texte>`, `--journal <texte>` (répétables) ; `--creer
   --projet P --titre T --resultat R` part du gabarit ; `--verifier` n'écrit
-  rien et sort 1 si états ou avancement diffèrent du fichier.
+  rien et sort 1 si états ou avancement diffèrent du fichier. `--forme` : la forme seule
+  (style lié, fiches et journal repliés, bilan en haut), rien ne se recompte — coûts des
+  fiches, total et hors fiches recopiés de l'ancienne page ; refuse `--creer`.
 - `hook` — le hook `PostToolUse` (`Write|Edit`) du plugin : lit sur stdin le
   JSON du hook, prend `tool_input.file_path` (relatif : contre `cwd`). Sort 0
   muet si ce n'est pas un fichier de fiches — JSON illisible, chemin absent, pas
@@ -2238,9 +2240,10 @@ def bilan_en_haut(html):
     return reste[:apres] + "\n" + bloc + reste[apres:]
 
 
-def regenerer(html, fichier, parts, date, gardes):
+def regenerer(html, fichier, parts, date, gardes, forme=False):
     """`parts` (`lire_abri`/`abri_de_page`) fait foi pour résultat, notes et journal — recopiés
-    en entier dans la page, plus jamais lus dans son ancienne version (chantier ABR)."""
+    en entier dans la page, plus jamais lus dans son ancienne version (chantier ABR). `forme` :
+    rien ne se recompte — coûts des fiches, total et hors fiches recopiés de l'ancienne page (HAB)."""
     html = migrer_style(html)
     lignes = lignes_de(fichier)
     fiches_ = fiches_du_fichier(lignes)
@@ -2249,12 +2252,19 @@ def regenerer(html, fichier, parts, date, gardes):
     anciens = lis_page(html)
     etat = etats(fiches_, anciens)
     ancien_total = re.search(r'<p class="mono cout-total">(.*?)</p>', html, re.S)
-    clos = any(l.startswith("**CLOS**") for l in lignes)
-    heures = heures_commits(fichier, [f[0] for f in fiches_], clos=clos) if any(f[3] for f in fiches_) else None
-    # Un clos s'arrête à son appel clore, comme cout : un chantier, un seul chiffre (dette PLI).
-    fin = heure_clore(fichier, lignes) if clos and heures else None
-    cout, total, hors = couts(fiches_, anciens, ancien_total and ancien_total.group(1), gardes, heures,
-                              sessions_entete(lignes), fin)
+    vieux = {k: m.group(1) for k in ("hors", "total")
+             for m in [re.search(r'<p class="mono cout-%s">(.*?)</p>' % k, html, re.S)] if m}
+    if forme:
+        cout = {i: v[2] for i, v in anciens.items() if v[2] is not None}
+        total = triplet(ancien_total.group(1)) if ancien_total else None
+        hors = triplet(vieux.get("hors"))
+    else:
+        clos = any(l.startswith("**CLOS**") for l in lignes)
+        heures = heures_commits(fichier, [f[0] for f in fiches_], clos=clos) if any(f[3] for f in fiches_) else None
+        # Un clos s'arrête à son appel clore, comme cout : un chantier, un seul chiffre (dette PLI).
+        fin = heure_clore(fichier, lignes) if clos and heures else None
+        cout, total, hors = couts(fiches_, anciens, ancien_total and ancien_total.group(1), gardes, heures,
+                                  sessions_entete(lignes), fin)
     html, n = re.subn(r'(</h1>\s*<p>).*?(</p>)', lambda m: m.group(1) + esc(parts["resultat"]) + m.group(2),
                       html, count=1, flags=re.S)
     if not n:
@@ -2281,10 +2291,13 @@ def regenerer(html, fichier, parts, date, gardes):
     html = re.sub(r'\n[ \t]*<p class="mono cout-(?:total|hors)">.*?</p>', "", html, flags=re.S)
     bloc = "\n" + "\n".join(items)
     bloc_total = ""
-    if hors:
-        bloc_total += '\n    <p class="mono cout-hors">Hors fiches : %s</p>' % ligne_cout(*hors)
-    if total:
-        bloc_total += '\n    <p class="mono cout-total">%s : %s</p>' % (prefixe, ligne_cout(*total))
+    if forme:
+        bloc_total = "".join('\n    <p class="mono cout-%s">%s</p>' % (k, vieux[k]) for k in ("hors", "total") if k in vieux)
+    else:
+        if hors:
+            bloc_total += '\n    <p class="mono cout-hors">Hors fiches : %s</p>' % ligne_cout(*hors)
+        if total:
+            bloc_total += '\n    <p class="mono cout-total">%s : %s</p>' % (prefixe, ligne_cout(*total))
     html, n = UL_FICHES.subn(lambda m: m.group(1) + bloc + m.group(3) + bloc_total, html, count=1)
     if not n:
         raise ValueError("page : liste des fiches introuvable")
@@ -2463,6 +2476,9 @@ def page_du_fichier(fichier):
 
 def cmd_page(a, sortie):
     date = a.date or __import__("datetime").date.today().isoformat()
+    if a.forme and a.creer:
+        sortie.write("GARDE: --forme ne va pas avec --creer — une page neuve n'a aucun chiffre à garder\n")
+        return 1
     if a.creer:
         if os.path.exists(a.page):
             sortie.write("GARDE: la page existe déjà : %s — --creer n'écrase rien\n" % a.page)
@@ -2493,7 +2509,7 @@ def cmd_page(a, sortie):
     ecrire_abri(md, parts)
     gardes = []
     try:
-        html, fiches_, etat, total, hors = regenerer(html, a.fichier, parts, date, gardes)
+        html, fiches_, etat, total, hors = regenerer(html, a.fichier, parts, date, gardes, forme=a.forme)
     except ValueError as e:
         sortie.write("GARDE: %s\n" % e)
         return 1
@@ -2507,7 +2523,7 @@ def cmd_page(a, sortie):
     for g in gardes:
         sortie.write(g + "\n")
     sortie.write("PAGE %s · %s · %d lignes · total %s%s\n"
-                 % (a.page, comptage(fiches_, etat), n, ligne_cout(*total) if total else "non mesuré",
+                 % (a.page, comptage(fiches_, etat), n, ligne_cout(*total) if total else "gardé" if a.forme else "non mesuré",
                     ", dont hors fiches %s" % ligne_cout(*hors) if hors else ""))
     css = recopier_vlp_css(os.path.dirname(os.path.abspath(a.page)))
     sortie.write("CSS %s\n" % css)
@@ -4084,6 +4100,7 @@ def main(argv, sortie=None, entree=None, erreur=None):
     pg.add_argument("--titre")
     pg.add_argument("--resultat")
     pg.add_argument("--verifier", action="store_true")
+    pg.add_argument("--forme", action="store_true")
     pg.add_argument("--date")
     sous.add_parser("hook")
     sous.add_parser("filet")

@@ -63,8 +63,9 @@ se redécoupent en lots selon la mesure de `HAB4`.
 ---
 
 <!-- FICHE:HAB1 -->
-## HAB1 [ ] — Écrire `page --forme`, testé
+## HAB1 [x] — Écrire `page --forme`, testé
 
+**Session** : 5a12485e-8f92-4566-8eac-a08b630de356
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` — et rien d'autre.
 
