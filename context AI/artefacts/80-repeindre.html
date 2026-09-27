@@ -20,9 +20,9 @@
     <p>Les 90 pages de chantiers clos (kit et Cairn) au format PLI, chiffres de coût inchangés, remises en ligne par lots ; les pages sans lien listées.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">6 fiches · 2 faites · en cours : HAB3</p>
+    <p class="mono" style="margin-top:.5rem">6 fiches · 3 faites · en cours : HAB4</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -47,16 +47,17 @@
         <summary><span class="id">HAB2</span><span class="titre">Écrire vlp.py repeindre &lt;projet&gt;</span>
         <span class="etat">faite</span></summary>
         <span class="note">Test tester_repeindre : 3 clos (2 anciens, 1 au format) → 2 repeintes · 0 avec lien · 2 sans lien · 0 refusées · 1 déjà ; relancé 0 repeintes ; --a-blanc 0 octet changé ; mutant sans filtre → tombe ; parcours commun clos_du_projet avec recompter. À blanc : kit 64 repeintes, 3 déjà, 1 sans page ; Cairn 17, 2 déjà. pyright 0.</span>
-        <span class="cout mono">≈2,2M (2 168 264) · 15 tours · 0,91 $</span>
+        <span class="cout mono">≈2,3M (2 322 787) · 16 tours · 0,96 $</span>
+      </details></li>
+      <li class="fiche" data-etat="faite"><details>
+        <summary><span class="id">HAB3</span><span class="titre">Retrouver les liens en ligne</span>
+        <span class="etat">faite</span></summary>
+        <span class="note">Test tester_liens : lien écrit/relit l'URL, reste du .md intact, URL inattendue refusée, liens pose A et signale un DOUBLON ; mutant texte_abri sans la section → tombe ; pyright 0. Réel : liens kit 67 écrits · 1 sans page ; Cairn 19 écrits (17 suivis par Git, 2 ignorés). repeindre --a-blanc : kit 64 avec lien · 0 sans lien · 3 déjà · 1 sans page ; Cairn 17 avec lien · 0 sans lien · 2 déjà. 0 doublon, Artifact list inutile.</span>
+        <span class="cout mono">≈2,7M (2 672 598) · 16 tours · 0,95 $</span>
       </details></li>
       <li class="fiche" data-etat="encours"><details open>
-        <summary><span class="id">HAB3</span><span class="titre">Retrouver les liens en ligne</span>
-        <span class="etat">en cours</span></summary>
-        <span class="note">Le lien en ligne rangé dans le .md de chaque page, retrouvé par la liste des artefacts et Git ; dépend de HAB2.</span>
-      </details></li>
-      <li class="fiche"><details>
         <summary><span class="id">HAB4</span><span class="titre">Kit : repeindre, et un premier lot en ligne mesuré</span>
-        <span class="etat">à faire</span></summary>
+        <span class="etat">en cours</span></summary>
         <span class="note">Le kit repeint, un 1er lot de 15 en ligne, coût mesuré ; critère visuel ; dépend de HAB3.</span>
       </details></li>
       <li class="fiche"><details>
@@ -71,7 +72,7 @@
       </details></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈4,3M (4 304 446) · 32 tours · 2,66 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈11,0M (10 997 458) · 79 tours · 5,67 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈13,8M (13 824 579) · 96 tours · 6,67 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

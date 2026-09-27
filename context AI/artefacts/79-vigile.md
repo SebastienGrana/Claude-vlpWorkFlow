@@ -1,4 +1,6 @@
 # Une page vide ne part plus en ligne — notes et journal
+## Lien
+https://claude.ai/artifact/Butt5KKLqJhi7y4ghfTppY
 ## Résultat
 Une page vide ou cassée est refusée avant de partir en ligne, avec la raison ; une page saine passe sans bruit.
 ## Notes

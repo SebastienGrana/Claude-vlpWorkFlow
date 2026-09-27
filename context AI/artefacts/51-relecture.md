@@ -1,4 +1,6 @@
 # Relire chaque fiche avant son commit — notes et journal
+## Lien
+https://claude.ai/artifact/Nf6Dys9MCWm1qZ2yrKNRWL
 ## Résultat
 Chaque FAITE de /vlp:enchainer passe par un relecteur neuf (opus) avant son commit ; prouvé sur quatre commits de la nuit — le corrigé sans bug accepté, les trois autres refusés pour leur vrai défaut — coût d'une relecture mesuré.
 ## Notes

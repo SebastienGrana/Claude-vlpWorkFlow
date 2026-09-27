@@ -1,4 +1,6 @@
 # La page de chantier plus courte et lisible — notes et journal
+## Lien
+https://claude.ai/artifact/NBVEAGyGVRzo61YwAMQePr
 ## Résultat
 La page d'un chantier se replie : fiches finies et vieux journal repliés, bilan en haut une fois clos, rien de coupé ; son CSS vit dans un vlp.css joint. Mesuré avant/après en écrans et en tokens de relecture.
 ## Notes

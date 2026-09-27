@@ -112,8 +112,9 @@ format → le compte `déjà` tombe.
 ---
 
 <!-- FICHE:HAB3 -->
-## HAB3 [ ] — Retrouver les liens en ligne
+## HAB3 [x] — Retrouver les liens en ligne
 
+**Session** : 5a12485e-8f92-4566-8eac-a08b630de356
 **Dépend de** : `HAB2`.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py`, les `.md` de `context AI/artefacts/`
 du kit et de `../Cairn-VlpLib` — et rien d'autre.

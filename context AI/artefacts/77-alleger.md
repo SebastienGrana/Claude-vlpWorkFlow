@@ -1,4 +1,6 @@
 # Essai : alléger la republication — notes et journal
+## Lien
+https://claude.ai/artifact/Hh3UQvDSrGa7R4zMEeZjBM
 ## Résultat
 Pour chaque piste — CSS en fichier joint, données en base — le coût d'une republication mesuré avant et après, et une décision écrite dans ARTEFACTS.md : adoptée ou non.
 ## Notes

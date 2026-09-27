@@ -263,6 +263,11 @@ Sous-commandes :
   `REPEINTE <page> · lien <url>` ou `· sans lien` (section `## Lien` de son `.md`), une
   `GARDE:` si refusée — l'originale ne bouge pas. Puis `REPEINDRE <n> repeintes · <n> avec
   lien · <n> sans lien · <n> refusées · <n> déjà · <n> sans page`. `--a-blanc` n'écrit rien.
+- `lien <page.html> <url>` — écrit l'URL en ligne dans la section `## Lien` du `.md` de la
+  page (créé depuis la page s'il manque) : `LIEN écrit|déjà · <md> · <url>`.
+- `liens <projet>` — pose le lien de chaque ligne de `ZONE:clos` dans le `.md` de sa page
+  (parcours de `recompter`) ; deux liens pour une page : `DOUBLON`, rien d'écrit. Puis
+  `LIENS <n> écrits · <n> déjà · <n> doublons · <n> sans lien · <n> sans page`.
 - `recompter <projet>` — n'écrit rien (chantier REC). Pour chaque ligne de `ZONE:clos` de la
   feuille de route, le fichier de fiches que l'index nomme au même préfixe (`JUG1..JUG3` pour
   `JUG1–JUG3`), et une ligne `<préfixe> inscrit <n> · recompté <n|gardé> · écart <±n> ·
@@ -2369,7 +2374,7 @@ def verifier_page(html, fichier, sortie):
 
 # --- abri : le .md d'une page, source de ses notes et de son journal (chantier ABR) ---
 
-ABRI_SECTIONS = ("Résultat", "Notes", "Journal", "Bilan")
+ABRI_SECTIONS = ("Lien", "Résultat", "Notes", "Journal", "Bilan")
 
 
 def chemin_abri(page):
@@ -2382,8 +2387,9 @@ def une_ligne(texte):
 
 
 def lire_abri(chemin):
-    """{titre, resultat, notes {id: texte}, journal [(date, texte)], bilan [texte]}."""
-    parts = {"titre": "", "resultat": "", "notes": {}, "journal": [], "bilan": []}
+    """{titre, lien, resultat, notes {id: texte}, journal [(date, texte)], bilan [texte]} ; `lien`,
+    l'URL en ligne de la page (chantier HAB), vaut "" sans section `## Lien`."""
+    parts = {"titre": "", "lien": "", "resultat": "", "notes": {}, "journal": [], "bilan": []}
     section = None
     for l in lignes_de(chemin):
         if l.startswith("# ") and not parts["titre"]:
@@ -2392,6 +2398,8 @@ def lire_abri(chemin):
             section = l[3:].strip()
         elif not l.strip():
             continue
+        elif section == "Lien":
+            parts["lien"] = parts["lien"] or l.strip()
         elif section == "Résultat":
             parts["resultat"] = une_ligne(parts["resultat"] + " " + l)
         elif section in ("Notes", "Journal") and l.startswith("- ") and " : " in l:
@@ -2406,8 +2414,12 @@ def lire_abri(chemin):
 
 
 def texte_abri(parts):
-    """Le `.md`, au format du socle : quatre sections, une entrée par ligne, texte brut."""
-    lignes = ["# %s — notes et journal" % une_ligne(parts["titre"]), "## Résultat"]
+    """Le `.md`, au format du socle : quatre sections, une entrée par ligne, texte brut — plus
+    `## Lien` en tête quand la page a une URL en ligne (chantier HAB)."""
+    lignes = ["# %s — notes et journal" % une_ligne(parts["titre"])]
+    if parts.get("lien"):
+        lignes += ["## Lien", parts["lien"]]
+    lignes.append("## Résultat")
     if parts["resultat"]:
         lignes.append(une_ligne(parts["resultat"]))
     lignes.append("## Notes")
@@ -3028,6 +3040,58 @@ def cmd_repeindre(projet, sortie, a_blanc=False):
         sortie.write("REPEINTE %s · %s\n" % (page, "lien %s" % lien if lien else "sans lien"))
     sortie.write("REPEINDRE %s%s\n" % (" · ".join("%d %s" % (v, k) for k, v in n.items()),
                                         " · à blanc, rien d'écrit" if a_blanc else ""))
+    return 0
+
+
+def poser_lien(page, url):
+    """Écrit `url` dans la section `## Lien` du `.md` de `page` (créé depuis la page s'il manque) ;
+    rend "écrit" ou "déjà" (chantier HAB)."""
+    md = chemin_abri(page)
+    parts = lire_abri(md) if os.path.exists(md) else abri_de_page(lire(page))
+    if parts.get("lien") == url and os.path.exists(md):
+        return "déjà"
+    parts["lien"] = url
+    ecrire_abri(md, parts)
+    return "écrit"
+
+
+def cmd_lien(page, url, sortie):
+    if not os.path.isfile(page):
+        sortie.write("GARDE: page introuvable : %s\n" % page)
+        return 1
+    if not re.match(r"https://claude\.ai/\S+$", url):
+        sortie.write("GARDE: lien inattendu : %s — une URL https://claude.ai/…\n" % url)
+        return 1
+    sortie.write("LIEN %s · %s · %s\n" % (poser_lien(page, url), chemin_abri(page), url))
+    return 0
+
+
+def cmd_liens(projet, sortie):
+    """Le lien de chaque ligne de `ZONE:clos` posé dans le `.md` de sa page (parcours de
+    `recompter`). Deux lignes, deux liens pour une page : rien d'écrit, `DOUBLON`."""
+    parcours = clos_du_projet(projet, sortie)
+    if parcours is None:
+        return 1
+    par_page, n = {}, {"écrits": 0, "déjà": 0, "doublons": 0, "sans lien": 0, "sans page": 0}
+    for r, prefixe, _, chemin in parcours[3]:
+        page = page_du_fichier(chemin) if chemin else None
+        if not page or not os.path.isfile(page):
+            n["sans page"] += 1
+            continue
+        m = re.search(r'<a href="(https://claude\.ai/[^"]+)"', r)
+        if not m:
+            n["sans lien"] += 1
+            sortie.write("SANS LIEN %s · %s\n" % (prefixe, page))
+            continue
+        par_page.setdefault(page, set()).add(m.group(1))
+    for page, urls in par_page.items():
+        if len(urls) > 1:
+            n["doublons"] += 1
+            sortie.write("DOUBLON %s · %s\n" % (page, " · ".join(sorted(urls))))
+            continue
+        fait = poser_lien(page, urls.pop())
+        n["écrits" if fait == "écrit" else "déjà"] += 1
+    sortie.write("LIENS %s\n" % " · ".join("%d %s" % (v, k) for k, v in n.items()))
     return 0
 
 
@@ -4230,6 +4294,11 @@ def main(argv, sortie=None, entree=None, erreur=None):
     rp = sous.add_parser("repeindre")
     rp.add_argument("projet")
     rp.add_argument("--a-blanc", action="store_true")
+    ln = sous.add_parser("lien")
+    ln.add_argument("page")
+    ln.add_argument("url")
+    lns = sous.add_parser("liens")
+    lns.add_argument("projet")
     rc =sous.add_parser("recompter")
     rc.add_argument("projet")
     rc.add_argument("--ecrire", action="store_true")
@@ -4306,6 +4375,10 @@ def repartir(a, sortie, entree, erreur):
         return cmd_vigile(a.fichier, sortie) if a.fichier else une_fois(entree, cmd_vigile_hook, sortie)
     if a.cmd == "repeindre":
         return cmd_repeindre(a.projet, sortie, a.a_blanc)
+    if a.cmd == "lien":
+        return cmd_lien(a.page, a.url, sortie)
+    if a.cmd == "liens":
+        return cmd_liens(a.projet, sortie)
     if a.cmd == "recompter":
         return cmd_recompter(a.projet, sortie, a.ecrire, a.essais, a.a_clore)
     if a.cmd == "bac":

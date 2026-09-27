@@ -1,4 +1,6 @@
 # Mettre notes et journal à l'abri dans un .md — notes et journal
+## Lien
+https://claude.ai/artifact/S4tQPZzjMMCL2iQAq5TPTV
 ## Résultat
 Résultat, notes, journal et bilan d'un chantier vivent dans un .md à côté de sa page ; la page les recopie, et les pages de Cairn ont leur .md.
 ## Notes

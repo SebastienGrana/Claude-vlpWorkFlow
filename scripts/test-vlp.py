@@ -3625,25 +3625,33 @@ def tester_forme():
 tester_forme()
 
 
+def projet_clos(dossier, liens=()):
+    """Un projet à trois clos A, B, C : A et B à l'ancien format, C déjà lié à vlp.css ; `liens` :
+    (plage, url) de lignes de ZONE:clos à lien, en plus d'une ligne sans lien par clos."""
+    seule = ("# Chantier %s\n\n**CLOS** le 2026-01-06.\n\n## Le socle commun\n\n## L'ordre des fiches\n\n"
+             "<!-- FICHE:%s1 -->\n## %s1 [x] — Seule\n**Critère de fin**\n<!-- /FICHE -->\n")
+    ecrire(os.path.join(dossier, "CHANTIER.md"), "# Chantier courant\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n")
+    ecrire(os.path.join(dossier, "ctx", "00-INDEX.md"), "| Fichier | Lire quand |\n|---|---|\n"
+           + "".join("| `%s.md` | chantier **clos** « %s », `%s1..%s1` |\n" % (x.lower(), x, x, x) for x in "ABC"))
+    for x in "ABC":
+        fiches = os.path.join(dossier, "ctx", "%s.md" % x.lower())
+        page = os.path.join(dossier, "ctx", "artefacts", "%s.html" % x.lower())
+        ecrire(fiches, seule % (x, x, x))
+        appel(["page", fiches, page, "--creer", "--projet", "P", "--titre", x, "--resultat", "R"])
+        if x != "C":
+            ecrire(page, avec_style_inline(lire(page)))
+    rangs = [ligne_close(mod.arrondi(1500)).replace("Q1–Q2", "%s1" % x) for x in "ABC" if "%s1" % x not in dict(liens)]
+    rangs += [ligne_close(mod.arrondi(1500)).replace("Q1–Q2", pl).replace("<td>Test ", '<td><a href="%s">Test</a> ' % u)
+              for pl, u in liens]
+    ecrire(os.path.join(dossier, "ctx", "artefacts", "feuille-de-route.html"),
+           '    <!-- ZONE:clos — test -->\n      <table>\n        <tbody>\n' + "".join(rangs)
+           + "        </tbody>\n      </table>\n")
+
+
 def tester_repeindre():
     """repeindre (chantier HAB2) : les pages closes d'un projet, repeintes par page --forme."""
     with tempfile.TemporaryDirectory() as trp:
-        seule = ("# Chantier %s\n\n**CLOS** le 2026-01-06.\n\n## Le socle commun\n\n## L'ordre des fiches\n\n"
-                 "<!-- FICHE:%s1 -->\n## %s1 [x] — Seule\n**Critère de fin**\n<!-- /FICHE -->\n")
-        ecrire(os.path.join(trp, "CHANTIER.md"), "# Chantier courant\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n")
-        ecrire(os.path.join(trp, "ctx", "00-INDEX.md"), "| Fichier | Lire quand |\n|---|---|\n"
-               + "".join("| `%s.md` | chantier **clos** « %s », `%s1..%s1` |\n" % (x.lower(), x, x, x) for x in "ABC"))
-        for x in "ABC":
-            fiches = os.path.join(trp, "ctx", "%s.md" % x.lower())
-            page = os.path.join(trp, "ctx", "artefacts", "%s.html" % x.lower())
-            ecrire(fiches, seule % (x, x, x))
-            appel(["page", fiches, page, "--creer", "--projet", "P", "--titre", x, "--resultat", "R"])
-            if x != "C":   # A et B à l'ancien format, C déjà lié à vlp.css
-                ecrire(page, avec_style_inline(lire(page)))
-        ecrire(os.path.join(trp, "ctx", "artefacts", "feuille-de-route.html"),
-               '    <!-- ZONE:clos — test -->\n      <table>\n        <tbody>\n'
-               + "".join(ligne_close(mod.arrondi(1500)).replace("Q1–Q2", "%s1" % x) for x in "ABC")
-               + "        </tbody>\n      </table>\n")
+        projet_clos(trp)
         disque = lambda: {os.path.relpath(os.path.join(r, n), trp): lire(os.path.join(r, n))
                           for r, _, ns in os.walk(trp) for n in ns}
         avant = disque()
@@ -3665,5 +3673,38 @@ def tester_repeindre():
 
 
 tester_repeindre()
+
+
+def tester_liens():
+    """lien et liens (chantier HAB3) : l'URL en ligne d'une page, dans la section `## Lien` de son .md."""
+    ua, ub, ub2 = ("https://claude.ai/artifact/%s" % k for k in ("aaa", "bbb", "bbb2"))
+    with tempfile.TemporaryDirectory() as tli:
+        projet_clos(tli, [("A1", ua), ("B1", ub), ("B1", ub2)])
+        art = os.path.join(tli, "ctx", "artefacts")
+        md_c = os.path.join(art, "c.md")
+        avant = mod.lire_abri(md_c)
+        code, s = appel(["lien", os.path.join(art, "c.html"), "https://claude.ai/artifact/ccc"])
+        apres = mod.lire_abri(md_c)
+        verifier("HAB3 : lien écrit l'URL, lire_abri la relit, le reste intact"
+                 " — mutant : texte_abri oublie la section",
+                 code == 0 and s.startswith("LIEN écrit") and apres["lien"] == "https://claude.ai/artifact/ccc"
+                 and dict(apres, lien="") == avant and "## Lien\nhttps://claude.ai/artifact/ccc\n" in lire(md_c), (s, apres, avant))
+        code, s = appel(["lien", os.path.join(art, "c.html"), "https://claude.ai/artifact/ccc"])
+        verifier("HAB3 : lien relancé, déjà", code == 0 and s.startswith("LIEN déjà"), s)
+        code, s = appel(["lien", os.path.join(art, "c.html"), "pas-une-url"])
+        verifier("HAB3 : lien refuse une URL inattendue", code == 1 and s.startswith("GARDE: lien inattendu"), s)
+        code, s = appel(["liens", tli])
+        verifier("HAB3 : liens pose A, signale B en doublon, C sans lien dans la feuille",
+                 code == 0 and s.splitlines()[-1] == "LIENS 1 écrits · 0 déjà · 1 doublons · 1 sans lien · 0 sans page"
+                 and "DOUBLON %s · %s · %s" % (os.path.join(art, "b.html"), ub, ub2) in s
+                 and mod.lire_abri(os.path.join(art, "a.md"))["lien"] == ua
+                 and mod.lire_abri(os.path.join(art, "b.md"))["lien"] == "", s)
+        code, s = appel(["repeindre", tli, "--a-blanc"])
+        verifier("HAB3 : repeindre lit le lien du .md", code == 0
+                 and "REPEINTE %s · lien %s" % (os.path.join(art, "a.html"), ua) in s
+                 and "2 repeintes · 1 avec lien · 1 sans lien" in s, s)
+
+
+tester_liens()
 
 print("OK")
