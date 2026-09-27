@@ -23,18 +23,17 @@
     <!-- ZONE:encours — remplacé à chaque ouverture, remis à « aucun » à chaque clôture.
          /tache n'y touche pas : l'avancement fiche par fiche est sur la page du chantier. -->
     <div class="encours">
-      <div class="titre">La feuille de route plus courte et lisible <span class="badge" data-etat="cours">en cours</span></div>
-      <div>Fiches <span class="mono">FEU1–FEU8</span> — <a href="https://claude.ai/artifact/K6uFCjGhdezQtwYyKdQqaV">la page du chantier</a></div>
+      <div class="titre">Aucun chantier ouvert</div>
+      <div>Lancer <span class="mono">/vlp:chantier</span> pour en ouvrir un.</div>
     </div>
   </section>
 
   <section id="todo">
     <h2>Les chantiers possibles, dans l'ordre</h2>
-    <p class="mono resume-todo" style="margin:0;color:var(--doux);font-size:.9rem">7 chantiers possibles · 2 petits, 1 moyen, 2 gros, 2 pas estimés · 1 bloqué · ≈17 fiches estimées</p>
+    <p class="mono resume-todo" style="margin:0;color:var(--doux);font-size:.9rem">6 chantiers possibles · 2 petits, 2 gros, 2 pas estimés · ≈13 fiches estimées</p>
     <!-- ZONE:todo — miroir de la TODO ordonnée du fichier d'état ; le fichier reste la vérité -->
     <ol class="todo">
-          <li class="carte-todo"><details><summary><span class="rang mono">29</span><span class="titre"><span class="mono">FEU</span> — La feuille de route plus courte et lisible <span class="badge" data-etat="cours">en cours</span></span><span class="meta mono">~4 fiches · dépend de : <span class="mono">VOI</span></span></summary><div class="detail">La TODO en cartes, le détail replié, un sommaire. Tranché le 2026-09-27 (rapport de nuit, Q8) : la feuille garde tout le détail de la TODO, replié. Depuis <span class="mono">ALE</span> : elle lit le <span class="mono">vlp.css</span> que <span class="mono">PLI</span> aura posé, sans le recopier.</div></details></li>
-          <li class="carte-todo"><details><summary><span class="rang mono">30</span><span class="titre"><span class="mono">BTN</span> — Des boutons, en dernier</span><span class="meta mono">~4 à 6 fiches · dépend de : <span class="mono">PLI</span>, <span class="mono">FEU</span></span></summary><div class="detail">Commenter une fiche, tout déplier, filtrer, copier la commande d'une fiche, un graphique des coûts. Optionnel. Depuis <span class="mono">ALE</span> : leurs styles vont dans <span class="mono">vlp.css</span>, et rien ne lit la base <span class="mono">db</span>, adoptée pour un chantier plus tard.</div></details></li>
+          <li class="carte-todo"><details><summary><span class="rang mono">30</span><span class="titre"><span class="mono">BTN</span> — Des boutons, en dernier</span><span class="meta mono">~4 à 6 fiches · dépend de : <span class="mono">PLI</span></span></summary><div class="detail">Commenter une fiche, tout déplier, filtrer, copier la commande d'une fiche, un graphique des coûts. Optionnel. Depuis <span class="mono">ALE</span> : leurs styles vont dans <span class="mono">vlp.css</span>, et rien ne lit la base <span class="mono">db</span>, adoptée pour un chantier plus tard.</div></details></li>
           <li class="carte-todo"><details><summary><span class="rang mono">58</span><span class="titre"><span class="mono">PAR</span> — Deux chantiers en parallèle, s'ils ne se chevauchent pas</span><span class="meta mono">🟡 pas estimé · dépend de : —</span></summary><div class="detail">Tout le kit suppose un seul chantier à la fois : <span class="mono">CHANTIER.md</span> s'intitule « Chantier courant » et ne porte qu'un <strong>fichier de fiches courant</strong> et qu'un <strong>artefact du chantier</strong> (<span class="mono">CHANTIER.md:1</span>, <span class="mono">:16</span>, <span class="mono">:18</span>) ; <span class="mono">/vlp:tache</span> et <span class="mono">/vlp:enchainer</span> jouent « une fiche du chantier courant » ; <span class="mono">vlp.py ouvrir</span> et <span class="mono">clore</span> écrivent ces lignes uniques. Deux chantiers dont les fichiers touchés sont disjoints pourraient tourner en même temps, dans deux sessions. 🟡 À trancher au cadrage : comment <span class="mono">CHANTIER.md</span> porte deux chantiers courants sans devenir ambigu (il est lu <strong>en entier</strong> par <span class="mono">/vlp:chantier</span> et <span class="mono">/vlp:tache</span>) ; comment une commande sait duquel il s'agit (argument, ou lettre de fiche) ; qui vérifie le non-chevauchement, et sur quoi — les fichiers que les fiches nomment, ou une liste déclarée à l'ouverture ; un seul dépôt ou deux worktrees, et l'ordre des commits ; ce que deviennent la page publiée et le coût, que <span class="mono">cout</span> coupe aux commits de fiche. Ajoutée à la demande de l'utilisateur ; rang pas encore fixé, d'où la fin de table.</div></details></li>
           <li class="carte-todo"><details><summary><span class="rang mono">72</span><span class="titre"><span class="mono">NUI</span> — <span class="mono">/vlp:chantier nuit</span> : les questions le soir, les chantiers la nuit</span><span class="meta mono">~6 fiches, plus une nuit d'essai · dépend de : —</span></summary><div class="detail">Demandé par l'utilisateur le 2026-09-26. Une séance de nuit enchaîne plusieurs chantiers sans humain ; le kit n'en fait aujourd'hui qu'un à la fois. Le soir, <span class="mono">/vlp:chantier nuit</span> trie la TODO — un script d'abord (🟡, dépendance non close), puis le modèle relit ce qui reste (décision cachée sans 🟡, comme <span class="mono">ENR</span>) — et rassemble toutes les questions de cadrage dans une page à cartes, vulgarisées, avec un bouton « copier » : l'utilisateur y répond d'un coup. Un 🟡 n'écarte plus un chantier s'il se tranche le soir ; restent écartés ce qui se juge à l'œil (<span class="mono">(visuel)</span>) et ce qui demande sa main (push). La borne de la nuit — budget en $ ou nombre de chantiers — se choisit au lancement. La nuit, les restes d'une clôture n'entrent pas dans la TODO : ils attendent les deux oui du matin. Tranché avec lui le 2026-09-26 : le nom, le tri en deux temps, la page, la borne au lancement. Estimé en séance, sans mesure — les estimations sous-estiment (<span class="mono">EST</span> 1 → 3, <span class="mono">CPT</span> 2 → 4). Ajoutée à la demande de l'utilisateur ; rang pas encore fixé, d'où la fin de table. Ajouté le 2026-09-26 : <span class="mono">/vlp:chantier nuit clear</span> — une session neuve pour chaque fiche <strong>et</strong> chaque clôture, comme <span class="mono">/clear</span> entre deux ; la brique existe pour les fiches (<span class="mono">scripts/boucle.py</span>, option <span class="mono">clear</span> de <span class="mono">/vlp:enchainer</span>, un essai réel sur le bac : fiche cochée), reste à l'étendre à « ouvrir → jouer → clore → chantier suivant ». Tranché avec lui le 2026-09-26 : la nuit, le découpage en fiches se fait seul, au plus logique et au plus sûr pour la qualité ; un chantier dont le découpage ne se tranche pas sans risque se découpe le soir, et l'utilisateur le valide.</div></details></li>
           <li class="carte-todo"><details><summary><span class="rang mono">73</span><span class="titre"><span class="mono">BDD</span> — Le journal des pages en base <span class="mono">db</span></span><span class="meta mono">🟡 pas estimé · dépend de : <span class="mono">PLI</span></span></summary><div class="detail">Décidé par <span class="mono">ALE</span> (<span class="mono">ARTEFACTS.md</span>, « Où vivent le CSS et les données ») : adoptée pour plus tard. Le journal d'une page de chantier vient d'une collection <span class="mono">db</span> ; <span class="mono">vlp.py</span> écrit un JSON, <span class="mono">ArtifactData</span> l'envoie sans relire la page (écart 630 contre 3286, aucun accord demandé). Le <span class="mono">.md</span> reste la source. Coût connu : rien en local, pas de lien public, un script dans la page. Ajoutée à la demande de l'utilisateur (deux oui, 2026-09-27).</div></details></li>
@@ -47,13 +46,19 @@
     <h2>Chantiers clos — ils ne se rejouent pas</h2>
     <!-- ZONE:clos — une ligne ajoutée à chaque clôture, la plus récente en haut -->
     <details class="clos">
-      <summary><span class="resume-clos">75 chantiers clos · ≈1145,1M (1 145 058 902) tokens · ≈959 $</span></summary>
+      <summary><span class="resume-clos">76 chantiers clos · ≈1209,5M (1 209 526 939) tokens · ≈1012 $</span></summary>
     <div class="tableau">
       <table>
         <thead>
           <tr><th>Chantier</th><th>Fiches</th><th>Clos le</th><th>Tokens</th><th>Ce qu'il a livré</th></tr>
         </thead>
         <tbody>
+          <tr>
+            <td><a href="https://claude.ai/artifact/K6uFCjGhdezQtwYyKdQqaV">La feuille de route plus courte et lisible</a> <span class="badge" data-etat="clos">clos</span></td>
+            <td class="mono">FEU1–FEU8</td><td class="mono">2026-09-27</td>
+            <td class="mono">≈64,5M (64 468 037)</td>
+            <td>Feuilles du kit et de Cairn en cartes (TODO repliee, sommaire, detail des chantiers possibles) ; Cairn 3,15 ecrans fermee (etait 13,79) ; TODO ne defile plus a 375x812 ; page_vs_source rangs=entiers=16</td>
+          </tr>
           <tr>
             <td><a href="https://claude.ai/artifact/4fci5zHKJC6fQpyCBwgwZ3"><span class="mono">/vlp:check</span> lit le contrat</a> <span class="badge" data-etat="clos">clos</span></td>
             <td class="mono">CHK1–CHK2</td><td class="mono">2026-09-27</td>
@@ -534,7 +539,7 @@
           </tr>
         </tbody>
         <tfoot>
-          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈1145,1M (1 145 058 902)</strong></td><td class="mono">≈959 $</td></tr>
+          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈1209,5M (1 209 526 939)</strong></td><td class="mono">≈1012 $</td></tr>
         </tfoot>
       </table>
     </div>

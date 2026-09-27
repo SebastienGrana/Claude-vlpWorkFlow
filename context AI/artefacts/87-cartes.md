@@ -15,3 +15,6 @@ La feuille de route de Cairn, cartes fermées, tient en 5 écrans d'ordinateur a
 - 2026-09-27 : FEU7 et FEU8 ajoutées sur deux commentaires de l'utilisateur : un lien vers la feuille de route sur cette page ; le détail des chantiers possibles (petits ≤ 1 fiche, moyens 2 à 4, gros ≥ 5, pas estimés, bloqués, total). FEU6 attend FEU8.
 - 2026-09-27 : FEU2 : pyright refuse test-vlp.py si un test s'ajoute au niveau du module (Code is too complex to analyze) — un nouveau test va dans une fonction test_<nom>() appelée juste après.
 ## Bilan
+- Livré : Feuilles du kit et de Cairn en cartes (TODO repliee, sommaire, detail des chantiers possibles) ; Cairn 3,15 ecrans fermee (etait 13,79) ; TODO ne defile plus a 375x812 ; page_vs_source rangs=entiers=16
+- Surpris : Le premier essai de mesure de tokens a rate (0 tour) : mesure-tokens.py lit une heure sans decalage comme l'heure locale, l'heure UTC avait ete utilisee par erreur
+- Estimé : estimé 4 fiches ≈17 $ · cadré 8 · joué 8 fiches ≈54 $

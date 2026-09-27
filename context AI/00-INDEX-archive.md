@@ -79,3 +79,4 @@ QUAND LIRE : on relit un chantier clos ; l'index n'en garde qu'une ligne qui ren
 | `84-recompte.md` | on relit le socle du chantier ECA — **clos** « Comprendre les écarts du recompte avant de l'écrire », `ECA1..ECA3` |
 | `85-types.md` | on relit le socle du chantier TYP — **clos** « pyright sans erreur, gardé au commit », `TYP1..TYP1` |
 | `86-bulletin.md` | on relit le socle du chantier CHK — **clos** « /vlp:check lit le contrat », `CHK1..CHK2` |
+| `87-cartes.md` | on relit le socle du chantier FEU — **clos** « La feuille de route plus courte et lisible », `FEU1..FEU8` |
