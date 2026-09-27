@@ -39,7 +39,8 @@ Sous-commandes :
   `SESSIONS 0 — pas de total`, sort 0), coupées aux commits comme la page : `DÉCOUPE
   aux commits de fiche`, une ligne par fiche, `hors fiches`, `TOTAL (fiches + hors
   fiches)` — aucun tour gardé : `GARDE: découpe à zéro` ; un fichier clos s'arrête à son
-  dernier appel `vlp.py clore`, le chiffre que `clore` inscrit (`decouper`). Sans Git, sans commit qui
+  dernier appel `vlp.py clore` — lancé, pas cité dans un texte (`lance_clore`) —, le chiffre que
+  `clore` inscrit (`decouper`). Sans Git, sans commit qui
   nomme le préfixe, ou clos sans commit de fiche : `DÉCOUPE aucune — <raison>`, puis
   les tables des sessions entières. `--session` : `SESSION=<CLAUDE_CODE_SESSION_ID>`,
   puis (id non vide) la table de cette session seule, et celle de cette session plus
@@ -846,13 +847,28 @@ def cmd_cout(chemin, session, sortie, a_clore=False):
     return code
 
 
-APPEL_CLORE = re.compile(r"""vlp\.py["']?\s+clore\b""")
+# Un appel qui lance `clore` : en tête d'un segment (début, `;`, `&`, `|`, `(`, fin de ligne), après
+# d'éventuels `X=y` ou `$x =`, un interprète Python (`py`, `python`, `python3`, chemin, `.exe` et
+# guillemets permis), ses options, un chemin qui finit par `vlp.py`, puis `clore` (chantier ECA).
+APPEL_CLORE = re.compile(
+    r"""(?:^|[;&|(\n])[ \t]*(?:\w+=\S*[ \t]+)*(?:\$\w+[ \t]*=[ \t]*)?"""
+    r"""(?:"(?:[^"\n]*[/\\])?(?:py|python3?)(?:\.exe)?"|'(?:[^'\n]*[/\\])?(?:py|python3?)(?:\.exe)?'"""
+    r"""|(?:[^\s"';&|]*[/\\])?(?:py|python3?)(?:\.exe)?)(?:[ \t]+-(?:[XW][ \t]+)?\S+)*[ \t]+"""
+    r"""(?:"[^"\n]*vlp\.py"|'[^'\n]*vlp\.py'|[^\s"';&|]*vlp\.py)[ \t]+clore\b""", re.M)
+
+
+def lance_clore(commande):
+    """Vrai si la commande lance `vlp.py clore` (`APPEL_CLORE`), le corps des heredocs qui ne font
+    qu'écrire un fichier tu (`sans_heredoc`) : un texte qui cite l'appel — la ligne de bilan qu'un
+    `echo` ou un `cat <<EOF` écrit, un `git commit -m`, un `--resultat` — n'en est pas un (chantier ECA)."""
+    return bool(APPEL_CLORE.search(sans_heredoc(commande)))
 
 
 def heure_clore(chemin, lignes):
-    """L'heure, en secondes UTC, du dernier `tool_use` dont la commande appelle `vlp.py clore`,
-    dans les sessions du fichier et dans sa dernière plage hors fiches — celle que le commit de
-    clôture ferme ; None sans lui. Ce que `clore` a vu en inscrivant son chiffre (chantier APC)."""
+    """L'heure, en secondes UTC, du dernier `tool_use` dont la commande lance `vlp.py clore`
+    (`lance_clore`), dans les sessions du fichier et dans sa dernière plage hors fiches — celle
+    que le commit de clôture ferme ; None sans lui. Ce que `clore` a vu en inscrivant son chiffre
+    (chantier APC)."""
     fiches_ = fiches_du_fichier(lignes)
     heures = heures_commits(chemin, [f[0] for f in fiches_], [], any(l.startswith("**CLOS**") for l in lignes))
     trous = plages(fiches_, heures, [])[1] if heures else []
@@ -877,7 +893,7 @@ def heure_clore(chemin, lignes):
                 contenu = (d.get("message") or {}).get("content") if isinstance(d, dict) else None
                 appel = isinstance(contenu, list) and any(
                     isinstance(c, dict) and c.get("type") == "tool_use"
-                    and APPEL_CLORE.search(str((c.get("input") or {}).get("command", ""))) for c in contenu)
+                    and lance_clore(str((c.get("input") or {}).get("command", ""))) for c in contenu)
                 t = m.heure(d) if appel else None
                 if t is not None and debut < t <= fin:
                     vu = t if vu is None else max(vu, t)
@@ -1501,15 +1517,16 @@ def lire_max_turns(chemin):
 
 # Un appel qui écrit dans Git : `git [-C chemin | -c clé=val]… commit|add|reset`.
 ECRIT_GIT = re.compile(r"""\bgit(?:\.exe)?(?:\s+-[Cc]\s+(?:"[^"]*"|'[^']*'|\S+))*\s+(?:commit|add|reset)\b""")
-# Un heredoc `<<[-]MOT` (mot nu ou cité) : sa ligne d'ouverture, son corps (groupe 3), sa fin.
+# Un heredoc `<<[-]MOT` (mot nu ou cité) : sa ligne d'ouverture, dont la suite (groupe 3), son
+# corps (groupe 4), sa fin.
 HEREDOC = re.compile(r"<<-?[ \t]*(['\"]?)([A-Za-z_]\w*)\1([^\n]*)\n(.*?)\n[ \t]*\2[ \t]*$", re.S | re.M)
 STATUTS = ("FAITE", "RETOUR", "BLOQUÉE")
 
 
-def ecrit_git(commande):
-    """`ECRIT_GIT` sans le corps des heredocs qui ne font qu'écrire un fichier : reçus par
-    `cat` ou `tee`, hors `$(…)` et accents graves, sans `|` derrière — un heredoc reçu par
-    `py`, `bash`… s'exécute, il reste lu ; les chaînes citées aussi (`ssh '…'`) (chantier ECH)."""
+def sans_heredoc(commande):
+    """La commande, le corps des heredocs qui ne font qu'écrire un fichier tu : reçus par `cat`
+    ou `tee`, hors `$(…)` et accents graves, sans `|` derrière — un heredoc reçu par `py`,
+    `bash`… s'exécute, il reste lu ; les chaînes citées aussi (`ssh '…'`) (chantiers ECH, ECA)."""
     def taire(m):
         avant = commande[:m.start()]
         mots = [w for w in re.split(r"[;&|(\n`]", avant)[-1].split() if not re.match(r"\w+=", w)]
@@ -1518,7 +1535,13 @@ def ecrit_git(commande):
         if recoit not in ("cat", "tee") or dans_sous or "|" in m.group(3):
             return m.group(0)
         return commande[m.start():m.start(4)] + commande[m.end(4):m.end()]
-    return bool(ECRIT_GIT.search(HEREDOC.sub(taire, commande)))
+    return HEREDOC.sub(taire, commande)
+
+
+def ecrit_git(commande):
+    """`ECRIT_GIT` sur la commande `sans_heredoc` : un heredoc qui ne fait qu'écrire les mots
+    `git commit` dans un fichier n'écrit pas dans Git (chantier ECH)."""
+    return bool(ECRIT_GIT.search(sans_heredoc(commande)))
 
 
 def lire_contrat(chemin):

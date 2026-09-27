@@ -59,8 +59,9 @@ Hors champ : un clos **sans** appel `clore` reste recompté jusqu'au commit — 
 ---
 
 <!-- FICHE:ECA1 -->
-## ECA1 [ ] — Un appel `clore` est une commande lancée, pas un texte cité
+## ECA1 [x] — Un appel `clore` est une commande lancée, pas un texte cité
 
+**Session** : 5a12485e-8f92-4566-8eac-a08b630de356
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` — et rien d'autre.
 

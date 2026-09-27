@@ -3199,6 +3199,29 @@ def tester_forme_jauge():
 
 tester_forme_jauge()
 
+
+def tester_lance_clore():
+    """ECA1 : un appel `clore` est une commande lancée ; la ligne de bilan qui le cite n'en est pas un."""
+    cas = [('py scripts/vlp.py clore . --livre x', True),
+           ('cd "C:/k" && py "C:/k/scripts/vlp.py" clore .', True),
+           ('export A=b; py scripts/vlp.py clore .', True),
+           ("cat > f.py <<'EOF'\nprint(1)\nEOF\npy scripts/vlp.py clore .", True),
+           ('$o = py "$kit/scripts/vlp.py" clore .', True),
+           ('python3 -X utf8 scripts/vlp.py clore .', True),
+           ('"C:/Program Files/Python/python.exe" "C:/Mes documents/kit/scripts/vlp.py" clore .', True),
+           ('echo "- Coût du chantier : 8 (\\`vlp.py clore\\`)." >> "context AI/08-etat.md"', False),
+           ("cat >> etat.md <<'EOF'\n- Coût du chantier : 8 (`vlp.py clore`).\nEOF", False),
+           ('git commit -q -m "O3 faite : vlp.py clore écrit le bilan"', False),
+           ('py scripts/vlp.py page . --resultat "À la clôture, vlp.py clore écrit l\'estimé"', False),
+           ("cat > t.ps1 <<'EOF'\npy scripts/vlp.py clore .\nEOF", False),
+           ('grep -n "clore" scripts/vlp.py', False)]
+    faux = [(c, attendu) for c, attendu in cas if mod.lance_clore(c) != attendu]
+    verifier("ECA1 : lance_clore, %d cas — mutant : l'ancien motif (le texte cité compte)" % len(cas),
+             not faux, repr(faux))
+
+
+tester_lance_clore()
+
 # --- VOI3 : `lettres_prises` tolère une lettre entre backticks (MapDecorator) -
 
 LIGNE_MAPDECORATOR = "Lettres de fiche déjà prises : `T`, `U`, `R`, `M`. Un nouveau chantier en choisit"
