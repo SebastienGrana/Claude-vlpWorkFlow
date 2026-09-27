@@ -144,6 +144,25 @@ Elles sont écrites ici, et nulle part ailleurs : le reste du kit y renvoie.
   « le mot ouvre une ligne » retirait les 2 faux renvois sans rien rater. La règle
   devient un paramètre, chaque candidate se mesure, l'utilisateur retient ; l'ancienne
   reste rejouable (`--regle tout`), et les chiffres qu'elle a produits restent, marqués.
+- **Un fait qui dit comment écrire un fichier se revérifie au moment d'écrire —
+  même marqué « mesuré ».** Fins de ligne, encodage, séparateur : une commande les
+  tranche en une seconde. Mesuré sur cairn : le socle de deux chantiers de suite
+  (`PUB`, puis `REP`) disait trois pages en CRLF, le second avec leurs comptes de
+  lignes et « mesuré le 2026-09-27 » ; `git ls-files --eol` les disait LF, dans
+  l'index et sur le disque. `PUB` l'avait écrit dans son bilan, et le cadrage
+  suivant ne l'a pas vu : il relit son socle, pas les bilans. Un fait réfuté se
+  corrige **là où il sera relu**, pas seulement dans le bilan qui le réfute.
+- **Prouver qu'un ancien chiffre a disparu demande la liste de ses valeurs, pas le
+  motif qui les a trouvées.** Un motif trouve tous les nombres, anciens et nouveaux,
+  et ne dit pas lesquels devaient partir. La fiche qui inventorie les chiffres à
+  republier écrit donc aussi la **liste des anciennes valeurs**, dans chaque format
+  où les pages les écrivent (`1,234.5`, `1 234,5`) ; la fiche qui republie la passe
+  au grep et nomme chaque ligne qui reste — historique datée, ou faux positif.
+  Mesuré sur cairn (`REP`) : le critère de la dernière fiche citait « la liste de
+  `REP1` », que `REP1` n'avait pas écrite — elle avait grepé un motif. Refaite depuis
+  la table de `REP3` : **86** valeurs, **33** lignes touchées, **25** historiques
+  datées, **8** faux positifs (une valeur courte prise dans un autre nombre, `139`
+  dans `117 139`).
 - **La TODO ne grossit pas sans deux oui de l'utilisateur** — décision de
   l'utilisateur, le 2026-09-25, contre le *scope creep*. Chaque chantier laisse
   des restes ; versés tels quels, ils ouvrent du travail que personne n'a choisi.
