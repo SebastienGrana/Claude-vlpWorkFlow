@@ -4630,6 +4630,15 @@ def tester_joints():
                  code == 0 and not os.path.exists(svg) and IMG not in lire(fdr)
                  and "couts.svg" not in (files_de(s) or {}), s + lire(fdr)[-2000:])
 
+    # Des coûts mesurés, tous à 0 (dette BTN) : rien à dessiner, et pas de division par un maximum nul.
+    with tempfile.TemporaryDirectory() as tab:
+        proj, fdr = projet_btn5(tab, [rang("B", mod.arrondi(0)), rang("A", mod.arrondi(0))])
+        code, s = appel(["feuille", proj])
+        verifier("Dette BTN : coûts clos tous à 0 — feuille passe, sans couts.svg ni balise"
+                 " — mutant : garde de couts_clos retirée",
+                 code == 0 and not os.path.exists(os.path.join(os.path.dirname(fdr), "couts.svg"))
+                 and IMG not in lire(fdr), s)
+
 
 tester_joints()
 

@@ -3332,7 +3332,8 @@ DETAILS_CLOS = re.compile(r'^([ \t]*)<details class="clos">', re.M)
 
 def couts_clos(html):
     """[(chantier, tokens)] des lignes de `ZONE:clos` qui ont un coût brut (`BRUT`), du plus ancien
-    au plus récent — la table met le plus récent en haut. Pas de zone : []."""
+    au plus récent — la table met le plus récent en haut. Pas de zone, ou aucun coût au-dessus de 0 :
+    [] — rien à dessiner, et `svg_couts` ne divise pas par un maximum nul (dette BTN)."""
     try:
         d, f = zone(html, "clos", "<tbody>\n", "        </tbody>")
     except ValueError:
@@ -3343,7 +3344,7 @@ def couts_clos(html):
             nom = re.search(r"<td>(.*?)</td>", r, re.S)
             nom = re.sub(r'<span class="badge".*?</span>', "", nom.group(1) if nom else "")
             couts.append((re.sub(r"<[^>]+>", "", nom).strip(), total_clos(r)))
-    return couts[::-1]
+    return couts[::-1] if any(t for _, t in couts) else []
 
 
 def svg_couts(html):
