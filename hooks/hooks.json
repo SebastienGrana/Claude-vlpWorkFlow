@@ -88,6 +88,27 @@
             ]
           }
         ]
+      },
+      {
+        "matcher": "Artifact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py",
+              "vigile"
+            ]
+          },
+          {
+            "type": "command",
+            "command": "py",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py",
+              "vigile"
+            ]
+          }
+        ]
       }
     ],
     "SubagentStop": [

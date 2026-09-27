@@ -83,8 +83,9 @@ accepter zéro bloc. `pyright scripts/` : `0 errors`.
 ---
 
 <!-- FICHE:VID2 -->
-## VID2 [ ] — Brancher le hook avant `Artifact`, et l'essayer pour de vrai
+## VID2 [x] — Brancher le hook avant `Artifact`, et l'essayer pour de vrai
 
+**Session** : aeb2fbf2-07df-4411-aa44-ce09d4a28413
 **Dépend de** : `VID1`.
 **Fichiers** : `hooks/hooks.json`, `ARTEFACTS.md` — et rien d'autre.
 

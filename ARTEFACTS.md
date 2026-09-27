@@ -84,6 +84,10 @@ gagne rien. En cas de conflit — quelqu'un a publié entre-temps — on
 
 `favicon` ne se repasse pas : une icône qui change se lit comme une autre page.
 
+Avant que la publication parte, le hook `vlp.py vigile` (chantier VID) refuse une page cassée
+avec sa raison ; les trois défauts qu'il repère sont dans le socle de `context AI/79-vigile.md`,
+pas recopiés ici.
+
 ## La page se régénère, elle ne se retouche pas
 
 `vlp.py page` réécrit la page du chantier depuis le fichier de fiches — états,

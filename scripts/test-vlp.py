@@ -2637,8 +2637,11 @@ verifier("hooks.json : filet sur tout outil après un succès et après un éche
          json.dumps(crochets, ensure_ascii=False))
 avant, arret = crochets.get("PreToolUse", []), crochets.get("SubagentStop", [])
 verifier("hooks.json : gardien avant Bash|PowerShell et à l'arrêt d'un sous-agent",
-         len(avant) == 1 and avant[0].get("matcher") == "Bash|PowerShell" and paire(avant[0], "gardien")
+         len(avant) == 2 and avant[0].get("matcher") == "Bash|PowerShell" and paire(avant[0], "gardien")
          and len(arret) == 1 and arret[0].get("matcher") == "*" and paire(arret[0], "gardien"),
+         json.dumps(crochets, ensure_ascii=False))
+verifier("hooks.json : vigile avant Artifact (chantier VID)",
+         avant[1].get("matcher") == "Artifact" and paire(avant[1], "vigile"),
          json.dumps(crochets, ensure_ascii=False))
 
 
