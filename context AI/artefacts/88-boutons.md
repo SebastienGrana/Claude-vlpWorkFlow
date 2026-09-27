@@ -15,3 +15,6 @@ Les pages du kit ont des boutons : tout déplier, copier la commande d'une fiche
 - 2026-09-27 : clore n'écrit pas de ligne FILES : cloture.md prend celle de clore, sinon celle de vlp.py joints ; BTN5 rend ce repli inutile.
 - 2026-09-27 : BTN3 : une page servie en local telle quelle mesure 980 px de large à 375 × 812 (pas de meta viewport dans les gabarits ; claude.ai l'ajoute lui-même) — mesurer la largeur sur une copie enveloppée (38-audit-scripts/replie.py:25-27), comme FEU et PLI : là, 375 = 375. Vaut pour BTN4 et BTN6.
 ## Bilan
+- Livré : vlp.js joint aux pages (tout déplier, copier la commande d'une fiche, quatre filtres d'état), graphique couts.svg des chantiers clos, décompte en valeur et texte d'avant la liste replié, ligne FILES dans les commandes
+- Surpris : La limite de 200 publications par jour (429) a bloqué la republication de BTN6 : regard local par un serveur, pages envoyées après minuit UTC ; et pyright tombe au moindre ajout au niveau du module de test-vlp.py
+- Estimé : estimé 6 fiches ≈25 $ · cadré 7 · joué 7 fiches ≈79 $

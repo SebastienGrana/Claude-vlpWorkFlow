@@ -80,3 +80,4 @@ QUAND LIRE : on relit un chantier clos ; l'index n'en garde qu'une ligne qui ren
 | `85-types.md` | on relit le socle du chantier TYP — **clos** « pyright sans erreur, gardé au commit », `TYP1..TYP1` |
 | `86-bulletin.md` | on relit le socle du chantier CHK — **clos** « /vlp:check lit le contrat », `CHK1..CHK2` |
 | `87-cartes.md` | on relit le socle du chantier FEU — **clos** « La feuille de route plus courte et lisible », `FEU1..FEU8` |
+| `88-boutons.md` | on relit le socle du chantier BTN — **clos** « Des boutons sur les pages », `BTN1..BTN7` |

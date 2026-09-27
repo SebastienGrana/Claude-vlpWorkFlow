@@ -10,7 +10,9 @@ graphique du coût des chantiers clos — sans alourdir la page relue à chaque 
 
 **Estimé.** 6 fiches · ≈25 $ — ≈4,22 $/fiche sur 75 clos (le 2026-09-27).
 
-**Fait.** Rien. Ouvert le 2026-09-27, cadré en 6 fiches, `BTN1` à jouer.
+**CLOS** le 2026-09-28. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** BTN1..BTN7 (2026-09-28) : vlp.js joint aux pages (tout déplier, copier la commande d'une fiche, quatre filtres d'état), graphique couts.svg des chantiers clos, décompte en valeur et texte d'avant la liste replié, ligne FILES dans les commandes — estimé 6 fiches ≈25 $ · cadré 7 · joué 7 fiches ≈79 $.
 
 **Session** : 6ac208bd-c52d-458e-830f-a96141a6b0f7
 
