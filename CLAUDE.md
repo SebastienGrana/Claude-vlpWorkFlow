@@ -13,11 +13,11 @@ https://github.com/SebastienGrana/Claude-vlpWorkFlow — cloné et utilisé en g
 - Équipés : Cairn-VlpLib, MapDecorator, ProjetONZSM, TrackGen — et ce kit lui-même.
 - Chaque chantier clos a sa ligne dans `context AI/00-INDEX-archive.md`, son détail daté dans
   `context AI/08-etat.md` ; ici, les derniers seulement (`vlp.py clore` les tient).
-- Clos le 2026-09-27 : vlp.py vigile refuse une page cassée avant Artifact, essai réel réussi (chantier VID).
 - Clos le 2026-09-27 : 81 pages closes repeintes au format PLI et remises en ligne, chiffres inchangés (chantier HAB).
 - Clos le 2026-09-27 : une plage de fiches va du plus petit au plus grand numéro, plus l'ordre du fichier (chantier PLG).
 - Clos le 2026-09-27 : le gardien ne refuse plus un heredoc qui écrit les mots git commit dans un fichier par cat ou tee (chantier ECH).
 - Clos le 2026-09-27 : le gardien ne prend plus une puce « - Imprévu : » pour une jauge (chantier OUV).
+- Clos le 2026-09-27 : les 24 écarts du recompte expliqués, 2 défauts de mesure réparés, recompte écrit sur la feuille (chantier ECA).
 
 ## Quatre règles non négociables
 
@@ -57,7 +57,6 @@ et seulement dans ce cas, ouvrir l'index.
 | savoir où vit quoi dans un projet équipé | `methode-chantier.md`, section « Où vit quoi » |
 | toucher aux pages publiées | `ARTEFACTS.md`, puis le gabarit dans `templates/` |
 | ouvrir un chantier, ou le découper en fiches | **lancer `/vlp:chantier`** |
-| jouer une fiche du chantier ECA (comprendre les écarts du recompte avant de l'écrire) | `context AI/84-recompte.md` — chantier **ouvert**, par `/vlp:tache ECA<n>` |
 | relire un chantier clos | `context AI/00-INDEX-archive.md` — sa ligne y nomme le fichier de fiches |
 | reprendre après une longue interruption | `context AI/08-etat.md` |
 | choisir le prochain chantier du kit, ou retrouver la preuve d'un bug relevé le 2026-09-17 | `context AI/12-audit.md` |

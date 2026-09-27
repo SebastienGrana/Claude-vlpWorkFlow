@@ -7,3 +7,6 @@ Les 24 écarts de recompter ont chacun leur cause ; les deux défauts de mesure 
 - ECA3 : recompter --ecrire : ÉCRIT 19 cellules · total 1 140 424 192 → 1 125 033 889 (−15 390 303) ; relancé ÉCRIT 0 ; diff 21 lignes (19 cellules, résumé, total) ; JUG, FOR, RLG, PYT, UNI retombent sur le chiffre de clore (« était ») ; vigile feuille : PAGE SAINE
 ## Journal
 ## Bilan
+- Livré : Les 24 écarts du recompte expliqués au jeton près ; un appel clore n'est plus un texte cité (lance_clore), la fiche sans commit d'un clos s'arrête au commit suivant ; recompte écrit : 19 cellules, 1 140 424 192 → 1 125 033 889
+- Surpris : Les 5 positifs avaient deux causes : 4 lignes de bilan « Coût du chantier : N (vlp.py clore) » prises pour un appel, et LEC5 sans commit comptée jusqu'au bout d'une session continuée après la clôture
+- Estimé : estimé 1,5 fiches ≈6,34 $ · cadré 3 · joué 3 fiches ≈10 $
