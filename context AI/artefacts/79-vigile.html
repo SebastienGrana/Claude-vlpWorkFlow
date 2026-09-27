@@ -1,0 +1,74 @@
+<title>vlp — Une page vide ne part plus en ligne</title>
+<!--
+  GABARIT — artefact d'un chantier. Publié par /chantier à l'ouverture,
+  mis à jour par /tache à chaque fiche. Remplace les <…> et ne renomme pas
+  les marqueurs `ZONE:…` : les commandes les cherchent tels quels.
+
+  Convention de coût — posée ici, référencée (jamais recopiée) par
+  artefact-feuille-de-route.html, tache.md et cloture.md : un nombre < 1000
+  s'affiche tel quel ; au-delà, "≈<arrondi 1 décimale><k|M> (<compte brut>)"
+  — virgule française, k = mille, M = million. Le compte brut reste toujours
+  visible à côté de l'arrondi.
+-->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700&family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:wght@400;600&display=swap">
+<link rel="stylesheet" href="vlp.css">
+
+<div class="page">
+  <header>
+    <div class="eyebrow">vlp · fiches VID1–VID2</div>
+    <h1>Une page vide ne part plus en ligne</h1>
+    <p>Une page vide ou cassée est refusée avant de partir en ligne, avec la raison ; une page saine passe sans bruit.</p>
+    <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
+    <div class="avancement">
+      <span data-etat="encours"></span><span></span>
+    </div>
+    <p class="mono" style="margin-top:.5rem">2 fiches · 0 faite · en cours : VID1</p>
+  </header>
+
+  <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
+  <section hidden>
+    <h2>Chantier clos le </h2>
+    <div class="bilan">
+      <p></p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Les fiches, dans l'ordre des dépendances</h2>
+    <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
+    <ul class="fiches">
+      <li class="fiche" data-etat="encours"><details open>
+        <summary><span class="id">VID1</span><span class="titre">Écrire vlp.py vigile, testé</span>
+        <span class="etat">en cours</span></summary>
+        <span class="note">La sous-commande vlp.py vigile, qui repère les trois défauts d'une page ; testée, mutants compris. Ne dépend de rien.</span>
+      </details></li>
+      <li class="fiche"><details>
+        <summary><span class="id">VID2</span><span class="titre">Brancher le hook avant Artifact, et l'essayer pour de vrai</span>
+        <span class="etat">à faire</span></summary>
+        <span class="note">Le hook qui appelle le vigile avant chaque publication, et un vrai essai : une page cassée refusée, une saine publiée. Dépend de VID1.</span>
+      </details></li>
+    </ul>
+    <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
+  </section>
+
+  <!-- ZONE:blocage — publiée quand /tache s'arrête après deux tentatives ; retirée dès que la fiche repasse -->
+  <section hidden>
+    <h2>Arrêt sur blocage</h2>
+    <div class="blocage">
+      <p></p>
+      <pre></pre>
+    </div>
+  </section>
+
+  <section>
+    <h2>Journal des décisions</h2>
+    <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
+    <ul class="journal">
+    </ul>
+  </section>
+
+  <footer>
+    <span>Fichier de fiches : <span class="mono">context AI/79-vigile.md</span></span>
+    <span>Mis à jour le <span class="mono">2026-09-27</span></span>
+  </footer>
+</div>
