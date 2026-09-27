@@ -2009,6 +2009,27 @@ with tempfile.TemporaryDirectory() as t:
     verifier("NIV2 : un chemin de CHANTIER.md introuvable rend une GARDE, pas un traceback",
              code == 1 and "GARDE: index introuvable : ctx/absent.md\n" in s, s)
 
+# Un chantier courant fait passer `niveau` par `cmd_page` : son appel interne
+# oubliait `forme`, ajouté par HAB — traceback chez MapDecorator, le 2026-09-27.
+# Dans une fonction : un embranchement de plus au niveau du module, et pyright
+# rend « Code is too complex to analyze » sur tout le fichier.
+def niveau_courant():
+    with tempfile.TemporaryDirectory() as tc:
+        pc = os.path.join(tc, "courant")
+        ecrire(os.path.join(pc, "CHANTIER.md"), CARTE_NETTE.replace(
+            "courant** : aucun", "courant** : ctx/20-z.md"))
+        ecrire(os.path.join(pc, "ctx", "00-INDEX.md"), INDEX_NET)
+        ecrire(os.path.join(pc, "ctx", "08-etat.md"), ETAT_NIV)
+        ecrire(os.path.join(pc, "ctx", "20-z.md"), FICHES)
+        try:
+            return appel(["niveau", pc])
+        except AttributeError as e:
+            return None, "traceback : %s" % e
+
+code, s = niveau_courant()
+verifier("HAB : `niveau` avec un chantier courant rend son bilan, pas un traceback",
+         code is not None and "\nNIVEAU " in s, s)
+
 # --- NIV3 : `niveau --ecrire` corrige les écarts mécaniques, et eux seuls ----
 
 # Une feuille de route d'avant le 2026-09-17 : le CSS inline (comme avant le

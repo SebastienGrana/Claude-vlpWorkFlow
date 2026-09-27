@@ -3675,7 +3675,7 @@ def cmd_niveau(a, sortie):
         fichier = chemin_garde(os.path.join(projet, courant), "fichier de fiches courant", courant)
         code, lignes = capte(cmd_page, argparse.Namespace(
             fichier=fichier, page=page_du_fichier(fichier), note=None, journal=None,
-            creer=False, projet=None, titre=None, resultat=None, verifier=True, date=None))
+            creer=False, projet=None, titre=None, resultat=None, verifier=True, date=None, forme=False))
         for l in lignes:
             if l.startswith("ÉCART: ") or l.startswith("GARDE: "):
                 ecarts += 1
