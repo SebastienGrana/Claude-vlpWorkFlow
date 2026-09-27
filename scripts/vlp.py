@@ -2867,6 +2867,39 @@ def zone(html, nom, ouvre, ferme):
     return debut + len(ouvre), fin
 
 
+# Les deux formes de la TODO d'une feuille de route : cartes (chantier FEU), tableau d'avant.
+FORMES_TODO = (("cartes", '<ol class="todo">\n', "        </ol>"),
+               ("tableau", "<tbody>\n", "        </tbody>"))
+
+
+def zone_todo(html):
+    """(début, fin, forme) du contenu de `ZONE:todo`, forme `cartes` ou `tableau`. Bornée au
+    prochain `<!-- ZONE:` : `zone` chercherait sans borne, et sur une feuille en cartes
+    prendrait le `<tbody>` des clos pour la TODO (chantier FEU)."""
+    i = html.find("<!-- ZONE:todo")
+    if i < 0:
+        raise ValueError("marqueur ZONE:todo absent de la page")
+    depart = html.find("-->", i)
+    borne = html.find("<!-- ZONE:", depart)
+    if borne < 0:
+        borne = len(html)
+    for forme, ouvre, ferme in FORMES_TODO:
+        debut = html.find(ouvre, depart, borne)
+        fin = html.find(ferme, debut, borne) if debut >= 0 else -1
+        if fin >= 0:
+            return debut + len(ouvre), fin, forme
+    raise ValueError("ZONE:todo sans tableau ni cartes avant la zone suivante")
+
+
+def rang_en_cours(contenu, forme):
+    """Le rang qui porte le badge « en cours » dans le contenu de `zone_todo` : 2e cellule d'une
+    ligne de tableau, ou titre du `summary` d'une carte ; None sans badge."""
+    rang = (r'<span class="rang mono">(\d+)</span><span class="titre">' if forme == "cartes"
+            else r'<tr><td class="mono">(\d+)</td><td>')
+    m = re.search(rang + r'(?:(?!</td>|</summary>).)*?' + re.escape(BADGE_COURS), contenu)
+    return m.group(1) if m else None
+
+
 def feuille(projet, html, todo, date):
     """(page régénérée, bilan) : encours, todo et lettres depuis `CHANTIER.md` et le fichier d'état."""
     html = migrer_style(html)
@@ -2890,10 +2923,9 @@ def feuille(projet, html, todo, date):
             lettres.append(lettre_de(ids[0]))
     else:
         encours = AUCUN_ENCOURS
-    d, f = zone(html, "todo", "<tbody>\n", "        </tbody>")
+    d, f, forme = zone_todo(html)
     if todo is None and courant:
-        m = re.search(r'<tr><td class="mono">(\d+)</td><td>(?:(?!</td>).)*?' + re.escape(BADGE_COURS), html[d:f])
-        todo = m.group(1) if m else None
+        todo = rang_en_cours(html[d:f], forme)
     rangs = todo_du_fichier(lignes_etat)
     if todo is not None and todo not in [r[0] for r in rangs]:
         raise ValueError("--todo %s absent de la TODO de %s" % (todo, etat))
@@ -3512,7 +3544,7 @@ def markdown_brut(html):
     """(`**`, liens Markdown, liens cassés) restés dans les zones todo, encours et
     clos d'une feuille de route, en occurrences — hors code cité, hors ligne
     d'exemple du gabarit."""
-    (a, b), (c, d), (e, f) = (zone(html, "todo", "<tbody>\n", "        </tbody>"),
+    (a, b, _), (c, d), (e, f) = (zone_todo(html),
                               zone(html, "encours", "\n", "  </section>"),
                               zone(html, "clos", "<tbody>\n", "        </tbody>"))
     clos = RANG_CLOS.sub(lambda m: "".join(lignes_clos(m.group(0))), html[e:f])
@@ -3928,7 +3960,7 @@ def cmd_clore(a, sortie):
         html = resommer(html, len(anciens) + 1, total)
         etat = champ(carte_, "fichier d'état")
         try:
-            zone(html, "todo", "<tbody>\n", "        </tbody>")
+            zone_todo(html)
             zone(html, "encours", "\n", "  </section>")
             if not etat or not os.path.isfile(os.path.join(projet, etat)):
                 raise ValueError("fichier d'état introuvable : %s" % etat)

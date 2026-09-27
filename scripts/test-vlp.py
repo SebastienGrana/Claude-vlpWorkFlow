@@ -2367,11 +2367,48 @@ with tempfile.TemporaryDirectory() as tv:
     shutil.copy(GABARIT_FEUILLE, pagev)
     appel(["feuille", projv, "--date", "2026-09-18"])
     htmlv = io.open(pagev, encoding="utf-8").read()
-    d, f = mod.zone(htmlv, "todo", "<tbody>\n", "        </tbody>")
+    d, f, _ = mod.zone_todo(htmlv)
     ecrire(pagev, htmlv[:d] + "          <tr><td>**x**</td></tr>\n" + htmlv[d:])
     code, s = appel(["niveau", projv, "--date", "2026-09-18"])
     verifier("VOI1 : sans --ecrire, le ** brut de la page du disque se compte, même si la régénération le fait tomber",
              "MARKDOWN 2 ** · 0 liens Markdown · 0 liens cassés — %s\n" % pagev in s, s)  # un **x** = deux **
+
+# FEU2 : zone_todo s'arrête à la zone suivante — sur une feuille en cartes, jamais le <tbody> des clos
+def test_zone_todo():
+    CLOS_FEU2 = ('  <section>\n    <!-- ZONE:clos — les chantiers clos -->\n    <table><tbody>\n'
+                 '          <tr><td>un clos</td></tr>\n        </tbody></table>\n  </section>\n')
+    cartes_feu2 = ('  <section>\n    <!-- ZONE:todo — les chantiers possibles -->\n    <ol class="todo">\n'
+                   '          <li class="carte-todo"><details><summary><span class="rang mono">29</span><span class="titre">'
+                   '<span class="mono">FEU</span> — a</span><span class="meta mono">~4 fiches</span></summary>'
+                   '<div class="detail">x</div></details></li>\n'
+                   '          <li class="carte-todo"><details><summary><span class="rang mono">30</span><span class="titre">'
+                   '<span class="mono">BTN</span> — b' + mod.BADGE_COURS + '</span><span class="meta mono">~5 fiches</span>'
+                   '</summary><div class="detail">y</div></details></li>\n'
+                   '        </ol>\n  </section>\n') + CLOS_FEU2
+    d2, f2, forme2 = mod.zone_todo(cartes_feu2)
+    verifier("FEU2 : cartes → forme cartes, fin avant ZONE:clos, badge relu sur le rang 30",
+             forme2 == "cartes" and f2 < cartes_feu2.index("<!-- ZONE:clos") and cartes_feu2[d2:f2].count("carte-todo") == 2
+             and mod.rang_en_cours(cartes_feu2[d2:f2], forme2) == "30",
+             (d2, f2, forme2, cartes_feu2[d2:f2]))
+    tableau_feu2 = ('  <section>\n    <!-- ZONE:todo — les chantiers possibles -->\n    <table><tbody>\n'
+                    '          <tr><td class="mono">29</td><td><span class="mono">FEU</span> — a</td><td>x</td></tr>\n'
+                    '          <tr><td class="mono">30</td><td><span class="mono">BTN</span> — b' + mod.BADGE_COURS
+                    + '</td><td>y</td></tr>\n        </tbody></table>\n  </section>\n') + CLOS_FEU2
+    d2, f2, forme2 = mod.zone_todo(tableau_feu2)
+    verifier("FEU2 : tableau → forme tableau, mêmes bornes que zone(), badge relu sur le rang 30",
+             forme2 == "tableau" and (d2, f2) == mod.zone(tableau_feu2, "todo", "<tbody>\n", "        </tbody>")
+             and mod.rang_en_cours(tableau_feu2[d2:f2], forme2) == "30",
+             (d2, f2, forme2))
+    vide_feu2 = '  <section>\n    <!-- ZONE:todo — les chantiers possibles -->\n    <p>rien</p>\n  </section>\n' + CLOS_FEU2
+    try:
+        mod.zone_todo(vide_feu2)
+        erreur_feu2 = None
+    except ValueError as e:
+        erreur_feu2 = str(e)
+    verifier("FEU2 : ni tableau ni cartes dans la zone → ValueError, jamais le <tbody> des clos",
+             erreur_feu2 is not None and "ZONE:todo" in erreur_feu2, erreur_feu2)
+
+test_zone_todo()
 
 # UNI1 : clore utilise le total mesuré ; sans mesure, retombe sur --tokens
 with tempfile.TemporaryDirectory() as t:

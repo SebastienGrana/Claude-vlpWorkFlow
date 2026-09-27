@@ -122,8 +122,9 @@ résultat), le nombre de rangs de chaque feuille, l'id de session. Cairn : des c
 ---
 
 <!-- FICHE:FEU2 -->
-## FEU2 [ ] — Lire la zone TODO sans déborder
+## FEU2 [x] — Lire la zone TODO sans déborder
 
+**Session** : bc14fab5-1e0d-472c-908e-b6dfeefa2dfd
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` — et rien d'autre.
 
