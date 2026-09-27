@@ -17,7 +17,7 @@ https://github.com/SebastienGrana/Claude-vlpWorkFlow — cloné et utilisé en g
 - Clos le 2026-09-27 : le gardien ne refuse plus un heredoc qui écrit les mots git commit dans un fichier par cat ou tee (chantier ECH).
 - Clos le 2026-09-27 : le gardien ne prend plus une puce « - Imprévu : » pour une jauge (chantier OUV).
 - Clos le 2026-09-27 : les 24 écarts du recompte expliqués, 2 défauts de mesure réparés, recompte écrit sur la feuille (chantier ECA).
-- Clos le 2026-09-27 : Clos le 2026-09-27 : pyright gardé au commit, pyrightconfig.json sur scripts/ (chantier TYP).
+- Clos le 2026-09-27 : pyright gardé au commit, pyrightconfig.json sur scripts/ (chantier TYP).
 
 ## Quatre règles non négociables
 
