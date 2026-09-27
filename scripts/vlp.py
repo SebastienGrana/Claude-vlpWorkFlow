@@ -2264,6 +2264,18 @@ def regenerer(html, fichier, parts, date, gardes, forme=False):
     ancien_total = re.search(r'<p class="mono cout-total">(.*?)</p>', html, re.S)
     vieux = {k: m.group(1) for k in ("hors", "total")
              for m in [re.search(r'<p class="mono cout-%s">(.*?)</p>' % k, html, re.S)] if m}
+    # `forme` garde aussi ce que l'ancienne page disait de chaque fiche — titre, état et son
+    # libellé écrits à la main (« abandonnée ») : mesuré sur le kit le 2026-09-27, 4 pages sur 64
+    # perdaient sinon une ligne de texte (chantier HAB).
+    libelles = {}
+    if forme:
+        for li in LI_FICHE.findall(html):
+            ident = re.search(r'<span class="id">(.*?)</span>', li)
+            titre_ = re.search(r'<span class="titre">(.*?)</span>', li, re.S)
+            libelle = re.search(r'<span class="etat">(.*?)</span>', li, re.S)
+            if ident and titre_ and libelle:
+                libelles[ident.group(1)] = (titre_.group(1), libelle.group(1))
+        etat = {i: anciens[i][0] if i in libelles else e for i, e in etat.items()}
     if forme:
         cout = {i: v[2] for i, v in anciens.items() if v[2] is not None}
         total = triplet(ancien_total.group(1)) if ancien_total else None
@@ -2289,8 +2301,10 @@ def regenerer(html, fichier, parts, date, gardes, forme=False):
         # bloc ajouté : `comparer` découpe au `div`, le texte visible reste le même.
         li = ['      <li class="fiche"%s><details%s>' % (' data-etat="%s"' % e if e else "",
                                                      " open" if e in ("encours", "bloquee") else ""),
-              '        <summary><span class="id">%s</span><span class="titre">%s</span>' % (ident, esc(titre)),
-              '        <span class="etat">%s</span></summary>' % etiquette[e]]
+              '        <summary><span class="id">%s</span><span class="titre">%s</span>'
+              % (ident, libelles[ident][0] if ident in libelles else esc(titre)),
+              '        <span class="etat">%s</span></summary>'
+              % (libelles[ident][1] if ident in libelles else etiquette.get(e, e))]
         if note:
             li.append('        <span class="note">%s</span>' % note)
         if ident in cout:
@@ -2314,7 +2328,8 @@ def regenerer(html, fichier, parts, date, gardes, forme=False):
     spans = "".join('<span%s></span>' % (' data-etat="%s"' % etat[f[0]] if etat[f[0]] else "") for f in fiches_)
     html, n = re.subn(r'(<div class="avancement">\s*).*?(\s*</div>)', lambda m: m.group(1) + spans + m.group(2), html, count=1, flags=re.S)
     html, n2 = re.subn(r'(<p class="mono" style="margin-top:.5rem">).*?(</p>)',
-                       lambda m: m.group(1) + comptage(fiches_, etat) + m.group(2), html, count=1, flags=re.S)
+                       lambda m: m.group(0) if forme else m.group(1) + comptage(fiches_, etat) + m.group(2),
+                       html, count=1, flags=re.S)
     if not (n and n2):
         raise ValueError("page : avancement ou ligne de comptage introuvable")
     blocage = re.search(r'<section( hidden)?>(\s*<h2>Arrêt sur blocage</h2>\s*<div class="blocage">\s*<p>)(.*?)</p>', html, re.S)
@@ -2343,7 +2358,9 @@ def regenerer(html, fichier, parts, date, gardes, forme=False):
     # (« · clos », écrit à la main) reste (chantier PLA). Tout autre en-tête reste tel quel (REV6).
     html = re.sub(r'(<div class="eyebrow">[^<]*? · fiches )(?:[A-Z]{1,3}\d+(?:–[A-Z]{1,3}\d+)?)?(?=</div>| · )',
                   lambda m: m.group(1) + plage([f[0] for f in fiches_]), html, count=1)
-    html = re.sub(r'(Mis à jour le <span class="mono">).*?(</span>)', lambda m: m.group(1) + date + m.group(2), html, count=1)
+    if not forme:
+        html = re.sub(r'(Mis à jour le <span class="mono">).*?(</span>)', lambda m: m.group(1) + date + m.group(2),
+                      html, count=1)
     return html, fiches_, etat, total, hors
 
 

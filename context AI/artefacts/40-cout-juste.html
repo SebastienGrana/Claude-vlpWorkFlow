@@ -11,55 +11,7 @@
   visible à côté de l'arrondi.
 -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700&family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:wght@400;600&display=swap">
-<style>
-  /* Compact volontairement : /tache relit cette page à chaque fiche, et le CSS
-     ne change jamais. Chaque ligne gagnée ici est gagnée à chaque fiche. */
-  :root { --ground:#f4f5f7; --surface:#fff; --line:#d9dce3; --line-fort:#b9bec9; --texte:#1a222e; --doux:#5c6675; --accent:#2f5d8c; --fait:#2f7a55; --cours:#a86a12; --bloque:#a63d40; --attente:#8d95a3; --ombre:0 1px 2px rgba(26,34,46,.06); }
-  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --ground:#11161d; --surface:#19202a; --line:#2b3542; --line-fort:#3d4a5a; --texte:#e5e9ef; --doux:#98a2b1; --accent:#7fb0e0; --fait:#5fbb8b; --cours:#d9a441; --bloque:#e0777a; --attente:#6d7787; --ombre:none; } }
-  :root[data-theme="dark"] { --ground:#11161d; --surface:#19202a; --line:#2b3542; --line-fort:#3d4a5a; --texte:#e5e9ef; --doux:#98a2b1; --accent:#7fb0e0; --fait:#5fbb8b; --cours:#d9a441; --bloque:#e0777a; --attente:#6d7787; --ombre:none; }
-  * { box-sizing:border-box; } [hidden] { display:none !important; }
-  body { background:var(--ground); color:var(--texte); font-family:"Source Sans 3",system-ui,sans-serif; font-size:16px; line-height:1.55; }
-  .page { max-width:46rem; margin:0 auto; padding:2.5rem 1.25rem 4rem; display:flex; flex-direction:column; gap:2rem; }
-  h1,h2 { font-family:Archivo,system-ui,sans-serif; text-wrap:balance; margin:0; }
-  h1 { font-size:1.9rem; font-weight:700; letter-spacing:-.015em; }
-  h2 { font-size:.8rem; font-weight:700; text-transform:uppercase; letter-spacing:.09em; color:var(--doux); }
-  .eyebrow { font-family:"IBM Plex Mono",monospace; font-size:.75rem; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); }
-  .mono,.fiche .id,.fiche .etat,.journal time,.blocage pre { font-family:"IBM Plex Mono",monospace; }
-  .mono { font-variant-numeric:tabular-nums; }
-  header { display:flex; flex-direction:column; gap:.35rem; border-bottom:2px solid var(--line-fort); padding-bottom:1.25rem; }
-  header p { margin:.4rem 0 0; color:var(--doux); max-width:62ch; }
-  .avancement { display:flex; gap:.25rem; margin-top:.9rem; }
-  .avancement span { height:.4rem; flex:1; border-radius:1px; background:var(--line); }
-  section { display:flex; flex-direction:column; gap:.85rem; }
-  .fiches,.journal { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
-  .fiches { gap:.5rem; } .journal { gap:.6rem; }
-  .fiche { display:grid; grid-template-columns:3.5rem 1fr; gap:.1rem .9rem; background:var(--surface); border:1px solid var(--line); border-left:3px solid var(--attente); border-radius:3px; padding:.7rem .9rem; box-shadow:var(--ombre); }
-  .fiche .id { font-weight:500; color:var(--doux); }
-  .fiche .titre { font-weight:600; }
-  .fiche .note { grid-column:2; font-size:.9rem; color:var(--doux); }
-  .fiche .cout { grid-column:2; font-size:.78rem; color:var(--doux); }
-  .cout-total { font-size:.85rem; color:var(--doux); }
-  .fiche .etat { grid-column:1; font-size:.68rem; letter-spacing:.07em; text-transform:uppercase; color:var(--attente); }
-  /* les trois états, partout où ils comptent */
-  .avancement span[data-etat="faite"] { background:var(--fait); }
-  .avancement span[data-etat="encours"] { background:var(--cours); }
-  .avancement span[data-etat="bloquee"] { background:var(--bloque); }
-  .fiche[data-etat="faite"] { border-left-color:var(--fait); }
-  .fiche[data-etat="encours"] { border-left-color:var(--cours); }
-  .fiche[data-etat="bloquee"] { border-left-color:var(--bloque); }
-  .fiche[data-etat="faite"] .etat { color:var(--fait); }
-  .fiche[data-etat="encours"] .etat { color:var(--cours); }
-  .fiche[data-etat="bloquee"] .etat { color:var(--bloque); }
-  .fiche[data-etat="faite"] .titre { color:var(--doux); font-weight:400; }
-  .fiche[data-etat="encours"] .id,.fiche[data-etat="bloquee"] .id { color:var(--texte); }
-  .blocage { background:var(--surface); border:1px solid var(--bloque); border-radius:3px; padding:.8rem .9rem; }
-  .blocage pre { margin:.5rem 0 0; overflow-x:auto; font-size:.82rem; color:var(--texte); }
-  .journal li { display:grid; grid-template-columns:6rem 1fr; gap:.9rem; border-top:1px solid var(--line); padding-top:.6rem; }
-  .journal time { font-size:.85rem; color:var(--doux); }
-  .bilan { background:var(--surface); border:1px solid var(--line); border-top:3px solid var(--fait); border-radius:3px; padding:1rem 1.1rem; }
-  .bilan p { margin:0 0 .6rem; } .bilan p:last-child { margin-bottom:0; }
-  footer { border-top:1px solid var(--line); padding-top:.9rem; font-size:.82rem; color:var(--doux); display:flex; flex-wrap:wrap; gap:.25rem 1.25rem; }
-</style>
+<link rel="stylesheet" href="vlp.css">
 
 <div class="page">
   <header>
@@ -73,34 +25,43 @@
     <p class="mono" style="margin-top:.5rem">4 fiches · 4 faites</p>
   </header>
 
+  <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
+  <section>
+    <h2>Chantier clos le 2026-09-23</h2>
+    <div class="bilan">
+      <p>Livré : vlp.py cout et la page coupent chaque session aux commits de fiche, sous-agents compris, avec une ligne hors fiches ; Opus 5.5 a son prix, une ligne ? $ se relit</p>
+      <p>Surpris : l'« avant » de REP4 ne contenait pas la clôture, déjà « à aucune fiche » ; et le total d'une clôture ne compte plus la clôture en cours, faute de commit</p>
+    </div>
+  </section>
+
   <section>
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="faite">
-        <span class="id">CPT1</span><span class="titre">Donner un prix à Opus 5.5, et relire la ligne ? $</span>
-        <span class="etat">faite</span>
+      <li class="fiche" data-etat="faite"><details>
+        <summary><span class="id">CPT1</span><span class="titre">Donner un prix à Opus 5.5, et relire la ligne ? $</span>
+        <span class="etat">faite</span></summary>
         <span class="note">--grille : 8 modèles, claude-opus-5-5 compris (4 · 20 · 0.20 · 5 · 8) ; REP da8e3b04 : usd ? → 20.96, plus de « modèle absent » ; test-vlp OK, verifier 177 → 179 ; test-mesure-tokens OK, cas 4 → 5</span>
         <span class="cout mono">≈2,2M (2 220 766) · 16 tours · 2,80 $</span>
-      </li>
-      <li class="fiche" data-etat="faite">
-        <span class="id">CPT2</span><span class="titre">Compter les sous-agents dans mesure-tokens.py, sur une plage de temps</span>
-        <span class="etat">faite</span>
+      </details></li>
+      <li class="fiche" data-etat="faite"><details>
+        <summary><span class="id">CPT2</span><span class="titre">Compter les sous-agents dans mesure-tokens.py, sur une plage de temps</span>
+        <span class="etat">faite</span></summary>
         <span class="note">da8e3b04 : session + 5 agent-*.jsonl + TOTAL 37 490 931 ; 5 sous-agents 8 161 098 tokens (= socle) ; test-mesure-tokens OK, cas 5 → 11, blocs 1 → 3 ; test-vlp OK ; sous-agents illisibles 8 → 0 sur 96</span>
         <span class="cout mono">≈5,1M (5 135 198) · 32 tours · 4,61 $</span>
-      </li>
-      <li class="fiche" data-etat="faite">
-        <span class="id">CPT3</span><span class="titre">Couper la session aux heures des commits de fiche</span>
-        <span class="etat">faite</span>
+      </details></li>
+      <li class="fiche" data-etat="faite"><details>
+        <summary><span class="id">CPT3</span><span class="titre">Couper la session aux heures des commits de fiche</span>
+        <span class="etat">faite</span></summary>
         <span class="note">test-vlp.py OK, verifications 179 -&gt; 185 ; REP sur copie : 3 211 466 + 4 539 690 + 16 480 389 + 4 889 837 + hors fiches 6 875 079 = total 35 996 461 tokens · 306 tours · 20,63 $, egal a la mesure seule de la session et de ses 5 sous-agents</span>
         <span class="cout mono">≈5,9M (5 861 742) · 35 tours · 5,02 $</span>
-      </li>
-      <li class="fiche" data-etat="faite">
-        <span class="id">CPT4</span><span class="titre">Montrer le coût fiche par fiche dans vlp.py cout, et recalculer REP</span>
-        <span class="etat">faite</span>
+      </details></li>
+      <li class="fiche" data-etat="faite"><details>
+        <summary><span class="id">CPT4</span><span class="titre">Montrer le coût fiche par fiche dans vlp.py cout, et recalculer REP</span>
+        <span class="etat">faite</span></summary>
         <span class="note">cout REP : 4 lignes de fiche, 1 hors fiches, 1 TOTAL ; REP2 2 sous-agents, REP3 3, somme 8 161 098 (= CPT2) ; TOTAL 35 996 461 tokens · 306 tours · 20,61 $ ; table avant / après : 6 lignes qui s'additionnent, colonne plage Σ 0 ; test-vlp OK, test-mesure-tokens OK</span>
         <span class="cout mono">≈5,1M (5 087 135) · 30 tours · 4,59 $</span>
-      </li>
+      </details></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : 0 · 0 tours · 0,00 $</p>
     <p class="mono cout-total">Coût du chantier : ≈18,3M (18 304 841) · 113 tours · 17,02 $</p>
@@ -124,15 +85,6 @@
       <li><time datetime="2026-09-23">2026-09-23</time><span>CPT2 : un sous-agent écrit un output_tokens provisoire (1, 2…) sur les lignes d'un tour avant la dernière, qui porte le compte final (144 cas sur 144, les 5 sous-agents de REP) : garder la dernière ligne est juste, et divergents y est bénin — la session n'en a aucun. Le préfixe \\?\ laissé par CPT1 est pris : 8 illisibles → 0 sur 96.</span></li>
       <li><time datetime="2026-09-23">2026-09-23</time><span>CPT4 : l'« avant » de REP4 (4 840 313) ne contenait pas la clôture : la page à son commit dit 20 355 080, la somme des quatre fiches ; la clôture était dans les 2 771 184 « à aucune fiche ». Le total d'une clôture ne compte plus la clôture en cours, faute de commit après la dernière fiche. Et cout arrondit session et sous-agents au centime chacun, pour que chaque ligne s'additionne : REP 20,63 → 20,61 $.</span></li>
     </ul>
-  </section>
-
-  <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
-  <section>
-    <h2>Chantier clos le 2026-09-23</h2>
-    <div class="bilan">
-      <p>Livré : vlp.py cout et la page coupent chaque session aux commits de fiche, sous-agents compris, avec une ligne hors fiches ; Opus 5.5 a son prix, une ligne ? $ se relit</p>
-      <p>Surpris : l'« avant » de REP4 ne contenait pas la clôture, déjà « à aucune fiche » ; et le total d'une clôture ne compte plus la clôture en cours, faute de commit</p>
-    </div>
   </section>
 
   <footer>

@@ -11,55 +11,7 @@
   visible à côté de l'arrondi.
 -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700&family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:wght@400;600&display=swap">
-<style>
-  /* Compact volontairement : /tache relit cette page à chaque fiche, et le CSS
-     ne change jamais. Chaque ligne gagnée ici est gagnée à chaque fiche. */
-  :root { --ground:#f4f5f7; --surface:#fff; --line:#d9dce3; --line-fort:#b9bec9; --texte:#1a222e; --doux:#5c6675; --accent:#2f5d8c; --fait:#2f7a55; --cours:#a86a12; --bloque:#a63d40; --attente:#8d95a3; --ombre:0 1px 2px rgba(26,34,46,.06); }
-  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --ground:#11161d; --surface:#19202a; --line:#2b3542; --line-fort:#3d4a5a; --texte:#e5e9ef; --doux:#98a2b1; --accent:#7fb0e0; --fait:#5fbb8b; --cours:#d9a441; --bloque:#e0777a; --attente:#6d7787; --ombre:none; } }
-  :root[data-theme="dark"] { --ground:#11161d; --surface:#19202a; --line:#2b3542; --line-fort:#3d4a5a; --texte:#e5e9ef; --doux:#98a2b1; --accent:#7fb0e0; --fait:#5fbb8b; --cours:#d9a441; --bloque:#e0777a; --attente:#6d7787; --ombre:none; }
-  * { box-sizing:border-box; } [hidden] { display:none !important; }
-  body { background:var(--ground); color:var(--texte); font-family:"Source Sans 3",system-ui,sans-serif; font-size:16px; line-height:1.55; }
-  .page { max-width:46rem; margin:0 auto; padding:2.5rem 1.25rem 4rem; display:flex; flex-direction:column; gap:2rem; }
-  h1,h2 { font-family:Archivo,system-ui,sans-serif; text-wrap:balance; margin:0; }
-  h1 { font-size:1.9rem; font-weight:700; letter-spacing:-.015em; }
-  h2 { font-size:.8rem; font-weight:700; text-transform:uppercase; letter-spacing:.09em; color:var(--doux); }
-  .eyebrow { font-family:"IBM Plex Mono",monospace; font-size:.75rem; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); }
-  .mono,.fiche .id,.fiche .etat,.journal time,.blocage pre { font-family:"IBM Plex Mono",monospace; }
-  .mono { font-variant-numeric:tabular-nums; }
-  header { display:flex; flex-direction:column; gap:.35rem; border-bottom:2px solid var(--line-fort); padding-bottom:1.25rem; }
-  header p { margin:.4rem 0 0; color:var(--doux); max-width:62ch; }
-  .avancement { display:flex; gap:.25rem; margin-top:.9rem; }
-  .avancement span { height:.4rem; flex:1; border-radius:1px; background:var(--line); }
-  section { display:flex; flex-direction:column; gap:.85rem; }
-  .fiches,.journal { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
-  .fiches { gap:.5rem; } .journal { gap:.6rem; }
-  .fiche { display:grid; grid-template-columns:3.5rem 1fr; gap:.1rem .9rem; background:var(--surface); border:1px solid var(--line); border-left:3px solid var(--attente); border-radius:3px; padding:.7rem .9rem; box-shadow:var(--ombre); }
-  .fiche .id { font-weight:500; color:var(--doux); }
-  .fiche .titre { font-weight:600; }
-  .fiche .note { grid-column:2; font-size:.9rem; color:var(--doux); }
-  .fiche .cout { grid-column:2; font-size:.78rem; color:var(--doux); }
-  .cout-total { font-size:.85rem; color:var(--doux); }
-  .fiche .etat { grid-column:1; font-size:.68rem; letter-spacing:.07em; text-transform:uppercase; color:var(--attente); }
-  /* les trois états, partout où ils comptent */
-  .avancement span[data-etat="faite"] { background:var(--fait); }
-  .avancement span[data-etat="encours"] { background:var(--cours); }
-  .avancement span[data-etat="bloquee"] { background:var(--bloque); }
-  .fiche[data-etat="faite"] { border-left-color:var(--fait); }
-  .fiche[data-etat="encours"] { border-left-color:var(--cours); }
-  .fiche[data-etat="bloquee"] { border-left-color:var(--bloque); }
-  .fiche[data-etat="faite"] .etat { color:var(--fait); }
-  .fiche[data-etat="encours"] .etat { color:var(--cours); }
-  .fiche[data-etat="bloquee"] .etat { color:var(--bloque); }
-  .fiche[data-etat="faite"] .titre { color:var(--doux); font-weight:400; }
-  .fiche[data-etat="encours"] .id,.fiche[data-etat="bloquee"] .id { color:var(--texte); }
-  .blocage { background:var(--surface); border:1px solid var(--bloque); border-radius:3px; padding:.8rem .9rem; }
-  .blocage pre { margin:.5rem 0 0; overflow-x:auto; font-size:.82rem; color:var(--texte); }
-  .journal li { display:grid; grid-template-columns:6rem 1fr; gap:.9rem; border-top:1px solid var(--line); padding-top:.6rem; }
-  .journal time { font-size:.85rem; color:var(--doux); }
-  .bilan { background:var(--surface); border:1px solid var(--line); border-top:3px solid var(--fait); border-radius:3px; padding:1rem 1.1rem; }
-  .bilan p { margin:0 0 .6rem; } .bilan p:last-child { margin-bottom:0; }
-  footer { border-top:1px solid var(--line); padding-top:.9rem; font-size:.82rem; color:var(--doux); display:flex; flex-wrap:wrap; gap:.25rem 1.25rem; }
-</style>
+<link rel="stylesheet" href="vlp.css">
 
 <div class="page">
   <header>
@@ -73,36 +25,45 @@
     <p class="mono" style="margin-top:.5rem">5 fiches · 5 faites</p>
   </header>
 
+  <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
+  <section>
+    <h2>Chantier clos le 2026-09-17</h2>
+    <div class="bilan">
+      <p>Livré : /vlp:enchainer tourne sans Git : PowerShell donné au sous-agent vlp:fiche, kit lu par vlp.py lire, coche par cocher, ls remplacés par lignes, allowed-tools 55 → 36 entrées ; bac PowerShell sans .git ni Bash : refus 3 → 0, deux fiches jouées et cochées, chantier du bac clos ; evals Windows 1/1, Ubuntu 4/4 ; plugin 3.4.2</p>
+      <p>Surpris : le nom du plugin est en dur dans enchainer et jouer : un bac renommé appelle la skill du plugin réel et mesure autre chose ; et l'étape 5 d'enchainer demandait d'appliquer cloture.md sans donner la commande pour le lire</p>
+    </div>
+  </section>
+
   <section>
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="faite">
-        <span class="id">Q1</span><span class="titre">Mesurer l'enchaînement sans Git — refus, tours, coût</span>
-        <span class="etat">faite</span>
+      <li class="fiche" data-etat="faite"><details>
+        <summary><span class="id">Q1</span><span class="titre">Mesurer l'enchaînement sans Git — refus, tours, coût</span>
+        <span class="etat">faite</span></summary>
         <span class="note">4 tours, 0,1357 $, 7 appels ; 3 refus (Read hors projet, tous du sous-agent), shell absent = 0 tentative ; statut RETOUR ; 0 fiche cochee sur 2 ; carte du sous-agent non journalisee</span>
-      </li>
-      <li class="fiche" data-etat="faite">
-        <span class="id">Q2</span><span class="titre">Donner PowerShell au sous-agent et lui retirer cat</span>
-        <span class="etat">faite</span>
+      </details></li>
+      <li class="fiche" data-etat="faite"><details>
+        <summary><span class="id">Q2</span><span class="titre">Donner PowerShell au sous-agent et lui retirer cat</span>
+        <span class="etat">faite</span></summary>
         <span class="note">agents/fiche.md : cat 1 -&gt; 0, PowerShell 0 -&gt; 1, grep -n 1 -&gt; 0 ; lire/cocher/valider --plan a la place ; test-vlp.py OK, renvois 45 nommes 0 absents, plugin validate passed</span>
-      </li>
-      <li class="fiche" data-etat="faite">
-        <span class="id">Q3</span><span class="titre">Chasser Bash et cat partout où un sous-agent lit</span>
-        <span class="etat">faite</span>
+      </details></li>
+      <li class="fiche" data-etat="faite"><details>
+        <summary><span class="id">Q3</span><span class="titre">Chasser Bash et cat partout où un sous-agent lit</span>
+        <span class="etat">faite</span></summary>
         <span class="note">commandes bannies en tete de ligne 0 sur 11 fichiers (ls 2 -&gt; 0) ; allowed-tools 55 -&gt; 36 entrees (19 mortes retirees), depareillees 11 -&gt; 0 ; test-vlp.py OK, renvois 0 absents, plugin validate passed</span>
-      </li>
-      <li class="fiche" data-etat="faite">
-        <span class="id">Q4</span><span class="titre">Prouver sans refus dans le même bac</span>
-        <span class="etat">faite</span>
+      </details></li>
+      <li class="fiche" data-etat="faite"><details>
+        <summary><span class="id">Q4</span><span class="titre">Prouver sans refus dans le même bac</span>
+        <span class="etat">faite</span></summary>
         <span class="note">meme bac, plugin repare : refus 3 -&gt; 0, 2 fiches cochees sur 2, FAITE x2, sortie.txt et sortie2.txt ecrits ; 12 tours, 0,3526 $ ; evals hook 1/1 et Ubuntu 4/4</span>
-      </li>
-      <li class="fiche" data-etat="faite">
-        <span class="id">Q5</span><span class="titre">Chiffrer enchaîner contre jouer à la main, écrire le verdict</span>
-        <span class="etat">faite</span>
+      </details></li>
+      <li class="fiche" data-etat="faite"><details>
+        <summary><span class="id">Q5</span><span class="titre">Chiffrer enchaîner contre jouer à la main, écrire le verdict</span>
+        <span class="etat">faite</span></summary>
         <span class="note">enchaine 0,176 $/fiche (0,3526 $ / 2, bac) contre 0,42 $/fiche a la main (U5, meme bac) : 2,4x moins cher sur fiches scriptables ; en session reelle le chef part de ~78k non comptes, et un RETOUR annule le gain ; README, plugin 3.4.2, TODO 21 retiree (TODO vide)</span>
         <span class="cout mono">≈23,5M (23 450 007) · 119 tours · 16,26 $</span>
-      </li>
+      </details></li>
     </ul>
     <p class="mono cout-total">Coût du chantier : ≈23,5M (23 450 007) · 119 tours · 16,26 $</p>
     <!-- ligne de total, absente si aucune fiche n'a de coût mesuré -->
@@ -124,15 +85,6 @@
       <li><time datetime="2026-09-17">2026-09-17</time><span>Q1 : un bac de sonde doit renommer les references en dur au plugin (skill: vlp:jouer, agent: vlp:fiche), sinon le chef appelle le plugin reel ; --plugin-dir veut un chemin Windows</span></li>
       <li><time datetime="2026-09-17">2026-09-17</time><span>Q4 : l'etape 5 de enchainer disait d'appliquer cloture.md sans donner la commande — 3 refus ; elle porte maintenant vlp.py lire cloture.md, comme tache etape 7</span></li>
     </ul>
-  </section>
-
-  <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
-  <section>
-    <h2>Chantier clos le 2026-09-17</h2>
-    <div class="bilan">
-      <p>Livré : /vlp:enchainer tourne sans Git : PowerShell donné au sous-agent vlp:fiche, kit lu par vlp.py lire, coche par cocher, ls remplacés par lignes, allowed-tools 55 → 36 entrées ; bac PowerShell sans .git ni Bash : refus 3 → 0, deux fiches jouées et cochées, chantier du bac clos ; evals Windows 1/1, Ubuntu 4/4 ; plugin 3.4.2</p>
-      <p>Surpris : le nom du plugin est en dur dans enchainer et jouer : un bac renommé appelle la skill du plugin réel et mesure autre chose ; et l'étape 5 d'enchainer demandait d'appliquer cloture.md sans donner la commande pour le lire</p>
-    </div>
   </section>
 
   <footer>

@@ -11,55 +11,7 @@
   visible à côté de l'arrondi.
 -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700&family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:wght@400;600&display=swap">
-<style>
-  /* Compact volontairement : /tache relit cette page à chaque fiche, et le CSS
-     ne change jamais. Chaque ligne gagnée ici est gagnée à chaque fiche. */
-  :root { --ground:#f4f5f7; --surface:#fff; --line:#d9dce3; --line-fort:#b9bec9; --texte:#1a222e; --doux:#5c6675; --accent:#2f5d8c; --fait:#2f7a55; --cours:#a86a12; --bloque:#a63d40; --attente:#8d95a3; --ombre:0 1px 2px rgba(26,34,46,.06); }
-  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --ground:#11161d; --surface:#19202a; --line:#2b3542; --line-fort:#3d4a5a; --texte:#e5e9ef; --doux:#98a2b1; --accent:#7fb0e0; --fait:#5fbb8b; --cours:#d9a441; --bloque:#e0777a; --attente:#6d7787; --ombre:none; } }
-  :root[data-theme="dark"] { --ground:#11161d; --surface:#19202a; --line:#2b3542; --line-fort:#3d4a5a; --texte:#e5e9ef; --doux:#98a2b1; --accent:#7fb0e0; --fait:#5fbb8b; --cours:#d9a441; --bloque:#e0777a; --attente:#6d7787; --ombre:none; }
-  * { box-sizing:border-box; } [hidden] { display:none !important; }
-  body { background:var(--ground); color:var(--texte); font-family:"Source Sans 3",system-ui,sans-serif; font-size:16px; line-height:1.55; }
-  .page { max-width:46rem; margin:0 auto; padding:2.5rem 1.25rem 4rem; display:flex; flex-direction:column; gap:2rem; }
-  h1,h2 { font-family:Archivo,system-ui,sans-serif; text-wrap:balance; margin:0; }
-  h1 { font-size:1.9rem; font-weight:700; letter-spacing:-.015em; }
-  h2 { font-size:.8rem; font-weight:700; text-transform:uppercase; letter-spacing:.09em; color:var(--doux); }
-  .eyebrow { font-family:"IBM Plex Mono",monospace; font-size:.75rem; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); }
-  .mono,.fiche .id,.fiche .etat,.journal time,.blocage pre { font-family:"IBM Plex Mono",monospace; }
-  .mono { font-variant-numeric:tabular-nums; }
-  header { display:flex; flex-direction:column; gap:.35rem; border-bottom:2px solid var(--line-fort); padding-bottom:1.25rem; }
-  header p { margin:.4rem 0 0; color:var(--doux); max-width:62ch; }
-  .avancement { display:flex; gap:.25rem; margin-top:.9rem; }
-  .avancement span { height:.4rem; flex:1; border-radius:1px; background:var(--line); }
-  section { display:flex; flex-direction:column; gap:.85rem; }
-  .fiches,.journal { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
-  .fiches { gap:.5rem; } .journal { gap:.6rem; }
-  .fiche { display:grid; grid-template-columns:3.5rem 1fr; gap:.1rem .9rem; background:var(--surface); border:1px solid var(--line); border-left:3px solid var(--attente); border-radius:3px; padding:.7rem .9rem; box-shadow:var(--ombre); }
-  .fiche .id { font-weight:500; color:var(--doux); }
-  .fiche .titre { font-weight:600; }
-  .fiche .note { grid-column:2; font-size:.9rem; color:var(--doux); }
-  .fiche .cout { grid-column:2; font-size:.78rem; color:var(--doux); }
-  .cout-total,.cout-hors { font-size:.85rem; color:var(--doux); }
-  .fiche .etat { grid-column:1; font-size:.68rem; letter-spacing:.07em; text-transform:uppercase; color:var(--attente); }
-  /* les trois états, partout où ils comptent */
-  .avancement span[data-etat="faite"] { background:var(--fait); }
-  .avancement span[data-etat="encours"] { background:var(--cours); }
-  .avancement span[data-etat="bloquee"] { background:var(--bloque); }
-  .fiche[data-etat="faite"] { border-left-color:var(--fait); }
-  .fiche[data-etat="encours"] { border-left-color:var(--cours); }
-  .fiche[data-etat="bloquee"] { border-left-color:var(--bloque); }
-  .fiche[data-etat="faite"] .etat { color:var(--fait); }
-  .fiche[data-etat="encours"] .etat { color:var(--cours); }
-  .fiche[data-etat="bloquee"] .etat { color:var(--bloque); }
-  .fiche[data-etat="faite"] .titre { color:var(--doux); font-weight:400; }
-  .fiche[data-etat="encours"] .id,.fiche[data-etat="bloquee"] .id { color:var(--texte); }
-  .blocage { background:var(--surface); border:1px solid var(--bloque); border-radius:3px; padding:.8rem .9rem; }
-  .blocage pre { margin:.5rem 0 0; overflow-x:auto; font-size:.82rem; color:var(--texte); }
-  .journal li { display:grid; grid-template-columns:6rem 1fr; gap:.9rem; border-top:1px solid var(--line); padding-top:.6rem; }
-  .journal time { font-size:.85rem; color:var(--doux); }
-  .bilan { background:var(--surface); border:1px solid var(--line); border-top:3px solid var(--fait); border-radius:3px; padding:1rem 1.1rem; }
-  .bilan p { margin:0 0 .6rem; } .bilan p:last-child { margin-bottom:0; }
-  footer { border-top:1px solid var(--line); padding-top:.9rem; font-size:.82rem; color:var(--doux); display:flex; flex-wrap:wrap; gap:.25rem 1.25rem; }
-</style>
+<link rel="stylesheet" href="vlp.css">
 
 <div class="page">
   <header>
@@ -73,28 +25,37 @@
     <p class="mono" style="margin-top:.5rem">3 fiches · 3 faites</p>
   </header>
 
+  <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
+  <section>
+    <h2>Chantier clos le 2026-09-24</h2>
+    <div class="bilan">
+      <p>Livré : le filet prévient le sous-agent après tout outil, échecs compris, et au bout des chemins longs ; éprouvé à plafond 10 après un Read et après un Bash à code non nul</p>
+      <p>Surpris : un échec d'outil passe par PostToolUseFailure, pas par PostToolUse, et un appel refusé ne déclenche aucun hook ; Haiku lit « un appel par tour » comme « un par exécution »</p>
+    </div>
+  </section>
+
   <section>
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="faite">
-        <span class="id">FIL1</span><span class="titre">Vérifier et mesurer, avant d'écrire</span>
-        <span class="etat">faite</span>
+      <li class="fiche" data-etat="faite"><details>
+        <summary><span class="id">FIL1</span><span class="titre">Vérifier et mesurer, avant d'écrire</span>
+        <span class="etat">faite</span></summary>
         <span class="note">Journal 2026-09-24 : tout outil = "*", "" ou matcher omis (doc) ; hooks en parallèle (doc, sonde inutile, 0 $) ; chemin long : 259 lu sans préfixe, à 260 et 280 isfile False, open FileNotFoundError, ouvrir lit ; filet à vide 327 · 328 · 300 · 316 · 298 ms. Imprévu : PostToolUseFailure, à trancher avant FIL2.</span>
         <span class="cout mono">≈2,6M (2 559 092) · 17 tours · 2,73 $</span>
-      </li>
-      <li class="fiche" data-etat="faite">
-        <span class="id">FIL2</span><span class="titre">Brancher le filet sur tout outil, échecs compris, et sur les chemins longs</span>
-        <span class="etat">faite</span>
+      </details></li>
+      <li class="fiche" data-etat="faite"><details>
+        <summary><span class="id">FIL2</span><span class="titre">Brancher le filet sur tout outil, échecs compris, et sur les chemins longs</span>
+        <span class="etat">faite</span></summary>
         <span class="note">Tests OK, code 0, trois de plus (hooks.json ; après un échec ; chemin de 280 caractères), chacun tombé quand sa correction est cassée ; claude plugin validate code 0 sur les deux manifestes ; doc de PostToolUseFailure citée au journal ; filet à vide 327 · 328 · 300 · 316 · 298 ms avant, 324 · 307 · 311 · 346 · 311 ms après.</span>
         <span class="cout mono">≈4,8M (4 769 108) · 23 tours · 4,73 $</span>
-      </li>
-      <li class="fiche" data-etat="faite">
-        <span class="id">FIL3</span><span class="titre">Éprouver le filet après un Read et après un échec, à plafond bas</span>
-        <span class="etat">faite</span>
+      </details></li>
+      <li class="fiche" data-etat="faite"><details>
+        <summary><span class="id">FIL3</span><span class="titre">Éprouver le filet après un Read et après un échec, à plafond bas</span>
+        <span class="etat">faite</span></summary>
         <span class="note">F1 : 8 tours, averti « 3 tours restants » après le tour 7, un Read réussi (PostToolUse:Read, l. 54) ; F2 : 8 tours, averti après un exit 3 à is_error (PostToolUseFailure:Bash, l. 59) ; chacun 1 avertissement, 7 hook_non_blocking_error pour 7 appels, RETOUR sur end_turn ; maxTurns 80 relu ; essais 0,3125 $</span>
         <span class="cout mono">≈4,4M (4 442 051) · 36 tours · 3,84 $</span>
-      </li>
+      </details></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈30,2M (30 230 692) · 195 tours · 16,13 $</p>
     <p class="mono cout-total">Coût du chantier : ≈42,0M (42 000 943) · 271 tours · 27,43 $</p>
@@ -114,21 +75,16 @@
     <h2>Journal des décisions</h2>
     <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
     <ul class="journal">
-      <li><time datetime="2026-09-24">2026-09-24</time><span>FIL1, coût : `cout` ne trouve aucun commit de fiche avant `FIL1` et compte à FIL1 la session entière — SAG4, SAG5, clôture de SAG, cadrage de FIL : 139 tours · 17,34 $. FIL1 seul, de `/vlp:tache FIL1` à la mesure (00:42:28 → 00:51:35, +02:00) : 10 tours · 1 578 463 tokens · 2,08 $, par `mesurer()` sur la plage, comme SAG5. ~158k tokens par tour (1 578 463 ÷ 10), contre 69 917 au premier tour de la session : session non vidée.</span></li>
-      <li><time datetime="2026-09-24">2026-09-24</time><span>Après FIL1, choix de l’utilisateur : le trou des échecs (`PostToolUseFailure`) est plié dans `FIL2` — la doc d’abord, une entrée de plus, un test — et dans `FIL3` : deux essais, ≈ 0,18 $, car le premier avertissement fait rendre `RETOUR` et un essai ne prouve qu’un cas ; le second sans aucun fichier, la mise en route de `SAG4` ayant pris 4 tours. La découpe de `cout` à l’ouverture va en TODO, n° 42 `OUV`.</span></li>
       <li><time datetime="2026-09-24">2026-09-24</time><span>FIL1, coût, corrigé : le commit `FIL1 :` posé, `cout` coupe bien — 17 tours · 2,73 $ pour FIL1 (de l’ouverture `f694a99` au commit `174ffb1`, dont les 4 tours qui ont suivi l’ouverture), 195 tours · 16,13 $ hors fiches. Les 139 tours · 17,34 $ ne valaient qu’avant le commit, à l’étape 6 bis de `/vlp:tache` : c’est ce défaut que décrit la TODO n° 42.</span></li>
       <li><time datetime="2026-09-24">2026-09-24</time><span>FIL2, imprévu : un appel refusé avant de s’exécuter (outil inconnu, validation propre à l’outil, permission refusée) ne déclenche aucun hook d’outil, selon la doc des hooks lue le 2026-09-24 ; un Read sur un fichier absent en est peut-être, non vérifié : l’essai 2 de FIL3 risque un faux « filet muet ». Un Bash à code non nul est le déclencheur documenté.</span></li>
       <li><time datetime="2026-09-24">2026-09-24</time><span>Après FIL2, choix de l’utilisateur : l’essai 2 de FIL3 échoue par un Bash à code non nul, le déclencheur documenté de PostToolUseFailure, et non plus par un Read sur un fichier absent ; Bash en plus dans --allowedTools, car un refus de permission ne déclenche aucun hook. Coût inchangé, ≈ 0,18 $.</span></li>
     </ul>
-  </section>
-
-  <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
-  <section>
-    <h2>Chantier clos le 2026-09-24</h2>
-    <div class="bilan">
-      <p>Livré : le filet prévient le sous-agent après tout outil, échecs compris, et au bout des chemins longs ; éprouvé à plafond 10 après un Read et après un Bash à code non nul</p>
-      <p>Surpris : un échec d'outil passe par PostToolUseFailure, pas par PostToolUse, et un appel refusé ne déclenche aucun hook ; Haiku lit « un appel par tour » comme « un par exécution »</p>
-    </div>
+    <details class="journal-ancien"><summary>2 entrées plus anciennes</summary>
+    <ul class="journal">
+      <li><time datetime="2026-09-24">2026-09-24</time><span>FIL1, coût : `cout` ne trouve aucun commit de fiche avant `FIL1` et compte à FIL1 la session entière — SAG4, SAG5, clôture de SAG, cadrage de FIL : 139 tours · 17,34 $. FIL1 seul, de `/vlp:tache FIL1` à la mesure (00:42:28 → 00:51:35, +02:00) : 10 tours · 1 578 463 tokens · 2,08 $, par `mesurer()` sur la plage, comme SAG5. ~158k tokens par tour (1 578 463 ÷ 10), contre 69 917 au premier tour de la session : session non vidée.</span></li>
+      <li><time datetime="2026-09-24">2026-09-24</time><span>Après FIL1, choix de l’utilisateur : le trou des échecs (`PostToolUseFailure`) est plié dans `FIL2` — la doc d’abord, une entrée de plus, un test — et dans `FIL3` : deux essais, ≈ 0,18 $, car le premier avertissement fait rendre `RETOUR` et un essai ne prouve qu’un cas ; le second sans aucun fichier, la mise en route de `SAG4` ayant pris 4 tours. La découpe de `cout` à l’ouverture va en TODO, n° 42 `OUV`.</span></li>
+    </ul>
+    </details>
   </section>
 
   <footer>

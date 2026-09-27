@@ -136,8 +136,9 @@ projets : compte brut « avec lien / sans lien » de chacun, et la liste des dou
 ---
 
 <!-- FICHE:HAB4 -->
-## HAB4 [ ] — Kit : repeindre, et un premier lot en ligne mesuré
+## HAB4 [x] — Kit : repeindre, et un premier lot en ligne mesuré
 
+**Session** : 5a12485e-8f92-4566-8eac-a08b630de356
 **Dépend de** : `HAB3`.
 **Fichiers** : `context AI/artefacts/` du kit — et rien d'autre.
 

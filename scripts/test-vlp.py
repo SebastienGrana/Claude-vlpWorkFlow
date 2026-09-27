@@ -3581,9 +3581,14 @@ def tester_forme():
         for balise in ("<details open>", "<details>", "</details>", "<summary>", "</summary>"):
             html = html.replace(balise, "")
         html = re.sub(r'<span class="cout mono">.*?</span>', "", html)
+        # Écrits à la main sur les vieilles pages (18-evals, 11-conso du kit) : un libellé, un comptage.
+        html = re.sub(r'(<span class="id">Q2</span>.*?<span class="etat">)faite(</span>)', r"\1abandonnée\2", html, count=1, flags=re.S)
+        html = re.sub(r'(<p class="mono" style="margin-top:.5rem">).*?(</p>)', r"\g<1>2 fiches · Q2 abandonnée · clos\2", html, count=1)
         c1, c2 = "≈1,1k (1 111) · 1 tours · 0,01 $", "≈2,2k (2 222) · 2 tours · 0,02 $"
-        html = html.replace('<span class="id">Q1</span>', '<span class="id">Q1</span><span class="cout mono">%s</span>' % c1, 1)
-        html = html.replace('<span class="id">Q2</span>', '<span class="id">Q2</span><span class="cout mono">%s</span>' % c2, 1)
+        for q, c in (("Q1", c1), ("Q2", c2)):
+            html = re.sub(r'(<span class="id">%s</span>.*?)(\s*</li>)' % q,
+                          lambda m: m.group(1) + '\n        <span class="cout mono">%s</span>' % c + m.group(2),
+                          html, count=1, flags=re.S)
         total = "Coût du chantier : ≈11,3M (11 262 523) · 42 tours · 3,40 $"
         hors = "Hors fiches : ≈5,0k (5 000) · 1 tours · 0,05 $"
         html = re.sub(r'<p class="mono cout-total">.*?</p>', '<p class="mono cout-total">%s</p>' % total, html, flags=re.S)
@@ -3607,6 +3612,13 @@ def tester_forme():
         verifier("HAB1 : --forme lie vlp.css, replie les fiches, remonte le bilan",
                  "<style>" not in apres and apres.count('href="vlp.css"') == 1 and apres.count("<details") >= 2
                  and apres.index("ZONE:bilan") < apres.index("ZONE:fiches") and "<p>Fini.</p>" in apres, apres[:1500])
+        verifier("HAB1 : --forme garde libellé, comptage et date écrits sur l'ancienne page"
+                 " — mutant : reprendre la date du jour",
+                 "<span class=\"etat\">abandonnée</span>" in apres and "2 fiches · Q2 abandonnée · clos" in apres
+                 and 'Mis à jour le <span class="mono">2026-01-05</span>' in apres, apres)
+        ecrire(os.path.join(tfo, "avant.html"), html)
+        code, s = appel(["comparer", os.path.join(tfo, "avant.html"), page])
+        verifier("HAB1 : comparer, 0 ligne de texte perdue", code == 0 and s.rstrip().startswith("COMPARER 0 perdus"), s)
         code, s = appel(["vigile", page])
         verifier("HAB1 : la page repeinte, vigile PAGE SAINE", code == 0 and s.startswith("PAGE SAINE"), s)
         avant = lire(page)

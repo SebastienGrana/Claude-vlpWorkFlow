@@ -12,55 +12,7 @@
   visible à côté de l'arrondi.
 -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700&family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:wght@400;600&display=swap">
-<style>
-  /* Compact volontairement : /tache relit cette page à chaque fiche, et le CSS
-     ne change jamais. Chaque ligne gagnée ici est gagnée à chaque fiche. */
-  :root { --ground:#f4f5f7; --surface:#fff; --line:#d9dce3; --line-fort:#b9bec9; --texte:#1a222e; --doux:#5c6675; --accent:#2f5d8c; --fait:#2f7a55; --cours:#a86a12; --bloque:#a63d40; --attente:#8d95a3; --ombre:0 1px 2px rgba(26,34,46,.06); }
-  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --ground:#11161d; --surface:#19202a; --line:#2b3542; --line-fort:#3d4a5a; --texte:#e5e9ef; --doux:#98a2b1; --accent:#7fb0e0; --fait:#5fbb8b; --cours:#d9a441; --bloque:#e0777a; --attente:#6d7787; --ombre:none; } }
-  :root[data-theme="dark"] { --ground:#11161d; --surface:#19202a; --line:#2b3542; --line-fort:#3d4a5a; --texte:#e5e9ef; --doux:#98a2b1; --accent:#7fb0e0; --fait:#5fbb8b; --cours:#d9a441; --bloque:#e0777a; --attente:#6d7787; --ombre:none; }
-  * { box-sizing:border-box; } [hidden] { display:none !important; }
-  body { background:var(--ground); color:var(--texte); font-family:"Source Sans 3",system-ui,sans-serif; font-size:16px; line-height:1.55; }
-  .page { max-width:46rem; margin:0 auto; padding:2.5rem 1.25rem 4rem; display:flex; flex-direction:column; gap:2rem; }
-  h1,h2 { font-family:Archivo,system-ui,sans-serif; text-wrap:balance; margin:0; }
-  h1 { font-size:1.9rem; font-weight:700; letter-spacing:-.015em; }
-  h2 { font-size:.8rem; font-weight:700; text-transform:uppercase; letter-spacing:.09em; color:var(--doux); }
-  .eyebrow { font-family:"IBM Plex Mono",monospace; font-size:.75rem; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); }
-  .mono,.fiche .id,.fiche .etat,.journal time,.blocage pre { font-family:"IBM Plex Mono",monospace; }
-  .mono { font-variant-numeric:tabular-nums; }
-  header { display:flex; flex-direction:column; gap:.35rem; border-bottom:2px solid var(--line-fort); padding-bottom:1.25rem; }
-  header p { margin:.4rem 0 0; color:var(--doux); max-width:62ch; }
-  .avancement { display:flex; gap:.25rem; margin-top:.9rem; }
-  .avancement span { height:.4rem; flex:1; border-radius:1px; background:var(--line); }
-  section { display:flex; flex-direction:column; gap:.85rem; }
-  .fiches,.journal { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
-  .fiches { gap:.5rem; } .journal { gap:.6rem; }
-  .fiche { display:grid; grid-template-columns:3.5rem 1fr; gap:.1rem .9rem; background:var(--surface); border:1px solid var(--line); border-left:3px solid var(--attente); border-radius:3px; padding:.7rem .9rem; box-shadow:var(--ombre); }
-  .fiche .id { font-weight:500; color:var(--doux); }
-  .fiche .titre { font-weight:600; }
-  .fiche .note { grid-column:2; font-size:.9rem; color:var(--doux); }
-  .fiche .cout { grid-column:2; font-size:.78rem; color:var(--doux); }
-  .cout-total { font-size:.85rem; color:var(--doux); }
-  .fiche .etat { grid-column:1; font-size:.68rem; letter-spacing:.07em; text-transform:uppercase; color:var(--attente); }
-  /* les trois états, partout où ils comptent */
-  .avancement span[data-etat="faite"] { background:var(--fait); }
-  .avancement span[data-etat="encours"] { background:var(--cours); }
-  .avancement span[data-etat="bloquee"] { background:var(--bloque); }
-  .fiche[data-etat="faite"] { border-left-color:var(--fait); }
-  .fiche[data-etat="encours"] { border-left-color:var(--cours); }
-  .fiche[data-etat="bloquee"] { border-left-color:var(--bloque); }
-  .fiche[data-etat="faite"] .etat { color:var(--fait); }
-  .fiche[data-etat="encours"] .etat { color:var(--cours); }
-  .fiche[data-etat="bloquee"] .etat { color:var(--bloque); }
-  .fiche[data-etat="faite"] .titre { color:var(--doux); font-weight:400; }
-  .fiche[data-etat="encours"] .id,.fiche[data-etat="bloquee"] .id { color:var(--texte); }
-  .blocage { background:var(--surface); border:1px solid var(--bloque); border-radius:3px; padding:.8rem .9rem; }
-  .blocage pre { margin:.5rem 0 0; overflow-x:auto; font-size:.82rem; color:var(--texte); }
-  .journal li { display:grid; grid-template-columns:6rem 1fr; gap:.9rem; border-top:1px solid var(--line); padding-top:.6rem; }
-  .journal time { font-size:.85rem; color:var(--doux); }
-  .bilan { background:var(--surface); border:1px solid var(--line); border-top:3px solid var(--fait); border-radius:3px; padding:1rem 1.1rem; }
-  .bilan p { margin:0 0 .6rem; } .bilan p:last-child { margin-bottom:0; }
-  footer { border-top:1px solid var(--line); padding-top:.9rem; font-size:.82rem; color:var(--doux); display:flex; flex-wrap:wrap; gap:.25rem 1.25rem; }
-</style>
+<link rel="stylesheet" href="vlp.css">
 
 <div class="page">
   <header>
@@ -74,34 +26,44 @@
     <p class="mono" style="margin-top:.5rem">4 fiches · 4 faites</p>
   </header>
 
+  <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
+  <section>
+    <h2>Chantier clos le 2026-09-17</h2>
+    <div class="bilan">
+      <p>Livré : vlp.py hook (testé) et hooks/hooks.json — un hook PostToolUse qui valide un fichier de fiches à chaque Write ou Edit : sain, la ligne VALIDE en contexte ; cassé, l'écart et la consigne, aussitôt. Prouvé en vrai après /reload-plugins. /vlp:chantier n'appelle plus valider dans un bloc ; tache-page.md lit avant de publier ; check et init rejoués.</p>
+      <p>Surpris : le kit lié dans skills/ charge bien ses hooks, mais python3 y échoue muet sous Windows et la forme args ne se déclenche pas. SessionStart écarté : +1 974 tokens par tour dans toute session, pour une carte périmée dès qu'une fiche est cochée.</p>
+      <p>Laissé ouvert : les écritures par Bash échappent au hook ; Windows sans Git Bash non testé. Total mesuré à la clôture : 14 649 178 tokens · 87 tours · 11,02 $.</p>
+    </div>
+  </section>
+
   <section>
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="faite">
-        <span class="id">H1</span><span class="titre">Sonder le chargement des hooks, solder les restes de S</span>
-        <span class="etat">faite</span>
+      <li class="fiche" data-etat="faite"><details>
+        <summary><span class="id">H1</span><span class="titre">Sonder le chargement des hooks, solder les restes de S</span>
+        <span class="etat">faite</span></summary>
         <span class="note">Hooks chargés après /reload-plugins : python et py parlent (exit 2, racine substituée), python3 et la forme args muets ; « republie » 2 → 0 ; check A–G passent ; init rejoué sur un bac à sable, publication neutralisée.</span>
         <span class="cout mono">≈6,3M (6 292 530) · 50 tours · 5,36 $</span>
-      </li>
-      <li class="fiche" data-etat="faite">
-        <span class="id">H2</span><span class="titre">Écrire vlp.py hook</span>
-        <span class="etat">faite</span>
+      </details></li>
+      <li class="fiche" data-etat="faite"><details>
+        <summary><span class="id">H2</span><span class="titre">Écrire vlp.py hook</span>
+        <span class="etat">faite</span></summary>
         <span class="note">test-vlp.py OK (5 cas hook) ; 16-script.md → JSON VALIDE 5 fiches, exit 0 ; 11-conso.md → écart ligne 88 sur stderr, exit 2 ; méthode et commands/chantier.md muets ; 0,19–0,21 s par appel.</span>
         <span class="cout mono">≈2,8M (2 790 678) · 14 tours · 2,06 $</span>
-      </li>
-      <li class="fiche" data-etat="faite">
-        <span class="id">H3</span><span class="titre">Brancher le hook et alléger les commandes</span>
-        <span class="etat">faite</span>
+      </details></li>
+      <li class="fiche" data-etat="faite"><details>
+        <summary><span class="id">H3</span><span class="titre">Brancher le hook et alléger les commandes</span>
+        <span class="etat">faite</span></summary>
         <span class="note">Après /reload-plugins (1 hook) : Write intact → VALIDE en contexte ; Edit sans &lt;!-- /FICHE --&gt; → écart ligne 15, INVALIDE ; coche de H3 → VALIDE 4 fiches · socle 51 lignes. valider dans un bloc de chantier.md 1 → 0 ; identique|marqueur 16 → 15.</span>
         <span class="cout mono">≈2,7M (2 737 279) · 12 tours · 1,80 $</span>
-      </li>
-      <li class="fiche" data-etat="faite">
-        <span class="id">H4</span><span class="titre">Décider SessionStart aux chiffres</span>
-        <span class="etat">faite</span>
+      </details></li>
+      <li class="fiche" data-etat="faite"><details>
+        <summary><span class="id">H4</span><span class="titre">Décider SessionStart aux chiffres</span>
+        <span class="etat">faite</span></summary>
         <span class="note">SessionStart écarté : avec, ctx_1er 60 609 (2 tours, 122 861 tokens) ; sans, 58 635 (1 tour, 58 936) — +1 974 tokens par tour dans toute session, sans retirer d'injection (carte périmée en cours de session).</span>
         <span class="cout mono">≈3,6M (3 641 339) · 14 tours · 2,41 $</span>
-      </li>
+      </details></li>
     </ul>
     <p class="mono cout-total">Coût du chantier : ≈15,5M (15 461 826) · 90 tours · 11,63 $</p>
     <!-- ligne de total, absente si aucune fiche n'a de coût mesuré -->
@@ -120,21 +82,15 @@
     <h2>Journal des décisions</h2>
     <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
     <ul class="journal">
-      <li><time datetime="2026-09-17">2026-09-17</time><span>H1 : le kit lié dans skills/ charge ses hooks ; forme retenue : la boucle PY des commandes (python3 muet sous Windows, forme args non déclenchée).</span></li>
       <li><time datetime="2026-09-17">2026-09-17</time><span>H2 : un fichier de fiches se reconnaît hors bloc de code — la méthode, chantier.md et le gabarit en montrent sans en être.</span></li>
       <li><time datetime="2026-09-17">2026-09-17</time><span>H3 : hook branché et prouvé en vrai ; les écritures par Bash (sed -i, heredoc) lui échappent.</span></li>
       <li><time datetime="2026-09-17">2026-09-17</time><span>H4 : SessionStart écarté aux chiffres — +1 974 tokens par tour, et la carte change en cours de session.</span></li>
     </ul>
-  </section>
-
-  <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
-  <section>
-    <h2>Chantier clos le 2026-09-17</h2>
-    <div class="bilan">
-      <p>Livré : vlp.py hook (testé) et hooks/hooks.json — un hook PostToolUse qui valide un fichier de fiches à chaque Write ou Edit : sain, la ligne VALIDE en contexte ; cassé, l'écart et la consigne, aussitôt. Prouvé en vrai après /reload-plugins. /vlp:chantier n'appelle plus valider dans un bloc ; tache-page.md lit avant de publier ; check et init rejoués.</p>
-      <p>Surpris : le kit lié dans skills/ charge bien ses hooks, mais python3 y échoue muet sous Windows et la forme args ne se déclenche pas. SessionStart écarté : +1 974 tokens par tour dans toute session, pour une carte périmée dès qu'une fiche est cochée.</p>
-      <p>Laissé ouvert : les écritures par Bash échappent au hook ; Windows sans Git Bash non testé. Total mesuré à la clôture : 14 649 178 tokens · 87 tours · 11,02 $.</p>
-    </div>
+    <details class="journal-ancien"><summary>1 entrée plus ancienne</summary>
+    <ul class="journal">
+      <li><time datetime="2026-09-17">2026-09-17</time><span>H1 : le kit lié dans skills/ charge ses hooks ; forme retenue : la boucle PY des commandes (python3 muet sous Windows, forme args non déclenchée).</span></li>
+    </ul>
+    </details>
   </section>
 
   <footer>

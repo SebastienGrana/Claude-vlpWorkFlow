@@ -1,54 +1,6 @@
 <title>vlp — Réduire les tours de /vlp:tache</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700&family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:wght@400;600&display=swap">
-<style>
-  /* Compact volontairement : /tache relit cette page à chaque fiche, et le CSS
-     ne change jamais. Chaque ligne gagnée ici est gagnée à chaque fiche. */
-  :root { --ground:#f4f5f7; --surface:#fff; --line:#d9dce3; --line-fort:#b9bec9; --texte:#1a222e; --doux:#5c6675; --accent:#2f5d8c; --fait:#2f7a55; --cours:#a86a12; --bloque:#a63d40; --attente:#8d95a3; --ombre:0 1px 2px rgba(26,34,46,.06); }
-  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --ground:#11161d; --surface:#19202a; --line:#2b3542; --line-fort:#3d4a5a; --texte:#e5e9ef; --doux:#98a2b1; --accent:#7fb0e0; --fait:#5fbb8b; --cours:#d9a441; --bloque:#e0777a; --attente:#6d7787; --ombre:none; } }
-  :root[data-theme="dark"] { --ground:#11161d; --surface:#19202a; --line:#2b3542; --line-fort:#3d4a5a; --texte:#e5e9ef; --doux:#98a2b1; --accent:#7fb0e0; --fait:#5fbb8b; --cours:#d9a441; --bloque:#e0777a; --attente:#6d7787; --ombre:none; }
-  * { box-sizing:border-box; } [hidden] { display:none !important; }
-  body { background:var(--ground); color:var(--texte); font-family:"Source Sans 3",system-ui,sans-serif; font-size:16px; line-height:1.55; }
-  .page { max-width:46rem; margin:0 auto; padding:2.5rem 1.25rem 4rem; display:flex; flex-direction:column; gap:2rem; }
-  h1,h2 { font-family:Archivo,system-ui,sans-serif; text-wrap:balance; margin:0; }
-  h1 { font-size:1.9rem; font-weight:700; letter-spacing:-.015em; }
-  h2 { font-size:.8rem; font-weight:700; text-transform:uppercase; letter-spacing:.09em; color:var(--doux); }
-  .eyebrow { font-family:"IBM Plex Mono",monospace; font-size:.75rem; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); }
-  .mono,.fiche .id,.fiche .etat,.journal time,.blocage pre { font-family:"IBM Plex Mono",monospace; }
-  .mono { font-variant-numeric:tabular-nums; }
-  header { display:flex; flex-direction:column; gap:.35rem; border-bottom:2px solid var(--line-fort); padding-bottom:1.25rem; }
-  header p { margin:.4rem 0 0; color:var(--doux); max-width:62ch; }
-  .avancement { display:flex; gap:.25rem; margin-top:.9rem; }
-  .avancement span { height:.4rem; flex:1; border-radius:1px; background:var(--line); }
-  section { display:flex; flex-direction:column; gap:.85rem; }
-  .fiches,.journal { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
-  .fiches { gap:.5rem; } .journal { gap:.6rem; }
-  .fiche { display:grid; grid-template-columns:3.5rem 1fr; gap:.1rem .9rem; background:var(--surface); border:1px solid var(--line); border-left:3px solid var(--attente); border-radius:3px; padding:.7rem .9rem; box-shadow:var(--ombre); }
-  .fiche .id { font-weight:500; color:var(--doux); }
-  .fiche .titre { font-weight:600; }
-  .fiche .note { grid-column:2; font-size:.9rem; color:var(--doux); }
-  .fiche .cout { grid-column:2; font-size:.78rem; color:var(--doux); }
-  .cout-total { font-size:.85rem; color:var(--doux); }
-  .fiche .etat { grid-column:1; font-size:.68rem; letter-spacing:.07em; text-transform:uppercase; color:var(--attente); }
-  /* les trois états, partout où ils comptent */
-  .avancement span[data-etat="faite"] { background:var(--fait); }
-  .avancement span[data-etat="encours"] { background:var(--cours); }
-  .avancement span[data-etat="bloquee"] { background:var(--bloque); }
-  .fiche[data-etat="faite"] { border-left-color:var(--fait); }
-  .fiche[data-etat="encours"] { border-left-color:var(--cours); }
-  .fiche[data-etat="bloquee"] { border-left-color:var(--bloque); }
-  .fiche[data-etat="faite"] .etat { color:var(--fait); }
-  .fiche[data-etat="encours"] .etat { color:var(--cours); }
-  .fiche[data-etat="bloquee"] .etat { color:var(--bloque); }
-  .fiche[data-etat="faite"] .titre { color:var(--doux); font-weight:400; }
-  .fiche[data-etat="encours"] .id,.fiche[data-etat="bloquee"] .id { color:var(--texte); }
-  .blocage { background:var(--surface); border:1px solid var(--bloque); border-radius:3px; padding:.8rem .9rem; }
-  .blocage pre { margin:.5rem 0 0; overflow-x:auto; font-size:.82rem; color:var(--texte); }
-  .journal li { display:grid; grid-template-columns:6rem 1fr; gap:.9rem; border-top:1px solid var(--line); padding-top:.6rem; }
-  .journal time { font-size:.85rem; color:var(--doux); }
-  .bilan { background:var(--surface); border:1px solid var(--line); border-top:3px solid var(--fait); border-radius:3px; padding:1rem 1.1rem; }
-  .bilan p { margin:0 0 .6rem; } .bilan p:last-child { margin-bottom:0; }
-  footer { border-top:1px solid var(--line); padding-top:.9rem; font-size:.82rem; color:var(--doux); display:flex; flex-wrap:wrap; gap:.25rem 1.25rem; }
-</style>
+<link rel="stylesheet" href="vlp.css">
 
 <div class="page">
   <header>
@@ -62,34 +14,43 @@
     <p class="mono" style="margin-top:.5rem">4 fiches · 4 faites</p>
   </header>
 
+  <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
+  <section>
+    <h2>Chantier clos le 2026-09-17</h2>
+    <div class="bilan">
+      <p>Livré : tache.md en 150 lignes de corps (385 avant), la carte du projet injectée avant le premier tour par scripts/carte.py, fiche + socle + contraintes en un appel, coût + page en un appel, le rare dans references/. Appels prescrits 14 → 9 ; octets relus par fiche 18 471 → 11 518.</p>
+      <p>Ce qui a surpris : sous Windows et macOS, la recherche du projet prenait commands/chantier.md pour CHANTIER.md ; une commande modifiée n'est pas relue sans /reload-plugins. Reste à mesurer le gain en tours réels, sur un rejeu dans une session neuve.</p>
+    </div>
+  </section>
+
   <section>
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="faite">
-        <span class="id">R1</span><span class="titre">Prouver l'injection, figer l'« avant »</span>
-        <span class="etat">faite</span>
+      <li class="fiche" data-etat="faite"><details>
+        <summary><span class="id">R1</span><span class="titre">Prouver l'injection, figer l'« avant »</span>
+        <span class="etat">faite</span></summary>
         <span class="note">!`…` : 5 essais sur 6 marchent (pwd, variable du plugin, head, a &amp;&amp; b, script python) ; la boucle de l'étape 0 non. Avant : 14 appels prescrits. Sondes retirées.</span>
         <span class="cout mono">≈1,5M (1 505 630) · 11 tours · 1,06 $</span>
-      </li>
-      <li class="fiche" data-etat="faite">
-        <span class="id">R2</span><span class="titre">Sortir le rare et le partagé dans references/</span>
-        <span class="etat">faite</span>
+      </details></li>
+      <li class="fiche" data-etat="faite"><details>
+        <summary><span class="id">R2</span><span class="titre">Sortir le rare et le partagé dans references/</span>
+        <span class="etat">faite</span></summary>
         <span class="note">references/ : contraintes 8, blocage 35, page 74 lignes ; tache.md 385 → 289 ; seul enchainer.md:26 lit encore tache.md (étape 0, pour R3).</span>
         <span class="cout mono">≈1,9M (1 944 716) · 12 tours · 1,54 $</span>
-      </li>
-      <li class="fiche" data-etat="faite">
-        <span class="id">R3</span><span class="titre">Injecter la carte, grouper les lectures, corriger le point 13</span>
-        <span class="etat">faite</span>
+      </details></li>
+      <li class="fiche" data-etat="faite"><details>
+        <summary><span class="id">R3</span><span class="titre">Injecter la carte, grouper les lectures, corriger le point 13</span>
+        <span class="etat">faite</span></summary>
         <span class="note">Bloc groupé exécuté sur R3 : fiche 23 lignes, socle 63, contraintes, en une sortie ; « que pour lire » : 0 ligne. carte.py testé (OK, contre-épreuve en échec). tache.md 289 → 228.</span>
         <span class="cout mono">≈3,3M (3 282 402) · 17 tours · 2,56 $</span>
-      </li>
-      <li class="fiche" data-etat="faite">
-        <span class="id">R4</span><span class="titre">Tailler à ≤ 150 lignes, mesurer l'« après »</span>
-        <span class="etat">faite</span>
+      </details></li>
+      <li class="fiche" data-etat="faite"><details>
+        <summary><span class="id">R4</span><span class="titre">Tailler à ≤ 150 lignes, mesurer l'« après »</span>
+        <span class="etat">faite</span></summary>
         <span class="note">Corps 150 lignes ; appels prescrits 14 → 9 ; octets relus par fiche 18 471 → 11 518. Bloc de l'étape 6 exécuté tel qu'écrit : deux tables + page en une sortie.</span>
         <span class="cout mono">≈2,0M (1 995 372) · 9 tours · 1,57 $</span>
-      </li>
+      </details></li>
     </ul>
     <p class="mono cout-total">Coût du chantier, cadrage compris : ≈11,8M (11 840 151) · 75 tours · 9,69 $</p>
   </section>
@@ -107,20 +68,15 @@
     <h2>Journal des décisions</h2>
     <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
     <ul class="journal">
-      <li><time datetime="2026-09-17">2026-09-17</time><span>R1 : !`…` exécute pwd, head, a &amp;&amp; b et un script du plugin ; la boucle while + $(…) est rendue au modèle (un tour). Une commande modifiée n'est pas relue sans /reload-plugins.</span></li>
       <li><time datetime="2026-09-17">2026-09-17</time><span>R2 : les contraintes se lisent dans le même appel que le socle ; la règle « artefact = aucun → sauter » reste dans tache.md seul.</span></li>
       <li><time datetime="2026-09-17">2026-09-17</time><span>R3 : l'étape 0 devient scripts/carte.py injecté (choix validé, au lieu d'un repli en prose). Bug trouvé : sous Windows et macOS, commands/chantier.md passait pour CHANTIER.md.</span></li>
       <li><time datetime="2026-09-17">2026-09-17</time><span>R4 : la liste des cinq écritures de clôture, recopiée de cloture.md, est retirée de tache.md. Le gain en tours réels reste à mesurer sur un rejeu dans une session neuve.</span></li>
     </ul>
-  </section>
-
-  <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
-  <section>
-    <h2>Chantier clos le 2026-09-17</h2>
-    <div class="bilan">
-      <p>Livré : tache.md en 150 lignes de corps (385 avant), la carte du projet injectée avant le premier tour par scripts/carte.py, fiche + socle + contraintes en un appel, coût + page en un appel, le rare dans references/. Appels prescrits 14 → 9 ; octets relus par fiche 18 471 → 11 518.</p>
-      <p>Ce qui a surpris : sous Windows et macOS, la recherche du projet prenait commands/chantier.md pour CHANTIER.md ; une commande modifiée n'est pas relue sans /reload-plugins. Reste à mesurer le gain en tours réels, sur un rejeu dans une session neuve.</p>
-    </div>
+    <details class="journal-ancien"><summary>1 entrée plus ancienne</summary>
+    <ul class="journal">
+      <li><time datetime="2026-09-17">2026-09-17</time><span>R1 : !`…` exécute pwd, head, a &amp;&amp; b et un script du plugin ; la boucle while + $(…) est rendue au modèle (un tour). Une commande modifiée n'est pas relue sans /reload-plugins.</span></li>
+    </ul>
+    </details>
   </section>
 
   <footer>

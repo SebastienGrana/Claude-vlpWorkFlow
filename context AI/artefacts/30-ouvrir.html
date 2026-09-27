@@ -11,55 +11,7 @@
   visible à côté de l'arrondi.
 -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700&family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:wght@400;600&display=swap">
-<style>
-  /* Compact volontairement : /tache relit cette page à chaque fiche, et le CSS
-     ne change jamais. Chaque ligne gagnée ici est gagnée à chaque fiche. */
-  :root { --ground:#f4f5f7; --surface:#fff; --line:#d9dce3; --line-fort:#b9bec9; --texte:#1a222e; --doux:#5c6675; --accent:#2f5d8c; --fait:#2f7a55; --cours:#a86a12; --bloque:#a63d40; --attente:#8d95a3; --ombre:0 1px 2px rgba(26,34,46,.06); }
-  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --ground:#11161d; --surface:#19202a; --line:#2b3542; --line-fort:#3d4a5a; --texte:#e5e9ef; --doux:#98a2b1; --accent:#7fb0e0; --fait:#5fbb8b; --cours:#d9a441; --bloque:#e0777a; --attente:#6d7787; --ombre:none; } }
-  :root[data-theme="dark"] { --ground:#11161d; --surface:#19202a; --line:#2b3542; --line-fort:#3d4a5a; --texte:#e5e9ef; --doux:#98a2b1; --accent:#7fb0e0; --fait:#5fbb8b; --cours:#d9a441; --bloque:#e0777a; --attente:#6d7787; --ombre:none; }
-  * { box-sizing:border-box; } [hidden] { display:none !important; }
-  body { background:var(--ground); color:var(--texte); font-family:"Source Sans 3",system-ui,sans-serif; font-size:16px; line-height:1.55; }
-  .page { max-width:46rem; margin:0 auto; padding:2.5rem 1.25rem 4rem; display:flex; flex-direction:column; gap:2rem; }
-  h1,h2 { font-family:Archivo,system-ui,sans-serif; text-wrap:balance; margin:0; }
-  h1 { font-size:1.9rem; font-weight:700; letter-spacing:-.015em; }
-  h2 { font-size:.8rem; font-weight:700; text-transform:uppercase; letter-spacing:.09em; color:var(--doux); }
-  .eyebrow { font-family:"IBM Plex Mono",monospace; font-size:.75rem; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); }
-  .mono,.fiche .id,.fiche .etat,.journal time,.blocage pre { font-family:"IBM Plex Mono",monospace; }
-  .mono { font-variant-numeric:tabular-nums; }
-  header { display:flex; flex-direction:column; gap:.35rem; border-bottom:2px solid var(--line-fort); padding-bottom:1.25rem; }
-  header p { margin:.4rem 0 0; color:var(--doux); max-width:62ch; }
-  .avancement { display:flex; gap:.25rem; margin-top:.9rem; }
-  .avancement span { height:.4rem; flex:1; border-radius:1px; background:var(--line); }
-  section { display:flex; flex-direction:column; gap:.85rem; }
-  .fiches,.journal { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
-  .fiches { gap:.5rem; } .journal { gap:.6rem; }
-  .fiche { display:grid; grid-template-columns:3.5rem 1fr; gap:.1rem .9rem; background:var(--surface); border:1px solid var(--line); border-left:3px solid var(--attente); border-radius:3px; padding:.7rem .9rem; box-shadow:var(--ombre); }
-  .fiche .id { font-weight:500; color:var(--doux); }
-  .fiche .titre { font-weight:600; }
-  .fiche .note { grid-column:2; font-size:.9rem; color:var(--doux); }
-  .fiche .cout { grid-column:2; font-size:.78rem; color:var(--doux); }
-  .cout-total { font-size:.85rem; color:var(--doux); }
-  .fiche .etat { grid-column:1; font-size:.68rem; letter-spacing:.07em; text-transform:uppercase; color:var(--attente); }
-  /* les trois états, partout où ils comptent */
-  .avancement span[data-etat="faite"] { background:var(--fait); }
-  .avancement span[data-etat="encours"] { background:var(--cours); }
-  .avancement span[data-etat="bloquee"] { background:var(--bloque); }
-  .fiche[data-etat="faite"] { border-left-color:var(--fait); }
-  .fiche[data-etat="encours"] { border-left-color:var(--cours); }
-  .fiche[data-etat="bloquee"] { border-left-color:var(--bloque); }
-  .fiche[data-etat="faite"] .etat { color:var(--fait); }
-  .fiche[data-etat="encours"] .etat { color:var(--cours); }
-  .fiche[data-etat="bloquee"] .etat { color:var(--bloque); }
-  .fiche[data-etat="faite"] .titre { color:var(--doux); font-weight:400; }
-  .fiche[data-etat="encours"] .id,.fiche[data-etat="bloquee"] .id { color:var(--texte); }
-  .blocage { background:var(--surface); border:1px solid var(--bloque); border-radius:3px; padding:.8rem .9rem; }
-  .blocage pre { margin:.5rem 0 0; overflow-x:auto; font-size:.82rem; color:var(--texte); }
-  .journal li { display:grid; grid-template-columns:6rem 1fr; gap:.9rem; border-top:1px solid var(--line); padding-top:.6rem; }
-  .journal time { font-size:.85rem; color:var(--doux); }
-  .bilan { background:var(--surface); border:1px solid var(--line); border-top:3px solid var(--fait); border-radius:3px; padding:1rem 1.1rem; }
-  .bilan p { margin:0 0 .6rem; } .bilan p:last-child { margin-bottom:0; }
-  footer { border-top:1px solid var(--line); padding-top:.9rem; font-size:.82rem; color:var(--doux); display:flex; flex-wrap:wrap; gap:.25rem 1.25rem; }
-</style>
+<link rel="stylesheet" href="vlp.css">
 
 <div class="page">
   <header>
@@ -73,36 +25,45 @@
     <p class="mono" style="margin-top:.5rem">5 fiches · 5 faites</p>
   </header>
 
+  <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
+  <section>
+    <h2>Chantier clos le 2026-09-17</h2>
+    <div class="bilan">
+      <p>Livré : vlp.py ouvrir et clore étendu écrivent index, routage et Où on en est de CLAUDE.md, CHANTIER.md, Fait. et ZONE:bilan ; branchés dans /vlp:chantier et cloture.md ; plugin 3.3.5, tests 73 → 91, eval chantier 3/3 (8,25 $, plus 0,29 $ d'eval).</p>
+      <p>Surpris : L'index n'est pas trié par numéro (25, 21, 20 après 29) : ouvrir insère après le plus grand numéro. Ce fichier-ci portait Où on en est au lieu de Fait. : clore remplace les deux. Avant : 12 tours sur 64 (F) et 8 sur 77 (X) passés à la main.</p>
+    </div>
+  </section>
+
   <section>
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="faite">
-        <span class="id">O1</span><span class="titre">Mesurer les écritures encore à la main</span>
-        <span class="etat">faite</span>
+      <li class="fiche" data-etat="faite"><details>
+        <summary><span class="id">O1</span><span class="titre">Mesurer les écritures encore à la main</span>
+        <span class="etat">faite</span></summary>
         <span class="note">Mesuré : à la main, F 12 tours sur 64 (ouverture 7, clôture 5), X 8 sur 77 (5, 3), O ouverture 7 sur 20 ; 0 refus. Formats réels relevés, O2/O3 recalés.</span>
-      </li>
-      <li class="fiche" data-etat="faite">
-        <span class="id">O2</span><span class="titre">Écrire vlp.py ouvrir</span>
-        <span class="etat">faite</span>
+      </details></li>
+      <li class="fiche" data-etat="faite"><details>
+        <summary><span class="id">O2</span><span class="titre">Écrire vlp.py ouvrir</span>
+        <span class="etat">faite</span></summary>
         <span class="note">vlp.py ouvrir : tests OK, 73 → 81 assertions ; bac copié : grep -c 0 → 1 pour CLAUDE.md, index, CHANTIER.md, les trois identiques au vrai ; relance : diff -r vide.</span>
-      </li>
-      <li class="fiche" data-etat="faite">
-        <span class="id">O3</span><span class="titre">Étendre vlp.py clore : routage, index, « Fait. », ZONE:bilan</span>
-        <span class="etat">faite</span>
+      </details></li>
+      <li class="fiche" data-etat="faite"><details>
+        <summary><span class="id">O3</span><span class="titre">Étendre vlp.py clore : routage, index, « Fait. », ZONE:bilan</span>
+        <span class="etat">faite</span></summary>
         <span class="note">clore étendu : tests OK, 81 → 87 assertions ; bac copié : routage clos 20 → 21, index clos 20 → 21, section hidden 2 → 1 ; Fait. remplace Où on en est ; bilan gardé par page.</span>
-      </li>
-      <li class="fiche" data-etat="faite">
-        <span class="id">O4</span><span class="titre">vlp.py clore écrit « Où on en est » de CLAUDE.md</span>
-        <span class="etat">faite</span>
+      </details></li>
+      <li class="fiche" data-etat="faite"><details>
+        <summary><span class="id">O4</span><span class="titre">vlp.py clore écrit « Où on en est » de CLAUDE.md</span>
+        <span class="etat">faite</span></summary>
         <span class="note">clore --resume : tests OK, 87 → 91 assertions (même date, autre date, déjà là, section absente) ; bac copié : (chantier O) 0 → 1 dans CLAUDE.md, chaîne du jour prolongée.</span>
-      </li>
-      <li class="fiche" data-etat="faite">
-        <span class="id">O5</span><span class="titre">Brancher dans /vlp:chantier et cloture.md, mesurer l'après</span>
-        <span class="etat">faite</span>
+      </details></li>
+      <li class="fiche" data-etat="faite"><details>
+        <summary><span class="id">O5</span><span class="titre">Brancher dans /vlp:chantier et cloture.md, mesurer l'après</span>
+        <span class="etat">faite</span></summary>
         <span class="note">Branché : /vlp:chantier 279 → 270 lignes (ouvrir + feuille en un appel), cloture.md 83 → 74 (4 temps) ; plugin 3.3.5 ; validate OK (1 avertissement voulu), RENVOIS 60 · 0 absent, eval chantier WSL2 3/3 (5 tours, 0,29 $).</span>
         <span class="cout mono">≈9,8M (9 842 371) · 58 tours · 8,25 $</span>
-      </li>
+      </details></li>
     </ul>
     <p class="mono cout-total">Coût du chantier : ≈9,8M (9 842 371) · 58 tours · 8,25 $</p>
     <!-- ligne de total, absente si aucune fiche n'a de coût mesuré -->
@@ -122,15 +83,6 @@
     <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
     <ul class="journal">
     </ul>
-  </section>
-
-  <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
-  <section>
-    <h2>Chantier clos le 2026-09-17</h2>
-    <div class="bilan">
-      <p>Livré : vlp.py ouvrir et clore étendu écrivent index, routage et Où on en est de CLAUDE.md, CHANTIER.md, Fait. et ZONE:bilan ; branchés dans /vlp:chantier et cloture.md ; plugin 3.3.5, tests 73 → 91, eval chantier 3/3 (8,25 $, plus 0,29 $ d'eval).</p>
-      <p>Surpris : L'index n'est pas trié par numéro (25, 21, 20 après 29) : ouvrir insère après le plus grand numéro. Ce fichier-ci portait Où on en est au lieu de Fait. : clore remplace les deux. Avant : 12 tours sur 64 (F) et 8 sur 77 (X) passés à la main.</p>
-    </div>
   </section>
 
   <footer>

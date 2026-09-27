@@ -11,55 +11,7 @@
   visible à côté de l'arrondi.
 -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700&family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:wght@400;600&display=swap">
-<style>
-  /* Compact volontairement : /tache relit cette page à chaque fiche, et le CSS
-     ne change jamais. Chaque ligne gagnée ici est gagnée à chaque fiche. */
-  :root { --ground:#f4f5f7; --surface:#fff; --line:#d9dce3; --line-fort:#b9bec9; --texte:#1a222e; --doux:#5c6675; --accent:#2f5d8c; --fait:#2f7a55; --cours:#a86a12; --bloque:#a63d40; --attente:#8d95a3; --ombre:0 1px 2px rgba(26,34,46,.06); }
-  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --ground:#11161d; --surface:#19202a; --line:#2b3542; --line-fort:#3d4a5a; --texte:#e5e9ef; --doux:#98a2b1; --accent:#7fb0e0; --fait:#5fbb8b; --cours:#d9a441; --bloque:#e0777a; --attente:#6d7787; --ombre:none; } }
-  :root[data-theme="dark"] { --ground:#11161d; --surface:#19202a; --line:#2b3542; --line-fort:#3d4a5a; --texte:#e5e9ef; --doux:#98a2b1; --accent:#7fb0e0; --fait:#5fbb8b; --cours:#d9a441; --bloque:#e0777a; --attente:#6d7787; --ombre:none; }
-  * { box-sizing:border-box; } [hidden] { display:none !important; }
-  body { background:var(--ground); color:var(--texte); font-family:"Source Sans 3",system-ui,sans-serif; font-size:16px; line-height:1.55; }
-  .page { max-width:46rem; margin:0 auto; padding:2.5rem 1.25rem 4rem; display:flex; flex-direction:column; gap:2rem; }
-  h1,h2 { font-family:Archivo,system-ui,sans-serif; text-wrap:balance; margin:0; }
-  h1 { font-size:1.9rem; font-weight:700; letter-spacing:-.015em; }
-  h2 { font-size:.8rem; font-weight:700; text-transform:uppercase; letter-spacing:.09em; color:var(--doux); }
-  .eyebrow { font-family:"IBM Plex Mono",monospace; font-size:.75rem; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); }
-  .mono,.fiche .id,.fiche .etat,.journal time,.blocage pre { font-family:"IBM Plex Mono",monospace; }
-  .mono { font-variant-numeric:tabular-nums; }
-  header { display:flex; flex-direction:column; gap:.35rem; border-bottom:2px solid var(--line-fort); padding-bottom:1.25rem; }
-  header p { margin:.4rem 0 0; color:var(--doux); max-width:62ch; }
-  .avancement { display:flex; gap:.25rem; margin-top:.9rem; }
-  .avancement span { height:.4rem; flex:1; border-radius:1px; background:var(--line); }
-  section { display:flex; flex-direction:column; gap:.85rem; }
-  .fiches,.journal { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
-  .fiches { gap:.5rem; } .journal { gap:.6rem; }
-  .fiche { display:grid; grid-template-columns:3.5rem 1fr; gap:.1rem .9rem; background:var(--surface); border:1px solid var(--line); border-left:3px solid var(--attente); border-radius:3px; padding:.7rem .9rem; box-shadow:var(--ombre); }
-  .fiche .id { font-weight:500; color:var(--doux); }
-  .fiche .titre { font-weight:600; }
-  .fiche .note { grid-column:2; font-size:.9rem; color:var(--doux); }
-  .fiche .cout { grid-column:2; font-size:.78rem; color:var(--doux); }
-  .cout-total { font-size:.85rem; color:var(--doux); }
-  .fiche .etat { grid-column:1; font-size:.68rem; letter-spacing:.07em; text-transform:uppercase; color:var(--attente); }
-  /* les trois états, partout où ils comptent */
-  .avancement span[data-etat="faite"] { background:var(--fait); }
-  .avancement span[data-etat="encours"] { background:var(--cours); }
-  .avancement span[data-etat="bloquee"] { background:var(--bloque); }
-  .fiche[data-etat="faite"] { border-left-color:var(--fait); }
-  .fiche[data-etat="encours"] { border-left-color:var(--cours); }
-  .fiche[data-etat="bloquee"] { border-left-color:var(--bloque); }
-  .fiche[data-etat="faite"] .etat { color:var(--fait); }
-  .fiche[data-etat="encours"] .etat { color:var(--cours); }
-  .fiche[data-etat="bloquee"] .etat { color:var(--bloque); }
-  .fiche[data-etat="faite"] .titre { color:var(--doux); font-weight:400; }
-  .fiche[data-etat="encours"] .id,.fiche[data-etat="bloquee"] .id { color:var(--texte); }
-  .blocage { background:var(--surface); border:1px solid var(--bloque); border-radius:3px; padding:.8rem .9rem; }
-  .blocage pre { margin:.5rem 0 0; overflow-x:auto; font-size:.82rem; color:var(--texte); }
-  .journal li { display:grid; grid-template-columns:6rem 1fr; gap:.9rem; border-top:1px solid var(--line); padding-top:.6rem; }
-  .journal time { font-size:.85rem; color:var(--doux); }
-  .bilan { background:var(--surface); border:1px solid var(--line); border-top:3px solid var(--fait); border-radius:3px; padding:1rem 1.1rem; }
-  .bilan p { margin:0 0 .6rem; } .bilan p:last-child { margin-bottom:0; }
-  footer { border-top:1px solid var(--line); padding-top:.9rem; font-size:.82rem; color:var(--doux); display:flex; flex-wrap:wrap; gap:.25rem 1.25rem; }
-</style>
+<link rel="stylesheet" href="vlp.css">
 
 <div class="page">
   <header>
@@ -73,36 +25,45 @@
     <p class="mono" style="margin-top:.5rem">5 fiches · 5 faites</p>
   </header>
 
+  <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
+  <section>
+    <h2>Chantier clos le 2026-09-17</h2>
+    <div class="bilan">
+      <p>Livré : le kit tourne sans Git : hook en paire exec python3 + py, carte injectée sans sh, corps des skills en &lt;python&gt; "…/vlp.py", scripts/vlp retiré ; bac PowerShell 0 appel sh, evals Windows 1/1 et Ubuntu 4/4 ; plugin 3.4.0</p>
+      <p>Surpris : PowerShell refuse toute chaîne || même permise, et un run d'eval Windows n'accorde aucun shell : les sondes en bypassPermissions de X mentaient</p>
+    </div>
+  </section>
+
   <section>
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="faite">
-        <span class="id">Y1</span><span class="titre">Sonder les trous et choisir la forme d'appel</span>
-        <span class="etat">faite</span>
+      <li class="fiche" data-etat="faite"><details>
+        <summary><span class="id">Y1</span><span class="titre">Sonder les trous et choisir la forme d'appel</span>
+        <span class="etat">faite</span></summary>
         <span class="note">22 sondes Haiku (Windows pwsh 7 et Git Bash, Ubuntu) + contrôles locaux 5.1 : || refusé par PowerShell, python3 …; py …; echo fin lancée partout, corps en commande simple passe (0 refus) ; bin/ inutile sans Git ; 0,463 $ ; scripts/vlp : retirer</span>
-      </li>
-      <li class="fiche" data-etat="faite">
-        <span class="id">Y2</span><span class="titre">Faire absorber les outils Unix du corps par vlp.py</span>
-        <span class="etat">faite</span>
+      </details></li>
+      <li class="fiche" data-etat="faite"><details>
+        <summary><span class="id">Y2</span><span class="titre">Faire absorber les outils Unix du corps par vlp.py</span>
+        <span class="etat">faite</span></summary>
         <span class="note">vlp.py cout [--session], valider --plan, equiper : 4 passages Unix remplacés ; diff vide sur 10/3/17 lignes, init 1 écart voulu (DOSSIER= natif) ; tests 96 → 102 OK</span>
-      </li>
-      <li class="fiche" data-etat="faite">
-        <span class="id">Y3</span><span class="titre">Passer le hook et les injections sans sh</span>
-        <span class="etat">faite</span>
+      </details></li>
+      <li class="fiche" data-etat="faite"><details>
+        <summary><span class="id">Y3</span><span class="titre">Passer le hook et les injections sans sh</span>
+        <span class="etat">faite</span></summary>
         <span class="note">hook = paire exec python3 + py, 4 injections python3 …; py … --relais; echo fin ; sondes Git Bash, PowerShell, Ubuntu : hook VALIDE (l'autre Python exit 49 / 1), PYTHON= et PROJET= en tête ; tests 103 OK, validate OK ; 0,127 $</span>
-      </li>
-      <li class="fiche" data-etat="faite">
-        <span class="id">Y4</span><span class="titre">Passer le corps des skills et cloture.md sans sh</span>
-        <span class="etat">faite</span>
+      </details></li>
+      <li class="fiche" data-etat="faite"><details>
+        <summary><span class="id">Y4</span><span class="titre">Passer le corps des skills et cloture.md sans sh</span>
+        <span class="etat">faite</span></summary>
         <span class="note">appels sh 15 → 0, tuyaux 3 → 0, validate OK, tests 103 → 104 OK ; vlp.py lignes ajouté</span>
-      </li>
-      <li class="fiche" data-etat="faite">
-        <span class="id">Y5</span><span class="titre">Prouver sans Git et documenter</span>
-        <span class="etat">faite</span>
+      </details></li>
+      <li class="fiche" data-etat="faite"><details>
+        <summary><span class="id">Y5</span><span class="titre">Prouver sans Git et documenter</span>
+        <span class="etat">faite</span></summary>
         <span class="note">0 appel sh, fiche du bac cochée 5/5 (Haiku ×4, Sonnet ×1) ; evals Windows hook 1/1, Ubuntu 4/4 ; scripts/vlp retiré ; 0 renvoi absent ; plugin 3.4.0</span>
         <span class="cout mono">≈21,6M (21 560 314) · 126 tours · 18,10 $</span>
-      </li>
+      </details></li>
     </ul>
     <p class="mono cout-total">Coût du chantier : ≈21,6M (21 560 314) · 126 tours · 18,10 $</p>
     <!-- ligne de total, absente si aucune fiche n'a de coût mesuré -->
@@ -123,15 +84,6 @@
     <ul class="journal">
       <li><time datetime="2026-09-17">2026-09-17</time><span>Y1 : la recette de X ne tient pas hors bypassPermissions — PowerShell refuse toute chaîne || (« control-flow or chain statement »), 5.1 ne l'analyse pas ; forme retenue : injection python3 …; py …; echo fin, corps en commande simple ; bin/ d'un plugin n'est que dans le PATH de l'outil Bash (0,463 $ de sondes).</span></li>
     </ul>
-  </section>
-
-  <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
-  <section>
-    <h2>Chantier clos le 2026-09-17</h2>
-    <div class="bilan">
-      <p>Livré : le kit tourne sans Git : hook en paire exec python3 + py, carte injectée sans sh, corps des skills en &lt;python&gt; "…/vlp.py", scripts/vlp retiré ; bac PowerShell 0 appel sh, evals Windows 1/1 et Ubuntu 4/4 ; plugin 3.4.0</p>
-      <p>Surpris : PowerShell refuse toute chaîne || même permise, et un run d'eval Windows n'accorde aucun shell : les sondes en bypassPermissions de X mentaient</p>
-    </div>
   </section>
 
   <footer>
