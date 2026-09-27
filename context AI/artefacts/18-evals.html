@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>vlp — Evals du plugin</title>
 <!--
   GABARIT — artefact d'un chantier. Publié par /chantier à l'ouverture,
@@ -16,7 +17,7 @@
 
 <div class="page">
   <header>
-    <div class="eyebrow">vlp · fiches V1–V4</div>
+    <div class="eyebrow">vlp · fiches V1–V4 · <a href="https://claude.ai/code/artifact/ff1fc060-daca-486f-b4c6-e1f55114c0f7">la feuille de route</a></div>
     <h1>Evals du plugin</h1>
     <p>claude plugin eval passe 5 cas sur un bac à sable (init, chantier, tache, check, hook), graders gratuits seuls ; validate rend 0 avertissement et tourne avant chaque commit</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
@@ -40,26 +41,18 @@
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">V1</span><span class="titre">Poser le premier cas (check) et le chiffrer</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">Cas check : score 1, 26 tours, 0,24 $ (après 3 runs ratés à 0,24 $ au total) ; fixtures par scaffold_script.</span>
-      </details></li>
-      <li class="fiche"><details>
-        <summary><span class="id">V2</span><span class="titre">Écrire les cas tache et chantier</span>
-        <span class="etat">abandonnée</span></summary>
-        <span class="note">Bloquée : tache et chantier exigent Bash, refusé sous Windows (pas de sandbox). Cas écrits, tag wsl2 ; TODO n° 11.</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">V3</span><span class="titre">Écrire les cas init et hook</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">init : score 1, 19 tours, 0,39 $, 0 Artifact ; hook : score 1, 2 tours, 0,10 $, INVALIDE prouvé dans la trace.</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">V4</span><span class="titre">Rendre validate propre, le lancer avant commit, jouer la suite</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">validate marketplace 1 → 0 avertissement ; pre-commit refuse un plugin.json cassé ; suite Windows 3/3, 39 tours, 0,93 $.</span>
-      </details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">V1</span></span>
+        <details><summary><span class="titre">Poser le premier cas (check) et le chiffrer</span><span class="etat">Faite</span></summary>
+        <span class="note">Cas check : score 1, 26 tours, 0,24 $ (après 3 runs ratés à 0,24 $ au total) ; fixtures par scaffold_script.</span></details></li>
+      <li class="fiche"><span class="gauche"><span class="id">V2</span></span>
+        <details><summary><span class="titre">Écrire les cas tache et chantier</span><span class="etat">abandonnée</span></summary>
+        <span class="note">Bloquée : tache et chantier exigent Bash, refusé sous Windows (pas de sandbox). Cas écrits, tag wsl2 ; TODO n° 11.</span></details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">V3</span></span>
+        <details><summary><span class="titre">Écrire les cas init et hook</span><span class="etat">Faite</span></summary>
+        <span class="note">init : score 1, 19 tours, 0,39 $, 0 Artifact ; hook : score 1, 2 tours, 0,10 $, INVALIDE prouvé dans la trace.</span></details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">V4</span></span>
+        <details><summary><span class="titre">Rendre validate propre, le lancer avant commit, jouer la suite</span><span class="etat">Faite</span></summary>
+        <span class="note">validate marketplace 1 → 0 avertissement ; pre-commit refuse un plugin.json cassé ; suite Windows 3/3, 39 tours, 0,93 $.</span></details></li>
     </ul>
     <!-- ligne de total, absente si aucune fiche n'a de coût mesuré -->
   </section>
@@ -86,3 +79,4 @@
     <span>Mis à jour le <span class="mono">2026-09-17</span></span>
   </footer>
 </div>
+<script src="vlp.js"></script>

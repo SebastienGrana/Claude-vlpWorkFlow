@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>vlp — La page de chantier plus courte et lisible</title>
 <!--
   GABARIT — artefact d'un chantier. Publié par /chantier à l'ouverture,
@@ -15,7 +16,7 @@
 
 <div class="page">
   <header>
-    <div class="eyebrow">vlp · fiches PLI1–PLI7</div>
+    <div class="eyebrow">vlp · fiches PLI1–PLI7 · <a href="https://claude.ai/code/artifact/ff1fc060-daca-486f-b4c6-e1f55114c0f7">la feuille de route</a></div>
     <h1>La page de chantier plus courte et lisible</h1>
     <p>La page d'un chantier se replie : fiches finies et vieux journal repliés, bilan en haut une fois clos, rien de coupé ; son CSS vit dans un vlp.css joint. Mesuré avant/après en écrans et en tokens de relecture.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
@@ -39,48 +40,34 @@
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">PLI1</span><span class="titre">Mesurer la page avant</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">grep ^## Mesures : 1 ; 51-relecture avant : 2977 px = 3,45 écrans (1536 × 864) ; Artifact read : ctx 92 462 → 100 257 = 7 795 tokens</span>
-        <span class="cout mono">≈2,8M (2 798 375) · 29 tours · 1,26 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">PLI2</span><span class="titre">Poser vlp.css dans le kit</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">test-vlp.py OK (0 echec) ; pyright vlp.py+test-vlp.py 0 erreur ; grep -c style-tag sur les deux gabarits : 0 et 0</span>
-        <span class="cout mono">≈12,9M (12 906 423) · 69 tours · 3,87 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">PLI3</span><span class="titre">Migrer les pages existantes vers vlp.css</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">test-vlp.py OK (0 echec) ; pyright vlp.py+test-vlp.py 0 erreur ; grep -c "details.clos {" scripts/vlp.py = 0</span>
-        <span class="cout mono">≈7,1M (7 102 278) · 32 tours · 2,20 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">PLI4</span><span class="titre">Joindre vlp.css à chaque publication</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">vlp.css par fichier (publiantes/mentions) : ARTEFACTS 9/3, chantier 4/2, init 4/1, enchainer 2/1, tache 2/1, cloture 4/2 ; renvois 0 absents ; pre-commit exit 0</span>
-        <span class="cout mono">≈4,6M (4 551 992) · 33 tours · 2,32 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">PLI5</span><span class="titre">Replier les fiches</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">test-vlp.py OK ; tester_fiches_repliees : 3 blocs, 1 ouvert (en cours), comparer 0 perdus, ancienne forme lue ; mutants tout ouvrir et nouvelle forme seule : tombent ; pyright 0 erreur</span>
-        <span class="cout mono">≈3,6M (3 628 893) · 21 tours · 1,33 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">PLI6</span><span class="titre">Replier le journal, bilan en haut</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">test-vlp.py OK ; journal 7 → 3 visibles + 4 repliées, abri 7 dans l'ordre ; 2 → aucun bloc ; bilan avant les fiches après clore ; 2 mutants tombent ; pyright 0 erreur</span>
-        <span class="cout mono">≈3,3M (3 302 162) · 16 tours · 1,13 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">PLI7</span><span class="titre">Mesurer après, republier la feuille</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">Replié 3,45 → 2,18 écrans (2977 → 1886 px), déplié 3,63 ; Artifact read 7 795 → 5 842 tokens (−25 %) ; comparer 0 ligne perdue ; feuille republiée v153 avec vlp.css, pages vues stylées par l'utilisateur ; page jetable supprimée</span>
-        <span class="cout mono">≈7,0M (6 991 911) · 50 tours · 3,13 $</span>
-      </details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">PLI1</span></span>
+        <details><summary><span class="titre">Mesurer la page avant</span><span class="etat">Faite</span></summary>
+        <span class="note">grep ^## Mesures : 1 ; 51-relecture avant : 2977 px = 3,45 écrans (1536 × 864) ; Artifact read : ctx 92 462 → 100 257 = 7 795 tokens</span></details>
+        <span class="cout mono">≈2,8M (2 798 375) · 29 tours · 1,26 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">PLI2</span></span>
+        <details><summary><span class="titre">Poser vlp.css dans le kit</span><span class="etat">Faite</span></summary>
+        <span class="note">test-vlp.py OK (0 echec) ; pyright vlp.py+test-vlp.py 0 erreur ; grep -c style-tag sur les deux gabarits : 0 et 0</span></details>
+        <span class="cout mono">≈12,9M (12 906 423) · 69 tours · 3,87 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">PLI3</span></span>
+        <details><summary><span class="titre">Migrer les pages existantes vers vlp.css</span><span class="etat">Faite</span></summary>
+        <span class="note">test-vlp.py OK (0 echec) ; pyright vlp.py+test-vlp.py 0 erreur ; grep -c "details.clos {" scripts/vlp.py = 0</span></details>
+        <span class="cout mono">≈7,1M (7 102 278) · 32 tours · 2,20 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">PLI4</span></span>
+        <details><summary><span class="titre">Joindre vlp.css à chaque publication</span><span class="etat">Faite</span></summary>
+        <span class="note">vlp.css par fichier (publiantes/mentions) : ARTEFACTS 9/3, chantier 4/2, init 4/1, enchainer 2/1, tache 2/1, cloture 4/2 ; renvois 0 absents ; pre-commit exit 0</span></details>
+        <span class="cout mono">≈4,6M (4 551 992) · 33 tours · 2,32 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">PLI5</span></span>
+        <details><summary><span class="titre">Replier les fiches</span><span class="etat">Faite</span></summary>
+        <span class="note">test-vlp.py OK ; tester_fiches_repliees : 3 blocs, 1 ouvert (en cours), comparer 0 perdus, ancienne forme lue ; mutants tout ouvrir et nouvelle forme seule : tombent ; pyright 0 erreur</span></details>
+        <span class="cout mono">≈3,6M (3 628 893) · 21 tours · 1,33 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">PLI6</span></span>
+        <details><summary><span class="titre">Replier le journal, bilan en haut</span><span class="etat">Faite</span></summary>
+        <span class="note">test-vlp.py OK ; journal 7 → 3 visibles + 4 repliées, abri 7 dans l'ordre ; 2 → aucun bloc ; bilan avant les fiches après clore ; 2 mutants tombent ; pyright 0 erreur</span></details>
+        <span class="cout mono">≈3,3M (3 302 162) · 16 tours · 1,13 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">PLI7</span></span>
+        <details><summary><span class="titre">Mesurer après, republier la feuille</span><span class="etat">Faite</span></summary>
+        <span class="note">Replié 3,45 → 2,18 écrans (2977 → 1886 px), déplié 3,63 ; Artifact read 7 795 → 5 842 tokens (−25 %) ; comparer 0 ligne perdue ; feuille republiée v153 avec vlp.css, pages vues stylées par l'utilisateur ; page jetable supprimée</span></details>
+        <span class="cout mono">≈7,0M (6 991 911) · 50 tours · 3,13 $</span></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈4,7M (4 748 636) · 34 tours · 2,72 $</p>
     <p class="mono cout-total">Coût du chantier : ≈46,0M (46 030 670) · 284 tours · 17,96 $</p>
@@ -108,3 +95,4 @@
     <span>Mis à jour le <span class="mono">2026-09-27</span></span>
   </footer>
 </div>
+<script src="vlp.js"></script>

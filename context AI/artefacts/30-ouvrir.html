@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>vlp — Ouvrir et clore par script</title>
 <!--
   GABARIT — artefact d'un chantier. Publié par /chantier à l'ouverture,
@@ -15,7 +16,7 @@
 
 <div class="page">
   <header>
-    <div class="eyebrow">vlp · fiches O1–O5</div>
+    <div class="eyebrow">vlp · fiches O1–O5 · <a href="https://claude.ai/code/artifact/ff1fc060-daca-486f-b4c6-e1f55114c0f7">la feuille de route</a></div>
     <h1>Ouvrir et clore par script</h1>
     <p>Une ouverture et une clôture ne gardent à la main que les publications Artifact et le texte de jugement ; tours à la main comptés avant (O1) et après (O5).</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
@@ -38,32 +39,22 @@
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">O1</span><span class="titre">Mesurer les écritures encore à la main</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">Mesuré : à la main, F 12 tours sur 64 (ouverture 7, clôture 5), X 8 sur 77 (5, 3), O ouverture 7 sur 20 ; 0 refus. Formats réels relevés, O2/O3 recalés.</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">O2</span><span class="titre">Écrire vlp.py ouvrir</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">vlp.py ouvrir : tests OK, 73 → 81 assertions ; bac copié : grep -c 0 → 1 pour CLAUDE.md, index, CHANTIER.md, les trois identiques au vrai ; relance : diff -r vide.</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">O3</span><span class="titre">Étendre vlp.py clore : routage, index, « Fait. », ZONE:bilan</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">clore étendu : tests OK, 81 → 87 assertions ; bac copié : routage clos 20 → 21, index clos 20 → 21, section hidden 2 → 1 ; Fait. remplace Où on en est ; bilan gardé par page.</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">O4</span><span class="titre">vlp.py clore écrit « Où on en est » de CLAUDE.md</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">clore --resume : tests OK, 87 → 91 assertions (même date, autre date, déjà là, section absente) ; bac copié : (chantier O) 0 → 1 dans CLAUDE.md, chaîne du jour prolongée.</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">O5</span><span class="titre">Brancher dans /vlp:chantier et cloture.md, mesurer l'après</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">Branché : /vlp:chantier 279 → 270 lignes (ouvrir + feuille en un appel), cloture.md 83 → 74 (4 temps) ; plugin 3.3.5 ; validate OK (1 avertissement voulu), RENVOIS 60 · 0 absent, eval chantier WSL2 3/3 (5 tours, 0,29 $).</span>
-        <span class="cout mono">≈9,8M (9 842 371) · 58 tours · 8,25 $</span>
-      </details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">O1</span></span>
+        <details><summary><span class="titre">Mesurer les écritures encore à la main</span><span class="etat">Faite</span></summary>
+        <span class="note">Mesuré : à la main, F 12 tours sur 64 (ouverture 7, clôture 5), X 8 sur 77 (5, 3), O ouverture 7 sur 20 ; 0 refus. Formats réels relevés, O2/O3 recalés.</span></details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">O2</span></span>
+        <details><summary><span class="titre">Écrire vlp.py ouvrir</span><span class="etat">Faite</span></summary>
+        <span class="note">vlp.py ouvrir : tests OK, 73 → 81 assertions ; bac copié : grep -c 0 → 1 pour CLAUDE.md, index, CHANTIER.md, les trois identiques au vrai ; relance : diff -r vide.</span></details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">O3</span></span>
+        <details><summary><span class="titre">Étendre vlp.py clore : routage, index, « Fait. », ZONE:bilan</span><span class="etat">Faite</span></summary>
+        <span class="note">clore étendu : tests OK, 81 → 87 assertions ; bac copié : routage clos 20 → 21, index clos 20 → 21, section hidden 2 → 1 ; Fait. remplace Où on en est ; bilan gardé par page.</span></details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">O4</span></span>
+        <details><summary><span class="titre">vlp.py clore écrit « Où on en est » de CLAUDE.md</span><span class="etat">Faite</span></summary>
+        <span class="note">clore --resume : tests OK, 87 → 91 assertions (même date, autre date, déjà là, section absente) ; bac copié : (chantier O) 0 → 1 dans CLAUDE.md, chaîne du jour prolongée.</span></details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">O5</span></span>
+        <details><summary><span class="titre">Brancher dans /vlp:chantier et cloture.md, mesurer l'après</span><span class="etat">Faite</span></summary>
+        <span class="note">Branché : /vlp:chantier 279 → 270 lignes (ouvrir + feuille en un appel), cloture.md 83 → 74 (4 temps) ; plugin 3.3.5 ; validate OK (1 avertissement voulu), RENVOIS 60 · 0 absent, eval chantier WSL2 3/3 (5 tours, 0,29 $).</span></details>
+        <span class="cout mono">≈9,8M (9 842 371) · 58 tours · 8,25 $</span></li>
     </ul>
     <p class="mono cout-total">Coût du chantier : ≈9,8M (9 842 371) · 58 tours · 8,25 $</p>
     <!-- ligne de total, absente si aucune fiche n'a de coût mesuré -->
@@ -90,3 +81,4 @@
     <span>Mis à jour le <span class="mono">2026-09-17</span></span>
   </footer>
 </div>
+<script src="vlp.js"></script>

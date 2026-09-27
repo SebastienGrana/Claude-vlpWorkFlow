@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>vlp — Une page vide ne part plus en ligne</title>
 <!--
   GABARIT — artefact d'un chantier. Publié par /chantier à l'ouverture,
@@ -15,7 +16,7 @@
 
 <div class="page">
   <header>
-    <div class="eyebrow">vlp · fiches VID1–VID2</div>
+    <div class="eyebrow">vlp · fiches VID1–VID2 · <a href="https://claude.ai/code/artifact/ff1fc060-daca-486f-b4c6-e1f55114c0f7">la feuille de route</a></div>
     <h1>Une page vide ne part plus en ligne</h1>
     <p>Une page vide ou cassée est refusée avant de partir en ligne, avec la raison ; une page saine passe sans bruit.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
@@ -39,18 +40,14 @@
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">VID1</span><span class="titre">Écrire vlp.py vigile, testé</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">test-vlp.py OK, 413 → 428 verifier (15 « vigile : … ») ; 3 mutants (commentaire ouvert, sans style, zéro bloc) tombent chacun, défaits ; pyright scripts/ 0 errors</span>
-        <span class="cout mono">≈2,9M (2 869 785) · 22 tours · 1,41 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">VID2</span><span class="titre">Brancher le hook avant Artifact, et l'essayer pour de vrai</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">Page cassée refusée par le hook (commentaire ouvert, aucun style, aucun bloc) ; page saine publiée, https://claude.ai/artifact/TNwKiiEfpRM9NgzhsnW11x ; valider VALIDE 0 écarts ; test-vlp.py OK, 428 → 429 verifier ; pyright 0 errors</span>
-        <span class="cout mono">≈4,8M (4 753 856) · 34 tours · 2,65 $</span>
-      </details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">VID1</span></span>
+        <details><summary><span class="titre">Écrire vlp.py vigile, testé</span><span class="etat">Faite</span></summary>
+        <span class="note">test-vlp.py OK, 413 → 428 verifier (15 « vigile : … ») ; 3 mutants (commentaire ouvert, sans style, zéro bloc) tombent chacun, défaits ; pyright scripts/ 0 errors</span></details>
+        <span class="cout mono">≈2,9M (2 869 785) · 22 tours · 1,41 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">VID2</span></span>
+        <details><summary><span class="titre">Brancher le hook avant Artifact, et l'essayer pour de vrai</span><span class="etat">Faite</span></summary>
+        <span class="note">Page cassée refusée par le hook (commentaire ouvert, aucun style, aucun bloc) ; page saine publiée, https://claude.ai/artifact/TNwKiiEfpRM9NgzhsnW11x ; valider VALIDE 0 écarts ; test-vlp.py OK, 428 → 429 verifier ; pyright 0 errors</span></details>
+        <span class="cout mono">≈4,8M (4 753 856) · 34 tours · 2,65 $</span></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈4,2M (4 221 457) · 28 tours · 2,14 $</p>
     <p class="mono cout-total">Coût du chantier : ≈11,8M (11 845 098) · 84 tours · 6,20 $</p>
@@ -78,3 +75,4 @@
     <span>Mis à jour le <span class="mono">2026-09-27</span></span>
   </footer>
 </div>
+<script src="vlp.js"></script>

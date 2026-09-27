@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>vlp — Le kit sans Git Bash</title>
 <!--
   GABARIT — artefact d'un chantier. Publié par /chantier à l'ouverture,
@@ -15,7 +16,7 @@
 
 <div class="page">
   <header>
-    <div class="eyebrow">vlp · fiches G1–G2</div>
+    <div class="eyebrow">vlp · fiches G1–G2 · <a href="https://claude.ai/code/artifact/ff1fc060-daca-486f-b4c6-e1f55114c0f7">la feuille de route</a></div>
     <h1>Le kit sans Git Bash</h1>
     <p>Une session -p avec l'outil PowerShell seul : le hook rend VALIDE sans erreur, et le prérequis des commandes est écrit, cité de la doc.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
@@ -38,17 +39,13 @@
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">G1</span><span class="titre">Établir quel shell lance hook, injection et outil</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">Tableau 5 mécanismes, sourcés doc + 3 sondes -p (0,115 $) : sans Git Bash, hook sh → exit 1 muet, injection → skill en échec ; forme exec python …/vlp.py hook → VALIDE 1 fiches.</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">G2</span><span class="titre">Corriger le hook ou écrire le prérequis</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">Prérequis Git for Windows écrit dans README (doc citée, erreur mesurée) ; hook inchangé (VALIDE 1 fiches) ; tests OK 59 assertions, renvois 0 absent, validate 1 avertissement voulu ; TODO n° 16 ouverte.</span>
-        <span class="cout mono">≈8,4M (8 406 843) · 59 tours · 6,91 $</span>
-      </details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">G1</span></span>
+        <details><summary><span class="titre">Établir quel shell lance hook, injection et outil</span><span class="etat">Faite</span></summary>
+        <span class="note">Tableau 5 mécanismes, sourcés doc + 3 sondes -p (0,115 $) : sans Git Bash, hook sh → exit 1 muet, injection → skill en échec ; forme exec python …/vlp.py hook → VALIDE 1 fiches.</span></details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">G2</span></span>
+        <details><summary><span class="titre">Corriger le hook ou écrire le prérequis</span><span class="etat">Faite</span></summary>
+        <span class="note">Prérequis Git for Windows écrit dans README (doc citée, erreur mesurée) ; hook inchangé (VALIDE 1 fiches) ; tests OK 59 assertions, renvois 0 absent, validate 1 avertissement voulu ; TODO n° 16 ouverte.</span></details>
+        <span class="cout mono">≈8,4M (8 406 843) · 59 tours · 6,91 $</span></li>
     </ul>
     <p class="mono cout-total">Coût du chantier : ≈8,4M (8 406 843) · 59 tours · 6,91 $</p>
     <!-- ligne de total, absente si aucune fiche n'a de coût mesuré -->
@@ -76,3 +73,4 @@
     <span>Mis à jour le <span class="mono">2026-09-17</span></span>
   </footer>
 </div>
+<script src="vlp.js"></script>

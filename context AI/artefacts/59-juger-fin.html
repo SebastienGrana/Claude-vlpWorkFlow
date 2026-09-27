@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>vlp — Le gardien ne juge que la fin du message</title>
 <!--
   GABARIT — artefact d'un chantier. Publié par /chantier à l'ouverture,
@@ -15,7 +16,7 @@
 
 <div class="page">
   <header>
-    <div class="eyebrow">vlp · fiches JUG1–JUG3</div>
+    <div class="eyebrow">vlp · fiches JUG1–JUG3 · <a href="https://claude.ai/code/artifact/ff1fc060-daca-486f-b4c6-e1f55114c0f7">la feuille de route</a></div>
     <h1>Le gardien ne juge que la fin du message</h1>
     <p>Un verdict qui cite la jauge ou « En résumé » en prose n'est plus renvoyé ; une vraie fin hors contrat l'est toujours — prouvé sur un vrai sous-agent.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
@@ -38,24 +39,18 @@
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">JUG1</span><span class="titre">Mesurer les trois règles sur les vraies transcriptions</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">test-vlp.py OK, verifier( 284 → 287 ; mutant tete=tout tombe au 1er test ; FORME renvoyés tout 16 · tiret 16 · deux 11 · tete 14 sur 29 ; règle retenue : tete</span>
-        <span class="cout mono">≈2,9M (2 911 195) · 28 tours · 1,61 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">JUG2</span><span class="titre">Faire juger la règle retenue, au gardien et à la mesure</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">test-vlp.py OK, verifier( 287 → 289 ; mutant REGLE=tout : le relecteur de FOR3 tombe ; FORME tout resume 12 jauge 14 → tete resume 10 jauge 14, renvoyés 16 → 14 sur 29</span>
-        <span class="cout mono">≈2,0M (2 006 666) · 14 tours · 0,86 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">JUG3</span><span class="titre">Essayer le gardien sur un vrai sous-agent</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">relecteur en prose : renvoyé 0 fois ; relecteur à résumé à part : renvoyé 1 fois puis fin réécrite ; FORME 2 sous-agents · resume 0 · jauge 0 · tete 2 ; 0,13 $ les deux</span>
-        <span class="cout mono">≈2,0M (2 044 013) · 15 tours · 0,82 $</span>
-      </details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">JUG1</span></span>
+        <details><summary><span class="titre">Mesurer les trois règles sur les vraies transcriptions</span><span class="etat">Faite</span></summary>
+        <span class="note">test-vlp.py OK, verifier( 284 → 287 ; mutant tete=tout tombe au 1er test ; FORME renvoyés tout 16 · tiret 16 · deux 11 · tete 14 sur 29 ; règle retenue : tete</span></details>
+        <span class="cout mono">≈2,9M (2 911 195) · 28 tours · 1,61 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">JUG2</span></span>
+        <details><summary><span class="titre">Faire juger la règle retenue, au gardien et à la mesure</span><span class="etat">Faite</span></summary>
+        <span class="note">test-vlp.py OK, verifier( 287 → 289 ; mutant REGLE=tout : le relecteur de FOR3 tombe ; FORME tout resume 12 jauge 14 → tete resume 10 jauge 14, renvoyés 16 → 14 sur 29</span></details>
+        <span class="cout mono">≈2,0M (2 006 666) · 14 tours · 0,86 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">JUG3</span></span>
+        <details><summary><span class="titre">Essayer le gardien sur un vrai sous-agent</span><span class="etat">Faite</span></summary>
+        <span class="note">relecteur en prose : renvoyé 0 fois ; relecteur à résumé à part : renvoyé 1 fois puis fin réécrite ; FORME 2 sous-agents · resume 0 · jauge 0 · tete 2 ; 0,13 $ les deux</span></details>
+        <span class="cout mono">≈2,0M (2 044 013) · 15 tours · 0,82 $</span></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈3,3M (3 311 696) · 25 tours · 2,37 $</p>
     <p class="mono cout-total">Coût du chantier : ≈10,3M (10 273 570) · 82 tours · 5,66 $</p>
@@ -84,3 +79,4 @@
     <span>Mis à jour le <span class="mono">2026-09-25</span></span>
   </footer>
 </div>
+<script src="vlp.js"></script>

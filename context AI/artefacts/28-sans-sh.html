@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>vlp — Le kit sans sh</title>
 <!--
   GABARIT — artefact d'un chantier. Publié par /chantier à l'ouverture,
@@ -15,7 +16,7 @@
 
 <div class="page">
   <header>
-    <div class="eyebrow">vlp · fiches X1–X3</div>
+    <div class="eyebrow">vlp · fiches X1–X3 · <a href="https://claude.ai/code/artifact/ff1fc060-daca-486f-b4c6-e1f55114c0f7">la feuille de route</a></div>
     <h1>Le kit sans sh</h1>
     <p>Deux tableaux mesurés (hook, carte injectée) sous Windows PowerShell et Ubuntu, puis le candidat appliqué — ou le n° 16 reformulé avec sa raison</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
@@ -39,22 +40,16 @@
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">X1</span><span class="titre">Sonder le hook sans sh</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">5 candidats × 2 systèmes : aucun seul ne passe ; paire exec python3 + py passe les deux (Win 49 puis 0 VALIDE, Ubuntu 1 puis 0 VALIDE) ; 10 sondes, 0,313 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">X2</span><span class="titre">Sonder la carte injectée sans sh</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">6 candidats × 2 systèmes : seul python3 … || python … lance la skill partout (Windows pwsh 7.6.6, message du Store dans la carte ; 5.1 refuse ||) ; une dernière commande en erreur fait échouer la skill à 0 tour ; 23 sondes, 0,443 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">X3</span><span class="titre">Appliquer ou renoncer</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">Renoncé (choix de l'utilisateur) : ordre inversé sondé, py … || python3 … propre sous pwsh 7, Git Bash et Ubuntu (6 sondes, 0,141 $) ; rien d'appliqué, recette dans la TODO n° 16 ; git diff sans fichier du plugin</span>
-        <span class="cout mono">≈10,7M (10 667 382) · 67 tours · 8,73 $</span>
-      </details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">X1</span></span>
+        <details><summary><span class="titre">Sonder le hook sans sh</span><span class="etat">Faite</span></summary>
+        <span class="note">5 candidats × 2 systèmes : aucun seul ne passe ; paire exec python3 + py passe les deux (Win 49 puis 0 VALIDE, Ubuntu 1 puis 0 VALIDE) ; 10 sondes, 0,313 $</span></details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">X2</span></span>
+        <details><summary><span class="titre">Sonder la carte injectée sans sh</span><span class="etat">Faite</span></summary>
+        <span class="note">6 candidats × 2 systèmes : seul python3 … || python … lance la skill partout (Windows pwsh 7.6.6, message du Store dans la carte ; 5.1 refuse ||) ; une dernière commande en erreur fait échouer la skill à 0 tour ; 23 sondes, 0,443 $</span></details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">X3</span></span>
+        <details><summary><span class="titre">Appliquer ou renoncer</span><span class="etat">Faite</span></summary>
+        <span class="note">Renoncé (choix de l'utilisateur) : ordre inversé sondé, py … || python3 … propre sous pwsh 7, Git Bash et Ubuntu (6 sondes, 0,141 $) ; rien d'appliqué, recette dans la TODO n° 16 ; git diff sans fichier du plugin</span></details>
+        <span class="cout mono">≈10,7M (10 667 382) · 67 tours · 8,73 $</span></li>
     </ul>
     <p class="mono cout-total">Coût du chantier : ≈10,7M (10 667 382) · 67 tours · 8,73 $</p>
     <!-- ligne de total, absente si aucune fiche n'a de coût mesuré -->
@@ -81,3 +76,4 @@
     <span>Mis à jour le <span class="mono">2026-09-17</span></span>
   </footer>
 </div>
+<script src="vlp.js"></script>

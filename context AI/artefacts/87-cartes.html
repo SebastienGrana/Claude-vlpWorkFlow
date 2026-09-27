@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>vlp — La feuille de route plus courte et lisible</title>
 <!--
   GABARIT — artefact d'un chantier. Publié par /chantier à l'ouverture,
@@ -39,54 +40,38 @@
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">FEU1</span><span class="titre">Mesurer les feuilles avant</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">## Mesures écrit (grep -c = 1) : kit 3,39 écrans (2931 px), Cairn 13,79 (11 913 px) ; aucun défilement de côté à 1536, TODO et clos défilent à 375 ; Artifact read 23 274 / 22 378 tokens ; page_vs_source Cairn rangs 16 · entiers 15 (le rang au badge en cours)</span>
-        <span class="cout mono">≈8,8M (8 814 425) · 44 tours · 2,94 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">FEU2</span><span class="titre">Lire la zone TODO sans déborder</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">test_zone_todo vert : cartes → forme cartes, fin avant ZONE:clos, badge relu rang 30 ; tableau → mêmes bornes que zone() ; zone vide → ValueError. Mutant (borne retirée, tableau d'abord) → forme tableau, ligne des clos, le test tombe. 3 suites OK, pyright 0 erreur ; Cairn feuille --verifier identique (16 rangs)</span>
-        <span class="cout mono">≈7,2M (7 215 045) · 45 tours · 3,56 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">FEU3</span><span class="titre">Écrire la TODO en cartes</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">test_feuille_en_cartes vert : tableau d'avant (préambule + badge) → 0 &lt;table&gt;, 3 cartes pour 3 rangs, cellules via cellule_md, badge rang 4 ; 2e appel inchangée ; vigile PAGE SAINE. Mutant (détail vide) → ÉCART feuille : TODO rendue. Tests OK, pyright 0 erreur</span>
-        <span class="cout mono">≈5,1M (5 148 038) · 28 tours · 2,41 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">FEU4</span><span class="titre">Poser le sommaire</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">test_sommaire vert : feuille sans sommaire → 1 nav sous &lt;/header&gt;, 3 liens, id encours/todo/clos 1 fois chacun, dans l'ordre ; 2e appel inchangée. Mutant (garde déjà posé retirée) → ÉCART feuille : idempotente ; seul, 2 nav et 2 id encours. Tests OK, pyright 0 erreur</span>
-        <span class="cout mono">≈2,5M (2 498 724) · 18 tours · 1,09 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">FEU5</span><span class="titre">Faire lire les cartes aux outils de l'audit</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">page_vs_source Cairn tableau : ancien rangs 16 · entiers 15 (= FEU1), nouveau 16 · 16 — l'écart est le badge en cours, retiré comme FEU1 le demandait (badge gardé : 16 · 15). Copie en cartes : ancien 29 · 0 (table des clos), nouveau 16 · 16. rejeu.py code 0 sur les deux formes (todo_lignes 16, coches 2). Mutant (borne retirée, tableau d'abord) → 29 · 0. pyright 3 → 2 erreurs</span>
-        <span class="cout mono">≈2,3M (2 297 802) · 13 tours · 1,15 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">FEU7</span><span class="titre">Un lien vers la feuille de route sur la page du chantier</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">tests verts, pyright 0 erreur, grep -c "la feuille de route&lt;/a&gt;" context AI/artefacts/87-cartes.html rend 1</span>
-        <span class="cout mono">≈8,4M (8 446 778) · 57 tours · 2,97 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">FEU8</span><span class="titre">Le détail des chantiers possibles</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">tests verts, pyright 0 erreur, mutant (borne basse) tombe, vlp.py feuille sur copie kit à 7 rangs rend 7 chantiers possibles · 2 petits, 1 moyen, 2 gros, 2 pas estimés · 1 bloqué · ≈17 fiches estimées</span>
-        <span class="cout mono">≈7,6M (7 618 447) · 45 tours · 2,43 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">FEU6</span><span class="titre">Régénérer, mesurer après, republier</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">Mesures avant/après écrites (écrans, défilement, coût tokens, page_vs_source) ; Cairn cartes fermées 3,15 écrans (≤5) ; 0 défilement à 375×812 ; page_vs_source rangs 16 = entiers 16 ; confirmé visuellement par l'utilisateur</span>
-        <span class="cout mono">≈15,1M (15 098 852) · 85 tours · 5,21 $</span>
-      </details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">FEU1</span></span>
+        <details><summary><span class="titre">Mesurer les feuilles avant</span><span class="etat">Faite</span></summary>
+        <span class="note">## Mesures écrit (grep -c = 1) : kit 3,39 écrans (2931 px), Cairn 13,79 (11 913 px) ; aucun défilement de côté à 1536, TODO et clos défilent à 375 ; Artifact read 23 274 / 22 378 tokens ; page_vs_source Cairn rangs 16 · entiers 15 (le rang au badge en cours)</span></details>
+        <span class="cout mono">≈8,8M (8 814 425) · 44 tours · 2,94 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">FEU2</span></span>
+        <details><summary><span class="titre">Lire la zone TODO sans déborder</span><span class="etat">Faite</span></summary>
+        <span class="note">test_zone_todo vert : cartes → forme cartes, fin avant ZONE:clos, badge relu rang 30 ; tableau → mêmes bornes que zone() ; zone vide → ValueError. Mutant (borne retirée, tableau d'abord) → forme tableau, ligne des clos, le test tombe. 3 suites OK, pyright 0 erreur ; Cairn feuille --verifier identique (16 rangs)</span></details>
+        <span class="cout mono">≈7,2M (7 215 045) · 45 tours · 3,56 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">FEU3</span></span>
+        <details><summary><span class="titre">Écrire la TODO en cartes</span><span class="etat">Faite</span></summary>
+        <span class="note">test_feuille_en_cartes vert : tableau d'avant (préambule + badge) → 0 &lt;table&gt;, 3 cartes pour 3 rangs, cellules via cellule_md, badge rang 4 ; 2e appel inchangée ; vigile PAGE SAINE. Mutant (détail vide) → ÉCART feuille : TODO rendue. Tests OK, pyright 0 erreur</span></details>
+        <span class="cout mono">≈5,1M (5 148 038) · 28 tours · 2,41 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">FEU4</span></span>
+        <details><summary><span class="titre">Poser le sommaire</span><span class="etat">Faite</span></summary>
+        <span class="note">test_sommaire vert : feuille sans sommaire → 1 nav sous &lt;/header&gt;, 3 liens, id encours/todo/clos 1 fois chacun, dans l'ordre ; 2e appel inchangée. Mutant (garde déjà posé retirée) → ÉCART feuille : idempotente ; seul, 2 nav et 2 id encours. Tests OK, pyright 0 erreur</span></details>
+        <span class="cout mono">≈2,5M (2 498 724) · 18 tours · 1,09 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">FEU5</span></span>
+        <details><summary><span class="titre">Faire lire les cartes aux outils de l'audit</span><span class="etat">Faite</span></summary>
+        <span class="note">page_vs_source Cairn tableau : ancien rangs 16 · entiers 15 (= FEU1), nouveau 16 · 16 — l'écart est le badge en cours, retiré comme FEU1 le demandait (badge gardé : 16 · 15). Copie en cartes : ancien 29 · 0 (table des clos), nouveau 16 · 16. rejeu.py code 0 sur les deux formes (todo_lignes 16, coches 2). Mutant (borne retirée, tableau d'abord) → 29 · 0. pyright 3 → 2 erreurs</span></details>
+        <span class="cout mono">≈2,3M (2 297 802) · 13 tours · 1,15 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">FEU7</span></span>
+        <details><summary><span class="titre">Un lien vers la feuille de route sur la page du chantier</span><span class="etat">Faite</span></summary>
+        <span class="note">tests verts, pyright 0 erreur, grep -c "la feuille de route&lt;/a&gt;" context AI/artefacts/87-cartes.html rend 1</span></details>
+        <span class="cout mono">≈8,4M (8 446 778) · 57 tours · 2,97 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">FEU8</span></span>
+        <details><summary><span class="titre">Le détail des chantiers possibles</span><span class="etat">Faite</span></summary>
+        <span class="note">tests verts, pyright 0 erreur, mutant (borne basse) tombe, vlp.py feuille sur copie kit à 7 rangs rend 7 chantiers possibles · 2 petits, 1 moyen, 2 gros, 2 pas estimés · 1 bloqué · ≈17 fiches estimées</span></details>
+        <span class="cout mono">≈7,6M (7 618 447) · 45 tours · 2,43 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">FEU6</span></span>
+        <details><summary><span class="titre">Régénérer, mesurer après, republier</span><span class="etat">Faite</span></summary>
+        <span class="note">Mesures avant/après écrites (écrans, défilement, coût tokens, page_vs_source) ; Cairn cartes fermées 3,15 écrans (≤5) ; 0 défilement à 375×812 ; page_vs_source rangs 16 = entiers 16 ; confirmé visuellement par l'utilisateur</span></details>
+        <span class="cout mono">≈15,1M (15 098 852) · 85 tours · 5,21 $</span></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈7,3M (7 329 926) · 46 tours · 5,01 $</p>
     <p class="mono cout-total">Coût du chantier : ≈64,5M (64 468 037) · 381 tours · 26,77 $</p>
@@ -117,3 +102,4 @@
     <span>Mis à jour le <span class="mono">2026-09-27</span></span>
   </footer>
 </div>
+<script src="vlp.js"></script>

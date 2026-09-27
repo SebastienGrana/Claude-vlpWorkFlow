@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>vlp — Les essais claude -p dans le coût</title>
 <!--
   GABARIT — artefact d'un chantier. Publié par /chantier à l'ouverture,
@@ -15,7 +16,7 @@
 
 <div class="page">
   <header>
-    <div class="eyebrow">vlp · fiches ESS1–ESS4</div>
+    <div class="eyebrow">vlp · fiches ESS1–ESS4 · <a href="https://claude.ai/code/artifact/ff1fc060-daca-486f-b4c6-e1f55114c0f7">la feuille de route</a></div>
     <h1>Les essais claude -p dans le coût</h1>
     <p>vlp.py cout compte les essais claude -p dans le prix de leur fiche, avec une part essais à côté ; les 14 clos recomptés face aux ≈ 12,32 $ notés à la main</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
@@ -38,30 +39,22 @@
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">ESS1</span><span class="titre">Mesurer les bacs contre les essais notés</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">8 sondes notées, 8 trouvées, 0 absente (4,5734 $ notés, 4,3001 $ mesurés) ; 10 evals notées, 0 dossier (7,74 $, dehors) ; 13 dossiers sans note (Y, U, Q : 3,5982 $) ; 39 dossiers = 7,8983 $</span>
-        <span class="cout mono">≈2,6M (2 640 838) · 25 tours · 1,61 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">ESS2</span><span class="titre">Trouver les essais d'une session</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">test-vlp.py OK (verifier( 297 → 300) : A 2 chemins, B 1, inconnue 0 ; mutant sans -scratchpad- : ÉCART, l'intrus pris ; pyright 0 errors avant et après ; vrai disque : SAG 3, X 26</span>
-        <span class="cout mono">≈1,9M (1 879 587) · 13 tours · 0,73 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">ESS3</span><span class="titre">Compter les essais dans cout</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">test-vlp.py OK (verifier( 300 → 301) : Q1 = session + 1 essai (sous-agent compris), hors fiches = 1 essai, TOTAL = 2 essais ; mutant sans sorte 2 : ÉCART ; pyright 0 errors ; cout REC avant/après identique (REC sans essai)</span>
-        <span class="cout mono">≈2,6M (2 608 455) · 15 tours · 2,14 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">ESS4</span><span class="titre">Recompter les chantiers clos</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">noté 12,3134 $ (4,5734 sondes + 7,74 evals) · trouvé par cout 0,77 $ (SAG 0,46 · FIL 0,31) · écart −11,5434 $ · 6 chantiers sur 8 au-delà de 0,05 $ · causes : chantier gardé 9, dossier absent 1, arrondi 2, hors plage 0, sous-agent 0</span>
-        <span class="cout mono">≈2,2M (2 198 859) · 22 tours · 1,62 $</span>
-      </details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">ESS1</span></span>
+        <details><summary><span class="titre">Mesurer les bacs contre les essais notés</span><span class="etat">Faite</span></summary>
+        <span class="note">8 sondes notées, 8 trouvées, 0 absente (4,5734 $ notés, 4,3001 $ mesurés) ; 10 evals notées, 0 dossier (7,74 $, dehors) ; 13 dossiers sans note (Y, U, Q : 3,5982 $) ; 39 dossiers = 7,8983 $</span></details>
+        <span class="cout mono">≈2,6M (2 640 838) · 25 tours · 1,61 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">ESS2</span></span>
+        <details><summary><span class="titre">Trouver les essais d'une session</span><span class="etat">Faite</span></summary>
+        <span class="note">test-vlp.py OK (verifier( 297 → 300) : A 2 chemins, B 1, inconnue 0 ; mutant sans -scratchpad- : ÉCART, l'intrus pris ; pyright 0 errors avant et après ; vrai disque : SAG 3, X 26</span></details>
+        <span class="cout mono">≈1,9M (1 879 587) · 13 tours · 0,73 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">ESS3</span></span>
+        <details><summary><span class="titre">Compter les essais dans cout</span><span class="etat">Faite</span></summary>
+        <span class="note">test-vlp.py OK (verifier( 300 → 301) : Q1 = session + 1 essai (sous-agent compris), hors fiches = 1 essai, TOTAL = 2 essais ; mutant sans sorte 2 : ÉCART ; pyright 0 errors ; cout REC avant/après identique (REC sans essai)</span></details>
+        <span class="cout mono">≈2,6M (2 608 455) · 15 tours · 2,14 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">ESS4</span></span>
+        <details><summary><span class="titre">Recompter les chantiers clos</span><span class="etat">Faite</span></summary>
+        <span class="note">noté 12,3134 $ (4,5734 sondes + 7,74 evals) · trouvé par cout 0,77 $ (SAG 0,46 · FIL 0,31) · écart −11,5434 $ · 6 chantiers sur 8 au-delà de 0,05 $ · causes : chantier gardé 9, dossier absent 1, arrondi 2, hors plage 0, sous-agent 0</span></details>
+        <span class="cout mono">≈2,2M (2 198 859) · 22 tours · 1,62 $</span></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈2,9M (2 926 324) · 24 tours · 2,09 $</p>
     <p class="mono cout-total">Coût du chantier : ≈12,3M (12 254 063) · 99 tours · 8,19 $</p>
@@ -91,3 +84,4 @@
     <span>Mis à jour le <span class="mono">2026-09-25</span></span>
   </footer>
 </div>
+<script src="vlp.js"></script>

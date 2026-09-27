@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>vlp — Fusionner la doctrine</title>
 <!--
   GABARIT — artefact d'un chantier. Publié par /chantier à l'ouverture,
@@ -16,7 +17,7 @@
 
 <div class="page">
   <header>
-    <div class="eyebrow">vlp · fiches D1–D6</div>
+    <div class="eyebrow">vlp · fiches D1–D6 · <a href="https://claude.ai/code/artifact/ff1fc060-daca-486f-b4c6-e1f55114c0f7">la feuille de route</a></div>
     <h1>Fusionner la doctrine</h1>
     <p>Trois docs à la racine (README, méthode, ARTEFACTS) ; chaque seuil dans vlp.py seul, chaque règle dans la méthode seule — comptes bruts avant/après, evals 3/3</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
@@ -39,37 +40,25 @@
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">D1</span><span class="titre">Loger les seuils dans le script</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">test-vlp.py OK, verifier() 45 → 47 ; grep ARTEFACTS dans vlp.py : 0 ligne ; SEUIL_SOCLE = 80 avertit</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">D2</span><span class="titre">Fondre CONVENTION-FICHIERS dans la méthode</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">grep CONVENTION-FICHIERS hors context AI/archive/exemples : rien ; méthode 202 lignes (127 + 121 = 248 avant) ; tests OK</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">D3</span><span class="titre">Fondre INSTALLATION et le TLDR dans le README</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">grep INSTALLATION|TLDR hors context AI/archive/exemples : rien ; README 141 lignes (162 + 163 + 73 = 398 avant)</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">D4</span><span class="titre">Nettoyer ARTEFACTS, cloture et enchainement</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">grep 250|comptes bruts|un seul endroit : 2 lignes, deux renvois à la méthode (cloture:40, enchainement:8) ; lignes 148+102+15 = 265 → 118+101+14 = 233</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">D5</span><span class="titre">Nettoyer les commandes et les gabarits</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">grep 250|80 lignes dans commands et templates : rien ; commands 274/122/146/179/151 = 872 → 273/120/145/179/151 = 868 ; tests OK</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">D6</span><span class="titre">Compter, puis rejouer les evals</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">motifs : 250 6 → 1 fichier (vlp.py), 80 lignes 2 → 1 (test-vlp.py), comptes bruts 9 → 10 (ordres d'agir), un seul endroit|une seule fois 5 → 3 ; validate propre ; evals 3/3, 40 tours, 0,55 $ (V4 : 39 tours, 0,93 $)</span>
-        <span class="cout mono">≈7,3M (7 277 093) · 60 tours · 6,06 $</span>
-      </details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">D1</span></span>
+        <details><summary><span class="titre">Loger les seuils dans le script</span><span class="etat">Faite</span></summary>
+        <span class="note">test-vlp.py OK, verifier() 45 → 47 ; grep ARTEFACTS dans vlp.py : 0 ligne ; SEUIL_SOCLE = 80 avertit</span></details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">D2</span></span>
+        <details><summary><span class="titre">Fondre CONVENTION-FICHIERS dans la méthode</span><span class="etat">Faite</span></summary>
+        <span class="note">grep CONVENTION-FICHIERS hors context AI/archive/exemples : rien ; méthode 202 lignes (127 + 121 = 248 avant) ; tests OK</span></details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">D3</span></span>
+        <details><summary><span class="titre">Fondre INSTALLATION et le TLDR dans le README</span><span class="etat">Faite</span></summary>
+        <span class="note">grep INSTALLATION|TLDR hors context AI/archive/exemples : rien ; README 141 lignes (162 + 163 + 73 = 398 avant)</span></details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">D4</span></span>
+        <details><summary><span class="titre">Nettoyer ARTEFACTS, cloture et enchainement</span><span class="etat">Faite</span></summary>
+        <span class="note">grep 250|comptes bruts|un seul endroit : 2 lignes, deux renvois à la méthode (cloture:40, enchainement:8) ; lignes 148+102+15 = 265 → 118+101+14 = 233</span></details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">D5</span></span>
+        <details><summary><span class="titre">Nettoyer les commandes et les gabarits</span><span class="etat">Faite</span></summary>
+        <span class="note">grep 250|80 lignes dans commands et templates : rien ; commands 274/122/146/179/151 = 872 → 273/120/145/179/151 = 868 ; tests OK</span></details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">D6</span></span>
+        <details><summary><span class="titre">Compter, puis rejouer les evals</span><span class="etat">Faite</span></summary>
+        <span class="note">motifs : 250 6 → 1 fichier (vlp.py), 80 lignes 2 → 1 (test-vlp.py), comptes bruts 9 → 10 (ordres d'agir), un seul endroit|une seule fois 5 → 3 ; validate propre ; evals 3/3, 40 tours, 0,55 $ (V4 : 39 tours, 0,93 $)</span></details>
+        <span class="cout mono">≈7,3M (7 277 093) · 60 tours · 6,06 $</span></li>
     </ul>
     <p class="mono cout-total">Coût du chantier : ≈7,3M (7 277 093) · 60 tours · 6,06 $</p>
     <!-- ligne de total, absente si aucune fiche n'a de coût mesuré -->
@@ -97,3 +86,4 @@
     <span>Mis à jour le <span class="mono">2026-09-17</span></span>
   </footer>
 </div>
+<script src="vlp.js"></script>

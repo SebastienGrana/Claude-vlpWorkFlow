@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>vlp — Le relecteur ne voit pas la suite</title>
 <!--
   GABARIT — artefact d'un chantier. Publié par /chantier à l'ouverture,
@@ -15,7 +16,7 @@
 
 <div class="page">
   <header>
-    <div class="eyebrow">vlp · fiches REL1–REL3</div>
+    <div class="eyebrow">vlp · fiches REL1–REL3 · <a href="https://claude.ai/code/artifact/ff1fc060-daca-486f-b4c6-e1f55114c0f7">la feuille de route</a></div>
     <h1>Le relecteur ne voit pas la suite</h1>
     <p>Le relecteur reçoit une carte sans titres de fiches ni PROCHAINE= : un test et son mutant le prouvent, et la skill vlp:relire l'injecte.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
@@ -38,24 +39,18 @@
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">REL1</span><span class="titre">Mesurer ce que le relecteur tire de la carte</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">rel1-carte.py : 42 lignes = 42 vlp:relecture de forme ; TOTAL autres 56 (15) · prochaine 1 (1) · libelles 54 (11) · entier 1 (1) · plage 2 (1) · grep 0</span>
-        <span class="cout mono">≈2,7M (2 652 409) · 25 tours · 1,43 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">REL2</span><span class="titre">Donner à vlp.py carte l'option --relecteur</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">test-vlp.py OK (verifier( 331 → 335), test_carte_relecteur ; mutant « option ignorée » → ÉCART ; carte sans option identique à l'octet ; pyright scripts/ 0 erreur</span>
-        <span class="cout mono">≈1,7M (1 723 804) · 13 tours · 0,69 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">REL3</span><span class="titre">Injecter la carte réduite dans vlp:relire</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">--relecteur : 3 occurrences sur 1 ligne dans relire (grep -c 1, grep -o 3), 0 dans jouer et enchainer ; ligne injectée dans un bac : 0 titre · 1 PROJET= · 0 PROCHAINE=</span>
-        <span class="cout mono">≈1,0M (1 029 489) · 7 tours · 0,37 $</span>
-      </details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REL1</span></span>
+        <details><summary><span class="titre">Mesurer ce que le relecteur tire de la carte</span><span class="etat">Faite</span></summary>
+        <span class="note">rel1-carte.py : 42 lignes = 42 vlp:relecture de forme ; TOTAL autres 56 (15) · prochaine 1 (1) · libelles 54 (11) · entier 1 (1) · plage 2 (1) · grep 0</span></details>
+        <span class="cout mono">≈2,7M (2 652 409) · 25 tours · 1,43 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REL2</span></span>
+        <details><summary><span class="titre">Donner à vlp.py carte l'option --relecteur</span><span class="etat">Faite</span></summary>
+        <span class="note">test-vlp.py OK (verifier( 331 → 335), test_carte_relecteur ; mutant « option ignorée » → ÉCART ; carte sans option identique à l'octet ; pyright scripts/ 0 erreur</span></details>
+        <span class="cout mono">≈1,7M (1 723 804) · 13 tours · 0,69 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REL3</span></span>
+        <details><summary><span class="titre">Injecter la carte réduite dans vlp:relire</span><span class="etat">Faite</span></summary>
+        <span class="note">--relecteur : 3 occurrences sur 1 ligne dans relire (grep -c 1, grep -o 3), 0 dans jouer et enchainer ; ligne injectée dans un bac : 0 titre · 1 PROJET= · 0 PROCHAINE=</span></details>
+        <span class="cout mono">≈1,0M (1 029 489) · 7 tours · 0,37 $</span></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈3,0M (2 994 013) · 25 tours · 2,10 $</p>
     <p class="mono cout-total">Coût du chantier : ≈8,4M (8 399 715) · 70 tours · 4,59 $</p>
@@ -83,3 +78,4 @@
     <span>Mis à jour le <span class="mono">2026-09-26</span></span>
   </footer>
 </div>
+<script src="vlp.js"></script>

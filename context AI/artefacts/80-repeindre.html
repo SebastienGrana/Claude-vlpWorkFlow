@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>vlp — Repeindre une page sans recompter</title>
 <!--
   GABARIT — artefact d'un chantier. Publié par /chantier à l'ouverture,
@@ -15,7 +16,7 @@
 
 <div class="page">
   <header>
-    <div class="eyebrow">vlp · fiches HAB1–HAB6</div>
+    <div class="eyebrow">vlp · fiches HAB1–HAB6 · <a href="https://claude.ai/code/artifact/ff1fc060-daca-486f-b4c6-e1f55114c0f7">la feuille de route</a></div>
     <h1>Repeindre une page sans recompter</h1>
     <p>Les 90 pages de chantiers clos (kit et Cairn) au format PLI, chiffres de coût inchangés, remises en ligne par lots ; les pages sans lien listées.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
@@ -39,42 +40,30 @@
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">HAB1</span><span class="titre">Écrire page --forme, testé</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">Test tester_forme : après --forme, total 11 262 523, hors 5 000 et coûts 1 111 / 2 222 identiques ; vlp.css lié, fiches repliées, bilan en haut, vigile PAGE SAINE ; --creer refusé ; mutant --forme ignoré → le test du total tombe ; pyright 0 erreur.</span>
-        <span class="cout mono">≈4,5M (4 524 748) · 32 tours · 2,10 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">HAB2</span><span class="titre">Écrire vlp.py repeindre &lt;projet&gt;</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">Test tester_repeindre : 3 clos (2 anciens, 1 au format) → 2 repeintes · 0 avec lien · 2 sans lien · 0 refusées · 1 déjà ; relancé 0 repeintes ; --a-blanc 0 octet changé ; mutant sans filtre → tombe ; parcours commun clos_du_projet avec recompter. À blanc : kit 64 repeintes, 3 déjà, 1 sans page ; Cairn 17, 2 déjà. pyright 0.</span>
-        <span class="cout mono">≈2,3M (2 322 787) · 16 tours · 0,96 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">HAB3</span><span class="titre">Retrouver les liens en ligne</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">Test tester_liens : lien écrit/relit l'URL, reste du .md intact, URL inattendue refusée, liens pose A et signale un DOUBLON ; mutant texte_abri sans la section → tombe ; pyright 0. Réel : liens kit 67 écrits · 1 sans page ; Cairn 19 écrits (17 suivis par Git, 2 ignorés). repeindre --a-blanc : kit 64 avec lien · 0 sans lien · 3 déjà · 1 sans page ; Cairn 17 avec lien · 0 sans lien · 2 déjà. 0 doublon, Artifact list inutile.</span>
-        <span class="cout mono">≈2,8M (2 847 845) · 17 tours · 1,01 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">HAB4</span><span class="titre">Kit : repeindre, et un premier lot en ligne mesuré</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">repeindre . : 64 repeintes · 64 avec lien · 0 sans lien · 0 refusées · 3 déjà · 1 sans page ; chiffres identiques 64/64 (154 coûts de fiche, 99 lignes total/hors), COMPARER 0 perdus 64/64, PAGE SAINE 64/64. Lot en ligne : 15 publiées, 0 arrêtée, 0 refusée (2 à la main, 13 par un sous-agent Sonnet) ; coût du lot 104 tours · ≈1,7M (1 681 848) · 4,60 $, soit 0,31 $/page ; sous-agent seul 56 tours · 2,13 $ = 0,16 $/page. Vu à l'œil : en local seulement (bilan en haut, fiches repliées, libellé abandonnée gardé) ; en ligne, écran de connexion : à regarder par l'utilisateur. Lots suivants : 13 pages par sous-agent.</span>
-        <span class="cout mono">≈18,5M (18 521 614) · 128 tours · 6,05 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">HAB5</span><span class="titre">Kit : les lots suivants</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">Kit en ligne 64/64 : HAB4 15, puis 4 lots en parallèle 13/13/13/10 = 49 publiées, 0 arrêtée, 0 refusée (2 limites de débit, repassées au 2e essai). repeindre . --a-blanc : 0 repeintes · 67 déjà · 1 sans page. Coût des 4 sous-agents Sonnet : 6,12 $ pour 49 pages = 0,125 $/page (2,68 · 1,95 · 0,87 · 0,62).</span>
-        <span class="cout mono">≈48,1M (48 078 532) · 336 tours · 13,35 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">HAB6</span><span class="titre">Cairn : repeindre et remettre en ligne</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">Cairn : repeindre 17 repeintes · 17 avec lien · 0 sans lien · 0 refusées · 4 déjà ; ses pages html ne sont pas suivies par Git (.gitignore:15, context AI/) : rien à commiter, le filet est la version en ligne. En ligne 17/17 : 16 par 2 sous-agents, 1 arrêtée par comparer puis publiée à la main (voir journal). repeindre ../Cairn-VlpLib --a-blanc : 0 repeintes · 21 déjà. Coût des 2 sous-agents : 3,54 $ pour 16 pages = 0,22 $/page ; tours comptés dans HAB5 (lots simultanés).</span>
-        <span class="cout mono">≈219,4k (219 383) · 1 tours · 0,08 $</span>
-      </details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">HAB1</span></span>
+        <details><summary><span class="titre">Écrire page --forme, testé</span><span class="etat">Faite</span></summary>
+        <span class="note">Test tester_forme : après --forme, total 11 262 523, hors 5 000 et coûts 1 111 / 2 222 identiques ; vlp.css lié, fiches repliées, bilan en haut, vigile PAGE SAINE ; --creer refusé ; mutant --forme ignoré → le test du total tombe ; pyright 0 erreur.</span></details>
+        <span class="cout mono">≈4,5M (4 524 748) · 32 tours · 2,10 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">HAB2</span></span>
+        <details><summary><span class="titre">Écrire vlp.py repeindre &lt;projet&gt;</span><span class="etat">Faite</span></summary>
+        <span class="note">Test tester_repeindre : 3 clos (2 anciens, 1 au format) → 2 repeintes · 0 avec lien · 2 sans lien · 0 refusées · 1 déjà ; relancé 0 repeintes ; --a-blanc 0 octet changé ; mutant sans filtre → tombe ; parcours commun clos_du_projet avec recompter. À blanc : kit 64 repeintes, 3 déjà, 1 sans page ; Cairn 17, 2 déjà. pyright 0.</span></details>
+        <span class="cout mono">≈2,3M (2 322 787) · 16 tours · 0,96 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">HAB3</span></span>
+        <details><summary><span class="titre">Retrouver les liens en ligne</span><span class="etat">Faite</span></summary>
+        <span class="note">Test tester_liens : lien écrit/relit l'URL, reste du .md intact, URL inattendue refusée, liens pose A et signale un DOUBLON ; mutant texte_abri sans la section → tombe ; pyright 0. Réel : liens kit 67 écrits · 1 sans page ; Cairn 19 écrits (17 suivis par Git, 2 ignorés). repeindre --a-blanc : kit 64 avec lien · 0 sans lien · 3 déjà · 1 sans page ; Cairn 17 avec lien · 0 sans lien · 2 déjà. 0 doublon, Artifact list inutile.</span></details>
+        <span class="cout mono">≈2,8M (2 847 845) · 17 tours · 1,01 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">HAB4</span></span>
+        <details><summary><span class="titre">Kit : repeindre, et un premier lot en ligne mesuré</span><span class="etat">Faite</span></summary>
+        <span class="note">repeindre . : 64 repeintes · 64 avec lien · 0 sans lien · 0 refusées · 3 déjà · 1 sans page ; chiffres identiques 64/64 (154 coûts de fiche, 99 lignes total/hors), COMPARER 0 perdus 64/64, PAGE SAINE 64/64. Lot en ligne : 15 publiées, 0 arrêtée, 0 refusée (2 à la main, 13 par un sous-agent Sonnet) ; coût du lot 104 tours · ≈1,7M (1 681 848) · 4,60 $, soit 0,31 $/page ; sous-agent seul 56 tours · 2,13 $ = 0,16 $/page. Vu à l'œil : en local seulement (bilan en haut, fiches repliées, libellé abandonnée gardé) ; en ligne, écran de connexion : à regarder par l'utilisateur. Lots suivants : 13 pages par sous-agent.</span></details>
+        <span class="cout mono">≈18,5M (18 521 614) · 128 tours · 6,05 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">HAB5</span></span>
+        <details><summary><span class="titre">Kit : les lots suivants</span><span class="etat">Faite</span></summary>
+        <span class="note">Kit en ligne 64/64 : HAB4 15, puis 4 lots en parallèle 13/13/13/10 = 49 publiées, 0 arrêtée, 0 refusée (2 limites de débit, repassées au 2e essai). repeindre . --a-blanc : 0 repeintes · 67 déjà · 1 sans page. Coût des 4 sous-agents Sonnet : 6,12 $ pour 49 pages = 0,125 $/page (2,68 · 1,95 · 0,87 · 0,62).</span></details>
+        <span class="cout mono">≈48,1M (48 078 532) · 336 tours · 13,35 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">HAB6</span></span>
+        <details><summary><span class="titre">Cairn : repeindre et remettre en ligne</span><span class="etat">Faite</span></summary>
+        <span class="note">Cairn : repeindre 17 repeintes · 17 avec lien · 0 sans lien · 0 refusées · 4 déjà ; ses pages html ne sont pas suivies par Git (.gitignore:15, context AI/) : rien à commiter, le filet est la version en ligne. En ligne 17/17 : 16 par 2 sous-agents, 1 arrêtée par comparer puis publiée à la main (voir journal). repeindre ../Cairn-VlpLib --a-blanc : 0 repeintes · 21 déjà. Coût des 2 sous-agents : 3,54 $ pour 16 pages = 0,22 $/page ; tours comptés dans HAB5 (lots simultanés).</span></details>
+        <span class="cout mono">≈219,4k (219 383) · 1 tours · 0,08 $</span></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈5,2M (5 196 057) · 36 tours · 2,90 $</p>
     <p class="mono cout-total">Coût du chantier : ≈81,7M (81 710 966) · 566 tours · 26,45 $</p>
@@ -112,3 +101,4 @@
     <span>Mis à jour le <span class="mono">2026-09-27</span></span>
   </footer>
 </div>
+<script src="vlp.js"></script>

@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>vlp — Un script vlp.py pour la mécanique</title>
 <!--
   GABARIT — artefact d'un chantier. Publié par /chantier à l'ouverture,
@@ -16,7 +17,7 @@
 
 <div class="page">
   <header>
-    <div class="eyebrow">vlp · fiches S1–S5</div>
+    <div class="eyebrow">vlp · fiches S1–S5 · <a href="https://claude.ai/code/artifact/ff1fc060-daca-486f-b4c6-e1f55114c0f7">la feuille de route</a></div>
     <h1>Un script vlp.py pour la mécanique</h1>
     <p>scripts/vlp.py, testé, offre carte, extraire, socle, sessions, valider et page ; carte.py est retiré ; les commandes l'appellent au lieu des sed/awk et du HTML retapé — gain prouvé avant/après, comptes bruts à côté.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
@@ -41,36 +42,26 @@
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">S1</span><span class="titre">Créer vlp.py : carte, extraire, socle, sessions</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">test-vlp.py : OK (contre-épreuve en échec). carte 65 lignes, extraire R3 24, socle 74 : diff vide avec carte.py, sed et awk. carte.py : 0 appel restant, retiré.</span>
-        <span class="cout mono">≈1,5M (1 531 037) · 10 tours · 1,31 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">S2</span><span class="titre">Ajouter valider</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">test-vlp.py : OK, 11 écarts testés + contre-épreuve en échec. Sur 09 à 16 : 7 bilans, 6 VALIDE, 1 INVALIDE — le (visuel) de C1 (11-conso.md:88), laissé tel quel.</span>
-        <span class="cout mono">≈2,3M (2 277 346) · 12 tours · 1,95 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">S3</span><span class="titre">Ajouter page</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">test-vlp.py : OK, 10 cas de page + 2 contre-épreuves en échec. --verifier sur R : À JOUR, 0 écart ; --creer sur S : 5 fiches, 136 lignes.</span>
-        <span class="cout mono">≈3,8M (3 830 649) · 16 tours · 3,17 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">S4</span><span class="titre">Brancher tache, enchainer, fiche, tache-page, cloture</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">sed/awk de mécanique : tache 5→0 (1 exemple de plage), enchainer 2→0, cloture 1→0. Blocs 1 et 6 bis exécutés tels qu'écrits. Appels prescrits 9→5, octets relus 11 530→9 463.</span>
-        <span class="cout mono">≈3,7M (3 727 395) · 14 tours · 3,34 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">S5</span><span class="titre">Brancher chantier, init, check, mesurer l'« après »</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">sed/awk 11 → 1 (prose), carte.py 4 → 0, /vlp:chantier étape 0 : 2 appels → 0 ; valider VALIDE 5 fiches · socle 50 · 0 écarts</span>
-        <span class="cout mono">≈3,9M (3 894 975) · 34 tours · 3,65 $</span>
-      </details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">S1</span></span>
+        <details><summary><span class="titre">Créer vlp.py : carte, extraire, socle, sessions</span><span class="etat">Faite</span></summary>
+        <span class="note">test-vlp.py : OK (contre-épreuve en échec). carte 65 lignes, extraire R3 24, socle 74 : diff vide avec carte.py, sed et awk. carte.py : 0 appel restant, retiré.</span></details>
+        <span class="cout mono">≈1,5M (1 531 037) · 10 tours · 1,31 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">S2</span></span>
+        <details><summary><span class="titre">Ajouter valider</span><span class="etat">Faite</span></summary>
+        <span class="note">test-vlp.py : OK, 11 écarts testés + contre-épreuve en échec. Sur 09 à 16 : 7 bilans, 6 VALIDE, 1 INVALIDE — le (visuel) de C1 (11-conso.md:88), laissé tel quel.</span></details>
+        <span class="cout mono">≈2,3M (2 277 346) · 12 tours · 1,95 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">S3</span></span>
+        <details><summary><span class="titre">Ajouter page</span><span class="etat">Faite</span></summary>
+        <span class="note">test-vlp.py : OK, 10 cas de page + 2 contre-épreuves en échec. --verifier sur R : À JOUR, 0 écart ; --creer sur S : 5 fiches, 136 lignes.</span></details>
+        <span class="cout mono">≈3,8M (3 830 649) · 16 tours · 3,17 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">S4</span></span>
+        <details><summary><span class="titre">Brancher tache, enchainer, fiche, tache-page, cloture</span><span class="etat">Faite</span></summary>
+        <span class="note">sed/awk de mécanique : tache 5→0 (1 exemple de plage), enchainer 2→0, cloture 1→0. Blocs 1 et 6 bis exécutés tels qu'écrits. Appels prescrits 9→5, octets relus 11 530→9 463.</span></details>
+        <span class="cout mono">≈3,7M (3 727 395) · 14 tours · 3,34 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">S5</span></span>
+        <details><summary><span class="titre">Brancher chantier, init, check, mesurer l'« après »</span><span class="etat">Faite</span></summary>
+        <span class="note">sed/awk 11 → 1 (prose), carte.py 4 → 0, /vlp:chantier étape 0 : 2 appels → 0 ; valider VALIDE 5 fiches · socle 50 · 0 écarts</span></details>
+        <span class="cout mono">≈3,9M (3 894 975) · 34 tours · 3,65 $</span></li>
     </ul>
     <p class="mono cout-total">Coût du chantier, cadrage compris : ≈17,6M (17 633 616) · 109 tours · 16,03 $</p>
   </section>
@@ -106,3 +97,4 @@
     <span>Mis à jour le <span class="mono">2026-09-17</span></span>
   </footer>
 </div>
+<script src="vlp.js"></script>

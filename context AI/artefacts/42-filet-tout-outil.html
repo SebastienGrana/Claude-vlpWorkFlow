@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>vlp — Le filet tire après tout outil</title>
 <!--
   GABARIT — artefact d'un chantier. Publié par /chantier à l'ouverture,
@@ -15,7 +16,7 @@
 
 <div class="page">
   <header>
-    <div class="eyebrow">vlp · fiches FIL1–FIL3</div>
+    <div class="eyebrow">vlp · fiches FIL1–FIL3 · <a href="https://claude.ai/code/artifact/ff1fc060-daca-486f-b4c6-e1f55114c0f7">la feuille de route</a></div>
     <h1>Le filet tire après tout outil</h1>
     <p>Le sous-agent est prévenu à trois tours du plafond, quel que soit l'outil qu'il vient d'appeler, même au bout d'un chemin de plus de 260 caractères — prouvé juste après un Read, et le prix du filet mesuré.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
@@ -38,24 +39,18 @@
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">FIL1</span><span class="titre">Vérifier et mesurer, avant d'écrire</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">Journal 2026-09-24 : tout outil = "*", "" ou matcher omis (doc) ; hooks en parallèle (doc, sonde inutile, 0 $) ; chemin long : 259 lu sans préfixe, à 260 et 280 isfile False, open FileNotFoundError, ouvrir lit ; filet à vide 327 · 328 · 300 · 316 · 298 ms. Imprévu : PostToolUseFailure, à trancher avant FIL2.</span>
-        <span class="cout mono">≈2,6M (2 559 092) · 17 tours · 2,73 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">FIL2</span><span class="titre">Brancher le filet sur tout outil, échecs compris, et sur les chemins longs</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">Tests OK, code 0, trois de plus (hooks.json ; après un échec ; chemin de 280 caractères), chacun tombé quand sa correction est cassée ; claude plugin validate code 0 sur les deux manifestes ; doc de PostToolUseFailure citée au journal ; filet à vide 327 · 328 · 300 · 316 · 298 ms avant, 324 · 307 · 311 · 346 · 311 ms après.</span>
-        <span class="cout mono">≈4,8M (4 769 108) · 23 tours · 4,73 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">FIL3</span><span class="titre">Éprouver le filet après un Read et après un échec, à plafond bas</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">F1 : 8 tours, averti « 3 tours restants » après le tour 7, un Read réussi (PostToolUse:Read, l. 54) ; F2 : 8 tours, averti après un exit 3 à is_error (PostToolUseFailure:Bash, l. 59) ; chacun 1 avertissement, 7 hook_non_blocking_error pour 7 appels, RETOUR sur end_turn ; maxTurns 80 relu ; essais 0,3125 $</span>
-        <span class="cout mono">≈4,4M (4 442 051) · 36 tours · 3,84 $</span>
-      </details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">FIL1</span></span>
+        <details><summary><span class="titre">Vérifier et mesurer, avant d'écrire</span><span class="etat">Faite</span></summary>
+        <span class="note">Journal 2026-09-24 : tout outil = "*", "" ou matcher omis (doc) ; hooks en parallèle (doc, sonde inutile, 0 $) ; chemin long : 259 lu sans préfixe, à 260 et 280 isfile False, open FileNotFoundError, ouvrir lit ; filet à vide 327 · 328 · 300 · 316 · 298 ms. Imprévu : PostToolUseFailure, à trancher avant FIL2.</span></details>
+        <span class="cout mono">≈2,6M (2 559 092) · 17 tours · 2,73 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">FIL2</span></span>
+        <details><summary><span class="titre">Brancher le filet sur tout outil, échecs compris, et sur les chemins longs</span><span class="etat">Faite</span></summary>
+        <span class="note">Tests OK, code 0, trois de plus (hooks.json ; après un échec ; chemin de 280 caractères), chacun tombé quand sa correction est cassée ; claude plugin validate code 0 sur les deux manifestes ; doc de PostToolUseFailure citée au journal ; filet à vide 327 · 328 · 300 · 316 · 298 ms avant, 324 · 307 · 311 · 346 · 311 ms après.</span></details>
+        <span class="cout mono">≈4,8M (4 769 108) · 23 tours · 4,73 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">FIL3</span></span>
+        <details><summary><span class="titre">Éprouver le filet après un Read et après un échec, à plafond bas</span><span class="etat">Faite</span></summary>
+        <span class="note">F1 : 8 tours, averti « 3 tours restants » après le tour 7, un Read réussi (PostToolUse:Read, l. 54) ; F2 : 8 tours, averti après un exit 3 à is_error (PostToolUseFailure:Bash, l. 59) ; chacun 1 avertissement, 7 hook_non_blocking_error pour 7 appels, RETOUR sur end_turn ; maxTurns 80 relu ; essais 0,3125 $</span></details>
+        <span class="cout mono">≈4,4M (4 442 051) · 36 tours · 3,84 $</span></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈30,2M (30 230 692) · 195 tours · 16,13 $</p>
     <p class="mono cout-total">Coût du chantier : ≈42,0M (42 000 943) · 271 tours · 27,43 $</p>
@@ -92,3 +87,4 @@
     <span>Mis à jour le <span class="mono">2026-09-24</span></span>
   </footer>
 </div>
+<script src="vlp.js"></script>

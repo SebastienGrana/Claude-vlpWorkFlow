@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>vlp — Le sous-agent ne bute plus sur 30 tours</title>
 <!--
   GABARIT — artefact d'un chantier. Publié par /chantier à l'ouverture,
@@ -15,7 +16,7 @@
 
 <div class="page">
   <header>
-    <div class="eyebrow">vlp · fiches SAG1–SAG5</div>
+    <div class="eyebrow">vlp · fiches SAG1–SAG5 · <a href="https://claude.ai/code/artifact/ff1fc060-daca-486f-b4c6-e1f55114c0f7">la feuille de route</a></div>
     <h1>Le sous-agent ne bute plus sur 30 tours</h1>
     <p>Une fiche de code jouée par /vlp:enchainer va au bout ; prévenu avant la coupe, le sous-agent rend toujours son statut ; son coût, sous-agent compris, est posé à côté de la main et de Q recompté.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
@@ -38,36 +39,26 @@
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">SAG1</span><span class="titre">Recompter Q, sous-agents compris</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">Journal du 2026-09-23 (08-etat.md) : `total_cost_usd` compte les sous-agents — doc officielle agent-sdk/cost-tracking, et `modelUsage` brut de Q4 passe 2 : Sonnet 0,2363536 $ + Haiku 0,1162213 $ = 0,3525749 $. Recompte `py scripts/mesure-tokens.py a7de44ba-a760-4634-b947-8c38f7fe25e8` : 586 452 tokens, 0,3525749 $, écart 0 → 0,176 $ par fiche annoncé = 0,176 $ recompté (293 226 tokens).</span>
-        <span class="cout mono">≈2,0M (2 000 732) · 17 tours · 2,15 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">SAG2</span><span class="titre">Relever le plafond, et prouver qu'un hook atteint le sous-agent</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">Journal du 2026-09-23 : hook atteint le sous-agent — doc hooks + sub-agents, essai `claude -p` à 0,2789 $, 0 refus, mot témoin dans `agent-ac58853b89865a0e4.jsonl` (l. 13 et 19) ; `maxTurns` 30 → 80 (66 + 20 %) ; SAG3 seule = `/vlp:jouer SAG3` puis commit, estimé 0,3 à 1,1 $ de Haiku + le chef. SAG3 porte son bloc Prouvé par SAG2. `plugin validate` passed, `test-vlp.py` OK.</span>
-        <span class="cout mono">≈3,5M (3 469 075) · 17 tours · 2,29 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">SAG3</span><span class="titre">Prévenir le sous-agent avant qu'il soit coupé</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">Témoin joué par `/vlp:jouer SAG3` : FAITE en 68 tours (end_turn), sous-agent 6 080 121 tokens · 0,97 $, chef 0,56 $, fiche 1,53 $ ; « 5 cas de test passants » selon le sous-agent — `test-vlp.py` OK et `plugin validate` passed revus par le chef. Case non cochée par le sous-agent (0 appel à `cocher`), cochée à la main.</span>
-        <span class="cout mono">≈7,4M (7 355 914) · 73 tours · 1,53 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">SAG4</span><span class="titre">Éprouver le filet à plafond bas</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">Transcription agent-a6ac4da4bd223d228.jsonl (9 tours) : avertissement « Attention : 2 tours restants… » après le tour 8 (l. 65), puis tour 9 sur end_turn, message ouvert par « RETOUR — Quatre fichiers écrits (n01.txt à n04.txt… » ; journal du 2026-09-24 le cite ; maxTurns: 80 revu par Read (agents/fiche.md:6). Essai 0,0885 $, 0 refus.</span>
-        <span class="cout mono">≈5,4M (5 371 524) · 27 tours · 2,87 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">SAG5</span><span class="titre">Mesurer le témoin, et conclure</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">Journal du 2026-09-24 : table à trois lignes, comptes bruts — Q recompté 0,176 $ · 293 226 tokens · 12 tours · end_turn ; SAG3 enchaînée 1,53 $ (2,08 $ avec la reprise à la main) · 7 355 914 tokens · 73 tours · end_turn ; CPT à la main 4,34 $ en moyenne · 4 816 632 tokens · 29,25 tours — et quatre commandes, rejouées. 35-bilan.md:107, CLAUDE.md:16 et la mémoire citent 0,176 $ et 0,42 $, confirmés par SAG1 : rien à corriger.</span>
-        <span class="cout mono">≈1,7M (1 653 902) · 14 tours · 1,26 $</span>
-      </details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">SAG1</span></span>
+        <details><summary><span class="titre">Recompter Q, sous-agents compris</span><span class="etat">Faite</span></summary>
+        <span class="note">Journal du 2026-09-23 (08-etat.md) : `total_cost_usd` compte les sous-agents — doc officielle agent-sdk/cost-tracking, et `modelUsage` brut de Q4 passe 2 : Sonnet 0,2363536 $ + Haiku 0,1162213 $ = 0,3525749 $. Recompte `py scripts/mesure-tokens.py a7de44ba-a760-4634-b947-8c38f7fe25e8` : 586 452 tokens, 0,3525749 $, écart 0 → 0,176 $ par fiche annoncé = 0,176 $ recompté (293 226 tokens).</span></details>
+        <span class="cout mono">≈2,0M (2 000 732) · 17 tours · 2,15 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">SAG2</span></span>
+        <details><summary><span class="titre">Relever le plafond, et prouver qu'un hook atteint le sous-agent</span><span class="etat">Faite</span></summary>
+        <span class="note">Journal du 2026-09-23 : hook atteint le sous-agent — doc hooks + sub-agents, essai `claude -p` à 0,2789 $, 0 refus, mot témoin dans `agent-ac58853b89865a0e4.jsonl` (l. 13 et 19) ; `maxTurns` 30 → 80 (66 + 20 %) ; SAG3 seule = `/vlp:jouer SAG3` puis commit, estimé 0,3 à 1,1 $ de Haiku + le chef. SAG3 porte son bloc Prouvé par SAG2. `plugin validate` passed, `test-vlp.py` OK.</span></details>
+        <span class="cout mono">≈3,5M (3 469 075) · 17 tours · 2,29 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">SAG3</span></span>
+        <details><summary><span class="titre">Prévenir le sous-agent avant qu'il soit coupé</span><span class="etat">Faite</span></summary>
+        <span class="note">Témoin joué par `/vlp:jouer SAG3` : FAITE en 68 tours (end_turn), sous-agent 6 080 121 tokens · 0,97 $, chef 0,56 $, fiche 1,53 $ ; « 5 cas de test passants » selon le sous-agent — `test-vlp.py` OK et `plugin validate` passed revus par le chef. Case non cochée par le sous-agent (0 appel à `cocher`), cochée à la main.</span></details>
+        <span class="cout mono">≈7,4M (7 355 914) · 73 tours · 1,53 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">SAG4</span></span>
+        <details><summary><span class="titre">Éprouver le filet à plafond bas</span><span class="etat">Faite</span></summary>
+        <span class="note">Transcription agent-a6ac4da4bd223d228.jsonl (9 tours) : avertissement « Attention : 2 tours restants… » après le tour 8 (l. 65), puis tour 9 sur end_turn, message ouvert par « RETOUR — Quatre fichiers écrits (n01.txt à n04.txt… » ; journal du 2026-09-24 le cite ; maxTurns: 80 revu par Read (agents/fiche.md:6). Essai 0,0885 $, 0 refus.</span></details>
+        <span class="cout mono">≈5,4M (5 371 524) · 27 tours · 2,87 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">SAG5</span></span>
+        <details><summary><span class="titre">Mesurer le témoin, et conclure</span><span class="etat">Faite</span></summary>
+        <span class="note">Journal du 2026-09-24 : table à trois lignes, comptes bruts — Q recompté 0,176 $ · 293 226 tokens · 12 tours · end_turn ; SAG3 enchaînée 1,53 $ (2,08 $ avec la reprise à la main) · 7 355 914 tokens · 73 tours · end_turn ; CPT à la main 4,34 $ en moyenne · 4 816 632 tokens · 29,25 tours — et quatre commandes, rejouées. 35-bilan.md:107, CLAUDE.md:16 et la mémoire citent 0,176 $ et 0,42 $, confirmés par SAG1 : rien à corriger.</span></details>
+        <span class="cout mono">≈1,7M (1 653 902) · 14 tours · 1,26 $</span></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : 0 · 0 tours · 0,00 $</p>
     <p class="mono cout-total">Coût du chantier : ≈19,9M (19 851 147) · 148 tours · 10,10 $</p>
@@ -104,3 +95,4 @@
     <span>Mis à jour le <span class="mono">2026-09-24</span></span>
   </footer>
 </div>
+<script src="vlp.js"></script>

@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>vlp — /vlp:chantier ne lit plus l'état en entier</title>
 <!--
   GABARIT — artefact d'un chantier. Publié par /chantier à l'ouverture,
@@ -15,7 +16,7 @@
 
 <div class="page">
   <header>
-    <div class="eyebrow">vlp · fiches LEC1–LEC5</div>
+    <div class="eyebrow">vlp · fiches LEC1–LEC5 · <a href="https://claude.ai/code/artifact/ff1fc060-daca-486f-b4c6-e1f55114c0f7">la feuille de route</a></div>
     <h1>/vlp:chantier ne lit plus l'état en entier</h1>
     <p>La carte imprime la TODO et le format des fiches ; /vlp:chantier ne lit plus 08-etat.md (2 137 lignes) ni la méthode (376) en entier, et une vraie séance mesurée avant/après le prouve en tokens.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
@@ -38,36 +39,26 @@
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">LEC1</span><span class="titre">Mesurer l'avant</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">avant 2f9a46f3 (Read tronqué à 453/1 222 l.) : tours 3, ctx_dernier 110 515, equiv 285 200, 1.14 $ ; après à la main 44909b3f : tours 6, ctx_dernier 85 624, equiv 122 263, 0.49 $ ; table des 5 projets au journal</span>
-        <span class="cout mono">≈2,1M (2 136 551) · 21 tours · 1,25 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">LEC2</span><span class="titre">Faire imprimer la TODO par la carte</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">joué à la main après 4 refus : test-vlp.py OK, pyright 0 errors, mutant tué (ÉCART premier titre TODO) ; kit à « aucun » : TODO 356–392 puis 37 lignes ; 5 projets : chemins justes, Cairn 20a sans TODO, 10-etat 158–434</span>
-        <span class="cout mono">≈23,4M (23 408 934) · 344 tours · 6,96 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">LEC3</span><span class="titre">Faire imprimer le format des fiches par la carte</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">joué à la main : test-vlp.py OK, pyright 0 errors, mutant tué (ÉCART trois sections) ; kit : méthode 288–361 puis 74 lignes, texte imprimé ; Cairn et MapDecorator sans « Les deux formes de critère de fin » → METHODE=absente</span>
-        <span class="cout mono">≈7,5M (7 509 014) · 50 tours · 4,12 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">LEC4</span><span class="titre">Brancher /vlp:chantier sur la carte</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">joué à la main : SKILL.md 278 → 277 lignes ; étape 1 : « en entier » 0, TODO=absente 1, METHODE=absente 1 ; pre-commit RC 0 ; « Où vit quoi » : la TODO par la carte</span>
-        <span class="cout mono">≈1,6M (1 641 457) · 7 tours · 0,52 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">LEC5</span><span class="titre">Mesurer l'après</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">Une vraie séance après, mesurée et comparée à LEC1 — ton geste d'abord. Après LEC1 et LEC4.</span>
-        <span class="cout mono">≈3,3M (3 278 596) · 13 tours · 1,02 $</span>
-      </details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">LEC1</span></span>
+        <details><summary><span class="titre">Mesurer l'avant</span><span class="etat">Faite</span></summary>
+        <span class="note">avant 2f9a46f3 (Read tronqué à 453/1 222 l.) : tours 3, ctx_dernier 110 515, equiv 285 200, 1.14 $ ; après à la main 44909b3f : tours 6, ctx_dernier 85 624, equiv 122 263, 0.49 $ ; table des 5 projets au journal</span></details>
+        <span class="cout mono">≈2,1M (2 136 551) · 21 tours · 1,25 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">LEC2</span></span>
+        <details><summary><span class="titre">Faire imprimer la TODO par la carte</span><span class="etat">Faite</span></summary>
+        <span class="note">joué à la main après 4 refus : test-vlp.py OK, pyright 0 errors, mutant tué (ÉCART premier titre TODO) ; kit à « aucun » : TODO 356–392 puis 37 lignes ; 5 projets : chemins justes, Cairn 20a sans TODO, 10-etat 158–434</span></details>
+        <span class="cout mono">≈23,4M (23 408 934) · 344 tours · 6,96 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">LEC3</span></span>
+        <details><summary><span class="titre">Faire imprimer le format des fiches par la carte</span><span class="etat">Faite</span></summary>
+        <span class="note">joué à la main : test-vlp.py OK, pyright 0 errors, mutant tué (ÉCART trois sections) ; kit : méthode 288–361 puis 74 lignes, texte imprimé ; Cairn et MapDecorator sans « Les deux formes de critère de fin » → METHODE=absente</span></details>
+        <span class="cout mono">≈7,5M (7 509 014) · 50 tours · 4,12 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">LEC4</span></span>
+        <details><summary><span class="titre">Brancher /vlp:chantier sur la carte</span><span class="etat">Faite</span></summary>
+        <span class="note">joué à la main : SKILL.md 278 → 277 lignes ; étape 1 : « en entier » 0, TODO=absente 1, METHODE=absente 1 ; pre-commit RC 0 ; « Où vit quoi » : la TODO par la carte</span></details>
+        <span class="cout mono">≈1,6M (1 641 457) · 7 tours · 0,52 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">LEC5</span></span>
+        <details><summary><span class="titre">Mesurer l'après</span><span class="etat">Faite</span></summary>
+        <span class="note">Une vraie séance après, mesurée et comparée à LEC1 — ton geste d'abord. Après LEC1 et LEC4.</span></details>
+        <span class="cout mono">≈3,3M (3 278 596) · 13 tours · 1,02 $</span></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈3,2M (3 185 546) · 28 tours · 2,39 $</p>
     <p class="mono cout-total">Coût du chantier : ≈41,2M (41 160 098) · 463 tours · 16,26 $</p>
@@ -95,3 +86,4 @@
     <span>Mis à jour le <span class="mono">2026-09-25</span></span>
   </footer>
 </div>
+<script src="vlp.js"></script>

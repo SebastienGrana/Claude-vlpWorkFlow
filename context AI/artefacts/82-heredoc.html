@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>vlp — ECRIT_GIT ne lit pas le texte d'un heredoc</title>
 <!--
   GABARIT — artefact d'un chantier. Publié par /chantier à l'ouverture,
@@ -15,7 +16,7 @@
 
 <div class="page">
   <header>
-    <div class="eyebrow">vlp · fiches ECH1</div>
+    <div class="eyebrow">vlp · fiches ECH1 · <a href="https://claude.ai/code/artifact/ff1fc060-daca-486f-b4c6-e1f55114c0f7">la feuille de route</a></div>
     <h1>ECRIT_GIT ne lit pas le texte d'un heredoc</h1>
     <p>Un sous-agent peut écrire les mots git commit dans un fichier par cat ou tee sans que le gardien le renvoie ; un heredoc qui s'exécute reste refusé.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
@@ -39,12 +40,10 @@
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">ECH1</span><span class="titre">Taire le corps d'un heredoc écrit par cat ou tee</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">ecrit_git : corps d'un heredoc reçu par cat/tee tu, hors $(…) et sans | derrière ; 9 cas + 2 ; mutants (rien retiré ; sans gardes $( et |) : ÉCART ; corpus sous-agents 19 → 14, chef 1157 → 1149 ; test-vlp OK ; pyright 0 errors</span>
-        <span class="cout mono">≈1,5M (1 537 322) · 9 tours · 0,56 $</span>
-      </details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">ECH1</span></span>
+        <details><summary><span class="titre">Taire le corps d'un heredoc écrit par cat ou tee</span><span class="etat">Faite</span></summary>
+        <span class="note">ecrit_git : corps d'un heredoc reçu par cat/tee tu, hors $(…) et sans | derrière ; 9 cas + 2 ; mutants (rien retiré ; sans gardes $( et |) : ÉCART ; corpus sous-agents 19 → 14, chef 1157 → 1149 ; test-vlp OK ; pyright 0 errors</span></details>
+        <span class="cout mono">≈1,5M (1 537 322) · 9 tours · 0,56 $</span></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈2,1M (2 080 063) · 13 tours · 0,80 $</p>
     <p class="mono cout-total">Coût du chantier : ≈3,6M (3 617 385) · 22 tours · 1,36 $</p>
@@ -72,3 +71,4 @@
     <span>Mis à jour le <span class="mono">2026-09-27</span></span>
   </footer>
 </div>
+<script src="vlp.js"></script>

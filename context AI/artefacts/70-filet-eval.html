@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>vlp — Le filet en eval rejouable</title>
 <!--
   GABARIT — artefact d'un chantier. Publié par /chantier à l'ouverture,
@@ -15,7 +16,7 @@
 
 <div class="page">
   <header>
-    <div class="eyebrow">vlp · fiches EVF4–EVF3</div>
+    <div class="eyebrow">vlp · fiches EVF1–EVF4 · <a href="https://claude.ai/code/artifact/ff1fc060-daca-486f-b4c6-e1f55114c0f7">la feuille de route</a></div>
     <h1>Le filet en eval rejouable</h1>
     <p>Une commande rejoue les deux essais de FIL3 en eval du plugin ; un changement du filet se reprouve en un appel, ≈ 0,16 $ le passage.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
@@ -39,30 +40,22 @@
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">EVF4</span><span class="titre">La carte injectée n'écrit plus dans le dossier du plugin</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">Variante A (sans redirection) : 12 Read vus, « fichier 05 » trouvé, témoin échoue ; B (PLUGIN_DATA) refusée. 7 SKILL.md corrigés, test + mutant, pyright 0.</span>
-        <span class="cout mono">≈10,1M (10 099 036) · 32 tours · 4,84 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">EVF1</span><span class="titre">L'eval voit-il le sous-agent ?</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">OUI : Read called 12x, matched fichier 05, témoin fichier 13 échoue ; 0,15195725 $ ; transcription sous-agent 5 tours, 15 appels, FAITE.</span>
-        <span class="cout mono">≈5,3M (5 348 278) · 19 tours · 1,21 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">EVF2</span><span class="titre">Le cas F1 avec le filet, à plafond bas</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">kit-essai + test + mutant ; plafond 6 : 1 avertissement (transcription), 80 : 0 ; la trace de l'eval ne voit pas les hooks — critère réécrit la nuit, à valider.</span>
-        <span class="cout mono">≈4,9M (4 942 564) · 14 tours · 1,56 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">EVF3</span><span class="titre">Le cas F2 (Bash, exit 3)</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">Le cas F2 (Bash, exit 3) sous WSL2, et la commande qui rejoue les deux cas. Dépend d'EVF2.</span>
-        <span class="cout mono">≈725,3k (725 253) · 7 tours · 0,76 $</span>
-      </details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">EVF4</span></span>
+        <details><summary><span class="titre">La carte injectée n'écrit plus dans le dossier du plugin</span><span class="etat">Faite</span></summary>
+        <span class="note">Variante A (sans redirection) : 12 Read vus, « fichier 05 » trouvé, témoin échoue ; B (PLUGIN_DATA) refusée. 7 SKILL.md corrigés, test + mutant, pyright 0.</span></details>
+        <span class="cout mono">≈10,1M (10 099 036) · 32 tours · 4,84 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">EVF1</span></span>
+        <details><summary><span class="titre">L'eval voit-il le sous-agent ?</span><span class="etat">Faite</span></summary>
+        <span class="note">OUI : Read called 12x, matched fichier 05, témoin fichier 13 échoue ; 0,15195725 $ ; transcription sous-agent 5 tours, 15 appels, FAITE.</span></details>
+        <span class="cout mono">≈5,3M (5 348 278) · 19 tours · 1,21 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">EVF2</span></span>
+        <details><summary><span class="titre">Le cas F1 avec le filet, à plafond bas</span><span class="etat">Faite</span></summary>
+        <span class="note">kit-essai + test + mutant ; plafond 6 : 1 avertissement (transcription), 80 : 0 ; la trace de l'eval ne voit pas les hooks — critère réécrit la nuit, à valider.</span></details>
+        <span class="cout mono">≈4,9M (4 942 564) · 14 tours · 1,56 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">EVF3</span></span>
+        <details><summary><span class="titre">Le cas F2 (Bash, exit 3)</span><span class="etat">Faite</span></summary>
+        <span class="note">Le cas F2 (Bash, exit 3) sous WSL2, et la commande qui rejoue les deux cas. Dépend d'EVF2.</span></details>
+        <span class="cout mono">≈725,3k (725 253) · 7 tours · 0,76 $</span></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈14,5M (14 478 291) · 73 tours · 5,87 $</p>
     <p class="mono cout-total">Coût du chantier : ≈35,6M (35 593 422) · 145 tours · 14,24 $</p>
@@ -92,3 +85,4 @@
     <span>Mis à jour le <span class="mono">2026-09-26</span></span>
   </footer>
 </div>
+<script src="vlp.js"></script>

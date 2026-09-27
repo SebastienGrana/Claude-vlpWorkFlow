@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>vlp — Relire chaque fiche avant son commit</title>
 <!--
   GABARIT — artefact d'un chantier. Publié par /chantier à l'ouverture,
@@ -15,7 +16,7 @@
 
 <div class="page">
   <header>
-    <div class="eyebrow">vlp · fiches REV1–REV4</div>
+    <div class="eyebrow">vlp · fiches REV1–REV8 · <a href="https://claude.ai/code/artifact/ff1fc060-daca-486f-b4c6-e1f55114c0f7">la feuille de route</a></div>
     <h1>Relire chaque fiche avant son commit</h1>
     <p>Chaque FAITE de /vlp:enchainer passe par un relecteur neuf (opus) avant son commit ; prouvé sur quatre commits de la nuit — le corrigé sans bug accepté, les trois autres refusés pour leur vrai défaut — coût d'une relecture mesuré.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
@@ -38,54 +39,38 @@
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">REV1</span><span class="titre">Préparer la relecture par script</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">Suite OK : trois tests vus en échec sur un bouchon, trois mutants tués chacun par le sien ; relecture CAD1 --sha e41925c : FICHIER= sur context AI/49-cadrage-compte.md, socle 37 lignes, fiche 41 ; --retirer : RETIRÉ 2.</span>
-        <span class="cout mono">≈10,9M (10 948 663) · 90 tours · 5,67 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">REV2</span><span class="titre">Contrôler la tête et refuser par script</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">Suite OK : trois tests vus en échec (bloc rejoué seul), trois mutants tués chacun par le sien ; vrai dépôt : REV1 --verifier rend TÊTE e1d7f36 et sort 1, REV2 rend CASE [ ] sans TÊTE.</span>
-        <span class="cout mono">≈4,9M (4 942 719) · 20 tours · 2,32 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">REV3</span><span class="titre">Écrire le relecteur et le brancher</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">lire agents/relecture.md skills/relire/SKILL.md : sort 0, 64 lignes ; grep : vlp:relire ×1 et --refuser ×1 dans enchainer, ACCEPTÉE ×1 et REFUSÉE ×2 dans enchainement.md ; pre-commit : manifestes validés.</span>
-        <span class="cout mono">≈2,7M (2 682 772) · 9 tours · 1,34 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">REV5</span><span class="titre">Un commit propre passe sur une copie en CRLF</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">py scripts/test-vlp.py : OK, code 0, 0 ligne « SAUTÉ: claude » ; 4 tests vus en échec avant leur correction ; 4 mutants (guillemets, ordre de la boucle, ligne *.md, recherche Packages) attrapés, code 1, chacun par son test</span>
-        <span class="cout mono">≈25,7M (25 707 441) · 200 tours · 26,23 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">REV6</span><span class="titre">Un en-tête sans plage reste tel quel</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">py scripts/test-vlp.py : OK, code 0 ; test neuf vu en échec (« fiches U1à venir ») ; mutants : regex actuelle casse 3/3 en-têtes, piste du relecteur casse le trait d'union ; pyright 31 avant, 31 après</span>
-        <span class="cout mono">≈4,2M (4 186 397) · 25 tours · 2,48 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">REV7</span><span class="titre">Le fichier d'état n'est plus hors fiche</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">py scripts/test-vlp.py : OK, code 0 ; « relecture : un fichier hors fiche » étendu, vu en échec (HORS FICHE ctx d/etat.md) ; mutant (état plus exclu) : code 1 ; relecture CAD1 --sha 8bb748d : 0 HORS FICHE, --retirer : RETIRÉ 2 ; pyright 31 → 31</span>
-        <span class="cout mono">≈844,6k (844 603) · 8 tours · 0,39 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">REV8</span><span class="titre">Refuser ou remarquer</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">Grep enchainement.md : « remarque » ×1, « les motifs » ×2 (l. 32, 37), « Un défaut : » ×0 ; « remarque » ×0 dans agents/relecture.md et skills/relire/SKILL.md ; commit passé par le hook</span>
-        <span class="cout mono">≈1,9M (1 936 994) · 15 tours · 0,88 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">REV4</span><span class="titre">Prouver la relecture sur les commits de la nuit</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">Table de quatre lignes au journal de 08-etat.md : 8bb748d ACCEPTÉE, 7d16873 REFUSÉE (plage vide, sonde), c5123af REFUSÉE (hook qui refuse un arbre propre en CRLF, par env -C), eb2a6b0 REFUSÉE (regex, sonde de 12 en-têtes) — 4 sur 4, assemblée de deux passages. 0,50 $ la relecture (4ᵉ passage + c5123af), contre 1,78 $ au premier.</span>
-        <span class="cout mono">≈17,2M (17 249 016) · 222 tours · 9,58 $</span>
-      </details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REV1</span></span>
+        <details><summary><span class="titre">Préparer la relecture par script</span><span class="etat">Faite</span></summary>
+        <span class="note">Suite OK : trois tests vus en échec sur un bouchon, trois mutants tués chacun par le sien ; relecture CAD1 --sha e41925c : FICHIER= sur context AI/49-cadrage-compte.md, socle 37 lignes, fiche 41 ; --retirer : RETIRÉ 2.</span></details>
+        <span class="cout mono">≈10,9M (10 948 663) · 90 tours · 5,67 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REV2</span></span>
+        <details><summary><span class="titre">Contrôler la tête et refuser par script</span><span class="etat">Faite</span></summary>
+        <span class="note">Suite OK : trois tests vus en échec (bloc rejoué seul), trois mutants tués chacun par le sien ; vrai dépôt : REV1 --verifier rend TÊTE e1d7f36 et sort 1, REV2 rend CASE [ ] sans TÊTE.</span></details>
+        <span class="cout mono">≈4,9M (4 942 719) · 20 tours · 2,32 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REV3</span></span>
+        <details><summary><span class="titre">Écrire le relecteur et le brancher</span><span class="etat">Faite</span></summary>
+        <span class="note">lire agents/relecture.md skills/relire/SKILL.md : sort 0, 64 lignes ; grep : vlp:relire ×1 et --refuser ×1 dans enchainer, ACCEPTÉE ×1 et REFUSÉE ×2 dans enchainement.md ; pre-commit : manifestes validés.</span></details>
+        <span class="cout mono">≈2,7M (2 682 772) · 9 tours · 1,34 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REV5</span></span>
+        <details><summary><span class="titre">Un commit propre passe sur une copie en CRLF</span><span class="etat">Faite</span></summary>
+        <span class="note">py scripts/test-vlp.py : OK, code 0, 0 ligne « SAUTÉ: claude » ; 4 tests vus en échec avant leur correction ; 4 mutants (guillemets, ordre de la boucle, ligne *.md, recherche Packages) attrapés, code 1, chacun par son test</span></details>
+        <span class="cout mono">≈25,7M (25 707 441) · 200 tours · 26,23 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REV6</span></span>
+        <details><summary><span class="titre">Un en-tête sans plage reste tel quel</span><span class="etat">Faite</span></summary>
+        <span class="note">py scripts/test-vlp.py : OK, code 0 ; test neuf vu en échec (« fiches U1à venir ») ; mutants : regex actuelle casse 3/3 en-têtes, piste du relecteur casse le trait d'union ; pyright 31 avant, 31 après</span></details>
+        <span class="cout mono">≈4,2M (4 186 397) · 25 tours · 2,48 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REV7</span></span>
+        <details><summary><span class="titre">Le fichier d'état n'est plus hors fiche</span><span class="etat">Faite</span></summary>
+        <span class="note">py scripts/test-vlp.py : OK, code 0 ; « relecture : un fichier hors fiche » étendu, vu en échec (HORS FICHE ctx d/etat.md) ; mutant (état plus exclu) : code 1 ; relecture CAD1 --sha 8bb748d : 0 HORS FICHE, --retirer : RETIRÉ 2 ; pyright 31 → 31</span></details>
+        <span class="cout mono">≈844,6k (844 603) · 8 tours · 0,39 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REV8</span></span>
+        <details><summary><span class="titre">Refuser ou remarquer</span><span class="etat">Faite</span></summary>
+        <span class="note">Grep enchainement.md : « remarque » ×1, « les motifs » ×2 (l. 32, 37), « Un défaut : » ×0 ; « remarque » ×0 dans agents/relecture.md et skills/relire/SKILL.md ; commit passé par le hook</span></details>
+        <span class="cout mono">≈1,9M (1 936 994) · 15 tours · 0,88 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REV4</span></span>
+        <details><summary><span class="titre">Prouver la relecture sur les commits de la nuit</span><span class="etat">Faite</span></summary>
+        <span class="note">Table de quatre lignes au journal de 08-etat.md : 8bb748d ACCEPTÉE, 7d16873 REFUSÉE (plage vide, sonde), c5123af REFUSÉE (hook qui refuse un arbre propre en CRLF, par env -C), eb2a6b0 REFUSÉE (regex, sonde de 12 en-têtes) — 4 sur 4, assemblée de deux passages. 0,50 $ la relecture (4ᵉ passage + c5123af), contre 1,78 $ au premier.</span></details>
+        <span class="cout mono">≈17,2M (17 249 016) · 222 tours · 9,58 $</span></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈7,4M (7 367 408) · 29 tours · 7,55 $</p>
     <p class="mono cout-total">Coût du chantier : ≈75,9M (75 866 013) · 618 tours · 56,44 $</p>
@@ -124,3 +109,4 @@
     <span>Mis à jour le <span class="mono">2026-09-27</span></span>
   </footer>
 </div>
+<script src="vlp.js"></script>

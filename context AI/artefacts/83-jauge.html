@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>vlp — Une ligne qui s'ouvre par un mot de jauge, sans être une jauge</title>
 <!--
   GABARIT — artefact d'un chantier. Publié par /chantier à l'ouverture,
@@ -15,7 +16,7 @@
 
 <div class="page">
   <header>
-    <div class="eyebrow">vlp · fiches OUV1</div>
+    <div class="eyebrow">vlp · fiches OUV1 · <a href="https://claude.ai/code/artifact/ff1fc060-daca-486f-b4c6-e1f55114c0f7">la feuille de route</a></div>
     <h1>Une ligne qui s'ouvre par un mot de jauge, sans être une jauge</h1>
     <p>Une puce comme « - Imprévu : j'ai dû… » ne fait plus renvoyer un sous-agent ; une vraie jauge (émoji, ou le mot suivi de —, … ou fin de ligne) le fait toujours.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
@@ -39,12 +40,10 @@
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">OUV1</span><span class="titre">Exiger la forme d'une jauge dans la règle tete</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">EMOJIS_JAUGE ou SUITE_JAUGE exigés par la règle tete ; 7 cas gardien (puce « - Imprévu : » muette) ; mutant forme ignorée : ÉCART ; rejeu mesure_ouv.py 79/79 jauges gardées, 199 sous-agents 70 → 70 lignes ; test-vlp OK ; pyright 0 errors</span>
-        <span class="cout mono">≈1,2M (1 224 317) · 6 tours · 0,43 $</span>
-      </details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">OUV1</span></span>
+        <details><summary><span class="titre">Exiger la forme d'une jauge dans la règle tete</span><span class="etat">Faite</span></summary>
+        <span class="note">EMOJIS_JAUGE ou SUITE_JAUGE exigés par la règle tete ; 7 cas gardien (puce « - Imprévu : » muette) ; mutant forme ignorée : ÉCART ; rejeu mesure_ouv.py 79/79 jauges gardées, 199 sous-agents 70 → 70 lignes ; test-vlp OK ; pyright 0 errors</span></details>
+        <span class="cout mono">≈1,2M (1 224 317) · 6 tours · 0,43 $</span></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈1,9M (1 927 134) · 10 tours · 0,74 $</p>
     <p class="mono cout-total">Coût du chantier : ≈3,2M (3 151 451) · 16 tours · 1,17 $</p>
@@ -72,3 +71,4 @@
     <span>Mis à jour le <span class="mono">2026-09-27</span></span>
   </footer>
 </div>
+<script src="vlp.js"></script>

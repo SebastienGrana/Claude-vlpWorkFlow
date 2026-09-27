@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>vlp — enchainer : réparer ou retirer</title>
 <!--
   GABARIT — artefact d'un chantier. Publié par /chantier à l'ouverture,
@@ -15,7 +16,7 @@
 
 <div class="page">
   <header>
-    <div class="eyebrow">vlp · fiches N1–N3</div>
+    <div class="eyebrow">vlp · fiches N1–N3 · <a href="https://claude.ai/code/artifact/ff1fc060-daca-486f-b4c6-e1f55114c0f7">la feuille de route</a></div>
     <h1>enchainer : réparer ou retirer</h1>
     <p>/vlp:enchainer réparé par une skill forkée si le chef tient en 3 tours par fiche, sinon retiré — décidé aux chiffres d'une sonde</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
@@ -38,22 +39,16 @@
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">N1</span><span class="titre">Mesurer une fiche jouée par une skill forkée</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">fork + vlp:fiche marche : chef 3 tours / 2 fiches (2 Skill), sous-agents 6 et 8 tours, 2/2 cochées, sonde 0,42 $ (2 essais) ; maxTurns 8 atteint sur S2, compte rendu perdu</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">N2</span><span class="titre">Réparer ou retirer /vlp:enchainer, aux chiffres de N1</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">réparé : skill vlp:jouer forkée, chef 3 tours / 2 fiches, 2/2 FAITE en rejeu réel (0,14 $) ; enchainer 145 → 105 lignes, maxTurns 8 → 25 ; validate 1 avertissement voulu ; plugin 3.3.0</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">N3</span><span class="titre">Aligner la doc, la version et les evals</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">renvois périmés 4 → 0 (README, méthode, CLAUDE.md) ; lignes enchain|fiche|jouer 33 → 35 ; vlp.py renvois 44 nommés · 0 absent ; evals Windows 3/3 (check 21, hook 2, init 26 tours ; 0,62 $)</span>
-        <span class="cout mono">≈6,5M (6 491 074) · 45 tours · 5,83 $</span>
-      </details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">N1</span></span>
+        <details><summary><span class="titre">Mesurer une fiche jouée par une skill forkée</span><span class="etat">Faite</span></summary>
+        <span class="note">fork + vlp:fiche marche : chef 3 tours / 2 fiches (2 Skill), sous-agents 6 et 8 tours, 2/2 cochées, sonde 0,42 $ (2 essais) ; maxTurns 8 atteint sur S2, compte rendu perdu</span></details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">N2</span></span>
+        <details><summary><span class="titre">Réparer ou retirer /vlp:enchainer, aux chiffres de N1</span><span class="etat">Faite</span></summary>
+        <span class="note">réparé : skill vlp:jouer forkée, chef 3 tours / 2 fiches, 2/2 FAITE en rejeu réel (0,14 $) ; enchainer 145 → 105 lignes, maxTurns 8 → 25 ; validate 1 avertissement voulu ; plugin 3.3.0</span></details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">N3</span></span>
+        <details><summary><span class="titre">Aligner la doc, la version et les evals</span><span class="etat">Faite</span></summary>
+        <span class="note">renvois périmés 4 → 0 (README, méthode, CLAUDE.md) ; lignes enchain|fiche|jouer 33 → 35 ; vlp.py renvois 44 nommés · 0 absent ; evals Windows 3/3 (check 21, hook 2, init 26 tours ; 0,62 $)</span></details>
+        <span class="cout mono">≈6,5M (6 491 074) · 45 tours · 5,83 $</span></li>
     </ul>
     <p class="mono cout-total">Coût du chantier : ≈6,5M (6 491 074) · 45 tours · 5,83 $</p>
     <!-- ligne de total, absente si aucune fiche n'a de coût mesuré -->
@@ -80,3 +75,4 @@
     <span>Mis à jour le <span class="mono">2026-09-17</span></span>
   </footer>
 </div>
+<script src="vlp.js"></script>

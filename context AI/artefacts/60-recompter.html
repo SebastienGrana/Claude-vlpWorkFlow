@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>vlp — Recompter les chantiers clos au coût juste</title>
 <!--
   GABARIT — artefact d'un chantier. Publié par /chantier à l'ouverture,
@@ -15,7 +16,7 @@
 
 <div class="page">
   <header>
-    <div class="eyebrow">vlp · fiches REC1–REC4</div>
+    <div class="eyebrow">vlp · fiches REC1–REC4 · <a href="https://claude.ai/code/artifact/ff1fc060-daca-486f-b4c6-e1f55114c0f7">la feuille de route</a></div>
     <h1>Recompter les chantiers clos au coût juste</h1>
     <p>La feuille de route porte des chiffres comptés d'une seule façon : chaque clos recompté par cout, les dix sans commit de fiche gardés et marqués, le total resommé, et chaque bilan qui change marqué.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
@@ -38,30 +39,22 @@
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">REC1</span><span class="titre">Recompter en lecture seule</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">test-vlp OK, verifier( 290 → 294, deux mutants tombent ; recompter . : RECOMPTE 48 clos · 23 recomptés · 25 gardés · inscrit 681 541 003 · recompté 700 725 374 · écart +19 184 371 ; JUG recompté 11 306 457 = TOTAL de cout ; git status : scripts seuls ; pyright 0 erreur</span>
-        <span class="cout mono">≈4,4M (4 430 918) · 31 tours · 2,39 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">REC2</span><span class="titre">Ranger les écarts réels par cause</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">journal REC2 : sortie brute de recompter et table par cause ; somme des écarts +19 184 371 = écart RECOMPTE +19 184 371 ; FIL session partagée −22 318 909, REP sous-agents avant CPT +9 982 170, cadrage avant CAD 0 clos, autre 21 clos +31 521 110 ; git status : 08-etat.md seul</span>
-        <span class="cout mono">≈2,5M (2 539 242) · 13 tours · 1,20 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">REC3</span><span class="titre">Écrire le recompte dans la feuille</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">tests OK, verifier( 294 → 297 ; après --ecrire total_clos = 1 004 499 = recompté de RECOMPTE ; second passage ÉCRIT 0 cellules ; 3 mutants tombent (parenthèses, balise, pied non resommé) ; pyright 0 errors</span>
-        <span class="cout mono">≈2,5M (2 531 240) · 24 tours · 1,51 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">REC4</span><span class="titre">Appliquer, marquer les bilans, republier</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">ÉCRIT 48 cellules · total 681 541 003 → 700 725 374 ; second passage ÉCRIT 0 ; pied de la feuille 700 725 374 = recompté de RECOMPTE ; bilans marqués 22 = clos à écart non nul citant leur chiffre 22 (23 à écart, H sans chiffre) ; feuille identique, NIVEAU 0 écarts · 2 avertissements (poids CLAUDE.md, index, d'avant) ; feuille de route republiée, version 110</span>
-        <span class="cout mono">≈2,4M (2 360 256) · 22 tours · 1,51 $</span>
-      </details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REC1</span></span>
+        <details><summary><span class="titre">Recompter en lecture seule</span><span class="etat">Faite</span></summary>
+        <span class="note">test-vlp OK, verifier( 290 → 294, deux mutants tombent ; recompter . : RECOMPTE 48 clos · 23 recomptés · 25 gardés · inscrit 681 541 003 · recompté 700 725 374 · écart +19 184 371 ; JUG recompté 11 306 457 = TOTAL de cout ; git status : scripts seuls ; pyright 0 erreur</span></details>
+        <span class="cout mono">≈4,4M (4 430 918) · 31 tours · 2,39 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REC2</span></span>
+        <details><summary><span class="titre">Ranger les écarts réels par cause</span><span class="etat">Faite</span></summary>
+        <span class="note">journal REC2 : sortie brute de recompter et table par cause ; somme des écarts +19 184 371 = écart RECOMPTE +19 184 371 ; FIL session partagée −22 318 909, REP sous-agents avant CPT +9 982 170, cadrage avant CAD 0 clos, autre 21 clos +31 521 110 ; git status : 08-etat.md seul</span></details>
+        <span class="cout mono">≈2,5M (2 539 242) · 13 tours · 1,20 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REC3</span></span>
+        <details><summary><span class="titre">Écrire le recompte dans la feuille</span><span class="etat">Faite</span></summary>
+        <span class="note">tests OK, verifier( 294 → 297 ; après --ecrire total_clos = 1 004 499 = recompté de RECOMPTE ; second passage ÉCRIT 0 cellules ; 3 mutants tombent (parenthèses, balise, pied non resommé) ; pyright 0 errors</span></details>
+        <span class="cout mono">≈2,5M (2 531 240) · 24 tours · 1,51 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REC4</span></span>
+        <details><summary><span class="titre">Appliquer, marquer les bilans, republier</span><span class="etat">Faite</span></summary>
+        <span class="note">ÉCRIT 48 cellules · total 681 541 003 → 700 725 374 ; second passage ÉCRIT 0 ; pied de la feuille 700 725 374 = recompté de RECOMPTE ; bilans marqués 22 = clos à écart non nul citant leur chiffre 22 (23 à écart, H sans chiffre) ; feuille identique, NIVEAU 0 écarts · 2 avertissements (poids CLAUDE.md, index, d'avant) ; feuille de route republiée, version 110</span></details>
+        <span class="cout mono">≈2,4M (2 360 256) · 22 tours · 1,51 $</span></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈4,0M (4 045 033) · 32 tours · 2,48 $</p>
     <p class="mono cout-total">Coût du chantier : ≈15,9M (15 906 689) · 122 tours · 9,09 $</p>
@@ -91,3 +84,4 @@
     <span>Mis à jour le <span class="mono">2026-09-25</span></span>
   </footer>
 </div>
+<script src="vlp.js"></script>

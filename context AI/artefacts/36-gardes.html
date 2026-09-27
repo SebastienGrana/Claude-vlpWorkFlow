@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>vlp — Une GARDE au lieu d'un traceback</title>
 <!--
   GABARIT — artefact d'un chantier. Publié par /chantier à l'ouverture,
@@ -15,7 +16,7 @@
 
 <div class="page">
   <header>
-    <div class="eyebrow">vlp · fiches Z1–Z4</div>
+    <div class="eyebrow">vlp · fiches Z1–Z4 · <a href="https://claude.ai/code/artifact/ff1fc060-daca-486f-b4c6-e1f55114c0f7">la feuille de route</a></div>
     <h1>Une GARDE au lieu d'un traceback</h1>
     <p>Aucun chemin venu de CHANTIER.md ne peut plus faire tomber une sous-commande de vlp.py : elle rend GARDE: et sort 1.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
@@ -38,30 +39,22 @@
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">Z1</span><span class="titre">Recenser le trou sur un bac cassé</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">18 couples mesurés, 11 gardent déjà, 7 plantent — table remplie dans le socle</span>
-        <span class="cout mono">≈1,2M (1 238 234) · 16 tours · 0,66 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">Z2</span><span class="titre">Garder toute lecture d'un chemin de CHANTIER.md</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">py scripts/test-vlp.py imprime OK et sort 0 ; cas 108 → 115 sites (119 assertions) ; table de Z1 rejouée sur les mêmes bacs : tracebacks 2 → 0, feuille et clore du cas 1 rendent GARDE et 1</span>
-        <span class="cout mono">≈6,5M (6 468 185) · 55 tours · 5,66 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">Z3</span><span class="titre">Retirer le sed de skills/tache</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">grep -rn "sed \|awk " skills/ : 1 avant, 0 apres ; reste 1 mention de sed, en interdiction (skills/tache/SKILL.md:81) ; test-vlp.py OK</span>
-        <span class="cout mono">≈1,9M (1 884 641) · 23 tours · 1,78 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">Z4</span><span class="titre">Prouver la réparation sur Cairn-VlpLib</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">Avant : carte/feuille GARDE + code 1, renvois code 1 ; apres : carte PROCHAINE=P6f code 0, FEUILLE todo 0 · encours oui · lettres 1 · reecrite code 0, renvois 2 ABSENT preexistants code 1 — aucun traceback dans les deux jeux.</span>
-        <span class="cout mono">≈1,2M (1 230 905) · 16 tours · 1,20 $</span>
-      </details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">Z1</span></span>
+        <details><summary><span class="titre">Recenser le trou sur un bac cassé</span><span class="etat">Faite</span></summary>
+        <span class="note">18 couples mesurés, 11 gardent déjà, 7 plantent — table remplie dans le socle</span></details>
+        <span class="cout mono">≈1,2M (1 238 234) · 16 tours · 0,66 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">Z2</span></span>
+        <details><summary><span class="titre">Garder toute lecture d'un chemin de CHANTIER.md</span><span class="etat">Faite</span></summary>
+        <span class="note">py scripts/test-vlp.py imprime OK et sort 0 ; cas 108 → 115 sites (119 assertions) ; table de Z1 rejouée sur les mêmes bacs : tracebacks 2 → 0, feuille et clore du cas 1 rendent GARDE et 1</span></details>
+        <span class="cout mono">≈6,5M (6 468 185) · 55 tours · 5,66 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">Z3</span></span>
+        <details><summary><span class="titre">Retirer le sed de skills/tache</span><span class="etat">Faite</span></summary>
+        <span class="note">grep -rn "sed \|awk " skills/ : 1 avant, 0 apres ; reste 1 mention de sed, en interdiction (skills/tache/SKILL.md:81) ; test-vlp.py OK</span></details>
+        <span class="cout mono">≈1,9M (1 884 641) · 23 tours · 1,78 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">Z4</span></span>
+        <details><summary><span class="titre">Prouver la réparation sur Cairn-VlpLib</span><span class="etat">Faite</span></summary>
+        <span class="note">Avant : carte/feuille GARDE + code 1, renvois code 1 ; apres : carte PROCHAINE=P6f code 0, FEUILLE todo 0 · encours oui · lettres 1 · reecrite code 0, renvois 2 ABSENT preexistants code 1 — aucun traceback dans les deux jeux.</span></details>
+        <span class="cout mono">≈1,2M (1 230 905) · 16 tours · 1,20 $</span></li>
     </ul>
     <p class="mono cout-total">Coût du chantier : ≈10,8M (10 821 965) · 110 tours · 9,30 $</p>
     <!-- ligne de total, absente si aucune fiche n'a de coût mesuré -->
@@ -89,3 +82,4 @@
     <span>Mis à jour le <span class="mono">2026-09-17</span></span>
   </footer>
 </div>
+<script src="vlp.js"></script>

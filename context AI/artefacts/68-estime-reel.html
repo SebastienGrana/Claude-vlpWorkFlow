@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>vlp — L'estimé face au réel, à chaque clôture</title>
 <!--
   GABARIT — artefact d'un chantier. Publié par /chantier à l'ouverture,
@@ -15,7 +16,7 @@
 
 <div class="page">
   <header>
-    <div class="eyebrow">vlp · fiches EST1–EST3</div>
+    <div class="eyebrow">vlp · fiches EST1–EST3 · <a href="https://claude.ai/code/artifact/ff1fc060-daca-486f-b4c6-e1f55114c0f7">la feuille de route</a></div>
     <h1>L'estimé face au réel, à chaque clôture</h1>
     <p>À la clôture, vlp.py clore écrit seul l'estimé (fiches et $) à côté du réel, dans la ligne CLOS, la ligne Fait. et le bilan de la page.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
@@ -39,24 +40,18 @@
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">EST1</span><span class="titre">Noter l'estimé à l'ouverture</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">test-vlp.py : OK, 0 échec ; test EST1 (A1–A3 3 000 000 + B1 1 000 000 → ≈1,67 $ pour 2 fiches), mutant « une fiche par ligne » tombe ; 2e appel : estimé gardé, 1 ligne ; pyright scripts/ : 0 errors</span>
-        <span class="cout mono">≈2,7M (2 660 631) · 24 tours · 1,60 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">EST2</span><span class="titre">Écrire l'estimé à côté du réel à la clôture</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">test-vlp.py : OK, 0 échec ; CLOS « estimé 2 fiches ≈0,40 $ · cadré 2 · joué 1 fiches ≈? $ », même texte page et Fait ; sans ligne : estimé non noté ; mutant cadrées=jouées : ÉCART clore : Fait. remplacé ; pyright scripts/ : 0 errors</span>
-        <span class="cout mono">≈4,4M (4 374 245) · 39 tours · 2,08 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">EST3</span><span class="titre">Faire passer l'estimé par /vlp:chantier</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">grep --estime-fiches SKILL.md = 1 ; grep **Estimé.** 1 fiches = 1 ; ouvrir rend « estimé 1 fiches ≈3,91 $ » ; VALIDE 3 fiches, 0 écarts</span>
-        <span class="cout mono">≈1,0M (1 002 562) · 11 tours · 0,65 $</span>
-      </details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">EST1</span></span>
+        <details><summary><span class="titre">Noter l'estimé à l'ouverture</span><span class="etat">Faite</span></summary>
+        <span class="note">test-vlp.py : OK, 0 échec ; test EST1 (A1–A3 3 000 000 + B1 1 000 000 → ≈1,67 $ pour 2 fiches), mutant « une fiche par ligne » tombe ; 2e appel : estimé gardé, 1 ligne ; pyright scripts/ : 0 errors</span></details>
+        <span class="cout mono">≈2,7M (2 660 631) · 24 tours · 1,60 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">EST2</span></span>
+        <details><summary><span class="titre">Écrire l'estimé à côté du réel à la clôture</span><span class="etat">Faite</span></summary>
+        <span class="note">test-vlp.py : OK, 0 échec ; CLOS « estimé 2 fiches ≈0,40 $ · cadré 2 · joué 1 fiches ≈? $ », même texte page et Fait ; sans ligne : estimé non noté ; mutant cadrées=jouées : ÉCART clore : Fait. remplacé ; pyright scripts/ : 0 errors</span></details>
+        <span class="cout mono">≈4,4M (4 374 245) · 39 tours · 2,08 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">EST3</span></span>
+        <details><summary><span class="titre">Faire passer l'estimé par /vlp:chantier</span><span class="etat">Faite</span></summary>
+        <span class="note">grep --estime-fiches SKILL.md = 1 ; grep **Estimé.** 1 fiches = 1 ; ouvrir rend « estimé 1 fiches ≈3,91 $ » ; VALIDE 3 fiches, 0 écarts</span></details>
+        <span class="cout mono">≈1,0M (1 002 562) · 11 tours · 0,65 $</span></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈2,6M (2 610 413) · 24 tours · 1,96 $</p>
     <p class="mono cout-total">Coût du chantier : ≈10,6M (10 647 851) · 98 tours · 6,29 $</p>
@@ -84,3 +79,4 @@
     <span>Mis à jour le <span class="mono">2026-09-26</span></span>
   </footer>
 </div>
+<script src="vlp.js"></script>

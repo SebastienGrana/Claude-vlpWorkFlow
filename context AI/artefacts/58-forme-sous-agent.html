@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>vlp — La forme du sous-agent, pour de vrai</title>
 <!--
   GABARIT — artefact d'un chantier. Publié par /chantier à l'ouverture,
@@ -15,7 +16,7 @@
 
 <div class="page">
   <header>
-    <div class="eyebrow">vlp · fiches FOR1–FOR3</div>
+    <div class="eyebrow">vlp · fiches FOR1–FOR3 · <a href="https://claude.ai/code/artifact/ff1fc060-daca-486f-b4c6-e1f55114c0f7">la feuille de route</a></div>
     <h1>La forme du sous-agent, pour de vrai</h1>
     <p>vlp.py forme rend resume 0 et jauge 0 sur les sous-agents d'une session neuve</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
@@ -38,23 +39,17 @@
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">FOR1</span><span class="titre">Filtrer forme --depuis sur le départ du sous-agent</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">forme --depuis compare au départ du sous-agent, plus de la session parente ; 0 échec avant/après, mutant testé</span>
-        <span class="cout mono">≈2,0M (2 040 579) · 33 tours · 1,50 $</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">FOR2</span><span class="titre">Mesurer GLO3 en session neuve</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">resume 0/2, jauge 1/2 sur les sous-agents de FOR1 (avant GLO3 : 14/36, 23/36) ; décision : jouer FOR3</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">FOR3</span><span class="titre">Renvoyer la fin hors forme, fiche et relecteur</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">le gardien renvoie une fin qui porte En résumé ou la jauge, mot entier ; corrigé après un faux positif en sous-chaîne trouvé par le relecteur</span>
-        <span class="cout mono">≈10,9M (10 909 042) · 145 tours · 3,30 $</span>
-      </details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">FOR1</span></span>
+        <details><summary><span class="titre">Filtrer forme --depuis sur le départ du sous-agent</span><span class="etat">Faite</span></summary>
+        <span class="note">forme --depuis compare au départ du sous-agent, plus de la session parente ; 0 échec avant/après, mutant testé</span></details>
+        <span class="cout mono">≈2,0M (2 040 579) · 33 tours · 1,50 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">FOR2</span></span>
+        <details><summary><span class="titre">Mesurer GLO3 en session neuve</span><span class="etat">Faite</span></summary>
+        <span class="note">resume 0/2, jauge 1/2 sur les sous-agents de FOR1 (avant GLO3 : 14/36, 23/36) ; décision : jouer FOR3</span></details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">FOR3</span></span>
+        <details><summary><span class="titre">Renvoyer la fin hors forme, fiche et relecteur</span><span class="etat">Faite</span></summary>
+        <span class="note">le gardien renvoie une fin qui porte En résumé ou la jauge, mot entier ; corrigé après un faux positif en sous-chaîne trouvé par le relecteur</span></details>
+        <span class="cout mono">≈10,9M (10 909 042) · 145 tours · 3,30 $</span></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈4,7M (4 739 696) · 35 tours · 2,65 $</p>
     <p class="mono cout-total">Coût du chantier : ≈17,7M (17 689 317) · 213 tours · 7,45 $</p>
@@ -84,3 +79,4 @@ Cause : « bonne » contient la 3e entrée de JAUGE (« Pas bon »).</pre>
     <span>Mis à jour le <span class="mono">2026-09-25</span></span>
   </footer>
 </div>
+<script src="vlp.js"></script>

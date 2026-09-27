@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>vlp — Compter les tours, pondérer le coût</title>
 <!-- Page du chantier T. Publiée par /vlp:chantier, régénérée par /vlp:tache
      depuis context AI/13-tours.md à chaque fiche. Convention d'affichage du
@@ -7,7 +8,7 @@
 
 <div class="page">
   <header>
-    <div class="eyebrow">vlp · fiches T1–T5</div>
+    <div class="eyebrow">vlp · fiches T1–T5 · <a href="https://claude.ai/code/artifact/ff1fc060-daca-486f-b4c6-e1f55114c0f7">la feuille de route</a></div>
     <h1>Compter les tours, pondérer le coût</h1>
     <p>Le script de mesure compte une fois par tour et rend les tours, les appels d'outils, le contexte du premier et du dernier tour, et un coût pondéré en tokens équivalents et en dollars. La ligne Session s'écrit par la variable de session, sans deviner. Les totaux de M et C sont recomptés.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
@@ -37,36 +38,26 @@
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">T1</span><span class="titre">Dédoublonner par tour, et tester</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">Test : OK. Session C1 : tours = 31, divergents = 0, total 3417872 (ancien compte 6406759).</span>
-        <span class="cout mono">≈1,1M (1 139 114)</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">T2</span><span class="titre">Compter les appels d'outils, résoudre les chemins</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">Test : OK. Session de M par id seul : 34 tours, 31 appels ; par chemin C:\ : 66 tours, 63 appels ; une ligne par outil.</span>
-        <span class="cout mono">≈1,9M (1 931 275)</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">T3</span><span class="titre">Pondérer le coût : équivalents et dollars</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">Test : OK. C1 (Sonnet 5) : equiv 531268 &lt; total 3417872, usd 1.06 ; ratios sortie 5, cache lu 0,1 (0,025 sur Fable 5.1), écrit 1,25 à 5 min, 2 à 1 h.</span>
-        <span class="cout mono">≈3,8M (3 801 548)</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">T4</span><span class="titre">Écrire la ligne Session par la variable</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">grep scratchpad dans Coût de la fiche : 0 ; grep CLAUDE_CODE_SESSION_ID : 1 ; SESSION non vide et table rendue. Blocs exécutés tels qu'écrits ; rejeu réel de /vlp:tache à faire.</span>
-        <span class="cout mono">≈3,2M (3 215 759)</span>
-      </details></li>
-      <li class="fiche" data-etat="faite"><details>
-        <summary><span class="id">T5</span><span class="titre">Rejouer les mesures de M et C</span>
-        <span class="etat">faite</span></summary>
-        <span class="note">M : 100 tours, total 11362254 ; C : 68 tours, total 7816316 ; grep des anciens chiffres : seule la ligne datée du journal ; feuille de route republiée.</span>
-        <span class="cout mono">≈5,3M (5 282 597)</span>
-      </details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">T1</span></span>
+        <details><summary><span class="titre">Dédoublonner par tour, et tester</span><span class="etat">Faite</span></summary>
+        <span class="note">Test : OK. Session C1 : tours = 31, divergents = 0, total 3417872 (ancien compte 6406759).</span></details>
+        <span class="cout mono">≈1,1M (1 139 114)</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">T2</span></span>
+        <details><summary><span class="titre">Compter les appels d'outils, résoudre les chemins</span><span class="etat">Faite</span></summary>
+        <span class="note">Test : OK. Session de M par id seul : 34 tours, 31 appels ; par chemin C:\ : 66 tours, 63 appels ; une ligne par outil.</span></details>
+        <span class="cout mono">≈1,9M (1 931 275)</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">T3</span></span>
+        <details><summary><span class="titre">Pondérer le coût : équivalents et dollars</span><span class="etat">Faite</span></summary>
+        <span class="note">Test : OK. C1 (Sonnet 5) : equiv 531268 &lt; total 3417872, usd 1.06 ; ratios sortie 5, cache lu 0,1 (0,025 sur Fable 5.1), écrit 1,25 à 5 min, 2 à 1 h.</span></details>
+        <span class="cout mono">≈3,8M (3 801 548)</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">T4</span></span>
+        <details><summary><span class="titre">Écrire la ligne Session par la variable</span><span class="etat">Faite</span></summary>
+        <span class="note">grep scratchpad dans Coût de la fiche : 0 ; grep CLAUDE_CODE_SESSION_ID : 1 ; SESSION non vide et table rendue. Blocs exécutés tels qu'écrits ; rejeu réel de /vlp:tache à faire.</span></details>
+        <span class="cout mono">≈3,2M (3 215 759)</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">T5</span></span>
+        <details><summary><span class="titre">Rejouer les mesures de M et C</span><span class="etat">Faite</span></summary>
+        <span class="note">M : 100 tours, total 11362254 ; C : 68 tours, total 7816316 ; grep des anciens chiffres : seule la ligne datée du journal ; feuille de route republiée.</span></details>
+        <span class="cout mono">≈5,3M (5 282 597)</span></li>
     </ul>
     <p class="mono cout-total">Coût du chantier : ≈15,4M (15 370 293)</p>
   </section>
@@ -101,3 +92,4 @@
     <span>Mis à jour le <span class="mono">2026-09-17</span></span>
   </footer>
 </div>
+<script src="vlp.js"></script>
