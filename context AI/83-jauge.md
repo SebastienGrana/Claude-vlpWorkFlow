@@ -44,8 +44,9 @@ Une seule fiche.
 ---
 
 <!-- FICHE:OUV1 -->
-## OUV1 [ ] — Exiger la forme d'une jauge dans la règle `tete`
+## OUV1 [x] — Exiger la forme d'une jauge dans la règle `tete`
 
+**Session** : 5a12485e-8f92-4566-8eac-a08b630de356
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` — et rien d'autre.
 

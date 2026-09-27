@@ -2,6 +2,6 @@
 ## Résultat
 Une puce comme « - Imprévu : j'ai dû… » ne fait plus renvoyer un sous-agent ; une vraie jauge (émoji, ou le mot suivi de —, … ou fin de ligne) le fait toujours.
 ## Notes
-- OUV1 : forme_texte, règle tete : émoji de jauge en tête, ou mot suivi de —/…/fin ; 79/79 jauges de sous-agents gardées. Dépend de rien.
+- OUV1 : EMOJIS_JAUGE ou SUITE_JAUGE exigés par la règle tete ; 7 cas gardien (puce « - Imprévu : » muette) ; mutant forme ignorée : ÉCART ; rejeu mesure_ouv.py 79/79 jauges gardées, 199 sous-agents 70 → 70 lignes ; test-vlp OK ; pyright 0 errors
 ## Journal
 ## Bilan

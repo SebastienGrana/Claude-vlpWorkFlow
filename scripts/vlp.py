@@ -241,7 +241,8 @@ Sous-commandes :
   fichiers d'instructions de ce type (User, Project, AutoMem, somme si plusieurs, 0 si aucun) ;
   `resume` 1 si une ligne du dernier message texte s'ouvre par « En résumé » ; `jauge` 1 si
   l'une s'ouvre par un des cinq libellés de `JAUGE` — marques de tête retirées (`REGLE`, celle
-  du gardien) ; `tete` 1 s'il commence par un mot de `STATUTS` ou de `VERDICTS` (le relecteur).
+  du gardien), un émoji de jauge en tête ou le mot suivi de `—`, `…` ou de la fin de ligne
+  (chantier OUV) ; `tete` 1 s'il commence par un mot de `STATUTS` ou de `VERDICTS` (le relecteur).
   `--regle` : la partie du message que jugent `resume` et `jauge` — `tout` (le texte entier,
   la mesure d'avant `JUG2`), `tiret`, `deux`, `tete` (chantier JUG). Illisible :
   `ILLISIBLE <chemin>`. `--depuis` (heure ISO ou commit) : celles dont la transcription a
@@ -1594,6 +1595,10 @@ def cmd_contrat(a, sortie):
 
 VERDICTS = ("ACCEPTÉE", "REFUSÉE")     # les mots de tête de `vlp:relecture`
 JAUGE = ("Tout va bien", "Ça tient, mais", "Imprévu", "Pas bon", "Grosse erreur")
+# La forme d'une jauge (chantier OUV) : un de ces émojis en tête, ou le mot suivi de `—`, `…`
+# ou de la fin de ligne — `- Imprévu : j'ai dû…` est une puce, pas une jauge.
+EMOJIS_JAUGE = ("✅", "🟢", "⚠", "❌", "🔥")
+SUITE_JAUGE = re.compile(r"\*{0,2}\.?\*{0,2}[ \t]*(?:—|–|…|$)")
 
 
 REGLES = ("tout", "tiret", "deux", "tete")     # la partie du texte que juge `forme_texte` (chantier JUG)
@@ -1611,15 +1616,18 @@ def ouvre(ligne):
 def forme_texte(texte, regle=REGLE):
     """(resume 0|1, jauge 0|1) de la partie du texte que juge `regle` ; (0, 0) si vide ou absent.
     `tete` (défaut, celle du gardien) : le mot doit ouvrir une ligne, marques retirées — une
-    citation en milieu de phrase ne compte pas ; `tout` : le texte entier ; `tiret` : après la
+    citation en milieu de phrase ne compte pas — et une jauge en avoir la forme, `EMOJIS_JAUGE`
+    en tête ou `SUITE_JAUGE` derrière (chantier OUV) ; `tout` : le texte entier ; `tiret` : après la
     dernière ligne `---`, sinon tout ; `deux` : les deux dernières lignes non vides."""
     if not isinstance(texte, str):
         return 0, 0
     lignes = texte.splitlines()
     if regle == "tete":
-        tetes = [ouvre(l) for l in lignes]
-        return (int(any(t.startswith("En résumé") for t in tetes)),
-                int(any(re.match(re.escape(j) + r'\b', t) for t in tetes for j in JAUGE)))
+        tetes = [(l[:len(l) - len(ouvre(l))], ouvre(l)) for l in lignes]
+        return (int(any(t.startswith("En résumé") for _, t in tetes)),
+                int(any(re.match(re.escape(j) + r'\b', t) and (any(e in marques for e in EMOJIS_JAUGE)
+                                                               or SUITE_JAUGE.match(t[len(j):]))
+                        for marques, t in tetes for j in JAUGE)))
     if regle == "tiret":
         tirets = [i for i, l in enumerate(lignes) if l.strip() == "---"]
         if tirets:

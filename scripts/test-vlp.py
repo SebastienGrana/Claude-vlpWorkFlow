@@ -3175,6 +3175,30 @@ def tester_heredoc():
 
 tester_heredoc()
 
+
+def tester_forme_jauge():
+    """OUV1 : une ligne n'est une jauge que si elle en a la forme — émoji en tête, ou le mot
+    suivi de —, … ou de la fin de ligne."""
+    def renvoye(message):
+        o = io.StringIO()
+        mod.main(["gardien"], o, io.StringIO(json.dumps({
+            "agent_id": "a2", "agent_type": "vlp:relecture", "hook_event_name": "SubagentStop",
+            "last_assistant_message": message})))
+        return '"decision": "block"' in o.getvalue()
+    cas = [("REFUSÉE\n- Imprévu : j'ai dû relancer", False),
+           ("ACCEPTÉE\nPas bonne idée de relancer", False),
+           ("ACCEPTÉE\n⚠️ **Imprévu** : x", True),
+           ("ACCEPTÉE\nÇa tient, mais…", True),
+           ("ACCEPTÉE\nPas bon — y", True),
+           ("ACCEPTÉE\n**Tout va bien.**", True),
+           ("ACCEPTÉE\nGrosse erreur", True)]
+    faux = [(m, attendu) for m, attendu in cas if renvoye(m) != attendu]
+    verifier("OUV1 : puce « Imprévu : » muette, vraies jauges renvoyées (%d cas) — mutant : forme ignorée"
+             % len(cas), not faux, repr(faux))
+
+
+tester_forme_jauge()
+
 # --- VOI3 : `lettres_prises` tolère une lettre entre backticks (MapDecorator) -
 
 LIGNE_MAPDECORATOR = "Lettres de fiche déjà prises : `T`, `U`, `R`, `M`. Un nouveau chantier en choisit"
