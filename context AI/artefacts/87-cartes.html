@@ -20,9 +20,9 @@
     <p>La feuille de route de Cairn, cartes fermées, tient en 5 écrans d'ordinateur au plus ; la TODO ne défile plus de côté ; rien de son texte n'est perdu, seulement replié.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">8 fiches · 7 faites · en cours : FEU6</p>
+    <p class="mono" style="margin-top:.5rem">8 fiches · 8 faites</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -77,16 +77,17 @@
         <summary><span class="id">FEU8</span><span class="titre">Le détail des chantiers possibles</span>
         <span class="etat">faite</span></summary>
         <span class="note">tests verts, pyright 0 erreur, mutant (borne basse) tombe, vlp.py feuille sur copie kit à 7 rangs rend 7 chantiers possibles · 2 petits, 1 moyen, 2 gros, 2 pas estimés · 1 bloqué · ≈17 fiches estimées</span>
-        <span class="cout mono">≈7,3M (7 252 647) · 42 tours · 2,33 $</span>
+        <span class="cout mono">≈7,6M (7 618 447) · 45 tours · 2,43 $</span>
       </details></li>
-      <li class="fiche" data-etat="encours"><details open>
+      <li class="fiche" data-etat="faite"><details>
         <summary><span class="id">FEU6</span><span class="titre">Régénérer, mesurer après, republier</span>
-        <span class="etat">en cours</span></summary>
-        <span class="note">Les feuilles du kit et de Cairn régénérées, mesurées, republiées ; tu les regardes. Après FEU1, FEU4, FEU5.</span>
+        <span class="etat">faite</span></summary>
+        <span class="note">Mesures avant/après écrites (écrans, défilement, coût tokens, page_vs_source) ; Cairn cartes fermées 3,15 écrans (≤5) ; 0 défilement à 375×812 ; page_vs_source rangs 16 = entiers 16 ; confirmé visuellement par l'utilisateur</span>
+        <span class="cout mono">≈13,8M (13 757 035) · 78 tours · 4,88 $</span>
       </details></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈6,3M (6 315 039) · 41 tours · 4,72 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈48,0M (47 988 498) · 288 tours · 21,17 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈62,1M (62 111 333) · 369 tours · 26,15 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

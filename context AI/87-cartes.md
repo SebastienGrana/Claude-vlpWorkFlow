@@ -288,8 +288,9 @@ Mutant : borne basse au lieu de haute → `~4 à 6` passe moyen, le test tombe. 
 ---
 
 <!-- FICHE:FEU6 -->
-## FEU6 [ ] — Régénérer, mesurer après, republier
+## FEU6 [x] — Régénérer, mesurer après, republier
 
+**Session** : 206644ce-75ee-40a0-a175-e09afdfe7b7c
 **Dépend de** : `FEU1`, `FEU4`, `FEU5`, `FEU8`.
 **Fichiers** : `context AI/87-cartes.md` (`## Mesures`), `context AI/artefacts/feuille-de-route.html`, `../Cairn-VlpLib/context AI/artefacts/feuille-de-route.html`, `CHANTIER.md` et `../Cairn-VlpLib/CHANTIER.md` (URL), `context AI/38-audit-scripts/page_vs_source.py`, `context AI/38-audit-scripts/rejeu.py` — et rien d'autre.
 
@@ -332,6 +333,14 @@ versions **en ligne** : kit `1790510770-a339` (TODO en tableau, **7 rangs**), Ca
 | Défilement de côté, 375 × 812 | Cairn | avant | idem | page 375 = 375 ; TODO 627 > 335 ; clos 488 > 335 | **TODO et clos** défilent |
 | Rien de perdu, départ | Cairn | avant | `py "context AI/38-audit-scripts/page_vs_source.py" ../Cairn-VlpLib "context AI"` | `feuille · TODO : rangs 16 · toutes cellules entières ailleurs 15` | 1 rang manquant : le rang 1 |
 | Rien de perdu, départ | kit | avant | `py "context AI/38-audit-scripts/page_vs_source.py" . "context AI"` | `feuille · TODO : rangs 7 · toutes cellules entières ailleurs 6` | 1 rang manquant : le rang 29 |
+| Coût d'un `Artifact read` | Cairn | après | `date` (15:31:50), `Artifact read` sur `https://claude.ai/artifact/F1xfVYG1FtfRGy2Qs1krX8` dans un tour à part, `date` (15:32:01), `py scripts/mesure-tokens.py --plage 2026-09-27T15:31:50 2026-09-27T15:32:01 206644ce-75ee-40a0-a175-e09afdfe7b7c` | `ctx_1er` = 126 048, `ctx_dernier` = 148 248, 2 tours (Artifact=1, Bash=1) | **22 200 tokens** |
+| Hauteur, écrans d'ordinateur | kit | après, replié (défaut) | feuille republiée relue (`tool-results/artifact-ff1fc060-1790515321-d915.html`), copiée en `scratchpad/feu6/apres/kit/index.html`, `vlp.css` à côté, `py -m http.server 8791` (`.claude/launch.json` « feu6-apres »), même script que `FEU1` à 1536 × 864 | `scrollHeight` = 1425 px | **1,65 écrans** |
+| Hauteur, écrans d'ordinateur | kit | après, tout déplié | même page, `details.open = true` | `scrollHeight` = 14 586 px | **16,88 écrans** |
+| Hauteur, écrans d'ordinateur | Cairn | après, replié (défaut) | même montage, `scratchpad/feu6/apres/cairn/index.html` (`tool-results/artifact-71823ec4-1790515529-fdc8.html`) | `scrollHeight` = 2724 px | **3,15 écrans** |
+| Hauteur, écrans d'ordinateur | Cairn | après, tout déplié | même page | `scrollHeight` = 12 703 px | **14,70 écrans** |
+| Défilement de côté, 375 × 812 | kit | après | `resize_window` preset `mobile`, `body` et `#todo` : `scrollWidth` vs `clientWidth` | `body` 375 = 375 ; `#todo` 335 = 335 | **aucun** |
+| Défilement de côté, 375 × 812 | Cairn | après | idem | `body` 375 = 375 ; `#todo` 335 = 335 | **aucun** |
+| Rien de perdu, départ | Cairn | après | `py "context AI/38-audit-scripts/page_vs_source.py" ../Cairn-VlpLib "context AI"` | `feuille · TODO : rangs 16 · toutes cellules entières ailleurs 16` | **16 = 16**, aucun rang manquant |
 
 - ⚠️ **Le défilement de côté ne se voit pas à 1536 × 864** : `.page` borne les tableaux à 696 px et
   ils s'y plient. Il se voit à 375 × 812, sur les deux tableaux. Le critère de `FEU6` (« la TODO ne
@@ -348,3 +357,15 @@ versions **en ligne** : kit `1790510770-a339` (TODO en tableau, **7 rangs**), Ca
   (2125 / 2931 px).
 - L'écart en tokens contient aussi l'enveloppe de la plateforme (en-tête `[Artifact …]`, `<head>` de
   claude.ai) : même biais avant et après, comme en `PLI1`.
+- **`FEU6` ne mesure qu'une seule lecture « après »** (Cairn), pas les deux comme `FEU1` : sa propre
+  ligne de Prompt dit « la lecture en tokens », au singulier. Le premier essai (`13:28:13`–`13:30:53`)
+  a été fait en heure **UTC** (`date -u`) : `mesure-tokens.py` lit une heure sans décalage comme
+  l'**heure locale** (sa docstring) et a rendu 0 tour, 0 appel — écart de 2 h avec l'heure système.
+  Refait en heure locale : `15:31:50`–`15:32:01`.
+- Les 2 appels de la mesure « après » sont l'`Artifact read` visé **et** le `Bash` qui a pris
+  l'horodatage de fin (`15:32:01`, borne haute incluse) : le coût du `Bash` seul est négligeable
+  à côté de celui de la lecture, mais le compte brut le montre, sans le cacher.
+- Toutes les valeurs « après » viennent des feuilles **republiées et relues en ligne** : kit
+  `https://claude.ai/artifact/YWDny8kjubq9DhdP5rbPxA` (version 164), Cairn
+  `https://claude.ai/artifact/F1xfVYG1FtfRGy2Qs1krX8` (version 76) — mêmes URL qu'avant, contenu
+  regénéré par `FEU2`–`FEU5`, `FEU7`, `FEU8`.

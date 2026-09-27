@@ -7,7 +7,7 @@ La feuille de route de Cairn, cartes fermées, tient en 5 écrans d'ordinateur a
 - FEU3 : test_feuille_en_cartes vert : tableau d'avant (préambule + badge) → 0 <table>, 3 cartes pour 3 rangs, cellules via cellule_md, badge rang 4 ; 2e appel inchangée ; vigile PAGE SAINE. Mutant (détail vide) → ÉCART feuille : TODO rendue. Tests OK, pyright 0 erreur
 - FEU4 : test_sommaire vert : feuille sans sommaire → 1 nav sous </header>, 3 liens, id encours/todo/clos 1 fois chacun, dans l'ordre ; 2e appel inchangée. Mutant (garde déjà posé retirée) → ÉCART feuille : idempotente ; seul, 2 nav et 2 id encours. Tests OK, pyright 0 erreur
 - FEU5 : page_vs_source Cairn tableau : ancien rangs 16 · entiers 15 (= FEU1), nouveau 16 · 16 — l'écart est le badge en cours, retiré comme FEU1 le demandait (badge gardé : 16 · 15). Copie en cartes : ancien 29 · 0 (table des clos), nouveau 16 · 16. rejeu.py code 0 sur les deux formes (todo_lignes 16, coches 2). Mutant (borne retirée, tableau d'abord) → 29 · 0. pyright 3 → 2 erreurs
-- FEU6 : Les feuilles du kit et de Cairn régénérées, mesurées, republiées ; tu les regardes. Après FEU1, FEU4, FEU5.
+- FEU6 : Mesures avant/après écrites (écrans, défilement, coût tokens, page_vs_source) ; Cairn cartes fermées 3,15 écrans (≤5) ; 0 défilement à 375×812 ; page_vs_source rangs 16 = entiers 16 ; confirmé visuellement par l'utilisateur
 - FEU7 : tests verts, pyright 0 erreur, grep -c "la feuille de route</a>" context AI/artefacts/87-cartes.html rend 1
 - FEU8 : tests verts, pyright 0 erreur, mutant (borne basse) tombe, vlp.py feuille sur copie kit à 7 rangs rend 7 chantiers possibles · 2 petits, 1 moyen, 2 gros, 2 pas estimés · 1 bloqué · ≈17 fiches estimées
 ## Journal
