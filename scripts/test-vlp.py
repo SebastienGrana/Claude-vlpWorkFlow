@@ -3102,6 +3102,28 @@ def tester_page_enveloppee():
 
 tester_page_enveloppee()
 
+
+def tester_plage_refaite():
+    """Dette HAB : une plage d'en-tête refaite n'est ni perdue ni ajoutée."""
+    with tempfile.TemporaryDirectory() as tpl:
+        a = os.path.join(tpl, "ancienne.html")
+        n = os.path.join(tpl, "neuve.html")
+        for chemin, fin in ((a, "P7"), (n, "P8")):
+            ecrire(chemin, ANCIENNE_CMP.replace("<body>", "<body><div>kit · fiches P1–%s</div>" % fin))
+        c, sortie = appel(["comparer", a, n])
+        verifier("Dette HAB : plage refaite — PLAGE, 0 perdu (mutant : sans appariement)",
+                 c == 0 and "PERDU:" not in sortie and "AJOUTÉ:" not in sortie
+                 and "PLAGE: kit · fiches P1–P7 → kit · fiches P1–P8\n" in sortie
+                 and sortie.rstrip().endswith("COMPARER 0 perdus · 0 ajoutés · 1 plages refaites"), sortie)
+        ecrire(n, ANCIENNE_CMP.replace("<body>", "<body><div>autre · fiches P1–P8</div>"))
+        c, sortie = appel(["comparer", a, n])
+        verifier("Dette HAB : texte changé autour de la plage — reste PERDU et AJOUTÉ",
+                 "PERDU: kit · fiches P1–P7\n" in sortie and "PLAGE:" not in sortie
+                 and sortie.rstrip().endswith("COMPARER 1 perdus · 1 ajoutés"), sortie)
+
+
+tester_plage_refaite()
+
 # --- VOI3 : `lettres_prises` tolère une lettre entre backticks (MapDecorator) -
 
 LIGNE_MAPDECORATOR = "Lettres de fiche déjà prises : `T`, `U`, `R`, `M`. Un nouveau chantier en choisit"

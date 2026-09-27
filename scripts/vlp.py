@@ -129,7 +129,9 @@ Sous-commandes :
   (balises, `<script>` et `<style>` retirés, entités décodées, blancs réduits),
   par ligne de tableau ou par bloc : une ligne `PERDU: <texte>` par texte de
   l'ancienne absent de la neuve, `AJOUTÉ: <texte>` pour l'inverse, puis
-  `COMPARER <n> perdus · <n> ajoutés`. Sort 0 même avec des pertes — une
+  `COMPARER <n> perdus · <n> ajoutés`. Un texte qui ne diffère que par sa plage
+  `fiches X1–X7` sort en `PLAGE: <ancien> → <neuf>`, ni perdu ni ajouté, et la
+  dernière ligne finit par ` · <n> plages refaites`. Sort 0 même avec des pertes — une
   mesure, pas une garde. Un fichier absent : `GARDE:`, sort 1.
 - `niveau <projet>` — en quoi un projet équipé a dérivé du kit ; n'écrit rien.
   Agrège `renvois` (renvois absents en écarts, poids en avertissements, la ligne
@@ -3366,6 +3368,9 @@ def cmd_vigile_hook(entree, sortie):
     return 0
 
 
+PLAGE_TEXTE = re.compile(r"fiches [A-Z]{1,3}[0-9]+(?:–[A-Z]{1,3}[0-9]+)?")
+
+
 def cmd_comparer(a, sortie):
     """`PERDU:`/`AJOUTÉ:` entre le texte visible de deux pages, en multiset —
     une mesure, pas une garde : sort 0 même avec des pertes."""
@@ -3376,22 +3381,40 @@ def cmd_comparer(a, sortie):
     anciens = textes_visibles(lire(a.ancienne))
     neufs = textes_visibles(lire(a.neuve))
     restant_neufs = collections.Counter(neufs)
-    perdus = 0
+    perdus = []
     for t in anciens:
         if restant_neufs[t] > 0:
             restant_neufs[t] -= 1
         else:
-            sortie.write("PERDU: %s\n" % t)
-            perdus += 1
+            perdus.append(t)
     restant_anciens = collections.Counter(anciens)
-    ajoutes = 0
+    ajoutes = []
     for t in neufs:
         if restant_anciens[t] > 0:
             restant_anciens[t] -= 1
         else:
-            sortie.write("AJOUTÉ: %s\n" % t)
-            ajoutes += 1
-    sortie.write("COMPARER %d perdus · %d ajoutés\n" % (perdus, ajoutes))
+            ajoutes.append(t)
+    # Dette HAB : une plage d'en-tête refaite (« fiches X1–X7 » → « X1–X8 ») n'est
+    # pas une perte — la paire sort en `PLAGE:`, ni perdue ni ajoutée.
+    plages = []
+    for t in list(perdus):
+        forme = PLAGE_TEXTE.sub("fiches #", t)
+        if forme == t:
+            continue
+        for n in ajoutes:
+            if PLAGE_TEXTE.sub("fiches #", n) == forme:
+                plages.append((t, n))
+                perdus.remove(t)
+                ajoutes.remove(n)
+                break
+    for t in perdus:
+        sortie.write("PERDU: %s\n" % t)
+    for t in ajoutes:
+        sortie.write("AJOUTÉ: %s\n" % t)
+    for t, n in plages:
+        sortie.write("PLAGE: %s → %s\n" % (t, n))
+    sortie.write("COMPARER %d perdus · %d ajoutés%s\n" % (
+        len(perdus), len(ajoutes), " · %d plages refaites" % len(plages) if plages else ""))
     return 0
 
 
