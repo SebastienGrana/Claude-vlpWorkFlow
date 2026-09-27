@@ -31,7 +31,7 @@
 
   <section id="todo">
     <h2>Les chantiers possibles, dans l'ordre</h2>
-    <p class="mono resume-todo" style="margin:0;color:var(--doux);font-size:.9rem">6 chantiers possibles · 2 petits, 2 gros, 2 pas estimés · ≈13 fiches estimées</p>
+    <p class="resume-todo"><strong>6 chantiers possibles</strong> · 2 petits, 2 gros, 2 pas estimés · ≈13 fiches estimées</p>
     <!-- ZONE:todo — miroir de la TODO ordonnée du fichier d'état ; le fichier reste la vérité -->
     <ol class="todo">
           <li class="carte-todo"><span class="gauche"><span class="rang mono">30</span> <span class="badge" data-etat="cours">en cours</span><span class="dep mono">← PLI</span></span><details><summary><span class="titre"><span class="mono">BTN</span> — Des boutons, en dernier</span></summary><div class="detail">Commenter une fiche, tout déplier, filtrer, copier la commande d'une fiche, un graphique des coûts. Optionnel. Depuis <span class="mono">ALE</span> : leurs styles vont dans <span class="mono">vlp.css</span>, et rien ne lit la base <span class="mono">db</span>, adoptée pour un chantier plus tard.</div></details><span class="meta mono">~4 à 6 fiches</span></li>
@@ -46,6 +46,7 @@
   <section id="clos">
     <h2>Chantiers clos — ils ne se rejouent pas</h2>
     <!-- ZONE:clos — une ligne ajoutée à chaque clôture, la plus récente en haut -->
+    <img src="couts.svg" alt="Coût des chantiers clos en tokens : 75 barres, du plus ancien au plus récent ; le plus cher : Repeindre une page sans recompter">
     <details class="clos">
       <summary><span class="resume-clos">76 chantiers clos · ≈1209,5M (1 209 526 939) tokens · ≈1012 $</span></summary>
     <div class="tableau">

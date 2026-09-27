@@ -329,3 +329,23 @@ et les quatre filtres marchent ; le graphique s'affiche sur les deux feuilles ; 
 ressort, et le texte d'avant la liste de Cairn est replié ; rien ne défile de côté. Il le dit, et
 la fiche se coche.
 <!-- /FICHE -->
+
+---
+
+## Mesures
+
+Mesuré le 2026-09-27 par `BTN6`, avant et après `vlp.py page "context AI/88-boutons.md"`,
+`vlp.py feuille .`, `vlp.py feuille <dossier de Cairn>`. Cairn : des comptes seulement.
+
+| Page | Lignes avant → après (`vlp.py lignes`) | `comparer` en ligne → locale, avant · après | Marques après |
+|---|---|---|---|
+| Feuille du kit | 556 → 557 (+1 : balise `couts.svg`) | 7 perdus · 13 ajoutés, les deux fois | `<img>` 1, 75 barres, décompte `<strong>` 1, `style=` 0, `details.lecture` 0 (pas de préambule) |
+| Page de BTN | 104 → 104 | — | — |
+| Feuille de Cairn | 283 → 286 (+3 : balise `couts.svg`, `details.lecture` ouvert et fermé) | 0 · 0, puis 0 perdus · 1 ajouté (« Comment lire cette liste ») | `<img>` 1, 25 barres, décompte `<strong>` 1, `style=` 0, `details.lecture` 1, fermé |
+
+- Kit, 7 perdus : les mêmes textes recoupés (cartes en colonnes, « dépend de : X » devenu « ← X »,
+  coût à part), et `Fiches BTN1–BTN6` → `BTN1–BTN7` — `PLAGE_TEXTE` ne lit que « fiches » en
+  minuscule. Aucun écart étranger à BTN.
+- Republication : refusée le 2026-09-27 à 20:16 (`publish 429: daily publish limit for your plan
+  reached (200) — resets at UTC midnight`). Reportée après 02:00, heure locale ; l'`Artifact read`
+  d'après, qui ne doit rendre que les balises des joints, vient avec elle.
