@@ -84,8 +84,9 @@ parlante jouée en dernier.
 ---
 
 <!-- FICHE:PAR1 -->
-## PAR1 [ ] — Compter le temps actif par script
+## PAR1 [x] — Compter le temps actif par script
 
+**Session** : a0161a66-d517-4617-8abe-c793f1ca1df0
 **Dépend de** : rien.
 **Fichiers** : `scripts/mesure-tokens.py`, `scripts/test-mesure-tokens.py` — et rien d'autre.
 

@@ -354,6 +354,68 @@ def verifier_plage_cli():
     return None
 
 
+def tape(m):
+    """Un message tapé par l'utilisateur à la minute `m` : `origin` `human`, comme en vrai."""
+    return json.dumps({"type": "user", "timestamp": iso(m), "origin": {"kind": "human"},
+                       "message": {"role": "user", "content": "suite"}})
+
+
+def resultat(m):
+    """Le `tool_result` d'un appel d'outil à la minute `m` : une ligne `user`, pas tapée."""
+    return json.dumps({"type": "user", "timestamp": iso(m), "message": {"role": "user", "content": [
+        {"type": "tool_result", "tool_use_id": "toolu_x", "content": "ok"}]}})
+
+
+def file_attente(m):
+    """Une ligne que le harnais écrit à l'envoi d'un message, à la même seconde que lui."""
+    return json.dumps({"type": "queue-operation", "operation": "dequeue", "timestamp": iso(m)})
+
+
+def dit(m, mid):
+    return assistant(mid, 1, 1, 0, 0, heure=iso(m))
+
+
+def verifier_actif():
+    """`--actif` : le seuil de pause, l'attente, deux sessions sur une ligne de temps commune, un
+    sous-agent sur celle de sa session, la plage ; une ligne sans heure se dit sur stderr."""
+    with tempfile.TemporaryDirectory() as tmp:
+        def f(nom):
+            return os.path.join(tmp, nom + ".jsonl")
+
+        ecrire(f("s-seuil"), [dit(0, "a"), dit(30, "b"), dit(61, "c")])
+        # L'attente : 6 → 20 (la ligne de file d'attente, à 20, ne la coupe pas) ; 1 → 5, jusqu'au
+        # tool_result, n'en est pas. Plus une ligne sans heure, hors du temps actif.
+        ecrire(f("s-attente"), [tape(0), dit(1, "a"), resultat(5), dit(6, "b"), file_attente(20), tape(20),
+                                dit(21, "c"), assistant("msg_sans", 1, 1, 0, 0)])
+        ecrire(f("s-a"), [dit(m, f"a{m}") for m in (0, 10, 20)])
+        ecrire(f("s-b"), [dit(m, f"b{m}") for m in (5, 15, 25)])
+        # Un sous-agent qui travaille de 2 à 40 pendant que sa session n'écrit rien de 1 à 41.
+        ecrire(f("s-agent"), [tape(0), dit(1, "a"), resultat(41), dit(42, "b")])
+        ecrire(os.path.join(tmp, "s-agent", "subagents", "agent-x.jsonl"), [
+            json.dumps({"type": "user", "timestamp": iso(2), "message": {"role": "user", "content": "fiche"}}),
+            dit(20, "x1"), dit(40, "x2")])
+        cas = [
+            # (nom, argv, {ligne : (min actives, min d'attente, pauses)})
+            ("seuil, 30 min gardées et 31 retirées", [f("s-seuil")], {"s-seuil.jsonl": (30, 0, 1)}),
+            ("attente jusqu'au message tapé, pas au tool_result", [f("s-attente")], {"s-attente.jsonl": (21, 14, 0)}),
+            ("deux sessions qui se chevauchent", [f("s-a"), f("s-b")],
+             {"s-a.jsonl": (20, 0, 0), "s-b.jsonl": (20, 0, 0), "TOTAL": (25, 0, 0)}),
+            ("sous-agent de 40 min sans ligne du parent", [f("s-agent")], {"s-agent.jsonl": (42, 0, 0)}),
+            ("plage", ["--plage", iso(-1), iso(10), f("s-a")], {"s-a.jsonl": (10, 0, 0)}),
+        ]
+        for nom, argv, attendu in cas:
+            sortie, erreurs = io.StringIO(), io.StringIO()
+            with contextlib.redirect_stdout(sortie), contextlib.redirect_stderr(erreurs):
+                code = mod.main(["--actif"] + argv)
+            colonnes = [ligne.split("\t") for ligne in sortie.getvalue().splitlines()]
+            lignes = {c[1]: tuple(int(x) for x in c[2:]) for c in colonnes if c[0] == "actif"}
+            if code != 0 or lignes != attendu:
+                return f"--actif, {nom} : code {code}, lignes {lignes}, attendu {attendu}"
+            if ("sans heure" in erreurs.getvalue()) != nom.startswith("attente"):
+                return f"--actif, {nom} : stderr {erreurs.getvalue()!r}"
+    return None
+
+
 def main():
     for nom, lignes, attendu, *options in [
         ("trois-tours", LIGNES, ATTENDU),
@@ -366,7 +428,7 @@ def main():
         if ecart:
             print(ecart)
             return 1
-    for bloc in (verifier_resolution, verifier_sous_agents, verifier_chemin_long, verifier_plage_cli):
+    for bloc in (verifier_resolution, verifier_sous_agents, verifier_chemin_long, verifier_plage_cli, verifier_actif):
         ecart = bloc()
         if ecart:
             print(ecart)

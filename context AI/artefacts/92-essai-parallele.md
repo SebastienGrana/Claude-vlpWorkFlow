@@ -2,9 +2,10 @@
 ## Résultat
 Un verdict chiffré : le temps gagné par deux sessions en même temps (kit + MapDecorator), face au temps en série — code du parallèle (D2–D5) seulement si le gain passe 20 %.
 ## Notes
-- PAR1 : L'option --actif de mesure-tokens.py : temps actif et attente, pauses de plus de 30 min retirées. Ne dépend de rien.
+- PAR1 : test-mesure-tokens.py : OK ; mutants « > devient >= » et « sous-agents hors de la ligne de temps » : exit 1 chacun, sur les tests « seuil » et « sous-agent de 40 min » ; pyright : 0 errors ; --actif sur la session de cadrage : actif 1282cde7-5a36-4b45-a08f-53f8ddddea98.jsonl 14 2 0
 - PAR2 : La référence en série : minutes et dollars par fiche de TYP, CHK, FEU, BTN, TAU et de MapDecorator. Dépend de PAR1.
 - PAR3 : Le verdict de l'essai : réel contre série, gain ≥ 20 % ? Dépend de PAR2 et de l'essai joué par l'utilisateur.
 - PAR4 : Ce qui coincera à la fusion des branches PAR et LOC, prédit par git merge-tree sans rien fusionner. Ne dépend de rien.
 ## Journal
+- 2026-09-28 : 2026-09-28 (PAR1) : **l'attente de `--actif` court depuis la dernière ligne de conversation, pas depuis la ligne qui précède le message tapé** — le harnais écrit `queue-operation` (`enqueue`, `dequeue`) à la même seconde que le message (+0 s sur la session de cadrage de PAR ; sur 7 sessions, la ligne qui précède un message tapé est 19 fois une `queue-operation`, 6 fois un `attachment` `date`) : prise au mot, l'attente vaudrait toujours 0. Message tapé = `origin.kind` `human` (3 418 lignes, aucune avec `tool_result`) ou, sans `origin`, une commande locale (295). Limite voulue par le socle : répondre à un questionnaire rend un `tool_result`, donc du temps actif mais pas de l'attente (cadrage de PAR : 3 questionnaires, 0,0 + 0,4 + 0,7 min).
 ## Bilan

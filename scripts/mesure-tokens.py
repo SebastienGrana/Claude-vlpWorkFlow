@@ -3,7 +3,7 @@
 en tokens d'entrée et leur prix — les colonnes de `COLONNES`, dans l'ordre du socle
 (`context AI/13-tours.md`).
 
-    mesure-tokens.py [--plage DEBUT FIN] <fichier.jsonl | id de session> [...]
+    mesure-tokens.py [--plage DEBUT FIN] [--actif] <fichier.jsonl | id de session> [...]
     mesure-tokens.py --grille
 
 Une session amène ses sous-agents, une ligne chacun sous la sienne ; un fichier passé deux
@@ -12,9 +12,18 @@ ISO 8601 — sans décalage, l'heure locale — ou un commit Git, à son heure d
 dossier courant. Un tour se juge à sa première ligne, un sous-agent entier à son départ.
 `--grille` imprime les prix par modèle.
 
+`--actif` ajoute le temps passé. Chaque fichier donné et ses sous-agents forment une ligne de
+temps, triée par heure ; son temps actif est la somme des écarts entre lignes voisines, sauf
+ceux de plus de `PAUSE` (30 min) : les pauses, retirées. L'attente est la part du temps actif
+qui mène à un message tapé par l'utilisateur (`tape`), depuis la ligne de conversation qui le
+précède. Sous `--plage`, une ligne se juge à son heure, un sous-agent entier à son départ.
+
 Sortie : une ligne par fichier, en tabulations, et une ligne `TOTAL` au-delà d'un fichier ;
-puis une ligne `appels` par fichier. Les remarques vont sur stderr. Sort 1 sur un usage faux,
-une borne illisible, ou quand aucun fichier n'a pu être lu ; 0 sinon.
+puis une ligne `appels` par fichier. Sous `--actif`, ensuite, une ligne `actif` par fichier
+donné — `actif, <fichier>, <min actives>, <min d'attente>, <pauses retirées>`, en tabulations —
+et au-delà d'un, `actif, TOTAL, …` sur la ligne de temps commune (une minute où deux sessions
+travaillent compte une fois) ; minutes arrondies à l'entier. Les remarques vont sur stderr. Sort 1 sur un
+usage faux, une borne illisible, ou quand aucun fichier n'a pu être lu ; 0 sinon.
 
 Python 3 sans dépendance, zéro appel modèle.
 """
@@ -332,6 +341,102 @@ def mesurer(chemin, plage=None):
     }, None
 
 
+# --actif : un écart de plus de PAUSE secondes entre deux lignes voisines d'une ligne de temps
+# est une pause — ni temps actif, ni attente. 30 min : choix de Claude au cadrage de PAR, dit
+# comme tel (context AI/92-essai-parallele.md, socle).
+PAUSE = 30 * 60
+
+# Les sortes de lignes d'une ligne de temps : une autre ligne horodatée (attachement, file
+# d'attente, système…), une ligne de conversation (`message`), un message tapé.
+AUTRE, MESSAGE, TAPE = 0, 1, 2
+
+
+def tape(d):
+    """Vrai pour un message tapé par l'utilisateur : une ligne `user` d'`origin` `human` ou, sans
+    `origin`, une commande locale (`<command-name>/clear…`). Ni un `tool_result`, ni une
+    notification, ni une ligne `isMeta`. Compté le 2026-09-28 sur ~/.claude/projects : 3 418
+    lignes `human`, aucune avec un `tool_result` ; 295 commandes locales sans `origin`, en texte."""
+    if d.get("type") != "user" or d.get("isMeta"):
+        return False
+    origine = d.get("origin")
+    if isinstance(origine, dict):
+        return origine.get("kind") == "human"
+    message = d.get("message")
+    contenu = message.get("content") if isinstance(message, dict) else None
+    return isinstance(contenu, str) and contenu.startswith("<command-name>")
+
+
+def points(chemin, plage=None):
+    """Les lignes horodatées d'un transcript, en (secondes UTC, sorte) : rend (liste, None) ou
+    (None, erreur). Une ligne de message sans heure n'y est pas, et se dit sur stderr ; une ligne
+    sans message ni heure (titre, instantané…) n'est pas un événement. Sous `plage`, une ligne se
+    garde si son heure y tombe ; un sous-agent entier ou pas du tout, à son départ, comme dans
+    `mesurer`. Dans un sous-agent, rien n'est tapé : ses lignes `user` viennent du chef."""
+    sous_agent = est_sous_agent(chemin)
+    if plage is not None and sous_agent:
+        t0, erreur = depart(chemin)
+        if erreur:
+            return None, erreur
+        if t0 is None or not plage[0] < t0 <= plage[1]:
+            return [], None
+        plage = None                # parti dans la plage : entier
+    liste, sans_heure = [], 0
+    try:
+        f = ouvrir(chemin)
+    except OSError as e:
+        return None, f"illisible : {e}"
+    with f:
+        for ligne in f:
+            try:
+                d = json.loads(ligne)
+            except json.JSONDecodeError:
+                continue
+            if not isinstance(d, dict):
+                continue
+            t = heure(d)
+            if t is None:
+                if isinstance(d.get("message"), dict):
+                    sans_heure += 1
+                continue
+            if plage is not None and not plage[0] < t <= plage[1]:
+                continue
+            if not isinstance(d.get("message"), dict):
+                liste.append((t, AUTRE))
+            else:
+                liste.append((t, TAPE if not sous_agent and tape(d) else MESSAGE))
+    if sans_heure:
+        print(f"{os.path.basename(chemin)}\tsans heure = {sans_heure} (lignes de message sans timestamp, "
+              "hors du temps actif)", file=sys.stderr)
+    return liste, None
+
+
+def temps(liste):
+    """(secondes actives, secondes d'attente, pauses retirées) d'une ligne de temps de points.
+
+    L'attente court de la dernière ligne de conversation jusqu'au message tapé : les lignes que le
+    harnais écrit à l'envoi ne la coupent pas — vu le 2026-09-28 sur la session de cadrage de PAR,
+    `queue-operation` `enqueue`, `dequeue` et message tapé à la même seconde."""
+    actif = attente = tampon = 0.0
+    pauses = 0
+    triee = sorted(liste)
+    for (avant, _), (t, sorte) in zip(triee, triee[1:]):
+        ecart = t - avant
+        if ecart > PAUSE:
+            pauses += 1
+            ecart = 0.0
+        actif += ecart
+        tampon += ecart
+        if sorte == TAPE:
+            attente += tampon
+        if sorte != AUTRE:
+            tampon = 0.0
+    return actif, attente, pauses
+
+
+def minutes(secondes):
+    return int(secondes / 60 + 0.5)
+
+
 def afficher_grille():
     print("\t".join(["modele", "entree", "sortie", "cache_lu", "cache_5m", "cache_1h",
                      "r_sortie", "r_lu", "r_5m", "r_1h"]))
@@ -356,13 +461,15 @@ def borne(texte):
     return None, "ni heure ISO 8601, ni commit Git"
 
 
-USAGE = "usage: mesure-tokens.py [--plage DEBUT FIN] <fichier.jsonl | id de session> [...] | --grille"
+USAGE = "usage: mesure-tokens.py [--plage DEBUT FIN] [--actif] <fichier.jsonl | id de session> [...] | --grille"
 
 
 def main(argv):
     if argv == ["--grille"]:
         afficher_grille()
         return 0
+    actif = "--actif" in argv
+    argv = [a for a in argv if a != "--actif"]
     plage = None
     if "--plage" in argv:
         k = argv.index("--plage")
@@ -383,6 +490,7 @@ def main(argv):
 
     resultats = []
     vus = set()
+    lignes_de_temps = []    # (nom, points) par fichier donné, ses sous-agents compris ; lu sous --actif
 
     def compter(chemin):
         """Mesure un fichier et l'ajoute aux résultats ; False s'il était déjà compté."""
@@ -399,6 +507,11 @@ def main(argv):
         if erreur:
             print(f"{nom}\t{erreur}", file=sys.stderr)
             return True
+        if actif:
+            p, erreur = points(chemin, plage)
+            if erreur:
+                print(f"{nom}\t{erreur}", file=sys.stderr)
+            lignes_de_temps[-1][1].extend(p or [])
         if r["divergents"] > 0:
             print(f"{nom}\tdivergents = {r['divergents']} (ids dont l'usage change d'une ligne à l'autre)",
                   file=sys.stderr)
@@ -410,14 +523,17 @@ def main(argv):
 
     for argument in argv:
         chemin, erreur = resoudre(argument)
-        if erreur:
+        if chemin is None:
             print(f"{argument}\t{erreur}", file=sys.stderr)
             continue
         # Une session amène ses sous-agents, une ligne chacun sous la sienne ;
-        # déjà comptée, elle les a déjà amenés.
+        # déjà comptée, elle les a déjà amenés — et sa ligne de temps existe.
+        lignes_de_temps.append((os.path.basename(chemin), []))
         if compter(chemin):
             for sous_agent in sous_agents(chemin):
                 compter(sous_agent)
+        else:
+            lignes_de_temps.pop()
 
     if not resultats:
         print("aucun fichier n'a pu être lu", file=sys.stderr)
@@ -441,6 +557,13 @@ def main(argv):
     for nom, r in resultats:
         detail = " ".join(f"{n}={c}" for n, c in sorted(r["outils"].items(), key=lambda x: (-x[1], x[0])))
         print(f"{nom}\tappels\t{detail or '-'}")
+
+    if actif:
+        if len(lignes_de_temps) > 1:
+            lignes_de_temps.append(("TOTAL", [p for _, liste in lignes_de_temps for p in liste]))
+        for nom, liste in lignes_de_temps:
+            secondes, attente, pauses = temps(liste)
+            print(f"actif\t{nom}\t{minutes(secondes)}\t{minutes(attente)}\t{pauses}")
 
     return 0
 
