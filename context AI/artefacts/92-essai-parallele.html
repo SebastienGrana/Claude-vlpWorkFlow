@@ -1,0 +1,78 @@
+<meta charset="utf-8">
+<title>vlp — Deux chantiers en parallèle : l'essai mesuré</title>
+<!--
+  GABARIT — artefact d'un chantier. Publié par /chantier à l'ouverture,
+  mis à jour par /tache à chaque fiche. Remplace les <…> et ne renomme pas
+  les marqueurs `ZONE:…` : les commandes les cherchent tels quels.
+
+  Convention de coût — posée ici, référencée (jamais recopiée) par
+  artefact-feuille-de-route.html, tache.md et cloture.md : un nombre < 1000
+  s'affiche tel quel ; au-delà, "≈<arrondi 1 décimale><k|M> (<compte brut>)"
+  — virgule française, k = mille, M = million. Le compte brut reste toujours
+  visible à côté de l'arrondi.
+-->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700&family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:wght@400;600&display=swap">
+<link rel="stylesheet" href="vlp.css">
+
+<div class="page">
+  <header>
+    <div class="eyebrow">vlp · fiches PAR1–PAR4 · <a href="https://claude.ai/artifact/YWDny8kjubq9DhdP5rbPxA">la feuille de route</a></div>
+    <h1>Deux chantiers en parallèle : l'essai mesuré</h1>
+    <p>Un verdict chiffré : le temps gagné par deux sessions en même temps (kit + MapDecorator), face au temps en série — code du parallèle (D2–D5) seulement si le gain passe 20 %.</p>
+    <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
+    <div class="avancement">
+      <span data-etat="encours"></span><span></span><span></span><span></span>
+    </div>
+    <p class="mono" style="margin-top:.5rem">4 fiches · 0 faite · en cours : PAR1</p>
+  </header>
+
+  <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
+  <section hidden>
+    <h2>Chantier clos le </h2>
+    <div class="bilan">
+      <p></p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Les fiches, dans l'ordre des dépendances</h2>
+    <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
+    <ul class="fiches">
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">PAR1</span></span>
+        <details open><summary><span class="titre">Compter le temps actif par script</span><span class="etat">En cours · PAR4 peut partir en même temps</span></summary>
+        <span class="note">L'option --actif de mesure-tokens.py : temps actif et attente, pauses de plus de 30 min retirées. Ne dépend de rien.</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">PAR2</span></span>
+        <details><summary><span class="titre">Poser la référence en série</span><span class="etat">Après PAR1</span></summary>
+        <span class="note">La référence en série : minutes et dollars par fiche de TYP, CHK, FEU, BTN, TAU et de MapDecorator. Dépend de PAR1.</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">PAR3</span></span>
+        <details><summary><span class="titre">Mesurer l'essai et rendre le verdict</span><span class="etat">Après PAR2</span></summary>
+        <span class="note">Le verdict de l'essai : réel contre série, gain ≥ 20 % ? Dépend de PAR2 et de l'essai joué par l'utilisateur.</span></details></li>
+      <li class="fiche"><span class="gauche"><span class="id">PAR4</span></span>
+        <details><summary><span class="titre">Prédire la fusion des branches</span><span class="etat">À lancer · en même temps que PAR1</span></summary>
+        <span class="note">Ce qui coincera à la fusion des branches PAR et LOC, prédit par git merge-tree sans rien fusionner. Ne dépend de rien.</span></details></li>
+    </ul>
+    <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
+  </section>
+
+  <!-- ZONE:blocage — publiée quand /tache s'arrête après deux tentatives ; retirée dès que la fiche repasse -->
+  <section hidden>
+    <h2>Arrêt sur blocage</h2>
+    <div class="blocage">
+      <p></p>
+      <pre></pre>
+    </div>
+  </section>
+
+  <section>
+    <h2>Journal des décisions</h2>
+    <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
+    <ul class="journal">
+    </ul>
+  </section>
+
+  <footer>
+    <span>Fichier de fiches : <span class="mono">context AI/92-essai-parallele.md</span></span>
+    <span>Mis à jour le <span class="mono">2026-09-28</span></span>
+  </footer>
+</div>
+<script src="vlp.js"></script>

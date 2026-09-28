@@ -18,6 +18,7 @@ a l'air proche.
 | `12-audit.md` | on choisit le prochain chantier du kit, ou on cherche la preuve d'un bug ou d'une mesure de l'audit du 2026-09-17 |
 | `38-audit-artefacts.md` | on choisit un chantier sur les pages publiées (six proposés, A à F), ou on cherche la preuve d'un défaut de page relevé le 2026-09-22 ; ses scripts sont dans `38-audit-scripts/`, sa page dans `artefacts/` |
 | `91-publication-refusee.md` | on joue une fiche `LOC*` — chantier **ouvert** « Une publication refusée n'arrête plus le chantier », `LOC1..LOC5` |
+| `92-essai-parallele.md` | on joue une fiche `PAR*` — chantier **ouvert** « Deux chantiers en parallèle : l'essai mesuré », `PAR1..PAR4` |
 | `00-INDEX-archive.md` | on relit un chantier clos — chacun y a sa ligne, triée par numéro |
 | `35-bilan.md` | on doit expliquer le kit — d'où il vient, ce qu'il sait faire aujourd'hui, ce qu'il ne promet pas ; les 22 chantiers chiffrés |
 | *(racine du kit)* `methode-chantier.md` | on ouvre un chantier, ou on le découpe en fiches — ici le projet **est** le kit, la méthode est donc à la racine |
