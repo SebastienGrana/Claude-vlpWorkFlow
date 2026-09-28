@@ -40,8 +40,11 @@ Tranché au cadrage (2026-09-28, trois questionnaires, notes `PUB` comprises) :
 
 Le texte du 429, relevé le 2026-09-27 (`context AI/88-boutons.md:352`) :
 `publish 429: daily publish limit for your plan reached (200) — resets at UTC midnight`.
-Mesuré par `LOC1` : **<à remplir — événement, champ du texte, cause du blocage de BTN6,
-refus provocable sans user la limite>**.
+Mesuré par `LOC1` (2026-09-29 ; 4 résultats `Artifact` en 429 sur 223 occurrences brutes hors la session de `LOC1` (269 avec elle) de
+`grep -o "publish 429" ~/.claude/projects/*/*.jsonl | wc -l` : le reste est de la discussion) :
+- **429** : `is_error` vrai → `PostToolUseFailure` (kit `9c178cca`:1069 ; Cairn `ad875ef2`:2323) ; texte dans `error` (exemple de la doc, `1cba232a`:1756) ; appel = `file_path`, + `url` et `files` en republication (`9c178cca`:1062), sans `url` pour une page neuve. « Page non lue » : même événement, autre texte (`747d5037`:257) → trier par le texte. Vigile : `PreToolUse` (`aeb2fbf2`:404), qu'un `Post*` suive n'est pas établi.
+- **Blocage de BTN6** : son prompt, « Republie chacune à son URL » (`88-boutons.md:322`), et son critère `(visuel)` (`:328`) ; l'étape 6 bis, elle, dit « Échec : une ligne, et continue » et n'a pas bloqué (`9c178cca`:1073, :1079).
+- **`LOC5`, sans user la limite** : le refus vigile (page cassée, local) ; « non lue », probable, non mesuré ; le 429 seulement en JSON sur l'entrée standard.
 
 | Nom | Où | Ce qu'il fait |
 |---|---|---|
@@ -83,8 +86,9 @@ et le nettoyage des 6 entrées actuelles de `launch.json` — le script ne touch
 ---
 
 <!-- FICHE:LOC1 -->
-## LOC1 [ ] — Mesurer le refus 429 de BTN6
+## LOC1 [x] — Mesurer le refus 429 de BTN6
 
+**Session** : ae4ad37c-5d78-4003-b1ce-e63a8a4ece48
 **Dépend de** : rien.
 **Fichiers** : les transcriptions `~/.claude/projects/*/*.jsonl` (lecture seule),
 `context AI/91-publication-refusee.md` (la ligne « Mesuré par LOC1 » du socle) — et rien d'autre.

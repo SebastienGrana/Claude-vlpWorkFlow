@@ -2,7 +2,7 @@
 ## Résultat
 Une page refusée par la limite du jour attend dans une liste et part plus tard, sans bloquer ni case ni clôture ; on la relit en local, sans cache, en largeur téléphone.
 ## Notes
-- LOC1 : Le refus 429 de BTN6 mesuré : événement, cause du blocage, refus à ne pas lister
+- LOC1 : 4 résultats Artifact en 429 sur 223 occurrences brutes hors session (269 avec) ; événement PostToolUseFailure, champ error ; cause du blocage : prompt et critère (visuel) de BTN6 ; VALIDE
 - LOC2 : vlp.py attente, ATTENTE= dans la carte, hooks : 429 ajoute et propose la tâche, succès retire (après LOC1)
 - LOC3 : La règle dans ARTEFACTS.md, les commandes y renvoient et republient la liste (après LOC2)
 - LOC4 : vlp.py apercu et servir : launch.json écrit par script, hors du dépôt (indépendante)
