@@ -132,6 +132,12 @@ LIGNES_OPUS55 = [assistant("msg_O", 10**6, 10**6, 10**6, 10**6, sous_objet=(400_
                            modele="claude-opus-5-5")]
 ATTENDU_OPUS55 = {"tours": 1, "usd": "30.40", "inconnus": []}
 
+# claude-sonnet-5-5 est dans la grille depuis le 2026-09-28. Même tour que ci-dessus, aux prix de
+# la page officielle : 2 + 10 + 0,20 + 0,6 × 2,5 + 0,4 × 4 = 15,30 $.
+LIGNES_SONNET55 = [assistant("msg_N", 10**6, 10**6, 10**6, 10**6, sous_objet=(400_000, 600_000),
+                             modele="claude-sonnet-5-5")]
+ATTENDU_SONNET55 = {"tours": 1, "usd": "15.30", "inconnus": []}
+
 # Les heures des plages : des minutes autour du 2026-09-23 à 10:00 UTC, écrites comme dans un
 # transcript (`iso`) ou comme une borne de plage (`sec`).
 ORIGINE = datetime.datetime(2026, 9, 23, 10, 0, tzinfo=datetime.timezone.utc)
@@ -361,6 +367,7 @@ def main():
         ("poids", LIGNES_POIDS, ATTENDU_POIDS),
         ("inconnu", LIGNES_INCONNU, {k: v for k, v in ATTENDU_INCONNU.items() if v is not None}),
         ("opus-5-5", LIGNES_OPUS55, ATTENDU_OPUS55),
+        ("sonnet-5-5", LIGNES_SONNET55, ATTENDU_SONNET55),
     ] + CAS_PLAGE:
         ecart = verifier(nom, lignes, attendu, *options)
         if ecart:
