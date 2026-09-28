@@ -63,8 +63,9 @@ Rien de parallèle : `ENQ1` et `ENQ2` touchent les mêmes fichiers, `ENQ3` lit l
 ---
 
 <!-- FICHE:ENQ1 -->
-## ENQ1 [ ] — Faire lire à `contrat` la réponse de l'outil
+## ENQ1 [x] — Faire lire à `contrat` la réponse de l'outil
 
+**Session** : eff48dc7-29a6-457e-aed8-ca12581cc41a
 **Dépend de** : rien.
 **Fichiers** : scripts/vlp.py, scripts/test-vlp.py, skills/check/SKILL.md — et rien d'autre.
 

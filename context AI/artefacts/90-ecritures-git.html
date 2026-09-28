@@ -21,9 +21,9 @@
     <p>contrat dit 0 écrivent · 3 bloqués · 1 interrompu depuis FOR, au lieu de 3 écrivent ; le gardien ne bloque plus un echo vers un fichier ; l'interdit de commit est là où le sous-agent finit.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="encours"></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="encours"></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">3 fiches · 0 faite · en cours : ENQ1</p>
+    <p class="mono" style="margin-top:.5rem">3 fiches · 1 faite · en cours : ENQ2</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -38,16 +38,19 @@
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">ENQ1</span></span>
-        <details open><summary><span class="titre">Faire lire à contrat la réponse de l'outil</span><span class="etat">En cours</span></summary>
-        <span class="note">contrat sépare bloqué / écrit et interrompu / sans statut — dépend de rien</span></details></li>
-      <li class="fiche" data-attend><span class="gauche"><span class="id">ENQ2</span></span>
-        <details><summary><span class="titre">Taire le texte d'un echo envoyé dans un fichier</span><span class="etat">Après ENQ1</span></summary>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">ENQ1</span></span>
+        <details><summary><span class="titre">Faire lire à contrat la réponse de l'outil</span><span class="etat">Faite</span></summary>
+        <span class="note">test-vlp.py OK, pyright 0 erreur ; contrat --ouverture 58-forme-sous-agent.md → 11 sous-agents · 0 écrivent · 3 bloqués · 0 sans statut · 1 interrompus ; corpus entier : 103 sous-agents · 5 écrivent · 5 bloqués · 45 sans statut · 1 interrompus (avant : 10 écrivent · 46 sans statut)</span></details>
+        <span class="cout mono">≈5,6M (5 615 198) · 43 tours · 2,06 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">ENQ2</span></span>
+        <details open><summary><span class="titre">Taire le texte d'un echo envoyé dans un fichier</span><span class="etat">En cours · ENQ3 peut partir en même temps</span></summary>
         <span class="note">un echo ou printf vers un fichier n'est plus lu comme une écriture Git — dépend d'ENQ1</span></details></li>
-      <li class="fiche" data-attend><span class="gauche"><span class="id">ENQ3</span></span>
-        <details><summary><span class="titre">Mesurer les tentatives, puis déplacer l'interdit du sous-agent</span><span class="etat">Après ENQ1</span></summary>
+      <li class="fiche"><span class="gauche"><span class="id">ENQ3</span></span>
+        <details><summary><span class="titre">Mesurer les tentatives, puis déplacer l'interdit du sous-agent</span><span class="etat">À lancer · en même temps que ENQ2</span></summary>
         <span class="note">mesure les tentatives bloquées, puis met l'interdit à l'étape 5 d'agents/fiche.md — dépend d'ENQ1</span></details></li>
     </ul>
+    <p class="mono cout-hors">Hors fiches : ≈4,1M (4 125 484) · 31 tours · 2,77 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈9,7M (9 740 682) · 74 tours · 4,83 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

@@ -241,18 +241,21 @@ Sous-commandes :
   `**Fait.**` : `GARDE:`, le reste est écrit (chantier EST).
   Un autre chantier déjà ouvert, ou F porte `**CLOS**` : `GARDE:`, sort 1.
 - `contrat [<transcription>…] [--depuis D] [--ouverture F]` — le contrat d'`agents/fiche.md` lu dans des
-  transcriptions de sous-agent (chantier CON). Sans argument : toutes celles dont le
+  transcriptions de sous-agent (chantiers CON, ENQ). Sans argument : toutes celles dont le
   `.meta.json` voisin dit `vlp:fiche`, sous `~/.claude/projects/*/*/subagents/`. Une ligne
   chacune : `<id> <agentType> <départ de la session parente, UTC | ?> <premier mot du dernier
-  message texte | (vide)> git <n>` — n : appels `Bash`/`PowerShell` qui lancent `git commit`,
-  `add` ou `reset`, `-C`/`-c` compris, hors corps d'un heredoc écrit par `cat` ou `tee`
-  (chantier ECH) ; illisible : `ILLISIBLE <chemin>`. `--depuis` (heure
+  message texte | (vide) | (interrompu)> git <n> bloqué <n>` — n : appels `Bash`/`PowerShell` qui
+  lancent `git commit`, `add` ou `reset`, `-C`/`-c` compris, hors corps d'un heredoc écrit par
+  `cat` ou `tee` (chantier ECH) ; parmi eux, ceux dont le `tool_result` porte le refus du gardien
+  (`REFUS_GIT`) comptent en bloqué, pas en écrit ; `(interrompu)` : un message utilisateur
+  `[Request interrupted by user…` suit le dernier texte de l'assistant — il ne compte pas en
+  sans-statut ; illisible : `ILLISIBLE <chemin>`. `--depuis` (heure
   ISO ou commit, comme `mesure-tokens.py --plage`) : celles dont la session parente a démarré
   à D ou après. `--ouverture` : ceux partis — leur heure à eux — depuis le plus ancien commit
   qui ajoute le fichier de fiches F, sous une ligne `DEPUIS <heure UTC> · ouverture de F` ; F
   dans aucun commit : `GARDE:`, sort 1 (chantier CHK). Puis `CONTRAT <n> sous-agents · <n>
-  écrivent dans Git · <n> sans statut en tête` (ni `FAITE`, ni `RETOUR`, ni `BLOQUÉE`). Borne
-  illisible : `GARDE:`, sort 1.
+  écrivent dans Git · <n> bloqués par le gardien · <n> sans statut en tête` (ni `FAITE`, ni
+  `RETOUR`, ni `BLOQUÉE`, ni interrompu) ` · <n> interrompus`. Borne illisible : `GARDE:`, sort 1.
 - `forme [<transcription>…] [--depuis D] [--regle R]` — la forme et le poids dans des
   transcriptions de sous-agent. Sans argument : toutes celles dont le `.meta.json` voisin dit
   `vlp:fiche` ou `vlp:relecture`, sous `~/.claude/projects/*/*/subagents/`. Une ligne
@@ -1548,6 +1551,13 @@ ECRIT_GIT = re.compile(r"""\bgit(?:\.exe)?(?:\s+-[Cc]\s+(?:"[^"]*"|'[^']*'|\S+))
 # corps (groupe 4), sa fin.
 HEREDOC = re.compile(r"<<-?[ \t]*(['\"]?)([A-Za-z_]\w*)\1([^\n]*)\n(.*?)\n[ \t]*\2[ \t]*$", re.S | re.M)
 STATUTS = ("FAITE", "RETOUR", "BLOQUÉE")
+# Le cœur du refus du gardien (chantier ENQ) : `cmd_gardien` le met dans sa raison, `lire_contrat`
+# le retrouve dans le `tool_result` d'un appel qui écrit dans Git pour le compter en bloqué plutôt
+# qu'en écrit — indépendant de l'agent (`vlp:fiche`/`vlp:relecture`) et de la fin de phrase.
+REFUS_GIT = "retire git commit/add/reset, le chef commite après"
+# Un message utilisateur qui commence ainsi, après le dernier texte de l'assistant, marque le
+# sous-agent interrompu plutôt que sans statut en tête (chantier ENQ).
+INTERROMPU = "[Request interrupted by user"
 
 
 def sans_heredoc(commande):
@@ -1572,9 +1582,13 @@ def ecrit_git(commande):
 
 
 def lire_contrat(chemin):
-    """(premier mot du dernier message texte, appels Bash/PowerShell qui écrivent dans Git)
-    d'une transcription ; (None, 0) si elle ne s'ouvre pas."""
-    mot, git = "", 0
+    """(premier mot du dernier message texte, appels qui écrivent dans Git, ceux que le gardien a
+    bloqués (`REFUS_GIT` dans leur `tool_result`), interrompu) d'une transcription. Un appel qui
+    écrit dans Git compte d'abord en écrit ; si son `tool_result` porte `REFUS_GIT`, il bascule en
+    bloqué — sans `tool_result` (transcription coupée), il reste écrit. (None, 0, 0, False) si
+    elle ne s'ouvre pas."""
+    mot, git, bloque, interrompu = "", 0, 0, False
+    en_attente = {}
     try:
         with mesure().ouvrir(chemin) as f:
             for ligne in f:
@@ -1583,20 +1597,45 @@ def lire_contrat(chemin):
                 except json.JSONDecodeError:
                     continue
                 m = d.get("message") if isinstance(d, dict) else None
-                if not isinstance(m, dict) or m.get("role") != "assistant" or not isinstance(m.get("content"), list):
+                if not isinstance(m, dict):
                     continue
-                for b in m["content"]:
+                contenu = m.get("content")
+                if m.get("role") == "user":
+                    for b in contenu if isinstance(contenu, list) else []:
+                        if not (isinstance(b, dict) and b.get("type") == "tool_result"):
+                            continue
+                        tid = b.get("tool_use_id")
+                        if tid not in en_attente:
+                            continue
+                        texte_res = b.get("content")
+                        if isinstance(texte_res, list):
+                            texte_res = " ".join(x.get("text", "") for x in texte_res if isinstance(x, dict))
+                        if isinstance(texte_res, str) and REFUS_GIT in texte_res:
+                            git -= 1
+                            bloque += 1
+                        del en_attente[tid]
+                    texte = contenu if isinstance(contenu, str) else None
+                    if texte is None and isinstance(contenu, list):
+                        textes = [x.get("text", "") for x in contenu if isinstance(x, dict) and x.get("type") == "text"]
+                        texte = textes[0] if textes else None
+                    if mot and isinstance(texte, str) and texte.startswith(INTERROMPU):
+                        interrompu = True
+                    continue
+                if m.get("role") != "assistant" or not isinstance(contenu, list):
+                    continue
+                for b in contenu:
                     if not isinstance(b, dict):
                         continue
                     if b.get("type") == "text" and b.get("text", "").strip():
-                        mot = b["text"].split()[0]
+                        mot, interrompu = b["text"].split()[0], False
                     elif b.get("type") == "tool_use" and b.get("name") in ("Bash", "PowerShell"):
                         commande = (b.get("input") or {}).get("command")
                         if isinstance(commande, str) and ecrit_git(commande):
                             git += 1
+                            en_attente[b.get("id")] = True
     except (OSError, UnicodeDecodeError):
-        return None, 0
-    return mot, git
+        return None, 0, 0, False
+    return mot, git, bloque, interrompu
 
 
 def type_agent(chemin):
@@ -1626,8 +1665,9 @@ def ouverture(chemin):
 
 
 def cmd_contrat(a, sortie):
-    """Une ligne par transcription de sous-agent : id, type, départ de la session parente,
-    premier mot du dernier message, appels qui écrivent dans Git ; puis le bilan. `--ouverture` :
+    """Une ligne par transcription de sous-agent : id, type, départ de la session parente, dernier
+    mot (`(interrompu)` sinon), appels qui écrivent dans Git, ceux que le gardien a bloqués ; puis
+    le bilan. Un interrompu ne compte pas en sans-statut (chantier ENQ). `--ouverture` :
     ceux partis — leur heure à eux, pas celle de la session parente — depuis l'ajout du fichier."""
     m = mesure()
     depuis = ouvert = None
@@ -1647,7 +1687,7 @@ def cmd_contrat(a, sortie):
     if not chemins:
         motif = os.path.join(os.path.expanduser("~"), ".claude", "projects", "*", "*", *m.SOUS_AGENTS)
         chemins = [c for c in sorted(glob.glob(motif)) if type_agent(c) == "vlp:fiche"]
-    n = commitent = sans_statut = 0
+    n = commitent = bloques = sans_statut = interrompus = 0
     for c in chemins:
         parent = os.path.dirname(os.path.dirname(c)) + ".jsonl"
         t, _ = m.depart(parent)     # absente ou illisible : t None
@@ -1655,18 +1695,23 @@ def cmd_contrat(a, sortie):
             continue
         if ouvert is not None and (m.depart(c)[0] or 0) < ouvert:
             continue
-        mot, git = lire_contrat(c)
+        mot, git, bloque, interrompu = lire_contrat(c)
         if mot is None:
             sortie.write("ILLISIBLE %s\n" % c)
             continue
         heure_ = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(t)) if t is not None else "?"
         id_ = os.path.basename(c)[len("agent-"):-len(".jsonl")]
-        sortie.write("%s %s %s %s git %d\n" % (id_, type_agent(c), heure_, mot or "(vide)", git))
+        affiche = "(interrompu)" if interrompu else (mot or "(vide)")
+        sortie.write("%s %s %s %s git %d bloqué %d\n" % (id_, type_agent(c), heure_, affiche, git, bloque))
         n += 1
         commitent += git > 0
-        sans_statut += mot not in STATUTS
-    sortie.write("CONTRAT %d sous-agents · %d écrivent dans Git · %d sans statut en tête\n"
-                 % (n, commitent, sans_statut))
+        bloques += bloque > 0
+        if interrompu:
+            interrompus += 1
+        elif mot not in STATUTS:
+            sans_statut += 1
+    sortie.write("CONTRAT %d sous-agents · %d écrivent dans Git · %d bloqués par le gardien · "
+                 "%d sans statut en tête · %d interrompus\n" % (n, commitent, bloques, sans_statut, interrompus))
     return 0
 
 
@@ -1873,9 +1918,8 @@ def cmd_gardien(entree, sortie):
             agent, fin = ("relecture", "ton verdict") if relecteur else ("fiche", "ton statut")
             sortie.write(json.dumps({"hookSpecificOutput": {
                 "hookEventName": "PreToolUse", "permissionDecision": "deny",
-                "permissionDecisionReason": "Un sous-agent vlp:%s n'écrit pas dans Git (agents/%s.md) : "
-                                            "retire git commit/add/reset, le chef commite après %s."
-                                            % (agent, agent, fin)}},
+                "permissionDecisionReason": ("Un sous-agent vlp:%s n'écrit pas dans Git (agents/%s.md) : %s %s."
+                                            % (agent, agent, REFUS_GIT, fin))}},
                 ensure_ascii=False) + "\n")
     elif ev == "SubagentStop":
         dernier_msg = d.get("last_assistant_message", "")

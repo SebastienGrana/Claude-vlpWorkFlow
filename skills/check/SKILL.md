@@ -126,8 +126,9 @@ la ligne, ou de créer le fichier s'il manque vraiment. Un `AVERTISSEMENT:` avan
 ```
 
 Une ligne par sous-agent `vlp:fiche` parti depuis l'ouverture du chantier, puis `CONTRAT`.
-Un `git` non nul, ou un sous-agent compté sans statut en tête, a enfreint
-`agents/fiche.md` : nomme-le par son id.
+Un `git` non nul enfreint `agents/fiche.md` : nomme-le par son id. Un `bloqué` se nomme sans
+être une faute — le gardien l'a arrêté avant l'écriture. Un `(interrompu)` n'est pas en faute
+non plus : il ne compte pas dans le sans-statut.
 
 ## 3. Rendre le verdict
 

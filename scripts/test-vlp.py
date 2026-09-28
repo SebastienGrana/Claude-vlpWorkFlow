@@ -2804,16 +2804,53 @@ with tempfile.TemporaryDirectory() as t:
                                         ("PowerShell", "git add -A"), ("Bash", "echo git")])
     code, s = appel(["contrat", propre, sale])
     verifier("contrat : témoin propre, aucun appel qui écrit dans Git",
-             "propre vlp:fiche 2026-09-24T10:00:00Z FAITE git 0\n" in s, s)
-    verifier("contrat : témoin sale, git -C … commit et git add comptés",
-             "sale vlp:fiche 2026-09-24T10:00:00Z ✅ git 2\n" in s, s)
+             "propre vlp:fiche 2026-09-24T10:00:00Z FAITE git 0 bloqué 0\n" in s, s)
+    verifier("contrat : témoin sale, git -C … commit et git add comptés, sans tool_result : écrits",
+             "sale vlp:fiche 2026-09-24T10:00:00Z ✅ git 2 bloqué 0\n" in s, s)
     verifier("contrat : bilan", code == 0 and s.endswith(
-        "CONTRAT 2 sous-agents · 1 écrivent dans Git · 1 sans statut en tête\n"), s)
+        "CONTRAT 2 sous-agents · 1 écrivent dans Git · 0 bloqués par le gardien · "
+        "1 sans statut en tête · 0 interrompus\n"), s)
     code, s = appel(["contrat", propre, "--depuis", "2026-09-24T10:00:01+00:00"])
     verifier("contrat : --depuis écarte une session partie avant",
-             code == 0 and s == "CONTRAT 0 sous-agents · 0 écrivent dans Git · 0 sans statut en tête\n", s)
+             code == 0 and s == "CONTRAT 0 sous-agents · 0 écrivent dans Git · 0 bloqués par le gardien · "
+             "0 sans statut en tête · 0 interrompus\n", s)
     code, s = appel(["contrat", "--depuis", "pas-une-borne-zz"])
     verifier("contrat : borne illisible, GARDE", code == 1 and s.startswith("GARDE: --depuis pas-une-borne-zz"), s)
+
+
+# ENQ1 : un appel refusé par le gardien compte en bloqué, pas en écrit ; un interrompu pas en sans-statut
+with tempfile.TemporaryDirectory() as t:
+    def ligne_agent(id_, blocs):
+        chemin = os.path.join(t, "p2", "sess", "subagents", f"agent-{id_}.jsonl")
+        ecrire(chemin, "".join(json.dumps(d, ensure_ascii=False) + "\n" for d in blocs))
+        ecrire(chemin[:-len(".jsonl")] + ".meta.json", json.dumps({"agentType": "vlp:fiche"}))
+        return chemin
+
+    ecrire(os.path.join(t, "p2", "sess.jsonl"), json.dumps({"timestamp": "2026-09-24T10:00:00Z"}) + "\n")
+    refusee = ligne_agent("refusee", [
+        {"message": {"role": "assistant", "content": [
+            {"type": "tool_use", "id": "tu1", "name": "Bash", "input": {"command": "git add -A"}}]}},
+        {"message": {"role": "user", "content": [
+            {"type": "tool_result", "tool_use_id": "tu1", "content": mod.REFUS_GIT}]}},
+        {"message": {"role": "assistant", "content": [{"type": "text", "text": "RETOUR — bloquée par le gardien."}]}}])
+    ecrit = ligne_agent("ecrit", [
+        {"message": {"role": "assistant", "content": [
+            {"type": "tool_use", "id": "tu2", "name": "Bash", "input": {"command": "git add -A"}}]}},
+        {"message": {"role": "user", "content": [
+            {"type": "tool_result", "tool_use_id": "tu2", "content": "add 'f.md'"}]}},
+        {"message": {"role": "assistant", "content": [{"type": "text", "text": "FAITE — X1 cochée."}]}}])
+    interrompue = ligne_agent("interrompue", [
+        {"message": {"role": "assistant", "content": [{"type": "text", "text": "Je lance le dernier essai…"}]}},
+        {"message": {"role": "user", "content": "[Request interrupted by user]"}}])
+    code, s = appel(["contrat", refusee, ecrit, interrompue])
+    verifier("ENQ1 : bilan — refusé compté en bloqué, interrompu pas en sans-statut — "
+             "mutant : compter un refus comme une écriture le fait tomber",
+             code == 0 and s.endswith("CONTRAT 3 sous-agents · 1 écrivent dans Git · 1 bloqués par le gardien · "
+                                       "0 sans statut en tête · 1 interrompus\n"), s)
+    verifier("ENQ1 : la ligne du refusé porte git 0 bloqué 1",
+             "refusee vlp:fiche 2026-09-24T10:00:00Z RETOUR git 0 bloqué 1\n" in s, s)
+    verifier("ENQ1 : la ligne de l'interrompu porte (interrompu)",
+             "interrompue vlp:fiche 2026-09-24T10:00:00Z (interrompu) git 0 bloqué 0\n" in s, s)
 
 
 
@@ -4422,8 +4459,9 @@ def tester_contrat_ouverture():
         avant, apres = agent("avant", 500), agent("apres", 1500)
         code, s = appel(["contrat", avant, apres, "--ouverture", q])
         verifier("CHK1 : --ouverture garde le sous-agent parti après, session parente partie avant", code == 0
-                 and s == "DEPUIS %s · ouverture de %s\napres vlp:fiche %s FAITE git 0\n"
-                 "CONTRAT 1 sous-agents · 0 écrivent dans Git · 0 sans statut en tête\n" % (iso(1000), q, iso(200)), s)
+                 and s == "DEPUIS %s · ouverture de %s\napres vlp:fiche %s FAITE git 0 bloqué 0\n"
+                 "CONTRAT 1 sous-agents · 0 écrivent dans Git · 0 bloqués par le gardien · "
+                 "0 sans statut en tête · 0 interrompus\n" % (iso(1000), q, iso(200)), s)
         r = os.path.join(depot, "r.md")
         ecrire(r, "r\n")
         code, s = appel(["contrat", avant, "--ouverture", r])
