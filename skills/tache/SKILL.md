@@ -1,7 +1,7 @@
 ---
 description: Exécute une fiche du chantier courant du projet où l'on se trouve
 argument-hint: (rien) | <fiche> | <alias> <fiche> | <fiche> commentaires
-allowed-tools: Bash(python3:*), Bash(py:*), Bash(echo:*), PowerShell(python3:*), PowerShell(py:*), PowerShell(echo:*), Read, Edit, Write, Artifact
+allowed-tools: Bash(python3:*), Bash(py:*), Bash(echo:*), PowerShell(python3:*), PowerShell(py:*), PowerShell(echo:*), Read, Edit, Write, Artifact, ArtifactComments
 ---
 
 Arguments reçus :
