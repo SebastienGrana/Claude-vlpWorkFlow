@@ -38,13 +38,18 @@ section { display:flex; flex-direction:column; gap:.85rem; }
 .fiche .id,.carte-todo .rang { font-weight:500; color:var(--doux); }
 .fiche .titre,.carte-todo .titre { font-weight:600; }
 .fiche .note { font-size:.9rem; color:var(--doux); }
-.fiche .cout,.carte-todo .meta,.dep { font-size:.78rem; color:var(--doux); }
-.dep { font-size:.72rem; overflow-wrap:anywhere; }
+.fiche .cout,.carte-todo .meta { font-size:.78rem; color:var(--doux); }
+.dep { font-size:.72rem; color:var(--doux); overflow-wrap:anywhere; }
 /* « À lancer » (vlp.py) : ce qui se lance maintenant ressort */
 .fiche:not([data-etat]):not([data-attend]) .etat { color:var(--accent); }
 .cout-total,.cout-hors { font-size:.85rem; color:var(--doux); }
 .fiche .etat { display:block; margin-top:.1rem; font-size:.88rem; color:var(--doux); }
 .fiche > details,.carte-todo > details { min-width:0; }
+/* page d'avant les trois colonnes (fiche sans `.gauche`, dette BTN) : son `details` prend toute la
+   ligne, en-tête sur deux colonnes ; une note hors `details` passe sous le titre */
+.fiche > details:first-child,.carte-todo > details:first-child { grid-column:1 / -1; }
+:is(.fiche,.carte-todo) > details:first-child > summary { display:grid; grid-template-columns:4.6rem 1fr; gap:.1rem .9rem; }
+.fiche > .note { grid-column:2 / -1; }
 .fiche summary,.carte-todo summary { cursor:pointer; list-style:none; }
 .fiche summary::-webkit-details-marker,.carte-todo summary::-webkit-details-marker { display:none; }
 .fiche details > .note,.carte-todo details > .detail { display:block; margin-top:.25rem; }
