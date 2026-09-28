@@ -10,7 +10,9 @@
 
 **Estimé.** 1 fiches · ≈4,42 $ (taux plat) — ≈4,42 $/fiche sur 76 clos (le 2026-09-28).
 
-**Fait.** Rien. Ouvert le 2026-09-28, cadré en 4 fiches, `TAU1` à jouer.
+**CLOS** le 2026-09-28. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** TAU1..TAU4 (2026-09-28) : prix mesuré posé pour clore et republier, plus de taux plat sur le joué ni sur l'estimé ; les 22 pages déjà closes recalées à leur prix réel, la feuille republiée — estimé 1 fiches ≈4,42 $ · cadré 4 · joué 4 fiches 20,05 $.
 
 **Session** : e0de453b-59d9-45d0-bf5b-1df1796056fb
 

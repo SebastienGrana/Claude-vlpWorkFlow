@@ -13,11 +13,11 @@ https://github.com/SebastienGrana/Claude-vlpWorkFlow — cloné et utilisé en g
 - Équipés : Cairn-VlpLib, MapDecorator, ProjetONZSM, TrackGen — et ce kit lui-même.
 - Chaque chantier clos a sa ligne dans `context AI/00-INDEX-archive.md`, son détail daté dans
   `context AI/08-etat.md` ; ici, les derniers seulement (`vlp.py clore` les tient).
-- Clos le 2026-09-27 : les 24 écarts du recompte expliqués, 2 défauts de mesure réparés, recompte écrit sur la feuille (chantier ECA).
 - Clos le 2026-09-27 : pyright gardé au commit, pyrightconfig.json sur scripts/ (chantier TYP).
 - Clos le 2026-09-27 : /vlp:check rend le bulletin du gardien depuis l'ouverture du chantier (chantier CHK).
 - Clos le 2026-09-27 : La feuille de route en cartes, repliee et mesuree (chantier FEU).
 - Clos le 2026-09-28 : les pages ont des boutons (déplier, copier, filtrer) et un graphique des coûts (chantier BTN).
+- Clos le 2026-09-28 : prix mesuré, plus de taux plat (chantier TAU).
 
 ## Quatre règles non négociables
 
@@ -57,7 +57,6 @@ et seulement dans ce cas, ouvrir l'index.
 | savoir où vit quoi dans un projet équipé | `methode-chantier.md`, section « Où vit quoi » |
 | toucher aux pages publiées | `ARTEFACTS.md`, puis le gabarit dans `templates/` |
 | ouvrir un chantier, ou le découper en fiches | **lancer `/vlp:chantier`** |
-| jouer une fiche du chantier TAU (un seul prix pour un chantier) | `context AI/89-un-seul-prix.md` — chantier **ouvert**, par `/vlp:tache TAU<n>` |
 | relire un chantier clos | `context AI/00-INDEX-archive.md` — sa ligne y nomme le fichier de fiches |
 | reprendre après une longue interruption | `context AI/08-etat.md` |
 | choisir le prochain chantier du kit, ou retrouver la preuve d'un bug relevé le 2026-09-17 | `context AI/12-audit.md` |
