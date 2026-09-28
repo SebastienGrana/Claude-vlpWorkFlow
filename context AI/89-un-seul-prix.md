@@ -109,8 +109,9 @@ deux `$` ÷ leurs fiches × N ; une feuille sans aucun `$` → ni `$` au total n
 ---
 
 <!-- FICHE:TAU3 -->
-## TAU3 [ ] — Un script `prix` pour les chantiers déjà clos
+## TAU3 [x] — Un script `prix` pour les chantiers déjà clos
 
+**Session** : 3eba6c37-5458-4d5b-9c08-f6430394419a
 **Dépend de** : `TAU1`.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` — et rien d'autre.
 

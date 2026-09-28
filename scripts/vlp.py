@@ -307,6 +307,13 @@ Sous-commandes :
   passe par `feuille`) ; relancé, rien ne change. Dernière ligne `ÉCRIT <n> cellules · total <avant> → <après>`.
   `--a-clore` : chaque ligne recomptée finit par ` · à clore <n> · après clore <n>` (le calcul de
   `cout --a-clore`, après clore = recompté − à clore), ou ` · sans appel clore`.
+- `prix <projet> [--a-blanc]` — pose le `$` du `cout-total` de la page de chaque ligne de
+  `ZONE:clos` (parcours de `recompter`) en tête de sa cellule Tokens s'il n'y est pas ; recale
+  son ancien `joué … ≈X $` sur ce prix et marque son vieil estimé `(taux plat)`, dans le fichier
+  de fiches, la page et son `.md` d'abri. Page sans `$` : rien, compté « sans prix ». `PRIX <n>
+  posés · <n> déjà · <n> sans prix · <n> joués recalés · <n> estimés marqués`, puis une ligne
+  `ÉCRIT <chemin>` par fichier écrit (aucune avec `--a-blanc`, qui n'écrit rien). Relancé, plus
+  rien à écrire (chantier TAU).
 - `bac <dossier>` — pose le bac d'essai de FIL3 dans un dossier absent ou vide (sinon `GARDE:`,
   rien d'écrit) : `CHANTIER.md`, `fiches.md` (`F1` douze `Read`, `F2` douze `exit 3`), `n01.txt`…
   `n12.txt`. Imprime `BAC <dossier>` et les deux commandes `claude -p`, sans les lancer (chantier BAC).
@@ -3701,6 +3708,100 @@ def cmd_recompter(projet, sortie, ecrire=False, essais=False, a_clore=False):
     return 0
 
 
+def poser_prix(cellule, prix):
+    """La cellule de coût close avec le prix mesuré en tête — la même cellule s'il y est déjà
+    (chantier TAU, `prix`)."""
+    if re.match(r'\d+,\d\d \$ · ', cellule):
+        return cellule
+    return "%s · %s" % (dollars(prix), cellule)
+
+
+# Le vieux joué à la louche (avec `≈`) et le vieil estimé non encore marqué — `prix` (chantier TAU).
+JOUE_LOUCHE = re.compile(r'joué (\d+) fiches ≈[\d,]+ \$')
+ESTIME_NON_MARQUE = re.compile(r'(estimé \S+ fiches ≈[\d,]+ \$)(?! \(taux plat\))')
+
+
+def recaler_texte(texte, prix):
+    """`texte` (`**Fait.**`, page ou `.md` d'abri) avec le joué à la louche recalé sur `prix` (le
+    pondéré mesuré de sa page, `dollars`) et le vieil estimé marqué `(taux plat)` s'il ne l'est
+    pas déjà — (nouveau texte, un joué a été recalé, un estimé a été marqué) ; inchangé et deux
+    `False` si rien à faire (chantier TAU, `prix`)."""
+    neuf, n1 = JOUE_LOUCHE.subn(lambda m: "joué %s fiches %s" % (m.group(1), dollars(prix)), texte)
+    neuf, n2 = ESTIME_NON_MARQUE.subn(lambda m: m.group(1) + " (taux plat)", neuf)
+    return neuf, bool(n1), bool(n2)
+
+
+def cmd_prix(projet, sortie, a_blanc=False):
+    """Pose le prix mesuré — le `$` du `cout-total` de sa page — en tête de la cellule Tokens de
+    chaque ligne de `ZONE:clos` qui ne l'a pas encore (parcours de `recompter`), recale son
+    ancien `joué … ≈X $` sur ce prix et marque son vieil estimé `(taux plat)`, dans le fichier de
+    fiches, la page et son `.md` d'abri. Une page sans `$` : rien d'écrit, comptée « sans prix ».
+    Relancé, plus rien à écrire (chantier TAU)."""
+    parcours = clos_du_projet(projet, sortie)
+    if parcours is None:
+        return 1
+    from decimal import Decimal
+    html, d, f, rangs = parcours
+    n = {"posés": 0, "déjà": 0, "sans prix": 0, "joués recalés": 0, "estimés marqués": 0}
+    neufs, ecrits = {}, []
+    for r, prefixe, brut, chemin in rangs:
+        page = page_du_fichier(chemin) if chemin else None
+        pg = lire(page) if page and os.path.isfile(page) else None
+        m = re.search(r'<p class="mono cout-total">.*?(\d+,\d\d) \$</p>', pg) if pg else None
+        if not m:
+            n["sans prix"] += 1
+            continue
+        assert page is not None    # m ne matche que si `pg` (donc `page`) n'est pas None
+        prix = Decimal(m.group(1).replace(",", "."))
+        cellule = CELLULE_CLOS.search(r)
+        if cellule and re.match(r'\d+,\d\d \$ · ', cellule.group(2)):
+            n["déjà"] += 1
+        elif cellule:
+            neufs[r] = CELLULE_CLOS.sub(lambda c: c.group(1) + poser_prix(c.group(2), prix) + c.group(3), r, count=1)
+            n["posés"] += 1
+        texte = "\n".join(lignes_de(chemin))
+        neuf_texte, joue_r, estime_m = recaler_texte(texte, prix)
+        n["joués recalés"] += joue_r
+        n["estimés marqués"] += estime_m
+        if neuf_texte != texte:
+            if not a_blanc:
+                with open(chemin, "w", encoding="utf-8", newline="") as fh:
+                    fh.write(neuf_texte + "\n")
+            ecrits.append(chemin)
+        pg_neuf = recaler_texte(pg, prix)[0]
+        if pg_neuf != pg:
+            if not a_blanc:
+                with open(page, "w", encoding="utf-8", newline="") as fh:
+                    fh.write(pg_neuf)
+            ecrits.append(page)
+        md_page = chemin_abri(page)
+        if os.path.isfile(md_page):
+            md_texte = lire(md_page)
+            md_neuf = recaler_texte(md_texte, prix)[0]
+            if md_neuf != md_texte:
+                if not a_blanc:
+                    with open(md_page, "w", encoding="utf-8", newline="") as fh:
+                        fh.write(md_neuf)
+                ecrits.append(md_page)
+    if neufs:
+        corps = html[d:f]
+        neuf_corps = RANG_CLOS.sub(lambda m: neufs.get(m.group(0), m.group(0)), corps)
+        neuf_html = html[:d] + neuf_corps + html[f:]
+        if neuf_html != html:
+            page_route = page_feuille(projet)
+            if not a_blanc:
+                with open(page_route, "w", encoding="utf-8", newline="") as fh:
+                    fh.write(neuf_html)
+            ecrits.append(page_route)
+    if not a_blanc:
+        for chemin_ecrit in ecrits:
+            sortie.write("ÉCRIT %s\n" % chemin_ecrit)
+    sortie.write("PRIX %d posés · %d déjà · %d sans prix · %d joués recalés · %d estimés marqués%s\n" % (
+        n["posés"], n["déjà"], n["sans prix"], n["joués recalés"], n["estimés marqués"],
+        " · à blanc, rien d'écrit" if a_blanc else ""))
+    return 0
+
+
 def resume_clos(n, total, usd=None, n_usd=0):
     """Ce que le bloc repliable montre sans être déplié — le prix mesuré des `n_usd` lignes qui
     en portent un, sur `n` (chantier TAU)."""
@@ -4897,6 +4998,9 @@ def main(argv, sortie=None, entree=None, erreur=None):
     rc.add_argument("--ecrire", action="store_true")
     rc.add_argument("--essais", action="store_true")
     rc.add_argument("--a-clore", action="store_true")
+    px = sous.add_parser("prix")
+    px.add_argument("projet")
+    px.add_argument("--a-blanc", action="store_true")
     bc = sous.add_parser("bac")
     bc.add_argument("dossier")
     ke = sous.add_parser("kit-essai")
@@ -4975,6 +5079,8 @@ def repartir(a, sortie, entree, erreur):
         return cmd_liens(a.projet, sortie)
     if a.cmd == "recompter":
         return cmd_recompter(a.projet, sortie, a.ecrire, a.essais, a.a_clore)
+    if a.cmd == "prix":
+        return cmd_prix(a.projet, sortie, a.a_blanc)
     if a.cmd == "bac":
         return cmd_bac(a.dossier, sortie)
     if a.cmd == "kit-essai":

@@ -1,0 +1,47 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "feu6-apres",
+      "runtimeExecutable": "py",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "8791",
+        "--directory",
+        "C:/Users/znorr/AppData/Local/Temp/claude/C--Users-znorr-Documents-ProgPerso-Claude-vlpWorkflow/206644ce-75ee-40a0-a175-e09afdfe7b7c/scratchpad/feu6/apres"
+      ],
+      "port": 8791
+    },
+    {
+      "name": "gabarits",
+      "runtimeExecutable": "py",
+      "runtimeArgs": ["-c", "import http.server as h, functools as f; H = h.SimpleHTTPRequestHandler; H.extensions_map = {'.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8'}; h.test(HandlerClass=f.partial(H, directory='C:/Users/znorr/Documents/ProgPerso/Claude-vlpWorkflow/templates'), port=8792)"],
+      "port": 8792
+    },
+    {
+      "name": "btn6-kit",
+      "runtimeExecutable": "py",
+      "runtimeArgs": ["-c", "import http.server as h, functools as f; H = h.SimpleHTTPRequestHandler; H.extensions_map = {'.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml'}; h.test(HandlerClass=f.partial(H, directory='C:/Users/znorr/Documents/ProgPerso/Claude-vlpWorkflow/context AI/artefacts'), port=8793, bind='127.0.0.1')"],
+      "port": 8793
+    },
+    {
+      "name": "btn6-cairn",
+      "runtimeExecutable": "py",
+      "runtimeArgs": ["-c", "import http.server as h, functools as f; H = h.SimpleHTTPRequestHandler; H.extensions_map = {'.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml'}; h.test(HandlerClass=f.partial(H, directory='C:/Users/znorr/Documents/ProgPerso/Cairn-VlpLib/context AI/artefacts'), port=8794, bind='127.0.0.1')"],
+      "port": 8794
+    },
+    {
+      "name": "cloture-btn",
+      "runtimeExecutable": "py",
+      "runtimeArgs": ["-c", "import http.server as h, functools as f; H = h.SimpleHTTPRequestHandler; H.extensions_map = {'.html': 'text/html; charset=utf-8'}; h.test(HandlerClass=f.partial(H, directory='C:/Users/znorr/AppData/Local/Temp/claude/C--Users-znorr-Documents-ProgPerso-Claude-vlpWorkflow/9c178cca-e277-4ad4-b73b-e84a635aecb2/scratchpad'), port=8795, bind='127.0.0.1')"],
+      "port": 8795
+    },
+    {
+      "name": "dette-btn",
+      "runtimeExecutable": "py",
+      "runtimeArgs": ["-c", "import http.server as h, functools as f; H = h.SimpleHTTPRequestHandler; H.extensions_map = {'.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml'}; h.test(HandlerClass=f.partial(H, directory='C:/Users/znorr/AppData/Local/Temp/claude/C--Users-znorr-Documents-ProgPerso-Claude-vlpWorkflow/cbf44ae3-e7c3-4600-91f0-bc425e0fd5f9/scratchpad/repli'), port=8796, bind='127.0.0.1')"],
+      "port": 8796
+    }
+  ]
+}

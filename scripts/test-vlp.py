@@ -1376,42 +1376,122 @@ def test_estime():
 test_estime()
 
 
-with tempfile.TemporaryDirectory() as t:
-    f = os.path.join(t, "y.md")
-    ecrire(f, SANS)
-    verifier("cout : aucune session", appel(["cout", f]) == (0, "SESSIONS 0 — pas de total\n"), appel(["cout", f]))
-    ecrire(f, AVEC)
-    for s_ in ("aaa", "bbb", "ccc"):
-        os.makedirs(os.path.join(t, ".claude", "projects", "p"), exist_ok=True)
-        transcript(os.path.join(t, ".claude", "projects", "p", s_ + ".jsonl"), 2)
-    garde_env = dict(os.environ)
-    os.environ.update(HOME=t, USERPROFILE=t, CLAUDE_CODE_SESSION_ID="ccc")
-    try:
-        code, s = appel(["cout", f])
-        verifier("cout : toutes les sessions du fichier, un total", code == 0 and "aaa.jsonl\t" in s and "bbb.jsonl\t" in s
-                 and "ccc.jsonl\t" not in s and s.count("TOTAL\t") == 1 and s.startswith("DÉCOUPE aucune — "), s)
-        code, s = appel(["cout", f, "--session"])
-        verifier("cout --session : la session seule, puis le cumul", code == 0 and s.startswith("SESSION=ccc\nfichier\t")
-                 and s.split("TOTAL\t")[0].count("ccc.jsonl\t") == 3 and s.count("TOTAL\t") == 1
-                 and s.count("\nDÉCOUPE aucune — ") == 1, s)
-        os.environ["CLAUDE_CODE_SESSION_ID"] = ""
-        verifier("cout --session : id vide, rien mesuré", appel(["cout", f, "--session"]) == (0, "SESSION=\n"), appel(["cout", f, "--session"]))
-    finally:
-        os.environ.clear()
-        os.environ.update(garde_env)
-    code, s = appel(["valider", f, "--plan"])
-    verifier("valider --plan : titres de fiche, grep -n", s.endswith("\n12:## Y1 [x] — faite\n24:## Y2 [ ] — à faire\n")
-             and "pas un titre" not in s, s)
-    code, s = appel(["lignes", f, t, os.path.join(t, "absent.md"), os.path.join(t, "*.md")])
-    verifier("lignes : fichier, dossier, absent, motif", code == 0 and s == "%d %s\nDOSSIER %s\nABSENT %s\n%d %s\nSEUILS page %d · fiche %d · socle %d\n"
-             % (len(mod.lignes_de(f)), f, t, os.path.join(t, "absent.md"), len(mod.lignes_de(f)), f, mod.SEUIL_PAGE, mod.SEUIL_FICHE, mod.SEUIL_SOCLE), s)
-    d = os.path.join(t, "projet")
-    for n in ("b", "A", ".cache"):
-        os.makedirs(os.path.join(d, n))
-    ecrire(os.path.join(d, "CLAUDE.md"), "# C\n")
-    verifier("equiper : dossier, sous-dossiers, CLAUDE.md, carte, état",
-             appel(["equiper", d]) == (0, "DOSSIER=%s\nA/\nb/\nCLAUDE.md\nAUCUN_PROJET\nETAT=01-etat.md\n" % os.path.abspath(d)),
-             appel(["equiper", d]))
+def tester_prix():
+    """prix (chantier TAU3) : le `$` de la page de chaque clos posé en tête de sa cellule Tokens,
+    le vieux joué à la louche recalé dessus, le vieil estimé marqué `(taux plat)` — sur un projet
+    à deux clos, X mesuré en $, Y jamais mesuré."""
+    with tempfile.TemporaryDirectory() as tp:
+        ecrire(os.path.join(tp, "CHANTIER.md"), "# Chantier courant\n\n- **contexte** : ctx/\n"
+               "- **index** : ctx/00-INDEX.md\n")
+        ecrire(os.path.join(tp, "ctx", "00-INDEX.md"), "| Fichier | Lire quand |\n|---|---|\n"
+               "| `x.md` | chantier **clos** « X », `X1..X1` |\n"
+               "| `y.md` | chantier **clos** « Y », `Y1..Y1` |\n")
+        seule = ("# Chantier %s\n\n**CLOS** le 2026-01-06.\n\n**Fait.** %s1..%s1 (2026-01-06) : fini —"
+                 " estimé 1 fiches ≈%s $ · cadré 1 · joué 1 fiches %s.\n\n## Le socle commun\n\n"
+                 "## L'ordre des fiches\n\n<!-- FICHE:%s1 -->\n## %s1 [x] — Seule\n**Critère de fin**\n<!-- /FICHE -->\n")
+        ecrire(os.path.join(tp, "ctx", "x.md"), seule % ("X", "X", "X", "25", "≈25 $", "X", "X"))
+        ecrire(os.path.join(tp, "ctx", "y.md"), seule % ("Y", "Y", "Y", "10", "? $", "Y", "Y"))
+        ecrire(os.path.join(tp, "ctx", "artefacts", "x.html"),
+               '<p class="mono cout-total">Coût du chantier : ≈50,0k (50 000) · 5 tours · 12,34 $</p>\n'
+               '<div class="bilan"><p>Estimé : estimé 1 fiches ≈25 $ · cadré 1 · joué 1 fiches ≈25 $</p></div>\n')
+        ecrire(os.path.join(tp, "ctx", "artefacts", "y.html"),
+               '<p class="mono cout-total">Coût du chantier : ≈20,0k (20 000) · 3 tours · ? $</p>\n')
+        ecrire(os.path.join(tp, "ctx", "artefacts", "x.md"),
+               "# X — notes et journal\n\n## Résultat\nFini\n\n## Notes\n\n## Journal\n\n## Bilan\n"
+               "- Estimé : estimé 1 fiches ≈25 $ · cadré 1 · joué 1 fiches ≈25 $\n")
+        fdr = os.path.join(tp, "ctx", "artefacts", "feuille-de-route.html")
+        ecrire(fdr, '    <!-- ZONE:clos — test -->\n      <table>\n        <tbody>\n'
+               + ligne_close(mod.arrondi(50000)).replace("Q1–Q2", "X1")
+               + ligne_close(mod.arrondi(20000)).replace("Q1–Q2", "Y1")
+               + "        </tbody>\n      </table>\n")
+        disque = lambda: {os.path.relpath(os.path.join(r, n), tp): lire(os.path.join(r, n))
+                          for r, _, ns in os.walk(tp) for n in ns}
+        avant = disque()
+        code, s = appel(["prix", tp, "--a-blanc"])
+        ligne = "PRIX 1 posés · 0 déjà · 1 sans prix · 1 joués recalés · 1 estimés marqués · à blanc, rien d'écrit"
+        ok = code == 0 and s.splitlines()[-1] == ligne
+        ok = ok and "ÉCRIT" not in s
+        ok = ok and disque() == avant
+        verifier("TAU3 : --a-blanc annonce sans rien écrire", ok, s)
+        code, s = appel(["prix", tp])
+        ligne = "PRIX 1 posés · 0 déjà · 1 sans prix · 1 joués recalés · 1 estimés marqués"
+        ok = code == 0 and s.splitlines()[-1] == ligne
+        verifier("TAU3 : premier passage — 1 posé (X, en $), 1 sans prix (Y, ? $) — mutant : marquer"
+                 " (taux plat) sans regarder s'il y est déjà", ok, s)
+        feuille = lire(fdr)
+        ok = '<td class="mono">12,34 $ · ≈50,0k (50 000)</td>' in feuille
+        ok = ok and '<td class="mono">≈20,0k (20 000)</td>' in feuille
+        verifier("TAU3 : prix posé en tête de la cellule Tokens de X, Y intacte", ok, feuille)
+        recale = "estimé 1 fiches ≈25 $ (taux plat) · cadré 1 · joué 1 fiches 12,34 $"
+        x_md = lire(os.path.join(tp, "ctx", "x.md"))
+        verifier("TAU3 : joué de X recalé sur le prix mesuré, estimé marqué (taux plat), fichier de fiches",
+                 recale + "." in x_md, x_md)
+        x_page = lire(os.path.join(tp, "ctx", "artefacts", "x.html"))
+        ok = recale in x_page
+        ok = ok and "50 000) · 5 tours · 12,34 $</p>" in x_page
+        verifier("TAU3 : la page de X recalée pareil, le cout-total intact", ok, x_page)
+        x_abri = lire(os.path.join(tp, "ctx", "artefacts", "x.md"))
+        verifier("TAU3 : le .md d'abri de X recalé pareil", recale in x_abri, x_abri)
+        y_md = lire(os.path.join(tp, "ctx", "y.md"))
+        verifier("TAU3 : Y sans prix mesuré — rien recalé, rien marqué",
+                 "estimé 1 fiches ≈10 $ · cadré 1 · joué 1 fiches ? $" in y_md, y_md)
+        apres = disque()
+        code, s = appel(["prix", tp])
+        ligne = "PRIX 0 posés · 1 déjà · 1 sans prix · 0 joués recalés · 0 estimés marqués"
+        ok = code == 0 and s.splitlines()[-1] == ligne
+        ok = ok and "ÉCRIT" not in s
+        ok = ok and disque() == apres
+        verifier("TAU3 : relancé, plus rien à écrire — fichiers identiques à l'octet", ok, s)
+        code, s = appel(["prix", os.path.join(tp, "ctx")])
+        verifier("TAU3 : pas de CHANTIER.md, une GARDE", code == 1 and s.startswith("GARDE: pas de CHANTIER.md"), s)
+
+
+tester_prix()
+
+
+def tester_cout_session():
+    """cout --session, valider --plan, lignes, equiper — regroupés dans une fonction : un test de
+    plus au niveau du module fait tomber pyright (« Code is too complex to analyze », chantier TAU3)."""
+    with tempfile.TemporaryDirectory() as t:
+        f = os.path.join(t, "y.md")
+        ecrire(f, SANS)
+        verifier("cout : aucune session", appel(["cout", f]) == (0, "SESSIONS 0 — pas de total\n"), appel(["cout", f]))
+        ecrire(f, AVEC)
+        for s_ in ("aaa", "bbb", "ccc"):
+            os.makedirs(os.path.join(t, ".claude", "projects", "p"), exist_ok=True)
+            transcript(os.path.join(t, ".claude", "projects", "p", s_ + ".jsonl"), 2)
+        garde_env = dict(os.environ)
+        os.environ.update(HOME=t, USERPROFILE=t, CLAUDE_CODE_SESSION_ID="ccc")
+        try:
+            code, s = appel(["cout", f])
+            verifier("cout : toutes les sessions du fichier, un total", code == 0 and "aaa.jsonl\t" in s and "bbb.jsonl\t" in s
+                     and "ccc.jsonl\t" not in s and s.count("TOTAL\t") == 1 and s.startswith("DÉCOUPE aucune — "), s)
+            code, s = appel(["cout", f, "--session"])
+            verifier("cout --session : la session seule, puis le cumul", code == 0 and s.startswith("SESSION=ccc\nfichier\t")
+                     and s.split("TOTAL\t")[0].count("ccc.jsonl\t") == 3 and s.count("TOTAL\t") == 1
+                     and s.count("\nDÉCOUPE aucune — ") == 1, s)
+            os.environ["CLAUDE_CODE_SESSION_ID"] = ""
+            verifier("cout --session : id vide, rien mesuré", appel(["cout", f, "--session"]) == (0, "SESSION=\n"), appel(["cout", f, "--session"]))
+        finally:
+            os.environ.clear()
+            os.environ.update(garde_env)
+        code, s = appel(["valider", f, "--plan"])
+        verifier("valider --plan : titres de fiche, grep -n", s.endswith("\n12:## Y1 [x] — faite\n24:## Y2 [ ] — à faire\n")
+                 and "pas un titre" not in s, s)
+        code, s = appel(["lignes", f, t, os.path.join(t, "absent.md"), os.path.join(t, "*.md")])
+        verifier("lignes : fichier, dossier, absent, motif", code == 0 and s == "%d %s\nDOSSIER %s\nABSENT %s\n%d %s\nSEUILS page %d · fiche %d · socle %d\n"
+                 % (len(mod.lignes_de(f)), f, t, os.path.join(t, "absent.md"), len(mod.lignes_de(f)), f, mod.SEUIL_PAGE, mod.SEUIL_FICHE, mod.SEUIL_SOCLE), s)
+        d = os.path.join(t, "projet")
+        for n in ("b", "A", ".cache"):
+            os.makedirs(os.path.join(d, n))
+        ecrire(os.path.join(d, "CLAUDE.md"), "# C\n")
+        verifier("equiper : dossier, sous-dossiers, CLAUDE.md, carte, état",
+                 appel(["equiper", d]) == (0, "DOSSIER=%s\nA/\nb/\nCLAUDE.md\nAUCUN_PROJET\nETAT=01-etat.md\n" % os.path.abspath(d)),
+                 appel(["equiper", d]))
+
+
+tester_cout_session()
+
 
 # --- chantier ESS : les essais d'une session, par le dossier de leur bac -------
 

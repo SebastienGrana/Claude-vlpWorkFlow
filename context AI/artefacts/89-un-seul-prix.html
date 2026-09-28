@@ -21,9 +21,9 @@
     <p>clore, ouvrir et la feuille de route donnent le prix mesuré de cout — plus de taux plat ; les joués déjà écrits sont recalés, les vieux estimés marqués (taux plat)</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">4 fiches · 2 faites · en cours : TAU3</p>
+    <p class="mono" style="margin-top:.5rem">4 fiches · 3 faites · en cours : TAU4</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -45,16 +45,17 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">TAU2</span></span>
         <details><summary><span class="titre">Lire ce prix pour l'estimé et le total, retirer la louche</span><span class="etat">Faite</span></summary>
         <span class="note">grep -c estimation_usd|USD_PAR_MTOKENS -&gt; 0 et 0 ; test-vlp.py OK ; mutant (ligne sans $ comptée 0 $) demasque : ÉCART EST1 ; pyright 0 errors</span></details>
-        <span class="cout mono">≈15,7M (15 702 263) · 75 tours · 4,74 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">TAU3</span></span>
-        <details open><summary><span class="titre">Un script prix pour les chantiers déjà clos</span><span class="etat">En cours</span></summary>
-        <span class="note">vlp.py prix remplit les anciennes lignes et recale les anciens joués ; après TAU1</span></details></li>
-      <li class="fiche" data-attend><span class="gauche"><span class="id">TAU4</span></span>
-        <details><summary><span class="titre">Passer le kit au prix mesuré, et republier</span><span class="etat">Après TAU3</span></summary>
+        <span class="cout mono">≈16,5M (16 486 706) · 78 tours · 4,92 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">TAU3</span></span>
+        <details><summary><span class="titre">Un script prix pour les chantiers déjà clos</span><span class="etat">Faite</span></summary>
+        <span class="note">test-vlp.py OK ; pyright 0 erreur ; mutant (marquer (taux plat) sans regarder) démasqué : ÉCART second passage</span></details>
+        <span class="cout mono">≈16,5M (16 524 700) · 85 tours · 5,39 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">TAU4</span></span>
+        <details open><summary><span class="titre">Passer le kit au prix mesuré, et republier</span><span class="etat">En cours</span></summary>
         <span class="note">le kit passé au prix mesuré, feuille et pages republiées ; après TAU2 et TAU3</span></details></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈5,7M (5 655 944) · 30 tours · 2,62 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈23,9M (23 904 021) · 127 tours · 8,77 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈41,2M (41 213 164) · 215 tours · 14,34 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
