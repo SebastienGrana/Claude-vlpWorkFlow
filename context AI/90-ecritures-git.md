@@ -9,7 +9,9 @@ sous-agent interrompu comme une faute ; le gardien bloque un `echo` qui ne fait 
 
 **Estimé.** 1 fiches · ≈2,97 $ — ≈2,97 $/fiche sur 77 clos (le 2026-09-28).
 
-**Fait.** Rien. Ouvert le 2026-09-28, cadré en 3 fiches, `ENQ1` à jouer.
+**CLOS** le 2026-09-28. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** ENQ1..ENQ3 (2026-09-28) : contrat sépare bloqué/écrit et interrompu/sans-statut (REFUS_GIT, INTERROMPU) ; le texte cité d'un echo/printf vers un fichier n'est plus lu comme une écriture Git (sans_echo) ; l'interdit de commit du sous-agent déplacé à l'étape 5 d'agents/fiche.md, une seule fois — estimé 1 fiches ≈2,97 $ · cadré 3 · joué 3 fiches 7,38 $.
 
 **Session** : 437ff3d7-4dc7-40d3-bb3e-034fb507bb56
 

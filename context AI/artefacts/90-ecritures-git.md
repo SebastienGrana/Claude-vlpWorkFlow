@@ -7,3 +7,6 @@ contrat dit 0 écrivent · 3 bloqués · 1 interrompu depuis FOR, au lieu de 3 �
 - ENQ3 : 08-etat.md : 5 sous-agents avec ≥1 bloqué, 1 avec plusieurs, 5/5 après f98ceec ; interdit déplacé à l'étape 5 de agents/fiche.md, une seule fois (grep) ; test-vlp.py OK
 ## Journal
 ## Bilan
+- Livré : contrat sépare bloqué/écrit et interrompu/sans-statut (REFUS_GIT, INTERROMPU) ; le texte cité d'un echo/printf vers un fichier n'est plus lu comme une écriture Git (sans_echo) ; l'interdit de commit du sous-agent déplacé à l'étape 5 d'agents/fiche.md, une seule fois
+- Surpris : les 3 vraies fautes de FOR sont toutes des tentatives refusées (0 écriture réelle), et le sans-statut restant était un interrompu, pas une faute
+- Estimé : estimé 1 fiches ≈2,97 $ · cadré 3 · joué 3 fiches 7,38 $

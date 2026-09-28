@@ -82,3 +82,4 @@ QUAND LIRE : on relit un chantier clos ; l'index n'en garde qu'une ligne qui ren
 | `87-cartes.md` | on relit le socle du chantier FEU — **clos** « La feuille de route plus courte et lisible », `FEU1..FEU8` |
 | `88-boutons.md` | on relit le socle du chantier BTN — **clos** « Des boutons sur les pages », `BTN1..BTN7` |
 | `89-un-seul-prix.md` | on relit le socle du chantier TAU — **clos** « Un seul prix pour un chantier », `TAU1..TAU4` |
+| `90-ecritures-git.md` | on relit le socle du chantier ENQ — **clos** « Les écritures Git des sous-agents, tranchées », `ENQ1..ENQ3` |
