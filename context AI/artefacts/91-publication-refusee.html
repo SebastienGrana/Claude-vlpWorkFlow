@@ -21,9 +21,9 @@
     <p>Une page refusée par la limite du jour attend dans une liste et part plus tard, sans bloquer ni case ni clôture ; on la relit en local, sans cache, en largeur téléphone.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">5 fiches · 2 faites · en cours : LOC3</p>
+    <p class="mono" style="margin-top:.5rem">5 fiches · 3 faites · en cours : LOC4</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -45,20 +45,21 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">LOC2</span></span>
         <details><summary><span class="titre">Tenir la liste d'attente par script</span><span class="etat">Faite</span></summary>
         <span class="note">suite OK (exit 0) ; 5 mutants tombent, témoin OK ; pyright 0 erreur ; hook essayé en sous-processus : proposition 02:00 / 02:10 une fois</span></details>
-        <span class="cout mono">≈5,0M (5 036 018) · 29 tours · 1,68 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">LOC3</span></span>
-        <details open><summary><span class="titre">Écrire la règle et republier la liste</span><span class="etat">En cours</span></summary>
-        <span class="note">La règle dans ARTEFACTS.md, les commandes y renvoient et republient la liste (après LOC2)</span></details></li>
-      <li class="fiche"><span class="gauche"><span class="id">LOC4</span></span>
-        <details><summary><span class="titre">Regarder les pages en local, sans cache</span><span class="etat">À lancer</span></summary>
+        <span class="cout mono">≈5,4M (5 438 876) · 31 tours · 1,78 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">LOC3</span></span>
+        <details><summary><span class="titre">Écrire la règle et republier la liste</span><span class="etat">Faite</span></summary>
+        <span class="note">titre 1 (ARTEFACTS.md:92) ; renvois grep -o : ARTEFACTS 1, cloture 1, chantier 2, tache 1, tache-page 1, init 1 ; phrase d'échec restante seulement hors refus (liste au compte rendu) ; renvois : 0 nouvel avertissement (CLAUDE.md 81/80 déjà là, non touché) ; test-vlp.py : OK code 0</span></details>
+        <span class="cout mono">≈1,2M (1 242 595) · 12 tours · 0,60 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">LOC4</span></span>
+        <details open><summary><span class="titre">Regarder les pages en local, sans cache</span><span class="etat">En cours</span></summary>
         <span class="note">vlp.py apercu et servir : launch.json écrit par script, hors du dépôt (indépendante)</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">LOC5</span></span>
-        <details><summary><span class="titre">Essayer la liste et l'aperçu pour de vrai</span><span class="etat">Après LOC3, LOC4</span></summary>
+        <details><summary><span class="titre">Essayer la liste et l'aperçu pour de vrai</span><span class="etat">Après LOC4</span></summary>
         <span class="note">Essai réel, visuel : liste vidée par le hook, page à 375 px sans cache (après LOC3, LOC4)</span></details>
         <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈6,6M (6 557 098) · 39 tours · 4,70 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈14,4M (14 426 041) · 92 tours · 7,46 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈16,1M (16 071 494) · 106 tours · 8,16 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

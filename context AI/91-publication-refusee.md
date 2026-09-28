@@ -151,8 +151,9 @@ verte (compte brut), `pyright` 0 erreur sur `scripts/vlp.py`.
 ---
 
 <!-- FICHE:LOC3 -->
-## LOC3 [ ] — Écrire la règle et republier la liste
+## LOC3 [x] — Écrire la règle et republier la liste
 
+**Session** : aefeee39-49c3-4e7e-9f88-608b0b6fdcd9
 **Dépend de** : `LOC2`.
 **Fichiers** : `ARTEFACTS.md`, `cloture.md`, `skills/chantier/SKILL.md`,
 `skills/tache/SKILL.md`, `skills/tache/references/tache-page.md`,

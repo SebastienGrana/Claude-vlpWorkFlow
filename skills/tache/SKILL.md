@@ -39,6 +39,7 @@ demande de l'autoriser — pas de contournement.
   `<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte "<dossier>"` (`<python>` : la valeur de `PYTHON=` dans la carte) ; sinon
   **demande lequel** et n'ouvre rien avant la réponse.
 - **`AUCUN_PROJET`** : arrête-toi — c'est `/vlp:init` puis `/vlp:chantier`.
+- **`ATTENTE=<page> <url>`** : republie ces pages d'abord (`ARTEFACTS.md`, « Une publication refusée »).
 - **Sortie vide, ou consigne de la lancer** : lance-la toi-même, une fois.
 - **Fichier de fiches courant à « aucun »** : arrête-toi — `/vlp:chantier`
   d'abord. **`GARDE:`** : arrête-toi et montre la sortie brute ; une

@@ -89,6 +89,22 @@ Avant que la publication parte, le hook `vlp.py vigile` (chantier VID) refuse un
 avec sa raison ; les trois défauts qu'il repère sont dans le socle de `context AI/79-vigile.md`,
 pas recopiés ici.
 
+## Une publication refusée
+
+Seul endroit de la règle : les commandes y renvoient, elles ne la recopient pas.
+
+- Un refus **429** (limite du jour) ne bloque **ni la case ni la clôture**.
+- Le hook `vlp.py attente hook` note la page dans `<contexte>/artefacts/en-attente`.
+  Une fois par jour et par projet, il donne l'heure de la remise à zéro + 10 min.
+- La session **propose** alors une tâche planifiée à cette heure. Elle ne la crée
+  (`mcp__scheduled-tasks__create_scheduled_task`, une par projet) que sur le **oui**
+  de l'utilisateur.
+- Une ligne **`ATTENTE=<page> <url>`** dans la carte : republier **d'abord** —
+  `read` sur l'`url`, puis publication avec `url` et `files`. Le hook retire la ligne.
+- Une page **sans url** (`aucune`) se publie comme une première, puis
+  `vlp.py lien <page.html> <url>` écrit son url.
+- Les **autres refus** (page non lue, vigile) se corrigent : ils n'attendent pas.
+
 ## La page se régénère, elle ne se retouche pas
 
 `vlp.py page` réécrit la page du chantier depuis le fichier de fiches — états,
