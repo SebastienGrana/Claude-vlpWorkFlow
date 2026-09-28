@@ -200,9 +200,10 @@ Sous-commandes :
   · <mesuré> mesuré — le mesuré fait foi` ; un total mesuré à 0 (découpe vide) ne
   l'emporte pas.
   L'estimé face au réel (chantier EST) : `estimé <N> fiches ≈<X> $ · cadré <C> · joué <J>
-  fiches ≈<Y> $` — N et X relus de la ligne `**Estimé.**`, C les titres de fiche, J les `[x]`,
-  Y le total mesuré (`≈? $` sans mesure) ; sans `**Estimé.**` : `estimé non noté · …`, pas de
-  `GARDE:`. Écrit en fin de `**Fait.**` (` — <estimé>.`), en `<p>Estimé : …</p>` après Surpris
+  fiches <Y> $` — N et X relus de la ligne `**Estimé.**`, C les titres de fiche, J les `[x]`,
+  Y le prix mesuré, le pondéré de la page (`? $` sans lui, chantier TAU) ; sans `**Estimé.**` :
+  `estimé non noté · …`, pas de `GARDE:`. Ce prix ouvre aussi la cellule Tokens de sa ligne
+  sur la feuille (`47,08 $ · ≈95,0M (…)`), rien s'il est inconnu. Écrit en fin de `**Fait.**` (` — <estimé>.`), en `<p>Estimé : …</p>` après Surpris
   dans `ZONE:bilan`, et dans `CLOS` avant ` — <projet>`.
   Après l'index, `archiver` (ci-dessous) ; la ligne « relire un chantier clos »
   que `clore` pose dans `CLAUDE.md` pointe l'archive.
@@ -1988,8 +1989,13 @@ def arrondi(n):
     return "≈%s%s (%s)" % (("%.1f" % valeur).replace(".", ","), unite, milliers(n))
 
 
+def dollars(usd):
+    """Un prix mesuré comme `47,08 $`, `? $` s'il est inconnu — celui des pages et de `clore` (chantier TAU)."""
+    return "%s $" % ("?" if usd is None else ("%.2f" % usd).replace(".", ","))
+
+
 def ligne_cout(total, tours, usd):
-    return "%s · %d tours · %s $" % (arrondi(total), tours, "?" if usd is None else ("%.2f" % usd).replace(".", ","))
+    return "%s · %d tours · %s" % (arrondi(total), tours, dollars(usd))
 
 
 def fiches_du_fichier(lignes):
@@ -4294,8 +4300,9 @@ def cmd_clore(a, sortie):
             faits["bilan"] = 1
 
     # 1 quater. l'estimé à côté du réel : page, `.md`, `**Fait.**`, ligne CLOS (chantier EST)
-    reel = "cadré %d · joué %d fiches %s" % (
-        len(ids), joue, estimation_usd(total_mesure[0]) if total_mesure and total_mesure[0] else "≈? $")
+    # Le prix mesuré, le pondéré de la page — plus la louche `estimation_usd` (chantier TAU).
+    prix = total_mesure[2] if total_mesure and total_mesure[0] else None
+    reel = "cadré %d · joué %d fiches %s" % (len(ids), joue, dollars(prix))
     texte_estime = ("estimé %s fiches %s" % estime.groups() if estime else "estimé non noté") + " · " + reel
     fiches_[k_fait] = ligne_fait[:-1] + " — " + texte_estime + "."
     ecritures = [(c, t.replace(ESTIME_A_ECRIRE, esc(texte_estime), 1) if c == chemin_page else t) for c, t in ecritures]
@@ -4337,7 +4344,8 @@ def cmd_clore(a, sortie):
         ligne = ('          <tr>\n            <td>%s <span class="badge" data-etat="clos">clos</span></td>\n'
                  '            <td class="mono">%s</td><td class="mono">%s</td>\n'
                  '            <td class="mono">%s</td>\n            <td>%s</td>\n          </tr>\n'
-                 % (lien, plage(ids), date, "non mesuré" if total_chantier is None else arrondi(total_chantier),
+                 % (lien, plage(ids), date, "non mesuré" if total_chantier is None
+                    else ("" if prix is None else dollars(prix) + " · ") + arrondi(total_chantier),
                     cellule_md(a.livre)))
         corps = ligne + "".join(anciens)
         html = html[:d] + corps + html[f:]

@@ -60,8 +60,9 @@ sa fonction `tester_<nom>()` (pyright tombe sinon, journal de BTN1). pyright : 0
 ---
 
 <!-- FICHE:TAU1 -->
-## TAU1 [ ] — Clore au prix mesuré, et le poser sur la feuille
+## TAU1 [x] — Clore au prix mesuré, et le poser sur la feuille
 
+**Session** : 3eba6c37-5458-4d5b-9c08-f6430394419a
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` — et rien d'autre.
 

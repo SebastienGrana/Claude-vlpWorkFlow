@@ -1002,7 +1002,7 @@ def tester_bilan_md_clore(page_q):
     bilan_md = mod.lire_abri(mod.chemin_abri(page_q))["bilan"]
     verifier("clore : bilan écrit dans le .md, estimé résolu — mutant : écrire avant de remplacer ESTIME_A_ECRIRE",
              bilan_md == ["Livré : Livré `a` <b>", "Surpris : x < y",
-                          "Estimé : estimé 2 fiches ≈0,40 $ · cadré 2 · joué 1 fiches ≈? $"]
+                          "Estimé : estimé 2 fiches ≈0,40 $ · cadré 2 · joué 1 fiches ? $"]
              and "\x00" not in "\n".join(bilan_md), bilan_md)
 
 
@@ -1102,7 +1102,7 @@ with tempfile.TemporaryDirectory() as t:
              mod.resume_claude(cl4, "Q", "deux lignes\nici.\n", "2026-09-24", g4)
              and cl4[-1] == "- Clos le 2026-09-24 : deux lignes ici (chantier Q)."
              and bool(mod.ENTREE_CLOS.match(cl4[-1])) and not g4, repr(cl4[-1]))
-    verifier("clore : Fait. remplacé", "**Fait.** Q1..Q2 (2026-05-06) : Livré `a` <b> — estimé 2 fiches ≈0,40 $ · cadré 2 · joué 1 fiches ≈? $.\n" in fiches_lues and "**Fait.** Rien." not in fiches_lues, fiches_lues)
+    verifier("clore : Fait. remplacé", "**Fait.** Q1..Q2 (2026-05-06) : Livré `a` <b> — estimé 2 fiches ≈0,40 $ · cadré 2 · joué 1 fiches ? $.\n" in fiches_lues and "**Fait.** Rien." not in fiches_lues, fiches_lues)
     ligne_q = "| `30-q.md` | on relit le socle du chantier Q — **clos** « Un (vrai) titre », `Q1..Q2` |\n"
     verifier("clore : index clos, passé à l'archive — mutant : clore n'appelle pas archiver",
              lire(os.path.join(t, "ctx", "00-INDEX.md")).split("---|\n")[1].startswith("| `00-INDEX-archive.md` |") and "**clos**" not in lire(os.path.join(t, "ctx", "00-INDEX.md"))
@@ -1110,12 +1110,12 @@ with tempfile.TemporaryDirectory() as t:
     verifier("clore : routage ouvert retiré, une ligne vers l'index", "|---|---|\n| relire un chantier clos | `ctx/00-INDEX-archive.md` — sa ligne y nomme le fichier de fiches |\n| relire le chantier E" in lire(os.path.join(t, "CLAUDE.md"))
              and "chantier Q" not in lire(os.path.join(t, "CLAUDE.md")).split("## Routage")[1], lire(os.path.join(t, "CLAUDE.md")))
     pq = lire(page_q)
-    verifier("clore : ZONE:bilan visible, blocage caché", "<section>\n    <h2>Chantier clos le 2026-05-06</h2>\n    <div class=\"bilan\">\n      <p>Livré : Livré `a` &lt;b&gt;</p>\n      <p>Surpris : x &lt; y</p>\n      <p>Estimé : estimé 2 fiches ≈0,40 $ · cadré 2 · joué 1 fiches ≈? $</p>\n    </div>\n  </section>" in pq
+    verifier("clore : ZONE:bilan visible, blocage caché", "<section>\n    <h2>Chantier clos le 2026-05-06</h2>\n    <div class=\"bilan\">\n      <p>Livré : Livré `a` &lt;b&gt;</p>\n      <p>Surpris : x &lt; y</p>\n      <p>Estimé : estimé 2 fiches ≈0,40 $ · cadré 2 · joué 1 fiches ? $</p>\n    </div>\n  </section>" in pq
              and pq.split("<!-- ZONE:blocage")[1].split("-->\n")[1].startswith("  <section hidden>") and pq.count("<section hidden>") == 1, pq)
     verifier("clore : la page régénérée, fiches du fichier", '<span class="id">Q1</span>' in pq and '<span class="id">Q2</span>' in pq
              and '<span class="id">&lt;R' not in pq and '<p class="mono cout-total">' not in pq, pq)
     tester_bilan_md_clore(page_q)
-    verifier("clore : bilan", code == 0 and "CLOS Q Q1..Q2 (Q2 abandonnée) · chantier 1 500 · cumul 3 812 · routage 1 · index 1 · archivé 1 · bilan 1 · résumé 1 · estimé 2 fiches ≈0,40 $ · cadré 2 · joué 1 fiches ≈? $ — " in s and "encours non" in s, s)
+    verifier("clore : bilan", code == 0 and "CLOS Q Q1..Q2 (Q2 abandonnée) · chantier 1 500 · cumul 3 812 · routage 1 · index 1 · archivé 1 · bilan 1 · résumé 1 · estimé 2 fiches ≈0,40 $ · cadré 2 · joué 1 fiches ? $ — " in s and "encours non" in s, s)
     verifier("clore : fichier de fiches", "**CLOS** le 2026-05-06. Ne se rejoue pas" in fiches_lues
              and fiches_lues.index("**CLOS**") < fiches_lues.index("**Fait.**") and "Abandonnées : Q2 abandonnée." in fiches_lues, fiches_lues)
     verifier("clore : CHANTIER.md", "**fichier de fiches courant** : aucun" in carte_lue and "**artefact du chantier** : aucun" in carte_lue
@@ -1287,7 +1287,7 @@ def test_estime():
                  and "ctx/31-r.md (R1..R1)" in lire(os.path.join(te, "CHANTIER.md")), s)
         os.environ.pop("CLAUDE_CODE_SESSION_ID", None)
     # `clore` sans ligne **Estimé.** (chantier ouvert avant EST) : « estimé non noté », sans GARDE
-    # d'estimé ; le réel en dollars vient du total mesuré, `≈? $` sans lui (chantier EST).
+    # d'estimé ; le réel en dollars est le prix mesuré de la page, `? $` sans lui (chantiers EST, TAU).
     with tempfile.TemporaryDirectory() as te:
         ecrire(os.path.join(te, "CHANTIER.md"), "# C\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n"
                "- **fichier de fiches courant** : ctx/50-u.md (U1..U2)\n- **artefact du chantier** : aucun\n\n"
@@ -1295,26 +1295,45 @@ def test_estime():
         ecrire(os.path.join(te, "ctx", "50-u.md"), "# Chantier U — u\n\n**Fait.** Rien.\n\n## U1 [x] — a\n## U2 [x] — b\n")
         code, s = appel(["clore", te, "--livre", "fini", "--date", "2026-09-26"])
         verifier("EST2 : sans **Estimé.**, estimé non noté, réel ≈? $", code == 0
-                 and " · estimé non noté · cadré 2 · joué 2 fiches ≈? $ — " in s and "stim" not in s.split("CLOS ")[0]
-                 and "**Fait.** U1..U2 (2026-09-26) : fini — estimé non noté · cadré 2 · joué 2 fiches ≈? $.\n"
+                 and " · estimé non noté · cadré 2 · joué 2 fiches ? $ — " in s and "stim" not in s.split("CLOS ")[0]
+                 and "**Fait.** U1..U2 (2026-09-26) : fini — estimé non noté · cadré 2 · joué 2 fiches ? $.\n"
                  in open(os.path.join(te, "ctx", "50-u.md"), encoding="utf-8").read(), s)
-    with tempfile.TemporaryDirectory() as te:
-        ecrire(os.path.join(te, "CHANTIER.md"), "# C\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n"
-               "- **fichier de fiches courant** : ctx/50-u.md (U1..U1)\n- **artefact du chantier** : aucun\n\n"
-               "Lettres de fiche déjà prises : U (test).\n")
-        ecrire(os.path.join(te, "ctx", "50-u.md"), "# Chantier U — u\n\n**Estimé.** 3 fiches · ≈9,00 $ — ≈3,00 $/fiche sur 2 clos (le 2026-09-01).\n\n**Fait.** Rien.\n\n## U1 [x] — a\n")
-        ecrire(os.path.join(te, "ctx", "artefacts", "50-u.html"),
-               open(os.path.join(ICI, "..", "templates", "artefact-chantier.html"), encoding="utf-8").read())
-        regenerer_vrai = mod.regenerer
-        mod.regenerer = lambda *x: (lambda r: r[:3] + ((2_000_000, 3, None), r[4]))(regenerer_vrai(*x))
-        try:
-            code, s = appel(["clore", te, "--livre", "fini", "--date", "2026-09-26"])
-        finally:
-            mod.regenerer = regenerer_vrai
-        verifier("EST2 : total mesuré, le réel en dollars, sur la page aussi", code == 0
-                 and " · estimé 3 fiches ≈9,00 $ · cadré 1 · joué 1 fiches ≈1,67 $ — " in s
-                 and "<p>Estimé : estimé 3 fiches ≈9,00 $ · cadré 1 · joué 1 fiches ≈1,67 $</p>"
-                 in open(os.path.join(te, "ctx", "artefacts", "50-u.html"), encoding="utf-8").read(), s)
+    # Le prix mesuré (le pondéré de la page, ici 12,34 $ pour 2 M tokens — la louche en dirait
+    # ≈1,67 $) : au joué, et en tête de la cellule Tokens de la feuille ; inconnu, `? $` et une
+    # cellule sans `$` (chantier TAU). Mutant : remettre `estimation_usd` au joué — le test tombe.
+    for prix, joue, cellule in ((Decimal("12.34"), "12,34 $", "12,34 $ · ≈2,0M (2 000 000)"),
+                                (None, "? $", "≈2,0M (2 000 000)")):
+        with tempfile.TemporaryDirectory() as te:
+            ecrire(os.path.join(te, "CHANTIER.md"), "# C\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n"
+                   "- **fichier d'état** : ctx/08-etat.md\n"
+                   "- **fichier de fiches courant** : ctx/50-u.md (U1..U1)\n- **artefact du chantier** : aucun\n\n"
+                   "Lettres de fiche déjà prises : U (test).\n")
+            ecrire(os.path.join(te, "ctx", "08-etat.md"), "# État\n\n| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |\n"
+                   "|---|---|---|---|---|\n| 3 | Trois | a | 2 fiches | — |\n\n## Journal\n")
+            ecrire(os.path.join(te, "ctx", "50-u.md"), "# Chantier U — u\n\n**Estimé.** 3 fiches · ≈9,00 $ — ≈3,00 $/fiche sur 2 clos (le 2026-09-01).\n\n**Fait.** Rien.\n\n## U1 [x] — a\n")
+            ecrire(os.path.join(te, "ctx", "artefacts", "50-u.html"),
+                   open(os.path.join(ICI, "..", "templates", "artefact-chantier.html"), encoding="utf-8").read())
+            fdr = os.path.join(te, "ctx", "artefacts", "feuille-de-route.html")
+            ecrire(fdr, open(os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html"), encoding="utf-8").read())
+            regenerer_vrai = mod.regenerer
+            mod.regenerer = lambda *x, p=prix: (lambda r: r[:3] + ((2_000_000, 3, p), r[4]))(regenerer_vrai(*x))
+            try:
+                code, s = appel(["clore", te, "--livre", "fini", "--date", "2026-09-26"])
+            finally:
+                mod.regenerer = regenerer_vrai
+            texte = "estimé 3 fiches ≈9,00 $ · cadré 1 · joué 1 fiches " + joue
+            lu = lambda c: open(c, encoding="utf-8").read()
+            feuille = lu(fdr)
+            verifier("TAU1 : joué au prix mesuré (%s) — CLOS, page, .md, **Fait.**" % joue, code == 0
+                     and " · " + texte + " — " in s
+                     and "<p>Estimé : " + texte + "</p>" in lu(os.path.join(te, "ctx", "artefacts", "50-u.html"))
+                     and "Estimé : " + texte + "\n" in lu(os.path.join(te, "ctx", "artefacts", "50-u.md"))
+                     and "**Fait.** U1..U1 (2026-09-26) : fini — " + texte + ".\n" in lu(os.path.join(te, "ctx", "50-u.md")), s)
+            verifier("TAU1 : cellule Tokens « %s », brut relu par couts_clos et moyenne_clos" % cellule,
+                     '<td class="mono">' + cellule + "</td>" in "".join(mod.lignes_clos(feuille))
+                     and mod.couts_clos(feuille) == [("u", 2_000_000)] and mod.moyenne_clos(feuille) == (2_000_000, 1, 1)
+                     and (prix is not None or "$ · ≈2,0M" not in feuille),
+                     "%r %r %s" % (mod.couts_clos(feuille), mod.moyenne_clos(feuille), mod.lignes_clos(feuille)))
 
 
 test_estime()
