@@ -282,8 +282,9 @@ cartes, lignes) et la ligne de coût de la recherche ; `vlp.py valider` sur ce f
 ---
 
 <!-- FICHE:PAR6 -->
-## PAR6 [ ] — Mesurer ce que coûte chaque mode d'`enchainer`
+## PAR6 [x] — Mesurer ce que coûte chaque mode d'`enchainer`
 
+**Session** : a0161a66-d517-4617-8abe-c793f1ca1df0
 **Dépend de** : rien.
 **Fichiers** : `scripts/mesure-tokens.py` (`GRILLE`), `scripts/test-mesure-tokens.py`,
 `context AI/08-etat.md` — et rien d'autre.
