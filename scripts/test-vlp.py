@@ -854,8 +854,8 @@ with tempfile.TemporaryDirectory() as t:
                  and '<td class="mono">recompté (REC), était 650 000 · ≈700,0k (700 000)</td>' in feuille_
                  and '<td class="mono">non recompté — sans session · (999)</td>' in feuille_
                  and '<td class="mono">non recompté — fichier introuvable · non mesurable</td>' in feuille_, s + feuille_)
-        verifier("recompter --ecrire : pied et résumé resommés — mutant : le pied non resommé",
-                 "<strong>%s</strong></td><td class=\"mono\">%s</td>" % (mod.arrondi(1004499), mod.estimation_usd(1004499))
+        verifier("recompter --ecrire : pied et résumé resommés, sans $ (aucune ligne au prix mesuré) — mutant :"
+                 " le pied non resommé", "<strong>%s</strong></td><td class=\"mono\"></td>" % mod.arrondi(1004499)
                  in feuille_ and '<span class="resume-clos">%s</span>' % mod.resume_clos(6, 1004499) in feuille_, feuille_)
         code, s = appel(["recompter", rc, "--ecrire"])
         verifier("recompter --ecrire relancé : rien ne change", code == 0 and lire(fr) == feuille_
@@ -1126,10 +1126,10 @@ with tempfile.TemporaryDirectory() as t:
              and '<td class="mono">Q1–Q2</td><td class="mono">2026-05-06</td>' in clos and "≈1,5k (1 500)" in clos
              and "Livré <span class=\"mono\">a</span> &lt;b&gt;" in clos and clos.index("Q1–Q2") < clos.index("2 312", clos.index("<tbody>"))
              and "<strong>≈3,8k (3 812)</strong>" in clos and "Aucun chantier ouvert" in html and "E, M, Q</span>" in html, clos)
-    verifier("clore : estimation en dollars au pied de table",
-             '<strong>≈3,8k (3 812)</strong></td><td class="mono">≈0,00 $</td>' in clos, clos)
-    verifier("clore : résumé du bloc repliable des clos",
-             '<span class="resume-clos">2 chantiers clos · ≈3,8k (3 812) tokens · ≈0,00 $</span>' in clos, clos)
+    verifier("clore : pied de table sans $ — aucune ligne n'a de prix mesuré (chantier TAU)",
+             '<strong>≈3,8k (3 812)</strong></td><td class="mono"></td>' in clos, clos)
+    verifier("clore : résumé du bloc repliable des clos, coût non mesuré",
+             '<span class="resume-clos">2 chantiers clos · ≈3,8k (3 812) tokens · coût non mesuré</span>' in clos, clos)
     verifier("clore : la table des clos reste dans un details repliable",
              '<details class="clos">' in clos and "</details>" in clos, clos)
     code, s = appel(["clore", t, "--livre", "x"])
@@ -1246,8 +1246,11 @@ with tempfile.TemporaryDirectory() as t:
 
 def test_estime():
     with tempfile.TemporaryDirectory() as te:
-        # `ouvrir --estime-fiches` (chantier EST) : A1–A3 à 3 000 000 et B1 à 1 000 000 font 1 000 000
-        # par fiche — une fiche par ligne en ferait 2 000 000. La ligne non mesurable ne compte pas.
+        # `ouvrir --estime-fiches` (chantier EST) : A1–A3 à 3,00 $ et B1 à 1,00 $ (4 fiches, 4,00 $)
+        # font 1,00 $/fiche — le prix mesuré des lignes, pas les tokens (chantier TAU). D1–D2, mesurée
+        # en tokens mais sans `$`, ne compte ni dans la somme ni dans les fiches de la moyenne — mutant :
+        # la compter comme 0 $ ferait 4,00 $ sur 6 fiches, ≈0,67 $/fiche au lieu de ≈1,00 $/fiche. La
+        # ligne non mesurable (E) ne compte pas non plus.
         lire = lambda c: open(c, encoding="utf-8").read()
         os.environ["CLAUDE_CODE_SESSION_ID"] = ""
         rang = ('          <tr>\n            <td>x</td>\n            <td class="mono">%s</td><td class="mono">2026-01-01</td>\n'
@@ -1262,13 +1265,14 @@ def test_estime():
                  and "estimé" not in s.split("\n")[-2] and "**Estimé.**" not in lire(os.path.join(te, "ctx", "30-q.md"))
                  and "ctx/30-q.md (Q1..Q1)" in lire(os.path.join(te, "CHANTIER.md")), s)
         ecrire(os.path.join(te, "ctx", "artefacts", "feuille-de-route.html"),
-               "<!-- ZONE:clos -->\n<tbody>\n" + rang % ("A1–A3", "≈3,0M (3 000 000)") + rang % ("B1", "≈1,0M (1 000 000)")
+               "<!-- ZONE:clos -->\n<tbody>\n" + rang % ("A1–A3", "3,00 $ · ≈3,0M (3 000 000)")
+               + rang % ("B1", "1,00 $ · ≈1,0M (1 000 000)") + rang % ("D1–D2", "≈2,0M (2 000 000)")
                + rang % ("E1–E8", "non recompté — fichier introuvable · non mesurable") + "</tbody>\n")
         code, s = appel(["ouvrir", te, "--fiches", "ctx/30-q.md", "--titre", "q", "--estime-fiches", "2"])
         lu_e = lire(os.path.join(te, "ctx", "30-q.md"))
-        verifier("EST1 : l'estimé avant **Fait.**, fiches lues sur la plage", code == 0
-                 and "· estimé 2 fiches ≈1,67 $ — " in s
-                 and "\n**Estimé.** 2 fiches · ≈1,67 $ — ≈0,84 $/fiche sur 2 clos (le " in lu_e
+        verifier("EST1 : l'estimé avant **Fait.**, fiches lues sur la plage — mutant : D1–D2 comptée dans la moyenne $",
+                 code == 0 and "· estimé 2 fiches ≈2,00 $ — " in s
+                 and "\n**Estimé.** 2 fiches · ≈2,00 $ — ≈1,00 $/fiche sur 3 clos (le " in lu_e
                  and lu_e.index("**Estimé.**") < lu_e.index("**Fait.**"), s + lu_e)
         code, s = appel(["ouvrir", te, "--fiches", "ctx/30-q.md", "--titre", "q", "--estime-fiches", "0,5"])
         verifier("EST1 : second appel, estimé gardé, une seule ligne", code == 0 and "· estimé gardé — " in s
@@ -1285,7 +1289,39 @@ def test_estime():
         code, s = appel(["ouvrir", te, "--fiches", "ctx/31-r.md", "--titre", "r", "--estime-fiches", "1"])
         verifier("EST1 : aucun clos mesuré, GARDE, le reste écrit", code == 0 and "GARDE: aucun chantier clos mesuré" in s
                  and "ctx/31-r.md (R1..R1)" in lire(os.path.join(te, "CHANTIER.md")), s)
+        # TAU2 : des clos mesurés en tokens, mais aucun au prix `$` — GARDE dédiée, pas d'estimé en $.
+        ecrire(os.path.join(te, "CHANTIER.md"), carte_e)
+        ecrire(os.path.join(te, "ctx", "32-s.md"), "# Chantier S — s\n\n**Fait.** Rien.\n\n## S1 [ ] — a\n")
+        ecrire(os.path.join(te, "ctx", "artefacts", "feuille-de-route.html"),
+               "<!-- ZONE:clos -->\n<tbody>\n" + rang % ("D1–D2", "≈2,0M (2 000 000)") + "</tbody>\n")
+        code, s = appel(["ouvrir", te, "--fiches", "ctx/32-s.md", "--titre", "s", "--estime-fiches", "1"])
+        verifier("TAU2 : mesuré en tokens, aucun au prix $ — GARDE dédiée, le reste écrit", code == 0
+                 and "GARDE: aucun chantier clos au prix mesuré sur la feuille de route — pas d'estimé" in s
+                 and "**Estimé.**" not in lire(os.path.join(te, "ctx", "32-s.md"))
+                 and "ctx/32-s.md (S1..S1)" in lire(os.path.join(te, "CHANTIER.md")), s)
         os.environ.pop("CLAUDE_CODE_SESSION_ID", None)
+    # TAU2 : le total de la feuille (`resume_clos`, `resommer`) sur trois clos, deux avec `$` et un
+    # sans — mutant : compter la ligne sans `$` comme 0 $ fausse la somme comme la moyenne.
+    corps_mixte = (rang % ("A1–A3", "3,00 $ · ≈3,0M (3 000 000)") + rang % ("B1", "1,00 $ · ≈1,0M (1 000 000)")
+                   + rang % ("D1–D2", "≈2,0M (2 000 000)"))
+    from decimal import Decimal
+    verifier("TAU2 : prix_clos — deux lignes sur trois portent un $, la troisième ignorée",
+             mod.prix_clos(corps_mixte) == (Decimal("4.00"), 2), mod.prix_clos(corps_mixte))
+    verifier("TAU2 : resume_clos — « sur 2 clos mesurés »",
+             mod.resume_clos(3, 6_000_000, Decimal("4.00"), 2)
+             == "3 chantiers clos · ≈6,0M (6 000 000) tokens · 4,00 $ sur 2 clos mesurés", mod.resume_clos(3, 6_000_000, Decimal("4.00"), 2))
+    gabarit_pied = ('<table><tbody>%s</tbody><tfoot><tr><td colspan="3">Total cumulé</td>'
+                    '<td class="mono"><strong>x</strong></td><td class="mono">y</td></tr></tfoot></table>'
+                    '<span class="resume-clos">z</span>' % corps_mixte)
+    resomme = mod.resommer(gabarit_pied, 3, 6_000_000, *mod.prix_clos(corps_mixte))
+    verifier("TAU2 : resommer — pied « 4,00 $ sur 2 clos mesurés », toutes mesurées → sans le « sur »",
+             '<strong>≈6,0M (6 000 000)</strong></td><td class="mono">4,00 $ sur 2 clos mesurés</td>' in resomme
+             and '<span class="resume-clos">3 chantiers clos · ≈6,0M (6 000 000) tokens · 4,00 $ sur 2 clos mesurés</span>' in resomme, resomme)
+    corps_toutes = rang % ("A1–A3", "3,00 $ · ≈3,0M (3 000 000)") + rang % ("B1", "1,00 $ · ≈1,0M (1 000 000)")
+    verifier("TAU2 : texte_cout_clos — toutes mesurées, sans « sur »",
+             mod.texte_cout_clos(*mod.prix_clos(corps_toutes), 2) == "4,00 $", mod.texte_cout_clos(*mod.prix_clos(corps_toutes), 2))
+    verifier("TAU2 : texte_cout_clos — aucune mesurée, vide",
+             mod.texte_cout_clos(None, 0, 1) == "", mod.texte_cout_clos(None, 0, 1))
     # `clore` sans ligne **Estimé.** (chantier ouvert avant EST) : « estimé non noté », sans GARDE
     # d'estimé ; le réel en dollars est le prix mesuré de la page, `? $` sans lui (chantiers EST, TAU).
     with tempfile.TemporaryDirectory() as te:
@@ -1329,9 +1365,10 @@ def test_estime():
                      and "<p>Estimé : " + texte + "</p>" in lu(os.path.join(te, "ctx", "artefacts", "50-u.html"))
                      and "Estimé : " + texte + "\n" in lu(os.path.join(te, "ctx", "artefacts", "50-u.md"))
                      and "**Fait.** U1..U1 (2026-09-26) : fini — " + texte + ".\n" in lu(os.path.join(te, "ctx", "50-u.md")), s)
+            attendu = (2_000_000, 1, 1, prix, 1 if prix is not None else 0)
             verifier("TAU1 : cellule Tokens « %s », brut relu par couts_clos et moyenne_clos" % cellule,
                      '<td class="mono">' + cellule + "</td>" in "".join(mod.lignes_clos(feuille))
-                     and mod.couts_clos(feuille) == [("u", 2_000_000)] and mod.moyenne_clos(feuille) == (2_000_000, 1, 1)
+                     and mod.couts_clos(feuille) == [("u", 2_000_000)] and mod.moyenne_clos(feuille) == attendu
                      and (prix is not None or "$ · ≈2,0M" not in feuille),
                      "%r %r %s" % (mod.couts_clos(feuille), mod.moyenne_clos(feuille), mod.lignes_clos(feuille)))
 

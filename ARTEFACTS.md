@@ -108,10 +108,10 @@ la `ZONE:bilan` de la page du chantier. Leurs options
 sont dans la docstring du script.
 
 Les chantiers clos tiennent dans un bloc repliable, dont le résumé — leur
-nombre, les tokens cumulés, le coût — reste lu sans déplier. Ce coût est une
-**estimation** : `USD_PAR_MTOKENS` dans `scripts/vlp.py`, la moyenne des
-chantiers réellement mesurés, jamais un coût annoncé — un coût mesuré vient
-toujours de `mesure-tokens.py`.
+nombre, les tokens cumulés, le coût — reste lu sans déplier. Ce coût est le
+**prix mesuré** : `vlp.py clore` le pose en tête de la cellule Tokens du
+chantier qu'il clôt, `cout --session` l'y a mesuré ; sans lui, pas de `$`
+affiché — jamais un coût inventé.
 
 ## Le budget de contexte
 

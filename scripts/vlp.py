@@ -233,11 +233,12 @@ Sous-commandes :
   <lettre> <plage> · index <+n|~1> · routage +<n> · session +<0|1> · artefact <url>
   — <projet>` (`~1` : plage refaite) ; index ou routage introuvable : `GARDE:`, le
   reste est écrit. `--estime-fiches N` (`0,5` ou `0.5`) : `**Estimé.** <N> fiches · ≈<X> $
-  — ≈<Y> $/fiche sur <K> clos (le <date>).` juste avant `**Fait.**` de F — Y, la moyenne
-  des lignes de `ZONE:clos` au total mesuré, fiches comptées sur leur plage ; X = N × Y ;
+  — ≈<Y> $/fiche sur <K> clos (le <date>).` juste avant `**Fait.**` de F — Y, la moyenne des
+  prix mesurés des lignes de `ZONE:clos` qui en portent un, fiches comptées sur leur plage ;
+  X = N × Y (chantier TAU) ;
   `OUVERT` gagne ` · estimé <N> fiches ≈<X> $`, ou ` · estimé gardé` si la ligne y est
-  déjà (non réécrite). Pas de feuille, aucun clos mesuré, pas de `**Fait.**` : `GARDE:`,
-  le reste est écrit (chantier EST).
+  déjà (non réécrite). Pas de feuille, aucun clos mesuré, aucun clos au prix mesuré, pas de
+  `**Fait.**` : `GARDE:`, le reste est écrit (chantier EST).
   Un autre chantier déjà ouvert, ou F porte `**CLOS**` : `GARDE:`, sort 1.
 - `contrat [<transcription>…] [--depuis D] [--ouverture F]` — le contrat d'`agents/fiche.md` lu dans des
   transcriptions de sous-agent (chantier CON). Sans argument : toutes celles dont le
@@ -1963,19 +1964,6 @@ def esc(texte):
     return texte.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 
-# Dollars par million de tokens, moyenne des 19 chantiers dont le coût a ete
-# mesure par mesure-tokens.py (183 243 381 tokens pour 153,40 $ ; etendue
-# 0,663 a 1,022 selon la part de cache). Sert aux ESTIMATIONS de page, jamais
-# a un cout annonce : un cout mesure vient toujours de mesure-tokens.py.
-USD_PAR_MTOKENS = 0.8371
-
-
-def estimation_usd(n):
-    """Le cout approximatif de `n` tokens, en dollars, comme `≈230 $`."""
-    v = n / 1_000_000.0 * USD_PAR_MTOKENS
-    return "≈%s $" % (("%.2f" % v).replace(".", ",") if v < 10 else "%d" % round(v))
-
-
 def milliers(n):
     return "{:,}".format(n).replace(",", " ")
 
@@ -1992,6 +1980,13 @@ def arrondi(n):
 def dollars(usd):
     """Un prix mesuré comme `47,08 $`, `? $` s'il est inconnu — celui des pages et de `clore` (chantier TAU)."""
     return "%s $" % ("?" if usd is None else ("%.2f" % usd).replace(".", ","))
+
+
+def approx(usd):
+    """Un prix approché comme `≈230 $` ou `≈9,00 $` — l'estimé d'`ouvrir`, au prix mesuré des clos
+    (chantier TAU ; remplace l'ancienne louche à tant par million de tokens)."""
+    v = float(usd)
+    return "≈%s $" % (("%.2f" % v).replace(".", ",") if v < 10 else "%d" % round(v))
 
 
 def ligne_cout(total, tours, usd):
@@ -3313,6 +3308,24 @@ BRUT = re.compile(r'<td class="mono">(?:[^<]*\((\d[\d ]*)\)|(\d+))</td>')
 RANG_CLOS = re.compile(r"          <tr>\n.*?          </tr>\n", re.S)
 PIED_CLOS = re.compile(r'(Total cumulé</td><td class="mono"><strong>.*?</strong></td>)<td[^>]*>([^<]*)</td>', re.S)
 GABARIT_FEUILLE = "templates/artefact-feuille-de-route.html"
+# Le prix mesuré en tête d'une cellule Tokens, posé par `clore` — `dollars` (chantier TAU).
+PRIX_CLOS = re.compile(r'<td class="mono">(\d+,\d\d) \$ · ')
+
+
+def prix_clos(corps):
+    """(usd, n) : la somme des prix en tête de cellule Tokens des lignes de `corps`, et leur
+    nombre ; `usd` vaut `None` si aucune n'en porte (chantier TAU)."""
+    from decimal import Decimal
+    prix = [Decimal(m.group(1).replace(",", ".")) for r in lignes_clos(corps) for m in [PRIX_CLOS.search(r)] if m]
+    return (sum(prix) if prix else None), len(prix)
+
+
+def texte_cout_clos(usd, n_usd, n):
+    """`47,08 $` (toutes les lignes closes au prix mesuré), `47,08 $ sur 2 clos mesurés` (une
+    partie), ou `""` (aucune) — partagé par `resommer` et `resume_clos` (chantier TAU)."""
+    if usd is None:
+        return ""
+    return dollars(usd) if n_usd == n else "%s sur %d clos mesurés" % (dollars(usd), n_usd)
 
 
 def lignes_clos(corps):
@@ -3677,7 +3690,8 @@ def cmd_recompter(projet, sortie, ecrire=False, essais=False, a_clore=False):
     corps = html[d:f]
     neuf_corps = RANG_CLOS.sub(lambda m: neufs.get(m.group(0), m.group(0)), corps)
     avant, apres = total_clos(corps), total_clos(neuf_corps)
-    neuf = balise_couts(resommer(html[:d] + neuf_corps + html[f:], len(lignes_clos(neuf_corps)), apres))
+    usd, n_usd = prix_clos(neuf_corps)
+    neuf = balise_couts(resommer(html[:d] + neuf_corps + html[f:], len(lignes_clos(neuf_corps)), apres, usd, n_usd))
     if neuf != html:
         with open(page, "w", encoding="utf-8", newline="") as fh:
             fh.write(neuf)
@@ -3687,23 +3701,26 @@ def cmd_recompter(projet, sortie, ecrire=False, essais=False, a_clore=False):
     return 0
 
 
-def resume_clos(n, total):
-    """Ce que le bloc repliable montre sans être déplié."""
+def resume_clos(n, total, usd=None, n_usd=0):
+    """Ce que le bloc repliable montre sans être déplié — le prix mesuré des `n_usd` lignes qui
+    en portent un, sur `n` (chantier TAU)."""
     if not n:
         return "aucun chantier clos"
     if not total:  # aucun des clos ne porte de coût mesuré : pas de 0 $ inventé.
         return "%d chantiers clos · coût non mesuré" % n
-    return "%d chantiers clos · %s tokens · %s" % (n, arrondi(total), estimation_usd(total))
+    return "%d chantiers clos · %s tokens · %s" % (n, arrondi(total), texte_cout_clos(usd, n_usd, n) or "coût non mesuré")
 
 
-def resommer(html, n, total):
+def resommer(html, n, total, usd=None, n_usd=0):
     """Le pied « Total cumulé » et le résumé du bloc repliable d'une feuille, pour `n` clos qui
-    coûtent `total` — écrits par `clore` et `recompter --ecrire`."""
+    coûtent `total` tokens, dont `n_usd` au prix mesuré `usd` — écrits par `clore` et
+    `recompter --ecrire` (chantier TAU ; plus la louche à tant par million)."""
+    cout = texte_cout_clos(usd, n_usd, n)
     html = re.sub(r"(Total cumulé</td><td class=\"mono\"><strong>).*?(</strong></td><td[^>]*>).*?(</td>)",
-                  lambda m: m.group(1) + arrondi(total) + m.group(2) + estimation_usd(total) + m.group(3),
+                  lambda m: m.group(1) + arrondi(total) + m.group(2) + cout + m.group(3),
                   html, count=1)
     return re.sub(r"(<span class=\"resume-clos\">).*?(</span>)",
-                  lambda m: m.group(1) + resume_clos(n, total) + m.group(2), html, count=1)
+                  lambda m: m.group(1) + resume_clos(n, total, usd, n_usd) + m.group(2), html, count=1)
 
 
 def migrer_feuille(html):
@@ -3722,13 +3739,15 @@ def migrer_feuille(html):
         return html
     corps = html[debut:fin]
     total = total_clos(corps)
+    usd, n_usd = prix_clos(corps)
+    n_rows = len(lignes_clos(corps))
     # Une cellule qui porte déjà des dollars est celle que `clore` entretient.
     corps = PIED_CLOS.sub(lambda m: m.group(0) if "$" in m.group(2)
-                          else m.group(1) + '<td class="mono">%s</td>' % estimation_usd(total),
+                          else m.group(1) + '<td class="mono">%s</td>' % texte_cout_clos(usd, n_usd, n_rows),
                           corps, count=1)
     if '<details class="clos">' not in html[i:fin]:
         corps = ('    <details class="clos">\n      <summary><span class="resume-clos">%s</span>'
-                 '</summary>\n' % resume_clos(len(lignes_clos(corps)), total)) + corps + "    </details>\n"
+                 '</summary>\n' % resume_clos(n_rows, total, usd, n_usd)) + corps + "    </details>\n"
     return html[:debut] + corps + html[fin:]
 
 
@@ -4300,7 +4319,7 @@ def cmd_clore(a, sortie):
             faits["bilan"] = 1
 
     # 1 quater. l'estimé à côté du réel : page, `.md`, `**Fait.**`, ligne CLOS (chantier EST)
-    # Le prix mesuré, le pondéré de la page — plus la louche `estimation_usd` (chantier TAU).
+    # Le prix mesuré, le pondéré de la page (chantier TAU ; plus la louche à tant par million).
     prix = total_mesure[2] if total_mesure and total_mesure[0] else None
     reel = "cadré %d · joué %d fiches %s" % (len(ids), joue, dollars(prix))
     texte_estime = ("estimé %s fiches %s" % estime.groups() if estime else "estimé non noté") + " · " + reel
@@ -4350,7 +4369,8 @@ def cmd_clore(a, sortie):
         corps = ligne + "".join(anciens)
         html = html[:d] + corps + html[f:]
         total = total_clos(corps)
-        html = resommer(html, len(anciens) + 1, total)
+        usd_corps, n_usd_corps = prix_clos(corps)
+        html = resommer(html, len(anciens) + 1, total, usd_corps, n_usd_corps)
         etat = champ(carte_, "fichier d'état")
         try:
             zone_todo(html)
@@ -4405,17 +4425,26 @@ TOTAL_MESURE = re.compile(r"\((\d[\d ]*)\)</td>")
 
 
 def moyenne_clos(html):
-    """(tokens, fiches, clos) des lignes de `ZONE:clos` au total mesuré ; fiches d'une ligne =
-    `n − 1 + 1` de sa plage `X1–Xn`, une seule pour `X1` (chantier EST)."""
+    """(tokens, fiches, clos, usd, fiches_usd) des lignes de `ZONE:clos` au total mesuré ; fiches
+    d'une ligne = `n − 1 + 1` de sa plage `X1–Xn`, une seule pour `X1` (chantier EST). `usd`
+    (`None` sans aucune) et `fiches_usd` ne comptent que les lignes qui portent un prix en tête
+    de cellule — la moyenne $/fiche de l'estimé se lit en les divisant (chantier TAU)."""
+    from decimal import Decimal
     i = html.find("ZONE:clos")
-    tokens = fiches = clos = 0
+    tokens = fiches = clos = fiches_usd = 0
+    usd = None
     for r in lignes_clos(html[i:]) if i >= 0 else []:
         p, m = PLAGE_FICHES.search(r), TOTAL_MESURE.findall(r)
         if p and m:
+            n = int(p.group(2) or p.group(1)) - int(p.group(1)) + 1
             tokens += int(m[-1].replace(" ", ""))
-            fiches += int(p.group(2) or p.group(1)) - int(p.group(1)) + 1
+            fiches += n
             clos += 1
-    return tokens, fiches, clos
+            d = PRIX_CLOS.search(r)
+            if d:
+                usd = Decimal(d.group(1).replace(",", ".")) if usd is None else usd + Decimal(d.group(1).replace(",", "."))
+                fiches_usd += n
+    return tokens, fiches, clos, usd, fiches_usd
 
 
 def decimal_fr(v):
@@ -4528,25 +4557,28 @@ def cmd_ouvrir(a, sortie):
         ecritures.append((chemin_fiches, fiches_))
         n_session = 1
 
-    # 5. l'estimé, juste avant `**Fait.**` : la moyenne $/fiche des clos mesurés × N (chantier EST).
+    # 5. l'estimé, juste avant `**Fait.**` : la moyenne $/fiche des clos au prix mesuré × N
+    # (chantier EST ; TAU pour le prix, plus la louche).
     estime = ""
     if a.estime_fiches is not None:
         fait_ = next((k for k, l in enumerate(fiches_) if l.startswith(("**Fait.**", "**Où on en est.**"))), None)
         feuille_ = page_feuille(projet)
-        tokens, n_fiches, n_clos = moyenne_clos(lire(feuille_)) if os.path.isfile(feuille_) else (0, 0, 0)
+        _, n_fiches, n_clos, usd_clos, fiches_usd = moyenne_clos(lire(feuille_)) if os.path.isfile(feuille_) else (0, 0, 0, None, 0)
         if any(l.startswith("**Estimé.**") for l in fiches_):
             estime = " · estimé gardé"
         elif not os.path.isfile(feuille_):
             gardes.append("feuille de route introuvable : %s — pas d'estimé" % feuille_)
         elif not n_fiches:
             gardes.append("aucun chantier clos mesuré sur la feuille de route — pas d'estimé")
+        elif usd_clos is None:
+            gardes.append("aucun chantier clos au prix mesuré sur la feuille de route — pas d'estimé")
         elif fait_ is None:
             gardes.append("pas de ligne **Fait.** dans %s — pas d'estimé" % fichier)
         else:
-            par_fiche = tokens / n_fiches
-            usd = estimation_usd(round(a.estime_fiches * par_fiche))
+            par_fiche = float(usd_clos) / fiches_usd
+            usd = approx(a.estime_fiches * par_fiche)
             fiches_[fait_:fait_] = ["**Estimé.** %s fiches · %s — %s/fiche sur %d clos (le %s)."
-                                    % (decimal_fr(a.estime_fiches), usd, estimation_usd(round(par_fiche)), n_clos,
+                                    % (decimal_fr(a.estime_fiches), usd, approx(par_fiche), n_clos,
                                        __import__("datetime").date.today().isoformat()), ""]
             if not n_session:
                 ecritures.append((chemin_fiches, fiches_))

@@ -84,8 +84,9 @@ test tombe. `test-vlp.py` OK ; pyright 0 erreur (compte brut dans le compte rend
 ---
 
 <!-- FICHE:TAU2 -->
-## TAU2 [ ] — Lire ce prix pour l'estimé et le total, retirer la louche
+## TAU2 [x] — Lire ce prix pour l'estimé et le total, retirer la louche
 
+**Session** : 3eba6c37-5458-4d5b-9c08-f6430394419a
 **Dépend de** : `TAU1`.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py`, `ARTEFACTS.md` — et rien d'autre.
 
