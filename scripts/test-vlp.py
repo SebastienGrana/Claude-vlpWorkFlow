@@ -3483,7 +3483,8 @@ tester_bornes()
 
 
 def tester_heredoc():
-    """ECH1 : le corps d'un heredoc reçu par cat ou tee est une donnée ; le reste est lu."""
+    """ECH1 : le corps d'un heredoc reçu par cat ou tee est une donnée ; le reste est lu.
+    ENQ2 : pareil pour le texte cité d'un echo/printf envoyé dans un fichier."""
     def refuse(commande):
         o = io.StringIO()
         mod.main(["gardien"], o, io.StringIO(json.dumps({
@@ -3498,13 +3499,24 @@ def tester_heredoc():
            ("bash -c \"$(cat <<'EOF'\ngit commit\nEOF\n)\"", True),
            ("cat > f <<'EOF'\nx\nEOF\ngit commit -m y", True),
            ("cat > f <<'EOF'\ngit commit", True),
-           ("ssh h 'git reset --hard'", True)]
+           ("ssh h 'git reset --hard'", True),
+           # ENQ2 : echo/printf tu vers un fichier, refusé si pipé ou si git suit ailleurs
+           ('echo \'{"command":"git add ."}\' > f', False),
+           ("printf '%s' 'git commit' >> f", False),
+           ('echo "git add ." | sh', True),
+           ("echo x > f; git add f", True)]
     faux = [(c, attendu) for c, attendu in cas if refuse(c) != attendu]
-    verifier("ECH1 : heredoc de cat/tee muet, le reste refusé (%d cas) — mutant : rien retiré" % len(cas),
-             not faux, repr(faux))
+    verifier("ECH1/ENQ2 : heredoc de cat/tee et echo/printf vers un fichier muets, le reste refusé "
+             "(%d cas) — mutant : rien retiré" % len(cas), not faux, repr(faux))
     verifier("ECH1 : lire_contrat ne compte pas le heredoc de cat",
              mod.ecrit_git("cat > f <<'EOF'\ngit commit\nEOF") is False
              and mod.ecrit_git("git -C x commit -m y") is True, "")
+    verifier("ENQ2 : lire_contrat ne compte pas le texte cité d'un echo/printf vers un fichier — "
+             "mutant : retirer sans_echo fait tomber les deux « faux »",
+             mod.ecrit_git('echo \'{"command":"git add ."}\' > f') is False
+             and mod.ecrit_git("printf '%s' 'git commit' >> f") is False
+             and mod.ecrit_git('echo "git add ." | sh') is True
+             and mod.ecrit_git("ssh h 'git reset --hard'") is True, "")
 
 
 tester_heredoc()

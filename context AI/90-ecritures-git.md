@@ -92,8 +92,9 @@ avant (`103 · 10 · 46`) et après, recopié dans le compte rendu.
 ---
 
 <!-- FICHE:ENQ2 -->
-## ENQ2 [ ] — Taire le texte d'un `echo` envoyé dans un fichier
+## ENQ2 [x] — Taire le texte d'un `echo` envoyé dans un fichier
 
+**Session** : eff48dc7-29a6-457e-aed8-ca12581cc41a
 **Dépend de** : `ENQ1`.
 **Fichiers** : scripts/vlp.py, scripts/test-vlp.py — et rien d'autre.
 

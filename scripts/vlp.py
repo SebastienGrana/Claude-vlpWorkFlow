@@ -1575,10 +1575,30 @@ def sans_heredoc(commande):
     return HEREDOC.sub(taire, commande)
 
 
+ECHO_FICHIER = re.compile(r"""\b(?:echo|printf)\b(?P<args>[^\n;&|`]*?)(?P<redir>>{1,2})[ \t]*(?:"[^"]*"|'[^']*'|\S+)""")
+
+
+def sans_echo(commande):
+    """La commande, le texte cité d'un `echo`/`printf` dont la sortie va dans un fichier (`>`/`>>`)
+    tu : sans `|` dans le même segment, hors `$(…)` et accents graves — comme `sans_heredoc` pour
+    `cat`/`tee` (chantier ENQ). Limite acceptée : `echo 'git add' > s.sh` puis `sh s.sh` passe — le
+    gardien arrête une habitude, pas un attaquant."""
+    def taire(m):
+        avant = commande[:m.start()]
+        dans_sous = re.search(r"(?:\$\(|`)[^;&|()\n`]*$", avant)
+        if dans_sous:
+            return m.group(0)
+        args = re.sub(r"'[^']*'", "''", m.group("args"))
+        args = re.sub(r'"[^"]*"', '""', args)
+        return commande[m.start():m.start("args")] + args + commande[m.end("args"):m.end()]
+    return ECHO_FICHIER.sub(taire, commande)
+
+
 def ecrit_git(commande):
-    """`ECRIT_GIT` sur la commande `sans_heredoc` : un heredoc qui ne fait qu'écrire les mots
-    `git commit` dans un fichier n'écrit pas dans Git (chantier ECH)."""
-    return bool(ECRIT_GIT.search(sans_heredoc(commande)))
+    """`ECRIT_GIT` sur la commande `sans_heredoc` puis `sans_echo` : un heredoc ou un `echo`/`printf`
+    qui ne font qu'écrire les mots `git commit` dans un fichier n'écrivent pas dans Git
+    (chantiers ECH, ENQ)."""
+    return bool(ECRIT_GIT.search(sans_echo(sans_heredoc(commande))))
 
 
 def lire_contrat(chemin):
