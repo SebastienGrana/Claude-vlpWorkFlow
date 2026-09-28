@@ -17,4 +17,4 @@ Les pages du kit ont des boutons : tout déplier, copier la commande d'une fiche
 ## Bilan
 - Livré : vlp.js joint aux pages (tout déplier, copier la commande d'une fiche, quatre filtres d'état), graphique couts.svg des chantiers clos, décompte en valeur et texte d'avant la liste replié, ligne FILES dans les commandes
 - Surpris : La limite de 200 publications par jour (429) a bloqué la republication de BTN6 : regard local par un serveur, pages envoyées après minuit UTC ; et pyright tombe au moindre ajout au niveau du module de test-vlp.py
-- Estimé : estimé 6 fiches ≈25 $ · cadré 7 · joué 7 fiches ≈79 $
+- Estimé : estimé 6 fiches ≈25 $ (taux plat) · cadré 7 · joué 7 fiches 47,08 $

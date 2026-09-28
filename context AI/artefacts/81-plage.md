@@ -7,4 +7,4 @@ Une plage de fiches se borne par numéro : REV, rangé dans le désordre, s'affi
 ## Bilan
 - Livré : bornes(ids) : une plage de fiches va du plus petit au plus grand numéro, en-tête, feuille, index et CHANTIER.md compris
 - Surpris : Aucun test existant ne dépendait de l'ordre du fichier : les anciens tests sont passés avant même le test neuf
-- Estimé : estimé 0,5 fiches ≈2,12 $ · cadré 1 · joué 1 fiches ≈2,52 $
+- Estimé : estimé 0,5 fiches ≈2,12 $ (taux plat) · cadré 1 · joué 1 fiches 1,21 $

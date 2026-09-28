@@ -12,7 +12,7 @@ feuille de route.
 
 **CLOS** le 2026-09-27. Ne se rejoue pas — ne sert plus qu'à relire son socle.
 
-**Fait.** ECA1..ECA3 (2026-09-27) : Les 24 écarts du recompte expliqués au jeton près ; un appel clore n'est plus un texte cité (lance_clore), la fiche sans commit d'un clos s'arrête au commit suivant ; recompte écrit : 19 cellules, 1 140 424 192 → 1 125 033 889 — estimé 1,5 fiches ≈6,34 $ · cadré 3 · joué 3 fiches ≈10 $.
+**Fait.** ECA1..ECA3 (2026-09-27) : Les 24 écarts du recompte expliqués au jeton près ; un appel clore n'est plus un texte cité (lance_clore), la fiche sans commit d'un clos s'arrête au commit suivant ; recompte écrit : 19 cellules, 1 140 424 192 → 1 125 033 889 — estimé 1,5 fiches ≈6,34 $ (taux plat) · cadré 3 · joué 3 fiches 5,74 $.
 
 **Session** : 5a12485e-8f92-4566-8eac-a08b630de356
 

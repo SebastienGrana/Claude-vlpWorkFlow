@@ -1400,10 +1400,14 @@ def tester_prix():
                "# X — notes et journal\n\n## Résultat\nFini\n\n## Notes\n\n## Journal\n\n## Bilan\n"
                "- Estimé : estimé 1 fiches ≈25 $ · cadré 1 · joué 1 fiches ≈25 $\n")
         fdr = os.path.join(tp, "ctx", "artefacts", "feuille-de-route.html")
-        ecrire(fdr, '    <!-- ZONE:clos — test -->\n      <table>\n        <tbody>\n'
+        ecrire(fdr, '    <!-- ZONE:clos — test -->\n'
+               '    <details class="clos">\n      <summary><span class="resume-clos">vieux</span></summary>\n'
+               '      <table>\n        <tbody>\n'
                + ligne_close(mod.arrondi(50000)).replace("Q1–Q2", "X1")
                + ligne_close(mod.arrondi(20000)).replace("Q1–Q2", "Y1")
-               + "        </tbody>\n      </table>\n")
+               + '        </tbody>\n        <tfoot>\n          <tr><td colspan="3">Total cumulé</td>'
+                 '<td class="mono"><strong>vieux</strong></td><td class="mono">vieux</td></tr>\n        </tfoot>\n'
+               '      </table>\n    </details>\n')
         disque = lambda: {os.path.relpath(os.path.join(r, n), tp): lire(os.path.join(r, n))
                           for r, _, ns in os.walk(tp) for n in ns}
         avant = disque()
@@ -1422,6 +1426,11 @@ def tester_prix():
         ok = '<td class="mono">12,34 $ · ≈50,0k (50 000)</td>' in feuille
         ok = ok and '<td class="mono">≈20,0k (20 000)</td>' in feuille
         verifier("TAU3 : prix posé en tête de la cellule Tokens de X, Y intacte", ok, feuille)
+        verifier("TAU4 : pied et résumé de la feuille resommés au premier passage (X mesuré, Y non) —"
+                 " mutant : le résumé et le pied non resommés, restés « vieux »",
+                 '<strong>%s</strong></td><td class="mono">12,34 $ sur 1 clos mesurés</td>' % mod.arrondi(70000) in feuille
+                 and '<span class="resume-clos">%s</span>' % mod.resume_clos(2, 70000, __import__("decimal").Decimal("12.34"), 1)
+                 in feuille, feuille)
         recale = "estimé 1 fiches ≈25 $ (taux plat) · cadré 1 · joué 1 fiches 12,34 $"
         x_md = lire(os.path.join(tp, "ctx", "x.md"))
         verifier("TAU3 : joué de X recalé sur le prix mesuré, estimé marqué (taux plat), fichier de fiches",

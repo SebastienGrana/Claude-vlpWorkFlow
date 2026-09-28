@@ -11,7 +11,7 @@ caractères). On essaie deux pistes, on les mesure, on écrit une décision pour
 
 **CLOS** le 2026-09-26. Ne se rejoue pas — ne sert plus qu'à relire son socle.
 
-**Fait.** ALE1..ALE3 (2026-09-26) : CSS des pages en vlp.css joint adopte (-43 % par relecture, 5760 -> 3286) ; base db en attente d'un essai hors mode auto (630, mais rien en local ni par lien public) — estimé 2 fiches ≈7,98 $ · cadré 3 · joué 3 fiches ≈12 $.
+**Fait.** ALE1..ALE3 (2026-09-26) : CSS des pages en vlp.css joint adopte (-43 % par relecture, 5760 -> 3286) ; base db en attente d'un essai hors mode auto (630, mais rien en local ni par lien public) — estimé 2 fiches ≈7,98 $ (taux plat) · cadré 3 · joué 3 fiches 6,78 $.
 
 **Session** : 88a2fc75-310a-48ac-8cb9-d5c13ef2956b
 

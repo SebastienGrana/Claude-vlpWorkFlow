@@ -10,4 +10,4 @@ VLP_SANS_TAMPON=1 : un hook rejoué à la main agit à chaque fois, sans nonce.
 ## Bilan
 - Livré : VLP_SANS_TAMPON=1 : un hook rejoué à la main agit à chaque fois, sans nonce ; test et mutant
 - Surpris : rien
-- Estimé : estimé 0,5 fiches ≈2,02 $ · cadré 1 · joué 1 fiches ≈1,65 $
+- Estimé : estimé 0,5 fiches ≈2,02 $ (taux plat) · cadré 1 · joué 1 fiches 0,62 $

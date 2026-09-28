@@ -14,4 +14,4 @@ Une commande rejoue les deux essais de FIL3 en eval du plugin ; un changement du
 ## Bilan
 - Livré : bash evals/filet/rejouer.sh rejoue les deux essais du filet (F1 Read, F2 exit 3) en eval du plugin sous WSL2, en un appel, ≈0,28 $ le passage
 - Surpris : la trace de l'eval voit les appels d'outils du sous-agent mais pas le contexte de ses hooks ; la redirection 2> de la carte bloquait tout fork sous eval
-- Estimé : estimé 2 fiches ≈7,79 $ · cadré 4 · joué 4 fiches ≈30 $
+- Estimé : estimé 2 fiches ≈7,79 $ (taux plat) · cadré 4 · joué 4 fiches 14,24 $

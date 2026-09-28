@@ -8,7 +8,7 @@
 (BTN : 47,08 $), `clore`, `ouvrir` et la feuille multiplient les tokens par une constante vieillie
 (BTN : ≈79 $). TAU ne garde que le premier, partout, et recale ce qui est déjà écrit.
 
-**Estimé.** 1 fiches · ≈4,42 $ — ≈4,42 $/fiche sur 76 clos (le 2026-09-28).
+**Estimé.** 1 fiches · ≈4,42 $ (taux plat) — ≈4,42 $/fiche sur 76 clos (le 2026-09-28).
 
 **Fait.** Rien. Ouvert le 2026-09-28, cadré en 4 fiches, `TAU1` à jouer.
 
@@ -134,8 +134,9 @@ regarder s'il y est déjà → le second passage le double, le test tombe. `test
 ---
 
 <!-- FICHE:TAU4 -->
-## TAU4 [ ] — Passer le kit au prix mesuré, et republier
+## TAU4 [x] — Passer le kit au prix mesuré, et republier
 
+**Session** : 3eba6c37-5458-4d5b-9c08-f6430394419a
 **Dépend de** : `TAU2`, `TAU3`.
 **Fichiers** : `context AI/artefacts/*` et les fichiers de fiches que `prix` nomme ;
 `context AI/89-un-seul-prix.md` (sa ligne `**Estimé.**`, écrite à la louche à l'ouverture).

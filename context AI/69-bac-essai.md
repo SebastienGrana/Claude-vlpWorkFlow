@@ -12,7 +12,7 @@ transcription du sous-agent par un script jetable ; `FIL3` y a perdu 0,148 $.
 
 **CLOS** le 2026-09-26. Ne se rejoue pas — ne sert plus qu'à relire son socle.
 
-**Fait.** BAC1..BAC2 (2026-09-26) : vlp.py bac pose le bac d'essai de FIL3 en un appel ; vlp.py transcription compte la transcription d'un sous-agent et retrouve, sur F1 et F2, les chiffres du journal FIL3 — estimé 1 fiches ≈3,90 $ · cadré 2 · joué 2 fiches ≈6,82 $.
+**Fait.** BAC1..BAC2 (2026-09-26) : vlp.py bac pose le bac d'essai de FIL3 en un appel ; vlp.py transcription compte la transcription d'un sous-agent et retrouve, sur F1 et F2, les chiffres du journal FIL3 — estimé 1 fiches ≈3,90 $ (taux plat) · cadré 2 · joué 2 fiches 5,01 $.
 
 **Session** : 109c68a9-2c11-4d5b-94aa-328578a50bff
 

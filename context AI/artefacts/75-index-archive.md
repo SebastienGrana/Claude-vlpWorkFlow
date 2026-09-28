@@ -11,4 +11,4 @@ L'index du kit passe sous 80 lignes ; ses 63 lignes de chantiers clos sont dans 
 ## Bilan
 - Livré : l'index ne garde que le vivant : 63 lignes de clos dans 00-INDEX-archive.md, lue par recompter et niveau, et clore y range chaque nouveau clos (vlp.py archiver)
 - Surpris : index 105 → 43 lignes sans une ligne perdue ; un recompter a une fois rendu un fichier vide, non reproduit
-- Estimé : estimé non noté · cadré 3 · joué 3 fiches ≈9,03 $
+- Estimé : estimé non noté · cadré 3 · joué 3 fiches 6,49 $

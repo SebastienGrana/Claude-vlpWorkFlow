@@ -11,7 +11,7 @@ d'eval du plugin, rejouables en un appel.
 
 **CLOS** le 2026-09-26. Ne se rejoue pas — ne sert plus qu'à relire son socle.
 
-**Fait.** EVF4..EVF3 (2026-09-26) : bash evals/filet/rejouer.sh rejoue les deux essais du filet (F1 Read, F2 exit 3) en eval du plugin sous WSL2, en un appel, ≈0,28 $ le passage — estimé 2 fiches ≈7,79 $ · cadré 4 · joué 4 fiches ≈30 $.
+**Fait.** EVF4..EVF3 (2026-09-26) : bash evals/filet/rejouer.sh rejoue les deux essais du filet (F1 Read, F2 exit 3) en eval du plugin sous WSL2, en un appel, ≈0,28 $ le passage — estimé 2 fiches ≈7,79 $ (taux plat) · cadré 4 · joué 4 fiches 14,24 $.
 
 **Session** : 81f28c74-89aa-4815-b804-db93de007ebc
 

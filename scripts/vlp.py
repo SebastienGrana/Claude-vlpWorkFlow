@@ -3736,7 +3736,9 @@ def cmd_prix(projet, sortie, a_blanc=False):
     chaque ligne de `ZONE:clos` qui ne l'a pas encore (parcours de `recompter`), recale son
     ancien `joué … ≈X $` sur ce prix et marque son vieil estimé `(taux plat)`, dans le fichier de
     fiches, la page et son `.md` d'abri. Une page sans `$` : rien d'écrit, comptée « sans prix ».
-    Relancé, plus rien à écrire (chantier TAU)."""
+    Le résumé replié et le pied « Total cumulé » de la feuille (`resommer`) sont rafraîchis sur
+    l'état final des cellules, posées ou déjà là — sinon ils restent à l'ancien total, à la louche
+    (dette trouvée en clôture de TAU4). Relancé, plus rien à écrire (chantier TAU)."""
     parcours = clos_du_projet(projet, sortie)
     if parcours is None:
         return 1
@@ -3783,16 +3785,18 @@ def cmd_prix(projet, sortie, a_blanc=False):
                     with open(md_page, "w", encoding="utf-8", newline="") as fh:
                         fh.write(md_neuf)
                 ecrits.append(md_page)
-    if neufs:
-        corps = html[d:f]
-        neuf_corps = RANG_CLOS.sub(lambda m: neufs.get(m.group(0), m.group(0)), corps)
-        neuf_html = html[:d] + neuf_corps + html[f:]
-        if neuf_html != html:
-            page_route = page_feuille(projet)
-            if not a_blanc:
-                with open(page_route, "w", encoding="utf-8", newline="") as fh:
-                    fh.write(neuf_html)
-            ecrits.append(page_route)
+    corps = html[d:f]
+    neuf_corps = RANG_CLOS.sub(lambda m: neufs.get(m.group(0), m.group(0)), corps)
+    neuf_html = html[:d] + neuf_corps + html[f:]
+    total = total_clos(neuf_corps)
+    usd, n_usd = prix_clos(neuf_corps)
+    neuf_html = resommer(neuf_html, len(lignes_clos(neuf_corps)), total, usd, n_usd)
+    if neuf_html != html:
+        page_route = page_feuille(projet)
+        if not a_blanc:
+            with open(page_route, "w", encoding="utf-8", newline="") as fh:
+                fh.write(neuf_html)
+        ecrits.append(page_route)
     if not a_blanc:
         for chemin_ecrit in ecrits:
             sortie.write("ÉCRIT %s\n" % chemin_ecrit)

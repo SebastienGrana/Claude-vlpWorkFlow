@@ -7,4 +7,4 @@ Une puce comme « - Imprévu : j'ai dû… » ne fait plus renvoyer un sous-agen
 ## Bilan
 - Livré : La règle tete exige la forme d'une jauge : émoji de jauge en tête, ou le mot suivi de —, … ou fin de ligne ; une puce « - Imprévu : » ne fait plus renvoyer
 - Surpris : Le faux positif redouté n'est jamais arrivé : 0 ligne sans émoji suivie de « : » sur 79 jauges de sous-agents
-- Estimé : estimé 0,5 fiches ≈2,12 $ · cadré 1 · joué 1 fiches ≈2,64 $
+- Estimé : estimé 0,5 fiches ≈2,12 $ (taux plat) · cadré 1 · joué 1 fiches 1,17 $

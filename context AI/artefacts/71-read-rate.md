@@ -10,4 +10,4 @@ Oui ou non, mesuré : un Read sur un fichier absent déclenche-t-il le filet, à
 ## Bilan
 - Livré : un Read raté réveille le filet : PostToolUseFailure:Read, prouvé à plafond 5 par evals/filet-rate/ (témoin 80 muet)
 - Surpris : 13 avertissements dans un seul tour : le filet répète son texte à chaque appel groupé
-- Estimé : estimé 0,5 fiches ≈2,03 $ · cadré 1 · joué 1 fiches ≈1,43 $
+- Estimé : estimé 0,5 fiches ≈2,03 $ (taux plat) · cadré 1 · joué 1 fiches 0,72 $

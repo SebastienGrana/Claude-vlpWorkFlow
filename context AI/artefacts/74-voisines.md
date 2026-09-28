@@ -16,4 +16,4 @@ La régénération ne perd plus rien : vlp.py niveau à 0 écart feuille sur Map
 ## Bilan
 - Livré : vlp.py niveau compte la page du disque, comparer confronte deux pages, lettres entre backticks lues ; les trois voisins à NIVEAU 0 écarts, pages régénérées mais non republiées (projets en pause)
 - Surpris : La page en ligne de MapDecorator est plus riche que sa TODO : comparer au disque ne voyait pas la perte ; le compte 8 de la fiche était faux (9)
-- Estimé : estimé 3 fiches ≈12 $ · cadré 6 · joué 6 fiches ≈22 $
+- Estimé : estimé 3 fiches ≈12 $ (taux plat) · cadré 6 · joué 6 fiches 11,24 $

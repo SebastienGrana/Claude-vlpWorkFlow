@@ -11,7 +11,7 @@ de 60 s : un relecteur de `RLG1` a dû ajouter un `nonce` pour comparer avant et
 
 **CLOS** le 2026-09-26. Ne se rejoue pas — ne sert plus qu'à relire son socle.
 
-**Fait.** SON1..SON1 (2026-09-26) : VLP_SANS_TAMPON=1 : un hook rejoué à la main agit à chaque fois, sans nonce ; test et mutant — estimé 0,5 fiches ≈2,02 $ · cadré 1 · joué 1 fiches ≈1,65 $.
+**Fait.** SON1..SON1 (2026-09-26) : VLP_SANS_TAMPON=1 : un hook rejoué à la main agit à chaque fois, sans nonce ; test et mutant — estimé 0,5 fiches ≈2,02 $ (taux plat) · cadré 1 · joué 1 fiches 0,62 $.
 
 **Session** : 81f28c74-89aa-4815-b804-db93de007ebc
 

@@ -10,4 +10,4 @@ vlp.py bac pose le bac en un appel ; vlp.py transcription retrouve, sur les deux
 ## Bilan
 - Livré : vlp.py bac pose le bac d'essai de FIL3 en un appel ; vlp.py transcription compte la transcription d'un sous-agent et retrouve, sur F1 et F2, les chiffres du journal FIL3
 - Surpris : rien : le rejeu tombe juste du premier coup, is_error absent sur un Read réussi vaut non
-- Estimé : estimé 1 fiches ≈3,90 $ · cadré 2 · joué 2 fiches ≈6,82 $
+- Estimé : estimé 1 fiches ≈3,90 $ (taux plat) · cadré 2 · joué 2 fiches 5,01 $

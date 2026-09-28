@@ -18,4 +18,4 @@ Les 90 pages de chantiers clos (kit et Cairn) au format PLI, chiffres de coût i
 ## Bilan
 - Livré : vlp.py page --forme et repeindre : 64 pages du kit et 17 de Cairn au format PLI, chiffres inchangés, toutes remises en ligne ; liens tirés dans chaque .md par vlp.py liens
 - Surpris : --forme a dû garder aussi titres, libellés, comptage et date (64/64 pages perdaient la date) ; les pages html de Cairn ne sont pas suivies par Git ; chaque publication réveille le chef (~45 tours vides)
-- Estimé : estimé 2 fiches ≈8,09 $ · cadré 6 · joué 6 fiches ≈68 $
+- Estimé : estimé 2 fiches ≈8,09 $ (taux plat) · cadré 6 · joué 6 fiches 26,45 $

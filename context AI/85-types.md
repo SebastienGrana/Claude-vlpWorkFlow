@@ -12,7 +12,7 @@ un `pyrightconfig.json` et un bloc de `.githooks/pre-commit` qui refuse un commi
 
 **CLOS** le 2026-09-27. Ne se rejoue pas — ne sert plus qu'à relire son socle.
 
-**Fait.** TYP1..TYP1 (2026-09-27) : pyrightconfig.json (scripts, mode standard) et un bloc pyright dans .githooks/pre-commit : un commit qui indexe un .py en erreur est refusé ; pyright absent, le hook le dit et laisse passer — estimé 1 fiches ≈4,16 $ · cadré 1 · joué 1 fiches ≈2,51 $.
+**Fait.** TYP1..TYP1 (2026-09-27) : pyrightconfig.json (scripts, mode standard) et un bloc pyright dans .githooks/pre-commit : un commit qui indexe un .py en erreur est refusé ; pyright absent, le hook le dit et laisse passer — estimé 1 fiches ≈4,16 $ (taux plat) · cadré 1 · joué 1 fiches 1,64 $.
 
 **Session** : 5a12485e-8f92-4566-8eac-a08b630de356
 

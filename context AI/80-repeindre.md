@@ -12,7 +12,7 @@ chiffres inscrits gardés, et remet les pages en ligne par lots.
 
 **CLOS** le 2026-09-27. Ne se rejoue pas — ne sert plus qu'à relire son socle.
 
-**Fait.** HAB1..HAB6 (2026-09-27) : vlp.py page --forme et repeindre : 64 pages du kit et 17 de Cairn au format PLI, chiffres inchangés, toutes remises en ligne ; liens tirés dans chaque .md par vlp.py liens — estimé 2 fiches ≈8,09 $ · cadré 6 · joué 6 fiches ≈68 $.
+**Fait.** HAB1..HAB6 (2026-09-27) : vlp.py page --forme et repeindre : 64 pages du kit et 17 de Cairn au format PLI, chiffres inchangés, toutes remises en ligne ; liens tirés dans chaque .md par vlp.py liens — estimé 2 fiches ≈8,09 $ (taux plat) · cadré 6 · joué 6 fiches 26,45 $.
 
 **Session** : 5a12485e-8f92-4566-8eac-a08b630de356
 

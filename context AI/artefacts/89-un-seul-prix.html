@@ -16,14 +16,14 @@
 
 <div class="page">
   <header>
-    <div class="eyebrow">vlp · fiches TAU1–TAU4 · <a href="https://claude.ai/code/artifact/ff1fc060-daca-486f-b4c6-e1f55114c0f7">la feuille de route</a></div>
+    <div class="eyebrow">vlp · fiches TAU1–TAU4 · <a href="https://claude.ai/artifact/YWDny8kjubq9DhdP5rbPxA">la feuille de route</a></div>
     <h1>Un seul prix pour un chantier</h1>
     <p>clore, ouvrir et la feuille de route donnent le prix mesuré de cout — plus de taux plat ; les joués déjà écrits sont recalés, les vieux estimés marqués (taux plat)</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">4 fiches · 3 faites · en cours : TAU4</p>
+    <p class="mono" style="margin-top:.5rem">4 fiches · 4 faites</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -49,13 +49,14 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">TAU3</span></span>
         <details><summary><span class="titre">Un script prix pour les chantiers déjà clos</span><span class="etat">Faite</span></summary>
         <span class="note">test-vlp.py OK ; pyright 0 erreur ; mutant (marquer (taux plat) sans regarder) démasqué : ÉCART second passage</span></details>
-        <span class="cout mono">≈16,5M (16 524 700) · 85 tours · 5,39 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">TAU4</span></span>
-        <details open><summary><span class="titre">Passer le kit au prix mesuré, et republier</span><span class="etat">En cours</span></summary>
-        <span class="note">le kit passé au prix mesuré, feuille et pages republiées ; après TAU2 et TAU3</span></details></li>
+        <span class="cout mono">≈16,9M (16 865 116) · 88 tours · 5,48 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">TAU4</span></span>
+        <details><summary><span class="titre">Passer le kit au prix mesuré, et republier</span><span class="etat">Faite</span></summary>
+        <span class="note">prix . a rejoué 0 posés · 70 déjà · 7 sans prix, feuille . --verifier identique, total 661,15 $ = somme des 70 lignes (dette resommer corrigée), 22 pages republiées (21 chantiers + feuille)</span></details>
+        <span class="cout mono">≈15,9M (15 853 437) · 82 tours · 5,07 $</span></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈5,7M (5 655 944) · 30 tours · 2,62 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈41,2M (41 213 164) · 215 tours · 14,34 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈57,4M (57 407 017) · 300 tours · 19,50 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

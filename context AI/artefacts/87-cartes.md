@@ -17,4 +17,4 @@ La feuille de route de Cairn, cartes fermées, tient en 5 écrans d'ordinateur a
 ## Bilan
 - Livré : Feuilles du kit et de Cairn en cartes (TODO repliee, sommaire, detail des chantiers possibles) ; Cairn 3,15 ecrans fermee (etait 13,79) ; TODO ne defile plus a 375x812 ; page_vs_source rangs=entiers=16
 - Surpris : Le premier essai de mesure de tokens a rate (0 tour) : mesure-tokens.py lit une heure sans decalage comme l'heure locale, l'heure UTC avait ete utilisee par erreur
-- Estimé : estimé 4 fiches ≈17 $ · cadré 8 · joué 8 fiches ≈54 $
+- Estimé : estimé 4 fiches ≈17 $ (taux plat) · cadré 8 · joué 8 fiches 26,77 $

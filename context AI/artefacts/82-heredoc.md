@@ -7,4 +7,4 @@ Un sous-agent peut écrire les mots git commit dans un fichier par cat ou tee sa
 ## Bilan
 - Livré : ecrit_git : le corps d'un heredoc reçu par cat ou tee n'est plus lu par le gardien ni par contrat ; un heredoc qui s'exécute (py, | bash, $(…)) reste refusé
 - Surpris : Une chaîne citée porte un vrai git reset (ssh '…') : couper les chaînes, piste de la TODO, aurait laissé passer une vraie écriture
-- Estimé : estimé 0,5 fiches ≈2,12 $ · cadré 1 · joué 1 fiches ≈3,03 $
+- Estimé : estimé 0,5 fiches ≈2,12 $ (taux plat) · cadré 1 · joué 1 fiches 1,36 $

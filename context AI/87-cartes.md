@@ -12,7 +12,7 @@ visible et le détail replié, plus un sommaire : 3,84 écrans visés, rien de r
 
 **CLOS** le 2026-09-27. Ne se rejoue pas — ne sert plus qu'à relire son socle.
 
-**Fait.** FEU1..FEU8 (2026-09-27) : Feuilles du kit et de Cairn en cartes (TODO repliee, sommaire, detail des chantiers possibles) ; Cairn 3,15 ecrans fermee (etait 13,79) ; TODO ne defile plus a 375x812 ; page_vs_source rangs=entiers=16 — estimé 4 fiches ≈17 $ · cadré 8 · joué 8 fiches ≈54 $.
+**Fait.** FEU1..FEU8 (2026-09-27) : Feuilles du kit et de Cairn en cartes (TODO repliee, sommaire, detail des chantiers possibles) ; Cairn 3,15 ecrans fermee (etait 13,79) ; TODO ne defile plus a 375x812 ; page_vs_source rangs=entiers=16 — estimé 4 fiches ≈17 $ (taux plat) · cadré 8 · joué 8 fiches 26,77 $.
 
 **Session** : bc14fab5-1e0d-472c-908e-b6dfeefa2dfd
 

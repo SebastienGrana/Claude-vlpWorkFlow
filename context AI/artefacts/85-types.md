@@ -7,4 +7,4 @@ Un commit qui indexe un .py passe par pyright ; en erreur, il est refusé ; pyri
 ## Bilan
 - Livré : pyrightconfig.json (scripts, mode standard) et un bloc pyright dans .githooks/pre-commit : un commit qui indexe un .py en erreur est refusé ; pyright absent, le hook le dit et laisse passer
 - Surpris : Le faux pyright sans extension est trouvé par le sh de Git sous Windows : il se dit exécutable par son #! ; 38-audit-scripts porte 12 erreurs d'avant, laissé dehors
-- Estimé : estimé 1 fiches ≈4,16 $ · cadré 1 · joué 1 fiches ≈2,51 $
+- Estimé : estimé 1 fiches ≈4,16 $ (taux plat) · cadré 1 · joué 1 fiches 1,64 $

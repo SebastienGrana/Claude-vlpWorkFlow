@@ -32,7 +32,7 @@
     <div class="bilan">
       <p>Livré : vlp.py ouvrir note l'estimé (fiches et $, moyenne des clos), clore l'écrit à côté du réel ; /vlp:chantier passe --estime-fiches</p>
       <p>Surpris : EST, estimé à 1 fiche, en a joué 3 : la TODO estime encore au doigt mouillé</p>
-      <p>Estimé : estimé 1 fiches ≈3,91 $ · cadré 3 · joué 3 fiches ≈8,91 $</p>
+      <p>Estimé : estimé 1 fiches ≈3,91 $ (taux plat) · cadré 3 · joué 3 fiches 6,29 $</p>
     </div>
   </section>
 
@@ -46,11 +46,11 @@
         <span class="cout mono">≈2,7M (2 660 631) · 24 tours · 1,60 $</span></li>
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">EST2</span></span>
         <details><summary><span class="titre">Écrire l'estimé à côté du réel à la clôture</span><span class="etat">Faite</span></summary>
-        <span class="note">test-vlp.py : OK, 0 échec ; CLOS « estimé 2 fiches ≈0,40 $ · cadré 2 · joué 1 fiches ≈? $ », même texte page et Fait ; sans ligne : estimé non noté ; mutant cadrées=jouées : ÉCART clore : Fait. remplacé ; pyright scripts/ : 0 errors</span></details>
+        <span class="note">test-vlp.py : OK, 0 échec ; CLOS « estimé 2 fiches ≈0,40 $ (taux plat) · cadré 2 · joué 1 fiches ≈? $ », même texte page et Fait ; sans ligne : estimé non noté ; mutant cadrées=jouées : ÉCART clore : Fait. remplacé ; pyright scripts/ : 0 errors</span></details>
         <span class="cout mono">≈4,4M (4 374 245) · 39 tours · 2,08 $</span></li>
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">EST3</span></span>
         <details><summary><span class="titre">Faire passer l'estimé par /vlp:chantier</span><span class="etat">Faite</span></summary>
-        <span class="note">grep --estime-fiches SKILL.md = 1 ; grep **Estimé.** 1 fiches = 1 ; ouvrir rend « estimé 1 fiches ≈3,91 $ » ; VALIDE 3 fiches, 0 écarts</span></details>
+        <span class="note">grep --estime-fiches SKILL.md = 1 ; grep **Estimé.** 1 fiches = 1 ; ouvrir rend « estimé 1 fiches ≈3,91 $ (taux plat) » ; VALIDE 3 fiches, 0 écarts</span></details>
         <span class="cout mono">≈1,0M (1 002 562) · 11 tours · 0,65 $</span></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈2,6M (2 610 413) · 24 tours · 1,96 $</p>

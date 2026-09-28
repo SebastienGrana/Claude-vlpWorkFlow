@@ -11,7 +11,7 @@ par appel groupé. Le chantier le fait parler une fois par tour, mesures avant/a
 
 **CLOS** le 2026-09-26. Ne se rejoue pas — ne sert plus qu'à relire son socle.
 
-**Fait.** TOU1..TOU3 (2026-09-26) : Le filet n'avertit plus qu'une fois par tour : filet-rate à plafond 5 passe de 13 avertissements (2:12,3:1) à 3 (2:1,3:1,4:1), témoin 80 à 0 — estimé 0,5 fiches ≈2,01 $ · cadré 3 · joué 3 fiches ≈5,86 $.
+**Fait.** TOU1..TOU3 (2026-09-26) : Le filet n'avertit plus qu'une fois par tour : filet-rate à plafond 5 passe de 13 avertissements (2:12,3:1) à 3 (2:1,3:1,4:1), témoin 80 à 0 — estimé 0,5 fiches ≈2,01 $ (taux plat) · cadré 3 · joué 3 fiches 4,62 $.
 
 **Session** : d0070921-f1b2-4a16-b0ab-6929b6979afa
 

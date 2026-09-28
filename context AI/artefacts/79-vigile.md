@@ -10,4 +10,4 @@ Une page vide ou cassée est refusée avant de partir en ligne, avec la raison ;
 ## Bilan
 - Livré : vlp.py vigile et son hook PreToolUse sur Artifact : une page .html cassée (commentaire ouvert, aucun style, aucun bloc) est refusée avec sa raison, essayé pour de vrai
 - Surpris : /reload-plugins ne se lance pas depuis Claude, il faut le geste de l'utilisateur ; un test de hooks.json hors de la ligne Fichiers a dû suivre
-- Estimé : estimé 0,5 fiches ≈2,02 $ · cadré 2 · joué 2 fiches ≈9,92 $
+- Estimé : estimé 0,5 fiches ≈2,02 $ (taux plat) · cadré 2 · joué 2 fiches 6,20 $
