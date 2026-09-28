@@ -99,13 +99,14 @@ Invariants :
 | `PAR2` | Poser la référence en série | `PAR1` |
 | `PAR3` | Mesurer l'essai et rendre le verdict | `PAR2`, l'essai |
 | `PAR4` | Prédire la fusion des branches | rien |
-| `PAR5` | Ranger les commandes qui jouent les fiches | `PAR6` |
+| `PAR5` | Ranger les commandes qui jouent les fiches | `PAR6`, `PAR7` |
 | `PAR6` | Mesurer ce que coûte chaque mode d'`enchainer` | rien |
+| `PAR7` | Choisir le modèle de chaque rôle | `PAR6` |
 
 `PAR1` → `PAR2` → essai (geste de l'utilisateur) → `PAR3` ; `PAR4` indépendante, plus
-parlante jouée en dernier. `PAR5` et `PAR6`, ajoutées le 2026-09-28 à la demande de
-l'utilisateur : `PAR6` → `PAR5`, une conversation plus parlante aussi après `PAR3`, dont
-le verdict donne les chiffres des réglages par défaut.
+parlante jouée en dernier. `PAR5` à `PAR7`, ajoutées le 2026-09-28 à la demande de
+l'utilisateur : `PAR6` → `PAR7` → `PAR5`, une conversation plus parlante aussi après
+`PAR3`, dont le verdict donne les chiffres des réglages par défaut.
 
 ---
 
@@ -240,8 +241,8 @@ silencieuse ; `git status --short` ne montre que `context AI/08-etat.md`.
 <!-- FICHE:PAR5 -->
 ## PAR5 [ ] — Ranger les commandes qui jouent les fiches
 
-**Dépend de** : `PAR6` (le coût de chaque mode). Plus parlante aussi après `PAR3` : son
-verdict dit si le parallèle vaut son code.
+**Dépend de** : `PAR6` (le coût de chaque mode), `PAR7` (le modèle de chaque rôle). Plus
+parlante aussi après `PAR3` : son verdict dit si le parallèle vaut son code.
 **Fichiers** : `context AI/08-etat.md` (entrée 72 `NUI`, et entrée 58 si `PAR3` est faite),
 le gabarit `templates/rapport-choix.html` du kit — et rien d'autre. Aucun code.
 
@@ -262,7 +263,9 @@ borne de budget) plutôt qu'en commande. Ni « chef » ni « nuit » n'existent 
 2. **Puis une page à cartes** (gabarit `rapport-choix.html`), précédée de « Avant de choisir ».
    Une carte par décision, options nommées en mots : les commandes qui restent, fusionnent
    ou naissent (`chef` ou pas) ; le mode par défaut d'`enchainer`, avec le coût par fiche de
-   `PAR6` ; ce que veut dire `main clear` ; `nuit` — combien en parallèle, la borne, ce qui
+   `PAR6` ; le modèle de chaque rôle, avec le prix par fiche acceptée de `PAR7`, et le
+   `model: sonnet` d'`enchainer`, qui change le modèle du chef en `main` (constat de `PAR7`) ;
+   ce que veut dire `main clear` ; `nuit` — combien en parallèle, la borne, ce qui
    est écarté, ce qu'elle fait d'une publication refusée ou d'un chantier bloqué ; les
    réglages par défaut, chacun avec son chiffre (`PAR2`, `PAR3`, `PAR6`) ou « pas mesuré » ;
    ce qu'on lit le matin. Publie-la en artifact, demande à l'utilisateur d'y répondre (bouton
@@ -313,4 +316,44 @@ Dans `08-etat.md`, une table : une ligne par variante (quatre), $/fiche, tours/f
 N fiches mesurées — N = 0 s'écrit « pas mesuré » — et le rang de fiche où `clear` passe
 sous `main` ; `test-mesure-tokens.py` : OK ; pyright : 0 errors sur les fichiers touchés ;
 `vlp.py valider` sur ce fichier : `VALIDE`.
+<!-- /FICHE -->
+
+---
+
+<!-- FICHE:PAR7 -->
+## PAR7 [ ] — Choisir le modèle de chaque rôle
+
+**Dépend de** : `PAR6` (la grille qui connaît Sonnet 5.5, la manière de mesurer).
+**Fichiers** : `agents/fiche.md`, `agents/relecture.md`, `skills/enchainer/SKILL.md` (leur
+ligne `model:`, lue, jamais changée ici), `scripts/boucle.py` (lu), `context AI/08-etat.md`.
+
+**Prompt**
+L'utilisateur demande (2026-09-28) quel modèle fait un travail bien fait, et si les 5.5
+font mieux ; il a choisi une fiche à part de `PAR6`. Aujourd'hui : jouer une fiche, `haiku`
+en effort `low` (`agents/fiche.md:4`) ; relire, `opus` (`agents/relecture.md:4`) ; le chef
+d'`enchainer`, `sonnet` (`skills/enchainer/SKILL.md:4`) ; cadrer et `/vlp:tache`, le modèle
+de la session. La doc de la skill `claude-api` (2026-09-25) : Opus 5.5 remplace Opus 5 moins
+cher, Sonnet 5.5 remplace Sonnet 5 au même prix, pas de Haiku 5.5, aucun chiffre de qualité ;
+elle conseille de mesurer le modèle fort à effort bas avant de mêler des modèles, et de juger
+au coût par tâche finie. Déjà vu : Haiku rend `RETOUR` après un appel (`FIL3`), 4 refus pour
+6,96 $ (`LEC2`).
+1. **Chiffrer d'abord.** Trois réglages pour jouer une fiche : Haiku 4.5, Sonnet 5.5, Opus 5.5
+   en effort `low` ; les mêmes fiches pour les trois, à choisir et nommer (`vlp.py bac` ne pose
+   que le bac du filet, `FIL3`). Levier existant : `boucle.py --model`, une session neuve par
+   fiche. Donne le coût estimé, et attends l'accord de l'utilisateur : chaque partie se paie.
+2. **Jouer**, puis **juger** avec le même juge pour les trois — le critère de fin de chaque
+   fiche, et le relecteur si l'outillage le permet ; dis lequel. Par réglage : fiches jouées,
+   acceptées, refusées, `RETOUR`, tours, et le prix **par fiche acceptée** — une fiche
+   refusée puis rejouée compte ses deux passages.
+3. **Le chef en `main`.** Sur `PAR2` (session `a0161a66`), le modèle a changé deux fois
+   (Sonnet 5.5 à 20:27:09 UTC, 139 752 tokens réécrits ; Opus 5.5 à 20:38:17 UTC, 161 199
+   réécrits, ≈ 1,85 $) — 49 s après le commit de `PAR1`, donc au lancement de
+   `/vlp:enchainer main` et de son `model: sonnet`, sans preuve. Vérifie la cause sur une
+   session neuve ; ne corrige rien : la décision est à `PAR5`.
+
+**Critère de fin**
+Dans `08-etat.md`, une table : une ligne par réglage (trois), fiches jouées, acceptées,
+refusées, `RETOUR`, tours/fiche, $/fiche acceptée ; une ligne sur la cause du changement de
+modèle, vérifiée ou non ; `vlp.py valider` sur ce fichier : `VALIDE` ; `git status --short`
+ne montre que `context AI/08-etat.md`.
 <!-- /FICHE -->
