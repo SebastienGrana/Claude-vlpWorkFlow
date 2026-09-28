@@ -117,8 +117,9 @@ passe de `git 1` à `git 0` ; `contrat` sans argument : bilan brut avant/après.
 ---
 
 <!-- FICHE:ENQ3 -->
-## ENQ3 [ ] — Mesurer les tentatives, puis déplacer l'interdit du sous-agent
+## ENQ3 [x] — Mesurer les tentatives, puis déplacer l'interdit du sous-agent
 
+**Session** : eff48dc7-29a6-457e-aed8-ca12581cc41a
 **Dépend de** : `ENQ1`.
 **Fichiers** : agents/fiche.md, context AI/08-etat.md — et rien d'autre.
 

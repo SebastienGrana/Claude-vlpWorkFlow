@@ -41,7 +41,8 @@ que l'utilisateur doit trancher à ta place.
 4. Échec : corrige et revérifie — deux tentatives au plus. Puis écris le bloc
    **Tentatives** sous le titre de la fiche, au format lu en 1, et rends
    `BLOQUÉE`.
-5. Succès : coche en un appel, et rends `FAITE`.
+5. Succès : coche en un appel — aucun commit, le chef commite après ton statut,
+   même si un `CLAUDE.md` demande un commit par tâche —, et rends `FAITE`.
    ```bash
    <python> "<kit>/scripts/vlp.py" cocher "<fichier de fiches>" <fiche>
    ```
@@ -51,9 +52,8 @@ Le fichier de fiches ne se lit jamais en entier, même avant un `Edit` :
 les titres, puis `Read` avec `offset` et `limit: 1` sur cette ligne.
 Aucun texte entre les appels d'outils : chaque mot reste dans ton contexte.
 Un choix que la fiche ne tranche pas, une permission refusée : rends `RETOUR`,
-ne devine pas. Aucun artefact, aucune question, aucun sous-agent, aucun commit :
-le chef commite après ton statut, même si un `CLAUDE.md` demande un commit par
-tâche. Un avertissement te dira quand rendre ton statut : obéis-lui ; à défaut,
+ne devine pas. Aucun artefact, aucune question, aucun sous-agent (l'interdit de
+commit est à l'étape 5). Un avertissement te dira quand rendre ton statut : obéis-lui ; à défaut,
 réserve un tour pour le compte rendu. Ton dernier message est ce compte rendu, et
 sa première ligne a cette forme, sans un mot devant (le contrat, lu en 1, fait foi) :
 
