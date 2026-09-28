@@ -16,14 +16,14 @@
 
 <div class="page">
   <header>
-    <div class="eyebrow">vlp · fiches PAR1–PAR4 · <a href="https://claude.ai/artifact/YWDny8kjubq9DhdP5rbPxA">la feuille de route</a></div>
+    <div class="eyebrow">vlp · fiches PAR1–PAR5 · <a href="https://claude.ai/artifact/YWDny8kjubq9DhdP5rbPxA">la feuille de route</a></div>
     <h1>Deux chantiers en parallèle : l'essai mesuré</h1>
     <p>Un verdict chiffré : le temps gagné par deux sessions en même temps (kit + MapDecorator), face au temps en série — code du parallèle (D2–D5) seulement si le gain passe 20 %.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">4 fiches · 1 faite · en cours : PAR2</p>
+    <p class="mono" style="margin-top:.5rem">5 fiches · 2 faites · en cours : PAR3</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -41,19 +41,23 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">PAR1</span></span>
         <details><summary><span class="titre">Compter le temps actif par script</span><span class="etat">Faite</span></summary>
         <span class="note">test-mesure-tokens.py : OK ; mutants « &gt; devient &gt;= » et « sous-agents hors de la ligne de temps » : exit 1 chacun, sur les tests « seuil » et « sous-agent de 40 min » ; pyright : 0 errors ; --actif sur la session de cadrage : actif 1282cde7-5a36-4b45-a08f-53f8ddddea98.jsonl 14 2 0</span></details>
-        <span class="cout mono">≈2,5M (2 493 800) · 19 tours · 2,65 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">PAR2</span></span>
-        <details open><summary><span class="titre">Poser la référence en série</span><span class="etat">En cours · PAR4 peut partir en même temps</span></summary>
-        <span class="note">La référence en série : minutes et dollars par fiche de TYP, CHK, FEU, BTN, TAU et de MapDecorator. Dépend de PAR1.</span></details></li>
-      <li class="fiche" data-attend><span class="gauche"><span class="id">PAR3</span></span>
-        <details><summary><span class="titre">Mesurer l'essai et rendre le verdict</span><span class="etat">Après PAR2</span></summary>
+        <span class="cout mono">≈3,0M (2 969 380) · 22 tours · 2,81 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">PAR2</span></span>
+        <details><summary><span class="titre">Poser la référence en série</span><span class="etat">Faite</span></summary>
+        <span class="note">Table du socle : 5 lignes kit, MapDecorator N = 0 (dit) ; kit 18,6 min/fiche cadrage compris, 16,7 sans, 4,29 $/fiche ; commandes sous la table ; valider : VALIDE 5 fiches · socle 78 lignes · 0 écarts</span></details>
+        <span class="cout mono">≈5,7M (5 663 736) · 30 tours · 4,32 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">PAR3</span></span>
+        <details open><summary><span class="titre">Mesurer l'essai et rendre le verdict</span><span class="etat">En cours</span></summary>
         <span class="note">Le verdict de l'essai : réel contre série, gain ≥ 20 % ? Dépend de PAR2 et de l'essai joué par l'utilisateur.</span></details></li>
       <li class="fiche"><span class="gauche"><span class="id">PAR4</span></span>
-        <details><summary><span class="titre">Prédire la fusion des branches</span><span class="etat">À lancer · en même temps que PAR2</span></summary>
+        <details><summary><span class="titre">Prédire la fusion des branches</span><span class="etat">À lancer</span></summary>
         <span class="note">Ce qui coincera à la fusion des branches PAR et LOC, prédit par git merge-tree sans rien fusionner. Ne dépend de rien.</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">PAR5</span></span>
+        <details><summary><span class="titre">Revoir avec l'utilisateur l'IHM de nuit</span><span class="etat">Après PAR3</span></summary></details>
+        <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈3,7M (3 661 313) · 28 tours · 2,87 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈6,2M (6 155 113) · 47 tours · 5,52 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈12,3M (12 294 429) · 80 tours · 10,00 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -71,6 +75,7 @@
     <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
     <ul class="journal">
       <li><time datetime="2026-09-28">2026-09-28</time><span>2026-09-28 (PAR1) : **l'attente de `--actif` court depuis la dernière ligne de conversation, pas depuis la ligne qui précède le message tapé** — le harnais écrit `queue-operation` (`enqueue`, `dequeue`) à la même seconde que le message (+0 s sur la session de cadrage de PAR ; sur 7 sessions, la ligne qui précède un message tapé est 19 fois une `queue-operation`, 6 fois un `attachment` `date`) : prise au mot, l'attente vaudrait toujours 0. Message tapé = `origin.kind` `human` (3 418 lignes, aucune avec `tool_result`) ou, sans `origin`, une commande locale (295). Limite voulue par le socle : répondre à un questionnaire rend un `tool_result`, donc du temps actif mais pas de l'attente (cadrage de PAR : 3 questionnaires, 0,0 + 0,4 + 0,7 min).</span></li>
+      <li><time datetime="2026-09-28">2026-09-28</time><span>2026-09-28 (PAR2) : **MapDecorator ne peut pas servir de référence : 0 chantier mesurable** — son `context AI/` est ignoré par Git (`.gitignore:4`), donc aucun commit « Chantier … ouvert » (9 commits en tout), et 0 ligne `**Session**` sur ses 4 fichiers de fiches ; l'utilisateur a choisi un essai kit + LOC. Ailleurs : ProjetONZSM et TrackGen, 0 « ouvert » et 0 session ; Cairn-VlpLib, 2 « ouvert », 7 « clos ». Référence kit (TYP, CHK, FEU, BTN, TAU ; 22 fiches) : 18,6 min/fiche cadrage compris (plage de `cout`), 16,7 sans ; 4,29 $/fiche. Le socle disait à la fois « cadrage compris » et « entre ouvert et clos » : les deux chiffres sont écrits, la série de `PAR3` prend celui qui ressemble à l'essai.</span></li>
     </ul>
   </section>
 

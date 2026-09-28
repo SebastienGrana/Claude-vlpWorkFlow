@@ -5,8 +5,9 @@
 # Chantier PAR — Deux chantiers en parallèle : l'essai mesuré
 
 **À quoi il sert.** Le kit suppose un seul chantier à la fois (entrée 58 de `08-etat.md`).
-Avant de coder le parallèle, ce chantier mesure un essai réel — un chantier du kit et un
-de MapDecorator en même temps — et dit, chiffres à l'appui, si le temps gagné passe 20 %.
+Avant de coder le parallèle, ce chantier mesure un essai réel — deux chantiers du kit en
+même temps, dont LOC, chacun dans son worktree — et dit, chiffres à l'appui, si le temps
+gagné passe 20 %.
 
 **Fait.** Rien. Ouvert le 2026-09-28, cadré en 4 fiches, `PAR1` à jouer.
 
@@ -19,9 +20,9 @@ Tranché au cadrage (2026-09-28, trois questionnaires) ; décisions D1–D6 du m
 - **Ce chantier mesure, il ne code pas le parallèle.** D2–D5 (réserver, verrou, clôture
   à tour de rôle) ne se codent que si le verdict de `PAR3` passe le seuil. Seule `PAR1`
   touche du code.
-- **L'essai** : un chantier du kit en worktree + un chantier de **MapDecorator** (voisin
-  du dossier du kit), joués en même temps dans deux sessions — geste de l'utilisateur,
-  entre `PAR2` et `PAR3`. Deux sessions au plus.
+- **L'essai** : un chantier du kit dans ce worktree + **LOC** dans le sien (choisi le
+  2026-09-28 à la place de MapDecorator, sans mesure : `PAR2`), joués en même temps dans
+  deux sessions — geste de l'utilisateur, entre `PAR2` et `PAR3`. Deux sessions au plus.
 - **Ce worktree** : LOC y est mis de côté — « fichier de fiches courant » passé à `aucun`
   avant `ouvrir`, qui refuse un second chantier (`scripts/vlp.py:4652`). La copie de LOC,
   dans son worktree, ne bouge pas.
@@ -42,10 +43,31 @@ Tranché au cadrage (2026-09-28, trois questionnaires) ; décisions D1–D6 du m
   **Réel** = temps actif des deux sessions sur une ligne de temps commune.
 - **Gain** = 1 − réel ÷ série. **Retenu à partir de 20 %**, si le $/fiche (`vlp.py cout`)
   ne monte pas face à la référence.
-- **Référence** : TYP, CHK, FEU, BTN, TAU (`context AI/85-types.md` à `89-un-seul-prix.md`)
-  + jusqu'à 5 derniers clos de MapDecorator.
+- **Référence** : TYP, CHK, FEU, BTN, TAU (`context AI/85-types.md` à `89-un-seul-prix.md`) ;
+  les deux côtés de l'essai sont du kit. MapDecorator : **N = 0**, moyenne sans objet — son
+  `context AI/` est ignoré par Git (`.gitignore:4`, aucun commit « ouvert »), 0 ligne `**Session**`.
 
-Mesuré par `PAR2` : **<à remplir — la table de référence>**.
+Mesuré par `PAR2` (2026-09-28), cadrage compris — la plage de `vlp.py cout` :
+
+| Chantier | Fiches | Actif (min) | Attente (min) | min/fiche | $/fiche |
+|---|---|---|---|---|---|
+| TYP | 1 | 8 | 0 | 8,0 | 1,64 |
+| CHK | 2 | 9 | 0 | 4,5 | 1,11 |
+| FEU | 8 | 112 | 5 | 14,0 | 3,35 |
+| BTN | 7 | 205 | 22 | 29,3 | 6,24 |
+| TAU | 4 | 76 | 1 | 19,0 | 5,01 |
+| **kit** (Σ ÷ Σ fiches) | **22** | **410** | **28** | **18,6** | **4,29** |
+
+Sans cadrage (« ouvert » → « clos ») : 368 min, 24 d'attente, **16,7 min/fiche**. La série de
+`PAR3` prend celle qui ressemble à l'essai — chantiers déjà cadrés (LOC l'est) : 16,7 ; sinon
+18,6. Choix de Claude, dit comme tel : 18,6 face à un essai sans cadrage gonflerait le gain.
+
+Commandes, depuis la racine du kit (`<X>` le chantier, `<f>` son fichier) : sessions
+`py scripts/vlp.py sessions "<f>"` ; fiches `grep -cE "^## <X>[0-9]+ \[x\]" "<f>"` ; actif
+`py scripts/mesure-tokens.py --actif --plage <origine> <clos> <sessions…>`, ligne `actif TOTAL`
+— `<clos>` : `git log -1 --format=%H --grep="^Chantier <X> clos"` ; `<origine>` : le dernier
+commit sans `<X>` avant « Chantier `<X>` ouvert » (`plages`, `scripts/vlp.py:2241`), ou
+« ouvert » sans cadrage ; $ `py scripts/vlp.py cout "<f>"`, ligne `TOTAL`.
 
 | Nom | Où | Ce qu'il fait |
 |---|---|---|
@@ -120,8 +142,9 @@ parent n'est pas une pause.
 ---
 
 <!-- FICHE:PAR2 -->
-## PAR2 [ ] — Poser la référence en série
+## PAR2 [x] — Poser la référence en série
 
+**Session** : a0161a66-d517-4617-8abe-c793f1ca1df0
 **Dépend de** : `PAR1`.
 **Fichiers** : les fichiers de fiches de la référence et les transcriptions (lecture
 seule), `context AI/92-essai-parallele.md` (la ligne « Mesuré par PAR2 » du socle) — et
@@ -232,8 +255,9 @@ Aucune commande du kit ne contient « nuit » à ce jour : tout est à décider.
    écarté au cadrage : si la recherche le remet en cause, dis-le, ne tranche pas. Rends les
    outils trouvés et, à côté, « le coder nous-mêmes » avec son coût.
 2. **Puis une page à cartes** (gabarit `rapport-choix.html`), précédée de « Avant de choisir ».
-   Une carte par décision, options nommées en mots : la commande (`/vlp:chantier nuit` ou une
-   commande à part) et ce qu'on tape le soir ; les options (combien en parallèle, la borne de
+   Une carte par décision, options nommées en mots : la commande — `/vlp:chantier nuit`, ou
+   `/vlp:chef nuit`, que l'utilisateur propose (2026-09-28) pour séparer cadrer et orchestrer —
+   et ce qu'on tape le soir ; les options (combien en parallèle, la borne de
    la nuit, ce qui est écarté, ce que fait la nuit d'une publication refusée ou d'un chantier
    bloqué) ; les réglages par défaut, chacun avec son chiffre mesuré (`PAR2`, `PAR3`) ou
    « pas mesuré » ; ce qu'on lit le matin. Publie-la en artifact, demande à l'utilisateur d'y
