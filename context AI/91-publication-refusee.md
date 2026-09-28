@@ -117,8 +117,9 @@ fichier rend `VALIDE`.
 ---
 
 <!-- FICHE:LOC2 -->
-## LOC2 [ ] — Tenir la liste d'attente par script
+## LOC2 [x] — Tenir la liste d'attente par script
 
+**Session** : ae4ad37c-5d78-4003-b1ce-e63a8a4ece48
 **Dépend de** : `LOC1`.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py`, `hooks/hooks.json` — et rien d'autre.
 

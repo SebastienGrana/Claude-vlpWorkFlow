@@ -5,7 +5,8 @@ Sous-commandes :
 
 - `carte [dossier]` — la carte d'un projet, à injecter avant le 1er tour d'une
   commande. Remonte jusqu'au premier `CHANTIER.md`. Trouvé : `PROJET=<racine>`,
-  le fichier en entier, puis — si un fichier de fiches est courant — ses titres
+  le fichier en entier, une ligne `ATTENTE=<page> <url>` par page de la liste
+  d'attente (`attente`, sauf avec `--relecteur`), puis — si un fichier de fiches est courant — ses titres
   de fiches numérotés, `PROCHAINE=<fiche>` (la première non cochée, dans l'ordre
   du fichier) ou `PROCHAINE=aucune`, et une `GARDE` si le fichier a des lignes
   mais aucun titre au format attendu. Aucun fichier courant : pour chaque
@@ -285,6 +286,20 @@ Sous-commandes :
 - `vigile [fichier]` — une page cassée ne part pas (chantier VID, `defauts_page`) : sans argument,
   le hook `PreToolUse` sur `Artifact`, `deny` pour un `.html` à défauts, muet sinon ; avec un chemin,
   une ligne `GARDE:` par défaut (sort 1) ou `PAGE SAINE <n> blocs`.
+- `attente ajouter <page> [--url U] [--projet D]`, `attente lister <dossier artefacts>`,
+  `attente retirer <page> [--projet D]` — la liste des pages que la limite du jour a refusées
+  (chantier LOC) : `<contexte>/artefacts/en-attente`, une ligne par page, `page`, `url` (ou
+  `aucune`) et `heure du refus` séparées par une tabulation, clé la page (la dernière entrée
+  gagne), écrite dans un `.tmp` puis `os.replace`, le fichier disparaît quand elle se vide. La
+  page est relative au dossier artefacts (un chemin absolu s'y ramène ; ailleurs : `GARDE:`).
+  `ajouter` et `retirer` rendent `ATTENTE <n>` (les entrées restantes) ; `lister`, une ligne
+  `ATTENTE=<page> <url>` par page puis `ATTENTE <n>`. `--projet` : le dossier du projet (défaut :
+  le dossier courant). `attente hook` — le hook `PostToolUse` et `PostToolUseFailure` sur
+  `Artifact` : un échec dont `error` dit `publish 429` ajoute la page (celle du `file_path`, si
+  elle est sous les artefacts d'un projet équipé, `url` de l'appel ou `aucune`) et, la première
+  fois du jour UTC pour ce projet (`tampon_neuf`), rend en `additionalContext` l'heure locale de
+  la remise à zéro et celle d'une tâche planifiée `MARGE_TACHE` plus tard ; une publication
+  réussie d'une page listée la retire ; tout le reste — page non lue, refus du vigile — se tait.
 - `repeindre <projet> [--a-blanc]` — chaque page de chantier clos (parcours de `recompter`)
   qui ne lie pas `vlp.css` passe par `page --forme` puis `vigile`, dans une copie :
   `REPEINTE <page> · lien <url>` ou `· sans lien` (section `## Lien` de son `.md`), une
@@ -334,13 +349,14 @@ Sous-commandes :
 
 Python 3 sans dépendance, zéro appel modèle.
 
-Un hook (`hook`, `filet`, `gardien`, `vigile`) n'agit qu'une fois quand `python3` et `py` le lancent
+Un hook (`hook`, `filet`, `gardien`, `vigile`, `attente hook`) n'agit qu'une fois quand `python3` et `py` le lancent
 tous deux : le premier qui crée `<TAMPON_HOOKS>/vlp-hook-<sha1 du nom et de l'entrée>` agit, l'autre se tait
 (chantier PYT). Rejoué à la main, `VLP_SANS_TAMPON=1` dans l'environnement saute le tampon :
 chaque lancement agit (chantier SON).
 """
 import argparse
 import collections
+import datetime
 import glob
 import hashlib
 import html.parser
@@ -672,6 +688,9 @@ def carte(depart, sortie, relecteur=False):
     sortie.write("PROJET=%s\n--- CHANTIER.md ---\n%s" % (racine, montre))
     if not texte.endswith("\n"):
         sortie.write("\n")
+    if not relecteur:
+        for l in lignes_attente(dossier_artefacts(racine)):
+            sortie.write(l + "\n")
     courant = fichier_courant(texte)
     if courant is None:
         sortie.write("--- fichier de fiches courant : aucun ---\n")
@@ -4066,6 +4085,158 @@ def cmd_vigile_hook(entree, sortie):
     return 0
 
 
+# --- attente : les pages que la limite du jour a refusées (chantier LOC) ------
+
+TEXTE_LIMITE = "publish 429"                    # le début du texte du refus, relevé par LOC1
+MARGE_TACHE = datetime.timedelta(minutes=10)    # la tâche planifiée part après la remise à zéro
+
+
+def dossier_artefacts(racine):
+    contexte = champ(lignes_de(os.path.join(racine, "CHANTIER.md")), "contexte", "context AI/")
+    return os.path.join(racine, contexte, "artefacts")
+
+
+def lire_attente(artefacts):
+    """[(page, url, heure)] dans l'ordre du fichier `en-attente` ; absent : liste vide."""
+    chemin = os.path.join(artefacts, "en-attente")
+    if not os.path.isfile(chemin):
+        return []
+    entrees = []
+    for l in lignes_de(chemin):
+        c = l.split("\t") + ["aucune", ""]
+        if c[0]:
+            entrees.append((c[0], c[1], c[2]))
+    return entrees
+
+
+def ecrire_attente(artefacts, entrees):
+    """Le fichier en entier dans un `.tmp` puis `os.replace` ; liste vide : le fichier disparaît."""
+    chemin = os.path.join(artefacts, "en-attente")
+    if not entrees:
+        if os.path.exists(chemin):
+            os.remove(chemin)
+        return
+    os.makedirs(artefacts, exist_ok=True)
+    with open(chemin + ".tmp", "w", encoding="utf-8", newline="\n") as f:
+        f.write("".join("\t".join(e) + "\n" for e in entrees))
+    os.replace(chemin + ".tmp", chemin)
+
+
+def ajouter_attente(artefacts, page, url, heure):
+    """La page prend la place de son ancienne entrée, en fin de liste : la dernière gagne."""
+    ecrire_attente(artefacts, [e for e in lire_attente(artefacts) if e[0] != page] + [(page, url, heure)])
+
+
+def retirer_attente(artefacts, page):
+    """Le nombre d'entrées restantes ; rien n'est écrit si la page n'y était pas."""
+    avant = lire_attente(artefacts)
+    restant = [e for e in avant if e[0] != page]
+    if len(restant) != len(avant):
+        ecrire_attente(artefacts, restant)
+    return len(restant)
+
+
+def lignes_attente(artefacts):
+    return ["ATTENTE=%s %s" % (p, u) for p, u, _ in lire_attente(artefacts)]
+
+
+def page_relative(artefacts, page):
+    """`page` relative au dossier artefacts, en barres obliques ; None si elle est ailleurs."""
+    if os.path.isabs(page):
+        try:
+            page = os.path.relpath(page, artefacts)
+        except ValueError:
+            return None
+    page = page.replace("\\", "/")
+    return None if page == ".." or page.startswith("../") else page
+
+
+def remise_a_zero(maintenant):
+    """(remise à zéro, tâche planifiée) : le prochain minuit UTC après `maintenant`, puis
+    `MARGE_TACHE` plus tard, dans le fuseau de `maintenant`."""
+    utc = maintenant.astimezone(datetime.timezone.utc)
+    zero = datetime.datetime.combine(utc.date() + datetime.timedelta(days=1), datetime.time(),
+                                     tzinfo=datetime.timezone.utc)
+    return zero.astimezone(maintenant.tzinfo), (zero + MARGE_TACHE).astimezone(maintenant.tzinfo)
+
+
+def cmd_attente(a, sortie, maintenant=None):
+    if a.op == "lister":
+        for l in lignes_attente(a.dossier):
+            sortie.write(l + "\n")
+        sortie.write("ATTENTE %d\n" % len(lire_attente(a.dossier)))
+        return 0
+    racine = trouver(a.projet or os.getcwd())
+    if racine is None:
+        sortie.write("GARDE: pas de projet équipé ici : %s\n" % (a.projet or os.getcwd()))
+        return 1
+    artefacts = dossier_artefacts(racine)
+    page = page_relative(artefacts, a.page)
+    url = getattr(a, "url", None) or "aucune"
+    if page is None or any(c in page + url for c in "\t\r\n"):
+        sortie.write("GARDE: page hors du dossier artefacts, ou tabulation dans la page ou l'url : %s\n" % a.page)
+        return 1
+    if a.op == "retirer":
+        n = retirer_attente(artefacts, page)
+    else:
+        heure = (maintenant or datetime.datetime.now().astimezone()).isoformat(timespec="minutes")
+        ajouter_attente(artefacts, page, url, heure)
+        n = len(lire_attente(artefacts))
+    sortie.write("ATTENTE %d\n" % n)
+    return 0
+
+
+def cmd_attente_hook(entree, sortie, maintenant=None):
+    """Le hook `PostToolUse` et `PostToolUseFailure` sur `Artifact` (chantier LOC). Un échec dont
+    `error` porte `TEXTE_LIMITE` ajoute la page à la liste et, la première fois du jour UTC pour
+    ce projet, propose une tâche planifiée ; un succès retire la page. Muet sur tout le reste :
+    un autre refus, une page hors des artefacts d'un projet équipé, une entrée illisible."""
+    try:
+        d = json.loads(entree.read())
+    except (ValueError, AttributeError, TypeError):
+        return 0
+    if not isinstance(d, dict) or d.get("tool_name") != "Artifact":
+        return 0
+    evenement, outil = d.get("hook_event_name"), d.get("tool_input")
+    if evenement not in ("PostToolUse", "PostToolUseFailure") or not isinstance(outil, dict) \
+            or outil.get("asset") is True:
+        return 0
+    chemin = outil.get("file_path")
+    if not isinstance(chemin, str) or not chemin:
+        return 0
+    cwd = d.get("cwd")
+    if not os.path.isabs(chemin) and isinstance(cwd, str):
+        chemin = os.path.join(cwd, chemin)
+    chemin = os.path.abspath(chemin)
+    racine = trouver(os.path.dirname(chemin))
+    if racine is None:
+        return 0
+    artefacts = dossier_artefacts(racine)
+    page = page_relative(artefacts, chemin)
+    if page is None:
+        return 0
+    if evenement == "PostToolUse":
+        retirer_attente(artefacts, page)
+        return 0
+    erreur = d.get("error")
+    if not isinstance(erreur, str) or TEXTE_LIMITE not in erreur:
+        return 0
+    maintenant = maintenant or datetime.datetime.now().astimezone()
+    url = outil.get("url")
+    ajouter_attente(artefacts, page, url if isinstance(url, str) and url else "aucune",
+                    maintenant.isoformat(timespec="minutes"))
+    jour = maintenant.astimezone(datetime.timezone.utc).date().isoformat()
+    if not tampon_neuf("vlp-attente-%s-%s" % (hashlib.sha1(racine.encode("utf-8")).hexdigest()[:16], jour)):
+        return 0
+    zero, tache = remise_a_zero(maintenant)
+    message = ("Limite de publication du jour atteinte : %s attend dans la liste (`attente lister`). "
+               "Remise à zéro à %s locale ; propose à l'utilisateur une tâche planifiée à %s qui "
+               "republie la liste." % (page, zero.strftime("%H:%M"), tache.strftime("%H:%M")))
+    sortie.write(json.dumps({"hookSpecificOutput": {"hookEventName": evenement, "additionalContext": message}},
+                            ensure_ascii=False) + "\n")
+    return 0
+
+
 # « Fiches » avec majuscule aussi : l'encart du chantier en cours l'écrit ainsi (dette BTN).
 PLAGE_TEXTE = re.compile(r"[Ff]iches [A-Z]{1,3}[0-9]+(?:–[A-Z]{1,3}[0-9]+)?")
 
@@ -5053,6 +5224,17 @@ def main(argv, sortie=None, entree=None, erreur=None):
     sous.add_parser("gardien")
     vg = sous.add_parser("vigile")
     vg.add_argument("fichier", nargs="?", default=None)
+    at = sous.add_parser("attente")
+    ats = at.add_subparsers(dest="op", required=True)
+    at_aj = ats.add_parser("ajouter")
+    at_aj.add_argument("page")
+    at_aj.add_argument("--url")
+    at_aj.add_argument("--projet")
+    ats.add_parser("lister").add_argument("dossier")
+    at_re = ats.add_parser("retirer")
+    at_re.add_argument("page")
+    at_re.add_argument("--projet")
+    ats.add_parser("hook")
     rp = sous.add_parser("repeindre")
     rp.add_argument("projet")
     rp.add_argument("--a-blanc", action="store_true")
@@ -5139,6 +5321,8 @@ def repartir(a, sortie, entree, erreur):
         return une_fois(entree, cmd_gardien, sortie)
     if a.cmd == "vigile":
         return cmd_vigile(a.fichier, sortie) if a.fichier else une_fois(entree, cmd_vigile_hook, sortie)
+    if a.cmd == "attente":
+        return une_fois(entree, cmd_attente_hook, sortie) if a.op == "hook" else cmd_attente(a, sortie)
     if a.cmd == "repeindre":
         return cmd_repeindre(a.projet, sortie, a.a_blanc)
     if a.cmd == "lien":
