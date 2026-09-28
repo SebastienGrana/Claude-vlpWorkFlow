@@ -77,9 +77,12 @@ Invariants :
 | `PAR2` | Poser la référence en série | `PAR1` |
 | `PAR3` | Mesurer l'essai et rendre le verdict | `PAR2`, l'essai |
 | `PAR4` | Prédire la fusion des branches | rien |
+| `PAR5` | Revoir avec l'utilisateur l'IHM de `nuit` | rien |
 
 `PAR1` → `PAR2` → essai (geste de l'utilisateur) → `PAR3` ; `PAR4` indépendante, plus
-parlante jouée en dernier.
+parlante jouée en dernier. `PAR5`, ajoutée le 2026-09-28 à la demande de l'utilisateur,
+est une conversation indépendante, plus parlante après `PAR3` : son verdict donne les
+chiffres des réglages par défaut.
 
 ---
 
@@ -206,4 +209,40 @@ avec les comptes et la commande. C'est la matière de D5.
 L'entrée 58 porte le paragraphe : la commande rejouable, le nombre de fichiers en conflit
 (compte brut) et leurs noms, et le cas de `CHANTIER.md` tranché — conflit ou perte
 silencieuse ; `git status --short` ne montre que `context AI/08-etat.md`.
+<!-- /FICHE -->
+
+---
+
+<!-- FICHE:PAR5 -->
+## PAR5 [ ] — Revoir avec l'utilisateur l'IHM de `nuit`
+
+**Dépend de** : rien. Plus parlante après `PAR3` : son verdict et les min/fiche de `PAR2`
+donnent les réglages par défaut.
+**Fichiers** : `context AI/08-etat.md` (entrée 72 `NUI`, et entrée 58 si `PAR3` est faite),
+le gabarit `templates/rapport-choix.html` du kit — et rien d'autre. Aucun code.
+
+**Prompt**
+Prépare avec l'utilisateur l'interface de `nuit` comme orchestrateur de chantiers en
+parallèle (`NUI` la voit aujourd'hui en série) : commandes, options, réglages par défaut.
+Aucune commande du kit ne contient « nuit » à ce jour : tout est à décider.
+1. **D'abord, ce que les gens font déjà** — recherche web, selon « Recherche web » et
+   « Avant de coder » du `CLAUDE.md` de l'utilisateur (n'en recopie pas les nombres) :
+   orchestrer plusieurs sessions Claude Code en parallèle, en worktrees, sans humain, sous une
+   borne de budget ; y compris ce que Claude Code fait déjà lui-même. `D6` (agent teams) a été
+   écarté au cadrage : si la recherche le remet en cause, dis-le, ne tranche pas. Rends les
+   outils trouvés et, à côté, « le coder nous-mêmes » avec son coût.
+2. **Puis une page à cartes** (gabarit `rapport-choix.html`), précédée de « Avant de choisir ».
+   Une carte par décision, options nommées en mots : la commande (`/vlp:chantier nuit` ou une
+   commande à part) et ce qu'on tape le soir ; les options (combien en parallèle, la borne de
+   la nuit, ce qui est écarté, ce que fait la nuit d'une publication refusée ou d'un chantier
+   bloqué) ; les réglages par défaut, chacun avec son chiffre mesuré (`PAR2`, `PAR3`) ou
+   « pas mesuré » ; ce qu'on lit le matin. Publie-la en artifact, demande à l'utilisateur d'y
+   répondre (bouton Copier), et n'écris rien avant son retour.
+3. À son retour, écris les décisions à la fin de l'entrée 72 de `08-etat.md` : une ligne par
+   carte — choisi, écarté, pourquoi — puis la ligne de coût de la recherche.
+
+**Critère de fin** (visuel)
+L'utilisateur a rendu ses réponses ; l'entrée 72 porte une ligne par carte (compte brut :
+cartes, lignes) et la ligne de coût de la recherche ; `vlp.py valider` sur ce fichier rend
+`VALIDE` ; `git status --short` ne montre que `context AI/08-etat.md`.
 <!-- /FICHE -->
