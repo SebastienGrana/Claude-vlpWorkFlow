@@ -13,7 +13,7 @@
 - **chantiers possibles** : context AI/08-etat.md
 - **fichier d'état** : context AI/08-etat.md
 - **index** : context AI/00-INDEX.md
-- **fichier de fiches courant** : context AI/92-essai-parallele.md (PAR1..PAR5)
+- **fichier de fiches courant** : context AI/92-essai-parallele.md (PAR1..PAR6)
 - **artefact feuille de route** : https://claude.ai/artifact/YWDny8kjubq9DhdP5rbPxA
 - **artefact du chantier** : https://claude.ai/artifact/KK6jiYAQy9P1vVxwrSNMbh
 - **livraison** : aucune — le plugin est chargé en place ; `/reload-plugins` pour

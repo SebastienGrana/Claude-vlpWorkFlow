@@ -99,12 +99,13 @@ Invariants :
 | `PAR2` | Poser la référence en série | `PAR1` |
 | `PAR3` | Mesurer l'essai et rendre le verdict | `PAR2`, l'essai |
 | `PAR4` | Prédire la fusion des branches | rien |
-| `PAR5` | Revoir avec l'utilisateur l'IHM de `nuit` | rien |
+| `PAR5` | Ranger les commandes qui jouent les fiches | `PAR6` |
+| `PAR6` | Mesurer ce que coûte chaque mode d'`enchainer` | rien |
 
 `PAR1` → `PAR2` → essai (geste de l'utilisateur) → `PAR3` ; `PAR4` indépendante, plus
-parlante jouée en dernier. `PAR5`, ajoutée le 2026-09-28 à la demande de l'utilisateur,
-est une conversation indépendante, plus parlante après `PAR3` : son verdict donne les
-chiffres des réglages par défaut.
+parlante jouée en dernier. `PAR5` et `PAR6`, ajoutées le 2026-09-28 à la demande de
+l'utilisateur : `PAR6` → `PAR5`, une conversation plus parlante aussi après `PAR3`, dont
+le verdict donne les chiffres des réglages par défaut.
 
 ---
 
@@ -237,17 +238,21 @@ silencieuse ; `git status --short` ne montre que `context AI/08-etat.md`.
 ---
 
 <!-- FICHE:PAR5 -->
-## PAR5 [ ] — Revoir avec l'utilisateur l'IHM de `nuit`
+## PAR5 [ ] — Ranger les commandes qui jouent les fiches
 
-**Dépend de** : rien. Plus parlante après `PAR3` : son verdict et les min/fiche de `PAR2`
-donnent les réglages par défaut.
+**Dépend de** : `PAR6` (le coût de chaque mode). Plus parlante aussi après `PAR3` : son
+verdict dit si le parallèle vaut son code.
 **Fichiers** : `context AI/08-etat.md` (entrée 72 `NUI`, et entrée 58 si `PAR3` est faite),
 le gabarit `templates/rapport-choix.html` du kit — et rien d'autre. Aucun code.
 
 **Prompt**
-Prépare avec l'utilisateur l'interface de `nuit` comme orchestrateur de chantiers en
-parallèle (`NUI` la voit aujourd'hui en série) : commandes, options, réglages par défaut.
-Aucune commande du kit ne contient « nuit » à ce jour : tout est à décider.
+Élargie le 2026-09-28 : pour l'utilisateur, « nuit » n'est pas le meilleur mot, il faut
+rationaliser les commandes. Il tient à `/vlp:enchainer main` (peu cher, travaille seul
+jusqu'à un retour) : une fonction nouvelle se range d'abord dans `enchainer`. Le périmètre :
+`enchainer` et ses quatre variantes — sous-agents (défaut), `main`, `clear`, `main clear`
+(nommée par lui, pas encore définie) —, `/vlp:chef nuit`, qu'il a proposée pour séparer
+cadrer et orchestrer, et `nuit` en réglage « sans humain » (ni `(visuel)`, ni push, une
+borne de budget) plutôt qu'en commande. Ni « chef » ni « nuit » n'existent dans le kit.
 1. **D'abord, ce que les gens font déjà** — recherche web, selon « Recherche web » et
    « Avant de coder » du `CLAUDE.md` de l'utilisateur (n'en recopie pas les nombres) :
    orchestrer plusieurs sessions Claude Code en parallèle, en worktrees, sans humain, sous une
@@ -255,13 +260,13 @@ Aucune commande du kit ne contient « nuit » à ce jour : tout est à décider.
    écarté au cadrage : si la recherche le remet en cause, dis-le, ne tranche pas. Rends les
    outils trouvés et, à côté, « le coder nous-mêmes » avec son coût.
 2. **Puis une page à cartes** (gabarit `rapport-choix.html`), précédée de « Avant de choisir ».
-   Une carte par décision, options nommées en mots : la commande — `/vlp:chantier nuit`, ou
-   `/vlp:chef nuit`, que l'utilisateur propose (2026-09-28) pour séparer cadrer et orchestrer —
-   et ce qu'on tape le soir ; les options (combien en parallèle, la borne de
-   la nuit, ce qui est écarté, ce que fait la nuit d'une publication refusée ou d'un chantier
-   bloqué) ; les réglages par défaut, chacun avec son chiffre mesuré (`PAR2`, `PAR3`) ou
-   « pas mesuré » ; ce qu'on lit le matin. Publie-la en artifact, demande à l'utilisateur d'y
-   répondre (bouton Copier), et n'écris rien avant son retour.
+   Une carte par décision, options nommées en mots : les commandes qui restent, fusionnent
+   ou naissent (`chef` ou pas) ; le mode par défaut d'`enchainer`, avec le coût par fiche de
+   `PAR6` ; ce que veut dire `main clear` ; `nuit` — combien en parallèle, la borne, ce qui
+   est écarté, ce qu'elle fait d'une publication refusée ou d'un chantier bloqué ; les
+   réglages par défaut, chacun avec son chiffre (`PAR2`, `PAR3`, `PAR6`) ou « pas mesuré » ;
+   ce qu'on lit le matin. Publie-la en artifact, demande à l'utilisateur d'y répondre (bouton
+   Copier), et n'écris rien avant son retour.
 3. À son retour, écris les décisions à la fin de l'entrée 72 de `08-etat.md` : une ligne par
    carte — choisi, écarté, pourquoi — puis la ligne de coût de la recherche.
 
@@ -269,4 +274,43 @@ Aucune commande du kit ne contient « nuit » à ce jour : tout est à décider.
 L'utilisateur a rendu ses réponses ; l'entrée 72 porte une ligne par carte (compte brut :
 cartes, lignes) et la ligne de coût de la recherche ; `vlp.py valider` sur ce fichier rend
 `VALIDE` ; `git status --short` ne montre que `context AI/08-etat.md`.
+<!-- /FICHE -->
+
+---
+
+<!-- FICHE:PAR6 -->
+## PAR6 [ ] — Mesurer ce que coûte chaque mode d'`enchainer`
+
+**Dépend de** : rien.
+**Fichiers** : `scripts/mesure-tokens.py` (`GRILLE`), `scripts/test-mesure-tokens.py`,
+`context AI/08-etat.md` — et rien d'autre.
+
+**Prompt**
+L'utilisateur demande (2026-09-28) si `clear` vaut le coup, pour les quatre variantes :
+`enchainer` (sous-agents), `main`, `clear`, `main clear`. `clear` repart d'une session
+neuve à chaque fiche : il réécrit en cache tout le contexte de base. `main` garde le cache,
+mais relit tout l'historique à chaque tour. Premier calcul, un seul échantillon — `PAR2`,
+jouée en `main` après `PAR1`, session `a0161a66` : 32 tours × 80 661 tokens hérités de
+`PAR1` (`ctx_1er` 160 397 − 79 736) × 0,20 $/M ≈ 0,52 $ relus ; `clear` aurait réécrit la
+base, 79 736 × 8 $/M ≈ 0,64 $ au plus (Opus 5.5, cache 1 h). Presque égal à la 2e fiche ;
+au-delà, l'héritage de `main` grossit, la réécriture de `clear` reste fixe. À mesurer.
+1. **La grille d'abord.** `claude-sonnet-5-5` manque à `GRILLE` : 18 requêtes Sonnet 5.5
+   dans la plage de `PAR2` (dès 20:27:09 UTC) y rendent `usd ?`. Ajoute sa ligne, prix
+   recopiés de la page officielle avec lien et date, comme ses voisines, et un test.
+2. **Ce qui existe, sans rien rejouer** : `main`, la session `a0161a66` ; sous-agents, les
+   mesures de `SAG` et `REV` dans `08-etat.md`, relecteur compris ; `clear`, aucune — les 9
+   dossiers `vlp-boucle-*` du 2026-09-26 viennent du faux `claude` des tests (171 octets).
+   `main clear` : demande d'abord à l'utilisateur ce qu'il entend ; « la session visible,
+   vidée entre deux fiches » se compte comme `clear`.
+3. **Un vrai `clear`**, sur des fiches d'un bac d'essai, seulement après accord de
+   l'utilisateur sur son coût estimé : chaque `claude -p` se paie.
+4. Par mode : $/fiche, tours, `ctx_1er`, `cache_creation` (la base réécrite), `cache_read` ;
+   à part, ce qui n'est pas la fiche — un changement de modèle réécrit tout le cache
+   (139 752 tokens à la première requête Sonnet de `PAR2`), une compaction automatique.
+
+**Critère de fin**
+Dans `08-etat.md`, une table : une ligne par variante (quatre), $/fiche, tours/fiche,
+N fiches mesurées — N = 0 s'écrit « pas mesuré » — et le rang de fiche où `clear` passe
+sous `main` ; `test-mesure-tokens.py` : OK ; pyright : 0 errors sur les fichiers touchés ;
+`vlp.py valider` sur ce fichier : `VALIDE`.
 <!-- /FICHE -->

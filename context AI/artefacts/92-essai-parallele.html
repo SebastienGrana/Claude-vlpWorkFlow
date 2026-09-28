@@ -16,14 +16,14 @@
 
 <div class="page">
   <header>
-    <div class="eyebrow">vlp · fiches PAR1–PAR5 · <a href="https://claude.ai/artifact/YWDny8kjubq9DhdP5rbPxA">la feuille de route</a></div>
+    <div class="eyebrow">vlp · fiches PAR1–PAR6 · <a href="https://claude.ai/artifact/YWDny8kjubq9DhdP5rbPxA">la feuille de route</a></div>
     <h1>Deux chantiers en parallèle : l'essai mesuré</h1>
     <p>Un verdict chiffré : le temps gagné par deux sessions en même temps (kit + MapDecorator), face au temps en série — code du parallèle (D2–D5) seulement si le gain passe 20 %.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">5 fiches · 2 faites · en cours : PAR3</p>
+    <p class="mono" style="margin-top:.5rem">6 fiches · 2 faites · en cours : PAR3</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -45,7 +45,7 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">PAR2</span></span>
         <details><summary><span class="titre">Poser la référence en série</span><span class="etat">Faite</span></summary>
         <span class="note">Table du socle : 5 lignes kit, MapDecorator N = 0 (dit) ; kit 18,6 min/fiche cadrage compris, 16,7 sans, 4,29 $/fiche ; commandes sous la table ; valider : VALIDE 5 fiches · socle 78 lignes · 0 écarts</span></details>
-        <span class="cout mono">≈5,7M (5 663 736) · 30 tours · 4,32 $</span></li>
+        <span class="cout mono">≈6,1M (6 136 460) · 32 tours · ? $</span></li>
       <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">PAR3</span></span>
         <details open><summary><span class="titre">Mesurer l'essai et rendre le verdict</span><span class="etat">En cours</span></summary>
         <span class="note">Le verdict de l'essai : réel contre série, gain ≥ 20 % ? Dépend de PAR2 et de l'essai joué par l'utilisateur.</span></details></li>
@@ -53,11 +53,13 @@
         <details><summary><span class="titre">Prédire la fusion des branches</span><span class="etat">À lancer</span></summary>
         <span class="note">Ce qui coincera à la fusion des branches PAR et LOC, prédit par git merge-tree sans rien fusionner. Ne dépend de rien.</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">PAR5</span></span>
-        <details><summary><span class="titre">Revoir avec l'utilisateur l'IHM de nuit</span><span class="etat">Après PAR3</span></summary></details>
+        <details><summary><span class="titre">Ranger les commandes qui jouent les fiches</span><span class="etat">Après PAR6, PAR3</span></summary></details>
         <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
+      <li class="fiche"><span class="gauche"><span class="id">PAR6</span></span>
+        <details><summary><span class="titre">Mesurer ce que coûte chaque mode d'enchainer</span><span class="etat">À lancer</span></summary></details></li>
     </ul>
-    <p class="mono cout-hors">Hors fiches : ≈3,7M (3 661 313) · 28 tours · 2,87 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈12,3M (12 294 429) · 80 tours · 10,00 $</p>
+    <p class="mono cout-hors">Hors fiches : ≈5,8M (5 839 336) · 40 tours · 5,01 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈14,9M (14 945 176) · 94 tours · ? $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
