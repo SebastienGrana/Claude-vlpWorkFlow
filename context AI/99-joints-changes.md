@@ -10,7 +10,9 @@ refuse (« joints non lus ») et force une relecture. Après JNT, seuls les join
 
 **Estimé.** 3 fiches · ≈9,00 $ — ≈3,00 $/fiche sur 86 clos (le 2026-09-29).
 
-**Fait.** Rien. Ouvert le 2026-09-29, cadré en 3 fiches, `JNT1` à jouer.
+**CLOS** le 2026-09-29. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** JNT1..JNT3 (2026-09-29) : Une republication ne joint que les joints changés : attente hook note l'empreinte (publie), FILES ne nomme que les changés ; joints en LF par .gitattributes — estimé 3 fiches ≈9,00 $ · cadré 3 · joué 3 fiches 4,83 $.
 
 **Session** : b293bb0b-835f-4938-bedc-3114bdb5643a
 
