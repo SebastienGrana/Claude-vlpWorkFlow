@@ -44,8 +44,9 @@ Une seule fiche.
 ---
 
 <!-- FICHE:MUT1 -->
-## MUT1 [ ] — Écrire `vlp.py mutant` et `VLP_TOUS_ECARTS`
+## MUT1 [x] — Écrire `vlp.py mutant` et `VLP_TOUS_ECARTS`
 
+**Session** : b293bb0b-835f-4938-bedc-3114bdb5643a
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py`, `methode-chantier.md` — et rien d'autre.
 

@@ -63,11 +63,16 @@ def rendu(depart):
     return s.getvalue()
 
 
+ECARTS = []     # avec VLP_TOUS_ECARTS=1 (`vlp.py mutant`), un écart n'arrête pas la suite (chantier MUT)
+
+
 def verifier(nom, cond, sortie):
     if not cond:
         print("ÉCART:", nom)
         print(sortie)
-        sys.exit(1)
+        if os.environ.get("VLP_TOUS_ECARTS") != "1":
+            sys.exit(1)
+        ECARTS.append(nom)
 
 
 with tempfile.TemporaryDirectory() as t:
@@ -5151,4 +5156,46 @@ def tester_retard_plugin():
 
 tester_retard_plugin()
 
+
+def tester_mutant():
+    """MUT1 : casser, tester, lister les écarts, rendre à l'octet — CRLF, @fichier, gardes."""
+    with tempfile.TemporaryDirectory() as tm:
+        f, essai, apres = (os.path.join(tm, x) for x in ("f.py", "essai.py", "apres.txt"))
+        source = "a = 1\r\nb = 2\r\nc = 3\r\n"
+        ecrire(f, source)
+        ecrire(essai, "import sys\nt = open(sys.argv[1], encoding='utf-8').read()\n"
+                      "n = 0\nfor v in ('a = 1', 'b = 2'):\n    if v not in t:\n        print('ÉCART:', v); n += 1\n"
+                      "sys.exit(1 if n else 0)\n")
+        test = '"%s" "%s" "%s"' % (sys.executable, essai, f)
+
+        def mutant(avant, apres_, test_=test):
+            o = io.StringIO()
+            code = mod.main(["mutant", f, avant, apres_, "--test", test_] if isinstance(test_, str)
+                            else ["mutant", f, avant, apres_], o)
+            with open(f, "rb") as g:
+                return code, o.getvalue(), g.read() == source.encode()
+        ecrire(apres, "a = 9\nb = 9")
+        attrape = mutant("a = 1\nb = 2", "@" + apres)
+        vivant = mutant("c = 3", "c = 4")
+        absent = mutant("z = 0", "z = 1")
+        double = mutant(" = ", "=")
+        o = io.StringIO()
+        plante = (mod.cmd_mutant(f, "c = 3", "c = 4", [os.path.join(tm, "absent.exe")], o), o.getvalue())
+        with open(f, "rb") as g:
+            rendu_plante = g.read() == source.encode()
+        verifier("MUT1 : mutant — attrapé (2 écarts, @fichier sur CRLF), vivant, absent, double, tests qui ne "
+                 "se lancent pas ; fichier rendu à l'octet chaque fois — mutant : restauration retirée",
+                 attrape[0] == 0 and "MUTANT ATTRAPÉ 2 écart(s)" in attrape[1] and attrape[1].count("ÉCART:") == 2
+                 and "RENDU " in attrape[1] and attrape[2]
+                 and vivant[0] == 1 and "MUTANT VIVANT" in vivant[1] and vivant[2]
+                 and absent[0] == 1 and "trouvé 0 fois" in absent[1] and absent[2]
+                 and double[0] == 1 and "trouvé 3 fois" in double[1] and double[2]
+                 and plante[0] == 1 and "ne se lancent pas" in plante[1] and rendu_plante,
+                 (attrape, vivant, absent, double, plante, rendu_plante))
+
+
+tester_mutant()
+
+if ECARTS:
+    sys.exit(1)
 print("OK")

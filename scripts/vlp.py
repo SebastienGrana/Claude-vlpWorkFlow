@@ -361,6 +361,13 @@ Sous-commandes :
   `configurations` ou avec deux entrées du même nom : `GARDE:`, rien d'écrit, sort 1. Fichier
   pas couvert par `git check-ignore` (il porte des chemins de machine) : écrit quand même, et
   une `GARDE:` le dit, sort 0 ; pas de dépôt Git, pas de `GARDE:`.
+- `mutant <fichier> <avant> <après> [--test "<commande>"]` — le mutant d'une fiche de code (chantier
+  MUT) : `@chemin` lit un argument dans un fichier, tel quel ; les `\n` d'`avant`/`après` suivent la
+  fin de ligne du fichier. `avant` doit y être une fois exactement (sinon `GARDE:`, rien écrit).
+  Remplace, lance les tests (défaut : le `test-vlp.py` voisin, par ce Python) avec
+  `VLP_TOUS_ECARTS=1`, puis rend le fichier dans un `finally`. Imprime chaque `ÉCART:`, puis
+  `MUTANT ATTRAPÉ <n> écart(s)` (sort 0), `MUTANT VIVANT` ou `MUTANT PLANTÉ …` (sort 1), puis
+  `RENDU <sha1 12>` — `GARDE:` si l'empreinte a bougé, ou si les tests ne se lancent pas.
 
 Python 3 sans dépendance, zéro appel modèle.
 
@@ -5257,6 +5264,73 @@ def cmd_servir(dossier, port, sortie):
     return 0
 
 
+def lire_arg(x):
+    """`@chemin` : le contenu du fichier, tel quel ; sinon le texte même."""
+    if x.startswith("@"):
+        with open(x[1:], encoding="utf-8", newline="") as f:
+            return f.read()
+    return x
+
+
+def cmd_mutant(fichier, avant, apres, test, sortie):
+    """Casse `fichier` exprès (`avant` → `apres`, une seule occurrence), joue les tests avec
+    `VLP_TOUS_ECARTS=1`, liste leurs `ÉCART:`, et rend le fichier à l'octet près (chantier MUT)."""
+    import hashlib
+    import subprocess
+    try:
+        avant, apres = lire_arg(avant), lire_arg(apres)
+        with open(fichier, "rb") as f:
+            octets = f.read()
+        texte = octets.decode("utf-8")
+    except (OSError, UnicodeDecodeError) as e:
+        sortie.write("GARDE: %s\n" % e)
+        return 1
+    nl = "\r\n" if "\r\n" in texte else "\n"
+    avant, apres = (x.replace("\r\n", "\n").replace("\n", nl) for x in (avant, apres))
+    n = texte.count(avant) if avant else 0
+    if n != 1:
+        sortie.write("GARDE: « avant » trouvé %d fois dans %s — il en faut exactement 1, rien écrit\n"
+                     % (n, fichier))
+        return 1
+    empreinte = hashlib.sha1(octets).hexdigest()[:12]
+    commande = test or [sys.executable, os.path.join(os.path.dirname(os.path.abspath(__file__)), "test-vlp.py")]
+    r, lance = None, None
+    try:
+        with open(fichier, "wb") as f:
+            f.write(texte.replace(avant, apres).encode("utf-8"))
+        r = subprocess.run(commande, shell=isinstance(commande, str), capture_output=True, encoding="utf-8",
+                           errors="replace", timeout=1800,
+                           env=dict(os.environ, VLP_TOUS_ECARTS="1", PYTHONIOENCODING="utf-8", PYTHONUTF8="1"))
+    except (OSError, subprocess.SubprocessError) as e:
+        lance = e
+    finally:
+        with open(fichier, "wb") as f:
+            f.write(octets)
+    with open(fichier, "rb") as f:
+        rendu = hashlib.sha1(f.read()).hexdigest()[:12]
+    code = 1
+    if r is None:
+        sortie.write("GARDE: les tests ne se lancent pas : %s\n" % lance)
+    else:
+        texte_tests = (r.stdout or "") + (r.stderr or "")
+        ecarts = [l for l in texte_tests.splitlines() if l.startswith("ÉCART:")]
+        for l in ecarts:
+            sortie.write(l + "\n")
+        if ecarts:
+            sortie.write("MUTANT ATTRAPÉ %d écart(s)\n" % len(ecarts))
+            code = 0
+        elif r.returncode:
+            sortie.write("MUTANT PLANTÉ · tests sortis %d sans ÉCART: — %s\n"
+                         % (r.returncode, " / ".join(texte_tests.strip().splitlines()[-3:])))
+        else:
+            sortie.write("MUTANT VIVANT\n")
+    if rendu != empreinte:
+        sortie.write("GARDE: %s n'est pas rendu à l'octet : %s avant, %s après\n" % (fichier, empreinte, rendu))
+        return 1
+    sortie.write("RENDU %s\n" % rendu)
+    return code
+
+
 def entrees_launch(texte):
     """(index après le `[`, index du `]`, [(début, fin, entrée)]) du tableau `configurations` de
     `launch.json`, lu sur le texte : on y greffe une entrée sans réécrire les voisines. `None` :
@@ -5487,6 +5561,11 @@ def main(argv, sortie=None, entree=None, erreur=None):
     ap = sous.add_parser("apercu")
     ap.add_argument("projet")
     ap.add_argument("--port", type=int)
+    mu = sous.add_parser("mutant")
+    mu.add_argument("cible")
+    mu.add_argument("avant")
+    mu.add_argument("apres")
+    mu.add_argument("--test")
     tr = sous.add_parser("transcription")
     tr.add_argument("jsonl")
     a = p.parse_args(argv)
@@ -5570,6 +5649,8 @@ def repartir(a, sortie, entree, erreur):
         return cmd_servir(a.dossier, a.port, sortie)
     if a.cmd == "apercu":
         return cmd_apercu(a.projet, sortie, a.port)
+    if a.cmd == "mutant":
+        return cmd_mutant(a.cible, a.avant, a.apres, a.test, sortie)
     if a.cmd == "joints":
         return cmd_joints(a.dossier, sortie)
     if a.cmd == "transcription":

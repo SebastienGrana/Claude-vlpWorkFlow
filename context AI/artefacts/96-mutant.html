@@ -21,9 +21,9 @@
     <p>vlp.py mutant casse le code exprès, joue les tests sans s'arrêter au premier écart, les liste, et rend le fichier à l'octet près : plus de script de mutant réécrit à la main.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="encours"></span>
+      <span data-etat="faite"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">1 fiches · 0 faite · en cours : MUT1</p>
+    <p class="mono" style="margin-top:.5rem">1 fiches · 1 faite</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -38,10 +38,13 @@
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">MUT1</span></span>
-        <details open><summary><span class="titre">Écrire vlp.py mutant et VLP_TOUS_ECARTS</span><span class="etat">En cours</span></summary>
-        <span class="note">vlp.py mutant et VLP_TOUS_ECARTS, texte ou @fichier, CRLF géré, tests et mutant du mutant ; ne dépend de rien</span></details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">MUT1</span></span>
+        <details><summary><span class="titre">Écrire vlp.py mutant et VLP_TOUS_ECARTS</span><span class="etat">Faite</span></summary>
+        <span class="note">vlp.py mutant et VLP_TOUS_ECARTS, texte ou @fichier, CRLF géré, tests et mutant du mutant ; ne dépend de rien</span></details>
+        <span class="cout mono">≈2,3M (2 260 087) · 9 tours · 0,80 $</span></li>
     </ul>
+    <p class="mono cout-hors">Hors fiches : ≈2,6M (2 584 414) · 11 tours · 0,86 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈4,8M (4 844 501) · 20 tours · 1,66 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
