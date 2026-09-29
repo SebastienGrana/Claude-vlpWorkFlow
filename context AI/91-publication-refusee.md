@@ -218,8 +218,9 @@ l'en-tête retiré → le test tombe. Suite verte (compte brut), `pyright` 0 err
 ---
 
 <!-- FICHE:LOC5 -->
-## LOC5 [ ] — Essayer la liste et l'aperçu pour de vrai
+## LOC5 [x] — Essayer la liste et l'aperçu pour de vrai
 
+**Session** : 4a29d6d4-1615-4d98-80ec-d0563c86f8e9
 **Dépend de** : `LOC3`, `LOC4`.
 **Fichiers** : `context AI/artefacts/91-publication-refusee.html` (republiée),
 `context AI/artefacts/vlp.css` (modifié puis rendu à l'octet) — et rien d'autre.
