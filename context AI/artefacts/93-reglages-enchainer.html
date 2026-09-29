@@ -21,9 +21,9 @@
     <p>/vlp:enchainer sans argument joue les fiches dans la session (main), sans bascule de modèle ; le joueur des modes agents et clear est Sonnet, effort low.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">3 fiches · 2 faites · en cours : REG3</p>
+    <p class="mono" style="margin-top:.5rem">3 fiches · 3 faites</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -45,14 +45,14 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REG2</span></span>
         <details><summary><span class="titre">Faire partir enchainer en main, le joueur en Sonnet</span><span class="etat">Faite</span></summary>
         <span class="note">model: 0 · model: sonnet 1 · --effort low 1 · Sans main 0 · test-vlp OK · test-boucle OK</span></details>
-        <span class="cout mono">≈755,5k (755 475) · 8 tours · 0,70 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">REG3</span></span>
-        <details open><summary><span class="titre">Essayer enchainer rechargé, pour de vrai</span><span class="etat">En cours</span></summary>
-        <span class="note">Essai réel sur un bac, par l'utilisateur après /reload-plugins : la fiche est jouée dans la session. Dépend de REG2.</span></details>
-        <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
+        <span class="cout mono">≈1,1M (1 057 120) · 11 tours · 0,82 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REG3</span></span>
+        <details><summary><span class="titre">Essayer enchainer rechargé, pour de vrai</span><span class="etat">Faite</span></summary>
+        <span class="note">Bac bac-reg3, CLI 2.1.284 Sonnet 5.5 : /vlp:enchainer sans argument -&gt; Skill(vlp:tache), F1 jouée dans la session, aucune ligne Agent(vlp:fiche), F1 [x] à 20:14:07 (session 9115c22a), modèle inchangé. Vu dans le terminal, pas dans le panneau Tâches de l'app.</span></details>
+        <span class="cout mono">≈4,4M (4 427 121) · 54 tours · 2,01 $</span></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈4,0M (3 981 214) · 30 tours · 3,07 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈5,9M (5 886 612) · 49 tours · 4,54 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈10,6M (10 615 378) · 106 tours · 6,67 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -69,6 +69,7 @@
     <h2>Journal des décisions</h2>
     <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
     <ul class="journal">
+      <li><time datetime="2026-09-29">2026-09-29</time><span>REG3 : le plugin chargé suit le dossier principal, pas le worktree — main avancé de 8 commits (sans push) avant l'essai ; le CLI de l'app vit dans le dossier Packages (AppData virtualisé).</span></li>
     </ul>
   </section>
 

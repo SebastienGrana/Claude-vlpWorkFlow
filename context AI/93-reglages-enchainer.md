@@ -100,8 +100,9 @@ Comptes bruts, depuis la racine : `grep -c "^model:" skills/enchainer/SKILL.md` 
 ---
 
 <!-- FICHE:REG3 -->
-## REG3 [ ] — Essayer `enchainer` rechargé, pour de vrai
+## REG3 [x] — Essayer `enchainer` rechargé, pour de vrai
 
+**Session** : 0a40db6b-7283-4dcd-8fc6-03f5e2e03190
 **Dépend de** : `REG2`.
 **Fichiers** : aucun à modifier.
 
