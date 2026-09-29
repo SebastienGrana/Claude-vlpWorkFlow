@@ -103,7 +103,10 @@ Seul endroit de la règle : les commandes y renvoient, elles ne la recopient pas
   `read` sur l'`url`, puis publication avec `url` et `files`. Le hook retire la ligne.
 - Une page **sans url** (`aucune`) se publie comme une première, puis
   `vlp.py lien <page.html> <url>` écrit son url.
-- Les **autres refus** (page non lue, vigile) se corrigent : ils n'attendent pas.
+- Les **autres refus** (page non lue, joints non lus, vigile) se corrigent : ils n'attendent pas,
+  et la liste n'y bouge pas (essayé pour de vrai, `LOC5`). Joints non lus : `read` de chaque
+  joint par son `path`, puis republier. D'après la doc de l'outil `Artifact` (non essayé) : une
+  publication sans `files` garde les joints déjà en ligne.
 - Regarder une page **sans la publier** : `vlp.py apercu <projet>` (détail dans sa docstring).
 
 ## La page se régénère, elle ne se retouche pas
