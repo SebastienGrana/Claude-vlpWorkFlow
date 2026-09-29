@@ -74,8 +74,9 @@ scripts/boucle.py scripts/test-boucle.py` : 0 erreur (compte brut dans le compte
 ---
 
 <!-- FICHE:REG2 -->
-## REG2 [ ] — Faire partir `enchainer` en `main`, le joueur en Sonnet
+## REG2 [x] — Faire partir `enchainer` en `main`, le joueur en Sonnet
 
+**Session** : 6592ddaf-e838-4aba-8d9b-61bcd7f12d7b
 **Dépend de** : `REG1`.
 **Fichiers** : `skills/enchainer/SKILL.md`, `agents/fiche.md` — et rien d'autre.
 

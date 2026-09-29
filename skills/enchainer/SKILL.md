@@ -1,7 +1,6 @@
 ---
-description: Enchaîne les fiches du chantier courant une après l'autre, chacune sur une page blanche (sous-agent neuf), à la main (main) ou en session neuve par script (clear), jusqu'à un arrêt prévu ou le plafond
-argument-hint: (rien) | main | clear | <alias> | <alias> main
-model: sonnet
+description: Enchaîne les fiches du chantier courant une après l'autre, dans cette session (par défaut), chacune sur une page blanche (agents, un sous-agent neuf) ou en session neuve par script (clear), jusqu'à un arrêt prévu ou le plafond
+argument-hint: (rien) | agents | clear | <alias> | <alias> agents
 allowed-tools: Bash(python3:*), Bash(py:*), Bash(echo:*), PowerShell(python3:*), PowerShell(py:*), PowerShell(echo:*), Skill, Artifact
 ---
 
@@ -9,27 +8,29 @@ Arguments reçus :
 
 $ARGUMENTS
 
-Joue à la suite les fiches non cochées du fichier de fiches courant, chacune
-par la skill `vlp:jouer` — forkée dans un sous-agent neuf `vlp:fiche`, jamais
-deux fiches dans le même contexte. Tu ne lis ni le socle ni les fiches : la
-skill les donne au sous-agent. Le contrat qu'il rend (`FAITE`, `RETOUR`,
-`BLOQUÉE`) est dans `${CLAUDE_PLUGIN_ROOT}/enchainement.md`, qui fait foi.
+Joue à la suite les fiches non cochées du fichier de fiches courant.
 
 Plafond : **5 fiches** par lancement, puis arrêt avec bilan même si tout se
 passait bien.
 
-**`main` dans les arguments : aucun sous-agent.** Tu joues chaque fiche
+**Sans argument (ou `main`) : aucun sous-agent.** Tu joues chaque fiche
 toi-même, par `vlp:tache`, dans cette session (étape 3, point 1) ; ni
-`vlp:jouer` ni `vlp:relire`. Le contexte grossit d'une fiche à l'autre : c'est
-le choix de l'utilisateur.
+`vlp:jouer` ni `vlp:relire`. Le contexte grossit d'une fiche à l'autre.
 
-**`clear` dans les arguments : une session neuve par fiche, par script.**
+**`agents` dans les arguments : un sous-agent neuf par fiche**, par la skill
+`vlp:jouer` — forkée dans `vlp:fiche`, jamais deux fiches dans le même
+contexte. Tu ne lis ni le socle ni les fiches : la skill les donne au
+sous-agent. Le contrat qu'il rend (`FAITE`, `RETOUR`, `BLOQUÉE`) est dans
+`${CLAUDE_PLUGIN_ROOT}/enchainement.md`, qui fait foi.
+
+**`clear` dans les arguments (`main clear` se lit `clear`) : une session neuve
+par fiche, par script.**
 Après l'étape 1, ni plan ni fiche jouée ici : un seul appel, en arrière-plan
 (`run_in_background`), depuis la racine du projet — `py -3` si `PYTHON=py`
 (le Python du Store ne voit pas `claude.exe`), sinon `python3` :
 
 ```bash
-py -3 "${CLAUDE_PLUGIN_ROOT}/scripts/boucle.py" . --plafond <le plafond ci-dessus>
+py -3 "${CLAUDE_PLUGIN_ROOT}/scripts/boucle.py" . --plafond <le plafond ci-dessus> --model sonnet --effort low
 ```
 
 Chaque fiche y est jouée comme après `/clear` puis `/vlp:tache <fiche>` ; ses
@@ -67,7 +68,7 @@ Retiens les fiches non cochées, dans l'ordre ; une fiche cochée n'est ni
 rejouée ni vérifiée, même écrite dans cette session. La série s'arrête à la première
 dont la ligne `**Critère de fin**` porte `(visuel)` — incluse —, ou au plafond
 de 5. Annonce-la en une ligne (« je joue E5 → E7, arrêt prévu à E7
-(visuel) ») ; tu n'attends pas de réponse. Sans `main`, dis aussi où suivre :
+(visuel) ») ; tu n'attends pas de réponse. Avec `agents`, dis aussi où suivre :
 « suivi : panneau Tâches de l'app, clique sur le sous-agent ; Ctrl+O pour le détail ».
 
 ## 3. Jouer chaque fiche
@@ -78,10 +79,10 @@ Pour chaque fiche de la série, dans l'ordre :
    ni cochée ni rendue `FAITE` dans ce lancement, ou elle porte un bloc
    **Tentatives** dont une ligne numérotée n'est pas `FAITE refusée à la
    relecture.` (tout lu à l'étape 2). Traite-le comme un `RETOUR` (étape 3 bis).
-1. Un seul appel : `Skill`, `skill: "vlp:jouer"`, `args` : la fiche.
-   Avec `main` : `skill: "vlp:tache"` à la place — elle coche, publie et
-   commite elle-même ; le point 2 ne s'applique pas. Fiche cochée ensuite :
-   passe à la suivante ; sinon, c'est un `RETOUR` (étape 3 bis).
+1. Un seul appel : `Skill`, `skill: "vlp:tache"`, `args` : la fiche — elle
+   coche, publie et commite elle-même. Fiche cochée ensuite : passe à la
+   suivante ; sinon, c'est un `RETOUR` (étape 3 bis).
+   Avec `agents` : `skill: "vlp:jouer"` à la place, puis le point 2.
 2. Lis le premier mot du `Result` rendu. Ce n'est pas un statut : prends la
    première ligne qui **commence** par `FAITE`, `RETOUR` ou `BLOQUÉE` ; aucune,
    c'est « aucun statut » ci-dessous.
