@@ -182,6 +182,21 @@ Elles sont écrites ici, et nulle part ailleurs : le reste du kit y renvoie.
   - Une case cochée dans un menu n'est pas un oui, pas plus que pour le push
     (`cloture.md`). Retirer une entrée ou en fondre deux ne fait pas grossir la
     TODO : cette règle ne s'y applique pas.
+- **Ne pas réinventer la roue — ni un outil, ni un chiffre** — décision de
+  l'utilisateur, le 2026-09-28 pour l'outil, le 2026-09-29 pour le chiffre. Avant
+  de coder, chercher si l'outil existe déjà (bibliothèque, module standard) ;
+  avant de calculer ou de payer un essai, chercher si l'information est publiée
+  (un prix, un banc de modèles, une limite d'API) : la doc officielle d'abord,
+  puis la communauté. On ne code ou ne mesure que ce qu'aucune source ne donne —
+  le propre du projet : son coût par fiche, ses tours, ses fichiers. Le web dit
+  le général, la mesure dit le nôtre ; un chiffre du fournisseur que personne n'a
+  refait se dit tel. Une contrainte du projet prime, et se dit : les scripts du
+  kit restent sans dépendance. Mesuré : le graphique des coûts des pages, dessiné
+  à la main, passé à Chart.js ; `PAR7`, 10,13 $ pour comparer trois modèles sur
+  deux fiches, quand le guide de coût de la skill `claude-api` écartait déjà
+  Haiku 4.5 des longues boucles d'agent et donnait la méthode (tout en effort
+  bas, relancer les échecs plus haut) — restait seulement le coût par fiche dans
+  le kit.
 
 ## Les trois temps
 

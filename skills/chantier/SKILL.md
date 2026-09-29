@@ -134,7 +134,9 @@ Ne présume pas de ce que son nom veut dire. Pose un questionnaire qui couvre :
 
 - **Le résultat visible** : à quoi on saura que le chantier est fini.
 - **La frontière** : ce qui est dedans, et surtout ce qui est **dehors**.
-- **Les inconnues** : ce qu'il faudra mesurer ou vérifier avant d'écrire.
+- **Les inconnues** : ce qu'il faudra mesurer ou vérifier avant d'écrire — et
+  d'abord ce qui existe déjà, outil ou chiffre publié (`methode-chantier.md`,
+  « Ne pas réinventer la roue »).
 
 Puis, et seulement alors, ouvre les fichiers de contexte que ses réponses
 désignent — via la table de routage de `CLAUDE.md` si tu ne sais pas lequel.
