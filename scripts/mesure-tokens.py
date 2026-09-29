@@ -53,8 +53,8 @@ SOMMABLES = ["tours", "appels", "input", "output", "cache_creation", "cache_1h",
 # modèle de la documentation officielle, lue le 2026-09-23 :
 # https://platform.claude.com/docs/en/about-claude/pricing
 #   - claude-opus-5-5 : ligne « Claude Opus 5.5 », ajoutée ce jour-là ;
-#   - claude-sonnet-5-5 : ligne « Claude Sonnet 5.5 », lue sur la même page le
-#     2026-09-29 (fiche PAR6) — 18 requêtes de la session de PAR2 rendaient `?` ;
+#   - claude-sonnet-5-5 : ligne « Claude Sonnet 5.5 », lue le 2026-09-28 (2 $ entrée,
+#     2,50 $ écriture 5 min, 4 $ écriture 1 h, 0,20 $ lecture, 10 $ sortie) ;
 #   - les sept autres, lues le 2026-09-17 dans la skill claude-api, y ont été
 #     relues sans écart ;
 #   - claude-haiku-4-5-20251001 : alias daté de claude-haiku-4-5, prix de la
@@ -69,7 +69,7 @@ GRILLE = {
     "claude-opus-5-5":           ("4",     "20",   "0.20",   "5",         "8"),
     "claude-opus-5":             ("5",     "25",   "0.5",    "6.25",      "10"),
     "claude-opus-4-7":           ("5",     "25",   "0.5",    "6.25",      "10"),
-    "claude-sonnet-5-5":         ("2",     "10",   "0.20",   "2.5",       "4"),
+    "claude-sonnet-5-5":         ("2",     "10",   "0.2",    "2.5",       "4"),
     "claude-sonnet-5":           ("2",     "10",   "0.2",    "2.5",       "4"),
     "claude-sonnet-4-6":         ("3",     "15",   "0.3",    "3.75",      "6"),
     "claude-haiku-4-5":          ("1",     "5",    "0.1",    "1.25",      "2"),
