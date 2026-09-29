@@ -92,8 +92,9 @@ session, n'a **pas** été refusé : dire s'il existe, ou « non trouvé ».
 ---
 
 <!-- FICHE:JNT2 -->
-## JNT2 [ ] — Les joints en LF partout
+## JNT2 [x] — Les joints en LF partout
 
+**Session** : b293bb0b-835f-4938-bedc-3114bdb5643a
 **Dépend de** : rien.
 **Fichiers** : `.gitattributes`, `scripts/test-vlp.py` — et les joints renormalisés.
 

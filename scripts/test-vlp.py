@@ -3215,6 +3215,10 @@ else:
                      and "pre-commit : .claude-plugin/plugin.json invalide" in s and "marketplace.json" not in s, s)
         code, s = git("check-attr", "eol", "--", "skills/chantier/SKILL.md")
         verifier(".gitattributes : les .md en LF", s == "skills/chantier/SKILL.md: eol: lf\n", s)
+        # JNT2 : les joints publiés en LF dans tout clone — un worktree en CRLF changeait leurs octets
+        code, s = git("check-attr", "eol", "--", "templates/vlp.css", "templates/vlp.js", "a/couts.svg")
+        verifier(".gitattributes : les joints (.css, .js, .svg) en LF", s == "templates/vlp.css: eol: lf\n"
+                 "templates/vlp.js: eol: lf\na/couts.svg: eol: lf\n", s)
 
 # GLO1 : forme et poids dans les transcriptions
 with tempfile.TemporaryDirectory() as t:

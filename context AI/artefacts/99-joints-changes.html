@@ -21,9 +21,9 @@
     <p>Une republication sans changement de vlp.css, vlp.js ou couts.svg ne les joint plus : plus de refus « joints non lus » dus aux fins de ligne.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="encours"></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">3 fiches · 1 faite · en cours : JNT2</p>
+    <p class="mono" style="margin-top:.5rem">3 fiches · 2 faites · en cours : JNT3</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -42,15 +42,16 @@
         <details><summary><span class="titre">Compter les refus « joints non lus »</span><span class="etat">Faite</span></summary>
         <span class="note">Le nombre de refus « joints non lus » par publication, compté dans les transcriptions ; ne dépend de rien</span></details>
         <span class="cout mono">≈1,6M (1 567 907) · 9 tours · 0,61 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">JNT2</span></span>
-        <details open><summary><span class="titre">Les joints en LF partout</span><span class="etat">En cours</span></summary>
-        <span class="note">Les joints en LF dans tous les worktrees (.gitattributes) ; ne dépend de rien</span></details></li>
-      <li class="fiche" data-attend><span class="gauche"><span class="id">JNT3</span></span>
-        <details><summary><span class="titre">FILES ne nomme que les joints changés</span><span class="etat">Après JNT2</span></summary>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">JNT2</span></span>
+        <details><summary><span class="titre">Les joints en LF partout</span><span class="etat">Faite</span></summary>
+        <span class="note">Les joints en LF dans tous les worktrees (.gitattributes) ; ne dépend de rien</span></details>
+        <span class="cout mono">≈2,1M (2 069 618) · 11 tours · 0,61 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">JNT3</span></span>
+        <details open><summary><span class="titre">FILES ne nomme que les joints changés</span><span class="etat">En cours</span></summary>
         <span class="note">Le hook note l'empreinte des joints publiés, FILES ne nomme que ceux qui ont changé ; dépend de JNT2</span></details></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈4,0M (3 965 505) · 23 tours · 2,19 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈5,5M (5 533 412) · 32 tours · 2,80 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈7,6M (7 603 030) · 43 tours · 3,41 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
