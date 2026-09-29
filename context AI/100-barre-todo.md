@@ -54,8 +54,9 @@ cassée à la place de l'utilisateur.
 ---
 
 <!-- FICHE:PIP1 -->
-## PIP1 [ ] — Une ligne de TODO mal découpée rend une GARDE
+## PIP1 [x] — Une ligne de TODO mal découpée rend une GARDE
 
+**Session** : b293bb0b-835f-4938-bedc-3114bdb5643a
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` — et rien d'autre.
 

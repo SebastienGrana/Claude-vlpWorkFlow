@@ -4818,6 +4818,50 @@ def tester_decompte_todo():
 tester_decompte_todo()
 
 
+# --- PIP1 : une ligne de TODO mal découpée rend une GARDE, plus un décompte faux ---
+
+def tester_barre_todo():
+    entete = ["| # | Chantier | Apporte | Coût | Dépend |", "|---|---|---|---|---|"]
+    rangs = mod.todo_du_fichier(entete + ["| 1 | A | `sed x \\| sha256sum` | 2 fiches | — |"])
+    verifier("PIP1 : une barre échappée dans du code reste un caractère — 5 cellules, rendue sans \\",
+             rangs == [["1", "A", "`sed x \\| sha256sum`", "2 fiches", "—"]]
+             and mod.cellule_md(rangs[0][2]) == '<span class="mono">sed x | sha256sum</span>', rangs)
+    for ligne, n in (("| 2 | B | `sed x | sha256sum` | 2 fiches | — |", 6), ("| 3 | C | x | — |", 4)):
+        try:
+            mod.todo_du_fichier(entete + [ligne])
+            dit = "aucune erreur"
+        except ValueError as e:
+            dit = str(e)
+        verifier("PIP1 : une ligne à %d cellules lève une ValueError qui la nomme — mutant : >= 5" % n,
+                 dit.startswith("ligne %s de la TODO : %d cellules au lieu de 5" % (ligne[2], n)), dit)
+    with tempfile.TemporaryDirectory() as tp:
+        ecrire(os.path.join(tp, "CHANTIER.md"),
+               "# C\n\n- **contexte** : ctx/\n- **fichier d'état** : ctx/08-etat.md\n"
+               "- **fichier de fiches courant** : aucun\n- **artefact du chantier** : aucun\n\n"
+               "Lettres de fiche déjà prises : E (Un). Un nouveau chantier en choisit une autre.\n")
+        etat = os.path.join(tp, "ctx", "08-etat.md")
+        ecrire(etat, "# État\n\n| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |\n|---|---|---|---|---|\n"
+                     "| 3 | Trois | a | 2 fiches | — |\n\n## Journal\n")
+        fdr = os.path.join(tp, "ctx", "artefacts", "feuille-de-route.html")
+        ecrire(fdr, io.open(os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html"),
+                            encoding="utf-8").read())
+        code, s = appel(["feuille", tp, "--date", "2026-09-29"])
+        avant = io.open(fdr, encoding="utf-8").read()
+        verifier("PIP1 : une TODO saine passe", code == 0 and "GARDE" not in s, s)
+        ecrire(etat, "# État\n\n| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |\n|---|---|---|---|---|\n"
+                     "| 3 | Trois | `sed | sha256sum` | 2 fiches | — |\n\n## Journal\n")
+        code, s = appel(["feuille", tp, "--date", "2026-09-29"])
+        verifier("PIP1 : feuille rend GARDE avec le numéro, sort 1, la page ne bouge pas",
+                 code == 1 and "GARDE: ligne 3 de la TODO : 6 cellules" in s
+                 and io.open(fdr, encoding="utf-8").read() == avant, s)
+        _, s = appel(["niveau", tp, "--date", "2026-09-29"])
+        verifier("PIP1 : niveau compte la ligne comme un écart de la feuille",
+                 "ÉCART: feuille: ligne 3 de la TODO : 6 cellules" in s, s)
+
+
+tester_barre_todo()
+
+
 # --- BTN1 : `vlp.js` joint aux pages, la ligne FILES ; charset et script posés une fois ---
 
 def tester_joints():

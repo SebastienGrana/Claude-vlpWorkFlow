@@ -3221,7 +3221,10 @@ def cellule_md(texte):
 
 
 def todo_du_fichier(lignes):
-    """[(numéro, chantier, apporte, coût, dépend)] de la table `| # | Chantier |`."""
+    """[(numéro, chantier, apporte, coût, dépend)] de la table `| # | Chantier |`. Une ligne
+    qui n'a pas ses 5 cellules — une barre verticale non échappée dans une cellule — lève une
+    `ValueError` qui la nomme, au lieu d'être tronquée en silence (chantier PIP) ; `\\|` reste
+    un caractère."""
     rangs, dedans = [], False
     for l in lignes:
         if l.startswith("| # | Chantier"):
@@ -3234,8 +3237,10 @@ def todo_du_fichier(lignes):
         if re.match(r"^\|[\s|:-]+\|?$", l):
             continue
         cellules = [c.strip() for c in re.split(r"(?<!\\)\|", l.strip())[1:-1]]
-        if len(cellules) >= 5:
-            rangs.append(cellules[:5])
+        if len(cellules) != 5:
+            raise ValueError("ligne %s de la TODO : %d cellules au lieu de 5 — une barre verticale "
+                             "dans une cellule s'écrit \\|" % (cellules[0] if cellules else "?", len(cellules)))
+        rangs.append(cellules)
     return rangs
 
 
