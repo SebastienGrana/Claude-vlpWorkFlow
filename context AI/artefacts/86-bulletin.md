@@ -1,4 +1,6 @@
 # /vlp:check lit le contrat — notes et journal
+## Lien
+https://claude.ai/artifact/4fci5zHKJC6fQpyCBwgwZ3
 ## Résultat
 /vlp:check dit, sans rien rejouer, combien de sous-agents ont tourné depuis l'ouverture du chantier, combien ont écrit dans Git, combien sans statut en tête.
 ## Notes

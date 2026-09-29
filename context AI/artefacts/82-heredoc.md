@@ -1,4 +1,6 @@
 # ECRIT_GIT ne lit pas le texte d'un heredoc — notes et journal
+## Lien
+https://claude.ai/artifact/Aqwif822jqC2RrqLhYRoE1
 ## Résultat
 Un sous-agent peut écrire les mots git commit dans un fichier par cat ou tee sans que le gardien le renvoie ; un heredoc qui s'exécute reste refusé.
 ## Notes

@@ -1,4 +1,6 @@
 # Un seul prix pour un chantier — notes et journal
+## Lien
+https://claude.ai/artifact/D6EDGTsi9xFkgmf23YxhP7
 ## Résultat
 clore, ouvrir et la feuille de route donnent le prix mesuré de cout — plus de taux plat ; les joués déjà écrits sont recalés, les vieux estimés marqués (taux plat)
 ## Notes

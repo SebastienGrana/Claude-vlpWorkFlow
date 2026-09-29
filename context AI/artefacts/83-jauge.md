@@ -1,4 +1,6 @@
 # Une ligne qui s'ouvre par un mot de jauge, sans être une jauge — notes et journal
+## Lien
+https://claude.ai/artifact/HdCA6Er5uSgx2ztdUVGyPb
 ## Résultat
 Une puce comme « - Imprévu : j'ai dû… » ne fait plus renvoyer un sous-agent ; une vraie jauge (émoji, ou le mot suivi de —, … ou fin de ligne) le fait toujours.
 ## Notes

@@ -1,4 +1,6 @@
 # Des boutons sur les pages — notes et journal
+## Lien
+https://claude.ai/artifact/XjjgiaB3acxidqdMNE9rMb
 ## Résultat
 Les pages du kit ont des boutons : tout déplier, copier la commande d'une fiche, filtrer la feuille par état, et un graphique du coût des chantiers clos. La page relue à chaque fiche ne grossit que de quelques balises.
 ## Notes

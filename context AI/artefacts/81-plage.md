@@ -1,4 +1,6 @@
 # La plage de l'en-tête et la dernière fiche — notes et journal
+## Lien
+https://claude.ai/artifact/RNK12TPhTcr4FemUxCr61r
 ## Résultat
 Une plage de fiches se borne par numéro : REV, rangé dans le désordre, s'affiche REV1–REV8 et non plus REV1–REV4, en-tête, feuille, index et CHANTIER.md compris.
 ## Notes
