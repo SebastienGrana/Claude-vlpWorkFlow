@@ -4879,6 +4879,9 @@ def tester_attente():
         verifier("attente : aucun .tmp laissé", not os.path.exists(liste + ".tmp"), str(os.listdir(art)))
         code, s = appel(["attente", "lister", art])
         verifier("attente lister", (code, s) == (0, "ATTENTE=88-boutons.html %s\nATTENTE 1\n" % url), s)
+        code, s2 = appel(["attente", "lister", p])
+        verifier("attente lister la racine du projet : la même liste, pas un ATTENTE 0 muet — mutant : la racine lue comme un dossier artefacts",
+                 (code, s2) == (0, s), s2)
         c = rendu(p)
         verifier("attente : la carte montre ATTENTE= avant le fichier de fiches courant",
                  0 <= c.find("ATTENTE=88-boutons.html %s\n" % url) < c.find("--- fiches :"), c)

@@ -286,7 +286,7 @@ Sous-commandes :
 - `vigile [fichier]` — une page cassée ne part pas (chantier VID, `defauts_page`) : sans argument,
   le hook `PreToolUse` sur `Artifact`, `deny` pour un `.html` à défauts, muet sinon ; avec un chemin,
   une ligne `GARDE:` par défaut (sort 1) ou `PAGE SAINE <n> blocs`.
-- `attente ajouter <page> [--url U] [--projet D]`, `attente lister <dossier artefacts>`,
+- `attente ajouter <page> [--url U] [--projet D]`, `attente lister <dossier artefacts ou racine du projet>`,
   `attente retirer <page> [--projet D]` — la liste des pages que la limite du jour a refusées
   (chantier LOC) : `<contexte>/artefacts/en-attente`, une ligne par page, `page`, `url` (ou
   `aucune`) et `heure du refus` séparées par une tabulation, clé la page (la dernière entrée
@@ -4175,9 +4175,11 @@ def remise_a_zero(maintenant):
 
 def cmd_attente(a, sortie, maintenant=None):
     if a.op == "lister":
-        for l in lignes_attente(a.dossier):
+        # la racine d'un projet équipé vaut son dossier artefacts : sinon `.` rendait « ATTENTE 0 » en silence
+        dossier = dossier_artefacts(a.dossier) if equipe(a.dossier) else a.dossier
+        for l in lignes_attente(dossier):
             sortie.write(l + "\n")
-        sortie.write("ATTENTE %d\n" % len(lire_attente(a.dossier)))
+        sortie.write("ATTENTE %d\n" % len(lire_attente(dossier)))
         return 0
     racine = trouver(a.projet or os.getcwd())
     if racine is None:
