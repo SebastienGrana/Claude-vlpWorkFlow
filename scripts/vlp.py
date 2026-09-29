@@ -246,9 +246,9 @@ Sous-commandes :
   `.meta.json` voisin dit `vlp:fiche`, sous `~/.claude/projects/*/*/subagents/`. Une ligne
   chacune : `<id> <agentType> <départ de la session parente, UTC | ?> <premier mot du dernier
   message texte | (vide) | (interrompu)> git <n> bloqué <n>` — n : appels `Bash`/`PowerShell` qui
-  lancent `git commit`, `add` ou `reset`, `-C`/`-c` compris, hors corps d'un heredoc écrit par
+  lancent un verbe Git hors lecture (`LECTURE_GIT`, chantier VRB), hors corps d'un heredoc écrit par
   `cat` ou `tee` (chantier ECH) ; parmi eux, ceux dont le `tool_result` porte le refus du gardien
-  (`REFUS_GIT`) comptent en bloqué, pas en écrit ; `(interrompu)` : un message utilisateur
+  (`REFUS_GIT`, ou `REFUS_GIT_AVANT`) comptent en bloqué, pas en écrit ; `(interrompu)` : un message utilisateur
   `[Request interrupted by user…` suit le dernier texte de l'assistant — il ne compte pas en
   sans-statut ; illisible : `ILLISIBLE <chemin>`. `--depuis` (heure
   ISO ou commit, comme `mesure-tokens.py --plage`) : celles dont la session parente a démarré
@@ -1596,7 +1596,9 @@ STATUTS = ("FAITE", "RETOUR", "BLOQUÉE")
 # Le cœur du refus du gardien (chantier ENQ) : `cmd_gardien` le met dans sa raison, `lire_contrat`
 # le retrouve dans le `tool_result` d'un appel qui écrit dans Git pour le compter en bloqué plutôt
 # qu'en écrit — indépendant de l'agent (`vlp:fiche`/`vlp:relecture`) et de la fin de phrase.
-REFUS_GIT = "retire git commit/add/reset, le chef commite après"
+# `REFUS_GIT_AVANT`, celui d'avant VRB, se reconnaît encore dans les vieilles transcriptions.
+REFUS_GIT = "retire tout appel Git hors lecture (diff, status, log, show…), le chef commite après"
+REFUS_GIT_AVANT = "retire git commit/add/reset, le chef commite après"
 # Un message utilisateur qui commence ainsi, après le dernier texte de l'assistant, marque le
 # sous-agent interrompu plutôt que sans statut en tête (chantier ENQ).
 INTERROMPU = "[Request interrupted by user"
@@ -1674,7 +1676,7 @@ def lire_contrat(chemin):
                         texte_res = b.get("content")
                         if isinstance(texte_res, list):
                             texte_res = " ".join(x.get("text", "") for x in texte_res if isinstance(x, dict))
-                        if isinstance(texte_res, str) and REFUS_GIT in texte_res:
+                        if isinstance(texte_res, str) and (REFUS_GIT in texte_res or REFUS_GIT_AVANT in texte_res):
                             git -= 1
                             bloque += 1
                         del en_attente[tid]

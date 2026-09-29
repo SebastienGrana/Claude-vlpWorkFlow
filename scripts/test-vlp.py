@@ -2840,13 +2840,19 @@ with tempfile.TemporaryDirectory() as t:
         {"message": {"role": "user", "content": [
             {"type": "tool_result", "tool_use_id": "tu2", "content": "add 'f.md'"}]}},
         {"message": {"role": "assistant", "content": [{"type": "text", "text": "FAITE — X1 cochée."}]}}])
+    avant = ligne_agent("avant", [
+        {"message": {"role": "assistant", "content": [
+            {"type": "tool_use", "id": "tu3", "name": "Bash", "input": {"command": "git commit -m x"}}]}},
+        {"message": {"role": "user", "content": [
+            {"type": "tool_result", "tool_use_id": "tu3", "content": mod.REFUS_GIT_AVANT}]}},
+        {"message": {"role": "assistant", "content": [{"type": "text", "text": "RETOUR — bloquée."}]}}])
     interrompue = ligne_agent("interrompue", [
         {"message": {"role": "assistant", "content": [{"type": "text", "text": "Je lance le dernier essai…"}]}},
         {"message": {"role": "user", "content": "[Request interrupted by user]"}}])
-    code, s = appel(["contrat", refusee, ecrit, interrompue])
-    verifier("ENQ1 : bilan — refusé compté en bloqué, interrompu pas en sans-statut — "
-             "mutant : compter un refus comme une écriture le fait tomber",
-             code == 0 and s.endswith("CONTRAT 3 sous-agents · 1 écrivent dans Git · 1 bloqués par le gardien · "
+    code, s = appel(["contrat", refusee, ecrit, avant, interrompue])
+    verifier("ENQ1 : bilan — refusé compté en bloqué (phrase d'avant VRB comprise), interrompu pas en "
+             "sans-statut — mutant : compter un refus comme une écriture, ou oublier REFUS_GIT_AVANT, le fait tomber",
+             code == 0 and s.endswith("CONTRAT 4 sous-agents · 1 écrivent dans Git · 2 bloqués par le gardien · "
                                        "0 sans statut en tête · 1 interrompus\n"), s)
     verifier("ENQ1 : la ligne du refusé porte git 0 bloqué 1",
              "refusee vlp:fiche 2026-09-24T10:00:00Z RETOUR git 0 bloqué 1\n" in s, s)
