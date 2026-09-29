@@ -44,7 +44,8 @@ gagné passe 20 %.
 
 ## Le socle commun
 
-Tranché au cadrage (2026-09-28, trois questionnaires) ; décisions D1–D6 du matin : entrée 58.
+Tranché au cadrage (2026-09-28, trois questionnaires) ; décisions D1–D6 du matin : entrée 58,
+retirée de la TODO à la clôture — `git show 4cd2c4b:"context AI/08-etat.md"`.
 
 - **Ce chantier mesure, il ne code pas le parallèle.** D2–D5 (réserver, verrou, clôture
   à tour de rôle) ne se codent que si le verdict de `PAR3` passe le seuil. Seule `PAR1`
