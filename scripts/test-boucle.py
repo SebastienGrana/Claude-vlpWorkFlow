@@ -61,11 +61,11 @@ def projet(t, visuel=None, tentatives=None):
     return faux
 
 
-def boucle(t, faux, plafond, rate=""):
+def boucle(t, faux, plafond, rate="", options=()):
     env = dict(os.environ, VLP_FAUX_VLP=os.path.join(ICI, "vlp.py"), VLP_FAUX_RATE=rate,
                PYTHONIOENCODING="utf-8")
     r = subprocess.run([sys.executable, os.path.join(ICI, "boucle.py"), t, "--plafond", str(plafond),
-                        "--claude", faux, "--traces", t], env=env, capture_output=True, text=True, encoding="utf-8")
+                        "--claude", faux, "--traces", t] + list(options), env=env, capture_output=True, text=True, encoding="utf-8")
     with open(os.path.join(t, "fiches.md"), encoding="utf-8") as h:
         texte = h.read()
     cases = "".join("x" if ("## %s [x]" % f) in texte else "." for f in ("F1", "F2", "F3"))
@@ -90,6 +90,11 @@ with tempfile.TemporaryDirectory() as t:
              "PowerShell(git commit:*),--disallowedTools,Bash(git commit --amend:*)," in s
              and "PowerShell(git commit --no-verify:*)" in s and "push" not in s, s)
     verifier("TOTAL additionne tours et coût", "TOTAL 2 fiches · 6 tours · 0.0200 $" in s, s)
+    verifier("sans --effort, aucun effort transmis", "--effort" not in s, s)
+
+with tempfile.TemporaryDirectory() as t:
+    code, s, cases = boucle(t, projet(t), 1, options=["--effort", "low"])
+    verifier("--effort low transmis tel quel à claude", code == 0 and "--effort,low" in s, s)
 
 with tempfile.TemporaryDirectory() as t:
     code, s, cases = boucle(t, projet(t), 5)

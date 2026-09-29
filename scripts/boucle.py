@@ -5,8 +5,8 @@ Chaque fiche est jouée comme après un `/clear` suivi de `/vlp:tache <fiche>` :
 processus `claude` neuf, sans rien de la fiche d'avant, dans le dossier du projet.
 Seul script du kit qui appelle un modèle ; `vlp.py` reste sans appel modèle.
 
-    boucle.py [dossier] --plafond N [--claude C] [--model M] [--permission-mode P]
-              [--budget USD] [--traces DOSSIER]
+    boucle.py [dossier] --plafond N [--claude C] [--model M] [--effort E]
+              [--permission-mode P] [--budget USD] [--traces DOSSIER]
 
 Avant chaque fiche : `vlp.py carte` donne `PROCHAINE=` ; `aucune` arrête. Une fiche
 à bloc **Tentatives** arrête sans être jouée. Une fiche `(visuel)` (ligne `ARRÊT:`
@@ -103,6 +103,8 @@ def jouer(claude, fiche, racine, a, trace):
             "--allowedTools"] + AUTORISES + ["--disallowedTools"] + INTERDITS
     if a.model:
         cmd += ["--model", a.model]
+    if a.effort:
+        cmd += ["--effort", a.effort]
     if a.budget:
         cmd += ["--max-budget-usd", a.budget]
     env = {k: v for k, v in os.environ.items() if k not in HERITEES}
@@ -129,6 +131,7 @@ def main(argv):
     p.add_argument("--plafond", type=int, required=True)
     p.add_argument("--claude")
     p.add_argument("--model")
+    p.add_argument("--effort")
     p.add_argument("--permission-mode", default="auto")
     p.add_argument("--budget")
     p.add_argument("--traces")

@@ -49,8 +49,9 @@ Rien de parallélisable : `REG2` appelle l'option de `REG1`, `REG3` essaie `REG2
 ---
 
 <!-- FICHE:REG1 -->
-## REG1 [ ] — Transmettre l'effort par `boucle.py`
+## REG1 [x] — Transmettre l'effort par `boucle.py`
 
+**Session** : 530c009b-ea97-49ff-a327-c115bd205a02
 **Dépend de** : rien.
 **Fichiers** : `scripts/boucle.py`, `scripts/test-boucle.py` — et rien d'autre.
 

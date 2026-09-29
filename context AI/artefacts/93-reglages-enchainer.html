@@ -21,9 +21,9 @@
     <p>/vlp:enchainer sans argument joue les fiches dans la session (main), sans bascule de modèle ; le joueur des modes agents et clear est Sonnet, effort low.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="encours"></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="encours"></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">3 fiches · 0 faite · en cours : REG1</p>
+    <p class="mono" style="margin-top:.5rem">3 fiches · 1 faite · en cours : REG2</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -38,17 +38,20 @@
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">REG1</span></span>
-        <details open><summary><span class="titre">Transmettre l'effort par boucle.py</span><span class="etat">En cours</span></summary>
-        <span class="note">boucle.py transmet --effort à claude -p, sans défaut ; test et mutant. Ne dépend de rien.</span></details></li>
-      <li class="fiche" data-attend><span class="gauche"><span class="id">REG2</span></span>
-        <details><summary><span class="titre">Faire partir enchainer en main, le joueur en Sonnet</span><span class="etat">Après REG1</span></summary>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REG1</span></span>
+        <details><summary><span class="titre">Transmettre l'effort par boucle.py</span><span class="etat">Faite</span></summary>
+        <span class="note">test-boucle.py : OK (code 0) ; mutant sans --effort dans jouer() : ÉCART « --effort low transmis tel quel à claude », code 1 ; rendu : OK ; pyright 2 fichiers : 0 errors (avant : 0)</span></details>
+        <span class="cout mono">≈752,7k (752 660) · 7 tours · 0,62 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">REG2</span></span>
+        <details open><summary><span class="titre">Faire partir enchainer en main, le joueur en Sonnet</span><span class="etat">En cours</span></summary>
         <span class="note">enchainer part en main, agents pour les sous-agents, clear en Sonnet low ; le sous-agent joueur passe de Haiku à Sonnet. Dépend de REG1.</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">REG3</span></span>
         <details><summary><span class="titre">Essayer enchainer rechargé, pour de vrai</span><span class="etat">Après REG2</span></summary>
         <span class="note">Essai réel sur un bac, par l'utilisateur après /reload-plugins : la fiche est jouée dans la session. Dépend de REG2.</span></details>
         <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
     </ul>
+    <p class="mono cout-hors">Hors fiches : ≈4,0M (3 981 214) · 30 tours · 3,07 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈4,7M (4 733 874) · 37 tours · 3,69 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
