@@ -5106,4 +5106,49 @@ def tester_apercu():
 
 tester_apercu()
 
+
+def tester_retard_plugin():
+    """ESR1 : un worktree du kit en avance de code sur le kit chargé — la carte le dit."""
+    if not shutil.which("git"):
+        print("SAUTÉ: git absent — retard_plugin n'est pas testé")
+        return
+    with tempfile.TemporaryDirectory() as tr:
+        env = dict(os.environ, GIT_CONFIG_GLOBAL=os.path.join(tr, "gitconfig"), GIT_CONFIG_NOSYSTEM="1",
+                   GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t")
+        ecrire(env["GIT_CONFIG_GLOBAL"], "")
+        kit, wt, autre = (os.path.join(tr, x) for x in ("kit", "wt", "autre"))
+
+        def git(d, *args):
+            subprocess.run(["git"] + list(args), cwd=d, env=env, check=True, capture_output=True)
+
+        def commit(d, chemin, texte):
+            ecrire(os.path.join(d, chemin), texte)
+            git(d, "add", "-A")
+            git(d, "commit", "-q", "-m", chemin)
+        for d in (kit, autre):
+            os.makedirs(d)
+            git(d, "init", "-q", "-b", "main")
+            commit(d, "CHANTIER.md", "# C\n\n- **fichier de fiches courant** : aucun\n")
+        git(kit, "worktree", "add", "-q", "-b", "fiche", wt)
+        commit(wt, "scripts/x.py", "x = 1\n")
+        r1 = mod.retard_plugin(wt, kit=kit)
+        commit(wt, "context AI/n.md", "note\n")
+        r2 = mod.retard_plugin(wt, kit=kit)
+        muets = (mod.retard_plugin(kit, kit=kit), mod.retard_plugin(autre, kit=kit))
+        garde, mod.KIT = mod.KIT, kit
+        try:
+            o = io.StringIO()
+            mod.carte(wt, o)
+        finally:
+            mod.KIT = garde
+        lignes = [l for l in o.getvalue().split("\n") if l.startswith("PLUGIN_RETARD=")]
+        verifier("ESR1 : retard du plugin — 1 commit de scripts/ compté, context AI/ non, muet sur le kit "
+                 "et un autre dépôt, une ligne dans la carte — mutant : chemins retirés du rev-list",
+                 r1 is not None and r1[0] == 1 and r1[2] == "fiche" and r2 is not None and r2[0] == 1
+                 and muets == (None, None) and len(lignes) == 1 and lignes[0].startswith("PLUGIN_RETARD=1 ")
+                 and lignes[0].endswith("merge --ff-only fiche"), (r1, r2, muets, lignes))
+
+
+tester_retard_plugin()
+
 print("OK")

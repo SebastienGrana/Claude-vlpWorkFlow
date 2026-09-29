@@ -46,8 +46,9 @@ Une seule fiche.
 ---
 
 <!-- FICHE:ESR1 -->
-## ESR1 [ ] — Dire dans la carte le retard du plugin chargé
+## ESR1 [x] — Dire dans la carte le retard du plugin chargé
 
+**Session** : b293bb0b-835f-4938-bedc-3114bdb5643a
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py`, `skills/tache/SKILL.md`,
 `skills/check/SKILL.md` — et rien d'autre.

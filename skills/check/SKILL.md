@@ -22,7 +22,8 @@ Retiens : le **kit**, le **dossier de contexte**, le **fichier de fiches
 courant**, l'**artefact du chantier**, l'**artefact feuille de route**.
 
 Si la carte ne dit pas `PROJET=`, le projet n'est pas équipé : dis-le, propose
-`/vlp:init`, et arrête-toi. Rien d'autre n'a de sens sans lui.
+`/vlp:init`, et arrête-toi. Rien d'autre n'a de sens sans lui. Une ligne
+`PLUGIN_RETARD=` est un écart : dis-la ; sa commande, sur le oui de l'utilisateur.
 
 ## 2. Les neuf vérifications
 

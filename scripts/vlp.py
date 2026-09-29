@@ -6,7 +6,9 @@ Sous-commandes :
 - `carte [dossier]` — la carte d'un projet, à injecter avant le 1er tour d'une
   commande. Remonte jusqu'au premier `CHANTIER.md`. Trouvé : `PROJET=<racine>`,
   le fichier en entier, une ligne `ATTENTE=<page> <url>` par page de la liste
-  d'attente (`attente`, sauf avec `--relecteur`), puis — si un fichier de fiches est courant — ses titres
+  d'attente (`attente`, sauf avec `--relecteur`), `PLUGIN_RETARD=<n> … merge --ff-only <branche>` si
+  le plugin chargé n'a pas le code de ce worktree du kit (`retard_plugin`, chantier ESR, sauf avec
+  `--relecteur`), puis — si un fichier de fiches est courant — ses titres
   de fiches numérotés, `PROCHAINE=<fiche>` (la première non cochée, dans l'ordre
   du fichier) ou `PROCHAINE=aucune`, et une `GARDE` si le fichier a des lignes
   mais aucun titre au format attendu. Aucun fichier courant : pour chaque
@@ -704,6 +706,11 @@ def carte(depart, sortie, relecteur=False):
     if not relecteur:
         for l in lignes_attente(dossier_artefacts(racine)):
             sortie.write(l + "\n")
+        retard = retard_plugin(racine)
+        if retard:
+            sortie.write('PLUGIN_RETARD=%d commit(s) de code du plugin absents du plugin chargé — avant un '
+                         '/reload-plugins : git -C "%s" merge --ff-only %s\n'
+                         % (retard[0], retard[1].replace("\\", "/"), retard[2]))
     courant = fichier_courant(texte)
     if courant is None:
         sortie.write("--- fichier de fiches courant : aucun ---\n")
@@ -1120,6 +1127,35 @@ def git_texte(args, cwd, env=None):
     if r.returncode:
         return r.returncode, ((r.stderr or "").strip().splitlines() or ["code %d" % r.returncode])[0]
     return 0, r.stdout
+
+
+# Le code du plugin : ce qu'un `/reload-plugins` recharge, ou que les commandes lisent (chantier ESR).
+CODE_PLUGIN = ("skills", "agents", "hooks", "scripts", "templates", ".claude-plugin", "methode-chantier.md",
+               "cloture.md", "enchainement.md", "ARTEFACTS.md")
+
+
+def retard_plugin(racine, kit=None):
+    """`(n, principal, branche)` : `n` commits de `racine` qui touchent `CODE_PLUGIN` et manquent au
+    `HEAD` du kit chargé (`kit`, défaut `KIT`, résolu en `principal`) — un worktree du kit en avance
+    sur le dossier que suit `~/.claude/skills/vlp` (chantier ESR). `branche` : celle de `racine`, ou
+    son sha court si `HEAD` est détaché. `None` : autre dépôt, même dossier, retard nul, git muet."""
+    principal = os.path.realpath(kit or KIT)
+    lieux = []
+    for d in (principal, racine):
+        code, t = git_texte(["rev-parse", "--path-format=absolute", "--git-common-dir", "--show-toplevel"], d)
+        if code != 0 or len(t.split()) < 2:
+            return None
+        lieux.append([os.path.normcase(os.path.realpath(x)) for x in t.strip().split("\n")[:2]])
+    if lieux[0][0] != lieux[1][0] or lieux[0][1] == lieux[1][1]:
+        return None
+    code, tete = git_texte(["rev-parse", "HEAD"], principal)
+    code2, n = git_texte(["rev-list", "--count", "%s..HEAD" % tete.strip(), "--"] + list(CODE_PLUGIN), racine)
+    if code != 0 or code2 != 0 or not n.strip().isdigit() or int(n) == 0:
+        return None
+    _, branche = git_texte(["rev-parse", "--abbrev-ref", "HEAD"], racine)
+    if branche.strip() == "HEAD":
+        _, branche = git_texte(["rev-parse", "--short", "HEAD"], racine)
+    return int(n), principal, branche.strip()
 
 
 def retirer_relectures(racine):
