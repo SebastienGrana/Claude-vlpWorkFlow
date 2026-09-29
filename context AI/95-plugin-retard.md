@@ -9,7 +9,9 @@ une fiche écrit : un `/reload-plugins` y recharge l'ancien code (vu à `REG3`).
 
 **Estimé.** 1 fiches · ≈3,02 $ — ≈3,02 $/fiche sur 82 clos (le 2026-09-29).
 
-**Fait.** Rien. Ouvert le 2026-09-29, cadré en 1 fiche, `ESR1` à jouer.
+**CLOS** le 2026-09-29. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** ESR1..ESR1 (2026-09-29) : la carte dit PLUGIN_RETARD= (n commits de code, commande merge --ff-only) quand le plugin chargé n'a pas le code du worktree du kit ; tache et check la disent — estimé 1 fiches ≈3,02 $ · cadré 1 · joué 1 fiches 1,41 $.
 
 **Session** : b293bb0b-835f-4938-bedc-3114bdb5643a
 
