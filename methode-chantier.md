@@ -260,6 +260,13 @@ a rendu `DÉCOUPE aucune` — des sessions entières, dont une session parallèl
 **Un push à la clôture seulement, et jamais sans confirmation** : il publie, et
 ne se reprend pas. `cloture.md` le porte.
 
+**Une branche de chantier fusionnée dans `main` : relire `CHANTIER.md` et la feuille** —
+Git ne voit pas ces pertes-là. Vu deux fois : prédit par `PAR4`, puis à la fusion de `PAR`
+(`2cef70f`, 2026-09-29) : sans conflit, `CHANTIER.md` a perdu le chantier resté ouvert de
+l'autre côté (`LOC`), et la feuille régénérée son badge « en cours » — `vlp.py feuille .
+--todo <rang>` le rend. Les conflits, eux, se prédisent :
+`git merge-tree --write-tree --name-only <branche> main`.
+
 Le sous-agent de `/vlp:enchainer` ne commite pas — il n'a ni le contexte ni le
 droit : c'est le chef qui commite, après chaque `FAITE` accepté à la relecture
 (`enchainement.md`, « Relecture »).
