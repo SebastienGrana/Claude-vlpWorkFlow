@@ -352,8 +352,9 @@ sous `main` ; `test-mesure-tokens.py` : OK ; pyright : 0 errors sur les fichiers
 ---
 
 <!-- FICHE:PAR7 -->
-## PAR7 [ ] — Choisir le modèle de chaque rôle
+## PAR7 [x] — Choisir le modèle de chaque rôle
 
+**Session** : 8a40eca6-3ab3-4009-8ab4-7c8975785fae
 **Dépend de** : `PAR6` (la grille qui connaît Sonnet 5.5, la manière de mesurer).
 **Fichiers** : `agents/fiche.md`, `agents/relecture.md`, `skills/enchainer/SKILL.md` (leur
 ligne `model:`, lue, jamais changée ici), `scripts/boucle.py` (lu), `context AI/08-etat.md`.

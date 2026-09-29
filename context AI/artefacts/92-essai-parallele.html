@@ -21,9 +21,9 @@
     <p>Un verdict chiffré : le temps gagné par deux sessions en même temps (kit + MapDecorator), face au temps en série — code du parallèle (D2–D5) seulement si le gain passe 20 %.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span data-etat="faite"></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span data-etat="faite"></span><span data-etat="faite"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">7 fiches · 5 faites · en cours : PAR5</p>
+    <p class="mono" style="margin-top:.5rem">7 fiches · 6 faites · en cours : PAR5</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -53,19 +53,21 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">PAR4</span></span>
         <details><summary><span class="titre">Prédire la fusion des branches</span><span class="etat">Faite</span></summary>
         <span class="note">merge-tree PAR/LOC : 3 fichiers en conflit, 5 blocs (08-etat.md 2, mesure-tokens.py 2, test-mesure-tokens.py 1) ; les 2 scripts et 1 bloc d'08-etat viennent de main (4dcdd8b, 07b5768), pas de LOC. CHANTIER.md : perte silencieuse (LOC disparaît de l'arbre fusionné fee2556), feuille de route pareil. Clôture : 7 fichiers communs, 5 conflits sûrs prédits. git status : 08-etat.md seul.</span></details>
-        <span class="cout mono">≈1,4M (1 403 735) · 13 tours · 1,26 $</span></li>
-      <li class="fiche" data-etat="encours" data-attend><span class="gauche"><span class="id">PAR5</span></span>
-        <details open><summary><span class="titre">Ranger les commandes qui jouent les fiches</span><span class="etat">En cours · attend PAR7</span></summary></details>
+        <span class="cout mono">≈1,8M (1 772 521) · 16 tours · 1,41 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">PAR5</span></span>
+        <details open><summary><span class="titre">Ranger les commandes qui jouent les fiches</span><span class="etat">En cours</span></summary></details>
         <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">PAR6</span></span>
         <details><summary><span class="titre">Mesurer ce que coûte chaque mode d'enchainer</span><span class="etat">Faite</span></summary>
         <span class="note">08-etat : table à 4 lignes — enchainer 44 fiches · 3,18 $ · 79,1 tours ; main 84 · 2,03 $ · 27,2 ; clear 49 (proxy) · 2,18 $ · 30,1 ; main clear pas mesuré (= clear) ; clear passe sous main au rang 3 (0,59 contre 0,27 $, 11/17) ; test-mesure-tokens.py : OK ; pyright : 0 errors ; valider : VALIDE 7 fiches · socle 78 lignes · 0 écarts</span></details>
         <span class="cout mono">≈10,1M (10 101 901) · 58 tours · 6,79 $</span></li>
-      <li class="fiche"><span class="gauche"><span class="id">PAR7</span></span>
-        <details><summary><span class="titre">Choisir le modèle de chaque rôle</span><span class="etat">À lancer</span></summary></details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">PAR7</span></span>
+        <details><summary><span class="titre">Choisir le modèle de chaque rôle</span><span class="etat">Faite</span></summary>
+        <span class="note">Table dans 08-etat.md, 3 réglages sur ENQ2+TAU1 (effort low, boucle.py) : Haiku 4.5 0/2 acceptée (1 refusée, 1 RETOUR, 49,5 tours/fiche, 1,57 $ pour rien) ; Sonnet 5.5 2/2, 26 tours, 0,95 $/fiche acceptée ; Opus 5.5 2/2, 26 tours, 1,39 $. Cause vérifiée en claude -p : model: sonnet d'enchainer vaut pour le tour de la skill, retour à Opus au suivant, 51 172 tokens réécrits. valider : VALIDE sur 92-essai-parallele.md (INVALIDE sur 08-etat.md avant comme après : validateur de fiches) ; git status : 08-etat.md seul.</span></details>
+        <span class="cout mono">≈24,3M (24 260 391) · 240 tours · 10,13 $</span></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈3,7M (3 661 313) · 28 tours · 2,87 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈28,8M (28 848 684) · 189 tours · 21,72 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈53,5M (53 477 861) · 432 tours · 32,00 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
