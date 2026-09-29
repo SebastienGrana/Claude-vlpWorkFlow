@@ -115,15 +115,17 @@ fichier, jamais sur un fichier modifié non commité). Un test dans `scripts/tes
 ---
 
 <!-- FICHE:JNT3 -->
-## JNT3 [ ] — `FILES` ne nomme que les joints changés
+## JNT3 [x] — `FILES` ne nomme que les joints changés
 
+**Session** : b293bb0b-835f-4938-bedc-3114bdb5643a
 **Dépend de** : `JNT2`.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py`, `ARTEFACTS.md` — et rien d'autre.
 
 **Prompt**
 `cmd_attente_hook`, sur un `PostToolUse` réussi avec `files` : note dans
 `<contexte>/artefacts/publie` (une ligne par page et joint, tabulations : page, nom publié,
-sha256) l'empreinte de chaque fichier passé ; une page republiée remplace ses lignes. `ligne_files`
+sha256) l'empreinte de chaque fichier passé ; une page republiée remplace les lignes des seuls
+joints repassés (corrigé en jouant : tout remplacer effaçait la note d'un joint non renvoyé). `ligne_files`
 reçoit la page et ne garde que les joints dont l'empreinte diffère de la note ; page non notée :
 tous. `FILES {}` s'écrit quand rien n'a changé. `ARTEFACTS.md` : la règle « chaque publication
 passe `files` » devient « le JSON de la ligne `FILES`, même vide » ; la phrase « non essayé » de

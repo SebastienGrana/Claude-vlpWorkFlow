@@ -107,6 +107,8 @@ Sous-commandes :
   fiches, total et hors fiches recopiés de l'ancienne page ; refuse `--creer`.
   Recopie les joints à côté de la page (`joints`), puis écrit `CSS <copie de vlp.css>` et
   `FILES {…}` ; une page d'avant BTN1 reçoit une fois `<meta charset>` et `<script src="vlp.js">`.
+  `FILES` ne nomme que les joints changés depuis la dernière publication de la page (`publie`,
+  noté par `attente hook`) ; page jamais notée : tous ; rien de changé : `FILES {}` (chantier JNT).
 - `hook` — le hook `PostToolUse` (`Write|Edit`) du plugin : lit sur stdin le
   JSON du hook, prend `tool_input.file_path` (relatif : contre `cwd`). Sort 0
   muet si ce n'est pas un fichier de fiches — JSON illisible, chemin absent, pas
@@ -308,6 +310,7 @@ Sous-commandes :
   fois du jour UTC pour ce projet (`tampon_neuf`), rend en `additionalContext` l'heure locale de
   la remise à zéro et celle d'une tâche planifiée `MARGE_TACHE` plus tard ; une publication
   réussie d'une page listée la retire ; tout le reste — page non lue, refus du vigile — se tait.
+  Toute publication réussie note l'empreinte de ses `files` dans `publie`, à côté de la page.
 - `repeindre <projet> [--a-blanc]` — chaque page de chantier clos (parcours de `recompter`)
   qui ne lie pas `vlp.css` passe par `page --forme` puis `vigile`, dans une copie :
   `REPEINTE <page> · lien <url>` ou `· sans lien` (section `## Lien` de son `.md`), une
@@ -2098,9 +2101,47 @@ def recopier_joints(dossier):
     return copies
 
 
-def ligne_files(copies):
+PUBLIE = "publie"   # à côté des pages : page, nom publié, sha256 — ce que la dernière publication a joint
+
+
+def empreinte(chemin):
+    with open(chemin, "rb") as f:
+        return hashlib.sha256(f.read()).hexdigest()
+
+
+def lire_publie(dossier):
+    """{(page, nom publié): sha256} du fichier `publie` de `dossier` ; absent : {}."""
+    chemin = os.path.join(dossier, PUBLIE)
+    if not os.path.isfile(chemin):
+        return {}
+    notes = {}
+    for l in lignes_de(chemin):
+        c = l.split("\t")
+        if len(c) == 3:
+            notes[(c[0], c[1])] = c[2]
+    return notes
+
+
+def noter_publie(dossier, page, empreintes):
+    """Remplace les empreintes de `page` pour les seuls noms donnés : un joint non repassé
+    garde la sienne, il est toujours en ligne (chantier JNT). `.tmp` puis `os.replace`."""
+    notes = lire_publie(dossier)
+    notes.update({(page, nom): h for nom, h in empreintes.items()})
+    chemin = os.path.join(dossier, PUBLIE)
+    with open(chemin + ".tmp", "w", encoding="utf-8", newline="\n") as f:
+        f.write("".join("%s\t%s\t%s\n" % (p, n, h) for (p, n), h in sorted(notes.items())))
+    os.replace(chemin + ".tmp", chemin)
+
+
+def ligne_files(copies, page=None):
     """`FILES {…}` : le JSON de `recopier_joints`, chemins en barres obliques — à passer
-    tel quel au paramètre `files` d'`Artifact` (chantier BTN)."""
+    tel quel au paramètre `files` d'`Artifact` (chantier BTN). Avec `page`, seuls les joints
+    dont l'empreinte diffère de celle notée à sa dernière publication (`publie`, écrit par
+    `attente hook`) ; page jamais notée : tous ; rien de changé : `FILES {}` (chantier JNT)."""
+    if page:
+        dossier, nom_page = os.path.split(os.path.abspath(page))
+        notes = lire_publie(dossier)
+        copies = {nom: c for nom, c in copies.items() if notes.get((nom_page, nom)) != empreinte(c)}
     return "FILES %s\n" % json.dumps({nom: chemin.replace("\\", "/") for nom, chemin in copies.items()},
                                      ensure_ascii=False)
 
@@ -2988,7 +3029,7 @@ def cmd_page(a, sortie):
                     ", dont hors fiches %s" % ligne_cout(*hors) if hors else ""))
     joints = recopier_joints(os.path.dirname(os.path.abspath(a.page)))
     sortie.write("CSS %s\n" % joints["vlp.css"])
-    sortie.write(ligne_files(joints))
+    sortie.write(ligne_files(joints, a.page))
     if n > SEUIL_PAGE:
         sortie.write("GARDE: %d lignes, au-delà du seuil du script (%d) — la page est relue à chaque fiche\n"
                      % (n, SEUIL_PAGE))
@@ -3585,7 +3626,7 @@ def cmd_archive(projet, url, sortie):
                 fh.write(texte_neuf)
     joints = recopier_joints(os.path.dirname(os.path.abspath(page)))
     joints.update(ecrire_couts(page, neuf, couts_clos(archive_html)))
-    sortie.write(ligne_files(joints))
+    sortie.write(ligne_files(joints, page))
     sortie.write("ARCHIVE %d déplacées · %d dans l'archive · feuille %d → %d octets · %s — %s\n" % (
         deplacees, len(lignes_clos(archive_html)), len(avant.encode("utf-8")), len(neuf.encode("utf-8")),
         "url %s" % url if url else "sans url", archive))
@@ -3614,7 +3655,7 @@ def cmd_feuille(a, sortie):
     joints = recopier_joints(os.path.dirname(os.path.abspath(page)))
     sortie.write("CSS %s\n" % joints["vlp.css"])
     joints.update(ecrire_couts(page, neuf, couts_du_projet(a.projet, neuf)))
-    sortie.write(ligne_files(joints))
+    sortie.write(ligne_files(joints, page))
     sortie.write("%s · %s — %s\n" % (bilan, "inchangée" if neuf == html else "réécrite", page))
     return 0
 
@@ -4429,11 +4470,34 @@ def cmd_attente(a, sortie, maintenant=None):
     return 0
 
 
+def noter_joints(outil, cwd, page):
+    """Après une publication réussie : l'empreinte de chaque fichier de `files` (forme dict,
+    source en chemin ou `{from}` ; relative à `root`, puis au dossier courant) dans `publie`,
+    à côté de `page` (chantier JNT). Un fichier copié d'un autre artefact ou absent : ignoré."""
+    fichiers = outil.get("files")
+    if not isinstance(fichiers, dict):
+        return
+    base = cwd if isinstance(cwd, str) else os.getcwd()
+    if isinstance(outil.get("root"), str):
+        base = os.path.join(base, outil["root"])
+    empreintes = {}
+    for nom, source in fichiers.items():
+        if isinstance(source, dict):
+            source = source.get("from")
+        if isinstance(nom, str) and isinstance(source, str):
+            source = os.path.join(base, source)
+            if os.path.isfile(source):
+                empreintes[nom] = empreinte(source)
+    if empreintes:
+        noter_publie(os.path.dirname(page), os.path.basename(page), empreintes)
+
+
 def cmd_attente_hook(entree, sortie, maintenant=None):
     """Le hook `PostToolUse` et `PostToolUseFailure` sur `Artifact` (chantier LOC). Un échec dont
     `error` porte `TEXTE_LIMITE` ajoute la page à la liste et, la première fois du jour UTC pour
-    ce projet, propose une tâche planifiée ; un succès retire la page. Muet sur tout le reste :
-    un autre refus, une page hors des artefacts d'un projet équipé, une entrée illisible."""
+    ce projet, propose une tâche planifiée ; un succès retire la page et note l'empreinte des
+    joints passés (`noter_joints`, chantier JNT). Muet sur tout le reste : un autre refus, une
+    page hors des artefacts d'un projet équipé, une entrée illisible."""
     try:
         d = json.loads(entree.read())
     except (ValueError, AttributeError, TypeError):
@@ -4460,6 +4524,7 @@ def cmd_attente_hook(entree, sortie, maintenant=None):
         return 0
     if evenement == "PostToolUse":
         retirer_attente(artefacts, page)
+        noter_joints(outil, cwd, chemin)
         return 0
     erreur = d.get("error")
     if not isinstance(erreur, str) or TEXTE_LIMITE not in erreur:

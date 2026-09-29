@@ -5142,6 +5142,53 @@ def tester_attente():
 tester_attente()
 
 
+def tester_publie():
+    """publie (chantier JNT3) : la ligne FILES ne nomme que les joints changés depuis la
+    dernière publication réussie de la page, notée par `attente hook`."""
+    def files_de(s):
+        for l in s.splitlines():
+            if l.startswith("FILES "):
+                return json.loads(l[len("FILES "):])
+        return None
+
+    def hook(d):
+        return mod.cmd_attente_hook(io.StringIO(json.dumps(d)), io.StringIO())
+
+    with tempfile.TemporaryDirectory() as t:
+        p = os.path.join(t, "proj")
+        ecrire(os.path.join(p, "CHANTIER.md"), CHANTIER % ("pz", "context AI/20-z.md (Z1..Z10)"))
+        ecrire(os.path.join(p, "context AI", "20-z.md"), FICHES)
+        art = os.path.join(p, "context AI", "artefacts")
+        fiches, page, notes = os.path.join(t, "p.md"), os.path.join(art, "p.html"), os.path.join(art, "publie")
+        ecrire(fiches, FICHES_PLI2)
+        code, s = appel(["page", fiches, page, "--creer", "--projet", "Proj", "--titre", "T", "--resultat", "R0"])
+        files = files_de(s) or {}
+        verifier("JNT3 : page jamais notée — FILES nomme les 2 joints", code == 0 and sorted(files) == ["vlp.css", "vlp.js"], s)
+        # vlp.js en `{from}` relatif au dossier courant : les deux formes du paramètre `files`
+        passe = {"vlp.css": files.get("vlp.css"), "vlp.js": {"from": os.path.relpath(files.get("vlp.js", t), p)}}
+        succes = {"hook_event_name": "PostToolUse", "tool_name": "Artifact", "cwd": p,
+                  "tool_input": {"file_path": page, "url": "https://claude.ai/artifact/AAA", "files": passe}}
+        hook(dict(succes, hook_event_name="PostToolUseFailure", error="Nothing was published or removed"))
+        verifier("JNT3 : une publication refusée ne note rien", not os.path.exists(notes), str(os.listdir(art)))
+        hook(succes)
+        lignes = mod.lignes_de(notes) if os.path.exists(notes) else []
+        verifier("JNT3 : publication réussie — publie a 2 lignes, page p.html, chemin et {from}",
+                 [l.split("\t")[:2] for l in lignes] == [["p.html", "vlp.css"], ["p.html", "vlp.js"]], str(lignes))
+        code, s = appel(["page", fiches, page])
+        verifier("JNT3 : rien de changé — FILES {} — mutant : ligne_files qui ignore la note", files_de(s) == {}, s)
+        ecrire(notes, "".join(l.replace("\tvlp.css\t", "\tvlp.css\t0") + "\n" if "\tvlp.css\t" in l else l + "\n"
+                              for l in lignes))
+        code, s = appel(["page", fiches, page])
+        verifier("JNT3 : vlp.css changé depuis la note — FILES ne nomme que lui", sorted(files_de(s) or {"x": 0}) == ["vlp.css"], s)
+        hook(dict(succes, tool_input={"file_path": page, "files": {"vlp.css": files.get("vlp.css")}}))
+        code, s = appel(["page", fiches, page])
+        verifier("JNT3 : republié avec vlp.css seul — vlp.js garde sa note, FILES {}",
+                 files_de(s) == {} and len(mod.lignes_de(notes)) == 2, s + lire(notes))
+
+
+tester_publie()
+
+
 def tester_apercu():
     """servir et apercu (chantier LOC4) : un serveur sans cache, et une seule entrée dans launch.json."""
     import contextlib

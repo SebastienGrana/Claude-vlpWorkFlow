@@ -107,8 +107,9 @@ Seul endroit de la règle : les commandes y renvoient, elles ne la recopient pas
   `vlp.py lien <page.html> <url>` écrit son url.
 - Les **autres refus** (page non lue, joints non lus, vigile) se corrigent : ils n'attendent pas,
   et la liste n'y bouge pas (essayé pour de vrai, `LOC5`). Joints non lus : `read` de chaque
-  joint par son `path`, puis republier. D'après la doc de l'outil `Artifact` (non essayé) : une
-  publication sans `files` garde les joints déjà en ligne.
+  joint par son `path`, puis republier. Une publication sans `files` garde les joints déjà en
+  ligne (doc de l'outil `Artifact`, essayé sur la feuille, version 185). Cause mesurée : des
+  octets différents du disque, fins de ligne comprises (`JNT`, `context AI/99-joints-changes.md`).
 - Regarder une page **sans la publier** : `vlp.py apercu <projet>` (détail dans sa docstring).
 
 ## La page se régénère, elle ne se retouche pas
@@ -164,10 +165,13 @@ Tranché le 2026-09-26 par le chantier `ALE` ; chiffres et commandes dans
   Sur la feuille, `vlp.js` charge Chart.js (jsDelivr, MIT, version épinglée dans
   `vlp.js`) et remplace `couts.svg` par un graphique à axe gradué et bulles ; sans
   réseau, l'image reste (demande de l'utilisateur, 2026-09-28).
-- **Chaque publication, même une republication, passe `files` : le JSON de la
-  ligne `FILES`** (chantier `PLI`) : `read` ne rend jamais le fichier
-  joint, donc aucun coût de relecture — omettre `files` une fois ne coûte rien
-  tout de suite, mais désynchronise l'artefact du disque à la prochaine lecture.
+- **Chaque publication passe `files` : le JSON de la ligne `FILES`, même vide**
+  (chantiers `PLI`, `JNT`). `FILES` ne nomme que les joints changés depuis la
+  dernière publication réussie de la page : le hook `attente hook` note leur
+  empreinte dans `<contexte>/artefacts/publie` ; page jamais notée, tous. Un joint
+  inchangé n'est pas renvoyé, donc pas refusé (`JNT1` : 14 refus sur 187
+  publications avec `files` avant). `.gitattributes` tient les joints en LF, pour
+  les mêmes octets dans tout clone.
 - **Les données : dans la page pour l'instant — la base `db` adoptée pour
   plus tard.** Une écriture en base ajoute bien moins encore, sans relire la
   page, et ne demande aucun accord, même hors mode auto. En échange, la page ne
