@@ -13,9 +13,9 @@
 - **chantiers possibles** : context AI/08-etat.md
 - **fichier d'état** : context AI/08-etat.md
 - **index** : context AI/00-INDEX.md
-- **fichier de fiches courant** : aucun
+- **fichier de fiches courant** : context AI/95-plugin-retard.md (ESR1..ESR1)
 - **artefact feuille de route** : https://claude.ai/artifact/YWDny8kjubq9DhdP5rbPxA
-- **artefact du chantier** : aucun
+- **artefact du chantier** : https://claude.ai/artifact/PhoLHw4vaF8tHMkWvDfXJV
 - **livraison** : aucune — le plugin est chargé en place ; `/reload-plugins` pour
   que la session en cours voie une modification
 - **vérification** : geste de l'utilisateur — rejouer la commande modifiée sur un

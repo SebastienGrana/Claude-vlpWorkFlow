@@ -1,0 +1,69 @@
+<meta charset="utf-8">
+<title>vlp — Un essai rechargé voit le code du worktree</title>
+<!--
+  GABARIT — artefact d'un chantier. Publié par /chantier à l'ouverture,
+  mis à jour par /tache à chaque fiche. Remplace les <…> et ne renomme pas
+  les marqueurs `ZONE:…` : les commandes les cherchent tels quels.
+
+  Convention de coût — posée ici, référencée (jamais recopiée) par
+  artefact-feuille-de-route.html, tache.md et cloture.md : un nombre < 1000
+  s'affiche tel quel ; au-delà, "≈<arrondi 1 décimale><k|M> (<compte brut>)"
+  — virgule française, k = mille, M = million. Le compte brut reste toujours
+  visible à côté de l'arrondi.
+-->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700&family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:wght@400;600&display=swap">
+<link rel="stylesheet" href="vlp.css">
+
+<div class="page">
+  <header>
+    <div class="eyebrow">vlp · fiches ESR1 · <a href="https://claude.ai/artifact/YWDny8kjubq9DhdP5rbPxA">la feuille de route</a></div>
+    <h1>Un essai rechargé voit le code du worktree</h1>
+    <p>Dans un worktree du kit en avance sur main, la carte dit PLUGIN_RETARD= : combien de commits de code manquent au plugin chargé, et la commande pour avancer main avant un /reload-plugins.</p>
+    <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
+    <div class="avancement">
+      <span data-etat="encours"></span>
+    </div>
+    <p class="mono" style="margin-top:.5rem">1 fiches · 0 faite · en cours : ESR1</p>
+  </header>
+
+  <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
+  <section hidden>
+    <h2>Chantier clos le </h2>
+    <div class="bilan">
+      <p></p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Les fiches, dans l'ordre des dépendances</h2>
+    <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
+    <ul class="fiches">
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">ESR1</span></span>
+        <details open><summary><span class="titre">Dire dans la carte le retard du plugin chargé</span><span class="etat">En cours</span></summary>
+        <span class="note">retard_plugin et sa ligne dans la carte, consigne dans tache et check, test sur un vrai worktree et mutant ; ne dépend de rien</span></details></li>
+    </ul>
+    <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
+  </section>
+
+  <!-- ZONE:blocage — publiée quand /tache s'arrête après deux tentatives ; retirée dès que la fiche repasse -->
+  <section hidden>
+    <h2>Arrêt sur blocage</h2>
+    <div class="blocage">
+      <p></p>
+      <pre></pre>
+    </div>
+  </section>
+
+  <section>
+    <h2>Journal des décisions</h2>
+    <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
+    <ul class="journal">
+    </ul>
+  </section>
+
+  <footer>
+    <span>Fichier de fiches : <span class="mono">context AI/95-plugin-retard.md</span></span>
+    <span>Mis à jour le <span class="mono">2026-09-29</span></span>
+  </footer>
+</div>
+<script src="vlp.js"></script>
