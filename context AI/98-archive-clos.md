@@ -46,8 +46,9 @@ toucher aux pages de chantier ; ranger par date ou par seuil.
 ---
 
 <!-- FICHE:ARC1 -->
-## ARC1 [ ] — Lire et écrire les clos par `page_clos`
+## ARC1 [x] — Lire et écrire les clos par `page_clos`
 
+**Session** : b293bb0b-835f-4938-bedc-3114bdb5643a
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` — et rien d'autre.
 

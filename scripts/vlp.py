@@ -375,6 +375,10 @@ Sous-commandes :
   `MUTANT ATTRAPÉ <n> écart(s)` (sort 0), `MUTANT VIVANT` ou `MUTANT PLANTÉ …` (sort 1), puis
   `RENDU <sha1 12>` — `GARDE:` si l'empreinte a bougé, ou si les tests ne se lancent pas.
 
+Les lignes des chantiers clos — lues ou écrites par `clore`, `recompter`, `prix`, `liens`,
+`repeindre` et le prix moyen d'`ouvrir` — vivent dans `<contexte>/artefacts/archive-clos.html`
+s'il existe, sinon dans la feuille ; le graphique reste sur la feuille (`page_clos`, chantier ARC).
+
 Python 3 sans dépendance, zéro appel modèle.
 
 Un hook (`hook`, `filet`, `gardien`, `vigile`, `attente hook`) n'agit qu'une fois quand `python3` et `py` le lancent
@@ -3351,7 +3355,7 @@ def feuille(projet, html, todo, date):
     neuf = neuf[:d] + encours + neuf[f:]
     neuf = re.sub(r'(Lettres de fiche prises : <span class="mono">).*?(</span>)',
                   lambda m: m.group(1) + ", ".join(lettres) + m.group(2), neuf, count=1)
-    neuf = balise_couts(sommaire(neuf))
+    neuf = balise_couts(sommaire(neuf), couts_du_projet(projet, neuf))
     if neuf != html:
         neuf = re.sub(r'(Mis à jour le <span class="mono">).*?(</span>)',
                       lambda m: m.group(1) + date + m.group(2), neuf, count=1)
@@ -3446,6 +3450,38 @@ def page_feuille(projet):
     return os.path.join(projet, contexte, "artefacts", "feuille-de-route.html")
 
 
+# Les lignes des chantiers clos vivent dans `archive-clos.html` s'il existe, sinon dans la feuille
+# (chantier ARC) : tout ce qui lit ou écrit une ligne close, son pied ou son prix passe par
+# `page_clos` ; l'en-tête, la TODO, `encours` et le graphique restent sur la feuille.
+ARCHIVE_CLOS = "archive-clos.html"
+
+
+def page_clos(projet):
+    archive = os.path.join(os.path.dirname(page_feuille(projet)), ARCHIVE_CLOS)
+    return archive if os.path.isfile(archive) else page_feuille(projet)
+
+
+def couts_du_projet(projet, html):
+    """Les barres du graphique de la feuille `html` : lues dans l'archive si le projet en a une."""
+    archive = page_clos(projet)
+    return couts_clos(lire(archive) if archive != page_feuille(projet) else html)
+
+
+def rafraichir_couts(projet, page, html):
+    """Après l'écriture des lignes closes `html` dans `page` : `couts.svg` refait à côté de la feuille ;
+    `page` est l'archive, la balise de la feuille aussi, sur ses barres (chantier ARC)."""
+    feuille_ = page_feuille(projet)
+    if page == feuille_:
+        return ecrire_couts(page, html)
+    couts = couts_clos(html)
+    avant = lire(feuille_)
+    neuf = balise_couts(avant, couts)
+    if neuf != avant:
+        with open(feuille_, "w", encoding="utf-8", newline="") as fh:
+            fh.write(neuf)
+    return ecrire_couts(feuille_, neuf, couts)
+
+
 def cmd_feuille(a, sortie):
     if not equipe(a.projet):
         sortie.write("GARDE: pas de CHANTIER.md dans %s\n" % a.projet)
@@ -3467,7 +3503,7 @@ def cmd_feuille(a, sortie):
         f.write(neuf)
     joints = recopier_joints(os.path.dirname(os.path.abspath(page)))
     sortie.write("CSS %s\n" % joints["vlp.css"])
-    joints.update(ecrire_couts(page, neuf))
+    joints.update(ecrire_couts(page, neuf, couts_du_projet(a.projet, neuf)))
     sortie.write(ligne_files(joints))
     sortie.write("%s · %s — %s\n" % (bilan, "inchangée" if neuf == html else "réécrite", page))
     return 0
@@ -3544,11 +3580,12 @@ def couts_clos(html):
     return couts[::-1] if any(t for _, t in couts) else []
 
 
-def svg_couts(html):
-    """Le SVG du coût des chantiers clos (`couts_clos`), ou None sans aucun coût : une barre par
-    chantier, du plus ancien à gauche au plus récent à droite, hauteur proportionnelle aux tokens,
-    la plus haute pleine hauteur ; en haut à gauche, le maximum (`arrondi`) suivi de « tokens »."""
-    couts = couts_clos(html)
+def svg_couts(html, couts=None):
+    """Le SVG du coût des chantiers clos (`couts_clos`, ou `couts` donnés), ou None sans aucun coût :
+    une barre par chantier, du plus ancien à gauche au plus récent à droite, hauteur proportionnelle
+    aux tokens, la plus haute pleine hauteur ; en haut à gauche, le maximum (`arrondi`) suivi de
+    « tokens »."""
+    couts = couts_clos(html) if couts is None else couts
     if not couts:
         return None
     largeur, hauteur, bandeau = COUTS_TAILLE
@@ -3571,13 +3608,13 @@ def donnees_couts(couts):
     return brut.replace("&", "&amp;").replace('"', "&quot;").replace("<", "&lt;").replace(">", "&gt;")
 
 
-def balise_couts(html):
+def balise_couts(html, couts=None):
     """La balise `<img src="couts.svg">` de `#clos`, juste avant `details.clos` : posée une fois
     (une feuille d'avant la reçoit), son `alt` refait — nombre de barres, chantier le plus cher —
     et ses barres dans `data-couts` (`donnees_couts`) ; retirée sans aucun coût, ou sans
-    `details.clos`."""
+    `details.clos`. `couts` : les barres, lues ailleurs (`couts_du_projet`, chantier ARC)."""
     sans = BALISE_COUTS.sub("", html)
-    couts, m = couts_clos(sans), DETAILS_CLOS.search(sans)
+    couts, m = couts_clos(sans) if couts is None else couts, DETAILS_CLOS.search(sans)
     if not couts or not m:
         return sans
     nom = max(couts, key=lambda c: c[1])[0]
@@ -3587,11 +3624,11 @@ def balise_couts(html):
         m.group(1), COUTS_SVG, alt, donnees_couts(couts)) + sans[m.start():]
 
 
-def ecrire_couts(page, html):
+def ecrire_couts(page, html, couts=None):
     """Écrit `couts.svg` à côté de la feuille `page` si `html` porte sa balise (`balise_couts`), le
     retire sinon. Rend `{"couts.svg": chemin}`, à joindre à la ligne `FILES`, ou {}."""
     chemin = os.path.join(os.path.dirname(os.path.abspath(page)), COUTS_SVG)
-    svg = svg_couts(html) if BALISE_COUTS.search(html) else None
+    svg = svg_couts(html, couts) if BALISE_COUTS.search(html) else None
     if svg is None:
         if os.path.isfile(chemin):
             os.remove(chemin)
@@ -3686,7 +3723,7 @@ def clos_du_projet(projet, sortie):
     if not equipe(projet):
         sortie.write("GARDE: pas de CHANTIER.md dans %s\n" % projet)
         return None
-    page = page_feuille(projet)
+    page = page_clos(projet)
     if not os.path.isfile(page):
         sortie.write("GARDE: feuille de route introuvable : %s\n" % page)
         return None
@@ -3823,7 +3860,7 @@ def cmd_recompter(projet, sortie, ecrire=False, essais=False, a_clore=False):
     if parcours is None:
         return 1
     html, d, f, rangs = parcours
-    page = page_feuille(projet)
+    page = page_clos(projet)
     porteurs = {}
     for _, prefixe, _, chemin in rangs:
         for s in sessions_de(lignes_de(chemin)) if chemin else []:
@@ -3869,11 +3906,12 @@ def cmd_recompter(projet, sortie, ecrire=False, essais=False, a_clore=False):
     neuf_corps = RANG_CLOS.sub(lambda m: neufs.get(m.group(0), m.group(0)), corps)
     avant, apres = total_clos(corps), total_clos(neuf_corps)
     usd, n_usd = prix_clos(neuf_corps)
-    neuf = balise_couts(resommer(html[:d] + neuf_corps + html[f:], len(lignes_clos(neuf_corps)), apres, usd, n_usd))
+    neuf = resommer(html[:d] + neuf_corps + html[f:], len(lignes_clos(neuf_corps)), apres, usd, n_usd)
+    neuf = balise_couts(neuf) if page == page_feuille(projet) else neuf
     if neuf != html:
         with open(page, "w", encoding="utf-8", newline="") as fh:
             fh.write(neuf)
-    ecrire_couts(page, neuf)
+    rafraichir_couts(projet, page, neuf)
     sortie.write("ÉCRIT %d cellules · total %s → %s\n" % (
         sum(neufs[r] != r for r, _, _, _ in rangs), milliers(avant), milliers(apres)))
     return 0
@@ -3963,7 +4001,7 @@ def cmd_prix(projet, sortie, a_blanc=False):
     usd, n_usd = prix_clos(neuf_corps)
     neuf_html = resommer(neuf_html, len(lignes_clos(neuf_corps)), total, usd, n_usd)
     if neuf_html != html:
-        page_route = page_feuille(projet)
+        page_route = page_clos(projet)
         if not a_blanc:
             with open(page_route, "w", encoding="utf-8", newline="") as fh:
                 fh.write(neuf_html)
@@ -4582,7 +4620,7 @@ def cmd_niveau(a, sortie):
         with open(chemin, "w", encoding="utf-8", newline="") as fh:
             fh.write(contenu)
         if chemin == page:
-            ecrire_couts(page, contenu)
+            ecrire_couts(page, contenu, couts_du_projet(projet, contenu))
     sortie.write(poids + "\n")
     if a.ecrire:
         sortie.write("NIVEAU %d corrigés · %d à la main — %s\n" % (corriges, ecarts, projet))
@@ -4777,18 +4815,20 @@ def cmd_clore(a, sortie):
     # 3. la feuille de route
     page = page_feuille(projet)
     html = lire(page) if os.path.isfile(page) else None
+    archive = page_clos(projet)     # la ligne close va à l'archive si elle existe (chantier ARC)
+    clos_html = html if archive == page else lire(archive)
     total = None
     # Un seul chiffre (chantier UNI) : le total de la page, sinon --tokens ; --tokens différent
     # du mesuré n'est qu'un contrôle, qui le dit.
     total_chantier = total_mesure[0] if total_mesure and total_mesure[0] else a.tokens
     ecart = bool(total_mesure and total_mesure[0]) and a.tokens is not None and a.tokens != total_chantier
-    if html is not None:
+    if html is not None and clos_html is not None:
         try:
-            d, f = zone(html, "clos", "<tbody>\n", "        </tbody>")
+            d, f = zone(clos_html, "clos", "<tbody>\n", "        </tbody>")
         except ValueError as e:
             sortie.write("GARDE: %s\n" % e)
             return 1
-        anciens = lignes_clos(html[d:f])
+        anciens = lignes_clos(clos_html[d:f])
         lien = cellule_md(titre) if url.lower().startswith("aucun") else '<a href="%s">%s</a>' % (esc(url), cellule_md(titre))
         ligne = ('          <tr>\n            <td>%s <span class="badge" data-etat="clos">clos</span></td>\n'
                  '            <td class="mono">%s</td><td class="mono">%s</td>\n'
@@ -4797,10 +4837,11 @@ def cmd_clore(a, sortie):
                     else ("" if prix is None else dollars(prix) + " · ") + arrondi(total_chantier),
                     cellule_md(a.livre)))
         corps = ligne + "".join(anciens)
-        html = html[:d] + corps + html[f:]
+        clos_html = clos_html[:d] + corps + clos_html[f:]
         total = total_clos(corps)
         usd_corps, n_usd_corps = prix_clos(corps)
-        html = resommer(html, len(anciens) + 1, total, usd_corps, n_usd_corps)
+        clos_html = resommer(clos_html, len(anciens) + 1, total, usd_corps, n_usd_corps)
+        html = clos_html if archive == page else html
         etat = champ(carte_, "fichier d'état")
         try:
             zone_todo(html)
@@ -4818,6 +4859,9 @@ def cmd_clore(a, sortie):
     for chemin, contenu in ecritures:
         with open(chemin, "w", encoding="utf-8", newline="") as fh:
             fh.write(contenu)
+    if html is not None and archive != page and clos_html is not None:
+        with open(archive, "w", encoding="utf-8", newline="") as fh:
+            fh.write(clos_html)
     for g in gardes:
         sortie.write("GARDE: %s — le reste est écrit\n" % g)
     if html is None:
@@ -4831,7 +4875,7 @@ def cmd_clore(a, sortie):
         with open(page, "w", encoding="utf-8", newline="") as fh:
             fh.write(html)
         joints = recopier_joints(os.path.dirname(os.path.abspath(page)))
-        joints.update(ecrire_couts(page, html))
+        joints.update(ecrire_couts(page, html, couts_du_projet(projet, html)))
         sortie.write(ligne_files(joints))
         sortie.write(bilan + " · réécrite — %s\n" % page)
     if ecart:
@@ -4992,7 +5036,7 @@ def cmd_ouvrir(a, sortie):
     estime = ""
     if a.estime_fiches is not None:
         fait_ = next((k for k, l in enumerate(fiches_) if l.startswith(("**Fait.**", "**Où on en est.**"))), None)
-        feuille_ = page_feuille(projet)
+        feuille_ = page_clos(projet)
         _, n_fiches, n_clos, usd_clos, fiches_usd = moyenne_clos(lire(feuille_)) if os.path.isfile(feuille_) else (0, 0, 0, None, 0)
         if any(l.startswith("**Estimé.**") for l in fiches_):
             estime = " · estimé gardé"

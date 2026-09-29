@@ -21,9 +21,9 @@
     <p>Les chantiers clos quittent la feuille de route pour un artefact d'archive, publié une fois par séance : la feuille, relue à chaque republication, passe d'environ 77 ko à moins de 20 ko.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="encours"></span><span></span>
+      <span data-etat="faite"></span><span data-etat="encours"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">2 fiches · 0 faite · en cours : ARC1</p>
+    <p class="mono" style="margin-top:.5rem">2 fiches · 1 faite · en cours : ARC2</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -38,13 +38,16 @@
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">ARC1</span></span>
-        <details open><summary><span class="titre">Lire et écrire les clos par page_clos</span><span class="etat">En cours</span></summary>
-        <span class="note">page_clos : tout ce qui lit ou écrit les clos passe par l'archive si elle existe ; ne dépend de rien</span></details></li>
-      <li class="fiche" data-attend><span class="gauche"><span class="id">ARC2</span></span>
-        <details><summary><span class="titre">vlp.py archive déplace les clos, clore tient l'archive</span><span class="etat">Après ARC1</span></summary>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">ARC1</span></span>
+        <details><summary><span class="titre">Lire et écrire les clos par page_clos</span><span class="etat">Faite</span></summary>
+        <span class="note">page_clos : tout ce qui lit ou écrit les clos passe par l'archive si elle existe ; ne dépend de rien</span></details>
+        <span class="cout mono">≈4,2M (4 195 392) · 19 tours · 1,58 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">ARC2</span></span>
+        <details open><summary><span class="titre">vlp.py archive déplace les clos, clore tient l'archive</span><span class="etat">En cours</span></summary>
         <span class="note">vlp.py archive déplace les clos, clore tient l'archive et la met en attente ; dépend d'ARC1</span></details></li>
     </ul>
+    <p class="mono cout-hors">Hors fiches : ≈1,9M (1 871 302) · 10 tours · 0,80 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈6,1M (6 066 694) · 29 tours · 2,38 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

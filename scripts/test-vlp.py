@@ -1969,6 +1969,49 @@ with tempfile.TemporaryDirectory() as t:
                  isinstance(e, ValueError) and str(e) == "fichier de fiches introuvable : ctx/absent.md", str(e))
 
 
+# ARC1 : l'archive des clos, quand elle existe, reçoit et donne les lignes closes ; la feuille garde le graphique
+def test_page_clos():
+    with tempfile.TemporaryDirectory() as t:
+        proj = os.path.join(t, "proj")
+        ecrire(os.path.join(proj, "CHANTIER.md"), CARTE_Z % "ctx/30-a.md (A1..A1)"
+               + "\nLettres de fiche déjà prises : A (Arc). Un nouveau chantier en choisit une autre.\n")
+        ecrire(os.path.join(proj, "ctx", "08-etat.md"), ETAT_Z)
+        ecrire(os.path.join(proj, "ctx", "00-INDEX.md"), "| Fichier | Lire quand |\n|---|---|\n"
+               "| `x.md` | chantier **clos** « X », `X1..X1` |\n| `y.md` | chantier **clos** « Y », `Y1..Y1` |\n"
+               "| `30-a.md` | chantier **ouvert** « A », `A1..A1` |\n")
+        ecrire(os.path.join(proj, "ctx", "30-a.md"), "# Chantier A\n\n**Fait.** Rien.\n\n## Le socle commun\n\n"
+               "## L'ordre des fiches\n\n<!-- FICHE:A1 -->\n## A1 [x] — Seule\n**Critère de fin**\n<!-- /FICHE -->\n")
+        gabarit = lire(GABARIT_FEUILLE)
+        fdr = os.path.join(proj, "ctx", "artefacts", "feuille-de-route.html")
+        ecrire(fdr, gabarit)
+        d, f = mod.zone(gabarit, "clos", "<tbody>\n", "        </tbody>")
+        deux = (ligne_close("12,34 $ · " + mod.arrondi(50000)).replace("Q1–Q2", "X1")
+                + ligne_close(mod.arrondi(20000)).replace("Q1–Q2", "Y1"))
+        archive = os.path.join(proj, "ctx", "artefacts", mod.ARCHIVE_CLOS)
+        ecrire(archive, gabarit[:d] + deux + gabarit[f:])
+        verifier("ARC1 : page_clos rend l'archive", os.path.normpath(mod.page_clos(proj)) == os.path.normpath(archive),
+                 mod.page_clos(proj))
+        code, s = appel(["recompter", proj])
+        verifier("ARC1 : recompter lit les deux clos de l'archive", code == 0 and "RECOMPTE 2 clos" in s, s)
+        code, s = appel(["prix", proj, "--a-blanc"])
+        verifier("ARC1 : prix lit l'archive", code == 0 and "2 sans prix" in s, s)
+        code, s = appel(["clore", proj, "--livre", "fini", "--tokens", "1000"])
+        lignes_a, lignes_f = mod.lignes_clos(lire(archive)), mod.lignes_clos(lire(fdr))
+        verifier("ARC1 : clore ajoute sa ligne en tête de l'archive, la feuille n'en a aucune",
+                 code == 0 and len(lignes_a) == 3 and "A1" in lignes_a[0] and not lignes_f, s)
+        svg = os.path.join(proj, "ctx", "artefacts", mod.COUTS_SVG)
+        barres = lire(svg).count('class="barre"') if os.path.isfile(svg) else 0
+        verifier("ARC1 : couts.svg à côté de la feuille, trois barres lues dans l'archive",
+                 barres == 3 and 'data-couts=' in lire(fdr), "%d barres\n%s" % (barres, s))
+        ecrire(os.path.join(proj, "ctx", "31-b.md"), "# Chantier B\n\n**Fait.** Rien.\n\n## Le socle commun\n\n"
+               "## L'ordre des fiches\n\n<!-- FICHE:B1 -->\n## B1 [ ] — Seule\n**Critère de fin**\n<!-- /FICHE -->\n")
+        code, s = appel(["ouvrir", proj, "--fiches", "ctx/31-b.md", "--titre", "b", "--estime-fiches", "1"])
+        verifier("ARC1 : le prix moyen d'ouvrir se lit dans l'archive", "estimé 1 fiches ≈12 $" in s, s)
+
+
+test_page_clos()
+
+
 # Préfixe à trois lettres : le format officiel depuis le chantier RNV.
 CHANTIER_3 = """# Chantier courant
 
