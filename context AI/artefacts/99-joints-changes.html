@@ -1,0 +1,75 @@
+<meta charset="utf-8">
+<title>vlp — Une republication ne joint que les joints changés</title>
+<!--
+  GABARIT — artefact d'un chantier. Publié par /chantier à l'ouverture,
+  mis à jour par /tache à chaque fiche. Remplace les <…> et ne renomme pas
+  les marqueurs `ZONE:…` : les commandes les cherchent tels quels.
+
+  Convention de coût — posée ici, référencée (jamais recopiée) par
+  artefact-feuille-de-route.html, tache.md et cloture.md : un nombre < 1000
+  s'affiche tel quel ; au-delà, "≈<arrondi 1 décimale><k|M> (<compte brut>)"
+  — virgule française, k = mille, M = million. Le compte brut reste toujours
+  visible à côté de l'arrondi.
+-->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700&family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:wght@400;600&display=swap">
+<link rel="stylesheet" href="vlp.css">
+
+<div class="page">
+  <header>
+    <div class="eyebrow">vlp · fiches JNT1–JNT3 · <a href="https://claude.ai/artifact/YWDny8kjubq9DhdP5rbPxA">la feuille de route</a></div>
+    <h1>Une republication ne joint que les joints changés</h1>
+    <p>Une republication sans changement de vlp.css, vlp.js ou couts.svg ne les joint plus : plus de refus « joints non lus » dus aux fins de ligne.</p>
+    <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
+    <div class="avancement">
+      <span data-etat="encours"></span><span></span><span></span>
+    </div>
+    <p class="mono" style="margin-top:.5rem">3 fiches · 0 faite · en cours : JNT1</p>
+  </header>
+
+  <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
+  <section hidden>
+    <h2>Chantier clos le </h2>
+    <div class="bilan">
+      <p></p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Les fiches, dans l'ordre des dépendances</h2>
+    <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
+    <ul class="fiches">
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">JNT1</span></span>
+        <details open><summary><span class="titre">Compter les refus « joints non lus »</span><span class="etat">En cours</span></summary>
+        <span class="note">Le nombre de refus « joints non lus » par publication, compté dans les transcriptions ; ne dépend de rien</span></details></li>
+      <li class="fiche"><span class="gauche"><span class="id">JNT2</span></span>
+        <details><summary><span class="titre">Les joints en LF partout</span><span class="etat">À lancer</span></summary>
+        <span class="note">Les joints en LF dans tous les worktrees (.gitattributes) ; ne dépend de rien</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">JNT3</span></span>
+        <details><summary><span class="titre">FILES ne nomme que les joints changés</span><span class="etat">Après JNT2</span></summary>
+        <span class="note">Le hook note l'empreinte des joints publiés, FILES ne nomme que ceux qui ont changé ; dépend de JNT2</span></details></li>
+    </ul>
+    <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
+  </section>
+
+  <!-- ZONE:blocage — publiée quand /tache s'arrête après deux tentatives ; retirée dès que la fiche repasse -->
+  <section hidden>
+    <h2>Arrêt sur blocage</h2>
+    <div class="blocage">
+      <p></p>
+      <pre></pre>
+    </div>
+  </section>
+
+  <section>
+    <h2>Journal des décisions</h2>
+    <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
+    <ul class="journal">
+    </ul>
+  </section>
+
+  <footer>
+    <span>Fichier de fiches : <span class="mono">context AI/99-joints-changes.md</span></span>
+    <span>Mis à jour le <span class="mono">2026-09-29</span></span>
+  </footer>
+</div>
+<script src="vlp.js"></script>
