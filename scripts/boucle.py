@@ -19,19 +19,17 @@ par la session, indenté ; enfin `ARRÊT <raison>` et `TOTAL <n> fiches · <tour
 tours · <coût> $ · <s> s`. Sort 0 sur un arrêt prévu (plafond, aucune, visuel),
 1 sinon.
 
-`claude` : `--claude`, sinon `VLP_CLAUDE`, sinon le PATH, sinon le plus récent
-`%APPDATA%/Claude/claude-code/*/claude.exe` (le CLI de l'app de bureau Windows).
+`claude` : `--claude`, sinon celui de `vlp.py claude` — la même recherche que `vlp.py bac`
+(`VLP_CLAUDE`, le PATH, puis le CLI de l'app sous `Packages`, puis sous `%APPDATA%`).
 Un `--claude` en `.py` se lance par ce Python : c'est le faux `claude` des tests.
 Permissions : `--permission-mode`, `auto` par défaut — personne ne répond en `-p` —,
 plus `git add` et `git commit` (`AUTORISES`), sauf `--amend` et `--no-verify` en tête.
 Traces : `--traces`, sinon un dossier temporaire neuf `vlp-boucle-*`, gardé.
 """
 import argparse
-import glob
 import io
 import json
 import os
-import shutil
 import subprocess
 import sys
 import tempfile
@@ -65,18 +63,10 @@ def vlp(argv, dossier):
 
 
 def trouver_claude(choix):
-    if choix or os.environ.get("VLP_CLAUDE"):
-        return choix or os.environ["VLP_CLAUDE"]
-    sur_path = shutil.which("claude")
-    if sur_path:
-        return sur_path
-    appdata = os.environ.get("APPDATA", "")
-    trouves = glob.glob(os.path.join(appdata, "Claude", "claude-code", "*", "claude.exe")) if appdata else []
-
-    def version(p):
-        nom = os.path.basename(os.path.dirname(p))
-        return [int(x) if x.isdigit() else 0 for x in nom.split(".")]
-    return max(trouves, key=version) if trouves else None
+    if choix:
+        return choix
+    _, s = vlp(["claude"], os.getcwd())
+    return s[len("CLAUDE "):].strip() if s.startswith("CLAUDE ") else None
 
 
 def lire_carte(dossier):

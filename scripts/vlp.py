@@ -336,7 +336,13 @@ Sous-commandes :
   rien à écrire (chantier TAU).
 - `bac <dossier>` — pose le bac d'essai de FIL3 dans un dossier absent ou vide (sinon `GARDE:`,
   rien d'écrit) : `CHANTIER.md`, `fiches.md` (`F1` douze `Read`, `F2` douze `exit 3`), `n01.txt`…
-  `n12.txt`. Imprime `BAC <dossier>` et les deux commandes `claude -p`, sans les lancer (chantier BAC).
+  `n12.txt`. Imprime `BAC <dossier>` et les deux commandes `claude -p`, sans les lancer (chantier BAC),
+  puis `SESSION Set-Location "<dossier>"; & "<claude>"` : la ligne PowerShell qui ouvre une session
+  dans le bac, avec le chemin de `claude` (`claude` seul, après la `GARDE:` de `claude`, s'il manque).
+- `claude` — le `claude` que le kit lance : `VLP_CLAUDE`, sinon le PATH, sinon la plus haute version
+  (comparée en nombres) de `%LOCALAPPDATA%/Packages/Claude_*/LocalCache/Roaming/Claude/claude-code/*/claude.exe`
+  — l'app du Store, vue d'un terminal comme de l'app —, sinon de `%APPDATA%/Claude/claude-code/*/`,
+  vue de l'app seule. `CLAUDE <chemin>`, ou `GARDE: claude.exe introuvable…`, sort 1 (chantier CLI).
 - `transcription <jsonl>` — compte la transcription d'un sous-agent, une clé par ligne : `TOURS=`
   (`message.id` distincts porteurs d'`usage`, comme `comptoir_tours`), `APPELS=<n> — <outil> <n>, …`,
   `AVERTISSEMENTS=`, `AVERTIS_PAR_TOUR=<tour>:<n>,…` (tour de l'appel que désigne le `toolUseID`,
@@ -5070,6 +5076,40 @@ BAC_COMMANDES = (
 )
 
 
+CLAUDE_ABSENT = "GARDE: claude.exe introuvable — PATH, Packages et APPDATA vus\n"
+
+
+def trouver_claude():
+    """Le `claude` du kit (chantier CLI) : `VLP_CLAUDE`, le PATH, puis la plus haute version sous
+    `Packages` — l'app du Store, vue d'un terminal comme de l'app —, puis sous `%APPDATA%`, vue de
+    l'app seule (REG3)."""
+    import shutil
+    if os.environ.get("VLP_CLAUDE"):
+        return os.environ["VLP_CLAUDE"]
+    sur_path = shutil.which("claude")
+    if sur_path:
+        return sur_path
+
+    def version(p):
+        return [int(x) if x.isdigit() else 0 for x in os.path.basename(os.path.dirname(p)).split(".")]
+    for variable, dossiers in (("LOCALAPPDATA", ("Packages", "Claude_*", "LocalCache", "Roaming", "Claude")),
+                               ("APPDATA", ("Claude",))):
+        racine = os.environ.get(variable)
+        trouves = glob.glob(os.path.join(racine, *dossiers, "claude-code", "*", "claude.exe")) if racine else []
+        if trouves:
+            return max(trouves, key=version)
+    return None
+
+
+def cmd_claude(sortie):
+    chemin = trouver_claude()
+    if not chemin:
+        sortie.write(CLAUDE_ABSENT)
+        return 1
+    sortie.write("CLAUDE %s\n" % chemin)
+    return 0
+
+
 def cmd_bac(dossier, sortie):
     if os.path.exists(dossier) and (not os.path.isdir(dossier) or os.listdir(dossier)):
         sortie.write("GARDE: %s existe et n'est pas un dossier vide — rien d'écrit\n" % dossier)
@@ -5083,6 +5123,10 @@ def cmd_bac(dossier, sortie):
     sortie.write("BAC %s\n" % dossier)
     for c in BAC_COMMANDES:
         sortie.write(c + "\n")
+    chemin = trouver_claude()
+    if not chemin:
+        sortie.write(CLAUDE_ABSENT)
+    sortie.write('SESSION Set-Location "%s"; & "%s"\n' % (os.path.abspath(dossier), chemin or "claude"))
     return 0
 
 
@@ -5550,6 +5594,7 @@ def main(argv, sortie=None, entree=None, erreur=None):
     px.add_argument("--a-blanc", action="store_true")
     bc = sous.add_parser("bac")
     bc.add_argument("dossier")
+    sous.add_parser("claude")
     ke = sous.add_parser("kit-essai")
     ke.add_argument("dossier")
     ke.add_argument("--max-turns", type=int, required=True)
@@ -5643,6 +5688,8 @@ def repartir(a, sortie, entree, erreur):
         return cmd_prix(a.projet, sortie, a.a_blanc)
     if a.cmd == "bac":
         return cmd_bac(a.dossier, sortie)
+    if a.cmd == "claude":
+        return cmd_claude(sortie)
     if a.cmd == "kit-essai":
         return cmd_kit_essai(a.dossier, a.max_turns, a.kit, sortie)
     if a.cmd == "servir":

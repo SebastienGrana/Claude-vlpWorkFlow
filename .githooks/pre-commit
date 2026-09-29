@@ -21,14 +21,15 @@ fi
 claude_exe=
 if command -v claude >/dev/null 2>&1; then
   claude_exe="claude"
-elif [ -n "$APPDATA" ]; then
+elif [ -n "$LOCALAPPDATA" ]; then
+  # L'app Claude en MSIX range claude-code dans son dossier de paquet : %APPDATA% ne le montre qu'aux
+  # processus qu'elle lance — ni à un terminal, ni à un Python d'un autre paquet (chantier REV).
+  # Packages d'abord, vu de partout ; même ordre que `vlp.py claude` (chantier CLI).
   # La plus haute version : sort -V, car un tri alphabétique met 2.1.99 après 2.1.280.
-  claude_exe=$(ls -d "$APPDATA"/Claude/claude-code/*/claude.exe 2>/dev/null | sort -V | tail -1)
-fi
-# L'app Claude en MSIX range claude-code dans son dossier de paquet : %APPDATA% ne le montre qu'aux
-# processus qu'elle lance — ni à un terminal, ni à un Python d'un autre paquet (chantier REV).
-if [ -z "$claude_exe" ] && [ -n "$LOCALAPPDATA" ]; then
   claude_exe=$(ls -d "$LOCALAPPDATA"/Packages/Claude_*/LocalCache/Roaming/Claude/claude-code/*/claude.exe 2>/dev/null | sort -V | tail -1)
+fi
+if [ -z "$claude_exe" ] && [ -n "$APPDATA" ]; then
+  claude_exe=$(ls -d "$APPDATA"/Claude/claude-code/*/claude.exe 2>/dev/null | sort -V | tail -1)
 fi
 if [ -z "$claude_exe" ]; then
   echo "pre-commit : claude introuvable, ni dans le PATH ni dans l'app, validate sauté." >&2

@@ -16,14 +16,14 @@
 
 <div class="page">
   <header>
-    <div class="eyebrow">. · fiches CLI1 · <a href="https://claude.ai/artifact/YWDny8kjubq9DhdP5rbPxA">la feuille de route</a></div>
+    <div class="eyebrow">vlp · fiches CLI1 · <a href="https://claude.ai/artifact/YWDny8kjubq9DhdP5rbPxA">la feuille de route</a></div>
     <h1>Le bac dit comment ouvrir sa session</h1>
     <p>vlp.py claude trouve claude.exe au même endroit pour boucle.py, bac et le hook — Packages d'abord — et bac imprime la commande PowerShell qui ouvre une session dans le bac.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="encours"></span>
+      <span data-etat="faite"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">1 fiches · 0 faite · en cours : CLI1</p>
+    <p class="mono" style="margin-top:.5rem">1 fiches · 1 faite</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -38,10 +38,13 @@
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">CLI1</span></span>
-        <details open><summary><span class="titre">Écrire vlp.py claude, et s'en servir dans boucle.py, bac et le hook</span><span class="etat">En cours</span></summary>
-        <span class="note">vlp.py claude, boucle.py, bac et l'ordre du hook, avec tests et mutant ; ne dépend de rien</span></details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">CLI1</span></span>
+        <details><summary><span class="titre">Écrire vlp.py claude, et s'en servir dans boucle.py, bac et le hook</span><span class="etat">Faite</span></summary>
+        <span class="note">vlp.py claude, boucle.py, bac et l'ordre du hook, avec tests et mutant ; ne dépend de rien</span></details>
+        <span class="cout mono">≈1,2M (1 199 714) · 10 tours · 0,60 $</span></li>
     </ul>
+    <p class="mono cout-hors">Hors fiches : ≈1,5M (1 469 986) · 13 tours · 1,00 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈2,7M (2 669 700) · 23 tours · 1,60 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

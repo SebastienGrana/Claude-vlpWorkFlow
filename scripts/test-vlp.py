@@ -3307,6 +3307,61 @@ def test_bac():
 test_bac()
 
 
+# CLI1 : `claude` trouve le CLI de l'app, Packages d'abord ; `bac` et `boucle.py` s'en servent
+def test_claude():
+    noms = ("VLP_CLAUDE", "PATH", "LOCALAPPDATA", "APPDATA")
+    avant = {n: os.environ.get(n) for n in noms}
+    with tempfile.TemporaryDirectory() as tcl:
+        def faux(*parties):
+            p = os.path.join(tcl, *parties, "claude.exe")
+            os.makedirs(os.path.dirname(p))
+            ecrire(p, "")
+            return p
+        paquet = ("loc", "Packages", "Claude_x1", "LocalCache", "Roaming", "Claude", "claude-code")
+        faux(*paquet, "2.1.9")
+        p10 = faux(*paquet, "2.1.10")
+        a99 = faux("app", "Claude", "claude-code", "2.1.99")
+        try:
+            os.environ.pop("VLP_CLAUDE", None)
+            os.environ["PATH"] = os.path.join(tcl, "vide")
+            os.environ["APPDATA"] = os.path.join(tcl, "app")
+            os.environ["LOCALAPPDATA"] = os.path.join(tcl, "loc")
+            code, s = appel(["claude"])
+            verifier("claude : Packages avant APPDATA, 2.1.10 avant 2.1.9", code == 0 and s == "CLAUDE %s\n" % p10, s)
+            dbac = os.path.join(tcl, "bac")
+            code, s = appel(["bac", dbac])
+            verifier("claude : bac imprime la ligne SESSION", code == 0 and s.endswith(
+                'SESSION Set-Location "%s"; & "%s"\n' % (os.path.abspath(dbac), p10)), s)
+            spec = importlib.util.spec_from_file_location("boucle", os.path.join(ICI, "boucle.py"))
+            assert spec and spec.loader
+            boucle = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(boucle)
+            verifier("claude : boucle.py rend le même chemin", boucle.trouver_claude(None) == p10,
+                     str(boucle.trouver_claude(None)))
+            os.environ["LOCALAPPDATA"] = os.path.join(tcl, "vide")
+            code, s = appel(["claude"])
+            verifier("claude : sans Packages, APPDATA", code == 0 and s == "CLAUDE %s\n" % a99, s)
+            os.environ["VLP_CLAUDE"] = "mon-claude"
+            code, s = appel(["claude"])
+            verifier("claude : VLP_CLAUDE gagne sur tout", code == 0 and s == "CLAUDE mon-claude\n", s)
+            os.environ.pop("VLP_CLAUDE")
+            os.environ["APPDATA"] = os.path.join(tcl, "vide")
+            code, s = appel(["claude"])
+            verifier("claude : rien trouvé → GARDE, sort 1", code == 1 and s.startswith("GARDE:"), s)
+            code, s = appel(["bac", os.path.join(tcl, "bac2")])
+            verifier("claude : bac sans claude sort 0, GARDE puis SESSION claude", code == 0
+                     and 'GARDE: claude.exe introuvable' in s and s.endswith('; & "claude"\n'), s)
+        finally:
+            for n, v in avant.items():
+                if v is None:
+                    os.environ.pop(n, None)
+                else:
+                    os.environ[n] = v
+
+
+test_claude()
+
+
 # EVF2 : `kit-essai` copie un kit factice à plafond bas, dans un dossier temporaire à lui
 def test_kit_essai():
     with tempfile.TemporaryDirectory() as tke:

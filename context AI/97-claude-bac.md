@@ -46,8 +46,9 @@ Une seule fiche.
 ---
 
 <!-- FICHE:CLI1 -->
-## CLI1 [ ] — Écrire `vlp.py claude`, et s'en servir dans `boucle.py`, `bac` et le hook
+## CLI1 [x] — Écrire `vlp.py claude`, et s'en servir dans `boucle.py`, `bac` et le hook
 
+**Session** : b293bb0b-835f-4938-bedc-3114bdb5643a
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py`, `scripts/boucle.py`, `.githooks/pre-commit`, `scripts/test-vlp.py`
 — et rien d'autre.
