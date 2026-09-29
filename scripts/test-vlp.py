@@ -512,6 +512,20 @@ with tempfile.TemporaryDirectory() as t:
              and '<p class="mono cout-total">' not in html and '<p class="mono cout-hors">' not in html
              and "Mis à jour le <span class=\"mono\">2026-01-02</span>" in html
              and "lignes · total non mesuré" in s, s + html)
+    # Dette CLI : `--projet .` écrivait « . » en tête de page ; un dossier donne son alias, sinon son nom
+    with tempfile.TemporaryDirectory() as tnom:
+        dnom = os.path.join(tnom, "mon-projet")
+        os.makedirs(dnom)
+        verifier("page --creer : un dossier sans CHANTIER.md donne son nom", mod.nom_du_projet(dnom) == "mon-projet",
+                 mod.nom_du_projet(dnom))
+        ecrire(os.path.join(dnom, "CHANTIER.md"), "# C\n\n- **alias** : mp\n")
+        verifier("page --creer : un dossier équipé donne son alias", mod.nom_du_projet(dnom) == "mp",
+                 mod.nom_du_projet(dnom))
+        verifier("page --creer : un nom reste un nom", mod.nom_du_projet("Proj " + tnom) == "Proj " + tnom, "")
+        pnom = os.path.join(tnom, "p.html")
+        appel(["page", fiches, pnom, "--creer", "--projet", dnom, "--titre", "T", "--resultat", "R"])
+        verifier("page --creer : --projet <dossier> écrit l'alias en tête", '<div class="eyebrow">mp · fiches'
+                 in lire(pnom) and "<title>mp — T</title>" in lire(pnom), lire(pnom)[:400])
     code, s = appel(["page", fiches, page, "--creer", "--projet", "P", "--titre", "T", "--resultat", "R"])
     verifier("page --creer n'écrase pas", code == 1 and "existe déjà" in s, s)
 

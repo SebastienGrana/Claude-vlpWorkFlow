@@ -2547,7 +2547,17 @@ def comptage(fiches_, etat):
     return texte
 
 
+def nom_du_projet(projet):
+    """`--projet` est un nom ; un dossier (`.`) donne l'alias de son `CHANTIER.md`, sinon son nom (dette CLI)."""
+    if not os.path.isdir(projet):
+        return projet
+    chantier = os.path.join(projet, "CHANTIER.md")
+    alias = [m.group(1) for m in map(ALIAS.match, lignes_de(chantier) if os.path.isfile(chantier) else []) if m]
+    return alias[0] if alias else os.path.basename(os.path.abspath(projet))
+
+
 def creer(fichier, projet, titre, resultat):
+    projet = nom_du_projet(projet)
     html = lire(GABARIT)
     fiches_ = fiches_du_fichier(lignes_de(fichier))
     remplacements = [
