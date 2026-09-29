@@ -239,8 +239,9 @@ commande qui l'a produit ; `vlp.py valider` sur ce fichier rend `VALIDE`.
 ---
 
 <!-- FICHE:PAR4 -->
-## PAR4 [ ] — Prédire la fusion des branches
+## PAR4 [x] — Prédire la fusion des branches
 
+**Session** : a1c23bcb-32b2-417c-8728-29d04b72be7b
 **Dépend de** : rien.
 **Fichiers** : le dépôt Git (lecture seule : aucune fusion, aucun worktree touché),
 `context AI/08-etat.md` (entrée 58) — et rien d'autre.

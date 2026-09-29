@@ -21,9 +21,9 @@
     <p>Un verdict chiffré : le temps gagné par deux sessions en même temps (kit + MapDecorator), face au temps en série — code du parallèle (D2–D5) seulement si le gain passe 20 %.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span data-etat="faite"></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span data-etat="faite"></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">7 fiches · 4 faites · en cours : PAR4</p>
+    <p class="mono" style="margin-top:.5rem">7 fiches · 5 faites · en cours : PAR5</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -49,12 +49,13 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">PAR3</span></span>
         <details><summary><span class="titre">Mesurer l'essai et rendre le verdict</span><span class="etat">Faite</span></summary>
         <span class="note">Réel 22 min, série 66,8 min (4 × 16,7) : gain 67 % (48 % face à la série observée, 42 min). $/fiche face à 4,29 $ : PAR6 seule 3,49 $, LOC 1,18 $, les deux 2,59 $ (ligne cout de PAR6 : 6,79 $, défaut DEC). Attente : PAR 2 min sur 21, LOC 0. Verdict : coder D2–D5, un point et pas une tendance. valider : VALIDE.</span></details>
-        <span class="cout mono">≈4,2M (4 150 588) · 33 tours · 3,34 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">PAR4</span></span>
-        <details open><summary><span class="titre">Prédire la fusion des branches</span><span class="etat">En cours</span></summary>
-        <span class="note">Ce qui coincera à la fusion des branches PAR et LOC, prédit par git merge-tree sans rien fusionner. Ne dépend de rien.</span></details></li>
-      <li class="fiche" data-attend><span class="gauche"><span class="id">PAR5</span></span>
-        <details><summary><span class="titre">Ranger les commandes qui jouent les fiches</span><span class="etat">Après PAR7</span></summary></details>
+        <span class="cout mono">≈4,6M (4 575 895) · 36 tours · 3,52 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">PAR4</span></span>
+        <details><summary><span class="titre">Prédire la fusion des branches</span><span class="etat">Faite</span></summary>
+        <span class="note">merge-tree PAR/LOC : 3 fichiers en conflit, 5 blocs (08-etat.md 2, mesure-tokens.py 2, test-mesure-tokens.py 1) ; les 2 scripts et 1 bloc d'08-etat viennent de main (4dcdd8b, 07b5768), pas de LOC. CHANTIER.md : perte silencieuse (LOC disparaît de l'arbre fusionné fee2556), feuille de route pareil. Clôture : 7 fichiers communs, 5 conflits sûrs prédits. git status : 08-etat.md seul.</span></details>
+        <span class="cout mono">≈1,4M (1 403 735) · 13 tours · 1,26 $</span></li>
+      <li class="fiche" data-etat="encours" data-attend><span class="gauche"><span class="id">PAR5</span></span>
+        <details open><summary><span class="titre">Ranger les commandes qui jouent les fiches</span><span class="etat">En cours · attend PAR7</span></summary></details>
         <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">PAR6</span></span>
         <details><summary><span class="titre">Mesurer ce que coûte chaque mode d'enchainer</span><span class="etat">Faite</span></summary>
@@ -64,7 +65,7 @@
         <details><summary><span class="titre">Choisir le modèle de chaque rôle</span><span class="etat">À lancer</span></summary></details></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈3,7M (3 661 313) · 28 tours · 2,87 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈27,0M (27 019 642) · 173 tours · 20,28 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈28,8M (28 848 684) · 189 tours · 21,72 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
