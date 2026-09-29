@@ -314,7 +314,7 @@ la méthode — sa ligne « méthode » la nomme ; on cesse seulement d'en fabri
    narratif — le journal prend une ligne par décision *imprévue*, datée ; le
    reste est dans git.
 
-**Numérotation.** Un nombre à deux chiffres, attribué dans l'ordre de création,
+**Numérotation.** Un nombre à deux chiffres au moins — `100` suit `99` (chantier `PIP`) —, attribué dans l'ordre de création,
 jamais renuméroté : les journaux et les vieux commits citent les numéros. `00`
 est l'index ; les suffixes `20a`, `20b` éclatent un fichier trop gros sans
 toucher aux voisins. Le **préfixe de fiche** d'un chantier — `RNV`, `PRJ`, `CAR`… —

@@ -195,7 +195,7 @@ convention interdit de renuméroter, un numéro repris ment aux vieux commits :
 <python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" lignes "<contexte>/*.md"
 ```
 
-Le fichier prend le premier nombre à deux chiffres libre après le plus grand.
+Le fichier prend le premier nombre libre après le plus grand (`methode-chantier.md`, « Numérotation »).
 
 Un fichier du dossier de contexte, numéroté ainsi, contenant dans cet
 ordre :
