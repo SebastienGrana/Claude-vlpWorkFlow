@@ -42,6 +42,29 @@
             ]
           }
         ]
+      },
+      {
+        "matcher": "Artifact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py",
+              "attente",
+              "hook"
+            ]
+          },
+          {
+            "type": "command",
+            "command": "py",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py",
+              "attente",
+              "hook"
+            ]
+          }
+        ]
       }
     ],
     "PostToolUseFailure": [
@@ -62,6 +85,29 @@
             "args": [
               "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py",
               "filet"
+            ]
+          }
+        ]
+      },
+      {
+        "matcher": "Artifact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py",
+              "attente",
+              "hook"
+            ]
+          },
+          {
+            "type": "command",
+            "command": "py",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py",
+              "attente",
+              "hook"
             ]
           }
         ]

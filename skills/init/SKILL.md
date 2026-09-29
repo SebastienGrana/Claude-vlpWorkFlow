@@ -145,8 +145,8 @@ Puis **recopie l'URL rendue** dans la ligne « **artefact feuille de route** »
 de `CHANTIER.md`, dans le même geste. Une URL non écrite est une URL perdue :
 la prochaine session publierait un doublon du même nom.
 
-Si la publication échoue, dis-le en une ligne, laisse la ligne à « aucun » et
-continue : le projet est équipé quand même.
+Publication refusée : `ARTEFACTS.md`, « Une publication refusée » ; la ligne
+reste à « aucun ».
 
 ## 3 ter. Autoriser la livraison et la vérification
 

@@ -59,8 +59,7 @@ Déjà écrite à l'étape 2 : `action: "read"` sur son `url` (« **artefact feu
 de route** » de `CHANTIER.md`), puis republication du fichier local avec cette `url`
 et `files` : le même JSON, `label` : `<chantier> clos`.
 
-Si une publication échoue, dis-le en une ligne et continue : les écritures
-locales sont ce qui compte, les pages se rattrapent.
+Publication refusée : `ARTEFACTS.md`, « Une publication refusée ».
 
 ## Le commit de clôture, et la rétro coût — sans demander
 

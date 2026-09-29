@@ -43,6 +43,8 @@ s'applique :
 4. **`AUCUN_PROJET`** → le projet n'est pas équipé. Dis-le, et propose
    `/vlp:init` ; n'improvise pas la structure toi-même.
 
+Des lignes **`ATTENTE=<page> <url>`** : republie ces pages d'abord (`ARTEFACTS.md`, « Une publication refusée »).
+
 Dans les cas 2 et 3, relance la carte sur le dossier retenu —
 `<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte "<dossier>"` (`<python>` : la valeur de `PYTHON=` dans la carte). Sortie vide
 ou consigne de la lancer : lance-la toi-même, une fois. Toutes les commandes
@@ -259,8 +261,7 @@ lignes `OUVERT` et `FEUILLE` ; une `GARDE:` dit ce qui n'est pas écrit — écr
 à la main. Puis `action: "read"` sur l'URL de la feuille de route
 (`CHANTIER.md`), et republie le fichier local avec cette `url` et `files` : le
 JSON de la ligne `FILES` (`ARTEFACTS.md`), sans `favicon`,
-`label` `<chantier> ouvert`. Si une publication échoue, dis-le en une ligne et
-continue : le chantier est cadré, c'est ce qui compte.
+`label` `<chantier> ouvert`. Publication refusée : `ARTEFACTS.md`, « Une publication refusée ».
 
 **Si l'étape 4 bis a dû chercher le kit**, écris aussi sa ligne « **kit** »
 dans `CHANTIER.md`, avec le chemin trouvé.

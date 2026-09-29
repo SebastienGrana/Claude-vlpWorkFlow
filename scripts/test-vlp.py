@@ -4,6 +4,7 @@
 Construit des projets dans un dossier temporaire, appelle les sous-commandes, compare.
 Imprime `OK` et sort 0, ou le premier écart et sort 1.
 """
+import datetime
 import glob
 import importlib.util
 import io
@@ -2950,18 +2951,22 @@ with open(os.path.join(RACINE, "hooks", "hooks.json"), encoding="utf-8") as f:
     crochets = json.load(f)["hooks"]
 
 
-def paire(groupe, sous):
+def paire(groupe, *sous):
     """Les deux commandes d'un groupe : python3 puis py, sur `vlp.py <sous>`."""
     return [(h.get("type"), h.get("command"), h.get("args")) for h in groupe.get("hooks", [])] == [
-        ("command", c, ["${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py", sous]) for c in ("python3", "py")]
+        ("command", c, ["${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py", *sous]) for c in ("python3", "py")]
 
 
 succes, echec = crochets.get("PostToolUse", []), crochets.get("PostToolUseFailure", [])
 verifier("hooks.json : filet sur tout outil après un succès et après un échec, hook sur Write|Edit",
-         len(succes) == 2 and len(echec) == 1
+         len(succes) == 3 and len(echec) == 2
          and any(g.get("matcher") == "*" and paire(g, "filet") for g in succes)
          and any(g.get("matcher") == "Write|Edit" and paire(g, "hook") for g in succes)
          and echec[0].get("matcher") == "*" and paire(echec[0], "filet"),
+         json.dumps(crochets, ensure_ascii=False))
+verifier("hooks.json : attente sur Artifact après un succès et après un échec (chantier LOC)",
+         any(g.get("matcher") == "Artifact" and paire(g, "attente", "hook") for g in succes)
+         and echec[1].get("matcher") == "Artifact" and paire(echec[1], "attente", "hook"),
          json.dumps(crochets, ensure_ascii=False))
 avant, arret = crochets.get("PreToolUse", []), crochets.get("SubagentStop", [])
 verifier("hooks.json : gardien avant Bash|PowerShell et à l'arrêt d'un sous-agent",
@@ -4841,5 +4846,104 @@ def tester_joints():
 
 
 tester_joints()
+
+
+def tester_attente():
+    """attente (chantier LOC2) : la liste des pages refusées par la limite du jour, et son hook."""
+    soir = datetime.datetime(2026, 9, 28, 20, 0, tzinfo=datetime.timezone(datetime.timedelta(hours=2)))
+    url, url2 = "https://claude.ai/artifact/AAA", "https://claude.ai/artifact/BBB"
+    refus = "publish 429: daily publish limit for your plan reached (200) — resets at UTC midnight"
+
+    def hook(d, maintenant=soir):
+        o = io.StringIO()
+        code = mod.cmd_attente_hook(io.StringIO(json.dumps(d)), o, maintenant)
+        return code, o.getvalue()
+
+    def projet(t, nom):
+        p = os.path.join(t, nom)
+        ecrire(os.path.join(p, "CHANTIER.md"), CHANTIER % ("pz", "context AI/20-z.md (Z1..Z10)"))
+        ecrire(os.path.join(p, "context AI", "20-z.md"), FICHES)
+        return p, os.path.join(p, "context AI", "artefacts")
+
+    with tempfile.TemporaryDirectory() as t:
+        p, art = projet(t, "proj")
+        liste, page, autre = os.path.join(art, "en-attente"), os.path.join(art, "88-boutons.html"), os.path.join(art, "91-x.html")
+        verifier("attente : carte sans liste, pas de ligne ATTENTE=", "ATTENTE=" not in rendu(p), rendu(p))
+        code, s = appel(["attente", "ajouter", "88-boutons.html", "--projet", p])
+        verifier("attente ajouter : ATTENTE 1", (code, s) == (0, "ATTENTE 1\n"), s)
+        code, s = appel(["attente", "ajouter", "88-boutons.html", "--url", url, "--projet", p])
+        lignes = mod.lignes_de(liste)
+        verifier("attente ajouter deux fois la même page : 1 ligne, la seconde url — mutant : ajouter sans remplacer",
+                 (code, s) == (0, "ATTENTE 1\n") and len(lignes) == 1 and lignes[0].split("\t")[:2] == ["88-boutons.html", url]
+                 and len(lignes[0].split("\t")) == 3, str(lignes))
+        verifier("attente : aucun .tmp laissé", not os.path.exists(liste + ".tmp"), str(os.listdir(art)))
+        code, s = appel(["attente", "lister", art])
+        verifier("attente lister", (code, s) == (0, "ATTENTE=88-boutons.html %s\nATTENTE 1\n" % url), s)
+        c = rendu(p)
+        verifier("attente : la carte montre ATTENTE= avant le fichier de fiches courant",
+                 0 <= c.find("ATTENTE=88-boutons.html %s\n" % url) < c.find("--- fiches :"), c)
+        s = io.StringIO()
+        mod.carte(p, s, True)
+        verifier("attente : la carte du relecteur n'a pas de ligne ATTENTE=", "ATTENTE=" not in s.getvalue(), s.getvalue())
+        code, s = appel(["attente", "ajouter", "../hors.html", "--projet", p])
+        verifier("attente ajouter : une page hors des artefacts, GARDE", code == 1 and s.startswith("GARDE:"), s)
+        code, s = appel(["attente", "retirer", page, "--projet", p])
+        verifier("attente retirer la dernière (chemin absolu) : ATTENTE 0, fichier absent — mutant : laisser un fichier vide",
+                 (code, s) == (0, "ATTENTE 0\n") and not os.path.exists(liste), s)
+
+        # Le hook : un vrai dossier de tampons, comme TOU2 — le tampon du jour fait la différence
+        ancien_tampon = mod.TAMPON_HOOKS
+        mod.TAMPON_HOOKS = tempfile.mkdtemp()
+        try:
+            echec = {"hook_event_name": "PostToolUseFailure", "tool_name": "Artifact", "cwd": p,
+                     "tool_input": {"file_path": page, "url": url}, "error": refus}
+            code, s = hook(echec)
+            verifier("attente hook : un 429 ajoute la page avec son url",
+                     code == 0 and mod.lire_attente(art)[0][:2] == ("88-boutons.html", url), str(mod.lire_attente(art)))
+            sortie = json.loads(s)["hookSpecificOutput"] if s else {}
+            verifier("attente hook : 1er appel du jour, proposition à 02:00 / 02:10 (maintenant = 2026-09-28 20:00 UTC+2)",
+                     sortie.get("hookEventName") == "PostToolUseFailure" and "88-boutons.html" in sortie.get("additionalContext", "")
+                     and "à 02:00 locale" in sortie["additionalContext"] and "à 02:10 qui" in sortie["additionalContext"], s)
+            code, s = hook(dict(echec, tool_input={"file_path": autre}))
+            verifier("attente hook : 2e appel du jour, page ajoutée, pas de proposition — mutant : sans tampon_neuf",
+                     s == "" and [e[0] for e in mod.lire_attente(art)] == ["88-boutons.html", "91-x.html"]
+                     and mod.lire_attente(art)[1][1] == "aucune", s + str(mod.lire_attente(art)))
+            code, s = hook(echec, soir + datetime.timedelta(days=1))
+            verifier("attente hook : le lendemain (jour UTC), la proposition revient", '"additionalContext"' in s, s)
+            p2, art2 = projet(t, "proj2")
+            code, s = hook(dict(echec, cwd=p2, tool_input={"file_path": os.path.join(art2, "88-boutons.html")}))
+            verifier("attente hook : un autre projet, sa propre proposition", '"additionalContext"' in s, s)
+            avant = mod.lire_attente(art)
+            for nom, d in (
+                    ("page non lue", dict(echec, error="Nothing was published or removed: this publish touches files"
+                                                       " whose published content is not what you last saw")),
+                    ("refus du vigile", dict(echec, error="PreToolUse:Artifact hook error: Page cassée, publication"
+                                                          " refusée (vlp.py vigile) — x.html : aucun style")),
+                    ("vigile avant l'appel", dict(echec, hook_event_name="PreToolUse")),
+                    ("autre outil", dict(echec, tool_name="Write")),
+                    ("asset", dict(echec, tool_input={"file_path": page, "asset": True})),
+                    ("page hors projet", dict(echec, tool_input={"file_path": os.path.join(t, "ailleurs", "x.html")}))):
+                code, s = hook(d, soir + datetime.timedelta(days=2))
+                verifier("attente hook : %s, rien — code 0, silence, liste inchangée" % nom,
+                         code == 0 and s == "" and mod.lire_attente(art) == avant, s)
+            code, s = hook(dict(echec, hook_event_name="PostToolUse", tool_input={"file_path": page}))
+            verifier("attente hook : une publication réussie retire la page listée, en silence",
+                     code == 0 and s == "" and [e[0] for e in mod.lire_attente(art)] == ["91-x.html"], s)
+            code, s = hook(dict(echec, hook_event_name="PostToolUse", tool_input={"file_path": page}))
+            verifier("attente hook : un succès d'une page absente de la liste, rien",
+                     code == 0 and s == "" and [e[0] for e in mod.lire_attente(art)] == ["91-x.html"], s)
+            o = io.StringIO()
+            code = mod.main(["attente", "hook"], o, io.StringIO("pas du json"))
+            verifier("attente hook : entrée illisible, muet, code 0", (code, o.getvalue()) == (0, ""), o.getvalue())
+        finally:
+            shutil.rmtree(mod.TAMPON_HOOKS, ignore_errors=True)
+            mod.TAMPON_HOOKS = ancien_tampon
+
+    zero, tache = mod.remise_a_zero(soir)
+    verifier("attente : remise à zéro 02:00 et tâche 02:10 pour 2026-09-28 20:00 UTC+2",
+             (zero.strftime("%Y-%m-%d %H:%M"), tache.strftime("%H:%M")) == ("2026-09-29 02:00", "02:10"), str(zero))
+
+
+tester_attente()
 
 print("OK")
