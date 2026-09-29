@@ -57,8 +57,9 @@ le paramètre `overwrite_unread` de l'outil (réservé à une demande explicite 
 ---
 
 <!-- FICHE:JNT1 -->
-## JNT1 [ ] — Compter les refus « joints non lus »
+## JNT1 [x] — Compter les refus « joints non lus »
 
+**Session** : b293bb0b-835f-4938-bedc-3114bdb5643a
 **Dépend de** : rien.
 **Fichiers** : aucun à modifier ; le résultat va dans ce fichier, sous la fiche (« Mesuré »).
 
@@ -73,6 +74,19 @@ session, n'a **pas** été refusé : dire s'il existe, ou « non trouvé ».
 **Critère de fin**
 1. Une section « Mesuré » sous cette fiche : les trois comptes bruts, la commande qui les
    rejoue, le texte exact du refus, et le cas « joint identique passé » ou « non trouvé ».
+
+**Mesuré** (2026-09-29) — `py "context AI/99-jnt1-mesure.py"` (kit) ; motif `"*"` : tous projets.
+- Kit : **187** publications avec `files`, 537 sans, 156 sessions ; **14 refus** « joints non
+  lus » dans **12** sessions — **7,5 %** des publications avec `files` (14/187), 7,7 % des
+  sessions qui publient (12/156). Tous projets : **23** refus sur 273 (8,4 %), 19 sessions sur 298.
+- Texte exact : « Nothing was published or removed: this publish touches files whose published
+  content is not what you last saw, and sending your copy could discard content you have not read. »
+- Joint identique passé : **trouvé**, faisceau — **34** republications avec `files` réussies
+  (sur 112) sans que la session ait publié ni lu les joints de cette page avant (tous projets :
+  47 / 168). Une republication réussie prouve que les joints en ligne valaient ceux du disque.
+- Observé au cadrage : un joint **changé** (CRLF → LF) passe sans refus quand la session l'a
+  publié elle-même plus tôt (feuille, version 188).
+- Un `grep` sur le texte compte aussi les citations : 13 fichiers, 76 occurrences.
 <!-- /FICHE -->
 
 ---
