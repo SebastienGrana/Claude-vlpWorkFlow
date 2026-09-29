@@ -3527,6 +3527,18 @@ def tester_heredoc():
              and mod.ecrit_git("printf '%s' 'git commit' >> f") is False
              and mod.ecrit_git('echo "git add ." | sh') is True
              and mod.ecrit_git("ssh h 'git reset --hard'") is True, "")
+    ecrit = ["git checkout f.py", "git checkout main", "git switch x", "git stash", "git -C x stash",
+             "git restore f", "git clean -fd", "git push", "git rebase main", "git merge x",
+             "cd x && git stash", "& git.exe push", "PYTHONUTF8=1 git commit -m x", "git --bare add x",
+             '"C:/Program Files/Git/cmd/git.exe" push', "x=$(git stash)"]
+    lit = ["git diff --cached", "git status", "git --no-pager log -1", "git show HEAD:f",
+           "git rev-parse --show-toplevel", "git ls-files", "git -C x log", "grep -c git f",
+           "ls .git", "echo git", "cd /c/git && ls", "git", "gitk --all", "py x.py # git stash"]
+    faux = ([c for c in ecrit if not mod.ecrit_git(c)] + [c for c in lit if mod.ecrit_git(c)]
+            + [c for c in ecrit + lit if refuse(c) != mod.ecrit_git(c)])
+    verifier("VRB1 : liste blanche — %d écritures refusées, %d lectures ou non-appels passent, "
+             "gardien et contrat d'accord — mutants : `stash` dans LECTURE_GIT, ancrage retiré"
+             % (len(ecrit), len(lit)), not faux, repr(faux))
 
 
 tester_heredoc()

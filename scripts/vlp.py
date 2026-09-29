@@ -1577,8 +1577,18 @@ def lire_max_turns(chemin):
 
 # --- contrat (chantier CON) ----------------------------------------------------
 
-# Un appel qui écrit dans Git : `git [-C chemin | -c clé=val]… commit|add|reset`.
-ECRIT_GIT = re.compile(r"""\bgit(?:\.exe)?(?:\s+-[Cc]\s+(?:"[^"]*"|'[^']*'|\S+))*\s+(?:commit|add|reset)\b""")
+# Les verbes Git qui ne font que lire : tout autre verbe écrit, inconnu compris (chantier VRB).
+LECTURE_GIT = frozenset(("diff", "status", "log", "show", "rev-parse", "ls-files", "blame", "grep"))
+# Un appel Git : `git` en position de commande — début de ligne, après `;` `&` `|` `(` `)` `{` un
+# accent grave, une quote ouvrante (`ssh h 'git …'`) ou au bout d'un chemin (`…/git.exe`), derrière
+# d'éventuels `VAR=val`, `sudo`, `if`… —, ses options globales, puis son verbe (`verbe`). Ancré
+# pour que `grep -c git f` ne lise pas le verbe `f`.
+APPEL_GIT = re.compile(
+    r"""(?:^|(?<=[;&|(){`'"/\\]))[ \t]*"""
+    r"""(?:(?:\w+=\S*|sudo|env|time|command|nohup|exec|xargs|if|then|else|do|while|until|!)[ \t]+)*"""
+    r"""git(?:\.exe)?['"]?(?![\w.-])"""
+    r"""(?:[ \t]+(?:-[Cc][ \t]+(?:"[^"]*"|'[^']*'|\S+)|--no-pager|-P|--(?:git-dir|work-tree|namespace)=\S+))*"""
+    r"""(?:[ \t]+(?P<verbe>-\S*|[A-Za-z][\w-]*))?""", re.M)
 # Un heredoc `<<[-]MOT` (mot nu ou cité) : sa ligne d'ouverture, dont la suite (groupe 3), son
 # corps (groupe 4), sa fin.
 HEREDOC = re.compile(r"<<-?[ \t]*(['\"]?)([A-Za-z_]\w*)\1([^\n]*)\n(.*?)\n[ \t]*\2[ \t]*$", re.S | re.M)
@@ -1627,10 +1637,12 @@ def sans_echo(commande):
 
 
 def ecrit_git(commande):
-    """`ECRIT_GIT` sur la commande `sans_heredoc` puis `sans_echo` : un heredoc ou un `echo`/`printf`
-    qui ne font qu'écrire les mots `git commit` dans un fichier n'écrivent pas dans Git
-    (chantiers ECH, ENQ)."""
-    return bool(ECRIT_GIT.search(sans_echo(sans_heredoc(commande))))
+    """Vrai si un `APPEL_GIT` de la commande a un verbe hors `LECTURE_GIT` — une option inconnue
+    en tient lieu, `git` seul n'écrit pas (chantier VRB). Lu sur la commande `sans_heredoc` puis
+    `sans_echo` : un heredoc ou un `echo`/`printf` qui ne font qu'écrire les mots `git commit` dans
+    un fichier n'écrivent pas dans Git (chantiers ECH, ENQ)."""
+    return any(m.group("verbe") not in (None, *LECTURE_GIT)
+               for m in APPEL_GIT.finditer(sans_echo(sans_heredoc(commande))))
 
 
 def lire_contrat(chemin):

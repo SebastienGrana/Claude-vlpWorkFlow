@@ -52,8 +52,9 @@ Une seule fiche.
 ---
 
 <!-- FICHE:VRB1 -->
-## VRB1 [ ] — Passer `ECRIT_GIT` en liste blanche
+## VRB1 [x] — Passer `ECRIT_GIT` en liste blanche
 
+**Session** : b293bb0b-835f-4938-bedc-3114bdb5643a
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` — et rien d'autre.
 
