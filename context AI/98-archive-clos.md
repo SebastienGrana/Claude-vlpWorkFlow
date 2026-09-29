@@ -10,7 +10,9 @@ publié par la liste d'attente ; la feuille garde l'en-tête, la TODO, le graphi
 
 **Estimé.** 2 fiches · ≈6,00 $ — ≈3,00 $/fiche sur 85 clos (le 2026-09-29).
 
-**Fait.** Rien. Ouvert le 2026-09-29, cadré en 2 fiches, `ARC1` à jouer.
+**CLOS** le 2026-09-29. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** ARC1..ARC2 (2026-09-29) : Les clos quittent la feuille pour un artefact d'archive : vlp.py archive, page_clos ; feuille 77 105 → 25 650 octets — estimé 2 fiches ≈6,00 $ · cadré 2 · joué 2 fiches 5,54 $.
 
 **Session** : b293bb0b-835f-4938-bedc-3114bdb5643a
 

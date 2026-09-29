@@ -90,3 +90,4 @@ QUAND LIRE : on relit un chantier clos ; l'index n'en garde qu'une ligne qui ren
 | `95-plugin-retard.md` | on relit le socle du chantier ESR — **clos** « Un essai rechargé voit le code du worktree », `ESR1..ESR1` |
 | `96-mutant.md` | on relit le socle du chantier MUT — **clos** « Le mutant par un outil du kit », `MUT1..MUT1` |
 | `97-claude-bac.md` | on relit le socle du chantier CLI — **clos** « le bac dit comment ouvrir sa session », `CLI1..CLI1` |
+| `98-archive-clos.md` | on relit le socle du chantier ARC — **clos** « les chantiers clos vont à une page d'archive », `ARC1..ARC2` |

@@ -6,3 +6,6 @@ Les chantiers clos quittent la feuille de route pour un artefact d'archive, publ
 - ARC2 : vlp.py archive déplace les clos, clore tient l'archive et la met en attente ; dépend d'ARC1
 ## Journal
 ## Bilan
+- Livré : Les clos quittent la feuille pour un artefact d'archive : vlp.py archive, page_clos ; feuille 77 105 → 25 650 octets
+- Surpris : La balise du graphique porte 8 452 octets : la feuille s'arrête vers 25,6 ko, pas 20 ko
+- Estimé : estimé 2 fiches ≈6,00 $ · cadré 2 · joué 2 fiches 5,54 $
