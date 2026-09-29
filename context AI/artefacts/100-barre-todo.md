@@ -5,3 +5,6 @@ Une ligne de TODO coupée par une barre verticale arrête la feuille par une GAR
 - PIP1 : Une ligne de TODO qui n'a pas 5 cellules rend une GARDE dans feuille et un écart dans niveau ; ne dépend de rien
 ## Journal
 ## Bilan
+- Livré : Une ligne de TODO qui n'a pas 5 cellules rend une GARDE dans feuille et un ÉCART dans niveau, au lieu d'un décompte faux
+- Surpris : Le rendu de la barre échappée et sa lecture étaient déjà justes : seule la barre non échappée coupait, en silence
+- Estimé : estimé 1 fiches ≈2,98 $ · cadré 1 · joué 1 fiches 2,41 $

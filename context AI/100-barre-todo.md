@@ -11,7 +11,9 @@ ligne arrête `feuille` par une `GARDE:` qui la nomme, et `niveau` la compte com
 
 **Estimé.** 1 fiches · ≈2,98 $ — ≈2,98 $/fiche sur 87 clos (le 2026-09-29).
 
-**Fait.** Rien. Ouvert le 2026-09-29, cadré en 1 fiche, `PIP1` à jouer.
+**CLOS** le 2026-09-29. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** PIP1..PIP1 (2026-09-29) : Une ligne de TODO qui n'a pas 5 cellules rend une GARDE dans feuille et un ÉCART dans niveau, au lieu d'un décompte faux — estimé 1 fiches ≈2,98 $ · cadré 1 · joué 1 fiches 2,41 $.
 
 **Session** : b293bb0b-835f-4938-bedc-3114bdb5643a
 

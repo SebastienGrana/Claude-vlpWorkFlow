@@ -13,11 +13,11 @@ https://github.com/SebastienGrana/Claude-vlpWorkFlow — cloné et utilisé en g
 - Équipés : Cairn-VlpLib, MapDecorator, ProjetONZSM, TrackGen — et ce kit lui-même.
 - Chaque chantier clos a sa ligne dans `context AI/00-INDEX-archive.md`, son détail daté dans
   `context AI/08-etat.md` ; ici, les derniers seulement (`vlp.py clore` les tient).
-- Clos le 2026-09-29 : enchainer joue dans la session par défaut, le joueur des autres modes en Sonnet low (chantier REG).
 - Clos le 2026-09-29 : tout Git hors lecture refusé aux sous-agents, checkout et stash compris (chantier VRB).
 - Clos le 2026-09-29 : la carte dit quand le plugin chargé n'a pas le code du worktree (chantier ESR).
 - Clos le 2026-09-29 : le mutant d'une fiche de code se joue par vlp.py mutant (chantier MUT).
 - Clos le 2026-09-29 : une republication ne joint que les joints changés, et les joints sont en LF partout (chantier JNT).
+- Clos le 2026-09-29 : une barre verticale dans la TODO arrête la feuille par une GARDE (chantier PIP).
 
 ## Quatre règles non négociables
 
@@ -57,7 +57,6 @@ et seulement dans ce cas, ouvrir l'index.
 | savoir où vit quoi dans un projet équipé | `methode-chantier.md`, section « Où vit quoi » |
 | toucher aux pages publiées | `ARTEFACTS.md`, puis le gabarit dans `templates/` |
 | ouvrir un chantier, ou le découper en fiches | **lancer `/vlp:chantier`** |
-| jouer une fiche du chantier PIP (une barre verticale dans une cellule de la TODO se signale) | `context AI/100-barre-todo.md` — chantier **ouvert**, par `/vlp:tache PIP<n>` |
 | relire un chantier clos | `context AI/00-INDEX-archive.md` — sa ligne y nomme le fichier de fiches |
 | reprendre après une longue interruption | `context AI/08-etat.md` |
 | choisir le prochain chantier du kit, ou retrouver la preuve d'un bug relevé le 2026-09-17 | `context AI/12-audit.md` |
