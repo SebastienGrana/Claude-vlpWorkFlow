@@ -8,3 +8,6 @@
 ## Journal
 - 2026-09-29 : REG3 : le plugin chargé suit le dossier principal, pas le worktree — main avancé de 8 commits (sans push) avant l'essai ; le CLI de l'app vit dans le dossier Packages (AppData virtualisé).
 ## Bilan
+- Livré : /vlp:enchainer sans argument joue les fiches dans la session (main), sans bascule de modèle ; agents et clear jouent en Sonnet low, l'effort transmis par boucle.py ; essayé pour de vrai sur un bac (F1 cochée, aucun sous-agent)
+- Surpris : le plugin chargé suit le dossier principal, pas le worktree : l'essai a exigé d'avancer main ; le CLI de l'app n'est pas dans le PATH (app du Store, AppData virtualisé)
+- Estimé : estimé 1 fiches ≈3,03 $ · cadré 3 · joué 3 fiches 7,07 $

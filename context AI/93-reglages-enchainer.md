@@ -11,7 +11,9 @@ réglages tranchés : défaut `main`, joueur Sonnet effort `low`, aucune bascule
 
 **Estimé.** 1 fiches · ≈3,03 $ — ≈3,03 $/fiche sur 80 clos (le 2026-09-29).
 
-**Fait.** Rien. Ouvert le 2026-09-29, cadré en 3 fiches, `REG1` à jouer.
+**CLOS** le 2026-09-29. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** REG1..REG3 (2026-09-29) : /vlp:enchainer sans argument joue les fiches dans la session (main), sans bascule de modèle ; agents et clear jouent en Sonnet low, l'effort transmis par boucle.py ; essayé pour de vrai sur un bac (F1 cochée, aucun sous-agent) — estimé 1 fiches ≈3,03 $ · cadré 3 · joué 3 fiches 7,07 $.
 
 **Session** : 18a50f2c-b7a4-4044-bd16-d14df177ec7b
 

@@ -85,3 +85,4 @@ QUAND LIRE : on relit un chantier clos ; l'index n'en garde qu'une ligne qui ren
 | `90-ecritures-git.md` | on relit le socle du chantier ENQ — **clos** « Les écritures Git des sous-agents, tranchées », `ENQ1..ENQ3` |
 | `91-publication-refusee.md` | on relit le socle du chantier LOC — **clos** « Une publication refusée n'arrête plus le chantier », `LOC1..LOC5` |
 | `92-essai-parallele.md` | on relit le socle du chantier PAR — **clos** « Deux chantiers en parallèle : l'essai mesuré », `PAR1..PAR7` |
+| `93-reglages-enchainer.md` | on relit le socle du chantier REG — **clos** « Les réglages d'enchainer tranchés par PAR5 », `REG1..REG3` |
