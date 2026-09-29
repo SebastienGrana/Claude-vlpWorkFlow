@@ -346,6 +346,19 @@ Sous-commandes :
   ou vide, et y réécrit `maxTurns` d'`agents/fiche.md` : un plafond bas sans toucher au vrai kit.
   Dossier plein, ou pas de ligne `maxTurns` : `GARDE:`, rien d'écrit, sort 1. Imprime
   `KIT <dossier> · maxTurns <avant> → <n>` (chantier EVF).
+- `servir <dossier> <port>` — un serveur local (`http.server`) sur `127.0.0.1` pour regarder
+  les pages sans cache : `Cache-Control: no-store`, `.html .js .css .svg` en UTF-8, et
+  `/_telephone?page=<page>` rend la page dans un cadre de 375 px de large (chantier LOC).
+  Dossier absent ou port pris : `GARDE:`, sort 1. Imprime `SERVIR <url> · <dossier>`, puis sert
+  jusqu'à l'arrêt.
+- `apercu <projet> [--port N]` — écrit ou remplace, dans `<projet>/.claude/launch.json`, la seule
+  entrée `apercu-<nom du dossier>`, qui lance `servir` sur `<contexte>/artefacts` ; le port est
+  `--port`, sinon celui de l'entrée déjà là, sinon le premier libre depuis 8790. Les autres
+  entrées restent à l'octet (l'entrée se greffe dans le texte, le fichier n'est pas réécrit).
+  `APERCU écrit|remplacé|déjà <nom> · port <n> · <launch.json>`. `launch.json` illisible, sans
+  `configurations` ou avec deux entrées du même nom : `GARDE:`, rien d'écrit, sort 1. Fichier
+  pas couvert par `git check-ignore` (il porte des chemins de machine) : écrit quand même, et
+  une `GARDE:` le dit, sort 0 ; pas de dépôt Git, pas de `GARDE:`.
 
 Python 3 sans dépendance, zéro appel modèle.
 
@@ -5124,6 +5137,160 @@ def cmd_transcription(chemin, sortie):
     return 0
 
 
+# --- aperçu local (chantier LOC) --------------------------------------------
+
+TYPES_APERCU = {".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8",
+                ".css": "text/css; charset=utf-8", ".svg": "image/svg+xml; charset=utf-8"}
+LARGEUR_TELEPHONE = 375
+PORT_APERCU = 8790      # le premier port qu'`apercu` essaie ; +1 tant qu'une autre entrée le prend
+PAGE_SERVIE = re.compile(r"[\w.\- ]+(/[\w.\- ]+)*$")    # relatif ; `..` se rejette à part
+
+
+def faire_serveur(dossier, port):
+    """Le serveur de `servir`, lié à 127.0.0.1 (port 0 : un port libre) ; `serve_forever` le lance."""
+    import functools
+    import html
+    import http.server
+    import urllib.parse
+
+    class Apercu(http.server.SimpleHTTPRequestHandler):
+        extensions_map = {**http.server.SimpleHTTPRequestHandler.extensions_map, **TYPES_APERCU}
+
+        def end_headers(self):
+            self.send_header("Cache-Control", "no-store")
+            super().end_headers()
+
+        def do_GET(self):
+            url = urllib.parse.urlsplit(self.path)
+            if url.path != "/_telephone":
+                return super().do_GET()
+            page = urllib.parse.parse_qs(url.query).get("page", [""])[0]
+            if not PAGE_SERVIE.match(page) or ".." in page.split("/"):
+                return self.send_error(400, "page=<page> : un chemin relatif au dossier servi")
+            cadre = ('<!doctype html><html lang="fr"><meta charset="utf-8"><title>Téléphone</title>'
+                     '<body style="margin:0;background:#f4ede4"><iframe src="/%s" title="%s" '
+                     'style="display:block;margin:0 auto;border:0;width:%dpx;height:100vh"></iframe>'
+                     % (html.escape(urllib.parse.quote(page)), html.escape(page), LARGEUR_TELEPHONE))
+            corps = cadre.encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(corps)))
+            self.end_headers()
+            self.wfile.write(corps)
+
+    return http.server.ThreadingHTTPServer(("127.0.0.1", port), functools.partial(Apercu, directory=dossier))
+
+
+def cmd_servir(dossier, port, sortie):
+    if not os.path.isdir(dossier):
+        sortie.write("GARDE: dossier introuvable : %s\n" % dossier)
+        return 1
+    try:
+        serveur = faire_serveur(dossier, port)
+    except (OSError, OverflowError) as e:
+        sortie.write("GARDE: port %s inutilisable : %s\n" % (port, e))
+        return 1
+    sortie.write("SERVIR http://127.0.0.1:%d/ · %s\n" % (serveur.server_port, dossier))
+    sortie.flush()
+    try:
+        serveur.serve_forever()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        serveur.server_close()
+    return 0
+
+
+def entrees_launch(texte):
+    """(index après le `[`, index du `]`, [(début, fin, entrée)]) du tableau `configurations` de
+    `launch.json`, lu sur le texte : on y greffe une entrée sans réécrire les voisines. `None` :
+    illisible, ou pas de tableau."""
+    try:
+        attendu = json.loads(texte)["configurations"]
+    except (ValueError, KeyError, TypeError):
+        return None
+    if not isinstance(attendu, list):
+        return None
+    lecteur = json.JSONDecoder()
+
+    def apres_blancs(pos):
+        while pos < len(texte) and texte[pos].isspace():
+            pos += 1
+        return pos
+
+    for m in re.finditer(r'"configurations"\s*:\s*\[', texte):
+        pos, spans = m.end(), []
+        try:
+            while True:
+                pos = apres_blancs(pos)
+                if texte[pos] == "]":
+                    break
+                entree, fin = lecteur.raw_decode(texte, pos)
+                spans.append((pos, fin, entree))
+                pos = apres_blancs(fin)
+                if texte[pos] == ",":
+                    pos += 1
+        except (ValueError, IndexError):
+            continue
+        if [e for _, _, e in spans] == attendu:
+            return m.end(), pos, spans
+    return None
+
+
+def cmd_apercu(projet, sortie, port=None):
+    """Greffe `apercu-<dossier>` dans `<projet>/.claude/launch.json` (chantier LOC)."""
+    racine = trouver(projet)
+    if racine is None:
+        sortie.write("GARDE: pas de projet équipé ici : %s\n" % projet)
+        return 1
+    nom = "apercu-" + os.path.basename(racine)
+    chemin = os.path.join(racine, ".claude", "launch.json")
+    texte = None
+    if os.path.isfile(chemin):
+        with open(chemin, encoding="utf-8", newline="") as f:
+            texte = f.read()
+    lu = entrees_launch(texte) if texte is not None else (0, 0, [])
+    if lu is None:
+        sortie.write("GARDE: %s illisible, ou sans tableau `configurations` : rien d'écrit\n" % chemin)
+        return 1
+    ouvre, ferme, spans = lu
+    ici = [sp for sp in spans if isinstance(sp[2], dict) and sp[2].get("name") == nom]
+    if len(ici) > 1:
+        sortie.write("GARDE: %d entrées nommées %s dans %s : rien d'écrit\n" % (len(ici), nom, chemin))
+        return 1
+    prises = {sp[2].get("port") for sp in spans if isinstance(sp[2], dict) and sp not in ici}
+    if port is None and ici and isinstance(ici[0][2].get("port"), int):
+        port = ici[0][2]["port"]
+    if port is None:
+        port = next(n for n in range(PORT_APERCU, PORT_APERCU + 1000) if n not in prises)
+    artefacts = dossier_artefacts(racine).replace("\\", "/")
+    entree = {"name": nom, "runtimeExecutable": "py" if os.name == "nt" else "python3",
+              "runtimeArgs": [os.path.abspath(__file__).replace("\\", "/"), "servir", artefacts, str(port)],
+              "port": port}
+    eol = "\r\n" if texte and "\r\n" in texte else "\n"
+    corps = json.dumps(entree, indent=2, ensure_ascii=False).replace("\n", eol + "    ")
+    if texte is None:
+        neuf = json.dumps({"version": "0.0.1", "configurations": [entree]}, indent=2, ensure_ascii=False) + "\n"
+    elif ici:
+        neuf = texte[:ici[0][0]] + corps + texte[ici[0][1]:]
+    elif spans:
+        neuf = texte[:spans[-1][1]] + "," + eol + "    " + corps + texte[spans[-1][1]:]
+    else:
+        neuf = texte[:ouvre] + eol + "    " + corps + eol + "  " + texte[ferme:]
+    if neuf != texte:
+        os.makedirs(os.path.dirname(chemin), exist_ok=True)
+        with open(chemin + ".tmp", "w", encoding="utf-8", newline="") as f:
+            f.write(neuf)
+        os.replace(chemin + ".tmp", chemin)
+    sortie.write("APERCU %s %s · port %d · %s\n"
+                 % ("déjà" if neuf == texte else "remplacé" if ici else "écrit", nom, port, chemin))
+    code, _ = git_texte(["check-ignore", "-q", ".claude/launch.json"], racine)
+    if code == 1:
+        sortie.write("GARDE: .claude/launch.json n'est pas couvert par .gitignore : il porte des chemins "
+                     "de machine, et partirait dans le dépôt\n")
+    return 0
+
+
 def main(argv, sortie=None, entree=None, erreur=None):
     sortie = sortie or sys.stdout
     p = argparse.ArgumentParser(prog="vlp.py", description="La mécanique du kit vlp.")
@@ -5258,6 +5425,12 @@ def main(argv, sortie=None, entree=None, erreur=None):
     ke.add_argument("--max-turns", type=int, required=True)
     ke.add_argument("--kit")
     sous.add_parser("joints").add_argument("dossier")
+    sv = sous.add_parser("servir")
+    sv.add_argument("dossier")
+    sv.add_argument("port", type=int)
+    ap = sous.add_parser("apercu")
+    ap.add_argument("projet")
+    ap.add_argument("--port", type=int)
     tr = sous.add_parser("transcription")
     tr.add_argument("jsonl")
     a = p.parse_args(argv)
@@ -5337,6 +5510,10 @@ def repartir(a, sortie, entree, erreur):
         return cmd_bac(a.dossier, sortie)
     if a.cmd == "kit-essai":
         return cmd_kit_essai(a.dossier, a.max_turns, a.kit, sortie)
+    if a.cmd == "servir":
+        return cmd_servir(a.dossier, a.port, sortie)
+    if a.cmd == "apercu":
+        return cmd_apercu(a.projet, sortie, a.port)
     if a.cmd == "joints":
         return cmd_joints(a.dossier, sortie)
     if a.cmd == "transcription":

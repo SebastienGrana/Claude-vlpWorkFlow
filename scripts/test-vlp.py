@@ -4946,4 +4946,134 @@ def tester_attente():
 
 tester_attente()
 
+
+def tester_apercu():
+    """servir et apercu (chantier LOC4) : un serveur sans cache, et une seule entrée dans launch.json."""
+    import contextlib
+    import threading
+    import urllib.error
+    import urllib.request
+
+    voisine = ('{"name": "gabarits", "runtimeExecutable": "py",\n'
+               '      "runtimeArgs": ["-c", "print(1)"],   "port": 8792}')
+    launch = '{\n  "version": "0.0.1",\n  "configurations": [\n    %s\n  ]\n}' % voisine
+    with tempfile.TemporaryDirectory() as t:
+        # Ni la config globale ni les exclusions de l'utilisateur ne masquent le `.gitignore` du test.
+        anciens = {k: os.environ.get(k) for k in ("GIT_CONFIG_GLOBAL", "GIT_CONFIG_NOSYSTEM", "XDG_CONFIG_HOME")}
+        os.environ.update(GIT_CONFIG_GLOBAL=os.path.join(t, "gitconfig"), GIT_CONFIG_NOSYSTEM="1",
+                          XDG_CONFIG_HOME=os.path.join(t, "xdg"))
+        ecrire(os.environ["GIT_CONFIG_GLOBAL"], "")
+        try:
+            p = os.path.join(t, "proj")
+            ecrire(os.path.join(p, "CHANTIER.md"), CHANTIER % ("pz", "aucun"))
+            lancement = os.path.join(p, ".claude", "launch.json")
+            lu = lambda: open(lancement, encoding="utf-8", newline="").read()
+            entrees = lambda: [e for e in json.loads(lu())["configurations"] if e["name"].startswith("apercu-")]
+            git_ok = bool(shutil.which("git"))
+            if git_ok:
+                subprocess.run(["git", "init", "-q"], cwd=p, check=True, capture_output=True)
+
+            code, s = appel(["apercu", p])
+            verifier("apercu : sans launch.json, le crée avec l'entrée et le premier port, sort 0",
+                     code == 0 and s.startswith("APERCU écrit apercu-proj · port 8790 · ")
+                     and [e["port"] for e in entrees()] == [8790], s)
+            ecrire(lancement, launch)
+            avant_voisine = lu().split(voisine)
+            code, s = appel(["apercu", p])
+            e = entrees()
+            verifier("apercu : ajoute l'entrée après la voisine, port 8790 (8792 est pris ailleurs)",
+                     code == 0 and s.startswith("APERCU écrit apercu-proj · port 8790") and len(e) == 1
+                     and e[0]["runtimeArgs"][1:] == ["servir", os.path.join(p, "context AI", "artefacts").replace("\\", "/"),
+                                                     "8790"], s)
+            une_fois = lu()
+            code, s = appel(["apercu", p])
+            verifier("apercu : deux fois → une seule entrée apercu-, fichier identique, la voisine intacte à l'octet"
+                     " — mutant : ajouter sans chercher l'entrée existante",
+                     code == 0 and s.startswith("APERCU déjà apercu-proj") and lu() == une_fois
+                     and len(entrees()) == 1 and lu().split(voisine)[0] == avant_voisine[0]
+                     and voisine in lu(), s)
+            code, s = appel(["apercu", p, "--port", "8801"])
+            verifier("apercu : --port remplace l'entrée (toujours une seule), la voisine intacte",
+                     code == 0 and "remplacé apercu-proj · port 8801" in s and [x["port"] for x in entrees()] == [8801]
+                     and voisine in lu(), s)
+            code, s = appel(["apercu", p])
+            verifier("apercu : sans --port, garde le port de l'entrée déjà là",
+                     code == 0 and "déjà apercu-proj · port 8801" in s, s)
+            ecrire(lancement, '{"version": "0.0.1", "configurations": []}\r\n')
+            code, s = appel(["apercu", p])
+            verifier("apercu : tableau vide → une entrée, fin de ligne CRLF gardée",
+                     code == 0 and len(entrees()) == 1 and "\r\n" in lu() and "\n" not in lu().replace("\r\n", ""), lu())
+            for nom, contenu in (("illisible", "{pas du json"), ("sans tableau", '{"version": "0.0.1"}'),
+                                 ("deux entrées", '{"configurations": [{"name": "apercu-proj"}, {"name": "apercu-proj"}]}')):
+                ecrire(lancement, contenu)
+                code, s = appel(["apercu", p])
+                verifier("apercu : launch.json %s → GARDE:, sort 1, rien d'écrit" % nom,
+                         code == 1 and s.startswith("GARDE:") and lu() == contenu, s)
+            code, s = appel(["apercu", os.path.join(t, "nulle-part")])
+            verifier("apercu : pas de projet équipé → GARDE:, sort 1", code == 1 and s.startswith("GARDE: pas de projet"), s)
+            if not git_ok:
+                print("SAUTÉ: git absent — la GARDE du .gitignore n'est pas testée")
+            else:
+                os.remove(lancement)
+                code, s = appel(["apercu", p])
+                verifier("apercu : sans .gitignore → écrit quand même, et une GARDE: le dit, sort 0"
+                         " — mutant : ne pas consulter git check-ignore",
+                         code == 0 and len(entrees()) == 1 and s.splitlines()[-1].startswith("GARDE: .claude/launch.json"), s)
+                ecrire(os.path.join(p, ".gitignore"), ".claude/launch.json\n")
+                code, s = appel(["apercu", p])
+                verifier("apercu : .gitignore couvre le fichier → pas de GARDE:",
+                         code == 0 and s.startswith("APERCU déjà") and "GARDE" not in s, s)
+
+            # servir : un vrai serveur, sur un port libre choisi par le système (port 0).
+            art = os.path.join(t, "art")
+            ecrire(os.path.join(art, "a.html"), "<p>é</p>")
+            ecrire(os.path.join(art, "vlp.js"), "var x = 'é';")
+            ecrire(os.path.join(art, "sous", "b.svg"), "<svg/>")
+            serveur = mod.faire_serveur(art, 0)
+            fil = threading.Thread(target=serveur.serve_forever, daemon=True)
+            fil.start()
+            base = "http://127.0.0.1:%d" % serveur.server_port
+
+            def prendre(chemin):
+                try:
+                    with urllib.request.urlopen(base + chemin) as r:
+                        return r.status, r.headers, r.read().decode("utf-8")
+                except urllib.error.HTTPError as err:
+                    return err.code, err.headers, ""
+            try:
+                with contextlib.redirect_stderr(io.StringIO()):     # le journal des requêtes
+                    statut, tetes, corps = prendre("/a.html")
+                    verifier("servir : Cache-Control: no-store et html en UTF-8 — mutant : l'en-tête retiré",
+                             statut == 200 and tetes["Cache-Control"] == "no-store"
+                             and tetes["Content-Type"] == "text/html; charset=utf-8" and corps == "<p>é</p>", (statut, tetes))
+                    verifier("servir : .js et .svg (sous-dossier) en UTF-8, sans cache",
+                             prendre("/vlp.js")[1]["Content-Type"] == "text/javascript; charset=utf-8"
+                             and prendre("/sous/b.svg")[1]["Content-Type"] == "image/svg+xml; charset=utf-8"
+                             and prendre("/vlp.js")[1]["Cache-Control"] == "no-store", "types")
+                    statut, tetes, corps = prendre("/_telephone?page=sous/b.svg")
+                    verifier("servir : /_telephone rend la page dans un cadre de 375 px, sans cache",
+                             statut == 200 and 'src="/sous/b.svg"' in corps and "width:375px" in corps
+                             and tetes["Cache-Control"] == "no-store", corps)
+                    for mauvais in ("", "?page=../secret", "?page=/etc/passwd", "?page=<script>", "?page=a.html%22onload%3D1"):
+                        verifier("servir : /_telephone%s → 400, jamais de cadre" % mauvais,
+                                 prendre("/_telephone" + mauvais)[0] == 400, mauvais)
+                    verifier("servir : page absente → 404 sans cache",
+                             prendre("/nulle.html")[0] == 404, "404")
+            finally:
+                serveur.shutdown()
+                serveur.server_close()
+            code, s = appel(["servir", os.path.join(t, "absent"), "8800"])
+            verifier("servir : dossier absent → GARDE:, sort 1", code == 1 and s.startswith("GARDE: dossier introuvable"), s)
+            code, s = appel(["servir", art, "99999"])
+            verifier("servir : port impossible → GARDE:, sort 1", code == 1 and s.startswith("GARDE: port 99999"), s)
+        finally:
+            for k, v in anciens.items():
+                if v is None:
+                    os.environ.pop(k, None)
+                else:
+                    os.environ[k] = v
+
+
+tester_apercu()
+
 print("OK")

@@ -104,6 +104,7 @@ Seul endroit de la règle : les commandes y renvoient, elles ne la recopient pas
 - Une page **sans url** (`aucune`) se publie comme une première, puis
   `vlp.py lien <page.html> <url>` écrit son url.
 - Les **autres refus** (page non lue, vigile) se corrigent : ils n'attendent pas.
+- Regarder une page **sans la publier** : `vlp.py apercu <projet>` (détail dans sa docstring).
 
 ## La page se régénère, elle ne se retouche pas
 

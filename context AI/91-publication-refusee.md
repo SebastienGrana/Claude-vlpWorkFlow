@@ -185,8 +185,9 @@ avertissement ; suite `test-vlp.py` verte (compte brut).
 ---
 
 <!-- FICHE:LOC4 -->
-## LOC4 [ ] — Regarder les pages en local, sans cache
+## LOC4 [x] — Regarder les pages en local, sans cache
 
+**Session** : 5167a129-bd7e-438c-b2ff-699c419c1204
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py`, `.gitignore`,
 `.claude/launch.json`, `ARTEFACTS.md` — et rien d'autre.
