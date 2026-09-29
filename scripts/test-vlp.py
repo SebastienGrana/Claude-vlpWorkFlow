@@ -3520,7 +3520,11 @@ def tester_heredoc():
            ('echo \'{"command":"git add ."}\' > f', False),
            ("printf '%s' 'git commit' >> f", False),
            ('echo "git add ." | sh', True),
-           ("echo x > f; git add f", True)]
+           ("echo x > f; git add f", True),
+           # dette VRB : echo à l'écran muet, "$(…)" lu, pipe ou && lu
+           ('echo "git dans APRÈS: $?"; sh x', False), ('echo "git stash"', False),
+           ('echo "$(git stash)"', True), ('echo "$(git stash)" > f', True),
+           ('echo "a" && git stash', True), ('printf "git push\\n" | sh', True)]
     faux = [(c, attendu) for c, attendu in cas if refuse(c) != attendu]
     verifier("ECH1/ENQ2 : heredoc de cat/tee et echo/printf vers un fichier muets, le reste refusé "
              "(%d cas) — mutant : rien retiré" % len(cas), not faux, repr(faux))
