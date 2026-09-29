@@ -3286,6 +3286,11 @@ def test_bac():
         verifier("bac : jamais « par tour »", "par tour" not in texte_bac, texte_bac)
         code, s2 = appel(["bac", dbac])
         verifier("bac : un 2e appel rend une GARDE", code == 1 and s2.startswith("GARDE:"), s2)
+        # Dette REG : `clore` refusait le bac, faute de la ligne des lettres (REG3, 2026-09-29)
+        for ident in ("F1", "F2"):
+            appel(["cocher", fbac, ident])
+        code, s3 = appel(["clore", dbac, "--livre", "x", "--resume", "x"])
+        verifier("bac : clore passe, les deux fiches jouées", code == 0 and "CLOS F F1..F2" in s3, s3)
 
 
 test_bac()

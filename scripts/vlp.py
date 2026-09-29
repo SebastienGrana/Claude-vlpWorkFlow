@@ -4962,6 +4962,8 @@ BAC_CHANTIER = """# Chantier courant — bac d'essai
 - **artefact du chantier** : aucun
 - **livraison** : aucune
 - **vérification** : aucune — lire le statut rendu
+
+Lettres de fiche déjà prises : F (Deux fiches factices). Un nouveau chantier en choisit un autre.
 """ % BAC_FICHES
 BAC_FICHIER = """# Bac d'essai — deux fiches factices
 
