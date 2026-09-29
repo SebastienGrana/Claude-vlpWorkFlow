@@ -9,7 +9,35 @@ Avant de coder le parallèle, ce chantier mesure un essai réel — deux chantie
 même temps, dont LOC, chacun dans son worktree — et dit, chiffres à l'appui, si le temps
 gagné passe 20 %.
 
-**Fait.** Rien. Ouvert le 2026-09-28, cadré en 4 fiches, `PAR1` à jouer.
+**Fait.** `PAR1`, `PAR2`, `PAR6` ; `PAR3` le 2026-09-29 — l'essai PAR ‖ LOC mesuré, verdict
+**« coder D2–D5 »**, avec réserves.
+
+- **Plage** : 2026-09-29 00:02 (horloge) → 00:24:51 (commit `f7ed9bc`, LOC3). PAR : `PAR6`
+  (session `a0161a66`, Opus 5.5 Extra). LOC, dans son worktree : `LOC1` — refaite, déjà faite
+  à 22:04 (`3864ec3`), comptée (choix de l'utilisateur) —, `LOC2`, `LOC3` (sessions
+  `ae4ad37c`, `aefeee39`, Sonnet 5.5 élevé).
+- **Réel : 22 min** ; seules, `a0161a66` 21, `ae4ad37c` 18, `aefeee39` 3 —
+  `py scripts/mesure-tokens.py --plage 2026-09-29T00:02:00 2026-09-29T00:24:51 --actif <les 5
+  sessions de vlp.py sessions, deux fichiers>`, lignes `actif`.
+- **Série : 66,8 min** = 4 fiches (commits `d3a186c`, `3131d91`, `a6732ef`, `f7ed9bc`, `git log`
+  de chaque branche) × 16,7 min/fiche (table ci-dessous, sans cadrage). **Gain : 1 − 22 ÷ 66,8
+  = 67 %.**
+- **Réserve — série observée : 42 min** (21 + 18 + 3, chaque session seule), **gain 48 %**. La
+  série du socle suppose 16,7 min/fiche ; aux heures de commit, les fiches LOC ont pris ~4,
+  ~11 et ~3 min.
+- **$/fiche** face à **4,29 $** (référence kit) : PAR **6,79 $** à la ligne `PAR6` de
+  `py scripts/vlp.py cout "context AI/92-essai-parallele.md"` (+58 %), dont **3,30 $** d'ajout de
+  PAR5–PAR7 la veille (`mesure-tokens.py --plage 092f774 7b4440a`, 2 sessions de PAR, 23 tours)
+  — PAR6 seule **3,49 $** (`--plage 7b4440a d3a186c`, 35 tours, −19 %) ; LOC **1,18 $**
+  (1,08 + 1,78 + 0,69, `vlp.py cout` dans son worktree, −72 %) ; les deux côtés **2,59 $** (−40 %).
+- **Attente** (mêmes lignes `actif`) : `a0161a66` **2 min sur 21** (10 %), `ae4ad37c` et
+  `aefeee39` **0** ; ligne commune **0** ; référence kit sans cadrage 24 sur 368 (6,5 %). Minutes
+  arrondies à l'entier : 2 est grossier.
+- **Verdict**, tranché par l'utilisateur entre trois lectures : gain ≥ 20 % et $/fiche pas
+  monté — lu sur PAR6 seule et sur les deux côtés ; la ligne `cout` de PAR6 avale l'ajout de
+  fiches d'avant l'essai, défaut `DEC` (TODO n° 83, noté à 22:53, avant l'essai). **Un seul
+  essai : un point, pas une tendance** ; modèles différents des deux côtés — le $ de LOC baisse
+  d'abord par le prix de Sonnet.
 
 **Session** : 1282cde7-5a36-4b45-a08f-53f8ddddea98
 
@@ -178,8 +206,9 @@ ce fichier rend `VALIDE`.
 ---
 
 <!-- FICHE:PAR3 -->
-## PAR3 [ ] — Mesurer l'essai et rendre le verdict
+## PAR3 [x] — Mesurer l'essai et rendre le verdict
 
+**Session** : 51a5260c-bac8-429e-87b1-9e719964803a
 **Dépend de** : `PAR2`, et l'essai (geste de l'utilisateur).
 **Fichiers** : les transcriptions et les deux fichiers de fiches de l'essai (lecture
 seule), `context AI/92-essai-parallele.md` (**Fait.**), `context AI/08-etat.md`
