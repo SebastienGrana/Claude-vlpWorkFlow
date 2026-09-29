@@ -2012,6 +2012,50 @@ def test_page_clos():
 test_page_clos()
 
 
+def test_archive():
+    with tempfile.TemporaryDirectory() as t:
+        proj = os.path.join(t, "proj")
+        ecrire(os.path.join(proj, "CHANTIER.md"), CARTE_Z % "ctx/30-a.md (A1..A1)"
+               + "\nLettres de fiche déjà prises : A (Arc). Un nouveau chantier en choisit une autre.\n")
+        ecrire(os.path.join(proj, "ctx", "08-etat.md"), ETAT_Z)
+        ecrire(os.path.join(proj, "ctx", "00-INDEX.md"), "| Fichier | Lire quand |\n|---|---|\n"
+               "| `30-a.md` | chantier **ouvert** « A », `A1..A1` |\n")
+        ecrire(os.path.join(proj, "ctx", "30-a.md"), "# Chantier A\n\n**Fait.** Rien.\n\n## Le socle commun\n\n"
+               "## L'ordre des fiches\n\n<!-- FICHE:A1 -->\n## A1 [x] — Seule\n**Critère de fin**\n<!-- /FICHE -->\n")
+        gabarit = lire(GABARIT_FEUILLE)
+        d, f = mod.zone(gabarit, "clos", "<tbody>\n", "        </tbody>")
+        deux = (ligne_close("12,34 $ · " + mod.arrondi(50000)).replace("Q1–Q2", "X1")
+                + ligne_close(mod.arrondi(20000)).replace("Q1–Q2", "Y1"))
+        fdr = os.path.join(proj, "ctx", "artefacts", "feuille-de-route.html")
+        ecrire(fdr, mod.resommer(gabarit[:d] + deux + gabarit[f:], 2, 70000))
+        archive = os.path.join(proj, "ctx", "artefacts", mod.ARCHIVE_CLOS)
+        code, s = appel(["archive", proj])
+        a_html, f_html = lire(archive) if os.path.isfile(archive) else "", lire(fdr)
+        verifier("ARC2 : archive déplace les deux lignes et le pied",
+                 code == 0 and "ARCHIVE 2 déplacées" in s and len(mod.lignes_clos(a_html)) == 2
+                 and "Total cumulé" in a_html and "Total cumulé" not in f_html and "<!-- ZONE:clos" not in f_html, s)
+        verifier("ARC2 : la feuille garde le bloc d'archive, son résumé et le graphique",
+                 "<!-- ZONE:archive" in f_html and "2 chantiers clos" in f_html and "pas encore publiée" in f_html
+                 and "data-couts=" in f_html and "&lt;md&gt;" not in a_html, f_html[-1500:])
+        code, s = appel(["archive", proj])
+        verifier("ARC2 : relancé, rien ne bouge",
+                 code == 0 and "ARCHIVE 0 déplacées" in s and lire(fdr) == f_html and lire(archive) == a_html, s)
+        code, s = appel(["archive", proj, "--url", "https://claude.ai/artifact/ARCH"])
+        verifier("ARC2 : --url écrit le champ et le lien",
+                 code == 0 and "- **artefact archive** : https://claude.ai/artifact/ARCH" in lire(os.path.join(proj, "CHANTIER.md"))
+                 and 'href="https://claude.ai/artifact/ARCH"' in lire(fdr), s)
+        code, s = appel(["clore", proj, "--livre", "fini", "--tokens", "1000"])
+        attente = os.path.join(proj, "ctx", "artefacts", "en-attente")
+        verifier("ARC2 : clore refait le bloc (3 clos) et met l'archive en attente",
+                 code == 0 and "3 chantiers clos" in lire(fdr) and len(mod.lignes_clos(lire(archive))) == 3
+                 and os.path.isfile(attente) and mod.ARCHIVE_CLOS + "\thttps://claude.ai/artifact/ARCH" in lire(attente), s)
+        code, s = appel(["archive", proj])
+        verifier("ARC2 : après clore, archive ne bouge plus rien", code == 0 and "ARCHIVE 0 déplacées" in s, s)
+
+
+test_archive()
+
+
 # Préfixe à trois lettres : le format officiel depuis le chantier RNV.
 CHANTIER_3 = """# Chantier courant
 

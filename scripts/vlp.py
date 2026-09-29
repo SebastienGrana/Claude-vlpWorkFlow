@@ -219,6 +219,12 @@ Sous-commandes :
   gagne une ligne qui renvoie à l'archive, si elle manque. Relancé : rien ne change.
   `ARCHIVÉ <n> · index <n> lignes · archive <n> lignes` ; pas de champ **index** : `GARDE:`,
   sort 1 (chantier IDX).
+- `archive <projet> [--url URL]` — les lignes closes de la feuille de route, et leur pied, vont
+  dans `archive-clos.html` (gabarit `templates/artefact-archive-clos.html`), à côté ; la feuille
+  garde un bloc `ZONE:archive` — résumé et lien — et le graphique. `--url` écrit le champ
+  **artefact archive** de `CHANTIER.md`. Relancé : rien ne change. `ARCHIVE <n> déplacées · <n>
+  dans l'archive · feuille <avant> → <après> octets · url …` ; archive déjà là alors que la
+  feuille a encore ses clos : `GARDE:`, sort 1 (chantier ARC).
 - `abri <page.html>…` — crée à côté de chaque page son `.md` (résultat, notes, journal, bilan),
   tiré de la page, texte désechappé et balises retirées, sans toucher la page ; un `.md` déjà là
   n'est pas réécrit. `ABRI <md> · résultat <0|1> · notes <n> · journal <n> · bilan <0|1>`,
@@ -378,6 +384,8 @@ Sous-commandes :
 Les lignes des chantiers clos — lues ou écrites par `clore`, `recompter`, `prix`, `liens`,
 `repeindre` et le prix moyen d'`ouvrir` — vivent dans `<contexte>/artefacts/archive-clos.html`
 s'il existe, sinon dans la feuille ; le graphique reste sur la feuille (`page_clos`, chantier ARC).
+`clore` y refait alors le bloc `ZONE:archive` de la feuille et met l'archive en liste d'attente
+(`ATTENTE archive-clos.html — <URL>`), ou dit `GARDE:` sans champ **artefact archive**.
 
 Python 3 sans dépendance, zéro appel modèle.
 
@@ -3287,6 +3295,8 @@ def sommaire(html):
     cibles = []
     for nom in ("encours", "todo", "clos"):
         z = html.find("<!-- ZONE:" + nom)
+        if z < 0 and nom == "clos":
+            z = html.find("<!-- ZONE:archive")   # les clos partis dans l'archive (chantier ARC)
         s = html.rfind("<section", 0, z) if z >= 0 else -1
         if s < 0:
             return html
@@ -3469,17 +3479,112 @@ def couts_du_projet(projet, html):
 
 def rafraichir_couts(projet, page, html):
     """Après l'écriture des lignes closes `html` dans `page` : `couts.svg` refait à côté de la feuille ;
-    `page` est l'archive, la balise de la feuille aussi, sur ses barres (chantier ARC)."""
+    `page` est l'archive, le bloc `ZONE:archive` et la balise de la feuille aussi (chantier ARC)."""
     feuille_ = page_feuille(projet)
     if page == feuille_:
         return ecrire_couts(page, html)
     couts = couts_clos(html)
     avant = lire(feuille_)
-    neuf = balise_couts(avant, couts)
+    neuf = balise_couts(poser_bloc_archive(avant, html, champ(lignes_de(os.path.join(projet, "CHANTIER.md")),
+                                                                "artefact archive")), couts)
     if neuf != avant:
         with open(feuille_, "w", encoding="utf-8", newline="") as fh:
             fh.write(neuf)
     return ecrire_couts(feuille_, neuf, couts)
+
+
+GABARIT_ARCHIVE = "templates/artefact-archive-clos.html"
+ICI_ARCHIVE = "    <!-- ARCHIVE:table -->\n"
+BLOC_ARCHIVE = re.compile(r"    <!-- ZONE:archive[^\n]*\n.*?    <!-- /ZONE:archive -->\n", re.S)
+
+
+def poser_bloc_archive(feuille_html, archive_html, url):
+    """La feuille avec son bloc `ZONE:archive` refait sur les lignes closes de l'archive : le résumé
+    replié (nombre, tokens, $) et le lien — `details.clos` y reste, où `balise_couts` pose le
+    graphique. Sans bloc ni `ZONE:clos`, rien ne change (chantier ARC)."""
+    d, f = zone(archive_html, "clos", "<tbody>\n", "        </tbody>")
+    corps = archive_html[d:f]
+    usd, n_usd = prix_clos(corps)
+    lien = ('<a href="%s">dans l\'archive</a>' % esc(url) if url and not url.lower().startswith("aucun")
+            else "dans l'archive, pas encore publiée")
+    bloc = ('    <!-- ZONE:archive — les chantiers clos vivent dans l\'archive (chantier ARC) ; refait par clore -->\n'
+            '    <details class="clos">\n      <summary><span class="resume-clos">%s</span></summary>\n'
+            '      <p>Le détail de chacun, le plus récent en haut : %s.</p>\n    </details>\n'
+            '    <!-- /ZONE:archive -->\n' % (resume_clos(len(lignes_clos(corps)), total_clos(corps), usd, n_usd), lien))
+    return BLOC_ARCHIVE.sub(lambda _: bloc, feuille_html, count=1)
+
+
+def poser_champ(texte, nom, valeur, apres):
+    """`texte` (un `CHANTIER.md`) avec sa ligne `- **nom** : valeur`, remplacée, sinon posée après la
+    ligne du champ `apres`, sinon en fin de fichier."""
+    ligne = "- **%s** : %s" % (nom, valeur)
+    motif = re.compile(r"^\s*-\s*\*\*%s\*\*\s*:.*$" % re.escape(nom), re.M)
+    if motif.search(texte):
+        return motif.sub(lambda _: ligne, texte, count=1)
+    m = re.search(r"^\s*-\s*\*\*%s\*\*\s*:.*$" % re.escape(apres), texte, re.M)
+    fin = "\r\n" if "\r\n" in texte else "\n"
+    if m:
+        return texte[:m.end()] + fin + ligne + texte[m.end():]
+    return texte.rstrip("\r\n") + fin + ligne + fin
+
+
+def cmd_archive(projet, url, sortie):
+    """Les chantiers clos de la feuille déplacés dans `archive-clos.html` (chantier ARC)."""
+    if not equipe(projet):
+        sortie.write("GARDE: pas de CHANTIER.md dans %s\n" % projet)
+        return 1
+    page = page_feuille(projet)
+    if not os.path.isfile(page):
+        sortie.write("GARDE: feuille de route introuvable : %s\n" % page)
+        return 1
+    chemin_carte = os.path.join(projet, "CHANTIER.md")
+    carte_ = lignes_de(chemin_carte)
+    archive = os.path.join(os.path.dirname(page), ARCHIVE_CLOS)
+    html = lire(page)
+    i = html.find("    <!-- ZONE:clos")
+    deplacees = 0
+    if i >= 0:
+        j = html.find("    </details>\n", i)
+        if os.path.isfile(archive) or j < 0:
+            sortie.write("GARDE: %s — rien d'écrit\n" % ("archive déjà là, et la feuille a encore ses clos"
+                                                         if j >= 0 else "fin des clos introuvable sur la feuille"))
+            return 1
+        j += len("    </details>\n")
+        table = BALISE_COUTS.sub("", html[i:j]).replace('<details class="clos">', '<details class="clos" open>', 1)
+        deplacees = len(lignes_clos(table))
+        alias = champ(carte_, "alias", os.path.basename(os.path.abspath(projet)))
+        gabarit = lire(os.path.join(KIT, GABARIT_ARCHIVE))
+        archive_html = (gabarit.replace("&lt;md&gt;", esc(alias))
+                        .replace("&lt;URL de la feuille&gt;", esc(champ(carte_, "artefact feuille de route", "")))
+                        .replace(ICI_ARCHIVE, table))
+        html = html[:i] + "    <!-- ZONE:archive -->\n    <!-- /ZONE:archive -->\n" + html[j:]
+    elif not os.path.isfile(archive):
+        sortie.write("GARDE: ni chantiers clos sur la feuille, ni archive — rien d'écrit\n")
+        return 1
+    else:
+        archive_html = lire(archive)
+    url = url or champ(carte_, "artefact archive")
+    neuf = balise_couts(poser_bloc_archive(html, archive_html, url), couts_clos(archive_html))
+    avant = lire(page)
+    if i >= 0:
+        with open(archive, "w", encoding="utf-8", newline="") as fh:
+            fh.write(archive_html)
+    if neuf != avant:
+        with open(page, "w", encoding="utf-8", newline="") as fh:
+            fh.write(neuf)
+    if url:
+        texte = lire(chemin_carte)
+        texte_neuf = poser_champ(texte, "artefact archive", url, "artefact feuille de route")
+        if texte_neuf != texte:
+            with open(chemin_carte, "w", encoding="utf-8", newline="") as fh:
+                fh.write(texte_neuf)
+    joints = recopier_joints(os.path.dirname(os.path.abspath(page)))
+    joints.update(ecrire_couts(page, neuf, couts_clos(archive_html)))
+    sortie.write(ligne_files(joints))
+    sortie.write("ARCHIVE %d déplacées · %d dans l'archive · feuille %d → %d octets · %s — %s\n" % (
+        deplacees, len(lignes_clos(archive_html)), len(avant.encode("utf-8")), len(neuf.encode("utf-8")),
+        "url %s" % url if url else "sans url", archive))
+    return 0
 
 
 def cmd_feuille(a, sortie):
@@ -4005,6 +4110,8 @@ def cmd_prix(projet, sortie, a_blanc=False):
         if not a_blanc:
             with open(page_route, "w", encoding="utf-8", newline="") as fh:
                 fh.write(neuf_html)
+            if page_route != page_feuille(projet):
+                rafraichir_couts(projet, page_route, neuf_html)   # le résumé du bloc d'archive (ARC)
         ecrits.append(page_route)
     if not a_blanc:
         for chemin_ecrit in ecrits:
@@ -4071,7 +4178,10 @@ CHEVRONS_HREF = re.compile(r'href="&lt;([^"]*)&gt;"')
 def migrer_clos(html):
     """(HTML, n) : les lignes de `ZONE:clos` écrites avant `gras_et_liens` y
     passent, et un `href="&lt;URL&gt;"` redevient `href="URL"` ; n lignes changées.
-    Les dix espaces restent, la ligne d'exemple du gabarit aussi. Deux passes = une."""
+    Les dix espaces restent, la ligne d'exemple du gabarit aussi. Deux passes = une. Sans
+    ZONE:clos (partie dans l'archive, chantier ARC) : rien à migrer."""
+    if "<!-- ZONE:clos" not in html:
+        return html, 0
     d, f = zone(html, "clos", "<tbody>\n", "        </tbody>")
     n = 0
 
@@ -4420,9 +4530,9 @@ def markdown_brut(html):
     """(`**`, liens Markdown, liens cassés) restés dans les zones todo, encours et
     clos d'une feuille de route, en occurrences — hors code cité, hors ligne
     d'exemple du gabarit."""
-    (a, b, _), (c, d), (e, f) = (zone_todo(html),
-                              zone(html, "encours", "\n", "  </section>"),
-                              zone(html, "clos", "<tbody>\n", "        </tbody>"))
+    (a, b, _), (c, d) = zone_todo(html), zone(html, "encours", "\n", "  </section>")
+    # une feuille dont les clos sont partis dans l'archive n'a plus de ZONE:clos (chantier ARC)
+    e, f = zone(html, "clos", "<tbody>\n", "        </tbody>") if "<!-- ZONE:clos" in html else (0, 0)
     clos = RANG_CLOS.sub(lambda m: "".join(lignes_clos(m.group(0))), html[e:f])
     texte = MONO.sub("", html[a:b] + html[c:d] + clos)
     return texte.count("**"), texte.count("](http"), texte.count('href="&lt;')
@@ -4872,6 +4982,17 @@ def cmd_clore(a, sortie):
         except ValueError as e:
             sortie.write("GARDE: %s — CHANTIER.md et fiches écrits, feuille non écrite\n" % e)
             return 1
+        if archive != page and clos_html is not None:
+            # l'archive se publie en fin de séance, par la liste d'attente (chantier ARC)
+            url_archive = champ(lignes_de(chemin_carte), "artefact archive", "aucune")
+            html = poser_bloc_archive(html, clos_html, url_archive)
+            if url_archive.lower().startswith("aucun"):
+                sortie.write("GARDE: archive sans URL — publier %s, puis « vlp.py archive %s --url <URL> »\n"
+                             % (archive, projet))
+            else:
+                ajouter_attente(dossier_artefacts(projet), ARCHIVE_CLOS, url_archive,
+                                __import__("datetime").datetime.now().astimezone().isoformat(timespec="minutes"))
+                sortie.write("ATTENTE %s — %s\n" % (ARCHIVE_CLOS, url_archive))
         with open(page, "w", encoding="utf-8", newline="") as fh:
             fh.write(html)
         joints = recopier_joints(os.path.dirname(os.path.abspath(page)))
@@ -5587,6 +5708,9 @@ def main(argv, sortie=None, entree=None, erreur=None):
     cl.add_argument("--resume")
     cl.add_argument("--date")
     sous.add_parser("archiver").add_argument("projet")
+    ar = sous.add_parser("archive")
+    ar.add_argument("projet")
+    ar.add_argument("--url")
     sous.add_parser("abri").add_argument("pages", nargs="+")
     ou =sous.add_parser("ouvrir")
     ou.add_argument("projet")
@@ -5686,6 +5810,8 @@ def repartir(a, sortie, entree, erreur):
         return cmd_clore(a, sortie)
     if a.cmd == "archiver":
         return cmd_archiver(a, sortie)
+    if a.cmd == "archive":
+        return cmd_archive(a.projet, a.url, sortie)
     if a.cmd == "abri":
         return cmd_abri(a.pages, sortie)
     if a.cmd == "feuille":

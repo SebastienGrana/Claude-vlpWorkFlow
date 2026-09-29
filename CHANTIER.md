@@ -15,6 +15,7 @@
 - **index** : context AI/00-INDEX.md
 - **fichier de fiches courant** : context AI/98-archive-clos.md (ARC1..ARC2)
 - **artefact feuille de route** : https://claude.ai/artifact/YWDny8kjubq9DhdP5rbPxA
+- **artefact archive** : https://claude.ai/artifact/JzWV9N32aJuZf9zweyZdjn
 - **artefact du chantier** : https://claude.ai/artifact/27t9uyLJ994oZn5zptyMn4
 - **livraison** : aucune — le plugin est chargé en place ; `/reload-plugins` pour
   que la session en cours voie une modification

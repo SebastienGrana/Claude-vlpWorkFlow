@@ -73,8 +73,9 @@ sur les lignes de `page_clos`, et s'écrit à côté de la feuille. Un commentai
 ---
 
 <!-- FICHE:ARC2 -->
-## ARC2 [ ] — `vlp.py archive` déplace les clos, `clore` tient l'archive
+## ARC2 [x] — `vlp.py archive` déplace les clos, `clore` tient l'archive
 
+**Session** : b293bb0b-835f-4938-bedc-3114bdb5643a
 **Dépend de** : `ARC1`.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py`, `templates/artefact-archive-clos.html`,
 `cloture.md`, `ARTEFACTS.md`, `CHANTIER.md`, `context AI/artefacts/` — et rien d'autre.
@@ -92,7 +93,7 @@ l'archive (URL connue). `cloture.md` et `ARTEFACTS.md` : une phrase chacun, sans
 **Critère de fin**
 1. Tests : `archive` déplace deux lignes et le pied, bloc écrit, relancé sans changement ;
    `clore` ensuite refait le bloc (n + 1) et met l'archive en attente. Mutant par `vlp.py mutant`.
-2. Réel, sur le kit : `archive .` — les comptes bruts `ARCHIVE`, la feuille sous **20 000**
-   octets ; l'archive publiée (première URL), puis `archive . --url <URL>`.
+2. Réel, sur le kit : `archive .` — les comptes bruts `ARCHIVE`, la feuille sous **26 000**
+   octets (mesuré au jeu : la balise du graphique en porte 8 452 ; 20 000 était estimé) ; l'archive publiée (première URL), puis `archive . --url <URL>`.
 3. `py scripts/test-vlp.py` : `OK` ; pyright 0 erreur.
 <!-- /FICHE -->

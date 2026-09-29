@@ -26,7 +26,9 @@ La feuille de route ne change **jamais** d'URL : elle porte la TODO ordonnée,
 le chantier en cours, et la table des chantiers clos avec un lien vers chacun.
 Elle ne porte **pas de compteur** de fiches — elle renvoie à la page du
 chantier, qui est à jour. L'artefact d'un chantier reste en ligne après sa
-clôture, marqué clos.
+clôture, marqué clos. Après `vlp.py archive`, la table des clos vit dans un
+artefact à part (`archive-clos.html`, champ « **artefact archive** ») ; la
+feuille n'en garde que le résumé, le lien et le graphique (chantier ARC).
 
 ## Le nommage — le projet d'abord
 

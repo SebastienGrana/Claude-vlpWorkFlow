@@ -58,6 +58,8 @@ pas de `favicon`, `label` : `clos`. Des fiches abandonnées y restent **non fait
 Déjà écrite à l'étape 2 : `action: "read"` sur son `url` (« **artefact feuille
 de route** » de `CHANTIER.md`), puis republication du fichier local avec cette `url`
 et `files` : le même JSON, `label` : `<chantier> clos`.
+Un projet qui a lancé `vlp.py archive` : `clore` a mis l'archive des clos en liste
+d'attente (ligne `ATTENTE`) — elle part avec les autres en fin de séance.
 
 Publication refusée : `ARTEFACTS.md`, « Une publication refusée ».
 
