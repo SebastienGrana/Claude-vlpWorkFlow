@@ -9,7 +9,9 @@ fiche ») ; il est joué par un script réécrit à la main à chaque fois. `vlp
 
 **Estimé.** 1 fiches · ≈3,01 $ — ≈3,01 $/fiche sur 83 clos (le 2026-09-29).
 
-**Fait.** Rien. Ouvert le 2026-09-29, cadré en 1 fiche, `MUT1` à jouer.
+**CLOS** le 2026-09-29. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** MUT1..MUT1 (2026-09-29) : vlp.py mutant casse le code exprès (texte ou @fichier, CRLF suivi), joue les tests avec VLP_TOUS_ECARTS=1, liste tous les écarts et rend le fichier à l'octet dans un finally — estimé 1 fiches ≈3,01 $ · cadré 1 · joué 1 fiches 1,76 $.
 
 **Session** : b293bb0b-835f-4938-bedc-3114bdb5643a
 

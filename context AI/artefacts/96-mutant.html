@@ -27,10 +27,12 @@
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
-  <section hidden>
-    <h2>Chantier clos le </h2>
+  <section>
+    <h2>Chantier clos le 2026-09-29</h2>
     <div class="bilan">
-      <p></p>
+      <p>Livré : vlp.py mutant casse le code exprès (texte ou @fichier, CRLF suivi), joue les tests avec VLP_TOUS_ECARTS=1, liste tous les écarts et rend le fichier à l'octet dans un finally</p>
+      <p>Surpris : 72 transcriptions et 275 appels avaient joué un mutant à la main, pas une seule ; et avec tous les écarts, le mutant stash de VRB en fait tomber 2, pas 1</p>
+      <p>Estimé : estimé 1 fiches ≈3,01 $ · cadré 1 · joué 1 fiches 1,76 $</p>
     </div>
   </section>
 
@@ -43,8 +45,8 @@
         <span class="note">vlp.py mutant et VLP_TOUS_ECARTS, texte ou @fichier, CRLF géré, tests et mutant du mutant ; ne dépend de rien</span></details>
         <span class="cout mono">≈2,3M (2 260 087) · 9 tours · 0,80 $</span></li>
     </ul>
-    <p class="mono cout-hors">Hors fiches : ≈2,6M (2 584 414) · 11 tours · 0,86 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈4,8M (4 844 501) · 20 tours · 1,66 $</p>
+    <p class="mono cout-hors">Hors fiches : ≈2,8M (2 845 289) · 12 tours · 0,96 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈5,1M (5 105 376) · 21 tours · 1,76 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

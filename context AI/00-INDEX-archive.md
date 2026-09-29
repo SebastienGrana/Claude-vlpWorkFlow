@@ -88,3 +88,4 @@ QUAND LIRE : on relit un chantier clos ; l'index n'en garde qu'une ligne qui ren
 | `93-reglages-enchainer.md` | on relit le socle du chantier REG — **clos** « Les réglages d'enchainer tranchés par PAR5 », `REG1..REG3` |
 | `94-verbes-git.md` | on relit le socle du chantier VRB — **clos** « Le gardien ne voit que trois verbes Git », `VRB1..VRB1` |
 | `95-plugin-retard.md` | on relit le socle du chantier ESR — **clos** « Un essai rechargé voit le code du worktree », `ESR1..ESR1` |
+| `96-mutant.md` | on relit le socle du chantier MUT — **clos** « Le mutant par un outil du kit », `MUT1..MUT1` |
