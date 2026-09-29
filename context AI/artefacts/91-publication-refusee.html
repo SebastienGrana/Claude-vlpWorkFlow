@@ -27,10 +27,12 @@
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
-  <section hidden>
-    <h2>Chantier clos le </h2>
+  <section>
+    <h2>Chantier clos le 2026-09-29</h2>
     <div class="bilan">
-      <p></p>
+      <p>Livré : la liste d'attente des pages refusées (attente ajouter/lister/retirer/hook, hooks sur Artifact), sa règle dans ARTEFACTS.md et l'aperçu local sans cache (apercu, /_telephone à 375 px), essayés pour de vrai</p>
+      <p>Surpris : attente lister prend le dossier context AI/artefacts et non la racine ; un second refus (joints non lus) est venu sans toucher la liste ; le vrai 429 n'a pas été essayé</p>
+      <p>Estimé : estimé 1 fiches ≈2,97 $ · cadré 5 · joué 5 fiches 11,74 $</p>
     </div>
   </section>
 
@@ -57,10 +59,10 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">LOC5</span></span>
         <details><summary><span class="titre">Essayer la liste et l'aperçu pour de vrai</span><span class="etat">Faite</span></summary>
         <span class="note">Liste 0 → 0 après refus « non lue » (et « joints non lus »), 0 → 1 → 0 par le hook seul à la republication (v8) ; aperçu /_telephone à 375 px, --ground #f6efdf → #ff9ecf visible au rechargement, vlp.css rendu (sha 60bbbfc4…, 11 066 octets, git diff --stat vide) ; vrai 429 non essayé (test de LOC2 seul) ; vu par l'utilisateur</span></details>
-        <span class="cout mono">≈4,2M (4 240 577) · 35 tours · 1,37 $</span></li>
+        <span class="cout mono">≈4,5M (4 496 736) · 37 tours · 1,44 $</span></li>
     </ul>
-    <p class="mono cout-hors">Hors fiches : ≈6,6M (6 557 098) · 39 tours · 4,70 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈25,9M (25 944 079) · 185 tours · 11,54 $</p>
+    <p class="mono cout-hors">Hors fiches : ≈7,0M (6 959 651) · 42 tours · 4,83 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈26,6M (26 602 791) · 190 tours · 11,74 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

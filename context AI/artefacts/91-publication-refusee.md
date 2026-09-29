@@ -10,3 +10,6 @@ Une page refusée par la limite du jour attend dans une liste et part plus tard,
 ## Journal
 - 2026-09-29 : LOC2 : la liste ne tient que les pages sous artefacts/ ; les pages Cairn du scratchpad (3 refus du 2026-09-27) n'y entrent pas, le hook se tait ; le champ error est à vérifier en vrai par LOC5
 ## Bilan
+- Livré : la liste d'attente des pages refusées (attente ajouter/lister/retirer/hook, hooks sur Artifact), sa règle dans ARTEFACTS.md et l'aperçu local sans cache (apercu, /_telephone à 375 px), essayés pour de vrai
+- Surpris : attente lister prend le dossier context AI/artefacts et non la racine ; un second refus (joints non lus) est venu sans toucher la liste ; le vrai 429 n'a pas été essayé
+- Estimé : estimé 1 fiches ≈2,97 $ · cadré 5 · joué 5 fiches 11,74 $

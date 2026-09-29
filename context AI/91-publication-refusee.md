@@ -10,8 +10,9 @@ attend dans une liste et part plus tard, et qu'on la relit en local en attendant
 
 **Estimé.** 1 fiches · ≈2,97 $ — ≈2,97 $/fiche sur 78 clos (le 2026-09-28).
 
-**Fait.** Rien. Ouvert le 2026-09-28, cadré en 4 fiches, puis 5 le même jour (notes
-du cadrage `PUB`, abandonné, fondues ici) ; `LOC1` à jouer.
+**CLOS** le 2026-09-29. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** LOC1..LOC5 (2026-09-29) : la liste d'attente des pages refusées (attente ajouter/lister/retirer/hook, hooks sur Artifact), sa règle dans ARTEFACTS.md et l'aperçu local sans cache (apercu, /_telephone à 375 px), essayés pour de vrai — estimé 1 fiches ≈2,97 $ · cadré 5 · joué 5 fiches 11,74 $.
 
 **Session** : fb3f5228-2d39-4a2d-9910-d73d5ffd4f10
 
