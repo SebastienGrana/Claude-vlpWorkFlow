@@ -168,7 +168,9 @@ Tranché le 2026-09-26 par le chantier `ALE` ; chiffres et commandes dans
 - **Chaque publication passe `files` : le JSON de la ligne `FILES`, même vide**
   (chantiers `PLI`, `JNT`). `FILES` ne nomme que les joints changés depuis la
   dernière publication réussie de la page : le hook `attente hook` note leur
-  empreinte dans `<contexte>/artefacts/publie` ; page jamais notée, tous. Un joint
+  empreinte dans `<contexte>/artefacts/publie` ; page jamais notée, tous — un joint
+  encore en CRLF en ligne y est refusé une dernière fois : relire, republier (accepté
+  à la clôture de `JNT` : une note écrite sans publier mentirait). Un joint
   inchangé n'est pas renvoyé, donc pas refusé (`JNT1` : 14 refus sur 187
   publications avec `files` avant). `.gitattributes` tient les joints en LF, pour
   les mêmes octets dans tout clone.
