@@ -10,7 +10,9 @@ du `PATH`, puis le chemin `%APPDATA%` refusé dans le terminal de l'utilisateur.
 
 **Estimé.** 1 fiches · ≈3,01 $ — ≈3,01 $/fiche sur 84 clos (le 2026-09-29).
 
-**Fait.** Rien. Ouvert le 2026-09-29, cadré en 1 fiche, `CLI1` à jouer.
+**CLOS** le 2026-09-29. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** CLI1..CLI1 (2026-09-29) : vlp.py claude trouve claude.exe (Packages d'abord) pour boucle.py, bac et le hook ; bac imprime la ligne SESSION PowerShell qui ouvre une session dans le bac — estimé 1 fiches ≈3,01 $ · cadré 1 · joué 1 fiches 1,74 $.
 
 **Session** : b293bb0b-835f-4938-bedc-3114bdb5643a
 
