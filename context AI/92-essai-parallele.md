@@ -269,8 +269,9 @@ silencieuse ; `git status --short` ne montre que `context AI/08-etat.md`.
 ---
 
 <!-- FICHE:PAR5 -->
-## PAR5 [ ] — Ranger les commandes qui jouent les fiches
+## PAR5 [x] — Ranger les commandes qui jouent les fiches
 
+**Session** : 8a40eca6-3ab3-4009-8ab4-7c8975785fae
 **Dépend de** : `PAR6` (le coût de chaque mode), `PAR7` (le modèle de chaque rôle). Plus
 parlante aussi après `PAR3` : son verdict dit si le parallèle vaut son code.
 **Fichiers** : `context AI/08-etat.md` (entrée 72 `NUI`, et entrée 58 si `PAR3` est faite),
