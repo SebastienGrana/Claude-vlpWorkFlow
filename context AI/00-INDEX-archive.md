@@ -83,3 +83,4 @@ QUAND LIRE : on relit un chantier clos ; l'index n'en garde qu'une ligne qui ren
 | `88-boutons.md` | on relit le socle du chantier BTN — **clos** « Des boutons sur les pages », `BTN1..BTN7` |
 | `89-un-seul-prix.md` | on relit le socle du chantier TAU — **clos** « Un seul prix pour un chantier », `TAU1..TAU4` |
 | `90-ecritures-git.md` | on relit le socle du chantier ENQ — **clos** « Les écritures Git des sous-agents, tranchées », `ENQ1..ENQ3` |
+| `92-essai-parallele.md` | on relit le socle du chantier PAR — **clos** « Deux chantiers en parallèle : l'essai mesuré », `PAR1..PAR7` |

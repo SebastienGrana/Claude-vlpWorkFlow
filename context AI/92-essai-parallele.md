@@ -9,8 +9,9 @@ Avant de coder le parallèle, ce chantier mesure un essai réel — deux chantie
 même temps, dont LOC, chacun dans son worktree — et dit, chiffres à l'appui, si le temps
 gagné passe 20 %.
 
-**Fait.** `PAR1`, `PAR2`, `PAR6` ; `PAR3` le 2026-09-29 — l'essai PAR ‖ LOC mesuré, verdict
-**« coder D2–D5 »**, avec réserves.
+**CLOS** le 2026-09-29. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** PAR1..PAR7 (2026-09-29) : l'essai de deux chantiers en parallèle, mesuré : 67 % de temps gagné (22 min contre 66,8 en série), le coût par mode et par modèle, la fusion prédite, et le rangement des commandes (entrée 72 NUI) — estimé non noté · cadré 7 · joué 7 fiches 39,62 $.
 
 - **Plage** : 2026-09-29 00:02 (horloge) → 00:24:51 (commit `f7ed9bc`, LOC3). PAR : `PAR6`
   (session `a0161a66`, Opus 5.5 Extra). LOC, dans son worktree : `LOC1` — refaite, déjà faite

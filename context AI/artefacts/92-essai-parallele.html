@@ -27,10 +27,12 @@
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
-  <section hidden>
-    <h2>Chantier clos le </h2>
+  <section>
+    <h2>Chantier clos le 2026-09-29</h2>
     <div class="bilan">
-      <p></p>
+      <p>Livré : l'essai de deux chantiers en parallèle, mesuré : 67 % de temps gagné (22 min contre 66,8 en série), le coût par mode et par modèle, la fusion prédite, et le rangement des commandes (entrée 72 NUI)</p>
+      <p>Surpris : le model: sonnet d'enchainer réécrit tout le contexte à chaque bascule ; Haiku 4.5 n'a fini aucune fiche ; cout avale le travail hors fiche de la session (DEC)</p>
+      <p>Estimé : estimé non noté · cadré 7 · joué 7 fiches 39,62 $</p>
     </div>
   </section>
 
@@ -57,7 +59,7 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">PAR5</span></span>
         <details><summary><span class="titre">Ranger les commandes qui jouent les fiches</span><span class="etat">Faite</span></summary>
         <span class="note">Réponses rendues sur la page à cartes (11 cartes) ; entrée 72 de 08-etat.md : 11 lignes de carte + 1 ligne de coût de recherche (3 recherches, 2 pages) ; Q7 précisé : canaux A/B, clôture la nuit dans sa branche, fusion le matin ; Q10 : chef en Opus 5.5 fixé au lancement, confirme hors Opus ; valider : VALIDE sur 92-essai-parallele.md (INVALIDE sur 08-etat.md avant comme après : validateur de fiches) ; git status : 08-etat.md seul</span></details>
-        <span class="cout mono">≈10,8M (10 789 828) · 57 tours · 6,44 $</span></li>
+        <span class="cout mono">≈11,3M (11 319 566) · 59 tours · 6,60 $</span></li>
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">PAR6</span></span>
         <details><summary><span class="titre">Mesurer ce que coûte chaque mode d'enchainer</span><span class="etat">Faite</span></summary>
         <span class="note">08-etat : table à 4 lignes — enchainer 44 fiches · 3,18 $ · 79,1 tours ; main 84 · 2,03 $ · 27,2 ; clear 49 (proxy) · 2,18 $ · 30,1 ; main clear pas mesuré (= clear) ; clear passe sous main au rang 3 (0,59 contre 0,27 $, 11/17) ; test-mesure-tokens.py : OK ; pyright : 0 errors ; valider : VALIDE 7 fiches · socle 78 lignes · 0 écarts</span></details>
@@ -67,8 +69,8 @@
         <span class="note">Table dans 08-etat.md, 3 réglages sur ENQ2+TAU1 (effort low, boucle.py) : Haiku 4.5 0/2 acceptée (1 refusée, 1 RETOUR, 49,5 tours/fiche, 1,57 $ pour rien) ; Sonnet 5.5 2/2, 26 tours, 0,95 $/fiche acceptée ; Opus 5.5 2/2, 26 tours, 1,39 $. Cause vérifiée en claude -p : model: sonnet d'enchainer vaut pour le tour de la skill, retour à Opus au suivant, 51 172 tokens réécrits. valider : VALIDE sur 92-essai-parallele.md (INVALIDE sur 08-etat.md avant comme après : validateur de fiches) ; git status : 08-etat.md seul.</span></details>
         <span class="cout mono">≈24,8M (24 832 334) · 243 tours · 10,34 $</span></li>
     </ul>
-    <p class="mono cout-hors">Hors fiches : ≈3,7M (3 661 313) · 28 tours · 2,87 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈64,8M (64 839 632) · 492 tours · 38,65 $</p>
+    <p class="mono cout-hors">Hors fiches : ≈4,5M (4 540 059) · 35 tours · 3,68 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈66,2M (66 248 116) · 501 tours · 39,62 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

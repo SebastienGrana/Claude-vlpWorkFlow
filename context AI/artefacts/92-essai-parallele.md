@@ -15,3 +15,6 @@ Un verdict chiffré : le temps gagné par deux sessions en même temps (kit + Ma
 - 2026-09-29 : 2026-09-29 (PAR6) : **clear et main coûtent presque pareil ; clear ne passe dessous qu'à la 3e fiche d'une même session** — une session neuve relit en cache près de la moitié de sa base (39 680 tokens lus sur 73 602, N = 49) : son départ vaut 0,25 $, pas 0,64 $. Sur 84 fiches jouées en main, 30,99 $ relus contre 22,71 $ de départs évités : 0,10 $/fiche. main clear = clear (réponse de l'utilisateur) ; le vrai essai de boucle.py ira dans PAR7.
 - 2026-09-29 : 2026-09-29 (PAR3) : une fiche refaite dans la plage compte dans la série (LOC1) ; la ligne de fiche de cout avale les commits hors fiche qui la précèdent — PAR6 : 6,79 $ dont 3,30 $ d'ajout de PAR5–PAR7 la veille ; un cas chiffré pour DEC (n° 83). Le verdict lit PAR6 seule (3,49 $), tranché par l'utilisateur.
 ## Bilan
+- Livré : l'essai de deux chantiers en parallèle, mesuré : 67 % de temps gagné (22 min contre 66,8 en série), le coût par mode et par modèle, la fusion prédite, et le rangement des commandes (entrée 72 NUI)
+- Surpris : le model: sonnet d'enchainer réécrit tout le contexte à chaque bascule ; Haiku 4.5 n'a fini aucune fiche ; cout avale le travail hors fiche de la session (DEC)
+- Estimé : estimé non noté · cadré 7 · joué 7 fiches 39,62 $
