@@ -9,7 +9,9 @@ et `git stash` échappent au gardien et à `contrat`. Le chantier passe à une l
 
 **Estimé.** 1 fiches · ≈3,02 $ — ≈3,02 $/fiche sur 81 clos (le 2026-09-29).
 
-**Fait.** Rien. Ouvert le 2026-09-29, cadré en 1 fiche, `VRB1` à jouer.
+**CLOS** le 2026-09-29. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** VRB1..VRB1 (2026-09-29) : le gardien et contrat refusent tout appel Git d'un sous-agent hors des 8 verbes de lecture (liste blanche), git lu en position de commande ; checkout et stash ne passent plus — estimé 1 fiches ≈3,02 $ · cadré 1 · joué 1 fiches 1,18 $.
 
 **Session** : b293bb0b-835f-4938-bedc-3114bdb5643a
 
