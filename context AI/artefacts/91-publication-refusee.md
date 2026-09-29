@@ -1,4 +1,6 @@
 # Une publication refusée n'arrête plus le chantier — notes et journal
+## Lien
+https://claude.ai/artifact/KF3UyEHa475AaJ317E6LFm
 ## Résultat
 Une page refusée par la limite du jour attend dans une liste et part plus tard, sans bloquer ni case ni clôture ; on la relit en local, sans cache, en largeur téléphone.
 ## Notes

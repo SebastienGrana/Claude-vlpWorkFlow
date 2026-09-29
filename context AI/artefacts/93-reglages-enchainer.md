@@ -1,4 +1,6 @@
 # Les réglages d'enchainer tranchés par PAR5 — notes et journal
+## Lien
+https://claude.ai/artifact/LMcDTMnMg1sryZiayjfmWg
 ## Résultat
 /vlp:enchainer sans argument joue les fiches dans la session (main), sans bascule de modèle ; le joueur des modes agents et clear est Sonnet, effort low.
 ## Notes

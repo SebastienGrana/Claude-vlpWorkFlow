@@ -1,4 +1,6 @@
 # Les écritures Git des sous-agents, tranchées — notes et journal
+## Lien
+https://claude.ai/artifact/SMDkZ5pSLFekzj6QPPVDrU
 ## Résultat
 contrat dit 0 écrivent · 3 bloqués · 1 interrompu depuis FOR, au lieu de 3 écrivent ; le gardien ne bloque plus un echo vers un fichier ; l'interdit de commit est là où le sous-agent finit.
 ## Notes

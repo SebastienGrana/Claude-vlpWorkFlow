@@ -1,4 +1,6 @@
 # Deux chantiers en parallèle : l'essai mesuré — notes et journal
+## Lien
+https://claude.ai/artifact/KK6jiYAQy9P1vVxwrSNMbh
 ## Résultat
 Un verdict chiffré : le temps gagné par deux sessions en même temps (kit + MapDecorator), face au temps en série — code du parallèle (D2–D5) seulement si le gain passe 20 %.
 ## Notes

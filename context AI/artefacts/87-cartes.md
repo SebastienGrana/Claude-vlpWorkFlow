@@ -1,4 +1,6 @@
 # La feuille de route plus courte et lisible — notes et journal
+## Lien
+https://claude.ai/artifact/K6uFCjGhdezQtwYyKdQqaV
 ## Résultat
 La feuille de route de Cairn, cartes fermées, tient en 5 écrans d'ordinateur au plus ; la TODO ne défile plus de côté ; rien de son texte n'est perdu, seulement replié.
 ## Notes
