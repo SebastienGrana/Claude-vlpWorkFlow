@@ -3511,7 +3511,12 @@ def poser_bloc_archive(feuille_html, archive_html, url):
             '    <details class="clos">\n      <summary><span class="resume-clos">%s</span></summary>\n'
             '      <p>Le détail de chacun, le plus récent en haut : %s.</p>\n    </details>\n'
             '    <!-- /ZONE:archive -->\n' % (resume_clos(len(lignes_clos(corps)), total_clos(corps), usd, n_usd), lien))
-    return BLOC_ARCHIVE.sub(lambda _: bloc, feuille_html, count=1)
+
+    def refait(m):
+        # le graphique déjà posé reste : `clore` refait le bloc après `feuille`, qui l'a posé
+        garde = BALISE_COUTS.search(m.group(0))
+        return bloc.replace("    <details", (garde.group(0) if garde else "") + "    <details", 1)
+    return BLOC_ARCHIVE.sub(refait, feuille_html, count=1)
 
 
 def poser_champ(texte, nom, valeur, apres):

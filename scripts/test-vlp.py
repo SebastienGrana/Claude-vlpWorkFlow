@@ -2047,7 +2047,7 @@ def test_archive():
         code, s = appel(["clore", proj, "--livre", "fini", "--tokens", "1000"])
         attente = os.path.join(proj, "ctx", "artefacts", "en-attente")
         verifier("ARC2 : clore refait le bloc (3 clos) et met l'archive en attente",
-                 code == 0 and "3 chantiers clos" in lire(fdr) and len(mod.lignes_clos(lire(archive))) == 3
+                 code == 0 and "3 chantiers clos" in lire(fdr) and "data-couts=" in lire(fdr) and len(mod.lignes_clos(lire(archive))) == 3
                  and os.path.isfile(attente) and mod.ARCHIVE_CLOS + "\thttps://claude.ai/artifact/ARCH" in lire(attente), s)
         code, s = appel(["archive", proj])
         verifier("ARC2 : après clore, archive ne bouge plus rien", code == 0 and "ARCHIVE 0 déplacées" in s, s)
