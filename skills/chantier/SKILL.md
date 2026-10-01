@@ -43,6 +43,8 @@ s'applique :
 4. **`AUCUN_PROJET`** → le projet n'est pas équipé. Dis-le, et propose
    `/vlp:init` ; n'improvise pas la structure toi-même.
 
+**`NUIT=1`** : lis `nuit.md` par `<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" lire nuit.md` ; il prime sur les étapes qui suivent.
+
 Des lignes **`ATTENTE=<page> <url>`** : republie ces pages d'abord (`ARTEFACTS.md`, « Une publication refusée »).
 
 Dans les cas 2 et 3, relance la carte sur le dossier retenu —

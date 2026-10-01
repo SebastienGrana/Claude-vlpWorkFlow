@@ -34,6 +34,7 @@ demande de l'autoriser — pas de contournement.
 - **`PROJET=…`**, puis `CHANTIER.md` en entier : fichier de fiches courant,
   artefact du chantier, livraison, vérification, contraintes d'écriture,
   fichier d'état, chantiers clos (qui ne se rejouent jamais).
+- **`NUIT=1`** : lis `nuit.md` par `<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" lire nuit.md` ; il prime sur les étapes qui suivent.
 - **`VOISIN=… alias=…`** : un workspace. Si le premier argument est un de ces
   alias, relance la carte sur ce dossier —
   `<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte "<dossier>"` (`<python>` : la valeur de `PYTHON=` dans la carte) ; sinon

@@ -2,6 +2,7 @@
 > décide de clore un chantier tel quel sans jouer les fiches restantes.
 > Lu par `/vlp:tache` (étape 7), par `/vlp:enchainer` (étape 5) et par
 > `/vlp:chantier` (étape 0 ter), qui l'appliquent sans la réécrire.
+> Sous `NUIT=1` : lis aussi `<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" lire nuit.md` ; il prime sur ce fichier.
 
 # Clore un chantier — les quatre temps, dans cet ordre
 
