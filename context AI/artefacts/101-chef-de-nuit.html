@@ -21,9 +21,9 @@
     <p>/vlp:chef cadre le soir, deux canaux jouent les chantiers la nuit sans humain, puis fusion et rapport le matin</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">20 fiches · 13 faites · en cours : NUI14</p>
+    <p class="mono" style="margin-top:.5rem">20 fiches · 14 faites · en cours : NUI15</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -89,12 +89,13 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">NUI13</span></span>
         <details><summary><span class="titre">Écrire la conduite de nuit</span><span class="etat">Faite</span></summary>
         <span class="note">nuit.md : lire code 0, ne coûte rien 1, 29 citations, 0 ID/plafond/08-etat ; nuit.md +1 ligne dans 5 fichiers, CLAUDE.md 80 lignes ; test-vlp OK, mutant CODE_PLUGIN ATTRAPÉ 1 écart, pyright 0 erreur</span></details>
-        <span class="cout mono">≈5,3M (5 290 451) · 31 tours · 2,14 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">NUI14</span></span>
-        <details open><summary><span class="titre">Renvoyer les commandes à nuit.md</span><span class="etat">En cours · NUI15 peut partir en même temps</span></summary>
-        <span class="note">les commandes renvoient à nuit.md, essai sur bac — dépend de NUI13</span></details></li>
-      <li class="fiche"><span class="gauche"><span class="id">NUI15</span></span>
-        <details><summary><span class="titre">Fusionner le matin : CHANTIER.md et la feuille</span><span class="etat">À lancer · en même temps que NUI14</span></summary>
+        <span class="cout mono">≈5,7M (5 680 508) · 33 tours · 2,24 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">NUI14</span></span>
+        <details><summary><span class="titre">Renvoyer les commandes à nuit.md</span><span class="etat">Faite</span></summary>
+        <span class="note">3 renvois, 1 ligne chacun (tache 1 0, cloture 1 0, chantier 2 0), nuit.md 24 24, 30 citations avant et après, 0 écart relu ; test-vlp OK, main a725aba sans PLUGIN_RETARD ; essai claude -p : FICHE F1 CASE [x] 16 tours 0.4623 $ 68 s, lire nuit.md 1, git commit 0, cloture.md 0, rev-list 1, PROCHAINE=aucune</span></details>
+        <span class="cout mono">≈7,6M (7 559 857) · 43 tours · 2,41 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">NUI15</span></span>
+        <details open><summary><span class="titre">Fusionner le matin : CHANTIER.md et la feuille</span><span class="etat">En cours</span></summary>
         <span class="note">vlp.py matin : fusion, CHANTIER.md et feuille réparés — ne dépend de rien</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">NUI16</span></span>
         <details><summary><span class="titre">Fusionner le matin : 08-etat.md et les listes</span><span class="etat">Après NUI15</span></summary>
@@ -109,12 +110,12 @@
         <details><summary><span class="titre">Écrire /vlp:chef, le matin</span><span class="etat">Après NUI15, NUI16, NUI18</span></summary>
         <span class="note">/vlp:chef, le matin — dépend de NUI13, NUI15, NUI16, NUI18</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">NUI20</span></span>
-        <details><summary><span class="titre">Jouer une nuit réelle</span><span class="etat">Après NUI14, NUI15, NUI16, NUI17, NUI18, NUI19</span></summary>
+        <details><summary><span class="titre">Jouer une nuit réelle</span><span class="etat">Après NUI15, NUI16, NUI17, NUI18, NUI19</span></summary>
         <span class="note">une vraie nuit sur le kit, mesurée — dépend de toutes</span></details>
         <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈679,9k (679 863) · 3 tours · 0,18 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈104,6M (104 639 579) · 594 tours · 44,16 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈112,6M (112 589 493) · 639 tours · 46,67 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -131,6 +132,7 @@
     <h2>Journal des décisions</h2>
     <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
     <ul class="journal">
+      <li><time datetime="2026-10-01">2026-10-01</time><span>Essai NUI14 sous NUIT=1 : une session claude -p sur une fiche triviale, 16 tours, 0,4623 $, 68 s (un appel lire nuit.md, 0 git commit, 0 cloture.md) ; boucle.py ne crée pas le dossier de --traces.</span></li>
     </ul>
   </section>
 

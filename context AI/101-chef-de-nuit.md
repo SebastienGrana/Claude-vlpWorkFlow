@@ -767,8 +767,9 @@ racine du kit comme `cloture.md` : le seul endroit qui dit, pour chaque attente 
 ---
 
 <!-- FICHE:NUI14 -->
-## NUI14 [ ] — Renvoyer les commandes à nuit.md
+## NUI14 [x] — Renvoyer les commandes à nuit.md
 
+**Session** : 28c4a1ca-ce9e-4c0a-9a6e-a5edbd860a0c
 **Dépend de** : `NUI13`.
 **Fichiers** : `skills/tache/SKILL.md`, `skills/chantier/SKILL.md`, `cloture.md`, `nuit.md` (ses numéros de ligne seuls) ; lus seulement : `skills/enchainer/references/refus.md` (l. 1-2), `scripts/boucle.py` (docstring) ; dans le bac, `fiches.md` et la trace `F1.jsonl` — et rien d'autre.
 

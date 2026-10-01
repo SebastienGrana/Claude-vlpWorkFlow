@@ -15,7 +15,7 @@
 - NUI11 : test-vlp.py OK (tester_fichier_nuits neuf, cas a à d) · 3 mutants MUTANT ATTRAPÉ (CARNET_MIN = 0, retirées vivantes, usd_kit lu usd_cli) · grep -c nuits.md 0 → 1, sept familles 1 · pyright 0 errors sur vlp.py et test-vlp.py
 - NUI12 : test-vlp.py OK (cas plan 0, a, b, c×9, d) ; 3 mutants MUTANT ATTRAPÉ (NUIT=1 jamais écrite → (d), sections perdues → (b), lettres prises retirées → (c)) ; pyright 0 errors, 0 warnings, 0 informations
 - NUI13 : nuit.md : lire code 0, ne coûte rien 1, 29 citations, 0 ID/plafond/08-etat ; nuit.md +1 ligne dans 5 fichiers, CLAUDE.md 80 lignes ; test-vlp OK, mutant CODE_PLUGIN ATTRAPÉ 1 écart, pyright 0 erreur
-- NUI14 : les commandes renvoient à nuit.md, essai sur bac — dépend de NUI13
+- NUI14 : 3 renvois, 1 ligne chacun (tache 1 0, cloture 1 0, chantier 2 0), nuit.md 24 24, 30 citations avant et après, 0 écart relu ; test-vlp OK, main a725aba sans PLUGIN_RETARD ; essai claude -p : FICHE F1 CASE [x] 16 tours 0.4623 $ 68 s, lire nuit.md 1, git commit 0, cloture.md 0, rev-list 1, PROCHAINE=aucune
 - NUI15 : vlp.py matin : fusion, CHANTIER.md et feuille réparés — ne dépend de rien
 - NUI16 : fusion par clé de l'état, des listes et d'en-attente — dépend de NUI15
 - NUI17 : une page à cartes remplie par script — ne dépend de rien
@@ -23,4 +23,5 @@
 - NUI19 : /vlp:chef, le matin — dépend de NUI13, NUI15, NUI16, NUI18
 - NUI20 : une vraie nuit sur le kit, mesurée — dépend de toutes
 ## Journal
+- 2026-10-01 : Essai NUI14 sous NUIT=1 : une session claude -p sur une fiche triviale, 16 tours, 0,4623 $, 68 s (un appel lire nuit.md, 0 git commit, 0 cloture.md) ; boucle.py ne crée pas le dossier de --traces.
 ## Bilan
