@@ -336,8 +336,9 @@ Pas ici : relecture et commit (`NUI5`), relance sur refus (`NUI6`), enchaînemen
 ---
 
 <!-- FICHE:NUI5 -->
-## NUI5 [ ] — Relire avant le commit
+## NUI5 [x] — Relire avant le commit
 
+**Session** : 7d26b8c1-34e3-43be-bef5-0d9610438714
 **Dépend de** : `NUI4`.
 **Fichiers** : `scripts/boucle.py`, `scripts/vlp.py`, `scripts/test-boucle.py`, `scripts/test-vlp.py`, `scripts/faux-claude.py` ; lus seulement : `scripts/carnet.py`, `agents/relecture.md`, `enchainement.md` — et rien d'autre.
 

@@ -11,8 +11,12 @@ VLP_FAUX_REFUSE (`<fiche>:<fiche|copie>`), VLP_FAUX_LIMITE (préfixe de `--model
 genre de cette limite : `session` par défaut, `semaine`, `opus`), VLP_FAUX_REPLI (`1`), VLP_FAUX_DORT
 (secondes), VLP_FAUX_ERREUR (`coupure`, `api`, `tours`, `budget`), VLP_FAUX_DENIALS (nombre d'entrées de
 `permission_denials` dans le `result` ; réduites à `tool_name`, leur forme réelle n'est pas relevée),
-VLP_FAUX_ARGV (chemin : y ajoute, une ligne JSON par lancement, les arguments reçus), VLP_FAUX_VLP
-(chemin de vlp.py, par défaut celui d'à côté). Le faux n'appelle jamais Git.
+VLP_FAUX_ARGV (chemin : y ajoute, une ligne JSON par lancement, les arguments reçus), VLP_FAUX_ENV (chemin :
+y ajoute `{role, VLP_CANAL, VLP_CARNET}` de chaque lancement), VLP_FAUX_COMMIT (fiches, séparées par des
+virgules : après les avoir cochées, le rôle `jouer` fait `git add -A` et `git commit -m "<fiche> : fiche
+<fiche>"` dans le dossier courant — la session qui commite malgré tout), VLP_FAUX_VLP (chemin de vlp.py, par
+défaut celui d'à côté). Le rôle `jouer` pose `CLAUDE_CODE_SESSION_ID` = son `--session-id` aux commandes qu'il
+lance, comme le vrai claude ; hors VLP_FAUX_COMMIT, le faux n'appelle jamais Git.
 """
 import io
 import json
@@ -113,18 +117,27 @@ def decouper(code: str) -> int:
     return 0
 
 
-def jouer(fiche: str) -> int:
+def jouer(fiche: str, session: Optional[str] = None) -> int:
     fichier = courant()
     if not fichier:
         return inconnu("aucun fichier de fiches courant")
     if fiche in os.environ.get("VLP_FAUX_RATE", "").split(","):
         return 0
     vlp = os.environ.get("VLP_FAUX_VLP") or os.path.join(ICI, "vlp.py")
+    # Le vrai claude pose l'id de sa session aux commandes qu'il lance, et `cocher` le lit.
+    env = dict(os.environ, CLAUDE_CODE_SESSION_ID=session) if session else None
     r = subprocess.run([sys.executable, vlp, "cocher", fichier, fiche], capture_output=True, text=True,
-                       encoding="utf-8")
+                       encoding="utf-8", env=env)
     if r.returncode:
         sys.stderr.write((r.stdout + r.stderr).strip() + "\n")
         return 2
+    if fiche in os.environ.get("VLP_FAUX_COMMIT", "").split(","):
+        # La session de jeu qui commite malgré tout : le cas `TÊTE` de la boucle.
+        for git in (["add", "-A"], ["commit", "-q", "-m", "%s : fiche %s" % (fiche, fiche)]):
+            r = subprocess.run(["git"] + git, capture_output=True, text=True, encoding="utf-8")
+            if r.returncode:
+                sys.stderr.write((r.stdout + r.stderr).strip() + "\n")
+                return 2
     return 0
 
 
@@ -207,8 +220,13 @@ def main(argv: list) -> int:
         emettre(resultat(sid, None, 0.0, is_error=True, result=LIMITES[genre]))
         return 1
 
-    code = {"découper": lambda: decouper(mots[1]), "jouer": lambda: jouer(mots[1]), "clore": clore,
-            "relire": lambda: 0}[role]()
+    chemin_env = os.environ.get("VLP_FAUX_ENV")
+    if chemin_env:
+        with open(chemin_env, "a", encoding="utf-8", newline="") as f:
+            f.write(json.dumps({"role": role, "VLP_CANAL": os.environ.get("VLP_CANAL"),
+                                "VLP_CARNET": os.environ.get("VLP_CARNET")}, ensure_ascii=False) + "\n")
+    code = {"découper": lambda: decouper(mots[1]), "jouer": lambda: jouer(mots[1], valeur(argv, "--session-id")),
+            "clore": clore, "relire": lambda: 0}[role]()
     if code:
         return code
     vu = modele

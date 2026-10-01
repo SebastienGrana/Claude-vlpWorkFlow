@@ -226,10 +226,28 @@ with tempfile.TemporaryDirectory() as t:
 
 # --- le carnet de nuit et la borne double (NUI3) --------------------------------------
 
+# Git sans le poste (NUI5) : config globale et système neutralisées, une identité d'essai — comme test-vlp.py.
+_GIT_TMP = tempfile.TemporaryDirectory()
+with open(os.path.join(_GIT_TMP.name, "gitconfig"), "w", encoding="utf-8") as _h:
+    _h.write("")
+ENV_GIT = dict(GIT_CONFIG_GLOBAL=os.path.join(_GIT_TMP.name, "gitconfig"), GIT_CONFIG_NOSYSTEM="1",
+               GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t")
+
+
+def git(t, *args):
+    r = subprocess.run(["git"] + list(args), cwd=t, env=dict(os.environ, **ENV_GIT), check=True,
+                       capture_output=True, text=True, encoding="utf-8")
+    return r.stdout
+
+
 def depot(t):
-    """`git init` dans `t`, puis le projet de test : le carnet vit dans son `.git`."""
+    """`git init` dans `t`, le projet de test, puis un commit initial : le carnet vit dans son `.git`,
+    et la boucle de nuit commite sur ACCEPTÉE."""
     subprocess.run(["git", "init", "-q", t], check=True, capture_output=True)
-    return projet(t)
+    faux_ = projet(t)
+    git(t, "add", "-A")
+    git(t, "commit", "-q", "-m", "init")
+    return faux_
 
 
 def carnet_de(t):
@@ -243,12 +261,17 @@ def cases_de(t):
     return "".join("x" if ("## %s [x]" % f) in texte else "." for f in ("F1", "F2", "F3"))
 
 
-def nuit(t, *options, rate="", claude=FAUX_CLAUDE):
-    """boucle.py --nuit dans `t` : (code, sortie). VLP_CARNET et VLP_CANAL d'ici ne passent pas."""
+def nuit(t, *options, rate="", claude=FAUX_CLAUDE, traces=None, **env):
+    """boucle.py --nuit dans `t` : (code, sortie). VLP_CARNET et VLP_CANAL d'ici ne passent pas. Les traces
+    vont hors du dépôt (`traces`, sinon un dossier jeté) : la boucle commite tout ce qu'elle y trouverait."""
     base = {k: v for k, v in os.environ.items() if k not in (carnet.ENV_CARNET, carnet.ENV_CANAL)}
+    base.update(ENV_GIT)
     base.update(VLP_FAUX_VLP=os.path.join(ICI, "vlp.py"), VLP_FAUX_RATE=rate, PYTHONIOENCODING="utf-8")
-    r = subprocess.run([sys.executable, os.path.join(ICI, "boucle.py"), t, "--claude", claude, "--traces", t,
-                        "--nuit"] + list(options), env=base, capture_output=True, text=True, encoding="utf-8")
+    base.update(env)
+    with tempfile.TemporaryDirectory() as jete:
+        r = subprocess.run([sys.executable, os.path.join(ICI, "boucle.py"), t, "--claude", claude, "--traces",
+                            traces or jete, "--nuit"] + list(options), env=base, capture_output=True, text=True,
+                           encoding="utf-8")
     return r.returncode, r.stdout + r.stderr
 
 
@@ -257,10 +280,12 @@ def tester_nuit():
     with tempfile.TemporaryDirectory() as t:
         depot(t)
         code, s = nuit(t, *canal_a)
-        lignes = carnet.lire(carnet_de(t))
-        verifier("NUI3 (a) --nuit, 3 fiches : 3 lignes `jouer` aux clés de CLES, canal A, usd_cli du faux, "
-                 "usd_kit et tours_kit à null, session lue dans init",
+        tout = carnet.lire(carnet_de(t))
+        lignes = [d for d in tout if d["role"] == "jouer"]
+        verifier("NUI3 (a) --nuit, 3 fiches : 3 lignes `jouer` (et 3 `relire`, NUI5) aux clés de CLES, canal A, "
+                 "usd_cli du faux, usd_kit et tours_kit à null, session lue dans init",
                  code == 0 and cases_de(t) == "xxx" and "ARRÊT aucune fiche à jouer" in s and len(lignes) == 3
+                 and [d["role"] for d in tout] == ["jouer", "relire"] * 3
                  and all(set(d) == set(carnet.CLES) for d in lignes)
                  and [d["fiche"] for d in lignes] == ["F1", "F2", "F3"]
                  and all(d["canal"] == "A" and d["chantier"] == "X" and d["role"] == "jouer" and d["usd_cli"] == 0.01
@@ -478,7 +503,7 @@ def tester_plafonds():
                       int(drapeau(a, "--max-turns") or 0),drapeau(a, "--max-budget-usd"), drapeau(a, "--agent"),
                       "--allowedTools" in a) for (role, _), a in zip(ordre, argvs)}
         attendu = {"relire": ("F1", OPUS, REPLI, None, tours_de("relecture.md"), "3", "vlp:relecture", False),
-                   "jouer": ("/vlp:tache F1", SONNET, None, "low", tours_de("fiche.md"), "5", None, True),
+                   "jouer": ("/vlp:tache F1", SONNET, None, "low", tours_de("fiche.md"), "5", None, False),   # NUI5
                    "relance": ("/vlp:tache F2", OPUS, REPLI, "medium", tours_de("fiche.md"), "5", None, True),
                    "clore": ("/vlp:tache", OPUS, REPLI, None, 60, "5", None, True),
                    "découper": ("/vlp:chantier T", OPUS, REPLI, None, 150, "20", None, False)}
@@ -537,8 +562,9 @@ def tester_plafonds():
             code, s = nuit(t, *canal_a)
         lignes = carnet.lire(carnet_de(t))
         sessions = [d for d in lignes if carnet.est_session(d)]
-        verifier("NUI4 (e) refus de permission et case cochée → jouée sans stop, leur nombre dans garde, 3 fiches",
-                 code == 0 and cases_de(t) == "xxx" and [d["issue"] for d in sessions] == ["jouée"] * 3
+        verifier("NUI4 (e) refus de permission et case cochée → jouée sans stop, leur nombre dans garde, 3 fiches "
+                 "(3 jeux et 3 relectures, NUI5)",
+                 code == 0 and cases_de(t) == "xxx" and [d["issue"] for d in sessions] == ["jouée"] * 6
                  and all(d["garde"] == "permission_denials : 2" for d in sessions) and carnet.stop_de(lignes) is None,
                  (s, lignes))
 
@@ -604,5 +630,108 @@ def tester_plafonds():
 
 
 tester_plafonds()
+
+
+# --- relire avant le commit (NUI5) : dépôt avec un commit initial, traces et journaux hors du dépôt -----
+
+def journal_de(chemin):
+    return [json.loads(l) for l in lire(chemin).splitlines()] if os.path.exists(chemin) else []
+
+
+def autorises(argv):
+    """Les `--allowedTools` d'une ligne de commande : ce qui suit le drapeau, jusqu'au drapeau suivant."""
+    if "--allowedTools" not in argv:
+        return []
+    suite = argv[argv.index("--allowedTools") + 1:]
+    return suite[:next((i for i, x in enumerate(suite) if x.startswith("--")), len(suite))]
+
+
+def tester_relecture():
+    canal_a = ("--canal", "A", "--chantier", "X")
+
+    def nuit_de_test(t, hors, *options, **env):
+        argv, envj = os.path.join(hors, "argv.jsonl"), os.path.join(hors, "env.jsonl")
+        code, s = nuit(t, *canal_a, *options, traces=hors, VLP_FAUX_ARGV=argv, VLP_FAUX_ENV=envj, **env)
+        return code, s, journal_de(argv), journal_de(envj)
+
+    def sessions_de(t):
+        return [l for l in lire(os.path.join(t, "fiches.md")).splitlines() if l.startswith("**Session** : ")]
+
+    def sujet(t):
+        return git(t, "log", "-1", "--format=%s").strip()
+
+    def nombre(t):
+        return git(t, "rev-list", "--count", "HEAD").strip()
+
+    with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors:
+        depot(t)
+        code, s, argvs, envs = nuit_de_test(t, hors, "--plafond", "1")
+        jeu, lecture = argvs[0], argvs[1]
+        verifier("NUI5 nuit : jouer sans git — ni `git add` ni `git commit` dans ses --allowedTools, `--amend` "
+                 "toujours interdit",
+                 code == 0 and drapeau(jeu, "-p") == "/vlp:tache F1"
+                 and not any("git add" in x or "git commit:" in x for x in autorises(jeu))
+                 and "Bash(git commit --amend:*)" in jeu, (s, jeu))
+        verifier("NUI5 nuit : canal — le faux du rôle relire voit VLP_CANAL de la boucle",
+                 [e["VLP_CANAL"] for e in envs if e["role"] == "relire"] == ["A"]
+                 and drapeau(lecture, "--agent") == "vlp:relecture" and drapeau(lecture, "-p") == "F1", (envs, lecture))
+        verifier("NUI5 nuit : ACCEPTÉE commite — `F1 : fiche F1`, arbre propre, la seule fiches.md, deux lignes "
+                 "Session (jouer, puis relire suffixé)",
+                 sujet(t) == "F1 : fiche F1" and nombre(t) == "2" and git(t, "status", "--porcelain") == ""
+                 and git(t, "show", "--name-only", "--format=", "HEAD").split() == ["fiches.md"]
+                 and sessions_de(t) == ["**Session** : %s" % drapeau(jeu, "--session-id"),
+                                        "**Session** : %s (relire)" % drapeau(lecture, "--session-id")],
+                 (s, sujet(t), sessions_de(t)))
+        ligne = [d for d in carnet.lire(carnet_de(t)) if d["role"] == "relire"]
+        verifier("NUI5 : la ligne relire du carnet, session du relecteur, le coût du relecteur au TOTAL",
+                 len(ligne) == 1 and ligne[0]["session"] == drapeau(lecture, "--session-id") and ligne[0]["issue"] == "jouée"
+                 and "TOTAL 1 fiches · 6 tours · 0.0200 $" in s, (ligne, s))
+
+    with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors:
+        depot(t)
+        code, s, argvs, envs = nuit_de_test(t, hors, VLP_FAUX_REFUSE="F1:copie")
+        fiches = lire(os.path.join(t, "fiches.md"))
+        ligne = [d for d in carnet.lire(carnet_de(t)) if d["role"] == "relire"]
+        verifier("NUI5 nuit : REFUSÉE — aucun commit neuf, bloc Tentatives sous F1, ARRÊT, code 1, refus_n et cause au carnet",
+                 code == 1 and nombre(t) == "1" and "## F1 [ ]" in fiches
+                 and fiches.index("## F1 [ ]") < fiches.index("**Tentatives**") < fiches.index("## F2")
+                 and "Erreur : REFUSÉE — copie : motif factice" in fiches
+                 and "ARRÊT F1 refusée à la relecture — refus 1, cause copie" in s and "JOUE F2" not in s
+                 and len(ligne) == 1 and ligne[0]["refus_n"] == 1 and ligne[0]["cause"] == "copie", (s, ligne))
+
+    with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors:
+        depot(t)
+        crochet = os.path.join(t, ".git", "hooks", "pre-commit")
+        with open(crochet, "w", encoding="utf-8", newline="\n") as h:
+            h.write("#!/bin/sh\necho refusé par le crochet\nexit 1\n")
+        os.chmod(crochet, 0o755)
+        code, s, argvs, envs = nuit_de_test(t, hors)
+        ligne = [d for d in carnet.lire(carnet_de(t)) if d["role"] == "relire"]
+        verifier("NUI5 nuit : pre-commit refuse — ARRÊT, code 1, aucun commit, garde au carnet, F2 pas jouée",
+                 code == 1 and "ARRÊT F1 : commit refusé" in s and nombre(t) == "1" and "JOUE F2" not in s
+                 and len(ligne) == 1 and "commit refusé" in str(ligne[0]["garde"]), (s, ligne))
+
+    with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors:
+        depot(t)
+        code, s, argvs, envs = nuit_de_test(t, hors, "--plafond", "1", VLP_FAUX_COMMIT="F1", VLP_FAUX_REFUSE="F1:copie")
+        fiches = lire(os.path.join(t, "fiches.md"))
+        ligne = [d for d in carnet.lire(carnet_de(t)) if d["role"] == "relire"]
+        verifier("NUI5 nuit : TÊTE refusée — le prompt de relire porte --sha HEAD, `git revert` d'abord, puis le bloc "
+                 "Tentatives ; ARRÊT, code 1, garde TÊTE au carnet",
+                 code == 1 and drapeau(argvs[1], "-p") == "F1 --sha HEAD" and sujet(t) == 'Revert "F1 : fiche F1"'
+                 and nombre(t) == "3" and "## F1 [ ]" in fiches and "**Tentatives**" in fiches
+                 and len(ligne) == 1 and "TÊTE" in str(ligne[0]["garde"]) and ligne[0]["refus_n"] == 1, (s, sujet(t), ligne))
+
+    with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors:
+        depot(t)
+        code, s, argvs, envs = nuit_de_test(t, hors, "--plafond", "1", VLP_FAUX_COMMIT="F1")
+        verifier("NUI5 nuit : TÊTE acceptée — la ligne Session du relecteur seule, sujet `F1 : session de relecture`",
+                 code == 0 and drapeau(argvs[1], "-p") == "F1 --sha HEAD" and sujet(t) == "F1 : session de relecture"
+                 and nombre(t) == "3" and git(t, "show", "--name-only", "--format=", "HEAD").split() == ["fiches.md"]
+                 and git(t, "status", "--porcelain") == "" and len(sessions_de(t)) == 2
+                 and sessions_de(t)[1] == "**Session** : %s (relire)" % drapeau(argvs[1], "--session-id"), (s, sujet(t)))
+
+
+tester_relecture()
 
 print("OK")

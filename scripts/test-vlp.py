@@ -1820,6 +1820,39 @@ Erreur : boum
 <!-- /FICHE -->
 """
 
+def tester_cocher_session(f):
+    # cocher --session --role (chantier NUI) : la session d'un rôle de la nuit, avec son suffixe.
+    garde_env = dict(os.environ)
+    ecrire(f, "# Chantier\n\n## Le socle commun\n\nSocle.\n\n<!-- FICHE:U1 -->\n## U1 [ ] — Première\n"
+              "**Dépend de** : `U0`.\n<!-- /FICHE -->\n")
+    try:
+        os.environ["CLAUDE_CODE_SESSION_ID"] = "xyz"
+        code, s = appel(["cocher", f, "U1", "--session", "abc", "--role", "relire"])
+        une = lire(f)
+        code2, s2 = appel(["cocher", f, "U1", "--session", "abc", "--role", "relire"])
+        verifier("cocher --session : une ligne, la fiche reste ouverte, jamais doublée",
+                 code == 0 and s == "NOTÉ U1 · **Session** : abc (relire)\n" and "## U1 [ ]" in une
+                 and une.count("**Session** : abc (relire)\n**Dépend de**") == 1
+                 and (code2, s2) == (0, "DÉJÀ U1 · **Session** : abc (relire)\n") and lire(f) == une, s + s2 + lire(f))
+        appel(["cocher", f, "U1"])
+        code, s = appel(["cocher", f, "U1", "--session", "cl1", "--role", "clore"])
+        texte = lire(f)
+        verifier("cocher --session --role clore : l'en-tête, avant le premier titre, vu de sessions_entete",
+                 code == 0 and texte.index("**Session** : cl1 (clore)\n") < texte.index("## Le socle commun")
+                 and mod.sessions_entete(mod.lignes_de(f)) == ["cl1"]
+                 and "## U1 [x]" in texte and "**Session** : abc (relire)\n**Session** : xyz\n**Dépend de**" in texte,
+                 s + texte)
+        verifier("cocher --session : sessions rend l'id sans suffixe, dédoublonné",
+                 appel(["sessions", f]) == (0, "cl1\nabc\nxyz\n"), appel(["sessions", f]))
+        avant3 = lire(f)
+        verifier("cocher --session sans --role : GARDE, rien écrit",
+                 appel(["cocher", f, "U1", "--session", "abc"]) == (1, "GARDE: --session <uuid> --role <rôle>, sans espace ni parenthèse\n")
+                 and lire(f) == avant3, lire(f))
+    finally:
+        os.environ.clear()
+        os.environ.update(garde_env)
+
+
 with tempfile.TemporaryDirectory() as t:
     f = os.path.join(t, "ctx", "05-u.md")
     ecrire(f, COCHE)
@@ -1847,6 +1880,8 @@ with tempfile.TemporaryDirectory() as t:
     finally:
         os.environ.clear()
         os.environ.update(garde_env)
+
+    tester_cocher_session(f)
 
     ecrire(f, PAGE % (" ", "", " ", ""))
     page = os.path.join(t, "ctx", "artefacts", "05-u.html")
@@ -3090,6 +3125,25 @@ verifier("hooks.json : vigile avant Artifact (chantier VID)",
          json.dumps(crochets, ensure_ascii=False))
 
 
+def tester_canaux(g):
+    # Deux canaux de nuit (chantier NUI) : chacun ne retire que ses worktrees.
+    for canal in ("A", "B"):
+        os.environ["VLP_CANAL"] = canal
+        appel(["relecture", "X1"])
+    noms = [os.path.basename(l.split(" ")[0].rstrip("/\\")) for l in g("worktree", "list").splitlines()[1:]]
+    os.environ["VLP_CANAL"] = "B"
+    retire_b = appel(["relecture", "--retirer"])
+    reste_a = [os.path.basename(l.split(" ")[0].rstrip("/\\")) for l in g("worktree", "list").splitlines()[1:]]
+    del os.environ["VLP_CANAL"]
+    verifier("relecture : canaux — chacun ne retire que ses worktrees",
+             len(noms) == 4 and sum(n.startswith("vlp-relecture-A-") for n in noms) == 2
+             and sum(n.startswith("vlp-relecture-B-") for n in noms) == 2 and retire_b == (0, "RETIRÉ 2\n")
+             and len(reste_a) == 2 and all(n.startswith("vlp-relecture-A-") for n in reste_a),
+             "%s %s %s" % (noms, retire_b, reste_a))
+    verifier("relecture : sans canal, --retirer retire tout", appel(["relecture", "--retirer"]) == (0, "RETIRÉ 2\n")
+             and len(g("worktree", "list").splitlines()) == 1, g("worktree", "list"))
+
+
 # relecture (chantier REV) : un dépôt à part, et ses worktrees dans le dossier temporaire du test
 # (`tempfile.tempdir`) — un test qui échoue n'en laisse aucun dans celui du système.
 if not shutil.which("git"):
@@ -3154,6 +3208,7 @@ else:
                      and "M\ta.py\nA\tb.py\nM\tctx d/etat.md\nM\tf.md\nHORS FICHE b.py\ndiff --git" in s
                      and len(liste.splitlines()) == 3 and appel(["relecture", "--retirer"]) == (0, "RETIRÉ 2\n"),
                      s + liste)
+            tester_canaux(g)
             gardes = [appel(["relecture", "X9"]), appel(["relecture", "X1", "--sha", "0badc0de"])]
             mod.GIT = "git-absent-vlp"
             gardes.append(appel(["relecture", "X1"]))

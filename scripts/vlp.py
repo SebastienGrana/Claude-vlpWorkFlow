@@ -78,7 +78,11 @@ Sous-commandes :
   sous le titre le bloc `**Tentatives** (<date>) — non résolu.`, `1. FAITE refusée à la
   relecture.`, `Erreur : M` ; déjà là, il gagne la ligne numérotée suivante et son `Erreur :`
   prend M, sans se doubler. `REFUSÉ <fiche> · refus <n>` : `<n>` compte, dans le bloc après
-  l'ajout, les seules lignes numérotées `FAITE refusée à la relecture.`.
+  l'ajout, les seules lignes numérotées `FAITE refusée à la relecture.`. `--session <uuid> --role <rôle>`
+  (chantier NUI ; exclusif de `--verifier` et `--refuser`) : la session d'un rôle de la nuit, que la
+  boucle connaît et non la session elle-même — `**Session** : <uuid> (<rôle>)`, fiche cochée ou non,
+  jamais doublée (`NOTÉ` ou `DÉJÀ`) ; `--role clore` l'écrit dans l'en-tête, avant le premier `## `, comme
+  `ouvrir`. `sessions`, `cout` et `page` ne lisent que l'id, sans le ` (<rôle>)`.
 - `relecture <fiche> [--sha S]` — ce que lit le relecteur de `/vlp:enchainer` (chantier REV). Sans
   `--sha`, un instantané de l'arbre — suivis et non suivis, selon `.gitignore` — en commit de parent
   `HEAD`, par un index temporaire : ni `HEAD` ni l'index ne bougent ; avec, ce commit. Deux worktrees
@@ -88,7 +92,8 @@ Sous-commandes :
   `git diff --name-status`, une ligne `HORS FICHE <chemin>` par fichier changé que la ligne
   **Fichiers** ne nomme pas — hors le fichier de fiches, le **fichier d'état** du `CHANTIER.md`
   d'APRÈS et `artefacts/` —, puis le diff. `--retirer` :
-  retire ces worktrees, `RETIRÉ <n>`. Pas de dépôt, commit inconnu ou sans parent, fiche absente :
+  retire ces worktrees, `RETIRÉ <n>`. `VLP_CANAL` posé (chantier NUI) : ils s'appellent
+  `vlp-relecture-<canal>-…`, et `--retirer` comme les retraits d'avant relecture ne retirent que ceux du canal. Pas de dépôt, commit inconnu ou sans parent, fiche absente :
   `GARDE:`, aucun worktree ne reste, sort 1.
 - `page <fichier> [<page.html>]` — régénère la page du chantier depuis le fichier
   de fiches : états, avancement, comptage, coûts (`**Session**`), date. Les coûts
@@ -425,7 +430,7 @@ TITRE_GENERIQUE = re.compile(r"^##\s+\S")
 PREFIXE = re.compile(r"^[A-Z]{1,3}")
 COURANT = re.compile(r"^\s*-\s*\*\*fichier de fiches courant\*\*\s*:\s*(.+?)\s*$")
 ALIAS = re.compile(r"^\s*-\s*\*\*alias\*\*\s*:\s*(\S+)")
-SESSION = re.compile(r"^\*\*Session\*\* : (.+?)\s*$")
+SESSION = re.compile(r"^\*\*Session\*\* : (.+?)(?: \([^()]*\))?\s*$")    # l'id seul : le ` (<rôle>)` de la nuit n'en est pas
 FERMANT = "<!-- /FICHE -->"
 CHANTIERS_POSSIBLES = re.compile(r"^\s*-\s*\*\*chantiers possibles\*\*\s*:\s*(.+?)\s*$", re.MULTILINE)
 METHODE = re.compile(r"^\s*-\s*\*\*méthode\*\*\s*:\s*(.+?)\s*$", re.MULTILINE)
@@ -1084,6 +1089,8 @@ def cmd_cocher(a, sortie):
         return 0 if cocher else 1
     if a.refuser is not None:
         return refuser(a, lignes, debut, sortie)
+    if a.session is not None or a.role:
+        return noter_session(a, lignes, debut, sortie)
     if not lignes[debut].startswith("## %s [ ]" % a.fiche):
         sortie.write("GARDE: %s déjà cochée — rien écrit\n" % a.fiche)
         return 1
@@ -1104,6 +1111,37 @@ def cmd_cocher(a, sortie):
     with open(a.fichier, "w", encoding="utf-8", newline="") as f:
         f.write("\n".join(lignes) + "\n")
     sortie.write("COCHÉ %s · Session %s\n" % (a.fiche, s or "absente"))
+    return 0
+
+
+def noter_session(a, lignes, debut, sortie):
+    """`cocher --session <uuid> [--role R]` (chantier NUI) : la session d'un rôle de la nuit — le
+    relecteur, le clos — que la boucle, et non la session elle-même, connaît. `**Session** : <uuid>
+    (<rôle>)`, fiche cochée ou non, jamais doublée ; après les lignes Session de la fiche, sinon
+    avant `**Dépend de**`. `--role clore` : dans l'en-tête, avant le premier `## `, comme `ouvrir`."""
+    if not (a.session or "").strip() or not a.role or re.search(r"[()\s]", a.session + a.role):
+        sortie.write("GARDE: --session <uuid> --role <rôle>, sans espace ni parenthèse\n")
+        return 1
+    ligne = "**Session** : %s (%s)" % (a.session, a.role)
+    fin = next((i for i in range(debut + 1, len(lignes))
+                if lignes[i].strip() == FERMANT or TITRE.match(lignes[i])), len(lignes))
+    if a.role == "clore":
+        zone = range(0, next((i for i, l in enumerate(lignes) if TITRE.match(l)), len(lignes)))
+    else:
+        zone = range(debut + 1, fin)
+    if any(lignes[i] == ligne for i in zone):
+        sortie.write("DÉJÀ %s · %s\n" % (a.fiche, ligne))
+        return 0
+    if a.role == "clore":
+        k = next((k for k, l in enumerate(lignes) if l.startswith("## ")), debut)
+        lignes[k:k] = [ligne, ""]
+    else:
+        vues = [i for i in zone if SESSION.match(lignes[i])]
+        dep = next((i for i in zone if lignes[i].startswith("**Dépend de**")), debut + 1)
+        lignes.insert(vues[-1] + 1 if vues else dep, ligne)
+    with open(a.fichier, "w", encoding="utf-8", newline="") as f:
+        f.write("\n".join(lignes) + "\n")
+    sortie.write("NOTÉ %s · %s\n" % (a.fiche, ligne))
     return 0
 
 
@@ -1192,13 +1230,21 @@ def retard_plugin(racine, kit=None):
     return int(n), principal, branche.strip()
 
 
+def prefixe_relecture():
+    """`vlp-relecture-`, ou `vlp-relecture-<canal>-` quand `VLP_CANAL` est posé (chantier NUI) : deux
+    canaux de nuit relisent dans le même dépôt, chacun ne retire que ses worktrees."""
+    canal = re.sub(r"[^\w.]", "_", os.environ.get(carnet.ENV_CANAL, "").strip())
+    return RELECTURE + (canal + "-" if canal else "")
+
+
 def retirer_relectures(racine):
-    """Retire les worktrees `vlp-relecture-*` du dépôt, puis `prune` : le nombre retiré."""
+    """Retire les worktrees `vlp-relecture-*` du dépôt — ceux du canal seul si `VLP_CANAL` est posé —,
+    puis `prune` : le nombre retiré."""
     code, liste = git_texte(["worktree", "list", "--porcelain"], racine)
     n = 0
     for ligne in liste.splitlines() if code == 0 else []:
         chemin = ligne[len("worktree "):] if ligne.startswith("worktree ") else ""
-        if os.path.basename(chemin.rstrip("/\\")).startswith(RELECTURE):
+        if os.path.basename(chemin.rstrip("/\\")).startswith(prefixe_relecture()):
             n += git_texte(["worktree", "remove", "--force", chemin], racine)[0] == 0
     git_texte(["worktree", "prune"], racine)
     return n
@@ -1277,7 +1323,7 @@ def cmd_relecture(a, sortie):
     parent = parent.strip()
     dossiers = []
     for nom, rev in (("apres", sha), ("avant", parent)):
-        d = tempfile.mkdtemp(prefix=RELECTURE + nom + "-")
+        d = tempfile.mkdtemp(prefix=prefixe_relecture() + nom + "-")
         code, err = git_texte(["worktree", "add", "--detach", d, rev], racine)
         dossiers.append(d)
         if code != 0:
@@ -5822,6 +5868,8 @@ def main(argv, sortie=None, entree=None, erreur=None):
     cv = co2.add_mutually_exclusive_group()
     cv.add_argument("--verifier", action="store_true")
     cv.add_argument("--refuser")
+    cv.add_argument("--session")
+    co2.add_argument("--role")
     rl = sous.add_parser("relecture")
     rl.add_argument("fiche", nargs="?")
     rl.add_argument("--sha")

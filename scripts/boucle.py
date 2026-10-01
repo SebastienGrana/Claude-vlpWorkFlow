@@ -40,7 +40,7 @@ issue, garde, session) ; la session fille reçoit `VLP_CARNET` et `VLP_CANAL`.
 Sous `--nuit`, chaque session prend ses réglages dans `ROLES`, en tête du fichier : les cinq rôles
 (découper, jouer, relire, relance, clore) — prompt, modèle, repli, effort, outils, `--max-turns`,
 `--max-budget-usd`, timeout —, la source de chaque plafond en commentaire. Sans `--nuit`, `jouer()` bâtit
-la commande d'avant (REG). `main()` ne joue encore que le rôle jouer ; `jouer(…, role=…)` joue les autres,
+la commande d'avant (REG). `main()` joue le rôle jouer, puis relire (NUI5) ; `jouer(…, role=…)` joue les autres,
 test-boucle.py le charge comme module, et pour un test `ROLES[<rôle>]["timeout"]` se remplace sur ce module.
 Toute session `--nuit` : un `--session-id` neuf, `--permission-prompts none`, le timeout à `subprocess.run`.
 Issue de chaque session, dans la ligne du carnet : `timeout`, `coupure` (aucune ligne `result`), `plafond`
@@ -50,6 +50,19 @@ Issue de chaque session, dans la ligne du carnet : `timeout`, `coupure` (aucune 
 jusqu'au reset lu dans le message (illisible : fin de la nuit), une note au carnet, la session relancée une
 fois (`BASCULE`) ; « session » ou « weekly » : `stop`. Les `permission_denials` ne classent pas : leur nombre
 va au carnet (`garde`).
+
+Relire avant le commit (NUI5, sous `--nuit` seulement) : le rôle jouer n'a ni `git add` ni `git commit`
+(`AUTORISES` ne lui va plus ; `INTERDITS` reste). Après sa session, `cocher --verifier` : case cochée sans
+`TÊTE`, la session du rôle relire (`relecture <fiche>`, sans `--sha`) ; son premier mot est lu contre
+`VERDICTS` de vlp.py, aucun verdict valant `REFUSÉE`. ACCEPTÉE : `cocher --session <relire> --role relire`,
+puis `git add -A` et `git commit -m "<fiche> : <titre>"` ; un commit refusé (pre-commit) arrête, sortie 1.
+REFUSÉE : `cocher --refuser "<1re ligne du result>"` puis `cocher --session`, l'arbre laissé tel quel ;
+`ARRÊT`, sortie 1 ; `relire()` rend à la relance `refus_n`, `cause` (le mot entre le verdict et ` :`,
+`aucun-verdict` sans verdict) et `erreur_avant` (la ligne `Erreur :` d'avant). `TÊTE` (la session de jeu a
+commité malgré tout) : la relecture part avec ` --sha HEAD` ; REFUSÉE : `git revert --no-edit HEAD` d'abord,
+puis les deux `cocher` ; ACCEPTÉE : `cocher --session`, puis un commit de cette ligne seule, sujet
+`<fiche> : session de relecture`. La ligne `relire` du carnet porte `refus_n`, `cause` et `garde` (commit
+refusé, `TÊTE`) ; le coût du relecteur entre au `TOTAL`.
 """
 import argparse
 import functools
@@ -110,7 +123,7 @@ ROLES = {
         "timeout": TIMEOUT_S},
     "relire": {
         # d'après l'essai `--agent` de NUI1 (`context AI/08-etat.md`, section NUI1, essai 5) : le modèle
-        # est l'ID demandé, pas le `model: opus` de l'agent ; NUI5 ajoute `--sha` au prompt
+        # est l'ID demandé, pas le `model: opus` de l'agent ; NUI5 ajoute ` --sha HEAD` au prompt (`suite`)
         "prompt": "{fiche}", "agent": "vlp:relecture", "modele": OPUS, "repli": REPLI_OPUS,
         "effort": None, "git": False,
         "tours": "agents/relecture.md",
@@ -141,18 +154,23 @@ BASCULE = {"jusqu": 0.0}   # instant jusqu'où les rôles Opus tournent en SONNE
 _KIT: list[Any] = []   # vlp.py chargé comme module, une fois (`scripts/test-vlp.py:29`)
 
 
-def max_tours(role):
-    """`--max-turns` du rôle : l'entier de la table, ou le `maxTurns` de son fichier d'agent."""
-    t = ROLES[role]["tours"]
-    if isinstance(t, int):
-        return t
+def kit():
+    """vlp.py chargé comme module, une fois : `VERDICTS`, `git_texte`, `lire_max_turns`."""
     if not _KIT:
         spec = importlib.util.spec_from_file_location("vlp", VLP)
         assert spec and spec.loader
         mod = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(mod)
         _KIT.append(mod)
-    n = _KIT[0].lire_max_turns(os.path.join(ICI, os.pardir, t))
+    return _KIT[0]
+
+
+def max_tours(role):
+    """`--max-turns` du rôle : l'entier de la table, ou le `maxTurns` de son fichier d'agent."""
+    t = ROLES[role]["tours"]
+    if isinstance(t, int):
+        return t
+    n = kit().lire_max_turns(os.path.join(ICI, os.pardir, t))
     if n is None:
         raise ValueError("maxTurns illisible dans %s" % t)
     return n
@@ -207,8 +225,9 @@ def lire_carte(dossier):
     return racine, fichier, prochaine
 
 
-def commande(claude, role, fiche, a, modele, session):
-    """La ligne de commande d'une session. Sans `--nuit` : celle d'avant les rôles (REG)."""
+def commande(claude, role, fiche, a, modele, session, suite=""):
+    """La ligne de commande d'une session. Sans `--nuit` : celle d'avant les rôles (REG).
+    `suite` : ce qui s'ajoute au prompt du rôle (` --sha HEAD` pour relire)."""
     cmd = [sys.executable, claude] if claude.endswith(".py") else [claude]
     commun = ["--output-format", "stream-json", "--verbose", "--permission-mode", a.permission_mode]
     if not a.nuit:  # sans --nuit : la commande d'aujourd'hui, la table ne sert pas
@@ -222,11 +241,13 @@ def commande(claude, role, fiche, a, modele, session):
             cmd += ["--max-budget-usd", a.budget]
         return cmd
     r = ROLES[role]
-    cmd += ["-p", r["prompt"].format(fiche=fiche)] + commun
+    cmd += ["-p", r["prompt"].format(fiche=fiche) + suite] + commun
     if r["agent"]:
         cmd += ["--agent", r["agent"]]
     if r["git"]:
-        cmd += ["--allowedTools"] + AUTORISES + ["--disallowedTools"] + INTERDITS
+        if role != "jouer":     # NUI5 : la boucle commite, après la relecture ; `jouer` n'a ni `git add` ni `git commit`
+            cmd += ["--allowedTools"] + AUTORISES
+        cmd += ["--disallowedTools"] + INTERDITS
     else:
         cmd += ["--disallowedTools"] + NON_GIT
     cmd += ["--model", modele]
@@ -284,13 +305,15 @@ def classer(s, ok):
     return "jouée" if ok else "ratée"
 
 
-def jouer(claude, fiche, racine, a, trace, role="jouer", controle=None):
+def jouer(claude, fiche, racine, a, trace, role="jouer", controle=None, suite="", apres=None):
     """Joue une session neuve du rôle `role` (sans `--nuit` : toujours le rôle jouer).
 
     `controle()` dit si le contrôle du rôle passe (jouer : la case est cochée) ; sans, il passe.
-    Rend un dict : `tours` et `cout` (cumulés si une limite Opus relance), `texte`, `issue`, `ok`
-    (rendu de `controle`), `stop` (la raison écrite au carnet, ou None). Sous `--nuit`, une ligne
-    du carnet par session.
+    `suite` s'ajoute au prompt. `apres(texte, issue, session)` : une fois par session venue au bout — ni
+    limite ni pas partie —, avant sa ligne du carnet ; il rend les clés de plus de cette ligne (`refus_n`,
+    `cause`, `garde`). Rend un dict : `tours` et `cout` (cumulés si une limite Opus relance), `texte`,
+    `issue`, `ok` (rendu de `controle`), `stop` (la raison écrite au carnet, ou None), `session` (celle
+    de la dernière). Sous `--nuit`, une ligne du carnet par session.
     """
     env = {k: v for k, v in os.environ.items() if k not in HERITEES}
     if a.nuit:
@@ -299,7 +322,7 @@ def jouer(claude, fiche, racine, a, trace, role="jouer", controle=None):
     while True:
         modele = modele_de(role) if a.nuit else a.model
         demande = str(uuid.uuid4())
-        cmd = commande(claude, role, fiche, a, modele, demande)
+        cmd = commande(claude, role, fiche, a, modele, demande, suite)
         delai = ROLES[role]["timeout"] if a.nuit else None
         fini, t0 = True, time.time()
         with open(trace, "w", encoding="utf-8") as f:
@@ -315,15 +338,17 @@ def jouer(claude, fiche, racine, a, trace, role="jouer", controle=None):
         ok = controle() if controle else True
         issue = classer(s, ok)
         tours, cout = tours + (r.get("num_turns") or 0), cout + (r.get("total_cost_usd") or 0.0)
+        duree = int(time.time() - t0)
         if a.nuit:
             refus = len(r.get("permission_denials") or [])
+            plus = apres(texte, issue, s["session"] or demande) if apres and issue not in ("limite", "pas partie") else {}
+            gardes = ["permission_denials : %d" % refus if refus else None, plus.get("garde")]
             carnet.ajouter(a.carnet, nuit=carnet.nuit_de(a.carnet), canal=a.canal, chantier=a.chantier,
                            role=role, fiche=fiche, modele_demande=modele, modeles_vus=s["modeles"],
                            tours_cli=r.get("num_turns") if s["result"] else None,
                            usd_cli=r.get("total_cost_usd") if s["result"] else None,
-                           duree_s=int(time.time() - t0), issue=issue,
-                           garde="permission_denials : %d" % refus if refus else None,
-                           session=s["session"] or demande)
+                           duree_s=duree, issue=issue, garde=" ; ".join(g for g in gardes if g) or None,
+                           session=s["session"] or demande, **{k: v for k, v in plus.items() if k != "garde"})
         stop = None
         if a.nuit and issue == "limite":
             m = LIMITE_RE.match(texte)
@@ -339,13 +364,96 @@ def jouer(claude, fiche, racine, a, trace, role="jouer", controle=None):
             stop = "session pas partie — %s" % texte.split("\n")[0]
         if stop:
             carnet.stop(a.carnet, a.canal, stop)
-        return {"tours": tours, "cout": cout, "texte": texte, "issue": issue, "ok": ok, "stop": stop}
+        return {"tours": tours, "cout": cout, "texte": texte, "issue": issue, "ok": ok, "stop": stop,
+                "session": s["session"] or demande}
+
+
+def etat_case(fichier, fiche, racine):
+    """(case cochée, sha de la `TÊTE` ou None) selon `cocher --verifier`."""
+    _, verif = vlp(["cocher", fichier, fiche, "--verifier"], racine)
+    m = re.search(r"^TÊTE (\S+)", verif, re.M)
+    return ("CASE %s [x]" % fiche) in verif, m.group(1) if m else None
 
 
 def case_cochee(fichier, fiche, racine):
     """Vrai si `cocher --verifier` voit la case de `fiche` cochée."""
-    _, verif = vlp(["cocher", fichier, fiche, "--verifier"], racine)
-    return ("CASE %s [x]" % fiche) in verif
+    return etat_case(fichier, fiche, racine)[0]
+
+
+def verdict_de(texte):
+    """(verdict, cause) lus dans le `result` de la relecture : le premier mot s'il est dans `VERDICTS`
+    (sinon `None` : aucun verdict vaut `REFUSÉE`, `enchainement.md`), et le mot entre `<verdict> — ` et
+    ` :` — `aucun-verdict` quand il n'y en a pas de lisible."""
+    t = texte.lstrip()
+    m = re.match(r"\w+", t)
+    mot = m.group(0) if m and m.group(0) in kit().VERDICTS else None
+    if mot is None:
+        return None, "aucun-verdict"
+    c = re.match(re.escape(mot) + r"\s*—\s*(\w+)\s*:", t)
+    return mot, c.group(1) if c else "aucun-verdict"
+
+
+def commiter(racine, sujet, fichier=None):
+    """(ok, erreur) : `git add -A` puis `git commit -m <sujet>` ; avec `fichier`, ce fichier seul."""
+    git = kit().git_texte
+    code, err = git(["add", "--", fichier] if fichier else ["add", "-A"], racine)
+    if code == 0:
+        code, err = git(["commit", "-q", "-m", sujet] + (["--", fichier] if fichier else []), racine)
+    return code == 0, err
+
+
+def relire(claude, fiche, titre, fichier, racine, a, trace, tete=None):
+    """La relecture d'une fiche cochée, sous `--nuit` (chantier NUI) : la session du rôle `relire`, puis
+    ce que son verdict commande. `tete` : le sha d'un commit que le jeu a fait lui-même (`--sha HEAD`).
+    ACCEPTÉE : la ligne `**Session**` du relecteur, puis le commit (de la fiche ; de cette ligne seule si
+    `tete`). REFUSÉE : `git revert` d'abord si `tete`, puis `cocher --refuser` et la ligne `**Session**` ;
+    l'arbre reste tel quel. Rend `tours`, `cout`, `stop`, `arret` (la raison d'un arrêt, ou None),
+    `verdict`, et pour un refus `refus_n`, `cause`, `erreur_avant` — ce que lira la relance (NUI6)."""
+    accepte = kit().VERDICTS[0]
+    out: dict[str, Any] = {"verdict": None, "arret": None, "refus_n": None, "cause": None, "erreur_avant": None}
+
+    def suite(texte, issue, session):
+        mot, cause = verdict_de(texte)
+        out["verdict"], plus = mot, {}
+        gardes = ["TÊTE %s : la session de jeu a commité" % tete] if tete else []
+        noter = ["cocher", fichier, fiche, "--session", session, "--role", "relire"]
+        if mot == accepte:
+            code, sortie = vlp(noter, racine)
+            if code:
+                gardes.append("cocher --session : %s" % sortie.strip())
+            ok, err = commiter(racine, "%s : session de relecture" % fiche if tete else "%s : %s" % (fiche, titre),
+                               fichier if tete else None)
+            if not ok:
+                out["arret"] = "%s : commit refusé — %s" % (fiche, err)
+                gardes.append(out["arret"])
+        else:
+            _, ex = vlp(["extraire", fichier, fiche], racine)
+            out["erreur_avant"] = next((l for l in ex.splitlines() if l.startswith("Erreur :")), None)
+            motif = (texte.strip().splitlines() or [""])[0] or "aucun verdict rendu par le relecteur"
+            revert = git_revert(racine) if tete else None
+            if revert:
+                out["arret"] = "%s : revert impossible — %s" % (fiche, revert)
+                gardes.append(out["arret"])
+            else:
+                _, sortie = vlp(["cocher", fichier, fiche, "--refuser", motif], racine)
+                vu = re.search(r"refus (\d+)", sortie)
+                out["refus_n"], out["cause"] = int(vu.group(1)) if vu else None, cause
+                vlp(noter, racine)
+                out["arret"] = "%s refusée à la relecture — refus %s, cause %s" % (fiche, out["refus_n"], cause)
+                plus.update(refus_n=out["refus_n"], cause=cause)
+        if gardes:
+            plus["garde"] = " ; ".join(gardes)
+        return plus
+
+    s = jouer(claude, fiche, racine, a, trace, role="relire", suite=" --sha HEAD" if tete else "", apres=suite)
+    out.update(tours=s["tours"], cout=s["cout"], stop=s["stop"], texte=s["texte"])
+    return out
+
+
+def git_revert(racine):
+    """None si `git revert --no-edit HEAD` passe, sinon sa première ligne d'erreur."""
+    code, err = kit().git_texte(["revert", "--no-edit", "HEAD"], racine)
+    return None if code == 0 else err
 
 
 def main(argv):
@@ -446,6 +554,22 @@ def main(argv):
         if not cochee:
             code, raison = 1, "%s non cochée — lire sa trace" % fiche
             break
+        if a.nuit:
+            titre = re.search(r"^## %s \[[ x]\] — (.+?)\s*$" % re.escape(fiche), extrait, re.M)
+            tete = etat_case(fichier, fiche, racine)[1]
+            r = relire(claude, fiche, titre.group(1) if titre else fiche, fichier, racine, a,
+                       os.path.join(traces, "%s-relire.jsonl" % fiche), tete)
+            total_tours, total_cout = total_tours + r["tours"], total_cout + r["cout"]
+            print("RELIT %s · %s · tours %d · %.4f $" % (fiche, r["verdict"] or "aucun verdict", r["tours"], r["cout"]))
+            for ligne in r["texte"].strip().split("\n"):
+                print("    " + ligne)
+            print(flush=True)
+            if r["stop"]:
+                code, raison = 1, "STOP — %s" % r["stop"]
+                break
+            if r["arret"]:
+                code, raison = 1, r["arret"]
+                break
 
     print("ARRÊT %s" % raison)
     print("TOTAL %d fiches · %d tours · %.4f $ · %d s"
