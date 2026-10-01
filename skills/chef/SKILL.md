@@ -1,6 +1,6 @@
 ---
 description: "Prépare le lancement de plusieurs chantiers d'affilée, à toute heure : trie la TODO, pose toutes les questions dans une page à cartes, écrit le plan ; avec `matin`, range la nuit passée : fusion, rapport, réponses"
-argument-hint: (rien) | <date du plan AAAA-MM-JJ> | matin <date de la nuit AAAA-MM-JJ>
+argument-hint: (rien) | <date du plan AAAA-MM-JJ> | matin [<date de la nuit AAAA-MM-JJ>]
 allowed-tools: Bash(python3:*), Bash(py:*), Bash(echo:*), Bash(git branch --show-current:*), Bash(git check-ignore:*), Bash(git rev-parse:*), Bash(git add:*), Bash(git commit:*), PowerShell(python3:*), PowerShell(py:*), PowerShell(echo:*), PowerShell(git branch --show-current:*), PowerShell(git check-ignore:*), PowerShell(git rev-parse:*), PowerShell(git add:*), PowerShell(git commit:*), Read, Write, Artifact
 ---
 
@@ -94,15 +94,18 @@ qu'il veut.
 
 ## Le matin
 
-L'argument est `matin <date de la nuit>` : la date du carnet et des branches `nuit/<date>-*`. Sans date, arrête-toi
-et dis-le. **Un appel par geste**, sa sortie lue en entier ; une `GARDE:` se montre brute, et tu t'arrêtes.
+L'argument est `matin`, suivi de la date de la nuit (celle du carnet et des branches `nuit/<date>-*`) **s'il la donne** :
+sans date, le script cherche la nuit à ranger, tu ne devines rien. **Un appel par geste**, sa sortie lue en entier ; une
+`GARDE:` se montre brute, et tu t'arrêtes.
 
 ### M1. Fusionner, puis le rapport
 
 ```bash
-<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" matin "<PROJET>" "<date>"
+<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" matin "<PROJET>" ["<date>"]
 ```
 
+Sans date, la sortie dit `NUIT <date>` : cette date sert à tous les appels qui suivent. `GARDE: plusieurs nuits à
+ranger` : donne-lui les dates, demande laquelle, relance avec elle. `GARDE: aucune nuit à ranger` : dis-le, rien à faire.
 Un `ARRÊT … conflit` sur du **code** rend la main à l'utilisateur : tu t'arrêtes. `ATTENTE=` : republie d'abord ces
 pages (`ARTEFACTS.md`, « Une publication refusée »). `PLUGIN_RETARD=` : dis-la — `/reload-plugins` est son geste,
 jamais le tien. Puis le rapport, sans fusion ni commit, rejouable :

@@ -208,8 +208,11 @@ Sous-commandes :
   `CHANTIER <code> · canal <c> · rang <n> · préfixe <P>` par chantier dans l'ordre ; `--chantier` : son seul
   `### <code>` (`imprimer_section`). Sans fichier des nuits ni plan à la date : `GARDE:`, sort 1 ; permis sous
   `VLP_NUIT=1`.
-- `matin <projet> <date>` — la fusion du matin (NUI15) : les branches `refs/heads/nuit/<date>-*` dans `main`, une à
-  une. `GARDE:` (sort 1, rien fusionné) : projet non équipé, date illisible, projet qui n'est pas la racine de son
+- `matin <projet> [<date>]` — la fusion du matin (NUI15) : les branches `refs/heads/nuit/<date>-*` dans `main`, une à
+  une. Sans date, après les gardes, `nuit_a_ranger` prend la nuit qui a des branches à fusionner (ni `DÉJÀ` ni
+  `DE CÔTÉ`) si elle est seule — `NUIT <date> — la seule à ranger : <n> branche(s)`, la date à reprendre pour
+  `--rapport` — sinon `GARDE: plusieurs nuits à ranger : <date> (<n>), …` ou `GARDE: aucune nuit à ranger (<n>
+  branche(s) nuit/* …)`, rien fusionné. `GARDE:` (sort 1, rien fusionné) : projet non équipé, date illisible, projet qui n'est pas la racine de son
   dépôt, `HEAD` hors `main`, arbre pas propre, `CHANTIER.md` de `main` sans ses deux libellés ou sa ligne de
   lettres, aucune branche. Ordre : le carnet de la nuit (rang de la 1re ligne de chaque `canal` + `chantier`),
   sinon l'heure de la pointe puis le nom (`ORDRE pointes — carnet absent`). Par branche : `DÉJÀ <b>` (ancêtre de
@@ -230,8 +233,9 @@ Sous-commandes :
   récente gagne ; vide : retiré) et `publie` (la clé ; empreintes différentes : clé retirée, ligne `PUBLIE …`). Un
   désaccord ou un reste en conflit : `GARDE: <chemin> : <raison>`, puis l'`ARRÊT` ci-dessus. Pas de `merge=union` :
   il garde les deux lignes de `publie` quand les empreintes diffèrent. Ni push, ni carnet.
-- `matin <projet> <date> --rapport <json>` — le rapport du matin (NUI19), sans fusion ni commit, rejouable. Trois
-  premières gardes de `matin` (équipé, date, racine du dépôt) ; carnet de la nuit absent ou vide : `GARDE:`, sort 1.
+- `matin <projet> <date> --rapport <json>` — le rapport du matin (NUI19), sans fusion ni commit, rejouable. La date
+  est obligatoire : sans elle, `GARDE:`. Trois premières gardes de `matin` (équipé, date, racine du dépôt) ; carnet
+  de la nuit absent ou vide : `GARDE:`, sort 1.
   Complète le carnet : chaque ligne de session sans `usd_kit` reçoit `usd_kit` et `tours_kit` (`mesure_session_kit` : son
   transcript et ses sous-agents sommés, prix arrondi une fois au centime), mesurés hors verrou, écrits d'un coup sous celui
   du carnet ; session introuvable, illisible ou hors `GRILLE` : `KIT ? <session> — <raison>`, aucune clé `_kit`, jamais 0.
@@ -7002,7 +7006,8 @@ def projet_du_matin(a, sortie):
         sortie.write("GARDE: pas de CHANTIER.md dans %s\n" % projet)
         return None
     try:
-        datetime.date.fromisoformat(a.date)
+        if a.date is not None:    # sans date, `matin` la cherche (`nuit_a_ranger`) après ses gardes
+            datetime.date.fromisoformat(a.date)
     except ValueError:
         sortie.write("GARDE: AAAA-MM-JJ attendu : %s\n" % a.date)
         return None
@@ -7024,9 +7029,53 @@ def de_cote(projet, branche):
     return fichier_courant(carte_leur) if code == 0 else None
 
 
+def etat_branche_nuit(projet, branche):
+    """Ce que `matin` fait de `branche` : `("deja", None)` si elle est ancêtre de `HEAD`, `("cote", <chantier ouvert>)`
+    si son `CHANTIER.md` garde un chantier ouvert (`de_cote`), sinon `("fusion", None)`."""
+    if git_texte(["merge-base", "--is-ancestor", branche, "HEAD"], projet)[0] == 0:
+        return "deja", None
+    courant = de_cote(projet, branche)
+    return ("cote", courant) if courant else ("fusion", None)
+
+
+NUIT_BRANCHE = re.compile(r"nuit/(\d{4}-\d{2}-\d{2})-")
+
+
+def nuit_a_ranger(projet, sortie):
+    """La date de la nuit que `matin` range quand on ne lui en donne pas : la seule qui a une branche à fusionner
+    (`etat_branche_nuit`), dite par `NUIT <date> — la seule à ranger : <n> branche(s)`. Aucune, ou plusieurs (leurs
+    dates, la plus ancienne d'abord) : None, après une `GARDE:`."""
+    code, t = git_texte(["for-each-ref", "--format=%(refname)", "refs/heads/nuit/*"], projet)
+    if code != 0:
+        sortie.write("GARDE: %s — rien fusionné\n" % t.strip())
+        return None
+    a_ranger, vues = {}, 0
+    for ref in sorted(t.splitlines()):
+        branche = ref[len("refs/heads/"):]
+        nuit = NUIT_BRANCHE.match(branche)
+        if nuit:
+            vues += 1
+            if etat_branche_nuit(projet, branche)[0] == "fusion":
+                a_ranger.setdefault(nuit.group(1), []).append(branche)
+    if len(a_ranger) == 1:
+        date, branches = next(iter(a_ranger.items()))
+        sortie.write("NUIT %s — la seule à ranger : %d branche(s)\n" % (date, len(branches)))
+        return date
+    if a_ranger:
+        sortie.write("GARDE: plusieurs nuits à ranger : %s — rien fusionné ; donne la date\n" % ", ".join(
+            "%s (%d)" % (d, len(b)) for d, b in sorted(a_ranger.items())))
+    else:
+        sortie.write("GARDE: aucune nuit à ranger (%d branche(s) nuit/* déjà fusionnée(s) ou de côté) — rien fusionné\n" % vues)
+    return None
+
+
 def cmd_matin(a, sortie):
-    """`matin <projet> <date>` : les gardes, l'ordre, puis chaque branche de la nuit — `DÉJÀ`, `DE CÔTÉ` ou fusionnée."""
+    """`matin <projet> [<date>]` : les gardes, la nuit (la date donnée, sinon `nuit_a_ranger`), l'ordre, puis chaque
+    branche de la nuit — `DÉJÀ`, `DE CÔTÉ` ou fusionnée. `--rapport` veut la date : sans elle, `GARDE:`."""
     if a.rapport:
+        if a.date is None:
+            sortie.write("GARDE: --rapport veut la date de la nuit (celle que `matin` a dite : NUIT <date>)\n")
+            return 1
         return cmd_matin_rapport(a, sortie)
     projet = projet_du_matin(a, sortie)
     if projet is None:
@@ -7044,24 +7093,27 @@ def cmd_matin(a, sortie):
     if liste is None or len(valeurs) < 2:
         sortie.write("GARDE: CHANTIER.md de main sans ses deux libellés ou sa ligne « %s » — rien fusionné\n" % LETTRES)
         return 1
-    pointes, erreur = pointes_nuit(projet, a.date)
-    if not pointes:
-        sortie.write("GARDE: %s — rien fusionné\n" % (erreur or "aucune branche nuit/%s-* (la date est-elle juste ?)" % a.date))
+    date = a.date if a.date is not None else nuit_a_ranger(projet, sortie)
+    if date is None:
         return 1
-    branches, lu = ordre_nuit(pointes, a.date, projet)
+    pointes, erreur = pointes_nuit(projet, date)
+    if not pointes:
+        sortie.write("GARDE: %s — rien fusionné\n" % (erreur or "aucune branche nuit/%s-* (la date est-elle juste ?)" % date))
+        return 1
+    branches, lu = ordre_nuit(pointes, date, projet)
     if not lu:
         sortie.write("ORDRE pointes — carnet absent\n")
     fusionnees = cote = 0
     for branche in branches:
-        if git_texte(["merge-base", "--is-ancestor", branche, "HEAD"], projet)[0] == 0:
+        etat, courant = etat_branche_nuit(projet, branche)
+        if etat == "deja":
             sortie.write("DÉJÀ %s\n" % branche)
             continue
-        courant = de_cote(projet, branche)
-        if courant:
+        if etat == "cote":
             sortie.write("DE CÔTÉ %s — %s\n" % (branche, courant))
             cote += 1
             continue
-        if fusionner_nuit(projet, branche, a.date, sortie):
+        if fusionner_nuit(projet, branche, date, sortie):
             return 1
         fusionnees += 1
     sortie.write("MATIN %d fusionnée(s) · %d de côté\n" % (fusionnees, cote))
@@ -7676,7 +7728,7 @@ def main(argv, sortie=None, entree=None, erreur=None):
     pl.add_argument("--chantier")
     ma = sous.add_parser("matin")
     ma.add_argument("projet")
-    ma.add_argument("date")
+    ma.add_argument("date", nargs="?")
     ma.add_argument("--rapport")
     ch = sous.add_parser("chef")
     ch.add_argument("verbe", choices=["page"])

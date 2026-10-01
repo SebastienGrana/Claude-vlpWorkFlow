@@ -2482,3 +2482,12 @@ Verdict de l'essai D2 : `publie` en `merge=union` ou fusionné par clé ? Dépô
 - **Verrou** : le test lit `.gitattributes` du kit et exige zéro `merge=union`.
 - **Choix** : la TODO et les index prennent les rangées neuves de la branche **à la suite** de celles de `main` (un ordre « après la rangée qui les précède chez elle » mettait la 85 avant la 84 quand les deux canaux ajoutaient en fin de table).
 - **Imprévu** : la fiche dit `publie` non suivi dans le kit ; `git ls-files` le montre **suivi** (`context AI/artefacts/publie`), `en-attente` absent. Le code ne s'en sert pas : il lit les trois côtés par `git show`, et un fichier absent des trois n'est ni écrit ni retiré.
+
+## 2026-10-02 — Le matin sans date
+
+Demande de l'utilisateur : `/vlp:chef matin` doit marcher tout seul, « le plus simple possible », la date restant permise. Hors fiche : une retouche du livrable de `NUI19`, pas une ligne de la TODO.
+- **Choisi (option C)** : `vlp.py matin <projet>` sans date prend la nuit qui a des branches à ranger si elle est seule (`NUIT <date> — la seule à ranger : <n> branche(s)`) ; plusieurs : `GARDE: plusieurs nuits à ranger : <date> (<n>), …`, rien fusionné, la commande demande laquelle ; aucune : `GARDE: aucune nuit à ranger (<n> branche(s) nuit/* …)`. Avec une date, rien ne change.
+- **Écartés** : A, rien changer (la date reste obligatoire) ; B, toujours la dernière nuit (peut ranger la mauvaise sans le dire).
+- **Critère de « à ranger »** : une branche `nuit/<date>-*` ni ancêtre de `main` ni de côté — celle que `matin` fusionnerait (`etat_branche_nuit`, aussi utilisé par la boucle de fusion : une règle, un endroit). Une nuit déjà fusionnée ou seulement de côté n'est jamais proposée.
+- **Preuve** : cas `matin_s` de `scripts/test-vlp.py` ; trois mutants attrapés, un par règle (`plusieurs` prend la première, une branche de côté compte, `--rapport` sans garde de date) ; test complet 795 contrôles, 0 écart ; pyright 0.
+- **Non couvert** : une nuit qui n'a qu'un carnet et aucune branche (tout a échoué) n'est pas proposée — avec ou sans date, `matin` s'arrête déjà là sur « aucune branche ». Jamais joué par un modèle : preuve attendue de `NUI20`.

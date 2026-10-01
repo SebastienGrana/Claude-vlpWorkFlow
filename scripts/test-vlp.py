@@ -6715,6 +6715,39 @@ def matin_r(tr):
                 os.environ[k] = v
 
 
+def matin_s(tr):
+    """(s) `matin` sans date : la seule nuit à ranger est prise et dite ; plusieurs nuits, ou aucune (tout fusionné, ou
+    de côté), ne fusionnent rien ; `--rapport` veut la date."""
+    d, wip_d, rapport = os.path.join(tr, "s"), os.path.join(tr, "swip"), os.path.join(tr, "s-rapport.json")
+    depot_matin(d)
+    nom = branche_matin(d, "A", "AAA", "AAA", 1)
+    ancienne = "nuit/2026-09-30-A-OLD"
+    git_matin(d, "branch", ancienne, nom)
+    code2, s2 = appel(["matin", d])
+    intacte = code_git(d, "merge-base", "--is-ancestor", nom, "main") == 1
+    code_r, s_r = appel(["matin", d, "--rapport", rapport])
+    git_matin(d, "branch", "-D", ancienne)
+    code1, s1 = appel(["matin", d])
+    code0, s0 = appel(["matin", d])
+    depot_matin(wip_d)
+    wip = branche_matin(wip_d, "A", "WIP", None, 1, clos=False, x="a = 1\nb = 2\nc = 30\n")
+    codew, sw = appel(["matin", wip_d])
+    aucune = "GARDE: aucune nuit à ranger (1 branche(s) nuit/* déjà fusionnée(s) ou de côté) — rien fusionné\n"
+    verifier("NUI15 (s) matin sans date : deux nuits → GARDE qui les liste (la plus ancienne d'abord), rien fusionné ; "
+             "--rapport sans date → GARDE ; la seule nuit → NUIT <date> puis la fusion ; plus rien à ranger, ou une "
+             "branche de côté seule → GARDE aucune nuit, sort 1 — mutants : « plusieurs » prend la première, une "
+             "branche de côté compte comme à ranger",
+             code2 == 1 and s2 == "GARDE: plusieurs nuits à ranger : 2026-09-30 (1), 2026-10-01 (1) — rien fusionné ; "
+             "donne la date\n" and intacte
+             and code_r == 1 and s_r.startswith("GARDE: --rapport veut la date de la nuit") and not os.path.exists(rapport)
+             and code1 == 0 and s1 == ("NUIT 2026-10-01 — la seule à ranger : 1 branche(s)\n" + ORDRE_ABSENT
+                                       + "FUSIONNÉE %s\nMATIN 1 fusionnée(s) · 0 de côté\n" % nom)
+             and code_git(d, "merge-base", "--is-ancestor", nom, "main") == 0
+             and code0 == 1 and s0 == aucune and codew == 1 and sw == aucune
+             and code_git(wip_d, "merge-base", "--is-ancestor", wip, "main") == 1,
+             (code2, s2, intacte, code_r, s_r, code1, s1, code0, s0, codew, sw))
+
+
 def tester_matin():
     """NUI15 : `vlp.py matin <projet> <date>` fusionne dans main les branches de la nuit et répare ce que Git perd sans
     conflit (methode-chantier.md:263-268). Un dépôt temporaire par cas, la config Git isolée, la date de chaque commit
@@ -6732,7 +6765,7 @@ def tester_matin():
                               GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t",
                               GIT_COMMITTER_EMAIL="t@t")
             for cas in (matin_a, matin_b, matin_c, matin_d, matin_e, matin_h, matin_g,
-                        matin_n_a, matin_n_b, matin_n_c, matin_n_d, matin_n_e, matin_n_f, matin_r):
+                        matin_n_a, matin_n_b, matin_n_c, matin_n_d, matin_n_e, matin_n_f, matin_r, matin_s):
                 cas(tr)
     finally:
         for k, v in gardes.items():
