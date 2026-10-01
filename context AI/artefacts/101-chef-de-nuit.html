@@ -1,0 +1,127 @@
+<meta charset="utf-8">
+<title>vlp — Le chef de nuit</title>
+<!--
+  GABARIT — artefact d'un chantier. Publié par /chantier à l'ouverture,
+  mis à jour par /tache à chaque fiche. Remplace les <…> et ne renomme pas
+  les marqueurs `ZONE:…` : les commandes les cherchent tels quels.
+
+  Convention de coût — posée ici, référencée (jamais recopiée) par
+  artefact-feuille-de-route.html, tache.md et cloture.md : un nombre < 1000
+  s'affiche tel quel ; au-delà, "≈<arrondi 1 décimale><k|M> (<compte brut>)"
+  — virgule française, k = mille, M = million. Le compte brut reste toujours
+  visible à côté de l'arrondi.
+-->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700&family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:wght@400;600&display=swap">
+<link rel="stylesheet" href="vlp.css">
+
+<div class="page">
+  <header>
+    <div class="eyebrow">vlp · fiches NUI1–NUI20 · <a href="https://claude.ai/artifact/YWDny8kjubq9DhdP5rbPxA">la feuille de route</a></div>
+    <h1>Le chef de nuit</h1>
+    <p>/vlp:chef cadre le soir, deux canaux jouent les chantiers la nuit sans humain, puis fusion et rapport le matin</p>
+    <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
+    <div class="avancement">
+      <span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+    </div>
+    <p class="mono" style="margin-top:.5rem">20 fiches · 0 faite · en cours : NUI1</p>
+  </header>
+
+  <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
+  <section hidden>
+    <h2>Chantier clos le </h2>
+    <div class="bilan">
+      <p></p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Les fiches, dans l'ordre des dépendances</h2>
+    <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
+    <ul class="fiches">
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">NUI1</span></span>
+        <details open><summary><span class="titre">Relever les formes réelles d'une session -p</span><span class="etat">En cours</span></summary>
+        <span class="note">les vraies sorties de claude -p relevées (9 sessions) — ne dépend de rien</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">NUI2</span></span>
+        <details><summary><span class="titre">Faire un faux claude par rôle</span><span class="etat">Après NUI1</span></summary>
+        <span class="note">un faux claude par rôle pour les tests — dépend de NUI1</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">NUI3</span></span>
+        <details><summary><span class="titre">Tenir le carnet et la borne double</span><span class="etat">Après NUI2</span></summary>
+        <span class="note">le carnet de nuit et la borne double ($ et chantiers) — dépend de NUI2</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">NUI4</span></span>
+        <details><summary><span class="titre">Donner à chaque rôle ses plafonds</span><span class="etat">Après NUI3</span></summary>
+        <span class="note">modèle, effort et plafonds par rôle — dépend de NUI3</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">NUI5</span></span>
+        <details><summary><span class="titre">Relire avant le commit</span><span class="etat">Après NUI4</span></summary>
+        <span class="note">la fiche relue avant son commit, la nuit — dépend de NUI4</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">NUI6</span></span>
+        <details><summary><span class="titre">Relancer plus fort sur refus, ou arrêter tôt</span><span class="etat">Après NUI5</span></summary>
+        <span class="note">relance plus forte sur refus, ou arrêt tôt — dépend de NUI5</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">NUI7</span></span>
+        <details><summary><span class="titre">Enchaîner les chantiers d'un canal</span><span class="etat">Après NUI6, NUI12</span></summary>
+        <span class="note">un canal enchaîne ses chantiers, met de côté un bloqué — dépend de NUI6 et NUI12</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">NUI8</span></span>
+        <details><summary><span class="titre">Reprendre une nuit coupée</span><span class="etat">Après NUI7</span></summary>
+        <span class="note">une nuit coupée se reprend sans rien perdre — dépend de NUI7</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">NUI9</span></span>
+        <details><summary><span class="titre">Lancer les deux canaux d'une ligne</span><span class="etat">Après NUI7</span></summary>
+        <span class="note">la ligne qui lance les deux canaux — dépend de NUI7</span></details></li>
+      <li class="fiche"><span class="gauche"><span class="id">NUI10</span></span>
+        <details><summary><span class="titre">Trier les chantiers prêts</span><span class="etat">À lancer</span></summary>
+        <span class="note">vlp.py trier : les chantiers prêts — ne dépend de rien</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">NUI11</span></span>
+        <details><summary><span class="titre">Tenir le fichier des nuits</span><span class="etat">Après NUI3, NUI10</span></summary>
+        <span class="note">le fichier des nuits, ses leçons et son taux — dépend de NUI3 et NUI10</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">NUI12</span></span>
+        <details><summary><span class="titre">Écrire le plan de nuit</span><span class="etat">Après NUI11</span></summary>
+        <span class="note">le plan de nuit écrit par script — dépend de NUI11</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">NUI13</span></span>
+        <details><summary><span class="titre">Écrire la conduite de nuit</span><span class="etat">Après NUI12</span></summary>
+        <span class="note">nuit.md : ce que la nuit fait à la place de l'humain — dépend de NUI12</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">NUI14</span></span>
+        <details><summary><span class="titre">Renvoyer les commandes à nuit.md</span><span class="etat">Après NUI13</span></summary>
+        <span class="note">les commandes renvoient à nuit.md, essai sur bac — dépend de NUI13</span></details></li>
+      <li class="fiche"><span class="gauche"><span class="id">NUI15</span></span>
+        <details><summary><span class="titre">Fusionner le matin : CHANTIER.md et la feuille</span><span class="etat">À lancer</span></summary>
+        <span class="note">vlp.py matin : fusion, CHANTIER.md et feuille réparés — ne dépend de rien</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">NUI16</span></span>
+        <details><summary><span class="titre">Fusionner le matin : 08-etat.md et les listes</span><span class="etat">Après NUI15</span></summary>
+        <span class="note">fusion par clé de l'état, des listes et d'en-attente — dépend de NUI15</span></details></li>
+      <li class="fiche"><span class="gauche"><span class="id">NUI17</span></span>
+        <details><summary><span class="titre">Remplir une page à cartes par script</span><span class="etat">À lancer</span></summary>
+        <span class="note">une page à cartes remplie par script — ne dépend de rien</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">NUI18</span></span>
+        <details><summary><span class="titre">Écrire /vlp:chef, le soir</span><span class="etat">Après NUI9, NUI11, NUI12, NUI13, NUI17</span></summary>
+        <span class="note">/vlp:chef, le soir — dépend de NUI9, NUI11, NUI12, NUI13, NUI17</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">NUI19</span></span>
+        <details><summary><span class="titre">Écrire /vlp:chef, le matin</span><span class="etat">Après NUI13, NUI15, NUI16, NUI18</span></summary>
+        <span class="note">/vlp:chef, le matin — dépend de NUI13, NUI15, NUI16, NUI18</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">NUI20</span></span>
+        <details><summary><span class="titre">Jouer une nuit réelle</span><span class="etat">Après NUI1, NUI2, NUI3, NUI4, NUI5, NUI6, NUI7, NUI8, NUI9, NUI10, NUI11, NUI12, NUI13, NUI14, NUI15, NUI16, NUI17, NUI18, NUI19</span></summary>
+        <span class="note">une vraie nuit sur le kit, mesurée — dépend de toutes</span></details>
+        <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
+    </ul>
+    <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
+  </section>
+
+  <!-- ZONE:blocage — publiée quand /tache s'arrête après deux tentatives ; retirée dès que la fiche repasse -->
+  <section hidden>
+    <h2>Arrêt sur blocage</h2>
+    <div class="blocage">
+      <p></p>
+      <pre></pre>
+    </div>
+  </section>
+
+  <section>
+    <h2>Journal des décisions</h2>
+    <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
+    <ul class="journal">
+    </ul>
+  </section>
+
+  <footer>
+    <span>Fichier de fiches : <span class="mono">context AI/101-chef-de-nuit.md</span></span>
+    <span>Mis à jour le <span class="mono">2026-10-01</span></span>
+  </footer>
+</div>
+<script src="vlp.js"></script>
