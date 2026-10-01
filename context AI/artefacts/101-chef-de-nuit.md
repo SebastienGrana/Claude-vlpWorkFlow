@@ -3,7 +3,7 @@
 /vlp:chef cadre le soir, deux canaux jouent les chantiers la nuit sans humain, puis fusion et rapport le matin
 ## Notes
 - NUI1 : grep -c titre NUI1 : 0 avant, 1 après ; table : 12 lignes +| (9 sessions, validate, en-tête, filet) ; 24 formes JSON (+{"type") ; znorr 0 ; Users 0 ; git status : 08-etat.md seul ; coût des 9 essais 0.9962 $ pour 2.46 $ annoncés
-- NUI2 : un faux claude par rôle pour les tests — dépend de NUI1
+- NUI2 : test-boucle OK (31 vérifications : 10 d'avant + 21 nouvelles ; 23,4 s avant, 21,9 s après) ; test-vlp OK (35,5 s avant, 54,5 s après) ; grep FAUX = : 0 ; mutant boucle.py : ÉCART --effort low transmis tel quel à claude, MUTANT ATTRAPÉ 2 ; mutant faux-claude.py : ÉCART faux : prompt inconnu → code 2, MUTANT ATTRAPÉ 1 ; pyright 0 errors
 - NUI3 : le carnet de nuit et la borne double ($ et chantiers) — dépend de NUI2
 - NUI4 : modèle, effort et plafonds par rôle — dépend de NUI3
 - NUI5 : la fiche relue avant son commit, la nuit — dépend de NUI4

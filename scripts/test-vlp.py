@@ -5447,6 +5447,18 @@ def tester_mutant():
 
 tester_mutant()
 
+
+def tester_boucle():
+    """NUI2 : test-boucle.py joue boucle.py et faux-claude.py ; lancé d'ici, un mutant de l'un ou de l'autre
+    tombe aussi sous `vlp.py mutant` sans --test. Sa sortie passe en entier : son `ÉCART:` y remonte."""
+    r = subprocess.run([sys.executable, os.path.join(ICI, "test-boucle.py")], capture_output=True,
+                       encoding="utf-8", errors="replace", env=dict(os.environ, PYTHONIOENCODING="utf-8"))
+    verifier("boucle : test-boucle.py (boucle.py et son faux claude) sort OK",
+             r.returncode == 0 and r.stdout.strip() == "OK", (r.stdout or "") + (r.stderr or ""))
+
+
+tester_boucle()
+
 if ECARTS:
     sys.exit(1)
 print("OK")

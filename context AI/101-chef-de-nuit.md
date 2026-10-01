@@ -175,8 +175,9 @@ par forme, 1 au moins ; `znorr` 0 ; `Users` 0. `git status --short` ne montre qu
 ---
 
 <!-- FICHE:NUI2 -->
-## NUI2 [ ] — Faire un faux claude par rôle
+## NUI2 [x] — Faire un faux claude par rôle
 
+**Session** : d4efca2e-77f5-426f-a1e1-e528bce64e4b
 **Dépend de** : `NUI1`.
 **Fichiers** : `scripts/faux-claude.py` (nouveau), `scripts/test-boucle.py`, `scripts/test-vlp.py` ; lus : `context AI/08-etat.md` (entrée `(NUI1)`, ses lignes JSON réduites), `scripts/boucle.py` (`jouer`, `lire_carte`), `scripts/vlp.py` (`cmd_ouvrir`, `cmd_cocher`), `enchainement.md`, `skills/tache/SKILL.md` (l. 50-53), la page https://code.claude.com/docs/en/errors (doc officielle) — et rien d'autre.
 

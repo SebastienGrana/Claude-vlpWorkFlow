@@ -1,15 +1,20 @@
 #!/usr/bin/env python3
-"""Teste boucle.py avec un faux `claude` : aucun appel modèle.
+"""Teste boucle.py avec le faux `claude` de `scripts/faux-claude.py` : aucun appel modèle.
 
-Le faux coche la fiche que nomme `/vlp:tache <fiche>`, sauf celles de
-`VLP_FAUX_RATE`, et rend une ligne `result` comme `--output-format stream-json`.
+Le faux joue un rôle par prompt (découper, jouer, clore, relire) et rend les lignes
+`stream-json` de NUI1 ; ses pilotes `VLP_FAUX_*` sont dans sa docstring. Ce fichier
+teste boucle.py avec lui, puis le faux lui-même, rôle par rôle et pilote par pilote.
 Imprime `OK` et sort 0, ou le premier écart et sort 1.
 """
+import importlib.util
 import io
+import json
 import os
 import subprocess
 import sys
 import tempfile
+import time
+from typing import Any
 
 for _flux in (sys.stdout, sys.stderr):
     try:
@@ -20,28 +25,12 @@ for _flux in (sys.stdout, sys.stderr):
 
 ICI = os.path.dirname(os.path.abspath(__file__))
 
-FAUX = r'''import json, os, subprocess, sys
-fiche = sys.argv[sys.argv.index("-p") + 1].split()[-1]
-if fiche not in os.environ.get("VLP_FAUX_RATE", "").split(","):
-    subprocess.run([sys.executable, os.environ["VLP_FAUX_VLP"], "cocher", "fiches.md", fiche],
-                   stdout=subprocess.DEVNULL)
-print(json.dumps({"type": "result", "num_turns": 3, "total_cost_usd": 0.01,
-                  "result": "joué " + fiche + " · " + ",".join(sys.argv[1:])}))
-'''
-
-FICHE = """<!-- FICHE:%s -->
-## %s [ ] — fiche %s
-
-**Prompt**
-Rien.
-
-**Critère de fin**%s
-Rien.
-<!-- /FICHE -->
-
----
-
-"""
+FAUX_CLAUDE = os.path.join(ICI, "faux-claude.py")
+_spec = importlib.util.spec_from_file_location("faux_claude", FAUX_CLAUDE)
+assert _spec and _spec.loader
+_faux: Any = importlib.util.module_from_spec(_spec)  # `FICHE` y vit : un seul gabarit de fiche
+_spec.loader.exec_module(_faux)
+FICHE = _faux.FICHE
 
 
 def projet(t, visuel=None, tentatives=None):
@@ -55,10 +44,7 @@ def projet(t, visuel=None, tentatives=None):
         h.write(corps)
     with open(os.path.join(t, "CHANTIER.md"), "w", encoding="utf-8", newline="") as h:
         h.write("# Chantier courant\n\n- **fichier de fiches courant** : fiches.md (F1..F3)\n")
-    faux = os.path.join(t, "faux_claude.py")
-    with open(faux, "w", encoding="utf-8") as h:
-        h.write(FAUX)
-    return faux
+    return FAUX_CLAUDE
 
 
 def boucle(t, faux, plafond, rate="", options=()):
@@ -115,5 +101,106 @@ with tempfile.TemporaryDirectory() as t:
     code, s, cases = boucle(t, projet(t, tentatives="F1"), 5)
     verifier("F1 à bloc Tentatives : rien joué, sort 1",
              code == 1 and cases == "..." and "JOUE" not in s and "Tentatives" in s, s + cases)
+
+
+# --- le faux lui-même : un rôle par prompt, un pilote par variable (NUI2) -------------
+
+def faux(args, cwd, **env):
+    base = {k: v for k, v in os.environ.items() if not k.startswith("VLP_FAUX_")}
+    base.update(VLP_FAUX_VLP=os.path.join(ICI, "vlp.py"), PYTHONIOENCODING="utf-8")
+    base.update(env)
+    r = subprocess.run([sys.executable, FAUX_CLAUDE] + args, cwd=cwd, env=base, capture_output=True,
+                       text=True, encoding="utf-8")
+    return r.returncode, [json.loads(l) for l in r.stdout.splitlines() if l.startswith("{")], r.stderr
+
+
+def lire(chemin):
+    with open(chemin, encoding="utf-8") as h:
+        return h.read()
+
+
+def verdict_de(lignes):
+    return next((str(x.get("result")) for x in lignes if x["type"] == "result"), "")
+
+
+# Le premier test qui passe par la ligne `return 2  # prompt inconnu` du faux : un mutant qui la change tombe ici.
+r = subprocess.run([sys.executable, FAUX_CLAUDE, "-p", "bonjour"], capture_output=True, text=True, encoding="utf-8")
+verifier("faux : prompt inconnu → code 2",
+         r.returncode == 2 and len(r.stderr.strip().splitlines()) == 1 and r.stdout == "", (r.returncode, r.stdout, r.stderr))
+
+with tempfile.TemporaryDirectory() as t:
+    projet(t)
+    carte, fiches, nouveau =(os.path.join(t, n) for n in ("CHANTIER.md", "fiches.md", "T.md"))
+    avant = lire(fiches)
+    code, _, e = faux(["-p", "/vlp:chantier T"], t)
+    verifier("faux découper : T.md à deux fiches, courant de CHANTIER.md remplacé, fiches.md intact",
+             code == 0 and os.path.isfile(nouveau) and "## T1 [ ]" in lire(nouveau) and "## T2 [ ]" in lire(nouveau)
+             and lire(nouveau).count("<!-- FICHE:") == 2
+             and "**fichier de fiches courant** : T.md (T1..T2)" in lire(carte) and lire(fiches) == avant, e)
+    code, _, e = faux(["-p", "/vlp:tache T1"], t)
+    verifier("faux jouer coche dans le fichier courant",
+             code == 0 and "## T1 [x]" in lire(nouveau) and "## T2 [ ]" in lire(nouveau) and lire(fiches) == avant, e)
+    code, _, e = faux(["-p", "/vlp:tache T2"], t, VLP_FAUX_RATE="T2")
+    verifier("faux jouer : VLP_FAUX_RATE laisse la case", code == 0 and "## T2 [ ]" in lire(nouveau), e)
+    code, _, e = faux(["-p", "/vlp:tache T1"], t)
+    verifier("faux jouer : cocher non nul → sa sortie sur stderr, code 2", code == 2 and "déjà cochée" in e, e)
+    with open(carte, "a", encoding="utf-8", newline="") as h:
+        h.write("- **artefact du chantier** : https://exemple.invalid/x\n")
+    code, _, e = faux(["-p", "/vlp:tache"], t)
+    verifier("faux clore : courant et artefact passent à aucun",
+             code == 0 and "**fichier de fiches courant** : aucun" in lire(carte)
+             and "**artefact du chantier** : aucun" in lire(carte), lire(carte) + e)
+
+with tempfile.TemporaryDirectory() as t:
+    relire = ["--agent", "vlp:relecture", "--model", "claude-opus-5-5"]
+    code, l, e = faux(["-p", "F1 --sha abc123"] + relire, t)
+    verifier("faux relire : ACCEPTÉE par défaut, outils de relecture dans init",
+             code == 0 and verdict_de(l).startswith("ACCEPTÉE — ") and l[0]["tools"] == ["Read", "Edit", "Bash", "PowerShell"], l)
+    code, l, e = faux(["-p", "F1"] + relire, t, VLP_FAUX_REFUSE="F1:fiche")
+    verifier("faux relire : VLP_FAUX_REFUSE fiche → REFUSÉE — fiche : puis RÉÉCRITURE",
+             verdict_de(l).startswith("REFUSÉE — fiche : ") and "\nRÉÉCRITURE : " in verdict_de(l), l)
+    code, l, e = faux(["-p", "F1"] + relire, t, VLP_FAUX_REFUSE="F1:copie")
+    verifier("faux relire : VLP_FAUX_REFUSE copie → REFUSÉE — copie : sans RÉÉCRITURE",
+             verdict_de(l).startswith("REFUSÉE — copie : ") and "RÉÉCRITURE" not in verdict_de(l), l)
+    code, l, e = faux(["-p", "F2"] + relire, t, VLP_FAUX_REFUSE="F1:fiche")
+    verifier("faux relire : une autre fiche reste ACCEPTÉE", verdict_de(l).startswith("ACCEPTÉE — "), l)
+    code, l, e = faux(["-p", "F1 --sha"] + relire, t)
+    verifier("faux relire : prompt mal formé → code 2", code == 2 and l == [], (code, l, e))
+
+with tempfile.TemporaryDirectory() as t:
+    projet(t)
+    jouer =["-p", "/vlp:tache F9"]
+    sid = "11111111-2222-3333-4444-555555555555"
+    code, l, e = faux(jouer + ["--session-id", sid], t, VLP_FAUX_RATE="F9")
+    verifier("faux : init et result portent l'id de --session-id",
+             code == 0 and l[0]["subtype"] == "init" and l[0]["session_id"] == sid and l[-1]["session_id"] == sid
+             and l[-1]["num_turns"] == 3 and l[-1]["total_cost_usd"] == 0.01, l)
+    code, l, e = faux(jouer + ["--model", "claude-opus-5-5"], t, VLP_FAUX_LIMITE="claude-opus", VLP_FAUX_RATE="F9")
+    verifier("faux : VLP_FAUX_LIMITE rend la limite au modèle qui commence par le préfixe",
+             code == 1 and l[-1]["is_error"] is True and l[-1]["result"].startswith("You've hit your session limit"), l)
+    code, l, e = faux(jouer + ["--model", "claude-sonnet-5-5"], t, VLP_FAUX_LIMITE="claude-opus", VLP_FAUX_RATE="F9")
+    verifier("faux : VLP_FAUX_LIMITE laisse passer un autre modèle", code == 0 and l[-1]["is_error"] is False, l)
+    code, l, e = faux(jouer + ["--model", "claude-inexistant-9", "--fallback-model", "claude-opus-5,claude-sonnet-5-5"],
+                      t, VLP_FAUX_REPLI="1", VLP_FAUX_RATE="F9")
+    vus = [x["message"]["model"] for x in l if x["type"] == "assistant"]
+    verifier("faux : VLP_FAUX_REPLI → message.model et modelUsage au premier repli, ligne model_fallback",
+             code == 0 and vus == ["claude-opus-5"] and list(l[-1]["modelUsage"]) == ["claude-opus-5"]
+             and any(x.get("subtype") == "model_fallback" for x in l), l)
+    debut = time.time()
+    faux(jouer, t, VLP_FAUX_DORT="0.4", VLP_FAUX_RATE="F9")
+    verifier("faux : VLP_FAUX_DORT dort avant de répondre", time.time() - debut >= 0.4, time.time() - debut)
+    code, l, e = faux(jouer, t, VLP_FAUX_ERREUR="coupure", VLP_FAUX_RATE="F9")
+    verifier("faux : VLP_FAUX_ERREUR=coupure → init puis rien, ni result, code 1",
+             code == 1 and [x["type"] for x in l] == ["system"], (code, l))
+    code, l, e = faux(jouer, t, VLP_FAUX_ERREUR="api", VLP_FAUX_RATE="F9")
+    verifier("faux : VLP_FAUX_ERREUR=api → message <synthetic>, result is_error vrai, code 1",
+             code == 1 and l[1]["message"]["model"] == "<synthetic>" and l[-1]["is_error"] is True
+             and l[-1]["terminal_reason"] == "api_error" and l[-1]["total_cost_usd"] == 0, (code, l))
+    for forme, sous in (("tours", "error_max_turns"), ("budget", "error_max_budget_usd")):
+        code, l, e = faux(jouer, t, VLP_FAUX_ERREUR=forme, VLP_FAUX_RATE="F9")
+        verifier("faux : VLP_FAUX_ERREUR=%s → %s, is_error vrai, sans clé result, code 1" % (forme, sous),
+                 code == 1 and l[-1]["subtype"] == sous and l[-1]["is_error"] is True and "result" not in l[-1], (code, l))
+    code, l, e = faux(jouer, t, VLP_FAUX_ERREUR="zzz", VLP_FAUX_RATE="F9")
+    verifier("faux : VLP_FAUX_ERREUR inconnue → code 2", code == 2 and "zzz" in e, (code, e))
 
 print("OK")
