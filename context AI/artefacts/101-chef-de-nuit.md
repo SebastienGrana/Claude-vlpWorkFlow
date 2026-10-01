@@ -9,7 +9,7 @@
 - NUI5 : test-vlp.py OK (canaux, cocher --session) ; test-boucle.py OK (6 cas nuit neufs) ; 3 mutants ATTRAPÉS (préfixe du canal, AUTORISES, commit sur REFUSÉE) ; grep statuts 0, VERDICTS 5 ; pyright 0 erreur sur 5 fichiers
 - NUI6 : test-boucle.py OK, 9 cas neufs passés / 9 écrits ; 3 mutants attrapés (cas b, e, d) ; test-vlp.py OK ; pyright 0 errors
 - NUI7 : test-boucle.py OK, 103 appels à verifier contre 90 avant (13 cas neufs a à j, 1 cas d'avant dont la prémisse change) ; mutants base de branche HEAD et garde clôture hors rôle sans mise de côté : MUTANT ATTRAPÉ 1 écart chacun ; test-vlp.py OK 559 s ; pyright 0 errors sur boucle.py, test-boucle.py, faux-claude.py
-- NUI8 : une nuit coupée se reprend sans rien perdre — dépend de NUI7
+- NUI8 : test-boucle OK : 19 cas neufs passés / 19 écrits, 103 cas d'avant passés, 0 sauté (6 min 9 s) ; test-vlp OK ; 3 mutants ATTRAPÉS (mesure sautée, depart sans fin, pot sans usd_kit) ; pyright 0 errors sur les 4 .py ; ÉVEIL tenu lu sous win32
 - NUI9 : la ligne qui lance les deux canaux — dépend de NUI7
 - NUI10 : test-vlp.py OK (tester_trier neuf) · 4 mutants MUTANT ATTRAPÉ · trier . sur le kit : sort 0, 8 rangs, 5 PRÊT, 3 ÉCARTÉE, CANAL CAR+TAB+CLV par vlp.py, APR FICHIERS 99-jnt1-mesure.py sans SOIR · pyright 0 errors
 - NUI11 : test-vlp.py OK (tester_fichier_nuits neuf, cas a à d) · 3 mutants MUTANT ATTRAPÉ (CARNET_MIN = 0, retirées vivantes, usd_kit lu usd_cli) · grep -c nuits.md 0 → 1, sept familles 1 · pyright 0 errors sur vlp.py et test-vlp.py

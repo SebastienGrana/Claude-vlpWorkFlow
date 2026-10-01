@@ -22,7 +22,14 @@ fait `git add -A` et `git commit -m "Chantier <code> clos : faux"`, comme `clotu
 séparées par des virgules : après les avoir cochées, le rôle `jouer` ferme le chantier — la session de jeu qui clôt
 hors de son rôle), VLP_FAUX_VIDE (codes, séparés par des virgules : `/vlp:chantier <code>` n'écrit rien — le
 découpage qui n'ouvre aucun chantier) et VLP_FAUX_CASSE (fiches, séparées par des virgules : après les avoir
-cochées, le rôle `jouer` écrit le fichier `CASSE` et le `git add` — la fiche qu'un hook de commit refusera). Une fiche à bloc **Tentatives** se coche `--resolu`, comme `jouer` et `relance` le font
+cochées, le rôle `jouer` écrit le fichier `CASSE` et le `git add` — la fiche qu'un hook de commit refusera). La reprise d'une nuit
+coupée (NUI8) en ajoute deux : VLP_FAUX_COUPE (entrées séparées par des virgules : la session désignée fait son
+travail, écrit sa transcription, puis sort sans ligne `result` — la session tuée avant son dernier message ;
+l'entrée est `F1` pour le rôle jouer, `relire:F1`, `découper:AAA` ou `clore`, suivie de `=<code de sortie>`,
+1 par défaut : 143 sous POSIX, 1 sous win32) et VLP_FAUX_SANS_TRANSCRIPTION (`1` : la session coupée n'écrit pas sa
+transcription). Cette transcription, `~/.claude/projects/<dossier>/<id>.jsonl` — `~` de `os.path.expanduser`, donc
+`HOME` ou `USERPROFILE` —, porte deux lignes `assistant` à `message.id` distincts, `message.model` celui de `--model`,
+`message.usage` à la forme d'un vrai transcript : `TOURS_COUPES`. Une fiche à bloc **Tentatives** se coche `--resolu`, comme `jouer` et `relance` le font
 dans `skills/tache/SKILL.md` (le faux ne les distingue pas : même prompt). Le rôle `jouer` pose `CLAUDE_CODE_SESSION_ID` = son `--session-id` aux commandes qu'il
 lance, comme le vrai claude ; hors VLP_FAUX_COMMIT, le faux n'appelle jamais Git.
 """
@@ -46,6 +53,9 @@ for _flux in (sys.stdout, sys.stderr):
 ICI = os.path.dirname(os.path.abspath(__file__))
 MODELE_DEFAUT = "claude-opus-5-5"
 COUT, TOURS = 0.01, 3
+# Les deux tours de la transcription d'une session coupée (VLP_FAUX_COUPE) : (entrée, sortie) en tokens, sans cache.
+# Choisis pour que `mesure-tokens.py` rende un prix rond au centime : 0.45 $ en claude-sonnet-5-5, 0.90 $ en claude-opus-5-5.
+TOURS_COUPES = ((100000, 10000), (50000, 5000))
 
 FICHE = """<!-- FICHE:%s -->
 ## %s [ ] — fiche %s
@@ -208,6 +218,30 @@ def verdict(mots: list) -> Optional[str]:
     return texte
 
 
+def coupe(role: str, mots: list) -> Optional[int]:
+    """Le code de sortie de la session que VLP_FAUX_COUPE coupe, ou None : l'entrée qui désigne cette session."""
+    cible = {"jouer": mots[-1], "relire": "relire:%s" % mots[0], "découper": "découper:%s" % mots[-1], "clore": "clore"}[role]
+    for entree in os.environ.get("VLP_FAUX_COUPE", "").split(","):
+        cle, _, code = entree.partition("=")
+        if cle == cible:
+            return int(code or 1)
+    return None
+
+
+def transcription(sid: str, modele: str) -> None:
+    """La transcription de la session coupée : `~/.claude/projects/<dossier>/<sid>.jsonl`, deux tours `assistant`."""
+    dossier = os.path.join(os.path.expanduser("~"), ".claude", "projects", re.sub(r"[^A-Za-z0-9]", "-", os.getcwd()))
+    os.makedirs(dossier, exist_ok=True)
+    with open(os.path.join(dossier, sid + ".jsonl"), "w", encoding="utf-8", newline="") as f:
+        for i, (entree, sortie) in enumerate(TOURS_COUPES, 1):
+            usage = {"input_tokens": entree, "cache_creation_input_tokens": 0, "cache_read_input_tokens": 0,
+                     "output_tokens": sortie, "service_tier": "standard", "speed": "standard",
+                     "cache_creation": {"ephemeral_1h_input_tokens": 0, "ephemeral_5m_input_tokens": 0}}
+            f.write(json.dumps({"type": "assistant", "sessionId": sid, "message": {
+                "id": "msg_coupe_%d" % i, "model": modele, "role": "assistant", "type": "message",
+                "content": [{"type": "text", "text": "tour %d" % i}], "usage": usage}}, ensure_ascii=False) + "\n")
+
+
 def main(argv: list) -> int:
     journal = os.environ.get("VLP_FAUX_ARGV")
     if journal:
@@ -274,6 +308,11 @@ def main(argv: list) -> int:
             "clore": clore, "relire": lambda: 0}[role]()
     if code:
         return code
+    coupee = coupe(role, mots)
+    if coupee is not None:   # le travail est fait ; la session meurt avant son dernier message : aucune ligne `result`
+        if not os.environ.get("VLP_FAUX_SANS_TRANSCRIPTION"):
+            transcription(sid, modele)
+        return coupee
     vu = modele
     repli = (valeur(argv, "--fallback-model") or "").split(",")[0]
     if os.environ.get("VLP_FAUX_REPLI") == "1" and repli:

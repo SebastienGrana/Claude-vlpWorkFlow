@@ -8,6 +8,7 @@ Imprime `OK` et sort 0, ou le premier écart et sort 1.
 """
 import argparse
 import contextlib
+import glob
 import importlib.util
 import io
 import json
@@ -30,6 +31,11 @@ for _flux in (sys.stdout, sys.stderr):
         pass
 
 ICI = os.path.dirname(os.path.abspath(__file__))
+
+# Le `~` du poste ne sert à personne ici (NUI8) : une transcription lue ou écrite sous `~/.claude/projects` va dans un
+# dossier jeté, pour tous les cas — ceux d'avant comme ceux de la reprise (qui posent le leur, un par cas).
+_HOME = tempfile.TemporaryDirectory()
+os.environ["HOME"] = os.environ["USERPROFILE"] = _HOME.name
 
 FAUX_CLAUDE = os.path.join(ICI, "faux-claude.py")
 _spec = importlib.util.spec_from_file_location("faux_claude", FAUX_CLAUDE)
@@ -64,11 +70,15 @@ def boucle(t, faux, plafond, rate="", options=()):
     return r.returncode, r.stdout + r.stderr, cases
 
 
+_PASSES = [0]   # cas passés : `verifier` sort au premier écart, donc ceux qui l'ont passé sont ceux qui sont écrits
+
+
 def verifier(nom, cond, sortie):
     if not cond:
         print("ÉCART:", nom)
         print(sortie)
         sys.exit(1)
+    _PASSES[0] += 1
 
 
 with tempfile.TemporaryDirectory() as t:
@@ -281,7 +291,7 @@ def tester_nuit():
     with tempfile.TemporaryDirectory() as t:
         depot(t)
         code, s = nuit(t, *canal_a)
-        tout = carnet.lire(carnet_de(t))
+        tout = [d for d in carnet.lire(carnet_de(t)) if carnet.est_session(d)]   # les notes `depart` (NUI8) sont hors tri
         lignes = [d for d in tout if d["role"] == "jouer"]
         verifier("NUI3 (a) --nuit, 3 fiches : 3 lignes `jouer` (et 3 `relire`, NUI5) aux clés de CLES, canal A, "
                  "usd_cli du faux, usd_kit et tours_kit à null, session lue dans init",
@@ -396,7 +406,7 @@ def tester_nuit():
         chemin = carnet_de(t)
         code, s = nuit(t, "--canal", "A", "--chantier", "X", "--plafond", "1", claude=stub)
         env = json.loads(lire(os.path.join(t, "env.json")))
-        lignes = carnet.lire(chemin)
+        lignes = [d for d in carnet.lire(chemin) if carnet.est_session(d)]
         verifier("NUI3 : la fille reçoit VLP_CARNET et VLP_CANAL ; la ligne porte tours, coût et session du result/init, "
                  "même case non cochée",
                  env == {"VLP_CARNET": chemin, "VLP_CANAL": "A"} and len(lignes) == 1 and lignes[0]["session"] == "s-1"
@@ -484,7 +494,7 @@ def tester_plafonds():
     with tempfile.TemporaryDirectory() as t:
         depot(t)
         code, s = nuit(t, *canal_a, "--plafond", "1")
-        ligne = carnet.lire(carnet_de(t))[0]
+        ligne = next(d for d in carnet.lire(carnet_de(t)) if carnet.est_session(d))
         verifier("NUI4 (b) --nuit, jouer : modèle, effort, plafonds, permission-prompts, --session-id = clé session "
                  "du carnet, sans repli",
                  code == 0 and all(x in s for x in (
@@ -580,7 +590,7 @@ def tester_plafonds():
         depot(t)
         s, sessions, argvs = lancer(t, VLP_FAUX_LIMITE="claude-opus", VLP_FAUX_GENRE="opus")
         bascule = bmod.BASCULE["jusqu"]
-        notes = [d["note"] for d in carnet.lire(carnet_de(t)) if d.get("note")]
+        notes = [d["note"] for d in carnet.lire(carnet_de(t)) if d.get("note") and not d["note"].startswith("depart ")]
         verifier("NUI4 (f) limite opus sur relire : bascule au carnet, session relancée en claude-sonnet-5-5 sans repli, "
                  "issues limite puis jouée, sans stop",
                  s["issue"] == "jouée" and s["stop"] is None and [x["issue"] for x in sessions] == ["limite", "jouée"]
@@ -595,7 +605,8 @@ def tester_plafonds():
                  "pas de nouvelle limite ni de nouvelle note",
                  [x["issue"] for x in sessions] == ["limite", "jouée", "jouée"]
                  and [drapeau(a, "--model") for a in argvs] == [OPUS, SONNET, SONNET]
-                 and len([d for d in carnet.lire(carnet_de(t)) if d.get("note")]) == 1, (sessions, argvs))
+                 and len([d for d in carnet.lire(carnet_de(t)) if d.get("note") and not d["note"].startswith("depart ")]) == 1,
+                 (sessions, argvs))
 
     for genre in ("semaine", "session"):
         with tempfile.TemporaryDirectory() as t:
@@ -966,7 +977,7 @@ def tester_canal():
 
     def gardes(lignes, code):
         """Les gardes des lignes du chantier `code` qui ne sont pas des sessions (sans `role`)."""
-        return [d["garde"] for d in lignes if d["chantier"] == code and d["role"] is None]
+        return [d["garde"] for d in lignes if d["chantier"] == code and d["role"] is None and d["note"] is None]
 
     with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors:
         depot_canal(t, hors, ("AAA", "BBB", "CCC"))
@@ -1112,14 +1123,271 @@ def tester_canal():
                 code = bmod.main([t, "--claude", FAUX_CLAUDE, "--traces", hors, "--nuit", "--canal", "A", "--date", DATE])
         finally:
             bmod.vlp = vrai
-        lignes = carnet_du(t)
+        lignes = [d for d in carnet_du(t) if carnet.est_session(d)]   # NUI8 : notes `depart` et `base` hors tri
         neuf("(j) la carte dit PLUGIN_RETARD=8 : les six lignes de session du carnet portent plugin_retard 8",
              code == 0 and "plan terminé — 1 clos" in sortie.getvalue() and len(lignes) == 6
              and all(d["plugin_retard"] == 8 for d in lignes), (sortie.getvalue(), lignes))
 
     sys.stderr.write("NUI7 : %d cas neufs passés / %d écrits\n" % (ecrits[0], ecrits[0]))
+    return dict(DATE=DATE, ecrire_f=ecrire_f, depot_canal=depot_canal, carnet_du=carnet_du, canal=canal, br=br, sha=sha,
+                sujet=sujet, ancetre=ancetre, branches=branches, roles=roles)
 
 
-tester_canal()
+aides_canal = tester_canal()
+
+
+# --- reprendre une nuit coupée (NUI8) ---------------------------------------------------------------------
+# Chaque cas pose son projet, son dépôt, son carnet et son `~` (HOME, USERPROFILE) dans des dossiers jetés.
+
+def tester_reprise(aides):
+    DATE, canal, depot_canal, carnet_du = aides["DATE"], aides["canal"], aides["depot_canal"], aides["carnet_du"]
+    br, sha, sujet, branches, roles = aides["br"], aides["sha"], aides["sujet"], aides["branches"], aides["roles"]
+    ecrire_f, ancetre = aides["ecrire_f"], aides["ancetre"]
+    ecrits, sautes = [0], [0]
+    plafonds = bmod.plafonds()
+    SID = "00000000-0000-4000-8000-00000000000a"
+
+    def neuf(nom, cond, sortie):
+        """Un cas neuf de NUI8 : `verifier` sort au premier écart, donc ceux qui passent = ceux qui sont écrits."""
+        ecrits[0] += 1
+        verifier("NUI8 " + nom, cond, sortie)
+
+    def mesure_cli(h, sid):
+        """`mesure-tokens.py <id>` lancé par le test sous le `~` de `h` : (tours, usd) de sa ligne."""
+        r = subprocess.run([sys.executable, os.path.join(ICI, "mesure-tokens.py"), sid], capture_output=True, text=True,
+                           encoding="utf-8", env=dict(os.environ, HOME=h, USERPROFILE=h, PYTHONIOENCODING="utf-8"))
+        tete, valeurs = (r.stdout.splitlines() + ["", ""])[:2]
+        d = dict(zip(tete.split("\t"), valeurs.split("\t")))
+        return int(d.get("tours") or -1), float(d.get("usd") or -1)
+
+    def session_de(lignes, role, fiche=None):
+        """La première ligne de session du rôle (et de la fiche), ou None."""
+        return next((d for d in lignes if carnet.est_session(d) and d["role"] == role
+                     and (fiche is None or d["fiche"] == fiche)), None)
+
+    def reprendre(t, hors, h, *options, **env):
+        """boucle.py --nuit --canal A --reprendre --carnet <celui de DATE> dans `t` : (code, sortie, lignes du carnet)."""
+        env.setdefault("VLP_FAUX_CLORE", "commit")
+        chemin = carnet.du_jour(t, DATE)
+        assert chemin
+        code, s = nuit(t, "--canal", "A", "--reprendre", "--carnet", chemin, *options, traces=hors, HOME=h, USERPROFILE=h, **env)
+        return code, s, carnet_du(t)
+
+    # (a) un jeu coupé : mesuré dans sa transcription, chantier de côté, la fiche suivante pas jouée -----------------
+    with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors, tempfile.TemporaryDirectory() as h:
+        depot_canal(t, hors, ("AAA", "CCC"))
+        depart = sha(t, "HEAD")
+        code, s, lignes = canal(t, hors, VLP_FAUX_COUPE="AAA1", HOME=h, USERPROFILE=h)
+        j = session_de(lignes, "jouer", "AAA1")
+        tours, usd = mesure_cli(h, j["session"]) if j else (None, None)
+        neuf("(a) --nuit, AAA1 en COUPE : issue coupure, usd_cli null, usd_kit et tours_kit égaux à mesure-tokens.py (tours 2), "
+             "pot = usd_kit, chantier mis de côté (WIP), AAA2 pas jouée, CCC joué",
+             code == 0 and "ARRÊT plan terminé — 1 clos, 1 de côté, 0 sautés" in s and j is not None
+             and j["issue"] == "coupure" and j["usd_cli"] is None and j["tours_cli"] is None
+             and tours == 2 and j["tours_kit"] == tours and j["usd_kit"] == usd and carnet.pot([j], plafonds) == usd
+             and roles(lignes, "AAA") == ["découper", "jouer"] and "JOUE AAA2" not in s and "MIS DE CÔTÉ AAA" in s
+             and sujet(t, br("AAA")).startswith("WIP AAA mis de côté : AAA1 : session de jeu coupée")
+             and "CLOS CCC" in s, (s, lignes, tours, usd))
+        departs = [(i, d) for i, d in enumerate(lignes) if (d["note"] or "").startswith("depart ")]
+        neuf("(a) chaque session a, avant sa ligne, une note `depart <rôle>` au même id, hors `est_session` (role null), "
+             "et la note `base` du canal porte HEAD de départ",
+             len(departs) == sum(carnet.est_session(d) for d in lignes) and all(d["role"] is None for _, d in departs)
+             and all(any(x["note"] == "depart %s" % d["role"] and x["session"] == d["session"] for x in lignes[:i])
+                     for i, d in enumerate(lignes) if carnet.est_session(d))
+             and [d["note"] for d in lignes if (d["note"] or "").startswith("base ")] == ["base " + depart], (lignes, depart))
+
+    # (b) la même coupure sans transcription : la garde le dit, le pot compte le plafond du rôle -------------------
+    with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors, tempfile.TemporaryDirectory() as h:
+        depot_canal(t, hors, ("AAA", "CCC"))
+        code, s, lignes = canal(t, hors, "--borne-usd", "4.5", VLP_FAUX_COUPE="AAA1", VLP_FAUX_SANS_TRANSCRIPTION="1",
+                                HOME=h, USERPROFILE=h)
+        j = session_de(lignes, "jouer", "AAA1")
+        neuf("(b) COUPE sans transcription : garde « transcription introuvable », usd_kit et tours_kit null (pas 0), "
+             "pot = le --max-budget-usd du rôle jouer — et la borne de 4.5 $ tient CCC à l'écart",
+             code == 0 and j is not None and j["issue"] == "coupure" and j["usd_kit"] is None and j["tours_kit"] is None
+             and j["usd_cli"] is None and "transcription introuvable" in str(j["garde"])
+             and carnet.pot([j], plafonds) == bmod.ROLES["jouer"]["usd"]
+             and "ARRÊT borne atteinte — pot 5.0100 $ ≥ borne 4.5000 $" in s and "CHANTIER CCC" not in s, (s, lignes))
+
+    # (c) le code de sortie ne décide pas de l'issue ---------------------------------------------------------------
+    issues = []
+    for sortie in ("143", "1"):
+        with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors, tempfile.TemporaryDirectory() as h:
+            depot_canal(t, hors, ("AAA",))
+            code, s, lignes = canal(t, hors, VLP_FAUX_COUPE="AAA1=" + sortie, HOME=h, USERPROFILE=h)
+            j = session_de(lignes, "jouer", "AAA1")
+            issues.append((code, j["issue"] if j else None, j["usd_cli"] if j else 0))
+    neuf("(c) COUPE sortie 143, puis sortie 1 : la même issue `coupure` les deux fois", issues == [(0, "coupure", None)] * 2, issues)
+
+    with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as h:
+        projet(t)
+        sid = "11111111-2222-3333-4444-555555555555"
+        def transcriptions():
+            return glob.glob(os.path.join(glob.escape(h), ".claude", "projects", "*", sid + ".jsonl"))
+
+        code, l, e = faux(["-p", "/vlp:tache F9", "--session-id", sid, "--model", SONNET], t, VLP_FAUX_COUPE="F9=143",
+                          VLP_FAUX_RATE="F9", HOME=h, USERPROFILE=h)
+        ecrites = [json.loads(x) for f in transcriptions() for x in lire(f).splitlines()]
+        neuf("(c) faux, COUPE=F9=143 : sort 143, init puis rien (aucun result), transcription de deux lignes assistant à "
+             "message.id distincts, message.model celui de --model, usage à la forme d'un vrai transcript",
+             code == 143 and [x["type"] for x in l] == ["system"] and len(ecrites) == 2
+             and len({x["message"]["id"] for x in ecrites}) == 2 and all(x["message"]["model"] == SONNET for x in ecrites)
+             and all(set(x["message"]["usage"]) >= {"input_tokens", "output_tokens", "cache_creation_input_tokens",
+                                                    "cache_read_input_tokens", "cache_creation"} for x in ecrites), (code, l, e, ecrites))
+        for f in transcriptions():
+            os.remove(f)
+        code, l, e = faux(["-p", "/vlp:tache F9", "--session-id", sid], t, VLP_FAUX_COUPE="F9", VLP_FAUX_RATE="F9",
+                          VLP_FAUX_SANS_TRANSCRIPTION="1", HOME=h, USERPROFILE=h)
+        neuf("(c) faux, COUPE=F9 : sort 1 par défaut ; SANS_TRANSCRIPTION n'écrit rien ; une autre fiche n'est pas coupée",
+             code == 1 and not transcriptions()
+             and faux(["-p", "/vlp:tache F9"], t, VLP_FAUX_COUPE="F8", VLP_FAUX_RATE="F9", HOME=h, USERPROFILE=h)[0] == 0,
+             (code, l, e))
+
+    # (d) un depart sans fin, la branche créée, l'arbre sale : --reprendre -------------------------------------------
+    with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors, tempfile.TemporaryDirectory() as h:
+        depot_canal(t, hors, ("AAA", "CCC"))
+        chemin = carnet.du_jour(t, DATE)
+        assert chemin
+        depart = sha(t, "HEAD")
+        carnet.noter(chemin, "A", "base " + depart)
+        carnet.ajouter(chemin, nuit=DATE, canal="A", chantier="AAA", fiche="AAA1", note="depart jouer", session=SID)
+        git(t, "switch", "-q", "-c", br("AAA"))
+        ecrire_f(os.path.join(t, "sale.txt"), "travail non commité\n")
+        with pilote(HOME=h, USERPROFILE=h):
+            _faux.transcription(SID, SONNET)
+        tours, usd = mesure_cli(h, SID)
+        code, s, lignes = reprendre(t, hors, h)
+        coupures = [d for d in lignes if d["issue"] == "coupure"]
+        neuf("(d) un depart sans fin, branche créée, arbre sale → --reprendre : une ligne coupure (coût relu dans la "
+             "transcription), commit WIP du travail non commité, le chantier suivant joué",
+             code == 0 and "REPRISE canal A · 1 sessions coupées · en cours : AAA" in s and len(coupures) == 1
+             and coupures[0]["session"] == SID and coupures[0]["role"] == "jouer" and coupures[0]["fiche"] == "AAA1"
+             and coupures[0]["chantier"] == "AAA" and coupures[0]["usd_cli"] is None and coupures[0]["tours_kit"] == tours == 2
+             and coupures[0]["usd_kit"] == usd and "reprise : session sans fin" in str(coupures[0]["garde"])
+             and "MIS DE CÔTÉ AAA — une session a été coupée" in s and "JOUE AAA" not in s
+             and sujet(t, br("AAA")).startswith("WIP AAA mis de côté : une session a été coupée")
+             and "sale.txt" in git(t, "show", "--name-only", "--format=", br("AAA"))
+             and branches(t) == [br("AAA"), br("CCC")] and git(t, "merge-base", br("AAA"), br("CCC")).strip() == depart
+             and roles(lignes, "CCC") == ["découper", "jouer", "relire", "jouer", "relire", "clore"]
+             and "CLOS CCC" in s and "ARRÊT plan terminé — 1 clos, 1 de côté, 0 sautés" in s, (s, lignes))
+        avant = (lire(chemin), branches(t), sha(t, "HEAD"))
+        code, s, lignes = reprendre(t, hors, h)
+        neuf("(d) 2e --reprendre : carnet, branches nuit/* et HEAD identiques avant et après, aucune ligne JOUE, rien à reprendre",
+             code == 0 and (lire(chemin), branches(t), sha(t, "HEAD")) == avant and "JOUE" not in s
+             and "REPRISE canal A · 0 sessions coupées · en cours : aucun" in s
+             and "ARRÊT plan terminé — 1 clos, 1 de côté, 0 sautés" in s, (s, avant))
+
+    # (d) un chantier découpé, arrêté entre deux fiches, l'arbre propre : il reprend dans sa branche -----------------
+    with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors, tempfile.TemporaryDirectory() as h:
+        depot_canal(t, hors, ("AAA", "CCC"))
+        code1, s1, l1 = canal(t, hors, "--plafond", "1", HOME=h, USERPROFILE=h)
+        pointe = sha(t, br("AAA"))
+        code, s, lignes = reprendre(t, hors, h)
+        neuf("(d) chantier découpé, une fiche jouée et commitée, aucune coupure : --reprendre le reprend dans sa branche, "
+             "sans repasser par découper (une seule session découper pour AAA), la branche jamais recréée, puis CCC",
+             code1 == 0 and "plafond de 1 fiches" in s1 and roles(l1, "AAA") == ["découper", "jouer", "relire"]
+             and code == 0 and "REPRISE canal A · 0 sessions coupées · en cours : AAA" in s and "REPRISE AAA" in s
+             and roles(lignes, "AAA") == ["découper", "jouer", "relire", "jouer", "relire", "clore"]
+             and "CLOS AAA" in s and "CLOS CCC" in s and "DÉCOUPER AAA" not in s
+             and branches(t) == [br("AAA"), br("CCC")] and ancetre(t, pointe, br("AAA"))
+             and "ARRÊT plan terminé — 2 clos, 0 de côté, 0 sautés" in s, (s1, s, lignes))
+
+    # (g) une relecture coupée, une clôture coupée : le chantier se met de côté ---------------------------------------
+    for coupe, genre in (("relire:AAA1", "la relecture a été coupée"), ("clore", "la clôture a été coupée")):
+        with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors, tempfile.TemporaryDirectory() as h:
+            depot_canal(t, hors, ("AAA",))
+            code, s, lignes = canal(t, hors, VLP_FAUX_COUPE=coupe, HOME=h, USERPROFILE=h)
+            role = coupe.split(":")[0]
+            j = session_de(lignes, role)
+            tours, usd = mesure_cli(h, j["session"]) if j else (None, None)
+            neuf("(g) %s en COUPE : issue coupure, usd_kit lu dans la transcription, aucun refus ni relance, chantier "
+                 "mis de côté (« %s »)" % (coupe, genre),
+                 code == 0 and j is not None and j["issue"] == "coupure" and j["usd_cli"] is None and j["usd_kit"] == usd
+                 and j["tours_kit"] == tours == 2 and j["refus_n"] is None and "RELANCE" not in s and genre in s
+                 and "MIS DE CÔTÉ AAA" in s and "ARRÊT plan terminé — 0 clos, 1 de côté, 0 sautés" in s, (s, lignes))
+
+    # (e) sans --nuit, rien de la reprise ni de l'éveil ------------------------------------------------------------------
+    with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors:
+        depot(t)
+        code, s, cases = boucle(t, FAUX_CLAUDE, 1, options=["--reprendre"])
+        neuf("(e) sans --nuit : --reprendre refusé (code 2), aucune ligne ÉVEIL, rien joué",
+             code == 2 and "exigent --nuit" in s and "ÉVEIL" not in s and cases == "...", s)
+        code, s, cases = boucle(t, FAUX_CLAUDE, 1)
+        neuf("(e) sans --nuit, une fiche jouée : aucune ligne ÉVEIL, aucun carnet de nuit",
+             code == 0 and cases == "x.." and "ÉVEIL" not in s and not os.path.exists(os.path.join(t, ".git", "vlp-nuit")), s)
+        chemin = os.path.join(hors, DATE + ".jsonl")
+        refus = [nuit(t, "--canal", "A", "--reprendre"),
+                 nuit(t, "--canal", "A", "--reprendre", "--carnet", chemin, "--chantier", "X"),
+                 nuit(t, "--canal", "A", "--reprendre", "--carnet", chemin, "--date", DATE),
+                 nuit(t, "--canal", "A", "--reprendre", "--carnet", os.path.join(hors, "carnet.jsonl"))]
+        neuf("(e) --nuit --reprendre sans --carnet, avec --chantier, avec --date, ou sur un carnet dont le nom n'est pas une "
+             "date : refusé (code 2), rien écrit — la date vient du nom du carnet, jamais de l'horloge",
+             [c for c, _ in refus] == [2] * 4 and "exige --carnet" in refus[0][1] and "exige --carnet" in refus[1][1]
+             and "exige --carnet" in refus[2][1] and "AAAA-MM-JJ attendu" in refus[3][1] and not os.path.exists(chemin), refus)
+
+    # (h) le worktree du canal absent -----------------------------------------------------------------------------------
+    with tempfile.TemporaryDirectory() as hors, tempfile.TemporaryDirectory() as nu:
+        chemin = os.path.join(hors, DATE + ".jsonl")
+        absent = nuit(os.path.join(nu, "absent"), "--canal", "A", "--reprendre", "--carnet", chemin)
+        sans_git = nuit(nu, "--canal", "A", "--reprendre", "--carnet", chemin)
+        neuf("(h) dossier du canal absent, ou sans Git : GARDE:, sort 1, ni claude lancé ni carnet écrit",
+             absent[0] == 1 and absent[1].startswith("GARDE:") and sans_git[0] == 1 and sans_git[1].startswith("GARDE:")
+             and "CLAUDE=" not in absent[1] + sans_git[1] and not os.path.exists(chemin), (absent, sans_git))
+
+    # (i) le pot, ligne à ligne, et le coût d'une session coupée sans transcription lisible --------------------------------
+    neuf("(i) carnet.cout_de : usd_cli, à défaut usd_kit, à défaut le plafond du rôle, sinon 0 ; un 0.0 est un coût",
+         carnet.cout_de({"role": "jouer", "usd_cli": 1.5, "usd_kit": 9}, {"jouer": 5}) == 1.5
+         and carnet.cout_de({"role": "jouer", "usd_cli": None, "usd_kit": 0.45}, {"jouer": 5}) == 0.45
+         and carnet.cout_de({"role": "jouer", "usd_cli": None, "usd_kit": None}, {"jouer": 5}) == 5
+         and carnet.cout_de({"role": "jouer", "usd_cli": 0.0, "usd_kit": None}, {"jouer": 5}) == 0.0
+         and carnet.cout_de({"role": "jouer", "usd_cli": None, "usd_kit": None}) == 0
+         and carnet.pot([{"role": "jouer", "usd_cli": None, "usd_kit": None, "note": None, "stop": None},
+                         {"role": "jouer", "usd_cli": 1, "note": "hors pot", "stop": None}], {"jouer": 5}) == 5
+         and set(plafonds) == {"découper", "jouer", "relire", "relance", "clore"}
+         and all(plafonds[r] == bmod.ROLES[r]["usd"] for r in bmod.ROLES), plafonds)
+    with tempfile.TemporaryDirectory() as h:
+        with pilote(HOME=h, USERPROFILE=h):
+            _faux.transcription(SID, "claude-inconnu-9")
+            hors_grille = bmod.mesure_kit(SID)
+            introuvable = bmod.mesure_kit("sans-transcription")
+        neuf("(i) mesure_kit : un modèle hors grille rend (None, tours, garde) — jamais 0 ; une session sans transcription "
+             "rend (None, None, garde)",
+             hors_grille[0] is None and hors_grille[1] == 2 and "modèle hors grille (claude-inconnu-9)" in hors_grille[2]
+             and introuvable[:2] == (None, None) and "transcription introuvable" in introuvable[2], (hors_grille, introuvable))
+
+    # (f) l'éveil de la machine : win32 seulement ------------------------------------------------------------------------
+    if sys.platform == "win32":
+        with tempfile.TemporaryDirectory() as t:
+            depot(t)
+            code, s = nuit(t, "--canal", "A", "--chantier", "X", "--plafond", "1")
+            neuf("(f) win32, --nuit : l'appel réel à SetThreadExecutionState rend un état — ÉVEIL tenu",
+                 code == 0 and "ÉVEIL tenu" in s and "ÉVEIL non tenu" not in s, s)
+        with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors:
+            depot(t)
+            vrai, appels = bmod.appel_eveil, []
+            bmod.appel_eveil = lambda drapeaux: appels.append(drapeaux) or 0
+            sortie = io.StringIO()
+            try:
+                with pilote(VLP_FAUX_VLP=os.path.join(ICI, "vlp.py"), PYTHONIOENCODING="utf-8", **ENV_GIT), \
+                        contextlib.redirect_stdout(sortie):
+                    code = bmod.main([t, "--claude", FAUX_CLAUDE, "--traces", hors, "--nuit", "--canal", "A",
+                                      "--chantier", "X", "--plafond", "1"])
+            finally:
+                bmod.appel_eveil = vrai
+            notes = [d["note"] for d in carnet.lire(carnet_de(t)) if (d["note"] or "").startswith("ÉVEIL")]
+            neuf("(f) retour 0 : ÉVEIL non tenu et une note ; ES_CONTINUOUS | ES_SYSTEM_REQUIRED au départ (0x80000001), "
+                 "ES_CONTINUOUS à la fin (0x80000000) — les valeurs de la doc Microsoft",
+                 code == 0 and "ÉVEIL non tenu" in sortie.getvalue() and "ÉVEIL tenu" not in sortie.getvalue()
+                 and len(notes) == 1 and appels == [0x80000001, 0x80000000]
+                 and bmod.ES_CONTINUOUS == 0x80000000 and bmod.ES_SYSTEM_REQUIRED == 0x00000001, (sortie.getvalue(), notes, appels))
+    else:
+        sautes[0] += 2
+        sys.stderr.write("SAUTÉ (plateforme) : (f) ÉVEIL tenu et non tenu — sys.platform vaut %s, pas win32\n" % sys.platform)
+
+    sys.stderr.write("NUI8 : %d cas neufs passés / %d écrits · %d cas d'avant passés · %d cas sautés (plateforme)\n"
+                     % (ecrits[0], ecrits[0], _PASSES[0] - ecrits[0], sautes[0]))
+
+
+tester_reprise(aides_canal)
 
 print("OK")

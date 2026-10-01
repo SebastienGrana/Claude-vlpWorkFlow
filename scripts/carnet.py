@@ -13,10 +13,16 @@ attendre `PAS`, réessayer. Plus vieux que `VERROU_AGE` secondes (date du fichie
 ligne `garde` le dit (PID, âge) avant la ligne ajoutée.
 
 `est_session(ligne)` : `role` posé, `note` et `stop` nuls — seul tri des lignes de session.
-`pot(lignes)` : somme des `usd_cli` des lignes de session, tous canaux. `borne(...)` : le texte
-de la borne atteinte (pot ≥ borne en $, ou chantier absent du carnet qui veut partir alors que
-le nombre de chantiers est déjà ≥ borne), sinon `None`. `stop(...)` écrit la ligne `stop` ;
+`cout_de(ligne, plafonds)` : ce qu'une ligne de session a coûté — son `usd_cli`, à défaut son `usd_kit`
+(la session coupée, mesurée dans sa transcription, NUI8), à défaut le plafond de son rôle dans `plafonds`
+(`{rôle: $}`, passé par boucle.py depuis sa table `ROLES`, jamais recopié ici ; sans lui, 0). Un `0.0` est un
+coût, pas une absence. `pot(lignes, plafonds)` : la somme de `cout_de` sur les lignes de session, tous
+canaux. `borne(...)` : le texte de la borne atteinte (pot ≥ borne en $, ou chantier absent du carnet qui veut
+partir alors que le nombre de chantiers est déjà ≥ borne), sinon `None`. `stop(...)` écrit la ligne `stop` ;
 `stop_de(lignes)` rend la dernière raison. `VLP_CARNET` et `VLP_CANAL` : ce que la fille reçoit.
+
+Avant chaque session `--nuit`, boucle.py écrit une `note` `depart <rôle>` (canal, chantier, fiche, session) :
+hors `est_session`, donc hors pot et hors mesure ; sans ligne de session au même id, la session a été coupée.
 """
 import json
 import os
@@ -158,13 +164,22 @@ def est_session(d: dict) -> bool:
     return d.get("role") is not None and d.get("note") is None and d.get("stop") is None
 
 
-def pot(lignes: list) -> float:
-    return round(sum(d.get("usd_cli") or 0 for d in lignes if est_session(d)), 6)
+def cout_de(d: dict, plafonds: Optional[dict] = None) -> float:
+    """Le coût d'une ligne de session : `usd_cli`, à défaut `usd_kit`, à défaut le plafond de son rôle, sinon 0."""
+    for cle in ("usd_cli", "usd_kit"):
+        if d.get(cle) is not None:
+            return d[cle]
+    return (plafonds or {}).get(d.get("role"), 0)
 
 
-def borne(lignes: list, chantier: str, borne_usd: Optional[float], borne_chantiers: Optional[int]) -> Optional[str]:
+def pot(lignes: list, plafonds: Optional[dict] = None) -> float:
+    return round(sum(cout_de(d, plafonds) for d in lignes if est_session(d)), 6)
+
+
+def borne(lignes: list, chantier: str, borne_usd: Optional[float], borne_chantiers: Optional[int],
+          plafonds: Optional[dict] = None) -> Optional[str]:
     """Le texte de la borne atteinte pour `chantier` qui veut partir, ou None."""
-    p = pot(lignes)
+    p = pot(lignes, plafonds)
     if borne_usd is not None and p >= borne_usd:
         return "pot %.4f $ ≥ borne %.4f $" % (p, borne_usd)
     vus = {d.get("chantier") for d in lignes if est_session(d) and d.get("chantier")}

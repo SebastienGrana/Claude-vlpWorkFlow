@@ -466,8 +466,9 @@ Tu ne fusionnes rien, ne crées aucun worktree (`NUI9`), ne touches ni vlp.py ni
 ---
 
 <!-- FICHE:NUI8 -->
-## NUI8 [ ] — Reprendre une nuit coupée
+## NUI8 [x] — Reprendre une nuit coupée
 
+**Session** : 28c4a1ca-ce9e-4c0a-9a6e-a5edbd860a0c
 **Dépend de** : `NUI7`.
 **Fichiers** : `scripts/boucle.py`, `scripts/carnet.py`, `scripts/test-boucle.py`, `scripts/faux-claude.py` ; lus seulement :
 `scripts/mesure-tokens.py` (`GRILLE` l.66, `resoudre` l.94, `mesurer` l.220), `scripts/vlp.py` (`mesure` l.2171) — et rien d'autre.
