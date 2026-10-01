@@ -19,7 +19,7 @@
 - NUI15 : test-vlp.py rend OK (732 verifier, 9 pour NUI15 : cas a à h et gardes) ; mutants lettres gardées (1 écart) et todo None (3 écarts) attrapés ; pyright 0 error sur vlp.py et test-vlp.py
 - NUI16 : test-vlp.py OK, 743 verifier (+11), 3 mutants attrapés (4, 1, 1 écarts), pyright 0 ; essai D2 : 3 cas sur 4 égaux, empreintes différentes ≠ → publie par la clé, aucune ligne merge=union
 - NUI17 : test-vlp.py OK, 784 verifier (743 + 41 neufs), mutants M1 M2 M3 attrapés sur (c) (d) (b), chef page ARTEFACTS.md 1 (0 avant), pyright 0 erreur sur vlp.py et test-vlp.py
-- NUI18 : /vlp:chef, le soir — dépend de NUI9, NUI11, NUI12, NUI13, NUI17
+- NUI18 : test OK 784 verifier en 502 s, pyright 0 erreur, mutant attrapé (NIV1 et EVF4, 2 écarts), essai réel 0,216118 $ en 1 tour, 0 tool_use, 0 refus, bac 14/14 identique
 - NUI19 : /vlp:chef, le matin — dépend de NUI13, NUI15, NUI16, NUI18
 - NUI20 : une vraie nuit sur le kit, mesurée — dépend de toutes
 ## Journal

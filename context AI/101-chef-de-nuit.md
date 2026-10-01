@@ -971,8 +971,9 @@ y renvoie. Tu ne fais pas : `/vlp:chef` ni le choix des questions (`NUI18`), le 
 ---
 
 <!-- FICHE:NUI18 -->
-## NUI18 [ ] — Écrire /vlp:chef, le soir
+## NUI18 [x] — Écrire /vlp:chef, le soir
 
+**Session** : 28c4a1ca-ce9e-4c0a-9a6e-a5edbd860a0c
 **Dépend de** : `NUI9`, `NUI11`, `NUI12`, `NUI13`, `NUI17`.
 **Fichiers** : `skills/chef/SKILL.md` (nouveau), `nuit.md` (une ligne de sa table), `scripts/test-vlp.py` (NIV1
 2128-2137, EVF4 2149-2161), `CLAUDE.md` (11-12), `README.md` (5, 86-88) ; lus : `skills/chantier/SKILL.md`

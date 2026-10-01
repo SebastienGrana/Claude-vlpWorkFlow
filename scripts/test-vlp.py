@@ -2166,12 +2166,13 @@ with tempfile.TemporaryDirectory() as t:
 # NIV1 — la ligne d'injection ne laisse entrer aucun message de lanceur dans la carte.
 RACINE = os.path.dirname(ICI)
 lignes_injection = []
-for skill in ("chantier", "tache"):
+for skill in ("chantier", "tache", "chef"):
     texte = io.open(os.path.join(RACINE, "skills", skill, "SKILL.md"), encoding="utf-8").read()
     lignes_injection.append([l for l in texte.splitlines() if l.startswith("!`") and "vlp.py" in l])
 
-verifier("NIV1 : une ligne d'injection par skill, les deux identiques",
-         [len(x) for x in lignes_injection] == [1, 1] and lignes_injection[0] == lignes_injection[1],
+verifier("NIV1 : une ligne d'injection par skill, les trois identiques",
+         [len(x) for x in lignes_injection] == [1, 1, 1]
+         and lignes_injection[0] == lignes_injection[1] == lignes_injection[2],
          repr(lignes_injection))
 
 injection = lignes_injection[0][0]
@@ -2184,10 +2185,11 @@ verifier("EVF4 : trois appels de lanceur, aucune redirection",
 verifier("NIV1 : aucune syntaxe propre a un seul shell",
          "$null" not in injection and "/dev/null" not in injection, injection)
 
-# Dette REL, puis EVF4 : toute injection de carte (7 skills) — trois appels, et aucune écriture de fichier.
+# Dette REL, puis EVF4 : toute injection de carte (une par SKILL.md du glob) — trois appels, et aucune écriture de fichier.
+skills_glob = sorted(glob.glob(os.path.join(RACINE, "skills", "*", "SKILL.md")))
 ecrit_fichier = []
 injections = 0
-for chemin_skill in sorted(glob.glob(os.path.join(RACINE, "skills", "*", "SKILL.md"))):
+for chemin_skill in skills_glob:
     for bout in io.open(chemin_skill, encoding="utf-8").read().split("!`")[1:]:
         bout = bout.split("`")[0]
         appels = bout.count('/scripts/vlp.py" carte')
@@ -2195,8 +2197,9 @@ for chemin_skill in sorted(glob.glob(os.path.join(RACINE, "skills", "*", "SKILL.
             injections += 1
             if appels != 3 or ">" in bout:
                 ecrit_fichier.append(os.path.basename(os.path.dirname(chemin_skill)))
-verifier("EVF4 : les 7 injections de carte n'écrivent aucun fichier",
-         injections == 7 and ecrit_fichier == [], "%d injections, fautives : %r" % (injections, ecrit_fichier))
+verifier("EVF4 : une injection de carte par SKILL.md du glob, aucune n'écrit de fichier",
+         injections == len(skills_glob) > 0 and ecrit_fichier == [],
+         "%d injections pour %d SKILL.md, fautives : %r" % (injections, len(skills_glob), ecrit_fichier))
 
 s_niv1 = io.StringIO()
 mod.carte_injectee(os.path.join(RACINE, "scripts"), "py", False, s_niv1)
