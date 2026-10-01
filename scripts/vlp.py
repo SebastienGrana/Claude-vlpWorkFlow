@@ -6,7 +6,8 @@ Sous-commandes :
 - `carte [dossier]` — la carte d'un projet, à injecter avant le 1er tour d'une
   commande. Remonte jusqu'au premier `CHANTIER.md`. Trouvé : `PROJET=<racine>`,
   le fichier en entier, une ligne `ATTENTE=<page> <url>` par page de la liste
-  d'attente (`attente`, sauf avec `--relecteur`), `PLUGIN_RETARD=<n> … merge --ff-only <branche>` si
+  d'attente (`attente`, sauf avec `--relecteur`), `NUIT=1` si `VLP_NUIT` vaut `1` (la nuit : toute autre
+  valeur, absente, ou `--relecteur` : rien — chantier NUI), `PLUGIN_RETARD=<n> … merge --ff-only <branche>` si
   le plugin chargé n'a pas le code de ce worktree du kit (`retard_plugin`, chantier ESR, sauf avec
   `--relecteur`), puis — si un fichier de fiches est courant — ses titres
   de fiches numérotés, `PROCHAINE=<fiche>` (la première non cochée, dans l'ordre
@@ -196,6 +197,17 @@ Sous-commandes :
   imprimé, sort 1, si le fichier ne se lit pas ou au-delà de `LECONS_MAX` vivantes), puis `TAUX jour` (le prix
   par fiche des clos, comme l'estimé d'`ouvrir`) et `TAUX nuit` (médiane des fiches acceptées des carnets,
   `indice` sous `CARNET_MIN`).
+- `plan ecrire <projet> --json <fichier> [--date D]` — le plan du soir, dans le fichier des nuits
+  (`fichier_nuits(creer=True)` : le premier soir il n'existe pas). Le JSON : `borne_usd`, `borne_chantiers`, puis
+  par canal `A`, `B` la liste ordonnée de `{code, prefixe, reponses}`. Écrit `## Nuit <date>` avant `## Leçons` :
+  la borne, une ligne par chantier, un `### <code>` par chantier, ses réponses en puces ; même date : remplacée,
+  le reste repris tel quel. Refus, sans rien écrire, `GARDE:`, sort 1 : code absent de la TODO (`codes_todo`),
+  préfixe qui n'est pas de une à trois majuscules, déjà pris (`lettres_prises`) ou donné deux fois, chantier dans
+  deux canaux, canal autre que A ou B, borne absente ou nulle, réponse à saut de ligne, `VLP_NUIT=1`.
+  `plan lire <projet> --date D [--canal A|B] [--chantier C]` — `BORNE <usd> $ · <n> chantiers`, puis
+  `CHANTIER <code> · canal <c> · rang <n> · préfixe <P>` par chantier dans l'ordre ; `--chantier` : son seul
+  `### <code>` (`imprimer_section`). Sans fichier des nuits ni plan à la date : `GARDE:`, sort 1 ; permis sous
+  `VLP_NUIT=1`.
 - `joints <dossier>` — recopie `templates/vlp.css` et `templates/vlp.js` dans le dossier, et
   n'écrit que `FILES {"vlp.css": <chemin>, "vlp.js": <chemin>}` : le JSON du paramètre `files`
   d'`Artifact`, chemins en barres obliques (pour `/vlp:init`). Dossier absent : `GARDE:`, sort 1.
@@ -758,6 +770,8 @@ def carte(depart, sortie, relecteur=False):
     if not relecteur:
         for l in lignes_attente(dossier_artefacts(racine)):
             sortie.write(l + "\n")
+        if os.environ.get("VLP_NUIT") == "1":
+            sortie.write("NUIT=1\n")
         retard = retard_plugin(racine)
         if retard:
             sortie.write('PLUGIN_RETARD=%d commit(s) de code du plugin absents du plugin chargé — avant un '
@@ -4007,12 +4021,18 @@ def groupes_tri(rangs, codes, prets, fichiers):
     return sorted(rendu, key=lambda g: g[0][0])
 
 
+def codes_todo(rangs):
+    """Le code de chaque rang de la TODO : le premier texte entre accents graves de sa cellule Chantier,
+    sinon son numéro. `trier` et `plan` le lisent ici, d'un seul endroit (NUI10, NUI12)."""
+    return [m.group(1) if m else r[0] for r in rangs for m in [CODE.search(r[1])]]
+
+
 def trier(rangs, lettres):
     """Les lignes du tri du soir d'une TODO (`rangs` de `todo_du_fichier`, `lettres` closes) : par rang,
     `PRÊT <code>` ou `ÉCARTÉE <code> — <raison>`, `FICHIERS`, `MARQUES`, `SOIR` pour une prête à découper
     le soir ; puis un `CANAL` par groupe de prêtes liées. Une prête du même soir compte pour close — son
     code rejoint les clos, son rang quitte les présents — jusqu'à ce que plus rien ne bouge (NUI10)."""
-    codes = [m.group(1) if m else r[0] for r in rangs for m in [CODE.search(r[1])]]
+    codes = codes_todo(rangs)
     marques = [marques_tri(r[2], r[3]) for r in rangs]
     fichiers = [fichiers_tri(r[2], r[3]) for r in rangs]
     ecartent = [MARQUES_TRI.index(MARQUE_VISUELLE), MARQUES_TRI.index(MARQUE_PUSH)]
@@ -4076,6 +4096,162 @@ def cmd_trier(a, sortie):
     code = lecons_nuits(a.projet, sortie)
     sortie.write("%s\n%s\n" % (taux_jour(a.projet), lignes_taux_nuit(a.projet)))
     return code
+
+
+# --- plan : le plan du soir, écrit dans le fichier des nuits (chantier NUI) -----
+
+CANAUX = ("A", "B")
+PLAN_BORNE = re.compile(r"^Borne : (\S+) \$ · (\d+) chantiers$")
+PLAN_CHANTIER = re.compile(r"^Canal (A|B) · rang (\d+) · code (.+) · préfixe ([A-Z]{1,3})$")
+
+
+def plan_valider(plan, codes, prises):
+    """`(usd, chantiers, [(canal, code, préfixe, réponses)])` du JSON d'un plan, canal A puis B, chacun dans
+    son ordre ; `ValueError` au premier refus : rien ne s'écrit avant que tout soit vérifié (NUI12)."""
+    if not isinstance(plan, dict):
+        raise ValueError("le JSON du plan n'est pas un objet")
+    inconnues = sorted(set(plan) - {"borne_usd", "borne_chantiers", *CANAUX})
+    if inconnues:
+        raise ValueError("clé inconnue du plan : %s — les canaux sont A et B" % ", ".join(inconnues))
+    usd, borne_n = plan.get("borne_usd"), plan.get("borne_chantiers")
+    if isinstance(usd, bool) or not isinstance(usd, (int, float)) or not 0 < usd < float("inf"):
+        raise ValueError("borne_usd absente ou nulle : la borne double s'écrit avec le plan")
+    if isinstance(borne_n, bool) or not isinstance(borne_n, int) or borne_n <= 0:
+        raise ValueError("borne_chantiers absente ou nulle : la borne double s'écrit avec le plan")
+    chantiers, canal_de, prefixes = [], {}, set()
+    for canal in CANAUX:
+        liste = plan.get(canal, [])
+        if not isinstance(liste, list):
+            raise ValueError("canal %s : une liste de chantiers était attendue" % canal)
+        for ch in liste:
+            code, prefixe = (ch.get("code"), ch.get("prefixe")) if isinstance(ch, dict) else (None, None)
+            reponses = ch.get("reponses", []) if isinstance(ch, dict) else None
+            if not isinstance(code, str) or not isinstance(prefixe, str) or not isinstance(reponses, list):
+                raise ValueError("canal %s : un chantier est {code, prefixe, reponses}" % canal)
+            if code not in codes:
+                raise ValueError("code absent de la TODO : %s" % code)
+            if code in canal_de:
+                raise ValueError("chantier %s dans deux canaux (%s et %s)" % (code, canal_de[code], canal)
+                                 if canal_de[code] != canal else "chantier %s donné deux fois" % code)
+            if not PREFIXE.fullmatch(prefixe):
+                raise ValueError("préfixe %s : une à trois majuscules, en entier" % prefixe)
+            if prefixe in prises:
+                raise ValueError("préfixe %s déjà pris" % prefixe)
+            if prefixe in prefixes:
+                raise ValueError("préfixe %s donné deux fois : deux canaux ouvrent chacun leur chantier sans se voir"
+                                 % prefixe)
+            for r in reponses:
+                if not isinstance(r, str) or not r.strip() or "\n" in r or "\r" in r:
+                    raise ValueError("chantier %s : une réponse tient sur une ligne, non vide" % code)
+            canal_de[code] = canal
+            prefixes.add(prefixe)
+            chantiers.append((canal, code, prefixe, reponses))
+    if not chantiers:
+        raise ValueError("aucun chantier dans le plan")
+    return usd, borne_n, chantiers
+
+
+def plan_section(date, usd, borne_n, chantiers):
+    """Les lignes de la section `## Nuit <date>` : la borne, une ligne par chantier (canal, rang, code,
+    préfixe), puis un `### <code>` par chantier dont chaque réponse est une puce ; une ligne vide ferme."""
+    rangs, bloc = {}, ["## Nuit %s" % date, "", "Borne : %s $ · %d chantiers" % (usd, borne_n)]
+    for canal, code, prefixe, _ in chantiers:
+        rangs[canal] = rangs.get(canal, 0) + 1
+        bloc.append("Canal %s · rang %d · code %s · préfixe %s" % (canal, rangs[canal], code, prefixe))
+    for _, code, _, reponses in chantiers:
+        bloc += ["", "### %s" % code] + ["- %s" % r for r in reponses]
+    return bloc + [""]
+
+
+def fin_de_section(lignes, debut):
+    """L'indice de fin (exclu) de la section qui s'ouvre à `lignes[debut]` : le prochain titre `## `."""
+    return next((k for k in range(debut + 1, len(lignes)) if lignes[k].startswith("## ")), len(lignes))
+
+
+def plan_poser(lignes, date, bloc):
+    """`lignes` avec `bloc` : la section de la même date est remplacée, sinon il se pose juste avant
+    `## Leçons` ; tout le reste est repris tel quel."""
+    _, (ld, _) = sections_nuits(lignes)
+    d = next((k for k, l in enumerate(lignes) if l == "## Nuit %s" % date), None)
+    if d is None:
+        return lignes[:ld] + bloc + lignes[ld:]
+    return lignes[:d] + bloc + lignes[fin_de_section(lignes, d):]
+
+
+def plan_ecrire(a, sortie):
+    if os.environ.get("VLP_NUIT") == "1":
+        raise ValueError("VLP_NUIT=1 : la nuit n'écrit aucun fichier suivi — le plan s'écrit le soir")
+    if not a.json:
+        raise ValueError("--json <fichier> est obligatoire pour ecrire")
+    date = a.date or datetime.date.today().isoformat()
+    try:
+        datetime.date.fromisoformat(date)
+    except ValueError:
+        raise ValueError("date %s : AAAA-MM-JJ attendu" % date) from None
+    carte_ = lignes_de(os.path.join(a.projet, "CHANTIER.md"))
+    etat = champ(carte_, "fichier d'état")
+    if not etat:
+        raise ValueError("fichier d'état introuvable : aucun")
+    codes = codes_todo(todo_du_fichier(lignes_du_projet(a.projet, etat, "fichier d'état")))
+    try:
+        plan = json.loads(lire(a.json).lstrip("﻿"))
+    except OSError as e:
+        raise ValueError("--json illisible : %s" % e) from None
+    usd, borne_n, chantiers = plan_valider(plan, codes, lettres_prises(carte_))
+    chemin = fichier_nuits(a.projet)
+    lignes = lignes_de(chemin) if chemin else list(NUITS_TETE)
+    nuits_du_fichier(lignes)
+    neuf = plan_poser(lignes, date, plan_section(date, usd, borne_n, chantiers))
+    nuits_du_fichier(neuf)
+    chemin = chemin or fichier_nuits(a.projet, creer=True)
+    assert chemin
+    ecrire_lignes(chemin, neuf)
+    sortie.write("PLAN %s · %s · %d chantiers\n" % (os.path.relpath(chemin, a.projet).replace("\\", "/"), date,
+                                                     len(chantiers)))
+    return 0
+
+
+def plan_lire(a, sortie):
+    if not a.date:
+        raise ValueError("--date est obligatoire pour lire : une nuit passe minuit")
+    chemin = fichier_nuits(a.projet)
+    if chemin is None:
+        raise ValueError("pas de fichier des nuits — le plan s'écrit le soir (plan ecrire)")
+    lignes = lignes_de(chemin)
+    d = next((k for k, l in enumerate(lignes) if l == "## Nuit %s" % a.date), None)
+    if d is None:
+        raise ValueError("pas de plan à la date %s" % a.date)
+    f = fin_de_section(lignes, d)
+    borne = next((m for l in lignes[d:f] for m in [PLAN_BORNE.match(l)] if m), None)
+    if borne is None:
+        raise ValueError("plan du %s illisible : pas de ligne `Borne : …`" % a.date)
+    liste = [m.groups() for l in lignes[d:f] for m in [PLAN_CHANTIER.match(l)] if m and a.canal in (None, m.group(1))]
+    if a.chantier:
+        k = next((k for k in range(d, f) if lignes[k] == "### %s" % a.chantier), None)
+        if k is None or a.chantier not in [c[2] for c in liste]:
+            raise ValueError("chantier %s absent du plan du %s%s" % (a.chantier, a.date,
+                                                                 " (canal %s)" % a.canal if a.canal else ""))
+        fin = next((j for j in range(k + 1, f) if lignes[j].startswith("#")), f)
+        while fin - 1 > k and not lignes[fin - 1].strip():
+            fin -= 1
+        imprimer_section(sortie, "Plan %s" % a.chantier, os.path.relpath(chemin, a.projet).replace("\\", "/"),
+                         lignes, (k + 1, fin))
+        return 0
+    sortie.write("BORNE %s $ · %s chantiers\n" % borne.groups())
+    for canal, rang, code, prefixe in liste:
+        sortie.write("CHANTIER %s · canal %s · rang %s · préfixe %s\n" % (code, canal, rang, prefixe))
+    return 0
+
+
+def cmd_plan(a, sortie):
+    if not equipe(a.projet):
+        sortie.write("GARDE: pas de CHANTIER.md dans %s\n" % a.projet)
+        return 1
+    try:
+        return (plan_ecrire if a.verbe == "ecrire" else plan_lire)(a, sortie)
+    except ValueError as e:
+        sortie.write("GARDE: %s\n" % e)
+        return 1
 
 
 def cmd_feuille(a, sortie):
@@ -6325,6 +6501,13 @@ def main(argv, sortie=None, entree=None, erreur=None):
     nu.add_argument("texte")
     nu.add_argument("--canal")
     nu.add_argument("--stop", action="store_true")
+    pl = sous.add_parser("plan")
+    pl.add_argument("verbe", choices=["ecrire", "lire"])
+    pl.add_argument("projet")
+    pl.add_argument("--json")
+    pl.add_argument("--date")
+    pl.add_argument("--canal", choices=CANAUX)
+    pl.add_argument("--chantier")
     tr = sous.add_parser("transcription")
     tr.add_argument("jsonl")
     a = p.parse_args(argv)
@@ -6418,6 +6601,8 @@ def repartir(a, sortie, entree, erreur):
         return cmd_mutant(a.cible, a.avant, a.apres, a.test, sortie)
     if a.cmd == "nuits":
         return cmd_nuits_noter(a.texte, a.canal, a.stop, sortie)
+    if a.cmd == "plan":
+        return cmd_plan(a, sortie)
     if a.cmd == "joints":
         return cmd_joints(a.dossier, sortie)
     if a.cmd == "transcription":

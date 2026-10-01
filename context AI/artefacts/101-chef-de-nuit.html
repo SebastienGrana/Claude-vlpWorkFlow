@@ -21,9 +21,9 @@
     <p>/vlp:chef cadre le soir, deux canaux jouent les chantiers la nuit sans humain, puis fusion et rapport le matin</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span data-etat="faite"></span><span data-etat="faite"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">20 fiches · 8 faites · en cours : NUI7</p>
+    <p class="mono" style="margin-top:.5rem">20 fiches · 9 faites · en cours : NUI7</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -62,8 +62,8 @@
         <details><summary><span class="titre">Relancer plus fort sur refus, ou arrêter tôt</span><span class="etat">Faite</span></summary>
         <span class="note">test-boucle.py OK, 9 cas neufs passés / 9 écrits ; 3 mutants attrapés (cas b, e, d) ; test-vlp.py OK ; pyright 0 errors</span></details>
         <span class="cout mono">≈5,7M (5 683 842) · 33 tours · 2,28 $</span></li>
-      <li class="fiche" data-etat="encours" data-attend><span class="gauche"><span class="id">NUI7</span></span>
-        <details open><summary><span class="titre">Enchaîner les chantiers d'un canal</span><span class="etat">En cours · attend NUI12</span></summary>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">NUI7</span></span>
+        <details open><summary><span class="titre">Enchaîner les chantiers d'un canal</span><span class="etat">En cours</span></summary>
         <span class="note">un canal enchaîne ses chantiers, met de côté un bloqué — dépend de NUI6 et NUI12</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">NUI8</span></span>
         <details><summary><span class="titre">Reprendre une nuit coupée</span><span class="etat">Après NUI7</span></summary>
@@ -78,12 +78,13 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">NUI11</span></span>
         <details><summary><span class="titre">Tenir le fichier des nuits</span><span class="etat">Faite</span></summary>
         <span class="note">test-vlp.py OK (tester_fichier_nuits neuf, cas a à d) · 3 mutants MUTANT ATTRAPÉ (CARNET_MIN = 0, retirées vivantes, usd_kit lu usd_cli) · grep -c nuits.md 0 → 1, sept familles 1 · pyright 0 errors sur vlp.py et test-vlp.py</span></details>
-        <span class="cout mono">≈6,3M (6 309 438) · 27 tours · 2,86 $</span></li>
-      <li class="fiche"><span class="gauche"><span class="id">NUI12</span></span>
-        <details><summary><span class="titre">Écrire le plan de nuit</span><span class="etat">À lancer</span></summary>
-        <span class="note">le plan de nuit écrit par script — dépend de NUI11</span></details></li>
-      <li class="fiche" data-attend><span class="gauche"><span class="id">NUI13</span></span>
-        <details><summary><span class="titre">Écrire la conduite de nuit</span><span class="etat">Après NUI12</span></summary>
+        <span class="cout mono">≈6,7M (6 652 132) · 29 tours · 3,05 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">NUI12</span></span>
+        <details><summary><span class="titre">Écrire le plan de nuit</span><span class="etat">Faite</span></summary>
+        <span class="note">test-vlp.py OK (cas plan 0, a, b, c×9, d) ; 3 mutants MUTANT ATTRAPÉ (NUIT=1 jamais écrite → (d), sections perdues → (b), lettres prises retirées → (c)) ; pyright 0 errors, 0 warnings, 0 informations</span></details>
+        <span class="cout mono">≈3,7M (3 666 440) · 26 tours · 1,68 $</span></li>
+      <li class="fiche"><span class="gauche"><span class="id">NUI13</span></span>
+        <details><summary><span class="titre">Écrire la conduite de nuit</span><span class="etat">À lancer</span></summary>
         <span class="note">nuit.md : ce que la nuit fait à la place de l'humain — dépend de NUI12</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">NUI14</span></span>
         <details><summary><span class="titre">Renvoyer les commandes à nuit.md</span><span class="etat">Après NUI13</span></summary>
@@ -98,18 +99,18 @@
         <details><summary><span class="titre">Remplir une page à cartes par script</span><span class="etat">À lancer</span></summary>
         <span class="note">une page à cartes remplie par script — ne dépend de rien</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">NUI18</span></span>
-        <details><summary><span class="titre">Écrire /vlp:chef, le soir</span><span class="etat">Après NUI9, NUI12, NUI13, NUI17</span></summary>
+        <details><summary><span class="titre">Écrire /vlp:chef, le soir</span><span class="etat">Après NUI9, NUI13, NUI17</span></summary>
         <span class="note">/vlp:chef, le soir — dépend de NUI9, NUI11, NUI12, NUI13, NUI17</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">NUI19</span></span>
         <details><summary><span class="titre">Écrire /vlp:chef, le matin</span><span class="etat">Après NUI13, NUI15, NUI16, NUI18</span></summary>
         <span class="note">/vlp:chef, le matin — dépend de NUI13, NUI15, NUI16, NUI18</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">NUI20</span></span>
-        <details><summary><span class="titre">Jouer une nuit réelle</span><span class="etat">Après NUI7, NUI8, NUI9, NUI12, NUI13, NUI14, NUI15, NUI16, NUI17, NUI18, NUI19</span></summary>
+        <details><summary><span class="titre">Jouer une nuit réelle</span><span class="etat">Après NUI7, NUI8, NUI9, NUI13, NUI14, NUI15, NUI16, NUI17, NUI18, NUI19</span></summary>
         <span class="note">une vraie nuit sur le kit, mesurée — dépend de toutes</span></details>
         <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈679,9k (679 863) · 3 tours · 0,18 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈52,2M (52 205 000) · 298 tours · 22,09 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈56,2M (56 214 134) · 326 tours · 23,96 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

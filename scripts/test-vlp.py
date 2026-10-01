@@ -38,8 +38,11 @@ mod.TAMPON_HOOKS = None
 # `ouvrir` et `cocher` notent CLAUDE_CODE_SESSION_ID : un test le fixe lui-même, jamais celui de la
 # session qui lance la suite (chantier CAD).
 os.environ.pop("CLAUDE_CODE_SESSION_ID", None)
+# Une fiche jouée la nuit lance la suite sous `VLP_NUIT=1` : `carte` imprimerait `NUIT=1` partout et
+# `plan ecrire` refuserait. Un test le fixe lui-même (NUI12).
+os.environ.pop("VLP_NUIT", None)
 
-CHANTIER = "# Chantier courant\n\n- **alias** : %s\n- **fichier de fiches courant** : %s\n"
+CHANTIER ="# Chantier courant\n\n- **alias** : %s\n- **fichier de fiches courant** : %s\n"
 FICHES = """# Chantier Z
 
 ## Le socle commun
@@ -5086,7 +5089,148 @@ def tester_fichier_nuits():
 tester_fichier_nuits()
 
 
-# --- BTN1 : `vlp.js` joint aux pages, la ligne FILES ; charset et script posés une fois ---
+# --- NUI12 : le plan du soir, écrit dans le fichier des nuits, relu par la nuit ---
+
+def tester_plan():
+    entete = "| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |\n|---|---|---|---|---|\n"
+    carte = ("# C\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n- **fichier d'état** : ctx/08-etat.md\n"
+             "- **fichier de fiches courant** : aucun\n- **artefact du chantier** : aucun\n\n"
+             "Lettres de fiche déjà prises : E (Un), KKK (Clos). Un nouveau chantier en choisit une autre.\n")
+    indice = ("# Index\n\n| Fichier | Lire quand |\n|---|---|\n| `00-INDEX.md` | l'index |\n| `08-etat.md` | l'état |\n"
+              "| `100-x.md` | un chantier |\n\nFin.\n")
+    todo = ("# État\n\n" + entete + "| 1 | `AAA` — a | x | 1 fiche | — |\n| 2 | `BBB` — b | x | 1 fiche | — |\n"
+            "| 3 | `CCC` — c | x | 1 fiche | — |\n\n## Journal\n")
+    env = os.environ.get("VLP_NUIT")
+    with tempfile.TemporaryDirectory() as tp:
+        ecrire(os.path.join(tp, "CHANTIER.md"), carte)
+        ecrire(os.path.join(tp, "ctx", "00-INDEX.md"), indice)
+        ecrire(os.path.join(tp, "ctx", "08-etat.md"), todo)
+        ecrire(os.path.join(tp, "ctx", "100-x.md"), "# x\n")
+        nuits, index = os.path.join(tp, "ctx", "101-nuits.md"), os.path.join(tp, "ctx", "00-INDEX.md")
+
+        def octets():
+            with open(index, "rb") as fi:
+                return (open(nuits, "rb").read() if os.path.isfile(nuits) else None), fi.read()
+
+        def texte():
+            with open(nuits, "rb") as fn:
+                return fn.read().decode("utf-8")
+
+        def plan(nom, **corps):
+            chemin = os.path.join(tp, nom + ".json")
+            ecrire(chemin, json.dumps(corps))
+            return chemin
+
+        def ch(code, prefixe, *reponses):
+            return {"code": code, "prefixe": prefixe, "reponses": list(reponses)}
+
+        def ecrire_plan(f, date):
+            return appel(["plan", "ecrire", tp, "--json", f, "--date", date])
+
+        def lire_plan(*options):
+            return appel(["plan", "lire", tp, *options])
+
+        # (0) sans fichier des nuits : lire refuse ; ecrire le crée, sa ligne d'index comprise
+        code, s = lire_plan("--date", "2026-09-25")
+        verifier("NUI12 (0) : plan lire sans fichier des nuits → GARDE:, sort 1",
+                 code == 1 and s.startswith("GARDE: pas de fichier des nuits") and not os.path.isfile(nuits), s)
+        code, s = ecrire_plan(plan("passee", borne_usd=3, borne_chantiers=1, A=[ch("AAA", "AAA", "ancienne")]), "2026-09-25")
+        verifier("NUI12 (0) : plan ecrire crée 101-nuits.md et sa ligne d'index, sort 0",
+                 code == 0 and s.startswith("PLAN ctx/101-nuits.md · 2026-09-25 · 1 chantiers") and os.path.isfile(nuits)
+                 and "| `101-nuits.md` |" in octets()[1].decode("utf-8"), s)
+        mod.nuits_ecrire(nuits, "| 2026-09-24 | A | NUI | 3/2/1 | 4,50 |")
+        mod.nuits_ecrire(nuits, "- 2026-09-24 · N=3 · cause un · jouées 3 sur 5 · nuits 2026-09-24 · sessions s1")
+        # (a) A = deux chantiers, B = un : lire par canal, dans l'ordre, aussi sous VLP_NUIT=1
+        code, s = ecrire_plan(plan("soir", borne_usd=12.5, borne_chantiers=3,
+                                   A=[ch("AAA", "AAA", "r1a", "r1b é"), ch("BBB", "BBB", "r2")], B=[ch("CCC", "CCC", "r3")]),
+                              "2026-09-30")
+        os.environ["VLP_NUIT"] = "1"
+        code_a, s_a = lire_plan("--date", "2026-09-30", "--canal", "A")
+        code_b, s_b = lire_plan("--date", "2026-09-30", "--canal", "B")
+        code_c, s_c = lire_plan("--date", "2026-09-30", "--canal", "A", "--chantier", "BBB")
+        del os.environ["VLP_NUIT"]
+        lignes_a = [l for l in s_a.splitlines() if l.startswith("CHANTIER ")]
+        verifier("NUI12 (a) : lire --canal A sous VLP_NUIT=1 → sort 0, la borne, 2 chantiers dans l'ordre",
+                 code == 0 and code_a == 0 and s_a.startswith("BORNE 12.5 $ · 3 chantiers\n")
+                 and lignes_a == ["CHANTIER AAA · canal A · rang 1 · préfixe AAA", "CHANTIER BBB · canal A · rang 2 · préfixe BBB"], s_a)
+        verifier("NUI12 (a) : lire --canal B → son seul chantier",
+                 code_b == 0 and [l for l in s_b.splitlines() if l.startswith("CHANTIER ")]
+                 == ["CHANTIER CCC · canal B · rang 1 · préfixe CCC"], s_b)
+        verifier("NUI12 (a) : lire --chantier BBB → ses réponses, aucune de AAA",
+                 code_c == 0 and "- r2" in s_c.splitlines() and "r1a" not in s_c and "### AAA" not in s_c, s_c)
+        verifier("NUI12 (a) : la réponse en é revient telle quelle, en puce",
+                 "- r1b é" in lire_plan("--date", "2026-09-30", "--chantier", "AAA")[1].splitlines(), "")
+        code, s = lire_plan("--date", "2026-09-29")
+        verifier("NUI12 (a) : une date sans plan → GARDE:, sort 1; sans --date → GARDE:",
+                 code == 1 and s.startswith("GARDE: pas de plan à la date 2026-09-29")
+                 and lire_plan()[0] == 1, s)
+        avant = texte()
+        verifier("NUI12 (a) : la nuit passée reste, la nouvelle se pose avant ## Leçons",
+                 avant.count("## Nuit 2026-09-25") == 1 and avant.index("## Nuit 2026-09-25")
+                 < avant.index("## Nuit 2026-09-30") < avant.index("## Leçons"), avant)
+        # (b) réécrit à la même date : une seule section, le reste octet pour octet
+        code, s = ecrire_plan(plan("soir2", borne_usd=7, borne_chantiers=2, A=[ch("AAA", "AAA", "neuf")]), "2026-09-30")
+        apres = texte()
+        verifier("NUI12 (b) : même date → une seule `## Nuit`, remplacée, avant ## Leçons — mutant : autres sections perdues",
+                 code == 0 and apres.count("## Nuit 2026-09-30") == 1 and "- neuf" in apres and "r1a" not in apres
+                 and apres.index("## Nuit 2026-09-30") < apres.index("## Leçons"), apres)
+        verifier("NUI12 (b) : la nuit passée, la table et ## Leçons identiques octet pour octet",
+                 apres[:apres.index("## Nuit 2026-09-30")] == avant[:avant.index("## Nuit 2026-09-30")]
+                 and apres[apres.index("## Leçons"):] == avant[avant.index("## Leçons"):], apres)
+        # (c) neuf refus : GARDE:, sort 1, ni le fichier des nuits ni l'index ne bougent
+        refus = [
+            ("code absent de la TODO", plan("r1", borne_usd=1, borne_chantiers=1, A=[ch("ZZZ", "ZZZ")])),
+            ("préfixe NUIT (quatre lettres)", plan("r2", borne_usd=1, borne_chantiers=1, A=[ch("AAA", "NUIT")])),
+            ("préfixe déjà pris (E)", plan("r3", borne_usd=1, borne_chantiers=1, A=[ch("AAA", "E")])),
+            ("préfixe donné deux fois", plan("r4", borne_usd=1, borne_chantiers=2, A=[ch("AAA", "XXX")], B=[ch("BBB", "XXX")])),
+            ("chantier dans deux canaux", plan("r5", borne_usd=1, borne_chantiers=2, A=[ch("AAA", "XXX")], B=[ch("AAA", "YYY")])),
+            ("canal C", plan("r6", borne_usd=1, borne_chantiers=1, C=[ch("AAA", "XXX")])),
+            ("JSON sans borne", plan("r7", A=[ch("AAA", "XXX")])),
+            ("réponse à saut de ligne", plan("r8", borne_usd=1, borne_chantiers=1, A=[ch("AAA", "XXX", "a\nb")])),
+        ]
+        for nom, f in refus:
+            fichier_avant = octets()
+            code, s = ecrire_plan(f, "2026-10-01")
+            verifier("NUI12 (c) : %s → GARDE:, sort 1, rien d'écrit — mutant : contrôle des lettres prises retiré" % nom,
+                     code == 1 and s.startswith("GARDE: ") and octets() == fichier_avant, s)
+        valide = plan("r9", borne_usd=1, borne_chantiers=1, A=[ch("AAA", "XXX")])
+        fichier_avant = octets()
+        os.environ["VLP_NUIT"] = "1"
+        code, s = ecrire_plan(valide, "2026-10-01")
+        del os.environ["VLP_NUIT"]
+        verifier("NUI12 (c) : VLP_NUIT=1 → plan ecrire refuse (GARDE:, sort 1, rien d'écrit)",
+                 code == 1 and s.startswith("GARDE: VLP_NUIT=1") and octets() == fichier_avant, s)
+        code, s = ecrire_plan(valide, "2026-10-01")
+        verifier("NUI12 (c) : le même plan, sans VLP_NUIT → écrit (le refus venait bien de la variable)", code == 0, s)
+        # (d) carte : NUIT=1 une fois, dans le bloc d'avant les fiches ; rien sinon
+        projet = os.path.join(tp, "proj")
+        ecrire(os.path.join(projet, "CHANTIER.md"), CHANTIER % ("pz", "context AI/20-z.md (Z1..Z10)"))
+        ecrire(os.path.join(projet, "context AI", "20-z.md"), FICHES)
+
+        def carte_sous(valeur, relecteur=False):
+            if valeur is None:
+                os.environ.pop("VLP_NUIT", None)
+            else:
+                os.environ["VLP_NUIT"] = valeur
+            sortie = io.StringIO()
+            mod.carte(projet, sortie, relecteur)
+            os.environ.pop("VLP_NUIT", None)
+            return sortie.getvalue().splitlines()
+
+        nuit = carte_sous("1")
+        verifier("NUI12 (d) : carte sous VLP_NUIT=1 → NUIT=1 une fois, après --- CHANTIER.md --- et avant --- fiches : — mutant : ligne jamais écrite",
+                 nuit.count("NUIT=1") == 1 and nuit.index("--- CHANTIER.md ---") < nuit.index("NUIT=1")
+                 < next(k for k, l in enumerate(nuit) if l.startswith("--- fiches :")), nuit)
+        verifier("NUI12 (d) : --relecteur, VLP_NUIT=0 et variable absente → aucune ligne NUIT=",
+                 not any(l.startswith("NUIT=") for l in carte_sous("1", True) + carte_sous("0") + carte_sous(None)), "")
+    if env is not None:
+        os.environ["VLP_NUIT"] = env
+
+
+tester_plan()
+
+
+# --- BTN1: `vlp.js` joint aux pages, la ligne FILES ; charset et script posés une fois ---
 
 def tester_joints():
     """Les aides vivent ici, pas au niveau du module : celui-ci est déjà au seuil de

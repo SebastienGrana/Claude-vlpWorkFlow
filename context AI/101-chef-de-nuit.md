@@ -658,8 +658,9 @@ Constantes, seul endroit des nombres : `LECON_INDICE` 3, `LECONS_MAX` 12, `CARNE
 ---
 
 <!-- FICHE:NUI12 -->
-## NUI12 [ ] — Écrire le plan de nuit
+## NUI12 [x] — Écrire le plan de nuit
 
+**Session** : 763247fd-fd16-4c79-beca-2714a79f98ad
 **Dépend de** : `NUI11`.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` — et rien d'autre.
 
