@@ -6,6 +6,8 @@ Le faux joue un rôle par prompt (découper, jouer, clore, relire) et rend les l
 teste boucle.py avec lui, puis le faux lui-même, rôle par rôle et pilote par pilote.
 Imprime `OK` et sort 0, ou le premier écart et sort 1.
 """
+import argparse
+import contextlib
 import importlib.util
 import io
 import json
@@ -183,6 +185,21 @@ with tempfile.TemporaryDirectory() as t:
              code == 1 and l[-1]["is_error"] is True and l[-1]["result"].startswith("You've hit your session limit"), l)
     code, l, e = faux(jouer + ["--model", "claude-sonnet-5-5"], t, VLP_FAUX_LIMITE="claude-opus", VLP_FAUX_RATE="F9")
     verifier("faux : VLP_FAUX_LIMITE laisse passer un autre modèle", code == 0 and l[-1]["is_error"] is False, l)
+    for genre, debut_texte in (("opus", "You've hit your Opus limit"), ("semaine", "You've hit your weekly limit")):
+        code, l, e = faux(jouer + ["--model", "claude-opus-5-5"], t, VLP_FAUX_LIMITE="claude-opus",
+                          VLP_FAUX_GENRE=genre, VLP_FAUX_RATE="F9")
+        verifier("faux : VLP_FAUX_GENRE=%s → le texte de la limite de ce genre" % genre,
+                 code == 1 and l[-1]["result"].startswith(debut_texte), l)
+    code, l, e = faux(jouer + ["--model", "claude-opus-5-5"], t, VLP_FAUX_LIMITE="claude-opus",
+                      VLP_FAUX_GENRE="zzz", VLP_FAUX_RATE="F9")
+    verifier("faux : VLP_FAUX_GENRE inconnu → code 2", code == 2 and "zzz" in e, (code, e))
+    code, l, e = faux(jouer, t, VLP_FAUX_DENIALS="2", VLP_FAUX_RATE="F9")
+    verifier("faux : VLP_FAUX_DENIALS=2 → permission_denials de 2 entrées, is_error faux",
+             code == 0 and len(l[-1]["permission_denials"]) == 2 and l[-1]["is_error"] is False, l)
+    journal = os.path.join(t, "argv.jsonl")
+    faux(jouer + ["--model", "claude-sonnet-5-5"], t, VLP_FAUX_ARGV=journal, VLP_FAUX_RATE="F9")
+    verifier("faux : VLP_FAUX_ARGV ajoute une ligne JSON des arguments reçus",
+             json.loads(lire(journal).splitlines()[-1]) == jouer + ["--model", "claude-sonnet-5-5"], lire(journal))
     code, l, e = faux(jouer + ["--model", "claude-inexistant-9", "--fallback-model", "claude-opus-5,claude-sonnet-5-5"],
                       t, VLP_FAUX_REPLI="1", VLP_FAUX_RATE="F9")
     vus = [x["message"]["model"] for x in l if x["type"] == "assistant"]
@@ -347,6 +364,7 @@ def tester_nuit():
                     "json.dump({k: os.environ.get(k) for k in ('VLP_CARNET', 'VLP_CANAL')}, "
                     "open(os.path.join(d, 'env.json'), 'w'))\n"
                     "print(json.dumps({'type': 'system', 'subtype': 'init', 'session_id': 's-1'}))\n"
+                    "print(json.dumps({'type': 'assistant', 'message': {'model': 'm'}}))\n"
                     "print(json.dumps({'type': 'result', 'num_turns': 1, 'total_cost_usd': 0.5, 'result': 'x'}))\n")
         depot(t)
         chemin = carnet_de(t)
@@ -374,5 +392,217 @@ def tester_nuit():
 
 
 tester_nuit()
+
+
+# --- les plafonds de chaque rôle, l'issue de chaque session, la limite d'usage (NUI4) -----
+
+_spec_b = importlib.util.spec_from_file_location("boucle", os.path.join(ICI, "boucle.py"))
+assert _spec_b and _spec_b.loader
+bmod: Any = importlib.util.module_from_spec(_spec_b)   # `jouer()` y est appelé tel quel, un rôle à la fois
+_spec_b.loader.exec_module(bmod)
+_spec_k = importlib.util.spec_from_file_location("vlp", os.path.join(ICI, "vlp.py"))
+assert _spec_k and _spec_k.loader
+kit: Any = importlib.util.module_from_spec(_spec_k)    # source indépendante des `maxTurns` attendus
+_spec_k.loader.exec_module(kit)
+OPUS, SONNET, REPLI = "claude-opus-5-5", "claude-sonnet-5-5", "claude-opus-5,claude-sonnet-5-5"
+
+
+def tours_de(agent):
+    return kit.lire_max_turns(os.path.join(ICI, os.pardir, "agents", agent))
+
+
+@contextlib.contextmanager
+def pilote(**pilotes):
+    """Pose des variables d'environnement le temps d'un bloc : `jouer()` les passe au faux."""
+    avant = {k: os.environ.get(k) for k in pilotes}
+    os.environ.update(pilotes)
+    try:
+        yield
+    finally:
+        for k, v in avant.items():
+            if v is None:
+                os.environ.pop(k, None)
+            else:
+                os.environ[k] = v
+
+
+def drapeau(argv, nom):
+    return argv[argv.index(nom) + 1] if nom in argv else None
+
+
+def lancer(t, role="relire", controle=None, fiche="F1", **pilotes):
+    """`jouer()` du module chargé, sous --nuit, dans le dépôt de test `t` : (rendu, lignes de session, arguments)."""
+    journal = os.path.join(t, "argv.jsonl")
+    ns = argparse.Namespace(nuit=True, canal="A", chantier="X", carnet=carnet_de(t), permission_mode="auto",
+                            model=None, effort=None, budget=None)
+    with pilote(VLP_FAUX_VLP=os.path.join(ICI, "vlp.py"), VLP_FAUX_ARGV=journal, **pilotes):
+        s = bmod.jouer(FAUX_CLAUDE, fiche, t, ns, os.path.join(t, "%s.jsonl" % role), role=role, controle=controle)
+    sessions = [d for d in carnet.lire(carnet_de(t)) if carnet.est_session(d)]
+    argvs = [json.loads(ligne) for ligne in lire(journal).splitlines()] if os.path.exists(journal) else []
+    return s, sessions, argvs
+
+
+def tester_plafonds():
+    canal_a = ("--canal", "A", "--chantier", "X")
+    bmod.BASCULE["jusqu"] = 0.0
+
+    with tempfile.TemporaryDirectory() as t:
+        projet(t)
+        code, s, cases = boucle(t, FAUX_CLAUDE, 1)
+        verifier("NUI4 (a) sans --nuit : ni --max-turns, ni --session-id, ni --permission-prompts, ni --fallback-model, "
+                 "ni --max-budget-usd",
+                 code == 0 and "joué F1 · -p," in s and not any(
+                     o in s for o in ("--max-turns", "--session-id", "--permission-prompts", "--fallback-model",
+                                      "--max-budget-usd")), s)
+
+    with tempfile.TemporaryDirectory() as t:
+        depot(t)
+        code, s = nuit(t, *canal_a, "--plafond", "1")
+        ligne = carnet.lire(carnet_de(t))[0]
+        verifier("NUI4 (b) --nuit, jouer : modèle, effort, plafonds, permission-prompts, --session-id = clé session "
+                 "du carnet, sans repli",
+                 code == 0 and all(x in s for x in (
+                     "--model,claude-sonnet-5-5", "--effort,low", "--max-budget-usd,5", "--permission-prompts,none",
+                     "--max-turns,%d" % tours_de("fiche.md"), "--session-id,%s" % ligne["session"]))
+                 and "--fallback-model" not in s, s)
+        verifier("NUI4 : la ligne du carnet porte modele_demande, modeles_vus et issue",
+                 ligne["modele_demande"] == SONNET and ligne["modeles_vus"] == [SONNET] and ligne["issue"] == "jouée", ligne)
+
+    with tempfile.TemporaryDirectory() as t:
+        depot(t)
+        ordre = (("relire", "F1"), ("jouer", "F1"), ("relance", "F2"), ("clore", "F1"), ("découper", "T"))
+        argvs: list[Any] = []
+        for role, fiche in ordre:
+            _, _, argvs = lancer(t, role, fiche=fiche)
+        vus = {role: (drapeau(a, "-p"), drapeau(a, "--model"), drapeau(a, "--fallback-model"), drapeau(a, "--effort"),
+                      int(drapeau(a, "--max-turns") or 0),drapeau(a, "--max-budget-usd"), drapeau(a, "--agent"),
+                      "--allowedTools" in a) for (role, _), a in zip(ordre, argvs)}
+        attendu = {"relire": ("F1", OPUS, REPLI, None, tours_de("relecture.md"), "3", "vlp:relecture", False),
+                   "jouer": ("/vlp:tache F1", SONNET, None, "low", tours_de("fiche.md"), "5", None, True),
+                   "relance": ("/vlp:tache F2", OPUS, REPLI, "medium", tours_de("fiche.md"), "5", None, True),
+                   "clore": ("/vlp:tache", OPUS, REPLI, None, 60, "5", None, True),
+                   "découper": ("/vlp:chantier T", OPUS, REPLI, None, 150, "20", None, False)}
+        verifier("NUI4 (b)(c) les cinq rôles par jouer() : prompt, modèle, repli, effort, tours (relire : maxTurns de "
+                 "relecture.md), $, agent, --allowedTools",
+                 vus == attendu, (vus, attendu))
+        verifier("NUI4 : une session --nuit = un --session-id neuf et --permission-prompts none ; relire et découper "
+                 "sans git qui écrit, jouer sans --amend",
+                 len({drapeau(a, "--session-id") for a in argvs}) == 5
+                 and all(drapeau(a, "--permission-prompts") == "none" for a in argvs)
+                 and all("Bash(git commit:*)" in argvs[i] and "Bash(git add:*)" in argvs[i] for i in (0, 4))
+                 and "Bash(git commit --amend:*)" in argvs[1], argvs)
+        verifier("NUI4 : max_tours rend l'entier de la table ou le maxTurns du fichier d'agent",
+                 bmod.max_tours("découper") == 150 and bmod.max_tours("relire") == tours_de("relecture.md")
+                 and bmod.max_tours("jouer") == tours_de("fiche.md"), None)
+
+    with tempfile.TemporaryDirectory() as t:
+        depot(t)
+        bmod.ROLES["relire"]["timeout"] = 2
+        try:
+            debut = time.time()
+            s, sessions, _ = lancer(t, VLP_FAUX_DORT="60")
+        finally:
+            bmod.ROLES["relire"]["timeout"] = bmod.TIMEOUT_S
+        verifier("NUI4 (d) DORT 60 s au-delà d'un timeout de 2 s (ROLES[rôle][\"timeout\"]) : issue timeout, rendu en "
+                 "moins de 30 s (processus tué), ni tours ni coût au carnet, pas de stop",
+                 s["issue"] == "timeout" and time.time() - debut < 30 and [x["issue"] for x in sessions] == ["timeout"]
+                 and sessions[0]["tours_cli"] is None and sessions[0]["usd_cli"] is None and s["stop"] is None, (s, sessions))
+
+    for nom, pilotes, attendue in (("coupure", {"VLP_FAUX_ERREUR": "coupure"}, "coupure"),
+                                   ("max_turns", {"VLP_FAUX_ERREUR": "tours"}, "plafond"),
+                                   ("max_budget", {"VLP_FAUX_ERREUR": "budget"}, "plafond")):
+        with tempfile.TemporaryDirectory() as t:
+            depot(t)
+            s, sessions, _ = lancer(t, **pilotes)
+            verifier("NUI4 (e) %s → %s au carnet, aucune ligne stop" % (nom, attendue),
+                     s["issue"] == attendue and [x["issue"] for x in sessions] == [attendue]
+                     and carnet.stop_de(carnet.lire(carnet_de(t))) is None, (s, sessions))
+            if nom == "coupure":
+                verifier("NUI4 (e) coupure : tours_cli et usd_cli à null, pas 0", sessions[0]["tours_cli"] is None
+                         and sessions[0]["usd_cli"] is None, sessions)
+
+    with tempfile.TemporaryDirectory() as t:
+        depot(t)
+        with pilote(VLP_FAUX_ERREUR="api"):
+            code, s = nuit(t, *canal_a)
+        lignes = carnet.lire(carnet_de(t))
+        verifier("NUI4 (e) erreur api → pas partie, ligne stop au carnet, ARRÊT STOP, sort 1, rien coché",
+                 code == 1 and "ARRÊT STOP — session pas partie" in s and cases_de(t) == "..."
+                 and [d["issue"] for d in lignes if carnet.est_session(d)] == ["pas partie"]
+                 and (carnet.stop_de(lignes) or "").startswith("session pas partie"), (s, lignes))
+
+    with tempfile.TemporaryDirectory() as t:
+        depot(t)
+        with pilote(VLP_FAUX_DENIALS="2"):
+            code, s = nuit(t, *canal_a)
+        lignes = carnet.lire(carnet_de(t))
+        sessions = [d for d in lignes if carnet.est_session(d)]
+        verifier("NUI4 (e) refus de permission et case cochée → jouée sans stop, leur nombre dans garde, 3 fiches",
+                 code == 0 and cases_de(t) == "xxx" and [d["issue"] for d in sessions] == ["jouée"] * 3
+                 and all(d["garde"] == "permission_denials : 2" for d in sessions) and carnet.stop_de(lignes) is None,
+                 (s, lignes))
+
+    with tempfile.TemporaryDirectory() as t:
+        depot(t)
+        s, sessions, _ = lancer(t, controle=lambda: False)
+        verifier("NUI4 (e) contrôle du rôle échoué → ratée, sans stop",
+                 s["issue"] == "ratée" and s["ok"] is False and [x["issue"] for x in sessions] == ["ratée"]
+                 and s["stop"] is None, (s, sessions))
+
+    with tempfile.TemporaryDirectory() as t:
+        depot(t)
+        s, sessions, argvs = lancer(t, VLP_FAUX_LIMITE="claude-opus", VLP_FAUX_GENRE="opus")
+        bascule = bmod.BASCULE["jusqu"]
+        notes = [d["note"] for d in carnet.lire(carnet_de(t)) if d.get("note")]
+        verifier("NUI4 (f) limite opus sur relire : bascule au carnet, session relancée en claude-sonnet-5-5 sans repli, "
+                 "issues limite puis jouée, sans stop",
+                 s["issue"] == "jouée" and s["stop"] is None and [x["issue"] for x in sessions] == ["limite", "jouée"]
+                 and [x["modele_demande"] for x in sessions] == [OPUS, SONNET]
+                 and [drapeau(a, "--model") for a in argvs] == [OPUS, SONNET]
+                 and drapeau(argvs[1], "--fallback-model") is None
+                 and len(notes) == 1 and "bascule Opus → claude-sonnet-5-5" in notes[0]
+                 and carnet.stop_de(carnet.lire(carnet_de(t))) is None
+                 and time.time() < bascule <= time.time() + 90000, (s, sessions, notes, bascule))
+        s, sessions, argvs = lancer(t, VLP_FAUX_LIMITE="claude-opus", VLP_FAUX_GENRE="opus")
+        verifier("NUI4 (f) la session Opus suivante part en claude-sonnet-5-5 d'emblée : une session de plus, "
+                 "pas de nouvelle limite ni de nouvelle note",
+                 [x["issue"] for x in sessions] == ["limite", "jouée", "jouée"]
+                 and [drapeau(a, "--model") for a in argvs] == [OPUS, SONNET, SONNET]
+                 and len([d for d in carnet.lire(carnet_de(t)) if d.get("note")]) == 1, (sessions, argvs))
+
+    for genre in ("semaine", "session"):
+        with tempfile.TemporaryDirectory() as t:
+            depot(t)
+            bmod.BASCULE["jusqu"] = 0.0
+            s, sessions, argvs = lancer(t, VLP_FAUX_LIMITE="claude-opus", VLP_FAUX_GENRE=genre)
+            verifier("NUI4 (f) limite %s : issue limite, ligne stop au carnet, ni bascule ni relance" % genre,
+                     s["issue"] == "limite" and str(s["stop"]).startswith("limite ")
+                     and [x["issue"] for x in sessions] == ["limite"] and len(argvs) == 1
+                     and bmod.BASCULE["jusqu"] == 0.0
+                     and (carnet.stop_de(carnet.lire(carnet_de(t))) or "").startswith("limite "), (s, sessions))
+
+    with tempfile.TemporaryDirectory() as t:
+        depot(t)
+        with pilote(VLP_FAUX_LIMITE="claude-sonnet"):
+            code, s = nuit(t, *canal_a)
+        verifier("NUI4 : une limite en boucle --nuit → ARRÊT STOP — limite session, sort 1, rien coché",
+                 code == 1 and "ARRÊT STOP — limite session" in s and cases_de(t) == "...", s)
+
+    maintenant = time.time()
+    lu = bmod.reset_de("You've hit your Opus limit · resets 3:45pm")
+    minuit = time.localtime(bmod.reset_de("You've hit your Opus limit · resets 12:00am"))
+    verifier("NUI4 : reset_de lit « resets 3:45pm » (prochain 15:45 local) et « 12:00am » (minuit) ; illisible → fin de nuit",
+             maintenant < lu <= maintenant + 90000 and time.localtime(lu)[3:5] == (15, 45)
+             and minuit[3:5] == (0, 0) and bmod.reset_de("You've hit your Opus limit") == float("inf"), (lu, minuit))
+    bmod.BASCULE["jusqu"] = time.time() + 100
+    pendant = (bmod.modele_de("relire"), bmod.modele_de("jouer"))
+    bmod.BASCULE["jusqu"] = time.time() - 1
+    apres = bmod.modele_de("relire")
+    bmod.BASCULE["jusqu"] = 0.0
+    verifier("NUI4 : pendant la bascule un rôle Opus passe en Sonnet (jouer y reste), après le reset il revient en Opus",
+             pendant == (SONNET, SONNET) and apres == OPUS, (pendant, apres))
+
+
+tester_plafonds()
 
 print("OK")

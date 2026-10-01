@@ -7,9 +7,12 @@ Rôles (le prompt dit lequel) : `/vlp:chantier <code>` découpe, `/vlp:tache <fi
 `/vlp:tache` clôt, `--agent vlp:relecture` relit (`<fiche> [--sha <sha>]`). Autre prompt : une
 ligne sur stderr, rien sur stdout, code 2.
 Pilotes, tous par l'environnement : VLP_FAUX_RATE (fiches non cochées, séparées par des virgules),
-VLP_FAUX_REFUSE (`<fiche>:<fiche|copie>`), VLP_FAUX_LIMITE (préfixe de `--model`), VLP_FAUX_REPLI
-(`1`), VLP_FAUX_DORT (secondes), VLP_FAUX_ERREUR (`coupure`, `api`, `tours`, `budget`),
-VLP_FAUX_VLP (chemin de vlp.py, par défaut celui d'à côté). Le faux n'appelle jamais Git.
+VLP_FAUX_REFUSE (`<fiche>:<fiche|copie>`), VLP_FAUX_LIMITE (préfixe de `--model`), VLP_FAUX_GENRE (le
+genre de cette limite : `session` par défaut, `semaine`, `opus`), VLP_FAUX_REPLI (`1`), VLP_FAUX_DORT
+(secondes), VLP_FAUX_ERREUR (`coupure`, `api`, `tours`, `budget`), VLP_FAUX_DENIALS (nombre d'entrées de
+`permission_denials` dans le `result` ; réduites à `tool_name`, leur forme réelle n'est pas relevée),
+VLP_FAUX_ARGV (chemin : y ajoute, une ligne JSON par lancement, les arguments reçus), VLP_FAUX_VLP
+(chemin de vlp.py, par défaut celui d'à côté). Le faux n'appelle jamais Git.
 """
 import io
 import json
@@ -48,7 +51,9 @@ Rien.
 
 # forme déduite, https://code.claude.com/docs/en/errors (lu le 2026-10-01) : le texte est celui de la
 # page ; elle ne donne ni le code de sortie ni `subtype`, ni `is_error` — vrai, code 1, `success` : déduits.
-LIMITE = "You've hit your session limit · resets 3:45pm"
+LIMITES = {"session": "You've hit your session limit · resets 3:45pm",
+           "semaine": "You've hit your weekly limit · resets Mon 12:00am",
+           "opus": "You've hit your Opus limit · resets 3:45pm"}
 
 COURANT = r"^(\s*-\s*\*\*fichier de fiches courant\*\*\s*:\s*)[^\r\n]*"
 ARTEFACT = r"^(\s*-\s*\*\*artefact du chantier\*\*\s*:\s*)[^\r\n]*"
@@ -147,6 +152,10 @@ def verdict(mots: list) -> Optional[str]:
 
 
 def main(argv: list) -> int:
+    journal = os.environ.get("VLP_FAUX_ARGV")
+    if journal:
+        with open(journal, "a", encoding="utf-8", newline="") as f:
+            f.write(json.dumps(argv, ensure_ascii=False) + "\n")
     prompt = valeur(argv, "-p")
     if prompt is None:
         return inconnu("pas de -p")
@@ -192,7 +201,10 @@ def main(argv: list) -> int:
         return inconnu("VLP_FAUX_ERREUR inconnue : %s" % erreur)
     limite = os.environ.get("VLP_FAUX_LIMITE")
     if limite and modele.startswith(limite):
-        emettre(resultat(sid, None, 0.0, is_error=True, result=LIMITE))
+        genre = os.environ.get("VLP_FAUX_GENRE") or "session"
+        if genre not in LIMITES:
+            return inconnu("VLP_FAUX_GENRE inconnu : %s" % genre)
+        emettre(resultat(sid, None, 0.0, is_error=True, result=LIMITES[genre]))
         return 1
 
     code = {"découper": lambda: decouper(mots[1]), "jouer": lambda: jouer(mots[1]), "clore": clore,
@@ -207,7 +219,8 @@ def main(argv: list) -> int:
                  "original_model": modele, "fallback_model": repli, "session_id": sid})
     emettre({"type": "assistant", "message": {"model": vu, "role": "assistant", "type": "message",
              "content": [{"type": "text", "text": texte}]}, "session_id": sid})
-    emettre(resultat(sid, vu, COUT, result=texte, terminal_reason="completed"))
+    refus = [{"tool_name": "Bash"}] * int(os.environ.get("VLP_FAUX_DENIALS") or 0)
+    emettre(resultat(sid, vu, COUT, result=texte, terminal_reason="completed", permission_denials=refus))
     return 0
 
 

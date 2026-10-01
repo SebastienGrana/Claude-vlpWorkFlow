@@ -5,7 +5,7 @@
 - NUI1 : grep -c titre NUI1 : 0 avant, 1 après ; table : 12 lignes +| (9 sessions, validate, en-tête, filet) ; 24 formes JSON (+{"type") ; znorr 0 ; Users 0 ; git status : 08-etat.md seul ; coût des 9 essais 0.9962 $ pour 2.46 $ annoncés
 - NUI2 : test-boucle OK (31 vérifications : 10 d'avant + 21 nouvelles ; 23,4 s avant, 21,9 s après) ; test-vlp OK (35,5 s avant, 54,5 s après) ; grep FAUX = : 0 ; mutant boucle.py : ÉCART --effort low transmis tel quel à claude, MUTANT ATTRAPÉ 2 ; mutant faux-claude.py : ÉCART faux : prompt inconnu → code 2, MUTANT ATTRAPÉ 1 ; pyright 0 errors
 - NUI3 : test-boucle OK (63 s contre 21,9 s avant ; cas a à f, 2×50 écritures = 100 lignes en 1,2 s) ; test-vlp OK (106 s contre 54,5 s avant) ; mutant pot filtré : ÉCART NUI3 (b) pot des lignes B ≥ borne, MUTANT ATTRAPÉ 1 ; mutant verrou sans garde : ÉCART NUI3 (e) verrou vieilli de 60 s, MUTANT ATTRAPÉ 1 ; mutant w au lieu de a : MUTANT ATTRAPÉ 3 (dont nuits noter) ; pyright 0 errors sur les 5 .py
-- NUI4 : modèle, effort et plafonds par rôle — dépend de NUI3
+- NUI4 : test-boucle.py OK, 46 → 68 cas ; mutants garde --nuit et timeout→coupure ATTRAPÉS ; test-vlp.py OK ; pyright 0 erreur sur boucle.py, test-boucle.py, faux-claude.py
 - NUI5 : la fiche relue avant son commit, la nuit — dépend de NUI4
 - NUI6 : relance plus forte sur refus, ou arrêt tôt — dépend de NUI5
 - NUI7 : un canal enchaîne ses chantiers, met de côté un bloqué — dépend de NUI6 et NUI12

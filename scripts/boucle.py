@@ -33,18 +33,37 @@ Traces : `--traces`, sinon un dossier temporaire neuf `vlp-boucle-*`, gardé.
 et aucun carnet n'est touché. Avant chaque session — jamais pendant —, la boucle relit le carnet :
 un `stop` de n'importe quel canal rend `ARRÊT STOP — <raison>` (sort 1) ; la borne atteinte rend
 `ARRÊT borne atteinte — <$ ou chantiers>` (sort 0), chantier ouvert. Une session déjà partie va
-au bout : la borne se dépasse d'une session par canal au plus. Après chaque session, une ligne
-`jouer` (nuit, canal, chantier, fiche, tours_cli, usd_cli, duree_s, session) ; la session fille
-reçoit `VLP_CARNET` et `VLP_CANAL`.
+au bout : la borne se dépasse d'une session par canal au plus. Après chaque session, une ligne du
+carnet (nuit, canal, chantier, role, fiche, modele_demande, modeles_vus, tours_cli, usd_cli, duree_s,
+issue, garde, session) ; la session fille reçoit `VLP_CARNET` et `VLP_CANAL`.
+
+Sous `--nuit`, chaque session prend ses réglages dans `ROLES`, en tête du fichier : les cinq rôles
+(découper, jouer, relire, relance, clore) — prompt, modèle, repli, effort, outils, `--max-turns`,
+`--max-budget-usd`, timeout —, la source de chaque plafond en commentaire. Sans `--nuit`, `jouer()` bâtit
+la commande d'avant (REG). `main()` ne joue encore que le rôle jouer ; `jouer(…, role=…)` joue les autres,
+test-boucle.py le charge comme module, et pour un test `ROLES[<rôle>]["timeout"]` se remplace sur ce module.
+Toute session `--nuit` : un `--session-id` neuf, `--permission-prompts none`, le timeout à `subprocess.run`.
+Issue de chaque session, dans la ligne du carnet : `timeout`, `coupure` (aucune ligne `result`), `plafond`
+(`subtype` `error_max_*`), `limite` (texte du `result`), `pas partie` (`is_error`, ou aucun message
+`assistant`), `ratée` (le contrôle du rôle a échoué), `jouée`. `pas partie` et `limite` écrivent une ligne
+`stop` : la boucle rend `ARRÊT STOP`, sort 1. Limite « Opus » : les rôles Opus passent à `claude-sonnet-5-5`
+jusqu'au reset lu dans le message (illisible : fin de la nuit), une note au carnet, la session relancée une
+fois (`BASCULE`) ; « session » ou « weekly » : `stop`. Les `permission_denials` ne classent pas : leur nombre
+va au carnet (`garde`).
 """
 import argparse
+import functools
+import importlib.util
 import io
 import json
 import os
+import re
 import subprocess
 import sys
 import tempfile
 import time
+import uuid
+from typing import Any
 
 import carnet
 
@@ -65,6 +84,96 @@ AUTORISES = [outil + "(git %s:*)" % c for outil in ("Bash", "PowerShell") for c 
 # Réécrire le commit d'avant, ou sauter le hook : refusés, écrits en tête de commande.
 INTERDITS = [outil + "(git commit %s:*)" % o for outil in ("Bash", "PowerShell")
              for o in ("--amend", "--no-verify", "-n")]
+# Découper et relire n'écrivent jamais dans Git : `git add` et `git commit` leur restent refusés.
+NON_GIT = [outil + "(git %s:*)" % c for outil in ("Bash", "PowerShell") for c in ("add", "commit")]
+
+OPUS, SONNET = "claude-opus-5-5", "claude-sonnet-5-5"
+REPLI_OPUS = "claude-opus-5,claude-sonnet-5-5"   # socle de NUI, « Modèles par rôle » : pointé, pas décidé ici
+# 60 min pour tous les rôles : 4,9 × 735 s (TAU1, `context AI/08-etat.md:2378`) et 2 × 29,3 min/fiche
+# (BTN, `context AI/92-essai-parallele.md:87`).
+TIMEOUT_S = 60 * 60
+
+# Les réglages d'une session `--nuit`, un rôle par entrée. `tours` : un entier (non mesuré), ou le fichier
+# d'agent dont `lire_max_turns` de vlp.py lit `maxTurns` — jamais recopié. `git` : le rôle commite-t-il.
+ROLES = {
+    "découper": {
+        "prompt": "/vlp:chantier {fiche}", "agent": None, "modele": OPUS, "repli": REPLI_OPUS,
+        "effort": None, "git": False,
+        "tours": 150,   # non mesuré
+        "usd": 20,      # ≈ 3 × 6,60 $ (PAR5, `context AI/08-etat.md:2379`) : plafond haut, ce 6,60 $ compte du hors-fiche
+        "timeout": TIMEOUT_S},
+    "jouer": {
+        "prompt": "/vlp:tache {fiche}", "agent": None, "modele": SONNET, "repli": None,
+        "effort": "low", "git": True,
+        "tours": "agents/fiche.md",
+        "usd": 5,       # ≈ 2,9 × 1,74 $ (max de PAR7 en `-p`, `context AI/08-etat.md:2373`)
+        "timeout": TIMEOUT_S},
+    "relire": {
+        # d'après l'essai `--agent` de NUI1 (`context AI/08-etat.md`, section NUI1, essai 5) : le modèle
+        # est l'ID demandé, pas le `model: opus` de l'agent ; NUI5 ajoute `--sha` au prompt
+        "prompt": "{fiche}", "agent": "vlp:relecture", "modele": OPUS, "repli": REPLI_OPUS,
+        "effort": None, "git": False,
+        "tours": "agents/relecture.md",
+        "usd": 3,       # non mesuré
+        "timeout": TIMEOUT_S},
+    "relance": {
+        "prompt": "/vlp:tache {fiche}", "agent": None, "modele": OPUS, "repli": REPLI_OPUS,
+        "effort": "medium", "git": True,
+        "tours": "agents/fiche.md",
+        "usd": 5,       # comme jouer ; Opus medium jamais mesuré
+        "timeout": TIMEOUT_S},
+    "clore": {
+        "prompt": "/vlp:tache", "agent": None, "modele": OPUS, "repli": REPLI_OPUS,   # prompt : NUI7 le fixe
+        "effort": None, "git": True,   # `cloture.md:72` : la session commite la clôture
+        "tours": 60,    # non mesuré
+        "usd": 5,       # non mesuré
+        "timeout": TIMEOUT_S},
+}
+
+# Limite d'usage : forme prise de la doc, https://code.claude.com/docs/en/errors (lue le 2026-10-01 par
+# WebFetch, qui résume la page) : « You've hit your session limit · resets 3:45pm », « … weekly limit ·
+# resets Mon 12:00am », « … Opus limit · resets 3:45pm » (« Sonnet limit » existe aussi : `stop`).
+# Non vérifiée sur le vrai CLI : NUI20 la confirme.
+LIMITE_RE = re.compile(r"\s*You've hit your (\w+) limit", re.I)
+RESET_RE = re.compile(r"resets\s+(\d{1,2})(?::(\d{2}))?\s*([ap]m)\b", re.I)
+FIN = float("inf")   # « fin de la nuit » : un reset illisible
+BASCULE = {"jusqu": 0.0}   # instant jusqu'où les rôles Opus tournent en SONNET
+_KIT: list[Any] = []   # vlp.py chargé comme module, une fois (`scripts/test-vlp.py:29`)
+
+
+def max_tours(role):
+    """`--max-turns` du rôle : l'entier de la table, ou le `maxTurns` de son fichier d'agent."""
+    t = ROLES[role]["tours"]
+    if isinstance(t, int):
+        return t
+    if not _KIT:
+        spec = importlib.util.spec_from_file_location("vlp", VLP)
+        assert spec and spec.loader
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        _KIT.append(mod)
+    n = _KIT[0].lire_max_turns(os.path.join(ICI, os.pardir, t))
+    if n is None:
+        raise ValueError("maxTurns illisible dans %s" % t)
+    return n
+
+
+def modele_de(role):
+    """Le modèle du rôle : celui de la table, sauf un rôle Opus pendant une bascule."""
+    m = ROLES[role]["modele"]
+    return SONNET if m == OPUS and time.time() < BASCULE["jusqu"] else m
+
+
+def reset_de(texte):
+    """L'instant du prochain reset lu dans `texte` (heure locale), ou `FIN` s'il est illisible."""
+    m = RESET_RE.search(texte)
+    if not m:
+        return FIN
+    heure = int(m.group(1)) % 12 + (12 if m.group(3).lower() == "pm" else 0)
+    maintenant = time.time()
+    an, mois, jour = time.localtime(maintenant)[:3]
+    cible = time.mktime((an, mois, jour, heure, int(m.group(2) or 0), 0, 0, 0, -1))
+    return cible if cible > maintenant else cible + 86400
 
 
 def vlp(argv, dossier):
@@ -98,49 +207,145 @@ def lire_carte(dossier):
     return racine, fichier, prochaine
 
 
-def jouer(claude, fiche, racine, a, trace):
-    """Lance une session neuve sur `/vlp:tache <fiche>`. Rend (tours, coût, texte)."""
+def commande(claude, role, fiche, a, modele, session):
+    """La ligne de commande d'une session. Sans `--nuit` : celle d'avant les rôles (REG)."""
     cmd = [sys.executable, claude] if claude.endswith(".py") else [claude]
-    cmd += ["-p", "/vlp:tache %s" % fiche, "--output-format", "stream-json", "--verbose",
-            "--permission-mode", a.permission_mode,
-            "--allowedTools"] + AUTORISES + ["--disallowedTools"] + INTERDITS
-    if a.model:
-        cmd += ["--model", a.model]
-    if a.effort:
-        cmd += ["--effort", a.effort]
-    if a.budget:
-        cmd += ["--max-budget-usd", a.budget]
+    commun = ["--output-format", "stream-json", "--verbose", "--permission-mode", a.permission_mode]
+    if not a.nuit:  # sans --nuit : la commande d'aujourd'hui, la table ne sert pas
+        cmd += ["-p", "/vlp:tache %s" % fiche] + commun
+        cmd += ["--allowedTools"] + AUTORISES + ["--disallowedTools"] + INTERDITS
+        if a.model:
+            cmd += ["--model", a.model]
+        if a.effort:
+            cmd += ["--effort", a.effort]
+        if a.budget:
+            cmd += ["--max-budget-usd", a.budget]
+        return cmd
+    r = ROLES[role]
+    cmd += ["-p", r["prompt"].format(fiche=fiche)] + commun
+    if r["agent"]:
+        cmd += ["--agent", r["agent"]]
+    if r["git"]:
+        cmd += ["--allowedTools"] + AUTORISES + ["--disallowedTools"] + INTERDITS
+    else:
+        cmd += ["--disallowedTools"] + NON_GIT
+    cmd += ["--model", modele]
+    if r["repli"] and modele == r["modele"]:
+        cmd += ["--fallback-model", r["repli"]]
+    if r["effort"]:
+        cmd += ["--effort", r["effort"]]
+    return cmd + ["--max-turns", str(max_tours(role)), "--max-budget-usd", str(r["usd"]),
+                  "--session-id", session, "--permission-prompts", "none"]
+
+
+def lire_trace(trace):
+    """Ce que dit la trace : `result`, modèles vus, un message `assistant`, id de session."""
+    s: dict[str, Any] = {"result": None, "modeles": [], "assistant": False, "session": None}
+
+    def voir(m):
+        if isinstance(m, str) and m not in s["modeles"]:
+            s["modeles"].append(m)
+
+    with open(trace, encoding="utf-8", errors="replace") as f:
+        for ligne in f:
+            try:
+                d = json.loads(ligne)
+            except ValueError:
+                continue
+            if not isinstance(d, dict):
+                continue
+            if d.get("type") == "system" and d.get("subtype") == "init" and s["session"] is None:
+                s["session"] = d.get("session_id")
+            elif d.get("type") == "assistant":
+                s["assistant"] = True
+                message = d.get("message")
+                voir(message.get("model") if isinstance(message, dict) else None)
+            elif d.get("type") == "result":
+                s["result"] = d
+                usage = d.get("modelUsage")
+                for m in usage if isinstance(usage, dict) else ():
+                    voir(m)
+    return s
+
+
+def classer(s, ok):
+    """L'issue d'une session, dans cet ordre : timeout, coupure, plafond, limite, pas partie, ratée, jouée."""
+    r = s["result"]
+    if s["timeout"]:
+        return "timeout"
+    if r is None:
+        return "coupure"
+    if str(r.get("subtype") or "").startswith("error_max_"):
+        return "plafond"
+    if LIMITE_RE.match(str(r.get("result") or "")):
+        return "limite"
+    if r.get("is_error") or not s["assistant"]:
+        return "pas partie"
+    return "jouée" if ok else "ratée"
+
+
+def jouer(claude, fiche, racine, a, trace, role="jouer", controle=None):
+    """Joue une session neuve du rôle `role` (sans `--nuit` : toujours le rôle jouer).
+
+    `controle()` dit si le contrôle du rôle passe (jouer : la case est cochée) ; sans, il passe.
+    Rend un dict : `tours` et `cout` (cumulés si une limite Opus relance), `texte`, `issue`, `ok`
+    (rendu de `controle`), `stop` (la raison écrite au carnet, ou None). Sous `--nuit`, une ligne
+    du carnet par session.
+    """
     env = {k: v for k, v in os.environ.items() if k not in HERITEES}
     if a.nuit:
         env[carnet.ENV_CARNET], env[carnet.ENV_CANAL] = a.carnet, a.canal
-    with open(trace, "w", encoding="utf-8") as f:
-        subprocess.run(cmd, cwd=racine, env=env, stdin=subprocess.DEVNULL, stdout=f,
-                       stderr=subprocess.STDOUT)
-    tours, cout, texte = 0, 0.0, "(aucune ligne result dans la trace)"
-    with open(trace, encoding="utf-8", errors="replace") as f:
-        for ligne in f:
+    tours, cout, rejoue = 0, 0.0, False
+    while True:
+        modele = modele_de(role) if a.nuit else a.model
+        demande = str(uuid.uuid4())
+        cmd = commande(claude, role, fiche, a, modele, demande)
+        delai = ROLES[role]["timeout"] if a.nuit else None
+        fini, t0 = True, time.time()
+        with open(trace, "w", encoding="utf-8") as f:
             try:
-                d = json.loads(ligne)
-            except ValueError:
+                subprocess.run(cmd, cwd=racine, env=env, stdin=subprocess.DEVNULL, stdout=f,
+                               stderr=subprocess.STDOUT, timeout=delai)
+            except subprocess.TimeoutExpired:
+                fini = False
+        s = lire_trace(trace)
+        s["timeout"] = not fini
+        r = s["result"] or {}
+        texte = str(r.get("result") or "") if s["result"] else "(aucune ligne result dans la trace)"
+        ok = controle() if controle else True
+        issue = classer(s, ok)
+        tours, cout = tours + (r.get("num_turns") or 0), cout + (r.get("total_cost_usd") or 0.0)
+        if a.nuit:
+            refus = len(r.get("permission_denials") or [])
+            carnet.ajouter(a.carnet, nuit=carnet.nuit_de(a.carnet), canal=a.canal, chantier=a.chantier,
+                           role=role, fiche=fiche, modele_demande=modele, modeles_vus=s["modeles"],
+                           tours_cli=r.get("num_turns") if s["result"] else None,
+                           usd_cli=r.get("total_cost_usd") if s["result"] else None,
+                           duree_s=int(time.time() - t0), issue=issue,
+                           garde="permission_denials : %d" % refus if refus else None,
+                           session=s["session"] or demande)
+        stop = None
+        if a.nuit and issue == "limite":
+            m = LIMITE_RE.match(texte)
+            genre = m.group(1).lower() if m else ""
+            if genre == "opus" and not rejoue and ROLES[role]["modele"] == OPUS:
+                BASCULE["jusqu"] = reset_de(texte)
+                quand = "la fin de la nuit" if BASCULE["jusqu"] == FIN else time.strftime("%H:%M", time.localtime(BASCULE["jusqu"]))
+                carnet.noter(a.carnet, a.canal, "bascule Opus → %s jusqu'à %s : %s" % (SONNET, quand, texte))
+                rejoue, trace = True, os.path.splitext(trace)[0] + "-2.jsonl"
                 continue
-            if isinstance(d, dict) and d.get("type") == "result":
-                tours = d.get("num_turns") or 0
-                cout = d.get("total_cost_usd") or 0.0
-                texte = str(d.get("result") or "")
-    return tours, cout, texte
+            stop = "limite %s — %s" % (genre, texte)
+        elif a.nuit and issue == "pas partie":
+            stop = "session pas partie — %s" % texte.split("\n")[0]
+        if stop:
+            carnet.stop(a.carnet, a.canal, stop)
+        return {"tours": tours, "cout": cout, "texte": texte, "issue": issue, "ok": ok, "stop": stop}
 
 
-def session_de(trace):
-    """Le `session_id` de la ligne `system`/`init` de la trace, ou None."""
-    with open(trace, encoding="utf-8", errors="replace") as f:
-        for ligne in f:
-            try:
-                d = json.loads(ligne)
-            except ValueError:
-                continue
-            if isinstance(d, dict) and d.get("type") == "system" and d.get("subtype") == "init":
-                return d.get("session_id")
-    return None
+def case_cochee(fichier, fiche, racine):
+    """Vrai si `cocher --verifier` voit la case de `fiche` cochée."""
+    _, verif = vlp(["cocher", fichier, fiche, "--verifier"], racine)
+    return ("CASE %s [x]" % fiche) in verif
 
 
 def main(argv):
@@ -190,6 +395,12 @@ def main(argv):
             print("GARDE: pas de dépôt Git pour le carnet de nuit — --carnet <chemin absolu>")
             return 1
         print("CARNET=%s · CANAL=%s · CHANTIER=%s" % (a.carnet, a.canal, a.chantier))
+        try:
+            for role in ROLES:
+                max_tours(role)
+        except ValueError as e:
+            print("GARDE: %s" % e)
+            return 1
     traces = a.traces or tempfile.mkdtemp(prefix="vlp-boucle-")
     jouees, total_tours, total_cout, t_debut = 0, 0, 0.0, time.time()
     code, raison = 0, "plafond de %d fiches" % a.plafond if a.plafond is not None else "aucun plafond"
@@ -217,20 +428,18 @@ def main(argv):
         trace = os.path.join(traces, "%s.jsonl" % fiche)
         print("JOUE %s — trace %s" % (fiche, trace), flush=True)
         t0 = time.time()
-        tours, cout, texte = jouer(claude, fiche, racine, a, trace)
+        s = jouer(claude, fiche, racine, a, trace, controle=functools.partial(case_cochee, fichier, fiche, racine))
         duree = int(time.time() - t0)
+        tours, cout, texte, cochee = s["tours"], s["cout"], s["texte"], s["ok"]
         jouees, total_tours, total_cout = jouees + 1, total_tours + tours, total_cout + cout
-        if a.nuit:
-            carnet.ajouter(a.carnet, nuit=carnet.nuit_de(a.carnet), canal=a.canal, chantier=a.chantier,
-                           role="jouer", fiche=fiche, tours_cli=tours, usd_cli=cout, duree_s=duree,
-                           session=session_de(trace))
-        _, verif = vlp(["cocher", fichier, fiche, "--verifier"], racine)
-        cochee = ("CASE %s [x]" % fiche) in verif
         print("FICHE %s · CASE [%s] · tours %d · %.4f $ · %d s"
               % (fiche, "x" if cochee else " ", tours, cout, duree))
         for ligne in texte.strip().split("\n"):
             print("    " + ligne)
         print(flush=True)
+        if s["stop"]:
+            code, raison = 1, "STOP — %s" % s["stop"]
+            break
         if visuel:
             raison = "%s est (visuel) — à regarder" % fiche
             break

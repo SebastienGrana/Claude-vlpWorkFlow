@@ -283,8 +283,9 @@ Tu ne fais pas : issue ni modèles (`NUI4`), coût d'une session sans `result` (
 ---
 
 <!-- FICHE:NUI4 -->
-## NUI4 [ ] — Donner à chaque rôle ses plafonds
+## NUI4 [x] — Donner à chaque rôle ses plafonds
 
+**Session** : 7d26b8c1-34e3-43be-bef5-0d9610438714
 **Dépend de** : `NUI3`.
 **Fichiers** : `scripts/boucle.py`, `scripts/test-boucle.py`, `scripts/faux-claude.py`, `scripts/carnet.py` (lu), `scripts/vlp.py` (lu : `lire_max_turns`), `scripts/test-vlp.py` (lu), `agents/fiche.md` (lu), `agents/relecture.md` (lu), la mesure de `NUI1` (fichier nommé dans sa fiche, lu) — et rien d'autre.
 
