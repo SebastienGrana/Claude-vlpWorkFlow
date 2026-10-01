@@ -96,8 +96,8 @@ celui par défaut ; sans Bash, le premier numéro libre de ce dossier :
 | `templates/context AI/NN-etat.md` | `<contexte>/<NN>-etat.md` | l'état daté et la TODO ordonnée |
 | `templates/artefact-feuille-de-route.html` | `<contexte>/artefacts/feuille-de-route.html` | la page publiable du projet |
 
-**Ce qui ne se copie pas, et pourquoi.** `methode-chantier.md`, `cloture.md`
-et `templates/context AI/fichier-de-fiches.md` restent dans le kit. Ce sont des
+**Ce qui ne se copie pas, et pourquoi.** `methode-chantier.md`, `cloture.md`,
+`nuit.md` et `templates/context AI/fichier-de-fiches.md` restent dans le kit. Ce sont des
 règles de travail, pas des données de projet : recopiées, elles existeraient en
 autant d'exemplaires qu'il y a de projets, et une correction de méthode n'en
 atteindrait aucun. Là où elles sont, elles servent tous les projets à la fois.

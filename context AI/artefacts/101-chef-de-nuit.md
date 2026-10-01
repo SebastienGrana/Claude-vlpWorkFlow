@@ -14,7 +14,7 @@
 - NUI10 : test-vlp.py OK (tester_trier neuf) · 4 mutants MUTANT ATTRAPÉ · trier . sur le kit : sort 0, 8 rangs, 5 PRÊT, 3 ÉCARTÉE, CANAL CAR+TAB+CLV par vlp.py, APR FICHIERS 99-jnt1-mesure.py sans SOIR · pyright 0 errors
 - NUI11 : test-vlp.py OK (tester_fichier_nuits neuf, cas a à d) · 3 mutants MUTANT ATTRAPÉ (CARNET_MIN = 0, retirées vivantes, usd_kit lu usd_cli) · grep -c nuits.md 0 → 1, sept familles 1 · pyright 0 errors sur vlp.py et test-vlp.py
 - NUI12 : test-vlp.py OK (cas plan 0, a, b, c×9, d) ; 3 mutants MUTANT ATTRAPÉ (NUIT=1 jamais écrite → (d), sections perdues → (b), lettres prises retirées → (c)) ; pyright 0 errors, 0 warnings, 0 informations
-- NUI13 : nuit.md : ce que la nuit fait à la place de l'humain — dépend de NUI12
+- NUI13 : nuit.md : lire code 0, ne coûte rien 1, 29 citations, 0 ID/plafond/08-etat ; nuit.md +1 ligne dans 5 fichiers, CLAUDE.md 80 lignes ; test-vlp OK, mutant CODE_PLUGIN ATTRAPÉ 1 écart, pyright 0 erreur
 - NUI14 : les commandes renvoient à nuit.md, essai sur bac — dépend de NUI13
 - NUI15 : vlp.py matin : fusion, CHANTIER.md et feuille réparés — ne dépend de rien
 - NUI16 : fusion par clé de l'état, des listes et d'en-attente — dépend de NUI15

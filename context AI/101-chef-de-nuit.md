@@ -713,8 +713,9 @@ Tu ne fais pas : poser `VLP_NUIT` ni lire le plan dans boucle.py (`NUI7`) ; la p
 ---
 
 <!-- FICHE:NUI13 -->
-## NUI13 [ ] — Écrire la conduite de nuit
+## NUI13 [x] — Écrire la conduite de nuit
 
+**Session** : 28c4a1ca-ce9e-4c0a-9a6e-a5edbd860a0c
 **Dépend de** : `NUI12`.
 **Fichiers** : `nuit.md` (neuf, racine du kit), `methode-chantier.md`, `skills/init/SKILL.md`, `CLAUDE.md`, `context AI/00-INDEX.md`, `README.md`, `scripts/vlp.py`, `scripts/test-vlp.py` ; lus aux seules lignes citées : `skills/tache/SKILL.md`, `skills/tache/references/tache-blocage.md`, `skills/chantier/SKILL.md`, `skills/enchainer/SKILL.md`, `skills/enchainer/references/refus.md`, `cloture.md`, `ARTEFACTS.md` — et rien d'autre.
 

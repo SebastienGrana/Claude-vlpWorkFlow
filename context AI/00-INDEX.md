@@ -39,5 +39,6 @@ Ces fichiers ne se lisent pas en série : chacun répond à une question précis
 | `scripts/vlp.py` | on touche à la mécanique des commandes — carte, extraction, validation, page, hook ; ses sous-commandes sont dans sa docstring |
 | `skills/tache/references/` | on touche au blocage, à la page de chantier ou aux contraintes d'une fiche |
 | `cloture.md` | on touche aux cinq écritures d'une clôture |
+| `nuit.md` | on touche à ce que les commandes font sous `NUIT=1`, sans humain pour répondre |
 | `ARTEFACTS.md` | on touche aux pages publiées : nommage, URL, budget |
 | `README.md` | on change la mise en place, ou la présentation du kit |

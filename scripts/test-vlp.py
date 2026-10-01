@@ -5771,6 +5771,11 @@ def tester_retard_plugin():
                  r1 is not None and r1[0] == 1 and r1[2] == "fiche" and r2 is not None and r2[0] == 1
                  and muets == (None, None) and len(lignes) == 1 and lignes[0].startswith("PLUGIN_RETARD=1 ")
                  and lignes[0].endswith("merge --ff-only fiche"), (r1, r2, muets, lignes))
+        commit(wt, "nuit.md", "nuit\n")
+        r3 = mod.retard_plugin(wt, kit=kit)
+        verifier("NUI13 : nuit.md compte dans le code du plugin — scripts/x.py et nuit.md font 2, context AI/n.md "
+                 "reste hors compte — mutant : nuit.md retiré de CODE_PLUGIN",
+                 r3 is not None and r3[0] == 2 and r3[2] == "fiche", r3)
 
 
 tester_retard_plugin()

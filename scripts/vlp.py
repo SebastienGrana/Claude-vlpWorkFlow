@@ -1230,7 +1230,7 @@ def git_texte(args, cwd, env=None):
 
 # Le code du plugin : ce qu'un `/reload-plugins` recharge, ou que les commandes lisent (chantier ESR).
 CODE_PLUGIN = ("skills", "agents", "hooks", "scripts", "templates", ".claude-plugin", "methode-chantier.md",
-               "cloture.md", "enchainement.md", "ARTEFACTS.md")
+               "cloture.md", "enchainement.md", "ARTEFACTS.md", "nuit.md")
 
 
 def retard_plugin(racine, kit=None):

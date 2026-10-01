@@ -34,12 +34,11 @@ https://github.com/SebastienGrana/Claude-vlpWorkFlow — cloné et utilisé en g
    valider, régénérer, mesurer vivent dans `scripts/` — Python 3 sans
    dépendance, zéro appel modèle, testé : `vlp.py` porte la mécanique (ses
    sous-commandes sont dans sa docstring), `mesure-tokens.py` le coût — et une
-   commande les appelle en un tour, elle ne décrit pas leur algorithme. Rien de propre à une machine dans
-   `skills/`, `templates/` ni `scripts/` : un chemin passe par
+   commande les appelle en un tour, elle ne décrit pas leur algorithme. Rien de propre
+   à une machine dans `skills/`, `templates/` ni `scripts/` : un chemin passe par
    `${CLAUDE_PLUGIN_ROOT}`, **dans le texte des commandes et `hooks/hooks.json`
-   seulement** — la
-   variable n'existe ni dans le shell ni dans un fichier de données. Exception
-   ouverte le 2026-09-10 pour le seul `mesure-tokens.py`, étendue à toute la
+   seulement** — la variable n'existe ni dans le shell ni dans un fichier de données.
+   Exception ouverte le 2026-09-10 pour le seul `mesure-tokens.py`, étendue à toute la
    mécanique le 2026-09-17 (audit, `context AI/12-audit.md`).
 
 Prose en français, texte des commandes en français.
@@ -53,7 +52,7 @@ et seulement dans ce cas, ouvrir l'index.
 |---|---|
 | modifier une commande | `skills/<nom>/SKILL.md` — celle-là seule |
 | modifier le sous-agent ou le contrat de `/vlp:enchainer` | `skills/jouer/SKILL.md`, `agents/fiche.md`, ou `enchainement.md` |
-| changer une règle de méthode | `methode-chantier.md`, ou `cloture.md` pour la clôture |
+| changer une règle de méthode | `methode-chantier.md`, `cloture.md` pour la clôture, ou `nuit.md` pour la nuit |
 | savoir où vit quoi dans un projet équipé | `methode-chantier.md`, section « Où vit quoi » |
 | toucher aux pages publiées | `ARTEFACTS.md`, puis le gabarit dans `templates/` |
 | ouvrir un chantier, ou le découper en fiches | **lancer `/vlp:chantier`** |
