@@ -208,6 +208,40 @@ Sous-commandes :
   `CHANTIER <code> · canal <c> · rang <n> · préfixe <P>` par chantier dans l'ordre ; `--chantier` : son seul
   `### <code>` (`imprimer_section`). Sans fichier des nuits ni plan à la date : `GARDE:`, sort 1 ; permis sous
   `VLP_NUIT=1`.
+- `matin <projet> <date>` — la fusion du matin (NUI15) : les branches `refs/heads/nuit/<date>-*` dans `main`, une à
+  une. `GARDE:` (sort 1, rien fusionné) : projet non équipé, date illisible, projet qui n'est pas la racine de son
+  dépôt, `HEAD` hors `main`, arbre pas propre, `CHANTIER.md` de `main` sans ses deux libellés ou sa ligne de
+  lettres, aucune branche. Ordre : le carnet de la nuit (rang de la 1re ligne de chaque `canal` + `chantier`),
+  sinon l'heure de la pointe puis le nom (`ORDRE pointes — carnet absent`). Par branche : `DÉJÀ <b>` (ancêtre de
+  `main`) ; `DE CÔTÉ <b> — <courant>` (son `CHANTIER.md` garde un chantier ouvert : jamais fusionnée) ; sinon
+  `git merge --no-ff --no-commit`, puis `CHANTIER.md` refait par `git merge-file` sur ses trois versions dont les
+  deux libellés et la liste des lettres sont remplacés par un jeton (`neutre`), puis rendus (`restaurer`) : ceux de
+  `main`, et ses lettres suivies de celles de la branche qui lui manquent — Git perd sans conflit ce que `clore`
+  remet à `aucun`. Un conflit sur la feuille (avec une archive des clos), `couts.svg` ou un joint : celui de `main`,
+  ils se refont. `feuille` est refaite au rang « en cours » que `main` portait avant la fusion, avec joints, `couts.svg`
+  et bloc d'archive (`rafraichir_couts`) ; `git add -A` ; commit `Matin <date> : <b>` ; `FUSIONNÉE <b>`. Autre
+  conflit (code, `08-etat.md`, archive…), ou feuille en conflit sans archive : `ARRÊT <b> — conflit : <fichiers> —
+  après résolution : <python> <vlp.py> feuille <projet> --todo <rang>` ; commit refusé : `ARRÊT <b> — commit
+  refusé : <1re ligne>` ; sort 1, la fusion reste en cours, les suivantes ne sont pas touchées. En fin :
+  `MATIN <n> fusionnée(s) · <m> de côté`. Avant la feuille, les fichiers que les deux côtés ont changés sont refaits
+  par clé depuis la base, `main` et la branche (NUI16, `fusionner_fichiers`) : le fichier d'état (TODO par n°,
+  journal en union, le reste par `git merge-file`), `CLAUDE.md` (lignes « Clos le » coupées à `CLOS_GARDES`), l'index
+  et son archive (la ligne pour clé), `archive-clos.html` (la ligne close, `resommer`), `en-attente` (la page ; la plus
+  récente gagne ; vide : retiré) et `publie` (la clé ; empreintes différentes : clé retirée, ligne `PUBLIE …`). Un
+  désaccord ou un reste en conflit : `GARDE: <chemin> : <raison>`, puis l'`ARRÊT` ci-dessus. Pas de `merge=union` :
+  il garde les deux lignes de `publie` quand les empreintes diffèrent. Ni push, ni carnet.
+- `matin <projet> <date> --rapport <json>` — le rapport du matin (NUI19), sans fusion ni commit, rejouable. Trois
+  premières gardes de `matin` (équipé, date, racine du dépôt) ; carnet de la nuit absent ou vide : `GARDE:`, sort 1.
+  Complète le carnet : chaque ligne de session sans `usd_kit` reçoit `usd_kit` et `tours_kit` (`mesure_session_kit` : son
+  transcript et ses sous-agents sommés, prix arrondi une fois au centime), mesurés hors verrou, écrits d'un coup sous celui
+  du carnet ; session introuvable, illisible ou hors `GRILLE` : `KIT ? <session> — <raison>`, aucune clé `_kit`, jamais 0.
+  Range au fichier des nuits (`fichier_nuits`, créé au besoin) une ligne de table par (nuit, canal, chantier) absente —
+  `<jouées>/<acceptées>/<refusées>` et la somme des `usd_kit`, `≥` si des sessions n'en ont pas, `?` si aucune —, puis
+  `NUITS <fichier> · <n> ligne(s) ajoutée(s)`. Croise les chantiers mis de côté selon Git (`de_cote`) et selon le carnet
+  (`mis-de-cote:`) : un désaccord est une ligne `ÉCART <canal>-<code> — …`. Écrit le JSON de `chef page --questions` : `fait`
+  (une ligne par chantier : issues, relances, modèles vus, `plugin_retard`, coût `_kit`, jamais `_cli`), `choix` (une carte
+  par mis de côté aux trois réponses du socle, une par note selon sa `sorte` : `reste` trois réponses, `case3` et `case4`
+  deux), `mal` (`NOTE SANS SORTE`, aussi imprimée). Fin : `RAPPORT <json> · <n> chantier(s) · <m> mis de côté · <k> carte(s)`.
 - `joints <dossier>` — recopie `templates/vlp.css` et `templates/vlp.js` dans le dossier, et
   n'écrit que `FILES {"vlp.css": <chemin>, "vlp.js": <chemin>}` : le JSON du paramètre `files`
   d'`Artifact`, chemins en barres obliques (pour `/vlp:init`). Dossier absent : `GARDE:`, sort 1.
@@ -324,6 +358,21 @@ Sous-commandes :
 - `vigile [fichier]` — une page cassée ne part pas (chantier VID, `defauts_page`) : sans argument,
   le hook `PreToolUse` sur `Artifact`, `deny` pour un `.html` à défauts, muet sinon ; avec un chemin,
   une ligne `GARDE:` par défaut (sort 1) ou `PAGE SAINE <n> blocs`.
+- `chef page --questions <json|@chemin> --sortie <page.html>` — la page à cartes (`templates/rapport-choix.html`)
+  remplie par script, zéro appel modèle (chantier NUI) : le modèle choisit le contenu, le script écrit la page, celle du
+  soir comme le rapport du matin. Le JSON : `projet`, `sujet`, `titre` ; `date` (`AAAA-MM-JJ`, défaut : le jour) ;
+  `plage` et `pied` (textes) ; `jauge` (un mot de `JAUGE`, son émoji et sa classe `moyen` ou `ko` suivent) ; `puces`
+  (l'en-tête, des textes) ; puis une clé par section du gabarit, dans son ordre, absente = section absente : `chiffres`
+  `{cases: [{valeur, legende}], sources: [texte]}`, `fait` `[{ref, code, titre, livre, cout}]`, `decisions` `{intro,
+  cartes: [{titre, portee, niveau faible|moyen, probleme, choix, ecarte, prix, defaire}]}`, `choix` `[{titre,
+  puces: [texte], options: [{valeur, libelle, effet, recommande: true|false}]}]`, `mal` `[{genre erreur|alerte, titre,
+  texte}]`, `fil` `[{heure, code, texte}]`. Les `name` (`D1`…, puis `Q1`…) et `data-cle` (`<projet>-<date>-<sujet>`) sont
+  posés par le script. Les textes passent par `cellule_md` (échappés, gras et code rendus), `<title>`, `data-cle` et
+  `value` par `esc` seul. La tête (`<link>`, `<style>`), « Tes réponses » et le `<script>` sont ceux du gabarit, cherchés
+  hors commentaires (`COMMENTAIRE`) ; le commentaire de tête n'est pas recopié, le reste est bâti. `GARDE:` (sort 1, rien
+  écrit) : JSON illisible, champ absent ou d'un autre genre, aucune carte, jauge hors `JAUGE`, question à moins de deux
+  options, option sans effet, valeur doublée, deux recommandées, morceau du gabarit introuvable, ou `defauts_page` non vide
+  sur la page bâtie (une ligne par défaut, au format de `vigile`). Sinon : `PAGE SAINE <n> blocs`, puis `CARTES D1 Q1…`.
 - `attente ajouter <page> [--url U] [--projet D]`, `attente lister <dossier artefacts ou racine du projet>`,
   `attente retirer <page> [--projet D]` — la liste des pages que la limite du jour a refusées
   (chantier LOC) : `<contexte>/artefacts/en-attente`, une ligne par page, `page`, `url` (ou
@@ -414,7 +463,11 @@ Sous-commandes :
 - `nuits noter "<texte>" [--canal C] [--stop]` — une ligne `note` au carnet de nuit (`carnet.py`, chantier
   NUI) ; avec `--stop`, la ligne `stop` (le texte en est la raison) que la boucle lit avant chaque
   session. Carnet : `VLP_CARNET`, sinon celui du jour du dépôt Git courant ; canal : `--canal`, sinon
-  `VLP_CANAL`. Imprime `NOTÉ <chemin>` ; sans dépôt Git ni `VLP_CARNET` : `GARDE:`, sort 1.
+  `VLP_CANAL`. Imprime `NOTÉ <chemin>` ; sans dépôt Git ni `VLP_CARNET` : `GARDE:`, sort 1. `--sorte reste|case3|case4`
+  (NUI19) : ce que le matin fait de la note ; avec `--stop`, `GARDE:`.
+- `nuits lecon "<ligne>" [--projet P]` — une leçon sous `## Leçons` du fichier des nuits (`fichier_nuits`, créé au
+  besoin), dans la forme de `LECON_FORME` (NUI11). Hors forme, ou fichier illisible : `GARDE:`, sort 1, rien d'écrit.
+  Imprime `LEÇON <fichier> · ajoutée` ou `· déjà là`.
 
 Les lignes des chantiers clos — lues ou écrites par `clore`, `recompter`, `prix`, `liens`,
 `repeindre` et le prix moyen d'`ouvrir` — vivent dans `<contexte>/artefacts/archive-clos.html`
@@ -2191,17 +2244,25 @@ def empreinte(chemin):
         return hashlib.sha256(f.read()).hexdigest()
 
 
-def lire_publie(dossier):
-    """{(page, nom publié): sha256} du fichier `publie` de `dossier` ; absent : {}."""
-    chemin = os.path.join(dossier, PUBLIE)
-    if not os.path.isfile(chemin):
-        return {}
+def notes_publie(lignes):
+    """{(page, nom publié): sha256} des lignes d'un fichier `publie` ; une ligne qui n'a pas ses trois cellules est sautée."""
     notes = {}
-    for l in lignes_de(chemin):
+    for l in lignes:
         c = l.split("\t")
         if len(c) == 3:
             notes[(c[0], c[1])] = c[2]
     return notes
+
+
+def texte_publie(notes):
+    """Le fichier `publie` de `notes` : une ligne par clé, triées — le texte que `noter_publie` écrit (chantier NUI)."""
+    return "".join("%s\t%s\t%s\n" % (p, n, h) for (p, n), h in sorted(notes.items()))
+
+
+def lire_publie(dossier):
+    """{(page, nom publié): sha256} du fichier `publie` de `dossier` ; absent : {}."""
+    chemin = os.path.join(dossier, PUBLIE)
+    return notes_publie(lignes_de(chemin)) if os.path.isfile(chemin) else {}
 
 
 def noter_publie(dossier, page, empreintes):
@@ -2211,7 +2272,7 @@ def noter_publie(dossier, page, empreintes):
     notes.update({(page, nom): h for nom, h in empreintes.items()})
     chemin = os.path.join(dossier, PUBLIE)
     with open(chemin + ".tmp", "w", encoding="utf-8", newline="\n") as f:
-        f.write("".join("%s\t%s\t%s\n" % (p, n, h) for (p, n), h in sorted(notes.items())))
+        f.write(texte_publie(notes))
     os.replace(chemin + ".tmp", chemin)
 
 
@@ -3231,16 +3292,12 @@ def lettre_de(id_fiche):
     return m.group(0) if m else id_fiche[:1]
 
 
-def lettres_prises(lignes):
-    """Les lettres de la ligne « Lettres de fiche déjà prises » : une par entrée, `X (titre)`
-    ou `X` seule, une lettre entre backticks tolérée (chantier VOI) ; les entrées se séparent
-    aux virgules hors parenthèses, et un titre à virgule n'en ajoute pas (chantier TAR)."""
-    texte = " ".join(l for l in lignes if l.strip())
-    i = texte.find("Lettres de fiche déjà prises")
-    if i < 0:
-        return []
-    fin = texte.find("Un nouveau chantier", i)
-    liste = texte[i:fin if fin > 0 else None].split(":", 1)[-1]
+LETTRES = "Lettres de fiche déjà prises"
+
+
+def entrees_lettres(liste):
+    """Les entrées de la liste des lettres, coupées aux virgules hors parenthèses : un titre à
+    virgule n'en ajoute pas (chantier TAR). Partagé par `lettres_prises` et `matin` (NUI15)."""
     entrees, profondeur, debut = [], 0, 0
     for k, c in enumerate(liste):
         profondeur += {"(": 1, ")": -1}.get(c, 0)
@@ -3248,7 +3305,36 @@ def lettres_prises(lignes):
             entrees.append(liste[debut:k])
             debut = k + 1
     entrees.append(liste[debut:])
-    return [m.group(1) for m in (re.match(r"\s*`?([A-Z]{1,3})`?(?: \(|\.?\s*$)", e) for e in entrees) if m]
+    return entrees
+
+
+def lettre_entree(entree):
+    """La lettre d'une entrée, `X (titre)` ou `X` seule, entre backticks tolérée (chantier VOI) ;
+    `None` si l'entrée n'en a pas."""
+    m = re.match(r"\s*`?([A-Z]{1,3})`?(?: \(|\.?\s*$)", entree)
+    return m.group(1) if m else None
+
+
+def fin_lettres(texte, j):
+    """Où finit la liste des lettres qui commence en `j` : le point avant « Un nouveau chantier »,
+    sinon la fin de sa ligne, sinon celle du texte. Partagé par `clore` et `matin` (NUI15)."""
+    k = texte.find(". Un nouveau chantier", j)
+    if k < 0:
+        k = texte.find("\n", j)
+    return k if k >= 0 else len(texte)
+
+
+def lettres_prises(lignes):
+    """Les lettres de la ligne « Lettres de fiche déjà prises » : une par entrée, `X (titre)`
+    ou `X` seule, une lettre entre backticks tolérée (chantier VOI) ; les entrées se séparent
+    aux virgules hors parenthèses, et un titre à virgule n'en ajoute pas (chantier TAR)."""
+    texte = " ".join(l for l in lignes if l.strip())
+    i = texte.find(LETTRES)
+    if i < 0:
+        return []
+    fin = texte.find("Un nouveau chantier", i)
+    liste = texte[i:fin if fin > 0 else None].split(":", 1)[-1]
+    return [l for l in map(lettre_entree, entrees_lettres(liste)) if l]
 
 
 def bornes(ids):
@@ -3302,6 +3388,9 @@ def cellule_md(texte):
     return gras_et_liens(CODE.sub(lambda m: '<span class="mono">%s</span>' % m.group(1), texte))
 
 
+SEPARATEUR = re.compile(r"^\|[\s|:-]+\|?$")     # `|---|---|`, sous l'en-tête d'une table
+
+
 def todo_du_fichier(lignes):
     """[(numéro, chantier, apporte, coût, dépend)] de la table `| # | Chantier |`. Une ligne
     qui n'a pas ses 5 cellules — une barre verticale non échappée dans une cellule — lève une
@@ -3316,7 +3405,7 @@ def todo_du_fichier(lignes):
             continue
         if not l.startswith("|"):
             break
-        if re.match(r"^\|[\s|:-]+\|?$", l):
+        if SEPARATEUR.match(l):
             continue
         cellules = [c.strip() for c in re.split(r"(?<!\\)\|", l.strip())[1:-1]]
         if len(cellules) != 5:
@@ -4988,6 +5077,229 @@ def cmd_vigile_hook(entree, sortie):
     return 0
 
 
+# --- chef page : la page à cartes, remplie par script (chantier NUI, fiche NUI17) ---------------
+
+GABARIT_CHOIX = "templates/rapport-choix.html"
+TETE_CHOIX = re.compile(r"<link\b[^>]*>|<style\b.*?</style>", re.S | re.I)
+CLASSE_JAUGE = ("", "", " moyen", " ko", " ko")      # la classe du gabarit de chaque mot de `JAUGE`, dans son ordre
+CHAMPS_DECISION = (("probleme", "Le problème"), ("choix", "Mon choix"), ("ecarte", "Écarté"),
+                   ("prix", "Le prix"), ("defaire", "Défaire"))
+EMOJI_MAL = {"erreur": "🔥", "alerte": "⚠️"}
+
+
+def morceaux_choix(gabarit):
+    """`(tête, réponses, script)` du gabarit : ses `<link>` et `<style>`, la section « Tes réponses » et le `<script>`,
+    cherchés hors commentaires — le commentaire de tête peut citer une balise, et un remplacement la trouverait d'abord.
+    Sans `<link>` ni `<style>` la tête est vide, et `defauts_page` le dit. `ValueError` : un des deux autres manque."""
+    hors = COMMENTAIRE.sub("", gabarit)
+    tete = "".join("%s\n" % m.group(0) for m in TETE_CHOIX.finditer(hors))
+    i = hors.find("<h2>Tes réponses</h2>")
+    debut, fin = hors.rfind("<section>", 0, i), hors.find("</section>", i)
+    if i < 0 or debut < 0 or fin < 0:
+        raise ValueError("gabarit : la section « Tes réponses » est introuvable")
+    d = hors.find("<script>")
+    f = hors.find("</script>", d)
+    if d < 0 or f < 0:
+        raise ValueError("gabarit : le <script> est introuvable")
+    return tete, hors[debut:fin + len("</section>")], hors[d:f + len("</script>")]
+
+
+def texte_json(d, cle, ou):
+    """Le texte non vide de `d[cle]` ; sinon `ValueError`, qui dit où il manque."""
+    v = d.get(cle)
+    if not isinstance(v, str) or not v.strip():
+        raise ValueError("%s : « %s » manque, ou n'est pas un texte non vide" % (ou, cle))
+    return v
+
+
+def liste_json(d, cle, ou, genre: type = dict):
+    """La liste `d[cle]` (vide si la clé manque), dont chaque élément est un `genre` ; sinon `ValueError`."""
+    v = d.get(cle, [])
+    if not isinstance(v, list) or not all(isinstance(x, genre) for x in v):
+        raise ValueError("%s : « %s » doit être une liste de %s" % (ou, cle, "textes" if genre is str else "objets"))
+    return v
+
+
+def objet_json(d, cle):
+    """L'objet `d[cle]` (`{}` si la clé manque) ; sinon `ValueError`."""
+    v = d.get(cle, {})
+    if not isinstance(v, dict):
+        raise ValueError("« %s » doit être un objet" % cle)
+    return v
+
+
+def attribut(texte):
+    return esc(texte).replace('"', "&quot;")
+
+
+def html_jauge(mot):
+    if mot not in JAUGE:
+        raise ValueError("jauge : « %s » n'est pas un de %s" % (mot, " · ".join(JAUGE)))
+    k = JAUGE.index(mot)
+    return '<span class="jauge%s">%s %s%s</span>' % (CLASSE_JAUGE[k], EMOJIS_JAUGE[k].replace("⚠", "⚠️"), mot,
+                                                     "…" if k == 1 else "")
+
+
+def html_decision(nom, k, c):
+    ou = "decisions.cartes[%d]" % k
+    niveau = c.get("niveau", "moyen")
+    if niveau not in ("faible", "moyen"):
+        raise ValueError("%s : « niveau » vaut faible ou moyen" % ou)
+    lignes = "".join("        <dt>%s</dt><dd>%s</dd>\n" % (libelle, cellule_md(texte_json(c, cle, ou)))
+                     for cle, libelle in CHAMPS_DECISION)
+    return ('    <div class="decision">\n'
+            '      <div class="tete"><h3>%s · %s</h3><span class="puce %s">%s</span></div>\n'
+            '      <dl class="grille">\n%s      </dl>\n'
+            '      <div class="choix"><label><input type="radio" name="%s" value="garder">Je garde</label>'
+            '<label><input type="radio" name="%s" value="revoir">À revoir</label></div>\n'
+            '    </div>\n' % (nom, cellule_md(texte_json(c, "titre", ou)), niveau,
+                              cellule_md(texte_json(c, "portee", ou)), lignes, nom, nom))
+
+
+def html_question(nom, k, q):
+    ou = "choix[%d]" % k
+    titre = texte_json(q, "titre", ou)
+    options = liste_json(q, "options", ou)
+    if len(options) < 2:
+        raise ValueError("%s : %d option(s), il en faut au moins deux" % (ou, len(options)))
+    valeurs, recommandees, labels = set(), 0, ""
+    for j, o in enumerate(options):
+        oou = "%s.options[%d]" % (ou, j)
+        valeur, recommande = texte_json(o, "valeur", oou), o.get("recommande", False)
+        if valeur in valeurs:
+            raise ValueError("%s : la valeur « %s » est déjà prise" % (oou, valeur))
+        if not isinstance(recommande, bool):
+            raise ValueError("%s : « recommande » vaut true ou false" % oou)
+        valeurs.add(valeur)
+        recommandees += recommande
+        if recommandees > 1:
+            raise ValueError("%s : deux options recommandées" % ou)
+        labels += ('        <label><input type="radio" name="%s" value="%s"><span><b>%s%s</b>%s</span></label>\n'
+                   % (nom, attribut(valeur), cellule_md(texte_json(o, "libelle", oou)),
+                      " (recommandé)" if recommande else "", cellule_md(texte_json(o, "effet", oou))))
+    puces = "".join("        <li>%s</li>\n" % cellule_md(p) for p in liste_json(q, "puces", ou, str))
+    return ('    <div class="question">\n      <h3>🟡 %s · %s</h3>\n%s      <div class="choix options">\n%s'
+            '      </div>\n    </div>\n'
+            % (nom, cellule_md(titre), "      <ul>\n%s      </ul>\n" % puces if puces else "", labels))
+
+
+def sections_choix(d):
+    """`([section html], [name des cartes])` : une section par clé de `d`, dans l'ordre du gabarit."""
+    blocs, noms = [], []
+
+    def section(titre, corps):
+        blocs.append("  <section>\n    <h2>%s</h2>\n%s  </section>\n" % (titre, corps))
+
+    chiffres = objet_json(d, "chiffres")
+    cases = liste_json(chiffres, "cases", "chiffres")
+    if cases:
+        corps = "".join('      <div class="chiffre"><b>%s</b><span>%s</span></div>\n'
+                        % (cellule_md(texte_json(x, "valeur", "chiffres.cases")),
+                           cellule_md(texte_json(x, "legende", "chiffres.cases"))) for x in cases)
+        sources = "".join("      <li>%s</li>\n" % cellule_md(s) for s in liste_json(chiffres, "sources", "chiffres", str))
+        section("Les chiffres", '    <div class="chiffres">\n%s    </div>\n%s' % (
+            corps, '    <ul class="sous" style="font-size:.95rem">\n%s    </ul>\n' % sources if sources else ""))
+    fait = liste_json(d, "fait", "racine")
+    if fait:
+        lignes = "".join('          <tr><td class="n">%s</td><td><b>%s</b><br>%s</td><td>%s</td><td class="n">%s</td></tr>\n'
+                         % tuple(cellule_md(texte_json(x, cle, "fait")) for cle in ("ref", "code", "titre", "livre", "cout"))
+                         for x in fait)
+        section("Ce qui a été fait", '    <div class="tableau">\n      <table>\n        <thead><tr><th>Réf.</th><th>Quoi</th>'
+                "<th>Ce qu'il livre</th><th>Coût</th></tr></thead>\n        <tbody>\n%s        </tbody>\n      </table>\n"
+                "    </div>\n" % lignes)
+    dec = objet_json(d, "decisions")
+    cartes = liste_json(dec, "cartes", "decisions")
+    if cartes:
+        noms += ["D%d" % (k + 1) for k in range(len(cartes))]
+        intro = cellule_md(dec["intro"]) + " " if isinstance(dec.get("intro"), str) else ""
+        section("Les décisions prises seul — à valider",
+                '    <p class="sous">%sCoche ce que tu gardes, ajoute un commentaire si besoin ; en bas, un bouton copie tes '
+                "réponses.</p>\n\n%s" % (intro, "\n".join(html_decision("D%d" % (k + 1), k, c) for k, c in enumerate(cartes))))
+    questions = liste_json(d, "choix", "racine")
+    if questions:
+        noms += ["Q%d" % (k + 1) for k in range(len(questions))]
+        section("Les choix à trancher", '    <p class="sous">Une carte par question. Chaque option dit ce qu\'elle change.</p>'
+                "\n\n%s" % "\n".join(html_question("Q%d" % (k + 1), k, q) for k, q in enumerate(questions)))
+    mal = liste_json(d, "mal", "racine")
+    if mal:
+        for k, m in enumerate(mal):
+            if m.get("genre") not in EMOJI_MAL:
+                raise ValueError("mal[%d] : « genre » vaut erreur ou alerte" % k)
+        section("Ce qui a mal tourné", "".join(
+            '    <div class="%s">\n      <h3>%s %s</h3>\n      <p>%s</p>\n    </div>\n'
+            % (m["genre"], EMOJI_MAL[m["genre"]], cellule_md(texte_json(m, "titre", "mal")),
+               cellule_md(texte_json(m, "texte", "mal"))) for m in mal))
+    fil = liste_json(d, "fil", "racine")
+    if fil:
+        section("Le fil", '    <p class="sous" style="font-size:.95rem">Heures lues sur les commits.</p>\n'
+                '    <ul class="fil">\n%s    </ul>\n' % "".join(
+                    "      <li><time>%s</time><span><b>%s</b> · %s</span></li>\n"
+                    % tuple(cellule_md(texte_json(x, cle, "fil")) for cle in ("heure", "code", "texte")) for x in fil))
+    return blocs, noms
+
+
+def page_choix(gabarit, d):
+    """`(html, name des cartes)` : la page de `d` (voir `chef page`, dans la docstring du module), bâtie sur les morceaux
+    de `gabarit`. `ValueError` : ce qui manque ou n'est pas du bon genre, `GARDE:` à l'appelant."""
+    tete, reponses, script = morceaux_choix(gabarit)
+    projet, sujet, titre = (texte_json(d, k, "racine") for k in ("projet", "sujet", "titre"))
+    date = d.get("date") or datetime.date.today().isoformat()
+    try:
+        datetime.date.fromisoformat(date)
+    except (TypeError, ValueError):
+        raise ValueError("racine : « date » vaut AAAA-MM-JJ") from None
+    plage = texte_json(d, "plage", "racine") if "plage" in d else None
+    blocs, noms = sections_choix(d)
+    if not noms:
+        raise ValueError("aucune carte : ni « decisions », ni « choix »")
+    entete = ('  <header style="display:flex;flex-direction:column;gap:.8rem">\n    <p class="mono sous">%s</p>\n'
+              "    <h1>%s</h1>\n" % (" · ".join(esc(x) for x in (projet, date, plage) if x), cellule_md(titre)))
+    if "jauge" in d:
+        entete += "    %s\n" % html_jauge(d["jauge"])
+    puces = "".join("      <li>%s</li>\n" % cellule_md(p) for p in liste_json(d, "puces", "racine", str))
+    entete += "    <ul>\n%s    </ul>\n" % puces if puces else ""
+    blocs = [entete + "  </header>\n"] + blocs + ["  " + reponses + "\n"]
+    if "pied" in d:
+        blocs.append('  <footer class="sous" style="font-size:.9rem;border-top:1px solid var(--trait);padding-top:1rem">\n'
+                     "    %s\n  </footer>\n" % cellule_md(texte_json(d, "pied", "racine")))
+    return ("<title>%s — %s</title>\n%s\n" % (esc(projet), esc(titre), tete)
+            + '<div class="page" data-cle="%s">\n\n%s</div>\n\n%s\n' % (attribut("%s-%s-%s" % (projet, date, sujet)),
+                                                                        "\n".join(blocs), script)), noms
+
+
+def cmd_chef_page(questions, chemin, sortie, gabarit):
+    """`chef page` (forme du JSON et `GARDE:` : docstring du module) : `questions` est le JSON ou `@fichier`,
+    `gabarit` le texte du modèle. Écrit `chemin` seulement si la page bâtie passe `defauts_page`."""
+    try:
+        d = json.loads(lire_arg(questions))
+        if not isinstance(d, dict):
+            raise ValueError("le JSON n'est pas un objet")
+        page, noms = page_choix(gabarit, d)
+    except OSError as e:
+        sortie.write("GARDE: questions illisibles : %s\n" % e)
+        return 1
+    except json.JSONDecodeError as e:
+        sortie.write("GARDE: JSON illisible : %s\n" % e)
+        return 1
+    except ValueError as e:
+        sortie.write("GARDE: %s\n" % e)
+        return 1
+    manques = defauts_page(page)
+    for m in manques:
+        sortie.write("GARDE: %s — %s\n" % (chemin, m))
+    if manques:
+        return 1
+    try:
+        os.makedirs(os.path.dirname(os.path.abspath(chemin)), exist_ok=True)
+        with open(chemin, "w", encoding="utf-8", newline="\n") as fh:
+            fh.write(page)
+    except OSError as e:
+        sortie.write("GARDE: %s — écriture impossible : %s\n" % (chemin, e))
+        return 1
+    sortie.write("PAGE SAINE %d blocs\nCARTES %s\n" % (len(textes_visibles(page)), " ".join(noms)))
+    return 0
+
+
 # --- attente : les pages que la limite du jour a refusées (chantier LOC) ------
 
 TEXTE_LIMITE = "publish 429"                    # le début du texte du refus, relevé par LOC1
@@ -4999,17 +5311,25 @@ def dossier_artefacts(racine):
     return os.path.join(racine, contexte, "artefacts")
 
 
-def lire_attente(artefacts):
-    """[(page, url, heure)] dans l'ordre du fichier `en-attente` ; absent : liste vide."""
-    chemin = os.path.join(artefacts, "en-attente")
-    if not os.path.isfile(chemin):
-        return []
+def entrees_attente(lignes):
+    """[(page, url, heure)] des lignes d'un fichier `en-attente`, dans leur ordre."""
     entrees = []
-    for l in lignes_de(chemin):
+    for l in lignes:
         c = l.split("\t") + ["aucune", ""]
         if c[0]:
             entrees.append((c[0], c[1], c[2]))
     return entrees
+
+
+def texte_attente(entrees):
+    """Le fichier `en-attente` de `entrees` : une ligne par page — le texte que `ecrire_attente` écrit (chantier NUI)."""
+    return "".join("\t".join(e) + "\n" for e in entrees)
+
+
+def lire_attente(artefacts):
+    """[(page, url, heure)] dans l'ordre du fichier `en-attente` ; absent : liste vide."""
+    chemin = os.path.join(artefacts, "en-attente")
+    return entrees_attente(lignes_de(chemin)) if os.path.isfile(chemin) else []
 
 
 def ecrire_attente(artefacts, entrees):
@@ -5021,7 +5341,7 @@ def ecrire_attente(artefacts, entrees):
         return
     os.makedirs(artefacts, exist_ok=True)
     with open(chemin + ".tmp", "w", encoding="utf-8", newline="\n") as f:
-        f.write("".join("\t".join(e) + "\n" for e in entrees))
+        f.write(texte_attente(entrees))
     os.replace(chemin + ".tmp", chemin)
 
 
@@ -5440,6 +5760,12 @@ ESTIME = re.compile(r"^\*\*Estimé\.\*\* (\S+) fiches · (≈\S+ \$)")
 ESTIME_A_ECRIRE = "\x00estimé\x00"   # posé dans la ZONE:bilan, remplacé une fois le total mesuré connu
 
 
+def clos_a_couper(entrees):
+    """Les plus anciennes des `entrees` (lignes « Clos le », ou leurs rangs, de la plus ancienne à la plus récente)
+    qui dépassent les `CLOS_GARDES` gardées : la coupe de `resume_claude` et de `matin` (chantier NUI)."""
+    return entrees[:max(0, len(entrees) - CLOS_GARDES)]
+
+
 def resume_claude(cl, lettre, texte, date, gardes):
     """Ajoute `- Clos le <date> : T (chantier L).` à la section « Où on en est » de `CLAUDE.md`,
     en place, puis n'en garde que les CLOS_GARDES dernières de cette forme. Vrai si une ligne
@@ -5458,7 +5784,7 @@ def resume_claude(cl, lettre, texte, date, gardes):
     texte = re.sub(r"^Clos le \S+ : ", "", texte)
     cl.insert(dernier + 1, "- Clos le %s : %s (chantier %s)." % (date, texte, lettre))
     entrees = [k for k in range(debut, fin + 1) if ENTREE_CLOS.match(cl[k])]
-    for k in reversed(entrees[:max(0, len(entrees) - CLOS_GARDES)]):
+    for k in reversed(clos_a_couper(entrees)):
         del cl[k]
     return True
 
@@ -5604,13 +5930,12 @@ def cmd_clore(a, sortie):
         if m:
             carte_[k] = m.group(1) + "aucun"
     texte = "\n".join(carte_) + "\n"
-    j = texte.find("Lettres de fiche déjà prises")
+    j = texte.find(LETTRES)
     if j < 0:
         sortie.write("GARDE: ligne « Lettres de fiche déjà prises » absente de CHANTIER.md\n")
         return 1
     if lettre not in lettres_prises(carte_):
-        k = texte.find(". Un nouveau chantier", j)
-        k = k if k >= 0 else texte.find("\n", j)
+        k = fin_lettres(texte, j)
         texte = texte[:k] + ", %s (%s)" % (lettre, titre) + texte[k:]
 
     # 3. la feuille de route
@@ -6182,16 +6507,855 @@ def lire_arg(x):
     return x
 
 
-def cmd_nuits_noter(texte, canal, arret, sortie, dossier=None):
+def cmd_nuits_noter(texte, canal, arret, sortie, dossier=None, sorte=None):
     """Une ligne `note` (ou `stop`, avec `arret`) au carnet de nuit : `VLP_CARNET`, sinon celui du jour
-    du dépôt de `dossier` (défaut : le dossier courant). Sans l'un ni l'autre : `GARDE:`, sort 1."""
+    du dépôt de `dossier` (défaut : le dossier courant). Sans l'un ni l'autre : `GARDE:`, sort 1. `sorte` (une de
+    `carnet.SORTES`) : ce que le matin fait de la note ; avec `arret`, `GARDE:` — un `stop` n'a pas de sorte."""
+    if arret and sorte:
+        print("GARDE: --sorte ne va pas avec --stop — un stop n'est pas une note du matin", file=sortie)
+        return 1
     chemin = os.environ.get(carnet.ENV_CARNET) or carnet.du_jour(dossier or os.getcwd())
     if not chemin:
         print("GARDE: pas de dépôt Git ni de VLP_CARNET — pas de carnet de nuit où écrire", file=sortie)
         return 1
     canal = canal or os.environ.get(carnet.ENV_CANAL) or None
-    (carnet.stop if arret else carnet.noter)(chemin, canal, texte)
+    if arret:
+        carnet.stop(chemin, canal, texte)
+    else:
+        carnet.noter(chemin, canal, texte, sorte)
     print("NOTÉ %s" % chemin, file=sortie)
+    return 0
+
+
+# --- matin : fusionner la nuit dans main (chantier NUI, fiche NUI15) --------------------------
+# Git fusionne sans conflit ce que `clore` remet à `aucun` dans `CHANTIER.md` : le chantier ouvert de `main`
+# s'efface. `neutre` met à part les deux libellés et la liste des lettres, `restaurer` les rend ; la feuille,
+# elle, se refait toujours, au rang « en cours » que `main` portait avant la fusion.
+
+OUVERT_CARTE = re.compile(r"^([ \t]*-[ \t]*\*\*(fichier de fiches courant|artefact du chantier)\*\*[ \t]*:[ \t]*)(.*)$",
+                          re.M)
+JETON_OUVERT, JETON_LETTRES = "§ouvert§", "§lettres§"
+
+
+def neutre(texte):
+    """`(texte, valeurs, liste)` : `texte` (un `CHANTIER.md`) dont la valeur des deux libellés et la liste des
+    lettres sont remplacées par `JETON_OUVERT` et `JETON_LETTRES` ; `valeurs` : `{libellé: valeur}` ; `liste` :
+    ce qui suit « Lettres de fiche déjà prises » jusqu'à `fin_lettres`, `None` sans cette ligne."""
+    valeurs = {m.group(2): m.group(3) for m in OUVERT_CARTE.finditer(texte)}
+    texte = OUVERT_CARTE.sub(lambda m: m.group(1) + JETON_OUVERT, texte)
+    i = texte.find(LETTRES)
+    if i < 0:
+        return texte, valeurs, None
+    i += len(LETTRES)
+    k = fin_lettres(texte, i)
+    return texte[:i] + JETON_LETTRES + texte[k:], valeurs, texte[i:k]
+
+
+def restaurer(texte, valeurs, liste):
+    """L'inverse de `neutre` : les libellés rendus à leur valeur dans `valeurs`, la liste des lettres à `liste`."""
+    texte = OUVERT_CARTE.sub(lambda m: m.group(1) + valeurs.get(m.group(2), m.group(3)), texte)
+    return texte if liste is None else texte.replace(JETON_LETTRES, liste)
+
+
+def pointes_nuit(projet, date):
+    """`([(branche, heure de la pointe)], None)` des `refs/heads/nuit/<date>-*`, ou `(None, erreur)`."""
+    code, t = git_texte(["for-each-ref", "--format=%(refname) %(committerdate:unix)",
+                         "refs/heads/nuit/%s-*" % date], projet)
+    if code != 0:
+        return None, t
+    pointes = []
+    for l in t.splitlines():
+        champs = l.split()
+        if len(champs) == 2 and champs[1].isdigit():
+            pointes.append((champs[0][len("refs/heads/"):], int(champs[1])))
+    return pointes, None
+
+
+def ordre_nuit(pointes, date, projet):
+    """Les branches de la nuit dans l'ordre du carnet : rang de la 1re ligne de chaque `canal` + `chantier` ; sans
+    ligne au carnet, l'heure de la pointe, puis le nom. Rend `(branches, carnet_lu)` — `carnet_lu` faux : carnet
+    absent ou sans ligne, tout est à l'heure de la pointe."""
+    chemin = carnet.du_jour(projet, date)
+    lignes = carnet.lire(chemin) if chemin else []
+    place = {}
+    for n, d in enumerate(lignes):
+        place.setdefault((d.get("canal"), d.get("chantier")), n)
+
+    def cle(p):
+        canal, _, code = p[0][len("nuit/%s-" % date):].partition("-")
+        return place.get((canal, code), len(lignes)), p[1], p[0]
+    return [p[0] for p in sorted(pointes, key=cle)], bool(lignes)
+
+
+# NUI16 : les fichiers que les deux canaux réécrivent ne se fusionnent pas ligne à ligne. Git y lève un conflit quand
+# deux canaux ajoutent côte à côte (la TODO, le journal), et `merge=union` y ressuscite la ligne qu'un canal avait
+# retirée (2cef70f). `fusionner_fichiers` les recalcule depuis la base, `main` et la branche, par clé ; ce qui reste
+# d'un fichier va à `git merge-file`, un conflit y est un `GARDE:`.
+
+JETON_TRANCHE = "§tranche§"
+TITRE_JOURNAL = "## Journal des décisions"
+
+
+def en_dict(lignes, cle):
+    """`{clé: ligne}` dans l'ordre des lignes ; une clé en double lève `ValueError` — la fusion par clé n'y verrait plus clair."""
+    d = {}
+    for l in lignes:
+        k = cle(l)
+        if k in d:
+            raise ValueError("clé en double : %s" % (k,))
+        d[k] = l
+    return d
+
+
+def trois_voies(base, avant, leur, ordre="fin", resout=None):
+    """La fusion à trois voies de `{clé: valeur}` : `([(clé, valeur)], désaccords)`. Une clé retirée d'un côté et intacte
+    de l'autre est retirée ; changée d'un côté, elle prend ce changement ; ajoutée, elle est gardée. Changée des deux
+    côtés, ou retirée d'un côté et changée de l'autre : un désaccord, rendu à l'appelant ; `resout(avant, leur)` le
+    tranche (`None` : la clé s'en va), sans lui `avant` reste. Ordre : celui d'`avant`, puis les clés que seule la
+    branche porte, à la suite (`fin`) ou en tête (`tete`)."""
+    gardees, desaccords = {}, []
+    for k in list(avant) + [k for k in leur if k not in avant]:
+        b, a, l = base.get(k), avant.get(k), leur.get(k)
+        if a == l or l == b:
+            v = a
+        elif a == b:
+            v = l
+        else:
+            desaccords.append(k)
+            v = resout(a, l) if resout else a
+        if v is not None:
+            gardees[k] = v
+    cles = [k for k in avant if k in gardees]
+    neuves = [k for k in leur if k in gardees and k not in avant]
+    cles = neuves + cles if ordre == "tete" else cles + neuves
+    return [(k, gardees[k]) for k in cles], desaccords
+
+
+def fusion_lignes(b, a, l, cle, ordre="fin", resout=None):
+    """`(lignes fusionnées, désaccords)` de trois listes de lignes, par `cle(ligne)`."""
+    paires, desaccords = trois_voies(*(en_dict(t, cle) for t in (b, a, l)), ordre=ordre, resout=resout)
+    return [v for _, v in paires], desaccords
+
+
+def cle_todo(rangee):
+    """Le n° d'une rangée de la TODO, lu par `todo_du_fichier` : `ValueError` si la rangée n'a pas ses 5 cellules."""
+    lues = todo_du_fichier(["| # | Chantier", "|---|", rangee])
+    if len(lues) != 1:
+        raise ValueError("rangée de la TODO illisible : %s" % rangee)
+    return lues[0][0]
+
+
+def decouper_tables(lignes, quand):
+    """`(neutre, tranches)` : sous chaque séparateur de table que `quand(lignes, i)` accepte, les rangées — les lignes
+    `|` qui suivent — deviennent un `JETON_TRANCHE` dans `neutre`, et `tranches` les rend, table par table."""
+    neutre, tranches, i = [], [], 0
+    while i < len(lignes):
+        neutre.append(lignes[i])
+        i += 1
+        if SEPARATEUR.match(lignes[i - 1]) and quand(lignes, i - 1):
+            j = i
+            while j < len(lignes) and lignes[j].startswith("|"):
+                j += 1
+            neutre.append(JETON_TRANCHE)
+            tranches.append(lignes[i:j])
+            i = j
+    return neutre, tranches
+
+
+def decouper_index(lignes):
+    """`(neutre, genres, tranches)` de l'index ou de son archive : les rangées de chaque table."""
+    neutre, tranches = decouper_tables(lignes, lambda ls, i: True)
+    return neutre, ["rangées"] * len(tranches), tranches
+
+
+def decouper_etat(lignes):
+    """`(neutre, genres, tranches)` du fichier d'état : les rangées de la TODO, puis le journal, que `section` trouve
+    à son titre et qui court jusqu'à la fin."""
+    fin = lignes[-1:] == [""]
+    corps = lignes[:-1] if fin else lignes
+    trouve = section(corps, lambda l: l.startswith(TITRE_JOURNAL), lambda l: True)
+    tete = corps if trouve is None else corps[:trouve[0]]
+    neutre, tranches = decouper_tables(tete, lambda ls, i: i > 0 and ls[i - 1].startswith("| # | Chantier"))
+    genres = ["TODO"] * len(tranches)
+    if trouve is not None:
+        neutre.append(JETON_TRANCHE)
+        tranches.append(corps[trouve[0]:])
+        genres.append("journal")
+    return neutre + [""] * fin, genres, tranches
+
+
+def decouper_claude(lignes):
+    """`(neutre, genres, tranches)` de CLAUDE.md : les lignes « Clos le » de « Où on en est », en une tranche à la place
+    de la première (ou à la suite de la dernière ligne de la section, s'il n'y en a pas)."""
+    debut = next((k for k, l in enumerate(lignes) if l.startswith("## Où on en est")), None)
+    if debut is None:
+        return lignes, [], []
+    fin = next((k for k in range(debut + 1, len(lignes)) if lignes[k].startswith("## ")), len(lignes))
+    clos = [k for k in range(debut, fin) if ENTREE_CLOS.match(lignes[k])]
+    place = clos[0] if clos else max((k for k in range(debut, fin) if lignes[k].strip()), default=debut) + 1
+    neutre = [l for k, l in enumerate(lignes) if k not in clos]
+    neutre.insert(place - sum(1 for k in clos if k < place), JETON_TRANCHE)
+    return neutre, ["clos"], [[lignes[k] for k in clos]]
+
+
+def fusion_texte(projet, textes, branche):
+    """`(code, texte)` de `git merge-file` sur `textes` = (base, avant, leur) : 0, fusion propre ; > 0, le nombre de
+    conflits, que le texte porte marqués ; `None`, Git muet ou en erreur, le texte est la raison."""
+    with tempfile.TemporaryDirectory() as t:
+        chemins = []
+        for nom, contenu in (("avant", textes[1]), ("base", textes[0]), ("leur", textes[2])):
+            chemins.append(os.path.join(t, nom))
+            with open(chemins[-1], "w", encoding="utf-8", newline="") as fh:
+                fh.write(contenu)
+        code, msg = git_texte(["merge-file", "-L", "main", "-L", "base", "-L", branche] + chemins, projet)
+        if code is None or code > 127:
+            return None, "git merge-file : %s" % msg
+        return code, lire(chemins[0])
+
+
+def fusion_a_jetons(projet, branche, textes, decouper, fusionner, gardes):
+    """Le texte fusionné de `textes` = (base, avant, leur), ou `None` (à Git, ou `gardes` dit pourquoi). `decouper(lignes)`
+    rend `(neutre, genres, tranches)` : le texte où chaque partie à fusionner par clé est un `JETON_TRANCHE`, et ces
+    parties. Le reste passe par `git merge-file`, chaque tranche par `fusionner(genre, base, avant, leur, gardes)`."""
+    if None in textes:
+        return None
+    try:
+        morceaux = [decouper(t.split("\n")) for t in textes]
+        if len({tuple(m[1]) for m in morceaux}) != 1:
+            gardes.append("la structure n'est pas la même des trois côtés (tables, journal ou section)")
+            return None
+        code, fusion = fusion_texte(projet, ["\n".join(m[0]) for m in morceaux], branche)
+        if code != 0:
+            gardes.append("le reste du fichier est en conflit : %s" % ("à fusionner à la main" if code else fusion))
+            return None
+        rendu = [fusionner(g, b, a, l, gardes) for g, b, a, l in zip(morceaux[0][1], *(m[2] for m in morceaux))]
+    except ValueError as e:
+        gardes.append(str(e))
+        return None
+    if gardes:
+        return None
+    sortie, i = [], 0
+    for ligne in fusion.split("\n"):
+        if ligne == JETON_TRANCHE:
+            sortie += rendu[i]
+            i += 1
+        else:
+            sortie.append(ligne)
+    return "\n".join(sortie)
+
+
+def fusion_tranche_etat(genre, b, a, l, gardes):
+    """La TODO par n° (`cle_todo`) ; le journal en union — la base, puis ce que `main` y a ajouté, puis la branche."""
+    if genre == "TODO":
+        rangees, desaccords = fusion_lignes(b, a, l, cle_todo)
+        gardes.extend("TODO : la rangée n° %s est changée des deux côtés, ou retirée d'un côté et changée de l'autre" % k
+                      for k in desaccords)
+        return rangees
+    if a == l:
+        return a
+    if a[:len(b)] != b or l[:len(b)] != b:
+        gardes.append("journal : une ligne ancienne a changé, il ne se fusionne plus en union")
+        return a
+    return b + a[len(b):] + l[len(b):]
+
+
+def fusion_tranche_claude(genre, b, a, l, gardes):
+    """Les lignes « Clos le » des deux côtés, la branche à la suite, coupées aux `CLOS_GARDES` dernières."""
+    entrees, _ = fusion_lignes(b, a, l, lambda x: x)
+    entrees = entrees[len(clos_a_couper(entrees)):]
+    return entrees
+
+
+def fusion_tranche_index(trier):
+    """La fusion des rangées d'un index, la ligne pour clé ; `trier` : l'archive, retriée par `numero_ligne`."""
+    def fusionner(genre, b, a, l, gardes):
+        rangees, _ = fusion_lignes(b, a, l, lambda x: x)
+        return sorted(rangees, key=numero_ligne) if trier else rangees
+    return fusionner
+
+
+def fusion_etat(projet, branche, textes, gardes, infos):
+    return fusion_a_jetons(projet, branche, textes, decouper_etat, fusion_tranche_etat, gardes)
+
+
+def fusion_claude(projet, branche, textes, gardes, infos):
+    return fusion_a_jetons(projet, branche, textes, decouper_claude, fusion_tranche_claude, gardes)
+
+
+def fusion_index(projet, branche, textes, gardes, infos):
+    return fusion_a_jetons(projet, branche, textes, decouper_index, fusion_tranche_index(False), gardes)
+
+
+def fusion_archive_index(projet, branche, textes, gardes, infos):
+    return fusion_a_jetons(projet, branche, textes, decouper_index, fusion_tranche_index(True), gardes)
+
+
+def fusion_archive_clos(projet, branche, textes, gardes, infos):
+    """`archive-clos.html` : les lignes closes par clé, celles de la branche en tête comme `clore` ; le pied et le résumé
+    sont refaits par `resommer`, pas par `rafraichir_couts` (il réécrit la feuille)."""
+    if None in textes:
+        return None
+    try:
+        zones = [zone(t, "clos", "<tbody>\n", "        </tbody>") for t in textes]
+        lignes, _ = fusion_lignes(*(lignes_clos(t[d:f]) for t, (d, f) in zip(textes, zones)), cle=lambda x: x, ordre="tete")
+    except ValueError as e:
+        gardes.append(str(e))
+        return None
+    corps, (d, f) = "".join(lignes), zones[1]
+    usd, n_usd = prix_clos(corps)
+    return resommer(textes[1][:d] + corps + textes[1][f:], len(lignes), total_clos(corps), usd, n_usd)
+
+
+def heure_attente(entree):
+    """L'heure d'une entrée de `en-attente`, en secondes ; 0 si elle ne se lit pas : sans heure, la plus ancienne."""
+    try:
+        return datetime.datetime.fromisoformat(entree[2]).timestamp()
+    except ValueError:
+        return 0.0
+
+
+def fusion_attente(projet, branche, textes, gardes, infos):
+    """`en-attente` : la page pour clé ; changée des deux côtés, l'heure la plus récente gagne, et elle passe en fin comme
+    `ajouter_attente` ; retirée d'un côté et changée de l'autre, elle reste (mieux vaut republier deux fois que zéro) ;
+    vide, le fichier est retiré par l'appelant. Absent d'un côté : sans entrée."""
+    b, a, l = (en_dict(entrees_attente((t or "").split("\n")), lambda e: e[0]) for t in textes)
+
+    def plus_recente(avant, leur):
+        if avant is None or leur is None:
+            return avant or leur
+        return leur if heure_attente(leur) >= heure_attente(avant) else avant
+    paires, _ = trois_voies(b, a, l, resout=plus_recente)
+    entrees = [v for _, v in paires]
+    return texte_attente([e for e in entrees if a.get(e[0]) == e]
+                         + sorted((e for e in entrees if a.get(e[0]) != e), key=heure_attente))
+
+
+def fusion_publie(projet, branche, textes, gardes, infos):
+    """`publie` : la clé (page, nom) ; des empreintes différentes des deux côtés, la clé est retirée et dite — le joint
+    sera republié. L'essai de `NUI16` : `merge=union` fait la même chose sauf là, où il garde les deux lignes."""
+    b, a, l = (notes_publie((t or "").split("\n")) for t in textes)
+    paires, desaccords = trois_voies(b, a, l, resout=lambda avant, leur: None)
+    infos.extend("PUBLIE %s %s — empreintes différentes des deux côtés, clé retirée : le joint sera republié" % k
+                 for k in desaccords)
+    return texte_publie(dict(paires))
+
+
+def lire_rev(projet, rev, chemin):
+    """Le texte de `chemin` à `rev` — lu par `git show`, jamais dans l'arbre marqué — ou `None` s'il n'y est pas."""
+    code, t = git_texte(["show", "%s:%s" % (rev, chemin)], projet)
+    return t if code == 0 else None
+
+
+def ecrire_comme(chemin, texte):
+    """Écrit `texte` (fins de ligne `\\n`) dans `chemin`, en CRLF si le fichier qu'il remplace en avait."""
+    crlf = False
+    if os.path.isfile(chemin):
+        with open(chemin, "rb") as fh:
+            crlf = b"\r\n" in fh.read()
+    os.makedirs(os.path.dirname(chemin) or ".", exist_ok=True)
+    with open(chemin, "w", encoding="utf-8", newline="") as fh:
+        fh.write(texte.replace("\n", "\r\n") if crlf else texte)
+
+
+def fusionner_fichiers(projet, branche, base, prevus, conflits, sortie):
+    """Recalcule les fichiers de `prevus` = `[(chemin, fusion)]` que la fusion en cours a trouvés changés des deux côtés,
+    depuis `base`, `HEAD` et `branche` : écrits et ajoutés (retirés, si la fusion les vide) ; un `GARDE:` laisse le
+    chemin dans `conflits`. Un fichier absent des trois n'est ni écrit ni retiré. Rend la raison d'un échec de Git."""
+    for chemin, fusion in prevus:
+        textes = [lire_rev(projet, rev, chemin) for rev in (base, "HEAD", branche)]
+        if textes[1] == textes[2] or textes[1] == textes[0] or textes[2] == textes[0]:
+            continue
+        gardes, infos = [], []
+        texte = fusion(projet, branche, textes, gardes, infos)
+        sortie.writelines("GARDE: %s : %s\n" % (chemin, g) for g in gardes)
+        sortie.writelines(i + "\n" for i in infos)
+        if gardes:
+            conflits.add(chemin)
+        if texte is None or gardes:
+            continue
+        complet = os.path.join(projet, chemin)
+        if texte == "":
+            if os.path.exists(complet):
+                os.remove(complet)
+            code, msg = git_texte(["rm", "-q", "--cached", "--ignore-unmatch", "--", chemin], projet)
+        else:
+            ecrire_comme(complet, texte)
+            code, msg = git_texte(["add", "--", chemin], projet)
+        if code != 0:
+            return "%s : git %s" % (chemin, msg)
+        conflits.discard(chemin)
+    return None
+
+
+def fusionner_nuit(projet, branche, date, sortie):
+    """Fusionne `branche` dans `main` et commite, en réparant `CHANTIER.md` et la feuille. `True` à l'`ARRÊT` :
+    la ligne est écrite, la fusion reste en cours."""
+    chemin_carte, page = os.path.join(projet, "CHANTIER.md"), page_feuille(projet)
+    archive = page_clos(projet)
+    avec_archive = archive != page
+    avant = lire(chemin_carte)
+    carte_main, valeurs, liste_main = neutre(avant)
+    liste_main = liste_main or ""     # `cmd_matin` a refusé un main sans sa ligne de lettres
+    rang = None
+    if os.path.isfile(page):
+        try:
+            html = lire(page)
+            d, f, forme = zone_todo(html)
+            rang = rang_en_cours(html[d:f], forme)
+        except ValueError:
+            pass
+
+    def arret(raison):
+        sortie.write("ARRÊT %s — %s\n" % (branche, raison))
+        return True
+
+    code, msg = git_texte(["merge", "--no-ff", "--no-commit", branche], projet)
+    if code not in (0, 1) or git_texte(["rev-parse", "-q", "--verify", "MERGE_HEAD"], projet)[0] != 0:
+        return arret("fusion impossible : %s" % msg)
+    code, t = git_texte(["diff", "--name-only", "--diff-filter=U"], projet)
+    conflits = set(t.splitlines()) if code == 0 else set()
+
+    # CHANTIER.md : les trois versions sans leurs libellés ni leurs lettres, fusionnées, puis les valeurs de `main`
+    _, base = git_texte(["merge-base", "HEAD", branche], projet)
+    code_base, texte_base = git_texte(["show", "%s:CHANTIER.md" % base.strip()], projet)
+    code_leur, texte_leur = git_texte(["show", "%s:CHANTIER.md" % branche], projet)
+    carte_base = neutre(texte_base)[0] if code_base == 0 else ""
+    carte_leur, _, liste_leur = neutre(texte_leur if code_leur == 0 else "")
+    pris = {lettre_entree(e) for e in entrees_lettres(liste_main.split(":", 1)[-1])}
+    ajouts = []
+    for e in entrees_lettres((liste_leur or "").split(":", 1)[-1]):
+        lettre = lettre_entree(e)
+        if lettre and lettre not in pris:
+            pris.add(lettre)
+            ajouts.append(e.strip())
+    lettres = liste_main + "".join(", " + e for e in ajouts)
+    code_fusion, fusion = fusion_texte(projet, [carte_base, carte_main, carte_leur], branche)
+    if code_fusion is None:
+        return arret("CHANTIER.md : %s" % fusion)
+    ecrire_comme(chemin_carte, restaurer(fusion, valeurs, lettres))
+    if code_fusion == 0:
+        conflits.discard("CHANTIER.md")
+        git_texte(["add", "CHANTIER.md"], projet)
+    else:
+        conflits.add("CHANTIER.md")
+
+    # ce que `feuille` et `ecrire_couts` refont : jamais un conflit à résoudre à la main
+    def rel(chemin):
+        return os.path.relpath(chemin, projet).replace("\\", "/")
+    dossier = os.path.dirname(os.path.abspath(page))
+    derives = {rel(os.path.join(dossier, n)) for n in (COUTS_SVG,) + tuple(JOINTS)}
+    if avec_archive:
+        derives.add(rel(page))
+
+    # les fichiers que les deux canaux réécrivent, par clé (NUI16) : avant la feuille, qui se lit dans la TODO fusionnée
+    carte_lignes = avant.split("\n")
+    index, etat = champ(carte_lignes, "index"), champ(carte_lignes, "fichier d'état")
+    prevus = []
+    if etat:
+        prevus.append((etat, fusion_etat))
+    prevus.append(("CLAUDE.md", fusion_claude))
+    if index:
+        prevus += [(index, fusion_index), (chemin_archive(index), fusion_archive_index)]
+    if avec_archive:
+        prevus.append((rel(archive), fusion_archive_clos))
+    prevus += [(rel(os.path.join(dossier, nom)), f) for nom, f in (("en-attente", fusion_attente), (PUBLIE, fusion_publie))]
+    raison = fusionner_fichiers(projet, branche, base.strip(), prevus, conflits, sortie)
+    if raison:
+        return arret(raison)
+    for chemin in sorted(conflits & derives):
+        code, msg = git_texte(["checkout", "--ours", "--", chemin], projet)
+        if code != 0:
+            return arret("conflit sur %s, celui de main non repris : %s" % (chemin, msg))
+        conflits.discard(chemin)
+    if conflits:
+        suite = ' — après résolution : "%s" "%s" feuille "%s"%s' % (
+            sys.executable, os.path.abspath(__file__), projet, (" --todo %s" % rang) if rang else "")
+        return arret("conflit : %s%s" % (", ".join(sorted(conflits)), suite))
+
+    if os.path.isfile(page):
+        try:
+            neuf, _ = feuille(projet, lire(page), rang, datetime.date.today().isoformat())
+            with open(page, "w", encoding="utf-8", newline="") as fh:
+                fh.write(neuf)
+            recopier_joints(dossier)
+            if avec_archive:
+                rafraichir_couts(projet, archive, lire(archive))
+            else:
+                ecrire_couts(page, neuf, couts_du_projet(projet, neuf))
+        except ValueError as e:
+            return arret("feuille : %s" % e)
+    code, msg = git_texte(["add", "-A"], projet)
+    if code != 0:
+        return arret("git add : %s" % msg)
+    code, msg = git_texte(["commit", "-q", "-m", "Matin %s : %s" % (date, branche)], projet)
+    if code != 0:
+        return arret("commit refusé : %s" % msg)
+    sortie.write("FUSIONNÉE %s\n" % branche)
+    return False
+
+
+def projet_du_matin(a, sortie):
+    """Le dossier absolu de `a.projet` si le matin peut y travailler — équipé, date lisible, racine d'un dépôt Git —,
+    sinon None, après une `GARDE:`. Les trois gardes de `matin` et de `matin --rapport`."""
+    projet = os.path.abspath(a.projet)
+    if not equipe(projet):
+        sortie.write("GARDE: pas de CHANTIER.md dans %s\n" % projet)
+        return None
+    try:
+        datetime.date.fromisoformat(a.date)
+    except ValueError:
+        sortie.write("GARDE: AAAA-MM-JJ attendu : %s\n" % a.date)
+        return None
+    code, haut = git_texte(["rev-parse", "--show-toplevel"], projet)
+    try:
+        racine = code == 0 and os.path.samefile(haut.strip(), projet)
+    except OSError:
+        racine = False
+    if not racine:
+        sortie.write("GARDE: %s n'est pas la racine d'un dépôt Git — rien fusionné\n" % projet)
+        return None
+    return projet
+
+
+def de_cote(projet, branche):
+    """Le chantier ouvert (`fichier_courant`) du `CHANTIER.md` de `branche`, ou None : c'est ce qui la met de côté,
+    `matin` ne la fusionne jamais. Branche sans `CHANTIER.md` : None. `matin` et `matin --rapport` l'appellent."""
+    code, carte_leur = git_texte(["show", "%s:CHANTIER.md" % branche], projet)
+    return fichier_courant(carte_leur) if code == 0 else None
+
+
+def cmd_matin(a, sortie):
+    """`matin <projet> <date>` : les gardes, l'ordre, puis chaque branche de la nuit — `DÉJÀ`, `DE CÔTÉ` ou fusionnée."""
+    if a.rapport:
+        return cmd_matin_rapport(a, sortie)
+    projet = projet_du_matin(a, sortie)
+    if projet is None:
+        return 1
+    code, tete = git_texte(["symbolic-ref", "--short", "-q", "HEAD"], projet)
+    if code != 0 or tete.strip() != "main":
+        sortie.write("GARDE: HEAD est sur %s, pas sur main — rien fusionné\n" % (tete.strip() if code == 0 else "rien (détaché)"))
+        return 1
+    code, sale = git_texte(["status", "--porcelain"], projet)
+    if code != 0 or sale.strip():
+        sortie.write("GARDE: arbre pas propre (%s) — rien fusionné\n" % (
+            "%d chemin(s)" % len(sale.splitlines()) if code == 0 else sale))
+        return 1
+    _, valeurs, liste = neutre(lire(os.path.join(projet, "CHANTIER.md")))
+    if liste is None or len(valeurs) < 2:
+        sortie.write("GARDE: CHANTIER.md de main sans ses deux libellés ou sa ligne « %s » — rien fusionné\n" % LETTRES)
+        return 1
+    pointes, erreur = pointes_nuit(projet, a.date)
+    if not pointes:
+        sortie.write("GARDE: %s — rien fusionné\n" % (erreur or "aucune branche nuit/%s-* (la date est-elle juste ?)" % a.date))
+        return 1
+    branches, lu = ordre_nuit(pointes, a.date, projet)
+    if not lu:
+        sortie.write("ORDRE pointes — carnet absent\n")
+    fusionnees = cote = 0
+    for branche in branches:
+        if git_texte(["merge-base", "--is-ancestor", branche, "HEAD"], projet)[0] == 0:
+            sortie.write("DÉJÀ %s\n" % branche)
+            continue
+        courant = de_cote(projet, branche)
+        if courant:
+            sortie.write("DE CÔTÉ %s — %s\n" % (branche, courant))
+            cote += 1
+            continue
+        if fusionner_nuit(projet, branche, a.date, sortie):
+            return 1
+        fusionnees += 1
+    sortie.write("MATIN %d fusionnée(s) · %d de côté\n" % (fusionnees, cote))
+    return 0
+
+
+# --- matin --rapport : le carnet complété, la table des nuits, la page du matin (chantier NUI, fiche NUI19) ------------
+# Après la fusion : rien de commité, rien de fusionné, et rejoué, le carnet et le fichier des nuits ne changent plus.
+
+def mesure_session_kit(session):
+    """`(usd_kit, tours_kit, raison)` d'une session du carnet : `resoudre`, puis `mesurer` sur son transcript et sur chacun
+    de ses `sous_agents`, `usd_exact` et `tours` sommés comme `parts_aux_commits` (un `usd_exact` None rend None), le
+    prix arrondi une fois au centime. Transcript introuvable ou illisible, modèle hors `GRILLE` : `(None, None, raison)`
+    — jamais 0."""
+    from decimal import ROUND_HALF_UP, Decimal
+    m = mesure()
+    chemin, _ = m.resoudre(session)
+    if chemin is None:
+        return None, None, "transcription introuvable"
+    usd, tours, inconnus = Decimal(0), 0, []
+    for transcript in [chemin] + m.sous_agents(chemin):
+        r, erreur = m.mesurer(transcript)
+        if r is None:
+            return None, None, "transcription illisible (%s)" % erreur
+        tours += r["tours"]
+        usd = None if usd is None or r["usd_exact"] is None else usd + r["usd_exact"]
+        inconnus += r["inconnus"]
+    if usd is None:
+        return None, None, "modèle hors grille (%s)" % ", ".join(sorted(set(inconnus)))
+    return float(usd.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)), tours, None
+
+
+def completer_kit(chemin, sortie):
+    """Donne `usd_kit` et `tours_kit` à chaque ligne de session du carnet `chemin` qui n'a pas `usd_kit`
+    (`mesure_session_kit`) : mesurées d'abord, hors verrou, puis écrites d'un coup sous celui du carnet
+    (`carnet.mettre_a_jour`). Une session non mesurée : `KIT ? <session> — <raison>` sur `sortie`, aucune clé `_kit`.
+    Rend le nombre de lignes complétées."""
+    mesures = {}
+    for d in carnet.lire(chemin):
+        s = d.get("session")
+        if carnet.est_session(d) and d.get("usd_kit") is None and s not in mesures:
+            mesures[s] = mesure_session_kit(s) if s else (None, None, "pas d'id de session au carnet")
+            if mesures[s][0] is None:
+                sortie.write("KIT ? %s — %s\n" % (s or "(sans id)", mesures[s][2]))
+
+    def poser(d):
+        m = mesures.get(d.get("session"))
+        if carnet.est_session(d) and d.get("usd_kit") is None and m and m[0] is not None:
+            return {"usd_kit": m[0], "tours_kit": m[1]}
+        return None
+    return carnet.mettre_a_jour(chemin, poser)
+
+
+def bilan_chantiers(lignes):
+    """Un dict par `(canal, chantier)` du carnet, dans l'ordre où ils y apparaissent : `jouees` (les fiches qu'une session
+    `jouer` ou `relance` a prises), `acceptees` (celles qu'une session `relire` sans `refus_n` a prises, comme
+    `taux_nuit`), `refusees` (celles qu'une `relire` à `refus_n` a prises : refusée puis acceptée compte aux deux),
+    `issues` (`issue` : nombre de sessions), `relances`, `modeles` (`modeles_vus`, sans doublon), `retard`
+    (`plugin_retard` de la dernière ligne qui en porte un), `usd` et `tours` (les sommes des `usd_kit` et `tours_kit`
+    — jamais des `_cli`), `sans` (les sessions qui n'ont pas de `usd_kit`)."""
+    bilans = {}
+    for d in lignes:
+        if not d.get("canal") or not d.get("chantier"):
+            continue
+        b = bilans.setdefault((d["canal"], d["chantier"]), {
+            "canal": d["canal"], "chantier": d["chantier"], "jouees": set(), "acceptees": set(), "refusees": set(),
+            "issues": collections.Counter(), "relances": 0, "modeles": [], "retard": None, "usd": 0.0, "tours": 0,
+            "sans": 0})
+        if d.get("plugin_retard") is not None:
+            b["retard"] = d["plugin_retard"]
+        if not carnet.est_session(d):
+            continue
+        role, fiche = d.get("role"), d.get("fiche")
+        if role in ("jouer", "relance") and fiche:
+            b["jouees"].add(fiche)
+        if role == "relire" and fiche:
+            b["refusees" if d.get("refus_n") else "acceptees"].add(fiche)
+        b["relances"] += role == "relance"
+        if d.get("issue"):
+            b["issues"][d["issue"]] += 1
+        b["modeles"] += [x for x in (d.get("modeles_vus") or []) if x not in b["modeles"]]
+        if d.get("usd_kit") is None:
+            b["sans"] += 1
+        else:
+            b["usd"] += d["usd_kit"]
+            b["tours"] += d.get("tours_kit") or 0
+    return list(bilans.values())
+
+
+def cout_du_bilan(b, avec_unite=True):
+    """La somme des `usd_kit` d'un bilan comme `4,50 $` ; `≥ 4,50 $` si des sessions n'en ont pas, `?` si aucune."""
+    if b["sans"] and not b["usd"]:
+        return "?"
+    texte = ("%.2f" % b["usd"]).replace(".", ",")
+    return ("≥ " if b["sans"] else "") + texte + (" $" if avec_unite else "")
+
+
+def ecrire_table_nuits(projet, nuit, bilans):
+    """Une ligne de table au fichier des nuits (`fichier_nuits(creer=True)`) par `(nuit, canal, chantier)` absente :
+    `| <nuit> | <canal> | <chantier> | <jouées>/<acceptées>/<refusées> | <$> |`, le `$` étant `cout_du_bilan`. Une
+    ligne déjà là n'est pas refaite. Rend `(chemin, nombre de lignes ajoutées)` ; `ValueError` : `fichier_nuits` ou
+    `nuits_ecrire` refusent."""
+    chemin = fichier_nuits(projet, creer=True)
+    assert chemin
+    rangees, _ = nuits_du_fichier(lignes_de(chemin))
+    ajoutees = 0
+    for b in bilans:
+        deja = any(r[:3] == [nuit, b["canal"], b["chantier"]] for r in rangees)
+        if deja:
+            continue
+        ligne = "| %s | %s | %s | %d/%d/%d | %s |" % (nuit, b["canal"], b["chantier"], len(b["jouees"]),
+                                                      len(b["acceptees"]), len(b["refusees"]),
+                                                      cout_du_bilan(b, avec_unite=False))
+        ajoutees += nuits_ecrire(chemin, ligne)
+    return chemin, ajoutees
+
+
+def derniere_valeur(lignes, cle):
+    """La dernière valeur non vide de `cle` parmi `lignes`, en texte, ou None."""
+    return next((str(d[cle]) for d in reversed(lignes) if d.get(cle)), None)
+
+
+def chantiers_de_cote(projet, date, lignes):
+    """`([{canal, chantier, branche, raison, cause, reecriture, dependants, ecart}], [ÉCART])` : les chantiers mis de côté
+    selon Git — la branche `nuit/<date>-<canal>-<code>` qui n'est pas dans `HEAD` et dont `de_cote` dit qu'elle garde un
+    chantier ouvert — et selon le carnet — une garde `mis-de-cote:<raison>`, ses `cause` et `reecriture`, les chantiers
+    dont une garde `saute:<code>` dit qu'ils en dépendaient (NUI7). Les deux se croisent : l'un le dit de côté, pas
+    l'autre, c'est un `ÉCART` — dit, jamais tranché."""
+    pointes, _ = pointes_nuit(projet, date)
+    prefixe = "nuit/%s-" % date
+    git_cote = {}
+    for branche, _ in pointes or []:
+        canal, _, code = branche[len(prefixe):].partition("-")
+        if git_texte(["merge-base", "--is-ancestor", branche, "HEAD"], projet)[0] != 0 and de_cote(projet, branche):
+            git_cote[(canal, code)] = branche
+    raisons = {}
+    for d in lignes:
+        garde = str(d.get("garde") or "")
+        if garde.startswith("mis-de-cote:") and d.get("chantier"):
+            raisons[(d.get("canal"), d["chantier"])] = garde[len("mis-de-cote:"):]
+    cotes, ecarts = [], []
+    for cle in list(raisons) + [k for k in git_cote if k not in raisons]:
+        canal, code = cle
+        propres = [d for d in lignes if d.get("canal") == canal and d.get("chantier") == code]
+        ecart = None
+        if cle not in git_cote:
+            ecart = "le carnet le met de côté, Git non (branche absente, déjà dans main, ou chantier fermé sur elle)"
+        elif cle not in raisons:
+            ecart = "Git le met de côté, le carnet n'a aucune ligne mis-de-cote"
+        if ecart:
+            ecarts.append("ÉCART %s-%s — %s" % (canal, code, ecart))
+        cotes.append({"canal": canal, "chantier": code, "branche": "%s%s-%s" % (prefixe, canal, code),
+                      "raison": raisons.get(cle), "cause": derniere_valeur(propres, "cause"),
+                      "reecriture": derniere_valeur(propres, "reecriture"),
+                      "dependants": [x for x in dict.fromkeys(
+                          d["chantier"] for d in lignes
+                          if d.get("chantier") and str(d.get("garde") or "") == "saute:%s" % code)],
+                      "ecart": ecart})
+    return cotes, ecarts
+
+
+def option_matin(valeur, libelle, effet):
+    return {"valeur": valeur, "libelle": libelle, "effet": effet, "recommande": False}
+
+
+def question_de_cote(c):
+    """La carte d'un chantier mis de côté : ce que le carnet et Git en disent, et les trois réponses du socle."""
+    puces = ["Branche : `%s`" % c["branche"], "Raison au carnet : %s" % (c["raison"] or "aucune")]
+    if c["cause"]:
+        puces.append("Cause du dernier refus : %s" % c["cause"])
+    if c["reecriture"]:
+        puces.append("Réécriture demandée : %s" % c["reecriture"])
+    puces.append("Chantiers sautés à cause de lui : %s" % (", ".join(c["dependants"]) or "aucun"))
+    if c["ecart"]:
+        puces.append("**ÉCART** : %s" % c["ecart"])
+    return {"titre": "Mis de côté : %s (canal %s)" % (c["chantier"], c["canal"]), "puces": puces, "options": [
+        option_matin("reprendre", "Reprendre à la main", "Tu reprends la branche `%s` toi-même ; je ne touche à rien "
+                     "d'autre." % c["branche"]),
+        option_matin("abandonner", "Abandonner", "Le travail de la branche est perdu : je te donne `git branch -D %s`, "
+                     "je ne la lance jamais." % c["branche"]),
+        option_matin("rejouer", "Rejouer une nuit", "Je te donne aussi `git branch -D %s` : la nuit suivante repart de "
+                     "`main`. La ligne de la TODO reste, le tri du soir la reprend." % c["branche"])]}
+
+
+def question_de_note(canal, texte, sorte):
+    """La carte d'une note du carnet selon sa `sorte` : un reste (trois réponses, le premier oui de
+    `methode-chantier.md`), ou une case du menu de fin de `cloture.md` (faire ou laisser)."""
+    puces = ["Note du canal %s : %s" % (canal or "?", texte)]
+    if sorte == "reste":
+        return {"titre": "Reste à verser dans la TODO ?", "puces": puces + [
+            "La TODO ne grossit pas sans deux oui : celui-ci est le premier, la ligne écrite sera le second."], "options": [
+            option_matin("verser", "Verser", "Je t'écris la ligne et te la montre : elle ne part qu'après ton second oui."),
+            option_matin("fondre", "Fondre dans une entrée existante", "Tu me nommes laquelle ; rien ne grossit."),
+            option_matin("abandonner", "Abandonner", "Rien n'est écrit : abandonner est une réponse normale.")]}
+    titre, faire = (("Case 3 du menu de fin : essaimer", "Je lance `niveau` sur les autres projets équipés, comme "
+                     "`cloture.md` le dit.") if sorte == "case3" else
+                    ("Case 4 du menu de fin : la dette repérée", "Petite : une tâche et un commit à elle. Plus grosse : "
+                     "présentée comme un chantier (`cloture.md`)."))
+    return {"titre": titre, "puces": puces, "options": [
+        option_matin("faire", "Faire", faire),
+        option_matin("laisser", "Laisser", "Rien n'est fait ; la note reste au carnet.")]}
+
+
+def rapport_matin(projet, date, bilans, cotes, lignes, kit_sans):
+    """Le JSON de `chef page --questions` du matin : une ligne `fait` par chantier du carnet (issues, relances, modèles
+    vus, `plugin_retard`, coût `_kit` — jamais `_cli`), une carte par chantier mis de côté, une par note selon sa `sorte`,
+    et `NOTE SANS SORTE` en alerte pour les autres. `kit_sans` : les lignes `KIT ?`, en puces."""
+    notes = [d for d in lignes if carnet.est_note_matin(d)]
+    fait, choix, mal = [], [question_de_cote(c) for c in cotes], []
+    for b in bilans:
+        issues = ", ".join("%s ×%d" % (k, n) for k, n in b["issues"].items()) or "aucune session"
+        livre = " · ".join(x for x in (
+            "issues : %s" % issues, "relances : %d" % b["relances"],
+            "modèles vus : %s" % ", ".join(b["modeles"]) if b["modeles"] else None,
+            "plugin en retard : %s commit(s)" % b["retard"] if b["retard"] else None) if x)
+        fait.append({"ref": b["canal"], "code": b["chantier"], "livre": livre,
+                     "titre": "%d jouée(s) · %d acceptée(s) · %d refusée(s)" % (len(b["jouees"]), len(b["acceptees"]),
+                                                                              len(b["refusees"])),
+                     "cout": "%s · %d tours" % (cout_du_bilan(b), b["tours"])})
+    for d in notes:
+        if d.get("sorte") in carnet.SORTES:
+            choix.append(question_de_note(d.get("canal"), str(d["note"]), d["sorte"]))
+        else:
+            mal.append({"genre": "alerte", "titre": "NOTE SANS SORTE", "texte":
+                        "%s (canal %s) — le matin ne sait pas quoi en faire : à classer à la main." % (
+                            d["note"], d.get("canal") or "?")})
+    rapport = {"projet": nom_du_projet(projet), "sujet": "matin", "titre": "Le matin du %s" % date, "date": date,
+               "puces": ["%d chantier(s) au carnet · %d mis de côté · %d note(s) pour le matin"
+                         % (len(bilans), len(cotes), len(notes))] + kit_sans}
+    for cle, valeur in (("fait", fait), ("choix", choix), ("mal", mal)):
+        if valeur:
+            rapport[cle] = valeur
+    return rapport
+
+
+def cmd_matin_rapport(a, sortie):
+    """`matin <projet> <date> --rapport <json>` : sans fusion ni commit, rejouable. Complète le carnet de la nuit
+    (`completer_kit`), range une ligne par chantier au fichier des nuits (`ecrire_table_nuits`), puis écrit le JSON de
+    `chef page --questions` (`rapport_matin`). Mêmes gardes que `matin` : équipé, date, racine du dépôt ; carnet absent
+    ou vide, ou fichier des nuits illisible : `GARDE:`, sort 1."""
+    projet = projet_du_matin(a, sortie)
+    if projet is None:
+        return 1
+    chemin = carnet.du_jour(projet, a.date)
+    if not chemin or not carnet.lire(chemin):
+        sortie.write("GARDE: carnet de la nuit %s absent ou vide — pas de rapport\n" % a.date)
+        return 1
+    manques = io.StringIO()
+    try:
+        completer_kit(chemin, manques)
+    except ValueError as e:
+        sortie.write("GARDE: carnet %s — %s\n" % (chemin, e))
+        return 1
+    sortie.write(manques.getvalue())
+    lignes = carnet.lire(chemin)
+    bilans = bilan_chantiers(lignes)
+    try:
+        nuits, ajoutees = ecrire_table_nuits(projet, a.date, bilans)
+    except ValueError as e:
+        sortie.write("GARDE: %s\n" % e)
+        return 1
+    sortie.write("NUITS %s · %d ligne(s) ajoutée(s)\n" % (os.path.relpath(nuits, projet).replace("\\", "/"), ajoutees))
+    cotes, ecarts = chantiers_de_cote(projet, a.date, lignes)
+    for e in ecarts:
+        sortie.write(e + "\n")
+    rapport = rapport_matin(projet, a.date, bilans, cotes, lignes, manques.getvalue().splitlines())
+    for d in lignes:
+        if carnet.est_note_matin(d) and d.get("sorte") not in carnet.SORTES:
+            sortie.write("NOTE SANS SORTE %s — %s\n" % (d.get("canal") or "?", d["note"]))
+    try:
+        with open(a.rapport, "w", encoding="utf-8", newline="\n") as f:
+            json.dump(rapport, f, ensure_ascii=False, indent=1)
+            f.write("\n")
+    except OSError as e:
+        sortie.write("GARDE: %s — écriture impossible : %s\n" % (a.rapport, e))
+        return 1
+    sortie.write("RAPPORT %s · %d chantier(s) · %d mis de côté · %d carte(s)\n" % (
+        a.rapport, len(bilans), len(cotes), len(rapport.get("choix", []))))
+    return 0
+
+
+def cmd_nuits_lecon(ligne, projet, sortie):
+    """`nuits lecon "<ligne>"` : une leçon sous `## Leçons` du fichier des nuits (`fichier_nuits(creer=True)`). Hors de la
+    forme de `LECON_FORME`, ou fichier illisible : `GARDE:`, sort 1, rien d'écrit. Déjà là : `LEÇON déjà là`."""
+    try:
+        if not LECON_FORME.match(ligne):
+            raise ValueError("leçon hors forme : %s" % ligne)
+        chemin = fichier_nuits(os.path.abspath(projet), creer=True)
+        assert chemin
+        ajoutee = nuits_ecrire(chemin, ligne)
+    except ValueError as e:
+        sortie.write("GARDE: %s\n" % e)
+        return 1
+    sortie.write("LEÇON %s · %s\n" % (os.path.relpath(chemin, projet).replace("\\", "/"), "ajoutée" if ajoutee else "déjà là"))
     return 0
 
 
@@ -6497,10 +7661,12 @@ def main(argv, sortie=None, entree=None, erreur=None):
     mu.add_argument("apres")
     mu.add_argument("--test")
     nu = sous.add_parser("nuits")
-    nu.add_argument("verbe", choices=["noter"])
+    nu.add_argument("verbe", choices=["noter", "lecon"])
     nu.add_argument("texte")
     nu.add_argument("--canal")
     nu.add_argument("--stop", action="store_true")
+    nu.add_argument("--sorte", choices=carnet.SORTES)
+    nu.add_argument("--projet", default=".")
     pl = sous.add_parser("plan")
     pl.add_argument("verbe", choices=["ecrire", "lire"])
     pl.add_argument("projet")
@@ -6508,6 +7674,14 @@ def main(argv, sortie=None, entree=None, erreur=None):
     pl.add_argument("--date")
     pl.add_argument("--canal", choices=CANAUX)
     pl.add_argument("--chantier")
+    ma = sous.add_parser("matin")
+    ma.add_argument("projet")
+    ma.add_argument("date")
+    ma.add_argument("--rapport")
+    ch = sous.add_parser("chef")
+    ch.add_argument("verbe", choices=["page"])
+    ch.add_argument("--questions", required=True)
+    ch.add_argument("--sortie", required=True)
     tr = sous.add_parser("transcription")
     tr.add_argument("jsonl")
     a = p.parse_args(argv)
@@ -6600,9 +7774,15 @@ def repartir(a, sortie, entree, erreur):
     if a.cmd == "mutant":
         return cmd_mutant(a.cible, a.avant, a.apres, a.test, sortie)
     if a.cmd == "nuits":
-        return cmd_nuits_noter(a.texte, a.canal, a.stop, sortie)
+        if a.verbe == "lecon":
+            return cmd_nuits_lecon(a.texte, a.projet, sortie)
+        return cmd_nuits_noter(a.texte, a.canal, a.stop, sortie, sorte=a.sorte)
     if a.cmd == "plan":
         return cmd_plan(a, sortie)
+    if a.cmd == "matin":
+        return cmd_matin(a, sortie)
+    if a.cmd == "chef":
+        return cmd_chef_page(a.questions, a.sortie, sortie, lire(os.path.join(KIT, GABARIT_CHOIX)))
     if a.cmd == "joints":
         return cmd_joints(a.dossier, sortie)
     if a.cmd == "transcription":

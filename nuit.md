@@ -31,7 +31,8 @@ La session sait son rôle par ce qu'on lui a demandé :
 - **`ATTENTE=` et `PLUGIN_RETARD=`** : notés au compte rendu, jamais agis — ni
   republication, ni merge, ni tâche planifiée, ni `/reload-plugins`.
 - **Une note pour le matin** : `vlp.py nuits noter "<texte>"` — une ligne au carnet
-  de la nuit (`VLP_CARNET`), pour le canal de la session (`VLP_CANAL`).
+  de la nuit (`VLP_CARNET`), pour le canal de la session (`VLP_CANAL`). Un reste ou une case du
+  menu de fin la passe avec `--sorte reste|case3|case4` : sans elle, le matin ne sait quoi en demander.
 - **Le plan du soir** : `vlp.py plan lire <projet> --date <la nuit>` — la nuit est le
   nom du fichier `VLP_CARNET`. La ligne `CHANTIER <code> … préfixe <P>` donne le
   préfixe ; avec `--chantier <code>`, les réponses du soir à ce chantier.
@@ -76,3 +77,4 @@ La session sait son rôle par ce qu'on lui a demandé :
 | `skills/chantier/SKILL.md:282-283` | un avertissement de `valider` ou une `GARDE:` de `page` : proposer d'alléger | Un arrêt, la sortie brute. Un avertissement met le chantier de côté. |
 | `skills/chantier/SKILL.md:285-287` | le lien, la première fiche, `/clear` à rappeler | L'arrêt final, sans `/clear` à rappeler. C'est le signal de la boucle : elle lit la carte à la sortie, un fichier de fiches courant vaut chantier découpé. |
 | `skills/enchainer/SKILL.md:112-117` et `skills/enchainer/references/refus.md:15-22` | un `RETOUR` ou une fiche `REFUSÉE` : un questionnaire | `/vlp:enchainer` ne tourne pas la nuit. La boucle tranche seule (`garde_de`) : relance, ou arrêt. La ligne `RÉÉCRITURE :` va au carnet, pour le matin. |
+| `skills/chef/SKILL.md` | toute la commande : le modèle, le tri, la page de questions, ses réponses, le plan | `/vlp:chef` ne se joue pas sous `NUIT=1` : un arrêt. Le plan s'écrit avant le lancement, par un humain présent ; `plan ecrire` refuse sous `VLP_NUIT=1`. |

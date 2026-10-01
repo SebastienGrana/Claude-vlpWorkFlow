@@ -767,8 +767,9 @@ racine du kit comme `cloture.md` : le seul endroit qui dit, pour chaque attente 
 ---
 
 <!-- FICHE:NUI14 -->
-## NUI14 [ ] — Renvoyer les commandes à nuit.md
+## NUI14 [x] — Renvoyer les commandes à nuit.md
 
+**Session** : 28c4a1ca-ce9e-4c0a-9a6e-a5edbd860a0c
 **Dépend de** : `NUI13`.
 **Fichiers** : `skills/tache/SKILL.md`, `skills/chantier/SKILL.md`, `cloture.md`, `nuit.md` (ses numéros de ligne seuls) ; lus seulement : `skills/enchainer/references/refus.md` (l. 1-2), `scripts/boucle.py` (docstring) ; dans le bac, `fiches.md` et la trace `F1.jsonl` — et rien d'autre.
 
@@ -809,8 +810,9 @@ Bac :
 ---
 
 <!-- FICHE:NUI15 -->
-## NUI15 [ ] — Fusionner le matin : CHANTIER.md et la feuille
+## NUI15 [x] — Fusionner le matin : CHANTIER.md et la feuille
 
+**Session** : 28c4a1ca-ce9e-4c0a-9a6e-a5edbd860a0c
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` ; lus : `templates/CHANTIER.md`, `templates/artefact-feuille-de-route.html`,
 `templates/artefact-archive-clos.html`, `methode-chantier.md` (l. 263-268) — et rien d'autre.
@@ -861,8 +863,9 @@ Tu ne fais pas : 08-etat.md, CLAUDE.md, l'index, archive-clos, `en-attente`, `.g
 ---
 
 <!-- FICHE:NUI16 -->
-## NUI16 [ ] — Fusionner le matin : 08-etat.md et les listes
+## NUI16 [x] — Fusionner le matin : 08-etat.md et les listes
 
+**Session** : 28c4a1ca-ce9e-4c0a-9a6e-a5edbd860a0c
 **Dépend de** : `NUI15`.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py`, `.gitattributes` (une ligne, seulement si l'essai la garde),
 `context AI/08-etat.md` (journal : le verdict de l'essai) — et rien d'autre.
@@ -914,8 +917,9 @@ feuille (`NUI15`) ; `/vlp:chef` (`NUI19`) ; aucun push ; aucun `.py` ni `.html` 
 ---
 
 <!-- FICHE:NUI17 -->
-## NUI17 [ ] — Remplir une page à cartes par script
+## NUI17 [x] — Remplir une page à cartes par script
 
+**Session** : 28c4a1ca-ce9e-4c0a-9a6e-a5edbd860a0c
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py`, `ARTEFACTS.md` (l. 19-23), `templates/rapport-choix.html` (lu, pas modifié) — et rien d'autre.
 
@@ -967,8 +971,9 @@ y renvoie. Tu ne fais pas : `/vlp:chef` ni le choix des questions (`NUI18`), le 
 ---
 
 <!-- FICHE:NUI18 -->
-## NUI18 [ ] — Écrire /vlp:chef, le soir
+## NUI18 [x] — Écrire /vlp:chef, le soir
 
+**Session** : 28c4a1ca-ce9e-4c0a-9a6e-a5edbd860a0c
 **Dépend de** : `NUI9`, `NUI11`, `NUI12`, `NUI13`, `NUI17`.
 **Fichiers** : `skills/chef/SKILL.md` (nouveau), `nuit.md` (une ligne de sa table), `scripts/test-vlp.py` (NIV1
 2128-2137, EVF4 2149-2161), `CLAUDE.md` (11-12), `README.md` (5, 86-88) ; lus : `skills/chantier/SKILL.md`
@@ -1016,8 +1021,9 @@ y renvoie. Tu ne fais pas : `/vlp:chef` ni le choix des questions (`NUI18`), le 
 ---
 
 <!-- FICHE:NUI19 -->
-## NUI19 [ ] — Écrire /vlp:chef, le matin
+## NUI19 [x] — Écrire /vlp:chef, le matin
 
+**Session** : 28c4a1ca-ce9e-4c0a-9a6e-a5edbd860a0c
 **Dépend de** : `NUI13`, `NUI15`, `NUI16`, `NUI18`.
 **Fichiers** : `skills/chef/SKILL.md`, `scripts/vlp.py`, `scripts/carnet.py`, `scripts/test-vlp.py`, `nuit.md` ; lus :
 `scripts/mesure-tokens.py` (`resoudre` :94, `sous_agents` :115, `mesurer` :220), `cloture.md:98-115`,

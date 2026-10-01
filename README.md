@@ -2,7 +2,7 @@
 
 Un kit portable — **un seul exemplaire, à côté des projets**, jamais recopié
 dedans. C'est un **plugin Claude Code** : il est chargé là où il est, il n'en
-existe aucune copie. Il apporte cinq commandes, les gabarits de fichiers, et
+existe aucune copie. Il apporte six commandes, les gabarits de fichiers, et
 la méthode qui les tient ensemble.
 
 Le partage tient en une ligne : **le kit porte le moteur, le projet porte ses
@@ -84,7 +84,7 @@ ln -s "<chemin>/Claude-vlpWorkflow" ~/.claude/skills/vlp
 ```
 
 Les commandes deviennent `/vlp:init`, `/vlp:chantier`, `/vlp:tache`,
-`/vlp:enchainer` et `/vlp:check`, avec l'agent `vlp:fiche` et la skill interne
+`/vlp:enchainer`, `/vlp:chef` et `/vlp:check`, avec l'agent `vlp:fiche` et la skill interne
 `vlp:jouer`, que seul `/vlp:enchainer` appelle. Le préfixe `vlp:`
 évite qu'un `/tache` d'ailleurs prenne la place du tien. **Si tu déplaces le
 kit**, refais le lien ; `/vlp:check` dira quels `CHANTIER.md` le citent encore

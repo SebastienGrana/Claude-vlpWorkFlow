@@ -8,8 +8,8 @@ https://github.com/SebastienGrana/Claude-vlpWorkFlow — cloné et utilisé en g
 ## Où on en est — en cinq lignes
 
 - Prouvé : le kit est un plugin (« degré 3 », version dans `.claude-plugin/plugin.json`),
-  chargé en place par un lien dans `~/.claude/skills/vlp` ; cinq commandes `/vlp:init`,
-  `/vlp:chantier`, `/vlp:tache`, `/vlp:enchainer`, `/vlp:check`, et l'agent `vlp:fiche`.
+  chargé en place par un lien dans `~/.claude/skills/vlp` ; six commandes `/vlp:init`,
+  `/vlp:chantier`, `/vlp:tache`, `/vlp:enchainer`, `/vlp:chef`, `/vlp:check`, et l'agent `vlp:fiche`.
 - Équipés : Cairn-VlpLib, MapDecorator, ProjetONZSM, TrackGen — et ce kit lui-même.
 - Chaque chantier clos a sa ligne dans `context AI/00-INDEX-archive.md`, son détail daté dans
   `context AI/08-etat.md` ; ici, les derniers seulement (`vlp.py clore` les tient).
