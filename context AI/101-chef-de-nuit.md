@@ -520,8 +520,9 @@ suit un terminal fermé : la docstring le dit), l'essai `powercfg /requests` (dr
 ---
 
 <!-- FICHE:NUI9 -->
-## NUI9 [ ] — Lancer les deux canaux d'une ligne
+## NUI9 [x] — Lancer les deux canaux d'une ligne
 
+**Session** : 28c4a1ca-ce9e-4c0a-9a6e-a5edbd860a0c
 **Dépend de** : `NUI7`.
 **Fichiers** : `scripts/boucle.py`, `scripts/test-boucle.py` ; lus seulement : `scripts/carnet.py`, `scripts/faux-claude.py`, `scripts/vlp.py` (`cmd_relecture`, `plan lire` de `NUI12`, la fonction de `NUI11` qui trouve le fichier des nuits) — et rien d'autre.
 

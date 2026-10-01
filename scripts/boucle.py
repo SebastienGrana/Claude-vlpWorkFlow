@@ -7,8 +7,8 @@ Seul script du kit qui appelle un modèle ; `vlp.py` reste sans appel modèle.
 
     boucle.py [dossier] --plafond N [--claude C] [--model M] [--effort E]
               [--permission-mode P] [--budget USD] [--traces DOSSIER]
-              [--nuit --canal C [--chantier X] [--date AAAA-MM-JJ] [--borne-usd USD] [--borne-chantiers N]
-               [--carnet CHEMIN] [--reprendre]]
+              [--nuit (--canal C [--chantier X] [--reprendre] | --lancer) [--date AAAA-MM-JJ] [--borne-usd USD]
+               [--borne-chantiers N] [--carnet CHEMIN]]
 
 Avant chaque fiche : `vlp.py carte` donne `PROCHAINE=` ; `aucune` arrête. Une fiche
 à bloc **Tentatives** arrête sans être jouée. Une fiche `(visuel)` (ligne `ARRÊT:`
@@ -118,6 +118,20 @@ s'il est découpé ; (c) la boucle d'un canal continue sur le reste du plan, dep
 canal encore vivant : elle suit un terminal fermé, l'humain sait que le canal est mort. Rien à reprendre : rien d'écrit.
 Éveil (win32 seulement) : `SetThreadExecutionState` par `ctypes`, `ES_CONTINUOUS | ES_SYSTEM_REQUIRED` au départ de `--nuit`,
 `ES_CONTINUOUS` à la fin ; la ligne `ÉVEIL tenu`, ou `ÉVEIL non tenu` (retour 0) et une note au carnet.
+
+Lancer une nuit (NUI9, sous `--nuit` seulement) : `py -3 <kit>/scripts/boucle.py --nuit --lancer <projet>`, la ligne du soir.
+`--nuit` sans `--lancer` reste un canal ; `--lancer` refuse `--canal`, `--chantier` et `--reprendre` (une nuit lancée se reprend
+par `--reprendre`, NUI8). `--plafond`, `--date`, `--carnet`, `--borne-usd`, `--borne-chantiers`, `--permission-mode` valent pour les
+deux canaux ; `--traces` est leur dossier de traces, par défaut celui du carnet (hors Git). Dans l'ordre, sans rien créer avant la
+dernière garde : `claude` trouvé une fois (`GARDE: claude introuvable`), passé en `--claude` aux deux canaux ; le projet — branche
+`main`, arbre propre, fichier des nuits non ignoré par Git (ignoré, il n'est dans aucun worktree : un tel projet ne se lance pas),
+aucun worktree `nuit-<date>-*` ni branche `nuit/<date>-*`, un plan à la date (`vlp.py plan lire`, sa borne lue une fois) ; sinon une
+`GARDE:` qui nomme la cause, sortie 1. Puis `.claude/worktrees/` ajouté à `info/exclude` du dépôt commun s'il n'est pas ignoré,
+deux worktrees détachés sur `main`, et deux `boucle.py --nuit --canal A|B <worktree>` en parallèle, même carnet. Imprime `DÉPART
+<canal> · pid <n> · <worktree>`, chaque ligne des filles préfixée `[A] ` ou `[B] ` (un fil de lecture par fille), `FIN <canal> ·
+code <n>` quand l'une sort, puis `RIEN FUSIONNÉ, RIEN POUSSÉ — /vlp:chef le matin`. Sort 0 si les deux sortent 0, sinon 1. Ctrl+C :
+`terminate()` aux deux, sort 1. Git n'y est lu que par `branch`, `status`, `check-ignore`, `rev-parse` et `worktree list`, écrit
+que par `worktree add` : ni merge, ni push, ni commit, ni checkout.
 """
 import argparse
 import datetime
@@ -130,6 +144,7 @@ import re
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 import uuid
 from typing import Any
@@ -273,6 +288,17 @@ def trouver_claude(choix):
         return choix
     _, s = vlp(["claude"], os.getcwd())
     return s[len("CLAUDE "):].strip() if s.startswith("CLAUDE ") else None
+
+
+def claude_de(choix):
+    """Le chemin de `claude`, ou None après la GARDE imprimée — celle de `main` et celle du lanceur (NUI9)."""
+    claude = trouver_claude(choix)
+    if not claude:
+        # Le Python du Store (shebang lu par `py`) voit un AppData virtualisé : ni le
+        # dossier ni le `.exe`, même par chemin exact. `py -3` lance le vrai (essai, 2026-09-26).
+        print("GARDE: claude introuvable — --claude, VLP_CLAUDE ou le PATH ; sous Windows, "
+              "lancer par `py -3` (Python : %s)" % sys.executable)
+    return claude
 
 
 def lire_carte(dossier):
@@ -796,8 +822,9 @@ def fiches_du_chantier(claude, a, racine, fichier, traces, verif, etat, canal=Fa
 
 def lire_plan(racine, a):
     """`(plan, erreur)` : `plan` = `(borne en $, borne en chantiers, codes du canal dans l'ordre de leur rang)`, lu
-    par `vlp.py plan lire --date --canal` — jamais à la main. `erreur` : la 1re ligne de sa sortie."""
-    code, s = vlp(["plan", "lire", racine, "--date", a.date, "--canal", a.canal], racine)
+    par `vlp.py plan lire --date --canal` (sans canal : tous, pour le lanceur) — jamais à la main. `erreur` : la 1re ligne
+    de sa sortie."""
+    code, s = vlp(["plan", "lire", racine, "--date", a.date] + (["--canal", a.canal] if a.canal else []), racine)
     borne = re.search(r"^BORNE (\S+) \$ · (\d+) chantiers$", s, re.M)
     liste = sorted((int(m.group(2)), m.group(1)) for l in s.splitlines()
                    for m in [re.match(r"CHANTIER (\S+) · canal \S+ · rang (\d+) · préfixe \S+$", l)] if m)
@@ -1114,6 +1141,159 @@ def boucle_canal(claude, a, racine, traces, etat, codes, todo, erreur_todo, repr
     return 0, "plan terminé — %s" % ", ".join("%d %s" % (n, nom) for nom, n in bilan.items())
 
 
+def cause_de_refus(racine, date):
+    """La cause pour laquelle la nuit `date` ne se lance pas depuis `racine`, ou None (NUI9). Rien ne s'écrit : Git est
+    lu (`branch`, `status`, `check-ignore`, `worktree list`), dans l'ordre — branche `main`, arbre propre (un plan non
+    commité manquerait aux worktrees), fichier des nuits non ignoré (ignoré, il n'est dans aucun worktree), aucun
+    worktree ni branche de cette nuit (une nuit lancée se reprend par `--reprendre`)."""
+    k = kit()
+    code, courante = k.git_texte(["branch", "--show-current"], racine)
+    if code != 0:
+        return "git branch impossible — %s" % courante
+    if courante.strip() != "main":
+        return "la branche courante est %s, pas main : les canaux partent de main" % (courante.strip() or "aucune (HEAD détachée)")
+    propre = arbre_propre(racine)
+    if propre is None:
+        return "git status impossible"
+    if not propre:
+        return "l'arbre n'est pas propre (git status --porcelain) : un plan non commité manquerait aux worktrees"
+    try:
+        nuits = k.fichier_nuits(racine)
+    except ValueError as e:
+        return str(e)
+    if nuits:
+        code, err = k.git_texte(["check-ignore", "-q", nuits], racine)
+        if code == 0:
+            return ("le fichier des nuits (%s) est ignoré par Git : il n'est dans aucun worktree"
+                    % os.path.relpath(nuits, racine).replace("\\", "/"))
+        if code != 1:
+            return "git check-ignore impossible — %s" % err
+    code, liste = k.git_texte(["worktree", "list", "--porcelain"], racine)
+    if code != 0:
+        return "git worktree list impossible — %s" % liste
+    deja = [l[len("worktree "):] for l in liste.splitlines()
+            if l.startswith("worktree ") and l.replace("\\", "/").rsplit("/", 1)[-1].startswith("nuit-%s-" % date)]
+    if deja:
+        return "un worktree de nuit existe déjà (%s) — une nuit lancée se reprend par --reprendre" % deja[0]
+    code, branches = k.git_texte(["branch", "--list", "nuit/%s-*" % date], racine)
+    if code != 0:
+        return "git branch --list impossible — %s" % branches
+    if branches.strip():
+        return ("une branche de cette nuit existe déjà (%s) — une nuit lancée se reprend par --reprendre"
+                % branches.strip().splitlines()[0].lstrip("*+ "))
+    return None
+
+
+def exclure_worktrees(racine, date):
+    """None, ou la raison de l'échec. `.claude/worktrees/` non ignoré (`check-ignore` sur le worktree du canal A) : sa
+    ligne entre dans `info/exclude` du dépôt commun (`rev-parse --git-common-dir`) — jamais `.gitignore` ni un fichier
+    suivi —, sans quoi le worktree d'un canal salirait le `git status` de `main`."""
+    k = kit()
+    code, err = k.git_texte(["check-ignore", "-q", ".claude/worktrees/nuit-%s-A" % date], racine)
+    if code == 0:
+        return None
+    if code != 1:
+        return "git check-ignore impossible — %s" % err
+    code, commun = k.git_texte(["rev-parse", "--path-format=absolute", "--git-common-dir"], racine)
+    if code != 0:
+        return "git rev-parse impossible — %s" % commun
+    exclure = os.path.join(commun.strip(), "info", "exclude")
+    try:
+        os.makedirs(os.path.dirname(exclure), exist_ok=True)
+        existant = ""
+        if os.path.isfile(exclure):
+            with open(exclure, encoding="utf-8", errors="replace") as h:
+                existant = h.read()
+        with open(exclure, "a", encoding="utf-8", newline="") as h:
+            h.write(("\n" if existant and not existant.endswith("\n") else "") + ".claude/worktrees/\n")
+    except OSError as e:
+        return "info/exclude non écrit — %s" % e
+    return None
+
+
+def ecrire_ligne(verrou, texte):
+    """Une ligne à la fois sur la sortie commune : les fils des deux canaux n'entremêlent pas les leurs."""
+    with verrou:
+        print(texte, flush=True)
+
+
+def suivre(canal, proc, verrou):
+    """Le fil d'un canal (NUI9) : chaque ligne de sa fille, préfixée `[canal] `, puis `FIN <canal> · code <n>` dès qu'elle sort."""
+    assert proc.stdout
+    for ligne in proc.stdout:
+        ecrire_ligne(verrou, "[%s] %s" % (canal, ligne.rstrip("\r\n")))
+    ecrire_ligne(verrou, "FIN %s · code %d" % (canal, proc.wait()))
+
+
+def lanceur(a):
+    """`--nuit --lancer <projet>` (NUI9) : la ligne que l'utilisateur tape le soir. Dans l'ordre, sans rien créer avant la
+    dernière garde : `claude` (une fois, passé aux deux canaux), `cause_de_refus`, le plan à la date (`vlp.py plan lire`,
+    sa borne lue une fois), `exclure_worktrees` ; puis deux worktrees détachés sur `main` et deux `boucle.py --nuit --canal`
+    en parallèle, un fil de lecture par fille. Sort 0 si les deux canaux sortent 0, 1 sinon (garde, Ctrl+C compris)."""
+    claude = claude_de(a.claude)
+    if not claude:
+        return 1
+    print("CLAUDE=%s" % claude)
+    racine = lire_carte(os.path.abspath(a.dossier))[0]
+    if not racine:
+        print("GARDE: aucun projet équipé (CHANTIER.md) depuis %s" % os.path.abspath(a.dossier))
+        return 1
+    cause = cause_de_refus(racine, a.date)
+    plan = None
+    if cause is None:
+        plan, erreur = lire_plan(racine, a)
+        cause = None if plan else "pas de plan utilisable à la date %s — %s" % (a.date, erreur)
+    a.carnet = a.carnet or carnet.du_jour(racine, a.date)
+    if cause is None and not a.carnet:
+        cause = "pas de dépôt Git pour le carnet de nuit"
+    if cause is None:
+        cause = exclure_worktrees(racine, a.date)
+    if cause:
+        print("GARDE: %s" % cause)
+        return 1
+    assert plan and a.carnet
+    borne_usd = plan[0] if a.borne_usd is None else a.borne_usd
+    borne_chantiers = plan[1] if a.borne_chantiers is None else a.borne_chantiers
+    k = kit()
+    worktrees = {}
+    for canal in k.CANAUX:
+        dossier = os.path.join(racine, ".claude", "worktrees", "nuit-%s-%s" % (a.date, canal))
+        code, err = k.git_texte(["worktree", "add", "--detach", dossier, "main"], racine)
+        if code != 0:
+            print("GARDE: le worktree du canal %s n'a pas pu se créer — %s" % (canal, err))
+            return 1
+        worktrees[canal] = dossier
+    traces_de = a.traces or os.path.dirname(a.carnet)
+    env = dict(os.environ, PYTHONIOENCODING="utf-8")
+    verrou, procs, fils = threading.Lock(), {}, []
+    for canal, dossier in worktrees.items():
+        traces = os.path.join(traces_de, "traces-%s-%s" % (a.date, canal))
+        os.makedirs(traces, exist_ok=True)
+        cmd = [sys.executable, "-u", os.path.join(ICI, "boucle.py"), dossier, "--nuit", "--canal", canal, "--date", a.date,
+               "--carnet", a.carnet, "--claude", claude, "--borne-usd", str(borne_usd),
+               "--borne-chantiers", str(borne_chantiers), "--traces", traces, "--permission-mode", a.permission_mode]
+        if a.plafond is not None:
+            cmd += ["--plafond", str(a.plafond)]
+        proc = subprocess.Popen(cmd, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
+                                encoding="utf-8", errors="replace")
+        procs[canal] = proc
+        ecrire_ligne(verrou, "DÉPART %s · pid %d · %s" % (canal, proc.pid, dossier))
+        fil = threading.Thread(target=suivre, args=(canal, proc, verrou), daemon=True)
+        fil.start()
+        fils.append(fil)
+    try:
+        while any(f.is_alive() for f in fils):
+            time.sleep(0.2)
+    except KeyboardInterrupt:
+        for proc in procs.values():
+            proc.terminate()
+        ecrire_ligne(verrou, "ARRÊT Ctrl+C — terminate() aux deux canaux ; la reprise est --reprendre")
+        return 1
+    ecrire_ligne(verrou, "RIEN FUSIONNÉ, RIEN POUSSÉ — /vlp:chef le matin")
+    codes = [proc.wait() for proc in procs.values()]
+    return 0 if not any(codes) else 1
+
+
 def main(argv):
     p = argparse.ArgumentParser(description="Une session claude -p neuve par fiche.")
     p.add_argument("dossier", nargs="?", default=".")
@@ -1132,10 +1312,14 @@ def main(argv):
     p.add_argument("--borne-chantiers", type=int)
     p.add_argument("--carnet")
     p.add_argument("--reprendre", action="store_true")
+    p.add_argument("--lancer", action="store_true")
     a = p.parse_args(argv)
     if a.nuit:
-        if not a.canal:
-            p.error("--nuit exige --canal")
+        if a.lancer:
+            if a.canal or a.chantier or a.reprendre:
+                p.error("--lancer ouvre les deux canaux lui-même : il refuse --canal, --chantier et --reprendre")
+        elif not a.canal:
+            p.error("--nuit exige --canal, ou --lancer pour les deux canaux")
         if a.carnet and not os.path.isabs(a.carnet):
             p.error("--carnet doit être un chemin absolu")
         if a.reprendre:
@@ -1152,19 +1336,17 @@ def main(argv):
         if a.plafond is None:
             p.error("--plafond est exigé sans --nuit")
         if a.canal or a.chantier or a.date or a.borne_usd is not None or a.borne_chantiers is not None or a.carnet \
-                or a.reprendre:
-            p.error("--canal, --chantier, --date, --borne-usd, --borne-chantiers, --carnet et --reprendre exigent --nuit")
+                or a.reprendre or a.lancer:
+            p.error("--canal, --chantier, --date, --borne-usd, --borne-chantiers, --carnet, --reprendre et --lancer exigent --nuit")
+    if a.lancer:
+        return lanceur(a)
     canal = bool(a.nuit and not a.chantier)   # la boucle d'un canal (NUI7), sinon un seul chantier ouvert
     if a.reprendre and (not os.path.isdir(a.dossier) or tete_de(os.path.abspath(a.dossier)) is None):
         print("GARDE: le worktree du canal est absent, ou n'est pas un dépôt Git avec un commit — %s" % os.path.abspath(a.dossier))
         return 1
 
-    claude = trouver_claude(a.claude)
+    claude = claude_de(a.claude)
     if not claude:
-        # Le Python du Store (shebang lu par `py`) voit un AppData virtualisé : ni le
-        # dossier ni le `.exe`, même par chemin exact. `py -3` lance le vrai (essai, 2026-09-26).
-        print("GARDE: claude introuvable — --claude, VLP_CLAUDE ou le PATH ; sous Windows, "
-              "lancer par `py -3` (Python : %s)" % sys.executable)
         return 1
     print("CLAUDE=%s" % claude)
     racine, fichier, _, a.plugin_retard = lire_carte(os.path.abspath(a.dossier))

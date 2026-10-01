@@ -915,9 +915,10 @@ def tester_canal():
         with open(chemin, "w", encoding="utf-8", newline="") as h:
             h.write(texte)
 
-    def depot_canal(t, hors, codes, couts=("~2 fiches",) * 3, borne_chantiers=3):
+    def depot_canal(t, hors, codes, couts=("~2 fiches",) * 3, borne_chantiers=3, codes_b=()):
         """Un dépôt Git équipé, tout commité : CHANTIER.md sans chantier ouvert, la TODO (AAA, BBB qui dépend de AAA,
-        CCC) et, si `codes`, le plan du soir `DATE` du canal A écrit par `vlp.py plan ecrire`. `hors` : plan et hooks."""
+        CCC) et, si `codes`, le plan du soir `DATE` du canal A — et du canal B pour `codes_b`, NUI9 — écrit par
+        `vlp.py plan ecrire`. `hors` : plan et hooks."""
         entete = "| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |\n|---|---|---|---|---|\n"
         subprocess.run(["git", "init", "-q", t], check=True, capture_output=True)
         ecrire_f(os.path.join(t, "CHANTIER.md"),
@@ -934,6 +935,8 @@ def tester_canal():
         if codes:
             plan = {"borne_usd": 5, "borne_chantiers": borne_chantiers,
                     "A": [{"code": c, "prefixe": c, "reponses": []} for c in codes]}
+            if codes_b:
+                plan["B"] = [{"code": c, "prefixe": c, "reponses": []} for c in codes_b]
             ecrire_f(os.path.join(hors, "plan.json"), json.dumps(plan))
             r = subprocess.run([sys.executable, os.path.join(ICI, "vlp.py"), "plan", "ecrire", t, "--json",
                                 os.path.join(hors, "plan.json"), "--date", DATE], capture_output=True, text=True,
@@ -1389,5 +1392,177 @@ def tester_reprise(aides):
 
 
 tester_reprise(aides_canal)
+
+
+# --- lancer les deux canaux d'une nuit (NUI9) -------------------------------------------------------------
+# Chaque cas bâtit projet, dépôt sur `main`, dépôt nu `origin` (poussé une fois), carnet et `~` dans des dossiers jetés.
+
+def tester_lanceur(aides):
+    DATE, depot_canal, carnet_du = aides["DATE"], aides["depot_canal"], aides["carnet_du"]
+    br, sha, branches, ecrire_f = aides["br"], aides["sha"], aides["branches"], aides["ecrire_f"]
+    ecrits = [0]
+    SOIR = "RIEN FUSIONNÉ, RIEN POUSSÉ — /vlp:chef le matin"
+
+    def neuf(nom, cond, sortie):
+        """Un cas neuf de NUI9 : `verifier` sort au premier écart, donc ceux qui passent = ceux qui sont écrits."""
+        ecrits[0] += 1
+        verifier("NUI9 " + nom, cond, sortie)
+
+    def projet_lanceur(t, hors, o):
+        """Le dépôt de `depot_canal` avec un plan à deux chantiers en A (AAA, BBB) et un en B (CCC), sur `main`, et un
+        dépôt nu `origin` poussé une fois."""
+        depot_canal(t, hors, ("AAA", "BBB"), codes_b=("CCC",))
+        git(t, "branch", "-M", "main")
+        subprocess.run(["git", "init", "-q", "--bare", o], check=True, capture_output=True)
+        git(t, "remote", "add", "origin", o)
+        git(t, "push", "-q", "origin", "main")
+
+    def lance(t, *options, claude: Any = FAUX_CLAUDE, base=None, **env):
+        """boucle.py --nuit --lancer --date DATE dans `t` : (code, sortie). Sans --traces : celles des canaux vont au carnet."""
+        env_ = dict(base) if base is not None else {k: v for k, v in os.environ.items()
+                                                    if k not in (carnet.ENV_CARNET, carnet.ENV_CANAL)}
+        env_.update(ENV_GIT)
+        env_.update(VLP_FAUX_VLP=os.path.join(ICI, "vlp.py"), VLP_FAUX_CLORE="commit", PYTHONIOENCODING="utf-8")
+        env_.update(env)
+        argv = [sys.executable, os.path.join(ICI, "boucle.py"), t, "--nuit", "--lancer", "--date", DATE]
+        r = subprocess.run(argv + (["--claude", claude] if claude else []) + list(options), env=env_,
+                           capture_output=True, text=True, encoding="utf-8")
+        return r.returncode, r.stdout + r.stderr
+
+    def chemin_carnet(t):
+        chemin = carnet.du_jour(t, DATE)
+        assert chemin
+        return chemin
+
+    def octets(chemin):
+        with open(chemin, "rb") as h:
+            return h.read()
+
+    def worktrees(t):
+        return git(t, "worktree", "list").splitlines()
+
+    def exclu(t):
+        """Le texte de `info/exclude` du dépôt, ou ''."""
+        chemin = os.path.join(t, ".git", "info", "exclude")
+        return octets(chemin).decode("utf-8", "replace") if os.path.isfile(chemin) else ""
+
+    def rien_cree(t):
+        """Aucun worktree, aucun dossier `.claude/worktrees`, rien dans le dossier du carnet, `info/exclude` sans la ligne."""
+        return (len(worktrees(t)) == 1 and not os.path.exists(os.path.join(t, ".claude", "worktrees"))
+                and not glob.glob(os.path.join(os.path.dirname(chemin_carnet(t)), "*")) and ".claude/worktrees" not in exclu(t))
+
+    # (a) la nuit lancée : deux canaux en parallèle, rien fusionné, rien poussé ---------------------------------------------
+    with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors, tempfile.TemporaryDirectory() as o:
+        projet_lanceur(t, hors, o)
+        avant = (sha(t, "main"), git(t, "ls-remote", "origin"))
+        code, s = lance(t, VLP_FAUX_DORT="1")
+        lignes = s.splitlines()
+
+        def rang(debut):
+            return next((i for i, l in enumerate(lignes) if l.startswith(debut)), -1)
+        dep_a, dep_b, fin_a, fin_b, ligne_b = (rang(x) for x in ("DÉPART A · pid ", "DÉPART B · pid ", "FIN A · code ", "FIN B · code ", "[B] "))
+        neuf("(a) --lancer, A : AAA et BBB, B : CCC, VLP_FAUX_DORT=1 : DÉPART A et DÉPART B avant toute ligne FIN ; des lignes "
+             "[B] et FIN B avant FIN A, des lignes [A] après FIN B ; FIN code 0 des deux, dernière ligne « RIEN FUSIONNÉ, RIEN "
+             "POUSSÉ », sort 0",
+             code == 0 and min(dep_a, dep_b, fin_a, fin_b, ligne_b) >= 0 and max(dep_a, dep_b) < min(fin_a, fin_b)
+             and ligne_b < fin_b < fin_a and any(l.startswith("[A] ") for l in lignes[fin_b:])
+             and lignes[fin_a].startswith("FIN A · code 0") and lignes[fin_b].startswith("FIN B · code 0") and lignes[-1] == SOIR, s)
+        carnets = glob.glob(os.path.join(os.path.dirname(chemin_carnet(t)), "*.jsonl"))
+        ligs = carnet_du(t)
+        liste = "\n".join(worktrees(t))
+        neuf("(a) git worktree list porte nuit-<date>-A et -B ; un seul carnet, des lignes des canaux A et B (A : AAA et BBB, "
+             "B : CCC) ; les trois chantiers ont leur branche ; sha de main et ls-remote origin identiques ; git status "
+             "--porcelain vide ; .gitignore absent, la ligne .claude/worktrees/ dans info/exclude",
+             len(worktrees(t)) == 3 and "nuit-%s-A" % DATE in liste and "nuit-%s-B" % DATE in liste and len(carnets) == 1
+             and {(d["canal"], d["chantier"]) for d in ligs if carnet.est_session(d)} == {("A", "AAA"), ("A", "BBB"), ("B", "CCC")}
+             and sorted(branches(t)) == [br("AAA"), br("BBB"), "nuit/%s-B-CCC" % DATE]
+             and (sha(t, "main"), git(t, "ls-remote", "origin")) == avant and git(t, "status", "--porcelain").strip() == ""
+             and not os.path.exists(os.path.join(t, ".gitignore")) and ".claude/worktrees/" in exclu(t).splitlines(),
+             (liste, carnets, branches(t), git(t, "status", "--porcelain"), exclu(t)))
+        dossier_carnet = os.path.dirname(chemin_carnet(t))
+        neuf("(a) les traces des deux canaux vont dans le dossier du carnet (hors Git), une par canal, non vides",
+             all(os.listdir(os.path.join(dossier_carnet, "traces-%s-%s" % (DATE, c))) for c in "AB"), os.listdir(dossier_carnet))
+
+        # (b) relancé à la même date : un worktree de nuit existe déjà ; sans eux, ce sont les branches -----------------
+        avant_b = (octets(chemin_carnet(t)), worktrees(t), branches(t))
+        code, s = lance(t)
+        neuf("(b) relancé à la même date : GARDE sur le worktree existant, sort 1, aucun DÉPART, aucun worktree de plus, "
+             "carnet et branches inchangés",
+             code == 1 and "GARDE: un worktree de nuit existe déjà" in s and "DÉPART" not in s
+             and (octets(chemin_carnet(t)), worktrees(t), branches(t)) == avant_b, s)
+        for ligne in worktrees(t)[1:]:
+            git(t, "worktree", "remove", "--force", ligne.split()[0])
+        code, s = lance(t)
+        neuf("(b) les worktrees retirés, les branches restent : GARDE sur la branche existante, sort 1, aucun worktree",
+             code == 1 and "GARDE: une branche de cette nuit existe déjà" in s and "DÉPART" not in s and len(worktrees(t)) == 1
+             and octets(chemin_carnet(t)) == avant_b[0], s)
+
+    # (c) les gardes du projet : aucun worktree, aucun carnet, rien d'écrit avant la dernière ---------------------------
+    with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors, tempfile.TemporaryDirectory() as o:
+        projet_lanceur(t, hors, o)
+        ecrire_f(os.path.join(t, "ctx", "100-x.md"), "# x modifié, pas commité\n")
+        code, s = lance(t)
+        neuf("(c) un fichier non commité : GARDE sur l'arbre, sort 1, rien créé",
+             code == 1 and s.splitlines()[-1].startswith("GARDE: l'arbre n'est pas propre") and rien_cree(t), s)
+        git(t, "checkout", "-q", "--", ".")
+        git(t, "switch", "-q", "-c", "autre")
+        code, s = lance(t)
+        neuf("(c) pas sur main : GARDE sur la branche, sort 1, rien créé",
+             code == 1 and "GARDE: la branche courante est autre, pas main" in s and rien_cree(t), s)
+        git(t, "switch", "-q", "main")
+        code, s = lance(t, "--date", "2026-10-02")
+        neuf("(c) pas de plan à la date : GARDE sur le plan, sort 1, rien créé",
+             code == 1 and "GARDE: pas de plan utilisable à la date 2026-10-02" in s and rien_cree(t), s)
+        nuits = os.path.relpath(glob.glob(os.path.join(t, "ctx", "*-nuits.md"))[0], t).replace("\\", "/")
+        ecrire_f(os.path.join(t, ".gitignore"), "ctx/*-nuits.md\n")
+        git(t, "rm", "-q", "--cached", nuits)
+        git(t, "add", ".gitignore")
+        git(t, "commit", "-q", "-m", "le fichier des nuits ignoré")
+        code, s = lance(t)
+        neuf("(c) fichier des nuits ignoré (.gitignore) : GARDE sur le fichier, sort 1, rien créé",
+             code == 1 and "GARDE: le fichier des nuits (%s) est ignoré par Git" % nuits in s and rien_cree(t)
+             and git(t, "status", "--porcelain").strip() == "", s)
+
+    with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors, tempfile.TemporaryDirectory() as o:
+        projet_lanceur(t, hors, o)
+        ecrire_f(os.path.join(t, ".gitignore"), ".claude/worktrees/\n")
+        git(t, "add", ".gitignore")
+        git(t, "commit", "-q", "-m", "worktrees ignorés")
+        avant_exclu = exclu(t)
+        code, s = lance(t)
+        neuf("(c) .claude/worktrees/ déjà ignoré (.gitignore) : la nuit part, info/exclude n'est pas touché, sort 0",
+             code == 0 and "FIN A · code 0" in s and "FIN B · code 0" in s and exclu(t) == avant_exclu
+             and git(t, "status", "--porcelain").strip() == "", s)
+
+    # (d) claude introuvable : la GARDE d'avant tout le reste ------------------------------------------------------------
+    with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors, tempfile.TemporaryDirectory() as o, \
+            tempfile.TemporaryDirectory() as vide:
+        projet_lanceur(t, hors, o)
+        reduit = {k: v for k, v in os.environ.items() if k not in ("VLP_CLAUDE", carnet.ENV_CARNET, carnet.ENV_CANAL)}
+        reduit.update(PATH=os.path.dirname(sys.executable), LOCALAPPDATA=vide, APPDATA=vide)
+        code, s = lance(t, claude=None, base=reduit)
+        neuf("(d) claude introuvable (VLP_CLAUDE ôtée, PATH réduit à Python, LOCALAPPDATA et APPDATA vides) : GARDE: claude "
+             "introuvable, sort 1, aucun worktree",
+             code == 1 and s.startswith("GARDE: claude introuvable") and rien_cree(t), s)
+
+    # (e) les options : ce qu'argparse refuse -------------------------------------------------------------------------------
+    with tempfile.TemporaryDirectory() as t:
+        def argparse_refuse(*options):
+            r = subprocess.run([sys.executable, os.path.join(ICI, "boucle.py"), t, *options], capture_output=True, text=True,
+                               encoding="utf-8")
+            return r.returncode, r.stdout + r.stderr
+        code, s = argparse_refuse()
+        neuf("(e) sans --lancer ni --nuit, --plafond absent : refusé par argparse (code 2)",
+             code == 2 and "--plafond est exigé sans --nuit" in s, s)
+        code, s = argparse_refuse("--lancer", "--plafond", "1")
+        neuf("(e) --lancer sans --nuit : refusé par argparse (code 2)", code == 2 and "exigent --nuit" in s, s)
+        code, s = argparse_refuse("--nuit", "--lancer", "--canal", "A")
+        neuf("(e) --nuit --lancer --canal : refusé par argparse (code 2), le lanceur ouvre les deux canaux lui-même",
+             code == 2 and "--lancer ouvre les deux canaux" in s, s)
+
+    sys.stderr.write("NUI9 : %d cas neufs passés / %d écrits\n" % (ecrits[0], ecrits[0]))
+
+
+tester_lanceur(aides_canal)
 
 print("OK")
