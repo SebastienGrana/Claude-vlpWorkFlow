@@ -604,8 +604,9 @@ le décompte de la feuille du kit bouge : `feuille . --verifier` dit écart jusq
 ---
 
 <!-- FICHE:NUI11 -->
-## NUI11 [ ] — Tenir le fichier des nuits
+## NUI11 [x] — Tenir le fichier des nuits
 
+**Session** : 763247fd-fd16-4c79-beca-2714a79f98ad
 **Dépend de** : `NUI3`, `NUI10`.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py`, `methode-chantier.md`, `scripts/carnet.py` (lu)
 — et rien d'autre.

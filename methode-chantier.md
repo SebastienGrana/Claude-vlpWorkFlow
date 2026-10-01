@@ -271,7 +271,7 @@ Le sous-agent de `/vlp:enchainer` ne commite pas — il n'a ni le contexte ni le
 droit : c'est le chef qui commite, après chaque `FAITE` accepté à la relecture
 (`enchainement.md`, « Relecture »).
 
-## Où vit quoi — les six familles, et rien d'autre
+## Où vit quoi — les sept familles, et rien d'autre
 
 | Fichier | À la racine ? | Qui le lit | Longueur visée |
 |---|---|---|---|
@@ -281,6 +281,7 @@ droit : c'est le chef qui commite, après chaque `FAITE` accepté à la relectur
 | le **fichier d'état** | non | reprise à froid ; le choix du prochain chantier n'en lit que la TODO, par la carte | libre |
 | les **fichiers de fiches**, un par chantier | non | `/vlp:tache` et `/vlp:enchainer`, **par plages**, jamais en entier | libre |
 | `<contexte>/artefacts/*.html` | non | publié pour l'utilisateur ; relu par `/vlp:tache` à chaque fiche, par `/vlp:enchainer` une fois par lancement | le seuil de `vlp.py` |
+| `<contexte>/NN-nuits.md`, un seul, créé par `vlp.py` à la première nuit | non | le plan du soir, la table des nuits et les leçons ; `vlp.py trier` imprime les leçons ; la ligne d'index le déclare | libre |
 
 Le dossier de contexte s'appelle `context AI/` par défaut. Son nom importe peu ;
 ce qui compte est qu'il soit **un seul dossier**, à plat, numéroté.

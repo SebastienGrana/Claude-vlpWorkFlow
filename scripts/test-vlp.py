@@ -4968,6 +4968,124 @@ def tester_trier():
 tester_trier()
 
 
+# --- NUI11 : le fichier des nuits, ses leçons et le TAUX imprimés par trier ---
+
+def tester_fichier_nuits():
+    entete = "| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |\n|---|---|---|---|---|\n"
+    carte = ("# C\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n- **fichier d'état** : ctx/08-etat.md\n"
+             "- **fichier de fiches courant** : aucun\n- **artefact du chantier** : aucun\n\n"
+             "Lettres de fiche déjà prises : E (Un). Un nouveau chantier en choisit une autre.\n")
+    indice = ("# Index\n\n| Fichier | Lire quand |\n|---|---|\n| `00-INDEX.md` | l'index |\n| `08-etat.md` | l'état |\n"
+              "| `100-x.md` | un chantier |\n\nFin.\n")
+    rang = ('          <tr>\n            <td>x</td>\n            <td class="mono">%s</td><td class="mono">2026-01-01</td>\n'
+            '            <td class="mono">%s</td>\n            <td>y</td>\n          </tr>\n')
+    lecon = "- 2026-09-26 · N=%d · %s · jouées 3 sur 5 · nuits 2026-09-25 · sessions s1"
+    env = os.environ.get("CLAUDE_CODE_SESSION_ID")
+    os.environ["CLAUDE_CODE_SESSION_ID"] = ""
+    with tempfile.TemporaryDirectory() as tp:
+        subprocess.run(["git", "init", "-q"], cwd=tp, check=True, capture_output=True)
+        ecrire(os.path.join(tp, "CHANTIER.md"), carte)
+        ecrire(os.path.join(tp, "ctx", "00-INDEX.md"), indice)
+        ecrire(os.path.join(tp, "ctx", "08-etat.md"), "# État\n\n" + entete + "| 1 | `AAA` — a | x | 1 fiche | — |\n\n## Journal\n")
+        ecrire(os.path.join(tp, "ctx", "100-x.md"), "# x\n")
+        lire_idx = lambda: io.open(os.path.join(tp, "ctx", "00-INDEX.md"), encoding="utf-8").read()
+        # (a) création : le numéro suivant le plus grand, la ligne sous le plus grand numéro lu en entier
+        _, s0 = appel(["trier", tp])
+        chemin = mod.fichier_nuits(tp, True)
+        idx = lire_idx().splitlines()
+        avant = lire_idx()
+        verifier("NUI11 (a) : 00, 08, 100 → 101-nuits.md, sa ligne d'index juste sous celle de 100 ; trier sans fichier le dit",
+                 chemin == os.path.join(tp, "ctx", "101-nuits.md") and os.path.isfile(chemin)
+                 and idx[idx.index("| `100-x.md` | un chantier |") + 1].startswith("| `101-nuits.md` |")
+                 and "**clos**" not in avant and "**ouvert**" not in avant and "NUITS absent" in s0, (chemin, idx, s0))
+        verifier("NUI11 (a) : relancé, même chemin, index inchangé ; archiver ne la déplace pas",
+                 mod.fichier_nuits(tp, True) == chemin and lire_idx() == avant
+                 and appel(["archiver", tp])[1].startswith("ARCHIVÉ 0 ") and lire_idx() == avant, lire_idx())
+        # (b) écrire, retirer, indice, plafond, forme
+        ligne_t = "| 2026-09-25 | A | NUI | 3/2/1 | 4,50 |"
+        premiere, seconde = mod.nuits_ecrire(chemin, ligne_t), mod.nuits_ecrire(chemin, ligne_t)
+        l2 = lecon % (2, "cause un")
+        mod.nuits_ecrire(chemin, l2)
+        mod.nuits_ecrire(chemin, l2)
+        lu = io.open(chemin, encoding="utf-8").read()
+        verifier("NUI11 (b) : nuits_ecrire deux fois → une ligne de table, une leçon",
+                 premiere is True and seconde is False and lu.count(ligne_t) == 1 and lu.count(l2) == 1
+                 and lu.index(ligne_t) < lu.index("## Leçons") < lu.index(l2), lu)
+        code, s = appel(["trier", tp])
+        verifier("NUI11 (b) : N=2 → la leçon porte « indice », sous --- Leçons ---, sort 0",
+                 code == 0 and "--- Leçons : ctx/101-nuits.md (lignes " in s and l2 + " — indice" in s.splitlines(), s)
+        retiree = mod.nuits_retirer(chemin, l2, "2026-09-27", "NUI12")
+        encore = mod.nuits_retirer(chemin, l2, "2026-09-27", "NUI12")
+        code, s = appel(["trier", tp])
+        verifier("NUI11 (b) : nuits_retirer → suffixe, leçon gardée, plus d'indice, rien la seconde fois",
+                 retiree is True and encore is False
+                 and l2 + " — retirée le 2026-09-27 par NUI12" in s.splitlines() and " — indice" not in s and code == 0, s)
+        for k in range(12):
+            mod.nuits_ecrire(chemin, lecon % (3, "cause %d" % k))
+        code, s = appel(["trier", tp])
+        verifier("NUI11 (b) : 12 vivantes + 1 retirée → pas de GARDE — mutant : retirées comptées vivantes",
+                 code == 0 and "GARDE" not in s, s)
+        mod.nuits_ecrire(chemin, lecon % (3, "cause 12"))
+        code, s = appel(["trier", tp])
+        verifier("NUI11 (b) : 13 vivantes → GARDE:, tri imprimé, sort 1",
+                 code == 1 and "GARDE: 13 leçons vivantes" in s and "TRI 1 rangs" in s, s)
+        ecrire(chemin, io.open(chemin, encoding="utf-8").read().replace(lecon % (3, "cause 12") + "\n", "- pas une forme\n"))
+        code, s = appel(["trier", tp])
+        verifier("NUI11 (b) : une leçon hors forme → GARDE: qui la cite, tri imprimé, sort 1",
+                 code == 1 and "GARDE: leçon hors forme" in s and "- pas une forme" in s and "TRI 1 rangs" in s, s)
+        ecrire(chemin, io.open(chemin, encoding="utf-8").read().replace("- pas une forme\n", ""))
+        # (d) une ligne de table à 6 cellules
+        try:
+            mod.nuits_du_fichier(mod.NUITS_TETE[:6] + ["| a | b | c | d | e | f |"] + mod.NUITS_TETE[6:])
+            dit = "aucune erreur"
+        except ValueError as e:
+            dit = str(e)
+        verifier("NUI11 (d) : une ligne de table à 6 cellules lève une ValueError qui la nomme",
+                 "ligne 7 de la table des nuits : 6 cellules au lieu de 5" in dit, dit)
+        # (c) TAUX nuit : carnets du dépôt, médiane des fiches acceptées
+        c1, c2 = mod.carnet.du_jour(tp, "2026-09-25"), mod.carnet.du_jour(tp, "2026-09-26")
+
+        def fiche(c, nuit, code, lignes, refus=None):
+            for role, usd_kit, usd_cli in lignes:
+                mod.carnet.ajouter(c, nuit=nuit, canal="A", chantier="NUI", role=role, fiche=code, usd_kit=usd_kit,
+                                   usd_cli=usd_cli, refus_n=refus if role == "relire" else None)
+
+        fiche(c1, "2026-09-25", "N1", [("jouer", 0.5, 99), ("relire", 0.5, 99)])
+        fiche(c1, "2026-09-25", "N2", [("jouer", 0.5, 99), ("relire", 1.5, 99)])
+        fiche(c2, "2026-09-26", "N3", [("jouer", 0.5, 99), ("relance", 1.0, 99), ("relire", 1.5, 99)])
+        fiche(c2, "2026-09-26", "N4", [("jouer", 0.5, 99), ("relire", 3.5, 99)])
+        code, s = appel(["trier", tp])
+        verifier("NUI11 (c) : 4 fiches acceptées → indice, sans chiffre — mutant : CARNET_MIN = 0",
+                 "TAUX nuit indice — 4 fiches acceptées" in s.splitlines(), s)
+        fiche(c2, "2026-09-26", "N5", [("jouer", 0.5, 99), ("relire", 9.5, 99)])
+        fiche(c2, "2026-09-26", "R1", [("jouer", 100, 99), ("relire", 50, 99)], refus=1)
+        fiche(c2, "2026-09-26", "R1", [("relance", 40, 99), ("relire", 50, 99)], refus=2)
+        mod.carnet.ajouter(c1, nuit="2026-09-25", canal="A", chantier="NUI", role="relance", fiche="N1", usd_kit=None, usd_cli=99)
+        code, s = appel(["trier", tp])
+        verifier("NUI11 (c) : 5 fiches (1, 2, 3, 4, 10), une refusée deux fois hors compte, une ligne sans usd_kit"
+                 " → médiane 3 — mutant : usd_kit lu en usd_cli",
+                 "TAUX nuit médiane 3 $/fiche sur 5 fiches acceptées · sans usd_kit 1" in s.splitlines(), s)
+        # TAUX jour : le prix par fiche de l'estimé d'`ouvrir`, sur la même feuille
+        ecrire(os.path.join(tp, "ctx", "artefacts", "feuille-de-route.html"),
+               "<!-- ZONE:clos -->\n<tbody>\n" + rang % ("A1–A3", "3,00 $ · ≈3,0M (3 000 000)")
+               + rang % ("B1", "1,00 $ · ≈1,0M (1 000 000)") + rang % ("D1–D2", "≈2,0M (2 000 000)")
+               + rang % ("E1–E8", "non recompté — fichier introuvable · non mesurable") + "</tbody>\n")
+        _, s = appel(["trier", tp])
+        ecrire(os.path.join(tp, "ctx", "30-q.md"), "# Chantier Q — q\n\n**Fait.** Rien.\n\n## Q1 [ ] — a\n")
+        appel(["ouvrir", tp, "--fiches", "ctx/30-q.md", "--titre", "q", "--estime-fiches", "2"])
+        estime = re.search(r"— (≈[\d,]+ \$/fiche sur \d+ clos) \(le", io.open(os.path.join(tp, "ctx", "30-q.md"), encoding="utf-8").read())
+        verifier("NUI11 (c) : TAUX jour = le prix par fiche de l'estimé d'ouvrir sur la même feuille (≈1,00 $/fiche sur 3 clos)",
+                 estime is not None and estime.group(1) == "≈1,00 $/fiche sur 3 clos"
+                 and "TAUX jour " + estime.group(1) in s.splitlines(), (s, estime))
+    if env is None:
+        os.environ.pop("CLAUDE_CODE_SESSION_ID", None)
+    else:
+        os.environ["CLAUDE_CODE_SESSION_ID"] = env
+
+
+tester_fichier_nuits()
+
+
 # --- BTN1 : `vlp.js` joint aux pages, la ligne FILES ; charset et script posés une fois ---
 
 def tester_joints():

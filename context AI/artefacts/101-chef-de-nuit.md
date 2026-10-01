@@ -12,7 +12,7 @@
 - NUI8 : une nuit coupée se reprend sans rien perdre — dépend de NUI7
 - NUI9 : la ligne qui lance les deux canaux — dépend de NUI7
 - NUI10 : test-vlp.py OK (tester_trier neuf) · 4 mutants MUTANT ATTRAPÉ · trier . sur le kit : sort 0, 8 rangs, 5 PRÊT, 3 ÉCARTÉE, CANAL CAR+TAB+CLV par vlp.py, APR FICHIERS 99-jnt1-mesure.py sans SOIR · pyright 0 errors
-- NUI11 : le fichier des nuits, ses leçons et son taux — dépend de NUI3 et NUI10
+- NUI11 : test-vlp.py OK (tester_fichier_nuits neuf, cas a à d) · 3 mutants MUTANT ATTRAPÉ (CARNET_MIN = 0, retirées vivantes, usd_kit lu usd_cli) · grep -c nuits.md 0 → 1, sept familles 1 · pyright 0 errors sur vlp.py et test-vlp.py
 - NUI12 : le plan de nuit écrit par script — dépend de NUI11
 - NUI13 : nuit.md : ce que la nuit fait à la place de l'humain — dépend de NUI12
 - NUI14 : les commandes renvoient à nuit.md, essai sur bac — dépend de NUI13

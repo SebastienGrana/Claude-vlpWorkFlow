@@ -191,7 +191,11 @@ Sous-commandes :
   `MARQUES <code> <total> : …` (`MARQUES_TRI`), `SOIR <code> — <raison>` pour une prête à découper le soir
   (au-delà de `GROS_FICHES`, sans nombre, « à cadrer »). Puis `CANAL <k> : <codes> — <raisons>` par groupe de prêtes
   liées (dépendance, sinon fichier commun comparé sur son nom), `inconnu → à la page` sans lien, et `TRI <n> rangs ·
-  <n> prêts · <n> écartées`. TODO illisible : `GARDE:`, sort 1.
+  <n> prêts · <n> écartées`. TODO illisible : `GARDE:`, sort 1. Puis le fichier des nuits (`fichier_nuits`,
+  `<contexte>/NN-nuits.md`) : sa section `## Leçons` (`indice` aux vivantes sous `LECON_INDICE` ; `GARDE:`, tri
+  imprimé, sort 1, si le fichier ne se lit pas ou au-delà de `LECONS_MAX` vivantes), puis `TAUX jour` (le prix
+  par fiche des clos, comme l'estimé d'`ouvrir`) et `TAUX nuit` (médiane des fiches acceptées des carnets,
+  `indice` sous `CARNET_MIN`).
 - `joints <dossier>` — recopie `templates/vlp.css` et `templates/vlp.js` dans le dossier, et
   n'écrit que `FILES {"vlp.css": <chemin>, "vlp.js": <chemin>}` : le JSON du paramètre `files`
   d'`Artifact`, chemins en barres obliques (pour `/vlp:init`). Dossier absent : `GARDE:`, sort 1.
@@ -424,6 +428,7 @@ import json
 import os
 import re
 import shlex
+import statistics
 import sys
 import tempfile
 import time
@@ -3712,6 +3717,227 @@ def cmd_archive(projet, url, sortie):
     return 0
 
 
+# --- le fichier des nuits : `<contexte>/NN-nuits.md` (chantier NUI) ------------
+
+# Les seuls endroits de ces nombres : la leçon sous LECON_INDICE nuits n'est qu'un « indice », au-delà
+# de LECONS_MAX vivantes la liste ne se lit plus d'un coup d'œil, et sous CARNET_MIN fiches acceptées
+# la médiane des nuits n'est pas un chiffre (NUI11).
+LECON_INDICE = 3
+LECONS_MAX = 12
+CARNET_MIN = 5
+NUITS_TETE = ["# Les nuits — le plan du soir, la table des nuits, les leçons", "",
+              "QUAND LIRE : on prépare une nuit (plan du soir) ou on relit les nuits passées (table, leçons) ;"
+              " `vlp.py trier` imprime les leçons.", "",
+              "| nuit | canal | chantier | jouées/acceptées/refusées | $ |", "|---|---|---|---|---|", "",
+              "## Leçons", "",
+              "Forme d'une leçon, écrite ici seul : `- <date> · N=<n> · <une cause, pas un constat> · <nombres nommés>"
+              " · nuits <dates> · sessions <ids>`. N sous `LECON_INDICE` (`vlp.py`) : « indice ». Retirée, elle reste,"
+              " suffixée `— retirée le <date> par <chantier ou nuit>`. Tenue deux nuits, proposée au matin, deux oui"
+              " de l'utilisateur : elle monte. La colonne `$` est la somme des `usd_kit` du carnet."]
+LIGNE_NUMERO = re.compile(r"^\|\s*`(\d+)")
+LECON_FORME = re.compile(r"^- (\d{4}-\d{2}-\d{2}) · N=(\d+) · (.+?) · (.+?) · nuits (.+?) · sessions (.+?)"
+                         r"(?: — retirée le (\d{4}-\d{2}-\d{2}) par (.+))?$")
+
+
+def fichier_nuits(projet, creer=False):
+    """Le `*-nuits.md` du `contexte`, ou None s'il manque ; deux → `ValueError`. Absent et `creer` :
+    le premier numéro libre (le plus grand du dossier + 1, deux chiffres au moins), écrit depuis
+    `NUITS_TETE`, et sa ligne d'index sous le plus grand numéro lu en entier — sans `**clos**` ni
+    `**ouvert**`, que `archiver` et `ouvrir` liraient. Relancé : rien. Tout est calculé avant d'écrire."""
+    carte_ = lignes_de(os.path.join(projet, "CHANTIER.md"))
+    dossier = os.path.normpath(os.path.join(projet, champ(carte_, "contexte", "context AI/")))
+    trouves = sorted(os.path.join(dossier, f) for f in (os.listdir(dossier) if os.path.isdir(dossier) else [])
+                     if f.endswith("-nuits.md"))
+    if len(trouves) > 1:
+        raise ValueError("deux fichiers des nuits : %s" % ", ".join(os.path.basename(t) for t in trouves))
+    if trouves or not creer:
+        return trouves[0] if trouves else None
+    if not os.path.isdir(dossier):
+        raise ValueError("dossier de contexte introuvable : %s" % dossier)
+    index = champ(carte_, "index")
+    chemin_index = os.path.join(projet, index) if index else None
+    if not chemin_index or not os.path.isfile(chemin_index):
+        raise ValueError("index introuvable : %s" % index)
+    numeros = [int(m.group(1)) for m in (re.match(r"(\d+)-", f) for f in os.listdir(dossier)) if m]
+    nom = "%02d-nuits.md" % (max(numeros, default=-1) + 1)
+    idx = lignes_de(chemin_index)
+    rangs = [(int(m.group(1)), k) for k, m in ((k, LIGNE_NUMERO.match(l)) for k, l in enumerate(idx)) if m]
+    if not rangs:
+        raise ValueError("aucune ligne de fichier dans %s" % index)
+    idx.insert(max(rangs)[1] + 1, "| `%s` | on prépare ou on relit une nuit — plan du soir, table des nuits, leçons |" % nom)
+    chemin = os.path.join(dossier, nom)
+    with open(chemin, "w", encoding="utf-8", newline="") as fh:
+        fh.write("\n".join(NUITS_TETE) + "\n")
+    with open(chemin_index, "w", encoding="utf-8", newline="") as fh:
+        fh.write("\n".join(idx) + "\n")
+    return chemin
+
+
+def sections_nuits(lignes):
+    """(table, leçons) : chacun `(début, fin)` en indices de `lignes`, fin exclue — la table depuis sa
+    ligne d'en-tête `| nuit |` jusqu'à la première ligne qui n'en est pas une, les leçons depuis
+    `## Leçons` jusqu'au titre suivant. `ValueError` si l'un manque."""
+    d = next((k for k, l in enumerate(lignes) if l.startswith("| nuit |")), None)
+    if d is None:
+        raise ValueError("table des nuits absente : pas de ligne `| nuit | …`")
+    f = d + 1
+    while f < len(lignes) and lignes[f].startswith("|"):
+        f += 1
+    ld = next((k for k, l in enumerate(lignes) if l.strip() == "## Leçons"), None)
+    if ld is None:
+        raise ValueError("section `## Leçons` absente")
+    lf = next((k for k in range(ld + 1, len(lignes)) if lignes[k].startswith("## ")), len(lignes))
+    return (d, f), (ld, lf)
+
+
+def nuits_du_fichier(lignes):
+    """([cellules de chaque ligne de la table], [leçons]) d'un fichier des nuits ; une leçon est un
+    dict `i` (indice de sa ligne), `n` (N), `retiree`. Une ligne de table qui n'a pas ses 5 cellules,
+    ou une ligne `- ` de `## Leçons` hors de la forme, lève une `ValueError` qui la cite (NUI11)."""
+    (td, tf), (ld, lf) = sections_nuits(lignes)
+    rangees = []
+    for k in range(td + 1, tf):
+        if re.match(r"^\|[\s|:-]+\|?$", lignes[k]):
+            continue
+        cellules = [c.strip() for c in re.split(r"(?<!\\)\|", lignes[k].strip())[1:-1]]
+        if len(cellules) != 5:
+            raise ValueError("ligne %d de la table des nuits : %d cellules au lieu de 5 — une barre verticale "
+                             "dans une cellule s'écrit \\|" % (k + 1, len(cellules)))
+        rangees.append(cellules)
+    lecons = []
+    for k in range(ld + 1, lf):
+        if lignes[k].startswith("- "):
+            m = LECON_FORME.match(lignes[k])
+            if not m:
+                raise ValueError("leçon hors forme, ligne %d : %s" % (k + 1, lignes[k]))
+            lecons.append({"i": k, "n": int(m.group(2)), "retiree": m.group(7) is not None})
+    return rangees, lecons
+
+
+def ecrire_lignes(chemin, lignes):
+    with open(chemin, "w", encoding="utf-8", newline="") as fh:
+        fh.write("\n".join(lignes) + "\n")
+
+
+def nuits_ecrire(chemin, ligne):
+    """Une ligne de table (`| …`) après la dernière de la table, ou une leçon (`- …`) après la dernière
+    ligne de `## Leçons` ; le fichier d'après est relu par `nuits_du_fichier` avant l'écriture. Déjà là :
+    rien (rend False). Ni l'un ni l'autre : `ValueError`."""
+    lignes = lignes_de(chemin)
+    nuits_du_fichier(lignes)
+    if ligne in lignes:
+        return False
+    (td, tf), (ld, lf) = sections_nuits(lignes)
+    if ligne.startswith("- "):
+        fin = lf
+        while fin - 1 > ld and not lignes[fin - 1].strip():
+            fin -= 1
+        # Un paragraphe, puis une liste : la première leçon prend une ligne vide devant elle.
+        neuf_ligne = ["", ligne] if lignes[fin - 1].strip() and not lignes[fin - 1].startswith("- ") else [ligne]
+    elif ligne.startswith("|"):
+        fin, neuf_ligne = tf, [ligne]
+    else:
+        raise ValueError("ni ligne de table ni leçon : %s" % ligne)
+    neuf = lignes[:fin] + neuf_ligne + lignes[fin:]
+    nuits_du_fichier(neuf)
+    ecrire_lignes(chemin, neuf)
+    return True
+
+
+def nuits_retirer(chemin, lecon, date, par):
+    """La leçon `lecon` (sa ligne entière) suffixée `— retirée le <date> par <par>` : elle reste. Déjà
+    retirée : rien (rend False). Introuvable : `ValueError`."""
+    lignes = lignes_de(chemin)
+    _, lecons = nuits_du_fichier(lignes)
+    for l in lecons:
+        if lignes[l["i"]] == lecon:
+            lignes[l["i"]] += " — retirée le %s par %s" % (date, par)
+            nuits_du_fichier(lignes)
+            ecrire_lignes(chemin, lignes)
+            return True
+        if lignes[l["i"]].startswith(lecon + " — retirée le "):
+            return False
+    raise ValueError("leçon introuvable : %s" % lecon)
+
+
+def usd_par_fiche(usd, fiches_usd):
+    """Le prix d'une fiche au prix mesuré des clos : la division d'`ouvrir` pour l'estimé, aussi celle
+    du `TAUX jour` de `trier` (NUI11)."""
+    return float(usd) / fiches_usd
+
+
+def taux_jour(projet):
+    """La ligne `TAUX jour` : le prix par fiche des chantiers clos de la feuille, tel qu'`ouvrir` l'écrit
+    dans son estimé ; sans clos au prix mesuré, `indice` et pourquoi."""
+    page = page_clos(projet)
+    if not os.path.isfile(page):
+        return "TAUX jour indice — feuille de route introuvable"
+    _, n_fiches, n_clos, usd, fiches_usd = moyenne_clos(lire(page))
+    if not n_fiches or usd is None:
+        return "TAUX jour indice — aucun chantier clos au prix mesuré"
+    return "TAUX jour %s/fiche sur %d clos" % (approx(usd_par_fiche(usd, fiches_usd)), n_clos)
+
+
+def taux_nuit(lignes):
+    """(médiane, n, sans) des lignes de carnet : une fiche est (nuit, chantier, fiche), acceptée si une
+    ligne `relire` n'a pas de `refus_n` ; son prix, la somme des `usd_kit` de ses lignes de session —
+    jamais `usd_cli`. `n` : les fiches acceptées qui ont un prix, `sans` : leurs lignes sans `usd_kit`.
+    Médiane `None` sans fiche."""
+    fiches = {}
+    for d in lignes:
+        if carnet.est_session(d) and d.get("fiche"):
+            fiches.setdefault((d.get("nuit"), d.get("chantier"), d["fiche"]), []).append(d)
+    sommes, sans = [], 0
+    for ds in fiches.values():
+        if not any(d.get("role") == "relire" and not d.get("refus_n") for d in ds):
+            continue
+        prix = [u for d in ds for u in [d.get("usd_kit")] if u is not None]
+        sans += len(ds) - len(prix)
+        if prix:
+            sommes.append(sum(prix))
+    return (statistics.median(sommes) if sommes else None), len(sommes), sans
+
+
+def lignes_taux_nuit(projet):
+    """La ligne `TAUX nuit` sur tous les carnets du dépôt : la médiane des fiches acceptées, ou `indice`
+    sous `CARNET_MIN` fiches — alors sans chiffre ; les lignes sans `usd_kit` à part."""
+    jour = carnet.du_jour(projet)
+    lignes = []
+    for c in sorted(glob.glob(os.path.join(os.path.dirname(jour), "*.jsonl"))) if jour else []:
+        lignes += carnet.lire(c)
+    mediane, n, sans = taux_nuit(lignes)
+    reste = " · sans usd_kit %d" % sans if sans else ""
+    if mediane is None or n < CARNET_MIN:
+        return "TAUX nuit indice — %d fiches acceptées%s" % (n, reste)
+    return "TAUX nuit médiane %s $/fiche sur %d fiches acceptées%s" % (decimal_fr(round(mediane, 2)), n, reste)
+
+
+def lecons_nuits(projet, sortie):
+    """Les leçons du fichier des nuits imprimées par `imprimer_section`, `indice` accolé aux vivantes
+    sous `LECON_INDICE` ; sort 1, par une `GARDE:` qui le nomme, si le fichier ne se lit pas ou si plus
+    de `LECONS_MAX` leçons sont vivantes. Sans fichier : une ligne le dit, sort 0."""
+    try:
+        chemin = fichier_nuits(projet)
+        if chemin is None:
+            sortie.write("NUITS absent — pas de fichier *-nuits.md\n")
+            return 0
+        lignes = lignes_de(chemin)
+        _, lecons = nuits_du_fichier(lignes)
+        _, (ld, lf) = sections_nuits(lignes)
+    except ValueError as e:
+        sortie.write("GARDE: %s\n" % e)
+        return 1
+    vivantes = [l for l in lecons if not l["retiree"]]
+    for l in vivantes:
+        if l["n"] < LECON_INDICE:
+            lignes[l["i"]] += " — indice"
+    imprimer_section(sortie, "Leçons", os.path.relpath(chemin, projet).replace("\\", "/"), lignes, (ld + 1, lf))
+    if len(vivantes) > LECONS_MAX:
+        sortie.write("GARDE: %d leçons vivantes, plus de %d — en retirer avant la nuit\n" % (len(vivantes), LECONS_MAX))
+        return 1
+    return 0
+
+
 # --- trier : le tri du soir, par script (chantier NUI) -------------------------
 
 # La liste fermée des marques comptées en cellules 3-4 d'un rang : `MARQUES` les affiche, l'`ÉCARTÉE`
@@ -3847,7 +4073,9 @@ def cmd_trier(a, sortie):
         sortie.write("GARDE: %s\n" % e)
         return 1
     sortie.write("".join(l + "\n" for l in trier(rangs, lettres_prises(carte_))))
-    return 0
+    code = lecons_nuits(a.projet, sortie)
+    sortie.write("%s\n%s\n" % (taux_jour(a.projet), lignes_taux_nuit(a.projet)))
+    return code
 
 
 def cmd_feuille(a, sortie):
@@ -5457,7 +5685,7 @@ def cmd_ouvrir(a, sortie):
         elif fait_ is None:
             gardes.append("pas de ligne **Fait.** dans %s — pas d'estimé" % fichier)
         else:
-            par_fiche = float(usd_clos) / fiches_usd
+            par_fiche = usd_par_fiche(usd_clos, fiches_usd)
             usd = approx(a.estime_fiches * par_fiche)
             fiches_[fait_:fait_] = ["**Estimé.** %s fiches · %s — %s/fiche sur %d clos (le %s)."
                                     % (decimal_fr(a.estime_fiches), usd, approx(par_fiche), n_clos,
