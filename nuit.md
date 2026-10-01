@@ -31,7 +31,8 @@ La session sait son rôle par ce qu'on lui a demandé :
 - **`ATTENTE=` et `PLUGIN_RETARD=`** : notés au compte rendu, jamais agis — ni
   republication, ni merge, ni tâche planifiée, ni `/reload-plugins`.
 - **Une note pour le matin** : `vlp.py nuits noter "<texte>"` — une ligne au carnet
-  de la nuit (`VLP_CARNET`), pour le canal de la session (`VLP_CANAL`).
+  de la nuit (`VLP_CARNET`), pour le canal de la session (`VLP_CANAL`). Un reste ou une case du
+  menu de fin la passe avec `--sorte reste|case3|case4` : sans elle, le matin ne sait quoi en demander.
 - **Le plan du soir** : `vlp.py plan lire <projet> --date <la nuit>` — la nuit est le
   nom du fichier `VLP_CARNET`. La ligne `CHANTIER <code> … préfixe <P>` donne le
   préfixe ; avec `--chantier <code>`, les réponses du soir à ce chantier.

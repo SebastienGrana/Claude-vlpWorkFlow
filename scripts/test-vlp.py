@@ -6559,6 +6559,162 @@ def matin_n_f(tr):
              and lire(os.path.join(d, PUBLIE_MATIN)) == js + h["2"] + "\n", (code, s))
 
 
+def matin_r(tr):
+    """NUI19 : `matin --rapport` — le carnet complété (sous-agents sommés, jamais 0), une ligne par chantier au fichier des
+    nuits, le JSON de `chef page` ; rejoué, rien ne change. Un dépôt, un carnet de neuf lignes, un `HOME` à transcripts."""
+    from decimal import ROUND_HALF_UP
+    d, h = os.path.join(tr, "r"), os.path.join(tr, "home-r")
+    depot_matin(d)
+    ecrire(os.path.join(d, "ctx", "00-INDEX.md"), "| Fichier | Lire quand |\n|---|---|\n| `40-loc.md` | x |\n")
+    commit_matin(d, "index", 0)
+    branche_matin(d, "A", "AAA", "AAA", 1)
+    branche_matin(d, "B", "PAR", None, 2, clos=False, x="a = 1\nb = 2\nc = 30\n")
+    c = mod.carnet.du_jour(d, JOUR_MATIN)
+    assert c
+    pr = os.path.join(h, ".claude", "projects", "p")
+    chemins = {n: os.path.join(pr, n + ".jsonl") for n in ("s-aaa-1", "s-aaa-r", "s-par-1", "s-par-r")}
+    sous = {n: os.path.join(pr, n, "subagents", "agent-a1.jsonl") for n in ("s-aaa-1", "s-par-1")}
+    for p in sous.values():
+        os.makedirs(os.path.dirname(p))
+    transcript(chemins["s-aaa-1"], 2)
+    transcript(sous["s-aaa-1"], 1)
+    transcript(chemins["s-aaa-r"], 1)
+    transcript(chemins["s-par-1"], 1)
+    transcript(chemins["s-par-r"], 1)
+    with open(sous["s-par-1"], "w", encoding="utf-8") as f:     # un sous-agent d'un modèle hors GRILLE
+        f.write(json.dumps({"type": "assistant", "requestId": "r0", "message": {
+            "id": "m0", "model": "claude-inconnu-9", "content": [], "usage": {
+                "input_tokens": 1000, "output_tokens": 0, "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0}}}) + "\n")
+
+    def somme(*transcripts):
+        usd, tours = Decimal(0), 0
+        for p in transcripts:
+            r = mod.mesure().mesurer(p)[0]
+            usd, tours = usd + r["usd_exact"], tours + r["tours"]
+        return float(usd.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)), tours
+
+    def octets(chemin):
+        with open(chemin, "rb") as f:
+            return f.read()
+
+    def ligne_c(**champs):
+        mod.carnet.ajouter(c, nuit=JOUR_MATIN, **champs)
+
+    sauve = {k: os.environ.get(k) for k in ("HOME", "USERPROFILE", "VLP_CARNET", "VLP_CANAL")}
+    os.environ.update(HOME=h, USERPROFILE=h, VLP_CARNET=c)
+    os.environ.pop("VLP_CANAL", None)
+    try:
+        ligne_c(canal="A", chantier="AAA", fiche="AAA1", note="depart jouer", session="s-aaa-1", plugin_retard=4)
+        ligne_c(canal="A", chantier="AAA", role="jouer", fiche="AAA1", issue="jouée", modeles_vus=["claude-sonnet-5-5"],
+                usd_cli=7.77, tours_cli=9, session="s-aaa-1", plugin_retard=4)
+        ligne_c(canal="A", chantier="AAA", role="relire", fiche="AAA1", issue="jouée", session="s-aaa-r")
+        ligne_c(canal="A", chantier="AAA", role="clore", issue="jouée", session="s-aaa-c")
+        ligne_c(canal="B", chantier="PAR", role="jouer", fiche="PAR1", issue="jouée", session="s-par-1")
+        ligne_c(canal="B", chantier="PAR", role="relire", fiche="PAR1", issue="jouée", refus_n=1, cause="la cause du refus",
+                reecriture="RÉÉCRITURE : refaire le test", session="s-par-r")
+        ligne_c(canal="B", chantier="PAR", garde="mis-de-cote:test cassé")
+        ligne_c(canal="B", chantier="DEP", issue="pas partie", garde="saute:PAR")
+        ligne_c(canal="B", chantier="ZZZ", garde="mis-de-cote:sans branche")
+        mod.carnet.noter(c, "A", "base abc123")
+        codes = [appel(["nuits", "noter", "verser ceci", "--canal", "A", "--sorte", "reste"])[0],
+                 appel(["nuits", "noter", "faire niveau", "--canal", "B", "--sorte", "case3"])[0],
+                 appel(["nuits", "noter", "oubli de sorte", "--canal", "A"])[0]]
+        code_stop, s_stop = appel(["nuits", "noter", "x", "--stop", "--sorte", "reste"])
+        sortes = [(x["note"], x["sorte"]) for x in mod.carnet.lire(c) if x["note"] and not x["note"].startswith(("depart", "base"))]
+        verifier("NUI19 (sorte) nuits noter --sorte : reste, case3 et sans sorte au carnet ; --sorte avec --stop → GARDE:, rien d'écrit",
+                 codes == [0, 0, 0] and sortes == [("verser ceci", "reste"), ("faire niveau", "case3"), ("oubli de sorte", None)]
+                 and code_stop == 1 and s_stop.startswith("GARDE: --sorte") and len(mod.carnet.lire(c)) == 13, (codes, sortes, s_stop))
+        code, s = appel(["matin", d, JOUR_MATIN])
+        verifier("NUI19 (r) matin d'abord : la branche close fusionnée, PAR de côté",
+                 code == 0 and s.endswith("MATIN 1 fusionnée(s) · 1 de côté\n"), (code, s))
+        avant = git_matin(d, "rev-list", "--count", "HEAD")
+        rapport = os.path.join(tr, "rapport-r.json")
+        code1, s1 = appel(["matin", d, JOUR_MATIN, "--rapport", rapport])
+        carnet1, json1 = octets(c), octets(rapport)
+        nuits = mod.fichier_nuits(d)
+        assert nuits
+        nuits1 = octets(nuits)
+        code2, s2 = appel(["matin", d, JOUR_MATIN, "--rapport", rapport])
+        lignes = mod.carnet.lire(c)
+        par_session = {x["session"]: x for x in lignes if mod.carnet.est_session(x)}
+        u_a, t_a = somme(chemins["s-aaa-1"], sous["s-aaa-1"])
+        u_r, t_r = somme(chemins["s-aaa-r"])
+        u_p, t_p = somme(chemins["s-par-r"])
+        verifier("NUI19 (a) usd_kit et tours_kit = la somme de mesurer sur la session et son sous-agent, au centime ; usd_cli gardé — "
+                 "mutant : sous-agents non sommés",
+                 code1 == 0 and (par_session["s-aaa-1"]["usd_kit"], par_session["s-aaa-1"]["tours_kit"]) == (u_a, t_a)
+                 and (par_session["s-aaa-r"]["usd_kit"], par_session["s-aaa-r"]["tours_kit"]) == (u_r, t_r)
+                 and (par_session["s-par-r"]["usd_kit"], par_session["s-par-r"]["tours_kit"]) == (u_p, t_p)
+                 and par_session["s-aaa-1"]["usd_cli"] == 7.77 and t_a == 3 and s1.startswith("KIT ? "), (par_session, s1))
+        verifier("NUI19 (c) sans transcript, et sous-agent hors GRILLE : aucune clé _kit, une ligne KIT ? chacune, jamais 0 — "
+                 "mutant : usd_exact None compté 0",
+                 all(par_session[n]["usd_kit"] is None and par_session[n]["tours_kit"] is None for n in ("s-aaa-c", "s-par-1"))
+                 and "KIT ? s-aaa-c — transcription introuvable\n" in s1
+                 and "KIT ? s-par-1 — modèle hors grille (claude-inconnu-9)\n" in s1 and s1.count("KIT ? ") == 2, (par_session, s1))
+        table = [l for l in octets(nuits).decode("utf-8").splitlines() if l.startswith("| " + JOUR_MATIN)]
+        euros = lambda v: ("%.2f" % v).replace(".", ",")
+        verifier("NUI19 (b) --rapport rejoué : carnet, fichier des nuits et JSON identiques à l'octet, une ligne de table par chantier "
+                 "(4), aucune ajoutée au rejeu, verrou absent, HEAD inchangé",
+                 code2 == 0 and carnet1 == octets(c) and nuits1 == octets(nuits) and json1 == octets(rapport)
+                 and len(table) == 4 and "NUITS ctx/41-nuits.md · 4 ligne(s) ajoutée(s)\n" in s1
+                 and "NUITS ctx/41-nuits.md · 0 ligne(s) ajoutée(s)\n" in s2
+                 and "| %s | A | AAA | 1/1/0 | ≥ %s |" % (JOUR_MATIN, euros(u_a + u_r)) in table
+                 and "| %s | B | PAR | 1/0/1 | ≥ %s |" % (JOUR_MATIN, euros(u_p)) in table
+                 and not os.path.exists(c + ".verrou") and git_matin(d, "rev-list", "--count", "HEAD") == avant, (code2, table, s1, s2))
+        donnees = json.loads(json1.decode("utf-8"))
+        choix = donnees.get("choix", [])
+        titres = [q["titre"] for q in choix]
+        cote =next((q for q in choix if q["titre"].startswith("Mis de côté : PAR")), {})
+        reste = next((q for q in choix if q["titre"].startswith("Reste à verser")), {})
+        case3 = next((q for q in choix if q["titre"].startswith("Case 3")), {})
+        sans = [m for m in donnees.get("mal", []) if m["titre"] == "NOTE SANS SORTE"]
+        verifier("NUI19 (d) JSON : le mis de côté et le reste à trois réponses, la case 3 à deux, NOTE SANS SORTE une fois (les notes "
+                 "de la boucle n'y sont pas), l'ÉCART de ZZZ dit, jamais un _cli ni un push",
+                 [len(q.get("options", [])) for q in (cote, reste, case3)] == [3, 3, 2]
+                 and [o["valeur"] for o in cote["options"]] == ["reprendre", "abandonner", "rejouer"]
+                 and [o["valeur"] for o in reste["options"]] == ["verser", "fondre", "abandonner"]
+                 and len(sans) == 1 and "oubli de sorte" in sans[0]["texte"]
+                 and "NOTE SANS SORTE A — oubli de sorte\n" in s1
+                 and "ÉCART B-ZZZ — le carnet le met de côté, Git non" in s1 and s1.count("ÉCART ") == 1
+                 and any("Chantiers sautés à cause de lui : DEP" in p for p in cote["puces"])
+                 and any("la cause du refus" in p for p in cote["puces"]) and any("`git branch -D nuit/" in o["effet"] for o in cote["options"])
+                 and "7,77" not in json1.decode("utf-8") and "7.77" not in json1.decode("utf-8")
+                 and "push" not in json1.decode("utf-8").lower() and len(titres) == 4
+                 and [t.startswith("Mis de côté : ") for t in titres].count(True) == 2 and any("ZZZ" in t for t in titres),
+                 (titres, cote, reste, case3, sans, s1))
+        html = os.path.join(tr, "rapport-r.html")
+        code, s = appel(["chef", "page", "--questions", "@" + rapport, "--sortie", html])
+        verifier("NUI19 (d) le JSON passe `chef page` : PAGE SAINE, les cartes Q1 à Q4", code == 0 and s.startswith("PAGE SAINE ")
+                 and s.endswith("CARTES Q1 Q2 Q3 Q4\n"), (code, s))
+        code_h, s_h = appel(["nuits", "lecon", "hors forme", "--projet", d])
+        lecon = "- %s · N=1 · cause un · jouées 3 sur 5 · nuits %s · sessions s-aaa-1" % (JOUR_MATIN, JOUR_MATIN)
+        code_l, s_l = appel(["nuits", "lecon", lecon, "--projet", d])
+        code_m, s_m = appel(["nuits", "lecon", lecon, "--projet", d])
+        textes = octets(nuits).decode("utf-8").splitlines()
+        verifier("NUI19 (d) nuits lecon : hors forme → GARDE:, sort 1, rien d'écrit ; une leçon sous `## Leçons`, rejouée → déjà là",
+                 code_h == 1 and s_h.startswith("GARDE: leçon hors forme") and code_l == 0 and s_l == "LEÇON ctx/41-nuits.md · ajoutée\n"
+                 and code_m == 0 and s_m == "LEÇON ctx/41-nuits.md · déjà là\n" and textes.count(lecon) == 1
+                 and textes.index("## Leçons") < textes.index(lecon), (code_h, s_h, s_l, s_m))
+        transcript(os.path.join(pr, "s-aaa-c.jsonl"), 1)     # la transcription qui manquait paraît : le chiffre de A/AAA changerait
+        code3, s3 = appel(["matin", d, JOUR_MATIN, "--rapport", rapport])
+        table3 = [l for l in octets(nuits).decode("utf-8").splitlines() if l.startswith("| " + JOUR_MATIN)]
+        mesuree = next(x for x in mod.carnet.lire(c) if x["session"] == "s-aaa-c")
+        verifier("NUI19 (b) une ligne de table déjà là n'est pas refaite quand son chiffre aurait changé : toujours 4 lignes, "
+                 "A/AAA inchangée, la session enfin mesurée au carnet — mutant : une ligne de table à chaque rejeu",
+                 code3 == 0 and mesuree["usd_kit"] is not None and table3 == table
+                 and "NUITS ctx/41-nuits.md · 0 ligne(s) ajoutée(s)\n" in s3 and "KIT ? s-aaa-c" not in s3, (code3, table, table3, s3))
+        code_a, s_a = appel(["matin", d, "2026-10-02", "--rapport", rapport])
+        verifier("NUI19 (r) --rapport sans carnet à cette date → GARDE:, sort 1",
+                 code_a == 1 and s_a.startswith("GARDE: carnet de la nuit 2026-10-02 absent ou vide"), (code_a, s_a))
+    finally:
+        for k, v in sauve.items():
+            if v is None:
+                os.environ.pop(k, None)
+            else:
+                os.environ[k] = v
+
+
 def tester_matin():
     """NUI15 : `vlp.py matin <projet> <date>` fusionne dans main les branches de la nuit et répare ce que Git perd sans
     conflit (methode-chantier.md:263-268). Un dépôt temporaire par cas, la config Git isolée, la date de chaque commit
@@ -6576,7 +6732,7 @@ def tester_matin():
                               GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t",
                               GIT_COMMITTER_EMAIL="t@t")
             for cas in (matin_a, matin_b, matin_c, matin_d, matin_e, matin_h, matin_g,
-                        matin_n_a, matin_n_b, matin_n_c, matin_n_d, matin_n_e, matin_n_f):
+                        matin_n_a, matin_n_b, matin_n_c, matin_n_d, matin_n_e, matin_n_f, matin_r):
                 cas(tr)
     finally:
         for k, v in gardes.items():

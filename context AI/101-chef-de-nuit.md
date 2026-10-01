@@ -1021,8 +1021,9 @@ y renvoie. Tu ne fais pas : `/vlp:chef` ni le choix des questions (`NUI18`), le 
 ---
 
 <!-- FICHE:NUI19 -->
-## NUI19 [ ] — Écrire /vlp:chef, le matin
+## NUI19 [x] — Écrire /vlp:chef, le matin
 
+**Session** : 28c4a1ca-ce9e-4c0a-9a6e-a5edbd860a0c
 **Dépend de** : `NUI13`, `NUI15`, `NUI16`, `NUI18`.
 **Fichiers** : `skills/chef/SKILL.md`, `scripts/vlp.py`, `scripts/carnet.py`, `scripts/test-vlp.py`, `nuit.md` ; lus :
 `scripts/mesure-tokens.py` (`resoudre` :94, `sous_agents` :115, `mesurer` :220), `cloture.md:98-115`,

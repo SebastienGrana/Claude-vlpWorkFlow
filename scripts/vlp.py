@@ -230,6 +230,18 @@ Sous-commandes :
   récente gagne ; vide : retiré) et `publie` (la clé ; empreintes différentes : clé retirée, ligne `PUBLIE …`). Un
   désaccord ou un reste en conflit : `GARDE: <chemin> : <raison>`, puis l'`ARRÊT` ci-dessus. Pas de `merge=union` :
   il garde les deux lignes de `publie` quand les empreintes diffèrent. Ni push, ni carnet.
+- `matin <projet> <date> --rapport <json>` — le rapport du matin (NUI19), sans fusion ni commit, rejouable. Trois
+  premières gardes de `matin` (équipé, date, racine du dépôt) ; carnet de la nuit absent ou vide : `GARDE:`, sort 1.
+  Complète le carnet : chaque ligne de session sans `usd_kit` reçoit `usd_kit` et `tours_kit` (`mesure_session_kit` : son
+  transcript et ses sous-agents sommés, prix arrondi une fois au centime), mesurés hors verrou, écrits d'un coup sous celui
+  du carnet ; session introuvable, illisible ou hors `GRILLE` : `KIT ? <session> — <raison>`, aucune clé `_kit`, jamais 0.
+  Range au fichier des nuits (`fichier_nuits`, créé au besoin) une ligne de table par (nuit, canal, chantier) absente —
+  `<jouées>/<acceptées>/<refusées>` et la somme des `usd_kit`, `≥` si des sessions n'en ont pas, `?` si aucune —, puis
+  `NUITS <fichier> · <n> ligne(s) ajoutée(s)`. Croise les chantiers mis de côté selon Git (`de_cote`) et selon le carnet
+  (`mis-de-cote:`) : un désaccord est une ligne `ÉCART <canal>-<code> — …`. Écrit le JSON de `chef page --questions` : `fait`
+  (une ligne par chantier : issues, relances, modèles vus, `plugin_retard`, coût `_kit`, jamais `_cli`), `choix` (une carte
+  par mis de côté aux trois réponses du socle, une par note selon sa `sorte` : `reste` trois réponses, `case3` et `case4`
+  deux), `mal` (`NOTE SANS SORTE`, aussi imprimée). Fin : `RAPPORT <json> · <n> chantier(s) · <m> mis de côté · <k> carte(s)`.
 - `joints <dossier>` — recopie `templates/vlp.css` et `templates/vlp.js` dans le dossier, et
   n'écrit que `FILES {"vlp.css": <chemin>, "vlp.js": <chemin>}` : le JSON du paramètre `files`
   d'`Artifact`, chemins en barres obliques (pour `/vlp:init`). Dossier absent : `GARDE:`, sort 1.
@@ -451,7 +463,11 @@ Sous-commandes :
 - `nuits noter "<texte>" [--canal C] [--stop]` — une ligne `note` au carnet de nuit (`carnet.py`, chantier
   NUI) ; avec `--stop`, la ligne `stop` (le texte en est la raison) que la boucle lit avant chaque
   session. Carnet : `VLP_CARNET`, sinon celui du jour du dépôt Git courant ; canal : `--canal`, sinon
-  `VLP_CANAL`. Imprime `NOTÉ <chemin>` ; sans dépôt Git ni `VLP_CARNET` : `GARDE:`, sort 1.
+  `VLP_CANAL`. Imprime `NOTÉ <chemin>` ; sans dépôt Git ni `VLP_CARNET` : `GARDE:`, sort 1. `--sorte reste|case3|case4`
+  (NUI19) : ce que le matin fait de la note ; avec `--stop`, `GARDE:`.
+- `nuits lecon "<ligne>" [--projet P]` — une leçon sous `## Leçons` du fichier des nuits (`fichier_nuits`, créé au
+  besoin), dans la forme de `LECON_FORME` (NUI11). Hors forme, ou fichier illisible : `GARDE:`, sort 1, rien d'écrit.
+  Imprime `LEÇON <fichier> · ajoutée` ou `· déjà là`.
 
 Les lignes des chantiers clos — lues ou écrites par `clore`, `recompter`, `prix`, `liens`,
 `repeindre` et le prix moyen d'`ouvrir` — vivent dans `<contexte>/artefacts/archive-clos.html`
@@ -6491,15 +6507,22 @@ def lire_arg(x):
     return x
 
 
-def cmd_nuits_noter(texte, canal, arret, sortie, dossier=None):
+def cmd_nuits_noter(texte, canal, arret, sortie, dossier=None, sorte=None):
     """Une ligne `note` (ou `stop`, avec `arret`) au carnet de nuit : `VLP_CARNET`, sinon celui du jour
-    du dépôt de `dossier` (défaut : le dossier courant). Sans l'un ni l'autre : `GARDE:`, sort 1."""
+    du dépôt de `dossier` (défaut : le dossier courant). Sans l'un ni l'autre : `GARDE:`, sort 1. `sorte` (une de
+    `carnet.SORTES`) : ce que le matin fait de la note ; avec `arret`, `GARDE:` — un `stop` n'a pas de sorte."""
+    if arret and sorte:
+        print("GARDE: --sorte ne va pas avec --stop — un stop n'est pas une note du matin", file=sortie)
+        return 1
     chemin = os.environ.get(carnet.ENV_CARNET) or carnet.du_jour(dossier or os.getcwd())
     if not chemin:
         print("GARDE: pas de dépôt Git ni de VLP_CARNET — pas de carnet de nuit où écrire", file=sortie)
         return 1
     canal = canal or os.environ.get(carnet.ENV_CANAL) or None
-    (carnet.stop if arret else carnet.noter)(chemin, canal, texte)
+    if arret:
+        carnet.stop(chemin, canal, texte)
+    else:
+        carnet.noter(chemin, canal, texte, sorte)
     print("NOTÉ %s" % chemin, file=sortie)
     return 0
 
@@ -6971,17 +6994,18 @@ def fusionner_nuit(projet, branche, date, sortie):
     return False
 
 
-def cmd_matin(a, sortie):
-    """`matin <projet> <date>` : les gardes, l'ordre, puis chaque branche de la nuit — `DÉJÀ`, `DE CÔTÉ` ou fusionnée."""
+def projet_du_matin(a, sortie):
+    """Le dossier absolu de `a.projet` si le matin peut y travailler — équipé, date lisible, racine d'un dépôt Git —,
+    sinon None, après une `GARDE:`. Les trois gardes de `matin` et de `matin --rapport`."""
     projet = os.path.abspath(a.projet)
     if not equipe(projet):
         sortie.write("GARDE: pas de CHANTIER.md dans %s\n" % projet)
-        return 1
+        return None
     try:
         datetime.date.fromisoformat(a.date)
     except ValueError:
         sortie.write("GARDE: AAAA-MM-JJ attendu : %s\n" % a.date)
-        return 1
+        return None
     code, haut = git_texte(["rev-parse", "--show-toplevel"], projet)
     try:
         racine = code == 0 and os.path.samefile(haut.strip(), projet)
@@ -6989,6 +7013,23 @@ def cmd_matin(a, sortie):
         racine = False
     if not racine:
         sortie.write("GARDE: %s n'est pas la racine d'un dépôt Git — rien fusionné\n" % projet)
+        return None
+    return projet
+
+
+def de_cote(projet, branche):
+    """Le chantier ouvert (`fichier_courant`) du `CHANTIER.md` de `branche`, ou None : c'est ce qui la met de côté,
+    `matin` ne la fusionne jamais. Branche sans `CHANTIER.md` : None. `matin` et `matin --rapport` l'appellent."""
+    code, carte_leur = git_texte(["show", "%s:CHANTIER.md" % branche], projet)
+    return fichier_courant(carte_leur) if code == 0 else None
+
+
+def cmd_matin(a, sortie):
+    """`matin <projet> <date>` : les gardes, l'ordre, puis chaque branche de la nuit — `DÉJÀ`, `DE CÔTÉ` ou fusionnée."""
+    if a.rapport:
+        return cmd_matin_rapport(a, sortie)
+    projet = projet_du_matin(a, sortie)
+    if projet is None:
         return 1
     code, tete = git_texte(["symbolic-ref", "--short", "-q", "HEAD"], projet)
     if code != 0 or tete.strip() != "main":
@@ -7015,8 +7056,7 @@ def cmd_matin(a, sortie):
         if git_texte(["merge-base", "--is-ancestor", branche, "HEAD"], projet)[0] == 0:
             sortie.write("DÉJÀ %s\n" % branche)
             continue
-        code, carte_leur = git_texte(["show", "%s:CHANTIER.md" % branche], projet)
-        courant = fichier_courant(carte_leur) if code == 0 else None
+        courant = de_cote(projet, branche)
         if courant:
             sortie.write("DE CÔTÉ %s — %s\n" % (branche, courant))
             cote += 1
@@ -7025,6 +7065,297 @@ def cmd_matin(a, sortie):
             return 1
         fusionnees += 1
     sortie.write("MATIN %d fusionnée(s) · %d de côté\n" % (fusionnees, cote))
+    return 0
+
+
+# --- matin --rapport : le carnet complété, la table des nuits, la page du matin (chantier NUI, fiche NUI19) ------------
+# Après la fusion : rien de commité, rien de fusionné, et rejoué, le carnet et le fichier des nuits ne changent plus.
+
+def mesure_session_kit(session):
+    """`(usd_kit, tours_kit, raison)` d'une session du carnet : `resoudre`, puis `mesurer` sur son transcript et sur chacun
+    de ses `sous_agents`, `usd_exact` et `tours` sommés comme `parts_aux_commits` (un `usd_exact` None rend None), le
+    prix arrondi une fois au centime. Transcript introuvable ou illisible, modèle hors `GRILLE` : `(None, None, raison)`
+    — jamais 0."""
+    from decimal import ROUND_HALF_UP, Decimal
+    m = mesure()
+    chemin, _ = m.resoudre(session)
+    if chemin is None:
+        return None, None, "transcription introuvable"
+    usd, tours, inconnus = Decimal(0), 0, []
+    for transcript in [chemin] + m.sous_agents(chemin):
+        r, erreur = m.mesurer(transcript)
+        if r is None:
+            return None, None, "transcription illisible (%s)" % erreur
+        tours += r["tours"]
+        usd = None if usd is None or r["usd_exact"] is None else usd + r["usd_exact"]
+        inconnus += r["inconnus"]
+    if usd is None:
+        return None, None, "modèle hors grille (%s)" % ", ".join(sorted(set(inconnus)))
+    return float(usd.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)), tours, None
+
+
+def completer_kit(chemin, sortie):
+    """Donne `usd_kit` et `tours_kit` à chaque ligne de session du carnet `chemin` qui n'a pas `usd_kit`
+    (`mesure_session_kit`) : mesurées d'abord, hors verrou, puis écrites d'un coup sous celui du carnet
+    (`carnet.mettre_a_jour`). Une session non mesurée : `KIT ? <session> — <raison>` sur `sortie`, aucune clé `_kit`.
+    Rend le nombre de lignes complétées."""
+    mesures = {}
+    for d in carnet.lire(chemin):
+        s = d.get("session")
+        if carnet.est_session(d) and d.get("usd_kit") is None and s not in mesures:
+            mesures[s] = mesure_session_kit(s) if s else (None, None, "pas d'id de session au carnet")
+            if mesures[s][0] is None:
+                sortie.write("KIT ? %s — %s\n" % (s or "(sans id)", mesures[s][2]))
+
+    def poser(d):
+        m = mesures.get(d.get("session"))
+        if carnet.est_session(d) and d.get("usd_kit") is None and m and m[0] is not None:
+            return {"usd_kit": m[0], "tours_kit": m[1]}
+        return None
+    return carnet.mettre_a_jour(chemin, poser)
+
+
+def bilan_chantiers(lignes):
+    """Un dict par `(canal, chantier)` du carnet, dans l'ordre où ils y apparaissent : `jouees` (les fiches qu'une session
+    `jouer` ou `relance` a prises), `acceptees` (celles qu'une session `relire` sans `refus_n` a prises, comme
+    `taux_nuit`), `refusees` (celles qu'une `relire` à `refus_n` a prises : refusée puis acceptée compte aux deux),
+    `issues` (`issue` : nombre de sessions), `relances`, `modeles` (`modeles_vus`, sans doublon), `retard`
+    (`plugin_retard` de la dernière ligne qui en porte un), `usd` et `tours` (les sommes des `usd_kit` et `tours_kit`
+    — jamais des `_cli`), `sans` (les sessions qui n'ont pas de `usd_kit`)."""
+    bilans = {}
+    for d in lignes:
+        if not d.get("canal") or not d.get("chantier"):
+            continue
+        b = bilans.setdefault((d["canal"], d["chantier"]), {
+            "canal": d["canal"], "chantier": d["chantier"], "jouees": set(), "acceptees": set(), "refusees": set(),
+            "issues": collections.Counter(), "relances": 0, "modeles": [], "retard": None, "usd": 0.0, "tours": 0,
+            "sans": 0})
+        if d.get("plugin_retard") is not None:
+            b["retard"] = d["plugin_retard"]
+        if not carnet.est_session(d):
+            continue
+        role, fiche = d.get("role"), d.get("fiche")
+        if role in ("jouer", "relance") and fiche:
+            b["jouees"].add(fiche)
+        if role == "relire" and fiche:
+            b["refusees" if d.get("refus_n") else "acceptees"].add(fiche)
+        b["relances"] += role == "relance"
+        if d.get("issue"):
+            b["issues"][d["issue"]] += 1
+        b["modeles"] += [x for x in (d.get("modeles_vus") or []) if x not in b["modeles"]]
+        if d.get("usd_kit") is None:
+            b["sans"] += 1
+        else:
+            b["usd"] += d["usd_kit"]
+            b["tours"] += d.get("tours_kit") or 0
+    return list(bilans.values())
+
+
+def cout_du_bilan(b, avec_unite=True):
+    """La somme des `usd_kit` d'un bilan comme `4,50 $` ; `≥ 4,50 $` si des sessions n'en ont pas, `?` si aucune."""
+    if b["sans"] and not b["usd"]:
+        return "?"
+    texte = ("%.2f" % b["usd"]).replace(".", ",")
+    return ("≥ " if b["sans"] else "") + texte + (" $" if avec_unite else "")
+
+
+def ecrire_table_nuits(projet, nuit, bilans):
+    """Une ligne de table au fichier des nuits (`fichier_nuits(creer=True)`) par `(nuit, canal, chantier)` absente :
+    `| <nuit> | <canal> | <chantier> | <jouées>/<acceptées>/<refusées> | <$> |`, le `$` étant `cout_du_bilan`. Une
+    ligne déjà là n'est pas refaite. Rend `(chemin, nombre de lignes ajoutées)` ; `ValueError` : `fichier_nuits` ou
+    `nuits_ecrire` refusent."""
+    chemin = fichier_nuits(projet, creer=True)
+    assert chemin
+    rangees, _ = nuits_du_fichier(lignes_de(chemin))
+    ajoutees = 0
+    for b in bilans:
+        deja = any(r[:3] == [nuit, b["canal"], b["chantier"]] for r in rangees)
+        if deja:
+            continue
+        ligne = "| %s | %s | %s | %d/%d/%d | %s |" % (nuit, b["canal"], b["chantier"], len(b["jouees"]),
+                                                      len(b["acceptees"]), len(b["refusees"]),
+                                                      cout_du_bilan(b, avec_unite=False))
+        ajoutees += nuits_ecrire(chemin, ligne)
+    return chemin, ajoutees
+
+
+def derniere_valeur(lignes, cle):
+    """La dernière valeur non vide de `cle` parmi `lignes`, en texte, ou None."""
+    return next((str(d[cle]) for d in reversed(lignes) if d.get(cle)), None)
+
+
+def chantiers_de_cote(projet, date, lignes):
+    """`([{canal, chantier, branche, raison, cause, reecriture, dependants, ecart}], [ÉCART])` : les chantiers mis de côté
+    selon Git — la branche `nuit/<date>-<canal>-<code>` qui n'est pas dans `HEAD` et dont `de_cote` dit qu'elle garde un
+    chantier ouvert — et selon le carnet — une garde `mis-de-cote:<raison>`, ses `cause` et `reecriture`, les chantiers
+    dont une garde `saute:<code>` dit qu'ils en dépendaient (NUI7). Les deux se croisent : l'un le dit de côté, pas
+    l'autre, c'est un `ÉCART` — dit, jamais tranché."""
+    pointes, _ = pointes_nuit(projet, date)
+    prefixe = "nuit/%s-" % date
+    git_cote = {}
+    for branche, _ in pointes or []:
+        canal, _, code = branche[len(prefixe):].partition("-")
+        if git_texte(["merge-base", "--is-ancestor", branche, "HEAD"], projet)[0] != 0 and de_cote(projet, branche):
+            git_cote[(canal, code)] = branche
+    raisons = {}
+    for d in lignes:
+        garde = str(d.get("garde") or "")
+        if garde.startswith("mis-de-cote:") and d.get("chantier"):
+            raisons[(d.get("canal"), d["chantier"])] = garde[len("mis-de-cote:"):]
+    cotes, ecarts = [], []
+    for cle in list(raisons) + [k for k in git_cote if k not in raisons]:
+        canal, code = cle
+        propres = [d for d in lignes if d.get("canal") == canal and d.get("chantier") == code]
+        ecart = None
+        if cle not in git_cote:
+            ecart = "le carnet le met de côté, Git non (branche absente, déjà dans main, ou chantier fermé sur elle)"
+        elif cle not in raisons:
+            ecart = "Git le met de côté, le carnet n'a aucune ligne mis-de-cote"
+        if ecart:
+            ecarts.append("ÉCART %s-%s — %s" % (canal, code, ecart))
+        cotes.append({"canal": canal, "chantier": code, "branche": "%s%s-%s" % (prefixe, canal, code),
+                      "raison": raisons.get(cle), "cause": derniere_valeur(propres, "cause"),
+                      "reecriture": derniere_valeur(propres, "reecriture"),
+                      "dependants": [x for x in dict.fromkeys(
+                          d["chantier"] for d in lignes
+                          if d.get("chantier") and str(d.get("garde") or "") == "saute:%s" % code)],
+                      "ecart": ecart})
+    return cotes, ecarts
+
+
+def option_matin(valeur, libelle, effet):
+    return {"valeur": valeur, "libelle": libelle, "effet": effet, "recommande": False}
+
+
+def question_de_cote(c):
+    """La carte d'un chantier mis de côté : ce que le carnet et Git en disent, et les trois réponses du socle."""
+    puces = ["Branche : `%s`" % c["branche"], "Raison au carnet : %s" % (c["raison"] or "aucune")]
+    if c["cause"]:
+        puces.append("Cause du dernier refus : %s" % c["cause"])
+    if c["reecriture"]:
+        puces.append("Réécriture demandée : %s" % c["reecriture"])
+    puces.append("Chantiers sautés à cause de lui : %s" % (", ".join(c["dependants"]) or "aucun"))
+    if c["ecart"]:
+        puces.append("**ÉCART** : %s" % c["ecart"])
+    return {"titre": "Mis de côté : %s (canal %s)" % (c["chantier"], c["canal"]), "puces": puces, "options": [
+        option_matin("reprendre", "Reprendre à la main", "Tu reprends la branche `%s` toi-même ; je ne touche à rien "
+                     "d'autre." % c["branche"]),
+        option_matin("abandonner", "Abandonner", "Le travail de la branche est perdu : je te donne `git branch -D %s`, "
+                     "je ne la lance jamais." % c["branche"]),
+        option_matin("rejouer", "Rejouer une nuit", "Je te donne aussi `git branch -D %s` : la nuit suivante repart de "
+                     "`main`. La ligne de la TODO reste, le tri du soir la reprend." % c["branche"])]}
+
+
+def question_de_note(canal, texte, sorte):
+    """La carte d'une note du carnet selon sa `sorte` : un reste (trois réponses, le premier oui de
+    `methode-chantier.md`), ou une case du menu de fin de `cloture.md` (faire ou laisser)."""
+    puces = ["Note du canal %s : %s" % (canal or "?", texte)]
+    if sorte == "reste":
+        return {"titre": "Reste à verser dans la TODO ?", "puces": puces + [
+            "La TODO ne grossit pas sans deux oui : celui-ci est le premier, la ligne écrite sera le second."], "options": [
+            option_matin("verser", "Verser", "Je t'écris la ligne et te la montre : elle ne part qu'après ton second oui."),
+            option_matin("fondre", "Fondre dans une entrée existante", "Tu me nommes laquelle ; rien ne grossit."),
+            option_matin("abandonner", "Abandonner", "Rien n'est écrit : abandonner est une réponse normale.")]}
+    titre, faire = (("Case 3 du menu de fin : essaimer", "Je lance `niveau` sur les autres projets équipés, comme "
+                     "`cloture.md` le dit.") if sorte == "case3" else
+                    ("Case 4 du menu de fin : la dette repérée", "Petite : une tâche et un commit à elle. Plus grosse : "
+                     "présentée comme un chantier (`cloture.md`)."))
+    return {"titre": titre, "puces": puces, "options": [
+        option_matin("faire", "Faire", faire),
+        option_matin("laisser", "Laisser", "Rien n'est fait ; la note reste au carnet.")]}
+
+
+def rapport_matin(projet, date, bilans, cotes, lignes, kit_sans):
+    """Le JSON de `chef page --questions` du matin : une ligne `fait` par chantier du carnet (issues, relances, modèles
+    vus, `plugin_retard`, coût `_kit` — jamais `_cli`), une carte par chantier mis de côté, une par note selon sa `sorte`,
+    et `NOTE SANS SORTE` en alerte pour les autres. `kit_sans` : les lignes `KIT ?`, en puces."""
+    notes = [d for d in lignes if carnet.est_note_matin(d)]
+    fait, choix, mal = [], [question_de_cote(c) for c in cotes], []
+    for b in bilans:
+        issues = ", ".join("%s ×%d" % (k, n) for k, n in b["issues"].items()) or "aucune session"
+        livre = " · ".join(x for x in (
+            "issues : %s" % issues, "relances : %d" % b["relances"],
+            "modèles vus : %s" % ", ".join(b["modeles"]) if b["modeles"] else None,
+            "plugin en retard : %s commit(s)" % b["retard"] if b["retard"] else None) if x)
+        fait.append({"ref": b["canal"], "code": b["chantier"], "livre": livre,
+                     "titre": "%d jouée(s) · %d acceptée(s) · %d refusée(s)" % (len(b["jouees"]), len(b["acceptees"]),
+                                                                              len(b["refusees"])),
+                     "cout": "%s · %d tours" % (cout_du_bilan(b), b["tours"])})
+    for d in notes:
+        if d.get("sorte") in carnet.SORTES:
+            choix.append(question_de_note(d.get("canal"), str(d["note"]), d["sorte"]))
+        else:
+            mal.append({"genre": "alerte", "titre": "NOTE SANS SORTE", "texte":
+                        "%s (canal %s) — le matin ne sait pas quoi en faire : à classer à la main." % (
+                            d["note"], d.get("canal") or "?")})
+    rapport = {"projet": nom_du_projet(projet), "sujet": "matin", "titre": "Le matin du %s" % date, "date": date,
+               "puces": ["%d chantier(s) au carnet · %d mis de côté · %d note(s) pour le matin"
+                         % (len(bilans), len(cotes), len(notes))] + kit_sans}
+    for cle, valeur in (("fait", fait), ("choix", choix), ("mal", mal)):
+        if valeur:
+            rapport[cle] = valeur
+    return rapport
+
+
+def cmd_matin_rapport(a, sortie):
+    """`matin <projet> <date> --rapport <json>` : sans fusion ni commit, rejouable. Complète le carnet de la nuit
+    (`completer_kit`), range une ligne par chantier au fichier des nuits (`ecrire_table_nuits`), puis écrit le JSON de
+    `chef page --questions` (`rapport_matin`). Mêmes gardes que `matin` : équipé, date, racine du dépôt ; carnet absent
+    ou vide, ou fichier des nuits illisible : `GARDE:`, sort 1."""
+    projet = projet_du_matin(a, sortie)
+    if projet is None:
+        return 1
+    chemin = carnet.du_jour(projet, a.date)
+    if not chemin or not carnet.lire(chemin):
+        sortie.write("GARDE: carnet de la nuit %s absent ou vide — pas de rapport\n" % a.date)
+        return 1
+    manques = io.StringIO()
+    try:
+        completer_kit(chemin, manques)
+    except ValueError as e:
+        sortie.write("GARDE: carnet %s — %s\n" % (chemin, e))
+        return 1
+    sortie.write(manques.getvalue())
+    lignes = carnet.lire(chemin)
+    bilans = bilan_chantiers(lignes)
+    try:
+        nuits, ajoutees = ecrire_table_nuits(projet, a.date, bilans)
+    except ValueError as e:
+        sortie.write("GARDE: %s\n" % e)
+        return 1
+    sortie.write("NUITS %s · %d ligne(s) ajoutée(s)\n" % (os.path.relpath(nuits, projet).replace("\\", "/"), ajoutees))
+    cotes, ecarts = chantiers_de_cote(projet, a.date, lignes)
+    for e in ecarts:
+        sortie.write(e + "\n")
+    rapport = rapport_matin(projet, a.date, bilans, cotes, lignes, manques.getvalue().splitlines())
+    for d in lignes:
+        if carnet.est_note_matin(d) and d.get("sorte") not in carnet.SORTES:
+            sortie.write("NOTE SANS SORTE %s — %s\n" % (d.get("canal") or "?", d["note"]))
+    try:
+        with open(a.rapport, "w", encoding="utf-8", newline="\n") as f:
+            json.dump(rapport, f, ensure_ascii=False, indent=1)
+            f.write("\n")
+    except OSError as e:
+        sortie.write("GARDE: %s — écriture impossible : %s\n" % (a.rapport, e))
+        return 1
+    sortie.write("RAPPORT %s · %d chantier(s) · %d mis de côté · %d carte(s)\n" % (
+        a.rapport, len(bilans), len(cotes), len(rapport.get("choix", []))))
+    return 0
+
+
+def cmd_nuits_lecon(ligne, projet, sortie):
+    """`nuits lecon "<ligne>"` : une leçon sous `## Leçons` du fichier des nuits (`fichier_nuits(creer=True)`). Hors de la
+    forme de `LECON_FORME`, ou fichier illisible : `GARDE:`, sort 1, rien d'écrit. Déjà là : `LEÇON déjà là`."""
+    try:
+        if not LECON_FORME.match(ligne):
+            raise ValueError("leçon hors forme : %s" % ligne)
+        chemin = fichier_nuits(os.path.abspath(projet), creer=True)
+        assert chemin
+        ajoutee = nuits_ecrire(chemin, ligne)
+    except ValueError as e:
+        sortie.write("GARDE: %s\n" % e)
+        return 1
+    sortie.write("LEÇON %s · %s\n" % (os.path.relpath(chemin, projet).replace("\\", "/"), "ajoutée" if ajoutee else "déjà là"))
     return 0
 
 
@@ -7330,10 +7661,12 @@ def main(argv, sortie=None, entree=None, erreur=None):
     mu.add_argument("apres")
     mu.add_argument("--test")
     nu = sous.add_parser("nuits")
-    nu.add_argument("verbe", choices=["noter"])
+    nu.add_argument("verbe", choices=["noter", "lecon"])
     nu.add_argument("texte")
     nu.add_argument("--canal")
     nu.add_argument("--stop", action="store_true")
+    nu.add_argument("--sorte", choices=carnet.SORTES)
+    nu.add_argument("--projet", default=".")
     pl = sous.add_parser("plan")
     pl.add_argument("verbe", choices=["ecrire", "lire"])
     pl.add_argument("projet")
@@ -7344,6 +7677,7 @@ def main(argv, sortie=None, entree=None, erreur=None):
     ma = sous.add_parser("matin")
     ma.add_argument("projet")
     ma.add_argument("date")
+    ma.add_argument("--rapport")
     ch = sous.add_parser("chef")
     ch.add_argument("verbe", choices=["page"])
     ch.add_argument("--questions", required=True)
@@ -7440,7 +7774,9 @@ def repartir(a, sortie, entree, erreur):
     if a.cmd == "mutant":
         return cmd_mutant(a.cible, a.avant, a.apres, a.test, sortie)
     if a.cmd == "nuits":
-        return cmd_nuits_noter(a.texte, a.canal, a.stop, sortie)
+        if a.verbe == "lecon":
+            return cmd_nuits_lecon(a.texte, a.projet, sortie)
+        return cmd_nuits_noter(a.texte, a.canal, a.stop, sortie, sorte=a.sorte)
     if a.cmd == "plan":
         return cmd_plan(a, sortie)
     if a.cmd == "matin":

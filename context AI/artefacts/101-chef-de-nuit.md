@@ -20,7 +20,7 @@
 - NUI16 : test-vlp.py OK, 743 verifier (+11), 3 mutants attrapés (4, 1, 1 écarts), pyright 0 ; essai D2 : 3 cas sur 4 égaux, empreintes différentes ≠ → publie par la clé, aucune ligne merge=union
 - NUI17 : test-vlp.py OK, 784 verifier (743 + 41 neufs), mutants M1 M2 M3 attrapés sur (c) (d) (b), chef page ARTEFACTS.md 1 (0 avant), pyright 0 erreur sur vlp.py et test-vlp.py
 - NUI18 : test OK 784 verifier en 502 s, pyright 0 erreur, mutant attrapé (NIV1 et EVF4, 2 écarts), essai réel 0,216118 $ en 1 tour, 0 tool_use, 0 refus, bac 14/14 identique
-- NUI19 : /vlp:chef, le matin — dépend de NUI13, NUI15, NUI16, NUI18
+- NUI19 : test-vlp.py OK (794 verifier, 8 min 18 s), pyright 0 erreur ; mutants sous-agents non sommés, usd_exact None compté 0, ligne de table à chaque rejeu : trois ATTRAPÉS ; SKILL.md +2/+1/+1/+1 et nuit.md +1 constatés
 - NUI20 : une vraie nuit sur le kit, mesurée — dépend de toutes
 ## Journal
 - 2026-10-01 : Essai NUI14 sous NUIT=1 : une session claude -p sur une fiche triviale, 16 tours, 0,4623 $, 68 s (un appel lire nuit.md, 0 git commit, 0 cloture.md) ; boucle.py ne crée pas le dossier de --traces.

@@ -3,14 +3,18 @@
 
 Sans dépendance ni appel modèle ; `vlp.py` et `boucle.py` le chargent par `import carnet`.
 Chemin : `<--git-common-dir absolu>/vlp-nuit/<date>.jsonl` (`du_jour`) — dans `.git`, donc ni
-suivi ni hook. Une ligne = un objet JSON qui porte les 21 clés de `CLES` (absente : `null`),
-les 17 du socle de NUI1 plus `usd_kit`, `tours_kit`, `note`, `stop` ; une clé inconnue est
+suivi ni hook. Une ligne = un objet JSON qui porte les 22 clés de `CLES` (absente : `null`),
+les 17 du socle de NUI1 plus `usd_kit`, `tours_kit`, `note`, `stop`, `sorte` ; une clé inconnue est
 refusée (`ValueError`). `lire` saute la ligne illisible (processus tué en pleine écriture) ;
 `ajouter` ouvre une ligne neuve si la dernière n'est pas finie.
 
 Ajout sous verrou `<carnet>.verrou`, créé en `O_CREAT|O_EXCL` et qui porte le PID. Verrou tenu :
 attendre `PAS`, réessayer. Plus vieux que `VERROU_AGE` secondes (date du fichier) : cassé, et une
-ligne `garde` le dit (PID, âge) avant la ligne ajoutée.
+ligne `garde` le dit (PID, âge) avant la ligne ajoutée. `mettre_a_jour` réécrit sous ce même verrou
+(`sous_verrou`, un seul) les lignes que le matin complète — `usd_kit`, `tours_kit` (NUI19).
+
+`sorte` (NUI19) : ce que le matin fait d'une `note`, une de `SORTES` ; `vlp.py nuits noter --sorte`. Une note du matin
+(`est_note_matin`) est toute note que boucle.py n'écrit pas lui-même (`NOTES_BOUCLE`) ; sans sorte, le matin la signale.
 
 `est_session(ligne)` : `role` posé, `note` et `stop` nuls — seul tri des lignes de session.
 `cout_de(ligne, plafonds)` : ce qu'une ligne de session a coûté — son `usd_cli`, à défaut son `usd_kit`
@@ -24,15 +28,18 @@ partir alors que le nombre de chantiers est déjà ≥ borne), sinon `None`. `st
 Avant chaque session `--nuit`, boucle.py écrit une `note` `depart <rôle>` (canal, chantier, fiche, session) :
 hors `est_session`, donc hors pot et hors mesure ; sans ligne de session au même id, la session a été coupée.
 """
+import contextlib
 import json
 import os
 import subprocess
 import time
-from typing import Optional
+from typing import Callable, Optional
 
 CLES = ("nuit", "canal", "chantier", "role", "fiche", "modele_demande", "modeles_vus", "tours_cli",
         "usd_cli", "duree_s", "issue", "refus_n", "cause", "reecriture", "garde", "plugin_retard",
-        "session", "usd_kit", "tours_kit", "note", "stop")
+        "session", "usd_kit", "tours_kit", "note", "stop", "sorte")
+SORTES = ("reste", "case3", "case4")
+NOTES_BOUCLE = ("depart ", "base ", "ÉVEIL ", "bascule ")   # le début des notes que boucle.py écrit lui-même
 VERROU_AGE = 30   # secondes : au-delà, le verrou est cassé — seul endroit du nombre
 PAS = 0.02        # secondes d'attente entre deux essais de verrou
 ENV_CARNET, ENV_CANAL = "VLP_CARNET", "VLP_CANAL"
@@ -128,17 +135,14 @@ def prendre(verrou: str) -> Optional[tuple]:
         return casse
 
 
-def ajouter(carnet: str, **champs) -> None:
-    """Ajoute une ligne au carnet, sous verrou. Clé inconnue : `ValueError`, rien d'écrit."""
-    contenu = ligne(champs)
+@contextlib.contextmanager
+def sous_verrou(carnet: str):
+    """Tient le verrou du carnet le temps du bloc ; rend `(PID, âge)` du verrou cassé pour le prendre, ou None."""
     os.makedirs(os.path.dirname(carnet), exist_ok=True)
     verrou = carnet + ".verrou"
     casse = prendre(verrou)
     try:
-        if casse:
-            ecrire(carnet, ligne({"nuit": champs.get("nuit"), "canal": champs.get("canal"),
-                                  "garde": "verrou cassé : PID %s, âge %d s" % casse}))
-        ecrire(carnet, contenu)
+        yield casse
     finally:
         try:
             os.remove(verrou)
@@ -146,12 +150,57 @@ def ajouter(carnet: str, **champs) -> None:
             pass
 
 
+def ligne_casse(carnet: str, casse: tuple, canal: Optional[str] = None) -> None:
+    """La ligne `garde` qui dit un verrou cassé (PID, âge), écrite sous le verrou que `sous_verrou` vient de prendre."""
+    ecrire(carnet, ligne({"nuit": nuit_de(carnet), "canal": canal, "garde": "verrou cassé : PID %s, âge %d s" % casse}))
+
+
+def ajouter(carnet: str, **champs) -> None:
+    """Ajoute une ligne au carnet, sous verrou. Clé inconnue : `ValueError`, rien d'écrit."""
+    contenu = ligne(champs)
+    with sous_verrou(carnet) as casse:
+        if casse:
+            ecrire(carnet, ligne({"nuit": champs.get("nuit"), "canal": champs.get("canal"),
+                                  "garde": "verrou cassé : PID %s, âge %d s" % casse}))
+        ecrire(carnet, contenu)
+
+
+def mettre_a_jour(carnet: str, completer: Callable[[dict], Optional[dict]]) -> int:
+    """Réécrit sous verrou les lignes que `completer(ligne)` complète : il rend les clés à poser (une clé inconnue de
+    `CLES` : `ValueError`, rien d'écrit) ou None. Une ligne qu'il laisse, une ligne illisible : reprise octet pour octet ;
+    aucun changement : le fichier n'est pas touché. Le fichier neuf s'écrit à côté puis remplace l'ancien d'un coup :
+    un lecteur sans verrou ne voit jamais un fichier à moitié écrit. Rend le nombre de lignes changées."""
+    with sous_verrou(carnet) as casse:
+        try:
+            with open(carnet, "rb") as f:
+                morceaux = f.read().split(b"\n")
+        except OSError:
+            return 0
+        changees = 0
+        for k, brut in enumerate(morceaux):
+            try:
+                d = json.loads(brut.decode("utf-8"))
+            except ValueError:
+                continue
+            plus = completer(d) if isinstance(d, dict) else None
+            if plus:
+                morceaux[k] = json.dumps(ligne({**d, **plus}), ensure_ascii=False).encode("utf-8")
+                changees += 1
+        if changees:
+            with open(carnet + ".neuf", "wb") as f:
+                f.write(b"\n".join(morceaux))
+            os.replace(carnet + ".neuf", carnet)
+        if casse:
+            ligne_casse(carnet, casse)
+        return changees
+
+
 def stop(carnet: str, canal: Optional[str], raison: str) -> None:
     ajouter(carnet, nuit=nuit_de(carnet), canal=canal, stop=raison)
 
 
-def noter(carnet: str, canal: Optional[str], texte: str) -> None:
-    ajouter(carnet, nuit=nuit_de(carnet), canal=canal, note=texte)
+def noter(carnet: str, canal: Optional[str], texte: str, sorte: Optional[str] = None) -> None:
+    ajouter(carnet, nuit=nuit_de(carnet), canal=canal, note=texte, sorte=sorte)
 
 
 def stop_de(lignes: list) -> Optional[str]:
@@ -162,6 +211,11 @@ def stop_de(lignes: list) -> Optional[str]:
 
 def est_session(d: dict) -> bool:
     return d.get("role") is not None and d.get("note") is None and d.get("stop") is None
+
+
+def est_note_matin(d: dict) -> bool:
+    """Une `note` que le matin lit : celle d'une session ou de l'utilisateur, jamais une de `NOTES_BOUCLE`."""
+    return d.get("note") is not None and not str(d["note"]).startswith(NOTES_BOUCLE)
 
 
 def cout_de(d: dict, plafonds: Optional[dict] = None) -> float:

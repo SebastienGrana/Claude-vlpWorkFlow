@@ -1,7 +1,7 @@
 ---
-description: "Prépare le lancement de plusieurs chantiers d'affilée, à toute heure : trie la TODO, pose toutes les questions dans une page à cartes, écrit le plan"
-argument-hint: (rien) | <date du plan AAAA-MM-JJ>
-allowed-tools: Bash(python3:*), Bash(py:*), Bash(echo:*), Bash(git branch:*), Bash(git check-ignore:*), Bash(git rev-parse:*), Bash(git add:*), Bash(git commit:*), PowerShell(python3:*), PowerShell(py:*), PowerShell(echo:*), PowerShell(git branch:*), PowerShell(git check-ignore:*), PowerShell(git rev-parse:*), PowerShell(git add:*), PowerShell(git commit:*), Read, Write, Artifact
+description: "Prépare le lancement de plusieurs chantiers d'affilée, à toute heure : trie la TODO, pose toutes les questions dans une page à cartes, écrit le plan ; avec `matin`, range la nuit passée : fusion, rapport, réponses"
+argument-hint: (rien) | <date du plan AAAA-MM-JJ> | matin <date de la nuit AAAA-MM-JJ>
+allowed-tools: Bash(python3:*), Bash(py:*), Bash(echo:*), Bash(git branch --show-current:*), Bash(git check-ignore:*), Bash(git rev-parse:*), Bash(git add:*), Bash(git commit:*), PowerShell(python3:*), PowerShell(py:*), PowerShell(echo:*), PowerShell(git branch --show-current:*), PowerShell(git check-ignore:*), PowerShell(git rev-parse:*), PowerShell(git add:*), PowerShell(git commit:*), Read, Write, Artifact
 ---
 
 Arguments reçus :
@@ -11,7 +11,8 @@ $ARGUMENTS
 Prépare le lancement de **plusieurs chantiers d'affilée**, joués sans humain : tu juges, les scripts écrivent.
 **L'heure est libre** : prépare quand l'utilisateur veut lancer, de jour comme de nuit. Cette session **n'ouvre
 aucun chantier et n'écrit aucun code** : elle produit un plan. Un argument qui est une date `AAAA-MM-JJ` est
-celle du plan (`--date`) ; sans argument, le jour.
+celle du plan (`--date`) ; sans argument, le jour. L'argument **`matin`** change tout : après la section 0, va à
+« Le matin » et saute les sections 1 à 4.
 
 ## La carte du projet — lue avant ton premier tour
 
@@ -90,3 +91,52 @@ son nom ; le fichier absent, un nom de cette forme suffit.
 `boucle.py` (« Lancer une nuit ») : `py -3 "${CLAUDE_PLUGIN_ROOT}/scripts/boucle.py" --nuit --lancer "<PROJET>"`,
 plus `--date <date>` si le lancement tombe un autre jour. **Tu ne la lances pas** : c'est lui, à l'heure
 qu'il veut.
+
+## Le matin
+
+L'argument est `matin <date de la nuit>` : la date du carnet et des branches `nuit/<date>-*`. Sans date, arrête-toi
+et dis-le. **Un appel par geste**, sa sortie lue en entier ; une `GARDE:` se montre brute, et tu t'arrêtes.
+
+### M1. Fusionner, puis le rapport
+
+```bash
+<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" matin "<PROJET>" "<date>"
+```
+
+Un `ARRÊT … conflit` sur du **code** rend la main à l'utilisateur : tu t'arrêtes. `ATTENTE=` : republie d'abord ces
+pages (`ARTEFACTS.md`, « Une publication refusée »). `PLUGIN_RETARD=` : dis-la — `/reload-plugins` est son geste,
+jamais le tien. Puis le rapport, sans fusion ni commit, rejouable :
+
+```bash
+<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" matin "<PROJET>" "<date>" --rapport "<carnet>/chef-<date>-matin.json"
+```
+
+`KIT ?`, `ÉCART` et `NOTE SANS SORTE` : dis chacun en une ligne, ils sont aussi dans le JSON. Ajoute-y **une à trois
+leçons**, en cartes de décision (`decisions.cartes`, les cinq champs ; la ligne de la leçon, telle qu'elle s'écrirait,
+va dans `choix`), tirées des `cause` et `reecriture` du carnet, dans la forme de `NUI11` (docstring de `vlp.py`,
+`nuits lecon`) : une cause, pas un constat. Rien à en tirer : n'en invente pas. Puis la page, comme à la section 3 :
+
+```bash
+<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" chef page --questions "@<carnet>/chef-<date>-matin.json" --sortie "<carnet>/chef-<date>-matin.html"
+```
+
+Publie-la **telle qu'elle sort** (refus : `ARTEFACTS.md`), donne le lien, demande de coller ses réponses.
+**N'avance pas avant.**
+
+### M2. Ses réponses, une à une
+
+- **Leçon gardée** : `<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" nuits lecon "<ligne>" --projet "<PROJET>"`. Une
+  leçon tenue sur deux nuits (son `N` et ses `nuits`) : propose-la pour `methode-chantier.md` — **deux oui**.
+- **Reste versé** : le second oui. Écris la ligne, montre-la, ne commite qu'après son accord (`methode-chantier.md`,
+  « La TODO ne grossit pas »).
+- **Case 3 ou 4, faire** : comme `cloture.md` (menu de fin) le dit — une tâche, un commit à elle.
+- **Mis de côté**, reprendre : nomme la branche, rien d'autre. Abandonner ou rejouer (la nuit suivante repart de `main`) :
+  donne `git branch -D <branche>`, **tu ne la lances jamais** ; rejouer garde la ligne de la TODO, que le tri du soir reprend.
+
+### M3. Finir
+
+Un commit du matin pour ce que M2 a écrit : `git add` des fichiers nommés, sujet `Matin <date> : <n> réponses`. Puis
+`git push` : **une question à lui seul**, jamais une carte — un push publie, il ne se lance que sur son oui explicite. Enfin
+« Pour finir » (`cloture.md`) : le dernier message, sans appel d'outil après lui.
+
+Tu ne fais pas : la fusion à la main, le remplisseur de page, le soir, le reste de `nuit.md`.
