@@ -7,7 +7,8 @@ Seul script du kit qui appelle un modèle ; `vlp.py` reste sans appel modèle.
 
     boucle.py [dossier] --plafond N [--claude C] [--model M] [--effort E]
               [--permission-mode P] [--budget USD] [--traces DOSSIER]
-              [--nuit --canal C --chantier X [--borne-usd USD] [--borne-chantiers N] [--carnet CHEMIN]]
+              [--nuit --canal C [--chantier X] [--date AAAA-MM-JJ] [--borne-usd USD] [--borne-chantiers N]
+               [--carnet CHEMIN]]
 
 Avant chaque fiche : `vlp.py carte` donne `PROCHAINE=` ; `aucune` arrête. Une fiche
 à bloc **Tentatives** arrête sans être jouée. Une fiche `(visuel)` (ligne `ARRÊT:`
@@ -27,15 +28,16 @@ Permissions : `--permission-mode`, `auto` par défaut — personne ne répond en
 plus `git add` et `git commit` (`AUTORISES`), sauf `--amend` et `--no-verify` en tête.
 Traces : `--traces`, sinon un dossier temporaire neuf `vlp-boucle-*`, gardé.
 
-`--nuit` (chantier NUI) tient le carnet de `carnet.py` et ouvre `--canal`, `--chantier` (exigés),
-`--borne-usd`, `--borne-chantiers` et `--carnet` (absolu ; défaut : celui du jour, fixé au lancement) ;
+`--nuit` (chantier NUI) tient le carnet de `carnet.py` et ouvre `--canal` (exigé), `--chantier` (sans lui : la
+boucle d'un canal, NUI7, plus bas), `--date`, `--borne-usd`, `--borne-chantiers` et `--carnet` (absolu ; défaut :
+celui de `--date`, sinon du jour, fixé au lancement) ;
 `--plafond` y devient facultatif, exigé sans `--nuit`. Sans `--nuit` rien de tout cela ne s'applique
 et aucun carnet n'est touché. Avant chaque session — jamais pendant —, la boucle relit le carnet :
 un `stop` de n'importe quel canal rend `ARRÊT STOP — <raison>` (sort 1) ; la borne atteinte rend
 `ARRÊT borne atteinte — <$ ou chantiers>` (sort 0), chantier ouvert. Une session déjà partie va
 au bout : la borne se dépasse d'une session par canal au plus. Après chaque session, une ligne du
 carnet (nuit, canal, chantier, role, fiche, modele_demande, modeles_vus, tours_cli, usd_cli, duree_s,
-issue, garde, session) ; la session fille reçoit `VLP_CARNET` et `VLP_CANAL`.
+issue, garde, plugin_retard, session) ; la session fille reçoit `VLP_CARNET`, `VLP_CANAL` et `VLP_NUIT=1`.
 
 Sous `--nuit`, chaque session prend ses réglages dans `ROLES`, en tête du fichier : les cinq rôles
 (découper, jouer, relire, relance, clore) — prompt, modèle, repli, effort, outils, `--max-turns`,
@@ -80,8 +82,27 @@ Vérification de nuit (NUI6) : si CHANTIER.md porte `- **vérification de nuit**
 de vlp.py), le shell la lance dans la racine du projet avant la première fiche jouée du chantier, puis après le
 commit de chaque ACCEPTÉE, bornée par `TIMEOUT_S` ; un code ≠ 0 ou le délai : `ARRÊT <fiche> : garde
 verification`, sortie 1. Libellé absent : rien, ni ligne ni garde.
+
+La boucle d'un canal (NUI7, `--nuit` sans `--chantier`) : `vlp.py plan lire --date --canal` donne les chantiers du
+canal, dans l'ordre, et la borne du plan (`--borne-usd`, `--borne-chantiers` la remplacent) ; `--date` (défaut : le
+jour du lancement, lu une fois) nomme le plan, les branches et le carnet par défaut ; `--plafond`, s'il est donné,
+borne les fiches jouées de tout le canal. Un chantier déjà ouvert au départ arrête le canal. Par chantier : `STOP`,
+borne et plafond relus (le canal s'arrête, chantier ouvert) ; un chantier dont « Dépend de » (TODO) nomme un code mis
+de côté ou sauté est sauté sans session (`SAUTÉ`, carnet `saute:<code>`, `issue` `pas partie`) ; la branche
+`nuit/<date>-<canal>-<code>` part du dernier chantier réussi (`HEAD` au départ) ; `découper` ; `vlp.py valider` et le
+nombre de fiches contre 2 × la borne haute du coût de sa ligne TODO ; le commit `Chantier <code> ouvert (nuit) : <n>
+fiches` ; les fiches comme sous `--chantier` (NUI5, NUI6) ; sur `aucune`, `cocher --session <id> --role clore` puis la
+session `clore` (`/vlp:tache`), qui commite. Réussi : plus de fichier de fiches courant, arbre propre — sa pointe est la
+base du suivant. Mis de côté (`MIS DE CÔTÉ`, carnet `mis-de-cote:<raison>`) : découpage sans fichier, `valider` en
+écart ou en avertissement, trop de fiches, TODO illisible, un arrêt de chantier de NUI6 (sa ligne `ARRÊT` imprimée
+telle quelle), une session de jeu ou de relance qui clôt le chantier (carnet `cloture-hors-role`), une clôture qui
+laisse le chantier ouvert ou l'arbre sale. `mettre_de_cote` est seule à le faire : arbre propre, rien ; sinon `git
+add -A` et `WIP <code> mis de côté : <raison>`. Un commit de la boucle refusé par un hook (WIP : carnet `wip-refuse`)
+arrête le canal, arbre tel quel — jamais `--no-verify`. `lire_carte` lit `PLUGIN_RETARD=` : son nombre va à
+`plugin_retard` des lignes. Sort 0 quand le plan est fini ou la borne atteinte, 1 sur un `STOP` ou un arrêt de canal.
 """
 import argparse
+import datetime
 import functools
 import importlib.util
 import io
@@ -154,7 +175,8 @@ ROLES = {
         "usd": 5,       # comme jouer ; Opus medium jamais mesuré
         "timeout": TIMEOUT_S},
     "clore": {
-        "prompt": "/vlp:tache", "agent": None, "modele": OPUS, "repli": REPLI_OPUS,   # prompt : NUI7 le fixe
+        # sans fiche, `/vlp:tache` voit `PROCHAINE=aucune` et applique sa clôture (`skills/tache/SKILL.md`, étapes 0 et 7)
+        "prompt": "/vlp:tache", "agent": None, "modele": OPUS, "repli": REPLI_OPUS,
         "effort": None, "git": True,   # `cloture.md:72` : la session commite la clôture
         "tours": 60,    # non mesuré
         "usd": 5,       # non mesuré
@@ -228,19 +250,30 @@ def trouver_claude(choix):
 
 
 def lire_carte(dossier):
-    """(racine, fichier de fiches, prochaine) — None là où la carte ne dit rien."""
+    """(racine, fichier de fiches, prochaine, retard) — None là où la carte ne dit rien ; `retard` : le nombre
+    de commits de la ligne `PLUGIN_RETARD=`, None sans elle."""
     _, s = vlp(["carte", dossier], dossier)
-    racine = fichier = prochaine = None
+    racine = fichier = prochaine = retard = None
     for ligne in s.split("\n"):
         if ligne.startswith("PROJET="):
             racine = ligne[len("PROJET="):].strip()
         elif ligne.startswith("PROCHAINE="):
             prochaine = ligne[len("PROCHAINE="):].strip()
+        elif ligne.startswith("PLUGIN_RETARD="):
+            m = re.match(r"PLUGIN_RETARD=(\d+)", ligne)
+            retard = int(m.group(1)) if m else None
         elif "**fichier de fiches courant**" in ligne and fichier is None:
             valeur = ligne.split(":", 1)[1].strip()
             valeur = valeur.split(" (")[0].strip().strip("`")
             fichier = None if valeur.lower().startswith("aucun") else valeur
-    return racine, fichier, prochaine
+    return racine, fichier, prochaine, retard
+
+
+def ligne_carnet(a, **champs):
+    """Une ligne du carnet de la nuit : nuit, canal, chantier et `plugin_retard` (celui de la dernière carte lue)
+    sont communs à toutes celles de la boucle ; `champs` : le reste."""
+    carnet.ajouter(a.carnet, nuit=carnet.nuit_de(a.carnet), canal=a.canal, chantier=a.chantier,
+                   plugin_retard=getattr(a, "plugin_retard", None), **champs)
 
 
 def commande(claude, role, fiche, a, modele, session, suite=""):
@@ -323,10 +356,12 @@ def classer(s, ok):
     return "jouée" if ok else "ratée"
 
 
-def jouer(claude, fiche, racine, a, trace, role="jouer", controle=None, suite="", apres=None):
+def jouer(claude, fiche, racine, a, trace, role="jouer", controle=None, suite="", apres=None, session=None):
     """Joue une session neuve du rôle `role` (sans `--nuit` : toujours le rôle jouer).
 
     `controle()` dit si le contrôle du rôle passe (jouer : la case est cochée) ; sans, il passe.
+    `session` : l'id de son `--session-id`, quand l'appelant l'a déjà écrit (clore) — la première session seule,
+    une relance après la limite Opus en prend un neuf.
     `suite` s'ajoute au prompt. `apres(texte, issue, session)` : une fois par session venue au bout — ni
     limite ni pas partie —, avant sa ligne du carnet ; il rend les clés de plus de cette ligne (`refus_n`,
     `cause`, `garde`). Rend un dict : `tours` et `cout` (cumulés si une limite Opus relance), `texte`,
@@ -335,11 +370,11 @@ def jouer(claude, fiche, racine, a, trace, role="jouer", controle=None, suite=""
     """
     env = {k: v for k, v in os.environ.items() if k not in HERITEES}
     if a.nuit:
-        env[carnet.ENV_CARNET], env[carnet.ENV_CANAL] = a.carnet, a.canal
+        env[carnet.ENV_CARNET], env[carnet.ENV_CANAL], env["VLP_NUIT"] = a.carnet, a.canal, "1"
     tours, cout, rejoue = 0, 0.0, False
     while True:
         modele = modele_de(role) if a.nuit else a.model
-        demande = str(uuid.uuid4())
+        demande = session if session and not rejoue else str(uuid.uuid4())
         cmd = commande(claude, role, fiche, a, modele, demande, suite)
         delai = ROLES[role]["timeout"] if a.nuit else None
         fini, t0 = True, time.time()
@@ -361,12 +396,11 @@ def jouer(claude, fiche, racine, a, trace, role="jouer", controle=None, suite=""
             refus = len(r.get("permission_denials") or [])
             plus = apres(texte, issue, s["session"] or demande) if apres and issue not in ("limite", "pas partie") else {}
             gardes = ["permission_denials : %d" % refus if refus else None, plus.get("garde")]
-            carnet.ajouter(a.carnet, nuit=carnet.nuit_de(a.carnet), canal=a.canal, chantier=a.chantier,
-                           role=role, fiche=fiche, modele_demande=modele, modeles_vus=s["modeles"],
-                           tours_cli=r.get("num_turns") if s["result"] else None,
-                           usd_cli=r.get("total_cost_usd") if s["result"] else None,
-                           duree_s=duree, issue=issue, garde=" ; ".join(g for g in gardes if g) or None,
-                           session=s["session"] or demande, **{k: v for k, v in plus.items() if k != "garde"})
+            ligne_carnet(a, role=role, fiche=fiche, modele_demande=modele, modeles_vus=s["modeles"],
+                         tours_cli=r.get("num_turns") if s["result"] else None,
+                         usd_cli=r.get("total_cost_usd") if s["result"] else None,
+                         duree_s=duree, issue=issue, garde=" ; ".join(g for g in gardes if g) or None,
+                         session=s["session"] or demande, **{k: v for k, v in plus.items() if k != "garde"})
         stop = None
         if a.nuit and issue == "limite":
             m = LIMITE_RE.match(texte)
@@ -511,8 +545,7 @@ def garde_de(n, dernier, motif, cause):
 def noter_arret(a, fiche, garde, n=None, cause=None, reecriture=None):
     """La ligne du carnet d'un arrêt de la nuit : la garde, et pour un refus son n, sa cause, sa réécriture.
     Sans `role` : le carnet ne la compte pas comme une session."""
-    carnet.ajouter(a.carnet, nuit=carnet.nuit_de(a.carnet), canal=a.canal, chantier=a.chantier, fiche=fiche,
-                   garde=garde, refus_n=n, cause=cause, reecriture=reecriture)
+    ligne_carnet(a, fiche=fiche, garde=garde, refus_n=n, cause=cause, reecriture=reecriture)
 
 
 def verification_de(racine):
@@ -536,11 +569,23 @@ def verifier_nuit(commande, racine):
     return None
 
 
-def relire_et_relancer(claude, fiche, titre, fichier, racine, a, traces, n_refus, dernier, tot):
+def hors_role(a, racine, fiche):
+    """Vrai — et une ligne `cloture-hors-role` au carnet — si la session de `fiche` a fermé le chantier : la carte
+    ne donne plus de fichier de fiches courant. Sous `--nuit`, `clore` seul clôt (NUI7)."""
+    _, fichier, _, a.plugin_retard = lire_carte(racine)
+    if fichier is not None:
+        return False
+    ligne_carnet(a, fiche=fiche, garde="cloture-hors-role")
+    return True
+
+
+def relire_et_relancer(claude, fiche, titre, fichier, racine, a, traces, n_refus, dernier, tot, canal=False):
     """Relit la fiche jouée, puis suit le verdict (NUI5, NUI6) : ACCEPTÉE rend None. REFUSÉE : `n_refus` (celui
     de la boucle, `dernier` : le motif d'avant) augmente, `garde_de` tranche ; arrêt → une ligne du carnet et
-    `(1, raison)` ; sinon (cause `copie`) une session du rôle `relance` sur l'arbre tel quel, puis une relecture
-    de plus. `tot` : `[tours, coût]` du lancement, tenus à jour. Rend None ou `(code, raison)`."""
+    `(1, raison, genre)` ; sinon (cause `copie`) une session du rôle `relance` sur l'arbre tel quel, puis une
+    relecture de plus. `tot` : `[tours, coût]` du lancement, tenus à jour. `canal` : la boucle d'un canal (NUI7),
+    où une relance qui clôt le chantier l'arrête (`hors_role`). Rend None ou `(code, raison, genre)` : `genre`
+    vaut `stop` (le canal s'arrête), `canal` (commit ou revert impossible : le canal s'arrête) ou `chantier`."""
     k = 1
     r = relire(claude, fiche, titre, fichier, racine, a, os.path.join(traces, "%s-relire.jsonl" % fiche),
                etat_case(fichier, fiche, racine)[1])
@@ -551,9 +596,9 @@ def relire_et_relancer(claude, fiche, titre, fichier, racine, a, traces, n_refus
             print("    " + ligne)
         print(flush=True)
         if r["stop"]:
-            return 1, "STOP — %s" % r["stop"]
+            return 1, "STOP — %s" % r["stop"], "stop"
         if r["arret"]:
-            return 1, r["arret"]
+            return 1, r["arret"], "canal"
         if not r["refuse"]:
             return None
         n_refus += 1
@@ -562,7 +607,7 @@ def relire_et_relancer(claude, fiche, titre, fichier, racine, a, traces, n_refus
         dernier = r["motif"]
         if garde:
             noter_arret(a, fiche, garde, n_refus, cause, r["reecriture"])
-            return 1, "%s refusée à la relecture — refus %d, cause %s — garde %s" % (fiche, n_refus, cause, garde)
+            return 1, "%s refusée à la relecture — refus %d, cause %s — garde %s" % (fiche, n_refus, cause, garde), "chantier"
         k += 1
         trace = os.path.join(traces, "%s-relance%d.jsonl" % (fiche, k - 1))
         print("RELANCE %s — refus %d, cause %s — trace %s" % (fiche, n_refus, cause, trace), flush=True)
@@ -577,11 +622,299 @@ def relire_et_relancer(claude, fiche, titre, fichier, racine, a, traces, n_refus
             print("    " + ligne)
         print(flush=True)
         if s["stop"]:
-            return 1, "STOP — %s" % s["stop"]
+            return 1, "STOP — %s" % s["stop"], "stop"
+        if canal and hors_role(a, racine, fiche):
+            return 1, "%s : la relance a clos le chantier — clôture hors rôle" % fiche, "chantier"
         if not s["ok"]:
-            return 1, "%s non cochée après la relance — lire sa trace" % fiche
+            return 1, "%s non cochée après la relance — lire sa trace" % fiche, "chantier"
         r = relire(claude, fiche, titre, fichier, racine, a, os.path.join(traces, "%s-relire%d.jsonl" % (fiche, k)),
                    etat_case(fichier, fiche, racine)[1])
+
+
+def fiches_du_chantier(claude, a, racine, fichier, traces, verif, etat, canal=False):
+    """Joue les fiches du chantier ouvert, une session `claude -p` neuve chacune : la boucle de `main` d'avant
+    NUI7, qu'une boucle de canal reprend pour chaque chantier. `etat` : `jouees`, `tours`, `cout`, `verifiee`,
+    tenus à jour. Rend `(code, raison, genre)` : `fini` (plus de fiche à jouer), `borne` et `plafond` (le canal
+    s'arrête, chantier ouvert), `stop` (idem, sortie 1), `canal` (commit ou revert impossible : le canal s'arrête)
+    ou `chantier` (le chantier s'arrête, le canal non). `canal` : la boucle d'un canal, où une session de jeu qui
+    clôt le chantier l'arrête (`hors_role`)."""
+    while a.plafond is None or etat["jouees"] < a.plafond:
+        if a.nuit:
+            lignes = carnet.lire(a.carnet)
+            arret = carnet.stop_de(lignes)
+            if arret is not None:
+                return 1, "STOP — %s" % arret, "stop"
+            arret = carnet.borne(lignes, a.chantier, a.borne_usd, a.borne_chantiers)
+            if arret is not None:
+                return 0, "borne atteinte — %s" % arret, "borne"
+        _, _, fiche, a.plugin_retard = lire_carte(racine)
+        if not fiche or fiche == "aucune":
+            return 0, "aucune fiche à jouer", "fini"
+        _, extrait = vlp(["extraire", fichier, fiche], racine)
+        bloc = tentatives(extrait) if a.nuit else None
+        if "**Tentatives**" in extrait and not (bloc and bloc[0]):   # sous --nuit, des refus seuls ne l'arrêtent pas
+            return 1, "%s porte un bloc Tentatives — à lire avant de rejouer" % fiche, "chantier"
+        n_refus, dernier = (bloc[1], bloc[2]) if bloc else (0, None)
+        if a.nuit and verif and not etat["verifiee"]:
+            etat["verifiee"], echec = True, verifier_nuit(verif, racine)
+            print("VERIF avant %s · %s" % (fiche, echec or "sort 0"), flush=True)
+            if echec:
+                noter_arret(a, fiche, "verification")
+                return 1, "%s : garde verification — la vérification de nuit %s avant la fiche" % (fiche, echec), "chantier"
+        visuel = "ARRÊT:" in extrait
+        trace = os.path.join(traces, "%s.jsonl" % fiche)
+        print("JOUE %s — trace %s" % (fiche, trace), flush=True)
+        t0 = time.time()
+        s = jouer(claude, fiche, racine, a, trace, controle=functools.partial(case_cochee, fichier, fiche, racine))
+        duree = int(time.time() - t0)
+        cochee = s["ok"]
+        etat["jouees"] += 1
+        etat["tours"] += s["tours"]
+        etat["cout"] += s["cout"]
+        print("FICHE %s · CASE [%s] · tours %d · %.4f $ · %d s"
+              % (fiche, "x" if cochee else " ", s["tours"], s["cout"], duree))
+        for ligne in s["texte"].strip().split("\n"):
+            print("    " + ligne)
+        print(flush=True)
+        if s["stop"]:
+            return 1, "STOP — %s" % s["stop"], "stop"
+        if canal and hors_role(a, racine, fiche):
+            return 1, "%s a clos le chantier — clôture hors rôle" % fiche, "chantier"
+        if visuel:
+            return 0, "%s est (visuel) — à regarder" % fiche, "chantier"
+        if not cochee:
+            return 1, "%s non cochée — lire sa trace" % fiche, "chantier"
+        if a.nuit:
+            titre = re.search(r"^## %s \[[ x]\] — (.+?)\s*$" % re.escape(fiche), extrait, re.M)
+            tot = [etat["tours"], etat["cout"]]
+            fin = relire_et_relancer(claude, fiche, titre.group(1) if titre else fiche, fichier, racine, a,
+                                     traces, n_refus, dernier, tot, canal)
+            etat["tours"], etat["cout"] = tot
+            if fin:
+                return fin
+            if verif:
+                echec = verifier_nuit(verif, racine)
+                print("VERIF après %s · %s" % (fiche, echec or "sort 0"), flush=True)
+                if echec:
+                    noter_arret(a, fiche, "verification")
+                    return 1, "%s : garde verification — la vérification de nuit %s après son commit" % (fiche, echec), "chantier"
+    return 0, "plafond de %d fiches" % a.plafond, "plafond"
+
+
+def lire_plan(racine, a):
+    """`(plan, erreur)` : `plan` = `(borne en $, borne en chantiers, codes du canal dans l'ordre de leur rang)`, lu
+    par `vlp.py plan lire --date --canal` — jamais à la main. `erreur` : la 1re ligne de sa sortie."""
+    code, s = vlp(["plan", "lire", racine, "--date", a.date, "--canal", a.canal], racine)
+    borne = re.search(r"^BORNE (\S+) \$ · (\d+) chantiers$", s, re.M)
+    liste = sorted((int(m.group(2)), m.group(1)) for l in s.splitlines()
+                   for m in [re.match(r"CHANTIER (\S+) · canal \S+ · rang (\d+) · préfixe \S+$", l)] if m)
+    if code or not borne or not liste:
+        return None, (s.strip().splitlines() or ["plan illisible"])[0]
+    return (float(borne.group(1)), int(borne.group(2)), [c for _, c in liste]), None
+
+
+def lire_todo(racine):
+    """`(todo, erreur)` : `todo` = `(rangs, codes, lettres closes)` — la TODO du fichier d'état (`todo_du_fichier`),
+    le code de chaque rang (`codes_todo`) et les lettres de « Lettres de fiche déjà prises » —, lue une fois au départ
+    du canal ; None sans fichier d'état lisible, et `valider` seul juge alors. `erreur` : le `ValueError` d'une ligne
+    mal formée (une barre verticale dans une cellule, PIP) : tout chantier se met de côté."""
+    k = kit()
+    try:
+        carte = k.lignes_de(os.path.join(racine, "CHANTIER.md"))
+        etat = k.champ(carte, "fichier d'état")
+        rangs = k.todo_du_fichier(k.lignes_du_projet(racine, etat, "fichier d'état")) if etat else None
+    except (k.Absent, OSError):
+        return None, None
+    except ValueError as e:
+        return None, str(e)
+    if rangs is None:
+        return None, None
+    return (rangs, k.codes_todo(rangs), set(k.lettres_prises(carte))), None
+
+
+def bloquant(code, todo, plan, de_cote):
+    """Le code mis de côté ou sauté dont `code` dépend (cellule « Dépend de » de sa ligne TODO), ou None : le motif
+    de `est_bloque` — les lettres closes, plus celles du plan, moins celles des chantiers de côté ; un numéro de
+    rang d'un chantier de côté bloque aussi. Sans TODO, sans ligne pour `code`, ou rien de côté : None."""
+    if not todo or not de_cote or code not in todo[1]:
+        return None
+    k = kit()
+    rangs, codes, closes = todo
+    depend = rangs[codes.index(code)][4]
+    ok = (closes | {k.lettre_de(c) for c in plan}) - {k.lettre_de(c) for c in de_cote}
+    if not k.est_bloque(depend, ok, {rangs[codes.index(c)][0] for c in de_cote if c in codes}):
+        return None
+    dep_codes, dep_rangs = k.dependances(depend)
+    return (next((c for c in dep_codes if k.lettre_de(c) not in ok), None)
+            or next((c for c in de_cote if c in codes and rangs[codes.index(c)][0] in dep_rangs), None) or "?")
+
+
+def tete_de(racine):
+    """Le sha de `HEAD` dans `racine`, ou None."""
+    code, sha = kit().git_texte(["rev-parse", "HEAD"], racine)
+    return sha.strip() if code == 0 else None
+
+
+def arbre_propre(racine):
+    """Vrai si `git status --porcelain` ne rend rien ; None si Git ne répond pas."""
+    code, s = kit().git_texte(["status", "--porcelain"], racine)
+    return None if code != 0 else not s.strip()
+
+
+def brancher(racine, branche, base):
+    """None si `git switch -c <branche> <base>` passe, sinon sa première ligne d'erreur."""
+    code, err = kit().git_texte(["switch", "-q", "-c", branche, base], racine)
+    return None if code == 0 else err
+
+
+def mettre_de_cote(racine, a, code, raison):
+    """Met le chantier `code` de côté — seul endroit où la boucle le fait : une ligne `mis-de-cote:<raison>` au
+    carnet ; arbre propre, rien de plus ; sinon `git add -A` et le commit `WIP <code> mis de côté : <raison>`, hors
+    `COMMIT_FICHE`. Rend None, ou la raison d'arrêt du canal : commit refusé par un hook (ligne `wip-refuse`, arbre tel
+    quel — jamais `--no-verify`) ou Git muet."""
+    raison = " ".join(raison.split())[:200]
+    ligne_carnet(a, garde="mis-de-cote:%s" % raison)
+    propre = arbre_propre(racine)
+    if propre is None:
+        return "%s : git status impossible" % code
+    if propre:
+        return None
+    ok, err = commiter(racine, "WIP %s mis de côté : %s" % (code, raison))
+    if ok:
+        return None
+    ligne_carnet(a, garde="wip-refuse")
+    return "%s : commit WIP refusé — %s" % (code, err)
+
+
+def juger_decoupe(racine, fichier, code, todo):
+    """`(raison, n)` : `raison` — None si le découpage passe — dit pourquoi le chantier se met de côté : `vlp.py valider`
+    rend un écart ou un avertissement, ou plus de fiches que 2 × la borne haute du coût de sa ligne TODO (sans
+    nombre, ou sans ligne : `valider` seul juge). `n` : le nombre de fiches lu par `valider`."""
+    _, s = vlp(["valider", fichier], racine)
+    lignes = s.strip().splitlines() or [""]
+    m = re.match(r"(?:VALIDE|INVALIDE) (\d+) fiches · socle \d+ lignes · (\d+) écarts · (\d+) avertissements", lignes[-1])
+    if not m:
+        return "vlp.py valider illisible : %s" % lignes[-1], 0
+    n, ecarts, avert = (int(g) for g in m.groups())
+    if ecarts or avert:
+        return "vlp.py valider : %d écarts, %d avertissements — %s" % (ecarts, avert, lignes[0]), n
+    if todo and code in todo[1]:
+        cout = todo[0][todo[1].index(code)][3]
+        borne = kit().borne_haute_cout(cout)
+        if borne is not None and n > 2 * borne:
+            return "%d fiches : plus de 2 × %g, la borne haute du coût « %s » de la TODO" % (n, borne, cout), n
+    return None, n
+
+
+def session_de(claude, a, racine, traces, etat, role, code, fiche, controle, session=None):
+    """Une session d'un rôle hors fiche (découper, clore) : sa trace, ses lignes imprimées, les compteurs de `etat`."""
+    trace = os.path.join(traces, "%s-%s.jsonl" % (code, role))
+    print("%s %s — trace %s" % (role.upper(), code, trace), flush=True)
+    t0 = time.time()
+    s = jouer(claude, fiche, racine, a, trace, role=role, controle=controle, session=session)
+    etat["tours"] += s["tours"]
+    etat["cout"] += s["cout"]
+    print("%s %s · tours %d · %.4f $ · %d s" % (role.upper(), code, s["tours"], s["cout"], int(time.time() - t0)))
+    for ligne in s["texte"].strip().split("\n"):
+        print("    " + ligne)
+    print(flush=True)
+    return s
+
+
+def un_chantier(claude, a, racine, traces, etat, code, todo, erreur_todo):
+    """Un chantier du plan, du découpage à la clôture. Rend `(genre, sortie, raison)` : `clos` ; `de-cote` (`raison` :
+    pourquoi — le canal appelle `mettre_de_cote`) ; `fin` (le canal s'arrête, `sortie` est son code)."""
+    if erreur_todo:
+        return "de-cote", 0, "TODO illisible — %s" % erreur_todo
+    s = session_de(claude, a, racine, traces, etat, "découper", code, code, lambda: lire_carte(racine)[1] is not None)
+    if s["stop"]:
+        return "fin", 1, "STOP — %s" % s["stop"]
+    _, fichier, _, a.plugin_retard = lire_carte(racine)
+    if fichier is None:
+        return "de-cote", 0, "le découpage n'a ouvert aucun chantier"
+    raison, n = juger_decoupe(racine, fichier, code, todo)
+    if raison:
+        return "de-cote", 0, raison
+    ok, err = commiter(racine, "Chantier %s ouvert (nuit) : %d fiches" % (code, n))
+    if not ok:
+        ligne_carnet(a, garde="commit-refuse")
+        return "fin", 1, "%s : commit du découpage refusé — %s" % (code, err)
+    print("OUVERT %s : %d fiches — %s" % (code, n, fichier), flush=True)
+    etat["verifiee"] = False
+    sortie, raison, genre = fiches_du_chantier(claude, a, racine, fichier, traces, verification_de(racine), etat, canal=True)
+    if genre == "chantier":
+        print("ARRÊT %s" % raison, flush=True)
+        return "de-cote", 0, raison
+    if genre != "fini":
+        return "fin", sortie, raison
+    titres = [m.group(1) for l in kit().lignes_de(os.path.join(racine, fichier))
+              for m in [re.match(r"## ([A-Z]{1,3}[0-9]+) \[", l)] if m]
+    if not titres:
+        return "de-cote", 0, "aucune fiche à nommer pour la ligne Session de la clôture"
+    session = str(uuid.uuid4())
+    # La ligne `**Session** … (clore)` entre au commit de la clôture : elle s'écrit avant la session.
+    noter, ecrit = vlp(["cocher", fichier, titres[-1], "--session", session, "--role", "clore"], racine)
+    if noter:
+        return "de-cote", 0, "cocher --session --role clore : %s" % ecrit.strip()
+    s = session_de(claude, a, racine, traces, etat, "clore", code, None, lambda: lire_carte(racine)[1] is None, session)
+    if s["stop"]:
+        return "fin", 1, "STOP — %s" % s["stop"]
+    _, ouvert, _, a.plugin_retard = lire_carte(racine)
+    if ouvert is not None:
+        return "de-cote", 0, "la clôture n'a pas fermé le chantier — fichier de fiches courant : %s" % ouvert
+    if not arbre_propre(racine):
+        return "de-cote", 0, "arbre non propre après la clôture"
+    return "clos", 0, None
+
+
+def boucle_canal(claude, a, racine, traces, etat, codes, todo, erreur_todo):
+    """La boucle d'un canal : chaque chantier du plan, dans l'ordre. Rend `(code, raison)`. Avant chacun : `STOP`,
+    borne et plafond (le canal s'arrête) ; un dépendant de ce qui est de côté est sauté, sans session ; sinon sa
+    branche part du dernier chantier réussi (`HEAD` au départ), puis `un_chantier`."""
+    base = tete_de(racine)
+    if base is None:
+        return 1, "HEAD illisible — Git ne répond pas dans %s" % racine
+    de_cote, bilan = [], {"clos": 0, "de côté": 0, "sautés": 0}
+    for code in codes:
+        a.chantier = code
+        lignes = carnet.lire(a.carnet)
+        arret = carnet.stop_de(lignes)
+        if arret is not None:
+            return 1, "STOP — %s" % arret
+        arret = carnet.borne(lignes, code, a.borne_usd, a.borne_chantiers)
+        if arret is not None:
+            return 0, "borne atteinte — %s" % arret
+        if a.plafond is not None and etat["jouees"] >= a.plafond:
+            return 0, "plafond de %d fiches" % a.plafond
+        cause = bloquant(code, todo, codes, de_cote)
+        if cause:
+            print("SAUTÉ %s — dépend de %s, mis de côté ou sauté" % (code, cause), flush=True)
+            ligne_carnet(a, issue="pas partie", garde="saute:%s" % cause)
+            de_cote.append(code)
+            bilan["sautés"] += 1
+            continue
+        branche = "nuit/%s-%s-%s" % (a.date, a.canal, code)
+        err = brancher(racine, branche, base)
+        if err:
+            return 1, "%s : branche %s impossible — %s" % (code, branche, err)
+        print("CHANTIER %s — branche %s, depuis %s" % (code, branche, base[:9]), flush=True)
+        genre, sortie, raison = un_chantier(claude, a, racine, traces, etat, code, todo, erreur_todo)
+        if genre == "fin":
+            return sortie, raison
+        if genre == "clos":
+            base = tete_de(racine)
+            if base is None:
+                return 1, "HEAD illisible — Git ne répond pas dans %s" % racine
+            bilan["clos"] += 1
+            print("CLOS %s — pointe %s" % (code, base[:9]), flush=True)
+            continue
+        print("MIS DE CÔTÉ %s — %s" % (code, raison), flush=True)
+        arret = mettre_de_cote(racine, a, code, raison)
+        de_cote.append(code)
+        bilan["de côté"] += 1
+        if arret:
+            return 1, arret
+    return 0, "plan terminé — %s" % ", ".join("%d %s" % (n, nom) for nom, n in bilan.items())
 
 
 def main(argv):
@@ -597,20 +930,27 @@ def main(argv):
     p.add_argument("--nuit", action="store_true")
     p.add_argument("--canal")
     p.add_argument("--chantier")
+    p.add_argument("--date")
     p.add_argument("--borne-usd", type=float)
     p.add_argument("--borne-chantiers", type=int)
     p.add_argument("--carnet")
     a = p.parse_args(argv)
     if a.nuit:
-        if not a.canal or not a.chantier:
-            p.error("--nuit exige --canal et --chantier")
+        if not a.canal:
+            p.error("--nuit exige --canal")
         if a.carnet and not os.path.isabs(a.carnet):
             p.error("--carnet doit être un chemin absolu")
+        a.date = a.date or time.strftime("%Y-%m-%d")   # lue une fois : une nuit passe minuit
+        try:
+            datetime.date.fromisoformat(a.date)
+        except ValueError:
+            p.error("--date %s : AAAA-MM-JJ attendu" % a.date)
     else:
         if a.plafond is None:
             p.error("--plafond est exigé sans --nuit")
-        if a.canal or a.chantier or a.borne_usd is not None or a.borne_chantiers is not None or a.carnet:
-            p.error("--canal, --chantier, --borne-usd, --borne-chantiers et --carnet exigent --nuit")
+        if a.canal or a.chantier or a.date or a.borne_usd is not None or a.borne_chantiers is not None or a.carnet:
+            p.error("--canal, --chantier, --date, --borne-usd, --borne-chantiers et --carnet exigent --nuit")
+    canal = bool(a.nuit and not a.chantier)   # la boucle d'un canal (NUI7), sinon un seul chantier ouvert
 
     claude = trouver_claude(a.claude)
     if not claude:
@@ -620,17 +960,17 @@ def main(argv):
               "lancer par `py -3` (Python : %s)" % sys.executable)
         return 1
     print("CLAUDE=%s" % claude)
-    racine, fichier, _ = lire_carte(os.path.abspath(a.dossier))
-    if not racine or not fichier:
+    racine, fichier, _, a.plugin_retard = lire_carte(os.path.abspath(a.dossier))
+    if not racine or (not fichier and not canal):
         print("ARRÊT aucun projet ou aucun fichier de fiches courant")
         return 1
-    print("PROJET=%s · FICHIER=%s" % (racine, fichier))
+    print("PROJET=%s · FICHIER=%s" % (racine, fichier or "aucun"))
     if a.nuit:
-        a.carnet = a.carnet or carnet.du_jour(racine)
+        a.carnet = a.carnet or carnet.du_jour(racine, a.date)
         if not a.carnet:
             print("GARDE: pas de dépôt Git pour le carnet de nuit — --carnet <chemin absolu>")
             return 1
-        print("CARNET=%s · CANAL=%s · CHANTIER=%s" % (a.carnet, a.canal, a.chantier))
+        print("CARNET=%s · CANAL=%s · %s" % (a.carnet, a.canal, "DATE=%s" % a.date if canal else "CHANTIER=%s" % a.chantier))
         try:
             for role in ROLES:
                 max_tours(role)
@@ -638,80 +978,28 @@ def main(argv):
             print("GARDE: %s" % e)
             return 1
     traces = a.traces or tempfile.mkdtemp(prefix="vlp-boucle-")
-    verif, verifiee = verification_de(racine) if a.nuit else None, False
-    jouees, total_tours, total_cout, t_debut = 0, 0, 0.0, time.time()
-    code, raison = 0, "plafond de %d fiches" % a.plafond if a.plafond is not None else "aucun plafond"
-
-    while a.plafond is None or jouees < a.plafond:
-        if a.nuit:
-            lignes = carnet.lire(a.carnet)
-            arret = carnet.stop_de(lignes)
-            if arret is not None:
-                code, raison = 1, "STOP — %s" % arret
-                break
-            arret = carnet.borne(lignes, a.chantier, a.borne_usd, a.borne_chantiers)
-            if arret is not None:
-                raison = "borne atteinte — %s" % arret
-                break
-        _, _, fiche = lire_carte(racine)
-        if not fiche or fiche == "aucune":
-            raison = "aucune fiche à jouer"
-            break
-        _, extrait = vlp(["extraire", fichier, fiche], racine)
-        bloc = tentatives(extrait) if a.nuit else None
-        if "**Tentatives**" in extrait and not (bloc and bloc[0]):   # sous --nuit, des refus seuls ne l'arrêtent pas
-            code, raison = 1, "%s porte un bloc Tentatives — à lire avant de rejouer" % fiche
-            break
-        n_refus, dernier = (bloc[1], bloc[2]) if bloc else (0, None)
-        if a.nuit and verif and not verifiee:
-            verifiee, echec = True, verifier_nuit(verif, racine)
-            print("VERIF avant %s · %s" % (fiche, echec or "sort 0"), flush=True)
-            if echec:
-                noter_arret(a, fiche, "verification")
-                code, raison = 1, "%s : garde verification — la vérification de nuit %s avant la fiche" % (fiche, echec)
-                break
-        visuel = "ARRÊT:" in extrait
-        trace = os.path.join(traces, "%s.jsonl" % fiche)
-        print("JOUE %s — trace %s" % (fiche, trace), flush=True)
-        t0 = time.time()
-        s = jouer(claude, fiche, racine, a, trace, controle=functools.partial(case_cochee, fichier, fiche, racine))
-        duree = int(time.time() - t0)
-        tours, cout, texte, cochee = s["tours"], s["cout"], s["texte"], s["ok"]
-        jouees, total_tours, total_cout = jouees + 1, total_tours + tours, total_cout + cout
-        print("FICHE %s · CASE [%s] · tours %d · %.4f $ · %d s"
-              % (fiche, "x" if cochee else " ", tours, cout, duree))
-        for ligne in texte.strip().split("\n"):
-            print("    " + ligne)
-        print(flush=True)
-        if s["stop"]:
-            code, raison = 1, "STOP — %s" % s["stop"]
-            break
-        if visuel:
-            raison = "%s est (visuel) — à regarder" % fiche
-            break
-        if not cochee:
-            code, raison = 1, "%s non cochée — lire sa trace" % fiche
-            break
-        if a.nuit:
-            titre = re.search(r"^## %s \[[ x]\] — (.+?)\s*$" % re.escape(fiche), extrait, re.M)
-            tot = [total_tours, total_cout]
-            fin = relire_et_relancer(claude, fiche, titre.group(1) if titre else fiche, fichier, racine, a,
-                                     traces, n_refus, dernier, tot)
-            total_tours, total_cout = tot
-            if fin:
-                code, raison = fin
-                break
-            if verif:
-                echec = verifier_nuit(verif, racine)
-                print("VERIF après %s · %s" % (fiche, echec or "sort 0"), flush=True)
-                if echec:
-                    noter_arret(a, fiche, "verification")
-                    code, raison = 1, "%s : garde verification — la vérification de nuit %s après son commit" % (fiche, echec)
-                    break
+    etat = {"jouees": 0, "tours": 0, "cout": 0.0, "verifiee": False}
+    t_debut = time.time()
+    if not canal:
+        verif = verification_de(racine) if a.nuit else None
+        code, raison, _ = fiches_du_chantier(claude, a, racine, fichier, traces, verif, etat)
+    elif fichier:
+        code, raison = 1, "un chantier est déjà ouvert au départ (%s) — rien à découper" % fichier
+    else:
+        plan, erreur = lire_plan(racine, a)
+        if plan is None:
+            code, raison = 1, "plan illisible — %s" % erreur
+        else:
+            a.borne_usd = plan[0] if a.borne_usd is None else a.borne_usd
+            a.borne_chantiers = plan[1] if a.borne_chantiers is None else a.borne_chantiers
+            todo, erreur_todo = lire_todo(racine)
+            print("PLAN %s · canal %s · %d chantiers : %s · borne %s $ · %d chantiers"
+                  % (a.date, a.canal, len(plan[2]), ", ".join(plan[2]), a.borne_usd, a.borne_chantiers), flush=True)
+            code, raison = boucle_canal(claude, a, racine, traces, etat, plan[2], todo, erreur_todo)
 
     print("ARRÊT %s" % raison)
     print("TOTAL %d fiches · %d tours · %.4f $ · %d s"
-          % (jouees, total_tours, total_cout, int(time.time() - t_debut)))
+          % (etat["jouees"], etat["tours"], etat["cout"], int(time.time() - t_debut)))
     return code
 
 

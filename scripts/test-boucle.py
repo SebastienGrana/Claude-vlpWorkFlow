@@ -12,6 +12,7 @@ import importlib.util
 import io
 import json
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -408,8 +409,8 @@ def tester_nuit():
                  code == 0 and cases == "xxx" and not os.path.exists(os.path.join(t, ".git", "vlp-nuit")), s)
         code, s, cases = boucle(t, FAUX_CLAUDE, 1, options=["--canal", "A"])
         verifier("NUI3 : --canal sans --nuit est refusé (code 2)", code == 2 and "exigent --nuit" in s, s)
-        code, s = nuit(t, "--canal", "A")
-        verifier("NUI3 : --nuit sans --chantier est refusé (code 2)", code == 2 and "--nuit exige" in s, s)
+        code, s = nuit(t, "--chantier", "X")
+        verifier("NUI3 : --nuit sans --canal est refusé (code 2)", code == 2 and "--nuit exige" in s, s)
         r = subprocess.run([sys.executable, os.path.join(ICI, "boucle.py"), t, "--claude", FAUX_CLAUDE],
                            capture_output=True, text=True, encoding="utf-8")
         verifier("NUI3 : sans --nuit, --plafond reste exigé (code 2)",
@@ -885,5 +886,240 @@ def tester_relance():
 
 
 tester_relance()
+
+
+# --- enchaîner les chantiers d'un canal (NUI7) -----------------------------------------------------------
+
+def tester_canal():
+    DATE = "2026-10-01"
+    ecrits = [0]
+
+    def neuf(nom, cond, sortie):
+        """Un cas neuf de NUI7 : `verifier` sort au premier écart, donc ceux qui passent = ceux qui sont écrits."""
+        ecrits[0] += 1
+        verifier("NUI7 " + nom, cond, sortie)
+
+    def ecrire_f(chemin, texte):
+        os.makedirs(os.path.dirname(chemin), exist_ok=True)
+        with open(chemin, "w", encoding="utf-8", newline="") as h:
+            h.write(texte)
+
+    def depot_canal(t, hors, codes, couts=("~2 fiches",) * 3, borne_chantiers=3):
+        """Un dépôt Git équipé, tout commité : CHANTIER.md sans chantier ouvert, la TODO (AAA, BBB qui dépend de AAA,
+        CCC) et, si `codes`, le plan du soir `DATE` du canal A écrit par `vlp.py plan ecrire`. `hors` : plan et hooks."""
+        entete = "| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |\n|---|---|---|---|---|\n"
+        subprocess.run(["git", "init", "-q", t], check=True, capture_output=True)
+        ecrire_f(os.path.join(t, "CHANTIER.md"),
+                 "# C\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n- **fichier d'état** : ctx/08-etat.md\n"
+                 "- **fichier de fiches courant** : aucun\n- **artefact du chantier** : aucun\n\n"
+                 "Lettres de fiche déjà prises : E (Un), KKK (Clos). Un nouveau chantier en choisit une autre.\n")
+        ecrire_f(os.path.join(t, "ctx", "00-INDEX.md"),
+                 "# Index\n\n| Fichier | Lire quand |\n|---|---|\n| `00-INDEX.md` | l'index |\n| `08-etat.md` | l'état |\n"
+                 "| `100-x.md` | un chantier |\n\nFin.\n")
+        ecrire_f(os.path.join(t, "ctx", "08-etat.md"),
+                 "# État\n\n" + entete + "| 1 | `AAA` — a | x | %s | — |\n| 2 | `BBB` — b | x | %s | `AAA` |\n"
+                 "| 3 | `CCC` — c | x | %s | — |\n\n## Journal\n" % couts)
+        ecrire_f(os.path.join(t, "ctx", "100-x.md"), "# x\n")
+        if codes:
+            plan = {"borne_usd": 5, "borne_chantiers": borne_chantiers,
+                    "A": [{"code": c, "prefixe": c, "reponses": []} for c in codes]}
+            ecrire_f(os.path.join(hors, "plan.json"), json.dumps(plan))
+            r = subprocess.run([sys.executable, os.path.join(ICI, "vlp.py"), "plan", "ecrire", t, "--json",
+                                os.path.join(hors, "plan.json"), "--date", DATE], capture_output=True, text=True,
+                               encoding="utf-8", env=dict(os.environ, PYTHONIOENCODING="utf-8"))
+            assert r.returncode == 0, r.stdout + r.stderr
+        git(t, "add", "-A")
+        git(t, "commit", "-q", "-m", "plan")
+
+    def carnet_du(t):
+        chemin = carnet.du_jour(t, DATE)
+        assert chemin, "pas de carnet : %s n'est pas un dépôt Git" % t
+        return carnet.lire(chemin)
+
+    def canal(t, hors, *options, **env):
+        """boucle.py --nuit --canal A --date DATE dans `t` : (code, sortie, lignes du carnet de DATE). Le faux clôt
+        par un commit, comme `cloture.md:72` ; ce qu'il a vu de l'environnement va dans `hors/env.jsonl`."""
+        env.setdefault("VLP_FAUX_CLORE", "commit")
+        env.setdefault("VLP_FAUX_ENV", os.path.join(hors, "env.jsonl"))
+        code, s = nuit(t, "--canal", "A", "--date", DATE, *options, traces=hors, **env)
+        return code, s, carnet_du(t)
+
+    def br(code):
+        return "nuit/%s-A-%s" % (DATE, code)
+
+    def sha(t, ref):
+        return git(t, "rev-parse", ref).strip()
+
+    def sujet(t, ref):
+        return git(t, "log", "-1", "--format=%s", ref).strip()
+
+    def ancetre(t, x, y):
+        return subprocess.run(["git", "merge-base", "--is-ancestor", x, y], cwd=t, env=dict(os.environ, **ENV_GIT),
+                              capture_output=True).returncode == 0
+
+    def branches(t):
+        return git(t, "branch", "--list", "nuit/*", "--format=%(refname:short)").split()
+
+    def roles(lignes, code):
+        """Les rôles des sessions du chantier `code`, dans l'ordre du carnet."""
+        return [d["role"] for d in lignes if d["chantier"] == code and carnet.est_session(d)]
+
+    def gardes(lignes, code):
+        """Les gardes des lignes du chantier `code` qui ne sont pas des sessions (sans `role`)."""
+        return [d["garde"] for d in lignes if d["chantier"] == code and d["role"] is None]
+
+    with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors:
+        depot_canal(t, hors, ("AAA", "BBB", "CCC"))
+        code, s, lignes = canal(t, hors)
+        brs = [br(c) for c in ("AAA", "BBB", "CCC")]
+        sujets = git(t, "log", "--format=%s", brs[2]).splitlines()
+        clore = [d for d in lignes if d["role"] == "clore"]
+        lues = [bool(re.search(r"\*\*Session\*\*[^\n]*%s[^\n]*\(clore\)" % d["session"],
+                               git(t, "show", "%s:%s.md" % (b, d["chantier"])))) for d, b in zip(clore, brs)]
+        envs = journal_de(os.path.join(hors, "env.jsonl"))
+        neuf("(a) trois chantiers réussis : trois branches à la --date, chacune ancêtre de la suivante, trois sessions "
+             "clore dont la ligne `**Session** … (clore)` est commitée, trois commits « ouvert (nuit) », VLP_NUIT=1 "
+             "et VLP_CANAL=A vus par les 18 sessions du faux, plugin_retard = la carte (aucune ligne : null)",
+             code == 0 and "ARRÊT plan terminé — 3 clos, 0 de côté, 0 sautés" in s and branches(t) == brs
+             and len({sha(t, b) for b in brs}) == 3 and ancetre(t, brs[0], brs[1]) and ancetre(t, brs[1], brs[2])
+             and [d["chantier"] for d in clore] == ["AAA", "BBB", "CCC"] and all(lues)
+             and sum(bool(re.fullmatch(r"Chantier (AAA|BBB|CCC) ouvert \(nuit\) : 2 fiches", x)) for x in sujets) == 3
+             and len(envs) == 18 and all(e["VLP_NUIT"] == "1" and e["VLP_CANAL"] == "A" for e in envs)
+             and all(d["plugin_retard"] is None for d in lignes), (s, lignes, lues, envs))
+
+    with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors:
+        depot(t)
+        journal = os.path.join(hors, "sans-nuit.jsonl")
+        with pilote(VLP_FAUX_ENV=journal):
+            code, s, cases = boucle(t, FAUX_CLAUDE, 1)
+        envs = journal_de(journal)
+        neuf("(a) sans --nuit : VLP_NUIT absent de l'environnement du faux", code == 0 and len(envs) == 1
+             and envs[0]["VLP_NUIT"] is None and envs[0]["VLP_CANAL"] is None, (s, envs))
+
+    with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors:
+        depot_canal(t, hors, ("AAA", "BBB", "CCC"))
+        depart = sha(t, "HEAD")
+        code, s, lignes = canal(t, hors, VLP_FAUX_REFUSE="AAA1:fiche")
+        saute = [d for d in lignes if d["chantier"] == "BBB"]
+        neuf("(b) AAA1 refusée (cause fiche) : WIP sur sa branche, BBB qui en dépend sauté sans session, CCC part de la "
+             "base et non du WIP, chaque étape au carnet",
+             code == 0 and "ARRÊT plan terminé — 1 clos, 1 de côté, 1 sautés" in s
+             and sujet(t, br("AAA")).startswith("WIP AAA mis de côté : AAA1 refusée à la relecture")
+             and "SAUTÉ BBB — dépend de AAA" in s and branches(t) == [br("AAA"), br("CCC")]
+             and len(saute) == 1 and saute[0]["role"] is None and saute[0]["issue"] == "pas partie"
+             and saute[0]["garde"] == "saute:AAA"
+             and git(t, "merge-base", br("AAA"), br("CCC")).strip() == depart
+             and not ancetre(t, br("AAA"), br("CCC"))
+             and roles(lignes, "AAA") == ["découper", "jouer", "relire"]
+             and [g.split(":")[0] for g in gardes(lignes, "AAA")] == ["cause-fiche", "mis-de-cote"]
+             and roles(lignes, "CCC") == ["découper", "jouer", "relire", "jouer", "relire", "clore"]
+             and gardes(lignes, "CCC") == [], (s, lignes))
+
+    with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors:
+        depot_canal(t, hors, ("AAA", "CCC"))
+        code, s, lignes = canal(t, hors, VLP_FAUX_CLOT="AAA1")
+        hors_role = [d for d in lignes if d["garde"] == "cloture-hors-role"]
+        neuf("(c) une session de jeu qui clôt le chantier (AAA1) : carnet cloture-hors-role, WIP sur sa branche, pas de "
+             "session clore, CCC joué ensuite",
+             code == 0 and len(hors_role) == 1 and hors_role[0]["chantier"] == "AAA" and hors_role[0]["fiche"] == "AAA1"
+             and sujet(t, br("AAA")).startswith("WIP AAA mis de côté : AAA1 a clos le chantier") and "CLORE AAA" not in s
+             and "clore" not in roles(lignes, "AAA") and "CLOS CCC" in s
+             and "ARRÊT plan terminé — 1 clos, 1 de côté, 0 sautés" in s, (s, lignes))
+
+    with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors:
+        depot_canal(t, hors, ("AAA", "CCC"), couts=("~0,5 fiche", "~2 fiches", "1 fiche"))
+        code, s, lignes = canal(t, hors)
+        neuf("(d) AAA à ~0,5 fiche, le faux en écrit 2 : mis de côté sans jouer ni commit « ouvert », CCC joué",
+             code == 0 and "plus de 2 × 0.5" in s and "JOUE AAA" not in s and roles(lignes, "AAA") == ["découper"]
+             and not any(x.startswith("Chantier AAA ouvert") for x in git(t, "log", "--all", "--format=%s").splitlines())
+             and sujet(t, br("AAA")).startswith("WIP AAA mis de côté : 2 fiches : plus de 2 × 0.5")
+             and "CLOS CCC" in s, (s, lignes))
+
+    with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors:
+        depot_canal(t, hors, ("AAA", "CCC"))
+        depart = sha(t, "HEAD")
+        code, s, lignes = canal(t, hors, VLP_FAUX_VIDE="AAA")
+        neuf("(d) découpage vide : mis de côté sans WIP (arbre propre), la branche reste à la base, CCC joué",
+             code == 0 and "le découpage n'a ouvert aucun chantier" in s and sha(t, br("AAA")) == depart
+             and not any(x.startswith("WIP") for x in git(t, "log", "--all", "--format=%s").splitlines())
+             and roles(lignes, "AAA") == ["découper"] and "CLOS CCC" in s, (s, lignes))
+
+    with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors:
+        depot_canal(t, hors, ("AAA", "BBB", "CCC"))
+        hooks = os.path.join(hors, "hooks")
+        ecrire_f(os.path.join(hooks, "pre-commit"),
+                 "#!/bin/sh\nif git diff --cached --name-only | grep -qx CASSE; then exit 1; fi\nexit 0\n")
+        os.chmod(os.path.join(hooks, "pre-commit"), 0o755)
+        git(t, "config", "core.hooksPath", hooks.replace("\\", "/"))
+        code, s, lignes = canal(t, hors, VLP_FAUX_REFUSE="AAA1:fiche", VLP_FAUX_CASSE="AAA1")
+        neuf("(e) cas b sous un pre-commit qui refuse CASSE : ARRÊT, HEAD et arbre intacts, carnet wip-refuse, "
+             "ni BBB sauté ni CCC joué",
+             code == 1 and "ARRÊT AAA : commit WIP refusé" in s and sujet(t, "HEAD") == "Chantier AAA ouvert (nuit) : 2 fiches"
+             and os.path.exists(os.path.join(t, "CASSE")) and git(t, "status", "--porcelain").strip() != ""
+             and gardes(lignes, "AAA")[-1] == "wip-refuse" and "SAUTÉ" not in s and "CHANTIER CCC" not in s
+             and branches(t) == [br("AAA")], (s, lignes))
+
+    with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors:
+        depot_canal(t, hors, ("AAA", "CCC"), borne_chantiers=1)
+        code, s, lignes = canal(t, hors)
+        neuf("(f) la borne du plan est celle de la nuit : un chantier de borne 1, puis ARRÊT borne atteinte, sort 0",
+             code == 0 and "borne 5.0 $ · 1 chantiers" in s and "CLOS AAA" in s and "CHANTIER CCC" not in s
+             and "ARRÊT borne atteinte" in s and roles(lignes, "CCC") == [], (s, lignes))
+
+    with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors:
+        depot_canal(t, hors, ("AAA", "CCC"))
+        chemin = os.path.join(t, "ctx", "08-etat.md")
+        ecrire_f(chemin, lire(chemin).replace("| 3 | `CCC` — c | x | ~2 fiches | — |", "| 3 | `CCC` — c | x | ~2 fiches | — | en trop |"))
+        git(t, "add", "-A")
+        git(t, "commit", "-q", "-m", "TODO cassée")
+        code, s, lignes = canal(t, hors)
+        neuf("(g) une barre verticale dans la TODO (ValueError) : chaque chantier mis de côté, aucune session, arbre propre",
+             code == 0 and s.count("TODO illisible") == 2 and "JOUE" not in s and "DÉCOUPER" not in s
+             and not any(carnet.est_session(d) for d in lignes) and git(t, "status", "--porcelain").strip() == ""
+             and "ARRÊT plan terminé — 0 clos, 2 de côté, 0 sautés" in s, (s, lignes))
+
+    with tempfile.TemporaryDirectory() as t:
+        depot(t)
+        code, s = nuit(t, "--canal", "A", "--date", DATE)
+        neuf("(h) un chantier déjà ouvert au départ : ARRÊT, rien joué, sort 1",
+             code == 1 and "ARRÊT un chantier est déjà ouvert au départ (fiches.md)" in s and "JOUE" not in s
+             and cases_de(t) == "...", s)
+        code, s = nuit(t, "--canal", "A", "--date", "2026-13-45")
+        neuf("(h) --date qui n'est pas une date : refusée (code 2)", code == 2 and "AAAA-MM-JJ attendu" in s, s)
+
+    with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors:
+        depot_canal(t, hors, None)
+        code, s, lignes = canal(t, hors)
+        neuf("(i) sans plan à la date : ARRÊT plan illisible, sort 1, aucune session",
+             code == 1 and "ARRÊT plan illisible — GARDE: pas de fichier des nuits" in s
+             and not any(carnet.est_session(d) for d in lignes), (s, lignes))
+
+    with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors:
+        depot_canal(t, hors, ("AAA",))
+        vrai = bmod.vlp
+
+        def avec_retard(argv, dossier):
+            """La carte du dépôt de test n'a pas de PLUGIN_RETARD (il compare au kit, pas au dépôt) : on la lui prête."""
+            rendu, texte = vrai(argv, dossier)
+            fin = "PLUGIN_RETARD=8 commit(s) de code du plugin absents du plugin chargé\n" if argv[0] == "carte" else ""
+            return rendu, texte + fin
+
+        sortie = io.StringIO()
+        bmod.vlp = avec_retard
+        try:
+            with pilote(VLP_FAUX_VLP=os.path.join(ICI, "vlp.py"), VLP_FAUX_CLORE="commit", PYTHONIOENCODING="utf-8",
+                        **ENV_GIT), contextlib.redirect_stdout(sortie):
+                code = bmod.main([t, "--claude", FAUX_CLAUDE, "--traces", hors, "--nuit", "--canal", "A", "--date", DATE])
+        finally:
+            bmod.vlp = vrai
+        lignes = carnet_du(t)
+        neuf("(j) la carte dit PLUGIN_RETARD=8 : les six lignes de session du carnet portent plugin_retard 8",
+             code == 0 and "plan terminé — 1 clos" in sortie.getvalue() and len(lignes) == 6
+             and all(d["plugin_retard"] == 8 for d in lignes), (sortie.getvalue(), lignes))
+
+    sys.stderr.write("NUI7 : %d cas neufs passés / %d écrits\n" % (ecrits[0], ecrits[0]))
+
+
+tester_canal()
 
 print("OK")

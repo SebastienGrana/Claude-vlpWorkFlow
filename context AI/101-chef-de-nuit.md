@@ -412,8 +412,9 @@ Tu ne fais pas : la mise de côté (commit WIP, branche neuve, dépendants saut�
 ---
 
 <!-- FICHE:NUI7 -->
-## NUI7 [ ] — Enchaîner les chantiers d'un canal
+## NUI7 [x] — Enchaîner les chantiers d'un canal
 
+**Session** : 763247fd-fd16-4c79-beca-2714a79f98ad
 **Dépend de** : `NUI6`, `NUI12`.
 **Fichiers** : `scripts/boucle.py`, `scripts/test-boucle.py`, `scripts/faux-claude.py` ; lus : `scripts/carnet.py`, `scripts/vlp.py` (`todo_du_fichier`, `borne_haute_cout`, `est_bloque`, `rapport`, `plan lire`), `skills/chantier/SKILL.md` (étape 6), `cloture.md` (commit de clôture), `.githooks/pre-commit` — et rien d'autre.
 

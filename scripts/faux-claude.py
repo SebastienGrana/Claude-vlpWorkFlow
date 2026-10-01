@@ -14,10 +14,15 @@ genre de cette limite : `session` par défaut, `semaine`, `opus`), VLP_FAUX_REPL
 (secondes), VLP_FAUX_ERREUR (`coupure`, `api`, `tours`, `budget`), VLP_FAUX_DENIALS (nombre d'entrées de
 `permission_denials` dans le `result` ; réduites à `tool_name`, leur forme réelle n'est pas relevée),
 VLP_FAUX_ARGV (chemin : y ajoute, une ligne JSON par lancement, les arguments reçus), VLP_FAUX_ENV (chemin :
-y ajoute `{role, VLP_CANAL, VLP_CARNET}` de chaque lancement), VLP_FAUX_COMMIT (fiches, séparées par des
+y ajoute `{role, VLP_CANAL, VLP_CARNET, VLP_NUIT}` de chaque lancement), VLP_FAUX_COMMIT (fiches, séparées par des
 virgules : après les avoir cochées, le rôle `jouer` fait `git add -A` et `git commit -m "<fiche> : fiche
 <fiche>"` dans le dossier courant — la session qui commite malgré tout), VLP_FAUX_VLP (chemin de vlp.py, par
-défaut celui d'à côté). Une fiche à bloc **Tentatives** se coche `--resolu`, comme `jouer` et `relance` le font
+défaut celui d'à côté). La boucle d'un canal (NUI7) en ajoute quatre : VLP_FAUX_CLORE (`commit` : le rôle `clore`
+fait `git add -A` et `git commit -m "Chantier <code> clos : faux"`, comme `cloture.md:72`), VLP_FAUX_CLOT (fiches,
+séparées par des virgules : après les avoir cochées, le rôle `jouer` ferme le chantier — la session de jeu qui clôt
+hors de son rôle), VLP_FAUX_VIDE (codes, séparés par des virgules : `/vlp:chantier <code>` n'écrit rien — le
+découpage qui n'ouvre aucun chantier) et VLP_FAUX_CASSE (fiches, séparées par des virgules : après les avoir
+cochées, le rôle `jouer` écrit le fichier `CASSE` et le `git add` — la fiche qu'un hook de commit refusera). Une fiche à bloc **Tentatives** se coche `--resolu`, comme `jouer` et `relance` le font
 dans `skills/tache/SKILL.md` (le faux ne les distingue pas : même prompt). Le rôle `jouer` pose `CLAUDE_CODE_SESSION_ID` = son `--session-id` aux commandes qu'il
 lance, comme le vrai claude ; hors VLP_FAUX_COMMIT, le faux n'appelle jamais Git.
 """
@@ -107,6 +112,8 @@ def resultat(sid: str, modele: Optional[str], cout: float, **champs) -> dict:
 
 
 def decouper(code: str) -> int:
+    if code in os.environ.get("VLP_FAUX_VIDE", "").split(","):
+        return 0   # le découpage qui n'ouvre aucun chantier
     ids = ("%s1" % code, "%s2" % code)
     corps = "# Fiches\n\n## Le socle commun\n\nRien.\n\n## L'ordre des fiches\n\n%s, %s.\n\n---\n\n" % ids
     for f in ids:
@@ -144,14 +151,35 @@ def jouer(fiche: str, session: Optional[str] = None) -> int:
             if r.returncode:
                 sys.stderr.write((r.stdout + r.stderr).strip() + "\n")
                 return 2
+    if fiche in os.environ.get("VLP_FAUX_CLOT", "").split(","):
+        fermer()   # la session de jeu qui clôt le chantier : le cas `cloture-hors-role` de la boucle d'un canal
+    if fiche in os.environ.get("VLP_FAUX_CASSE", "").split(","):
+        ecrire("CASSE", "casse\n")
+        r = subprocess.run(["git", "add", "CASSE"], capture_output=True, text=True, encoding="utf-8")
+        if r.returncode:
+            sys.stderr.write((r.stdout + r.stderr).strip() + "\n")
+            return 2
     return 0
 
 
-def clore() -> int:
+def fermer() -> None:
+    """Le fichier de fiches courant et l'artefact du chantier passent à `aucun` : la fermeture de `cmd_clore`."""
     texte = lire("CHANTIER.md")
     for motif in (COURANT, ARTEFACT):
         texte = re.sub(motif, lambda m: m.group(1) + "aucun", texte, flags=re.M)
     ecrire("CHANTIER.md", texte)
+
+
+def clore() -> int:
+    code = os.path.splitext(courant() or "?")[0]
+    fermer()
+    if os.environ.get("VLP_FAUX_CLORE") == "commit":
+        # La session de clôture commite, `cloture.md:72` : le sujet n'est pas celui d'une fiche.
+        for git in (["add", "-A"], ["commit", "-q", "-m", "Chantier %s clos : faux" % code]):
+            r = subprocess.run(["git"] + git, capture_output=True, text=True, encoding="utf-8")
+            if r.returncode:
+                sys.stderr.write((r.stdout + r.stderr).strip() + "\n")
+                return 2
     return 0
 
 
@@ -240,7 +268,8 @@ def main(argv: list) -> int:
     if chemin_env:
         with open(chemin_env, "a", encoding="utf-8", newline="") as f:
             f.write(json.dumps({"role": role, "VLP_CANAL": os.environ.get("VLP_CANAL"),
-                                "VLP_CARNET": os.environ.get("VLP_CARNET")}, ensure_ascii=False) + "\n")
+                                "VLP_CARNET": os.environ.get("VLP_CARNET"),
+                                "VLP_NUIT": os.environ.get("VLP_NUIT")}, ensure_ascii=False) + "\n")
     code = {"découper": lambda: decouper(mots[1]), "jouer": lambda: jouer(mots[1], valeur(argv, "--session-id")),
             "clore": clore, "relire": lambda: 0}[role]()
     if code:
