@@ -208,6 +208,22 @@ Sous-commandes :
   `CHANTIER <code> · canal <c> · rang <n> · préfixe <P>` par chantier dans l'ordre ; `--chantier` : son seul
   `### <code>` (`imprimer_section`). Sans fichier des nuits ni plan à la date : `GARDE:`, sort 1 ; permis sous
   `VLP_NUIT=1`.
+- `matin <projet> <date>` — la fusion du matin (NUI15) : les branches `refs/heads/nuit/<date>-*` dans `main`, une à
+  une. `GARDE:` (sort 1, rien fusionné) : projet non équipé, date illisible, projet qui n'est pas la racine de son
+  dépôt, `HEAD` hors `main`, arbre pas propre, `CHANTIER.md` de `main` sans ses deux libellés ou sa ligne de
+  lettres, aucune branche. Ordre : le carnet de la nuit (rang de la 1re ligne de chaque `canal` + `chantier`),
+  sinon l'heure de la pointe puis le nom (`ORDRE pointes — carnet absent`). Par branche : `DÉJÀ <b>` (ancêtre de
+  `main`) ; `DE CÔTÉ <b> — <courant>` (son `CHANTIER.md` garde un chantier ouvert : jamais fusionnée) ; sinon
+  `git merge --no-ff --no-commit`, puis `CHANTIER.md` refait par `git merge-file` sur ses trois versions dont les
+  deux libellés et la liste des lettres sont remplacés par un jeton (`neutre`), puis rendus (`restaurer`) : ceux de
+  `main`, et ses lettres suivies de celles de la branche qui lui manquent — Git perd sans conflit ce que `clore`
+  remet à `aucun`. Un conflit sur la feuille (avec une archive des clos), `couts.svg` ou un joint : celui de `main`,
+  ils se refont. `feuille` est refaite au rang « en cours » que `main` portait avant la fusion, avec joints, `couts.svg`
+  et bloc d'archive (`rafraichir_couts`) ; `git add -A` ; commit `Matin <date> : <b>` ; `FUSIONNÉE <b>`. Autre
+  conflit (code, `08-etat.md`, archive…), ou feuille en conflit sans archive : `ARRÊT <b> — conflit : <fichiers> —
+  après résolution : <python> <vlp.py> feuille <projet> --todo <rang>` ; commit refusé : `ARRÊT <b> — commit
+  refusé : <1re ligne>` ; sort 1, la fusion reste en cours, les suivantes ne sont pas touchées. En fin :
+  `MATIN <n> fusionnée(s) · <m> de côté`. Ni `08-etat.md`, ni index, ni archive, ni push, ni carnet (NUI16).
 - `joints <dossier>` — recopie `templates/vlp.css` et `templates/vlp.js` dans le dossier, et
   n'écrit que `FILES {"vlp.css": <chemin>, "vlp.js": <chemin>}` : le JSON du paramètre `files`
   d'`Artifact`, chemins en barres obliques (pour `/vlp:init`). Dossier absent : `GARDE:`, sort 1.
@@ -3231,16 +3247,12 @@ def lettre_de(id_fiche):
     return m.group(0) if m else id_fiche[:1]
 
 
-def lettres_prises(lignes):
-    """Les lettres de la ligne « Lettres de fiche déjà prises » : une par entrée, `X (titre)`
-    ou `X` seule, une lettre entre backticks tolérée (chantier VOI) ; les entrées se séparent
-    aux virgules hors parenthèses, et un titre à virgule n'en ajoute pas (chantier TAR)."""
-    texte = " ".join(l for l in lignes if l.strip())
-    i = texte.find("Lettres de fiche déjà prises")
-    if i < 0:
-        return []
-    fin = texte.find("Un nouveau chantier", i)
-    liste = texte[i:fin if fin > 0 else None].split(":", 1)[-1]
+LETTRES = "Lettres de fiche déjà prises"
+
+
+def entrees_lettres(liste):
+    """Les entrées de la liste des lettres, coupées aux virgules hors parenthèses : un titre à
+    virgule n'en ajoute pas (chantier TAR). Partagé par `lettres_prises` et `matin` (NUI15)."""
     entrees, profondeur, debut = [], 0, 0
     for k, c in enumerate(liste):
         profondeur += {"(": 1, ")": -1}.get(c, 0)
@@ -3248,7 +3260,36 @@ def lettres_prises(lignes):
             entrees.append(liste[debut:k])
             debut = k + 1
     entrees.append(liste[debut:])
-    return [m.group(1) for m in (re.match(r"\s*`?([A-Z]{1,3})`?(?: \(|\.?\s*$)", e) for e in entrees) if m]
+    return entrees
+
+
+def lettre_entree(entree):
+    """La lettre d'une entrée, `X (titre)` ou `X` seule, entre backticks tolérée (chantier VOI) ;
+    `None` si l'entrée n'en a pas."""
+    m = re.match(r"\s*`?([A-Z]{1,3})`?(?: \(|\.?\s*$)", entree)
+    return m.group(1) if m else None
+
+
+def fin_lettres(texte, j):
+    """Où finit la liste des lettres qui commence en `j` : le point avant « Un nouveau chantier »,
+    sinon la fin de sa ligne, sinon celle du texte. Partagé par `clore` et `matin` (NUI15)."""
+    k = texte.find(". Un nouveau chantier", j)
+    if k < 0:
+        k = texte.find("\n", j)
+    return k if k >= 0 else len(texte)
+
+
+def lettres_prises(lignes):
+    """Les lettres de la ligne « Lettres de fiche déjà prises » : une par entrée, `X (titre)`
+    ou `X` seule, une lettre entre backticks tolérée (chantier VOI) ; les entrées se séparent
+    aux virgules hors parenthèses, et un titre à virgule n'en ajoute pas (chantier TAR)."""
+    texte = " ".join(l for l in lignes if l.strip())
+    i = texte.find(LETTRES)
+    if i < 0:
+        return []
+    fin = texte.find("Un nouveau chantier", i)
+    liste = texte[i:fin if fin > 0 else None].split(":", 1)[-1]
+    return [l for l in map(lettre_entree, entrees_lettres(liste)) if l]
 
 
 def bornes(ids):
@@ -5604,13 +5645,12 @@ def cmd_clore(a, sortie):
         if m:
             carte_[k] = m.group(1) + "aucun"
     texte = "\n".join(carte_) + "\n"
-    j = texte.find("Lettres de fiche déjà prises")
+    j = texte.find(LETTRES)
     if j < 0:
         sortie.write("GARDE: ligne « Lettres de fiche déjà prises » absente de CHANTIER.md\n")
         return 1
     if lettre not in lettres_prises(carte_):
-        k = texte.find(". Un nouveau chantier", j)
-        k = k if k >= 0 else texte.find("\n", j)
+        k = fin_lettres(texte, j)
         texte = texte[:k] + ", %s (%s)" % (lettre, titre) + texte[k:]
 
     # 3. la feuille de route
@@ -6195,6 +6235,224 @@ def cmd_nuits_noter(texte, canal, arret, sortie, dossier=None):
     return 0
 
 
+# --- matin : fusionner la nuit dans main (chantier NUI, fiche NUI15) --------------------------
+# Git fusionne sans conflit ce que `clore` remet à `aucun` dans `CHANTIER.md` : le chantier ouvert de `main`
+# s'efface. `neutre` met à part les deux libellés et la liste des lettres, `restaurer` les rend ; la feuille,
+# elle, se refait toujours, au rang « en cours » que `main` portait avant la fusion.
+
+OUVERT_CARTE = re.compile(r"^([ \t]*-[ \t]*\*\*(fichier de fiches courant|artefact du chantier)\*\*[ \t]*:[ \t]*)(.*)$",
+                          re.M)
+JETON_OUVERT, JETON_LETTRES = "§ouvert§", "§lettres§"
+
+
+def neutre(texte):
+    """`(texte, valeurs, liste)` : `texte` (un `CHANTIER.md`) dont la valeur des deux libellés et la liste des
+    lettres sont remplacées par `JETON_OUVERT` et `JETON_LETTRES` ; `valeurs` : `{libellé: valeur}` ; `liste` :
+    ce qui suit « Lettres de fiche déjà prises » jusqu'à `fin_lettres`, `None` sans cette ligne."""
+    valeurs = {m.group(2): m.group(3) for m in OUVERT_CARTE.finditer(texte)}
+    texte = OUVERT_CARTE.sub(lambda m: m.group(1) + JETON_OUVERT, texte)
+    i = texte.find(LETTRES)
+    if i < 0:
+        return texte, valeurs, None
+    i += len(LETTRES)
+    k = fin_lettres(texte, i)
+    return texte[:i] + JETON_LETTRES + texte[k:], valeurs, texte[i:k]
+
+
+def restaurer(texte, valeurs, liste):
+    """L'inverse de `neutre` : les libellés rendus à leur valeur dans `valeurs`, la liste des lettres à `liste`."""
+    texte = OUVERT_CARTE.sub(lambda m: m.group(1) + valeurs.get(m.group(2), m.group(3)), texte)
+    return texte if liste is None else texte.replace(JETON_LETTRES, liste)
+
+
+def pointes_nuit(projet, date):
+    """`([(branche, heure de la pointe)], None)` des `refs/heads/nuit/<date>-*`, ou `(None, erreur)`."""
+    code, t = git_texte(["for-each-ref", "--format=%(refname) %(committerdate:unix)",
+                         "refs/heads/nuit/%s-*" % date], projet)
+    if code != 0:
+        return None, t
+    pointes = []
+    for l in t.splitlines():
+        champs = l.split()
+        if len(champs) == 2 and champs[1].isdigit():
+            pointes.append((champs[0][len("refs/heads/"):], int(champs[1])))
+    return pointes, None
+
+
+def ordre_nuit(pointes, date, projet):
+    """Les branches de la nuit dans l'ordre du carnet : rang de la 1re ligne de chaque `canal` + `chantier` ; sans
+    ligne au carnet, l'heure de la pointe, puis le nom. Rend `(branches, carnet_lu)` — `carnet_lu` faux : carnet
+    absent ou sans ligne, tout est à l'heure de la pointe."""
+    chemin = carnet.du_jour(projet, date)
+    lignes = carnet.lire(chemin) if chemin else []
+    place = {}
+    for n, d in enumerate(lignes):
+        place.setdefault((d.get("canal"), d.get("chantier")), n)
+
+    def cle(p):
+        canal, _, code = p[0][len("nuit/%s-" % date):].partition("-")
+        return place.get((canal, code), len(lignes)), p[1], p[0]
+    return [p[0] for p in sorted(pointes, key=cle)], bool(lignes)
+
+
+def fusionner_nuit(projet, branche, date, sortie):
+    """Fusionne `branche` dans `main` et commite, en réparant `CHANTIER.md` et la feuille. `True` à l'`ARRÊT` :
+    la ligne est écrite, la fusion reste en cours."""
+    chemin_carte, page = os.path.join(projet, "CHANTIER.md"), page_feuille(projet)
+    archive = page_clos(projet)
+    avec_archive = archive != page
+    avant = lire(chemin_carte)
+    carte_main, valeurs, liste_main = neutre(avant)
+    liste_main = liste_main or ""     # `cmd_matin` a refusé un main sans sa ligne de lettres
+    rang = None
+    if os.path.isfile(page):
+        try:
+            html = lire(page)
+            d, f, forme = zone_todo(html)
+            rang = rang_en_cours(html[d:f], forme)
+        except ValueError:
+            pass
+
+    def arret(raison):
+        sortie.write("ARRÊT %s — %s\n" % (branche, raison))
+        return True
+
+    code, msg = git_texte(["merge", "--no-ff", "--no-commit", branche], projet)
+    if code not in (0, 1) or git_texte(["rev-parse", "-q", "--verify", "MERGE_HEAD"], projet)[0] != 0:
+        return arret("fusion impossible : %s" % msg)
+    code, t = git_texte(["diff", "--name-only", "--diff-filter=U"], projet)
+    conflits = set(t.splitlines()) if code == 0 else set()
+
+    # CHANTIER.md : les trois versions sans leurs libellés ni leurs lettres, fusionnées, puis les valeurs de `main`
+    _, base = git_texte(["merge-base", "HEAD", branche], projet)
+    code_base, texte_base = git_texte(["show", "%s:CHANTIER.md" % base.strip()], projet)
+    code_leur, texte_leur = git_texte(["show", "%s:CHANTIER.md" % branche], projet)
+    carte_base = neutre(texte_base)[0] if code_base == 0 else ""
+    carte_leur, _, liste_leur = neutre(texte_leur if code_leur == 0 else "")
+    pris = {lettre_entree(e) for e in entrees_lettres(liste_main.split(":", 1)[-1])}
+    ajouts = []
+    for e in entrees_lettres((liste_leur or "").split(":", 1)[-1]):
+        lettre = lettre_entree(e)
+        if lettre and lettre not in pris:
+            pris.add(lettre)
+            ajouts.append(e.strip())
+    lettres = liste_main + "".join(", " + e for e in ajouts)
+    with tempfile.TemporaryDirectory() as t:
+        trois = []
+        for nom, contenu in (("main", carte_main), ("base", carte_base), ("leur", carte_leur)):
+            trois.append(os.path.join(t, nom))
+            with open(trois[-1], "w", encoding="utf-8", newline="") as fh:
+                fh.write(contenu)
+        code_fusion, msg = git_texte(["merge-file", "-L", "main", "-L", "base", "-L", branche] + trois, projet)
+        if code_fusion is None or code_fusion > 127:
+            return arret("CHANTIER.md : git merge-file : %s" % msg)
+        fusion = restaurer(lire(trois[0]), valeurs, lettres)
+    with open(chemin_carte, "rb") as fh:
+        crlf = b"\r\n" in fh.read()
+    with open(chemin_carte, "w", encoding="utf-8", newline="") as fh:
+        fh.write(fusion.replace("\n", "\r\n") if crlf else fusion)
+    if code_fusion == 0:
+        conflits.discard("CHANTIER.md")
+        git_texte(["add", "CHANTIER.md"], projet)
+    else:
+        conflits.add("CHANTIER.md")
+
+    # ce que `feuille` et `ecrire_couts` refont : jamais un conflit à résoudre à la main
+    def rel(chemin):
+        return os.path.relpath(chemin, projet).replace("\\", "/")
+    dossier = os.path.dirname(os.path.abspath(page))
+    derives = {rel(os.path.join(dossier, n)) for n in (COUTS_SVG,) + tuple(JOINTS)}
+    if avec_archive:
+        derives.add(rel(page))
+    for chemin in sorted(conflits & derives):
+        code, msg = git_texte(["checkout", "--ours", "--", chemin], projet)
+        if code != 0:
+            return arret("conflit sur %s, celui de main non repris : %s" % (chemin, msg))
+        conflits.discard(chemin)
+    if conflits:
+        suite = ' — après résolution : "%s" "%s" feuille "%s"%s' % (
+            sys.executable, os.path.abspath(__file__), projet, (" --todo %s" % rang) if rang else "")
+        return arret("conflit : %s%s" % (", ".join(sorted(conflits)), suite))
+
+    if os.path.isfile(page):
+        try:
+            neuf, _ = feuille(projet, lire(page), rang, datetime.date.today().isoformat())
+            with open(page, "w", encoding="utf-8", newline="") as fh:
+                fh.write(neuf)
+            recopier_joints(dossier)
+            if avec_archive:
+                rafraichir_couts(projet, archive, lire(archive))
+            else:
+                ecrire_couts(page, neuf, couts_du_projet(projet, neuf))
+        except ValueError as e:
+            return arret("feuille : %s" % e)
+    code, msg = git_texte(["add", "-A"], projet)
+    if code != 0:
+        return arret("git add : %s" % msg)
+    code, msg = git_texte(["commit", "-q", "-m", "Matin %s : %s" % (date, branche)], projet)
+    if code != 0:
+        return arret("commit refusé : %s" % msg)
+    sortie.write("FUSIONNÉE %s\n" % branche)
+    return False
+
+
+def cmd_matin(a, sortie):
+    """`matin <projet> <date>` : les gardes, l'ordre, puis chaque branche de la nuit — `DÉJÀ`, `DE CÔTÉ` ou fusionnée."""
+    projet = os.path.abspath(a.projet)
+    if not equipe(projet):
+        sortie.write("GARDE: pas de CHANTIER.md dans %s\n" % projet)
+        return 1
+    try:
+        datetime.date.fromisoformat(a.date)
+    except ValueError:
+        sortie.write("GARDE: AAAA-MM-JJ attendu : %s\n" % a.date)
+        return 1
+    code, haut = git_texte(["rev-parse", "--show-toplevel"], projet)
+    try:
+        racine = code == 0 and os.path.samefile(haut.strip(), projet)
+    except OSError:
+        racine = False
+    if not racine:
+        sortie.write("GARDE: %s n'est pas la racine d'un dépôt Git — rien fusionné\n" % projet)
+        return 1
+    code, tete = git_texte(["symbolic-ref", "--short", "-q", "HEAD"], projet)
+    if code != 0 or tete.strip() != "main":
+        sortie.write("GARDE: HEAD est sur %s, pas sur main — rien fusionné\n" % (tete.strip() if code == 0 else "rien (détaché)"))
+        return 1
+    code, sale = git_texte(["status", "--porcelain"], projet)
+    if code != 0 or sale.strip():
+        sortie.write("GARDE: arbre pas propre (%s) — rien fusionné\n" % (
+            "%d chemin(s)" % len(sale.splitlines()) if code == 0 else sale))
+        return 1
+    _, valeurs, liste = neutre(lire(os.path.join(projet, "CHANTIER.md")))
+    if liste is None or len(valeurs) < 2:
+        sortie.write("GARDE: CHANTIER.md de main sans ses deux libellés ou sa ligne « %s » — rien fusionné\n" % LETTRES)
+        return 1
+    pointes, erreur = pointes_nuit(projet, a.date)
+    if not pointes:
+        sortie.write("GARDE: %s — rien fusionné\n" % (erreur or "aucune branche nuit/%s-* (la date est-elle juste ?)" % a.date))
+        return 1
+    branches, lu = ordre_nuit(pointes, a.date, projet)
+    if not lu:
+        sortie.write("ORDRE pointes — carnet absent\n")
+    fusionnees = cote = 0
+    for branche in branches:
+        if git_texte(["merge-base", "--is-ancestor", branche, "HEAD"], projet)[0] == 0:
+            sortie.write("DÉJÀ %s\n" % branche)
+            continue
+        code, carte_leur = git_texte(["show", "%s:CHANTIER.md" % branche], projet)
+        courant = fichier_courant(carte_leur) if code == 0 else None
+        if courant:
+            sortie.write("DE CÔTÉ %s — %s\n" % (branche, courant))
+            cote += 1
+            continue
+        if fusionner_nuit(projet, branche, a.date, sortie):
+            return 1
+        fusionnees += 1
+    sortie.write("MATIN %d fusionnée(s) · %d de côté\n" % (fusionnees, cote))
+    return 0
+
+
 def cmd_mutant(fichier, avant, apres, test, sortie):
     """Casse `fichier` exprès (`avant` → `apres`, une seule occurrence), joue les tests avec
     `VLP_TOUS_ECARTS=1`, liste leurs `ÉCART:`, et rend le fichier à l'octet près (chantier MUT)."""
@@ -6508,6 +6766,9 @@ def main(argv, sortie=None, entree=None, erreur=None):
     pl.add_argument("--date")
     pl.add_argument("--canal", choices=CANAUX)
     pl.add_argument("--chantier")
+    ma = sous.add_parser("matin")
+    ma.add_argument("projet")
+    ma.add_argument("date")
     tr = sous.add_parser("transcription")
     tr.add_argument("jsonl")
     a = p.parse_args(argv)
@@ -6603,6 +6864,8 @@ def repartir(a, sortie, entree, erreur):
         return cmd_nuits_noter(a.texte, a.canal, a.stop, sortie)
     if a.cmd == "plan":
         return cmd_plan(a, sortie)
+    if a.cmd == "matin":
+        return cmd_matin(a, sortie)
     if a.cmd == "joints":
         return cmd_joints(a.dossier, sortie)
     if a.cmd == "transcription":

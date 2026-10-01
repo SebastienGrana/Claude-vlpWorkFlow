@@ -16,7 +16,7 @@
 - NUI12 : test-vlp.py OK (cas plan 0, a, b, c×9, d) ; 3 mutants MUTANT ATTRAPÉ (NUIT=1 jamais écrite → (d), sections perdues → (b), lettres prises retirées → (c)) ; pyright 0 errors, 0 warnings, 0 informations
 - NUI13 : nuit.md : lire code 0, ne coûte rien 1, 29 citations, 0 ID/plafond/08-etat ; nuit.md +1 ligne dans 5 fichiers, CLAUDE.md 80 lignes ; test-vlp OK, mutant CODE_PLUGIN ATTRAPÉ 1 écart, pyright 0 erreur
 - NUI14 : 3 renvois, 1 ligne chacun (tache 1 0, cloture 1 0, chantier 2 0), nuit.md 24 24, 30 citations avant et après, 0 écart relu ; test-vlp OK, main a725aba sans PLUGIN_RETARD ; essai claude -p : FICHE F1 CASE [x] 16 tours 0.4623 $ 68 s, lire nuit.md 1, git commit 0, cloture.md 0, rev-list 1, PROCHAINE=aucune
-- NUI15 : vlp.py matin : fusion, CHANTIER.md et feuille réparés — ne dépend de rien
+- NUI15 : test-vlp.py rend OK (732 verifier, 9 pour NUI15 : cas a à h et gardes) ; mutants lettres gardées (1 écart) et todo None (3 écarts) attrapés ; pyright 0 error sur vlp.py et test-vlp.py
 - NUI16 : fusion par clé de l'état, des listes et d'en-attente — dépend de NUI15
 - NUI17 : une page à cartes remplie par script — ne dépend de rien
 - NUI18 : /vlp:chef, le soir — dépend de NUI9, NUI11, NUI12, NUI13, NUI17

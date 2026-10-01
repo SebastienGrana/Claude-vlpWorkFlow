@@ -5874,6 +5874,280 @@ def tester_nuits():
 
 tester_nuits()
 
+
+# --- NUI15 : `vlp.py matin`, la fusion de la nuit dans main -------------------------------------
+JOUR_MATIN = "2026-10-01"
+CARTE_MATIN = ("# Chantier courant\n\n- **alias** : mt\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n"
+               "- **fichier d'état** : ctx/08-etat.md\n- **fichier de fiches courant** : ctx/40-loc.md (LOC1..LOC1)\n"
+               "- **artefact feuille de route** : https://claude.ai/artifact/FEU\n"
+               "- **artefact du chantier** : https://claude.ai/artifact/LOC\n- **artefact archive** : aucune\n\n"
+               "Lettres de fiche déjà prises : E (Enchaîner), ENQ (Les écritures Git). "
+               "Un nouveau chantier en choisit un autre.\n")
+ETAT_MATIN = ("# État\n\n## TODO\n\n| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |\n|---|---|---|---|---|\n"
+              "| 79 | `LOC` — publier | a | 2 fiches | — |\n| 80 | `PAR` — deux chantiers | b | 3 fiches | — |\n\n"
+              "## Journal\n")
+HOOK_REFUSE = "#!/bin/sh\necho 'hook : refusé' >&2\nexit 1\n"
+ORDRE_ABSENT = "ORDRE pointes — carnet absent\n"     # la 1re ligne de `matin` quand aucun carnet ne dit l'ordre
+
+
+def git_matin(d, *args):
+    r = subprocess.run(["git"] + list(args), cwd=d, capture_output=True, encoding="utf-8", errors="replace")
+    if r.returncode:
+        raise RuntimeError("git %s : %s" % (" ".join(args), r.stderr))
+    return r.stdout
+
+
+def code_git(d, *args):
+    return subprocess.run(["git"] + list(args), cwd=d, capture_output=True).returncode
+
+
+def commit_matin(d, message, heure):
+    """Un commit à `heure` (0 à 23) du jour de la nuit : la date de l'auteur et du commiteur est fixée."""
+    os.environ["GIT_AUTHOR_DATE"] = os.environ["GIT_COMMITTER_DATE"] = "%sT%02d:00:00+00:00" % (JOUR_MATIN, heure)
+    git_matin(d, "add", "-A")
+    git_matin(d, "commit", "-q", "-m", message)
+
+
+def depot_matin(d, archive=True):
+    """Le dépôt de 2cef70f : `main` à courant LOC et son artefact, des lettres jusqu'à ENQ, une archive de deux clos
+    (`archive` faux : ils restent sur la feuille), la feuille au rang 79 — un seul commit, à l'heure 0."""
+    os.makedirs(d)
+    git_matin(d, "init", "-q", "-b", "main")
+    ecrire(os.path.join(d, "CHANTIER.md"), CARTE_MATIN)
+    ecrire(os.path.join(d, "ctx", "08-etat.md"), ETAT_MATIN)
+    ecrire(os.path.join(d, "ctx", "00-INDEX.md"), "| Fichier | Lire quand |\n|---|---|\n")
+    ecrire(os.path.join(d, "ctx", "40-loc.md"), "# Chantier LOC — Publier\n\n## LOC1 [ ] — a\n")
+    ecrire(os.path.join(d, "scripts", "x.py"), "a = 1\nb = 2\nc = 3\n")
+    gabarit = lire(GABARIT_FEUILLE)
+    debut, fin = mod.zone(gabarit, "clos", "<tbody>\n", "        </tbody>")
+    deux = (ligne_close("12,34 $ · " + mod.arrondi(50000)).replace("Q1–Q2", "X1")
+            + ligne_close(mod.arrondi(20000)).replace("Q1–Q2", "Y1"))
+    ecrire(os.path.join(d, "ctx", "artefacts", "feuille-de-route.html"),
+           mod.resommer(gabarit[:debut] + deux + gabarit[fin:], 2, 70000))
+    if archive:
+        appel(["archive", d, "--url", "https://claude.ai/artifact/ARCH"])
+    appel(["feuille", d, "--todo", "79", "--date", "2026-09-30"])
+    commit_matin(d, "base", 0)
+
+
+def branche_matin(d, canal, code, lettre, heure, clos=True, x=None, ligne=None, retire=None):
+    """`nuit/<jour>-<canal>-<code>`, un commit à `heure` depuis `main` : `clos`, le chantier est clos (courant et
+    artefact à `aucun`) et la feuille refaite sans badge ; `lettre`, sa lettre ajoutée à la liste ; `x`, le nouveau
+    `scripts/x.py` ; `ligne`, la plage d'une ligne close de plus à l'archive ; `retire`, le rang ôté de la TODO."""
+    nom = "nuit/%s-%s-%s" % (JOUR_MATIN, canal, code)
+    git_matin(d, "switch", "-q", "-c", nom, "main")
+    chemin = os.path.join(d, "CHANTIER.md")
+    carte_ = lire(chemin)
+    if clos:
+        carte_ = re.sub(r"(\*\*(?:fichier de fiches courant|artefact du chantier)\*\* : ).*", r"\g<1>aucun", carte_)
+    if lettre:
+        carte_ = carte_.replace(". Un nouveau chantier", ", %s (Chantier %s). Un nouveau chantier" % (lettre, code))
+    ecrire(chemin, carte_)
+    if retire:
+        etat = os.path.join(d, "ctx", "08-etat.md")
+        ecrire(etat, "".join(l for l in lire(etat).splitlines(True) if not l.startswith("| %s |" % retire)))
+    if ligne:
+        archive = os.path.join(d, "ctx", "artefacts", mod.ARCHIVE_CLOS)
+        html = lire(archive)
+        debut, _ = mod.zone(html, "clos", "<tbody>\n", "        </tbody>")
+        ecrire(archive, html[:debut] + ligne_close(mod.arrondi(1000)).replace("Q1–Q2", ligne) + html[debut:])
+    if x:
+        ecrire(os.path.join(d, "scripts", "x.py"), x)
+    appel(["feuille", d, "--date", JOUR_MATIN])
+    commit_matin(d, ("%s1 : %s" % (code, code)) if clos else "WIP %s" % code, heure)
+    git_matin(d, "switch", "-q", "main")
+    return nom
+
+
+def etat_matin(d):
+    """Ce que `matin` a laissé dans `d` : (lignes de CHANTIER.md, feuille, rang « en cours », zone d'archive)."""
+    carte_ = mod.lignes_de(os.path.join(d, "CHANTIER.md"))
+    html = lire(os.path.join(d, "ctx", "artefacts", "feuille-de-route.html"))
+    debut, fin, forme = mod.zone_todo(html)
+    return (carte_, html, mod.rang_en_cours(html[debut:fin], forme),
+            html[html.index("<!-- ZONE:archive"):html.index("<!-- /ZONE:archive")])
+
+
+def matin_a(tr):
+    """(a) 2cef70f rejoué, avec un `origin` nu (f) : la clôture de PAR rend à main son chantier ouvert, son rang, ses lettres."""
+    d, origine = os.path.join(tr, "a"), os.path.join(tr, "origine.git")
+    depot_matin(d)
+    git_matin(tr, "init", "-q", "--bare", "-b", "main", origine)
+    git_matin(d, "remote", "add", "origin", origine)
+    git_matin(d, "push", "-q", "origin", "main")
+    pousse = git_matin(origine, "rev-parse", "main").strip()
+    nom = branche_matin(d, "A", "PAR", "PAR", 1, ligne="PAR1–PAR3", retire="80")
+    code, s = appel(["matin", d, JOUR_MATIN])
+    carte_, html, rang, archive = etat_matin(d)
+    lettres = mod.lettres_prises(carte_)
+    parents = git_matin(d, "rev-list", "--parents", "-n", "1", "HEAD").split()
+    verifier("NUI15 (a) 2cef70f rejoué : courant et artefact de LOC rendus, PAR une fois après ENQ, rang 79, archive à "
+             "3 clos, aucun conflit, HEAD à deux parents, arbre propre — mutants : lettres de la branche gardées, "
+             "todo laissé à None",
+             code == 0 and s == ORDRE_ABSENT + "FUSIONNÉE %s\nMATIN 1 fusionnée(s) · 0 de côté\n" % nom
+             and mod.champ(carte_, "fichier de fiches courant") == "ctx/40-loc.md (LOC1..LOC1)"
+             and mod.champ(carte_, "artefact du chantier") == "https://claude.ai/artifact/LOC"
+             and lettres == ["E", "ENQ", "PAR"] and rang == "79" and "3 chantiers clos" in archive
+             and "<<<<<<<" not in "\n".join(carte_) + html and "Aucun chantier ouvert" not in html
+             and len(parents) == 3 and not git_matin(d, "status", "--porcelain")
+             and git_matin(d, "log", "-1", "--format=%s").strip() == "Matin %s : %s" % (JOUR_MATIN, nom)
+             and "| 80 |" not in lire(os.path.join(d, "ctx", "08-etat.md")), (code, s, carte_, rang, archive[:300]))
+    verifier("NUI15 (f) un dépôt nu en origin : sa main n'a pas bougé, matin ne pousse rien",
+             git_matin(origine, "rev-parse", "main").strip() == pousse != git_matin(d, "rev-parse", "main").strip(),
+             (pousse, git_matin(d, "rev-parse", "main")))
+
+
+def matin_b(tr):
+    """(b) A et B ajoutent chacun une lettre sur la même ligne, la feuille change des deux côtés : les deux lettres
+    restent ; le carnet met B avant A, bien que la pointe de B soit la plus récente."""
+    d = os.path.join(tr, "b")
+    depot_matin(d)
+    a, b = branche_matin(d, "A", "AAA", "AAA", 1), branche_matin(d, "B", "BBB", "BBB", 2)
+    carnet_ = mod.carnet.du_jour(d, JOUR_MATIN)
+    os.makedirs(os.path.dirname(carnet_), exist_ok=True)
+    for canal, code in (("B", "BBB"), ("A", "AAA")):
+        mod.carnet.ecrire(carnet_, mod.carnet.ligne({"nuit": JOUR_MATIN, "canal": canal, "chantier": code, "role": "fiche"}))
+    code, s = appel(["matin", d, JOUR_MATIN])
+    carte_, html, rang, _ = etat_matin(d)
+    sujets = git_matin(d, "log", "--first-parent", "--format=%s", "main").splitlines()
+    verifier("NUI15 (b) deux nuits, une lettre chacune sur la même ligne, la feuille changée des deux côtés : les deux "
+             "lettres gardées, le badge au rang 79, B avant A comme au carnet (pointe de B plus récente) — mutant : "
+             "lettres de la branche gardées",
+             code == 0 and "ORDRE" not in s and s.endswith("MATIN 2 fusionnée(s) · 0 de côté\n")
+             and mod.lettres_prises(carte_) == ["E", "ENQ", "BBB", "AAA"] and rang == "79"
+             and 'Lettres de fiche prises : <span class="mono">E, ENQ, BBB, AAA, LOC</span>' in html
+             and [x for x in reversed(sujets) if x.startswith("Matin")]
+             == ["Matin %s : %s" % (JOUR_MATIN, b), "Matin %s : %s" % (JOUR_MATIN, a)],
+             (code, s, mod.lettres_prises(carte_), rang, sujets))
+
+
+def matin_c(tr):
+    """(c) sans carnet : l'heure de la pointe ; une pointe à chantier ouvert (commit WIP) reste de côté."""
+    d = os.path.join(tr, "c")
+    depot_matin(d)
+    wip = branche_matin(d, "A", "WIP", None, 1, clos=False, x="a = 1\nb = 2\nc = 30\n")
+    ok = branche_matin(d, "B", "OKK", "OKK", 2)
+    code, s = appel(["matin", d, JOUR_MATIN])
+    verifier("NUI15 (c) sans carnet : ORDRE pointes, la pointe WIP DE CÔTÉ avant la suivante fusionnée, hors de main",
+             code == 0 and s == (ORDRE_ABSENT + "DE CÔTÉ %s — ctx/40-loc.md\nFUSIONNÉE %s\n"
+                                 "MATIN 1 fusionnée(s) · 1 de côté\n" % (wip, ok))
+             and code_git(d, "merge-base", "--is-ancestor", wip, "main") == 1, (code, s))
+
+
+def matin_d(tr):
+    """(d) un `.py` changé des deux côtés : ARRÊT qui le nomme, fusion en cours, la suivante intacte ; résolu, relancé."""
+    d = os.path.join(tr, "d")
+    depot_matin(d)
+    a = branche_matin(d, "A", "AAA", "AAA", 1, x="a = 1\nb = 20\nc = 3\n")
+    b = branche_matin(d, "B", "BBB", "BBB", 2)
+    ecrire(os.path.join(d, "scripts", "x.py"), "a = 1\nb = 22\nc = 3\n")
+    commit_matin(d, "main avance", 3)
+    code, s = appel(["matin", d, JOUR_MATIN])
+    carte_ = lire(os.path.join(d, "CHANTIER.md"))
+    verifier("NUI15 (d) un .py changé des deux côtés : ARRÊT qui le nomme et donne feuille --todo 79, sort 1, MERGE_HEAD "
+             "là, CHANTIER.md réparé sans marque, la suivante pas fusionnée",
+             code == 1 and s.startswith(ORDRE_ABSENT + "ARRÊT %s — conflit : scripts/x.py — après résolution : " % a)
+             and s.endswith(' feuille "%s" --todo 79\n' % d)
+             and code_git(d, "rev-parse", "-q", "--verify", "MERGE_HEAD") == 0
+             and code_git(d, "merge-base", "--is-ancestor", b, "main") == 1
+             and "- **fichier de fiches courant** : ctx/40-loc.md (LOC1..LOC1)" in carte_ and "<<<<<<<" not in carte_,
+             (code, s))
+    ecrire(os.path.join(d, "scripts", "x.py"), "a = 1\nb = 22\nc = 3\n")
+    appel(["feuille", d, "--todo", "79", "--date", JOUR_MATIN])
+    commit_matin(d, "résolu", 4)
+    code, s = appel(["matin", d, JOUR_MATIN])
+    verifier("NUI15 (d) résolu, commité, relancé : DÉJÀ pour la branche résolue, la suivante fusionnée",
+             code == 0 and s == ORDRE_ABSENT + "DÉJÀ %s\nFUSIONNÉE %s\nMATIN 1 fusionnée(s) · 0 de côté\n" % (a, b),
+             (code, s))
+
+
+def matin_e(tr):
+    """(e) un hook qui refuse (`core.hooksPath`) : ARRÊT, la fusion reste en cours."""
+    d, hooks = os.path.join(tr, "e"), os.path.join(tr, "hooks-e")
+    depot_matin(d)
+    nom = branche_matin(d, "A", "AAA", "AAA", 1)
+    for h in ("pre-commit", "pre-merge-commit"):
+        ecrire(os.path.join(hooks, h), HOOK_REFUSE)
+        os.chmod(os.path.join(hooks, h), 0o755)
+    git_matin(d, "config", "core.hooksPath", hooks.replace("\\", "/"))
+    code, s = appel(["matin", d, JOUR_MATIN])
+    verifier("NUI15 (e) hook exit 1 par core.hooksPath : ARRÊT … commit refusé, la 1re ligne du hook, fusion en cours",
+             code == 1 and s == ORDRE_ABSENT + "ARRÊT %s — commit refusé : hook : refusé\n" % nom
+             and code_git(d, "rev-parse", "-q", "--verify", "MERGE_HEAD") == 0, (code, s))
+
+
+def matin_h(tr):
+    """(h) sans archive, les clos vivent sur la feuille : une feuille en conflit ne se reprend pas de main, ARRÊT."""
+    d = os.path.join(tr, "h")
+    depot_matin(d, archive=False)
+    a, b = branche_matin(d, "A", "AAA", "AAA", 1), branche_matin(d, "B", "BBB", "BBB", 2)
+    code, s = appel(["matin", d, JOUR_MATIN])
+    verifier("NUI15 (h) sans archive, feuille changée des deux côtés : la 1re fusionnée, ARRÊT sur la feuille pour la "
+             "2e, fusion en cours",
+             code == 1 and s.startswith(ORDRE_ABSENT + "FUSIONNÉE %s\nARRÊT %s — conflit : ctx/artefacts/feuille-de-route.html"
+                                        " — après résolution : " % (a, b)) and s.endswith(" --todo 79\n")
+             and code_git(d, "rev-parse", "-q", "--verify", "MERGE_HEAD") == 0, (code, s))
+
+
+def matin_g(tr):
+    """(g) les gardes : date, aucune branche, HEAD hors main, pas la racine, arbre sale, non équipé, CHANTIER.md sans
+    libellés — chaque fois rien fusionné."""
+    d, mini, vide = os.path.join(tr, "g"), os.path.join(tr, "mini"), os.path.join(tr, "vide")
+    depot_matin(d)
+    nom = branche_matin(d, "A", "AAA", "AAA", 1)
+    os.makedirs(vide)
+    os.makedirs(mini)
+    git_matin(mini, "init", "-q", "-b", "main")
+    ecrire(os.path.join(mini, "CHANTIER.md"), "# C\n\n- **alias** : m\n")
+    commit_matin(mini, "mini", 5)
+    sorties = [appel(["matin", vide, JOUR_MATIN]), appel(["matin", d, "hier"]), appel(["matin", d, "2026-01-01"]),
+               appel(["matin", mini, JOUR_MATIN])]
+    git_matin(d, "switch", "-q", "-c", "autre")
+    sorties.append(appel(["matin", d, JOUR_MATIN]))
+    git_matin(d, "switch", "-q", "main")
+    ecrire(os.path.join(d, "sous", "CHANTIER.md"), "# C\n")
+    sorties.append(appel(["matin", os.path.join(d, "sous"), JOUR_MATIN]))
+    shutil.rmtree(os.path.join(d, "sous"))
+    ecrire(os.path.join(d, "scripts", "x.py"), "sale\n")
+    sorties.append(appel(["matin", d, JOUR_MATIN]))
+    attendu = ("GARDE: pas de CHANTIER.md dans", "GARDE: AAAA-MM-JJ attendu : hier", "GARDE: aucune branche nuit/2026-01-01-*",
+               "GARDE: CHANTIER.md de main sans ses deux libellés", "GARDE: HEAD est sur autre, pas sur main",
+               "n'est pas la racine d'un dépôt Git", "GARDE: arbre pas propre (1 chemin(s))")
+    verifier("NUI15 (g) sept gardes : non équipé, date illisible, aucune branche, CHANTIER.md sans libellés, HEAD hors "
+             "main, pas la racine, arbre sale — sort 1, « rien fusionné », aucune fusion commencée",
+             all(c == 1 and a in s and "GARDE:" in s for (c, s), a in zip(sorties, attendu))
+             and code_git(d, "merge-base", "--is-ancestor", nom, "main") == 1
+             and code_git(d, "rev-parse", "-q", "--verify", "MERGE_HEAD") != 0, sorties)
+
+
+def tester_matin():
+    """NUI15 : `vlp.py matin <projet> <date>` fusionne dans main les branches de la nuit et répare ce que Git perd sans
+    conflit (methode-chantier.md:263-268). Un dépôt temporaire par cas, la config Git isolée, la date de chaque commit
+    fixée ; l'environnement est rendu ensuite."""
+    if not shutil.which("git"):
+        print("SAUTÉ: git absent — matin n'est pas testé")
+        return
+    noms = ("GIT_CONFIG_GLOBAL", "GIT_CONFIG_NOSYSTEM", "GIT_AUTHOR_NAME", "GIT_AUTHOR_EMAIL", "GIT_COMMITTER_NAME",
+            "GIT_COMMITTER_EMAIL", "GIT_AUTHOR_DATE", "GIT_COMMITTER_DATE")
+    gardes = {k: os.environ.get(k) for k in noms}
+    try:
+        with tempfile.TemporaryDirectory() as tr:
+            ecrire(os.path.join(tr, "gitconfig"), "")
+            os.environ.update(GIT_CONFIG_GLOBAL=os.path.join(tr, "gitconfig"), GIT_CONFIG_NOSYSTEM="1",
+                              GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t",
+                              GIT_COMMITTER_EMAIL="t@t")
+            for cas in (matin_a, matin_b, matin_c, matin_d, matin_e, matin_h, matin_g):
+                cas(tr)
+    finally:
+        for k, v in gardes.items():
+            if v is None:
+                os.environ.pop(k, None)
+            else:
+                os.environ[k] = v
+
+
+tester_matin()
+
 if ECARTS:
     sys.exit(1)
 print("OK")

@@ -810,8 +810,9 @@ Bac :
 ---
 
 <!-- FICHE:NUI15 -->
-## NUI15 [ ] — Fusionner le matin : CHANTIER.md et la feuille
+## NUI15 [x] — Fusionner le matin : CHANTIER.md et la feuille
 
+**Session** : 28c4a1ca-ce9e-4c0a-9a6e-a5edbd860a0c
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` ; lus : `templates/CHANTIER.md`, `templates/artefact-feuille-de-route.html`,
 `templates/artefact-archive-clos.html`, `methode-chantier.md` (l. 263-268) — et rien d'autre.
