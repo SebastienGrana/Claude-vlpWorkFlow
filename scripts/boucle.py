@@ -57,12 +57,29 @@ Relire avant le commit (NUI5, sous `--nuit` seulement) : le rôle jouer n'a ni `
 `VERDICTS` de vlp.py, aucun verdict valant `REFUSÉE`. ACCEPTÉE : `cocher --session <relire> --role relire`,
 puis `git add -A` et `git commit -m "<fiche> : <titre>"` ; un commit refusé (pre-commit) arrête, sortie 1.
 REFUSÉE : `cocher --refuser "<1re ligne du result>"` puis `cocher --session`, l'arbre laissé tel quel ;
-`ARRÊT`, sortie 1 ; `relire()` rend à la relance `refus_n`, `cause` (le mot entre le verdict et ` :`,
-`aucun-verdict` sans verdict) et `erreur_avant` (la ligne `Erreur :` d'avant). `TÊTE` (la session de jeu a
+`relire()` rend `refuse`, `motif`, `refus_n` (celui de `cocher`), `cause` (le mot entre le verdict et ` :`,
+`aucun-verdict` sans verdict), `reecriture` et `erreur_avant` (la ligne `Erreur :` d'avant) à
+`relire_et_relancer` (NUI6, ci-dessous). `TÊTE` (la session de jeu a
 commité malgré tout) : la relecture part avec ` --sha HEAD` ; REFUSÉE : `git revert --no-edit HEAD` d'abord,
 puis les deux `cocher` ; ACCEPTÉE : `cocher --session`, puis un commit de cette ligne seule, sujet
 `<fiche> : session de relecture`. La ligne `relire` du carnet porte `refus_n`, `cause` et `garde` (commit
 refusé, `TÊTE`) ; le coût du relecteur entre au `TOTAL`.
+
+Relancer ou arrêter (NUI6, sous `--nuit` seulement) : la boucle tient elle-même, par fiche, son `n` de refus
+et le dernier motif — `cocher --resolu` de la relance remplace le bloc Tentatives, donc le fichier ne s'en
+souvient pas. Départ : lu par `extraire` avant la première session de la fiche (`tentatives()` : `n` = lignes
+numérotées égales à `ESSAI_REFUSE` de vlp.py, motif = la ligne `Erreur :`). Un bloc de refus seuls n'arrête plus
+la boucle ; tout autre bloc, si. À chaque REFUSÉE (ou aucun verdict), `garde_de` tranche, dans cet ordre :
+`meme-erreur` (motif égal au dernier), `refus-max` (`n` ≥ `REFUS_MAX`), puis la cause — `copie` : une session du
+rôle `relance` sur l'arbre tel quel (aucun revert, rien de commité), puis la même chaîne de relecture ;
+`fiche` : `cause-fiche`, la ligne `RÉÉCRITURE :` au carnet ; toute autre, aucun verdict compris : `sans-cause`,
+`cause` valant `aucune`. Un arrêt écrit une ligne du carnet (`garde`, `refus_n`, `cause`, `reecriture`, sans
+`role`) et rend `ARRÊT <fiche> … garde <garde>`, sortie 1. La ligne `relance` du carnet porte `refus_n` et `cause`.
+
+Vérification de nuit (NUI6) : si CHANTIER.md porte `- **vérification de nuit** : <commande>` (lue par `champ`
+de vlp.py), le shell la lance dans la racine du projet avant la première fiche jouée du chantier, puis après le
+commit de chaque ACCEPTÉE, bornée par `TIMEOUT_S` ; un code ≠ 0 ou le délai : `ARRÊT <fiche> : garde
+verification`, sortie 1. Libellé absent : rien, ni ligne ni garde.
 """
 import argparse
 import functools
@@ -105,6 +122,7 @@ REPLI_OPUS = "claude-opus-5,claude-sonnet-5-5"   # socle de NUI, « Modèles par
 # 60 min pour tous les rôles : 4,9 × 735 s (TAU1, `context AI/08-etat.md:2378`) et 2 × 29,3 min/fiche
 # (BTN, `context AI/92-essai-parallele.md:87`).
 TIMEOUT_S = 60 * 60
+REFUS_MAX = 2   # refus d'une même fiche au bout desquels la nuit s'arrête (`refus-max`) — seul endroit du nombre
 
 # Les réglages d'une session `--nuit`, un rôle par entrée. `tours` : un entier (non mesuré), ou le fichier
 # d'agent dont `lire_max_turns` de vlp.py lit `maxTurns` — jamais recopié. `git` : le rôle commite-t-il.
@@ -407,10 +425,12 @@ def relire(claude, fiche, titre, fichier, racine, a, trace, tete=None):
     ce que son verdict commande. `tete` : le sha d'un commit que le jeu a fait lui-même (`--sha HEAD`).
     ACCEPTÉE : la ligne `**Session**` du relecteur, puis le commit (de la fiche ; de cette ligne seule si
     `tete`). REFUSÉE : `git revert` d'abord si `tete`, puis `cocher --refuser` et la ligne `**Session**` ;
-    l'arbre reste tel quel. Rend `tours`, `cout`, `stop`, `arret` (la raison d'un arrêt, ou None),
-    `verdict`, et pour un refus `refus_n`, `cause`, `erreur_avant` — ce que lira la relance (NUI6)."""
+    l'arbre reste tel quel. Rend `tours`, `cout`, `stop`, `arret` (la raison d'un arrêt — commit ou revert
+    impossible —, ou None), `verdict`, et pour un refus `refuse`, `motif`, `refus_n` (celui de `cocher`),
+    `cause`, `reecriture`, `erreur_avant` : ce que `relire_et_relancer` en fait (NUI6)."""
     accepte = kit().VERDICTS[0]
-    out: dict[str, Any] = {"verdict": None, "arret": None, "refus_n": None, "cause": None, "erreur_avant": None}
+    out: dict[str, Any] = {"verdict": None, "arret": None, "refus_n": None, "cause": None, "erreur_avant": None,
+                           "refuse": False, "motif": None, "reecriture": None}
 
     def suite(texte, issue, session):
         mot, cause = verdict_de(texte)
@@ -437,10 +457,11 @@ def relire(claude, fiche, titre, fichier, racine, a, trace, tete=None):
             else:
                 _, sortie = vlp(["cocher", fichier, fiche, "--refuser", motif], racine)
                 vu = re.search(r"refus (\d+)", sortie)
-                out["refus_n"], out["cause"] = int(vu.group(1)) if vu else None, cause
+                ree = next((l.strip() for l in texte.splitlines() if l.strip().startswith("RÉÉCRITURE :")), None)
+                out.update(refus_n=int(vu.group(1)) if vu else None, cause=cause, refuse=True, motif=motif,
+                           reecriture=ree)
                 vlp(noter, racine)
-                out["arret"] = "%s refusée à la relecture — refus %s, cause %s" % (fiche, out["refus_n"], cause)
-                plus.update(refus_n=out["refus_n"], cause=cause)
+                plus.update(refus_n=out["refus_n"], cause=cause, reecriture=ree)
         if gardes:
             plus["garde"] = " ; ".join(gardes)
         return plus
@@ -454,6 +475,113 @@ def git_revert(racine):
     """None si `git revert --no-edit HEAD` passe, sinon sa première ligne d'erreur."""
     code, err = kit().git_texte(["revert", "--no-edit", "HEAD"], racine)
     return None if code == 0 else err
+
+
+def tentatives(extrait):
+    """Le bloc **Tentatives** de la fiche dans `extrait` : `None` sans bloc, sinon `(refus_seuls, n, motif)` —
+    `refus_seuls` si toutes ses lignes numérotées valent `ESSAI_REFUSE` (au moins une), `n` leur nombre,
+    `motif` la ligne `Erreur :` du bloc (sans son préfixe) ou None."""
+    lignes = extrait.splitlines()
+    debut = next((i for i, l in enumerate(lignes) if l.startswith("**Tentatives**")), None)
+    if debut is None:
+        return None
+    bloc = []
+    for l in lignes[debut + 1:]:
+        if not l.strip() or l.startswith("**"):
+            break
+        bloc.append(l)
+    essais = [l.split(". ", 1)[1].strip() for l in bloc if re.match(r"[0-9]+\. ", l)]
+    motif = next((l[len("Erreur :"):].strip() for l in bloc if l.startswith("Erreur :")), None)
+    return bool(essais) and all(e == kit().ESSAI_REFUSE for e in essais), len(essais), motif
+
+
+def garde_de(n, dernier, motif, cause):
+    """La garde qui arrête la fiche au refus n° `n` (motif `motif`, cause `cause`, `dernier` : le motif
+    d'avant), ou None : la cause est `copie`, la relance joue. Dans cet ordre : `meme-erreur`, `refus-max`,
+    puis la cause — `copie` relance, `fiche` arrête (`cause-fiche`), toute autre arrête (`sans-cause`)."""
+    if motif == dernier:
+        return "meme-erreur"
+    if n >= REFUS_MAX:
+        return "refus-max"
+    if cause == "copie":
+        return None
+    return "cause-fiche" if cause == "fiche" else "sans-cause"
+
+
+def noter_arret(a, fiche, garde, n=None, cause=None, reecriture=None):
+    """La ligne du carnet d'un arrêt de la nuit : la garde, et pour un refus son n, sa cause, sa réécriture.
+    Sans `role` : le carnet ne la compte pas comme une session."""
+    carnet.ajouter(a.carnet, nuit=carnet.nuit_de(a.carnet), canal=a.canal, chantier=a.chantier, fiche=fiche,
+                   garde=garde, refus_n=n, cause=cause, reecriture=reecriture)
+
+
+def verification_de(racine):
+    """La commande du libellé `- **vérification de nuit** : <commande>` de CHANTIER.md, ou None."""
+    try:
+        return kit().champ(kit().lignes_de(os.path.join(racine, "CHANTIER.md")), "vérification de nuit")
+    except OSError:
+        return None
+
+
+def verifier_nuit(commande, racine):
+    """None si la vérification de nuit passe (code 0), sinon la raison, lue par le shell dans `racine`
+    et bornée par `TIMEOUT_S`."""
+    try:
+        r = subprocess.run(commande, cwd=racine, shell=True, stdin=subprocess.DEVNULL, capture_output=True,
+                           text=True, encoding="utf-8", errors="replace", timeout=TIMEOUT_S)
+    except subprocess.TimeoutExpired:
+        return "dépasse le délai de %d s" % TIMEOUT_S
+    if r.returncode:
+        return "sort %d" % r.returncode
+    return None
+
+
+def relire_et_relancer(claude, fiche, titre, fichier, racine, a, traces, n_refus, dernier, tot):
+    """Relit la fiche jouée, puis suit le verdict (NUI5, NUI6) : ACCEPTÉE rend None. REFUSÉE : `n_refus` (celui
+    de la boucle, `dernier` : le motif d'avant) augmente, `garde_de` tranche ; arrêt → une ligne du carnet et
+    `(1, raison)` ; sinon (cause `copie`) une session du rôle `relance` sur l'arbre tel quel, puis une relecture
+    de plus. `tot` : `[tours, coût]` du lancement, tenus à jour. Rend None ou `(code, raison)`."""
+    k = 1
+    r = relire(claude, fiche, titre, fichier, racine, a, os.path.join(traces, "%s-relire.jsonl" % fiche),
+               etat_case(fichier, fiche, racine)[1])
+    while True:
+        tot[0], tot[1] = tot[0] + r["tours"], tot[1] + r["cout"]
+        print("RELIT %s · %s · tours %d · %.4f $" % (fiche, r["verdict"] or "aucun verdict", r["tours"], r["cout"]))
+        for ligne in r["texte"].strip().split("\n"):
+            print("    " + ligne)
+        print(flush=True)
+        if r["stop"]:
+            return 1, "STOP — %s" % r["stop"]
+        if r["arret"]:
+            return 1, r["arret"]
+        if not r["refuse"]:
+            return None
+        n_refus += 1
+        cause = r["cause"] if r["cause"] in ("fiche", "copie") else "aucune"
+        garde = garde_de(n_refus, dernier, r["motif"], cause)
+        dernier = r["motif"]
+        if garde:
+            noter_arret(a, fiche, garde, n_refus, cause, r["reecriture"])
+            return 1, "%s refusée à la relecture — refus %d, cause %s — garde %s" % (fiche, n_refus, cause, garde)
+        k += 1
+        trace = os.path.join(traces, "%s-relance%d.jsonl" % (fiche, k - 1))
+        print("RELANCE %s — refus %d, cause %s — trace %s" % (fiche, n_refus, cause, trace), flush=True)
+        t0 = time.time()
+        s = jouer(claude, fiche, racine, a, trace, role="relance",
+                  controle=functools.partial(case_cochee, fichier, fiche, racine),
+                  apres=lambda texte, issue, session: {"refus_n": n_refus, "cause": cause})
+        tot[0], tot[1] = tot[0] + s["tours"], tot[1] + s["cout"]
+        print("FICHE %s · CASE [%s] · tours %d · %.4f $ · %d s (relance)"
+              % (fiche, "x" if s["ok"] else " ", s["tours"], s["cout"], int(time.time() - t0)))
+        for ligne in s["texte"].strip().split("\n"):
+            print("    " + ligne)
+        print(flush=True)
+        if s["stop"]:
+            return 1, "STOP — %s" % s["stop"]
+        if not s["ok"]:
+            return 1, "%s non cochée après la relance — lire sa trace" % fiche
+        r = relire(claude, fiche, titre, fichier, racine, a, os.path.join(traces, "%s-relire%d.jsonl" % (fiche, k)),
+                   etat_case(fichier, fiche, racine)[1])
 
 
 def main(argv):
@@ -510,6 +638,7 @@ def main(argv):
             print("GARDE: %s" % e)
             return 1
     traces = a.traces or tempfile.mkdtemp(prefix="vlp-boucle-")
+    verif, verifiee = verification_de(racine) if a.nuit else None, False
     jouees, total_tours, total_cout, t_debut = 0, 0, 0.0, time.time()
     code, raison = 0, "plafond de %d fiches" % a.plafond if a.plafond is not None else "aucun plafond"
 
@@ -529,9 +658,18 @@ def main(argv):
             raison = "aucune fiche à jouer"
             break
         _, extrait = vlp(["extraire", fichier, fiche], racine)
-        if "**Tentatives**" in extrait:
+        bloc = tentatives(extrait) if a.nuit else None
+        if "**Tentatives**" in extrait and not (bloc and bloc[0]):   # sous --nuit, des refus seuls ne l'arrêtent pas
             code, raison = 1, "%s porte un bloc Tentatives — à lire avant de rejouer" % fiche
             break
+        n_refus, dernier = (bloc[1], bloc[2]) if bloc else (0, None)
+        if a.nuit and verif and not verifiee:
+            verifiee, echec = True, verifier_nuit(verif, racine)
+            print("VERIF avant %s · %s" % (fiche, echec or "sort 0"), flush=True)
+            if echec:
+                noter_arret(a, fiche, "verification")
+                code, raison = 1, "%s : garde verification — la vérification de nuit %s avant la fiche" % (fiche, echec)
+                break
         visuel = "ARRÊT:" in extrait
         trace = os.path.join(traces, "%s.jsonl" % fiche)
         print("JOUE %s — trace %s" % (fiche, trace), flush=True)
@@ -556,20 +694,20 @@ def main(argv):
             break
         if a.nuit:
             titre = re.search(r"^## %s \[[ x]\] — (.+?)\s*$" % re.escape(fiche), extrait, re.M)
-            tete = etat_case(fichier, fiche, racine)[1]
-            r = relire(claude, fiche, titre.group(1) if titre else fiche, fichier, racine, a,
-                       os.path.join(traces, "%s-relire.jsonl" % fiche), tete)
-            total_tours, total_cout = total_tours + r["tours"], total_cout + r["cout"]
-            print("RELIT %s · %s · tours %d · %.4f $" % (fiche, r["verdict"] or "aucun verdict", r["tours"], r["cout"]))
-            for ligne in r["texte"].strip().split("\n"):
-                print("    " + ligne)
-            print(flush=True)
-            if r["stop"]:
-                code, raison = 1, "STOP — %s" % r["stop"]
+            tot = [total_tours, total_cout]
+            fin = relire_et_relancer(claude, fiche, titre.group(1) if titre else fiche, fichier, racine, a,
+                                     traces, n_refus, dernier, tot)
+            total_tours, total_cout = tot
+            if fin:
+                code, raison = fin
                 break
-            if r["arret"]:
-                code, raison = 1, r["arret"]
-                break
+            if verif:
+                echec = verifier_nuit(verif, racine)
+                print("VERIF après %s · %s" % (fiche, echec or "sort 0"), flush=True)
+                if echec:
+                    noter_arret(a, fiche, "verification")
+                    code, raison = 1, "%s : garde verification — la vérification de nuit %s après son commit" % (fiche, echec)
+                    break
 
     print("ARRÊT %s" % raison)
     print("TOTAL %d fiches · %d tours · %.4f $ · %d s"

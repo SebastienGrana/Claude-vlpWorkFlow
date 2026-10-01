@@ -7,7 +7,9 @@ Rôles (le prompt dit lequel) : `/vlp:chantier <code>` découpe, `/vlp:tache <fi
 `/vlp:tache` clôt, `--agent vlp:relecture` relit (`<fiche> [--sha <sha>]`). Autre prompt : une
 ligne sur stderr, rien sur stdout, code 2.
 Pilotes, tous par l'environnement : VLP_FAUX_RATE (fiches non cochées, séparées par des virgules),
-VLP_FAUX_REFUSE (`<fiche>:<fiche|copie>`), VLP_FAUX_LIMITE (préfixe de `--model`), VLP_FAUX_GENRE (le
+VLP_FAUX_REFUSE (`<fiche>:<cause>[,<cause>…]`, cause `fiche`, `copie` ou `aucun` — sans verdict : la
+première, à chaque relecture ; avec VLP_FAUX_ETAT, un fichier d'essai, une cause par relecture de la
+fiche dans l'ordre, ACCEPTÉE ensuite, et le motif rend son rang : `motif factice 2`), VLP_FAUX_LIMITE (préfixe de `--model`), VLP_FAUX_GENRE (le
 genre de cette limite : `session` par défaut, `semaine`, `opus`), VLP_FAUX_REPLI (`1`), VLP_FAUX_DORT
 (secondes), VLP_FAUX_ERREUR (`coupure`, `api`, `tours`, `budget`), VLP_FAUX_DENIALS (nombre d'entrées de
 `permission_denials` dans le `result` ; réduites à `tool_name`, leur forme réelle n'est pas relevée),
@@ -15,7 +17,8 @@ VLP_FAUX_ARGV (chemin : y ajoute, une ligne JSON par lancement, les arguments re
 y ajoute `{role, VLP_CANAL, VLP_CARNET}` de chaque lancement), VLP_FAUX_COMMIT (fiches, séparées par des
 virgules : après les avoir cochées, le rôle `jouer` fait `git add -A` et `git commit -m "<fiche> : fiche
 <fiche>"` dans le dossier courant — la session qui commite malgré tout), VLP_FAUX_VLP (chemin de vlp.py, par
-défaut celui d'à côté). Le rôle `jouer` pose `CLAUDE_CODE_SESSION_ID` = son `--session-id` aux commandes qu'il
+défaut celui d'à côté). Une fiche à bloc **Tentatives** se coche `--resolu`, comme `jouer` et `relance` le font
+dans `skills/tache/SKILL.md` (le faux ne les distingue pas : même prompt). Le rôle `jouer` pose `CLAUDE_CODE_SESSION_ID` = son `--session-id` aux commandes qu'il
 lance, comme le vrai claude ; hors VLP_FAUX_COMMIT, le faux n'appelle jamais Git.
 """
 import io
@@ -126,7 +129,10 @@ def jouer(fiche: str, session: Optional[str] = None) -> int:
     vlp = os.environ.get("VLP_FAUX_VLP") or os.path.join(ICI, "vlp.py")
     # Le vrai claude pose l'id de sa session aux commandes qu'il lance, et `cocher` le lit.
     env = dict(os.environ, CLAUDE_CODE_SESSION_ID=session) if session else None
-    r = subprocess.run([sys.executable, vlp, "cocher", fichier, fiche], capture_output=True, text=True,
+    # Une fiche à bloc Tentatives se coche `--resolu`, comme `skills/tache/SKILL.md` : le bloc est remplacé.
+    corps = re.search(r"<!-- FICHE:%s -->(.*?)<!-- /FICHE -->" % re.escape(fiche), lire(fichier), re.S)
+    resolu = ["--resolu", "faux claude"] if corps and "**Tentatives**" in corps.group(1) else []
+    r = subprocess.run([sys.executable, vlp, "cocher", fichier, fiche] + resolu, capture_output=True, text=True,
                        encoding="utf-8", env=env)
     if r.returncode:
         sys.stderr.write((r.stdout + r.stderr).strip() + "\n")
@@ -153,12 +159,22 @@ def verdict(mots: list) -> Optional[str]:
     """Le texte de relire, ou None : le prompt n'est pas `<fiche> [--sha <sha>]`."""
     if not (len(mots) == 1 or (len(mots) == 3 and mots[1] == "--sha")):
         return None
-    refus, _, cause = os.environ.get("VLP_FAUX_REFUSE", "").partition(":")
+    refus, _, causes = os.environ.get("VLP_FAUX_REFUSE", "").partition(":")
     if refus != mots[0]:
         return "ACCEPTÉE — rejoué %s, 0 écart" % mots[0]
+    liste, etat, k = causes.split(","), os.environ.get("VLP_FAUX_ETAT"), 0
+    if etat:   # une cause par relecture de cette fiche, ACCEPTÉE ensuite ; le motif porte son rang
+        vus = json.loads(lire(etat)) if os.path.exists(etat) else {}
+        k = vus.get(refus, 0)
+        ecrire(etat, json.dumps(dict(vus, **{refus: k + 1})))
+        if k >= len(liste):
+            return "ACCEPTÉE — rejoué %s, 0 écart" % mots[0]
+    cause = liste[k]
+    if cause == "aucun":
+        return "Je n'ai pas conclu."
     if cause not in ("fiche", "copie"):
         return None
-    texte = "REFUSÉE — %s : motif factice" % cause
+    texte = "REFUSÉE — %s : motif factice%s" % (cause, " %d" % (k + 1) if etat else "")
     if cause == "fiche":
         texte += "\nRÉÉCRITURE : phrase de la fiche → phrase corrigée"
     return texte

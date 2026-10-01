@@ -689,15 +689,16 @@ def tester_relecture():
 
     with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors:
         depot(t)
-        code, s, argvs, envs = nuit_de_test(t, hors, VLP_FAUX_REFUSE="F1:copie")
+        # cause `fiche` : `copie` relance depuis NUI6, et la boucle ne s'arrête plus au premier refus
+        code, s, argvs, envs = nuit_de_test(t, hors, VLP_FAUX_REFUSE="F1:fiche")
         fiches = lire(os.path.join(t, "fiches.md"))
         ligne = [d for d in carnet.lire(carnet_de(t)) if d["role"] == "relire"]
         verifier("NUI5 nuit : REFUSÉE — aucun commit neuf, bloc Tentatives sous F1, ARRÊT, code 1, refus_n et cause au carnet",
                  code == 1 and nombre(t) == "1" and "## F1 [ ]" in fiches
                  and fiches.index("## F1 [ ]") < fiches.index("**Tentatives**") < fiches.index("## F2")
-                 and "Erreur : REFUSÉE — copie : motif factice" in fiches
-                 and "ARRÊT F1 refusée à la relecture — refus 1, cause copie" in s and "JOUE F2" not in s
-                 and len(ligne) == 1 and ligne[0]["refus_n"] == 1 and ligne[0]["cause"] == "copie", (s, ligne))
+                 and "Erreur : REFUSÉE — fiche : motif factice" in fiches
+                 and "ARRÊT F1 refusée à la relecture — refus 1, cause fiche" in s and "JOUE F2" not in s
+                 and len(ligne) == 1 and ligne[0]["refus_n"] == 1 and ligne[0]["cause"] == "fiche", (s, ligne))
 
     with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors:
         depot(t)
@@ -713,7 +714,7 @@ def tester_relecture():
 
     with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors:
         depot(t)
-        code, s, argvs, envs = nuit_de_test(t, hors, "--plafond", "1", VLP_FAUX_COMMIT="F1", VLP_FAUX_REFUSE="F1:copie")
+        code, s, argvs, envs = nuit_de_test(t, hors, "--plafond", "1", VLP_FAUX_COMMIT="F1", VLP_FAUX_REFUSE="F1:fiche")
         fiches = lire(os.path.join(t, "fiches.md"))
         ligne = [d for d in carnet.lire(carnet_de(t)) if d["role"] == "relire"]
         verifier("NUI5 nuit : TÊTE refusée — le prompt de relire porte --sha HEAD, `git revert` d'abord, puis le bloc "
@@ -733,5 +734,156 @@ def tester_relecture():
 
 
 tester_relecture()
+
+
+# --- relancer plus fort sur refus, ou arrêter tôt (NUI6) -------------------------------------------------
+
+def tester_relance():
+    canal_a = ("--canal", "A", "--chantier", "X")
+    ecrits = [0]
+
+    def neuf(nom, cond, sortie):
+        """Un cas neuf de NUI6 : `verifier` sort au premier écart, donc ceux qui passent = ceux qui sont écrits."""
+        ecrits[0] += 1
+        verifier("NUI6 " + nom, cond, sortie)
+
+    def nuit_relance(t, hors, *options, etat=False, **env):
+        argv = os.path.join(hors, "argv.jsonl")
+        if etat:
+            env["VLP_FAUX_ETAT"] = os.path.join(hors, "etat.json")
+        code, s = nuit(t, *canal_a, *options, traces=hors, VLP_FAUX_ARGV=argv, **env)
+        return code, s, journal_de(argv)
+
+    def relances(argvs):
+        """Les lancements du rôle relance : l'ID et l'effort de `ROLES["relance"]` (le faux ne les distingue
+        du rôle jouer que par là)."""
+        r = bmod.ROLES["relance"]
+        return [x for x in argvs if drapeau(x, "--model") == r["modele"] and drapeau(x, "--effort") == r["effort"]]
+
+    def lignes_carnet(t, **cles):
+        return [d for d in carnet.lire(carnet_de(t)) if all(d.get(k) == v for k, v in cles.items())]
+
+    def arret_de(t):
+        """La ligne du carnet d'un arrêt : sans `role`, une `garde`."""
+        return [d for d in carnet.lire(carnet_de(t)) if d["role"] is None and d["garde"]]
+
+    def sujets(t):
+        return git(t, "log", "--format=%s").split("\n")
+
+    def avec_bloc(t, bloc):
+        """Pose un bloc Tentatives sous F1 (le premier `**Prompt**`), commité : l'arbre reste propre."""
+        chemin = os.path.join(t, "fiches.md")
+        with open(chemin, encoding="utf-8", newline="") as h:
+            texte = h.read()
+        with open(chemin, "w", encoding="utf-8", newline="") as h:
+            h.write(texte.replace("**Prompt**", bloc + "\n\n**Prompt**", 1))
+        git(t, "add", "-A")
+        git(t, "commit", "-q", "-m", "bloc")
+
+    def avec_verification(t, hors, script):
+        """CHANTIER.md porte le libellé, la commande lance `script` (écrit dans `hors`) par ce Python."""
+        chemin = os.path.join(hors, "verif.py")
+        with open(chemin, "w", encoding="utf-8", newline="") as h:
+            h.write(script)
+        with open(os.path.join(t, "CHANTIER.md"), "a", encoding="utf-8", newline="") as h:
+            h.write('- **vérification de nuit** : "%s" "%s"\n' % (sys.executable, chemin))
+        git(t, "add", "-A")
+        git(t, "commit", "-q", "-m", "libellé")
+
+    refus_seuls = ("**Tentatives** (2026-09-26) — non résolu.\n1. FAITE refusée à la relecture.\n"
+                   "Erreur : REFUSÉE — copie : motif factice")
+
+    with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors:
+        depot(t)
+        code, s, argvs = nuit_relance(t, hors, "--plafond", "1", etat=True, VLP_FAUX_REFUSE="F1:copie")
+        relance = relances(argvs)
+        ligne = lignes_carnet(t, role="relance")
+        neuf("(a) F1 refusée copie puis acceptée : une session relance (ID et effort du rôle), F1 commitée, "
+             "une ligne relance au carnet, refus_n 1, cause copie",
+             code == 0 and len(relance) == 1 and sujets(t)[0] == "F1 : fiche F1" and cases_de(t) == "x.."
+             and len(ligne) == 1 and ligne[0]["refus_n"] == 1 and ligne[0]["cause"] == "copie"
+             and ligne[0]["fiche"] == "F1", (s, relance, ligne))
+
+    with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors:
+        depot(t)
+        code, s, argvs = nuit_relance(t, hors, VLP_FAUX_REFUSE="F1:fiche")
+        arret = arret_de(t)
+        neuf("(b) F1 refusée fiche avec RÉÉCRITURE : aucune relance, aucun commit `F1 :`, reecriture au carnet, "
+             "ARRÊT cause-fiche",
+             code == 1 and not relances(argvs) and not any(x.startswith("F1 :") for x in sujets(t))
+             and "ARRÊT F1 refusée à la relecture — refus 1, cause fiche — garde cause-fiche" in s
+             and len(arret) == 1 and arret[0]["garde"] == "cause-fiche" and arret[0]["cause"] == "fiche"
+             and arret[0]["reecriture"] == "RÉÉCRITURE : phrase de la fiche → phrase corrigée"
+             and arret[0]["refus_n"] == 1, (s, arret))
+
+    with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors:
+        depot(t)
+        code, s, argvs = nuit_relance(t, hors, VLP_FAUX_REFUSE="F1:aucun")
+        arret = arret_de(t)
+        neuf("(b) F1 sans verdict : aucune relance, ARRÊT sans-cause, cause aucune au carnet",
+             code == 1 and not relances(argvs) and "RELIT F1 · aucun verdict" in s and "garde sans-cause" in s
+             and len(arret) == 1 and arret[0]["garde"] == "sans-cause" and arret[0]["cause"] == "aucune", (s, arret))
+
+    with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors:
+        depot(t)
+        code, s, argvs = nuit_relance(t, hors, etat=True, VLP_FAUX_REFUSE="F1:copie,copie")
+        fiches = lire(os.path.join(t, "fiches.md"))
+        refus = [d["refus_n"] for d in lignes_carnet(t, role="relire")]
+        arret = arret_de(t)
+        neuf("(c) F1 refusée copie deux fois, motifs différents : une seule relance (qui a coché --resolu), cocher "
+             "rend refus 1 au 2e refus, et pourtant refus-max ; F2 pas jouée",
+             code == 1 and len(relances(argvs)) == 1 and refus == [1, 1] and "1. FAITE refusée" in fiches
+             and "2. FAITE refusée" not in fiches and "motif factice 2" in fiches and "garde refus-max" in s
+             and "JOUE F2" not in s and cases_de(t) == "..." and len(arret) == 1 and arret[0]["garde"] == "refus-max"
+             and arret[0]["refus_n"] == 2, (s, refus, arret))
+
+    with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors:
+        depot(t)
+        avec_bloc(t, refus_seuls)
+        code, s, argvs = nuit_relance(t, hors, VLP_FAUX_REFUSE="F1:copie")
+        arret = arret_de(t)
+        neuf("(d) F1 à bloc de refus seuls dont Erreur : égale le nouveau motif, bloc remplacé par --resolu : "
+             "meme-erreur, pas de relance",
+             code == 1 and "JOUE F1" in s and not relances(argvs) and "garde meme-erreur" in s
+             and len(arret) == 1 and arret[0]["garde"] == "meme-erreur", (s, arret))
+
+    with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors:
+        depot(t)
+        avec_bloc(t, refus_seuls.replace("\nErreur :", "\n2. RETOUR.\nErreur :"))
+        code, s, argvs = nuit_relance(t, hors)
+        neuf("(d) un bloc qui n'est pas fait de refus seuls arrête encore, rien joué",
+             code == 1 and "porte un bloc Tentatives" in s and "JOUE" not in s and not argvs, (s, argvs))
+
+    with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors:
+        depot(t)
+        avec_verification(t, hors, "import sys\nsys.exit(1)\n")
+        code, s, argvs = nuit_relance(t, hors)
+        arret = arret_de(t)
+        neuf("(e) vérification qui sort 1 : ARRÊT verification avant F1, aucune ligne JOUE",
+             code == 1 and "garde verification" in s and "JOUE" not in s and not argvs and cases_de(t) == "..."
+             and len(arret) == 1 and arret[0]["garde"] == "verification", (s, arret))
+
+    with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors:
+        depot(t)
+        # passe tant que le dépôt n'a qu'un commit, échoue dès qu'F1 est commitée
+        avec_verification(t, hors, "import subprocess, sys\n"
+                          "n = subprocess.run(['git', 'rev-list', '--count', 'HEAD'], capture_output=True, text=True)\n"
+                          "sys.exit(1 if int(n.stdout) > 2 else 0)\n")
+        code, s, argvs = nuit_relance(t, hors)
+        neuf("(e) vérification qui réussit avant F1 et échoue après son commit : arrêt après F1, F2 pas jouée",
+             code == 1 and "VERIF avant F1 · sort 0" in s and "garde verification" in s and "après son commit" in s
+             and cases_de(t) == "x.." and "JOUE F2" not in s and sujets(t)[0] == "F1 : fiche F1", (s, cases_de(t)))
+
+    with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors:
+        depot(t)
+        code, s, argvs = nuit_relance(t, hors, "--plafond", "1")
+        neuf("(e) libellé absent : F1 jouée, ni ligne VERIF ni garde",
+             code == 0 and cases_de(t) == "x.." and "VERIF" not in s and "verification" not in s
+             and not arret_de(t), (s, arret_de(t)))
+
+    sys.stderr.write("NUI6 : %d cas neufs passés / %d écrits\n" % (ecrits[0], ecrits[0]))
+
+
+tester_relance()
 
 print("OK")

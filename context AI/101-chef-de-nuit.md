@@ -378,8 +378,9 @@ Pas ici : la prose de `/vlp:tache` (`NUI14`), la relance (`NUI6`), agents/relect
 ---
 
 <!-- FICHE:NUI6 -->
-## NUI6 [ ] — Relancer plus fort sur refus, ou arrêter tôt
+## NUI6 [x] — Relancer plus fort sur refus, ou arrêter tôt
 
+**Session** : 7d26b8c1-34e3-43be-bef5-0d9610438714
 **Dépend de** : `NUI5`.
 **Fichiers** : `scripts/boucle.py`, `scripts/test-boucle.py`, `scripts/faux-claude.py`, `scripts/vlp.py` (une constante hissée, rien d'autre) ; lus seulement : `scripts/carnet.py`, `skills/tache/SKILL.md` (l. 136-137), `enchainement.md` (l. 21-23 et 38-46) — et rien d'autre.
 

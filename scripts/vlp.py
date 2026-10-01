@@ -1153,7 +1153,7 @@ def refuser(a, lignes, debut, sortie):
                 if lignes[i].strip() == FERMANT or TITRE.match(lignes[i])), len(lignes))
     lignes[debut] = lignes[debut].replace("[x]", "[ ]", 1)
     date = a.date or __import__("datetime").date.today().isoformat()
-    essai, erreur = "FAITE refusée à la relecture.", "Erreur : %s" % a.refuser
+    essai, erreur = ESSAI_REFUSE, "Erreur : %s" % a.refuser
     bloc = next((i for i in range(debut + 1, fin) if lignes[i].startswith("**Tentatives**")), None)
     if bloc is None:
         # Sous le titre, après sa ligne vide s'il en a une — comme les blocs écrits à la main.
@@ -1900,6 +1900,7 @@ def cmd_contrat(a, sortie):
 
 
 VERDICTS = ("ACCEPTÉE", "REFUSÉE")     # les mots de tête de `vlp:relecture`
+ESSAI_REFUSE = "FAITE refusée à la relecture."   # la ligne numérotée que `cocher --refuser` écrit ; boucle.py l'importe
 JAUGE = ("Tout va bien", "Ça tient, mais", "Imprévu", "Pas bon", "Grosse erreur")
 # La forme d'une jauge (chantier OUV) : un de ces émojis en tête, ou le mot suivi de `—`, `…`
 # ou de la fin de ligne — `- Imprévu : j'ai dû…` est une puce, pas une jauge.
