@@ -17,11 +17,12 @@
 - NUI13 : nuit.md : lire code 0, ne coûte rien 1, 29 citations, 0 ID/plafond/08-etat ; nuit.md +1 ligne dans 5 fichiers, CLAUDE.md 80 lignes ; test-vlp OK, mutant CODE_PLUGIN ATTRAPÉ 1 écart, pyright 0 erreur
 - NUI14 : 3 renvois, 1 ligne chacun (tache 1 0, cloture 1 0, chantier 2 0), nuit.md 24 24, 30 citations avant et après, 0 écart relu ; test-vlp OK, main a725aba sans PLUGIN_RETARD ; essai claude -p : FICHE F1 CASE [x] 16 tours 0.4623 $ 68 s, lire nuit.md 1, git commit 0, cloture.md 0, rev-list 1, PROCHAINE=aucune
 - NUI15 : test-vlp.py rend OK (732 verifier, 9 pour NUI15 : cas a à h et gardes) ; mutants lettres gardées (1 écart) et todo None (3 écarts) attrapés ; pyright 0 error sur vlp.py et test-vlp.py
-- NUI16 : fusion par clé de l'état, des listes et d'en-attente — dépend de NUI15
+- NUI16 : test-vlp.py OK, 743 verifier (+11), 3 mutants attrapés (4, 1, 1 écarts), pyright 0 ; essai D2 : 3 cas sur 4 égaux, empreintes différentes ≠ → publie par la clé, aucune ligne merge=union
 - NUI17 : une page à cartes remplie par script — ne dépend de rien
 - NUI18 : /vlp:chef, le soir — dépend de NUI9, NUI11, NUI12, NUI13, NUI17
 - NUI19 : /vlp:chef, le matin — dépend de NUI13, NUI15, NUI16, NUI18
 - NUI20 : une vraie nuit sur le kit, mesurée — dépend de toutes
 ## Journal
 - 2026-10-01 : Essai NUI14 sous NUIT=1 : une session claude -p sur une fiche triviale, 16 tours, 0,4623 $, 68 s (un appel lire nuit.md, 0 git commit, 0 cloture.md) ; boucle.py ne crée pas le dossier de --traces.
+- 2026-10-01 : NUI16 : essai D2, publie en union égal à la clé dans 3 cas sur 4 (empreintes différentes : deux lignes contre clé retirée) → publie par la clé, pas de merge=union au .gitattributes
 ## Bilan

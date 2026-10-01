@@ -5908,13 +5908,13 @@ def commit_matin(d, message, heure):
     git_matin(d, "commit", "-q", "-m", message)
 
 
-def depot_matin(d, archive=True):
+def depot_matin(d, archive=True, etat=ETAT_MATIN):
     """Le dépôt de 2cef70f : `main` à courant LOC et son artefact, des lettres jusqu'à ENQ, une archive de deux clos
     (`archive` faux : ils restent sur la feuille), la feuille au rang 79 — un seul commit, à l'heure 0."""
     os.makedirs(d)
     git_matin(d, "init", "-q", "-b", "main")
     ecrire(os.path.join(d, "CHANTIER.md"), CARTE_MATIN)
-    ecrire(os.path.join(d, "ctx", "08-etat.md"), ETAT_MATIN)
+    ecrire(os.path.join(d, "ctx", "08-etat.md"), etat)
     ecrire(os.path.join(d, "ctx", "00-INDEX.md"), "| Fichier | Lire quand |\n|---|---|\n")
     ecrire(os.path.join(d, "ctx", "40-loc.md"), "# Chantier LOC — Publier\n\n## LOC1 [ ] — a\n")
     ecrire(os.path.join(d, "scripts", "x.py"), "a = 1\nb = 2\nc = 3\n")
@@ -5930,10 +5930,11 @@ def depot_matin(d, archive=True):
     commit_matin(d, "base", 0)
 
 
-def branche_matin(d, canal, code, lettre, heure, clos=True, x=None, ligne=None, retire=None):
+def branche_matin(d, canal, code, lettre, heure, clos=True, x=None, ligne=None, retire=None, modifs=None):
     """`nuit/<jour>-<canal>-<code>`, un commit à `heure` depuis `main` : `clos`, le chantier est clos (courant et
     artefact à `aucun`) et la feuille refaite sans badge ; `lettre`, sa lettre ajoutée à la liste ; `x`, le nouveau
-    `scripts/x.py` ; `ligne`, la plage d'une ligne close de plus à l'archive ; `retire`, le rang ôté de la TODO."""
+    `scripts/x.py` ; `ligne`, la plage d'une ligne close de plus à l'archive ; `retire`, le rang ôté de la TODO ;
+    `modifs(d)`, d'autres retouches, avant la feuille."""
     nom = "nuit/%s-%s-%s" % (JOUR_MATIN, canal, code)
     git_matin(d, "switch", "-q", "-c", nom, "main")
     chemin = os.path.join(d, "CHANTIER.md")
@@ -5953,6 +5954,8 @@ def branche_matin(d, canal, code, lettre, heure, clos=True, x=None, ligne=None, 
         ecrire(archive, html[:debut] + ligne_close(mod.arrondi(1000)).replace("Q1–Q2", ligne) + html[debut:])
     if x:
         ecrire(os.path.join(d, "scripts", "x.py"), x)
+    if modifs:
+        modifs(d)
     appel(["feuille", d, "--date", JOUR_MATIN])
     commit_matin(d, ("%s1 : %s" % (code, code)) if clos else "WIP %s" % code, heure)
     git_matin(d, "switch", "-q", "main")
@@ -6120,6 +6123,243 @@ def matin_g(tr):
              and code_git(d, "rev-parse", "-q", "--verify", "MERGE_HEAD") != 0, sorties)
 
 
+# --- NUI16 : `matin` fusionne par clé les fichiers que les deux canaux réécrivent ---------------
+ETAT = "ctx/08-etat.md"
+ETAT_NUI16 = ("# État\n\n## TODO\n\n| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |\n|---|---|---|---|---|\n"
+              "| 58 | `OLD` — ancien | o | 1 fiche | — |\n| 79 | `LOC` — publier | a | 2 fiches | — |\n"
+              "| 80 | `PAR` — deux chantiers | b | 3 fiches | — |\n| 82 | `ENQ` — écritures | c | 2 fiches | — |\n\n"
+              "## Journal des décisions\n\n## 2026-09-30 — base\nune ligne de base\n")
+RANGEE_82 = "| 82 | `ENQ` — écritures | c | 2 fiches | — |\n"
+CLAUDE_NUI16 = ("# Projet\n\n## Où on en est — en cinq lignes\n\n- Prouvé : le kit tient.\n"
+                + "".join("- Clos le 2026-09-2%d : fait %s (chantier CC%s).\n" % (n, c, c)
+                        for n, c in enumerate("ABCDEFGH"[:mod.CLOS_GARDES]))
+                + "\n## Règles\n\n1. une règle.\n")
+INDEX_NUI16 = ("# Index\n\n## Stable\n\n| Fichier | Lire quand |\n|---|---|\n| `08-etat.md` | l'état |\n"
+               "| `00-INDEX-archive.md` | on relit un chantier clos |\n\n## Chantiers\n\n| Fichier | Lire quand |\n|---|---|\n"
+               "| `40-loc.md` | on joue LOC — chantier **ouvert** |\n| `41-aaa.md` | on joue AAA — chantier **ouvert** |\n"
+               "| `42-bbb.md` | on joue BBB — chantier **ouvert** |\n")
+ARCHIVE_NUI16 = ("# Archive\n\n| Fichier | Lire quand |\n|---|---|\n| `50-z.md` | chantier **clos** Z |\n"
+                 "| `10-x.md` | chantier **clos** X |\n")      # désordonnée exprès : seul le tri la remet en ordre
+ATTENTE = "ctx/artefacts/en-attente"
+PUBLIE_MATIN = "ctx/artefacts/publie"
+
+
+def depot_nui16(d, fichiers=None, archive=True):
+    """`depot_matin` sur l'état à quatre rangées et son journal, puis `fichiers` (`{chemin: texte}`) en un 2e commit."""
+    depot_matin(d, archive=archive, etat=ETAT_NUI16)
+    for chemin, texte in (fichiers or {}).items():
+        ecrire(os.path.join(d, chemin), texte)
+    if fichiers:
+        commit_matin(d, "fichiers", 0)
+
+
+def retoucher(chemin, f):
+    """Une retouche pour `branche_matin(modifs=…)` : réécrit `chemin` (relatif au dépôt) par `f(texte)`."""
+    def faire(d):
+        complet = os.path.join(d, chemin)
+        ecrire(complet, f(lire(complet)))
+    return faire
+
+
+def resumee(lettre, texte):
+    """Ce que `clore --resume` fait de CLAUDE.md : `resume_claude`, qui coupe aux `CLOS_GARDES` dernières."""
+    def faire(t):
+        cl = t.split("\n")[:-1]
+        mod.resume_claude(cl, lettre, texte, JOUR_MATIN, [])
+        return "\n".join(cl) + "\n"
+    return faire
+
+
+def rangees(texte, motif=r"`(\d\d)-"):
+    return re.findall(motif, "\n".join(l for l in texte.splitlines() if l.startswith("|")))
+
+
+def matin_n_a(tr):
+    """(a) 2cef70f : A retire la rangée 58 de la TODO, B en ajoute une 83 ; puis la 82 changée des deux côtés."""
+    d = os.path.join(tr, "na")
+    depot_nui16(d)
+    a = branche_matin(d, "A", "AAA", "AAA", 1, retire="58")
+    b = branche_matin(d, "B", "BBB", "BBB", 2,
+                      modifs=retoucher(ETAT, lambda t: t.replace(RANGEE_82, RANGEE_82 + "| 83 | `NEW` — neuf | d | 1 fiche | — |\n")))
+    code, s = appel(["matin", d, JOUR_MATIN])
+    etat = lire(os.path.join(d, ETAT))
+    parents = git_matin(d, "rev-list", "--parents", "-n", "1", "HEAD").split()
+    verifier("NUI16 (a) 2cef70f : A retire la 58, B ajoute la 83 → 58 absente, 79, 80, 82, 83 là dans l'ordre, aucune marque, "
+             "MERGE_HEAD absent, HEAD à deux parents — mutant : retiré d'un côté gardé",
+             code == 0 and s == ORDRE_ABSENT + "FUSIONNÉE %s\nFUSIONNÉE %s\nMATIN 2 fusionnée(s) · 0 de côté\n" % (a, b)
+             and re.findall(r"^\| (\d+) \|", etat, re.M) == ["79", "80", "82", "83"] and "<<<<<<<" not in etat
+             and code_git(d, "rev-parse", "-q", "--verify", "MERGE_HEAD") != 0 and len(parents) == 3,
+             (code, s, etat))
+    d = os.path.join(tr, "nb")
+    depot_nui16(d)
+    a = branche_matin(d, "A", "AAA", "AAA", 1, modifs=retoucher(ETAT, lambda t: t.replace("| c |", "| cA |")))
+    b = branche_matin(d, "B", "BBB", "BBB", 2, modifs=retoucher(ETAT, lambda t: t.replace("| c |", "| cB |")))
+    code, s = appel(["matin", d, JOUR_MATIN])
+    verifier("NUI16 (a) la 82 changée en A et en B : GARDE: qui la nomme, sort 1, la fusion de B reste en cours, aucun commit "
+             "pour B",
+             code == 1 and "GARDE: ctx/08-etat.md : TODO : la rangée n° 82 est changée des deux côtés" in s
+             and "FUSIONNÉE %s\n" % a in s and "ARRÊT %s — conflit : ctx/08-etat.md" % b in s
+             and code_git(d, "rev-parse", "-q", "--verify", "MERGE_HEAD") == 0
+             and git_matin(d, "log", "-1", "--format=%s").strip() == "Matin %s : %s" % (JOUR_MATIN, a), (code, s))
+
+
+def matin_n_b(tr):
+    """(b) 5d7fc42 : A et B ajoutent un bloc au journal, en fin de fichier."""
+    d = os.path.join(tr, "nj")
+    depot_nui16(d)
+    a = branche_matin(d, "A", "AAA", "AAA", 1, modifs=retoucher(ETAT, lambda t: t + "## 2026-10-01 — AAA\nbloc de A\n"))
+    b = branche_matin(d, "B", "BBB", "BBB", 2, modifs=retoucher(ETAT, lambda t: t + "## 2026-10-01 — BBB\nbloc de B\n"))
+    code, s = appel(["matin", d, JOUR_MATIN])
+    etat = lire(os.path.join(d, ETAT))
+    verifier("NUI16 (b) 5d7fc42 : le journal de A puis celui de B, après le journal de la base, aucune marque, la TODO intacte",
+             code == 0 and s.endswith("MATIN 2 fusionnée(s) · 0 de côté\n") and "<<<<<<<" not in etat
+             and etat.index("une ligne de base") < etat.index("bloc de A") < etat.index("bloc de B")
+             and etat.count("## 2026-10-01 — AAA") == etat.count("## 2026-10-01 — BBB") == 1
+             and re.findall(r"^\| (\d+) \|", etat, re.M) == ["58", "79", "80", "82"], (code, s, etat))
+
+
+def matin_n_c(tr):
+    """(c) CLAUDE.md à `CLOS_GARDES` lignes « Clos le » : A et B en closent un chacun ; le reste de chacun change aussi."""
+    d = os.path.join(tr, "nk")
+    depot_nui16(d, {"CLAUDE.md": CLAUDE_NUI16})
+    a = branche_matin(d, "A", "AAA", "AAA", 1,
+                      modifs=retoucher("CLAUDE.md", lambda t: resumee("AAA", "fait A")(t).replace("le kit tient.", "le kit tient, A.")))
+    b = branche_matin(d, "B", "BBB", "BBB", 2,
+                      modifs=retoucher("CLAUDE.md", lambda t: resumee("BBB", "fait B")(t).replace("1. une règle.", "1. une règle, B.")))
+    code, s = appel(["matin", d, JOUR_MATIN])
+    claude = lire(os.path.join(d, "CLAUDE.md"))
+    clos = [l for l in claude.splitlines() if mod.ENTREE_CLOS.match(l)]
+    verifier("NUI16 (c) CLAUDE.md : CLOS_GARDES lignes « Clos le », les deux neuves dont A avant B, les plus anciennes coupées, "
+             "le reste de A et de B gardé, aucune marque — mutant : coupe non appelée",
+             code == 0 and len(clos) == mod.CLOS_GARDES and clos[-2].endswith("(chantier AAA).") and clos[-1].endswith("(chantier BBB).")
+             and "(chantier CCB)" not in claude and "(chantier CCC)" in claude and "le kit tient, A." in claude and "1. une règle, B." in claude
+             and "<<<<<<<" not in claude, (code, s, claude))
+
+
+def matin_n_d(tr):
+    """(d) l'index, son archive (désordonnée) et `archive-clos.html` : A et B clôturent chacun un chantier."""
+    d = os.path.join(tr, "ni")
+    depot_nui16(d, {"ctx/00-INDEX.md": INDEX_NUI16, "ctx/00-INDEX-archive.md": ARCHIVE_NUI16})
+
+    def clot(retire, ouvre, apres, rangee):
+        def faire(d):
+            retoucher("ctx/00-INDEX.md", lambda t: t.replace(retire, "") + ouvre)(d)
+            retoucher("ctx/00-INDEX-archive.md", lambda t: t.replace(apres, apres + rangee))(d)
+        return faire
+    branche_matin(d, "A", "AAA", "AAA", 1, ligne="AAA1–AAA2", modifs=clot(
+        "| `41-aaa.md` | on joue AAA — chantier **ouvert** |\n", "| `43-ccc.md` | on joue CCC — chantier **ouvert** |\n",
+        "| `50-z.md` | chantier **clos** Z |\n", "| `41-aaa.md` | chantier **clos** AAA |\n"))
+    branche_matin(d, "B", "BBB", "BBB", 2, ligne="BBB1", modifs=clot(
+        "| `42-bbb.md` | on joue BBB — chantier **ouvert** |\n", "| `44-ddd.md` | on joue DDD — chantier **ouvert** |\n",
+        "| `10-x.md` | chantier **clos** X |\n", "| `20-bbb.md` | chantier **clos** BBB |\n"))
+    code, s = appel(["matin", d, JOUR_MATIN])
+    index, archive = lire(os.path.join(d, "ctx", "00-INDEX.md")), lire(os.path.join(d, "ctx", "00-INDEX-archive.md"))
+    clos = lire(os.path.join(d, "ctx", "artefacts", mod.ARCHIVE_CLOS))
+    debut, fin = mod.zone(clos, "clos", "<tbody>\n", "        </tbody>")
+    corps = clos[debut:fin]
+    places = [corps.find(m) for m in ("BBB1", "AAA1–AAA2", "X1", "Y1")]
+    pied = re.search(r'Total cumulé</td><td class="mono"><strong>(.*?)</strong>', clos)
+    verifier("NUI16 (d) index : 41 et 42 retirées, 43 et 44 ajoutées une fois, A avant B, le reste intact ; archive : "
+             "10, 20, 41, 50 triées",
+             code == 0 and rangees(index) == ["08", "00", "40", "43", "44"] and "<<<<<<<" not in index + archive
+             and rangees(archive) == ["10", "20", "41", "50"], (code, s, index, archive))
+    verifier("NUI16 (d) archive-clos.html : 4 lignes, celle de B en tête puis celle de A puis celles de la base ; le pied est "
+             "`total_clos` de ces 4 lignes, le résumé en compte 4",
+             len(mod.lignes_clos(corps)) == 4 and -1 not in places and places == sorted(places)
+             and pied is not None and pied.group(1) == mod.arrondi(mod.total_clos(corps)) and mod.total_clos(corps) == 72000
+             and "4 chantiers clos" in clos and "<<<<<<<" not in clos, (code, s, corps, pied))
+
+
+def matin_n_e(tr):
+    """(e) `en-attente` : retirée par A et intacte en B ; changée des deux côtés ; vide ; non suivie."""
+    def heure(h):
+        return "2026-10-01T%02d:00+02:00" % h
+
+    def attente(*entrees):
+        return "".join("%s\turl%s\t%s\n" % (p, p, h) for p, h in entrees)
+    d = os.path.join(tr, "ne1")
+    depot_nui16(d, {ATTENTE: attente(("P", heure(8)), ("Q", heure(8)))})
+    branche_matin(d, "A", "AAA", "AAA", 1, modifs=retoucher(ATTENTE, lambda t: attente(("Q", heure(11)))))
+    branche_matin(d, "B", "BBB", "BBB", 2, modifs=retoucher(ATTENTE, lambda t: attente(("P", heure(8)), ("Q", heure(10)))))
+    code, s = appel(["matin", d, JOUR_MATIN])
+    verifier("NUI16 (e) en-attente : P retirée par A et intacte en B → absente ; Q changée des deux côtés → l'heure la plus "
+             "récente, celle de A bien que B soit fusionnée après",
+             code == 0 and lire(os.path.join(d, ATTENTE)) == attente(("Q", heure(11))), (code, s))
+    d = os.path.join(tr, "ne2")
+    depot_nui16(d, {ATTENTE: attente(("P", heure(8)), ("Q", heure(8)))})
+    branche_matin(d, "A", "AAA", "AAA", 1, modifs=retoucher(ATTENTE, lambda t: attente(("Q", heure(8)))))
+    branche_matin(d, "B", "BBB", "BBB", 2, modifs=retoucher(ATTENTE, lambda t: attente(("P", heure(8)))))
+    code, s = appel(["matin", d, JOUR_MATIN])
+    suivis = git_matin(d, "ls-tree", "-r", "--name-only", "HEAD").splitlines()
+    verifier("NUI16 (e) en-attente : P retirée par A, Q par B → vide → le fichier est retiré, de l'arbre et de l'index — "
+             "mutant : retrait ignoré",
+             code == 0 and not os.path.exists(os.path.join(d, ATTENTE)) and ATTENTE not in suivis
+             and not git_matin(d, "status", "--porcelain"), (code, s, suivis))
+    d = os.path.join(tr, "ne3")
+    depot_nui16(d)
+    ecrire(os.path.join(d, ".git", "info", "exclude"), "en-attente\n")
+    ecrire(os.path.join(d, ATTENTE), attente(("P", heure(9))))
+    branche_matin(d, "A", "AAA", "AAA", 1)
+    branche_matin(d, "B", "BBB", "BBB", 2)
+    code, s = appel(["matin", d, JOUR_MATIN])
+    verifier("NUI16 (e) en-attente non suivie, présente dans l'arbre de main : ni écrite ni retirée",
+             code == 0 and lire(os.path.join(d, ATTENTE)) == attente(("P", heure(9))), (code, s))
+
+
+def publie_essai(tr, nom, base, ea, eb):
+    """L'essai D2 : un dépôt à `publie merge=union`, deux branches écrites par `noter_publie` ; `(ce que Git en fait lu par
+    lire_publie, ce que fusion_publie en fait, ses lignes imprimées)`."""
+    d = os.path.join(tr, "pub-" + nom)
+    art = os.path.join(d, "art")
+    os.makedirs(art)
+    git_matin(d, "init", "-q", "-b", "main")
+    ecrire(os.path.join(d, ".gitattributes"), "publie merge=union\n")
+    ecrire(os.path.join(d, "x"), "x\n")
+    if base:
+        mod.noter_publie(art, "P", base)
+    commit_matin(d, "base", 0)
+    for branche, e in (("A", ea), ("B", eb)):
+        git_matin(d, "switch", "-q", "-c", branche, "main")
+        os.makedirs(art, exist_ok=True)
+        mod.noter_publie(art, "P", e)
+        commit_matin(d, branche, 1)
+        git_matin(d, "switch", "-q", "main")
+    git_matin(d, "merge", "-q", "--no-ff", "-m", "A", "A")
+    textes = [mod.lire_rev(d, rev, "art/publie") for rev in (git_matin(d, "merge-base", "HEAD", "B").strip(), "HEAD", "B")]
+    infos = []
+    par_cle = mod.notes_publie(mod.fusion_publie(d, "B", textes, [], infos).split("\n"))
+    code_git(d, "merge", "-q", "--no-edit", "B")
+    return mod.lire_publie(art), par_cle, infos
+
+
+def matin_n_f(tr):
+    """(f) `publie` : l'essai D2 en quatre cas, l'état choisi verrouillé, puis `matin` de bout en bout."""
+    h = {n: n * 64 for n in "123"}
+    cas = (("disjointes", {"a": h["1"]}, {"b": h["2"]}, {"c": h["3"]}),
+           ("meme", {"a": h["1"]}, {"b": h["2"]}, {"b": h["2"]}),
+           ("differentes", {"a": h["1"]}, {"a": h["2"]}, {"a": h["3"]}),
+           ("sans-base", None, {"a": h["1"], "k": h["2"]}, {"c": h["3"], "k": h["2"]}))
+    mesures = [publie_essai(tr, nom, base, ea, eb) for nom, base, ea, eb in cas]
+    gitattributes = lire(os.path.join(ICI, "..", ".gitattributes"))
+    verifier("NUI16 (f) essai D2, 4 cas : `merge=union` donne comme la clé pour des clés disjointes, une même clé de même "
+             "empreinte et un fichier absent de la base, et non pour des empreintes différentes (deux lignes, la dernière lue ; "
+             "la clé dit : retirée) — d'où la fusion par clé, et aucune ligne `merge=union` au .gitattributes du kit",
+             [u == c for u, c, _ in mesures] == [True, True, False, True] and "merge=union" not in gitattributes
+             and mesures[2][1] == {} and list(mesures[2][0].values()) == [h["3"]]
+             and [len(i) for _, _, i in mesures] == [0, 0, 1, 0] and mesures[2][2][0].startswith("PUBLIE P a — "),
+             [(u, c, i) for u, c, i in mesures])
+    d = os.path.join(tr, "np")
+    css, js = "feuille-de-route.html\tvlp.css\t", "feuille-de-route.html\tvlp.js\t"
+    depot_nui16(d, {PUBLIE_MATIN: css + h["1"] + "\n" + js + h["1"] + "\n"})
+    branche_matin(d, "A", "AAA", "AAA", 1, modifs=retoucher(PUBLIE_MATIN, lambda t: css + h["2"] + "\n" + js + h["1"] + "\n"))
+    branche_matin(d, "B", "BBB", "BBB", 2, modifs=retoucher(PUBLIE_MATIN, lambda t: css + h["3"] + "\n" + js + h["2"] + "\n"))
+    code, s = appel(["matin", d, JOUR_MATIN])
+    verifier("NUI16 (f) matin : vlp.css aux empreintes différentes → clé retirée et dite (`PUBLIE …`), vlp.js changée d'un seul "
+             "côté → la valeur de B",
+             code == 0 and "PUBLIE feuille-de-route.html vlp.css — empreintes différentes des deux côtés, clé retirée" in s
+             and lire(os.path.join(d, PUBLIE_MATIN)) == js + h["2"] + "\n", (code, s))
+
+
 def tester_matin():
     """NUI15 : `vlp.py matin <projet> <date>` fusionne dans main les branches de la nuit et répare ce que Git perd sans
     conflit (methode-chantier.md:263-268). Un dépôt temporaire par cas, la config Git isolée, la date de chaque commit
@@ -6136,7 +6376,8 @@ def tester_matin():
             os.environ.update(GIT_CONFIG_GLOBAL=os.path.join(tr, "gitconfig"), GIT_CONFIG_NOSYSTEM="1",
                               GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t",
                               GIT_COMMITTER_EMAIL="t@t")
-            for cas in (matin_a, matin_b, matin_c, matin_d, matin_e, matin_h, matin_g):
+            for cas in (matin_a, matin_b, matin_c, matin_d, matin_e, matin_h, matin_g,
+                        matin_n_a, matin_n_b, matin_n_c, matin_n_d, matin_n_e, matin_n_f):
                 cas(tr)
     finally:
         for k, v in gardes.items():

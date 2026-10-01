@@ -2463,3 +2463,19 @@ Essai réel de `nuit.md` : une session `claude -p` (rôle jouer : `claude-sonnet
 - **Consommation mesurée** : `FICHE F1 · CASE [x] · tours 16 · 0.4623 $ · 68 s` (ligne de `boucle.py`). La session, par `vlp.py cout --session` avant sa dernière réponse : 838 190 jetons, 14 tours, 0,44 $. Un essai sur une fiche triviale (12 `Read`, 3 `Bash`) : un ordre de grandeur, pas le prix d'une fiche de nuit ; la part de la lecture de `nuit.md` n'est pas isolée.
 - **Preuve** : un appel `lire nuit.md`, 0 `git commit`, 0 `cloture.md` dans les `tool_use` de `F1.jsonl` ; `git rev-list --count HEAD` du bac : 1 ; carte du bac : `fiches.md` courant, `PROCHAINE=aucune`.
 - **Imprévu** : `boucle.py --traces <dossier absent>` s'arrête en `FileNotFoundError` avant tout appel (0 $), il ne crée pas le dossier ; la fiche le donne tel quel. Le « TOTAL 13,03 $ » que la session a lu dans le bac vient de la session qui l'a préparé (`cocher F2` y a écrit son id) : un artefact du bac, pas de la nuit.
+
+## 2026-10-01 — NUI16
+
+Verdict de l'essai D2 : `publie` en `merge=union` ou fusionné par clé ? Dépôt temporaire, `.gitattributes` à `publie merge=union`, deux branches écrites par `noter_publie` ; `lire_publie` après `git merge`, comparé à `fusion_publie` (la fusion par clé, avant le merge). Rejouable : `matin_n_f` de `scripts/test-vlp.py`.
+
+| Cas | Après `git merge` (union) | Fusion par clé | Égal |
+|---|---|---|---|
+| clés disjointes : A ajoute `b`, B ajoute `c` | a, b, c | a, b, c | oui |
+| même clé, même empreinte | a, b | a, b | oui |
+| empreintes différentes : A `h2`, B `h3` | deux lignes pour la clé, `lire_publie` lit la dernière : `h3` | clé retirée, `PUBLIE P a — empreintes différentes des deux côtés, clé retirée` imprimé | **non** |
+| absent de la base (add/add) | a, c, k | a, c, k | oui |
+
+- **Verdict** : un cas sur quatre diffère, donc **pas de ligne `merge=union` au `.gitattributes`** ; `publie` passe par la clé (`fusion_publie`, `fusionner_fichiers`). Mesuré : l'union y garde deux lignes pour la même clé et `lire_publie` retient la dernière lue (`h3`) ; la clé la retire, et un joint sans note est republié (`ligne_files`, chantier JNT). Non mesuré : ce que valait l'empreinte réellement en ligne.
+- **Verrou** : le test lit `.gitattributes` du kit et exige zéro `merge=union`.
+- **Choix** : la TODO et les index prennent les rangées neuves de la branche **à la suite** de celles de `main` (un ordre « après la rangée qui les précède chez elle » mettait la 85 avant la 84 quand les deux canaux ajoutaient en fin de table).
+- **Imprévu** : la fiche dit `publie` non suivi dans le kit ; `git ls-files` le montre **suivi** (`context AI/artefacts/publie`), `en-attente` absent. Le code ne s'en sert pas : il lit les trois côtés par `git show`, et un fichier absent des trois n'est ni écrit ni retiré.

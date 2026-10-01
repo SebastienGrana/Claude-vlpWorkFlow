@@ -863,8 +863,9 @@ Tu ne fais pas : 08-etat.md, CLAUDE.md, l'index, archive-clos, `en-attente`, `.g
 ---
 
 <!-- FICHE:NUI16 -->
-## NUI16 [ ] — Fusionner le matin : 08-etat.md et les listes
+## NUI16 [x] — Fusionner le matin : 08-etat.md et les listes
 
+**Session** : 28c4a1ca-ce9e-4c0a-9a6e-a5edbd860a0c
 **Dépend de** : `NUI15`.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py`, `.gitattributes` (une ligne, seulement si l'essai la garde),
 `context AI/08-etat.md` (journal : le verdict de l'essai) — et rien d'autre.

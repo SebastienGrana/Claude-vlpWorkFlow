@@ -223,7 +223,13 @@ Sous-commandes :
   conflit (code, `08-etat.md`, archive…), ou feuille en conflit sans archive : `ARRÊT <b> — conflit : <fichiers> —
   après résolution : <python> <vlp.py> feuille <projet> --todo <rang>` ; commit refusé : `ARRÊT <b> — commit
   refusé : <1re ligne>` ; sort 1, la fusion reste en cours, les suivantes ne sont pas touchées. En fin :
-  `MATIN <n> fusionnée(s) · <m> de côté`. Ni `08-etat.md`, ni index, ni archive, ni push, ni carnet (NUI16).
+  `MATIN <n> fusionnée(s) · <m> de côté`. Avant la feuille, les fichiers que les deux côtés ont changés sont refaits
+  par clé depuis la base, `main` et la branche (NUI16, `fusionner_fichiers`) : le fichier d'état (TODO par n°,
+  journal en union, le reste par `git merge-file`), `CLAUDE.md` (lignes « Clos le » coupées à `CLOS_GARDES`), l'index
+  et son archive (la ligne pour clé), `archive-clos.html` (la ligne close, `resommer`), `en-attente` (la page ; la plus
+  récente gagne ; vide : retiré) et `publie` (la clé ; empreintes différentes : clé retirée, ligne `PUBLIE …`). Un
+  désaccord ou un reste en conflit : `GARDE: <chemin> : <raison>`, puis l'`ARRÊT` ci-dessus. Pas de `merge=union` :
+  il garde les deux lignes de `publie` quand les empreintes diffèrent. Ni push, ni carnet.
 - `joints <dossier>` — recopie `templates/vlp.css` et `templates/vlp.js` dans le dossier, et
   n'écrit que `FILES {"vlp.css": <chemin>, "vlp.js": <chemin>}` : le JSON du paramètre `files`
   d'`Artifact`, chemins en barres obliques (pour `/vlp:init`). Dossier absent : `GARDE:`, sort 1.
@@ -2207,17 +2213,25 @@ def empreinte(chemin):
         return hashlib.sha256(f.read()).hexdigest()
 
 
-def lire_publie(dossier):
-    """{(page, nom publié): sha256} du fichier `publie` de `dossier` ; absent : {}."""
-    chemin = os.path.join(dossier, PUBLIE)
-    if not os.path.isfile(chemin):
-        return {}
+def notes_publie(lignes):
+    """{(page, nom publié): sha256} des lignes d'un fichier `publie` ; une ligne qui n'a pas ses trois cellules est sautée."""
     notes = {}
-    for l in lignes_de(chemin):
+    for l in lignes:
         c = l.split("\t")
         if len(c) == 3:
             notes[(c[0], c[1])] = c[2]
     return notes
+
+
+def texte_publie(notes):
+    """Le fichier `publie` de `notes` : une ligne par clé, triées — le texte que `noter_publie` écrit (chantier NUI)."""
+    return "".join("%s\t%s\t%s\n" % (p, n, h) for (p, n), h in sorted(notes.items()))
+
+
+def lire_publie(dossier):
+    """{(page, nom publié): sha256} du fichier `publie` de `dossier` ; absent : {}."""
+    chemin = os.path.join(dossier, PUBLIE)
+    return notes_publie(lignes_de(chemin)) if os.path.isfile(chemin) else {}
 
 
 def noter_publie(dossier, page, empreintes):
@@ -2227,7 +2241,7 @@ def noter_publie(dossier, page, empreintes):
     notes.update({(page, nom): h for nom, h in empreintes.items()})
     chemin = os.path.join(dossier, PUBLIE)
     with open(chemin + ".tmp", "w", encoding="utf-8", newline="\n") as f:
-        f.write("".join("%s\t%s\t%s\n" % (p, n, h) for (p, n), h in sorted(notes.items())))
+        f.write(texte_publie(notes))
     os.replace(chemin + ".tmp", chemin)
 
 
@@ -3343,6 +3357,9 @@ def cellule_md(texte):
     return gras_et_liens(CODE.sub(lambda m: '<span class="mono">%s</span>' % m.group(1), texte))
 
 
+SEPARATEUR = re.compile(r"^\|[\s|:-]+\|?$")     # `|---|---|`, sous l'en-tête d'une table
+
+
 def todo_du_fichier(lignes):
     """[(numéro, chantier, apporte, coût, dépend)] de la table `| # | Chantier |`. Une ligne
     qui n'a pas ses 5 cellules — une barre verticale non échappée dans une cellule — lève une
@@ -3357,7 +3374,7 @@ def todo_du_fichier(lignes):
             continue
         if not l.startswith("|"):
             break
-        if re.match(r"^\|[\s|:-]+\|?$", l):
+        if SEPARATEUR.match(l):
             continue
         cellules = [c.strip() for c in re.split(r"(?<!\\)\|", l.strip())[1:-1]]
         if len(cellules) != 5:
@@ -5040,17 +5057,25 @@ def dossier_artefacts(racine):
     return os.path.join(racine, contexte, "artefacts")
 
 
-def lire_attente(artefacts):
-    """[(page, url, heure)] dans l'ordre du fichier `en-attente` ; absent : liste vide."""
-    chemin = os.path.join(artefacts, "en-attente")
-    if not os.path.isfile(chemin):
-        return []
+def entrees_attente(lignes):
+    """[(page, url, heure)] des lignes d'un fichier `en-attente`, dans leur ordre."""
     entrees = []
-    for l in lignes_de(chemin):
+    for l in lignes:
         c = l.split("\t") + ["aucune", ""]
         if c[0]:
             entrees.append((c[0], c[1], c[2]))
     return entrees
+
+
+def texte_attente(entrees):
+    """Le fichier `en-attente` de `entrees` : une ligne par page — le texte que `ecrire_attente` écrit (chantier NUI)."""
+    return "".join("\t".join(e) + "\n" for e in entrees)
+
+
+def lire_attente(artefacts):
+    """[(page, url, heure)] dans l'ordre du fichier `en-attente` ; absent : liste vide."""
+    chemin = os.path.join(artefacts, "en-attente")
+    return entrees_attente(lignes_de(chemin)) if os.path.isfile(chemin) else []
 
 
 def ecrire_attente(artefacts, entrees):
@@ -5062,7 +5087,7 @@ def ecrire_attente(artefacts, entrees):
         return
     os.makedirs(artefacts, exist_ok=True)
     with open(chemin + ".tmp", "w", encoding="utf-8", newline="\n") as f:
-        f.write("".join("\t".join(e) + "\n" for e in entrees))
+        f.write(texte_attente(entrees))
     os.replace(chemin + ".tmp", chemin)
 
 
@@ -5481,6 +5506,12 @@ ESTIME = re.compile(r"^\*\*Estimé\.\*\* (\S+) fiches · (≈\S+ \$)")
 ESTIME_A_ECRIRE = "\x00estimé\x00"   # posé dans la ZONE:bilan, remplacé une fois le total mesuré connu
 
 
+def clos_a_couper(entrees):
+    """Les plus anciennes des `entrees` (lignes « Clos le », ou leurs rangs, de la plus ancienne à la plus récente)
+    qui dépassent les `CLOS_GARDES` gardées : la coupe de `resume_claude` et de `matin` (chantier NUI)."""
+    return entrees[:max(0, len(entrees) - CLOS_GARDES)]
+
+
 def resume_claude(cl, lettre, texte, date, gardes):
     """Ajoute `- Clos le <date> : T (chantier L).` à la section « Où on en est » de `CLAUDE.md`,
     en place, puis n'en garde que les CLOS_GARDES dernières de cette forme. Vrai si une ligne
@@ -5499,7 +5530,7 @@ def resume_claude(cl, lettre, texte, date, gardes):
     texte = re.sub(r"^Clos le \S+ : ", "", texte)
     cl.insert(dernier + 1, "- Clos le %s : %s (chantier %s)." % (date, texte, lettre))
     entrees = [k for k in range(debut, fin + 1) if ENTREE_CLOS.match(cl[k])]
-    for k in reversed(entrees[:max(0, len(entrees) - CLOS_GARDES)]):
+    for k in reversed(clos_a_couper(entrees)):
         del cl[k]
     return True
 
@@ -6295,6 +6326,306 @@ def ordre_nuit(pointes, date, projet):
     return [p[0] for p in sorted(pointes, key=cle)], bool(lignes)
 
 
+# NUI16 : les fichiers que les deux canaux réécrivent ne se fusionnent pas ligne à ligne. Git y lève un conflit quand
+# deux canaux ajoutent côte à côte (la TODO, le journal), et `merge=union` y ressuscite la ligne qu'un canal avait
+# retirée (2cef70f). `fusionner_fichiers` les recalcule depuis la base, `main` et la branche, par clé ; ce qui reste
+# d'un fichier va à `git merge-file`, un conflit y est un `GARDE:`.
+
+JETON_TRANCHE = "§tranche§"
+TITRE_JOURNAL = "## Journal des décisions"
+
+
+def en_dict(lignes, cle):
+    """`{clé: ligne}` dans l'ordre des lignes ; une clé en double lève `ValueError` — la fusion par clé n'y verrait plus clair."""
+    d = {}
+    for l in lignes:
+        k = cle(l)
+        if k in d:
+            raise ValueError("clé en double : %s" % (k,))
+        d[k] = l
+    return d
+
+
+def trois_voies(base, avant, leur, ordre="fin", resout=None):
+    """La fusion à trois voies de `{clé: valeur}` : `([(clé, valeur)], désaccords)`. Une clé retirée d'un côté et intacte
+    de l'autre est retirée ; changée d'un côté, elle prend ce changement ; ajoutée, elle est gardée. Changée des deux
+    côtés, ou retirée d'un côté et changée de l'autre : un désaccord, rendu à l'appelant ; `resout(avant, leur)` le
+    tranche (`None` : la clé s'en va), sans lui `avant` reste. Ordre : celui d'`avant`, puis les clés que seule la
+    branche porte, à la suite (`fin`) ou en tête (`tete`)."""
+    gardees, desaccords = {}, []
+    for k in list(avant) + [k for k in leur if k not in avant]:
+        b, a, l = base.get(k), avant.get(k), leur.get(k)
+        if a == l or l == b:
+            v = a
+        elif a == b:
+            v = l
+        else:
+            desaccords.append(k)
+            v = resout(a, l) if resout else a
+        if v is not None:
+            gardees[k] = v
+    cles = [k for k in avant if k in gardees]
+    neuves = [k for k in leur if k in gardees and k not in avant]
+    cles = neuves + cles if ordre == "tete" else cles + neuves
+    return [(k, gardees[k]) for k in cles], desaccords
+
+
+def fusion_lignes(b, a, l, cle, ordre="fin", resout=None):
+    """`(lignes fusionnées, désaccords)` de trois listes de lignes, par `cle(ligne)`."""
+    paires, desaccords = trois_voies(*(en_dict(t, cle) for t in (b, a, l)), ordre=ordre, resout=resout)
+    return [v for _, v in paires], desaccords
+
+
+def cle_todo(rangee):
+    """Le n° d'une rangée de la TODO, lu par `todo_du_fichier` : `ValueError` si la rangée n'a pas ses 5 cellules."""
+    lues = todo_du_fichier(["| # | Chantier", "|---|", rangee])
+    if len(lues) != 1:
+        raise ValueError("rangée de la TODO illisible : %s" % rangee)
+    return lues[0][0]
+
+
+def decouper_tables(lignes, quand):
+    """`(neutre, tranches)` : sous chaque séparateur de table que `quand(lignes, i)` accepte, les rangées — les lignes
+    `|` qui suivent — deviennent un `JETON_TRANCHE` dans `neutre`, et `tranches` les rend, table par table."""
+    neutre, tranches, i = [], [], 0
+    while i < len(lignes):
+        neutre.append(lignes[i])
+        i += 1
+        if SEPARATEUR.match(lignes[i - 1]) and quand(lignes, i - 1):
+            j = i
+            while j < len(lignes) and lignes[j].startswith("|"):
+                j += 1
+            neutre.append(JETON_TRANCHE)
+            tranches.append(lignes[i:j])
+            i = j
+    return neutre, tranches
+
+
+def decouper_index(lignes):
+    """`(neutre, genres, tranches)` de l'index ou de son archive : les rangées de chaque table."""
+    neutre, tranches = decouper_tables(lignes, lambda ls, i: True)
+    return neutre, ["rangées"] * len(tranches), tranches
+
+
+def decouper_etat(lignes):
+    """`(neutre, genres, tranches)` du fichier d'état : les rangées de la TODO, puis le journal, que `section` trouve
+    à son titre et qui court jusqu'à la fin."""
+    fin = lignes[-1:] == [""]
+    corps = lignes[:-1] if fin else lignes
+    trouve = section(corps, lambda l: l.startswith(TITRE_JOURNAL), lambda l: True)
+    tete = corps if trouve is None else corps[:trouve[0]]
+    neutre, tranches = decouper_tables(tete, lambda ls, i: i > 0 and ls[i - 1].startswith("| # | Chantier"))
+    genres = ["TODO"] * len(tranches)
+    if trouve is not None:
+        neutre.append(JETON_TRANCHE)
+        tranches.append(corps[trouve[0]:])
+        genres.append("journal")
+    return neutre + [""] * fin, genres, tranches
+
+
+def decouper_claude(lignes):
+    """`(neutre, genres, tranches)` de CLAUDE.md : les lignes « Clos le » de « Où on en est », en une tranche à la place
+    de la première (ou à la suite de la dernière ligne de la section, s'il n'y en a pas)."""
+    debut = next((k for k, l in enumerate(lignes) if l.startswith("## Où on en est")), None)
+    if debut is None:
+        return lignes, [], []
+    fin = next((k for k in range(debut + 1, len(lignes)) if lignes[k].startswith("## ")), len(lignes))
+    clos = [k for k in range(debut, fin) if ENTREE_CLOS.match(lignes[k])]
+    place = clos[0] if clos else max((k for k in range(debut, fin) if lignes[k].strip()), default=debut) + 1
+    neutre = [l for k, l in enumerate(lignes) if k not in clos]
+    neutre.insert(place - sum(1 for k in clos if k < place), JETON_TRANCHE)
+    return neutre, ["clos"], [[lignes[k] for k in clos]]
+
+
+def fusion_texte(projet, textes, branche):
+    """`(code, texte)` de `git merge-file` sur `textes` = (base, avant, leur) : 0, fusion propre ; > 0, le nombre de
+    conflits, que le texte porte marqués ; `None`, Git muet ou en erreur, le texte est la raison."""
+    with tempfile.TemporaryDirectory() as t:
+        chemins = []
+        for nom, contenu in (("avant", textes[1]), ("base", textes[0]), ("leur", textes[2])):
+            chemins.append(os.path.join(t, nom))
+            with open(chemins[-1], "w", encoding="utf-8", newline="") as fh:
+                fh.write(contenu)
+        code, msg = git_texte(["merge-file", "-L", "main", "-L", "base", "-L", branche] + chemins, projet)
+        if code is None or code > 127:
+            return None, "git merge-file : %s" % msg
+        return code, lire(chemins[0])
+
+
+def fusion_a_jetons(projet, branche, textes, decouper, fusionner, gardes):
+    """Le texte fusionné de `textes` = (base, avant, leur), ou `None` (à Git, ou `gardes` dit pourquoi). `decouper(lignes)`
+    rend `(neutre, genres, tranches)` : le texte où chaque partie à fusionner par clé est un `JETON_TRANCHE`, et ces
+    parties. Le reste passe par `git merge-file`, chaque tranche par `fusionner(genre, base, avant, leur, gardes)`."""
+    if None in textes:
+        return None
+    try:
+        morceaux = [decouper(t.split("\n")) for t in textes]
+        if len({tuple(m[1]) for m in morceaux}) != 1:
+            gardes.append("la structure n'est pas la même des trois côtés (tables, journal ou section)")
+            return None
+        code, fusion = fusion_texte(projet, ["\n".join(m[0]) for m in morceaux], branche)
+        if code != 0:
+            gardes.append("le reste du fichier est en conflit : %s" % ("à fusionner à la main" if code else fusion))
+            return None
+        rendu = [fusionner(g, b, a, l, gardes) for g, b, a, l in zip(morceaux[0][1], *(m[2] for m in morceaux))]
+    except ValueError as e:
+        gardes.append(str(e))
+        return None
+    if gardes:
+        return None
+    sortie, i = [], 0
+    for ligne in fusion.split("\n"):
+        if ligne == JETON_TRANCHE:
+            sortie += rendu[i]
+            i += 1
+        else:
+            sortie.append(ligne)
+    return "\n".join(sortie)
+
+
+def fusion_tranche_etat(genre, b, a, l, gardes):
+    """La TODO par n° (`cle_todo`) ; le journal en union — la base, puis ce que `main` y a ajouté, puis la branche."""
+    if genre == "TODO":
+        rangees, desaccords = fusion_lignes(b, a, l, cle_todo)
+        gardes.extend("TODO : la rangée n° %s est changée des deux côtés, ou retirée d'un côté et changée de l'autre" % k
+                      for k in desaccords)
+        return rangees
+    if a == l:
+        return a
+    if a[:len(b)] != b or l[:len(b)] != b:
+        gardes.append("journal : une ligne ancienne a changé, il ne se fusionne plus en union")
+        return a
+    return b + a[len(b):] + l[len(b):]
+
+
+def fusion_tranche_claude(genre, b, a, l, gardes):
+    """Les lignes « Clos le » des deux côtés, la branche à la suite, coupées aux `CLOS_GARDES` dernières."""
+    entrees, _ = fusion_lignes(b, a, l, lambda x: x)
+    entrees = entrees[len(clos_a_couper(entrees)):]
+    return entrees
+
+
+def fusion_tranche_index(trier):
+    """La fusion des rangées d'un index, la ligne pour clé ; `trier` : l'archive, retriée par `numero_ligne`."""
+    def fusionner(genre, b, a, l, gardes):
+        rangees, _ = fusion_lignes(b, a, l, lambda x: x)
+        return sorted(rangees, key=numero_ligne) if trier else rangees
+    return fusionner
+
+
+def fusion_etat(projet, branche, textes, gardes, infos):
+    return fusion_a_jetons(projet, branche, textes, decouper_etat, fusion_tranche_etat, gardes)
+
+
+def fusion_claude(projet, branche, textes, gardes, infos):
+    return fusion_a_jetons(projet, branche, textes, decouper_claude, fusion_tranche_claude, gardes)
+
+
+def fusion_index(projet, branche, textes, gardes, infos):
+    return fusion_a_jetons(projet, branche, textes, decouper_index, fusion_tranche_index(False), gardes)
+
+
+def fusion_archive_index(projet, branche, textes, gardes, infos):
+    return fusion_a_jetons(projet, branche, textes, decouper_index, fusion_tranche_index(True), gardes)
+
+
+def fusion_archive_clos(projet, branche, textes, gardes, infos):
+    """`archive-clos.html` : les lignes closes par clé, celles de la branche en tête comme `clore` ; le pied et le résumé
+    sont refaits par `resommer`, pas par `rafraichir_couts` (il réécrit la feuille)."""
+    if None in textes:
+        return None
+    try:
+        zones = [zone(t, "clos", "<tbody>\n", "        </tbody>") for t in textes]
+        lignes, _ = fusion_lignes(*(lignes_clos(t[d:f]) for t, (d, f) in zip(textes, zones)), cle=lambda x: x, ordre="tete")
+    except ValueError as e:
+        gardes.append(str(e))
+        return None
+    corps, (d, f) = "".join(lignes), zones[1]
+    usd, n_usd = prix_clos(corps)
+    return resommer(textes[1][:d] + corps + textes[1][f:], len(lignes), total_clos(corps), usd, n_usd)
+
+
+def heure_attente(entree):
+    """L'heure d'une entrée de `en-attente`, en secondes ; 0 si elle ne se lit pas : sans heure, la plus ancienne."""
+    try:
+        return datetime.datetime.fromisoformat(entree[2]).timestamp()
+    except ValueError:
+        return 0.0
+
+
+def fusion_attente(projet, branche, textes, gardes, infos):
+    """`en-attente` : la page pour clé ; changée des deux côtés, l'heure la plus récente gagne, et elle passe en fin comme
+    `ajouter_attente` ; retirée d'un côté et changée de l'autre, elle reste (mieux vaut republier deux fois que zéro) ;
+    vide, le fichier est retiré par l'appelant. Absent d'un côté : sans entrée."""
+    b, a, l = (en_dict(entrees_attente((t or "").split("\n")), lambda e: e[0]) for t in textes)
+
+    def plus_recente(avant, leur):
+        if avant is None or leur is None:
+            return avant or leur
+        return leur if heure_attente(leur) >= heure_attente(avant) else avant
+    paires, _ = trois_voies(b, a, l, resout=plus_recente)
+    entrees = [v for _, v in paires]
+    return texte_attente([e for e in entrees if a.get(e[0]) == e]
+                         + sorted((e for e in entrees if a.get(e[0]) != e), key=heure_attente))
+
+
+def fusion_publie(projet, branche, textes, gardes, infos):
+    """`publie` : la clé (page, nom) ; des empreintes différentes des deux côtés, la clé est retirée et dite — le joint
+    sera republié. L'essai de `NUI16` : `merge=union` fait la même chose sauf là, où il garde les deux lignes."""
+    b, a, l = (notes_publie((t or "").split("\n")) for t in textes)
+    paires, desaccords = trois_voies(b, a, l, resout=lambda avant, leur: None)
+    infos.extend("PUBLIE %s %s — empreintes différentes des deux côtés, clé retirée : le joint sera republié" % k
+                 for k in desaccords)
+    return texte_publie(dict(paires))
+
+
+def lire_rev(projet, rev, chemin):
+    """Le texte de `chemin` à `rev` — lu par `git show`, jamais dans l'arbre marqué — ou `None` s'il n'y est pas."""
+    code, t = git_texte(["show", "%s:%s" % (rev, chemin)], projet)
+    return t if code == 0 else None
+
+
+def ecrire_comme(chemin, texte):
+    """Écrit `texte` (fins de ligne `\\n`) dans `chemin`, en CRLF si le fichier qu'il remplace en avait."""
+    crlf = False
+    if os.path.isfile(chemin):
+        with open(chemin, "rb") as fh:
+            crlf = b"\r\n" in fh.read()
+    os.makedirs(os.path.dirname(chemin) or ".", exist_ok=True)
+    with open(chemin, "w", encoding="utf-8", newline="") as fh:
+        fh.write(texte.replace("\n", "\r\n") if crlf else texte)
+
+
+def fusionner_fichiers(projet, branche, base, prevus, conflits, sortie):
+    """Recalcule les fichiers de `prevus` = `[(chemin, fusion)]` que la fusion en cours a trouvés changés des deux côtés,
+    depuis `base`, `HEAD` et `branche` : écrits et ajoutés (retirés, si la fusion les vide) ; un `GARDE:` laisse le
+    chemin dans `conflits`. Un fichier absent des trois n'est ni écrit ni retiré. Rend la raison d'un échec de Git."""
+    for chemin, fusion in prevus:
+        textes = [lire_rev(projet, rev, chemin) for rev in (base, "HEAD", branche)]
+        if textes[1] == textes[2] or textes[1] == textes[0] or textes[2] == textes[0]:
+            continue
+        gardes, infos = [], []
+        texte = fusion(projet, branche, textes, gardes, infos)
+        sortie.writelines("GARDE: %s : %s\n" % (chemin, g) for g in gardes)
+        sortie.writelines(i + "\n" for i in infos)
+        if gardes:
+            conflits.add(chemin)
+        if texte is None or gardes:
+            continue
+        complet = os.path.join(projet, chemin)
+        if texte == "":
+            if os.path.exists(complet):
+                os.remove(complet)
+            code, msg = git_texte(["rm", "-q", "--cached", "--ignore-unmatch", "--", chemin], projet)
+        else:
+            ecrire_comme(complet, texte)
+            code, msg = git_texte(["add", "--", chemin], projet)
+        if code != 0:
+            return "%s : git %s" % (chemin, msg)
+        conflits.discard(chemin)
+    return None
+
+
 def fusionner_nuit(projet, branche, date, sortie):
     """Fusionne `branche` dans `main` et commite, en réparant `CHANTIER.md` et la feuille. `True` à l'`ARRÊT` :
     la ligne est écrite, la fusion reste en cours."""
@@ -6337,20 +6668,10 @@ def fusionner_nuit(projet, branche, date, sortie):
             pris.add(lettre)
             ajouts.append(e.strip())
     lettres = liste_main + "".join(", " + e for e in ajouts)
-    with tempfile.TemporaryDirectory() as t:
-        trois = []
-        for nom, contenu in (("main", carte_main), ("base", carte_base), ("leur", carte_leur)):
-            trois.append(os.path.join(t, nom))
-            with open(trois[-1], "w", encoding="utf-8", newline="") as fh:
-                fh.write(contenu)
-        code_fusion, msg = git_texte(["merge-file", "-L", "main", "-L", "base", "-L", branche] + trois, projet)
-        if code_fusion is None or code_fusion > 127:
-            return arret("CHANTIER.md : git merge-file : %s" % msg)
-        fusion = restaurer(lire(trois[0]), valeurs, lettres)
-    with open(chemin_carte, "rb") as fh:
-        crlf = b"\r\n" in fh.read()
-    with open(chemin_carte, "w", encoding="utf-8", newline="") as fh:
-        fh.write(fusion.replace("\n", "\r\n") if crlf else fusion)
+    code_fusion, fusion = fusion_texte(projet, [carte_base, carte_main, carte_leur], branche)
+    if code_fusion is None:
+        return arret("CHANTIER.md : %s" % fusion)
+    ecrire_comme(chemin_carte, restaurer(fusion, valeurs, lettres))
     if code_fusion == 0:
         conflits.discard("CHANTIER.md")
         git_texte(["add", "CHANTIER.md"], projet)
@@ -6364,6 +6685,22 @@ def fusionner_nuit(projet, branche, date, sortie):
     derives = {rel(os.path.join(dossier, n)) for n in (COUTS_SVG,) + tuple(JOINTS)}
     if avec_archive:
         derives.add(rel(page))
+
+    # les fichiers que les deux canaux réécrivent, par clé (NUI16) : avant la feuille, qui se lit dans la TODO fusionnée
+    carte_lignes = avant.split("\n")
+    index, etat = champ(carte_lignes, "index"), champ(carte_lignes, "fichier d'état")
+    prevus = []
+    if etat:
+        prevus.append((etat, fusion_etat))
+    prevus.append(("CLAUDE.md", fusion_claude))
+    if index:
+        prevus += [(index, fusion_index), (chemin_archive(index), fusion_archive_index)]
+    if avec_archive:
+        prevus.append((rel(archive), fusion_archive_clos))
+    prevus += [(rel(os.path.join(dossier, nom)), f) for nom, f in (("en-attente", fusion_attente), (PUBLIE, fusion_publie))]
+    raison = fusionner_fichiers(projet, branche, base.strip(), prevus, conflits, sortie)
+    if raison:
+        return arret(raison)
     for chemin in sorted(conflits & derives):
         code, msg = git_texte(["checkout", "--ours", "--", chemin], projet)
         if code != 0:
