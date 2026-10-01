@@ -122,8 +122,9 @@ Deux voies se jouent en parallèle — boucle.py (`NUI1` → `NUI9`, en chaîne)
 ---
 
 <!-- FICHE:NUI1 -->
-## NUI1 [ ] — Relever les formes réelles d'une session -p
+## NUI1 [x] — Relever les formes réelles d'une session -p
 
+**Session** : d4efca2e-77f5-426f-a1e1-e528bce64e4b
 **Dépend de** : rien.
 **Fichiers** : `context AI/08-etat.md` (seul fichier écrit) ; lus : `scripts/vlp.py` (`cmd_bac`, `BAC_FICHIER`, `cmd_claude`, `cmd_kit_essai`, `cmd_gardien`, `REFUS_GIT`, `cmd_vigile_hook`, `defauts_page`), `scripts/boucle.py` (`jouer`, `HERITEES`, `AUTORISES`), `scripts/mesure-tokens.py` (`resoudre`), `hooks/hooks.json` (`PreToolUse`), `agents/relecture.md`, `.githooks/pre-commit`, `scripts/test-vlp.py` (3211-3215), `methode-chantier.md` (l. 220) — et rien d'autre.
 

@@ -2,7 +2,7 @@
 ## Résultat
 /vlp:chef cadre le soir, deux canaux jouent les chantiers la nuit sans humain, puis fusion et rapport le matin
 ## Notes
-- NUI1 : les vraies sorties de claude -p relevées (9 sessions) — ne dépend de rien
+- NUI1 : grep -c titre NUI1 : 0 avant, 1 après ; table : 12 lignes +| (9 sessions, validate, en-tête, filet) ; 24 formes JSON (+{"type") ; znorr 0 ; Users 0 ; git status : 08-etat.md seul ; coût des 9 essais 0.9962 $ pour 2.46 $ annoncés
 - NUI2 : un faux claude par rôle pour les tests — dépend de NUI1
 - NUI3 : le carnet de nuit et la borne double ($ et chantiers) — dépend de NUI2
 - NUI4 : modèle, effort et plafonds par rôle — dépend de NUI3
