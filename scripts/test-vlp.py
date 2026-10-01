@@ -5459,6 +5459,48 @@ def tester_boucle():
 
 tester_boucle()
 
+
+def tester_nuits():
+    """NUI3 : `vlp.py nuits noter` écrit une `note`, ou le `stop`, au carnet de `VLP_CARNET`, sinon au
+    carnet du jour du dépôt ; sans l'un ni l'autre : GARDE, sort 1."""
+    env = {k: os.environ.pop(k, None) for k in ("VLP_CARNET", "VLP_CANAL")}
+    try:
+        with tempfile.TemporaryDirectory() as t:
+            c = os.path.join(t, "nuit.jsonl")
+            os.environ["VLP_CARNET"] = c
+            sortie = [io.StringIO() for _ in range(3)]
+            codes = [mod.main(["nuits", "noter", "première", "--canal", "A"], sortie[0]),
+                     mod.main(["nuits", "noter", "deuxième"], sortie[1])]
+            os.environ["VLP_CANAL"] = "B"
+            codes.append(mod.main(["nuits", "noter", "arrêtez", "--stop"], sortie[2]))
+            lignes = mod.carnet.lire(c)
+            verifier("nuits noter : deux notes puis un stop au carnet de VLP_CARNET, NOTÉ <chemin>, canal de "
+                     "--canal puis de VLP_CANAL",
+                     codes == [0, 0, 0] and [d["note"] for d in lignes] == ["première", "deuxième", None]
+                     and [d["stop"] for d in lignes] == [None, None, "arrêtez"]
+                     and [d["canal"] for d in lignes] == ["A", None, "B"]
+                     and all(s.getvalue() == "NOTÉ %s\n" % c for s in sortie)
+                     and all(d["nuit"] == "nuit" and d["role"] is None for d in lignes), (codes, lignes))
+            del os.environ["VLP_CARNET"], os.environ["VLP_CANAL"]
+            o = io.StringIO()
+            code = mod.cmd_nuits_noter("sans dépôt", None, False, o, dossier=t)
+            verifier("nuits noter : sans dépôt Git ni VLP_CARNET → GARDE:, sort 1, rien d'écrit",
+                     code == 1 and o.getvalue().startswith("GARDE:") and os.listdir(t) == ["nuit.jsonl"], (code, o.getvalue()))
+            subprocess.run(["git", "init", "-q", t], check=True, capture_output=True)
+            o = io.StringIO()
+            code = mod.cmd_nuits_noter("du jour", "A", False, o, dossier=t)
+            jour = mod.carnet.du_jour(t)
+            verifier("nuits noter : sans VLP_CARNET, le carnet du jour du dépôt (.git/vlp-nuit/<date>.jsonl)",
+                     code == 0 and jour and o.getvalue() == "NOTÉ %s\n" % jour and os.path.join(".git", "vlp-nuit") in jour
+                     and [d["note"] for d in mod.carnet.lire(jour)] == ["du jour"], (code, o.getvalue(), jour))
+    finally:
+        for k, v in env.items():
+            if v is not None:
+                os.environ[k] = v
+
+
+tester_nuits()
+
 if ECARTS:
     sys.exit(1)
 print("OK")

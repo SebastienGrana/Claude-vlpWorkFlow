@@ -383,6 +383,10 @@ Sous-commandes :
   `VLP_TOUS_ECARTS=1`, puis rend le fichier dans un `finally`. Imprime chaque `ÉCART:`, puis
   `MUTANT ATTRAPÉ <n> écart(s)` (sort 0), `MUTANT VIVANT` ou `MUTANT PLANTÉ …` (sort 1), puis
   `RENDU <sha1 12>` — `GARDE:` si l'empreinte a bougé, ou si les tests ne se lancent pas.
+- `nuits noter "<texte>" [--canal C] [--stop]` — une ligne `note` au carnet de nuit (`carnet.py`, chantier
+  NUI) ; avec `--stop`, la ligne `stop` (le texte en est la raison) que la boucle lit avant chaque
+  session. Carnet : `VLP_CARNET`, sinon celui du jour du dépôt Git courant ; canal : `--canal`, sinon
+  `VLP_CANAL`. Imprime `NOTÉ <chemin>` ; sans dépôt Git ni `VLP_CARNET` : `GARDE:`, sort 1.
 
 Les lignes des chantiers clos — lues ou écrites par `clore`, `recompter`, `prix`, `liens`,
 `repeindre` et le prix moyen d'`ouvrir` — vivent dans `<contexte>/artefacts/archive-clos.html`
@@ -411,6 +415,8 @@ import sys
 import tempfile
 import time
 import unicodedata
+
+import carnet
 
 TAMPON_HOOKS = tempfile.gettempdir()
 
@@ -5566,6 +5572,19 @@ def lire_arg(x):
     return x
 
 
+def cmd_nuits_noter(texte, canal, arret, sortie, dossier=None):
+    """Une ligne `note` (ou `stop`, avec `arret`) au carnet de nuit : `VLP_CARNET`, sinon celui du jour
+    du dépôt de `dossier` (défaut : le dossier courant). Sans l'un ni l'autre : `GARDE:`, sort 1."""
+    chemin = os.environ.get(carnet.ENV_CARNET) or carnet.du_jour(dossier or os.getcwd())
+    if not chemin:
+        print("GARDE: pas de dépôt Git ni de VLP_CARNET — pas de carnet de nuit où écrire", file=sortie)
+        return 1
+    canal = canal or os.environ.get(carnet.ENV_CANAL) or None
+    (carnet.stop if arret else carnet.noter)(chemin, canal, texte)
+    print("NOTÉ %s" % chemin, file=sortie)
+    return 0
+
+
 def cmd_mutant(fichier, avant, apres, test, sortie):
     """Casse `fichier` exprès (`avant` → `apres`, une seule occurrence), joue les tests avec
     `VLP_TOUS_ECARTS=1`, liste leurs `ÉCART:`, et rend le fichier à l'octet près (chantier MUT)."""
@@ -5864,6 +5883,11 @@ def main(argv, sortie=None, entree=None, erreur=None):
     mu.add_argument("avant")
     mu.add_argument("apres")
     mu.add_argument("--test")
+    nu = sous.add_parser("nuits")
+    nu.add_argument("verbe", choices=["noter"])
+    nu.add_argument("texte")
+    nu.add_argument("--canal")
+    nu.add_argument("--stop", action="store_true")
     tr = sous.add_parser("transcription")
     tr.add_argument("jsonl")
     a = p.parse_args(argv)
@@ -5953,6 +5977,8 @@ def repartir(a, sortie, entree, erreur):
         return cmd_apercu(a.projet, sortie, a.port)
     if a.cmd == "mutant":
         return cmd_mutant(a.cible, a.avant, a.apres, a.test, sortie)
+    if a.cmd == "nuits":
+        return cmd_nuits_noter(a.texte, a.canal, a.stop, sortie)
     if a.cmd == "joints":
         return cmd_joints(a.dossier, sortie)
     if a.cmd == "transcription":

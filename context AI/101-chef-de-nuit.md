@@ -229,8 +229,9 @@ Tu ne touches pas boucle.py (rôles, plafonds, carnet : `NUI3`, `NUI4`) ; le fau
 ---
 
 <!-- FICHE:NUI3 -->
-## NUI3 [ ] — Tenir le carnet et la borne double
+## NUI3 [x] — Tenir le carnet et la borne double
 
+**Session** : d4efca2e-77f5-426f-a1e1-e528bce64e4b
 **Dépend de** : `NUI2`.
 **Fichiers** : `scripts/carnet.py` (neuf), `scripts/boucle.py`, `scripts/vlp.py`, `scripts/test-boucle.py`,
 `scripts/test-vlp.py`, `scripts/faux-claude.py` (lu, pas modifié) — et rien d'autre.

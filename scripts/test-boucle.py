@@ -13,8 +13,11 @@ import os
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 from typing import Any
+
+import carnet
 
 for _flux in (sys.stdout, sys.stderr):
     try:
@@ -202,5 +205,174 @@ with tempfile.TemporaryDirectory() as t:
                  code == 1 and l[-1]["subtype"] == sous and l[-1]["is_error"] is True and "result" not in l[-1], (code, l))
     code, l, e = faux(jouer, t, VLP_FAUX_ERREUR="zzz", VLP_FAUX_RATE="F9")
     verifier("faux : VLP_FAUX_ERREUR inconnue → code 2", code == 2 and "zzz" in e, (code, e))
+
+
+# --- le carnet de nuit et la borne double (NUI3) --------------------------------------
+
+def depot(t):
+    """`git init` dans `t`, puis le projet de test : le carnet vit dans son `.git`."""
+    subprocess.run(["git", "init", "-q", t], check=True, capture_output=True)
+    return projet(t)
+
+
+def carnet_de(t):
+    chemin = carnet.du_jour(t)
+    assert chemin, "pas de carnet : %s n'est pas un dépôt Git" % t
+    return chemin
+
+
+def cases_de(t):
+    texte = lire(os.path.join(t, "fiches.md"))
+    return "".join("x" if ("## %s [x]" % f) in texte else "." for f in ("F1", "F2", "F3"))
+
+
+def nuit(t, *options, rate="", claude=FAUX_CLAUDE):
+    """boucle.py --nuit dans `t` : (code, sortie). VLP_CARNET et VLP_CANAL d'ici ne passent pas."""
+    base = {k: v for k, v in os.environ.items() if k not in (carnet.ENV_CARNET, carnet.ENV_CANAL)}
+    base.update(VLP_FAUX_VLP=os.path.join(ICI, "vlp.py"), VLP_FAUX_RATE=rate, PYTHONIOENCODING="utf-8")
+    r = subprocess.run([sys.executable, os.path.join(ICI, "boucle.py"), t, "--claude", claude, "--traces", t,
+                        "--nuit"] + list(options), env=base, capture_output=True, text=True, encoding="utf-8")
+    return r.returncode, r.stdout + r.stderr
+
+
+def tester_nuit():
+    canal_a = ("--canal", "A", "--chantier", "X")
+    with tempfile.TemporaryDirectory() as t:
+        depot(t)
+        code, s = nuit(t, *canal_a)
+        lignes = carnet.lire(carnet_de(t))
+        verifier("NUI3 (a) --nuit, 3 fiches : 3 lignes `jouer` aux clés de CLES, canal A, usd_cli du faux, "
+                 "usd_kit et tours_kit à null, session lue dans init",
+                 code == 0 and cases_de(t) == "xxx" and "ARRÊT aucune fiche à jouer" in s and len(lignes) == 3
+                 and all(set(d) == set(carnet.CLES) for d in lignes)
+                 and [d["fiche"] for d in lignes] == ["F1", "F2", "F3"]
+                 and all(d["canal"] == "A" and d["chantier"] == "X" and d["role"] == "jouer" and d["usd_cli"] == 0.01
+                         and d["tours_cli"] == 3 and d["usd_kit"] is None and d["tours_kit"] is None
+                         and d["nuit"] == carnet.nuit_de(carnet_de(t)) and isinstance(d["duree_s"], int)
+                         and len(d["session"] or "") == 36 for d in lignes), (s, lignes))
+
+    with tempfile.TemporaryDirectory() as t:
+        depot(t)
+        chemin = carnet_de(t)
+        carnet.ajouter(chemin, canal="B", chantier="Y", role="jouer", fiche="Z1", usd_cli=1.0)
+        code, s = nuit(t, *canal_a, "--borne-usd", "1.0")
+        verifier("NUI3 (b) pot des lignes B ≥ borne : rien joué, ARRÊT borne atteinte, sort 0",
+                 code == 0 and "JOUE" not in s and cases_de(t) == "..." and "ARRÊT borne atteinte — pot 1.0000 $" in s, s)
+
+    with tempfile.TemporaryDirectory() as t:
+        depot(t)
+        chemin = carnet_de(t)
+        carnet.ajouter(chemin, canal="B", chantier="Y", role="jouer", fiche="Z1", usd_cli=0.01)
+        carnet.ajouter(chemin, canal="B", chantier="Y", role="jouer", fiche="Z2", usd_cli=9.0, note="hors pot")
+        code, s = nuit(t, *canal_a, "--borne-usd", "0.015")
+        verifier("NUI3 (b) pot à moins d'une session de la borne : une fiche jouée, puis ARRÊT borne atteinte ; "
+                 "une `note` à role posé reste hors pot",
+                 code == 0 and s.count("JOUE ") == 1 and cases_de(t) == "x.." and "ARRÊT borne atteinte" in s, s)
+
+    with tempfile.TemporaryDirectory() as t:
+        depot(t)
+        chemin = carnet_de(t)
+        for ch in ("Y", "Z"):
+            carnet.ajouter(chemin, canal="B", chantier=ch, role="jouer", fiche=ch + "1", usd_cli=0.0)
+        code, s = nuit(t, *canal_a, "--borne-chantiers", "2")
+        verifier("NUI3 (c) 2 chantiers au carnet, --borne-chantiers 2, chantier neuf : rien joué",
+                 code == 0 and "JOUE" not in s and "ARRÊT borne atteinte — 2 chantiers ≥ borne 2" in s, s)
+        code, s = nuit(t, "--canal", "A", "--chantier", "Y", "--borne-chantiers", "2")
+        verifier("NUI3 (c) le chantier déjà au carnet, lui, part", code == 0 and cases_de(t) == "xxx", s)
+
+    with tempfile.TemporaryDirectory() as t:
+        depot(t)
+        carnet.stop(carnet_de(t), "B", "raison de B")
+        code, s = nuit(t, *canal_a)
+        verifier("NUI3 (d) stop() de B : le canal A rend ARRÊT STOP, rien joué, sort 1",
+                 code == 1 and "ARRÊT STOP — raison de B" in s and "JOUE" not in s and cases_de(t) == "...", s)
+
+    with tempfile.TemporaryDirectory() as t:
+        c = os.path.join(t, "e.jsonl")
+        verrou = c + ".verrou"
+        with open(verrou, "w", encoding="utf-8") as h:
+            h.write("4242")
+        vieux = time.time() - 60
+        os.utime(verrou, (vieux, vieux))
+        carnet.ajouter(c, canal="A", note="n1")
+        lignes = carnet.lire(c)
+        verifier("NUI3 (e) verrou vieilli de 60 s : cassé, une ligne garde nomme le PID et l'âge, puis la ligne ; "
+                 "verrou retiré",
+                 len(lignes) == 2 and "PID 4242" in str(lignes[0]["garde"]) and "âge 6" in str(lignes[0]["garde"])
+                 and lignes[1]["note"] == "n1" and not os.path.exists(verrou), lignes)
+
+        c = os.path.join(t, "e2.jsonl")
+        verrou = c + ".verrou"
+        with open(verrou, "w", encoding="utf-8") as h:
+            h.write("4242")
+        threading.Timer(0.3, os.remove, [verrou]).start()
+        debut = time.time()
+        carnet.ajouter(c, canal="A", note="n2")
+        lignes = carnet.lire(c)
+        verifier("NUI3 (e) verrou jeune retiré pendant l'attente : ligne écrite après l'attente, sans garde",
+                 len(lignes) == 1 and lignes[0]["garde"] is None and time.time() - debut >= 0.25, (lignes, time.time() - debut))
+
+        c = os.path.join(t, "e3.jsonl")
+        code_script = ("import sys; sys.path.insert(0, %r); import carnet\n"
+                       "for i in range(50): carnet.ajouter(sys.argv[1], canal=sys.argv[2], note=str(i))\n" % ICI)
+        procs = [subprocess.Popen([sys.executable, "-c", code_script, c, canal]) for canal in "AB"]
+        codes = [p.wait() for p in procs]
+        brutes = lire(c).splitlines()
+        valides = [d for d in (json.loads(b) for b in brutes) if isinstance(d, dict)]
+        verifier("NUI3 (e) 2 processus × 50 écritures : 100 lignes JSON valides, 50 par canal, aucune garde",
+                 codes == [0, 0] and len(brutes) == 100 and len(valides) == 100
+                 and sum(d["canal"] == "A" for d in valides) == 50 and all(d["garde"] is None for d in valides), (codes, len(brutes)))
+
+        c = os.path.join(t, "e4.jsonl")
+        with open(c, "w", encoding="utf-8", newline="") as h:
+            h.write('{"nuit": "coupée')
+        carnet.ajouter(c, canal="A", note="après la coupure")
+        lignes = carnet.lire(c)
+        verifier("NUI3 : la ligne coupée en pleine écriture est sautée, la suivante reste lisible",
+                 len(lignes) == 1 and lignes[0]["note"] == "après la coupure", lignes)
+        avant = lire(c)
+        try:
+            carnet.ajouter(c, canal="A", inconnue="x")
+            refuse = False
+        except ValueError:
+            refuse = True
+        verifier("NUI3 : une clé inconnue est refusée, rien d'écrit, pas de verrou resté",
+                 refuse and lire(c) == avant and not os.path.exists(c + ".verrou"), lire(c))
+
+    with tempfile.TemporaryDirectory() as t:
+        stub = os.path.join(t, "rec.py")
+        with open(stub, "w", encoding="utf-8", newline="") as h:
+            h.write("import json, os, sys\n"
+                    "d = os.path.dirname(os.path.abspath(__file__))\n"
+                    "json.dump({k: os.environ.get(k) for k in ('VLP_CARNET', 'VLP_CANAL')}, "
+                    "open(os.path.join(d, 'env.json'), 'w'))\n"
+                    "print(json.dumps({'type': 'system', 'subtype': 'init', 'session_id': 's-1'}))\n"
+                    "print(json.dumps({'type': 'result', 'num_turns': 1, 'total_cost_usd': 0.5, 'result': 'x'}))\n")
+        depot(t)
+        chemin = carnet_de(t)
+        code, s = nuit(t, "--canal", "A", "--chantier", "X", "--plafond", "1", claude=stub)
+        env = json.loads(lire(os.path.join(t, "env.json")))
+        lignes = carnet.lire(chemin)
+        verifier("NUI3 : la fille reçoit VLP_CARNET et VLP_CANAL ; la ligne porte tours, coût et session du result/init, "
+                 "même case non cochée",
+                 env == {"VLP_CARNET": chemin, "VLP_CANAL": "A"} and len(lignes) == 1 and lignes[0]["session"] == "s-1"
+                 and lignes[0]["usd_cli"] == 0.5 and lignes[0]["tours_cli"] == 1, (env, lignes, s))
+
+    with tempfile.TemporaryDirectory() as t:
+        depot(t)
+        code, s, cases = boucle(t, FAUX_CLAUDE, 3)
+        verifier("NUI3 (f) sans --nuit : rien joué de plus, aucun vlp-nuit dans .git",
+                 code == 0 and cases == "xxx" and not os.path.exists(os.path.join(t, ".git", "vlp-nuit")), s)
+        code, s, cases = boucle(t, FAUX_CLAUDE, 1, options=["--canal", "A"])
+        verifier("NUI3 : --canal sans --nuit est refusé (code 2)", code == 2 and "exigent --nuit" in s, s)
+        code, s = nuit(t, "--canal", "A")
+        verifier("NUI3 : --nuit sans --chantier est refusé (code 2)", code == 2 and "--nuit exige" in s, s)
+        r = subprocess.run([sys.executable, os.path.join(ICI, "boucle.py"), t, "--claude", FAUX_CLAUDE],
+                           capture_output=True, text=True, encoding="utf-8")
+        verifier("NUI3 : sans --nuit, --plafond reste exigé (code 2)",
+                 r.returncode == 2 and "--plafond est exigé" in r.stderr, r.stderr)
+
+
+tester_nuit()
 
 print("OK")
