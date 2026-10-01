@@ -550,8 +550,9 @@ Tu ne fais pas : le plan (`NUI12`), la boucle d'un canal (`NUI7`), la reprise et
 ---
 
 <!-- FICHE:NUI10 -->
-## NUI10 [ ] — Trier les chantiers prêts
+## NUI10 [x] — Trier les chantiers prêts
 
+**Session** : 763247fd-fd16-4c79-beca-2714a79f98ad
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` ; lu : `context AI/08-etat.md` — et rien d'autre.
 

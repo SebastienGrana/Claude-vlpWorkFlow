@@ -11,7 +11,7 @@
 - NUI7 : un canal enchaîne ses chantiers, met de côté un bloqué — dépend de NUI6 et NUI12
 - NUI8 : une nuit coupée se reprend sans rien perdre — dépend de NUI7
 - NUI9 : la ligne qui lance les deux canaux — dépend de NUI7
-- NUI10 : vlp.py trier : les chantiers prêts — ne dépend de rien
+- NUI10 : test-vlp.py OK (tester_trier neuf) · 4 mutants MUTANT ATTRAPÉ · trier . sur le kit : sort 0, 8 rangs, 5 PRÊT, 3 ÉCARTÉE, CANAL CAR+TAB+CLV par vlp.py, APR FICHIERS 99-jnt1-mesure.py sans SOIR · pyright 0 errors
 - NUI11 : le fichier des nuits, ses leçons et son taux — dépend de NUI3 et NUI10
 - NUI12 : le plan de nuit écrit par script — dépend de NUI11
 - NUI13 : nuit.md : ce que la nuit fait à la place de l'humain — dépend de NUI12

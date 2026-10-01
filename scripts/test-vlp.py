@@ -4805,6 +4805,7 @@ def tester_decompte_todo():
     verifier("FEU8 : borne_haute_cout — borne haute, ou None sans nombre avant « fiche »",
              mod.borne_haute_cout("~0,5 fiche") == 0.5 and mod.borne_haute_cout("~4 à 6 fiches") == 6.0
              and mod.borne_haute_cout("2-3 fiches") == 3.0 and mod.borne_haute_cout("à cadrer") is None
+             and mod.borne_haute_cout("~½ fiche") == 0.5 and mod.borne_haute_cout("1½ fiche") == 1.5
              and mod.borne_haute_cout("🟡 pas estimé") is None and mod.borne_haute_cout("—") is None,
              (mod.borne_haute_cout("~0,5 fiche"), mod.borne_haute_cout("~4 à 6 fiches")))
     verifier("FEU8 : est_bloque — code absent, numéro ou plage d'un rang présent, tiret non bloquant",
@@ -4915,6 +4916,56 @@ def tester_barre_todo():
 
 
 tester_barre_todo()
+
+
+# --- NUI10 : le tri du soir par script, lecture seule ---
+
+def tester_trier():
+    entete = "| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |\n|---|---|---|---|---|\n"
+    lignes_todo = ("| 1 | `AAA` — a | cite `scripts/vlp.py` | 2 fiches | — |\n"
+                   "| 2 | `BBB` — b | cite `vlp.py archive` | 1 fiche | `KKK` |\n"
+                   "| 3 | `CCC` — c | x | 1 fiche | `AAA` |\n"
+                   "| 4 | `DDD` — d | 🟡 à trancher, non mesuré, %s | 1 fiche, push | — |\n"
+                   "| 5 | `FFF` — f | x | 1 fiche, push | — |\n"
+                   "| 6 | `GGG` — g | x | 1 fiche | `ZZZ` |\n"
+                   "| 7 | `HHH` — h | cite `py \"dossier x/m.py\"` | ~6 fiches | — |\n"
+                   "| 8 | `III` — i | x | ~½ fiche | — |\n"
+                   "| 9 | `JJJ` — j | x | 1 fiche | 1 |\n" % mod.MARQUE_VISUELLE)
+    with tempfile.TemporaryDirectory() as tp:
+        ecrire(os.path.join(tp, "CHANTIER.md"),
+               "# C\n\n- **contexte** : ctx/\n- **fichier d'état** : ctx/08-etat.md\n"
+               "- **fichier de fiches courant** : aucun\n- **artefact du chantier** : aucun\n\n"
+               "Lettres de fiche déjà prises : E (Un), KKK (Clos). Un nouveau chantier en choisit une autre.\n")
+        etat = os.path.join(tp, "ctx", "08-etat.md")
+        ecrire(etat, "# État\n\n" + entete + lignes_todo + "\n## Journal\n")
+        code, s = appel(["trier", tp])
+        lignes = s.splitlines()
+        canal = [l for l in lignes if l.startswith("CANAL ")]
+        verifier("NUI10 : trier sort 0, PRÊT pour AAA, BBB, CCC (dépend d'un code prêt), JJJ (dépend d'un rang prêt), III",
+                 code == 0 and all("PRÊT %s" % c in lignes for c in ("AAA", "BBB", "CCC", "JJJ", "III")), s)
+        verifier("NUI10 : FICHIERS — `vlp.py archive` donne vlp.py, un chemin à espace reste entier",
+                 "FICHIERS AAA scripts/vlp.py" in lignes and "FICHIERS BBB vlp.py" in lignes
+                 and "FICHIERS HHH dossier x/m.py" in lignes, s)
+        verifier("NUI10 : un CANAL groupe AAA, BBB, CCC, JJJ et nomme vlp.py et la dépendance — mutant : chemin entier",
+                 len(canal) == 3 and canal[0].startswith("CANAL 1 : AAA, BBB, CCC, JJJ — ")
+                 and "fichier vlp.py : AAA, BBB" in canal[0] and "CCC dépend de AAA" in canal[0], canal)
+        verifier("NUI10 : une prête sans lien — inconnu → à la page",
+                 "CANAL 2 : HHH — inconnu → à la page" in canal and "CANAL 3 : III — inconnu → à la page" in canal, canal)
+        verifier("NUI10 : DDD porte les cinq marques, la visuelle en cellule 3 — ÉCARTÉE, MARQUES à 5 — mutant : cellule 3 retirée",
+                 any(l.startswith("ÉCARTÉE DDD") for l in lignes)
+                 and "MARQUES DDD 5 : 🟡 1 · à trancher 1 · non mesuré 1 · %s 1 · push 1" % mod.MARQUE_VISUELLE in lignes, s)
+        verifier("NUI10 : push en cellule 4 écarte FFF ; dépendance absente écarte GGG",
+                 any(l.startswith("ÉCARTÉE FFF") for l in lignes) and any(l.startswith("ÉCARTÉE GGG") for l in lignes), s)
+        verifier("NUI10 : SOIR pour HHH (~6 fiches), pas pour III (~½ fiche)",
+                 any(l.startswith("SOIR HHH") for l in lignes) and not any(l.startswith("SOIR III") for l in lignes), s)
+        verifier("NUI10 : trier n'écrit rien — le fichier d'état reste tel quel",
+                 io.open(etat, encoding="utf-8").read() == "# État\n\n" + entete + lignes_todo + "\n## Journal\n", "")
+        ecrire(etat, "# État\n\n" + entete + "| 1 | `AAA` — a | `sed x | sha256sum` | 2 fiches | — |\n\n## Journal\n")
+        code, s = appel(["trier", tp])
+        verifier("NUI10 : une barre non échappée — GARDE, sort 1", code == 1 and s.startswith("GARDE: ligne 1 de la TODO"), s)
+
+
+tester_trier()
 
 
 # --- BTN1 : `vlp.js` joint aux pages, la ligne FILES ; charset et script posés une fois ---

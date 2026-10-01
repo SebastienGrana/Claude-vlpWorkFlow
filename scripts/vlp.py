@@ -185,6 +185,13 @@ Sous-commandes :
   moins un coût clos, `couts.svg` (`svg_couts`) écrit à côté et nommé dans `FILES`, sa balise
   `<img>` posée une fois avant `details.clos` (`balise_couts`), ses barres dans `data-couts`
   pour `vlp.js` ; sans coût, ni l'un ni l'autre.
+- `trier <projet>` — le tri du soir par script (chantier NUI) : lecture seule, aucun appel modèle, sur la TODO
+  du fichier d'état. Par rang : `PRÊT <code>` ou `ÉCARTÉE <code> — <raison>` (la marque `MARQUE_VISUELLE` ou `push`
+  en cellule 3-4, ou une dépendance non close ; une prête du même soir compte pour close), `FICHIERS <code> <chemins>`,
+  `MARQUES <code> <total> : …` (`MARQUES_TRI`), `SOIR <code> — <raison>` pour une prête à découper le soir
+  (au-delà de `GROS_FICHES`, sans nombre, « à cadrer »). Puis `CANAL <k> : <codes> — <raisons>` par groupe de prêtes
+  liées (dépendance, sinon fichier commun comparé sur son nom), `inconnu → à la page` sans lien, et `TRI <n> rangs ·
+  <n> prêts · <n> écartées`. TODO illisible : `GARDE:`, sort 1.
 - `joints <dossier>` — recopie `templates/vlp.css` et `templates/vlp.js` dans le dossier, et
   n'écrit que `FILES {"vlp.css": <chemin>, "vlp.js": <chemin>}` : le JSON du paramètre `files`
   d'`Artifact`, chemins en barres obliques (pour `/vlp:init`). Dossier absent : `GARDE:`, sort 1.
@@ -416,6 +423,7 @@ import io
 import json
 import os
 import re
+import shlex
 import sys
 import tempfile
 import time
@@ -1401,7 +1409,9 @@ def cmd_equiper(dossier, contexte, sortie):
 
 OUVRANT = re.compile(r"^<!-- FICHE:(\S+) -->$")
 CRITERE = "**Critère de fin**"
-CRITERE_VISUEL = re.compile(r"^\*\*Critère de fin\*\* \(visuel\)")
+# La marque d'un critère à regarder : un seul endroit, lue par la fiche, `valider` et `trier` (NUI10).
+MARQUE_VISUELLE = "(visuel)"
+CRITERE_VISUEL = re.compile(r"^\*\*Critère de fin\*\* " + re.escape(MARQUE_VISUELLE))
 ARRET = "ARRÊT: critère de fin (visuel) — livre, puis rends RETOUR sans cocher"
 CODE_EN_LIGNE = re.compile(r"`[^`]*`")
 # Les seuils vivent ici ; la doc dit « le seuil de vlp.py » et n'écrit pas le chiffre.
@@ -1487,9 +1497,9 @@ def valider_lignes(lignes):
                 ouvert_code, hors_code = True, hors_code[:hors_code.index("`")]
             else:
                 ouvert_code = False
-            if "(visuel)" in hors_code and not CRITERE_VISUEL.match(l):
-                ecarts.append((j, "fiche %s : (visuel) hors de la ligne « %s (visuel) » — /vlp:enchainer ne s'y arrêtera pas"
-                               % (ident, CRITERE)))
+            if MARQUE_VISUELLE in hors_code and not CRITERE_VISUEL.match(l):
+                ecarts.append((j, "fiche %s : %s hors de la ligne « %s %s » — /vlp:enchainer ne s'y arrêtera pas"
+                               % (ident, MARQUE_VISUELLE, CRITERE, MARQUE_VISUELLE)))
         if len(corps) > SEUIL_FICHE:
             avert.append((debut + 1, "fiche %s : %d lignes, au-delà du seuil de vlp.py (%d)"
                           % (ident, len(corps), SEUIL_FICHE)))
@@ -3476,34 +3486,45 @@ def feuille(projet, html, todo, date):
 RESUME_TODO = re.compile(r'    <p class="(?:mono )?resume-todo"[^>]*>.*?</p>\n')
 
 
+# Au-delà de cette borne haute, en fiches, un chantier est « gros » : le décompte le compte tel,
+# le tri du soir le découpe le soir même (`trier`, NUI10). Une seule valeur, lue par les deux.
+GROS_FICHES = 4
+
+
 def borne_haute_cout(cout):
-    """La borne haute d'un « Coût » de TODO, en fiches — `~4 à 6` → 6, `2-3` → 3, `~0,5` → 0,5 —,
-    ou `None` sans nombre avant le premier « fiche(s) » (`à cadrer`, `🟡 pas estimé`, `—`) (FEU8)."""
+    """La borne haute d'un « Coût » de TODO, en fiches — `~4 à 6` → 6, `2-3` → 3, `~0,5` → 0,5,
+    `~½` → 0,5 (`½` se lit 0,5 ; `1½`, 1,5) —, ou `None` sans nombre avant le premier « fiche(s) »
+    (`à cadrer`, `🟡 pas estimé`, `—`) (FEU8, NUI10)."""
     m = re.search(r"\bfiches?\b", cout)
     if not m:
         return None
-    nombres = re.findall(r"\d+(?:,\d+)?", cout[:m.start()])
-    return max(float(n.replace(",", ".")) for n in nombres) if nombres else None
+    nombres = re.findall(r"\d+(?:,\d+)?½?|½", cout[:m.start()])
+    valeurs = [float(n.rstrip("½").replace(",", ".") or 0) + (0.5 if n.endswith("½") else 0) for n in nombres]
+    return max(valeurs) if valeurs else None
+
+
+def dependances(depend):
+    """(codes, rangs) d'une cellule « Dépend de » : les codes entre backticks, les numéros ou
+    plages hors backticks développés en rangs (`1..3` → `{"1", "2", "3"}`) (FEU8, NUI10)."""
+    codes = re.findall(r"`([A-Za-z]+)`", depend)
+    rangs = set()
+    for m in re.finditer(r"(\d+)(?:\.\.(\d+))?", re.sub(r"`[^`]*`", "", depend)):
+        bas, haut = int(m.group(1)), int(m.group(2)) if m.group(2) else int(m.group(1))
+        rangs.update(str(r) for r in range(bas, haut + 1))
+    return codes, rangs
 
 
 def est_bloque(depend, lettres_todo, rangs_presents):
     """Vrai si `depend` (cellule « Dépend de ») nomme un code entre backticks absent de
     `lettres_todo`, ou un numéro (`3`) ou une plage (`1..9`) qui touche un rang de
     `rangs_presents` — encore dans la TODO (FEU8)."""
-    for code in re.findall(r"`([A-Za-z]+)`", depend):
-        if lettre_de(code) not in lettres_todo:
-            return True
-    reste = re.sub(r"`[^`]*`", "", depend)
-    for m in re.finditer(r"(\d+)(?:\.\.(\d+))?", reste):
-        bas, haut = int(m.group(1)), int(m.group(2)) if m.group(2) else int(m.group(1))
-        if any(str(r) in rangs_presents for r in range(bas, haut + 1)):
-            return True
-    return False
+    codes, rangs = dependances(depend)
+    return any(lettre_de(c) not in lettres_todo for c in codes) or bool(rangs & set(rangs_presents))
 
 
 def decompte_todo(rangs, lettres_todo):
     """(petits, moyens, gros, pas_estimés, bloqués, total en fiches) des rangs d'une TODO —
-    petit ≤ 1, moyen ≤ 4, gros au-delà de la borne haute de leur « Coût » (FEU8)."""
+    petit ≤ 1, moyen ≤ `GROS_FICHES`, gros au-delà de la borne haute de leur « Coût » (FEU8)."""
     presents = {r[0] for r in rangs}
     petits = moyens = gros = pas_estimes = bloques = 0
     total = 0.0
@@ -3515,7 +3536,7 @@ def decompte_todo(rangs, lettres_todo):
             total += borne
             if borne <= 1:
                 petits += 1
-            elif borne <= 4:
+            elif borne <= GROS_FICHES:
                 moyens += 1
             else:
                 gros += 1
@@ -3688,6 +3709,144 @@ def cmd_archive(projet, url, sortie):
     sortie.write("ARCHIVE %d déplacées · %d dans l'archive · feuille %d → %d octets · %s — %s\n" % (
         deplacees, len(lignes_clos(archive_html)), len(avant.encode("utf-8")), len(neuf.encode("utf-8")),
         "url %s" % url if url else "sans url", archive))
+    return 0
+
+
+# --- trier : le tri du soir, par script (chantier NUI) -------------------------
+
+# La liste fermée des marques comptées en cellules 3-4 d'un rang : `MARQUES` les affiche, l'`ÉCARTÉE`
+# relit les deux qui écartent (la visuelle et `push`). Rien ne cherche le sens d'une marque.
+MARQUE_PUSH = "push"
+MARQUES_TRI = ("🟡", "à trancher", "non mesuré", MARQUE_VISUELLE, MARQUE_PUSH)
+EXTENSIONS_TRI = (".py", ".md", ".html", ".json", ".css", ".js")
+
+
+def marques_tri(apporte, cout):
+    """Les occurrences de chaque marque de `MARQUES_TRI` dans les cellules 3 et 4, casse ignorée."""
+    texte = (apporte + "\n" + cout).lower()
+    return [texte.count(m.lower()) for m in MARQUES_TRI]
+
+
+def fichiers_tri(apporte, cout):
+    """Les fichiers cités entre backticks dans les cellules 3 et 4 : les mots (`shlex.split`, guillemets
+    retirés ; repli `split`) qui finissent en `EXTENSIONS_TRI` — `vlp.py archive` donne `vlp.py`."""
+    vus = []
+    for bout in CODE.findall(apporte + "\n" + cout):
+        try:
+            mots = shlex.split(bout)
+        except ValueError:
+            mots = [w.strip("\"'") for w in bout.split()]
+        vus += [w for w in mots if w.lower().endswith(EXTENSIONS_TRI) and w not in vus]
+    return vus
+
+
+def groupes_tri(rangs, codes, prets, fichiers):
+    """[([indices], [raisons])] des PRÊTES liées, dans l'ordre de la TODO : par dépendance d'une prête
+    sur le code ou le rang d'une autre, puis par un fichier commun comparé sur son nom (`vlp.py` =
+    `scripts/vlp.py`). Une prête sans lien reste seule, sans raison."""
+    parent = {k: k for k in prets}
+
+    def racine(k):
+        while parent[k] != k:
+            k = parent[k]
+        return k
+
+    liens = []
+    for k in prets:
+        deps, rangs_dep = dependances(rangs[k][4])
+        lettres_dep = {lettre_de(c) for c in deps}
+        for j in prets:
+            if j != k and (lettre_de(codes[j]) in lettres_dep or rangs[j][0] in rangs_dep):
+                liens.append(([k, j], "%s dépend de %s" % (codes[k], codes[j])))
+    par_nom = {}
+    for k in prets:
+        for f in fichiers[k]:
+            par_nom.setdefault(os.path.basename(f.replace("\\", "/")), []).append(k)
+    for nom, ks in par_nom.items():
+        if len(set(ks)) > 1:
+            liens.append((sorted(set(ks)), "fichier %s : %s" % (nom, ", ".join(codes[k] for k in sorted(set(ks))))))
+    for membres, _ in liens:
+        for k in membres[1:]:
+            parent[racine(k)] = racine(membres[0])
+    groupes = {}
+    for k in prets:
+        groupes.setdefault(racine(k), []).append(k)
+    rendu = []
+    for membres in groupes.values():
+        raisons = []
+        for m, texte in liens:
+            if m[0] in membres and texte not in raisons:
+                raisons.append(texte)
+        rendu.append((membres, raisons))
+    return sorted(rendu, key=lambda g: g[0][0])
+
+
+def trier(rangs, lettres):
+    """Les lignes du tri du soir d'une TODO (`rangs` de `todo_du_fichier`, `lettres` closes) : par rang,
+    `PRÊT <code>` ou `ÉCARTÉE <code> — <raison>`, `FICHIERS`, `MARQUES`, `SOIR` pour une prête à découper
+    le soir ; puis un `CANAL` par groupe de prêtes liées. Une prête du même soir compte pour close — son
+    code rejoint les clos, son rang quitte les présents — jusqu'à ce que plus rien ne bouge (NUI10)."""
+    codes = [m.group(1) if m else r[0] for r in rangs for m in [CODE.search(r[1])]]
+    marques = [marques_tri(r[2], r[3]) for r in rangs]
+    fichiers = [fichiers_tri(r[2], r[3]) for r in rangs]
+    ecartent = [MARQUES_TRI.index(MARQUE_VISUELLE), MARQUES_TRI.index(MARQUE_PUSH)]
+    prets = []
+
+    def bloque(k, ouvertes):
+        presents = {r[0] for j, r in enumerate(rangs) if j not in ouvertes}
+        return est_bloque(rangs[k][4], set(lettres) | {lettre_de(codes[j]) for j in ouvertes}, presents)
+
+    while True:
+        neuf = [k for k, r in enumerate(rangs) if k not in prets and not any(marques[k][i] for i in ecartent)
+                and not bloque(k, prets)]
+        if not neuf:
+            break
+        prets += neuf
+    lignes = []
+    for k, r in enumerate(rangs):
+        if k in prets:
+            lignes.append("PRÊT %s" % codes[k])
+        else:
+            raisons = ["marque %s" % MARQUES_TRI[i] for i in ecartent if marques[k][i]]
+            if bloque(k, prets):
+                raisons.append("dépendance non close : %s" % r[4])
+            lignes.append("ÉCARTÉE %s — %s" % (codes[k], " · ".join(raisons)))
+        if fichiers[k]:
+            lignes.append("FICHIERS %s %s" % (codes[k], " · ".join(fichiers[k])))
+        if sum(marques[k]):
+            lignes.append("MARQUES %s %d : %s" % (codes[k], sum(marques[k]),
+                                                  " · ".join("%s %d" % (m, n) for m, n in zip(MARQUES_TRI, marques[k]))))
+        if k in prets:
+            borne, raisons = borne_haute_cout(r[3]), []
+            if borne is None:
+                raisons.append("coût sans nombre de fiches")
+            elif borne > GROS_FICHES:
+                raisons.append("gros : jusqu'à %s fiches" % decimal_fr(borne))
+            if "à cadrer" in (r[2] + "\n" + r[3]).lower():
+                raisons.append("à cadrer")
+            if raisons:
+                lignes.append("SOIR %s — %s" % (codes[k], " · ".join(raisons)))
+    for n, (membres, raisons) in enumerate(groupes_tri(rangs, codes, prets, fichiers), 1):
+        lignes.append("CANAL %d : %s — %s" % (n, ", ".join(codes[k] for k in membres),
+                                              " · ".join(raisons) or "inconnu → à la page"))
+    lignes.append("TRI %d rangs · %d prêts · %d écartées" % (len(rangs), len(prets), len(rangs) - len(prets)))
+    return lignes
+
+
+def cmd_trier(a, sortie):
+    if not equipe(a.projet):
+        sortie.write("GARDE: pas de CHANTIER.md dans %s\n" % a.projet)
+        return 1
+    try:
+        carte_ = lignes_de(os.path.join(a.projet, "CHANTIER.md"))
+        etat = champ(carte_, "fichier d'état")
+        if not etat:
+            raise ValueError("fichier d'état introuvable : aucun")
+        rangs = todo_du_fichier(lignes_du_projet(a.projet, etat, "fichier d'état"))
+    except ValueError as e:
+        sortie.write("GARDE: %s\n" % e)
+        return 1
+    sortie.write("".join(l + "\n" for l in trier(rangs, lettres_prises(carte_))))
     return 0
 
 
@@ -5834,6 +5993,7 @@ def main(argv, sortie=None, entree=None, erreur=None):
     cp = sous.add_parser("comparer")
     cp.add_argument("ancienne")
     cp.add_argument("neuve")
+    sous.add_parser("trier").add_argument("projet")
     fe = sous.add_parser("feuille")
     fe.add_argument("projet")
     fe.add_argument("--todo")
@@ -5962,6 +6122,8 @@ def repartir(a, sortie, entree, erreur):
         return cmd_archive(a.projet, a.url, sortie)
     if a.cmd == "abri":
         return cmd_abri(a.pages, sortie)
+    if a.cmd == "trier":
+        return cmd_trier(a, sortie)
     if a.cmd == "feuille":
         return cmd_feuille(a, sortie)
     if a.cmd == "renvois":
