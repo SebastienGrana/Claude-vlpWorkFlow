@@ -917,8 +917,9 @@ feuille (`NUI15`) ; `/vlp:chef` (`NUI19`) ; aucun push ; aucun `.py` ni `.html` 
 ---
 
 <!-- FICHE:NUI17 -->
-## NUI17 [ ] — Remplir une page à cartes par script
+## NUI17 [x] — Remplir une page à cartes par script
 
+**Session** : 28c4a1ca-ce9e-4c0a-9a6e-a5edbd860a0c
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py`, `ARTEFACTS.md` (l. 19-23), `templates/rapport-choix.html` (lu, pas modifié) — et rien d'autre.
 

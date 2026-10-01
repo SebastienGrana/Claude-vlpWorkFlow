@@ -346,6 +346,21 @@ Sous-commandes :
 - `vigile [fichier]` — une page cassée ne part pas (chantier VID, `defauts_page`) : sans argument,
   le hook `PreToolUse` sur `Artifact`, `deny` pour un `.html` à défauts, muet sinon ; avec un chemin,
   une ligne `GARDE:` par défaut (sort 1) ou `PAGE SAINE <n> blocs`.
+- `chef page --questions <json|@chemin> --sortie <page.html>` — la page à cartes (`templates/rapport-choix.html`)
+  remplie par script, zéro appel modèle (chantier NUI) : le modèle choisit le contenu, le script écrit la page, celle du
+  soir comme le rapport du matin. Le JSON : `projet`, `sujet`, `titre` ; `date` (`AAAA-MM-JJ`, défaut : le jour) ;
+  `plage` et `pied` (textes) ; `jauge` (un mot de `JAUGE`, son émoji et sa classe `moyen` ou `ko` suivent) ; `puces`
+  (l'en-tête, des textes) ; puis une clé par section du gabarit, dans son ordre, absente = section absente : `chiffres`
+  `{cases: [{valeur, legende}], sources: [texte]}`, `fait` `[{ref, code, titre, livre, cout}]`, `decisions` `{intro,
+  cartes: [{titre, portee, niveau faible|moyen, probleme, choix, ecarte, prix, defaire}]}`, `choix` `[{titre,
+  puces: [texte], options: [{valeur, libelle, effet, recommande: true|false}]}]`, `mal` `[{genre erreur|alerte, titre,
+  texte}]`, `fil` `[{heure, code, texte}]`. Les `name` (`D1`…, puis `Q1`…) et `data-cle` (`<projet>-<date>-<sujet>`) sont
+  posés par le script. Les textes passent par `cellule_md` (échappés, gras et code rendus), `<title>`, `data-cle` et
+  `value` par `esc` seul. La tête (`<link>`, `<style>`), « Tes réponses » et le `<script>` sont ceux du gabarit, cherchés
+  hors commentaires (`COMMENTAIRE`) ; le commentaire de tête n'est pas recopié, le reste est bâti. `GARDE:` (sort 1, rien
+  écrit) : JSON illisible, champ absent ou d'un autre genre, aucune carte, jauge hors `JAUGE`, question à moins de deux
+  options, option sans effet, valeur doublée, deux recommandées, morceau du gabarit introuvable, ou `defauts_page` non vide
+  sur la page bâtie (une ligne par défaut, au format de `vigile`). Sinon : `PAGE SAINE <n> blocs`, puis `CARTES D1 Q1…`.
 - `attente ajouter <page> [--url U] [--projet D]`, `attente lister <dossier artefacts ou racine du projet>`,
   `attente retirer <page> [--projet D]` — la liste des pages que la limite du jour a refusées
   (chantier LOC) : `<contexte>/artefacts/en-attente`, une ligne par page, `page`, `url` (ou
@@ -5046,6 +5061,229 @@ def cmd_vigile_hook(entree, sortie):
     return 0
 
 
+# --- chef page : la page à cartes, remplie par script (chantier NUI, fiche NUI17) ---------------
+
+GABARIT_CHOIX = "templates/rapport-choix.html"
+TETE_CHOIX = re.compile(r"<link\b[^>]*>|<style\b.*?</style>", re.S | re.I)
+CLASSE_JAUGE = ("", "", " moyen", " ko", " ko")      # la classe du gabarit de chaque mot de `JAUGE`, dans son ordre
+CHAMPS_DECISION = (("probleme", "Le problème"), ("choix", "Mon choix"), ("ecarte", "Écarté"),
+                   ("prix", "Le prix"), ("defaire", "Défaire"))
+EMOJI_MAL = {"erreur": "🔥", "alerte": "⚠️"}
+
+
+def morceaux_choix(gabarit):
+    """`(tête, réponses, script)` du gabarit : ses `<link>` et `<style>`, la section « Tes réponses » et le `<script>`,
+    cherchés hors commentaires — le commentaire de tête peut citer une balise, et un remplacement la trouverait d'abord.
+    Sans `<link>` ni `<style>` la tête est vide, et `defauts_page` le dit. `ValueError` : un des deux autres manque."""
+    hors = COMMENTAIRE.sub("", gabarit)
+    tete = "".join("%s\n" % m.group(0) for m in TETE_CHOIX.finditer(hors))
+    i = hors.find("<h2>Tes réponses</h2>")
+    debut, fin = hors.rfind("<section>", 0, i), hors.find("</section>", i)
+    if i < 0 or debut < 0 or fin < 0:
+        raise ValueError("gabarit : la section « Tes réponses » est introuvable")
+    d = hors.find("<script>")
+    f = hors.find("</script>", d)
+    if d < 0 or f < 0:
+        raise ValueError("gabarit : le <script> est introuvable")
+    return tete, hors[debut:fin + len("</section>")], hors[d:f + len("</script>")]
+
+
+def texte_json(d, cle, ou):
+    """Le texte non vide de `d[cle]` ; sinon `ValueError`, qui dit où il manque."""
+    v = d.get(cle)
+    if not isinstance(v, str) or not v.strip():
+        raise ValueError("%s : « %s » manque, ou n'est pas un texte non vide" % (ou, cle))
+    return v
+
+
+def liste_json(d, cle, ou, genre: type = dict):
+    """La liste `d[cle]` (vide si la clé manque), dont chaque élément est un `genre` ; sinon `ValueError`."""
+    v = d.get(cle, [])
+    if not isinstance(v, list) or not all(isinstance(x, genre) for x in v):
+        raise ValueError("%s : « %s » doit être une liste de %s" % (ou, cle, "textes" if genre is str else "objets"))
+    return v
+
+
+def objet_json(d, cle):
+    """L'objet `d[cle]` (`{}` si la clé manque) ; sinon `ValueError`."""
+    v = d.get(cle, {})
+    if not isinstance(v, dict):
+        raise ValueError("« %s » doit être un objet" % cle)
+    return v
+
+
+def attribut(texte):
+    return esc(texte).replace('"', "&quot;")
+
+
+def html_jauge(mot):
+    if mot not in JAUGE:
+        raise ValueError("jauge : « %s » n'est pas un de %s" % (mot, " · ".join(JAUGE)))
+    k = JAUGE.index(mot)
+    return '<span class="jauge%s">%s %s%s</span>' % (CLASSE_JAUGE[k], EMOJIS_JAUGE[k].replace("⚠", "⚠️"), mot,
+                                                     "…" if k == 1 else "")
+
+
+def html_decision(nom, k, c):
+    ou = "decisions.cartes[%d]" % k
+    niveau = c.get("niveau", "moyen")
+    if niveau not in ("faible", "moyen"):
+        raise ValueError("%s : « niveau » vaut faible ou moyen" % ou)
+    lignes = "".join("        <dt>%s</dt><dd>%s</dd>\n" % (libelle, cellule_md(texte_json(c, cle, ou)))
+                     for cle, libelle in CHAMPS_DECISION)
+    return ('    <div class="decision">\n'
+            '      <div class="tete"><h3>%s · %s</h3><span class="puce %s">%s</span></div>\n'
+            '      <dl class="grille">\n%s      </dl>\n'
+            '      <div class="choix"><label><input type="radio" name="%s" value="garder">Je garde</label>'
+            '<label><input type="radio" name="%s" value="revoir">À revoir</label></div>\n'
+            '    </div>\n' % (nom, cellule_md(texte_json(c, "titre", ou)), niveau,
+                              cellule_md(texte_json(c, "portee", ou)), lignes, nom, nom))
+
+
+def html_question(nom, k, q):
+    ou = "choix[%d]" % k
+    titre = texte_json(q, "titre", ou)
+    options = liste_json(q, "options", ou)
+    if len(options) < 2:
+        raise ValueError("%s : %d option(s), il en faut au moins deux" % (ou, len(options)))
+    valeurs, recommandees, labels = set(), 0, ""
+    for j, o in enumerate(options):
+        oou = "%s.options[%d]" % (ou, j)
+        valeur, recommande = texte_json(o, "valeur", oou), o.get("recommande", False)
+        if valeur in valeurs:
+            raise ValueError("%s : la valeur « %s » est déjà prise" % (oou, valeur))
+        if not isinstance(recommande, bool):
+            raise ValueError("%s : « recommande » vaut true ou false" % oou)
+        valeurs.add(valeur)
+        recommandees += recommande
+        if recommandees > 1:
+            raise ValueError("%s : deux options recommandées" % ou)
+        labels += ('        <label><input type="radio" name="%s" value="%s"><span><b>%s%s</b>%s</span></label>\n'
+                   % (nom, attribut(valeur), cellule_md(texte_json(o, "libelle", oou)),
+                      " (recommandé)" if recommande else "", cellule_md(texte_json(o, "effet", oou))))
+    puces = "".join("        <li>%s</li>\n" % cellule_md(p) for p in liste_json(q, "puces", ou, str))
+    return ('    <div class="question">\n      <h3>🟡 %s · %s</h3>\n%s      <div class="choix options">\n%s'
+            '      </div>\n    </div>\n'
+            % (nom, cellule_md(titre), "      <ul>\n%s      </ul>\n" % puces if puces else "", labels))
+
+
+def sections_choix(d):
+    """`([section html], [name des cartes])` : une section par clé de `d`, dans l'ordre du gabarit."""
+    blocs, noms = [], []
+
+    def section(titre, corps):
+        blocs.append("  <section>\n    <h2>%s</h2>\n%s  </section>\n" % (titre, corps))
+
+    chiffres = objet_json(d, "chiffres")
+    cases = liste_json(chiffres, "cases", "chiffres")
+    if cases:
+        corps = "".join('      <div class="chiffre"><b>%s</b><span>%s</span></div>\n'
+                        % (cellule_md(texte_json(x, "valeur", "chiffres.cases")),
+                           cellule_md(texte_json(x, "legende", "chiffres.cases"))) for x in cases)
+        sources = "".join("      <li>%s</li>\n" % cellule_md(s) for s in liste_json(chiffres, "sources", "chiffres", str))
+        section("Les chiffres", '    <div class="chiffres">\n%s    </div>\n%s' % (
+            corps, '    <ul class="sous" style="font-size:.95rem">\n%s    </ul>\n' % sources if sources else ""))
+    fait = liste_json(d, "fait", "racine")
+    if fait:
+        lignes = "".join('          <tr><td class="n">%s</td><td><b>%s</b><br>%s</td><td>%s</td><td class="n">%s</td></tr>\n'
+                         % tuple(cellule_md(texte_json(x, cle, "fait")) for cle in ("ref", "code", "titre", "livre", "cout"))
+                         for x in fait)
+        section("Ce qui a été fait", '    <div class="tableau">\n      <table>\n        <thead><tr><th>Réf.</th><th>Quoi</th>'
+                "<th>Ce qu'il livre</th><th>Coût</th></tr></thead>\n        <tbody>\n%s        </tbody>\n      </table>\n"
+                "    </div>\n" % lignes)
+    dec = objet_json(d, "decisions")
+    cartes = liste_json(dec, "cartes", "decisions")
+    if cartes:
+        noms += ["D%d" % (k + 1) for k in range(len(cartes))]
+        intro = cellule_md(dec["intro"]) + " " if isinstance(dec.get("intro"), str) else ""
+        section("Les décisions prises seul — à valider",
+                '    <p class="sous">%sCoche ce que tu gardes, ajoute un commentaire si besoin ; en bas, un bouton copie tes '
+                "réponses.</p>\n\n%s" % (intro, "\n".join(html_decision("D%d" % (k + 1), k, c) for k, c in enumerate(cartes))))
+    questions = liste_json(d, "choix", "racine")
+    if questions:
+        noms += ["Q%d" % (k + 1) for k in range(len(questions))]
+        section("Les choix à trancher", '    <p class="sous">Une carte par question. Chaque option dit ce qu\'elle change.</p>'
+                "\n\n%s" % "\n".join(html_question("Q%d" % (k + 1), k, q) for k, q in enumerate(questions)))
+    mal = liste_json(d, "mal", "racine")
+    if mal:
+        for k, m in enumerate(mal):
+            if m.get("genre") not in EMOJI_MAL:
+                raise ValueError("mal[%d] : « genre » vaut erreur ou alerte" % k)
+        section("Ce qui a mal tourné", "".join(
+            '    <div class="%s">\n      <h3>%s %s</h3>\n      <p>%s</p>\n    </div>\n'
+            % (m["genre"], EMOJI_MAL[m["genre"]], cellule_md(texte_json(m, "titre", "mal")),
+               cellule_md(texte_json(m, "texte", "mal"))) for m in mal))
+    fil = liste_json(d, "fil", "racine")
+    if fil:
+        section("Le fil", '    <p class="sous" style="font-size:.95rem">Heures lues sur les commits.</p>\n'
+                '    <ul class="fil">\n%s    </ul>\n' % "".join(
+                    "      <li><time>%s</time><span><b>%s</b> · %s</span></li>\n"
+                    % tuple(cellule_md(texte_json(x, cle, "fil")) for cle in ("heure", "code", "texte")) for x in fil))
+    return blocs, noms
+
+
+def page_choix(gabarit, d):
+    """`(html, name des cartes)` : la page de `d` (voir `chef page`, dans la docstring du module), bâtie sur les morceaux
+    de `gabarit`. `ValueError` : ce qui manque ou n'est pas du bon genre, `GARDE:` à l'appelant."""
+    tete, reponses, script = morceaux_choix(gabarit)
+    projet, sujet, titre = (texte_json(d, k, "racine") for k in ("projet", "sujet", "titre"))
+    date = d.get("date") or datetime.date.today().isoformat()
+    try:
+        datetime.date.fromisoformat(date)
+    except (TypeError, ValueError):
+        raise ValueError("racine : « date » vaut AAAA-MM-JJ") from None
+    plage = texte_json(d, "plage", "racine") if "plage" in d else None
+    blocs, noms = sections_choix(d)
+    if not noms:
+        raise ValueError("aucune carte : ni « decisions », ni « choix »")
+    entete = ('  <header style="display:flex;flex-direction:column;gap:.8rem">\n    <p class="mono sous">%s</p>\n'
+              "    <h1>%s</h1>\n" % (" · ".join(esc(x) for x in (projet, date, plage) if x), cellule_md(titre)))
+    if "jauge" in d:
+        entete += "    %s\n" % html_jauge(d["jauge"])
+    puces = "".join("      <li>%s</li>\n" % cellule_md(p) for p in liste_json(d, "puces", "racine", str))
+    entete += "    <ul>\n%s    </ul>\n" % puces if puces else ""
+    blocs = [entete + "  </header>\n"] + blocs + ["  " + reponses + "\n"]
+    if "pied" in d:
+        blocs.append('  <footer class="sous" style="font-size:.9rem;border-top:1px solid var(--trait);padding-top:1rem">\n'
+                     "    %s\n  </footer>\n" % cellule_md(texte_json(d, "pied", "racine")))
+    return ("<title>%s — %s</title>\n%s\n" % (esc(projet), esc(titre), tete)
+            + '<div class="page" data-cle="%s">\n\n%s</div>\n\n%s\n' % (attribut("%s-%s-%s" % (projet, date, sujet)),
+                                                                        "\n".join(blocs), script)), noms
+
+
+def cmd_chef_page(questions, chemin, sortie, gabarit):
+    """`chef page` (forme du JSON et `GARDE:` : docstring du module) : `questions` est le JSON ou `@fichier`,
+    `gabarit` le texte du modèle. Écrit `chemin` seulement si la page bâtie passe `defauts_page`."""
+    try:
+        d = json.loads(lire_arg(questions))
+        if not isinstance(d, dict):
+            raise ValueError("le JSON n'est pas un objet")
+        page, noms = page_choix(gabarit, d)
+    except OSError as e:
+        sortie.write("GARDE: questions illisibles : %s\n" % e)
+        return 1
+    except json.JSONDecodeError as e:
+        sortie.write("GARDE: JSON illisible : %s\n" % e)
+        return 1
+    except ValueError as e:
+        sortie.write("GARDE: %s\n" % e)
+        return 1
+    manques = defauts_page(page)
+    for m in manques:
+        sortie.write("GARDE: %s — %s\n" % (chemin, m))
+    if manques:
+        return 1
+    try:
+        os.makedirs(os.path.dirname(os.path.abspath(chemin)), exist_ok=True)
+        with open(chemin, "w", encoding="utf-8", newline="\n") as fh:
+            fh.write(page)
+    except OSError as e:
+        sortie.write("GARDE: %s — écriture impossible : %s\n" % (chemin, e))
+        return 1
+    sortie.write("PAGE SAINE %d blocs\nCARTES %s\n" % (len(textes_visibles(page)), " ".join(noms)))
+    return 0
+
+
 # --- attente : les pages que la limite du jour a refusées (chantier LOC) ------
 
 TEXTE_LIMITE = "publish 429"                    # le début du texte du refus, relevé par LOC1
@@ -7106,6 +7344,10 @@ def main(argv, sortie=None, entree=None, erreur=None):
     ma = sous.add_parser("matin")
     ma.add_argument("projet")
     ma.add_argument("date")
+    ch = sous.add_parser("chef")
+    ch.add_argument("verbe", choices=["page"])
+    ch.add_argument("--questions", required=True)
+    ch.add_argument("--sortie", required=True)
     tr = sous.add_parser("transcription")
     tr.add_argument("jsonl")
     a = p.parse_args(argv)
@@ -7203,6 +7445,8 @@ def repartir(a, sortie, entree, erreur):
         return cmd_plan(a, sortie)
     if a.cmd == "matin":
         return cmd_matin(a, sortie)
+    if a.cmd == "chef":
+        return cmd_chef_page(a.questions, a.sortie, sortie, lire(os.path.join(KIT, GABARIT_CHOIX)))
     if a.cmd == "joints":
         return cmd_joints(a.dossier, sortie)
     if a.cmd == "transcription":

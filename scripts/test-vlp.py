@@ -4474,6 +4474,202 @@ def tester_vigile():
 
 tester_vigile()
 
+
+def tester_chef_page():
+    """chef page (chantier NUI, NUI17) : la page à cartes remplie par script, sur une copie lue du vrai gabarit."""
+    gabarit = mod.lire(os.path.join(ICI, "..", "templates", "rapport-choix.html"))
+
+    def option(valeur, **plus):
+        return dict({"valeur": valeur, "libelle": valeur.capitalize(), "effet": "ça change"}, **plus)
+
+    def base(**plus):
+        d = {"projet": "Demo", "sujet": "essai", "titre": "Rapport d'essai", "date": "2026-10-01", "jauge": "Imprévu",
+             "puces": ["Un **point** clé"],
+             "decisions": {"cartes": [{"titre": "Ordre par défaut", "portee": "matin", "niveau": "faible",
+                                       "probleme": "deux côtés ajoutent", "choix": "à la fin", "ecarte": "en tête",
+                                       "prix": "ordre figé", "defaire": "une ligne"}]},
+             "choix": [{"titre": "Quelle suite ?", "options": [option("oui"), option("non")]},
+                       {"titre": "Quel plafond ?", "puces": ["le contexte"],
+                        "options": [option("bas"), option("moyen", recommande=True), option("haut")]}]}
+        d.update(plus)
+        return d
+
+    def modifiee(f):
+        d = json.loads(json.dumps(base()))
+        f(d)
+        return d
+
+    with tempfile.TemporaryDirectory() as tcp:
+        def faire(d, nom, copie=gabarit):
+            """`(code, sortie, chemin)` : `nom` est un fichier du dossier temporaire, ou un chemin absolu."""
+            chemin = os.path.join(tcp, nom)
+            s = io.StringIO()
+            code = mod.cmd_chef_page(d if isinstance(d, str) else json.dumps(d, ensure_ascii=False), chemin, s, copie)
+            return code, s.getvalue(), chemin
+
+        def octets_de(chemin):
+            if not os.path.exists(chemin):
+                return b""
+            with open(chemin, "rb") as f:
+                return f.read()
+
+        # (a) la page du cas ordinaire
+        code, s, pa = faire(base(), "a.html")
+        a = octets_de(pa)
+        page = a.decode("utf-8")
+        verifier("chef page (a) : jauge Imprévu, une décision, Q1 à deux options, Q2 à trois — sort 0, CARTES D1 Q1 Q2",
+                 code == 0 and re.fullmatch(r"PAGE SAINE \d+ blocs\nCARTES D1 Q1 Q2\n", s) is not None, s)
+        comptes = (page.count('name="Q2"'), page.count("(recommandé)"), page.count('class="jauge moyen"'))
+        verifier("chef page (a) : name=\"Q2\" 3 fois, « (recommandé) » 1 fois, class=\"jauge moyen\" 1 fois",
+                 comptes == (3, 1, 1), str(comptes))
+        code2, s2 = appel(["vigile", pa])
+        verifier("chef page (a) : vigile sur le fichier, PAGE SAINE du même compte de blocs",
+                 code2 == 0 and s2 == s.split("\n")[0] + "\n", s2)
+        verifier("chef page (a) : data-cle <projet>-<date>-<sujet> et <title> <projet> — <titre>",
+                 'data-cle="Demo-2026-10-01-essai"' in page and "<title>Demo — Rapport d'essai</title>" in page, page[:200])
+        comptes = (page.count("<h2>Tes réponses</h2>"), page.count("<script>"), page.count("<!--"))
+        verifier("chef page (a) : « Tes réponses » et <script> 1 fois, aucun commentaire", comptes == (1, 1, 0), str(comptes))
+        restes = [x for x in ("Le fil", "&lt;Projet&gt;", "<dépôt>") if x in page]
+        verifier("chef page (a) : ni « Le fil », ni &lt;Projet&gt;, ni <dépôt>", restes == [], str(restes))
+        verifier("chef page (a) : UTF-8, fins \\n, jamais \\r", a != b"" and b"\r" not in a and a.endswith(b"\n"), repr(a[-40:]))
+        defaut = [p for p in (("name=\"D1\"", 2), ("name=\"Q1\"", 2)) if page.count(p[0]) != p[1]]
+        verifier("chef page (a) : D1 et Q1 portent leurs deux boutons", defaut == [], str(defaut))
+        verifier("chef page (a) : les puces d'en-tête passent par cellule_md",
+                 "<li>Un <strong>point</strong> clé</li>" in page, page[page.find("<header"):][:300])
+
+        # (b) un texte échappé, une valeur sûre dans son attribut
+        d = base(projet="P & Q", titre="T < U")
+        d["choix"][0]["titre"] = "a < b & **c**"
+        d["choix"][0]["options"].append(option('a"b'))
+        code, s, pb = faire(d, "b.html")
+        b = octets_de(pb).decode("utf-8")
+        verifier("chef page (b) : le titre de Q1 `a < b & **c**` échappé, gras rendu dans son <h3> — mutant : cellule_md ôté "
+                 "du titre de question",
+                 code == 0 and "<h3>🟡 Q1 · a &lt; b &amp; <strong>c</strong></h3>" in b, s + b[b.find("<h3>🟡 Q1"):][:120])
+        verifier("chef page (b) : <title>, data-cle et value passent par esc seul, le guillemet d'une valeur devient &quot;",
+                 "<title>P &amp; Q — T &lt; U</title>" in b and 'data-cle="P &amp; Q-2026-10-01-essai"' in b
+                 and 'value="a&quot;b"' in b, b[:200])
+
+        # (c) un commentaire de tête qui cite des balises : la page ne change pas d'un octet
+        citee = gabarit.replace("<!--\n", '<!--\n  Cite <div class="page" data-cle="x"> et <script> ici.\n', 1)
+        verifier("chef page (c) : prémisse, la copie cite ces balises dans son commentaire, avant les vraies",
+                 citee != gabarit and -1 < citee.find("<script>") < citee.find("-->")
+                 and -1 < citee.find('<div class="page"') < citee.find("-->"), citee[:300])
+        code, s, pc = faire(base(), "c.html", citee)
+        verifier("chef page (c) : balise citée dans le commentaire de tête — sort 0, page identique à l'octet à celle de (a) "
+                 "— mutant : morceaux cherchés dans le gabarit brut",
+                 code == 0 and a != b"" and octets_de(pc) == a, s)
+
+        # (d) une page sans style ne part pas
+        sans_tete = re.sub(r"<link\b[^>]*>|<style\b.*?</style>", "", gabarit, flags=re.S | re.I)
+        verifier("chef page (d) : prémisse, la copie n'a ni <style> ni <link>",
+                 "<style" not in sans_tete.lower() and "<link" not in sans_tete.lower(), sans_tete[:200])
+        code, s, pd = faire(base(), "d.html", sans_tete)
+        verifier("chef page (d) : copie sans style ni link → GARDE aucun style, fichier absent, sort 1 — mutant : résultat "
+                 "de defauts_page ignoré",
+                 code == 1 and not os.path.exists(pd)
+                 and s == 'GARDE: %s — aucun style (ni balise style, ni link rel="stylesheet")\n' % pd, s)
+
+        # (e) ce qui ne se remplit pas : une GARDE chacun, rien d'écrit
+        sans_carte = {k: v for k, v in base().items() if k not in ("decisions", "choix")}
+        sans_effet = modifiee(lambda x: x["choix"][1]["options"][2].pop("effet"))
+        for k, (nom, entree, attendu) in enumerate((
+                ("aucune carte", sans_carte, "GARDE: aucune carte : ni « decisions », ni « choix »\n"),
+                ("jauge Super", base(jauge="Super"),
+                 "GARDE: jauge : « Super » n'est pas un de %s\n" % " · ".join(mod.JAUGE)),
+                ("option sans effet", sans_effet,
+                 "GARDE: choix[1].options[2] : « effet » manque, ou n'est pas un texte non vide\n"))):
+            code, s, pe = faire(entree, "e%d.html" % k)
+            verifier("chef page (e) %s : GARDE, rien écrit, sort 1" % nom,
+                     code == 1 and s == attendu and not os.path.exists(pe), s)
+
+        # les autres GARDE, chacune seule : JSON, champs, gabarit, écriture
+        occupe = os.path.join(tcp, "occupe")
+        ecrire(occupe, "un fichier, pas un dossier\n")
+        sans_script = gabarit.replace("<script>", "<scrip>")
+        sans_reponses = gabarit.replace("<h2>Tes réponses</h2>", "<h2>Autre</h2>")
+        autres = (
+            ("JSON illisible", "pas du json", gabarit, "GARDE: JSON illisible"),
+            ("JSON qui n'est pas un objet", "[1]", gabarit, "GARDE: le JSON n'est pas un objet\n"),
+            ("@fichier absent", "@" + os.path.join(tcp, "absent.json"), gabarit, "GARDE: questions illisibles"),
+            ("titre absent", modifiee(lambda x: x.pop("titre")), gabarit,
+             "GARDE: racine : « titre » manque, ou n'est pas un texte non vide\n"),
+            ("date invalide", base(date="demain"), gabarit, "GARDE: racine : « date » vaut AAAA-MM-JJ\n"),
+            ("puces qui ne sont pas des textes", base(puces=[1]), gabarit,
+             "GARDE: racine : « puces » doit être une liste de textes\n"),
+            ("niveau inconnu", modifiee(lambda x: x["decisions"]["cartes"][0].update(niveau="fort")), gabarit,
+             "GARDE: decisions.cartes[0] : « niveau » vaut faible ou moyen\n"),
+            ("champ de carte absent", modifiee(lambda x: x["decisions"]["cartes"][0].pop("prix")), gabarit,
+             "GARDE: decisions.cartes[0] : « prix » manque, ou n'est pas un texte non vide\n"),
+            ("question à une option", base(choix=[{"titre": "Une ?", "options": [option("a")]}]), gabarit,
+             "GARDE: choix[0] : 1 option(s), il en faut au moins deux\n"),
+            ("valeur doublée", modifiee(lambda x: x["choix"][1]["options"][0].update(valeur="moyen")), gabarit,
+             "GARDE: choix[1].options[1] : la valeur « moyen » est déjà prise\n"),
+            ("deux recommandées", modifiee(lambda x: x["choix"][1]["options"][2].update(recommande=True)), gabarit,
+             "GARDE: choix[1] : deux options recommandées\n"),
+            ("recommande qui n'est pas un booléen",
+             modifiee(lambda x: x["choix"][1]["options"][0].update(recommande="oui")), gabarit,
+             "GARDE: choix[1].options[0] : « recommande » vaut true ou false\n"),
+            ("genre de mal inconnu", base(mal=[{"genre": "grave", "titre": "x", "texte": "y"}]), gabarit,
+             "GARDE: mal[0] : « genre » vaut erreur ou alerte\n"),
+            ("gabarit sans <script>", base(), sans_script, "GARDE: gabarit : le <script> est introuvable\n"),
+            ("gabarit sans « Tes réponses »", base(), sans_reponses,
+             "GARDE: gabarit : la section « Tes réponses » est introuvable\n"))
+        for k, (nom, entree, copie, attendu) in enumerate(autres):
+            code, s, po = faire(entree, "g%d.html" % k, copie)
+            verifier("chef page GARDE %s : une ligne, rien écrit, sort 1" % nom,
+                     code == 1 and s.startswith(attendu) and s.count("GARDE:") == 1 and not os.path.exists(po), s)
+        code, s, po = faire(base(), os.path.join("occupe", "p.html"))
+        verifier("chef page GARDE écriture impossible : le dossier de sortie est un fichier",
+                 code == 1 and s.startswith("GARDE: %s — écriture impossible" % po) and s.count("GARDE:") == 1, s)
+
+        # toutes les sections, dans l'ordre du gabarit, et les cinq mots de la jauge
+        complet = base(jauge="Pas bon", plage="NUI1 à NUI3", pied="Fin du **rapport**.",
+                       chiffres={"cases": [{"valeur": "3", "legende": "fiches"}, {"valeur": "1,2 $", "legende": "coût"}],
+                                 "sources": ["`vlp.py cout`"]},
+                       fait=[{"ref": "NUI1", "code": "abc1234", "titre": "Relever", "livre": "un fichier", "cout": "0,5 $"}],
+                       mal=[{"genre": "erreur", "titre": "Un défaut", "texte": "à revoir"},
+                            {"genre": "alerte", "titre": "Un doute", "texte": "à suivre"}],
+                       fil=[{"heure": "19:22", "code": "NUI1", "texte": "fait"}])
+        complet["decisions"]["intro"] = "Trois choix pris."
+        code, s, pf = faire(complet, "complet.html")
+        f = octets_de(pf).decode("utf-8")
+        verifier("chef page complet : sort 0, CARTES D1 Q1 Q2", code == 0 and s.endswith("CARTES D1 Q1 Q2\n"), s)
+        titres = ["Les chiffres", "Ce qui a été fait", "Les décisions prises seul", "Les choix à trancher",
+                  "Ce qui a mal tourné", "Le fil", "Tes réponses"]
+        places = [f.find("<h2>%s" % t) for t in titres]
+        verifier("chef page complet : sept sections, dans l'ordre du gabarit", -1 not in places and places == sorted(places),
+                 str(places))
+        manques = [x for x in ('class="jauge ko">❌ Pas bon</span>', "Demo · 2026-10-01 · NUI1 à NUI3",
+                               '<div class="chiffre"><b>1,2 $</b><span>coût</span></div>', '<span class="mono">vlp.py cout</span>',
+                               "<td class=\"n\">NUI1</td>", "Trois choix pris.", '<div class="erreur">', "🔥 Un défaut",
+                               '<div class="alerte">', "⚠️ Un doute", "<time>19:22</time>", "Fin du <strong>rapport</strong>.")
+                   if x not in f]
+        verifier("chef page complet : jauge ko, plage, chiffres, tableau, intro, mal, fil et pied", manques == [], str(manques))
+        mots = [mod.html_jauge(m) for m in mod.JAUGE]
+        attendus = ['<span class="jauge">✅ Tout va bien</span>', '<span class="jauge">🟢 Ça tient, mais…</span>',
+                    '<span class="jauge moyen">⚠️ Imprévu</span>', '<span class="jauge ko">❌ Pas bon</span>',
+                    '<span class="jauge ko">🔥 Grosse erreur</span>']
+        verifier("chef page : les cinq mots de JAUGE, leur émoji et leur classe", mots == attendus, str(mots))
+        code, s = appel(["vigile", pf])
+        verifier("chef page complet : vigile sur le fichier, PAGE SAINE", code == 0 and s.startswith("PAGE SAINE"), s)
+
+        # la commande : le vrai gabarit sous KIT, le JSON par @fichier, la date du jour par défaut
+        jq = os.path.join(tcp, "q.json")
+        ecrire(jq, json.dumps(base(), ensure_ascii=False))
+        sortie = os.path.join(tcp, "cmd.html")
+        code, s = appel(["chef", "page", "--questions", "@" + jq, "--sortie", sortie])
+        verifier("chef page par la commande : sort 0, page identique à l'octet à celle de (a)",
+                 code == 0 and s.endswith("CARTES D1 Q1 Q2\n") and a != b"" and octets_de(sortie) == a, s)
+        sans_date = {k: v for k, v in base().items() if k != "date"}
+        code, s, pj = faire(sans_date, "jour.html")
+        m = re.search(r'data-cle="Demo-(\d{4}-\d\d-\d\d)-essai"', octets_de(pj).decode("utf-8"))
+        verifier("chef page : sans date, le jour — AAAA-MM-JJ lu dans data-cle",
+                 code == 0 and m is not None and datetime.date.fromisoformat(m.group(1)) <= datetime.date.today(), s)
+
+
+tester_chef_page()
+
 def tester_forme():
     """page --forme (chantier HAB1) : la forme d'une page ancienne refaite, ses chiffres gardés,
     même dans un dépôt dont les commits de fiche feraient changer le coût."""

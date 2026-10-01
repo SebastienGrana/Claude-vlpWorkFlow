@@ -21,9 +21,9 @@
     <p>/vlp:chef cadre le soir, deux canaux jouent les chantiers la nuit sans humain, puis fusion et rapport le matin</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">20 fiches · 16 faites · en cours : NUI17</p>
+    <p class="mono" style="margin-top:.5rem">20 fiches · 17 faites · en cours : NUI18</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -101,23 +101,24 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">NUI16</span></span>
         <details><summary><span class="titre">Fusionner le matin : 08-etat.md et les listes</span><span class="etat">Faite</span></summary>
         <span class="note">test-vlp.py OK, 743 verifier (+11), 3 mutants attrapés (4, 1, 1 écarts), pyright 0 ; essai D2 : 3 cas sur 4 égaux, empreintes différentes ≠ → publie par la clé, aucune ligne merge=union</span></details>
-        <span class="cout mono">≈11,0M (11 007 380) · 64 tours · 5,02 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">NUI17</span></span>
-        <details open><summary><span class="titre">Remplir une page à cartes par script</span><span class="etat">En cours</span></summary>
-        <span class="note">une page à cartes remplie par script — ne dépend de rien</span></details></li>
-      <li class="fiche" data-attend><span class="gauche"><span class="id">NUI18</span></span>
-        <details><summary><span class="titre">Écrire /vlp:chef, le soir</span><span class="etat">Après NUI17</span></summary>
+        <span class="cout mono">≈11,4M (11 375 082) · 66 tours · 5,12 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">NUI17</span></span>
+        <details><summary><span class="titre">Remplir une page à cartes par script</span><span class="etat">Faite</span></summary>
+        <span class="note">test-vlp.py OK, 784 verifier (743 + 41 neufs), mutants M1 M2 M3 attrapés sur (c) (d) (b), chef page ARTEFACTS.md 1 (0 avant), pyright 0 erreur sur vlp.py et test-vlp.py</span></details>
+        <span class="cout mono">≈8,4M (8 435 157) · 54 tours · 3,30 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">NUI18</span></span>
+        <details open><summary><span class="titre">Écrire /vlp:chef, le soir</span><span class="etat">En cours</span></summary>
         <span class="note">/vlp:chef, le soir — dépend de NUI9, NUI11, NUI12, NUI13, NUI17</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">NUI19</span></span>
         <details><summary><span class="titre">Écrire /vlp:chef, le matin</span><span class="etat">Après NUI18</span></summary>
         <span class="note">/vlp:chef, le matin — dépend de NUI13, NUI15, NUI16, NUI18</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">NUI20</span></span>
-        <details><summary><span class="titre">Jouer une nuit réelle</span><span class="etat">Après NUI17, NUI18, NUI19</span></summary>
+        <details><summary><span class="titre">Jouer une nuit réelle</span><span class="etat">Après NUI18, NUI19</span></summary>
         <span class="note">une vraie nuit sur le kit, mesurée — dépend de toutes</span></details>
         <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈679,9k (679 863) · 3 tours · 0,18 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈139,5M (139 517 659) · 784 tours · 58,46 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈148,3M (148 320 518) · 840 tours · 61,86 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

@@ -18,7 +18,7 @@
 - NUI14 : 3 renvois, 1 ligne chacun (tache 1 0, cloture 1 0, chantier 2 0), nuit.md 24 24, 30 citations avant et après, 0 écart relu ; test-vlp OK, main a725aba sans PLUGIN_RETARD ; essai claude -p : FICHE F1 CASE [x] 16 tours 0.4623 $ 68 s, lire nuit.md 1, git commit 0, cloture.md 0, rev-list 1, PROCHAINE=aucune
 - NUI15 : test-vlp.py rend OK (732 verifier, 9 pour NUI15 : cas a à h et gardes) ; mutants lettres gardées (1 écart) et todo None (3 écarts) attrapés ; pyright 0 error sur vlp.py et test-vlp.py
 - NUI16 : test-vlp.py OK, 743 verifier (+11), 3 mutants attrapés (4, 1, 1 écarts), pyright 0 ; essai D2 : 3 cas sur 4 égaux, empreintes différentes ≠ → publie par la clé, aucune ligne merge=union
-- NUI17 : une page à cartes remplie par script — ne dépend de rien
+- NUI17 : test-vlp.py OK, 784 verifier (743 + 41 neufs), mutants M1 M2 M3 attrapés sur (c) (d) (b), chef page ARTEFACTS.md 1 (0 avant), pyright 0 erreur sur vlp.py et test-vlp.py
 - NUI18 : /vlp:chef, le soir — dépend de NUI9, NUI11, NUI12, NUI13, NUI17
 - NUI19 : /vlp:chef, le matin — dépend de NUI13, NUI15, NUI16, NUI18
 - NUI20 : une vraie nuit sur le kit, mesurée — dépend de toutes
