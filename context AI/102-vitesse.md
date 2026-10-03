@@ -127,13 +127,17 @@ tourne mutée, et un `.pyc` validé par la date à la seconde et la taille peut 
 2. `--attendu "<début du libellé>"` : la sortie se lit ligne à ligne ; dès que cet écart tombe, l'arbre de processus
    est tué (`test-boucle.py` compris) → `MUTANT ATTRAPÉ`. La suite finit sans lui → `MUTANT VIVANT pour <libellé>`,
    sort 1, avec les écarts vus. `test-boucle.py` sort au premier écart, `VLP_TOUS_ECARTS` ou non.
+   La suite s'arrête sans cet écart, en erreur → `MUTANT PLANTÉ`, sort 1, avec ses dernières lignes ; jamais
+   `ATTRAPÉ` sur un arrêt, même après un autre écart (vu à `VIT1` : un `ÉCART`, puis une suite arrêtée à 11 s au lieu
+   de ~600, a rendu `MUTANT ATTRAPÉ 1 écart(s)`, `scripts/vlp.py:7731-7733`).
 3. `--tous`, ou aucune des deux options : l'ancien comportement (tous les écarts), dans la copie — les appels déjà
-   écrits marchent.
+   écrits marchent ; un arrêt en erreur s'y dit aussi `MUTANT PLANTÉ`.
 Le paragraphe du mutant dans `methode-chantier.md` : `--attendu` devient la forme par défaut.
 
 **Critère de fin**
 1. `py -3 scripts/test-vlp.py` → `OK`. Cas : vrai fichier inchangé (sha1) pendant et après ; `--attendu` juste →
-   `MUTANT ATTRAPÉ` ; `--attendu` d'un test qui ne tombe pas → `MUTANT VIVANT pour …`, sort 1.
+   `MUTANT ATTRAPÉ` ; `--attendu` d'un test qui ne tombe pas → `MUTANT VIVANT pour …`, sort 1 ; une suite qui
+   s'arrête en erreur après un autre écart → `MUTANT PLANTÉ`, sort 1.
 2. Le mutant de `NUI27` rejoué avec `--attendu` : durée avant (`VIT1`) / après, comptes bruts.
 3. pyright 0 ; `verifier(` avant ≤ après ; les critères de code sain du socle, mesurés.
 <!-- /FICHE -->
