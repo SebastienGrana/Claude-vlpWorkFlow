@@ -13,6 +13,8 @@
 
 **Session** : d0a75cf6-8b7d-417c-9775-44ffe5decb84
 
+**Session** : bf7412ea-120b-47fa-933e-6b54b408b2f4
+
 ## Le socle commun
 
 **Les décisions** vivent dans la TODO n° 72 (`context AI/08-etat.md:381` : PAR5 Q1-Q11, cadrage du
@@ -30,6 +32,7 @@
 - **Borne double** : en $ et en nombre de chantiers, pot commun aux deux canaux, relue avant
   chaque session ; atteinte, la fiche en cours se finit et le chantier reste ouvert.
 - **Relire avant le commit** : la session de fiche ne commite pas ; boucle.py relit l'instantané, commite sur ACCEPTÉE.
+- **Modèle de la marque** (`NUI21`-`NUI32`, 2026-10-03) : ouvert = `**Ouvert.**` sans `**CLOS**` ni `**Pause.**` ; le chantier du dossier : `courant_de` seul.
 
 **Les noms retenus** (nouveaux — aucune sous-commande `vlp.py` de ce nom n'existe) :
 - `boucle.py --nuit` : un canal, chantier par chantier ; `--reprendre` ; pose `VLP_NUIT=1`, et
@@ -115,7 +118,19 @@ eval du tri avant trois nuits ; `claude -w`. Écartés au cadrage, ou en attente
 | `NUI17` | Remplir une page à cartes par script | rien |
 | `NUI18` | Écrire /vlp:chef, le soir | `NUI9`, `NUI11`, `NUI12`, `NUI13`, `NUI17` |
 | `NUI19` | Écrire /vlp:chef, le matin | `NUI13`, `NUI15`, `NUI16`, `NUI18` |
-| `NUI20` | Jouer une nuit réelle | toutes (`NUI1` à `NUI19`) |
+| `NUI21` | La marque d'ouverture, et la liste des chantiers ouverts | rien |
+| `NUI22` | Le chantier du dossier, calculé à un seul endroit | `NUI21` |
+| `NUI23` | Ouvrir et clore par la marque et le post-it | `NUI22` |
+| `NUI24` | Une branche WIP n'est jamais fusionnée | `NUI22` |
+| `NUI25` | Le canal de nuit découpe son chantier, pas celui de main | `NUI23` |
+| `NUI26` | `vlp.py fusionner <branche>`, la fusion du jour | `NUI23`, `NUI24` |
+| `NUI27` | Une lettre en double n'est plus avalée | `NUI26` |
+| `NUI28` | Voir les chantiers en cours dans les autres worktrees | `NUI22` |
+| `NUI29` | La prose lit `COURANT=` | `NUI23`, `NUI25`, `NUI26`, `NUI28` |
+| `NUI30` | Remettre les projets équipés au modèle de la marque | `NUI23` |
+| `NUI31` | Retirer la vieille ligne de CHANTIER.md | `NUI29`, `NUI30` |
+| `NUI32` | Remettre NUI20 au nouveau modèle | `NUI21` à `NUI31` |
+| `NUI20` | Jouer une nuit réelle | toutes (`NUI1` à `NUI19`, `NUI32`) |
 
 Deux voies se jouent en parallèle — boucle.py (`NUI1` → `NUI9`, en chaîne) et vlp.py avec sa prose (`NUI10` → `NUI17` ; `NUI15` et `NUI17` partent de rien) — et se rejoignent à `NUI11` (il lit les carnets par carnet.py, `NUI3`), à `NUI7` (il lit le plan de `NUI12`), puis à `NUI18`-`NUI19`. `NUI12` ne touche que vlp.py (`plan` écrit le plan, `carte` imprime `NUIT=1` quand `VLP_NUIT=1` est posé) : poser `VLP_NUIT=1` et lire le plan dans boucle.py reviennent à `NUI7`. Fiches à cheval, jamais en même temps qu'une fiche de l'autre voie : `NUI2` (test-vlp.py lance test-boucle.py, comme le test de `NUI10`), `NUI3`, `NUI5` et `NUI6` (vlp.py : `nuits noter`, relectures par canal, `cocher --session`, la constante de `refuser`). `NUI20` attend tout.
 
@@ -1074,10 +1089,333 @@ Tu ne fais pas : la fusion, le remplisseur, le soir, le reste de nuit.md ; aucun
 
 ---
 
+<!-- FICHE:NUI21 -->
+## NUI21 [ ] — La marque d'ouverture, et la liste des chantiers ouverts
+
+**Dépend de** : rien.
+**Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` ; lus : `vlp.py:513` (`COURANT`), `:715-723` (`fichier_courant`),
+`:5759-5763` (`CLOS_LIGNE`, `ESTIME`), `:5814` — et rien d'autre.
+
+**Prompt**
+Le chantier ouvert vit aujourd'hui dans une seule ligne de `CHANTIER.md`, suivie par Git : un worktree, un canal ou
+une fusion la recopie ou l'écrase (diagnostic : mémoire `project_chantiers_paralleles`, tranché le 2026-10-03,
+modèle B). Cette fiche pose la base, sans rien brancher encore :
+1. Deux constantes à un seul endroit : `OUVERT_LIGNE = "**Ouvert.** le %s."` et `PAUSE_LIGNE = "**Pause.** le %s — %s"`,
+   à côté de `CLOS_LIGNE` ; leurs motifs de lecture (`startswith`, comme `**CLOS**` à 5814).
+2. `ouverts(racine, rev=None)` : les fichiers `.md` du dossier de contexte (ligne `contexte` de la carte) qui ont un
+   titre `# Chantier `, portent la marque d'ouverture, et ni `**CLOS**` ni `**Pause.**` ; triés par nom. Avec `rev`,
+   lus par `git ls-tree` + `git show <rev>:<chemin>`, jamais l'arbre de travail. Un fichier sans marque n'est **jamais**
+   ouvert : Cairn a 5 vieux fichiers sans `**CLOS**`, MapDecorator 4 (compté le 2026-10-03).
+3. Une sous-commande de lecture `vlp.py ouverts <projet> [--rev R]` : une ligne `OUVERT <fichier>` chacun, ou `OUVERTS=0`.
+Tu ne fais pas : brancher `ouverts` ailleurs (`NUI22`), écrire la marque (`NUI23`), migrer un projet (`NUI30`).
+
+**Critère de fin**
+1. `py -3 scripts/test-vlp.py` → `OK`, comptes bruts. Un cas en dossier temporaire : 3 fichiers sans marque ni CLOS → 0 ;
+   un marqué → 1 ; marqué + `**CLOS**` → 0 ; marqué + `**Pause.**` → 0 ; un fichier marqué ajouté sur une branche, lu
+   par `--rev` de l'autre → absent.
+2. Mutant `py -3 scripts/vlp.py mutant scripts/vlp.py <test de la Pause> <test retiré>` → `MUTANT ATTRAPÉ`.
+3. `vlp.py ouverts .` sur le kit → `OUVERTS=0` (aucun fichier encore marqué) : brut au rapport.
+4. pyright : 0 erreur sur `vlp.py` et `test-vlp.py`, compte brut.
+<!-- /FICHE -->
+
+---
+
+<!-- FICHE:NUI22 -->
+## NUI22 [ ] — Le chantier du dossier, calculé à un seul endroit
+
+**Dépend de** : `NUI21`.
+**Fichiers** : `scripts/vlp.py`, `scripts/boucle.py`, `scripts/test-vlp.py`, `scripts/test-boucle.py` ; lus : `vlp.py:807-860`
+(`carte`), les 8 appels de `fichier_courant` (837, 1421, 2152, 3550, 5706, 5804, 6096, 7029), `boucle.py:304-321` — et rien d'autre.
+
+**Prompt**
+`courant_de(racine, rev=None)` devient le **seul** lecteur du chantier courant, dans cet ordre :
+1. le post-it local `git rev-parse --git-path vlp-chantier` (propre à chaque dossier, jamais fusionné), s'il nomme un
+   fichier de `ouverts()` (`NUI21`) ;
+2. sinon, sur une branche autre que la principale (premier bloc de `git worktree list --porcelain`) : le seul ouvert
+   **ajouté** depuis `git merge-base HEAD <principale>` — un chantier hérité de main n'est pas celui du dossier ;
+3. sinon, sur la principale : le seul ouvert ; deux ou plus → `GARDE: plusieurs chantiers ouverts : …` ;
+4. **projet sans aucune marque** (pas encore migré, `NUI30`) : l'ancienne ligne, comme aujourd'hui.
+Les 8 appels passent par `courant_de` ; `de_cote` (7029) passe `rev=<branche>`. `carte` imprime `COURANT=<fichier|aucun>`
+**avant** le texte de CHANTIER.md ; `lire_carte` (boucle.py:317) lit `COURANT=`, plus la ligne brute.
+Tu ne fais pas : `ouvrir`, `clore`, le post-it écrit (`NUI23`) ; la prose (`NUI29`).
+
+**Critère de fin**
+1. `py -3 scripts/test-vlp.py` → `OK`, comptes bruts (il lance test-boucle.py). Cas en dossier temporaire, dépôt `git init` :
+   a. main avec un chantier marqué, worktree tiré de main → `COURANT=aucun` dans le worktree, le chantier sur main ;
+   b. le worktree marque le sien → `COURANT=` le sien, main inchangé ;
+   c. post-it sur un fichier clos → ignoré ; deux ouverts sur main sans post-it → `GARDE:` ;
+   d. projet sans marque → la ligne de CHANTIER.md, comme avant.
+2. Mutant : la règle 2 qui prend aussi les hérités → `MUTANT ATTRAPÉ` (a tombe).
+3. `grep -c "fichier_courant(" scripts/vlp.py` → 1 (la définition, appelée par `courant_de` seul), compte avant → après.
+4. pyright : 0 erreur sur les `.py` touchés, compte brut.
+<!-- /FICHE -->
+
+---
+
+<!-- FICHE:NUI23 -->
+## NUI23 [ ] — Ouvrir et clore par la marque et le post-it
+
+**Dépend de** : `NUI22`.
+**Fichiers** : `scripts/vlp.py`, `scripts/faux-claude.py`, `scripts/test-vlp.py`, `scripts/test-boucle.py` ; lus :
+`vlp.py:6079-6110` (`cmd_ouvrir`), `:5796-5940` (`cmd_clore`), `faux-claude.py:108-180` — et rien d'autre.
+
+**Prompt**
+1. `ouvrir` : la garde de 6097-6099 ne bloque que si `courant_de` nomme **un autre** chantier ; il pose
+   `OUVERT_LIGNE` dans le fichier de fiches (sous le titre, une fois), écrit le post-it, et continue d'écrire la ligne
+   de CHANTIER.md (retirée en `NUI31`). L'artefact (6101) ne se reprend que si `courant == fichier` : un nouveau chantier
+   ne reçoit jamais la page d'un autre.
+2. `clore` : après `**CLOS**`, efface le post-it s'il nomme ce fichier.
+3. `faux-claude.py` (108-180) ouvre et clôt comme `ouvrir` et `clore` : marque, `CLOS`, post-it ; il ne lit plus la
+   ligne qu'en repli.
+Tu ne fais pas : le canal (`NUI25`), la fusion (`NUI26`), la prose (`NUI29`).
+
+**Critère de fin**
+1. `py -3 scripts/test-vlp.py` → `OK`, comptes bruts. Cas : main avec NUI ouvert, worktree → `ouvrir PAR` passe,
+   `artefact du chantier` de PAR = `aucun` (sans `--artefact`) ; `clore PAR` → post-it absent, `ouverts` sans PAR ;
+   `ouvrir` d'un 2e chantier dans le même dossier → `GARDE:`.
+2. Mutant : l'artefact repris quand `courant != fichier` → `MUTANT ATTRAPÉ`.
+3. pyright : 0 erreur sur les `.py` touchés, compte brut.
+<!-- /FICHE -->
+
+---
+
+<!-- FICHE:NUI24 -->
+## NUI24 [ ] — Une branche WIP n'est jamais fusionnée
+
+**Dépend de** : `NUI22`.
+**Fichiers** : `scripts/vlp.py`, `scripts/boucle.py`, `scripts/test-vlp.py`, `scripts/test-boucle.py` ; lus :
+`boucle.py:890-906` (`mettre_de_cote`), `vlp.py:7025-7029` (`de_cote`), `:7112-7116` — et rien d'autre.
+
+**Prompt**
+Bug **déjà présent** (testeur, 2026-10-03) : un découpage coupé avant `ouvrir` laisse un commit `WIP … mis de côté`
+sur une branche dont le chantier vaut `aucun` ; `de_cote` rend None et le matin **fusionne ce WIP dans main**.
+1. Le libellé `WIP %s mis de côté : %s` devient une constante de vlp.py, que boucle.py:902 importe (`k.`).
+2. `de_cote(projet, branche)` rend le chantier si la branche **ajoute** un chantier encore ouvert
+   (`ouverts(rev=branche)` moins `ouverts(rev=merge-base)`), ou le sujet de la pointe s'il suit la constante WIP.
+Tu ne fais pas : la fusion de jour (`NUI26`).
+
+**Critère de fin**
+1. `py -3 scripts/test-vlp.py` → `OK`, comptes bruts. Cas : pointe WIP, chantier `aucun` → `DE CÔTÉ`, `matin` ne la
+   fusionne pas ; branche qui hérite de NUI ouvert de main sans en ajouter → fusionnable.
+2. Mutant : le test de la pointe WIP retiré → `MUTANT ATTRAPÉ`.
+3. `grep -c "mis de côté : " scripts/boucle.py` → 0 (la constante seule, dans vlp.py), avant → après.
+4. pyright : 0 erreur sur les `.py` touchés, compte brut.
+<!-- /FICHE -->
+
+---
+
+<!-- FICHE:NUI25 -->
+## NUI25 [ ] — Le canal de nuit découpe son chantier, pas celui de main
+
+**Dépend de** : `NUI23`.
+**Fichiers** : `scripts/boucle.py`, `scripts/test-boucle.py` ; lus : `boucle.py:940-1005`, `:1350-1380` — et rien d'autre.
+
+**Prompt**
+Aujourd'hui, un canal refuse de partir si main porte un chantier (1378 : « déjà ouvert au départ »), et s'il partait,
+952 et 973 reliraient le chantier de main et joueraient ses fiches sous le nom d'un autre (deux agents, 2026-10-02).
+Avec `COURANT=` (`NUI22`), le worktree du canal voit `aucun` tant qu'il n'a rien ouvert :
+1. 1378 : la garde lit `COURANT=` du worktree du canal, plus la ligne de main ;
+2. 947, 952, 973, 995, 1000 : « découpé » = `COURANT=` nomme un fichier **ajouté** par la branche ; « clos » = il n'en
+   nomme plus ; jamais le chantier hérité.
+Tu ne fais pas : `de_cote` (`NUI24`), la fusion (`NUI26`).
+
+**Critère de fin**
+1. `py -3 scripts/test-boucle.py` → `OK`, comptes bruts. Nuit factice (`faux-claude.py`) avec main portant un chantier
+   marqué : le canal découpe et joue **son** chantier ; son commit d'ouverture nomme le bon code ; aucune fiche de
+   l'hérité jouée.
+2. Mutant : 952 qui relit la ligne brute → `MUTANT ATTRAPÉ` (`--test "py -3 scripts/test-boucle.py"`).
+3. pyright : 0 erreur sur `boucle.py`, compte brut.
+<!-- /FICHE -->
+
+---
+
+<!-- FICHE:NUI26 -->
+## NUI26 [ ] — `vlp.py fusionner <branche>`, la fusion du jour
+
+**Dépend de** : `NUI23`, `NUI24`.
+**Fichiers** : `scripts/vlp.py`, `scripts/boucle.py`, `scripts/test-vlp.py` ; lus : `vlp.py:6535-6565` (`OUVERT_CARTE`,
+`neutre`, `restaurer`), `:6894-7000` (`fusionner_nuit`), `:7001-7025`, `:7080-7092`, `boucle.py:1150-1155`, `:1261` — et rien d'autre.
+
+**Prompt**
+1. Extrais `fusionner_nuit` en `fusionner_branche(projet, branche, message, sortie)` ; `matin` l'appelle avec son message,
+   `cmd_fusionner` avec « Fusion : <branche> ». Branche qui reçoit : n'importe laquelle, jamais « main » en dur.
+2. Avec la marque, la ligne du chantier courant n'a plus à être remise par `restaurer` : la fusion garde celle de la
+   branche qui reçoit, **sauf** si son fichier porte `**CLOS**` dans l'arbre fusionné → `aucun` (main ne reste plus
+   bloqué après une clôture en worktree). La liste des lettres reste fusionnée comme aujourd'hui (`NUI27` y ajoute la GARDE).
+3. Refus, en `GARDE:` : arbre sale, projet non équipé ou dossier hors racine, HEAD détachée, `MERGE_HEAD` présent,
+   branche absente, branche `de_cote` (« clos <X> dans son worktree d'abord »). Déjà contenue : `DÉJÀ`, rien fait.
+4. La branche principale se lit (premier bloc de `git worktree list --porcelain`) : vlp.py:7084, boucle.py:1153, :1261.
+5. `clore` dans un worktree imprime la ligne `vlp.py fusionner <branche>` à lancer depuis la principale.
+Tu ne fais pas : la prose (`NUI29`), la GARDE de lettre (`NUI27`).
+
+**Critère de fin**
+1. `py -3 scripts/test-vlp.py` → `OK`, comptes bruts. Cas : worktree qui clôt NUI, `fusionner` depuis main → main à
+   `aucun`, `ouvrir` passe ; worktree qui ouvre PAR, `fusionner` → main garde le sien ; les 6 refus et `DÉJÀ`, un cas chacun ;
+   `matin` rejoué sur ses cas d'avant → mêmes sorties.
+2. Mutant : l'exception `**CLOS**` retirée → `MUTANT ATTRAPÉ`.
+3. `grep -c '"main"' scripts/vlp.py scripts/boucle.py`, avant → après, chaque reste justifié au rapport.
+4. pyright : 0 erreur sur les `.py` touchés, compte brut.
+<!-- /FICHE -->
+
+---
+
+<!-- FICHE:NUI27 -->
+## NUI27 [ ] — Une lettre en double n'est plus avalée
+
+**Dépend de** : `NUI26`.
+**Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` ; lus : `vlp.py:3299-3345` (`LETTRES`, entrées), le bloc des
+lettres de `fusionner_branche` (ex-6928-6933) — et rien d'autre.
+
+**Prompt**
+À la fusion, une lettre déjà prise sur la branche qui reçoit est **sautée sans rien dire** : deux chantiers ouverts
+en parallèle sous le même code ne se voient jamais (testeur, trou 7). La liste « Lettres de fiche déjà prises » reste
+la source (décidé le 2026-10-03 : la déduire des titres perdrait D et G chez Cairn, R et U chez MapDecorator).
+1. Même lettre, même titre d'entrée : rien (c'est la même entrée).
+2. Même lettre, titres différents : `GARDE: le code <X> est pris deux fois : « <a> » et « <b> »`, avant toute écriture.
+3. `ouvrir` vérifie aussi `ouverts()` de tous les worktrees (`git worktree list`) : un code déjà ouvert ailleurs → `GARDE:`.
+Tu ne fais pas : voir les chantiers des autres worktrees dans la carte (`NUI28`).
+
+**Critère de fin**
+1. `py -3 scripts/test-vlp.py` → `OK`, comptes bruts. Cas : deux branches, `PAR (A)` et `PAR (B)` → `GARDE:`, aucun
+   fichier écrit (`git status --porcelain` vide) ; même entrée des deux côtés → fusion sans garde.
+2. Mutant : le saut silencieux remis → `MUTANT ATTRAPÉ`.
+3. pyright : 0 erreur, compte brut.
+<!-- /FICHE -->
+
+---
+
+<!-- FICHE:NUI28 -->
+## NUI28 [ ] — Voir les chantiers en cours dans les autres worktrees
+
+**Dépend de** : `NUI22`.
+**Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` ; lus : `vlp.py:807-860` (`carte`), `:5628-5700` (`cmd_niveau`) — et rien d'autre.
+
+**Prompt**
+Le jour, deux worktrees ne se voient pas : `/vlp:chantier` peut proposer un chantier déjà en cours ailleurs, et
+`niveau` a donné 2 faux écarts sur Cairn (2026-09-29, chantier joué en worktree).
+1. `carte` imprime une ligne `AILLEURS=<code> <dossier>` par chantier que `courant_de` donne dans un **autre** worktree
+   (`git worktree list --porcelain`, chaque dossier lu par `courant_de`, son post-it compris) ; aucune ligne s'il n'y en a pas.
+2. `niveau` ne compte pas en écart un chantier qui vit dans un autre worktree.
+Tu ne fais pas : la prose qui lit `AILLEURS=` (`NUI29`).
+
+**Critère de fin**
+1. `py -3 scripts/test-vlp.py` → `OK`, comptes bruts. Cas : main + deux worktrees, chacun son chantier → la carte de
+   chacun nomme les deux autres, jamais le sien ; un worktree sans chantier → absent.
+2. Mutant : le sien non filtré → `MUTANT ATTRAPÉ`.
+3. Coût : `vlp.py carte .` sur le kit, nombre de lignes avant → après (0 worktree ouvert ailleurs : +0).
+4. pyright : 0 erreur, compte brut.
+<!-- /FICHE -->
+
+---
+
+<!-- FICHE:NUI29 -->
+## NUI29 [ ] — La prose lit `COURANT=`
+
+**Dépend de** : `NUI23`, `NUI25`, `NUI26`, `NUI28`.
+**Fichiers** : `skills/chantier/SKILL.md`, `skills/tache/SKILL.md`, `skills/enchainer/SKILL.md`, `skills/check/SKILL.md`,
+`skills/init/SKILL.md`, `nuit.md`, `methode-chantier.md`, `templates/CHANTIER.md` — et rien d'autre.
+
+**Prompt**
+Les commandes lisent encore « la ligne fichier de fiches courant de CHANTIER.md ». Elles lisent désormais `COURANT=`
+de la carte. Lignes connues (2026-10-03) : chantier 60-65 (« On n'en ouvre pas deux à la fois ») ; init:125 ; tache:34,
+64, 132-134 ; check:32-126 ; enchainer:11-135 ; methode-chantier.md:292, 341 ; nuit.md:72, 78 ; templates/CHANTIER.md:16.
+1. `/vlp:chantier` 0 ter : « un chantier est en cours **dans ce dossier** » = `COURANT=` ; un chantier seulement hérité
+   de main ne l'est pas : on peut en cadrer un nouveau ici. Une ligne `AILLEURS=` se dit, et ce code n'est pas proposé.
+2. Les emplacements `"<fichier de fiches courant>"` restent : la carte les remplit par `COURANT=`.
+3. methode-chantier.md : où vit l'état ouvert (marque, `**Pause.**`, post-it, `vlp.py fusionner`), une fois, et les
+   autres renvoient. nuit.md:72 : « hérité : cadre le chantier du plan ».
+Une règle vit à un seul endroit : chaque commande renvoie à methode-chantier.md, elle ne recopie pas la règle.
+
+**Critère de fin**
+1. `grep -rn "ligne « fichier de fiches courant »" skills nuit.md` → 0, compte avant → après.
+2. `grep -c "COURANT=" skills/*/SKILL.md nuit.md methode-chantier.md`, avant → après, au rapport.
+3. Micro-essai sur bac (`vlp.py bac`) : main avec un chantier marqué, un worktree ; `/vlp:chantier ESS` dans le worktree
+   propose de **cadrer**, pas de reprendre (visuel : l'utilisateur lance la session, `vlp.py claude`).
+4. `py -3 scripts/test-vlp.py` → `OK` ; pre-commit `validate` passe.
+<!-- /FICHE -->
+
+---
+
+<!-- FICHE:NUI30 -->
+## NUI30 [ ] — Remettre les projets équipés au modèle de la marque
+
+**Dépend de** : `NUI23`.
+**Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` ; lus : `vlp.py:5628-5700` (`cmd_niveau`) ; écrits par le script seul :
+les fichiers de fiches courants des projets équipés — et rien d'autre.
+
+**Prompt**
+Le plugin chargé suit main : dès `NUI22`, chaque projet équipé lit le chantier par `courant_de`. Sans marque, le repli
+lit l'ancienne ligne ; cette fiche pose les marques, pour que `NUI31` retire le repli.
+1. `niveau --ecrire` : un projet sans aucune marque reçoit `OUVERT_LIGNE` sur le fichier que nomme l'ancienne ligne
+   (date : celle de son commit « Chantier … ouvert », lue par `git log`) ; ligne `aucun` → rien.
+2. `vlp.py pause <fichier> "<raison>"` pose `PAUSE_LIGNE` ; `ouvrir` d'un fichier en pause la retire (reprise).
+3. Sur les vrais projets, **depuis main de chacun**, sans worktree ouvert (`git worktree list` d'abord) : le kit,
+   Cairn-VlpLib, MapDecorator, vlp-bac-a-sable (dossiers sous `D:/ProgPerso`). Cairn `context AI/34-hud-2d.md` reçoit
+   `**Pause.**` (« mis en pause le même soir, avant toute fiche », sa ligne 13). Un commit par projet, aucun push.
+Tu ne fais pas : retirer la ligne (`NUI31`).
+
+**Critère de fin**
+1. `py -3 scripts/test-vlp.py` → `OK`, comptes bruts. Cas : projet à la Cairn (5 fichiers sans CLOS, un courant) →
+   `COURANT=` identique avant et après `niveau --ecrire` ; rejoué → rien écrit.
+2. Par projet, `vlp.py carte <projet>` : `COURANT=` avant → après **identique**, brut au rapport ; `vlp.py ouverts` → 1 ou 0.
+3. pyright : 0 erreur, compte brut.
+<!-- /FICHE -->
+
+---
+
+<!-- FICHE:NUI31 -->
+## NUI31 [ ] — Retirer la vieille ligne de CHANTIER.md
+
+**Dépend de** : `NUI29`, `NUI30`.
+**Fichiers** : `scripts/vlp.py`, `scripts/boucle.py`, `scripts/faux-claude.py`, `scripts/test-vlp.py`, `scripts/test-boucle.py`,
+`templates/CHANTIER.md`, `CHANTIER.md` ; `CHANTIER.md` des projets équipés — et rien d'autre.
+
+**Prompt**
+Tous les lecteurs passent par `courant_de`, tous les projets portent leurs marques : la ligne « fichier de fiches
+courant » n'est plus qu'une copie qui peut mentir.
+1. `courant_de` perd le repli sur la ligne (règle 4 de `NUI22`) ; `ouvrir` et `clore` ne l'écrivent plus ; `OUVERT_CARTE`,
+   `neutre` et `restaurer` ne portent plus que l'artefact du chantier et les lettres.
+2. La ligne quitte `templates/CHANTIER.md`, le `CHANTIER.md` du kit et celui de chaque projet équipé (un commit par projet).
+   `niveau` signale une ligne restante, `--ecrire` la retire.
+3. Les tests qui écrivent la ligne (43 dans test-vlp.py, 4 dans test-boucle.py, compté le 2026-10-03) posent la marque.
+Tu ne fais pas : NUI20 (`NUI32`).
+
+**Critère de fin**
+1. `grep -rc "fichier de fiches courant" scripts/*.py skills templates *.md | grep -v ":0$"`, avant → après : il ne reste
+   que des mentions de la sortie `COURANT=` ou d'histoire, chacune justifiée au rapport.
+2. `py -3 scripts/test-vlp.py` → `OK`, comptes bruts ; par projet, `COURANT=` identique avant → après.
+3. pyright : 0 erreur sur les `.py` touchés, compte brut.
+<!-- /FICHE -->
+
+---
+
+<!-- FICHE:NUI32 -->
+## NUI32 [ ] — Remettre NUI20 au nouveau modèle
+
+**Dépend de** : `NUI21` à `NUI31`.
+**Fichiers** : `context AI/101-chef-de-nuit.md` (fiche `NUI20` et la table de l'ordre seules) ; lus : `scripts/vlp.py`
+(`grep -n` des symboles cités par NUI20) — et rien d'autre.
+
+**Prompt**
+NUI20 a été écrite avant le modèle de la marque. Mets-la à jour, sans toucher à son but (une vraie nuit, plan Q7) :
+1. l'étape b (« l'utilisateur remet `aucun` par un commit ») disparaît : la nuit part de main même avec NUI ouvert, et
+   le contrôle devient « `COURANT=aucun` dans un worktree tiré de main » ;
+2. chaque `vlp.py:<n>` cité est relu : 5151-5154 → la garde d'`ouvrir`, 2342 → `COMMIT_FICHE`, 4823 → `ESTIME`, 739-741 → `PLUGIN_RETARD` ;
+3. son contrôle a compte les commits `NUI1` à `NUI31` ; elle dépend de `NUI32`.
+Tu ne fais pas : jouer la nuit.
+
+**Critère de fin**
+1. Chaque `vlp.py:<n>` de NUI20 pointe le bon symbole : `grep -n` de chacun au rapport.
+2. `grep -c "remet \`aucun\`" "context AI/101-chef-de-nuit.md"` → 0, avant → après.
+3. `vlp.py valider` sur le fichier → `VALIDE`, 0 écart.
+<!-- /FICHE -->
+
+---
+
 <!-- FICHE:NUI20 -->
 ## NUI20 [ ] — Jouer une nuit réelle
 
-**Dépend de** : `NUI1`, `NUI2`, `NUI3`, `NUI4`, `NUI5`, `NUI6`, `NUI7`, `NUI8`, `NUI9`, `NUI10`, `NUI11`, `NUI12`, `NUI13`, `NUI14`, `NUI15`, `NUI16`, `NUI17`, `NUI18`, `NUI19`.
+**Dépend de** : `NUI1`, `NUI2`, `NUI3`, `NUI4`, `NUI5`, `NUI6`, `NUI7`, `NUI8`, `NUI9`, `NUI10`, `NUI11`, `NUI12`, `NUI13`, `NUI14`, `NUI15`, `NUI16`, `NUI17`, `NUI18`, `NUI19`, `NUI32`.
 **Fichiers** : lus — `nuit.md` ; `CHANTIER.md` de `main` (`git show main:CHANTIER.md`) ; `context AI/08-etat.md`, lignes 381 (« Q7 essai réel ») et 384 à 386 (`APR`, `TAB`, `CLV`) ; le carnet et le fichier des nuits (socle, « Les noms retenus ») ; le fichier de fiches de chaque chantier de la nuit (`git show <branche>:<fichier>`) ; appelés : `scripts/vlp.py` (`carte`, `vigile`), `scripts/mesure-tokens.py`, `scripts/test-vlp.py` ; écrit — une entrée `## <date> — NUI20` au journal de `context AI/08-etat.md`, et rien d'autre.
 
 **Prompt**

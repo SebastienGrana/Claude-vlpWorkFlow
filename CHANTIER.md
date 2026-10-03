@@ -13,7 +13,7 @@
 - **chantiers possibles** : context AI/08-etat.md
 - **fichier d'état** : context AI/08-etat.md
 - **index** : context AI/00-INDEX.md
-- **fichier de fiches courant** : context AI/101-chef-de-nuit.md (NUI1..NUI20)
+- **fichier de fiches courant** : context AI/101-chef-de-nuit.md (NUI1..NUI32)
 - **artefact feuille de route** : https://claude.ai/artifact/YWDny8kjubq9DhdP5rbPxA
 - **artefact archive** : https://claude.ai/artifact/JzWV9N32aJuZf9zweyZdjn
 - **artefact du chantier** : https://claude.ai/artifact/QSo3aJREQUqHpxMsXRnffd

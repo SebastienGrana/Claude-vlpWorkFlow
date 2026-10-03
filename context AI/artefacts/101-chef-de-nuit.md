@@ -22,6 +22,18 @@
 - NUI18 : test OK 784 verifier en 502 s, pyright 0 erreur, mutant attrapé (NIV1 et EVF4, 2 écarts), essai réel 0,216118 $ en 1 tour, 0 tool_use, 0 refus, bac 14/14 identique
 - NUI19 : test-vlp.py OK (794 verifier, 8 min 18 s), pyright 0 erreur ; mutants sous-agents non sommés, usd_exact None compté 0, ligne de table à chaque rejeu : trois ATTRAPÉS ; SKILL.md +2/+1/+1/+1 et nuit.md +1 constatés
 - NUI20 : une vraie nuit sur le kit, mesurée — dépend de toutes
+- NUI21 : la marque d'ouverture et la liste des chantiers ouverts ; ne dépend de rien
+- NUI22 : le chantier du dossier calculé à un seul endroit, la carte imprime COURANT= ; après NUI21
+- NUI23 : ouvrir et clore posent la marque et le post-it local ; après NUI22
+- NUI24 : une branche WIP n'est plus fusionnée le matin (bug déjà présent) ; après NUI22
+- NUI25 : le canal de nuit découpe son chantier, pas celui de main ; après NUI23
+- NUI26 : vlp.py fusionner, la fusion du jour, main ne reste plus bloqué ; après NUI23, NUI24
+- NUI27 : une lettre en double donne une GARDE ; après NUI26
+- NUI28 : la carte voit les chantiers des autres worktrees ; après NUI22
+- NUI29 : la prose des commandes lit COURANT= ; après NUI23, NUI25, NUI26, NUI28
+- NUI30 : les projets équipés reçoivent leurs marques, Cairn HD en pause ; après NUI23
+- NUI31 : la vieille ligne de CHANTIER.md disparaît ; après NUI29, NUI30
+- NUI32 : NUI20 remise au nouveau modèle ; après NUI21 à NUI31
 ## Journal
 - 2026-10-01 : Essai NUI14 sous NUIT=1 : une session claude -p sur une fiche triviale, 16 tours, 0,4623 $, 68 s (un appel lire nuit.md, 0 git commit, 0 cloture.md) ; boucle.py ne crée pas le dossier de --traces.
 - 2026-10-01 : NUI16 : essai D2, publie en union égal à la clé dans 3 cas sur 4 (empreintes différentes : deux lignes contre clé retirée) → publie par la clé, pas de merge=union au .gitattributes
