@@ -219,8 +219,8 @@ Sous-commandes :
   `main`) ; `DE CÔTÉ <b> — <courant>` (son `CHANTIER.md` garde un chantier ouvert : jamais fusionnée) ; sinon
   `git merge --no-ff --no-commit`, puis `CHANTIER.md` refait par `git merge-file` sur ses trois versions dont les
   deux libellés et la liste des lettres sont remplacés par un jeton (`neutre`), puis rendus (`restaurer`) : ceux de
-  `main`, et ses lettres suivies de celles de la branche qui lui manquent — Git perd sans conflit ce que `clore`
-  remet à `aucun`. Un conflit sur la feuille (avec une archive des clos), `couts.svg` ou un joint : celui de `main`,
+  `main` — tous deux à `aucun` si son chantier porte `**CLOS**` dans l'arbre fusionné (NUI26) —, et ses lettres
+  suivies de celles de la branche qui lui manquent — Git perd sans conflit ce que `clore` remet à `aucun`. Un conflit sur la feuille (avec une archive des clos), `couts.svg` ou un joint : celui de `main`,
   ils se refont. `feuille` est refaite au rang « en cours » que `main` portait avant la fusion, avec joints, `couts.svg`
   et bloc d'archive (`rafraichir_couts`) ; `git add -A` ; commit `Matin <date> : <b>` ; `FUSIONNÉE <b>`. Autre
   conflit (code, `08-etat.md`, archive…), ou feuille en conflit sans archive : `ARRÊT <b> — conflit : <fichiers> —
@@ -233,6 +233,11 @@ Sous-commandes :
   récente gagne ; vide : retiré) et `publie` (la clé ; empreintes différentes : clé retirée, ligne `PUBLIE …`). Un
   désaccord ou un reste en conflit : `GARDE: <chemin> : <raison>`, puis l'`ARRÊT` ci-dessus. Pas de `merge=union` :
   il garde les deux lignes de `publie` quand les empreintes diffèrent. Ni push, ni carnet.
+- `fusionner <projet> <branche>` — la fusion du jour (NUI26) : `branche` dans celle du dossier, par le chemin de
+  `matin` (`fusionner_branche`), commit `Fusion : <branche>`, `FUSIONNÉE <branche>`. Déjà contenue : `DÉJÀ <branche>`,
+  sort 0. `GARDE:` (sort 1, rien fusionné) : non équipé, hors racine, `HEAD` détachée, `MERGE_HEAD` présent, arbre
+  sale, branche absente, branche qui garde un chantier ouvert (`de_cote` : le clore dans son worktree d'abord).
+  `clore` dans un worktree hors de la principale imprime la ligne `FUSIONNER` à lancer depuis elle (sauf `VLP_NUIT=1`).
 - `matin <projet> <date> --rapport <json>` — le rapport du matin (NUI19), sans fusion ni commit, rejouable. La date
   est obligatoire : sans elle, `GARDE:`. Trois premières gardes de `matin` (équipé, date, racine du dépôt) ; carnet
   de la nuit absent ou vide : `GARDE:`, sort 1.
@@ -5839,18 +5844,26 @@ def textes_contexte(racine, rev=None):
     return textes
 
 
-def branche_principale(racine):
-    """La branche du premier bloc de `git worktree list --porcelain` — le dossier principal —, ou None (hors Git,
-    tête détachée)."""
+def principal(racine):
+    """`(dossier, branche)` du premier bloc de `git worktree list --porcelain` — le dossier principal —, chacun None
+    s'il manque (hors Git ; branche : tête détachée). `clore` y lit d'où lancer `fusionner` (NUI26)."""
     code, s = git_texte(["worktree", "list", "--porcelain"], racine)
+    dossier = branche = None
     if code != 0:
-        return None
+        return dossier, branche
     for l in s.split("\n"):
         if not l.strip():
-            return None
-        if l.startswith("branch refs/heads/"):
-            return l[len("branch refs/heads/"):].strip()
-    return None
+            break
+        if l.startswith("worktree "):
+            dossier = l[len("worktree "):].strip()
+        elif l.startswith("branch refs/heads/"):
+            branche = l[len("branch refs/heads/"):].strip()
+    return dossier, branche
+
+
+def branche_principale(racine):
+    """La branche du dossier principal (`principal`), ou None (hors Git, tête détachée)."""
+    return principal(racine)[1]
 
 
 def postit(racine):
@@ -6146,6 +6159,14 @@ def cmd_clore(a, sortie):
         lettre, fait, champ_chantier, "non mesuré" if total is None else milliers(total), faits["routage"], faits["index"],
         faits["archivé"], faits["bilan"],
         " · résumé %d" % faits.get("résumé", 0) if a.resume else "", texte_estime, projet))
+    # Clos dans un worktree hors de la principale : la ligne qui le fusionne, à lancer depuis elle (NUI26). La nuit
+    # ne la lit pas : `matin` fusionne ses branches.
+    dossier_principal, principale = principal(projet)
+    code, ici = git_texte(["symbolic-ref", "--short", "-q", "HEAD"], projet)
+    if os.environ.get("VLP_NUIT") != "1" and dossier_principal and principale and code == 0 \
+            and ici.strip() != principale:
+        sortie.write('FUSIONNER depuis %s : "%s" "%s" fusionner "%s" %s\n' % (
+            dossier_principal, sys.executable, os.path.abspath(__file__), dossier_principal, ici.strip()))
     return 0
 
 
@@ -6848,7 +6869,7 @@ def fusion_texte(projet, textes, branche):
             chemins.append(os.path.join(t, nom))
             with open(chemins[-1], "w", encoding="utf-8", newline="") as fh:
                 fh.write(contenu)
-        code, msg = git_texte(["merge-file", "-L", "main", "-L", "base", "-L", branche] + chemins, projet)
+        code, msg = git_texte(["merge-file", "-L", "HEAD", "-L", "base", "-L", branche] + chemins, projet)
         if code is None or code > 127:
             return None, "git merge-file : %s" % msg
         return code, lire(chemins[0])
@@ -7028,9 +7049,10 @@ def fusionner_fichiers(projet, branche, base, prevus, conflits, sortie):
     return None
 
 
-def fusionner_nuit(projet, branche, date, sortie):
-    """Fusionne `branche` dans `main` et commite, en réparant `CHANTIER.md` et la feuille. `True` à l'`ARRÊT` :
-    la ligne est écrite, la fusion reste en cours."""
+def fusionner_branche(projet, branche, message, sortie):
+    """Fusionne `branche` dans la branche du dossier — n'importe laquelle — et commite sous `message`, en réparant
+    `CHANTIER.md` et la feuille. `True` à l'`ARRÊT` : la ligne est écrite, la fusion reste en cours. `matin` et
+    `fusionner` l'appellent (NUI26)."""
     chemin_carte, page = os.path.join(projet, "CHANTIER.md"), page_feuille(projet)
     archive = page_clos(projet)
     avec_archive = archive != page
@@ -7073,6 +7095,12 @@ def fusionner_nuit(projet, branche, date, sortie):
     code_fusion, fusion = fusion_texte(projet, [carte_base, carte_main, carte_leur], branche)
     if code_fusion is None:
         return arret("CHANTIER.md : %s" % fusion)
+    # Les libellés restent ceux de la branche qui reçoit, sauf si son chantier porte `**CLOS**` dans l'arbre fusionné :
+    # clos dans un worktree, il ne bloque plus la principale — les deux à `aucun`, comme `clore` (NUI26).
+    courant_recu = fichier_courant(avant)
+    chemin_recu = os.path.join(projet, courant_recu) if courant_recu else None
+    if chemin_recu and os.path.isfile(chemin_recu) and any(l.startswith(MARQUE_CLOS) for l in lignes_de(chemin_recu)):
+        valeurs = {libelle: "aucun" for libelle in valeurs}
     ecrire_comme(chemin_carte, restaurer(fusion, valeurs, lettres))
     if code_fusion == 0:
         conflits.discard("CHANTIER.md")
@@ -7128,7 +7156,7 @@ def fusionner_nuit(projet, branche, date, sortie):
     code, msg = git_texte(["add", "-A"], projet)
     if code != 0:
         return arret("git add : %s" % msg)
-    code, msg = git_texte(["commit", "-q", "-m", "Matin %s : %s" % (date, branche)], projet)
+    code, msg = git_texte(["commit", "-q", "-m", message], projet)
     if code != 0:
         return arret("commit refusé : %s" % msg)
     sortie.write("FUSIONNÉE %s\n" % branche)
@@ -7148,6 +7176,11 @@ def projet_du_matin(a, sortie):
     except ValueError:
         sortie.write("GARDE: AAAA-MM-JJ attendu : %s\n" % a.date)
         return None
+    return projet if racine_du_depot(projet, sortie) else None
+
+
+def racine_du_depot(projet, sortie):
+    """Vrai si `projet` est la racine de son dépôt Git, sinon une `GARDE:` (rien fusionné) : `matin` et `fusionner`."""
     code, haut = git_texte(["rev-parse", "--show-toplevel"], projet)
     try:
         racine = code == 0 and os.path.samefile(haut.strip(), projet)
@@ -7155,8 +7188,7 @@ def projet_du_matin(a, sortie):
         racine = False
     if not racine:
         sortie.write("GARDE: %s n'est pas la racine d'un dépôt Git — rien fusionné\n" % projet)
-        return None
-    return projet
+    return racine
 
 
 # Le sujet du commit d'un chantier mis de côté par la nuit (`mettre_de_cote`, boucle.py, qui l'importe) et son
@@ -7264,11 +7296,46 @@ def cmd_matin(a, sortie):
             sortie.write("DE CÔTÉ %s — %s\n" % (branche, courant))
             cote += 1
             continue
-        if fusionner_nuit(projet, branche, date, sortie):
+        if fusionner_branche(projet, branche, "Matin %s : %s" % (date, branche), sortie):
             return 1
         fusionnees += 1
     sortie.write("MATIN %d fusionnée(s) · %d de côté\n" % (fusionnees, cote))
     return 0
+
+
+def cmd_fusionner(a, sortie):
+    """`fusionner <projet> <branche>` (NUI26) : la fusion du jour, `branche` dans celle du dossier, par
+    `fusionner_branche` sous « Fusion : <branche> ». Gardes, rien fusionné : non équipé ou hors racine, `HEAD`
+    détachée, `MERGE_HEAD` présent, arbre sale, branche absente, branche qui garde un chantier ouvert (`de_cote`)."""
+    projet = os.path.abspath(a.projet)
+    if not equipe(projet):
+        sortie.write("GARDE: pas de CHANTIER.md dans %s — rien fusionné\n" % projet)
+        return 1
+    if not racine_du_depot(projet, sortie):
+        return 1
+    if git_texte(["symbolic-ref", "--short", "-q", "HEAD"], projet)[0] != 0:
+        sortie.write("GARDE: HEAD détachée — rien fusionné\n")
+        return 1
+    if git_texte(["rev-parse", "-q", "--verify", "MERGE_HEAD"], projet)[0] == 0:
+        sortie.write("GARDE: une fusion est déjà en cours (MERGE_HEAD) — rien fusionné\n")
+        return 1
+    code, sale = git_texte(["status", "--porcelain"], projet)
+    if code != 0 or sale.strip():
+        sortie.write("GARDE: arbre pas propre (%s) — rien fusionné\n" % (
+            "%d chemin(s)" % len(sale.splitlines()) if code == 0 else sale))
+        return 1
+    if git_texte(["rev-parse", "-q", "--verify", "%s^{commit}" % a.branche], projet)[0] != 0:
+        sortie.write("GARDE: branche absente : %s — rien fusionné\n" % a.branche)
+        return 1
+    if git_texte(["merge-base", "--is-ancestor", a.branche, "HEAD"], projet)[0] == 0:
+        sortie.write("DÉJÀ %s\n" % a.branche)
+        return 0
+    ouvert = de_cote(projet, a.branche)
+    if ouvert:
+        sortie.write("GARDE: %s garde un chantier ouvert (%s) — clos-le dans son worktree d'abord, rien fusionné\n"
+                     % (a.branche, ouvert))
+        return 1
+    return 1 if fusionner_branche(projet, a.branche, "Fusion : %s" % a.branche, sortie) else 0
 
 
 # --- matin --rapport : le carnet complété, la table des nuits, la page du matin (chantier NUI, fiche NUI19) ------------
@@ -7880,6 +7947,9 @@ def main(argv, sortie=None, entree=None, erreur=None):
     pl.add_argument("--date")
     pl.add_argument("--canal", choices=CANAUX)
     pl.add_argument("--chantier")
+    fu = sous.add_parser("fusionner")
+    fu.add_argument("projet")
+    fu.add_argument("branche")
     ma = sous.add_parser("matin")
     ma.add_argument("projet")
     ma.add_argument("date", nargs="?")
@@ -7989,6 +8059,8 @@ def repartir(a, sortie, entree, erreur):
         return cmd_plan(a, sortie)
     if a.cmd == "matin":
         return cmd_matin(a, sortie)
+    if a.cmd == "fusionner":
+        return cmd_fusionner(a, sortie)
     if a.cmd == "chef":
         return cmd_chef_page(a.questions, a.sortie, sortie, lire(os.path.join(KIT, GABARIT_CHOIX)))
     if a.cmd == "joints":

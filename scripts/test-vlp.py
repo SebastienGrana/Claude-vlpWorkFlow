@@ -6979,6 +6979,98 @@ def tester_wip_de_cote():
 
 tester_wip_de_cote()
 
+
+def tester_fusionner():
+    """NUI26 : `vlp.py fusionner <projet> <branche>`, la fusion du jour par le chemin de `matin` — un worktree qui clôt
+    le chantier de main le libère ; un worktree qui ouvre puis clôt PAR laisse à main le sien ; six refus et `DÉJÀ`."""
+    if not shutil.which("git"):
+        print("SAUTÉ: git absent — fusionner n'est pas testé")
+        return
+    with tempfile.TemporaryDirectory() as tr:
+        d, wt = os.path.join(tr, "f"), os.path.join(tr, "wt-clot")
+        depot_matin(d)
+        loc = os.path.join(d, "ctx", "40-loc.md")
+        ecrire(loc, lire(loc).replace("# Chantier LOC — Publier\n", "# Chantier LOC — Publier\n\n%s\n" % OUVERT_DU_JOUR))
+        commit_matin(d, "LOC marqué", 0)
+        git_matin(d, "worktree", "add", "-q", "-b", "clot-loc", wt, "main")
+        postit = mod.postit(wt)
+        assert postit
+        ecrire(postit, "ctx/40-loc.md\n")       # le worktree reprend le chantier de main : son post-it le nomme
+        code_clore, s_clore = appel(["clore", wt, "--livre", "LOC livré", "--date", JOUR_MATIN])
+        commit_matin(wt, "Chantier LOC clos", 1)
+        code, s = appel(["fusionner", d, "clot-loc"])
+        carte_ = mod.lignes_de(os.path.join(d, "CHANTIER.md"))
+        ecrire(os.path.join(d, "ctx", "50-neo.md"), "# Chantier NEO — Neuf\n\n## NEO1 [ ] — a\n")
+        code_ouvrir, s_ouvrir = appel(["ouvrir", d, "--fiches", "ctx/50-neo.md", "--titre", "Neuf"])
+        neo = lire(os.path.join(d, "ctx", "50-neo.md"))
+    verifier("NUI26 (a) un worktree clôt LOC, le chantier de main : clore dit la ligne FUSIONNER ; fusionner depuis main "
+             "→ FUSIONNÉE, commit « Fusion : clot-loc », main à aucun (courant et artefact) ; ouvrir passe ensuite — "
+             "mutant : l'exception **CLOS** retirée",
+             code_clore == 0 and ('FUSIONNER depuis %s : ' % d.replace("\\", "/")) in s_clore.replace("\\", "/")
+             and ' fusionner "' in s_clore and s_clore.rstrip().endswith(" clot-loc")
+             and code == 0 and s == "FUSIONNÉE clot-loc\n"
+             and mod.champ(carte_, "fichier de fiches courant") == "aucun" and mod.champ(carte_, "artefact du chantier") == "aucun"
+             and code_ouvrir == 0 and "**Ouvert.**" in neo,
+             (code_clore, s_clore, code, s, carte_, code_ouvrir, s_ouvrir))
+
+    with tempfile.TemporaryDirectory() as tr:
+        d, vide = os.path.join(tr, "g"), os.path.join(tr, "vide")
+        depot_matin(d)
+        os.makedirs(vide)
+
+        def branche(nom, fichier, corps, carte_aucun):
+            """`nom`, depuis main, dans un worktree : `fichier` écrit avec `corps` ; `carte_aucun` : CHANTIER.md à
+            `aucun` et la lettre PAR ajoutée, comme `clore` l'écrit."""
+            w = os.path.join(tr, "wt-" + nom)
+            git_matin(d, "worktree", "add", "-q", "-b", nom, w, "main")
+            ecrire(os.path.join(w, fichier), corps)
+            if carte_aucun:
+                chemin = os.path.join(w, "CHANTIER.md")
+                c = re.sub(r"(\*\*(?:fichier de fiches courant|artefact du chantier)\*\* : ).*", r"\g<1>aucun", lire(chemin))
+                ecrire(chemin, c.replace(". Un nouveau chantier", ", PAR (Deux chantiers). Un nouveau chantier"))
+            commit_matin(w, nom, 2)
+
+        branche("par", "ctx/60-par.md", "# Chantier PAR — Deux\n\n%s\n\n**CLOS** le %s.\n\n## PAR1 [x] — a\n"
+                % (OUVERT_DU_JOUR, JOUR_MATIN), True)
+        branche("ouvre", "ctx/70-ouv.md", "# Chantier OUV — Ouvert\n\n%s\n\n## OUV1 [ ] — a\n" % OUVERT_DU_JOUR, False)
+        refus = [appel(["fusionner", vide, "par"])]
+        ecrire(os.path.join(d, "sous", "CHANTIER.md"), "# C\n")
+        refus.append(appel(["fusionner", os.path.join(d, "sous"), "par"]))
+        shutil.rmtree(os.path.join(d, "sous"))
+        git_matin(d, "switch", "-q", "--detach")
+        refus.append(appel(["fusionner", d, "par"]))
+        git_matin(d, "switch", "-q", "main")
+        git_matin(d, "merge", "-q", "--no-ff", "--no-commit", "ouvre")
+        refus.append(appel(["fusionner", d, "par"]))
+        git_matin(d, "merge", "--abort")
+        ecrire(os.path.join(d, "scripts", "x.py"), "sale\n")
+        refus.append(appel(["fusionner", d, "par"]))
+        git_matin(d, "checkout", "-q", "--", ".")
+        refus.append(appel(["fusionner", d, "nulle-part"]))
+        refus.append(appel(["fusionner", d, "ouvre"]))
+        ouvre_fusionne = code_git(d, "merge-base", "--is-ancestor", "ouvre", "main") == 0
+        code, s = appel(["fusionner", d, "par"])
+        carte_ = mod.lignes_de(os.path.join(d, "CHANTIER.md"))
+        sujet = git_matin(d, "log", "-1", "--format=%s").strip()
+        deja = appel(["fusionner", d, "par"])
+    attendu = ("GARDE: pas de CHANTIER.md dans", "n'est pas la racine d'un dépôt Git", "GARDE: HEAD détachée",
+               "GARDE: une fusion est déjà en cours (MERGE_HEAD)", "GARDE: arbre pas propre (1 chemin(s))",
+               "GARDE: branche absente : nulle-part", "GARDE: ouvre garde un chantier ouvert (ctx/70-ouv.md) — clos-le")
+    verifier("NUI26 (b) six refus, un cas chacun (non équipé, hors racine, HEAD détachée, MERGE_HEAD, arbre sale, branche "
+             "absente) et la branche qui garde un chantier ouvert — sort 1, rien fusionné",
+             len(refus) == len(attendu) and all(c == 1 and a in r and "rien fusionné" in r for (c, r), a in zip(refus, attendu))
+             and not ouvre_fusionne, refus)
+    verifier("NUI26 (c) un worktree ouvre puis clôt PAR : fusionner → main garde LOC (courant et artefact), PAR ajouté aux "
+             "lettres, commit « Fusion : par » ; rejoué → DÉJÀ par, sort 0",
+             code == 0 and s == "FUSIONNÉE par\n" and sujet == "Fusion : par"
+             and mod.champ(carte_, "fichier de fiches courant") == "ctx/40-loc.md (LOC1..LOC1)"
+             and mod.champ(carte_, "artefact du chantier") == "https://claude.ai/artifact/LOC"
+             and mod.lettres_prises(carte_) == ["E", "ENQ", "PAR"] and deja == (0, "DÉJÀ par\n"),
+             (code, s, sujet, carte_, deja))
+
+
+tester_fusionner()
+
 if ECARTS:
     sys.exit(1)
 print("OK")

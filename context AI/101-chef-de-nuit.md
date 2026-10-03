@@ -1237,8 +1237,9 @@ Tu ne fais pas : `de_cote` (`NUI24`), la fusion (`NUI26`).
 ---
 
 <!-- FICHE:NUI26 -->
-## NUI26 [ ] — `vlp.py fusionner <branche>`, la fusion du jour
+## NUI26 [x] — `vlp.py fusionner <branche>`, la fusion du jour
 
+**Session** : bf7412ea-120b-47fa-933e-6b54b408b2f4
 **Dépend de** : `NUI23`, `NUI24`.
 **Fichiers** : `scripts/vlp.py`, `scripts/boucle.py`, `scripts/test-vlp.py` ; lus : `vlp.py:6535-6565` (`OUVERT_CARTE`,
 `neutre`, `restaurer`), `:6894-7000` (`fusionner_nuit`), `:7001-7025`, `:7080-7092`, `boucle.py:1150-1155`, `:1261` — et rien d'autre.

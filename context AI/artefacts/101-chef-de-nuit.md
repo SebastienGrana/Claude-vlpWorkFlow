@@ -27,7 +27,7 @@
 - NUI23 : test-vlp OK (0 ÉCART, 6 anciens tests remis au modèle de la marque par sans_chantier) ; mutant artefact toujours repris ATTRAPÉ (1 écart) ; pyright 0 errors ; migré = fichier titré marqué seulement
 - NUI24 : test-vlp OK (0 ÉCART) ; mutant « pointe WIP non lue » ATTRAPÉ ; « mis de côté : » dans boucle.py 3 → 0 ; pyright 0
 - NUI25 : test-boucle OK (NUI25 4/4 : hérité ni joué ni touché, découpage vide, GARDE au départ, GARDE après clore) ; test-vlp OK 0 ÉCART ; mutant 952 ligne brute ATTRAPÉ ; pyright 0 ; faux-claude.py touché hors liste (fichier dans le contexte)
-- NUI26 : vlp.py fusionner, la fusion du jour, main ne reste plus bloqué ; après NUI23, NUI24
+- NUI26 : test-vlp OK (0 écart, 19:32→19:41) ; mutant exception CLOS → MUTANT ATTRAPÉ 1 écart (NUI26 a) ; pyright 0 ; « main » en dur : vlp.py 2 → 1 (cmd_matin, choix A), boucle.py 2 (cause_de_refus, lanceur, choix A), label merge-file → HEAD
 - NUI27 : une lettre en double donne une GARDE ; après NUI26
 - NUI28 : la carte voit les chantiers des autres worktrees ; après NUI22
 - NUI29 : la prose des commandes lit COURANT= ; après NUI23, NUI25, NUI26, NUI28
