@@ -88,8 +88,9 @@ et `VIT11` tout `test-vlp.py` : une à la fois.
 ---
 
 <!-- FICHE:VIT1 -->
-## VIT1 [ ] — Mesurer la base
+## VIT1 [x] — Mesurer la base
 
+**Session** : 460c9244-0d39-4a2e-9804-ea49b5ad1cb0
 **Dépend de** : rien.
 **Fichiers** : `context AI/08-etat.md` (une entrée datée) — et rien d'autre ; aucun script modifié.
 

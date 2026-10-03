@@ -2,7 +2,7 @@
 ## Résultat
 Coder plus vite et mieux. Une fiche attend moins ses tests et lit moins de contexte — mesuré avant (VIT1) et après (VIT13) — sans qu'un seul contrôle soit retiré ; le code qu'elle laisse est sain, facile à maintenir et documenté.
 ## Notes
-- VIT1 : la base mesurée : suites, mutant, lancements, contexte, charge
+- VIT1 : Entrée « VIT1 — la base » dans 08-etat.md, six lignes avec commande et comptes bruts ; machine libérée : test-vlp 571 et 535 s, test-boucle 425 et 428 s, mutant 538 s attrapé par NUI27 (a), lancements 362 et 71 ms ; chaque soustraction dite « estimé ».
 - VIT2 : le mutant joue dans une copie du kit et s'arrête sur le test attendu ; dépend de VIT1
 - VIT3 : les fichiers d'un commit lus en un appel Git ; dépend de VIT1
 - VIT4 : un dépôt modèle copié dans les tests ; dépend de VIT1
