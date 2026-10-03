@@ -197,6 +197,18 @@ Elles sont écrites ici, et nulle part ailleurs : le reste du kit y renvoie.
   Haiku 4.5 des longues boucles d'agent et donnait la méthode (tout en effort
   bas, relancer les échecs plus haut) — restait seulement le coût par fiche dans
   le kit.
+- **L'effort se règle selon la tâche, et se dit avant** — décision de
+  l'utilisateur, le 2026-10-04. Plus bas pour le mécanique (lancer un script,
+  publier, commiter, mesurer), plus haut pour ce qui se conçoit ou se débogue.
+  Tout changement s'annonce d'abord par un petit message : le modèle et
+  l'effort, avant → après, et pourquoi (« Opus 5.5 · effort high → medium : la
+  suite est mécanique »). Le niveau en cours se lit, il ne se suppose pas
+  (`get_session` sur `self`, dans l'app de bureau) : l'utilisateur le change à
+  tout moment. Sa propre session, Claude ne la change pas — l'outil de l'app
+  refuse (« a session must not silently re-price its own turns ») : il dit le
+  niveau voulu, l'utilisateur le règle. Une session qu'il lance
+  (`boucle.py --effort`, `set_session_effort` sur une autre session), il en
+  règle l'effort lui-même, annoncé de la même façon.
 
 ## Les trois temps
 
