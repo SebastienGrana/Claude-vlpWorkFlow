@@ -11,8 +11,8 @@ mutant rejoue toute la suite (médiane 602 s, A1) et `test-vlp.py` passe 86 % de
 (105,7 s sur 123,2 s, A2). VIT raccourcit l'attente sans retirer un contrôle, et laisse le code qu'il touche sain,
 maintenable et documenté. Ensuite : la méthode du kit, puis la TODO re-cadrée (n° 99), avant de reprendre NUI.
 
-**Fait.** Rien. Ouvert le 2026-10-03, cadré en 13 fiches, `VIT1` à jouer. NUI en pause, reprise à `NUI28` après VIT
-et la méthode (n° 99).
+**Fait.** `VIT1`, la base (2026-10-04). Plan revu après elle (entrée du même jour dans `08-etat.md`) : `VIT4` retirée,
+son numéro non repris ; `VIT14` ajoutée après `VIT2`. NUI en pause, reprise à `NUI28` après VIT et la méthode (n° 99).
 
 **Session** : bf7412ea-120b-47fa-933e-6b54b408b2f4
 
@@ -21,6 +21,7 @@ et la méthode (n° 99).
 **D'où il vient.** Deux audits indépendants (A1, A2) et leur synthèse croisée, le 2026-10-03, dans le scratchpad de la
 session bf7412ea : **non versionnés, ils disparaîtront** — les chiffres utiles sont recopiés ici, avec leur source.
 Décisions : https://claude.ai/artifact/3maXrvHBKj85QYybrnPubx. Chaque fiche remesure ce dont elle dépend, avant/après.
+**La base** : l'entrée « VIT1 — la base » de `context AI/08-etat.md` (2026-10-04) — l'« avant » d'un critère s'y lit.
 
 **Les décisions de l'utilisateur** (2026-10-03) — la page, Q1 à Q9 :
 - Q1 VIT **avant** la fin de NUI. Q2 mutant arrêté sur **le test attendu** (`--attendu`), pas sur le premier écart.
@@ -55,7 +56,6 @@ Décisions : https://claude.ai/artifact/3maXrvHBKj85QYybrnPubx. Chaque fiche rem
 | `premier_lancement` | `scripts/vlp.py` | le tampon qui empêche un hook d'agir deux fois |
 | `verifier`, `appel`, `ECARTS` | `scripts/test-vlp.py` | un contrôle ; `vlp` appelé dans le processus ; les écarts |
 | `tester_boucle` | `scripts/test-vlp.py` | lance `test-boucle.py` en série — lui ignore `VLP_TOUS_ECARTS` (synthèse) |
-| `depot_matin` | `scripts/test-vlp.py` | reconstruit un dépôt d'essai : 15 appels par suite (synthèse) |
 | `vlp`, `kit` | `scripts/boucle.py` | `vlp.py` en sous-processus ; `vlp.py` chargé comme module |
 | hooks | `hooks/hooks.json` | 7 entrées, chacune en `python3` puis en `py` |
 | relecteur | `agents/relecture.md` | rejoue AVANT, APRÈS, puis le mutant |
@@ -70,19 +70,19 @@ d'échange, plugins : Q9).
 |---|---|---|
 | `VIT1` | Mesurer la base | rien |
 | `VIT2` | Muter une copie du kit, arrêté sur le test attendu | `VIT1` |
+| `VIT14` | Les deux cas de clôture qui tombent sous charge | `VIT1` |
 | `VIT3` | Lire les fichiers d'un commit en un seul appel Git | `VIT1` |
-| `VIT4` | Copier un dépôt modèle dans les tests du matin | `VIT1` |
 | `VIT5` | Faire de `vlp.py` un lanceur mince | `VIT2` |
 | `VIT6` | Appeler `vlp` dans le processus de `boucle.py` | `VIT5` |
-| `VIT7` | Lancer `test-boucle` en parallèle de `test-vlp` | `VIT3`, `VIT4`, `VIT6` |
+| `VIT7` | Lancer `test-boucle` en parallèle de `test-vlp` | `VIT3`, `VIT6`, `VIT14` |
 | `VIT8` | Un seul Python dans les hooks | `VIT5` |
 | `VIT9` | Une carte des symboles, et des fiches sans numéros de ligne | rien |
 | `VIT10` | Ranger les tests en groupes nommés, et n'en jouer qu'un | `VIT9` |
 | `VIT11` | La suite complète exigée au commit | `VIT10` |
 | `VIT12` | Le relecteur ne rejoue que le nouveau test dans AVANT | `VIT2`, `VIT10` |
-| `VIT13` | Mesurer la fin, avant/après | toutes |
+| `VIT13` | Mesurer la fin, avant/après | `VIT7`, `VIT8`, `VIT11`, `VIT12` — et, par elles, toutes |
 
-Jouées dans l'ordre des numéros, les dépendances tiennent. `VIT5` à `VIT8` touchent le démarrage des scripts, `VIT10`
+Jouées dans l'ordre du fichier — `VIT14` après `VIT2`, `VIT4` retirée —, les dépendances tiennent. `VIT5` à `VIT8` touchent le démarrage des scripts, `VIT10`
 et `VIT11` tout `test-vlp.py` : une à la fois.
 
 ---
@@ -133,6 +133,9 @@ tourne mutée, et un `.pyc` validé par la date à la seconde et la taille peut 
    de ~600, a rendu `MUTANT ATTRAPÉ 1 écart(s)`, `scripts/vlp.py:7731-7733`).
 3. `--tous`, ou aucune des deux options : l'ancien comportement (tous les écarts), dans la copie — les appels déjà
    écrits marchent ; un arrêt en erreur s'y dit aussi `MUTANT PLANTÉ`.
+4. Dans `test-vlp.py`, l'appel `tester_boucle()` passe en dernier : un écart de `test-vlp` tombe alors avant
+   `test-boucle`, les trois quarts de la suite (`VIT1`). Le test de `NUI27` venait après cet appel : `--attendu` seul
+   n'y aurait rien gagné. Mêmes contrôles ; seul l'ordre des lignes de sortie change.
 Le paragraphe du mutant dans `methode-chantier.md` : `--attendu` devient la forme par défaut.
 
 **Critère de fin**
@@ -141,6 +144,35 @@ Le paragraphe du mutant dans `methode-chantier.md` : `--attendu` devient la form
    s'arrête en erreur après un autre écart → `MUTANT PLANTÉ`, sort 1.
 2. Le mutant de `NUI27` rejoué avec `--attendu` : durée avant (`VIT1`) / après, comptes bruts.
 3. pyright 0 ; `verifier(` avant ≤ après ; les critères de code sain du socle, mesurés.
+<!-- /FICHE -->
+
+---
+
+<!-- FICHE:VIT14 -->
+## VIT14 [ ] — Les deux cas de clôture qui tombent sous charge
+
+**Dépend de** : `VIT1`.
+**Fichiers** : `scripts/test-boucle.py`, et le fichier où vit la cause (`scripts/boucle.py`, `scripts/faux-claude.py`
+ou `scripts/vlp.py`), nommé au compte rendu.
+
+**Prompt**
+À `VIT1`, mémoire réservée à 98–100 %, deux passages sur quatre sont tombés sur un cas de clôture de `test-boucle.py`,
+sans aucune erreur mémoire dans les journaux : `NUI7 (c)` et `NUI25 (d)` ; machine libérée, quatre sur quatre verts
+(entrée « VIT1 — la base » de `08-etat.md`). Un faux rouge fait rejouer une suite, et use la confiance dans les tests.
+Elle passe tôt — avant `VIT5` et `VIT6`, qui changent les lancements et `boucle.py`, et avant `VIT7`, qui ajoute de la
+charge — pour chercher la cause sur le code où elle se montre.
+1. Reproduis d'abord, sans toucher aux réglages de la machine : les deux cas, isolés dans un essai à part, sous une
+   charge simulée (plusieurs copies jouées en même temps). Compte les échecs sur un nombre d'essais dit d'avance. Rien
+   ne tombe : arrête-toi (`RETOUR`), avec les essais et leurs comptes.
+2. Trouve la cause et nomme-la : la fonction, et la condition qui casse (un délai fixe, une course entre deux
+   processus, un fichier lu avant d'être écrit…).
+3. Corrige la cause : jamais un délai allongé à l'aveugle, jamais un contrôle retiré ou assoupli. Un test force la
+   condition sans charge, pour que le défaut se voie à chaque passage.
+
+**Critère de fin**
+1. Sous la même charge simulée : échecs avant / après, sur le même nombre d'essais, comptes bruts.
+2. `py -3 scripts/test-vlp.py` → `OK` ; `verifier(` avant ≤ après ; mutant attrapé (la cause remise) ; pyright 0 ;
+   les critères de code sain du socle.
 <!-- /FICHE -->
 
 ---
@@ -161,25 +193,6 @@ fichier absent compris.
 1. `py -3 scripts/test-vlp.py` → `OK` ; un test compare l'ancien et le nouveau lecteur sur un dépôt à 3 fichiers.
 2. `vlp.py ouverts . --rev HEAD` : durée avant/après, 5 essais, médiane.
 3. Mutant attrapé (une entrée décalée) ; pyright 0 ; les critères de code sain du socle.
-<!-- /FICHE -->
-
----
-
-<!-- FICHE:VIT4 -->
-## VIT4 [ ] — Copier un dépôt modèle dans les tests du matin
-
-**Dépend de** : `VIT1`.
-**Fichiers** : `scripts/test-vlp.py` — et rien d'autre.
-
-**Prompt**
-`depot_matin` reconstruit le même dépôt à chacun de ses 15 appels (synthèse) : `git init` + 3 commits coûtent 363 à
-508 ms, une copie 56 à 57 ms (A2, A1) ; `tester_matin` pèse 73,0 s, 59 % de `test-vlp.py` hors `test-boucle` (A2).
-Construis le modèle une fois par suite, copie-le ensuite (`shutil.copytree`, `.git` compris). Les commits gardent
-leurs dates fixées (`commit_matin`). Aucun test ne change de ce qu'il vérifie.
-
-**Critère de fin**
-`py -3 scripts/test-vlp.py` → `OK` ; `verifier(` : même compte ; durée de `tester_matin` avant/après (chronométrée
-dans un essai à part), comptes bruts ; les critères de code sain du socle.
 <!-- /FICHE -->
 
 ---
@@ -232,7 +245,7 @@ où et arrête-toi (`RETOUR`). A1 estime le gain à −35 à −45 % de `test-bo
 <!-- FICHE:VIT7 -->
 ## VIT7 [ ] — Lancer `test-boucle` en parallèle de `test-vlp`
 
-**Dépend de** : `VIT3`, `VIT4`, `VIT6`.
+**Dépend de** : `VIT3`, `VIT6`, `VIT14`.
 **Fichiers** : `scripts/test-vlp.py`.
 
 **Prompt**
@@ -355,7 +368,7 @@ d'autre au contrat.
 <!-- FICHE:VIT13 -->
 ## VIT13 [ ] — Mesurer la fin, avant/après
 
-**Dépend de** : toutes.
+**Dépend de** : `VIT7`, `VIT8`, `VIT11`, `VIT12` — et, par elles, toutes les autres.
 **Fichiers** : `context AI/08-etat.md` (une entrée datée) — et rien d'autre.
 
 **Prompt**

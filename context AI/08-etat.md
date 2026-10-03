@@ -2516,3 +2516,14 @@ for c in (['py','-3','scripts/vlp.py','lignes','CHANTIER.md'], ['py','-3','-c','
     print(' '.join(c), 'médiane', round(st.median(t) * 1000), 'ms · max', round(max(t) * 1000), 'ms')
 "
 ```
+
+## 2026-10-04 — VIT : le plan revu après VIT1
+
+Demande de l'utilisateur : « après tes mesures, regarde si le plan tient toujours ». Il tient : la base de `VIT1` garde les ordres de grandeur des audits (suite 553 s contre une médiane de 602 s à A1 ; `test-vlp` sans `test-boucle` ≈ 126,5 s contre ≈ 124 s déduits d'A2, 73,0 s à 59 %). Deux retouches tranchées par Claude, réversibles, et deux décisions de l'utilisateur (« D1 a · D2 a »).
+
+- **Retouche `VIT2`** : le test du mutant de `NUI27` vient après l'appel `tester_boucle()` de `test-vlp.py` ; arrêté sur lui, `--attendu` aurait encore attendu tout `test-boucle`. `VIT2` passe cet appel en dernier (son point 4) : mutant ≈ 538 → ≈ 130 s, **estimé** (la part de `test-vlp` sans `test-boucle`, plus la copie du kit).
+- **Retouche `VIT13`** : « Dépend de : toutes » n'était pas lu par `vlp.py page`, qui la disait lançable avec `VIT2` ; ses dépendances sont nommées.
+- **D1 a — `VIT4` retirée** : un dépôt construit une fois puis copié 15 fois, au lieu de 15 dépôts construits, gagnait 14 × (363 à 508) − 15 × (56 à 57) ms ≈ 4 à 6 s par suite (chiffres A2 et A1 de la fiche retirée), **estimé** : environ 1 % des 553 s ; rien sur la durée une fois `VIT7` faite (`test-boucle` reste le plus long) ; ≈ 3 à 5 % d'un mutant arrêté tôt. Proposée à l'utilisateur à « ≈ 5 à 7 s » (15 fois l'écart, sans la construction unique) : même verdict. Son numéro n'est pas repris ; à la clôture, `clore --abandon`.
+- **D2 a — `VIT14` ajoutée** : les deux cas de clôture tombés sous charge à `VIT1` (`NUI7 (c)`, `NUI25 (d)`, sans erreur mémoire), reproduits puis corrigés à la cause. Placée après `VIT2`, dont le mutant raccourci sert à son critère, et avant `VIT5` et `VIT6`, qui changent les lancements et `boucle.py` ; `VIT7`, qui ajoute de la charge, en dépend.
+- **Non reproposé** : le mutant sur un seul groupe de tests, écarté à Q2 (« attendu » choisi).
+- **Imprévu** : une note de la mémoire de Claude disait `test-vlp.py` « OK en ~3 min » le 2026-10-03 ; la transcription montre une lecture **en cours** à 17:04:33, et la fin à 17:10:27 (≈ 530 s) — pas de ralentissement depuis.
