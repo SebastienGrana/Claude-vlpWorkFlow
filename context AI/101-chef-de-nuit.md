@@ -6,6 +6,12 @@
 
 **Pause.** le 2026-10-03 — chantier VIT (`102-vitesse.md`) d'abord ; reprise à `NUI28`, page https://claude.ai/artifact/QSo3aJREQUqHpxMsXRnffd
 
+**À la reprise.** Après VIT, puis la méthode du kit (TODO n° 99), décision de l'utilisateur du 2026-10-03. Deux restes
+de la pause : `cout` et `page` compteront dans `NUI28` les tours de la session bf7412ea pendant VIT (la découpe part
+du dernier commit `NUI`, dans chaque session du fichier ; `NUI27` porte déjà le cadrage de VIT) — à recouper avant
+`clore` ; et la lettre `NUI` n'est protégée nulle part pendant la pause (la liste de `CHANTIER.md` ne porte que les
+clos, la feuille n'y ajoute que le courant).
+
 **À quoi il sert.** Le kit n'enchaîne qu'un chantier à la fois, et chacun attend l'utilisateur pour se cadrer et se clore.
 `/vlp:chef` cadre le soir, joue plusieurs chantiers la nuit sur deux canaux sans humain, fusionne et rend un rapport le matin.
 

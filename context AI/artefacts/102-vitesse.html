@@ -1,0 +1,105 @@
+<meta charset="utf-8">
+<title>vlp — Aller plus vite sans coder moins bien</title>
+<!--
+  GABARIT — artefact d'un chantier. Publié par /chantier à l'ouverture,
+  mis à jour par /tache à chaque fiche. Remplace les <…> et ne renomme pas
+  les marqueurs `ZONE:…` : les commandes les cherchent tels quels.
+
+  Convention de coût — posée ici, référencée (jamais recopiée) par
+  artefact-feuille-de-route.html, tache.md et cloture.md : un nombre < 1000
+  s'affiche tel quel ; au-delà, "≈<arrondi 1 décimale><k|M> (<compte brut>)"
+  — virgule française, k = mille, M = million. Le compte brut reste toujours
+  visible à côté de l'arrondi.
+-->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700&family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:wght@400;600&display=swap">
+<link rel="stylesheet" href="vlp.css">
+
+<div class="page">
+  <header>
+    <div class="eyebrow">vlp · fiches VIT1–VIT13 · <a href="https://claude.ai/artifact/YWDny8kjubq9DhdP5rbPxA">la feuille de route</a></div>
+    <h1>Aller plus vite sans coder moins bien</h1>
+    <p>Coder plus vite et mieux. Une fiche attend moins ses tests et lit moins de contexte — mesuré avant (VIT1) et après (VIT13) — sans qu'un seul contrôle soit retiré ; le code qu'elle laisse est sain, facile à maintenir et documenté.</p>
+    <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
+    <div class="avancement">
+      <span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+    </div>
+    <p class="mono" style="margin-top:.5rem">13 fiches · 0 faite · en cours : VIT1</p>
+  </header>
+
+  <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
+  <section hidden>
+    <h2>Chantier clos le </h2>
+    <div class="bilan">
+      <p></p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Les fiches, dans l'ordre des dépendances</h2>
+    <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
+    <ul class="fiches">
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">VIT1</span></span>
+        <details open><summary><span class="titre">Mesurer la base</span><span class="etat">En cours · VIT9 peut partir en même temps</span></summary>
+        <span class="note">la base mesurée : suites, mutant, lancements, contexte, charge</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">VIT2</span></span>
+        <details><summary><span class="titre">Muter une copie du kit, arrêté sur le test attendu</span><span class="etat">Après VIT1</span></summary>
+        <span class="note">le mutant joue dans une copie du kit et s'arrête sur le test attendu ; dépend de VIT1</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">VIT3</span></span>
+        <details><summary><span class="titre">Lire les fichiers d'un commit en un seul appel Git</span><span class="etat">Après VIT1</span></summary>
+        <span class="note">les fichiers d'un commit lus en un appel Git ; dépend de VIT1</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">VIT4</span></span>
+        <details><summary><span class="titre">Copier un dépôt modèle dans les tests du matin</span><span class="etat">Après VIT1</span></summary>
+        <span class="note">un dépôt modèle copié dans les tests ; dépend de VIT1</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">VIT5</span></span>
+        <details><summary><span class="titre">Faire de vlp.py un lanceur mince</span><span class="etat">Après VIT2</span></summary>
+        <span class="note">vlp.py devient un lanceur mince, le code en cache ; dépend de VIT2</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">VIT6</span></span>
+        <details><summary><span class="titre">Appeler vlp dans le processus de boucle.py</span><span class="etat">Après VIT5</span></summary>
+        <span class="note">boucle.py appelle vlp sans nouveau processus ; dépend de VIT5</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">VIT7</span></span>
+        <details><summary><span class="titre">Lancer test-boucle en parallèle de test-vlp</span><span class="etat">Après VIT3, VIT4, VIT6</span></summary>
+        <span class="note">test-boucle en parallèle de test-vlp ; dépend de VIT3, VIT4, VIT6</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">VIT8</span></span>
+        <details><summary><span class="titre">Un seul Python dans les hooks</span><span class="etat">Après VIT5</span></summary>
+        <span class="note">un seul Python par hook ; dépend de VIT5</span></details></li>
+      <li class="fiche"><span class="gauche"><span class="id">VIT9</span></span>
+        <details><summary><span class="titre">Une carte des symboles, et des fiches sans numéros de ligne</span><span class="etat">À lancer · en même temps que VIT1</span></summary>
+        <span class="note">une carte des symboles, des fiches sans numéros de ligne</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">VIT10</span></span>
+        <details><summary><span class="titre">Ranger les tests en groupes nommés, et n'en jouer qu'un</span><span class="etat">Après VIT9</span></summary>
+        <span class="note">les tests rangés en groupes nommés, un seul jouable ; dépend de VIT9</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">VIT11</span></span>
+        <details><summary><span class="titre">La suite complète exigée au commit</span><span class="etat">Après VIT10</span></summary>
+        <span class="note">la suite entière exigée au commit ; dépend de VIT10</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">VIT12</span></span>
+        <details><summary><span class="titre">Le relecteur ne rejoue que le nouveau test dans AVANT</span><span class="etat">Après VIT2, VIT10</span></summary>
+        <span class="note">le relecteur ne rejoue que le nouveau test avant ; dépend de VIT2, VIT10</span></details></li>
+      <li class="fiche"><span class="gauche"><span class="id">VIT13</span></span>
+        <details><summary><span class="titre">Mesurer la fin, avant/après</span><span class="etat">À lancer</span></summary>
+        <span class="note">la fin mesurée, avant/après ; dépend de toutes</span></details></li>
+    </ul>
+    <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
+  </section>
+
+  <!-- ZONE:blocage — publiée quand /tache s'arrête après deux tentatives ; retirée dès que la fiche repasse -->
+  <section hidden>
+    <h2>Arrêt sur blocage</h2>
+    <div class="blocage">
+      <p></p>
+      <pre></pre>
+    </div>
+  </section>
+
+  <section>
+    <h2>Journal des décisions</h2>
+    <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
+    <ul class="journal">
+    </ul>
+  </section>
+
+  <footer>
+    <span>Fichier de fiches : <span class="mono">context AI/102-vitesse.md</span></span>
+    <span>Mis à jour le <span class="mono">2026-10-03</span></span>
+  </footer>
+</div>
+<script src="vlp.js"></script>

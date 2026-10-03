@@ -13,10 +13,10 @@
 - **chantiers possibles** : context AI/08-etat.md
 - **fichier d'état** : context AI/08-etat.md
 - **index** : context AI/00-INDEX.md
-- **fichier de fiches courant** : aucun
+- **fichier de fiches courant** : context AI/102-vitesse.md (VIT1..VIT13)
 - **artefact feuille de route** : https://claude.ai/artifact/YWDny8kjubq9DhdP5rbPxA
 - **artefact archive** : https://claude.ai/artifact/JzWV9N32aJuZf9zweyZdjn
-- **artefact du chantier** : aucun
+- **artefact du chantier** : https://claude.ai/artifact/GWbG6AsNR3yw9755DR1kMb
 - **livraison** : aucune — le plugin est chargé en place ; `/reload-plugins` pour
   que la session en cours voie une modification
 - **vérification** : geste de l'utilisateur — rejouer la commande modifiée sur un
