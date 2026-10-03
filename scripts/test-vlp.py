@@ -7071,6 +7071,72 @@ def tester_fusionner():
 
 tester_fusionner()
 
+
+def tester_lettres_doublon():
+    """NUI27 : un code pris deux fois n'est plus avalé — à la fusion, même lettre et titres différents → `GARDE:` avant
+    toute écriture, même entrée → rien ; `ouvrir` refuse un code déjà ouvert dans un autre worktree, pas le sien hérité."""
+    if not shutil.which("git"):
+        print("SAUTÉ: git absent — les lettres en double ne sont pas testées")
+        return
+    with tempfile.TemporaryDirectory() as tr:
+        d = os.path.join(tr, "l")
+        depot_matin(d)
+
+        def lettre(nom, entree):
+            """`nom`, depuis main, dans un worktree : `entree` ajoutée à la liste des lettres et CHANTIER.md à `aucun`,
+            comme `clore` l'écrit — sinon la branche garde LOC ouvert et `fusionner` la met de côté —, puis commitée."""
+            w = os.path.join(tr, "wt-" + nom)
+            git_matin(d, "worktree", "add", "-q", "-b", nom, w, "main")
+            chemin = os.path.join(w, "CHANTIER.md")
+            c = re.sub(r"(\*\*(?:fichier de fiches courant|artefact du chantier)\*\* : ).*", r"\g<1>aucun", lire(chemin))
+            ecrire(chemin, c.replace(". Un nouveau chantier", ", %s. Un nouveau chantier" % entree))
+            commit_matin(w, nom, 3)
+
+        lettre("pa", "PAR (A)")
+        lettre("pb", "PAR (B)")
+        lettre("pc", "`PAR` (A)")
+        code_a, s_a = appel(["fusionner", d, "pa"])
+        tete = git_matin(d, "rev-parse", "HEAD")
+        code_b, s_b = appel(["fusionner", d, "pb"])
+        propre = git_matin(d, "status", "--porcelain") == "" and git_matin(d, "rev-parse", "HEAD") == tete
+        en_cours = code_git(d, "rev-parse", "-q", "--verify", "MERGE_HEAD") == 0
+        code_c, s_c = appel(["fusionner", d, "pc"])
+        lettres = mod.lettres_prises(mod.lignes_de(os.path.join(d, "CHANTIER.md")))
+    verifier("NUI27 (a) PAR (A) fusionné, puis PAR (B) → GARDE: le code PAR est pris deux fois, sort 1, rien écrit "
+             "(status vide, HEAD immobile, pas de MERGE_HEAD) — mutant : le saut silencieux remis",
+             (code_a, s_a) == (0, "FUSIONNÉE pa\n") and code_b == 1
+             and s_b.startswith("GARDE: le code PAR est pris deux fois : « A » et « B »") and propre and not en_cours,
+             (code_a, s_a, code_b, s_b, propre, en_cours))
+    verifier("NUI27 (b) la même entrée des deux côtés, aux backticks près → fusion sans garde, PAR compté une fois",
+             (code_c, s_c) == (0, "FUSIONNÉE pc\n") and lettres == ["E", "ENQ", "PAR"], (code_c, s_c, lettres))
+
+    with tempfile.TemporaryDirectory() as tr:
+        d, wz, wh = os.path.join(tr, "o"), os.path.join(tr, "wt-zed"), os.path.join(tr, "wt-her")
+        depot_matin(d)
+        carte = os.path.join(d, "CHANTIER.md")       # main libre : sans marque, sa ligne ferait LOC courant
+        ecrire(carte, re.sub(r"(\*\*(?:fichier de fiches courant|artefact du chantier)\*\* : ).*", r"\g<1>aucun", lire(carte)))
+        commit_matin(d, "main libre", 3)
+        git_matin(d, "worktree", "add", "-q", "-b", "zed", wz, "main")
+        ecrire(os.path.join(wz, "ctx", "80-zed.md"), "# Chantier ZED — Un\n\n%s\n\n## ZED1 [ ] — a\n" % OUVERT_DU_JOUR)
+        bis = os.path.join(d, "ctx", "81-zed.md")
+        ecrire(bis, "# Chantier ZED — Bis\n\n## ZED1 [ ] — a\n")
+        carte_avant = lire(os.path.join(d, "CHANTIER.md"))
+        code_z, s_z = appel(["ouvrir", d, "--fiches", "ctx/81-zed.md", "--titre", "Bis"])
+        intact = lire(os.path.join(d, "CHANTIER.md")) == carte_avant and "**Ouvert.**" not in lire(bis)
+        os.remove(bis)
+        ecrire(os.path.join(d, "ctx", "82-her.md"), "# Chantier HER — Hérité\n\n%s\n\n## HER1 [ ] — a\n" % OUVERT_DU_JOUR)
+        commit_matin(d, "HER ouvert", 4)
+        git_matin(d, "worktree", "add", "-q", "--detach", wh, "main")
+        code_h, s_h = appel(["ouvrir", d, "--fiches", "ctx/82-her.md", "--titre", "Hérité"])
+    verifier("NUI27 (c) ouvrir ZED quand un autre worktree a ZED ouvert → GARDE: déjà ouvert ailleurs, sort 1, rien écrit ; "
+             "le même fichier hérité par un worktree détaché ne bloque pas sa réouverture",
+             code_z == 1 and s_z.startswith("GARDE: le code ZED est déjà ouvert ailleurs : ctx/80-zed.md dans ")
+             and "wt-zed" in s_z and intact and code_h == 0,
+             (code_z, s_z, intact, code_h, s_h))
+
+
+tester_lettres_doublon()
+
 if ECARTS:
     sys.exit(1)
 print("OK")

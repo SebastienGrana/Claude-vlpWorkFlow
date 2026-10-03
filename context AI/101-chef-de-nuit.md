@@ -1268,8 +1268,9 @@ Tu ne fais pas : la prose (`NUI29`), la GARDE de lettre (`NUI27`).
 ---
 
 <!-- FICHE:NUI27 -->
-## NUI27 [ ] — Une lettre en double n'est plus avalée
+## NUI27 [x] — Une lettre en double n'est plus avalée
 
+**Session** : bf7412ea-120b-47fa-933e-6b54b408b2f4
 **Dépend de** : `NUI26`.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` ; lus : `vlp.py:3299-3345` (`LETTRES`, entrées), le bloc des
 lettres de `fusionner_branche` (ex-6928-6933) — et rien d'autre.

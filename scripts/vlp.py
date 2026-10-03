@@ -237,6 +237,8 @@ Sous-commandes :
   `matin` (`fusionner_branche`), commit `Fusion : <branche>`, `FUSIONNÉE <branche>`. Déjà contenue : `DÉJÀ <branche>`,
   sort 0. `GARDE:` (sort 1, rien fusionné) : non équipé, hors racine, `HEAD` détachée, `MERGE_HEAD` présent, arbre
   sale, branche absente, branche qui garde un chantier ouvert (`de_cote` : le clore dans son worktree d'abord).
+  Un code des lettres pris des deux côtés sous deux titres : `GARDE: le code <X> est pris deux fois : « <a> » et
+  « <b> »`, avant le merge, rien d'écrit — `matin` aussi ; même entrée des deux côtés, comptée une fois (NUI27).
   `clore` dans un worktree hors de la principale imprime la ligne `FUSIONNER` à lancer depuis elle (sauf `VLP_NUIT=1`).
 - `matin <projet> <date> --rapport <json>` — le rapport du matin (NUI19), sans fusion ni commit, rejouable. La date
   est obligatoire : sans elle, `GARDE:`. Trois premières gardes de `matin` (équipé, date, racine du dépôt) ; carnet
@@ -321,7 +323,8 @@ Sous-commandes :
   `OUVERT` gagne ` · estimé <N> fiches ≈<X> $`, ou ` · estimé gardé` si la ligne y est
   déjà (non réécrite). Pas de feuille, aucun clos mesuré, aucun clos au prix mesuré, pas de
   `**Fait.**` : `GARDE:`, le reste est écrit (chantier EST).
-  Un autre chantier déjà ouvert, ou F porte `**CLOS**` : `GARDE:`, sort 1.
+  Un autre chantier déjà ouvert, ou F porte `**CLOS**` : `GARDE:`, sort 1. Le code de F ouvert dans un autre
+  worktree, sous un autre fichier : `GARDE: le code <X> est déjà ouvert ailleurs`, sort 1, rien d'écrit (NUI27).
 - `contrat [<transcription>…] [--depuis D] [--ouverture F]` — le contrat d'`agents/fiche.md` lu dans des
   transcriptions de sous-agent (chantiers CON, ENQ). Sans argument : toutes celles dont le
   `.meta.json` voisin dit `vlp:fiche`, sous `~/.claude/projects/*/*/subagents/`. Une ligne
@@ -3336,6 +3339,28 @@ def lettre_entree(entree):
     return m.group(1) if m else None
 
 
+def titre_entree(entree):
+    """Le titre d'une entrée de la liste des lettres, entre ses parenthèses, espaces resserrés ; « » sans titre."""
+    m = re.match(r"\s*`?[A-Z]{1,3}`? \((.*)\)\s*$", entree, re.S)
+    return " ".join(m.group(1).split()) if m else ""
+
+
+def doublon_lettres(liste_a, liste_b):
+    """La `GARDE:` d'un code pris deux fois : une entrée de `liste_b` dont la lettre est dans `liste_a` sous un autre
+    titre ; `None` sinon — même lettre et même titre, aux backticks et espaces près, c'est la même entrée. La fusion
+    l'appelle avant toute écriture : deux chantiers ouverts en parallèle sous un même code se voient (NUI27)."""
+    titres = {}
+    for e in entrees_lettres(liste_a):
+        lettre = lettre_entree(e)
+        if lettre:
+            titres.setdefault(lettre, titre_entree(e))
+    for e in entrees_lettres(liste_b):
+        lettre = lettre_entree(e)
+        if lettre in titres and titre_entree(e) != titres[lettre]:
+            return "GARDE: le code %s est pris deux fois : « %s » et « %s »" % (lettre, titres[lettre], titre_entree(e))
+    return None
+
+
 def fin_lettres(texte, j):
     """Où finit la liste des lettres qui commence en `j` : le point avant « Un nouveau chantier »,
     sinon la fin de sa ligne, sinon celle du texte. Partagé par `clore` et `matin` (NUI15)."""
@@ -5847,18 +5872,34 @@ def textes_contexte(racine, rev=None):
 def principal(racine):
     """`(dossier, branche)` du premier bloc de `git worktree list --porcelain` — le dossier principal —, chacun None
     s'il manque (hors Git ; branche : tête détachée). `clore` y lit d'où lancer `fusionner` (NUI26)."""
+    blocs = worktrees(racine)
+    return blocs[0] if blocs else (None, None)
+
+
+def worktrees(racine):
+    """`[(dossier, branche)]` des blocs de `git worktree list --porcelain`, le principal en tête ; branche None sur une
+    tête détachée ; [] hors Git. Lu par `principal` et `ouverts_ailleurs` (NUI27)."""
     code, s = git_texte(["worktree", "list", "--porcelain"], racine)
-    dossier = branche = None
-    if code != 0:
-        return dossier, branche
-    for l in s.split("\n"):
+    blocs, dossier, branche = [], None, None
+    for l in (s.split("\n") if code == 0 else []) + [""]:
         if not l.strip():
-            break
-        if l.startswith("worktree "):
+            if dossier:
+                blocs.append((dossier, branche))
+            dossier = branche = None
+        elif l.startswith("worktree "):
             dossier = l[len("worktree "):].strip()
         elif l.startswith("branch refs/heads/"):
             branche = l[len("branch refs/heads/"):].strip()
-    return dossier, branche
+    return blocs
+
+
+def ouverts_ailleurs(racine):
+    """`[(dossier, fichier)]` des chantiers ouverts dans les autres worktrees du dépôt de `racine`, lus dans leur arbre
+    de travail par `ouverts` ; un dossier disparu n'en a aucun. `ouvrir` y refuse un code déjà pris (NUI27)."""
+    ici = os.path.normcase(os.path.realpath(racine))
+    return [(dossier, f) for dossier, _ in worktrees(racine)
+            if os.path.isdir(dossier) and os.path.normcase(os.path.realpath(dossier)) != ici
+            for f in ouverts(dossier)]
 
 
 def branche_principale(racine):
@@ -6238,6 +6279,13 @@ def cmd_ouvrir(a, sortie):
         sortie.write("GARDE: un chantier est déjà ouvert : %s\n" % courant)
         return 1
     lettre, fait = lettre_de(ids[0]), "%s..%s" % bornes(ids)
+    # Un même code ouvert dans un autre worktree : deux chantiers que la fusion confondrait. Le même fichier, hérité
+    # d'une branche commune, n'en est pas un second (NUI27).
+    for dossier, autre in ouverts_ailleurs(projet):
+        ids_autre = [l.split()[1] for l in lignes_de(os.path.join(dossier, autre)) if TITRE.match(l)]
+        if autre != fichier and ids_autre and lettre_de(ids_autre[0]) == lettre:
+            sortie.write("GARDE: le code %s est déjà ouvert ailleurs : %s dans %s — rien d'écrit\n" % (lettre, autre, dossier))
+            return 1
     # L'artefact ne se reprend que pour ce chantier-ci : un nouveau ne reçoit jamais la page d'un autre (NUI23).
     url = retirer_chevrons_url(a.artefact) or (champ(carte_, "artefact du chantier", "aucun")
                                                 if courant == fichier else "aucun")
@@ -7051,8 +7099,9 @@ def fusionner_fichiers(projet, branche, base, prevus, conflits, sortie):
 
 def fusionner_branche(projet, branche, message, sortie):
     """Fusionne `branche` dans la branche du dossier — n'importe laquelle — et commite sous `message`, en réparant
-    `CHANTIER.md` et la feuille. `True` à l'`ARRÊT` : la ligne est écrite, la fusion reste en cours. `matin` et
-    `fusionner` l'appellent (NUI26)."""
+    `CHANTIER.md` et la feuille. `True` à l'`ARRÊT` : la ligne est écrite, la fusion reste en cours ; `True` aussi
+    sur la `GARDE:` d'un code pris deux fois, dite avant le merge, rien d'écrit (NUI27). `matin` et `fusionner`
+    l'appellent (NUI26)."""
     chemin_carte, page = os.path.join(projet, "CHANTIER.md"), page_feuille(projet)
     archive = page_clos(projet)
     avec_archive = archive != page
@@ -7072,6 +7121,14 @@ def fusionner_branche(projet, branche, message, sortie):
         sortie.write("ARRÊT %s — %s\n" % (branche, raison))
         return True
 
+    # un code pris des deux côtés sous deux titres : refusé avant le merge, rien d'écrit (NUI27)
+    code_leur, texte_leur = git_texte(["show", "%s:CHANTIER.md" % branche], projet)
+    carte_leur, _, liste_leur = neutre(texte_leur if code_leur == 0 else "")
+    garde = doublon_lettres(liste_main.split(":", 1)[-1], (liste_leur or "").split(":", 1)[-1])
+    if garde:
+        sortie.write("%s — %s non fusionnée\n" % (garde, branche))
+        return True
+
     code, msg = git_texte(["merge", "--no-ff", "--no-commit", branche], projet)
     if code not in (0, 1) or git_texte(["rev-parse", "-q", "--verify", "MERGE_HEAD"], projet)[0] != 0:
         return arret("fusion impossible : %s" % msg)
@@ -7081,9 +7138,7 @@ def fusionner_branche(projet, branche, message, sortie):
     # CHANTIER.md : les trois versions sans leurs libellés ni leurs lettres, fusionnées, puis les valeurs de `main`
     _, base = git_texte(["merge-base", "HEAD", branche], projet)
     code_base, texte_base = git_texte(["show", "%s:CHANTIER.md" % base.strip()], projet)
-    code_leur, texte_leur = git_texte(["show", "%s:CHANTIER.md" % branche], projet)
     carte_base = neutre(texte_base)[0] if code_base == 0 else ""
-    carte_leur, _, liste_leur = neutre(texte_leur if code_leur == 0 else "")
     pris = {lettre_entree(e) for e in entrees_lettres(liste_main.split(":", 1)[-1])}
     ajouts = []
     for e in entrees_lettres((liste_leur or "").split(":", 1)[-1]):
