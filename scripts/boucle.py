@@ -97,7 +97,7 @@ base du suivant. Mis de côté (`MIS DE CÔTÉ`, carnet `mis-de-cote:<raison>`) 
 écart ou en avertissement, trop de fiches, TODO illisible, un arrêt de chantier de NUI6 (sa ligne `ARRÊT` imprimée
 telle quelle), une session de jeu ou de relance qui clôt le chantier (carnet `cloture-hors-role`), une clôture qui
 laisse le chantier ouvert ou l'arbre sale. `mettre_de_cote` est seule à le faire : arbre propre, rien ; sinon `git
-add -A` et `WIP <code> mis de côté : <raison>`. Un commit de la boucle refusé par un hook (WIP : carnet `wip-refuse`)
+add -A` et le commit WIP (`WIP_SUJET` de vlp.py, relu par `de_cote`). Un commit de la boucle refusé par un hook (WIP : carnet `wip-refuse`)
 arrête le canal, arbre tel quel — jamais `--no-verify`. `lire_carte` lit `PLUGIN_RETARD=` : son nombre va à
 `plugin_retard` des lignes. Sort 0 quand le plan est fini ou la borne atteinte, 1 sur un `STOP` ou un arrêt de canal.
 
@@ -889,7 +889,7 @@ def brancher(racine, branche, base):
 
 def mettre_de_cote(racine, a, code, raison):
     """Met le chantier `code` de côté — seul endroit où la boucle le fait : une ligne `mis-de-cote:<raison>` au
-    carnet ; arbre propre, rien de plus ; sinon `git add -A` et le commit `WIP <code> mis de côté : <raison>`, hors
+    carnet ; arbre propre, rien de plus ; sinon `git add -A` et le commit WIP (`WIP_SUJET` de vlp.py), hors
     `COMMIT_FICHE`. Rend None, ou la raison d'arrêt du canal : commit refusé par un hook (ligne `wip-refuse`, arbre tel
     quel — jamais `--no-verify`) ou Git muet."""
     raison = " ".join(raison.split())[:200]
@@ -899,7 +899,7 @@ def mettre_de_cote(racine, a, code, raison):
         return "%s : git status impossible" % code
     if propre:
         return None
-    ok, err = commiter(racine, "WIP %s mis de côté : %s" % (code, raison))
+    ok, err = commiter(racine, kit().WIP_SUJET % (code, raison))
     if ok:
         return None
     ligne_carnet(a, garde="wip-refuse")

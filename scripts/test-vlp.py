@@ -6947,6 +6947,38 @@ def tester_ouvrir_marque():
 
 tester_ouvrir_marque()
 
+
+def tester_wip_de_cote():
+    """NUI24 : une pointe WIP sans chantier n'est jamais fusionnée ; une branche qui hérite du chantier ouvert de main
+    sans en ajouter reste fusionnable."""
+    if not shutil.which("git"):
+        print("SAUTÉ: git absent — la pointe WIP n'est pas testée")
+        return
+    with tempfile.TemporaryDirectory() as tr:
+        d = os.path.join(tr, "w")
+        depot_matin(d)
+        loc = os.path.join(d, "ctx", "40-loc.md")
+        ecrire(loc, lire(loc).replace("# Chantier LOC — Publier\n", "# Chantier LOC — Publier\n\n%s\n" % OUVERT_DU_JOUR))
+        commit_matin(d, "LOC marqué", 0)
+        noms = {}
+        for canal, code, sujet in (("A", "WIP", mod.WIP_SUJET % ("WIP", "découpage coupé")), ("B", "HER", "HER1 : her")):
+            noms[code] = "nuit/%s-%s-%s" % (JOUR_MATIN, canal, code)
+            git_matin(d, "switch", "-q", "-c", noms[code], "main")
+            ecrire(os.path.join(d, "scripts", "%s.py" % code.lower()), "x = 1\n")
+            commit_matin(d, sujet, 1)
+            git_matin(d, "switch", "-q", "main")
+        etat_wip, etat_her = mod.etat_branche_nuit(d, noms["WIP"]), mod.etat_branche_nuit(d, noms["HER"])
+        code, s = appel(["matin", d, JOUR_MATIN])
+        wip_fusionne = code_git(d, "merge-base", "--is-ancestor", noms["WIP"], "main") == 0
+    verifier("NUI24 : pointe WIP, chantier aucun → DE CÔTÉ, jamais fusionnée ; héritière de LOC ouvert → fusionnable — "
+             "mutant : la pointe WIP n'est plus lue",
+             etat_wip == ("cote", "WIP WIP mis de côté : découpage coupé") and etat_her == ("fusion", None)
+             and "DE CÔTÉ %s — WIP WIP mis de côté : découpage coupé\n" % noms["WIP"] in s and not wip_fusionne,
+             repr((etat_wip, etat_her, wip_fusionne)) + "\n" + s)
+
+
+tester_wip_de_cote()
+
 if ECARTS:
     sys.exit(1)
 print("OK")

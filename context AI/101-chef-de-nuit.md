@@ -1185,8 +1185,9 @@ Tu ne fais pas : le canal (`NUI25`), la fusion (`NUI26`), la prose (`NUI29`).
 ---
 
 <!-- FICHE:NUI24 -->
-## NUI24 [ ] — Une branche WIP n'est jamais fusionnée
+## NUI24 [x] — Une branche WIP n'est jamais fusionnée
 
+**Session** : bf7412ea-120b-47fa-933e-6b54b408b2f4
 **Dépend de** : `NUI22`.
 **Fichiers** : `scripts/vlp.py`, `scripts/boucle.py`, `scripts/test-vlp.py`, `scripts/test-boucle.py` ; lus :
 `boucle.py:890-906` (`mettre_de_cote`), `vlp.py:7025-7029` (`de_cote`), `:7112-7116` — et rien d'autre.

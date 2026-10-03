@@ -25,7 +25,7 @@
 - NUI21 : test-vlp OK (code 0) ; mutant Pause ATTRAPÉ (1 écart) ; ouverts . → OUVERTS=0 ; sans CHANTIER.md / --rev inconnu → GARDE code 1 ; pyright 0 errors
 - NUI22 : test-vlp OK (0 ÉCART) ; mutant règle 2 ATTRAPÉ (1 écart, cas a) ; fichier_courant( 8 → 2 lignes (définition + appel unique dans courant_de, la fiche disait 1 à tort) ; pyright 0 errors
 - NUI23 : test-vlp OK (0 ÉCART, 6 anciens tests remis au modèle de la marque par sans_chantier) ; mutant artefact toujours repris ATTRAPÉ (1 écart) ; pyright 0 errors ; migré = fichier titré marqué seulement
-- NUI24 : une branche WIP n'est plus fusionnée le matin (bug déjà présent) ; après NUI22
+- NUI24 : test-vlp OK (0 ÉCART) ; mutant « pointe WIP non lue » ATTRAPÉ ; « mis de côté : » dans boucle.py 3 → 0 ; pyright 0
 - NUI25 : le canal de nuit découpe son chantier, pas celui de main ; après NUI23
 - NUI26 : vlp.py fusionner, la fusion du jour, main ne reste plus bloqué ; après NUI23, NUI24
 - NUI27 : une lettre en double donne une GARDE ; après NUI26

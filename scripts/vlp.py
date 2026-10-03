@@ -7159,14 +7159,25 @@ def projet_du_matin(a, sortie):
     return projet
 
 
+# Le sujet du commit d'un chantier mis de côté par la nuit (`mettre_de_cote`, boucle.py, qui l'importe) et son
+# motif de lecture : `de_cote` le relit, une pointe WIP n'est jamais fusionnée (NUI24).
+WIP_SUJET = "WIP %s mis de côté : %s"
+WIP_MOTIF = re.compile(r"^WIP \S+ mis de côté : ")
+
+
 def de_cote(projet, branche):
-    """Le chantier ouvert de `branche` (`courant_de`, lu dans son commit), ou None : c'est ce qui la met de côté,
-    `matin` ne la fusionne jamais. Branche sans `CHANTIER.md` : None. Plusieurs ouverts : leur liste, de côté
-    aussi. `matin` et `matin --rapport` l'appellent."""
+    """Ce qui met `branche` de côté — `matin` ne la fusionne jamais —, ou None : le chantier ouvert qu'elle ajoute
+    (`courant_de`, lu dans son commit : un chantier hérité de la principale ne compte pas), sinon le sujet de sa
+    pointe s'il suit `WIP_SUJET` — un découpage coupé avant `ouvrir` laisse un WIP sans chantier (NUI24). Plusieurs
+    ouverts : leur liste. `matin` et `matin --rapport` l'appellent."""
     try:
-        return courant_de(projet, rev=branche)
+        courant = courant_de(projet, rev=branche)
     except Absent as e:
         return str(e)
+    if courant:
+        return courant
+    code, sujet = git_texte(["log", "-1", "--format=%s", branche], projet)
+    return sujet.strip() if code == 0 and WIP_MOTIF.match(sujet.strip()) else None
 
 
 def etat_branche_nuit(projet, branche):

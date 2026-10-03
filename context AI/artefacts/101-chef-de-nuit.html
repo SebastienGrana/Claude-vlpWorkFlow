@@ -21,9 +21,9 @@
     <p>/vlp:chef cadre le soir, deux canaux jouent les chantiers la nuit sans humain, puis fusion et rapport le matin</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">32 fiches · 22 faites · en cours : NUI24</p>
+    <p class="mono" style="margin-top:.5rem">32 fiches · 23 faites · en cours : NUI25</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -126,20 +126,21 @@
         <details><summary><span class="titre">Ouvrir et clore par la marque et le post-it</span><span class="etat">Faite</span></summary>
         <span class="note">test-vlp OK (0 ÉCART, 6 anciens tests remis au modèle de la marque par sans_chantier) ; mutant artefact toujours repris ATTRAPÉ (1 écart) ; pyright 0 errors ; migré = fichier titré marqué seulement</span></details>
         <span class="cout mono">≈6,0M (5 957 748) · 26 tours · 1,99 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">NUI24</span></span>
-        <details open><summary><span class="titre">Une branche WIP n'est jamais fusionnée</span><span class="etat">En cours</span></summary>
-        <span class="note">une branche WIP n'est plus fusionnée le matin (bug déjà présent) ; après NUI22</span></details></li>
-      <li class="fiche"><span class="gauche"><span class="id">NUI25</span></span>
-        <details><summary><span class="titre">Le canal de nuit découpe son chantier, pas celui de main</span><span class="etat">À lancer</span></summary>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">NUI24</span></span>
+        <details><summary><span class="titre">Une branche WIP n'est jamais fusionnée</span><span class="etat">Faite</span></summary>
+        <span class="note">test-vlp OK (0 ÉCART) ; mutant « pointe WIP non lue » ATTRAPÉ ; « mis de côté : » dans boucle.py 3 → 0 ; pyright 0</span></details>
+        <span class="cout mono">≈5,8M (5 813 142) · 34 tours · 2,86 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">NUI25</span></span>
+        <details open><summary><span class="titre">Le canal de nuit découpe son chantier, pas celui de main</span><span class="etat">En cours · NUI28 peut partir en même temps</span></summary>
         <span class="note">le canal de nuit découpe son chantier, pas celui de main ; après NUI23</span></details></li>
-      <li class="fiche" data-attend><span class="gauche"><span class="id">NUI26</span></span>
-        <details><summary><span class="titre">vlp.py fusionner &lt;branche&gt;, la fusion du jour</span><span class="etat">Après NUI24</span></summary>
+      <li class="fiche"><span class="gauche"><span class="id">NUI26</span></span>
+        <details><summary><span class="titre">vlp.py fusionner &lt;branche&gt;, la fusion du jour</span><span class="etat">À lancer</span></summary>
         <span class="note">vlp.py fusionner, la fusion du jour, main ne reste plus bloqué ; après NUI23, NUI24</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">NUI27</span></span>
         <details><summary><span class="titre">Une lettre en double n'est plus avalée</span><span class="etat">Après NUI26</span></summary>
         <span class="note">une lettre en double donne une GARDE ; après NUI26</span></details></li>
       <li class="fiche"><span class="gauche"><span class="id">NUI28</span></span>
-        <details><summary><span class="titre">Voir les chantiers en cours dans les autres worktrees</span><span class="etat">À lancer</span></summary>
+        <details><summary><span class="titre">Voir les chantiers en cours dans les autres worktrees</span><span class="etat">À lancer · en même temps que NUI25</span></summary>
         <span class="note">la carte voit les chantiers des autres worktrees ; après NUI22</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">NUI29</span></span>
         <details><summary><span class="titre">La prose lit COURANT=</span><span class="etat">Après NUI25, NUI26, NUI28</span></summary>
@@ -159,7 +160,7 @@
         <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈679,9k (679 863) · 3 tours · 0,18 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈218,9M (218 918 738) · 1308 tours · 91,65 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈224,7M (224 731 880) · 1342 tours · 94,51 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
