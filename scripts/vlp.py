@@ -359,6 +359,8 @@ Sous-commandes :
   dernier message s'ouvre par « En résumé » ou une jauge (`forme_texte`, règle `REGLE` : une citation
   ne compte pas) et que `stop_hook_active` est faux (chantier FOR—JUG) ; `vlp:relecture` — renvoyé si
   la même règle le dit et que `stop_hook_active` est faux, sinon muet (chantier RLG—FOR—JUG).
+- `ouverts <projet> [--rev R]` — les chantiers ouverts du dossier de contexte : `OUVERT <fichier>` chacun, ou
+  `OUVERTS=0` ; ouvert = titre `# Chantier ` + marque `**Ouvert.**`, sans `**CLOS**` ni `**Pause.**` (chantier NUI21).
 - `vigile [fichier]` — une page cassée ne part pas (chantier VID, `defauts_page`) : sans argument,
   le hook `PreToolUse` sur `Artifact`, `deny` pour un `.html` à défauts, muet sinon ; avec un chemin,
   une ligne `GARDE:` par défaut (sort 1) ou `PAGE SAINE <n> blocs`.
@@ -5757,6 +5759,10 @@ def cmd_niveau(a, sortie):
 # --- clore -------------------------------------------------------------------
 
 CLOS_LIGNE = "**CLOS** le %s. Ne se rejoue pas — ne sert plus qu'à relire son socle."
+OUVERT_LIGNE = "**Ouvert.** le %s."
+PAUSE_LIGNE = "**Pause.** le %s — %s"
+# Les motifs de lecture des trois marques : le début de ligne, comme `**CLOS**` (chantier NUI21).
+MARQUE_OUVERT, MARQUE_CLOS, MARQUE_PAUSE = "**Ouvert.**", "**CLOS**", "**Pause.**"
 ENTREE_CLOS = re.compile(r"^- Clos le \S+ : .* \(chantier [A-Z]{1,3}\)\.$")
 ROUTAGE_CLOS = "| relire un chantier clos |"
 # La ligne que `ouvrir --estime-fiches` pose : N fiches et leur coût, relus par `clore` (chantier EST).
@@ -5791,6 +5797,43 @@ def resume_claude(cl, lettre, texte, date, gardes):
     for k in reversed(clos_a_couper(entrees)):
         del cl[k]
     return True
+
+
+def ouverts(racine, rev=None):
+    """Les fichiers `.md` du dossier de contexte (ligne `contexte` de CHANTIER.md) ouverts : un titre `# Chantier `,
+    la marque d'ouverture, ni `**CLOS**` ni `**Pause.**` ; triés par nom, chemins relatifs à `racine`. Avec `rev`,
+    lus dans ce commit par Git, jamais dans l'arbre de travail. Sans marque, jamais ouvert (chantier NUI21)."""
+    dossier = champ(lignes_de(os.path.join(racine, "CHANTIER.md")), "contexte")
+    if not dossier:
+        return []
+    dossier = dossier.strip("`").rstrip("/")
+    if rev is None:
+        base = os.path.join(racine, dossier)
+        noms = sorted(n for n in os.listdir(base) if n.endswith(".md")) if os.path.isdir(base) else []
+        textes = {n: lignes_de(os.path.join(base, n)) for n in noms}
+    else:
+        code, sortie_git = git_texte(["ls-tree", "--name-only", rev, "./%s/" % dossier], racine)
+        noms = sorted(os.path.basename(l) for l in (sortie_git.splitlines() if code == 0 else []) if l.endswith(".md"))
+        textes = {}
+        for n in noms:
+            code, t = git_texte(["show", "%s:./%s/%s" % (rev, dossier, n)], racine)
+            textes[n] = t.split("\n") if code == 0 else []
+    return ["%s/%s" % (dossier, n) for n in noms
+            if any(l.startswith("# Chantier ") for l in textes[n])
+            and any(l.startswith(MARQUE_OUVERT) for l in textes[n])
+            and not any(l.startswith((MARQUE_CLOS, MARQUE_PAUSE)) for l in textes[n])]
+
+
+def cmd_ouverts(a, sortie):
+    if not equipe(a.projet):
+        sortie.write("GARDE: pas de CHANTIER.md dans %s\n" % a.projet)
+        return 1
+    if a.rev is not None and git_texte(["rev-parse", "--verify", "-q", a.rev + "^{commit}"], a.projet)[0] != 0:
+        sortie.write("GARDE: révision inconnue : %s\n" % a.rev)
+        return 1
+    liste = ouverts(a.projet, a.rev)
+    sortie.write("".join("OUVERT %s\n" % f for f in liste) if liste else "OUVERTS=0\n")
+    return 0
 
 
 def cmd_clore(a, sortie):
@@ -7666,6 +7709,9 @@ def main(argv, sortie=None, entree=None, erreur=None):
     sous.add_parser("gardien")
     vg = sous.add_parser("vigile")
     vg.add_argument("fichier", nargs="?", default=None)
+    ou = sous.add_parser("ouverts")
+    ou.add_argument("projet")
+    ou.add_argument("--rev")
     at = sous.add_parser("attente")
     ats = at.add_subparsers(dest="op", required=True)
     at_aj = ats.add_parser("ajouter")
@@ -7801,6 +7847,8 @@ def repartir(a, sortie, entree, erreur):
         return une_fois(entree, cmd_gardien, sortie)
     if a.cmd == "vigile":
         return cmd_vigile(a.fichier, sortie) if a.fichier else une_fois(entree, cmd_vigile_hook, sortie)
+    if a.cmd == "ouverts":
+        return cmd_ouverts(a, sortie)
     if a.cmd == "attente":
         return une_fois(entree, cmd_attente_hook, sortie) if a.op == "hook" else cmd_attente(a, sortie)
     if a.cmd == "repeindre":

@@ -1090,8 +1090,11 @@ Tu ne fais pas : la fusion, le remplisseur, le soir, le reste de nuit.md ; aucun
 ---
 
 <!-- FICHE:NUI21 -->
-## NUI21 [ ] — La marque d'ouverture, et la liste des chantiers ouverts
+## NUI21 [x] — La marque d'ouverture, et la liste des chantiers ouverts
 
+**Tentatives** (2026-10-03) — résolu par : joué à la main : GARDE sur dossier sans CHANTIER.md et sur --rev inconnu, cas de test ajouté
+
+**Session** : bf7412ea-120b-47fa-933e-6b54b408b2f4
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` ; lus : `vlp.py:513` (`COURANT`), `:715-723` (`fichier_courant`),
 `:5759-5763` (`CLOS_LIGNE`, `ESTIME`), `:5814` — et rien d'autre.

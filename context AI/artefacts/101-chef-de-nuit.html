@@ -21,9 +21,9 @@
     <p>/vlp:chef cadre le soir, deux canaux jouent les chantiers la nuit sans humain, puis fusion et rapport le matin</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">32 fiches · 19 faites · en cours : NUI21</p>
+    <p class="mono" style="margin-top:.5rem">32 fiches · 20 faites · en cours : NUI22</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -114,11 +114,12 @@
         <details><summary><span class="titre">Écrire /vlp:chef, le matin</span><span class="etat">Faite</span></summary>
         <span class="note">test-vlp.py OK (794 verifier, 8 min 18 s), pyright 0 erreur ; mutants sous-agents non sommés, usd_exact None compté 0, ligne de table à chaque rejeu : trois ATTRAPÉS ; SKILL.md +2/+1/+1/+1 et nuit.md +1 constatés</span></details>
         <span class="cout mono">≈20,5M (20 480 504) · 120 tours · 7,40 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">NUI21</span></span>
-        <details open><summary><span class="titre">La marque d'ouverture, et la liste des chantiers ouverts</span><span class="etat">En cours</span></summary>
-        <span class="note">la marque d'ouverture et la liste des chantiers ouverts ; ne dépend de rien</span></details></li>
-      <li class="fiche" data-attend><span class="gauche"><span class="id">NUI22</span></span>
-        <details><summary><span class="titre">Le chantier du dossier, calculé à un seul endroit</span><span class="etat">Après NUI21</span></summary>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">NUI21</span></span>
+        <details><summary><span class="titre">La marque d'ouverture, et la liste des chantiers ouverts</span><span class="etat">Faite</span></summary>
+        <span class="note">test-vlp OK (code 0) ; mutant Pause ATTRAPÉ (1 écart) ; ouverts . → OUVERTS=0 ; sans CHANTIER.md / --rev inconnu → GARDE code 1 ; pyright 0 errors</span></details>
+        <span class="cout mono">≈32,1M (32 131 634) · 253 tours · 15,75 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">NUI22</span></span>
+        <details open><summary><span class="titre">Le chantier du dossier, calculé à un seul endroit</span><span class="etat">En cours</span></summary>
         <span class="note">le chantier du dossier calculé à un seul endroit, la carte imprime COURANT= ; après NUI21</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">NUI23</span></span>
         <details><summary><span class="titre">Ouvrir et clore par la marque et le post-it</span><span class="etat">Après NUI22</span></summary>
@@ -148,15 +149,15 @@
         <details><summary><span class="titre">Retirer la vieille ligne de CHANTIER.md</span><span class="etat">Après NUI29, NUI30</span></summary>
         <span class="note">la vieille ligne de CHANTIER.md disparaît ; après NUI29, NUI30</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">NUI32</span></span>
-        <details><summary><span class="titre">Remettre NUI20 au nouveau modèle</span><span class="etat">Après NUI21, NUI31</span></summary>
+        <details><summary><span class="titre">Remettre NUI20 au nouveau modèle</span><span class="etat">Après NUI31</span></summary>
         <span class="note">NUI20 remise au nouveau modèle ; après NUI21 à NUI31</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">NUI20</span></span>
         <details><summary><span class="titre">Jouer une nuit réelle</span><span class="etat">Après NUI32</span></summary>
         <span class="note">une vraie nuit sur le kit, mesurée — dépend de toutes</span></details>
         <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
     </ul>
-    <p class="mono cout-hors">Hors fiches : ≈3,9M (3 897 611) · 20 tours · 1,74 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈179,8M (179 790 702) · 1024 tours · 73,98 $</p>
+    <p class="mono cout-hors">Hors fiches : ≈679,9k (679 863) · 3 tours · 0,18 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈208,7M (208 704 588) · 1260 tours · 88,17 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

@@ -6777,6 +6777,54 @@ def tester_matin():
 
 tester_matin()
 
+
+def tester_ouverts():
+    """NUI21 : `ouverts` — la marque d'ouverture, sans CLOS ni Pause ; `--rev` lit un commit, pas l'arbre."""
+    if not shutil.which("git"):
+        print("SAUTÉ: git absent — ouverts n'est pas testé")
+        return
+    with tempfile.TemporaryDirectory() as tr:
+        d = os.path.join(tr, "ou")
+        os.makedirs(d)
+        ecrire(os.path.join(d, "CHANTIER.md"), "- **alias** : ou\n- **contexte** : ctx/\n")
+        for n in ("a", "b", "c"):
+            ecrire(os.path.join(d, "ctx", n + ".md"), "# Chantier %s — x\n\n## %s1 [ ] — f\n" % (n.upper(), n.upper()))
+        code0, s0 = appel(["ouverts", d])
+        ecrire(os.path.join(d, "ctx", "b.md"), "# Chantier B — x\n\n" + OUVERT % "2026-10-03" + "\n\n## B1 [ ] — f\n")
+        code1, s1 = appel(["ouverts", d])
+        ecrire(os.path.join(d, "ctx", "b.md"), "# Chantier B — x\n\n" + OUVERT % "2026-10-03" + "\n" + mod.CLOS_LIGNE % "2026-10-04" + "\n")
+        code2, s2 = appel(["ouverts", d])
+        ecrire(os.path.join(d, "ctx", "b.md"), "# Chantier B — x\n\n" + OUVERT % "2026-10-03" + "\n" + mod.PAUSE_LIGNE % ("2026-10-04", "attend") + "\n")
+        code3, s3 = appel(["ouverts", d])
+        ecrire(os.path.join(d, "ctx", "b.md"), "# Chantier B — x\n\n" + OUVERT % "2026-10-03" + "\n")
+        git_matin(d, "init", "-q", "-b", "main")
+        git_matin(d, "add", "-A")
+        git_matin(d, "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "-m", "base")
+        git_matin(d, "checkout", "-q", "-b", "autre")
+        ecrire(os.path.join(d, "ctx", "c.md"), "# Chantier C — x\n\n" + OUVERT % "2026-10-03" + "\n")
+        git_matin(d, "add", "-A")
+        git_matin(d, "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "-m", "c ouvert")
+        code4, s4 = appel(["ouverts", d, "--rev", "main"])
+        code5, s5 = appel(["ouverts", d, "--rev", "autre"])
+        code6, s6 = appel(["ouverts", d])
+        code7, s7 = appel(["ouverts", d, "--rev", "nexistepas"])
+        git_matin(d, "checkout", "-q", "main")
+        code8, s8 = appel(["ouverts", os.path.join(tr, "vide")])
+    verifier("NUI21 ouverts : sans marque → OUVERTS=0 ; marqué → 1 ; + CLOS → 0 ; + Pause → 0 ; --rev lit le commit, "
+             "un fichier marqué sur l'autre branche est absent de main — mutants : la Pause ouvre, --rev lit l'arbre",
+             (code0, s0) == (0, "OUVERTS=0\n") and s1 == "OUVERT ctx/b.md\n" and s2 == "OUVERTS=0\n"
+             and s3 == "OUVERTS=0\n" and s4 == "OUVERT ctx/b.md\n"
+             and s5 == "OUVERT ctx/b.md\nOUVERT ctx/c.md\n" and s6 == s5
+             and (code1, code2, code3, code4, code5, code6) == (0,) * 6,
+             "\n".join((s0, s1, s2, s3, s4, s5, s6)))
+    verifier("NUI21 ouverts : un dossier sans CHANTIER.md, un --rev inconnu → GARDE et code 1, jamais un traceback",
+             code7 == 1 and s7.startswith("GARDE: révision inconnue")
+             and code8 == 1 and s8.startswith("GARDE: pas de CHANTIER.md"), s7 + s8)
+
+
+OUVERT = mod.OUVERT_LIGNE
+tester_ouverts()
+
 if ECARTS:
     sys.exit(1)
 print("OK")
