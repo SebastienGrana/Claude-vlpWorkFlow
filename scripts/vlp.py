@@ -818,12 +818,18 @@ def carte(depart, sortie, relecteur=False):
             sortie.write("AUCUN_PROJET\n")
         return 0
     texte = lire(os.path.join(racine, "CHANTIER.md"))
+    try:
+        courant = courant_de(racine)
+    except Absent as e:
+        # `cmd_equiper` appelle `carte` en direct : elle garde, elle ne lève pas.
+        sortie.write("PROJET=%s\nGARDE: %s\n" % (racine, e))
+        return 1
     montre = texte
     if relecteur:
         # L'étendue `(X1..X3)` de la ligne du fichier courant dit aussi la suite (dette REL).
         montre = "\n".join(re.sub(r"\s+\([^)]*\)$", "", l) if COURANT.match(l) else l
                            for l in texte.split("\n"))
-    sortie.write("PROJET=%s\n--- CHANTIER.md ---\n%s" % (racine, montre))
+    sortie.write("PROJET=%s\nCOURANT=%s\n--- CHANTIER.md ---\n%s" % (racine, courant or "aucun", montre))
     if not texte.endswith("\n"):
         sortie.write("\n")
     if not relecteur:
@@ -836,7 +842,6 @@ def carte(depart, sortie, relecteur=False):
             sortie.write('PLUGIN_RETARD=%d commit(s) de code du plugin absents du plugin chargé — avant un '
                          '/reload-plugins : git -C "%s" merge --ff-only %s\n'
                          % (retard[0], retard[1].replace("\\", "/"), retard[2]))
-    courant = fichier_courant(texte)
     if courant is None:
         sortie.write("--- fichier de fiches courant : aucun ---\n")
         imprimer_todo(texte, racine, sortie)
@@ -1420,7 +1425,9 @@ def cmd_relecture(a, sortie):
     code, prefixe = git_texte(["rev-parse", "--show-prefix"], projet)
     prefixe = prefixe.strip() if code == 0 else ""
     apres_projet = os.path.normpath(os.path.join(dossiers[0], prefixe))
-    courant = fichier_courant(lire(os.path.join(apres_projet, "CHANTIER.md"))) if equipe(apres_projet) else None
+    # Le chantier du dossier qui relit, pas celui de la copie : APRÈS est un worktree détaché, que la règle des
+    # branches de `courant_de` verrait toujours hériter de la principale (chantier NUI22).
+    courant = courant_de(projet) if equipe(apres_projet) else None
     fichier = os.path.normpath(os.path.join(apres_projet, courant)) if courant else ""
     fiche, _ = extraire_lignes(lignes_de(fichier) if os.path.isfile(fichier) else [], a.fiche)
     if not fiche:
@@ -2151,7 +2158,10 @@ def verdict_fin(d, deja_renvoye=False):
     racine = trouver(d.get("cwd") or os.getcwd())
     if fiche is None or racine is None:
         return None
-    courant = fichier_courant(lire(os.path.join(racine, "CHANTIER.md")))
+    try:
+        courant = courant_de(racine)
+    except Absent:
+        return None
     if courant is None:
         return None
     o = io.StringIO()
@@ -3549,7 +3559,7 @@ def feuille(projet, html, todo, date):
     if not etat:
         raise ValueError("fichier d'état introuvable : aucun")
     lignes_etat = lignes_du_projet(projet, etat, "fichier d'état")
-    courant = fichier_courant("\n".join(carte_))
+    courant = courant_de(projet)
     lettres = lettres_prises(carte_)
     # Sans la lettre du chantier en cours : `feuille` l'ajoute plus bas pour l'affichage, mais un
     # chantier possible qui en dépend n'est pas bloqué par ce seul ajout (chantier FEU).
@@ -5705,7 +5715,7 @@ def cmd_niveau(a, sortie):
         sortie.write("ÉCART: feuille: Markdown brut ou lien cassé%s\n"
                      % (" — « vlp.py niveau --ecrire » convertit les lignes closes" if n and not a.ecrire else ""))
 
-    courant = fichier_courant("\n".join(carte_))
+    courant = courant_de(projet)
     if courant:
         fichier = chemin_garde(os.path.join(projet, courant), "fichier de fiches courant", courant)
         code, lignes = capte(cmd_page, argparse.Namespace(
@@ -5803,6 +5813,15 @@ def ouverts(racine, rev=None):
     """Les fichiers `.md` du dossier de contexte (ligne `contexte` de CHANTIER.md) ouverts : un titre `# Chantier `,
     la marque d'ouverture, ni `**CLOS**` ni `**Pause.**` ; triés par nom, chemins relatifs à `racine`. Avec `rev`,
     lus dans ce commit par Git, jamais dans l'arbre de travail. Sans marque, jamais ouvert (chantier NUI21)."""
+    return [f for f, lignes in textes_contexte(racine, rev)
+            if any(l.startswith("# Chantier ") for l in lignes)
+            and any(l.startswith(MARQUE_OUVERT) for l in lignes)
+            and not any(l.startswith((MARQUE_CLOS, MARQUE_PAUSE)) for l in lignes)]
+
+
+def textes_contexte(racine, rev=None):
+    """[(chemin relatif à `racine`, lignes)] des `.md` du dossier de contexte, triés par nom : l'arbre de travail,
+    ou le commit `rev` lu par Git. Sans ligne `contexte` : []. Le lecteur commun de `ouverts` et `courant_de`."""
     dossier = champ(lignes_de(os.path.join(racine, "CHANTIER.md")), "contexte")
     if not dossier:
         return []
@@ -5810,18 +5829,69 @@ def ouverts(racine, rev=None):
     if rev is None:
         base = os.path.join(racine, dossier)
         noms = sorted(n for n in os.listdir(base) if n.endswith(".md")) if os.path.isdir(base) else []
-        textes = {n: lignes_de(os.path.join(base, n)) for n in noms}
-    else:
-        code, sortie_git = git_texte(["ls-tree", "--name-only", rev, "./%s/" % dossier], racine)
-        noms = sorted(os.path.basename(l) for l in (sortie_git.splitlines() if code == 0 else []) if l.endswith(".md"))
-        textes = {}
-        for n in noms:
-            code, t = git_texte(["show", "%s:./%s/%s" % (rev, dossier, n)], racine)
-            textes[n] = t.split("\n") if code == 0 else []
-    return ["%s/%s" % (dossier, n) for n in noms
-            if any(l.startswith("# Chantier ") for l in textes[n])
-            and any(l.startswith(MARQUE_OUVERT) for l in textes[n])
-            and not any(l.startswith((MARQUE_CLOS, MARQUE_PAUSE)) for l in textes[n])]
+        return [("%s/%s" % (dossier, n), lignes_de(os.path.join(base, n))) for n in noms]
+    code, sortie_git = git_texte(["ls-tree", "--name-only", rev, "./%s/" % dossier], racine)
+    noms = sorted(os.path.basename(l) for l in (sortie_git.splitlines() if code == 0 else []) if l.endswith(".md"))
+    textes = []
+    for n in noms:
+        code, t = git_texte(["show", "%s:./%s/%s" % (rev, dossier, n)], racine)
+        textes.append(("%s/%s" % (dossier, n), t.split("\n") if code == 0 else []))
+    return textes
+
+
+def branche_principale(racine):
+    """La branche du premier bloc de `git worktree list --porcelain` — le dossier principal —, ou None (hors Git,
+    tête détachée)."""
+    code, s = git_texte(["worktree", "list", "--porcelain"], racine)
+    if code != 0:
+        return None
+    for l in s.split("\n"):
+        if not l.strip():
+            return None
+        if l.startswith("branch refs/heads/"):
+            return l[len("branch refs/heads/"):].strip()
+    return None
+
+
+def postit(racine):
+    """Le chemin du post-it local du dossier — `git rev-parse --git-path vlp-chantier`, propre à chaque worktree,
+    jamais suivi ni fusionné —, ou None hors Git (chantier NUI22)."""
+    code, p = git_texte(["rev-parse", "--git-path", "vlp-chantier"], racine)
+    return os.path.join(racine, p.strip()) if code == 0 and p.strip() else None
+
+
+def courant_de(racine, rev=None):
+    """Le fichier de fiches du chantier courant de `racine` (relatif à elle), ou None : le **seul** lecteur
+    (chantier NUI22). Dans l'ordre : 1. le post-it du dossier, s'il nomme un ouvert (arbre de travail seul) ;
+    2. hors de la branche principale, le seul ouvert ajouté depuis la merge-base avec elle — un hérité n'est pas
+    le chantier du dossier ; 3. sinon le seul ouvert. Deux ou plus : `Absent`, que `main` rend en `GARDE:`.
+    4. Aucune marque d'ouverture dans le contexte (projet pas encore migré, NUI30) : l'ancienne ligne de
+    CHANTIER.md. Avec `rev`, tout se lit dans ce commit."""
+    textes = textes_contexte(racine, rev)
+    if not any(l.startswith(MARQUE_OUVERT) for _, lignes in textes for l in lignes):
+        chemin = os.path.join(racine, "CHANTIER.md")
+        if rev is None:
+            code, carte_ = (0, lire(chemin)) if os.path.isfile(chemin) else (1, "")
+        else:
+            code, carte_ = git_texte(["show", "%s:CHANTIER.md" % rev], racine)
+        return fichier_courant(carte_) if code == 0 else None
+    liste = ouverts(racine, rev)
+    p = postit(racine) if rev is None else None
+    if p and os.path.isfile(p):
+        nomme = lire(p).strip()
+        if nomme in liste:
+            return nomme
+    tete = rev or "HEAD"
+    principale = branche_principale(racine)
+    code, nom = git_texte(["rev-parse", "--abbrev-ref", tete], racine)
+    if principale and code == 0 and nom.strip() != principale:
+        code, base = git_texte(["merge-base", tete, principale], racine)
+        if code == 0:
+            herites = set(ouverts(racine, base.strip()))
+            liste = [f for f in liste if f not in herites]
+    if len(liste) > 1:
+        raise Absent("plusieurs chantiers ouverts : %s" % ", ".join(liste))
+    return liste[0] if liste else None
 
 
 def cmd_ouverts(a, sortie):
@@ -5844,7 +5914,7 @@ def cmd_clore(a, sortie):
     date = a.date or __import__("datetime").date.today().isoformat()
     chemin_carte = os.path.join(projet, "CHANTIER.md")
     carte_ = lignes_de(chemin_carte)
-    courant = fichier_courant("\n".join(carte_))
+    courant = courant_de(projet)
     if not courant:
         sortie.write("GARDE: aucun chantier ouvert — rien à clore\n")
         return 1
@@ -6136,7 +6206,7 @@ def cmd_ouvrir(a, sortie):
         return 1
     chemin_carte = os.path.join(projet, "CHANTIER.md")
     carte_ = lignes_de(chemin_carte)
-    courant = fichier_courant("\n".join(carte_))
+    courant = courant_de(projet)
     if courant and courant != fichier:
         sortie.write("GARDE: un chantier est déjà ouvert : %s\n" % courant)
         return 1
@@ -7066,10 +7136,13 @@ def projet_du_matin(a, sortie):
 
 
 def de_cote(projet, branche):
-    """Le chantier ouvert (`fichier_courant`) du `CHANTIER.md` de `branche`, ou None : c'est ce qui la met de côté,
-    `matin` ne la fusionne jamais. Branche sans `CHANTIER.md` : None. `matin` et `matin --rapport` l'appellent."""
-    code, carte_leur = git_texte(["show", "%s:CHANTIER.md" % branche], projet)
-    return fichier_courant(carte_leur) if code == 0 else None
+    """Le chantier ouvert de `branche` (`courant_de`, lu dans son commit), ou None : c'est ce qui la met de côté,
+    `matin` ne la fusionne jamais. Branche sans `CHANTIER.md` : None. Plusieurs ouverts : leur liste, de côté
+    aussi. `matin` et `matin --rapport` l'appellent."""
+    try:
+        return courant_de(projet, rev=branche)
+    except Absent as e:
+        return str(e)
 
 
 def etat_branche_nuit(projet, branche):

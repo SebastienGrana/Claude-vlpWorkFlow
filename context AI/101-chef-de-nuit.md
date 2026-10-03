@@ -1124,8 +1124,9 @@ Tu ne fais pas : brancher `ouverts` ailleurs (`NUI22`), écrire la marque (`NUI2
 ---
 
 <!-- FICHE:NUI22 -->
-## NUI22 [ ] — Le chantier du dossier, calculé à un seul endroit
+## NUI22 [x] — Le chantier du dossier, calculé à un seul endroit
 
+**Session** : bf7412ea-120b-47fa-933e-6b54b408b2f4
 **Dépend de** : `NUI21`.
 **Fichiers** : `scripts/vlp.py`, `scripts/boucle.py`, `scripts/test-vlp.py`, `scripts/test-boucle.py` ; lus : `vlp.py:807-860`
 (`carte`), les 8 appels de `fichier_courant` (837, 1421, 2152, 3550, 5706, 5804, 6096, 7029), `boucle.py:304-321` — et rien d'autre.

@@ -21,9 +21,9 @@
     <p>/vlp:chef cadre le soir, deux canaux jouent les chantiers la nuit sans humain, puis fusion et rapport le matin</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">32 fiches · 20 faites · en cours : NUI22</p>
+    <p class="mono" style="margin-top:.5rem">32 fiches · 21 faites · en cours : NUI23</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -118,14 +118,15 @@
         <details><summary><span class="titre">La marque d'ouverture, et la liste des chantiers ouverts</span><span class="etat">Faite</span></summary>
         <span class="note">test-vlp OK (code 0) ; mutant Pause ATTRAPÉ (1 écart) ; ouverts . → OUVERTS=0 ; sans CHANTIER.md / --rev inconnu → GARDE code 1 ; pyright 0 errors</span></details>
         <span class="cout mono">≈32,1M (32 131 634) · 253 tours · 15,75 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">NUI22</span></span>
-        <details open><summary><span class="titre">Le chantier du dossier, calculé à un seul endroit</span><span class="etat">En cours</span></summary>
-        <span class="note">le chantier du dossier calculé à un seul endroit, la carte imprime COURANT= ; après NUI21</span></details></li>
-      <li class="fiche" data-attend><span class="gauche"><span class="id">NUI23</span></span>
-        <details><summary><span class="titre">Ouvrir et clore par la marque et le post-it</span><span class="etat">Après NUI22</span></summary>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">NUI22</span></span>
+        <details><summary><span class="titre">Le chantier du dossier, calculé à un seul endroit</span><span class="etat">Faite</span></summary>
+        <span class="note">test-vlp OK (0 ÉCART) ; mutant règle 2 ATTRAPÉ (1 écart, cas a) ; fichier_courant( 8 → 2 lignes (définition + appel unique dans courant_de, la fiche disait 1 à tort) ; pyright 0 errors</span></details>
+        <span class="cout mono">≈4,3M (4 256 402) · 22 tours · 1,49 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">NUI23</span></span>
+        <details open><summary><span class="titre">Ouvrir et clore par la marque et le post-it</span><span class="etat">En cours</span></summary>
         <span class="note">ouvrir et clore posent la marque et le post-it local ; après NUI22</span></details></li>
-      <li class="fiche" data-attend><span class="gauche"><span class="id">NUI24</span></span>
-        <details><summary><span class="titre">Une branche WIP n'est jamais fusionnée</span><span class="etat">Après NUI22</span></summary>
+      <li class="fiche"><span class="gauche"><span class="id">NUI24</span></span>
+        <details><summary><span class="titre">Une branche WIP n'est jamais fusionnée</span><span class="etat">À lancer</span></summary>
         <span class="note">une branche WIP n'est plus fusionnée le matin (bug déjà présent) ; après NUI22</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">NUI25</span></span>
         <details><summary><span class="titre">Le canal de nuit découpe son chantier, pas celui de main</span><span class="etat">Après NUI23</span></summary>
@@ -136,8 +137,8 @@
       <li class="fiche" data-attend><span class="gauche"><span class="id">NUI27</span></span>
         <details><summary><span class="titre">Une lettre en double n'est plus avalée</span><span class="etat">Après NUI26</span></summary>
         <span class="note">une lettre en double donne une GARDE ; après NUI26</span></details></li>
-      <li class="fiche" data-attend><span class="gauche"><span class="id">NUI28</span></span>
-        <details><summary><span class="titre">Voir les chantiers en cours dans les autres worktrees</span><span class="etat">Après NUI22</span></summary>
+      <li class="fiche"><span class="gauche"><span class="id">NUI28</span></span>
+        <details><summary><span class="titre">Voir les chantiers en cours dans les autres worktrees</span><span class="etat">À lancer</span></summary>
         <span class="note">la carte voit les chantiers des autres worktrees ; après NUI22</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">NUI29</span></span>
         <details><summary><span class="titre">La prose lit COURANT=</span><span class="etat">Après NUI23, NUI25, NUI26, NUI28</span></summary>
@@ -157,7 +158,7 @@
         <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈679,9k (679 863) · 3 tours · 0,18 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈208,7M (208 704 588) · 1260 tours · 88,17 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈213,0M (212 960 990) · 1282 tours · 89,66 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

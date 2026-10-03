@@ -6825,6 +6825,66 @@ def tester_ouverts():
 OUVERT = mod.OUVERT_LIGNE
 tester_ouverts()
 
+
+def tester_courant_de():
+    """NUI22 : `courant_de`, seul lecteur du chantier du dossier — post-it, branche, principale, ancienne ligne."""
+    if not shutil.which("git"):
+        print("SAUTÉ: git absent — courant_de n'est pas testé")
+        return
+
+    def courant(dossier):
+        code, s = appel(["carte", dossier])
+        ligne = next((l for l in s.split("\n") if l.startswith(("COURANT=", "GARDE:"))), s)
+        return code, ligne
+
+    def chantier(lettre, *marques):
+        return "# Chantier %s — x\n\n%s\n\n## %s1 [ ] — f\n" % (lettre, "\n".join(marques), lettre)
+
+    signe = ("-c", "user.name=t", "-c", "user.email=t@t")
+    with tempfile.TemporaryDirectory() as tr:
+        d, wt = os.path.join(tr, "cd"), os.path.join(tr, "wt")
+        ecrire(os.path.join(d, "CHANTIER.md"), "- **alias** : cd\n- **contexte** : ctx/\n")
+        ecrire(os.path.join(d, "ctx", "a.md"), chantier("A", OUVERT % "2026-10-03"))
+        ecrire(os.path.join(d, "ctx", "c.md"), chantier("C", OUVERT % "2026-10-01", mod.CLOS_LIGNE % "2026-10-02"))
+        git_matin(d, "init", "-q", "-b", "main")
+        git_matin(d, "add", "-A")
+        git_matin(d, *signe, "commit", "-q", "-m", "base")
+        git_matin(d, "worktree", "add", "-q", "-b", "wt", wt)
+        a_wt, a_main = courant(wt), courant(d)
+        ecrire(os.path.join(wt, "ctx", "b.md"), chantier("B", OUVERT % "2026-10-03"))
+        b_wt, b_main = courant(wt), courant(d)
+        git_matin(wt, "add", "-A")
+        git_matin(wt, *signe, "commit", "-q", "-m", "b ouvert")
+        b_rev = mod.de_cote(d, "wt")
+        postit = mod.postit(d)
+        ecrire(postit, "ctx/c.md\n")
+        c_clos = courant(d)
+        ecrire(os.path.join(d, "ctx", "e.md"), chantier("E", OUVERT % "2026-10-03"))
+        os.remove(postit)
+        c_deux = courant(d)
+        ecrire(postit, "ctx/e.md\n")
+        c_postit = courant(d)
+        git_matin(d, "worktree", "remove", "--force", wt)
+        v = os.path.join(tr, "vieux")
+        ecrire(os.path.join(v, "CHANTIER.md"),
+               "- **contexte** : ctx/\n- **fichier de fiches courant** : ctx/x.md (X1..X1)\n")
+        ecrire(os.path.join(v, "ctx", "x.md"), "# Chantier X — x\n\n## X1 [ ] — f\n")
+        d_vieux = courant(v)
+    verifier("NUI22 (a, b) courant_de : un worktree n'hérite pas du chantier de main, il voit le sien ; main inchangé ; "
+             "de_cote lit la branche — mutant : la règle 2 garde les hérités",
+             a_wt == (0, "COURANT=aucun") and a_main == (0, "COURANT=ctx/a.md")
+             and b_wt == (0, "COURANT=ctx/b.md") and b_main == (0, "COURANT=ctx/a.md") and b_rev == "ctx/b.md",
+             repr((a_wt, a_main, b_wt, b_main, b_rev)))
+    verifier("NUI22 (c, d) courant_de : post-it sur un clos ignoré, sur un ouvert suivi ; deux ouverts sans post-it → "
+             "GARDE ; projet sans marque → l'ancienne ligne de CHANTIER.md",
+             c_clos == (0, "COURANT=ctx/a.md") and c_deux[0] == 1
+             and c_deux[1] == "GARDE: plusieurs chantiers ouverts : ctx/a.md, ctx/e.md"
+             and c_postit == (0, "COURANT=ctx/e.md") and d_vieux == (0, "COURANT=ctx/x.md"),
+             repr((c_clos, c_deux, c_postit, d_vieux)))
+
+
+tester_courant_de()
+
 if ECARTS:
     sys.exit(1)
 print("OK")

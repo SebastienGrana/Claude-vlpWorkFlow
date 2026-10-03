@@ -23,7 +23,7 @@
 - NUI19 : test-vlp.py OK (794 verifier, 8 min 18 s), pyright 0 erreur ; mutants sous-agents non sommés, usd_exact None compté 0, ligne de table à chaque rejeu : trois ATTRAPÉS ; SKILL.md +2/+1/+1/+1 et nuit.md +1 constatés
 - NUI20 : une vraie nuit sur le kit, mesurée — dépend de toutes
 - NUI21 : test-vlp OK (code 0) ; mutant Pause ATTRAPÉ (1 écart) ; ouverts . → OUVERTS=0 ; sans CHANTIER.md / --rev inconnu → GARDE code 1 ; pyright 0 errors
-- NUI22 : le chantier du dossier calculé à un seul endroit, la carte imprime COURANT= ; après NUI21
+- NUI22 : test-vlp OK (0 ÉCART) ; mutant règle 2 ATTRAPÉ (1 écart, cas a) ; fichier_courant( 8 → 2 lignes (définition + appel unique dans courant_de, la fiche disait 1 à tort) ; pyright 0 errors
 - NUI23 : ouvrir et clore posent la marque et le post-it local ; après NUI22
 - NUI24 : une branche WIP n'est plus fusionnée le matin (bug déjà présent) ; après NUI22
 - NUI25 : le canal de nuit découpe son chantier, pas celui de main ; après NUI23

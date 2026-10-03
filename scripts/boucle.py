@@ -314,10 +314,10 @@ def lire_carte(dossier):
         elif ligne.startswith("PLUGIN_RETARD="):
             m = re.match(r"PLUGIN_RETARD=(\d+)", ligne)
             retard = int(m.group(1)) if m else None
-        elif "**fichier de fiches courant**" in ligne and fichier is None:
-            valeur = ligne.split(":", 1)[1].strip()
-            valeur = valeur.split(" (")[0].strip().strip("`")
-            fichier = None if valeur.lower().startswith("aucun") else valeur
+        elif ligne.startswith("COURANT=") and fichier is None:
+            # Le chantier du dossier, calculé par `courant_de` seul — jamais la ligne brute de CHANTIER.md (NUI22).
+            valeur = ligne[len("COURANT="):].strip()
+            fichier = None if valeur == "aucun" else valeur
     return racine, fichier, prochaine, retard
 
 
