@@ -7,7 +7,7 @@
 
 - **alias** : vlp
 - **kit** : ce dossier même — le projet est le kit. Chez znorr :
-  C:/Users/znorr/Documents/ProgPerso/Claude-vlpWorkflow, lié dans ~/.claude/skills/vlp
+  D:/ProgPerso/Claude-vlpWorkflow, lié dans ~/.claude/skills/vlp
 - **contexte** : context AI/
 - **méthode** : methode-chantier.md, à la racine du kit — il voyage avec le plugin
 - **chantiers possibles** : context AI/08-etat.md
