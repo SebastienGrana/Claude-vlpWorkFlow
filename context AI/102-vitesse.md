@@ -12,7 +12,8 @@ mutant rejoue toute la suite (médiane 602 s, A1) et `test-vlp.py` passe 86 % de
 maintenable et documenté. Ensuite : la méthode du kit, puis la TODO re-cadrée (n° 99), avant de reprendre NUI.
 
 **Fait.** `VIT1`, la base (2026-10-04). Plan revu après elle (entrée du même jour dans `08-etat.md`) : `VIT4` retirée,
-son numéro non repris ; `VIT14` ajoutée après `VIT2`. NUI en pause, reprise à `NUI28` après VIT et la méthode (n° 99).
+son numéro non repris ; `VIT14` ajoutée après `VIT2`. Critères de code sain au socle (2026-10-04) ; `VIT15`, leur cliquet,
+ajoutée avant `VIT2`. NUI en pause, reprise à `NUI28` après VIT et la méthode (n° 99).
 
 **Session** : bf7412ea-120b-47fa-933e-6b54b408b2f4
 
@@ -55,8 +56,8 @@ Décisions : https://claude.ai/artifact/3maXrvHBKj85QYybrnPubx. Chaque fiche rem
     français, finie par un point (PEP 257).
   - **Les tests** (`test-*.py`) — mêmes seuils, sauf les instructions et la docstring : un long scénario reste
     permis, le nom `tester_…` sert d'étiquette.
-  - **L'outil** — ruff ; tant qu'il n'est ni installé ni entouré de son cliquet, les comptes se font par un script
-    `ast` de la bibliothèque standard, à une unité près de ruff : « estimé ».
+  - **L'outil** — `vlp.py sante` (`VIT15`) : ruff s'il est présent, sinon un compte `ast` de la bibliothèque
+    standard, à une unité près de ruff : « estimé ». Avant `VIT15`, le compte se fait à la main, dit « estimé ».
 - Jusqu'à `VIT2` livrée, le mutant se joue à l'ancienne (`vlp.py mutant` mute le vrai fichier ~10 min : ni suite ni
   édition pendant ce temps) ; après, par `--attendu`. « Mutant attrapé », dans un critère, vise la forme du moment.
 
@@ -83,6 +84,7 @@ d'échange, plugins : Q9).
 | Fiche | Titre | Dépend de |
 |---|---|---|
 | `VIT1` | Mesurer la base | rien |
+| `VIT15` | Le cliquet du code sain : ruff s'il est là, sinon un compte maison | `VIT1` |
 | `VIT2` | Muter une copie du kit, arrêté sur le test attendu | `VIT1` |
 | `VIT14` | Les deux cas de clôture qui tombent sous charge | `VIT1` |
 | `VIT3` | Lire les fichiers d'un commit en un seul appel Git | `VIT1` |
@@ -96,7 +98,7 @@ d'échange, plugins : Q9).
 | `VIT12` | Le relecteur ne rejoue que le nouveau test dans AVANT | `VIT2`, `VIT10` |
 | `VIT13` | Mesurer la fin, avant/après | `VIT7`, `VIT8`, `VIT11`, `VIT12` — et, par elles, toutes |
 
-Jouées dans l'ordre du fichier — `VIT14` après `VIT2`, `VIT4` retirée —, les dépendances tiennent. `VIT5` à `VIT8` touchent le démarrage des scripts, `VIT10`
+Jouées dans l'ordre du fichier — `VIT15` avant `VIT2`, `VIT14` après, `VIT4` retirée —, les dépendances tiennent. `VIT5` à `VIT8` touchent le démarrage des scripts, `VIT10`
 et `VIT11` tout `test-vlp.py` : une à la fois.
 
 ---
@@ -123,6 +125,35 @@ Mesure, sur l'état de `main`, ce que `VIT13` comparera : chaque commande recopi
 
 **Critère de fin**
 L'entrée existe, six lignes, chacune avec sa commande et ses comptes bruts ; aucune estimation sans le mot « estimé ».
+<!-- /FICHE -->
+
+---
+
+<!-- FICHE:VIT15 -->
+## VIT15 [ ] — Le cliquet du code sain : ruff s'il est là, sinon un compte maison
+
+**Dépend de** : `VIT1`.
+**Fichiers** : `scripts/vlp.py` (une sous-commande `sante`), `scripts/test-vlp.py`, et la base du cliquet (un
+fichier de données versionné, nommé au compte rendu).
+
+**Prompt**
+Le socle fixe les critères de code sain (seuils de ruff, cliquet, docstring, tests) ; rien ne les compte encore. Choix
+de l'utilisateur (page des critères, Q3 ruff, puis « R a », 2026-10-04) : **ruff s'il est présent, sinon un compte
+maison**. ruff 0.16.10 est installé chez lui ; ailleurs dans le groupe, il peut manquer.
+1. `vlp.py sante [<fichiers>]` rend, fonction par fonction, les cinq comptes du socle et la présence d'une docstring.
+   ruff trouvé (`ruff`, ou `py -3 -m ruff`) : ses comptes, par sa sortie JSON ; absent : un compte par `ast`, et une
+   ligne qui dit « sans ruff, comptes estimés ». Les scripts restent stdlib seule : ruff est appelé, jamais importé.
+2. `--base` écrit la base, fonction par fonction ; `--cliquet` compare à elle et sort 1 si une vieille fonction
+   empire, si une fonction neuve passe un seuil, ou si une fonction neuve ou touchée n'a pas de docstring — les tests
+   (`test-*.py`) sans les instructions ni la docstring. Dis comment tu suis une fonction touchée, renommée ou déplacée.
+3. `test-vlp.py` joue `--cliquet` sur le kit : un compte qui empire fait tomber la suite.
+4. Les tests ne dépendent pas de ruff : le chemin `ast` est testé partout ; le chemin ruff, sur une sortie JSON
+   enregistrée, et en vrai seulement s'il est installé.
+
+**Critère de fin**
+1. `vlp.py sante` sur le kit, avec et sans ruff : comptes bruts, et les écarts entre les deux nommés.
+2. `py -3 scripts/test-vlp.py` → `OK` ; `verifier(` avant ≤ après ; mutant attrapé (une fonction qui empire passe le
+   cliquet) ; pyright 0 ; les critères de code sain du socle, sur `sante` elle-même.
 <!-- /FICHE -->
 
 ---
