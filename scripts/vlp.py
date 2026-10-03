@@ -5867,8 +5867,10 @@ def courant_de(racine, rev=None):
     le chantier du dossier ; 3. sinon le seul ouvert. Deux ou plus : `Absent`, que `main` rend en `GARDE:`.
     4. Aucune marque d'ouverture dans le contexte (projet pas encore migré, NUI30) : l'ancienne ligne de
     CHANTIER.md. Avec `rev`, tout se lit dans ce commit."""
-    textes = textes_contexte(racine, rev)
-    if not any(l.startswith(MARQUE_OUVERT) for _, lignes in textes for l in lignes):
+    # Migré = un fichier titré `# Chantier ` porte la marque : la même règle que `ouverts`, sinon une marque
+    # posée hors titre ferait un projet « migré » sans aucun chantier visible (NUI23).
+    textes = [lignes for _, lignes in textes_contexte(racine, rev) if any(l.startswith("# Chantier ") for l in lignes)]
+    if not any(l.startswith(MARQUE_OUVERT) for lignes in textes for l in lignes):
         chemin = os.path.join(racine, "CHANTIER.md")
         if rev is None:
             code, carte_ = (0, lire(chemin)) if os.path.isfile(chemin) else (1, "")
@@ -6099,6 +6101,10 @@ def cmd_clore(a, sortie):
         fh.write("\n".join(fiches_) + "\n")
     with open(chemin_carte, "w", encoding="utf-8", newline="") as fh:
         fh.write(texte)
+    # Le post-it du dossier ne nomme plus un chantier clos (NUI23) ; celui d'un autre chantier reste.
+    p = postit(projet)
+    if p and os.path.isfile(p) and lire(p).strip() == courant:
+        os.remove(p)
     for chemin, contenu in ecritures:
         with open(chemin, "w", encoding="utf-8", newline="") as fh:
             fh.write(contenu)
@@ -6211,8 +6217,20 @@ def cmd_ouvrir(a, sortie):
         sortie.write("GARDE: un chantier est déjà ouvert : %s\n" % courant)
         return 1
     lettre, fait = lettre_de(ids[0]), "%s..%s" % bornes(ids)
-    url = retirer_chevrons_url(a.artefact) or (champ(carte_, "artefact du chantier", "aucun") if courant else "aucun")
+    # L'artefact ne se reprend que pour ce chantier-ci : un nouveau ne reçoit jamais la page d'un autre (NUI23).
+    url = retirer_chevrons_url(a.artefact) or (champ(carte_, "artefact du chantier", "aucun")
+                                                if courant == fichier else "aucun")
     gardes = []
+    fiches_change = False
+
+    # 0. la marque d'ouverture, une fois, sous le titre `# Chantier ` : sans ce titre, `ouverts` ne la verrait pas.
+    if not any(l.startswith(MARQUE_OUVERT) for l in fiches_):
+        k = next((k for k, l in enumerate(fiches_) if l.startswith("# Chantier ")), None)
+        if k is None:
+            gardes.append("pas de titre « # Chantier » dans %s — marque d'ouverture non posée" % fichier)
+        else:
+            fiches_[k + 1:k + 1] = ["", OUVERT_LIGNE % __import__("datetime").date.today().isoformat()]
+            fiches_change = True
 
     # 1. CHANTIER.md
     vus = set()
@@ -6282,7 +6300,7 @@ def cmd_ouvrir(a, sortie):
     if s and s not in sessions_de(fiches_):
         k = next(k for k, l in enumerate(fiches_) if l.startswith("## "))
         fiches_[k:k] = ["**Session** : %s" % s, ""]
-        ecritures.append((chemin_fiches, fiches_))
+        fiches_change = True
         n_session = 1
 
     # 5. l'estimé, juste avant `**Fait.**` : la moyenne $/fiche des clos au prix mesuré × N
@@ -6308,14 +6326,20 @@ def cmd_ouvrir(a, sortie):
             fiches_[fait_:fait_] = ["**Estimé.** %s fiches · %s — %s/fiche sur %d clos (le %s)."
                                     % (decimal_fr(a.estime_fiches), usd, approx(par_fiche), n_clos,
                                        __import__("datetime").date.today().isoformat()), ""]
-            if not n_session:
-                ecritures.append((chemin_fiches, fiches_))
+            fiches_change = True
             estime = " · estimé %s fiches %s" % (decimal_fr(a.estime_fiches), usd)
 
+    if fiches_change:
+        ecritures.append((chemin_fiches, fiches_))
     ecritures.append((chemin_carte, carte_))
     for chemin, lignes in ecritures:
         with open(chemin, "w", encoding="utf-8", newline="") as fh:
             fh.write("\n".join(lignes) + "\n")
+    # Le post-it du dossier : son chantier, propre à ce worktree, jamais suivi par Git (NUI23).
+    p = postit(projet)
+    if p:
+        with open(p, "w", encoding="utf-8", newline="") as fh:
+            fh.write(fichier + "\n")
     for g in gardes:
         sortie.write("GARDE: %s — le reste est écrit\n" % g)
     sortie.write("OUVERT %s %s · index %s · routage +%d · session +%d · artefact %s%s — %s\n"

@@ -1191,6 +1191,21 @@ def test_archiver():
 
 test_archiver()
 
+
+def sans_chantier(racine, carte):
+    """Plus aucun chantier ouvert dans `racine` : CHANTIER.md réécrit avec `carte`, et la marque d'ouverture que
+    `ouvrir` a posée retirée des fiches — la ligne seule à « aucun » ne ferme plus rien (NUI23)."""
+    ecrire(os.path.join(racine, "CHANTIER.md"), carte)
+    ctx = os.path.join(racine, "ctx")
+    for nom in os.listdir(ctx):
+        chemin = os.path.join(ctx, nom)
+        if nom.endswith(".md") and os.path.isfile(chemin):
+            texte = mod.lire(chemin)
+            ecrire(chemin, re.sub(r"\n\n\*\*Ouvert\.\*\* le [^\n]*", "", texte))
+
+
+OUVERT_DU_JOUR = mod.OUVERT_LIGNE % __import__("datetime").date.today().isoformat()
+
 with tempfile.TemporaryDirectory() as t:
     lire = lambda c: open(c, encoding="utf-8").read()
     os.environ["CLAUDE_CODE_SESSION_ID"] = "cadre"     # la session du cadrage, que `ouvrir` note
@@ -1204,7 +1219,8 @@ with tempfile.TemporaryDirectory() as t:
     carte_lue, index_lu, claude_lu = lire(os.path.join(t, "CHANTIER.md")), lire(os.path.join(t, "ctx", "00-INDEX.md")), lire(os.path.join(t, "CLAUDE.md"))
     verifier("ouvrir : bilan", code == 0 and s == "OUVERT Q Q1..Q2 · index +1 · routage +1 · session +1 · artefact aucun — %s\n" % t, s)
     verifier("ouvrir : la session du cadrage, avant la première ligne ##", lire(os.path.join(t, "ctx", "30-q.md"))
-             == "# Chantier Q — Un titre\n\n**Session** : cadre\n\n## Q1 [ ] — a\n## Q2 [ ] — b\n", lire(os.path.join(t, "ctx", "30-q.md")))
+             == "# Chantier Q — Un titre\n\n%s\n\n**Session** : cadre\n\n## Q1 [ ] — a\n## Q2 [ ] — b\n"
+             % (mod.OUVERT_LIGNE % __import__("datetime").date.today().isoformat()), lire(os.path.join(t, "ctx", "30-q.md")))
     verifier("ouvrir : CHANTIER.md", "**fichier de fiches courant** : ctx/30-q.md (Q1..Q2)\n- **artefact du chantier** : aucun\n" in carte_lue, carte_lue)
     verifier("ouvrir : index, après le plus grand numéro", "| `10-e.md` | on relit |\n| `30-q.md` | on joue une fiche `Q*` — chantier **ouvert** « Un `titre` », `Q1..Q2` |\n| `05-d.md`" in index_lu, index_lu)
     verifier("ouvrir : routage, avant « relire un chantier clos »", "**clos** |\n| jouer une fiche du chantier Q (un `titre`) | `ctx/30-q.md` — chantier **ouvert**, par `/vlp:tache Q<n>` |\n| relire" in claude_lu, claude_lu)
@@ -1232,12 +1248,12 @@ with tempfile.TemporaryDirectory() as t:
     code, s = appel(["ouvrir", t, "--fiches", "ctx/30-q.md", "--titre", "Un `titre`"])
     verifier("ouvrir : relancé, une ligne d'index écrite à la main reste", code == 0 and "index +0" in s
              and lire(os.path.join(t, "ctx", "00-INDEX.md")) == index_main, s)
-    ecrire(os.path.join(t, "CHANTIER.md"), carte_o % ("aucun", "aucun"))
+    sans_chantier(t, carte_o % ("aucun", "aucun"))
     os.remove(os.path.join(t, "CLAUDE.md"))
     code, s = appel(["ouvrir", t, "--fiches", "ctx/31-r.md", "--titre", "r"])
     verifier("ouvrir : CLAUDE.md absent, garde, le reste écrit", code == 0 and "GARDE: CLAUDE.md introuvable" in s
              and "routage +0" in s and "index +1" in s and "ctx/31-r.md (R1..R1)" in lire(os.path.join(t, "CHANTIER.md")), s)
-    ecrire(os.path.join(t, "CHANTIER.md"), carte_o % ("aucun", "aucun"))
+    sans_chantier(t, carte_o % ("aucun", "aucun"))
     ecrire(os.path.join(t, "ctx", "32-s.md"), "# Chantier S — s\n\n**CLOS** le 2026-01-01. Ne se rejoue pas.\n\n## S1 [x] — a\n")
     code, s = appel(["ouvrir", t, "--fiches", "ctx/32-s.md", "--titre", "s"])
     verifier("ouvrir : fichier CLOS, refus sans écrire", code == 1 and s.startswith("GARDE: ctx/32-s.md porte **CLOS**")
@@ -1250,21 +1266,22 @@ with tempfile.TemporaryDirectory() as t:
     for nom, texte in (("33-t.md", vrai), ("34-u.md", "# Chantier U — u\n\n## U1 [x] — a\n**Session** : cadre\n"),
                        ("35-v.md", "# Chantier V — v\n\n## V1 [ ] — a\n")):
         ecrire(os.path.join(t, "ctx", nom), texte)
-    ecrire(os.path.join(t, "CHANTIER.md"), carte_o % ("aucun", "aucun"))
+    sans_chantier(t, carte_o % ("aucun", "aucun"))
     code, s = appel(["ouvrir", t, "--fiches", "ctx/33-t.md", "--titre", "t"])
     lu_o = lire(os.path.join(t, "ctx", "33-t.md"))
     verifier("ouvrir : un vrai fichier, la session avant le socle, hors de toute fiche", code == 0 and "· session +1 ·" in s
              and lu_o == vrai.replace("## Le socle commun", "**Session** : cadre\n\n## Le socle commun")
+                             .replace("# Chantier T — t\n\n", "# Chantier T — t\n\n%s\n\n" % OUVERT_DU_JOUR)
              and "**Session**" not in appel(["extraire", os.path.join(t, "ctx", "33-t.md"), "T1"])[1], s + lu_o)
-    ecrire(os.path.join(t, "CHANTIER.md"), carte_o % ("aucun", "aucun"))
+    sans_chantier(t, carte_o % ("aucun", "aucun"))
     code, s = appel(["ouvrir", t, "--fiches", "ctx/34-u.md", "--titre", "u"])
     verifier("ouvrir : session déjà sur une ligne d'une fiche, pas redoublée", code == 0 and "· session +0 ·" in s
              and lire(os.path.join(t, "ctx", "34-u.md")).count("**Session**") == 1, s)
-    ecrire(os.path.join(t, "CHANTIER.md"), carte_o % ("aucun", "aucun"))
+    sans_chantier(t, carte_o % ("aucun", "aucun"))
     os.environ["CLAUDE_CODE_SESSION_ID"] = ""
     code, s = appel(["ouvrir", t, "--fiches", "ctx/35-v.md", "--titre", "v"])
     verifier("ouvrir : id vide, rien de noté", code == 0 and "· session +0 ·" in s
-             and lire(os.path.join(t, "ctx", "35-v.md")) == "# Chantier V — v\n\n## V1 [ ] — a\n", s)
+             and lire(os.path.join(t, "ctx", "35-v.md")) == "# Chantier V — v\n\n%s\n\n## V1 [ ] — a\n" % OUVERT_DU_JOUR, s)
     os.environ.pop("CLAUDE_CODE_SESSION_ID", None)
 
 def test_estime():
@@ -1305,7 +1322,7 @@ def test_estime():
                  and lire(os.path.join(te, "ctx", "30-q.md")) == lu_e, s)
         verifier("EST1 : 0,5 et 0.5 acceptés", mod.nombre_fiches("0,5") == mod.nombre_fiches("0.5") == 0.5
                  and mod.decimal_fr(0.5) == "0,5" and mod.decimal_fr(2.0) == "2", "")
-        ecrire(os.path.join(te, "CHANTIER.md"), carte_e)
+        sans_chantier(te, carte_e)
         ecrire(os.path.join(te, "ctx", "31-r.md"), "# Chantier R — r\n\n**Fait.** Rien.\n\n## R1 [ ] — a\n")
         ecrire(os.path.join(te, "ctx", "artefacts", "feuille-de-route.html"),
                "<!-- ZONE:clos -->\n<tbody>\n" + rang % ("E1–E8", "non mesurable") + "</tbody>\n")
@@ -1313,7 +1330,7 @@ def test_estime():
         verifier("EST1 : aucun clos mesuré, GARDE, le reste écrit", code == 0 and "GARDE: aucun chantier clos mesuré" in s
                  and "ctx/31-r.md (R1..R1)" in lire(os.path.join(te, "CHANTIER.md")), s)
         # TAU2 : des clos mesurés en tokens, mais aucun au prix `$` — GARDE dédiée, pas d'estimé en $.
-        ecrire(os.path.join(te, "CHANTIER.md"), carte_e)
+        sans_chantier(te, carte_e)
         ecrire(os.path.join(te, "ctx", "32-s.md"), "# Chantier S — s\n\n**Fait.** Rien.\n\n## S1 [ ] — a\n")
         ecrire(os.path.join(te, "ctx", "artefacts", "feuille-de-route.html"),
                "<!-- ZONE:clos -->\n<tbody>\n" + rang % ("D1–D2", "≈2,0M (2 000 000)") + "</tbody>\n")
@@ -6884,6 +6901,51 @@ def tester_courant_de():
 
 
 tester_courant_de()
+
+
+def tester_ouvrir_marque():
+    """NUI23 : `ouvrir` pose la marque et le post-it ; un worktree ouvre le sien sans la page de main ; `clore`
+    efface le post-it ; un 2e chantier dans le même dossier est refusé."""
+    if not shutil.which("git"):
+        print("SAUTÉ: git absent — ouvrir et clore par la marque ne sont pas testés")
+        return
+    signe = ("-c", "user.name=t", "-c", "user.email=t@t")
+    with tempfile.TemporaryDirectory() as tr:
+        d, wt = os.path.join(tr, "om"), os.path.join(tr, "wt")
+        ecrire(os.path.join(d, "CHANTIER.md"), "# C\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n"
+               "- **fichier de fiches courant** : ctx/50-nui.md (N1..N1)\n- **artefact du chantier** : https://exemple/nui\n\n"
+               "Lettres de fiche déjà prises : N (nuit), P (par).\n")
+        ecrire(os.path.join(d, "ctx", "50-nui.md"), "# Chantier N — nuit\n\n" + OUVERT % "2026-10-03" + "\n\n## N1 [ ] — a\n")
+        ecrire(os.path.join(d, "ctx", "51-par.md"), "# Chantier P — par\n\n**Fait.** Rien.\n\n## P1 [x] — a\n")
+        git_matin(d, "init", "-q", "-b", "main")
+        git_matin(d, "add", "-A")
+        git_matin(d, *signe, "commit", "-q", "-m", "base")
+        git_matin(d, "worktree", "add", "-q", "-b", "par", wt)
+        code1, s1 = appel(["ouvrir", wt, "--fiches", "ctx/51-par.md", "--titre", "Par"])
+        code1b, s1b = appel(["ouvrir", wt, "--fiches", "ctx/51-par.md", "--titre", "Par"])
+        carte_par = mod.lire(os.path.join(wt, "CHANTIER.md"))
+        par = mod.lire(os.path.join(wt, "ctx", "51-par.md"))
+        p_wt = mod.postit(wt) or ""
+        nomme = mod.lire(p_wt).strip() if os.path.isfile(p_wt) else None
+        ouverts_avant = mod.ouverts(wt)
+        code2, s2 = appel(["clore", wt, "--livre", "fini", "--date", "2026-10-04"])
+        postit_reste = os.path.isfile(p_wt)
+        ouverts_apres = mod.ouverts(wt)
+        ecrire(os.path.join(d, "ctx", "52-q.md"), "# Chantier Q — q\n\n## Q1 [ ] — a\n")
+        code3, s3 = appel(["ouvrir", d, "--fiches", "ctx/52-q.md", "--titre", "Q"])
+        git_matin(d, "worktree", "remove", "--force", wt)
+    verifier("NUI23 ouvrir : dans un worktree tiré de main où NUI est ouvert, PAR s'ouvre, artefact « aucun », une "
+             "seule marque même relancé, post-it écrit — mutant : l'artefact toujours repris",
+             (code1, code1b) == (0, 0) and "- **artefact du chantier** : aucun\n" in carte_par
+             and par.count("**Ouvert.**") == 1 and nomme == "ctx/51-par.md"
+             and ouverts_avant == ["ctx/50-nui.md", "ctx/51-par.md"], s1 + s1b + carte_par + par)
+    verifier("NUI23 clore : post-it effacé, PAR hors des ouverts ; ouvrir un 2e chantier dans le dossier → GARDE",
+             code2 == 0 and not postit_reste and ouverts_apres == ["ctx/50-nui.md"]
+             and code3 == 1 and s3.startswith("GARDE: un chantier est déjà ouvert : ctx/50-nui.md"),
+             "\n".join((s2, repr(ouverts_apres), s3)))
+
+
+tester_ouvrir_marque()
 
 if ECARTS:
     sys.exit(1)

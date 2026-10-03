@@ -1157,8 +1157,9 @@ Tu ne fais pas : `ouvrir`, `clore`, le post-it écrit (`NUI23`) ; la prose (`NUI
 ---
 
 <!-- FICHE:NUI23 -->
-## NUI23 [ ] — Ouvrir et clore par la marque et le post-it
+## NUI23 [x] — Ouvrir et clore par la marque et le post-it
 
+**Session** : bf7412ea-120b-47fa-933e-6b54b408b2f4
 **Dépend de** : `NUI22`.
 **Fichiers** : `scripts/vlp.py`, `scripts/faux-claude.py`, `scripts/test-vlp.py`, `scripts/test-boucle.py` ; lus :
 `vlp.py:6079-6110` (`cmd_ouvrir`), `:5796-5940` (`cmd_clore`), `faux-claude.py:108-180` — et rien d'autre.

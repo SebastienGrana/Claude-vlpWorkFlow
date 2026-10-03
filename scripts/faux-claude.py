@@ -33,6 +33,7 @@ transcription). Cette transcription, `~/.claude/projects/<dossier>/<id>.jsonl` �
 dans `skills/tache/SKILL.md` (le faux ne les distingue pas : même prompt). Le rôle `jouer` pose `CLAUDE_CODE_SESSION_ID` = son `--session-id` aux commandes qu'il
 lance, comme le vrai claude ; hors VLP_FAUX_COMMIT, le faux n'appelle jamais Git.
 """
+import datetime
 import io
 import json
 import os
@@ -104,8 +105,22 @@ def ecrire(chemin: str, texte: str) -> None:
         f.write(texte)
 
 
+def postit() -> Optional[str]:
+    """Le post-it du dossier courant, `git rev-parse --git-path vlp-chantier` — celui qu'écrit `vlp.py ouvrir` —,
+    ou None hors Git (NUI23)."""
+    r = subprocess.run(["git", "rev-parse", "--git-path", "vlp-chantier"], capture_output=True, text=True,
+                       encoding="utf-8")
+    return r.stdout.strip() if r.returncode == 0 and r.stdout.strip() else None
+
+
 def courant() -> Optional[str]:
-    """Le fichier de fiches courant de CHANTIER.md du cwd — la lecture de `lire_carte` (boucle.py)."""
+    """Le fichier de fiches courant du cwd : le post-it d'abord, comme `courant_de` (vlp.py) ; la ligne de
+    CHANTIER.md en repli seulement (NUI23)."""
+    p = postit()
+    if p and os.path.isfile(p):
+        nomme = lire(p).strip()
+        if nomme and os.path.isfile(nomme):
+            return nomme
     for ligne in lire("CHANTIER.md").splitlines():
         if "**fichier de fiches courant**" in ligne:
             v = ligne.split(":", 1)[1].strip().split(" (")[0].strip().strip("`")
@@ -125,7 +140,9 @@ def decouper(code: str) -> int:
     if code in os.environ.get("VLP_FAUX_VIDE", "").split(","):
         return 0   # le découpage qui n'ouvre aucun chantier
     ids = ("%s1" % code, "%s2" % code)
-    corps = "# Fiches\n\n## Le socle commun\n\nRien.\n\n## L'ordre des fiches\n\n%s, %s.\n\n---\n\n" % ids
+    # Ouvert comme `vlp.py ouvrir` : le titre `# Chantier `, la marque dessous, le post-it (NUI23).
+    corps = ("# Chantier %s — faux\n\n**Ouvert.** le %s.\n\n## Le socle commun\n\nRien.\n\n## L'ordre des fiches\n\n"
+             "%s, %s.\n\n---\n\n" % ((code, datetime.date.today().isoformat()) + ids))
     for f in ids:
         corps += FICHE % (f, f, f, "")
     texte = lire("CHANTIER.md")
@@ -134,6 +151,9 @@ def decouper(code: str) -> int:
         return inconnu("pas de ligne « fichier de fiches courant » dans CHANTIER.md")
     ecrire("%s.md" % code, corps)
     ecrire("CHANTIER.md", nouveau)
+    p = postit()
+    if p:
+        ecrire(p, "%s.md\n" % code)
     return 0
 
 
@@ -173,7 +193,18 @@ def jouer(fiche: str, session: Optional[str] = None) -> int:
 
 
 def fermer() -> None:
-    """Le fichier de fiches courant et l'artefact du chantier passent à `aucun` : la fermeture de `cmd_clore`."""
+    """La fermeture de `cmd_clore` : `**CLOS**` sous le titre du fichier de fiches, le post-it qui le nomme effacé,
+    le fichier de fiches courant et l'artefact du chantier de CHANTIER.md à `aucun` (NUI23)."""
+    fichier = courant()
+    if fichier and os.path.isfile(fichier):
+        lignes = lire(fichier).split("\n")
+        k = next((k for k, l in enumerate(lignes) if l.startswith("# ")), None)
+        if k is not None and not any(l.startswith("**CLOS**") for l in lignes):
+            lignes[k + 1:k + 1] = ["", "**CLOS** le %s. Ne se rejoue pas." % datetime.date.today().isoformat()]
+            ecrire(fichier, "\n".join(lignes))
+    p = postit()
+    if p and os.path.isfile(p) and lire(p).strip() == fichier:
+        os.remove(p)
     texte = lire("CHANTIER.md")
     for motif in (COURANT, ARTEFACT):
         texte = re.sub(motif, lambda m: m.group(1) + "aucun", texte, flags=re.M)
