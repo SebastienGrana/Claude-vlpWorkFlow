@@ -4,6 +4,8 @@
 
 # Chantier NUI — Le chef de nuit
 
+**Pause.** le 2026-10-03 — chantier VIT (`102-vitesse.md`) d'abord ; reprise à `NUI28`, page https://claude.ai/artifact/QSo3aJREQUqHpxMsXRnffd
+
 **À quoi il sert.** Le kit n'enchaîne qu'un chantier à la fois, et chacun attend l'utilisateur pour se cadrer et se clore.
 `/vlp:chef` cadre le soir, joue plusieurs chantiers la nuit sur deux canaux sans humain, fusionne et rend un rapport le matin.
 
