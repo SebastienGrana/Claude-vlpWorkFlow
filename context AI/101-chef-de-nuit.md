@@ -1211,8 +1211,9 @@ Tu ne fais pas : la fusion de jour (`NUI26`).
 ---
 
 <!-- FICHE:NUI25 -->
-## NUI25 [ ] — Le canal de nuit découpe son chantier, pas celui de main
+## NUI25 [x] — Le canal de nuit découpe son chantier, pas celui de main
 
+**Session** : bf7412ea-120b-47fa-933e-6b54b408b2f4
 **Dépend de** : `NUI23`.
 **Fichiers** : `scripts/boucle.py`, `scripts/test-boucle.py` ; lus : `boucle.py:940-1005`, `:1350-1380` — et rien d'autre.
 

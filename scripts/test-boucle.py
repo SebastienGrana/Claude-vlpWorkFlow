@@ -989,7 +989,7 @@ def tester_canal():
         sujets = git(t, "log", "--format=%s", brs[2]).splitlines()
         clore = [d for d in lignes if d["role"] == "clore"]
         lues = [bool(re.search(r"\*\*Session\*\*[^\n]*%s[^\n]*\(clore\)" % d["session"],
-                               git(t, "show", "%s:%s.md" % (b, d["chantier"])))) for d, b in zip(clore, brs)]
+                               git(t, "show", "%s:ctx/%s.md" % (b, d["chantier"])))) for d, b in zip(clore, brs)]
         envs = journal_de(os.path.join(hors, "env.jsonl"))
         neuf("(a) trois chantiers réussis : trois branches à la --date, chacune ancêtre de la suivante, trois sessions "
              "clore dont la ligne `**Session** … (clore)` est commitée, trois commits « ouvert (nuit) », VLP_NUIT=1 "
@@ -1137,6 +1137,98 @@ def tester_canal():
 
 
 aides_canal = tester_canal()
+
+
+def tester_herite(aides):
+    """NUI25 : un canal part d'un worktree détaché sur main, comme le lanceur — main y porte un chantier marqué, que
+    le canal hérite sans le jouer ; et une carte gardée (plusieurs ouverts) n'est jamais lue « aucun »."""
+    DATE, ecrire_f, depot_canal, canal, br, sujet = (aides[k] for k in ("DATE", "ecrire_f", "depot_canal", "canal", "br",
+                                                                         "sujet"))
+    ecrits = [0]
+
+    def neuf(nom, cond, sortie):
+        ecrits[0] += 1
+        verifier("NUI25 " + nom, cond, sortie)
+
+    def marque(code, fiches=()):
+        """Un fichier de fiches ouvert comme par `vlp.py ouvrir` : titre `# Chantier `, marque, fiches."""
+        return ("# Chantier %s — hérité\n\n**Ouvert.** le 2026-09-30.\n\n## Le socle commun\n\nRien.\n\n"
+                "## L'ordre des fiches\n\n%s.\n\n---\n\n" % (code, ", ".join(fiches))
+                + "".join(FICHE % (f, f, f, "") for f in fiches))
+
+    def main_herite(t, hors, d):
+        """Le dépôt du canal, main portant le chantier HHH ouvert (marque et ligne de CHANTIER.md), puis le worktree
+        détaché du canal dans `d` : son chemin."""
+        depot_canal(t, hors, ("AAA",))
+        ecrire_f(os.path.join(t, "ctx", "100-x.md"), marque("HHH", ("HHH1", "HHH2")))
+        chemin = os.path.join(t, "CHANTIER.md")
+        ecrire_f(chemin, lire(chemin).replace("**fichier de fiches courant** : aucun",
+                                              "**fichier de fiches courant** : ctx/100-x.md (HHH1..HHH2)"))
+        git(t, "add", "-A")
+        git(t, "commit", "-q", "-m", "HHH ouvert sur main")
+        wt = os.path.join(d, "canal")
+        git(t, "worktree", "add", "-q", "--detach", wt, "HEAD")
+        return wt
+
+    with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors, tempfile.TemporaryDirectory() as d:
+        wt = main_herite(t, hors, d)
+        code, s, lignes = canal(wt, hors)
+        herite = git(wt, "show", "%s:ctx/100-x.md" % br("AAA"))
+        neuf("(a) main porte HHH ouvert : le canal découpe et clôt AAA, son commit d'ouverture dit AAA, HHH ni joué ni "
+             "touché",
+             code == 0 and "CLOS AAA" in s and "ARRÊT plan terminé — 1 clos, 0 de côté, 0 sautés" in s
+             and "Chantier AAA ouvert (nuit) : 2 fiches" in git(wt, "log", "--format=%s", br("AAA")).splitlines()
+             and "HHH" not in s and not any(str(d_.get("fiche") or "").startswith("HHH") for d_ in lignes)
+             and "**Ouvert.**" in herite and "**CLOS**" not in herite and "## HHH1 [ ]" in herite, (s, lignes))
+
+    with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors, tempfile.TemporaryDirectory() as d:
+        wt = main_herite(t, hors, d)
+        code, s, lignes = canal(wt, hors, VLP_FAUX_VIDE="AAA")
+        neuf("(b) main porte HHH ouvert, le découpage n'ouvre rien : mis de côté, HHH jamais pris pour le découpage",
+             code == 0 and "le découpage n'a ouvert aucun chantier" in s and "HHH" not in s and "JOUE" not in s
+             and not any(x.startswith("Chantier AAA ouvert") for x in git(wt, "log", "--all", "--format=%s").splitlines()),
+             (s, lignes))
+
+    with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors, tempfile.TemporaryDirectory() as d:
+        wt = main_herite(t, hors, d)
+        for nom, code_ in (("200-a.md", "AA2"), ("201-b.md", "BB2")):
+            ecrire_f(os.path.join(wt, "ctx", nom), marque(code_))
+        git(wt, "add", "-A")
+        git(wt, "commit", "-q", "-m", "deux ouverts dans le canal")
+        code, s, _ = canal(wt, hors)
+        neuf("(c) deux chantiers ouverts par le worktree du canal : la GARDE de la carte, sort 1, rien découpé",
+             code == 1 and "GARDE: plusieurs chantiers ouverts : ctx/200-a.md, ctx/201-b.md" in s
+             and "DÉCOUPER" not in s and "JOUE" not in s, s)
+
+    with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors:
+        depot_canal(t, hors, ("AAA",))
+        vrai = bmod.vlp
+        fichier = os.path.join(t, "ctx", "AAA.md")
+
+        def garde_apres_clore(argv, dossier):
+            """Une fois AAA marqué CLOS, la carte garde comme si un second chantier restait ouvert."""
+            rendu, texte = vrai(argv, dossier)
+            if argv[0] == "carte" and os.path.isfile(fichier) and "**CLOS**" in lire(fichier):
+                return 1, texte.split("COURANT=")[0] + "GARDE: plusieurs chantiers ouverts : ctx/AAA.md, ctx/ZZZ.md\n"
+            return rendu, texte
+
+        sortie = io.StringIO()
+        bmod.vlp = garde_apres_clore
+        try:
+            with pilote(VLP_FAUX_VLP=os.path.join(ICI, "vlp.py"), VLP_FAUX_CLORE="commit", PYTHONIOENCODING="utf-8",
+                        **ENV_GIT), contextlib.redirect_stdout(sortie):
+                code = bmod.main([t, "--claude", FAUX_CLAUDE, "--traces", hors, "--nuit", "--canal", "A", "--date", DATE])
+        finally:
+            bmod.vlp = vrai
+        s = sortie.getvalue()
+        neuf("(d) la carte garde après la clôture : AAA mis de côté pour carte gardée, jamais compté clos",
+             code == 0 and "MIS DE CÔTÉ AAA — carte gardée — GARDE: plusieurs chantiers ouverts" in s
+             and "CLOS AAA —" not in s and "ARRÊT plan terminé — 0 clos, 1 de côté, 0 sautés" in s, s)
+
+    sys.stderr.write("NUI25 : %d cas neufs passés / %d écrits\n" % (ecrits[0], ecrits[0]))
+
+
+tester_herite(aides_canal)
 
 
 # --- reprendre une nuit coupée (NUI8) ---------------------------------------------------------------------

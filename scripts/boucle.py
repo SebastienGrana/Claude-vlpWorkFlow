@@ -301,12 +301,21 @@ def claude_de(choix):
     return claude
 
 
+class CarteGardee(Exception):
+    """La carte a trouvé le projet sans pouvoir dire son chantier — `PROJET=` puis `GARDE:`, sans ligne `COURANT=`
+    (plusieurs ouverts, `courant_de`). Ni « aucun » ni un fichier : la boucle ne la prend jamais pour l'un d'eux
+    (NUI25) ; le message est la ligne `GARDE:`."""
+
+
 def lire_carte(dossier):
     """(racine, fichier de fiches, prochaine, retard) — None là où la carte ne dit rien ; `retard` : le nombre
-    de commits de la ligne `PLUGIN_RETARD=`, None sans elle."""
+    de commits de la ligne `PLUGIN_RETARD=`, None sans elle. Projet trouvé sans ligne `COURANT=` : `CarteGardee`."""
     _, s = vlp(["carte", dossier], dossier)
-    racine = fichier = prochaine = retard = None
+    racine = fichier = prochaine = retard = garde = None
+    vu_courant = False
     for ligne in s.split("\n"):
+        if ligne.startswith("GARDE:") and garde is None:
+            garde = ligne.strip()
         if ligne.startswith("PROJET="):
             racine = ligne[len("PROJET="):].strip()
         elif ligne.startswith("PROCHAINE="):
@@ -314,11 +323,23 @@ def lire_carte(dossier):
         elif ligne.startswith("PLUGIN_RETARD="):
             m = re.match(r"PLUGIN_RETARD=(\d+)", ligne)
             retard = int(m.group(1)) if m else None
-        elif ligne.startswith("COURANT=") and fichier is None:
+        elif ligne.startswith("COURANT=") and not vu_courant:
             # Le chantier du dossier, calculé par `courant_de` seul — jamais la ligne brute de CHANTIER.md (NUI22).
+            vu_courant = True
             valeur = ligne[len("COURANT="):].strip()
             fichier = None if valeur == "aucun" else valeur
+    if racine and not vu_courant:
+        raise CarteGardee(garde or "GARDE: la carte de %s ne dit pas son chantier (pas de ligne COURANT=)" % racine)
     return racine, fichier, prochaine, retard
+
+
+def carte_dit(racine, ouvert):
+    """Le contrôle des sessions `découper` (`ouvert` vrai : la carte nomme un chantier) et `clore` (faux : elle n'en
+    nomme aucun). Une carte gardée ne passe ni l'un ni l'autre ; la lecture qui suit la session la rend (NUI25)."""
+    try:
+        return (lire_carte(racine)[1] is not None) == ouvert
+    except CarteGardee:
+        return False
 
 
 def ligne_carnet(a, **champs):
@@ -943,8 +964,9 @@ def session_de(claude, a, racine, traces, etat, role, code, fiche, controle, ses
 
 def decouper_chantier(claude, a, racine, traces, etat, code, todo):
     """Le découpage du chantier `code` : la session `découper`, `juger_decoupe`, le commit d'ouverture. Rend
-    `(fichier, None)`, ou `(None, (genre, sortie, raison))` — le `un_chantier` qui s'arrête là."""
-    s = session_de(claude, a, racine, traces, etat, "découper", code, code, lambda: lire_carte(racine)[1] is not None)
+    `(fichier, None)`, ou `(None, (genre, sortie, raison))` — le `un_chantier` qui s'arrête là. « Découpé » : `COURANT=`
+    nomme un fichier, donc ajouté par la branche — `courant_de` écarte le chantier hérité de main (NUI25)."""
+    s = session_de(claude, a, racine, traces, etat, "découper", code, code, lambda: carte_dit(racine, True))
     if s["stop"]:
         return None, ("fin", 1, "STOP — %s" % s["stop"])
     if s["coupee"]:   # NUI8 : ce qu'elle a écrit n'est pas à croire
@@ -967,7 +989,16 @@ def un_chantier(claude, a, racine, traces, etat, code, todo, erreur_todo, repris
     """Un chantier du plan, du découpage à la clôture. Rend `(genre, sortie, raison)` : `clos` ; `de-cote` (`raison` :
     pourquoi — le canal appelle `mettre_de_cote`) ; `fin` (le canal s'arrête, `sortie` est son code). `reprise` : le
     chantier est repris après une coupure (NUI8) — s'il est déjà découpé (un fichier de fiches courant), il ne repasse
-    pas par `découper`."""
+    pas par `découper`. Une carte gardée en route le met de côté (NUI25) : ni découpé, ni clos."""
+    try:
+        return chantier_du_canal(claude, a, racine, traces, etat, code, todo, erreur_todo, reprise)
+    except CarteGardee as e:
+        return "de-cote", 0, "carte gardée — %s" % e
+
+
+def chantier_du_canal(claude, a, racine, traces, etat, code, todo, erreur_todo, reprise):
+    """Le corps d'`un_chantier`, qui garde ses `CarteGardee`. « Clos » : `COURANT=` ne nomme plus aucun fichier —
+    le chantier hérité de main n'y est jamais (`courant_de`, NUI25)."""
     if erreur_todo:
         return "de-cote", 0, "TODO illisible — %s" % erreur_todo
     fichier = lire_carte(racine)[1] if reprise else None
@@ -992,7 +1023,7 @@ def un_chantier(claude, a, racine, traces, etat, code, todo, erreur_todo, repris
     noter, ecrit = vlp(["cocher", fichier, titres[-1], "--session", session, "--role", "clore"], racine)
     if noter:
         return "de-cote", 0, "cocher --session --role clore : %s" % ecrit.strip()
-    s = session_de(claude, a, racine, traces, etat, "clore", code, None, lambda: lire_carte(racine)[1] is None, session)
+    s = session_de(claude, a, racine, traces, etat, "clore", code, None, lambda: carte_dit(racine, False), session)
     if s["stop"]:
         return "fin", 1, "STOP — %s" % s["stop"]
     if s["coupee"]:   # NUI8
@@ -1234,7 +1265,8 @@ def lanceur(a):
     if not claude:
         return 1
     print("CLAUDE=%s" % claude)
-    racine = lire_carte(os.path.abspath(a.dossier))[0]
+    # Le projet seul : le chantier de main n'est pas celui des canaux, et une carte gardée n'empêche pas la nuit (NUI25).
+    racine = kit().trouver(os.path.abspath(a.dossier))
     if not racine:
         print("GARDE: aucun projet équipé (CHANTIER.md) depuis %s" % os.path.abspath(a.dossier))
         return 1
@@ -1349,7 +1381,12 @@ def main(argv):
     if not claude:
         return 1
     print("CLAUDE=%s" % claude)
-    racine, fichier, _, a.plugin_retard = lire_carte(os.path.abspath(a.dossier))
+    try:
+        # Le chantier du dossier lancé — pour un canal, son worktree, jamais la ligne de main (NUI25).
+        racine, fichier, _, a.plugin_retard = lire_carte(os.path.abspath(a.dossier))
+    except CarteGardee as e:
+        print(e)
+        return 1
     if not racine or (not fichier and not canal):
         print("ARRÊT aucun projet ou aucun fichier de fiches courant")
         return 1
@@ -1374,8 +1411,11 @@ def main(argv):
     try:
         if not canal:
             verif = verification_de(racine) if a.nuit else None
-            code, raison, _ = fiches_du_chantier(claude, a, racine, fichier, traces, verif, etat)
-        elif fichier and not a.reprendre:
+            try:
+                code, raison, _ = fiches_du_chantier(claude, a, racine, fichier, traces, verif, etat)
+            except CarteGardee as e:
+                code, raison = 1, "carte gardée — %s" % e
+        elif fichier and not a.reprendre:   # le `COURANT=` du worktree du canal : un hérité de main n'y est pas
             code, raison = 1, "un chantier est déjà ouvert au départ (%s) — rien à découper" % fichier
         else:
             plan, erreur = lire_plan(racine, a)

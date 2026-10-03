@@ -136,24 +136,35 @@ def resultat(sid: str, modele: Optional[str], cout: float, **champs) -> dict:
     return r
 
 
+def contexte() -> str:
+    """Le dossier de la ligne `**contexte**` de CHANTIER.md, sans barre finale, ou « » sans elle : là où `vlp.py
+    ouvrir` trouve un fichier de fiches, et `courant_de` un chantier ouvert (NUI25)."""
+    for ligne in lire("CHANTIER.md").splitlines():
+        if "**contexte**" in ligne:
+            return ligne.split(":", 1)[1].strip().strip("`").rstrip("/")
+    return ""
+
+
 def decouper(code: str) -> int:
     if code in os.environ.get("VLP_FAUX_VIDE", "").split(","):
         return 0   # le découpage qui n'ouvre aucun chantier
     ids = ("%s1" % code, "%s2" % code)
+    dossier = contexte()
+    fichier = "%s/%s.md" % (dossier, code) if dossier else "%s.md" % code
     # Ouvert comme `vlp.py ouvrir` : le titre `# Chantier `, la marque dessous, le post-it (NUI23).
     corps = ("# Chantier %s — faux\n\n**Ouvert.** le %s.\n\n## Le socle commun\n\nRien.\n\n## L'ordre des fiches\n\n"
              "%s, %s.\n\n---\n\n" % ((code, datetime.date.today().isoformat()) + ids))
     for f in ids:
         corps += FICHE % (f, f, f, "")
     texte = lire("CHANTIER.md")
-    nouveau, n = re.subn(COURANT, lambda m: "%s%s.md (%s..%s)" % (m.group(1), code, ids[0], ids[1]), texte, flags=re.M)
+    nouveau, n = re.subn(COURANT, lambda m: "%s%s (%s..%s)" % (m.group(1), fichier, ids[0], ids[1]), texte, flags=re.M)
     if n != 1:
         return inconnu("pas de ligne « fichier de fiches courant » dans CHANTIER.md")
-    ecrire("%s.md" % code, corps)
+    ecrire(fichier, corps)
     ecrire("CHANTIER.md", nouveau)
     p = postit()
     if p:
-        ecrire(p, "%s.md\n" % code)
+        ecrire(p, "%s\n" % fichier)
     return 0
 
 
@@ -212,7 +223,7 @@ def fermer() -> None:
 
 
 def clore() -> int:
-    code = os.path.splitext(courant() or "?")[0]
+    code = os.path.splitext(os.path.basename(courant() or "?"))[0]
     fermer()
     if os.environ.get("VLP_FAUX_CLORE") == "commit":
         # La session de clôture commite, `cloture.md:72` : le sujet n'est pas celui d'une fiche.

@@ -26,7 +26,7 @@
 - NUI22 : test-vlp OK (0 ÉCART) ; mutant règle 2 ATTRAPÉ (1 écart, cas a) ; fichier_courant( 8 → 2 lignes (définition + appel unique dans courant_de, la fiche disait 1 à tort) ; pyright 0 errors
 - NUI23 : test-vlp OK (0 ÉCART, 6 anciens tests remis au modèle de la marque par sans_chantier) ; mutant artefact toujours repris ATTRAPÉ (1 écart) ; pyright 0 errors ; migré = fichier titré marqué seulement
 - NUI24 : test-vlp OK (0 ÉCART) ; mutant « pointe WIP non lue » ATTRAPÉ ; « mis de côté : » dans boucle.py 3 → 0 ; pyright 0
-- NUI25 : le canal de nuit découpe son chantier, pas celui de main ; après NUI23
+- NUI25 : test-boucle OK (NUI25 4/4 : hérité ni joué ni touché, découpage vide, GARDE au départ, GARDE après clore) ; test-vlp OK 0 ÉCART ; mutant 952 ligne brute ATTRAPÉ ; pyright 0 ; faux-claude.py touché hors liste (fichier dans le contexte)
 - NUI26 : vlp.py fusionner, la fusion du jour, main ne reste plus bloqué ; après NUI23, NUI24
 - NUI27 : une lettre en double donne une GARDE ; après NUI26
 - NUI28 : la carte voit les chantiers des autres worktrees ; après NUI22
