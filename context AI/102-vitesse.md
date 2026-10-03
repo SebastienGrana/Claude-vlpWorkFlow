@@ -18,8 +18,9 @@ son numéro non repris ; `VIT14` ajoutée après `VIT2`. NUI en pause, reprise �
 
 ## Le socle commun
 
-**D'où il vient.** Deux audits indépendants (A1, A2) et leur synthèse croisée, le 2026-10-03, dans le scratchpad de la
-session bf7412ea : **non versionnés, ils disparaîtront** — les chiffres utiles sont recopiés ici, avec leur source.
+**D'où il vient.** Deux audits indépendants (A1, A2) et leur synthèse croisée, le 2026-10-03. La synthèse est
+versionnée : `context AI/103-audit-vitesse.md`. A1 et A2, restés dans le scratchpad de la session bf7412ea,
+**disparaîtront** — leurs chiffres utiles sont recopiés ici, avec leur source.
 Décisions : https://claude.ai/artifact/3maXrvHBKj85QYybrnPubx. Chaque fiche remesure ce dont elle dépend, avant/après.
 **La base** : l'entrée « VIT1 — la base » de `context AI/08-etat.md` (2026-10-04) — l'« avant » d'un critère s'y lit.
 
@@ -32,6 +33,9 @@ Décisions : https://claude.ai/artifact/3maXrvHBKj85QYybrnPubx. Chaque fiche rem
 - Q9 plugins sans rapport : **l'utilisateur** les désactive lui-même, après la mesure de `VIT1`.
 - Puis, au questionnaire : un code **sain, maintenable, documenté**, exigé ici plutôt qu'en fiches de plus ; après
   VIT, la méthode du kit puis la TODO (n° 99) ; un chantier plus gros accepté, pourvu qu'il avance.
+- Puis, page des critères (2026-10-04, https://claude.ai/artifact/LbQN638o6ZZFk6jC1t1uz7) : D1 et D2 gardées ;
+  Q1 le cliquet, Q2 la docstring de toute fonction touchée, Q3 ruff, Q4 les tests sans longueur ni docstring,
+  Q5 la synthèse versionnée, Q6 les dossiers `vlp-carte-*` en TODO.
 
 **Les invariants — aucune fiche ne les casse.**
 - **Aucun contrôle retiré** : les `verifier(` de `test-vlp.py` et de `test-boucle.py` (en occurrences :
@@ -42,7 +46,17 @@ Décisions : https://claude.ai/artifact/3maXrvHBKj85QYybrnPubx. Chaque fiche rem
   imprimait.
 - Un gain se **mesure** avant/après, par la même commande, comptes bruts ; un gain estimé se dit estimé.
 - **Code sain, maintenable, documenté** : chaque fiche laisse le code qu'elle touche plus propre qu'elle ne l'a
-  trouvé, selon des critères mesurables proposés à l'utilisateur après `VIT1` et écrits ici — `VIT2` ne part pas sans eux.
+  trouvé. Les critères, comptés avant/après sur les fonctions touchées, comptes bruts au critère :
+  - **Les seuils** — ceux de ruff par défaut : complexité 10, branches 12, arguments 5, instructions 50, blocs
+    imbriqués 5.
+  - **Le cliquet** — une fonction neuve passe les cinq seuils ; une vieille fonction touchée n'empire sur aucun
+    compte. Les fonctions déjà au-dessus (54 sur 474, estimé) attendent `REF` (n° 96).
+  - **La docstring** — toute fonction neuve ou touchée a la sienne : au moins une phrase à l'impératif, en
+    français, finie par un point (PEP 257).
+  - **Les tests** (`test-*.py`) — mêmes seuils, sauf les instructions et la docstring : un long scénario reste
+    permis, le nom `tester_…` sert d'étiquette.
+  - **L'outil** — ruff ; tant qu'il n'est ni installé ni entouré de son cliquet, les comptes se font par un script
+    `ast` de la bibliothèque standard, à une unité près de ruff : « estimé ».
 - Jusqu'à `VIT2` livrée, le mutant se joue à l'ancienne (`vlp.py mutant` mute le vrai fichier ~10 min : ni suite ni
   édition pendant ce temps) ; après, par `--attendu`. « Mutant attrapé », dans un critère, vise la forme du moment.
 
