@@ -2574,3 +2574,9 @@ Notes prises en cours de fiche, à la demande de l'utilisateur (« note tout ce 
 - **La copie garde `context AI/`** (`MUTANT_EXCLUS`, dérivé de `KIT_EXCLUS`) : une copie sans lui, non mutée, sort en 27 s — `ÉCART: NIV1` (la carte de la copie cherche `context AI/102-vitesse.md`), puis un traceback sur `context AI/08-etat.md` (la pièce de `JUG2`, lue par `test-vlp.py`). Avec lui : `OK`, 0 écart. Aucun test ne lit le **Git** du kit. Ces deux tests lisent le vrai dépôt, contre la règle « Un test bâtit son propre projet » de `methode-chantier.md` : laissés tels quels, hors fiche.
 - **Une copie peut rester** : `taskkill /F /T` rend la main avant que les processus tués lâchent leur dossier ; `rmtree(ignore_errors=True)` a laissé 2 copies, en silence, sur un passage du test. `effacer_copie` réessaie 2 s, puis `COPIE restée : …` le dit.
 - **Le mutant de `NUI27`** avec `--attendu "NUI27 (a)"` : 144,1 s, 139,5 s, 140,8 s (17:28 à 18:01), contre 538 s à `VIT1` ; mémoire validée 80 à 89 % (85 % sur la capture de l'utilisateur), contre 56 % à `VIT1` — un téléchargement de l'utilisateur pendant la première.
+
+## 2026-10-04 — VIT14 : RETOUR, rien ne tombe
+
+- **L'essai** : `NUI7 (c)` et `NUI25 (d)` isolés (`test-boucle.py` réduit à ces deux cas par un script du scratchpad de la session 72db946f, `isoler.py`, sans toucher au vrai fichier) : la paire seule, verte en 25 s ; puis **8 paires en parallèle × 3 tours = 24 essais**, nombre dit d'avance, de 18:04:39 à 18:07:20 : **0 échec sur 24**, 160 s.
+- **En regard** : la paire est passée dans les 3 suites complètes du jour (17:00, 17:17, 17:36), la dernière à 88 % de mémoire validée.
+- **Limite** : 8 copies chargent le processeur, pas la mémoire ; à `VIT1`, les deux cas sont tombés à 98-100 % de mémoire validée. Remplir la mémoire exprès n'a pas été fait sans l'accord de l'utilisateur. La fiche reste `[ ]` ; la suite (la retirer, ou reproduire sous pression mémoire) est à trancher par lui.
