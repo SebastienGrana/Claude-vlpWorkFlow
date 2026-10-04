@@ -467,13 +467,20 @@ Sous-commandes :
   `configurations` ou avec deux entrées du même nom : `GARDE:`, rien d'écrit, sort 1. Fichier
   pas couvert par `git check-ignore` (il porte des chemins de machine) : écrit quand même, et
   une `GARDE:` le dit, sort 0 ; pas de dépôt Git, pas de `GARDE:`.
-- `mutant <fichier> <avant> <après> [--test "<commande>"]` — le mutant d'une fiche de code (chantier
-  MUT) : `@chemin` lit un argument dans un fichier, tel quel ; les `\n` d'`avant`/`après` suivent la
-  fin de ligne du fichier. `avant` doit y être une fois exactement (sinon `GARDE:`, rien écrit).
-  Remplace, lance les tests (défaut : le `test-vlp.py` voisin, par ce Python) avec
-  `VLP_TOUS_ECARTS=1`, puis rend le fichier dans un `finally`. Imprime chaque `ÉCART:`, puis
-  `MUTANT ATTRAPÉ <n> écart(s)` (sort 0), `MUTANT VIVANT` ou `MUTANT PLANTÉ …` (sort 1), puis
-  `RENDU <sha1 12>` — `GARDE:` si l'empreinte a bougé, ou si les tests ne se lancent pas.
+- `mutant <fichier> <avant> <après> [--attendu "<début du libellé>" | --tous] [--test "<commande>"]` — le
+  mutant d'une fiche de code (chantiers MUT, VIT2) : `@chemin` lit un argument dans un fichier, tel quel ;
+  les `\n` d'`avant`/`après` suivent la fin de ligne du fichier. `avant` doit y être une fois exactement
+  (sinon `GARDE:`, rien écrit). Le vrai fichier n'est jamais écrit : le kit — ou, hors du kit, le dossier du
+  fichier — est copié dans un dossier temporaire (sans `MUTANT_EXCLUS`), la copie mutée, et les tests y
+  tournent (défaut : le `test-vlp.py` de la copie, par ce Python ; dans `--test`, les chemins sous la racine
+  copiée pointent dans la copie), avec `VLP_TOUS_ECARTS=1`, sortie lue ligne à ligne. `--attendu` : dès
+  l'`ÉCART:` dont le libellé commence ainsi, l'arbre de processus est tué → `MUTANT ATTRAPÉ <n> écart(s) ·
+  arrêté sur « … »` (sort 0) ; la suite finie sans lui → `MUTANT VIVANT pour <libellé>` (sort 1). `--tous`, ou
+  ni l'un ni l'autre : `MUTANT ATTRAPÉ <n> écart(s)` (sort 0) ou `MUTANT VIVANT` (sort 1). Une suite finie
+  sort 0 ou dit `OK` ou `FIN:` en dernière ligne ; arrêtée avant — erreur, ou `DÉLAI:` de 1800 s —, c'est
+  `MUTANT PLANTÉ …` (sort 1), même après un écart. Chaque `ÉCART:` vu est imprimé avant ; `COPIE restée : …`
+  si la copie ne s'efface pas en 2 s ; puis `RENDU <sha1 12>` — `GARDE:` si l'empreinte a bougé, ou si les
+  tests ne se lancent pas.
 - `nuits noter "<texte>" [--canal C] [--stop]` — une ligne `note` au carnet de nuit (`carnet.py`, chantier
   NUI) ; avec `--stop`, la ligne `stop` (le texte en est la raison) que la boucle lit avant chaque
   session. Carnet : `VLP_CARNET`, sinon celui du jour du dépôt Git courant ; canal : `--canal`, sinon
@@ -6542,6 +6549,8 @@ def cmd_bac(dossier, sortie):
 
 
 KIT_EXCLUS = (".git", ".claude", "context AI", "__pycache__", "relais-python.err")
+# La copie d'un mutant garde `context AI/` : la suite y lit la carte du kit (NIV1) et la pièce de JUG2 (VIT2).
+MUTANT_EXCLUS = tuple(n for n in KIT_EXCLUS if n != "context AI")
 
 
 def cmd_kit_essai(dossier, max_turns, source, sortie):
@@ -7694,60 +7703,159 @@ def cmd_nuits_lecon(ligne, projet, sortie):
     return 0
 
 
-def cmd_mutant(fichier, avant, apres, test, sortie):
-    """Casse `fichier` exprès (`avant` → `apres`, une seule occurrence), joue les tests avec
-    `VLP_TOUS_ECARTS=1`, liste leurs `ÉCART:`, et rend le fichier à l'octet près (chantier MUT)."""
-    import hashlib
-    import subprocess
-    try:
-        avant, apres = lire_arg(avant), lire_arg(apres)
-        with open(fichier, "rb") as f:
-            octets = f.read()
-        texte = octets.decode("utf-8")
-    except (OSError, UnicodeDecodeError) as e:
-        sortie.write("GARDE: %s\n" % e)
-        return 1
+DELAI_MUTANT = 1800     # secondes : passé ce délai, la suite d'un mutant est tuée et dite PLANTÉ
+
+
+def texte_mute(fichier, avant, apres):
+    """Lire `fichier` et rendre (ses octets, son texte où `avant` devient `apres`) ; les `\\n` des deux suivent
+    la fin de ligne du fichier, et `avant` doit y être une fois exactement — sinon `ValueError`."""
+    with open(fichier, "rb") as f:
+        octets = f.read()
+    texte = octets.decode("utf-8")
     nl = "\r\n" if "\r\n" in texte else "\n"
     avant, apres = (x.replace("\r\n", "\n").replace("\n", nl) for x in (avant, apres))
     n = texte.count(avant) if avant else 0
     if n != 1:
-        sortie.write("GARDE: « avant » trouvé %d fois dans %s — il en faut exactement 1, rien écrit\n"
-                     % (n, fichier))
+        raise ValueError("« avant » trouvé %d fois dans %s — il en faut exactement 1, rien écrit" % (n, fichier))
+    return octets, texte.replace(avant, apres)
+
+
+def copie_mutee(fichier, mute, dossier):
+    """Copier sous `dossier` le kit — ou, hors du kit, le dossier de `fichier` —, sans `MUTANT_EXCLUS`, puis y écrire
+    `mute` à la place de `fichier` ; rendre (la racine copiée, sa copie). Le vrai fichier n'est jamais écrit."""
+    import shutil
+    fichier = os.path.abspath(fichier)
+    try:
+        dans_kit = os.path.commonpath([os.path.normcase(KIT), os.path.normcase(fichier)]) == os.path.normcase(KIT)
+    except ValueError:      # deux lecteurs différents
+        dans_kit = False
+    racine = KIT if dans_kit else os.path.dirname(fichier)
+    copie = os.path.join(dossier, "kit")
+
+    def exclus(r, noms):
+        """Rendre les noms de `r` que la copie laisse de côté."""
+        rel = os.path.relpath(r, racine).replace(os.sep, "/")
+        return [n for n in noms if n in MUTANT_EXCLUS or (rel == "evals" and n == "results")]
+
+    shutil.copytree(racine, copie, ignore=exclus)
+    with open(os.path.join(copie, os.path.relpath(fichier, racine)), "wb") as f:
+        f.write(mute.encode("utf-8"))
+    return racine, copie
+
+
+def vers_copie(commande, racine, copie):
+    """Rendre `commande` (chaîne ou liste) où chaque chemin sous `racine`, en barres obliques ou inverses, pointe
+    sous `copie` : une commande déjà écrite pour le vrai kit joue la copie."""
+    if not isinstance(commande, str):
+        return [vers_copie(x, racine, copie) for x in commande]
+    for r, c in {(racine, copie), (racine.replace("\\", "/"), copie.replace("\\", "/"))}:
+        commande = re.sub(re.escape(r) + r"(?![^\\/\s\"'])", lambda _m, c=c: c, commande,
+                          flags=re.I if os.name == "nt" else 0)
+    return commande
+
+
+def tuer_arbre(p):
+    """Tuer le processus `p` et ses descendants : `taskkill /T` sous Windows, son groupe de session ailleurs."""
+    import subprocess
+    if p.poll() is not None:
+        return
+    if sys.platform == "win32":
+        subprocess.run(["taskkill", "/F", "/T", "/PID", str(p.pid)], capture_output=True)
+    else:
+        import signal
+        try:
+            os.killpg(p.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+
+
+def jouer_suite(commande, dossier, attendu):
+    """Jouer `commande` dans `dossier` avec `VLP_TOUS_ECARTS=1`, sa sortie lue ligne à ligne ; avec `attendu`, tuer
+    l'arbre de processus dès l'`ÉCART:` dont le libellé commence par lui. Rendre (lignes, code de sortie, attrapé) ;
+    passé `DELAI_MUTANT`, l'arbre est tué et une ligne `DÉLAI:` le dit."""
+    import subprocess
+    import threading
+    env = dict(os.environ, VLP_TOUS_ECARTS="1", PYTHONIOENCODING="utf-8", PYTHONUTF8="1", PYTHONUNBUFFERED="1")
+    p = subprocess.Popen(commande, shell=isinstance(commande, str), cwd=dossier, env=env, stdout=subprocess.PIPE,
+                         stderr=subprocess.STDOUT, encoding="utf-8", errors="replace",
+                         start_new_session=sys.platform != "win32")
+    lignes, attrape = [], False
+
+    def expirer():
+        """Tuer la suite trop longue, et le noter."""
+        lignes.append("DÉLAI: %d s dépassé, suite tuée" % DELAI_MUTANT)
+        tuer_arbre(p)
+
+    minuteur = threading.Timer(DELAI_MUTANT, expirer)
+    minuteur.start()
+    try:
+        for ligne in p.stdout or ():
+            lignes.append(ligne.rstrip("\n"))
+            if attendu and ligne.startswith("ÉCART:") and ligne[len("ÉCART:"):].strip().startswith(attendu):
+                attrape = True
+                tuer_arbre(p)
+                break
+    finally:
+        minuteur.cancel()
+    return lignes, p.wait(), attrape
+
+
+def effacer_copie(dossier):
+    """Effacer `dossier`, en réessayant 2 s : un processus tué peut le tenir encore un instant ; rendre `True` s'il
+    a disparu."""
+    import shutil
+    for _ in range(10):
+        shutil.rmtree(dossier, ignore_errors=True)
+        if not os.path.exists(dossier):
+            return True
+        time.sleep(0.2)
+    return False
+
+
+def verdict_mutant(lignes, code, attrape, attendu):
+    """Rendre (texte, code de sortie) : les `ÉCART:` vus, puis `MUTANT ATTRAPÉ`, `VIVANT` ou `PLANTÉ`. Une suite
+    finie sort 0 ou dit `OK` ou `FIN:` en dernière ligne ; arrêtée avant, elle est `PLANTÉ`, écarts vus ou non."""
+    ecarts = [l for l in lignes if l.startswith("ÉCART:")]
+    texte = "".join(l + "\n" for l in ecarts)
+    fin = next((l.strip() for l in reversed(lignes) if l.strip()), "")
+    if attrape:
+        return texte + "MUTANT ATTRAPÉ %d écart(s) · arrêté sur « %s »\n" % (len(ecarts), attendu), 0
+    if not (code == 0 or fin == "OK" or fin.startswith("FIN:")):
+        dernieres = [l.strip() for l in lignes if l.strip()][-3:]
+        return texte + "MUTANT PLANTÉ · tests sortis %d sans finir, après %d écart(s) — %s\n" % (
+            code, len(ecarts), " / ".join(dernieres)), 1
+    if attendu:
+        return texte + "MUTANT VIVANT pour %s\n" % attendu, 1
+    if ecarts:
+        return texte + "MUTANT ATTRAPÉ %d écart(s)\n" % len(ecarts), 0
+    return texte + "MUTANT VIVANT\n", 1
+
+
+def cmd_mutant(a, sortie):
+    """Casser `a.cible` exprès (`a.avant` → `a.apres`, une seule occurrence) dans une copie du kit, y jouer les
+    tests, et dire si le mutant est attrapé — avec `a.attendu`, arrêtés dès cet écart (chantiers MUT, VIT2). Le vrai
+    fichier n'est jamais écrit : `RENDU` imprime son empreinte, la même qu'avant."""
+    import subprocess
+    try:
+        octets, mute = texte_mute(a.cible, lire_arg(a.avant), lire_arg(a.apres))
+    except (OSError, UnicodeDecodeError, ValueError) as e:
+        sortie.write("GARDE: %s\n" % e)
         return 1
     empreinte = hashlib.sha1(octets).hexdigest()[:12]
-    commande = test or [sys.executable, os.path.join(os.path.dirname(os.path.abspath(__file__)), "test-vlp.py")]
-    r, lance = None, None
+    dossier = tempfile.mkdtemp(prefix="vlp-mutant-")
     try:
-        with open(fichier, "wb") as f:
-            f.write(texte.replace(avant, apres).encode("utf-8"))
-        r = subprocess.run(commande, shell=isinstance(commande, str), capture_output=True, encoding="utf-8",
-                           errors="replace", timeout=1800,
-                           env=dict(os.environ, VLP_TOUS_ECARTS="1", PYTHONIOENCODING="utf-8", PYTHONUTF8="1"))
+        racine, copie = copie_mutee(a.cible, mute, dossier)
+        commande = vers_copie(a.test or [sys.executable, os.path.join(KIT, "scripts", "test-vlp.py")], racine, copie)
+        texte, code = verdict_mutant(*jouer_suite(commande, copie, a.attendu), a.attendu)
     except (OSError, subprocess.SubprocessError) as e:
-        lance = e
+        texte, code = "GARDE: les tests ne se lancent pas : %s\n" % e, 1
     finally:
-        with open(fichier, "wb") as f:
-            f.write(octets)
-    with open(fichier, "rb") as f:
+        restee = not effacer_copie(dossier)
+    sortie.write(texte + ("COPIE restée : %s\n" % dossier if restee else ""))
+    with open(a.cible, "rb") as f:
         rendu = hashlib.sha1(f.read()).hexdigest()[:12]
-    code = 1
-    if r is None:
-        sortie.write("GARDE: les tests ne se lancent pas : %s\n" % lance)
-    else:
-        texte_tests = (r.stdout or "") + (r.stderr or "")
-        ecarts = [l for l in texte_tests.splitlines() if l.startswith("ÉCART:")]
-        for l in ecarts:
-            sortie.write(l + "\n")
-        if ecarts:
-            sortie.write("MUTANT ATTRAPÉ %d écart(s)\n" % len(ecarts))
-            code = 0
-        elif r.returncode:
-            sortie.write("MUTANT PLANTÉ · tests sortis %d sans ÉCART: — %s\n"
-                         % (r.returncode, " / ".join(texte_tests.strip().splitlines()[-3:])))
-        else:
-            sortie.write("MUTANT VIVANT\n")
     if rendu != empreinte:
-        sortie.write("GARDE: %s n'est pas rendu à l'octet : %s avant, %s après\n" % (fichier, empreinte, rendu))
+        sortie.write("GARDE: %s a bougé pendant le mutant : %s avant, %s après\n" % (a.cible, empreinte, rendu))
         return 1
     sortie.write("RENDU %s\n" % rendu)
     return code
@@ -7856,6 +7964,9 @@ def options_mutant(sous):
     mu.add_argument("avant")
     mu.add_argument("apres")
     mu.add_argument("--test")
+    quoi = mu.add_mutually_exclusive_group()
+    quoi.add_argument("--attendu")
+    quoi.add_argument("--tous", action="store_true")
 
 
 def options_sante(sous):
@@ -8131,7 +8242,7 @@ def repartir(a, sortie, entree, erreur):
     if a.cmd == "apercu":
         return cmd_apercu(a.projet, sortie, a.port)
     if a.cmd == "mutant":
-        return cmd_mutant(a.cible, a.avant, a.apres, a.test, sortie)
+        return cmd_mutant(a, sortie)
     if a.cmd == "nuits":
         if a.verbe == "lecon":
             return cmd_nuits_lecon(a.texte, a.projet, sortie)

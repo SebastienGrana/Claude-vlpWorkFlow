@@ -3,7 +3,7 @@
 Coder plus vite et mieux. Une fiche attend moins ses tests et lit moins de contexte — mesuré avant (VIT1) et après (VIT13) — sans qu'un seul contrôle soit retiré ; le code qu'elle laisse est sain, facile à maintenir et documenté.
 ## Notes
 - VIT1 : Entrée « VIT1 — la base » dans 08-etat.md, six lignes avec commande et comptes bruts ; machine libérée : test-vlp 571 et 535 s, test-boucle 425 et 428 s, mutant 538 s attrapé par NUI27 (a), lancements 362 et 71 ms ; chaque soustraction dite « estimé ».
-- VIT2 : le mutant joue dans une copie du kit et s'arrête sur le test attendu ; dépend de VIT1
+- VIT2 : test-vlp OK (code 0, 2 SAUTÉ connus) ; 3 cas VIT2 verts, 3 mutants attrapés ; NUI27 --attendu : MUTANT ATTRAPÉ en 144,1 / 139,5 / 140,8 s contre 538 s (VIT1), vrai vlp.py inchangé (RENDU) ; pyright 0 ; verifier( 765 → 768 / 82 → 82 ; cmd_mutant 9/11/5/47/2 → 4/4/2/23/1
 - VIT3 : les fichiers d'un commit lus en un appel Git ; dépend de VIT1
 - VIT5 : vlp.py devient un lanceur mince, le code en cache ; dépend de VIT2
 - VIT6 : boucle.py appelle vlp sans nouveau processus ; dépend de VIT5
@@ -21,4 +21,5 @@ Coder plus vite et mieux. Une fiche attend moins ses tests et lit moins de conte
 - 2026-10-04 : plan revu après VIT1 : VIT4 retirée, ≈ 4 à 6 s par suite et rien après VIT7 (D1) ; VIT14 ajoutée, deux cas de clôture fragiles sous charge (D2) ; VIT2 passe tester_boucle() en dernier ; VIT13 nomme ses dépendances
 - 2026-10-04 : critères de code sain tranchés (page des critères) : cliquet, docstring de toute fonction touchée, tests sans longueur ; outil : ruff s'il est là, d'où VIT15, ajoutée avant VIT2
 - 2026-10-04 : VIT15 : le compte ast égale ruff sur tout le kit (794/794) ; une sous-commande neuve de vlp.py passe par options_<commande> et PAR_ARGUMENTS, main et repartir étant au-dessus des seuils ; qui lance sante --base en fin de fiche reste à trancher (méthode, n° 99)
+- 2026-10-04 : VIT2 : la copie du mutant garde context AI/ (NIV1 et JUG2 lisent le vrai dépôt) ; une copie peut rester après taskkill, effacer_copie réessaie 2 s
 ## Bilan

@@ -197,8 +197,9 @@ fiche**. Deux pièges, lus dans `sante.principal` et `sante.poser_base` :
 ---
 
 <!-- FICHE:VIT2 -->
-## VIT2 [ ] — Muter une copie du kit, arrêté sur le test attendu
+## VIT2 [x] — Muter une copie du kit, arrêté sur le test attendu
 
+**Session** : 72db946f-cd44-4a3b-8ec4-39b6d2872e1d
 **Dépend de** : `VIT1`.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py`, `methode-chantier.md` (le paragraphe du mutant).
 

@@ -6005,7 +6005,7 @@ def tester_mutant():
         ecrire(f, source)
         ecrire(essai, "import sys\nt = open(sys.argv[1], encoding='utf-8').read()\n"
                       "n = 0\nfor v in ('a = 1', 'b = 2'):\n    if v not in t:\n        print('ÉCART:', v); n += 1\n"
-                      "sys.exit(1 if n else 0)\n")
+                      "print('FIN: %d' % n if n else 'OK')\nsys.exit(1 if n else 0)\n")
         test = '"%s" "%s" "%s"' % (sys.executable, essai, f)
 
         def mutant(avant, apres_, test_=test):
@@ -6020,7 +6020,8 @@ def tester_mutant():
         absent = mutant("z = 0", "z = 1")
         double = mutant(" = ", "=")
         o = io.StringIO()
-        plante = (mod.cmd_mutant(f, "c = 3", "c = 4", [os.path.join(tm, "absent.exe")], o), o.getvalue())
+        plante = (mod.cmd_mutant(mod.argparse.Namespace(cible=f, avant="c = 3", apres="c = 4", attendu=None,
+                                                        test=[os.path.join(tm, "absent.exe")]), o), o.getvalue())
         with open(f, "rb") as g:
             rendu_plante = g.read() == source.encode()
         verifier("MUT1 : mutant — attrapé (2 écarts, @fichier sur CRLF), vivant, absent, double, tests qui ne "
@@ -6036,6 +6037,70 @@ def tester_mutant():
 
 tester_mutant()
 
+# La suite factice de VIT2 : la copie de f, le fichier qui nomme le vrai f, et deux fichiers hors de la copie —
+# l'empreinte du vrai f vue pendant la suite, et la trace d'un petit-fils qui survivrait 2 s.
+SUITE_MUTANT = """import hashlib, subprocess, sys, time
+t = open(sys.argv[1], encoding="utf-8").read()
+vrai = open(sys.argv[2], encoding="utf-8").read().strip()
+open(sys.argv[3], "w").write(hashlib.sha1(open(vrai, "rb").read()).hexdigest()[:12])
+if "x = 2" in t:
+    subprocess.Popen([sys.executable, "-c", "import sys, time; time.sleep(2); open(sys.argv[1], 'w').write('vivant')",
+                      sys.argv[4]])
+    print("ÉCART: autre")
+    print("ÉCART: attendu ici")
+    time.sleep(30)
+    print("FIN: 2 écart(s)")
+    sys.exit(1)
+print("ÉCART: autre")
+if "x = 3" in t:
+    sys.exit(1)
+print("FIN: 1 écart(s)")
+sys.exit(1)
+"""
+
+
+def tester_mutant_attendu():
+    """VIT2 : le mutant joue une copie, le vrai fichier inchangé pendant et après ; `--attendu` tue l'arbre dès son
+    écart, VIVANT s'il ne tombe pas ; une suite arrêtée en erreur après un autre écart est PLANTÉ, `--tous` aussi."""
+    with tempfile.TemporaryDirectory() as tm, tempfile.TemporaryDirectory() as hors:
+        f, suite = os.path.join(tm, "f.py"), os.path.join(tm, "suite.py")
+        reel, pendant, petit = (os.path.join(hors, x) for x in ("reel.txt", "pendant.txt", "petit.txt"))
+        ecrire(f, "x = 1\n")
+        ecrire(reel, f)
+        ecrire(suite, SUITE_MUTANT)
+        test = '"%s" "%s" "%s" "%s" "%s" "%s"' % (sys.executable, suite, f, reel, pendant, petit)
+        empreinte = mod.hashlib.sha1(b"x = 1\n").hexdigest()[:12]
+
+        def mutant(apres, *options):
+            """Jouer le mutant `x = 1` → `apres` ; rendre (code, sortie, secondes, vrai fichier inchangé)."""
+            o, debut = io.StringIO(), time.perf_counter()
+            code = mod.main(["mutant", f, "x = 1", apres, "--test", test, *options], o)
+            with open(f, "rb") as g:
+                return code, o.getvalue(), time.perf_counter() - debut, g.read() == b"x = 1\n"
+        attrape = mutant("x = 2", "--attendu", "attendu")
+        with open(pendant, encoding="utf-8") as g:
+            vu_pendant = g.read()
+        time.sleep(2.5)     # le petit-fils, s'il vit encore, a écrit sa trace
+        verifier("VIT2 : --attendu juste → MUTANT ATTRAPÉ, l'arbre tué dès l'écart (pas 30 s, petit-fils compris) ; "
+                 "vrai fichier inchangé pendant (sha1) et après — mutants : muter le vrai fichier, tuer le seul fils",
+                 attrape[0] == 0 and "MUTANT ATTRAPÉ 2 écart(s) · arrêté sur « attendu »\n" in attrape[1]
+                 and attrape[2] < 20 and not os.path.exists(petit) and vu_pendant == empreinte and attrape[3]
+                 and "RENDU %s\n" % empreinte in attrape[1] and "COPIE restée" not in attrape[1],
+                 (attrape, vu_pendant, os.path.exists(petit)))
+        vivant = mutant("x = 4", "--attendu", "jamais")
+        verifier("VIT2 : --attendu d'un test qui ne tombe pas → MUTANT VIVANT pour …, sort 1, avec les écarts vus",
+                 vivant[0] == 1 and vivant[1].startswith("ÉCART: autre\nMUTANT VIVANT pour jamais\n") and vivant[3],
+                 vivant)
+        plante = mutant("x = 3", "--attendu", "attendu")
+        plante_tous = mutant("x = 3")
+        verifier("VIT2 : la suite arrêtée en erreur après un autre écart → MUTANT PLANTÉ, sort 1, avec --attendu comme "
+                 "sans — mutant : ATTRAPÉ dès qu'un écart est vu",
+                 all(p[0] == 1 and "MUTANT PLANTÉ · tests sortis 1 sans finir, après 1 écart(s)" in p[1]
+                     and "ATTRAPÉ" not in p[1] and p[3] for p in (plante, plante_tous)), (plante, plante_tous))
+
+
+tester_mutant_attendu()
+
 
 def tester_boucle():
     """NUI2 : test-boucle.py joue boucle.py et faux-claude.py ; lancé d'ici, un mutant de l'un ou de l'autre
@@ -6044,9 +6109,6 @@ def tester_boucle():
                        encoding="utf-8", errors="replace", env=dict(os.environ, PYTHONIOENCODING="utf-8"))
     verifier("boucle : test-boucle.py (boucle.py et son faux claude) sort OK",
              r.returncode == 0 and r.stdout.strip() == "OK", (r.stdout or "") + (r.stderr or ""))
-
-
-tester_boucle()
 
 
 def tester_nuits():
@@ -7522,7 +7584,9 @@ tester_sante_ruff()
 tester_sante_cliquet()
 tester_sante_si_base()
 tester_sante_kit()
+tester_boucle()     # en dernier : les trois quarts de la suite, un écart d'ailleurs tombe avant lui (VIT2)
 
 if ECARTS:
+    print("FIN: %d écart(s)" % len(ECARTS))     # la suite est allée au bout : `vlp.py mutant` ne la dit pas PLANTÉ
     sys.exit(1)
 print("OK")

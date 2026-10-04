@@ -396,7 +396,8 @@ Quatre exigences, apprises en cassant :
    code cassé exprès que ce test doit faire tomber : « les tests passent » ne
    prouve rien, un test creux passe aussi (`FIN1`, puis `FIN2` alors que son
    test était nommé avec ses valeurs, 2026-09-24). Le mutant se joue par
-   `vlp.py mutant`, qui liste tous les tests tombés et rend le fichier (`MUT1`). Un critère joué dans un
+   `vlp.py mutant … --attendu "<début du libellé du test>"` : il mute une copie du kit, jamais le vrai
+   fichier, et s'arrête dès que ce test tombe (`VIT2`) ; `--tous` les liste tous (`MUT1`). Un critère joué dans un
    clone y copie d'abord le fichier modifié : un clone part du dernier commit,
    et sans la copie le sous-agent commite pour l'y faire entrer (`VAL1`). Un
    critère qui prouve un juge — relecteur, eval — écrit son attendu selon les

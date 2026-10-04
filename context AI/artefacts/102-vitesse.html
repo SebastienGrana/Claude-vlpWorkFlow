@@ -21,9 +21,9 @@
     <p>Coder plus vite et mieux. Une fiche attend moins ses tests et lit moins de contexte — mesuré avant (VIT1) et après (VIT13) — sans qu'un seul contrôle soit retiré ; le code qu'elle laisse est sain, facile à maintenir et documenté.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">15 fiches · 3 faites · en cours : VIT2</p>
+    <p class="mono" style="margin-top:.5rem">15 fiches · 4 faites · en cours : VIT14</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -49,18 +49,19 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">VIT16</span></span>
         <details><summary><span class="titre">/vlp:tache verrouille les gains : sante --base à chaque fiche</span><span class="etat">Faite</span></summary>
         <span class="note">--si-base sans base : SANS BASE, sort 0, rien écrit (projet vide et hors du kit, sha1 de la base du kit inchangé) ; kit : BASE 795 fonctions, sort 0 ; test-vlp OK ; verifier( 763→765 (boucle 82→82) ; mutant attrapé (1 écart) ; pyright 0 ; principal 6/5/3/14/2→7/6/3/16/2, options_sante instr. 9→10, test neuf 1/1/0/25/2, docstrings oui, AST=RUFF 592/592 ; durée médiane de 5 : 2,85 s avec ruff, 1,66 s sans</span></details>
-        <span class="cout mono">≈25,7M (25 655 573) · 140 tours · 16,79 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">VIT2</span></span>
-        <details open><summary><span class="titre">Muter une copie du kit, arrêté sur le test attendu</span><span class="etat">En cours</span></summary>
-        <span class="note">le mutant joue dans une copie du kit et s'arrête sur le test attendu ; dépend de VIT1</span></details></li>
-      <li class="fiche"><span class="gauche"><span class="id">VIT14</span></span>
-        <details><summary><span class="titre">Les deux cas de clôture qui tombent sous charge</span><span class="etat">À lancer</span></summary>
+        <span class="cout mono">≈26,1M (26 128 053) · 143 tours · 16,96 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">VIT2</span></span>
+        <details><summary><span class="titre">Muter une copie du kit, arrêté sur le test attendu</span><span class="etat">Faite</span></summary>
+        <span class="note">test-vlp OK (code 0, 2 SAUTÉ connus) ; 3 cas VIT2 verts, 3 mutants attrapés ; NUI27 --attendu : MUTANT ATTRAPÉ en 144,1 / 139,5 / 140,8 s contre 538 s (VIT1), vrai vlp.py inchangé (RENDU) ; pyright 0 ; verifier( 765 → 768 / 82 → 82 ; cmd_mutant 9/11/5/47/2 → 4/4/2/23/1</span></details>
+        <span class="cout mono">≈9,8M (9 847 821) · 60 tours · 4,40 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">VIT14</span></span>
+        <details open><summary><span class="titre">Les deux cas de clôture qui tombent sous charge</span><span class="etat">En cours</span></summary>
         <span class="note">les deux cas de clôture fragiles sous charge, reproduits puis corrigés à la cause ; dépend de VIT1</span></details></li>
       <li class="fiche"><span class="gauche"><span class="id">VIT3</span></span>
         <details><summary><span class="titre">Lire les fichiers d'un commit en un seul appel Git</span><span class="etat">À lancer</span></summary>
         <span class="note">les fichiers d'un commit lus en un appel Git ; dépend de VIT1</span></details></li>
-      <li class="fiche" data-attend><span class="gauche"><span class="id">VIT5</span></span>
-        <details><summary><span class="titre">Faire de vlp.py un lanceur mince</span><span class="etat">Après VIT2</span></summary>
+      <li class="fiche"><span class="gauche"><span class="id">VIT5</span></span>
+        <details><summary><span class="titre">Faire de vlp.py un lanceur mince</span><span class="etat">À lancer</span></summary>
         <span class="note">vlp.py devient un lanceur mince, le code en cache ; dépend de VIT2</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">VIT6</span></span>
         <details><summary><span class="titre">Appeler vlp dans le processus de boucle.py</span><span class="etat">Après VIT5</span></summary>
@@ -81,14 +82,14 @@
         <details><summary><span class="titre">La suite complète exigée au commit</span><span class="etat">Après VIT10</span></summary>
         <span class="note">la suite entière exigée au commit ; dépend de VIT10</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">VIT12</span></span>
-        <details><summary><span class="titre">Le relecteur ne rejoue que le nouveau test dans AVANT</span><span class="etat">Après VIT2, VIT10</span></summary>
+        <details><summary><span class="titre">Le relecteur ne rejoue que le nouveau test dans AVANT</span><span class="etat">Après VIT10</span></summary>
         <span class="note">le relecteur ne rejoue que le nouveau test avant ; dépend de VIT2, VIT10</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">VIT13</span></span>
         <details><summary><span class="titre">Mesurer la fin, avant/après</span><span class="etat">Après VIT7, VIT8, VIT11, VIT12</span></summary>
         <span class="note">la fin mesurée, avant/après ; dépend de VIT7, VIT8, VIT11, VIT12 — et, par elles, de toutes</span></details></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : 0 · 0 tours · 0,00 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈69,0M (68 970 411) · 330 tours · 46,90 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈79,3M (79 290 712) · 393 tours · 51,47 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -105,10 +106,15 @@
     <h2>Journal des décisions</h2>
     <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
     <ul class="journal">
-      <li><time datetime="2026-10-04">2026-10-04</time><span>plan revu après VIT1 : VIT4 retirée, ≈ 4 à 6 s par suite et rien après VIT7 (D1) ; VIT14 ajoutée, deux cas de clôture fragiles sous charge (D2) ; VIT2 passe tester_boucle() en dernier ; VIT13 nomme ses dépendances</span></li>
       <li><time datetime="2026-10-04">2026-10-04</time><span>critères de code sain tranchés (page des critères) : cliquet, docstring de toute fonction touchée, tests sans longueur ; outil : ruff s'il est là, d'où VIT15, ajoutée avant VIT2</span></li>
       <li><time datetime="2026-10-04">2026-10-04</time><span>VIT15 : le compte ast égale ruff sur tout le kit (794/794) ; une sous-commande neuve de vlp.py passe par options_&lt;commande&gt; et PAR_ARGUMENTS, main et repartir étant au-dessus des seuils ; qui lance sante --base en fin de fiche reste à trancher (méthode, n° 99)</span></li>
+      <li><time datetime="2026-10-04">2026-10-04</time><span>VIT2 : la copie du mutant garde context AI/ (NIV1 et JUG2 lisent le vrai dépôt) ; une copie peut rester après taskkill, effacer_copie réessaie 2 s</span></li>
     </ul>
+    <details class="journal-ancien"><summary>1 entrée plus ancienne</summary>
+    <ul class="journal">
+      <li><time datetime="2026-10-04">2026-10-04</time><span>plan revu après VIT1 : VIT4 retirée, ≈ 4 à 6 s par suite et rien après VIT7 (D1) ; VIT14 ajoutée, deux cas de clôture fragiles sous charge (D2) ; VIT2 passe tester_boucle() en dernier ; VIT13 nomme ses dépendances</span></li>
+    </ul>
+    </details>
   </section>
 
   <footer>
