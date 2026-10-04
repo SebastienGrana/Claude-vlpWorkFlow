@@ -1657,4 +1657,27 @@ def tester_lanceur(aides):
 
 tester_lanceur(aides_canal)
 
+
+# --- `vlp` appelé dans le processus rend ce que rendait le sous-processus (VIT6) -----
+
+def tester_vlp_dans_processus():
+    """Comparer `bmod.vlp` à un vrai `vlp.py` lancé en sous-processus : même code, même sortie, sur une carte et sur
+    une ligne de commande fausse (sortie 2) ; le dossier courant et l'environnement ne fuient pas après l'appel."""
+    with tempfile.TemporaryDirectory() as t:
+        projet(t)
+        ici, env = os.getcwd(), dict(os.environ)
+        rendus, attendus = [], []
+        for argv in (["carte", t], ["sous-commande-inconnue"]):
+            rendus.append(bmod.vlp(argv, t))
+            r = subprocess.run([sys.executable, os.path.join(ICI, "vlp.py")] + argv, cwd=t, capture_output=True,
+                               text=True, encoding="utf-8", env=dict(os.environ, PYTHONIOENCODING="utf-8"))
+            attendus.append((r.returncode, r.stdout))
+        verifier("vlp dans le processus : même code et même sortie qu'un sous-processus, rien ne fuit",
+                 rendus == attendus and attendus[1][0] == 2 and "PROCHAINE=F1" in attendus[0][1]
+                 and os.getcwd() == ici and dict(os.environ) == env,
+                 "rendu %r\nattendu %r" % (rendus, attendus))
+
+
+tester_vlp_dans_processus()
+
 print("OK")

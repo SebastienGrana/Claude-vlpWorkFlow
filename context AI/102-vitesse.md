@@ -308,8 +308,9 @@ autre cas reste. `${CLAUDE_PLUGIN_ROOT}` et les chemins des hooks ne changent pa
 ---
 
 <!-- FICHE:VIT6 -->
-## VIT6 [ ] — Appeler `vlp` dans le processus de `boucle.py`
+## VIT6 [x] — Appeler `vlp` dans le processus de `boucle.py`
 
+**Session** : 72db946f-cd44-4a3b-8ec4-39b6d2872e1d
 **Dépend de** : `VIT5`.
 **Fichiers** : `scripts/boucle.py`, `scripts/test-boucle.py`.
 

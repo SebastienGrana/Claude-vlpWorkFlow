@@ -6,7 +6,7 @@ Coder plus vite et mieux. Une fiche attend moins ses tests et lit moins de conte
 - VIT2 : test-vlp OK (code 0, 2 SAUTÉ connus) ; 3 cas VIT2 verts, 3 mutants attrapés ; NUI27 --attendu : MUTANT ATTRAPÉ en 144,1 / 139,5 / 140,8 s contre 538 s (VIT1), vrai vlp.py inchangé (RENDU) ; pyright 0 ; verifier( 765 → 768 / 82 → 82 ; cmd_mutant 9/11/5/47/2 → 4/4/2/23/1
 - VIT3 : test-vlp OK (code 0) ; ancien et nouveau lecteur égaux sur 3 fichiers et un dossier en .md (CRLF, \r, accents), et sur les 98 .md du kit ; ouverts . --rev HEAD : 3 699 → 499 ms (médianes de 5), sortie identique ; 2 mutants attrapés (LF sauté, \r seul) ; pyright 0 ; verifier( 768 → 770 / 82 → 82 ; cliquet tenu
 - VIT5 : test-vlp OK (code 0) en 437 s ; vlp.py lignes CHANTIER.md : 318 → 210 ms (médianes de 20 ; VIT1 362 ms ; 213 ms sous PYTHONDONTWRITEBYTECODE=1) ; mutant NUI27 sur vlp_coeur.py attrapé en 112 s ; pyright 0 ; verifier( 770 / 82 inchangés ; cliquet tenu (3 touchées, 0 neuve)
-- VIT6 : boucle.py appelle vlp sans nouveau processus ; dépend de VIT5
+- VIT6 : test-boucle OK : 330 → 184 s (−44 %, une mesure de chaque côté) ; verifier( 82 → 83 (le test qui compare au vrai sous-processus) ; mutant « sortie tronquée » attrapé ; pyright 0 ; suite complète OK en 305 s
 - VIT7 : test-boucle en parallèle de test-vlp ; dépend de VIT3, VIT6, VIT14
 - VIT8 : un seul Python par hook ; dépend de VIT5
 - VIT9 : une carte des symboles, des fiches sans numéros de ligne

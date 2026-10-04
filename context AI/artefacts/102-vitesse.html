@@ -21,9 +21,9 @@
     <p>Coder plus vite et mieux. Une fiche attend moins ses tests et lit moins de contexte — mesuré avant (VIT1) et après (VIT13) — sans qu'un seul contrôle soit retiré ; le code qu'elle laisse est sain, facile à maintenir et documenté.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span data-etat="faite"></span><span data-etat="faite"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">15 fiches · 6 faites · en cours : VIT14</p>
+    <p class="mono" style="margin-top:.5rem">15 fiches · 7 faites · en cours : VIT14</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -65,12 +65,13 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">VIT5</span></span>
         <details><summary><span class="titre">Faire de vlp.py un lanceur mince</span><span class="etat">Faite</span></summary>
         <span class="note">test-vlp OK (code 0) en 437 s ; vlp.py lignes CHANTIER.md : 318 → 210 ms (médianes de 20 ; VIT1 362 ms ; 213 ms sous PYTHONDONTWRITEBYTECODE=1) ; mutant NUI27 sur vlp_coeur.py attrapé en 112 s ; pyright 0 ; verifier( 770 / 82 inchangés ; cliquet tenu (3 touchées, 0 neuve)</span></details>
-        <span class="cout mono">≈6,9M (6 875 796) · 24 tours · 2,06 $</span></li>
-      <li class="fiche"><span class="gauche"><span class="id">VIT6</span></span>
-        <details><summary><span class="titre">Appeler vlp dans le processus de boucle.py</span><span class="etat">À lancer</span></summary>
-        <span class="note">boucle.py appelle vlp sans nouveau processus ; dépend de VIT5</span></details></li>
+        <span class="cout mono">≈7,2M (7 176 901) · 25 tours · 2,15 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">VIT6</span></span>
+        <details><summary><span class="titre">Appeler vlp dans le processus de boucle.py</span><span class="etat">Faite</span></summary>
+        <span class="note">test-boucle OK : 330 → 184 s (−44 %, une mesure de chaque côté) ; verifier( 82 → 83 (le test qui compare au vrai sous-processus) ; mutant « sortie tronquée » attrapé ; pyright 0 ; suite complète OK en 305 s</span></details>
+        <span class="cout mono">≈6,3M (6 325 263) · 41 tours · 2,57 $</span></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">VIT7</span></span>
-        <details><summary><span class="titre">Lancer test-boucle en parallèle de test-vlp</span><span class="etat">Après VIT6, VIT14</span></summary>
+        <details><summary><span class="titre">Lancer test-boucle en parallèle de test-vlp</span><span class="etat">Après VIT14</span></summary>
         <span class="note">test-boucle en parallèle de test-vlp ; dépend de VIT3, VIT6, VIT14</span></details></li>
       <li class="fiche"><span class="gauche"><span class="id">VIT8</span></span>
         <details><summary><span class="titre">Un seul Python dans les hooks</span><span class="etat">À lancer · en même temps que VIT14</span></summary>
@@ -92,7 +93,7 @@
         <span class="note">la fin mesurée, avant/après ; dépend de VIT7, VIT8, VIT11, VIT12 — et, par elles, de toutes</span></details></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : 0 · 0 tours · 0,00 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈94,1M (94 122 278) · 450 tours · 56,09 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈100,7M (100 748 646) · 492 tours · 58,75 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

@@ -277,11 +277,26 @@ def reset_de(texte):
 
 
 def vlp(argv, dossier):
-    """Code et sortie de `vlp.py <argv>`, lancé dans `dossier`."""
-    env = dict(os.environ, PYTHONIOENCODING="utf-8")
-    r = subprocess.run([sys.executable, VLP] + argv, cwd=dossier, env=env,
-                       capture_output=True, text=True, encoding="utf-8")
-    return r.returncode, r.stdout
+    """Rendre (code, sortie) de `vlp.py <argv>` lancé dans `dossier`, comme un sous-processus l'aurait rendu, mais
+    appelé dans ce processus (VIT6) : `main` du module de `kit()`, sa sortie capturée, ses fins de ligne traduites
+    comme par un tube en mode texte. Dossier courant et environnement sont remis après l'appel ; `SystemExit` rend son
+    code, une exception rend 1 et la sortie écrite jusque-là — le traceback, sur stderr, n'était pas lu non plus."""
+    import contextlib
+    k, sortie, ici, env = kit(), io.StringIO(), os.getcwd(), dict(os.environ)
+    os.chdir(dossier)
+    try:
+        with contextlib.redirect_stdout(sortie), contextlib.redirect_stderr(io.StringIO()):
+            code = k.main(argv, sortie, erreur=io.StringIO()) or 0
+    except SystemExit as e:
+        code = e.code if isinstance(e.code, int) else (0 if e.code is None else 1)
+    except Exception:   # un traceback : le sous-processus sortait 1
+        code = 1
+    finally:
+        os.chdir(ici)
+        os.environ.clear()
+        os.environ.update(env)
+    texte = sortie.getvalue().replace("\n", "\r\n") if os.name == "nt" else sortie.getvalue()
+    return code, texte.replace("\r\n", "\n").replace("\r", "\n")
 
 
 def trouver_claude(choix):
