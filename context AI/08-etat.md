@@ -2642,3 +2642,39 @@ Les mesures de `VIT1`, rejouées par ses commandes (script `vit13-mesures.sh`, r
   - le **coût d'une fiche** : `VIT3` à `VIT12` à 8 à 57 tours et 0,62 à 4,98 $ (`cout --session`), contre 21 à 35 tours et 1,36 à 2,88 $ pour `NUI22` à `NUI27` hors `NUI26` (sous-agents). Cause probable, **non mesurée** : neuf fiches jouées dans une seule session (`ctx_dernier` 302 283), chaque tour y relit tout le passé ; et les fiches de VIT mesuraient beaucoup.
   - **L'attente des outils dans une fiche** n'est mesurée nulle part : une fiche de code lance la suite entière deux ou trois fois (≈ 3 min chacune, désormais). Ce que le compteur ajouté après `VIT13` devra dire.
 - **VIT ne se clôt pas ici** : décision de l'utilisateur (« on va rajouter tout ce qu'il faut sans fermer le chantier »).
+
+## 2026-10-04 — VIT17 — où passe le temps
+
+`py -3 scripts/vlp.py compteur "<fichier>" --recoupe`, le 2026-10-04 à 22:32, sur `main` à `f112771` plus le code de VIT17 : VIT (`context AI/102-vitesse.md`, 14 fiches à commit, **7 s**) et NUI (`context AI/101-chef-de-nuit.md`, 26 fiches, **17 s**). Minutes actives : sessions et sous-agents, sans les essais ni les pauses de plus de 30 min ; chaque écart entre deux lignes voisines va à la part de la ligne qui le ferme. Parts et médianes tirées des deux sorties par un script du scratchpad (`parts_compteur.py`), pas recopiées à la main.
+
+| TOTAL (fiches + hors fiches) | VIT | NUI |
+|---|---|---|
+| actif | 560 min | 1 035 min |
+| modèle | 203 (36 %) | 308 (30 %) |
+| outils | 226 (40 %) | **601 (58 %)** |
+| attente de l'utilisateur | 107 (19 %) | 99 (10 %) |
+| autre | 24 | 27 |
+| suites — entière, `--seul`, `test-boucle` | 91 min (29 appels) | 142 (34) |
+| mutant | 33 (14) | **203 (50)** |
+| reste des outils | 89 (670) | 214 (1 783) |
+| tours · $ (ceux de `cout`) | 779 · 82,52 $ | 1 625 · 111,36 $ |
+| garde-fous | suites vertes 17/20, `ÉCART:` 5, `MUTANT ATTRAPÉ` 15, `GARDE:` 11 | 24/29, 13, 48, 14 ; relecteur 1 `REFUSÉE` (`NUI21`) |
+
+**Trois constats**
+
+1. **Une fiche de code attend ses outils bien plus qu'elle ne réfléchit, et c'est ce temps-là que VIT a raccourci.** Médianes par fiche :
+   - `NUI22` à `NUI27` sans `NUI26` (sous-agents), 5 fiches : actif **28 min**, outils **25**, modèle **4** — les outils font **84 %** de l'actif ;
+   - `VIT3` à `VIT12`, 9 fiches : actif **15 min**, outils **10**, modèle **4** — **62,5 %**.
+   - Même médiane de modèle des deux côtés ; l'attente des outils passe de 25 à 10 min. Un repère, pas une preuve : le travail diffère d'une fiche à l'autre.
+2. **La suite et le mutant font plus de la moitié du temps d'outil** : VIT 124 min sur 226 (**55 %**), NUI 345 sur 601 (**57 %**). Dans NUI, **le mutant pèse plus que la suite** : 203 min pour 50 appels (≈ 4,1 min l'appel, attente en fond comprise), contre 142 de suites ; dans VIT, 33 min pour 14 appels (≈ 2,4).
+3. **Le compteur de Claude Code ne voit pas l'attente d'une tâche de fond — là où tournent la suite et le mutant.** Session `72db946f`, ligne `cost-state` 3332 : outils **130,5 min** contre `totalToolDuration` **73,4** (écart **+57,1**), dont **51,0** fermées par la notification d'une tâche de fond — sans elles, **+6,1** ; modèle 59,4 contre `totalAPIDuration` 63,4 (**−3,9**) ; durée 225,5 contre `totalDuration` 229,7 (−4,2). Sur les 12 lignes `RECOUPE` des deux chantiers (11 sessions), l'écart des outils sans le fond va de −2,1 à +13,7 min, celui du modèle de −0,3 à −20,9 (sans `d0a75cf6`, plus bas). 💡 Hypothèses, non vérifiées : pour les outils, le temps des hooks autour d'un appel ; pour le modèle, des appels d'API sans ligne au transcript (classifieur du mode auto, sous-agents en parallèle).
+
+**Pour lire ces chiffres**
+
+- **La durée de commit à commit n'est pas le travail** : `VIT16` 823 min dont **100** actives, `NUI21` 2 618 dont **224**, `NUI11` 105 dont 27.
+- **L'attente de l'utilisateur** : 19 % de l'actif de VIT, deux fois la part de NUI ; `VIT2` (41 min) et `VIT13` (20) en portent plus de la moitié.
+- **Le reste des outils de VIT** (89 min) : ≈ **63 min** de scripts de mesure du scratchpad — `pic.py` (`VIT7`), `ab-disque*.sh` et `ab-lancements.py` (`VIT15`), `vit13-mesures.sh` (`VIT13`), `espion.py` (`VIT10`), `charge.py` (`VIT3`). Un script qui lance la suite par `subprocess` reste au reste, par choix : seul compte ce qu'une commande lance en tête de segment.
+- **Ce que le compteur ne voit pas** : les agents d'un workflow, hors de `subagents/` — `d0a75cf6` (NUI) : modèle 8,2 min contre `totalAPIDuration` 180,2 ; et, 💡 probablement, l'arrêt d'une session reprise — `763247fd` ligne 2332 : durée 216,0 contre `totalDuration` 138,4 (+77,6).
+- **Ce qui manque aux transcriptions se dit** (`AVERTISSEMENT:`) : sur NUI, 1 sortie sans appel connu (`d0a75cf6`), rangée au reste ; rien sur VIT.
+- **L'effort Max depuis `VIT13`** (`f112771`) : le coût de `VIT17` ne se compare pas à celui de `VIT3`–`VIT12`.
+- **Le chiffre de `VIT17` porte sa préparation** (TODO n° 103 `PRP`) : sa plage part du commit de `VIT13` (`b31bbe9`, 21:10:52) et contient le cadrage qui l'a ajoutée (`4fd94a2`, 21:33:13 ; `f112771`, 21:34:06), fait dans la session `72db946f` : **45 tours · 5,39 $ · 25 min actives** (`mesure-tokens.py --plage 2026-10-04T21:10:52 2026-10-04T23:59:59 --actif 72db946f-cd44-4a3b-8ec4-39b6d2872e1d`). `VIT17` au compteur, cochée, avant son commit : actif **88 min** = modèle 65 + outils 9 + attente 4 + autre 10 · **167 tours · 21,78 $**, dont ces 45 tours · 5,39 $ et 25 min de préparation. Le « hors fiches » de `cout`, 41 tours · 4,93 $ avant la coche, tombe à 0 : le cadrage y était compté jusqu'à `4fd94a2`.

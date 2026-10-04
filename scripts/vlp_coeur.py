@@ -545,14 +545,22 @@ def cmd_cout(chemin, session, sortie, a_clore=False):
     return code
 
 
-# Un appel qui lance `clore` : en tête d'un segment (début, `;`, `&`, `|`, `(`, fin de ligne), après
+# Un appel qui lance un script Python : en tête d'un segment (début, `;`, `&`, `|`, `(`, fin de ligne), après
 # d'éventuels `X=y` ou `$x =`, un interprète Python (`py`, `python`, `python3`, chemin, `.exe` et
-# guillemets permis), ses options, un chemin qui finit par `vlp.py`, puis `clore` (chantier ECA).
-APPEL_CLORE = re.compile(
-    r"""(?:^|[;&|(\n])[ \t]*(?:\w+=\S*[ \t]+)*(?:\$\w+[ \t]*=[ \t]*)?"""
-    r"""(?:"(?:[^"\n]*[/\\])?(?:py|python3?)(?:\.exe)?"|'(?:[^'\n]*[/\\])?(?:py|python3?)(?:\.exe)?'"""
-    r"""|(?:[^\s"';&|]*[/\\])?(?:py|python3?)(?:\.exe)?)(?:[ \t]+-(?:[XW][ \t]+)?\S+)*[ \t]+"""
-    r"""(?:"[^"\n]*vlp\.py"|'[^'\n]*vlp\.py'|[^\s"';&|]*vlp\.py)[ \t]+clore\b""", re.M)
+# guillemets permis), ses options, puis un chemin qui finit par le script (chantier ECA ; `compteur`, VIT17).
+TETE_SEGMENT = r"""(?:^|[;&|(\n])[ \t]*(?:\w+=\S*[ \t]+)*(?:\$\w+[ \t]*=[ \t]*)?"""
+INTERPRETE = (r"""(?:"(?:[^"\n]*[/\\])?(?:py|python3?)(?:\.exe)?"|'(?:[^'\n]*[/\\])?(?:py|python3?)(?:\.exe)?'"""
+              r"""|(?:[^\s"';&|]*[/\\])?(?:py|python3?)(?:\.exe)?)(?:[ \t]+-(?:[XW][ \t]+)?\S+)*[ \t]+""")
+
+
+def appel_python(script, suite=""):
+    """Compiler le motif d'un appel qui lance `script` — une regex —, puis `suite` : `TETE_SEGMENT`, `INTERPRETE`,
+    et un chemin, cité ou nu, qui finit par le script."""
+    chemin = r"""(?:"[^"\n]*%s"|'[^'\n]*%s'|[^\s"';&|]*%s)""" % ((script,) * 3)
+    return re.compile(TETE_SEGMENT + INTERPRETE + chemin + suite, re.M)
+
+
+APPEL_CLORE = appel_python(r"vlp\.py", r"[ \t]+clore\b")    # un appel qui lance `clore`
 
 
 def lance_clore(commande):
@@ -611,6 +619,12 @@ def decouper(chemin, lignes=None, fin=None):
     tire le total (`totaux`) : une découpe, deux lecteurs. `fin` : voir `parts_aux_commits`. Un
     fichier clos s'arrête, sans `fin`, au dernier appel `clore` (`heure_clore`), où `clore` a pris
     son chiffre : ce qui le suit — republications, commit — sort du coût (chantier APC, choix b)."""
+    return decoupe_et_heures(chemin, lignes, fin)[:3]
+
+
+def decoupe_et_heures(chemin, lignes=None, fin=None):
+    """Rendre (découpe, pourquoi, gardes, (fiches, heures, fin)) : `decouper`, puis ce qu'elle a lu pour couper — les
+    fiches, les heures de commit et la fin du coût —, que `compteur` reprend sans relancer Git (VIT17)."""
     lignes = lignes_de(chemin) if lignes is None else lignes
     fiches_ = fiches_du_fichier(lignes)
     pourquoi, gardes = [], []
@@ -621,7 +635,7 @@ def decouper(chemin, lignes=None, fin=None):
     decoupe = heures and parts_aux_commits(fiches_, heures, gardes, sessions_entete(lignes), fin)
     if not decoupe and heures:
         pourquoi.append("aucune session de fiche mesurée")
-    return decoupe or None, pourquoi, gardes
+    return decoupe or None, pourquoi, gardes, (fiches_, heures, fin)
 
 
 def totaux(decoupe):
@@ -629,6 +643,303 @@ def totaux(decoupe):
     `TOTAL` de `cout`, dont `plus(*totaux(d))[0]` est le nombre."""
     parts, hors = decoupe
     return tuple(plus(*[p[k + 1] for p in parts], hors[k]) for k in range(3))
+
+
+# Ce que `compteur` lit d'une sortie d'outil (VIT17). La sorte de son appel : la suite entière, `--seul`,
+# `test-boucle`, le mutant, pyright, Git, la publication — l'outil Artifact —, et le reste. Une commande Bash ou
+# PowerShell se reconnaît à ce qu'elle lance en tête d'un segment, le corps des heredocs tu (`sans_heredoc`) :
+# `mutant` d'abord, son `--test` cite la suite ; un script de mesure qui lance la suite par `subprocess` est du reste.
+# Les garde-fous sont des débuts de ligne, chacun lu là seulement où il dit vrai — le même ordre que `GARDE_FOUS` :
+# `ÉCART:` dans la sortie d'une suite (ceux d'un mutant sont à lui), `MUTANT ATTRAPÉ` dans celle d'un mutant, `GARDE:`
+# dans celle d'un Bash ou d'un PowerShell, le verdict du relecteur au retour d'un `Agent` ou dans le message d'une
+# autre session. Une sortie relue — la boucle qui attend une tâche de fond, puis un `Read` du même fichier — compte
+# chaque fois.
+SORTES_OUTIL = ("suite", "--seul", "test-boucle", "mutant", "pyright", "Git", "publication", "reste")
+SUITES = SORTES_OUTIL[:3]
+COMMANDES = (("mutant", appel_python(r"vlp\.py", r"[ \t]+mutant\b")), ("suite", appel_python(r"test-vlp\.py")),
+             ("test-boucle", appel_python(r"test-boucle\.py")),
+             ("pyright", re.compile(TETE_SEGMENT + r"pyright\b", re.M)),
+             ("Git", re.compile(TETE_SEGMENT + r"git\b", re.M)))
+GARDE_FOUS = ("ÉCART:", "MUTANT ATTRAPÉ", "GARDE:", "ACCEPTÉE", "REFUSÉE")
+NUMERO_READ = re.compile(r"^\s*\d+(?:\t|→)")      # le numéro qu'un `Read` met devant chaque ligne
+CODE_SORTIE = re.compile(r"\(exit code (\d+)\)")   # dans la notification d'une tâche de fond finie
+ENTETE_COMPTEUR = ("COMPTEUR aux commits de fiche, en minutes — une fiche va du commit d'avant au sien ; actif : "
+                   "les écarts entre lignes voisines, sessions et sous-agents (sans les essais), sans les pauses de "
+                   "plus de %d min, chacun à la part de la ligne qui le ferme ; outils : minutes (appels) ; tours et "
+                   "$ : ceux de cout ; suites : vertes sur celles dont la sortie dit le verdict")
+TOTAUX_COUT = (("outils", "totalToolDuration"), ("modèle", "totalAPIDuration"), ("durée", "totalDuration"))
+
+
+def seul_lance(commande, trouve):
+    """Vrai si l'appel de la suite trouvé dans la commande porte `--seul` avant la fin de son segment."""
+    segment = re.split(r"[\n;&|]", commande[trouve.end():], maxsplit=1)[0]
+    return re.search(r"(?<!\S)--seul\b", segment) is not None
+
+
+def sorte_outil(appel):
+    """Rendre la sorte d'un appel (nom, entrée) parmi `SORTES_OUTIL` : l'outil Artifact est la publication ; une
+    commande Bash ou PowerShell, ce qu'elle lance (`COMMANDES`) — la suite avec `--seul`, « --seul » ; le reste
+    sinon."""
+    nom, entree = appel
+    if nom == "Artifact":
+        return "publication"
+    if nom not in ("Bash", "PowerShell"):
+        return "reste"
+    commande = sans_heredoc(str(entree.get("command", "")))
+    for sorte, motif in COMMANDES:
+        trouve = motif.search(commande)
+        if trouve:
+            return "--seul" if sorte == "suite" and seul_lance(commande, trouve) else sorte
+    return "reste"
+
+
+def verdict_suite(texte, lien):
+    """Rendre le verdict d'une sortie de suite : vrai si verte, faux si rouge, None s'il ne s'y lit pas — sortie
+    écrite ailleurs, ou suite lancée en fond. L'attente d'une tâche de fond n'en dit pas : sa notification le dit, par
+    son code de sortie ; au premier plan, un `ÉCART:` ou un `FIN:` la disent rouge, sinon une ligne `OK` verte."""
+    if lien == "fond":
+        code = CODE_SORTIE.search(texte)
+        return None if code is None else code.group(1) == "0"
+    if lien:
+        return None
+    lignes = texte.splitlines()
+    if any(l.startswith(("ÉCART:", "FIN:")) for l in lignes):
+        return False
+    return True if any(l.strip() == "OK" for l in lignes) else None
+
+
+def garde_fous(texte):
+    """Compter les lignes d'une sortie qui s'ouvrent par chaque garde-fou de `GARDE_FOUS`, le numéro de ligne d'un
+    `Read` ôté."""
+    if not any(g in texte for g in GARDE_FOUS):
+        return (0,) * len(GARDE_FOUS)
+    debuts = [NUMERO_READ.sub("", l, count=1).lstrip() for l in texte.splitlines()]
+    return tuple(sum(d.startswith(g) for d in debuts) for g in GARDE_FOUS)
+
+
+def lire_sortie(appel, texte, lien):
+    """Rendre ce que `compteur` garde d'une sortie, lue au fil du transcript, sans son texte : (sorte d'outil — None
+    pour le message d'une autre session —, 1 si elle compte un appel — 0 pour une notification ou l'attente d'une
+    tâche de fond (`lien`) —, verdict de suite — None hors suite, ou s'il ne s'y lit pas —, garde-fous, chacun lu là
+    où il dit vrai, puis vrai pour une notification : ce qu'elle ferme n'est pas un appel d'outil, mais l'attente de
+    la tâche)."""
+    sorte, nom = (None, None) if appel is None else (sorte_outil(appel), appel[0])
+    releve = nom in (None, "Agent")
+    ou = (sorte in SUITES, sorte == "mutant", nom in ("Bash", "PowerShell"), releve, releve)
+    vus = tuple(n if lu else 0 for n, lu in zip(garde_fous(texte), ou))
+    verte = verdict_suite(texte, lien) if sorte in SUITES else None
+    return sorte, int(appel is not None and not lien), verte, vus, lien.startswith("fond")
+
+
+def mesure_vide():
+    """Rendre la mesure d'une plage à zéro : secondes par part, pauses, durée, secondes et appels par sorte d'outil,
+    secondes d'outil fermées par une notification, suites [jugées, vertes], garde-fous."""
+    return {"parts": dict.fromkeys(mesure().PARTS, 0.0), "pauses": 0, "duree": 0.0,
+            "outils": dict.fromkeys(SORTES_OUTIL, 0.0), "appels": dict.fromkeys(SORTES_OUTIL, 0), "fond": 0.0,
+            "suites": [0, 0], "garde_fous": [0] * len(GARDE_FOUS)}
+
+
+def ajouter_mesure(somme, mesure_):
+    """Ajouter une mesure à une autre, en place ; la durée reste None dès qu'une manque."""
+    for cle in ("parts", "outils", "appels"):
+        for k, v in mesure_[cle].items():
+            somme[cle][k] += v
+    somme["pauses"] += mesure_["pauses"]
+    somme["fond"] += mesure_["fond"]
+    somme["duree"] = None if somme["duree"] is None or mesure_["duree"] is None else somme["duree"] + mesure_["duree"]
+    somme["suites"] = [x + y for x, y in zip(somme["suites"], mesure_["suites"])]
+    somme["garde_fous"] = [x + y for x, y in zip(somme["garde_fous"], mesure_["garde_fous"])]
+
+
+def compter_sorties(rendu, evenements):
+    """Ajouter à la mesure `rendu` ce que disent les sorties d'une plage : les appels par sorte d'outil, les suites
+    jouées et vertes, les garde-fous."""
+    m = mesure()
+    for _, part, lu in evenements:
+        if lu is None:
+            continue
+        sorte, appel, verte, vus, _ = lu
+        if part == m.OUTILS:
+            rendu["appels"][sorte] += appel
+        if verte is not None:
+            rendu["suites"] = [rendu["suites"][0] + 1, rendu["suites"][1] + verte]
+        rendu["garde_fous"] = [x + y for x, y in zip(rendu["garde_fous"], vus)]
+
+
+def compter_plage(journaux, plage):
+    """Rendre la mesure d'une plage (début, fin] : les événements de chaque journal (`tranche`) sur une ligne de temps
+    commune, découpés en parts (`parts`) — l'actif de `--actif` sur les mêmes transcripts ; la durée, de borne à borne,
+    None si l'une est ouverte ; le temps d'outil par sorte, et sa part fermée par une notification ; puis ce que
+    disent les sorties (`compter_sorties`)."""
+    m = mesure()
+    rendu = mesure_vide()
+    evenements = [e for chemin, j in journaux for e in m.tranche(chemin, j.evenements, plage)]
+    rendu["parts"], fermes, rendu["pauses"] = m.parts(evenements)
+    rendu["duree"] = plage[1] - plage[0] if -INFINI < plage[0] and plage[1] < INFINI else None
+    for secondes, part, lu in fermes:
+        if part == m.OUTILS:
+            rendu["outils"][lu[0] if lu else "reste"] += secondes
+            rendu["fond"] += secondes if lu and lu[4] else 0.0
+    compter_sorties(rendu, evenements)
+    return rendu
+
+
+def minutes_reparties(secondes, total=None):
+    """Rendre les minutes de chaque nombre de secondes, arrondies pour sommer `total` — par défaut l'arrondi de leur
+    somme (`minutes`) : chacun prend ses minutes entières, puis les plus gros restes une de plus."""
+    total = mesure().minutes(sum(secondes)) if total is None else total
+    entieres = [int(s // 60) for s in secondes]
+    ordre = sorted(range(len(secondes)), key=lambda i: secondes[i] / 60 - entieres[i], reverse=True)
+    for i in ordre[:max(0, total - sum(entieres))]:
+        entieres[i] += 1
+    return entieres
+
+
+def texte_garde_fous(mesure_):
+    """Écrire les garde-fous d'une mesure : suites vertes sur jugées (`verdict_suite`), puis le compte de chaque
+    garde-fou — un tiret pour aucun —, le verdict du relecteur en ACCEPTÉE et REFUSÉE."""
+    jouees, vertes = mesure_["suites"]
+    ecart, attrape, garde, acceptee, refusee = mesure_["garde_fous"]
+    return "suites %s, ÉCART %s, MUTANT ATTRAPÉ %s, GARDE %s, relecteur %s" % (
+        "%d/%d" % (vertes, jouees) if jouees else "-", ecart or "-", attrape or "-", garde or "-",
+        "%d ACCEPTÉE + %d REFUSÉE" % (acceptee, refusee) if acceptee or refusee else "-")
+
+
+def ligne_compteur(nom, mesure_, cout):
+    """Écrire la ligne de `compteur` d'une plage : durée, actif réparti en parts, outils par sorte, les tours et le
+    prix de `cout`, puis les garde-fous ; les minutes de chaque part et de chaque sorte somment leur total à la minute
+    (`minutes_reparties`)."""
+    m = mesure()
+    actif = minutes_reparties([mesure_["parts"][p] for p in m.PARTS])
+    outils = minutes_reparties([mesure_["outils"][s] for s in SORTES_OUTIL], actif[m.PARTS.index(m.OUTILS)])
+    duree = "-" if mesure_["duree"] is None else "%d" % m.minutes(mesure_["duree"])
+    return "%s · durée %s · actif %d = %s · outils : %s · %d tours · %s · garde-fous : %s" % (
+        nom, duree, sum(actif), " + ".join("%s %d" % (p, n) for p, n in zip(m.PARTS, actif)),
+        ", ".join("%s %d (%d)" % (s, n, mesure_["appels"][s]) for s, n in zip(SORTES_OUTIL, outils)),
+        cout[1], dollars(cout[2]), texte_garde_fous(mesure_))
+
+
+def manques(journaux):
+    """Rendre les lignes `AVERTISSEMENT:` de ce qui manque aux transcripts lus — leur format est interne à Claude Code
+    et change d'une version à l'autre : un champ absent se dit, jamais en silence. Les lignes de message sans heure,
+    hors du temps ; les sorties dont l'appel n'est pas au transcript, rangées au reste ; une session sans `origin`, où
+    rien ne se lit tapé : son attente tombe au reste."""
+    rendu = []
+    for chemin, j in journaux:
+        nom = os.path.basename(chemin)
+        if j.sans_heure:
+            rendu.append("AVERTISSEMENT: %s : %d ligne(s) de message sans heure, hors du temps" % (nom, j.sans_heure))
+        if j.sans_appel:
+            rendu.append("AVERTISSEMENT: %s : %d sortie(s) sans appel connu, rangée(s) au reste" % (nom, j.sans_appel))
+        if j.users and not j.origines:
+            rendu.append("AVERTISSEMENT: %s : %d ligne(s) user, aucune avec origin — l'attente tombe au reste"
+                         % (nom, j.users))
+    return rendu
+
+
+def lire_journaux(chemins, sortie):
+    """Rendre [(chemin, journal)] des transcripts lisibles, chaque sortie lue au fil (`lire_sortie`) ; un illisible se
+    dit, puis ce qui manque aux autres (`manques`)."""
+    m = mesure()
+    rendu = []
+    for chemin in chemins:
+        j, erreur = m.journal(chemin, lire_sortie)
+        if erreur:
+            sortie.write("AVERTISSEMENT: transcript non lu : %s — %s\n" % (chemin, erreur))
+            continue
+        rendu.append((chemin, j))
+    for ligne in manques(rendu):
+        sortie.write(ligne + "\n")
+    return rendu
+
+
+def dixiemes(secondes, signe=False):
+    """Écrire des secondes en minutes à une décimale, à la virgule — signées si `signe` : un écart."""
+    return (("%+.1f" if signe else "%.1f") % (secondes / 60)).replace(".", ",")
+
+
+def ligne_recoupe(tete, avant, etat, siens):
+    """Écrire la ligne de recoupe d'une `cost-state` : les outils, le modèle et la durée du compteur, du `startTime` à
+    `avant` — la dernière ligne horodatée avant elle —, face à ses totaux, l'écart signé — pour les outils, aussi sans
+    ce que ferme une notification : l'attente d'une tâche de fond n'est pas un appel d'outil ; un champ absent se
+    dit."""
+    m = mesure()
+    debut = etat.get("startTime")
+    if not isinstance(debut, (int, float)) or avant is None:
+        return "%s · pas de plage — %s" % (tete, "aucune ligne horodatée avant" if avant is None else "startTime absent")
+    mesure_ = compter_plage(siens, (debut / 1000, avant))
+    nous = {"outils": mesure_["parts"][m.OUTILS], "modèle": mesure_["parts"][m.MODELE], "durée": avant - debut / 1000}
+    morceaux = []
+    for cle, champ in TOTAUX_COUT:
+        eux = etat.get(champ)
+        if not isinstance(eux, (int, float)):
+            morceaux.append("%s %s contre %s absent" % (cle, dixiemes(nous[cle]), champ))
+            continue
+        ecart = "écart %s" % dixiemes(nous[cle] - eux / 1000, True)
+        if cle == "outils":
+            ecart += " ; sans les %s fermées par une notification de fond : %s" % (
+                dixiemes(mesure_["fond"]), dixiemes(nous[cle] - mesure_["fond"] - eux / 1000, True))
+        morceaux.append("%s %s contre %s %s (%s)" % (cle, dixiemes(nous[cle]), champ, dixiemes(eux / 1000), ecart))
+    return "%s · %s" % (tete, " · ".join(morceaux))
+
+
+def recoupe(journaux, chemin, sortie):
+    """Écrire une ligne par `cost-state` d'une session (`etats_cout`), recoupée sur sa plage, session et sous-agents
+    (`ligne_recoupe`)."""
+    m = mesure()
+    etats, erreur = m.etats_cout(chemin)
+    if erreur:
+        sortie.write("AVERTISSEMENT: recoupe : %s — %s\n" % (chemin, erreur))
+        return
+    agents = set(m.sous_agents(chemin))
+    siens = [(c, j) for c, j in journaux if c == chemin or c in agents]
+    for n, avant, etat in etats:
+        tete = "RECOUPE %s ligne %d (minutes)" % (os.path.basename(chemin), n)
+        sortie.write(ligne_recoupe(tete, avant, etat, siens) + "\n")
+    if not etats:
+        sortie.write("RECOUPE %s · aucune ligne cost-state\n" % os.path.basename(chemin))
+
+
+def rangs_compteur(nommees, plages_, decoupe, sortie):
+    """Rendre [(nom, plages, coût)] des lignes de `compteur` : une par fiche — les seules nommées, si on en nomme —,
+    puis hors fiches quand on n'en nomme pas ; une fiche nommée sans plage se dit en `GARDE:`."""
+    (par_fiche, trous), (parts_, hors) = plages_, decoupe
+    connues = [ident for ident, _ in par_fiche]
+    for ident in nommees:
+        if ident not in connues:
+            sortie.write("GARDE: fiche sans plage : %s — ni commit « %s : », ni session\n" % (ident, ident))
+    rangs = [(ident, [plage], plus(*r)) for (ident, plage), (_, *r) in zip(par_fiche, parts_)
+             if not nommees or ident in nommees]
+    return rangs if nommees else rangs + [("hors fiches", trous, plus(*hors))]
+
+
+def cmd_compteur(a, sortie):
+    """Dire où passe le temps de chaque fiche, coupée aux commits comme `cout` (VIT17) : l'en-tête, une ligne par fiche
+    (`ligne_compteur`), hors fiches et `TOTAL` — seulement les fiches nommées, si on en nomme ; `--recoupe` : puis une
+    ligne par `cost-state` des sessions (`recoupe`). Sans découpe, une `GARDE:` et 1 ; une fiche nommée sans plage : 1."""
+    lignes = lignes_de(chemin_garde(a.fichier))
+    decoupe, pourquoi, gardes, (fiches_, heures, fin) = decoupe_et_heures(a.fichier, lignes)
+    for g in gardes:
+        sortie.write(g + "\n")
+    if not decoupe:
+        sortie.write("GARDE: pas de découpe — %s\n" % pourquoi[0])
+        return 1
+    fichiers = transcripts_du_fichier(fiches_, sessions_entete(lignes), [])
+    journaux = lire_journaux([c for c, sorte in fichiers if sorte < 2], sortie)
+    sortie.write(ENTETE_COMPTEUR % (mesure().PAUSE // 60) + "\n")
+    rangs = rangs_compteur(a.fiches, plages_du_cout(fiches_, heures, [], fin), decoupe, sortie)
+    total = mesure_vide()
+    for nom, bornes, cout in rangs:
+        mesure_ = mesure_vide()
+        for plage in bornes:
+            ajouter_mesure(mesure_, compter_plage(journaux, plage))
+        sortie.write(ligne_compteur(nom, mesure_, cout) + "\n")
+        ajouter_mesure(total, mesure_)
+    nom = "TOTAL (fiches nommées)" if a.fiches else "TOTAL (fiches + hors fiches)"
+    sortie.write(ligne_compteur(nom, total, plus(*[r[2] for r in rangs])) + "\n")
+    for chemin in [c for c, sorte in fichiers if sorte == 0] if a.recoupe else []:
+        recoupe(journaux, chemin, sortie)
+    return int(len(rangs) < len(set(a.fiches)))
 
 
 KIT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -2096,6 +2407,34 @@ def plages(fiches_, heures, gardes, clos=False):
     return rendu, [p for p in ((origine, rendu[0][1][0]), (dernier, fin)) if p[0] < p[1]]
 
 
+def transcripts_du_fichier(fiches_, entete, gardes):
+    """Rendre [(chemin, sorte)] des transcripts d'un fichier de fiches — sorte 0 : session, 1 : sous-agent, 2 : essai,
+    3 : sous-agent d'un essai, rangé avec lui. Les sessions : celles des fiches, puis `entete` — le cadrage
+    (`sessions_entete`) ; une session introuvable se dit en `GARDE:`."""
+    m = mesure()
+    sessions, fichiers = [], []
+    for groupe in [f[3] for f in fiches_] + [list(entete)]:
+        sessions += [s for s in groupe if s not in sessions]
+    for s in sessions:
+        chemin, erreur = m.resoudre(s)
+        if erreur:
+            gardes.append("GARDE: session non mesurée : %s — %s" % (s, erreur))
+            continue
+        fichiers += [(chemin, 0)] + [(a, 1) for a in m.sous_agents(chemin)]
+        for e in essais_de(s):
+            fichiers += [(e, 2)] + [(a, 3) for a in m.sous_agents(e)]
+    return fichiers
+
+
+def plages_du_cout(fiches_, heures, gardes, fin=None):
+    """Rendre (plages des fiches, plages hors fiches) de `plages`, la dernière hors fiches arrêtée à `fin` s'il est
+    donné : le chantier est alors clos (`parts_aux_commits`)."""
+    par_fiche, trous = plages(fiches_, heures, gardes, clos=fin is not None)
+    if fin is not None and trous:
+        trous = trous[:-1] + [(trous[-1][0], min(trous[-1][1], fin))]
+    return par_fiche, trous
+
+
 def parts_aux_commits(fiches_, heures, gardes, entete=(), fin=None):
     """([(id, session, sous-agents, essais)], (session, sous-agents, essais) hors fiches), ou None
     sans transcript mesurable, ou sans fiche à découper. Les sessions : celles des fiches, puis
@@ -2109,24 +2448,12 @@ def parts_aux_commits(fiches_, heures, gardes, entete=(), fin=None):
     chantier est clos : sa fiche sans commit s'arrête au commit suivant (`plages`, chantier ECA)."""
     from decimal import ROUND_HALF_UP, Decimal
     m = mesure()
-    sessions, fichiers = [], []
-    for groupe in [f[3] for f in fiches_] + [list(entete)]:
-        sessions += [s for s in groupe if s not in sessions]
-    for s in sessions:
-        chemin, erreur = m.resoudre(s)
-        if erreur:
-            gardes.append("GARDE: session non mesurée : %s — %s" % (s, erreur))
-            continue
-        fichiers += [(chemin, 0)] + [(a, 1) for a in m.sous_agents(chemin)]    # 0 : session, 1 : sous-agent
-        for e in essais_de(s):      # 2 : essai, 3 : sous-agent d'un essai, rangé avec lui
-            fichiers += [(e, 2)] + [(a, 3) for a in m.sous_agents(e)]
+    fichiers = transcripts_du_fichier(fiches_, entete, gardes)
     if not fichiers:
         return None
-    par_fiche, trous = plages(fiches_, heures, gardes, clos=fin is not None)
+    par_fiche, trous = plages_du_cout(fiches_, heures, gardes, fin)
     if not par_fiche:
         return None
-    if fin is not None and trous:
-        trous = trous[:-1] + [(trous[-1][0], min(trous[-1][1], fin))]
 
     def part(bornes):
         rendu = [[0, 0, Decimal(0), 0], [0, 0, Decimal(0), 0], [0, 0, Decimal(0), 0]]
@@ -7560,6 +7887,18 @@ def options_outils(sous):
     sy.add_argument("noms", nargs="*")
 
 
+def options_mesure(sous):
+    """Déclarer les lignes de commande de `cout` et de `compteur`."""
+    co = sous.add_parser("cout")
+    co.add_argument("fichier")
+    co.add_argument("--session", action="store_true")
+    co.add_argument("--a-clore", action="store_true")
+    cm = sous.add_parser("compteur")
+    cm.add_argument("fichier")
+    cm.add_argument("fiches", nargs="*")
+    cm.add_argument("--recoupe", action="store_true")
+
+
 def options_mutant(sous):
     """Déclarer la ligne de commande de `mutant`."""
     mu = sous.add_parser("mutant")
@@ -7603,10 +7942,7 @@ def main(argv, sortie=None, entree=None, erreur=None):
     s.add_argument("fichier")
     se = sous.add_parser("sessions")
     se.add_argument("fichier")
-    co = sous.add_parser("cout")
-    co.add_argument("fichier")
-    co.add_argument("--session", action="store_true")
-    co.add_argument("--a-clore", action="store_true")
+    options_mesure(sous)
     li = sous.add_parser("lignes")
     li.add_argument("chemins", nargs="+")
     eq = sous.add_parser("equiper")
@@ -7773,7 +8109,7 @@ PAR_ARGUMENTS = {
     "ouvrir": cmd_ouvrir, "clore": cmd_clore, "archiver": cmd_archiver, "trier": cmd_trier, "feuille": cmd_feuille,
     "niveau": cmd_niveau, "comparer": cmd_comparer, "relecture": cmd_relecture, "contrat": cmd_contrat,
     "forme": cmd_forme, "ouverts": cmd_ouverts, "plan": cmd_plan, "matin": cmd_matin, "fusionner": cmd_fusionner,
-    "sante": cmd_sante, "symboles": cmd_symboles,
+    "sante": cmd_sante, "symboles": cmd_symboles, "compteur": cmd_compteur,
 }
 
 

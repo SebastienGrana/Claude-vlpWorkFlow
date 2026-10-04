@@ -25,6 +25,10 @@ et au-delà d'un, `actif, TOTAL, …` sur la ligne de temps commune (une minute 
 travaillent compte une fois) ; minutes arrondies à l'entier. Les remarques vont sur stderr. Sort 1 sur un
 usage faux, une borne illisible, ou quand aucun fichier n'a pu être lu ; 0 sinon.
 
+Pour `vlp.py compteur` (VIT17), sans rien changer à la ligne de commande : `journal` lit un transcript en
+événements, `tranche` en garde une plage, `parts` découpe leur temps actif en modèle, outils, attente et
+reste, et `etats_cout` rend ses lignes `cost-state`.
+
 Python 3 sans dépendance, zéro appel modèle.
 """
 import collections
@@ -34,8 +38,10 @@ import glob
 import io
 import json
 import os
+import re
 import subprocess
 import sys
+from dataclasses import dataclass, field
 from decimal import ROUND_HALF_UP, Decimal
 
 # Colonnes affichées, dans l'ordre du socle (context AI/13-tours.md).
@@ -434,6 +440,215 @@ def temps(liste):
         if sorte != AUTRE:
             tampon = 0.0
     return actif, attente, pauses
+
+
+# La part de chaque minute (VIT17), pour `vlp.py compteur` : un écart entre deux lignes voisines va à la part de la
+# ligne qui le ferme — une ligne assistant au modèle ; un `tool_result`, ou la notification d'une tâche de fond, aux
+# outils ; un message tapé, ou la réponse à une `AskUserQuestion`, à l'attente ; toute autre ligne de conversation au
+# reste. Une ligne hors conversation ne ferme rien : son écart attend la suivante, comme l'attente de `temps`.
+MODELE, OUTILS, ATTENTE, RESTE = "modèle", "outils", "attente", "autre"
+PARTS = (MODELE, OUTILS, ATTENTE, RESTE)
+INCONNU = ("?", {})     # l'appel d'une sortie dont le `tool_use_id` n'est pas dans le transcript
+NOTIFICATION = re.compile(r"<tool-use-id>([^<]*)</tool-use-id>")
+NOTIFICATION_TACHE = re.compile(r"<task-id>([^<]*)</task-id>")
+# La tâche de fond qu'une sortie dit lancée, en tête : « Command running in background with ID: <id> », « … moved to
+# the background (ID: <id>) », « Monitor started (task <id>, … » — vus le 2026-10-04, 45, 3 et 2 fois sur les sessions
+# de VIT. Puis la sortie d'une tâche, lue par un appel qui l'attend : `…/tasks/<id>.output` dans son entrée.
+TACHE = re.compile(r"(?:with ID:|\(ID:|\(task) *(\w+)")
+SORTIE_TACHE = re.compile(r"tasks[/\\]+(\w+)\.output")
+
+
+@dataclass
+class Journal:
+    """Un transcript lu par `journal` : ses événements, et ce qui manque, à dire — les lignes de message sans heure,
+    hors du temps ; les sorties à l'appel `INCONNU` ; les lignes `user` hors sous-agent, et celles qui portent un
+    `origin`, sans quoi rien n'est reconnu tapé."""
+    evenements: list = field(default_factory=list)
+    sans_heure: int = 0
+    sans_appel: int = 0
+    users: int = 0
+    origines: int = 0
+
+
+def ligne_json(ligne):
+    """Rendre une ligne de transcript lue en dict, ou None : vide, illisible, ou pas un objet."""
+    try:
+        d = json.loads(ligne)
+    except json.JSONDecodeError:
+        return None
+    return d if isinstance(d, dict) else None
+
+
+def texte_sortie(contenu):
+    """Rendre le texte d'un contenu de message ou de `tool_result` : la chaîne, ou ses blocs `text` joints."""
+    if isinstance(contenu, str):
+        return contenu
+    blocs = contenu if isinstance(contenu, list) else []
+    return "\n".join(b["text"] for b in blocs if isinstance(b, dict) and isinstance(b.get("text"), str))
+
+
+def noter_appels(contenu, appels):
+    """Noter dans `appels` le (nom, entrée) de chaque bloc `tool_use` d'un contenu assistant, sous son `id`."""
+    for bloc in contenu if isinstance(contenu, list) else []:
+        if isinstance(bloc, dict) and bloc.get("type") == "tool_use":
+            entree = bloc.get("input")
+            appels[bloc.get("id")] = (str(bloc.get("name") or "?"), entree if isinstance(entree, dict) else {})
+
+
+def sorte_origine(d):
+    """Rendre le `kind` de l'`origin` d'une ligne, ou None si elle n'en porte pas."""
+    o = d.get("origin")
+    return o.get("kind") if isinstance(o, dict) else None
+
+
+def rattacher(appel, appels):
+    """Rendre (appel, attendue) : un appel qui lit la sortie d'une tâche de fond notée — `SORTIE_TACHE` dans son
+    entrée — l'attend ; rendre alors l'appel qui l'a lancée et vrai, sinon l'appel tel quel et faux."""
+    trouve = SORTIE_TACHE.search(json.dumps(appel[1], ensure_ascii=False))
+    lance = appels.get("tâche:" + trouve.group(1)) if trouve else None
+    return (lance[0], True) if lance else (appel, False)
+
+
+def sortie_outil(bloc, appels):
+    """Rendre (part, appel, texte, lien) d'un bloc `tool_result`, son appel retrouvé par son `tool_use_id` — sinon
+    `INCONNU` —, rattaché à la tâche qu'il attend (`rattacher`), le lien « attente » alors : la réponse à une
+    `AskUserQuestion` est de l'attente, toute autre sortie un outil. Une sortie qui dit une tâche lancée (`TACHE`) la
+    note dans `appels`, sous `tâche:<id>`."""
+    appel, attendue = rattacher(appels.get(bloc.get("tool_use_id"), INCONNU), appels)
+    texte = texte_sortie(bloc.get("content"))
+    tache = TACHE.search(texte[:300])
+    if tache:
+        appels["tâche:" + tache.group(1)] = (appel, attendue)
+    return (ATTENTE if appel[0] == "AskUserQuestion" else OUTILS), appel, texte, "attente" if attendue else ""
+
+
+def appel_notifie(texte, appels):
+    """Rendre (appel, lien) d'une notification de tâche de fond : par son `<tool-use-id>`, rattaché à la tâche qu'il
+    attend ; sinon par son `<task-id>`, tel que la sortie qui a dit la tâche lancée l'a noté ; sinon `INCONNU`. Le
+    lien : « fond », ou « fond attente » si l'appel attendait une autre tâche — sa fin n'est pas celle de la tâche."""
+    outil, tache = NOTIFICATION.search(texte), NOTIFICATION_TACHE.search(texte)
+    if outil and outil.group(1) in appels:
+        appel, attendue = rattacher(appels[outil.group(1)], appels)
+    else:
+        appel, attendue = appels.get("tâche:" + tache.group(1), (INCONNU, False)) if tache else (INCONNU, False)
+    return appel, "fond attente" if attendue else "fond"
+
+
+def sorties_user(d, appels, sous_agent):
+    """Rendre ce que ferme une ligne `user`, en (part, appel, texte, lien) : un par `tool_result` (`sortie_outil`) ;
+    la notification d'une tâche de fond, à l'appel qui l'a lancée (`appel_notifie`) ; le message d'une autre session
+    (`origin` `peer`), au reste, son texte lu ; un message tapé (`tape`), à l'attente ; toute autre ligne au reste,
+    sans texte. Le lien : « attente » pour la sortie d'un appel qui attend une tâche de fond, « fond » ou « fond
+    attente » pour une notification (`appel_notifie`), vide sinon."""
+    contenu = d["message"].get("content")
+    blocs = contenu if isinstance(contenu, list) else []
+    resultats = [b for b in blocs if isinstance(b, dict) and b.get("type") == "tool_result"]
+    if resultats:
+        return [sortie_outil(b, appels) for b in resultats]
+    texte, sorte = texte_sortie(contenu), sorte_origine(d)
+    if sorte == "task-notification" or texte.startswith("<task-notification>"):
+        appel, lien = appel_notifie(texte, appels)
+        return [(OUTILS, appel, texte, lien)]
+    if sorte == "peer":
+        return [(RESTE, None, texte, "")]
+    return [(ATTENTE if not sous_agent and tape(d) else RESTE, None, None, "")]
+
+
+def evenements_ligne(d, appels, sous_agent):
+    """Rendre les (part, appel, texte, lien) d'une ligne horodatée : hors conversation, une part None ; une ligne
+    `user`, `sorties_user` ; une ligne assistant, le modèle ; toute autre ligne de conversation, le reste."""
+    if not isinstance(d.get("message"), dict):
+        return [(None, None, None, "")]
+    if d.get("type") == "user":
+        return sorties_user(d, appels, sous_agent)
+    return [(MODELE if d.get("type") == "assistant" else RESTE, None, None, "")]
+
+
+def lire_ligne(d, contexte, rendu):
+    """Ajouter au journal `rendu` une ligne lue : noter ses appels, compter ce qui manque, puis ses événements ;
+    `contexte` : (sous-agent ?, appels notés, `lire`)."""
+    sous_agent, appels, lire = contexte
+    message, t = d.get("message"), heure(d)
+    if isinstance(message, dict) and d.get("type") == "assistant":
+        noter_appels(message.get("content"), appels)
+    if d.get("type") == "user" and not sous_agent:
+        rendu.users += 1
+        rendu.origines += isinstance(d.get("origin"), dict)
+    if t is None:
+        rendu.sans_heure += isinstance(message, dict)
+        return
+    for part, appel, texte, lien in evenements_ligne(d, appels, sous_agent):
+        rendu.sans_appel += appel is INCONNU
+        rendu.evenements.append((t, part, lire(appel, texte, lien) if lire and texte is not None else None))
+
+
+def journal(chemin, lire=None):
+    """Rendre (journal, None) ou (None, erreur) : un transcript en `Journal`, ses lignes horodatées en événements
+    (secondes UTC, part, lu), dans l'ordre du fichier — part : une de `PARTS` (`evenements_ligne`), ou None hors
+    conversation ; lu : ce que rend `lire(appel, texte, lien)` pour une sortie qui a un texte (`sorties_user`), sinon
+    None. Toutes les lignes, une lecture pour toutes les plages : `tranche` les pose ensuite."""
+    sous_agent, appels, rendu = est_sous_agent(chemin), {}, Journal()
+    try:
+        f = ouvrir(chemin)
+    except OSError as e:
+        return None, f"illisible : {e}"
+    with f:
+        for ligne in f:
+            d = ligne_json(ligne)
+            if d is not None:
+                lire_ligne(d, (sous_agent, appels, lire), rendu)
+    return rendu, None
+
+
+def tranche(chemin, evenements, plage):
+    """Rendre les événements d'un journal qui tombent dans la plage (début, fin], en secondes UTC ; ceux d'un
+    sous-agent tous ou aucun, selon l'heure de sa première ligne horodatée — la règle de `points`."""
+    if est_sous_agent(chemin):
+        return list(evenements) if evenements and plage[0] < evenements[0][0] <= plage[1] else []
+    return [e for e in evenements if plage[0] < e[0] <= plage[1]]
+
+
+def parts(evenements):
+    """Rendre (secondes par part, fermés, pauses) d'une ligne de temps d'événements, triée par heure : chaque écart
+    entre deux lignes voisines va à la part de la ligne qui le ferme, sauf une pause (plus de `PAUSE`), qui ne compte
+    pas ; ce qu'une ligne hors conversation laisse en attente va à la ligne suivante, et ce qui attend encore à la fin
+    au reste. Les parts somment l'actif de `temps`. Fermés : (secondes, part, lu) de chaque ligne qui ferme un écart —
+    le temps d'outil, appel par appel."""
+    somme = dict.fromkeys(PARTS, 0.0)
+    fermes, tampon, pauses = [], 0.0, 0
+    triee = sorted(evenements, key=lambda e: e[0])
+    for (avant, _, _), (t, part, lu) in zip(triee, triee[1:]):
+        ecart = t - avant
+        if ecart > PAUSE:
+            pauses, ecart = pauses + 1, 0.0
+        tampon += ecart
+        if part is not None:
+            somme[part] += tampon
+            fermes.append((tampon, part, lu))
+            tampon = 0.0
+    somme[RESTE] += tampon
+    return somme, fermes, pauses
+
+
+def etats_cout(chemin):
+    """Rendre (liste, None) ou (None, erreur) : les lignes `cost-state` d'un transcript, dans l'ordre du fichier, en
+    (numéro de ligne, heure de la dernière ligne horodatée avant elle — None sans elle —, la ligne). Une `cost-state`
+    n'a pas d'heure ; ses totaux courent depuis le début de la session, son `startTime` (VIT17)."""
+    rendu, derniere = [], None
+    try:
+        f = ouvrir(chemin)
+    except OSError as e:
+        return None, f"illisible : {e}"
+    with f:
+        for n, ligne in enumerate(f, 1):
+            d = ligne_json(ligne)
+            if d is None:
+                continue
+            if d.get("type") == "cost-state":
+                rendu.append((n, derniere, d))
+            t = heure(d)
+            derniere = derniere if t is None else t
+    return rendu, None
 
 
 def minutes(secondes):

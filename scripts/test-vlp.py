@@ -8061,6 +8061,234 @@ groupe(tester_sante_cliquet)
 groupe(tester_sante_si_base)
 groupe(tester_sante_kit)
 groupe(tester_seul)
+
+
+def horodate(d):
+    return datetime.datetime.fromtimestamp(T0 + d, datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z")
+
+
+def tour_compteur(d, n, *blocs):
+    """Une ligne assistant à T0 + d, son tour n (100 000 tokens d'entrée, 0,50 $), ses blocs."""
+    return {"type": "assistant", "timestamp": horodate(d), "requestId": "r%d" % n, "message": {
+        "id": "m%d" % n, "model": "claude-opus-5", "content": list(blocs),
+        "usage": {"input_tokens": 100000, "output_tokens": 0, "cache_creation_input_tokens": 0,
+                  "cache_read_input_tokens": 0}}}
+
+
+def outil_compteur(ident, nom, **entree):
+    return {"type": "tool_use", "id": ident, "name": nom, "input": entree}
+
+
+def user_compteur(d, contenu, origine=None, **plus):
+    ligne = dict({"type": "user", "message": {"role": "user", "content": contenu}}, **plus)
+    if d is not None:
+        ligne["timestamp"] = horodate(d)
+    if origine:
+        ligne["origin"] = {"kind": origine}
+    return ligne
+
+
+def sortie_compteur(d, ident, texte):
+    return user_compteur(d, [{"type": "tool_result", "tool_use_id": ident, "content": texte}])
+
+
+def notification_compteur(d, balise, texte):
+    return user_compteur(d, "<task-notification>\n%s\n<summary>%s</summary>\n</task-notification>" % (balise, texte),
+                         "task-notification")
+
+
+def lignes_compteur():
+    """La transcription faite main de VIT17, en secondes après T0 : chaque écart a sa part en face, et la somme des
+    parts se fait à la main — modèle 127, outils 753, attente 80, autre 25 ; une pause (960 → 3000)."""
+    sortie_b = '"C:/t/tasks/%s.output"'
+    mutant = 'py -3 scripts/vlp.py mutant scripts/a.py "x" "y" --test "py -3 scripts/test-vlp.py --seul z"'
+    return [
+        {"type": "queue-operation", "operation": "enqueue", "timestamp": horodate(0)},    # hors conversation
+        user_compteur(0, "vas-y", "human"),                                                # attente 0
+        tour_compteur(10, 1, outil_compteur("u1", "Bash", command="py -3 scripts/test-vlp.py")),   # modèle 10
+        sortie_compteur(70, "u1", "SAUTÉ: x\nOK"),                                        # suite 60, verte
+        {"type": "attachment", "timestamp": horodate(80)},                                # hors conversation
+        tour_compteur(90, 2, outil_compteur("u2", "AskUserQuestion", questions=[])),      # modèle 10 + 10
+        sortie_compteur(150, "u2", "Your questions have been answered: oui"),              # attente 60
+        tour_compteur(160, 3, outil_compteur("u3", "Bash", command=mutant, run_in_background=True)),   # modèle 10
+        sortie_compteur(161, "u3", "Command running in background with ID: b1."),          # mutant 1, b1 noté
+        tour_compteur(170, 4, outil_compteur("u7", "Bash", command="until grep -q ATTRAP %s; do sleep 5; done; cat %s"
+                                             % (sortie_b % "b1", sortie_b % "b1"))),   # modèle 9
+        sortie_compteur(400, "u7", "ÉCART: z\nMUTANT ATTRAPÉ 1 écart(s)"),                 # attend b1 : mutant 230
+        notification_compteur(405, "<tool-use-id>u3</tool-use-id>", "fini (exit code 0)"),   # mutant 5, fond
+        tour_compteur(410, 5, outil_compteur("u9", "Bash", command="py -3 scripts/test-vlp.py", run_in_background=True)),
+        sortie_compteur(411, "u9", "Command running in background with ID: b2."),          # suite 1, sans verdict
+        tour_compteur(420, 6, outil_compteur("u8", "Monitor", command='until grep -q "^OK" %s; do sleep 5; done'
+                                             % (sortie_b % "b2"))),   # modèle 9
+        sortie_compteur(421, "u8", "Monitor started (task m1, expires in 5m)."),           # attend b2 : suite 1
+        tour_compteur(430, 7),                                                             # modèle 9
+        notification_compteur(700, "<task-id>m1</task-id>", "Monitor event"),             # par m1 : suite 270
+        notification_compteur(710, "<tool-use-id>u9</tool-use-id>", "fini (exit code 1)"),   # suite 10, rouge
+        tour_compteur(720, 8, outil_compteur("u11", "Bash", command="py -3 scripts/test-vlp.py --seul compteur")),
+        sortie_compteur(750, "u11", "ÉCART: w\nFIN: 1 écart(s)"),                          # --seul 30, rouge
+        tour_compteur(760, 9, outil_compteur("u4", "Read", file_path="C:/t/x.md")),        # modèle 10
+        sortie_compteur(770, "u4", "     1→MUTANT ATTRAPÉ 1 écart(s)\n     2→GARDE: x"),   # reste 10, rien de lu
+        tour_compteur(780, 10, outil_compteur("u10", "Bash", command="py -3 scripts/vlp.py cocher f.md X1")),
+        sortie_compteur(790, "u10", "GARDE: suite rouge"),                                 # reste 10, GARDE 1
+        tour_compteur(800, 11, outil_compteur("u12", "Agent", subagent_type="vlp:relecture")),   # modèle 10
+        sortie_compteur(900, "u12", "ACCEPTÉE — ok\nGARDE: q"),                            # reste 100, ACCEPTÉE 1
+        user_compteur(910, "consigne", isMeta=True),                                       # autre 10
+        user_compteur(920, "[Subagent hand-back] rapport :\n  REFUSÉE — copie", "peer", isMeta=True),   # autre 10
+        sortie_compteur(930, "u99", "ÉCART: y"),                                           # appel inconnu : reste 10
+        tour_compteur(940, 12, outil_compteur("u5", "Bash", command='git commit -m "Q1 : Créer"')),   # modèle 10
+        sortie_compteur(945, "u5", "[main abc] Q1 : Créer"),                               # Git 5
+        tour_compteur(950, 13, outil_compteur("u6", "Artifact", action="publish")),        # modèle 5
+        sortie_compteur(960, "u6", "publié"),                                              # publication 10
+        user_compteur(None, "sans heure"),                                                 # hors du temps
+        tour_compteur(3000, 14),                                                           # pause de 2 040 s
+        user_compteur(3020, "la suite", "human"),                                          # attente 20
+        {"type": "system", "subtype": "stop_hook_summary", "timestamp": horodate(3025)},   # au reste, à la fin
+    ]
+
+
+def ecrire_compteur(chemin, cout_etat=None):
+    """Écrire la transcription faite main ; `cout_etat` : une ligne `cost-state` posée après le tour de 760 s."""
+    lignes = lignes_compteur()
+    if cout_etat is not None:
+        lignes.insert(22, dict(cout_etat, type="cost-state"))
+    ecrire(chemin, "".join(json.dumps(l, ensure_ascii=False) + "\n" for l in lignes))
+
+
+TOUT_COMPTEUR = ("actif 16 = modèle 2 + outils 13 + attente 1 + autre 0 · outils : suite 6 (2), --seul 1 (1), "
+                 "test-boucle 0 (0), mutant 4 (1), pyright 0 (0), Git 0 (1), publication 0 (1), reste 2 (4) · 14 tours"
+                 " · 7,00 $ · garde-fous : suites 1/3, ÉCART 1, MUTANT ATTRAPÉ 1, GARDE 1, relecteur 1 ACCEPTÉE + 1 "
+                 "REFUSÉE")
+
+
+def tester_compteur_lecture():
+    """Contrôler la lecture de `compteur` (VIT17) sur la transcription faite main : les parts à la seconde, le temps
+    et les appels par sorte d'outil, les garde-fous, ce qui manque, la ligne en minutes."""
+    m = mod.mesure()
+    with tempfile.TemporaryDirectory() as t:
+        chemin = os.path.join(t, "sss.jsonl")
+        ecrire_compteur(chemin)
+        j, erreur = m.journal(chemin, mod.lire_sortie)
+        verifier("compteur : ce qui manque se compte — 1 ligne sans heure, 1 sortie sans appel, 21 user dont 6 à origin",
+                 erreur is None and (j.sans_heure, j.sans_appel, j.users, j.origines) == (1, 1, 21, 6),
+                 (erreur, j and vars(j).items()))
+        mesure_ = mod.compter_plage([(chemin, j)], (-mod.INFINI, mod.INFINI))
+    verifier("compteur : un écart va à la ligne qui le ferme — modèle 127, outils 753, attente 80, autre 25, 1 pause",
+             (mesure_["parts"], mesure_["pauses"]) == ({"modèle": 127, "outils": 753, "attente": 80, "autre": 25}, 1),
+             mesure_)
+    verifier("compteur : l'attente d'une tâche de fond va à l'appel qui l'a lancée — boucle, Monitor, notification",
+             mesure_["outils"] == {"suite": 342, "--seul": 30, "test-boucle": 0, "mutant": 236, "pyright": 0, "Git": 5,
+                                   "publication": 10, "reste": 130} and mesure_["fond"] == 285, mesure_)
+    verifier("compteur : un appel par sortie directe — ni la notification, ni l'attente, ni la réponse à une question",
+             mesure_["appels"] == {"suite": 2, "--seul": 1, "test-boucle": 0, "mutant": 1, "pyright": 0, "Git": 1,
+                                   "publication": 1, "reste": 4}, mesure_["appels"])
+    verifier("compteur : les garde-fous lus là où ils disent vrai, les suites jugées sur leur verdict",
+             (mesure_["suites"], mesure_["garde_fous"]) == ([3, 1], [1, 1, 1, 1, 1]), mesure_)
+    verifier("compteur : la ligne en minutes, chaque total juste à la minute (plus gros restes)",
+             mod.ligne_compteur("tout", mesure_, (0, 14, Decimal("7.00"), 1)) == "tout · durée - · " + TOUT_COMPTEUR,
+             mod.ligne_compteur("tout", mesure_, (0, 14, Decimal("7.00"), 1)))
+    vide = m.Journal(users=3)
+    verifier("compteur : manques — une session sans origin, rien de tapé ne se lit, ça se dit",
+             mod.manques([("a/s.jsonl", vide)]) == ["AVERTISSEMENT: s.jsonl : 3 ligne(s) user, aucune avec origin — "
+                                                    "l'attente tombe au reste"], mod.manques([("a/s.jsonl", vide)]))
+    agent = os.path.join("s", "subagents", "agent-a.jsonl")
+    evenements = [(T0 + 5, m.MODELE, None), (T0 + 2000, m.MODELE, None)]
+    verifier("compteur : un sous-agent tout entier ou pas du tout, à son départ",
+             (m.tranche(agent, evenements, (T0, T0 + 10)), m.tranche(agent, evenements, (T0 + 10, T0 + 9000)))
+             == (evenements, []), m.tranche(agent, evenements, (T0, T0 + 10)))
+
+
+def tester_compteur_sortes():
+    """Contrôler les sortes d'outil, le verdict d'une suite, l'arrondi qui somme juste et la recoupe sans plage de
+    `compteur` (VIT17)."""
+    cas = [("Bash", "py -3 scripts/test-vlp.py", "suite"),
+           ("Bash", 'cd "D:/x" && py -3 scripts/test-vlp.py --seul compteur', "--seul"),
+           ("Bash", "py -3 scripts/test-vlp.py > o.txt; grep -- --seul o.txt", "suite"),
+           ("Bash", 'py -3 scripts/vlp.py mutant a.py "x" "y" --test "py -3 scripts/test-vlp.py --seul z"', "mutant"),
+           ("PowerShell", '& "C:/Python/python.exe" scripts/test-boucle.py', "test-boucle"),
+           ("Bash", "pyright scripts/vlp.py", "pyright"), ("PowerShell", "git -C . log -1", "Git"),
+           ("Bash", 'grep -n "test-vlp.py" scripts/x.py', "reste"),
+           ("Bash", "cat > f.sh <<'EOF'\npy -3 scripts/test-vlp.py\nEOF", "reste"),
+           ("Artifact", "", "publication"), ("Read", "", "reste")]
+    rendus = [mod.sorte_outil((nom, {"command": c})) for nom, c, _ in cas]
+    verifier("compteur : la sorte d'un appel, à ce qu'il lance en tête d'un segment — ni cité, ni dans un heredoc",
+             rendus == [s for _, _, s in cas], list(zip(rendus, [s for _, _, s in cas])))
+    verdicts = [mod.verdict_suite(*a) for a in (("SAUTÉ: x\nOK", ""), ("ÉCART: x\nFIN: 1", ""), ("fini\n", ""),
+                                                ("(exit code 0)", "fond"), ("(exit code 1)", "fond"), ("tué", "fond"),
+                                                ("(exit code 0)", "fond attente"), ("OK", "attente"))]
+    verifier("compteur : le verdict d'une suite — OK vert, ÉCART rouge, muet non jugé ; en fond, le code de sortie",
+             verdicts == [True, False, None, True, False, None, None, None], verdicts)
+    reparties = (mod.minutes_reparties([74, 326, 80, 25]), mod.minutes_reparties([60, 231, 20, 5, 10], 6),
+                 mod.minutes_reparties([0, 0]))
+    verifier("compteur : les minutes somment leur total — les plus gros restes prennent la minute",
+             reparties == ([1, 6, 1, 0], [1, 4, 1, 0, 0], [0, 0]), reparties)
+    verifier("compteur : une cost-state sans startTime, ou sans ligne horodatée avant, n'a pas de plage — ça se dit",
+             (mod.ligne_recoupe("R", T0, {}, []), mod.ligne_recoupe("R", None, {"startTime": 1}, []))
+             == ("R · pas de plage — startTime absent", "R · pas de plage — aucune ligne horodatée avant"),
+             mod.ligne_recoupe("R", T0, {}, []))
+
+
+def tester_compteur_commande():
+    """Contrôler `vlp.py compteur` de bout en bout (VIT17) : les plages de `cout`, fiches nommées, `--recoupe`, et la
+    `GARDE:` sans découpe."""
+    with tempfile.TemporaryDirectory() as t:
+        pr, dep = os.path.join(t, ".claude", "projects", "p"), os.path.join(t, "depot")
+        ecrire_compteur(os.path.join(pr, "sss.jsonl"), {"startTime": (T0 - 10) * 1000, "totalToolDuration": 300000,
+                                                        "totalAPIDuration": 120000})
+        ecrire(os.path.join(dep, "q.md"), QFICHES % ("sss", "sss"))
+        mod.GIT = "git-absent-vlp"
+        try:
+            sans_git = appel(["compteur", os.path.join(dep, "q.md")])
+        finally:
+            mod.GIT = "git"
+        verifier("compteur : sans découpe, une GARDE: et 1", sans_git[0] == 1 and sans_git[1].startswith(
+            "GARDE: pas de découpe — git ne se lance pas"), sans_git)
+        if not shutil.which("git"):
+            print("SAUTÉ: git absent — compteur de bout en bout n'est pas testé")
+            return
+        env = dict(os.environ, GIT_CONFIG_GLOBAL=os.path.join(t, "gitconfig"), GIT_CONFIG_NOSYSTEM="1",
+                   GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t")
+        ecrire(env["GIT_CONFIG_GLOBAL"], "")
+        subprocess.run(["git", "init", "-q"], cwd=dep, env=env, check=True, capture_output=True)
+        for d, sujet in ((-100, "Chantier Q ouvert : cadré"), (943, "Q1 : Créer"), (3010, "Q2 : Brancher")):
+            date = "%d +0000" % (T0 + d)
+            subprocess.run(["git", "commit", "-q", "--allow-empty", "-m", sujet], cwd=dep, check=True,
+                           capture_output=True, env=dict(env, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date))
+        garde_env = dict(os.environ)
+        os.environ.update(HOME=t, USERPROFILE=t)
+        try:
+            rendus = [appel(["compteur", os.path.join(dep, "q.md")] + plus)
+                      for plus in ([], ["Q2"], ["Q9"], ["--recoupe"])]
+        finally:
+            os.environ.clear()
+            os.environ.update(garde_env)
+    rien = ("actif 0 = modèle 0 + outils 0 + attente 0 + autre 0 · outils : suite 0 (0), --seul 0 (0), test-boucle 0 "
+            "(0), mutant 0 (0), pyright 0 (0), Git 0 (%d), publication 0 (%d), reste 0 (0) · %d tours · %s $ · "
+            "garde-fous : suites -, ÉCART -, MUTANT ATTRAPÉ -, GARDE -, relecteur -")
+    q2 = "Q2 · durée 34 · " + rien % (1, 1, 2, "1,00")
+    lignes = ["AVERTISSEMENT: sss.jsonl : 1 ligne(s) de message sans heure, hors du temps",
+              "AVERTISSEMENT: sss.jsonl : 1 sortie(s) sans appel connu, rangée(s) au reste",
+              mod.ENTETE_COMPTEUR % 30,
+              "Q1 · durée 17 · actif 16 = modèle 2 + outils 12 + attente 1 + autre 1 · outils : suite 6 (2), --seul 0 "
+              "(1), test-boucle 0 (0), mutant 4 (1), pyright 0 (0), Git 0 (0), publication 0 (0), reste 2 (4) · 12 "
+              "tours · 6,00 $ · garde-fous : suites 1/3, ÉCART 1, MUTANT ATTRAPÉ 1, GARDE 1, relecteur 1 ACCEPTÉE + 1 "
+              "REFUSÉE", q2, "hors fiches · durée - · " + rien % (0, 0, 0, "0,00"),
+              "TOTAL (fiches + hors fiches) · durée - · " + TOUT_COMPTEUR]
+    verifier("compteur : une ligne par fiche aux plages de cout, hors fiches, TOTAL — l'écart à cheval sur un commit "
+             "ne compte nulle part", rendus[0] == (0, "\n".join(lignes) + "\n"), rendus[0][1])
+    verifier("compteur : les fiches nommées seules, et leur TOTAL", rendus[1] == (0, "\n".join(
+        lignes[:3] + [q2, "TOTAL (fiches nommées) · durée 34 · " + rien % (1, 1, 2, "1,00")]) + "\n"), rendus[1][1])
+    verifier("compteur : une fiche nommée sans plage se dit, et sort 1", rendus[2][0] == 1
+             and "GARDE: fiche sans plage : Q9 — ni commit « Q9 : », ni session\n" in rendus[2][1], rendus[2])
+    recoupe = ("RECOUPE sss.jsonl ligne 23 (minutes) · outils 10,1 contre totalToolDuration 5,0 (écart +5,1 ; sans les "
+               "4,8 fermées par une notification de fond : +0,4) · modèle 1,5 contre totalAPIDuration 2,0 (écart -0,5) "
+               "· durée 12,8 contre totalDuration absent\n")
+    verifier("compteur --recoupe : la cost-state face au compteur, du startTime à sa dernière ligne horodatée ; un "
+             "champ absent se dit", rendus[3] == (0, "\n".join(lignes) + "\n" + recoupe), rendus[3][1])
+
+
+groupe(tester_compteur_lecture)
+groupe(tester_compteur_sortes)
+groupe(tester_compteur_commande)
 groupe(tester_boucle)     # en dernier : les trois quarts de la suite, un écart d'ailleurs tombe avant lui (VIT2)
 
 if ECARTS:

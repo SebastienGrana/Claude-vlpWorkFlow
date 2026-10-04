@@ -21,9 +21,9 @@
     <p>Coder plus vite et mieux. Une fiche attend moins ses tests et lit moins de contexte — mesuré avant (VIT1) et après (VIT13) — sans qu'un seul contrôle soit retiré ; le code qu'elle laisse est sain, facile à maintenir et documenté.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">16 fiches · 14 faites · en cours : VIT17</p>
+    <p class="mono" style="margin-top:.5rem">16 fiches · 15 faites · en cours : VIT18</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -94,15 +94,16 @@
         <details><summary><span class="titre">Mesurer la fin, avant/après</span><span class="etat">Faite</span></summary>
         <span class="note">Machine redémarrée, session seule : test-vlp 553 → 180 s (−67 %), test-boucle 426,5 → 176 s (−59 %), mutant NUI27 538 → 173 s, 105 s avec --attendu, 6 s avec --seul ; lancement 362 → 208 ms ; contexte de départ +1 % ; code sain : 63 → 63 au-dessus d'un seuil, docstrings 64 → 70 %</span></details>
         <span class="cout mono">≈10,5M (10 538 696) · 38 tours · 3,20 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">VIT17</span></span>
-        <details open><summary><span class="titre">Le compteur d'une fiche : où passe son temps</span><span class="etat">En cours</span></summary>
-        <span class="note">Le compteur d'une fiche (vlp.py compteur) : durée, temps modèle / outils / attente, tours, $, garde-fous — joué sur VIT et NUI. Dépend de VIT13.</span></details></li>
-      <li class="fiche" data-attend><span class="gauche"><span class="id">VIT18</span></span>
-        <details><summary><span class="titre">Le rapport : ce que VIT a gagné, et les pistes pour gagner plus</span><span class="etat">Après VIT17</span></summary>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">VIT17</span></span>
+        <details><summary><span class="titre">Le compteur d'une fiche : où passe son temps</span><span class="etat">Faite</span></summary>
+        <span class="note">vlp.py compteur sur VIT : 14 fiches, modèle 203 + outils 226 + attente 107 + autre 24 = actif 560 min ; NUI : 308 + 601 + 99 + 27 = 1 035. Transcription faite main : découpage exact (groupes tester_compteur_*). Recoupe 72db946f ligne 3332 : outils 130,5 contre totalToolDuration 73,4 (+57,1, dont 51,0 en fond : +6,1 sans), modèle 59,4 contre 63,4 (−3,9). Entrée de 08-etat.md, trois constats. test-vlp.py OK, verifier( 781 → 798 ; deux mutants attrapés ; pyright 0 ; cliquet tenu.</span></details>
+        <span class="cout mono">≈32,2M (32 210 294) · 166 tours · 21,67 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">VIT18</span></span>
+        <details open><summary><span class="titre">Le rapport : ce que VIT a gagné, et les pistes pour gagner plus</span><span class="etat">En cours</span></summary>
         <span class="note">Le rapport sur une page : les gains de VIT en haut, puis les pistes en cartes à valider. Dépend de VIT17.</span></details></li>
     </ul>
-    <p class="mono cout-hors">Hors fiches : ≈5,5M (5 532 808) · 30 tours · 3,71 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈160,8M (160 808 366) · 768 tours · 81,30 $</p>
+    <p class="mono cout-hors">Hors fiches : 0 · 0 tours · 0,00 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈187,5M (187 485 852) · 904 tours · 99,26 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

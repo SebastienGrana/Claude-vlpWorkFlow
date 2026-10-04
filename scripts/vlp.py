@@ -52,6 +52,14 @@ Sous-commandes :
   celles du fichier. `--a-clore` : après `TOTAL`, `à clore` — le total si la dernière
   plage hors fiches s'arrêtait au dernier appel `vlp.py clore` qu'elle contient — et
   `après clore`, la différence ; sans cet appel, une `GARDE:` et pas de ligne.
+- `compteur <fichier> [<fiche>…] [--recoupe]` — où passe le temps, aux plages de `cout` :
+  `COMPTEUR aux commits de fiche`, une ligne par fiche — durée de commit à commit, actif
+  = modèle + outils + attente + autre (chaque écart à la part de la ligne qui le ferme),
+  outils par sorte en minutes (appels), tours et $ de `cout`, garde-fous —, `hors fiches`,
+  `TOTAL`. Des fiches nommées : elles seules, `TOTAL (fiches nommées)` ; une sans plage :
+  `GARDE:`, sort 1. Un champ qui manque aux transcripts : `AVERTISSEMENT:`. `--recoupe` :
+  une ligne `RECOUPE` par `cost-state` des sessions, face à ses totaux. Sans découpe :
+  `GARDE: pas de découpe — <raison>`, sort 1.
 - `valider <fichier>… [--plan]` — les écarts d'un fichier de fiches, un par ligne
   `fichier:ligne: message`, puis `VALIDE|INVALIDE <n> fiches · socle <n> lignes
   · <n> écarts · <n> avertissements — <fichier>`. Avertit si une fiche ou le

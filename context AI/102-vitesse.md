@@ -459,8 +459,9 @@ L'entrée « VIT13 — avant/après » existe : six lignes, les critères et la 
 ---
 
 <!-- FICHE:VIT17 -->
-## VIT17 [ ] — Le compteur d'une fiche : où passe son temps
+## VIT17 [x] — Le compteur d'une fiche : où passe son temps
 
+**Session** : f7fe9ffa-fa40-4dc6-86ff-f51b00a9eec5
 **Dépend de** : `VIT13`.
 **Fichiers** : `scripts/mesure-tokens.py`, `scripts/vlp_coeur.py`, `scripts/vlp.py` (sa docstring),
 `scripts/test-vlp.py`, `context AI/08-etat.md` (une entrée datée).
