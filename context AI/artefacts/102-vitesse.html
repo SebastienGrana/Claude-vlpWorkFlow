@@ -21,9 +21,9 @@
     <p>Coder plus vite et mieux. Une fiche attend moins ses tests et lit moins de contexte — mesuré avant (VIT1) et après (VIT13) — sans qu'un seul contrôle soit retiré ; le code qu'elle laisse est sain, facile à maintenir et documenté.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span data-etat="faite"></span><span></span><span></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">14 fiches · 8 faites · en cours : VIT7</p>
+    <p class="mono" style="margin-top:.5rem">14 fiches · 9 faites · en cours : VIT9</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -66,15 +66,16 @@
         <details><summary><span class="titre">Appeler vlp dans le processus de boucle.py</span><span class="etat">Faite</span></summary>
         <span class="note">test-boucle OK : 330 → 184 s (−44 %, une mesure de chaque côté) ; verifier( 82 → 83 (le test qui compare au vrai sous-processus) ; mutant « sortie tronquée » attrapé ; pyright 0 ; suite complète OK en 305 s</span></details>
         <span class="cout mono">≈6,6M (6 590 886) · 43 tours · 2,66 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">VIT7</span></span>
-        <details open><summary><span class="titre">Lancer test-boucle en parallèle de test-vlp</span><span class="etat">En cours</span></summary>
-        <span class="note">test-boucle en parallèle de test-vlp ; dépend de VIT3, VIT6, VIT14</span></details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">VIT7</span></span>
+        <details><summary><span class="titre">Lancer test-boucle en parallèle de test-vlp</span><span class="etat">Faite</span></summary>
+        <span class="note">suite OK ; série 290 / 296 s → parallèle 186 / 191 s (−36 %), mémoire réservée au pic 83-84 % des deux côtés ; mutant de boucle.py attrapé en 113 s, son ÉCART remonte ; arrêt au 1er écart : test-boucle tué (0 vivant, 1 sans atexit) ; VLP_BOUCLE_SERIE=1 revient en série ; pyright 0</span></details>
+        <span class="cout mono">≈6,0M (6 042 234) · 27 tours · 1,83 $</span></li>
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">VIT8</span></span>
         <details><summary><span class="titre">Un seul Python dans les hooks</span><span class="etat">Faite</span></summary>
         <span class="note">option de l'utilisateur : deux lanceurs gardés, le second sans charger le cœur (importtime : 1 puis 0) ; second lanceur 292 → 77 ms (py -3, le #! évité) / 129 ms (python3) ; verifier( 770 → 771 ; mutant attrapé ; pyright 0 ; suite OK en 286 s</span></details>
-        <span class="cout mono">≈9,6M (9 636 710) · 56 tours · 3,26 $</span></li>
-      <li class="fiche"><span class="gauche"><span class="id">VIT9</span></span>
-        <details><summary><span class="titre">Une carte des symboles, et des fiches sans numéros de ligne</span><span class="etat">À lancer</span></summary>
+        <span class="cout mono">≈9,8M (9 841 748) · 57 tours · 3,32 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">VIT9</span></span>
+        <details open><summary><span class="titre">Une carte des symboles, et des fiches sans numéros de ligne</span><span class="etat">En cours</span></summary>
         <span class="note">une carte des symboles, des fiches sans numéros de ligne</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">VIT10</span></span>
         <details><summary><span class="titre">Ranger les tests en groupes nommés, et n'en jouer qu'un</span><span class="etat">Après VIT9</span></summary>
@@ -86,11 +87,11 @@
         <details><summary><span class="titre">Le relecteur ne rejoue que le nouveau test dans AVANT</span><span class="etat">Après VIT10</span></summary>
         <span class="note">le relecteur ne rejoue que le nouveau test avant ; dépend de VIT2, VIT10</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">VIT13</span></span>
-        <details><summary><span class="titre">Mesurer la fin, avant/après</span><span class="etat">Après VIT7, VIT11, VIT12</span></summary>
+        <details><summary><span class="titre">Mesurer la fin, avant/après</span><span class="etat">Après VIT11, VIT12</span></summary>
         <span class="note">la fin mesurée, avant/après ; dépend de VIT7, VIT8, VIT11, VIT12 — et, par elles, de toutes</span></details></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : 0 · 0 tours · 0,00 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈110,7M (110 650 979) · 550 tours · 62,10 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈116,9M (116 898 251) · 578 tours · 63,99 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

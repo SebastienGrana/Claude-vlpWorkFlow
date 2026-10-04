@@ -301,8 +301,9 @@ où et arrête-toi (`RETOUR`). A1 estime le gain à −35 à −45 % de `test-bo
 ---
 
 <!-- FICHE:VIT7 -->
-## VIT7 [ ] — Lancer `test-boucle` en parallèle de `test-vlp`
+## VIT7 [x] — Lancer `test-boucle` en parallèle de `test-vlp`
 
+**Session** : 72db946f-cd44-4a3b-8ec4-39b6d2872e1d
 **Dépend de** : `VIT3`, `VIT6`.
 **Fichiers** : `scripts/test-vlp.py`.
 

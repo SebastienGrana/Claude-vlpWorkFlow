@@ -78,6 +78,39 @@ def verifier(nom, cond, sortie):
         ECARTS.append(nom)
 
 
+def lancer_boucle():
+    """Lancer `test-boucle.py` sans l'attendre (VIT7) : rendre `(processus, stdout, stderr)`, ses deux sorties dans
+    des fichiers temporaires — un tube plein bloquerait l'enfant. Un arrêt de la suite avant la récolte (un écart sans
+    `VLP_TOUS_ECARTS`) le tue à la sortie (`arreter_boucle`, par `atexit`)."""
+    import atexit
+    sorties = [tempfile.TemporaryFile("w+", encoding="utf-8", errors="replace") for _ in range(2)]
+    p = subprocess.Popen([sys.executable, os.path.join(ICI, "test-boucle.py")], stdout=sorties[0], stderr=sorties[1],
+                         env=dict(os.environ, PYTHONIOENCODING="utf-8"))
+    atexit.register(arreter_boucle, p)
+    return p, sorties[0], sorties[1]
+
+
+def arreter_boucle(p):
+    """Tuer `test-boucle.py` s'il tourne encore : son arbre sous Windows (`tuer_arbre`), lui seul ailleurs — il reste
+    dans le groupe de la suite, que `vlp.py mutant` tue en entier."""
+    if p.poll() is not None:
+        return
+    if sys.platform == "win32":
+        mod.tuer_arbre(p)
+    else:
+        p.kill()
+    p.wait()
+
+
+def boucle_du_debut():
+    """Lancer `test-boucle.py` dès le début, récolté par `tester_boucle` en fin de suite : ses ~180 s courent pendant
+    le reste (VIT7). `VLP_BOUCLE_SERIE=1` : rien lancé ici (`None`), `tester_boucle` le joue en série, comme avant."""
+    return None if os.environ.get("VLP_BOUCLE_SERIE") == "1" else lancer_boucle()
+
+
+BOUCLE = boucle_du_debut()
+
+
 with tempfile.TemporaryDirectory() as t:
     p = os.path.join(t, "proj")
     ecrire(os.path.join(p, "CHANTIER.md"), CHANTIER % ("pz", "context AI/20-z.md (Z1..Z10)"))
@@ -6126,11 +6159,15 @@ tester_mutant_attendu()
 
 def tester_boucle():
     """NUI2 : test-boucle.py joue boucle.py et faux-claude.py ; lancé d'ici, un mutant de l'un ou de l'autre
-    tombe aussi sous `vlp.py mutant` sans --test. Sa sortie passe en entier : son `ÉCART:` y remonte."""
-    r = subprocess.run([sys.executable, os.path.join(ICI, "test-boucle.py")], capture_output=True,
-                       encoding="utf-8", errors="replace", env=dict(os.environ, PYTHONIOENCODING="utf-8"))
+    tombe aussi sous `vlp.py mutant` sans --test. Sa sortie passe en entier : son `ÉCART:` y remonte. Récolter le
+    lancement du début de suite (`BOUCLE`, VIT7), ou, sous `VLP_BOUCLE_SERIE=1`, le lancer ici et l'attendre."""
+    p, sortie, erreur = BOUCLE or lancer_boucle()
+    code = p.wait()
+    sortie.seek(0)
+    erreur.seek(0)
+    texte, err = sortie.read(), erreur.read()
     verifier("boucle : test-boucle.py (boucle.py et son faux claude) sort OK",
-             r.returncode == 0 and r.stdout.strip() == "OK", (r.stdout or "") + (r.stderr or ""))
+             code == 0 and texte.strip() == "OK", texte + err)
 
 
 def tester_nuits():
