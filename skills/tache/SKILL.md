@@ -146,7 +146,8 @@ coché ni de commité, retour à l'étape 4. Puis :
 ```
 
 Un bloc « **Tentatives** » dans la fiche : ajoute à `cocher` l'option
-`--resolu "<ce qui a marché>"`. `COCHÉ … · Session absente` : dis-le. La
+`--resolu "<ce qui a marché>"`. Dans le kit, `cocher` exige la suite entière verte sur ce code (`GARDE: … non
+cochée`) : lance-la, puis reprends ce bloc. `COCHÉ … · Session absente` : dis-le. La
 table est le coût de la session ; les lignes suivantes, celui du chantier par
 fiche, puis hors fiches et `TOTAL` ; affiche-les brutes. Puis publie comme le
 dit `tache-page.md`, lu à l'étape 1, `files` : le JSON de la ligne `FILES`

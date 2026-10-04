@@ -11,7 +11,7 @@ Coder plus vite et mieux. Une fiche attend moins ses tests et lit moins de conte
 - VIT8 : option de l'utilisateur : deux lanceurs gardés, le second sans charger le cœur (importtime : 1 puis 0) ; second lanceur 292 → 77 ms (py -3, le #! évité) / 129 ms (python3) ; verifier( 770 → 771 ; mutant attrapé ; pyright 0 ; suite OK en 286 s
 - VIT9 : suite OK en 191 s (test sur 3 symboles) ; NUI, socle et fiches ouvertes : 24 renvois vlp.py:<n> → 0 ; mutant attrapé ; pyright 0 ; ast au lieu de pyclbr (cache par nom de module) ; verifier( 771 → 773
 - VIT10 : les tests rangés en groupes nommés, un seul jouable ; dépend de VIT9
-- VIT11 : la suite entière exigée au commit ; dépend de VIT10
+- VIT11 : suite OK en 193 s, empreinte notée = kit sur disque ; en vrai : fichier ajouté → GARDE non cochée (sort 1), retiré → COCHÉ ; mutant attrapé ; pyright 0 ; refus dans cocher, pas au commit (pourquoi : 08-etat) ; verifier( 773 → 775
 - VIT12 : le relecteur ne rejoue que le nouveau test avant ; dépend de VIT2, VIT10
 - VIT13 : la fin mesurée, avant/après ; dépend de VIT7, VIT8, VIT11, VIT12 — et, par elles, de toutes
 - VIT14 : les deux cas de clôture fragiles sous charge, reproduits puis corrigés à la cause ; dépend de VIT1

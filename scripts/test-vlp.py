@@ -109,6 +109,15 @@ def boucle_du_debut():
 
 
 BOUCLE = boucle_du_debut()
+# Le code que cette suite joue, pris au départ : une suite verte l'écrit à la fin, et `cocher` exige de le retrouver (VIT11).
+EMPREINTE_DEPART = mod.empreinte_kit(mod.KIT)
+
+
+def noter_si_verte():
+    """Noter `EMPREINTE_DEPART` comme celle de la dernière suite entière verte — jamais sous `vlp.py mutant`
+    (`VLP_TOUS_ECARTS=1`), qui joue une copie mutée (VIT11)."""
+    if os.environ.get("VLP_TOUS_ECARTS") != "1":
+        mod.noter_suite_verte(mod.KIT, EMPREINTE_DEPART)
 
 
 with tempfile.TemporaryDirectory() as t:
@@ -3533,6 +3542,41 @@ def tester_symboles():
 
 
 tester_symboles()
+
+
+def tester_suite_verte():
+    """`cocher` dans le kit exige la suite entière verte sur le code du jour (VIT11) : refus sans empreinte, accord
+    après `noter_suite_verte`, refus après un script touché — pas après `sante-base.json` ni `context AI/` ; un projet
+    équipé, sans plugin, coche sans suite."""
+    def cocher(fichier, fiche):
+        """Cocher `fiche` par `main` ; rendre (code, sortie)."""
+        o = io.StringIO()
+        return mod.main(["cocher", fichier, fiche], o), o.getvalue()
+
+    with tempfile.TemporaryDirectory() as t:
+        subprocess.run(["git", "init", "-q", t], check=True, capture_output=True)
+        for chemin, texte in ((".claude-plugin/plugin.json", "{}"), ("scripts/test-vlp.py", "print('OK')\n"),
+                              ("scripts/sante-base.json", "[]\n")):
+            ecrire(os.path.join(t, chemin), texte)
+        fiches = os.path.join(t, "context AI", "f.md")
+        ecrire(fiches, "# Z\n\n## Z1 [ ] — a\n\n## Z2 [ ] — b\n\n## Z3 [ ] — c\n")
+        sans = cocher(fiches, "Z1")
+        mod.noter_suite_verte(t, mod.empreinte_kit(t))
+        apres = cocher(fiches, "Z1")
+        ecrire(os.path.join(t, "scripts", "sante-base.json"), "[1]\n")
+        hors = cocher(fiches, "Z2")
+        ecrire(os.path.join(t, "scripts", "x.py"), "x = 1\n")
+        touche = cocher(fiches, "Z3")
+        verifier("VIT11 : cocher dans le kit — refus sans suite verte, accord après, refus après un script touché",
+                 sans[0] == 1 and "GARDE: Z1 non cochée" in sans[1] and apres[0] == 0 and hors[0] == 0
+                 and touche[0] == 1 and "GARDE: Z3 non cochée" in touche[1]
+                 and lire(fiches).count("[x]") == 2, repr((sans, apres, hors, touche)))
+        os.remove(os.path.join(t, ".claude-plugin", "plugin.json"))
+        equipe = cocher(fiches, "Z3")
+        verifier("VIT11 : un projet équipé (sans plugin) coche sans suite verte", equipe[0] == 0, repr(equipe))
+
+
+tester_suite_verte()
 
 # BAC1 : `bac` pose le bac d'essai de FIL3, dans un dossier temporaire à lui
 def test_bac():
@@ -7705,4 +7749,5 @@ tester_boucle()     # en dernier : les trois quarts de la suite, un écart d'ail
 if ECARTS:
     print("FIN: %d écart(s)" % len(ECARTS))     # la suite est allée au bout : `vlp.py mutant` ne la dit pas PLANTÉ
     sys.exit(1)
+noter_si_verte()
 print("OK")

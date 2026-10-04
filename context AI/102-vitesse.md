@@ -388,8 +388,9 @@ attrapé ; pyright 0 ; les critères de code sain du socle.
 ---
 
 <!-- FICHE:VIT11 -->
-## VIT11 [ ] — La suite complète exigée au commit
+## VIT11 [x] — La suite complète exigée au commit
 
+**Session** : 72db946f-cd44-4a3b-8ec4-39b6d2872e1d
 **Dépend de** : `VIT10`.
 **Fichiers** : `scripts/test-vlp.py`, `scripts/vlp.py`, `skills/tache/SKILL.md` (une ligne).
 

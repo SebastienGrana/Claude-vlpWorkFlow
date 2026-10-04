@@ -682,8 +682,9 @@ def cmd_cocher(a, sortie):
         return refuser(a, lignes, debut, sortie)
     if a.session is not None or a.role:
         return noter_session(a, lignes, debut, sortie)
-    if not lignes[debut].startswith("## %s [ ]" % a.fiche):
-        sortie.write("GARDE: %s déjà cochée — rien écrit\n" % a.fiche)
+    garde = garde_avant_coche(a, lignes[debut])
+    if garde:
+        sortie.write(garde)
         return 1
     fin = next((i for i in range(debut + 1, len(lignes))
                 if lignes[i].strip() == FERMANT or TITRE.match(lignes[i])), len(lignes))
@@ -703,6 +704,18 @@ def cmd_cocher(a, sortie):
         f.write("\n".join(lignes) + "\n")
     sortie.write("COCHÉ %s · Session %s\n" % (a.fiche, s or "absente"))
     return 0
+
+
+def garde_avant_coche(a, titre):
+    """Rendre la `GARDE:` qui empêche de cocher `a.fiche` — déjà cochée, ou, dans le kit, sans suite entière verte sur
+    le code d'aujourd'hui (VIT11) —, ou `None`."""
+    if not titre.startswith("## %s [ ]" % a.fiche):
+        return "GARDE: %s déjà cochée — rien écrit\n" % a.fiche
+    kit = suite_manquante(a.fichier)
+    if kit:
+        return ("GARDE: %s non cochée — la suite entière n'a pas tourné verte sur le code d'aujourd'hui : "
+                "py -3 \"%s/scripts/test-vlp.py\", puis cocher (VIT11)\n" % (a.fiche, kit))
+    return None
 
 
 def noter_session(a, lignes, debut, sortie):
@@ -6057,6 +6070,58 @@ def cmd_bac(dossier, sortie):
 KIT_EXCLUS = (".git", ".claude", "context AI", "__pycache__", "relais-python.err")
 # La copie d'un mutant garde `context AI/` : la suite y lit la carte du kit (NIV1) et la pièce de JUG2 (VIT2).
 MUTANT_EXCLUS = tuple(n for n in KIT_EXCLUS if n != "context AI")
+# L'empreinte d'une suite verte (VIT11) laisse aussi ce que la clôture d'une fiche écrit après la suite (`sante --base`)
+# et les sorties des evals, ignorées par Git ; elle vit dans le dossier Git du kit, hors suivi, une par worktree.
+EMPREINTE_EXCLUS = KIT_EXCLUS + ("sante-base.json", "results")
+SUITE_VERTE = "vlp-suite-verte"
+
+
+def empreinte_kit(racine):
+    """Rendre le sha256 des fichiers du kit `racine` tels qu'ils sont sur disque, commités ou non : chemins relatifs
+    et contenus, dans l'ordre, sans `EMPREINTE_EXCLUS` (VIT11)."""
+    h = hashlib.sha256()
+    for dossier, sous, fichiers in os.walk(racine):
+        sous[:] = sorted(s for s in sous if s not in EMPREINTE_EXCLUS)
+        for nom in sorted(f for f in fichiers if f not in EMPREINTE_EXCLUS):
+            chemin = os.path.join(dossier, nom)
+            with open(chemin, "rb") as f:
+                h.update(os.path.relpath(chemin, racine).replace(os.sep, "/").encode("utf-8") + b"\0" + f.read() + b"\0")
+    return h.hexdigest()
+
+
+def chemin_suite_verte(racine):
+    """Rendre `<dossier Git de racine>/vlp-suite-verte`, ou `None` hors dépôt (la copie d'un mutant)."""
+    code, dossier = git_texte(["rev-parse", "--absolute-git-dir"], racine)
+    return os.path.join(dossier.strip(), SUITE_VERTE) if code == 0 and dossier.strip() else None
+
+
+def noter_suite_verte(racine, empreinte):
+    """Écrire `empreinte` comme celle de la dernière suite entière verte du kit `racine` ; hors dépôt, rien (VIT11)."""
+    chemin = chemin_suite_verte(racine)
+    if chemin:
+        with open(chemin, "w", encoding="utf-8") as f:
+            f.write(empreinte + "\n")
+
+
+def est_kit(racine):
+    """Vrai si `racine` est le kit vlp lui-même — son plugin et sa suite —, pas un projet équipé (VIT11)."""
+    return all(os.path.isfile(os.path.join(racine, *p)) for p in ((".claude-plugin", "plugin.json"), ("scripts", "test-vlp.py")))
+
+
+def suite_manquante(fichier):
+    """Rendre le kit dont `fichier` fait partie si sa dernière suite verte n'a pas joué ses fichiers d'aujourd'hui,
+    sinon `None` — et `None` hors du kit : un projet équipé a ses propres tests (VIT11)."""
+    code, racine = git_texte(["rev-parse", "--show-toplevel"], os.path.dirname(os.path.abspath(fichier)))
+    racine = racine.strip()
+    if code != 0 or not racine or not est_kit(racine):
+        return None
+    chemin = chemin_suite_verte(racine)
+    try:
+        with open(chemin or "", encoding="utf-8") as f:
+            notee = f.read().strip()
+    except OSError:
+        notee = ""
+    return None if notee == empreinte_kit(racine) else racine
 
 
 def cmd_kit_essai(dossier, max_turns, source, sortie):
