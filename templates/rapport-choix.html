@@ -34,8 +34,10 @@
   - un mot technique s'explique entre parenthèses à sa première venue, les
     chiffres ont des légendes en mots simples, le fil dit ce que valent ses codes.
 
-  Lisibilité (dyslexie) : fond chaud, texte sombre, aligné à gauche, une idée
-  par puce, gras pour l'info clé, jamais d'italique. Une option nommée par son
+  Lisibilité (dyslexie) : fond chaud, texte adouci (8,5:1, pas au maximum), clair
+  seulement — jamais de thème sombre —, rien sous 15px, aucun texte en majuscules,
+  aligné à gauche, une idée par puce, gras pour l'info clé, jamais d'italique
+  (choix du 2026-10-05). Une option nommée par son
   code se vulgarise (« c'est quoi tete ») : le libellé dit ce qu'elle fait.
 
   `vlp.py chef page` ne prend de ce gabarit que le style, « Tes réponses » et
@@ -45,23 +47,10 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
   :root {
-    --fond:#f7efdf; --carte:#fffaf0; --trait:#e2d6bf; --texte:#1f1a14; --doux:#5f5446;
+    color-scheme: light;
+    --fond:#f3e8d4; --carte:#faf1e2; --trait:#dcd0b7; --texte:#50433b; --doux:#6e6151;
     --accent:#8a4b12; --ok:#2c6e48; --ok-fond:#e4f0e2; --warn:#8a5a0c; --warn-fond:#fbe9cc;
     --ko:#9c3431; --ko-fond:#f8e0da; --q-fond:#fbe4d2;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      color-scheme: dark;
-      --fond:#1a1510; --carte:#241d16; --trait:#3a3025; --texte:#f1e8da; --doux:#b9ab96;
-      --accent:#f0a860; --ok:#7cc796; --ok-fond:#1c2a1f; --warn:#e8b560; --warn-fond:#2e2414;
-      --ko:#ec8a80; --ko-fond:#2f1c19; --q-fond:#33241a;
-    }
-  }
-  :root[data-theme="dark"] {
-    color-scheme: dark;
-    --fond:#1a1510; --carte:#241d16; --trait:#3a3025; --texte:#f1e8da; --doux:#b9ab96;
-    --accent:#f0a860; --ok:#7cc796; --ok-fond:#1c2a1f; --warn:#e8b560; --warn-fond:#2e2414;
-    --ko:#ec8a80; --ko-fond:#2f1c19; --q-fond:#33241a;
   }
   * { box-sizing:border-box; }
   body { margin:0; background:var(--fond); color:var(--texte); font-family:"Atkinson Hyperlegible",Verdana,system-ui,sans-serif; font-size:18px; line-height:1.7; padding-inline:16px; text-align:left; }
@@ -72,7 +61,7 @@
   h3 { font-size:1.08rem; }
   p { margin:0; }
   ul { margin:0; padding-left:1.2rem; display:flex; flex-direction:column; gap:.35rem; }
-  .mono { font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.85em; font-variant-numeric:tabular-nums; }
+  .mono { font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:max(.85em, 15px); font-variant-numeric:tabular-nums; }
   section { display:flex; flex-direction:column; gap:1rem; }
   .sous { color:var(--doux); }
   .jauge { align-self:flex-start; display:inline-flex; gap:.5rem; align-items:center; padding:.35rem .8rem; border-radius:6px; background:var(--ok-fond); color:var(--ok); font-weight:700; }
@@ -81,14 +70,14 @@
   .chiffres { display:grid; grid-template-columns:repeat(auto-fit,minmax(9.5rem,1fr)); gap:.75rem; }
   .chiffre { background:var(--carte); border:1px solid var(--trait); border-radius:8px; padding:.8rem 1rem; display:flex; flex-direction:column; gap:.1rem; }
   .chiffre b { font-size:1.6rem; font-variant-numeric:tabular-nums; }
-  .chiffre span { color:var(--doux); font-size:.9rem; line-height:1.4; }
+  .chiffre span { color:var(--doux); font-size:1rem; line-height:1.4; }
   .decision { background:var(--carte); border:1px solid var(--trait); border-radius:8px; padding:1rem 1.1rem; display:flex; flex-direction:column; gap:.6rem; }
   .decision .tete { display:flex; flex-wrap:wrap; gap:.5rem; align-items:baseline; justify-content:space-between; }
-  .puce { font-size:.8rem; font-weight:700; letter-spacing:.04em; text-transform:uppercase; padding:.1rem .5rem; border-radius:4px; white-space:nowrap; }
+  .puce { font-size:.9375rem; font-weight:700; padding:.1rem .5rem; border-radius:4px; white-space:nowrap; }
   .puce.faible { background:var(--ok-fond); color:var(--ok); }
   .puce.moyen { background:var(--warn-fond); color:var(--warn); }
   .grille { display:grid; grid-template-columns:9rem 1fr; gap:.25rem .9rem; margin:0; }
-  .grille dt { color:var(--doux); font-size:.92rem; }
+  .grille dt { color:var(--doux); font-size:1rem; }
   .grille dd { margin:0; }
   .choix { display:flex; flex-wrap:wrap; gap:.5rem; padding-top:.3rem; border-top:1px dashed var(--trait); }
   .choix label { display:inline-flex; align-items:center; gap:.4rem; padding:.3rem .75rem; border:1px solid var(--trait); border-radius:999px; cursor:pointer; font-size:.95rem; background:var(--carte); }
@@ -103,18 +92,16 @@
   .erreur { background:var(--ko-fond); border-radius:8px; padding:1rem 1.1rem; display:flex; flex-direction:column; gap:.5rem; }
   .fil { list-style:none; padding:0; gap:0; }
   .fil li { display:grid; grid-template-columns:3.6rem 1fr; gap:.8rem; padding:.55rem 0; border-top:1px solid var(--trait); }
-  .fil time { font-family:"IBM Plex Mono",monospace; color:var(--doux); font-size:.9rem; padding-top:.15rem; }
+  .fil time { font-family:"IBM Plex Mono",monospace; color:var(--doux); font-size:.9375rem; padding-top:.15rem; }
   .tableau { overflow-x:auto; }
   table { border-collapse:collapse; width:100%; font-size:.95rem; }
-  th { text-align:left; color:var(--doux); font-weight:700; font-size:.82rem; text-transform:uppercase; letter-spacing:.05em; padding:.4rem .7rem .4rem 0; border-bottom:2px solid var(--trait); }
+  th { text-align:left; color:var(--doux); font-weight:700; font-size:.9375rem; padding:.4rem .7rem .4rem 0; border-bottom:2px solid var(--trait); }
   td { padding:.6rem .7rem .6rem 0; border-bottom:1px solid var(--trait); vertical-align:top; }
   td.n { font-family:"IBM Plex Mono",monospace; white-space:nowrap; }
   a { color:var(--accent); }
-  button { font:inherit; font-weight:700; color:#fff; background:var(--accent); border:0; border-radius:6px; padding:.6rem 1.1rem; cursor:pointer; }
-  :root[data-theme="dark"] button { color:#1a1510; }
-  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) button { color:#1a1510; } }
+  button { font:inherit; font-weight:700; color:var(--carte); background:var(--accent); border:0; border-radius:6px; padding:.6rem 1.1rem; cursor:pointer; }
   button:focus-visible { outline:2px solid var(--texte); outline-offset:2px; }
-  textarea { width:100%; min-height:8rem; font-family:"IBM Plex Mono",monospace; font-size:.85rem; background:var(--carte); color:var(--texte); border:1px solid var(--trait); border-radius:6px; padding:.6rem; }
+  textarea { width:100%; min-height:8rem; font-family:"IBM Plex Mono",monospace; font-size:.9375rem; background:var(--carte); color:var(--texte); border:1px solid var(--trait); border-radius:6px; padding:.6rem; }
   .ligne { display:flex; flex-wrap:wrap; gap:.8rem; align-items:center; }
   .note summary { display:inline-block; list-style:none; cursor:pointer; color:var(--accent); font-weight:700; font-size:.95rem; padding:.2rem .7rem; border:1px dashed var(--trait); border-radius:6px; }
   .note summary::-webkit-details-marker { display:none; }
@@ -305,7 +292,7 @@
     <textarea id="reponses" readonly aria-label="Tes réponses"></textarea>
   </section>
 
-  <footer class="sous" style="font-size:.9rem;border-top:1px solid var(--trait);padding-top:1rem">
+  <footer class="sous" style="font-size:.9375rem;border-top:1px solid var(--trait);padding-top:1rem">
     Dépôt <span class="mono"><dépôt></span> · détail dans <span class="mono"><fichier d'état></span>.
   </footer>
 </div>
