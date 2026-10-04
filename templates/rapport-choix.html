@@ -18,9 +18,29 @@
   ne cite jamais une balise telle quelle : un remplacement la trouverait ici
   avant la vraie, et effacerait la fin du commentaire et le CSS.
 
+  La forme, approuvée le 2026-10-04 après un rapport jugé trop technique : le
+  lecteur doit pouvoir trancher sans connaître le code. Dans l'ordre de la page :
+  - le contexte d'abord — le projet, le chantier et son but, la fiche n sur N,
+    pourquoi ce travail existe, ce que la page demande ;
+  - « En deux mots » ensuite, par une image simple ; le jargon vient après ;
+  - une question qu'il a posée a sa section « en clair » : la réponse, l'avis
+    avec son ➕ et son ➖, les sources dans le détail technique replié ; sans
+    question posée, la section se retire ;
+  - chaque carte de décision s'ouvre par trois lignes : 💬 En clair (une image
+    si elle aide), ➕ Le bon côté, ➖ Le moins bon ; le détail technique
+    (problème, choix, écarté, prix, défaire) se replie en bas de la carte ;
+  - chaque option d'une question porte son ➕ et son ➖ ; une alerte aussi,
+    après son « en clair » ;
+  - un mot technique s'explique entre parenthèses à sa première venue, les
+    chiffres ont des légendes en mots simples, le fil dit ce que valent ses codes.
+
   Lisibilité (dyslexie) : fond chaud, texte sombre, aligné à gauche, une idée
   par puce, gras pour l'info clé, jamais d'italique. Une option nommée par son
   code se vulgarise (« c'est quoi tete ») : le libellé dit ce qu'elle fait.
+
+  `vlp.py chef page` ne prend de ce gabarit que le style, « Tes réponses » et
+  le script ; il bâtit les cartes lui-même, dans sa forme à lui (docstring de
+  `vlp.py`), sans les sections en clair ni le ➕ et le ➖.
 -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
@@ -67,7 +87,7 @@
   .puce { font-size:.8rem; font-weight:700; letter-spacing:.04em; text-transform:uppercase; padding:.1rem .5rem; border-radius:4px; white-space:nowrap; }
   .puce.faible { background:var(--ok-fond); color:var(--ok); }
   .puce.moyen { background:var(--warn-fond); color:var(--warn); }
-  .grille { display:grid; grid-template-columns:7.5rem 1fr; gap:.25rem .9rem; margin:0; }
+  .grille { display:grid; grid-template-columns:9rem 1fr; gap:.25rem .9rem; margin:0; }
   .grille dt { color:var(--doux); font-size:.92rem; }
   .grille dd { margin:0; }
   .choix { display:flex; flex-wrap:wrap; gap:.5rem; padding-top:.3rem; border-top:1px dashed var(--trait); }
@@ -100,6 +120,15 @@
   .note summary::-webkit-details-marker { display:none; }
   .note summary:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
   .note textarea { display:block; margin-top:.5rem; min-height:4.5rem; font-family:inherit; font-size:.95rem; line-height:1.5; }
+  .clair { background:var(--carte); border:1px solid var(--trait); border-radius:8px; padding:1rem 1.1rem; display:flex; flex-direction:column; gap:.9rem; }
+  .grille dt.net { color:var(--texte); font-weight:700; }
+  .grille dt.plus { color:var(--ok); font-weight:700; }
+  .grille dt.moins { color:var(--ko); font-weight:700; }
+  .technique { border-top:1px dashed var(--trait); padding-top:.5rem; }
+  .technique summary { cursor:pointer; color:var(--doux); font-weight:700; font-size:.95rem; }
+  .technique summary:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+  .technique > .grille, .technique > p { margin-top:.6rem; }
+  .effet { display:flex; flex-direction:column; gap:.15rem; }
   @media (max-width:480px) { .grille { grid-template-columns:1fr; } .grille dt { margin-top:.4rem; } }
 </style>
 
@@ -111,17 +140,72 @@
     <!-- Jauge : ✅ Tout va bien · 🟢 Ça tient, mais… · ⚠️ Imprévu (classe moyen) · ❌ Pas bon / 🔥 Grosse erreur (classe ko) -->
     <span class="jauge">🟢 Ça tient, mais…</span>
     <ul>
-      <li>✅ <ce qui est fait, en une ligne, l'info clé en gras></li>
+      <li>✅ <ce qui est fait, en mots simples, l'info clé en gras></li>
+      <li>🟡 <ce que la page demande : combien de choix à valider, combien de questions></li>
       <li>⚠️ <ce qui demande attention></li>
-      <li>➡️ <ce que le lecteur a à faire sur cette page></li>
+      <li>➡️ <ce qui attend son oui hors de la page : un push, une ligne de TODO></li>
     </ul>
   </header>
 
   <section>
+    <h2>Le contexte : où on en est</h2>
+    <div class="clair">
+      <p>🧰 <strong><le projet></strong> : <ce qu'il est, en une phrase simple>.</p>
+      <p>🏗️ <strong>Le chantier en cours : <son code></strong>, « <son titre> ». Son but : <ce qu'il doit apporter, en mots simples>.</p>
+      <div>
+        <p>📍 <strong>Où on en est : fiche <n> sur <N>.</strong></p>
+        <ul>
+          <li>✅ <strong><une fiche faite></strong> : <ce qu'elle a fait>.</li>
+          <li>➡️ <strong>Ensuite, <la fiche suivante></strong> : <ce qu'elle fera>.</li>
+          <li>🗓️ <strong>Après le chantier</strong> : <la suite prévue>.</li>
+        </ul>
+      </div>
+      <div>
+        <p>❓ <strong>Pourquoi <ce travail> existe</strong></p>
+        <ul>
+          <li><ce qui l'a demandé : une demande, une mesure, une date></li>
+        </ul>
+      </div>
+      <p>📝 <strong>Ce que cette page te demande</strong> : <valider n choix, répondre à n questions>. Le push et la TODO se demandent à part, dans la conversation.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>En deux mots : c'est quoi, <le sujet> ?</h2>
+    <div class="clair">
+      <p>🩺 <strong><une image simple qui dit ce que c'est></strong> <ce qu'elle veut dire, sans jargon>.</p>
+      <div>
+        <p><ce qu'il faut savoir, en une ligne> :</p>
+        <ul>
+          <li><strong><un mot du sujet></strong> : <ce qu'il veut dire, en mots simples> ;</li>
+        </ul>
+      </div>
+      <p>➡️ <strong>Pourquoi c'est utile</strong> : <ce que ça change pour le lecteur>.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2><Ta question>, en clair</h2>
+    <div class="clair">
+      <p>💬 <la réponse, en mots simples, l'info clé en gras></p>
+      <div>
+        <p>💡 <strong>Mon avis : <l'avis, en une ligne></strong></p>
+        <ul>
+          <li>➕ <ce qu'il apporte></li>
+          <li>➖ <ce qu'il coûte, ou ce qui reste incertain></li>
+        </ul>
+      </div>
+      <details class="technique"><summary>🔧 Le détail technique</summary>
+        <p><les noms exacts, les commandes, et chaque source : son lien, sa date, son rang (doc officielle, blog, forum)></p>
+      </details>
+    </div>
+  </section>
+
+  <section>
     <h2>Les chiffres</h2>
     <div class="chiffres">
-      <div class="chiffre"><b><N></b><span><ce qu'il compte></span></div>
-      <div class="chiffre"><b><N></b><span><ce qu'il compte></span></div>
+      <div class="chiffre"><b><N></b><span><ce qu'il compte, en mots simples></span></div>
+      <div class="chiffre"><b><N></b><span><ce qu'il compte, en mots simples></span></div>
     </div>
     <ul class="sous" style="font-size:.95rem">
       <li><d'où vient chaque chiffre : la commande, recopiée telle quelle></li>
@@ -134,7 +218,7 @@
       <table>
         <thead><tr><th>Réf.</th><th>Quoi</th><th>Ce qu'il livre</th><th>Coût</th></tr></thead>
         <tbody>
-          <tr><td class="n"><n° TODO></td><td><b><CODE></b><br><titre></td><td><ce qu'il livre, en une phrase></td><td class="n"><tokens ou $></td></tr>
+          <tr><td class="n"><n° TODO></td><td><b><CODE></b><br><titre></td><td><ce qu'il livre, en une phrase simple></td><td class="n"><tokens ou $></td></tr>
         </tbody>
       </table>
     </div>
@@ -142,10 +226,16 @@
 
   <section>
     <h2>Les décisions prises seul — à valider</h2>
-    <p class="sous"><Une image simple qui dit ce que sont ces décisions.> Coche ce que tu gardes, ajoute un commentaire si besoin ; en bas, un bouton copie tes réponses.</p>
+    <p class="sous"><Une image simple qui dit ce que sont ces décisions.> Chaque carte dit d'abord ce que le choix veut dire, puis son bon et son moins bon côté ; le détail technique est replié en bas de la carte. Coche ce que tu gardes, ajoute un commentaire si besoin ; en bas, un bouton copie tes réponses.</p>
 
     <div class="decision">
       <div class="tete"><h3>D1 · <la décision, en clair></h3><span class="puce moyen"><sa portée></span></div>
+      <dl class="grille">
+        <dt class="net">💬 En clair</dt><dd><ce que le choix veut dire, sans jargon ; une image simple si elle aide></dd>
+        <dt class="plus">➕ Le bon côté</dt><dd><ce qu'il apporte, concrètement></dd>
+        <dt class="moins">➖ Le moins bon</dt><dd><ce qu'il coûte ou risque, concrètement></dd>
+      </dl>
+      <details class="technique"><summary>🔧 Le détail technique</summary>
       <dl class="grille">
         <dt>Le problème</dt><dd><ce qui obligeait à trancher></dd>
         <dt>Mon choix</dt><dd><ce qui a été fait></dd>
@@ -153,22 +243,23 @@
         <dt>Le prix</dt><dd><ce que ce choix coûte></dd>
         <dt>Défaire</dt><dd><span class="mono"><git revert … ou la commande></span></dd>
       </dl>
+      </details>
       <div class="choix"><label><input type="radio" name="D1" value="garder">Je garde</label><label><input type="radio" name="D1" value="revoir">À revoir</label></div>
     </div>
   </section>
 
   <section>
     <h2>Les choix à trancher</h2>
-    <p class="sous">Une carte par question. Chaque option dit ce qu'elle change.</p>
+    <p class="sous">Une carte par question. Chaque option dit son bon et son moins bon côté.</p>
 
     <div class="question">
       <h3>🟡 Q1 · <la question, en clair></h3>
       <ul>
-        <li><ce qui est en jeu, une idée par puce></li>
+        <li>💬 <ce qui est en jeu, en mots simples, une idée par puce></li>
       </ul>
       <div class="choix options">
-        <label><input type="radio" name="Q1" value="<option-a>"><span><b><Option A> (recommandé)</b><ce qu'elle change concrètement></span></label>
-        <label><input type="radio" name="Q1" value="<option-b>"><span><b><Option B></b><ce qu'elle change concrètement></span></label>
+        <label><input type="radio" name="Q1" value="<option-a>"><span><b><Option A> (recommandé)</b><span class="effet"><span>➕ <ce qu'elle apporte></span><span>➖ <ce qu'elle coûte></span></span></span></label>
+        <label><input type="radio" name="Q1" value="<option-b>"><span><b><Option B></b><span class="effet"><span>➕ <ce qu'elle apporte></span><span>➖ <ce qu'elle coûte></span></span></span></label>
       </div>
     </div>
   </section>
@@ -177,17 +268,31 @@
     <h2>Ce qui a mal tourné</h2>
     <div class="erreur">
       <h3>🔥 <ce qui a été cassé></h3>
-      <p><ce qui s'est passé, et ce qui change pour que ça ne revienne pas></p>
+      <p>💬 <strong>En clair</strong> : <ce qui s'est passé, en mots simples></p>
+      <ul>
+        <li>➖ <ce que ça a abîmé></li>
+        <li>➕ <ce qui change pour que ça ne revienne pas></li>
+      </ul>
+      <details class="technique"><summary>🔧 Le détail technique</summary>
+        <p><les fichiers, les lignes, les commits></p>
+      </details>
     </div>
     <div class="alerte">
       <h3>⚠️ <l'imprévu></h3>
-      <p><ce qui s'est passé, et le commit qui le corrige></p>
+      <p>💬 <strong>En clair</strong> : <ce qui s'est passé, en mots simples></p>
+      <ul>
+        <li>➖ <ce que ça gêne></li>
+        <li>➕ <ce qui le limite, ou le commit qui le corrige></li>
+      </ul>
+      <details class="technique"><summary>🔧 Le détail technique</summary>
+        <p><les fichiers, les lignes, les commits></p>
+      </details>
     </div>
   </section>
 
   <section>
     <h2>Le fil</h2>
-    <p class="sous" style="font-size:.95rem">Heures lues sur les commits.</p>
+    <p class="sous" style="font-size:.95rem">Heures lues sur les commits. <ce que valent les codes du fil, en une phrase></p>
     <ul class="fil">
       <li><time><HH:MM></time><span><b><CODE></b> · <ce qui s'est passé></span></li>
     </ul>

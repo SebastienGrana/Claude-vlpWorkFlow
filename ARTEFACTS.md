@@ -21,7 +21,8 @@ choix (`templates/rapport-choix.html`) — des décisions à garder ou revoir, d
 questions à options, un commentaire libre replié sous chaque carte, un bouton
 qui copie les réponses et les commentaires. Elle ne suit aucun
 chantier et ne se republie pas. Un script la remplit : `vlp.py chef page`
-(sa forme est dans la docstring de `vlp.py`).
+(sa forme est dans la docstring de `vlp.py`) ; à la main, elle suit le
+commentaire de tête du gabarit.
 
 La feuille de route ne change **jamais** d'URL : elle porte la TODO ordonnée,
 le chantier en cours, et la table des chantiers clos avec un lien vers chacun.
