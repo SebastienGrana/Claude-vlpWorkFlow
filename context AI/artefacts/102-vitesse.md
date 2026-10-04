@@ -12,7 +12,7 @@ Coder plus vite et mieux. Une fiche attend moins ses tests et lit moins de conte
 - VIT9 : suite OK en 191 s (test sur 3 symboles) ; NUI, socle et fiches ouvertes : 24 renvois vlp.py:<n> → 0 ; mutant attrapé ; pyright 0 ; ast au lieu de pyclbr (cache par nom de module) ; verifier( 771 → 773
 - VIT10 : Suite OK (187 s) ; 831 contrôles avant et après, mêmes libellés, même ordre (+6 tester_seul) ; --seul NUI27 : 1 groupe, 3 contrôles, 5,4 s ; 2 mutants attrapés ; pyright 0 ; cliquet tenu
 - VIT11 : suite OK en 193 s, empreinte notée = kit sur disque ; en vrai : fichier ajouté → GARDE non cochée (sort 1), retiré → COCHÉ ; mutant attrapé ; pyright 0 ; refus dans cocher, pas au commit (pourquoi : 08-etat) ; verifier( 773 → 775
-- VIT12 : le relecteur ne rejoue que le nouveau test avant ; dépend de VIT2, VIT10
+- VIT12 : relecture.md : AVANT ne joue que le test ajouté (--seul, sort 1), APRÈS la suite entière, puis vlp.py mutant --attendu ; suite OK (188 s) ; valider : 14 fiches, 0 écart
 - VIT13 : la fin mesurée, avant/après ; dépend de VIT7, VIT8, VIT11, VIT12 — et, par elles, de toutes
 - VIT14 : les deux cas de clôture fragiles sous charge, reproduits puis corrigés à la cause ; dépend de VIT1
 - VIT15 : sante sur le kit : 794 fonctions, 63 au-dessus d'un seuil, 525 docstrings ; ast = ruff 0.16.10 sur 794/794, listes avec et sans ruff identiques ; cliquet tenu contre 74550d4 (745 vieilles dont 2 touchées, 42 neuves, 2 améliorées) ; suite OK en 520 s ; verifier( 749 → 763 et 82 → 82 ; mutant attrapé, 4 écarts en 510 s ; pyright 0 ; sante.py 39 fonctions, 0 au-dessus d'un seuil, 39 docstrings

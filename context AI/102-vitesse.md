@@ -410,8 +410,9 @@ attrapé ; pyright 0 ; les critères de code sain du socle.
 ---
 
 <!-- FICHE:VIT12 -->
-## VIT12 [ ] — Le relecteur ne rejoue que le nouveau test dans AVANT
+## VIT12 [x] — Le relecteur ne rejoue que le nouveau test dans AVANT
 
+**Session** : 72db946f-cd44-4a3b-8ec4-39b6d2872e1d
 **Dépend de** : `VIT2`, `VIT10`.
 **Fichiers** : `agents/relecture.md`, `enchainement.md` si le contrat le cite — et rien d'autre.
 
