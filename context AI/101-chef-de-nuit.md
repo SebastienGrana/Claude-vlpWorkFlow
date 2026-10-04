@@ -49,7 +49,7 @@ la ligne **Pause** ci-dessus.
   (`/vlp:tache <fiche>`), `relire`, `relance`, `clore`. Relectures : `vlp-relecture-<canal>-*`.
   `--permission-prompts none` : CLI ≥ 2.1.259 selon le cadrage, non vérifié ici (`NUI1` l'essaie).
 - Plafonds par rôle (`--max-turns`, `--max-budget-usd`, timeout) : valeurs fixées et justifiées par mesure dans `NUI4`,
-  puis boucle.py ; relire lit `maxTurns` d'agents/relecture.md (`lire_max_turns`, vlp.py:1617). Verrou, `CARNET_MIN`, `LECONS_MAX` : `NUI3`, `NUI11`.
+  puis boucle.py ; relire lit `maxTurns` d'agents/relecture.md (`lire_max_turns`, `vlp_coeur.py`). Verrou, `CARNET_MIN`, `LECONS_MAX` : `NUI3`, `NUI11`.
 - `scripts/carnet.py` : le carnet `<git-common-dir>/vlp-nuit/<date>.jsonl`, hors Git et hors worktrees,
   une ligne JSON par session. Clés : `nuit canal chantier role fiche modele_demande modeles_vus tours_cli
   usd_cli duree_s issue refus_n cause reecriture garde plugin_retard session` ; le matin ajoute
@@ -58,30 +58,30 @@ la ligne **Pause** ci-dessus.
 - `scripts/faux-claude.py` : le faux `claude` des tests, un rôle par prompt, piloté par l'environnement.
 - `nuit.md` (racine du kit) : la conduite de nuit ; les commandes y renvoient en une ligne.
 - `<contexte>/NN-nuits.md` : fichier projet numéroté, déclaré à l'index (ligne `index` de CHANTIER.md,
-  lue par `champ(carte_, "index")`, vlp.py:4897) — plan du soir, table des nuits, `## Leçons`.
+  lue par `champ(carte_, "index")` dans `cmd_clore`) — plan du soir, table des nuits, `## Leçons`.
   Libellé optionnel de `CHANTIER.md` : `- **vérification de nuit** : <commande>`.
 - `vlp.py trier`, `nuits noter [--sorte]`, `nuits lecon`, `plan`, `matin`, `chef page --questions <json>` (autre que `page`) ; `/vlp:chef` : `skills/chef/SKILL.md`.
 
-| Symbole | Fichier:ligne | Ce qu'il rend |
+| Symbole | Fichier | Ce qu'il rend |
 |---|---|---|
-| `cmd_ouvrir` | vlp.py:5134 | `GARDE: un chantier est déjà ouvert` (5153) — d'où une branche par chantier |
-| `cmd_clore` | vlp.py:4850 | CHANTIER.md (courant, artefact → aucun ; lettre), index, CLAUDE.md (routage ; fenêtre `CLOS_GARDES`, 1362), archive ; la feuille en dernier, en échec `GARDE:` après écritures (5058) |
-| `todo_du_fichier` | vlp.py:3223 | `[(n, chantier, apporte, coût, dépend)]` ; ligne ≠ 5 cellules : `ValueError` |
-| `carte` | vlp.py:714 | `PROJET=`, CHANTIER.md, `ATTENTE=`, `PLUGIN_RETARD=` (739), `PROCHAINE=` (764) |
-| `cmd_relecture` · `instantane` | vlp.py:1240 · 1201 | sans `--sha`, l'arbre en commit de parent `HEAD`, ni `HEAD` ni l'index bougés |
-| `retirer_relectures` · `RELECTURE` | vlp.py:1189 · 1143 | retire TOUS les `vlp-relecture-*` du dépôt ; appelée 1250, 1256, 1278, 1289 |
-| `cmd_cocher` · `refuser` | vlp.py:1055 · 1104 | `CASE <fiche> [x]`, `TÊTE <sha>` (`--verifier`) ; `REFUSÉ <fiche> · refus <n>` ; `Erreur :` remplacé, jamais doublé (1134) : boucle.py garde le motif d'avant |
-| `SESSION` · `sessions_de` | vlp.py:422 · 833 | `**Session** : <id>`, une par ligne, lues par `cout` (898) ; `cocher` l'ajoute depuis `CLAUDE_CODE_SESSION_ID` (1097) |
-| `COMMIT_FICHE` · `heures_commits` | vlp.py:2342 · 2346 | sujet `<fiche> :` · heure du plus ancien commit de chaque fiche |
-| `STATUTS` · `VERDICTS` | vlp.py:1659 · 1850 | `FAITE RETOUR BLOQUÉE` · `ACCEPTÉE REFUSÉE` |
-| `lire_attente` · `ecrire_attente` · `lire_publie` | vlp.py:4386 · 4399 · 2112 | `en-attente` `[(page, url, heure)]`, retiré vide · `publie` (2104) `{(page, nom): sha256}` ; ni l'un ni l'autre suivi dans le kit, `.gitattributes` sans `merge=union` : `NUI16` ajoute la ligne, ne la garde pas |
-| `cmd_claude` · `cmd_bac` | vlp.py:5354 · 5363 | `CLAUDE <chemin>` · un bac d'essai et ses commandes `claude -p` |
-| `cmd_mutant` | vlp.py:5569 | `mutant <fichier> <avant> <après> [--test "<cmd>"]` → `MUTANT ATTRAPÉ <n>`, fichier rendu |
-| `cmd_vigile` · `cmd_valider` | vlp.py:4328 · 1447 | `PAGE SAINE` ou `GARDE:` · avertit au-delà de `SEUIL_FICHE`, `SEUIL_SOCLE` (1356-1357) |
-| `cmd_gardien` | vlp.py:2027 | muet hors `agent_type` fiche ou relecture (2039-2044) : une session `-p` sans `--agent` n'est pas gardée (`NUI1` l'essaie) |
-| `HERITEES` · `AUTORISES` · `INTERDITS` | boucle.py:48 · 51 · 53 | variables ôtées à la fille · `git add`, `git commit` permis · `--amend`, `--no-verify`, `-n` refusés |
-| `lire_carte` · `jouer` | boucle.py:72 · 88 | `(racine, fichier, prochaine)` · une session `-p` sans timeout (102), `result` lu (111-114) |
-| `resoudre` · `message.model` | mesure-tokens.py:94 · 293 | id de session → son `.jsonl` · le modèle de chaque message |
+| `cmd_ouvrir` | `vlp_coeur.py` | `GARDE: un chantier est déjà ouvert` — d'où une branche par chantier |
+| `cmd_clore` | `vlp_coeur.py` | CHANTIER.md (courant, artefact → aucun ; lettre), index, CLAUDE.md (routage ; fenêtre `CLOS_GARDES`), archive ; la feuille en dernier, en échec `GARDE:` après écritures |
+| `todo_du_fichier` | `vlp_coeur.py` | `[(n, chantier, apporte, coût, dépend)]` ; ligne ≠ 5 cellules : `ValueError` |
+| `carte` | `vlp_coeur.py` | `PROJET=`, CHANTIER.md, `ATTENTE=`, `PLUGIN_RETARD=`, `PROCHAINE=` |
+| `cmd_relecture` · `instantane` | `vlp_coeur.py` | sans `--sha`, l'arbre en commit de parent `HEAD`, ni `HEAD` ni l'index bougés |
+| `retirer_relectures` · `RELECTURE` | `vlp_coeur.py` | retire TOUS les `vlp-relecture-*` du dépôt ; appelée quatre fois par `cmd_relecture` |
+| `cmd_cocher` · `refuser` | `vlp_coeur.py` | `CASE <fiche> [x]`, `TÊTE <sha>` (`--verifier`) ; `REFUSÉ <fiche> · refus <n>` ; `Erreur :` remplacé, jamais doublé : boucle.py garde le motif d'avant |
+| `SESSION` · `sessions_de` | `vlp_coeur.py` | `**Session** : <id>`, une par ligne, lues par `cmd_cout` ; `cmd_cocher` l'ajoute depuis `CLAUDE_CODE_SESSION_ID` |
+| `COMMIT_FICHE` · `heures_commits` | `vlp_coeur.py` | sujet `<fiche> :` · heure du plus ancien commit de chaque fiche |
+| `STATUTS` · `VERDICTS` | `vlp_coeur.py` | `FAITE RETOUR BLOQUÉE` · `ACCEPTÉE REFUSÉE` |
+| `lire_attente` · `ecrire_attente` · `lire_publie` | `vlp_coeur.py` | `en-attente` `[(page, url, heure)]`, retiré vide · `publie` (`PUBLIE`) `{(page, nom): sha256}` ; ni l'un ni l'autre suivi dans le kit, `.gitattributes` sans `merge=union` : `NUI16` ajoute la ligne, ne la garde pas |
+| `cmd_claude` · `cmd_bac` | `vlp_coeur.py` | `CLAUDE <chemin>` · un bac d'essai et ses commandes `claude -p` |
+| `cmd_mutant` | `vlp_coeur.py` | `mutant <fichier> <avant> <après> [--test "<cmd>"]` → `MUTANT ATTRAPÉ <n>`, fichier rendu |
+| `cmd_vigile` · `cmd_valider` | `vlp_coeur.py` | `PAGE SAINE` ou `GARDE:` · avertit au-delà de `SEUIL_FICHE`, `SEUIL_SOCLE` |
+| `cmd_gardien` | `vlp_coeur.py` | muet hors `agent_type` fiche ou relecture : une session `-p` sans `--agent` n'est pas gardée (`NUI1` l'essaie) |
+| `HERITEES` · `AUTORISES` · `INTERDITS` | `boucle.py` | variables ôtées à la fille · `git add`, `git commit` permis · `--amend`, `--no-verify`, `-n` refusés |
+| `lire_carte` · `jouer` | `boucle.py` | `(racine, fichier, prochaine)` · une session `-p` sans timeout, `result` lu |
+| `resoudre` · `message.model` | `mesure-tokens.py` | id de session → son `.jsonl` · le modèle de chaque message |
 
 **Invariants** — une fiche qui en casse un est refusée :
 - Sans `--nuit`, boucle.py ne change pas (REG : `context AI/93-reglages-enchainer.md:30-31`).
@@ -92,7 +92,7 @@ la ligne **Pause** ci-dessus.
 - Un test bâtit son projet, son dépôt et son carnet dans un dossier temporaire.
 - Python 3 sans dépendance, pyright à zéro erreur sur les fichiers touchés ; `vlp.py` en LF, `test-vlp.py`
   en CRLF : l'outil Edit. `${CLAUDE_PLUGIN_ROOT}` : commandes et hooks.json seuls. CLAUDE.md est au seuil
-  (`SEUIL_CLAUDE`, vlp.py:1359) : une ligne ajoutée en remplace une.
+  (`SEUIL_CLAUDE`, `vlp_coeur.py`) : une ligne ajoutée en remplace une.
 - Le plugin chargé suit `main`, pas le worktree ; `/reload-plugins` est un geste de l'utilisateur.
 
 **Une fiche de code NUI** nomme son test et son mutant : `vlp.py mutant <fichier> <avant> <après>`
@@ -1306,7 +1306,7 @@ Tu ne fais pas : voir les chantiers des autres worktrees dans la carte (`NUI28`)
 ## NUI28 [ ] — Voir les chantiers en cours dans les autres worktrees
 
 **Dépend de** : `NUI22`.
-**Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` ; lus : `vlp.py:807-860` (`carte`), `:5628-5700` (`cmd_niveau`) — et rien d'autre.
+**Fichiers** : `scripts/vlp_coeur.py`, `scripts/test-vlp.py` ; lus : `carte` et `cmd_niveau` (leurs lignes : `vlp.py symboles scripts/vlp_coeur.py carte cmd_niveau`) — et rien d'autre.
 
 **Prompt**
 Le jour, deux worktrees ne se voient pas : `/vlp:chantier` peut proposer un chantier déjà en cours ailleurs, et
@@ -1358,7 +1358,7 @@ Une règle vit à un seul endroit : chaque commande renvoie à methode-chantier.
 ## NUI30 [ ] — Remettre les projets équipés au modèle de la marque
 
 **Dépend de** : `NUI23`.
-**Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py` ; lus : `vlp.py:5628-5700` (`cmd_niveau`) ; écrits par le script seul :
+**Fichiers** : `scripts/vlp_coeur.py`, `scripts/test-vlp.py` ; lus : `cmd_niveau` (`vlp.py symboles`) ; écrits par le script seul :
 les fichiers de fiches courants des projets équipés — et rien d'autre.
 
 **Prompt**
@@ -1440,9 +1440,9 @@ Tu ne fais pas : jouer la nuit.
 L'essai qui prouve le chantier : une vraie nuit sur le kit, au plan de Q7 (TODO n° 72, ligne 381) — `TAB` puis `CLV`
 sur A, `APR` sur B, sa borne double (socle). Tu ne lances ni la nuit ni `claude` : ces gestes sont à l'utilisateur.
 - Avant, arrête-toi au premier écart (RETOUR, l'écart nommé) :
-  a. chaque fiche `NUI1` à `NUI19` a son commit `<fiche> :` (`COMMIT_FICHE`, vlp.py:2342) dans `main` ;
+  a. chaque fiche `NUI1` à `NUI19` a son commit `<fiche> :` (`COMMIT_FICHE`, `vlp_coeur.py`) dans `main` ;
   b. `main` sans chantier ouvert (`fichier de fiches courant : aucun`) : la nuit part de `main` et `ouvrir` refuse un
-     second chantier (vlp.py:5151-5154). La fusion `--ff-only` qui avance `main` (vlp.py:739-741) y amène `NUI` ouvert :
+     second chantier (la `GARDE:` de `cmd_ouvrir`). La fusion `--ff-only` qui avance `main` (proposée par `PLUGIN_RETARD=`, dans `carte`) y amène `NUI` ouvert :
      l'utilisateur remet `aucun` par un commit à lui sur `main`, avant la nuit ; tu relèves son sha, tu ne l'écris pas ;
   c. `vlp.py carte` dans le worktree de `NUI` sans ligne `PLUGIN_RETARD=` ; le `/reload-plugins` : l'utilisateur le confirme ;
   d. `py -3 scripts/test-vlp.py` sur `main` → `OK`, durée lue par `time` (Bash) : le script n'en imprime aucune ;
@@ -1453,7 +1453,7 @@ sur A, `APR` sur B, sa borne double (socle). Tu ne lances ni la nuit ni `claude`
 - Au retour, compte ; carnet et fichier des nuits restent aux scripts :
   - par chantier : sa branche, son issue (clos, mis de côté et sa raison, sauté, pas parti), fiches découpées /
     acceptées (commits `COMMIT_FICHE` de la branche) / refusées, relances (rôle `relance` au carnet), son `**Estimé.**`
-    (`ESTIME`, vlp.py:4823), posé seulement par `ouvrir --estime-fiches` : absent, noté, écart sur la cellule TODO seule ;
+    (`ESTIME`, `vlp_coeur.py`), posé seulement par `ouvrir --estime-fiches` : absent, noté, écart sur la cellule TODO seule ;
   - la nuit : `usd_kit`, `tours_kit` sommés (socle, carnet), durée, lignes par `issue`, replis, `plugin_retard`
     (attendu sur A après `TAB` : noté, pas agi) ; à part, les sessions du soir et du matin, par `mesure-tokens.py <id>`.
 - Une `GARDE:` de `clore` compte comme mis de côté : la nuit, `clore` est celui de `main`, dette `CLV` comprise.

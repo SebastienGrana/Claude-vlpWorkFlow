@@ -9,7 +9,7 @@ Coder plus vite et mieux. Une fiche attend moins ses tests et lit moins de conte
 - VIT6 : test-boucle OK : 330 → 184 s (−44 %, une mesure de chaque côté) ; verifier( 82 → 83 (le test qui compare au vrai sous-processus) ; mutant « sortie tronquée » attrapé ; pyright 0 ; suite complète OK en 305 s
 - VIT7 : suite OK ; série 290 / 296 s → parallèle 186 / 191 s (−36 %), mémoire réservée au pic 83-84 % des deux côtés ; mutant de boucle.py attrapé en 113 s, son ÉCART remonte ; arrêt au 1er écart : test-boucle tué (0 vivant, 1 sans atexit) ; VLP_BOUCLE_SERIE=1 revient en série ; pyright 0
 - VIT8 : option de l'utilisateur : deux lanceurs gardés, le second sans charger le cœur (importtime : 1 puis 0) ; second lanceur 292 → 77 ms (py -3, le #! évité) / 129 ms (python3) ; verifier( 770 → 771 ; mutant attrapé ; pyright 0 ; suite OK en 286 s
-- VIT9 : une carte des symboles, des fiches sans numéros de ligne
+- VIT9 : suite OK en 191 s (test sur 3 symboles) ; NUI, socle et fiches ouvertes : 24 renvois vlp.py:<n> → 0 ; mutant attrapé ; pyright 0 ; ast au lieu de pyclbr (cache par nom de module) ; verifier( 771 → 773
 - VIT10 : les tests rangés en groupes nommés, un seul jouable ; dépend de VIT9
 - VIT11 : la suite entière exigée au commit ; dépend de VIT10
 - VIT12 : le relecteur ne rejoue que le nouveau test avant ; dépend de VIT2, VIT10

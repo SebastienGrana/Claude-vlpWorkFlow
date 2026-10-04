@@ -343,8 +343,9 @@ le kit, arrête-toi (`RETOUR`) avec les options et leur prix.
 ---
 
 <!-- FICHE:VIT9 -->
-## VIT9 [ ] — Une carte des symboles, et des fiches sans numéros de ligne
+## VIT9 [x] — Une carte des symboles, et des fiches sans numéros de ligne
 
+**Session** : 72db946f-cd44-4a3b-8ec4-39b6d2872e1d
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py`, `methode-chantier.md` (« Anatomie d'une fiche »),
 `context AI/101-chef-de-nuit.md` (socle et fiches restantes de NUI).

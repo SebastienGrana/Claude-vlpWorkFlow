@@ -3514,6 +3514,26 @@ def tester_lanceur_trie():
 
 tester_lanceur_trie()
 
+
+def tester_symboles():
+    """`vlp.py symboles` sur un fichier à trois fonctions (VIT9) : chacune `nom début-fin`, dans l'ordre du fichier,
+    la fonction imbriquée et la méthode tues ; avec des noms, leurs seules lignes, `ABSENT` pour l'inconnu, sort 1."""
+    with tempfile.TemporaryDirectory() as t:
+        chemin = os.path.join(t, "trois.py")
+        ecrire(chemin, "import os\n\n\ndef un():\n    return os.sep\n\n\ndef deux():\n    def dedans():\n"
+                       "        return 2\n    return dedans()\n\n\nclass Trois:\n    def m(self):\n        return 3\n")
+        o = io.StringIO()
+        code = mod.main(["symboles", chemin], o)
+        verifier("VIT9 : symboles, une ligne `nom début-fin` par fonction ou classe de premier niveau",
+                 code == 0 and o.getvalue() == "un 4-5\ndeux 8-11\nTrois 14-16\n", o.getvalue())
+        o = io.StringIO()
+        code = mod.main(["symboles", chemin, "Trois", "rien", "un"], o)
+        verifier("VIT9 : symboles avec des noms, leurs seules lignes, ABSENT pour l'inconnu, sort 1",
+                 code == 1 and o.getvalue() == "Trois 14-16\nABSENT rien\nun 4-5\n", o.getvalue())
+
+
+tester_symboles()
+
 # BAC1 : `bac` pose le bac d'essai de FIL3, dans un dossier temporaire à lui
 def test_bac():
     with tempfile.TemporaryDirectory() as tbac:

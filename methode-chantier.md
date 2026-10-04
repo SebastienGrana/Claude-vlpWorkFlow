@@ -387,6 +387,9 @@ Quatre exigences, apprises en cassant :
 
 1. **Tout fichier à ouvrir est nommé dans la fiche.** Une fiche qui laisse
    chercher fait ouvrir trois fichiers au hasard — plus cher que le chantier.
+   Du code se cite par son **nom** — fonction, classe, constante —, jamais par
+   sa ligne : le code bouge, la ligne ment (7 renvois sur 7 périmés dans NUI,
+   `VIT9`) ; `vlp.py symboles <fichier> <nom>` rend sa ligne du jour.
 2. **Aucun libellé ni chiffre inventé** : les libellés viennent de la plage de
    maquette citée ; tant qu'une mesure n'existe pas, la fiche demande la
    mesure, elle n'annonce pas son résultat.

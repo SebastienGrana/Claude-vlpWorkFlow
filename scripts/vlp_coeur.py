@@ -7463,6 +7463,38 @@ def cmd_sante(a, sortie):
     return sante.principal(a, sortie, KIT)
 
 
+def cmd_symboles(a, sortie):
+    """Imprimer `nom début-fin` pour chaque fonction ou classe de premier niveau de `a.fichier`, lu par `ast` sans
+    l'importer — ou pour les seuls `a.noms`, `ABSENT <nom>` pour ceux qui n'y sont pas (sort 1) : une fiche cite un
+    nom, ce script rend sa ligne du jour (VIT9). `ast` plutôt que `pyclbr`, bâti dessus : `pyclbr` garde un cache par
+    nom de module, faux d'un fichier à l'autre dans un même processus. Fichier absent : `GARDE:`, sort 1."""
+    import ast
+    if not os.path.isfile(a.fichier):
+        sortie.write("GARDE: %s n'est pas un fichier\n" % a.fichier)
+        return 1
+    with open(a.fichier, encoding="utf-8") as f:
+        corps = ast.parse(f.read()).body
+    trouves = {n.name: n for n in corps if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))}
+    for n in a.noms or list(trouves):
+        o = trouves.get(n)
+        sortie.write("%s %d-%d\n" % (n, o.lineno, o.end_lineno or o.lineno) if o else "ABSENT %s\n" % n)
+    return 1 if any(n not in trouves for n in a.noms) else 0
+
+
+def options_outils(sous):
+    """Déclarer les lignes de commande des outils : `bac`, `claude`, `kit-essai`, `symboles`."""
+    bc = sous.add_parser("bac")
+    bc.add_argument("dossier")
+    sous.add_parser("claude")
+    ke = sous.add_parser("kit-essai")
+    ke.add_argument("dossier")
+    ke.add_argument("--max-turns", type=int, required=True)
+    ke.add_argument("--kit")
+    sy = sous.add_parser("symboles")
+    sy.add_argument("fichier")
+    sy.add_argument("noms", nargs="*")
+
+
 def options_mutant(sous):
     """Déclarer la ligne de commande de `mutant`."""
     mu = sous.add_parser("mutant")
@@ -7626,13 +7658,7 @@ def main(argv, sortie=None, entree=None, erreur=None):
     px = sous.add_parser("prix")
     px.add_argument("projet")
     px.add_argument("--a-blanc", action="store_true")
-    bc = sous.add_parser("bac")
-    bc.add_argument("dossier")
-    sous.add_parser("claude")
-    ke = sous.add_parser("kit-essai")
-    ke.add_argument("dossier")
-    ke.add_argument("--max-turns", type=int, required=True)
-    ke.add_argument("--kit")
+    options_outils(sous)
     sous.add_parser("joints").add_argument("dossier")
     sv = sous.add_parser("servir")
     sv.add_argument("dossier")
@@ -7682,7 +7708,7 @@ PAR_ARGUMENTS = {
     "ouvrir": cmd_ouvrir, "clore": cmd_clore, "archiver": cmd_archiver, "trier": cmd_trier, "feuille": cmd_feuille,
     "niveau": cmd_niveau, "comparer": cmd_comparer, "relecture": cmd_relecture, "contrat": cmd_contrat,
     "forme": cmd_forme, "ouverts": cmd_ouverts, "plan": cmd_plan, "matin": cmd_matin, "fusionner": cmd_fusionner,
-    "sante": cmd_sante,
+    "sante": cmd_sante, "symboles": cmd_symboles,
 }
 
 
