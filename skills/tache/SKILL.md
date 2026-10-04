@@ -78,6 +78,10 @@ demande s'il faut continuer.
 aucune des pistes qu'il liste**, annonce en une ligne ce que tu feras de
 différent — et si tu n'as rien de différent, ne retente pas : demande.
 
+**Vulgarise la fiche, avec son contexte**, avant d'écrire et sans attendre de
+réponse — sauf `NUIT=1` (`/vlp:enchainer`, sans humain) : d'où elle vient,
+une image simple, ce qu'elle change, ses pièges ; en puces ou en tableau.
+
 ## 2. Lire ce que la fiche cite en plage
 
 Une plage citée — « **Maquette** : `<fichier>` lignes A–B », « corpus : … » —

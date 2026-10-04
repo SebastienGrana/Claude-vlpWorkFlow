@@ -431,7 +431,9 @@ projets s'essaie sur leurs vraies lignes avant d'être écrite dans une fiche
 `/vlp:tache` est **autoportante** : elle n'ouvre que ce qu'elle nomme, jamais
 `CLAUDE.md`, jamais l'index, jamais un fichier de fiches en entier. Elle lit la
 sortie **elle-même** au lieu de la demander, s'arrête à deux tentatives, et
-finit par le critère de fin recopié.
+finit par le critère de fin recopié. Jouée par un humain, elle vulgarise la
+fiche avec son contexte avant d'écrire — la règle vit à son étape 1 ; sous
+`/vlp:enchainer`, non.
 
 Quand elle s'arrête ainsi, elle écrit un bloc « **Tentatives** » **dans la
 fiche**, sous son titre. C'est ce qui rend la reprise utile : la session
