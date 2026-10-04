@@ -262,8 +262,9 @@ charge — pour chercher la cause sur le code où elle se montre.
 ---
 
 <!-- FICHE:VIT3 -->
-## VIT3 [ ] — Lire les fichiers d'un commit en un seul appel Git
+## VIT3 [x] — Lire les fichiers d'un commit en un seul appel Git
 
+**Session** : 72db946f-cd44-4a3b-8ec4-39b6d2872e1d
 **Dépend de** : `VIT1`.
 **Fichiers** : `scripts/vlp.py`, `scripts/test-vlp.py`.
 

@@ -6905,6 +6905,43 @@ OUVERT = mod.OUVERT_LIGNE
 tester_ouverts()
 
 
+def tester_blobs_git():
+    """VIT3 : `textes_contexte` avec `rev` lit en un `git cat-file --batch` ce que l'ancien lecteur — un `git show` par
+    fichier — lisait, au caractère près : CRLF, `\\r` seul, accents, fin sans LF, et un dossier en `.md` ; une entrée
+    absente ou qui n'est pas un blob ne décale pas la suivante."""
+    if not shutil.which("git"):
+        print("SAUTÉ: git absent — blobs_git n'est pas testé")
+        return
+    with tempfile.TemporaryDirectory() as tr:
+        d = os.path.join(tr, "bl")
+        os.makedirs(os.path.join(d, "ctx", "d.md"))
+        for nom, octets in (("CHANTIER.md", b"- **contexte** : ctx/\n"), ("ctx/a.md", b"# Chantier A\r\nligne\r\n"),
+                            ("ctx/b é.md", "# Chantier B — été\nfin sans LF".encode("utf-8")),
+                            ("ctx/c.md", b"un\rdeux\n\n"), ("ctx/d.md/x.txt", b"x\n")):
+            with open(os.path.join(d, nom), "wb") as f:
+                f.write(octets)
+        git_matin(d, "init", "-q")
+        git_matin(d, "-c", "core.autocrlf=false", "add", "-A")
+        git_matin(d, "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "-m", "base")
+
+        def ancien(chemin):
+            """L'ancien lecteur : un `git show` par fichier."""
+            code, t = mod.git_texte(["show", "HEAD:./" + chemin], d)
+            return t.split("\n") if code == 0 else []
+        nouveau = mod.textes_contexte(d, "HEAD")
+        anciens = [ancien(c) for c, _ in nouveau]
+        lus = mod.blobs_git(["HEAD:./ctx/a.md", "HEAD:./ctx/absent.md", "HEAD:./ctx/d.md", "HEAD:./ctx/c.md"], d)
+    verifier("VIT3 : textes_contexte --rev égale l'ancien lecteur sur 3 fichiers et un dossier en .md (CRLF, \\r, accents, "
+             "fin sans LF)", [c for c, _ in nouveau] == ["ctx/a.md", "ctx/b é.md", "ctx/c.md", "ctx/d.md"]
+             and [l for _, l in nouveau] == anciens and nouveau[0][1] == ["# Chantier A", "ligne", ""]
+             and nouveau[1][1] == ["# Chantier B — été", "fin sans LF"], (nouveau, anciens))
+    verifier("VIT3 : blobs_git — absent et dossier rendent None, sans décaler l'entrée suivante — mutant : sauter le LF "
+             "d'après le contenu", lus == ["# Chantier A\nligne\n", None, None, "un\ndeux\n\n"], lus)
+
+
+tester_blobs_git()
+
+
 def tester_courant_de():
     """NUI22 : `courant_de`, seul lecteur du chantier du dossier — post-it, branche, principale, ancienne ligne."""
     if not shutil.which("git"):

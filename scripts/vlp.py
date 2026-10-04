@@ -5879,10 +5879,40 @@ def textes_contexte(racine, rev=None):
         return [("%s/%s" % (dossier, n), lignes_de(os.path.join(base, n))) for n in noms]
     code, sortie_git = git_texte(["ls-tree", "--name-only", rev, "./%s/" % dossier], racine)
     noms = sorted(os.path.basename(l) for l in (sortie_git.splitlines() if code == 0 else []) if l.endswith(".md"))
+    specs = ["%s:./%s/%s" % (rev, dossier, n) for n in noms]
     textes = []
-    for n in noms:
-        code, t = git_texte(["show", "%s:./%s/%s" % (rev, dossier, n)], racine)
-        textes.append(("%s/%s" % (dossier, n), t.split("\n") if code == 0 else []))
+    for n, spec, t in zip(noms, specs, blobs_git(specs, racine)):
+        if t is None:       # pas un blob lisible d'un coup : `git show`, comme avant VIT3
+            code, t = git_texte(["show", spec], racine)
+            t = t if code == 0 else None
+        textes.append(("%s/%s" % (dossier, n), t.split("\n") if t is not None else []))
+    return textes
+
+
+def blobs_git(specs, cwd):
+    """Lire les objets `specs` (`<rev>:<chemin>`) en un seul `git cat-file --batch` (VIT3) ; rendre, pour chacun, son
+    texte tel que `git_texte` le lit de `git show` — UTF-8, `\\r\\n` et `\\r` en `\\n` —, ou None : absent, pas un blob,
+    ou Git en échec."""
+    import subprocess
+    try:
+        r = subprocess.run([GIT, "-c", "core.quotepath=false", "cat-file", "--batch"], cwd=cwd, capture_output=True,
+                           input="".join(s + "\n" for s in specs).encode("utf-8"), timeout=120)
+    except (OSError, subprocess.SubprocessError):
+        return [None] * len(specs)
+    if r.returncode:
+        return [None] * len(specs)
+    sortie, pos, textes = r.stdout, 0, []
+    for _ in specs:
+        fin = sortie.find(b"\n", pos)
+        tete = sortie[pos:fin].split() if fin >= 0 else []
+        pos = fin + 1
+        if len(tete) != 3 or not tete[2].isdigit():     # `<spec> missing`, ou `ambiguous` : pas de contenu à sauter
+            textes.append(None)
+            continue
+        taille = int(tete[2])
+        contenu, pos = sortie[pos:pos + taille], pos + taille + 1     # le contenu, puis son LF
+        textes.append(contenu.decode("utf-8", errors="replace").replace("\r\n", "\n").replace("\r", "\n")
+                      if tete[1] == b"blob" else None)
     return textes
 
 
