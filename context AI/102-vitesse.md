@@ -50,6 +50,8 @@ Décisions : https://claude.ai/artifact/3maXrvHBKj85QYybrnPubx. Chaque fiche rem
 - **Les sorties ne changent pas**, hors ce que la fiche ajoute : une commande imprime au caractère près ce qu'elle
   imprimait.
 - Un gain se **mesure** avant/après, par la même commande, comptes bruts ; un gain estimé se dit estimé.
+  L'effort du modèle passe à **Max** après `VIT13` (`b31bbe9`, dit par l'utilisateur) : les tours et le $ des fiches
+  suivantes se lisent à côté de ce changement.
 - **Code sain, maintenable, documenté** : chaque fiche laisse le code qu'elle touche plus propre qu'elle ne l'a
   trouvé. Les critères, comptés avant/après sur les fonctions touchées, comptes bruts au critère :
   - **Les seuils** — ceux de ruff par défaut : complexité 10, branches 12, arguments 5, instructions 50, blocs
