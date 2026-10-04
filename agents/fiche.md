@@ -41,7 +41,12 @@ que l'utilisateur doit trancher à ta place.
 4. Échec : corrige et revérifie — deux tentatives au plus. Puis écris le bloc
    **Tentatives** sous le titre de la fiche, au format lu en 1, et rends
    `BLOQUÉE`.
-5. Succès : coche en un appel — aucun commit, le chef commite après ton statut,
+5. Succès : verrouille les gains, seul — une `GARDE:` (une fonction empire)
+   est un échec, retour en 4 ;
+   ```bash
+   <python> "<kit>/scripts/vlp.py" sante --base --si-base --racine "<racine>"
+   ```
+   puis coche en un appel — aucun commit, le chef commite après ton statut,
    même si un `CLAUDE.md` demande un commit par tâche —, et rends `FAITE`.
    ```bash
    <python> "<kit>/scripts/vlp.py" cocher "<fichier de fiches>" <fiche>

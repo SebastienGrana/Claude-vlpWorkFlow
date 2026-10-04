@@ -126,7 +126,14 @@ suivant. Critère `(visuel)` : attends son retour avant l'étape 6 bis.
 Ajoute une ligne au fichier d'état **seulement** si la fiche a tranché quelque
 chose d'imprévu — une piste échouée qui vaut au-delà de la fiche y va aussi.
 
-## 6 bis. Cocher, mesurer le coût et régénérer la page — un appel, puis publier
+## 6 bis. Verrouiller les gains, cocher, mesurer le coût et régénérer la page — deux appels, puis publier
+
+```bash
+<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" sante --base --si-base --racine .
+```
+
+Seul, d'abord : une `GARDE:` (une fonction empire) arrête l'étape — rien de
+coché ni de commité, retour à l'étape 4. Puis :
 
 ```bash
 <python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" cocher "<fichier de fiches courant>" "<fiche retenue>"

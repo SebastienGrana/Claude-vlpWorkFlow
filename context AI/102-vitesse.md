@@ -166,8 +166,9 @@ maison**. ruff 0.16.10 est installé chez lui ; ailleurs dans le groupe, il peut
 ---
 
 <!-- FICHE:VIT16 -->
-## VIT16 [ ] — `/vlp:tache` verrouille les gains : `sante --base` à chaque fiche
+## VIT16 [x] — `/vlp:tache` verrouille les gains : `sante --base` à chaque fiche
 
+**Session** : e0f4a0ef-3594-4d44-bf7c-cb752cb41675
 **Dépend de** : `VIT15`.
 **Fichiers** : `skills/tache/SKILL.md` (l'étape 6 bis), `agents/fiche.md` (l'étape qui coche), `scripts/sante.py`,
 `scripts/vlp.py` (`options_sante`, la docstring de `sante`), `scripts/test-vlp.py`.

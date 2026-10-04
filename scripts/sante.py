@@ -498,11 +498,16 @@ def chemins_de(racine, fichiers):
 
 
 def principal(a, sortie, kit):
-    """Lancer `vlp.py sante` : lister les comptes, poser la base (`--base`) ou tenir le cliquet (`--cliquet`)."""
+    """Lancer `vlp.py sante` : lister les comptes, poser la base (`--base`) ou tenir le cliquet (`--cliquet`).
+    Avec `--si-base`, ne reprendre qu'une base qui existe : sans elle, `SANS BASE`, rien mesuré ni écrit — un
+    projet sans cliquet n'en reçoit pas un, même sans `scripts/`."""
     racine = os.path.abspath(a.racine or kit)
     try:
-        if a.forcer and not a.base:
-            raise ValueError("--forcer ne va qu'avec --base")
+        if (a.forcer or a.si_base) and not a.base:
+            raise ValueError("%s ne va qu'avec --base" % ("--forcer" if a.forcer else "--si-base"))
+        if a.si_base and not os.path.exists(os.path.join(racine, BASE)):
+            sortie.write("SANS BASE %s · rien écrit\n" % BASE)
+            return 0
         ruff = (None, None) if a.sans_ruff else trouver_ruff()
         fonctions, version = mesurer(racine, chemins_de(racine, a.fichiers), ruff, sortie)
         if a.base:

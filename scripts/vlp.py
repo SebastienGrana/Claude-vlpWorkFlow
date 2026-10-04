@@ -482,13 +482,14 @@ Sous-commandes :
 - `nuits lecon "<ligne>" [--projet P]` — une leçon sous `## Leçons` du fichier des nuits (`fichier_nuits`, créé au
   besoin), dans la forme de `LECON_FORME` (NUI11). Hors forme, ou fichier illisible : `GARDE:`, sort 1, rien d'écrit.
   Imprime `LEÇON <fichier> · ajoutée` ou `· déjà là`.
-- `sante [<fichiers>] [--base [--forcer "<raison>"] | --cliquet] [--racine R] [--sans-ruff]` — la santé du code,
-  fonction par fonction (`sante.py`, qui en tient les règles ; chantier VIT) : les cinq comptes du socle de VIT et
-  la docstring, par ruff s'il répond (`ruff`, sinon `-m ruff`), sinon par `ast`, « comptes estimés ». Sans fichier :
+- `sante [<fichiers>] [--base [--forcer "<raison>"] [--si-base] | --cliquet] [--racine R] [--sans-ruff]` — la
+  santé du code, fonction par fonction (`sante.py`, qui en tient les règles ; chantier VIT) : les cinq comptes du
+  socle de VIT et la docstring, par ruff s'il répond (`ruff`, sinon `-m ruff`), sinon par `ast`, « comptes estimés ». Sans fichier :
   les `.py` de `<racine>/scripts/`, racine par défaut le kit. Imprime une ligne par fonction (`!` sur un compte
   au-dessus de son seuil), `FICHIER` par fichier, `TOTAL`, puis, avec ruff, `AST=RUFF <n>/<m>` et chaque `AST≠RUFF`.
   `--base` écrit `scripts/sante-base.json` sous la racine — `BASE …`, ou `GARDE:` si elle se relâcherait, rien
-  d'écrit, sauf `--forcer`, dont la raison y reste. `--cliquet` lui compare les fonctions : `EMPIRE`, `SEUIL` ou
+  d'écrit, sauf `--forcer`, dont la raison y reste. `--si-base` : sans base sous la racine, `SANS BASE …`, sort 0,
+  rien d'écrit (`/vlp:tache`, étape 6 bis, VIT16). `--cliquet` lui compare les fonctions : `EMPIRE`, `SEUIL` ou
   `DOCSTRING` par écart, le bilan `CLIQUET <n> fonctions · …`, puis `CLIQUET TENU` (sort 0) ou `CLIQUET ROMPU`
   (sort 1) ; sans base, `GARDE:`. ruff en échec : `RUFF ÉCHEC …`, et `ast` seul.
 
@@ -7858,13 +7859,15 @@ def options_mutant(sous):
 
 
 def options_sante(sous):
-    """Déclarer la ligne de commande de `sante` : `--base` ou `--cliquet`, `--forcer` avec `--base` seulement."""
+    """Déclarer la ligne de commande de `sante` : `--base` ou `--cliquet`, `--forcer` et `--si-base` avec `--base`
+    seulement."""
     sa = sous.add_parser("sante")
     sa.add_argument("fichiers", nargs="*")
     quoi = sa.add_mutually_exclusive_group()
     quoi.add_argument("--base", action="store_true")
     quoi.add_argument("--cliquet", action="store_true")
     sa.add_argument("--forcer", metavar="RAISON")
+    sa.add_argument("--si-base", action="store_true")
     sa.add_argument("--racine")
     sa.add_argument("--sans-ruff", action="store_true")
 

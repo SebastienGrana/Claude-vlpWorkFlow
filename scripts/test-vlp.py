@@ -7468,6 +7468,42 @@ def tester_sante_cliquet():
              and casse[0] == 1 and casse[1].startswith("GARDE: ") and "m.py:1 : " in casse[1], (seul, illisible, casse))
 
 
+def tester_sante_si_base():
+    """VIT16 : `--base --si-base`, la ligne de `/vlp:tache` à chaque fiche — sans base, rien d'écrit, même lancé hors du
+    kit par `--racine .` ; avec une base, comme `--base` : elle se reprend, ou refuse de se relâcher."""
+    import hashlib
+    base_kit = os.path.join(ICI, "sante-base.json")
+    empreinte_kit = hashlib.sha1(open(base_kit, "rb").read()).hexdigest()
+    m = 'def f(a):\n    """Rendre a."""\n    return a\n'
+    ici = os.getcwd()
+    with tempfile.TemporaryDirectory() as tv:
+        vide, equipe = os.path.join(tv, "vide"), os.path.join(tv, "equipe")
+        os.makedirs(vide)
+        ecrire(os.path.join(equipe, "scripts", "m.py"), m)
+        try:
+            os.chdir(equipe)
+            dehors = appel(["sante", "--base", "--si-base", "--racine", "."])
+        finally:
+            os.chdir(ici)
+        sans_scripts = appel(["sante", "--base", "--si-base", "--racine", vide, "--sans-ruff"])
+        cree = os.listdir(vide) + os.listdir(os.path.join(equipe, "scripts"))
+        verifier("VIT16 (a) --si-base sans base → SANS BASE, sort 0, rien d'écrit — dans un projet sans `scripts/`, et "
+                 "hors du kit par `--racine .`, la base du kit identique à l'octet — mutant : --si-base ignoré",
+                 dehors == sans_scripts == (0, "SANS BASE scripts/sante-base.json · rien écrit\n") and cree == ["m.py"]
+                 and hashlib.sha1(open(base_kit, "rb").read()).hexdigest() == empreinte_kit,
+                 (dehors, sans_scripts, cree))
+        posee = appel(["sante", "--base", "--racine", equipe, "--sans-ruff"])
+        reprise = appel(["sante", "--base", "--si-base", "--racine", equipe, "--sans-ruff"])
+        ecrire(os.path.join(equipe, "scripts", "m.py"), m + "\n\ndef g(a):\n    return a\n")
+        refus = appel(["sante", "--base", "--si-base", "--racine", equipe, "--sans-ruff"])
+        seul = appel(["sante", "--si-base", "--racine", equipe, "--sans-ruff"])
+    verifier("VIT16 (b) avec une base, --si-base fait comme --base : BASE, sort 0 ; une fonction neuve sans docstring → "
+             "GARDE:, sort 1 ; --si-base sans --base → GARDE:",
+             posee == reprise == (0, "BASE scripts/sante-base.json · 1 fonctions · sans ruff\n")
+             and refus[0] == 1 and "GARDE: la base ne se relâche pas : 1 écart(s)" in refus[1]
+             and seul == (1, "GARDE: --si-base ne va qu'avec --base\n"), (posee, reprise, refus, seul))
+
+
 def tester_sante_kit():
     """VIT15 : le kit tient son propre cliquet — une fonction qui empire, ou neuve au-dessus d'un seuil ou sans
     docstring, fait tomber la suite. Sauté sous `vlp.py mutant` (`VLP_TOUS_ECARTS=1`) : un mutant touche toujours sa
@@ -7484,6 +7520,7 @@ def tester_sante_kit():
 tester_sante_comptes()
 tester_sante_ruff()
 tester_sante_cliquet()
+tester_sante_si_base()
 tester_sante_kit()
 
 if ECARTS:
