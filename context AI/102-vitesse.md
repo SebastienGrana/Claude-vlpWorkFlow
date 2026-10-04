@@ -12,7 +12,8 @@ mutant rejoue toute la suite (médiane 602 s, A1) et `test-vlp.py` passe 86 % de
 maintenable et documenté. Ensuite : la méthode du kit, puis la TODO re-cadrée (n° 99), avant de reprendre NUI.
 
 **Fait.** `VIT1`, la base (2026-10-04). Plan revu après elle (entrée du même jour dans `08-etat.md`) : `VIT4` retirée,
-son numéro non repris ; `VIT14` ajoutée après `VIT2`. Critères de code sain au socle (2026-10-04) ; `VIT15`, leur cliquet,
+son numéro non repris ; `VIT14` ajoutée après `VIT2`, puis retirée le même jour (non reproduite, 0 échec sur 24
+paires ; choix de l'utilisateur), son numéro non repris. Critères de code sain au socle (2026-10-04) ; `VIT15`, leur cliquet,
 ajoutée avant `VIT2`, faite le 2026-10-04 ; `VIT16`, qui verrouille ses gains à chaque fiche, ajoutée après elle (choix de
 l'utilisateur, page « Choix de VIT15 », Q1). NUI en pause, reprise à `NUI28` après VIT et la méthode (n° 99).
 
@@ -92,11 +93,10 @@ d'échange, plugins : Q9).
 | `VIT15` | Le cliquet du code sain : ruff s'il est là, sinon un compte maison | `VIT1` |
 | `VIT16` | `/vlp:tache` verrouille les gains : `sante --base` à chaque fiche | `VIT15` |
 | `VIT2` | Muter une copie du kit, arrêté sur le test attendu | `VIT1` |
-| `VIT14` | Les deux cas de clôture qui tombent sous charge | `VIT1` |
 | `VIT3` | Lire les fichiers d'un commit en un seul appel Git | `VIT1` |
 | `VIT5` | Faire de `vlp.py` un lanceur mince | `VIT2` |
 | `VIT6` | Appeler `vlp` dans le processus de `boucle.py` | `VIT5` |
-| `VIT7` | Lancer `test-boucle` en parallèle de `test-vlp` | `VIT3`, `VIT6`, `VIT14` |
+| `VIT7` | Lancer `test-boucle` en parallèle de `test-vlp` | `VIT3`, `VIT6` |
 | `VIT8` | Un seul Python dans les hooks | `VIT5` |
 | `VIT9` | Une carte des symboles, et des fiches sans numéros de ligne | rien |
 | `VIT10` | Ranger les tests en groupes nommés, et n'en jouer qu'un | `VIT9` |
@@ -104,7 +104,7 @@ d'échange, plugins : Q9).
 | `VIT12` | Le relecteur ne rejoue que le nouveau test dans AVANT | `VIT2`, `VIT10` |
 | `VIT13` | Mesurer la fin, avant/après | `VIT7`, `VIT8`, `VIT11`, `VIT12` — et, par elles, toutes |
 
-Jouées dans l'ordre du fichier — `VIT15` puis `VIT16` avant `VIT2`, `VIT14` après, `VIT4` retirée —, les dépendances tiennent. `VIT5` à `VIT8` touchent le démarrage des scripts, `VIT10`
+Jouées dans l'ordre du fichier — `VIT15` puis `VIT16` avant `VIT2`, `VIT4` et `VIT14` retirées —, les dépendances tiennent. `VIT5` à `VIT8` touchent le démarrage des scripts, `VIT10`
 et `VIT11` tout `test-vlp.py` : une à la fois.
 
 ---
@@ -232,35 +232,6 @@ Le paragraphe du mutant dans `methode-chantier.md` : `--attendu` devient la form
 
 ---
 
-<!-- FICHE:VIT14 -->
-## VIT14 [ ] — Les deux cas de clôture qui tombent sous charge
-
-**Dépend de** : `VIT1`.
-**Fichiers** : `scripts/test-boucle.py`, et le fichier où vit la cause (`scripts/boucle.py`, `scripts/faux-claude.py`
-ou `scripts/vlp.py`), nommé au compte rendu.
-
-**Prompt**
-À `VIT1`, mémoire réservée à 98–100 %, deux passages sur quatre sont tombés sur un cas de clôture de `test-boucle.py`,
-sans aucune erreur mémoire dans les journaux : `NUI7 (c)` et `NUI25 (d)` ; machine libérée, quatre sur quatre verts
-(entrée « VIT1 — la base » de `08-etat.md`). Un faux rouge fait rejouer une suite, et use la confiance dans les tests.
-Elle passe tôt — avant `VIT5` et `VIT6`, qui changent les lancements et `boucle.py`, et avant `VIT7`, qui ajoute de la
-charge — pour chercher la cause sur le code où elle se montre.
-1. Reproduis d'abord, sans toucher aux réglages de la machine : les deux cas, isolés dans un essai à part, sous une
-   charge simulée (plusieurs copies jouées en même temps). Compte les échecs sur un nombre d'essais dit d'avance. Rien
-   ne tombe : arrête-toi (`RETOUR`), avec les essais et leurs comptes.
-2. Trouve la cause et nomme-la : la fonction, et la condition qui casse (un délai fixe, une course entre deux
-   processus, un fichier lu avant d'être écrit…).
-3. Corrige la cause : jamais un délai allongé à l'aveugle, jamais un contrôle retiré ou assoupli. Un test force la
-   condition sans charge, pour que le défaut se voie à chaque passage.
-
-**Critère de fin**
-1. Sous la même charge simulée : échecs avant / après, sur le même nombre d'essais, comptes bruts.
-2. `py -3 scripts/test-vlp.py` → `OK` ; `verifier(` avant ≤ après ; mutant attrapé (la cause remise) ; pyright 0 ;
-   les critères de code sain du socle.
-<!-- /FICHE -->
-
----
-
 <!-- FICHE:VIT3 -->
 ## VIT3 [x] — Lire les fichiers d'un commit en un seul appel Git
 
@@ -332,7 +303,7 @@ où et arrête-toi (`RETOUR`). A1 estime le gain à −35 à −45 % de `test-bo
 <!-- FICHE:VIT7 -->
 ## VIT7 [ ] — Lancer `test-boucle` en parallèle de `test-vlp`
 
-**Dépend de** : `VIT3`, `VIT6`, `VIT14`.
+**Dépend de** : `VIT3`, `VIT6`.
 **Fichiers** : `scripts/test-vlp.py`.
 
 **Prompt**

@@ -2580,6 +2580,7 @@ Notes prises en cours de fiche, à la demande de l'utilisateur (« note tout ce 
 - **L'essai** : `NUI7 (c)` et `NUI25 (d)` isolés (`test-boucle.py` réduit à ces deux cas par un script du scratchpad de la session 72db946f, `isoler.py`, sans toucher au vrai fichier) : la paire seule, verte en 25 s ; puis **8 paires en parallèle × 3 tours = 24 essais**, nombre dit d'avance, de 18:04:39 à 18:07:20 : **0 échec sur 24**, 160 s.
 - **En regard** : la paire est passée dans les 3 suites complètes du jour (17:00, 17:17, 17:36), la dernière à 88 % de mémoire validée.
 - **Limite** : 8 copies chargent le processeur, pas la mémoire ; à `VIT1`, les deux cas sont tombés à 98-100 % de mémoire validée. Remplir la mémoire exprès n'a pas été fait sans l'accord de l'utilisateur. La fiche reste `[ ]` ; la suite (la retirer, ou reproduire sous pression mémoire) est à trancher par lui.
+- **Tranché le même jour, après `VIT6`** : retirée (choix de l'utilisateur), comme `VIT4` — enlevée du fichier de fiches, numéro non repris ; `VIT7` n'en dépend plus. Si les deux cas retombent, c'est sous mémoire saturée qu'il faudra les reproduire.
 
 ## 2026-10-04 — VIT5 : une fonction déplacée et touchée à la fois, le cliquet la croit neuve
 
