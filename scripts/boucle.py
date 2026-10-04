@@ -160,6 +160,7 @@ for _flux in (sys.stdout, sys.stderr):
 
 ICI = os.path.dirname(os.path.abspath(__file__))
 VLP = os.path.join(ICI, "vlp.py")
+VLP_COEUR = os.path.join(ICI, "vlp_coeur.py")    # le code de vlp.py, chargé comme module par `kit()` (VIT5)
 # Variables de la session qui lance la boucle : la session fille a les siennes.
 HERITEES = ("CLAUDECODE", "CLAUDE_CODE_SESSION_ID")
 # En `auto`, `vlp.py` passe déjà ; `git add` et `git commit` sont refusés (essai du bac,
@@ -236,9 +237,9 @@ _KIT: list[Any] = []   # vlp.py chargé comme module, une fois (`scripts/test-vl
 
 
 def kit():
-    """vlp.py chargé comme module, une fois : `VERDICTS`, `git_texte`, `lire_max_turns`."""
+    """Charger une fois le code de vlp.py (`vlp_coeur.py`) comme module : `VERDICTS`, `git_texte`, `lire_max_turns`."""
     if not _KIT:
-        spec = importlib.util.spec_from_file_location("vlp", VLP)
+        spec = importlib.util.spec_from_file_location("vlp_coeur", VLP_COEUR)
         assert spec and spec.loader
         mod = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(mod)

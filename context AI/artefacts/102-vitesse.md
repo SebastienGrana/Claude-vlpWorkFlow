@@ -5,7 +5,7 @@ Coder plus vite et mieux. Une fiche attend moins ses tests et lit moins de conte
 - VIT1 : Entrée « VIT1 — la base » dans 08-etat.md, six lignes avec commande et comptes bruts ; machine libérée : test-vlp 571 et 535 s, test-boucle 425 et 428 s, mutant 538 s attrapé par NUI27 (a), lancements 362 et 71 ms ; chaque soustraction dite « estimé ».
 - VIT2 : test-vlp OK (code 0, 2 SAUTÉ connus) ; 3 cas VIT2 verts, 3 mutants attrapés ; NUI27 --attendu : MUTANT ATTRAPÉ en 144,1 / 139,5 / 140,8 s contre 538 s (VIT1), vrai vlp.py inchangé (RENDU) ; pyright 0 ; verifier( 765 → 768 / 82 → 82 ; cmd_mutant 9/11/5/47/2 → 4/4/2/23/1
 - VIT3 : test-vlp OK (code 0) ; ancien et nouveau lecteur égaux sur 3 fichiers et un dossier en .md (CRLF, \r, accents), et sur les 98 .md du kit ; ouverts . --rev HEAD : 3 699 → 499 ms (médianes de 5), sortie identique ; 2 mutants attrapés (LF sauté, \r seul) ; pyright 0 ; verifier( 768 → 770 / 82 → 82 ; cliquet tenu
-- VIT5 : vlp.py devient un lanceur mince, le code en cache ; dépend de VIT2
+- VIT5 : test-vlp OK (code 0) en 437 s ; vlp.py lignes CHANTIER.md : 318 → 210 ms (médianes de 20 ; VIT1 362 ms ; 213 ms sous PYTHONDONTWRITEBYTECODE=1) ; mutant NUI27 sur vlp_coeur.py attrapé en 112 s ; pyright 0 ; verifier( 770 / 82 inchangés ; cliquet tenu (3 touchées, 0 neuve)
 - VIT6 : boucle.py appelle vlp sans nouveau processus ; dépend de VIT5
 - VIT7 : test-boucle en parallèle de test-vlp ; dépend de VIT3, VIT6, VIT14
 - VIT8 : un seul Python par hook ; dépend de VIT5
@@ -22,4 +22,5 @@ Coder plus vite et mieux. Une fiche attend moins ses tests et lit moins de conte
 - 2026-10-04 : critères de code sain tranchés (page des critères) : cliquet, docstring de toute fonction touchée, tests sans longueur ; outil : ruff s'il est là, d'où VIT15, ajoutée avant VIT2
 - 2026-10-04 : VIT15 : le compte ast égale ruff sur tout le kit (794/794) ; une sous-commande neuve de vlp.py passe par options_<commande> et PAR_ARGUMENTS, main et repartir étant au-dessus des seuils ; qui lance sante --base en fin de fiche reste à trancher (méthode, n° 99)
 - 2026-10-04 : VIT2 : la copie du mutant garde context AI/ (NIV1 et JUG2 lisent le vrai dépôt) ; une copie peut rester après taskkill, effacer_copie réessaie 2 s
+- 2026-10-04 : VIT5 : une fonction déplacée et touchée à la fois paraît neuve au cliquet ; déplacer d'abord (sante --base), toucher ensuite
 ## Bilan

@@ -283,8 +283,9 @@ fichier absent compris.
 ---
 
 <!-- FICHE:VIT5 -->
-## VIT5 [ ] — Faire de `vlp.py` un lanceur mince
+## VIT5 [x] — Faire de `vlp.py` un lanceur mince
 
+**Session** : 72db946f-cd44-4a3b-8ec4-39b6d2872e1d
 **Dépend de** : `VIT2`.
 **Fichiers** : `scripts/vlp.py`, un module voisin (nom à choisir, dit dans le compte rendu), `scripts/test-vlp.py`,
 `scripts/boucle.py` (son `kit()`), `CLAUDE.md` (règle 4 : où vit la mécanique).

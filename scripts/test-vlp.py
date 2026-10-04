@@ -26,7 +26,7 @@ for _flux in (sys.stdout, sys.stderr):
         pass
 
 ICI = os.path.dirname(os.path.abspath(__file__))
-spec = importlib.util.spec_from_file_location("vlp", os.path.join(ICI, "vlp.py"))
+spec = importlib.util.spec_from_file_location("vlp_coeur", os.path.join(ICI, "vlp_coeur.py"))   # le code de vlp.py (VIT5)
 assert spec and spec.loader
 mod: Any = importlib.util.module_from_spec(spec)  # ses attributs, GIT compris, se lisent et se changent
 spec.loader.exec_module(mod)

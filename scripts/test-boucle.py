@@ -436,7 +436,7 @@ _spec_b = importlib.util.spec_from_file_location("boucle", os.path.join(ICI, "bo
 assert _spec_b and _spec_b.loader
 bmod: Any = importlib.util.module_from_spec(_spec_b)   # `jouer()` y est appelé tel quel, un rôle à la fois
 _spec_b.loader.exec_module(bmod)
-_spec_k = importlib.util.spec_from_file_location("vlp", os.path.join(ICI, "vlp.py"))
+_spec_k = importlib.util.spec_from_file_location("vlp_coeur", os.path.join(ICI, "vlp_coeur.py"))   # le code de vlp.py
 assert _spec_k and _spec_k.loader
 kit: Any = importlib.util.module_from_spec(_spec_k)    # source indépendante des `maxTurns` attendus
 _spec_k.loader.exec_module(kit)
