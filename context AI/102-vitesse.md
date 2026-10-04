@@ -367,8 +367,9 @@ sain du socle.
 ---
 
 <!-- FICHE:VIT10 -->
-## VIT10 [ ] — Ranger les tests en groupes nommés, et n'en jouer qu'un
+## VIT10 [x] — Ranger les tests en groupes nommés, et n'en jouer qu'un
 
+**Session** : 72db946f-cd44-4a3b-8ec4-39b6d2872e1d
 **Dépend de** : `VIT9`.
 **Fichiers** : `scripts/test-vlp.py` — et rien d'autre.
 

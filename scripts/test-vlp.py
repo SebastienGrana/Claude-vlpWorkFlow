@@ -3,10 +3,12 @@
 
 Construit des projets dans un dossier temporaire, appelle les sous-commandes, compare.
 Imprime `OK` et sort 0, ou le premier écart et sort 1.
+`--seul <motif>` (ou `VLP_SEUL`) : ne joue que les groupes dont le nom ou le texte porte le motif (VIT10).
 """
 import datetime
 import glob
 import importlib.util
+import inspect
 import io
 import json
 import os
@@ -69,13 +71,53 @@ def rendu(depart):
 ECARTS = []     # avec VLP_TOUS_ECARTS=1 (`vlp.py mutant`), un écart n'arrête pas la suite (chantier MUT)
 
 
+CONTROLES = []  # les libellés des contrôles joués : leur nombre sous `--seul` (VIT10)
+
+
 def verifier(nom, cond, sortie):
+    """Contrôler `cond` : faux, imprimer l'écart et sortir 1 — ou le garder sous `VLP_TOUS_ECARTS=1`."""
+    CONTROLES.append(nom)
     if not cond:
         print("ÉCART:", nom)
         print(sortie)
         if os.environ.get("VLP_TOUS_ECARTS") != "1":
             sys.exit(1)
         ECARTS.append(nom)
+
+
+def motif_seul(argv, env):
+    """Rendre le motif de `--seul <motif>`, sinon celui de `VLP_SEUL`, sinon "" (tout se joue) ; `--seul` sans motif :
+    `None` (VIT10)."""
+    if "--seul" in argv:
+        i = argv.index("--seul")
+        return argv[i + 1] if i + 1 < len(argv) and argv[i + 1] else None
+    return env.get("VLP_SEUL", "")
+
+
+def seul_demande():
+    """Lire le motif de `--seul` pour cette suite ; `--seul` sans motif : sortir 2."""
+    motif = motif_seul(sys.argv[1:], os.environ)
+    if motif is None:
+        print("GARDE: --seul sans motif")
+        sys.exit(2)
+    return motif
+
+
+SEUL = seul_demande()
+JOUES = []      # les groupes joués, sous `--seul` (VIT10)
+
+
+def porte_motif(f, motif):
+    """Dire si le nom ou le texte du groupe `f` (ses libellés) porte `motif`, sans tenir compte de la casse."""
+    return motif.lower() in (f.__name__ + " " + inspect.getsource(f)).lower()
+
+
+def groupe(f):
+    """Jouer le groupe de contrôles `f` — sous `--seul`, seulement s'il porte le motif (VIT10)."""
+    if SEUL and not porte_motif(f, SEUL):
+        return
+    JOUES.append(f.__name__)
+    f()
 
 
 def lancer_boucle():
@@ -104,8 +146,9 @@ def arreter_boucle(p):
 
 def boucle_du_debut():
     """Lancer `test-boucle.py` dès le début, récolté par `tester_boucle` en fin de suite : ses ~180 s courent pendant
-    le reste (VIT7). `VLP_BOUCLE_SERIE=1` : rien lancé ici (`None`), `tester_boucle` le joue en série, comme avant."""
-    return None if os.environ.get("VLP_BOUCLE_SERIE") == "1" else lancer_boucle()
+    le reste (VIT7). `VLP_BOUCLE_SERIE=1` ou `--seul` : rien lancé ici (`None`) ; `tester_boucle`, s'il se joue, le
+    joue en série, comme avant."""
+    return None if os.environ.get("VLP_BOUCLE_SERIE") == "1" or SEUL else lancer_boucle()
 
 
 BOUCLE = boucle_du_debut()
@@ -115,54 +158,59 @@ EMPREINTE_DEPART = mod.empreinte_kit(mod.KIT)
 
 def noter_si_verte():
     """Noter `EMPREINTE_DEPART` comme celle de la dernière suite entière verte — jamais sous `vlp.py mutant`
-    (`VLP_TOUS_ECARTS=1`), qui joue une copie mutée (VIT11)."""
-    if os.environ.get("VLP_TOUS_ECARTS") != "1":
+    (`VLP_TOUS_ECARTS=1`), qui joue une copie mutée (VIT11), ni sous `--seul`, qui n'en joue qu'une part (VIT10)."""
+    if os.environ.get("VLP_TOUS_ECARTS") != "1" and not SEUL:
         mod.noter_suite_verte(mod.KIT, EMPREINTE_DEPART)
 
 
-with tempfile.TemporaryDirectory() as t:
-    p = os.path.join(t, "proj")
-    ecrire(os.path.join(p, "CHANTIER.md"), CHANTIER % ("pz", "context AI/20-z.md (Z1..Z10)"))
-    ecrire(os.path.join(p, "context AI", "20-z.md"), FICHES)
-    sous = os.path.join(p, "src", "a")
-    os.makedirs(sous)
-    ecrire(os.path.join(p, "src", "chantier.md"), "une commande, pas la carte\n")
+def tester_carte_projet():
+    """Contrôler `carte` sur un projet : remontée au projet, chemin avec espace, titres numérotés, prochaine fiche."""
+    with tempfile.TemporaryDirectory() as t:
+        p = os.path.join(t, "proj")
+        ecrire(os.path.join(p, "CHANTIER.md"), CHANTIER % ("pz", "context AI/20-z.md (Z1..Z10)"))
+        ecrire(os.path.join(p, "context AI", "20-z.md"), FICHES)
+        sous = os.path.join(p, "src", "a")
+        os.makedirs(sous)
+        ecrire(os.path.join(p, "src", "chantier.md"), "une commande, pas la carte\n")
 
-    s = rendu(sous)
-    verifier("remonte au projet", "PROJET=%s\n" % p in s, s)
-    verifier("carte entière", "- **alias** : pz" in s, s)
-    verifier("chemin avec espace et plage", "--- fiches : context AI/20-z.md (8 lignes, 3 titres) ---" in s, s)
-    verifier("titres numérotés", "5:## Z1 [x] — faite\n7:## Z2 [ ] — à faire\n8:## Z10 [ ] — après\n" in s, s)
-    verifier("prochaine dans l'ordre du fichier", s.endswith("PROCHAINE=Z2\n"), s)
+        s = rendu(sous)
+        verifier("remonte au projet", "PROJET=%s\n" % p in s, s)
+        verifier("carte entière", "- **alias** : pz" in s, s)
+        verifier("chemin avec espace et plage", "--- fiches : context AI/20-z.md (8 lignes, 3 titres) ---" in s, s)
+        verifier("titres numérotés", "5:## Z1 [x] — faite\n7:## Z2 [ ] — à faire\n8:## Z10 [ ] — après\n" in s, s)
+        verifier("prochaine dans l'ordre du fichier", s.endswith("PROCHAINE=Z2\n"), s)
 
-    ecrire(os.path.join(p, "context AI", "20-z.md"), FICHES.replace("[ ]", "[x]"))
-    s = rendu(p)
-    verifier("tout coché", s.endswith("PROCHAINE=aucune\n"), s)
+        ecrire(os.path.join(p, "context AI", "20-z.md"), FICHES.replace("[ ]", "[x]"))
+        s = rendu(p)
+        verifier("tout coché", s.endswith("PROCHAINE=aucune\n"), s)
 
-    ecrire(os.path.join(p, "context AI", "20-z.md"), "# titres\n### Z1 reformulé\n")
-    s = rendu(p)
-    verifier("garde grep muet", "GARDE: aucun titre" in s and "PROCHAINE" not in s, s)
+        ecrire(os.path.join(p, "context AI", "20-z.md"), "# titres\n### Z1 reformulé\n")
+        s = rendu(p)
+        verifier("garde grep muet", "GARDE: aucun titre" in s and "PROCHAINE" not in s, s)
 
-    ecrire(os.path.join(p, "CHANTIER.md"), CHANTIER % ("pz", "aucun"))
-    s = rendu(p)
-    verifier("aucun courant", "--- fichier de fiches courant : aucun ---\n" in s and "TODO=absente (pas de ligne « chantiers possibles »)" in s, s)
+        ecrire(os.path.join(p, "CHANTIER.md"), CHANTIER % ("pz", "aucun"))
+        s = rendu(p)
+        verifier("aucun courant", "--- fichier de fiches courant : aucun ---\n" in s and "TODO=absente (pas de ligne « chantiers possibles »)" in s, s)
 
-    ecrire(os.path.join(p, "CHANTIER.md"), CHANTIER % ("pz", "context AI/99-absent.md"))
-    s = rendu(p)
-    verifier("fichier absent", "GARDE: fichier de fiches introuvable : context AI/99-absent.md" in s, s)
+        ecrire(os.path.join(p, "CHANTIER.md"), CHANTIER % ("pz", "context AI/99-absent.md"))
+        s = rendu(p)
+        verifier("fichier absent", "GARDE: fichier de fiches introuvable : context AI/99-absent.md" in s, s)
 
-    w = os.path.join(t, "ws")
-    ecrire(os.path.join(w, "b", "CHANTIER.md"), CHANTIER % ("bb", "aucun"))
-    ecrire(os.path.join(w, "a", "CHANTIER.md"), CHANTIER % ("aa", "aucun"))
-    ecrire(os.path.join(w, "c", "chantier.md"), "une commande\n")
-    s = rendu(w)
-    verifier("voisins triés avec alias",
-             s == "VOISIN=%s alias=aa\nVOISIN=%s alias=bb\n" % (os.path.join(w, "a"), os.path.join(w, "b")), s)
+        w = os.path.join(t, "ws")
+        ecrire(os.path.join(w, "b", "CHANTIER.md"), CHANTIER % ("bb", "aucun"))
+        ecrire(os.path.join(w, "a", "CHANTIER.md"), CHANTIER % ("aa", "aucun"))
+        ecrire(os.path.join(w, "c", "chantier.md"), "une commande\n")
+        s = rendu(w)
+        verifier("voisins triés avec alias",
+                 s == "VOISIN=%s alias=aa\nVOISIN=%s alias=bb\n" % (os.path.join(w, "a"), os.path.join(w, "b")), s)
 
-    vide = os.path.join(t, "vide")
-    os.makedirs(vide)
-    s = rendu(vide)
-    verifier("aucun projet", s == "AUCUN_PROJET\n", s)
+        vide = os.path.join(t, "vide")
+        os.makedirs(vide)
+        s = rendu(vide)
+        verifier("aucun projet", s == "AUCUN_PROJET\n", s)
+
+
+groupe(tester_carte_projet)
 
 
 def test_carte_relecteur():
@@ -328,56 +376,61 @@ Socle, ligne 1.
 
 SANS = "## Z1 [ ] — ancien\nlong\n---\n## Z2 [ ] — dernier\nfin\n"
 
-with tempfile.TemporaryDirectory() as t:
-    f = os.path.join(t, "y.md")
-    ecrire(f, AVEC)
-    code, s = appel(["extraire", f, "Y1"])
-    verifier("extraire : marqueurs, --- dans un bloc de code", code == 0 and s.startswith("<!-- FICHE:Y1 -->\n## Y1")
-             and "## pas un titre\n```\n<!-- /FICHE -->\n--- fiche, lignes : 9\n" in s and "GARDE" not in s, s)
-    verifier("extraire : fiche scriptable, pas d'ARRÊT", "ARRÊT" not in s, s)
-    ecrire(f, AVEC.replace("**Prompt**\n", "**Critère de fin** (visuel)\n"))
-    code, s = appel(["extraire", f, "Y1"])
-    verifier("extraire : fiche (visuel), ARRÊT avant le compte", code == 0
-             and s.endswith("<!-- /FICHE -->\n" + mod.ARRET + "\n--- fiche, lignes : 9\n"), s)
-    ecrire(f, AVEC)
-    code, s = appel(["extraire", f, "Y9"])
-    verifier("extraire : fiche absente", code == 1 and "GARDE: fiche introuvable : Y9" in s, s)
-    code, s = appel(["socle", f])
-    verifier("socle : du titre à l'ordre exclu", code == 0 and s == "## Le socle commun\n\nSocle, ligne 1.\n\n--- socle, lignes : 4\n", s)
-    code, s = appel(["sessions", f])
-    verifier("sessions : dédoublonnées, dans l'ordre", code == 0 and s == "aaa\nbbb\n", s)
+def tester_extraire_socle():
+    """Contrôler `extraire`, `socle` et `carte` sur un fichier de fiches : marqueurs, CRLF, fichier absent (chantier U)."""
+    with tempfile.TemporaryDirectory() as t:
+        f = os.path.join(t, "y.md")
+        ecrire(f, AVEC)
+        code, s = appel(["extraire", f, "Y1"])
+        verifier("extraire : marqueurs, --- dans un bloc de code", code == 0 and s.startswith("<!-- FICHE:Y1 -->\n## Y1")
+                 and "## pas un titre\n```\n<!-- /FICHE -->\n--- fiche, lignes : 9\n" in s and "GARDE" not in s, s)
+        verifier("extraire : fiche scriptable, pas d'ARRÊT", "ARRÊT" not in s, s)
+        ecrire(f, AVEC.replace("**Prompt**\n", "**Critère de fin** (visuel)\n"))
+        code, s = appel(["extraire", f, "Y1"])
+        verifier("extraire : fiche (visuel), ARRÊT avant le compte", code == 0
+                 and s.endswith("<!-- /FICHE -->\n" + mod.ARRET + "\n--- fiche, lignes : 9\n"), s)
+        ecrire(f, AVEC)
+        code, s = appel(["extraire", f, "Y9"])
+        verifier("extraire : fiche absente", code == 1 and "GARDE: fiche introuvable : Y9" in s, s)
+        code, s = appel(["socle", f])
+        verifier("socle : du titre à l'ordre exclu", code == 0 and s == "## Le socle commun\n\nSocle, ligne 1.\n\n--- socle, lignes : 4\n", s)
+        code, s = appel(["sessions", f])
+        verifier("sessions : dédoublonnées, dans l'ordre", code == 0 and s == "aaa\nbbb\n", s)
 
-    ecrire(f, AVEC.replace("<!-- /FICHE -->\n\n---\n\n<!-- FICHE:Y2", "\n---\n\n<!-- FICHE:Y2"))
-    code, s = appel(["extraire", f, "Y1"])
-    verifier("extraire : fermant absent, arrêt au marqueur suivant", code == 0 and s.startswith("GARDE: marqueur fermant absent")
-             and "Y2" not in s and s.endswith("```\n\n---\n\n--- fiche, lignes : 11\n"), s)
+        ecrire(f, AVEC.replace("<!-- /FICHE -->\n\n---\n\n<!-- FICHE:Y2", "\n---\n\n<!-- FICHE:Y2"))
+        code, s = appel(["extraire", f, "Y1"])
+        verifier("extraire : fermant absent, arrêt au marqueur suivant", code == 0 and s.startswith("GARDE: marqueur fermant absent")
+                 and "Y2" not in s and s.endswith("```\n\n---\n\n--- fiche, lignes : 11\n"), s)
 
-    ecrire(f, SANS)
-    code, s = appel(["extraire", f, "Z1"])
-    verifier("extraire : repli sans marqueurs", code == 0 and "GARDE: pas de marqueurs" in s
-             and s.endswith("## Z1 [ ] — ancien\nlong\n---\n--- fiche, lignes : 3\n"), s)
-    code, s = appel(["extraire", f, "Z2"])
-    verifier("extraire : repli jusqu'à la fin", s.endswith("fin\n--- fiche, lignes : 2\n"), s)
-    code, s = appel(["socle", f])
-    verifier("socle : absent", code == 1 and s == "--- socle, lignes : 0\n", s)
-    code, s = appel(["sessions", f])
-    verifier("sessions : aucune", code == 0 and s == "", s)
+        ecrire(f, SANS)
+        code, s = appel(["extraire", f, "Z1"])
+        verifier("extraire : repli sans marqueurs", code == 0 and "GARDE: pas de marqueurs" in s
+                 and s.endswith("## Z1 [ ] — ancien\nlong\n---\n--- fiche, lignes : 3\n"), s)
+        code, s = appel(["extraire", f, "Z2"])
+        verifier("extraire : repli jusqu'à la fin", s.endswith("fin\n--- fiche, lignes : 2\n"), s)
+        code, s = appel(["socle", f])
+        verifier("socle : absent", code == 1 and s == "--- socle, lignes : 0\n", s)
+        code, s = appel(["sessions", f])
+        verifier("sessions : aucune", code == 0 and s == "", s)
 
-    ecrire(f, AVEC.replace("\n", "\r\n"))
-    code, s = appel(["socle", f])
-    verifier("CRLF toléré", code == 0 and "\r" not in s and s.endswith("--- socle, lignes : 4\n"), s)
-    code, s = appel(["extraire", os.path.join(t, "absent.md"), "Y1"])
-    verifier("fichier absent", code == 1 and "GARDE: fichier introuvable" in s, s)
+        ecrire(f, AVEC.replace("\n", "\r\n"))
+        code, s = appel(["socle", f])
+        verifier("CRLF toléré", code == 0 and "\r" not in s and s.endswith("--- socle, lignes : 4\n"), s)
+        code, s = appel(["extraire", os.path.join(t, "absent.md"), "Y1"])
+        verifier("fichier absent", code == 1 and "GARDE: fichier introuvable" in s, s)
 
-    code, s = appel(["carte", os.path.join(t, "nulle-part")])
-    verifier("carte par main, sortie 0", code == 0 and s == "AUCUN_PROJET\n", s)
-    nulle = os.path.join(t, "nulle-part")
-    r1 = appel(["carte", nulle, "--python", "py"])
-    r2 = appel(["carte", nulle, "--python", "python3", "--relais"])
-    r3 = appel(["carte", nulle, "--python", "py", "--relais"])
-    r4 = appel(["carte", os.path.join(t, "ailleurs"), "--python", "python3", "--relais"])
-    verifier("carte --python : ligne vide, PYTHON=, deux relais muets (U4), relais seul",
-             (r1, r2, r3, r4) == ((0, "\nPYTHON=py\nAUCUN_PROJET\n"), (0, ""), (0, ""), (0, "\nPYTHON=python3\nAUCUN_PROJET\n")), (r1, r2, r3, r4))
+        code, s = appel(["carte", os.path.join(t, "nulle-part")])
+        verifier("carte par main, sortie 0", code == 0 and s == "AUCUN_PROJET\n", s)
+        nulle = os.path.join(t, "nulle-part")
+        r1 = appel(["carte", nulle, "--python", "py"])
+        r2 = appel(["carte", nulle, "--python", "python3", "--relais"])
+        r3 = appel(["carte", nulle, "--python", "py", "--relais"])
+        r4 = appel(["carte", os.path.join(t, "ailleurs"), "--python", "python3", "--relais"])
+        verifier("carte --python : ligne vide, PYTHON=, deux relais muets (U4), relais seul",
+                 (r1, r2, r3, r4) == ((0, "\nPYTHON=py\nAUCUN_PROJET\n"), (0, ""), (0, ""), (0, "\nPYTHON=python3\nAUCUN_PROJET\n")), (r1, r2, r3, r4))
+
+
+groupe(tester_extraire_socle)
 
 SAIN = """# Chantier V
 
@@ -416,42 +469,47 @@ def valide(texte):
         return code, s.replace(f, "F")
 
 
-code, s = valide(SAIN)
-verifier("valider : sain", code == 0 and s == "VALIDE 2 fiches · socle 4 lignes · 0 écarts · 0 avertissements — F\n", s)
+def tester_valider():
+    """Contrôler `valider` : un fichier sain, ses écarts, les avertissements de longueur et de socle."""
+    code, s = valide(SAIN)
+    verifier("valider : sain", code == 0 and s == "VALIDE 2 fiches · socle 4 lignes · 0 écarts · 0 avertissements — F\n", s)
 
-CAS = [
-    ("fermant absent", SAIN.replace("L'utilisateur regarde.\n<!-- /FICHE -->", "L'utilisateur regarde."),
-     "F:22: marqueur ouvrant sans fermant : <!-- FICHE:V2 -->"),
-    ("imbriqué", SAIN.replace("Une commande.\n<!-- /FICHE -->", "Une commande."),
-     "F:21: marqueur imbriqué : <!-- FICHE:V1 --> ouvert ligne 11 sans fermant"),
-    ("fermant orphelin", SAIN + "<!-- /FICHE -->\n", "F:27: marqueur fermant sans ouvrant"),
-    ("marqueur ≠ titre", SAIN.replace("<!-- FICHE:V2 -->", "<!-- FICHE:V9 -->"), "F:23: marqueur V9 ≠ titre V2"),
-    ("titre sans marqueurs", SAIN + "\n---\n\n## V3 [ ] — nue\n**Critère de fin**\n", "F:30: titre sans marqueurs : V3"),
-    ("double", SAIN.replace("## V2 [ ] — visuelle", "## V1 [ ] — visuelle").replace("FICHE:V2", "FICHE:V1"),
-     "F:23: identifiant en double : V1 (déjà ligne 12)"),
-    ("socle absent", SAIN.replace("## Le socle commun", "## Socle"), "F:1: section absente : ## Le socle commun"),
-    ("ordre en double", SAIN + "\n## L'ordre des fiches\n", "F:28: section en double : ## L'ordre des fiches (déjà ligne 7)"),
-    ("section après une fiche", SAIN.replace("## L'ordre des fiches\n", "").replace("L'utilisateur regarde.\n", "L'utilisateur regarde.\n## L'ordre des fiches\n"),
-     "F:25: section après la première fiche : ## L'ordre des fiches"),
-    ("sans critère", SAIN.replace("**Critère de fin**\nUne commande.", "Une commande."), "F:11: fiche V1 sans ligne **Critère de fin**"),
-    ("visuel hors ligne (point 9)", SAIN.replace("**Critère de fin** (visuel)", "Voici le **Critère de fin** (visuel)"),
-     "F:24: fiche V2 : (visuel) hors de la ligne"),
-]
-for nom, texte, attendu in CAS:
-    code, s = valide(texte)
-    verifier("valider : " + nom, code == 1 and attendu in s and s.splitlines()[-1].startswith("INVALIDE"), s)
+    CAS = [
+        ("fermant absent", SAIN.replace("L'utilisateur regarde.\n<!-- /FICHE -->", "L'utilisateur regarde."),
+         "F:22: marqueur ouvrant sans fermant : <!-- FICHE:V2 -->"),
+        ("imbriqué", SAIN.replace("Une commande.\n<!-- /FICHE -->", "Une commande."),
+         "F:21: marqueur imbriqué : <!-- FICHE:V1 --> ouvert ligne 11 sans fermant"),
+        ("fermant orphelin", SAIN + "<!-- /FICHE -->\n", "F:27: marqueur fermant sans ouvrant"),
+        ("marqueur ≠ titre", SAIN.replace("<!-- FICHE:V2 -->", "<!-- FICHE:V9 -->"), "F:23: marqueur V9 ≠ titre V2"),
+        ("titre sans marqueurs", SAIN + "\n---\n\n## V3 [ ] — nue\n**Critère de fin**\n", "F:30: titre sans marqueurs : V3"),
+        ("double", SAIN.replace("## V2 [ ] — visuelle", "## V1 [ ] — visuelle").replace("FICHE:V2", "FICHE:V1"),
+         "F:23: identifiant en double : V1 (déjà ligne 12)"),
+        ("socle absent", SAIN.replace("## Le socle commun", "## Socle"), "F:1: section absente : ## Le socle commun"),
+        ("ordre en double", SAIN + "\n## L'ordre des fiches\n", "F:28: section en double : ## L'ordre des fiches (déjà ligne 7)"),
+        ("section après une fiche", SAIN.replace("## L'ordre des fiches\n", "").replace("L'utilisateur regarde.\n", "L'utilisateur regarde.\n## L'ordre des fiches\n"),
+         "F:25: section après la première fiche : ## L'ordre des fiches"),
+        ("sans critère", SAIN.replace("**Critère de fin**\nUne commande.", "Une commande."), "F:11: fiche V1 sans ligne **Critère de fin**"),
+        ("visuel hors ligne (point 9)", SAIN.replace("**Critère de fin** (visuel)", "Voici le **Critère de fin** (visuel)"),
+         "F:24: fiche V2 : (visuel) hors de la ligne"),
+    ]
+    for nom, texte, attendu in CAS:
+        code, s = valide(texte)
+        verifier("valider : " + nom, code == 1 and attendu in s and s.splitlines()[-1].startswith("INVALIDE"), s)
 
-code, s = valide(SAIN.replace("Une commande.\n", "Une commande.\n" + "x\n" * 60))
-verifier("valider : avertissement de longueur, pas écart", code == 0
-         and "F:11: avertissement : fiche V1 : 68 lignes, au-delà du seuil" in s and "0 écarts · 1 avertissements" in s, s)
-code, s = valide(SAIN.replace("Un socle.\n", "Un socle.\n" + "x\n" * 77))
-verifier("valider : socle de 81 lignes avertit", code == 0
-         and "F:3: avertissement : socle : 81 lignes, au-delà du seuil" in s and "1 avertissements" in s, s)
-code, s = valide(SAIN.replace("Un socle.\n", "Un socle.\n" + "x\n" * 76))
-verifier("valider : socle de 80 lignes n'avertit pas", code == 0
-         and "socle : 80 lignes" not in s and "0 avertissements" in s, s)
-code, s = appel(["valider", "absent-1.md", "absent-2.md"])
-verifier("valider : un bilan par fichier", code == 1 and s.count("INVALIDE 0 fiches") == 2, s)
+    code, s = valide(SAIN.replace("Une commande.\n", "Une commande.\n" + "x\n" * 60))
+    verifier("valider : avertissement de longueur, pas écart", code == 0
+             and "F:11: avertissement : fiche V1 : 68 lignes, au-delà du seuil" in s and "0 écarts · 1 avertissements" in s, s)
+    code, s = valide(SAIN.replace("Un socle.\n", "Un socle.\n" + "x\n" * 77))
+    verifier("valider : socle de 81 lignes avertit", code == 0
+             and "F:3: avertissement : socle : 81 lignes, au-delà du seuil" in s and "1 avertissements" in s, s)
+    code, s = valide(SAIN.replace("Un socle.\n", "Un socle.\n" + "x\n" * 76))
+    verifier("valider : socle de 80 lignes n'avertit pas", code == 0
+             and "socle : 80 lignes" not in s and "0 avertissements" in s, s)
+    code, s = appel(["valider", "absent-1.md", "absent-2.md"])
+    verifier("valider : un bilan par fichier", code == 1 and s.count("INVALIDE 0 fiches") == 2, s)
+
+
+groupe(tester_valider)
 
 import datetime
 import json
@@ -474,48 +532,63 @@ def transcript(chemin, tours, heures=None):
             f.write(json.dumps(ligne) + "\n")
 
 
-verifier("arrondi", [mod.arrondi(n) for n in (999, 1000, 999949, 999950, 1505630)] == ["999", "≈1,0k (1 000)", "≈999,9k (999 949)", "≈1,0M (999 950)", "≈1,5M (1 505 630)"],
-         [mod.arrondi(n) for n in (999, 1000, 999949, 999950, 1505630)])
+def tester_arrondi():
+    """Contrôler l'arrondi d'un compte de tokens."""
+    verifier("arrondi", [mod.arrondi(n) for n in (999, 1000, 999949, 999950, 1505630)] == ["999", "≈1,0k (1 000)", "≈999,9k (999 949)", "≈1,0M (999 950)", "≈1,5M (1 505 630)"],
+             [mod.arrondi(n) for n in (999, 1000, 999949, 999950, 1505630)])
+
+
+groupe(tester_arrondi)
 
 from decimal import Decimal
 
 # Tout ce que ligne_cout écrit, triplet le relit : total sous et au-dessus de 1 000, prix chiffré, « ? », et négatifs.
-allers = [(t, tours, u) for t in (0, 7, 999, 1000, 999999, 1000000, 123456789, -5, -1500) for tours in (0, 1, 42) for u in (None, Decimal("0"), Decimal("1.83"), Decimal("-0.05"))]
-verifier("triplet relit ligne_cout", all(mod.triplet(mod.ligne_cout(*a)) == a for a in allers),
-         [(a, mod.ligne_cout(*a), mod.triplet(mod.ligne_cout(*a)) == a) for a in allers if mod.triplet(mod.ligne_cout(*a)) != a])
-# Le brut entre parenthèses suffit, sans l'arrondi devant : une page d'un autre format se relit.
-verifier("triplet : le brut entre parenthèses suffit", mod.triplet("(5 284 442) · 42 tours · 1,83 $") == (5284442, 42, Decimal("1.83")),
-         mod.triplet("(5 284 442) · 42 tours · 1,83 $"))
+def tester_triplet():
+    """Contrôler que `triplet` relit ce que `ligne_cout` écrit, et le brut seul."""
+    allers = [(t, tours, u) for t in (0, 7, 999, 1000, 999999, 1000000, 123456789, -5, -1500) for tours in (0, 1, 42) for u in (None, Decimal("0"), Decimal("1.83"), Decimal("-0.05"))]
+    verifier("triplet relit ligne_cout", all(mod.triplet(mod.ligne_cout(*a)) == a for a in allers),
+             [(a, mod.ligne_cout(*a), mod.triplet(mod.ligne_cout(*a)) == a) for a in allers if mod.triplet(mod.ligne_cout(*a)) != a])
+    # Le brut entre parenthèses suffit, sans l'arrondi devant : une page d'un autre format se relit.
+    verifier("triplet : le brut entre parenthèses suffit", mod.triplet("(5 284 442) · 42 tours · 1,83 $") == (5284442, 42, Decimal("1.83")),
+             mod.triplet("(5 284 442) · 42 tours · 1,83 $"))
+
+
+groupe(tester_triplet)
 
 # total_clos : relire aussi les lignes closes sous 1 000, qui n'ont pas de parenthèses.
 def ligne_close(c):
     """Une ligne close au format de cmd_clore, avec plage Q1–Q2, date 2026-05-06, et coût c."""
     return f'          <tr>\n            <td>Test <span class="badge" data-etat="clos">clos</span></td>\n            <td class="mono">Q1–Q2</td><td class="mono">2026-05-06</td>\n            <td class="mono">{c}</td>\n            <td>Test</td>\n          </tr>\n'
 
-verifier("total_clos : une ligne close sous 1 000",
-         mod.total_clos(ligne_close(mod.arrondi(950))) == 950 and
-         mod.total_clos(ligne_close(mod.arrondi(1500)) + ligne_close(mod.arrondi(950))) == 2450,
-         (mod.total_clos(ligne_close(mod.arrondi(950))),
-          mod.total_clos(ligne_close(mod.arrondi(1500)) + ligne_close(mod.arrondi(950)))))
+def tester_total_clos():
+    """Contrôler `total_clos` et `couts` sur des lignes closes, dont un « ? $ » d'une ancienne page."""
+    verifier("total_clos : une ligne close sous 1 000",
+             mod.total_clos(ligne_close(mod.arrondi(950))) == 950 and
+             mod.total_clos(ligne_close(mod.arrondi(1500)) + ligne_close(mod.arrondi(950))) == 2450,
+             (mod.total_clos(ligne_close(mod.arrondi(950))),
+              mod.total_clos(ligne_close(mod.arrondi(1500)) + ligne_close(mod.arrondi(950)))))
 
-verifier("total_clos : ni plage, ni date, ni pied",
-         mod.total_clos(ligne_close("non mesuré")) == 0 and
-         mod.total_clos('<td class="mono"><strong>≈3,8k (3 812)</strong></td><td class="mono">≈0,00 $</td>') == 0,
-         (mod.total_clos(ligne_close("non mesuré")),
-          mod.total_clos('<td class="mono"><strong>≈3,8k (3 812)</strong></td><td class="mono">≈0,00 $</td>')))
+    verifier("total_clos : ni plage, ni date, ni pied",
+             mod.total_clos(ligne_close("non mesuré")) == 0 and
+             mod.total_clos('<td class="mono"><strong>≈3,8k (3 812)</strong></td><td class="mono">≈0,00 $</td>') == 0,
+             (mod.total_clos(ligne_close("non mesuré")),
+              mod.total_clos('<td class="mono"><strong>≈3,8k (3 812)</strong></td><td class="mono">≈0,00 $</td>')))
 
-# Un « ? $ » de l'ancienne page traverse les soustractions de couts : P1 garde son coût
-# affiché, P2 prend le reste, en « ? » puisque la part de P1 en dollars est inconnue.
-with tempfile.TemporaryDirectory() as t:
-    s = os.path.join(t, "s.jsonl")
-    transcript(s, 3)
-    gardes = []
-    cout, total, hors = mod.couts([("P1", "a", True, [s]), ("P2", "b", True, [s])],
-                                  {"P1": ("faite", None, "≈100,0k (100 000) · 1 tours · ? $")},
-                                  "Coût du chantier : ≈100,0k (100 000) · 1 tours · ? $", gardes)
-    verifier("couts : « ? $ » relu sans planter",
-             cout == {"P1": "≈100,0k (100 000) · 1 tours · ? $", "P2": "≈200,0k (200 000) · 2 tours · ? $"}
-             and total == (300000, 3, Decimal("1.5")) and hors is None and not gardes, (cout, total, hors, gardes))
+    # Un « ? $ » de l'ancienne page traverse les soustractions de couts : P1 garde son coût
+    # affiché, P2 prend le reste, en « ? » puisque la part de P1 en dollars est inconnue.
+    with tempfile.TemporaryDirectory() as t:
+        s = os.path.join(t, "s.jsonl")
+        transcript(s, 3)
+        gardes = []
+        cout, total, hors = mod.couts([("P1", "a", True, [s]), ("P2", "b", True, [s])],
+                                      {"P1": ("faite", None, "≈100,0k (100 000) · 1 tours · ? $")},
+                                      "Coût du chantier : ≈100,0k (100 000) · 1 tours · ? $", gardes)
+        verifier("couts : « ? $ » relu sans planter",
+                 cout == {"P1": "≈100,0k (100 000) · 1 tours · ? $", "P2": "≈200,0k (200 000) · 2 tours · ? $"}
+                 and total == (300000, 3, Decimal("1.5")) and hors is None and not gardes, (cout, total, hors, gardes))
+
+
+groupe(tester_total_clos)
 
 PAGE = """# Chantier P
 
@@ -537,118 +610,123 @@ PAGE = """# Chantier P
 <!-- /FICHE -->
 """
 
-with tempfile.TemporaryDirectory() as t:
-    fiches = os.path.join(t, "p.md")
-    page = os.path.join(t, "artefacts", "p.html")  # comme en vrai : le .md de l'abri (même dossier que la
-    # page) ne collisionne pas avec le fichier de fiches, dans le dossier parent (chantier ABR)
-    sa, sb = os.path.join(t, "a.jsonl"), os.path.join(t, "b.jsonl")
-    transcript(sa, 2)
-    transcript(sb, 1)
+def tester_page_creer():
+    """Contrôler `page --creer`, `page --verifier` et une page absente."""
+    with tempfile.TemporaryDirectory() as t:
+        fiches = os.path.join(t, "p.md")
+        page = os.path.join(t, "artefacts", "p.html")  # comme en vrai : le .md de l'abri (même dossier que la
+        # page) ne collisionne pas avec le fichier de fiches, dans le dossier parent (chantier ABR)
+        sa, sb = os.path.join(t, "a.jsonl"), os.path.join(t, "b.jsonl")
+        transcript(sa, 2)
+        transcript(sb, 1)
 
-    ecrire(fiches, PAGE % (" ", "", " ", ""))
-    code, s = appel(["page", fiches, page, "--creer", "--projet", "Proj", "--titre", "Le <titre>",
-                     "--resultat", "Fini quand.", "--note", "P1", "Produit a.py", "--date", "2026-01-02"])
-    html = lire(page) if os.path.exists(page) else ""
-    verifier("page --creer", code == 0 and "<title>Proj — Le &lt;titre&gt;</title>" in html
-             and "Proj · fiches P1–P3" in html and "<p>Fini quand.</p>" in html
-             and '<span data-etat="encours"></span><span></span><span></span>' in html
-             and "3 fiches · 0 faite · en cours : P1" in html and '<span class="note">Produit a.py</span>' in html
-             and "&lt;" not in html.split("<ul class=\"journal\">")[1].split("</ul>")[0]
-             and '<p class="mono cout-total">' not in html and '<p class="mono cout-hors">' not in html
-             and "Mis à jour le <span class=\"mono\">2026-01-02</span>" in html
-             and "lignes · total non mesuré" in s, s + html)
-    # Dette CLI : `--projet .` écrivait « . » en tête de page ; un dossier donne son alias, sinon son nom
-    with tempfile.TemporaryDirectory() as tnom:
-        dnom = os.path.join(tnom, "mon-projet")
-        os.makedirs(dnom)
-        verifier("page --creer : un dossier sans CHANTIER.md donne son nom", mod.nom_du_projet(dnom) == "mon-projet",
-                 mod.nom_du_projet(dnom))
-        ecrire(os.path.join(dnom, "CHANTIER.md"), "# C\n\n- **alias** : mp\n")
-        verifier("page --creer : un dossier équipé donne son alias", mod.nom_du_projet(dnom) == "mp",
-                 mod.nom_du_projet(dnom))
-        verifier("page --creer : un nom reste un nom", mod.nom_du_projet("Proj " + tnom) == "Proj " + tnom, "")
-        pnom = os.path.join(tnom, "p.html")
-        appel(["page", fiches, pnom, "--creer", "--projet", dnom, "--titre", "T", "--resultat", "R"])
-        verifier("page --creer : --projet <dossier> écrit l'alias en tête", '<div class="eyebrow">mp · fiches'
-                 in lire(pnom) and "<title>mp — T</title>" in lire(pnom), lire(pnom)[:400])
-    code, s = appel(["page", fiches, page, "--creer", "--projet", "P", "--titre", "T", "--resultat", "R"])
-    verifier("page --creer n'écrase pas", code == 1 and "existe déjà" in s, s)
+        ecrire(fiches, PAGE % (" ", "", " ", ""))
+        code, s = appel(["page", fiches, page, "--creer", "--projet", "Proj", "--titre", "Le <titre>",
+                         "--resultat", "Fini quand.", "--note", "P1", "Produit a.py", "--date", "2026-01-02"])
+        html = lire(page) if os.path.exists(page) else ""
+        verifier("page --creer", code == 0 and "<title>Proj — Le &lt;titre&gt;</title>" in html
+                 and "Proj · fiches P1–P3" in html and "<p>Fini quand.</p>" in html
+                 and '<span data-etat="encours"></span><span></span><span></span>' in html
+                 and "3 fiches · 0 faite · en cours : P1" in html and '<span class="note">Produit a.py</span>' in html
+                 and "&lt;" not in html.split("<ul class=\"journal\">")[1].split("</ul>")[0]
+                 and '<p class="mono cout-total">' not in html and '<p class="mono cout-hors">' not in html
+                 and "Mis à jour le <span class=\"mono\">2026-01-02</span>" in html
+                 and "lignes · total non mesuré" in s, s + html)
+        # Dette CLI : `--projet .` écrivait « . » en tête de page ; un dossier donne son alias, sinon son nom
+        with tempfile.TemporaryDirectory() as tnom:
+            dnom = os.path.join(tnom, "mon-projet")
+            os.makedirs(dnom)
+            verifier("page --creer : un dossier sans CHANTIER.md donne son nom", mod.nom_du_projet(dnom) == "mon-projet",
+                     mod.nom_du_projet(dnom))
+            ecrire(os.path.join(dnom, "CHANTIER.md"), "# C\n\n- **alias** : mp\n")
+            verifier("page --creer : un dossier équipé donne son alias", mod.nom_du_projet(dnom) == "mp",
+                     mod.nom_du_projet(dnom))
+            verifier("page --creer : un nom reste un nom", mod.nom_du_projet("Proj " + tnom) == "Proj " + tnom, "")
+            pnom = os.path.join(tnom, "p.html")
+            appel(["page", fiches, pnom, "--creer", "--projet", dnom, "--titre", "T", "--resultat", "R"])
+            verifier("page --creer : --projet <dossier> écrit l'alias en tête", '<div class="eyebrow">mp · fiches'
+                     in lire(pnom) and "<title>mp — T</title>" in lire(pnom), lire(pnom)[:400])
+        code, s = appel(["page", fiches, page, "--creer", "--projet", "P", "--titre", "T", "--resultat", "R"])
+        verifier("page --creer n'écrase pas", code == 1 and "existe déjà" in s, s)
 
-    ecrire(fiches, PAGE % ("x", "**Session** : %s\n" % sa, " ", ""))
-    code, s = appel(["page", fiches, page, "--verifier"])
-    verifier("page --verifier : en retard", code == 1 and "ÉCART: P1 : page encours, fichier faite" in s
-             and "EN RETARD 3 fiches · 3 écarts" in s, s)
-    code, s = appel(["page", fiches, page, "--note", "P1", "a.py : <3 tests>", "--journal", "P1 : tranché.", "--date", "2026-01-03"])
-    html = lire(page)
-    verifier("page : fiche faite, coût, note échappée, journal", code == 0
-             and '<li class="fiche" data-etat="faite">' in html and "a.py : &lt;3 tests&gt;" in html
-             and '<span class="cout mono">≈200,0k (200 000) · 2 tours · 1,00 $</span>' in html
-             and '<p class="mono cout-total">Coût du chantier : ≈200,0k (200 000) · 2 tours · 1,00 $</p>' in html
-             and '<time datetime="2026-01-03">2026-01-03</time><span>P1 : tranché.</span>' in html
-             and "3 fiches · 1 faite · en cours : P2" in html, s + html)
-    code, s = appel(["page", fiches, page, "--verifier"])
-    verifier("page --verifier : à jour", code == 0 and s == "À JOUR 3 fiches · 0 écarts (états et avancement seulement)\n", s)
-    avant = lire(page)
-    appel(["page", fiches, page, "--date", "2026-01-03"])
-    verifier("page : régénérer deux fois ne change rien", lire(page) == avant, lire(page))
+        ecrire(fiches, PAGE % ("x", "**Session** : %s\n" % sa, " ", ""))
+        code, s = appel(["page", fiches, page, "--verifier"])
+        verifier("page --verifier : en retard", code == 1 and "ÉCART: P1 : page encours, fichier faite" in s
+                 and "EN RETARD 3 fiches · 3 écarts" in s, s)
+        code, s = appel(["page", fiches, page, "--note", "P1", "a.py : <3 tests>", "--journal", "P1 : tranché.", "--date", "2026-01-03"])
+        html = lire(page)
+        verifier("page : fiche faite, coût, note échappée, journal", code == 0
+                 and '<li class="fiche" data-etat="faite">' in html and "a.py : &lt;3 tests&gt;" in html
+                 and '<span class="cout mono">≈200,0k (200 000) · 2 tours · 1,00 $</span>' in html
+                 and '<p class="mono cout-total">Coût du chantier : ≈200,0k (200 000) · 2 tours · 1,00 $</p>' in html
+                 and '<time datetime="2026-01-03">2026-01-03</time><span>P1 : tranché.</span>' in html
+                 and "3 fiches · 1 faite · en cours : P2" in html, s + html)
+        code, s = appel(["page", fiches, page, "--verifier"])
+        verifier("page --verifier : à jour", code == 0 and s == "À JOUR 3 fiches · 0 écarts (états et avancement seulement)\n", s)
+        avant = lire(page)
+        appel(["page", fiches, page, "--date", "2026-01-03"])
+        verifier("page : régénérer deux fois ne change rien", lire(page) == avant, lire(page))
 
-    # P2 partage la session de P1 : P1 garde son coût affiché, P2 prend le reste ; b s'ajoute au total.
-    # L'ancien total compte 1 tour de cadrage (100 000) qu'aucune fiche ne porte : il reste hors de P2.
-    ecrire(page, lire(page).replace("Coût du chantier : ≈200,0k (200 000) · 2 tours · 1,00 $",
-                                    "Coût du chantier : ≈300,0k (300 000) · 3 tours · 1,50 $"))
-    transcript(sa, 4)
-    ecrire(fiches, PAGE % ("x", "**Session** : %s\n" % sa, "x", "**Session** : %s\n**Session** : %s\n" % (sa, sb)))
-    code, s = appel(["page", fiches, page, "--date", "2026-01-04"])
-    html = lire(page)
-    verifier("page : session partagée, le reste à la dernière", code == 0
-             and '<span class="cout mono">≈200,0k (200 000) · 2 tours · 1,00 $</span>' in html
-             and '<span class="cout mono">≈100,0k (100 000) · 1 tours · 0,50 $</span>' in html
-             and "Coût du chantier : ≈500,0k (500 000) · 5 tours · 2,50 $" in html
-             and "3 fiches · 2 faites · en cours : P3" in html, s + html)
-    avant = lire(page)
-    appel(["page", fiches, page, "--date", "2026-01-04"])
-    verifier("page : session partagée, régénérer deux fois ne change rien", lire(page) == avant, lire(page))
+        # P2 partage la session de P1 : P1 garde son coût affiché, P2 prend le reste ; b s'ajoute au total.
+        # L'ancien total compte 1 tour de cadrage (100 000) qu'aucune fiche ne porte : il reste hors de P2.
+        ecrire(page, lire(page).replace("Coût du chantier : ≈200,0k (200 000) · 2 tours · 1,00 $",
+                                        "Coût du chantier : ≈300,0k (300 000) · 3 tours · 1,50 $"))
+        transcript(sa, 4)
+        ecrire(fiches, PAGE % ("x", "**Session** : %s\n" % sa, "x", "**Session** : %s\n**Session** : %s\n" % (sa, sb)))
+        code, s = appel(["page", fiches, page, "--date", "2026-01-04"])
+        html = lire(page)
+        verifier("page : session partagée, le reste à la dernière", code == 0
+                 and '<span class="cout mono">≈200,0k (200 000) · 2 tours · 1,00 $</span>' in html
+                 and '<span class="cout mono">≈100,0k (100 000) · 1 tours · 0,50 $</span>' in html
+                 and "Coût du chantier : ≈500,0k (500 000) · 5 tours · 2,50 $" in html
+                 and "3 fiches · 2 faites · en cours : P3" in html, s + html)
+        avant = lire(page)
+        appel(["page", fiches, page, "--date", "2026-01-04"])
+        verifier("page : session partagée, régénérer deux fois ne change rien", lire(page) == avant, lire(page))
 
-    # Blocage : bloquée reste bloquée tant que non cochée ; le bloc se masque quand elle l'est.
-    html = lire(page).replace('<li class="fiche" data-etat="encours">', '<li class="fiche" data-etat="bloquee">')
-    html = html.replace("<section hidden>\n    <h2>Arrêt sur blocage</h2>", "<section>\n    <h2>Arrêt sur blocage</h2>")
-    html = html.replace('<div class="blocage">\n      <p></p>', '<div class="blocage">\n      <p>P3 — deux essais.</p>')
-    ecrire(page, html)
-    appel(["page", fiches, page])
-    html = lire(page)
-    verifier("page : bloquée gardée", '<li class="fiche" data-etat="bloquee">' in html and "bloquée : P3" in html
-             and "<section>\n    <h2>Arrêt sur blocage</h2>" in html, html)
-    ecrire(fiches, lire(fiches).replace("## P3 [ ]", "## P3 [x]"))
-    code, s = appel(["page", fiches, page])
-    html = lire(page)
-    verifier("page : blocage masqué une fois cochée", code == 0 and "<section hidden>\n    <h2>Arrêt sur blocage</h2>" in html
-             and "3 fiches · 3 faites</p>" in html and 'data-etat="bloquee"' not in html.split('<div class="page">')[1], s + html.split("<div class=\"page\">")[1])
+        # Blocage : bloquée reste bloquée tant que non cochée ; le bloc se masque quand elle l'est.
+        html = lire(page).replace('<li class="fiche" data-etat="encours">', '<li class="fiche" data-etat="bloquee">')
+        html = html.replace("<section hidden>\n    <h2>Arrêt sur blocage</h2>", "<section>\n    <h2>Arrêt sur blocage</h2>")
+        html = html.replace('<div class="blocage">\n      <p></p>', '<div class="blocage">\n      <p>P3 — deux essais.</p>')
+        ecrire(page, html)
+        appel(["page", fiches, page])
+        html = lire(page)
+        verifier("page : bloquée gardée", '<li class="fiche" data-etat="bloquee">' in html and "bloquée : P3" in html
+                 and "<section>\n    <h2>Arrêt sur blocage</h2>" in html, html)
+        ecrire(fiches, lire(fiches).replace("## P3 [ ]", "## P3 [x]"))
+        code, s = appel(["page", fiches, page])
+        html = lire(page)
+        verifier("page : blocage masqué une fois cochée", code == 0 and "<section hidden>\n    <h2>Arrêt sur blocage</h2>" in html
+                 and "3 fiches · 3 faites</p>" in html and 'data-etat="bloquee"' not in html.split('<div class="page">')[1], s + html.split("<div class=\"page\">")[1])
 
-    # L'en-tête suit la plage du fichier : quand on ajoute P4, la plage devient P1–P4, mais ce qui suit reste.
-    ecrire(page, lire(page).replace('Proj · fiches P1–P3</div>', 'Proj · fiches P1–P3 · clos</div>'))
-    ecrire(fiches, lire(fiches) + '\n<!-- FICHE:P4 -->\n## P4 [ ] — Ajoutée\n**Critère de fin**\n<!-- /FICHE -->\n')
-    code, s = appel(["page", fiches, page])
-    html = lire(page)
-    verifier("page : l'en-tête suit la plage du fichier", code == 0 and 'Proj · fiches P1–P4 · clos</div>' in html, s + html)
+        # L'en-tête suit la plage du fichier : quand on ajoute P4, la plage devient P1–P4, mais ce qui suit reste.
+        ecrire(page, lire(page).replace('Proj · fiches P1–P3</div>', 'Proj · fiches P1–P3 · clos</div>'))
+        ecrire(fiches, lire(fiches) + '\n<!-- FICHE:P4 -->\n## P4 [ ] — Ajoutée\n**Critère de fin**\n<!-- /FICHE -->\n')
+        code, s = appel(["page", fiches, page])
+        html = lire(page)
+        verifier("page : l'en-tête suit la plage du fichier", code == 0 and 'Proj · fiches P1–P4 · clos</div>' in html, s + html)
 
-    u_fiches = os.path.join(t, "u.md")
-    u_page = os.path.join(t, "artefacts", "u.html")
-    ecrire(u_fiches, "# Chantier U\n\n## Le socle commun\n\n## L'ordre des fiches\n\n<!-- FICHE:U1 -->\n## U1 [ ] — Seule\n**Critère de fin**\n<!-- /FICHE -->\n")
-    code, s = appel(["page", u_fiches, u_page, "--creer", "--projet", "Proj", "--titre", "U", "--resultat", "R."])
-    u_html = lire(u_page) if os.path.exists(u_page) else ""
-    verifier("page : l'en-tête d'une fiche seule", code == 0 and "Proj · fiches U1</div>" in u_html, s + u_html)
+        u_fiches = os.path.join(t, "u.md")
+        u_page = os.path.join(t, "artefacts", "u.html")
+        ecrire(u_fiches, "# Chantier U\n\n## Le socle commun\n\n## L'ordre des fiches\n\n<!-- FICHE:U1 -->\n## U1 [ ] — Seule\n**Critère de fin**\n<!-- /FICHE -->\n")
+        code, s = appel(["page", u_fiches, u_page, "--creer", "--projet", "Proj", "--titre", "U", "--resultat", "R."])
+        u_html = lire(u_page) if os.path.exists(u_page) else ""
+        verifier("page : l'en-tête d'une fiche seule", code == 0 and "Proj · fiches U1</div>" in u_html, s + u_html)
 
-    # Un en-tête sans plage reconnue reste tel quel : ni texte libre, ni parenthèses, ni trait d'union (REV6).
-    for entete in ("fiches à venir", "fiches (X1–X2)", "fiches X1-X2"):
-        ecrire(u_page, u_html.replace("Proj · fiches U1</div>", "Proj · %s</div>" % entete))
-        code, s = appel(["page", u_fiches, u_page])
-        html = lire(u_page)
-        verifier("page : un en-tête sans plage reste tel quel (%s)" % entete,
-                 code == 0 and "Proj · %s</div>" % entete in html, s + html)
-    ecrire(u_page, u_html)
+        # Un en-tête sans plage reconnue reste tel quel : ni texte libre, ni parenthèses, ni trait d'union (REV6).
+        for entete in ("fiches à venir", "fiches (X1–X2)", "fiches X1-X2"):
+            ecrire(u_page, u_html.replace("Proj · fiches U1</div>", "Proj · %s</div>" % entete))
+            code, s = appel(["page", u_fiches, u_page])
+            html = lire(u_page)
+            verifier("page : un en-tête sans plage reste tel quel (%s)" % entete,
+                     code == 0 and "Proj · %s</div>" % entete in html, s + html)
+        ecrire(u_page, u_html)
 
-    code, s = appel(["page", fiches, os.path.join(t, "absente.html")])
-    verifier("page absente sans --creer", code == 1 and "--creer" in s, s)
+        code, s = appel(["page", fiches, os.path.join(t, "absente.html")])
+        verifier("page absente sans --creer", code == 1 and "--creer" in s, s)
+
+
+groupe(tester_page_creer)
 
 # Découpe aux commits : Q1 et Q2 partagent une session horodatée, un sous-agent part pendant Q2.
 # Commits : Q ouvert +100, Q1 +300, Q2 +600, Q clos +800, puis un qui ne nomme pas le préfixe.
@@ -673,291 +751,301 @@ QFICHES = """# Chantier Q
 """
 T0 = 1790000000
 
-with tempfile.TemporaryDirectory() as t:
-    avec, sans = os.path.join(t, "avec"), os.path.join(t, "sans")
-    sq = os.path.join(t, "s.jsonl")
-    transcript(sq, 6, [T0 + d for d in (50, 200, 250, 400, 700, 1000)])
-    os.makedirs(os.path.join(t, "s", "subagents"))
-    transcript(os.path.join(t, "s", "subagents", "agent-a1.jsonl"), 2, [T0 + 450, T0 + 460])
-    for d in (avec, sans):
-        ecrire(os.path.join(d, "q.md"), QFICHES % (sq, sq))
-    pourquoi = []
-    h = mod.heures_commits(os.path.join(sans, "q.md"), ["Q1", "Q2"], pourquoi)
-    verifier("heures_commits : sans .git, rien, et pourquoi", h is None and len(pourquoi) == 1
-             and pourquoi[0].startswith(("git log en échec : ", "git ne se lance pas : ")), (h, pourquoi))
-    mod.GIT = "git-absent-vlp"
-    pourquoi = []
-    h = mod.heures_commits(os.path.join(sans, "q.md"), ["Q1", "Q2"], pourquoi)
-    mod.GIT = "git"
-    verifier("heures_commits : sans git, rien — jamais un traceback", h is None
-             and pourquoi[0].startswith("git ne se lance pas : "), (h, pourquoi))
-    if not shutil.which("git"):
-        print("SAUTÉ: git absent — la découpe aux commits n'est pas testée")
-    else:
-        # Un dépôt à part : ni la config globale (signature, hooks) ni celle du système.
-        env = dict(os.environ, GIT_CONFIG_GLOBAL=os.path.join(t, "gitconfig"), GIT_CONFIG_NOSYSTEM="1",
-                   GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t")
-        ecrire(env["GIT_CONFIG_GLOBAL"], "")
-        subprocess.run(["git", "init", "-q"], cwd=avec, env=env, check=True, capture_output=True)
-        for d, sujet in ((100, "Chantier Q ouvert : cadré"), (300, "Q1 : Créer"), (600, "Q2 : Brancher"),
-                         (800, "Chantier Q clos : fini"), (900, "Autre : QA et Q12x ne nomment pas le préfixe")):
-            date = "%d +0000" % (T0 + d)
-            subprocess.run(["git", "commit", "-q", "--allow-empty", "-m", sujet], cwd=avec, check=True,
-                           capture_output=True, env=dict(env, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date))
-        h = mod.heures_commits(os.path.join(avec, "q.md"), ["Q1", "Q2"])
-        verifier("heures_commits : heure d'auteur, commits qui nomment le préfixe",
-                 h == ({"Q1": T0 + 300, "Q2": T0 + 600}, [T0 + 100, T0 + 300, T0 + 600, T0 + 800], [T0 + 900]), h)
-        page = os.path.join(avec, "artefacts", "q.html")
-        code, s = appel(["page", os.path.join(avec, "q.md"), page, "--creer", "--projet", "P", "--titre", "T",
-                         "--resultat", "R", "--date", "2026-01-05"])
-        html = lire(page) if os.path.exists(page) else ""
-        verifier("page coupée aux commits : sous-agent compris, hors fiches à part, total = somme", code == 0
-                 and '<span class="cout mono">≈200,0k (200 000) · 2 tours · 1,00 $</span>' in html
-                 and '<span class="cout mono">≈300,0k (300 000) · 3 tours · 1,50 $</span>' in html
-                 and '<p class="mono cout-hors">Hors fiches : ≈200,0k (200 000) · 2 tours · 1,00 $</p>' in html
-                 and '<p class="mono cout-total">Coût du chantier : ≈700,0k (700 000) · 7 tours · 3,50 $</p>' in html
-                 and "Hors fiches : &lt;" not in html
-                 and ", dont hors fiches ≈200,0k (200 000) · 2 tours · 1,00 $" in s, s + html)
-        avant = lire(page)
-        appel(["page", os.path.join(avec, "q.md"), page, "--date", "2026-01-05"])
-        verifier("page coupée : régénérer deux fois ne change rien", lire(page) == avant, lire(page))
-        # Sans .git, la même page retombe sur l'ancienne logique : Q1 garde son coût affiché, Q2 prend
-        # la session moins Q1 et la part à aucune fiche ; ni sous-agent, ni ligne hors fiches.
-        ecrire(os.path.join(sans, "artefacts", "q.html"), avant)
-        code, s = appel(["page", os.path.join(sans, "q.md"), os.path.join(sans, "artefacts", "q.html"), "--date", "2026-01-05"])
-        html = lire(os.path.join(sans, "artefacts", "q.html"))
-        verifier("page sans .git : l'ancienne logique, sur l'ancienne page", code == 0
-                 and html.count('<span class="cout mono">≈200,0k (200 000) · 2 tours · 1,00 $</span>') == 2
-                 and '<p class="mono cout-hors">' not in html
-                 and "Coût du chantier : ≈600,0k (600 000) · 6 tours · 3,00 $" in html, s + html)
+def tester_heures_commits():
+    """Contrôler la découpe aux commits : `heures_commits`, puis `page`, `cout` et `recompter` coupés."""
+    with tempfile.TemporaryDirectory() as t:
+        avec, sans = os.path.join(t, "avec"), os.path.join(t, "sans")
+        sq = os.path.join(t, "s.jsonl")
+        transcript(sq, 6, [T0 + d for d in (50, 200, 250, 400, 700, 1000)])
+        os.makedirs(os.path.join(t, "s", "subagents"))
+        transcript(os.path.join(t, "s", "subagents", "agent-a1.jsonl"), 2, [T0 + 450, T0 + 460])
+        for d in (avec, sans):
+            ecrire(os.path.join(d, "q.md"), QFICHES % (sq, sq))
         pourquoi = []
-        h = mod.heures_commits(os.path.join(avec, "q.md"), ["Z1"], pourquoi)
-        verifier("heures_commits : aucun commit de fiche, et pourquoi", h is None
-                 and pourquoi == ["aucun commit qui nomme Z"], (h, pourquoi))
-        # cout : la découpe de la page, en détail — la somme d'abord, puis session + sous-agents.
-        q = os.path.join(avec, "q.md")
-        code, s = appel(["cout", q])
-        attendu = ("DÉCOUPE aux commits de fiche — une fiche va du commit d'avant au sien, un sous-agent compte à son départ\n"
-                   "Q1 · ≈200,0k (200 000) · 2 tours · 1,00 $ = session ≈200,0k (200 000) · 2 tours · 1,00 $ + 0 sous-agent\n"
-                   "Q2 · ≈300,0k (300 000) · 3 tours · 1,50 $ = session ≈100,0k (100 000) · 1 tours · 0,50 $"
-                   " + 1 sous-agent ≈200,0k (200 000) · 2 tours · 1,00 $\n"
-                   "hors fiches · ≈200,0k (200 000) · 2 tours · 1,00 $ = session ≈200,0k (200 000) · 2 tours · 1,00 $"
-                   " + 0 sous-agent\n"
-                   "TOTAL (fiches + hors fiches) · ≈700,0k (700 000) · 7 tours · 3,50 $ = session ≈500,0k (500 000)"
-                   " · 5 tours · 2,50 $ + 1 sous-agent ≈200,0k (200 000) · 2 tours · 1,00 $\n")
-        verifier("cout coupé aux commits : une ligne par fiche, hors fiches, TOTAL", code == 0 and s == attendu, s)
-        verifier("cout : triplet relit la somme de chaque ligne, celle de la page",
-                 [mod.triplet(l)[:2] for l in s.splitlines()[1:]] == [(200000, 2), (300000, 3), (200000, 2), (700000, 7)], s)
-        garde_env = dict(os.environ)
-        os.environ["CLAUDE_CODE_SESSION_ID"] = sq
-        try:
-            code, s = appel(["cout", q, "--session"])
-        finally:
-            os.environ.clear()
-            os.environ.update(garde_env)
-        verifier("cout --session : la table de la session, puis la découpe", code == 0
-                 and s.startswith("SESSION=%s\nfichier\t" % sq) and "\nagent-a1.jsonl\t" in s
-                 and s.endswith("\n" + attendu), s)
-        code, s = appel(["cout", os.path.join(sans, "q.md")])
-        verifier("cout sans .git : la table d'avant, sous la raison", code == 0
-                 and s.startswith("DÉCOUPE aucune — git log en échec : ") and "\ns.jsonl\t" in s
-                 and "\nagent-a1.jsonl\t" in s and "\nTOTAL\t" in s, s)
-        # FIN1 : dans une session qui enchaîne plusieurs chantiers, « Chantier P clos » (60) borne
-        # Q par le bas — le tour de 50 ne compte nulle part ; sans clôture, hors fiches va au bout.
-        multi = os.path.join(t, "multi")
-        os.makedirs(multi)
-        subprocess.run(["git", "init", "-q"], cwd=multi, env=env, check=True, capture_output=True)
-        for d, sujet in ((60, "Chantier P clos : fini"), (100, "Chantier Q ouvert : cadré"), (300, "Q1 : Créer"),
-                         (600, "Q2 : Brancher")):
-            date = "%d +0000" % (T0 + d)
-            subprocess.run(["git", "commit", "-q", "--allow-empty", "-m", sujet], cwd=multi, check=True,
-                           capture_output=True, env=dict(env, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date))
-        ecrire(os.path.join(multi, "q.md"), QFICHES % (sq, sq))
-        code, s = appel(["cout", os.path.join(multi, "q.md")])
-        verifier("cout : P clos borne Q par le bas, sans clôture hors fiches va au bout", code == 0
-                 and "\nhors fiches · ≈200,0k (200 000) · 2 tours · 1,00 $ = session" in s
-                 and "\nTOTAL (fiches + hors fiches) · ≈700,0k (700 000) · 7 tours · 3,50 $ = " in s, s)
-        # FIN2 : Q1 cochée, mesurée avant son commit — seule l'ouverture nomme Q. Elle part de
-        # l'ouverture (100), pas du début de la session : le tour de 50 ne compte pas.
-        ouv = os.path.join(t, "ouv")
-        os.makedirs(ouv)
-        subprocess.run(["git", "init", "-q"], cwd=ouv, env=env, check=True, capture_output=True)
-        for d, sujet in ((60, "Chantier P clos : fini"), (100, "Chantier Q ouvert : cadré")):
-            date = "%d +0000" % (T0 + d)
-            subprocess.run(["git", "commit", "-q", "--allow-empty", "-m", sujet], cwd=ouv, check=True,
-                           capture_output=True, env=dict(env, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date))
-        ecrire(os.path.join(ouv, "q.md"), (QFICHES % (sq, "")).replace("## Q2 [x]", "## Q2 [ ]")
-               .replace("**Session** : \n", ""))
-        code, s = appel(["cout", os.path.join(ouv, "q.md")])
-        verifier("cout : la première fiche avant son commit", code == 0
-                 and "\nQ1 · ≈700,0k (700 000) · 7 tours · 3,50 $ = " in s
-                 and "\nTOTAL (fiches + hors fiches) · ≈700,0k (700 000) · 7 tours" in s, s)
-        # ZER1 : un chantier clos sans commit de fiche — sa dernière mention est sa clôture, et la
-        # plage qui en part ne voit aucun tour ; son travail commité sous d'autres messages (1050),
-        # hors fiches non plus. Il retombe sur les sessions entières, et le dit ; sans ligne **CLOS**,
-        # la découpe reste, et une garde dit qu'elle ne garde rien.
-        clq = os.path.join(t, "clq")
-        os.makedirs(clq)
-        subprocess.run(["git", "init", "-q"], cwd=clq, env=env, check=True, capture_output=True)
-        for d, sujet in ((60, "Chantier P clos : fini"), (100, "Chantier Q ouvert : cadré"),
-                         (1050, "Autre : le travail, sans nommer le préfixe"), (1100, "Chantier Q clos : fini")):
-            date = "%d +0000" % (T0 + d)
-            subprocess.run(["git", "commit", "-q", "--allow-empty", "-m", sujet], cwd=clq, check=True,
-                           capture_output=True, env=dict(env, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date))
-        ecrire(os.path.join(clq, "q.md"), lire(os.path.join(ouv, "q.md")))
-        clos_ = lambda texte: texte.replace("# Chantier Q\n", "# Chantier Q\n\n**CLOS** le 2026-01-06.\n", 1)
-        ecrire(os.path.join(clq, "qz.md"), clos_(lire(os.path.join(ouv, "q.md"))))
-        code, s = appel(["cout", os.path.join(clq, "qz.md")])
-        verifier("cout : clos sans commit de fiche, les sessions entières, et pourquoi", code == 0
-                 and s.startswith("DÉCOUPE aucune — chantier clos sans commit « Q1 : » ni d'une autre fiche : "
-                                  "sessions entières, sous-agents compris\n")
-                 and "\nTOTAL\t8\t0\t-\t-\t800000\t0\t0\t0\t0\t800000\t800000\t4.00\t0\n" in s, s)
-        code, s = appel(["page", os.path.join(clq, "qz.md"), os.path.join(clq, "artefacts", "qz.html"), "--creer", "--projet", "P",
-                         "--titre", "T", "--resultat", "R", "--date", "2026-01-05"])
-        html = lire(os.path.join(clq, "artefacts", "qz.html")) if code == 0 else ""
-        verifier("page : clos sans commit de fiche, les sessions entières, sans hors fiches", code == 0
-                 and '<p class="mono cout-hors">' not in html
-                 and "Coût du chantier : ≈600,0k (600 000) · 6 tours · 3,00 $" in html, s + html)
+        h = mod.heures_commits(os.path.join(sans, "q.md"), ["Q1", "Q2"], pourquoi)
+        verifier("heures_commits : sans .git, rien, et pourquoi", h is None and len(pourquoi) == 1
+                 and pourquoi[0].startswith(("git log en échec : ", "git ne se lance pas : ")), (h, pourquoi))
+        mod.GIT = "git-absent-vlp"
         pourquoi = []
-        h = mod.heures_commits(os.path.join(clq, "qz.md"), ["Q1", "Q2"], pourquoi, clos=True)
-        verifier("heures_commits : clos sans commit de fiche, le repli et pourquoi", h is None
-                 and pourquoi == ["chantier clos sans commit « Q1 : » ni d'une autre fiche"], (h, pourquoi))
-        h = mod.heures_commits(os.path.join(clq, "q.md"), ["Q1", "Q2"])
-        verifier("heures_commits : en cours sans commit de fiche, la découpe",
-                 h == ({}, [T0 + 100, T0 + 1100], [T0 + 60, T0 + 1050]), h)
-        code, s = appel(["cout", os.path.join(clq, "q.md")])
-        verifier("cout : une découpe à zéro le dit", code == 0 and s.startswith(
-            "GARDE: découpe à zéro — aucun tour de 2 transcripts ne tombe dans une plage\n"
-            "DÉCOUPE aux commits de fiche") and "\nTOTAL (fiches + hors fiches) · 0 · 0 tours · 0,00 $ = " in s, s)
-        c2 = os.path.join(t, "c2.jsonl")
-        transcript(c2, 1, [T0 + 1080])
-        ecrire(os.path.join(clq, "q2.md"), lire(os.path.join(clq, "q.md")).replace(
-            "## Le socle commun", "**Session** : %s\n\n## Le socle commun" % c2, 1))
-        code, s = appel(["cout", os.path.join(clq, "q2.md")])
-        verifier("cout : fiches à zéro, un tour hors fiches — pas de garde", code == 0 and "GARDE" not in s
-                 and "\nhors fiches · ≈100,0k (100 000) · 1 tours · 0,50 $ = " in s, s)
-        ecrire(os.path.join(avec, "qk.md"), clos_(QFICHES % (sq, sq)))
-        code, s = appel(["cout", os.path.join(avec, "qk.md")])
-        verifier("cout : clos avec commits de fiche, la découpe", code == 0 and s == attendu, s)
-        # CAD1 : le cadrage joué dans une autre session, notée en tête du fichier — deux tours avant
-        # l'ouverture, un après la clôture : les deux premiers comptent, hors fiches.
-        sc = os.path.join(t, "c.jsonl")
-        transcript(sc, 3, [T0 + d for d in (20, 40, 1000)])
-        qc = os.path.join(avec, "qc.md")
-        ecrire(qc, (QFICHES % (sq, sq)).replace("## Le socle commun", "**Session** : %s\n\n## Le socle commun" % sc))
-        code, s = appel(["cout", qc])
-        verifier("cout : la session du cadrage, en tête, compte hors fiches", code == 0 and s.splitlines() == attendu.splitlines()[:3] + [
-            "hors fiches · ≈400,0k (400 000) · 4 tours · 2,00 $ = session ≈400,0k (400 000) · 4 tours · 2,00 $ + 0 sous-agent",
-            "TOTAL (fiches + hors fiches) · ≈900,0k (900 000) · 9 tours · 4,50 $ = session ≈700,0k (700 000) · 7 tours · 3,50 $"
-            " + 1 sous-agent ≈200,0k (200 000) · 2 tours · 1,00 $"], s)
-        code, s = appel(["page", qc, os.path.join(avec, "artefacts", "qc.html"), "--creer", "--projet", "P", "--titre", "T",
-                         "--resultat", "R", "--date", "2026-01-05"])
-        html = lire(os.path.join(avec, "artefacts", "qc.html")) if code == 0 else ""
-        verifier("page : la session du cadrage, en tête, compte hors fiches", code == 0
-                 and '<p class="mono cout-hors">Hors fiches : ≈400,0k (400 000) · 4 tours · 2,00 $</p>' in html
-                 and '<p class="mono cout-total">Coût du chantier : ≈900,0k (900 000) · 9 tours · 4,50 $</p>' in html, s + html)
-        # REC1 : recompter lit la feuille, l'index et les fichiers clos, et n'écrit rien. Q se coupe
-        # aux commits (le TOTAL de cout, 700 000) ; M partage sa session sans commit qui le nomme,
-        # N n'a pas de session, P une transcription absente, K n'est pas à l'index : gardés, écart 0.
-        rc = os.path.join(t, "rc")
-        os.makedirs(rc)
-        subprocess.run(["git", "init", "-q"], cwd=rc, env=env, check=True, capture_output=True)
-        for d, sujet in ((100, "Chantier Q ouvert : cadré"), (300, "Q1 : Créer"), (600, "Q2 : Brancher"),
-                         (800, "Chantier Q clos : fini"), (900, "Autre : QA et Q12x ne nomment pas le préfixe")):
-            date = "%d +0000" % (T0 + d)
-            subprocess.run(["git", "commit", "-q", "--allow-empty", "-m", sujet], cwd=rc, check=True,
-                           capture_output=True, env=dict(env, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date))
-        seule = ("# Chantier %s\n\n**CLOS** le 2026-01-06.\n\n## Le socle commun\n\n## L'ordre des fiches\n\n"
-                 "<!-- FICHE:%s1 -->\n## %s1 [x] — Seule\n%s**Critère de fin**\n<!-- /FICHE -->\n")
-        ecrire(os.path.join(rc, "CHANTIER.md"), "# Chantier courant\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n")
-        ecrire(os.path.join(rc, "ctx", "00-INDEX.md"), "| Fichier | Lire quand |\n|---|---|\n"
-               "| `q.md` | chantier **clos** « Q », `Q1..Q2` |\n| `m.md` | chantier **clos** « M », `M1..M1` |\n"
-               "| `n.md` | chantier **clos** « N », `N1..N1` |\n| `p.md` | chantier **clos** « P », `P1..P1` |\n")
-        ecrire(os.path.join(rc, "ctx", "q.md"), clos_(QFICHES % (sq, sq)))
-        ecrire(os.path.join(rc, "ctx", "m.md"), seule % ("M", "M", "M", "**Session** : %s\n" % sq))
-        ecrire(os.path.join(rc, "ctx", "n.md"), seule % ("N", "N", "N", ""))
-        ecrire(os.path.join(rc, "ctx", "p.md"), seule % ("P", "P", "P", "**Session** : rec1-transcription-absente\n"))
-        ecrire(os.path.join(rc, "ctx", "artefacts", "feuille-de-route.html"),
-               '    <!-- ZONE:clos — test -->\n      <table>\n        <tbody>\n'
-               + "".join(ligne_close(c).replace("Q1–Q2", pl) for pl, c in (
-                   ("Q1–Q2", mod.arrondi(650000)), ("M1", mod.arrondi(300000)), ("N1", mod.arrondi(999)),
-                   ("P1", mod.arrondi(2000)), ("K1–K3", mod.arrondi(1500)), ("E1–E8", "non mesurable")))
-               + "        </tbody>\n      </table>\n")
-        disque = lambda: {os.path.relpath(os.path.join(r, n), rc): lire(os.path.join(r, n))
-                          for r, _, ns in os.walk(rc) if ".git" not in r.split(os.sep) for n in ns}
-        avant = disque()
-        code, s = appel(["recompter", rc])
-        verifier("recompter : un clos découpé, des gardés à écart 0, la somme avec les gardés — mutants :"
-                 " un gardé compté dans l'écart, la somme sans les gardés", code == 0 and s.splitlines() == [
-                     "Q inscrit 650 000 · recompté 700 000 · écart +50 000 · découpe · partagée avec M",
-                     "M inscrit 300 000 · recompté gardé · écart +0 · gardé — DÉCOUPE aucune (aucun commit qui nomme M)"
-                     " · partagée avec Q",
-                     "N inscrit 999 · recompté gardé · écart +0 · gardé — sans session",
-                     "P inscrit 2 000 · recompté gardé · écart +0 · gardé — transcription absente (rec1-transcription-absente)",
-                     "K inscrit 1 500 · recompté gardé · écart +0 · gardé — fichier introuvable",
-                     "E inscrit 0 · recompté gardé · écart +0 · gardé — fichier introuvable",
-                     "RECOMPTE 6 clos · 1 recomptés · 5 gardés · inscrit 954 499 · recompté 1 004 499 · écart +50 000"], s)
-        code2, s2 = appel(["cout", os.path.join(rc, "ctx", "q.md")])
-        verifier("recompter : le recompté de Q est le TOTAL de cout", code2 == 0
-                 and "\nTOTAL (fiches + hors fiches) · ≈700,0k (700 000) · 7 tours" in s2, s2)
-        verifier("recompter n'écrit rien", disque() == avant, sorted(disque()))
-        # REC3 : --ecrire marque les six lignes en tête de cellule, resomme pied et résumé, puis ne
-        # change plus rien.
-        fr = os.path.join(rc, "ctx", "artefacts", "feuille-de-route.html")
-        ecrire(fr, lire(fr).replace("      <table>\n", '      <summary><span class="resume-clos">vieux</span></summary>\n'
-                                    "      <table>\n", 1).replace("      </table>\n",
-               '        <tfoot>\n          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>vieux'
-               '</strong></td><td class="mono">vieux</td></tr>\n        </tfoot>\n      </table>\n', 1))
-        code, s = appel(["recompter", rc, "--ecrire"])
-        feuille_ = lire(fr)
-        corps_ = feuille_[:feuille_.find("<tfoot>")]
-        verifier("recompter --ecrire : total_clos égale le recompté — mutants : la marque posée en parenthèses,"
-                 " la marque dans une balise", code == 0 and mod.total_clos(corps_) == 1004499
-                 and s.splitlines()[-2:] == [
-                     "RECOMPTE 6 clos · 1 recomptés · 5 gardés · inscrit 954 499 · recompté 1 004 499 · écart +50 000",
-                     "ÉCRIT 6 cellules · total 954 499 → 1 004 499"]
-                 and '<td class="mono">recompté (REC), était 650 000 · ≈700,0k (700 000)</td>' in feuille_
-                 and '<td class="mono">non recompté — sans session · (999)</td>' in feuille_
-                 and '<td class="mono">non recompté — fichier introuvable · non mesurable</td>' in feuille_, s + feuille_)
-        verifier("recompter --ecrire : pied et résumé resommés, sans $ (aucune ligne au prix mesuré) — mutant :"
-                 " le pied non resommé", "<strong>%s</strong></td><td class=\"mono\"></td>" % mod.arrondi(1004499)
-                 in feuille_ and '<span class="resume-clos">%s</span>' % mod.resume_clos(6, 1004499) in feuille_, feuille_)
-        code, s = appel(["recompter", rc, "--ecrire"])
-        verifier("recompter --ecrire relancé : rien ne change", code == 0 and lire(fr) == feuille_
-                 and s.splitlines()[-1] == "ÉCRIT 0 cellules · total 1 004 499 → 1 004 499"
-                 and "Q inscrit 700 000 · recompté 700 000 · écart +0 · découpe · partagée avec M" in s, s)
-        code, s = appel(["recompter", os.path.join(t, "clq")])
-        verifier("recompter : pas de CHANTIER.md, une garde", code == 1 and s.startswith("GARDE: pas de CHANTIER.md"), s)
+        h = mod.heures_commits(os.path.join(sans, "q.md"), ["Q1", "Q2"], pourquoi)
+        mod.GIT = "git"
+        verifier("heures_commits : sans git, rien — jamais un traceback", h is None
+                 and pourquoi[0].startswith("git ne se lance pas : "), (h, pourquoi))
+        if not shutil.which("git"):
+            print("SAUTÉ: git absent — la découpe aux commits n'est pas testée")
+        else:
+            # Un dépôt à part : ni la config globale (signature, hooks) ni celle du système.
+            env = dict(os.environ, GIT_CONFIG_GLOBAL=os.path.join(t, "gitconfig"), GIT_CONFIG_NOSYSTEM="1",
+                       GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t")
+            ecrire(env["GIT_CONFIG_GLOBAL"], "")
+            subprocess.run(["git", "init", "-q"], cwd=avec, env=env, check=True, capture_output=True)
+            for d, sujet in ((100, "Chantier Q ouvert : cadré"), (300, "Q1 : Créer"), (600, "Q2 : Brancher"),
+                             (800, "Chantier Q clos : fini"), (900, "Autre : QA et Q12x ne nomment pas le préfixe")):
+                date = "%d +0000" % (T0 + d)
+                subprocess.run(["git", "commit", "-q", "--allow-empty", "-m", sujet], cwd=avec, check=True,
+                               capture_output=True, env=dict(env, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date))
+            h = mod.heures_commits(os.path.join(avec, "q.md"), ["Q1", "Q2"])
+            verifier("heures_commits : heure d'auteur, commits qui nomment le préfixe",
+                     h == ({"Q1": T0 + 300, "Q2": T0 + 600}, [T0 + 100, T0 + 300, T0 + 600, T0 + 800], [T0 + 900]), h)
+            page = os.path.join(avec, "artefacts", "q.html")
+            code, s = appel(["page", os.path.join(avec, "q.md"), page, "--creer", "--projet", "P", "--titre", "T",
+                             "--resultat", "R", "--date", "2026-01-05"])
+            html = lire(page) if os.path.exists(page) else ""
+            verifier("page coupée aux commits : sous-agent compris, hors fiches à part, total = somme", code == 0
+                     and '<span class="cout mono">≈200,0k (200 000) · 2 tours · 1,00 $</span>' in html
+                     and '<span class="cout mono">≈300,0k (300 000) · 3 tours · 1,50 $</span>' in html
+                     and '<p class="mono cout-hors">Hors fiches : ≈200,0k (200 000) · 2 tours · 1,00 $</p>' in html
+                     and '<p class="mono cout-total">Coût du chantier : ≈700,0k (700 000) · 7 tours · 3,50 $</p>' in html
+                     and "Hors fiches : &lt;" not in html
+                     and ", dont hors fiches ≈200,0k (200 000) · 2 tours · 1,00 $" in s, s + html)
+            avant = lire(page)
+            appel(["page", os.path.join(avec, "q.md"), page, "--date", "2026-01-05"])
+            verifier("page coupée : régénérer deux fois ne change rien", lire(page) == avant, lire(page))
+            # Sans .git, la même page retombe sur l'ancienne logique : Q1 garde son coût affiché, Q2 prend
+            # la session moins Q1 et la part à aucune fiche ; ni sous-agent, ni ligne hors fiches.
+            ecrire(os.path.join(sans, "artefacts", "q.html"), avant)
+            code, s = appel(["page", os.path.join(sans, "q.md"), os.path.join(sans, "artefacts", "q.html"), "--date", "2026-01-05"])
+            html = lire(os.path.join(sans, "artefacts", "q.html"))
+            verifier("page sans .git : l'ancienne logique, sur l'ancienne page", code == 0
+                     and html.count('<span class="cout mono">≈200,0k (200 000) · 2 tours · 1,00 $</span>') == 2
+                     and '<p class="mono cout-hors">' not in html
+                     and "Coût du chantier : ≈600,0k (600 000) · 6 tours · 3,00 $" in html, s + html)
+            pourquoi = []
+            h = mod.heures_commits(os.path.join(avec, "q.md"), ["Z1"], pourquoi)
+            verifier("heures_commits : aucun commit de fiche, et pourquoi", h is None
+                     and pourquoi == ["aucun commit qui nomme Z"], (h, pourquoi))
+            # cout : la découpe de la page, en détail — la somme d'abord, puis session + sous-agents.
+            q = os.path.join(avec, "q.md")
+            code, s = appel(["cout", q])
+            attendu = ("DÉCOUPE aux commits de fiche — une fiche va du commit d'avant au sien, un sous-agent compte à son départ\n"
+                       "Q1 · ≈200,0k (200 000) · 2 tours · 1,00 $ = session ≈200,0k (200 000) · 2 tours · 1,00 $ + 0 sous-agent\n"
+                       "Q2 · ≈300,0k (300 000) · 3 tours · 1,50 $ = session ≈100,0k (100 000) · 1 tours · 0,50 $"
+                       " + 1 sous-agent ≈200,0k (200 000) · 2 tours · 1,00 $\n"
+                       "hors fiches · ≈200,0k (200 000) · 2 tours · 1,00 $ = session ≈200,0k (200 000) · 2 tours · 1,00 $"
+                       " + 0 sous-agent\n"
+                       "TOTAL (fiches + hors fiches) · ≈700,0k (700 000) · 7 tours · 3,50 $ = session ≈500,0k (500 000)"
+                       " · 5 tours · 2,50 $ + 1 sous-agent ≈200,0k (200 000) · 2 tours · 1,00 $\n")
+            verifier("cout coupé aux commits : une ligne par fiche, hors fiches, TOTAL", code == 0 and s == attendu, s)
+            verifier("cout : triplet relit la somme de chaque ligne, celle de la page",
+                     [mod.triplet(l)[:2] for l in s.splitlines()[1:]] == [(200000, 2), (300000, 3), (200000, 2), (700000, 7)], s)
+            garde_env = dict(os.environ)
+            os.environ["CLAUDE_CODE_SESSION_ID"] = sq
+            try:
+                code, s = appel(["cout", q, "--session"])
+            finally:
+                os.environ.clear()
+                os.environ.update(garde_env)
+            verifier("cout --session : la table de la session, puis la découpe", code == 0
+                     and s.startswith("SESSION=%s\nfichier\t" % sq) and "\nagent-a1.jsonl\t" in s
+                     and s.endswith("\n" + attendu), s)
+            code, s = appel(["cout", os.path.join(sans, "q.md")])
+            verifier("cout sans .git : la table d'avant, sous la raison", code == 0
+                     and s.startswith("DÉCOUPE aucune — git log en échec : ") and "\ns.jsonl\t" in s
+                     and "\nagent-a1.jsonl\t" in s and "\nTOTAL\t" in s, s)
+            # FIN1 : dans une session qui enchaîne plusieurs chantiers, « Chantier P clos » (60) borne
+            # Q par le bas — le tour de 50 ne compte nulle part ; sans clôture, hors fiches va au bout.
+            multi = os.path.join(t, "multi")
+            os.makedirs(multi)
+            subprocess.run(["git", "init", "-q"], cwd=multi, env=env, check=True, capture_output=True)
+            for d, sujet in ((60, "Chantier P clos : fini"), (100, "Chantier Q ouvert : cadré"), (300, "Q1 : Créer"),
+                             (600, "Q2 : Brancher")):
+                date = "%d +0000" % (T0 + d)
+                subprocess.run(["git", "commit", "-q", "--allow-empty", "-m", sujet], cwd=multi, check=True,
+                               capture_output=True, env=dict(env, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date))
+            ecrire(os.path.join(multi, "q.md"), QFICHES % (sq, sq))
+            code, s = appel(["cout", os.path.join(multi, "q.md")])
+            verifier("cout : P clos borne Q par le bas, sans clôture hors fiches va au bout", code == 0
+                     and "\nhors fiches · ≈200,0k (200 000) · 2 tours · 1,00 $ = session" in s
+                     and "\nTOTAL (fiches + hors fiches) · ≈700,0k (700 000) · 7 tours · 3,50 $ = " in s, s)
+            # FIN2 : Q1 cochée, mesurée avant son commit — seule l'ouverture nomme Q. Elle part de
+            # l'ouverture (100), pas du début de la session : le tour de 50 ne compte pas.
+            ouv = os.path.join(t, "ouv")
+            os.makedirs(ouv)
+            subprocess.run(["git", "init", "-q"], cwd=ouv, env=env, check=True, capture_output=True)
+            for d, sujet in ((60, "Chantier P clos : fini"), (100, "Chantier Q ouvert : cadré")):
+                date = "%d +0000" % (T0 + d)
+                subprocess.run(["git", "commit", "-q", "--allow-empty", "-m", sujet], cwd=ouv, check=True,
+                               capture_output=True, env=dict(env, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date))
+            ecrire(os.path.join(ouv, "q.md"), (QFICHES % (sq, "")).replace("## Q2 [x]", "## Q2 [ ]")
+                   .replace("**Session** : \n", ""))
+            code, s = appel(["cout", os.path.join(ouv, "q.md")])
+            verifier("cout : la première fiche avant son commit", code == 0
+                     and "\nQ1 · ≈700,0k (700 000) · 7 tours · 3,50 $ = " in s
+                     and "\nTOTAL (fiches + hors fiches) · ≈700,0k (700 000) · 7 tours" in s, s)
+            # ZER1 : un chantier clos sans commit de fiche — sa dernière mention est sa clôture, et la
+            # plage qui en part ne voit aucun tour ; son travail commité sous d'autres messages (1050),
+            # hors fiches non plus. Il retombe sur les sessions entières, et le dit ; sans ligne **CLOS**,
+            # la découpe reste, et une garde dit qu'elle ne garde rien.
+            clq = os.path.join(t, "clq")
+            os.makedirs(clq)
+            subprocess.run(["git", "init", "-q"], cwd=clq, env=env, check=True, capture_output=True)
+            for d, sujet in ((60, "Chantier P clos : fini"), (100, "Chantier Q ouvert : cadré"),
+                             (1050, "Autre : le travail, sans nommer le préfixe"), (1100, "Chantier Q clos : fini")):
+                date = "%d +0000" % (T0 + d)
+                subprocess.run(["git", "commit", "-q", "--allow-empty", "-m", sujet], cwd=clq, check=True,
+                               capture_output=True, env=dict(env, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date))
+            ecrire(os.path.join(clq, "q.md"), lire(os.path.join(ouv, "q.md")))
+            clos_ = lambda texte: texte.replace("# Chantier Q\n", "# Chantier Q\n\n**CLOS** le 2026-01-06.\n", 1)
+            ecrire(os.path.join(clq, "qz.md"), clos_(lire(os.path.join(ouv, "q.md"))))
+            code, s = appel(["cout", os.path.join(clq, "qz.md")])
+            verifier("cout : clos sans commit de fiche, les sessions entières, et pourquoi", code == 0
+                     and s.startswith("DÉCOUPE aucune — chantier clos sans commit « Q1 : » ni d'une autre fiche : "
+                                      "sessions entières, sous-agents compris\n")
+                     and "\nTOTAL\t8\t0\t-\t-\t800000\t0\t0\t0\t0\t800000\t800000\t4.00\t0\n" in s, s)
+            code, s = appel(["page", os.path.join(clq, "qz.md"), os.path.join(clq, "artefacts", "qz.html"), "--creer", "--projet", "P",
+                             "--titre", "T", "--resultat", "R", "--date", "2026-01-05"])
+            html = lire(os.path.join(clq, "artefacts", "qz.html")) if code == 0 else ""
+            verifier("page : clos sans commit de fiche, les sessions entières, sans hors fiches", code == 0
+                     and '<p class="mono cout-hors">' not in html
+                     and "Coût du chantier : ≈600,0k (600 000) · 6 tours · 3,00 $" in html, s + html)
+            pourquoi = []
+            h = mod.heures_commits(os.path.join(clq, "qz.md"), ["Q1", "Q2"], pourquoi, clos=True)
+            verifier("heures_commits : clos sans commit de fiche, le repli et pourquoi", h is None
+                     and pourquoi == ["chantier clos sans commit « Q1 : » ni d'une autre fiche"], (h, pourquoi))
+            h = mod.heures_commits(os.path.join(clq, "q.md"), ["Q1", "Q2"])
+            verifier("heures_commits : en cours sans commit de fiche, la découpe",
+                     h == ({}, [T0 + 100, T0 + 1100], [T0 + 60, T0 + 1050]), h)
+            code, s = appel(["cout", os.path.join(clq, "q.md")])
+            verifier("cout : une découpe à zéro le dit", code == 0 and s.startswith(
+                "GARDE: découpe à zéro — aucun tour de 2 transcripts ne tombe dans une plage\n"
+                "DÉCOUPE aux commits de fiche") and "\nTOTAL (fiches + hors fiches) · 0 · 0 tours · 0,00 $ = " in s, s)
+            c2 = os.path.join(t, "c2.jsonl")
+            transcript(c2, 1, [T0 + 1080])
+            ecrire(os.path.join(clq, "q2.md"), lire(os.path.join(clq, "q.md")).replace(
+                "## Le socle commun", "**Session** : %s\n\n## Le socle commun" % c2, 1))
+            code, s = appel(["cout", os.path.join(clq, "q2.md")])
+            verifier("cout : fiches à zéro, un tour hors fiches — pas de garde", code == 0 and "GARDE" not in s
+                     and "\nhors fiches · ≈100,0k (100 000) · 1 tours · 0,50 $ = " in s, s)
+            ecrire(os.path.join(avec, "qk.md"), clos_(QFICHES % (sq, sq)))
+            code, s = appel(["cout", os.path.join(avec, "qk.md")])
+            verifier("cout : clos avec commits de fiche, la découpe", code == 0 and s == attendu, s)
+            # CAD1 : le cadrage joué dans une autre session, notée en tête du fichier — deux tours avant
+            # l'ouverture, un après la clôture : les deux premiers comptent, hors fiches.
+            sc = os.path.join(t, "c.jsonl")
+            transcript(sc, 3, [T0 + d for d in (20, 40, 1000)])
+            qc = os.path.join(avec, "qc.md")
+            ecrire(qc, (QFICHES % (sq, sq)).replace("## Le socle commun", "**Session** : %s\n\n## Le socle commun" % sc))
+            code, s = appel(["cout", qc])
+            verifier("cout : la session du cadrage, en tête, compte hors fiches", code == 0 and s.splitlines() == attendu.splitlines()[:3] + [
+                "hors fiches · ≈400,0k (400 000) · 4 tours · 2,00 $ = session ≈400,0k (400 000) · 4 tours · 2,00 $ + 0 sous-agent",
+                "TOTAL (fiches + hors fiches) · ≈900,0k (900 000) · 9 tours · 4,50 $ = session ≈700,0k (700 000) · 7 tours · 3,50 $"
+                " + 1 sous-agent ≈200,0k (200 000) · 2 tours · 1,00 $"], s)
+            code, s = appel(["page", qc, os.path.join(avec, "artefacts", "qc.html"), "--creer", "--projet", "P", "--titre", "T",
+                             "--resultat", "R", "--date", "2026-01-05"])
+            html = lire(os.path.join(avec, "artefacts", "qc.html")) if code == 0 else ""
+            verifier("page : la session du cadrage, en tête, compte hors fiches", code == 0
+                     and '<p class="mono cout-hors">Hors fiches : ≈400,0k (400 000) · 4 tours · 2,00 $</p>' in html
+                     and '<p class="mono cout-total">Coût du chantier : ≈900,0k (900 000) · 9 tours · 4,50 $</p>' in html, s + html)
+            # REC1 : recompter lit la feuille, l'index et les fichiers clos, et n'écrit rien. Q se coupe
+            # aux commits (le TOTAL de cout, 700 000) ; M partage sa session sans commit qui le nomme,
+            # N n'a pas de session, P une transcription absente, K n'est pas à l'index : gardés, écart 0.
+            rc = os.path.join(t, "rc")
+            os.makedirs(rc)
+            subprocess.run(["git", "init", "-q"], cwd=rc, env=env, check=True, capture_output=True)
+            for d, sujet in ((100, "Chantier Q ouvert : cadré"), (300, "Q1 : Créer"), (600, "Q2 : Brancher"),
+                             (800, "Chantier Q clos : fini"), (900, "Autre : QA et Q12x ne nomment pas le préfixe")):
+                date = "%d +0000" % (T0 + d)
+                subprocess.run(["git", "commit", "-q", "--allow-empty", "-m", sujet], cwd=rc, check=True,
+                               capture_output=True, env=dict(env, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date))
+            seule = ("# Chantier %s\n\n**CLOS** le 2026-01-06.\n\n## Le socle commun\n\n## L'ordre des fiches\n\n"
+                     "<!-- FICHE:%s1 -->\n## %s1 [x] — Seule\n%s**Critère de fin**\n<!-- /FICHE -->\n")
+            ecrire(os.path.join(rc, "CHANTIER.md"), "# Chantier courant\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n")
+            ecrire(os.path.join(rc, "ctx", "00-INDEX.md"), "| Fichier | Lire quand |\n|---|---|\n"
+                   "| `q.md` | chantier **clos** « Q », `Q1..Q2` |\n| `m.md` | chantier **clos** « M », `M1..M1` |\n"
+                   "| `n.md` | chantier **clos** « N », `N1..N1` |\n| `p.md` | chantier **clos** « P », `P1..P1` |\n")
+            ecrire(os.path.join(rc, "ctx", "q.md"), clos_(QFICHES % (sq, sq)))
+            ecrire(os.path.join(rc, "ctx", "m.md"), seule % ("M", "M", "M", "**Session** : %s\n" % sq))
+            ecrire(os.path.join(rc, "ctx", "n.md"), seule % ("N", "N", "N", ""))
+            ecrire(os.path.join(rc, "ctx", "p.md"), seule % ("P", "P", "P", "**Session** : rec1-transcription-absente\n"))
+            ecrire(os.path.join(rc, "ctx", "artefacts", "feuille-de-route.html"),
+                   '    <!-- ZONE:clos — test -->\n      <table>\n        <tbody>\n'
+                   + "".join(ligne_close(c).replace("Q1–Q2", pl) for pl, c in (
+                       ("Q1–Q2", mod.arrondi(650000)), ("M1", mod.arrondi(300000)), ("N1", mod.arrondi(999)),
+                       ("P1", mod.arrondi(2000)), ("K1–K3", mod.arrondi(1500)), ("E1–E8", "non mesurable")))
+                   + "        </tbody>\n      </table>\n")
+            disque = lambda: {os.path.relpath(os.path.join(r, n), rc): lire(os.path.join(r, n))
+                              for r, _, ns in os.walk(rc) if ".git" not in r.split(os.sep) for n in ns}
+            avant = disque()
+            code, s = appel(["recompter", rc])
+            verifier("recompter : un clos découpé, des gardés à écart 0, la somme avec les gardés — mutants :"
+                     " un gardé compté dans l'écart, la somme sans les gardés", code == 0 and s.splitlines() == [
+                         "Q inscrit 650 000 · recompté 700 000 · écart +50 000 · découpe · partagée avec M",
+                         "M inscrit 300 000 · recompté gardé · écart +0 · gardé — DÉCOUPE aucune (aucun commit qui nomme M)"
+                         " · partagée avec Q",
+                         "N inscrit 999 · recompté gardé · écart +0 · gardé — sans session",
+                         "P inscrit 2 000 · recompté gardé · écart +0 · gardé — transcription absente (rec1-transcription-absente)",
+                         "K inscrit 1 500 · recompté gardé · écart +0 · gardé — fichier introuvable",
+                         "E inscrit 0 · recompté gardé · écart +0 · gardé — fichier introuvable",
+                         "RECOMPTE 6 clos · 1 recomptés · 5 gardés · inscrit 954 499 · recompté 1 004 499 · écart +50 000"], s)
+            code2, s2 = appel(["cout", os.path.join(rc, "ctx", "q.md")])
+            verifier("recompter : le recompté de Q est le TOTAL de cout", code2 == 0
+                     and "\nTOTAL (fiches + hors fiches) · ≈700,0k (700 000) · 7 tours" in s2, s2)
+            verifier("recompter n'écrit rien", disque() == avant, sorted(disque()))
+            # REC3 : --ecrire marque les six lignes en tête de cellule, resomme pied et résumé, puis ne
+            # change plus rien.
+            fr = os.path.join(rc, "ctx", "artefacts", "feuille-de-route.html")
+            ecrire(fr, lire(fr).replace("      <table>\n", '      <summary><span class="resume-clos">vieux</span></summary>\n'
+                                        "      <table>\n", 1).replace("      </table>\n",
+                   '        <tfoot>\n          <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>vieux'
+                   '</strong></td><td class="mono">vieux</td></tr>\n        </tfoot>\n      </table>\n', 1))
+            code, s = appel(["recompter", rc, "--ecrire"])
+            feuille_ = lire(fr)
+            corps_ = feuille_[:feuille_.find("<tfoot>")]
+            verifier("recompter --ecrire : total_clos égale le recompté — mutants : la marque posée en parenthèses,"
+                     " la marque dans une balise", code == 0 and mod.total_clos(corps_) == 1004499
+                     and s.splitlines()[-2:] == [
+                         "RECOMPTE 6 clos · 1 recomptés · 5 gardés · inscrit 954 499 · recompté 1 004 499 · écart +50 000",
+                         "ÉCRIT 6 cellules · total 954 499 → 1 004 499"]
+                     and '<td class="mono">recompté (REC), était 650 000 · ≈700,0k (700 000)</td>' in feuille_
+                     and '<td class="mono">non recompté — sans session · (999)</td>' in feuille_
+                     and '<td class="mono">non recompté — fichier introuvable · non mesurable</td>' in feuille_, s + feuille_)
+            verifier("recompter --ecrire : pied et résumé resommés, sans $ (aucune ligne au prix mesuré) — mutant :"
+                     " le pied non resommé", "<strong>%s</strong></td><td class=\"mono\"></td>" % mod.arrondi(1004499)
+                     in feuille_ and '<span class="resume-clos">%s</span>' % mod.resume_clos(6, 1004499) in feuille_, feuille_)
+            code, s = appel(["recompter", rc, "--ecrire"])
+            verifier("recompter --ecrire relancé : rien ne change", code == 0 and lire(fr) == feuille_
+                     and s.splitlines()[-1] == "ÉCRIT 0 cellules · total 1 004 499 → 1 004 499"
+                     and "Q inscrit 700 000 · recompté 700 000 · écart +0 · découpe · partagée avec M" in s, s)
+            code, s = appel(["recompter", os.path.join(t, "clq")])
+            verifier("recompter : pas de CHANTIER.md, une garde", code == 1 and s.startswith("GARDE: pas de CHANTIER.md"), s)
+
+
+groupe(tester_heures_commits)
 
 # FIN1 : les bornes de `plages`, en fonction pure — heures (commits de fiche, qui nomment, autres).
-P2, G = [("Q1", "a", True, ["s"]), ("Q2", "b", True, ["s"])], []
-bornes = lambda h, f=P2: mod.plages(f, h, G)
-verifier("plages : l'origine, le chantier d'avant, borne hors fiches",
-         bornes(({"Q1": 300, "Q2": 600}, [100, 300, 600, 800], [30, 900]))
-         == ([("Q1", (100, 300)), ("Q2", (300, 600))], [(30, 100), (600, 800)]), bornes(({"Q1": 300, "Q2": 600}, [100, 300, 600, 800], [30, 900])))
-verifier("plages : sans clôture, hors fiches va au bout",
-         bornes(({"Q1": 300, "Q2": 600}, [100, 300, 600], [30]))[1] == [(30, 100), (600, mod.INFINI)],
-         bornes(({"Q1": 300, "Q2": 600}, [100, 300, 600], [30])))
-verifier("plages : une mention après la clôture n'étire rien",
-         bornes(({"Q1": 300, "Q2": 600}, [100, 300, 600, 800, 950], [30, 900]))[1] == [(30, 100), (600, 800)],
-         bornes(({"Q1": 300, "Q2": 600}, [100, 300, 600, 800, 950], [30, 900])))
-verifier("plages : sans commit qui nomme avant, la première fiche part de l'origine",
-         bornes(({"Q1": 300, "Q2": 600}, [300, 600, 800], [30, 200]))
-         == ([("Q1", (200, 300)), ("Q2", (300, 600))], [(600, 800)]), bornes(({"Q1": 300, "Q2": 600}, [300, 600, 800], [30, 200])))
-verifier("plages : une mention juste avant l'ouverture y fait entrer son travail",
-         bornes(({"Q1": 300}, [20, 100, 300, 800], [10]), P2[:1])[1] == [(10, 100), (300, 800)],
-         bornes(({"Q1": 300}, [20, 100, 300, 800], [10]), P2[:1]))
-verifier("plages : fiche à session sans commit, au bout, rien après",
-         bornes(({"Q1": 300}, [100, 300], [30])) == ([("Q1", (100, 300)), ("Q2", (300, mod.INFINI))], [(30, 100)])
-         and not G, (bornes(({"Q1": 300}, [100, 300], [30])), G))
+def tester_plages():
+    """Contrôler les bornes de `plages`, en fonction pure (chantier FIN)."""
+    P2, G = [("Q1", "a", True, ["s"]), ("Q2", "b", True, ["s"])], []
+    bornes = lambda h, f=P2: mod.plages(f, h, G)
+    verifier("plages : l'origine, le chantier d'avant, borne hors fiches",
+             bornes(({"Q1": 300, "Q2": 600}, [100, 300, 600, 800], [30, 900]))
+             == ([("Q1", (100, 300)), ("Q2", (300, 600))], [(30, 100), (600, 800)]), bornes(({"Q1": 300, "Q2": 600}, [100, 300, 600, 800], [30, 900])))
+    verifier("plages : sans clôture, hors fiches va au bout",
+             bornes(({"Q1": 300, "Q2": 600}, [100, 300, 600], [30]))[1] == [(30, 100), (600, mod.INFINI)],
+             bornes(({"Q1": 300, "Q2": 600}, [100, 300, 600], [30])))
+    verifier("plages : une mention après la clôture n'étire rien",
+             bornes(({"Q1": 300, "Q2": 600}, [100, 300, 600, 800, 950], [30, 900]))[1] == [(30, 100), (600, 800)],
+             bornes(({"Q1": 300, "Q2": 600}, [100, 300, 600, 800, 950], [30, 900])))
+    verifier("plages : sans commit qui nomme avant, la première fiche part de l'origine",
+             bornes(({"Q1": 300, "Q2": 600}, [300, 600, 800], [30, 200]))
+             == ([("Q1", (200, 300)), ("Q2", (300, 600))], [(600, 800)]), bornes(({"Q1": 300, "Q2": 600}, [300, 600, 800], [30, 200])))
+    verifier("plages : une mention juste avant l'ouverture y fait entrer son travail",
+             bornes(({"Q1": 300}, [20, 100, 300, 800], [10]), P2[:1])[1] == [(10, 100), (300, 800)],
+             bornes(({"Q1": 300}, [20, 100, 300, 800], [10]), P2[:1]))
+    verifier("plages : fiche à session sans commit, au bout, rien après",
+             bornes(({"Q1": 300}, [100, 300], [30])) == ([("Q1", (100, 300)), ("Q2", (300, mod.INFINI))], [(30, 100)])
+             and not G, (bornes(({"Q1": 300}, [100, 300], [30])), G))
 
-# FIN2 : sans commit de fiche, la première fiche part du dernier commit qui nomme le préfixe
-COCHEE, VIDE = [("Q1", "a", True, ["s"]), ("Q2", "b", False, [])], [("Q1", "a", False, [])]
-verifier("plages : sans commit de fiche, la fiche cochée part de l'ouverture",
-         bornes(({}, [100], [30, 900]), COCHEE) == ([("Q1", (100, mod.INFINI))], [(30, 100)]) and not G,
-         (bornes(({}, [100], [30, 900]), COCHEE), G))
-verifier("plages : sans commit de fiche ni session, rien",
-         bornes(({}, [100], [30]), VIDE) == ([], []) and not G, (bornes(({}, [100], [30]), VIDE), G))
+    # FIN2 : sans commit de fiche, la première fiche part du dernier commit qui nomme le préfixe
+    COCHEE, VIDE = [("Q1", "a", True, ["s"]), ("Q2", "b", False, [])], [("Q1", "a", False, [])]
+    verifier("plages : sans commit de fiche, la fiche cochée part de l'ouverture",
+             bornes(({}, [100], [30, 900]), COCHEE) == ([("Q1", (100, mod.INFINI))], [(30, 100)]) and not G,
+             (bornes(({}, [100], [30, 900]), COCHEE), G))
+    verifier("plages : sans commit de fiche ni session, rien",
+             bornes(({}, [100], [30]), VIDE) == ([], []) and not G, (bornes(({}, [100], [30]), VIDE), G))
+
+
+groupe(tester_plages)
 
 
 # --- hook : le PostToolUse du plugin -----------------------------------------
@@ -968,99 +1056,119 @@ def hook(texte):
     return code, o.getvalue(), e.getvalue()
 
 
-with tempfile.TemporaryDirectory() as t:
-    def json_de(nom):
-        return '{"tool_input": {"file_path": "%s"}, "cwd": "%s"}' % (nom, t.replace("\\", "/"))
+def tester_hook_fiches():
+    """Contrôler le hook d'écriture sur un fichier de fiches : JSON illisible, .md ordinaire, fiches valides ou non."""
+    with tempfile.TemporaryDirectory() as t:
+        def json_de(nom):
+            return '{"tool_input": {"file_path": "%s"}, "cwd": "%s"}' % (nom, t.replace("\\", "/"))
 
-    code, o, e = hook("pas du json")
-    verifier("hook : JSON illisible, muet", (code, o, e) == (0, "", ""), o + e)
-    ecrire(os.path.join(t, "notes.md"), "# Notes\n\n```\n<!-- FICHE:D1 -->\n## Le socle commun\n```\n")
-    code, o, e = hook(json_de("notes.md"))
-    verifier("hook : .md ordinaire (marqueur en bloc de code), muet", (code, o, e) == (0, "", ""), o + e)
-    ecrire(os.path.join(t, "y.md"), AVEC.replace("\n**Prompt**\n```\n---\n## pas un titre\n```", "\n**Critère de fin**")
-           .replace("**Session** : bbb", "**Critère de fin**"))
-    code, o, e = hook(json_de("y.md"))
-    verifier("hook : fiches valides, bilan en JSON, sort 0", code == 0 and e == ""
-             and '"additionalContext": "VALIDE 2 fiches' in o and '"hookEventName": "PostToolUse"' in o, o + e)
-    ecrire(os.path.join(t, "y.md"), lire(os.path.join(t, "y.md")).replace("<!-- /FICHE -->\n\n---", "\n---", 1))
-    code, o, e = hook(json_de("y.md"))
-    verifier("hook : fermant manquant, sort 2 sur stderr", code == 2 and o == "" and "marqueur" in e
-             and "INVALIDE" in e and e.endswith("Corrige ce fichier de fiches avant de continuer.\n"), o + e)
-    ecrire(os.path.join(t, "y.md"), AVEC.replace("## Le socle commun", "## Socle"))
-    code, o, e = hook(json_de("y.md"))
-    verifier("hook : titre de section reformulé, sort 2", code == 2 and "section absente : ## Le socle commun" in e, o + e)
+        code, o, e = hook("pas du json")
+        verifier("hook : JSON illisible, muet", (code, o, e) == (0, "", ""), o + e)
+        ecrire(os.path.join(t, "notes.md"), "# Notes\n\n```\n<!-- FICHE:D1 -->\n## Le socle commun\n```\n")
+        code, o, e = hook(json_de("notes.md"))
+        verifier("hook : .md ordinaire (marqueur en bloc de code), muet", (code, o, e) == (0, "", ""), o + e)
+        ecrire(os.path.join(t, "y.md"), AVEC.replace("\n**Prompt**\n```\n---\n## pas un titre\n```", "\n**Critère de fin**")
+               .replace("**Session** : bbb", "**Critère de fin**"))
+        code, o, e = hook(json_de("y.md"))
+        verifier("hook : fiches valides, bilan en JSON, sort 0", code == 0 and e == ""
+                 and '"additionalContext": "VALIDE 2 fiches' in o and '"hookEventName": "PostToolUse"' in o, o + e)
+        ecrire(os.path.join(t, "y.md"), lire(os.path.join(t, "y.md")).replace("<!-- /FICHE -->\n\n---", "\n---", 1))
+        code, o, e = hook(json_de("y.md"))
+        verifier("hook : fermant manquant, sort 2 sur stderr", code == 2 and o == "" and "marqueur" in e
+                 and "INVALIDE" in e and e.endswith("Corrige ce fichier de fiches avant de continuer.\n"), o + e)
+        ecrire(os.path.join(t, "y.md"), AVEC.replace("## Le socle commun", "## Socle"))
+        code, o, e = hook(json_de("y.md"))
+        verifier("hook : titre de section reformulé, sort 2", code == 2 and "section absente : ## Le socle commun" in e, o + e)
 
-with tempfile.TemporaryDirectory() as t:
-    c = os.path.join(t, "ctx")
-    verifier("etat : dossier absent", appel(["etat", c]) == (0, "ETAT=01-etat.md\n"), appel(["etat", c]))
-    os.makedirs(c)
-    verifier("etat : dossier vide", appel(["etat", c]) == (0, "ETAT=01-etat.md\n"), appel(["etat", c]))
-    ecrire(os.path.join(c, "03-a.md"), "a\n")
-    ecrire(os.path.join(c, "07-b.md"), "b\n")
-    verifier("etat : à la suite du plus grand", appel(["etat", c]) == (0, "ETAT=08-etat.md\n"), appel(["etat", c]))
-    ecrire(os.path.join(c, "10-etat.md"), "état\n")
-    verifier("etat : déjà présent", appel(["etat", c]) == (0, "ETAT=10-etat.md\n"), appel(["etat", c]))
 
-with tempfile.TemporaryDirectory() as t:
-    ecrire(os.path.join(t, "CHANTIER.md"), "- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n")
-    ecrire(os.path.join(t, "ctx", "01-a.md"), "a\n")
-    ecrire(os.path.join(t, "outils", "b.py"), "b\n")
-    ecrire(os.path.join(t, "ctx", "00-INDEX.md"),
-           "# Index\n\n| Fichier | Lire quand |\n|---|---|\n| `01-a.md` | on lit `z.md` |\n"
-           "| `<NN>-x.md` | gabarit |\n| *(hors dossier)* `m.md` | ailleurs |\n"
-           "| `commands/<nom>.md`, `outils/b.py` | code |\n| `references/` | dossier |\n")
-    ecrire(os.path.join(t, "CLAUDE.md"),
-           "# P\n\n| hors routage | `perdu.md` |\n\n## Routage — ouvrir ceci\n\n| La tâche | Ouvrir |\n|---|---|\n"
-           "| lire `vlp.py` | `ctx/01-a.md` |\n| lancer | **`/vlp:chantier`** |\n\n## Économie\n\n| x | `loin.md` |\n")
-    verifier("renvois : tout présent, poids sous seuil", appel(["renvois", t]) == (0, "POIDS CLAUDE.md 14/80 · CHANTIER.md 2/50 · index 9/80\n"
-             "RENVOIS 3 nommés · 0 absents\n"), appel(["renvois", t]))
-    ecrire(os.path.join(t, "CHANTIER.md"), "- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n" + "x\n" * 49)
-    code, s = appel(["renvois", t])
-    verifier("renvois : poids au-delà, avertit sans changer la sortie", code == 0 and s.startswith(
-        "AVERTISSEMENT: CHANTIER.md 51 lignes > 50\nPOIDS CLAUDE.md 14/80 · CHANTIER.md 51/50 · index 9/80\n"), s)
-    os.remove(os.path.join(t, "CLAUDE.md"))
-    code, s = appel(["renvois", t])
-    verifier("renvois : CLAUDE.md absent dans les poids", code == 0 and "POIDS CLAUDE.md absent/80 · CHANTIER.md 51/50" in s, s)
-    ecrire(os.path.join(t, "CLAUDE.md"),
-           "# P\n\n| hors routage | `perdu.md` |\n\n## Routage — ouvrir ceci\n\n| La tâche | Ouvrir |\n|---|---|\n"
-           "| lire `vlp.py` | `ctx/01-a.md` |\n| lancer | **`/vlp:chantier`** |\n\n## Économie\n\n| x | `loin.md` |\n")
-    ecrire(os.path.join(t, "ctx", "00-INDEX.md"), "| Fichier | Lire |\n|---|---|\n| `99-mort.md` | jamais |\n")
-    code, s = appel(["renvois", t])
-    verifier("renvois : absent, sort 1", code == 1 and s.startswith("ABSENT: ctx/00-INDEX.md:3: 99-mort.md\n")
-             and s.endswith("index 3/80\nRENVOIS 2 nommés · 1 absents\n"), s)
-    os.remove(os.path.join(t, "CHANTIER.md"))
-    verifier("renvois : pas équipé", appel(["renvois", t])[0] == 1, appel(["renvois", t]))
+groupe(tester_hook_fiches)
+
+def tester_etat():
+    """Contrôler `etat` : dossier absent, puis le fichier d'état trouvé."""
+    with tempfile.TemporaryDirectory() as t:
+        c = os.path.join(t, "ctx")
+        verifier("etat : dossier absent", appel(["etat", c]) == (0, "ETAT=01-etat.md\n"), appel(["etat", c]))
+        os.makedirs(c)
+        verifier("etat : dossier vide", appel(["etat", c]) == (0, "ETAT=01-etat.md\n"), appel(["etat", c]))
+        ecrire(os.path.join(c, "03-a.md"), "a\n")
+        ecrire(os.path.join(c, "07-b.md"), "b\n")
+        verifier("etat : à la suite du plus grand", appel(["etat", c]) == (0, "ETAT=08-etat.md\n"), appel(["etat", c]))
+        ecrire(os.path.join(c, "10-etat.md"), "état\n")
+        verifier("etat : déjà présent", appel(["etat", c]) == (0, "ETAT=10-etat.md\n"), appel(["etat", c]))
+
+
+groupe(tester_etat)
+
+def tester_renvois():
+    """Contrôler `renvois` : renvois présents ou absents, poids sous ou sur le seuil."""
+    with tempfile.TemporaryDirectory() as t:
+        ecrire(os.path.join(t, "CHANTIER.md"), "- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n")
+        ecrire(os.path.join(t, "ctx", "01-a.md"), "a\n")
+        ecrire(os.path.join(t, "outils", "b.py"), "b\n")
+        ecrire(os.path.join(t, "ctx", "00-INDEX.md"),
+               "# Index\n\n| Fichier | Lire quand |\n|---|---|\n| `01-a.md` | on lit `z.md` |\n"
+               "| `<NN>-x.md` | gabarit |\n| *(hors dossier)* `m.md` | ailleurs |\n"
+               "| `commands/<nom>.md`, `outils/b.py` | code |\n| `references/` | dossier |\n")
+        ecrire(os.path.join(t, "CLAUDE.md"),
+               "# P\n\n| hors routage | `perdu.md` |\n\n## Routage — ouvrir ceci\n\n| La tâche | Ouvrir |\n|---|---|\n"
+               "| lire `vlp.py` | `ctx/01-a.md` |\n| lancer | **`/vlp:chantier`** |\n\n## Économie\n\n| x | `loin.md` |\n")
+        verifier("renvois : tout présent, poids sous seuil", appel(["renvois", t]) == (0, "POIDS CLAUDE.md 14/80 · CHANTIER.md 2/50 · index 9/80\n"
+                 "RENVOIS 3 nommés · 0 absents\n"), appel(["renvois", t]))
+        ecrire(os.path.join(t, "CHANTIER.md"), "- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n" + "x\n" * 49)
+        code, s = appel(["renvois", t])
+        verifier("renvois : poids au-delà, avertit sans changer la sortie", code == 0 and s.startswith(
+            "AVERTISSEMENT: CHANTIER.md 51 lignes > 50\nPOIDS CLAUDE.md 14/80 · CHANTIER.md 51/50 · index 9/80\n"), s)
+        os.remove(os.path.join(t, "CLAUDE.md"))
+        code, s = appel(["renvois", t])
+        verifier("renvois : CLAUDE.md absent dans les poids", code == 0 and "POIDS CLAUDE.md absent/80 · CHANTIER.md 51/50" in s, s)
+        ecrire(os.path.join(t, "CLAUDE.md"),
+               "# P\n\n| hors routage | `perdu.md` |\n\n## Routage — ouvrir ceci\n\n| La tâche | Ouvrir |\n|---|---|\n"
+               "| lire `vlp.py` | `ctx/01-a.md` |\n| lancer | **`/vlp:chantier`** |\n\n## Économie\n\n| x | `loin.md` |\n")
+        ecrire(os.path.join(t, "ctx", "00-INDEX.md"), "| Fichier | Lire |\n|---|---|\n| `99-mort.md` | jamais |\n")
+        code, s = appel(["renvois", t])
+        verifier("renvois : absent, sort 1", code == 1 and s.startswith("ABSENT: ctx/00-INDEX.md:3: 99-mort.md\n")
+                 and s.endswith("index 3/80\nRENVOIS 2 nommés · 1 absents\n"), s)
+        os.remove(os.path.join(t, "CHANTIER.md"))
+        verifier("renvois : pas équipé", appel(["renvois", t])[0] == 1, appel(["renvois", t]))
+
+
+groupe(tester_renvois)
 
 # REP1 : le gras et les liens Markdown d'une cellule — jamais dans du code cité.
-gras_liens, cellule = mod.gras_et_liens, mod.cellule_md
-s = gras_liens("un **mot** fort")
-verifier("gras_et_liens : un gras", s == "un <strong>mot</strong> fort", s)
-s = gras_liens("**a** puis **b**")
-verifier("gras_et_liens : deux gras dans une cellule", s == "<strong>a</strong> puis <strong>b</strong>", s)
-s = gras_liens("note **importante")
-verifier("gras_et_liens : un ** sans paire, inchangé", s == "note **importante", s)
-s = cellule("**le `sh` seul**")
-verifier("gras_et_liens : un gras qui contient du code", s == '<strong>le <span class="mono">sh</span> seul</strong>', s)
-s = cellule("`**x**` puis `**` et z**")
-verifier("gras_et_liens : un ** dans du code, inchangé, jamais apparié au-dehors",
-         s == '<span class="mono">**x**</span> puis <span class="mono">**</span> et z**', s)
-s = cellule("voir [la doc](https://exemple/a?b=1&c=2)")
-verifier("gras_et_liens : un lien https, l'URL échappée dans le href",
-         s == 'voir <a href="https://exemple/a?b=1&amp;c=2">la doc</a>', s)
-s = gras_liens("[x](javascript:alert(1))")
-verifier("gras_et_liens : un lien javascript:, inchangé", s == "[x](javascript:alert(1))", s)
-s = cellule("`[t](https://u)`")
-verifier("gras_et_liens : un lien dans du code, inchangé", s == '<span class="mono">[t](https://u)</span>', s)
-s = cellule("**voir [la doc](https://u) et `x`** puis **y")
-verifier("gras_et_liens : deux passes = une, un gras englobe lien et code", gras_liens(s) == s
-         and s == '<strong>voir <a href="https://u">la doc</a> et <span class="mono">x</span></strong> puis **y', s)
-s = gras_liens("[A](https://w/A_(b))")
-verifier("gras_et_liens : des parenthèses équilibrées dans l'URL", s == '<a href="https://w/A_(b)">A</a>', s)
-s = gras_liens('[t](https://u"x)')
-verifier("gras_et_liens : un guillemet dans l'URL, inchangé", s == '[t](https://u"x)', s)
-s = gras_liens('<td>**a</td><td>b**</td><a href="https://x/**y">t**</a>')
-verifier("gras_et_liens : une autre balise borne le gras, ses attributs intacts",
-         s == '<td>**a</td><td>b**</td><a href="https://x/**y">t**</a>', s)
+def tester_gras_et_liens():
+    """Contrôler `gras_et_liens` et `cellule` : le gras et les liens Markdown d'une cellule (chantier REP)."""
+    gras_liens, cellule = mod.gras_et_liens, mod.cellule_md
+    s = gras_liens("un **mot** fort")
+    verifier("gras_et_liens : un gras", s == "un <strong>mot</strong> fort", s)
+    s = gras_liens("**a** puis **b**")
+    verifier("gras_et_liens : deux gras dans une cellule", s == "<strong>a</strong> puis <strong>b</strong>", s)
+    s = gras_liens("note **importante")
+    verifier("gras_et_liens : un ** sans paire, inchangé", s == "note **importante", s)
+    s = cellule("**le `sh` seul**")
+    verifier("gras_et_liens : un gras qui contient du code", s == '<strong>le <span class="mono">sh</span> seul</strong>', s)
+    s = cellule("`**x**` puis `**` et z**")
+    verifier("gras_et_liens : un ** dans du code, inchangé, jamais apparié au-dehors",
+             s == '<span class="mono">**x**</span> puis <span class="mono">**</span> et z**', s)
+    s = cellule("voir [la doc](https://exemple/a?b=1&c=2)")
+    verifier("gras_et_liens : un lien https, l'URL échappée dans le href",
+             s == 'voir <a href="https://exemple/a?b=1&amp;c=2">la doc</a>', s)
+    s = gras_liens("[x](javascript:alert(1))")
+    verifier("gras_et_liens : un lien javascript:, inchangé", s == "[x](javascript:alert(1))", s)
+    s = cellule("`[t](https://u)`")
+    verifier("gras_et_liens : un lien dans du code, inchangé", s == '<span class="mono">[t](https://u)</span>', s)
+    s = cellule("**voir [la doc](https://u) et `x`** puis **y")
+    verifier("gras_et_liens : deux passes = une, un gras englobe lien et code", gras_liens(s) == s
+             and s == '<strong>voir <a href="https://u">la doc</a> et <span class="mono">x</span></strong> puis **y', s)
+    s = gras_liens("[A](https://w/A_(b))")
+    verifier("gras_et_liens : des parenthèses équilibrées dans l'URL", s == '<a href="https://w/A_(b)">A</a>', s)
+    s = gras_liens('[t](https://u"x)')
+    verifier("gras_et_liens : un guillemet dans l'URL, inchangé", s == '[t](https://u"x)', s)
+    s = gras_liens('<td>**a</td><td>b**</td><a href="https://x/**y">t**</a>')
+    verifier("gras_et_liens : une autre balise borne le gras, ses attributs intacts",
+             s == '<td>**a</td><td>b**</td><a href="https://x/**y">t**</a>', s)
+
+
+groupe(tester_gras_et_liens)
 
 def tester_bilan_md_clore(page_q):
     """Dans une fonction : au niveau du module, pyright jugeait le fichier trop complexe (ABR3)."""
@@ -1071,135 +1179,140 @@ def tester_bilan_md_clore(page_q):
              and "\x00" not in "\n".join(bilan_md), bilan_md)
 
 
-with tempfile.TemporaryDirectory() as t:
-    carte_ = ("# C\n\n- **contexte** : ctx/\n- **fichier d'état** : ctx/08-etat.md\n"
-              "- **fichier de fiches courant** : %s\n- **artefact du chantier** : %s\n\n"
-              "Lettres de fiche déjà prises : E (Un), M (Deux `x`). Un nouveau chantier en choisit une autre.\n")
-    ecrire(os.path.join(t, "CHANTIER.md"), carte_ % ("aucun", "aucun"))
-    ecrire(os.path.join(t, "ctx", "08-etat.md"),
-           "# État\n\n| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |\n|---|---|---|---|---|\n"
-           "| 3 | Le `sh` | a \\|\\| b <c> | 2 fiches | — |\n| 4 | Quatre | rien | 1 fiche | 3 |\n\n## Journal\n")
-    ecrire(os.path.join(t, "ctx", "30-q.md"), "# Chantier Q — Un titre\n\n## Q1 [x] — a\n## Q2 [ ] — b\n")
-    fdr = os.path.join(t, "ctx", "artefacts", "feuille-de-route.html")
-    ecrire(fdr, open(os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html"), encoding="utf-8").read())
-    lire = lambda c: open(c, encoding="utf-8").read()
-    code, s = appel(["feuille", t, "--date", "2026-01-02"])
-    html = lire(fdr)
-    verifier("feuille : fermé, réécrite", code == 0 and "FEUILLE todo 2 · encours non · lettres 2 · réécrite" in s
-             and "Aucun chantier ouvert" in html and '<span class="mono">E, M</span>' in html
-             and '<span class="mono">2026-01-02</span>' in html, s + html)
-    verifier("feuille : TODO rendue", '<span class="gauche"><span class="rang mono">3</span></span><details><summary>'
-             '<span class="titre">Le <span class="mono">sh</span></span></summary><div class="detail">a || b &lt;c&gt;</div>'
-             '</details><span class="meta mono">2 fiches</span></li>' in html
-             and "&lt;U, R&gt;" not in html and 'data-etat="cours"' not in html.split("ZONE:todo")[1], html)
-    avant_todo = html.split("<!-- ZONE:todo")[0].split("Les chantiers possibles")[1]
-    verifier("feuille : décompte au-dessus de la TODO, détaillé (FEU8)", avant_todo.count("resume-todo") == 1
-             and "><strong>2 chantiers possibles</strong> · 1 petit, 1 moyen · 1 bloqué · ≈3 fiches estimées</p>" in avant_todo
-             and "&lt;n&gt; chantiers possibles" not in html, html)
-    code, s = appel(["feuille", t, "--date", "2026-03-04"])
-    verifier("feuille : idempotente, date gardée", code == 0 and "inchangée" in s and "2026-01-02" in lire(fdr), s)
-    ecrire(fdr, mod.RESUME_TODO.sub("", lire(fdr)))
-    code, s = appel(["feuille", t, "--date", "2026-01-02"])
-    verifier("feuille : décompte posé sur une feuille d'avant", code == 0 and lire(fdr).count("resume-todo") == 1
-             and ("><strong>2 chantiers possibles</strong> · 1 petit, 1 moyen · 1 bloqué · ≈3 fiches estimées</p>\n    <!-- ZONE:todo"
-                  in lire(fdr)), s + lire(fdr))
-    verifier("feuille : décompte au singulier et vide",
-             mod.resume_todo(1) == "1 chantier possible" and mod.resume_todo(0) == "aucun chantier possible", "")
-    ecrire(os.path.join(t, "CHANTIER.md"), carte_ % ("ctx/30-q.md (Q1..Q2)", "https://exemple/q"))
-    code, s = appel(["feuille", t, "--verifier"])
-    verifier("feuille : --verifier voit l'écart sans écrire", code == 1 and "écart" in s and "Aucun chantier" in lire(fdr), s)
-    code, s = appel(["feuille", t, "--todo", "4", "--date", "2026-03-04"])
-    html = lire(fdr)
-    verifier("feuille : ouvert, badge, lettre", code == 0 and "encours oui · lettres 3" in s
-             and 'Un titre <span class="badge" data-etat="cours">' in html and '<span class="mono">Q1–Q2</span>' in html
-             and 'href="https://exemple/q"' in html and "E, M, Q" in html
-             and ('<span class="rang mono">4</span>' + mod.BADGE_COURS + '<span class="dep mono">← 3</span></span>'
-                  '<details><summary><span class="titre">Quatre</span></summary>') in html, s + html)
-    code, s = appel(["feuille", t])
-    verifier("feuille : badge gardé sans --todo", code == 0 and "inchangée" in s, s)
-    verifier("feuille : --verifier identique", appel(["feuille", t, "--verifier"])[0] == 0, appel(["feuille", t, "--verifier"]))
-    code, s = appel(["feuille", t, "--todo", "9"])
-    verifier("feuille : --todo absent, garde", code == 1 and s.startswith("GARDE:"), s)
-    ecrire(os.path.join(t, "CHANTIER.md"), carte_ % ("aucun", "aucun"))
-    code, s = appel(["feuille", t])
-    html = lire(fdr)
-    verifier("feuille : refermé, badge ôté", code == 0 and "Aucun chantier ouvert" in html
-             and 'data-etat="cours"' not in html.split("ZONE:encours")[1] and "E, M</span>" in html, s)
+def tester_feuille_clore():
+    """Contrôler `feuille` et `clore` : feuille fermée, réécrite, résumé (chantier FEU)."""
+    with tempfile.TemporaryDirectory() as t:
+        carte_ = ("# C\n\n- **contexte** : ctx/\n- **fichier d'état** : ctx/08-etat.md\n"
+                  "- **fichier de fiches courant** : %s\n- **artefact du chantier** : %s\n\n"
+                  "Lettres de fiche déjà prises : E (Un), M (Deux `x`). Un nouveau chantier en choisit une autre.\n")
+        ecrire(os.path.join(t, "CHANTIER.md"), carte_ % ("aucun", "aucun"))
+        ecrire(os.path.join(t, "ctx", "08-etat.md"),
+               "# État\n\n| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |\n|---|---|---|---|---|\n"
+               "| 3 | Le `sh` | a \\|\\| b <c> | 2 fiches | — |\n| 4 | Quatre | rien | 1 fiche | 3 |\n\n## Journal\n")
+        ecrire(os.path.join(t, "ctx", "30-q.md"), "# Chantier Q — Un titre\n\n## Q1 [x] — a\n## Q2 [ ] — b\n")
+        fdr = os.path.join(t, "ctx", "artefacts", "feuille-de-route.html")
+        ecrire(fdr, open(os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html"), encoding="utf-8").read())
+        lire = lambda c: open(c, encoding="utf-8").read()
+        code, s = appel(["feuille", t, "--date", "2026-01-02"])
+        html = lire(fdr)
+        verifier("feuille : fermé, réécrite", code == 0 and "FEUILLE todo 2 · encours non · lettres 2 · réécrite" in s
+                 and "Aucun chantier ouvert" in html and '<span class="mono">E, M</span>' in html
+                 and '<span class="mono">2026-01-02</span>' in html, s + html)
+        verifier("feuille : TODO rendue", '<span class="gauche"><span class="rang mono">3</span></span><details><summary>'
+                 '<span class="titre">Le <span class="mono">sh</span></span></summary><div class="detail">a || b &lt;c&gt;</div>'
+                 '</details><span class="meta mono">2 fiches</span></li>' in html
+                 and "&lt;U, R&gt;" not in html and 'data-etat="cours"' not in html.split("ZONE:todo")[1], html)
+        avant_todo = html.split("<!-- ZONE:todo")[0].split("Les chantiers possibles")[1]
+        verifier("feuille : décompte au-dessus de la TODO, détaillé (FEU8)", avant_todo.count("resume-todo") == 1
+                 and "><strong>2 chantiers possibles</strong> · 1 petit, 1 moyen · 1 bloqué · ≈3 fiches estimées</p>" in avant_todo
+                 and "&lt;n&gt; chantiers possibles" not in html, html)
+        code, s = appel(["feuille", t, "--date", "2026-03-04"])
+        verifier("feuille : idempotente, date gardée", code == 0 and "inchangée" in s and "2026-01-02" in lire(fdr), s)
+        ecrire(fdr, mod.RESUME_TODO.sub("", lire(fdr)))
+        code, s = appel(["feuille", t, "--date", "2026-01-02"])
+        verifier("feuille : décompte posé sur une feuille d'avant", code == 0 and lire(fdr).count("resume-todo") == 1
+                 and ("><strong>2 chantiers possibles</strong> · 1 petit, 1 moyen · 1 bloqué · ≈3 fiches estimées</p>\n    <!-- ZONE:todo"
+                      in lire(fdr)), s + lire(fdr))
+        verifier("feuille : décompte au singulier et vide",
+                 mod.resume_todo(1) == "1 chantier possible" and mod.resume_todo(0) == "aucun chantier possible", "")
+        ecrire(os.path.join(t, "CHANTIER.md"), carte_ % ("ctx/30-q.md (Q1..Q2)", "https://exemple/q"))
+        code, s = appel(["feuille", t, "--verifier"])
+        verifier("feuille : --verifier voit l'écart sans écrire", code == 1 and "écart" in s and "Aucun chantier" in lire(fdr), s)
+        code, s = appel(["feuille", t, "--todo", "4", "--date", "2026-03-04"])
+        html = lire(fdr)
+        verifier("feuille : ouvert, badge, lettre", code == 0 and "encours oui · lettres 3" in s
+                 and 'Un titre <span class="badge" data-etat="cours">' in html and '<span class="mono">Q1–Q2</span>' in html
+                 and 'href="https://exemple/q"' in html and "E, M, Q" in html
+                 and ('<span class="rang mono">4</span>' + mod.BADGE_COURS + '<span class="dep mono">← 3</span></span>'
+                      '<details><summary><span class="titre">Quatre</span></summary>') in html, s + html)
+        code, s = appel(["feuille", t])
+        verifier("feuille : badge gardé sans --todo", code == 0 and "inchangée" in s, s)
+        verifier("feuille : --verifier identique", appel(["feuille", t, "--verifier"])[0] == 0, appel(["feuille", t, "--verifier"]))
+        code, s = appel(["feuille", t, "--todo", "9"])
+        verifier("feuille : --todo absent, garde", code == 1 and s.startswith("GARDE:"), s)
+        ecrire(os.path.join(t, "CHANTIER.md"), carte_ % ("aucun", "aucun"))
+        code, s = appel(["feuille", t])
+        html = lire(fdr)
+        verifier("feuille : refermé, badge ôté", code == 0 and "Aucun chantier ouvert" in html
+                 and 'data-etat="cours"' not in html.split("ZONE:encours")[1] and "E, M</span>" in html, s)
 
-    ecrire(os.path.join(t, "CHANTIER.md"), carte_ % ("ctx/30-q.md (Q1..Q2)", "https://exemple/q")
-           + "\n| Fichier de fiches | Fiches | Clos le | Artefact |\n|---|---|---|---|\n| ctx/10-e.md | E1..E2 | 2026-01-01 | u |\n\nFin.\n")
-    ecrire(os.path.join(t, "ctx", "30-q.md"), "# Chantier Q — Un `titre`\n\n**À quoi il sert.** x\n\n**Estimé.** 2 fiches · ≈0,40 $ — ≈0,20 $/fiche sur 3 clos (le 2026-05-01).\n\n**Fait.** Rien.\n\n## Q1 [x] — a\n## Q2 [ ] — b\n")
-    html = lire(fdr)
-    for gabarit, vrai in (('&lt;≈2,3k (2 312)&gt;', "≈2,3k (2 312)"), ('&lt;≈15,3k (15 342)&gt;', "?"), ("&lt;une ligne&gt;", "ligne &lt;python&gt;"),
-                          ('<a href="&lt;URL de son artefact&gt;">&lt;nom&gt;</a>', '<a href="u">E</a>'), ("&lt;U1..U6&gt;", "E1–E2"),
-                          ("&lt;AAAA-MM-JJ&gt;", "2026-01-01")):
-        html = html.replace(gabarit, vrai)
-    ecrire(fdr, html)
-    ecrire(os.path.join(t, "CHANTIER.md"), lire(os.path.join(t, "CHANTIER.md")) + "- **index** : ctx/00-INDEX.md\n")
-    ecrire(os.path.join(t, "ctx", "00-INDEX.md"), "| F | L |\n|---|---|\n| `30-q.md` | on joue une fiche `Q*` — chantier **ouvert** « Un (vrai) titre », `Q1..Q2` |\n")
-    ecrire(os.path.join(t, "CLAUDE.md"), "# P\n\n## Où on en est\n\n- Clos le 2026-05-06 : a (chantier E).\n\n## Routage\n\n| T | O |\n|---|---|\n| jouer une fiche du chantier Q (un (vrai) titre) | `ctx/30-q.md` — chantier **ouvert**, par `/vlp:tache Q<n>` |\n| relire le chantier E (e) | `ctx/10-e.md` — chantier **clos** |\n")
-    page_q = os.path.join(t, "ctx", "artefacts", "30-q.html")
-    ecrire(page_q, open(os.path.join(ICI, "..", "templates", "artefact-chantier.html"), encoding="utf-8").read()
-           .replace("<!-- ZONE:blocage — publiée quand /tache s'arrête après deux tentatives ; retirée dès que la fiche repasse -->\n  <section hidden>",
-                    "<!-- ZONE:blocage — publiée quand /tache s'arrête après deux tentatives ; retirée dès que la fiche repasse -->\n  <section>"))
-    verifier("clore : gabarit, blocage visible avant", page_q and "<!-- ZONE:blocage" in lire(page_q) and lire(page_q).count("<section hidden>") == 1, lire(page_q))
-    code, s = appel(["clore", t, "--livre", "Livré `a` <b>", "--tokens", "1500", "--abandon", "Q2 abandonnée", "--date", "2026-05-06", "--surpris", "x < y", "--resume", "b `c`."])
-    carte_lue, fiches_lues, html = lire(os.path.join(t, "CHANTIER.md")), lire(os.path.join(t, "ctx", "30-q.md")), lire(fdr)
-    verifier("clore : routage, index, bilan, résumé comptés", "· routage 1 · index 1 · archivé 1 · bilan 1 · résumé 1 ·" in s and "GARDE" not in s, s)
-    verifier("clore : résumé, une ligne par clos", "- Clos le 2026-05-06 : a (chantier E).\n- Clos le 2026-05-06 : b `c` (chantier Q).\n\n## Routage" in lire(os.path.join(t, "CLAUDE.md")), lire(os.path.join(t, "CLAUDE.md")))
-    cl, gr = ["## Où on en est", "", "- Clos le 2026-01-01 : a (chantier E).", "", "## Règles"], []
-    verifier("résumé : ligne ajoutée après la dernière", mod.resume_claude(cl, "Q", "b", "2026-02-02", gr)
-             and cl[3] == "- Clos le 2026-02-02 : b (chantier Q)." and cl[2].endswith("E).") and not gr, cl)
-    cl2 = ["## Où on en est", "- Clos le 2026-01-01 : a (chantier E)."]
-    verifier("résumé : suffixe (chantier Q) déjà dans le texte, pas doublé", mod.resume_claude(cl2, "Q", "b (chantier Q).", "2026-01-01", gr)
-             and cl2[-1] == "- Clos le 2026-01-01 : b (chantier Q).", cl2)
-    cl5 = ["## Où on en est", "- Clos le 2026-01-01 : a (chantier E)."]
-    verifier("résumé : préfixe Clos le déjà dans le texte, pas doublé", mod.resume_claude(cl5, "Q", "Clos le 2026-09-27 : b.", "2026-09-27", gr)
-             and cl5[-1] == "- Clos le 2026-09-27 : b (chantier Q).", cl5)
-    verifier("résumé : déjà là, rien", not mod.resume_claude(cl, "Q", "b", "2026-02-02", gr) and len(cl) == 6, cl)
-    cl3 = ["## Où on en est", "- Prouvé : x.", "  puis vieux (chantier A) ;"] + ["- Clos le 2026-01-0%d : c%d (chantier %s)." % (i, i, "BCDEF"[i - 1]) for i in range(1, 6)] + ["", "## R"]
-    verifier("résumé : garde les CLOS_GARDES derniers, le plus ancien sorti", mod.resume_claude(cl3, "G", "g", "2026-01-09", gr)
-             and mod.CLOS_GARDES == 5 and not any("(chantier B)" in l for l in cl3) and cl3[:3] == ["## Où on en est", "- Prouvé : x.", "  puis vieux (chantier A) ;"]
-             and sum(1 for l in cl3 if l.startswith("- Clos le")) == 5 and cl3[-3] == "- Clos le 2026-01-09 : g (chantier G).", cl3)
-    verifier("résumé : section absente, garde", not mod.resume_claude(["# x"], "Q", "b", "d", gr) and gr and "Où on en est" in gr[0], gr)
-    cl4, g4 = ["## Où on en est", "- Clos le 2026-01-01 : a (chantier E)."], []
-    verifier("résumé : sur une ligne, relu par ENTREE_CLOS",
-             mod.resume_claude(cl4, "Q", "deux lignes\nici.\n", "2026-09-24", g4)
-             and cl4[-1] == "- Clos le 2026-09-24 : deux lignes ici (chantier Q)."
-             and bool(mod.ENTREE_CLOS.match(cl4[-1])) and not g4, repr(cl4[-1]))
-    verifier("clore : Fait. remplacé", "**Fait.** Q1..Q2 (2026-05-06) : Livré `a` <b> — estimé 2 fiches ≈0,40 $ · cadré 2 · joué 1 fiches ? $.\n" in fiches_lues and "**Fait.** Rien." not in fiches_lues, fiches_lues)
-    ligne_q = "| `30-q.md` | on relit le socle du chantier Q — **clos** « Un (vrai) titre », `Q1..Q2` |\n"
-    verifier("clore : index clos, passé à l'archive — mutant : clore n'appelle pas archiver",
-             lire(os.path.join(t, "ctx", "00-INDEX.md")).split("---|\n")[1].startswith("| `00-INDEX-archive.md` |") and "**clos**" not in lire(os.path.join(t, "ctx", "00-INDEX.md"))
-             and lire(os.path.join(t, "ctx", "00-INDEX-archive.md")).split("---|\n")[1] == ligne_q, lire(os.path.join(t, "ctx", "00-INDEX.md")))
-    verifier("clore : routage ouvert retiré, une ligne vers l'index", "|---|---|\n| relire un chantier clos | `ctx/00-INDEX-archive.md` — sa ligne y nomme le fichier de fiches |\n| relire le chantier E" in lire(os.path.join(t, "CLAUDE.md"))
-             and "chantier Q" not in lire(os.path.join(t, "CLAUDE.md")).split("## Routage")[1], lire(os.path.join(t, "CLAUDE.md")))
-    pq = lire(page_q)
-    verifier("clore : ZONE:bilan visible, blocage caché", "<section>\n    <h2>Chantier clos le 2026-05-06</h2>\n    <div class=\"bilan\">\n      <p>Livré : Livré `a` &lt;b&gt;</p>\n      <p>Surpris : x &lt; y</p>\n      <p>Estimé : estimé 2 fiches ≈0,40 $ · cadré 2 · joué 1 fiches ? $</p>\n    </div>\n  </section>" in pq
-             and pq.split("<!-- ZONE:blocage")[1].split("-->\n")[1].startswith("  <section hidden>") and pq.count("<section hidden>") == 1, pq)
-    verifier("clore : la page régénérée, fiches du fichier", '<span class="id">Q1</span>' in pq and '<span class="id">Q2</span>' in pq
-             and '<span class="id">&lt;R' not in pq and '<p class="mono cout-total">' not in pq, pq)
-    tester_bilan_md_clore(page_q)
-    verifier("clore : bilan", code == 0 and "CLOS Q Q1..Q2 (Q2 abandonnée) · chantier 1 500 · cumul 3 812 · routage 1 · index 1 · archivé 1 · bilan 1 · résumé 1 · estimé 2 fiches ≈0,40 $ · cadré 2 · joué 1 fiches ? $ — " in s and "encours non" in s, s)
-    verifier("clore : fichier de fiches", "**CLOS** le 2026-05-06. Ne se rejoue pas" in fiches_lues
-             and fiches_lues.index("**CLOS**") < fiches_lues.index("**Fait.**") and "Abandonnées : Q2 abandonnée." in fiches_lues, fiches_lues)
-    verifier("clore : CHANTIER.md", "**fichier de fiches courant** : aucun" in carte_lue and "**artefact du chantier** : aucun" in carte_lue
-             and "| ctx/10-e.md | E1..E2 | 2026-01-01 | u |\n\nFin." in carte_lue and "| ctx/30-q.md |" not in carte_lue
-             and "M (Deux `x`), Q (Un `titre`). Un nouveau chantier" in carte_lue, carte_lue)
-    clos = html.split("<!-- ZONE:clos")[1]
-    verifier("clore : feuille de route", '<a href="https://exemple/q">Un <span class="mono">titre</span></a>' in clos
-             and '<td class="mono">Q1–Q2</td><td class="mono">2026-05-06</td>' in clos and "≈1,5k (1 500)" in clos
-             and "Livré <span class=\"mono\">a</span> &lt;b&gt;" in clos and clos.index("Q1–Q2") < clos.index("2 312", clos.index("<tbody>"))
-             and "<strong>≈3,8k (3 812)</strong>" in clos and "Aucun chantier ouvert" in html and "E, M, Q</span>" in html, clos)
-    verifier("clore : pied de table sans $ — aucune ligne n'a de prix mesuré (chantier TAU)",
-             '<strong>≈3,8k (3 812)</strong></td><td class="mono"></td>' in clos, clos)
-    verifier("clore : résumé du bloc repliable des clos, coût non mesuré",
-             '<span class="resume-clos">2 chantiers clos · ≈3,8k (3 812) tokens · coût non mesuré</span>' in clos, clos)
-    verifier("clore : la table des clos reste dans un details repliable",
-             '<details class="clos">' in clos and "</details>" in clos, clos)
-    code, s = appel(["clore", t, "--livre", "x"])
-    verifier("clore : second appel refusé", code == 1 and s.startswith("GARDE: aucun chantier ouvert")
-             and lire(os.path.join(t, "CHANTIER.md")) == carte_lue, s)
+        ecrire(os.path.join(t, "CHANTIER.md"), carte_ % ("ctx/30-q.md (Q1..Q2)", "https://exemple/q")
+               + "\n| Fichier de fiches | Fiches | Clos le | Artefact |\n|---|---|---|---|\n| ctx/10-e.md | E1..E2 | 2026-01-01 | u |\n\nFin.\n")
+        ecrire(os.path.join(t, "ctx", "30-q.md"), "# Chantier Q — Un `titre`\n\n**À quoi il sert.** x\n\n**Estimé.** 2 fiches · ≈0,40 $ — ≈0,20 $/fiche sur 3 clos (le 2026-05-01).\n\n**Fait.** Rien.\n\n## Q1 [x] — a\n## Q2 [ ] — b\n")
+        html = lire(fdr)
+        for gabarit, vrai in (('&lt;≈2,3k (2 312)&gt;', "≈2,3k (2 312)"), ('&lt;≈15,3k (15 342)&gt;', "?"), ("&lt;une ligne&gt;", "ligne &lt;python&gt;"),
+                              ('<a href="&lt;URL de son artefact&gt;">&lt;nom&gt;</a>', '<a href="u">E</a>'), ("&lt;U1..U6&gt;", "E1–E2"),
+                              ("&lt;AAAA-MM-JJ&gt;", "2026-01-01")):
+            html = html.replace(gabarit, vrai)
+        ecrire(fdr, html)
+        ecrire(os.path.join(t, "CHANTIER.md"), lire(os.path.join(t, "CHANTIER.md")) + "- **index** : ctx/00-INDEX.md\n")
+        ecrire(os.path.join(t, "ctx", "00-INDEX.md"), "| F | L |\n|---|---|\n| `30-q.md` | on joue une fiche `Q*` — chantier **ouvert** « Un (vrai) titre », `Q1..Q2` |\n")
+        ecrire(os.path.join(t, "CLAUDE.md"), "# P\n\n## Où on en est\n\n- Clos le 2026-05-06 : a (chantier E).\n\n## Routage\n\n| T | O |\n|---|---|\n| jouer une fiche du chantier Q (un (vrai) titre) | `ctx/30-q.md` — chantier **ouvert**, par `/vlp:tache Q<n>` |\n| relire le chantier E (e) | `ctx/10-e.md` — chantier **clos** |\n")
+        page_q = os.path.join(t, "ctx", "artefacts", "30-q.html")
+        ecrire(page_q, open(os.path.join(ICI, "..", "templates", "artefact-chantier.html"), encoding="utf-8").read()
+               .replace("<!-- ZONE:blocage — publiée quand /tache s'arrête après deux tentatives ; retirée dès que la fiche repasse -->\n  <section hidden>",
+                        "<!-- ZONE:blocage — publiée quand /tache s'arrête après deux tentatives ; retirée dès que la fiche repasse -->\n  <section>"))
+        verifier("clore : gabarit, blocage visible avant", page_q and "<!-- ZONE:blocage" in lire(page_q) and lire(page_q).count("<section hidden>") == 1, lire(page_q))
+        code, s = appel(["clore", t, "--livre", "Livré `a` <b>", "--tokens", "1500", "--abandon", "Q2 abandonnée", "--date", "2026-05-06", "--surpris", "x < y", "--resume", "b `c`."])
+        carte_lue, fiches_lues, html = lire(os.path.join(t, "CHANTIER.md")), lire(os.path.join(t, "ctx", "30-q.md")), lire(fdr)
+        verifier("clore : routage, index, bilan, résumé comptés", "· routage 1 · index 1 · archivé 1 · bilan 1 · résumé 1 ·" in s and "GARDE" not in s, s)
+        verifier("clore : résumé, une ligne par clos", "- Clos le 2026-05-06 : a (chantier E).\n- Clos le 2026-05-06 : b `c` (chantier Q).\n\n## Routage" in lire(os.path.join(t, "CLAUDE.md")), lire(os.path.join(t, "CLAUDE.md")))
+        cl, gr = ["## Où on en est", "", "- Clos le 2026-01-01 : a (chantier E).", "", "## Règles"], []
+        verifier("résumé : ligne ajoutée après la dernière", mod.resume_claude(cl, "Q", "b", "2026-02-02", gr)
+                 and cl[3] == "- Clos le 2026-02-02 : b (chantier Q)." and cl[2].endswith("E).") and not gr, cl)
+        cl2 = ["## Où on en est", "- Clos le 2026-01-01 : a (chantier E)."]
+        verifier("résumé : suffixe (chantier Q) déjà dans le texte, pas doublé", mod.resume_claude(cl2, "Q", "b (chantier Q).", "2026-01-01", gr)
+                 and cl2[-1] == "- Clos le 2026-01-01 : b (chantier Q).", cl2)
+        cl5 = ["## Où on en est", "- Clos le 2026-01-01 : a (chantier E)."]
+        verifier("résumé : préfixe Clos le déjà dans le texte, pas doublé", mod.resume_claude(cl5, "Q", "Clos le 2026-09-27 : b.", "2026-09-27", gr)
+                 and cl5[-1] == "- Clos le 2026-09-27 : b (chantier Q).", cl5)
+        verifier("résumé : déjà là, rien", not mod.resume_claude(cl, "Q", "b", "2026-02-02", gr) and len(cl) == 6, cl)
+        cl3 = ["## Où on en est", "- Prouvé : x.", "  puis vieux (chantier A) ;"] + ["- Clos le 2026-01-0%d : c%d (chantier %s)." % (i, i, "BCDEF"[i - 1]) for i in range(1, 6)] + ["", "## R"]
+        verifier("résumé : garde les CLOS_GARDES derniers, le plus ancien sorti", mod.resume_claude(cl3, "G", "g", "2026-01-09", gr)
+                 and mod.CLOS_GARDES == 5 and not any("(chantier B)" in l for l in cl3) and cl3[:3] == ["## Où on en est", "- Prouvé : x.", "  puis vieux (chantier A) ;"]
+                 and sum(1 for l in cl3 if l.startswith("- Clos le")) == 5 and cl3[-3] == "- Clos le 2026-01-09 : g (chantier G).", cl3)
+        verifier("résumé : section absente, garde", not mod.resume_claude(["# x"], "Q", "b", "d", gr) and gr and "Où on en est" in gr[0], gr)
+        cl4, g4 = ["## Où on en est", "- Clos le 2026-01-01 : a (chantier E)."], []
+        verifier("résumé : sur une ligne, relu par ENTREE_CLOS",
+                 mod.resume_claude(cl4, "Q", "deux lignes\nici.\n", "2026-09-24", g4)
+                 and cl4[-1] == "- Clos le 2026-09-24 : deux lignes ici (chantier Q)."
+                 and bool(mod.ENTREE_CLOS.match(cl4[-1])) and not g4, repr(cl4[-1]))
+        verifier("clore : Fait. remplacé", "**Fait.** Q1..Q2 (2026-05-06) : Livré `a` <b> — estimé 2 fiches ≈0,40 $ · cadré 2 · joué 1 fiches ? $.\n" in fiches_lues and "**Fait.** Rien." not in fiches_lues, fiches_lues)
+        ligne_q = "| `30-q.md` | on relit le socle du chantier Q — **clos** « Un (vrai) titre », `Q1..Q2` |\n"
+        verifier("clore : index clos, passé à l'archive — mutant : clore n'appelle pas archiver",
+                 lire(os.path.join(t, "ctx", "00-INDEX.md")).split("---|\n")[1].startswith("| `00-INDEX-archive.md` |") and "**clos**" not in lire(os.path.join(t, "ctx", "00-INDEX.md"))
+                 and lire(os.path.join(t, "ctx", "00-INDEX-archive.md")).split("---|\n")[1] == ligne_q, lire(os.path.join(t, "ctx", "00-INDEX.md")))
+        verifier("clore : routage ouvert retiré, une ligne vers l'index", "|---|---|\n| relire un chantier clos | `ctx/00-INDEX-archive.md` — sa ligne y nomme le fichier de fiches |\n| relire le chantier E" in lire(os.path.join(t, "CLAUDE.md"))
+                 and "chantier Q" not in lire(os.path.join(t, "CLAUDE.md")).split("## Routage")[1], lire(os.path.join(t, "CLAUDE.md")))
+        pq = lire(page_q)
+        verifier("clore : ZONE:bilan visible, blocage caché", "<section>\n    <h2>Chantier clos le 2026-05-06</h2>\n    <div class=\"bilan\">\n      <p>Livré : Livré `a` &lt;b&gt;</p>\n      <p>Surpris : x &lt; y</p>\n      <p>Estimé : estimé 2 fiches ≈0,40 $ · cadré 2 · joué 1 fiches ? $</p>\n    </div>\n  </section>" in pq
+                 and pq.split("<!-- ZONE:blocage")[1].split("-->\n")[1].startswith("  <section hidden>") and pq.count("<section hidden>") == 1, pq)
+        verifier("clore : la page régénérée, fiches du fichier", '<span class="id">Q1</span>' in pq and '<span class="id">Q2</span>' in pq
+                 and '<span class="id">&lt;R' not in pq and '<p class="mono cout-total">' not in pq, pq)
+        tester_bilan_md_clore(page_q)
+        verifier("clore : bilan", code == 0 and "CLOS Q Q1..Q2 (Q2 abandonnée) · chantier 1 500 · cumul 3 812 · routage 1 · index 1 · archivé 1 · bilan 1 · résumé 1 · estimé 2 fiches ≈0,40 $ · cadré 2 · joué 1 fiches ? $ — " in s and "encours non" in s, s)
+        verifier("clore : fichier de fiches", "**CLOS** le 2026-05-06. Ne se rejoue pas" in fiches_lues
+                 and fiches_lues.index("**CLOS**") < fiches_lues.index("**Fait.**") and "Abandonnées : Q2 abandonnée." in fiches_lues, fiches_lues)
+        verifier("clore : CHANTIER.md", "**fichier de fiches courant** : aucun" in carte_lue and "**artefact du chantier** : aucun" in carte_lue
+                 and "| ctx/10-e.md | E1..E2 | 2026-01-01 | u |\n\nFin." in carte_lue and "| ctx/30-q.md |" not in carte_lue
+                 and "M (Deux `x`), Q (Un `titre`). Un nouveau chantier" in carte_lue, carte_lue)
+        clos = html.split("<!-- ZONE:clos")[1]
+        verifier("clore : feuille de route", '<a href="https://exemple/q">Un <span class="mono">titre</span></a>' in clos
+                 and '<td class="mono">Q1–Q2</td><td class="mono">2026-05-06</td>' in clos and "≈1,5k (1 500)" in clos
+                 and "Livré <span class=\"mono\">a</span> &lt;b&gt;" in clos and clos.index("Q1–Q2") < clos.index("2 312", clos.index("<tbody>"))
+                 and "<strong>≈3,8k (3 812)</strong>" in clos and "Aucun chantier ouvert" in html and "E, M, Q</span>" in html, clos)
+        verifier("clore : pied de table sans $ — aucune ligne n'a de prix mesuré (chantier TAU)",
+                 '<strong>≈3,8k (3 812)</strong></td><td class="mono"></td>' in clos, clos)
+        verifier("clore : résumé du bloc repliable des clos, coût non mesuré",
+                 '<span class="resume-clos">2 chantiers clos · ≈3,8k (3 812) tokens · coût non mesuré</span>' in clos, clos)
+        verifier("clore : la table des clos reste dans un details repliable",
+                 '<details class="clos">' in clos and "</details>" in clos, clos)
+        code, s = appel(["clore", t, "--livre", "x"])
+        verifier("clore : second appel refusé", code == 1 and s.startswith("GARDE: aucun chantier ouvert")
+                 and lire(os.path.join(t, "CHANTIER.md")) == carte_lue, s)
+
+
+groupe(tester_feuille_clore)
 
 # archiver : les lignes clos quittent l'index pour l'archive, telles quelles (chantier IDX)
 def test_archiver():
@@ -1231,7 +1344,7 @@ def test_archiver():
         verifier("archiver : pas de champ index, garde", code == 1 and s.startswith("GARDE:"), s)
 
 
-test_archiver()
+groupe(test_archiver)
 
 
 def sans_chantier(racine, carte):
@@ -1248,83 +1361,88 @@ def sans_chantier(racine, carte):
 
 OUVERT_DU_JOUR = mod.OUVERT_LIGNE % __import__("datetime").date.today().isoformat()
 
-with tempfile.TemporaryDirectory() as t:
-    lire = lambda c: open(c, encoding="utf-8").read()
-    os.environ["CLAUDE_CODE_SESSION_ID"] = "cadre"     # la session du cadrage, que `ouvrir` note
-    carte_o = ("# C\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n"
-               "- **fichier de fiches courant** : %s\n- **artefact du chantier** : %s\n")
-    ecrire(os.path.join(t, "CHANTIER.md"), carte_o % ("aucun", "aucun"))
-    ecrire(os.path.join(t, "ctx", "00-INDEX.md"), "| Fichier | Lire |\n|---|---|\n| `10-e.md` | on relit |\n| `05-d.md` | vieux |\n\nFin.\n")
-    ecrire(os.path.join(t, "CLAUDE.md"), "| La tâche | Ouvrir |\n|---|---|\n| modifier | x |\n| relire le chantier E (e) | `ctx/10-e.md` — chantier **clos** |\n| relire un chantier clos | `ctx/00-INDEX.md` |\n")
-    ecrire(os.path.join(t, "ctx", "30-q.md"), "# Chantier Q — Un titre\n\n## Q1 [ ] — a\n## Q2 [ ] — b\n")
-    code, s = appel(["ouvrir", t, "--fiches", "ctx/30-q.md", "--titre", "Un `titre`"])
-    carte_lue, index_lu, claude_lu = lire(os.path.join(t, "CHANTIER.md")), lire(os.path.join(t, "ctx", "00-INDEX.md")), lire(os.path.join(t, "CLAUDE.md"))
-    verifier("ouvrir : bilan", code == 0 and s == "OUVERT Q Q1..Q2 · index +1 · routage +1 · session +1 · artefact aucun — %s\n" % t, s)
-    verifier("ouvrir : la session du cadrage, avant la première ligne ##", lire(os.path.join(t, "ctx", "30-q.md"))
-             == "# Chantier Q — Un titre\n\n%s\n\n**Session** : cadre\n\n## Q1 [ ] — a\n## Q2 [ ] — b\n"
-             % (mod.OUVERT_LIGNE % __import__("datetime").date.today().isoformat()), lire(os.path.join(t, "ctx", "30-q.md")))
-    verifier("ouvrir : CHANTIER.md", "**fichier de fiches courant** : ctx/30-q.md (Q1..Q2)\n- **artefact du chantier** : aucun\n" in carte_lue, carte_lue)
-    verifier("ouvrir : index, après le plus grand numéro", "| `10-e.md` | on relit |\n| `30-q.md` | on joue une fiche `Q*` — chantier **ouvert** « Un `titre` », `Q1..Q2` |\n| `05-d.md`" in index_lu, index_lu)
-    verifier("ouvrir : routage, avant « relire un chantier clos »", "**clos** |\n| jouer une fiche du chantier Q (un `titre`) | `ctx/30-q.md` — chantier **ouvert**, par `/vlp:tache Q<n>` |\n| relire" in claude_lu, claude_lu)
-    code, s = appel(["ouvrir", t, "--fiches", "ctx/30-q.md", "--titre", "Un `titre`", "--artefact", "https://exemple/q"])
-    verifier("ouvrir : relance, artefact seul", code == 0 and "index +0 · routage +0 · session +0 · artefact https://exemple/q" in s
-             and lire(os.path.join(t, "ctx", "30-q.md")).count("**Session**") == 1
-             and lire(os.path.join(t, "CLAUDE.md")) == claude_lu and lire(os.path.join(t, "ctx", "00-INDEX.md")) == index_lu
-             and "**artefact du chantier** : https://exemple/q" in lire(os.path.join(t, "CHANTIER.md")), s)
-    avant = lire(os.path.join(t, "CHANTIER.md"))
-    code, s = appel(["ouvrir", t, "--fiches", "ctx/30-q.md", "--titre", "Un `titre`"])
-    verifier("ouvrir : relance sans artefact, rien ne change", code == 0 and lire(os.path.join(t, "CHANTIER.md")) == avant, s)
-    ecrire(os.path.join(t, "ctx", "31-r.md"), "# Chantier R — r\n\n## R1 [ ] — a\n")
-    code, s = appel(["ouvrir", t, "--fiches", "ctx/31-r.md", "--titre", "r"])
-    verifier("ouvrir : autre chantier ouvert, refus", code == 1 and s.startswith("GARDE: un chantier est déjà ouvert")
-             and lire(os.path.join(t, "CHANTIER.md")) == avant, s)
-    ecrire(os.path.join(t, "ctx", "30-q.md"), "# Chantier Q — Un titre\n\n## Q1 [ ] — a\n## Q2 [ ] — b\n## Q3 [ ] — c\n")
-    # Relancé avec un autre titre : seule la plage suit, sur la même et unique ligne.
-    code, s = appel(["ouvrir", t, "--fiches", "ctx/30-q.md", "--titre", "Un autre titre"])
-    index_q = [l for l in lire(os.path.join(t, "ctx", "00-INDEX.md")).split("\n") if l.startswith("| `30-q.md` |")]
-    verifier("ouvrir : relancé, la plage de l'index suit le fichier", code == 0 and "OUVERT Q Q1..Q3 · index ~1 · routage +0 · session +1" in s
-             and index_q == ["| `30-q.md` | on joue une fiche `Q*` — chantier **ouvert** « Un `titre` », `Q1..Q3` |"]
-             and "ctx/30-q.md (Q1..Q3)" in lire(os.path.join(t, "CHANTIER.md")), s + repr(index_q))
-    index_main = lire(os.path.join(t, "ctx", "00-INDEX.md")).replace("chantier **ouvert** « Un `titre` », `Q1..Q3`", "à la main `Q1..Q2`")
-    ecrire(os.path.join(t, "ctx", "00-INDEX.md"), index_main)
-    code, s = appel(["ouvrir", t, "--fiches", "ctx/30-q.md", "--titre", "Un `titre`"])
-    verifier("ouvrir : relancé, une ligne d'index écrite à la main reste", code == 0 and "index +0" in s
-             and lire(os.path.join(t, "ctx", "00-INDEX.md")) == index_main, s)
-    sans_chantier(t, carte_o % ("aucun", "aucun"))
-    os.remove(os.path.join(t, "CLAUDE.md"))
-    code, s = appel(["ouvrir", t, "--fiches", "ctx/31-r.md", "--titre", "r"])
-    verifier("ouvrir : CLAUDE.md absent, garde, le reste écrit", code == 0 and "GARDE: CLAUDE.md introuvable" in s
-             and "routage +0" in s and "index +1" in s and "ctx/31-r.md (R1..R1)" in lire(os.path.join(t, "CHANTIER.md")), s)
-    sans_chantier(t, carte_o % ("aucun", "aucun"))
-    ecrire(os.path.join(t, "ctx", "32-s.md"), "# Chantier S — s\n\n**CLOS** le 2026-01-01. Ne se rejoue pas.\n\n## S1 [x] — a\n")
-    code, s = appel(["ouvrir", t, "--fiches", "ctx/32-s.md", "--titre", "s"])
-    verifier("ouvrir : fichier CLOS, refus sans écrire", code == 1 and s.startswith("GARDE: ctx/32-s.md porte **CLOS**")
-             and "aucun" in lire(os.path.join(t, "CHANTIER.md")), s)
-    # Un vrai fichier : la session va avant `## Le socle commun`, jamais entre le marqueur d'une
-    # fiche et son titre — la fiche extraite n'en porte pas. Déjà sur une ligne `**Session**`, même
-    # d'une fiche, elle n'est pas redoublée ; un id vide ne note rien.
-    vrai = ("# Chantier T — t\n\nÀ quoi il sert.\n\n## Le socle commun\n\n## L'ordre des fiches\n\n"
-            "<!-- FICHE:T1 -->\n## T1 [ ] — a\n<!-- /FICHE -->\n")
-    for nom, texte in (("33-t.md", vrai), ("34-u.md", "# Chantier U — u\n\n## U1 [x] — a\n**Session** : cadre\n"),
-                       ("35-v.md", "# Chantier V — v\n\n## V1 [ ] — a\n")):
-        ecrire(os.path.join(t, "ctx", nom), texte)
-    sans_chantier(t, carte_o % ("aucun", "aucun"))
-    code, s = appel(["ouvrir", t, "--fiches", "ctx/33-t.md", "--titre", "t"])
-    lu_o = lire(os.path.join(t, "ctx", "33-t.md"))
-    verifier("ouvrir : un vrai fichier, la session avant le socle, hors de toute fiche", code == 0 and "· session +1 ·" in s
-             and lu_o == vrai.replace("## Le socle commun", "**Session** : cadre\n\n## Le socle commun")
-                             .replace("# Chantier T — t\n\n", "# Chantier T — t\n\n%s\n\n" % OUVERT_DU_JOUR)
-             and "**Session**" not in appel(["extraire", os.path.join(t, "ctx", "33-t.md"), "T1"])[1], s + lu_o)
-    sans_chantier(t, carte_o % ("aucun", "aucun"))
-    code, s = appel(["ouvrir", t, "--fiches", "ctx/34-u.md", "--titre", "u"])
-    verifier("ouvrir : session déjà sur une ligne d'une fiche, pas redoublée", code == 0 and "· session +0 ·" in s
-             and lire(os.path.join(t, "ctx", "34-u.md")).count("**Session**") == 1, s)
-    sans_chantier(t, carte_o % ("aucun", "aucun"))
-    os.environ["CLAUDE_CODE_SESSION_ID"] = ""
-    code, s = appel(["ouvrir", t, "--fiches", "ctx/35-v.md", "--titre", "v"])
-    verifier("ouvrir : id vide, rien de noté", code == 0 and "· session +0 ·" in s
-             and lire(os.path.join(t, "ctx", "35-v.md")) == "# Chantier V — v\n\n%s\n\n## V1 [ ] — a\n" % OUVERT_DU_JOUR, s)
-    os.environ.pop("CLAUDE_CODE_SESSION_ID", None)
+def tester_ouvrir():
+    """Contrôler `ouvrir` : bilan, fichier de fiches posé, ligne de l'état."""
+    with tempfile.TemporaryDirectory() as t:
+        lire = lambda c: open(c, encoding="utf-8").read()
+        os.environ["CLAUDE_CODE_SESSION_ID"] = "cadre"     # la session du cadrage, que `ouvrir` note
+        carte_o = ("# C\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n"
+                   "- **fichier de fiches courant** : %s\n- **artefact du chantier** : %s\n")
+        ecrire(os.path.join(t, "CHANTIER.md"), carte_o % ("aucun", "aucun"))
+        ecrire(os.path.join(t, "ctx", "00-INDEX.md"), "| Fichier | Lire |\n|---|---|\n| `10-e.md` | on relit |\n| `05-d.md` | vieux |\n\nFin.\n")
+        ecrire(os.path.join(t, "CLAUDE.md"), "| La tâche | Ouvrir |\n|---|---|\n| modifier | x |\n| relire le chantier E (e) | `ctx/10-e.md` — chantier **clos** |\n| relire un chantier clos | `ctx/00-INDEX.md` |\n")
+        ecrire(os.path.join(t, "ctx", "30-q.md"), "# Chantier Q — Un titre\n\n## Q1 [ ] — a\n## Q2 [ ] — b\n")
+        code, s = appel(["ouvrir", t, "--fiches", "ctx/30-q.md", "--titre", "Un `titre`"])
+        carte_lue, index_lu, claude_lu = lire(os.path.join(t, "CHANTIER.md")), lire(os.path.join(t, "ctx", "00-INDEX.md")), lire(os.path.join(t, "CLAUDE.md"))
+        verifier("ouvrir : bilan", code == 0 and s == "OUVERT Q Q1..Q2 · index +1 · routage +1 · session +1 · artefact aucun — %s\n" % t, s)
+        verifier("ouvrir : la session du cadrage, avant la première ligne ##", lire(os.path.join(t, "ctx", "30-q.md"))
+                 == "# Chantier Q — Un titre\n\n%s\n\n**Session** : cadre\n\n## Q1 [ ] — a\n## Q2 [ ] — b\n"
+                 % (mod.OUVERT_LIGNE % __import__("datetime").date.today().isoformat()), lire(os.path.join(t, "ctx", "30-q.md")))
+        verifier("ouvrir : CHANTIER.md", "**fichier de fiches courant** : ctx/30-q.md (Q1..Q2)\n- **artefact du chantier** : aucun\n" in carte_lue, carte_lue)
+        verifier("ouvrir : index, après le plus grand numéro", "| `10-e.md` | on relit |\n| `30-q.md` | on joue une fiche `Q*` — chantier **ouvert** « Un `titre` », `Q1..Q2` |\n| `05-d.md`" in index_lu, index_lu)
+        verifier("ouvrir : routage, avant « relire un chantier clos »", "**clos** |\n| jouer une fiche du chantier Q (un `titre`) | `ctx/30-q.md` — chantier **ouvert**, par `/vlp:tache Q<n>` |\n| relire" in claude_lu, claude_lu)
+        code, s = appel(["ouvrir", t, "--fiches", "ctx/30-q.md", "--titre", "Un `titre`", "--artefact", "https://exemple/q"])
+        verifier("ouvrir : relance, artefact seul", code == 0 and "index +0 · routage +0 · session +0 · artefact https://exemple/q" in s
+                 and lire(os.path.join(t, "ctx", "30-q.md")).count("**Session**") == 1
+                 and lire(os.path.join(t, "CLAUDE.md")) == claude_lu and lire(os.path.join(t, "ctx", "00-INDEX.md")) == index_lu
+                 and "**artefact du chantier** : https://exemple/q" in lire(os.path.join(t, "CHANTIER.md")), s)
+        avant = lire(os.path.join(t, "CHANTIER.md"))
+        code, s = appel(["ouvrir", t, "--fiches", "ctx/30-q.md", "--titre", "Un `titre`"])
+        verifier("ouvrir : relance sans artefact, rien ne change", code == 0 and lire(os.path.join(t, "CHANTIER.md")) == avant, s)
+        ecrire(os.path.join(t, "ctx", "31-r.md"), "# Chantier R — r\n\n## R1 [ ] — a\n")
+        code, s = appel(["ouvrir", t, "--fiches", "ctx/31-r.md", "--titre", "r"])
+        verifier("ouvrir : autre chantier ouvert, refus", code == 1 and s.startswith("GARDE: un chantier est déjà ouvert")
+                 and lire(os.path.join(t, "CHANTIER.md")) == avant, s)
+        ecrire(os.path.join(t, "ctx", "30-q.md"), "# Chantier Q — Un titre\n\n## Q1 [ ] — a\n## Q2 [ ] — b\n## Q3 [ ] — c\n")
+        # Relancé avec un autre titre : seule la plage suit, sur la même et unique ligne.
+        code, s = appel(["ouvrir", t, "--fiches", "ctx/30-q.md", "--titre", "Un autre titre"])
+        index_q = [l for l in lire(os.path.join(t, "ctx", "00-INDEX.md")).split("\n") if l.startswith("| `30-q.md` |")]
+        verifier("ouvrir : relancé, la plage de l'index suit le fichier", code == 0 and "OUVERT Q Q1..Q3 · index ~1 · routage +0 · session +1" in s
+                 and index_q == ["| `30-q.md` | on joue une fiche `Q*` — chantier **ouvert** « Un `titre` », `Q1..Q3` |"]
+                 and "ctx/30-q.md (Q1..Q3)" in lire(os.path.join(t, "CHANTIER.md")), s + repr(index_q))
+        index_main = lire(os.path.join(t, "ctx", "00-INDEX.md")).replace("chantier **ouvert** « Un `titre` », `Q1..Q3`", "à la main `Q1..Q2`")
+        ecrire(os.path.join(t, "ctx", "00-INDEX.md"), index_main)
+        code, s = appel(["ouvrir", t, "--fiches", "ctx/30-q.md", "--titre", "Un `titre`"])
+        verifier("ouvrir : relancé, une ligne d'index écrite à la main reste", code == 0 and "index +0" in s
+                 and lire(os.path.join(t, "ctx", "00-INDEX.md")) == index_main, s)
+        sans_chantier(t, carte_o % ("aucun", "aucun"))
+        os.remove(os.path.join(t, "CLAUDE.md"))
+        code, s = appel(["ouvrir", t, "--fiches", "ctx/31-r.md", "--titre", "r"])
+        verifier("ouvrir : CLAUDE.md absent, garde, le reste écrit", code == 0 and "GARDE: CLAUDE.md introuvable" in s
+                 and "routage +0" in s and "index +1" in s and "ctx/31-r.md (R1..R1)" in lire(os.path.join(t, "CHANTIER.md")), s)
+        sans_chantier(t, carte_o % ("aucun", "aucun"))
+        ecrire(os.path.join(t, "ctx", "32-s.md"), "# Chantier S — s\n\n**CLOS** le 2026-01-01. Ne se rejoue pas.\n\n## S1 [x] — a\n")
+        code, s = appel(["ouvrir", t, "--fiches", "ctx/32-s.md", "--titre", "s"])
+        verifier("ouvrir : fichier CLOS, refus sans écrire", code == 1 and s.startswith("GARDE: ctx/32-s.md porte **CLOS**")
+                 and "aucun" in lire(os.path.join(t, "CHANTIER.md")), s)
+        # Un vrai fichier : la session va avant `## Le socle commun`, jamais entre le marqueur d'une
+        # fiche et son titre — la fiche extraite n'en porte pas. Déjà sur une ligne `**Session**`, même
+        # d'une fiche, elle n'est pas redoublée ; un id vide ne note rien.
+        vrai = ("# Chantier T — t\n\nÀ quoi il sert.\n\n## Le socle commun\n\n## L'ordre des fiches\n\n"
+                "<!-- FICHE:T1 -->\n## T1 [ ] — a\n<!-- /FICHE -->\n")
+        for nom, texte in (("33-t.md", vrai), ("34-u.md", "# Chantier U — u\n\n## U1 [x] — a\n**Session** : cadre\n"),
+                           ("35-v.md", "# Chantier V — v\n\n## V1 [ ] — a\n")):
+            ecrire(os.path.join(t, "ctx", nom), texte)
+        sans_chantier(t, carte_o % ("aucun", "aucun"))
+        code, s = appel(["ouvrir", t, "--fiches", "ctx/33-t.md", "--titre", "t"])
+        lu_o = lire(os.path.join(t, "ctx", "33-t.md"))
+        verifier("ouvrir : un vrai fichier, la session avant le socle, hors de toute fiche", code == 0 and "· session +1 ·" in s
+                 and lu_o == vrai.replace("## Le socle commun", "**Session** : cadre\n\n## Le socle commun")
+                                 .replace("# Chantier T — t\n\n", "# Chantier T — t\n\n%s\n\n" % OUVERT_DU_JOUR)
+                 and "**Session**" not in appel(["extraire", os.path.join(t, "ctx", "33-t.md"), "T1"])[1], s + lu_o)
+        sans_chantier(t, carte_o % ("aucun", "aucun"))
+        code, s = appel(["ouvrir", t, "--fiches", "ctx/34-u.md", "--titre", "u"])
+        verifier("ouvrir : session déjà sur une ligne d'une fiche, pas redoublée", code == 0 and "· session +0 ·" in s
+                 and lire(os.path.join(t, "ctx", "34-u.md")).count("**Session**") == 1, s)
+        sans_chantier(t, carte_o % ("aucun", "aucun"))
+        os.environ["CLAUDE_CODE_SESSION_ID"] = ""
+        code, s = appel(["ouvrir", t, "--fiches", "ctx/35-v.md", "--titre", "v"])
+        verifier("ouvrir : id vide, rien de noté", code == 0 and "· session +0 ·" in s
+                 and lire(os.path.join(t, "ctx", "35-v.md")) == "# Chantier V — v\n\n%s\n\n## V1 [ ] — a\n" % OUVERT_DU_JOUR, s)
+        os.environ.pop("CLAUDE_CODE_SESSION_ID", None)
+
+
+groupe(tester_ouvrir)
 
 def test_estime():
     with tempfile.TemporaryDirectory() as te:
@@ -1455,7 +1573,7 @@ def test_estime():
                      "%r %r %s" % (mod.couts_clos(feuille), mod.moyenne_clos(feuille), mod.lignes_clos(feuille)))
 
 
-test_estime()
+groupe(test_estime)
 
 
 def tester_prix():
@@ -1537,7 +1655,7 @@ def tester_prix():
         verifier("TAU3 : pas de CHANTIER.md, une GARDE", code == 1 and s.startswith("GARDE: pas de CHANTIER.md"), s)
 
 
-tester_prix()
+groupe(tester_prix)
 
 
 def tester_cout_session():
@@ -1581,134 +1699,149 @@ def tester_cout_session():
                  appel(["equiper", d]))
 
 
-tester_cout_session()
+groupe(tester_cout_session)
 
 
 # --- chantier ESS : les essais d'une session, par le dossier de leur bac -------
 
-with tempfile.TemporaryDirectory() as t:
-    pr = os.path.join(t, ".claude", "projects")
-    for bac in ("C--tmp-sa-aaaa-1-scratchpad-b1", "C--tmp-sa-aaaa-1-scratchpad-b2", "C--tmp-sa-bbbb-2-scratchpad-b1",
-                "C--tmp-sa-aaaa-1-intrus"):     # le dernier n'est pas un bac : pas de `-scratchpad-`
-        ecrire(os.path.join(pr, bac, "e.jsonl"), "{}\n")
-    garde_env = dict(os.environ)
-    os.environ.update(HOME=t, USERPROFILE=t)
-    try:
-        a, b, z = mod.essais_de("aaaa-1"), mod.essais_de("bbbb-2"), mod.essais_de("zzzz-9")
-    finally:
-        os.environ.clear()
-        os.environ.update(garde_env)
-    verifier("essais_de : les deux bacs de A, triés, sans l'intrus",
-             a == [os.path.join(pr, "C--tmp-sa-aaaa-1-scratchpad-b1", "e.jsonl"),
-                   os.path.join(pr, "C--tmp-sa-aaaa-1-scratchpad-b2", "e.jsonl")], a)
-    verifier("essais_de : le bac de B seul", len(b) == 1 and "bbbb-2-scratchpad-b1" in b[0], b)
-    verifier("essais_de : session inconnue, liste vide", z == [], z)
-
-# cout : un essai dans la plage de Q1 (et son sous-agent) compte à Q1, l'autre hors fiches.
-with tempfile.TemporaryDirectory() as t:
-    pr, dep = os.path.join(t, ".claude", "projects"), os.path.join(t, "depot")
-    os.makedirs(os.path.join(pr, "p"))
-    transcript(os.path.join(pr, "p", "sss.jsonl"), 2, [T0 + 200, T0 + 400])
-    for bac, h_ in (("b1", 250), ("b2", 700)):
-        os.makedirs(os.path.join(pr, "C--x-sss-scratchpad-" + bac))
-        transcript(os.path.join(pr, "C--x-sss-scratchpad-" + bac, "e.jsonl"), 1, [T0 + h_])
-    os.makedirs(os.path.join(pr, "C--x-sss-scratchpad-b1", "e", "subagents"))
-    transcript(os.path.join(pr, "C--x-sss-scratchpad-b1", "e", "subagents", "agent-a1.jsonl"), 1, [T0 + 260])
-    ecrire(os.path.join(dep, "q.md"), QFICHES % ("sss", "sss"))
-    if not shutil.which("git"):
-        print("SAUTÉ: git absent — les essais dans la découpe ne sont pas testés")
-    else:
-        env = dict(os.environ, GIT_CONFIG_GLOBAL=os.path.join(t, "gitconfig"), GIT_CONFIG_NOSYSTEM="1",
-                   GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t")
-        ecrire(env["GIT_CONFIG_GLOBAL"], "")
-        subprocess.run(["git", "init", "-q"], cwd=dep, env=env, check=True, capture_output=True)
-        for d, sujet in ((100, "Chantier Q ouvert : cadré"), (300, "Q1 : Créer"), (600, "Q2 : Brancher")):
-            date = "%d +0000" % (T0 + d)
-            subprocess.run(["git", "commit", "-q", "--allow-empty", "-m", sujet], cwd=dep, check=True,
-                           capture_output=True, env=dict(env, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date))
+def tester_essais_de():
+    """Contrôler `essais_de` : les bacs d'un projet, triés."""
+    with tempfile.TemporaryDirectory() as t:
+        pr = os.path.join(t, ".claude", "projects")
+        for bac in ("C--tmp-sa-aaaa-1-scratchpad-b1", "C--tmp-sa-aaaa-1-scratchpad-b2", "C--tmp-sa-bbbb-2-scratchpad-b1",
+                    "C--tmp-sa-aaaa-1-intrus"):     # le dernier n'est pas un bac : pas de `-scratchpad-`
+            ecrire(os.path.join(pr, bac, "e.jsonl"), "{}\n")
         garde_env = dict(os.environ)
         os.environ.update(HOME=t, USERPROFILE=t)
         try:
-            code, s = appel(["cout", os.path.join(dep, "q.md")])
+            a, b, z = mod.essais_de("aaaa-1"), mod.essais_de("bbbb-2"), mod.essais_de("zzzz-9")
         finally:
             os.environ.clear()
             os.environ.update(garde_env)
-        cent, deux, trois = "≈100,0k (100 000) · 1 tours · 0,50 $", "≈200,0k (200 000) · 2 tours · 1,00 $", "≈300,0k (300 000) · 3 tours · 1,50 $"
-        attendu = ("DÉCOUPE aux commits de fiche — une fiche va du commit d'avant au sien, un sous-agent compte à son départ\n"
-                   "Q1 · %s = session %s + 0 sous-agent + 1 essai %s\n" % (trois, cent, deux)
-                   + "Q2 · %s = session %s + 0 sous-agent\n" % (cent, cent)
-                   + "hors fiches · %s = session 0 · 0 tours · 0,00 $ + 0 sous-agent + 1 essai %s\n" % (cent, cent)
-                   + "TOTAL (fiches + hors fiches) · ≈500,0k (500 000) · 5 tours · 2,50 $ = session %s"
-                     " + 0 sous-agent + 2 essais %s\n" % (deux, trois))
-        verifier("cout : l'essai de la plage à Q1, sous-agent compris ; l'autre hors fiches ; TOTAL les deux",
-                 code == 0 and s == attendu, s)
+        verifier("essais_de : les deux bacs de A, triés, sans l'intrus",
+                 a == [os.path.join(pr, "C--tmp-sa-aaaa-1-scratchpad-b1", "e.jsonl"),
+                       os.path.join(pr, "C--tmp-sa-aaaa-1-scratchpad-b2", "e.jsonl")], a)
+        verifier("essais_de : le bac de B seul", len(b) == 1 and "bbbb-2-scratchpad-b1" in b[0], b)
+        verifier("essais_de : session inconnue, liste vide", z == [], z)
+
+
+groupe(tester_essais_de)
+
+# cout : un essai dans la plage de Q1 (et son sous-agent) compte à Q1, l'autre hors fiches.
+def tester_cout_essai_plage():
+    """Contrôler `cout` : un essai dans la plage d'une fiche compte, sous-agent compris."""
+    with tempfile.TemporaryDirectory() as t:
+        pr, dep = os.path.join(t, ".claude", "projects"), os.path.join(t, "depot")
+        os.makedirs(os.path.join(pr, "p"))
+        transcript(os.path.join(pr, "p", "sss.jsonl"), 2, [T0 + 200, T0 + 400])
+        for bac, h_ in (("b1", 250), ("b2", 700)):
+            os.makedirs(os.path.join(pr, "C--x-sss-scratchpad-" + bac))
+            transcript(os.path.join(pr, "C--x-sss-scratchpad-" + bac, "e.jsonl"), 1, [T0 + h_])
+        os.makedirs(os.path.join(pr, "C--x-sss-scratchpad-b1", "e", "subagents"))
+        transcript(os.path.join(pr, "C--x-sss-scratchpad-b1", "e", "subagents", "agent-a1.jsonl"), 1, [T0 + 260])
+        ecrire(os.path.join(dep, "q.md"), QFICHES % ("sss", "sss"))
+        if not shutil.which("git"):
+            print("SAUTÉ: git absent — les essais dans la découpe ne sont pas testés")
+        else:
+            env = dict(os.environ, GIT_CONFIG_GLOBAL=os.path.join(t, "gitconfig"), GIT_CONFIG_NOSYSTEM="1",
+                       GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t")
+            ecrire(env["GIT_CONFIG_GLOBAL"], "")
+            subprocess.run(["git", "init", "-q"], cwd=dep, env=env, check=True, capture_output=True)
+            for d, sujet in ((100, "Chantier Q ouvert : cadré"), (300, "Q1 : Créer"), (600, "Q2 : Brancher")):
+                date = "%d +0000" % (T0 + d)
+                subprocess.run(["git", "commit", "-q", "--allow-empty", "-m", sujet], cwd=dep, check=True,
+                               capture_output=True, env=dict(env, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date))
+            garde_env = dict(os.environ)
+            os.environ.update(HOME=t, USERPROFILE=t)
+            try:
+                code, s = appel(["cout", os.path.join(dep, "q.md")])
+            finally:
+                os.environ.clear()
+                os.environ.update(garde_env)
+            cent, deux, trois = "≈100,0k (100 000) · 1 tours · 0,50 $", "≈200,0k (200 000) · 2 tours · 1,00 $", "≈300,0k (300 000) · 3 tours · 1,50 $"
+            attendu = ("DÉCOUPE aux commits de fiche — une fiche va du commit d'avant au sien, un sous-agent compte à son départ\n"
+                       "Q1 · %s = session %s + 0 sous-agent + 1 essai %s\n" % (trois, cent, deux)
+                       + "Q2 · %s = session %s + 0 sous-agent\n" % (cent, cent)
+                       + "hors fiches · %s = session 0 · 0 tours · 0,00 $ + 0 sous-agent + 1 essai %s\n" % (cent, cent)
+                       + "TOTAL (fiches + hors fiches) · ≈500,0k (500 000) · 5 tours · 2,50 $ = session %s"
+                         " + 0 sous-agent + 2 essais %s\n" % (deux, trois))
+            verifier("cout : l'essai de la plage à Q1, sous-agent compris ; l'autre hors fiches ; TOTAL les deux",
+                     code == 0 and s == attendu, s)
+
+
+groupe(tester_cout_essai_plage)
 
 # APC1 : cout --a-clore. Q1 (200), Q2 (400), l'appel clore (700), un tour après lui (800), le commit
 # de clôture (900), un clore rejoué après lui (1000), hors plage : à clore = 3 tours, après = 1.
-with tempfile.TemporaryDirectory() as t:
-    pr, dep = os.path.join(t, ".claude", "projects"), os.path.join(t, "depot")
-    os.makedirs(os.path.join(pr, "p"))
-    for s_, heures_ in (("sss", [T0 + 200, T0 + 400, T0 + 700, T0 + 800, T0 + 1000]), ("ttt", [T0 + 200, T0 + 400, T0 + 700])):
-        chemin_ = os.path.join(pr, "p", s_ + ".jsonl")
-        transcript(chemin_, len(heures_), heures_)
-        if s_ == "sss":
-            lignes_ = [json.loads(l) for l in lire(chemin_).splitlines()]
-            for k in (2, 4):
-                lignes_[k]["message"]["content"] = [{"type": "tool_use", "id": "t%d" % k, "name": "Bash", "input": {
-                    "command": 'py "C:/k/scripts/vlp.py" clore . --livre x'}}]
-            lignes_[3]["message"]["content"] = [{"type": "tool_use", "id": "t3", "name": "Bash",
-                                                 "input": {"command": 'grep -n "clore" scripts/vlp.py'}}]
-            ecrire(chemin_, "".join(json.dumps(l) + "\n" for l in lignes_))
-    ecrire(os.path.join(dep, "q.md"), QFICHES % ("sss", "sss"))
-    ecrire(os.path.join(dep, "r.md"), QFICHES % ("ttt", "ttt"))
-    if not shutil.which("git"):
-        print("SAUTÉ: git absent — cout --a-clore n'est pas testé")
-    else:
-        env = dict(os.environ, GIT_CONFIG_GLOBAL=os.path.join(t, "gitconfig"), GIT_CONFIG_NOSYSTEM="1",
-                   GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t")
-        ecrire(env["GIT_CONFIG_GLOBAL"], "")
-        subprocess.run(["git", "init", "-q"], cwd=dep, env=env, check=True, capture_output=True)
-        for d, sujet in ((100, "Chantier Q ouvert : cadré"), (300, "Q1 : Créer"), (600, "Q2 : Brancher"),
-                         (900, "Chantier Q clos : fini")):
-            date = "%d +0000" % (T0 + d)
-            subprocess.run(["git", "commit", "-q", "--allow-empty", "-m", sujet], cwd=dep, check=True,
-                           capture_output=True, env=dict(env, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date))
-        # APC2 : recompter --a-clore, un projet par fichier (q.md et r.md portent le même préfixe Q),
-        # inscrit 250 000 : ni le recompté (400 000) ni l'à-clore (300 000).
-        for p_, f_ in (("pq", "q.md"), ("pr", "r.md")):
-            ecrire(os.path.join(dep, p_, "CHANTIER.md"), "# C\n\n- **contexte** : ./\n- **index** : 00-INDEX.md\n")
-            ecrire(os.path.join(dep, p_, "00-INDEX.md"), "| Fichier | Lire quand |\n|---|---|\n"
-                   "| `../%s` | chantier **clos** « Q », `Q1..Q2` |\n" % f_)
-            ecrire(os.path.join(dep, p_, "artefacts", "feuille-de-route.html"),
-                   "    <!-- ZONE:clos — test -->\n      <table>\n        <tbody>\n"
-                   + ligne_close(mod.arrondi(250000)) + "        </tbody>\n      </table>\n")
-        garde_env = dict(os.environ)
-        os.environ.update(HOME=t, USERPROFILE=t)
-        try:
-            (code, s), (code2, s2) = (appel(["cout", os.path.join(dep, "q.md"), "--a-clore"]),
-                                      appel(["cout", os.path.join(dep, "r.md"), "--a-clore"]))
-            (code3, s3), (code4, s4), (code5, s5) = (appel(["recompter", os.path.join(dep, "pq"), "--a-clore"]),
-                                                     appel(["recompter", os.path.join(dep, "pr"), "--a-clore"]),
-                                                     appel(["recompter", os.path.join(dep, "pq")]))
-        finally:
-            os.environ.clear()
-            os.environ.update(garde_env)
-        lignes_ = s.splitlines()
-        verifier("cout --a-clore : TOTAL 4 tours, à clore 3, après clore 1 — le clore hors plage et le grep ignorés",
-                 code == 0 and len(lignes_) == 7 and lignes_[4].startswith("TOTAL ")
-                 and mod.triplet(lignes_[4])[:2] == (400000, 4)
-                 and lignes_[5].startswith("à clore · ") and mod.triplet(lignes_[5])[:2] == (300000, 3)
-                 and lignes_[6].startswith("après clore · ") and mod.triplet(lignes_[6])[:3] == (100000, 1, Decimal("0.50")), s)
-        verifier("cout --a-clore : sans appel clore, une GARDE et pas de ligne", code2 == 0
-                 and s2.splitlines()[-1] == "GARDE: aucun appel « vlp.py clore » dans la dernière plage hors fiches"
-                 " — pas de ligne à clore" and "à clore ·" not in s2, s2)
-        verifier("recompter --a-clore : à clore 300 000, après clore = recompté − à clore — mutant :"
-                 " après clore = recompté − inscrit", code3 == 0 and s3.splitlines()[0] ==
-                 "Q inscrit 250 000 · recompté 400 000 · écart +150 000 · découpe · à clore 300 000 · après clore 100 000", s3)
-        verifier("recompter --a-clore : sans appel clore, la ligne le dit", code4 == 0 and s4.splitlines()[0] ==
-                 "Q inscrit 250 000 · recompté 300 000 · écart +50 000 · découpe · sans appel clore", s4)
-        verifier("recompter sans --a-clore : la ligne d'avant APC2", code5 == 0 and s5.splitlines()[0] ==
-                 "Q inscrit 250 000 · recompté 400 000 · écart +150 000 · découpe", s5)
+def tester_cout_a_clore():
+    """Contrôler `cout --a-clore` et `recompter --a-clore` (chantier APC)."""
+    with tempfile.TemporaryDirectory() as t:
+        pr, dep = os.path.join(t, ".claude", "projects"), os.path.join(t, "depot")
+        os.makedirs(os.path.join(pr, "p"))
+        for s_, heures_ in (("sss", [T0 + 200, T0 + 400, T0 + 700, T0 + 800, T0 + 1000]), ("ttt", [T0 + 200, T0 + 400, T0 + 700])):
+            chemin_ = os.path.join(pr, "p", s_ + ".jsonl")
+            transcript(chemin_, len(heures_), heures_)
+            if s_ == "sss":
+                lignes_ = [json.loads(l) for l in lire(chemin_).splitlines()]
+                for k in (2, 4):
+                    lignes_[k]["message"]["content"] = [{"type": "tool_use", "id": "t%d" % k, "name": "Bash", "input": {
+                        "command": 'py "C:/k/scripts/vlp.py" clore . --livre x'}}]
+                lignes_[3]["message"]["content"] = [{"type": "tool_use", "id": "t3", "name": "Bash",
+                                                     "input": {"command": 'grep -n "clore" scripts/vlp.py'}}]
+                ecrire(chemin_, "".join(json.dumps(l) + "\n" for l in lignes_))
+        ecrire(os.path.join(dep, "q.md"), QFICHES % ("sss", "sss"))
+        ecrire(os.path.join(dep, "r.md"), QFICHES % ("ttt", "ttt"))
+        if not shutil.which("git"):
+            print("SAUTÉ: git absent — cout --a-clore n'est pas testé")
+        else:
+            env = dict(os.environ, GIT_CONFIG_GLOBAL=os.path.join(t, "gitconfig"), GIT_CONFIG_NOSYSTEM="1",
+                       GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t")
+            ecrire(env["GIT_CONFIG_GLOBAL"], "")
+            subprocess.run(["git", "init", "-q"], cwd=dep, env=env, check=True, capture_output=True)
+            for d, sujet in ((100, "Chantier Q ouvert : cadré"), (300, "Q1 : Créer"), (600, "Q2 : Brancher"),
+                             (900, "Chantier Q clos : fini")):
+                date = "%d +0000" % (T0 + d)
+                subprocess.run(["git", "commit", "-q", "--allow-empty", "-m", sujet], cwd=dep, check=True,
+                               capture_output=True, env=dict(env, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date))
+            # APC2 : recompter --a-clore, un projet par fichier (q.md et r.md portent le même préfixe Q),
+            # inscrit 250 000 : ni le recompté (400 000) ni l'à-clore (300 000).
+            for p_, f_ in (("pq", "q.md"), ("pr", "r.md")):
+                ecrire(os.path.join(dep, p_, "CHANTIER.md"), "# C\n\n- **contexte** : ./\n- **index** : 00-INDEX.md\n")
+                ecrire(os.path.join(dep, p_, "00-INDEX.md"), "| Fichier | Lire quand |\n|---|---|\n"
+                       "| `../%s` | chantier **clos** « Q », `Q1..Q2` |\n" % f_)
+                ecrire(os.path.join(dep, p_, "artefacts", "feuille-de-route.html"),
+                       "    <!-- ZONE:clos — test -->\n      <table>\n        <tbody>\n"
+                       + ligne_close(mod.arrondi(250000)) + "        </tbody>\n      </table>\n")
+            garde_env = dict(os.environ)
+            os.environ.update(HOME=t, USERPROFILE=t)
+            try:
+                (code, s), (code2, s2) = (appel(["cout", os.path.join(dep, "q.md"), "--a-clore"]),
+                                          appel(["cout", os.path.join(dep, "r.md"), "--a-clore"]))
+                (code3, s3), (code4, s4), (code5, s5) = (appel(["recompter", os.path.join(dep, "pq"), "--a-clore"]),
+                                                         appel(["recompter", os.path.join(dep, "pr"), "--a-clore"]),
+                                                         appel(["recompter", os.path.join(dep, "pq")]))
+            finally:
+                os.environ.clear()
+                os.environ.update(garde_env)
+            lignes_ = s.splitlines()
+            verifier("cout --a-clore : TOTAL 4 tours, à clore 3, après clore 1 — le clore hors plage et le grep ignorés",
+                     code == 0 and len(lignes_) == 7 and lignes_[4].startswith("TOTAL ")
+                     and mod.triplet(lignes_[4])[:2] == (400000, 4)
+                     and lignes_[5].startswith("à clore · ") and mod.triplet(lignes_[5])[:2] == (300000, 3)
+                     and lignes_[6].startswith("après clore · ") and mod.triplet(lignes_[6])[:3] == (100000, 1, Decimal("0.50")), s)
+            verifier("cout --a-clore : sans appel clore, une GARDE et pas de ligne", code2 == 0
+                     and s2.splitlines()[-1] == "GARDE: aucun appel « vlp.py clore » dans la dernière plage hors fiches"
+                     " — pas de ligne à clore" and "à clore ·" not in s2, s2)
+            verifier("recompter --a-clore : à clore 300 000, après clore = recompté − à clore — mutant :"
+                     " après clore = recompté − inscrit", code3 == 0 and s3.splitlines()[0] ==
+                     "Q inscrit 250 000 · recompté 400 000 · écart +150 000 · découpe · à clore 300 000 · après clore 100 000", s3)
+            verifier("recompter --a-clore : sans appel clore, la ligne le dit", code4 == 0 and s4.splitlines()[0] ==
+                     "Q inscrit 250 000 · recompté 300 000 · écart +50 000 · découpe · sans appel clore", s4)
+            verifier("recompter sans --a-clore : la ligne d'avant APC2", code5 == 0 and s5.splitlines()[0] ==
+                     "Q inscrit 250 000 · recompté 400 000 · écart +150 000 · découpe", s5)
+
+
+groupe(tester_cout_a_clore)
 
 # APC3 : un vrai `clore` — Q1 (200), Q2 (400), l'appel clore (700) —, puis un tour après lui (800) et
 # le commit de clôture (900) : le chiffre inscrit égale le TOTAL de cout, le recompté.
@@ -1760,110 +1893,125 @@ def tester_apc3():
                      in lire(os.path.join(proj, "ctx", "artefacts", "q.html")), s3_)
 
 
-tester_apc3()
+groupe(tester_apc3)
 
 # ESD1 : sans découpe (pas de .git), les essais des sessions entières en une ligne à part, sous
 # les tables ; une session sans essai n'en a pas.
-with tempfile.TemporaryDirectory() as t:
-    pr, dep = os.path.join(t, ".claude", "projects"), os.path.join(t, "depot")
-    os.makedirs(os.path.join(pr, "p"))
-    for s_ in ("sss", "ttt"):
-        transcript(os.path.join(pr, "p", s_ + ".jsonl"), 2, [T0 + 200, T0 + 400])
-    for bac in ("b1", "b2"):
-        os.makedirs(os.path.join(pr, "C--x-sss-scratchpad-" + bac))
-        transcript(os.path.join(pr, "C--x-sss-scratchpad-" + bac, "e.jsonl"), 1, [T0 + 250])
-    os.makedirs(os.path.join(pr, "C--x-sss-scratchpad-b1", "e", "subagents"))
-    transcript(os.path.join(pr, "C--x-sss-scratchpad-b1", "e", "subagents", "agent-a1.jsonl"), 1, [T0 + 260])
-    ecrire(os.path.join(dep, "avec.md"), QFICHES % ("sss", "sss"))
-    ecrire(os.path.join(dep, "sans.md"), QFICHES % ("ttt", "ttt"))
-    garde_env = dict(os.environ)
-    os.environ.update(HOME=t, USERPROFILE=t)
-    try:
-        (code, s), (code2, s2) = appel(["cout", os.path.join(dep, "avec.md")]), appel(["cout", os.path.join(dep, "sans.md")])
-    finally:
-        os.environ.clear()
-        os.environ.update(garde_env)
-    verifier("cout sans découpe : une ligne essais, 2 essais sous-agent compris, après les tables",
-             code == 0 and s.startswith("DÉCOUPE aucune — ") and "\nsss.jsonl\t2\t" in s
-             and s.endswith("\nessais · ≈300,0k (300 000) · 3 tours · 1,50 $ = session 0 · 0 tours · 0,00 $"
-                            " + 0 sous-agent + 2 essais ≈300,0k (300 000) · 3 tours · 1,50 $\n"), s)
-    verifier("cout sans découpe, sans essai : pas de ligne essais", code2 == 0
-             and s2.startswith("DÉCOUPE aucune — ") and "essai" not in s2 and s2.endswith("\n"), s2)
+def tester_cout_sans_decoupe():
+    """Contrôler `cout` sans découpe : la ligne des essais, avec et sans essai (chantier ESD)."""
+    with tempfile.TemporaryDirectory() as t:
+        pr, dep = os.path.join(t, ".claude", "projects"), os.path.join(t, "depot")
+        os.makedirs(os.path.join(pr, "p"))
+        for s_ in ("sss", "ttt"):
+            transcript(os.path.join(pr, "p", s_ + ".jsonl"), 2, [T0 + 200, T0 + 400])
+        for bac in ("b1", "b2"):
+            os.makedirs(os.path.join(pr, "C--x-sss-scratchpad-" + bac))
+            transcript(os.path.join(pr, "C--x-sss-scratchpad-" + bac, "e.jsonl"), 1, [T0 + 250])
+        os.makedirs(os.path.join(pr, "C--x-sss-scratchpad-b1", "e", "subagents"))
+        transcript(os.path.join(pr, "C--x-sss-scratchpad-b1", "e", "subagents", "agent-a1.jsonl"), 1, [T0 + 260])
+        ecrire(os.path.join(dep, "avec.md"), QFICHES % ("sss", "sss"))
+        ecrire(os.path.join(dep, "sans.md"), QFICHES % ("ttt", "ttt"))
+        garde_env = dict(os.environ)
+        os.environ.update(HOME=t, USERPROFILE=t)
+        try:
+            (code, s), (code2, s2) = appel(["cout", os.path.join(dep, "avec.md")]), appel(["cout", os.path.join(dep, "sans.md")])
+        finally:
+            os.environ.clear()
+            os.environ.update(garde_env)
+        verifier("cout sans découpe : une ligne essais, 2 essais sous-agent compris, après les tables",
+                 code == 0 and s.startswith("DÉCOUPE aucune — ") and "\nsss.jsonl\t2\t" in s
+                 and s.endswith("\nessais · ≈300,0k (300 000) · 3 tours · 1,50 $ = session 0 · 0 tours · 0,00 $"
+                                " + 0 sous-agent + 2 essais ≈300,0k (300 000) · 3 tours · 1,50 $\n"), s)
+        verifier("cout sans découpe, sans essai : pas de ligne essais", code2 == 0
+                 and s2.startswith("DÉCOUPE aucune — ") and "essai" not in s2 and s2.endswith("\n"), s2)
+
+
+groupe(tester_cout_sans_decoupe)
 
 # ESD2 : recompter --essais, sur un projet sans .git — M (session sss, 1 essai + son sous-agent) est
 # gardé DÉCOUPE aucune et reçoit ses essais ; N (session ttt, sans essai) ne change pas. Un second
 # passage ne change plus rien : la marque est lue avant l'ajout, à l'affichage comme à l'écriture.
-with tempfile.TemporaryDirectory() as t:
-    pr, rc = os.path.join(t, ".claude", "projects"), os.path.join(t, "rc")
-    os.makedirs(os.path.join(pr, "p"))
-    for s_ in ("sss", "ttt"):
-        transcript(os.path.join(pr, "p", s_ + ".jsonl"), 1, [T0 + 200])
-    os.makedirs(os.path.join(pr, "C--x-sss-scratchpad-b1", "e", "subagents"))
-    transcript(os.path.join(pr, "C--x-sss-scratchpad-b1", "e.jsonl"), 1, [T0 + 250])
-    transcript(os.path.join(pr, "C--x-sss-scratchpad-b1", "e", "subagents", "agent-a1.jsonl"), 1, [T0 + 260])
-    seule = ("# Chantier %s\n\n**CLOS** le 2026-01-06.\n\n## Le socle commun\n\n## L'ordre des fiches\n\n"
-             "<!-- FICHE:%s1 -->\n## %s1 [x] — Seule\n**Session** : %s\n**Critère de fin**\n<!-- /FICHE -->\n")
-    ecrire(os.path.join(rc, "CHANTIER.md"), "# Chantier courant\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n")
-    ecrire(os.path.join(rc, "ctx", "00-INDEX.md"), "| Fichier | Lire quand |\n|---|---|\n"
-           "| `m.md` | chantier **clos** « M », `M1..M1` |\n| `n.md` | chantier **clos** « N », `N1..N1` |\n")
-    ecrire(os.path.join(rc, "ctx", "m.md"), seule % ("M", "M", "M", "sss"))
-    ecrire(os.path.join(rc, "ctx", "n.md"), seule % ("N", "N", "N", "ttt"))
-    fr = os.path.join(rc, "ctx", "artefacts", "feuille-de-route.html")
-    ecrire(fr, '    <!-- ZONE:clos — test -->\n      <table>\n        <tbody>\n'
-           + "".join(ligne_close(c).replace("Q1–Q2", pl) for pl, c in (("M1", mod.arrondi(300000)), ("N1", mod.arrondi(2000))))
-           + "        </tbody>\n      </table>\n")
-    garde_env = dict(os.environ)
-    os.environ.update(HOME=t, USERPROFILE=t)
-    try:
-        initial = lire(fr)
-        simule = appel(["recompter", rc, "--essais"])
-        avant = lire(fr)
-        un = appel(["recompter", rc, "--essais", "--ecrire"])
-        feuille_ = lire(fr)
-        deux = appel(["recompter", rc, "--essais", "--ecrire"])
-        resimule = appel(["recompter", rc, "--essais"])
-    finally:
-        os.environ.clear()
-        os.environ.update(garde_env)
-    l_ = simule[1].splitlines()
-    verifier("recompter --essais : le gardé DÉCOUPE aucune reçoit ses essais, sous-agent compris ; l'autre +0 ;"
-             " rien d'écrit", simule[0] == 0 and len(l_) == 3 and avant == initial
-             and l_[0].startswith("M inscrit 300 000 · essais 200 000 · ajout +200 000 · gardé — DÉCOUPE aucune (")
-             and l_[1].startswith("N inscrit 2 000 · essais 0 · ajout +0 · gardé — DÉCOUPE aucune (")
-             and l_[2] == "ESSAIS 2 clos · 1 reçoivent · inscrit 302 000 · avec essais 502 000 · ajout +200 000", simule[1])
-    verifier("recompter --essais --ecrire : le chiffre + l'essai, la marque en tête, BRUT le relit",
-             un[0] == 0 and un[1].splitlines()[-1] == "ÉCRIT 1 cellules · total 302 000 → 502 000"
-             and '<td class="mono">essais (ESD) +200 000 · ≈500,0k (500 000)</td>' in feuille_
-             and '<td class="mono">≈2,0k (2 000)</td>' in feuille_ and mod.total_clos(feuille_) == 502000, un[1] + feuille_)
-    verifier("recompter --essais --ecrire, second passage : cellule identique — mutant : ignorer la marque",
-             deux[0] == 0 and lire(fr) == feuille_ and deux[1].splitlines()[-1] == "ÉCRIT 0 cellules · total 502 000 → 502 000",
-             deux[1] + lire(fr))
-    verifier("recompter --essais après écriture : la simulation dit +0, déjà ajoutés",
-             resimule[0] == 0 and resimule[1].splitlines()[0].startswith("M inscrit 500 000 · essais 200 000 · ajout +0 · ")
-             and resimule[1].splitlines()[0].endswith(" · déjà ajoutés (ESD)")
-             and resimule[1].splitlines()[-1].endswith(" · 0 reçoivent · inscrit 502 000 · avec essais 502 000 · ajout +0"),
-             resimule[1])
-    # La règle du découpé, en fonction pure : les essais sans passer le recompté.
-    verifier("ajout_essais : découpé borné par l'écart ; autre gardé, rien ; marque, rien",
-             [mod.ajout_essais("x", 100, 150, "découpe", 80), mod.ajout_essais("x", 100, 300, "découpe", 80),
-              mod.ajout_essais("x", 100, 90, "découpe", 80), mod.ajout_essais("x", 100, None, "gardé — sans session", 80),
-              mod.ajout_essais(mod.MARQUE_ESSAIS + "+5 · (105)", 105, None, "gardé — DÉCOUPE aucune (r)", 5)]
-             == [50, 80, 0, 0, 0], "")
-    # Dette d'ESD : un `recompter --ecrire` sur une cellule marquée ESD garde la marque en tête.
-    marques = [mod.marquer("essais (ESD) +200 000 · recompté (REC), était 650 000 · ≈850,0k (850 000)", 850000, 900000, "découpe"),
-               mod.marquer("essais (ESD) +50 000 · ≈700,0k (700 000)", 700000, 750000, "découpe")]
-    verifier("marquer : la marque ESD reste en tête — mutant : la marque ESD perdue", marques == [
-        "essais (ESD) +200 000 · recompté (REC), était 650 000 · ≈900,0k (900 000)",
-        "essais (ESD) +50 000 · recompté (REC), était 700 000 · ≈750,0k (750 000)"], marques)
+def tester_recompter_essais():
+    """Contrôler `recompter --essais`, avec et sans `--ecrire` (chantier ESD)."""
+    with tempfile.TemporaryDirectory() as t:
+        pr, rc = os.path.join(t, ".claude", "projects"), os.path.join(t, "rc")
+        os.makedirs(os.path.join(pr, "p"))
+        for s_ in ("sss", "ttt"):
+            transcript(os.path.join(pr, "p", s_ + ".jsonl"), 1, [T0 + 200])
+        os.makedirs(os.path.join(pr, "C--x-sss-scratchpad-b1", "e", "subagents"))
+        transcript(os.path.join(pr, "C--x-sss-scratchpad-b1", "e.jsonl"), 1, [T0 + 250])
+        transcript(os.path.join(pr, "C--x-sss-scratchpad-b1", "e", "subagents", "agent-a1.jsonl"), 1, [T0 + 260])
+        seule = ("# Chantier %s\n\n**CLOS** le 2026-01-06.\n\n## Le socle commun\n\n## L'ordre des fiches\n\n"
+                 "<!-- FICHE:%s1 -->\n## %s1 [x] — Seule\n**Session** : %s\n**Critère de fin**\n<!-- /FICHE -->\n")
+        ecrire(os.path.join(rc, "CHANTIER.md"), "# Chantier courant\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n")
+        ecrire(os.path.join(rc, "ctx", "00-INDEX.md"), "| Fichier | Lire quand |\n|---|---|\n"
+               "| `m.md` | chantier **clos** « M », `M1..M1` |\n| `n.md` | chantier **clos** « N », `N1..N1` |\n")
+        ecrire(os.path.join(rc, "ctx", "m.md"), seule % ("M", "M", "M", "sss"))
+        ecrire(os.path.join(rc, "ctx", "n.md"), seule % ("N", "N", "N", "ttt"))
+        fr = os.path.join(rc, "ctx", "artefacts", "feuille-de-route.html")
+        ecrire(fr, '    <!-- ZONE:clos — test -->\n      <table>\n        <tbody>\n'
+               + "".join(ligne_close(c).replace("Q1–Q2", pl) for pl, c in (("M1", mod.arrondi(300000)), ("N1", mod.arrondi(2000))))
+               + "        </tbody>\n      </table>\n")
+        garde_env = dict(os.environ)
+        os.environ.update(HOME=t, USERPROFILE=t)
+        try:
+            initial = lire(fr)
+            simule = appel(["recompter", rc, "--essais"])
+            avant = lire(fr)
+            un = appel(["recompter", rc, "--essais", "--ecrire"])
+            feuille_ = lire(fr)
+            deux = appel(["recompter", rc, "--essais", "--ecrire"])
+            resimule = appel(["recompter", rc, "--essais"])
+        finally:
+            os.environ.clear()
+            os.environ.update(garde_env)
+        l_ = simule[1].splitlines()
+        verifier("recompter --essais : le gardé DÉCOUPE aucune reçoit ses essais, sous-agent compris ; l'autre +0 ;"
+                 " rien d'écrit", simule[0] == 0 and len(l_) == 3 and avant == initial
+                 and l_[0].startswith("M inscrit 300 000 · essais 200 000 · ajout +200 000 · gardé — DÉCOUPE aucune (")
+                 and l_[1].startswith("N inscrit 2 000 · essais 0 · ajout +0 · gardé — DÉCOUPE aucune (")
+                 and l_[2] == "ESSAIS 2 clos · 1 reçoivent · inscrit 302 000 · avec essais 502 000 · ajout +200 000", simule[1])
+        verifier("recompter --essais --ecrire : le chiffre + l'essai, la marque en tête, BRUT le relit",
+                 un[0] == 0 and un[1].splitlines()[-1] == "ÉCRIT 1 cellules · total 302 000 → 502 000"
+                 and '<td class="mono">essais (ESD) +200 000 · ≈500,0k (500 000)</td>' in feuille_
+                 and '<td class="mono">≈2,0k (2 000)</td>' in feuille_ and mod.total_clos(feuille_) == 502000, un[1] + feuille_)
+        verifier("recompter --essais --ecrire, second passage : cellule identique — mutant : ignorer la marque",
+                 deux[0] == 0 and lire(fr) == feuille_ and deux[1].splitlines()[-1] == "ÉCRIT 0 cellules · total 502 000 → 502 000",
+                 deux[1] + lire(fr))
+        verifier("recompter --essais après écriture : la simulation dit +0, déjà ajoutés",
+                 resimule[0] == 0 and resimule[1].splitlines()[0].startswith("M inscrit 500 000 · essais 200 000 · ajout +0 · ")
+                 and resimule[1].splitlines()[0].endswith(" · déjà ajoutés (ESD)")
+                 and resimule[1].splitlines()[-1].endswith(" · 0 reçoivent · inscrit 502 000 · avec essais 502 000 · ajout +0"),
+                 resimule[1])
+        # La règle du découpé, en fonction pure : les essais sans passer le recompté.
+        verifier("ajout_essais : découpé borné par l'écart ; autre gardé, rien ; marque, rien",
+                 [mod.ajout_essais("x", 100, 150, "découpe", 80), mod.ajout_essais("x", 100, 300, "découpe", 80),
+                  mod.ajout_essais("x", 100, 90, "découpe", 80), mod.ajout_essais("x", 100, None, "gardé — sans session", 80),
+                  mod.ajout_essais(mod.MARQUE_ESSAIS + "+5 · (105)", 105, None, "gardé — DÉCOUPE aucune (r)", 5)]
+                 == [50, 80, 0, 0, 0], "")
+        # Dette d'ESD : un `recompter --ecrire` sur une cellule marquée ESD garde la marque en tête.
+        marques = [mod.marquer("essais (ESD) +200 000 · recompté (REC), était 650 000 · ≈850,0k (850 000)", 850000, 900000, "découpe"),
+                   mod.marquer("essais (ESD) +50 000 · ≈700,0k (700 000)", 700000, 750000, "découpe")]
+        verifier("marquer : la marque ESD reste en tête — mutant : la marque ESD perdue", marques == [
+            "essais (ESD) +200 000 · recompté (REC), était 650 000 · ≈900,0k (900 000)",
+            "essais (ESD) +50 000 · recompté (REC), était 700 000 · ≈750,0k (750 000)"], marques)
+
+
+groupe(tester_recompter_essais)
 
 # --- chantier U : lire, cocher, page déduite ----------------------------------
 
-attendu = mod.lire(os.path.join(mod.KIT, "cloture.md"))
-attendu = attendu if attendu.endswith("\n") else attendu + "\n"
-verifier("lire : un fichier du kit, tel quel", appel(["lire", "cloture.md"]) == (0, attendu), appel(["lire", "cloture.md"])[1][:200])
-code, s = appel(["lire", "cloture.md", "../hors.md", "absent.md", "cloture.md"])
-verifier("lire : hors du kit et absent sortent 1, le reste imprimé", code == 1
-         and s == attendu + "GARDE: hors du kit : ../hors.md\nABSENT absent.md\n" + attendu, s[-200:])
+def tester_lire_kit():
+    """Contrôler `lire` : un fichier du kit tel quel, hors du kit et absent."""
+    attendu = mod.lire(os.path.join(mod.KIT, "cloture.md"))
+    attendu = attendu if attendu.endswith("\n") else attendu + "\n"
+    verifier("lire : un fichier du kit, tel quel", appel(["lire", "cloture.md"]) == (0, attendu), appel(["lire", "cloture.md"])[1][:200])
+    code, s = appel(["lire", "cloture.md", "../hors.md", "absent.md", "cloture.md"])
+    verifier("lire : hors du kit et absent sortent 1, le reste imprimé", code == 1
+             and s == attendu + "GARDE: hors du kit : ../hors.md\nABSENT absent.md\n" + attendu, s[-200:])
+
+
+groupe(tester_lire_kit)
 
 COCHE = """## L'ordre des fiches
 
@@ -1915,46 +2063,53 @@ def tester_cocher_session(f):
         os.environ.update(garde_env)
 
 
-with tempfile.TemporaryDirectory() as t:
-    f = os.path.join(t, "ctx", "05-u.md")
-    ecrire(f, COCHE)
-    garde_env = dict(os.environ)
-    try:
-        os.environ["CLAUDE_CODE_SESSION_ID"] = "abc"
-        code, s = appel(["cocher", f, "U1", "--resolu", "lire par vlp.py", "--date", "2026-01-02"])
-        verifier("cocher : coche, Tentatives réduit, Session avant Dépend de", code == 0 and s == "COCHÉ U1 · Session abc\n"
-                 and lire(f) == COCHE.replace("## U1 [ ]", "## U1 [x]").replace(
-                     "**Tentatives** (2026-01-01) — non résolu.\n1. essai un\n2. essai deux\nErreur : boum\n",
-                     "**Tentatives** (2026-01-02) — résolu par : lire par vlp.py\n**Session** : abc\n"), s + lire(f))
-        avant = lire(f)
-        code, s = appel(["cocher", f, "U1"])
-        verifier("cocher : déjà cochée, refus sans écrire", code == 1 and s == "GARDE: U1 déjà cochée — rien écrit\n"
-                 and lire(f) == avant, s)
-        verifier("cocher : fiche introuvable", appel(["cocher", f, "U9"]) == (1, "GARDE: fiche introuvable : U9\n"), appel(["cocher", f, "U9"]))
-        verifier("cocher --verifier : cochée", appel(["cocher", f, "U1", "--verifier"]) == (0, "CASE U1 [x]\nSANS GIT\n"), appel(["cocher", f, "U1", "--verifier"]))
-        avant2 = lire(f)
-        verifier("cocher --verifier : non cochée, pas d'écriture", appel(["cocher", f, "U2", "--verifier"]) == (1, "CASE U2 [ ]\nSANS GIT\n") and lire(f) == avant2, appel(["cocher", f, "U2", "--verifier"]))
-        verifier("cocher --verifier : fiche introuvable", appel(["cocher", f, "U9", "--verifier"]) == (1, "GARDE: fiche introuvable : U9\n"), appel(["cocher", f, "U9", "--verifier"]))
-        os.environ["CLAUDE_CODE_SESSION_ID"] = ""
-        code, s = appel(["cocher", f, "U2"])
-        verifier("cocher : id vide, pas de ligne Session", code == 0 and s == "COCHÉ U2 · Session absente\n"
-                 and lire(f) == avant.replace("## U2 [ ]", "## U2 [x]"), s + lire(f))
-    finally:
-        os.environ.clear()
-        os.environ.update(garde_env)
+def tester_cocher():
+    """Contrôler `cocher` : la coche, les Tentatives réduites, la Session ; `page` sans chemin."""
+    with tempfile.TemporaryDirectory() as t:
+        f = os.path.join(t, "ctx", "05-u.md")
+        ecrire(f, COCHE)
+        garde_env = dict(os.environ)
+        try:
+            os.environ["CLAUDE_CODE_SESSION_ID"] = "abc"
+            code, s = appel(["cocher", f, "U1", "--resolu", "lire par vlp.py", "--date", "2026-01-02"])
+            verifier("cocher : coche, Tentatives réduit, Session avant Dépend de", code == 0 and s == "COCHÉ U1 · Session abc\n"
+                     and lire(f) == COCHE.replace("## U1 [ ]", "## U1 [x]").replace(
+                         "**Tentatives** (2026-01-01) — non résolu.\n1. essai un\n2. essai deux\nErreur : boum\n",
+                         "**Tentatives** (2026-01-02) — résolu par : lire par vlp.py\n**Session** : abc\n"), s + lire(f))
+            avant = lire(f)
+            code, s = appel(["cocher", f, "U1"])
+            verifier("cocher : déjà cochée, refus sans écrire", code == 1 and s == "GARDE: U1 déjà cochée — rien écrit\n"
+                     and lire(f) == avant, s)
+            verifier("cocher : fiche introuvable", appel(["cocher", f, "U9"]) == (1, "GARDE: fiche introuvable : U9\n"), appel(["cocher", f, "U9"]))
+            verifier("cocher --verifier : cochée", appel(["cocher", f, "U1", "--verifier"]) == (0, "CASE U1 [x]\nSANS GIT\n"), appel(["cocher", f, "U1", "--verifier"]))
+            avant2 = lire(f)
+            verifier("cocher --verifier : non cochée, pas d'écriture", appel(["cocher", f, "U2", "--verifier"]) == (1, "CASE U2 [ ]\nSANS GIT\n") and lire(f) == avant2, appel(["cocher", f, "U2", "--verifier"]))
+            verifier("cocher --verifier : fiche introuvable", appel(["cocher", f, "U9", "--verifier"]) == (1, "GARDE: fiche introuvable : U9\n"), appel(["cocher", f, "U9", "--verifier"]))
+            os.environ["CLAUDE_CODE_SESSION_ID"] = ""
+            code, s = appel(["cocher", f, "U2"])
+            verifier("cocher : id vide, pas de ligne Session", code == 0 and s == "COCHÉ U2 · Session absente\n"
+                     and lire(f) == avant.replace("## U2 [ ]", "## U2 [x]"), s + lire(f))
+        finally:
+            os.environ.clear()
+            os.environ.update(garde_env)
 
-    tester_cocher_session(f)
+        tester_cocher_session(f)
 
-    ecrire(f, PAGE % (" ", "", " ", ""))
-    page = os.path.join(t, "ctx", "artefacts", "05-u.html")
-    code, s = appel(["page", f, "--creer", "--projet", "P", "--titre", "T", "--resultat", "R", "--date", "2026-01-02"])
-    verifier("page sans chemin : artefacts/<même nom>.html, dossier créé", code == 0 and os.path.isfile(page)
-             and s.startswith("PAGE %s · 3 fiches" % page), s)
-    code, s = appel(["page", f, "--verifier"])
-    verifier("page --verifier sans chemin : la même page", code == 0 and s.startswith("À JOUR 3 fiches"), s)
+        ecrire(f, PAGE % (" ", "", " ", ""))
+        page = os.path.join(t, "ctx", "artefacts", "05-u.html")
+        code, s = appel(["page", f, "--creer", "--projet", "P", "--titre", "T", "--resultat", "R", "--date", "2026-01-02"])
+        verifier("page sans chemin : artefacts/<même nom>.html, dossier créé", code == 0 and os.path.isfile(page)
+                 and s.startswith("PAGE %s · 3 fiches" % page), s)
+        code, s = appel(["page", f, "--verifier"])
+        verifier("page --verifier sans chemin : la même page", code == 0 and s.startswith("À JOUR 3 fiches"), s)
+
+
+groupe(tester_cocher)
 
 # cocher --verifier et --refuser (chantier REV) : la tête du dépôt, puis le refus du relecteur.
-REFUS = """<!-- FICHE:VAL1 -->
+def tester_cocher_refuser():
+    """Contrôler `cocher --verifier` et `cocher --refuser` (chantier REV)."""
+    REFUS = """<!-- FICHE:VAL1 -->
 ## VAL1 [x] — Valider
 
 **Dépend de** : rien.
@@ -1965,47 +2120,47 @@ REFUS = """<!-- FICHE:VAL1 -->
 <!-- /FICHE -->
 """
 
-with tempfile.TemporaryDirectory() as t:
-    f = os.path.join(t, "ctx", "06-v.md")
-    ecrire(f, REFUS)
-    verifier("cocher --verifier : sans Git", appel(["cocher", f, "VAL1", "--verifier"]) == (0, "CASE VAL1 [x]\nSANS GIT\n"),
-             appel(["cocher", f, "VAL1", "--verifier"]))
-    code, s = appel(["cocher", f, "VAL1", "--refuser", "motif un", "--date", "2026-01-03"])
-    premier = lire(f)
-    code2, s2 = appel(["cocher", f, "VAL1", "--refuser", "motif deux", "--date", "2026-01-04"])
-    bloc = "**Tentatives** (2026-01-03) — non résolu.\n1. FAITE refusée à la relecture.\n"
-    un = REFUS.replace("## VAL1 [x] — Valider\n\n", "## VAL1 [ ] — Valider\n\n" + bloc + "Erreur : motif un\n\n")
-    deux = un.replace(bloc + "Erreur : motif un\n", bloc + "2. FAITE refusée à la relecture.\nErreur : motif deux\n")
-    verifier("cocher --refuser", (code, s, code2, s2) == (0, "REFUSÉ VAL1 · refus 1\n", 0, "REFUSÉ VAL1 · refus 2\n")
-             and premier == un and lire(f) == deux and lire(f).count("**Tentatives**") == 1
-             and lire(f).count("Erreur :") == 1
-             and appel(["cocher", f, "VAL9", "--refuser", "m"]) == (1, "GARDE: fiche introuvable : VAL9\n"),
-             premier + "\n---\n" + lire(f))
-    if not shutil.which("git"):
-        print("SAUTÉ: git absent — la tête de cocher --verifier n'est pas testée")
-    else:
-        env = dict(os.environ, GIT_CONFIG_GLOBAL=os.path.join(t, "gitconfig"), GIT_CONFIG_NOSYSTEM="1",
-                   GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t")
-        ecrire(env["GIT_CONFIG_GLOBAL"], "")
+    with tempfile.TemporaryDirectory() as t:
+        f = os.path.join(t, "ctx", "06-v.md")
         ecrire(f, REFUS)
-        subprocess.run(["git", "init", "-q"], cwd=t, env=env, check=True, capture_output=True)
-        vus = []
-        for sujet in ("VAL1: x", "VAL1 : x", "VAL10 : y"):
-            subprocess.run(["git", "commit", "-q", "--allow-empty", "-m", sujet], cwd=t, env=env, check=True,
-                           capture_output=True)
-            # Lu comme vlp.py le lit, config du poste comprise : même longueur d'abréviation.
-            sha = subprocess.run(["git", "log", "-1", "--format=%h"], cwd=t, capture_output=True,
-                                 encoding="utf-8").stdout.strip()
-            vus.append((appel(["cocher", f, "VAL1", "--verifier"]), sha))
-        verifier("cocher --verifier : un commit du sous-agent",
-                 [v for v, _ in vus] == [(1, "CASE VAL1 [x]\nTÊTE %s VAL1: x\n" % vus[0][1]),
-                                        (1, "CASE VAL1 [x]\nTÊTE %s VAL1 : x\n" % vus[1][1]),
-                                        (0, "CASE VAL1 [x]\n")], vus)
+        verifier("cocher --verifier : sans Git", appel(["cocher", f, "VAL1", "--verifier"]) == (0, "CASE VAL1 [x]\nSANS GIT\n"),
+                 appel(["cocher", f, "VAL1", "--verifier"]))
+        code, s = appel(["cocher", f, "VAL1", "--refuser", "motif un", "--date", "2026-01-03"])
+        premier = lire(f)
+        code2, s2 = appel(["cocher", f, "VAL1", "--refuser", "motif deux", "--date", "2026-01-04"])
+        bloc = "**Tentatives** (2026-01-03) — non résolu.\n1. FAITE refusée à la relecture.\n"
+        un = REFUS.replace("## VAL1 [x] — Valider\n\n", "## VAL1 [ ] — Valider\n\n" + bloc + "Erreur : motif un\n\n")
+        deux = un.replace(bloc + "Erreur : motif un\n", bloc + "2. FAITE refusée à la relecture.\nErreur : motif deux\n")
+        verifier("cocher --refuser", (code, s, code2, s2) == (0, "REFUSÉ VAL1 · refus 1\n", 0, "REFUSÉ VAL1 · refus 2\n")
+                 and premier == un and lire(f) == deux and lire(f).count("**Tentatives**") == 1
+                 and lire(f).count("Erreur :") == 1
+                 and appel(["cocher", f, "VAL9", "--refuser", "m"]) == (1, "GARDE: fiche introuvable : VAL9\n"),
+                 premier + "\n---\n" + lire(f))
+        if not shutil.which("git"):
+            print("SAUTÉ: git absent — la tête de cocher --verifier n'est pas testée")
+        else:
+            env = dict(os.environ, GIT_CONFIG_GLOBAL=os.path.join(t, "gitconfig"), GIT_CONFIG_NOSYSTEM="1",
+                       GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t")
+            ecrire(env["GIT_CONFIG_GLOBAL"], "")
+            ecrire(f, REFUS)
+            subprocess.run(["git", "init", "-q"], cwd=t, env=env, check=True, capture_output=True)
+            vus = []
+            for sujet in ("VAL1: x", "VAL1 : x", "VAL10 : y"):
+                subprocess.run(["git", "commit", "-q", "--allow-empty", "-m", sujet], cwd=t, env=env, check=True,
+                               capture_output=True)
+                # Lu comme vlp.py le lit, config du poste comprise : même longueur d'abréviation.
+                sha = subprocess.run(["git", "log", "-1", "--format=%h"], cwd=t, capture_output=True,
+                                     encoding="utf-8").stdout.strip()
+                vus.append((appel(["cocher", f, "VAL1", "--verifier"]), sha))
+            verifier("cocher --verifier : un commit du sous-agent",
+                     [v for v, _ in vus] == [(1, "CASE VAL1 [x]\nTÊTE %s VAL1: x\n" % vus[0][1]),
+                                            (1, "CASE VAL1 [x]\nTÊTE %s VAL1 : x\n" % vus[1][1]),
+                                            (0, "CASE VAL1 [x]\n")], vus)
 
-# refus dans un bloc déjà existant mais dont l'unique tentative n'est PAS un refus de
-# relecture (une piste écrite à la main, ou une BLOQUÉE) : le rang repart à 1, pas à 2 —
-# distingue de « <n> = toutes les lignes numérotées ».
-REFUS_PISTE = """<!-- FICHE:VAL2 -->
+    # refus dans un bloc déjà existant mais dont l'unique tentative n'est PAS un refus de
+    # relecture (une piste écrite à la main, ou une BLOQUÉE) : le rang repart à 1, pas à 2 —
+    # distingue de « <n> = toutes les lignes numérotées ».
+    REFUS_PISTE = """<!-- FICHE:VAL2 -->
 ## VAL2 [x] — Deuxième
 
 **Tentatives** (2026-01-05) — non résolu.
@@ -2014,15 +2169,18 @@ Erreur : blocage initial
 **Dépend de** : rien.
 <!-- /FICHE -->
 """
-with tempfile.TemporaryDirectory() as t:
-    f2 = os.path.join(t, "ctx", "07-v2.md")
-    ecrire(f2, REFUS_PISTE)
-    code3, s3 = appel(["cocher", f2, "VAL2", "--refuser", "motif trois", "--date", "2026-01-06"])
-    attendu2 = REFUS_PISTE.replace("## VAL2 [x]", "## VAL2 [ ]").replace(
-        "1. <une piste>\nErreur : blocage initial\n",
-        "1. <une piste>\n2. FAITE refusée à la relecture.\nErreur : motif trois\n")
-    verifier("cocher --refuser : bloc existant sans refus de relecture, rang repart à 1",
-             (code3, s3) == (0, "REFUSÉ VAL2 · refus 1\n") and lire(f2) == attendu2, s3 + lire(f2))
+    with tempfile.TemporaryDirectory() as t:
+        f2 = os.path.join(t, "ctx", "07-v2.md")
+        ecrire(f2, REFUS_PISTE)
+        code3, s3 = appel(["cocher", f2, "VAL2", "--refuser", "motif trois", "--date", "2026-01-06"])
+        attendu2 = REFUS_PISTE.replace("## VAL2 [x]", "## VAL2 [ ]").replace(
+            "1. <une piste>\nErreur : blocage initial\n",
+            "1. <une piste>\n2. FAITE refusée à la relecture.\nErreur : motif trois\n")
+        verifier("cocher --refuser : bloc existant sans refus de relecture, rang repart à 1",
+                 (code3, s3) == (0, "REFUSÉ VAL2 · refus 1\n") and lire(f2) == attendu2, s3 + lire(f2))
+
+
+groupe(tester_cocher_refuser)
 
 # --- Z2 : un chemin de CHANTIER.md ne fait plus tomber une sous-commande ---
 # Un cas par ligne « plante » de la table de Z1, plus le point de lecture unique.
@@ -2033,37 +2191,42 @@ CARTE_Z = ("# Chantier courant\n\n- **alias** : z\n- **contexte** : ctx/\n- **in
            "- **fichier d'état** : ctx/08-etat.md\n- **fichier de fiches courant** : %s\n"
            "- **artefact du chantier** : aucun\n")
 
-with tempfile.TemporaryDirectory() as t:
-    proj = os.path.join(t, "proj")
-    ecrire(os.path.join(proj, "CHANTIER.md"), CARTE_Z % "ctx/absent.md (Z1..Z2)")
-    ecrire(os.path.join(proj, "ctx", "08-etat.md"), ETAT_Z)
-    os.makedirs(os.path.join(proj, "ctx", "artefacts"))
-    shutil.copy(GABARIT_FEUILLE, os.path.join(proj, "ctx", "artefacts", "feuille-de-route.html"))
-    manque = "GARDE: fichier de fiches introuvable : ctx/absent.md\n"
+def tester_z2_chemin():
+    """Contrôler qu'un chemin de CHANTIER.md ne fait plus tomber une commande (Z2)."""
+    with tempfile.TemporaryDirectory() as t:
+        proj = os.path.join(t, "proj")
+        ecrire(os.path.join(proj, "CHANTIER.md"), CARTE_Z % "ctx/absent.md (Z1..Z2)")
+        ecrire(os.path.join(proj, "ctx", "08-etat.md"), ETAT_Z)
+        os.makedirs(os.path.join(proj, "ctx", "artefacts"))
+        shutil.copy(GABARIT_FEUILLE, os.path.join(proj, "ctx", "artefacts", "feuille-de-route.html"))
+        manque = "GARDE: fichier de fiches introuvable : ctx/absent.md\n"
 
-    code, s = appel(["carte", proj])
-    verifier("Z2 carte : fiches courant absent, GARDE et 1", code == 1 and manque in s, s)
-    code, s = appel(["feuille", proj])
-    verifier("Z2 feuille : fiches courant absent, GARDE et 1 (plantait)",
-             code == 1 and s == "GARDE: fichier de fiches courant introuvable : ctx/absent.md\n", s)
-    code, s = appel(["clore", proj, "--livre", "rien"])
-    verifier("Z2 clore : fiches courant absent, GARDE et 1 (plantait)", code == 1 and s == manque, s)
-    code, s = appel(["ouvrir", proj, "--fiches", "ctx/absent.md", "--titre", "T"])
-    verifier("Z2 ouvrir : fiches absent, GARDE et 1", code == 1 and s == manque, s)
+        code, s = appel(["carte", proj])
+        verifier("Z2 carte : fiches courant absent, GARDE et 1", code == 1 and manque in s, s)
+        code, s = appel(["feuille", proj])
+        verifier("Z2 feuille : fiches courant absent, GARDE et 1 (plantait)",
+                 code == 1 and s == "GARDE: fichier de fiches courant introuvable : ctx/absent.md\n", s)
+        code, s = appel(["clore", proj, "--livre", "rien"])
+        verifier("Z2 clore : fiches courant absent, GARDE et 1 (plantait)", code == 1 and s == manque, s)
+        code, s = appel(["ouvrir", proj, "--fiches", "ctx/absent.md", "--titre", "T"])
+        verifier("Z2 ouvrir : fiches absent, GARDE et 1", code == 1 and s == manque, s)
 
-    absent = os.path.join(proj, "ctx", "absent.md")
-    for sous in (["extraire", absent, "Z1"], ["socle", absent], ["cocher", absent, "Z1"],
-                 ["cout", absent], ["page", absent]):
-        code, s = appel(sous)
-        verifier("Z2 %s : chemin absent, GARDE du point unique et 1" % sous[0],
-                 code == 1 and s == "GARDE: fichier introuvable : %s\n" % absent, s)
+        absent = os.path.join(proj, "ctx", "absent.md")
+        for sous in (["extraire", absent, "Z1"], ["socle", absent], ["cocher", absent, "Z1"],
+                     ["cout", absent], ["page", absent]):
+            code, s = appel(sous)
+            verifier("Z2 %s : chemin absent, GARDE du point unique et 1" % sous[0],
+                     code == 1 and s == "GARDE: fichier introuvable : %s\n" % absent, s)
 
-    try:
-        mod.lignes_du_projet(proj, "ctx/absent.md", "fichier de fiches")
-        verifier("Z2 point unique : lève Absent", False, "rien levé")
-    except mod.Absent as e:
-        verifier("Z2 point unique : Absent est une ValueError, les gardes locales la voient",
-                 isinstance(e, ValueError) and str(e) == "fichier de fiches introuvable : ctx/absent.md", str(e))
+        try:
+            mod.lignes_du_projet(proj, "ctx/absent.md", "fichier de fiches")
+            verifier("Z2 point unique : lève Absent", False, "rien levé")
+        except mod.Absent as e:
+            verifier("Z2 point unique : Absent est une ValueError, les gardes locales la voient",
+                     isinstance(e, ValueError) and str(e) == "fichier de fiches introuvable : ctx/absent.md", str(e))
+
+
+groupe(tester_z2_chemin)
 
 
 # ARC1 : l'archive des clos, quand elle existe, reçoit et donne les lignes closes ; la feuille garde le graphique
@@ -2106,7 +2269,7 @@ def test_page_clos():
         verifier("ARC1 : le prix moyen d'ouvrir se lit dans l'archive", "estimé 1 fiches ≈12 $" in s, s)
 
 
-test_page_clos()
+groupe(test_page_clos)
 
 
 def test_archive():
@@ -2150,11 +2313,13 @@ def test_archive():
         verifier("ARC2 : après clore, archive ne bouge plus rien", code == 0 and "ARCHIVE 0 déplacées" in s, s)
 
 
-test_archive()
+groupe(test_archive)
 
 
 # Préfixe à trois lettres : le format officiel depuis le chantier RNV.
-CHANTIER_3 = """# Chantier courant
+def tester_trois_lettres():
+    """Contrôler le préfixe à trois lettres : titres lus par la carte, lettres prises."""
+    CHANTIER_3 = """# Chantier courant
 
 - **alias** : p3
 - **contexte** : ctx
@@ -2163,7 +2328,7 @@ CHANTIER_3 = """# Chantier courant
 Lettres de fiche déjà prises : Z (Zed), RNV (Remise à niveau). Un nouveau chantier en choisit une autre.
 """
 
-FICHES_3 = """# Chantier RNV
+    FICHES_3 = """# Chantier RNV
 
 ## Le socle commun
 
@@ -2188,84 +2353,92 @@ RNV1 puis RNV2
 <!-- /FICHE -->
 """
 
-with tempfile.TemporaryDirectory() as t:
-    proj = os.path.join(t, "p3")
-    fiches3 = os.path.join(proj, "ctx", "30-rnv.md")
-    ecrire(os.path.join(proj, "CHANTIER.md"), CHANTIER_3)
-    ecrire(fiches3, FICHES_3)
+    with tempfile.TemporaryDirectory() as t:
+        proj = os.path.join(t, "p3")
+        fiches3 = os.path.join(proj, "ctx", "30-rnv.md")
+        ecrire(os.path.join(proj, "CHANTIER.md"), CHANTIER_3)
+        ecrire(fiches3, FICHES_3)
 
-    s3 = rendu(proj)
-    verifier("3 lettres : titres lus par la carte", "## RNV1 [ ] — première" in s3, s3)
-    verifier("3 lettres : PROCHAINE", s3.rstrip().endswith("PROCHAINE=RNV1"), s3)
+        s3 = rendu(proj)
+        verifier("3 lettres : titres lus par la carte", "## RNV1 [ ] — première" in s3, s3)
+        verifier("3 lettres : PROCHAINE", s3.rstrip().endswith("PROCHAINE=RNV1"), s3)
 
-    code, s3 = appel(["valider", fiches3])
-    verifier("3 lettres : marqueurs valides", code == 0 and "VALIDE 2 fiches" in s3, s3)
+        code, s3 = appel(["valider", fiches3])
+        verifier("3 lettres : marqueurs valides", code == 0 and "VALIDE 2 fiches" in s3, s3)
 
-    code, s3 = appel(["extraire", fiches3, "RNV2"])
-    verifier("3 lettres : extraire", code == 0 and "## RNV2 [ ] — seconde" in s3, s3)
+        code, s3 = appel(["extraire", fiches3, "RNV2"])
+        verifier("3 lettres : extraire", code == 0 and "## RNV2 [ ] — seconde" in s3, s3)
 
-    code, s3 = appel(["cocher", fiches3, "RNV1"])
-    verifier("3 lettres : cocher", code == 0 and "COCHÉ RNV1" in s3, s3)
+        code, s3 = appel(["cocher", fiches3, "RNV1"])
+        verifier("3 lettres : cocher", code == 0 and "COCHÉ RNV1" in s3, s3)
 
-    lettres3 = mod.lettres_prises(CHANTIER_3.splitlines())
-    verifier("3 lettres : lettres prises, une et trois lettres mêlées",
-             lettres3 == ["Z", "RNV"], repr(lettres3))
+        lettres3 = mod.lettres_prises(CHANTIER_3.splitlines())
+        verifier("3 lettres : lettres prises, une et trois lettres mêlées",
+                 lettres3 == ["Z", "RNV"], repr(lettres3))
 
-    prises = [mod.lettres_prises(["Lettres de fiche déjà prises : %s Un nouveau chantier en choisit une autre." % e])
-              for e in ("E (Un), Q (Tests, CI (rapide)).", "A.", "aucune.")]
-    verifier("lettres prises : titre à virgule, lettre sans titre", prises == [["E", "Q"], ["A"], []], repr(prises))
+        prises = [mod.lettres_prises(["Lettres de fiche déjà prises : %s Un nouveau chantier en choisit une autre." % e])
+                  for e in ("E (Un), Q (Tests, CI (rapide)).", "A.", "aucune.")]
+        verifier("lettres prises : titre à virgule, lettre sans titre", prises == [["E", "Q"], ["A"], []], repr(prises))
 
-    verifier("3 lettres : lettre_de isole le préfixe",
-             (mod.lettre_de("RNV12"), mod.lettre_de("Z3")) == ("RNV", "Z"),
-             repr((mod.lettre_de("RNV12"), mod.lettre_de("Z3"))))
+        verifier("3 lettres : lettre_de isole le préfixe",
+                 (mod.lettre_de("RNV12"), mod.lettre_de("Z3")) == ("RNV", "Z"),
+                 repr((mod.lettre_de("RNV12"), mod.lettre_de("Z3"))))
 
-    verifier("3 lettres : une entrée de clos est reconnue",
-             bool(mod.ENTREE_CLOS.match("- Clos le 2026-09-17 : un titre (chantier RNV).")), "non")
+        verifier("3 lettres : une entrée de clos est reconnue",
+                 bool(mod.ENTREE_CLOS.match("- Clos le 2026-09-17 : un titre (chantier RNV).")), "non")
+
+
+groupe(tester_trois_lettres)
 
 # NIV1 — la ligne d'injection ne laisse entrer aucun message de lanceur dans la carte.
 RACINE = os.path.dirname(ICI)
-lignes_injection = []
-for skill in ("chantier", "tache", "chef"):
-    texte = io.open(os.path.join(RACINE, "skills", skill, "SKILL.md"), encoding="utf-8").read()
-    lignes_injection.append([l for l in texte.splitlines() if l.startswith("!`") and "vlp.py" in l])
+def tester_niv1_injection():
+    """Contrôler la ligne d'injection de chaque skill (NIV1, EVF4)."""
+    lignes_injection = []
+    for skill in ("chantier", "tache", "chef"):
+        texte = io.open(os.path.join(RACINE, "skills", skill, "SKILL.md"), encoding="utf-8").read()
+        lignes_injection.append([l for l in texte.splitlines() if l.startswith("!`") and "vlp.py" in l])
 
-verifier("NIV1 : une ligne d'injection par skill, les trois identiques",
-         [len(x) for x in lignes_injection] == [1, 1, 1]
-         and lignes_injection[0] == lignes_injection[1] == lignes_injection[2],
-         repr(lignes_injection))
+    verifier("NIV1 : une ligne d'injection par skill, les trois identiques",
+             [len(x) for x in lignes_injection] == [1, 1, 1]
+             and lignes_injection[0] == lignes_injection[1] == lignes_injection[2],
+             repr(lignes_injection))
 
-injection = lignes_injection[0][0]
-# EVF4 : plus aucune redirection — `2>"${CLAUDE_PLUGIN_ROOT}/…"` écrivait hors du workspace, refusé sous
-# eval même Bash accordé (variante A, seule à laisser forker vlp:jouer). Le prix : `py: command not found`
-# entre dans la carte là où `py` manque (2 lignes sur 60 sous Ubuntu, 0 sous Windows, mesuré le 2026-09-26).
-verifier("EVF4 : trois appels de lanceur, aucune redirection",
-         injection.count('/scripts/vlp.py" carte') == 3 and ">" not in injection, injection)
+    injection = lignes_injection[0][0]
+    # EVF4 : plus aucune redirection — `2>"${CLAUDE_PLUGIN_ROOT}/…"` écrivait hors du workspace, refusé sous
+    # eval même Bash accordé (variante A, seule à laisser forker vlp:jouer). Le prix : `py: command not found`
+    # entre dans la carte là où `py` manque (2 lignes sur 60 sous Ubuntu, 0 sous Windows, mesuré le 2026-09-26).
+    verifier("EVF4 : trois appels de lanceur, aucune redirection",
+             injection.count('/scripts/vlp.py" carte') == 3 and ">" not in injection, injection)
 
-verifier("NIV1 : aucune syntaxe propre a un seul shell",
-         "$null" not in injection and "/dev/null" not in injection, injection)
+    verifier("NIV1 : aucune syntaxe propre a un seul shell",
+             "$null" not in injection and "/dev/null" not in injection, injection)
 
-# Dette REL, puis EVF4 : toute injection de carte (une par SKILL.md du glob) — trois appels, et aucune écriture de fichier.
-skills_glob = sorted(glob.glob(os.path.join(RACINE, "skills", "*", "SKILL.md")))
-ecrit_fichier = []
-injections = 0
-for chemin_skill in skills_glob:
-    for bout in io.open(chemin_skill, encoding="utf-8").read().split("!`")[1:]:
-        bout = bout.split("`")[0]
-        appels = bout.count('/scripts/vlp.py" carte')
-        if appels:
-            injections += 1
-            if appels != 3 or ">" in bout:
-                ecrit_fichier.append(os.path.basename(os.path.dirname(chemin_skill)))
-verifier("EVF4 : une injection de carte par SKILL.md du glob, aucune n'écrit de fichier",
-         injections == len(skills_glob) > 0 and ecrit_fichier == [],
-         "%d injections pour %d SKILL.md, fautives : %r" % (injections, len(skills_glob), ecrit_fichier))
+    # Dette REL, puis EVF4 : toute injection de carte (une par SKILL.md du glob) — trois appels, et aucune écriture de fichier.
+    skills_glob = sorted(glob.glob(os.path.join(RACINE, "skills", "*", "SKILL.md")))
+    ecrit_fichier = []
+    injections = 0
+    for chemin_skill in skills_glob:
+        for bout in io.open(chemin_skill, encoding="utf-8").read().split("!`")[1:]:
+            bout = bout.split("`")[0]
+            appels = bout.count('/scripts/vlp.py" carte')
+            if appels:
+                injections += 1
+                if appels != 3 or ">" in bout:
+                    ecrit_fichier.append(os.path.basename(os.path.dirname(chemin_skill)))
+    verifier("EVF4 : une injection de carte par SKILL.md du glob, aucune n'écrit de fichier",
+             injections == len(skills_glob) > 0 and ecrit_fichier == [],
+             "%d injections pour %d SKILL.md, fautives : %r" % (injections, len(skills_glob), ecrit_fichier))
 
-s_niv1 = io.StringIO()
-mod.carte_injectee(os.path.join(RACINE, "scripts"), "py", False, s_niv1)
-lu_n = s_niv1.getvalue()
-verifier("NIV1 : la carte ne dit que PYTHON= et le projet",
-         lu_n.splitlines()[:2] == ["", "PYTHON=py"] and "introuvable" not in lu_n and "not found" not in lu_n
-         and "PROJET=" in lu_n, lu_n[:200])
+    s_niv1 = io.StringIO()
+    mod.carte_injectee(os.path.join(RACINE, "scripts"), "py", False, s_niv1)
+    lu_n = s_niv1.getvalue()
+    verifier("NIV1 : la carte ne dit que PYTHON= et le projet",
+             lu_n.splitlines()[:2] == ["", "PYTHON=py"] and "introuvable" not in lu_n and "not found" not in lu_n
+             and "PROJET=" in lu_n, lu_n[:200])
+
+
+groupe(tester_niv1_injection)
 
 # --- NIV2 : `niveau` dit en quoi un projet équipé a dérivé du kit -------------
 
@@ -2273,7 +2446,9 @@ ETAT_NIV = ("# État\n\n"
             "Le plugin pose `${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py` — prose, pas un chemin lu.\n\n"
             "## TODO\n\n| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |\n"
             "|---|---|---|---|---|\n| 1 | un truc | utile | bas | — |\n")
-CARTE_SALE = """# Chantier courant
+def tester_niv2_ecarts():
+    """Contrôler `niveau` : les catégories d'écart d'un projet en retard (NIV2)."""
+    CARTE_SALE = """# Chantier courant
 
 - **alias** : sale
 - **contexte** : ctx/
@@ -2288,32 +2463,35 @@ CARTE_SALE = """# Chantier courant
 |---|---|---|
 | ctx/10-a.md | A1..A2 | 2026-01-01 |
 """
-INDEX_SALE = ("# Index\n\n| Fichier | On l'ouvre quand |\n|---|---|\n"
-              "| `99-fantome.md` | jamais, il n'existe pas |\n"
-              "| *(hors dossier)* `${CLAUDE_PLUGIN_ROOT}/methode-chantier.md` | la méthode |\n")
+    INDEX_SALE = ("# Index\n\n| Fichier | On l'ouvre quand |\n|---|---|\n"
+                  "| `99-fantome.md` | jamais, il n'existe pas |\n"
+                  "| *(hors dossier)* `${CLAUDE_PLUGIN_ROOT}/methode-chantier.md` | la méthode |\n")
 
-with tempfile.TemporaryDirectory() as t:
-    proj = os.path.join(t, "sale")
-    ecrire(os.path.join(proj, "CHANTIER.md"), CARTE_SALE)
-    ecrire(os.path.join(proj, "ctx", "00-INDEX.md"), INDEX_SALE)
-    ecrire(os.path.join(proj, "ctx", "08-etat.md"), ETAT_NIV)
+    with tempfile.TemporaryDirectory() as t:
+        proj = os.path.join(t, "sale")
+        ecrire(os.path.join(proj, "CHANTIER.md"), CARTE_SALE)
+        ecrire(os.path.join(proj, "ctx", "00-INDEX.md"), INDEX_SALE)
+        ecrire(os.path.join(proj, "ctx", "08-etat.md"), ETAT_NIV)
 
-    code, s = appel(["niveau", proj])
-    cat = [l.split(":")[1].strip() for l in s.splitlines() if l.startswith("ÉCART:")]
-    verifier("NIV2 : les cinq catégories d'écart, sauf `page` (aucun courant)",
-             code == 1 and cat == ["renvois", "feuille", "variable", "variable", "clos"], s)
-    verifier("NIV2 : le renvoi absent est nommé avec sa source et sa ligne",
-             "ÉCART: renvois: ctx/00-INDEX.md:5: 99-fantome.md — nommé, introuvable\n" in s, s)
-    verifier("NIV2 : la feuille de route absente est un écart",
-             "ÉCART: feuille: feuille de route introuvable :" in s, s)
-    verifier("NIV2 : la variable est lue en champ et en cellule, jamais en prose",
-             "ÉCART: variable: CHANTIER.md:7 cite ${CLAUDE_PLUGIN_ROOT}" in s
-             and "08-etat.md:3" not in s, s)
-    verifier("NIV2 : la table des clos est repérée à son titre",
-             "ÉCART: clos: CHANTIER.md:10 —" in s, s)
-    verifier("NIV2 : le poids sort brut, et le bilan compte les deux genres",
-             "POIDS CLAUDE.md absent/80 · CHANTIER.md 14/50 · index 6/80\n" in s
-             and s.rstrip().endswith("NIVEAU 5 écarts · 0 avertissements — %s" % proj), s)
+        code, s = appel(["niveau", proj])
+        cat = [l.split(":")[1].strip() for l in s.splitlines() if l.startswith("ÉCART:")]
+        verifier("NIV2 : les cinq catégories d'écart, sauf `page` (aucun courant)",
+                 code == 1 and cat == ["renvois", "feuille", "variable", "variable", "clos"], s)
+        verifier("NIV2 : le renvoi absent est nommé avec sa source et sa ligne",
+                 "ÉCART: renvois: ctx/00-INDEX.md:5: 99-fantome.md — nommé, introuvable\n" in s, s)
+        verifier("NIV2 : la feuille de route absente est un écart",
+                 "ÉCART: feuille: feuille de route introuvable :" in s, s)
+        verifier("NIV2 : la variable est lue en champ et en cellule, jamais en prose",
+                 "ÉCART: variable: CHANTIER.md:7 cite ${CLAUDE_PLUGIN_ROOT}" in s
+                 and "08-etat.md:3" not in s, s)
+        verifier("NIV2 : la table des clos est repérée à son titre",
+                 "ÉCART: clos: CHANTIER.md:10 —" in s, s)
+        verifier("NIV2 : le poids sort brut, et le bilan compte les deux genres",
+                 "POIDS CLAUDE.md absent/80 · CHANTIER.md 14/50 · index 6/80\n" in s
+                 and s.rstrip().endswith("NIVEAU 5 écarts · 0 avertissements — %s" % proj), s)
+
+
+groupe(tester_niv2_ecarts)
 
 CARTE_NETTE = """# Chantier courant
 
@@ -2329,42 +2507,47 @@ CARTE_NETTE = """# Chantier courant
 INDEX_NET = ("# Index\n\n| Fichier | On l'ouvre quand |\n|---|---|\n"
              "| `08-etat.md` | on reprend |\n")
 
-with tempfile.TemporaryDirectory() as t:
-    proj = os.path.join(t, "net")
-    ecrire(os.path.join(proj, "CHANTIER.md"), CARTE_NETTE)
-    ecrire(os.path.join(proj, "ctx", "00-INDEX.md"), INDEX_NET)
-    ecrire(os.path.join(proj, "ctx", "08-etat.md"), ETAT_NIV)
-    ecrire(os.path.join(proj, "methode-chantier.md"), "la copie locale, tolérée\n")
-    os.makedirs(os.path.join(proj, "ctx", "artefacts"))
-    shutil.copy(GABARIT_FEUILLE, os.path.join(proj, "ctx", "artefacts", "feuille-de-route.html"))
-    appel(["feuille", proj])
+def tester_niv2_a_niveau():
+    """Contrôler `niveau` sur un projet à niveau, et un chemin introuvable (NIV2)."""
+    with tempfile.TemporaryDirectory() as t:
+        proj = os.path.join(t, "net")
+        ecrire(os.path.join(proj, "CHANTIER.md"), CARTE_NETTE)
+        ecrire(os.path.join(proj, "ctx", "00-INDEX.md"), INDEX_NET)
+        ecrire(os.path.join(proj, "ctx", "08-etat.md"), ETAT_NIV)
+        ecrire(os.path.join(proj, "methode-chantier.md"), "la copie locale, tolérée\n")
+        os.makedirs(os.path.join(proj, "ctx", "artefacts"))
+        shutil.copy(GABARIT_FEUILLE, os.path.join(proj, "ctx", "artefacts", "feuille-de-route.html"))
+        appel(["feuille", proj])
 
-    code, s = appel(["niveau", proj])
-    verifier("NIV2 : un projet à niveau ne sort aucun écart, et 0",
-             code == 0 and "ÉCART:" not in s
-             and s.rstrip().endswith("NIVEAU 0 écarts · 0 avertissements — %s" % proj), s)
-    verifier("NIV2 : une copie locale de methode-chantier.md n'est pas un écart",
-             "methode-chantier" not in s, s)
+        code, s = appel(["niveau", proj])
+        verifier("NIV2 : un projet à niveau ne sort aucun écart, et 0",
+                 code == 0 and "ÉCART:" not in s
+                 and s.rstrip().endswith("NIVEAU 0 écarts · 0 avertissements — %s" % proj), s)
+        verifier("NIV2 : une copie locale de methode-chantier.md n'est pas un écart",
+                 "methode-chantier" not in s, s)
 
-    ecrire(os.path.join(proj, "CLAUDE.md"), "x\n" * (mod.SEUIL_CLAUDE + 1))
-    code, s = appel(["niveau", proj])
-    verifier("NIV2 : un fichier de tête trop lourd avertit, il ne fait pas un écart",
-             code == 0 and "AVERTISSEMENT: poids: CLAUDE.md %d lignes > %d\n"
-             % (mod.SEUIL_CLAUDE + 1, mod.SEUIL_CLAUDE) in s
-             and "NIVEAU 0 écarts · 1 avertissements" in s, s)
+        ecrire(os.path.join(proj, "CLAUDE.md"), "x\n" * (mod.SEUIL_CLAUDE + 1))
+        code, s = appel(["niveau", proj])
+        verifier("NIV2 : un fichier de tête trop lourd avertit, il ne fait pas un écart",
+                 code == 0 and "AVERTISSEMENT: poids: CLAUDE.md %d lignes > %d\n"
+                 % (mod.SEUIL_CLAUDE + 1, mod.SEUIL_CLAUDE) in s
+                 and "NIVEAU 0 écarts · 1 avertissements" in s, s)
 
-    code, s = appel(["niveau", os.path.join(t, "pas-un-projet")])
-    verifier("NIV2 : sans CHANTIER.md, une GARDE et 1",
-             code == 1 and s.startswith("GARDE: pas de CHANTIER.md dans "), s)
+        code, s = appel(["niveau", os.path.join(t, "pas-un-projet")])
+        verifier("NIV2 : sans CHANTIER.md, une GARDE et 1",
+                 code == 1 and s.startswith("GARDE: pas de CHANTIER.md dans "), s)
 
-# `niveau` lit les chemins du projet par le point unique : il hérite des GARDE.
-with tempfile.TemporaryDirectory() as t:
-    proj = os.path.join(t, "garde")
-    ecrire(os.path.join(proj, "CHANTIER.md"), CARTE_NETTE.replace("ctx/00-INDEX.md", "ctx/absent.md"))
-    ecrire(os.path.join(proj, "ctx", "08-etat.md"), ETAT_NIV)
-    code, s = appel(["niveau", proj])
-    verifier("NIV2 : un chemin de CHANTIER.md introuvable rend une GARDE, pas un traceback",
-             code == 1 and "GARDE: index introuvable : ctx/absent.md\n" in s, s)
+    # `niveau` lit les chemins du projet par le point unique : il hérite des GARDE.
+    with tempfile.TemporaryDirectory() as t:
+        proj = os.path.join(t, "garde")
+        ecrire(os.path.join(proj, "CHANTIER.md"), CARTE_NETTE.replace("ctx/00-INDEX.md", "ctx/absent.md"))
+        ecrire(os.path.join(proj, "ctx", "08-etat.md"), ETAT_NIV)
+        code, s = appel(["niveau", proj])
+        verifier("NIV2 : un chemin de CHANTIER.md introuvable rend une GARDE, pas un traceback",
+                 code == 1 and "GARDE: index introuvable : ctx/absent.md\n" in s, s)
+
+
+groupe(tester_niv2_a_niveau)
 
 # Un chantier courant fait passer `niveau` par `cmd_page` : son appel interne
 # oubliait `forme`, ajouté par HAB — traceback chez MapDecorator, le 2026-09-27.
@@ -2383,9 +2566,14 @@ def niveau_courant():
         except AttributeError as e:
             return None, "traceback : %s" % e
 
-code, s = niveau_courant()
-verifier("HAB : `niveau` avec un chantier courant rend son bilan, pas un traceback",
-         code is not None and "\nNIVEAU " in s, s)
+def tester_hab_niveau():
+    """Contrôler `niveau` avec un chantier courant (chantier HAB)."""
+    code, s = niveau_courant()
+    verifier("HAB : `niveau` avec un chantier courant rend son bilan, pas un traceback",
+             code is not None and "\nNIVEAU " in s, s)
+
+
+groupe(tester_hab_niveau)
 
 # --- NIV3 : `niveau --ecrire` corrige les écarts mécaniques, et eux seuls ----
 
@@ -2442,78 +2630,83 @@ def compte(s, prefixe):
     return len([l for l in s.splitlines() if l.startswith(prefixe)])
 
 
-with tempfile.TemporaryDirectory() as t:
-    proj = bac_niv3(t)
-    code, avant = appel(["niveau", proj])
-    n = compte(avant, "ÉCART:")
-    # VOI1 : la page du disque, un gabarit jamais régénéré, porte un lien cassé — le cinquième
-    verifier("NIV3 avant : cinq écarts, dont le renvoi absent que rien ne sait corriger",
-             code == 1 and n == 5 and "ÉCART: renvois: " in avant
-             and "ÉCART: feuille: le bloc repliable" in avant and "ÉCART: clos: " in avant
-             and "ÉCART: feuille: Markdown brut ou lien cassé" in avant,
-             avant)
+def tester_niv3():
+    """Contrôler `niveau --ecrire` : avant, après, et ce qui n'est pas écrit (NIV3)."""
+    with tempfile.TemporaryDirectory() as t:
+        proj = bac_niv3(t)
+        code, avant = appel(["niveau", proj])
+        n = compte(avant, "ÉCART:")
+        # VOI1 : la page du disque, un gabarit jamais régénéré, porte un lien cassé — le cinquième
+        verifier("NIV3 avant : cinq écarts, dont le renvoi absent que rien ne sait corriger",
+                 code == 1 and n == 5 and "ÉCART: renvois: " in avant
+                 and "ÉCART: feuille: le bloc repliable" in avant and "ÉCART: clos: " in avant
+                 and "ÉCART: feuille: Markdown brut ou lien cassé" in avant,
+                 avant)
 
-    code, pendant = appel(["niveau", proj, "--ecrire", "--date", "2026-09-18"])
-    m = compte(pendant, "CORRIGÉ:")
-    verifier("NIV3 : trois corrigés, le renvoi absent reste à la main",
-             code == 1 and m == 3 and compte(pendant, "ÉCART:") == 1
-             and "CORRIGÉ: feuille: bloc repliable des chantiers clos posé\n" in pendant
-             and "CORRIGÉ: feuille: régénérée\n" in pendant
-             and "CORRIGÉ: clos: table des chantiers clos retirée de CHANTIER.md:9" in pendant
-             and pendant.rstrip().endswith("NIVEAU 3 corrigés · 1 à la main — %s" % proj), pendant)
+        code, pendant = appel(["niveau", proj, "--ecrire", "--date", "2026-09-18"])
+        m = compte(pendant, "CORRIGÉ:")
+        verifier("NIV3 : trois corrigés, le renvoi absent reste à la main",
+                 code == 1 and m == 3 and compte(pendant, "ÉCART:") == 1
+                 and "CORRIGÉ: feuille: bloc repliable des chantiers clos posé\n" in pendant
+                 and "CORRIGÉ: feuille: régénérée\n" in pendant
+                 and "CORRIGÉ: clos: table des chantiers clos retirée de CHANTIER.md:9" in pendant
+                 and pendant.rstrip().endswith("NIVEAU 3 corrigés · 1 à la main — %s" % proj), pendant)
 
-    code, apres = appel(["niveau", proj])
-    # la régénération corrige deux écarts d'un coup : la page, et le lien cassé qu'elle portait
-    verifier("NIV3 après : %d écarts, %d corrigés, %d restants — le compte se ferme"
-             % (n, m, n - m - 1),
-             code == 1 and compte(apres, "ÉCART:") == n - m - 1 and "ÉCART: renvois: " in apres, apres)
+        code, apres = appel(["niveau", proj])
+        # la régénération corrige deux écarts d'un coup : la page, et le lien cassé qu'elle portait
+        verifier("NIV3 après : %d écarts, %d corrigés, %d restants — le compte se ferme"
+                 % (n, m, n - m - 1),
+                 code == 1 and compte(apres, "ÉCART:") == n - m - 1 and "ÉCART: renvois: " in apres, apres)
 
-    carte_niv3 = io.open(os.path.join(proj, "CHANTIER.md"), encoding="utf-8").read()
-    verifier("NIV3 : la table est partie, le titre et la phrase du gabarit la remplacent,"
-             " les lettres prises restent",
-             "| ctx/10-a.md |" not in carte_niv3 and "## Chantiers clos — dans l'index, pas ici" in carte_niv3
-             and "Lettres de fiche déjà prises : A." in carte_niv3, carte_niv3)
+        carte_niv3 = io.open(os.path.join(proj, "CHANTIER.md"), encoding="utf-8").read()
+        verifier("NIV3 : la table est partie, le titre et la phrase du gabarit la remplacent,"
+                 " les lettres prises restent",
+                 "| ctx/10-a.md |" not in carte_niv3 and "## Chantiers clos — dans l'index, pas ici" in carte_niv3
+                 and "Lettres de fiche déjà prises : A." in carte_niv3, carte_niv3)
 
-    html_niv3 = io.open(os.path.join(proj, "ctx", "artefacts", "feuille-de-route.html"),
-                        encoding="utf-8").read()
-    verifier("NIV3 : le bloc repliable et son résumé sont posés, le style migré vers vlp.css (PLI3)",
-             '<details class="clos">' in html_niv3 and '<span class="resume-clos">' in html_niv3
-             and html_niv3.count('href="vlp.css"') == 1 and "<style>" not in html_niv3, html_niv3[:200])
-    verifier("NIV3 : les lignes de ZONE:clos gardent les dix espaces que `clore` repère",
-             '\n          <tr>\n' in html_niv3, "indentation changée")
-    verifier("NIV3 : la feuille est aussi régénérée — la TODO du fichier d'état y passe",
-             '<span class="titre">un truc</span>' in html_niv3 and "2026-09-18" in html_niv3, html_niv3[-600:])
+        html_niv3 = io.open(os.path.join(proj, "ctx", "artefacts", "feuille-de-route.html"),
+                            encoding="utf-8").read()
+        verifier("NIV3 : le bloc repliable et son résumé sont posés, le style migré vers vlp.css (PLI3)",
+                 '<details class="clos">' in html_niv3 and '<span class="resume-clos">' in html_niv3
+                 and html_niv3.count('href="vlp.css"') == 1 and "<style>" not in html_niv3, html_niv3[:200])
+        verifier("NIV3 : les lignes de ZONE:clos gardent les dix espaces que `clore` repère",
+                 '\n          <tr>\n' in html_niv3, "indentation changée")
+        verifier("NIV3 : la feuille est aussi régénérée — la TODO du fichier d'état y passe",
+                 '<span class="titre">un truc</span>' in html_niv3 and "2026-09-18" in html_niv3, html_niv3[-600:])
 
-    code, encore = appel(["niveau", proj, "--ecrire", "--date", "2026-09-18"])
-    verifier("NIV3 : rejoué, il ne corrige plus rien — les corrections sont idempotentes",
-             "NIVEAU 0 corrigés · 1 à la main" in encore, encore)
+        code, encore = appel(["niveau", proj, "--ecrire", "--date", "2026-09-18"])
+        verifier("NIV3 : rejoué, il ne corrige plus rien — les corrections sont idempotentes",
+                 "NIVEAU 0 corrigés · 1 à la main" in encore, encore)
 
-# La feuille absente : posée depuis le gabarit, puis régénérée.
-with tempfile.TemporaryDirectory() as t:
-    proj = bac_niv3(t, feuille=False)
-    page = os.path.join(proj, "ctx", "artefacts", "feuille-de-route.html")
-    code, s = appel(["niveau", proj])
-    verifier("NIV3 : sans --ecrire, rien n'est posé", not os.path.exists(page)
-             and "ÉCART: feuille: feuille de route introuvable :" in s, s)
-    code, s = appel(["niveau", proj, "--ecrire", "--date", "2026-09-18"])
-    verifier("NIV3 : la feuille absente est posée depuis le gabarit puis régénérée",
-             os.path.isfile(page) and "CORRIGÉ: feuille: posée depuis le gabarit" in s
-             and '<span class="titre">un truc</span>' in io.open(page, encoding="utf-8").read(), s)
+    # La feuille absente : posée depuis le gabarit, puis régénérée.
+    with tempfile.TemporaryDirectory() as t:
+        proj = bac_niv3(t, feuille=False)
+        page = os.path.join(proj, "ctx", "artefacts", "feuille-de-route.html")
+        code, s = appel(["niveau", proj])
+        verifier("NIV3 : sans --ecrire, rien n'est posé", not os.path.exists(page)
+                 and "ÉCART: feuille: feuille de route introuvable :" in s, s)
+        code, s = appel(["niveau", proj, "--ecrire", "--date", "2026-09-18"])
+        verifier("NIV3 : la feuille absente est posée depuis le gabarit puis régénérée",
+                 os.path.isfile(page) and "CORRIGÉ: feuille: posée depuis le gabarit" in s
+                 and '<span class="titre">un truc</span>' in io.open(page, encoding="utf-8").read(), s)
 
-# L'index ne nomme pas un fichier de la table : la retirer le perdrait.
-with tempfile.TemporaryDirectory() as t:
-    proj = bac_niv3(t, index="# Index\n\n| Fichier | On l'ouvre quand |\n|---|---|\n"
-                           "| `08-etat.md` | on reprend |\n")
-    code, s = appel(["niveau", proj, "--ecrire", "--date", "2026-09-18"])
-    verifier("NIV3 : une table dont l'index ne nomme pas les fichiers reste à la main",
-             "ÉCART: clos: " in s and "CORRIGÉ: clos: " not in s
-             and "| ctx/10-a.md |" in io.open(os.path.join(proj, "CHANTIER.md"), encoding="utf-8").read(), s)
+    # L'index ne nomme pas un fichier de la table : la retirer le perdrait.
+    with tempfile.TemporaryDirectory() as t:
+        proj = bac_niv3(t, index="# Index\n\n| Fichier | On l'ouvre quand |\n|---|---|\n"
+                               "| `08-etat.md` | on reprend |\n")
+        code, s = appel(["niveau", proj, "--ecrire", "--date", "2026-09-18"])
+        verifier("NIV3 : une table dont l'index ne nomme pas les fichiers reste à la main",
+                 "ÉCART: clos: " in s and "CORRIGÉ: clos: " not in s
+                 and "| ctx/10-a.md |" in io.open(os.path.join(proj, "CHANTIER.md"), encoding="utf-8").read(), s)
 
-# Rien n'est écrit tant qu'un calcul peut échouer : un projet sans CHANTIER.md.
-with tempfile.TemporaryDirectory() as t:
-    code, s = appel(["niveau", os.path.join(t, "rien"), "--ecrire"])
-    verifier("NIV3 : sans CHANTIER.md, --ecrire s'arrête sur une GARDE et n'écrit rien",
-             code == 1 and s.startswith("GARDE: pas de CHANTIER.md dans ") and not os.listdir(t), s)
+    # Rien n'est écrit tant qu'un calcul peut échouer : un projet sans CHANTIER.md.
+    with tempfile.TemporaryDirectory() as t:
+        code, s = appel(["niveau", os.path.join(t, "rien"), "--ecrire"])
+        verifier("NIV3 : sans CHANTIER.md, --ecrire s'arrête sur une GARDE et n'écrit rien",
+                 code == 1 and s.startswith("GARDE: pas de CHANTIER.md dans ") and not os.listdir(t), s)
+
+
+groupe(tester_niv3)
 
 # IDX1 : la ligne clos a quitté l'index pour l'archive — les trois lecteurs de l'index la voient encore.
 def idx1():
@@ -2556,45 +2749,47 @@ def idx1():
                  "POIDS CLAUDE.md absent/80 · CHANTIER.md 2/50 · index 3/80\nRENVOIS 2 nommés · 1 absents\n", s)
 
 
-idx1()
+groupe(idx1)
 
 # REP2 : retirer les chevrons d'une URL
-with tempfile.TemporaryDirectory() as t:
-    # Test 1 : champ retire les chevrons d'une URL entre chevrons
-    carte_avec_chevrons = """# Chantier REP2
+def tester_rep2_chevrons():
+    """Contrôler le retrait des chevrons d'une URL (REP2)."""
+    with tempfile.TemporaryDirectory() as t:
+        # Test 1 : champ retire les chevrons d'une URL entre chevrons
+        carte_avec_chevrons = """# Chantier REP2
 - **artefact du chantier** : <https://example.com/path>
 """
-    carte_sans_chevrons = """# Chantier REP2
+        carte_sans_chevrons = """# Chantier REP2
 - **artefact du chantier** : https://example.com/path
 """
-    carte_autre_chevrons = """# Chantier REP2
+        carte_autre_chevrons = """# Chantier REP2
 - **artefact du chantier** : <contexte>
 """
 
-    lignes = carte_avec_chevrons.strip().split('\n')
-    val = mod.champ(lignes, "artefact du chantier")
-    verifier("REP2 : champ retire les chevrons d'une URL https",
-             val == "https://example.com/path", "got: " + str(val))
+        lignes = carte_avec_chevrons.strip().split('\n')
+        val = mod.champ(lignes, "artefact du chantier")
+        verifier("REP2 : champ retire les chevrons d'une URL https",
+                 val == "https://example.com/path", "got: " + str(val))
 
-    lignes = carte_sans_chevrons.strip().split('\n')
-    val = mod.champ(lignes, "artefact du chantier")
-    verifier("REP2 : champ retourne une URL sans chevrons inchangée",
-             val == "https://example.com/path", "got: " + str(val))
+        lignes = carte_sans_chevrons.strip().split('\n')
+        val = mod.champ(lignes, "artefact du chantier")
+        verifier("REP2 : champ retourne une URL sans chevrons inchangée",
+                 val == "https://example.com/path", "got: " + str(val))
 
-    lignes = carte_autre_chevrons.strip().split('\n')
-    val = mod.champ(lignes, "artefact du chantier")
-    verifier("REP2 : champ retourne <contexte> inchangé",
-             val == "<contexte>", "got: " + str(val))
+        lignes = carte_autre_chevrons.strip().split('\n')
+        val = mod.champ(lignes, "artefact du chantier")
+        verifier("REP2 : champ retourne <contexte> inchangé",
+                 val == "<contexte>", "got: " + str(val))
 
-    # Test 2 : ouvrir --artefact retire les chevrons
-    proj = os.path.join(t, "proj-rep2")
-    ecrire(os.path.join(proj, "CHANTIER.md"),
-           """# Chantier courant
+        # Test 2 : ouvrir --artefact retire les chevrons
+        proj = os.path.join(t, "proj-rep2")
+        ecrire(os.path.join(proj, "CHANTIER.md"),
+               """# Chantier courant
 - **alias** : rep
 - **fichier de fiches courant** : fiches.md
 - **artefact du chantier** : aucun
 """)
-    ecrire(os.path.join(proj, "fiches.md"), """# Chantier REP2
+        ecrire(os.path.join(proj, "fiches.md"), """# Chantier REP2
 
 ## Le socle
 
@@ -2602,24 +2797,24 @@ with tempfile.TemporaryDirectory() as t:
 
 ## REP2 [ ] — à faire
 """)
-    ecrire(os.path.join(proj, "CLAUDE.md"), """| relire un chantier clos | exemple |
+        ecrire(os.path.join(proj, "CLAUDE.md"), """| relire un chantier clos | exemple |
 """)
-    ecrire(os.path.join(proj, "context AI", "00-index.md"), "| `a` | b |\n")
+        ecrire(os.path.join(proj, "context AI", "00-index.md"), "| `a` | b |\n")
 
-    code, s = appel(["ouvrir", proj, "--fiches", "fiches.md", "--titre", "REP2", "--artefact", "<https://example.com/artifact>"])
-    carte = io.open(os.path.join(proj, "CHANTIER.md"), encoding="utf-8").read()
-    verifier("REP2 : ouvrir retire les chevrons de --artefact",
-             "- **artefact du chantier** : https://example.com/artifact" in carte, carte)
+        code, s = appel(["ouvrir", proj, "--fiches", "fiches.md", "--titre", "REP2", "--artefact", "<https://example.com/artifact>"])
+        carte = io.open(os.path.join(proj, "CHANTIER.md"), encoding="utf-8").read()
+        verifier("REP2 : ouvrir retire les chevrons de --artefact",
+                 "- **artefact du chantier** : https://example.com/artifact" in carte, carte)
 
-    # Test 3 : cmd_ouvrir avec URL sans chevrons
-    proj2 = os.path.join(t, "proj-rep2b")
-    ecrire(os.path.join(proj2, "CHANTIER.md"),
-           """# Chantier courant
+        # Test 3 : cmd_ouvrir avec URL sans chevrons
+        proj2 = os.path.join(t, "proj-rep2b")
+        ecrire(os.path.join(proj2, "CHANTIER.md"),
+               """# Chantier courant
 - **alias** : rep
 - **fichier de fiches courant** : fiches.md
 - **artefact du chantier** : aucun
 """)
-    ecrire(os.path.join(proj2, "fiches.md"), """# Chantier REP2
+        ecrire(os.path.join(proj2, "fiches.md"), """# Chantier REP2
 
 ## Le socle
 
@@ -2627,14 +2822,17 @@ with tempfile.TemporaryDirectory() as t:
 
 ## REP2b [ ] — à faire
 """)
-    ecrire(os.path.join(proj2, "CLAUDE.md"), """| relire un chantier clos | exemple |
+        ecrire(os.path.join(proj2, "CLAUDE.md"), """| relire un chantier clos | exemple |
 """)
-    ecrire(os.path.join(proj2, "context AI", "00-index.md"), "| `a` | b |\n")
+        ecrire(os.path.join(proj2, "context AI", "00-index.md"), "| `a` | b |\n")
 
-    code, s = appel(["ouvrir", proj2, "--fiches", "fiches.md", "--titre", "REP2b", "--artefact", "https://example.com/artifact"])
-    carte2 = io.open(os.path.join(proj2, "CHANTIER.md"), encoding="utf-8").read()
-    verifier("REP2 : ouvrir accepte une URL sans chevrons",
-             "- **artefact du chantier** : https://example.com/artifact" in carte2, carte2)
+        code, s = appel(["ouvrir", proj2, "--fiches", "fiches.md", "--titre", "REP2b", "--artefact", "https://example.com/artifact"])
+        carte2 = io.open(os.path.join(proj2, "CHANTIER.md"), encoding="utf-8").read()
+        verifier("REP2 : ouvrir accepte une URL sans chevrons",
+                 "- **artefact du chantier** : https://example.com/artifact" in carte2, carte2)
+
+
+groupe(tester_rep2_chevrons)
 
 # --- REP3 : `niveau` compte le Markdown brut et migre `ZONE:clos` -------------
 
@@ -2657,79 +2855,89 @@ def rangs_clos(page):
     return mod.lignes_clos(html[d:f])
 
 
-with tempfile.TemporaryDirectory() as t:
-    proj = os.path.join(t, "rep3")
-    ecrire(os.path.join(proj, "CHANTIER.md"), CARTE_NETTE)
-    ecrire(os.path.join(proj, "ctx", "00-INDEX.md"), INDEX_NET)
-    ecrire(os.path.join(proj, "ctx", "08-etat.md"), ETAT_NIV)
-    page = mod.page_feuille(proj)  # le chemin tel que `niveau` l'affiche
-    os.makedirs(os.path.dirname(page))
-    shutil.copy(GABARIT_FEUILLE, page)
-    appel(["feuille", proj, "--date", "2026-09-18"])
+def tester_rep3_compteurs():
+    """Contrôler les trois compteurs d'une feuille, puis `clore` (REP3)."""
+    with tempfile.TemporaryDirectory() as t:
+        proj = os.path.join(t, "rep3")
+        ecrire(os.path.join(proj, "CHANTIER.md"), CARTE_NETTE)
+        ecrire(os.path.join(proj, "ctx", "00-INDEX.md"), INDEX_NET)
+        ecrire(os.path.join(proj, "ctx", "08-etat.md"), ETAT_NIV)
+        page = mod.page_feuille(proj)  # le chemin tel que `niveau` l'affiche
+        os.makedirs(os.path.dirname(page))
+        shutil.copy(GABARIT_FEUILLE, page)
+        appel(["feuille", proj, "--date", "2026-09-18"])
 
-    code, s = appel(["niveau", proj, "--date", "2026-09-18"])
-    verifier("REP3 : une feuille propre sort ses trois compteurs, à zéro, sans écart",
-             code == 0 and "ÉCART:" not in s
-             and "MARKDOWN 0 ** · 0 liens Markdown · 0 liens cassés — %s\n" % page in s, s)
+        code, s = appel(["niveau", proj, "--date", "2026-09-18"])
+        verifier("REP3 : une feuille propre sort ses trois compteurs, à zéro, sans écart",
+                 code == 0 and "ÉCART:" not in s
+                 and "MARKDOWN 0 ** · 0 liens Markdown · 0 liens cassés — %s\n" % page in s, s)
 
-    html = io.open(page, encoding="utf-8").read()
-    d, f = mod.zone(html, "clos", "<tbody>\n", "        </tbody>")
-    ecrire(page, html[:d] + VIEILLE + html[d:])
-    code, s = appel(["niveau", proj, "--date", "2026-09-18"])
-    # Le second écart (BTN5) : la ligne close a un coût, la feuille n'a pas encore la balise de couts.svg.
-    verifier("REP3 : la ligne close brute se compte hors code cité, fait un écart, et nomme --ecrire",
-             code == 1 and compte(s, "ÉCART:") == 2
-             and "MARKDOWN 2 ** · 1 liens Markdown · 1 liens cassés — %s\n" % page in s
-             and "ÉCART: feuille: Markdown brut ou lien cassé — « vlp.py niveau --ecrire »"
-                 " convertit les lignes closes\n" in s, s)
+        html = io.open(page, encoding="utf-8").read()
+        d, f = mod.zone(html, "clos", "<tbody>\n", "        </tbody>")
+        ecrire(page, html[:d] + VIEILLE + html[d:])
+        code, s = appel(["niveau", proj, "--date", "2026-09-18"])
+        # Le second écart (BTN5) : la ligne close a un coût, la feuille n'a pas encore la balise de couts.svg.
+        verifier("REP3 : la ligne close brute se compte hors code cité, fait un écart, et nomme --ecrire",
+                 code == 1 and compte(s, "ÉCART:") == 2
+                 and "MARKDOWN 2 ** · 1 liens Markdown · 1 liens cassés — %s\n" % page in s
+                 and "ÉCART: feuille: Markdown brut ou lien cassé — « vlp.py niveau --ecrire »"
+                     " convertit les lignes closes\n" in s, s)
 
-    code, s = appel(["niveau", proj, "--ecrire", "--date", "2026-09-18"])
-    apres = io.open(page, encoding="utf-8").read()
-    verifier("REP3 : --ecrire convertit la ligne close en place, et les compteurs tombent à zéro",
-             code == 0 and "CORRIGÉ: feuille: 1 lignes closes converties\n" in s
-             and "MARKDOWN 0 ** · 0 liens Markdown · 0 liens cassés — %s\n" % page in s
-             and '<a href="&lt;URL de son artefact&gt;">' in apres, s)
+        code, s = appel(["niveau", proj, "--ecrire", "--date", "2026-09-18"])
+        apres = io.open(page, encoding="utf-8").read()
+        verifier("REP3 : --ecrire convertit la ligne close en place, et les compteurs tombent à zéro",
+                 code == 0 and "CORRIGÉ: feuille: 1 lignes closes converties\n" in s
+                 and "MARKDOWN 0 ** · 0 liens Markdown · 0 liens cassés — %s\n" % page in s
+                 and '<a href="&lt;URL de son artefact&gt;">' in apres, s)
 
-    ligne = rangs_clos(page)[0]
-    verifier("REP3 : aucun texte visible perdu, chaque URL dans un href, le code cité et les dix espaces intacts",
-             visible(ligne) == visible(VIEILLE).replace("**x**", "x").replace("[t](https://u)", "t")
-             and '<a href="https://v">' in ligne and '<a href="https://u">t</a>' in ligne
-             and "<strong>x</strong>" in ligne and '<span class="mono">**c**</span>' in ligne
-             and ligne.startswith("          <tr>\n"), ligne)
+        ligne = rangs_clos(page)[0]
+        verifier("REP3 : aucun texte visible perdu, chaque URL dans un href, le code cité et les dix espaces intacts",
+                 visible(ligne) == visible(VIEILLE).replace("**x**", "x").replace("[t](https://u)", "t")
+                 and '<a href="https://v">' in ligne and '<a href="https://u">t</a>' in ligne
+                 and "<strong>x</strong>" in ligne and '<span class="mono">**c**</span>' in ligne
+                 and ligne.startswith("          <tr>\n"), ligne)
 
-    code, s = appel(["niveau", proj, "--ecrire", "--date", "2026-09-18"])
-    verifier("REP3 : rejoué, --ecrire ne change plus rien — deux passes = une",
-             io.open(page, encoding="utf-8").read() == apres and "CORRIGÉ: feuille:" not in s, s)
+        code, s = appel(["niveau", proj, "--ecrire", "--date", "2026-09-18"])
+        verifier("REP3 : rejoué, --ecrire ne change plus rien — deux passes = une",
+                 io.open(page, encoding="utf-8").read() == apres and "CORRIGÉ: feuille:" not in s, s)
 
-    carte = io.open(os.path.join(proj, "CHANTIER.md"), encoding="utf-8").read()
-    ecrire(os.path.join(proj, "CHANTIER.md"), carte.replace(
-        "- **fichier de fiches courant** : aucun",
-        "- **fichier de fiches courant** : ctx/40-w.md (W1..W1)\n"
-        "- **artefact du chantier** : https://exemple/w")
-        + "\nLettres de fiche déjà prises : A. Un nouveau chantier en choisit une autre.\n")
-    ecrire(os.path.join(proj, "ctx", "40-w.md"), "# Chantier W — Un titre\n\n## W1 [x] — a\n")
-    code, s = appel(["clore", proj, "--livre", "y", "--tokens", "950", "--date", "2026-09-19"])
-    verifier("clore : une clôture sous 1 000, comptée une fois", code == 0 and "· chantier 950 · cumul 2 450 ·" in s, s)
-    rangs = rangs_clos(page)
-    verifier("REP3 : clore pose sa ligne au-dessus de la ligne convertie, sans la défaire",
-             len(rangs) == 2 and "2026-09-19" in rangs[0] and rangs[1] == ligne, s)
+        carte = io.open(os.path.join(proj, "CHANTIER.md"), encoding="utf-8").read()
+        ecrire(os.path.join(proj, "CHANTIER.md"), carte.replace(
+            "- **fichier de fiches courant** : aucun",
+            "- **fichier de fiches courant** : ctx/40-w.md (W1..W1)\n"
+            "- **artefact du chantier** : https://exemple/w")
+            + "\nLettres de fiche déjà prises : A. Un nouveau chantier en choisit une autre.\n")
+        ecrire(os.path.join(proj, "ctx", "40-w.md"), "# Chantier W — Un titre\n\n## W1 [x] — a\n")
+        code, s = appel(["clore", proj, "--livre", "y", "--tokens", "950", "--date", "2026-09-19"])
+        verifier("clore : une clôture sous 1 000, comptée une fois", code == 0 and "· chantier 950 · cumul 2 450 ·" in s, s)
+        rangs = rangs_clos(page)
+        verifier("REP3 : clore pose sa ligne au-dessus de la ligne convertie, sans la défaire",
+                 len(rangs) == 2 and "2026-09-19" in rangs[0] and rangs[1] == ligne, s)
+
+
+groupe(tester_rep3_compteurs)
 
 # VOI1 : sans --ecrire, MARKDOWN compte la page du disque, pas la régénérée
-with tempfile.TemporaryDirectory() as tv:
-    projv = os.path.join(tv, "voi1")
-    ecrire(os.path.join(projv, "CHANTIER.md"), CARTE_NETTE)
-    ecrire(os.path.join(projv, "ctx", "00-INDEX.md"), INDEX_NET)
-    ecrire(os.path.join(projv, "ctx", "08-etat.md"), ETAT_NIV)
-    pagev = mod.page_feuille(projv)
-    os.makedirs(os.path.dirname(pagev))
-    shutil.copy(GABARIT_FEUILLE, pagev)
-    appel(["feuille", projv, "--date", "2026-09-18"])
-    htmlv = io.open(pagev, encoding="utf-8").read()
-    d, f, _ = mod.zone_todo(htmlv)
-    ecrire(pagev, htmlv[:d] + "          <tr><td>**x**</td></tr>\n" + htmlv[d:])
-    code, s = appel(["niveau", projv, "--date", "2026-09-18"])
-    verifier("VOI1 : sans --ecrire, le ** brut de la page du disque se compte, même si la régénération le fait tomber",
-             "MARKDOWN 2 ** · 0 liens Markdown · 0 liens cassés — %s\n" % pagev in s, s)  # un **x** = deux **
+def tester_voi1_markdown():
+    """Contrôler que sans `--ecrire`, MARKDOWN compte la page du disque (VOI1)."""
+    with tempfile.TemporaryDirectory() as tv:
+        projv = os.path.join(tv, "voi1")
+        ecrire(os.path.join(projv, "CHANTIER.md"), CARTE_NETTE)
+        ecrire(os.path.join(projv, "ctx", "00-INDEX.md"), INDEX_NET)
+        ecrire(os.path.join(projv, "ctx", "08-etat.md"), ETAT_NIV)
+        pagev = mod.page_feuille(projv)
+        os.makedirs(os.path.dirname(pagev))
+        shutil.copy(GABARIT_FEUILLE, pagev)
+        appel(["feuille", projv, "--date", "2026-09-18"])
+        htmlv = io.open(pagev, encoding="utf-8").read()
+        d, f, _ = mod.zone_todo(htmlv)
+        ecrire(pagev, htmlv[:d] + "          <tr><td>**x**</td></tr>\n" + htmlv[d:])
+        code, s = appel(["niveau", projv, "--date", "2026-09-18"])
+        verifier("VOI1 : sans --ecrire, le ** brut de la page du disque se compte, même si la régénération le fait tomber",
+                 "MARKDOWN 2 ** · 0 liens Markdown · 0 liens cassés — %s\n" % pagev in s, s)  # un **x** = deux **
+
+
+groupe(tester_voi1_markdown)
 
 # FEU2 : zone_todo s'arrête à la zone suivante — sur une feuille en cartes, jamais le <tbody> des clos
 def test_zone_todo():
@@ -2766,7 +2974,7 @@ def test_zone_todo():
     verifier("FEU2 : ni tableau ni cartes dans la zone → ValueError, jamais le <tbody> des clos",
              erreur_feu2 is not None and "ZONE:todo" in erreur_feu2, erreur_feu2)
 
-test_zone_todo()
+groupe(test_zone_todo)
 
 
 def test_feuille_en_cartes():
@@ -2812,7 +3020,7 @@ def test_feuille_en_cartes():
         verifier("FEU3 : vigile sur la page en cartes", code == 0 and s.startswith("PAGE SAINE"), s)
 
 
-test_feuille_en_cartes()
+groupe(test_feuille_en_cartes)
 
 
 def test_sommaire():
@@ -2844,318 +3052,343 @@ def test_sommaire():
         verifier("FEU4 : 2e appel inchangée", code == 0 and "inchangée" in s, s)
 
 
-test_sommaire()
+groupe(test_sommaire)
 
 # UNI1 : clore utilise le total mesuré ; sans mesure, retombe sur --tokens
-with tempfile.TemporaryDirectory() as t:
-    proj = os.path.join(t, "uni")
-    os.makedirs(proj)
-    ecrire(os.path.join(proj, "CHANTIER.md"), "# Chantier\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n- **fichier de fiches courant** : ctx/50-u.md (U1..U1)\n- **artefact du chantier** : https://u\n\nLettres de fiche déjà prises : U (test).\n")
-    ecrire(os.path.join(proj, "ctx", "50-u.md"), "# Chantier U — test\n\n## U1 [x] — a\n")
-    ecrire(os.path.join(proj, "ctx", "00-INDEX.md"), "| F | L |\n|---|---|\n| `50-u.md` | on joue `U*` |\n")
-    ecrire(os.path.join(proj, "CLAUDE.md"), "| T | O |\n|---|---|\n| jouer U | `ctx/50-u.md` **ouvert** |\n| relire un clos | `ctx/00-INDEX.md` |\n")
-    page_u = os.path.join(proj, "ctx", "artefacts", "50-u.html")
-    ecrire(page_u, open(os.path.join(ICI, "..", "templates", "artefact-chantier.html"), encoding="utf-8").read())
-    code, s = appel(["clore", proj, "--livre", "fini", "--tokens", "950", "--date", "2026-09-25"])
-    verifier("UNI1 : sans mesure, --tokens utilisé, pas d'ÉCART", code == 0 and "chantier 950" in s and "ÉCART" not in s, s)
-
-# UNI1 : mesuré, le total de la page gagne sur un --tokens faux, et le dit
-with tempfile.TemporaryDirectory() as t:
-    proj = os.path.join(t, "uni2")
-    ecrire(os.path.join(proj, "ctx", "08-etat.md"), "# État\n\n## La TODO\n\n| # | Chantier | Apporte | Coût | Dépend |\n|---|---|---|---|---|\n")
-    ecrire(os.path.join(proj, "CHANTIER.md"), "# Chantier\n\n- **contexte** : ctx/\n- **fichier d'état** : ctx/08-etat.md\n- **index** : ctx/00-INDEX.md\n- **fichier de fiches courant** : ctx/50-u.md (U1..U1)\n- **artefact du chantier** : https://u\n\nLettres de fiche déjà prises : U (test).\n")
-    ecrire(os.path.join(proj, "ctx", "50-u.md"), "# Chantier U — test\n\n## U1 [x] — a\n")
-    ecrire(os.path.join(proj, "ctx", "00-INDEX.md"), "| F | L |\n|---|---|\n| `50-u.md` | on joue `U*` |\n")
-    ecrire(os.path.join(proj, "CLAUDE.md"), "| T | O |\n|---|---|\n| jouer U | `ctx/50-u.md` **ouvert** |\n| relire un clos | `ctx/00-INDEX.md` |\n")
-    ecrire(os.path.join(proj, "ctx", "artefacts", "50-u.html"),
-           open(os.path.join(ICI, "..", "templates", "artefact-chantier.html"), encoding="utf-8").read())
-    feuille_u = os.path.join(proj, "ctx", "artefacts", "feuille-de-route.html")
-    ecrire(feuille_u, open(os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html"), encoding="utf-8").read())
-    regenerer_vrai = mod.regenerer
-    mod.regenerer = lambda *x: (lambda r: r[:3] + ((4321, 3, None), r[4]))(regenerer_vrai(*x))
-    try:
+def tester_uni1_total():
+    """Contrôler que `clore` utilise le total mesuré, et `--tokens` sans mesure (UNI1)."""
+    with tempfile.TemporaryDirectory() as t:
+        proj = os.path.join(t, "uni")
+        os.makedirs(proj)
+        ecrire(os.path.join(proj, "CHANTIER.md"), "# Chantier\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n- **fichier de fiches courant** : ctx/50-u.md (U1..U1)\n- **artefact du chantier** : https://u\n\nLettres de fiche déjà prises : U (test).\n")
+        ecrire(os.path.join(proj, "ctx", "50-u.md"), "# Chantier U — test\n\n## U1 [x] — a\n")
+        ecrire(os.path.join(proj, "ctx", "00-INDEX.md"), "| F | L |\n|---|---|\n| `50-u.md` | on joue `U*` |\n")
+        ecrire(os.path.join(proj, "CLAUDE.md"), "| T | O |\n|---|---|\n| jouer U | `ctx/50-u.md` **ouvert** |\n| relire un clos | `ctx/00-INDEX.md` |\n")
+        page_u = os.path.join(proj, "ctx", "artefacts", "50-u.html")
+        ecrire(page_u, open(os.path.join(ICI, "..", "templates", "artefact-chantier.html"), encoding="utf-8").read())
         code, s = appel(["clore", proj, "--livre", "fini", "--tokens", "950", "--date", "2026-09-25"])
-    finally:
-        mod.regenerer = regenerer_vrai
-    fu = open(feuille_u, encoding="utf-8").read()
-    verifier("UNI1 : --tokens faux, ÉCART et le mesuré écrit sur la feuille", code == 0
-             and "ÉCART tokens 950 donné · 4 321 mesuré — le mesuré fait foi" in s and "· chantier 4 321 ·" in s
-             and "(4 321)" in fu and ">950<" not in fu, s + fu[-800:])
+        verifier("UNI1 : sans mesure, --tokens utilisé, pas d'ÉCART", code == 0 and "chantier 950" in s and "ÉCART" not in s, s)
+
+    # UNI1 : mesuré, le total de la page gagne sur un --tokens faux, et le dit
+    with tempfile.TemporaryDirectory() as t:
+        proj = os.path.join(t, "uni2")
+        ecrire(os.path.join(proj, "ctx", "08-etat.md"), "# État\n\n## La TODO\n\n| # | Chantier | Apporte | Coût | Dépend |\n|---|---|---|---|---|\n")
+        ecrire(os.path.join(proj, "CHANTIER.md"), "# Chantier\n\n- **contexte** : ctx/\n- **fichier d'état** : ctx/08-etat.md\n- **index** : ctx/00-INDEX.md\n- **fichier de fiches courant** : ctx/50-u.md (U1..U1)\n- **artefact du chantier** : https://u\n\nLettres de fiche déjà prises : U (test).\n")
+        ecrire(os.path.join(proj, "ctx", "50-u.md"), "# Chantier U — test\n\n## U1 [x] — a\n")
+        ecrire(os.path.join(proj, "ctx", "00-INDEX.md"), "| F | L |\n|---|---|\n| `50-u.md` | on joue `U*` |\n")
+        ecrire(os.path.join(proj, "CLAUDE.md"), "| T | O |\n|---|---|\n| jouer U | `ctx/50-u.md` **ouvert** |\n| relire un clos | `ctx/00-INDEX.md` |\n")
+        ecrire(os.path.join(proj, "ctx", "artefacts", "50-u.html"),
+               open(os.path.join(ICI, "..", "templates", "artefact-chantier.html"), encoding="utf-8").read())
+        feuille_u = os.path.join(proj, "ctx", "artefacts", "feuille-de-route.html")
+        ecrire(feuille_u, open(os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html"), encoding="utf-8").read())
+        regenerer_vrai = mod.regenerer
+        mod.regenerer = lambda *x: (lambda r: r[:3] + ((4321, 3, None), r[4]))(regenerer_vrai(*x))
+        try:
+            code, s = appel(["clore", proj, "--livre", "fini", "--tokens", "950", "--date", "2026-09-25"])
+        finally:
+            mod.regenerer = regenerer_vrai
+        fu = open(feuille_u, encoding="utf-8").read()
+        verifier("UNI1 : --tokens faux, ÉCART et le mesuré écrit sur la feuille", code == 0
+                 and "ÉCART tokens 950 donné · 4 321 mesuré — le mesuré fait foi" in s and "· chantier 4 321 ·" in s
+                 and "(4 321)" in fu and ">950<" not in fu, s + fu[-800:])
+
+
+groupe(tester_uni1_total)
 
 # Une feuille qui ne se régénère pas : les compteurs ne sont pas mesurés, et le disent.
-with tempfile.TemporaryDirectory() as t:
-    proj = os.path.join(t, "rep3b")
-    ecrire(os.path.join(proj, "CHANTIER.md"), CARTE_NETTE.replace("- **fichier d'état** : ctx/08-etat.md\n", ""))
-    ecrire(os.path.join(proj, "ctx", "00-INDEX.md"), INDEX_NET)
-    code, s = appel(["niveau", proj])
-    verifier("REP3 : sans fichier d'état, la ligne MARKDOWN dit « non mesuré »",
-             code == 1 and "MARKDOWN non mesuré, la feuille ne se régénère pas — " in s
-             and "ÉCART: feuille: fichier d'état introuvable : aucun\n" in s, s)
+def tester_rep3_sans_etat():
+    """Contrôler une feuille qui ne se régénère pas, sans fichier d'état (REP3)."""
+    with tempfile.TemporaryDirectory() as t:
+        proj = os.path.join(t, "rep3b")
+        ecrire(os.path.join(proj, "CHANTIER.md"), CARTE_NETTE.replace("- **fichier d'état** : ctx/08-etat.md\n", ""))
+        ecrire(os.path.join(proj, "ctx", "00-INDEX.md"), INDEX_NET)
+        code, s = appel(["niveau", proj])
+        verifier("REP3 : sans fichier d'état, la ligne MARKDOWN dit « non mesuré »",
+                 code == 1 and "MARKDOWN non mesuré, la feuille ne se régénère pas — " in s
+                 and "ÉCART: feuille: fichier d'état introuvable : aucun\n" in s, s)
+
+
+groupe(tester_rep3_sans_etat)
 
 
 
 # Simplifier les tests filet
-with tempfile.TemporaryDirectory() as t:
-    def filet_test(json_obj):
-        """Appelle vlp.py filet avec l'entrée JSON."""
-        o, e = io.StringIO(), io.StringIO()
-        code = mod.main(["filet"], o, io.StringIO(json.dumps(json_obj)), e)
-        return code, o.getvalue(), e.getvalue()
+def tester_filet():
+    """Contrôler le filet : sous-agent ou non, un avertissement par tour (chantier TOU)."""
+    with tempfile.TemporaryDirectory() as t:
+        def filet_test(json_obj):
+            """Appelle vlp.py filet avec l'entrée JSON."""
+            o, e = io.StringIO(), io.StringIO()
+            code = mod.main(["filet"], o, io.StringIO(json.dumps(json_obj)), e)
+            return code, o.getvalue(), e.getvalue()
 
-    def creer_trans(chemin, tours):
-        """Crée un transcript factice."""
-        os.makedirs(os.path.dirname(chemin), exist_ok=True)
-        with open(chemin, "w", encoding="utf-8") as f:
-            for n in range(tours):
-                d = {"message": {"id": f"m{n}", "usage": {"input_tokens": 100, "output_tokens": 50}}}
-                f.write(json.dumps(d) + "\n")
+        def creer_trans(chemin, tours):
+            """Crée un transcript factice."""
+            os.makedirs(os.path.dirname(chemin), exist_ok=True)
+            with open(chemin, "w", encoding="utf-8") as f:
+                for n in range(tours):
+                    d = {"message": {"id": f"m{n}", "usage": {"input_tokens": 100, "output_tokens": 50}}}
+                    f.write(json.dumps(d) + "\n")
 
-    # Pas d'agent_id
-    code, o, e = filet_test({"agent_type": "vlp:fiche"})
-    verifier("filet : pas agent_id, muet", (code, o, e) == (0, "", ""), o + e)
+        # Pas d'agent_id
+        code, o, e = filet_test({"agent_type": "vlp:fiche"})
+        verifier("filet : pas agent_id, muet", (code, o, e) == (0, "", ""), o + e)
 
-    # agent_type ne contient pas 'fiche'
-    code, o, e = filet_test({"agent_type": "autre", "agent_id": "a1"})
-    verifier("filet : agent_type sans 'fiche', muet", (code, o, e) == (0, "", ""), o + e)
+        # agent_type ne contient pas 'fiche'
+        code, o, e = filet_test({"agent_type": "autre", "agent_id": "a1"})
+        verifier("filet : agent_type sans 'fiche', muet", (code, o, e) == (0, "", ""), o + e)
 
-    # Transcript absent
-    t_fwd = t.replace(os.sep, '/')
-    code, o, e = filet_test({"agent_type": "vlp:fiche", "agent_id": "a1", "transcript_path": t_fwd + "/chef.jsonl"})
-    verifier("filet : transcript absent, muet", (code, o, e) == (0, "", ""), o + e)
+        # Transcript absent
+        t_fwd = t.replace(os.sep, '/')
+        code, o, e = filet_test({"agent_type": "vlp:fiche", "agent_id": "a1", "transcript_path": t_fwd + "/chef.jsonl"})
+        verifier("filet : transcript absent, muet", (code, o, e) == (0, "", ""), o + e)
 
-    # 77 tours / 80 max = 3 restants → avertissement
-    sub_path = os.path.join(t, "s", "subagents", "agent-a1.jsonl")
-    creer_trans(sub_path, 77)
-    code, o, e = filet_test({"agent_type": "vlp:fiche", "agent_id": "a1", "transcript_path": t_fwd + "/s.jsonl"})
-    verifier("filet : 3 tours restants, avertissement",
-             code == 0 and '"additionalContext": "Attention : 3 tours restants' in o, o + e)
-
-    # 76 tours = 4 restants → muet
-    creer_trans(sub_path, 76)
-    code, o, e = filet_test({"agent_type": "vlp:fiche", "agent_id": "a1", "transcript_path": t_fwd + "/s.jsonl"})
-    verifier("filet : 4 tours restants, muet", code == 0 and o == "", o + e)
-
-    # 78 tours = 2 restants → avertissement
-    creer_trans(sub_path, 78)
-    code, o, e = filet_test({"agent_type": "vlp:fiche", "agent_id": "a1", "transcript_path": t_fwd + "/s.jsonl"})
-    verifier("filet : 2 tours restants, avertissement",
-             code == 0 and '"additionalContext": "Attention : 2 tours restants' in o, o + e)
-
-    # Après un échec (PostToolUseFailure) : même avertissement, au nom de l'événement reçu
-    creer_trans(sub_path, 77)
-    code, o, e = filet_test({"hook_event_name": "PostToolUseFailure", "agent_type": "vlp:fiche",
-                             "agent_id": "a1", "transcript_path": t_fwd + "/s.jsonl"})
-    verifier("filet : après un échec, avertissement au nom de PostToolUseFailure",
-             code == 0 and '"hookEventName": "PostToolUseFailure"' in o
-             and '"additionalContext": "Attention : 3 tours restants' in o, o + e)
-
-    # TOU2 : une fois par tour — tampon `vlp-filet-<agent_id>-<tours>` dans un TAMPON_HOOKS neuf
-    ancien_tampon = mod.TAMPON_HOOKS
-    mod.TAMPON_HOOKS = tempfile.mkdtemp()
-    try:
-        def salve(*ids):
-            """Un appel par id d'outil (entrées différentes) ; rend le nombre de sorties non vides."""
-            return sum(bool(filet_test({"agent_type": "vlp:fiche", "agent_id": "a1", "tool_use_id": i,
-                                        "transcript_path": t_fwd + "/s.jsonl"})[1]) for i in ids)
+        # 77 tours / 80 max = 3 restants → avertissement
+        sub_path = os.path.join(t, "s", "subagents", "agent-a1.jsonl")
         creer_trans(sub_path, 77)
-        verifier("TOU2 : deux appels du même tour, une seule sortie", salve("u1", "u2") == 1, "")
+        code, o, e = filet_test({"agent_type": "vlp:fiche", "agent_id": "a1", "transcript_path": t_fwd + "/s.jsonl"})
+        verifier("filet : 3 tours restants, avertissement",
+                 code == 0 and '"additionalContext": "Attention : 3 tours restants' in o, o + e)
+
+        # 76 tours = 4 restants → muet
+        creer_trans(sub_path, 76)
+        code, o, e = filet_test({"agent_type": "vlp:fiche", "agent_id": "a1", "transcript_path": t_fwd + "/s.jsonl"})
+        verifier("filet : 4 tours restants, muet", code == 0 and o == "", o + e)
+
+        # 78 tours = 2 restants → avertissement
         creer_trans(sub_path, 78)
-        verifier("TOU2 : un tour de plus, le filet avertit de nouveau", salve("u3") == 1, "")
-        creer_trans(sub_path, 77)
-        os.environ["VLP_SANS_TAMPON"] = "1"
-        try:
-            n = salve("u4", "u5")
-        finally:
-            del os.environ["VLP_SANS_TAMPON"]
-        verifier("TOU2 : VLP_SANS_TAMPON, deux sorties", n == 2, str(n))
-    finally:
-        shutil.rmtree(mod.TAMPON_HOOKS, ignore_errors=True)
-        mod.TAMPON_HOOKS = ancien_tampon
+        code, o, e = filet_test({"agent_type": "vlp:fiche", "agent_id": "a1", "transcript_path": t_fwd + "/s.jsonl"})
+        verifier("filet : 2 tours restants, avertissement",
+                 code == 0 and '"additionalContext": "Attention : 2 tours restants' in o, o + e)
 
-    # Un vrai chemin de plus de 260 caractères, bâti comme dans FIL1 : sans le préfixe,
-    # isfile et open y disent absent un transcript présent ; le filet doit avertir quand même
-    if os.name != "nt":
-        print("SAUTÉ: hors Windows — le chemin long du filet n'est pas testé (le préfixe est propre à Windows)")
-    else:
-        prefixe = chr(92) * 2 + "?" + chr(92)    # le préfixe des chemins longs, bâti sans échappement
-        long_base = os.path.join(os.path.abspath(t), "l" * (254 - len(os.path.abspath(t))))
-        long_sub = os.path.join(long_base, "subagents", "agent-a1.jsonl")
-        os.makedirs(prefixe + os.path.dirname(long_sub))
-        with open(prefixe + long_sub, "w", encoding="utf-8") as f:
-            for n in range(77):
-                f.write(json.dumps({"message": {"id": f"m{n}", "usage": {"input_tokens": 1}}}) + "\n")
+        # Après un échec (PostToolUseFailure) : même avertissement, au nom de l'événement reçu
+        creer_trans(sub_path, 77)
+        code, o, e = filet_test({"hook_event_name": "PostToolUseFailure", "agent_type": "vlp:fiche",
+                                 "agent_id": "a1", "transcript_path": t_fwd + "/s.jsonl"})
+        verifier("filet : après un échec, avertissement au nom de PostToolUseFailure",
+                 code == 0 and '"hookEventName": "PostToolUseFailure"' in o
+                 and '"additionalContext": "Attention : 3 tours restants' in o, o + e)
+
+        # TOU2 : une fois par tour — tampon `vlp-filet-<agent_id>-<tours>` dans un TAMPON_HOOKS neuf
+        ancien_tampon = mod.TAMPON_HOOKS
+        mod.TAMPON_HOOKS = tempfile.mkdtemp()
         try:
-            code, o, e = filet_test({"agent_type": "vlp:fiche", "agent_id": "a1",
-                                     "transcript_path": long_base.replace(os.sep, "/") + ".jsonl"})
-            verifier(f"filet : transcript à {len(long_sub)} caractères, avertissement",
-                     len(long_sub) > 260 and '"additionalContext": "Attention : 3 tours restants' in o, o + e)
-        finally:    # même après un écart : sans le préfixe, le nettoyage du dossier temporaire échouerait
-            shutil.rmtree(prefixe + long_base)
+            def salve(*ids):
+                """Un appel par id d'outil (entrées différentes) ; rend le nombre de sorties non vides."""
+                return sum(bool(filet_test({"agent_type": "vlp:fiche", "agent_id": "a1", "tool_use_id": i,
+                                            "transcript_path": t_fwd + "/s.jsonl"})[1]) for i in ids)
+            creer_trans(sub_path, 77)
+            verifier("TOU2 : deux appels du même tour, une seule sortie", salve("u1", "u2") == 1, "")
+            creer_trans(sub_path, 78)
+            verifier("TOU2 : un tour de plus, le filet avertit de nouveau", salve("u3") == 1, "")
+            creer_trans(sub_path, 77)
+            os.environ["VLP_SANS_TAMPON"] = "1"
+            try:
+                n = salve("u4", "u5")
+            finally:
+                del os.environ["VLP_SANS_TAMPON"]
+            verifier("TOU2 : VLP_SANS_TAMPON, deux sorties", n == 2, str(n))
+        finally:
+            shutil.rmtree(mod.TAMPON_HOOKS, ignore_errors=True)
+            mod.TAMPON_HOOKS = ancien_tampon
+
+        # Un vrai chemin de plus de 260 caractères, bâti comme dans FIL1 : sans le préfixe,
+        # isfile et open y disent absent un transcript présent ; le filet doit avertir quand même
+        if os.name != "nt":
+            print("SAUTÉ: hors Windows — le chemin long du filet n'est pas testé (le préfixe est propre à Windows)")
+        else:
+            prefixe = chr(92) * 2 + "?" + chr(92)    # le préfixe des chemins longs, bâti sans échappement
+            long_base = os.path.join(os.path.abspath(t), "l" * (254 - len(os.path.abspath(t))))
+            long_sub = os.path.join(long_base, "subagents", "agent-a1.jsonl")
+            os.makedirs(prefixe + os.path.dirname(long_sub))
+            with open(prefixe + long_sub, "w", encoding="utf-8") as f:
+                for n in range(77):
+                    f.write(json.dumps({"message": {"id": f"m{n}", "usage": {"input_tokens": 1}}}) + "\n")
+            try:
+                code, o, e = filet_test({"agent_type": "vlp:fiche", "agent_id": "a1",
+                                         "transcript_path": long_base.replace(os.sep, "/") + ".jsonl"})
+                verifier(f"filet : transcript à {len(long_sub)} caractères, avertissement",
+                         len(long_sub) > 260 and '"additionalContext": "Attention : 3 tours restants' in o, o + e)
+            finally:    # même après un écart : sans le préfixe, le nettoyage du dossier temporaire échouerait
+                shutil.rmtree(prefixe + long_base)
+
+
+groupe(tester_filet)
 
 
 # contrat (chantier CON) : deux sous-agents fabriqués, un propre et un qui commite par `git -C`
-with tempfile.TemporaryDirectory() as t:
-    def agent(id_, texte, commandes, type_="vlp:fiche"):
-        chemin = os.path.join(t, "p", "sess", "subagents", f"agent-{id_}.jsonl")
-        lignes = [{"message": {"role": "assistant", "content": [
-            {"type": "tool_use", "name": outil, "input": {"command": c}}]}} for outil, c in commandes]
-        lignes.append({"message": {"role": "assistant", "content": [{"type": "text", "text": texte}]}})
-        ecrire(chemin, "".join(json.dumps(d, ensure_ascii=False) + "\n" for d in lignes))
-        ecrire(chemin[:-len(".jsonl")] + ".meta.json", json.dumps({"agentType": type_}))
-        return chemin
+def tester_contrat():
+    """Contrôler `contrat` : témoins propre et sale, bilan, bornes ; un refusé compté en bloqué (ENQ1)."""
+    with tempfile.TemporaryDirectory() as t:
+        def agent(id_, texte, commandes, type_="vlp:fiche"):
+            chemin = os.path.join(t, "p", "sess", "subagents", f"agent-{id_}.jsonl")
+            lignes = [{"message": {"role": "assistant", "content": [
+                {"type": "tool_use", "name": outil, "input": {"command": c}}]}} for outil, c in commandes]
+            lignes.append({"message": {"role": "assistant", "content": [{"type": "text", "text": texte}]}})
+            ecrire(chemin, "".join(json.dumps(d, ensure_ascii=False) + "\n" for d in lignes))
+            ecrire(chemin[:-len(".jsonl")] + ".meta.json", json.dumps({"agentType": type_}))
+            return chemin
 
-    ecrire(os.path.join(t, "p", "sess.jsonl"), json.dumps({"timestamp": "2026-09-24T10:00:00Z"}) + "\n")
-    propre = agent("propre", "FAITE — X1 cochée.", [("Bash", 'py vlp.py cocher "f.md" X1'),
-                                                     ("PowerShell", "git status; git log -1")])
-    sale = agent("sale", "✅ X1 faite", [("Bash", 'git -C "C:/a b/proj" commit -m "X1 : fin"'),
-                                        ("PowerShell", "git add -A"), ("Bash", "echo git")])
-    code, s = appel(["contrat", propre, sale])
-    verifier("contrat : témoin propre, aucun appel qui écrit dans Git",
-             "propre vlp:fiche 2026-09-24T10:00:00Z FAITE git 0 bloqué 0\n" in s, s)
-    verifier("contrat : témoin sale, git -C … commit et git add comptés, sans tool_result : écrits",
-             "sale vlp:fiche 2026-09-24T10:00:00Z ✅ git 2 bloqué 0\n" in s, s)
-    verifier("contrat : bilan", code == 0 and s.endswith(
-        "CONTRAT 2 sous-agents · 1 écrivent dans Git · 0 bloqués par le gardien · "
-        "1 sans statut en tête · 0 interrompus\n"), s)
-    code, s = appel(["contrat", propre, "--depuis", "2026-09-24T10:00:01+00:00"])
-    verifier("contrat : --depuis écarte une session partie avant",
-             code == 0 and s == "CONTRAT 0 sous-agents · 0 écrivent dans Git · 0 bloqués par le gardien · "
-             "0 sans statut en tête · 0 interrompus\n", s)
-    code, s = appel(["contrat", "--depuis", "pas-une-borne-zz"])
-    verifier("contrat : borne illisible, GARDE", code == 1 and s.startswith("GARDE: --depuis pas-une-borne-zz"), s)
+        ecrire(os.path.join(t, "p", "sess.jsonl"), json.dumps({"timestamp": "2026-09-24T10:00:00Z"}) + "\n")
+        propre = agent("propre", "FAITE — X1 cochée.", [("Bash", 'py vlp.py cocher "f.md" X1'),
+                                                         ("PowerShell", "git status; git log -1")])
+        sale = agent("sale", "✅ X1 faite", [("Bash", 'git -C "C:/a b/proj" commit -m "X1 : fin"'),
+                                            ("PowerShell", "git add -A"), ("Bash", "echo git")])
+        code, s = appel(["contrat", propre, sale])
+        verifier("contrat : témoin propre, aucun appel qui écrit dans Git",
+                 "propre vlp:fiche 2026-09-24T10:00:00Z FAITE git 0 bloqué 0\n" in s, s)
+        verifier("contrat : témoin sale, git -C … commit et git add comptés, sans tool_result : écrits",
+                 "sale vlp:fiche 2026-09-24T10:00:00Z ✅ git 2 bloqué 0\n" in s, s)
+        verifier("contrat : bilan", code == 0 and s.endswith(
+            "CONTRAT 2 sous-agents · 1 écrivent dans Git · 0 bloqués par le gardien · "
+            "1 sans statut en tête · 0 interrompus\n"), s)
+        code, s = appel(["contrat", propre, "--depuis", "2026-09-24T10:00:01+00:00"])
+        verifier("contrat : --depuis écarte une session partie avant",
+                 code == 0 and s == "CONTRAT 0 sous-agents · 0 écrivent dans Git · 0 bloqués par le gardien · "
+                 "0 sans statut en tête · 0 interrompus\n", s)
+        code, s = appel(["contrat", "--depuis", "pas-une-borne-zz"])
+        verifier("contrat : borne illisible, GARDE", code == 1 and s.startswith("GARDE: --depuis pas-une-borne-zz"), s)
 
 
-# ENQ1 : un appel refusé par le gardien compte en bloqué, pas en écrit ; un interrompu pas en sans-statut
-with tempfile.TemporaryDirectory() as t:
-    def ligne_agent(id_, blocs):
-        chemin = os.path.join(t, "p2", "sess", "subagents", f"agent-{id_}.jsonl")
-        ecrire(chemin, "".join(json.dumps(d, ensure_ascii=False) + "\n" for d in blocs))
-        ecrire(chemin[:-len(".jsonl")] + ".meta.json", json.dumps({"agentType": "vlp:fiche"}))
-        return chemin
+    # ENQ1 : un appel refusé par le gardien compte en bloqué, pas en écrit ; un interrompu pas en sans-statut
+    with tempfile.TemporaryDirectory() as t:
+        def ligne_agent(id_, blocs):
+            chemin = os.path.join(t, "p2", "sess", "subagents", f"agent-{id_}.jsonl")
+            ecrire(chemin, "".join(json.dumps(d, ensure_ascii=False) + "\n" for d in blocs))
+            ecrire(chemin[:-len(".jsonl")] + ".meta.json", json.dumps({"agentType": "vlp:fiche"}))
+            return chemin
 
-    ecrire(os.path.join(t, "p2", "sess.jsonl"), json.dumps({"timestamp": "2026-09-24T10:00:00Z"}) + "\n")
-    refusee = ligne_agent("refusee", [
-        {"message": {"role": "assistant", "content": [
-            {"type": "tool_use", "id": "tu1", "name": "Bash", "input": {"command": "git add -A"}}]}},
-        {"message": {"role": "user", "content": [
-            {"type": "tool_result", "tool_use_id": "tu1", "content": mod.REFUS_GIT}]}},
-        {"message": {"role": "assistant", "content": [{"type": "text", "text": "RETOUR — bloquée par le gardien."}]}}])
-    ecrit = ligne_agent("ecrit", [
-        {"message": {"role": "assistant", "content": [
-            {"type": "tool_use", "id": "tu2", "name": "Bash", "input": {"command": "git add -A"}}]}},
-        {"message": {"role": "user", "content": [
-            {"type": "tool_result", "tool_use_id": "tu2", "content": "add 'f.md'"}]}},
-        {"message": {"role": "assistant", "content": [{"type": "text", "text": "FAITE — X1 cochée."}]}}])
-    avant = ligne_agent("avant", [
-        {"message": {"role": "assistant", "content": [
-            {"type": "tool_use", "id": "tu3", "name": "Bash", "input": {"command": "git commit -m x"}}]}},
-        {"message": {"role": "user", "content": [
-            {"type": "tool_result", "tool_use_id": "tu3", "content": mod.REFUS_GIT_AVANT}]}},
-        {"message": {"role": "assistant", "content": [{"type": "text", "text": "RETOUR — bloquée."}]}}])
-    interrompue = ligne_agent("interrompue", [
-        {"message": {"role": "assistant", "content": [{"type": "text", "text": "Je lance le dernier essai…"}]}},
-        {"message": {"role": "user", "content": "[Request interrupted by user]"}}])
-    code, s = appel(["contrat", refusee, ecrit, avant, interrompue])
-    verifier("ENQ1 : bilan — refusé compté en bloqué (phrase d'avant VRB comprise), interrompu pas en "
-             "sans-statut — mutant : compter un refus comme une écriture, ou oublier REFUS_GIT_AVANT, le fait tomber",
-             code == 0 and s.endswith("CONTRAT 4 sous-agents · 1 écrivent dans Git · 2 bloqués par le gardien · "
-                                       "0 sans statut en tête · 1 interrompus\n"), s)
-    verifier("ENQ1 : la ligne du refusé porte git 0 bloqué 1",
-             "refusee vlp:fiche 2026-09-24T10:00:00Z RETOUR git 0 bloqué 1\n" in s, s)
-    verifier("ENQ1 : la ligne de l'interrompu porte (interrompu)",
-             "interrompue vlp:fiche 2026-09-24T10:00:00Z (interrompu) git 0 bloqué 0\n" in s, s)
+        ecrire(os.path.join(t, "p2", "sess.jsonl"), json.dumps({"timestamp": "2026-09-24T10:00:00Z"}) + "\n")
+        refusee = ligne_agent("refusee", [
+            {"message": {"role": "assistant", "content": [
+                {"type": "tool_use", "id": "tu1", "name": "Bash", "input": {"command": "git add -A"}}]}},
+            {"message": {"role": "user", "content": [
+                {"type": "tool_result", "tool_use_id": "tu1", "content": mod.REFUS_GIT}]}},
+            {"message": {"role": "assistant", "content": [{"type": "text", "text": "RETOUR — bloquée par le gardien."}]}}])
+        ecrit = ligne_agent("ecrit", [
+            {"message": {"role": "assistant", "content": [
+                {"type": "tool_use", "id": "tu2", "name": "Bash", "input": {"command": "git add -A"}}]}},
+            {"message": {"role": "user", "content": [
+                {"type": "tool_result", "tool_use_id": "tu2", "content": "add 'f.md'"}]}},
+            {"message": {"role": "assistant", "content": [{"type": "text", "text": "FAITE — X1 cochée."}]}}])
+        avant = ligne_agent("avant", [
+            {"message": {"role": "assistant", "content": [
+                {"type": "tool_use", "id": "tu3", "name": "Bash", "input": {"command": "git commit -m x"}}]}},
+            {"message": {"role": "user", "content": [
+                {"type": "tool_result", "tool_use_id": "tu3", "content": mod.REFUS_GIT_AVANT}]}},
+            {"message": {"role": "assistant", "content": [{"type": "text", "text": "RETOUR — bloquée."}]}}])
+        interrompue = ligne_agent("interrompue", [
+            {"message": {"role": "assistant", "content": [{"type": "text", "text": "Je lance le dernier essai…"}]}},
+            {"message": {"role": "user", "content": "[Request interrupted by user]"}}])
+        code, s = appel(["contrat", refusee, ecrit, avant, interrompue])
+        verifier("ENQ1 : bilan — refusé compté en bloqué (phrase d'avant VRB comprise), interrompu pas en "
+                 "sans-statut — mutant : compter un refus comme une écriture, ou oublier REFUS_GIT_AVANT, le fait tomber",
+                 code == 0 and s.endswith("CONTRAT 4 sous-agents · 1 écrivent dans Git · 2 bloqués par le gardien · "
+                                           "0 sans statut en tête · 1 interrompus\n"), s)
+        verifier("ENQ1 : la ligne du refusé porte git 0 bloqué 1",
+                 "refusee vlp:fiche 2026-09-24T10:00:00Z RETOUR git 0 bloqué 1\n" in s, s)
+        verifier("ENQ1 : la ligne de l'interrompu porte (interrompu)",
+                 "interrompue vlp:fiche 2026-09-24T10:00:00Z (interrompu) git 0 bloqué 0\n" in s, s)
+
+
+groupe(tester_contrat)
 
 
 
 # gardien (chantier CON4) : PreToolUse refuse l'écriture Git, SubagentStop renvoie sur statut ou case
-with tempfile.TemporaryDirectory() as t:
-    def gardien(d):
-        o = io.StringIO()
-        code = mod.main(["gardien"], o, io.StringIO(d if isinstance(d, str) else json.dumps(d)))
-        return code, o.getvalue()
+def tester_gardien():
+    """Contrôler le gardien : ce qu'il refuse et laisse passer, entrées illisibles."""
+    with tempfile.TemporaryDirectory() as t:
+        def gardien(d):
+            o = io.StringIO()
+            code = mod.main(["gardien"], o, io.StringIO(d if isinstance(d, str) else json.dumps(d)))
+            return code, o.getvalue()
 
-    fiche = {"agent_id": "a1", "agent_type": "vlp:fiche"}
-    relecture = {"agent_id": "a2", "agent_type": "vlp:relecture"}
-    commit = {"hook_event_name": "PreToolUse", "tool_name": "Bash",
-              "tool_input": {"command": 'git -C "C:/a b" commit -m "X1 : fin"'}}
-    code, s = gardien(dict(commit, **relecture))
-    verifier("gardien : sous-agent vlp:relecture git commit refusé", code == 0 and '"permissionDecision": "deny"' in s and "vlp:relecture" in s, s)
-    code, s = gardien(dict(fiche, **commit))
-    verifier("gardien : git -C … commit refusé pour vlp:fiche", code == 0 and '"permissionDecision": "deny"' in s and "vlp:fiche" in s, s)
-    code, s = gardien(dict(relecture, hook_event_name="PreToolUse", tool_name="Bash",
-                           tool_input={"command": "git diff HEAD~1"}))
-    verifier("gardien : relecteur git diff laissé passer", (code, s) == (0, ""), s)
-    code, s = gardien(dict(fiche, hook_event_name="PreToolUse", tool_name="PowerShell",
-                           tool_input={"command": "git status; git log -1"}))
-    verifier("gardien : fiche git status laissé passer", (code, s) == (0, ""), s)
-    verifier("gardien : entrée illisible, muet", gardien("pas du json") == (0, ""), "")
-    verifier("gardien : JSON qui n'est pas un objet, muet",
-             gardien('[43, "sonde"]') == (0, "") and gardien('"x"') == (0, ""), "")
-    verifier("gardien : tool_input ou agent_type qui ne sont pas ce qu'on attend, muet", all(
-        gardien(dict(agent, hook_event_name="PreToolUse", tool_name="Bash", tool_input=ti)) == (0, "")
-        for agent in (fiche, relecture) for ti in ("git commit", ["git commit"], 7)) and gardien(dict(
-            commit, agent_id="a3", agent_type=["vlp:relecture"])) == (0, ""), "")
+        fiche = {"agent_id": "a1", "agent_type": "vlp:fiche"}
+        relecture = {"agent_id": "a2", "agent_type": "vlp:relecture"}
+        commit = {"hook_event_name": "PreToolUse", "tool_name": "Bash",
+                  "tool_input": {"command": 'git -C "C:/a b" commit -m "X1 : fin"'}}
+        code, s = gardien(dict(commit, **relecture))
+        verifier("gardien : sous-agent vlp:relecture git commit refusé", code == 0 and '"permissionDecision": "deny"' in s and "vlp:relecture" in s, s)
+        code, s = gardien(dict(fiche, **commit))
+        verifier("gardien : git -C … commit refusé pour vlp:fiche", code == 0 and '"permissionDecision": "deny"' in s and "vlp:fiche" in s, s)
+        code, s = gardien(dict(relecture, hook_event_name="PreToolUse", tool_name="Bash",
+                               tool_input={"command": "git diff HEAD~1"}))
+        verifier("gardien : relecteur git diff laissé passer", (code, s) == (0, ""), s)
+        code, s = gardien(dict(fiche, hook_event_name="PreToolUse", tool_name="PowerShell",
+                               tool_input={"command": "git status; git log -1"}))
+        verifier("gardien : fiche git status laissé passer", (code, s) == (0, ""), s)
+        verifier("gardien : entrée illisible, muet", gardien("pas du json") == (0, ""), "")
+        verifier("gardien : JSON qui n'est pas un objet, muet",
+                 gardien('[43, "sonde"]') == (0, "") and gardien('"x"') == (0, ""), "")
+        verifier("gardien : tool_input ou agent_type qui ne sont pas ce qu'on attend, muet", all(
+            gardien(dict(agent, hook_event_name="PreToolUse", tool_name="Bash", tool_input=ti)) == (0, "")
+            for agent in (fiche, relecture) for ti in ("git commit", ["git commit"], 7)) and gardien(dict(
+                commit, agent_id="a3", agent_type=["vlp:relecture"])) == (0, ""), "")
 
-    proj = os.path.join(t, "proj")
-    ecrire(os.path.join(proj, "CHANTIER.md"), CHANTIER % ("px", "f.md (X1..X1)"))
-    ecrire(os.path.join(proj, "f.md"), "# X\n\n<!-- FICHE:X1 -->\n## X1 [ ] — une\n<!-- /FICHE -->\n")
-    trans = os.path.join(t, "agent-a1.jsonl")
-    ecrire(trans, json.dumps({"message": {"role": "user", "content": "Fiche à jouer :\n\nX1\n\nKit : k"}},
-                             ensure_ascii=False) + "\n")
-    fin = dict(fiche, hook_event_name="SubagentStop", stop_hook_active=False, cwd=proj,
-               agent_transcript_path=trans)
-    code, s = gardien(dict(fin, last_assistant_message="Parfait, la fiche est faite."))
-    verifier("gardien : statut absent, renvoyé", '"decision": "block"' in s and "« Parfait, »" in s, s)
-    code, s = gardien(dict(fin, last_assistant_message="Parfait.", stop_hook_active=True))
-    verifier("gardien : déjà renvoyé une fois, laissé", (code, s) == (0, ""), s)
-    code, s = gardien(dict(fin, last_assistant_message="FAITE — X1.", stop_hook_active=True))
-    verifier("gardien : FAITE sur case vide sous stop_hook_active, renvoyé", '"decision": "block"' in s and "case de X1 est vide" in s, s)
-    code, s = gardien(dict(fin, last_assistant_message="FAITE — X1."))
-    verifier("gardien : FAITE sur case vide, renvoyé", '"decision": "block"' in s and "case de X1 est vide" in s, s)
-    ecrire(os.path.join(proj, "f.md"), "# X\n\n<!-- FICHE:X1 -->\n## X1 [x] — une\n<!-- /FICHE -->\n")
-    if not shutil.which("git"):
-        print("SAUTÉ: git absent — le gardien sur HEAD n'est pas testé")
-    else:
-        env = dict(os.environ, GIT_CONFIG_GLOBAL=os.path.join(t, "gitconfig"), GIT_CONFIG_NOSYSTEM="1",
-                   GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t")
-        ecrire(env["GIT_CONFIG_GLOBAL"], "")
-        for args in (["init", "-q"], ["add", "-A"], ["commit", "-q", "-m", "départ"]):
-            subprocess.run(["git"] + args, cwd=proj, env=env, check=True, capture_output=True)
+        proj = os.path.join(t, "proj")
+        ecrire(os.path.join(proj, "CHANTIER.md"), CHANTIER % ("px", "f.md (X1..X1)"))
+        ecrire(os.path.join(proj, "f.md"), "# X\n\n<!-- FICHE:X1 -->\n## X1 [ ] — une\n<!-- /FICHE -->\n")
+        trans = os.path.join(t, "agent-a1.jsonl")
+        ecrire(trans, json.dumps({"message": {"role": "user", "content": "Fiche à jouer :\n\nX1\n\nKit : k"}},
+                                 ensure_ascii=False) + "\n")
+        fin = dict(fiche, hook_event_name="SubagentStop", stop_hook_active=False, cwd=proj,
+                   agent_transcript_path=trans)
+        code, s = gardien(dict(fin, last_assistant_message="Parfait, la fiche est faite."))
+        verifier("gardien : statut absent, renvoyé", '"decision": "block"' in s and "« Parfait, »" in s, s)
+        code, s = gardien(dict(fin, last_assistant_message="Parfait.", stop_hook_active=True))
+        verifier("gardien : déjà renvoyé une fois, laissé", (code, s) == (0, ""), s)
+        code, s = gardien(dict(fin, last_assistant_message="FAITE — X1.", stop_hook_active=True))
+        verifier("gardien : FAITE sur case vide sous stop_hook_active, renvoyé", '"decision": "block"' in s and "case de X1 est vide" in s, s)
         code, s = gardien(dict(fin, last_assistant_message="FAITE — X1."))
-        verifier("gardien : FAITE sur case cochée, sans commit de fiche, laissé", (code, s) == (0, ""), s)
-        subprocess.run(["git", "commit", "-q", "--allow-empty", "-m", "X1 : une"], cwd=proj, env=env, check=True)
-        code, s = gardien(dict(fin, last_assistant_message="FAITE — X1."))
-        verifier("gardien : HEAD nomme la fiche, renvoyé", '"decision": "block"' in s and "tu as commité" in s, s)
-    fin_relecture = dict(relecture, hook_event_name="SubagentStop", stop_hook_active=False, cwd=proj,
-                         agent_transcript_path=trans)
-    code, s = gardien(dict(fin_relecture, last_assistant_message="ACCEPTÉE — tout va bien"))
-    verifier("gardien : relecteur ACCEPTÉE muet", (code, s) == (0, ""), s)
-    code, s = gardien(dict(fin_relecture, last_assistant_message="REFUSÉE — erreur"))
-    verifier("gardien : relecteur REFUSÉE muet", (code, s) == (0, ""), s)
-    code, s = gardien(dict(fin, last_assistant_message="RETOUR — x\n\n---\n✅ Tout va bien"))
-    verifier("gardien : fiche jauge « Tout va bien », renvoyée", '"decision": "block"' in s and "« En résumé » ou une jauge" in s, s)
-    code, s = gardien(dict(fin, last_assistant_message="RETOUR — x\n\n---\n✅ Tout va bien", stop_hook_active=True))
-    verifier("gardien : fiche jauge sous stop_hook_active, muet", (code, s) == (0, ""), s)
-    code, s = gardien(dict(fin_relecture, last_assistant_message="ACCEPTÉE — ok\nEn résumé : y"))
-    verifier("gardien : relecteur « En résumé », renvoyé", '"decision": "block"' in s and "« En résumé » ou une jauge" in s, s)
-    code, s = gardien(dict(fin_relecture, last_assistant_message="ACCEPTÉE — ok"))
-    verifier("gardien : relecteur sans « En résumé » ni jauge, muet", (code, s) == (0, ""), s)
-    # JUG2 : la pièce de JUG1 se lit au journal, jamais recopiée ici (elle porte des chemins de machine)
-    with open(os.path.join(RACINE, "context AI", "08-etat.md"), encoding="utf-8") as f:
-        piece = re.search(r"La pièce, pour `JUG2` :\n\n```text\n(.*?)\n```", f.read(), re.S)
-    piece = piece.group(1) if piece else ""
-    code, s = gardien(dict(fin_relecture, last_assistant_message=piece))
-    verifier("gardien : relecteur de FOR3 qui cite la jauge en prose (JUG1), muet",
-             piece.startswith("ACCEPTÉE") and "« Tout va bien »" in piece and (code, s) == (0, ""), s or piece[:80])
-    code, s = gardien(dict(fin_relecture, last_assistant_message=(
-        "ACCEPTÉE — ok\n\n✅ **Tout va bien** — relu\n\n**En résumé**\n\nLa fiche tient.")))
-    verifier("gardien : relecteur ACCEPTÉE puis résumé à part, renvoyé",
-             '"decision": "block"' in s and "« En résumé » ou une jauge" in s, s)
-    # Mutation test : les tests « renvoyé » reposent sur forme_texte (chantier FOR3)
-    code, s = gardien(dict(fin, last_assistant_message="RETOUR — Pas bonne action"))
-    verifier("gardien : fiche « Pas bonne » (pas jauge), muet — substring bug", (code, s) == (0, ""), s)
-    code, s = gardien(dict(fin, last_assistant_message="RETOUR — Grosse bonne nouvelle"))
-    verifier("gardien : fiche « Grosse bonne » (pas jauge), muet — substring bug", (code, s) == (0, ""), s)
+        verifier("gardien : FAITE sur case vide, renvoyé", '"decision": "block"' in s and "case de X1 est vide" in s, s)
+        ecrire(os.path.join(proj, "f.md"), "# X\n\n<!-- FICHE:X1 -->\n## X1 [x] — une\n<!-- /FICHE -->\n")
+        if not shutil.which("git"):
+            print("SAUTÉ: git absent — le gardien sur HEAD n'est pas testé")
+        else:
+            env = dict(os.environ, GIT_CONFIG_GLOBAL=os.path.join(t, "gitconfig"), GIT_CONFIG_NOSYSTEM="1",
+                       GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t")
+            ecrire(env["GIT_CONFIG_GLOBAL"], "")
+            for args in (["init", "-q"], ["add", "-A"], ["commit", "-q", "-m", "départ"]):
+                subprocess.run(["git"] + args, cwd=proj, env=env, check=True, capture_output=True)
+            code, s = gardien(dict(fin, last_assistant_message="FAITE — X1."))
+            verifier("gardien : FAITE sur case cochée, sans commit de fiche, laissé", (code, s) == (0, ""), s)
+            subprocess.run(["git", "commit", "-q", "--allow-empty", "-m", "X1 : une"], cwd=proj, env=env, check=True)
+            code, s = gardien(dict(fin, last_assistant_message="FAITE — X1."))
+            verifier("gardien : HEAD nomme la fiche, renvoyé", '"decision": "block"' in s and "tu as commité" in s, s)
+        fin_relecture = dict(relecture, hook_event_name="SubagentStop", stop_hook_active=False, cwd=proj,
+                             agent_transcript_path=trans)
+        code, s = gardien(dict(fin_relecture, last_assistant_message="ACCEPTÉE — tout va bien"))
+        verifier("gardien : relecteur ACCEPTÉE muet", (code, s) == (0, ""), s)
+        code, s = gardien(dict(fin_relecture, last_assistant_message="REFUSÉE — erreur"))
+        verifier("gardien : relecteur REFUSÉE muet", (code, s) == (0, ""), s)
+        code, s = gardien(dict(fin, last_assistant_message="RETOUR — x\n\n---\n✅ Tout va bien"))
+        verifier("gardien : fiche jauge « Tout va bien », renvoyée", '"decision": "block"' in s and "« En résumé » ou une jauge" in s, s)
+        code, s = gardien(dict(fin, last_assistant_message="RETOUR — x\n\n---\n✅ Tout va bien", stop_hook_active=True))
+        verifier("gardien : fiche jauge sous stop_hook_active, muet", (code, s) == (0, ""), s)
+        code, s = gardien(dict(fin_relecture, last_assistant_message="ACCEPTÉE — ok\nEn résumé : y"))
+        verifier("gardien : relecteur « En résumé », renvoyé", '"decision": "block"' in s and "« En résumé » ou une jauge" in s, s)
+        code, s = gardien(dict(fin_relecture, last_assistant_message="ACCEPTÉE — ok"))
+        verifier("gardien : relecteur sans « En résumé » ni jauge, muet", (code, s) == (0, ""), s)
+        # JUG2 : la pièce de JUG1 se lit au journal, jamais recopiée ici (elle porte des chemins de machine)
+        with open(os.path.join(RACINE, "context AI", "08-etat.md"), encoding="utf-8") as f:
+            piece = re.search(r"La pièce, pour `JUG2` :\n\n```text\n(.*?)\n```", f.read(), re.S)
+        piece = piece.group(1) if piece else ""
+        code, s = gardien(dict(fin_relecture, last_assistant_message=piece))
+        verifier("gardien : relecteur de FOR3 qui cite la jauge en prose (JUG1), muet",
+                 piece.startswith("ACCEPTÉE") and "« Tout va bien »" in piece and (code, s) == (0, ""), s or piece[:80])
+        code, s = gardien(dict(fin_relecture, last_assistant_message=(
+            "ACCEPTÉE — ok\n\n✅ **Tout va bien** — relu\n\n**En résumé**\n\nLa fiche tient.")))
+        verifier("gardien : relecteur ACCEPTÉE puis résumé à part, renvoyé",
+                 '"decision": "block"' in s and "« En résumé » ou une jauge" in s, s)
+        # Mutation test : les tests « renvoyé » reposent sur forme_texte (chantier FOR3)
+        code, s = gardien(dict(fin, last_assistant_message="RETOUR — Pas bonne action"))
+        verifier("gardien : fiche « Pas bonne » (pas jauge), muet — substring bug", (code, s) == (0, ""), s)
+        code, s = gardien(dict(fin, last_assistant_message="RETOUR — Grosse bonne nouvelle"))
+        verifier("gardien : fiche « Grosse bonne » (pas jauge), muet — substring bug", (code, s) == (0, ""), s)
+
+
+groupe(tester_gardien)
 
 
 # hooks.json : le filet sur tout outil, après un succès et après un échec ; hook sur les écritures
@@ -3171,25 +3404,30 @@ def paire(groupe, *sous):
         for c, option in (("python3", []), ("py", ["-3"]))]
 
 
-succes, echec = crochets.get("PostToolUse", []), crochets.get("PostToolUseFailure", [])
-verifier("hooks.json : filet sur tout outil après un succès et après un échec, hook sur Write|Edit",
-         len(succes) == 3 and len(echec) == 2
-         and any(g.get("matcher") == "*" and paire(g, "filet") for g in succes)
-         and any(g.get("matcher") == "Write|Edit" and paire(g, "hook") for g in succes)
-         and echec[0].get("matcher") == "*" and paire(echec[0], "filet"),
-         json.dumps(crochets, ensure_ascii=False))
-verifier("hooks.json : attente sur Artifact après un succès et après un échec (chantier LOC)",
-         any(g.get("matcher") == "Artifact" and paire(g, "attente", "hook") for g in succes)
-         and echec[1].get("matcher") == "Artifact" and paire(echec[1], "attente", "hook"),
-         json.dumps(crochets, ensure_ascii=False))
-avant, arret = crochets.get("PreToolUse", []), crochets.get("SubagentStop", [])
-verifier("hooks.json : gardien avant Bash|PowerShell et à l'arrêt d'un sous-agent",
-         len(avant) == 2 and avant[0].get("matcher") == "Bash|PowerShell" and paire(avant[0], "gardien")
-         and len(arret) == 1 and arret[0].get("matcher") == "*" and paire(arret[0], "gardien"),
-         json.dumps(crochets, ensure_ascii=False))
-verifier("hooks.json : vigile avant Artifact (chantier VID)",
-         avant[1].get("matcher") == "Artifact" and paire(avant[1], "vigile"),
-         json.dumps(crochets, ensure_ascii=False))
+def tester_hooks_json():
+    """Contrôler hooks.json : filet, hook d'écriture, attente, gardien et vigile."""
+    succes, echec = crochets.get("PostToolUse", []), crochets.get("PostToolUseFailure", [])
+    verifier("hooks.json : filet sur tout outil après un succès et après un échec, hook sur Write|Edit",
+             len(succes) == 3 and len(echec) == 2
+             and any(g.get("matcher") == "*" and paire(g, "filet") for g in succes)
+             and any(g.get("matcher") == "Write|Edit" and paire(g, "hook") for g in succes)
+             and echec[0].get("matcher") == "*" and paire(echec[0], "filet"),
+             json.dumps(crochets, ensure_ascii=False))
+    verifier("hooks.json : attente sur Artifact après un succès et après un échec (chantier LOC)",
+             any(g.get("matcher") == "Artifact" and paire(g, "attente", "hook") for g in succes)
+             and echec[1].get("matcher") == "Artifact" and paire(echec[1], "attente", "hook"),
+             json.dumps(crochets, ensure_ascii=False))
+    avant, arret = crochets.get("PreToolUse", []), crochets.get("SubagentStop", [])
+    verifier("hooks.json : gardien avant Bash|PowerShell et à l'arrêt d'un sous-agent",
+             len(avant) == 2 and avant[0].get("matcher") == "Bash|PowerShell" and paire(avant[0], "gardien")
+             and len(arret) == 1 and arret[0].get("matcher") == "*" and paire(arret[0], "gardien"),
+             json.dumps(crochets, ensure_ascii=False))
+    verifier("hooks.json : vigile avant Artifact (chantier VID)",
+             avant[1].get("matcher") == "Artifact" and paire(avant[1], "vigile"),
+             json.dumps(crochets, ensure_ascii=False))
+
+
+groupe(tester_hooks_json)
 
 
 def tester_canaux(g):
@@ -3213,227 +3451,252 @@ def tester_canaux(g):
 
 # relecture (chantier REV) : un dépôt à part, et ses worktrees dans le dossier temporaire du test
 # (`tempfile.tempdir`) — un test qui échoue n'en laisse aucun dans celui du système.
-if not shutil.which("git"):
-    print("SAUTÉ: git absent — relecture n'est pas testée")
-else:
-    with tempfile.TemporaryDirectory() as t:
-        env = dict(os.environ, GIT_CONFIG_GLOBAL=os.path.join(t, "gitconfig"), GIT_CONFIG_NOSYSTEM="1",
-                   GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t")
-        ecrire(env["GIT_CONFIG_GLOBAL"], "")
-        depot = os.path.join(t, "r")
+def tester_relecture():
+    """Contrôler `relecture` dans un dépôt à part : instantané, `--sha`, canaux (chantier REV)."""
+    if not shutil.which("git"):
+        print("SAUTÉ: git absent — relecture n'est pas testée")
+    else:
+        with tempfile.TemporaryDirectory() as t:
+            env = dict(os.environ, GIT_CONFIG_GLOBAL=os.path.join(t, "gitconfig"), GIT_CONFIG_NOSYSTEM="1",
+                       GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t")
+            ecrire(env["GIT_CONFIG_GLOBAL"], "")
+            depot = os.path.join(t, "r")
 
-        def g(*args):
-            return subprocess.run(["git"] + list(args), cwd=depot, env=env, check=True, capture_output=True,
-                                  encoding="utf-8").stdout
+            def g(*args):
+                return subprocess.run(["git"] + list(args), cwd=depot, env=env, check=True, capture_output=True,
+                                      encoding="utf-8").stdout
 
-        def lu(*chemin):
-            c = os.path.join(*chemin)
-            return mod.lire(c) if os.path.isfile(c) else None
+            def lu(*chemin):
+                c = os.path.join(*chemin)
+                return mod.lire(c) if os.path.isfile(c) else None
 
-        FICHE_X = ("# Chantier X\n\n## Le socle commun\n\nSocle X.\n\n## L'ordre des fiches\n\n---\n\n"
-                   "<!-- FICHE:X1 -->\n## X1 %s — relire\n\n**Fichiers** : `a.py` — et rien d'autre.\n\n"
-                   "**Prompt**\nb.py n'est pas nommé.\n<!-- /FICHE -->\n")
-        ecrire(os.path.join(depot, "CHANTIER.md"), CHANTIER % ("px", "f.md (X1..X1)") + "- **fichier d'état** : ctx d/etat.md\n")
-        ecrire(os.path.join(depot, "f.md"), FICHE_X % "[ ]")
-        ecrire(os.path.join(depot, "a.py"), "a\n")
-        ecrire(os.path.join(depot, "ctx d", "etat.md"), "journal\n")
-        g("init", "-q")
-        g("add", "-A")
-        g("commit", "-q", "-m", "init")
-        # Une fiche finie, pas encore commitée : a.py changé, b.py nouveau, la case cochée.
-        ecrire(os.path.join(depot, "a.py"), "a2\n")
-        ecrire(os.path.join(depot, "b.py"), "b\n")
-        ecrire(os.path.join(depot, "f.md"), FICHE_X % "[x]")
-        ecrire(os.path.join(depot, "ctx d", "etat.md"), "journal\nune décision\n")  # le journal, jamais hors fiche (REV7)
-        tete, etat = g("rev-parse", "HEAD"), g("status", "--porcelain")
-        ici, tmp = os.getcwd(), tempfile.tempdir
-        tempfile.tempdir = t
-        os.chdir(depot)
-        try:
-            code, s = appel(["relecture", "X1"])
-            vu = dict(l.split("=", 1) for l in s.splitlines() if l.startswith(("APRÈS=", "AVANT=")))
-            apres, avant = vu.get("APRÈS", "?"), vu.get("AVANT", "?")
-            verifier("relecture : l'instantané prend l'arbre sans bouger HEAD", code == 0
-                     and g("rev-parse", "HEAD") == tete and g("status", "--porcelain") == etat
-                     and lu(apres, "a.py") == "a2\n" and lu(apres, "b.py") == "b\n"
-                     and lu(avant, "a.py") == "a\n" and lu(avant, "b.py") is None, s + g("status", "--porcelain"))
-            reperes = [s.find(r) for r in ("APRÈS=", "AVANT=", "Socle X.", "--- socle, lignes : ", "## X1 [x] — relire",
-                                           "--- fiche, lignes : ", "M\ta.py", "HORS FICHE", "diff --git")]
-            verifier("relecture : un fichier hors fiche",
-                     [l for l in s.splitlines() if l.startswith("HORS FICHE")] == ["HORS FICHE b.py"]
-                     and -1 not in reperes and reperes == sorted(reperes)
-                     and "\nFICHIER=" not in "\n" + s, s)  # FFE
-            code, s = appel(["relecture", "--retirer"])
-            verifier("relecture : --retirer", code == 0 and s == "RETIRÉ 2\n"
-                     and len(g("worktree", "list").splitlines()) == 1, s + g("worktree", "list"))
+            FICHE_X = ("# Chantier X\n\n## Le socle commun\n\nSocle X.\n\n## L'ordre des fiches\n\n---\n\n"
+                       "<!-- FICHE:X1 -->\n## X1 %s — relire\n\n**Fichiers** : `a.py` — et rien d'autre.\n\n"
+                       "**Prompt**\nb.py n'est pas nommé.\n<!-- /FICHE -->\n")
+            ecrire(os.path.join(depot, "CHANTIER.md"), CHANTIER % ("px", "f.md (X1..X1)") + "- **fichier d'état** : ctx d/etat.md\n")
+            ecrire(os.path.join(depot, "f.md"), FICHE_X % "[ ]")
+            ecrire(os.path.join(depot, "a.py"), "a\n")
+            ecrire(os.path.join(depot, "ctx d", "etat.md"), "journal\n")
+            g("init", "-q")
             g("add", "-A")
-            g("commit", "-q", "-m", "X1 : relire")
-            appel(["relecture", "X1", "--sha", "HEAD"])
-            code, s = appel(["relecture", "X1", "--sha", "HEAD"])
-            liste = g("worktree", "list")
-            verifier("relecture --sha : le commit contre son parent, ceux de l'appel d'avant retirés", code == 0
-                     and "M\ta.py\nA\tb.py\nM\tctx d/etat.md\nM\tf.md\nHORS FICHE b.py\ndiff --git" in s
-                     and len(liste.splitlines()) == 3 and appel(["relecture", "--retirer"]) == (0, "RETIRÉ 2\n"),
-                     s + liste)
-            tester_canaux(g)
-            gardes = [appel(["relecture", "X9"]), appel(["relecture", "X1", "--sha", "0badc0de"])]
-            mod.GIT = "git-absent-vlp"
-            gardes.append(appel(["relecture", "X1"]))
-            mod.GIT = "git"
-            verifier("relecture : fiche absente, commit inconnu, sans Git — GARDE, sort 1, aucun worktree",
-                     all(c == 1 and s.startswith("GARDE: ") for c, s in gardes)
-                     and len(g("worktree", "list").splitlines()) == 1, gardes)
-        finally:
-            mod.GIT = "git"
-            tempfile.tempdir = tmp
-            os.chdir(ici)
+            g("commit", "-q", "-m", "init")
+            # Une fiche finie, pas encore commitée : a.py changé, b.py nouveau, la case cochée.
+            ecrire(os.path.join(depot, "a.py"), "a2\n")
+            ecrire(os.path.join(depot, "b.py"), "b\n")
+            ecrire(os.path.join(depot, "f.md"), FICHE_X % "[x]")
+            ecrire(os.path.join(depot, "ctx d", "etat.md"), "journal\nune décision\n")  # le journal, jamais hors fiche (REV7)
+            tete, etat = g("rev-parse", "HEAD"), g("status", "--porcelain")
+            ici, tmp = os.getcwd(), tempfile.tempdir
+            tempfile.tempdir = t
+            os.chdir(depot)
+            try:
+                code, s = appel(["relecture", "X1"])
+                vu = dict(l.split("=", 1) for l in s.splitlines() if l.startswith(("APRÈS=", "AVANT=")))
+                apres, avant = vu.get("APRÈS", "?"), vu.get("AVANT", "?")
+                verifier("relecture : l'instantané prend l'arbre sans bouger HEAD", code == 0
+                         and g("rev-parse", "HEAD") == tete and g("status", "--porcelain") == etat
+                         and lu(apres, "a.py") == "a2\n" and lu(apres, "b.py") == "b\n"
+                         and lu(avant, "a.py") == "a\n" and lu(avant, "b.py") is None, s + g("status", "--porcelain"))
+                reperes = [s.find(r) for r in ("APRÈS=", "AVANT=", "Socle X.", "--- socle, lignes : ", "## X1 [x] — relire",
+                                               "--- fiche, lignes : ", "M\ta.py", "HORS FICHE", "diff --git")]
+                verifier("relecture : un fichier hors fiche",
+                         [l for l in s.splitlines() if l.startswith("HORS FICHE")] == ["HORS FICHE b.py"]
+                         and -1 not in reperes and reperes == sorted(reperes)
+                         and "\nFICHIER=" not in "\n" + s, s)  # FFE
+                code, s = appel(["relecture", "--retirer"])
+                verifier("relecture : --retirer", code == 0 and s == "RETIRÉ 2\n"
+                         and len(g("worktree", "list").splitlines()) == 1, s + g("worktree", "list"))
+                g("add", "-A")
+                g("commit", "-q", "-m", "X1 : relire")
+                appel(["relecture", "X1", "--sha", "HEAD"])
+                code, s = appel(["relecture", "X1", "--sha", "HEAD"])
+                liste = g("worktree", "list")
+                verifier("relecture --sha : le commit contre son parent, ceux de l'appel d'avant retirés", code == 0
+                         and "M\ta.py\nA\tb.py\nM\tctx d/etat.md\nM\tf.md\nHORS FICHE b.py\ndiff --git" in s
+                         and len(liste.splitlines()) == 3 and appel(["relecture", "--retirer"]) == (0, "RETIRÉ 2\n"),
+                         s + liste)
+                tester_canaux(g)
+                gardes = [appel(["relecture", "X9"]), appel(["relecture", "X1", "--sha", "0badc0de"])]
+                mod.GIT = "git-absent-vlp"
+                gardes.append(appel(["relecture", "X1"]))
+                mod.GIT = "git"
+                verifier("relecture : fiche absente, commit inconnu, sans Git — GARDE, sort 1, aucun worktree",
+                         all(c == 1 and s.startswith("GARDE: ") for c, s in gardes)
+                         and len(g("worktree", "list").splitlines()) == 1, gardes)
+            finally:
+                mod.GIT = "git"
+                tempfile.tempdir = tmp
+                os.chdir(ici)
+
+
+groupe(tester_relecture)
 
 
 # pre-commit (chantier REV) : lancé par `git commit`, dans un dépôt où le plugin est copié, ses .md en CRLF —
 # comme une copie de `relecture` quand core.autocrlf vaut true.
-if not shutil.which("git"):
-    print("SAUTÉ: git absent — le hook pre-commit n'est pas testé")
-else:
-    with tempfile.TemporaryDirectory() as t:
-        env = dict(os.environ, GIT_CONFIG_GLOBAL=os.path.join(t, "gitconfig"), GIT_CONFIG_NOSYSTEM="1",
-                   GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t")
-        ecrire(env["GIT_CONFIG_GLOBAL"], "")
-        depot = os.path.join(t, "plugin")
-        for nom in (".claude-plugin", ".githooks", "agents", "hooks", "skills"):
-            shutil.copytree(os.path.join(RACINE, nom), os.path.join(depot, nom))
-        shutil.copy(os.path.join(RACINE, ".gitattributes"), depot)
-        for dossier, _, noms in os.walk(depot):
-            for nom in (n for n in noms if n.endswith(".md")):
-                with open(os.path.join(dossier, nom), "rb") as f:
-                    octets = f.read().replace(b"\r\n", b"\n")
-                with open(os.path.join(dossier, nom), "wb") as f:
-                    f.write(octets.replace(b"\n", b"\r\n"))
+def tester_pre_commit():
+    """Contrôler le pre-commit, lancé par `git commit` dans un dépôt à part (chantier REV)."""
+    if not shutil.which("git"):
+        print("SAUTÉ: git absent — le hook pre-commit n'est pas testé")
+    else:
+        with tempfile.TemporaryDirectory() as t:
+            env = dict(os.environ, GIT_CONFIG_GLOBAL=os.path.join(t, "gitconfig"), GIT_CONFIG_NOSYSTEM="1",
+                       GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t")
+            ecrire(env["GIT_CONFIG_GLOBAL"], "")
+            depot = os.path.join(t, "plugin")
+            for nom in (".claude-plugin", ".githooks", "agents", "hooks", "skills"):
+                shutil.copytree(os.path.join(RACINE, nom), os.path.join(depot, nom))
+            shutil.copy(os.path.join(RACINE, ".gitattributes"), depot)
+            for dossier, _, noms in os.walk(depot):
+                for nom in (n for n in noms if n.endswith(".md")):
+                    with open(os.path.join(dossier, nom), "rb") as f:
+                        octets = f.read().replace(b"\r\n", b"\n")
+                    with open(os.path.join(dossier, nom), "wb") as f:
+                        f.write(octets.replace(b"\n", b"\r\n"))
 
-        def git(*args):
-            r = subprocess.run(["git"] + list(args), cwd=depot, env=env, capture_output=True, encoding="utf-8",
-                               errors="replace")
-            return r.returncode, r.stdout + r.stderr
+            def git(*args):
+                r = subprocess.run(["git"] + list(args), cwd=depot, env=env, capture_output=True, encoding="utf-8",
+                                   errors="replace")
+                return r.returncode, r.stdout + r.stderr
 
-        git("init", "-q")
-        git("config", "core.hooksPath", ".githooks")
-        git("add", "-A")
-        code, s = git("commit", "-q", "-m", "copie")
-        # L'app Claude en MSIX : son claude.exe n'est dans %APPDATA% que pour les processus qu'elle lance.
-        paquet = os.environ.get("LOCALAPPDATA") and glob.glob(os.path.join(
-            os.environ["LOCALAPPDATA"], "Packages", "Claude_*", "LocalCache", "Roaming", "Claude", "claude-code", "*",
-            "claude.exe"))
-        if not paquet:
-            print("SAUTÉ: pas de claude.exe sous Packages\\Claude_* — la recherche hors de l'app n'est pas testée")
-        else:
-            verifier("hook : claude trouvé hors de l'app", "validate sauté" not in s, s)
-        if "validate sauté" in s:
-            print("SAUTÉ: claude introuvable — le hook pre-commit n'est pas testé")
-        else:
-            verifier("hook : une copie en CRLF passe", code == 0, s)
-            ecrire(os.path.join(depot, ".claude-plugin", "plugin.json"), "{")
+            git("init", "-q")
+            git("config", "core.hooksPath", ".githooks")
             git("add", "-A")
-            code, s = git("commit", "-q", "-m", "casse")
-            verifier("hook : plugin.json cassé est nommé", code == 1
-                     and "pre-commit : .claude-plugin/plugin.json invalide" in s and "marketplace.json" not in s, s)
-        code, s = git("check-attr", "eol", "--", "skills/chantier/SKILL.md")
-        verifier(".gitattributes : les .md en LF", s == "skills/chantier/SKILL.md: eol: lf\n", s)
-        # JNT2 : les joints publiés en LF dans tout clone — un worktree en CRLF changeait leurs octets
-        code, s = git("check-attr", "eol", "--", "templates/vlp.css", "templates/vlp.js", "a/couts.svg")
-        verifier(".gitattributes : les joints (.css, .js, .svg) en LF", s == "templates/vlp.css: eol: lf\n"
-                 "templates/vlp.js: eol: lf\na/couts.svg: eol: lf\n", s)
+            code, s = git("commit", "-q", "-m", "copie")
+            # L'app Claude en MSIX : son claude.exe n'est dans %APPDATA% que pour les processus qu'elle lance.
+            paquet = os.environ.get("LOCALAPPDATA") and glob.glob(os.path.join(
+                os.environ["LOCALAPPDATA"], "Packages", "Claude_*", "LocalCache", "Roaming", "Claude", "claude-code", "*",
+                "claude.exe"))
+            if not paquet:
+                print("SAUTÉ: pas de claude.exe sous Packages\\Claude_* — la recherche hors de l'app n'est pas testée")
+            else:
+                verifier("hook : claude trouvé hors de l'app", "validate sauté" not in s, s)
+            if "validate sauté" in s:
+                print("SAUTÉ: claude introuvable — le hook pre-commit n'est pas testé")
+            else:
+                verifier("hook : une copie en CRLF passe", code == 0, s)
+                ecrire(os.path.join(depot, ".claude-plugin", "plugin.json"), "{")
+                git("add", "-A")
+                code, s = git("commit", "-q", "-m", "casse")
+                verifier("hook : plugin.json cassé est nommé", code == 1
+                         and "pre-commit : .claude-plugin/plugin.json invalide" in s and "marketplace.json" not in s, s)
+            code, s = git("check-attr", "eol", "--", "skills/chantier/SKILL.md")
+            verifier(".gitattributes : les .md en LF", s == "skills/chantier/SKILL.md: eol: lf\n", s)
+            # JNT2 : les joints publiés en LF dans tout clone — un worktree en CRLF changeait leurs octets
+            code, s = git("check-attr", "eol", "--", "templates/vlp.css", "templates/vlp.js", "a/couts.svg")
+            verifier(".gitattributes : les joints (.css, .js, .svg) en LF", s == "templates/vlp.css: eol: lf\n"
+                     "templates/vlp.js: eol: lf\na/couts.svg: eol: lf\n", s)
+
+
+groupe(tester_pre_commit)
 
 # GLO1 : forme et poids dans les transcriptions
-with tempfile.TemporaryDirectory() as t:
-    sa = os.path.join(t, "sa.jsonl")
-    sb = os.path.join(t, "sb.jsonl")
-    # Transcription 1 : User de 100 caractères + "FAITE — … En résumé … Tout va bien"
-    with open(sa, "w", encoding="utf-8") as f:
-        # le format réel : une entrée de premier niveau, pas un champ de `message`
-        f.write(json.dumps({"type": "attachment", "attachment": {
-            "type": "instructions", "files": [{
-                "type": "User", "path": "user.md", "content": "x" * 100
-            }]
-        }}) + "\n")
-        f.write(json.dumps({"type": "assistant", "requestId": "r2", "message": {
-            "role": "assistant", "content": [{
-                "type": "text", "text": "FAITE — début En résumé détails Tout va bien fin"
-            }]
-        }}) + "\n")
-    # Transcription 2 : sans attachements + "Parfait"
-    with open(sb, "w", encoding="utf-8") as f:
-        f.write(json.dumps({"type": "assistant", "requestId": "r1", "message": {
-            "role": "assistant", "content": [{
-                "type": "text", "text": "Parfait"
-            }]
-        }}) + "\n")
-    # Créer les .meta.json
-    meta_a = sa[:-len(".jsonl")] + ".meta.json"
-    meta_b = sb[:-len(".jsonl")] + ".meta.json"
-    ecrire(meta_a, json.dumps({"agentType": "vlp:fiche"}))
-    ecrire(meta_b, json.dumps({"agentType": "vlp:relecture"}))
-    # Créer la structure de répertoires pour que le motif glob trouve les fichiers
-    proj_dir = os.path.join(t, "projects", "test", "test", "subagents")
-    os.makedirs(proj_dir)
-    shutil.move(sa, os.path.join(proj_dir, "agent-id1.jsonl"))
-    shutil.move(sb, os.path.join(proj_dir, "agent-id2.jsonl"))
-    shutil.move(meta_a, os.path.join(proj_dir, "agent-id1.meta.json"))
-    shutil.move(meta_b, os.path.join(proj_dir, "agent-id2.meta.json"))
-    sa = os.path.join(proj_dir, "agent-id1.jsonl")
-    sb = os.path.join(proj_dir, "agent-id2.jsonl")
-    # Appel direct (pas par glob)
-    code, s = appel(["forme", "--regle", "tout", sa, sb])     # le texte entier : la mesure d'avant JUG2
-    lignes = s.strip().split("\n")
-    verifier("forme : deux transcriptions, bilan attendu", code == 0
-             and len(lignes) == 3  # deux lignes de données + une ligne de bilan
-             and lignes[2].startswith("FORME 2 sous-agents · user 50 car. · resume 1 · jauge 1 · tete 1"),
-             s)
+def tester_forme_transcriptions():
+    """Contrôler `forme` sur deux transcriptions (GLO1)."""
+    with tempfile.TemporaryDirectory() as t:
+        sa = os.path.join(t, "sa.jsonl")
+        sb = os.path.join(t, "sb.jsonl")
+        # Transcription 1 : User de 100 caractères + "FAITE — … En résumé … Tout va bien"
+        with open(sa, "w", encoding="utf-8") as f:
+            # le format réel : une entrée de premier niveau, pas un champ de `message`
+            f.write(json.dumps({"type": "attachment", "attachment": {
+                "type": "instructions", "files": [{
+                    "type": "User", "path": "user.md", "content": "x" * 100
+                }]
+            }}) + "\n")
+            f.write(json.dumps({"type": "assistant", "requestId": "r2", "message": {
+                "role": "assistant", "content": [{
+                    "type": "text", "text": "FAITE — début En résumé détails Tout va bien fin"
+                }]
+            }}) + "\n")
+        # Transcription 2 : sans attachements + "Parfait"
+        with open(sb, "w", encoding="utf-8") as f:
+            f.write(json.dumps({"type": "assistant", "requestId": "r1", "message": {
+                "role": "assistant", "content": [{
+                    "type": "text", "text": "Parfait"
+                }]
+            }}) + "\n")
+        # Créer les .meta.json
+        meta_a = sa[:-len(".jsonl")] + ".meta.json"
+        meta_b = sb[:-len(".jsonl")] + ".meta.json"
+        ecrire(meta_a, json.dumps({"agentType": "vlp:fiche"}))
+        ecrire(meta_b, json.dumps({"agentType": "vlp:relecture"}))
+        # Créer la structure de répertoires pour que le motif glob trouve les fichiers
+        proj_dir = os.path.join(t, "projects", "test", "test", "subagents")
+        os.makedirs(proj_dir)
+        shutil.move(sa, os.path.join(proj_dir, "agent-id1.jsonl"))
+        shutil.move(sb, os.path.join(proj_dir, "agent-id2.jsonl"))
+        shutil.move(meta_a, os.path.join(proj_dir, "agent-id1.meta.json"))
+        shutil.move(meta_b, os.path.join(proj_dir, "agent-id2.meta.json"))
+        sa = os.path.join(proj_dir, "agent-id1.jsonl")
+        sb = os.path.join(proj_dir, "agent-id2.jsonl")
+        # Appel direct (pas par glob)
+        code, s = appel(["forme", "--regle", "tout", sa, sb])     # le texte entier : la mesure d'avant JUG2
+        lignes = s.strip().split("\n")
+        verifier("forme : deux transcriptions, bilan attendu", code == 0
+                 and len(lignes) == 3  # deux lignes de données + une ligne de bilan
+                 and lignes[2].startswith("FORME 2 sous-agents · user 50 car. · resume 1 · jauge 1 · tete 1"),
+                 s)
+
+
+groupe(tester_forme_transcriptions)
 
 # GLO1 (JUG1) : forme_texte ne juge que la partie du texte que dit sa règle
-cite = "FAITE — la fiche cite « En résumé » et « Pas bon » en milieu de phrase."
-verifier("forme_texte tete : une citation en milieu de phrase ne compte pas",
-         mod.forme_texte(cite, "tete") == (0, 0), mod.forme_texte(cite, "tete"))
-a_part = "✅ **Tout va bien** — fait\n\n**En résumé**\n\nLa fiche est faite."
-verifier("forme_texte tete : le résumé à part, jauge en tête",
-         mod.forme_texte(a_part, "tete") == (1, 1), mod.forme_texte(a_part, "tete"))
-verifier("forme_texte tiret : seul l'après-dernier --- est jugé",
-         mod.forme_texte("x\n---\n✅ Tout va bien", "tiret") == (0, 1),
-         mod.forme_texte("x\n---\n✅ Tout va bien", "tiret"))
+def tester_forme_texte():
+    """Contrôler que `forme_texte` ne juge que la fin du texte (JUG1)."""
+    cite = "FAITE — la fiche cite « En résumé » et « Pas bon » en milieu de phrase."
+    verifier("forme_texte tete : une citation en milieu de phrase ne compte pas",
+             mod.forme_texte(cite, "tete") == (0, 0), mod.forme_texte(cite, "tete"))
+    a_part = "✅ **Tout va bien** — fait\n\n**En résumé**\n\nLa fiche est faite."
+    verifier("forme_texte tete : le résumé à part, jauge en tête",
+             mod.forme_texte(a_part, "tete") == (1, 1), mod.forme_texte(a_part, "tete"))
+    verifier("forme_texte tiret : seul l'après-dernier --- est jugé",
+             mod.forme_texte("x\n---\n✅ Tout va bien", "tiret") == (0, 1),
+             mod.forme_texte("x\n---\n✅ Tout va bien", "tiret"))
+
+
+groupe(tester_forme_texte)
 
 # GLO1 (FOR1) : forme --depuis filtre sur le départ de la transcription, pas de la session
-with tempfile.TemporaryDirectory() as t:
-    # Créer la structure de répertoires pour que le motif glob trouve les fichiers
-    proj_dir = os.path.join(t, "projects", "test", "test", "subagents")
-    os.makedirs(proj_dir)
-    # Transcription de sous-agent avec timestamp 2026-09-25T12:00:00Z
-    sc = os.path.join(proj_dir, "agent-for1.jsonl")
-    with open(sc, "w", encoding="utf-8") as f:
-        f.write(json.dumps({"type": "attachment", "timestamp": "2026-09-25T12:00:00Z", "attachment": {
-            "type": "instructions", "files": [{
-                "type": "User", "path": "user.md", "content": "test"
-            }]
-        }}) + "\n")
-        f.write(json.dumps({"type": "assistant", "requestId": "r1", "message": {
-            "role": "assistant", "content": [{
-                "type": "text", "text": "FAITE — test En résumé test Tout va bien"
-            }]
-        }}) + "\n")
-    # Créer le .meta.json
-    meta_c = sc[:-len(".jsonl")] + ".meta.json"
-    ecrire(meta_c, json.dumps({"agentType": "vlp:fiche"}))
-    # Parent session avec timestamp 2026-09-25T08:00:00Z (antérieur à --depuis 10:00:00Z)
-    parent_session = os.path.join(t, "session.jsonl")
-    with open(parent_session, "w", encoding="utf-8") as f:
-        f.write(json.dumps({"type": "session", "timestamp": "2026-09-25T08:00:00Z"}) + "\n")
-    # Appel avec --depuis après le timestamp du sous-agent mais avant celui de la parent session
-    code, s = appel(["forme", "--depuis", "2026-09-25T10:00:00Z", sc])
-    verifier("forme --depuis filtre sur le départ du sous-agent", code == 0
-             and "FORME 1 sous-agents" in s,
-             s)
+def tester_forme_depuis():
+    """Contrôler que `forme --depuis` filtre sur le départ du sous-agent (FOR1)."""
+    with tempfile.TemporaryDirectory() as t:
+        # Créer la structure de répertoires pour que le motif glob trouve les fichiers
+        proj_dir = os.path.join(t, "projects", "test", "test", "subagents")
+        os.makedirs(proj_dir)
+        # Transcription de sous-agent avec timestamp 2026-09-25T12:00:00Z
+        sc = os.path.join(proj_dir, "agent-for1.jsonl")
+        with open(sc, "w", encoding="utf-8") as f:
+            f.write(json.dumps({"type": "attachment", "timestamp": "2026-09-25T12:00:00Z", "attachment": {
+                "type": "instructions", "files": [{
+                    "type": "User", "path": "user.md", "content": "test"
+                }]
+            }}) + "\n")
+            f.write(json.dumps({"type": "assistant", "requestId": "r1", "message": {
+                "role": "assistant", "content": [{
+                    "type": "text", "text": "FAITE — test En résumé test Tout va bien"
+                }]
+            }}) + "\n")
+        # Créer le .meta.json
+        meta_c = sc[:-len(".jsonl")] + ".meta.json"
+        ecrire(meta_c, json.dumps({"agentType": "vlp:fiche"}))
+        # Parent session avec timestamp 2026-09-25T08:00:00Z (antérieur à --depuis 10:00:00Z)
+        parent_session = os.path.join(t, "session.jsonl")
+        with open(parent_session, "w", encoding="utf-8") as f:
+            f.write(json.dumps({"type": "session", "timestamp": "2026-09-25T08:00:00Z"}) + "\n")
+        # Appel avec --depuis après le timestamp du sous-agent mais avant celui de la parent session
+        code, s = appel(["forme", "--depuis", "2026-09-25T10:00:00Z", sc])
+        verifier("forme --depuis filtre sur le départ du sous-agent", code == 0
+                 and "FORME 1 sous-agents" in s,
+                 s)
+
+
+groupe(tester_forme_depuis)
 
 # Test de carte avec TODO
-test_carte_relecteur()
-test_carte_todo()
-test_carte_methode()
+groupe(test_carte_relecteur)
+groupe(test_carte_todo)
+groupe(test_carte_methode)
 
 # PYT1 : premier lancement des hooks — restaurer TAMPON_HOOKS pour ce test
 def gardien_test(texte):
@@ -3501,7 +3764,7 @@ def test_premier_lancement():
         mod.TAMPON_HOOKS = ancien_tampon
 
 
-test_premier_lancement()
+groupe(test_premier_lancement)
 
 
 def tester_lanceur_trie():
@@ -3521,7 +3784,7 @@ def tester_lanceur_trie():
              "\n".join("code %d\n%s\n%s" % (x.returncode, x.stdout, x.stderr[-600:]) for x in r))
 
 
-tester_lanceur_trie()
+groupe(tester_lanceur_trie)
 
 
 def tester_symboles():
@@ -3541,7 +3804,7 @@ def tester_symboles():
                  code == 1 and o.getvalue() == "Trois 14-16\nABSENT rien\nun 4-5\n", o.getvalue())
 
 
-tester_symboles()
+groupe(tester_symboles)
 
 
 def tester_suite_verte():
@@ -3576,7 +3839,7 @@ def tester_suite_verte():
         verifier("VIT11 : un projet équipé (sans plugin) coche sans suite verte", equipe[0] == 0, repr(equipe))
 
 
-tester_suite_verte()
+groupe(tester_suite_verte)
 
 # BAC1 : `bac` pose le bac d'essai de FIL3, dans un dossier temporaire à lui
 def test_bac():
@@ -3606,7 +3869,7 @@ def test_bac():
         verifier("bac : clore passe, les deux fiches jouées", code == 0 and "CLOS F F1..F2" in s3, s3)
 
 
-test_bac()
+groupe(test_bac)
 
 
 # CLI1 : `claude` trouve le CLI de l'app, Packages d'abord ; `bac` et `boucle.py` s'en servent
@@ -3661,7 +3924,7 @@ def test_claude():
                     os.environ[n] = v
 
 
-test_claude()
+groupe(test_claude)
 
 
 # EVF2 : `kit-essai` copie un kit factice à plafond bas, dans un dossier temporaire à lui
@@ -3691,7 +3954,7 @@ def test_kit_essai():
         verifier("kit-essai : un 2e appel rend une GARDE", code == 1 and s2.startswith("GARDE:"), s2)
 
 
-test_kit_essai()
+groupe(test_kit_essai)
 
 
 # BAC2 : `transcription` compte une transcription de sous-agent factice, dans un dossier à lui
@@ -3765,7 +4028,7 @@ def test_transcription():
         verifier("transcription : illisible rend une GARDE", code == 1 and s.startswith("GARDE:"), s)
 
 
-test_transcription()
+groupe(test_transcription)
 
 # --- VOI2 : `comparer` dit ce qu'une régénération de page a perdu ou ajouté ---
 
@@ -3778,17 +4041,22 @@ NEUVE_CMP = ("<html><body><table><tbody>\n"
              "<tr><td>2026-09-26</td></tr>\n"
              "</tbody></table></body></html>\n")
 
-with tempfile.TemporaryDirectory() as tc:
-    anc = os.path.join(tc, "ancienne.html")
-    neu = os.path.join(tc, "neuve.html")
-    ecrire(anc, ANCIENNE_CMP)
-    ecrire(neu, NEUVE_CMP)
-    code, s = appel(["comparer", anc, neu])
-    verifier("VOI2 : une ligne perdue, une ajoutée, code 0 — une mesure, pas une garde",
-             code == 0 and "PERDU: TODO : un truc\n" in s and "AJOUTÉ: 2026-09-26\n" in s
-             and s.rstrip().endswith("COMPARER 1 perdus · 1 ajoutés"), s)
-    code, s = appel(["comparer", anc, os.path.join(tc, "absente.html")])
-    verifier("VOI2 : fichier absent — GARDE, code 1", code == 1 and s.startswith("GARDE:"), s)
+def tester_voi2_comparer():
+    """Contrôler `comparer` : une ligne perdue, une ajoutée (VOI2)."""
+    with tempfile.TemporaryDirectory() as tc:
+        anc = os.path.join(tc, "ancienne.html")
+        neu = os.path.join(tc, "neuve.html")
+        ecrire(anc, ANCIENNE_CMP)
+        ecrire(neu, NEUVE_CMP)
+        code, s = appel(["comparer", anc, neu])
+        verifier("VOI2 : une ligne perdue, une ajoutée, code 0 — une mesure, pas une garde",
+                 code == 0 and "PERDU: TODO : un truc\n" in s and "AJOUTÉ: 2026-09-26\n" in s
+                 and s.rstrip().endswith("COMPARER 1 perdus · 1 ajoutés"), s)
+        code, s = appel(["comparer", anc, os.path.join(tc, "absente.html")])
+        verifier("VOI2 : fichier absent — GARDE, code 1", code == 1 and s.startswith("GARDE:"), s)
+
+
+groupe(tester_voi2_comparer)
 
 # --- Dette IDX : une page enveloppée dans un `div` se compare ligne à ligne ---
 
@@ -3806,7 +4074,7 @@ def tester_page_enveloppee():
                  and sortie.rstrip().endswith("COMPARER 1 perdus · 1 ajoutés"), sortie)
 
 
-tester_page_enveloppee()
+groupe(tester_page_enveloppee)
 
 
 def tester_plage_refaite():
@@ -3834,7 +4102,7 @@ def tester_plage_refaite():
                  and "PERDU:" not in sortie, sortie)
 
 
-tester_plage_refaite()
+groupe(tester_plage_refaite)
 
 
 def tester_bornes():
@@ -3857,7 +4125,7 @@ def tester_bornes():
                  and "ctx/30-q.md (Q1..Q2)" in carte, sortie + carte)
 
 
-tester_bornes()
+groupe(tester_bornes)
 
 
 def tester_heredoc():
@@ -3913,7 +4181,7 @@ def tester_heredoc():
              % (len(ecrit), len(lit)), not faux, repr(faux))
 
 
-tester_heredoc()
+groupe(tester_heredoc)
 
 
 def tester_forme_jauge():
@@ -3937,7 +4205,7 @@ def tester_forme_jauge():
              % len(cas), not faux, repr(faux))
 
 
-tester_forme_jauge()
+groupe(tester_forme_jauge)
 
 
 def tester_lance_clore():
@@ -3960,7 +4228,7 @@ def tester_lance_clore():
              not faux, repr(faux))
 
 
-tester_lance_clore()
+groupe(tester_lance_clore)
 
 
 def tester_clos_sans_commit():
@@ -3997,14 +4265,19 @@ def tester_clos_sans_commit():
                  and len(total) == 1 and mod.triplet(total[0])[:2] == (400000, 4), s)
 
 
-tester_clos_sans_commit()
+groupe(tester_clos_sans_commit)
 
 # --- VOI3 : `lettres_prises` tolère une lettre entre backticks (MapDecorator) -
 
-LIGNE_MAPDECORATOR = "Lettres de fiche déjà prises : `T`, `U`, `R`, `M`. Un nouveau chantier en choisit"
-verifier("VOI3 : lettres entre backticks (ligne réelle de MapDecorator)",
-         mod.lettres_prises([LIGNE_MAPDECORATOR]) == ["T", "U", "R", "M"],
-         repr(mod.lettres_prises([LIGNE_MAPDECORATOR])))
+def tester_voi3_lettres():
+    """Contrôler les lettres entre backticks d'une ligne réelle (VOI3)."""
+    LIGNE_MAPDECORATOR = "Lettres de fiche déjà prises : `T`, `U`, `R`, `M`. Un nouveau chantier en choisit"
+    verifier("VOI3 : lettres entre backticks (ligne réelle de MapDecorator)",
+             mod.lettres_prises([LIGNE_MAPDECORATOR]) == ["T", "U", "R", "M"],
+             repr(mod.lettres_prises([LIGNE_MAPDECORATOR])))
+
+
+groupe(tester_voi3_lettres)
 
 # --- ABR1 : le .md d'une page, amorcé depuis la page sans la toucher ----------
 
@@ -4064,7 +4337,7 @@ def tester_abri():
         verifier("ABR1 : page absente — GARDE, code 1", code == 1 and s.startswith("GARDE:"), s)
 
 
-tester_abri()
+groupe(tester_abri)
 
 # --- ABR2 : `page` écrit d'abord dans le .md, puis le recopie en entier -------
 
@@ -4139,7 +4412,7 @@ def tester_abr2():
                  s + html)
 
 
-tester_abr2()
+groupe(tester_abr2)
 
 
 # --- PLI1 (fiche PLI2) : `page` et `feuille` recopient `templates/vlp.css` ----
@@ -4203,7 +4476,7 @@ def tester_vlp_css_recopie():
                  gabarit.count("<style") == 0 and 'href="vlp.css"' in gabarit, gabarit[:400])
 
 
-tester_vlp_css_recopie()
+groupe(tester_vlp_css_recopie)
 
 
 # --- PLI3 : une page à <style> inline est migrée vers <link href="vlp.css"> ---
@@ -4238,7 +4511,7 @@ def tester_style_migre():
                  code == 0 and lire(page).count('href="vlp.css"') == 1, lire(page)[:400])
 
 
-tester_style_migre()
+groupe(tester_style_migre)
 
 
 # --- PLI5 : chaque fiche repliée, ouverte si en cours ; l'ancienne forme se lit encore ---
@@ -4303,7 +4576,7 @@ def tester_fiches_repliees():
                  and vues_anciennes["Q2"][0] == "encours", "%r\n%r" % (vues_neuves, vues_anciennes))
 
 
-tester_fiches_repliees()
+groupe(tester_fiches_repliees)
 
 
 # --- Gabarit en colonnes (2026-09-27) : dépendances à gauche, coût ou « visuel » à droite ---
@@ -4376,7 +4649,7 @@ def tester_carte_en_colonnes():
              "%r" % [mod.depend_todo(d) for d in ("`PLI`", "3", "—", "`A`, `B`, `C`")])
 
 
-tester_carte_en_colonnes()
+groupe(tester_carte_en_colonnes)
 
 
 # Fiches prêtes, et à lancer en même temps (commentaires de la page BTN, choix de l'utilisateur) : l'état
@@ -4466,7 +4739,7 @@ def tester_pretes_et_paralleles():
                  and dit(li, "S1", "En cours · attend S2, S3, S4"), s + "%r" % li)
 
 
-tester_pretes_et_paralleles()
+groupe(tester_pretes_et_paralleles)
 
 
 # --- PLI6 : le journal replié au-delà de 3 entrées ; le bilan sous l'en-tête à la clôture ---
@@ -4495,7 +4768,7 @@ def tester_journal_replie():
                      "%s\nvus=%d caches=%d %r\n%s" % (s, vus, caches, textes, html[html.find("Journal"):][:900]))
 
 
-tester_journal_replie()
+groupe(tester_journal_replie)
 
 
 def tester_bilan_en_haut():
@@ -4547,7 +4820,7 @@ def tester_bilan_en_haut():
                  and "<section hidden>\n    <h2>Chantier clos le" in html, s + html[-1500:])
 
 
-tester_bilan_en_haut()
+groupe(tester_bilan_en_haut)
 
 
 def tester_vigile():
@@ -4611,7 +4884,7 @@ def tester_vigile():
                  hook(dict(pub, tool_input={"file_path": os.path.join(tvg, "absente.html")})) == (0, ""), "")
 
 
-tester_vigile()
+groupe(tester_vigile)
 
 
 def tester_chef_page():
@@ -4807,7 +5080,7 @@ def tester_chef_page():
                  code == 0 and m is not None and datetime.date.fromisoformat(m.group(1)) <= datetime.date.today(), s)
 
 
-tester_chef_page()
+groupe(tester_chef_page)
 
 def tester_forme():
     """page --forme (chantier HAB1) : la forme d'une page ancienne refaite, ses chiffres gardés,
@@ -4890,7 +5163,7 @@ def tester_forme():
         verifier("HAB1 : sans --forme, le total change (témoin)", code == 0 and total not in lire(page), s)
 
 
-tester_forme()
+groupe(tester_forme)
 
 
 def projet_clos(dossier, liens=()):
@@ -4940,7 +5213,7 @@ def tester_repeindre():
         verifier("HAB2 : pas de CHANTIER.md, une GARDE", code == 1 and s.startswith("GARDE: pas de CHANTIER.md"), s)
 
 
-tester_repeindre()
+groupe(tester_repeindre)
 
 
 def tester_liens():
@@ -4973,7 +5246,7 @@ def tester_liens():
                  and "2 repeintes · 1 avec lien · 1 sans lien" in s, s)
 
 
-tester_liens()
+groupe(tester_liens)
 
 
 def tester_hook_pyright():
@@ -5017,7 +5290,7 @@ def tester_hook_pyright():
                  and "pre-commit : pyright introuvable, vérification de types sautée." in s, s)
 
 
-tester_hook_pyright()
+groupe(tester_hook_pyright)
 
 
 def tester_contrat_ouverture():
@@ -5071,7 +5344,7 @@ def tester_contrat_ouverture():
                  "n'ajoute ce fichier : l'ouverture n'est pas commitée\n" % r, s)
 
 
-tester_contrat_ouverture()
+groupe(tester_contrat_ouverture)
 
 
 # --- FEU7 : l'eyebrow de la page du chantier finit par un lien vers la feuille de route ---
@@ -5130,7 +5403,7 @@ def tester_lien_feuille_de_route():
                  and 'Proj · fiches P1–P3 · <a href="https://exemple/route">la feuille de route</a></div>' in html, html)
 
 
-tester_lien_feuille_de_route()
+groupe(tester_lien_feuille_de_route)
 
 
 # --- FEU8 : le décompte au-dessus de la TODO détaille tailles, bloqués, total estimé ---
@@ -5209,7 +5482,7 @@ def tester_decompte_todo():
                  (s, s2, sc))
 
 
-tester_decompte_todo()
+groupe(tester_decompte_todo)
 
 
 # --- PIP1 : une ligne de TODO mal découpée rend une GARDE, plus un décompte faux ---
@@ -5253,7 +5526,7 @@ def tester_barre_todo():
                  "ÉCART: feuille: ligne 3 de la TODO : 6 cellules" in s, s)
 
 
-tester_barre_todo()
+groupe(tester_barre_todo)
 
 
 # --- NUI10 : le tri du soir par script, lecture seule ---
@@ -5303,7 +5576,7 @@ def tester_trier():
         verifier("NUI10 : une barre non échappée — GARDE, sort 1", code == 1 and s.startswith("GARDE: ligne 1 de la TODO"), s)
 
 
-tester_trier()
+groupe(tester_trier)
 
 
 # --- NUI11 : le fichier des nuits, ses leçons et le TAUX imprimés par trier ---
@@ -5421,7 +5694,7 @@ def tester_fichier_nuits():
         os.environ["CLAUDE_CODE_SESSION_ID"] = env
 
 
-tester_fichier_nuits()
+groupe(tester_fichier_nuits)
 
 
 # --- NUI12 : le plan du soir, écrit dans le fichier des nuits, relu par la nuit ---
@@ -5562,7 +5835,7 @@ def tester_plan():
         os.environ["VLP_NUIT"] = env
 
 
-tester_plan()
+groupe(tester_plan)
 
 
 # --- BTN1: `vlp.js` joint aux pages, la ligne FILES ; charset et script posés une fois ---
@@ -5784,7 +6057,7 @@ def tester_joints():
                  and IMG not in lire(fdr), s)
 
 
-tester_joints()
+groupe(tester_joints)
 
 
 def tester_attente():
@@ -5886,7 +6159,7 @@ def tester_attente():
              (zero.strftime("%Y-%m-%d %H:%M"), tache.strftime("%H:%M")) == ("2026-09-29 02:00", "02:10"), str(zero))
 
 
-tester_attente()
+groupe(tester_attente)
 
 
 def tester_publie():
@@ -5933,7 +6206,7 @@ def tester_publie():
                  files_de(s) == {} and len(mod.lignes_de(notes)) == 2, s + lire(notes))
 
 
-tester_publie()
+groupe(tester_publie)
 
 
 def tester_apercu():
@@ -6063,7 +6336,7 @@ def tester_apercu():
                     os.environ[k] = v
 
 
-tester_apercu()
+groupe(tester_apercu)
 
 
 def tester_retard_plugin():
@@ -6113,7 +6386,7 @@ def tester_retard_plugin():
                  r3 is not None and r3[0] == 2 and r3[2] == "fiche", r3)
 
 
-tester_retard_plugin()
+groupe(tester_retard_plugin)
 
 
 def tester_mutant():
@@ -6154,7 +6427,7 @@ def tester_mutant():
                  (attrape, vivant, absent, double, plante, rendu_plante))
 
 
-tester_mutant()
+groupe(tester_mutant)
 
 # La suite factice de VIT2 : la copie de f, le fichier qui nomme le vrai f, et deux fichiers hors de la copie —
 # l'empreinte du vrai f vue pendant la suite, et la trace d'un petit-fils qui survivrait 2 s.
@@ -6218,7 +6491,7 @@ def tester_mutant_attendu():
                      and "ATTRAPÉ" not in p[1] and p[3] for p in (plante, plante_tous)), (plante, plante_tous))
 
 
-tester_mutant_attendu()
+groupe(tester_mutant_attendu)
 
 
 def tester_boucle():
@@ -6273,7 +6546,7 @@ def tester_nuits():
                 os.environ[k] = v
 
 
-tester_nuits()
+groupe(tester_nuits)
 
 
 # --- NUI15 : `vlp.py matin`, la fusion de la nuit dans main -------------------------------------
@@ -6977,7 +7250,7 @@ def tester_matin():
                 os.environ[k] = v
 
 
-tester_matin()
+groupe(tester_matin)
 
 
 def tester_ouverts():
@@ -7025,7 +7298,7 @@ def tester_ouverts():
 
 
 OUVERT = mod.OUVERT_LIGNE
-tester_ouverts()
+groupe(tester_ouverts)
 
 
 def tester_blobs_git():
@@ -7062,7 +7335,7 @@ def tester_blobs_git():
              "d'après le contenu", lus == ["# Chantier A\nligne\n", None, None, "un\ndeux\n\n"], lus)
 
 
-tester_blobs_git()
+groupe(tester_blobs_git)
 
 
 def tester_courant_de():
@@ -7122,7 +7395,7 @@ def tester_courant_de():
              repr((c_clos, c_deux, c_postit, d_vieux)))
 
 
-tester_courant_de()
+groupe(tester_courant_de)
 
 
 def tester_ouvrir_marque():
@@ -7167,7 +7440,7 @@ def tester_ouvrir_marque():
              "\n".join((s2, repr(ouverts_apres), s3)))
 
 
-tester_ouvrir_marque()
+groupe(tester_ouvrir_marque)
 
 
 def tester_wip_de_cote():
@@ -7199,7 +7472,7 @@ def tester_wip_de_cote():
              repr((etat_wip, etat_her, wip_fusionne)) + "\n" + s)
 
 
-tester_wip_de_cote()
+groupe(tester_wip_de_cote)
 
 
 def tester_fusionner():
@@ -7291,7 +7564,7 @@ def tester_fusionner():
              (code, s, sujet, carte_, deja))
 
 
-tester_fusionner()
+groupe(tester_fusionner)
 
 
 def tester_lettres_doublon():
@@ -7357,7 +7630,7 @@ def tester_lettres_doublon():
              (code_z, s_z, intact, code_h, s_h))
 
 
-tester_lettres_doublon()
+groupe(tester_lettres_doublon)
 
 
 # VIT15 — des sondes, une règle de comptage chacune. SONDES_ATTENDU : leurs comptes par ruff 0.16.10, seuils à zéro et
@@ -7739,15 +8012,60 @@ def tester_sante_kit():
              code == 0 and s.endswith("CLIQUET TENU\n"), s)
 
 
-tester_sante_comptes()
-tester_sante_ruff()
-tester_sante_cliquet()
-tester_sante_si_base()
-tester_sante_kit()
-tester_boucle()     # en dernier : les trois quarts de la suite, un écart d'ailleurs tombe avant lui (VIT2)
+def tester_seul():
+    """Contrôler `--seul` (VIT10) : le motif lu de la ligne de commande, puis de `VLP_SEUL` ; un groupe retenu par
+    son nom ou par son texte, sans tenir compte de la casse ; `groupe` ne joue que lui."""
+    global SEUL
+    verifier("seul : --seul lu avant VLP_SEUL — mutant : VLP_SEUL d'abord",
+             motif_seul(["--seul", "ABC1"], {"VLP_SEUL": "X"}) == "ABC1", motif_seul(["--seul", "ABC1"], {"VLP_SEUL": "X"}))
+    verifier("seul : VLP_SEUL sans --seul ; ni l'un ni l'autre, tout se joue ; --seul sans motif, None",
+             motif_seul([], {"VLP_SEUL": "X"}) == "X" and motif_seul([], {}) == "" and motif_seul(["--seul"], {}) is None
+             and motif_seul(["--seul", ""], {}) is None, "")
+
+    appels = []
+
+    def tester_temoin_nom():
+        """Un groupe témoin, retenu par son nom."""
+        appels.append("nom")
+
+    def temoin_texte():
+        """Un groupe témoin, retenu par son texte : « un libellé Vit10-Témoin »."""
+        appels.append("texte")
+    verifier("seul : le nom porte le motif, sans casse — mutant : casse comptée", porte_motif(tester_temoin_nom, "TEMOIN_NOM"), "")
+    verifier("seul : le texte porte le motif, sans casse — mutant : texte ignoré", porte_motif(temoin_texte, "vit10-témoin"), "")
+    verifier("seul : ni le nom ni le texte, écarté", not porte_motif(temoin_texte, "autre-motif"), "")
+    garde, joues, SEUL = SEUL, len(JOUES), "temoin_nom"
+    try:
+        groupe(tester_temoin_nom)
+        groupe(temoin_texte)
+    finally:
+        SEUL = garde
+        del JOUES[joues:]
+    verifier("seul : groupe ne joue que le groupe qui porte le motif — mutant : filtre ignoré", appels == ["nom"], appels)
+
+
+def bilan_seul():
+    """Sous `--seul`, dire combien de groupes et de contrôles se sont joués ; aucun groupe : sortir 1, pour qu'un motif
+    mal tapé ne passe pas pour une suite verte (VIT10)."""
+    if not SEUL:
+        return
+    print("SEUL %s : %d groupe(s), %d contrôle(s) — %s" % (SEUL, len(JOUES), len(CONTROLES), " ".join(JOUES)))
+    if not JOUES:
+        print("GARDE: aucun groupe ne porte « %s »" % SEUL)
+        sys.exit(1)
+
+
+groupe(tester_sante_comptes)
+groupe(tester_sante_ruff)
+groupe(tester_sante_cliquet)
+groupe(tester_sante_si_base)
+groupe(tester_sante_kit)
+groupe(tester_seul)
+groupe(tester_boucle)     # en dernier : les trois quarts de la suite, un écart d'ailleurs tombe avant lui (VIT2)
 
 if ECARTS:
     print("FIN: %d écart(s)" % len(ECARTS))     # la suite est allée au bout : `vlp.py mutant` ne la dit pas PLANTÉ
     sys.exit(1)
 noter_si_verte()
+bilan_seul()
 print("OK")

@@ -21,9 +21,9 @@
     <p>Coder plus vite et mieux. Une fiche attend moins ses tests et lit moins de contexte — mesuré avant (VIT1) et après (VIT13) — sans qu'un seul contrôle soit retiré ; le code qu'elle laisse est sain, facile à maintenir et documenté.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span data-etat="faite"></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">14 fiches · 11 faites · en cours : VIT10</p>
+    <p class="mono" style="margin-top:.5rem">14 fiches · 12 faites · en cours : VIT12</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -78,22 +78,23 @@
         <details><summary><span class="titre">Une carte des symboles, et des fiches sans numéros de ligne</span><span class="etat">Faite</span></summary>
         <span class="note">suite OK en 191 s (test sur 3 symboles) ; NUI, socle et fiches ouvertes : 24 renvois vlp.py:&lt;n&gt; → 0 ; mutant attrapé ; pyright 0 ; ast au lieu de pyclbr (cache par nom de module) ; verifier( 771 → 773</span></details>
         <span class="cout mono">≈7,3M (7 301 707) · 28 tours · 2,18 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">VIT10</span></span>
-        <details open><summary><span class="titre">Ranger les tests en groupes nommés, et n'en jouer qu'un</span><span class="etat">En cours</span></summary>
-        <span class="note">les tests rangés en groupes nommés, un seul jouable ; dépend de VIT9</span></details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">VIT10</span></span>
+        <details><summary><span class="titre">Ranger les tests en groupes nommés, et n'en jouer qu'un</span><span class="etat">Faite</span></summary>
+        <span class="note">Suite OK (187 s) ; 831 contrôles avant et après, mêmes libellés, même ordre (+6 tester_seul) ; --seul NUI27 : 1 groupe, 3 contrôles, 5,4 s ; 2 mutants attrapés ; pyright 0 ; cliquet tenu</span></details>
+        <span class="cout mono">≈10,0M (9 999 161) · 56 tours · 4,98 $</span></li>
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">VIT11</span></span>
         <details><summary><span class="titre">La suite complète exigée au commit</span><span class="etat">Faite</span></summary>
         <span class="note">suite OK en 193 s, empreinte notée = kit sur disque ; en vrai : fichier ajouté → GARDE non cochée (sort 1), retiré → COCHÉ ; mutant attrapé ; pyright 0 ; refus dans cocher, pas au commit (pourquoi : 08-etat) ; verifier( 773 → 775</span></details>
-        <span class="cout mono">≈7,2M (7 180 577) · 24 tours · 2,23 $</span></li>
-      <li class="fiche" data-attend><span class="gauche"><span class="id">VIT12</span></span>
-        <details><summary><span class="titre">Le relecteur ne rejoue que le nouveau test dans AVANT</span><span class="etat">Après VIT10</span></summary>
+        <span class="cout mono">≈7,5M (7 495 583) · 25 tours · 2,32 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">VIT12</span></span>
+        <details open><summary><span class="titre">Le relecteur ne rejoue que le nouveau test dans AVANT</span><span class="etat">En cours</span></summary>
         <span class="note">le relecteur ne rejoue que le nouveau test avant ; dépend de VIT2, VIT10</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">VIT13</span></span>
         <details><summary><span class="titre">Mesurer la fin, avant/après</span><span class="etat">Après VIT12</span></summary>
         <span class="note">la fin mesurée, avant/après ; dépend de VIT7, VIT8, VIT11, VIT12 — et, par elles, de toutes</span></details></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : 0 · 0 tours · 0,00 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈131,6M (131 621 990) · 631 tours · 68,47 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈141,9M (141 936 157) · 688 tours · 73,54 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
