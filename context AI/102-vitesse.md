@@ -430,8 +430,9 @@ d'autre au contrat.
 ---
 
 <!-- FICHE:VIT13 -->
-## VIT13 [ ] — Mesurer la fin, avant/après
+## VIT13 [x] — Mesurer la fin, avant/après
 
+**Session** : 72db946f-cd44-4a3b-8ec4-39b6d2872e1d
 **Dépend de** : `VIT7`, `VIT8`, `VIT11`, `VIT12` — et, par elles, toutes les autres.
 **Fichiers** : `context AI/08-etat.md` (une entrée datée) — et rien d'autre.
 

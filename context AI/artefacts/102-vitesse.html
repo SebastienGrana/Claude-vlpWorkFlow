@@ -21,9 +21,9 @@
     <p>Coder plus vite et mieux. Une fiche attend moins ses tests et lit moins de contexte — mesuré avant (VIT1) et après (VIT13) — sans qu'un seul contrôle soit retiré ; le code qu'elle laisse est sain, facile à maintenir et documenté.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">14 fiches · 13 faites · en cours : VIT13</p>
+    <p class="mono" style="margin-top:.5rem">14 fiches · 14 faites</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -89,13 +89,14 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">VIT12</span></span>
         <details><summary><span class="titre">Le relecteur ne rejoue que le nouveau test dans AVANT</span><span class="etat">Faite</span></summary>
         <span class="note">relecture.md : AVANT ne joue que le test ajouté (--seul, sort 1), APRÈS la suite entière, puis vlp.py mutant --attendu ; suite OK (188 s) ; valider : 14 fiches, 0 écart</span></details>
-        <span class="cout mono">≈1,9M (1 868 891) · 8 tours · 0,62 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">VIT13</span></span>
-        <details open><summary><span class="titre">Mesurer la fin, avant/après</span><span class="etat">En cours</span></summary>
-        <span class="note">la fin mesurée, avant/après ; dépend de VIT7, VIT8, VIT11, VIT12 — et, par elles, de toutes</span></details></li>
+        <span class="cout mono">≈2,4M (2 350 445) · 10 tours · 0,73 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">VIT13</span></span>
+        <details><summary><span class="titre">Mesurer la fin, avant/après</span><span class="etat">Faite</span></summary>
+        <span class="note">Machine redémarrée, session seule : test-vlp 553 → 180 s (−67 %), test-boucle 426,5 → 176 s (−59 %), mutant NUI27 538 → 173 s, 105 s avec --attendu, 6 s avec --seul ; lancement 362 → 208 ms ; contexte de départ +1 % ; code sain : 63 → 63 au-dessus d'un seuil, docstrings 64 → 70 %</span></details>
+        <span class="cout mono">≈9,9M (9 914 096) · 36 tours · 3,05 $</span></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : 0 · 0 tours · 0,00 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈144,3M (144 255 308) · 698 tours · 74,28 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈154,7M (154 650 958) · 736 tours · 77,44 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

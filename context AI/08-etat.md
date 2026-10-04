@@ -2614,3 +2614,31 @@ Notes prises en cours de fiche, à la demande de l'utilisateur (« note tout ce 
 - **Ce qui change de sens** : `lire` était redéfini en lambda dans deux blocs (`feuille`, `ouvrir`) et toute la suite d'après lisait la lambda ; désormais locale à son groupe, la suite lit `mod.lire` — même texte pour de l'UTF-8 valide (les 831 contrôles le confirment).
 - **« Découper » (option A) reposait sur une erreur de ma part** : `sante.py` exempte les `test-*.py` du seuil d'instructions (`EXEMPTS_TESTS`, socle de VIT, Q4) ; les 46 groupes tiennent le cliquet sans coupe — 7 dépassent 50 instructions (`tester_heures_commits` : 140). Pas découpés.
 - **`--seul <motif>`** (ou `VLP_SEUL`) : nom ou texte du groupe, sans casse ; ni test-boucle lancé d'avance, ni empreinte `VIT11` écrite ; `SEUL … : n groupe(s), k contrôle(s)` en fin ; aucun groupe → `GARDE:`, sort 1. Suite à vide : 0,43 s.
+
+## 2026-10-04 — VIT13 — avant/après
+
+Les mesures de `VIT1`, rejouées par ses commandes (script `vit13-mesures.sh`, recopie de `vit1-relance.sh`, dossier temporaire de la session 72db946f, non suivi) sur `main` à `aba8ab5`, le 2026-10-04 de 20:48:37 à 21:05:31, **après un redémarrage du PC, ma session seule ouverte** (dit par l'utilisateur) : 14 à 15 `claude`, 0 `python`, mémoire réservée **32 à 36 %** (6 592 828 à 7 549 708 Ko sur 20 869 412) — VIT1 : 16 `claude`, 56 %. Une série sous charge, le même soir de 20:24:31 à 20:42:04 (21 `claude`, 82 %), gardée en regard. Tout `OK`, 0 erreur mémoire (`grep -cE "WinError 1455|MemoryError|Win32 error"`) des deux côtés.
+
+| Mesure | Avant (`VIT1`, `5804eca`) | Après (`aba8ab5`) | Écart | Sous charge, en regard |
+|---|---|---|---|---|
+| 1. `py -3 scripts/test-vlp.py`, deux passages | 571 s · 535 s (moy. 553) | **181 s · 179 s** (moy. 180) | **−67 %** | 187 s · 190 s |
+| 1. `py -3 scripts/test-boucle.py`, deux passages | 425 s · 428 s (moy. 426,5) | **176 s · 176 s** | **−59 %** | 183 s · 183 s |
+| 2. mutant de `NUI27`, suite entière (« à l'ancienne ») | 538 s | **173 s** | **−68 %** | 180 s |
+| 2. le même, `--attendu "NUI27 (a)"` (`VIT2`) | — | **105 s** | −80 % sur 538 | 110 s |
+| 2. le même, `--attendu` et `--test "… --seul NUI27"` (`VIT10`) | — | **6 s** | −99 % sur 538 | 7 s |
+| 3. `py -3 scripts/vlp.py lignes CHANTIER.md`, 20 fois | médiane 362 ms · max 836 | **médiane 208 ms** · max 415 | **−43 %** | 211 ms |
+| 3. `py -3 -c pass`, 20 fois | médiane 71 ms · max 105 | médiane 58 ms · max 79 | −18 % | 60 ms |
+| 4. `ctx_1er` d'une session `/vlp:tache` (`mesure-tokens.py <session>`) | 87 786 (`2c19d2b8`, NUI20) | 88 521 (`72db946f`, VIT2 à VIT12) | +1 % | — |
+| 5. `verifier(` (`.count("verifier(")`, par Python) | 749 · 82 | **781 · 83** | +4 % · +1 % | — |
+| 6. la charge | 16 `claude` · 56 % | 14 à 15 `claude` · 32 à 36 % | — | 21 `claude` · 82 % |
+
+- **La part du kit dans un lancement** (médiane `lignes` moins médiane `pass`) : 291 → **150 ms**, −48 %, **estimé**. `pass` a gagné aussi (71 → 58 ms) : la machine redémarrée, pas le code — d'où la soustraction.
+- **Le mutant** : sa ligne vit dans `scripts/vlp_coeur.py` depuis `VIT5` ; même texte, même remplacement, cible changée. Les trois rendent `MUTANT ATTRAPÉ` et `RENDU c0516855edc3`.
+- **Les plugins chargés** (`Q9`) : les mêmes dans les trois sessions comparées (460c9244 de `VIT1`, 2c19d2b8, 72db946f) — data, design, engineering, vlp, lus dans leurs transcriptions. Rien des gains ne revient à un retrait de plugin.
+- **Le code sain** (`py -3 scripts/vlp.py sante --racine <copie>`, `5804eca` extrait par `git archive`) : au-dessus d'un seuil **63 → 63** ; fonctions 745 → 884 ; avec docstring 475 (64 %) → **617 (70 %)** ; `AST=RUFF` des deux côtés. `vlp_coeur.py` porte les 37 de l'ancien `vlp.py`, aucune de plus ; cliquet tenu à chaque fiche depuis `VIT16`.
+- **La durée des fiches, de commit à commit** (`git log`, du commit d'avant à celui de la fiche) — un repère, pas une preuve, le travail diffère : `VIT3` à `VIT12` (9 fiches de code, une seule session, l'utilisateur absent) : 4,9 à 31,3 min, **médiane 12,6**, moyenne 14,6 ; `NUI22` à `NUI27` (6 fiches, le 2026-10-03) : 19,1 à 41,1 min, **médiane 29,2**, moyenne 29,9.
+- **Ce qui n'a pas gagné** :
+  - le **contexte de départ** (+1 %) : aucune fiche n'y touchait ;
+  - le **coût d'une fiche** : `VIT3` à `VIT12` à 8 à 57 tours et 0,62 à 4,98 $ (`cout --session`), contre 21 à 35 tours et 1,36 à 2,88 $ pour `NUI22` à `NUI27` hors `NUI26` (sous-agents). Cause probable, **non mesurée** : neuf fiches jouées dans une seule session (`ctx_dernier` 302 283), chaque tour y relit tout le passé ; et les fiches de VIT mesuraient beaucoup.
+  - **L'attente des outils dans une fiche** n'est mesurée nulle part : une fiche de code lance la suite entière deux ou trois fois (≈ 3 min chacune, désormais). Ce que le compteur ajouté après `VIT13` devra dire.
+- **VIT ne se clôt pas ici** : décision de l'utilisateur (« on va rajouter tout ce qu'il faut sans fermer le chantier »).
