@@ -2,25 +2,32 @@
    ne change jamais. Chaque ligne gagnée ici est gagnée à chaque fiche.
 
    Réuni depuis artefact-chantier.html et artefact-feuille-de-route.html
-   (chantier PLI) : les variables `:root` et le mode sombre ne s'écrivent
-   qu'une fois. `<contexte>/artefacts/vlp.css` en est une copie, recopiée à
-   chaque appel de `vlp.py page` et `vlp.py feuille` — cette source-ci ne
-   bouge qu'au commit. */
-:root { --ground:#f6efdf; --surface:#fffaf0; --line:#e2d8c3; --line-fort:#c6b99e; --texte:#1a222e; --doux:#5c6675; --accent:#2f5d8c; --fait:#2f7a55; --cours:#8f5a0f; --bloque:#a63d40; --attente:#8d95a3; --ombre:0 1px 2px rgba(26,34,46,.06); }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --ground:#11161d; --surface:#19202a; --line:#2b3542; --line-fort:#3d4a5a; --texte:#e5e9ef; --doux:#98a2b1; --accent:#7fb0e0; --fait:#5fbb8b; --cours:#d9a441; --bloque:#e0777a; --attente:#6d7787; --ombre:none; } }
-:root[data-theme="dark"] { --ground:#11161d; --surface:#19202a; --line:#2b3542; --line-fort:#3d4a5a; --texte:#e5e9ef; --doux:#98a2b1; --accent:#7fb0e0; --fait:#5fbb8b; --cours:#d9a441; --bloque:#e0777a; --attente:#6d7787; --ombre:none; }
+   (chantier PLI) : les variables `:root` ne s'écrivent qu'une fois.
+   `<contexte>/artefacts/vlp.css` en est une copie, recopiée à chaque appel de
+   `vlp.py page` et `vlp.py feuille` — cette source-ci ne bouge qu'au commit.
+
+   Lecture (choix du 2026-10-05) : clair seulement, contraste adouci (texte à
+   8,5:1, pas au maximum), Atkinson Hyperlegible à 18px, lettres espacées de
+   0,05em (essayé contre 0 et 0,1em), rien sous 15px, aucun titre en majuscules. La police s'importe ici : une page d'avant, dont l'en-tête
+   charge encore Archivo et Source Sans 3, la reçoit avec sa copie de vlp.css. */
+@import url("https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap");
+:root { color-scheme:light; --ground:#f3e8d4; --surface:#faf1e2; --line:#dcd0b7; --line-fort:#c1b295; --bord-bouton:#92846b; --texte:#50433b; --doux:#6e6151; --accent:#2f5d8c; --fait:#2d7551; --cours:#8f5a0f; --bloque:#a63d40; --attente:#606877; --ombre:0 1px 2px rgba(26,34,46,.06); }
 * { box-sizing:border-box; } [hidden] { display:none !important; }
-body { background:var(--ground); color:var(--texte); font-family:"Source Sans 3",system-ui,sans-serif; font-size:16px; line-height:1.55; }
+/* un mot plus long que sa ligne (identifiant, chemin) passe à la ligne au lieu de pousser la page de côté */
+body { background:var(--ground); color:var(--texte); font-family:"Atkinson Hyperlegible",system-ui,sans-serif; font-size:18px; line-height:1.55; letter-spacing:.05em; overflow-wrap:break-word; }
 .page { max-width:46rem; margin:0 auto; padding:2.5rem 1.25rem 4rem; display:flex; flex-direction:column; gap:2rem; }
-h1,h2 { font-family:Archivo,system-ui,sans-serif; text-wrap:balance; margin:0; }
-h1 { font-size:1.9rem; font-weight:700; letter-spacing:-.015em; }
-h2 { font-size:.8rem; font-weight:700; text-transform:uppercase; letter-spacing:.09em; color:var(--doux); }
+h1,h2 { text-wrap:balance; margin:0; }
+h1 { font-size:1.9rem; font-weight:700; }
+h2 { font-size:1.35rem; font-weight:700; }
 a { color:var(--accent); }
 a:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
-.eyebrow,.sommaire { font-family:"IBM Plex Mono",monospace; font-size:.75rem; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); }
+.eyebrow,.sommaire { font-size:1rem; color:var(--accent); }
 .sommaire { display:flex; flex-wrap:wrap; gap:.3rem 1.25rem; }
-.mono,.fiche .id,.journal time,.blocage pre { font-family:"IBM Plex Mono",monospace; }
+/* chasse fixe sans l'espacement du texte : la colonne du coût se compte en ch, au signe près */
+.mono,.fiche .id,.journal time,.blocage pre { font-family:"IBM Plex Mono",monospace; letter-spacing:normal; }
 .mono { font-variant-numeric:tabular-nums; }
+/* une date ou une plage de fiches ne se coupe jamais (vlp.js pose la classe) */
+.insecable { white-space:nowrap; }
 header { display:flex; flex-direction:column; gap:.35rem; border-bottom:2px solid var(--line-fort); padding-bottom:1.25rem; }
 header p { margin:.4rem 0 0; color:var(--doux); max-width:62ch; }
 section { display:flex; flex-direction:column; gap:.85rem; }
@@ -37,13 +44,13 @@ section { display:flex; flex-direction:column; gap:.85rem; }
 .gauche { display:flex; flex-direction:column; align-items:flex-start; gap:.15rem; min-width:0; }
 .fiche .id,.carte-todo .rang { font-weight:500; color:var(--doux); }
 .fiche .titre,.carte-todo .titre { font-weight:600; }
-.fiche .note { font-size:.9rem; color:var(--doux); }
-.fiche .cout,.carte-todo .meta { font-size:.78rem; color:var(--doux); }
-.dep { font-size:.72rem; color:var(--doux); overflow-wrap:anywhere; }
+.fiche .note { font-size:1rem; color:var(--doux); }
+.fiche .cout,.carte-todo .meta { font-size:.9375rem; color:var(--doux); }
+.dep { font-size:.9375rem; color:var(--doux); overflow-wrap:anywhere; }
 /* « À lancer » (vlp.py) : ce qui se lance maintenant ressort */
 .fiche:not([data-etat]):not([data-attend]) .etat { color:var(--accent); }
-.cout-total,.cout-hors { font-size:.85rem; color:var(--doux); }
-.fiche .etat { display:block; margin-top:.1rem; font-size:.88rem; color:var(--doux); }
+.cout-total,.cout-hors { font-size:.9375rem; color:var(--doux); }
+.fiche .etat { display:block; margin-top:.1rem; font-size:1rem; color:var(--doux); }
 .fiche > details,.carte-todo > details { min-width:0; }
 /* page d'avant les trois colonnes (fiche sans `.gauche`, dette BTN) : son `details` prend toute la
    ligne, en-tête sur deux colonnes ; une note hors `details` passe sous le titre */
@@ -56,7 +63,7 @@ section { display:flex; flex-direction:column; gap:.85rem; }
 /* à droite, le coût coupé après son brut : « ≈5,1M (5 069 068) · » puis « 41 tours · 2,57 $ » */
 .fiche > :is(.cout,.visuel),.carte-todo > .meta { justify-self:end; text-align:right; }
 .fiche > .cout { width:19ch; }
-.carte-todo > .meta { max-width:10rem; }
+.carte-todo > .meta { max-width:12rem; }
 /* écran étroit : la colonne de droite passe sous le titre */
 @media (max-width:34rem) { .fiche,.carte-todo { grid-template-columns:4.6rem 1fr; } .fiche > :is(.cout,.visuel),.carte-todo > .meta { grid-column:2; justify-self:start; text-align:left; width:auto; max-width:none; } }
 .fiche summary .titre::after,.carte-todo summary .titre::after { content:" ▸"; color:var(--doux); font-weight:400; }
@@ -74,51 +81,54 @@ section { display:flex; flex-direction:column; gap:.85rem; }
 .fiche[data-etat="faite"] .titre { color:var(--doux); font-weight:400; }
 .fiche[data-etat="encours"] .id,.fiche[data-etat="bloquee"] .id { color:var(--texte); }
 .blocage { background:var(--surface); border:1px solid var(--bloque); border-radius:3px; padding:.8rem .9rem; }
-.blocage pre { margin:.5rem 0 0; overflow-x:auto; font-size:.82rem; color:var(--texte); }
+.blocage pre { margin:.5rem 0 0; overflow-x:auto; font-size:.9375rem; color:var(--texte); }
 .journal li { display:grid; grid-template-columns:6rem 1fr; gap:.9rem; border-top:1px solid var(--line); padding-top:.6rem; }
-.journal time { font-size:.85rem; color:var(--doux); }
+.journal time { font-size:.9375rem; color:var(--doux); white-space:nowrap; }
 /* journal : les plus anciennes repliées sous les dernières (chantier PLI) ; feuille : le texte
    d'avant les chantiers possibles, replié (chantier BTN) */
-.journal-ancien > summary,.lecture > summary { cursor:pointer; font-size:.85rem; color:var(--accent); }
+.journal-ancien > summary,.lecture > summary { cursor:pointer; font-size:1rem; color:var(--accent); }
 .journal-ancien > .journal { margin-top:.6rem; }
 .bilan { background:var(--surface); border:1px solid var(--line); border-top:3px solid var(--fait); border-radius:3px; padding:1rem 1.1rem; }
 .bilan p { margin:0 0 .6rem; } .bilan p:last-child { margin-bottom:0; }
 
 /* --- feuille de route : chantier en cours, TODO, chantiers clos --- */
 .encours { background:var(--surface); border:1px solid var(--line); border-left:3px solid var(--cours); border-radius:3px; padding:1rem 1.1rem; display:flex; flex-direction:column; gap:.4rem; box-shadow:var(--ombre); }
-.encours .titre { font-family:Archivo,system-ui,sans-serif; font-size:1.15rem; font-weight:700; }
+.encours .titre { font-size:1.35rem; font-weight:700; }
 .encours .rien,.todo .rien { color:var(--doux); }
+/* tableau des clos : sous 40rem il défile de côté plutôt que d'écraser une colonne */
 .tableau { overflow-x:auto; }
-table { border-collapse:collapse; width:100%; font-size:.95rem; }
-th { text-align:left; font-size:.7rem; text-transform:uppercase; letter-spacing:.08em; color:var(--doux); font-weight:600; padding:0 .8rem .5rem 0; border-bottom:1px solid var(--line-fort); }
+.tableau table { min-width:40rem; }
+/* 15px : avec l'espacement des lettres, ses mots techniques longs le pousseraient hors de la page */
+table { border-collapse:collapse; width:100%; font-size:.9375rem; }
+th { text-align:left; font-size:.9375rem; color:var(--doux); font-weight:600; padding:0 .8rem .5rem 0; border-bottom:1px solid var(--line-fort); }
 td { padding:.6rem .8rem .6rem 0; border-bottom:1px solid var(--line); vertical-align:top; }
-td:first-child, th:first-child { width:2rem; }
 tr[data-etat="bloque"] td { color:var(--doux); }
-tfoot td { border-bottom:none; border-top:2px solid var(--line-fort); color:var(--doux); font-size:.85rem; }
-.badge { font-family:"IBM Plex Mono",monospace; font-size:.72rem; letter-spacing:.05em; text-transform:uppercase; border:1px solid currentColor; border-radius:2px; padding:.05rem .35rem; color:var(--attente); white-space:nowrap; }
+tfoot td { border-bottom:none; border-top:2px solid var(--line-fort); color:var(--doux); font-size:.9375rem; }
+.badge { font-size:.9375rem; border:1px solid currentColor; border-radius:2px; padding:.05rem .35rem; color:var(--attente); white-space:nowrap; }
 .badge[data-etat="cours"] { color:var(--cours); }
 .badge[data-etat="clos"] { color:var(--fait); }
-details.clos > summary { cursor:pointer; padding:.55rem .8rem; border:1px solid var(--line); border-radius:3px; background:var(--surface); color:var(--doux); font-size:.9rem; box-shadow:var(--ombre); }
+details.clos > summary { cursor:pointer; padding:.55rem .8rem; border:1px solid var(--line); border-radius:3px; background:var(--surface); color:var(--doux); font-size:1rem; box-shadow:var(--ombre); }
 details.clos > summary:hover { color:var(--texte); border-color:var(--line-fort); }
 details.clos > summary::marker { color:var(--accent); }
 details.clos[open] > summary { margin-bottom:.85rem; }
-.resume-clos { font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; }
+.resume-clos { font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; letter-spacing:normal; }
 /* le décompte des chantiers possibles : le chiffre ressort (chantier BTN) */
 .graphique { position:relative; height:200px; margin:.25rem 0 .75rem; }
-.resume-todo { margin:0; color:var(--doux); font-size:.9rem; }
+.resume-todo { margin:0; color:var(--doux); font-size:1rem; }
 .resume-todo strong { font-size:1.3rem; color:var(--texte); }
 
 /* --- boutons posés par vlp.js (chantier BTN) : tout déplier, copier la commande, filtrer --- */
-.bouton { font:inherit; font-size:.85rem; color:var(--accent); background:var(--surface); border:1px solid var(--line-fort); border-radius:3px; padding:.3rem .75rem; cursor:pointer; }
+/* le bord d'un bouton ou d'un champ se voit à 3:1 sur les deux fonds (--bord-bouton) */
+.bouton { font:inherit; font-size:.9375rem; color:var(--accent); background:var(--surface); border:1px solid var(--bord-bouton); border-radius:3px; padding:.3rem .75rem; cursor:pointer; }
 .bouton:hover { border-color:var(--accent); }
 .bouton:focus-visible,.commande:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
 .replis,.filtres { display:flex; flex-wrap:wrap; gap:.5rem; }
 /* filtre de la feuille, collé sous le sommaire ; l'état enfoncé se voit sans la couleur seule */
 .filtres { margin-top:-1.25rem; }
 .filtre[aria-pressed="true"] { color:var(--surface); background:var(--accent); border-color:var(--accent); font-weight:600; }
-.copier { font-size:.78rem; padding:.1rem .4rem; margin:.1rem 0; }
+.copier { font-size:.9375rem; padding:.1rem .4rem; margin:.1rem 0; }
 /* presse-papiers refusé : une ligne sous la carte, la commande sélectionnée et quoi faire */
-.copie { grid-column:1 / -1; display:flex; flex-wrap:wrap; align-items:center; gap:.3rem .6rem; margin-top:.35rem; font-size:.85rem; color:var(--doux); }
-.commande { font-family:"IBM Plex Mono",monospace; font-size:.8rem; color:var(--texte); background:var(--ground); border:1px solid var(--line); border-radius:2px; padding:.15rem .4rem; width:16rem; max-width:100%; }
+.copie { grid-column:1 / -1; display:flex; flex-wrap:wrap; align-items:center; gap:.3rem .6rem; margin-top:.35rem; font-size:.9375rem; color:var(--doux); }
+.commande { font-family:"IBM Plex Mono",monospace; letter-spacing:normal; font-size:.9375rem; color:var(--texte); background:var(--ground); border:1px solid var(--bord-bouton); border-radius:2px; padding:.15rem .4rem; width:16rem; max-width:100%; }
 
-footer { border-top:1px solid var(--line); padding-top:.9rem; font-size:.82rem; color:var(--doux); display:flex; flex-wrap:wrap; gap:.25rem 1.25rem; }
+footer { border-top:1px solid var(--line); padding-top:.9rem; font-size:.9375rem; color:var(--doux); display:flex; flex-wrap:wrap; gap:.25rem 1.25rem; }

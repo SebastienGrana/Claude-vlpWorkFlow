@@ -496,8 +496,9 @@ l'entrée « VIT17 — où passe le temps » de `08-etat.md`, VIT et NUI, trois 
 ---
 
 <!-- FICHE:VIT18 -->
-## VIT18 [ ] — Le rapport : ce que VIT a gagné, et les pistes pour gagner plus
+## VIT18 [x] — Le rapport : ce que VIT a gagné, et les pistes pour gagner plus
 
+**Session** : 34c4592e-8d5d-490d-a4f2-24a7abb0c81e
 **Dépend de** : `VIT17`.
 **Fichiers** : `context AI/08-etat.md` (une entrée datée) ; la page, hors du dépôt, par `vlp.py chef page` — aucun
 code.

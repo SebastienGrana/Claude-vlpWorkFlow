@@ -2678,3 +2678,32 @@ Les mesures de `VIT1`, rejouées par ses commandes (script `vit13-mesures.sh`, r
 - **Ce qui manque aux transcriptions se dit** (`AVERTISSEMENT:`) : sur NUI, 1 sortie sans appel connu (`d0a75cf6`), rangée au reste ; rien sur VIT.
 - **L'effort Max depuis `VIT13`** (`f112771`) : le coût de `VIT17` ne se compare pas à celui de `VIT3`–`VIT12`.
 - **Le chiffre de `VIT17` porte sa préparation** (TODO n° 103 `PRP`) : sa plage part du commit de `VIT13` (`b31bbe9`, 21:10:52) et contient le cadrage qui l'a ajoutée (`4fd94a2`, 21:33:13 ; `f112771`, 21:34:06), fait dans la session `72db946f` : **45 tours · 5,39 $ · 25 min actives** (`mesure-tokens.py --plage 2026-10-04T21:10:52 2026-10-04T23:59:59 --actif 72db946f-cd44-4a3b-8ec4-39b6d2872e1d`). `VIT17` au compteur, cochée, avant son commit : actif **88 min** = modèle 65 + outils 9 + attente 4 + autre 10 · **167 tours · 21,78 $**, dont ces 45 tours · 5,39 $ et 25 min de préparation. Le « hors fiches » de `cout`, 41 tours · 4,93 $ avant la coche, tombe à 0 : le cadrage y était compté jusqu'à `4fd94a2`.
+
+## 2026-10-05 — VIT18 — le rapport
+
+- **La page** : https://claude.ai/artifact/Np5WXRoCUyAE4MC3LmV7jh — « Ce que VIT a gagné, et les pistes pour gagner plus », onglet « Bilan de VIT », bâtie par `py -3 scripts/vlp.py chef page --questions @<json> --sortie <html>` (JSON et HTML dans le dossier temporaire de la session, non suivis) ; `vigile` : `PAGE SAINE 109 blocs`, cartes `Q1` à `Q15`.
+- **En haut, les gains en comptes bruts** : 8 cases tirées des entrées « VIT13 — avant/après » et « VIT17 — où passe le temps » — suite 553 → 180 s, mutant 538 → 6 s, `test-boucle` 426,5 → 176 s, lancement 362 → 208 ms, attente des outils 25 → 10 min, contrôles 749 → 781, modèle 4 → 4 min, contexte de départ +1 %.
+- **À côté, le rapport de recherche pour `MET`** (TODO n° 99), demandé pendant la fiche : https://claude.ai/artifact/RH7qDb5TLFT8Yt8JTumkst — sept parties, une introduction, une conclusion, 10 cartes ; `vigile` : `PAGE SAINE 478 blocs`.
+- **Sa relecture**, par trois sous-agents Fable 5.1 (un autre modèle que l'auteur) : 12 constats sur les faits, 36 sur la forme, 17 de l'arbitre ; des 48 premiers, 30 gardés tels quels, 17 modifiés, 1 rejeté (« `VIT3` à `VIT12` font 10 » : `VIT4` a été retirée). La version 2 corrige un chiffre faux — Claude Sonnet 4.5 seul casse ≈ 13 à 16 % des refactorings, pas ≈ 5 %, qui est le chiffre de Claude Code — et rétablit cinq nuances qui penchaient côté Claude.
+
+| n° | La carte | Conseillé | Source |
+|---|---|---|---|
+| 1 | Raccourcir `test-boucle`, la suite qui fixe la durée des autres | une fiche de VIT | « VIT13 », mesure 1 |
+| 2 | Viser le mutant sur son groupe de tests, par défaut | une fiche de VIT | « VIT13 », mesure 2 ; « VIT17 », constat 2 |
+| 3 | Un contrôle rapide avant la suite entière | une fiche de VIT | « VIT17 », ligne « garde-fous » ; notes de session de `VIT17` |
+| 4 | L'effort Max au socle : le garder ? | mesurer : 3 fiches en xhigh face à Max | doc `model-config` ; billet « Spending your effort » (2026-09-25) ; « VIT17 » |
+| 5 | Le fast mode | non, pour l'instant | doc `fast-mode` et `pricing` ; « VIT17 », parts du temps actif |
+| 6 | Une fiche, une session neuve | la carte avertit | `methode-chantier.md`, « Les trois temps » ; doc `best-practices` et `costs` ; « VIT13 », « VIT17 » |
+| 7 | Alléger ce que chaque session relit au départ | d'abord les plugins (geste de l'utilisateur) | « VIT13 », mesure 4 ; tailles mesurées le 2026-10-04 ; `Q9` du 2026-10-03 |
+| 8 | Poser les questions en début de fiche | dans la méthode (`MET`) | « VIT17 », attente de l'utilisateur |
+| 9 | Réparer le contrôle avant commit, qui laisse passer | une fiche de VIT | commit `2def588` ; `.githooks/pre-commit` ; notes de `VIT17` |
+| 10 | Faire jouer `test-mesure-tokens.py` par la suite | oui | notes de `VIT17` ; joué le 2026-10-04, `OK` en 0,8 s |
+| 11 | `py -3` au lieu de `py` dans les commandes | oui | `VIT8` (+77 ms) |
+| 12 | Brancher la télémétrie officielle | non, garder le compteur | fiche `VIT17` ; doc `monitoring-usage` |
+| 13 | Retirer les 4 vieux worktrees | oui, sur le oui de l'utilisateur | `git worktree list` et empreintes, le 2026-10-04 |
+| 14 | Les renvois par numéro de ligne des fiches de NUI | les vivants seulement, à la reprise de NUI | `VIT9` ; compte du 2026-10-04 |
+| 15 | Le titre : « Coder plus vite et mieux » ? | pas de conseil | commentaire de l'utilisateur du 2026-10-03 |
+
+- **Le bouton copier**, essayé dans le navigateur intégré (pages servies en local, 279 px de large) : VIT18 rend **17 lignes** — l'en-tête, une par carte de `Q1` à `Q15` (« pas répondu » si vide), la note sous `Q4` ; MET rend **12 lignes** — l'en-tête, `Q1` à `Q10`, la note sous `Q3`. La copie directe est refusée dans l'aperçu : le repli sélectionne tout le texte (« Sélectionné : fais Ctrl+C. »). Console sans erreur, aucun défilement horizontal.
+- **Le coût du rapport `MET`** (`mesure-tokens.py` sur chaque transcription de sous-agent) : recherche **27,47 $** (6 sous-agents dont 1 pour un texte hors dépôt, 538 tours, 122 recherches web, ≈ 368 pages) ; relecture **18,54 $** (faits 3,72 $, forme 4,00 $, arbitre 10,82 $ ; 31 tours) ; ensemble **46,01 $**, 569 tours. Il entre dans le coût de `VIT18` : la fiche ne se compare pas aux autres.
+- **Hors fiche, dans la même session** : le texte du compte claude.ai de l'utilisateur, refait, et une section « Coder » ajoutée à son `CLAUDE.md` global ; contenu hors dépôt.
