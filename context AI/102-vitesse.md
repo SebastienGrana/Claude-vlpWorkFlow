@@ -13,7 +13,8 @@ maintenable et documenté. Ensuite : la méthode du kit, puis la TODO re-cadrée
 
 **Fait.** `VIT1`, la base (2026-10-04). Plan revu après elle (entrée du même jour dans `08-etat.md`) : `VIT4` retirée,
 son numéro non repris ; `VIT14` ajoutée après `VIT2`. Critères de code sain au socle (2026-10-04) ; `VIT15`, leur cliquet,
-ajoutée avant `VIT2`. NUI en pause, reprise à `NUI28` après VIT et la méthode (n° 99).
+ajoutée avant `VIT2`, faite le 2026-10-04 ; `VIT16`, qui verrouille ses gains à chaque fiche, ajoutée après elle (choix de
+l'utilisateur, page « Choix de VIT15 », Q1). NUI en pause, reprise à `NUI28` après VIT et la méthode (n° 99).
 
 **Session** : bf7412ea-120b-47fa-933e-6b54b408b2f4
 
@@ -89,6 +90,7 @@ d'échange, plugins : Q9).
 |---|---|---|
 | `VIT1` | Mesurer la base | rien |
 | `VIT15` | Le cliquet du code sain : ruff s'il est là, sinon un compte maison | `VIT1` |
+| `VIT16` | `/vlp:tache` verrouille les gains : `sante --base` à chaque fiche | `VIT15` |
 | `VIT2` | Muter une copie du kit, arrêté sur le test attendu | `VIT1` |
 | `VIT14` | Les deux cas de clôture qui tombent sous charge | `VIT1` |
 | `VIT3` | Lire les fichiers d'un commit en un seul appel Git | `VIT1` |
@@ -102,7 +104,7 @@ d'échange, plugins : Q9).
 | `VIT12` | Le relecteur ne rejoue que le nouveau test dans AVANT | `VIT2`, `VIT10` |
 | `VIT13` | Mesurer la fin, avant/après | `VIT7`, `VIT8`, `VIT11`, `VIT12` — et, par elles, toutes |
 
-Jouées dans l'ordre du fichier — `VIT15` avant `VIT2`, `VIT14` après, `VIT4` retirée —, les dépendances tiennent. `VIT5` à `VIT8` touchent le démarrage des scripts, `VIT10`
+Jouées dans l'ordre du fichier — `VIT15` puis `VIT16` avant `VIT2`, `VIT14` après, `VIT4` retirée —, les dépendances tiennent. `VIT5` à `VIT8` touchent le démarrage des scripts, `VIT10`
 et `VIT11` tout `test-vlp.py` : une à la fois.
 
 ---
@@ -159,6 +161,36 @@ maison**. ruff 0.16.10 est installé chez lui ; ailleurs dans le groupe, il peut
 1. `vlp.py sante` sur le kit, avec et sans ruff : comptes bruts, et les écarts entre les deux nommés.
 2. `py -3 scripts/test-vlp.py` → `OK` ; `verifier(` avant ≤ après ; mutant attrapé (une fonction qui empire passe le
    cliquet) ; pyright 0 ; les critères de code sain du socle, sur `sante` elle-même.
+<!-- /FICHE -->
+
+---
+
+<!-- FICHE:VIT16 -->
+## VIT16 [ ] — `/vlp:tache` verrouille les gains : `sante --base` à chaque fiche
+
+**Dépend de** : `VIT15`.
+**Fichiers** : `skills/tache/SKILL.md` (l'étape 6 bis), `agents/fiche.md` (l'étape qui coche), `scripts/sante.py`,
+`scripts/vlp.py` (`options_sante`, la docstring de `sante`), `scripts/test-vlp.py`.
+
+**Prompt**
+Sans `--base`, une fonction qui a maigri peut regrossir jusqu'à son ancien compte sans alerte. Choix de l'utilisateur
+(page « Choix de VIT15 », Q1 « tache », 2026-10-04) : **`/vlp:tache` reprend la base à son étape 6 bis, à chaque
+fiche**. Deux pièges, lus dans `sante.principal` et `sante.poser_base` :
+- `sante` vise le kit par défaut (`--racine`) : lancé depuis un autre projet, `--base` réécrirait la base du kit ;
+- `--base` crée une base là où il n'y en a pas : un projet équipé sans cliquet en recevrait une.
+1. `--si-base`, avec `--base` : sans base sous la racine, une ligne `SANS BASE`, sort 0, rien d'écrit ; avec une base,
+   comme `--base`. L'option passe par `options_sante` (le cliquet : `main` et `repartir` n'empirent pas).
+2. L'étape 6 bis gagne une ligne, `sante --base --si-base --racine .`, avant `cocher` : une `GARDE:` (la base se
+   relâcherait, donc une fonction empire) arrête l'étape, rien de coché ni de commité. Court : tout ajout dans une
+   commande se paye à chaque exécution.
+3. Le chemin `agents` (`agents/fiche.md`) : la même ligne là où il coche, ou dis pourquoi non.
+4. Mesure la durée de la ligne sur le kit, avec et sans ruff (médiane de 5) : le prix payé à chaque fiche.
+
+**Critère de fin**
+1. Cas : racine sans base, `--si-base` → `SANS BASE`, sort 0, aucun fichier créé ; racine du kit → `BASE …`, sort 0 ;
+   lancé hors du kit avec `--racine .` → la base du kit identique à l'octet (sha1 avant = après).
+2. `py -3 scripts/test-vlp.py` → `OK` ; `verifier(` avant ≤ après ; mutant attrapé (`--si-base` ignoré : une base
+   créée) ; pyright 0 ; les critères de code sain du socle, mesurés ; la durée de la ligne, comptes bruts.
 <!-- /FICHE -->
 
 ---
