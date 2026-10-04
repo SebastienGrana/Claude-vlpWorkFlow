@@ -11,10 +11,37 @@
   BTN4 : filtrer la feuille par état, sous son sommaire.
   Le graphique des coûts : Chart.js (MIT), chargé à la demande sur la feuille —
   pas de roue réinventée pour les axes et les bulles (demande du 2026-09-28).
+  Lecture (2026-10-05) : un nombre ne se coupe plus en fin de ligne.
 */
 (() => {
   const page = document.querySelector(".page");
   if (!page) return;
+
+  // Nombres et dates jamais coupés : « 5 069 068 », « 2,57 $ », « 41 tours », « 3 fiches »
+  // reçoivent une espace insécable ; une date (« 2026-09-30 ») ou une plage (« MOR1–MOR14 »)
+  // passe dans un `span.insecable`. À l'affichage seulement : vlp.py écrit des espaces ordinaires,
+  // que ses propres lectures de la page attendent. Le texte brut (pre) et les scripts n'y passent pas.
+  const insecable = /(\d) (?=\d{3}(?!\d)|\$|(?:tours|fiches?|tokens)\b)/g;
+  const bloc = /(\d{4}-\d\d-\d\d|[A-Z]{2,4}\d+–[A-Z]{2,4}\d+)/;
+  const textes = [];
+  const marche = document.createTreeWalker(page, NodeFilter.SHOW_TEXT);
+  for (let n = marche.nextNode(); n; n = marche.nextNode()) {
+    if (!n.parentElement.closest("pre, script")) textes.push(n);
+  }
+  textes.forEach((n) => {
+    const morceaux = n.data.replace(insecable, "$1 ").split(bloc);
+    if (morceaux.length === 1) {
+      if (morceaux[0] !== n.data) n.data = morceaux[0];
+      return;
+    }
+    n.replaceWith(...morceaux.map((m, i) => {
+      if (i % 2 === 0) return m;
+      const s = document.createElement("span");
+      s.className = "insecable";
+      s.textContent = m;
+      return s;
+    }));
+  });
 
   const bouton = (texte, classe) => {
     const b = document.createElement("button");
