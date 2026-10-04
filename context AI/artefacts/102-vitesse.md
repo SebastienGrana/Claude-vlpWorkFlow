@@ -15,8 +15,9 @@ Coder plus vite et mieux. Une fiche attend moins ses tests et lit moins de conte
 - VIT12 : le relecteur ne rejoue que le nouveau test avant ; dépend de VIT2, VIT10
 - VIT13 : la fin mesurée, avant/après ; dépend de VIT7, VIT8, VIT11, VIT12 — et, par elles, de toutes
 - VIT14 : les deux cas de clôture fragiles sous charge, reproduits puis corrigés à la cause ; dépend de VIT1
-- VIT15 : le cliquet du code sain : vlp.py sante, ruff s'il est là, sinon un compte ast ; dépend de VIT1
+- VIT15 : sante sur le kit : 794 fonctions, 63 au-dessus d'un seuil, 525 docstrings ; ast = ruff 0.16.10 sur 794/794, listes avec et sans ruff identiques ; cliquet tenu contre 74550d4 (745 vieilles dont 2 touchées, 42 neuves, 2 améliorées) ; suite OK en 520 s ; verifier( 749 → 763 et 82 → 82 ; mutant attrapé, 4 écarts en 510 s ; pyright 0 ; sante.py 39 fonctions, 0 au-dessus d'un seuil, 39 docstrings
 ## Journal
 - 2026-10-04 : plan revu après VIT1 : VIT4 retirée, ≈ 4 à 6 s par suite et rien après VIT7 (D1) ; VIT14 ajoutée, deux cas de clôture fragiles sous charge (D2) ; VIT2 passe tester_boucle() en dernier ; VIT13 nomme ses dépendances
 - 2026-10-04 : critères de code sain tranchés (page des critères) : cliquet, docstring de toute fonction touchée, tests sans longueur ; outil : ruff s'il est là, d'où VIT15, ajoutée avant VIT2
+- 2026-10-04 : VIT15 : le compte ast égale ruff sur tout le kit (794/794) ; une sous-commande neuve de vlp.py passe par options_<commande> et PAR_ARGUMENTS, main et repartir étant au-dessus des seuils ; qui lance sante --base en fin de fiche reste à trancher (méthode, n° 99)
 ## Bilan

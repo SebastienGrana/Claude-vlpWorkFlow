@@ -21,9 +21,9 @@
     <p>Coder plus vite et mieux. Une fiche attend moins ses tests et lit moins de contexte — mesuré avant (VIT1) et après (VIT13) — sans qu'un seul contrôle soit retiré ; le code qu'elle laisse est sain, facile à maintenir et documenté.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">14 fiches · 1 faite · en cours : VIT15</p>
+    <p class="mono" style="margin-top:.5rem">14 fiches · 2 faites · en cours : VIT2</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -42,11 +42,12 @@
         <details><summary><span class="titre">Mesurer la base</span><span class="etat">Faite</span></summary>
         <span class="note">Entrée « VIT1 — la base » dans 08-etat.md, six lignes avec commande et comptes bruts ; machine libérée : test-vlp 571 et 535 s, test-boucle 425 et 428 s, mutant 538 s attrapé par NUI27 (a), lancements 362 et 71 ms ; chaque soustraction dite « estimé ».</span></details>
         <span class="cout mono">≈3,9M (3 880 205) · 24 tours · 4,48 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">VIT15</span></span>
-        <details open><summary><span class="titre">Le cliquet du code sain : ruff s'il est là, sinon un compte maison</span><span class="etat">En cours</span></summary>
-        <span class="note">le cliquet du code sain : vlp.py sante, ruff s'il est là, sinon un compte ast ; dépend de VIT1</span></details></li>
-      <li class="fiche"><span class="gauche"><span class="id">VIT2</span></span>
-        <details><summary><span class="titre">Muter une copie du kit, arrêté sur le test attendu</span><span class="etat">À lancer</span></summary>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">VIT15</span></span>
+        <details><summary><span class="titre">Le cliquet du code sain : ruff s'il est là, sinon un compte maison</span><span class="etat">Faite</span></summary>
+        <span class="note">sante sur le kit : 794 fonctions, 63 au-dessus d'un seuil, 525 docstrings ; ast = ruff 0.16.10 sur 794/794, listes avec et sans ruff identiques ; cliquet tenu contre 74550d4 (745 vieilles dont 2 touchées, 42 neuves, 2 améliorées) ; suite OK en 520 s ; verifier( 749 → 763 et 82 → 82 ; mutant attrapé, 4 écarts en 510 s ; pyright 0 ; sante.py 39 fonctions, 0 au-dessus d'un seuil, 39 docstrings</span></details>
+        <span class="cout mono">≈38,2M (38 156 191) · 159 tours · 24,44 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">VIT2</span></span>
+        <details open><summary><span class="titre">Muter une copie du kit, arrêté sur le test attendu</span><span class="etat">En cours</span></summary>
         <span class="note">le mutant joue dans une copie du kit et s'arrête sur le test attendu ; dépend de VIT1</span></details></li>
       <li class="fiche"><span class="gauche"><span class="id">VIT14</span></span>
         <details><summary><span class="titre">Les deux cas de clôture qui tombent sous charge</span><span class="etat">À lancer</span></summary>
@@ -82,8 +83,8 @@
         <details><summary><span class="titre">Mesurer la fin, avant/après</span><span class="etat">Après VIT7, VIT8, VIT11, VIT12</span></summary>
         <span class="note">la fin mesurée, avant/après ; dépend de VIT7, VIT8, VIT11, VIT12 — et, par elles, de toutes</span></details></li>
     </ul>
-    <p class="mono cout-hors">Hors fiches : ≈8,0M (7 957 768) · 35 tours · 6,48 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈11,8M (11 837 973) · 59 tours · 10,96 $</p>
+    <p class="mono cout-hors">Hors fiches : 0 · 0 tours · 0,00 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈42,0M (42 036 396) · 183 tours · 28,92 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -102,6 +103,7 @@
     <ul class="journal">
       <li><time datetime="2026-10-04">2026-10-04</time><span>plan revu après VIT1 : VIT4 retirée, ≈ 4 à 6 s par suite et rien après VIT7 (D1) ; VIT14 ajoutée, deux cas de clôture fragiles sous charge (D2) ; VIT2 passe tester_boucle() en dernier ; VIT13 nomme ses dépendances</span></li>
       <li><time datetime="2026-10-04">2026-10-04</time><span>critères de code sain tranchés (page des critères) : cliquet, docstring de toute fonction touchée, tests sans longueur ; outil : ruff s'il est là, d'où VIT15, ajoutée avant VIT2</span></li>
+      <li><time datetime="2026-10-04">2026-10-04</time><span>VIT15 : le compte ast égale ruff sur tout le kit (794/794) ; une sous-commande neuve de vlp.py passe par options_&lt;commande&gt; et PAR_ARGUMENTS, main et repartir étant au-dessus des seuils ; qui lance sante --base en fin de fiche reste à trancher (méthode, n° 99)</span></li>
     </ul>
   </section>
 

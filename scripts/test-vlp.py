@@ -7137,6 +7137,355 @@ def tester_lettres_doublon():
 
 tester_lettres_doublon()
 
+
+# VIT15 — des sondes, une règle de comptage chacune. SONDES_ATTENDU : leurs comptes par ruff 0.16.10, seuils à zéro et
+# `--preview` — complexité, branches, arguments, instructions, imbrication.
+SONDES = '''def f_vide():
+    pass
+
+
+def f_if_elif_else(a):
+    if a == 1:
+        return 1
+    elif a == 2:
+        return 2
+    else:
+        return 3
+
+
+def f_else_if(a):
+    if a == 1:
+        return 1
+    else:
+        if a == 2:
+            return 2
+    return 3
+
+
+def f_boucles(a):
+    for x in a:
+        if x:
+            break
+    else:
+        return 0
+    while a:
+        a = a[1:]
+    else:
+        pass
+    return 1
+
+
+def f_try_tout(a):
+    try:
+        a()
+    except ValueError:
+        return 1
+    except KeyError:
+        return 2
+    else:
+        return 3
+    finally:
+        a()
+
+
+def f_imbrique(a):
+    with open(a) as fichier:
+        for ligne in fichier:
+            if ligne:
+                while ligne:
+                    try:
+                        ligne = ligne[1:]
+                    except IndexError:
+                        pass
+    return 0
+
+
+def f_externe(a):
+    """Une fonction imbriquée compte dans sa parente."""
+    def interne(b):
+        if b:
+            return 1
+        return 0
+    if a:
+        return interne(a)
+    return 0
+
+
+def f_args(a, _b, *args, c, _, __d, **kwargs):
+    return a
+
+
+class K:
+    def m(self, a, b):
+        return a
+
+    @staticmethod
+    def s(a, b):
+        return a
+
+    def autre(this, a):
+        return a
+
+
+def f_chaine(a):
+    if a:
+        def g(b):
+            if b:
+                for x in b:
+                    if x:
+                        return x
+            return 0
+        return g
+    return None
+
+
+def f_instr(a):
+    """return et for : 0 ; global, import, del, raise, += : 1."""
+    global ICI
+    import os
+    x = 1
+    x += 1
+    del x
+    for y in a:
+        print(y)
+    if a:
+        raise ValueError(os.sep)
+    return a
+'''
+
+SONDES_MATCH = '''def f_match(a):
+    match a:
+        case 1:
+            return 1
+        case 2 | 3:
+            return 2
+        case _:
+            return 0
+
+
+def f_match_garde(a):
+    match a:
+        case [x] if x:
+            if x:
+                return 1
+        case y:
+            return y
+'''
+
+SONDES_ATTENDU = {
+    "f_vide": [1, 0, 0, 1, 0], "f_if_elif_else": [3, 3, 1, 3, 1], "f_else_if": [3, 3, 1, 3, 2],
+    "f_boucles": [4, 5, 1, 5, 2], "f_try_tout": [4, 4, 1, 9, 1], "f_imbrique": [5, 4, 1, 7, 5],
+    "f_externe": [4, 1, 1, 4, 1], "f_externe.interne": [2, 1, 1, 1, 1], "f_args": [1, 0, 2, 0, 0],
+    "K.m": [1, 0, 2, 0, 0], "K.s": [1, 0, 2, 0, 0], "K.autre": [1, 0, 1, 0, 0], "f_chaine": [6, 1, 1, 4, 4],
+    "f_chaine.g": [4, 3, 1, 2, 0], "f_instr": [3, 2, 1, 9, 1],
+    "f_match": [3, 3, 1, 4, 0], "f_match_garde": [3, 3, 1, 4, 1],
+}
+
+# La sortie JSON de ruff 0.16.10 sur SONDES, réduite aux clés que `sante.lire_ruff` lit et à quatre fonctions : deux
+# imbriquées, et deux `PLR1702` sur la ligne 89.
+RUFF_ENREGISTRE = [
+    ("C901", 61, "`f_externe` is too complex (4 > 0)"),
+    ("PLR0913", 61, "Too many arguments in function definition (1 > 0)"),
+    ("PLR0912", 61, "Too many branches (1 > 0)"),
+    ("PLR0915", 61, "Too many statements (4 > 0)"),
+    ("C901", 63, "`interne` is too complex (2 > 0)"),
+    ("PLR0913", 63, "Too many arguments in function definition (1 > 0)"),
+    ("PLR0912", 63, "Too many branches (1 > 0)"),
+    ("PLR0915", 63, "Too many statements (1 > 0)"),
+    ("PLR1702", 64, "Too many nested blocks (1 > 0)"),
+    ("PLR1702", 67, "Too many nested blocks (1 > 0)"),
+    ("C901", 88, "`f_chaine` is too complex (6 > 0)"),
+    ("PLR0913", 88, "Too many arguments in function definition (1 > 0)"),
+    ("PLR0912", 88, "Too many branches (1 > 0)"),
+    ("PLR0915", 88, "Too many statements (4 > 0)"),
+    ("PLR1702", 89, "Too many nested blocks (1 > 0)"),
+    ("PLR1702", 89, "Too many nested blocks (4 > 0)"),
+    ("C901", 90, "`g` is too complex (4 > 0)"),
+    ("PLR0913", 90, "Too many arguments in function definition (1 > 0)"),
+    ("PLR0912", 90, "Too many branches (3 > 0)"),
+    ("PLR0915", 90, "Too many statements (2 > 0)"),
+]
+
+
+def tester_sante_comptes():
+    """VIT15 : par `ast`, les cinq comptes des sondes égalent ceux de ruff ; les docstrings sont vues ; l'empreinte ne
+    voit pas les fins de ligne ; un nom en double devient `nom#2`."""
+    import sante
+    with tempfile.TemporaryDirectory() as ts:
+        ecrire(os.path.join(ts, "sondes.py"), SONDES)
+        ecrire(os.path.join(ts, "crlf.py"), SONDES.replace("\n", "\r\n"))
+        ecrire(os.path.join(ts, "double.py"), "def f():\n    pass\n\n\ndef f():\n    return 1\n")
+        fonctions = sante.mesurer_fichier(ts, os.path.join(ts, "sondes.py"))[0]
+        crlf = sante.mesurer_fichier(ts, os.path.join(ts, "crlf.py"))[0]
+        double = [f["fonction"] for f in sante.mesurer_fichier(ts, os.path.join(ts, "double.py"))[0]]
+    comptes = {f["fonction"]: f["ast"] for f in fonctions}
+    verifier("VIT15 (a) les cinq comptes ast des sondes égalent ceux de ruff 0.16.10 — elif et else-if, boucles et leur "
+             "else, try complet, imbrication, fonction et classe imbriquées, arguments muets et de méthode, instructions "
+             "à la Pylint ; docstrings vues ; même empreinte en CRLF ; un nom en double → f#2",
+             comptes == {n: c for n, c in SONDES_ATTENDU.items() if not n.startswith("f_match")}
+             and [f["fonction"] for f in fonctions if f["doc"]] == ["f_externe", "f_instr"]
+             and [f["empreinte"] for f in crlf] == [f["empreinte"] for f in fonctions] and double == ["f", "f#2"],
+             (comptes, double))
+    if sys.version_info < (3, 10):
+        print("SAUTÉ: Python < 3.10 — les sondes de `match` ne sont pas testées")
+        return
+    with tempfile.TemporaryDirectory() as ts:
+        ecrire(os.path.join(ts, "choix.py"), SONDES_MATCH)
+        choix = {f["fonction"]: f["ast"] for f in sante.mesurer_fichier(ts, os.path.join(ts, "choix.py"))[0]}
+    verifier("VIT15 (a bis) match : une branche par case, le dernier gratuit en complexité s'il attrape tout, pas "
+             "d'imbrication à lui", choix == {n: c for n, c in SONDES_ATTENDU.items() if n.startswith("f_match")}, choix)
+
+
+def tester_sante_ruff():
+    """VIT15 : le chemin ruff, sans dépendre de ruff — sa sortie JSON enregistrée se lit, ruff en échec laisse `ast`
+    seul ; et ruff réel, s'il est installé, s'accorde à `ast`."""
+    import sante
+    with tempfile.TemporaryDirectory() as tr:
+        chemin = os.path.join(tr, "sondes.py")
+        ecrire(chemin, SONDES)
+        fonctions, nombre = sante.mesurer_fichier(tr, chemin)
+        for f in fonctions:
+            f["ruff"] = [0] * len(sante.REGLES)
+        donnees = [{"code": c, "filename": chemin, "location": {"row": r}, "message": m} for c, r, m in RUFF_ENREGISTRE]
+        donnees.append({"code": "E501", "filename": chemin, "location": {"row": 61}, "message": "Line too long (99 > 88)"})
+        donnees.append({"code": "C901", "filename": os.path.join(tr, "autre.py"), "location": {"row": 1},
+                        "message": "`f_vide` is too complex (9 > 0)"})
+        sante.lire_ruff(json.dumps(donnees), {sante.cle(chemin): sante.carte_lignes(fonctions, nombre)})
+        echec = io.StringIO()
+        apres, version = sante.mesurer(tr, [chemin], ([sys.executable, "-c", "import sys; sys.exit(3)"], "9.9"), echec)
+        commande, reel = sante.trouver_ruff()
+        code, s = appel(["sante", "--racine", tr, chemin]) if commande else (0, "")
+    lus = {f["fonction"]: f["ruff"] for f in fonctions if any(f["ruff"])}
+    verifier("VIT15 (b) la sortie JSON de ruff, enregistrée : un diagnostic va à la fonction la plus intérieure de sa "
+             "ligne, le plus grand des deux PLR1702 de la ligne 89 gagne ; un autre code, un autre fichier ne comptent pas",
+             lus == {n: SONDES_ATTENDU[n] for n in ("f_externe", "f_externe.interne", "f_chaine", "f_chaine.g")}, lus)
+    verifier("VIT15 (c) ruff qui sort 3 → `RUFF ÉCHEC ruff sort 3`, puis les comptes ast seuls",
+             version is None and echec.getvalue() == "RUFF ÉCHEC ruff sort 3 — comptes estimés (ast)\n"
+             and len(apres) == 15 and all(f["ruff"] is None for f in apres), echec.getvalue())
+    if commande is None:
+        print("SAUTÉ: ruff absent — son chemin réel n'est pas testé")
+        return
+    verifier("VIT15 (c bis) ruff réel %s sur les sondes : ses comptes égalent ceux d'ast, 15/15" % reel,
+             code == 0 and s.startswith("SANTE ruff %s · " % reel) and "AST=RUFF 15/15 fonctions\n" in s, s)
+
+
+def tester_sante_cliquet():
+    """VIT15 : le cliquet sur un faux kit, sans ruff — la base, ce qui empire, ce qui grandit sous le seuil, la fonction
+    neuve, la docstring, les tests, le renommage et le déplacement, le verrou d'une amélioration, et la base qui ne se
+    relâche que par `--forcer`."""
+    def ifs(n, nom):
+        """Une fonction documentée à `n` `if` : complexité n + 1, branches n, instructions n + 1."""
+        corps = "".join("    if a == %d:\n        return %d\n" % (i, i) for i in range(n))
+        return 'def %s(a):\n    """Des if."""\n%s    return a\n\n\n' % (nom, corps)
+
+    def longue(n):
+        """Un test sans docstring, de `n` instructions."""
+        return "def test_long():\n%s    return 0\n\n\n" % "".join("    x%d = %d\n" % (i, i) for i in range(n))
+
+    muette = "def muette(a):\n    return a\n"
+    m = ifs(11, "grosse") + ifs(1, "petite") + muette
+    tete = "CLIQUET sur ast, comptes estimés (sans ruff)\n"
+    bilan = "CLIQUET %d fonctions · vieilles 4, dont touchées %d, renommées ou déplacées %d · neuves %d"
+    with tempfile.TemporaryDirectory() as tc:
+        base = os.path.join(tc, "scripts", "sante-base.json")
+
+        def lancer(fichiers, *options):
+            """Écrire `fichiers` sous `scripts/` (`{nom: texte}`, None efface), puis lancer `sante --sans-ruff`."""
+            for nom, texte in fichiers.items():
+                if texte is None:
+                    os.remove(os.path.join(tc, "scripts", nom))
+                else:
+                    ecrire(os.path.join(tc, "scripts", nom), texte)
+            return appel(["sante", "--racine", tc, "--sans-ruff"] + list(options))
+
+        sans_base = lancer({"m.py": m, "test-m.py": longue(60)}, "--cliquet")
+        posee, tenu = lancer({}, "--base"), lancer({}, "--cliquet")
+        verifier("VIT15 (d) sans base → GARDE:, sort 1 ; --base pose 4 fonctions ; le même code → CLIQUET TENU",
+                 sans_base == (1, "GARDE: pas de base scripts/sante-base.json — `vlp.py sante --base` d'abord\n")
+                 and posee == (0, "BASE scripts/sante-base.json · 4 fonctions · sans ruff\n")
+                 and tenu == (0, tete + bilan % (4, 0, 0, 0) + "\nCLIQUET TENU\n"), (sans_base, posee, tenu))
+        empire = lancer({"m.py": ifs(12, "grosse") + ifs(1, "petite") + muette}, "--cliquet")
+        verifier("VIT15 (e) une vieille fonction déjà au-dessus du seuil empire (complexité 12 → 13) → EMPIRE, ROMPU, sort "
+                 "1 ; ses branches montent au seuil (12), sans écart — mutant : le plafond relâché d'un cran",
+                 empire == (1, tete + "EMPIRE scripts/m.py:1 grosse · complexité 12 → 13, seuil 10\n"
+                            + bilan % (4, 1, 0, 0) + "\nCLIQUET ROMPU · 1 écart(s)\n"), empire)
+        sous_seuil = lancer({"m.py": ifs(11, "grosse") + ifs(9, "petite") + muette}, "--cliquet")
+        passe = lancer({"m.py": ifs(11, "grosse") + ifs(10, "petite") + muette}, "--cliquet")
+        verifier("VIT15 (f) une vieille fonction sous les seuils grandit jusqu'au seuil (complexité 2 → 10) → TENU ; le "
+                 "passer (→ 11) → EMPIRE",
+                 sous_seuil == (0, tete + bilan % (4, 1, 0, 0) + "\nCLIQUET TENU\n")
+                 and passe == (1, tete + "EMPIRE scripts/m.py:28 petite · complexité 2 → 11, seuil 10\n"
+                               + bilan % (4, 1, 0, 0) + "\nCLIQUET ROMPU · 1 écart(s)\n"), (sous_seuil, passe))
+        neuves = lancer({"m.py": m + "\n\n" + ifs(10, "neuve_grosse") + "def neuve(a):\n    return a\n"}, "--cliquet")
+        tests = lancer({"m.py": m, "test-m.py": longue(70) + ifs(10, "test_neuf").replace('    """Des if."""\n', "")},
+                       "--cliquet")
+        verifier("VIT15 (g) une fonction neuve au-dessus d'un seuil → SEUIL, une neuve sans docstring → DOCSTRING ; dans un "
+                 "test-*.py, ni instructions (70) ni docstring, mais la complexité tient",
+                 neuves == (1, tete + "SEUIL scripts/m.py:39 neuve_grosse · complexité 11, seuil 10 (neuve)\n"
+                            "DOCSTRING scripts/m.py:64 neuve · sans docstring (neuve)\n"
+                            + bilan % (6, 0, 0, 2) + "\nCLIQUET ROMPU · 2 écart(s)\n")
+                 and tests == (1, tete + "SEUIL scripts/test-m.py:75 test_neuf · complexité 11, seuil 10 (neuve)\n"
+                               + bilan % (5, 1, 0, 1) + "\nCLIQUET ROMPU · 1 écart(s)\n"), (neuves, tests))
+        touchee = lancer({"m.py": m.replace(muette, "def muette(a):\n    return a + 1\n"), "test-m.py": longue(60)},
+                         "--cliquet")
+        renommee = lancer({"m.py": ifs(11, "grosse") + ifs(1, "petite2") + muette}, "--cliquet")
+        deplacee = lancer({"m.py": ifs(11, "grosse") + muette, "m2.py": ifs(1, "petite")}, "--cliquet")
+        verifier("VIT15 (h) une vieille fonction touchée sans docstring → DOCSTRING (intacte, elle passait) ; renommée ou "
+                 "déplacée dans un autre fichier, même empreinte → suivie, TENU",
+                 touchee == (1, tete + "DOCSTRING scripts/m.py:35 muette · sans docstring (touchée)\n"
+                             + bilan % (4, 1, 0, 0) + "\nCLIQUET ROMPU · 1 écart(s)\n")
+                 and renommee == deplacee == (0, tete + bilan % (4, 0, 1, 0) + "\nCLIQUET TENU\n"),
+                 (touchee, renommee, deplacee))
+        mieux = lancer({"m.py": ifs(9, "grosse") + ifs(1, "petite") + muette, "m2.py": None}, "--cliquet")
+        verrou = lancer({}, "--base")
+        rechute = lancer({"m.py": ifs(10, "grosse") + ifs(1, "petite") + muette}, "--cliquet")
+        verifier("VIT15 (i) une amélioration se dit, --base la verrouille : remonter de 10 à 11, sous l'ancienne base (12), "
+                 "→ EMPIRE",
+                 mieux == (0, tete + bilan % (4, 1, 0, 0) + " · améliorées 1 : `vlp.py sante --base` les verrouille\n"
+                           "CLIQUET TENU\n") and verrou[0] == 0
+                 and rechute == (1, tete + "EMPIRE scripts/m.py:1 grosse · complexité 10 → 11, seuil 10\n"
+                                 + bilan % (4, 1, 0, 0) + "\nCLIQUET ROMPU · 1 écart(s)\n"), (mieux, verrou, rechute))
+        avant = mod.lire(base)
+        refus = lancer({}, "--base")
+        intacte = mod.lire(base) == avant
+        forcee = lancer({}, "--base", "--forcer", "essai")
+        trace = json.loads(mod.lire(base))["forcee"]
+        verifier("VIT15 (j) --base qui relâcherait → l'écart, GARDE:, sort 1, base intacte ; --forcer écrit, et garde sa "
+                 "raison dans la base",
+                 refus == (1, "EMPIRE scripts/m.py:1 grosse · complexité 10 → 11, seuil 10\n"
+                           + "GARDE: la base ne se relâche pas : 1 écart(s) ci-dessus — corrige, ou "
+                           + "`--base --forcer \"<raison>\"`, rien écrit\n")
+                 and intacte and forcee == (0, "BASE scripts/sante-base.json · 4 fonctions · sans ruff · relâchée : essai\n")
+                 and len(trace) == 1 and trace[0]["raison"] == "essai" and trace[0]["ecarts"] == 1,
+                 (refus, intacte, forcee, trace))
+        seul = lancer({}, "--forcer", "x")
+        ecrire(base, "{}")
+        illisible = lancer({}, "--cliquet")
+        casse = lancer({"m.py": "def (\n"}, "--cliquet")
+    verifier("VIT15 (k) --forcer sans --base, une base illisible, un fichier qui ne se lit pas → GARDE:, sort 1",
+             seul == (1, "GARDE: --forcer ne va qu'avec --base\n")
+             and illisible[0] == 1 and illisible[1].endswith("sante-base.json : base illisible, format 1 attendu\n")
+             and casse[0] == 1 and casse[1].startswith("GARDE: ") and "m.py:1 : " in casse[1], (seul, illisible, casse))
+
+
+def tester_sante_kit():
+    """VIT15 : le kit tient son propre cliquet — une fonction qui empire, ou neuve au-dessus d'un seuil ou sans
+    docstring, fait tomber la suite. Sauté sous `vlp.py mutant` (`VLP_TOUS_ECARTS=1`) : un mutant touche toujours sa
+    fonction, et une docstring qui y manque le dirait « attrapé » sans qu'aucun test ne l'ait vu."""
+    if os.environ.get("VLP_TOUS_ECARTS") == "1":
+        print("SAUTÉ: sous le mutant, le cliquet du kit ne joue pas")
+        return
+    code, s = appel(["sante", "--cliquet"])
+    verifier("VIT15 (l) le kit tient son cliquet : `vlp.py sante --cliquet` → CLIQUET TENU ; sinon, chaque écart y est "
+             "nommé — corrige la fonction, `--base --forcer` seulement si le relâchement est voulu",
+             code == 0 and s.endswith("CLIQUET TENU\n"), s)
+
+
+tester_sante_comptes()
+tester_sante_ruff()
+tester_sante_cliquet()
+tester_sante_kit()
+
 if ECARTS:
     sys.exit(1)
 print("OK")

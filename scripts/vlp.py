@@ -482,6 +482,15 @@ Sous-commandes :
 - `nuits lecon "<ligne>" [--projet P]` — une leçon sous `## Leçons` du fichier des nuits (`fichier_nuits`, créé au
   besoin), dans la forme de `LECON_FORME` (NUI11). Hors forme, ou fichier illisible : `GARDE:`, sort 1, rien d'écrit.
   Imprime `LEÇON <fichier> · ajoutée` ou `· déjà là`.
+- `sante [<fichiers>] [--base [--forcer "<raison>"] | --cliquet] [--racine R] [--sans-ruff]` — la santé du code,
+  fonction par fonction (`sante.py`, qui en tient les règles ; chantier VIT) : les cinq comptes du socle de VIT et
+  la docstring, par ruff s'il répond (`ruff`, sinon `-m ruff`), sinon par `ast`, « comptes estimés ». Sans fichier :
+  les `.py` de `<racine>/scripts/`, racine par défaut le kit. Imprime une ligne par fonction (`!` sur un compte
+  au-dessus de son seuil), `FICHIER` par fichier, `TOTAL`, puis, avec ruff, `AST=RUFF <n>/<m>` et chaque `AST≠RUFF`.
+  `--base` écrit `scripts/sante-base.json` sous la racine — `BASE …`, ou `GARDE:` si elle se relâcherait, rien
+  d'écrit, sauf `--forcer`, dont la raison y reste. `--cliquet` lui compare les fonctions : `EMPIRE`, `SEUIL` ou
+  `DOCSTRING` par écart, le bilan `CLIQUET <n> fonctions · …`, puis `CLIQUET TENU` (sort 0) ou `CLIQUET ROMPU`
+  (sort 1) ; sans base, `GARDE:`. ruff en échec : `RUFF ÉCHEC …`, et `ast` seul.
 
 Les lignes des chantiers clos — lues ou écrites par `clore`, `recompter`, `prix`, `liens`,
 `repeindre` et le prix moyen d'`ouvrir` — vivent dans `<contexte>/artefacts/archive-clos.html`
@@ -7833,7 +7842,35 @@ def cmd_apercu(projet, sortie, port=None):
     return 0
 
 
+def cmd_sante(a, sortie):
+    """La santé du code (`sante.py`, VIT15) — chargé ici seulement : son `import ast` coûterait à chaque hook."""
+    import sante
+    return sante.principal(a, sortie, KIT)
+
+
+def options_mutant(sous):
+    """Déclarer la ligne de commande de `mutant`."""
+    mu = sous.add_parser("mutant")
+    mu.add_argument("cible")
+    mu.add_argument("avant")
+    mu.add_argument("apres")
+    mu.add_argument("--test")
+
+
+def options_sante(sous):
+    """Déclarer la ligne de commande de `sante` : `--base` ou `--cliquet`, `--forcer` avec `--base` seulement."""
+    sa = sous.add_parser("sante")
+    sa.add_argument("fichiers", nargs="*")
+    quoi = sa.add_mutually_exclusive_group()
+    quoi.add_argument("--base", action="store_true")
+    quoi.add_argument("--cliquet", action="store_true")
+    sa.add_argument("--forcer", metavar="RAISON")
+    sa.add_argument("--racine")
+    sa.add_argument("--sans-ruff", action="store_true")
+
+
 def main(argv, sortie=None, entree=None, erreur=None):
+    """Lire la ligne de commande, puis lancer la sous-commande demandée."""
     sortie = sortie or sys.stdout
     p = argparse.ArgumentParser(prog="vlp.py", description="La mécanique du kit vlp.")
     sous = p.add_subparsers(dest="cmd", required=True)
@@ -7983,11 +8020,7 @@ def main(argv, sortie=None, entree=None, erreur=None):
     ap = sous.add_parser("apercu")
     ap.add_argument("projet")
     ap.add_argument("--port", type=int)
-    mu = sous.add_parser("mutant")
-    mu.add_argument("cible")
-    mu.add_argument("avant")
-    mu.add_argument("apres")
-    mu.add_argument("--test")
+    options_mutant(sous)
     nu = sous.add_parser("nuits")
     nu.add_argument("verbe", choices=["noter", "lecon"])
     nu.add_argument("texte")
@@ -8015,6 +8048,7 @@ def main(argv, sortie=None, entree=None, erreur=None):
     ch.add_argument("--sortie", required=True)
     tr = sous.add_parser("transcription")
     tr.add_argument("jsonl")
+    options_sante(sous)
     a = p.parse_args(argv)
     try:
         return repartir(a, sortie, entree, erreur)
@@ -8023,31 +8057,28 @@ def main(argv, sortie=None, entree=None, erreur=None):
         return 1
 
 
+# Les sous-commandes qui ne demandent que leurs options et la sortie : `repartir` les lance d'une ligne.
+PAR_ARGUMENTS = {
+    "ouvrir": cmd_ouvrir, "clore": cmd_clore, "archiver": cmd_archiver, "trier": cmd_trier, "feuille": cmd_feuille,
+    "niveau": cmd_niveau, "comparer": cmd_comparer, "relecture": cmd_relecture, "contrat": cmd_contrat,
+    "forme": cmd_forme, "ouverts": cmd_ouverts, "plan": cmd_plan, "matin": cmd_matin, "fusionner": cmd_fusionner,
+    "sante": cmd_sante,
+}
+
+
 def repartir(a, sortie, entree, erreur):
     """Le dispatch. Une `Absent` levée ici est gardée par `main`, et nulle part
     ailleurs : un chemin de `CHANTIER.md` ne fait plus tomber le script."""
+    if a.cmd in PAR_ARGUMENTS:
+        return PAR_ARGUMENTS[a.cmd](a, sortie)
     if a.cmd == "lire":
         return cmd_lire(a.chemins, sortie)
-    if a.cmd == "ouvrir":
-        return cmd_ouvrir(a, sortie)
-    if a.cmd == "clore":
-        return cmd_clore(a, sortie)
-    if a.cmd == "archiver":
-        return cmd_archiver(a, sortie)
     if a.cmd == "archive":
         return cmd_archive(a.projet, a.url, sortie)
     if a.cmd == "abri":
         return cmd_abri(a.pages, sortie)
-    if a.cmd == "trier":
-        return cmd_trier(a, sortie)
-    if a.cmd == "feuille":
-        return cmd_feuille(a, sortie)
     if a.cmd == "renvois":
         return cmd_renvois(a.projet, sortie)
-    if a.cmd == "niveau":
-        return cmd_niveau(a, sortie)
-    if a.cmd == "comparer":
-        return cmd_comparer(a, sortie)
     if a.cmd == "etat":
         sortie.write("ETAT=%s\n" % nom_etat(a.contexte))
         return 0
@@ -8070,18 +8101,10 @@ def repartir(a, sortie, entree, erreur):
         return cmd_equiper(a.dossier, a.contexte, sortie)
     if a.cmd == "lignes":
         return cmd_lignes(a.chemins, sortie)
-    if a.cmd == "relecture":
-        return cmd_relecture(a, sortie)
-    if a.cmd == "contrat":
-        return cmd_contrat(a, sortie)
-    if a.cmd == "forme":
-        return cmd_forme(a, sortie)
     if a.cmd == "gardien":
         return une_fois(entree, cmd_gardien, sortie)
     if a.cmd == "vigile":
         return cmd_vigile(a.fichier, sortie) if a.fichier else une_fois(entree, cmd_vigile_hook, sortie)
-    if a.cmd == "ouverts":
-        return cmd_ouverts(a, sortie)
     if a.cmd == "attente":
         return une_fois(entree, cmd_attente_hook, sortie) if a.op == "hook" else cmd_attente(a, sortie)
     if a.cmd == "repeindre":
@@ -8110,12 +8133,6 @@ def repartir(a, sortie, entree, erreur):
         if a.verbe == "lecon":
             return cmd_nuits_lecon(a.texte, a.projet, sortie)
         return cmd_nuits_noter(a.texte, a.canal, a.stop, sortie, sorte=a.sorte)
-    if a.cmd == "plan":
-        return cmd_plan(a, sortie)
-    if a.cmd == "matin":
-        return cmd_matin(a, sortie)
-    if a.cmd == "fusionner":
-        return cmd_fusionner(a, sortie)
     if a.cmd == "chef":
         return cmd_chef_page(a.questions, a.sortie, sortie, lire(os.path.join(KIT, GABARIT_CHOIX)))
     if a.cmd == "joints":

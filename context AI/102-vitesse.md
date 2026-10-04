@@ -51,13 +51,15 @@ Décisions : https://claude.ai/artifact/3maXrvHBKj85QYybrnPubx. Chaque fiche rem
   - **Les seuils** — ceux de ruff par défaut : complexité 10, branches 12, arguments 5, instructions 50, blocs
     imbriqués 5.
   - **Le cliquet** — une fonction neuve passe les cinq seuils ; une vieille fonction touchée n'empire sur aucun
-    compte. Les fonctions déjà au-dessus (54 sur 474, estimé) attendent `REF` (n° 96).
+    compte (« empirer » : la docstring de `scripts/sante.py`). Les fonctions déjà au-dessus (56 sur 474 hors tests,
+    ruff sur `74550d4`) attendent `REF` (n° 96).
   - **La docstring** — toute fonction neuve ou touchée a la sienne : au moins une phrase à l'impératif, en
     français, finie par un point (PEP 257).
   - **Les tests** (`test-*.py`) — mêmes seuils, sauf les instructions et la docstring : un long scénario reste
     permis, le nom `tester_…` sert d'étiquette.
   - **L'outil** — `vlp.py sante` (`VIT15`) : ruff s'il est présent, sinon un compte `ast` de la bibliothèque
-    standard, à une unité près de ruff : « estimé ». Avant `VIT15`, le compte se fait à la main, dit « estimé ».
+    standard — égal à ruff sur tout le kit, mais dit « estimé ». La suite joue `vlp.py sante --cliquet` ;
+    `vlp.py sante --base` verrouille un gain.
 - Jusqu'à `VIT2` livrée, le mutant se joue à l'ancienne (`vlp.py mutant` mute le vrai fichier ~10 min : ni suite ni
   édition pendant ce temps) ; après, par `--attendu`. « Mutant attrapé », dans un critère, vise la forme du moment.
 
@@ -66,6 +68,8 @@ Décisions : https://claude.ai/artifact/3maXrvHBKj85QYybrnPubx. Chaque fiche rem
 | Symbole | Fichier | Ce qu'il fait |
 |---|---|---|
 | `cmd_mutant` | `scripts/vlp.py` | casse un fichier en place, joue la suite avec `VLP_TOUS_ECARTS=1`, rend le fichier |
+| `sante.principal` | `scripts/sante.py` | les cinq comptes, la base `scripts/sante-base.json` et le cliquet ; chargé par `vlp.py sante` |
+| `PAR_ARGUMENTS`, `options_<commande>` | `scripts/vlp.py` | la répartition et les options, hors de `main` et `repartir` — au-dessus des seuils : une sous-commande neuve passe par eux |
 | `KIT_EXCLUS` | `scripts/vlp.py` | ce qu'une copie du kit laisse de côté |
 | `textes_contexte` | `scripts/vlp.py` | lit les `.md` du contexte ; avec `rev`, un `git show` par fichier |
 | `premier_lancement` | `scripts/vlp.py` | le tampon qui empêche un hook d'agir deux fois |
@@ -130,8 +134,9 @@ L'entrée existe, six lignes, chacune avec sa commande et ses comptes bruts ; au
 ---
 
 <!-- FICHE:VIT15 -->
-## VIT15 [ ] — Le cliquet du code sain : ruff s'il est là, sinon un compte maison
+## VIT15 [x] — Le cliquet du code sain : ruff s'il est là, sinon un compte maison
 
+**Session** : 460c9244-0d39-4a2e-9804-ea49b5ad1cb0
 **Dépend de** : `VIT1`.
 **Fichiers** : `scripts/vlp.py` (une sous-commande `sante`), `scripts/test-vlp.py`, et la base du cliquet (un
 fichier de données versionné, nommé au compte rendu).
