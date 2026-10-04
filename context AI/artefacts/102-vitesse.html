@@ -16,14 +16,14 @@
 
 <div class="page">
   <header>
-    <div class="eyebrow">vlp · fiches VIT1–VIT16 · <a href="https://claude.ai/artifact/YWDny8kjubq9DhdP5rbPxA">la feuille de route</a></div>
+    <div class="eyebrow">vlp · fiches VIT1–VIT18 · <a href="https://claude.ai/artifact/YWDny8kjubq9DhdP5rbPxA">la feuille de route</a></div>
     <h1>Aller plus vite sans coder moins bien</h1>
     <p>Coder plus vite et mieux. Une fiche attend moins ses tests et lit moins de contexte — mesuré avant (VIT1) et après (VIT13) — sans qu'un seul contrôle soit retiré ; le code qu'elle laisse est sain, facile à maintenir et documenté.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">14 fiches · 14 faites</p>
+    <p class="mono" style="margin-top:.5rem">16 fiches · 14 faites · en cours : VIT17</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -93,10 +93,16 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">VIT13</span></span>
         <details><summary><span class="titre">Mesurer la fin, avant/après</span><span class="etat">Faite</span></summary>
         <span class="note">Machine redémarrée, session seule : test-vlp 553 → 180 s (−67 %), test-boucle 426,5 → 176 s (−59 %), mutant NUI27 538 → 173 s, 105 s avec --attendu, 6 s avec --seul ; lancement 362 → 208 ms ; contexte de départ +1 % ; code sain : 63 → 63 au-dessus d'un seuil, docstrings 64 → 70 %</span></details>
-        <span class="cout mono">≈9,9M (9 914 096) · 36 tours · 3,05 $</span></li>
+        <span class="cout mono">≈10,5M (10 538 696) · 38 tours · 3,20 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">VIT17</span></span>
+        <details open><summary><span class="titre">Le compteur d'une fiche : où passe son temps</span><span class="etat">En cours</span></summary>
+        <span class="note">Le compteur d'une fiche (vlp.py compteur) : durée, temps modèle / outils / attente, tours, $, garde-fous — joué sur VIT et NUI. Dépend de VIT13.</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">VIT18</span></span>
+        <details><summary><span class="titre">Le rapport : ce que VIT a gagné, et les pistes pour gagner plus</span><span class="etat">Après VIT17</span></summary>
+        <span class="note">Le rapport sur une page : les gains de VIT en haut, puis les pistes en cartes à valider. Dépend de VIT17.</span></details></li>
     </ul>
-    <p class="mono cout-hors">Hors fiches : 0 · 0 tours · 0,00 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈154,7M (154 650 958) · 736 tours · 77,44 $</p>
+    <p class="mono cout-hors">Hors fiches : ≈5,5M (5 532 808) · 30 tours · 3,71 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈160,8M (160 808 366) · 768 tours · 81,30 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

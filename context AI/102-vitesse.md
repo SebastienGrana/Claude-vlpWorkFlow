@@ -16,6 +16,8 @@ son numéro non repris ; `VIT14` ajoutée après `VIT2`, puis retirée le même 
 paires ; choix de l'utilisateur), son numéro non repris. Critères de code sain au socle (2026-10-04) ; `VIT15`, leur cliquet,
 ajoutée avant `VIT2`, faite le 2026-10-04 ; `VIT16`, qui verrouille ses gains à chaque fiche, ajoutée après elle (choix de
 l'utilisateur, page « Choix de VIT15 », Q1). NUI en pause, reprise à `NUI28` après VIT et la méthode (n° 99).
+Après `VIT13` (2026-10-04), VIT grandit sans se clore, au choix de l'utilisateur : `VIT17` compte où passe le temps
+d'une fiche, `VIT18` en tire le rapport — les gains, puis les pistes à valider ; une piste validée devient une fiche.
 
 **Session** : bf7412ea-120b-47fa-933e-6b54b408b2f4
 
@@ -62,24 +64,27 @@ Décisions : https://claude.ai/artifact/3maXrvHBKj85QYybrnPubx. Chaque fiche rem
   - **L'outil** — `vlp.py sante` (`VIT15`) : ruff s'il est présent, sinon un compte `ast` de la bibliothèque
     standard — égal à ruff sur tout le kit, mais dit « estimé ». La suite joue `vlp.py sante --cliquet` ;
     `vlp.py sante --base` verrouille un gain.
-- Jusqu'à `VIT2` livrée, le mutant se joue à l'ancienne (`vlp.py mutant` mute le vrai fichier ~10 min : ni suite ni
-  édition pendant ce temps) ; après, par `--attendu`. « Mutant attrapé », dans un critère, vise la forme du moment.
+- Le mutant se joue par `vlp.py mutant --attendu` (`VIT2`) ; `--test "… test-vlp.py --seul <motif>"` l'abrège
+  (`VIT10`). « Mutant attrapé », dans un critère, vise cette forme.
 
 **Où vit quoi** (des noms, pas des numéros de ligne : ils dérivent à chaque commit).
 
 | Symbole | Fichier | Ce qu'il fait |
 |---|---|---|
-| `cmd_mutant` | `scripts/vlp.py` | casse un fichier en place, joue la suite avec `VLP_TOUS_ECARTS=1`, rend le fichier |
+| `cmd_mutant` | `scripts/vlp_coeur.py` | mute une copie du kit, y joue les tests — avec `--attendu`, arrêtés sur cet écart ; le vrai fichier n'est jamais écrit |
 | `sante.principal` | `scripts/sante.py` | les cinq comptes, la base `scripts/sante-base.json` et le cliquet ; chargé par `vlp.py sante` |
-| `PAR_ARGUMENTS`, `options_<commande>` | `scripts/vlp.py` | la répartition et les options, hors de `main` et `repartir` — au-dessus des seuils : une sous-commande neuve passe par eux |
-| `KIT_EXCLUS` | `scripts/vlp.py` | ce qu'une copie du kit laisse de côté |
-| `textes_contexte` | `scripts/vlp.py` | lit les `.md` du contexte ; avec `rev`, un `git show` par fichier |
-| `premier_lancement` | `scripts/vlp.py` | le tampon qui empêche un hook d'agir deux fois |
+| `PAR_ARGUMENTS`, `options_<commande>` | `scripts/vlp_coeur.py` | la répartition et les options, hors de `main` et `repartir` — au-dessus des seuils : une sous-commande neuve passe par eux |
+| `KIT_EXCLUS` | `scripts/vlp_coeur.py` | ce qu'une copie du kit laisse de côté |
+| `textes_contexte` | `scripts/vlp_coeur.py` | lit les `.md` du contexte ; avec `rev`, un `git show` par fichier |
+| `premier_lancement` | `scripts/vlp_coeur.py` | le tampon qui empêche un hook d'agir deux fois |
+| `decouper`, `plages` | `scripts/vlp_coeur.py` | la plage d'une fiche, du commit d'avant au sien — celle de `cout` |
+| `points`, `temps`, `tape` | `scripts/mesure-tokens.py` | la ligne de temps d'une session, son temps actif, l'attente de l'utilisateur (`--actif`) |
 | `verifier`, `appel`, `ECARTS` | `scripts/test-vlp.py` | un contrôle ; `vlp` appelé dans le processus ; les écarts |
-| `tester_boucle` | `scripts/test-vlp.py` | lance `test-boucle.py` en série — lui ignore `VLP_TOUS_ECARTS` (synthèse) |
-| `vlp`, `kit` | `scripts/boucle.py` | `vlp.py` en sous-processus ; `vlp.py` chargé comme module |
-| hooks | `hooks/hooks.json` | 7 entrées, chacune en `python3` puis en `py` |
-| relecteur | `agents/relecture.md` | rejoue AVANT, APRÈS, puis le mutant |
+| `groupe`, `tester_*` | `scripts/test-vlp.py` | un groupe de contrôles nommé ; `--seul <motif>` n'en joue que certains (`VIT10`) |
+| `tester_boucle` | `scripts/test-vlp.py` | récolte `test-boucle.py`, lancé en parallèle dès le début (`VIT7`) — lui ignore `VLP_TOUS_ECARTS` (synthèse) |
+| `vlp`, `kit` | `scripts/boucle.py` | `vlp.py` appelé dans le processus (`VIT6`) ; `vlp_coeur.py` chargé comme module |
+| hooks | `hooks/hooks.json` | 8 entrées, chacune en `python3` puis en `py -3` (`VIT8`) |
+| relecteur | `agents/relecture.md` | rejoue le nouveau test dans AVANT, la suite dans APRÈS, puis le mutant (`VIT12`) |
 
 **Ce qu'on ne fait pas ici.** Découper le cœur en plusieurs modules (après VIT : la méthode, n° 99, puis `REF`, n° 96) ;
 un cache de résultats (Q5) ; changer le plafond Bash (Q8) ; toucher aux réglages de l'utilisateur (Defender, fichier
@@ -103,9 +108,11 @@ d'échange, plugins : Q9).
 | `VIT11` | La suite complète exigée au commit | `VIT10` |
 | `VIT12` | Le relecteur ne rejoue que le nouveau test dans AVANT | `VIT2`, `VIT10` |
 | `VIT13` | Mesurer la fin, avant/après | `VIT7`, `VIT8`, `VIT11`, `VIT12` — et, par elles, toutes |
+| `VIT17` | Le compteur d'une fiche : où passe son temps | `VIT13` |
+| `VIT18` | Le rapport : ce que VIT a gagné, et les pistes pour gagner plus | `VIT17` |
 
 Jouées dans l'ordre du fichier — `VIT15` puis `VIT16` avant `VIT2`, `VIT4` et `VIT14` retirées —, les dépendances tiennent. `VIT5` à `VIT8` touchent le démarrage des scripts, `VIT10`
-et `VIT11` tout `test-vlp.py` : une à la fois.
+et `VIT11` tout `test-vlp.py` : une à la fois. `VIT17` et `VIT18`, ajoutées après `VIT13`, ouvrent la suite de VIT.
 
 ---
 
@@ -445,4 +452,71 @@ dépend aussi des plugins chargés (Q9) : dis lesquels l'étaient de chaque côt
 
 **Critère de fin**
 L'entrée « VIT13 — avant/après » existe : six lignes, les critères et la durée des fiches, comptes bruts des deux côtés.
+<!-- /FICHE -->
+
+---
+
+<!-- FICHE:VIT17 -->
+## VIT17 [ ] — Le compteur d'une fiche : où passe son temps
+
+**Dépend de** : `VIT13`.
+**Fichiers** : `scripts/mesure-tokens.py`, `scripts/vlp_coeur.py`, `scripts/vlp.py` (sa docstring),
+`scripts/test-vlp.py`, `context AI/08-etat.md` (une entrée datée).
+
+**Prompt**
+Pour accélérer le travail d'un LLM, il faut savoir où passe le temps d'une fiche : à produire, à attendre un outil, à
+attendre l'utilisateur. `VIT13` a chronométré des commandes, pas une fiche ; le chantier « méthode » (n° 99) aura
+besoin de ces mesures. `vlp.py compteur <fichier de fiches> [<fiche>…]` : une ligne par fiche, sur la plage de `cout`
+(`decouper`), puis `TOTAL` :
+- la durée de commit à commit, et le temps actif de `--actif` découpé en **modèle**, **outils**, **attente**, **autre** :
+  chaque écart entre deux lignes voisines va à la sorte de la ligne qui le ferme — une ligne assistant ; un
+  `tool_result` ou une `task-notification` (tâche de fond) ; un message tapé ou la réponse d'un `AskUserQuestion` ; le
+  reste. Les quatre font l'actif ;
+- le temps d'outil par sorte, appels comptés : suite entière, suite `--seul`, `test-boucle`, mutant, pyright, Git,
+  publication, le reste ;
+- tours et $, ceux de `cout` ; les garde-fous lus dans les sorties : suites vertes sur jouées, `ÉCART:`,
+  `MUTANT ATTRAPÉ`, `GARDE:`, verdict du relecteur — un tiret s'il n'y en a pas.
+Déjà publié : la télémétrie officielle (OpenTelemetry, `duration_ms` par outil, code.claude.com/docs/en/monitoring-usage,
+lu le 2026-10-04) — écartée : elle ne voit que l'avenir et demande un collecteur. On reste dans `mesure-tokens.py`,
+stdlib seule ; la même page prévient que le format des transcriptions est interne et change d'une version à l'autre :
+un champ absent se dit, jamais en silence. Joue le compteur sur VIT et NUI (`101-chef-de-nuit.md`) ; la plage de
+`VIT17` porte aussi le cadrage qui l'a ajoutée (le biais de la TODO n° 103 `PRP`) : dis-le à côté de son chiffre.
+
+**Critère de fin**
+`vlp.py compteur "context AI/102-vitesse.md"` → une ligne par fiche, modèle + outils + attente + autre = actif à la
+minute ; une transcription faite main donne son découpage exact (groupe neuf de `test-vlp.py`) ; recoupé sur la session
+72db946f jusqu'à sa ligne `cost-state` (`totalToolDuration` 73,4 min, `totalAPIDuration` 63,4 min) : l'écart se dit ;
+l'entrée « VIT17 — où passe le temps » de `08-etat.md`, VIT et NUI, trois constats ; `py -3 scripts/test-vlp.py` →
+`OK`, `verifier(` en hausse ; mutant attrapé ; pyright 0 ; les critères de code sain du socle.
+<!-- /FICHE -->
+
+---
+
+<!-- FICHE:VIT18 -->
+## VIT18 [ ] — Le rapport : ce que VIT a gagné, et les pistes pour gagner plus
+
+**Dépend de** : `VIT17`.
+**Fichiers** : `context AI/08-etat.md` (une entrée datée) ; la page, hors du dépôt, par `vlp.py chef page` — aucun
+code.
+
+**Prompt**
+L'utilisateur veut savoir de combien VIT a accéléré le travail d'un LLM, puis ce qu'il faudrait ajouter, enlever ou
+modifier pour aller plus vite, sainement ; il validera. Une seule page à cartes — la page ponctuelle d'`ARTEFACTS.md`,
+remplie par `vlp.py chef page` (sa forme : la docstring de `vlp.py`) :
+1. **En haut, les gains**, en clair d'abord (une image simple), comptes bruts à côté : la table de l'entrée « VIT13 —
+   avant/après » de `08-etat.md`, et où passe le temps d'une fiche (« VIT17 »). Ce qui n'a pas gagné se dit aussi.
+2. **Puis les pistes**, une carte chacune : ajouter, enlever ou modifier ; ce qu'elle change, ➕/➖, son coût (dit
+   estimé), la mesure qui prouverait le gain. Leurs sources : les plus gros postes de `VIT17` ; ce qui n'a pas gagné ;
+   les constats laissés hors fiches — les commandes du kit lancent `py` sans `-3` (détour par le `#!`), des fiches NUI
+   cochées gardent des renvois par numéro de ligne, les vieux worktrees de `.claude/worktrees/` un ancien
+   `relecture.md` ; la télémétrie officielle vue à `VIT17` ; ce que la doc officielle conseille pour aller vite
+   (« Recherche web » du `CLAUDE.md` de l'utilisateur, trois recherches au plus ; lien et date par piste).
+3. **Une carte de plus** : la question restée ouverte sur la page du chantier (fil du 2026-10-03) — le titre
+   devient-il « Coder plus vite et mieux » ?
+Publie la page et donne son lien. Une piste validée deviendra une fiche de VIT par `/vlp:chantier`, pas ici.
+
+**Critère de fin**
+La page publiée ; son lien dans l'entrée « VIT18 — le rapport » de `08-etat.md`, une ligne par carte ; les gains en
+haut, comptes bruts ; chaque piste porte sa source ; le bouton copie rend une réponse par carte (essayé dans le
+navigateur intégré).
 <!-- /FICHE -->
