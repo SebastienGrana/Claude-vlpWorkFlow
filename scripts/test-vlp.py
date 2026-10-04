@@ -3122,9 +3122,11 @@ with open(os.path.join(RACINE, "hooks", "hooks.json"), encoding="utf-8") as f:
 
 
 def paire(groupe, *sous):
-    """Les deux commandes d'un groupe : python3 puis py, sur `vlp.py <sous>`."""
+    """Les deux commandes d'un groupe : python3 puis `py -3` (sans `-3`, `py` lit le `#!` et relance le
+    `python3` du PATH, +77 ms, VIT8), sur `vlp.py <sous>`."""
     return [(h.get("type"), h.get("command"), h.get("args")) for h in groupe.get("hooks", [])] == [
-        ("command", c, ["${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py", *sous]) for c in ("python3", "py")]
+        ("command", c, [*option, "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py", *sous])
+        for c, option in (("python3", []), ("py", ["-3"]))]
 
 
 succes, echec = crochets.get("PostToolUse", []), crochets.get("PostToolUseFailure", [])
@@ -3458,6 +3460,26 @@ def test_premier_lancement():
 
 
 test_premier_lancement()
+
+
+def tester_lanceur_trie():
+    """Lancer deux fois le vrai `vlp.py gardien` sur la même entrée, comme `python3` et `py` le font (VIT8) : le
+    premier refuse le commit, le second sort 0, muet, sans importer `vlp_coeur` (`-X importtime`). `TMPDIR` neuf :
+    le tampon y vit seul."""
+    entree = json.dumps({"hook_event_name": "PreToolUse", "tool_name": "Bash", "agent_type": "vlp:fiche",
+                         "tool_input": {"command": "git commit -m 'VIT8 %f'" % time.time()}})
+    with tempfile.TemporaryDirectory() as t:
+        env = dict(os.environ, TMPDIR=t, PYTHONIOENCODING="utf-8")
+        env.pop("VLP_SANS_TAMPON", None)
+        r = [subprocess.run([sys.executable, "-X", "importtime", os.path.join(ICI, "vlp.py"), "gardien"], input=entree,
+                            capture_output=True, text=True, encoding="utf-8", env=env) for _ in range(2)]
+    verifier("VIT8 : deux lanceurs, même entrée — le 1er refuse, le 2e sort muet sans charger le cœur",
+             [x.returncode for x in r] == [0, 0] and "deny" in r[0].stdout and "vlp_coeur" in r[0].stderr
+             and r[1].stdout == "" and "vlp_coeur" not in r[1].stderr,
+             "\n".join("code %d\n%s\n%s" % (x.returncode, x.stdout, x.stderr[-600:]) for x in r))
+
+
+tester_lanceur_trie()
 
 # BAC1 : `bac` pose le bac d'essai de FIL3, dans un dossier temporaire à lui
 def test_bac():

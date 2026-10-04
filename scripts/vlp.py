@@ -510,7 +510,7 @@ Python 3 sans dépendance, zéro appel modèle.
 
 Un hook (`hook`, `filet`, `gardien`, `vigile`, `attente hook`) n'agit qu'une fois quand `python3` et `py` le lancent
 tous deux : le premier qui crée `<TAMPON_HOOKS>/vlp-hook-<sha1 du nom et de l'entrée>` agit, l'autre se tait
-(chantier PYT). Rejoué à la main, `VLP_SANS_TAMPON=1` dans l'environnement saute le tampon :
+(chantier PYT) — sans charger le cœur : le tri vit dans `vlp_hook.py`, lu avant `vlp_coeur` (VIT8). Rejoué à la main, `VLP_SANS_TAMPON=1` dans l'environnement saute le tampon :
 chaque lancement agit (chantier SON).
 """
 import io
@@ -526,5 +526,9 @@ if __name__ == "__main__":
         except (AttributeError, ValueError):
             pass
     sys.dont_write_bytecode = False     # le .pyc du cœur sert même sous PYTHONDONTWRITEBYTECODE (VIT5)
+    import vlp_hook
+    triee = vlp_hook.trier(sys.argv[1:])
+    if triee == "":                     # un hook déjà pris par l'autre lanceur : sortir sans charger le cœur (VIT8)
+        sys.exit(0)
     import vlp_coeur
-    sys.exit(vlp_coeur.main(sys.argv[1:]))
+    sys.exit(vlp_coeur.main(sys.argv[1:], entree=triee))

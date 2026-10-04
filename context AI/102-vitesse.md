@@ -320,8 +320,9 @@ son `ÉCART:` ; pyright 0 ; les critères de code sain du socle.
 ---
 
 <!-- FICHE:VIT8 -->
-## VIT8 [ ] — Un seul Python dans les hooks
+## VIT8 [x] — Un seul Python dans les hooks
 
+**Session** : 72db946f-cd44-4a3b-8ec4-39b6d2872e1d
 **Dépend de** : `VIT5`.
 **Fichiers** : `hooks/hooks.json`, `scripts/test-vlp.py` (il compte les entrées exactes de `hooks.json`),
 `skills/init/SKILL.md` si l'installation choisit l'interprète.

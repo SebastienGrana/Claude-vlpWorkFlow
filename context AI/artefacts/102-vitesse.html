@@ -21,9 +21,9 @@
     <p>Coder plus vite et mieux. Une fiche attend moins ses tests et lit moins de contexte — mesuré avant (VIT1) et après (VIT13) — sans qu'un seul contrôle soit retiré ; le code qu'elle laisse est sain, facile à maintenir et documenté.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span data-etat="faite"></span><span></span><span></span><span></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">14 fiches · 7 faites · en cours : VIT7</p>
+    <p class="mono" style="margin-top:.5rem">14 fiches · 8 faites · en cours : VIT7</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -69,9 +69,10 @@
       <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">VIT7</span></span>
         <details open><summary><span class="titre">Lancer test-boucle en parallèle de test-vlp</span><span class="etat">En cours</span></summary>
         <span class="note">test-boucle en parallèle de test-vlp ; dépend de VIT3, VIT6, VIT14</span></details></li>
-      <li class="fiche"><span class="gauche"><span class="id">VIT8</span></span>
-        <details><summary><span class="titre">Un seul Python dans les hooks</span><span class="etat">À lancer</span></summary>
-        <span class="note">un seul Python par hook ; dépend de VIT5</span></details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">VIT8</span></span>
+        <details><summary><span class="titre">Un seul Python dans les hooks</span><span class="etat">Faite</span></summary>
+        <span class="note">option de l'utilisateur : deux lanceurs gardés, le second sans charger le cœur (importtime : 1 puis 0) ; second lanceur 292 → 77 ms (py -3, le #! évité) / 129 ms (python3) ; verifier( 770 → 771 ; mutant attrapé ; pyright 0 ; suite OK en 286 s</span></details>
+        <span class="cout mono">≈9,6M (9 636 710) · 56 tours · 3,26 $</span></li>
       <li class="fiche"><span class="gauche"><span class="id">VIT9</span></span>
         <details><summary><span class="titre">Une carte des symboles, et des fiches sans numéros de ligne</span><span class="etat">À lancer</span></summary>
         <span class="note">une carte des symboles, des fiches sans numéros de ligne</span></details></li>
@@ -85,11 +86,11 @@
         <details><summary><span class="titre">Le relecteur ne rejoue que le nouveau test dans AVANT</span><span class="etat">Après VIT10</span></summary>
         <span class="note">le relecteur ne rejoue que le nouveau test avant ; dépend de VIT2, VIT10</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">VIT13</span></span>
-        <details><summary><span class="titre">Mesurer la fin, avant/après</span><span class="etat">Après VIT7, VIT8, VIT11, VIT12</span></summary>
+        <details><summary><span class="titre">Mesurer la fin, avant/après</span><span class="etat">Après VIT7, VIT11, VIT12</span></summary>
         <span class="note">la fin mesurée, avant/après ; dépend de VIT7, VIT8, VIT11, VIT12 — et, par elles, de toutes</span></details></li>
     </ul>
-    <p class="mono cout-hors">Hors fiches : ≈1,7M (1 721 802) · 12 tours · 0,64 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈102,7M (102 736 071) · 506 tours · 59,48 $</p>
+    <p class="mono cout-hors">Hors fiches : 0 · 0 tours · 0,00 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈110,7M (110 650 979) · 550 tours · 62,10 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

@@ -8,7 +8,7 @@ Coder plus vite et mieux. Une fiche attend moins ses tests et lit moins de conte
 - VIT5 : test-vlp OK (code 0) en 437 s ; vlp.py lignes CHANTIER.md : 318 → 210 ms (médianes de 20 ; VIT1 362 ms ; 213 ms sous PYTHONDONTWRITEBYTECODE=1) ; mutant NUI27 sur vlp_coeur.py attrapé en 112 s ; pyright 0 ; verifier( 770 / 82 inchangés ; cliquet tenu (3 touchées, 0 neuve)
 - VIT6 : test-boucle OK : 330 → 184 s (−44 %, une mesure de chaque côté) ; verifier( 82 → 83 (le test qui compare au vrai sous-processus) ; mutant « sortie tronquée » attrapé ; pyright 0 ; suite complète OK en 305 s
 - VIT7 : test-boucle en parallèle de test-vlp ; dépend de VIT3, VIT6, VIT14
-- VIT8 : un seul Python par hook ; dépend de VIT5
+- VIT8 : option de l'utilisateur : deux lanceurs gardés, le second sans charger le cœur (importtime : 1 puis 0) ; second lanceur 292 → 77 ms (py -3, le #! évité) / 129 ms (python3) ; verifier( 770 → 771 ; mutant attrapé ; pyright 0 ; suite OK en 286 s
 - VIT9 : une carte des symboles, des fiches sans numéros de ligne
 - VIT10 : les tests rangés en groupes nommés, un seul jouable ; dépend de VIT9
 - VIT11 : la suite entière exigée au commit ; dépend de VIT10

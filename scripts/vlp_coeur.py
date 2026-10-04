@@ -20,8 +20,9 @@ import time
 import unicodedata
 
 import carnet
+import vlp_hook
 
-TAMPON_HOOKS = tempfile.gettempdir()
+TAMPON_HOOKS = vlp_hook.TAMPON
 
 TITRE = re.compile(r"^## [A-Z]{1,3}[0-9]")
 TITRE_GENERIQUE = re.compile(r"^##\s+\S")
@@ -57,38 +58,22 @@ def section(lignes, debut, fin):
 
 
 def premier_lancement(texte, nom=""):
-    """Vrai si ce lancement est le premier à traiter cette entrée de hook : création exclusive de
-    `<TAMPON_HOOKS>/vlp-hook-<sha1 de nom + entrée>` — le nom, car `filet` et `hook` reçoivent la
-    même entrée sur une écriture (PYT2) — (les deux lanceurs partent ensemble, un tampon daté les
-    laisserait passer tous deux). Retire au passage les tampons de plus de 60 s. `TAMPON_HOOKS` à
-    `None` (tests) ou `VLP_SANS_TAMPON` non vide (rejeu à la main, SON) : toujours vrai ; une autre `OSError` : vrai — mieux vaut deux fois que zéro."""
-    return tampon_neuf("vlp-hook-" + hashlib.sha1((nom + "\n" + texte).encode("utf-8")).hexdigest())
+    """Vrai si ce lancement est le premier à traiter cette entrée de hook : le tampon de `vlp_hook`,
+    nommé par `nom` + entrée — le nom, car `filet` et `hook` reçoivent la même entrée (PYT2) —, dans
+    `TAMPON_HOOKS` ; ses replis (`None`, `VLP_SANS_TAMPON`, une autre `OSError`) y sont dits."""
+    return tampon_neuf(vlp_hook.nom_tampon(texte, nom))
 
 
 def tampon_neuf(nom):
-    """Vrai si `<TAMPON_HOOKS>/<nom>` se crée en exclusif ; mêmes replis que `premier_lancement`.
-    Retire au passage les tampons `vlp-hook-` et `vlp-filet-` de plus de 60 s."""
-    if TAMPON_HOOKS is None or os.environ.get("VLP_SANS_TAMPON"):
-        return True
-    try:
-        for tampon in os.listdir(TAMPON_HOOKS):
-            chemin = os.path.join(TAMPON_HOOKS, tampon)
-            if tampon.startswith(("vlp-hook-", "vlp-filet-")) and time.time() - os.path.getmtime(chemin) > 60:
-                os.unlink(chemin)
-    except OSError:
-        pass
-    chemin = os.path.join(TAMPON_HOOKS, nom)
-    try:
-        os.close(os.open(chemin, os.O_CREAT | os.O_EXCL | os.O_WRONLY))
-    except FileExistsError:
-        return False
-    except OSError:
-        pass
-    return True
+    """Vrai si `<TAMPON_HOOKS>/<nom>` se crée en exclusif — `vlp_hook.tampon_neuf`, dans le dossier de ce module."""
+    return vlp_hook.tampon_neuf(nom, TAMPON_HOOKS)
 
 
 def une_fois(entree, commande, *args):
-    """L'entrée d'un hook lue une fois : 0, muet, si un autre lanceur l'a déjà traitée."""
+    """Lire l'entrée d'un hook une fois : 0, muet, si un autre lanceur l'a déjà traitée ; une entrée
+    déjà triée par le lanceur (`vlp_hook.Triee`, VIT8) passe sans re-tri."""
+    if isinstance(entree, vlp_hook.Triee):
+        return commande(entree, *args)
     texte = (entree or sys.stdin).read()
     return commande(io.StringIO(texte), *args) if premier_lancement(texte, commande.__name__) else 0
 
