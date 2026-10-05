@@ -574,8 +574,9 @@ les critères de code sain du socle.
 ---
 
 <!-- FICHE:VIT20 -->
-## VIT20 [ ] — La carte avertit d'une session qui a déjà joué une fiche
+## VIT20 [x] — La carte avertit d'une session qui a déjà joué une fiche
 
+**Session** : 25d14f1a-0b12-4403-be39-abe6b5c74fe6
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp_coeur.py` (`carte_injectee`), `scripts/vlp.py` (sa docstring), `scripts/test-vlp.py`,
 `skills/tache/SKILL.md`.

@@ -14,7 +14,7 @@ celle-là. Suis ces étapes dans l'ordre, sans en sauter ni en ajouter.
 
 ## La carte du projet — lue avant ton premier tour
 
-!`py "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python py; python3 "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python python3 --relais; py "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python py --relais; echo fin`
+!`py "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python py --session-neuve; python3 "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python python3 --relais --session-neuve; py "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python py --relais --session-neuve; echo fin`
 
 ## La règle qui prime sur tout : n'ouvre que ce qui est nommé
 
@@ -42,6 +42,7 @@ demande de l'autoriser — pas de contournement.
 - **`AUCUN_PROJET`** : arrête-toi — c'est `/vlp:init` puis `/vlp:chantier`.
 - **`ATTENTE=<page> <url>`** : republie ces pages d'abord (`ARTEFACTS.md`, « Une publication refusée »).
 - **`PLUGIN_RETARD=`** : dis-la avant tout `/reload-plugins` ; sa commande, sur le oui de l'utilisateur.
+- **`AVERTISSEMENT:`** : relaie-la à l'utilisateur en une ligne, puis continue.
 - **Sortie vide, ou consigne de la lancer** : lance-la toi-même, une fois.
 - **Fichier de fiches courant à « aucun »** : arrête-toi — `/vlp:chantier`
   d'abord. **`GARDE:`** : arrête-toi et montre la sortie brute ; une

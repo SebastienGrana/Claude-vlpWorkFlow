@@ -30,6 +30,9 @@ Sous-commandes :
   n'écrit rien si un tampon de moins de `RELAIS_SECONDES` existe (le premier
   Python a déjà répondu), sans le retirer. `--relecteur` : ni titres de fiches,
   ni `PROCHAINE=`, ni l'étendue `(X1..X3)` du fichier courant — le relecteur ne voit pas la suite (chantier REL).
+  `--session-neuve` (l'injection de `/vlp:tache` seule) : après `PROCHAINE=`, `AVERTISSEMENT: session déjà notée
+  dans ce fichier de fiches (<cadrage, fiches>) — /clear d'abord …` si l'id de `CLAUDE_CODE_SESSION_ID` est sur une
+  ligne `**Session**` du fichier courant ; id vide ou absent, ou `VLP_NUIT=1` : rien (VIT20).
 - `extraire <fichier> <fiche>` — la fiche entre ses marqueurs, marqueurs
   compris, puis `--- fiche, lignes : N`. Sans marqueurs, repli sur le titre
   jusqu'au premier `---`, annoncé par une `GARDE`. Absente : sort 1. Critère

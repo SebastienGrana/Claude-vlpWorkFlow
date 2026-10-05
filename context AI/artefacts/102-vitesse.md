@@ -20,7 +20,7 @@ Coder plus vite et mieux. Une fiche attend moins ses tests et lit moins de conte
 - VIT17 : vlp.py compteur sur VIT : 14 fiches, modèle 203 + outils 226 + attente 107 + autre 24 = actif 560 min ; NUI : 308 + 601 + 99 + 27 = 1 035. Transcription faite main : découpage exact (groupes tester_compteur_*). Recoupe 72db946f ligne 3332 : outils 130,5 contre totalToolDuration 73,4 (+57,1, dont 51,0 en fond : +6,1 sans), modèle 59,4 contre 63,4 (−3,9). Entrée de 08-etat.md, trois constats. test-vlp.py OK, verifier( 781 → 798 ; deux mutants attrapés ; pyright 0 ; cliquet tenu.
 - VIT18 : Page publiée, vigile PAGE SAINE 109 blocs, 15 cartes ; lien dans l'entrée « VIT18 — le rapport » de 08-etat.md, une ligne par carte (15) ; 8 gains en comptes bruts en haut ; chaque piste a sa source ; copier : 17 lignes (en-tête, Q1 à Q15, une note), repli de sélection dans l'aperçu ; à côté, le rapport MET : 10 cartes, relu par 3 sous-agents, 46,01 $ ; suite OK en 223 s (2 SAUTÉ connus)
 - VIT19 : vlp.py claude → CLAUDE …/2.1.288/36aa8c97bf86/claude.exe ; 3 cas faits main verts (seconde profondeur trouvée ; app sans exe → hook sorti 1, raison dite ; rien → averti, sorti 0) ; test du hook sans SAUTÉ ; suite OK, verifier( 798 → 802 ; 2 mutants attrapés ; pyright 0 ; cliquet tenu, 3 améliorées
-- VIT20 : La carte de /vlp:tache avertit quand la session a déjà joué une fiche : /clear d'abord. Dépend de rien.
+- VIT20 : groupe tester_vit20_session_neuve OK ; verifier( 802 → 811 (test-boucle 83 inchangé) ; 2 mutants attrapés (garde VLP_NUIT, cadrage) ; pyright 0 errors ; cliquet tenu (5 touchées, 6 neuves, 3 améliorées) ; suite entière OK ; injection vérifiée en vrai : AVERTISSEMENT (VIT20) dans la carte rechargée
 - VIT21 : Le mutant ne rejoue que le groupe de son contrôle, par défaut (105 s → ≈ 6 s mesurés à VIT13). Dépend de rien.
 - VIT22 : test-boucle, qui fixe la durée de la suite (176 s), raccourci sans retirer un contrôle. Dépend de rien.
 - VIT23 : Un contrôle de quelques secondes avant la suite entière (≈ 3 min). Dépend de VIT21.
@@ -32,4 +32,5 @@ Coder plus vite et mieux. Une fiche attend moins ses tests et lit moins de conte
 - 2026-10-04 : VIT15 : le compte ast égale ruff sur tout le kit (794/794) ; une sous-commande neuve de vlp.py passe par options_<commande> et PAR_ARGUMENTS, main et repartir étant au-dessus des seuils ; qui lance sante --base en fin de fiche reste à trancher (méthode, n° 99)
 - 2026-10-04 : VIT2 : la copie du mutant garde context AI/ (NIV1 et JUG2 lisent le vrai dépôt) ; une copie peut rester après taskkill, effacer_copie réessaie 2 s
 - 2026-10-04 : VIT5 : une fonction déplacée et touchée à la fois paraît neuve au cliquet ; déplacer d'abord (sante --base), toucher ensuite
+- 2026-10-06 : VIT20 : l'injection ! d'une skill voit CLAUDE_CODE_SESSION_ID (carte de /vlp:tache rechargée : AVERTISSEMENT (VIT20)) ; sous --nuit la carte se tait, la boucle note l'id de clore avant sa session
 ## Bilan

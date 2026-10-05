@@ -21,9 +21,9 @@
     <p>Coder plus vite et mieux. Une fiche attend moins ses tests et lit moins de contexte — mesuré avant (VIT1) et après (VIT13) — sans qu'un seul contrôle soit retiré ; le code qu'elle laisse est sain, facile à maintenir et documenté.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">23 fiches · 17 faites · en cours : VIT20</p>
+    <p class="mono" style="margin-top:.5rem">23 fiches · 18 faites · en cours : VIT21</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -105,15 +105,16 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">VIT19</span></span>
         <details><summary><span class="titre">Le contrôle avant commit ne laisse plus passer</span><span class="etat">Faite</span></summary>
         <span class="note">vlp.py claude → CLAUDE …/2.1.288/36aa8c97bf86/claude.exe ; 3 cas faits main verts (seconde profondeur trouvée ; app sans exe → hook sorti 1, raison dite ; rien → averti, sorti 0) ; test du hook sans SAUTÉ ; suite OK, verifier( 798 → 802 ; 2 mutants attrapés ; pyright 0 ; cliquet tenu, 3 améliorées</span></details>
-        <span class="cout mono">≈20,8M (20 845 366) · 108 tours · 16,77 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">VIT20</span></span>
-        <details open><summary><span class="titre">La carte avertit d'une session qui a déjà joué une fiche</span><span class="etat">En cours · VIT22 peut partir en même temps</span></summary>
-        <span class="note">La carte de /vlp:tache avertit quand la session a déjà joué une fiche : /clear d'abord. Dépend de rien.</span></details></li>
-      <li class="fiche"><span class="gauche"><span class="id">VIT21</span></span>
-        <details><summary><span class="titre">Le mutant visé sur son groupe, par défaut</span><span class="etat">À lancer</span></summary>
+        <span class="cout mono">≈21,4M (21 370 305) · 111 tours · 16,99 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">VIT20</span></span>
+        <details><summary><span class="titre">La carte avertit d'une session qui a déjà joué une fiche</span><span class="etat">Faite</span></summary>
+        <span class="note">groupe tester_vit20_session_neuve OK ; verifier( 802 → 811 (test-boucle 83 inchangé) ; 2 mutants attrapés (garde VLP_NUIT, cadrage) ; pyright 0 errors ; cliquet tenu (5 touchées, 6 neuves, 3 améliorées) ; suite entière OK ; injection vérifiée en vrai : AVERTISSEMENT (VIT20) dans la carte rechargée</span></details>
+        <span class="cout mono">≈8,0M (8 046 127) · 49 tours · 3,90 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">VIT21</span></span>
+        <details open><summary><span class="titre">Le mutant visé sur son groupe, par défaut</span><span class="etat">En cours · VIT22 peut partir en même temps</span></summary>
         <span class="note">Le mutant ne rejoue que le groupe de son contrôle, par défaut (105 s → ≈ 6 s mesurés à VIT13). Dépend de rien.</span></details></li>
       <li class="fiche"><span class="gauche"><span class="id">VIT22</span></span>
-        <details><summary><span class="titre">Raccourcir test-boucle</span><span class="etat">À lancer · en même temps que VIT20</span></summary>
+        <details><summary><span class="titre">Raccourcir test-boucle</span><span class="etat">À lancer · en même temps que VIT21</span></summary>
         <span class="note">test-boucle, qui fixe la durée de la suite (176 s), raccourci sans retirer un contrôle. Dépend de rien.</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">VIT23</span></span>
         <details><summary><span class="titre">Un contrôle rapide avant la suite entière</span><span class="etat">Après VIT21</span></summary>
@@ -126,7 +127,7 @@
         <span class="note">L'effort mesuré (Max, xhigh, high, medium) sur 3 fiches ; coût montré et oui de l'utilisateur avant tout essai. Dépend de VIT19 à VIT24.</span></details></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : 0 · 0 tours · 0,00 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈354,6M (354 582 260) · 1788 tours · 199,66 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈363,2M (363 153 326) · 1840 tours · 203,78 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -143,21 +144,22 @@
     <h2>Journal des décisions</h2>
     <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
     <ul class="journal">
-      <li><time datetime="2026-10-04">2026-10-04</time><span>VIT15 : le compte ast égale ruff sur tout le kit (794/794) ; une sous-commande neuve de vlp.py passe par options_&lt;commande&gt; et PAR_ARGUMENTS, main et repartir étant au-dessus des seuils ; qui lance sante --base en fin de fiche reste à trancher (méthode, n° 99)</span></li>
       <li><time datetime="2026-10-04">2026-10-04</time><span>VIT2 : la copie du mutant garde context AI/ (NIV1 et JUG2 lisent le vrai dépôt) ; une copie peut rester après taskkill, effacer_copie réessaie 2 s</span></li>
       <li><time datetime="2026-10-04">2026-10-04</time><span>VIT5 : une fonction déplacée et touchée à la fois paraît neuve au cliquet ; déplacer d'abord (sante --base), toucher ensuite</span></li>
+      <li><time datetime="2026-10-06">2026-10-06</time><span>VIT20 : l'injection ! d'une skill voit CLAUDE_CODE_SESSION_ID (carte de /vlp:tache rechargée : AVERTISSEMENT (VIT20)) ; sous --nuit la carte se tait, la boucle note l'id de clore avant sa session</span></li>
     </ul>
-    <details class="journal-ancien"><summary>2 entrées plus anciennes</summary>
+    <details class="journal-ancien"><summary>3 entrées plus anciennes</summary>
     <ul class="journal">
       <li><time datetime="2026-10-04">2026-10-04</time><span>plan revu après VIT1 : VIT4 retirée, ≈ 4 à 6 s par suite et rien après VIT7 (D1) ; VIT14 ajoutée, deux cas de clôture fragiles sous charge (D2) ; VIT2 passe tester_boucle() en dernier ; VIT13 nomme ses dépendances</span></li>
       <li><time datetime="2026-10-04">2026-10-04</time><span>critères de code sain tranchés (page des critères) : cliquet, docstring de toute fonction touchée, tests sans longueur ; outil : ruff s'il est là, d'où VIT15, ajoutée avant VIT2</span></li>
+      <li><time datetime="2026-10-04">2026-10-04</time><span>VIT15 : le compte ast égale ruff sur tout le kit (794/794) ; une sous-commande neuve de vlp.py passe par options_&lt;commande&gt; et PAR_ARGUMENTS, main et repartir étant au-dessus des seuils ; qui lance sante --base en fin de fiche reste à trancher (méthode, n° 99)</span></li>
     </ul>
     </details>
   </section>
 
   <footer>
     <span>Fichier de fiches : <span class="mono">context AI/102-vitesse.md</span></span>
-    <span>Mis à jour le <span class="mono">2026-10-05</span></span>
+    <span>Mis à jour le <span class="mono">2026-10-06</span></span>
   </footer>
 </div>
 <script src="vlp.js"></script>

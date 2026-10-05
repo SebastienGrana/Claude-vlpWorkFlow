@@ -2399,9 +2399,10 @@ def tester_niv1_injection():
         texte = io.open(os.path.join(RACINE, "skills", skill, "SKILL.md"), encoding="utf-8").read()
         lignes_injection.append([l for l in texte.splitlines() if l.startswith("!`") and "vlp.py" in l])
 
-    verifier("NIV1 : une ligne d'injection par skill, les trois identiques",
+    sans_option = [[l.replace(" --session-neuve", "") for l in x] for x in lignes_injection]
+    verifier("NIV1 : une ligne d'injection par skill, les trois identiques (au --session-neuve de tache près, VIT20)",
              [len(x) for x in lignes_injection] == [1, 1, 1]
-             and lignes_injection[0] == lignes_injection[1] == lignes_injection[2],
+             and sans_option[0] == sans_option[1] == sans_option[2],
              repr(lignes_injection))
 
     injection = lignes_injection[0][0]
@@ -2439,6 +2440,75 @@ def tester_niv1_injection():
 
 
 groupe(tester_niv1_injection)
+
+
+# VIT20 — une fiche, une session neuve : la carte de /vlp:tache avertit d'une session déjà notée.
+FICHES_VIT20 = ("# Chantier ZZZ\n\n**Session** : cadre-1\n\n## Le socle commun\n\n"
+                "## ZZZ1 [x] — faite\n**Session** : joue-1\n**Session** : nuit-1 (relecture)\n**Dépend de** : rien.\n---\n"
+                "## ZZZ2 [x] — aussi\n**Session** : joue-1\n---\n## ZZZ3 [ ] — à faire\n")
+AVERTI_VIT20 = ("AVERTISSEMENT: session déjà notée dans ce fichier de fiches (%s) — /clear d'abord : une fiche, "
+                "une session neuve\n")
+
+
+def carte_sous(depart, session=None, nuit=False, argv=None, **options):
+    """Rendre la carte de `depart` sous `CLAUDE_CODE_SESSION_ID=session` (absent si `None`) et `VLP_NUIT=1` si `nuit` :
+    par `main(argv)` si `argv`, sinon par `carte(**options)` ; l'environnement remis sans ces deux variables."""
+    os.environ.pop("CLAUDE_CODE_SESSION_ID", None)
+    if session is not None:
+        os.environ["CLAUDE_CODE_SESSION_ID"] = session
+    if nuit:
+        os.environ["VLP_NUIT"] = "1"
+    s = io.StringIO()
+    try:
+        if argv:
+            for un in argv:
+                mod.main(un, s)
+        else:
+            mod.carte(depart, s, **options)
+    finally:
+        os.environ.pop("CLAUDE_CODE_SESSION_ID", None)
+        os.environ.pop("VLP_NUIT", None)
+    return s.getvalue()
+
+
+def tester_vit20_session_neuve():
+    """Contrôler `carte --session-neuve` : l'avertissement d'une session déjà notée, et rien d'autre (VIT20)."""
+    with tempfile.TemporaryDirectory() as bac:
+        pr = os.path.join(bac, "pr")
+        ecrire(os.path.join(pr, "CHANTIER.md"), CHANTIER % ("pr", "context AI/20-z.md (ZZZ1..ZZZ3)"))
+        ecrire(os.path.join(pr, "context AI", "20-z.md"), FICHES_VIT20)
+        avant = carte_sous(pr)
+        verifier("VIT20 : la carte d'avant, sans id ni option, finit sur PROCHAINE=", avant.endswith("PROCHAINE=ZZZ3\n"), avant)
+        s = carte_sous(pr, "joue-1", neuve=True)
+        verifier("VIT20 : id sur deux fiches cochées → la carte d'avant, puis AVERTISSEMENT: qui les nomme",
+                 s == avant + AVERTI_VIT20 % "ZZZ1, ZZZ2", s)
+        s = carte_sous(pr, "cadre-1", neuve=True)
+        verifier("VIT20 : id sur la ligne du cadrage → AVERTISSEMENT: qui le nomme", s == avant + AVERTI_VIT20 % "cadrage", s)
+        s = carte_sous(pr, "nuit-1", neuve=True)
+        verifier("VIT20 : id d'une ligne à rôle « (relecture) » → l'id seul compte", s == avant + AVERTI_VIT20 % "ZZZ1", s)
+        for sid in (None, "", "   ", "inconnue"):
+            s = carte_sous(pr, sid, neuve=True)
+            verifier("VIT20 : id %r → la carte d'avant, au caractère près" % (sid,), s == avant, s)
+        s = carte_sous(pr, "joue-1")
+        verifier("VIT20 : sans --session-neuve (/vlp:jouer, /vlp:enchainer, /vlp:chantier) → la carte d'avant", s == avant, s)
+        s = carte_sous(pr, "cadre-1", nuit=True, neuve=True)
+        verifier("VIT20 : VLP_NUIT=1 (la nuit note l'id de clore avant sa session) → la carte de nuit d'avant",
+                 s == carte_sous(pr, nuit=True) and "NUIT=1\n" in s, s)
+        injection = [["carte", pr, "--python", "py", "--session-neuve"],
+                     ["carte", pr, "--python", "python3", "--relais", "--session-neuve"]]
+        s = carte_sous(pr, "joue-1", argv=injection)
+        verifier("VIT20 : l'injection par main → PYTHON=py, la carte, l'AVERTISSEMENT: une fois ; le relais se tait",
+                 s == "\nPYTHON=py\n" + avant + AVERTI_VIT20 % "ZZZ1, ZZZ2", s)
+
+    porteurs = sorted(os.path.basename(os.path.dirname(c)) for c in glob.glob(os.path.join(RACINE, "skills", "*", "SKILL.md"))
+                      if "--session-neuve" in io.open(c, encoding="utf-8").read())
+    tache = io.open(os.path.join(RACINE, "skills", "tache", "SKILL.md"), encoding="utf-8").read()
+    ligne = next((l for l in tache.splitlines() if l.startswith("!`") and "vlp.py" in l), "")
+    verifier("VIT20 : --session-neuve sur les trois appels de l'injection de /vlp:tache, dans aucune autre skill",
+             porteurs == ["tache"] and ligne.count("--session-neuve") == 3, (porteurs, ligne))
+
+
+groupe(tester_vit20_session_neuve)
 
 # --- NIV2 : `niveau` dit en quoi un projet équipé a dérivé du kit -------------
 

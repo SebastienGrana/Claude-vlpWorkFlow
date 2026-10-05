@@ -305,7 +305,9 @@ def fiches(chemin):
     return len(lignes), titres, prochaine
 
 
-def carte(depart, sortie, relecteur=False):
+def carte(depart, sortie, relecteur=False, neuve=False):
+    """Écrire la carte du projet qui contient `depart`, ligne à ligne comme le dit la docstring de `vlp.py` ; `neuve`
+    (`--session-neuve`, `/vlp:tache` seule) y ajoute l'avertissement d'`avertir_session` (VIT20)."""
     racine = trouver(depart)
     if racine is None:
         voisins = sorted(os.path.join(v, "CHANTIER.md") for v in glob.glob(os.path.join(os.path.abspath(depart), "*"))
@@ -363,14 +365,43 @@ def carte(depart, sortie, relecteur=False):
     for i, l in titres:
         sortie.write("%d:%s\n" % (i, l))
     sortie.write("PROCHAINE=%s\n" % (prochaine or "aucune"))
+    avertir_session(os.path.join(racine, courant), neuve, sortie)
     return 0
+
+
+def places_de_session(lignes, session):
+    """Rendre où `session` a une ligne `**Session**` dans le fichier de fiches `lignes`, dans l'ordre et sans doublon :
+    `cadrage` avant le premier titre de fiche (`ouvrir`), sinon l'identifiant de la fiche dont le titre précède."""
+    places, ici = [], "cadrage"
+    for l in lignes:
+        m = SESSION.match(l)
+        if TITRE.match(l):
+            ici = l.split()[1]
+        elif m and m.group(1) == session and ici not in places:
+            places.append(ici)
+    return places
+
+
+def avertir_session(chemin, neuve, sortie):
+    """Écrire `AVERTISSEMENT:` quand `neuve` et que la session de `CLAUDE_CODE_SESSION_ID` est déjà notée dans le
+    fichier de fiches `chemin` — au cadrage ou sous une fiche : une fiche, une session neuve (VIT20). Id vide ou
+    absent : rien. `VLP_NUIT=1` : rien — la nuit note elle-même l'id de la session `clore` avant de la lancer."""
+    s = os.environ.get("CLAUDE_CODE_SESSION_ID", "").strip()
+    if not neuve or not s or os.environ.get("VLP_NUIT") == "1":
+        return
+    places = places_de_session(lignes_de(chemin), s)
+    if places:
+        sortie.write("AVERTISSEMENT: session déjà notée dans ce fichier de fiches (%s) — /clear d'abord : une fiche, "
+                     "une session neuve\n" % ", ".join(places))
 
 
 RELAIS_SECONDES = 30
 
 
-def carte_injectee(depart, python, relais, sortie, relecteur=False):
-    """La carte d'une injection `py … --python py; python3 … --relais; py … --relais; echo fin` (chantier Y, Y1 ; ordre inversé en U4 : sous Windows le message du raccourci
+def carte_injectee(depart, python, relais, sortie, **options):
+    """Écrire la carte d'une injection ; `options` passent à `carte` (`relecteur`, `neuve`).
+
+    L'injection : `py … --python py; python3 … --relais; py … --relais; echo fin` (chantier Y, Y1 ; ordre inversé en U4 : sous Windows le message du raccourci
     Store de `python3` tombe après la carte, sous Ubuntu « py: command not found » avant ; le 3e appel remet
     à 0 le `$LASTEXITCODE` de PowerShell, que `echo` ne touche pas) : une ligne vide d'abord,
     `PYTHON=<nom>` pour le corps de la skill, et rien au relais si le premier lancement a déjà écrit la carte.
@@ -398,7 +429,15 @@ def carte_injectee(depart, python, relais, sortie, relecteur=False):
         except OSError:
             pass
     sortie.write("\nPYTHON=%s\n" % python)
-    return carte(depart, sortie, relecteur)
+    return carte(depart, sortie, **options)
+
+
+def cmd_carte(a, sortie):
+    """Lancer `vlp.py carte` : injectée avec `--python`, nue sinon."""
+    depart = a.dossier or os.getcwd()
+    if a.python:
+        return carte_injectee(depart, a.python, a.relais, sortie, relecteur=a.relecteur, neuve=a.session_neuve)
+    return carte(depart, sortie, a.relecteur, a.session_neuve)
 
 
 # --- extraire, socle, sessions -----------------------------------------------
@@ -7905,6 +7944,16 @@ def options_outils(sous):
     sy.add_argument("noms", nargs="*")
 
 
+def options_carte(sous):
+    """Déclarer la ligne de commande de `carte`."""
+    c = sous.add_parser("carte")
+    c.add_argument("dossier", nargs="?", default=None)
+    c.add_argument("--python")
+    c.add_argument("--relais", action="store_true")
+    c.add_argument("--relecteur", action="store_true")
+    c.add_argument("--session-neuve", action="store_true")
+
+
 def options_mesure(sous):
     """Déclarer les lignes de commande de `cout` et de `compteur`."""
     co = sous.add_parser("cout")
@@ -7948,11 +7997,7 @@ def main(argv, sortie=None, entree=None, erreur=None):
     sortie = sortie or sys.stdout
     p = argparse.ArgumentParser(prog="vlp.py", description="La mécanique du kit vlp.")
     sous = p.add_subparsers(dest="cmd", required=True)
-    c = sous.add_parser("carte")
-    c.add_argument("dossier", nargs="?", default=None)
-    c.add_argument("--python")
-    c.add_argument("--relais", action="store_true")
-    c.add_argument("--relecteur", action="store_true")
+    options_carte(sous)
     e = sous.add_parser("extraire")
     e.add_argument("fichier")
     e.add_argument("fiche")
@@ -8127,7 +8172,7 @@ PAR_ARGUMENTS = {
     "ouvrir": cmd_ouvrir, "clore": cmd_clore, "archiver": cmd_archiver, "trier": cmd_trier, "feuille": cmd_feuille,
     "niveau": cmd_niveau, "comparer": cmd_comparer, "relecture": cmd_relecture, "contrat": cmd_contrat,
     "forme": cmd_forme, "ouverts": cmd_ouverts, "plan": cmd_plan, "matin": cmd_matin, "fusionner": cmd_fusionner,
-    "sante": cmd_sante, "symboles": cmd_symboles, "compteur": cmd_compteur,
+    "sante": cmd_sante, "symboles": cmd_symboles, "compteur": cmd_compteur, "carte": cmd_carte,
 }
 
 
@@ -8156,10 +8201,6 @@ def repartir(a, sortie, entree, erreur):
         if a.page is None:
             a.page = page_du_fichier(a.fichier)
         return cmd_page(a, sortie)
-    if a.cmd == "carte":
-        if a.python:
-            return carte_injectee(a.dossier or os.getcwd(), a.python, a.relais, sortie, a.relecteur)
-        return carte(a.dossier or os.getcwd(), sortie, a.relecteur)
     if a.cmd == "valider":
         return cmd_valider(a.fichiers, sortie, a.plan)
     if a.cmd == "equiper":
