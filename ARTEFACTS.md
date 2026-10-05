@@ -183,6 +183,21 @@ Tranché le 2026-09-26 par le chantier `ALE` ; chiffres et commandes dans
   et `FEU` ne l'attendent pas : ils restent en HTML statique, et le `.md` reste
   la source ; un chantier à part passera les données en base.
 
+## La lecture — tranchée une fois, écrite dans les gabarits
+
+Choix de l'utilisateur, tranchés un à un le 2026-10-05 pour lire plus vite et
+plus longtemps : clair seulement, contraste adouci, Atkinson Hyperlegible à
+18 px espacée de 0,05 em, rien sous 15 px, aucun texte en capitales, nombres
+et dates jamais coupés. Les valeurs vivent dans `templates/vlp.css` (son
+commentaire de tête les résume) et dans `templates/rapport-choix.html`, qui a
+sa propre palette ; ailleurs, on renvoie à ces deux fichiers.
+
+- **Pas de thème sombre**, même en option : ne pas en rajouter un.
+- **Une page neuve part d'un gabarit de `templates/`**, jamais d'un style
+  écrit à la main.
+- **Les espaces insécables se posent à l'affichage**, par `vlp.js` : les
+  lectures de `vlp.py` attendent des espaces ordinaires dans la page.
+
 ## Les commentaires — le canal de retour
 
 Les artefacts acceptent des fils de commentaires. C'est là que se posent les
