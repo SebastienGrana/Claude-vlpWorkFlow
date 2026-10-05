@@ -3544,7 +3544,7 @@ def tester_pre_commit():
                        GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t")
             ecrire(env["GIT_CONFIG_GLOBAL"], "")
             depot = os.path.join(t, "plugin")
-            for nom in (".claude-plugin", ".githooks", "agents", "hooks", "skills"):
+            for nom in (".claude-plugin", ".githooks", "agents", "hooks", "scripts", "skills"):
                 shutil.copytree(os.path.join(RACINE, nom), os.path.join(depot, nom))
             shutil.copy(os.path.join(RACINE, ".gitattributes"), depot)
             for dossier, _, noms in os.walk(depot):
@@ -3561,19 +3561,16 @@ def tester_pre_commit():
 
             git("init", "-q")
             git("config", "core.hooksPath", ".githooks")
+            # Le hook lance `scripts/vlp.py claude` (VIT19) ; hors suivi, ses .py ne réveillent pas pyright.
+            ecrire(os.path.join(depot, ".git", "info", "exclude"), "scripts/\n")
             git("add", "-A")
             code, s = git("commit", "-q", "-m", "copie")
-            # L'app Claude en MSIX : son claude.exe n'est dans %APPDATA% que pour les processus qu'elle lance.
-            paquet = os.environ.get("LOCALAPPDATA") and glob.glob(os.path.join(
-                os.environ["LOCALAPPDATA"], "Packages", "Claude_*", "LocalCache", "Roaming", "Claude", "claude-code", "*",
-                "claude.exe"))
-            if not paquet:
-                print("SAUTÉ: pas de claude.exe sous Packages\\Claude_* — la recherche hors de l'app n'est pas testée")
+            # Le claude que le hook trouve, ce test le demande au même `vlp.py claude`, sans recopier où l'app le range.
+            _, trouve = appel(["claude"])
+            if not trouve.startswith("CLAUDE "):
+                print("SAUTÉ: %s — le hook pre-commit n'est pas testé" % trouve.strip())
             else:
-                verifier("hook : claude trouvé hors de l'app", "validate sauté" not in s, s)
-            if "validate sauté" in s:
-                print("SAUTÉ: claude introuvable — le hook pre-commit n'est pas testé")
-            else:
+                verifier("hook : claude trouvé, validate lancé", "validate sauté" not in s, s)
                 verifier("hook : une copie en CRLF passe", code == 0, s)
                 ecrire(os.path.join(depot, ".claude-plugin", "plugin.json"), "{")
                 git("add", "-A")
@@ -3912,10 +3909,24 @@ def test_claude():
             os.environ.pop("VLP_CLAUDE")
             os.environ["APPDATA"] = os.path.join(tcl, "vide")
             code, s = appel(["claude"])
-            verifier("claude : rien trouvé → GARDE, sort 1", code == 1 and s.startswith("GARDE:"), s)
+            verifier("claude : rien trouvé → GARDE, sort 1", code == 1 and s.startswith("GARDE: claude.exe introuvable"),
+                     s)
             code, s = appel(["bac", os.path.join(tcl, "bac2")])
             verifier("claude : bac sans claude sort 0, GARDE puis SESSION claude", code == 0
                      and 'GARDE: claude.exe introuvable' in s and s.endswith('; & "claude"\n'), s)
+            # VIT19 : l'app range claude.exe un dossier plus bas, sous une empreinte ; la version reste au-dessus
+            faux("loc2", *paquet[1:], "2.1.99")
+            p288 = faux("loc2", *paquet[1:], "2.1.288", "36aa8c97bf86")
+            os.environ["LOCALAPPDATA"] = os.path.join(tcl, "loc2")
+            code, s = appel(["claude"])
+            verifier("claude : à la seconde profondeur, 2.1.288 avant 2.1.99", code == 0 and s == "CLAUDE %s\n" % p288, s)
+            sans_exe = os.path.join(tcl, "app2", "Claude", "claude-code")
+            os.makedirs(os.path.join(sans_exe, "2.1.288", "36aa8c97bf86"))
+            os.environ["LOCALAPPDATA"] = os.path.join(tcl, "vide")
+            os.environ["APPDATA"] = os.path.join(tcl, "app2")
+            code, s = appel(["claude"])
+            verifier("claude : l'app sans claude.exe → sa GARDE, le dossier nommé, sort 1", code == 1
+                     and s.startswith("GARDE: claude.exe absent de l'app") and sans_exe in s, s)
         finally:
             for n, v in avant.items():
                 if v is None:
@@ -5249,33 +5260,43 @@ def tester_liens():
 groupe(tester_liens)
 
 
+def hook_isole(t):
+    """Rendre un dépôt neuf sous `t`, le hook du kit branché et `scripts/` copié hors suivi (le hook y lance
+    `vlp.py claude`, VIT19), le PATH sans pyright ni claude, et `git(chemins, *args, **env)` : claude caché,
+    APPDATA et LOCALAPPDATA vides sauf `env`."""
+    depot = os.path.join(t, "depot")
+    for nom in (".githooks", "scripts"):
+        shutil.copytree(os.path.join(RACINE, nom), os.path.join(depot, nom))
+    sans = [d for d in os.environ.get("PATH", "").split(os.pathsep)
+            if d and not shutil.which("pyright", path=d) and not shutil.which("claude", path=d)]
+    base = dict(os.environ, GIT_CONFIG_GLOBAL=os.path.join(t, "gitconfig"), GIT_CONFIG_NOSYSTEM="1",
+                GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t",
+                APPDATA="", LOCALAPPDATA="")
+    ecrire(base["GIT_CONFIG_GLOBAL"], "")
+
+    def git(chemins, *args, **env):
+        r = subprocess.run(["git"] + list(args), cwd=depot, env=dict(base, PATH=os.pathsep.join(chemins), **env),
+                           capture_output=True, encoding="utf-8", errors="replace")
+        return r.returncode, r.stdout + r.stderr
+
+    git(sans, "init", "-q")
+    git(sans, "config", "core.hooksPath", ".githooks")
+    ecrire(os.path.join(depot, ".git", "info", "exclude"), "scripts/\n")
+    return depot, sans, git
+
+
 def tester_hook_pyright():
-    # TYP1 : le hook lance pyright quand un .py est indexé. claude caché (APPDATA, LOCALAPPDATA vides, PATH
-    # sans lui), le vrai pyright aussi : un faux, en tête du PATH, sort 1.
+    # TYP1 : le hook lance pyright quand un .py est indexé. claude caché (`hook_isole`), le vrai pyright aussi :
+    # un faux, en tête du PATH, sort 1.
     if not shutil.which("git"):
         print("SAUTÉ: git absent — le bloc pyright du hook n'est pas testé")
         return
     with tempfile.TemporaryDirectory() as t:
-        depot = os.path.join(t, "depot")
-        shutil.copytree(os.path.join(RACINE, ".githooks"), os.path.join(depot, ".githooks"))
+        depot, sans, git = hook_isole(t)
         faux = os.path.join(t, "faux")
         os.mkdir(faux)
         ecrire(os.path.join(faux, "pyright"), '#!/bin/sh\necho "faux pyright : 1 error"\nexit 1\n')
         os.chmod(os.path.join(faux, "pyright"), 0o755)
-        sans = [d for d in os.environ.get("PATH", "").split(os.pathsep)
-                if d and not shutil.which("pyright", path=d) and not shutil.which("claude", path=d)]
-        base = dict(os.environ, GIT_CONFIG_GLOBAL=os.path.join(t, "gitconfig"), GIT_CONFIG_NOSYSTEM="1",
-                    GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t",
-                    APPDATA="", LOCALAPPDATA="")
-        ecrire(base["GIT_CONFIG_GLOBAL"], "")
-
-        def git(chemins, *args):
-            r = subprocess.run(["git"] + list(args), cwd=depot, env=dict(base, PATH=os.pathsep.join(chemins)),
-                               capture_output=True, encoding="utf-8", errors="replace")
-            return r.returncode, r.stdout + r.stderr
-
-        git(sans, "init", "-q")
-        git(sans, "config", "core.hooksPath", ".githooks")
         ecrire(os.path.join(depot, "a.md"), "a\n")
         git(sans, "add", "a.md")
         code, s = git([faux] + sans, "commit", "-q", "-m", "md")
@@ -5291,6 +5312,30 @@ def tester_hook_pyright():
 
 
 groupe(tester_hook_pyright)
+
+
+def tester_hook_claude():
+    # VIT19 : le hook demande claude à `vlp.py claude`. L'app là sans son claude.exe refuse le commit, en le
+    # disant ; ni app ni claude, il passe averti. claude trouvé, validate lancé : `tester_pre_commit`.
+    if not shutil.which("git"):
+        print("SAUTÉ: git absent — le bloc claude du hook n'est pas testé")
+        return
+    with tempfile.TemporaryDirectory() as t:
+        depot, sans, git = hook_isole(t)
+        app = os.path.join(t, "loc", "Packages", "Claude_x1", "LocalCache", "Roaming", "Claude", "claude-code")
+        os.makedirs(os.path.join(app, "2.1.288", "36aa8c97bf86"))
+        ecrire(os.path.join(depot, "a.md"), "a\n")
+        git(sans, "add", "a.md")
+        code, s = git(sans, "commit", "-q", "-m", "md", LOCALAPPDATA=os.path.join(t, "loc"))
+        verifier("hook claude : l'app sans claude.exe refuse le commit, en le disant", code == 1
+                 and "GARDE: claude.exe absent de l'app" in s and app in s
+                 and "pre-commit : l'app Claude est là sans claude.exe trouvé, validate impossible, commit refusé." in s, s)
+        code, s = git(sans, "commit", "-q", "-m", "md")
+        verifier("hook claude : ni app ni claude, le commit passe averti", code == 0
+                 and "pre-commit : claude introuvable, ni dans le PATH ni dans l'app, validate sauté." in s, s)
+
+
+groupe(tester_hook_claude)
 
 
 def tester_contrat_ouverture():

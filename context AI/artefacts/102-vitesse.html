@@ -21,9 +21,9 @@
     <p>Coder plus vite et mieux. Une fiche attend moins ses tests et lit moins de contexte — mesuré avant (VIT1) et après (VIT13) — sans qu'un seul contrôle soit retiré ; le code qu'elle laisse est sain, facile à maintenir et documenté.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">23 fiches · 16 faites · en cours : VIT19</p>
+    <p class="mono" style="margin-top:.5rem">23 fiches · 17 faites · en cours : VIT20</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -102,17 +102,18 @@
         <details><summary><span class="titre">Le rapport : ce que VIT a gagné, et les pistes pour gagner plus</span><span class="etat">Faite</span></summary>
         <span class="note">Page publiée, vigile PAGE SAINE 109 blocs, 15 cartes ; lien dans l'entrée « VIT18 — le rapport » de 08-etat.md, une ligne par carte (15) ; 8 gains en comptes bruts en haut ; chaque piste a sa source ; copier : 17 lignes (en-tête, Q1 à Q15, une note), repli de sélection dans l'aperçu ; à côté, le rapport MET : 10 cartes, relu par 3 sous-agents, 46,01 $ ; suite OK en 223 s (2 SAUTÉ connus)</span></details>
         <span class="cout mono">≈144,7M (144 688 075) · 769 tours · 83,02 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">VIT19</span></span>
-        <details open><summary><span class="titre">Le contrôle avant commit ne laisse plus passer</span><span class="etat">En cours · VIT22 peut partir en même temps</span></summary>
-        <span class="note">Le contrôle avant commit trouve claude là où l'app le range, et refuse quand l'app est là sans lui. Dépend de rien.</span></details></li>
-      <li class="fiche"><span class="gauche"><span class="id">VIT20</span></span>
-        <details><summary><span class="titre">La carte avertit d'une session qui a déjà joué une fiche</span><span class="etat">À lancer</span></summary>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">VIT19</span></span>
+        <details><summary><span class="titre">Le contrôle avant commit ne laisse plus passer</span><span class="etat">Faite</span></summary>
+        <span class="note">vlp.py claude → CLAUDE …/2.1.288/36aa8c97bf86/claude.exe ; 3 cas faits main verts (seconde profondeur trouvée ; app sans exe → hook sorti 1, raison dite ; rien → averti, sorti 0) ; test du hook sans SAUTÉ ; suite OK, verifier( 798 → 802 ; 2 mutants attrapés ; pyright 0 ; cliquet tenu, 3 améliorées</span></details>
+        <span class="cout mono">≈20,8M (20 845 366) · 108 tours · 16,77 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">VIT20</span></span>
+        <details open><summary><span class="titre">La carte avertit d'une session qui a déjà joué une fiche</span><span class="etat">En cours · VIT22 peut partir en même temps</span></summary>
         <span class="note">La carte de /vlp:tache avertit quand la session a déjà joué une fiche : /clear d'abord. Dépend de rien.</span></details></li>
       <li class="fiche"><span class="gauche"><span class="id">VIT21</span></span>
         <details><summary><span class="titre">Le mutant visé sur son groupe, par défaut</span><span class="etat">À lancer</span></summary>
         <span class="note">Le mutant ne rejoue que le groupe de son contrôle, par défaut (105 s → ≈ 6 s mesurés à VIT13). Dépend de rien.</span></details></li>
       <li class="fiche"><span class="gauche"><span class="id">VIT22</span></span>
-        <details><summary><span class="titre">Raccourcir test-boucle</span><span class="etat">À lancer · en même temps que VIT19</span></summary>
+        <details><summary><span class="titre">Raccourcir test-boucle</span><span class="etat">À lancer · en même temps que VIT20</span></summary>
         <span class="note">test-boucle, qui fixe la durée de la suite (176 s), raccourci sans retirer un contrôle. Dépend de rien.</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">VIT23</span></span>
         <details><summary><span class="titre">Un contrôle rapide avant la suite entière</span><span class="etat">Après VIT21</span></summary>
@@ -121,11 +122,11 @@
         <details><summary><span class="titre">test-mesure-tokens.py dans la suite, py -3 dans les commandes</span><span class="etat">À lancer</span></summary>
         <span class="note">test-mesure-tokens joué par la suite ; py -3 dans les 8 commandes (−77 ms par appel). Dépend de rien.</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">VIT25</span></span>
-        <details><summary><span class="titre">Mesurer l'effort du modèle sur 3 fiches</span><span class="etat">Après VIT19, VIT24</span></summary>
+        <details><summary><span class="titre">Mesurer l'effort du modèle sur 3 fiches</span><span class="etat">Après VIT24</span></summary>
         <span class="note">L'effort mesuré (Max, xhigh, high, medium) sur 3 fiches ; coût montré et oui de l'utilisateur avant tout essai. Dépend de VIT19 à VIT24.</span></details></li>
     </ul>
-    <p class="mono cout-hors">Hors fiches : ≈5,2M (5 237 599) · 15 tours · 7,19 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈339,0M (338 974 493) · 1695 tours · 190,08 $</p>
+    <p class="mono cout-hors">Hors fiches : 0 · 0 tours · 0,00 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈354,6M (354 582 260) · 1788 tours · 199,66 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

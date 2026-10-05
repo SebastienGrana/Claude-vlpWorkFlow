@@ -6341,37 +6341,55 @@ BAC_COMMANDES = (
 
 
 CLAUDE_ABSENT = "GARDE: claude.exe introuvable — PATH, Packages et APPDATA vus\n"
+# Le pre-commit refuse le commit sur ce début de ligne, et laisse passer sur celui de CLAUDE_ABSENT (VIT19).
+CLAUDE_SANS_EXE = "GARDE: claude.exe absent de l'app Claude — cherché à */ et à */*/ sous %s\n"
+# L'app Claude : Packages d'abord — l'app du Store, vue d'un terminal comme de l'app —, puis `%APPDATA%`, vue de
+# l'app seule (REG3).
+CLAUDE_APP = (("LOCALAPPDATA", ("Packages", "Claude_*", "LocalCache", "Roaming", "Claude")), ("APPDATA", ("Claude",)))
+
+
+def dossiers_claude_code():
+    """Rendre les dossiers `claude-code` de l'app Claude, une liste par racine de `CLAUDE_APP`, dans son ordre ; une
+    variable absente ou une app absente rend une liste vide (VIT19)."""
+    return [glob.glob(os.path.join(os.environ[v], *parties, "claude-code")) if os.environ.get(v) else []
+            for v, parties in CLAUDE_APP]
+
+
+def version_claude(dossier, chemin):
+    """Rendre la version de `chemin`, lue au dossier juste sous `dossier` (`claude-code/<version>/…`), en nombres :
+    2.1.99 passe avant 2.1.280 (CLI) ; l'empreinte que l'app range dessous (VIT19) n'y compte pas."""
+    nom = os.path.relpath(chemin, dossier).split(os.sep)[0]
+    return [int(x) if x.isdigit() else 0 for x in nom.split(".")]
 
 
 def trouver_claude():
-    """Le `claude` du kit (chantier CLI) : `VLP_CLAUDE`, le PATH, puis la plus haute version sous
-    `Packages` — l'app du Store, vue d'un terminal comme de l'app —, puis sous `%APPDATA%`, vue de
-    l'app seule (REG3)."""
+    """Rendre le `claude` du kit (chantier CLI) : `VLP_CLAUDE`, le PATH, puis la plus haute version de l'app, racine
+    par racine (`CLAUDE_APP`) — à `claude-code/<version>/` comme à `claude-code/<version>/<empreinte>/` (VIT19) —,
+    sinon None."""
     import shutil
     if os.environ.get("VLP_CLAUDE"):
         return os.environ["VLP_CLAUDE"]
     sur_path = shutil.which("claude")
     if sur_path:
         return sur_path
-
-    def version(p):
-        return [int(x) if x.isdigit() else 0 for x in os.path.basename(os.path.dirname(p)).split(".")]
-    for variable, dossiers in (("LOCALAPPDATA", ("Packages", "Claude_*", "LocalCache", "Roaming", "Claude")),
-                               ("APPDATA", ("Claude",))):
-        racine = os.environ.get(variable)
-        trouves = glob.glob(os.path.join(racine, *dossiers, "claude-code", "*", "claude.exe")) if racine else []
+    for dossiers in dossiers_claude_code():
+        trouves = [(d, p) for d in dossiers for motif in ("*", os.path.join("*", "*"))
+                   for p in glob.glob(os.path.join(d, motif, "claude.exe"))]
         if trouves:
-            return max(trouves, key=version)
+            return max(trouves, key=lambda t: version_claude(*t))[1]
     return None
 
 
 def cmd_claude(sortie):
+    """Imprimer `CLAUDE <chemin>` et rendre 0 ; sinon une `GARDE:` et rendre 1 — `CLAUDE_SANS_EXE` si l'app est là
+    sans son `claude.exe`, que le pre-commit refuse, `CLAUDE_ABSENT` sinon, qu'il laisse passer (VIT19)."""
     chemin = trouver_claude()
-    if not chemin:
-        sortie.write(CLAUDE_ABSENT)
-        return 1
-    sortie.write("CLAUDE %s\n" % chemin)
-    return 0
+    if chemin:
+        sortie.write("CLAUDE %s\n" % chemin)
+        return 0
+    app = [d for dossiers in dossiers_claude_code() for d in dossiers]
+    sortie.write(CLAUDE_SANS_EXE % " et ".join(app) if app else CLAUDE_ABSENT)
+    return 1
 
 
 def cmd_bac(dossier, sortie):

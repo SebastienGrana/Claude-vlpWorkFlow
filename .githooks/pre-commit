@@ -17,24 +17,34 @@ if git diff --cached --name-only --diff-filter=ACMR | grep -q '\.py$'; then
   fi
 fi
 
-# claude : celui du PATH, sinon celui de l'app Claude sous Windows (chantier VAL).
-claude_exe=
-if command -v claude >/dev/null 2>&1; then
-  claude_exe="claude"
-elif [ -n "$LOCALAPPDATA" ]; then
-  # L'app Claude en MSIX range claude-code dans son dossier de paquet : %APPDATA% ne le montre qu'aux
-  # processus qu'elle lance — ni à un terminal, ni à un Python d'un autre paquet (chantier REV).
-  # Packages d'abord, vu de partout ; même ordre que `vlp.py claude` (chantier CLI).
-  # La plus haute version : sort -V, car un tri alphabétique met 2.1.99 après 2.1.280.
-  claude_exe=$(ls -d "$LOCALAPPDATA"/Packages/Claude_*/LocalCache/Roaming/Claude/claude-code/*/claude.exe 2>/dev/null | sort -V | tail -1)
-fi
-if [ -z "$claude_exe" ] && [ -n "$APPDATA" ]; then
-  claude_exe=$(ls -d "$APPDATA"/Claude/claude-code/*/claude.exe 2>/dev/null | sort -V | tail -1)
-fi
-if [ -z "$claude_exe" ]; then
-  echo "pre-commit : claude introuvable, ni dans le PATH ni dans l'app, validate sauté." >&2
+# claude : demandé à `vlp.py claude`, seule recherche du kit — PATH, puis l'app Claude sous Windows (chantiers VAL,
+# CLI, VIT19). `py -3` d'abord : le `python3` du Store voit un AppData virtualisé, sans l'app (`claude_de`, boucle.py).
+if command -v py >/dev/null 2>&1; then
+  python="py -3"
+elif command -v python3 >/dev/null 2>&1; then
+  python=python3
+else
+  echo "pre-commit : Python introuvable, claude non cherché, validate sauté." >&2
   exit 0
 fi
+trouve=$($python "$racine/scripts/vlp.py" claude 2>&1 | tr -d '\r')
+case $trouve in
+  "CLAUDE "*)
+    claude_exe=${trouve#CLAUDE } ;;
+  "GARDE: claude.exe introuvable"*)
+    # Ni app ni claude : un clone chez quelqu'un sans Claude passe, averti.
+    echo "pre-commit : claude introuvable, ni dans le PATH ni dans l'app, validate sauté." >&2
+    exit 0 ;;
+  "GARDE: claude.exe absent de l'app"*)
+    # L'app est là, son claude.exe ailleurs que prévu : refusé, jamais sauté en silence (VIT19).
+    printf '%s\n' "$trouve" >&2
+    echo "pre-commit : l'app Claude est là sans claude.exe trouvé, validate impossible, commit refusé." >&2
+    exit 1 ;;
+  *)
+    printf '%s\n' "$trouve" >&2
+    echo "pre-commit : vlp.py claude en erreur, commit refusé." >&2
+    exit 1 ;;
+esac
 
 # plugin.json d'abord : valider marketplace.json le relit, et nommerait le mauvais fichier (chantier REV).
 for m in .claude-plugin/plugin.json .claude-plugin/marketplace.json; do

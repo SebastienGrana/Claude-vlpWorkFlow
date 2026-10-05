@@ -448,9 +448,11 @@ Sous-commandes :
   puis `SESSION Set-Location "<dossier>"; & "<claude>"` : la ligne PowerShell qui ouvre une session
   dans le bac, avec le chemin de `claude` (`claude` seul, après la `GARDE:` de `claude`, s'il manque).
 - `claude` — le `claude` que le kit lance : `VLP_CLAUDE`, sinon le PATH, sinon la plus haute version
-  (comparée en nombres) de `%LOCALAPPDATA%/Packages/Claude_*/LocalCache/Roaming/Claude/claude-code/*/claude.exe`
-  — l'app du Store, vue d'un terminal comme de l'app —, sinon de `%APPDATA%/Claude/claude-code/*/`,
-  vue de l'app seule. `CLAUDE <chemin>`, ou `GARDE: claude.exe introuvable…`, sort 1 (chantier CLI).
+  (comparée en nombres) sous `%LOCALAPPDATA%/Packages/Claude_*/LocalCache/Roaming/Claude/claude-code/`
+  — l'app du Store, vue d'un terminal comme de l'app —, sinon sous `%APPDATA%/Claude/claude-code/`,
+  vue de l'app seule : `claude.exe` à `<version>/` comme à `<version>/<empreinte>/` (VIT19).
+  `CLAUDE <chemin>` (chantier CLI) ; sinon sort 1 : `GARDE: claude.exe absent de l'app…` si un dossier
+  `claude-code` existe — le pre-commit refuse alors le commit —, `GARDE: claude.exe introuvable…` sinon.
 - `transcription <jsonl>` — compte la transcription d'un sous-agent, une clé par ligne : `TOURS=`
   (`message.id` distincts porteurs d'`usage`, comme `comptoir_tours`), `APPELS=<n> — <outil> <n>, …`,
   `AVERTISSEMENTS=`, `AVERTIS_PAR_TOUR=<tour>:<n>,…` (tour de l'appel que désigne le `toolUseID`,

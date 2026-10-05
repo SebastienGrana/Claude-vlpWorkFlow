@@ -542,8 +542,9 @@ navigateur intégré).
 ---
 
 <!-- FICHE:VIT19 -->
-## VIT19 [ ] — Le contrôle avant commit ne laisse plus passer
+## VIT19 [x] — Le contrôle avant commit ne laisse plus passer
 
+**Session** : 42ecf5f1-631e-44ba-acf8-9fbab5d27430
 **Dépend de** : rien.
 **Fichiers** : `.githooks/pre-commit`, `scripts/vlp_coeur.py` (`trouver_claude`, `cmd_claude`), `scripts/vlp.py` (sa
 docstring), `scripts/test-vlp.py`.
