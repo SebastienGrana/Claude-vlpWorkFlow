@@ -34,9 +34,10 @@ demande un : le script crée et retire les copies. **Rien ne s'écrit sous `PROJ
    encore). Dans APRÈS, la suite **entière** : `OK`.
 4. En dernier, dans APRÈS : le mutant que nomme le critère, jamais par `Edit` —
    `<python> "<vlp.py>" mutant "<APRÈS>/<fichier>" "<avant>" "<après>" --attendu "<début du libellé>"`,
-   `<vlp.py>` celui d'APRÈS pour une fiche du kit, sinon celui du kit avec
-   `--test "<commande>"` (`--seul <motif>` l'abrège). Il mute une copie, jamais APRÈS,
-   et doit rendre `MUTANT ATTRAPÉ`.
+   `<vlp.py>` celui d'APRÈS pour une fiche du kit — sans `--test`, il ne joue que les
+   groupes qui portent ce libellé, la suite entière s'ils ne l'attrapent pas —, sinon
+   celui du kit avec `--test "<commande>"`. Il mute une copie, jamais APRÈS, et doit
+   rendre `MUTANT ATTRAPÉ`.
 5. `<python> "<kit>/scripts/vlp.py" relecture --retirer` — même après un défaut.
 6. Ton dernier message commence par le verdict, au format du contrat lu en 1, qui
    fait foi.

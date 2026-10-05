@@ -7786,10 +7786,30 @@ def verdict_mutant(lignes, code, attrape, attendu):
     return texte + "MUTANT VIVANT\n", 1
 
 
+def jouer_mutant(commande, copie, attendu, vise):
+    """Jouer les tests `commande` dans `copie` et rendre (texte, code de sortie) de leur verdict (`verdict_mutant`).
+    Avec `vise` — pas de `--test` — et `attendu` (VIT21), d'abord les seuls groupes de `test-vlp.py` qui portent
+    `attendu` (`--seul`) : l'écart attendu tombé là, une ligne `VISÉ` le dit ; sinon — aucun groupe, ou pas cet
+    écart —, la suite entière tranche, et une ligne `SUITE ENTIÈRE` le dit. Un ATTRAPÉ ne vient que de l'écart
+    attendu, un VIVANT que de la suite entière."""
+    tete = ""
+    if vise and attendu:
+        lignes, code, attrape = jouer_suite(commande + ["--seul", attendu], copie, attendu)
+        if attrape:
+            texte, code = verdict_mutant(lignes, code, attrape, attendu)
+            return "VISÉ --seul « %s »\n" % attendu + texte, code
+        aucun = any(l.startswith("GARDE: aucun groupe") for l in lignes)
+        tete = "SUITE ENTIÈRE · %s\n" % (("aucun groupe ne porte « %s »" if aucun
+                                          else "« %s » n'est pas tombé dans ses groupes") % attendu)
+    texte, code = verdict_mutant(*jouer_suite(commande, copie, attendu), attendu)
+    return tete + texte, code
+
+
 def cmd_mutant(a, sortie):
     """Casser `a.cible` exprès (`a.avant` → `a.apres`, une seule occurrence) dans une copie du kit, y jouer les
-    tests, et dire si le mutant est attrapé — avec `a.attendu`, arrêtés dès cet écart (chantiers MUT, VIT2). Le vrai
-    fichier n'est jamais écrit : `RENDU` imprime son empreinte, la même qu'avant."""
+    tests, et dire si le mutant est attrapé — avec `a.attendu`, arrêtés dès cet écart (chantiers MUT, VIT2), et sans
+    `a.test`, d'abord sur ses seuls groupes (`jouer_mutant`, VIT21). Le vrai fichier n'est jamais écrit : `RENDU`
+    imprime son empreinte, la même qu'avant."""
     import subprocess
     try:
         octets, mute = texte_mute(a.cible, lire_arg(a.avant), lire_arg(a.apres))
@@ -7801,7 +7821,7 @@ def cmd_mutant(a, sortie):
     try:
         racine, copie = copie_mutee(a.cible, mute, dossier)
         commande = vers_copie(a.test or [sys.executable, os.path.join(KIT, "scripts", "test-vlp.py")], racine, copie)
-        texte, code = verdict_mutant(*jouer_suite(commande, copie, a.attendu), a.attendu)
+        texte, code = jouer_mutant(commande, copie, a.attendu, vise=not a.test)
     except (OSError, subprocess.SubprocessError) as e:
         texte, code = "GARDE: les tests ne se lancent pas : %s\n" % e, 1
     finally:

@@ -6608,6 +6608,77 @@ def tester_mutant_attendu():
 
 groupe(tester_mutant_attendu)
 
+# La suite factice de VIT21, posée en `scripts/test-vlp.py` d'un faux kit : deux groupes, et un contrôle hors de
+# tout groupe, comme ceux de test-boucle.py ; `--seul` filtre les groupes sur leur texte, comme `porte_motif`, et
+# chaque lancement note son motif dans le journal.
+SUITE_VISEE = """import sys
+t = open("f.py", encoding="utf-8").read()
+motif = sys.argv[sys.argv.index("--seul") + 1] if "--seul" in sys.argv else ""
+open(@JOURNAL@, "a", encoding="utf-8").write(motif + "\\n")
+groupes = {"g_porte": [("porte a", "a = 1")], "g_voisin": [("voisin b", "b = 2")]}
+controles = [c for nom, cs in groupes.items() for c in cs if motif.lower() in (nom + " " + repr(cs)).lower()]
+if not motif:
+    controles.append(("hors c", "c = 3"))
+elif not controles:
+    print("SEUL " + motif + " : 0 groupe(s), 0 contrôle(s) — ")
+    print("GARDE: aucun groupe ne porte « " + motif + " »")
+    sys.exit(1)
+ecarts = [nom for nom, v in controles if v not in t]
+for nom in ecarts:
+    print("ÉCART:", nom)
+print("FIN: %d écart(s)" % len(ecarts) if ecarts else "OK")
+sys.exit(1 if ecarts else 0)
+"""
+
+
+def tester_mutant_vise():
+    """VIT21 : `--attendu` sans `--test` ne joue d'abord que les groupes qui portent son libellé (`--seul`) ; attrapé
+    là, une ligne `VISÉ` le dit ; aucun groupe, ou pas cet écart : la suite entière tranche, dite ; `--test` garde le
+    dernier mot."""
+    with tempfile.TemporaryDirectory() as tm:
+        kit, journal = os.path.join(tm, "kit"), os.path.join(tm, "journal.txt")
+        f = os.path.join(kit, "f.py")
+        ecrire(f, "a = 1\nb = 2\nc = 3\n")
+        ecrire(os.path.join(kit, "scripts", "test-vlp.py"), SUITE_VISEE.replace("@JOURNAL@", repr(journal)))
+
+        def mutant(avant, apres, attendu, *options):
+            """Jouer le mutant `avant` → `apres` sur le faux kit ; rendre (code, sortie, motifs des lancements)."""
+            ecrire(journal, "")
+            o = io.StringIO()
+            garde, mod.KIT = mod.KIT, kit
+            try:
+                code = mod.main(["mutant", f, avant, apres, "--attendu", attendu, *options], o)
+            finally:
+                mod.KIT = garde
+            with open(journal, encoding="utf-8") as j:
+                return code, o.getvalue(), j.read().split("\n")[:-1]
+        vise = mutant("a = 1", "a = 9", "porte a")
+        verifier("VIT21 : --attendu sans --test → ses seuls groupes (--seul), MUTANT ATTRAPÉ dit VISÉ, sans suite "
+                 "entière — mutant : --seul jamais ajouté",
+                 vise[0] == 0 and vise[1].startswith("VISÉ --seul « porte a »\nÉCART: porte a\n"
+                                                     "MUTANT ATTRAPÉ 1 écart(s) · arrêté sur « porte a »\n")
+                 and vise[2] == ["porte a"], vise)
+        sans = mutant("c = 3", "c = 9", "hors c")
+        verifier("VIT21 : un --attendu qu'aucun groupe ne porte → la GARDE de --seul n'est pas un écart : suite "
+                 "entière, dite, qui l'attrape — mutant : pas de repli",
+                 sans[0] == 0 and sans[1].startswith("SUITE ENTIÈRE · aucun groupe ne porte « hors c »\nÉCART: hors c\n"
+                                                     "MUTANT ATTRAPÉ 1 écart(s) · arrêté sur « hors c »\n")
+                 and sans[2] == ["hors c", ""], sans)
+        autre = mutant("b = 2", "b = 9", "porte a")
+        verifier("VIT21 : un groupe qui ne porte pas le contrôle ne rend jamais ATTRAPÉ — suite entière, dite, "
+                 "MUTANT VIVANT pour …, sort 1",
+                 autre[0] == 1 and autre[1].startswith("SUITE ENTIÈRE · « porte a » n'est pas tombé dans ses groupes\n"
+                                                       "ÉCART: voisin b\nMUTANT VIVANT pour porte a\n")
+                 and "ATTRAPÉ" not in autre[1] and autre[2] == ["porte a", ""], autre)
+        test = '"%s" "%s"' % (sys.executable, os.path.join(kit, "scripts", "test-vlp.py"))
+        dernier = mutant("a = 1", "a = 9", "porte a", "--test", test)
+        verifier("VIT21 : --test donné garde le dernier mot — sa seule commande, ni VISÉ ni SUITE ENTIÈRE",
+                 dernier[0] == 0 and dernier[1].startswith("ÉCART: porte a\nMUTANT ATTRAPÉ 1 écart(s)")
+                 and dernier[2] == [""], dernier)
+
+
+groupe(tester_mutant_vise)
+
 
 def tester_boucle():
     """NUI2 : test-boucle.py joue boucle.py et faux-claude.py ; lancé d'ici, un mutant de l'un ou de l'autre

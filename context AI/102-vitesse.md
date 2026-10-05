@@ -70,8 +70,9 @@ Décisions : https://claude.ai/artifact/3maXrvHBKj85QYybrnPubx. Chaque fiche rem
   - **L'outil** — `vlp.py sante` (`VIT15`) : ruff s'il est présent, sinon un compte `ast` de la bibliothèque
     standard — égal à ruff sur tout le kit, mais dit « estimé ». La suite joue `vlp.py sante --cliquet` ;
     `vlp.py sante --base` verrouille un gain.
-- Le mutant se joue par `vlp.py mutant --attendu` (`VIT2`) ; `--test "… test-vlp.py --seul <motif>"` l'abrège
-  (`VIT10`). « Mutant attrapé », dans un critère, vise cette forme.
+- Le mutant se joue par `vlp.py mutant --attendu` (`VIT2`) : sans `--test`, il ne joue que les groupes qui portent
+  ce libellé, et la suite entière s'ils ne l'attrapent pas (`VIT21`) ; `--test` garde le dernier mot. « Mutant
+  attrapé », dans un critère, vise cette forme.
 
 **Où vit quoi** (des noms, pas des numéros de ligne : ils dérivent à chaque commit).
 
@@ -604,8 +605,9 @@ vérifiée en vrai, ou dite non vérifiée ; `OK`, `verifier(` en hausse ; mutan
 ---
 
 <!-- FICHE:VIT21 -->
-## VIT21 [ ] — Le mutant visé sur son groupe, par défaut
+## VIT21 [x] — Le mutant visé sur son groupe, par défaut
 
+**Session** : 17d950aa-47f3-44c8-a41f-13ecc4e4896b
 **Dépend de** : rien (`VIT2` et `VIT10` sont faites).
 **Fichiers** : `scripts/vlp_coeur.py` (`cmd_mutant`), `scripts/vlp.py` (sa docstring), `scripts/test-vlp.py`,
 `agents/relecture.md`, la ligne du socle de ce fichier qui dit comment se joue le mutant.

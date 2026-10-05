@@ -488,7 +488,10 @@ Sous-commandes :
   tournent (défaut : le `test-vlp.py` de la copie, par ce Python ; dans `--test`, les chemins sous la racine
   copiée pointent dans la copie), avec `VLP_TOUS_ECARTS=1`, sortie lue ligne à ligne. `--attendu` : dès
   l'`ÉCART:` dont le libellé commence ainsi, l'arbre de processus est tué → `MUTANT ATTRAPÉ <n> écart(s) ·
-  arrêté sur « … »` (sort 0) ; la suite finie sans lui → `MUTANT VIVANT pour <libellé>` (sort 1). `--tous`, ou
+  arrêté sur « … »` (sort 0) ; la suite finie sans lui → `MUTANT VIVANT pour <libellé>` (sort 1). `--attendu`
+  sans `--test` (VIT21) : d'abord les seuls groupes qui portent le libellé (`test-vlp.py --seul`) — l'écart
+  tombé là, `VISÉ --seul « … »` en tête ; sinon (aucun groupe, ou pas cet écart), la suite entière tranche,
+  `SUITE ENTIÈRE · …` en tête. `--tous`, ou
   ni l'un ni l'autre : `MUTANT ATTRAPÉ <n> écart(s)` (sort 0) ou `MUTANT VIVANT` (sort 1). Une suite finie
   sort 0 ou dit `OK` ou `FIN:` en dernière ligne ; arrêtée avant — erreur, ou `DÉLAI:` de 1800 s —, c'est
   `MUTANT PLANTÉ …` (sort 1), même après un écart. Chaque `ÉCART:` vu est imprimé avant ; `COPIE restée : …`
