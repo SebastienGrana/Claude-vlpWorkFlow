@@ -1,4 +1,4 @@
-# Aller plus vite sans coder moins bien — notes et journal
+# Coder plus vite et mieux — notes et journal
 ## Résultat
 Coder plus vite et mieux. Une fiche attend moins ses tests et lit moins de contexte — mesuré avant (VIT1) et après (VIT13) — sans qu'un seul contrôle soit retiré ; le code qu'elle laisse est sain, facile à maintenir et documenté.
 ## Notes
@@ -19,6 +19,13 @@ Coder plus vite et mieux. Une fiche attend moins ses tests et lit moins de conte
 - VIT16 : --si-base sans base : SANS BASE, sort 0, rien écrit (projet vide et hors du kit, sha1 de la base du kit inchangé) ; kit : BASE 795 fonctions, sort 0 ; test-vlp OK ; verifier( 763→765 (boucle 82→82) ; mutant attrapé (1 écart) ; pyright 0 ; principal 6/5/3/14/2→7/6/3/16/2, options_sante instr. 9→10, test neuf 1/1/0/25/2, docstrings oui, AST=RUFF 592/592 ; durée médiane de 5 : 2,85 s avec ruff, 1,66 s sans
 - VIT17 : vlp.py compteur sur VIT : 14 fiches, modèle 203 + outils 226 + attente 107 + autre 24 = actif 560 min ; NUI : 308 + 601 + 99 + 27 = 1 035. Transcription faite main : découpage exact (groupes tester_compteur_*). Recoupe 72db946f ligne 3332 : outils 130,5 contre totalToolDuration 73,4 (+57,1, dont 51,0 en fond : +6,1 sans), modèle 59,4 contre 63,4 (−3,9). Entrée de 08-etat.md, trois constats. test-vlp.py OK, verifier( 781 → 798 ; deux mutants attrapés ; pyright 0 ; cliquet tenu.
 - VIT18 : Page publiée, vigile PAGE SAINE 109 blocs, 15 cartes ; lien dans l'entrée « VIT18 — le rapport » de 08-etat.md, une ligne par carte (15) ; 8 gains en comptes bruts en haut ; chaque piste a sa source ; copier : 17 lignes (en-tête, Q1 à Q15, une note), repli de sélection dans l'aperçu ; à côté, le rapport MET : 10 cartes, relu par 3 sous-agents, 46,01 $ ; suite OK en 223 s (2 SAUTÉ connus)
+- VIT19 : Le contrôle avant commit trouve claude là où l'app le range, et refuse quand l'app est là sans lui. Dépend de rien.
+- VIT20 : La carte de /vlp:tache avertit quand la session a déjà joué une fiche : /clear d'abord. Dépend de rien.
+- VIT21 : Le mutant ne rejoue que le groupe de son contrôle, par défaut (105 s → ≈ 6 s mesurés à VIT13). Dépend de rien.
+- VIT22 : test-boucle, qui fixe la durée de la suite (176 s), raccourci sans retirer un contrôle. Dépend de rien.
+- VIT23 : Un contrôle de quelques secondes avant la suite entière (≈ 3 min). Dépend de VIT21.
+- VIT24 : test-mesure-tokens joué par la suite ; py -3 dans les 8 commandes (−77 ms par appel). Dépend de rien.
+- VIT25 : L'effort mesuré (Max, xhigh, high, medium) sur 3 fiches ; coût montré et oui de l'utilisateur avant tout essai. Dépend de VIT19 à VIT24.
 ## Journal
 - 2026-10-04 : plan revu après VIT1 : VIT4 retirée, ≈ 4 à 6 s par suite et rien après VIT7 (D1) ; VIT14 ajoutée, deux cas de clôture fragiles sous charge (D2) ; VIT2 passe tester_boucle() en dernier ; VIT13 nomme ses dépendances
 - 2026-10-04 : critères de code sain tranchés (page des critères) : cliquet, docstring de toute fonction touchée, tests sans longueur ; outil : ruff s'il est là, d'où VIT15, ajoutée avant VIT2

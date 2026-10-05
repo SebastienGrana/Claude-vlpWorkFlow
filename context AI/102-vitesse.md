@@ -2,7 +2,7 @@
 > il en est. `/vlp:tache VIT<n>` n'en lit que le socle commun et sa fiche — jamais
 > ce fichier en entier.
 
-# Chantier VIT — Aller plus vite sans coder moins bien
+# Chantier VIT — Coder plus vite et mieux
 
 **Ouvert.** le 2026-10-03.
 
@@ -18,8 +18,12 @@ ajoutée avant `VIT2`, faite le 2026-10-04 ; `VIT16`, qui verrouille ses gains �
 l'utilisateur, page « Choix de VIT15 », Q1). NUI en pause, reprise à `NUI28` après VIT et la méthode (n° 99).
 Après `VIT13` (2026-10-04), VIT grandit sans se clore, au choix de l'utilisateur : `VIT17` compte où passe le temps
 d'une fiche, `VIT18` en tire le rapport — les gains, puis les pistes à valider ; une piste validée devient une fiche.
+Le 2026-10-05, les réponses aux cartes de `VIT18` ajoutent `VIT19` à `VIT25` (cartes 9, 6, 2, 1, 3, 10 et 11, 4) et
+renomment le chantier « Coder plus vite et mieux » (carte 15) ; VIT se clôt après elles, sur le oui de l'utilisateur.
 
 **Session** : bf7412ea-120b-47fa-933e-6b54b408b2f4
+
+**Session** : 8a6e5503-99d5-4490-b4c1-1e8a52e5efda
 
 ## Le socle commun
 
@@ -112,9 +116,19 @@ d'échange, plugins : Q9).
 | `VIT13` | Mesurer la fin, avant/après | `VIT7`, `VIT8`, `VIT11`, `VIT12` — et, par elles, toutes |
 | `VIT17` | Le compteur d'une fiche : où passe son temps | `VIT13` |
 | `VIT18` | Le rapport : ce que VIT a gagné, et les pistes pour gagner plus | `VIT17` |
+| `VIT19` | Le contrôle avant commit ne laisse plus passer | rien |
+| `VIT20` | La carte avertit d'une session qui a déjà joué une fiche | rien |
+| `VIT21` | Le mutant visé sur son groupe, par défaut | rien |
+| `VIT22` | Raccourcir `test-boucle` | rien |
+| `VIT23` | Un contrôle rapide avant la suite entière | `VIT21` |
+| `VIT24` | `test-mesure-tokens.py` dans la suite, `py -3` dans les commandes | rien |
+| `VIT25` | Mesurer l'effort du modèle sur 3 fiches | `VIT19` à `VIT24` |
 
 Jouées dans l'ordre du fichier — `VIT15` puis `VIT16` avant `VIT2`, `VIT4` et `VIT14` retirées —, les dépendances tiennent. `VIT5` à `VIT8` touchent le démarrage des scripts, `VIT10`
 et `VIT11` tout `test-vlp.py` : une à la fois. `VIT17` et `VIT18`, ajoutées après `VIT13`, ouvrent la suite de VIT.
+`VIT19` à `VIT25` viennent des cartes de `VIT18` (entrée « Les réponses aux cartes de VIT18 et de MET », 2026-10-05),
+dans l'ordre choisi par l'utilisateur : d'abord celles qui servent aux fiches suivantes, la mesure de l'effort en
+dernier. `VIT19` à `VIT24` touchent toutes `test-vlp.py` : une à la fois.
 
 ---
 
@@ -523,4 +537,190 @@ Publie la page et donne son lien. Une piste validée deviendra une fiche de VIT 
 La page publiée ; son lien dans l'entrée « VIT18 — le rapport » de `08-etat.md`, une ligne par carte ; les gains en
 haut, comptes bruts ; chaque piste porte sa source ; le bouton copie rend une réponse par carte (essayé dans le
 navigateur intégré).
+<!-- /FICHE -->
+
+---
+
+<!-- FICHE:VIT19 -->
+## VIT19 [ ] — Le contrôle avant commit ne laisse plus passer
+
+**Dépend de** : rien.
+**Fichiers** : `.githooks/pre-commit`, `scripts/vlp_coeur.py` (`trouver_claude`, `cmd_claude`), `scripts/vlp.py` (sa
+docstring), `scripts/test-vlp.py`.
+
+**Prompt**
+Carte 9 de `VIT18` — c'est aussi la ligne n° 101 `EXE` de la TODO (2026-10-04), que cette fiche fait : sa ligne sortira
+de la TODO à la clôture de VIT, sur le oui de l'utilisateur. Constat du cadrage (2026-10-05) : l'app range désormais
+`claude.exe` un dossier plus bas, sous `Packages` comme sous `%APPDATA%/Claude` (`EXE`) —
+`claude-code/<version>/<empreinte>/claude.exe` (ici `2.1.288/36aa8c97bf86`). `trouver_claude` et `.githooks/pre-commit`
+cherchent `claude-code/*/claude.exe` : 0 trouvé, « claude introuvable, validate sauté », sortie 0 — le commit passe sans
+`claude plugin validate`. Le test du hook, dans `test-vlp.py`, recopie le même motif et se tait de même (`SAUTÉ:`).
+1. Une seule recherche : `trouver_claude` lit les deux profondeurs (la plus haute version) ; le pre-commit et le test la
+   demandent à `vlp.py claude` au lieu de recopier le motif (`CLAUDE.md`, règle 3).
+2. Le refus, choisi par l'utilisateur : l'app est là (un dossier `claude-code` sous `Packages/Claude_*` ou sous
+   `%APPDATA%/Claude`) mais aucun `claude.exe` → le pre-commit **refuse** le commit et dit pourquoi ; ni app ni
+   `claude` → il avertit et laisse passer (un clone chez quelqu'un sans Claude). `vlp.py claude` distingue les deux cas.
+3. Le commit de la fiche passe par le vrai hook : `claude plugin validate` y tourne.
+
+**Critère de fin**
+Trois cas en dossiers faits main (comme les tests voisins de `trouver_claude`) : `claude.exe` à la seconde profondeur →
+trouvé ; dossier de l'app sans `claude.exe` → pre-commit sorti 1, sa raison dite ; rien → avertissement, sortie 0. Ici,
+`py -3 scripts/vlp.py claude` → `CLAUDE …/claude.exe` ; le test du hook ne dit plus `SAUTÉ:` ; le commit de la fiche ne
+dit plus « validate sauté » ; `py -3 scripts/test-vlp.py` → `OK`, `verifier(` en hausse ; mutant attrapé ; pyright 0 ;
+les critères de code sain du socle.
+<!-- /FICHE -->
+
+---
+
+<!-- FICHE:VIT20 -->
+## VIT20 [ ] — La carte avertit d'une session qui a déjà joué une fiche
+
+**Dépend de** : rien.
+**Fichiers** : `scripts/vlp_coeur.py` (`carte_injectee`), `scripts/vlp.py` (sa docstring), `scripts/test-vlp.py`,
+`skills/tache/SKILL.md`.
+
+**Prompt**
+Carte 6 de `VIT18`. « Une fiche, une session neuve » (`methode-chantier.md`, « Les trois temps ») ne se vérifie nulle
+part ; `VIT3` à `VIT12` ont été jouées dans une seule session, `ctx_dernier` 302 283 (« VIT13 ») : chaque tour y relit
+tout le passé. La session se connaît : `CLAUDE_CODE_SESSION_ID`, non vide dans le Bash de l'app (vu au cadrage) ;
+`cocher` et `ouvrir` l'écrivent déjà sur les lignes `**Session** : <id>` du fichier de fiches (docstring de `vlp.py`).
+- La carte de `/vlp:tache` : cet id déjà sur une ligne `**Session**` du fichier courant — une fiche jouée, ou le
+  cadrage en tête — → une ligne `AVERTISSEMENT:` qui la nomme et dit `/clear` d'abord. Sinon, la sortie ne change pas
+  (socle, « les sorties ne changent pas »). Id vide ou absent : rien, sans erreur.
+- `/vlp:tache` relaie l'avertissement à l'utilisateur en une ligne.
+- Pas de fausse alarme sous `/vlp:enchainer` : un chef y joue plusieurs fiches par conception — dis comment la carte
+  le sait.
+- L'id est-il vu par l'injection `!` des commandes, pas seulement par le Bash ? Vérifie-le en vrai, ou dis-le non
+  vérifié (un `/reload-plugins` est un geste de l'utilisateur : demande-le dès le départ).
+
+**Critère de fin**
+Groupe neuf de `test-vlp.py` : id sur une fiche cochée → `AVERTISSEMENT:` qui la nomme ; sur la ligne du cadrage → de
+même ; id absent ou vide, ou chef de `/vlp:enchainer` → sortie identique au caractère près à celle d'avant ; l'injection
+vérifiée en vrai, ou dite non vérifiée ; `OK`, `verifier(` en hausse ; mutant attrapé ; pyright 0 ; code sain.
+<!-- /FICHE -->
+
+---
+
+<!-- FICHE:VIT21 -->
+## VIT21 [ ] — Le mutant visé sur son groupe, par défaut
+
+**Dépend de** : rien (`VIT2` et `VIT10` sont faites).
+**Fichiers** : `scripts/vlp_coeur.py` (`cmd_mutant`), `scripts/vlp.py` (sa docstring), `scripts/test-vlp.py`,
+`agents/relecture.md`, la ligne du socle de ce fichier qui dit comment se joue le mutant.
+
+**Prompt**
+Carte 2 de `VIT18`. Le mutant est le plus gros poste d'outil de NUI : 203 min pour 50 appels (« VIT17 »). Mesuré à
+« VIT13 » sur le mutant de `NUI27` : `--attendu` seul, 105 s ; avec `--test "… test-vlp.py --seul NUI27"`, 6 s. Sans
+`--test`, `cmd_mutant` lance toujours la suite entière.
+- Par défaut, `--attendu` donné sans `--test` : ne jouer que le ou les groupes qui portent ce contrôle. Trouve
+  comment : `--seul` lit le nom ou le texte d'un groupe (`VIT10`) — dis si le libellé de `--attendu` y suffit, ou ce
+  qu'il faut de plus.
+- Le piège : un motif qui ne trouve aucun groupe sort 1 par une `GARDE:` ; pris pour un écart, il donnerait un faux
+  `MUTANT ATTRAPÉ`. Sans groupe sûr, retombe sur la suite entière, et dis-le dans la sortie.
+- `--test` donné garde le dernier mot. Le relecteur et la ligne du socle suivent.
+
+**Critère de fin**
+Le mutant de `NUI27`, par la commande de l'entrée « VIT1 — la base » de `08-etat.md` sans `--test` → `MUTANT ATTRAPÉ`,
+sa durée mesurée avant/après (comptes bruts, à côté des 6 s de « VIT13 ») ; un `--attendu` sans groupe → suite
+entière, dite ; un groupe qui ne porte pas le contrôle ne rend jamais `ATTRAPÉ` (cas de test) ; `OK`, `verifier(` en
+hausse ; mutant attrapé ; pyright 0 ; code sain.
+<!-- /FICHE -->
+
+---
+
+<!-- FICHE:VIT22 -->
+## VIT22 [ ] — Raccourcir `test-boucle`
+
+**Dépend de** : rien.
+**Fichiers** : `scripts/test-boucle.py`, `scripts/boucle.py` si la cause y est, `context AI/08-etat.md` (une entrée
+datée).
+
+**Prompt**
+Carte 1 de `VIT18`. `test-boucle.py` tourne en parallèle de `test-vlp.py` (`VIT7`) : 176 s, pour ≈ 180 s de suite
+entière (« VIT13 ») — c'est lui qui en fixe la durée. Tant qu'il dure autant, raccourcir `test-vlp.py` ne sert à rien.
+1. Mesure d'abord où passe son temps, cas par cas, le plus lent en tête ; et ce que dure `test-vlp.py` quand
+   `test-boucle` ne le retient pas (s'il n'existe aucun moyen de le lancer seul, dis-le).
+2. Raccourcis les plus lents sans retirer un contrôle : processus évitables (`VIT6` appelle déjà `vlp` dans le
+   processus), attentes fixes, cas indépendants en parallèle. Pas de cache de résultats (Q5).
+3. Rejoue les deux mesures de « VIT13 » sur ces deux fichiers, deux passages chacun, par la même commande.
+
+**Critère de fin**
+L'entrée « VIT22 — test-boucle » de `08-etat.md` : temps par cas avant/après, `test-boucle` et suite entière, deux
+passages, comptes bruts ; `verifier(` de `test-boucle.py` jamais en baisse (compté avant/après) ; `OK` ; un mutant sur
+un cas raccourci, attrapé ; pyright 0 ; code sain.
+<!-- /FICHE -->
+
+---
+
+<!-- FICHE:VIT23 -->
+## VIT23 [ ] — Un contrôle rapide avant la suite entière
+
+**Dépend de** : `VIT21` (le groupe qui porte un contrôle : même mécanique).
+**Fichiers** : `scripts/vlp_coeur.py` ou `scripts/test-vlp.py` (selon la forme choisie), `scripts/vlp.py` (sa
+docstring), `skills/tache/SKILL.md`, `scripts/test-vlp.py`.
+
+**Prompt**
+Carte 3 de `VIT18`. Une suite entière coûte ≈ 3 min (« VIT13 ») ; dans « VIT17 », 3 suites jouées sur 20 sont rouges
+dans VIT, 5 sur 29 dans NUI — autant d'attentes pour un écart qu'un contrôle de quelques secondes aurait vu.
+- Un contrôle rapide, en une commande : les groupes de la fiche (`--seul`), pyright sur les fichiers touchés s'il est
+  là, `sante --cliquet`. Choisis sa forme, dis pourquoi ; sa durée se mesure en secondes.
+- `/vlp:tache` le prescrit avant la suite entière, dans le kit : rouge, on corrige avant de lancer la suite.
+- Il ne remplace rien : `cocher` exige toujours la suite entière verte (`VIT11`) ; aucun contrôle retiré.
+
+**Critère de fin**
+La commande rend vert ou rouge, sa durée mesurée (comptes bruts) ; un écart semé dans le groupe d'une fiche → rouge,
+sans lancer la suite entière (cas de test) ; `skills/tache/SKILL.md` la nomme avant la suite ; `OK`, `verifier(` en
+hausse ; mutant attrapé ; pyright 0 ; code sain.
+<!-- /FICHE -->
+
+---
+
+<!-- FICHE:VIT24 -->
+## VIT24 [ ] — `test-mesure-tokens.py` dans la suite, `py -3` dans les commandes
+
+**Dépend de** : rien.
+**Fichiers** : `scripts/test-vlp.py`, `skills/*/SKILL.md` (les 8 lignes qui injectent la carte), `scripts/vlp_coeur.py`
+(`carte_injectee`) si `PYTHON=` change de forme, `scripts/vlp.py` (sa docstring).
+
+**Prompt**
+Cartes 10 et 11 de `VIT18`.
+1. `test-mesure-tokens.py` n'est lancé par rien (`grep -c test-mesure-tokens scripts/test-vlp.py` → 0, le 2026-10-05) ;
+   joué seul le 2026-10-04 : `OK` en 0,8 s. La suite le lance, et son échec la rend rouge.
+2. Les 8 `SKILL.md` lancent la carte par `py "…/vlp.py"`, et elle rend `PYTHON=py` : `py` lit le `#!` de `vlp.py` et
+   relance le `python3` du PATH, +77 ms par appel (« VIT8 »). Passe l'injection et `PYTHON=` à `py -3`, donc toutes les
+   commandes qui suivent ; le relais `python3` (Linux, macOS) ne change pas. `skills/enchainer/SKILL.md` dit « `py -3`
+   si `PYTHON=py` » : simplifie-le.
+3. Mesure `py` contre `py -3` : 20 lancements de `vlp.py lignes CHANTIER.md` chacun, médianes (la mesure 3 de `VIT1`).
+
+**Critère de fin**
+La suite lance `test-mesure-tokens.py`, et un échec semé la rend rouge (cas de test) ; les 8 injections et `PYTHON=` en
+`py -3` (comptés par `grep`) ; une session neuve montre `PYTHON=py -3` dans sa carte ; médianes avant/après, comptes
+bruts ; `OK`, `verifier(` en hausse ; mutant attrapé ; pyright 0 ; code sain.
+<!-- /FICHE -->
+
+---
+
+<!-- FICHE:VIT25 -->
+## VIT25 [ ] — Mesurer l'effort du modèle sur 3 fiches
+
+**Dépend de** : `VIT19` à `VIT24` — elle mesure l'état final, et en rejoue trois.
+**Fichiers** : `context AI/08-etat.md` (une entrée datée) — aucun code ; un outil d'essai qui manquerait se dit avant.
+
+**Prompt**
+Carte 4 de `VIT18`, précisée par l'utilisateur le 2026-10-05 : l'effort Max est au socle depuis `VIT13` ; faut-il le
+garder ? Mesurer Max, xhigh, high et medium sur 3 fiches.
+1. D'abord le publié (doc `model-config` ; billet « Spending your effort », 2026-09-25 — cités à `VIT18`) : ce qui est
+   déjà su ne se mesure pas. Et comment fixer l'effort d'un `claude -p`, mot pour mot.
+2. Le plan : 3 fiches de code déjà jouées, de tailles différentes (💡 parmi `VIT19` à `VIT24`), chacune rejouée à
+   chaque niveau depuis le commit d'avant elle, dans un worktree, jamais sur `main` — 12 essais. Pièges connus : le
+   plugin chargé suit `main`, pas le worktree (`ESR`) ; un rejeu peut recevoir la carte du chantier en cours.
+3. **Le coût, avant tout lancement** : par niveau et au total, tiré du coût réel des 3 fiches (`cout --session`).
+   **Montre-le à l'utilisateur et arrête-toi jusqu'à son oui** : rien ne se lance sans.
+4. Après son oui, par essai : tours, $, minutes (`compteur`), et la qualité — suite verte, mutant attrapé, verdict du
+   relecteur. Un essai par case : un repère, pas une preuve ; dis-le.
+
+**Critère de fin**
+Le coût estimé montré, et le oui de l'utilisateur noté avant le premier essai ; l'entrée « VIT25 — l'effort » de
+`08-etat.md` : 12 lignes (fiche × niveau), coût et qualité, comptes bruts ; la recommandation pour le socle, que
+l'utilisateur tranche.
 <!-- /FICHE -->
