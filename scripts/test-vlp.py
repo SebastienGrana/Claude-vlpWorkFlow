@@ -6679,6 +6679,98 @@ def tester_mutant_vise():
 
 groupe(tester_mutant_vise)
 
+# Le faux cliquet et le faux pyright de VIT23 : le cliquet rompt si un fichier `rompu` est à la racine ; pyright
+# compte une erreur par fichier qui porte le mot `erreur`.
+CLIQUET_FAUX = """import os, sys
+if os.path.exists("rompu"):
+    print("EMPIRE f.py:1 g · complexité 3 → 11, seuil 10")
+    print("CLIQUET ROMPU")
+    sys.exit(1)
+print("CLIQUET 1 fonctions · vieilles 1, dont touchées 0, renommées ou déplacées 0 · neuves 0")
+print("CLIQUET TENU")
+"""
+PYRIGHT_FAUX = """import sys
+fautifs = [f for f in sys.argv[1:] if "erreur" in open(f, encoding="utf-8").read()]
+for f in fautifs:
+    print("  %s:1:1 - error: faux" % f)
+print("%d errors, 0 warnings, 0 informations " % len(fautifs))
+sys.exit(1 if fautifs else 0)
+"""
+
+
+def tester_rapide():
+    """VIT23 : `vlp.py rapide` joue les groupes de la fiche (`--seul`), pyright sur les `.py` touchés et le cliquet ;
+    un écart semé dans le groupe d'une fiche → rouge, sans suite entière ; un contrôle sauté dit sa raison."""
+    with tempfile.TemporaryDirectory() as tr:
+        kit, journal = os.path.join(tr, "kit"), os.path.join(tr, "journal.txt")
+        pyright = [sys.executable, os.path.join(tr, "pyright.py")]
+        ecrire(pyright[1], PYRIGHT_FAUX)
+        ecrire(os.path.join(kit, "f.py"), "a = 1\nb = 2\nc = 3\n")
+        ecrire(os.path.join(kit, "scripts", "test-vlp.py"), SUITE_VISEE.replace("@JOURNAL@", repr(journal)))
+        ecrire(os.path.join(kit, "scripts", "vlp.py"), CLIQUET_FAUX)
+        for args in (["init", "-q"], ["add", "-A"],
+                     ["-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "-m", "0"]):
+            subprocess.run(["git"] + args, cwd=kit, capture_output=True, check=True)
+        propre = mod.controles_rapides(kit, "porte", pyright)[1]
+        verifier("VIT23 : arbre propre → pyright sauté, « aucun .py touché » — mutant : pyright lancé sur rien",
+                 propre == ("pyright", None, "aucun .py touché"), propre)
+
+        def rapide(motif, outil=pyright):
+            """Jouer `rapide` sur le faux kit ; rendre (code, sortie aux durées masquées, motifs lancés)."""
+            ecrire(journal, "")
+            o = io.StringIO()
+            code = mod.controle_rapide(kit, motif, outil, o)
+            with open(journal, encoding="utf-8") as j:
+                return code, re.sub(r"\d+\.\d s", "N s", o.getvalue()), j.read().split("\n")[:-1]
+        ecrire(os.path.join(kit, "f.py"), "a = 1\nb = 2\nc = 3\nd = 4\n")
+        ecrire(os.path.join(kit, "sous dossier", "neuf.py"), "e = 5\n")
+        ecrire(os.path.join(kit, "note.txt"), "x\n")
+        touches = [t.replace(os.sep, "/").rsplit("/kit/", 1)[-1] for t in mod.py_touches(kit)]
+        verifier("VIT23 : les .py touchés — modifié, et neuf sous un dossier à espace —, ni .txt ni .py intact",
+                 touches == ["f.py", "sous dossier/neuf.py"], touches)
+        vert = rapide("porte")
+        verifier("VIT23 : tout passe → trois lignes vertes, RAPIDE VERT, sort 0 ; seul --seul lancé, jamais la suite "
+                 "entière", vert[0] == 0 and vert[2] == ["porte"] and vert[1] == (
+                     "RAPIDE groupes « porte » : vert · N s · OK\n"
+                     "RAPIDE pyright 2 fichier(s) : vert · N s · 0 errors, 0 warnings, 0 informations\n"
+                     "RAPIDE cliquet : vert · N s · CLIQUET TENU\n"
+                     "RAPIDE VERT · N s — la suite entière reste à jouer : cocher l'exige\n"), vert)
+        ecrire(os.path.join(kit, "f.py"), "a = 9\nb = 2\nc = 3\nd = 4\n")
+        seme = rapide("porte")
+        verifier("VIT23 : un écart semé dans le groupe de la fiche → rouge, ses lignes, RAPIDE ROUGE, sort 1, sans "
+                 "lancer la suite entière — mutant : un rouge parmi des verts ne compte pas",
+                 seme[0] == 1 and seme[2] == ["porte"] and seme[1].startswith(
+                     "RAPIDE groupes « porte » : rouge · N s · code 1\n  ÉCART: porte a\n  FIN: 1 écart(s)\n")
+                 and seme[1].endswith("RAPIDE ROUGE · N s — corrige avant de lancer la suite entière\n"), seme)
+        ecrire(os.path.join(kit, "f.py"), "a = 1\nb = 2\nc = 3\nd = 4\n")
+        ecrire(os.path.join(kit, "sous dossier", "neuf.py"), "erreur = 5\n")
+        ecrire(os.path.join(kit, "rompu"), "")
+        types = rapide("porte")
+        verifier("VIT23 : pyright en erreur et cliquet rompu → chacun rouge, avec ses lignes",
+                 types[0] == 1 and "RAPIDE pyright 2 fichier(s) : rouge · N s · code 1\n" in types[1]
+                 and "neuf.py:1:1 - error: faux\n  1 errors, 0 warnings, 0 informations\n" in types[1]
+                 and "RAPIDE cliquet : rouge · N s · code 1\n  EMPIRE f.py:1 g · complexité 3 → 11, seuil 10\n"
+                     "  CLIQUET ROMPU\n" in types[1], types)
+        os.remove(os.path.join(kit, "rompu"))
+        sautes = rapide("rien", None)
+        verifier("VIT23 : aucun groupe ne porte le motif, pyright absent → sautés, chacun sa raison, VERT",
+                 sautes[0] == 0 and sautes[2] == ["rien"] and sautes[1] == (
+                     "RAPIDE groupes « rien » : sauté · N s · aucun groupe ne porte ce motif\n"
+                     "RAPIDE pyright : sauté · pyright introuvable\n"
+                     "RAPIDE cliquet : vert · N s · CLIQUET TENU\n"
+                     "RAPIDE VERT · N s — la suite entière reste à jouer : cocher l'exige\n"), sautes)
+        o = io.StringIO()
+        absent = mod.ecrire_rapide("x", None, mod.jouer_rapide([os.path.join(tr, "absent.exe")], kit), o)
+        hors = io.StringIO()
+        verifier("VIT23 : une commande qui ne se lance pas → rouge, dite ; hors du kit → GARDE, sort 1",
+                 absent and "RAPIDE x : rouge · " in o.getvalue() and "  ne se lance pas : " in o.getvalue()
+                 and mod.main(["rapide", "porte", "--racine", tr], hors) == 1
+                 and hors.getvalue().startswith("GARDE: ") and "pas de scripts/test-vlp.py" in hors.getvalue(),
+                 (o.getvalue(), hors.getvalue()))
+
+
+groupe(tester_rapide)
+
 
 def tester_boucle():
     """NUI2 : test-boucle.py joue boucle.py et faux-claude.py ; lancé d'ici, un mutant de l'un ou de l'autre

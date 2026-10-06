@@ -7932,6 +7932,110 @@ def cmd_sante(a, sortie):
     return sante.principal(a, sortie, KIT)
 
 
+def py_touches(racine):
+    """Rendre les `.py` ajoutés, modifiés ou neufs du dépôt de `racine` depuis `HEAD` — index et arbre de travail, lus
+    par `git status` —, en chemins absolus triés ; un fichier effacé n'y est pas. Git muet : `None`."""
+    code, haut = git_texte(["rev-parse", "--show-toplevel"], racine)
+    if code != 0:
+        return None
+    code, texte = git_texte(["status", "--porcelain=v1", "-z", "--untracked-files=all"], racine)
+    if code != 0:
+        return None
+    champs, fichiers = iter(texte.split("\0")), set()
+    for entree in champs:
+        if entree[:1] in ("R", "C"):
+            next(champs, None)  # le nom d'origine suit un renommage ou une copie
+        chemin = os.path.join(haut.strip(), entree[3:])
+        if entree.endswith(".py") and os.path.isfile(chemin):
+            fichiers.add(os.path.normpath(chemin))
+    return sorted(fichiers)
+
+
+def controles_rapides(racine, motif, pyright):
+    """Rendre les trois contrôles de `rapide` (VIT23), en (nom, commande, raison d'un saut) : les groupes de
+    `test-vlp.py` qui portent `motif` (`--seul`), pyright sur les `.py` touchés — `pyright` : sa commande, `None`
+    s'il manque —, et `sante --cliquet`. Un contrôle sauté a une commande `None` et dit sa raison."""
+    scripts = os.path.join(racine, "scripts")
+    fichiers = py_touches(racine)
+    if fichiers is None:
+        typage = ("pyright", None, "Git ne dit pas les fichiers touchés")
+    elif not fichiers:
+        typage = ("pyright", None, "aucun .py touché")
+    elif not pyright:
+        typage = ("pyright", None, "pyright introuvable")
+    else:
+        typage = ("pyright %d fichier(s)" % len(fichiers), list(pyright) + fichiers, None)
+    return [("groupes « %s »" % motif, [sys.executable, os.path.join(scripts, "test-vlp.py"), "--seul", motif], None),
+            typage,
+            ("cliquet", [sys.executable, os.path.join(scripts, "vlp.py"), "sante", "--cliquet", "--racine", racine],
+             None)]
+
+
+def jouer_rapide(commande, racine):
+    """Jouer `commande` dans `racine` ; rendre (code de sortie, lignes de sa sortie, durée en secondes) — `None` et la
+    raison si elle ne se lance pas."""
+    import subprocess
+    debut = time.perf_counter()
+    env = dict(os.environ, PYTHONIOENCODING="utf-8", PYTHONUTF8="1")
+    try:
+        r = subprocess.run(commande, cwd=racine, env=env, capture_output=True, encoding="utf-8", errors="replace")
+    except OSError as e:
+        return None, ["ne se lance pas : %s" % e], time.perf_counter() - debut
+    return r.returncode, (r.stdout + r.stderr).splitlines(), time.perf_counter() - debut
+
+
+def ecrire_rapide(nom, saut, jeu, sortie):
+    """Écrire la ligne `RAPIDE` d'un contrôle : sauté, avec sa raison ; vert, avec sa dernière ligne utile ; rouge,
+    avec ses lignes, 30 au plus. Rendre `True` s'il est rouge."""
+    if jeu is None:
+        sortie.write("RAPIDE %s : sauté · %s\n" % (nom, saut))
+        return False
+    code, lignes, duree = jeu
+    pleines = [l.rstrip() for l in lignes if l.strip()]
+    if code == 1 and any(l.startswith("GARDE: aucun groupe ne porte") for l in pleines):
+        sortie.write("RAPIDE %s : sauté · %.1f s · aucun groupe ne porte ce motif\n" % (nom, duree))
+        return False
+    if code == 0:
+        utiles = [l.strip() for l in pleines if l.strip() != "OK"] or [l.strip() for l in pleines] or [""]
+        sortie.write("RAPIDE %s : vert · %.1f s · %s\n" % (nom, duree, utiles[-1]))
+        return False
+    sortie.write("RAPIDE %s : rouge · %.1f s · code %s\n" % (nom, duree, code))
+    sortie.write("".join("  %s\n" % l for l in pleines[:30]))
+    if len(pleines) > 30:
+        sortie.write("  … %d ligne(s) de plus\n" % (len(pleines) - 30))
+    return True
+
+
+def controle_rapide(racine, motif, pyright, sortie):
+    """Jouer en parallèle les trois contrôles de `rapide` (`controles_rapides`), écrire leurs lignes `RAPIDE` dans
+    l'ordre, puis le verdict et sa durée ; rendre 0 si aucun n'est rouge, sinon 1."""
+    from concurrent.futures import ThreadPoolExecutor
+    debut = time.perf_counter()
+    controles = controles_rapides(racine, motif, pyright)
+    with ThreadPoolExecutor(max_workers=len(controles)) as pool:
+        jeux = [pool.submit(jouer_rapide, c, racine) if c else None for _, c, _ in controles]
+        rouges = [ecrire_rapide(nom, saut, jeu.result() if jeu else None, sortie)
+                  for (nom, _, saut), jeu in zip(controles, jeux)]
+    rouge = any(rouges)
+    sortie.write("RAPIDE %s · %.1f s — %s\n" % ("ROUGE" if rouge else "VERT", time.perf_counter() - debut,
+                                                 "corrige avant de lancer la suite entière" if rouge
+                                                 else "la suite entière reste à jouer : cocher l'exige"))
+    return 1 if rouge else 0
+
+
+def cmd_rapide(a, sortie):
+    """Le contrôle rapide d'une fiche du kit, avant la suite entière (VIT23) : ses groupes de `test-vlp.py`, pyright
+    sur les `.py` touchés et le cliquet, en parallèle (`controle_rapide`). Il ne remplace pas la suite entière, que
+    `cocher` exige toujours (VIT11). Hors du kit — pas de `scripts/test-vlp.py` sous la racine — : `GARDE:`."""
+    import shutil
+    racine = os.path.abspath(a.racine or ".")
+    if not os.path.isfile(os.path.join(racine, "scripts", "test-vlp.py")):
+        sortie.write("GARDE: %s n'est pas le kit : pas de scripts/test-vlp.py\n" % racine)
+        return 1
+    pyright = shutil.which("pyright")
+    return controle_rapide(racine, a.motif, [pyright] if pyright else None, sortie)
+
+
 def cmd_symboles(a, sortie):
     """Imprimer `nom début-fin` pour chaque fonction ou classe de premier niveau de `a.fichier`, lu par `ast` sans
     l'importer — ou pour les seuls `a.noms`, `ABSENT <nom>` pour ceux qui n'y sont pas (sort 1) : une fiche cite un
@@ -7951,7 +8055,7 @@ def cmd_symboles(a, sortie):
 
 
 def options_outils(sous):
-    """Déclarer les lignes de commande des outils : `bac`, `claude`, `kit-essai`, `symboles`."""
+    """Déclarer les lignes de commande des outils : `bac`, `claude`, `kit-essai`, `symboles`, `rapide`."""
     bc = sous.add_parser("bac")
     bc.add_argument("dossier")
     sous.add_parser("claude")
@@ -7962,6 +8066,9 @@ def options_outils(sous):
     sy = sous.add_parser("symboles")
     sy.add_argument("fichier")
     sy.add_argument("noms", nargs="*")
+    ra = sous.add_parser("rapide")
+    ra.add_argument("motif")
+    ra.add_argument("--racine")
 
 
 def options_carte(sous):
@@ -8193,6 +8300,7 @@ PAR_ARGUMENTS = {
     "niveau": cmd_niveau, "comparer": cmd_comparer, "relecture": cmd_relecture, "contrat": cmd_contrat,
     "forme": cmd_forme, "ouverts": cmd_ouverts, "plan": cmd_plan, "matin": cmd_matin, "fusionner": cmd_fusionner,
     "sante": cmd_sante, "symboles": cmd_symboles, "compteur": cmd_compteur, "carte": cmd_carte,
+    "rapide": cmd_rapide,
 }
 
 

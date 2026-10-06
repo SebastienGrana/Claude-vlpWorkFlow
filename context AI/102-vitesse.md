@@ -658,8 +658,9 @@ un cas raccourci, attrapé ; pyright 0 ; code sain.
 ---
 
 <!-- FICHE:VIT23 -->
-## VIT23 [ ] — Un contrôle rapide avant la suite entière
+## VIT23 [x] — Un contrôle rapide avant la suite entière
 
+**Session** : 17d950aa-47f3-44c8-a41f-13ecc4e4896b
 **Dépend de** : `VIT21` (le groupe qui porte un contrôle : même mécanique).
 **Fichiers** : `scripts/vlp_coeur.py` ou `scripts/test-vlp.py` (selon la forme choisie), `scripts/vlp.py` (sa
 docstring), `skills/tache/SKILL.md`, `scripts/test-vlp.py`.

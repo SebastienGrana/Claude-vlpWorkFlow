@@ -501,6 +501,13 @@ Sous-commandes :
   fichier Python, dans l'ordre du fichier, lue par `ast` sans l'importer (VIT9) : une fiche cite un nom,
   ceci rend sa ligne du jour. Avec des noms, leurs seules lignes, dans l'ordre demandé, et `ABSENT <nom>`
   pour un nom introuvable (sort 1). Fichier absent : `GARDE:`, sort 1.
+- `rapide <motif> [--racine R]` — le contrôle rapide d'une fiche du kit, avant la suite entière (VIT23), joué en
+  parallèle sous la racine (défaut : le dossier courant) : les groupes de `test-vlp.py` qui portent le motif
+  (`--seul`), pyright sur les `.py` ajoutés, modifiés ou neufs depuis `HEAD`, et `sante --cliquet`. Une ligne
+  `RAPIDE <contrôle> : vert|rouge|sauté · <s> s · …` par contrôle — rouge, ses lignes (30 au plus) ; sauté, sa
+  raison (aucun groupe, aucun `.py` touché, pyright introuvable) —, puis `RAPIDE VERT` (sort 0) ou `RAPIDE ROUGE`
+  (sort 1) et la durée. Il ne remplace pas la suite entière, que `cocher` exige toujours. Pas de
+  `scripts/test-vlp.py` sous la racine : `GARDE:`, sort 1.
 - `nuits noter "<texte>" [--canal C] [--stop]` — une ligne `note` au carnet de nuit (`carnet.py`, chantier
   NUI) ; avec `--stop`, la ligne `stop` (le texte en est la raison) que la boucle lit avant chaque
   session. Carnet : `VLP_CARNET`, sinon celui du jour du dépôt Git courant ; canal : `--canal`, sinon

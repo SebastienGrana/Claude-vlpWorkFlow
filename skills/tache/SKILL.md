@@ -99,6 +99,9 @@ Ceux de la ligne « **Fichiers** », rien d'autre — la zone utile s'ils sont l
 Applique le bloc « Prompt », dans le respect du socle, des contraintes et
 des « **Contraintes d'écriture** » de `CHANTIER.md`.
 
+**Dans le kit**, avant toute suite entière : `<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" rapide "<fiche retenue>"`
+— `RAPIDE ROUGE` : corrige d'abord.
+
 ## 5. Livrer, puis vérifier
 
 Applique la ligne « **livraison** » de `CHANTIER.md`, puis « **vérification** ».
