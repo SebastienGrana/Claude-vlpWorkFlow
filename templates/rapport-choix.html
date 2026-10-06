@@ -13,6 +13,11 @@
   Le script ajoute aussi, sous chaque carte, un commentaire libre replié
   (« + Ajouter un commentaire ») : il suit le `name` de la carte, se garde dans
   le navigateur avec les coches, et part avec les réponses copiées. Rien à écrire.
+  Format « gros rapport » (2026-10-06) : `data-format="gros"` sur la div de classe
+  `page` range chaque section dans un onglet — bloc « Sections et filtres » en haut,
+  colonne de sections à gauche sur grand écran, bouton « Sections » en dessous, filtre
+  « à répondre seulement ». Pour un rapport de plusieurs dizaines de cartes ; sans
+  l'attribut, rien ne change. Le choix d'onglet se garde à part des réponses.
   `data-cle` sur la div de classe `page` : une clé par rapport, sinon deux
   rapports se partagent les coches gardées dans le navigateur. Ce commentaire
   ne cite jamais une balise telle quelle : un remplacement la trouverait ici
@@ -119,6 +124,36 @@
   .technique > .grille, .technique > p { margin-top:.6rem; }
   .effet { display:flex; flex-direction:column; gap:.15rem; }
   @media (max-width:480px) { .grille { grid-template-columns:1fr; } .grille dt { margin-top:.4rem; } }
+  /* Format « gros rapport » (data-format="gros" sur la page) : une section par onglet. */
+  .page[data-format="gros"] [hidden] { display:none !important; }
+  .vue { background:var(--carte); border:1px solid var(--trait); border-radius:8px; padding:.7rem 1rem; }
+  .vue > summary { cursor:pointer; font-weight:700; color:var(--accent); }
+  .vue > summary:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+  .commandes { display:flex; flex-direction:column; gap:.6rem; margin-top:.7rem; }
+  .commandes .rangee { display:flex; flex-wrap:wrap; gap:.4rem; }
+  .commandes button { font-size:.95rem; font-weight:400; color:var(--texte); background:var(--fond); border:1px solid var(--trait); padding:.25rem .7rem; text-align:left; line-height:1.4; }
+  .commandes button[aria-current="true"] { color:var(--carte); background:var(--accent); border-color:var(--accent); font-weight:700; }
+  .commandes .compte { white-space:nowrap; }
+  .commandes label { display:inline-flex; gap:.4rem; align-items:center; cursor:pointer; font-size:.95rem; }
+  .commandes input { accent-color:var(--accent); }
+  .flottant { position:fixed; z-index:5; background:var(--carte); border:1px solid var(--trait); border-radius:8px; padding:.7rem .9rem; overflow:auto; }
+  .flottant > p { font-weight:700; color:var(--accent); }
+  .flottant .rangee { flex-direction:column; align-items:stretch; }
+  #ouvrir-menu { position:fixed; z-index:6; right:16px; bottom:16px; box-shadow:0 2px 6px rgba(80,67,59,.25); }
+  /* Grand écran : colonne fixe à gauche, comme un site de doc ; la page se décale pour ne jamais être
+     recouverte. 1080 px = colonne 16 rem + page 46 rem + marges (16 + 32 + 16 px). */
+  @media (min-width:1080px) {
+    .flottant { top:1rem; left:16px; width:16rem; max-height:calc(100vh - 2rem); }
+    body.avec-colonne { padding-left:calc(16rem + 48px); }
+    #ouvrir-menu { display:none; }
+  }
+  /* Les onglets remplacent le sommaire de liens : le garder ferait doublon. Sans JavaScript, il reste. */
+  body.avec-colonne .page nav[aria-label="Sommaire"] { display:none; }
+  @media (max-width:1079px) {
+    .flottant { right:16px; bottom:4.6rem; width:min(20rem, calc(100vw - 32px)); max-height:calc(100vh - 6rem); box-shadow:0 2px 10px rgba(80,67,59,.3); }
+    .flottant:not(.ouvert) { display:none; }
+    .page[data-format="gros"] { padding-bottom:6rem; }
+  }
 </style>
 
 <div class="page" data-cle="<projet>-<date>-<sujet>">
@@ -351,4 +386,111 @@
       .catch(() => { zone.focus(); zone.select(); etat.textContent = "Sélectionné : fais Ctrl+C."; });
   });
   maj();
+
+  /* Format « gros rapport », éteint sauf data-format="gros" sur la page. Lit la page telle quelle : une section = un onglet ; la section
+     « Tes réponses » reste toujours visible. Une carte « à répondre » : elle a des boutons radio à elle
+     et aucun n'est coché (réponse du registre ou coche gardée dans ton navigateur). */
+  if (page.dataset.format === "gros") (() => {
+    const cleVue = "vue:" + (page.dataset.cle || document.title);
+    const lire = () => { try { return JSON.parse(localStorage.getItem(cleVue) || "{}"); } catch (e) { return {}; } };
+    const ecrire = v => { try { localStorage.setItem(cleVue, JSON.stringify(v)); } catch (e) {} };
+    const fixe = document.getElementById("reponses").closest("section");
+    const sections = [...page.querySelectorAll(":scope > section")].filter(s => s !== fixe);
+    sections.forEach((s, i) => { if (!s.id) s.id = "s-" + i; });
+    const nom = s => (s.querySelector("h2")?.textContent || s.id).trim();
+    const cartes = [...page.querySelectorAll(".question, .decision")].map(c => ({
+      c, radios: [...c.querySelectorAll('input[type="radio"]')].filter(r => r.closest(".question, .decision") === c)
+    })).filter(x => x.radios.length);
+    const aRepondre = x => !x.radios.some(r => r.checked);
+    let vue = Object.assign({ onglet: sections[0].id, ouvertes: false }, lire());
+    if (vue.onglet !== "tout" && !sections.some(s => s.id === vue.onglet)) vue.onglet = sections[0].id;
+
+    function appliquer() {
+      const ouvertes = new Set(cartes.filter(aRepondre).map(x => x.c));
+      for (const x of cartes) x.c.hidden = vue.ouvertes && !ouvertes.has(x.c);
+      for (const s of sections) {
+        const n = cartes.filter(x => s.contains(x.c) && ouvertes.has(x.c)).length;
+        const vide = vue.ouvertes && n === 0;
+        s.hidden = (vue.onglet !== "tout" && vue.onglet !== s.id) || (vue.onglet === "tout" && vide);
+        for (const b of document.querySelectorAll('[data-onglet="' + s.id + '"]')) {
+          b.querySelector(".compte").textContent = n ? " · " + n + " à répondre" : "";
+        }
+      }
+      for (const b of document.querySelectorAll("[data-onglet]")) b.setAttribute("aria-current", b.dataset.onglet === vue.onglet ? "true" : "false");
+      for (const c of document.querySelectorAll("[data-filtre]")) c.checked = vue.ouvertes;
+      const actif = sections.find(s => s.id === vue.onglet);
+      const vides = document.querySelectorAll(".vide-ouvertes");
+      for (const v of vides) v.remove();
+      if (actif && vue.ouvertes && cartes.some(x => actif.contains(x.c)) && !cartes.some(x => actif.contains(x.c) && ouvertes.has(x.c))) {
+        const p = document.createElement("p");
+        p.className = "vide-ouvertes sous";
+        p.textContent = "✅ Rien à répondre dans cette section. Décoche « à répondre seulement » pour tout revoir.";
+        actif.querySelector("h2").after(p);
+      }
+      ecrire(vue);
+    }
+    function choisir(id) { vue.onglet = id; appliquer(); }
+
+    function commandes() {
+      const bloc = document.createElement("div");
+      bloc.className = "commandes";
+      const filtre = document.createElement("label");
+      filtre.innerHTML = '<input type="checkbox" data-filtre> À répondre seulement';
+      filtre.querySelector("input").addEventListener("change", e => { vue.ouvertes = e.target.checked; appliquer(); });
+      const rangee = document.createElement("div");
+      rangee.className = "rangee";
+      const ajouter = (id, texte) => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.dataset.onglet = id;
+        b.innerHTML = '<span></span><span class="compte"></span>';
+        b.firstChild.textContent = texte;
+        b.addEventListener("click", () => { choisir(id); document.querySelector(".flottant")?.classList.remove("ouvert"); page.scrollIntoView(); });
+        rangee.append(b);
+      };
+      for (const s of sections) ajouter(s.id, nom(s));
+      ajouter("tout", "📜 Tout afficher");
+      bloc.append(filtre, rangee);
+      return bloc;
+    }
+
+    const haut = document.createElement("details");
+    haut.className = "vue";
+    // Ouvert d'office, même à côté de la colonne de gauche (voulu le 2026-10-06) ; ton choix est retenu.
+    haut.open = "haut" in vue ? vue.haut : true;
+    haut.innerHTML = "<summary>🗂️ Sections et filtres</summary>";
+    haut.append(commandes());
+    haut.addEventListener("toggle", () => { vue.haut = haut.open; ecrire(vue); });
+    page.querySelector("header").after(haut);
+
+    const flottant = document.createElement("nav");
+    flottant.className = "flottant";
+    flottant.setAttribute("aria-label", "Sections");
+    flottant.innerHTML = "<p>🗂️ Sections</p>";
+    flottant.append(commandes());
+    document.body.append(flottant);
+    document.body.classList.add("avec-colonne");  // décale la page derrière la colonne (style ci-dessus)
+    const bouton = document.createElement("button");
+    bouton.type = "button";
+    bouton.id = "ouvrir-menu";
+    bouton.textContent = "🗂️ Sections";
+    bouton.setAttribute("aria-expanded", "false");
+    bouton.addEventListener("click", () => { const o = flottant.classList.toggle("ouvert"); bouton.setAttribute("aria-expanded", String(o)); });
+    document.body.append(bouton);
+
+    // Un lien interne (#Q-MIG-09, #sources…) ouvre d'abord l'onglet qui contient sa cible.
+    function viser(hash) {
+      const cible = hash && document.getElementById(decodeURIComponent(hash.slice(1)));
+      if (!cible) return;
+      const s = sections.find(x => x.contains(cible));
+      if (!s) return;
+      if (s.hidden) { if (vue.onglet === "tout") vue.ouvertes = false; else vue.onglet = s.id; }
+      if (cible.closest("[hidden]")) vue.ouvertes = false;  // une carte déjà répondue, cachée par le filtre
+      appliquer();
+    }
+    document.addEventListener("click", e => { const a = e.target.closest('a[href^="#"]'); if (a) viser(a.getAttribute("href")); });
+    window.addEventListener("hashchange", () => { viser(location.hash); document.getElementById(decodeURIComponent(location.hash.slice(1)))?.scrollIntoView(); });
+    appliquer();
+    if (location.hash) { viser(location.hash); document.getElementById(decodeURIComponent(location.hash.slice(1)))?.scrollIntoView(); }
+  })();
 </script>

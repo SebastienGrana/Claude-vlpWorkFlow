@@ -24,6 +24,13 @@ chantier et ne se republie pas. Un script la remplit : `vlp.py chef page`
 (sa forme est dans la docstring de `vlp.py`) ; à la main, elle suit le
 commentaire de tête du gabarit.
 
+Format **« gros rapport »** (2026-10-06), pour plusieurs dizaines de cartes :
+`data-format="gros"` sur la div de classe `page`. Chaque section devient un
+onglet ; colonne de sections à gauche dès 1080 px, bouton « Sections » en
+dessous ; bloc « Sections et filtres » en haut ; filtre « à répondre
+seulement ». Le sommaire de liens se masque, les réponses ne bougent pas.
+`vlp.py chef page` ne pose pas encore l'attribut : l'ajouter à la main.
+
 La feuille de route ne change **jamais** d'URL : elle porte la TODO ordonnée,
 le chantier en cours, et la table des chantiers clos avec un lien vers chacun.
 Elle ne porte **pas de compteur** de fiches — elle renvoie à la page du
