@@ -26,11 +26,10 @@ sous-agent. Le contrat qu'il rend (`FAITE`, `RETOUR`, `BLOQUÉE`) est dans
 **`clear` dans les arguments (`main clear` se lit `clear`) : une session neuve
 par fiche, par script.**
 Après l'étape 1, ni plan ni fiche jouée ici : un seul appel, en arrière-plan
-(`run_in_background`), depuis la racine du projet — `py -3` si `PYTHON=py`
-(le Python du Store ne voit pas `claude.exe`), sinon `python3` :
+(`run_in_background`), depuis la racine du projet (`<python>` : la valeur de `PYTHON=` dans la carte) :
 
 ```bash
-py -3 "${CLAUDE_PLUGIN_ROOT}/scripts/boucle.py" . --plafond <le plafond ci-dessus> --model sonnet --effort low
+<python> "${CLAUDE_PLUGIN_ROOT}/scripts/boucle.py" . --plafond <le plafond ci-dessus> --model sonnet --effort low
 ```
 
 Chaque fiche y est jouée comme après `/clear` puis `/vlp:tache <fiche>` ; ses
@@ -42,7 +41,7 @@ quelles. `GARDE:` : montre-la, rien d'autre.
 
 La carte du projet, lue avant ton premier tour :
 
-!`py "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python py; python3 "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python python3 --relais; py "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python py --relais; echo fin`
+!`py -3 "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python "py -3"; python3 "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python python3 --relais; py -3 "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python "py -3" --relais; echo fin`
 
 `PROJET=` : c'est le projet, `CHANTIER.md` suit. `VOISIN=… alias=…` : un
 workspace — `vlp:jouer` ne joue que le projet du dossier courant ; dis-le, et

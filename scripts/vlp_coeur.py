@@ -401,7 +401,8 @@ RELAIS_SECONDES = 30
 def carte_injectee(depart, python, relais, sortie, **options):
     """Écrire la carte d'une injection ; `options` passent à `carte` (`relecteur`, `neuve`).
 
-    L'injection : `py … --python py; python3 … --relais; py … --relais; echo fin` (chantier Y, Y1 ; ordre inversé en U4 : sous Windows le message du raccourci
+    L'injection : `py -3 … --python "py -3"; python3 … --relais; py -3 … --relais; echo fin` (chantier Y, Y1 ; `py -3`
+    depuis VIT24 : `py` seul relit le `#!` de `vlp.py` et relance un `python3`, +54 ms ; ordre inversé en U4 : sous Windows le message du raccourci
     Store de `python3` tombe après la carte, sous Ubuntu « py: command not found » avant ; le 3e appel remet
     à 0 le `$LASTEXITCODE` de PowerShell, que `echo` ne touche pas) : une ligne vide d'abord,
     `PYTHON=<nom>` pour le corps de la skill, et rien au relais si le premier lancement a déjà écrit la carte.

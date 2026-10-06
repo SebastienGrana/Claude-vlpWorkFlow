@@ -682,8 +682,9 @@ hausse ; mutant attrapé ; pyright 0 ; code sain.
 ---
 
 <!-- FICHE:VIT24 -->
-## VIT24 [ ] — `test-mesure-tokens.py` dans la suite, `py -3` dans les commandes
+## VIT24 [x] — `test-mesure-tokens.py` dans la suite, `py -3` dans les commandes
 
+**Session** : 17d950aa-47f3-44c8-a41f-13ecc4e4896b
 **Dépend de** : rien.
 **Fichiers** : `scripts/test-vlp.py`, `skills/*/SKILL.md` (les 8 lignes qui injectent la carte), `scripts/vlp_coeur.py`
 (`carte_injectee`) si `PYTHON=` change de forme, `scripts/vlp.py` (sa docstring).

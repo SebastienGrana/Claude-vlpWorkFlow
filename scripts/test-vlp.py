@@ -422,12 +422,12 @@ def tester_extraire_socle():
         code, s = appel(["carte", os.path.join(t, "nulle-part")])
         verifier("carte par main, sortie 0", code == 0 and s == "AUCUN_PROJET\n", s)
         nulle = os.path.join(t, "nulle-part")
-        r1 = appel(["carte", nulle, "--python", "py"])
+        r1 = appel(["carte", nulle, "--python", "py -3"])
         r2 = appel(["carte", nulle, "--python", "python3", "--relais"])
-        r3 = appel(["carte", nulle, "--python", "py", "--relais"])
+        r3 = appel(["carte", nulle, "--python", "py -3", "--relais"])
         r4 = appel(["carte", os.path.join(t, "ailleurs"), "--python", "python3", "--relais"])
         verifier("carte --python : ligne vide, PYTHON=, deux relais muets (U4), relais seul",
-                 (r1, r2, r3, r4) == ((0, "\nPYTHON=py\nAUCUN_PROJET\n"), (0, ""), (0, ""), (0, "\nPYTHON=python3\nAUCUN_PROJET\n")), (r1, r2, r3, r4))
+                 (r1, r2, r3, r4) == ((0, "\nPYTHON=py -3\nAUCUN_PROJET\n"), (0, ""), (0, ""), (0, "\nPYTHON=python3\nAUCUN_PROJET\n")), (r1, r2, r3, r4))
 
 
 groupe(tester_extraire_socle)
@@ -2431,11 +2431,20 @@ def tester_niv1_injection():
              injections == len(skills_glob) > 0 and ecrit_fichier == [],
              "%d injections pour %d SKILL.md, fautives : %r" % (injections, len(skills_glob), ecrit_fichier))
 
+    # VIT24 : `py` seul relit le `#!` de vlp.py et relance un python3 (+54 ms) ; le relais python3 ne change pas.
+    textes = [io.open(c, encoding="utf-8").read() for c in skills_glob]
+    py3 = sum(t.count('py -3 "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python "py -3"') for t in textes)
+    nus = sum(t.count('py "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte') for t in textes)
+    relais = sum(t.count('python3 "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python python3 --relais') for t in textes)
+    verifier("VIT24 : chaque injection lance la carte par py -3 et dit PYTHON=py -3 (deux appels sur trois), aucun py "
+             "nu ; le relais python3 reste", py3 == 2 * len(skills_glob) and nus == 0 and relais == len(skills_glob),
+             (py3, nus, relais, len(skills_glob)))
+
     s_niv1 = io.StringIO()
-    mod.carte_injectee(os.path.join(RACINE, "scripts"), "py", False, s_niv1)
+    mod.carte_injectee(os.path.join(RACINE, "scripts"), "py -3", False, s_niv1)
     lu_n = s_niv1.getvalue()
     verifier("NIV1 : la carte ne dit que PYTHON= et le projet",
-             lu_n.splitlines()[:2] == ["", "PYTHON=py"] and "introuvable" not in lu_n and "not found" not in lu_n
+             lu_n.splitlines()[:2] == ["", "PYTHON=py -3"] and "introuvable" not in lu_n and "not found" not in lu_n
              and "PROJET=" in lu_n, lu_n[:200])
 
 
@@ -2494,11 +2503,11 @@ def tester_vit20_session_neuve():
         s = carte_sous(pr, "cadre-1", nuit=True, neuve=True)
         verifier("VIT20 : VLP_NUIT=1 (la nuit note l'id de clore avant sa session) → la carte de nuit d'avant",
                  s == carte_sous(pr, nuit=True) and "NUIT=1\n" in s, s)
-        injection = [["carte", pr, "--python", "py", "--session-neuve"],
+        injection = [["carte", pr, "--python", "py -3", "--session-neuve"],
                      ["carte", pr, "--python", "python3", "--relais", "--session-neuve"]]
         s = carte_sous(pr, "joue-1", argv=injection)
-        verifier("VIT20 : l'injection par main → PYTHON=py, la carte, l'AVERTISSEMENT: une fois ; le relais se tait",
-                 s == "\nPYTHON=py\n" + avant + AVERTI_VIT20 % "ZZZ1, ZZZ2", s)
+        verifier("VIT20 : l'injection par main → PYTHON=py -3, la carte, l'AVERTISSEMENT: une fois ; le relais se tait",
+                 s == "\nPYTHON=py -3\n" + avant + AVERTI_VIT20 % "ZZZ1, ZZZ2", s)
 
     porteurs = sorted(os.path.basename(os.path.dirname(c)) for c in glob.glob(os.path.join(RACINE, "skills", "*", "SKILL.md"))
                       if "--session-neuve" in io.open(c, encoding="utf-8").read())
@@ -6783,6 +6792,31 @@ def tester_boucle():
     texte, err = sortie.read(), erreur.read()
     verifier("boucle : test-boucle.py (boucle.py et son faux claude) sort OK",
              code == 0 and texte.strip() == "OK", texte + err)
+
+
+def suite_voisine(chemin):
+    """Jouer jusqu'au bout la suite de tests `chemin`, une voisine de celle-ci ; rendre (verte, sa sortie) — verte :
+    elle sort 0 et dit `OK` en dernière ligne (VIT24)."""
+    r = subprocess.run([sys.executable, chemin], capture_output=True, encoding="utf-8", errors="replace",
+                       env=dict(os.environ, PYTHONIOENCODING="utf-8"))
+    return r.returncode == 0 and r.stdout.strip().endswith("OK"), r.stdout + r.stderr
+
+
+def tester_mesure_tokens():
+    """VIT24 : la suite joue `test-mesure-tokens.py`, que rien ne lançait ; une voisine qui échoue — sort 1, même en
+    disant `OK`, ou sort 0 sans le dire — la rend rouge."""
+    with tempfile.TemporaryDirectory() as tm:
+        rate, muette = os.path.join(tm, "test-rate.py"), os.path.join(tm, "test-muette.py")
+        ecrire(rate, 'print("ÉCART: semé")\nprint("OK")\nraise SystemExit(1)\n')
+        ecrire(muette, 'print("FIN: 1 écart(s)")\n')
+        rouges = [suite_voisine(rate), suite_voisine(muette)]
+    verifier("VIT24 : une voisine qui sort 1, ou qui sort 0 sans OK, n'est pas verte — mutant : le code de sortie "
+             "ignoré", [r[0] for r in rouges] == [False, False] and "ÉCART: semé" in rouges[0][1], rouges)
+    verte, texte = suite_voisine(os.path.join(ICI, "test-mesure-tokens.py"))
+    verifier("mesure-tokens : test-mesure-tokens.py sort OK", verte, texte)
+
+
+groupe(tester_mesure_tokens)
 
 
 def tester_nuits():

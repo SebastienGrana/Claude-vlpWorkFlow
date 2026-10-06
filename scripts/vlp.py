@@ -25,7 +25,8 @@ Sous-commandes :
   texte, ou `METHODE=absente <chemin>` si un titre manque, ou `GARDE:`.
   Pas trouvé : une ligne `VOISIN=` par sous-dossier équipé, avec son alias, ou
   `AUCUN_PROJET`. Sort toujours 0 : la commande lit la sortie, elle ne doit pas
-  se faire refuser l'injection. `--python NOM` : une ligne vide, `PYTHON=NOM`,
+  se faire refuser l'injection. `--python NOM` (les injections des skills : `"py -3"`, `python3` au relais ;
+  VIT24) : une ligne vide, `PYTHON=NOM`,
   puis la carte, et un tampon dans le dossier temporaire ; `--relais` en plus :
   n'écrit rien si un tampon de moins de `RELAIS_SECONDES` existe (le premier
   Python a déjà répondu), sans le retirer. `--relecteur` : ni titres de fiches,
