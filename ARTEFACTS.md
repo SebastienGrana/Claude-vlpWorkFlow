@@ -24,6 +24,13 @@ chantier et ne se republie pas. Un script la remplit : `vlp.py chef page`
 (sa forme est dans la docstring de `vlp.py`) ; à la main, elle suit le
 commentaire de tête du gabarit.
 
+Depuis le 2026-10-07, son script pose seul de quoi lire et répondre plus
+vite : une barre de suivi en haut de l'écran, « Suivante » qui replie une
+carte répondue, « Écouter » sur chaque carte, l'étiquette « conseillé » sur
+l'option recommandée, et une version courte par interrupteur, éteinte
+d'office. Ce qu'elle garde, et ce que ça demande à l'écriture : le
+commentaire de tête du gabarit.
+
 Format **« gros rapport »** (2026-10-06), pour plusieurs dizaines de cartes :
 `data-format="gros"` sur la div de classe `page`. Chaque section devient un
 onglet ; colonne de sections à gauche dès 1080 px, bouton « Sections » en
@@ -196,14 +203,17 @@ Choix de l'utilisateur, tranchés un à un le 2026-10-05 pour lire plus vite et
 plus longtemps : clair seulement, contraste adouci, Atkinson Hyperlegible à
 18 px espacée de 0,05 em, rien sous 15 px, aucun texte en capitales, nombres
 et dates jamais coupés. Les valeurs vivent dans `templates/vlp.css` (son
-commentaire de tête les résume) et dans `templates/rapport-choix.html`, qui a
-sa propre palette ; ailleurs, on renvoie à ces deux fichiers.
+commentaire de tête les résume) et dans `templates/rapport-choix.html`, qui
+reprend la même palette (accent bleu compris depuis le 2026-10-07) avec un
+bord d'option un cran plus foncé, pour son fond pêche ; ailleurs, on renvoie à
+ces deux fichiers.
 
 - **Pas de thème sombre**, même en option : ne pas en rajouter un.
 - **Une page neuve part d'un gabarit de `templates/`**, jamais d'un style
   écrit à la main.
-- **Les espaces insécables se posent à l'affichage**, par `vlp.js` : les
-  lectures de `vlp.py` attendent des espaces ordinaires dans la page.
+- **Les espaces insécables se posent à l'affichage**, par le bloc INSECABLE
+  de `vlp.js`, recopié à l'octet dans `rapport-choix.html` : les lectures de
+  `vlp.py` attendent des espaces ordinaires dans la page.
 - **Un bouton « Écouter » sous le titre de chaque page qui charge `vlp.js`,
   et des rapports à cartes** (2026-10-06) : la voix du navigateur lit la
   sélection, sinon la page visible ; pendant la lecture, une barre en bas de

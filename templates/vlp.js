@@ -11,27 +11,31 @@
   BTN4 : filtrer la feuille par état, sous son sommaire.
   Le graphique des coûts : Chart.js (MIT), chargé à la demande sur la feuille —
   pas de roue réinventée pour les axes et les bulles (demande du 2026-09-28).
-  Lecture (2026-10-05) : un nombre ne se coupe plus en fin de ligne.
+  Lecture (2026-10-05) : un nombre ne se coupe plus en fin de ligne — le bloc
+  INSECABLE, en tête, recopié à l'octet dans rapport-choix.html (2026-10-07).
   Écouter (2026-10-06) : la page lue à voix haute — le bloc LECTEUR, en fin de
   fichier, recopié à l'octet dans rapport-choix.html.
 */
+// INSECABLE — début. Nombres et dates jamais coupés en fin de ligne, copié à l'octet dans templates/vlp.js
+// et dans le script de templates/rapport-choix.html ; test-vlp.py vérifie que les deux copies sont pareilles.
+// « 5 069 068 », « 2,57 $ », « 47 % », « 41 tours », « 3 s », « 16,3 → 11,7 » reçoivent une espace
+// insécable ; une date (« 2026-09-30 ») ou une plage (« MOR1–MOR14 », « 28–66 ») passe dans un
+// `span.insecable`, que le style garde sur une ligne. À l'affichage seulement : vlp.py écrit des espaces
+// ordinaires, que ses propres lectures de la page attendent. Le texte brut (pre), les scripts, les styles
+// et les champs de saisie n'y passent pas. La flèche, %, s, ms, min, px et les plages de nombres : ajoutés
+// le 2026-10-07, pour les rapports à cartes.
 (() => {
   const page = document.querySelector(".page");
   if (!page) return;
-
-  // Nombres et dates jamais coupés : « 5 069 068 », « 2,57 $ », « 41 tours », « 3 fiches »
-  // reçoivent une espace insécable ; une date (« 2026-09-30 ») ou une plage (« MOR1–MOR14 »)
-  // passe dans un `span.insecable`. À l'affichage seulement : vlp.py écrit des espaces ordinaires,
-  // que ses propres lectures de la page attendent. Le texte brut (pre) et les scripts n'y passent pas.
-  const insecable = /(\d) (?=\d{3}(?!\d)|\$|(?:tours|fiches?|tokens)\b)/g;
-  const bloc = /(\d{4}-\d\d-\d\d|[A-Z]{2,4}\d+–[A-Z]{2,4}\d+)/;
+  const insecable = /(\d) (?=\d{3}(?!\d)|[$%→]|(?:tours?|fiches?|tokens|mutants?|appels?|min|ms|px|s|k)(?![\p{L}\p{N}]))|(→) (?=\d)/gu;
+  const bloc = /(\d{4}-\d\d-\d\d|[A-Z]{2,4}\d+–[A-Z]{2,4}\d+|\d+(?:,\d+)?–\d+(?:,\d+)?)/u;
   const textes = [];
   const marche = document.createTreeWalker(page, NodeFilter.SHOW_TEXT);
   for (let n = marche.nextNode(); n; n = marche.nextNode()) {
-    if (!n.parentElement.closest("pre, script")) textes.push(n);
+    if (!n.parentElement.closest("pre, script, style, textarea")) textes.push(n);
   }
   textes.forEach((n) => {
-    const morceaux = n.data.replace(insecable, "$1 ").split(bloc);
+    const morceaux = n.data.replace(insecable, "$1$2\u00a0").split(bloc);
     if (morceaux.length === 1) {
       if (morceaux[0] !== n.data) n.data = morceaux[0];
       return;
@@ -44,6 +48,11 @@
       return s;
     }));
   });
+})();
+// INSECABLE — fin
+(() => {
+  const page = document.querySelector(".page");
+  if (!page) return;
 
   const bouton = (texte, classe) => {
     const b = document.createElement("button");

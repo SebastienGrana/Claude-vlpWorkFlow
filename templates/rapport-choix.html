@@ -30,6 +30,21 @@
   Claude de qui clique ; sans compte Claude, rien n'apparaît. Jamais d'office :
   pour un rapport compliqué (format gros, ou très technique), Claude propose
   l'option en une ligne avant de publier — utile quand d'autres le liront.
+  Lire et répondre plus vite (2026-10-07, choix tranchés sur la page « Des
+  rapports plus beaux et plus malins ») : le script pose seul, rien à écrire —
+  - en haut de l'écran, une barre de suivi : « n sur N répondues », « Suivante
+    sans réponse », « Copier » ; elle n'apparaît que s'il y a des cartes ;
+  - à côté du titre de chaque carte, « 🔊 Écouter » : la carte seule, lue ;
+  - sous une carte répondue, « Suivante » : elle se replie en une ligne, titre
+    et réponse (un clic la rouvre), et la page va à la prochaine sans réponse ;
+  - l'option dont le libellé finit par « (recommandé) » : le mot devient une
+    étiquette « 👍 conseillé », et son bord passe en pointillé ;
+  - nombres et dates insécables : le bloc INSECABLE, copié de vlp.js à l'octet,
+    comme le lecteur (même règle, test-vlp.py compare aussi) ;
+  - sous le titre, « ✂️ Version courte », éteinte d'office, gardée dans le
+    navigateur : elle replie tout sauf l'en-tête, les titres, les lignes qui
+    s'ouvrent par 💬 (en clair), les options, et toute ligne qui porte ⚠️ ; le
+    lecteur ne lit alors que ce qui reste. Rien ne s'efface.
   `data-cle` sur la div de classe `page` : une clé par rapport, sinon deux
   rapports se partagent les coches gardées dans le navigateur. Ce commentaire
   ne cite jamais une balise telle quelle : un remplacement la trouverait ici
@@ -47,11 +62,15 @@
     si elle aide), ➕ Le bon côté, ➖ Le moins bon ; le détail technique
     (problème, choix, écarté, prix, défaire) se replie en bas de la carte ;
   - chaque option d'une question porte son ➕ et son ➖ ; une alerte aussi,
-    après son « en clair » ;
+    après son « en clair » ; le ➕ et le ➖ d'une option disent son gain et son
+    coût, car la version courte ne garde qu'eux (choix du 2026-10-07) ;
+  - un risque porte ⚠️ sur sa ligne, sinon la version courte le replie ;
+  - une puce, une idée, un émoji : une puce à deux émojis se découpe en deux ;
   - un mot technique s'explique entre parenthèses à sa première venue, les
     chiffres ont des légendes en mots simples, le fil dit ce que valent ses codes.
 
-  Lisibilité (dyslexie) : fond chaud, texte adouci (8,5:1, pas au maximum), clair
+  Lisibilité (dyslexie) : la palette de vlp.css (accent bleu compris, depuis le
+  2026-10-07), fond chaud, texte adouci (8,5:1, pas au maximum), clair
   seulement — jamais de thème sombre —, lettres espacées de 0,05em (essayé contre
   0 et 0,1em), rien sous 15px, aucun texte en majuscules,
   aligné à gauche, une idée par puce, gras pour l'info clé, jamais d'italique
@@ -67,8 +86,11 @@
   :root {
     color-scheme: light;
     --fond:#f3e8d4; --carte:#faf1e2; --trait:#dcd0b7; --texte:#50433b; --doux:#6e6151;
-    --accent:#8a4b12; --ok:#2c6e48; --ok-fond:#e4f0e2; --warn:#8a5a0c; --warn-fond:#fbe9cc;
+    --accent:#2f5d8c; --ok:#2c6e48; --ok-fond:#e4f0e2; --warn:#8a5a0c; --warn-fond:#fbe9cc;
     --ko:#9c3431; --ko-fond:#f8e0da; --q-fond:#fbe4d2;
+    /* le bord d'un bouton ou d'une option, à 3:1 sur les trois fonds : un cran plus foncé que celui de
+       vlp.css (#92846b), qui tombe à 2,99:1 sur --q-fond (calculé le 2026-10-07, formule WCAG) */
+    --bord-bouton:#908269;
   }
   * { box-sizing:border-box; }
   body { margin:0; background:var(--fond); color:var(--texte); font-family:"Atkinson Hyperlegible",Verdana,system-ui,sans-serif; font-size:18px; letter-spacing:.05em; line-height:1.7; padding-inline:16px; text-align:left; }
@@ -86,9 +108,11 @@
   .jauge { align-self:flex-start; display:inline-flex; gap:.5rem; align-items:center; padding:.35rem .8rem; border-radius:6px; background:var(--ok-fond); color:var(--ok); font-weight:700; }
   .jauge.moyen { background:var(--warn-fond); color:var(--warn); }
   .jauge.ko { background:var(--ko-fond); color:var(--ko); }
-  .chiffres { display:grid; grid-template-columns:repeat(auto-fit,minmax(9.5rem,1fr)); gap:.75rem; }
-  .chiffre { background:var(--carte); border:1px solid var(--trait); border-radius:8px; padding:.8rem 1rem; display:flex; flex-direction:column; gap:.1rem; }
-  .chiffre b { font-size:1.6rem; font-variant-numeric:tabular-nums; }
+  /* un gros chiffre ne se coupe jamais : sa tuile s'élargit à lui, et passe à la ligne s'il le faut */
+  .chiffres { display:flex; flex-wrap:wrap; gap:.75rem; }
+  .chiffre { flex:1 1 12rem; background:var(--carte); border:1px solid var(--trait); border-radius:8px; padding:.8rem 1rem; display:flex; flex-direction:column; gap:.1rem; }
+  .chiffre b { font-size:1.6rem; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .insecable { white-space:nowrap; }
   .chiffre span { color:var(--doux); font-size:1rem; line-height:1.4; }
   .decision { background:var(--carte); border:1px solid var(--trait); border-radius:8px; padding:1rem 1.1rem; display:flex; flex-direction:column; gap:.6rem; }
   .decision .tete { display:flex; flex-wrap:wrap; gap:.5rem; align-items:baseline; justify-content:space-between; }
@@ -99,12 +123,20 @@
   .grille dt { color:var(--doux); font-size:1rem; }
   .grille dd { margin:0; }
   .choix { display:flex; flex-wrap:wrap; gap:.5rem; padding-top:.3rem; border-top:1px dashed var(--trait); }
-  .choix label { display:inline-flex; align-items:center; gap:.4rem; padding:.3rem .75rem; border:1px solid var(--trait); border-radius:999px; cursor:pointer; font-size:.95rem; background:var(--carte); }
+  .choix label { display:inline-flex; align-items:center; gap:.5rem; padding:.3rem .75rem; border:2px solid var(--bord-bouton); border-radius:999px; cursor:pointer; font-size:.95rem; background:var(--carte); }
   .choix.options { flex-direction:column; }
   .choix.options label { border-radius:8px; align-items:flex-start; }
   .choix.options label > span > b:first-child { display:block; }
-  .choix input { accent-color:var(--accent); margin-top:.35rem; }
-  .choix label:has(input:checked) { border-color:var(--accent); background:var(--q-fond); }
+  .choix input { accent-color:var(--accent); width:22px; height:22px; margin:0; flex:none; }
+  .choix.options input { margin-top:.15rem; }
+  .choix label:has(input:checked) { border-color:var(--accent); box-shadow:inset 0 0 0 1px var(--accent); background:var(--q-fond); }
+  .choix:not(.options) label:has(input:checked)::after,
+  .choix.options label:has(input:checked) > span > b:first-child::after { content:"✓"; margin-left:.35rem; color:var(--accent); font-weight:700; }
+  /* l'option conseillée (le script lit « recommandé » entre parenthèses dans son libellé) : une étiquette, un bord
+     en pointillé */
+  .choix label.conseil { border-style:dashed; border-color:var(--accent); }
+  .choix label.conseil:has(input:checked) { border-style:solid; }
+  .etiquette-conseil { display:inline-block; margin-left:.4rem; padding:0 .45rem; border-radius:4px; background:var(--accent); color:var(--carte); font-size:.9375rem; font-weight:700; white-space:nowrap; }
   .choix label:focus-within { outline:2px solid var(--accent); outline-offset:2px; }
   .question { background:var(--q-fond); border-radius:8px; padding:1rem 1.1rem; display:flex; flex-direction:column; gap:.6rem; }
   .alerte { background:var(--warn-fond); border-radius:8px; padding:1rem 1.1rem; display:flex; flex-direction:column; gap:.5rem; }
@@ -140,6 +172,42 @@
   .technique > .grille, .technique > p { margin-top:.6rem; }
   .effet { display:flex; flex-direction:column; gap:.15rem; }
   @media (max-width:480px) { .grille { grid-template-columns:1fr; } .grille dt { margin-top:.4rem; } }
+  /* Lire et répondre plus vite (2026-10-07) — tout est posé par le script. La barre de suivi, collée en haut
+     de l'écran : la page descend de sa hauteur (--haut-suivi, mesurée par le script). */
+  body { --haut-suivi:0px; }
+  body.avec-suivi { padding-top:calc(var(--haut-suivi) + 12px); }
+  body.avec-suivi :is(section, .question, .decision, [id]) { scroll-margin-top:calc(var(--haut-suivi) + 1rem); }
+  .barre-suivi { position:fixed; top:0; left:0; right:0; z-index:9; background:var(--carte); border-bottom:2px solid var(--accent); box-shadow:0 2px 6px rgba(80,67,59,.1); padding:calc(.5rem + env(safe-area-inset-top, 0px)) 16px .5rem; }
+  .barre-suivi .dedans { max-width:46rem; margin:0 auto; display:flex; flex-wrap:wrap; align-items:center; gap:.4rem .8rem; }
+  .compte-suivi { font-weight:700; white-space:nowrap; }
+  .barre-suivi progress { flex:1 1 5rem; height:6px; -webkit-appearance:none; appearance:none; border:0; border-radius:3px; background:var(--trait); overflow:hidden; }
+  .barre-suivi progress::-webkit-progress-bar { background:var(--trait); }
+  .barre-suivi progress::-webkit-progress-value { background:var(--accent); }
+  .barre-suivi progress::-moz-progress-bar { background:var(--accent); }
+  .etat-suivi { flex-basis:100%; font-size:.9375rem; color:var(--doux); }
+  .etat-suivi:empty { display:none; }
+  .barre-suivi button, .ecouter-carte, .suivante { font:inherit; font-size:.9375rem; font-weight:700; line-height:1.4; white-space:nowrap; color:var(--accent); background:var(--carte); border:1px solid var(--bord-bouton); border-radius:6px; padding:.3rem .8rem; cursor:pointer; }
+  .barre-suivi .copier-suivi { color:var(--carte); background:var(--accent); border-color:var(--accent); }
+  :is(.barre-suivi button, .ecouter-carte, .suivante, .une-ligne):focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+  /* « 🔊 Écouter » à droite du titre de chaque carte */
+  .tete-carte { display:flex; gap:.6rem; align-items:flex-start; justify-content:space-between; }
+  .tete-carte > h3 { flex:1; min-width:0; }
+  .decision .tete > .tete-carte { flex:1 1 16rem; }
+  /* « Suivante » sous une carte répondue ; la carte repliée tient en une ligne, titre → réponse, un clic la rouvre */
+  .une-ligne, .suivante { display:none; }
+  :is(.question, .decision):has(input:checked):not(.repliee) > .suivante { display:inline-block; align-self:flex-start; }
+  :is(.question, .decision).repliee { padding-block:.45rem; background:var(--carte); border:1px solid var(--trait); border-left:4px solid var(--ok); }
+  .repliee > :not(.une-ligne) { display:none; }
+  .repliee > .une-ligne { display:flex; }
+  .une-ligne { width:100%; flex-wrap:wrap; justify-content:space-between; align-items:baseline; gap:.2rem .8rem; font:inherit; font-weight:400; line-height:1.5; text-align:left; color:var(--texte); background:none; border:0; padding:.15rem 0; cursor:pointer; }
+  .une-ligne .choisie { color:var(--ok); font-weight:700; }
+  /* La version courte, éteinte d'office : body.courte replie ce que le script a marqué « long » */
+  .bascule-courte { align-self:flex-start; display:inline-flex; gap:.5rem; align-items:center; cursor:pointer; font-size:.95rem; font-weight:700; color:var(--accent); }
+  .bascule-courte input { accent-color:var(--accent); width:20px; height:20px; margin:0; flex:none; }
+  .bascule-courte:focus-within { outline:2px solid var(--accent); outline-offset:2px; border-radius:4px; }
+  .aide-courte, .replie-court { display:none; font-size:.9375rem; }
+  body.courte .aide-courte, body.courte .replie-court { display:block; }
+  body.courte .page .long { display:none; }
   /* Format « gros rapport » (data-format="gros" sur la page) : une section par onglet. */
   .page[data-format="gros"] [hidden] { display:none !important; }
   .vue { background:var(--carte); border:1px solid var(--trait); border-radius:8px; padding:.7rem 1rem; }
@@ -159,22 +227,23 @@
   /* Grand écran : colonne fixe à gauche, comme un site de doc ; la page se décale pour ne jamais être
      recouverte. 1080 px = colonne 16 rem + page 46 rem + marges (16 + 32 + 16 px). */
   @media (min-width:1080px) {
-    .flottant { top:1rem; left:16px; width:16rem; max-height:calc(100vh - 2rem); }
+    /* la colonne commence sous la barre de suivi (--haut-suivi vaut 0 sans elle) */
+    .flottant { top:calc(1rem + var(--haut-suivi)); left:16px; width:16rem; max-height:calc(100vh - 2rem - var(--haut-suivi)); }
     body.avec-colonne { padding-left:calc(16rem + 48px); }
     #ouvrir-menu { display:none; }
-    /* la barre du lecteur (LECTEUR, plus bas) suit la page décalée, et laisse voir le bas de la colonne */
-    body.avec-colonne .barre-lecture { padding-left:calc(16rem + 48px); }
-    body.vlp-lit .flottant { max-height:calc(100vh - 8rem); }
+    /* la barre du lecteur (LECTEUR, plus bas) et celle de suivi suivent la page décalée */
+    body.avec-colonne .barre-lecture, body.avec-colonne .barre-suivi { padding-left:calc(16rem + 48px); }
+    body.vlp-lit .flottant { max-height:calc(100vh - 8rem - var(--haut-suivi)); }
   }
   /* Les onglets remplacent le sommaire de liens : le garder ferait doublon. Sans JavaScript, il reste. */
   body.avec-colonne .page nav[aria-label="Sommaire"] { display:none; }
   @media (max-width:1079px) {
-    .flottant { right:16px; bottom:4.6rem; width:min(20rem, calc(100vw - 32px)); max-height:calc(100vh - 6rem); box-shadow:0 2px 10px rgba(80,67,59,.3); }
+    .flottant { right:16px; bottom:4.6rem; width:min(20rem, calc(100vw - 32px)); max-height:calc(100vh - 6rem - var(--haut-suivi)); box-shadow:0 2px 10px rgba(80,67,59,.3); }
     .flottant:not(.ouvert) { display:none; }
     .page[data-format="gros"] { padding-bottom:6rem; }
     /* pendant la lecture, le bouton « Sections » et son menu passent au-dessus de la barre du lecteur */
     body.vlp-lit #ouvrir-menu { bottom:10.5rem; }
-    body.vlp-lit .flottant { bottom:13rem; max-height:calc(100vh - 14rem); }
+    body.vlp-lit .flottant { bottom:13rem; max-height:calc(100vh - 14rem - var(--haut-suivi)); }
   }
 /* LECTEUR — début. Le lecteur à voix haute (son script : LECTEUR dans vlp.js), copié à l'octet dans
    vlp.css et dans le style de rapport-choix.html ; test-vlp.py vérifie les deux copies. Les jetons
@@ -380,6 +449,40 @@ body.vlp-lit { padding-bottom:9rem; }
 </div>
 
 <script>
+// INSECABLE — début. Nombres et dates jamais coupés en fin de ligne, copié à l'octet dans templates/vlp.js
+// et dans le script de templates/rapport-choix.html ; test-vlp.py vérifie que les deux copies sont pareilles.
+// « 5 069 068 », « 2,57 $ », « 47 % », « 41 tours », « 3 s », « 16,3 → 11,7 » reçoivent une espace
+// insécable ; une date (« 2026-09-30 ») ou une plage (« MOR1–MOR14 », « 28–66 ») passe dans un
+// `span.insecable`, que le style garde sur une ligne. À l'affichage seulement : vlp.py écrit des espaces
+// ordinaires, que ses propres lectures de la page attendent. Le texte brut (pre), les scripts, les styles
+// et les champs de saisie n'y passent pas. La flèche, %, s, ms, min, px et les plages de nombres : ajoutés
+// le 2026-10-07, pour les rapports à cartes.
+(() => {
+  const page = document.querySelector(".page");
+  if (!page) return;
+  const insecable = /(\d) (?=\d{3}(?!\d)|[$%→]|(?:tours?|fiches?|tokens|mutants?|appels?|min|ms|px|s|k)(?![\p{L}\p{N}]))|(→) (?=\d)/gu;
+  const bloc = /(\d{4}-\d\d-\d\d|[A-Z]{2,4}\d+–[A-Z]{2,4}\d+|\d+(?:,\d+)?–\d+(?:,\d+)?)/u;
+  const textes = [];
+  const marche = document.createTreeWalker(page, NodeFilter.SHOW_TEXT);
+  for (let n = marche.nextNode(); n; n = marche.nextNode()) {
+    if (!n.parentElement.closest("pre, script, style, textarea")) textes.push(n);
+  }
+  textes.forEach((n) => {
+    const morceaux = n.data.replace(insecable, "$1$2\u00a0").split(bloc);
+    if (morceaux.length === 1) {
+      if (morceaux[0] !== n.data) n.data = morceaux[0];
+      return;
+    }
+    n.replaceWith(...morceaux.map((m, i) => {
+      if (i % 2 === 0) return m;
+      const s = document.createElement("span");
+      s.className = "insecable";
+      s.textContent = m;
+      return s;
+    }));
+  });
+})();
+// INSECABLE — fin
   const page = document.querySelector(".page");
   const cle = "rapport:" + (page.dataset.cle || document.title);
   const titre = document.querySelector("h1").textContent.trim() || document.title;
@@ -426,12 +529,185 @@ body.vlp-lit { padding-bottom:9rem; }
   document.addEventListener("input", e => {
     if (e.target.matches("textarea[data-note]")) { const s = lireStock(); s["note:" + e.target.dataset.note] = e.target.value; ecrireStock(s); maj(); }
   });
-  document.getElementById("copier").addEventListener("click", () => {
+  // Copie les réponses, et rend le mot affiché à côté du bouton (la barre de suivi le reprend). Presse-papier
+  // refusé ou absent : le texte se sélectionne, à copier au clavier.
+  function copier() {
     const etat = document.getElementById("etat");
-    navigator.clipboard.writeText(zone.value).then(() => { etat.textContent = "Copié."; })
-      .catch(() => { zone.focus(); zone.select(); etat.textContent = "Sélectionné : fais Ctrl+C."; });
-  });
+    return Promise.resolve().then(() => navigator.clipboard.writeText(zone.value)).then(() => "Copié.")
+      .catch(e => { console.warn("rapport — copie refusée, texte sélectionné :", e); zone.focus(); zone.select(); return "Sélectionné : fais Ctrl+C."; })
+      .then(mot => (etat.textContent = mot));
+  }
+  document.getElementById("copier").addEventListener("click", copier);
   maj();
+
+  /* Lire et répondre plus vite (2026-10-07, choix tranchés sur la page « Des rapports plus beaux et plus malins ») :
+     l'option recommandée prend l'étiquette « 👍 conseillé » ; chaque carte, « 🔊 Écouter » à côté de son titre ;
+     une carte répondue, « Suivante », qui la replie en une ligne (un clic la rouvre) et mène à la prochaine sans
+     réponse ; en haut de l'écran, la barre de suivi ; sous le titre, la version courte, éteinte d'office. */
+  (() => {
+    const cartes = [...page.querySelectorAll(".question, .decision")].filter(c => c.querySelector('input[type="radio"]'));
+    const doux = () => (matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth");
+    const element = (balise, classe, texte) => {
+      const e = document.createElement(balise);
+      if (classe) e.className = classe;
+      if (texte) e.textContent = texte;
+      return e;
+    };
+    const bouton = (classe, texte) => { const b = element("button", classe, texte); b.type = "button"; return b; };
+
+    // L'option conseillée : « recommandé » entre parenthèses quitte le libellé et devient une étiquette, que le lecteur
+    // dit ; la page bâtie par vlp.py chef page ne porte ce mot qu'une fois par option (test-vlp.py le compte)
+    const CONSEIL = /\s*\((recommandé|conseillé)\)/i;
+    for (const b of page.querySelectorAll(".choix label > span > b:first-child")) {
+      if (!CONSEIL.test(b.textContent)) continue;
+      const w = document.createTreeWalker(b, NodeFilter.SHOW_TEXT);
+      for (let n = w.nextNode(); n; n = w.nextNode()) n.data = n.data.replace(CONSEIL, "");
+      b.closest("label").classList.add("conseil");
+      b.append(" ", element("span", "etiquette-conseil", "👍 conseillé"));
+    }
+
+    // « Écouter » une carte : la carte seule passe au lecteur de la page (bloc LECTEUR, plus bas), comme une sélection
+    if (window.speechSynthesis) for (const c of cartes) {
+      const h = c.querySelector("h3");
+      if (!h) continue;
+      const tete = element("div", "tete-carte");
+      const ecouter = bouton("ecouter-carte", "🔊 Écouter");
+      ecouter.setAttribute("aria-label", "Écouter cette carte");
+      ecouter.addEventListener("click", () => {
+        const lecteur = document.querySelector(".lecteur .principal");
+        if (!lecteur) { console.warn("rapport — pas de lecteur à voix haute sur la page"); return; }
+        if (document.body.classList.contains("vlp-lit")) lecteur.click();  // la lecture en cours s'arrête d'abord
+        window.getSelection().selectAllChildren(c);
+        lecteur.click();
+        window.getSelection().removeAllRanges();  // le lecteur a déjà pris le texte
+      });
+      h.before(tete);
+      tete.append(h, ecouter);
+    }
+
+    // La barre de suivi : le compte, la prochaine carte sans réponse (après `depuis`, sinon sous le haut de l'écran), copier
+    const barre = element("div", "barre-suivi");
+    const etat = element("span", "etat-suivi");
+    const dire = texte => { etat.textContent = texte; };
+    const repondue = c => !!c.querySelector('input[type="radio"]:checked');
+    const allerSuivante = depuis => {
+      const ouvertes = cartes.filter(c => !repondue(c));
+      if (!ouvertes.length) { dire("✅ Tout est répondu : tu peux copier."); return; }
+      const cible = (depuis ? ouvertes.find(c => cartes.indexOf(c) > cartes.indexOf(depuis))
+        : ouvertes.find(c => c.offsetParent && c.getBoundingClientRect().top > barre.offsetHeight + 24)) || ouvertes[0];
+      document.dispatchEvent(new CustomEvent("vlp-montrer", { detail: cible }));  // le format gros ouvre son onglet
+      cible.scrollIntoView({ behavior: doux(), block: "start" });
+      cible.querySelector('input[type="radio"]').focus({ preventScroll: true });
+      dire("");
+    };
+    if (cartes.length) {
+      const dedans = element("div", "dedans");
+      const compte = element("span", "compte-suivi");
+      const jauge = document.createElement("progress");
+      const aller = bouton("", "➡️ Suivante sans réponse");
+      const copie = bouton("copier-suivi", "📋 Copier");
+      barre.setAttribute("role", "region");
+      barre.setAttribute("aria-label", "Suivi des réponses");
+      jauge.setAttribute("aria-label", "Cartes répondues");
+      etat.setAttribute("aria-live", "polite");
+      dedans.append(compte, jauge, aller, copie, etat);
+      barre.append(dedans);
+      document.body.prepend(barre);
+      document.body.classList.add("avec-suivi");
+      aller.addEventListener("click", () => allerSuivante(null));
+      copie.addEventListener("click", () => copier().then(dire));
+      const suivi = () => {
+        const n = noms.filter(x => document.querySelector('input[name="' + x + '"]:checked')).length;
+        compte.textContent = n + " sur " + noms.length + " répondues";
+        jauge.max = noms.length;
+        jauge.value = n;
+      };
+      // la page descend de la hauteur de la barre, mesurée tout de suite et police chargée (un onglet caché ne lance
+      // pas l'observateur), puis à chaque fois qu'elle change, quand elle passe sur deux lignes
+      const mesurer = () => document.body.style.setProperty("--haut-suivi", barre.offsetHeight + "px");
+      mesurer();
+      document.fonts?.ready.then(mesurer);
+      new ResizeObserver(mesurer).observe(barre);
+      document.addEventListener("change", e => { if (e.target.matches('input[type="radio"]')) suivi(); });
+      suivi();
+    }
+
+    // « Suivante » : la carte répondue se replie en une ligne, titre → réponse ; un clic sur la ligne la rouvre
+    for (const c of cartes) {
+      const ligne = bouton("une-ligne");
+      const titre = element("span");
+      const choisie = element("span", "choisie");
+      ligne.append(titre, choisie);
+      ligne.addEventListener("click", () => { c.classList.remove("repliee"); c.querySelector('input[type="radio"]:checked')?.focus(); });
+      const suivante = bouton("suivante", "Suivante ➡️");
+      suivante.addEventListener("click", () => {
+        const h = c.querySelector("h3");
+        const label = c.querySelector('input[type="radio"]:checked').closest("label");
+        const libelle = (label.querySelector("b") || label).cloneNode(true);
+        libelle.querySelectorAll(".etiquette-conseil").forEach(x => x.remove());
+        titre.textContent = "✅ " + (h ? h.textContent.replace(/^[^\p{L}\p{N}]+/u, "").trim() : "");
+        choisie.textContent = "→ " + libelle.textContent.trim();
+        c.classList.add("repliee");
+        ligne.focus({ preventScroll: true });  // la carte suivante prend la main, s'il en reste une
+        allerSuivante(c);
+      });
+      c.prepend(ligne);
+      c.append(suivante);
+    }
+
+    // La version courte : ne restent que l'en-tête, les titres, les lignes « 💬 en clair », les options et toute ligne
+    // qui porte ⚠️ ; le reste reçoit la classe « long », que body.courte replie. Une section vide le dit.
+    const PARLE = /^\s*💬|⚠/u;
+    const TOUJOURS = "h3, .tete, .tete-carte, .choix, .note, .explique, .suivante, .une-ligne";
+    const plier = el => el.classList.add("long");
+    const trier = racine => {  // vrai si quelque chose reste visible dans `racine`
+      let reste = false;
+      for (const el of racine.children) {
+        let garde = false;
+        if (el.matches("h2")) continue;
+        if (el.matches(TOUJOURS)) garde = true;
+        else if (el.matches("dl")) {
+          for (const dt of el.querySelectorAll(":scope > dt")) {
+            const dd = dt.nextElementSibling?.matches("dd") ? dt.nextElementSibling : null;
+            if (dt.matches(".net") || PARLE.test(dt.textContent + " " + (dd ? dd.textContent : ""))) garde = true;
+            else { plier(dt); if (dd) plier(dd); }
+          }
+        } else if (el.matches("ul, ol")) {
+          for (const li of el.children) if (PARLE.test(li.textContent)) garde = true; else plier(li);
+        } else if (el.matches("div:not(.chiffres, .tableau)")) garde = trier(el);
+        else garde = el.matches("p, h4") && PARLE.test(el.textContent);
+        if (garde) reste = true; else plier(el);
+      }
+      return reste;
+    };
+    const fixe = document.getElementById("reponses").closest("section");
+    for (const s of page.querySelectorAll(":scope > section")) {
+      if (s === fixe || trier(s)) continue;
+      const vide = element("p", "replie-court sous", "✂️ Repliée en version courte");
+      vide.dataset.muet = "";  // le lecteur ne le dit pas
+      const h2 = s.querySelector(":scope > h2");
+      if (h2) h2.after(vide); else s.prepend(vide);
+    }
+    page.querySelector(":scope > footer")?.classList.add("long");
+    const CLE_COURTE = "vlp-courte";  // une préférence de lecture, la même pour tous les rapports
+    const bascule = element("label", "bascule-courte");
+    const coche = document.createElement("input");
+    const aide = element("p", "aide-courte sous",
+      "Ne restent que les lignes en clair, les options et les alertes — rien n'est effacé, décoche pour tout revoir");
+    coche.type = "checkbox";
+    try { coche.checked = localStorage.getItem(CLE_COURTE) === "1"; }
+    catch (e) { console.warn("rapport — version courte gardée illisible :", e); }
+    bascule.dataset.muet = aide.dataset.muet = "";
+    bascule.append(coche, element("span", "", "✂️ Version courte"));
+    coche.addEventListener("change", () => {
+      document.body.classList.toggle("courte", coche.checked);
+      try { localStorage.setItem(CLE_COURTE, coche.checked ? "1" : "0"); }
+      catch (e) { console.warn("rapport — version courte non gardée :", e); }
+    });
+    const h1 = page.querySelector("header h1");
+    if (h1) h1.after(bascule, aide); else page.querySelector("header")?.append(bascule, aide);
+    document.body.classList.toggle("courte", coche.checked);
+  })();
 
   /* Explique-moi, éteint sauf data-explique sur la page : sous chaque carte, un repli « Explique-moi cette carte »
      demande à Claude, à son ouverture, de la réexpliquer en mots simples (capacité sample, payée sur le compte de qui
@@ -462,7 +738,7 @@ body.vlp-lit { padding-bottom:9rem; }
       c.querySelectorAll("dd, li, p, h1, h2, h3, label, summary, div, td, .puce").forEach(x => x.after("\n"));
       return c.textContent.replace(/[ \t]+/g, " ").replace(/\s*\n\s*/g, "\n").trim();
     };
-    const entete = brut(page.querySelector("header"), ".lecteur").slice(0, 2000);
+    const entete = brut(page.querySelector("header"), ".lecteur, .bascule-courte, .aide-courte").slice(0, 2000);
     const replis = [];
     for (const n of noms) {
       const note = notes[n].parentElement;
@@ -508,7 +784,8 @@ body.vlp-lit { padding-bottom:9rem; }
           "demande ou décide, et ce que chaque option change, concrètement.\n" +
           "Un mot technique s'explique entre parenthèses. N'invente rien qui ne soit dans le rapport. " +
           "Pas de titre, pas de gras, pas d'émoji.\n\n" +
-          "L'en-tête du rapport :\n" + entete + "\n\nLa carte :\n" + brut(carte, ".note, .explique").slice(0, 8000);
+          "L'en-tête du rapport :\n" + entete + "\n\nLa carte :\n" +
+          brut(carte, ".note, .explique, .une-ligne, .suivante, .ecouter-carte").slice(0, 8000);
         try {
           const r = await sample(consigne, { onText: ({ text }) => { reponse.textContent = text; etat.textContent = "Claude écrit…"; } });
           reponse.textContent = r.text;
@@ -628,10 +905,14 @@ body.vlp-lit { padding-bottom:9rem; }
     bouton.addEventListener("click", () => { const o = flottant.classList.toggle("ouvert"); bouton.setAttribute("aria-expanded", String(o)); });
     document.body.append(bouton);
 
-    // Un lien interne (#Q-MIG-09, #sources…) ouvre d'abord l'onglet qui contient sa cible.
+    // Un lien interne (#Q-MIG-09, #sources…), ou la barre de suivi (évènement vlp-montrer), ouvre d'abord l'onglet
+    // qui contient sa cible.
     function viser(hash) {
       const cible = hash && document.getElementById(decodeURIComponent(hash.slice(1)));
-      if (!cible) return;
+      if (cible) montrer(cible);
+    }
+    document.addEventListener("vlp-montrer", e => montrer(e.detail));
+    function montrer(cible) {
       const s = sections.find(x => x.contains(cible));
       if (!s) return;
       if (s.hidden) { if (vue.onglet === "tout") vue.ouvertes = false; else vue.onglet = s.id; }

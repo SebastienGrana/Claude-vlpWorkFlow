@@ -5188,7 +5188,7 @@ def page_choix(gabarit, d):
     entete += "    <ul>\n%s    </ul>\n" % puces if puces else ""
     blocs = [entete + "  </header>\n"] + blocs + ["  " + reponses + "\n"]
     if "pied" in d:
-        blocs.append('  <footer class="sous" style="font-size:.9rem;border-top:1px solid var(--trait);padding-top:1rem">\n'
+        blocs.append('  <footer class="sous" style="font-size:.9375rem;border-top:1px solid var(--trait);padding-top:1rem">\n'
                      "    %s\n  </footer>\n" % cellule_md(texte_json(d, "pied", "racine")))
     return ("<title>%s — %s</title>\n%s\n" % (esc(projet), esc(titre), tete)
             + '<div class="page" data-cle="%s"%s>\n\n%s</div>\n\n%s\n' % (attribut("%s-%s-%s" % (projet, date, sujet)),

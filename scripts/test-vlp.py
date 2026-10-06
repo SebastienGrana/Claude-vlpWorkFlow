@@ -5175,7 +5175,8 @@ groupe(tester_chef_page)
 
 def tester_lecteur_copie():
     """LEC : le lecteur à voix haute vit en deux copies — vlp.js et vlp.css pour les pages du kit, le gabarit des
-    rapports pour les siens ; entre leurs repères LECTEUR, les deux restent pareilles à l'octet (2026-10-06)."""
+    rapports pour les siens ; entre leurs repères LECTEUR, les deux restent pareilles à l'octet (2026-10-06). Les
+    nombres insécables aussi, entre leurs repères INSECABLE (2026-10-07)."""
     def entre(nom, debut, fin):
         t = mod.lire(os.path.join(ICI, "..", "templates", nom))
         i = t.find(debut)
@@ -5183,10 +5184,12 @@ def tester_lecteur_copie():
         return t[i:j + len(fin)] if j >= 0 else None
 
     rapport = "rapport-choix.html"
-    for genre, nom, debut, fin in (("script", "vlp.js", "// LECTEUR — début", "// LECTEUR — fin"),
-                                   ("style", "vlp.css", "/* LECTEUR — début", "/* LECTEUR — fin */")):
+    for genre, nom, debut, fin in (("script du lecteur", "vlp.js", "// LECTEUR — début", "// LECTEUR — fin"),
+                                   ("style du lecteur", "vlp.css", "/* LECTEUR — début", "/* LECTEUR — fin */"),
+                                   ("script des nombres insécables", "vlp.js", "// INSECABLE — début",
+                                    "// INSECABLE — fin")):
         kit, copie = entre(nom, debut, fin), entre(rapport, debut, fin)
-        verifier("LEC : le %s du lecteur, dans %s et %s, pareil à l'octet" % (genre, nom, rapport),
+        verifier("LEC : le %s, dans %s et %s, pareil à l'octet" % (genre, nom, rapport),
                  kit is not None and kit == copie, "%s : %s ; %s : %s" % (
                      nom, "absent" if kit is None else "%d car." % len(kit),
                      rapport, "absent" if copie is None else "%d car." % len(copie)))
