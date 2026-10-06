@@ -12,7 +12,8 @@
   Le graphique des coûts : Chart.js (MIT), chargé à la demande sur la feuille —
   pas de roue réinventée pour les axes et les bulles (demande du 2026-09-28).
   Lecture (2026-10-05) : un nombre ne se coupe plus en fin de ligne.
-  Écouter (2026-10-06) : la page lue à voix haute, en tête de page.
+  Écouter (2026-10-06) : la page lue à voix haute — le bloc LECTEUR, en fin de
+  fichier, recopié à l'octet dans rapport-choix.html.
 */
 (() => {
   const page = document.querySelector(".page");
@@ -51,110 +52,6 @@
     b.textContent = texte;
     return b;
   };
-
-  // Écouter : la voix du navigateur (Web Speech, sans paquet ; essayée dans le cadre d'un artefact
-  // le 2026-10-06) lit la sélection s'il y en a une, sinon le texte visible de la page — une carte
-  // repliée ne se lit pas. Un morceau par ligne ou par phrase : certains navigateurs coupent une
-  // lecture trop longue. Ce qui se passe s'affiche à côté du bouton, et une erreur part en console.
-  // « Plus lent » et « Plus vite » changent la vitesse, gardée dans le navigateur ; en pleine
-  // lecture, la phrase en cours reprend à la nouvelle vitesse.
-  const voix = window.speechSynthesis;
-  const entete = page.querySelector("header");
-  if (voix && entete) {
-    const sansEmoji = (t) => t.replace(/\p{Extended_Pictographic}/gu, "").trim();
-    const CLE_VITESSE = "vlp-vitesse";
-    const [LENTE, RAPIDE, PAS] = [0.75, 2, 0.25];
-    let vitesse = 1.25; // plus vite que la normale (1), à sa demande du 2026-10-06
-    try {
-      const gardee = Number(localStorage.getItem(CLE_VITESSE));
-      if (gardee >= LENTE && gardee <= RAPIDE) vitesse = gardee;
-    } catch (e) { console.warn("vlp.js — vitesse gardée illisible :", e); }
-    const ecoute = document.createElement("div");
-    ecoute.className = "ecoute";
-    const lire = bouton("🔊 Écouter", "ecouter");
-    const taire = bouton("Arrêter");
-    taire.hidden = true;
-    const lent = bouton("Plus lent");
-    const vite = bouton("Plus vite");
-    const cadence = document.createElement("span");
-    cadence.className = "cadence mono";
-    const suivi = document.createElement("span");
-    suivi.className = "suivi";
-    suivi.setAttribute("aria-live", "polite");
-    const montrer = () => {
-      cadence.textContent = "× " + vitesse.toLocaleString("fr-FR");
-      lent.disabled = vitesse <= LENTE;
-      vite.disabled = vitesse >= RAPIDE;
-    };
-    const fin = (texte) => { taire.hidden = true; suivi.textContent = texte; };
-    let morceaux = [];
-    let choisi = "";
-    let encours = -1; // le morceau qui se lit, -1 hors lecture
-    let numero = 0; // la dernière lecture lancée : une ancienne ne parle plus à sa place
-    const lancer = (depart) => {
-      voix.cancel();
-      const tour = ++numero;
-      const fr = voix.getVoices().find((v) => v.lang.toLowerCase().startsWith("fr"));
-      let parti = false;
-      morceaux.slice(depart).forEach((m, k) => {
-        const i = depart + k;
-        const phrase = new SpeechSynthesisUtterance(m);
-        phrase.lang = "fr-FR";
-        phrase.rate = vitesse;
-        if (fr) phrase.voice = fr;
-        phrase.onstart = () => {
-          if (tour !== numero) return;
-          encours = i;
-          if (parti) return;
-          parti = true;
-          taire.hidden = false;
-          suivi.textContent = choisi ? "Lecture de la sélection…" : "Lecture de la page…";
-        };
-        if (i === morceaux.length - 1) phrase.onend = () => {
-          if (tour !== numero) return;
-          encours = -1;
-          fin("Lecture finie.");
-        };
-        phrase.onerror = (e) => {
-          if (tour !== numero || e.error === "interrupted" || e.error === "canceled") return;
-          console.warn("vlp.js — voix en erreur :", e.error);
-          encours = -1;
-          fin("Erreur de la voix : " + e.error);
-        };
-        voix.speak(phrase);
-      });
-      suivi.textContent = "Lancement…";
-      setTimeout(() => {
-        if (parti || tour !== numero) return;
-        console.warn("vlp.js — la voix n'a pas démarré en 3 s");
-        fin("La voix n'a pas démarré.");
-      }, 3000);
-    };
-    lire.addEventListener("click", () => {
-      choisi = String(window.getSelection() || "").trim();
-      suivi.textContent = "";
-      const etiquettes = new Set([...page.querySelectorAll("button")].map((b) => sansEmoji(b.textContent)));
-      morceaux = sansEmoji(choisi || page.innerText)
-        .split(/\n+|(?<=[.!?;:])\s+/)
-        .map((m) => m.trim())
-        .filter((m) => m && !etiquettes.has(m) && m !== cadence.textContent);
-      if (!morceaux.length) { fin("Rien à lire."); return; }
-      lancer(0);
-    });
-    const changer = (pas) => {
-      vitesse = Math.min(RAPIDE, Math.max(LENTE, vitesse + pas));
-      try { localStorage.setItem(CLE_VITESSE, String(vitesse)); }
-      catch (e) { console.warn("vlp.js — vitesse non gardée :", e); }
-      montrer();
-      if (encours >= 0) lancer(encours);
-    };
-    lent.addEventListener("click", () => changer(-PAS));
-    vite.addEventListener("click", () => changer(PAS));
-    taire.addEventListener("click", () => { numero++; encours = -1; voix.cancel(); fin("Arrêté."); });
-    montrer();
-    ecoute.append(lire, taire, lent, cadence, vite, suivi);
-    entete.append(ecoute);
-  }
 
   // Tout déplier, tout replier : deux boutons sous le titre de chaque liste de cartes — fiches
   // du chantier, chantiers possibles —, qui n'ouvrent et ne ferment que les cartes de la liste.
@@ -314,3 +211,168 @@
   });
   sommaire.after(barre);
 })();
+
+// LECTEUR — début. Le lecteur à voix haute, copié à l'octet dans templates/vlp.js et dans le script de
+// templates/rapport-choix.html ; test-vlp.py vérifie que les deux copies sont pareilles (2026-10-06).
+// La voix du navigateur (Web Speech, sans paquet ; essayée dans le cadre d'un artefact le 2026-10-06)
+// lit la sélection s'il y en a une, sinon le texte visible de la page — une carte repliée ne se lit
+// pas. Un morceau par ligne ou par phrase : certains navigateurs coupent une lecture trop longue.
+// Au repos, un seul bouton « Écouter » sous le titre. Pendant la lecture, une barre collée en bas de
+// l'écran : Arrêter, cinq vitesses en un clic (gardées dans le navigateur), « phrase n sur N », la
+// progression. Une vitesse changée en pleine lecture reprend la phrase en cours ; Échap arrête. Ce
+// qui se passe s'affiche à côté du bouton, et une erreur part en console.
+(() => {
+  const page = document.querySelector(".page");
+  const entete = page && page.querySelector("header");
+  const voix = window.speechSynthesis;
+  if (!entete || !voix) return;
+  // l'émoji part avec ses liants invisibles (U+FE0F, U+200D), sinon il en reste une « phrase » muette
+  const sansEmoji = (t) => t.replace(/[\p{Extended_Pictographic}️‍]/gu, "").trim();
+  const VITESSES = [0.75, 1, 1.25, 1.5, 2];
+  const CLE_VITESSE = "vlp-vitesse";
+  let vitesse = 1.25; // plus vite que la normale (1), à sa demande du 2026-10-06
+  try {
+    const gardee = Number(localStorage.getItem(CLE_VITESSE));
+    if (VITESSES.includes(gardee)) vitesse = gardee;
+  } catch (e) { console.warn("lecteur — vitesse gardée illisible :", e); }
+  const ICONES = {
+    ecouter: '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.6 6a8.6 8.6 0 0 1 0 12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>',
+    arreter: '<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="2" fill="currentColor"/></svg>',
+  };
+  let morceaux = [];
+  let choisi = "";
+  let encours = -1; // le morceau qui se lit, -1 hors lecture
+  let lit = false;
+  let numero = 0; // la dernière lecture lancée : une ancienne ne parle plus à sa place
+  const element = (balise, classe, texte) => {
+    const e = document.createElement(balise);
+    if (classe) e.className = classe;
+    if (texte) e.textContent = texte;
+    return e;
+  };
+  const principaux = [];
+  const principal = () => {
+    const b = element("button", "principal");
+    b.type = "button";
+    b.addEventListener("click", () => (lit ? arreter("Arrêté.") : ecouter()));
+    principaux.push(b);
+    return b;
+  };
+
+  const lecteur = element("div", "lecteur");
+  const suivi = element("span", "suivi");
+  suivi.setAttribute("aria-live", "polite");
+  lecteur.append(principal(), suivi);
+  const titre = entete.querySelector("h1");
+  if (titre) titre.after(lecteur);
+  else entete.append(lecteur);
+
+  const barre = element("div", "barre-lecture");
+  barre.hidden = true;
+  barre.setAttribute("role", "region");
+  barre.setAttribute("aria-label", "Lecture en cours");
+  const dedans = element("div", "dedans");
+  const vitesses = element("span", "vitesses");
+  vitesses.setAttribute("role", "group");
+  vitesses.setAttribute("aria-label", "Vitesse de lecture");
+  VITESSES.forEach((v) => {
+    const b = element("button", "", v.toLocaleString("fr-FR"));
+    b.type = "button";
+    b.dataset.vitesse = String(v);
+    b.addEventListener("click", () => changer(v));
+    vitesses.append(b);
+  });
+  const ou = element("span", "ou");
+  const avance = document.createElement("progress");
+  dedans.append(principal(), element("span", "etiquette", "Vitesse"), vitesses, ou, avance);
+  barre.append(dedans);
+  document.body.append(barre);
+
+  const rendre = () => {
+    principaux.forEach((b) => {
+      b.innerHTML = (lit ? ICONES.arreter : ICONES.ecouter) + "<span>" + (lit ? "Arrêter" : "Écouter") + "</span>";
+    });
+    vitesses.querySelectorAll("button").forEach((b) => {
+      b.setAttribute("aria-pressed", String(Number(b.dataset.vitesse) === vitesse));
+    });
+    barre.hidden = !lit;
+    document.body.classList.toggle("vlp-lit", lit);
+    ou.textContent = lit && encours >= 0 ? "Phrase " + (encours + 1) + " sur " + morceaux.length : "";
+    avance.max = Math.max(morceaux.length, 1);
+    avance.value = Math.max(encours + 1, 0);
+  };
+  const fin = (texte) => {
+    lit = false;
+    encours = -1;
+    suivi.textContent = texte;
+    rendre();
+  };
+  const arreter = (texte) => {
+    numero++;
+    voix.cancel();
+    fin(texte);
+  };
+  const lancer = (depart) => {
+    voix.cancel();
+    const tour = ++numero;
+    const fr = voix.getVoices().find((v) => v.lang.toLowerCase().startsWith("fr"));
+    let parti = false;
+    morceaux.slice(depart).forEach((m, k) => {
+      const i = depart + k;
+      const phrase = new SpeechSynthesisUtterance(m);
+      phrase.lang = "fr-FR";
+      phrase.rate = vitesse;
+      if (fr) phrase.voice = fr;
+      phrase.onstart = () => {
+        if (tour !== numero) return;
+        encours = i;
+        if (!parti) suivi.textContent = choisi ? "Lecture de la sélection…" : "Lecture de la page…";
+        parti = true;
+        rendre();
+      };
+      if (i === morceaux.length - 1) phrase.onend = () => {
+        if (tour === numero) fin("Lecture finie.");
+      };
+      phrase.onerror = (e) => {
+        if (tour !== numero || e.error === "interrupted" || e.error === "canceled") return;
+        console.warn("lecteur — voix en erreur :", e.error);
+        fin("Erreur de la voix : " + e.error);
+      };
+      voix.speak(phrase);
+    });
+    lit = true;
+    if (!depart) suivi.textContent = "Lancement…";
+    rendre();
+    setTimeout(() => {
+      if (parti || tour !== numero) return;
+      console.warn("lecteur — la voix n'a pas démarré en 3 s");
+      fin("La voix n'a pas démarré.");
+    }, 3000);
+  };
+  const ecouter = () => {
+    choisi = String(window.getSelection() || "").trim();
+    suivi.textContent = "";
+    lecteur.hidden = true; // le lecteur ne se lit pas lui-même
+    const brut = choisi || page.innerText;
+    lecteur.hidden = false;
+    const etiquettes = new Set([...page.querySelectorAll("button")]
+      .filter((b) => !lecteur.contains(b))
+      .map((b) => sansEmoji(b.textContent)));
+    morceaux = sansEmoji(brut)
+      .split(/\n+|(?<=[.!?;:])\s+/)
+      .map((m) => m.trim())
+      .filter((m) => /[\p{L}\p{N}]/u.test(m) && !etiquettes.has(m)); // sans lettre ni chiffre, rien à dire
+    if (!morceaux.length) { fin("Rien à lire."); return; }
+    lancer(0);
+  };
+  const changer = (v) => {
+    vitesse = v;
+    try { localStorage.setItem(CLE_VITESSE, String(vitesse)); }
+    catch (e) { console.warn("lecteur — vitesse non gardée :", e); }
+    rendre();
+    if (lit && encours >= 0) lancer(encours);
+  };
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && lit) arreter("Arrêté."); });
+  rendre();
+})();
+// LECTEUR — fin

@@ -5172,6 +5172,28 @@ def tester_chef_page():
 
 groupe(tester_chef_page)
 
+
+def tester_lecteur_copie():
+    """LEC : le lecteur à voix haute vit en deux copies — vlp.js et vlp.css pour les pages du kit, le gabarit des
+    rapports pour les siens ; entre leurs repères LECTEUR, les deux restent pareilles à l'octet (2026-10-06)."""
+    def entre(nom, debut, fin):
+        t = mod.lire(os.path.join(ICI, "..", "templates", nom))
+        i = t.find(debut)
+        j = t.find(fin, i) if i >= 0 else -1
+        return t[i:j + len(fin)] if j >= 0 else None
+
+    rapport = "rapport-choix.html"
+    for genre, nom, debut, fin in (("script", "vlp.js", "// LECTEUR — début", "// LECTEUR — fin"),
+                                   ("style", "vlp.css", "/* LECTEUR — début", "/* LECTEUR — fin */")):
+        kit, copie = entre(nom, debut, fin), entre(rapport, debut, fin)
+        verifier("LEC : le %s du lecteur, dans %s et %s, pareil à l'octet" % (genre, nom, rapport),
+                 kit is not None and kit == copie, "%s : %s ; %s : %s" % (
+                     nom, "absent" if kit is None else "%d car." % len(kit),
+                     rapport, "absent" if copie is None else "%d car." % len(copie)))
+
+
+groupe(tester_lecteur_copie)
+
 def tester_forme():
     """page --forme (chantier HAB1) : la forme d'une page ancienne refaite, ses chiffres gardés,
     même dans un dépôt dont les commits de fiche feraient changer le coût."""

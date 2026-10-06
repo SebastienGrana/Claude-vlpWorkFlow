@@ -18,6 +18,10 @@
   colonne de sections à gauche sur grand écran, bouton « Sections » en dessous, filtre
   « à répondre seulement ». Pour un rapport de plusieurs dizaines de cartes ; sans
   l'attribut, rien ne change. Le choix d'onglet se garde à part des réponses.
+  Le lecteur à voix haute (2026-10-06) : un bouton « Écouter » sous le titre, une
+  barre en bas de l'écran pendant la lecture. Son style et son script, entre les
+  repères LECTEUR, sont la copie à l'octet de ceux de vlp.css et vlp.js : ils se
+  modifient là-bas, puis se recopient ici ; test-vlp.py compare les deux.
   `data-cle` sur la div de classe `page` : une clé par rapport, sinon deux
   rapports se partagent les coches gardées dans le navigateur. Ce commentaire
   ne cite jamais une balise telle quelle : un remplacement la trouverait ici
@@ -146,6 +150,9 @@
     .flottant { top:1rem; left:16px; width:16rem; max-height:calc(100vh - 2rem); }
     body.avec-colonne { padding-left:calc(16rem + 48px); }
     #ouvrir-menu { display:none; }
+    /* la barre du lecteur (LECTEUR, plus bas) suit la page décalée, et laisse voir le bas de la colonne */
+    body.avec-colonne .barre-lecture { padding-left:calc(16rem + 48px); }
+    body.vlp-lit .flottant { max-height:calc(100vh - 8rem); }
   }
   /* Les onglets remplacent le sommaire de liens : le garder ferait doublon. Sans JavaScript, il reste. */
   body.avec-colonne .page nav[aria-label="Sommaire"] { display:none; }
@@ -153,7 +160,33 @@
     .flottant { right:16px; bottom:4.6rem; width:min(20rem, calc(100vw - 32px)); max-height:calc(100vh - 6rem); box-shadow:0 2px 10px rgba(80,67,59,.3); }
     .flottant:not(.ouvert) { display:none; }
     .page[data-format="gros"] { padding-bottom:6rem; }
+    /* pendant la lecture, le bouton « Sections » et son menu passent au-dessus de la barre du lecteur */
+    body.vlp-lit #ouvrir-menu { bottom:10.5rem; }
+    body.vlp-lit .flottant { bottom:13rem; max-height:calc(100vh - 14rem); }
   }
+/* LECTEUR — début. Le lecteur à voix haute (son script : LECTEUR dans vlp.js), copié à l'octet dans
+   vlp.css et dans le style de rapport-choix.html ; test-vlp.py vérifie les deux copies. Les jetons
+   ont un repli pour les deux palettes : --surface ou --carte, --line ou --trait. */
+.lecteur { display:flex; flex-wrap:wrap; align-items:center; gap:.4rem .9rem; margin:.3rem 0; }
+/* caché pendant qu'on prend le texte de la page : sans cette règle, display:flex l'emporte sur hidden */
+.lecteur[hidden],.barre-lecture[hidden] { display:none; }
+.lecteur .suivi,.barre-lecture .ou,.barre-lecture .etiquette { font-size:.9375rem; color:var(--doux); }
+.principal { display:inline-flex; align-items:center; gap:.5rem; font:inherit; font-size:1rem; font-weight:700; color:var(--surface, var(--carte)); background:var(--accent); border:1px solid var(--accent); border-radius:6px; padding:.4rem 1rem .4rem .8rem; min-height:2.6rem; cursor:pointer; }
+.principal svg { flex:none; }
+.principal:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+.vitesses { display:inline-flex; flex-wrap:wrap; border:1px solid var(--bord-bouton, var(--doux)); border-radius:6px; overflow:hidden; }
+.vitesses button { font-family:"IBM Plex Mono",monospace; font-weight:400; letter-spacing:normal; font-size:.9375rem; min-height:2.5rem; padding:0 .7rem; border:0; border-right:1px solid var(--line, var(--trait)); border-radius:0; background:var(--surface, var(--carte)); color:var(--texte); cursor:pointer; }
+.vitesses button:last-child { border-right:0; }
+.vitesses button[aria-pressed="true"] { background:var(--accent); color:var(--surface, var(--carte)); }
+.vitesses button:focus-visible { outline:2px solid var(--accent); outline-offset:-4px; }
+.barre-lecture { position:fixed; left:0; right:0; bottom:0; z-index:10; background:var(--surface, var(--carte)); border-top:2px solid var(--accent); box-shadow:0 -2px 6px rgba(80,67,59,.08); padding:.6rem 16px calc(.6rem + env(safe-area-inset-bottom, 0px)); }
+.barre-lecture .dedans { max-width:46rem; margin:0 auto; display:flex; flex-wrap:wrap; align-items:center; gap:.5rem .9rem; }
+.barre-lecture progress { flex-basis:100%; height:5px; -webkit-appearance:none; appearance:none; border:0; border-radius:3px; background:var(--line, var(--trait)); overflow:hidden; }
+.barre-lecture progress::-webkit-progress-bar { background:var(--line, var(--trait)); }
+.barre-lecture progress::-webkit-progress-value { background:var(--accent); }
+.barre-lecture progress::-moz-progress-bar { background:var(--accent); }
+body.vlp-lit { padding-bottom:9rem; }
+/* LECTEUR — fin */
 </style>
 
 <div class="page" data-cle="<projet>-<date>-<sujet>">
@@ -493,4 +526,169 @@
     appliquer();
     if (location.hash) { viser(location.hash); document.getElementById(decodeURIComponent(location.hash.slice(1)))?.scrollIntoView(); }
   })();
+
+// LECTEUR — début. Le lecteur à voix haute, copié à l'octet dans templates/vlp.js et dans le script de
+// templates/rapport-choix.html ; test-vlp.py vérifie que les deux copies sont pareilles (2026-10-06).
+// La voix du navigateur (Web Speech, sans paquet ; essayée dans le cadre d'un artefact le 2026-10-06)
+// lit la sélection s'il y en a une, sinon le texte visible de la page — une carte repliée ne se lit
+// pas. Un morceau par ligne ou par phrase : certains navigateurs coupent une lecture trop longue.
+// Au repos, un seul bouton « Écouter » sous le titre. Pendant la lecture, une barre collée en bas de
+// l'écran : Arrêter, cinq vitesses en un clic (gardées dans le navigateur), « phrase n sur N », la
+// progression. Une vitesse changée en pleine lecture reprend la phrase en cours ; Échap arrête. Ce
+// qui se passe s'affiche à côté du bouton, et une erreur part en console.
+(() => {
+  const page = document.querySelector(".page");
+  const entete = page && page.querySelector("header");
+  const voix = window.speechSynthesis;
+  if (!entete || !voix) return;
+  // l'émoji part avec ses liants invisibles (U+FE0F, U+200D), sinon il en reste une « phrase » muette
+  const sansEmoji = (t) => t.replace(/[\p{Extended_Pictographic}️‍]/gu, "").trim();
+  const VITESSES = [0.75, 1, 1.25, 1.5, 2];
+  const CLE_VITESSE = "vlp-vitesse";
+  let vitesse = 1.25; // plus vite que la normale (1), à sa demande du 2026-10-06
+  try {
+    const gardee = Number(localStorage.getItem(CLE_VITESSE));
+    if (VITESSES.includes(gardee)) vitesse = gardee;
+  } catch (e) { console.warn("lecteur — vitesse gardée illisible :", e); }
+  const ICONES = {
+    ecouter: '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.6 6a8.6 8.6 0 0 1 0 12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>',
+    arreter: '<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="2" fill="currentColor"/></svg>',
+  };
+  let morceaux = [];
+  let choisi = "";
+  let encours = -1; // le morceau qui se lit, -1 hors lecture
+  let lit = false;
+  let numero = 0; // la dernière lecture lancée : une ancienne ne parle plus à sa place
+  const element = (balise, classe, texte) => {
+    const e = document.createElement(balise);
+    if (classe) e.className = classe;
+    if (texte) e.textContent = texte;
+    return e;
+  };
+  const principaux = [];
+  const principal = () => {
+    const b = element("button", "principal");
+    b.type = "button";
+    b.addEventListener("click", () => (lit ? arreter("Arrêté.") : ecouter()));
+    principaux.push(b);
+    return b;
+  };
+
+  const lecteur = element("div", "lecteur");
+  const suivi = element("span", "suivi");
+  suivi.setAttribute("aria-live", "polite");
+  lecteur.append(principal(), suivi);
+  const titre = entete.querySelector("h1");
+  if (titre) titre.after(lecteur);
+  else entete.append(lecteur);
+
+  const barre = element("div", "barre-lecture");
+  barre.hidden = true;
+  barre.setAttribute("role", "region");
+  barre.setAttribute("aria-label", "Lecture en cours");
+  const dedans = element("div", "dedans");
+  const vitesses = element("span", "vitesses");
+  vitesses.setAttribute("role", "group");
+  vitesses.setAttribute("aria-label", "Vitesse de lecture");
+  VITESSES.forEach((v) => {
+    const b = element("button", "", v.toLocaleString("fr-FR"));
+    b.type = "button";
+    b.dataset.vitesse = String(v);
+    b.addEventListener("click", () => changer(v));
+    vitesses.append(b);
+  });
+  const ou = element("span", "ou");
+  const avance = document.createElement("progress");
+  dedans.append(principal(), element("span", "etiquette", "Vitesse"), vitesses, ou, avance);
+  barre.append(dedans);
+  document.body.append(barre);
+
+  const rendre = () => {
+    principaux.forEach((b) => {
+      b.innerHTML = (lit ? ICONES.arreter : ICONES.ecouter) + "<span>" + (lit ? "Arrêter" : "Écouter") + "</span>";
+    });
+    vitesses.querySelectorAll("button").forEach((b) => {
+      b.setAttribute("aria-pressed", String(Number(b.dataset.vitesse) === vitesse));
+    });
+    barre.hidden = !lit;
+    document.body.classList.toggle("vlp-lit", lit);
+    ou.textContent = lit && encours >= 0 ? "Phrase " + (encours + 1) + " sur " + morceaux.length : "";
+    avance.max = Math.max(morceaux.length, 1);
+    avance.value = Math.max(encours + 1, 0);
+  };
+  const fin = (texte) => {
+    lit = false;
+    encours = -1;
+    suivi.textContent = texte;
+    rendre();
+  };
+  const arreter = (texte) => {
+    numero++;
+    voix.cancel();
+    fin(texte);
+  };
+  const lancer = (depart) => {
+    voix.cancel();
+    const tour = ++numero;
+    const fr = voix.getVoices().find((v) => v.lang.toLowerCase().startsWith("fr"));
+    let parti = false;
+    morceaux.slice(depart).forEach((m, k) => {
+      const i = depart + k;
+      const phrase = new SpeechSynthesisUtterance(m);
+      phrase.lang = "fr-FR";
+      phrase.rate = vitesse;
+      if (fr) phrase.voice = fr;
+      phrase.onstart = () => {
+        if (tour !== numero) return;
+        encours = i;
+        if (!parti) suivi.textContent = choisi ? "Lecture de la sélection…" : "Lecture de la page…";
+        parti = true;
+        rendre();
+      };
+      if (i === morceaux.length - 1) phrase.onend = () => {
+        if (tour === numero) fin("Lecture finie.");
+      };
+      phrase.onerror = (e) => {
+        if (tour !== numero || e.error === "interrupted" || e.error === "canceled") return;
+        console.warn("lecteur — voix en erreur :", e.error);
+        fin("Erreur de la voix : " + e.error);
+      };
+      voix.speak(phrase);
+    });
+    lit = true;
+    if (!depart) suivi.textContent = "Lancement…";
+    rendre();
+    setTimeout(() => {
+      if (parti || tour !== numero) return;
+      console.warn("lecteur — la voix n'a pas démarré en 3 s");
+      fin("La voix n'a pas démarré.");
+    }, 3000);
+  };
+  const ecouter = () => {
+    choisi = String(window.getSelection() || "").trim();
+    suivi.textContent = "";
+    lecteur.hidden = true; // le lecteur ne se lit pas lui-même
+    const brut = choisi || page.innerText;
+    lecteur.hidden = false;
+    const etiquettes = new Set([...page.querySelectorAll("button")]
+      .filter((b) => !lecteur.contains(b))
+      .map((b) => sansEmoji(b.textContent)));
+    morceaux = sansEmoji(brut)
+      .split(/\n+|(?<=[.!?;:])\s+/)
+      .map((m) => m.trim())
+      .filter((m) => /[\p{L}\p{N}]/u.test(m) && !etiquettes.has(m)); // sans lettre ni chiffre, rien à dire
+    if (!morceaux.length) { fin("Rien à lire."); return; }
+    lancer(0);
+  };
+  const changer = (v) => {
+    vitesse = v;
+    try { localStorage.setItem(CLE_VITESSE, String(vitesse)); }
+    catch (e) { console.warn("lecteur — vitesse non gardée :", e); }
+    rendre();
+    if (lit && encours >= 0) lancer(encours);
+  };
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && lit) arreter("Arrêté."); });
+  rendre();
+})();
+// LECTEUR — fin
 </script>

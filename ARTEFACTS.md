@@ -204,9 +204,11 @@ sa propre palette ; ailleurs, on renvoie à ces deux fichiers.
   écrit à la main.
 - **Les espaces insécables se posent à l'affichage**, par `vlp.js` : les
   lectures de `vlp.py` attendent des espaces ordinaires dans la page.
-- **Un bouton « Écouter » en tête de chaque page qui charge `vlp.js`**
-  (2026-10-06) : la voix du navigateur lit la sélection, sinon la page visible.
-  Le détail est dans `vlp.js`.
+- **Un bouton « Écouter » sous le titre de chaque page qui charge `vlp.js`,
+  et des rapports à cartes** (2026-10-06) : la voix du navigateur lit la
+  sélection, sinon la page visible ; pendant la lecture, une barre en bas de
+  l'écran porte Arrêter et cinq vitesses. Le détail est dans le bloc LECTEUR
+  de `vlp.js` et `vlp.css`, recopié à l'octet dans `rapport-choix.html`.
 
 ## Les commentaires — le canal de retour
 
