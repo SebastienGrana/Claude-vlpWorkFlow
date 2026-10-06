@@ -117,12 +117,16 @@ details.clos[open] > summary { margin-bottom:.85rem; }
 .resume-todo { margin:0; color:var(--doux); font-size:1rem; }
 .resume-todo strong { font-size:1.3rem; color:var(--texte); }
 
-/* --- boutons posés par vlp.js (chantier BTN) : tout déplier, copier la commande, filtrer --- */
+/* --- boutons posés par vlp.js (chantier BTN) : tout déplier, copier la commande, filtrer, écouter --- */
 /* le bord d'un bouton ou d'un champ se voit à 3:1 sur les deux fonds (--bord-bouton) */
 .bouton { font:inherit; font-size:.9375rem; color:var(--accent); background:var(--surface); border:1px solid var(--bord-bouton); border-radius:3px; padding:.3rem .75rem; cursor:pointer; }
 .bouton:hover { border-color:var(--accent); }
 .bouton:focus-visible,.commande:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
 .replis,.filtres { display:flex; flex-wrap:wrap; gap:.5rem; }
+.ecoute { display:flex; flex-wrap:wrap; align-items:center; gap:.5rem .75rem; margin-top:.6rem; }
+.ecoute .suivi { font-size:.9375rem; color:var(--doux); }
+.ecoute .cadence { min-width:5ch; text-align:center; }
+.bouton:disabled { color:var(--doux); border-color:var(--line-fort); cursor:default; }
 /* filtre de la feuille, collé sous le sommaire ; l'état enfoncé se voit sans la couleur seule */
 .filtres { margin-top:-1.25rem; }
 .filtre[aria-pressed="true"] { color:var(--surface); background:var(--accent); border-color:var(--accent); font-weight:600; }

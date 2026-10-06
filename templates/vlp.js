@@ -12,6 +12,7 @@
   Le graphique des coûts : Chart.js (MIT), chargé à la demande sur la feuille —
   pas de roue réinventée pour les axes et les bulles (demande du 2026-09-28).
   Lecture (2026-10-05) : un nombre ne se coupe plus en fin de ligne.
+  Écouter (2026-10-06) : la page lue à voix haute, en tête de page.
 */
 (() => {
   const page = document.querySelector(".page");
@@ -50,6 +51,110 @@
     b.textContent = texte;
     return b;
   };
+
+  // Écouter : la voix du navigateur (Web Speech, sans paquet ; essayée dans le cadre d'un artefact
+  // le 2026-10-06) lit la sélection s'il y en a une, sinon le texte visible de la page — une carte
+  // repliée ne se lit pas. Un morceau par ligne ou par phrase : certains navigateurs coupent une
+  // lecture trop longue. Ce qui se passe s'affiche à côté du bouton, et une erreur part en console.
+  // « Plus lent » et « Plus vite » changent la vitesse, gardée dans le navigateur ; en pleine
+  // lecture, la phrase en cours reprend à la nouvelle vitesse.
+  const voix = window.speechSynthesis;
+  const entete = page.querySelector("header");
+  if (voix && entete) {
+    const sansEmoji = (t) => t.replace(/\p{Extended_Pictographic}/gu, "").trim();
+    const CLE_VITESSE = "vlp-vitesse";
+    const [LENTE, RAPIDE, PAS] = [0.75, 2, 0.25];
+    let vitesse = 1.25; // plus vite que la normale (1), à sa demande du 2026-10-06
+    try {
+      const gardee = Number(localStorage.getItem(CLE_VITESSE));
+      if (gardee >= LENTE && gardee <= RAPIDE) vitesse = gardee;
+    } catch (e) { console.warn("vlp.js — vitesse gardée illisible :", e); }
+    const ecoute = document.createElement("div");
+    ecoute.className = "ecoute";
+    const lire = bouton("🔊 Écouter", "ecouter");
+    const taire = bouton("Arrêter");
+    taire.hidden = true;
+    const lent = bouton("Plus lent");
+    const vite = bouton("Plus vite");
+    const cadence = document.createElement("span");
+    cadence.className = "cadence mono";
+    const suivi = document.createElement("span");
+    suivi.className = "suivi";
+    suivi.setAttribute("aria-live", "polite");
+    const montrer = () => {
+      cadence.textContent = "× " + vitesse.toLocaleString("fr-FR");
+      lent.disabled = vitesse <= LENTE;
+      vite.disabled = vitesse >= RAPIDE;
+    };
+    const fin = (texte) => { taire.hidden = true; suivi.textContent = texte; };
+    let morceaux = [];
+    let choisi = "";
+    let encours = -1; // le morceau qui se lit, -1 hors lecture
+    let numero = 0; // la dernière lecture lancée : une ancienne ne parle plus à sa place
+    const lancer = (depart) => {
+      voix.cancel();
+      const tour = ++numero;
+      const fr = voix.getVoices().find((v) => v.lang.toLowerCase().startsWith("fr"));
+      let parti = false;
+      morceaux.slice(depart).forEach((m, k) => {
+        const i = depart + k;
+        const phrase = new SpeechSynthesisUtterance(m);
+        phrase.lang = "fr-FR";
+        phrase.rate = vitesse;
+        if (fr) phrase.voice = fr;
+        phrase.onstart = () => {
+          if (tour !== numero) return;
+          encours = i;
+          if (parti) return;
+          parti = true;
+          taire.hidden = false;
+          suivi.textContent = choisi ? "Lecture de la sélection…" : "Lecture de la page…";
+        };
+        if (i === morceaux.length - 1) phrase.onend = () => {
+          if (tour !== numero) return;
+          encours = -1;
+          fin("Lecture finie.");
+        };
+        phrase.onerror = (e) => {
+          if (tour !== numero || e.error === "interrupted" || e.error === "canceled") return;
+          console.warn("vlp.js — voix en erreur :", e.error);
+          encours = -1;
+          fin("Erreur de la voix : " + e.error);
+        };
+        voix.speak(phrase);
+      });
+      suivi.textContent = "Lancement…";
+      setTimeout(() => {
+        if (parti || tour !== numero) return;
+        console.warn("vlp.js — la voix n'a pas démarré en 3 s");
+        fin("La voix n'a pas démarré.");
+      }, 3000);
+    };
+    lire.addEventListener("click", () => {
+      choisi = String(window.getSelection() || "").trim();
+      suivi.textContent = "";
+      const etiquettes = new Set([...page.querySelectorAll("button")].map((b) => sansEmoji(b.textContent)));
+      morceaux = sansEmoji(choisi || page.innerText)
+        .split(/\n+|(?<=[.!?;:])\s+/)
+        .map((m) => m.trim())
+        .filter((m) => m && !etiquettes.has(m) && m !== cadence.textContent);
+      if (!morceaux.length) { fin("Rien à lire."); return; }
+      lancer(0);
+    });
+    const changer = (pas) => {
+      vitesse = Math.min(RAPIDE, Math.max(LENTE, vitesse + pas));
+      try { localStorage.setItem(CLE_VITESSE, String(vitesse)); }
+      catch (e) { console.warn("vlp.js — vitesse non gardée :", e); }
+      montrer();
+      if (encours >= 0) lancer(encours);
+    };
+    lent.addEventListener("click", () => changer(-PAS));
+    vite.addEventListener("click", () => changer(PAS));
+    taire.addEventListener("click", () => { numero++; encours = -1; voix.cancel(); fin("Arrêté."); });
+    montrer();
+    ecoute.append(lire, taire, lent, cadence, vite, suivi);
+    entete.append(ecoute);
+  }
 
   // Tout déplier, tout replier : deux boutons sous le titre de chaque liste de cartes — fiches
   // du chantier, chantiers possibles —, qui n'ouvrent et ne ferment que les cartes de la liste.
