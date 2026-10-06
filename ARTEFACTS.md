@@ -209,6 +209,10 @@ sa propre palette ; ailleurs, on renvoie à ces deux fichiers.
   sélection, sinon la page visible ; pendant la lecture, une barre en bas de
   l'écran porte Arrêter et cinq vitesses. Le détail est dans le bloc LECTEUR
   de `vlp.js` et `vlp.css`, recopié à l'octet dans `rapport-choix.html`.
+- **L'Explique-moi, en option dans un rapport à cartes** (2026-10-06) : sous
+  chaque carte, Claude la réexplique en mots simples (capacité `sample`, payée
+  par qui clique). Quand le proposer et comment l'allumer : le commentaire de
+  tête de `rapport-choix.html`.
 
 ## Les commentaires — le canal de retour
 

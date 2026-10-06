@@ -392,13 +392,16 @@ Sous-commandes :
   `{cases: [{valeur, legende}], sources: [texte]}`, `fait` `[{ref, code, titre, livre, cout}]`, `decisions` `{intro,
   cartes: [{titre, portee, niveau faible|moyen, probleme, choix, ecarte, prix, defaire}]}`, `choix` `[{titre,
   puces: [texte], options: [{valeur, libelle, effet, recommande: true|false}]}]`, `mal` `[{genre erreur|alerte, titre,
-  texte}]`, `fil` `[{heure, code, texte}]`. Les `name` (`D1`…, puis `Q1`…) et `data-cle` (`<projet>-<date>-<sujet>`) sont
+  texte}]`, `fil` `[{heure, code, texte}]` ; `explique` (`true|false`, défaut `false`) : `data-explique` sur la page,
+  l'Explique-moi sous chaque carte (quand le proposer : commentaire de tête du gabarit), et une ligne `CAPACITES sample`
+  en sortie — la page se publie avec cette capacité. Les `name` (`D1`…, puis `Q1`…) et `data-cle` (`<projet>-<date>-<sujet>`) sont
   posés par le script. Les textes passent par `cellule_md` (échappés, gras et code rendus), `<title>`, `data-cle` et
   `value` par `esc` seul. La tête (`<link>`, `<style>`), « Tes réponses » et le `<script>` sont ceux du gabarit, cherchés
   hors commentaires (`COMMENTAIRE`) ; le commentaire de tête n'est pas recopié, le reste est bâti. `GARDE:` (sort 1, rien
   écrit) : JSON illisible, champ absent ou d'un autre genre, aucune carte, jauge hors `JAUGE`, question à moins de deux
   options, option sans effet, valeur doublée, deux recommandées, morceau du gabarit introuvable, ou `defauts_page` non vide
-  sur la page bâtie (une ligne par défaut, au format de `vigile`). Sinon : `PAGE SAINE <n> blocs`, puis `CARTES D1 Q1…`.
+  sur la page bâtie (une ligne par défaut, au format de `vigile`). Sinon : `PAGE SAINE <n> blocs`, puis `CARTES D1 Q1…`,
+  et `CAPACITES sample` avec `explique`.
 - `attente ajouter <page> [--url U] [--projet D]`, `attente lister <dossier artefacts ou racine du projet>`,
   `attente retirer <page> [--projet D]` — la liste des pages que la limite du jour a refusées
   (chantier LOC) : `<contexte>/artefacts/en-attente`, une ligne par page, `page`, `url` (ou

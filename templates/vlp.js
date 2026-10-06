@@ -355,7 +355,8 @@
     lecteur.hidden = true; // le lecteur ne se lit pas lui-même
     const brut = choisi || page.innerText;
     lecteur.hidden = false;
-    const etiquettes = new Set([...page.querySelectorAll("button")]
+    // ne se disent pas : un bouton, ni ce qui porte data-muet (le libellé d'un repli de commande)
+    const etiquettes = new Set([...page.querySelectorAll("button, [data-muet]")]
       .filter((b) => !lecteur.contains(b))
       .map((b) => sansEmoji(b.textContent)));
     morceaux = sansEmoji(brut)

@@ -22,6 +22,14 @@
   barre en bas de l'écran pendant la lecture. Son style et son script, entre les
   repères LECTEUR, sont la copie à l'octet de ceux de vlp.css et vlp.js : ils se
   modifient là-bas, puis se recopient ici ; test-vlp.py compare les deux.
+  Explique-moi (2026-10-06), en option : `data-explique` sur la div de classe
+  `page` pose sous chaque carte un repli « Explique-moi cette carte » ; à son
+  ouverture, Claude la réexplique en mots simples, et « Écouter l'explication »
+  la fait lire. La page se publie alors avec la capacité `sample` (vlp.py chef
+  page le rappelle : CAPACITES sample). Chaque explication se paie sur le compte
+  Claude de qui clique ; sans compte Claude, rien n'apparaît. Jamais d'office :
+  pour un rapport compliqué (format gros, ou très technique), Claude propose
+  l'option en une ligne avant de publier — utile quand d'autres le liront.
   `data-cle` sur la div de classe `page` : une clé par rapport, sinon deux
   rapports se partagent les coches gardées dans le navigateur. Ce commentaire
   ne cite jamais une balise telle quelle : un remplacement la trouverait ici
@@ -114,10 +122,14 @@
   button:focus-visible { outline:2px solid var(--texte); outline-offset:2px; }
   textarea { width:100%; min-height:8rem; font-family:"IBM Plex Mono",monospace; font-size:.9375rem; background:var(--carte); color:var(--texte); border:1px solid var(--trait); border-radius:6px; padding:.6rem; }
   .ligne { display:flex; flex-wrap:wrap; gap:.8rem; align-items:center; }
-  .note summary { display:inline-block; list-style:none; cursor:pointer; color:var(--accent); font-weight:700; font-size:.95rem; padding:.2rem .7rem; border:1px dashed var(--trait); border-radius:6px; }
-  .note summary::-webkit-details-marker { display:none; }
-  .note summary:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+  .note summary, .explique summary { display:inline-block; list-style:none; cursor:pointer; color:var(--accent); font-weight:700; font-size:.95rem; padding:.2rem .7rem; border:1px dashed var(--trait); border-radius:6px; }
+  .note summary::-webkit-details-marker, .explique summary::-webkit-details-marker { display:none; }
+  .note summary:focus-visible, .explique summary:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
   .note textarea { display:block; margin-top:.5rem; min-height:4.5rem; font-family:inherit; font-size:.95rem; line-height:1.5; }
+  .explique > p, .explique > .explication, .explique > .ligne { margin-top:.5rem; }
+  .explique > p:empty { display:none; }
+  .explique > p.niveau { margin-top:.25rem; font-size:.9375rem; }
+  .explication { white-space:pre-line; background:var(--fond); border:1px solid var(--trait); border-radius:6px; padding:.6rem .8rem; }
   .clair { background:var(--carte); border:1px solid var(--trait); border-radius:8px; padding:1rem 1.1rem; display:flex; flex-direction:column; gap:.9rem; }
   .grille dt.net { color:var(--texte); font-weight:700; }
   .grille dt.plus { color:var(--ok); font-weight:700; }
@@ -395,6 +407,7 @@ body.vlp-lit { padding-bottom:9rem; }
     const bouton = document.createElement("summary");
     const champ = document.createElement("textarea");
     bloc.className = "note";
+    bouton.dataset.muet = "";  // le lecteur ne le dit pas
     champ.dataset.note = n;
     champ.setAttribute("aria-label", "Commentaire sur " + n);
     champ.value = stock["note:" + n] || "";
@@ -419,6 +432,110 @@ body.vlp-lit { padding-bottom:9rem; }
       .catch(() => { zone.focus(); zone.select(); etat.textContent = "Sélectionné : fais Ctrl+C."; });
   });
   maj();
+
+  /* Explique-moi, éteint sauf data-explique sur la page : sous chaque carte, un repli « Explique-moi cette carte »
+     demande à Claude, à son ouverture, de la réexpliquer en mots simples (capacité sample, payée sur le compte de qui
+     clique) ; « Écouter l'explication » la passe au lecteur. Sans Claude joignable, rien n'apparaît ; un accès refusé
+     retire les autres replis, et la page ne redemande jamais. Le prompt envoie l'en-tête et la carte, repli compris. */
+  if ("explique" in page.dataset) (async () => {
+    let sample = null;
+    try { sample = window.claude ? await window.claude.use("sample") : null; }
+    catch (e) { console.warn("Explique-moi : capacité sample illisible —", e); }
+    if (!sample) return;
+    const MOTS = {
+      not_granted: "Accès refusé : la page ne demandera plus rien à Claude.",
+      sampling_disabled: "Demander à Claude est coupé pour ce compte.",
+      rate_limited: "Trop de demandes d'un coup : attends un peu, puis réessaie.",
+      session_expired: "Ta session Claude a expiré : recharge la page.",
+      prompt_too_large: "La carte est trop longue pour une seule demande.",
+      refused: "Claude a refusé de répondre.",
+      empty_completion: "La réponse est revenue vide.",
+      upstream_error: "Le service a eu un souci : réessaie plus tard."
+    };
+    const FIN = ["not_granted", "sampling_disabled", "not_declared", "capability_disabled", "capability_removed"];
+    // le niveau qui a répondu (la plateforme ne donne pas le nom du modèle) ; l'Explique-moi demande « default »
+    const NIVEAUX = { quick: "rapide (quick)", default: "équilibré (default)", complex: "le plus capable (complex)" };
+    const brut = (el, sans) => {
+      const c = el.cloneNode(true);
+      c.querySelectorAll(sans).forEach(x => x.remove());
+      c.querySelectorAll("dt").forEach(x => x.after(" : "));  // « Le problème : … », pas « Le problèmela … »
+      c.querySelectorAll("dd, li, p, h1, h2, h3, label, summary, div, td, .puce").forEach(x => x.after("\n"));
+      return c.textContent.replace(/[ \t]+/g, " ").replace(/\s*\n\s*/g, "\n").trim();
+    };
+    const entete = brut(page.querySelector("header"), ".lecteur").slice(0, 2000);
+    const replis = [];
+    for (const n of noms) {
+      const note = notes[n].parentElement;
+      const carte = note.parentElement;
+      const repli = document.createElement("details");
+      const resume = document.createElement("summary");
+      const etat = document.createElement("p");
+      const reponse = document.createElement("div");
+      const niveau = document.createElement("p");
+      const ligne = document.createElement("div");
+      const ecouter = document.createElement("button");
+      const relancer = document.createElement("button");
+      repli.className = "explique";
+      resume.dataset.muet = "";
+      etat.className = "sous";
+      etat.setAttribute("aria-live", "polite");
+      reponse.className = "explication";
+      niveau.className = "sous niveau";
+      niveau.dataset.muet = "";  // discret : le lecteur ne le dit pas
+      ligne.className = "ligne";
+      ecouter.type = relancer.type = "button";
+      ecouter.textContent = "🔊 Écouter l'explication";
+      relancer.textContent = "Réessayer";
+      reponse.hidden = niveau.hidden = ecouter.hidden = relancer.hidden = true;
+      ligne.append(ecouter, relancer);
+      repli.append(resume, etat, reponse, niveau, ligne);
+      carte.insertBefore(repli, note);
+      replis.push(repli);
+      let demande = false;
+      const libelle = () => { resume.textContent = repli.open ? "− Replier l'explication" : "💬 Explique-moi cette carte"; };
+      const demander = async () => {
+        demande = true;
+        relancer.hidden = ecouter.hidden = niveau.hidden = true;
+        reponse.hidden = false;
+        reponse.textContent = "";
+        etat.textContent = "Claude réfléchit… (de 5 à 60 secondes)";
+        const consigne =
+          "Tu expliques une carte d'un rapport de travail à une personne qui a une dyslexie très sévère ; " +
+          "elle écoute souvent la réponse en synthèse vocale.\n" +
+          "Réponds en français, en 8 lignes au plus, qui commencent par « - ». Une idée par ligne, des phrases " +
+          "courtes, des mots simples.\n" +
+          "Commence par une image simple de la vie de tous les jours, si elle aide. Puis dis ce que la carte " +
+          "demande ou décide, et ce que chaque option change, concrètement.\n" +
+          "Un mot technique s'explique entre parenthèses. N'invente rien qui ne soit dans le rapport. " +
+          "Pas de titre, pas de gras, pas d'émoji.\n\n" +
+          "L'en-tête du rapport :\n" + entete + "\n\nLa carte :\n" + brut(carte, ".note, .explique").slice(0, 8000);
+        try {
+          const r = await sample(consigne, { onText: ({ text }) => { reponse.textContent = text; etat.textContent = "Claude écrit…"; } });
+          reponse.textContent = r.text;
+          etat.textContent = r.truncated ? "Réponse coupée avant la fin." : "";
+          niveau.textContent = "Répondu par le niveau " + (NIVEAUX[r.modelTierApplied] || r.modelTierApplied) + ".";
+          niveau.hidden = !r.modelTierApplied;
+          ecouter.hidden = !document.querySelector(".lecteur .principal");
+        } catch (e) {
+          console.warn("Explique-moi : sample a échoué —", e.code, e.message);
+          reponse.textContent = e.text || "";
+          reponse.hidden = !e.text;
+          etat.textContent = "❌ " + (MOTS[e.code] || "L'explication n'a pas marché (" + e.code + ").");
+          if (FIN.includes(e.code)) replis.filter(x => x !== repli).forEach(x => x.remove());
+          else relancer.hidden = false;
+        }
+      };
+      repli.addEventListener("toggle", () => { libelle(); if (repli.open && !demande) demander(); });
+      relancer.addEventListener("click", demander);
+      ecouter.addEventListener("click", () => {
+        const lecteur = document.querySelector(".lecteur .principal");
+        if (document.body.classList.contains("vlp-lit")) lecteur.click();  // la lecture en cours s'arrête d'abord
+        window.getSelection().selectAllChildren(reponse);
+        lecteur.click();
+      });
+      libelle();
+    }
+  })();
 
   /* Format « gros rapport », éteint sauf data-format="gros" sur la page. Lit la page telle quelle : une section = un onglet ; la section
      « Tes réponses » reste toujours visible. Une carte « à répondre » : elle a des boutons radio à elle
@@ -670,7 +787,8 @@ body.vlp-lit { padding-bottom:9rem; }
     lecteur.hidden = true; // le lecteur ne se lit pas lui-même
     const brut = choisi || page.innerText;
     lecteur.hidden = false;
-    const etiquettes = new Set([...page.querySelectorAll("button")]
+    // ne se disent pas : un bouton, ni ce qui porte data-muet (le libellé d'un repli de commande)
+    const etiquettes = new Set([...page.querySelectorAll("button, [data-muet]")]
       .filter((b) => !lecteur.contains(b))
       .map((b) => sansEmoji(b.textContent)));
     morceaux = sansEmoji(brut)

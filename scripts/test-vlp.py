@@ -5194,6 +5194,35 @@ def tester_lecteur_copie():
 
 groupe(tester_lecteur_copie)
 
+
+def tester_chef_page_explique():
+    """chef page, `explique` (2026-10-06) : l'Explique-moi en option — `data-explique` sur la page et `CAPACITES sample`
+    en sortie avec `true`, rien sans, `GARDE:` pour un autre genre."""
+    gabarit = mod.lire(os.path.join(ICI, "..", "templates", "rapport-choix.html"))
+    d = {"projet": "Demo", "sujet": "essai", "titre": "Rapport d'essai", "date": "2026-10-01",
+         "choix": [{"titre": "Quelle suite ?", "options": [{"valeur": "oui", "libelle": "Oui", "effet": "on suit"},
+                                                           {"valeur": "non", "libelle": "Non", "effet": "on arrête"}]}]}
+    div = '<div class="page" data-cle="Demo-2026-10-01-essai"%s>'
+    with tempfile.TemporaryDirectory() as tex:
+        rendus = []
+        for nom, explique in (("avec", True), ("sans", None), ("oui", "oui")):
+            q = dict(d, explique=explique) if explique is not None else d
+            chemin = os.path.join(tex, nom + ".html")
+            s = io.StringIO()
+            code = mod.cmd_chef_page(json.dumps(q, ensure_ascii=False), chemin, s, gabarit)
+            page = mod.lire(chemin) if os.path.exists(chemin) else ""
+            rendus.append((code, s.getvalue(), page))
+    (c1, s1, p1), (c2, s2, p2), (c3, s3, p3) = rendus
+    verifier("chef page explique=true : data-explique sur la page, CAPACITES sample après CARTES",
+             c1 == 0 and s1.endswith("CARTES Q1\nCAPACITES sample\n") and div % " data-explique" in p1, s1)
+    verifier("chef page sans explique : ni data-explique sur la page, ni CAPACITES",
+             c2 == 0 and "CAPACITES" not in s2 and div % "" in p2, s2)
+    verifier("chef page explique=\"oui\" : GARDE, sort 1, rien d'écrit",
+             c3 == 1 and s3 == "GARDE: racine : « explique » vaut true ou false\n" and p3 == "", s3)
+
+
+groupe(tester_chef_page_explique)
+
 def tester_forme():
     """page --forme (chantier HAB1) : la forme d'une page ancienne refaite, ses chiffres gardés,
     même dans un dépôt dont les commits de fiche feraient changer le coût."""

@@ -5156,10 +5156,20 @@ def sections_choix(d):
     return blocs, noms
 
 
+def explique_json(d):
+    """`explique` à la racine du JSON de `chef page` : `True` pose l'Explique-moi sur la page (`data-explique`), absent
+    vaut `False` ; d'un autre genre, `ValueError`."""
+    v = d.get("explique", False)
+    if not isinstance(v, bool):
+        raise ValueError("racine : « explique » vaut true ou false")
+    return v
+
+
 def page_choix(gabarit, d):
     """`(html, name des cartes)` : la page de `d` (voir `chef page`, dans la docstring du module), bâtie sur les morceaux
     de `gabarit`. `ValueError` : ce qui manque ou n'est pas du bon genre, `GARDE:` à l'appelant."""
     tete, reponses, script = morceaux_choix(gabarit)
+    explique = " data-explique" if explique_json(d) else ""
     projet, sujet, titre = (texte_json(d, k, "racine") for k in ("projet", "sujet", "titre"))
     date = d.get("date") or datetime.date.today().isoformat()
     try:
@@ -5181,8 +5191,8 @@ def page_choix(gabarit, d):
         blocs.append('  <footer class="sous" style="font-size:.9rem;border-top:1px solid var(--trait);padding-top:1rem">\n'
                      "    %s\n  </footer>\n" % cellule_md(texte_json(d, "pied", "racine")))
     return ("<title>%s — %s</title>\n%s\n" % (esc(projet), esc(titre), tete)
-            + '<div class="page" data-cle="%s">\n\n%s</div>\n\n%s\n' % (attribut("%s-%s-%s" % (projet, date, sujet)),
-                                                                        "\n".join(blocs), script)), noms
+            + '<div class="page" data-cle="%s"%s>\n\n%s</div>\n\n%s\n' % (attribut("%s-%s-%s" % (projet, date, sujet)),
+                                                                          explique, "\n".join(blocs), script)), noms
 
 
 def cmd_chef_page(questions, chemin, sortie, gabarit):
@@ -5215,6 +5225,7 @@ def cmd_chef_page(questions, chemin, sortie, gabarit):
         sortie.write("GARDE: %s — écriture impossible : %s\n" % (chemin, e))
         return 1
     sortie.write("PAGE SAINE %d blocs\nCARTES %s\n" % (len(textes_visibles(page)), " ".join(noms)))
+    sortie.write("CAPACITES sample\n" if explique_json(d) else "")  # déjà validé par page_choix
     return 0
 
 
