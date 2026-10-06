@@ -633,8 +633,9 @@ hausse ; mutant attrapé ; pyright 0 ; code sain.
 ---
 
 <!-- FICHE:VIT22 -->
-## VIT22 [ ] — Raccourcir `test-boucle`
+## VIT22 [x] — Raccourcir `test-boucle`
 
+**Session** : 17d950aa-47f3-44c8-a41f-13ecc4e4896b
 **Dépend de** : rien.
 **Fichiers** : `scripts/test-boucle.py`, `scripts/boucle.py` si la cause y est, `context AI/08-etat.md` (une entrée
 datée).

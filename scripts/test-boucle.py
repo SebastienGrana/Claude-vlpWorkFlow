@@ -4,9 +4,12 @@
 Le faux joue un rôle par prompt (découper, jouer, clore, relire) et rend les lignes
 `stream-json` de NUI1 ; ses pilotes `VLP_FAUX_*` sont dans sa docstring. Ce fichier
 teste boucle.py avec lui, puis le faux lui-même, rôle par rôle et pilote par pilote.
-Imprime `OK` et sort 0, ou le premier écart et sort 1.
+Imprime `OK` et sort 0, ou le premier écart et sort 1. Ses parties les plus longues tournent
+chacune dans un processus à elle (`EN_PARALLELE`, VIT22) ; `VLP_BOUCLE_SERIE=1` les joue
+toutes ici, en série ; `--parties a,b` ne joue que celles-là.
 """
 import argparse
+import atexit
 import contextlib
 import glob
 import importlib.util
@@ -70,7 +73,8 @@ def boucle(t, faux, plafond, rate="", options=()):
     return r.returncode, r.stdout + r.stderr, cases
 
 
-_PASSES = [0]   # cas passés : `verifier` sort au premier écart, donc ceux qui l'ont passé sont ceux qui sont écrits
+_PASSES = [0]   # cas passés : `verifier` sort au premier écart, donc ceux qui l'ont passé sont ceux qui sont écrits —
+                # ceux de ce processus : une partie lancée à part (VIT22) ne compte que les siens
 
 
 def verifier(nom, cond, sortie):
@@ -81,42 +85,45 @@ def verifier(nom, cond, sortie):
     _PASSES[0] += 1
 
 
-with tempfile.TemporaryDirectory() as t:
-    code, s, cases = boucle(t, projet(t), 2)
-    verifier("plafond 2 : F1 et F2 jouées, F3 non, sort 0",
-             code == 0 and cases == "xx." and "ARRÊT plafond de 2 fiches" in s, s + cases)
-    verifier("le prompt est /vlp:tache <fiche> et le mode auto par défaut",
-             "joué F1 · -p,/vlp:tache F1," in s and "--permission-mode,auto" in s, s)
-    verifier("git add et git commit autorisés, --amend et --no-verify interdits, rien d'autre",
-             "--allowedTools,Bash(git add:*),Bash(git commit:*),PowerShell(git add:*),"
-             "PowerShell(git commit:*),--disallowedTools,Bash(git commit --amend:*)," in s
-             and "PowerShell(git commit --no-verify:*)" in s and "push" not in s, s)
-    verifier("TOTAL additionne tours et coût", "TOTAL 2 fiches · 6 tours · 0.0200 $" in s, s)
-    verifier("sans --effort, aucun effort transmis", "--effort" not in s, s)
+def tester_simple():
+    """Jouer boucle.py sans `--nuit` : plafond, effort transmis, arrêts sur une fiche ratée, visuelle ou à
+    Tentatives."""
+    with tempfile.TemporaryDirectory() as t:
+        code, s, cases = boucle(t, projet(t), 2)
+        verifier("plafond 2 : F1 et F2 jouées, F3 non, sort 0",
+                 code == 0 and cases == "xx." and "ARRÊT plafond de 2 fiches" in s, s + cases)
+        verifier("le prompt est /vlp:tache <fiche> et le mode auto par défaut",
+                 "joué F1 · -p,/vlp:tache F1," in s and "--permission-mode,auto" in s, s)
+        verifier("git add et git commit autorisés, --amend et --no-verify interdits, rien d'autre",
+                 "--allowedTools,Bash(git add:*),Bash(git commit:*),PowerShell(git add:*),"
+                 "PowerShell(git commit:*),--disallowedTools,Bash(git commit --amend:*)," in s
+                 and "PowerShell(git commit --no-verify:*)" in s and "push" not in s, s)
+        verifier("TOTAL additionne tours et coût", "TOTAL 2 fiches · 6 tours · 0.0200 $" in s, s)
+        verifier("sans --effort, aucun effort transmis", "--effort" not in s, s)
 
-with tempfile.TemporaryDirectory() as t:
-    code, s, cases = boucle(t, projet(t), 1, options=["--effort", "low"])
-    verifier("--effort low transmis tel quel à claude", code == 0 and "--effort,low" in s, s)
+    with tempfile.TemporaryDirectory() as t:
+        code, s, cases = boucle(t, projet(t), 1, options=["--effort", "low"])
+        verifier("--effort low transmis tel quel à claude", code == 0 and "--effort,low" in s, s)
 
-with tempfile.TemporaryDirectory() as t:
-    code, s, cases = boucle(t, projet(t), 5)
-    verifier("tout joué : arrêt « aucune », sort 0",
-             code == 0 and cases == "xxx" and "ARRÊT aucune fiche à jouer" in s, s + cases)
+    with tempfile.TemporaryDirectory() as t:
+        code, s, cases = boucle(t, projet(t), 5)
+        verifier("tout joué : arrêt « aucune », sort 0",
+                 code == 0 and cases == "xxx" and "ARRÊT aucune fiche à jouer" in s, s + cases)
 
-with tempfile.TemporaryDirectory() as t:
-    code, s, cases = boucle(t, projet(t), 5, rate="F2")
-    verifier("F2 non cochée : arrêt, F3 non jouée, sort 1",
-             code == 1 and cases == "x.." and "ARRÊT F2 non cochée" in s and "JOUE F3" not in s, s + cases)
+    with tempfile.TemporaryDirectory() as t:
+        code, s, cases = boucle(t, projet(t), 5, rate="F2")
+        verifier("F2 non cochée : arrêt, F3 non jouée, sort 1",
+                 code == 1 and cases == "x.." and "ARRÊT F2 non cochée" in s and "JOUE F3" not in s, s + cases)
 
-with tempfile.TemporaryDirectory() as t:
-    code, s, cases = boucle(t, projet(t, visuel="F2"), 5, rate="F2")
-    verifier("F2 (visuel) : jouée, puis arrêt prévu, sort 0",
-             code == 0 and cases == "x.." and "ARRÊT F2 est (visuel)" in s and "JOUE F3" not in s, s + cases)
+    with tempfile.TemporaryDirectory() as t:
+        code, s, cases = boucle(t, projet(t, visuel="F2"), 5, rate="F2")
+        verifier("F2 (visuel) : jouée, puis arrêt prévu, sort 0",
+                 code == 0 and cases == "x.." and "ARRÊT F2 est (visuel)" in s and "JOUE F3" not in s, s + cases)
 
-with tempfile.TemporaryDirectory() as t:
-    code, s, cases = boucle(t, projet(t, tentatives="F1"), 5)
-    verifier("F1 à bloc Tentatives : rien joué, sort 1",
-             code == 1 and cases == "..." and "JOUE" not in s and "Tentatives" in s, s + cases)
+    with tempfile.TemporaryDirectory() as t:
+        code, s, cases = boucle(t, projet(t, tentatives="F1"), 5)
+        verifier("F1 à bloc Tentatives : rien joué, sort 1",
+                 code == 1 and cases == "..." and "JOUE" not in s and "Tentatives" in s, s + cases)
 
 
 # --- le faux lui-même : un rôle par prompt, un pilote par variable (NUI2) -------------
@@ -139,100 +146,102 @@ def verdict_de(lignes):
     return next((str(x.get("result")) for x in lignes if x["type"] == "result"), "")
 
 
-# Le premier test qui passe par la ligne `return 2  # prompt inconnu` du faux : un mutant qui la change tombe ici.
-r = subprocess.run([sys.executable, FAUX_CLAUDE, "-p", "bonjour"], capture_output=True, text=True, encoding="utf-8")
-verifier("faux : prompt inconnu → code 2",
-         r.returncode == 2 and len(r.stderr.strip().splitlines()) == 1 and r.stdout == "", (r.returncode, r.stdout, r.stderr))
+def tester_faux():
+    """Jouer le faux `claude` lui-même : un rôle par prompt, un pilote par variable (NUI2)."""
+    # Le premier test qui passe par la ligne `return 2  # prompt inconnu` du faux : un mutant qui la change tombe ici.
+    r = subprocess.run([sys.executable, FAUX_CLAUDE, "-p", "bonjour"], capture_output=True, text=True, encoding="utf-8")
+    verifier("faux : prompt inconnu → code 2",
+             r.returncode == 2 and len(r.stderr.strip().splitlines()) == 1 and r.stdout == "", (r.returncode, r.stdout, r.stderr))
 
-with tempfile.TemporaryDirectory() as t:
-    projet(t)
-    carte, fiches, nouveau =(os.path.join(t, n) for n in ("CHANTIER.md", "fiches.md", "T.md"))
-    avant = lire(fiches)
-    code, _, e = faux(["-p", "/vlp:chantier T"], t)
-    verifier("faux découper : T.md à deux fiches, courant de CHANTIER.md remplacé, fiches.md intact",
-             code == 0 and os.path.isfile(nouveau) and "## T1 [ ]" in lire(nouveau) and "## T2 [ ]" in lire(nouveau)
-             and lire(nouveau).count("<!-- FICHE:") == 2
-             and "**fichier de fiches courant** : T.md (T1..T2)" in lire(carte) and lire(fiches) == avant, e)
-    code, _, e = faux(["-p", "/vlp:tache T1"], t)
-    verifier("faux jouer coche dans le fichier courant",
-             code == 0 and "## T1 [x]" in lire(nouveau) and "## T2 [ ]" in lire(nouveau) and lire(fiches) == avant, e)
-    code, _, e = faux(["-p", "/vlp:tache T2"], t, VLP_FAUX_RATE="T2")
-    verifier("faux jouer : VLP_FAUX_RATE laisse la case", code == 0 and "## T2 [ ]" in lire(nouveau), e)
-    code, _, e = faux(["-p", "/vlp:tache T1"], t)
-    verifier("faux jouer : cocher non nul → sa sortie sur stderr, code 2", code == 2 and "déjà cochée" in e, e)
-    with open(carte, "a", encoding="utf-8", newline="") as h:
-        h.write("- **artefact du chantier** : https://exemple.invalid/x\n")
-    code, _, e = faux(["-p", "/vlp:tache"], t)
-    verifier("faux clore : courant et artefact passent à aucun",
-             code == 0 and "**fichier de fiches courant** : aucun" in lire(carte)
-             and "**artefact du chantier** : aucun" in lire(carte), lire(carte) + e)
+    with tempfile.TemporaryDirectory() as t:
+        projet(t)
+        carte, fiches, nouveau =(os.path.join(t, n) for n in ("CHANTIER.md", "fiches.md", "T.md"))
+        avant = lire(fiches)
+        code, _, e = faux(["-p", "/vlp:chantier T"], t)
+        verifier("faux découper : T.md à deux fiches, courant de CHANTIER.md remplacé, fiches.md intact",
+                 code == 0 and os.path.isfile(nouveau) and "## T1 [ ]" in lire(nouveau) and "## T2 [ ]" in lire(nouveau)
+                 and lire(nouveau).count("<!-- FICHE:") == 2
+                 and "**fichier de fiches courant** : T.md (T1..T2)" in lire(carte) and lire(fiches) == avant, e)
+        code, _, e = faux(["-p", "/vlp:tache T1"], t)
+        verifier("faux jouer coche dans le fichier courant",
+                 code == 0 and "## T1 [x]" in lire(nouveau) and "## T2 [ ]" in lire(nouveau) and lire(fiches) == avant, e)
+        code, _, e = faux(["-p", "/vlp:tache T2"], t, VLP_FAUX_RATE="T2")
+        verifier("faux jouer : VLP_FAUX_RATE laisse la case", code == 0 and "## T2 [ ]" in lire(nouveau), e)
+        code, _, e = faux(["-p", "/vlp:tache T1"], t)
+        verifier("faux jouer : cocher non nul → sa sortie sur stderr, code 2", code == 2 and "déjà cochée" in e, e)
+        with open(carte, "a", encoding="utf-8", newline="") as h:
+            h.write("- **artefact du chantier** : https://exemple.invalid/x\n")
+        code, _, e = faux(["-p", "/vlp:tache"], t)
+        verifier("faux clore : courant et artefact passent à aucun",
+                 code == 0 and "**fichier de fiches courant** : aucun" in lire(carte)
+                 and "**artefact du chantier** : aucun" in lire(carte), lire(carte) + e)
 
-with tempfile.TemporaryDirectory() as t:
-    relire = ["--agent", "vlp:relecture", "--model", "claude-opus-5-5"]
-    code, l, e = faux(["-p", "F1 --sha abc123"] + relire, t)
-    verifier("faux relire : ACCEPTÉE par défaut, outils de relecture dans init",
-             code == 0 and verdict_de(l).startswith("ACCEPTÉE — ") and l[0]["tools"] == ["Read", "Edit", "Bash", "PowerShell"], l)
-    code, l, e = faux(["-p", "F1"] + relire, t, VLP_FAUX_REFUSE="F1:fiche")
-    verifier("faux relire : VLP_FAUX_REFUSE fiche → REFUSÉE — fiche : puis RÉÉCRITURE",
-             verdict_de(l).startswith("REFUSÉE — fiche : ") and "\nRÉÉCRITURE : " in verdict_de(l), l)
-    code, l, e = faux(["-p", "F1"] + relire, t, VLP_FAUX_REFUSE="F1:copie")
-    verifier("faux relire : VLP_FAUX_REFUSE copie → REFUSÉE — copie : sans RÉÉCRITURE",
-             verdict_de(l).startswith("REFUSÉE — copie : ") and "RÉÉCRITURE" not in verdict_de(l), l)
-    code, l, e = faux(["-p", "F2"] + relire, t, VLP_FAUX_REFUSE="F1:fiche")
-    verifier("faux relire : une autre fiche reste ACCEPTÉE", verdict_de(l).startswith("ACCEPTÉE — "), l)
-    code, l, e = faux(["-p", "F1 --sha"] + relire, t)
-    verifier("faux relire : prompt mal formé → code 2", code == 2 and l == [], (code, l, e))
+    with tempfile.TemporaryDirectory() as t:
+        relire = ["--agent", "vlp:relecture", "--model", "claude-opus-5-5"]
+        code, l, e = faux(["-p", "F1 --sha abc123"] + relire, t)
+        verifier("faux relire : ACCEPTÉE par défaut, outils de relecture dans init",
+                 code == 0 and verdict_de(l).startswith("ACCEPTÉE — ") and l[0]["tools"] == ["Read", "Edit", "Bash", "PowerShell"], l)
+        code, l, e = faux(["-p", "F1"] + relire, t, VLP_FAUX_REFUSE="F1:fiche")
+        verifier("faux relire : VLP_FAUX_REFUSE fiche → REFUSÉE — fiche : puis RÉÉCRITURE",
+                 verdict_de(l).startswith("REFUSÉE — fiche : ") and "\nRÉÉCRITURE : " in verdict_de(l), l)
+        code, l, e = faux(["-p", "F1"] + relire, t, VLP_FAUX_REFUSE="F1:copie")
+        verifier("faux relire : VLP_FAUX_REFUSE copie → REFUSÉE — copie : sans RÉÉCRITURE",
+                 verdict_de(l).startswith("REFUSÉE — copie : ") and "RÉÉCRITURE" not in verdict_de(l), l)
+        code, l, e = faux(["-p", "F2"] + relire, t, VLP_FAUX_REFUSE="F1:fiche")
+        verifier("faux relire : une autre fiche reste ACCEPTÉE", verdict_de(l).startswith("ACCEPTÉE — "), l)
+        code, l, e = faux(["-p", "F1 --sha"] + relire, t)
+        verifier("faux relire : prompt mal formé → code 2", code == 2 and l == [], (code, l, e))
 
-with tempfile.TemporaryDirectory() as t:
-    projet(t)
-    jouer =["-p", "/vlp:tache F9"]
-    sid = "11111111-2222-3333-4444-555555555555"
-    code, l, e = faux(jouer + ["--session-id", sid], t, VLP_FAUX_RATE="F9")
-    verifier("faux : init et result portent l'id de --session-id",
-             code == 0 and l[0]["subtype"] == "init" and l[0]["session_id"] == sid and l[-1]["session_id"] == sid
-             and l[-1]["num_turns"] == 3 and l[-1]["total_cost_usd"] == 0.01, l)
-    code, l, e = faux(jouer + ["--model", "claude-opus-5-5"], t, VLP_FAUX_LIMITE="claude-opus", VLP_FAUX_RATE="F9")
-    verifier("faux : VLP_FAUX_LIMITE rend la limite au modèle qui commence par le préfixe",
-             code == 1 and l[-1]["is_error"] is True and l[-1]["result"].startswith("You've hit your session limit"), l)
-    code, l, e = faux(jouer + ["--model", "claude-sonnet-5-5"], t, VLP_FAUX_LIMITE="claude-opus", VLP_FAUX_RATE="F9")
-    verifier("faux : VLP_FAUX_LIMITE laisse passer un autre modèle", code == 0 and l[-1]["is_error"] is False, l)
-    for genre, debut_texte in (("opus", "You've hit your Opus limit"), ("semaine", "You've hit your weekly limit")):
+    with tempfile.TemporaryDirectory() as t:
+        projet(t)
+        jouer =["-p", "/vlp:tache F9"]
+        sid = "11111111-2222-3333-4444-555555555555"
+        code, l, e = faux(jouer + ["--session-id", sid], t, VLP_FAUX_RATE="F9")
+        verifier("faux : init et result portent l'id de --session-id",
+                 code == 0 and l[0]["subtype"] == "init" and l[0]["session_id"] == sid and l[-1]["session_id"] == sid
+                 and l[-1]["num_turns"] == 3 and l[-1]["total_cost_usd"] == 0.01, l)
+        code, l, e = faux(jouer + ["--model", "claude-opus-5-5"], t, VLP_FAUX_LIMITE="claude-opus", VLP_FAUX_RATE="F9")
+        verifier("faux : VLP_FAUX_LIMITE rend la limite au modèle qui commence par le préfixe",
+                 code == 1 and l[-1]["is_error"] is True and l[-1]["result"].startswith("You've hit your session limit"), l)
+        code, l, e = faux(jouer + ["--model", "claude-sonnet-5-5"], t, VLP_FAUX_LIMITE="claude-opus", VLP_FAUX_RATE="F9")
+        verifier("faux : VLP_FAUX_LIMITE laisse passer un autre modèle", code == 0 and l[-1]["is_error"] is False, l)
+        for genre, debut_texte in (("opus", "You've hit your Opus limit"), ("semaine", "You've hit your weekly limit")):
+            code, l, e = faux(jouer + ["--model", "claude-opus-5-5"], t, VLP_FAUX_LIMITE="claude-opus",
+                              VLP_FAUX_GENRE=genre, VLP_FAUX_RATE="F9")
+            verifier("faux : VLP_FAUX_GENRE=%s → le texte de la limite de ce genre" % genre,
+                     code == 1 and l[-1]["result"].startswith(debut_texte), l)
         code, l, e = faux(jouer + ["--model", "claude-opus-5-5"], t, VLP_FAUX_LIMITE="claude-opus",
-                          VLP_FAUX_GENRE=genre, VLP_FAUX_RATE="F9")
-        verifier("faux : VLP_FAUX_GENRE=%s → le texte de la limite de ce genre" % genre,
-                 code == 1 and l[-1]["result"].startswith(debut_texte), l)
-    code, l, e = faux(jouer + ["--model", "claude-opus-5-5"], t, VLP_FAUX_LIMITE="claude-opus",
-                      VLP_FAUX_GENRE="zzz", VLP_FAUX_RATE="F9")
-    verifier("faux : VLP_FAUX_GENRE inconnu → code 2", code == 2 and "zzz" in e, (code, e))
-    code, l, e = faux(jouer, t, VLP_FAUX_DENIALS="2", VLP_FAUX_RATE="F9")
-    verifier("faux : VLP_FAUX_DENIALS=2 → permission_denials de 2 entrées, is_error faux",
-             code == 0 and len(l[-1]["permission_denials"]) == 2 and l[-1]["is_error"] is False, l)
-    journal = os.path.join(t, "argv.jsonl")
-    faux(jouer + ["--model", "claude-sonnet-5-5"], t, VLP_FAUX_ARGV=journal, VLP_FAUX_RATE="F9")
-    verifier("faux : VLP_FAUX_ARGV ajoute une ligne JSON des arguments reçus",
-             json.loads(lire(journal).splitlines()[-1]) == jouer + ["--model", "claude-sonnet-5-5"], lire(journal))
-    code, l, e = faux(jouer + ["--model", "claude-inexistant-9", "--fallback-model", "claude-opus-5,claude-sonnet-5-5"],
-                      t, VLP_FAUX_REPLI="1", VLP_FAUX_RATE="F9")
-    vus = [x["message"]["model"] for x in l if x["type"] == "assistant"]
-    verifier("faux : VLP_FAUX_REPLI → message.model et modelUsage au premier repli, ligne model_fallback",
-             code == 0 and vus == ["claude-opus-5"] and list(l[-1]["modelUsage"]) == ["claude-opus-5"]
-             and any(x.get("subtype") == "model_fallback" for x in l), l)
-    debut = time.time()
-    faux(jouer, t, VLP_FAUX_DORT="0.4", VLP_FAUX_RATE="F9")
-    verifier("faux : VLP_FAUX_DORT dort avant de répondre", time.time() - debut >= 0.4, time.time() - debut)
-    code, l, e = faux(jouer, t, VLP_FAUX_ERREUR="coupure", VLP_FAUX_RATE="F9")
-    verifier("faux : VLP_FAUX_ERREUR=coupure → init puis rien, ni result, code 1",
-             code == 1 and [x["type"] for x in l] == ["system"], (code, l))
-    code, l, e = faux(jouer, t, VLP_FAUX_ERREUR="api", VLP_FAUX_RATE="F9")
-    verifier("faux : VLP_FAUX_ERREUR=api → message <synthetic>, result is_error vrai, code 1",
-             code == 1 and l[1]["message"]["model"] == "<synthetic>" and l[-1]["is_error"] is True
-             and l[-1]["terminal_reason"] == "api_error" and l[-1]["total_cost_usd"] == 0, (code, l))
-    for forme, sous in (("tours", "error_max_turns"), ("budget", "error_max_budget_usd")):
-        code, l, e = faux(jouer, t, VLP_FAUX_ERREUR=forme, VLP_FAUX_RATE="F9")
-        verifier("faux : VLP_FAUX_ERREUR=%s → %s, is_error vrai, sans clé result, code 1" % (forme, sous),
-                 code == 1 and l[-1]["subtype"] == sous and l[-1]["is_error"] is True and "result" not in l[-1], (code, l))
-    code, l, e = faux(jouer, t, VLP_FAUX_ERREUR="zzz", VLP_FAUX_RATE="F9")
-    verifier("faux : VLP_FAUX_ERREUR inconnue → code 2", code == 2 and "zzz" in e, (code, e))
+                          VLP_FAUX_GENRE="zzz", VLP_FAUX_RATE="F9")
+        verifier("faux : VLP_FAUX_GENRE inconnu → code 2", code == 2 and "zzz" in e, (code, e))
+        code, l, e = faux(jouer, t, VLP_FAUX_DENIALS="2", VLP_FAUX_RATE="F9")
+        verifier("faux : VLP_FAUX_DENIALS=2 → permission_denials de 2 entrées, is_error faux",
+                 code == 0 and len(l[-1]["permission_denials"]) == 2 and l[-1]["is_error"] is False, l)
+        journal = os.path.join(t, "argv.jsonl")
+        faux(jouer + ["--model", "claude-sonnet-5-5"], t, VLP_FAUX_ARGV=journal, VLP_FAUX_RATE="F9")
+        verifier("faux : VLP_FAUX_ARGV ajoute une ligne JSON des arguments reçus",
+                 json.loads(lire(journal).splitlines()[-1]) == jouer + ["--model", "claude-sonnet-5-5"], lire(journal))
+        code, l, e = faux(jouer + ["--model", "claude-inexistant-9", "--fallback-model", "claude-opus-5,claude-sonnet-5-5"],
+                          t, VLP_FAUX_REPLI="1", VLP_FAUX_RATE="F9")
+        vus = [x["message"]["model"] for x in l if x["type"] == "assistant"]
+        verifier("faux : VLP_FAUX_REPLI → message.model et modelUsage au premier repli, ligne model_fallback",
+                 code == 0 and vus == ["claude-opus-5"] and list(l[-1]["modelUsage"]) == ["claude-opus-5"]
+                 and any(x.get("subtype") == "model_fallback" for x in l), l)
+        debut = time.time()
+        faux(jouer, t, VLP_FAUX_DORT="0.4", VLP_FAUX_RATE="F9")
+        verifier("faux : VLP_FAUX_DORT dort avant de répondre", time.time() - debut >= 0.4, time.time() - debut)
+        code, l, e = faux(jouer, t, VLP_FAUX_ERREUR="coupure", VLP_FAUX_RATE="F9")
+        verifier("faux : VLP_FAUX_ERREUR=coupure → init puis rien, ni result, code 1",
+                 code == 1 and [x["type"] for x in l] == ["system"], (code, l))
+        code, l, e = faux(jouer, t, VLP_FAUX_ERREUR="api", VLP_FAUX_RATE="F9")
+        verifier("faux : VLP_FAUX_ERREUR=api → message <synthetic>, result is_error vrai, code 1",
+                 code == 1 and l[1]["message"]["model"] == "<synthetic>" and l[-1]["is_error"] is True
+                 and l[-1]["terminal_reason"] == "api_error" and l[-1]["total_cost_usd"] == 0, (code, l))
+        for forme, sous in (("tours", "error_max_turns"), ("budget", "error_max_budget_usd")):
+            code, l, e = faux(jouer, t, VLP_FAUX_ERREUR=forme, VLP_FAUX_RATE="F9")
+            verifier("faux : VLP_FAUX_ERREUR=%s → %s, is_error vrai, sans clé result, code 1" % (forme, sous),
+                     code == 1 and l[-1]["subtype"] == sous and l[-1]["is_error"] is True and "result" not in l[-1], (code, l))
+        code, l, e = faux(jouer, t, VLP_FAUX_ERREUR="zzz", VLP_FAUX_RATE="F9")
+        verifier("faux : VLP_FAUX_ERREUR inconnue → code 2", code == 2 and "zzz" in e, (code, e))
 
 
 # --- le carnet de nuit et la borne double (NUI3) --------------------------------------
@@ -425,9 +434,6 @@ def tester_nuit():
                            capture_output=True, text=True, encoding="utf-8")
         verifier("NUI3 : sans --nuit, --plafond reste exigé (code 2)",
                  r.returncode == 2 and "--plafond est exigé" in r.stderr, r.stderr)
-
-
-tester_nuit()
 
 
 # --- les plafonds de chaque rôle, l'issue de chaque session, la limite d'usage (NUI4) -----
@@ -641,9 +647,6 @@ def tester_plafonds():
              pendant == (SONNET, SONNET) and apres == OPUS, (pendant, apres))
 
 
-tester_plafonds()
-
-
 # --- relire avant le commit (NUI5) : dépôt avec un commit initial, traces et journaux hors du dépôt -----
 
 def journal_de(chemin):
@@ -743,9 +746,6 @@ def tester_relecture():
                  and nombre(t) == "3" and git(t, "show", "--name-only", "--format=", "HEAD").split() == ["fiches.md"]
                  and git(t, "status", "--porcelain") == "" and len(sessions_de(t)) == 2
                  and sessions_de(t)[1] == "**Session** : %s (relire)" % drapeau(argvs[1], "--session-id"), (s, sujet(t)))
-
-
-tester_relecture()
 
 
 # --- relancer plus fort sur refus, ou arrêter tôt (NUI6) -------------------------------------------------
@@ -896,91 +896,119 @@ def tester_relance():
     sys.stderr.write("NUI6 : %d cas neufs passés / %d écrits\n" % (ecrits[0], ecrits[0]))
 
 
-tester_relance()
-
-
 # --- enchaîner les chantiers d'un canal (NUI7) -----------------------------------------------------------
 
+# La date des nuits de NUI7 — et de NUI25, NUI8 et NUI9, qui reprennent les aides d'un canal.
+DATE_CANAL = "2026-10-01"
+
+
+def ecrire_f(chemin, texte):
+    os.makedirs(os.path.dirname(chemin), exist_ok=True)
+    with open(chemin, "w", encoding="utf-8", newline="") as h:
+        h.write(texte)
+
+
+def depot_canal(t, hors, codes, **reglages):
+    """Un dépôt Git équipé, tout commité : CHANTIER.md sans chantier ouvert, la TODO (AAA, BBB qui dépend de AAA,
+    CCC) et, si `codes`, le plan du soir `DATE_CANAL` du canal A — et du canal B pour `codes_b`, NUI9 — écrit par
+    `vlp.py plan ecrire`. `hors` : plan et hooks. `reglages` : `couts` (trois, « ~2 fiches » chacun),
+    `borne_chantiers` (3), `codes_b` (aucun) — par nom, hors des seuils de ruff (VIT22)."""
+    assert set(reglages) <= {"couts", "borne_chantiers", "codes_b"}, reglages
+    couts = reglages.get("couts", ("~2 fiches",) * 3)
+    borne_chantiers, codes_b = reglages.get("borne_chantiers", 3), reglages.get("codes_b", ())
+    entete = "| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |\n|---|---|---|---|---|\n"
+    subprocess.run(["git", "init", "-q", t], check=True, capture_output=True)
+    ecrire_f(os.path.join(t, "CHANTIER.md"),
+             "# C\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n- **fichier d'état** : ctx/08-etat.md\n"
+             "- **fichier de fiches courant** : aucun\n- **artefact du chantier** : aucun\n\n"
+             "Lettres de fiche déjà prises : E (Un), KKK (Clos). Un nouveau chantier en choisit une autre.\n")
+    ecrire_f(os.path.join(t, "ctx", "00-INDEX.md"),
+             "# Index\n\n| Fichier | Lire quand |\n|---|---|\n| `00-INDEX.md` | l'index |\n| `08-etat.md` | l'état |\n"
+             "| `100-x.md` | un chantier |\n\nFin.\n")
+    ecrire_f(os.path.join(t, "ctx", "08-etat.md"),
+             "# État\n\n" + entete + "| 1 | `AAA` — a | x | %s | — |\n| 2 | `BBB` — b | x | %s | `AAA` |\n"
+             "| 3 | `CCC` — c | x | %s | — |\n\n## Journal\n" % couts)
+    ecrire_f(os.path.join(t, "ctx", "100-x.md"), "# x\n")
+    if codes:
+        plan = {"borne_usd": 5, "borne_chantiers": borne_chantiers,
+                "A": [{"code": c, "prefixe": c, "reponses": []} for c in codes]}
+        if codes_b:
+            plan["B"] = [{"code": c, "prefixe": c, "reponses": []} for c in codes_b]
+        ecrire_f(os.path.join(hors, "plan.json"), json.dumps(plan))
+        r = subprocess.run([sys.executable, os.path.join(ICI, "vlp.py"), "plan", "ecrire", t, "--json",
+                            os.path.join(hors, "plan.json"), "--date", DATE_CANAL], capture_output=True, text=True,
+                           encoding="utf-8", env=dict(os.environ, PYTHONIOENCODING="utf-8"))
+        assert r.returncode == 0, r.stdout + r.stderr
+    git(t, "add", "-A")
+    git(t, "commit", "-q", "-m", "plan")
+
+
+def carnet_du(t):
+    chemin = carnet.du_jour(t, DATE_CANAL)
+    assert chemin, "pas de carnet : %s n'est pas un dépôt Git" % t
+    return carnet.lire(chemin)
+
+
+def canal(t, hors, *options, **env):
+    """boucle.py --nuit --canal A --date DATE_CANAL dans `t` : (code, sortie, lignes du carnet de DATE_CANAL). Le faux clôt
+    par un commit, comme `cloture.md:72` ; ce qu'il a vu de l'environnement va dans `hors/env.jsonl`."""
+    env.setdefault("VLP_FAUX_CLORE", "commit")
+    env.setdefault("VLP_FAUX_ENV", os.path.join(hors, "env.jsonl"))
+    code, s = nuit(t, "--canal", "A", "--date", DATE_CANAL, *options, traces=hors, **env)
+    return code, s, carnet_du(t)
+
+
+def br(code):
+    return "nuit/%s-A-%s" % (DATE_CANAL, code)
+
+
+def sha(t, ref):
+    return git(t, "rev-parse", ref).strip()
+
+
+def sujet(t, ref):
+    return git(t, "log", "-1", "--format=%s", ref).strip()
+
+
+def ancetre(t, x, y):
+    return subprocess.run(["git", "merge-base", "--is-ancestor", x, y], cwd=t, env=dict(os.environ, **ENV_GIT),
+                          capture_output=True).returncode == 0
+
+
+def branches(t):
+    return git(t, "branch", "--list", "nuit/*", "--format=%(refname:short)").split()
+
+
+def roles(lignes, code):
+    """Les rôles des sessions du chantier `code`, dans l'ordre du carnet."""
+    return [d["role"] for d in lignes if d["chantier"] == code and carnet.est_session(d)]
+
+
+def gardes(lignes, code):
+    """Les gardes des lignes du chantier `code` qui ne sont pas des sessions (sans `role`)."""
+    return [d["garde"] for d in lignes if d["chantier"] == code and d["role"] is None and d["note"] is None]
+
+
+def aides_du_canal() -> dict[str, Any]:
+    """Rendre les aides des cas d'un canal — dépôt équipé, canal lancé, carnet du jour, branches —, que NUI7, NUI25,
+    NUI8 et NUI9 reprennent, sans jouer un seul cas : chaque partie les bâtit dans son processus (VIT22)."""
+    return dict(DATE=DATE_CANAL, ecrire_f=ecrire_f, depot_canal=depot_canal, carnet_du=carnet_du, canal=canal,
+                br=br, sha=sha, sujet=sujet, ancetre=ancetre, branches=branches, roles=roles, gardes=gardes)
+
+
 def tester_canal():
-    DATE = "2026-10-01"
+    """NUI7 : un canal enchaîne les chantiers de son plan, chacun sur sa branche, et met de côté ce qui bloque."""
+    aides = aides_du_canal()
+    DATE, ecrire_f, depot_canal, carnet_du, canal, br = (aides[k] for k in ("DATE", "ecrire_f", "depot_canal", "carnet_du",
+                                                                           "canal", "br"))
+    sha, sujet, ancetre, branches, roles, gardes = (aides[k] for k in ("sha", "sujet", "ancetre", "branches", "roles",
+                                                                       "gardes"))
     ecrits = [0]
 
     def neuf(nom, cond, sortie):
         """Un cas neuf de NUI7 : `verifier` sort au premier écart, donc ceux qui passent = ceux qui sont écrits."""
         ecrits[0] += 1
         verifier("NUI7 " + nom, cond, sortie)
-
-    def ecrire_f(chemin, texte):
-        os.makedirs(os.path.dirname(chemin), exist_ok=True)
-        with open(chemin, "w", encoding="utf-8", newline="") as h:
-            h.write(texte)
-
-    def depot_canal(t, hors, codes, couts=("~2 fiches",) * 3, borne_chantiers=3, codes_b=()):
-        """Un dépôt Git équipé, tout commité : CHANTIER.md sans chantier ouvert, la TODO (AAA, BBB qui dépend de AAA,
-        CCC) et, si `codes`, le plan du soir `DATE` du canal A — et du canal B pour `codes_b`, NUI9 — écrit par
-        `vlp.py plan ecrire`. `hors` : plan et hooks."""
-        entete = "| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |\n|---|---|---|---|---|\n"
-        subprocess.run(["git", "init", "-q", t], check=True, capture_output=True)
-        ecrire_f(os.path.join(t, "CHANTIER.md"),
-                 "# C\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n- **fichier d'état** : ctx/08-etat.md\n"
-                 "- **fichier de fiches courant** : aucun\n- **artefact du chantier** : aucun\n\n"
-                 "Lettres de fiche déjà prises : E (Un), KKK (Clos). Un nouveau chantier en choisit une autre.\n")
-        ecrire_f(os.path.join(t, "ctx", "00-INDEX.md"),
-                 "# Index\n\n| Fichier | Lire quand |\n|---|---|\n| `00-INDEX.md` | l'index |\n| `08-etat.md` | l'état |\n"
-                 "| `100-x.md` | un chantier |\n\nFin.\n")
-        ecrire_f(os.path.join(t, "ctx", "08-etat.md"),
-                 "# État\n\n" + entete + "| 1 | `AAA` — a | x | %s | — |\n| 2 | `BBB` — b | x | %s | `AAA` |\n"
-                 "| 3 | `CCC` — c | x | %s | — |\n\n## Journal\n" % couts)
-        ecrire_f(os.path.join(t, "ctx", "100-x.md"), "# x\n")
-        if codes:
-            plan = {"borne_usd": 5, "borne_chantiers": borne_chantiers,
-                    "A": [{"code": c, "prefixe": c, "reponses": []} for c in codes]}
-            if codes_b:
-                plan["B"] = [{"code": c, "prefixe": c, "reponses": []} for c in codes_b]
-            ecrire_f(os.path.join(hors, "plan.json"), json.dumps(plan))
-            r = subprocess.run([sys.executable, os.path.join(ICI, "vlp.py"), "plan", "ecrire", t, "--json",
-                                os.path.join(hors, "plan.json"), "--date", DATE], capture_output=True, text=True,
-                               encoding="utf-8", env=dict(os.environ, PYTHONIOENCODING="utf-8"))
-            assert r.returncode == 0, r.stdout + r.stderr
-        git(t, "add", "-A")
-        git(t, "commit", "-q", "-m", "plan")
-
-    def carnet_du(t):
-        chemin = carnet.du_jour(t, DATE)
-        assert chemin, "pas de carnet : %s n'est pas un dépôt Git" % t
-        return carnet.lire(chemin)
-
-    def canal(t, hors, *options, **env):
-        """boucle.py --nuit --canal A --date DATE dans `t` : (code, sortie, lignes du carnet de DATE). Le faux clôt
-        par un commit, comme `cloture.md:72` ; ce qu'il a vu de l'environnement va dans `hors/env.jsonl`."""
-        env.setdefault("VLP_FAUX_CLORE", "commit")
-        env.setdefault("VLP_FAUX_ENV", os.path.join(hors, "env.jsonl"))
-        code, s = nuit(t, "--canal", "A", "--date", DATE, *options, traces=hors, **env)
-        return code, s, carnet_du(t)
-
-    def br(code):
-        return "nuit/%s-A-%s" % (DATE, code)
-
-    def sha(t, ref):
-        return git(t, "rev-parse", ref).strip()
-
-    def sujet(t, ref):
-        return git(t, "log", "-1", "--format=%s", ref).strip()
-
-    def ancetre(t, x, y):
-        return subprocess.run(["git", "merge-base", "--is-ancestor", x, y], cwd=t, env=dict(os.environ, **ENV_GIT),
-                              capture_output=True).returncode == 0
-
-    def branches(t):
-        return git(t, "branch", "--list", "nuit/*", "--format=%(refname:short)").split()
-
-    def roles(lignes, code):
-        """Les rôles des sessions du chantier `code`, dans l'ordre du carnet."""
-        return [d["role"] for d in lignes if d["chantier"] == code and carnet.est_session(d)]
-
-    def gardes(lignes, code):
-        """Les gardes des lignes du chantier `code` qui ne sont pas des sessions (sans `role`)."""
-        return [d["garde"] for d in lignes if d["chantier"] == code and d["role"] is None and d["note"] is None]
 
     with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors:
         depot_canal(t, hors, ("AAA", "BBB", "CCC"))
@@ -1132,16 +1160,12 @@ def tester_canal():
              and all(d["plugin_retard"] == 8 for d in lignes), (sortie.getvalue(), lignes))
 
     sys.stderr.write("NUI7 : %d cas neufs passés / %d écrits\n" % (ecrits[0], ecrits[0]))
-    return dict(DATE=DATE, ecrire_f=ecrire_f, depot_canal=depot_canal, carnet_du=carnet_du, canal=canal, br=br, sha=sha,
-                sujet=sujet, ancetre=ancetre, branches=branches, roles=roles)
 
 
-aides_canal = tester_canal()
-
-
-def tester_herite(aides):
+def tester_herite():
     """NUI25 : un canal part d'un worktree détaché sur main, comme le lanceur — main y porte un chantier marqué, que
     le canal hérite sans le jouer ; et une carte gardée (plusieurs ouverts) n'est jamais lue « aucun »."""
+    aides = aides_du_canal()
     DATE, ecrire_f, depot_canal, canal, br, sujet = (aides[k] for k in ("DATE", "ecrire_f", "depot_canal", "canal", "br",
                                                                          "sujet"))
     ecrits = [0]
@@ -1228,13 +1252,11 @@ def tester_herite(aides):
     sys.stderr.write("NUI25 : %d cas neufs passés / %d écrits\n" % (ecrits[0], ecrits[0]))
 
 
-tester_herite(aides_canal)
-
-
 # --- reprendre une nuit coupée (NUI8) ---------------------------------------------------------------------
 # Chaque cas pose son projet, son dépôt, son carnet et son `~` (HOME, USERPROFILE) dans des dossiers jetés.
 
-def tester_reprise(aides):
+def tester_reprise():
+    aides = aides_du_canal()
     DATE, canal, depot_canal, carnet_du = aides["DATE"], aides["canal"], aides["depot_canal"], aides["carnet_du"]
     br, sha, sujet, branches, roles = aides["br"], aides["sha"], aides["sujet"], aides["branches"], aides["roles"]
     ecrire_f, ancetre = aides["ecrire_f"], aides["ancetre"]
@@ -1483,13 +1505,11 @@ def tester_reprise(aides):
                      % (ecrits[0], ecrits[0], _PASSES[0] - ecrits[0], sautes[0]))
 
 
-tester_reprise(aides_canal)
-
-
 # --- lancer les deux canaux d'une nuit (NUI9) -------------------------------------------------------------
 # Chaque cas bâtit projet, dépôt sur `main`, dépôt nu `origin` (poussé une fois), carnet et `~` dans des dossiers jetés.
 
-def tester_lanceur(aides):
+def tester_lanceur():
+    aides = aides_du_canal()
     DATE, depot_canal, carnet_du = aides["DATE"], aides["depot_canal"], aides["carnet_du"]
     br, sha, branches, ecrire_f = aides["br"], aides["sha"], aides["branches"], aides["ecrire_f"]
     ecrits = [0]
@@ -1655,9 +1675,6 @@ def tester_lanceur(aides):
     sys.stderr.write("NUI9 : %d cas neufs passés / %d écrits\n" % (ecrits[0], ecrits[0]))
 
 
-tester_lanceur(aides_canal)
-
-
 # --- `vlp` appelé dans le processus rend ce que rendait le sous-processus (VIT6) -----
 
 def tester_vlp_dans_processus():
@@ -1678,6 +1695,104 @@ def tester_vlp_dans_processus():
                  "rendu %r\nattendu %r" % (rendus, attendus))
 
 
-tester_vlp_dans_processus()
+# --- les parties, en parallèle (VIT22) ---------------------------------------------------------------------------
+# Chaque partie est indépendante : sa `~`, ses dossiers jetés, ses `bmod.*` rendus. Les paquets d'`EN_PARALLELE`
+# tournent chacun dans un processus à lui, lancé d'abord ; celui-ci joue le reste, puis les récolte. Mesuré en série
+# à VIT22 (226 s en tout) : canal ≈ 55 s, relecture + reprise ≈ 51 s, herite + lanceur ≈ 53 s, le reste ≈ 66 s.
 
-print("OK")
+def tester_parties():
+    """VIT22 : chaque partie se joue une fois, ici ou à part ; une partie lancée à part qui échoue rend la récolte
+    rouge, son `ÉCART:` remonte sur stdout et son erreur sur stderr."""
+    a_part = [n for noms in EN_PARALLELE for n in noms]
+    verifier("parties : chaque paquet d'EN_PARALLELE nomme des parties de PARTIES, chacune une fois",
+             len(a_part) == len(set(a_part)) and set(a_part) <= set(PARTIES), (EN_PARALLELE, list(PARTIES)))
+
+    def lancee(code, texte):
+        """Un processus qui imprime `texte`, écrit `err` sur stderr et sort `code` — ses sorties dans des fichiers,
+        comme `lancer_parties`."""
+        sorties = [tempfile.TemporaryFile("w+", encoding="utf-8", errors="replace") for _ in range(2)]
+        p = subprocess.Popen([sys.executable, "-c", "import sys; print(%r); sys.stderr.write('err\\n'); sys.exit(%d)"
+                              % (texte, code)], stdout=sorties[0], stderr=sorties[1],
+                             env=dict(os.environ, PYTHONIOENCODING="utf-8"))
+        return p, sorties[0], sorties[1]
+
+    rendus = []
+    for codes in ((0, 1), (0, 0)):
+        o, e = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(o), contextlib.redirect_stderr(e):
+            vertes = recolter([lancee(c, "ÉCART: partie %d" % i) for i, c in enumerate(codes)])
+        rendus.append((vertes, o.getvalue(), e.getvalue()))
+    verifier("parties : une partie lancée à part qui sort 1 rend la récolte rouge, toutes à 0 la rendent verte ; "
+             "stdout relayé sur stdout, stderr sur stderr — mutant : code de sortie ignoré",
+             rendus[0][0] is False and rendus[1][0] is True
+             and all(r[1] == "ÉCART: partie 0\nÉCART: partie 1\n" and r[2] == "err\nerr\n" for r in rendus), rendus)
+
+
+PARTIES = {"simple": tester_simple, "faux": tester_faux, "nuit": tester_nuit, "plafonds": tester_plafonds,
+           "relecture": tester_relecture, "relance": tester_relance, "canal": tester_canal, "herite": tester_herite,
+           "reprise": tester_reprise, "lanceur": tester_lanceur, "dans_processus": tester_vlp_dans_processus,
+           "parties": tester_parties}
+EN_PARALLELE = (("canal",), ("relecture", "reprise"), ("herite", "lanceur"))
+
+
+def jouer_parties(noms):
+    """Jouer ici les parties `noms`, dans l'ordre, et dire la durée de chacune sur stderr."""
+    for nom in noms:
+        debut = time.perf_counter()
+        PARTIES[nom]()
+        sys.stderr.write("PARTIE %s : %.1f s\n" % (nom, time.perf_counter() - debut))
+
+
+def arreter(p):
+    """Tuer une partie lancée qui tourne encore : son arbre sous Windows (`tuer_arbre`), elle seule ailleurs — elle
+    reste dans le groupe de ce processus, que `vlp.py mutant` tue en entier."""
+    if p.poll() is not None:
+        return
+    if sys.platform == "win32":
+        kit.tuer_arbre(p)
+    else:
+        p.kill()
+    p.wait()
+
+
+def lancer_parties(noms):
+    """Lancer ce fichier sur les parties `noms` sans l'attendre : rendre (processus, stdout, stderr), ses deux sorties
+    dans des fichiers temporaires — un tube plein bloquerait l'enfant. Un arrêt d'ici avant la récolte le tue
+    (`arreter`, par `atexit`)."""
+    sorties = [tempfile.TemporaryFile("w+", encoding="utf-8", errors="replace") for _ in range(2)]
+    p = subprocess.Popen([sys.executable, os.path.abspath(__file__), "--parties", ",".join(noms)], stdout=sorties[0],
+                         stderr=sorties[1], env=dict(os.environ, PYTHONIOENCODING="utf-8"))
+    atexit.register(arreter, p)
+    return p, sorties[0], sorties[1]
+
+
+def recolter(lances):
+    """Attendre les parties lancées et relayer leurs sorties ici, stdout sur stdout, stderr sur stderr — leur `ÉCART:`
+    remonte ainsi ; rendre vrai si toutes sont sorties 0."""
+    vertes = True
+    for p, sortie, erreur in lances:
+        vertes = p.wait() == 0 and vertes
+        for lu, flux in ((sortie, sys.stdout), (erreur, sys.stderr)):
+            lu.seek(0)
+            flux.write(lu.read())
+    return vertes
+
+
+def principal(argv):
+    """Jouer les parties de `--parties a,b` (un processus de `lancer_parties`) ; sinon toutes — les paquets
+    d'`EN_PARALLELE` lancés à part, sauf sous `VLP_BOUCLE_SERIE=1` (tout ici, en série) —, puis imprimer `OK` si
+    toutes passent. Rendre le code de sortie."""
+    if "--parties" in argv:
+        jouer_parties(argv[argv.index("--parties") + 1].split(","))
+        return 0
+    paquets = () if os.environ.get("VLP_BOUCLE_SERIE") == "1" else EN_PARALLELE
+    lances = [lancer_parties(noms) for noms in paquets]
+    jouer_parties([n for n in PARTIES if not any(n in noms for noms in paquets)])
+    if not recolter(lances):
+        return 1
+    print("OK")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(principal(sys.argv[1:]))

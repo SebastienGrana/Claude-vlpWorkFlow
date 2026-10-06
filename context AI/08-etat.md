@@ -2722,3 +2722,44 @@ Les mesures de `VIT1`, rejouées par ses commandes (script `vit13-mesures.sh`, r
 ## 2026-10-06 — VIT20 — l'injection voit l'id de session
 
 - L'injection `!` d'une skill voit `CLAUDE_CODE_SESSION_ID` : après `/reload-plugins`, la carte de `/vlp:tache` rechargée (par l'outil Skill, dans la session qui venait de cocher VIT20) a imprimé `AVERTISSEMENT: session déjà notée dans ce fichier de fiches (VIT20)`. Sous `--nuit`, la boucle note l'id de la session `clore` avant de la lancer : la carte se tait sous `VLP_NUIT=1`, sinon elle avertirait à tort.
+
+## 2026-10-06 — VIT22 — test-boucle
+
+- **Ce qui change** : `test-boucle.py` est découpé en **12 parties** (`PARTIES`). Les plus longues tournent chacune dans un processus à elle (`EN_PARALLELE` : `canal` ; `relecture` et `reprise` ; `herite` et `lanceur`), le reste dans le processus principal — quatre files pour les **4 cœurs** de la machine (8 logiques). `VLP_BOUCLE_SERIE=1` les rejoue toutes ici, en série ; `--parties a,b` ne joue que celles-là. Aucun contrôle retiré, aucune attente fixe changée, pas de cache (Q5). Les aides des cas de canal (`depot_canal`, `canal`, `branches`…) passent au niveau du module : imbriquées, `ruff` les comptait dans leur parente (complexité 14).
+- **Où passait le temps, avant** (`f050ae2`) : chronométré contrôle par contrôle (`temps-boucle.py`, dossier temporaire de la session, non suivi : un chrono à chaque `verifier`, les `Popen` comptés), un passage : **225,9 s**, 141 contrôles, **716 processus**. Les plus lents : `NUI9 (a)` `--lancer` **23,1 s** ; `NUI7 (a)` trois chantiers 12,7 s ; `NUI9 (c)` worktrees déjà ignorés 10,5 s ; `NUI8 (d)` 9,3 s ; `NUI7 (c)` 8,6 s. Aucune attente fixe longue : le temps est dans les processus lancés (Git, le faux `claude`, `boucle.py`).
+- **`test-vlp` sans `test-boucle`** : aucun moyen de le lancer seul et entier — `VLP_BOUCLE_SERIE=1` ne lance pas `test-boucle` au début, mais `tester_boucle` le joue alors en série. Mesuré sur une copie qui retire `groupe(tester_boucle)` et `noter_si_verte()` (`temps-vlp.py`, même dossier) : **150,5 s**, 127 groupes, dont **`tester_matin` 77,6 s** (52 %), `tester_fusionner` 8,5, `tester_lettres_doublon` 6,4.
+
+**Par partie** — avant : le passage chronométré, en série, regroupé par partie (`par-partie.py`, même dossier) ; après : les lignes `PARTIE <nom> : <s> s` que le script écrit sur stderr, aux deux passages de la série « après ».
+
+| Partie | Contrôles | Avant, en série | Après, passage 1 | Après, passage 2 | Où |
+|---|---|---|---|---|---|
+| `canal` | 13 | 55,4 s | 103,5 s | 125,0 s | à part |
+| `reprise` | 19 | 41,2 s | 85,9 s | 101,6 s | à part, avec `relecture` |
+| `lanceur` | 14 | 40,0 s | 72,1 s | 82,6 s | à part, avec `herite` |
+| `plafonds` | 21 | 18,2 s | 35,1 s | 37,2 s | principal |
+| `nuit` | 16 | 17,9 s | 28,2 s | 38,9 s | principal |
+| `relance` | 9 | 16,4 s | 23,7 s | 25,5 s | principal |
+| `herite` | 4 | 13,4 s | 24,3 s | 31,2 s | à part, avec `lanceur` |
+| `relecture` | 8 | 10,1 s | 15,3 s | 21,5 s | à part, avec `reprise` |
+| `simple` | 10 | 8,2 s | 12,3 s | 17,6 s | principal |
+| `faux` | 26 | 4,7 s | 7,9 s | 9,8 s | principal |
+| `dans_processus` | 1 | 0,6 s | 0,7 s | 0,8 s | principal |
+| `parties` (neuve) | 2 | — | 0,1 s | 0,1 s | principal |
+
+- **Chaque partie va ≈ 1,8 fois moins vite en parallèle** qu'en série : quatre files se partagent la machine. Les quatre files finissent ensemble — passage 1 : principal 108,0 s, `canal` 103,5, `relecture` + `reprise` 101,2, `herite` + `lanceur` 96,4.
+
+**Les deux suites** — les commandes de « VIT13 », `py -3 scripts/test-vlp.py` puis `py -3 scripts/test-boucle.py`, en alternance, deux passages, début et fin par `Get-Date` (`serie.ps1`, même dossier). Avant : `f050ae2`, le 2026-10-06 de 00:51:33 à 01:06:37. Après : le code de cette fiche, de 08:43:11 à 08:54:51. Tout `OK`, code 0.
+
+| Mesure | Avant | Après | Écart |
+|---|---|---|---|
+| `py -3 scripts/test-boucle.py` | 214,1 s · 219,3 s | **108,4 s · 130,3 s** | **−45 %** (moy. 216,7 → 119,4) |
+| `py -3 scripts/test-vlp.py` (suite entière) | 238,9 s · 231,9 s | 224,1 s · 236,8 s | −2 % (moy. 235,4 → 230,5) : **dans le bruit** |
+| `verifier(` de `test-boucle.py` | 83 | **85** | +2 (`tester_parties`) |
+
+- ⚠️ **Pas les mêmes heures** : la série « avant » a tourné la nuit, la série « après » le matin, l'utilisateur présent. Deux passages seuls de `test-boucle`, la nuit, après le découpage : 81,4 s et 81,9 s.
+- ⚠️ « VIT13 » mesurait sur une machine **redémarrée** (176 s, 180 s) ; ces séries non : la charge n'y est pas relevée.
+- **Pourquoi la suite entière ne raccourcit pas** — une suite de plus (`charge-suite.ps1` et `charge-cim.ps1`, même dossier), de 08:58:08 à 09:03:00, **288,5 s**, `OK` : les processus `python` de `test-boucle` sont **9 à 18** jusqu'à ≈ 09:00:40, puis **2** — `test-vlp` seul — jusqu'à la fin, CPU **médian 45 %** (30 à 100 %, 5 relevés sur 22 à 60 % ou plus ; CIM toutes les 5 s). `test-boucle` ne fixe plus la durée de la suite : ce sont **les groupes de `test-vlp`, joués en série** (150,5 s seuls, dont `tester_matin` 77,6). Raccourcir `test-vlp` est désormais ce qui paie.
+- **Instrument** : `Get-Counter` a rendu 0 % à chaque relevé sur ce Windows — 💡 probablement des noms de compteurs traduits, non vérifié ; le CPU vient de `Win32_PerfFormattedData_PerfOS_Processor`.
+- **Mutants** (`py -3 scripts/vlp.py mutant <fichier> <avant> <après> --attendu "boucle : test-boucle.py"`, visés par `VIT21`) : `test-boucle.py`, `recolter` : `p.wait() == 0` → `p.wait() >= 0` → `VISÉ --seul « boucle : test-boucle.py »`, `MUTANT ATTRAPÉ`, 82,4 s ; `boucle.py`, `if not propre:` → `if False:` — un cas joué dans un processus à part — `MUTANT ATTRAPÉ`, 89,3 s.
+- **NUI8** dit « 8 cas d'avant passés » au lieu de 107 : le compte est celui de son processus (commentaire de `_PASSES`).
+- pyright **0 errors** sur `test-boucle.py` (0 avant) ; `sante --cliquet` : **CLIQUET TENU**.

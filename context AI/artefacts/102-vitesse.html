@@ -21,9 +21,9 @@
     <p>Coder plus vite et mieux. Une fiche attend moins ses tests et lit moins de contexte — mesuré avant (VIT1) et après (VIT13) — sans qu'un seul contrôle soit retiré ; le code qu'elle laisse est sain, facile à maintenir et documenté.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">23 fiches · 19 faites · en cours : VIT22</p>
+    <p class="mono" style="margin-top:.5rem">23 fiches · 20 faites · en cours : VIT23</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -113,12 +113,13 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">VIT21</span></span>
         <details><summary><span class="titre">Le mutant visé sur son groupe, par défaut</span><span class="etat">Faite</span></summary>
         <span class="note">Mutant NUI27 --attendu seul : 187,9 s avant → 10 s après (VISÉ --seul, ATTRAPÉ ; 6 s à VIT13 avec --test) ; sans groupe → SUITE ENTIÈRE dite ; groupe sans le contrôle → jamais ATTRAPÉ (test) ; OK 272,8 s ; verifier( 811→815 · 83→83 ; 2 mutants attrapés ; pyright 0 ; CLIQUET TENU</span></details>
-        <span class="cout mono">≈5,6M (5 634 600) · 35 tours · 3,24 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">VIT22</span></span>
-        <details open><summary><span class="titre">Raccourcir test-boucle</span><span class="etat">En cours · VIT23 peut partir en même temps</span></summary>
-        <span class="note">test-boucle, qui fixe la durée de la suite (176 s), raccourci sans retirer un contrôle. Dépend de rien.</span></details></li>
-      <li class="fiche"><span class="gauche"><span class="id">VIT23</span></span>
-        <details><summary><span class="titre">Un contrôle rapide avant la suite entière</span><span class="etat">À lancer · en même temps que VIT22</span></summary>
+        <span class="cout mono">≈6,4M (6 426 748) · 39 tours · 3,52 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">VIT22</span></span>
+        <details><summary><span class="titre">Raccourcir test-boucle</span><span class="etat">Faite</span></summary>
+        <span class="note">test-boucle 216,7 → 119,4 s (moy. de 2 passages, −45 %) ; suite entière 235,4 → 230,5 s, dans le bruit : test-vlp seul (150,5 s, tester_matin 77,6) fixe désormais sa durée ; verifier( 83 → 85 ; OK ; 2 mutants attrapés ; pyright 0 ; cliquet tenu</span></details>
+        <span class="cout mono">≈21,7M (21 737 006) · 100 tours · 10,05 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">VIT23</span></span>
+        <details open><summary><span class="titre">Un contrôle rapide avant la suite entière</span><span class="etat">En cours</span></summary>
         <span class="note">Un contrôle de quelques secondes avant la suite entière (≈ 3 min). Dépend de VIT21.</span></details></li>
       <li class="fiche"><span class="gauche"><span class="id">VIT24</span></span>
         <details><summary><span class="titre">test-mesure-tokens.py dans la suite, py -3 dans les commandes</span><span class="etat">À lancer</span></summary>
@@ -128,7 +129,7 @@
         <span class="note">L'effort mesuré (Max, xhigh, high, medium) sur 3 fiches ; coût montré et oui de l'utilisateur avant tout essai. Dépend de VIT19 à VIT24.</span></details></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : 0 · 0 tours · 0,00 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈369,5M (369 453 108) · 1878 tours · 207,27 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈392,0M (391 982 262) · 1982 tours · 217,60 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

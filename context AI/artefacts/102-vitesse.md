@@ -22,7 +22,7 @@ Coder plus vite et mieux. Une fiche attend moins ses tests et lit moins de conte
 - VIT19 : vlp.py claude → CLAUDE …/2.1.288/36aa8c97bf86/claude.exe ; 3 cas faits main verts (seconde profondeur trouvée ; app sans exe → hook sorti 1, raison dite ; rien → averti, sorti 0) ; test du hook sans SAUTÉ ; suite OK, verifier( 798 → 802 ; 2 mutants attrapés ; pyright 0 ; cliquet tenu, 3 améliorées
 - VIT20 : groupe tester_vit20_session_neuve OK ; verifier( 802 → 811 (test-boucle 83 inchangé) ; 2 mutants attrapés (garde VLP_NUIT, cadrage) ; pyright 0 errors ; cliquet tenu (5 touchées, 6 neuves, 3 améliorées) ; suite entière OK ; injection vérifiée en vrai : AVERTISSEMENT (VIT20) dans la carte rechargée
 - VIT21 : Mutant NUI27 --attendu seul : 187,9 s avant → 10 s après (VISÉ --seul, ATTRAPÉ ; 6 s à VIT13 avec --test) ; sans groupe → SUITE ENTIÈRE dite ; groupe sans le contrôle → jamais ATTRAPÉ (test) ; OK 272,8 s ; verifier( 811→815 · 83→83 ; 2 mutants attrapés ; pyright 0 ; CLIQUET TENU
-- VIT22 : test-boucle, qui fixe la durée de la suite (176 s), raccourci sans retirer un contrôle. Dépend de rien.
+- VIT22 : test-boucle 216,7 → 119,4 s (moy. de 2 passages, −45 %) ; suite entière 235,4 → 230,5 s, dans le bruit : test-vlp seul (150,5 s, tester_matin 77,6) fixe désormais sa durée ; verifier( 83 → 85 ; OK ; 2 mutants attrapés ; pyright 0 ; cliquet tenu
 - VIT23 : Un contrôle de quelques secondes avant la suite entière (≈ 3 min). Dépend de VIT21.
 - VIT24 : test-mesure-tokens joué par la suite ; py -3 dans les 8 commandes (−77 ms par appel). Dépend de rien.
 - VIT25 : L'effort mesuré (Max, xhigh, high, medium) sur 3 fiches ; coût montré et oui de l'utilisateur avant tout essai. Dépend de VIT19 à VIT24.
