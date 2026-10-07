@@ -178,8 +178,9 @@ essais en $ et le même total vu par `vlp.py cout` — les deux s'écrivent côt
 ---
 
 <!-- FICHE:MET5 -->
-## MET5 [ ] — Trier les familles de ruff
+## MET5 [x] — Trier les familles de ruff
 
+**Session** : 240bd893-1e58-426c-bd93-728f652a2820
 **Dépend de** : rien.
 **Fichiers** : `context AI/08-etat.md` (l'entrée `VIT15` du 2026-10-04), un réglage de ruff à la racine (`ruff.toml` ou `pyproject.toml`, à proposer), une page à cartes — et rien d'autre.
 

@@ -2994,3 +2994,29 @@ Les mesures de `VIT1`, rejouées par ses commandes (script `vit13-mesures.sh`, r
 - **Le critère, par grep** : chaque titre en gras à sa place — `restée` 15 (puce de premier niveau de la méthode), `fondue` 4 (sous-puce en gras de la méthode), `partie` 3 (puce en gras de `lecons-mesure.md`) : **22 sur 22**, chaque titre trouvé une fois. 3 renvois « Leçon partie dans `lecons-mesure.md` » dans la méthode.
 - **Rien ne se perd** : les 119 phrases de l'ancienne section, comparées au texte d'après (méthode et leçons, espaces et italiques normalisés) — 112 retrouvées mot pour mot ; 7 reformulées, relues une à une ; une seule perdait un bout (« jamais deux nombres nus »), remis. Les récits ont été extraits par script de `git show HEAD:methode-chantier.md`, pas retapés.
 - **Commandes** : `vlp.py renvois .` → `RENVOIS 122 nommés · 0 absents` et `AVERTISSEMENT: CLAUDE.md 81 lignes > 80` — déjà là avant `MET6` (`d049282`, l'ouverture de `MET`), hors fiche ; `vlp.py rapide MET6` → `RAPIDE VERT`.
+
+## 2026-10-07 — MET5 — ruff trié
+
+- **La page** : https://claude.ai/artifact/EKNqPANAK8Vh8r2jQvgH7J (page à cartes, 19 questions) ; réponses collées par l'utilisateur le 2026-10-07, 19 sur 19, toutes égales à l'avis donné.
+- **Le recompte de `VIT15`** (2026-10-04, ligne « ruff 0.16.10 sans réglage » plus haut) : 1 069 remarques sur `vlp.py` et `test-vlp.py`, dont 838 `UP031`. Refait sur `scripts/*.py` d'aujourd'hui, même ruff 0.16.10 sans réglage : **1 476** remarques, 29 règles, 16 familles ; 413 règles actives d'office, en 38 familles (`ruff check --isolated --show-settings`).
+- **Le réglage** : `pyproject.toml`, à la racine du kit — `target-version = "py39"`, et `lint.ignore` = `UP031`, `FURB167`, `DTZ`, `TRY`, `FLY`, `FA` ; chacun commenté d'une ligne qui renvoie ici. 393 règles actives, en 34 familles.
+
+| Q | Ce qu'on tranche | Réponse | Ce que le réglage en fait |
+|---|---|---|---|
+| Q1 | le fichier | `pyproject.toml` | réponse de `MET1` (Q10) : les seuls réglages des outils d'atelier |
+| Q2 | la version visée | 3.9 | `target-version = "py39"` ; `FA` écarté avec (23 `FA100` à 3.9) ; 23 `UP045` et 3 `RUF007` ne sortent plus |
+| Q3 | partir du défaut, ou d'une liste fermée | le défaut | `ignore`, pas de `select` |
+| Q4 | `UP`, moderniser (1 223) | régler | sans `UP031` (le `%`, 1 147) |
+| Q5 | `FURB`, raffiner (76) | régler | sans `FURB167` (`re.I`, 74) |
+| Q6 à Q11 | `SIM` 69, `PLW` 38, `RUF` 15, `ISC` 13, `B` 10, `F` 8 | adopter | rien à écrire : actives d'office |
+| Q12 à Q14 | `DTZ` 7, `TRY` 7, `FLY` 2 | écarter | la famille entière dans `ignore` |
+| Q15 à Q19 | `C4` 2, `PLC` 2, `PIE` 2, `BLE` 1, `I` 1 | adopter | rien à écrire : actives d'office |
+
+| `ruff check scripts/ --statistics` | Avant (sans réglage) | Après (`pyproject.toml`) |
+|---|---|---|
+| remarques | 1 476 | **211** |
+| règles qui sortent | 29 | 20 |
+| familles qui sortent | 16 | 13 |
+
+- **Ce qui reste, pour `REF`** : `SIM115` 68, `UP020` 49, `PLW1510` 38, `ISC004` 13, `RUF059` 11, `B023` 10, `F841` 6, `F811` 2, `C408` 2, `PLC3002` 2, et 10 règles à 1 (`BLE001`, `SIM102`, `UP032`, `FURB122`, `PIE810`, `RUF012`, `UP012`, `PIE808`, `I001`, `FURB157`).
+- **Les vérifications** : `ruff check --show-settings scripts/vlp.py` → `Settings path: …/pyproject.toml`, `linter.unresolved_target_version = 3.9` ; `ruff check --isolated scripts/` → toujours 1 476 : le cliquet de `sante.py`, qui lance ruff `--isolated`, ne voit pas le réglage ; `pyright --verbose` → `Loading configuration file at …/pyrightconfig.json`, `0 errors` ; `git diff --stat -- scripts/` → vide : aucune remarque corrigée.

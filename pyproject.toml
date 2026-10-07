@@ -1,0 +1,20 @@
+# Les réglages des outils d'atelier, et eux seuls (MET1, Q10) : rien ici ne tourne
+# chez qui utilise le kit. pyright garde le sien, pyrightconfig.json.
+
+[tool.ruff]
+# Le kit ne dit pas sa version minimale, et sa suite tolère un Python plus ancien
+# que 3.10 : ruff ne conseille rien que 3.9 ne sache lire (MET5, Q2).
+target-version = "py39"
+
+[tool.ruff.lint]
+# On part des règles que ruff active d'office (MET5, Q3), et on n'en retire que ce
+# que l'utilisateur a écarté le 2026-10-07. Le pourquoi de chacune est au journal :
+# context AI/08-etat.md, entrée « MET5 — ruff trié ».
+ignore = [
+    "UP031",    # le % pour formater : le style de tout le kit
+    "FURB167",  # re.I plutôt que re.IGNORECASE : même sens
+    "DTZ",      # date.today() à l'heure locale : voulu
+    "TRY",      # ValueError attrapée pour afficher une GARDE
+    "FLY",      # join gardé, pas de f-string imposée
+    "FA",       # from __future__ import annotations : écarté avec 3.9
+]
