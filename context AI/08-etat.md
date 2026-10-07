@@ -2810,7 +2810,7 @@ Les mesures de `VIT1`, rejouées par ses commandes (script `vit13-mesures.sh`, r
 | `max` | 14,16 $ | 143 | 3 906 s | 251 839 | 2/3 | **+121 % de $**, +44 % de durée |
 
 - **L'effort s'applique** : les jetons de réflexion montent à chaque niveau, ×8,3 de `medium` à `max` (30 382 → 251 839). La trace ne dit pas l'effort (son message `init` porte seulement `per_turn_effort_active`) : c'est le seul témoin.
-- **La qualité ne monte pas avec l'effort**, sur ces 3 fiches : les 12 essais cochés, suite `OK`, pyright 0, cliquet tenu, au moins un mutant attrapé chacun. Les deux refus du relecteur tombent à `high` et à `max`, et ce sont de vrais défauts :
+- **La qualité ne monte pas avec l'effort**, sur ces 3 fiches : les 12 essais cochés, suite `OK`, pyright 0, cliquet tenu, au moins un mutant attrapé chacun. **Nuancé le 2026-10-07 par `MET3`** : ce « cliquet tenu » comparait le code à la base que l'essai venait de réécrire (`/vlp:tache`, étape 6 bis) — il ne pouvait pas tomber ; entrée « MET3 — le test d'effort préparé ». Les deux refus du relecteur tombent à `high` et à `max`, et ce sont de vrais défauts :
   - VIT20 à `max` : l'injection de `/vlp:tache` passe `--tache`, donc en mode `main` de `/vlp:enchainer`, dès la 2e fiche, la carte avertit à tort (« … /clear d'abord ») — le critère voulait la sortie du chef inchangée. **Le même défaut est dans `main`**, sous le nom `--session-neuve` (`skills/tache/SKILL.md:17`, `scripts/vlp_coeur.py:385-395`) : reproduit le 2026-10-07 avec l'id de la session de VIT22 à VIT24 — `carte --session-neuve` rend `AVERTISSEMENT: session déjà notée dans ce fichier de fiches (VIT21, VIT22, VIT23, VIT24) — /clear d'abord`, `carte` seule ne dit rien. Or le mode `main` d'`/vlp:enchainer` joue chaque fiche par `vlp:tache` dans la session du chef (`skills/enchainer/SKILL.md:16-18`) : dès la 2e fiche, la carte lui dit de faire `/clear`. Non vu au vrai, par une vraie session d'`enchainer`. À verser à la TODO avec l'accord de l'utilisateur.
   - VIT19 à `high` : avec deux paquets `Claude_*`, `vlp.py claude` rend le premier paquet trié et non la plus haute version (`2.1.5` au lieu de `2.1.9` dans la copie du relecteur). Défaut propre à la copie : le `trouver_claude` de `main` prend le maximum sur tous les paquets d'une racine (`scripts/vlp_coeur.py:6426-6430`).
 - **Le coût monte fort au-dessus de `high`** : `max` coûte 2,2 fois `medium` et dure 44 % de plus, sans gain vu. C'est ce que dit la doc de `max` (« diminishing returns », « prone to overthinking »).
@@ -2888,3 +2888,34 @@ Les mesures de `VIT1`, rejouées par ses commandes (script `vit13-mesures.sh`, r
 - **Écart** : **+79,55 $** et **+948 tours**, tous sur `VIT25` (12,31 → 91,86 $) : ses essais coûtent 6,5 fois sa session. L'entrée « VIT25 — l'effort » ne chiffrait que la série 2 (15,87 $) ; les séries 1 et 2 réunies font 79,55 $.
 - **Ancien total marqué** dans l'entrée de clôture de `VIT` (« Renversé le 2026-10-07 par `MET2` »). Non touchés, hors des fichiers de la fiche : la ligne « Fait. » de `context AI/102-vitesse.md` et la ligne de `VIT` sur la page d'archive portent encore 242,53 $.
 - **53 essais comptés sur 55 transcripts** : 2 ne comptent pas — cause non vérifiée.
+
+## 2026-10-07 — MET3 — le test d'effort préparé
+
+- **La page** : https://claude.ai/artifact/AUXbAY6vdLvyhnyJ1QZ7TN (page à cartes : 4 décisions, 3 questions).
+- **Le billet** « Using Claude Code: Spending your effort », Thariq Shihipar, 25 septembre 2026 — blog officiel, https://claude.dev/blog/spending-your-effort/, lu le 2026-10-07 par WebFetch (deux passages, phrases demandées mot pour mot ; WebFetch résume : à relire sur la page avant d'en tirer une règle). Il ne chiffre **pas** `medium` contre `xhigh` : ses taux Terminal-Bench 3.0 sont pour Fable 5.1, deux niveaux bas regroupés contre les trois hauts (« Software 43% → 56% ») ; pour Opus 5.5, un exemple de 5 essais : « Opus 5.5 went from 0/5 at low to 4/5 at xhigh ». `medium` « for most of my regular software engineering work ». Rien sur le surplus de réflexion. **Reste à mesurer** : `medium` contre `xhigh`, Opus 5.5, sur les fiches du kit — c'est `MET4`.
+- **Le juge rebâti** : `vit25.py` reconstitué du transcript de la session de `VIT25` (`17d950aa`) — son `Write` et ses 8 `Edit` rejoués dans l'ordre, aucun raté, aucune écriture par le shell —, puis adapté en `met4-juge.py`, avec `claude-relais.py` (consigne « premier plan » recopiée mot pour mot) : dossier `met4/` du scratchpad de la session `240bd893` (non suivi ; perdu, il se reconstitue de même depuis ce transcript). Écarts à `vit25.py` : `medium` et `xhigh` seuls ; la fiche de conception (`--conception`) ; le relais toujours actif ; chaque essai déclaré par `vlp.py essai` sous son nom (`D--ProgPerso-vlp-met4-<fiche>-<niveau>`), et garde si le kit n'a pas `essai` ; les préparations `vit25/prep-*` reprises ; `compteur` retiré (inutilisable, entrée « VIT25 — l'effort ») ; `--borne` exigée ; le mode `--a-blanc`. pyright : 0 erreur.
+- **Le cliquet de `VIT25` ne pouvait pas tomber** : `/vlp:tache` réécrit `scripts/sante-base.json` à l'étape 6 bis, avant que le juge passe ; vérifié sur 4 branches (`vit25/VIT23-medium-s2`, `-xhigh-s2`, `VIT20-medium-s2`, `VIT19-medium-s2` : chacune modifie la base). `met4-juge.py` remet la base de la préparation le temps du contrôle (`cliquet_avant`). Sur le même essai : à l'ancienne façon, « 964 fonctions · vieilles 964, dont touchées 0 … neuves 0 » ; à la nouvelle, « vieilles 955, dont touchées 1 … neuves 9 ».
+- **Les candidates à la conception** — doctrine d'un chantier clos, critère jugeable : `VIT12` « Le relecteur ne rejoue que le nouveau test dans AVANT » (`agents/relecture.md`, base `df288a5`, 0,73 $ · 10 tours) ; `REG2` « Faire partir `enchainer` en `main`, le joueur en Sonnet » (`skills/enchainer/SKILL.md`, `agents/fiche.md`, base `196560f`, 0,82 $ · 11 tours ; critère tout par `grep`, sans base de cliquet). Coûts : `vlp.py cout` de leur fichier de fiches.
+- **L'estimé** : ≈ **27,05 $** pour 8 essais et 8 relectures = 20,55 $ (passe de `VIT25` aux deux niveaux, série 2) + 6,50 $ (la conception, aux prix de `VIT19`, les essais les moins chers de la série 2 : 1,77 + 2,87 + 2 × 0,93) ; ≈ 4 h (série 2 : 12 essais en 5 h 52). Non compté : la session qui lance `MET4`.
+- **La marche à blanc** — `py -3 met4-juge.py --a-blanc VIT23:vit25/VIT23-medium-s2 --kit <le worktree de MET>`, aucun appel modèle ; le premier passage a planté à l'affichage (« → » en cp1252, sortie dans un tube), corrigé, repassé :
+
+```
+[2026-10-07 14:56:10] À BLANC VIT23, commits de vit25/VIT23-medium-s2 à la place de la session — aucun appel modèle
+[2026-10-07 14:56:11]   connexion du CLI : oui
+[2026-10-07 14:56:11]   vlp.py essai : présent dans le kit
+[2026-10-07 14:56:11] PRÉPARATION VIT23 : vit25/prep-VIT23 (f9bf929)
+[2026-10-07 14:56:15]   carte de VIT23-blanc : PROCHAINE=VIT23
+[2026-10-07 14:56:15]   juge : suite entière du worktree
+[2026-10-07 15:02:51]   commits : 1 — bad88cb VIT23 : Un contrôle rapide avant la suite entière
+[2026-10-07 15:02:51]   arbre sale : 0 ligne(s)
+[2026-10-07 15:02:51]   suite : OK (377.2 s) — dernière ligne « OK »
+[2026-10-07 15:02:51]   pyright : 0 — scripts/test-vlp.py, scripts/vlp.py, scripts/vlp_coeur.py
+[2026-10-07 15:02:51]   cliquet : code 0 — CLIQUET sur ruff 0.16.10 / CLIQUET 964 fonctions · vieilles 955, dont touchées 1, renommées ou déplacées 0 · neuves 9 / CLIQUET TENU
+[2026-10-07 15:02:51]   verifier( : 815 → 820
+[2026-10-07 15:02:51]   relecteur : sauté à blanc (appel modèle)
+[2026-10-07 15:02:52]   worktree VIT23-blanc et branche met4/VIT23-blanc retirés
+```
+
+  Suite, pyright et `verifier(` retrouvent la ligne de `VIT23 · medium` du tableau de `VIT25`.
+- **Ses réponses**, collées le 2026-10-07 : D1 à D4 **gardées** ; Q1 **`VIT12`** ; Q2 borne **55 $** ; Q3 **go**. Face au conseil de la page : Q2 prend 55 $ contre 40 $ conseillé ; le reste suit le conseil.
+- **Pour `MET4`** : `met4-juge.py --conception VIT12 --borne 55` ; `main` doit porter `vlp.py essai` (le juge s'arrête sinon, rien de lancé).

@@ -126,8 +126,9 @@ fichiers touchés. Le total de `VIT` avant → après, en $ et en tours, au jour
 ---
 
 <!-- FICHE:MET3 -->
-## MET3 [ ] — Préparer le test d'effort
+## MET3 [x] — Préparer le test d'effort
 
+**Session** : 240bd893-1e58-426c-bd93-728f652a2820
 **Dépend de** : `MET2`.
 **Fichiers** : `context AI/08-etat.md` (entrée « VIT25 — l'effort »), `scripts/boucle.py`, une page à cartes — et rien d'autre.
 

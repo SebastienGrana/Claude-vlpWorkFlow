@@ -21,9 +21,9 @@
     <p>Une méthode rangée et complétée par ce qui est publié, des commandes alignées sur elle, une TODO relue avec elle — et deux mesures : les essais hors bac comptés, xhigh contre medium.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">10 fiches · 2 faites · en cours : MET3</p>
+    <p class="mono" style="margin-top:.5rem">10 fiches · 3 faites · en cours : MET4</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -45,20 +45,20 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">MET2</span></span>
         <details><summary><span class="titre">Compter les essais lancés hors d'un bac</span><span class="etat">Faite</span></summary>
         <span class="note">registre vlp.py essai : cas tester_essais_de vert, mutant attrapé (1 écart), suite OK, pyright 0 ; VIT 242,53 $ · 2214 tours → 322,08 $ · 3162 tours</span></details>
-        <span class="cout mono">≈9,8M (9 813 694) · 41 tours · 3,86 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">MET3</span></span>
-        <details open><summary><span class="titre">Préparer le test d'effort</span><span class="etat">En cours · MET6 peut partir en même temps</span></summary>
-        <span class="note">Le billet lu, le juge rebâti, la fiche de conception choisie, ton go sur l'estimé ; après MET2.</span></details>
-        <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
-      <li class="fiche" data-attend><span class="gauche"><span class="id">MET4</span></span>
-        <details><summary><span class="titre">Jouer le test d'effort</span><span class="etat">Après MET3</span></summary>
+        <span class="cout mono">≈10,2M (10 201 775) · 44 tours · 4,01 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">MET3</span></span>
+        <details><summary><span class="titre">Préparer le test d'effort</span><span class="etat">Faite</span></summary>
+        <span class="note">billet lu (pas de medium contre xhigh) ; juge rebâti, à blanc sur VIT23 : suite OK, pyright 0, verifier( 815 → 820, cliquet 955/1 touchée/9 neuves ; choisi : VIT12, borne 55 $, go</span></details>
+        <span class="cout mono">≈9,4M (9 439 382) · 44 tours · 4,44 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">MET4</span></span>
+        <details open><summary><span class="titre">Jouer le test d'effort</span><span class="etat">En cours · MET6 peut partir en même temps</span></summary>
         <span class="note">Les 8 essais joués, le tableau au journal ; après MET3.</span></details></li>
       <li class="fiche"><span class="gauche"><span class="id">MET5</span></span>
         <details><summary><span class="titre">Trier les familles de ruff</span><span class="etat">À lancer</span></summary>
         <span class="note">Les familles de ruff adoptées, réglées ou écartées ; le code non corrigé.</span></details>
         <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
       <li class="fiche"><span class="gauche"><span class="id">MET6</span></span>
-        <details><summary><span class="titre">Trier les 21 règles</span><span class="etat">À lancer · en même temps que MET3</span></summary>
+        <details><summary><span class="titre">Trier les 21 règles</span><span class="etat">À lancer · en même temps que MET4</span></summary>
         <span class="note">Les 21 règles : restent, partent dans un fichier de leçons, ou se fondent.</span></details>
         <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">MET7</span></span>
@@ -76,7 +76,7 @@
         <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈5,3M (5 283 864) · 30 tours · 3,53 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈21,1M (21 102 099) · 102 tours · 11,61 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈30,9M (30 929 562) · 149 tours · 16,20 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -93,6 +93,7 @@
     <h2>Journal des décisions</h2>
     <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
     <ul class="journal">
+      <li><time datetime="2026-10-07">2026-10-07</time><span>MET3 : le « cliquet tenu » de VIT25 comparait le code à la base que l'essai venait de réécrire ; le juge de MET4 remet la base d'avant la fiche</span></li>
     </ul>
   </section>
 
