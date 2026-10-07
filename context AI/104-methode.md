@@ -9,7 +9,9 @@
 **À quoi il sert.** Coder plus vite et mieux (le but de VIT) : une méthode rangée et complétée
 par ce qui est publié, des commandes alignées sur elle, une TODO relue avec elle.
 
-**Fait.** Rien. Ouvert le 2026-10-07, cadré en 10 fiches, `MET1` à jouer.
+**CLOS** le 2026-10-08. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** MET1..MET10 (2026-10-08) : la méthode du kit triée et complétée, l'effort mesuré (medium, xhigh en recours), les essais hors bac comptés (vlp.py essai), ruff réglé, les commandes alignées, la TODO relue de 17 à 13 lignes — estimé non noté · cadré 10 · joué 10 fiches 71,38 $.
 
 **Session** : ac0e817e-9962-4425-9cbb-c9dd8f5577b2
 

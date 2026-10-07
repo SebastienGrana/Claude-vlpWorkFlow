@@ -15,3 +15,6 @@ Une méthode rangée et complétée par ce qui est publié, des commandes align�
 ## Journal
 - 2026-10-07 : MET3 : le « cliquet tenu » de VIT25 comparait le code à la base que l'essai venait de réécrire ; le juge de MET4 remet la base d'avant la fiche
 ## Bilan
+- Livré : la méthode du kit triée et complétée, l'effort mesuré (medium, xhigh en recours), les essais hors bac comptés (vlp.py essai), ruff réglé, les commandes alignées, la TODO relue de 17 à 13 lignes
+- Surpris : xhigh coûte +78 % pour la même qualité mesurée (MET4) ; les essais hors bac de VIT pesaient 79,55 $, 6,5 fois sa session
+- Estimé : estimé non noté · cadré 10 · joué 10 fiches 71,38 $

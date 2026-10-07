@@ -17,7 +17,6 @@ a l'air proche.
 | `08-etat.md` | on reprend après une interruption, ou on choisit quoi faire ensuite |
 | `12-audit.md` | on choisit le prochain chantier du kit, ou on cherche la preuve d'un bug ou d'une mesure de l'audit du 2026-09-17 |
 | `38-audit-artefacts.md` | on choisit un chantier sur les pages publiées (six proposés, A à F), ou on cherche la preuve d'un défaut de page relevé le 2026-09-22 ; ses scripts sont dans `38-audit-scripts/`, sa page dans `artefacts/` |
-| `104-methode.md` | on joue une fiche `MET*` — chantier **ouvert** « La méthode du kit refaite, puis la TODO re-cadrée », `MET1..MET10` |
 | `103-audit-vitesse.md` | on cherche la source d'un chiffre « (synthèse) », « A1 » ou « A2 » d'une fiche `VIT` — la synthèse des deux audits vitesse du 2026-10-03 |
 | `101-chef-de-nuit.md` | on joue une fiche `NUI*` — chantier **en pause** « Le chef de nuit », `NUI1..NUI32`, reprise à `NUI28` après VIT puis la méthode (TODO n° 99) |
 | `00-INDEX-archive.md` | on relit un chantier clos — chacun y a sa ligne, triée par numéro |
