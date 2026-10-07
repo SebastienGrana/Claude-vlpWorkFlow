@@ -2443,9 +2443,12 @@ def tester_niv1_injection():
     s_niv1 = io.StringIO()
     mod.carte_injectee(os.path.join(RACINE, "scripts"), "py -3", False, s_niv1)
     lu_n = s_niv1.getvalue()
+    # L'en-tête seul : la carte recopie ensuite CHANTIER.md et, sans chantier courant, la TODO du kit, dont une
+    # ligne (n° 101, EXE) cite « claude.exe introuvable » — une donnée du projet, pas un message de lanceur.
+    entete_n = lu_n.split("\n--- ")[0]
     verifier("NIV1 : la carte ne dit que PYTHON= et le projet",
-             lu_n.splitlines()[:2] == ["", "PYTHON=py -3"] and "introuvable" not in lu_n and "not found" not in lu_n
-             and "PROJET=" in lu_n, lu_n[:200])
+             lu_n.splitlines()[:2] == ["", "PYTHON=py -3"] and "introuvable" not in entete_n
+             and "not found" not in entete_n and "PROJET=" in entete_n, entete_n[:200])
 
 
 groupe(tester_niv1_injection)
