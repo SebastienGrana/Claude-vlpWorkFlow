@@ -7,6 +7,7 @@ QUAND LIRE : on relit un chantier clos ; l'index n'en garde qu'une ligne qui ren
 | `09-enchainer.md` | on joue une fiche `E*` — chantier **clos**, abandonné, « Enchaîner les fiches » ; commande remise telle quelle le 2026-09-17 |
 | `10-mesure.md` | on joue une fiche `M*` — chantier **clos** « Mesurer les tokens », `M1..M4` |
 | `100-barre-todo.md` | on relit le socle du chantier PIP — **clos** « Une barre verticale dans une cellule de la TODO se signale », `PIP1..PIP1` |
+| `102-vitesse.md` | on relit le socle du chantier VIT — **clos** « Coder plus vite et mieux », `VIT1..VIT25` |
 | `11-conso.md` | on joue une fiche `C*` — chantier **clos** « Afficher la conso sur toutes les pages », `C1..C2` |
 | `13-tours.md` | on joue une fiche `T*` — chantier **clos** « Compter les tours, pondérer le coût », `T1..T5` |
 | `14-bugs.md` | on joue une fiche `B*` — chantier **clos** « Corriger les bugs de l'audit », `B1..B3` |

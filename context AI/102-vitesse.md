@@ -11,15 +11,9 @@ mutant rejoue toute la suite (médiane 602 s, A1) et `test-vlp.py` passe 86 % de
 (105,7 s sur 123,2 s, A2). VIT raccourcit l'attente sans retirer un contrôle, et laisse le code qu'il touche sain,
 maintenable et documenté. Ensuite : la méthode du kit, puis la TODO re-cadrée (n° 99), avant de reprendre NUI.
 
-**Fait.** `VIT1`, la base (2026-10-04). Plan revu après elle (entrée du même jour dans `08-etat.md`) : `VIT4` retirée,
-son numéro non repris ; `VIT14` ajoutée après `VIT2`, puis retirée le même jour (non reproduite, 0 échec sur 24
-paires ; choix de l'utilisateur), son numéro non repris. Critères de code sain au socle (2026-10-04) ; `VIT15`, leur cliquet,
-ajoutée avant `VIT2`, faite le 2026-10-04 ; `VIT16`, qui verrouille ses gains à chaque fiche, ajoutée après elle (choix de
-l'utilisateur, page « Choix de VIT15 », Q1). NUI en pause, reprise à `NUI28` après VIT et la méthode (n° 99).
-Après `VIT13` (2026-10-04), VIT grandit sans se clore, au choix de l'utilisateur : `VIT17` compte où passe le temps
-d'une fiche, `VIT18` en tire le rapport — les gains, puis les pistes à valider ; une piste validée devient une fiche.
-Le 2026-10-05, les réponses aux cartes de `VIT18` ajoutent `VIT19` à `VIT25` (cartes 9, 6, 2, 1, 3, 10 et 11, 4) et
-renomment le chantier « Coder plus vite et mieux » (carte 15) ; VIT se clôt après elles, sur le oui de l'utilisateur.
+**CLOS** le 2026-10-07. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** VIT1..VIT25 (2026-10-07) : coder plus vite et mieux : suite 553 → 180 s, mutant 538 → 6 s, test-boucle 426,5 → 176 s, lancement 362 → 208 ms (mesurés à VIT13, repris par VIT18) ; cliquet du code sain, sante --base à chaque fiche, contrôle rapide avant la suite, mutant visé sur son groupe, carte des symboles, py -3 dans les commandes ; xhigh pour les fiches de code (VIT25, tranché le 2026-10-07) — estimé non noté · cadré 23 · joué 23 fiches 242,53 $.
 
 **Session** : bf7412ea-120b-47fa-933e-6b54b408b2f4
 

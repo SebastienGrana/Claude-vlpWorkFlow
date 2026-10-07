@@ -17,6 +17,7 @@ https://github.com/SebastienGrana/Claude-vlpWorkFlow — cloné et utilisé en g
 - Clos le 2026-09-29 : le mutant d'une fiche de code se joue par vlp.py mutant (chantier MUT).
 - Clos le 2026-09-29 : une republication ne joint que les joints changés, et les joints sont en LF partout (chantier JNT).
 - Clos le 2026-09-29 : une barre verticale dans la TODO arrête la feuille par une GARDE (chantier PIP).
+- Clos le 2026-10-07 : la suite passe de 553 à 180 s, le mutant de 538 à 6 s, et les fiches de code se jouent en xhigh (chantier VIT).
 
 ## Quatre règles non négociables
 
@@ -56,7 +57,6 @@ et seulement dans ce cas, ouvrir l'index.
 | toucher aux pages publiées | `ARTEFACTS.md`, puis le gabarit dans `templates/` |
 | ouvrir un chantier, ou le découper en fiches | **lancer `/vlp:chantier`** |
 | jouer une fiche du chantier NUI (le chef de nuit) | `context AI/101-chef-de-nuit.md` — chantier **en pause** depuis le 2026-10-03 (VIT, puis la méthode : TODO n° 99), reprise à `NUI28` |
-| jouer une fiche du chantier VIT (coder plus vite et mieux) | `context AI/102-vitesse.md` — chantier **ouvert**, par `/vlp:tache VIT<n>` |
 | relire un chantier clos | `context AI/00-INDEX-archive.md` — sa ligne y nomme le fichier de fiches |
 | reprendre après une longue interruption | `context AI/08-etat.md` |
 | choisir le prochain chantier du kit, ou retrouver la preuve d'un bug relevé le 2026-09-17 | `context AI/12-audit.md` |

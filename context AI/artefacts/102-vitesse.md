@@ -34,3 +34,6 @@ Coder plus vite et mieux. Une fiche attend moins ses tests et lit moins de conte
 - 2026-10-04 : VIT5 : une fonction déplacée et touchée à la fois paraît neuve au cliquet ; déplacer d'abord (sante --base), toucher ensuite
 - 2026-10-06 : VIT20 : l'injection ! d'une skill voit CLAUDE_CODE_SESSION_ID (carte de /vlp:tache rechargée : AVERTISSEMENT (VIT20)) ; sous --nuit la carte se tait, la boucle note l'id de clore avant sa session
 ## Bilan
+- Livré : coder plus vite et mieux : suite 553 → 180 s, mutant 538 → 6 s, test-boucle 426,5 → 176 s, lancement 362 → 208 ms (mesurés à VIT13, repris par VIT18) ; cliquet du code sain, sante --base à chaque fiche, contrôle rapide avant la suite, mutant visé sur son groupe, carte des symboles, py -3 dans les commandes ; xhigh pour les fiches de code (VIT25, tranché le 2026-10-07)
+- Surpris : 8 sessions claude -p sur 11 mortes en attendant une suite lancée en arrière-plan (VIT25, TODO ARP) ; plus d'effort ne fait pas mieux : Max coûte 2,2 fois medium sans gain mesuré
+- Estimé : estimé non noté · cadré 23 · joué 23 fiches 242,53 $
