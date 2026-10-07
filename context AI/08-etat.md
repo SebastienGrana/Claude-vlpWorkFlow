@@ -2828,4 +2828,3 @@ Les mesures de `VIT1`, rejouées par ses commandes (script `vit13-mesures.sh`, r
 - **`xhigh`**, par prudence : 3/3 au relecteur, 3,4 fois la réflexion de `medium`, un tiers moins cher que Max (9,46 $ contre 14,16 $) — de la marge pour les fiches de conception, que ces essais n'ont pas couvertes.
 - **`medium`**, si l'on suit le chiffre seul : 3/3 au relecteur, le moins cher (6,41 $), le défaut de la doc.
 - Ce qui départagerait vraiment : un deuxième essai par case, ou une fiche de conception — 💡 pour le chantier `MET`.
-  - Un essai par case : un repère, pas une preuve.
