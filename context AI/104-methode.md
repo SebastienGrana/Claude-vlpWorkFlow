@@ -292,8 +292,9 @@ trouvées → corrigées, en comptes bruts ; suite `OK`.
 ---
 
 <!-- FICHE:MET10 -->
-## MET10 [ ] — Relire et reclasser la TODO
+## MET10 [x] — Relire et reclasser la TODO
 
+**Session** : 35091dff-73df-4438-8d1f-fc8332923ae8
 **Dépend de** : `MET7`.
 **Fichiers** : `context AI/08-etat.md` (« La TODO ordonnée »), une page à cartes, la feuille de route (`vlp.py feuille`) — et rien d'autre.
 
