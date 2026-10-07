@@ -155,8 +155,9 @@ worktree (sortie collée au journal, entrée `MET3 — le test d'effort prépar�
 ---
 
 <!-- FICHE:MET4 -->
-## MET4 [ ] — Jouer le test d'effort
+## MET4 [x] — Jouer le test d'effort
 
+**Session** : 240bd893-1e58-426c-bd93-728f652a2820
 **Dépend de** : `MET3`.
 **Fichiers** : le juge et les worktrees de `MET3`, `context AI/08-etat.md` — et rien d'autre.
 

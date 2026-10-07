@@ -5,7 +5,7 @@ Une méthode rangée et complétée par ce qui est publié, des commandes align�
 - MET1 : page à cartes publiée (17 cartes), 17 réponses collées, entrée « MET1 — ce qui existe » au journal ; 6 recherches, 2 pages lues
 - MET2 : registre vlp.py essai : cas tester_essais_de vert, mutant attrapé (1 écart), suite OK, pyright 0 ; VIT 242,53 $ · 2214 tours → 322,08 $ · 3162 tours
 - MET3 : billet lu (pas de medium contre xhigh) ; juge rebâti, à blanc sur VIT23 : suite OK, pyright 0, verifier( 815 → 820, cliquet 955/1 touchée/9 neuves ; choisi : VIT12, borne 55 $, go
-- MET4 : Les 8 essais joués, le tableau au journal ; après MET3.
+- MET4 : 8 essais cochés, relecteur 8/8 ACCEPTÉE ; xhigh +78 % de $ sur medium (9,70 contre 5,44 $) sans gain mesuré ; total juge 20,82 $, cout 20,85 $ (17 essais, dont 1 imbriqué à 0,03 $)
 - MET5 : Les familles de ruff adoptées, réglées ou écartées ; le code non corrigé.
 - MET6 : Les 21 règles : restent, partent dans un fichier de leçons, ou se fondent.
 - MET7 : La section Coder dans le kit, la règle de l'effort à jour ; après MET1, MET2, MET4 à MET6.

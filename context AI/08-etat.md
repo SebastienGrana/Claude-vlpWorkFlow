@@ -2919,3 +2919,56 @@ Les mesures de `VIT1`, rejouées par ses commandes (script `vit13-mesures.sh`, r
   Suite, pyright et `verifier(` retrouvent la ligne de `VIT23 · medium` du tableau de `VIT25`.
 - **Ses réponses**, collées le 2026-10-07 : D1 à D4 **gardées** ; Q1 **`VIT12`** ; Q2 borne **55 $** ; Q3 **go**. Face au conseil de la page : Q2 prend 55 $ contre 40 $ conseillé ; le reste suit le conseil.
 - **Pour `MET4`** : `met4-juge.py --conception VIT12 --borne 55` ; `main` doit porter `vlp.py essai` (le juge s'arrête sinon, rien de lancé).
+
+## 2026-10-07 — MET4 — xhigh contre medium
+
+- **Le jeu** : `py -3 met4-juge.py --conception VIT12 --borne 55` (dossier `met4/` du scratchpad de la session `240bd893`, entrée « MET3 — le test d'effort préparé »), `main` à `742daed`. 8 essais Opus 5.5, un à la fois, du 2026-10-07 16:10:14 au 19:39:02 (journal `serie.txt` du juge) : **3 h 29**, contre ≈ 4 h estimées. **8 essais sur 8 cochés**, aucune session morte en attendant ; la borne de 55 $ n'a pas été approchée.
+- **Les mesures** : celles de `VIT25` (entrée « VIT25 — l'effort »), sauf le cliquet, cette fois contre la base d'avant la fiche (`cliquet_avant`) : **il pouvait tomber**. Tableau rendu par `met4-tableau.py` (même dossier).
+
+| Fiche · effort | Cochée | Tours | Essai | Durée | Réflexion (jetons) | Sortie (jetons) | Suite | pyright | Cliquet | `verifier(` | Mutants a/v/p | Relecteur |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| VIT23 · `medium` | oui | 27 | 1,59 $ | 838 s | 7 492 | 18 835 | OK | 0 | tenu (1 touchées, 8 neuves) | 815 → 818 | 1/0/0 | ACCEPTÉE (0,79 $) |
+| VIT23 · `xhigh` | oui | 28 | 2,16 $ | 675 s | 20 303 | 33 314 | OK | 0 | tenu (1 touchées, 11 neuves) | 815 → 819 | 1/0/0 | ACCEPTÉE (0,64 $) |
+| VIT20 · `medium` | oui | 27 | 1,55 $ | 685 s | 7 835 | 18 756 | OK | 0 | tenu (3 touchées, 5 neuves) | 802 → 809 | 1/0/0 | ACCEPTÉE (0,89 $) |
+| VIT20 · `xhigh` | oui | 43 | 2,92 $ | 1035 s | 28 732 | 46 478 | OK | 0 | tenu (3 touchées, 6 neuves) | 802 → 810 | 1/0/0 | ACCEPTÉE (0,83 $) |
+| VIT19 · `medium` | oui | 31 | 1,54 $ | 581 s | 7 122 | 19 886 | OK | 0 | tenu (7 touchées, 1 neuves) | 798 → 802 | 1/0/0 | ACCEPTÉE (0,72 $) |
+| VIT19 · `xhigh` | oui | 50 | 2,93 $ | 1345 s | 33 053 | 52 333 | OK | 0 | tenu (5 touchées, 5 neuves) | 798 → 802 | 1/0/0 | ACCEPTÉE (0,62 $) |
+| VIT12 · `medium` | oui | 15 | 0,77 $ | 407 s | 1 111 | 5 157 | OK | aucun .py touché | tenu (0 touchées, 0 neuves) | 781 → 781 | 0/0/0 | ACCEPTÉE (0,77 $) |
+| VIT12 · `xhigh` | oui | 27 | 1,69 $ | 475 s | 16 539 | 24 752 | OK | aucun .py touché | tenu (0 touchées, 0 neuves) | 781 → 781 | 0/0/0 | ACCEPTÉE (0,43 $) |
+
+**Par niveau** (sommes) :
+
+| Périmètre | Effort | Essais | Tours | Durée | Réflexion (jetons) | Relecteur | Face à `medium` |
+|---|---|---|---|---|---|---|---|
+| 3 fiches de code | `medium` | 4,67 $ | 85 | 2 104 s | 22 449 | 3/3 ACCEPTÉE | — |
+| 3 fiches de code | `xhigh` | 8,01 $ | 121 | 3 055 s | 82 088 | 3/3 ACCEPTÉE | **+72 % de $**, +45 % de durée |
+| 4 fiches | `medium` | 5,44 $ | 100 | 2 511 s | 23 560 | 4/4 ACCEPTÉE | — |
+| 4 fiches | `xhigh` | 9,70 $ | 148 | 3 530 s | 98 627 | 4/4 ACCEPTÉE | **+78 % de $**, +41 % de durée |
+
+- **L'effort s'applique** : `xhigh` réfléchit 3,7 fois plus sur le code (22 449 → 82 088 jetons), **14,9 fois** plus sur la conception (`VIT12` : 1 111 → 16 539), pour 2,2 fois son prix (0,77 → 1,69 $).
+- **La qualité mesurée ne bouge pas** : aux deux niveaux, 8 essais cochés, suite `OK`, pyright 0 sur les `.py` touchés, cliquet tenu, un mutant attrapé par fiche de code, relecteur **8/8 ACCEPTÉE**, sans réserve bloquante dans ses premières lignes. `xhigh` ajoute un peu plus de `verifier(` (+16 contre +14 sur le code) et de fonctions neuves (22 contre 14).
+- **Face à `VIT25` série 2** (mêmes 3 fiches, même consigne « premier plan ») : `medium` 6,41 → 4,67 $ (−27 %), `xhigh` 9,46 → 8,01 $ (−15 %) ; l'écart de `xhigh` sur `medium` passe de +48 % à +72 %. Sur les deux passes, **6/6 ACCEPTÉE à chaque niveau**. 💡 La baisse vient peut-être du kit de `main`, changé entre les deux — non vérifié.
+- **Un désaccord non élucidé** : le relecteur de `VIT20 · xhigh` écrit « pyright reste à 7 erreurs avant comme après » ; le juge compte 0 sur les fichiers touchés. Sans doute pas le même périmètre — non vérifié.
+
+**Le total, vu deux fois** :
+
+| Source | Ce qu'elle compte | $ |
+|---|---|---|
+| Le juge (`serie.txt`, ligne `FIN` ; `met4-tableau.py`) | 8 essais (15,14 $, `total_cost_usd` du CLI) + 8 relecteurs (5,68 $) | **20,82 $** |
+| `vlp.py cout "context AI/104-methode.md"` | 17 essais · ≈27,9M (27 919 462) · 300 tours | **20,85 $** |
+
+- **L'écart de 0,03 $** : le 17e transcript est un essai lancé **par l'essai `VIT20 · xhigh` lui-même**, dans son bac (`C--…-vlp-met4-VIT20-xhigh-…-scratchpad-bac-vit20`) : 1 tour, Haiku 4.5, 0,03 $ (`mesure-tokens.py`). 16 + 1 = 17 : le motif `C--…-vlp-met4-*`, déclaré par le chemin de `MET2`, l'a attrapé.
+- Lu avant `cocher`, les 17 essais étaient dans la ligne « hors fiches » ; après, `cout --session` les range à `MET4` : `MET4 · ≈35,4M (35 439 588) · 332 tours · 26,16 $ = session ≈7,5M (7 520 126) · 32 tours · 5,31 $ + 0 sous-agent + 17 essais ≈27,9M (27 919 462) · 300 tours · 20,85 $`.
+- **L'estimé** : ≈ 27,05 $ (entrée `MET3`), le réel **20,82 $** (−23 %). Non compté ici : la session qui a lancé `MET4` (`cout --session`).
+- Les 8 worktrees retirés (`D:/ProgPerso/vlp-met4`, 44 Mo, 0 ligne sale chacun) ; les 9 branches `met4/*` gardées (8 essais, plus `met4/prep-VIT12`).
+
+**Les limites, à dire avec le chiffre** :
+- **Un essai par case** dans `MET4`. Deux passes pour les 3 fiches de code avec `VIT25` série 2, mais pas dans les mêmes conditions (cliquet, kit de `main`) : un repère, pas une preuve.
+- **Une seule fiche de conception**, et petite (`VIT12`, 0,73 $ · 10 tours à l'origine).
+- La qualité au-delà des portes repose sur le **seul relecteur** (Opus 5.5, effort par défaut), lui-même non mesuré : la lisibilité, la justesse d'un choix de conception ne se voient pas ici.
+- Les commandes viennent de `main` (plugin chargé), les mêmes pour les 8.
+
+**💡 La recommandation pour la règle de l'effort** (à trancher par l'utilisateur dans `MET7`) — la règle d'aujourd'hui dit `xhigh` pour les fiches de code (`methode-chantier.md`, tranché le 2026-10-07 après `VIT25`) :
+- **`medium` par défaut**, fiches de code et de conception comprises : sur deux passes, 6/6 ACCEPTÉE à chaque niveau, toutes les portes tenues ; `xhigh` coûte +48 % puis +72 % de $, et +45 % de durée, sans gain mesuré.
+- **`xhigh` en recours** : pour rejouer une fiche refusée ou bloquée (bloc « Tentatives »). C'est là que le billet de `MET3` voit l'effort payer, sur une tâche dure — mais face à `low`, pas à `medium` (« Opus 5.5 went from 0/5 at low to 4/5 at xhigh »).
+- **Garder `xhigh`** reste le choix prudent : ce que ces mesures ne voient pas peut exister.
