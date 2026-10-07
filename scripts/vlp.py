@@ -55,7 +55,13 @@ Sous-commandes :
   puis (id non vide) la table de cette session seule, et celle de cette session plus
   celles du fichier. `--a-clore` : après `TOTAL`, `à clore` — le total si la dernière
   plage hors fiches s'arrêtait au dernier appel `vlp.py clore` qu'elle contient — et
-  `après clore`, la différence ; sans cet appel, une `GARDE:` et pas de ligne.
+  `après clore`, la différence ; sans cet appel, une `GARDE:` et pas de ligne. Les essais
+  d'une session : ceux de ses bacs, et ceux qu'`essai` déclare (`essais_de`).
+- `essai <motif> [--session <id>]` — déclare, une fois, un essai `claude -p` lancé hors d'un
+  bac : une ligne `<session> <motif>` au registre `~/.claude/vlp-essais.txt` ; le motif est un
+  nom de dossier de `~/.claude/projects/`, glob permis ; la session, `CLAUDE_CODE_SESSION_ID`
+  par défaut. `ESSAI <session> <motif> · <n> dossier(s) · <m> transcript(s)` ; sans session,
+  ou un motif avec `/`, `\\`, `..` ou un blanc : `GARDE:`, rien d'écrit, sort 1 (MET2).
 - `compteur <fichier> [<fiche>…] [--recoupe]` — où passe le temps, aux plages de `cout` :
   `COMPTEUR aux commits de fiche`, une ligne par fiche — durée de commit à commit, actif
   = modèle + outils + attente + autre (chaque écart à la part de la ligne qui le ferme),

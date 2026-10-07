@@ -98,8 +98,9 @@ du journal les porte toutes, avec la ligne de coût : « N recherches, M pages l
 ---
 
 <!-- FICHE:MET2 -->
-## MET2 [ ] — Compter les essais lancés hors d'un bac
+## MET2 [x] — Compter les essais lancés hors d'un bac
 
+**Session** : 240bd893-1e58-426c-bd93-728f652a2820
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp_coeur.py` (`essais_de` et ses deux appelants : `grep -n "essais_de("`), `scripts/test-vlp.py` (`tester_essais_de`), `methode-chantier.md` (la règle), `context AI/08-etat.md` (le recompte de VIT) — et rien d'autre.
 

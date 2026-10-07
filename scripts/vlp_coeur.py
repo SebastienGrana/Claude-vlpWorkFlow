@@ -488,12 +488,58 @@ def sessions_entete(lignes):
 
 
 def essais_de(session):
-    """Les transcripts des essais `claude -p` lancés depuis un bac du scratchpad de `session`,
-    triés : `~/.claude/projects/<projet>-<session>-scratchpad-<bac>/<essai>.jsonl` (ESS1 :
-    39 dossiers de cette forme). Leurs sous-agents n'y sont pas ; [] sans dossier."""
-    motif = os.path.join(os.path.expanduser("~"), ".claude", "projects",
-                         "*-" + glob.escape(session) + "-scratchpad-*", "*.jsonl")
-    return sorted(set(glob.glob(motif)))
+    """Les transcripts des essais `claude -p` de `session`, triés : ceux d'un bac de son scratchpad,
+    `~/.claude/projects/<projet>-<session>-scratchpad-<bac>/<essai>.jsonl` (ESS1 : 39 dossiers de
+    cette forme), et ceux que le registre déclare pour elle (`essais_declares`, MET2). Leurs
+    sous-agents n'y sont pas ; [] sans dossier."""
+    projets = os.path.join(os.path.expanduser("~"), ".claude", "projects")
+    motifs = ["*-" + glob.escape(session) + "-scratchpad-*"] + essais_declares(session)
+    return sorted({e for m in motifs for e in glob.glob(os.path.join(projets, m, "*.jsonl"))})
+
+
+def registre_essais():
+    """Le registre des essais lancés hors d'un bac (MET2) : `~/.claude/vlp-essais.txt`, une ligne
+    `<session> <motif>` par déclaration (`vlp.py essai`)."""
+    return os.path.join(os.path.expanduser("~"), ".claude", "vlp-essais.txt")
+
+
+def motif_sur(motif):
+    """Vrai si `motif` nomme des dossiers de `~/.claude/projects/` sans en sortir : ni séparateur, ni
+    `..`, ni blanc — le registre se lit en deux champs (MET2)."""
+    return bool(motif) and not re.search(r"[\\/\s]|\.\.", motif)
+
+
+def essais_declares(session):
+    """Les motifs de dossier de `~/.claude/projects/` que le registre déclare pour `session` ;
+    [] sans registre. Une ligne qui n'a pas deux champs, ou un motif qui sortirait du dossier,
+    ne compte pas (`motif_sur`)."""
+    if not os.path.isfile(registre_essais()):
+        return []
+    with open(registre_essais(), encoding="utf-8") as f:
+        paires = [l.split() for l in f]
+    return [p[1] for p in paires if len(p) == 2 and p[0] == session and motif_sur(p[1])]
+
+
+def cmd_essai(a, sortie):
+    """Déclarer au registre un essai lancé hors d'un bac, une fois : `ESSAI <session> <motif> ·
+    <n> dossier(s) · <m> transcript(s)` — 0 et 0 avant son lancement. La session : `--session`,
+    sinon `CLAUDE_CODE_SESSION_ID` ; aucune, ou un motif refusé par `motif_sur` : `GARDE:`,
+    rien d'écrit, sort 1 (MET2)."""
+    session = a.session or os.environ.get("CLAUDE_CODE_SESSION_ID", "")
+    if not session or len(session.split()) != 1 or not motif_sur(a.motif):
+        sortie.write("GARDE: essai non déclaré — session %r, motif %r : il faut une session (--session ou "
+                     "CLAUDE_CODE_SESSION_ID) et un nom de dossier de ~/.claude/projects/, sans / ni \\ ni .. "
+                     "ni blanc\n" % (session, a.motif))
+        return 1
+    if a.motif not in essais_declares(session):
+        os.makedirs(os.path.dirname(registre_essais()), exist_ok=True)
+        with open(registre_essais(), "a", encoding="utf-8", newline="\n") as f:
+            f.write("%s %s\n" % (session, a.motif))
+    projets = os.path.join(os.path.expanduser("~"), ".claude", "projects")
+    sortie.write("ESSAI %s %s · %d dossier(s) · %d transcript(s)\n"
+                 % (session, a.motif, len(glob.glob(os.path.join(projets, a.motif))),
+                    len(glob.glob(os.path.join(projets, a.motif, "*.jsonl")))))
+    return 0
 
 
 def cmd_extraire(chemin, fiche, sortie):
@@ -8094,7 +8140,10 @@ def options_carte(sous):
 
 
 def options_mesure(sous):
-    """Déclarer les lignes de commande de `cout` et de `compteur`."""
+    """Déclarer les lignes de commande de `cout`, de `compteur` et d'`essai`."""
+    es = sous.add_parser("essai")
+    es.add_argument("motif")
+    es.add_argument("--session")
     co = sous.add_parser("cout")
     co.add_argument("fichier")
     co.add_argument("--session", action="store_true")
@@ -8312,7 +8361,7 @@ PAR_ARGUMENTS = {
     "niveau": cmd_niveau, "comparer": cmd_comparer, "relecture": cmd_relecture, "contrat": cmd_contrat,
     "forme": cmd_forme, "ouverts": cmd_ouverts, "plan": cmd_plan, "matin": cmd_matin, "fusionner": cmd_fusionner,
     "sante": cmd_sante, "symboles": cmd_symboles, "compteur": cmd_compteur, "carte": cmd_carte,
-    "rapide": cmd_rapide,
+    "rapide": cmd_rapide, "essai": cmd_essai,
 }
 
 

@@ -1723,6 +1723,32 @@ def tester_essais_de():
                        os.path.join(pr, "C--tmp-sa-aaaa-1-scratchpad-b2", "e.jsonl")], a)
         verifier("essais_de : le bac de B seul", len(b) == 1 and "bbbb-2-scratchpad-b1" in b[0], b)
         verifier("essais_de : session inconnue, liste vide", z == [], z)
+        # MET2 : un essai hors bac (une copie du kit) se déclare au registre, par `vlp.py essai`.
+        for copie in ("D--x-vlp-essai-v1", "D--x-vlp-essai-v2", "D--x-vlp-autre-w1"):
+            ecrire(os.path.join(pr, copie, "e.jsonl"), "{}\n")
+        o, refus = io.StringIO(), io.StringIO()
+        os.environ.update(HOME=t, USERPROFILE=t)
+        try:
+            codes = (mod.main(["essai", "D--x-vlp-essai-*", "--session", "aaaa-1"], o),
+                     mod.main(["essai", "D--x-vlp-essai-*", "--session", "aaaa-1"], o),
+                     mod.main(["essai", "D--x-vlp-autre-w1", "--session", "bbbb-2"], o),
+                     mod.main(["essai", "../x", "--session", "aaaa-1"], refus))
+            a2, b2 = mod.essais_de("aaaa-1"), mod.essais_de("bbbb-2")
+        finally:
+            os.environ.clear()
+            os.environ.update(garde_env)
+        with open(os.path.join(t, ".claude", "vlp-essais.txt"), encoding="utf-8") as f:
+            registre = f.read().splitlines()
+        verifier("essai : un essai hors bac déclaré pour A est à A, pas à B",
+                 codes == (0, 0, 0, 1)
+                 and a2 == sorted(a + [os.path.join(pr, "D--x-vlp-essai-v1", "e.jsonl"),
+                                       os.path.join(pr, "D--x-vlp-essai-v2", "e.jsonl")])
+                 and b2 == sorted(b + [os.path.join(pr, "D--x-vlp-autre-w1", "e.jsonl")])
+                 and "ESSAI aaaa-1 D--x-vlp-essai-* · 2 dossier(s) · 2 transcript(s)" in o.getvalue(),
+                 (codes, a2, b2, o.getvalue()))
+        verifier("essai : déclaré une fois, un motif qui sort du dossier refusé",
+                 registre == ["aaaa-1 D--x-vlp-essai-*", "bbbb-2 D--x-vlp-autre-w1"]
+                 and refus.getvalue().startswith("GARDE: essai non déclaré"), (registre, refus.getvalue()))
 
 
 groupe(tester_essais_de)
