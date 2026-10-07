@@ -7,6 +7,7 @@ Imprime `OK` et sort 0, ou le premier écart et sort 1.
 """
 import datetime
 import glob
+import hashlib
 import importlib.util
 import inspect
 import io
@@ -2596,6 +2597,59 @@ def tester_arp3_marque():
 
 
 groupe(tester_arp3_marque)
+
+
+def tester_arp4_menage():
+    """Contrôler le ménage des tampons (ARP4) sur ses deux chemins réels, chacun dans son dossier temporaire :
+    `carte_injectee` (`vlp-carte-` à RELAIS_SECONDES, `vlp-enchaine-` à MARQUE_SECONDES) et `tampon_neuf`
+    (`vlp-hook-` et `vlp-filet-` à 60 s). Un fichier vieilli par `os.utime` ; un dossier au préfixe ne bloque rien."""
+    jour = 24 * 3600
+
+    def vieillir(dossier, ages):
+        """Créer dans `dossier` un fichier par paire (nom, âge en secondes), daté de cet âge. `0dossier` : un dossier."""
+        for nom, age in ages:
+            chemin = os.path.join(dossier, nom)
+            if "0dossier" in nom:
+                os.mkdir(chemin)
+            else:
+                open(chemin, "w").close()
+            os.utime(chemin, (time.time() - age, time.time() - age))
+
+    def restants(dossier):
+        return sorted(n for n in os.listdir(dossier) if n != "pr")
+
+    ancien = tempfile.tempdir
+    with tempfile.TemporaryDirectory() as bac:
+        pr = os.path.join(bac, "pr")
+        ecrire(os.path.join(pr, "CHANTIER.md"), CHANTIER % ("pr", "context AI/20-z.md (ZZZ1..ZZZ3)"))
+        ecrire(os.path.join(pr, "context AI", "20-z.md"), FICHES_VIT20)
+        vieillir(bac, [("vlp-carte-0dossier", 120), ("vlp-carte-vieux", 120), ("vlp-carte-frais", 5),
+                       ("vlp-enchaine-vieille", 5 * jour), ("vlp-enchaine-recente", 2 * jour),
+                       ("vlp-hook-vieux", 120), ("autre-vieux", 10 * jour)])
+        tempfile.tempdir = bac
+        try:
+            mod.carte_injectee(pr, "py -3", False, io.StringIO())
+        finally:
+            tempfile.tempdir = ancien
+        cle = hashlib.sha1(os.path.abspath(pr).encode("utf-8")).hexdigest()[:16]
+        reste = restants(bac)
+        attendu = sorted(["vlp-carte-0dossier", "vlp-carte-frais", "vlp-enchaine-recente", "vlp-hook-vieux",
+                          "autre-vieux", "vlp-carte-" + cle])
+        verifier("ARP4 : carte_injectee efface vlp-carte- de plus de 30 s et vlp-enchaine- de plus de 4 jours, garde "
+                 "les récents, les autres préfixes et son propre tampon ; un dossier au préfixe ne bloque pas la suite "
+                 "— mutant : l'âge des marques réduit à celui de vlp-carte-", reste == attendu, (reste, attendu))
+
+    with tempfile.TemporaryDirectory() as bac:
+        vieillir(bac, [("vlp-filet-0dossier", 120), ("vlp-hook-vieux", 120), ("vlp-filet-vieux", 120),
+                       ("vlp-hook-frais", 10), ("vlp-carte-vieux", 120)])
+        neuf = mod.vlp_hook.tampon_neuf("vlp-hook-neuf", bac)
+        reste = restants(bac)
+        attendu = sorted(["vlp-filet-0dossier", "vlp-hook-frais", "vlp-carte-vieux", "vlp-hook-neuf"])
+        verifier("ARP4 : tampon_neuf efface vlp-hook- et vlp-filet- de plus de 60 s, garde le reste, crée le sien",
+                 neuf is True and reste == attendu, (neuf, reste, attendu))
+
+
+groupe(tester_arp4_menage)
 
 # --- NIV2 : `niveau` dit en quoi un projet équipé a dérivé du kit -------------
 

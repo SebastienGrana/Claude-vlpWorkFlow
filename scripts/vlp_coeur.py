@@ -424,6 +424,7 @@ def avertir_session(chemin, neuve, sortie):
 
 
 RELAIS_SECONDES = 30
+MARQUE_SECONDES = 4 * 24 * 3600   # l'âge où une marque `vlp-enchaine-` s'efface : 4 jours (cadrage ARP, réponse de l'utilisateur)
 
 
 def carte_injectee(depart, python, relais, sortie, **options):
@@ -437,10 +438,14 @@ def carte_injectee(depart, python, relais, sortie, **options):
 
     Sans redirection (EVF4) : NIV1 envoyait l'erreur du lanceur absent vers `${CLAUDE_PLUGIN_ROOT}/relais-python.err`,
     une écriture hors du workspace que l'eval refuse même Bash accordé — `vlp:jouer` n'y forkait plus. Le prix :
-    `py: command not found` entre dans la carte là où `py` manque (2 lignes sous Ubuntu, 0 sous Windows)."""
+    `py: command not found` entre dans la carte là où `py` manque (2 lignes sous Ubuntu, 0 sous Windows).
+
+    Le ménage d'abord (ARP4) : `vlp-carte-` de plus de `RELAIS_SECONDES`, `vlp-enchaine-` de plus de
+    `MARQUE_SECONDES` — avant d'écrire le tampon de cet appel, qui reste."""
     import hashlib
     import tempfile
     import time
+    vlp_hook.menage(tempfile.gettempdir(), (("vlp-carte-", RELAIS_SECONDES), ("vlp-enchaine-", MARQUE_SECONDES)))
     cle = hashlib.sha1(os.path.abspath(depart).encode("utf-8")).hexdigest()[:16]
     tampon = os.path.join(tempfile.gettempdir(), "vlp-carte-%s" % cle)
     if relais:

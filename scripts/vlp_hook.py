@@ -38,20 +38,35 @@ def nom_tampon(texte, nom):
     return "vlp-hook-" + hashlib.sha1((nom + "\n" + texte).encode("utf-8")).hexdigest()
 
 
+def menage(dossier, ages):
+    """Retirer de `dossier` chaque fichier dont le nom commence par un préfixe de `ages` — des paires (préfixe, âge
+    en secondes) — et plus vieux que cet âge (ARP4). Une `OSError` sur un fichier (pris par un autre processus,
+    déjà retiré, dossier) passe au suivant ; un dossier illisible : rien."""
+    try:
+        noms = os.listdir(dossier)
+    except OSError:
+        return
+    maintenant = time.time()
+    for nom in noms:
+        age = next((a for prefixe, a in ages if nom.startswith(prefixe)), None)
+        if age is None:
+            continue
+        chemin = os.path.join(dossier, nom)
+        try:
+            if maintenant - os.path.getmtime(chemin) > age:
+                os.unlink(chemin)
+        except OSError:
+            continue
+
+
 def tampon_neuf(nom, dossier):
     """Vrai si `<dossier>/<nom>` se crée en exclusif — les deux lanceurs partent ensemble, un tampon
-    daté les laisserait passer tous deux. Retire au passage les tampons `vlp-hook-` et `vlp-filet-`
+    daté les laisserait passer tous deux. Retire au passage (`menage`) les tampons `vlp-hook-` et `vlp-filet-`
     de plus de 60 s. `dossier` à `None` (tests) ou `VLP_SANS_TAMPON` non vide (rejeu à la main, SON) :
     toujours vrai ; une autre `OSError` : vrai — mieux vaut deux fois que zéro."""
     if dossier is None or os.environ.get("VLP_SANS_TAMPON"):
         return True
-    try:
-        for tampon in os.listdir(dossier):
-            chemin = os.path.join(dossier, tampon)
-            if tampon.startswith(("vlp-hook-", "vlp-filet-")) and time.time() - os.path.getmtime(chemin) > 60:
-                os.unlink(chemin)
-    except OSError:
-        pass
+    menage(dossier, (("vlp-hook-", 60), ("vlp-filet-", 60)))
     try:
         os.close(os.open(os.path.join(dossier, nom), os.O_CREAT | os.O_EXCL | os.O_WRONLY))
     except FileExistsError:

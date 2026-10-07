@@ -147,8 +147,9 @@ Mutant : `vlp.py mutant scripts/vlp_coeur.py`, retirer le test de la marque dans
 ---
 
 <!-- FICHE:ARP4 -->
-## ARP4 [ ] — Faire le ménage des tampons de la carte
+## ARP4 [x] — Faire le ménage des tampons de la carte
 
+**Session** : 8192d019-ec3d-4e85-bb48-6f9fb56b8259
 **Dépend de** : `ARP3`.
 **Fichiers** : `scripts/vlp_hook.py`, `scripts/vlp_coeur.py`, `scripts/test-vlp.py` — et rien d'autre.
 
