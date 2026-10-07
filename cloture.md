@@ -52,7 +52,7 @@ Déjà écrit à l'étape 2 : `Artifact`, `action: "read"` sur son `url` (sans
 lecture, la republication est refusée), puis republication : `file_path` local,
 `url` et `files` : le JSON de la ligne `FILES` de `clore` — absente, celle de
 `<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" joints "<contexte>/artefacts"` (`ARTEFACTS.md`),
-pas de `favicon`, `label` : `clos`. Des fiches abandonnées y restent **non faites**.
+pas d'`icon`, `label` : `clos`. Des fiches abandonnées y restent **non faites**.
 
 ## 4. La feuille de route
 

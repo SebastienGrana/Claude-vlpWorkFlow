@@ -13,7 +13,7 @@ maintenable et documenté. Ensuite : la méthode du kit, puis la TODO re-cadrée
 
 **CLOS** le 2026-10-07. Ne se rejoue pas — ne sert plus qu'à relire son socle.
 
-**Fait.** VIT1..VIT25 (2026-10-07) : coder plus vite et mieux : suite 553 → 180 s, mutant 538 → 6 s, test-boucle 426,5 → 176 s, lancement 362 → 208 ms (mesurés à VIT13, repris par VIT18) ; cliquet du code sain, sante --base à chaque fiche, contrôle rapide avant la suite, mutant visé sur son groupe, carte des symboles, py -3 dans les commandes ; xhigh pour les fiches de code (VIT25, tranché le 2026-10-07) — estimé non noté · cadré 23 · joué 23 fiches 242,53 $.
+**Fait.** VIT1..VIT25 (2026-10-07) : coder plus vite et mieux : suite 553 → 180 s, mutant 538 → 6 s, test-boucle 426,5 → 176 s, lancement 362 → 208 ms (mesurés à VIT13, repris par VIT18) ; cliquet du code sain, sante --base à chaque fiche, contrôle rapide avant la suite, mutant visé sur son groupe, carte des symboles, py -3 dans les commandes ; xhigh pour les fiches de code (VIT25, tranché le 2026-10-07) — estimé non noté · cadré 23 · joué 23 fiches 322,08 $ (242,53 $ avant les essais hors bac, recomptés par `MET2` le 2026-10-07).
 
 **Session** : bf7412ea-120b-47fa-933e-6b54b408b2f4
 

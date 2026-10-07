@@ -23,7 +23,7 @@ Puis publie, si la session n'a ni publié ni lu cette page : d'abord `Artifact`
 refusée encore au second essai. Si la version lue dit quelque chose que la page
 locale ne dit pas, reporte-le par `--note` ou `--journal` et régénère. Enfin
 `Artifact` avec le `file_path` local **et** l'`url` — sans `url`, tu crées un
-doublon. Pas de `favicon`, pas de nouveau titre, `label` : `<fiche> faite`.
+doublon. Pas d'`icon`, pas de nouveau titre, `label` : `<fiche> faite`.
 Publication refusée : `ARTEFACTS.md`, « Une publication refusée ».
 
 **Ne touche pas à la feuille de route** : elle ne bouge qu'à l'ouverture et à la

@@ -52,7 +52,8 @@ demande de l'autoriser — pas de contournement.
 second ; sinon le premier est la fiche (`R3`…). Sans fiche, c'est
 **`PROCHAINE=`** — la première non cochée dans l'ordre du fichier. `aucune` :
 le chantier est fini, passe à l'étape 7. Annonce la fiche retenue en une
-ligne, identifiant et titre, avant de l'exécuter, sans attendre de réponse.
+ligne, identifiant, titre et effort voulu (`methode-chantier.md`, « L'effort se
+règle selon la tâche »), avant de l'exécuter, sans attendre de réponse.
 
 Le mot **`commentaires`** dans les arguments : lis d'abord les fils de
 l'artefact du chantier (`ArtifactComments`, `action: "read"`, l'`url` de

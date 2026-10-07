@@ -122,7 +122,7 @@ Lance `<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" joints "<contexte>/artefa
 puis publie, une seule fois :
 
 - `file_path` : `<contexte>/artefacts/feuille-de-route.html`
-- `favicon` : `🗺️` — c'est la première publication, c'est la seule fois où il
+- `icon` : `map` — c'est la première publication, c'est la seule fois où il
   se passe
 - `description` : `La TODO ordonnée de <Projet> et l'état de ses chantiers.`
 - `files` : le JSON de la ligne `FILES` de `joints` (`ARTEFACTS.md`)

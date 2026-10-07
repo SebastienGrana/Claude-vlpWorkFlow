@@ -27,6 +27,9 @@ choix ouvert — quel chantier, l'ordre des fiches, une frontière, un compromis
 N'ouvre aucun fichier que les étapes ci-dessous ne nomment pas. Pas d'agent,
 pas de recherche large.
 
+Une modification qui se dit en une phrase n'est pas un chantier : dis-le, et
+propose de la faire sans fiche (`methode-chantier.md`, « Les trois temps »).
+
 ## 0. Lire la carte — rien à lancer
 
 Un projet équipé porte **`CHANTIER.md` à sa racine** : c'est la seule table à
@@ -240,7 +243,7 @@ Une option `--note` par fiche. Rien d'autre n'y va : ni le prompt des fiches,
 ni le socle d'API, ni de code. Lis la ligne `PAGE … · N lignes` : une `GARDE:`
 dit une page au-delà du seuil, ou déjà existante — `--creer` n'écrase rien.
 
-Publie avec `favicon` `🧱`, un `title` `<Projet> — <Nom du chantier>`, pour
+Publie avec `icon` `checklist`, un `title` `<Projet> — <Nom du chantier>`, pour
 `description` `Les fiches de <chantier>, et où on en est.`, et `files` : le JSON
 de la ligne `FILES` (`ARTEFACTS.md`).
 
@@ -261,7 +264,7 @@ Publication échouée : pas de `--artefact`, la ligne reste à « aucun ». Lis 
 lignes `OUVERT` et `FEUILLE` ; une `GARDE:` dit ce qui n'est pas écrit — écris-le
 à la main. Puis `action: "read"` sur l'URL de la feuille de route
 (`CHANTIER.md`), et republie le fichier local avec cette `url` et `files` : le
-JSON de la ligne `FILES` (`ARTEFACTS.md`), sans `favicon`,
+JSON de la ligne `FILES` (`ARTEFACTS.md`), sans `icon`,
 `label` `<chantier> ouvert`. Publication refusée : `ARTEFACTS.md`, « Une publication refusée ».
 
 **Si l'étape 4 bis a dû chercher le kit**, écris aussi sa ligne « **kit** »

@@ -9,6 +9,12 @@ Les règles vivent dans `methode-chantier.md`, « Les règles qui valent partout
 deux choses, rangées par `MET6` le 2026-10-07 : trois leçons parties de la méthode,
 et le récit mesuré des règles restées, sous leur titre et dans leur ordre.
 
+**Sommaire** : Trois leçons parties de la méthode · Les récits des règles restées —
+une ligne de mesure · une hypothèse vraie sur un cas · un commentaire périmé · un
+seuil arbitraire · un chantier cité par son code · une fiche payée jusqu'au bout ·
+une définition d'agent · un fait qui dit comment écrire · la TODO et ses deux oui ·
+ne pas réinventer la roue.
+
 ## Trois leçons parties de la méthode
 
 - **Un résultat inchangé ne prouve pas qu'on a mesuré la même chose.** Un

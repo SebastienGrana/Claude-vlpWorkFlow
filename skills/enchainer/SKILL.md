@@ -139,7 +139,7 @@ Une `GARDE:` ou une sortie non nulle : une ligne, et continue. Sinon, deux
 appels : `Artifact` `action: "read"` sur l'`url` de « artefact du chantier »,
 puis `Artifact` avec le `file_path` de la page, cette `url` et `files` : le JSON
 de la ligne `FILES` (`ARTEFACTS.md`), sans
-`favicon`, `label` : les fiches jouées (`E5→E7`). Rien d'autre à lire : les règles de la page sont dans
+`icon`, `label` : les fiches jouées (`E5→E7`). Rien d'autre à lire : les règles de la page sont dans
 `skills/tache/references/tache-page.md`, pour `/vlp:tache`.
 
 Si un `BLOQUÉE` a clos la série, marque aussi la page bloquée :

@@ -9,6 +9,11 @@ sont dérivés, et pourquoi une seule page suit les fiches : `methode-chantier.m
 > publication échoue ou n'est pas disponible, la commande le dit en une ligne
 > et continue. Le fichier local, lui, est écrit dans tous les cas.
 
+**Sommaire** : Deux artefacts, et pas un de plus · Le nommage · Où vivent les
+fichiers, où vivent les URL · Republier : lire d'abord, `url` toujours · Une
+publication refusée · La page se régénère, elle ne se retouche pas · Le budget de
+contexte · Où vivent le CSS et les données · La lecture · Les commentaires.
+
 ## Deux artefacts, et pas un de plus
 
 | Artefact | Combien | Créé par | Mis à jour par |
@@ -61,7 +66,7 @@ Le reste des paramètres de publication :
 
 | | Feuille de route | Chantier |
 |---|---|---|
-| `favicon` (première publication seulement) | `🗺️` | `🧱` |
+| `icon` (première publication seulement) | `map` | `checklist` |
 | `description` | `La TODO ordonnée de <Projet> et l'état de ses chantiers.` | `Les fiches de <chantier>, et où on en est.` |
 | `label` (versions suivantes) | `<chantier> ouvert` / `<chantier> clos` | `<fiche> faite` / `<fiche> bloquée` |
 
@@ -101,7 +106,7 @@ elle est refusée : ce `read` est **imposé par le protocole**, s'en passer ne
 gagne rien. En cas de conflit — quelqu'un a publié entre-temps — on
 **fusionne sur la version rendue**, on ne force jamais.
 
-`favicon` ne se repasse pas : une icône qui change se lit comme une autre page.
+`icon` ne se repasse pas : une icône qui change se lit comme une autre page.
 
 Avant que la publication parte, le hook `vlp.py vigile` (chantier VID) refuse une page cassée
 avec sa raison ; les trois défauts qu'il repère sont dans le socle de `context AI/79-vigile.md`,
