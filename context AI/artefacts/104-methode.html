@@ -1,0 +1,101 @@
+<meta charset="utf-8">
+<title>vlp — La méthode du kit refaite, puis la TODO re-cadrée</title>
+<!--
+  GABARIT — artefact d'un chantier. Publié par /chantier à l'ouverture,
+  mis à jour par /tache à chaque fiche. Remplace les <…> et ne renomme pas
+  les marqueurs `ZONE:…` : les commandes les cherchent tels quels.
+
+  Convention de coût — posée ici, référencée (jamais recopiée) par
+  artefact-feuille-de-route.html, tache.md et cloture.md : un nombre < 1000
+  s'affiche tel quel ; au-delà, "≈<arrondi 1 décimale><k|M> (<compte brut>)"
+  — virgule française, k = mille, M = million. Le compte brut reste toujours
+  visible à côté de l'arrondi.
+-->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="vlp.css">
+
+<div class="page">
+  <header>
+    <div class="eyebrow">vlp · fiches MET1–MET10 · <a href="https://claude.ai/artifact/YWDny8kjubq9DhdP5rbPxA">la feuille de route</a></div>
+    <h1>La méthode du kit refaite, puis la TODO re-cadrée</h1>
+    <p>Une méthode rangée et complétée par ce qui est publié, des commandes alignées sur elle, une TODO relue avec elle — et deux mesures : les essais hors bac comptés, xhigh contre medium.</p>
+    <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
+    <div class="avancement">
+      <span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+    </div>
+    <p class="mono" style="margin-top:.5rem">10 fiches · 0 faite · en cours : MET1</p>
+  </header>
+
+  <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
+  <section hidden>
+    <h2>Chantier clos le </h2>
+    <div class="bilan">
+      <p></p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Les fiches, dans l'ordre des dépendances</h2>
+    <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
+    <ul class="fiches">
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">MET1</span></span>
+        <details open><summary><span class="titre">Chercher ce qui existe, et le présenter</span><span class="etat">En cours · MET6 peut partir en même temps</span></summary>
+        <span class="note">Une page à cartes : ce qui existe contre le faire nous-mêmes, sur trois sujets.</span></details>
+        <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
+      <li class="fiche"><span class="gauche"><span class="id">MET2</span></span>
+        <details><summary><span class="titre">Compter les essais lancés hors d'un bac</span><span class="etat">À lancer</span></summary>
+        <span class="note">Le compteur voit les essais lancés hors d'un bac ; VIT recompté.</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">MET3</span></span>
+        <details><summary><span class="titre">Préparer le test d'effort</span><span class="etat">Après MET2</span></summary>
+        <span class="note">Le billet lu, le juge rebâti, la fiche de conception choisie, ton go sur l'estimé ; après MET2.</span></details>
+        <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">MET4</span></span>
+        <details><summary><span class="titre">Jouer le test d'effort</span><span class="etat">Après MET3</span></summary>
+        <span class="note">Les 8 essais joués, le tableau au journal ; après MET3.</span></details></li>
+      <li class="fiche"><span class="gauche"><span class="id">MET5</span></span>
+        <details><summary><span class="titre">Trier les familles de ruff</span><span class="etat">À lancer</span></summary>
+        <span class="note">Les familles de ruff adoptées, réglées ou écartées ; le code non corrigé.</span></details>
+        <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
+      <li class="fiche"><span class="gauche"><span class="id">MET6</span></span>
+        <details><summary><span class="titre">Trier les 21 règles</span><span class="etat">À lancer · en même temps que MET1</span></summary>
+        <span class="note">Les 21 règles : restent, partent dans un fichier de leçons, ou se fondent.</span></details>
+        <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">MET7</span></span>
+        <details><summary><span class="titre">Compléter la méthode</span><span class="etat">Après MET1, MET2, MET4, MET5, MET6</span></summary>
+        <span class="note">La section Coder dans le kit, la règle de l'effort à jour ; après MET1, MET2, MET4 à MET6.</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">MET8</span></span>
+        <details><summary><span class="titre">Aligner les commandes (1/2)</span><span class="etat">Après MET7</span></summary>
+        <span class="note">Cinq commandes et les deux agents alignés sur la méthode ; après MET7.</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">MET9</span></span>
+        <details><summary><span class="titre">Aligner les commandes (2/2)</span><span class="etat">Après MET7</span></summary>
+        <span class="note">Trois commandes et la doctrine voisine alignées ; après MET7.</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">MET10</span></span>
+        <details><summary><span class="titre">Relire et reclasser la TODO</span><span class="etat">Après MET7</span></summary>
+        <span class="note">Chaque ligne de la TODO gardée, fondue, abandonnée ou re-cadrée ; après MET7.</span></details>
+        <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
+    </ul>
+    <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
+  </section>
+
+  <!-- ZONE:blocage — publiée quand /tache s'arrête après deux tentatives ; retirée dès que la fiche repasse -->
+  <section hidden>
+    <h2>Arrêt sur blocage</h2>
+    <div class="blocage">
+      <p></p>
+      <pre></pre>
+    </div>
+  </section>
+
+  <section>
+    <h2>Journal des décisions</h2>
+    <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
+    <ul class="journal">
+    </ul>
+  </section>
+
+  <footer>
+    <span>Fichier de fiches : <span class="mono">context AI/104-methode.md</span></span>
+    <span>Mis à jour le <span class="mono">2026-10-07</span></span>
+  </footer>
+</div>
+<script src="vlp.js"></script>
