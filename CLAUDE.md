@@ -57,6 +57,7 @@ et seulement dans ce cas, ouvrir l'index.
 | toucher aux pages publiées | `ARTEFACTS.md`, puis le gabarit dans `templates/` |
 | ouvrir un chantier, ou le découper en fiches | **lancer `/vlp:chantier`** |
 | jouer une fiche du chantier NUI (le chef de nuit) | `context AI/101-chef-de-nuit.md` — chantier **en pause** depuis le 2026-10-03 (VIT, puis la méthode : TODO n° 99), reprise à `NUI28` |
+| jouer une fiche du chantier ARP (une session claude -p ne meurt plus en attendant l'arrière-plan) | `context AI/105-arriere-plan.md` — chantier **ouvert**, par `/vlp:tache ARP<n>` |
 | relire un chantier clos | `context AI/00-INDEX-archive.md` — sa ligne y nomme le fichier de fiches |
 | reprendre après une longue interruption | `context AI/08-etat.md` |
 | choisir le prochain chantier du kit, ou retrouver la preuve d'un bug relevé le 2026-09-17 | `context AI/12-audit.md` |
