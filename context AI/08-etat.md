@@ -2828,3 +2828,9 @@ Les mesures de `VIT1`, rejouées par ses commandes (script `vit13-mesures.sh`, r
 - **`xhigh`**, par prudence : 3/3 au relecteur, 3,4 fois la réflexion de `medium`, un tiers moins cher que Max (9,46 $ contre 14,16 $) — de la marge pour les fiches de conception, que ces essais n'ont pas couvertes.
 - **`medium`**, si l'on suit le chiffre seul : 3/3 au relecteur, le moins cher (6,41 $), le défaut de la doc.
 - Ce qui départagerait vraiment : un deuxième essai par case, ou une fiche de conception — 💡 pour le chantier `MET`.
+
+**Tranché par l'utilisateur le 2026-10-07** (page à cartes https://claude.ai/artifact/THufFvqudzsh3zezLYyBku) :
+- **`xhigh`** pour les fiches de code, écrit dans la règle de l'effort (`methode-chantier.md`). Sa question, mot pour mot : « à tester la qualitée de Xhigh et Medium dans MET ? » — 💡 oui : rejouer les 3 fiches à `medium` et `xhigh` coûte ≈ 20,55 $ la passe au prix de la série 2 (15,87 $ d'essais + 4,68 $ de relecteurs), plus une fiche de conception, à chiffrer au cadrage de `MET`.
+- Gardées : le rejeu des 12 essais (série 2), et la clôture de VIT laissée à l'utilisateur. VIT se clôt, puis `MET`.
+- Les 23 copies d'essai retirées (128 Mo), les 26 branches `vit25/…` gardées ; les 8 essais morts de la série 1 avaient leur travail non commité : il est commité dans leur branche (« état de l'essai … à sa mort »), pour lecture seulement.
+- `CLAUDE.md` resserré à 80 lignes (règle 4 recoupée, mêmes mots, `d7524ab`) ; la ligne « Clos » la plus ancienne se retire à la clôture. La cause du 81 est `VIT5` (`b933064`), et non `2edc69b`, comme dit d'abord en séance.

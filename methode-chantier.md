@@ -200,6 +200,9 @@ Elles sont écrites ici, et nulle part ailleurs : le reste du kit y renvoie.
 - **L'effort se règle selon la tâche, et se dit avant** — décision de
   l'utilisateur, le 2026-10-04. Plus bas pour le mécanique (lancer un script,
   publier, commiter, mesurer), plus haut pour ce qui se conçoit ou se débogue.
+  Une fiche de code, en Opus 5.5 : `xhigh` — décision du 2026-10-07, après
+  `VIT25` (Max y coûtait 2,2 fois `medium` sans gain mesuré ; `context AI/08-etat.md`,
+  entrée « VIT25 — l'effort ») ; `xhigh` contre `medium` se rejoue au chantier `MET`.
   Tout changement s'annonce d'abord par un petit message : le modèle et
   l'effort, avant → après, et pourquoi (« Opus 5.5 · effort high → medium : la
   suite est mécanique »). Le niveau en cours se lit, il ne se suppose pas
