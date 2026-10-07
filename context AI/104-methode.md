@@ -226,8 +226,9 @@ journal (`MET6 — les règles triées`).
 ---
 
 <!-- FICHE:MET7 -->
-## MET7 [ ] — Compléter la méthode
+## MET7 [x] — Compléter la méthode
 
+**Session** : 35091dff-73df-4438-8d1f-fc8332923ae8
 **Dépend de** : `MET1`, `MET2`, `MET4`, `MET5`, `MET6`.
 **Fichiers** : `methode-chantier.md`, `context AI/08-etat.md` (entrées `MET1` à `MET6`) — et rien d'autre.
 

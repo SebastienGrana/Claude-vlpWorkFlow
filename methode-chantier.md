@@ -1,7 +1,7 @@
 > **QUAND LIRE** : on ouvre un nouveau chantier, on découpe un chantier en
 > fiches, on se demande comment une fiche est faite, ou où vit quoi dans un
-> projet équipé. Pas besoin de ce fichier pour *exécuter* une fiche :
-> `/vlp:tache` est autoportante.
+> projet équipé — ou on écrit du code, une commande ou de la doctrine du kit.
+> Pas besoin de ce fichier pour *exécuter* une fiche : `/vlp:tache` est autoportante.
 
 # Mener un chantier — la méthode qui économise le contexte
 
@@ -10,6 +10,10 @@ d'un seul tenant, il coûte cher pour une raison mécanique : une session relit
 tout son passé à chaque tour, donc la fin d'un long chantier se paye au prix de
 son début. La parade : **un chantier s'écrit une fois en fiches, puis chaque
 fiche s'exécute dans sa propre session.**
+
+**Sommaire** : Les règles qui valent partout · Les trois temps · Git — un commit par
+fiche, un push par chantier · Où vit quoi · Le fichier de fiches · Anatomie d'une fiche ·
+Les deux formes de critère de fin · Ce que `/vlp:tache` garantit · Coder dans le kit.
 
 ## Les règles qui valent partout
 
@@ -135,9 +139,11 @@ titre (`MET6`, 2026-10-07).
 - **L'effort se règle selon la tâche, et se dit avant** — décision de
   l'utilisateur, le 2026-10-04. Plus bas pour le mécanique (lancer un script,
   publier, commiter, mesurer), plus haut pour ce qui se conçoit ou se débogue.
-  Une fiche de code, en Opus 5.5 : `xhigh` — décision du 2026-10-07, après
-  `VIT25` (Max y coûtait 2,2 fois `medium` sans gain mesuré ; `context AI/08-etat.md`,
-  entrée « VIT25 — l'effort ») ; `xhigh` contre `medium` se rejoue au chantier `MET`.
+  Une fiche, de code ou de conception, en Opus 5.5 : `medium` ; `xhigh` en recours,
+  pour rejouer une fiche refusée ou bloquée — décision du 2026-10-07, après `MET4`
+  (même qualité mesurée, `xhigh` nettement plus cher ; `context AI/08-etat.md`, entrée
+  « MET4 — xhigh contre medium »). Elle remplace « `xhigh` pour une fiche de code »,
+  décidé le même jour après `VIT25`. `high` n'est pas mesuré.
   Tout changement s'annonce d'abord par un petit message : le modèle et
   l'effort, avant → après, et pourquoi (« Opus 5.5 · effort high → medium : la
   suite est mécanique »). Le niveau en cours se lit, il ne se suppose pas
@@ -168,6 +174,8 @@ derrière elle tout le contexte de la première. `/vlp:enchainer` tient la même
 règle autrement — chaque fiche dans un sous-agent neuf, jusqu'au premier arrêt,
 par la skill forkée `vlp:jouer` : le chef ne lit ni socle ni fiche, un appel par
 fiche (mesures au journal du fichier d'état du kit, chantier N).
+**Sans fiche** : une modification qui se dit en une phrase se fait directement, sans
+chantier ni fiche (source dans « Coder dans le kit »).
 
 **3. Clôture.** Elle est décrite dans `cloture.md` à la racine du kit, que
 `/vlp:tache`, `/vlp:enchainer` et `/vlp:chantier` lisent au moment de clore :
@@ -385,3 +393,58 @@ rejouer les mêmes deux essais. Le bloc se solde à la fiche cochée.
 `CHANTIER.md`, à la racine, est la seule chose à mettre à jour quand un
 chantier s'ouvre ou se clôt. Un fichier qui ment envoie la session dans un
 chantier clos.
+
+## Coder dans le kit
+
+Ce que le kit prend aux pratiques publiées, et comment il l'adapte — tranché par
+l'utilisateur au chantier `MET` (`context AI/08-etat.md`, entrée « MET1 — ce qui existe »,
+2026-10-07). Deux docs officielles, citées par leurs sections : **Best practices**
+(https://code.claude.com/docs/en/best-practices) et **Skill authoring**
+(https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices).
+
+**Déjà dans la méthode** — la source, à côté de la règle :
+
+| La règle du kit | Où | Source |
+|---|---|---|
+| un critère de fin observable | « Anatomie d'une fiche », exigence 3 | Best practices, « Give Claude a way to verify its work » |
+| une modification qui se dit en une phrase se fait sans fiche | « Les trois temps » | Best practices, « Explore first, then plan, then code » |
+| cadrer en fiches, jouer chaque fiche en session neuve | « Les trois temps » | Best practices, « Let Claude interview you » |
+| deux tentatives, puis arrêt et bloc « Tentatives » | « Ce que `/vlp:tache` garantit » | Best practices, « Course-correct early and often » |
+| le déterministe en script | `CLAUDE.md` du kit, règle 4 | Skill authoring, « Provide utility scripts » |
+
+**Le code Python des scripts :**
+
+- **Le style est celui de ruff**, réglé par `pyproject.toml` à la racine du kit : chaque
+  écart au défaut y porte sa raison (`MET5`). Le code d'avant n'est pas corrigé : `REF`.
+  ⚠️ Le cliquet de `sante.py` lance ruff `--isolated` : il ne voit pas ce réglage.
+- **`pyproject.toml` ne règle que les outils d'atelier**, jamais un paquet à installer : le
+  kit garde zéro paquet à l'exécution (`MET1`, Q10).
+- **Un fichier Python de plus de 1 000 lignes ne grossit plus ; un nouveau reste en
+  dessous** — le défaut de Pylint, `max-module-lines` (message C0302, « too-many-lines »).
+  Aucun script ne le garde encore ; la découpe des gros fichiers : `REF`.
+- **Un fichier nouveau se nomme en minuscules, mots liés par un tiret bas** (PEP 8,
+  « Package and Module Names ») ; les noms à tiret déjà là restent, leur renommage : `REF`.
+- **Une sous-commande porte sa fonction**, branchée par `set_defaults(func=…)` (argparse,
+  « Subcommands ») ; l'aiguillage par `if` de `vlp_coeur.py` se convertit à `REF`.
+- **Un seuil nouveau porte sa raison**, écrite à côté de lui (Skill authoring, « Solve,
+  don't defer »).
+
+**La prose que Claude lit** — commandes, agents, doctrine, `CLAUDE.md` :
+
+- **Court, et une seule façon par défaut** (Skill authoring, « Concise is key », « Avoid
+  offering too many options »). Le crible, phrase par phrase : Claude le sait-il déjà ? La
+  retirer lui ferait-elle faire une erreur ? Sinon, elle part. Une seconde façon ne s'écrit
+  que pour un cas nommé où la première échoue.
+- **Chaque ligne de `CLAUDE.md` passe ce crible** (Best practices, « Write an effective
+  CLAUDE.md ») ; « Où on en est » reste, `vlp.py clore` le tient.
+- **Un mot d'insistance — « IMPORTANT », des capitales — se réserve à une règle que Claude a
+  ignorée deux fois** (même section) ; le gras qui aide à lire reste.
+- **Une chose, un seul nom**, dans tout le kit (Skill authoring, « Use consistent
+  terminology »).
+- **Rien qui se périme** : une règle garde sa date entre parenthèses, son récit va au journal
+  ou à `lecons-mesure.md` (Skill authoring, « Avoid time-sensitive information »).
+- **Une doctrine de plus de 100 lignes s'ouvre sur un sommaire**, tenu à la main (Skill
+  authoring, « Progressive disclosure patterns »).
+- **Une commande nouvelle s'écrit après ses essais** : trois scénarios d'abord, puis un essai
+  par modèle prévu pour la jouer (Skill authoring, « Build evaluations first », « Test with
+  all models you plan to use »).
