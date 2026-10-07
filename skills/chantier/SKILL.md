@@ -150,8 +150,8 @@ Un par question, pas leurs voisins.
 
 Annonce en clair la liste des fiches : un titre chacune, une ligne de contenu,
 et les dépendances. Demande validation, et propose explicitement de fusionner
-ou de scinder. Une fiche vise **une séance** : si son prompt fait plus de vingt
-lignes, c'est deux fiches.
+ou de scinder. Une fiche vise **une séance** : au-delà du seuil de `vlp.py`, c'est
+deux fiches (`valider` avertit).
 
 Annonce dans la même proposition le **préfixe de fiche** — les **trois
 majuscules** qui nommeront `DEC1`, `DEC2`… — avec les préfixes déjà pris, lus
@@ -160,8 +160,7 @@ il ne s'impose pas** : si l'utilisateur en dicte un, c'est le sien, même si tu
 en aurais proposé un autre ; refuse seulement un préfixe déjà pris, en disant
 par quel chantier, et redemande. À défaut d'instruction, propose une
 abréviation du sujet (décor → `DEC`), jamais la suite de l'alphabet, et
-laisse-lui le dernier mot avant l'étape 5. Un préfixe d'une seule lettre reste
-lu pour les chantiers d'avant le 2026-09-17 ; on n'en fabrique plus.
+laisse-lui le dernier mot avant l'étape 5.
 
 ## 4 bis. Le kit — il voyage avec la commande
 

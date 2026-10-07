@@ -33,7 +33,8 @@ Après l'étape 1, ni plan ni fiche jouée ici : un seul appel, en arrière-plan
 ```
 
 Chaque fiche y est jouée comme après `/clear` puis `/vlp:tache <fiche>` ; ses
-arrêts et sa sortie sont dans sa docstring. Annonce-le en une ligne, puis, à la
+arrêts et sa sortie sont dans sa docstring. Annonce-le en une ligne, modèle et
+effort compris, puis, à la
 notification de fin, recopie les lignes `FICHE`, `ARRÊT` et `TOTAL` telles
 quelles. `GARDE:` : montre-la, rien d'autre.
 

@@ -9,7 +9,7 @@ Une méthode rangée et complétée par ce qui est publié, des commandes align�
 - MET5 : Réponses 19/19 ; pyproject.toml lu par ruff (py39) ; ruff check scripts/ 1 476 → 211 remarques ; git diff --stat -- scripts/ vide ; pyright 0 erreur ; suite verte
 - MET6 : Réponses 25/25 ; 22 titres à leur place (15 restées, 3 parties, 4 fondues) ; methode-chantier.md 456 → 387 lignes, lecons-mesure.md 140 ; renvois 0 absent, suite verte
 - MET7 : section « Coder dans le kit » : titre 1 fois dans le kit ; effort medium + xhigh en recours (tranché) ; méthode 387 → 450 lignes ; RAPIDE VERT, suite OK
-- MET8 : Cinq commandes et les deux agents alignés sur la méthode ; après MET7.
+- MET8 : 7 fichiers relus : contradictions 4 → 2 corrigées, copies 3 → 1 ; 2 contradictions laissées (méthode périmée sur enchainer main, effort low du joueur) ; suite OK au 3e passage (mémoire)
 - MET9 : Trois commandes et la doctrine voisine alignées ; après MET7.
 - MET10 : Chaque ligne de la TODO gardée, fondue, abandonnée ou re-cadrée ; après MET7.
 ## Journal

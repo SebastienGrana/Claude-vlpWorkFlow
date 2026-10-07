@@ -3028,3 +3028,23 @@ Les mesures de `VIT1`, rejouées par ses commandes (script `vit13-mesures.sh`, r
 - **Revérifié sur leur page avant d'écrire** (demandé par `MET1`) : PEP 8, « Package and Module Names » — minuscules, tiret bas permis ; argparse, « Subcommands » (Python 3.14.8) — `add_subparsers()` avec `set_defaults()` ; Pylint, `max-module-lines`, défaut `1000`, lu dans le code source (`pylint/checkers/format.py`, branche `main`, dépôt `pylint-dev/pylint`) : deux pages de la doc Pylint 4.1.2 n'ont rendu que leur menu. Q10 (le guide de packaging) non revérifié : la règle cite `MET1` et `MET5`, pas la page. Coût : 6 accès web, 0 page lue en entier.
 - **La règle des essais (`MET2`)** : un seul endroit dans la doctrine, `methode-chantier.md`, « Un essai part d'un bac, ou se déclare » ; ailleurs, journal, fiches et docstrings de `scripts/vlp_coeur.py` seulement.
 - **Hors de la fiche, signalé** : trois doctrines de plus de 100 lignes sans sommaire — `ARTEFACTS.md` 243, `lecons-mesure.md` 140, `cloture.md` 126 ; Q7 (le relecteur) vit dans `agents/relecture.md`, à `MET8` ou `MET9`.
+
+## 2026-10-07 — MET8 — commandes alignées 1/2
+
+Les 7 fichiers relus en entier contre `methode-chantier.md` après `MET7` ; « trouvées → corrigées ».
+
+| Fichier | Contradictions | Copies | Ce qui a changé, ou pourquoi rien |
+|---|---|---|---|
+| `skills/chantier/SKILL.md` | 1 → 1 | 1 → 1 | « si son prompt fait plus de vingt lignes » → « au-delà du seuil de `vlp.py` » (la méthode compte la fiche entière, et un seuil ne s'écrit pas en chiffre) ; retirée, la phrase d'histoire sur le préfixe à une lettre (copie de « Trois lettres ») |
+| `skills/tache/SKILL.md` | 0 → 0 | 1 → 0 | « deux tentatives » gardé : l'exécutant en a besoin avant de lire `tache-blocage.md` |
+| `skills/enchainer/SKILL.md` | 2 → 1 | 0 → 0 | le mode `clear` annonce son lancement « modèle et effort compris » (règle de l'effort) ; **non corrigée** : le mode `main` joue plusieurs fiches dans une session, quand « Les trois temps » dit « Jamais deux fiches dans la même session » et ne connaît que le sous-agent — c'est la méthode qui est périmée (décision `REG2`), hors des fichiers de `MET8` |
+| `skills/jouer/SKILL.md` | 0 → 0 | 0 → 0 | — |
+| `skills/relire/SKILL.md` | 0 → 0 | 0 → 0 | — |
+| `agents/fiche.md` | 1 → 0 | 1 → 0 | **non corrigée** : `effort: low` (et `boucle.py --effort low` d'`enchainer`) contre la règle de l'effort, `medium` — la règle ne vise qu'Opus 5.5, le joueur Sonnet `low` vient de `REG2` ; « deux tentatives » gardé, comme `tache` |
+| `agents/relecture.md` | 0 → 0 | 0 → 0 | Q7 de `MET1` posée, une ligne : « Ne signale que l'inexact et l'exigence manquée, pas le style » (Best practices, « Add an adversarial review step ») |
+| **Total** | **4 → 2** | **3 → 1** | |
+
+- **Manques, ni contradiction ni copie** : `tache` ne dit pas l'effort avant de jouer (règle « se dit avant ») ; `chantier` ne connaît pas « une modification qui se dit en une phrase se fait sans fiche ».
+- **Repéré hors de la méthode** : `chantier` publie avec `favicon` `🧱`, que l'outil `Artifact` dit dépréciée (« Deprecated; Claude omits it and uses `icon` »).
+- Aucun texte touché n'est verrouillé par un test (`grep` des quatre phrases dans `scripts/` : 0).
+- **La suite** : deux échecs à deux endroits, tous deux au lancement de `git` (« Le fichier de pagination est insuffisant », puis un `git commit` à code 1), mémoire virtuelle libre **377 Mo** sur 28 572, 16 `claude.exe` ; l'utilisateur a libéré, **`OK`** au 3e passage, **1 990 Mo** libres, 15 `claude.exe`.

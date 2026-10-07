@@ -25,7 +25,7 @@ demande un : le script crée et retire les copies. **Rien ne s'écrit sous `PROJ
    lignes `HORS FICHE`, puis le diff entier. La fiche et le socle sont là : n'ouvre
    pas le fichier de fiches, il porte la suite du chantier.
 2. Lis le diff entier contre la fiche et le socle : tout ce qu'elle demande, rien de
-   plus.
+   plus. Ne signale que l'inexact et l'exigence manquée, pas le style.
 3. Rejoue le critère de fin et les commandes que le diff touche, dans AVANT puis dans
    APRÈS — par leurs chemins dans ces dossiers —, et compare les sorties. Les tests :
    AVANT était vert au commit précédent, n'y joue que **le test que la fiche ajoute** —

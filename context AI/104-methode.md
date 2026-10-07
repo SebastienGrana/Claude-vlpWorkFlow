@@ -249,8 +249,9 @@ Court : un renvoi vaut mieux qu'une copie ; un chiffre vit à un seul endroit.
 ---
 
 <!-- FICHE:MET8 -->
-## MET8 [ ] — Aligner les commandes (1/2)
+## MET8 [x] — Aligner les commandes (1/2)
 
+**Session** : 35091dff-73df-4438-8d1f-fc8332923ae8
 **Dépend de** : `MET7`.
 **Fichiers** : `skills/chantier/SKILL.md`, `skills/tache/SKILL.md`, `skills/enchainer/SKILL.md`, `skills/jouer/SKILL.md`, `skills/relire/SKILL.md`, `agents/fiche.md`, `agents/relecture.md`, `methode-chantier.md` (lecture) — et rien d'autre.
 
