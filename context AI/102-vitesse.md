@@ -708,8 +708,9 @@ bruts ; `OK`, `verifier(` en hausse ; mutant attrapé ; pyright 0 ; code sain.
 ---
 
 <!-- FICHE:VIT25 -->
-## VIT25 [ ] — Mesurer l'effort du modèle sur 3 fiches
+## VIT25 [x] — Mesurer l'effort du modèle sur 3 fiches
 
+**Session** : 17d950aa-47f3-44c8-a41f-13ecc4e4896b
 **Dépend de** : `VIT19` à `VIT24` — elle mesure l'état final, et en rejoue trois.
 **Fichiers** : `context AI/08-etat.md` (une entrée datée) — aucun code ; un outil d'essai qui manquerait se dit avant.
 
