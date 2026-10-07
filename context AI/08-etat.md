@@ -2972,3 +2972,25 @@ Les mesures de `VIT1`, rejouées par ses commandes (script `vit13-mesures.sh`, r
 - **`medium` par défaut**, fiches de code et de conception comprises : sur deux passes, 6/6 ACCEPTÉE à chaque niveau, toutes les portes tenues ; `xhigh` coûte +48 % puis +72 % de $, et +45 % de durée, sans gain mesuré.
 - **`xhigh` en recours** : pour rejouer une fiche refusée ou bloquée (bloc « Tentatives »). C'est là que le billet de `MET3` voit l'effort payer, sur une tâche dure — mais face à `low`, pas à `medium` (« Opus 5.5 went from 0/5 at low to 4/5 at xhigh »).
 - **Garder `xhigh`** reste le choix prudent : ce que ces mesures ne voient pas peut exister.
+
+## 2026-10-07 — MET6 — les règles triées
+
+- **La page** : https://claude.ai/artifact/Qk6vVRz4sdvPRyyFyLhdim (page à cartes, 25 questions) ; réponses collées par l'utilisateur le 2026-10-07, 25 sur 25.
+- **Le compte** : 22 règles, pas 21 — la 22e, « Un essai part d'un bac, ou se déclare », est née de `MET2` après le cadrage ; le critère de la fiche se lit « = 22 ».
+- **Les réponses** :
+  - Q1 : le fichier s'appelle `lecons-mesure.md`, à la racine du kit. Q2 : déclaré sur la ligne existante du routage de `CLAUDE.md` (« changer une règle de méthode, ou en chercher la preuve »), sans ligne de plus, et par une ligne de `00-INDEX.md`. Q3 : le récit mesuré d'une règle restée part dans le fichier de leçons, sous son titre.
+  - **Restent (15)** : R1, R2, R3, R4, R5, R9, R10, R12, R14, R15, R16, R18, R20, R21, R22 — raccourcies de leur récit, sauf R1, R2, R5, R15, R22, qui n'en avaient pas.
+  - **Partent (3)** : R6 « Un résultat inchangé… », R7 « Un arrondi… », R8 « Une norme… » — entières dans `lecons-mesure.md`, un renvoi d'une ligne chacune dans la méthode.
+  - **Se fondent (4)** : R11, R13, R19 dans R3 ; R17 dans R4 — en sous-puces, titre en gras, dans la règle d'accueil ; leur récit chiffré sous le titre de l'accueil, dans `lecons-mesure.md`.
+  - Écarts à l'avis donné : R10, R14, R16 restent (avis : partir) ; R11 et R19 se fondent dans R3 (avis : partir) ; Q1 `lecons-mesure.md` (avis : `lecons.md`).
+
+| Ce qu'on compte | Avant | Après |
+|---|---|---|
+| `methode-chantier.md`, lignes | 456 | 387 |
+| « Les règles qui valent partout », de son titre au suivant | lignes 14–219 (206) | lignes 14–150 (137) |
+| `lecons-mesure.md`, lignes | — | 140 |
+| `CLAUDE.md` · `00-INDEX.md`, lignes | 81 · 46 | 81 · 47 |
+
+- **Le critère, par grep** : chaque titre en gras à sa place — `restée` 15 (puce de premier niveau de la méthode), `fondue` 4 (sous-puce en gras de la méthode), `partie` 3 (puce en gras de `lecons-mesure.md`) : **22 sur 22**, chaque titre trouvé une fois. 3 renvois « Leçon partie dans `lecons-mesure.md` » dans la méthode.
+- **Rien ne se perd** : les 119 phrases de l'ancienne section, comparées au texte d'après (méthode et leçons, espaces et italiques normalisés) — 112 retrouvées mot pour mot ; 7 reformulées, relues une à une ; une seule perdait un bout (« jamais deux nombres nus »), remis. Les récits ont été extraits par script de `git show HEAD:methode-chantier.md`, pas retapés.
+- **Commandes** : `vlp.py renvois .` → `RENVOIS 122 nommés · 0 absents` et `AVERTISSEMENT: CLAUDE.md 81 lignes > 80` — déjà là avant `MET6` (`d049282`, l'ouverture de `MET`), hors fiche ; `vlp.py rapide MET6` → `RAPIDE VERT`.

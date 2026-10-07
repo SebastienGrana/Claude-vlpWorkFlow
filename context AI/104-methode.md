@@ -200,8 +200,9 @@ avant → après réglage s'écrit au journal ; `git diff --stat -- scripts/` es
 ---
 
 <!-- FICHE:MET6 -->
-## MET6 [ ] — Trier les 21 règles
+## MET6 [x] — Trier les 21 règles
 
+**Session** : 240bd893-1e58-426c-bd93-728f652a2820
 **Dépend de** : rien.
 **Fichiers** : `methode-chantier.md`, un fichier de leçons à la racine du kit (nom à proposer), une page à cartes — et rien d'autre.
 

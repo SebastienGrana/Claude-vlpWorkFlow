@@ -40,6 +40,7 @@ Ces fichiers ne se lisent pas en série : chacun répond à une question précis
 | `scripts/mesure-tokens.py` | on touche à la mesure des tokens |
 | `scripts/vlp.py` | on touche à la mécanique des commandes — carte, extraction, validation, page, hook ; ses sous-commandes sont dans sa docstring |
 | `skills/tache/references/` | on touche au blocage, à la page de chantier ou aux contraintes d'une fiche |
+| `lecons-mesure.md` | on cherche la preuve mesurée d'une règle de `methode-chantier.md`, ou les trois leçons de mesure qui en sont parties (résultat inchangé, arrondi, norme) |
 | `cloture.md` | on touche aux cinq écritures d'une clôture |
 | `nuit.md` | on touche à ce que les commandes font sous `NUIT=1`, sans humain pour répondre |
 | `ARTEFACTS.md` | on touche aux pages publiées : nommage, URL, budget |

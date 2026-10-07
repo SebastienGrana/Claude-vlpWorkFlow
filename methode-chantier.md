@@ -13,7 +13,9 @@ fiche s'exécute dans sa propre session.**
 
 ## Les règles qui valent partout
 
-Elles sont écrites ici, et nulle part ailleurs : le reste du kit y renvoie.
+Elles sont écrites ici, et nulle part ailleurs : le reste du kit y renvoie. Le récit
+mesuré qui a fait naître une règle — sa preuve — vit dans `lecons-mesure.md`, sous son
+titre (`MET6`, 2026-10-07).
 
 - **Une règle vit à un seul endroit — un nombre aussi.** Ailleurs, on pointe ;
   on ne recopie jamais. Une doctrine recopiée existe en plusieurs exemplaires,
@@ -27,153 +29,87 @@ Elles sont écrites ici, et nulle part ailleurs : le reste du kit y renvoie.
   indiagnosticable.
 - **Une ligne de mesure nomme les quantités qu'elle compare.** Un compte juste
   ne prouve rien s'il ne dit pas de quoi il est le compte, et c'est ainsi qu'on
-  publie une cause qu'on n'a pas mesurée. Mesuré : un chantier a conclu « la
-  cause dominante est l'autosave périmée » à partir de « 35 autosaves seules /
-  10 ghosts » — un compte de **quels fichiers existent sur le disque**, c'est-
-  à-dire un fait sur l'**outillage**. Les deux nombres étaient exacts ; le pont
-  entre eux n'existait pas. Rejoué en croisant la vraie variable, la source
-  **ne triait pas** (19 / 7, la proportion du corpus) et la cause était
-  ailleurs. ⚠️ Le piège n'est pas l'erreur de calcul — il n'y en avait pas —
-  c'est la **mauvaise quantité comparée**, qu'aucune relecture de chiffres
-  n'attrape. Écrire, dans la ligne même : *ce compte compare X à Y*.
-- **Une hypothèse vraie sur un cas se revérifie sur tous.** Un cas qui colle au token près
-  ne dit rien des autres. Mesuré (chantier `APC`) : « l'écart est fait des tours d'après
-  `clore` » tenait au token près pour `ESD` ; sur les 19 clos à expliquer, il tenait en entier
-  pour 5, en partie pour 14. Avant de corriger sur la foi d'un cas, la même mesure passe sur
-  tout le lot, et les trois comptes (en entier, en partie, pas du tout) s'écrivent.
+  publie une cause qu'on n'a pas mesurée. ⚠️ Le piège n'est pas l'erreur de
+  calcul, c'est la **mauvaise quantité comparée**, qu'aucune relecture de
+  chiffres n'attrape. Écrire, dans la ligne même : « ce compte compare X à Y ».
+  Trois cas du même piège :
+  - **Une conclusion recopiée d'une table à l'autre se dégrade en silence.** Un
+    chiffre faux détonne, on le recoupe ; un **énoncé** faux, non — il a la bonne
+    forme, et rien dans le texte ne dit qu'il compare autre chose que ce qu'il
+    annonce. La parade tient en deux gestes : chaque ligne nomme ses quantités,
+    jamais deux nombres nus (la règle ci-dessus) ; et un **script re-dérive** le
+    verdict depuis les nombres écrits, avant publication. Un verdict qu'aucune machine ne recalcule
+    n'est qu'une phrase.
+  - **Un instrument qui montre peut réfuter ce que la mesure confortait.** Une
+    sonde qui rend un taux dit quelle chose est douteuse, jamais pourquoi, et un
+    taux se lit trop facilement comme un taux d'échec. Une vue par cas — une page,
+    un dessin, un rendu — fait apparaître ce qu'aucune colonne ne portait : qu'une
+    partie de l'écart n'est pas un défaut de l'instrument mais la description
+    exacte de la réalité. **Le meilleur résultat d'un chantier de vue peut être
+    négatif** : « aucune règle n'est fausse ». Ce n'est pas un chantier raté,
+    c'est une hypothèse coûteuse écartée pour de bon.
+  - **Prouver qu'un ancien chiffre a disparu demande la liste de ses valeurs, pas
+    le motif qui les a trouvées.** Un motif trouve tous les nombres, anciens et
+    nouveaux, et ne dit pas lesquels devaient partir. La fiche qui inventorie les
+    chiffres à republier écrit donc aussi la **liste des anciennes valeurs**, dans
+    chaque format où les pages les écrivent (`1,234.5`, `1 234,5`) ; la fiche qui
+    republie la passe au grep et nomme chaque ligne qui reste — historique datée,
+    ou faux positif.
+- **Une hypothèse vraie sur un cas se revérifie sur tous.** Un cas qui colle au
+  token près ne dit rien des autres. Avant de corriger sur la foi d'un cas, la
+  même mesure passe sur tout le lot, et les trois comptes (en entier, en partie,
+  pas du tout) s'écrivent.
+  - **Un filtre qui se trompe se change sur le vrai corpus, règles candidates côte
+    à côte.** La règle intuitive n'est pas la bonne. La règle devient un
+    paramètre, chaque candidate se mesure, l'utilisateur retient ; l'ancienne
+    reste rejouable (`--regle tout`), et les chiffres qu'elle a produits restent,
+    marqués.
 - **Un énoncé renversé se garde, marqué.** On ne remplace pas un chiffre publié
   en silence : le paragraphe périmé reste, avec un renvoi vers ce qui le
   renverse et **par quoi**. Quelqu'un qui grep tombe sur l'ancien texte avant
   le nouveau ; sans marqueur il le lit comme vrai.
-- **Un résultat inchangé ne prouve pas qu'on a mesuré la même chose.** Un
-  chiffre qui ne bouge pas rassure, et c'est exactement pour cela qu'il faut
-  regarder derrière lui. Trois cas, tous trois rencontrés le même jour sur un
-  seul chantier : un **seuil** revalidé à l'identique alors que ce qu'il
-  découpe avait changé de 7 % ; un chiffre publié qui bouge de 0,2 point parce
-  que **deux correctifs le montaient pendant qu'un troisième le descendait** ;
-  et une case qui perd 10 % sans qu'**aucune règle** n'ait changé, seulement
-  parce qu'on a cessé de compter deux fois la même donnée. Le remède est
-  toujours le même : une table **avant / après par cause**, en comptes bruts,
-  jamais un verdict net unique. Un chantier qui joue plusieurs correctifs
-  d'un coup doit pouvoir dire lequel explique quoi — sinon il a corrigé sans
-  savoir quoi.
-- **Un arrondi n'est pas une tolérance.** Grouper des mesures par une clé
-  arrondie coupe à une frontière **arbitraire** : deux valeurs voisines tombent
-  de part et d'autre, deux valeurs éloignées tombent ensemble. Mesuré : une
-  carte s'est retrouvée seule dans son groupe pour **3 cm**, quand ses cinq
-  sœurs portaient le même décalage à un flottement physique près. Quand ce
-  qu'on groupe est une **quantité continue**, la clé est une **distance sous
-  tolérance**, pas un arrondi — et la tolérance se justifie par ce qui fait
-  flotter la mesure, jamais par le chiffre rond le plus proche.
-- **Une norme n'est pas un vecteur, et deux quantités voisines ne sont pas la
-  même.** Résumer un vecteur par sa longueur perd sa direction, donc fait
-  coïncider ce qui n'a rien à voir : une mesure a innocenté une carte à tort
-  parce qu'elle partageait la **norme** de ses voisines, avec **10,9 m**
-  d'écart sur une composante. Avant de conclure d'une coïncidence de nombres,
-  vérifier qu'on compare bien la même **grandeur**, et la comparer **entière**.
-  Le corollaire vaut aussi à l'écriture : deux quantités voisines — la distance
-  à une ligne entière, et la distance à son début — portent des noms distincts,
-  sinon un lecteur les échange sans le voir.
+- Leçon partie dans `lecons-mesure.md` : « Un résultat inchangé ne prouve pas… ».
+- Leçon partie dans `lecons-mesure.md` : « Un arrondi n'est pas une tolérance ».
+- Leçon partie dans `lecons-mesure.md` : « Une norme n'est pas un vecteur… ».
 - **Un commentaire périmé coûte plus cher qu'un chiffre périmé.** Un chiffre
-  faux se remarque — il détonne, on le recoupe. Un commentaire faux *oriente*,
-  et il oriente en silence : il décrit un code qui n'existe plus, et le lecteur
-  suivant part chercher le coupable là où on le lui montre. Mesuré : sur un même
-  chantier, **quatre angles d'analyse indépendants ont accusé le même innocent
-  le même jour**, tous les quatre conduits par deux commentaires périmés —
-  alors qu'une **troisième ligne du même fichier** énonçait déjà le fait juste.
-  Quand une relecture change une règle, le commentaire qui la décrit fait partie
-  de la règle : il se corrige dans le même geste, ou il devient un piège daté.
+  faux se remarque — il détonne, on le recoupe. Un commentaire faux oriente, et
+  il oriente en silence : il décrit un code qui n'existe plus, et le lecteur
+  suivant part chercher le coupable là où on le lui montre. Quand une relecture
+  change une règle, le commentaire qui la décrit fait partie de la règle : il se
+  corrige dans le même geste, ou il devient un piège daté.
 - **Un seuil calé sur une distribution qui ne pouvait pas répondre reste
   arbitraire, même quand il tombe juste.** Avant de lire un histogramme pour
-  choisir une borne, vérifier que la population mesurée peut *contenir* des
-  valeurs des deux côtés de cette borne. Mesuré : une largeur de bande a été
-  choisie sur la distribution des écarts manqués, alors que par construction
-  cette distribution ne pouvait contenir **aucune** valeur sous le seuil
-  envisagé. Le chiffre retenu est resté le bon, mais pour une autre raison que
-  celle écrite — et la raison écrite est ce que la session suivante relira.
-- **Un instrument qui *montre* peut réfuter ce que la mesure *confortait*.**
-  Une sonde qui rend un taux dit *quelle* chose est douteuse, jamais *pourquoi*,
-  et un taux se lit trop facilement comme un taux d'échec. Une vue par cas —
-  une page, un dessin, un rendu — fait apparaître ce qu'aucune colonne ne
-  portait : qu'une partie de l'écart n'est pas un défaut de l'instrument mais la
-  description exacte de la réalité. **Le meilleur résultat d'un chantier de vue
-  peut être négatif** : *aucune règle n'est fausse*. Ce n'est pas un chantier
-  raté, c'est une hypothèse coûteuse écartée pour de bon.
+  choisir une borne, vérifier que la population mesurée peut contenir des
+  valeurs des deux côtés de cette borne : la raison écrite est ce que la session
+  suivante relira.
 - **Un chantier se cite par son code, jamais par son rang** — décision de
   l'utilisateur, prise sur un compte. Un rang bouge à chaque re-tri, et chaque
-  re-tri rend faux tous les renvois qui le citent : un tri a rendu faux
-  **21 renvois vivants dans cinq fichiers** d'un coup, et l'audit revenait à
-  chaque fois. Donner à chaque chantier un code court et stable (`POR`, `LIG`,
-  `GBX`), garder le `#` pour le seul tri, et écrire la correspondance
-  ancien rang → code une fois, en tête du fichier qui les décrit.
-- **Une conclusion recopiée d'une table à l'autre se dégrade en silence.** Un
-  chiffre faux détonne, on le recoupe ; un **énoncé** faux, non — il a la bonne
-  forme, et rien dans le texte ne dit qu'il compare autre chose que ce qu'il
-  annonce. Mesuré : une table de douze énoncés republiée sans être rejouée
-  écrivait **deux fois la même quantité** dans ses deux premières lignes,
-  testait **un autre énoncé que le sien** dans deux autres, portait les chiffres
-  d'après dans sa colonne d'avant, et annonçait en prose **quatre**
-  renversements quand sa propre table en cochait **cinq** — dont un qui, rejoué,
-  **tenait**. Quatre défauts, aucune alarme, et la conclusion fausse a servi de
-  socle au chantier suivant. La parade tient en deux gestes : **chaque ligne
-  nomme les quantités qu'elle compare**, jamais deux nombres nus ; et un
-  **script re-dérive** le verdict depuis les nombres écrits, avant publication.
-  Un verdict qu'aucune machine ne recalcule n'est qu'une phrase.
+  re-tri rend faux tous les renvois qui le citent. Donner à chaque chantier un
+  code court et stable (`POR`, `LIG`, `GBX`), garder le `#` pour le seul tri, et
+  écrire la correspondance ancien rang → code une fois, en tête du fichier qui
+  les décrit.
 - **Une fiche se paie jusqu'à ce qu'elle soit faite — sa reprise comprise.** Un
   statut `FAITE` n'est pas une fiche faite : une case restée vide, et le travail
-  continue hors de la fiche. Mesuré : une fiche enchaînée a coûté 1,53 $ à son
-  commit ; sa reprise à la main — cocher, journal, page — 0,55 $ de plus, que
-  `vlp.py cout`, qui coupe aux commits de fiche, rangeait dans la fiche
-  **suivante**. Le vrai prix, 2,08 $, n'était écrit nulle part, et la suivante
-  paraissait plus chère qu'elle n'était. Une reprise se mesure sur la plage de
-  ses propres commits, et s'ajoute à la fiche qu'elle termine.
+  continue hors de la fiche. Une reprise se mesure sur la plage de ses propres
+  commits, et s'ajoute à la fiche qu'elle termine.
 - **Un essai part d'un bac, ou se déclare.** `vlp.py cout` ne voit un essai `claude -p`
   que lancé d'un bac du scratchpad de la session. Lancé ailleurs — une copie du kit, un
   worktree jetable —, il se déclare au lancement : `vlp.py essai "<dossier de
   ~/.claude/projects/>"`, glob permis (`MET2`, 2026-10-07).
 - **Une définition d'agent se charge au démarrage de la session — pas à la
   volée.** Mesurer l'effet d'un changement dans `agents/*.md` sur une session
-  déjà ouverte mesure l'ancienne définition. Mesuré : une phrase ajoutée à
-  `agents/fiche.md` (chantier `GLO`) a été jugée « sans effet » sur une session
-  qui avait démarré 21 minutes **avant** le commit, sans `/reload-plugins`
-  (chantier `FOR`). Rejouée après relance de l'app, la même phrase changeait
-  nettement la mesure. Avant de mesurer la forme d'un sous-agent après un
-  changement d'agent : relancer l'app, ou au moins vérifier que la session
-  parente a démarré après le commit. Un **script de hook**, lui, est relu à chaque
-  appel : le gardien changé a jugé en vrai sans relance (chantier `JUG`).
-- **Un filtre qui se trompe se change sur le vrai corpus, règles candidates côte à
-  côte.** La règle intuitive n'est pas la bonne. Mesuré (chantier `JUG`) sur 29 vrais
-  sous-agents : « après le dernier `---` » ne changeait rien — aucun message n'en
-  portait — et « les deux dernières lignes » laissait passer 3 vraies fautes ; seule
-  « le mot ouvre une ligne » retirait les 2 faux renvois sans rien rater. La règle
-  devient un paramètre, chaque candidate se mesure, l'utilisateur retient ; l'ancienne
-  reste rejouable (`--regle tout`), et les chiffres qu'elle a produits restent, marqués.
+  déjà ouverte mesure l'ancienne définition. Avant de mesurer la forme d'un
+  sous-agent après un changement d'agent : relancer l'app, ou au moins vérifier
+  que la session parente a démarré après le commit. Un **script de hook**, lui,
+  est relu à chaque appel.
 - **Un fait qui dit comment écrire un fichier se revérifie au moment d'écrire —
   même marqué « mesuré ».** Fins de ligne, encodage, séparateur : une commande les
-  tranche en une seconde. Mesuré sur cairn : le socle de deux chantiers de suite
-  (`PUB`, puis `REP`) disait trois pages en CRLF, le second avec leurs comptes de
-  lignes et « mesuré le 2026-09-27 » ; `git ls-files --eol` les disait LF, dans
-  l'index et sur le disque. `PUB` l'avait écrit dans son bilan, et le cadrage
-  suivant ne l'a pas vu : il relit son socle, pas les bilans. Un fait réfuté se
-  corrige **là où il sera relu**, pas seulement dans le bilan qui le réfute.
-- **Prouver qu'un ancien chiffre a disparu demande la liste de ses valeurs, pas le
-  motif qui les a trouvées.** Un motif trouve tous les nombres, anciens et nouveaux,
-  et ne dit pas lesquels devaient partir. La fiche qui inventorie les chiffres à
-  republier écrit donc aussi la **liste des anciennes valeurs**, dans chaque format
-  où les pages les écrivent (`1,234.5`, `1 234,5`) ; la fiche qui republie la passe
-  au grep et nomme chaque ligne qui reste — historique datée, ou faux positif.
-  Mesuré sur cairn (`REP`) : le critère de la dernière fiche citait « la liste de
-  `REP1` », que `REP1` n'avait pas écrite — elle avait grepé un motif. Refaite depuis
-  la table de `REP3` : **86** valeurs, **33** lignes touchées, **25** historiques
-  datées, **8** faux positifs (une valeur courte prise dans un autre nombre, `139`
-  dans `117 139`).
+  tranche en une seconde. Un fait réfuté se corrige **là où il sera relu**, pas
+  seulement dans le bilan qui le réfute.
 - **La TODO ne grossit pas sans deux oui de l'utilisateur** — décision de
   l'utilisateur, le 2026-09-25, contre le *scope creep*. Chaque chantier laisse
   des restes ; versés tels quels, ils ouvrent du travail que personne n'a choisi.
-  Mesuré le 2026-09-25 dans `context AI/08-etat.md` : des entrées 31 à 68, soit
-  38, le kit en a créé 32 de lui-même (clôtures, cadrages, une fiche), 2 sont
-  nées d'une demande de l'utilisateur, 4 sans origine notée ; 21 lignes restent
-  ouvertes. D'où :
+  D'où :
   - **Ce qu'on repère en passant ne se fait pas, et ne s'écrit pas seul dans la
     TODO.** Une fiche le signale dans son compte rendu, sans plus.
   - **Premier oui — l'idée.** Une question à elle seule, précédée de sa
@@ -195,12 +131,7 @@ Elles sont écrites ici, et nulle part ailleurs : le reste du kit y renvoie.
   le propre du projet : son coût par fiche, ses tours, ses fichiers. Le web dit
   le général, la mesure dit le nôtre ; un chiffre du fournisseur que personne n'a
   refait se dit tel. Une contrainte du projet prime, et se dit : les scripts du
-  kit restent sans dépendance. Mesuré : le graphique des coûts des pages, dessiné
-  à la main, passé à Chart.js ; `PAR7`, 10,13 $ pour comparer trois modèles sur
-  deux fiches, quand le guide de coût de la skill `claude-api` écartait déjà
-  Haiku 4.5 des longues boucles d'agent et donnait la méthode (tout en effort
-  bas, relancer les échecs plus haut) — restait seulement le coût par fiche dans
-  le kit.
+  kit restent sans dépendance.
 - **L'effort se règle selon la tâche, et se dit avant** — décision de
   l'utilisateur, le 2026-10-04. Plus bas pour le mécanique (lancer un script,
   publier, commiter, mesurer), plus haut pour ce qui se conçoit ou se débogue.

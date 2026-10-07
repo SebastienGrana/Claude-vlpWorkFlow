@@ -52,7 +52,7 @@ et seulement dans ce cas, ouvrir l'index.
 |---|---|
 | modifier une commande | `skills/<nom>/SKILL.md` — celle-là seule |
 | modifier le sous-agent ou le contrat de `/vlp:enchainer` | `skills/jouer/SKILL.md`, `agents/fiche.md`, ou `enchainement.md` |
-| changer une règle de méthode | `methode-chantier.md`, `cloture.md` pour la clôture, ou `nuit.md` pour la nuit |
+| changer une règle de méthode, ou en chercher la preuve | `methode-chantier.md`, `lecons-mesure.md` pour sa preuve mesurée, `cloture.md` pour la clôture, ou `nuit.md` pour la nuit |
 | savoir où vit quoi dans un projet équipé | `methode-chantier.md`, section « Où vit quoi » |
 | toucher aux pages publiées | `ARTEFACTS.md`, puis le gabarit dans `templates/` |
 | ouvrir un chantier, ou le découper en fiches | **lancer `/vlp:chantier`** |

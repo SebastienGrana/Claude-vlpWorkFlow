@@ -7,7 +7,7 @@ Une méthode rangée et complétée par ce qui est publié, des commandes align�
 - MET3 : billet lu (pas de medium contre xhigh) ; juge rebâti, à blanc sur VIT23 : suite OK, pyright 0, verifier( 815 → 820, cliquet 955/1 touchée/9 neuves ; choisi : VIT12, borne 55 $, go
 - MET4 : 8 essais cochés, relecteur 8/8 ACCEPTÉE ; xhigh +78 % de $ sur medium (9,70 contre 5,44 $) sans gain mesuré ; total juge 20,82 $, cout 20,85 $ (17 essais, dont 1 imbriqué à 0,03 $)
 - MET5 : Les familles de ruff adoptées, réglées ou écartées ; le code non corrigé.
-- MET6 : Les 21 règles : restent, partent dans un fichier de leçons, ou se fondent.
+- MET6 : Réponses 25/25 ; 22 titres à leur place (15 restées, 3 parties, 4 fondues) ; methode-chantier.md 456 → 387 lignes, lecons-mesure.md 140 ; renvois 0 absent, suite verte
 - MET7 : La section Coder dans le kit, la règle de l'effort à jour ; après MET1, MET2, MET4 à MET6.
 - MET8 : Cinq commandes et les deux agents alignés sur la méthode ; après MET7.
 - MET9 : Trois commandes et la doctrine voisine alignées ; après MET7.
