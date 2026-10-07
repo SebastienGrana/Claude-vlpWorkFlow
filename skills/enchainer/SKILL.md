@@ -42,7 +42,7 @@ quelles. `GARDE:` : montre-la, rien d'autre.
 
 La carte du projet, lue avant ton premier tour :
 
-!`py -3 "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python "py -3"; python3 "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python python3 --relais; py -3 "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python "py -3" --relais; echo fin`
+!`py -3 "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python "py -3" --enchaine; python3 "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python python3 --relais --enchaine; py -3 "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python "py -3" --relais --enchaine; echo fin`
 
 `PROJET=` : c'est le projet, `CHANTIER.md` suit. `VOISIN=… alias=…` : un
 workspace — `vlp:jouer` ne joue que le projet du dossier courant ; dis-le, et

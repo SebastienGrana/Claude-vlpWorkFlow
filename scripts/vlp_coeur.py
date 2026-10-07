@@ -382,12 +382,40 @@ def places_de_session(lignes, session):
     return places
 
 
+SESSION_SURE = re.compile(r"[0-9A-Za-z-]+\Z")
+
+
+def marque_enchaine(session):
+    """Le chemin de la marque `vlp-enchaine-<session>` dans le dossier temporaire (ARP3), ou None si l'id n'est pas
+    fait de chiffres, lettres et tirets : il entre dans un nom de fichier."""
+    if not SESSION_SURE.match(session):
+        return None
+    return os.path.join(tempfile.gettempdir(), "vlp-enchaine-%s" % session)
+
+
+def poser_marque_enchaine():
+    """Poser (ou rafraîchir) la marque de la session de `CLAUDE_CODE_SESSION_ID` — `carte --enchaine`, ARP3. Id vide
+    ou hors de `SESSION_SURE` : rien. Une écriture refusée se dit sur stderr, la carte continue."""
+    marque = marque_enchaine(os.environ.get("CLAUDE_CODE_SESSION_ID", "").strip())
+    if not marque:
+        return
+    try:
+        with open(marque, "w", encoding="utf-8"):
+            pass
+    except OSError as e:
+        sys.stderr.write("vlp: marque %s non posée : %s\n" % (marque, e))
+
+
 def avertir_session(chemin, neuve, sortie):
     """Écrire `AVERTISSEMENT:` quand `neuve` et que la session de `CLAUDE_CODE_SESSION_ID` est déjà notée dans le
     fichier de fiches `chemin` — au cadrage ou sous une fiche : une fiche, une session neuve (VIT20). Id vide ou
-    absent : rien. `VLP_NUIT=1` : rien — la nuit note elle-même l'id de la session `clore` avant de la lancer."""
+    absent : rien. `VLP_NUIT=1` : rien — la nuit note elle-même l'id de la session `clore` avant de la lancer.
+    La marque de cette session (`marque_enchaine`, posée par l'injection de `/vlp:enchainer`) : rien (ARP3)."""
     s = os.environ.get("CLAUDE_CODE_SESSION_ID", "").strip()
     if not neuve or not s or os.environ.get("VLP_NUIT") == "1":
+        return
+    marque = marque_enchaine(s)
+    if marque and os.path.exists(marque):   # ARP3 : /vlp:enchainer joue ses fiches à la suite dans cette session
         return
     places = places_de_session(lignes_de(chemin), s)
     if places:
@@ -434,8 +462,11 @@ def carte_injectee(depart, python, relais, sortie, **options):
 
 
 def cmd_carte(a, sortie):
-    """Lancer `vlp.py carte` : injectée avec `--python`, nue sinon."""
+    """Lancer `vlp.py carte` : injectée avec `--python`, nue sinon. `--enchaine` pose la marque à chaque appel, relais
+    compris : sous Ubuntu, le premier appel de l'injection échoue."""
     depart = a.dossier or os.getcwd()
+    if a.enchaine:
+        poser_marque_enchaine()
     if a.python:
         return carte_injectee(depart, a.python, a.relais, sortie, relecteur=a.relecteur, neuve=a.session_neuve)
     return carte(depart, sortie, a.relecteur, a.session_neuve)
@@ -8137,6 +8168,7 @@ def options_carte(sous):
     c.add_argument("--relais", action="store_true")
     c.add_argument("--relecteur", action="store_true")
     c.add_argument("--session-neuve", action="store_true")
+    c.add_argument("--enchaine", action="store_true")
 
 
 def options_mesure(sous):

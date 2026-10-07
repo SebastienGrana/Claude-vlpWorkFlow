@@ -21,9 +21,9 @@
     <p>Une vraie session claude -p va au bout d'une fiche qui lance une commande longue ; la carte ne crie plus « /clear d'abord » sous /vlp:enchainer ; les fichiers vlp-carte-* ne s'entassent plus.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">4 fiches · 2 faites · en cours : ARP3</p>
+    <p class="mono" style="margin-top:.5rem">4 fiches · 3 faites · en cours : ARP4</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -45,16 +45,17 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">ARP2</span></span>
         <details><summary><span class="titre">Essayer la consigne sur une vraie session -p</span><span class="etat">Faite</span></summary>
         <span class="note">boucle.py : F1 cochée, ARRÊT plafond de 1 fiches, 6 tours, 240 s ; trace : PowerShell sleep 200 avec timeout 400000, sans run_in_background, résultat FINI ; essai 0,59 $ (estimé 1,5 à 2 $). Prouve « pas morte », pas « grâce à la consigne » : une session, sans témoin</span></details>
-        <span class="cout mono">≈2,4M (2 367 747) · 18 tours · 1,28 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">ARP3</span></span>
-        <details open><summary><span class="titre">Taire l'alerte quand enchainer joue</span><span class="etat">En cours</span></summary>
-        <span class="note">La carte se tait quand /vlp:enchainer joue, grâce à une marque posée par sa carte.</span></details></li>
-      <li class="fiche" data-attend><span class="gauche"><span class="id">ARP4</span></span>
-        <details><summary><span class="titre">Faire le ménage des tampons de la carte</span><span class="etat">Après ARP3</span></summary>
+        <span class="cout mono">≈2,5M (2 543 366) · 19 tours · 1,33 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">ARP3</span></span>
+        <details><summary><span class="titre">Taire l'alerte quand enchainer joue</span><span class="etat">Faite</span></summary>
+        <span class="note">test-vlp.py OK (145 s) : ARP3 9 contrôles, VIT20 + NIV1 + ARP3 27, NIV1 6 ; mutant ARP3 ATTRAPÉ 1 écart ; pyright 0 erreur sur 3 fichiers ; tester_niv1_injection ne compare pas enchainer, rien à y admettre</span></details>
+        <span class="cout mono">≈3,0M (2 989 209) · 15 tours · 1,12 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">ARP4</span></span>
+        <details open><summary><span class="titre">Faire le ménage des tampons de la carte</span><span class="etat">En cours</span></summary>
         <span class="note">Le ménage des fichiers vlp-carte-* et des marques d'ARP3 ; dépend d'ARP3.</span></details></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈3,9M (3 861 665) · 27 tours · 2,50 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈10,7M (10 722 436) · 79 tours · 5,88 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈13,9M (13 887 264) · 95 tours · 7,05 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

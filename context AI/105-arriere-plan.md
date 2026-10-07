@@ -120,8 +120,9 @@ lu par `vlp.py cout`, à côté de l'estimé (~1,5 à 2 $).
 ---
 
 <!-- FICHE:ARP3 -->
-## ARP3 [ ] — Taire l'alerte quand `enchainer` joue
+## ARP3 [x] — Taire l'alerte quand `enchainer` joue
 
+**Session** : 8192d019-ec3d-4e85-bb48-6f9fb56b8259
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp_coeur.py`, `skills/enchainer/SKILL.md`, `scripts/test-vlp.py`, `scripts/vlp.py`
 (sa docstring) — et rien d'autre.

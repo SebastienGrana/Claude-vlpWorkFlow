@@ -34,6 +34,9 @@ Sous-commandes :
   `--session-neuve` (l'injection de `/vlp:tache` seule) : après `PROCHAINE=`, `AVERTISSEMENT: session déjà notée
   dans ce fichier de fiches (<cadrage, fiches>) — /clear d'abord …` si l'id de `CLAUDE_CODE_SESSION_ID` est sur une
   ligne `**Session**` du fichier courant ; id vide ou absent, ou `VLP_NUIT=1` : rien (VIT20).
+  `--enchaine` (l'injection de `/vlp:enchainer` seule) : pose la marque `vlp-enchaine-<id>` du même id dans le
+  dossier temporaire, à chaque appel, relais compris (id hors chiffres, lettres et tirets : rien) ; cette marque
+  fait taire l'`AVERTISSEMENT:` pour sa session (ARP3).
 - `extraire <fichier> <fiche>` — la fiche entre ses marqueurs, marqueurs
   compris, puis `--- fiche, lignes : N`. Sans marqueurs, repli sur le titre
   jusqu'au premier `---`, annoncé par une `GARDE`. Absente : sort 1. Critère

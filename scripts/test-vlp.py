@@ -2548,6 +2548,55 @@ def tester_vit20_session_neuve():
 
 groupe(tester_vit20_session_neuve)
 
+
+def tester_arp3_marque():
+    """Contrôler `carte --enchaine` : la marque de la session fait taire l'AVERTISSEMENT: de VIT20, celle d'une autre
+    session non (ARP3). Chaque cas dans son propre dossier temporaire, qui sert aussi de `tempfile.tempdir`."""
+    enchainer = [["--python", "py -3", "--enchaine"], ["--python", "python3", "--relais", "--enchaine"],
+                 ["--python", "py -3", "--relais", "--enchaine"]]
+
+    def cas(session_marque, session_tache, appels):
+        """Le projet de VIT20 dans un dossier neuf : `appels` (options de `carte`, l'injection d'enchainer) sous
+        `session_marque`, puis la carte de /vlp:tache sous `session_tache`. Rendre (sa sortie, les marques posées)."""
+        ancien = tempfile.tempdir
+        with tempfile.TemporaryDirectory() as bac:
+            pr = os.path.join(bac, "pr")
+            ecrire(os.path.join(pr, "CHANTIER.md"), CHANTIER % ("pr", "context AI/20-z.md (ZZZ1..ZZZ3)"))
+            ecrire(os.path.join(pr, "context AI", "20-z.md"), FICHES_VIT20)
+            tempfile.tempdir = bac
+            try:
+                carte_sous(pr, session_marque, argv=[["carte", pr] + x for x in appels])
+                s = carte_sous(pr, session_tache, argv=[["carte", pr, "--python", "py -3", "--session-neuve"]])
+                marques = sorted(os.path.basename(m) for m in glob.glob(os.path.join(bac, "vlp-enchaine-*")))
+            finally:
+                tempfile.tempdir = ancien
+        return s, marques
+
+    s, marques = cas("joue-1", "joue-1", enchainer)
+    verifier("ARP3 : l'injection d'enchainer pose la marque de sa session, la carte de tache s'y tait",
+             marques == ["vlp-enchaine-joue-1"] and "AVERTISSEMENT:" not in s and s.endswith("PROCHAINE=ZZZ3\n"),
+             (marques, s))
+    s, marques = cas("autre-1", "joue-1", enchainer)
+    verifier("ARP3 : la marque d'une autre session → l'AVERTISSEMENT: sort encore",
+             marques == ["vlp-enchaine-autre-1"] and s.endswith(AVERTI_VIT20 % "ZZZ1, ZZZ2"), (marques, s))
+    s, marques = cas("joue-1", "joue-1", enchainer[1:])
+    verifier("ARP3 : les appels relais seuls posent la marque (sous Ubuntu, le premier appel échoue)",
+             marques == ["vlp-enchaine-joue-1"] and "AVERTISSEMENT:" not in s, (marques, s))
+    for sid in (None, "", "../joue-1", "a/b", "joue 1"):
+        s, marques = cas(sid, "joue-1", enchainer)
+        verifier("ARP3 : id %r → aucune marque, l'AVERTISSEMENT: sort" % (sid,),
+                 marques == [] and s.endswith(AVERTI_VIT20 % "ZZZ1, ZZZ2"), (marques, s))
+
+    porteurs = sorted(os.path.basename(os.path.dirname(c)) for c in glob.glob(os.path.join(RACINE, "skills", "*", "SKILL.md"))
+                      if "--enchaine" in io.open(c, encoding="utf-8").read())
+    texte = io.open(os.path.join(RACINE, "skills", "enchainer", "SKILL.md"), encoding="utf-8").read()
+    ligne = next((l for l in texte.splitlines() if l.startswith("!`") and "vlp.py" in l), "")
+    verifier("ARP3 : --enchaine sur les trois appels de l'injection de /vlp:enchainer, dans aucune autre skill",
+             porteurs == ["enchainer"] and ligne.count("--enchaine") == 3, (porteurs, ligne))
+
+
+groupe(tester_arp3_marque)
+
 # --- NIV2 : `niveau` dit en quoi un projet équipé a dérivé du kit -------------
 
 ETAT_NIV = ("# État\n\n"
