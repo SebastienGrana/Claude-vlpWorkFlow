@@ -62,9 +62,9 @@ def projet(t, visuel=None, tentatives=None):
     return FAUX_CLAUDE
 
 
-def boucle(t, faux, plafond, rate="", options=()):
+def boucle(t, faux, plafond, rate="", options=(), **pilotes):
     env = dict(os.environ, VLP_FAUX_VLP=os.path.join(ICI, "vlp.py"), VLP_FAUX_RATE=rate,
-               PYTHONIOENCODING="utf-8")
+               PYTHONIOENCODING="utf-8", **pilotes)
     r = subprocess.run([sys.executable, os.path.join(ICI, "boucle.py"), t, "--plafond", str(plafond),
                         "--claude", faux, "--traces", t] + list(options), env=env, capture_output=True, text=True, encoding="utf-8")
     with open(os.path.join(t, "fiches.md"), encoding="utf-8") as h:
@@ -1728,10 +1728,32 @@ def tester_parties():
              and all(r[1] == "ÉCART: partie 0\nÉCART: partie 1\n" and r[2] == "err\nerr\n" for r in rendus), rendus)
 
 
+def tester_premier_plan():
+    """ARP1 : toute session, sans `--nuit` comme sous `--nuit`, reçoit `--append-system-prompt PREMIER_PLAN`."""
+    def consignes(journal):
+        """Pour chaque lancement du journal : le texte qui suit `--append-system-prompt`, ou None."""
+        return [a[a.index("--append-system-prompt") + 1] if "--append-system-prompt" in a[:-1] else None
+                for a in journal_de(journal)]
+
+    with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors:
+        journal = os.path.join(hors, "argv.jsonl")
+        code, s, cases = boucle(t, projet(t), 1, VLP_FAUX_ARGV=journal)
+        simple = consignes(journal)
+    with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors:
+        depot(t)
+        journal = os.path.join(hors, "argv.jsonl")
+        code_n, s_n = nuit(t, "--canal", "A", "--chantier", "X", traces=hors, VLP_FAUX_ARGV=journal)
+        de_nuit = consignes(journal)
+    verifier("ARP1 : la session sans --nuit (1) et toutes celles de --nuit (jouer et relire) reçoivent "
+             "--append-system-prompt suivi de PREMIER_PLAN — mutant : l'option retirée de `commun`",
+             code == 0 and simple == [bmod.PREMIER_PLAN] and code_n == 0 and len(de_nuit) >= 2
+             and all(c == bmod.PREMIER_PLAN for c in de_nuit), (simple, de_nuit, s, s_n))
+
+
 PARTIES = {"simple": tester_simple, "faux": tester_faux, "nuit": tester_nuit, "plafonds": tester_plafonds,
            "relecture": tester_relecture, "relance": tester_relance, "canal": tester_canal, "herite": tester_herite,
            "reprise": tester_reprise, "lanceur": tester_lanceur, "dans_processus": tester_vlp_dans_processus,
-           "parties": tester_parties}
+           "premier_plan": tester_premier_plan, "parties": tester_parties}
 EN_PARALLELE = (("canal",), ("relecture", "reprise"), ("herite", "lanceur"))
 
 

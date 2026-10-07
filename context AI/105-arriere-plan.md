@@ -67,8 +67,9 @@ du kit. Mesurer l'effet du ménage sur la vitesse de la carte.
 ---
 
 <!-- FICHE:ARP1 -->
-## ARP1 [ ] — Donner la consigne « premier plan » à toute session `-p`
+## ARP1 [x] — Donner la consigne « premier plan » à toute session `-p`
 
+**Session** : 8192d019-ec3d-4e85-bb48-6f9fb56b8259
 **Dépend de** : rien.
 **Fichiers** : `scripts/boucle.py`, `scripts/test-boucle.py` — et rien d'autre.
 

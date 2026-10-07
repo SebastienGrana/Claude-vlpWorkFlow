@@ -26,6 +26,8 @@ tours · <coût> $ · <s> s`. Sort 0 sur un arrêt prévu (plafond, aucune, visu
 Un `--claude` en `.py` se lance par ce Python : c'est le faux `claude` des tests.
 Permissions : `--permission-mode`, `auto` par défaut — personne ne répond en `-p` —,
 plus `git add` et `git commit` (`AUTORISES`), sauf `--amend` et `--no-verify` en tête.
+Consigne : `--append-system-prompt PREMIER_PLAN` à toute session, `--nuit` ou non (ARP1) — en `-p`, rendre la main
+pour attendre une commande en arrière-plan finit la session (8 sur 11 mortes à VIT25).
 Traces : `--traces`, sinon un dossier temporaire neuf `vlp-boucle-*`, gardé.
 
 `--nuit` (chantier NUI) tient le carnet de `carnet.py` et ouvre `--canal` (exigé), `--chantier` (sans lui : la
@@ -171,6 +173,10 @@ INTERDITS = [outil + "(git commit %s:*)" % o for outil in ("Bash", "PowerShell")
              for o in ("--amend", "--no-verify", "-n")]
 # Découper et relire n'écrivent jamais dans Git : `git add` et `git commit` leur restent refusés.
 NON_GIT = [outil + "(git %s:*)" % c for outil in ("Bash", "PowerShell") for c in ("add", "commit")]
+# Ajoutée au prompt système de toute session (ARP1). 600 000 ms : le timeout le plus long qu'accepte l'outil Bash.
+PREMIER_PLAN = ("Session non interactive (claude -p) : rendre la main la termine. Lance chaque commande au premier "
+                "plan, jamais en arrière-plan (pas de run_in_background), avec un timeout jusqu'à 600000 ms. "
+                "N'attends aucune notification : rien ne te réveillera.")
 
 OPUS, SONNET = "claude-opus-5-5", "claude-sonnet-5-5"
 REPLI_OPUS = "claude-opus-5,claude-sonnet-5-5"   # socle de NUI, « Modèles par rôle » : pointé, pas décidé ici
@@ -423,7 +429,8 @@ def commande(claude, role, fiche, a, modele, session, suite=""):
     """La ligne de commande d'une session. Sans `--nuit` : celle d'avant les rôles (REG).
     `suite` : ce qui s'ajoute au prompt du rôle (` --sha HEAD` pour relire)."""
     cmd = [sys.executable, claude] if claude.endswith(".py") else [claude]
-    commun = ["--output-format", "stream-json", "--verbose", "--permission-mode", a.permission_mode]
+    commun = ["--output-format", "stream-json", "--verbose", "--permission-mode", a.permission_mode,
+              "--append-system-prompt", PREMIER_PLAN]
     if not a.nuit:  # sans --nuit : la commande d'aujourd'hui, la table ne sert pas
         cmd += ["-p", "/vlp:tache %s" % fiche] + commun
         cmd += ["--allowedTools"] + AUTORISES + ["--disallowedTools"] + INTERDITS
