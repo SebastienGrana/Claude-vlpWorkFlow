@@ -93,8 +93,9 @@ Mutant : `py -3 scripts/vlp.py mutant scripts/boucle.py` sur l'ajout de `--appen
 ---
 
 <!-- FICHE:ARP2 -->
-## ARP2 [ ] — Essayer la consigne sur une vraie session `-p`
+## ARP2 [x] — Essayer la consigne sur une vraie session `-p`
 
+**Session** : 8192d019-ec3d-4e85-bb48-6f9fb56b8259
 **Dépend de** : `ARP1`.
 **Fichiers** : `scripts/boucle.py` (lancé, pas modifié), un dossier d'essai dans le scratchpad — et rien d'autre.
 
