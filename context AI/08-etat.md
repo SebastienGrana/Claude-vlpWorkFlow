@@ -2835,3 +2835,36 @@ Les mesures de `VIT1`, rejouées par ses commandes (script `vit13-mesures.sh`, r
 - Gardées : le rejeu des 12 essais (série 2), et la clôture de VIT laissée à l'utilisateur. VIT se clôt, puis `MET`.
 - Les 23 copies d'essai retirées (128 Mo), les 26 branches `vit25/…` gardées ; les 8 essais morts de la série 1 avaient leur travail non commité : il est commité dans leur branche (« état de l'essai … à sa mort »), pour lecture seulement.
 - `CLAUDE.md` resserré à 80 lignes (règle 4 recoupée, mêmes mots, `d7524ab`) ; la ligne « Clos » la plus ancienne se retire à la clôture. La cause du 81 est `VIT5` (`b933064`), et non `2edc69b`, comme dit d'abord en séance.
+
+## 2026-10-07 — MET1 — ce qui existe
+
+- **La page** : https://claude.ai/artifact/RQmxXVkzkgeCV6B37uqtN4 (page à cartes, 17 questions) ; réponses collées par l'utilisateur le 2026-10-07, 17 sur 17.
+- **Les sources** :
+  - « Best practices for Claude Code », https://code.claude.com/docs/en/best-practices — doc officielle, lue en entier le 2026-10-07 ; la page ne donne pas de date de mise à jour.
+  - « Skill authoring best practices », https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices — doc officielle, lue en entier le 2026-10-07 (l'ancienne adresse `docs.claude.com/…` y renvoie, 302).
+  - Vues **en extrait de recherche seulement**, pages non ouvertes : Pylint « too-many-lines / C0302 » (https://pylint.readthedocs.io/en/stable/user_guide/messages/convention/too-many-lines.html, doc officielle de l'outil) ; PEP 8 (https://peps.python.org/pep-0008/) ; argparse, « Sub-commands » (https://docs.python.org/3/library/argparse.html) ; « Creating and packaging command-line tools » (https://packaging.python.org/guides/creating-command-line-tools/). Q8, Q9, Q11 et Q10 se revérifient sur leur page avant d'en écrire la règle.
+- **Coût de la recherche** : 6 recherches, 2 pages lues (plafonds du socle : 2 recherches par sujet, 2 pages).
+
+| Q | La pratique (section de la source) | Réponse | Ce que MET7 et la suite en font |
+|---|---|---|---|
+| Q1 | Donner à Claude un moyen de vérifier (« Give Claude a way to verify its work ») | adopter | citer la source à côté du critère de fin — déjà là |
+| Q2 | Lire, planifier, coder, commiter ; pas de plan si la modif se dit en une phrase (« Explore first, then plan, then code ») | adapter | garder les trois temps, ajouter l'exception « une modif qui se dit en une phrase se fait sans fiche » |
+| Q3 | Une spec autoportante, puis une session neuve (« Let Claude interview you ») | adopter | citer la source à côté de l'anatomie d'une fiche — déjà là |
+| Q4 | Un `CLAUDE.md` court, le test d'une ligne, un hook pour l'obligatoire (« Write an effective CLAUDE.md », « Set up hooks ») | adapter | le test d'une ligne dans la méthode, passé sur `CLAUDE.md` ; « Où on en est » gardé, tenu par `vlp.py clore` |
+| Q5 | Insister sur une ligne seule (même section) | adapter | le gras de lecture gardé ; un mot fort réservé à une règle ignorée deux fois |
+| Q6 | `/clear` après deux corrections ratées (« Course-correct early and often ») | adopter | citer la source à côté des deux tentatives de `/vlp:tache` — déjà là |
+| Q7 | Le relecteur ne signale que l'exactitude et les exigences (« Add an adversarial review step ») | adopter | une ligne au contrat du relecteur, `agents/relecture.md` |
+| Q8 | Un fichier Python sous 1 000 lignes (Pylint C0302, réglage par défaut) | adapter | un cliquet : aucun fichier ne grossit, un nouveau reste sous 1 000 ; la découpe à `REF` |
+| Q9 | Noms de modules en minuscules, tiret bas permis (PEP 8) | adapter | les nouveaux fichiers en tiret bas, les 5 anciens gardés ; sa question ci-dessous |
+| Q10 | Le paquet installable : `src/`, `pyproject.toml`, `pipx` (Packaging guide) | adapter | un `pyproject.toml` pour les seuls réglages des outils d'atelier (ruff, pyright) |
+| Q11 | Chaque sous-commande porte sa fonction, `set_defaults(func=…)` (argparse) | adopter | la règle dans la méthode ; la conversion des 33 `if a.cmd ==` (`scripts/vlp_coeur.py:8138`) confiée à `REF` |
+| Q12 | Le déterministe en script, des erreurs qui aident, des seuils justifiés (« Solve, don't defer », « Provide utility scripts ») | adapter | citer la source ; « un seuil porte sa raison » pour les nouveaux seuils |
+| Q13 | Les essais d'abord, un essai par modèle (« Build evaluations first », « Test with all models you plan to use ») | adapter | trois scénarios pour une commande nouvelle, un essai par modèle prévu |
+| Q14 | Court, une seule façon par défaut (« Concise is key », « Avoid offering too many options ») | adopter | citer la source ; un crible pour relire les commandes à MET8 et MET9 |
+| Q15 | `SKILL.md` sous 500 lignes, renvois à un niveau, sommaire au-delà de 100 lignes (« Progressive disclosure patterns ») | adapter | un sommaire à la main sur la doctrine de plus de 100 lignes, à MET7 |
+| Q16 | Un terme, partout (« Use consistent terminology ») | adapter | la règle seule, sans liste des termes |
+| Q17 | Pas d'information qui se périme (« Avoid time-sensitive information ») | adapter | la date gardée entre parenthèses, le récit déplacé au journal |
+
+- **Face au conseil de la page** : 16 réponses sur 17 suivent le choix conseillé. L'écart : **Q10**, « adapter » contre « écarter » conseillé — le fichier `pyproject.toml` n'est dans aucune fiche de MET : à placer à MET10.
+- **Sa question sur Q9**, mot pour mot : « faire la migration en fin de todo ? » — 💡 oui, mais plutôt fondue dans `REF` qu'en ligne à part : renommer les 5 scripts touche les mêmes appelants (commandes, hooks, `scripts/test-vlp.py`) que la découpe de `vlp_coeur.py` (Q8) et l'aiguillage (Q11). Le versement se tranche à MET10, avec son accord (règle « La TODO ne grossit pas »).
+- **Hors de MET** (D1 du socle) : la découpe (Q8), la conversion de l'aiguillage (Q11) et le renommage (Q9) vont à `REF`, re-cadré seulement.

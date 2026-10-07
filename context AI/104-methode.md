@@ -72,8 +72,9 @@ Une fiche à la fois : `MET4` lance des sessions `claude -p` longues, sur 8 Go d
 ---
 
 <!-- FICHE:MET1 -->
-## MET1 [ ] — Chercher ce qui existe, et le présenter
+## MET1 [x] — Chercher ce qui existe, et le présenter
 
+**Session** : 240bd893-1e58-426c-bd93-728f652a2820
 **Dépend de** : rien.
 **Fichiers** : la page à cartes (scratchpad, depuis `templates/rapport-choix.html`), `context AI/08-etat.md` (une entrée au journal) — et rien d'autre.
 

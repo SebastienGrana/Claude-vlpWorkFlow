@@ -464,7 +464,7 @@
 {"fichier": "scripts/test-vlp.py", "fonction": "tester_mutant_attendu.mutant", "empreinte": "cdc048e9ffd1", "ast": [1, 0, 1, 4, 0], "doc": true},
 {"fichier": "scripts/test-vlp.py", "fonction": "tester_mutant_vise", "empreinte": "d9ed6c4924ac", "ast": [2, 0, 0, 26, 2], "doc": true},
 {"fichier": "scripts/test-vlp.py", "fonction": "tester_mutant_vise.mutant", "empreinte": "6d2c0f229624", "ast": [1, 1, 3, 10, 0], "doc": true},
-{"fichier": "scripts/test-vlp.py", "fonction": "tester_niv1_injection", "empreinte": "6e07f19def29", "ast": [6, 5, 0, 28, 4], "doc": true},
+{"fichier": "scripts/test-vlp.py", "fonction": "tester_niv1_injection", "empreinte": "a2ef4bc17525", "ast": [6, 5, 0, 29, 4], "doc": true},
 {"fichier": "scripts/test-vlp.py", "fonction": "tester_niv2_a_niveau", "empreinte": "749f9614689d", "ast": [1, 0, 0, 24, 1], "doc": true},
 {"fichier": "scripts/test-vlp.py", "fonction": "tester_niv2_ecarts", "empreinte": "e679886d5d60", "ast": [1, 0, 0, 16, 1], "doc": true},
 {"fichier": "scripts/test-vlp.py", "fonction": "tester_niv3", "empreinte": "07d25f25adc4", "ast": [1, 0, 0, 33, 1], "doc": true},

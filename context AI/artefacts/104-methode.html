@@ -21,9 +21,9 @@
     <p>Une méthode rangée et complétée par ce qui est publié, des commandes alignées sur elle, une TODO relue avec elle — et deux mesures : les essais hors bac comptés, xhigh contre medium.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">10 fiches · 0 faite · en cours : MET1</p>
+    <p class="mono" style="margin-top:.5rem">10 fiches · 1 faite · en cours : MET2</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -38,12 +38,12 @@
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">MET1</span></span>
-        <details open><summary><span class="titre">Chercher ce qui existe, et le présenter</span><span class="etat">En cours · MET6 peut partir en même temps</span></summary>
-        <span class="note">Une page à cartes : ce qui existe contre le faire nous-mêmes, sur trois sujets.</span></details>
-        <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
-      <li class="fiche"><span class="gauche"><span class="id">MET2</span></span>
-        <details><summary><span class="titre">Compter les essais lancés hors d'un bac</span><span class="etat">À lancer</span></summary>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">MET1</span></span>
+        <details><summary><span class="titre">Chercher ce qui existe, et le présenter</span><span class="etat">Faite</span></summary>
+        <span class="note">page à cartes publiée (17 cartes), 17 réponses collées, entrée « MET1 — ce qui existe » au journal ; 6 recherches, 2 pages lues</span></details>
+        <span class="cout mono">≈5,3M (5 278 337) · 28 tours · 4,02 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">MET2</span></span>
+        <details open><summary><span class="titre">Compter les essais lancés hors d'un bac</span><span class="etat">En cours</span></summary>
         <span class="note">Le compteur voit les essais lancés hors d'un bac ; VIT recompté.</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">MET3</span></span>
         <details><summary><span class="titre">Préparer le test d'effort</span><span class="etat">Après MET2</span></summary>
@@ -57,11 +57,11 @@
         <span class="note">Les familles de ruff adoptées, réglées ou écartées ; le code non corrigé.</span></details>
         <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
       <li class="fiche"><span class="gauche"><span class="id">MET6</span></span>
-        <details><summary><span class="titre">Trier les 21 règles</span><span class="etat">À lancer · en même temps que MET1</span></summary>
+        <details><summary><span class="titre">Trier les 21 règles</span><span class="etat">À lancer</span></summary>
         <span class="note">Les 21 règles : restent, partent dans un fichier de leçons, ou se fondent.</span></details>
         <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">MET7</span></span>
-        <details><summary><span class="titre">Compléter la méthode</span><span class="etat">Après MET1, MET2, MET4, MET5, MET6</span></summary>
+        <details><summary><span class="titre">Compléter la méthode</span><span class="etat">Après MET2, MET4, MET5, MET6</span></summary>
         <span class="note">La section Coder dans le kit, la règle de l'effort à jour ; après MET1, MET2, MET4 à MET6.</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">MET8</span></span>
         <details><summary><span class="titre">Aligner les commandes (1/2)</span><span class="etat">Après MET7</span></summary>
@@ -74,6 +74,8 @@
         <span class="note">Chaque ligne de la TODO gardée, fondue, abandonnée ou re-cadrée ; après MET7.</span></details>
         <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
     </ul>
+    <p class="mono cout-hors">Hors fiches : ≈5,3M (5 283 864) · 30 tours · 3,53 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈10,6M (10 562 201) · 58 tours · 7,55 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
