@@ -46,7 +46,7 @@ fiche> → <ce qu'elle devient>` — le relecteur n'écrit jamais dans la fiche,
 cette ligne. `copie` : la fiche le disait clairement, le sous-agent ne l'a pas fait.
 
 Le reste se remarque, sous la ligne du verdict, sans le changer : la lettre de la
-fiche, un `HORS FICHE`, le style, un écart sans effet sur une sortie.
+fiche, un `HORS FICHE`, un écart sans effet sur une sortie. Le style ne se signale pas.
 
 Un soupçon se tranche par une sortie, jamais au jugé : rejoue-le dans AVANT et APRÈS
 avant de le classer. Une remarque au conditionnel (« serait », « pourrait ») est un

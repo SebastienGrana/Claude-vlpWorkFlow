@@ -6,6 +6,9 @@
 
 # Clore un chantier — les quatre temps, dans cet ordre
 
+**Sommaire** : 1. La TODO · 2. Tout ce qui se déduit · 3. L'artefact du chantier ·
+4. La feuille de route · Le commit de clôture · Ce que le chantier laisse · Pour finir.
+
 Une clôture qui s'arrête au milieu laisse un projet qui ment. Si l'un des quatre
 échoue, **dis laquelle et où tu t'es arrêté** : la reprise saura quoi finir.
 
@@ -25,14 +28,11 @@ demande d'abord deux oui (`methode-chantier.md`, règle « La TODO ne grossit pa
 ```
 
 `<python>` : la valeur de `PYTHON=` dans la carte de la commande qui clôt. Sans
-abandon, pas de `--abandon`. Le script
-pose `**CLOS**` et `**Fait.**` dans le fichier de fiches ; remet les deux lignes
-de `CHANTIER.md` à `aucun` ; passe à « clos » la ligne de l'index et l'envoie
-dans l'archive voisine (`vlp.py archiver`), retire celle
-du routage de `CLAUDE.md`, et ajoute `--resume` à sa section « Où on en est »,
-qui ne garde que les derniers clos ; rend visible la `ZONE:bilan` de la page du
-chantier et en régénère les coûts ; puis écrit la feuille de route locale (ligne
-des clos, total cumulé, chantier en cours, TODO de l'étape 1). Le total du
+abandon, pas de `--abandon`. Ce que le script écrit, fichier par fichier, est dans
+la docstring de `vlp.py`, `clore` : le fichier de fiches, `CHANTIER.md`, l'index et
+son archive, le routage et « Où on en est » de `CLAUDE.md`, la page du chantier
+(`ZONE:bilan`, coûts) et la feuille de route locale, qui relit la TODO de
+l'étape 1. Le total du
 chantier — fiches, hors fiches et sous-agents — est celui qu'il vient d'écrire sur
 la page : la ligne `CLOS … · chantier <n>` le donne, le même partout. Ce qui suit cet
 appel — republications, commit, menu — n'y entre pas, et la recompte non plus
@@ -92,7 +92,8 @@ plusieurs à la fois se font, aucun aussi.
    surveillant…), puis pour chacune, une ligne par point — le problème, le
    risque, ce qu'elle ferait, son coût —, le jargon après ; enfin un avis.
 2. **Ce qui a été appris** — ce chantier a-t-il tranché quelque chose qui vaut
-   au-delà de lui ? Une règle de méthode va dans `methode-chantier.md` ; une
+   au-delà de lui ? Une règle de méthode va dans `methode-chantier.md`, son récit
+   mesuré dans `lecons-mesure.md`, sous son titre ; une
    façon de travailler propre à l'utilisateur va **en mémoire**, un fait par
    fiche. C'est ainsi que le kit apprend au fur et à mesure, au lieu de
    réapprendre la même chose à chaque chantier.

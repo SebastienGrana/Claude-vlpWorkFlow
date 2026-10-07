@@ -10,7 +10,7 @@ Une méthode rangée et complétée par ce qui est publié, des commandes align�
 - MET6 : Réponses 25/25 ; 22 titres à leur place (15 restées, 3 parties, 4 fondues) ; methode-chantier.md 456 → 387 lignes, lecons-mesure.md 140 ; renvois 0 absent, suite verte
 - MET7 : section « Coder dans le kit » : titre 1 fois dans le kit ; effort medium + xhigh en recours (tranché) ; méthode 387 → 450 lignes ; RAPIDE VERT, suite OK
 - MET8 : 7 fichiers relus : contradictions 4 → 2 corrigées, copies 3 → 1 ; 2 contradictions laissées (méthode périmée sur enchainer main, effort low du joueur) ; suite OK au 3e passage (mémoire)
-- MET9 : Trois commandes et la doctrine voisine alignées ; après MET7.
+- MET9 : 6 fichiers relus : contradictions 3 → 3, copies 3 → 2, manques 1 → 1 ; nuit.md : 29 renvois par ligne → par étape ; cloture.md:72 inchangé ; suite OK
 - MET10 : Chaque ligne de la TODO gardée, fondue, abandonnée ou re-cadrée ; après MET7.
 ## Journal
 - 2026-10-07 : MET3 : le « cliquet tenu » de VIT25 comparait le code à la base que l'essai venait de réécrire ; le juge de MET4 remet la base d'avant la fiche

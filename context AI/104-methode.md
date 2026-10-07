@@ -272,8 +272,9 @@ la fusion dans `main` (le plugin chargé suit `main`).
 ---
 
 <!-- FICHE:MET9 -->
-## MET9 [ ] — Aligner les commandes (2/2)
+## MET9 [x] — Aligner les commandes (2/2)
 
+**Session** : 35091dff-73df-4438-8d1f-fc8332923ae8
 **Dépend de** : `MET7`.
 **Fichiers** : `skills/init/SKILL.md`, `skills/check/SKILL.md`, `skills/chef/SKILL.md`, `cloture.md`, `nuit.md`, `enchainement.md`, `methode-chantier.md` (lecture) — et rien d'autre.
 

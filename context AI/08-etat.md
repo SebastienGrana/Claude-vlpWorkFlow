@@ -3048,3 +3048,21 @@ Les 7 fichiers relus en entier contre `methode-chantier.md` après `MET7` ; « t
 - **Repéré hors de la méthode** : `chantier` publie avec `favicon` `🧱`, que l'outil `Artifact` dit dépréciée (« Deprecated; Claude omits it and uses `icon` »).
 - Aucun texte touché n'est verrouillé par un test (`grep` des quatre phrases dans `scripts/` : 0).
 - **La suite** : deux échecs à deux endroits, tous deux au lancement de `git` (« Le fichier de pagination est insuffisant », puis un `git commit` à code 1), mémoire virtuelle libre **377 Mo** sur 28 572, 16 `claude.exe` ; l'utilisateur a libéré, **`OK`** au 3e passage, **1 990 Mo** libres, 15 `claude.exe`.
+
+## 2026-10-07 — MET9 — commandes alignées 2/2
+
+Les 6 fichiers relus en entier contre `methode-chantier.md` après `MET7` ; « trouvées → corrigées ». Une colonne de plus qu'à `MET8` : les manques, ni contradiction ni copie.
+
+| Fichier | Contradictions | Copies | Manques | Ce qui a changé, ou pourquoi rien |
+|---|---|---|---|---|
+| `skills/init/SKILL.md` | 0 → 0 | 1 → 1 | 0 → 0 | « Ce qui ne se copie pas » (16 lignes) recopiait « Où vit quoi », et sa liste avait divergé (ni `enchainement.md`, ni `skills/`, `agents/`, `hooks/`, `scripts/`) → 2 lignes qui renvoient |
+| `skills/check/SKILL.md` | 0 → 0 | 0 → 0 | 0 → 0 | — (« les comptes bruts à côté du verdict » applique la règle, il ne la recopie pas) |
+| `skills/chef/SKILL.md` | 0 → 0 | 0 → 0 | 0 → 0 | — (ses renvois à la méthode et à `chantier` passent déjà par le nom) |
+| `cloture.md` | 1 → 1 | 1 → 1 | 1 → 1 | 126 lignes sans sommaire, contre « Une doctrine de plus de 100 lignes s'ouvre sur un sommaire » → un sommaire ; 8 lignes recopiaient la docstring de `vlp.py`, `clore` → 5 lignes qui y renvoient ; la case 2 du menu ne disait pas où va le récit d'une règle → `lecons-mesure.md` (`MET6`) |
+| `nuit.md` | 1 → 1 | 0 → 0 | 0 → 0 | 29 renvois par numéro de ligne, contre « jamais par sa ligne : le code bouge, la ligne ment » — périmés en partie (`tache` étape 5 citée aux lignes 101-102, aujourd'hui 109-110 ; `ARTEFACTS.md:101-103`, aujourd'hui 117) → renvois par étape ou par section, par script (29 remplacés, 0 restant) ; mécanique inchangée |
+| `enchainement.md` | 1 → 1 | 1 → 0 | 0 → 0 | « Le reste se remarque : … le style » contre la ligne de `MET8` dans `agents/relecture.md` (« pas le style », Q7 de `MET1`) → « Le style ne se signale pas » ; « deux tentatives » gardé, le contrat définit `BLOQUÉE` |
+| **Total** | **3 → 3** | **3 → 2** | **1 → 1** | |
+
+- **`cloture.md:72` reste juste** : trois scripts le citent en commentaire (`boucle.py`, `faux-claude.py`, `test-boucle.py`) ; le sommaire (+3 lignes) et le renvoi à la docstring (−3) se compensent avant la ligne 72, qui porte toujours le bloc du commit de clôture.
+- **Repéré hors de la méthode** : `init` publie aussi avec `favicon` (`🗺️`), que l'outil `Artifact` dit dépréciée — comme `chantier` (`MET8`).
+- Aucun texte retiré n'est verrouillé par un test (`grep` de six phrases dans `scripts/` : 0).
