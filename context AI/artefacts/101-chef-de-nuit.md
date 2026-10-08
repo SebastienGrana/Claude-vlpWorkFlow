@@ -45,3 +45,6 @@
 - 2026-10-01 : NUI16 : essai D2, publie en union égal à la clé dans 3 cas sur 4 (empreintes différentes : deux lignes contre clé retirée) → publie par la clé, pas de merge=union au .gitattributes
 - 2026-10-08 : NUI30 : marques posées sur 3 projets, 0 commit possible (context AI/ ignoré, bac hors Git) ; copie FAM du worktree chantier-mor non marquée, à refaire avant NUI31
 ## Bilan
+- Livré : /vlp:chef : le soir trie et pose les questions, la nuit joue deux canaux par boucle.py, le matin fusionne ; une nuit réelle jouée et comptée (2026-10-08)
+- Surpris : les tests héritent des variables de la nuit et font refuser cocher ; la nuit n'a pas l'outil Artifact
+- Estimé : estimé 6 fiches ≈18 $ · cadré 38 · joué 38 fiches 172,49 $

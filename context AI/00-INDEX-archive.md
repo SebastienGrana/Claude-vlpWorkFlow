@@ -11,6 +11,7 @@ QUAND LIRE : on relit un chantier clos ; l'index n'en garde qu'une ligne qui ren
 | `104-methode.md` | on relit le socle du chantier MET — **clos** « La méthode du kit refaite, puis la TODO re-cadrée », `MET1..MET10` |
 | `105-arriere-plan.md` | on relit le socle du chantier ARP — **clos** « Une session claude -p ne meurt plus en attendant l'arrière-plan », `ARP1..ARP4` |
 | `108-branche-chef.md` | on relit le socle du chantier BRA — **clos** « /vlp:chef vérifie la branche dès son début », `BRA1..BRA1` |
+| `101-chef-de-nuit.md` | on relit le socle du chantier NUI — **clos** « Le chef de nuit », `NUI1..NUI38` |
 | `11-conso.md` | on joue une fiche `C*` — chantier **clos** « Afficher la conso sur toutes les pages », `C1..C2` |
 | `13-tours.md` | on joue une fiche `T*` — chantier **clos** « Compter les tours, pondérer le coût », `T1..T5` |
 | `14-bugs.md` | on joue une fiche `B*` — chantier **clos** « Corriger les bugs de l'audit », `B1..B3` |

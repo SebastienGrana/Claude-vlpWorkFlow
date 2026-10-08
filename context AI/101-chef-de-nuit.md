@@ -20,7 +20,9 @@ la ligne **Repris** ci-dessus.
 
 **Estimé.** 6 fiches · ≈18 $ — ≈2,98 $/fiche sur 88 clos (le 2026-10-01).
 
-**Fait.** Rien. Ouvert le 2026-10-01, cadré en 20 fiches, `NUI1` à jouer.
+**CLOS** le 2026-10-08. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** NUI1..NUI38 (2026-10-08) : /vlp:chef : le soir trie et pose les questions, la nuit joue deux canaux par boucle.py, le matin fusionne ; une nuit réelle jouée et comptée (2026-10-08) — estimé 6 fiches ≈18 $ · cadré 38 · joué 38 fiches 172,49 $.
 
 **Session** : d0a75cf6-8b7d-417c-9775-44ffe5decb84
 
