@@ -189,9 +189,9 @@ les gabarits de mémoire. Ils portent des titres de sections et des marqueurs
 que `scripts/vlp.py` lit — un titre reformulé casse l'extraction dans toutes
 les fiches du chantier.
 
-La ligne « **kit** » de `CHANTIER.md` reste vraie et reste lue : elle nomme le
-dossier réel du kit, celui que le plugin pointe. Elle ne sert plus à trouver
-les gabarits, seulement à dire à un humain où ils vivent.
+La ligne « **kit** » de `CHANTIER.md` dit seulement « le plugin vlp », sans
+chemin de machine : le fichier part dans Git (`methode-chantier.md`, « Ce qui
+part dans Git »). Elle ne sert pas à trouver les gabarits.
 
 ## 5. Écrire le fichier de fiches
 
@@ -270,9 +270,6 @@ lignes `OUVERT` et `FEUILLE` ; une `GARDE:` dit ce qui n'est pas écrit — écr
 (`CHANTIER.md`), et republie le fichier local avec cette `url` et `files` : le
 JSON de la ligne `FILES` (`ARTEFACTS.md`), sans `icon`,
 `label` `<chantier> ouvert`. Publication refusée : `ARTEFACTS.md`, « Une publication refusée ».
-
-**Si l'étape 4 bis a dû chercher le kit**, écris aussi sa ligne « **kit** »
-dans `CHANTIER.md`, avec le chemin trouvé.
 
 Puis **mesure ce que chaque fiche va coûter**, et annonce-le — un chiffre tient
 mieux qu'une règle :

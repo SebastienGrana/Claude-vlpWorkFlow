@@ -40,8 +40,7 @@ macOS prendrait `chantier.md` pour lui.
 ## 1. Le kit — il voyage avec la commande
 
 Les gabarits à recopier sont dans **le même plugin que cette commande**, à
-`${CLAUDE_PLUGIN_ROOT}`. Vérifie qu'ils répondent, et retiens le chemin réel du
-kit — il ira dans la ligne « kit » de `CHANTIER.md` :
+`${CLAUDE_PLUGIN_ROOT}`. Vérifie qu'ils répondent :
 
 ```bash
 <python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" lignes "${CLAUDE_PLUGIN_ROOT}/templates" "${CLAUDE_PLUGIN_ROOT}" ../Claude-vlpWorkflow ~/Claude-vlpWorkflow
@@ -105,12 +104,10 @@ du gabarit, si elle manque.
 
 Renseigne dans `CHANTIER.md` tout ce que le questionnaire a donné, la ligne
 « **méthode** » telle que le gabarit l'écrit, sans variable : une variable n'est
-remplacée que dans le texte d'une commande, jamais dans un fichier du projet — **et
-la ligne `- **kit** :` avec le chemin réel résolu à l'étape 1**. Cette
-dernière ne sert plus à trouver quoi que ce soit : elle dit à un humain où vit
-le kit. Laisse « fichier de fiches courant : **aucun** » — c'est
-`/vlp:chantier` qui ouvrira le chantier, par sa marque (`methode-chantier.md`,
-« Le chantier ouvert »).
+remplacée que dans le texte d'une commande, jamais dans un fichier du projet. La
+ligne « **kit** » reste celle du gabarit, **sans chemin de machine** : le fichier
+part dans Git. C'est `/vlp:chantier` qui ouvrira le chantier, par sa marque
+(`methode-chantier.md`, « Le chantier ouvert »).
 
 ## 3 bis. Publier la feuille de route
 
@@ -161,9 +158,10 @@ n'y a rien à autoriser — dis-le en une ligne.
 
 ## 4. Le point que l'on oublie toujours
 
-Si le projet exclut son contexte de git (`.gitignore` contenant `CLAUDE.md` ou
-le dossier de contexte), demande si `CHANTIER.md` doit y être ajouté aussi.
-Ne modifie `.gitignore` que sur réponse explicite.
+Ces fichiers partent dans Git (`methode-chantier.md`, « Ce qui part dans
+Git »). Si `.gitignore` en couvre un — `git check-ignore -v` sur `CHANTIER.md`,
+`CLAUDE.md` et le dossier de contexte —, dis lequel et par quelle ligne, et
+propose de la retirer. Ne modifie `.gitignore` que sur réponse explicite.
 
 ## 5. Rendre la main
 

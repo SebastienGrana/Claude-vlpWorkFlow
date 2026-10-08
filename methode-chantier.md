@@ -288,10 +288,14 @@ gardent leur lettre unique et restent lisibles : `vlp.py` accepte une à trois
 majuscules. L'alphabet à une lettre avait été épuisé au 26e chantier, et aucun
 27e n'aurait pu s'ouvrir.
 
-**Ce qui ne part pas dans git.** Le dossier de contexte — artefacts compris —,
-`CLAUDE.md` et `CHANTIER.md` décrivent une manière de travailler, pas le
-produit ; beaucoup de projets les gardent hors du dépôt. Le choix se prend
-**une fois**, et `.gitignore` nomme alors les trois, pas deux sur trois.
+**Ce qui part dans Git.** `CHANTIER.md`, `CLAUDE.md`, les `.md` du dossier de
+contexte et ses artefacts sont **suivis** : un worktree ne reçoit que les
+fichiers suivis, et la mécanique en vit — un commit par fiche, la marque
+d'ouverture lue dans un commit, les canaux de nuit, la fusion du matin.
+Restent hors Git ce qui est propre à une machine : les tampons (post-it
+`vlp-chantier`, marques `vlp-*`) et `.claude/launch.json`. Aucun de ces
+fichiers ne porte de chemin de machine. Un dépôt public se trie fichier par
+fichier avant d'y verser le contexte. Tranché le 2026-10-08 (`NUI34`).
 
 ## Le fichier de fiches
 

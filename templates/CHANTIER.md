@@ -6,8 +6,7 @@
 > Les libellés en gras se recopient **à l'identique** : ils sont lus tels quels.
 
 - **alias** : <md>
-- **kit** : <le dossier réel du kit — pour un humain ; les commandes ne
-  s'en servent plus, elles voyagent avec lui>
+- **kit** : le plugin vlp — sans chemin de machine, ce fichier part dans Git
 - **contexte** : <context AI/>
 - **méthode** : methode-chantier.md, à la racine du kit — il voyage avec le plugin
 - **chantiers possibles** : <context AI/NN-etat.md>

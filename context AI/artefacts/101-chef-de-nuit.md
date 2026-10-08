@@ -34,7 +34,7 @@
 - NUI30 : test-vlp.py OK (3 contrôles NUI30, 2 mutants attrapés) ; COURANT= identique avant/après sur kit, Cairn, MapDecorator, bac ; ouverts 1 partout ; pyright 0 errors
 - NUI31 : Suite OK ; RAPIDE VERT (pyright 0 errors, 5 fichiers ; cliquet tenu) ; grep : 54→9 mentions dans test-vlp.py, 11→9 vlp_coeur, 6→2 faux-claude, 6→0 test-boucle, 1→0 gabarit et CHANTIER.md, le reste conceptuel ou d'histoire ; COURANT= identique sur les 4 projets
 - NUI32 : NUI20 remise au nouveau modèle ; après NUI21 à NUI31
-- NUI34 : la règle : la méthode suivie par Git, la ligne kit sans chemin ; rien avant
+- NUI34 : grep « ne part pas dans git » 1→0, « exclut son contexte » 1→0, « fichier de fiches courant » dans init 1→0 ; aucun chemin de machine dans CHANTIER.md ni le gabarit ; test-vlp OK (4 min 56 s)
 - NUI35 : la carte dit GIT= dès le premier tour ; après NUI34
 - NUI36 : niveau signale ÉCART: git: ; après NUI34
 - NUI37 : Cairn, ONZSM, TrackGen sous Git, sans push ; après NUI35, NUI36

@@ -1421,8 +1421,9 @@ Tu ne fais pas : NUI20 (`NUI32`).
 ---
 
 <!-- FICHE:NUI34 -->
-## NUI34 [ ] — La règle : les fichiers de la méthode sont suivis par Git
+## NUI34 [x] — La règle : les fichiers de la méthode sont suivis par Git
 
+**Session** : 8f1001ac-c741-4321-857f-e7254edea0a5
 **Dépend de** : rien.
 **Fichiers** : `methode-chantier.md` (« Ce qui ne part pas dans git » seul), `skills/init/SKILL.md`,
 `skills/chantier/SKILL.md` et `skills/check/SKILL.md` (la ligne « **kit** » seule), `templates/CHANTIER.md`, `CHANTIER.md`
