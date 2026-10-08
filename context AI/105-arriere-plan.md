@@ -11,7 +11,9 @@ suite lancée en arrière-plan. Et la carte de `/vlp:tache` avertit à tort sous
 
 **Estimé.** 2,5 fiches · ≈9,93 $ — ≈3,97 $/fiche sur 90 clos (le 2026-10-08).
 
-**Fait.** Rien. Ouvert le 2026-10-08 (TODO n° 105), cadré en 4 fiches, `ARP1` à jouer.
+**CLOS** le 2026-10-08. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** ARP1..ARP4 (2026-10-08) : toute session de boucle.py reçoit la consigne « premier plan » (une vraie session -p va au bout d'une attente de 200 s), la carte se tait sous /vlp:enchainer par une marque de session, et les tampons vlp-carte-* s'effacent (1 202 → 1) — estimé 2,5 fiches ≈9,93 $ · cadré 4 · joué 4 fiches 10,09 $.
 
 **Session** : 728b4261-6c4f-4698-9547-8070e73a1152
 
