@@ -1,0 +1,32 @@
+# Les nuits — le plan du soir, la table des nuits, les leçons
+
+QUAND LIRE : on prépare une nuit (plan du soir) ou on relit les nuits passées (table, leçons) ; `vlp.py trier` imprime les leçons.
+
+| nuit | canal | chantier | jouées/acceptées/refusées | $ |
+|---|---|---|---|---|
+
+## Nuit 2026-10-08
+
+Borne : 60 $ · 3 chantiers
+Canal A · rang 1 · code TAB · préfixe TAB
+Canal B · rang 1 · code APR · préfixe APR
+Canal B · rang 2 · code BRA · préfixe BRA
+
+### TAB
+- canal A, seul : il touche scripts/vlp.py et scripts/test-vlp.py, qu'aucun chantier de B ne touche (Q1 : trois)
+- estimé : 26 à 39 $, la cellule de la TODO ré-estimée à MET10 ; 4 fiches à 3,95 $ font ≈ 16 $ au taux du jour, non mesuré (Q3)
+- découpage : TAB1 relever les lecteurs de tables de vlp.py qui tronquent ou jettent une ligne sans rien dire (relevé seul, au journal) ; TAB2 leur donner la garde de la TODO, une GARDE: au lieu d'une coupe muette, test et mutant — rien si TAB1 n'en trouve aucun, la fiche le note ; TAB3 clore lit la TODO avant sa première écriture (ex-CLV), test et mutant ; TAB4 vlp.py oter <projet> <code> --raison T [--date D] : retire la rangée de la TODO, sa phrase de provenance et date une ligne au journal, tout calculé avant d'écrire, .tmp puis os.replace, refuse un code absent, ouvert ou clos (GARDE:, sort 1), test et mutant (Q3 : quatre-fiches)
+
+### APR
+- canal B, premier : le tri ne le lie à TAB que par methode-chantier.md, où sa ligne n'écrit rien (Q1 : trois)
+- estimé : 1 fiche, 4 à 12 $ (3,95 $ au taux du jour, × 1 à × 3), non mesuré (Q4)
+- découpage : APR1 borner context AI/99-jnt1-mesure.py par date, le rejouer sur les seules sessions d'après la clôture de JNT (2026-09-29), écrire au journal les comptes avant / après et ce que JNT2 et JNT3 ont rapporté (Q4 : une-fiche)
+
+### BRA
+- canal B, second : il touche skills/chef/SKILL.md et le tri, rien de ce que TAB écrit hors de vlp.py ; même canal qu'APR pour ne pas ouvrir un troisième canal (Q1 : trois)
+- estimé : 1 fiche, 4 à 12 $, non mesuré (Q5)
+- découpage : BRA1 vlp.py trier refuse de trier hors de main, une GARDE: avant le tri, testée avec son mutant ; la section 0 de /vlp:chef renvoie à cette garde, et la vérification de branche de sa section 4 n'est plus recopiée (Q5 : script)
+
+## Leçons
+
+Forme d'une leçon, écrite ici seul : `- <date> · N=<n> · <une cause, pas un constat> · <nombres nommés> · nuits <dates> · sessions <ids>`. N sous `LECON_INDICE` (`vlp.py`) : « indice ». Retirée, elle reste, suffixée `— retirée le <date> par <chantier ou nuit>`. Tenue deux nuits, proposée au matin, deux oui de l'utilisateur : elle monte. La colonne `$` est la somme des `usd_kit` du carnet.
