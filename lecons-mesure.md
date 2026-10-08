@@ -89,6 +89,11 @@ Fondues dans cette règle par `MET6` :
   ne changeait rien — aucun message n'en portait — et « les deux dernières lignes »
   laissait passer 3 vraies fautes ; seule « le mot ouvre une ligne » retirait les 2
   faux renvois sans rien rater.
+- Une suite qui tombe sous plusieurs causes se rejoue **une cause à la fois** — Mesuré
+  (chantier `ENV`, 2026-10-09) : sous les trois variables de la nuit, 2 `ÉCART` ; sous
+  chacune seule, 0, 0 et 2 — `VLP_CANAL` seule, quand le libellé de l'écart nommait
+  `VLP_NUIT absent`. Le libellé d'un contrôle dit ce qu'il vérifie d'abord, pas ce qui
+  le fait tomber.
 
 ### Un commentaire périmé coûte plus cher qu'un chiffre périmé
 
