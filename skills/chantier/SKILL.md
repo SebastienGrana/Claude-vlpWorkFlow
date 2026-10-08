@@ -37,8 +37,8 @@ tenir. La carte ci-dessus l'a déjà cherché. Arrête-toi au premier cas qui
 s'applique :
 
 1. **`PROJET=…`** → c'est ce projet, même si des voisins existent. La carte
-   donne ensuite `CHANTIER.md` en entier : **méthode**, **chantiers possibles**, **fichier de
-   fiches courant**, **index**, **fichier d'état**, **kit**.
+   donne `COURANT=`, puis `CHANTIER.md` en entier : **méthode**, **chantiers possibles**,
+   **index**, **fichier d'état**, **kit**.
 2. **Un seul `VOISIN=`** → c'est celui-là ; ne demande rien.
 3. **Plusieurs `VOISIN=… alias=…`** → un workspace. Si le premier argument est
    l'un de ces alias, c'est ce projet-là ; sinon **pose un questionnaire**
@@ -62,10 +62,13 @@ pas nécessaire : tous les arguments forment le **nom du chantier**.
 
 ## 0 ter. Si un chantier est déjà ouvert : reprendre, pas rouvrir
 
-Si la ligne « fichier de fiches courant » de `CHANTIER.md` ne vaut pas
-« aucun », **un chantier est en cours**. On n'en ouvre pas deux à la fois : ici,
-la séance sert à reprendre celui-là. Ne lis ni la méthode ni les chantiers
-possibles — ils ne servent qu'à en cadrer un nouveau.
+Si `COURANT=` ne vaut pas « aucun », **un chantier est en cours dans ce
+dossier**. On n'en ouvre pas deux à la fois : ici, la séance sert à reprendre
+celui-là. Ne lis ni la méthode ni les chantiers possibles — ils ne servent qu'à
+en cadrer un nouveau. Un chantier seulement hérité de la branche principale
+n'est pas en cours ici : on en cadre un nouveau (`methode-chantier.md`, « Le
+chantier ouvert »). Une ligne `AILLEURS=<code> <dossier>` : dis-la en une
+ligne ; ce code ne se propose pas.
 
 Fais, dans cet ordre :
 
@@ -250,8 +253,9 @@ de la ligne `FILES` (`ARTEFACTS.md`).
 ## 6. Déclarer, puis rendre la main
 
 Les écritures du jour — un index qui ment coûte plus cher que le fichier
-lui-même — sont un appel : `CHANTIER.md` (fichier de fiches courant et URL de
-l'artefact), la ligne d'index, la ligne de routage de `CLAUDE.md` ; puis la
+lui-même — sont un appel : la marque d'ouverture et le post-it
+(`methode-chantier.md`, « Le chantier ouvert »), l'URL de l'artefact dans
+`CHANTIER.md`, la ligne d'index, la ligne de routage de `CLAUDE.md` ; puis la
 feuille de route locale, `--todo` seulement si le chantier a un numéro dans la TODO :
 
 ```bash

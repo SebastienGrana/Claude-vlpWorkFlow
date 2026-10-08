@@ -247,8 +247,9 @@ ce qui compte est qu'il soit **un seul dossier**, à plat, numéroté.
 **Les numéros ne sont pas la convention — les libellés le sont.** L'état
 s'appelle `08-etat.md` dans un projet et `10-etat.md` dans un autre. Ce qui ne
 varie pas, ce sont les libellés en gras de `CHANTIER.md` — « **fichier
-d'état** », « **méthode** », « **fichier de fiches courant** » — que les
+d'état** », « **méthode** », « **artefact du chantier** » — que les
 commandes lisent tels quels : elles lisent la ligne, et la ligne dit le nom.
+Le chantier en cours, lui, ne se lit pas : il se calcule (« Le chantier ouvert »).
 
 **Le moteur est dans le kit, les données sont dans le projet.** Ne descendent
 jamais dans un projet : `skills/`, `agents/`, `hooks/`, `scripts/`, cette
@@ -295,8 +296,26 @@ produit ; beaucoup de projets les gardent hors du dépôt. Le choix se prend
 ## Le fichier de fiches
 
 Un chantier = un fichier du dossier de contexte, numéroté comme les autres et
-déclaré le jour même : l'index, le routage de `CLAUDE.md`, et les lignes
-« fichier de fiches courant » et « artefact du chantier » de `CHANTIER.md`.
+déclaré le jour même : l'index, le routage de `CLAUDE.md`, la ligne
+« artefact du chantier » de `CHANTIER.md`, et sa marque d'ouverture.
+
+**Le chantier ouvert — où vit l'état.** Les commandes renvoient ici.
+
+- **La marque**, une ligne du fichier de fiches : `**Ouvert.** le <date>.` ;
+  `**CLOS** le …` à la clôture ; `**Pause.** le <date> — <raison>` s'il est mis
+  de côté. Ouvert = la première, sans aucune des deux autres.
+- **Le chantier du dossier se calcule** : `vlp.py carte` l'imprime en
+  `COURANT=` (`courant_de`, seul lecteur) ; « le fichier de fiches courant »
+  d'une commande, c'est cette valeur. D'abord le **post-it** du dossier
+  (`git rev-parse --git-path vlp-chantier`, propre au worktree, hors Git),
+  sinon le seul ouvert — hors de la branche principale, le seul ajouté
+  sur cette branche. Deux ouverts : une `GARDE:`.
+- **Un chantier seulement hérité** de la branche principale n'est pas celui
+  du dossier : `COURANT=aucun`, on peut en cadrer un autre ici.
+- **Les autres worktrees** : une ligne `AILLEURS=<code> <dossier>` par
+  chantier ; ce code se joue là-bas, il ne se rouvre pas ici.
+- **La fusion du jour** : `vlp.py fusionner <projet> <branche>` ; une branche
+  qui ajoute un chantier encore ouvert ne se fusionne pas.
 
 Il s'ouvre sur trois choses, et rien de plus :
 

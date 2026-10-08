@@ -19,7 +19,8 @@ chantier laissé de côté, ou quand la page publiée ne ressemble plus au fichi
 `<python>`, plus bas : la valeur de `PYTHON=` ci-dessus.
 
 Retiens : le **kit**, le **dossier de contexte**, le **fichier de fiches
-courant**, l'**artefact du chantier**, l'**artefact feuille de route**.
+courant** — la valeur de `COURANT=` (`methode-chantier.md`, « Le chantier
+ouvert ») —, l'**artefact du chantier**, l'**artefact feuille de route**.
 
 Si la carte ne dit pas `PROJET=`, le projet n'est pas équipé : dis-le, propose
 `/vlp:init`, et arrête-toi. Rien d'autre n'a de sens sans lui. Une ligne
@@ -35,9 +36,10 @@ Lance-les d'un bloc, puis commente la sortie ligne à ligne.
 <python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" lignes "<fichier de fiches courant>" "<contexte>/*.md"
 ```
 
-Une ligne « courant » qui nomme un fichier absent envoie chaque `/vlp:tache` dans
-le vide. Une ligne « aucun » alors qu'un fichier de chantier récent n'est pas
-clos est l'erreur inverse : un chantier orphelin, que plus rien ne rouvrira.
+Un `COURANT=` qui nomme un fichier absent envoie chaque `/vlp:tache` dans
+le vide. `COURANT=aucun` alors qu'un fichier de chantier récent n'est pas
+clos est l'erreur inverse : un chantier orphelin, que plus rien ne rouvrira —
+sauf s'il est seulement hérité de la branche principale, ou dit `AILLEURS=`.
 
 **B — Les fiches sont extractibles.**
 
@@ -120,7 +122,7 @@ nomme et qui n'existe pas : une session l'ouvrira pour rien. Propose de retirer
 la ligne, ou de créer le fichier s'il manque vraiment. Un `AVERTISSEMENT:` avant
 `POIDS` dit un fichier de tête au-delà du seuil de `vlp.py` : à compacter, pas une erreur.
 
-**I — Le bulletin du gardien.** Sautée si le fichier de fiches courant est « aucun ».
+**I — Le bulletin du gardien.** Sautée si `COURANT=aucun`.
 
 ```bash
 <python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" contrat --ouverture "<fichier de fiches courant>"

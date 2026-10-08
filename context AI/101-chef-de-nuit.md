@@ -1333,8 +1333,9 @@ Tu ne fais pas : la prose qui lit `AILLEURS=` (`NUI29`).
 ---
 
 <!-- FICHE:NUI29 -->
-## NUI29 [ ] — La prose lit `COURANT=`
+## NUI29 [x] — La prose lit `COURANT=`
 
+**Session** : 86cb1bc2-1601-4b1f-89b4-c90dc32c06af
 **Dépend de** : `NUI23`, `NUI25`, `NUI26`, `NUI28`.
 **Fichiers** : `skills/chantier/SKILL.md`, `skills/tache/SKILL.md`, `skills/enchainer/SKILL.md`, `skills/check/SKILL.md`,
 `skills/init/SKILL.md`, `nuit.md`, `methode-chantier.md`, `templates/CHANTIER.md` — et rien d'autre.

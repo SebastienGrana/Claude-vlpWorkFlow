@@ -44,11 +44,12 @@ La carte du projet, lue avant ton premier tour :
 
 !`py -3 "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python "py -3" --enchaine; python3 "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python python3 --relais --enchaine; py -3 "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python "py -3" --relais --enchaine; echo fin`
 
-`PROJET=` : c'est le projet, `CHANTIER.md` suit. `VOISIN=… alias=…` : un
+`PROJET=` : c'est le projet ; `COURANT=`, le fichier de fiches courant
+(`methode-chantier.md`, « Le chantier ouvert ») ; `CHANTIER.md` suit. `VOISIN=… alias=…` : un
 workspace — `vlp:jouer` ne joue que le projet du dossier courant ; dis-le, et
 demande de relancer depuis ce dossier. Sortie vide ou consigne de la lancer :
-lance-la toi-même, une fois. `AUCUN_PROJET`, `GARDE:`, fichier de fiches
-courant à « aucun », ou `PROCHAINE=aucune` : arrête-toi — il n'y a rien à
+lance-la toi-même, une fois. `AUCUN_PROJET`, `GARDE:`, `COURANT=aucun`,
+ou `PROCHAINE=aucune` : arrête-toi — il n'y a rien à
 enchaîner.
 
 ## 2. Annoncer le plan — un appel

@@ -31,8 +31,9 @@ demande de l'autoriser — pas de contournement.
 
 ## 0. Lire la carte — rien à lancer
 
-- **`PROJET=…`**, puis `CHANTIER.md` en entier : fichier de fiches courant,
-  artefact du chantier, livraison, vérification, contraintes d'écriture,
+- **`PROJET=…`**, puis **`COURANT=`** : le fichier de fiches courant, celui
+  des emplacements qui suivent (`methode-chantier.md`, « Le chantier ouvert ») ;
+  puis `CHANTIER.md` en entier : artefact du chantier, livraison, vérification, contraintes d'écriture,
   fichier d'état, chantiers clos (qui ne se rejouent jamais).
 - **`NUIT=1`** : lis `nuit.md` par `<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" lire nuit.md` ; il prime sur les étapes qui suivent.
 - **`VOISIN=… alias=…`** : un workspace. Si le premier argument est un de ces
@@ -44,7 +45,7 @@ demande de l'autoriser — pas de contournement.
 - **`PLUGIN_RETARD=`** : dis-la avant tout `/reload-plugins` ; sa commande, sur le oui de l'utilisateur.
 - **`AVERTISSEMENT:`** : relaie-la à l'utilisateur en une ligne, puis continue.
 - **Sortie vide, ou consigne de la lancer** : lance-la toi-même, une fois.
-- **Fichier de fiches courant à « aucun »** : arrête-toi — `/vlp:chantier`
+- **`COURANT=aucun`** : arrête-toi — `/vlp:chantier`
   d'abord. **`GARDE:`** : arrête-toi et montre la sortie brute ; une
   extraction vide n'est pas un chantier fini.
 

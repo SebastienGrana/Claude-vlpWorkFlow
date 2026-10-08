@@ -109,7 +109,8 @@ remplacée que dans le texte d'une commande, jamais dans un fichier du projet �
 la ligne `- **kit** :` avec le chemin réel résolu à l'étape 1**. Cette
 dernière ne sert plus à trouver quoi que ce soit : elle dit à un humain où vit
 le kit. Laisse « fichier de fiches courant : **aucun** » — c'est
-`/vlp:chantier` qui la remplira.
+`/vlp:chantier` qui ouvrira le chantier, par sa marque (`methode-chantier.md`,
+« Le chantier ouvert »).
 
 ## 3 bis. Publier la feuille de route
 
