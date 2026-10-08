@@ -185,7 +185,7 @@ Sous-commandes :
   pas nul. Une copie locale de `methode-chantier.md` n'est pas un écart : la
   méthode la tolère pour un projet équipé avant la règle. Une ligne `ÉCART:
   <catégorie>: <phrase>`
-  par écart (`renvois`, `feuille`, `page`, `variable`, `clos`, `marque`, `ligne`), puis `NIVEAU <n>
+  par écart (`renvois`, `feuille`, `page`, `variable`, `clos`, `marque`, `ligne`, `git`), puis `NIVEAU <n>
   écarts · <n> avertissements — <projet>`. Un écart : sort 1.
   `--ecrire` corrige les seuls écarts mécaniques — la table des chantiers clos
   retirée de `CHANTIER.md` (jamais si l'index ne nomme pas chacun de ses
@@ -196,7 +196,9 @@ Sous-commandes :
   nomme l'ancienne ligne de `CHANTIER.md` — date du plus ancien commit « Chantier <code>
   ouvert », sinon celle de l'appel, et la ligne `CORRIGÉ: marque:` le dit (NUI30) ; puis
   cette ligne retirée, que plus rien ne lit — gardée, en `ÉCART: ligne:`, tant que la marque
-  manque (NUI31). Les
+  manque (NUI31). Les écarts `git:` (NUI36, `etat_git` de la carte) ne se corrigent jamais :
+  `ÉCART: git: <chemin> — ignoré par .gitignore:<n> …` ou `— non ajouté …`, et la ligne « kit » qui porte un
+  chemin de machine ; hors Git, aucun. Les
   renvois absents et les fichiers de tête hors seuil restent en `ÉCART:`. Tout
   se calcule avant la première écriture. Bilan `NIVEAU <n> corrigés · <n> à la
   main — <projet>` ; un écart restant : sort 1. `--date` fige la date.

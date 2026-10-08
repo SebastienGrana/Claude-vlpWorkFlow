@@ -36,7 +36,7 @@
 - NUI32 : NUI20 remise au nouveau modèle ; après NUI21 à NUI31
 - NUI34 : grep « ne part pas dans git » 1→0, « exclut son contexte » 1→0, « fichier de fiches courant » dans init 1→0 ; aucun chemin de machine dans CHANTIER.md ni le gabarit ; test-vlp OK (4 min 56 s)
 - NUI35 : carte : kit GIT=suivi, Cairn GIT=ignoré CHANTIER.md, CLAUDE.md, context AI/* ; 7 contrôles neufs, suite OK ; mutant toujours-suivi ATTRAPÉ 4 écarts ; pyright 0 erreur
-- NUI36 : niveau signale ÉCART: git: ; après NUI34
+- NUI36 : niveau, écarts git : Cairn 7, MapDecorator 10, ONZSM 4, TrackGen 5, kit 0 ; 5 contrôles neufs, suite OK ; mutant étape sautée ATTRAPÉ 2 écarts ; pyright 0 erreur
 - NUI37 : Cairn, ONZSM, TrackGen sous Git, sans push ; après NUI35, NUI36
 ## Journal
 - 2026-10-01 : Essai NUI14 sous NUIT=1 : une session claude -p sur une fiche triviale, 16 tours, 0,4623 $, 68 s (un appel lire nuit.md, 0 git commit, 0 cloture.md) ; boucle.py ne crée pas le dossier de --traces.

@@ -264,6 +264,47 @@ def tester_carte_git():
 groupe(tester_carte_git)
 
 
+def tester_niveau_git():
+    """NUI36 : l'étape `git` de `niveau` — ignoré avec sa ligne de `.gitignore`, non ajouté, ligne « kit » à chemin
+    de machine, tout suivi sans écart, hors Git sans écart ; `--ecrire` ne corrige rien."""
+    def git(d, *args):
+        subprocess.run(["git"] + list(args), cwd=d, capture_output=True, check=True)
+
+    def ecarts_git(d, ecrire=False):
+        s = io.StringIO()
+        mod.cmd_niveau(mod.argparse.Namespace(projet=d, date="2026-10-08", ecrire=ecrire), s)
+        return [l for l in s.getvalue().split("\n") if l.startswith(("ÉCART: git:", "CORRIGÉ: git:"))]
+
+    with tempfile.TemporaryDirectory() as t:
+        p = os.path.join(t, "p")
+        ecrire(os.path.join(p, "CHANTIER.md"), CHANTIER % ("pn", "ctx/") + "- **kit** : le plugin vlp\n")
+        ecrire(os.path.join(p, "CLAUDE.md"), "# p\n")
+        ecrire(os.path.join(p, "ctx", "08-etat.md"), "# état\n")
+        ecrire(os.path.join(p, "ctx", "00-INDEX.md"), "# Index\n")
+        verifier("niveau git : hors Git, aucun écart", ecarts_git(p) == [], ecarts_git(p))
+        git(p, "init", "-q")
+        git(p, "add", "-A")
+        verifier("niveau git : tout suivi, aucun écart", ecarts_git(p) == [], ecarts_git(p))
+        git(p, "rm", "-q", "--cached", "CHANTIER.md")
+        ecrire(os.path.join(p, ".gitignore"), "# rien\nCHANTIER.md\n")
+        ecrire(os.path.join(p, "ctx", "09-neuf.md"), "# neuf\n")
+        e = ecarts_git(p)
+        verifier("niveau git : ignoré par sa ligne, et non ajouté",
+                 len(e) == 2 and e[0].startswith("ÉCART: git: CHANTIER.md — ignoré par .gitignore:2")
+                 and e[1].startswith("ÉCART: git: ctx/09-neuf.md — non ajouté"), e)
+        verifier("niveau git : --ecrire ne corrige rien", ecarts_git(p, ecrire=True) == e, ecarts_git(p, True))
+        ecrire(os.path.join(p, ".gitignore"), "# rien\n")
+        git(p, "add", "-A")
+        ecrire(os.path.join(p, "CHANTIER.md"), CHANTIER % ("pn", "ctx/") + "- **kit** : D:/Projets/kit, lié dans"
+               " ~/.claude/skills/vlp\n")
+        e = ecarts_git(p)
+        verifier("niveau git : la ligne « kit » à chemin de machine",
+                 len(e) == 1 and "la ligne « kit » porte un chemin de machine" in e[0], e)
+
+
+groupe(tester_niveau_git)
+
+
 def test_carte_relecteur():
     """REL2 : `carte --relecteur` tait les titres de fiches et `PROCHAINE=` ; sans l'option, rien ne change."""
     with tempfile.TemporaryDirectory() as bac:

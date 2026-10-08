@@ -1270,7 +1270,8 @@ def retard_plugin(racine, kit=None):
 def regrouper_dossiers(racine, chemins):
     """`chemins` (relatifs à `racine`, en barres obliques), où un dossier dont tous les fichiers sur disque sont
     dans la liste se nomme par lui-même (`ctx/`), pas fichier par fichier, et ses seuls fichiers directs par `ctx/*`
-    (ses sous-dossiers restent nommés) ; la racine ne se regroupe jamais."""
+    (ses sous-dossiers restent nommés) ; la racine ne se regroupe jamais. Rend `[(nom, exemple)]` : `exemple`, un
+    chemin de la liste sous ce nom, de préférence un fichier — ce que `git check-ignore` interroge (NUI36)."""
     par_dossier = {}
     for c in chemins:
         par_dossier.setdefault(c.rstrip("/").rpartition("/")[0], []).append(c)
@@ -1281,21 +1282,23 @@ def regrouper_dossiers(racine, chemins):
             sur_disque = set(os.listdir(os.path.join(racine, d))) if d else None
         except OSError:
             sur_disque = None
+        exemple = sorted(liste, key=lambda c: (c.endswith("/"), c))[0]
         if sur_disque is None:
-            rendus += sorted(liste)
+            rendus += [(c, c) for c in sorted(liste)]
         elif sur_disque == noms:
-            rendus.append(d + "/")
+            rendus.append((d + "/", exemple))
         elif {n for n in sur_disque if os.path.isfile(os.path.join(racine, d, n))} <= noms:
-            rendus += [d + "/*"] + sorted(c for c in liste if c.endswith("/"))
+            rendus += [(d + "/*", exemple)] + [(c, c) for c in sorted(liste) if c.endswith("/")]
         else:
-            rendus += sorted(liste)
+            rendus += [(c, c) for c in sorted(liste)]
     return rendus
 
 
 def etat_git(racine):
     """L'état Git de ce que la méthode veut suivi (`methode-chantier.md`, « Ce qui part dans Git ») : `CHANTIER.md`,
     `CLAUDE.md`, le dossier de la ligne **contexte**. `None` hors d'un dépôt Git (ou Git muet) ; sinon
-    `{"ignoré": [...], "non ajouté": [...]}`, vides quand tout est suivi (NUI35, partagé avec `niveau`)."""
+    `{"ignoré": [(nom, exemple)], "non ajouté": [...]}` (`regrouper_dossiers`), vides quand tout est suivi (NUI35,
+    partagé avec `niveau`)."""
     code, _ = git_texte(["rev-parse", "--show-toplevel"], racine)
     if code != 0:
         return None
@@ -1316,7 +1319,7 @@ def ligne_git(racine):
     etat = etat_git(racine)
     if etat is None:
         return ["GIT=hors Git"]
-    lignes = ["GIT=%s %s" % (nom, ", ".join(liste)) for nom, liste in etat.items() if liste]
+    lignes = ["GIT=%s %s" % (nom, ", ".join(n for n, _ in liste)) for nom, liste in etat.items() if liste]
     return lignes or ["GIT=suivi"]
 
 
@@ -5807,13 +5810,43 @@ def cmd_niveau(a, sortie):
 
 
 def etapes_niveau(projet, clos, date, ecrire, sortie):
-    """Les trois étapes de `niveau` de même forme, `[(écarts, corrigés, écritures)]`, dans l'ordre : `clos`, ce que
-    `retirer_clos` a rendu, puis la marque et la ligne. La ligne ne part
+    """Les quatre étapes de `niveau` de même forme, `[(écarts, corrigés, écritures)]`, dans l'ordre : `clos`, ce que
+    `retirer_clos` a rendu, puis la marque, la ligne et Git. La ligne ne part
     qu'après la marque, que `poser_ouverture` pose en la lisant, et du CHANTIER.md que `retirer_clos` a peut-être
     réécrit (NUI31)."""
     etapes = [clos, poser_ouverture(projet, date, ecrire, sortie)]
     ecrites = [ec for _, _, ecs in etapes for ec in ecs]
-    return etapes + [retirer_ligne_courant(projet, ecrites, etapes[1][0] == 0, ecrire, sortie)]
+    return etapes + [retirer_ligne_courant(projet, ecrites, etapes[1][0] == 0, ecrire, sortie),
+                     ecarts_git(projet, sortie)]
+
+
+# Un chemin de machine : un lecteur Windows, le dossier personnel, ou une racine Unix d'utilisateur.
+CHEMIN_MACHINE = re.compile(r"(?<![\w/])(?:[A-Za-z]:[\\/]|~[\\/]|/(?:home|Users|mnt)/)")
+
+
+def ecarts_git(projet, sortie):
+    """L'étape « git » de `niveau` (NUI36) : ce que la règle veut suivi (`etat_git`) mais que Git ignore — avec la
+    ligne de `.gitignore` qui le couvre — ou n'a pas ajouté, et une ligne **kit** qui porte un chemin de machine. Hors
+    Git : rien. `--ecrire` ne corrige rien : retirer une ligne, ajouter, commiter sont des gestes de l'utilisateur.
+    `(écarts, 0, [])`."""
+    etat = etat_git(projet)
+    if etat is None:
+        return 0, 0, []
+    ecarts = 0
+    for nom, exemple in etat["ignoré"]:
+        code, t = git_texte(["check-ignore", "-v", "--", exemple], projet)
+        source = t.split("\t")[0].rpartition(":")[0] if code == 0 and "\t" in t else "?"
+        sortie.write("ÉCART: git: %s — ignoré par %s — à retirer à la main, puis ajouter\n" % (nom, source))
+        ecarts += 1
+    for nom, _ in etat["non ajouté"]:
+        sortie.write("ÉCART: git: %s — non ajouté — à ajouter et commiter à la main\n" % nom)
+        ecarts += 1
+    kit = champ(lignes_de(os.path.join(projet, "CHANTIER.md")), "kit", "")
+    if CHEMIN_MACHINE.search(kit):
+        sortie.write("ÉCART: git: CHANTIER.md — la ligne « kit » porte un chemin de machine, et le fichier part"
+                     " dans Git : « le plugin vlp », à la main\n")
+        ecarts += 1
+    return ecarts, 0, []
 
 
 def retirer_clos(projet, carte_, index, ecrire, sortie):

@@ -1481,8 +1481,9 @@ Tu ne fais pas : `niveau` (`NUI36`), corriger un `.gitignore`.
 ---
 
 <!-- FICHE:NUI36 -->
-## NUI36 [ ] — `niveau` signale `ÉCART: git:`
+## NUI36 [x] — `niveau` signale `ÉCART: git:`
 
+**Session** : 8f1001ac-c741-4321-857f-e7254edea0a5
 **Dépend de** : `NUI34`.
 **Fichiers** : `scripts/vlp_coeur.py` (`niveau` et ses étapes), `scripts/vlp.py` (docstring de `niveau`),
 `scripts/test-vlp.py` — et rien d'autre.
