@@ -428,6 +428,10 @@ l'utilisateur au chantier `MET` (`context AI/08-etat.md`, entrée « MET1 — ce
   « Subcommands ») ; l'aiguillage par `if` de `vlp_coeur.py` se convertit à `REF`.
 - **Un seuil nouveau porte sa raison**, écrite à côté de lui (Skill authoring, « Solve,
   don't defer »).
+- **Retoucher une fonction déjà au-dessus d'un seuil du cliquet** : la docstring que
+  `sante.py` exige alors compte elle-même une instruction pour ruff. Sortir le travail dans
+  une fonction neuve, documentée, et gagner une instruction dans l'ancienne (dette `ARP`,
+  `main` de `boucle.py` : 100 → 104, puis 101, puis 100, 2026-10-08).
 
 **La prose que Claude lit** — commandes, agents, doctrine, `CLAUDE.md` :
 
