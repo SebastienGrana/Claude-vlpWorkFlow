@@ -1,4 +1,6 @@
 # /vlp:chef vérifie la branche dès son début — notes et journal
+## Lien
+https://claude.ai/artifact/EA4fuSPbDUZD9P7EpBXmrZ
 ## Résultat
 Lancé hors de main, /vlp:chef s'arrête avant le tri, en le disant : vlp.py trier rend une GARDE: et ne trie rien.
 ## Notes
