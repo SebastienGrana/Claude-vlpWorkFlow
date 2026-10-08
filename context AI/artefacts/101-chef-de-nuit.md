@@ -33,7 +33,7 @@
 - NUI29 : grep « ligne fichier de fiches courant » 1 → 0 ; COURANT= 0 → 14 ; bac : worktree COURANT=aucun + AILLEURS=F, /vlp:chantier ESS cadre ; test-vlp OK
 - NUI30 : test-vlp.py OK (3 contrôles NUI30, 2 mutants attrapés) ; COURANT= identique avant/après sur kit, Cairn, MapDecorator, bac ; ouverts 1 partout ; pyright 0 errors
 - NUI31 : Suite OK ; RAPIDE VERT (pyright 0 errors, 5 fichiers ; cliquet tenu) ; grep : 54→9 mentions dans test-vlp.py, 11→9 vlp_coeur, 6→2 faux-claude, 6→0 test-boucle, 1→0 gabarit et CHANTIER.md, le reste conceptuel ou d'histoire ; COURANT= identique sur les 4 projets
-- NUI32 : NUI20 remise au nouveau modèle ; après NUI21 à NUI31
+- NUI32 : 0 renvoi chiffré dans NUI20 (symboles relus : COMMIT_FICHE 2503, ESTIME 5929, PLUGIN_RETARD 341, garde d'ouvrir 6509 de vlp_coeur.py) ; « remet aucun » 2 → 1 (reste la citation de NUI32) ; valider VALIDE, 0 écart
 - NUI34 : grep « ne part pas dans git » 1→0, « exclut son contexte » 1→0, « fichier de fiches courant » dans init 1→0 ; aucun chemin de machine dans CHANTIER.md ni le gabarit ; test-vlp OK (4 min 56 s)
 - NUI35 : carte : kit GIT=suivi, Cairn GIT=ignoré CHANTIER.md, CLAUDE.md, context AI/* ; 7 contrôles neufs, suite OK ; mutant toujours-suivi ATTRAPÉ 4 écarts ; pyright 0 erreur
 - NUI36 : niveau, écarts git : Cairn 7, MapDecorator 10, ONZSM 4, TrackGen 5, kit 0 ; 5 contrôles neufs, suite OK ; mutant étape sautée ATTRAPÉ 2 écarts ; pyright 0 erreur

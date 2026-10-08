@@ -1537,8 +1537,9 @@ Tu ne fais pas : un push ; toucher MapDecorator ; un fichier hors de la ligne Fi
 ---
 
 <!-- FICHE:NUI32 -->
-## NUI32 [ ] — Remettre NUI20 au nouveau modèle
+## NUI32 [x] — Remettre NUI20 au nouveau modèle
 
+**Session** : ffc88598-6beb-4183-ab5f-3921daa16197
 **Dépend de** : `NUI21` à `NUI31`.
 **Fichiers** : `context AI/101-chef-de-nuit.md` (fiche `NUI20` et la table de l'ordre seules) ; lus : `scripts/vlp.py`
 (`grep -n` des symboles cités par NUI20) — et rien d'autre.
@@ -1601,10 +1602,10 @@ Tu ne fais pas : un essai `claude -p` ; les rôles `découper`, `relire`, `clore
 L'essai qui prouve le chantier : une vraie nuit sur le kit, au plan de Q7 (TODO n° 72, ligne 381) — `TAB` puis `CLV`
 sur A, `APR` sur B, sa borne double (socle). Tu ne lances ni la nuit ni `claude` : ces gestes sont à l'utilisateur.
 - Avant, arrête-toi au premier écart (RETOUR, l'écart nommé) :
-  a. chaque fiche `NUI1` à `NUI19` a son commit `<fiche> :` (`COMMIT_FICHE`, `vlp_coeur.py`) dans `main` ;
-  b. `main` sans chantier ouvert (`fichier de fiches courant : aucun`) : la nuit part de `main` et `ouvrir` refuse un
-     second chantier (la `GARDE:` de `cmd_ouvrir`). La fusion `--ff-only` qui avance `main` (proposée par `PLUGIN_RETARD=`, dans `carte`) y amène `NUI` ouvert :
-     l'utilisateur remet `aucun` par un commit à lui sur `main`, avant la nuit ; tu relèves son sha, tu ne l'écris pas ;
+  a. chaque fiche `NUI1` à `NUI31` (sauf `NUI20`) a son commit `<fiche> :` (`COMMIT_FICHE`, `vlp_coeur.py`) dans `main` ;
+  b. `vlp.py carte` dans un worktree neuf tiré de `main` → `COURANT=aucun` : la nuit part de `main` même avec `NUI`
+     ouvert ailleurs (modèle de la marque, `courant_de`) ; sinon `ouvrir` y refuserait un second chantier (la `GARDE:`
+     de `cmd_ouvrir`). Ce worktree se retire après le relevé ;
   c. `vlp.py carte` dans le worktree de `NUI` sans ligne `PLUGIN_RETARD=` ; le `/reload-plugins` : l'utilisateur le confirme ;
   d. `py -3 scripts/test-vlp.py` sur `main` → `OK`, durée lue par `time` (Bash) : le script n'en imprime aucune ;
   e. relevés : `git worktree list`, `git rev-parse main origin/main`, `git status --porcelain` de `main`, la cellule
@@ -1622,7 +1623,7 @@ Tu ne corriges rien de ce que la nuit révèle : chaque défaut, avec sa session
 journal avec la table des comptes ; la suite se décide à la clôture de `NUI`. Jamais de push : la question est à `/vlp:chef`.
 
 **Critère de fin** (visuel)
-1. Avant : a à e passés, bruts dans l'entrée (19 commits, sha du commit `aucun`, `PLUGIN_RETARD=` absent, reload
+1. Avant : a à e passés, bruts dans l'entrée (30 commits, `COURANT=aucun` du worktree tiré de `main`, `PLUGIN_RETARD=` absent, reload
    confirmé, durée du test, sha de `main` et `origin/main`).
 2. L'utilisateur a vu la fusion et la page du rapport (`vlp.py vigile <page>` → `PAGE SAINE`), et le dit.
 3. Chacun des trois chantiers a une branche et une issue ; un clos a sa ligne `role` `clore` au carnet et sa branche
