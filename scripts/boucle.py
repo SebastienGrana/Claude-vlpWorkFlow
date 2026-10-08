@@ -28,7 +28,7 @@ Permissions : `--permission-mode`, `auto` par défaut — personne ne répond en
 plus `git add` et `git commit` (`AUTORISES`), sauf `--amend` et `--no-verify` en tête.
 Consigne : `--append-system-prompt PREMIER_PLAN` à toute session, `--nuit` ou non (ARP1) — en `-p`, rendre la main
 pour attendre une commande en arrière-plan finit la session (8 sur 11 mortes à VIT25).
-Traces : `--traces`, sinon un dossier temporaire neuf `vlp-boucle-*`, gardé.
+Traces : `--traces` (créé s'il manque), sinon un dossier temporaire neuf `vlp-boucle-*`, gardé.
 
 `--nuit` (chantier NUI) tient le carnet de `carnet.py` et ouvre `--canal` (exigé), `--chantier` (sans lui : la
 boucle d'un canal, NUI7, plus bas), `--date`, `--borne-usd`, `--borne-chantiers` et `--carnet` (absolu ; défaut :
@@ -1349,7 +1349,22 @@ def lanceur(a):
     return 0 if not any(codes) else 1
 
 
+def dossier_de_traces(traces):
+    """Rendre le dossier des traces : `traces`, créé s'il manque, comme celui du lanceur de nuit ; sinon un dossier
+    temporaire neuf `vlp-boucle-*`. Impossible à créer (un fichier à sa place, un droit) : une GARDE, puis sortie 1
+    — avant toute session, rien de joué (dette ARP : un dossier absent rendait un traceback)."""
+    try:
+        traces = traces or tempfile.mkdtemp(prefix="vlp-boucle-")
+        os.makedirs(traces, exist_ok=True)
+    except OSError as e:
+        print("GARDE: dossier de traces impossible à créer — %s" % e)
+        raise SystemExit(1) from e
+    return traces
+
+
 def main(argv):
+    """Lire les options, la carte du dossier, puis jouer les fiches du chantier ouvert — ou, sous `--nuit`, les
+    chantiers du plan d'un canal ; imprimer `ARRÊT` et `TOTAL`, rendre le code de sortie."""
     p = argparse.ArgumentParser(description="Une session claude -p neuve par fiche.")
     p.add_argument("dossier", nargs="?", default=".")
     p.add_argument("--plafond", type=int)
@@ -1426,7 +1441,7 @@ def main(argv):
         except ValueError as e:
             print("GARDE: %s" % e)
             return 1
-    traces = a.traces or tempfile.mkdtemp(prefix="vlp-boucle-")
+    traces = dossier_de_traces(a.traces)
     etat = {"jouees": 0, "tours": 0, "cout": 0.0, "verifiee": False}
     t_debut = time.time()
     if a.nuit:
@@ -1461,9 +1476,8 @@ def main(argv):
         if a.nuit:
             eveil(a, False)
 
-    print("ARRÊT %s" % raison)
-    print("TOTAL %d fiches · %d tours · %.4f $ · %d s"
-          % (etat["jouees"], etat["tours"], etat["cout"], int(time.time() - t_debut)))
+    print("ARRÊT %s\nTOTAL %d fiches · %d tours · %.4f $ · %d s"
+          % (raison, etat["jouees"], etat["tours"], etat["cout"], int(time.time() - t_debut)))
     return code
 
 

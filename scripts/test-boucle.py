@@ -1750,10 +1750,25 @@ def tester_premier_plan():
              and all(c == bmod.PREMIER_PLAN for c in de_nuit), (simple, de_nuit, s, s_n))
 
 
+def tester_traces():
+    """Dette ARP : un `--traces` absent se crée, la fiche se joue ; un `--traces` qui est un fichier rend une GARDE."""
+    with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors:
+        absent = os.path.join(hors, "pas", "encore")
+        code, s, cases = boucle(t, projet(t), 1, options=("--traces", absent))
+        cree = os.path.isdir(absent) and os.listdir(absent) != []
+    with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors:
+        fichier = os.path.join(hors, "un-fichier")
+        open(fichier, "w").close()
+        code_f, s_f, cases_f = boucle(t, projet(t), 1, options=("--traces", fichier))
+    verifier("dette ARP : --traces absent créé, F1 cochée, trace écrite ; --traces sur un fichier : GARDE, sort 1, "
+             "rien de joué — mutant : le makedirs retiré", code == 0 and cases == "x.." and cree
+             and code_f == 1 and "GARDE: dossier de traces" in s_f and cases_f == "...", (s, s_f))
+
+
 PARTIES = {"simple": tester_simple, "faux": tester_faux, "nuit": tester_nuit, "plafonds": tester_plafonds,
            "relecture": tester_relecture, "relance": tester_relance, "canal": tester_canal, "herite": tester_herite,
            "reprise": tester_reprise, "lanceur": tester_lanceur, "dans_processus": tester_vlp_dans_processus,
-           "premier_plan": tester_premier_plan, "parties": tester_parties}
+           "premier_plan": tester_premier_plan, "traces": tester_traces, "parties": tester_parties}
 EN_PARALLELE = (("canal",), ("relecture", "reprise"), ("herite", "lanceur"))
 
 
