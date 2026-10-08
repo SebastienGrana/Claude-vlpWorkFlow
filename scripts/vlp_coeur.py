@@ -214,7 +214,9 @@ def trouver(depart):
 
 
 def fichier_courant(carte_texte):
-    """Le chemin du fichier de fiches courant, ou None s'il vaut « aucun »."""
+    """Le fichier que nomme l'ancienne ligne « fichier de fiches courant » de CHANTIER.md, ou None (absente, ou
+    « aucun »). Plus aucun lecteur ne la suit (NUI31) : seul `niveau` la lit encore, pour poser la marque d'un projet
+    pas migré puis retirer la ligne."""
     for ligne in carte_texte.split("\n"):
         m = COURANT.match(ligne)
         if m:
@@ -325,12 +327,7 @@ def carte(depart, sortie, relecteur=False, neuve=False):
         # `cmd_equiper` appelle `carte` en direct : elle garde, elle ne lève pas.
         sortie.write("PROJET=%s\nGARDE: %s\n" % (racine, e))
         return 1
-    montre = texte
-    if relecteur:
-        # L'étendue `(X1..X3)` de la ligne du fichier courant dit aussi la suite (dette REL).
-        montre = "\n".join(re.sub(r"\s+\([^)]*\)$", "", l) if COURANT.match(l) else l
-                           for l in texte.split("\n"))
-    sortie.write("PROJET=%s\nCOURANT=%s\n--- CHANTIER.md ---\n%s" % (racine, courant or "aucun", montre))
+    sortie.write("PROJET=%s\nCOURANT=%s\n--- CHANTIER.md ---\n%s" % (racine, courant or "aucun", texte))
     if not texte.endswith("\n"):
         sortie.write("\n")
     if not relecteur:
@@ -5733,9 +5730,8 @@ def cmd_niveau(a, sortie):
         sortie.write("ÉCART: variable: %s:%d cite %s — une variable ne vaut que dans"
                      " le texte d'une commande, pas dans un fichier de données\n" % (chemin, i, v))
 
-    # Deux étapes de même forme : `(écarts, corrigés, écritures)`.
-    for e, c, ecrites in (retirer_clos(projet, carte_, index, a.ecrire, sortie),
-                          poser_ouverture(projet, date, a.ecrire, sortie)):
+    for e, c, ecrites in etapes_niveau(projet, retirer_clos(projet, carte_, index, a.ecrire, sortie), date, a.ecrire,
+                                       sortie):
         ecarts, corriges = ecarts + e, corriges + c
         ecritures += ecrites
 
@@ -5753,6 +5749,16 @@ def cmd_niveau(a, sortie):
     else:
         sortie.write("NIVEAU %d écarts · %d avertissements — %s\n" % (ecarts, avertissements, projet))
     return 1 if ecarts else 0
+
+
+def etapes_niveau(projet, clos, date, ecrire, sortie):
+    """Les trois étapes de `niveau` de même forme, `[(écarts, corrigés, écritures)]`, dans l'ordre : `clos`, ce que
+    `retirer_clos` a rendu, puis la marque et la ligne. La ligne ne part
+    qu'après la marque, que `poser_ouverture` pose en la lisant, et du CHANTIER.md que `retirer_clos` a peut-être
+    réécrit (NUI31)."""
+    etapes = [clos, poser_ouverture(projet, date, ecrire, sortie)]
+    ecrites = [ec for _, _, ecs in etapes for ec in ecs]
+    return etapes + [retirer_ligne_courant(projet, ecrites, etapes[1][0] == 0, ecrire, sortie)]
 
 
 def retirer_clos(projet, carte_, index, ecrire, sortie):
@@ -5795,6 +5801,31 @@ def poser_ouverture(projet, date, ecrire, sortie):
                      " d'ouverture" if quand else "date de l'appel, aucun commit « Chantier %s ouvert »" % code))
         return 0, 1, [(chemin, "\n".join(lignes) + "\n")]
     return 1, 0, []
+
+
+def retirer_ligne_courant(projet, ecritures, marque_posee, ecrire, sortie):
+    """L'étape « ligne » de `niveau` (NUI31) : la ligne « fichier de fiches courant » restée dans CHANTIER.md — plus
+    aucun lecteur ne la suit, elle ne peut que mentir —, retirée avec `ecrire` si `marque_posee` (l'étape « marque »
+    sans écart : sinon elle reste, seule trace du chantier ouvert). Part du dernier CHANTIER.md de `ecritures`, sinon
+    du disque, fins de ligne gardées. `(écarts, corrigés, [(chemin, contenu)])`."""
+    chemin = os.path.join(projet, "CHANTIER.md")
+    texte = next((c for ch, c in reversed(ecritures) if ch == chemin), None)
+    if texte is None:
+        with open(chemin, encoding="utf-8", newline="") as fh:
+            texte = fh.read()
+    fin = "\r\n" if "\r\n" in texte else "\n"
+    lignes = texte.replace("\r\n", "\n").split("\n")
+    rangs = [k for k, l in enumerate(lignes) if COURANT.match(l)]
+    if not rangs:
+        return 0, 0, []
+    if not (ecrire and marque_posee):
+        sortie.write("ÉCART: ligne: CHANTIER.md:%d — « fichier de fiches courant » n'est plus lue (NUI31) — %s\n"
+                     % (rangs[0] + 1, "« vlp.py niveau --ecrire » la retire" if marque_posee
+                        else "gardée tant que la marque d'ouverture manque"))
+        return 1, 0, []
+    sortie.write("CORRIGÉ: ligne: « fichier de fiches courant » retirée de CHANTIER.md:%d — la marque d'ouverture"
+                 " dit le chantier\n" % (rangs[0] + 1))
+    return 0, 1, [(chemin, fin.join(l for k, l in enumerate(lignes) if k not in rangs))]
 
 
 # --- clore -------------------------------------------------------------------
@@ -5879,17 +5910,19 @@ def date_ouverture(racine, code):
 
 def textes_contexte(racine, rev=None):
     """[(chemin relatif à `racine`, lignes)] des `.md` du dossier de contexte, triés par nom : l'arbre de travail,
-    ou le commit `rev` lu par Git. Sans ligne `contexte` : []. Le lecteur commun de `ouverts` et `courant_de`."""
+    ou le commit `rev` lu par Git. Sans ligne `contexte` : [] ; à `.`, les chemins sans préfixe. Le lecteur commun de
+    `ouverts` et `courant_de`."""
     carte_ = os.path.join(racine, "CHANTIER.md")
     # Un worktree où CHANTIER.md n'est pas suivi n'en a pas (Cairn) : aucun texte, jamais un traceback (NUI30).
     dossier = champ(lignes_de(carte_), "contexte") if os.path.isfile(carte_) else None
     if not dossier:
         return []
     dossier = dossier.strip("`").rstrip("/")
+    rel = "%s/%%s" % dossier if dossier != "." else "%s"
     if rev is None:
         base = os.path.join(racine, dossier)
         noms = sorted(n for n in os.listdir(base) if n.endswith(".md")) if os.path.isdir(base) else []
-        return [("%s/%s" % (dossier, n), lignes_de(os.path.join(base, n))) for n in noms]
+        return [(rel % n, lignes_de(os.path.join(base, n))) for n in noms]
     code, sortie_git = git_texte(["ls-tree", "--name-only", rev, "./%s/" % dossier], racine)
     noms = sorted(os.path.basename(l) for l in (sortie_git.splitlines() if code == 0 else []) if l.endswith(".md"))
     specs = ["%s:./%s/%s" % (rev, dossier, n) for n in noms]
@@ -5898,7 +5931,7 @@ def textes_contexte(racine, rev=None):
         if t is None:       # pas un blob lisible d'un coup : `git show`, comme avant VIT3
             code, t = git_texte(["show", spec], racine)
             t = t if code == 0 else None
-        textes.append(("%s/%s" % (dossier, n), t.split("\n") if t is not None else []))
+        textes.append((rel % n, t.split("\n") if t is not None else []))
     return textes
 
 
@@ -6019,16 +6052,8 @@ def courant_de(racine, rev=None):
     """Le fichier de fiches du chantier courant de `racine` (relatif à elle), ou None : le **seul** lecteur
     (chantier NUI22). Dans l'ordre : 1. le post-it du dossier, s'il nomme un ouvert (arbre de travail seul) ;
     2. hors de la branche principale, le seul ouvert ajouté depuis la merge-base avec elle — un hérité n'est pas
-    le chantier du dossier ; 3. sinon le seul ouvert. Deux ou plus : `Absent`, que `main` rend en `GARDE:`.
-    4. Aucune marque d'ouverture dans le contexte (projet pas encore migré, NUI30) : l'ancienne ligne de
-    CHANTIER.md. Avec `rev`, tout se lit dans ce commit."""
-    if not migre(racine, rev):
-        chemin = os.path.join(racine, "CHANTIER.md")
-        if rev is None:
-            code, carte_ = (0, lire(chemin)) if os.path.isfile(chemin) else (1, "")
-        else:
-            code, carte_ = git_texte(["show", "%s:CHANTIER.md" % rev], racine)
-        return fichier_courant(carte_) if code == 0 else None
+    le chantier du dossier ; 3. sinon le seul ouvert. Deux ou plus : `Absent`, que `main` rend en `GARDE:`. Aucune
+    marque : None — l'ancienne ligne de CHANTIER.md n'est plus lue (NUI31). Avec `rev`, tout se lit dans ce commit."""
     liste = ouverts(racine, rev)
     p = postit(racine) if rev is None else None
     if p and os.path.isfile(p):
@@ -6046,6 +6071,14 @@ def courant_de(racine, rev=None):
     if len(liste) > 1:
         raise Absent("plusieurs chantiers ouverts : %s" % ", ".join(liste))
     return liste[0] if liste else None
+
+
+def courant_ou_rien(racine):
+    """`courant_de(racine)`, ou None quand plusieurs chantiers y sont ouverts (`Absent`)."""
+    try:
+        return courant_de(racine)
+    except Absent:
+        return None
 
 
 def cmd_ouverts(a, sortie):
@@ -6198,7 +6231,7 @@ def cmd_clore(a, sortie):
 
     # 2. CHANTIER.md
     for k, l in enumerate(carte_):
-        m = re.match(r"^(\s*-\s*\*\*(?:fichier de fiches courant|artefact du chantier)\*\*\s*:\s*)", l)
+        m = re.match(r"^(\s*-\s*\*\*artefact du chantier\*\*\s*:\s*)", l)
         if m:
             carte_[k] = m.group(1) + "aucun"
     texte = "\n".join(carte_) + "\n"
@@ -6411,16 +6444,14 @@ def cmd_ouvrir(a, sortie):
     fiches_change = fiches_change or bool(reprise)
 
     # 1. CHANTIER.md
-    vus = set()
+    vu = False
     for k, l in enumerate(carte_):
-        m = re.match(r"^(\s*-\s*\*\*(fichier de fiches courant|artefact du chantier)\*\*\s*:\s*)", l)
+        m = re.match(r"^(\s*-\s*\*\*artefact du chantier\*\*\s*:\s*)", l)
         if m:
-            carte_[k] = m.group(1) + ("%s (%s)" % (fichier, fait) if m.group(2).startswith("fichier") else url)
-            vus.add(m.group(2))
-    for nom in ("fichier de fiches courant", "artefact du chantier"):
-        if nom not in vus:
-            sortie.write("GARDE: ligne « %s » absente de CHANTIER.md — rien d'écrit\n" % nom)
-            return 1
+            carte_[k], vu = m.group(1) + url, True
+    if not vu:
+        sortie.write("GARDE: ligne « artefact du chantier » absente de CHANTIER.md — rien d'écrit\n")
+        return 1
 
     # 2. l'index
     ecritures = []
@@ -6552,17 +6583,20 @@ def cmd_pause(a, sortie):
 # --- bac ---------------------------------------------------------------------
 
 # Le bac d'essai de FIL3 (journal du 2026-09-24) : fixe, en constantes.
-BAC_FICHES = "fiches.md"
+# Le fichier de fiches porte la marque d'ouverture, dans le dossier de contexte : `courant_de` le trouve (NUI31).
+BAC_FICHES = "ctx/fiches.md"
 BAC_CHANTIER = """# Chantier courant — bac d'essai
 
-- **fichier de fiches courant** : %s (F1..F2)
+- **contexte** : ctx/
 - **artefact du chantier** : aucun
 - **livraison** : aucune
 - **vérification** : aucune — lire le statut rendu
 
 Lettres de fiche déjà prises : F (Deux fiches factices). Un nouveau chantier en choisit un autre.
-""" % BAC_FICHES
-BAC_FICHIER = """# Bac d'essai — deux fiches factices
+"""
+BAC_FICHIER = """# Chantier F — bac d'essai, deux fiches factices
+
+**Ouvert.** le 2026-09-24.
 
 ## Le socle commun
 
@@ -6661,12 +6695,14 @@ def cmd_claude(sortie):
 
 
 def cmd_bac(dossier, sortie):
+    """Pose le bac d'essai de FIL3 dans `dossier`, vide ou absent, et imprime ses commandes `claude -p`."""
     if os.path.exists(dossier) and (not os.path.isdir(dossier) or os.listdir(dossier)):
         sortie.write("GARDE: %s existe et n'est pas un dossier vide — rien d'écrit\n" % dossier)
         return 1
     os.makedirs(dossier, exist_ok=True)
     fichiers = {"CHANTIER.md": BAC_CHANTIER, BAC_FICHES: BAC_FICHIER}
     fichiers.update(("n%02d.txt" % k, "fichier %02d\n" % k) for k in range(1, 13))
+    os.makedirs(os.path.join(dossier, os.path.dirname(BAC_FICHES)), exist_ok=True)
     for nom, texte in fichiers.items():
         with open(os.path.join(dossier, nom), "w", encoding="utf-8", newline="") as f:
             f.write(texte)
@@ -6942,16 +6978,15 @@ def cmd_nuits_noter(texte, canal, arret, sortie, dossier=None, sorte=None):
 
 # --- matin : fusionner la nuit dans main (chantier NUI, fiche NUI15) --------------------------
 # Git fusionne sans conflit ce que `clore` remet à `aucun` dans `CHANTIER.md` : le chantier ouvert de `main`
-# s'efface. `neutre` met à part les deux libellés et la liste des lettres, `restaurer` les rend ; la feuille,
+# s'efface. `neutre` met à part le libellé de l'artefact et la liste des lettres, `restaurer` les rend ; la feuille,
 # elle, se refait toujours, au rang « en cours » que `main` portait avant la fusion.
 
-OUVERT_CARTE = re.compile(r"^([ \t]*-[ \t]*\*\*(fichier de fiches courant|artefact du chantier)\*\*[ \t]*:[ \t]*)(.*)$",
-                          re.M)
+OUVERT_CARTE = re.compile(r"^([ \t]*-[ \t]*\*\*(artefact du chantier)\*\*[ \t]*:[ \t]*)(.*)$", re.M)
 JETON_OUVERT, JETON_LETTRES = "§ouvert§", "§lettres§"
 
 
 def neutre(texte):
-    """`(texte, valeurs, liste)` : `texte` (un `CHANTIER.md`) dont la valeur des deux libellés et la liste des
+    """`(texte, valeurs, liste)` : `texte` (un `CHANTIER.md`) dont la valeur du libellé et la liste des
     lettres sont remplacées par `JETON_OUVERT` et `JETON_LETTRES` ; `valeurs` : `{libellé: valeur}` ; `liste` :
     ce qui suit « Lettres de fiche déjà prises » jusqu'à `fin_lettres`, `None` sans cette ligne."""
     valeurs = {m.group(2): m.group(3) for m in OUVERT_CARTE.finditer(texte)}
@@ -7310,6 +7345,7 @@ def fusionner_branche(projet, branche, message, sortie):
     avec_archive = archive != page
     avant = lire(chemin_carte)
     carte_main, valeurs, liste_main = neutre(avant)
+    courant_recu = courant_ou_rien(projet)     # avant le merge : le chantier de la branche qui reçoit (NUI31)
     liste_main = liste_main or ""     # `cmd_matin` a refusé un main sans sa ligne de lettres
     rang = None
     if os.path.isfile(page):
@@ -7353,9 +7389,8 @@ def fusionner_branche(projet, branche, message, sortie):
     code_fusion, fusion = fusion_texte(projet, [carte_base, carte_main, carte_leur], branche)
     if code_fusion is None:
         return arret("CHANTIER.md : %s" % fusion)
-    # Les libellés restent ceux de la branche qui reçoit, sauf si son chantier porte `**CLOS**` dans l'arbre fusionné :
-    # clos dans un worktree, il ne bloque plus la principale — les deux à `aucun`, comme `clore` (NUI26).
-    courant_recu = fichier_courant(avant)
+    # Le libellé reste celui de la branche qui reçoit, sauf si son chantier porte `**CLOS**` dans l'arbre fusionné :
+    # clos dans un worktree, il ne bloque plus la principale — à `aucun`, comme `clore` (NUI26).
     chemin_recu = os.path.join(projet, courant_recu) if courant_recu else None
     if chemin_recu and os.path.isfile(chemin_recu) and any(l.startswith(MARQUE_CLOS) for l in lignes_de(chemin_recu)):
         valeurs = {libelle: "aucun" for libelle in valeurs}
@@ -7531,8 +7566,9 @@ def cmd_matin(a, sortie):
             "%d chemin(s)" % len(sale.splitlines()) if code == 0 else sale))
         return 1
     _, valeurs, liste = neutre(lire(os.path.join(projet, "CHANTIER.md")))
-    if liste is None or len(valeurs) < 2:
-        sortie.write("GARDE: CHANTIER.md de main sans ses deux libellés ou sa ligne « %s » — rien fusionné\n" % LETTRES)
+    if liste is None or not valeurs:
+        sortie.write("GARDE: CHANTIER.md de main sans sa ligne « artefact du chantier » ou « %s » — rien fusionné\n"
+                     % LETTRES)
         return 1
     date = a.date if a.date is not None else nuit_a_ranger(projet, sortie)
     if date is None:

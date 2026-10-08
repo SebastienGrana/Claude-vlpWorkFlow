@@ -32,7 +32,7 @@
 - NUI28 : test-vlp OK (309 s, 0 ÉCART), 2 contrôles NUI28 ; MUTANT ATTRAPÉ 2 écart(s) ; carte du kit 86 → 86 lignes ; pyright 0 errors (3 fichiers) ; coût gonflé par VIT/MET/ARP, à recouper avant clore
 - NUI29 : grep « ligne fichier de fiches courant » 1 → 0 ; COURANT= 0 → 14 ; bac : worktree COURANT=aucun + AILLEURS=F, /vlp:chantier ESS cadre ; test-vlp OK
 - NUI30 : test-vlp.py OK (3 contrôles NUI30, 2 mutants attrapés) ; COURANT= identique avant/après sur kit, Cairn, MapDecorator, bac ; ouverts 1 partout ; pyright 0 errors
-- NUI31 : la vieille ligne de CHANTIER.md disparaît ; après NUI29, NUI30
+- NUI31 : Suite OK ; RAPIDE VERT (pyright 0 errors, 5 fichiers ; cliquet tenu) ; grep : 54→9 mentions dans test-vlp.py, 11→9 vlp_coeur, 6→2 faux-claude, 6→0 test-boucle, 1→0 gabarit et CHANTIER.md, le reste conceptuel ou d'histoire ; COURANT= identique sur les 4 projets
 - NUI32 : NUI20 remise au nouveau modèle ; après NUI21 à NUI31
 ## Journal
 - 2026-10-01 : Essai NUI14 sous NUIT=1 : une session claude -p sur une fiche triviale, 16 tours, 0,4623 $, 68 s (un appel lire nuit.md, 0 git commit, 0 cloture.md) ; boucle.py ne crée pas le dossier de --traces.

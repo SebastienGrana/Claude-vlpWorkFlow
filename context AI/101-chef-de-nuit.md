@@ -1390,8 +1390,9 @@ Tu ne fais pas : retirer la ligne (`NUI31`).
 ---
 
 <!-- FICHE:NUI31 -->
-## NUI31 [ ] — Retirer la vieille ligne de CHANTIER.md
+## NUI31 [x] — Retirer la vieille ligne de CHANTIER.md
 
+**Session** : 8f1001ac-c741-4321-857f-e7254edea0a5
 **Dépend de** : `NUI29`, `NUI30`.
 **Fichiers** : `scripts/vlp.py`, `scripts/boucle.py`, `scripts/faux-claude.py`, `scripts/test-vlp.py`, `scripts/test-boucle.py`,
 `templates/CHANTIER.md`, `CHANTIER.md` ; `CHANTIER.md` des projets équipés — et rien d'autre.

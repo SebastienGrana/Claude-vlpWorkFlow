@@ -13,7 +13,6 @@
 - **chantiers possibles** : <context AI/NN-etat.md>
 - **fichier d'état** : <context AI/NN-etat.md>
 - **index** : <context AI/00-INDEX.md>
-- **fichier de fiches courant** : aucun
 - **artefact feuille de route** : <https://… — posé par /vlp:init>
 - **artefact du chantier** : aucun
 - **livraison** : <./deploy.sh — ou : aucune>

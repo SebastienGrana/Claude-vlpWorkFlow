@@ -45,8 +45,12 @@ os.environ.pop("CLAUDE_CODE_SESSION_ID", None)
 # `plan ecrire` refuserait. Un test le fixe lui-même (NUI12).
 os.environ.pop("VLP_NUIT", None)
 
-CHANTIER ="# Chantier courant\n\n- **alias** : %s\n- **fichier de fiches courant** : %s\n"
+# Le chantier ouvert se dit par sa marque, sous le titre du fichier de fiches du dossier `contexte` (NUI31).
+CHANTIER = "# Chantier courant\n\n- **alias** : %s\n- **contexte** : %s\n"
+OUVERT = "**Ouvert.** le 2026-10-08."
 FICHES = """# Chantier Z
+
+**Ouvert.** le 2026-10-08.
 
 ## Le socle commun
 
@@ -61,6 +65,12 @@ def ecrire(chemin, texte):
     os.makedirs(os.path.dirname(chemin), exist_ok=True)
     with open(chemin, "w", encoding="utf-8", newline="") as f:
         f.write(texte)
+
+
+def ouvert(texte):
+    """`texte` d'un fichier de fiches, la marque d'ouverture sous son titre `# Chantier `, comme la pose `vlp.py
+    ouvrir` : `courant_de` le lit (NUI31)."""
+    return re.sub(r"^(# Chantier [^\n]*\n)", r"\g<1>\n%s\n" % OUVERT, texte, count=1, flags=re.M)
 
 
 def rendu(depart):
@@ -168,7 +178,7 @@ def tester_carte_projet():
     """Contrôler `carte` sur un projet : remontée au projet, chemin avec espace, titres numérotés, prochaine fiche."""
     with tempfile.TemporaryDirectory() as t:
         p = os.path.join(t, "proj")
-        ecrire(os.path.join(p, "CHANTIER.md"), CHANTIER % ("pz", "context AI/20-z.md (Z1..Z10)"))
+        ecrire(os.path.join(p, "CHANTIER.md"), CHANTIER % ("pz", "context AI/"))
         ecrire(os.path.join(p, "context AI", "20-z.md"), FICHES)
         sous = os.path.join(p, "src", "a")
         os.makedirs(sous)
@@ -177,29 +187,28 @@ def tester_carte_projet():
         s = rendu(sous)
         verifier("remonte au projet", "PROJET=%s\n" % p in s, s)
         verifier("carte entière", "- **alias** : pz" in s, s)
-        verifier("chemin avec espace et plage", "--- fiches : context AI/20-z.md (8 lignes, 3 titres) ---" in s, s)
-        verifier("titres numérotés", "5:## Z1 [x] — faite\n7:## Z2 [ ] — à faire\n8:## Z10 [ ] — après\n" in s, s)
+        verifier("chemin avec espace et plage", "--- fiches : context AI/20-z.md (10 lignes, 3 titres) ---" in s, s)
+        verifier("titres numérotés", "7:## Z1 [x] — faite\n9:## Z2 [ ] — à faire\n10:## Z10 [ ] — après\n" in s, s)
         verifier("prochaine dans l'ordre du fichier", s.endswith("PROCHAINE=Z2\n"), s)
 
         ecrire(os.path.join(p, "context AI", "20-z.md"), FICHES.replace("[ ]", "[x]"))
         s = rendu(p)
         verifier("tout coché", s.endswith("PROCHAINE=aucune\n"), s)
 
-        ecrire(os.path.join(p, "context AI", "20-z.md"), "# titres\n### Z1 reformulé\n")
+        ecrire(os.path.join(p, "context AI", "20-z.md"), "# Chantier Z\n\n%s\n### Z1 reformulé\n" % OUVERT)
         s = rendu(p)
         verifier("garde grep muet", "GARDE: aucun titre" in s and "PROCHAINE" not in s, s)
 
-        ecrire(os.path.join(p, "CHANTIER.md"), CHANTIER % ("pz", "aucun"))
+        # Sans marque, aucun chantier : l'ancienne ligne « fichier de fiches courant » ne nomme plus rien (NUI31).
+        ecrire(os.path.join(p, "context AI", "20-z.md"), FICHES.replace(OUVERT, "Fermé."))
+        ecrire(os.path.join(p, "CHANTIER.md"), CHANTIER % ("pz", "context AI/") + "- **fichier de fiches courant** :"
+               " context AI/20-z.md (Z1..Z10)\n")
         s = rendu(p)
         verifier("aucun courant", "--- fichier de fiches courant : aucun ---\n" in s and "TODO=absente (pas de ligne « chantiers possibles »)" in s, s)
 
-        ecrire(os.path.join(p, "CHANTIER.md"), CHANTIER % ("pz", "context AI/99-absent.md"))
-        s = rendu(p)
-        verifier("fichier absent", "GARDE: fichier de fiches introuvable : context AI/99-absent.md" in s, s)
-
         w = os.path.join(t, "ws")
-        ecrire(os.path.join(w, "b", "CHANTIER.md"), CHANTIER % ("bb", "aucun"))
-        ecrire(os.path.join(w, "a", "CHANTIER.md"), CHANTIER % ("aa", "aucun"))
+        ecrire(os.path.join(w, "b", "CHANTIER.md"), CHANTIER % ("bb", "context AI/"))
+        ecrire(os.path.join(w, "a", "CHANTIER.md"), CHANTIER % ("aa", "context AI/"))
         ecrire(os.path.join(w, "c", "chantier.md"), "une commande\n")
         s = rendu(w)
         verifier("voisins triés avec alias",
@@ -218,22 +227,21 @@ def test_carte_relecteur():
     """REL2 : `carte --relecteur` tait les titres de fiches et `PROCHAINE=` ; sans l'option, rien ne change."""
     with tempfile.TemporaryDirectory() as bac:
         pr = os.path.join(bac, "pr")
-        ecrire(os.path.join(pr, "CHANTIER.md"), CHANTIER % ("pr", "context AI/20-z.md (ZZZ1..ZZZ2)"))
+        ecrire(os.path.join(pr, "CHANTIER.md"), CHANTIER % ("pr", "context AI/"))
         ecrire(os.path.join(pr, "context AI", "20-z.md"),
-               "# Chantier ZZZ\n\n## ZZZ1 [ ] — à relire\n---\n## ZZZ2 [x] — piège\n")
+               ouvert("# Chantier ZZZ\n\n## ZZZ1 [ ] — à relire\n---\n## ZZZ2 [x] — piège\n"))
         s = rendu(pr)
         verifier("carte sans --relecteur : titres et PROCHAINE inchangés",
-                 s.endswith("--- fiches : context AI/20-z.md (5 lignes, 2 titres) ---\n"
-                            "3:## ZZZ1 [ ] — à relire\n5:## ZZZ2 [x] — piège\nPROCHAINE=ZZZ1\n"), s)
+                 s.endswith("--- fiches : context AI/20-z.md (7 lignes, 2 titres) ---\n"
+                            "5:## ZZZ1 [ ] — à relire\n7:## ZZZ2 [x] — piège\nPROCHAINE=ZZZ1\n"), s)
         r = io.StringIO()
         mod.carte(pr, r, relecteur=True)
         r = r.getvalue()
         verifier("carte --relecteur : ni titre ni PROCHAINE=, mais PROJET=",
                  "piège" not in r and "PROCHAINE=" not in r and "PROJET=%s\n" % pr in r, r)
         verifier("carte --relecteur : ni l'étendue des fiches (dette REL), mais le chemin",
-                 "ZZZ2" not in r and "- **fichier de fiches courant** : context AI/20-z.md\n" in r, r)
-        verifier("carte --relecteur : le reste à l'octet près",
-                 s.replace(" (ZZZ1..ZZZ2)", "").startswith(r) and "- **alias** : pr" in r, r)
+                 "ZZZ2" not in r and "COURANT=context AI/20-z.md\n" in r, r)
+        verifier("carte --relecteur : le reste à l'octet près", s.startswith(r) and "- **alias** : pr" in r, r)
         j = io.StringIO()
         mod.carte_injectee(pr, "py", False, j, relecteur=True)
         j = j.getvalue()
@@ -245,9 +253,9 @@ def test_carte_todo():
     """LEC2 : la TODO des chantiers possibles, quand aucun chantier n'est ouvert."""
     with tempfile.TemporaryDirectory() as t:
         pr = os.path.join(t, "pr")
-        def chantier(possibles, courant="aucun"):
+        def chantier(possibles):
             ecrire(os.path.join(pr, "CHANTIER.md"), "# C\n\n- **alias** : pr\n"
-                   "- **chantiers possibles** : %s\n- **fichier de fiches courant** : %s\n" % (possibles, courant))
+                   "- **chantiers possibles** : %s\n- **contexte** : ctx/\n" % possibles)
         todo = lambda n: "## TODO %s\n\nTexte%s.\n## Suite\n\nFin.\n" % (n, n)
 
         ecrire(os.path.join(pr, "08-etat.md"), "# État\n\n## TODO première\n\nLigne 1.\nLigne 2.\n"
@@ -292,8 +300,8 @@ def test_carte_todo():
             vus = re.findall(r"^--- TODO : (.+) \(lignes", s, re.M)
             verifier("carte TODO : le disque tranche — %s" % possibles, vus == attendus and "GARDE" not in s, s)
 
-        chantier("`a.md`", "fiches.md")
-        ecrire(os.path.join(pr, "fiches.md"), "## Z1 [ ] — Fiche\n")
+        chantier("`a.md`")
+        ecrire(os.path.join(pr, "ctx", "fiches.md"), "# Chantier Z\n\n%s\n\n## Z1 [ ] — Fiche\n" % OUVERT)
         s = rendu(pr)
         verifier("carte TODO : chantier ouvert, aucun bloc", "--- TODO :" not in s and "TODO=absente" not in s, s)
 
@@ -305,7 +313,7 @@ def test_carte_methode():
         pr, faux_kit = os.path.join(t, "pr"), os.path.join(t, "kit")
         def chantier(methode):
             ecrire(os.path.join(pr, "CHANTIER.md"), "# C\n\n- **alias** : pr\n"
-                   "- **fichier de fiches courant** : aucun\n" + ("- **méthode** : %s\n" % methode if methode else ""))
+                   + ("- **méthode** : %s\n" % methode if methode else ""))
         trois = ("# M\n## Avant\nx\n## Le fichier de fiches\na\n## Anatomie d'une fiche\nb\n"
                  "## Les deux formes de critère de fin\nc\n## Après\nd\n")
 
@@ -1184,13 +1192,14 @@ def tester_feuille_clore():
     """Contrôler `feuille` et `clore` : feuille fermée, réécrite, résumé (chantier FEU)."""
     with tempfile.TemporaryDirectory() as t:
         carte_ = ("# C\n\n- **contexte** : ctx/\n- **fichier d'état** : ctx/08-etat.md\n"
-                  "- **fichier de fiches courant** : %s\n- **artefact du chantier** : %s\n\n"
+                  "- **artefact du chantier** : %s\n\n"
                   "Lettres de fiche déjà prises : E (Un), M (Deux `x`). Un nouveau chantier en choisit une autre.\n")
-        ecrire(os.path.join(t, "CHANTIER.md"), carte_ % ("aucun", "aucun"))
+        ecrire(os.path.join(t, "CHANTIER.md"), carte_ % "aucun")
         ecrire(os.path.join(t, "ctx", "08-etat.md"),
                "# État\n\n| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |\n|---|---|---|---|---|\n"
                "| 3 | Le `sh` | a \\|\\| b <c> | 2 fiches | — |\n| 4 | Quatre | rien | 1 fiche | 3 |\n\n## Journal\n")
-        ecrire(os.path.join(t, "ctx", "30-q.md"), "# Chantier Q — Un titre\n\n## Q1 [x] — a\n## Q2 [ ] — b\n")
+        q_ferme = "# Chantier Q — Un titre\n\n## Q1 [x] — a\n## Q2 [ ] — b\n"
+        ecrire(os.path.join(t, "ctx", "30-q.md"), q_ferme)
         fdr = os.path.join(t, "ctx", "artefacts", "feuille-de-route.html")
         ecrire(fdr, open(os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html"), encoding="utf-8").read())
         lire = lambda c: open(c, encoding="utf-8").read()
@@ -1216,7 +1225,8 @@ def tester_feuille_clore():
                       in lire(fdr)), s + lire(fdr))
         verifier("feuille : décompte au singulier et vide",
                  mod.resume_todo(1) == "1 chantier possible" and mod.resume_todo(0) == "aucun chantier possible", "")
-        ecrire(os.path.join(t, "CHANTIER.md"), carte_ % ("ctx/30-q.md (Q1..Q2)", "https://exemple/q"))
+        ecrire(os.path.join(t, "CHANTIER.md"), carte_ % "https://exemple/q")
+        ecrire(os.path.join(t, "ctx", "30-q.md"), ouvert(q_ferme))
         code, s = appel(["feuille", t, "--verifier"])
         verifier("feuille : --verifier voit l'écart sans écrire", code == 1 and "écart" in s and "Aucun chantier" in lire(fdr), s)
         code, s = appel(["feuille", t, "--todo", "4", "--date", "2026-03-04"])
@@ -1231,15 +1241,16 @@ def tester_feuille_clore():
         verifier("feuille : --verifier identique", appel(["feuille", t, "--verifier"])[0] == 0, appel(["feuille", t, "--verifier"]))
         code, s = appel(["feuille", t, "--todo", "9"])
         verifier("feuille : --todo absent, garde", code == 1 and s.startswith("GARDE:"), s)
-        ecrire(os.path.join(t, "CHANTIER.md"), carte_ % ("aucun", "aucun"))
+        ecrire(os.path.join(t, "CHANTIER.md"), carte_ % "aucun")
+        ecrire(os.path.join(t, "ctx", "30-q.md"), q_ferme)
         code, s = appel(["feuille", t])
         html = lire(fdr)
         verifier("feuille : refermé, badge ôté", code == 0 and "Aucun chantier ouvert" in html
                  and 'data-etat="cours"' not in html.split("ZONE:encours")[1] and "E, M</span>" in html, s)
 
-        ecrire(os.path.join(t, "CHANTIER.md"), carte_ % ("ctx/30-q.md (Q1..Q2)", "https://exemple/q")
+        ecrire(os.path.join(t, "CHANTIER.md"), carte_ % "https://exemple/q"
                + "\n| Fichier de fiches | Fiches | Clos le | Artefact |\n|---|---|---|---|\n| ctx/10-e.md | E1..E2 | 2026-01-01 | u |\n\nFin.\n")
-        ecrire(os.path.join(t, "ctx", "30-q.md"), "# Chantier Q — Un `titre`\n\n**À quoi il sert.** x\n\n**Estimé.** 2 fiches · ≈0,40 $ — ≈0,20 $/fiche sur 3 clos (le 2026-05-01).\n\n**Fait.** Rien.\n\n## Q1 [x] — a\n## Q2 [ ] — b\n")
+        ecrire(os.path.join(t, "ctx", "30-q.md"), "# Chantier Q — Un `titre`\n\n" + OUVERT + "\n\n**À quoi il sert.** x\n\n**Estimé.** 2 fiches · ≈0,40 $ — ≈0,20 $/fiche sur 3 clos (le 2026-05-01).\n\n**Fait.** Rien.\n\n## Q1 [x] — a\n## Q2 [ ] — b\n")
         html = lire(fdr)
         for gabarit, vrai in (('&lt;≈2,3k (2 312)&gt;', "≈2,3k (2 312)"), ('&lt;≈15,3k (15 342)&gt;', "?"), ("&lt;une ligne&gt;", "ligne &lt;python&gt;"),
                               ('<a href="&lt;URL de son artefact&gt;">&lt;nom&gt;</a>', '<a href="u">E</a>'), ("&lt;U1..U6&gt;", "E1–E2"),
@@ -1294,7 +1305,7 @@ def tester_feuille_clore():
         verifier("clore : bilan", code == 0 and "CLOS Q Q1..Q2 (Q2 abandonnée) · chantier 1 500 · cumul 3 812 · routage 1 · index 1 · archivé 1 · bilan 1 · résumé 1 · estimé 2 fiches ≈0,40 $ · cadré 2 · joué 1 fiches ? $ — " in s and "encours non" in s, s)
         verifier("clore : fichier de fiches", "**CLOS** le 2026-05-06. Ne se rejoue pas" in fiches_lues
                  and fiches_lues.index("**CLOS**") < fiches_lues.index("**Fait.**") and "Abandonnées : Q2 abandonnée." in fiches_lues, fiches_lues)
-        verifier("clore : CHANTIER.md", "**fichier de fiches courant** : aucun" in carte_lue and "**artefact du chantier** : aucun" in carte_lue
+        verifier("clore : CHANTIER.md", "**artefact du chantier** : aucun" in carte_lue
                  and "| ctx/10-e.md | E1..E2 | 2026-01-01 | u |\n\nFin." in carte_lue and "| ctx/30-q.md |" not in carte_lue
                  and "M (Deux `x`), Q (Un `titre`). Un nouveau chantier" in carte_lue, carte_lue)
         clos = html.split("<!-- ZONE:clos")[1]
@@ -1368,8 +1379,8 @@ def tester_ouvrir():
         lire = lambda c: open(c, encoding="utf-8").read()
         os.environ["CLAUDE_CODE_SESSION_ID"] = "cadre"     # la session du cadrage, que `ouvrir` note
         carte_o = ("# C\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n"
-                   "- **fichier de fiches courant** : %s\n- **artefact du chantier** : %s\n")
-        ecrire(os.path.join(t, "CHANTIER.md"), carte_o % ("aucun", "aucun"))
+                   "- **artefact du chantier** : %s\n")
+        ecrire(os.path.join(t, "CHANTIER.md"), carte_o % "aucun")
         ecrire(os.path.join(t, "ctx", "00-INDEX.md"), "| Fichier | Lire |\n|---|---|\n| `10-e.md` | on relit |\n| `05-d.md` | vieux |\n\nFin.\n")
         ecrire(os.path.join(t, "CLAUDE.md"), "| La tâche | Ouvrir |\n|---|---|\n| modifier | x |\n| relire le chantier E (e) | `ctx/10-e.md` — chantier **clos** |\n| relire un chantier clos | `ctx/00-INDEX.md` |\n")
         ecrire(os.path.join(t, "ctx", "30-q.md"), "# Chantier Q — Un titre\n\n## Q1 [ ] — a\n## Q2 [ ] — b\n")
@@ -1379,7 +1390,9 @@ def tester_ouvrir():
         verifier("ouvrir : la session du cadrage, avant la première ligne ##", lire(os.path.join(t, "ctx", "30-q.md"))
                  == "# Chantier Q — Un titre\n\n%s\n\n**Session** : cadre\n\n## Q1 [ ] — a\n## Q2 [ ] — b\n"
                  % (mod.OUVERT_LIGNE % __import__("datetime").date.today().isoformat()), lire(os.path.join(t, "ctx", "30-q.md")))
-        verifier("ouvrir : CHANTIER.md", "**fichier de fiches courant** : ctx/30-q.md (Q1..Q2)\n- **artefact du chantier** : aucun\n" in carte_lue, carte_lue)
+        verifier("ouvrir : CHANTIER.md, l'artefact seul — plus de ligne du fichier courant (NUI31)",
+                 "fichier de fiches" not in carte_lue and "- **artefact du chantier** : aucun\n" in carte_lue
+                 and mod.courant_de(t) == "ctx/30-q.md", carte_lue)
         verifier("ouvrir : index, après le plus grand numéro", "| `10-e.md` | on relit |\n| `30-q.md` | on joue une fiche `Q*` — chantier **ouvert** « Un `titre` », `Q1..Q2` |\n| `05-d.md`" in index_lu, index_lu)
         verifier("ouvrir : routage, avant « relire un chantier clos »", "**clos** |\n| jouer une fiche du chantier Q (un `titre`) | `ctx/30-q.md` — chantier **ouvert**, par `/vlp:tache Q<n>` |\n| relire" in claude_lu, claude_lu)
         code, s = appel(["ouvrir", t, "--fiches", "ctx/30-q.md", "--titre", "Un `titre`", "--artefact", "https://exemple/q"])
@@ -1400,18 +1413,18 @@ def tester_ouvrir():
         index_q = [l for l in lire(os.path.join(t, "ctx", "00-INDEX.md")).split("\n") if l.startswith("| `30-q.md` |")]
         verifier("ouvrir : relancé, la plage de l'index suit le fichier", code == 0 and "OUVERT Q Q1..Q3 · index ~1 · routage +0 · session +1" in s
                  and index_q == ["| `30-q.md` | on joue une fiche `Q*` — chantier **ouvert** « Un `titre` », `Q1..Q3` |"]
-                 and "ctx/30-q.md (Q1..Q3)" in lire(os.path.join(t, "CHANTIER.md")), s + repr(index_q))
+                 and mod.courant_de(t) == "ctx/30-q.md", s + repr(index_q))
         index_main = lire(os.path.join(t, "ctx", "00-INDEX.md")).replace("chantier **ouvert** « Un `titre` », `Q1..Q3`", "à la main `Q1..Q2`")
         ecrire(os.path.join(t, "ctx", "00-INDEX.md"), index_main)
         code, s = appel(["ouvrir", t, "--fiches", "ctx/30-q.md", "--titre", "Un `titre`"])
         verifier("ouvrir : relancé, une ligne d'index écrite à la main reste", code == 0 and "index +0" in s
                  and lire(os.path.join(t, "ctx", "00-INDEX.md")) == index_main, s)
-        sans_chantier(t, carte_o % ("aucun", "aucun"))
+        sans_chantier(t, carte_o % "aucun")
         os.remove(os.path.join(t, "CLAUDE.md"))
         code, s = appel(["ouvrir", t, "--fiches", "ctx/31-r.md", "--titre", "r"])
         verifier("ouvrir : CLAUDE.md absent, garde, le reste écrit", code == 0 and "GARDE: CLAUDE.md introuvable" in s
-                 and "routage +0" in s and "index +1" in s and "ctx/31-r.md (R1..R1)" in lire(os.path.join(t, "CHANTIER.md")), s)
-        sans_chantier(t, carte_o % ("aucun", "aucun"))
+                 and "routage +0" in s and "index +1" in s and mod.courant_de(t) == "ctx/31-r.md", s)
+        sans_chantier(t, carte_o % "aucun")
         ecrire(os.path.join(t, "ctx", "32-s.md"), "# Chantier S — s\n\n**CLOS** le 2026-01-01. Ne se rejoue pas.\n\n## S1 [x] — a\n")
         code, s = appel(["ouvrir", t, "--fiches", "ctx/32-s.md", "--titre", "s"])
         verifier("ouvrir : fichier CLOS, refus sans écrire", code == 1 and s.startswith("GARDE: ctx/32-s.md porte **CLOS**")
@@ -1424,18 +1437,18 @@ def tester_ouvrir():
         for nom, texte in (("33-t.md", vrai), ("34-u.md", "# Chantier U — u\n\n## U1 [x] — a\n**Session** : cadre\n"),
                            ("35-v.md", "# Chantier V — v\n\n## V1 [ ] — a\n")):
             ecrire(os.path.join(t, "ctx", nom), texte)
-        sans_chantier(t, carte_o % ("aucun", "aucun"))
+        sans_chantier(t, carte_o % "aucun")
         code, s = appel(["ouvrir", t, "--fiches", "ctx/33-t.md", "--titre", "t"])
         lu_o = lire(os.path.join(t, "ctx", "33-t.md"))
         verifier("ouvrir : un vrai fichier, la session avant le socle, hors de toute fiche", code == 0 and "· session +1 ·" in s
                  and lu_o == vrai.replace("## Le socle commun", "**Session** : cadre\n\n## Le socle commun")
                                  .replace("# Chantier T — t\n\n", "# Chantier T — t\n\n%s\n\n" % OUVERT_DU_JOUR)
                  and "**Session**" not in appel(["extraire", os.path.join(t, "ctx", "33-t.md"), "T1"])[1], s + lu_o)
-        sans_chantier(t, carte_o % ("aucun", "aucun"))
+        sans_chantier(t, carte_o % "aucun")
         code, s = appel(["ouvrir", t, "--fiches", "ctx/34-u.md", "--titre", "u"])
         verifier("ouvrir : session déjà sur une ligne d'une fiche, pas redoublée", code == 0 and "· session +0 ·" in s
                  and lire(os.path.join(t, "ctx", "34-u.md")).count("**Session**") == 1, s)
-        sans_chantier(t, carte_o % ("aucun", "aucun"))
+        sans_chantier(t, carte_o % "aucun")
         os.environ["CLAUDE_CODE_SESSION_ID"] = ""
         code, s = appel(["ouvrir", t, "--fiches", "ctx/35-v.md", "--titre", "v"])
         verifier("ouvrir : id vide, rien de noté", code == 0 and "· session +0 ·" in s
@@ -1457,14 +1470,14 @@ def test_estime():
         rang = ('          <tr>\n            <td>x</td>\n            <td class="mono">%s</td><td class="mono">2026-01-01</td>\n'
                 '            <td class="mono">%s</td>\n            <td>y</td>\n          </tr>\n')
         carte_e = ("# C\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n"
-                   "- **fichier de fiches courant** : aucun\n- **artefact du chantier** : aucun\n")
+                   "- **artefact du chantier** : aucun\n")
         fiches_e = "# Chantier Q — q\n\n**Fait.** Rien.\n\n## Q1 [ ] — a\n"
         ecrire(os.path.join(te, "CHANTIER.md"), carte_e)
         ecrire(os.path.join(te, "ctx", "30-q.md"), fiches_e)
         code, s = appel(["ouvrir", te, "--fiches", "ctx/30-q.md", "--titre", "q", "--estime-fiches", "2"])
         verifier("EST1 : sans feuille, GARDE, le reste écrit", code == 0 and "GARDE: feuille de route introuvable" in s
                  and "estimé" not in s.split("\n")[-2] and "**Estimé.**" not in lire(os.path.join(te, "ctx", "30-q.md"))
-                 and "ctx/30-q.md (Q1..Q1)" in lire(os.path.join(te, "CHANTIER.md")), s)
+                 and mod.courant_de(te) == "ctx/30-q.md", s)
         ecrire(os.path.join(te, "ctx", "artefacts", "feuille-de-route.html"),
                "<!-- ZONE:clos -->\n<tbody>\n" + rang % ("A1–A3", "3,00 $ · ≈3,0M (3 000 000)")
                + rang % ("B1", "1,00 $ · ≈1,0M (1 000 000)") + rang % ("D1–D2", "≈2,0M (2 000 000)")
@@ -1489,7 +1502,7 @@ def test_estime():
                "<!-- ZONE:clos -->\n<tbody>\n" + rang % ("E1–E8", "non mesurable") + "</tbody>\n")
         code, s = appel(["ouvrir", te, "--fiches", "ctx/31-r.md", "--titre", "r", "--estime-fiches", "1"])
         verifier("EST1 : aucun clos mesuré, GARDE, le reste écrit", code == 0 and "GARDE: aucun chantier clos mesuré" in s
-                 and "ctx/31-r.md (R1..R1)" in lire(os.path.join(te, "CHANTIER.md")), s)
+                 and mod.courant_de(te) == "ctx/31-r.md", s)
         # TAU2 : des clos mesurés en tokens, mais aucun au prix `$` — GARDE dédiée, pas d'estimé en $.
         sans_chantier(te, carte_e)
         ecrire(os.path.join(te, "ctx", "32-s.md"), "# Chantier S — s\n\n**Fait.** Rien.\n\n## S1 [ ] — a\n")
@@ -1499,7 +1512,7 @@ def test_estime():
         verifier("TAU2 : mesuré en tokens, aucun au prix $ — GARDE dédiée, le reste écrit", code == 0
                  and "GARDE: aucun chantier clos au prix mesuré sur la feuille de route — pas d'estimé" in s
                  and "**Estimé.**" not in lire(os.path.join(te, "ctx", "32-s.md"))
-                 and "ctx/32-s.md (S1..S1)" in lire(os.path.join(te, "CHANTIER.md")), s)
+                 and mod.courant_de(te) == "ctx/32-s.md", s)
         os.environ.pop("CLAUDE_CODE_SESSION_ID", None)
     # TAU2 : le total de la feuille (`resume_clos`, `resommer`) sur trois clos, deux avec `$` et un
     # sans — mutant : compter la ligne sans `$` comme 0 $ fausse la somme comme la moyenne.
@@ -1527,9 +1540,9 @@ def test_estime():
     # d'estimé ; le réel en dollars est le prix mesuré de la page, `? $` sans lui (chantiers EST, TAU).
     with tempfile.TemporaryDirectory() as te:
         ecrire(os.path.join(te, "CHANTIER.md"), "# C\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n"
-               "- **fichier de fiches courant** : ctx/50-u.md (U1..U2)\n- **artefact du chantier** : aucun\n\n"
+               "- **artefact du chantier** : aucun\n\n"
                "Lettres de fiche déjà prises : U (test).\n")
-        ecrire(os.path.join(te, "ctx", "50-u.md"), "# Chantier U — u\n\n**Fait.** Rien.\n\n## U1 [x] — a\n## U2 [x] — b\n")
+        ecrire(os.path.join(te, "ctx", "50-u.md"), ouvert("# Chantier U — u\n\n**Fait.** Rien.\n\n## U1 [x] — a\n## U2 [x] — b\n"))
         code, s = appel(["clore", te, "--livre", "fini", "--date", "2026-09-26"])
         verifier("EST2 : sans **Estimé.**, estimé non noté, réel ≈? $", code == 0
                  and " · estimé non noté · cadré 2 · joué 2 fiches ? $ — " in s and "stim" not in s.split("CLOS ")[0]
@@ -1543,11 +1556,11 @@ def test_estime():
         with tempfile.TemporaryDirectory() as te:
             ecrire(os.path.join(te, "CHANTIER.md"), "# C\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n"
                    "- **fichier d'état** : ctx/08-etat.md\n"
-                   "- **fichier de fiches courant** : ctx/50-u.md (U1..U1)\n- **artefact du chantier** : aucun\n\n"
+                   "- **artefact du chantier** : aucun\n\n"
                    "Lettres de fiche déjà prises : U (test).\n")
             ecrire(os.path.join(te, "ctx", "08-etat.md"), "# État\n\n| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |\n"
                    "|---|---|---|---|---|\n| 3 | Trois | a | 2 fiches | — |\n\n## Journal\n")
-            ecrire(os.path.join(te, "ctx", "50-u.md"), "# Chantier U — u\n\n**Estimé.** 3 fiches · ≈9,00 $ — ≈3,00 $/fiche sur 2 clos (le 2026-09-01).\n\n**Fait.** Rien.\n\n## U1 [x] — a\n")
+            ecrire(os.path.join(te, "ctx", "50-u.md"), ouvert("# Chantier U — u\n\n**Estimé.** 3 fiches · ≈9,00 $ — ≈3,00 $/fiche sur 2 clos (le 2026-09-01).\n\n**Fait.** Rien.\n\n## U1 [x] — a\n"))
             ecrire(os.path.join(te, "ctx", "artefacts", "50-u.html"),
                    open(os.path.join(ICI, "..", "templates", "artefact-chantier.html"), encoding="utf-8").read())
             fdr = os.path.join(te, "ctx", "artefacts", "feuille-de-route.html")
@@ -1882,9 +1895,9 @@ def tester_apc3():
                                              "input": {"command": 'py "C:/k/scripts/vlp.py" clore . --livre x'}}]
         ecrire(s3, "".join(json.dumps(l) + "\n" for l in lignes_))
         ecrire(os.path.join(proj, "CHANTIER.md"), "# Chantier\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n"
-               "- **fichier de fiches courant** : ctx/q.md (Q1..Q2)\n- **artefact du chantier** : https://u\n\n"
+               "- **artefact du chantier** : https://u\n\n"
                "Lettres de fiche déjà prises : Q (test).\n")
-        ecrire(os.path.join(proj, "ctx", "q.md"), QFICHES % (s3, s3))
+        ecrire(os.path.join(proj, "ctx", "q.md"), ouvert(QFICHES % (s3, s3)))
         ecrire(os.path.join(proj, "ctx", "00-INDEX.md"), "| F | L |\n|---|---|\n| `q.md` | on joue `Q*` — **ouvert** |\n")
         ecrire(os.path.join(proj, "CLAUDE.md"), "| T | O |\n|---|---|\n| jouer Q | `ctx/q.md` **ouvert** |\n")
         ecrire(os.path.join(proj, "ctx", "artefacts", "q.html"),
@@ -2215,26 +2228,19 @@ GABARIT_FEUILLE = os.path.join(ICI, "..", "templates", "artefact-feuille-de-rout
 ETAT_Z = ("# État\n\n## TODO\n\n| n° | Chantier | Apport | Coût | Décidé |\n|---|---|---|---|---|\n"
           "| 1 | un truc | utile | bas | 2026-01-02 |\n")
 CARTE_Z = ("# Chantier courant\n\n- **alias** : z\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n"
-           "- **fichier d'état** : ctx/08-etat.md\n- **fichier de fiches courant** : %s\n"
-           "- **artefact du chantier** : aucun\n")
+           "- **fichier d'état** : ctx/08-etat.md\n- **artefact du chantier** : aucun\n")
 
 def tester_z2_chemin():
     """Contrôler qu'un chemin de CHANTIER.md ne fait plus tomber une commande (Z2)."""
     with tempfile.TemporaryDirectory() as t:
         proj = os.path.join(t, "proj")
-        ecrire(os.path.join(proj, "CHANTIER.md"), CARTE_Z % "ctx/absent.md (Z1..Z2)")
+        ecrire(os.path.join(proj, "CHANTIER.md"), CARTE_Z)
         ecrire(os.path.join(proj, "ctx", "08-etat.md"), ETAT_Z)
         os.makedirs(os.path.join(proj, "ctx", "artefacts"))
         shutil.copy(GABARIT_FEUILLE, os.path.join(proj, "ctx", "artefacts", "feuille-de-route.html"))
         manque = "GARDE: fichier de fiches introuvable : ctx/absent.md\n"
 
-        code, s = appel(["carte", proj])
-        verifier("Z2 carte : fiches courant absent, GARDE et 1", code == 1 and manque in s, s)
-        code, s = appel(["feuille", proj])
-        verifier("Z2 feuille : fiches courant absent, GARDE et 1 (plantait)",
-                 code == 1 and s == "GARDE: fichier de fiches courant introuvable : ctx/absent.md\n", s)
-        code, s = appel(["clore", proj, "--livre", "rien"])
-        verifier("Z2 clore : fiches courant absent, GARDE et 1 (plantait)", code == 1 and s == manque, s)
+        # Un fichier courant absent ne se nomme plus : seule la marque ouvre, sur un fichier qui existe (NUI31).
         code, s = appel(["ouvrir", proj, "--fiches", "ctx/absent.md", "--titre", "T"])
         verifier("Z2 ouvrir : fiches absent, GARDE et 1", code == 1 and s == manque, s)
 
@@ -2260,13 +2266,13 @@ groupe(tester_z2_chemin)
 def test_page_clos():
     with tempfile.TemporaryDirectory() as t:
         proj = os.path.join(t, "proj")
-        ecrire(os.path.join(proj, "CHANTIER.md"), CARTE_Z % "ctx/30-a.md (A1..A1)"
+        ecrire(os.path.join(proj, "CHANTIER.md"), CARTE_Z
                + "\nLettres de fiche déjà prises : A (Arc). Un nouveau chantier en choisit une autre.\n")
         ecrire(os.path.join(proj, "ctx", "08-etat.md"), ETAT_Z)
         ecrire(os.path.join(proj, "ctx", "00-INDEX.md"), "| Fichier | Lire quand |\n|---|---|\n"
                "| `x.md` | chantier **clos** « X », `X1..X1` |\n| `y.md` | chantier **clos** « Y », `Y1..Y1` |\n"
                "| `30-a.md` | chantier **ouvert** « A », `A1..A1` |\n")
-        ecrire(os.path.join(proj, "ctx", "30-a.md"), "# Chantier A\n\n**Fait.** Rien.\n\n## Le socle commun\n\n"
+        ecrire(os.path.join(proj, "ctx", "30-a.md"), "# Chantier A\n\n" + OUVERT + "\n\n**Fait.** Rien.\n\n## Le socle commun\n\n"
                "## L'ordre des fiches\n\n<!-- FICHE:A1 -->\n## A1 [x] — Seule\n**Critère de fin**\n<!-- /FICHE -->\n")
         gabarit = lire(GABARIT_FEUILLE)
         fdr = os.path.join(proj, "ctx", "artefacts", "feuille-de-route.html")
@@ -2302,12 +2308,12 @@ groupe(test_page_clos)
 def test_archive():
     with tempfile.TemporaryDirectory() as t:
         proj = os.path.join(t, "proj")
-        ecrire(os.path.join(proj, "CHANTIER.md"), CARTE_Z % "ctx/30-a.md (A1..A1)"
+        ecrire(os.path.join(proj, "CHANTIER.md"), CARTE_Z
                + "\nLettres de fiche déjà prises : A (Arc). Un nouveau chantier en choisit une autre.\n")
         ecrire(os.path.join(proj, "ctx", "08-etat.md"), ETAT_Z)
         ecrire(os.path.join(proj, "ctx", "00-INDEX.md"), "| Fichier | Lire quand |\n|---|---|\n"
                "| `30-a.md` | chantier **ouvert** « A », `A1..A1` |\n")
-        ecrire(os.path.join(proj, "ctx", "30-a.md"), "# Chantier A\n\n**Fait.** Rien.\n\n## Le socle commun\n\n"
+        ecrire(os.path.join(proj, "ctx", "30-a.md"), "# Chantier A\n\n" + OUVERT + "\n\n**Fait.** Rien.\n\n## Le socle commun\n\n"
                "## L'ordre des fiches\n\n<!-- FICHE:A1 -->\n## A1 [x] — Seule\n**Critère de fin**\n<!-- /FICHE -->\n")
         gabarit = lire(GABARIT_FEUILLE)
         d, f = mod.zone(gabarit, "clos", "<tbody>\n", "        </tbody>")
@@ -2350,7 +2356,6 @@ def tester_trois_lettres():
 
 - **alias** : p3
 - **contexte** : ctx
-- **fichier de fiches courant** : ctx/30-rnv.md (RNV1..RNV2)
 
 Lettres de fiche déjà prises : Z (Zed), RNV (Remise à niveau). Un nouveau chantier en choisit une autre.
 """
@@ -2384,7 +2389,7 @@ RNV1 puis RNV2
         proj = os.path.join(t, "p3")
         fiches3 = os.path.join(proj, "ctx", "30-rnv.md")
         ecrire(os.path.join(proj, "CHANTIER.md"), CHANTIER_3)
-        ecrire(fiches3, FICHES_3)
+        ecrire(fiches3, ouvert(FICHES_3))
 
         s3 = rendu(proj)
         verifier("3 lettres : titres lus par la carte", "## RNV1 [ ] — première" in s3, s3)
@@ -2482,7 +2487,7 @@ groupe(tester_niv1_injection)
 
 
 # VIT20 — une fiche, une session neuve : la carte de /vlp:tache avertit d'une session déjà notée.
-FICHES_VIT20 = ("# Chantier ZZZ\n\n**Session** : cadre-1\n\n## Le socle commun\n\n"
+FICHES_VIT20 = ("# Chantier ZZZ\n\n**Ouvert.** le 2026-10-08.\n\n**Session** : cadre-1\n\n## Le socle commun\n\n"
                 "## ZZZ1 [x] — faite\n**Session** : joue-1\n**Session** : nuit-1 (relecture)\n**Dépend de** : rien.\n---\n"
                 "## ZZZ2 [x] — aussi\n**Session** : joue-1\n---\n## ZZZ3 [ ] — à faire\n")
 AVERTI_VIT20 = ("AVERTISSEMENT: session déjà notée dans ce fichier de fiches (%s) — /clear d'abord : une fiche, "
@@ -2514,7 +2519,7 @@ def tester_vit20_session_neuve():
     """Contrôler `carte --session-neuve` : l'avertissement d'une session déjà notée, et rien d'autre (VIT20)."""
     with tempfile.TemporaryDirectory() as bac:
         pr = os.path.join(bac, "pr")
-        ecrire(os.path.join(pr, "CHANTIER.md"), CHANTIER % ("pr", "context AI/20-z.md (ZZZ1..ZZZ3)"))
+        ecrire(os.path.join(pr, "CHANTIER.md"), CHANTIER % ("pr", "context AI/"))
         ecrire(os.path.join(pr, "context AI", "20-z.md"), FICHES_VIT20)
         avant = carte_sous(pr)
         verifier("VIT20 : la carte d'avant, sans id ni option, finit sur PROCHAINE=", avant.endswith("PROCHAINE=ZZZ3\n"), avant)
@@ -2562,7 +2567,7 @@ def tester_arp3_marque():
         ancien = tempfile.tempdir
         with tempfile.TemporaryDirectory() as bac:
             pr = os.path.join(bac, "pr")
-            ecrire(os.path.join(pr, "CHANTIER.md"), CHANTIER % ("pr", "context AI/20-z.md (ZZZ1..ZZZ3)"))
+            ecrire(os.path.join(pr, "CHANTIER.md"), CHANTIER % ("pr", "context AI/"))
             ecrire(os.path.join(pr, "context AI", "20-z.md"), FICHES_VIT20)
             tempfile.tempdir = bac
             try:
@@ -2621,7 +2626,7 @@ def tester_arp4_menage():
     ancien = tempfile.tempdir
     with tempfile.TemporaryDirectory() as bac:
         pr = os.path.join(bac, "pr")
-        ecrire(os.path.join(pr, "CHANTIER.md"), CHANTIER % ("pr", "context AI/20-z.md (ZZZ1..ZZZ3)"))
+        ecrire(os.path.join(pr, "CHANTIER.md"), CHANTIER % ("pr", "context AI/"))
         ecrire(os.path.join(pr, "context AI", "20-z.md"), FICHES_VIT20)
         vieillir(bac, [("vlp-carte-0dossier", 120), ("vlp-carte-vieux", 120), ("vlp-carte-frais", 5),
                        ("vlp-enchaine-vieille", 5 * jour), ("vlp-enchaine-recente", 2 * jour),
@@ -2666,7 +2671,6 @@ def tester_niv2_ecarts():
 - **index** : ctx/00-INDEX.md
 - **fichier d'état** : ctx/08-etat.md
 - **méthode** : ${CLAUDE_PLUGIN_ROOT}/methode-chantier.md
-- **fichier de fiches courant** : aucun
 
 ## Chantiers clos — ne se rejouent pas
 
@@ -2696,9 +2700,9 @@ def tester_niv2_ecarts():
                  "ÉCART: variable: CHANTIER.md:7 cite ${CLAUDE_PLUGIN_ROOT}" in s
                  and "08-etat.md:3" not in s, s)
         verifier("NIV2 : la table des clos est repérée à son titre",
-                 "ÉCART: clos: CHANTIER.md:10 —" in s, s)
+                 "ÉCART: clos: CHANTIER.md:9 —" in s, s)
         verifier("NIV2 : le poids sort brut, et le bilan compte les deux genres",
-                 "POIDS CLAUDE.md absent/80 · CHANTIER.md 14/50 · index 6/80\n" in s
+                 "POIDS CLAUDE.md absent/80 · CHANTIER.md 13/50 · index 6/80\n" in s
                  and s.rstrip().endswith("NIVEAU 5 écarts · 0 avertissements — %s" % proj), s)
 
 
@@ -2711,7 +2715,6 @@ CARTE_NETTE = """# Chantier courant
 - **index** : ctx/00-INDEX.md
 - **fichier d'état** : ctx/08-etat.md
 - **méthode** : methode-chantier.md, copie d'avant la règle
-- **fichier de fiches courant** : aucun
 
 ## Chantiers clos — dans l'index, pas ici
 """
@@ -2811,7 +2814,6 @@ CARTE_NIV3 = """# Chantier courant
 - **contexte** : ctx/
 - **index** : ctx/00-INDEX.md
 - **fichier d'état** : ctx/08-etat.md
-- **fichier de fiches courant** : aucun
 
 ## Chantiers clos — ne se rejouent pas
 
@@ -2860,7 +2862,7 @@ def tester_niv3():
                  code == 1 and m == 3 and compte(pendant, "ÉCART:") == 1
                  and "CORRIGÉ: feuille: bloc repliable des chantiers clos posé\n" in pendant
                  and "CORRIGÉ: feuille: régénérée\n" in pendant
-                 and "CORRIGÉ: clos: table des chantiers clos retirée de CHANTIER.md:9" in pendant
+                 and "CORRIGÉ: clos: table des chantiers clos retirée de CHANTIER.md:8" in pendant
                  and pendant.rstrip().endswith("NIVEAU 3 corrigés · 1 à la main — %s" % proj), pendant)
 
         code, apres = appel(["niveau", proj])
@@ -2945,7 +2947,7 @@ def idx1():
                "| Fichier | Lire quand |\n|---|---|\n| `10-a.md` | chantier **clos** « A », `A1..A2` |\n")
         code, s = appel(["niveau", proj, "--ecrire", "--date", "2026-09-18"])
         verifier("IDX1 : niveau retire la table des clos que l'archive nomme — mutant : ne lire que l'index",
-                 "CORRIGÉ: clos: table des chantiers clos retirée de CHANTIER.md:9" in s
+                 "CORRIGÉ: clos: table des chantiers clos retirée de CHANTIER.md:8" in s
                  and "| ctx/10-a.md |" not in io.open(os.path.join(proj, "CHANTIER.md"), encoding="utf-8").read(), s)
 
     with tempfile.TemporaryDirectory() as t:
@@ -2997,7 +2999,6 @@ def tester_rep2_chevrons():
         ecrire(os.path.join(proj, "CHANTIER.md"),
                """# Chantier courant
 - **alias** : rep
-- **fichier de fiches courant** : fiches.md
 - **artefact du chantier** : aucun
 """)
         ecrire(os.path.join(proj, "fiches.md"), """# Chantier REP2
@@ -3022,7 +3023,6 @@ def tester_rep2_chevrons():
         ecrire(os.path.join(proj2, "CHANTIER.md"),
                """# Chantier courant
 - **alias** : rep
-- **fichier de fiches courant** : fiches.md
 - **artefact du chantier** : aucun
 """)
         ecrire(os.path.join(proj2, "fiches.md"), """# Chantier REP2
@@ -3114,11 +3114,9 @@ def tester_rep3_compteurs():
 
         carte = io.open(os.path.join(proj, "CHANTIER.md"), encoding="utf-8").read()
         ecrire(os.path.join(proj, "CHANTIER.md"), carte.replace(
-            "- **fichier de fiches courant** : aucun",
-            "- **fichier de fiches courant** : ctx/40-w.md (W1..W1)\n"
-            "- **artefact du chantier** : https://exemple/w")
+            "- **méthode** :", "- **artefact du chantier** : https://exemple/w\n- **méthode** :")
             + "\nLettres de fiche déjà prises : A. Un nouveau chantier en choisit une autre.\n")
-        ecrire(os.path.join(proj, "ctx", "40-w.md"), "# Chantier W — Un titre\n\n## W1 [x] — a\n")
+        ecrire(os.path.join(proj, "ctx", "40-w.md"), ouvert("# Chantier W — Un titre\n\n## W1 [x] — a\n"))
         code, s = appel(["clore", proj, "--livre", "y", "--tokens", "950", "--date", "2026-09-19"])
         verifier("clore : une clôture sous 1 000, comptée une fois", code == 0 and "· chantier 950 · cumul 2 450 ·" in s, s)
         rangs = rangs_clos(page)
@@ -3193,13 +3191,13 @@ def test_feuille_en_cartes():
     with tempfile.TemporaryDirectory() as tc:
         ecrire(os.path.join(tc, "CHANTIER.md"),
                "# C\n\n- **contexte** : ctx/\n- **fichier d'état** : ctx/08-etat.md\n"
-               "- **fichier de fiches courant** : ctx/30-q.md (Q1..Q2)\n- **artefact du chantier** : https://exemple/q\n\n"
+               "- **artefact du chantier** : https://exemple/q\n\n"
                "Lettres de fiche déjà prises : E (Un). Un nouveau chantier en choisit une autre.\n")
         ecrire(os.path.join(tc, "ctx", "08-etat.md"),
                "# État\n\n| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |\n|---|---|---|---|---|\n"
                "| 3 | Le `sh` | a \\|\\| b <c> | 2 fiches | — |\n| 4 | **Quatre** | rien | 1 fiche | 3 |\n"
                "| 7 | Sept | [un lien](https://x/y) | à cadrer | `E` |\n\n## Journal\n")
-        ecrire(os.path.join(tc, "ctx", "30-q.md"), "# Chantier Q — Un titre\n\n## Q1 [x] — a\n## Q2 [ ] — b\n")
+        ecrire(os.path.join(tc, "ctx", "30-q.md"), ouvert("# Chantier Q — Un titre\n\n## Q1 [x] — a\n## Q2 [ ] — b\n"))
         gabarit = io.open(os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html"), encoding="utf-8").read()
         d, f, _ = mod.zone_todo(gabarit)
         debut, fin = gabarit.rindex('<ol class="todo">', 0, d), f + len("        </ol>")
@@ -3239,7 +3237,7 @@ def test_sommaire():
     with tempfile.TemporaryDirectory() as ts:
         ecrire(os.path.join(ts, "CHANTIER.md"),
                "# C\n\n- **contexte** : ctx/\n- **fichier d'état** : ctx/08-etat.md\n"
-               "- **fichier de fiches courant** : aucun\n\n"
+               "\n"
                "Lettres de fiche déjà prises : E (Un). Un nouveau chantier en choisit une autre.\n")
         ecrire(os.path.join(ts, "ctx", "08-etat.md"),
                "# État\n\n| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |\n|---|---|---|---|---|\n"
@@ -3271,8 +3269,8 @@ def tester_uni1_total():
     with tempfile.TemporaryDirectory() as t:
         proj = os.path.join(t, "uni")
         os.makedirs(proj)
-        ecrire(os.path.join(proj, "CHANTIER.md"), "# Chantier\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n- **fichier de fiches courant** : ctx/50-u.md (U1..U1)\n- **artefact du chantier** : https://u\n\nLettres de fiche déjà prises : U (test).\n")
-        ecrire(os.path.join(proj, "ctx", "50-u.md"), "# Chantier U — test\n\n## U1 [x] — a\n")
+        ecrire(os.path.join(proj, "CHANTIER.md"), "# Chantier\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n- **artefact du chantier** : https://u\n\nLettres de fiche déjà prises : U (test).\n")
+        ecrire(os.path.join(proj, "ctx", "50-u.md"), ouvert("# Chantier U — test\n\n## U1 [x] — a\n"))
         ecrire(os.path.join(proj, "ctx", "00-INDEX.md"), "| F | L |\n|---|---|\n| `50-u.md` | on joue `U*` |\n")
         ecrire(os.path.join(proj, "CLAUDE.md"), "| T | O |\n|---|---|\n| jouer U | `ctx/50-u.md` **ouvert** |\n| relire un clos | `ctx/00-INDEX.md` |\n")
         page_u = os.path.join(proj, "ctx", "artefacts", "50-u.html")
@@ -3284,8 +3282,8 @@ def tester_uni1_total():
     with tempfile.TemporaryDirectory() as t:
         proj = os.path.join(t, "uni2")
         ecrire(os.path.join(proj, "ctx", "08-etat.md"), "# État\n\n## La TODO\n\n| # | Chantier | Apporte | Coût | Dépend |\n|---|---|---|---|---|\n")
-        ecrire(os.path.join(proj, "CHANTIER.md"), "# Chantier\n\n- **contexte** : ctx/\n- **fichier d'état** : ctx/08-etat.md\n- **index** : ctx/00-INDEX.md\n- **fichier de fiches courant** : ctx/50-u.md (U1..U1)\n- **artefact du chantier** : https://u\n\nLettres de fiche déjà prises : U (test).\n")
-        ecrire(os.path.join(proj, "ctx", "50-u.md"), "# Chantier U — test\n\n## U1 [x] — a\n")
+        ecrire(os.path.join(proj, "CHANTIER.md"), "# Chantier\n\n- **contexte** : ctx/\n- **fichier d'état** : ctx/08-etat.md\n- **index** : ctx/00-INDEX.md\n- **artefact du chantier** : https://u\n\nLettres de fiche déjà prises : U (test).\n")
+        ecrire(os.path.join(proj, "ctx", "50-u.md"), ouvert("# Chantier U — test\n\n## U1 [x] — a\n"))
         ecrire(os.path.join(proj, "ctx", "00-INDEX.md"), "| F | L |\n|---|---|\n| `50-u.md` | on joue `U*` |\n")
         ecrire(os.path.join(proj, "CLAUDE.md"), "| T | O |\n|---|---|\n| jouer U | `ctx/50-u.md` **ouvert** |\n| relire un clos | `ctx/00-INDEX.md` |\n")
         ecrire(os.path.join(proj, "ctx", "artefacts", "50-u.html"),
@@ -3538,8 +3536,8 @@ def tester_gardien():
                 commit, agent_id="a3", agent_type=["vlp:relecture"])) == (0, ""), "")
 
         proj = os.path.join(t, "proj")
-        ecrire(os.path.join(proj, "CHANTIER.md"), CHANTIER % ("px", "f.md (X1..X1)"))
-        ecrire(os.path.join(proj, "f.md"), "# X\n\n<!-- FICHE:X1 -->\n## X1 [ ] — une\n<!-- /FICHE -->\n")
+        ecrire(os.path.join(proj, "CHANTIER.md"), CHANTIER % ("px", "."))
+        ecrire(os.path.join(proj, "f.md"), "# Chantier X\n\n**Ouvert.** le 2026-10-08.\n\n<!-- FICHE:X1 -->\n## X1 [ ] — une\n<!-- /FICHE -->\n")
         trans = os.path.join(t, "agent-a1.jsonl")
         ecrire(trans, json.dumps({"message": {"role": "user", "content": "Fiche à jouer :\n\nX1\n\nKit : k"}},
                                  ensure_ascii=False) + "\n")
@@ -3553,7 +3551,7 @@ def tester_gardien():
         verifier("gardien : FAITE sur case vide sous stop_hook_active, renvoyé", '"decision": "block"' in s and "case de X1 est vide" in s, s)
         code, s = gardien(dict(fin, last_assistant_message="FAITE — X1."))
         verifier("gardien : FAITE sur case vide, renvoyé", '"decision": "block"' in s and "case de X1 est vide" in s, s)
-        ecrire(os.path.join(proj, "f.md"), "# X\n\n<!-- FICHE:X1 -->\n## X1 [x] — une\n<!-- /FICHE -->\n")
+        ecrire(os.path.join(proj, "f.md"), "# Chantier X\n\n**Ouvert.** le 2026-10-08.\n\n<!-- FICHE:X1 -->\n## X1 [x] — une\n<!-- /FICHE -->\n")
         if not shutil.which("git"):
             print("SAUTÉ: git absent — le gardien sur HEAD n'est pas testé")
         else:
@@ -3681,10 +3679,10 @@ def tester_relecture():
                 c = os.path.join(*chemin)
                 return mod.lire(c) if os.path.isfile(c) else None
 
-            FICHE_X = ("# Chantier X\n\n## Le socle commun\n\nSocle X.\n\n## L'ordre des fiches\n\n---\n\n"
+            FICHE_X = ("# Chantier X\n\n**Ouvert.** le 2026-10-08.\n\n## Le socle commun\n\nSocle X.\n\n## L'ordre des fiches\n\n---\n\n"
                        "<!-- FICHE:X1 -->\n## X1 %s — relire\n\n**Fichiers** : `a.py` — et rien d'autre.\n\n"
                        "**Prompt**\nb.py n'est pas nommé.\n<!-- /FICHE -->\n")
-            ecrire(os.path.join(depot, "CHANTIER.md"), CHANTIER % ("px", "f.md (X1..X1)") + "- **fichier d'état** : ctx d/etat.md\n")
+            ecrire(os.path.join(depot, "CHANTIER.md"), CHANTIER % ("px", ".") + "- **fichier d'état** : ctx d/etat.md\n")
             ecrire(os.path.join(depot, "f.md"), FICHE_X % "[ ]")
             ecrire(os.path.join(depot, "a.py"), "a\n")
             ecrire(os.path.join(depot, "ctx d", "etat.md"), "journal\n")
@@ -4337,14 +4335,14 @@ def tester_bornes():
     verifier("PLG1 : une fiche seule, son id", mod.plage(["U1"]) == "U1", mod.plage(["U1"]))
     with tempfile.TemporaryDirectory() as tb:
         ecrire(os.path.join(tb, "CHANTIER.md"), "# C\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n"
-               "- **fichier de fiches courant** : aucun\n- **artefact du chantier** : aucun\n")
+               "- **artefact du chantier** : aucun\n")
         ecrire(os.path.join(tb, "ctx", "00-INDEX.md"), "| Fichier | Lire |\n|---|---|\n| `10-e.md` | on relit |\n")
         ecrire(os.path.join(tb, "CLAUDE.md"), "| La tâche | Ouvrir |\n|---|---|\n| relire un chantier clos | `ctx/00-INDEX.md` |\n")
         ecrire(os.path.join(tb, "ctx", "30-q.md"), "# Chantier Q — q\n\n## Q2 [ ] — b\n## Q1 [ ] — a\n")
         c, sortie = appel(["ouvrir", tb, "--fiches", "ctx/30-q.md", "--titre", "q"])
         carte = open(os.path.join(tb, "CHANTIER.md"), encoding="utf-8").read()
         verifier("PLG1 : ouvrir sur Q2 puis Q1 écrit Q1..Q2", c == 0 and "OUVERT Q Q1..Q2 " in sortie
-                 and "ctx/30-q.md (Q1..Q2)" in carte, sortie + carte)
+                 and mod.courant_de(tb) == "ctx/30-q.md", sortie + carte)
 
 
 groupe(tester_bornes)
@@ -4678,7 +4676,7 @@ def tester_vlp_css_recopie():
         proj = os.path.join(tab, "proj")
         ecrire(os.path.join(proj, "CHANTIER.md"),
                "# C\n\n- **contexte** : ctx/\n- **fichier d'état** : ctx/08-etat.md\n"
-               "- **fichier de fiches courant** : aucun\n"
+               ""
                "- **artefact du chantier** : aucun\n\nLettres de fiche déjà prises : U (test).\n")
         ecrire(os.path.join(proj, "ctx", "08-etat.md"),
                "# État\n\n## La TODO\n\n| # | Chantier | Apporte | Coût | Dépend |\n|---|---|---|---|---|\n")
@@ -5002,9 +5000,9 @@ def tester_bilan_en_haut():
     ancienne = (gabarit[:i] + gabarit[fin:]).replace("  <footer>", bloc + "  <footer>", 1)
     with tempfile.TemporaryDirectory() as tb:
         ecrire(os.path.join(tb, "CHANTIER.md"), "# C\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n"
-               "- **fichier de fiches courant** : ctx/50-u.md (U1..U1)\n- **artefact du chantier** : aucun\n\n"
+               "- **artefact du chantier** : aucun\n\n"
                "Lettres de fiche déjà prises : U (test).\n")
-        ecrire(os.path.join(tb, "ctx", "50-u.md"), "# Chantier U — u\n\n**Fait.** Rien.\n\n## U1 [x] — a\n")
+        ecrire(os.path.join(tb, "ctx", "50-u.md"), ouvert("# Chantier U — u\n\n**Fait.** Rien.\n\n## U1 [x] — a\n"))
         page = os.path.join(tb, "ctx", "artefacts", "50-u.html")
         ecrire(page, ancienne)
         verifier("PLI6 : la page de départ a son bilan en bas",
@@ -5753,7 +5751,7 @@ def tester_decompte_todo():
     with tempfile.TemporaryDirectory() as tb:
         ecrire(os.path.join(tb, "CHANTIER.md"),
                "# C\n\n- **contexte** : ctx/\n- **fichier d'état** : ctx/08-etat.md\n"
-               "- **fichier de fiches courant** : aucun\n- **artefact du chantier** : aucun\n\n"
+               "- **artefact du chantier** : aucun\n\n"
                "Lettres de fiche déjà prises : E (Un). Un nouveau chantier en choisit une autre.\n")
         ecrire(os.path.join(tb, "ctx", "08-etat.md"),
                "# État\n\n| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |\n|---|---|---|---|---|\n"
@@ -5814,7 +5812,7 @@ def tester_barre_todo():
     with tempfile.TemporaryDirectory() as tp:
         ecrire(os.path.join(tp, "CHANTIER.md"),
                "# C\n\n- **contexte** : ctx/\n- **fichier d'état** : ctx/08-etat.md\n"
-               "- **fichier de fiches courant** : aucun\n- **artefact du chantier** : aucun\n\n"
+               "- **artefact du chantier** : aucun\n\n"
                "Lettres de fiche déjà prises : E (Un). Un nouveau chantier en choisit une autre.\n")
         etat = os.path.join(tp, "ctx", "08-etat.md")
         ecrire(etat, "# État\n\n| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |\n|---|---|---|---|---|\n"
@@ -5855,7 +5853,7 @@ def tester_trier():
     with tempfile.TemporaryDirectory() as tp:
         ecrire(os.path.join(tp, "CHANTIER.md"),
                "# C\n\n- **contexte** : ctx/\n- **fichier d'état** : ctx/08-etat.md\n"
-               "- **fichier de fiches courant** : aucun\n- **artefact du chantier** : aucun\n\n"
+               "- **artefact du chantier** : aucun\n\n"
                "Lettres de fiche déjà prises : E (Un), KKK (Clos). Un nouveau chantier en choisit une autre.\n")
         etat = os.path.join(tp, "ctx", "08-etat.md")
         ecrire(etat, "# État\n\n" + entete + lignes_todo + "\n## Journal\n")
@@ -5894,7 +5892,7 @@ groupe(tester_trier)
 def tester_fichier_nuits():
     entete = "| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |\n|---|---|---|---|---|\n"
     carte = ("# C\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n- **fichier d'état** : ctx/08-etat.md\n"
-             "- **fichier de fiches courant** : aucun\n- **artefact du chantier** : aucun\n\n"
+             "- **artefact du chantier** : aucun\n\n"
              "Lettres de fiche déjà prises : E (Un). Un nouveau chantier en choisit une autre.\n")
     indice = ("# Index\n\n| Fichier | Lire quand |\n|---|---|\n| `00-INDEX.md` | l'index |\n| `08-etat.md` | l'état |\n"
               "| `100-x.md` | un chantier |\n\nFin.\n")
@@ -6012,7 +6010,7 @@ groupe(tester_fichier_nuits)
 def tester_plan():
     entete = "| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |\n|---|---|---|---|---|\n"
     carte = ("# C\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n- **fichier d'état** : ctx/08-etat.md\n"
-             "- **fichier de fiches courant** : aucun\n- **artefact du chantier** : aucun\n\n"
+             "- **artefact du chantier** : aucun\n\n"
              "Lettres de fiche déjà prises : E (Un), KKK (Clos). Un nouveau chantier en choisit une autre.\n")
     indice = ("# Index\n\n| Fichier | Lire quand |\n|---|---|\n| `00-INDEX.md` | l'index |\n| `08-etat.md` | l'état |\n"
               "| `100-x.md` | un chantier |\n\nFin.\n")
@@ -6122,7 +6120,7 @@ def tester_plan():
         verifier("NUI12 (c) : le même plan, sans VLP_NUIT → écrit (le refus venait bien de la variable)", code == 0, s)
         # (d) carte : NUIT=1 une fois, dans le bloc d'avant les fiches ; rien sinon
         projet = os.path.join(tp, "proj")
-        ecrire(os.path.join(projet, "CHANTIER.md"), CHANTIER % ("pz", "context AI/20-z.md (Z1..Z10)"))
+        ecrire(os.path.join(projet, "CHANTIER.md"), CHANTIER % ("pz", "context AI/"))
         ecrire(os.path.join(projet, "context AI", "20-z.md"), FICHES)
 
         def carte_sous(valeur, relecteur=False):
@@ -6186,7 +6184,7 @@ def tester_joints():
         proj = os.path.join(tab, "proj")
         ecrire(os.path.join(proj, "CHANTIER.md"),
                "# C\n\n- **contexte** : ctx/\n- **fichier d'état** : ctx/08-etat.md\n"
-               "- **fichier de fiches courant** : aucun\n"
+               ""
                "- **artefact du chantier** : aucun\n\nLettres de fiche déjà prises : U (test).\n")
         ecrire(os.path.join(proj, "ctx", "08-etat.md"),
                "# État\n\n## La TODO\n\n| # | Chantier | Apporte | Coût | Dépend |\n|---|---|---|---|---|\n")
@@ -6282,7 +6280,7 @@ def tester_joints():
         proj = os.path.join(tab, "proj")
         ecrire(os.path.join(proj, "CHANTIER.md"),
                "# C\n\n- **contexte** : ctx/\n- **fichier d'état** : ctx/08-etat.md\n"
-               "- **fichier de fiches courant** : aucun\n"
+               ""
                "- **artefact du chantier** : aucun\n\nLettres de fiche déjà prises : U (test).\n")
         ecrire(os.path.join(proj, "ctx", "08-etat.md"),
                "# État\n\n## La TODO\n\n| # | Chantier | Apporte | Coût | Dépend |\n|---|---|---|---|---|\n")
@@ -6383,7 +6381,7 @@ def tester_attente():
 
     def projet(t, nom):
         p = os.path.join(t, nom)
-        ecrire(os.path.join(p, "CHANTIER.md"), CHANTIER % ("pz", "context AI/20-z.md (Z1..Z10)"))
+        ecrire(os.path.join(p, "CHANTIER.md"), CHANTIER % ("pz", "context AI/"))
         ecrire(os.path.join(p, "context AI", "20-z.md"), FICHES)
         return p, os.path.join(p, "context AI", "artefacts")
 
@@ -6486,7 +6484,7 @@ def tester_publie():
 
     with tempfile.TemporaryDirectory() as t:
         p = os.path.join(t, "proj")
-        ecrire(os.path.join(p, "CHANTIER.md"), CHANTIER % ("pz", "context AI/20-z.md (Z1..Z10)"))
+        ecrire(os.path.join(p, "CHANTIER.md"), CHANTIER % ("pz", "context AI/"))
         ecrire(os.path.join(p, "context AI", "20-z.md"), FICHES)
         art = os.path.join(p, "context AI", "artefacts")
         fiches, page, notes = os.path.join(t, "p.md"), os.path.join(art, "p.html"), os.path.join(art, "publie")
@@ -6537,7 +6535,7 @@ def tester_apercu():
         ecrire(os.environ["GIT_CONFIG_GLOBAL"], "")
         try:
             p = os.path.join(t, "proj")
-            ecrire(os.path.join(p, "CHANTIER.md"), CHANTIER % ("pz", "aucun"))
+            ecrire(os.path.join(p, "CHANTIER.md"), CHANTIER % ("pz", "context AI/"))
             lancement = os.path.join(p, ".claude", "launch.json")
             lu = lambda: open(lancement, encoding="utf-8", newline="").read()
             entrees = lambda: [e for e in json.loads(lu())["configurations"] if e["name"].startswith("apercu-")]
@@ -6670,7 +6668,7 @@ def tester_retard_plugin():
         for d in (kit, autre):
             os.makedirs(d)
             git(d, "init", "-q", "-b", "main")
-            commit(d, "CHANTIER.md", "# C\n\n- **fichier de fiches courant** : aucun\n")
+            commit(d, "CHANTIER.md", "# C\n\n")
         git(kit, "worktree", "add", "-q", "-b", "fiche", wt)
         commit(wt, "scripts/x.py", "x = 1\n")
         r1 = mod.retard_plugin(wt, kit=kit)
@@ -7050,7 +7048,7 @@ groupe(tester_nuits)
 # --- NUI15 : `vlp.py matin`, la fusion de la nuit dans main -------------------------------------
 JOUR_MATIN = "2026-10-01"
 CARTE_MATIN = ("# Chantier courant\n\n- **alias** : mt\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n"
-               "- **fichier d'état** : ctx/08-etat.md\n- **fichier de fiches courant** : ctx/40-loc.md (LOC1..LOC1)\n"
+               "- **fichier d'état** : ctx/08-etat.md\n"
                "- **artefact feuille de route** : https://claude.ai/artifact/FEU\n"
                "- **artefact du chantier** : https://claude.ai/artifact/LOC\n- **artefact archive** : aucune\n\n"
                "Lettres de fiche déjà prises : E (Enchaîner), ENQ (Les écritures Git). "
@@ -7088,7 +7086,7 @@ def depot_matin(d, archive=True, etat=ETAT_MATIN):
     ecrire(os.path.join(d, "CHANTIER.md"), CARTE_MATIN)
     ecrire(os.path.join(d, "ctx", "08-etat.md"), etat)
     ecrire(os.path.join(d, "ctx", "00-INDEX.md"), "| Fichier | Lire quand |\n|---|---|\n")
-    ecrire(os.path.join(d, "ctx", "40-loc.md"), "# Chantier LOC — Publier\n\n## LOC1 [ ] — a\n")
+    ecrire(os.path.join(d, "ctx", "40-loc.md"), ouvert("# Chantier LOC — Publier\n\n## LOC1 [ ] — a\n"))
     ecrire(os.path.join(d, "scripts", "x.py"), "a = 1\nb = 2\nc = 3\n")
     gabarit = lire(GABARIT_FEUILLE)
     debut, fin = mod.zone(gabarit, "clos", "<tbody>\n", "        </tbody>")
@@ -7103,8 +7101,8 @@ def depot_matin(d, archive=True, etat=ETAT_MATIN):
 
 
 def branche_matin(d, canal, code, lettre, heure, clos=True, x=None, ligne=None, retire=None, modifs=None):
-    """`nuit/<jour>-<canal>-<code>`, un commit à `heure` depuis `main` : `clos`, le chantier est clos (courant et
-    artefact à `aucun`) et la feuille refaite sans badge ; `lettre`, sa lettre ajoutée à la liste ; `x`, le nouveau
+    """`nuit/<jour>-<canal>-<code>`, un commit à `heure` depuis `main` : `clos`, le chantier est clos (l'artefact à
+    `aucun`), sinon ouvert sur la branche, `ctx/41-<code>.md` à sa marque — l'hérité de main ne compte pas (NUI31) et la feuille refaite sans badge ; `lettre`, sa lettre ajoutée à la liste ; `x`, le nouveau
     `scripts/x.py` ; `ligne`, la plage d'une ligne close de plus à l'archive ; `retire`, le rang ôté de la TODO ;
     `modifs(d)`, d'autres retouches, avant la feuille."""
     nom = "nuit/%s-%s-%s" % (JOUR_MATIN, canal, code)
@@ -7112,7 +7110,10 @@ def branche_matin(d, canal, code, lettre, heure, clos=True, x=None, ligne=None, 
     chemin = os.path.join(d, "CHANTIER.md")
     carte_ = lire(chemin)
     if clos:
-        carte_ = re.sub(r"(\*\*(?:fichier de fiches courant|artefact du chantier)\*\* : ).*", r"\g<1>aucun", carte_)
+        carte_ = re.sub(r"(\*\*artefact du chantier\*\* : ).*", r"\g<1>aucun", carte_)
+    else:
+        ecrire(os.path.join(d, "ctx", "41-%s.md" % code.lower()), ouvert("# Chantier %s — c\n\n## %s1 [ ] — a\n"
+                                                                          % (code, code)))
     if lettre:
         carte_ = carte_.replace(". Un nouveau chantier", ", %s (Chantier %s). Un nouveau chantier" % (lettre, code))
     ecrire(chemin, carte_)
@@ -7160,7 +7161,7 @@ def matin_a(tr):
              "3 clos, aucun conflit, HEAD à deux parents, arbre propre — mutants : lettres de la branche gardées, "
              "todo laissé à None",
              code == 0 and s == ORDRE_ABSENT + "FUSIONNÉE %s\nMATIN 1 fusionnée(s) · 0 de côté\n" % nom
-             and mod.champ(carte_, "fichier de fiches courant") == "ctx/40-loc.md (LOC1..LOC1)"
+             and mod.courant_de(d) == "ctx/40-loc.md"
              and mod.champ(carte_, "artefact du chantier") == "https://claude.ai/artifact/LOC"
              and lettres == ["E", "ENQ", "PAR"] and rang == "79" and "3 chantiers clos" in archive
              and "<<<<<<<" not in "\n".join(carte_) + html and "Aucun chantier ouvert" not in html
@@ -7204,7 +7205,7 @@ def matin_c(tr):
     ok = branche_matin(d, "B", "OKK", "OKK", 2)
     code, s = appel(["matin", d, JOUR_MATIN])
     verifier("NUI15 (c) sans carnet : ORDRE pointes, la pointe WIP DE CÔTÉ avant la suivante fusionnée, hors de main",
-             code == 0 and s == (ORDRE_ABSENT + "DE CÔTÉ %s — ctx/40-loc.md\nFUSIONNÉE %s\n"
+             code == 0 and s == (ORDRE_ABSENT + "DE CÔTÉ %s — ctx/41-wip.md\nFUSIONNÉE %s\n"
                                  "MATIN 1 fusionnée(s) · 1 de côté\n" % (wip, ok))
              and code_git(d, "merge-base", "--is-ancestor", wip, "main") == 1, (code, s))
 
@@ -7225,7 +7226,7 @@ def matin_d(tr):
              and s.endswith(' feuille "%s" --todo 79\n' % d)
              and code_git(d, "rev-parse", "-q", "--verify", "MERGE_HEAD") == 0
              and code_git(d, "merge-base", "--is-ancestor", b, "main") == 1
-             and "- **fichier de fiches courant** : ctx/40-loc.md (LOC1..LOC1)" in carte_ and "<<<<<<<" not in carte_,
+             and "- **artefact du chantier** : https://claude.ai/artifact/LOC" in carte_ and "<<<<<<<" not in carte_,
              (code, s))
     ecrire(os.path.join(d, "scripts", "x.py"), "a = 1\nb = 22\nc = 3\n")
     appel(["feuille", d, "--todo", "79", "--date", JOUR_MATIN])
@@ -7286,7 +7287,7 @@ def matin_g(tr):
     ecrire(os.path.join(d, "scripts", "x.py"), "sale\n")
     sorties.append(appel(["matin", d, JOUR_MATIN]))
     attendu = ("GARDE: pas de CHANTIER.md dans", "GARDE: AAAA-MM-JJ attendu : hier", "GARDE: aucune branche nuit/2026-01-01-*",
-               "GARDE: CHANTIER.md de main sans ses deux libellés", "GARDE: HEAD est sur autre, pas sur main",
+               "GARDE: CHANTIER.md de main sans sa ligne « artefact du chantier »", "GARDE: HEAD est sur autre, pas sur main",
                "n'est pas la racine d'un dépôt Git", "GARDE: arbre pas propre (1 chemin(s))")
     verifier("NUI15 (g) sept gardes : non équipé, date illisible, aucune branche, CHANTIER.md sans libellés, HEAD hors "
              "main, pas la racine, arbre sale — sort 1, « rien fusionné », aucune fusion commencée",
@@ -7877,8 +7878,8 @@ def tester_courant_de():
         git_matin(d, "worktree", "remove", "--force", wt)
         v = os.path.join(tr, "vieux")
         ecrire(os.path.join(v, "CHANTIER.md"),
-               "- **contexte** : ctx/\n- **fichier de fiches courant** : ctx/x.md (X1..X1)\n")
-        ecrire(os.path.join(v, "ctx", "x.md"), "# Chantier X — x\n\n## X1 [ ] — f\n")
+               "- **contexte** : ctx/\n")
+        ecrire(os.path.join(v, "ctx", "x.md"), ouvert("# Chantier X — x\n\n## X1 [ ] — f\n"))
         d_vieux = courant(v)
     verifier("NUI22 (a, b) courant_de : un worktree n'hérite pas du chantier de main, il voit le sien ; main inchangé ; "
              "de_cote lit la branche — mutant : la règle 2 garde les hérités",
@@ -7906,9 +7907,9 @@ def tester_ouvrir_marque():
     with tempfile.TemporaryDirectory() as tr:
         d, wt = os.path.join(tr, "om"), os.path.join(tr, "wt")
         ecrire(os.path.join(d, "CHANTIER.md"), "# C\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n"
-               "- **fichier de fiches courant** : ctx/50-nui.md (N1..N1)\n- **artefact du chantier** : https://exemple/nui\n\n"
+               "- **artefact du chantier** : https://exemple/nui\n\n"
                "Lettres de fiche déjà prises : N (nuit), P (par).\n")
-        ecrire(os.path.join(d, "ctx", "50-nui.md"), "# Chantier N — nuit\n\n" + OUVERT % "2026-10-03" + "\n\n## N1 [ ] — a\n")
+        ecrire(os.path.join(d, "ctx", "50-nui.md"), ouvert("# Chantier N — nuit\n\n" + OUVERT % "2026-10-03" + "\n\n## N1 [ ] — a\n"))
         ecrire(os.path.join(d, "ctx", "51-par.md"), "# Chantier P — par\n\n**Fait.** Rien.\n\n## P1 [x] — a\n")
         git_matin(d, "init", "-q", "-b", "main")
         git_matin(d, "add", "-A")
@@ -7968,6 +7969,7 @@ def tester_nui30_marque():
         _, s0 = appel(["niveau", d])
         _, s1 = appel(["niveau", d, "--ecrire", "--date", "2026-10-08"])
         apres, ouverts1, f1 = courant(d), appel(["ouverts", d])[1], mod.lire(os.path.join(d, "ctx", "59-f.md"))
+        carte1 = mod.lire(os.path.join(d, "CHANTIER.md"))
         _, s2 = appel(["niveau", d, "--ecrire", "--date", "2026-10-08"])
         f2 = mod.lire(os.path.join(d, "ctx", "59-f.md"))
         code3, s3 = appel(["pause", os.path.join(d, "ctx", "34-h.md"), "en pause le soir même", "--date", "2026-09-20"])
@@ -7982,21 +7984,30 @@ def tester_nui30_marque():
         ecrire(os.path.join(sans_git, "CHANTIER.md"), "- **contexte** : ctx/\n- **fichier de fiches courant** : ctx/9-s.md\n")
         ecrire(os.path.join(sans_git, "ctx", "9-s.md"), "# Chantier S — x\n\n## S1 [ ] — f\n")
         _, s9 = appel(["niveau", sans_git, "--ecrire", "--date", "2026-10-08"])
-        ecrire(os.path.join(rien, "CHANTIER.md"), "- **contexte** : ctx/\n- **fichier de fiches courant** : aucun\n")
+        ecrire(os.path.join(rien, "CHANTIER.md"), "- **contexte** : ctx/\n")
         ecrire(os.path.join(rien, "ctx", "9-s.md"), "# Chantier S — x\n\n## S1 [ ] — f\n")
         _, s10 = appel(["niveau", rien, "--ecrire", "--date", "2026-10-08"])
     marque = "**Ouvert.** le 2026-09-20."
     verifier("NUI30 niveau : projet à la Cairn — ÉCART sans --ecrire ; --ecrire pose la marque du commit d'ouverture sous "
-             "le titre ; COURANT= identique avant et après ; rejoué → rien écrit — mutant : `migre` ignoré, la marque doublée",
-             avant == apres == "COURANT=ctx/59-f.md"
-             and "ÉCART: marque: ctx/59-f.md sans **Ouvert.**" in s0
+             "le titre ; rejoué → rien écrit — mutant : `migre` ignoré, la marque doublée",
+             "ÉCART: marque: ctx/59-f.md sans **Ouvert.**" in s0
              and "CORRIGÉ: marque: **Ouvert.** le 2026-09-20 sur ctx/59-f.md — son commit d'ouverture" in s1
              and f1.startswith("# Chantier F — x\n\n" + marque + "\n\n## F1") and ouverts1 == "OUVERT ctx/59-f.md\n"
              and "marque" not in s2 and f2 == f1,
              "\n".join((avant, apres, s0, s1, s2, f1)))
-    verifier("NUI30 niveau : sans commit d'ouverture, la date de l'appel, dite ; ligne « aucun » → rien",
+    verifier("NUI31 niveau : la ligne « fichier de fiches courant » n'est plus lue (COURANT=aucun avant la marque) ; "
+             "gardée sans --ecrire, retirée après la marque, le reste de CHANTIER.md intact ; rejoué → rien — mutant : "
+             "retirée avant que la marque ne soit posée",
+             avant == "COURANT=aucun" and apres == "COURANT=ctx/59-f.md"
+             and "ÉCART: ligne: CHANTIER.md:3 — « fichier de fiches courant » n'est plus lue (NUI31) — gardée tant que "
+                 "la marque d'ouverture manque" in s0
+             and "CORRIGÉ: ligne: « fichier de fiches courant » retirée de CHANTIER.md:3" in s1
+             and carte1 == "- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n- **artefact du chantier** : aucun\n"
+             and "ligne:" not in s2,
+             "\n".join((avant, apres, s0, s1, s2, carte1)))
+    verifier("NUI30 niveau : sans commit d'ouverture, la date de l'appel, dite, puis la ligne retirée ; sans ligne → rien",
              "CORRIGÉ: marque: **Ouvert.** le 2026-10-08 sur ctx/9-s.md — date de l'appel, aucun commit « Chantier S "
-             "ouvert »" in s9 and "marque" not in s10, s9 + s10)
+             "ouvert »" in s9 and "CORRIGÉ: ligne:" in s9 and "marque" not in s10 and "ligne:" not in s10, s9 + s10)
     verifier("NUI30 pause : posée sous le titre, le chantier sort des ouverts ; en double, sur un clos, introuvable → GARDE ; "
              "ouvrir la lève — mutant : lever_pause ne rend rien",
              (code3, s3) == (0, "PAUSE %s le 2026-09-20\n" % os.path.join(d, "ctx", "34-h.md").replace("\\", "/"))
@@ -8020,9 +8031,6 @@ def tester_wip_de_cote():
     with tempfile.TemporaryDirectory() as tr:
         d = os.path.join(tr, "w")
         depot_matin(d)
-        loc = os.path.join(d, "ctx", "40-loc.md")
-        ecrire(loc, lire(loc).replace("# Chantier LOC — Publier\n", "# Chantier LOC — Publier\n\n%s\n" % OUVERT_DU_JOUR))
-        commit_matin(d, "LOC marqué", 0)
         noms = {}
         for canal, code, sujet in (("A", "WIP", mod.WIP_SUJET % ("WIP", "découpage coupé")), ("B", "HER", "HER1 : her")):
             noms[code] = "nuit/%s-%s-%s" % (JOUR_MATIN, canal, code)
@@ -8052,9 +8060,6 @@ def tester_fusionner():
     with tempfile.TemporaryDirectory() as tr:
         d, wt = os.path.join(tr, "f"), os.path.join(tr, "wt-clot")
         depot_matin(d)
-        loc = os.path.join(d, "ctx", "40-loc.md")
-        ecrire(loc, lire(loc).replace("# Chantier LOC — Publier\n", "# Chantier LOC — Publier\n\n%s\n" % OUVERT_DU_JOUR))
-        commit_matin(d, "LOC marqué", 0)
         git_matin(d, "worktree", "add", "-q", "-b", "clot-loc", wt, "main")
         postit = mod.postit(wt)
         assert postit
@@ -8062,7 +8067,7 @@ def tester_fusionner():
         code_clore, s_clore = appel(["clore", wt, "--livre", "LOC livré", "--date", JOUR_MATIN])
         commit_matin(wt, "Chantier LOC clos", 1)
         code, s = appel(["fusionner", d, "clot-loc"])
-        carte_ = mod.lignes_de(os.path.join(d, "CHANTIER.md"))
+        carte_, courant_a = mod.lignes_de(os.path.join(d, "CHANTIER.md")), mod.courant_de(d)
         ecrire(os.path.join(d, "ctx", "50-neo.md"), "# Chantier NEO — Neuf\n\n## NEO1 [ ] — a\n")
         code_ouvrir, s_ouvrir = appel(["ouvrir", d, "--fiches", "ctx/50-neo.md", "--titre", "Neuf"])
         neo = lire(os.path.join(d, "ctx", "50-neo.md"))
@@ -8072,7 +8077,7 @@ def tester_fusionner():
              code_clore == 0 and ('FUSIONNER depuis %s : ' % d.replace("\\", "/")) in s_clore.replace("\\", "/")
              and ' fusionner "' in s_clore and s_clore.rstrip().endswith(" clot-loc")
              and code == 0 and s == "FUSIONNÉE clot-loc\n"
-             and mod.champ(carte_, "fichier de fiches courant") == "aucun" and mod.champ(carte_, "artefact du chantier") == "aucun"
+             and courant_a is None and mod.champ(carte_, "artefact du chantier") == "aucun"
              and code_ouvrir == 0 and "**Ouvert.**" in neo,
              (code_clore, s_clore, code, s, carte_, code_ouvrir, s_ouvrir))
 
@@ -8089,7 +8094,7 @@ def tester_fusionner():
             ecrire(os.path.join(w, fichier), corps)
             if carte_aucun:
                 chemin = os.path.join(w, "CHANTIER.md")
-                c = re.sub(r"(\*\*(?:fichier de fiches courant|artefact du chantier)\*\* : ).*", r"\g<1>aucun", lire(chemin))
+                c = re.sub(r"(\*\*artefact du chantier\*\* : ).*", r"\g<1>aucun", lire(chemin))
                 ecrire(chemin, c.replace(". Un nouveau chantier", ", PAR (Deux chantiers). Un nouveau chantier"))
             commit_matin(w, nom, 2)
 
@@ -8113,7 +8118,7 @@ def tester_fusionner():
         refus.append(appel(["fusionner", d, "ouvre"]))
         ouvre_fusionne = code_git(d, "merge-base", "--is-ancestor", "ouvre", "main") == 0
         code, s = appel(["fusionner", d, "par"])
-        carte_ = mod.lignes_de(os.path.join(d, "CHANTIER.md"))
+        carte_, courant_c = mod.lignes_de(os.path.join(d, "CHANTIER.md")), mod.courant_de(d)
         sujet = git_matin(d, "log", "-1", "--format=%s").strip()
         deja = appel(["fusionner", d, "par"])
     attendu = ("GARDE: pas de CHANTIER.md dans", "n'est pas la racine d'un dépôt Git", "GARDE: HEAD détachée",
@@ -8126,7 +8131,7 @@ def tester_fusionner():
     verifier("NUI26 (c) un worktree ouvre puis clôt PAR : fusionner → main garde LOC (courant et artefact), PAR ajouté aux "
              "lettres, commit « Fusion : par » ; rejoué → DÉJÀ par, sort 0",
              code == 0 and s == "FUSIONNÉE par\n" and sujet == "Fusion : par"
-             and mod.champ(carte_, "fichier de fiches courant") == "ctx/40-loc.md (LOC1..LOC1)"
+             and courant_c == "ctx/40-loc.md"
              and mod.champ(carte_, "artefact du chantier") == "https://claude.ai/artifact/LOC"
              and mod.lettres_prises(carte_) == ["E", "ENQ", "PAR"] and deja == (0, "DÉJÀ par\n"),
              (code, s, sujet, carte_, deja))
@@ -8151,7 +8156,7 @@ def tester_lettres_doublon():
             w = os.path.join(tr, "wt-" + nom)
             git_matin(d, "worktree", "add", "-q", "-b", nom, w, "main")
             chemin = os.path.join(w, "CHANTIER.md")
-            c = re.sub(r"(\*\*(?:fichier de fiches courant|artefact du chantier)\*\* : ).*", r"\g<1>aucun", lire(chemin))
+            c = re.sub(r"(\*\*artefact du chantier\*\* : ).*", r"\g<1>aucun", lire(chemin))
             ecrire(chemin, c.replace(". Un nouveau chantier", ", %s. Un nouveau chantier" % entree))
             commit_matin(w, nom, 3)
 
@@ -8176,8 +8181,10 @@ def tester_lettres_doublon():
     with tempfile.TemporaryDirectory() as tr:
         d, wz, wh = os.path.join(tr, "o"), os.path.join(tr, "wt-zed"), os.path.join(tr, "wt-her")
         depot_matin(d)
-        carte = os.path.join(d, "CHANTIER.md")       # main libre : sans marque, sa ligne ferait LOC courant
-        ecrire(carte, re.sub(r"(\*\*(?:fichier de fiches courant|artefact du chantier)\*\* : ).*", r"\g<1>aucun", lire(carte)))
+        loc = os.path.join(d, "ctx", "40-loc.md")      # main libre : LOC sans sa marque, l'artefact à aucun
+        ecrire(loc, lire(loc).replace("\n%s\n" % OUVERT, ""))
+        carte = os.path.join(d, "CHANTIER.md")
+        ecrire(carte, re.sub(r"(\*\*artefact du chantier\*\* : ).*", r"\g<1>aucun", lire(carte)))
         commit_matin(d, "main libre", 3)
         git_matin(d, "worktree", "add", "-q", "-b", "zed", wz, "main")
         ecrire(os.path.join(wz, "ctx", "80-zed.md"), "# Chantier ZED — Un\n\n%s\n\n## ZED1 [ ] — a\n" % OUVERT_DU_JOUR)
@@ -8210,8 +8217,10 @@ def tester_ailleurs():
     with tempfile.TemporaryDirectory() as tr:
         d = os.path.join(tr, "m")
         depot_matin(d)
+        loc = os.path.join(d, "ctx", "40-loc.md")      # main libre : LOC sans sa marque, l'artefact à aucun
+        ecrire(loc, lire(loc).replace("\n%s\n" % OUVERT, ""))
         carte = os.path.join(d, "CHANTIER.md")
-        ecrire(carte, re.sub(r"(\*\*(?:fichier de fiches courant|artefact du chantier)\*\* : ).*", r"\g<1>aucun", lire(carte)))
+        ecrire(carte, re.sub(r"(\*\*artefact du chantier\*\* : ).*", r"\g<1>aucun", lire(carte)))
         ecrire(os.path.join(d, "ctx", "80-maa.md"), "# Chantier MAA — Main\n\n%s\n\n## MAA1 [ ] — a\n" % OUVERT_DU_JOUR)
         commit_matin(d, "MAA ouvert", 3)
         dossiers = {"m": d}
@@ -8237,6 +8246,7 @@ def tester_ailleurs():
         depot_matin(d)
         _, seul = appel(["niveau", d])
         git_matin(d, "worktree", "add", "-q", "-b", "l", wl, "main")
+        ecrire(mod.postit(wl), "ctx/40-loc.md\n")      # le worktree joue LOC : son post-it le nomme (NUI31)
         _, avec = appel(["niveau", d])
         _, dans = appel(["niveau", wl])
     verifier("NUI28 (b) niveau : LOC joué dans un worktree → « AILLEURS: page: LOC joue dans … », aucun ÉCART: page "

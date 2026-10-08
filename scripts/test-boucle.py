@@ -49,7 +49,7 @@ FICHE = _faux.FICHE
 
 
 def projet(t, visuel=None, tentatives=None):
-    corps = "# Fiches\n\n## Le socle commun\n\nRien.\n\n## L'ordre des fiches\n\nF1, F2, F3.\n\n---\n\n"
+    corps = "# Chantier F — fiches\n\n**Ouvert.** le 2026-10-08.\n\n## Le socle commun\n\nRien.\n\n## L'ordre des fiches\n\nF1, F2, F3.\n\n---\n\n"
     for f in ("F1", "F2", "F3"):
         bloc = FICHE % (f, f, f, " (visuel)" if f == visuel else "")
         if f == tentatives:
@@ -58,7 +58,7 @@ def projet(t, visuel=None, tentatives=None):
     with open(os.path.join(t, "fiches.md"), "w", encoding="utf-8", newline="") as h:
         h.write(corps)
     with open(os.path.join(t, "CHANTIER.md"), "w", encoding="utf-8", newline="") as h:
-        h.write("# Chantier courant\n\n- **fichier de fiches courant** : fiches.md (F1..F3)\n")
+        h.write("# Chantier courant\n\n- **contexte** : .\n")      # fiches.md, ouvert par sa marque (NUI31)
     return FAUX_CLAUDE
 
 
@@ -156,12 +156,15 @@ def tester_faux():
     with tempfile.TemporaryDirectory() as t:
         projet(t)
         carte, fiches, nouveau =(os.path.join(t, n) for n in ("CHANTIER.md", "fiches.md", "T.md"))
-        avant = lire(fiches)
+        ferme = lire(fiches).replace("**Ouvert.**", "Fermé.")     # F fermé : un seul chantier ouvert, T
+        with open(fiches, "w", encoding="utf-8", newline="") as h:
+            h.write(ferme)
+        avant, carte_avant = lire(fiches), lire(carte)
         code, _, e = faux(["-p", "/vlp:chantier T"], t)
-        verifier("faux découper : T.md à deux fiches, courant de CHANTIER.md remplacé, fiches.md intact",
+        verifier("faux découper : T.md à deux fiches et sa marque, CHANTIER.md et fiches.md intacts",
                  code == 0 and os.path.isfile(nouveau) and "## T1 [ ]" in lire(nouveau) and "## T2 [ ]" in lire(nouveau)
                  and lire(nouveau).count("<!-- FICHE:") == 2
-                 and "**fichier de fiches courant** : T.md (T1..T2)" in lire(carte) and lire(fiches) == avant, e)
+                 and "**Ouvert.**" in lire(nouveau) and lire(carte) == carte_avant and lire(fiches) == avant, e)
         code, _, e = faux(["-p", "/vlp:tache T1"], t)
         verifier("faux jouer coche dans le fichier courant",
                  code == 0 and "## T1 [x]" in lire(nouveau) and "## T2 [ ]" in lire(nouveau) and lire(fiches) == avant, e)
@@ -172,8 +175,8 @@ def tester_faux():
         with open(carte, "a", encoding="utf-8", newline="") as h:
             h.write("- **artefact du chantier** : https://exemple.invalid/x\n")
         code, _, e = faux(["-p", "/vlp:tache"], t)
-        verifier("faux clore : courant et artefact passent à aucun",
-                 code == 0 and "**fichier de fiches courant** : aucun" in lire(carte)
+        verifier("faux clore : **CLOS** sous le titre, l'artefact à aucun",
+                 code == 0 and "**CLOS**" in lire(nouveau)
                  and "**artefact du chantier** : aucun" in lire(carte), lire(carte) + e)
 
     with tempfile.TemporaryDirectory() as t:
@@ -920,7 +923,7 @@ def depot_canal(t, hors, codes, **reglages):
     subprocess.run(["git", "init", "-q", t], check=True, capture_output=True)
     ecrire_f(os.path.join(t, "CHANTIER.md"),
              "# C\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n- **fichier d'état** : ctx/08-etat.md\n"
-             "- **fichier de fiches courant** : aucun\n- **artefact du chantier** : aucun\n\n"
+             "- **artefact du chantier** : aucun\n\n"
              "Lettres de fiche déjà prises : E (Un), KKK (Clos). Un nouveau chantier en choisit une autre.\n")
     ecrire_f(os.path.join(t, "ctx", "00-INDEX.md"),
              "# Index\n\n| Fichier | Lire quand |\n|---|---|\n| `00-INDEX.md` | l'index |\n| `08-etat.md` | l'état |\n"
@@ -1181,13 +1184,10 @@ def tester_herite():
                 + "".join(FICHE % (f, f, f, "") for f in fiches))
 
     def main_herite(t, hors, d):
-        """Le dépôt du canal, main portant le chantier HHH ouvert (marque et ligne de CHANTIER.md), puis le worktree
+        """Le dépôt du canal, main portant le chantier HHH ouvert (sa marque), puis le worktree
         détaché du canal dans `d` : son chemin."""
         depot_canal(t, hors, ("AAA",))
         ecrire_f(os.path.join(t, "ctx", "100-x.md"), marque("HHH", ("HHH1", "HHH2")))
-        chemin = os.path.join(t, "CHANTIER.md")
-        ecrire_f(chemin, lire(chemin).replace("**fichier de fiches courant** : aucun",
-                                              "**fichier de fiches courant** : ctx/100-x.md (HHH1..HHH2)"))
         git(t, "add", "-A")
         git(t, "commit", "-q", "-m", "HHH ouvert sur main")
         wt = os.path.join(d, "canal")

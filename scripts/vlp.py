@@ -181,7 +181,7 @@ Sous-commandes :
   pas nul. Une copie locale de `methode-chantier.md` n'est pas un écart : la
   méthode la tolère pour un projet équipé avant la règle. Une ligne `ÉCART:
   <catégorie>: <phrase>`
-  par écart (`renvois`, `feuille`, `page`, `variable`, `clos`, `marque`), puis `NIVEAU <n>
+  par écart (`renvois`, `feuille`, `page`, `variable`, `clos`, `marque`, `ligne`), puis `NIVEAU <n>
   écarts · <n> avertissements — <projet>`. Un écart : sort 1.
   `--ecrire` corrige les seuls écarts mécaniques — la table des chantiers clos
   retirée de `CHANTIER.md` (jamais si l'index ne nomme pas chacun de ses
@@ -190,7 +190,9 @@ Sous-commandes :
   lignes closes écrites avant `gras_et_liens` converties en place, et, dans un projet
   sans aucune marque d'ouverture, `**Ouvert.** le <date>` sous le titre du fichier que
   nomme l'ancienne ligne de `CHANTIER.md` — date du plus ancien commit « Chantier <code>
-  ouvert », sinon celle de l'appel, et la ligne `CORRIGÉ: marque:` le dit (NUI30). Les
+  ouvert », sinon celle de l'appel, et la ligne `CORRIGÉ: marque:` le dit (NUI30) ; puis
+  cette ligne retirée, que plus rien ne lit — gardée, en `ÉCART: ligne:`, tant que la marque
+  manque (NUI31). Les
   renvois absents et les fichiers de tête hors seuil restent en `ÉCART:`. Tout
   se calcule avant la première écriture. Bilan `NIVEAU <n> corrigés · <n> à la
   main — <projet>` ; un écart restant : sort 1. `--date` fige la date.
@@ -238,13 +240,13 @@ Sous-commandes :
   `DE CÔTÉ`) si elle est seule — `NUIT <date> — la seule à ranger : <n> branche(s)`, la date à reprendre pour
   `--rapport` — sinon `GARDE: plusieurs nuits à ranger : <date> (<n>), …` ou `GARDE: aucune nuit à ranger (<n>
   branche(s) nuit/* …)`, rien fusionné. `GARDE:` (sort 1, rien fusionné) : projet non équipé, date illisible, projet qui n'est pas la racine de son
-  dépôt, `HEAD` hors `main`, arbre pas propre, `CHANTIER.md` de `main` sans ses deux libellés ou sa ligne de
+  dépôt, `HEAD` hors `main`, arbre pas propre, `CHANTIER.md` de `main` sans sa ligne « artefact du chantier » ou sa ligne de
   lettres, aucune branche. Ordre : le carnet de la nuit (rang de la 1re ligne de chaque `canal` + `chantier`),
   sinon l'heure de la pointe puis le nom (`ORDRE pointes — carnet absent`). Par branche : `DÉJÀ <b>` (ancêtre de
   `main`) ; `DE CÔTÉ <b> — <courant>` (son `CHANTIER.md` garde un chantier ouvert : jamais fusionnée) ; sinon
   `git merge --no-ff --no-commit`, puis `CHANTIER.md` refait par `git merge-file` sur ses trois versions dont les
-  deux libellés et la liste des lettres sont remplacés par un jeton (`neutre`), puis rendus (`restaurer`) : ceux de
-  `main` — tous deux à `aucun` si son chantier porte `**CLOS**` dans l'arbre fusionné (NUI26) —, et ses lettres
+  libellé de l'artefact et la liste des lettres sont remplacés par un jeton (`neutre`), puis rendus (`restaurer`) : celui
+  de `main` — à `aucun` si son chantier porte `**CLOS**` dans l'arbre fusionné (NUI26) —, et ses lettres
   suivies de celles de la branche qui lui manquent — Git perd sans conflit ce que `clore` remet à `aucun`. Un conflit sur la feuille (avec une archive des clos), `couts.svg` ou un joint : celui de `main`,
   ils se refont. `feuille` est refaite au rang « en cours » que `main` portait avant la fusion, avec joints, `couts.svg`
   et bloc d'archive (`rafraichir_couts`) ; `git add -A` ; commit `Matin <date> : <b>` ; `FUSIONNÉE <b>`. Autre
@@ -292,7 +294,7 @@ Sous-commandes :
   `ZONE:blocage` cachée — absentes : `GARDE:`, le reste est écrit ; avec
   `--resume T`, dans « Où on en est » de `CLAUDE.md`, `- Clos le <date> : T
   (chantier L).` (déjà là : rien ; T déjà préfixé ou suffixé : pas doublé), et seules les `CLOS_GARDES` dernières lignes de
-  cette forme restent ; dans `CHANTIER.md`, courant et artefact à `aucun`,
+  cette forme restent ; dans `CHANTIER.md`, l'artefact à `aucun`,
   la lettre aux lettres prises (plus de table des clos) ; dans la feuille
   de route, une ligne en tête de `ZONE:clos`, le total cumulé resommé des
   comptes bruts, puis `feuille`, et sa ligne `FILES` (joints et `couts.svg`, comme `feuille`).
@@ -330,8 +332,8 @@ Sous-commandes :
   n'est pas réécrit. `ABRI <md> · résultat <0|1> · notes <n> · journal <n> · bilan <0|1>`,
   ou `DÉJÀ <md>` ; page absente : `GARDE:`, sort 1 (chantier ABR).
 - `ouvrir <projet> --fiches F --titre T [--artefact URL] [--estime-fiches N]` — les écritures
-  mécaniques de l'ouverture : dans `CHANTIER.md`, courant = `F (L1..Ln)` et
-  artefact = l'URL (sinon `aucun`, ou l'ancienne si F est déjà courant) ; une
+  mécaniques de l'ouverture : dans `CHANTIER.md`, artefact = l'URL (sinon
+  `aucun`, ou l'ancienne si F est déjà courant) ; une
   ligne « on joue une fiche » après la ligne de l'index au plus grand numéro ;
   une ligne « jouer une fiche du chantier » avant « relire un chantier clos »
   (sinon le premier « relire le chantier ») du routage de `CLAUDE.md`. Une ligne

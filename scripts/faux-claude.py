@@ -78,7 +78,6 @@ LIMITES = {"session": "You've hit your session limit · resets 3:45pm",
            "semaine": "You've hit your weekly limit · resets Mon 12:00am",
            "opus": "You've hit your Opus limit · resets 3:45pm"}
 
-COURANT = r"^(\s*-\s*\*\*fichier de fiches courant\*\*\s*:\s*)[^\r\n]*"
 ARTEFACT = r"^(\s*-\s*\*\*artefact du chantier\*\*\s*:\s*)[^\r\n]*"
 
 
@@ -114,18 +113,23 @@ def postit() -> Optional[str]:
 
 
 def courant() -> Optional[str]:
-    """Le fichier de fiches courant du cwd : le post-it d'abord, comme `courant_de` (vlp.py) ; la ligne de
-    CHANTIER.md en repli seulement (NUI23)."""
+    """Le fichier de fiches courant du cwd : le post-it d'abord, comme `courant_de` (vlp.py) ; sinon le seul fichier
+    du contexte ouvert — titre `# Chantier `, `**Ouvert.**`, ni `**CLOS**` ni `**Pause.**` (NUI31)."""
     p = postit()
     if p and os.path.isfile(p):
         nomme = lire(p).strip()
         if nomme and os.path.isfile(nomme):
             return nomme
-    for ligne in lire("CHANTIER.md").splitlines():
-        if "**fichier de fiches courant**" in ligne:
-            v = ligne.split(":", 1)[1].strip().split(" (")[0].strip().strip("`")
-            return None if v.lower().startswith("aucun") else v
-    return None
+    dossier = contexte()
+    noms = sorted(n for n in os.listdir(dossier or ".") if n.endswith(".md")) if os.path.isdir(dossier or ".") else []
+    ouverts = []
+    for n in noms:
+        chemin = "%s/%s" % (dossier, n) if dossier else n
+        lignes = lire(chemin).splitlines()
+        if (any(l.startswith("# Chantier ") for l in lignes) and any(l.startswith("**Ouvert.**") for l in lignes)
+                and not any(l.startswith(("**CLOS**", "**Pause.**")) for l in lignes)):
+            ouverts.append(chemin)
+    return ouverts[0] if len(ouverts) == 1 else None
 
 
 def resultat(sid: str, modele: Optional[str], cout: float, **champs) -> dict:
@@ -137,15 +141,17 @@ def resultat(sid: str, modele: Optional[str], cout: float, **champs) -> dict:
 
 
 def contexte() -> str:
-    """Le dossier de la ligne `**contexte**` de CHANTIER.md, sans barre finale, ou « » sans elle : là où `vlp.py
-    ouvrir` trouve un fichier de fiches, et `courant_de` un chantier ouvert (NUI25)."""
+    """Le dossier de la ligne `**contexte**` de CHANTIER.md, sans barre finale, ou « » sans elle ou à `.` : là où
+    `vlp.py ouvrir` trouve un fichier de fiches, et `courant_de` un chantier ouvert (NUI25, NUI31)."""
     for ligne in lire("CHANTIER.md").splitlines():
         if "**contexte**" in ligne:
-            return ligne.split(":", 1)[1].strip().strip("`").rstrip("/")
+            dossier = ligne.split(":", 1)[1].strip().strip("`").rstrip("/")
+            return "" if dossier == "." else dossier
     return ""
 
 
 def decouper(code: str) -> int:
+    """Ouvre le chantier `code` comme `vlp.py ouvrir` : deux fiches, la marque d'ouverture, le post-it."""
     if code in os.environ.get("VLP_FAUX_VIDE", "").split(","):
         return 0   # le découpage qui n'ouvre aucun chantier
     ids = ("%s1" % code, "%s2" % code)
@@ -156,12 +162,7 @@ def decouper(code: str) -> int:
              "%s, %s.\n\n---\n\n" % ((code, datetime.date.today().isoformat()) + ids))
     for f in ids:
         corps += FICHE % (f, f, f, "")
-    texte = lire("CHANTIER.md")
-    nouveau, n = re.subn(COURANT, lambda m: "%s%s (%s..%s)" % (m.group(1), fichier, ids[0], ids[1]), texte, flags=re.M)
-    if n != 1:
-        return inconnu("pas de ligne « fichier de fiches courant » dans CHANTIER.md")
     ecrire(fichier, corps)
-    ecrire("CHANTIER.md", nouveau)
     p = postit()
     if p:
         ecrire(p, "%s\n" % fichier)
@@ -205,7 +206,7 @@ def jouer(fiche: str, session: Optional[str] = None) -> int:
 
 def fermer() -> None:
     """La fermeture de `cmd_clore` : `**CLOS**` sous le titre du fichier de fiches, le post-it qui le nomme effacé,
-    le fichier de fiches courant et l'artefact du chantier de CHANTIER.md à `aucun` (NUI23)."""
+    l'artefact du chantier de CHANTIER.md à `aucun` (NUI23, NUI31)."""
     fichier = courant()
     if fichier and os.path.isfile(fichier):
         lignes = lire(fichier).split("\n")
@@ -216,10 +217,7 @@ def fermer() -> None:
     p = postit()
     if p and os.path.isfile(p) and lire(p).strip() == fichier:
         os.remove(p)
-    texte = lire("CHANTIER.md")
-    for motif in (COURANT, ARTEFACT):
-        texte = re.sub(motif, lambda m: m.group(1) + "aucun", texte, flags=re.M)
-    ecrire("CHANTIER.md", texte)
+    ecrire("CHANTIER.md", re.sub(ARTEFACT, lambda m: m.group(1) + "aucun", lire("CHANTIER.md"), flags=re.M))
 
 
 def clore() -> int:

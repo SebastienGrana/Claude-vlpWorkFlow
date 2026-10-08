@@ -21,9 +21,9 @@
     <p>/vlp:chef cadre le soir, deux canaux jouent les chantiers la nuit sans humain, puis fusion et rapport le matin</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">33 fiches · 29 faites · en cours : NUI31</p>
+    <p class="mono" style="margin-top:.5rem">33 fiches · 30 faites · en cours : NUI32</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -153,12 +153,13 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">NUI30</span></span>
         <details><summary><span class="titre">Remettre les projets équipés au modèle de la marque</span><span class="etat">Faite</span></summary>
         <span class="note">test-vlp.py OK (3 contrôles NUI30, 2 mutants attrapés) ; COURANT= identique avant/après sur kit, Cairn, MapDecorator, bac ; ouverts 1 partout ; pyright 0 errors</span></details>
-        <span class="cout mono">≈13,1M (13 109 817) · 75 tours · 7,07 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">NUI31</span></span>
-        <details open><summary><span class="titre">Retirer la vieille ligne de CHANTIER.md</span><span class="etat">En cours</span></summary>
-        <span class="note">la vieille ligne de CHANTIER.md disparaît ; après NUI29, NUI30</span></details></li>
-      <li class="fiche" data-attend><span class="gauche"><span class="id">NUI32</span></span>
-        <details><summary><span class="titre">Remettre NUI20 au nouveau modèle</span><span class="etat">Après NUI31</span></summary>
+        <span class="cout mono">≈13,8M (13 765 123) · 78 tours · 7,33 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">NUI31</span></span>
+        <details><summary><span class="titre">Retirer la vieille ligne de CHANTIER.md</span><span class="etat">Faite</span></summary>
+        <span class="note">Suite OK ; RAPIDE VERT (pyright 0 errors, 5 fichiers ; cliquet tenu) ; grep : 54→9 mentions dans test-vlp.py, 11→9 vlp_coeur, 6→2 faux-claude, 6→0 test-boucle, 1→0 gabarit et CHANTIER.md, le reste conceptuel ou d'histoire ; COURANT= identique sur les 4 projets</span></details>
+        <span class="cout mono">≈24,7M (24 725 108) · 129 tours · 9,65 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">NUI32</span></span>
+        <details open><summary><span class="titre">Remettre NUI20 au nouveau modèle</span><span class="etat">En cours</span></summary>
         <span class="note">NUI20 remise au nouveau modèle ; après NUI21 à NUI31</span></details></li>
       <li class="fiche"><span class="gauche"><span class="id">NUI33</span></span>
         <details><summary><span class="titre">Le joueur en Opus 5.5 medium, la relance en xhigh</span><span class="etat">À lancer</span></summary></details></li>
@@ -168,7 +169,7 @@
         <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈679,9k (679 863) · 3 tours · 0,18 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈317,6M (317 639 762) · 1900 tours · 140,42 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈343,0M (343 020 176) · 2032 tours · 150,33 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
