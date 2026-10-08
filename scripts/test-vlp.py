@@ -5995,6 +5995,24 @@ def tester_trier():
 groupe(tester_trier)
 
 
+def tester_trier_branche():
+    """BRA1 : dans Git, `trier` ne trie que sur `main` ; ailleurs, une seule ligne `GARDE:`, sort 1."""
+    with tempfile.TemporaryDirectory() as tb:
+        ecrire(os.path.join(tb, "CHANTIER.md"), "# C\n\n- **contexte** : ctx/\n- **fichier d'état** : ctx/08-etat.md\n")
+        ecrire(os.path.join(tb, "ctx", "08-etat.md"), "# État\n\n| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |\n"
+               "|---|---|---|---|---|\n| 1 | `AAA` — a | x | 1 fiche | — |\n\n## Journal\n")
+        subprocess.run(["git", "init", "-q", "-b", "main"], cwd=tb, capture_output=True)
+        code_main, s_main = appel(["trier", tb])
+        subprocess.run(["git", "switch", "-q", "-c", "nuit/x"], cwd=tb, capture_output=True)
+        code, s = appel(["trier", tb])
+        verifier("BRA1 : trier sort 0 sur main, 1 sur nuit/x — une seule ligne, GARDE: trier hors de main",
+                 code_main == 0 and code == 1 and len(s.splitlines()) == 1 and s.startswith("GARDE: trier hors de main"),
+                 "%s\n%s" % (s_main, s))
+
+
+groupe(tester_trier_branche)
+
+
 # --- NUI11 : le fichier des nuits, ses leçons et le TAUX imprimés par trier ---
 
 def tester_fichier_nuits():
@@ -6010,7 +6028,7 @@ def tester_fichier_nuits():
     env = os.environ.get("CLAUDE_CODE_SESSION_ID")
     os.environ["CLAUDE_CODE_SESSION_ID"] = ""
     with tempfile.TemporaryDirectory() as tp:
-        subprocess.run(["git", "init", "-q"], cwd=tp, check=True, capture_output=True)
+        subprocess.run(["git", "init", "-q", "-b", "main"], cwd=tp, check=True, capture_output=True)
         ecrire(os.path.join(tp, "CHANTIER.md"), carte)
         ecrire(os.path.join(tp, "ctx", "00-INDEX.md"), indice)
         ecrire(os.path.join(tp, "ctx", "08-etat.md"), "# État\n\n" + entete + "| 1 | `AAA` — a | x | 1 fiche | — |\n\n## Journal\n")

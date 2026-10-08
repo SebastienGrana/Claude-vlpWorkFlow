@@ -13,11 +13,11 @@ https://github.com/SebastienGrana/Claude-vlpWorkFlow — cloné et utilisé en g
 - Équipés : Cairn-VlpLib, MapDecorator, ProjetONZSM, TrackGen — et ce kit lui-même.
 - Chaque chantier clos a sa ligne dans `context AI/00-INDEX-archive.md`, son détail daté dans
   `context AI/08-etat.md` ; ici, les derniers seulement (`vlp.py clore` les tient).
-- Clos le 2026-09-29 : une republication ne joint que les joints changés, et les joints sont en LF partout (chantier JNT).
 - Clos le 2026-09-29 : une barre verticale dans la TODO arrête la feuille par une GARDE (chantier PIP).
 - Clos le 2026-10-07 : la suite passe de 553 à 180 s, le mutant de 538 à 6 s, et les fiches de code se jouent en xhigh (chantier VIT).
 - Clos le 2026-10-08 : la méthode du kit triée, l'effort mesuré (medium, xhigh en recours), les essais hors bac comptés, la TODO relue de 17 à 13 lignes (chantier MET).
 - Clos le 2026-10-08 : consigne premier plan, alerte muette sous enchainer, ménage des tampons (chantier ARP).
+- Clos le 2026-10-08 : le chef vérifie la branche dès le tri (chantier BRA).
 
 ## Quatre règles non négociables
 
