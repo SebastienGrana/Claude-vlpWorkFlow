@@ -3106,3 +3106,27 @@ Les 6 fichiers relus en entier contre `methode-chantier.md` après `MET7` ; « t
 - **e** relevés : 4 worktrees (`main` `df04447`, `brave-matsumoto-e8ae4b` `df04447`, `vlp-check-82bbfe` `51de8a4`, `wonderful-elion-ec8521` `ae54499` détaché) ; `main` `df04447693302819bfef6d52be8b6d607848db51`, `origin/main` `846fd490aafd6e90955affc8d3d3e43cb5e86344` (rien poussé) ; `git status` de `main` : un non suivi, `context AI/observations-enchainer-agents-cairn.md`. Coût TODO : `TAB` « 3,5 fiches → 7 à 10,5, 26 à 39 $ » ; `APR` « sans fiche, une séance courte, non chiffrée » ; `CLV` fondu dans `TAB` à `MET10`.
 - **Écarts** : (1) le plan de Q7 (`TAB` puis `CLV` sur A, `APR` sur B) est périmé — `CLV` fondu, `APR` sans fiche ; l'utilisateur : « `/vlp:chef` choisit ce soir ». (2) La borne de 20 $ est sous le seul `TAB` (26 à 39 $) : à trancher au soir. (3) Le tri lisait la première estimation du coût (`TAB` 1 fiche, `EFF` 45) : `juger_decoupe` aurait refusé un découpage de `TAB` en plus de 2 fiches — corrigé par `NUI38` (`0f683b3`) avant la nuit. (4) Le critère 2 de `NUI32` comptait sa propre citation : « remet `aucun` » 2 → 1, pas 0.
 - **Reste** : la nuit, puis les comptes au retour (critères 2 à 5 de `NUI20`), dans une entrée à part.
+
+## 2026-10-08 — TAB1 — les lecteurs de tables relevés
+
+- **Relevé** : `grep` des motifs `split("|")`, `strip("|")`, `re.split` sur `\|`, `startswith("|`, puis des regex de ligne (`NUMERO_LIGNE`, `LIGNE_NUMERO`, `PLAGE_INDEX`, `LIGNE_FICHIER`) dans `scripts/vlp_coeur.py` → **12 lecteurs** de tables Markdown. Un seul découpe sans garde : `noms_de_table`.
+- **Preuves** : chaque verdict joué sur une ligne fabriquée, par `vlp_coeur` importé (`py -3 tab1_preuves.py scripts`, script hors dépôt) ; la sortie citée telle quelle.
+
+| fonction | table | verdict | preuve |
+|---|---|---|---|
+| `todo_du_fichier` | TODO | garde | `\| 1 \| A \| b \| c \| x \| d \|` → `ValueError … 6 cellules au lieu de 5` ; 4 cellules → `4 cellules au lieu de 5` ; `A \\| B` → lu en une cellule |
+| `nuits_du_fichier` (et `nuits_ecrire`, qui l'appelle avant et après) | table des nuits | garde | 6 cellules → `ValueError ligne 3 de la table des nuits : 6 cellules au lieu de 5` ; 4 → `4 cellules au lieu de 5` |
+| `cle_todo` → `decouper_tables`, `decouper_etat` (fusion) | TODO | garde | passe par `todo_du_fichier` ; `decouper_tables` seul rend la rangée entière (`[['\| 1 \| a \| b \| c \| d \| e \|']]`) |
+| `noms_de_table` (pour `cmd_renvois`) | index, archive de l'index, routage de `CLAUDE.md` | **tronque** | colonne -1 sur `\| relire \| \`x.md\` \\| \`y.md\` \|` → `[(1, 'y.md')]` : `x.md` n'est pas vérifié ; `split("\|")` coupe aussi sur `\\|` ; colonne 0 → `[(1, 'a.md')]`, `b.md` perdu |
+| `numero_ligne` | index, archive | sans effet | `\| \`12-x.md\` \| a \| b \| c \|` → `12` (première cellule seule) |
+| `archiver` | index → archive | sans effet | la ligne `**clos**` passe telle quelle : `'\| \`12-x.md\` \| a \| x \| **clos** \|'` |
+| `clos_du_projet` (`PLAGE_INDEX`) | index | sans effet | `« a \| b », \`AB1..AB4\`` → `('12-x.md', 'AB')` : la regex court sur toute la ligne |
+| `fichier_nuits` (`LIGNE_NUMERO`) | index | sans effet | première cellule seule, comme `numero_ligne` |
+| `sections_nuits` | table des nuits | sans effet | bornes seules (`startswith("\|")`), les cellules sont lues par `nuits_du_fichier` |
+| `table_des_clos`, `sans_table_des_clos` | table des clos de `CHANTIER.md` | sans effet | `["## Chantiers clos", "\| a \| b \| c \|"]` → `1` ; la ligne est lue entière (`FICHIER_MD.findall`) |
+| `cmd_clore` | index (ligne ouverte), routage de `CLAUDE.md` | sans effet | `« (.*) »` sur `« a \| b »` → `a \| b` ; ligne réécrite entière |
+| `cmd_ouvrir` | index (dernière cellule), routage de `CLAUDE.md` | sans effet | `re.sub` ancré en fin de ligne → `… « a \| b », \`AB1..AB5\` \|` ; `fusion_tranche_index` prend la ligne entière pour clé |
+
+- **Jette** : aucun cas relevé ; `noms_de_table` saute exprès les séparateurs et les cellules `*(` — un choix, pas une coupe.
+- **À garder par `TAB2`** : `noms_de_table` seul — passer à `re.split(r"(?<!\\)\|", …)[1:-1]` et dire une `GARDE:` quand le compte de cellules diffère de l'en-tête. Les autres lisent la ligne entière ou sa première cellule ; `todo_du_fichier` et `nuits_du_fichier` gardent déjà.
+- **Aucun fichier de `scripts/` modifié** (`git diff --stat scripts/` vide).

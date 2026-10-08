@@ -57,8 +57,10 @@ que pour les tests.
 ---
 
 <!-- FICHE:TAB1 -->
-## TAB1 [ ] — Relever les lecteurs de tables qui coupent en silence
+## TAB1 [x] — Relever les lecteurs de tables qui coupent en silence
 
+**Session** : 3f47d6b9-9a6d-45ba-8289-028c74b240e2
+**Session** : e86f6d35-8adb-4809-bac9-de327c523bb2 (relire)
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp_coeur.py` (lecture seule), `context AI/08-etat.md` (le journal) — et rien d'autre.
 

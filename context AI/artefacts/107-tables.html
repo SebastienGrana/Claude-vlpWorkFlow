@@ -21,9 +21,9 @@
     <p>Une table Markdown mal découpée rend une GARDE au lieu d'une coupe muette ; clore lit la TODO avant d'écrire ; vlp.py oter retire une ligne de la TODO.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="encours"></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">4 fiches · 0 faite · en cours : TAB1</p>
+    <p class="mono" style="margin-top:.5rem">4 fiches · 1 faite · en cours : TAB2</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -38,11 +38,12 @@
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">TAB1</span></span>
-        <details open><summary><span class="titre">Relever les lecteurs de tables qui coupent en silence</span><span class="etat">En cours</span></summary>
-        <span class="note">Le relevé des lecteurs de tables, au journal ; sans dépendance.</span></details></li>
-      <li class="fiche" data-attend><span class="gauche"><span class="id">TAB2</span></span>
-        <details><summary><span class="titre">Leur donner la garde de la TODO</span><span class="etat">Après TAB1</span></summary>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">TAB1</span></span>
+        <details><summary><span class="titre">Relever les lecteurs de tables qui coupent en silence</span><span class="etat">Faite</span></summary>
+        <span class="note">Entrée TAB1 au journal : 12 lecteurs relevés, 1 qui tronque (noms_de_table), 3 gardes, 8 sans effet, 0 jette ; git diff --stat scripts/ vide</span></details>
+        <span class="cout mono">≈2,6M (2 631 479) · 29 tours · 1,51 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">TAB2</span></span>
+        <details open><summary><span class="titre">Leur donner la garde de la TODO</span><span class="etat">En cours</span></summary>
         <span class="note">La garde de la TODO sur ceux qui coupent, test et mutant ; après TAB1.</span></details></li>
       <li class="fiche"><span class="gauche"><span class="id">TAB3</span></span>
         <details><summary><span class="titre">clore lit la TODO avant sa première écriture</span><span class="etat">À lancer</span></summary>
@@ -51,6 +52,8 @@
         <details><summary><span class="titre">Retirer une ligne de la TODO par vlp.py oter</span><span class="etat">À lancer</span></summary>
         <span class="note">La sous-commande oter, test et mutant ; sans dépendance.</span></details></li>
     </ul>
+    <p class="mono cout-hors">Hors fiches : ≈1,4M (1 396 585) · 15 tours · 1,25 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈4,0M (4 028 064) · 44 tours · 2,76 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
