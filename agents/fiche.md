@@ -1,8 +1,8 @@
 ---
 name: fiche
 description: Exécute une seule fiche vlp et rend FAITE, RETOUR ou BLOQUÉE. Lancé par la skill vlp:jouer, que /vlp:enchainer appelle — jamais seul.
-model: sonnet
-effort: low
+model: opus
+effort: medium
 maxTurns: 80
 tools: Read, Edit, Write, Bash, PowerShell
 ---

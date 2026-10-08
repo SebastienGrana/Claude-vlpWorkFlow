@@ -222,7 +222,7 @@
 {"fichier": "scripts/test-boucle.py", "fonction": "tester_nuit", "empreinte": "2a497239a8f4", "ast": [3, 2, 0, 92, 2], "doc": false},
 {"fichier": "scripts/test-boucle.py", "fonction": "tester_parties", "empreinte": "92c3d5cb6847", "ast": [3, 1, 0, 13, 2], "doc": true},
 {"fichier": "scripts/test-boucle.py", "fonction": "tester_parties.lancee", "empreinte": "9de6916ce22a", "ast": [1, 0, 2, 3, 0], "doc": true},
-{"fichier": "scripts/test-boucle.py", "fonction": "tester_plafonds", "empreinte": "1bfda43c44c6", "ast": [5, 5, 0, 83, 3], "doc": false},
+{"fichier": "scripts/test-boucle.py", "fonction": "tester_plafonds", "empreinte": "1373840236c7", "ast": [5, 5, 0, 83, 3], "doc": false},
 {"fichier": "scripts/test-boucle.py", "fonction": "tester_premier_plan", "empreinte": "f127976ded3d", "ast": [2, 0, 0, 13, 1], "doc": true},
 {"fichier": "scripts/test-boucle.py", "fonction": "tester_premier_plan.consignes", "empreinte": "3cdb53e6ff59", "ast": [1, 0, 1, 1, 0], "doc": true},
 {"fichier": "scripts/test-boucle.py", "fonction": "tester_relance", "empreinte": "8703ce2e4f40", "ast": [10, 0, 0, 87, 1], "doc": false},

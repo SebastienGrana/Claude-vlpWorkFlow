@@ -29,7 +29,7 @@ Après l'étape 1, ni plan ni fiche jouée ici : un seul appel, en arrière-plan
 (`run_in_background`), depuis la racine du projet (`<python>` : la valeur de `PYTHON=` dans la carte) :
 
 ```bash
-<python> "${CLAUDE_PLUGIN_ROOT}/scripts/boucle.py" . --plafond <le plafond ci-dessus> --model sonnet --effort low
+<python> "${CLAUDE_PLUGIN_ROOT}/scripts/boucle.py" . --plafond <le plafond ci-dessus> --model opus --effort medium
 ```
 
 Chaque fiche y est jouée comme après `/clear` puis `/vlp:tache <fiche>` ; ses

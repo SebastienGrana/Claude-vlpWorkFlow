@@ -203,10 +203,10 @@ ROLES = {
         "usd": 20,      # ≈ 3 × 6,60 $ (PAR5, `context AI/08-etat.md:2379`) : plafond haut, ce 6,60 $ compte du hors-fiche
         "timeout": TIMEOUT_S},
     "jouer": {
-        "prompt": "/vlp:tache {fiche}", "agent": None, "modele": SONNET, "repli": None,
-        "effort": "low", "git": True,
+        "prompt": "/vlp:tache {fiche}", "agent": None, "modele": OPUS, "repli": REPLI_OPUS,
+        "effort": "medium", "git": True,
         "tours": "agents/fiche.md",
-        "usd": 5,       # ≈ 2,9 × 1,74 $ (max de PAR7 en `-p`, `context AI/08-etat.md:2373`)
+        "usd": 5,       # ≈ 3,1 × 1,59 $, la fiche la plus chère en medium (entrée « MET4 — xhigh contre medium »)
         "timeout": TIMEOUT_S},
     "relire": {
         # d'après l'essai `--agent` de NUI1 (`context AI/08-etat.md`, section NUI1, essai 5) : le modèle
@@ -218,9 +218,9 @@ ROLES = {
         "timeout": TIMEOUT_S},
     "relance": {
         "prompt": "/vlp:tache {fiche}", "agent": None, "modele": OPUS, "repli": REPLI_OPUS,
-        "effort": "medium", "git": True,
+        "effort": "xhigh", "git": True,
         "tours": "agents/fiche.md",
-        "usd": 5,       # comme jouer ; Opus medium jamais mesuré
+        "usd": 8,       # ≈ 2,7 × 2,93 $, la fiche la plus chère en xhigh (entrée « MET4 — xhigh contre medium »)
         "timeout": TIMEOUT_S},
     "clore": {
         # sans fiche, `/vlp:tache` voit `PROCHAINE=aucune` et applique sa clôture (`skills/tache/SKILL.md`, étapes 0 et 7)

@@ -41,7 +41,7 @@ la ligne **Repris** ci-dessus.
   listée, jamais fusionnée ; l'utilisateur choisit : reprendre à la main, abandonner, rejouer la nuit suivante.
 - **Modèles par rôle**, ID épinglé : chef, découper, clore, relire `claude-opus-5-5`, repli
   `--fallback-model claude-opus-5,claude-sonnet-5-5` ; relance (refus `copie`, une fois) `claude-opus-5-5`
-  effort medium, même repli ; jouer `claude-sonnet-5-5` effort low. Fable jamais la nuit.
+  effort xhigh, même repli ; jouer `claude-opus-5-5` effort medium, même repli (MET4, 2026-10-08). Fable jamais la nuit.
 - **Borne double** : en $ et en nombre de chantiers, pot commun aux deux canaux, relue avant
   chaque session ; atteinte, la fiche en cours se finit et le chantier reste ouvert.
 - **Relire avant le commit** : la session de fiche ne commite pas ; boucle.py relit l'instantané, commite sur ACCEPTÉE.
@@ -1561,8 +1561,9 @@ Tu ne fais pas : jouer la nuit.
 ---
 
 <!-- FICHE:NUI33 -->
-## NUI33 [ ] — Le joueur en Opus 5.5 medium, la relance en xhigh
+## NUI33 [x] — Le joueur en Opus 5.5 medium, la relance en xhigh
 
+**Session** : ffc88598-6beb-4183-ab5f-3921daa16197
 **Dépend de** : rien.
 **Fichiers** : `agents/fiche.md`, `skills/enchainer/SKILL.md`, `scripts/boucle.py` (`ROLES` seul), `scripts/test-boucle.py`,
 `context AI/101-chef-de-nuit.md` (socle, « Modèles par rôle » seul) ; lus : la règle de l'effort (`grep -n "L'effort se règle"

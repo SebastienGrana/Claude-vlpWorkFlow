@@ -21,9 +21,9 @@
     <p>/vlp:chef cadre le soir, deux canaux jouent les chantiers la nuit sans humain, puis fusion et rapport le matin</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">37 fiches · 35 faites · en cours : NUI33</p>
+    <p class="mono" style="margin-top:.5rem">37 fiches · 36 faites · en cours : NUI20</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -177,16 +177,18 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">NUI32</span></span>
         <details><summary><span class="titre">Remettre NUI20 au nouveau modèle</span><span class="etat">Faite</span></summary>
         <span class="note">0 renvoi chiffré dans NUI20 (symboles relus : COMMIT_FICHE 2503, ESTIME 5929, PLUGIN_RETARD 341, garde d'ouvrir 6509 de vlp_coeur.py) ; « remet aucun » 2 → 1 (reste la citation de NUI32) ; valider VALIDE, 0 écart</span></details>
-        <span class="cout mono">≈2,9M (2 852 251) · 16 tours · 1,45 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">NUI33</span></span>
-        <details open><summary><span class="titre">Le joueur en Opus 5.5 medium, la relance en xhigh</span><span class="etat">En cours</span></summary></details></li>
-      <li class="fiche" data-attend><span class="gauche"><span class="id">NUI20</span></span>
-        <details><summary><span class="titre">Jouer une nuit réelle</span><span class="etat">Après NUI33</span></summary>
+        <span class="cout mono">≈3,0M (2 977 943) · 17 tours · 1,50 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">NUI33</span></span>
+        <details><summary><span class="titre">Le joueur en Opus 5.5 medium, la relance en xhigh</span><span class="etat">Faite</span></summary>
+        <span class="note">grep 0 et 0 (avant 2 et 1) ; test-vlp OK, 0 écart, 254 s ; MUTANT ATTRAPÉ 1 écart, arrêté sur NUI4 (b)(c) ; pyright 0 errors</span></details>
+        <span class="cout mono">≈3,2M (3 248 681) · 21 tours · 1,19 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">NUI20</span></span>
+        <details open><summary><span class="titre">Jouer une nuit réelle</span><span class="etat">En cours</span></summary>
         <span class="note">une vraie nuit sur le kit, mesurée — dépend de toutes</span></details>
         <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈679,9k (679 863) · 3 tours · 0,18 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈372,9M (372 893 413) · 2175 tours · 162,09 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈376,3M (376 267 786) · 2197 tours · 163,33 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

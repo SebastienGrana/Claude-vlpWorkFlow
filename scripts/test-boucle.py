@@ -505,13 +505,13 @@ def tester_plafonds():
         code, s = nuit(t, *canal_a, "--plafond", "1")
         ligne = next(d for d in carnet.lire(carnet_de(t)) if carnet.est_session(d))
         verifier("NUI4 (b) --nuit, jouer : modèle, effort, plafonds, permission-prompts, --session-id = clé session "
-                 "du carnet, sans repli",
+                 "du carnet, repli Opus (NUI33)",
                  code == 0 and all(x in s for x in (
-                     "--model,claude-sonnet-5-5", "--effort,low", "--max-budget-usd,5", "--permission-prompts,none",
-                     "--max-turns,%d" % tours_de("fiche.md"), "--session-id,%s" % ligne["session"]))
-                 and "--fallback-model" not in s, s)
+                     "--model,claude-opus-5-5", "--effort,medium", "--max-budget-usd,5", "--permission-prompts,none",
+                     "--fallback-model,%s" % REPLI,
+                     "--max-turns,%d" % tours_de("fiche.md"), "--session-id,%s" % ligne["session"])), s)
         verifier("NUI4 : la ligne du carnet porte modele_demande, modeles_vus et issue",
-                 ligne["modele_demande"] == SONNET and ligne["modeles_vus"] == [SONNET] and ligne["issue"] == "jouée", ligne)
+                 ligne["modele_demande"] == OPUS and ligne["modeles_vus"] == [OPUS] and ligne["issue"] == "jouée", ligne)
 
     with tempfile.TemporaryDirectory() as t:
         depot(t)
@@ -523,8 +523,8 @@ def tester_plafonds():
                       int(drapeau(a, "--max-turns") or 0),drapeau(a, "--max-budget-usd"), drapeau(a, "--agent"),
                       "--allowedTools" in a) for (role, _), a in zip(ordre, argvs)}
         attendu = {"relire": ("F1", OPUS, REPLI, None, tours_de("relecture.md"), "3", "vlp:relecture", False),
-                   "jouer": ("/vlp:tache F1", SONNET, None, "low", tours_de("fiche.md"), "5", None, False),   # NUI5
-                   "relance": ("/vlp:tache F2", OPUS, REPLI, "medium", tours_de("fiche.md"), "5", None, True),
+                   "jouer": ("/vlp:tache F1", OPUS, REPLI, "medium", tours_de("fiche.md"), "5", None, False),   # NUI5, NUI33
+                   "relance": ("/vlp:tache F2", OPUS, REPLI, "xhigh", tours_de("fiche.md"), "8", None, True),
                    "clore": ("/vlp:tache", OPUS, REPLI, None, 60, "5", None, True),
                    "découper": ("/vlp:chantier T", OPUS, REPLI, None, 150, "20", None, False)}
         verifier("NUI4 (b)(c) les cinq rôles par jouer() : prompt, modèle, repli, effort, tours (relire : maxTurns de "
@@ -630,7 +630,7 @@ def tester_plafonds():
 
     with tempfile.TemporaryDirectory() as t:
         depot(t)
-        with pilote(VLP_FAUX_LIMITE="claude-sonnet"):
+        with pilote(VLP_FAUX_LIMITE="claude-opus", VLP_FAUX_GENRE="session"):   # jouer est en Opus (NUI33)
             code, s = nuit(t, *canal_a)
         verifier("NUI4 : une limite en boucle --nuit → ARRÊT STOP — limite session, sort 1, rien coché",
                  code == 1 and "ARRÊT STOP — limite session" in s and cases_de(t) == "...", s)
@@ -646,7 +646,7 @@ def tester_plafonds():
     bmod.BASCULE["jusqu"] = time.time() - 1
     apres = bmod.modele_de("relire")
     bmod.BASCULE["jusqu"] = 0.0
-    verifier("NUI4 : pendant la bascule un rôle Opus passe en Sonnet (jouer y reste), après le reset il revient en Opus",
+    verifier("NUI4 : pendant la bascule un rôle Opus passe en Sonnet (jouer aussi, NUI33), après le reset il revient en Opus",
              pendant == (SONNET, SONNET) and apres == OPUS, (pendant, apres))
 
 
