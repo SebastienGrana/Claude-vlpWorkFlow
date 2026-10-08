@@ -4,14 +4,16 @@
 
 # Chantier NUI — Le chef de nuit
 
-**Pause.** le 2026-10-03 — chantier VIT (`102-vitesse.md`) d'abord ; reprise à `NUI28`, page https://claude.ai/artifact/QSo3aJREQUqHpxMsXRnffd
+**Ouvert.** le 2026-10-08.
+
+**Repris.** le 2026-10-08, à `NUI28` — en pause du 2026-10-03 au 2026-10-08 (VIT, MET, puis ARP), page https://claude.ai/artifact/QSo3aJREQUqHpxMsXRnffd
 
 **À la reprise.** Après VIT, puis la méthode du kit (TODO n° 99), décision de l'utilisateur du 2026-10-03. Trois restes
 de la pause : `cout` et `page` compteront dans `NUI28` les tours de la session bf7412ea pendant VIT (la découpe part
 du dernier commit `NUI`, dans chaque session du fichier ; `NUI27` porte déjà le cadrage de VIT) — à recouper avant
 `clore` ; la lettre `NUI` n'est protégée nulle part pendant la pause (la liste de `CHANTIER.md` ne porte que les
 clos, la feuille n'y ajoute que le courant) ; et la feuille de route ne mène plus à la page de NUI — son lien est sur
-la ligne **Pause** ci-dessus.
+la ligne **Repris** ci-dessus.
 
 **À quoi il sert.** Le kit n'enchaîne qu'un chantier à la fois, et chacun attend l'utilisateur pour se cadrer et se clore.
 `/vlp:chef` cadre le soir, joue plusieurs chantiers la nuit sur deux canaux sans humain, fusionne et rend un rapport le matin.
@@ -23,6 +25,8 @@ la ligne **Pause** ci-dessus.
 **Session** : d0a75cf6-8b7d-417c-9775-44ffe5decb84
 
 **Session** : bf7412ea-120b-47fa-933e-6b54b408b2f4
+
+**Session** : 3e844887-5662-42b0-bcd2-cf7323d0695a
 
 ## Le socle commun
 
