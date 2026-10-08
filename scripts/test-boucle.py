@@ -35,6 +35,10 @@ for _flux in (sys.stdout, sys.stderr):
 
 ICI = os.path.dirname(os.path.abspath(__file__))
 
+# Lancé seul par une fiche de nuit, il hériterait de ses variables : un cas qui les attend absentes tomberait (ENV1).
+for _nom in carnet.VARIABLES_NUIT:
+    os.environ.pop(_nom, None)
+
 # Le `~` du poste ne sert à personne ici (NUI8) : une transcription lue ou écrite sous `~/.claude/projects` va dans un
 # dossier jeté, pour tous les cas — ceux d'avant comme ceux de la reprise (qui posent le leur, un par cas).
 _HOME = tempfile.TemporaryDirectory()
@@ -1033,15 +1037,6 @@ def tester_canal():
              and all(d["plugin_retard"] is None for d in lignes), (s, lignes, lues, envs))
 
     with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors:
-        depot(t)
-        journal = os.path.join(hors, "sans-nuit.jsonl")
-        with pilote(VLP_FAUX_ENV=journal):
-            code, s, cases = boucle(t, FAUX_CLAUDE, 1)
-        envs = journal_de(journal)
-        neuf("(a) sans --nuit : VLP_NUIT absent de l'environnement du faux", code == 0 and len(envs) == 1
-             and envs[0]["VLP_NUIT"] is None and envs[0]["VLP_CANAL"] is None, (s, envs))
-
-    with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors:
         depot_canal(t, hors, ("AAA", "BBB", "CCC"))
         depart = sha(t, "HEAD")
         code, s, lignes = canal(t, hors, VLP_FAUX_REFUSE="AAA1:fiche")
@@ -1163,6 +1158,19 @@ def tester_canal():
              and all(d["plugin_retard"] == 8 for d in lignes), (sortie.getvalue(), lignes))
 
     sys.stderr.write("NUI7 : %d cas neufs passés / %d écrits\n" % (ecrits[0], ecrits[0]))
+
+
+def tester_sans_nuit():
+    """NUI7 (a), partie à elle : la seule qui attend les variables de la nuit absentes ; `test-vlp.py` la lance seule,
+    sous ces variables, pour que leur retrait en tête se voie (ENV1)."""
+    with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors:
+        depot(t)
+        journal = os.path.join(hors, "sans-nuit.jsonl")
+        with pilote(VLP_FAUX_ENV=journal):
+            code, s, cases = boucle(t, FAUX_CLAUDE, 1)
+        envs = journal_de(journal)
+        verifier("NUI7 (a) sans --nuit : VLP_NUIT absent de l'environnement du faux", code == 0 and len(envs) == 1
+                 and envs[0]["VLP_NUIT"] is None and envs[0]["VLP_CANAL"] is None, (s, envs))
 
 
 def tester_herite():
@@ -1766,7 +1774,8 @@ def tester_traces():
 
 
 PARTIES = {"simple": tester_simple, "faux": tester_faux, "nuit": tester_nuit, "plafonds": tester_plafonds,
-           "relecture": tester_relecture, "relance": tester_relance, "canal": tester_canal, "herite": tester_herite,
+           "relecture": tester_relecture, "relance": tester_relance, "canal": tester_canal,
+           "sans_nuit": tester_sans_nuit, "herite": tester_herite,
            "reprise": tester_reprise, "lanceur": tester_lanceur, "dans_processus": tester_vlp_dans_processus,
            "premier_plan": tester_premier_plan, "traces": tester_traces, "parties": tester_parties}
 EN_PARALLELE = (("canal",), ("relecture", "reprise"), ("herite", "lanceur"))

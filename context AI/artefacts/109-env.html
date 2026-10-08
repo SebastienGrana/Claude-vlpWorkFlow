@@ -21,9 +21,9 @@
     <p>Lancée avec VLP_NUIT, VLP_CARNET et VLP_CANAL posées, la suite sort OK, 0 ÉCART ; un test et son mutant le gardent.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="encours"></span>
+      <span data-etat="faite"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">1 fiches · 0 faite · en cours : ENV1</p>
+    <p class="mono" style="margin-top:.5rem">1 fiches · 1 faite</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -38,10 +38,13 @@
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">ENV1</span></span>
-        <details open><summary><span class="titre">Reproduire, puis retirer les variables de la nuit</span><span class="etat">En cours</span></summary>
-        <span class="note">Reproduit les 2 ÉCART de la nuit, retire les 3 variables de la nuit en tête des deux suites, ajoute un test et son mutant ; ne dépend de rien.</span></details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">ENV1</span></span>
+        <details><summary><span class="titre">Reproduire, puis retirer les variables de la nuit</span><span class="etat">Faite</span></summary>
+        <span class="note">Suite sous VLP_NUIT=1, VLP_CARNET, VLP_CANAL=B : OK, 0 ÉCART (avant : 2, causés par VLP_CANAL seule). Suite sans variable : OK. pyright 0 errors (3 fichiers). Mutant du retrait en tête de test-boucle.py : MUTANT ATTRAPÉ 1 écart(s). Test neuf : 1,4 s.</span></details>
+        <span class="cout mono">≈4,1M (4 076 824) · 32 tours · 1,89 $</span></li>
     </ul>
+    <p class="mono cout-hors">Hors fiches : ≈3,1M (3 060 750) · 24 tours · 1,87 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈7,1M (7 137 574) · 56 tours · 3,76 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

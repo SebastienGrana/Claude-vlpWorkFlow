@@ -41,9 +41,10 @@ mod.TAMPON_HOOKS = None
 # `ouvrir` et `cocher` notent CLAUDE_CODE_SESSION_ID : un test le fixe lui-même, jamais celui de la
 # session qui lance la suite (chantier CAD).
 os.environ.pop("CLAUDE_CODE_SESSION_ID", None)
-# Une fiche jouée la nuit lance la suite sous `VLP_NUIT=1` : `carte` imprimerait `NUIT=1` partout et
-# `plan ecrire` refuserait. Un test le fixe lui-même (NUI12).
-os.environ.pop("VLP_NUIT", None)
+# Une fiche jouée la nuit lance la suite sous les variables de la nuit : `carte` imprimerait `NUIT=1` partout,
+# `plan ecrire` refuserait, `VLP_CANAL` passerait au faux `claude`. Un test les fixe lui-même (NUI12, ENV1).
+for _nom in mod.carnet.VARIABLES_NUIT:
+    os.environ.pop(_nom, None)
 
 # Le chantier ouvert se dit par sa marque, sous le titre du fichier de fiches du dossier `contexte` (NUI31).
 CHANTIER = "# Chantier courant\n\n- **alias** : %s\n- **contexte** : %s\n"
@@ -7104,6 +7105,19 @@ def tester_boucle():
              code == 0 and texte.strip() == "OK", texte + err)
 
 
+def tester_boucle_nuit():
+    """ENV1 : cette suite retire les variables de la nuit avant de lancer `test-boucle.py`, qui ne les voit donc
+    jamais ; ce test les lui pose, sur sa seule partie qui les attend absentes, pour que son propre retrait se voie."""
+    debut = time.perf_counter()
+    r = subprocess.run([sys.executable, os.path.join(ICI, "test-boucle.py"), "--parties", "sans_nuit"],
+                       capture_output=True, encoding="utf-8", errors="replace",
+                       env=dict(os.environ, PYTHONIOENCODING="utf-8", VLP_NUIT="1", VLP_CANAL="B",
+                                VLP_CARNET=os.path.join(tempfile.gettempdir(), "carnet-env1.jsonl")))
+    verifier("ENV1 : test-boucle.py --parties sans_nuit, sous les trois variables de la nuit, sort 0 sans ÉCART "
+             "— mutant : le retrait en tête de test-boucle.py neutralisé",
+             r.returncode == 0 and "ÉCART" not in r.stdout, (time.perf_counter() - debut, r.stdout + r.stderr))
+
+
 def suite_voisine(chemin):
     """Jouer jusqu'au bout la suite de tests `chemin`, une voisine de celle-ci ; rendre (verte, sa sortie) — verte :
     elle sort 0 et dit `OK` en dernière ligne (VIT24)."""
@@ -9045,7 +9059,8 @@ def tester_compteur_commande():
 groupe(tester_compteur_lecture)
 groupe(tester_compteur_sortes)
 groupe(tester_compteur_commande)
-groupe(tester_boucle)     # en dernier : les trois quarts de la suite, un écart d'ailleurs tombe avant lui (VIT2)
+groupe(tester_boucle_nuit)
+groupe(tester_boucle)    # en dernier : les trois quarts de la suite, un écart d'ailleurs tombe avant lui (VIT2)
 
 if ECARTS:
     print("FIN: %d écart(s)" % len(ECARTS))     # la suite est allée au bout : `vlp.py mutant` ne la dit pas PLANTÉ
