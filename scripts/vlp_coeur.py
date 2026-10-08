@@ -7498,7 +7498,8 @@ def fusionner_branche(projet, branche, message, sortie):
     # clos dans un worktree, il ne bloque plus la principale — à `aucun`, comme `clore` (NUI26).
     chemin_recu = os.path.join(projet, courant_recu) if courant_recu else None
     if chemin_recu and os.path.isfile(chemin_recu) and any(l.startswith(MARQUE_CLOS) for l in lignes_de(chemin_recu)):
-        valeurs = {libelle: "aucun" for libelle in valeurs}
+        # sa ligne a aussi quitté la TODO avec sa clôture : plus de badge « en cours » à remettre (dette NUI)
+        valeurs, rang = {libelle: "aucun" for libelle in valeurs}, None
     ecrire_comme(chemin_carte, restaurer(fusion, valeurs, lettres))
     if code_fusion == 0:
         conflits.discard("CHANTIER.md")

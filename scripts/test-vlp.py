@@ -8190,6 +8190,8 @@ def tester_fusionner():
         postit = mod.postit(wt)
         assert postit
         ecrire(postit, "ctx/40-loc.md\n")       # le worktree reprend le chantier de main : son post-it le nomme
+        etat_wt = os.path.join(wt, "ctx", "08-etat.md")    # la clôture ôte sa ligne de la TODO (cloture.md, étape 1)
+        ecrire(etat_wt, "".join(l for l in lire(etat_wt).splitlines(True) if not l.startswith("| 79 |")))
         code_clore, s_clore = appel(["clore", wt, "--livre", "LOC livré", "--date", JOUR_MATIN])
         commit_matin(wt, "Chantier LOC clos", 1)
         code, s = appel(["fusionner", d, "clot-loc"])
@@ -8198,7 +8200,8 @@ def tester_fusionner():
         code_ouvrir, s_ouvrir = appel(["ouvrir", d, "--fiches", "ctx/50-neo.md", "--titre", "Neuf"])
         neo = lire(os.path.join(d, "ctx", "50-neo.md"))
     verifier("NUI26 (a) un worktree clôt LOC, le chantier de main : clore dit la ligne FUSIONNER ; fusionner depuis main "
-             "→ FUSIONNÉE, commit « Fusion : clot-loc », main à aucun (courant et artefact) ; ouvrir passe ensuite — "
+             "→ FUSIONNÉE, commit « Fusion : clot-loc », main à aucun (courant et artefact) ; ouvrir passe ensuite ; "
+             "la ligne 79 ôtée de la TODO par la clôture ne fait plus s'arrêter la feuille (dette NUI, 2026-10-08) — "
              "mutant : l'exception **CLOS** retirée",
              code_clore == 0 and ('FUSIONNER depuis %s : ' % d.replace("\\", "/")) in s_clore.replace("\\", "/")
              and ' fusionner "' in s_clore and s_clore.rstrip().endswith(" clot-loc")
