@@ -143,7 +143,8 @@ eval du tri avant trois nuits ; `claude -w`. Écartés au cadrage, ou en attente
 | `NUI30` | Remettre les projets équipés au modèle de la marque | `NUI23` |
 | `NUI31` | Retirer la vieille ligne de CHANTIER.md | `NUI29`, `NUI30` |
 | `NUI32` | Remettre NUI20 au nouveau modèle | `NUI21` à `NUI31` |
-| `NUI20` | Jouer une nuit réelle | toutes (`NUI1` à `NUI19`, `NUI32`) |
+| `NUI33` | Le joueur en Opus 5.5 medium, la relance en xhigh | rien |
+| `NUI20` | Jouer une nuit réelle | toutes (`NUI1` à `NUI19`, `NUI32`, `NUI33`) |
 
 Deux voies se jouent en parallèle — boucle.py (`NUI1` → `NUI9`, en chaîne) et vlp.py avec sa prose (`NUI10` → `NUI17` ; `NUI15` et `NUI17` partent de rien) — et se rejoignent à `NUI11` (il lit les carnets par carnet.py, `NUI3`), à `NUI7` (il lit le plan de `NUI12`), puis à `NUI18`-`NUI19`. `NUI12` ne touche que vlp.py (`plan` écrit le plan, `carte` imprime `NUIT=1` quand `VLP_NUIT=1` est posé) : poser `VLP_NUIT=1` et lire le plan dans boucle.py reviennent à `NUI7`. Fiches à cheval, jamais en même temps qu'une fiche de l'autre voie : `NUI2` (test-vlp.py lance test-boucle.py, comme le test de `NUI10`), `NUI3`, `NUI5` et `NUI6` (vlp.py : `nuits noter`, relectures par canal, `cocher --session`, la constante de `refuser`). `NUI20` attend tout.
 
@@ -1434,10 +1435,42 @@ Tu ne fais pas : jouer la nuit.
 
 ---
 
+<!-- FICHE:NUI33 -->
+## NUI33 [ ] — Le joueur en Opus 5.5 medium, la relance en xhigh
+
+**Dépend de** : rien.
+**Fichiers** : `agents/fiche.md`, `skills/enchainer/SKILL.md`, `scripts/boucle.py` (`ROLES` seul), `scripts/test-boucle.py`,
+`context AI/101-chef-de-nuit.md` (socle, « Modèles par rôle » seul) ; lus : la règle de l'effort (`grep -n "L'effort se règle"
+methode-chantier.md`) et l'entrée « MET4 — xhigh contre medium » de `context AI/08-etat.md` — et rien d'autre.
+
+**Prompt**
+Tranché par l'utilisateur le 2026-10-08 (TODO n° 72, (c) « l'effort du joueur ») : le joueur d'une fiche passe en Opus 5.5
+`medium`, la règle de `MET4` ; la relance passe en `xhigh`, son recours. Trois endroits disent encore Sonnet `low`.
+1. `agents/fiche.md` : `model: opus`, `effort: medium`.
+2. `skills/enchainer/SKILL.md`, mode `clear` : `--model opus --effort medium`.
+3. `boucle.py`, `ROLES` : `jouer` → `OPUS`, `REPLI_OPUS`, `medium` ; `relance` → `xhigh`. Leurs `usd` relus sur l'entrée
+   `MET4` (medium 0,77 à 1,59 $ la fiche, xhigh 1,69 à 2,93 $) : le commentaire cite cette source.
+4. `test-boucle.py` : les cas qui attendent Sonnet `low` pour `jouer` suivent (NUI4 (b), `--effort,low`) ; le cas
+   « `--effort low` transmis tel quel » garde `low` : il teste la transmission, pas le défaut. La relance reste reconnue
+   à son couple modèle + effort (`relances`, NUI6) : `jouer` et `relance` n'ont jamais le même.
+5. Le socle, « Modèles par rôle » : `jouer` et `relance` suivent.
+Tu ne fais pas : un essai `claude -p` ; les rôles `découper`, `relire`, `clore` ; la règle de `methode-chantier.md`.
+
+**Critère de fin**
+1. `grep -c -- "--effort low\|effort: low\|--model sonnet\|model: sonnet" agents/fiche.md skills/enchainer/SKILL.md`
+   → 0 et 0 (avant : 2 et 1).
+2. `py -3 scripts/test-vlp.py` → `OK`, comptes bruts.
+3. Mutant : `py -3 scripts/vlp.py mutant scripts/boucle.py '"effort": "xhigh"' '"effort": "medium"'` → `MUTANT ATTRAPÉ`
+   (jouer et relance confondus) ; s'il survit, un cas qui l'attrape.
+4. pyright : 0 erreur, compte brut.
+<!-- /FICHE -->
+
+---
+
 <!-- FICHE:NUI20 -->
 ## NUI20 [ ] — Jouer une nuit réelle
 
-**Dépend de** : `NUI1`, `NUI2`, `NUI3`, `NUI4`, `NUI5`, `NUI6`, `NUI7`, `NUI8`, `NUI9`, `NUI10`, `NUI11`, `NUI12`, `NUI13`, `NUI14`, `NUI15`, `NUI16`, `NUI17`, `NUI18`, `NUI19`, `NUI32`.
+**Dépend de** : `NUI1`, `NUI2`, `NUI3`, `NUI4`, `NUI5`, `NUI6`, `NUI7`, `NUI8`, `NUI9`, `NUI10`, `NUI11`, `NUI12`, `NUI13`, `NUI14`, `NUI15`, `NUI16`, `NUI17`, `NUI18`, `NUI19`, `NUI32`, `NUI33`.
 **Fichiers** : lus — `nuit.md` ; `CHANTIER.md` de `main` (`git show main:CHANTIER.md`) ; `context AI/08-etat.md`, lignes 381 (« Q7 essai réel ») et 384 à 386 (`APR`, `TAB`, `CLV`) ; le carnet et le fichier des nuits (socle, « Les noms retenus ») ; le fichier de fiches de chaque chantier de la nuit (`git show <branche>:<fichier>`) ; appelés : `scripts/vlp.py` (`carte`, `vigile`), `scripts/mesure-tokens.py`, `scripts/test-vlp.py` ; écrit — une entrée `## <date> — NUI20` au journal de `context AI/08-etat.md`, et rien d'autre.
 
 **Prompt**
