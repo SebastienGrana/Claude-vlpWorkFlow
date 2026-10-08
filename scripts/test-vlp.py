@@ -1227,6 +1227,25 @@ def tester_renvois():
 
 groupe(tester_renvois)
 
+
+def tester_renvois_garde():
+    """TAB2 : une ligne d'index qui n'a pas le nombre de cellules de son en-tête arrête `renvois`."""
+    with tempfile.TemporaryDirectory() as d:
+        ecrire(os.path.join(d, "CHANTIER.md"), "- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n")
+        ecrire(os.path.join(d, "ctx", "01-a.md"), "a\n")
+        tete = "| Fichier | a | b | c | d |\n|---|---|---|---|---|\n| `01-a.md` | x \\| y | b | c | d |\n"
+        ecrire(os.path.join(d, "ctx", "00-INDEX.md"), tete)
+        verifier("TAB2 : renvois, table saine et \\| gardé", appel(["renvois", d]) == (0, "POIDS CLAUDE.md absent/80 · CHANTIER.md 2/50 · index 3/80\n"
+                 "RENVOIS 1 nommés · 0 absents\n"), appel(["renvois", d]))
+        for ligne, n in (("| `01-a.md` | a | b | c |\n", 4), ("| `01-a.md` | a | b | c | d | e |\n", 6)):
+            ecrire(os.path.join(d, "ctx", "00-INDEX.md"), tete + ligne)
+            verifier("TAB2 : renvois, %d cellules au lieu de 5 → GARDE, sort 1" % n, appel(["renvois", d]) == (
+                1, "GARDE: ctx/00-INDEX.md, ligne 4 : %d cellules au lieu de 5 — une barre verticale dans une "
+                "cellule s'écrit \\|\n" % n), appel(["renvois", d]))
+
+
+groupe(tester_renvois_garde)
+
 # REP1 : le gras et les liens Markdown d'une cellule — jamais dans du code cité.
 def tester_gras_et_liens():
     """Contrôler `gras_et_liens` et `cellule` : le gras et les liens Markdown d'une cellule (chantier REP)."""

@@ -3237,18 +3237,32 @@ LIGNE_CHEMIN = re.compile(r"^\s*-\s*\*\*(contexte|index)\*\*\s*:\s*(.+?)\s*$")
 CODE = re.compile(r"`([^`]+)`")
 
 
+def cellules_de(ligne):
+    """Les cellules d'une ligne de table Markdown ; `\\|` reste un caractère de sa cellule (PIP, TAB2)."""
+    return [c.strip() for c in re.split(r"(?<!\\)\|", ligne.strip())[1:-1]]
+
+
 def noms_de_table(lignes, colonne, debut=None):
     """(numéro, nom) des noms entre accents graves dans la cellule `colonne`
     (0 ou -1) des lignes de table ; à partir du titre `debut` s'il est donné,
-    jusqu'au titre `## ` suivant."""
-    dedans = debut is None
+    jusqu'au titre `## ` suivant. Une ligne qui n'a pas le nombre de cellules
+    de son en-tête lève une `ValueError` qui la nomme, au lieu d'être lue
+    tronquée (TAB2)."""
+    dedans, attendu = debut is None, None
     for i, l in enumerate(lignes, 1):
+        if not l.startswith("|"):
+            attendu = None
         if debut is not None and l.startswith("## "):
             dedans = l.startswith(debut)
             continue
-        if not dedans or not l.startswith("|") or re.match(r"^\|[\s|:-]+\|?$", l):
+        if not dedans or not l.startswith("|") or SEPARATEUR.match(l):
             continue
-        cellules = [c.strip() for c in l.strip().strip("|").split("|")]
+        cellules = cellules_de(l)
+        if attendu is None:
+            attendu = len(cellules)
+        elif len(cellules) != attendu:
+            raise ValueError("ligne %d : %d cellules au lieu de %d — une barre verticale dans une "
+                             "cellule s'écrit \\|" % (i, len(cellules), attendu))
         if cellules[0].startswith("*("):
             continue
         for nom in CODE.findall(cellules[colonne]):
@@ -3257,28 +3271,57 @@ def noms_de_table(lignes, colonne, debut=None):
             yield i, nom
 
 
-def cmd_renvois(projet, sortie):
-    carte_ = os.path.join(projet, "CHANTIER.md")
-    if not equipe(projet):
-        sortie.write("GARDE: pas de CHANTIER.md dans %s\n" % projet)
-        return 1
+def noms_des_sources(projet, sources):
+    """[(source, [(numéro, nom)] ou None si le fichier manque)] de chaque source de `renvois`,
+    tout lu avant la moindre sortie ; une table coupée lève la `ValueError` de `noms_de_table`,
+    préfixée de sa source (TAB2)."""
+    lus = []
+    for source, colonne, debut in sources:
+        chemin = os.path.join(projet, source)
+        if not os.path.isfile(chemin):
+            lus.append((source, None))
+            continue
+        try:
+            lus.append((source, list(noms_de_table(lignes_de(chemin), colonne, debut))))
+        except ValueError as e:
+            raise ValueError("%s, %s" % (source, e)) from e
+    return lus
+
+
+def chemins_de_carte(carte_):
+    """{contexte, index} lus aux lignes `- **contexte** :` et `- **index** :` de `CHANTIER.md` ;
+    le contexte vaut `context AI/` à défaut."""
     chemins = {"contexte": "context AI/"}
     for l in lignes_de(carte_):
         m = LIGNE_CHEMIN.match(l)
         if m:
             chemins[m.group(1)] = m.group(2)
+    return chemins
+
+
+def cmd_renvois(projet, sortie):
+    """Vérifier que les fichiers nommés par l'index, son archive et le routage de `CLAUDE.md`
+    existent, et peser ces fichiers de tête ; une table coupée : `GARDE:`, sort 1 (TAB2)."""
+    if not equipe(projet):
+        sortie.write("GARDE: pas de CHANTIER.md dans %s\n" % projet)
+        return 1
+    chemins = chemins_de_carte(os.path.join(projet, "CHANTIER.md"))
     contexte = chemins["contexte"]
     index = chemins.get("index", contexte.rstrip("/") + "/00-INDEX.md")
     sources = [(index, 0, None), (chemin_archive(index), 0, None), ("CLAUDE.md", -1, "## Routage")]
+    try:
+        lus = noms_des_sources(projet, sources)
+    except ValueError as e:
+        sortie.write("GARDE: %s\n" % e)
+        return 1
     nommes, absents = 0, 0
-    for source, colonne, debut in sources:
-        chemin = os.path.join(projet, source)
-        if not os.path.isfile(chemin):
+    for source, noms in lus:
+        if noms is None:
             if source == index:
                 absents += 1
                 sortie.write("ABSENT: CHANTIER.md: %s\n" % index)
             continue
-        for i, nom in noms_de_table(lignes_de(chemin), colonne, debut):
+        for i, nom in noms:
             nommes += 1
             if not any(os.path.exists(os.path.join(projet, base, nom)) for base in (contexte, "")):
                 absents += 1
@@ -3463,7 +3506,7 @@ def todo_du_fichier(lignes):
             break
         if SEPARATEUR.match(l):
             continue
-        cellules = [c.strip() for c in re.split(r"(?<!\\)\|", l.strip())[1:-1]]
+        cellules = cellules_de(l)
         if len(cellules) != 5:
             raise ValueError("ligne %s de la TODO : %d cellules au lieu de 5 — une barre verticale "
                              "dans une cellule s'écrit \\|" % (cellules[0] if cellules else "?", len(cellules)))
@@ -3968,7 +4011,7 @@ def nuits_du_fichier(lignes):
     for k in range(td + 1, tf):
         if re.match(r"^\|[\s|:-]+\|?$", lignes[k]):
             continue
-        cellules = [c.strip() for c in re.split(r"(?<!\\)\|", lignes[k].strip())[1:-1]]
+        cellules = cellules_de(lignes[k])
         if len(cellules) != 5:
             raise ValueError("ligne %d de la table des nuits : %d cellules au lieu de 5 — une barre verticale "
                              "dans une cellule s'écrit \\|" % (k + 1, len(cellules)))

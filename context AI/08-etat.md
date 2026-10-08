@@ -3130,3 +3130,8 @@ Les 6 fichiers relus en entier contre `methode-chantier.md` après `MET7` ; « t
 - **Jette** : aucun cas relevé ; `noms_de_table` saute exprès les séparateurs et les cellules `*(` — un choix, pas une coupe.
 - **À garder par `TAB2`** : `noms_de_table` seul — passer à `re.split(r"(?<!\\)\|", …)[1:-1]` et dire une `GARDE:` quand le compte de cellules diffère de l'en-tête. Les autres lisent la ligne entière ou sa première cellule ; `todo_du_fichier` et `nuits_du_fichier` gardent déjà.
 - **Aucun fichier de `scripts/` modifié** (`git diff --stat scripts/` vide).
+
+## 2026-10-08 — TAB2 — `noms_de_table` gardé
+
+- **Gardé** : `noms_de_table` découpe par `cellules_de` (le `re.split(r"(?<!\)\|", …)[1:-1]` désormais commun avec `todo_du_fichier` et `nuits_du_fichier`) et lève une `ValueError` quand une ligne n'a pas le nombre de cellules de son en-tête ; `renvois` lit toutes ses sources avant de rien dire (`noms_des_sources`) et rend `GARDE: <source>, ligne N : …`, sort 1. Sur le kit : `RENVOIS 125 nommés · 0 absents`, inchangé.
+- **Imprévu** : sous la nuit, `test-vlp.py` sort 1 (2 `ÉCART`, `boucle` et `NUI7 (a)`) parce que `VLP_CANAL` et `VLP_CARNET` de la session fuient dans l'environnement du faux `claude` ; sans elles (`env -u VLP_NUIT -u VLP_CANAL -u VLP_CARNET`), code 0, 0 `ÉCART`. Hors de la fiche, non corrigé.

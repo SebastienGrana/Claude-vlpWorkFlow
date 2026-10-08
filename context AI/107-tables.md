@@ -87,6 +87,12 @@ l'appel qui le prouve ; aucun fichier de `scripts/` n'est modifié (`git diff --
 <!-- FICHE:TAB2 -->
 ## TAB2 [ ] — Leur donner la garde de la TODO
 
+**Tentatives** (2026-10-08) — non résolu.
+1. FAITE refusée à la relecture.
+Erreur : REFUSÉE — fiche : le nouveau découpage de `noms_de_table` (`re.split(r"(?<!\\)\|", …)[1:-1]`, via `cellules_de`) jette sans rien dire la dernière cellule de toute table écrite sans `|` final. La sortie le prouve : un routage `CLAUDE.md` de ce type rend `RENVOIS 4 nommés · 4 absents` (code 1) dans AVANT et `RENVOIS 2 nommés · 2 absents` dans APRÈS. Les renvois `03-c.md` et `04-d.md` (colonne -1) disparaissent sans `GARDE:`. L'en-tête est coupé de la même façon que ses lignes, donc le compte de cellules concorde et la garde ne voit rien. La fiche crée là une nouvelle coupe muette, alors qu'elle devait les supprimer. La cause est dans la fiche : elle et le socle imposent ce découpage « comme `todo_du_fichier` » sans régler le cas de la barre finale absente. Pour la TODO, le compte fixe de 5 cellules attrape ce cas. Ici, `attendu` vient de l'en-tête et ne l'attrape pas.
+
+**Session** : 23bf8e86-3386-40fa-9ac4-e194f42d135c
+**Session** : fa25bc3b-29ea-4e52-ab83-95de6b1afdb5 (relire)
 **Dépend de** : `TAB1`.
 **Fichiers** : `scripts/vlp_coeur.py`, `scripts/test-vlp.py`, `context AI/08-etat.md` — et rien d'autre.
 
