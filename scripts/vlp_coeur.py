@@ -5447,6 +5447,31 @@ def lignes_attente(artefacts):
     return ["ATTENTE=%s %s" % (p, u) for p, u, _ in lire_attente(artefacts)]
 
 
+def attentes_de_nuit(projet, pages, sortie):
+    """Sous `VLP_NUIT=1`, mettre en attente chaque `(chemin, url)` de `pages` — la session `claude -p` n'a pas l'outil
+    Artifact : le chef du matin les publie (NPB1) —, et écrire `ATTENTE <page> — <url>`. Hors nuit : rien."""
+    if os.environ.get("VLP_NUIT") == "1":
+        noter_attentes(projet, pages, sortie)
+
+
+def noter_attentes(projet, pages, sortie):
+    """Mettre en attente chaque `(chemin, url)` de `pages` dans le dossier artefacts du projet, et écrire
+    `ATTENTE <page> — <url>` ; une page hors de ce dossier est ignorée."""
+    artefacts = dossier_artefacts(projet)
+    heure = datetime.datetime.now().astimezone().isoformat(timespec="minutes")
+    for chemin, url in pages:
+        nom = page_relative(artefacts, os.path.abspath(chemin))
+        if nom:
+            ajouter_attente(artefacts, nom, url or "aucune", heure)
+            sortie.write("ATTENTE %s — %s\n" % (nom, url or "aucune"))
+
+
+def dire_attentes(projet, sortie):
+    """Écrire les `ATTENTE=` du projet après les fusions du matin : les pages qu'une nuit n'a pas pu publier (NPB1)."""
+    for ligne in lignes_attente(dossier_artefacts(projet)):
+        sortie.write(ligne + "\n")
+
+
 def page_relative(artefacts, page):
     """`page` relative au dossier artefacts, en barres obliques ; None si elle est ailleurs."""
     if os.path.isabs(page):
@@ -6412,6 +6437,8 @@ def cmd_clore(a, sortie):
         except ValueError as e:
             sortie.write("GARDE: %s — CHANTIER.md et fiches écrits, feuille non écrite\n" % e)
             return 1
+        attentes_de_nuit(projet, [(chemin_page, url), (page, champ(carte_, "artefact feuille de route", "aucune"))],
+                         sortie)
         if archive != page and clos_html is not None:
             # l'archive se publie en fin de séance, par la liste d'attente (chantier ARC)
             url_archive = champ(lignes_de(chemin_carte), "artefact archive", "aucune")
@@ -6420,9 +6447,7 @@ def cmd_clore(a, sortie):
                 sortie.write("GARDE: archive sans URL — publier %s, puis « vlp.py archive %s --url <URL> »\n"
                              % (archive, projet))
             else:
-                ajouter_attente(dossier_artefacts(projet), ARCHIVE_CLOS, url_archive,
-                                __import__("datetime").datetime.now().astimezone().isoformat(timespec="minutes"))
-                sortie.write("ATTENTE %s — %s\n" % (ARCHIVE_CLOS, url_archive))
+                noter_attentes(projet, [(archive, url_archive)], sortie)
         with open(page, "w", encoding="utf-8", newline="") as fh:
             fh.write(html)
         joints = recopier_joints(os.path.dirname(os.path.abspath(page)))
@@ -7701,6 +7726,7 @@ def cmd_matin(a, sortie):
             return 1
         fusionnees += 1
     retard_du_matin(projet, avant.strip(), sortie)
+    dire_attentes(projet, sortie)
     sortie.write("MATIN %d fusionnée(s) · %d de côté\n" % (fusionnees, cote))
     return 0
 

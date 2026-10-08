@@ -7910,6 +7910,59 @@ def matin_t(tr):
              and code_a == 0 and "PLUGIN_RETARD" not in s_a, sorties)
 
 
+def matin_u(tr):
+    """(u) une branche qui laisse une page en attente : `matin` imprime son `ATTENTE=` avant `MATIN` (NPB1)."""
+    d = os.path.join(tr, "u")
+    depot_matin(d)
+    attente = "50-x.html\thttps://claude.ai/artifact/x\t2026-10-01T01:00+02:00\n"
+    branche_matin(d, "A", "NPB", "NPB", 1, modifs=lambda r: ecrire(os.path.join(r, "ctx", "artefacts", "en-attente"),
+                                                                    attente))
+    code, s = appel(["matin", d, JOUR_MATIN])
+    verifier("NPB1 (b) matin imprime l'ATTENTE= qu'une branche de la nuit a laissée, avant MATIN — mutant : "
+             "l'appel à dire_attentes retiré",
+             code == 0 and s.endswith("ATTENTE=50-x.html https://claude.ai/artifact/x\nMATIN 1 fusionnée(s) · 0 de côté\n"),
+             (code, s))
+
+
+def tester_attentes_de_nuit():
+    """NPB1 (a) : `clore` sous `VLP_NUIT=1` met en attente la page du chantier et la feuille ; sans, ni l'une ni l'autre."""
+    vus = {}
+    garde = os.environ.pop("VLP_NUIT", None)
+    try:
+        for nuit in (True, False):
+            with tempfile.TemporaryDirectory() as te:
+                ecrire(os.path.join(te, "CHANTIER.md"), "# C\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n"
+                       "- **fichier d'état** : ctx/08-etat.md\n- **artefact du chantier** : https://claude.ai/artifact/c\n"
+                       "- **artefact feuille de route** : https://claude.ai/artifact/f\n\n"
+                       "Lettres de fiche déjà prises : U (test).\n")
+                ecrire(os.path.join(te, "ctx", "08-etat.md"), "# État\n\n| # | Chantier | Ce qu'il apporte | Coût estimé "
+                       "| Dépend de |\n|---|---|---|---|---|\n| 3 | Trois | a | 2 fiches | — |\n\n## Journal\n")
+                ecrire(os.path.join(te, "ctx", "50-u.md"), ouvert("# Chantier U — u\n\n**Fait.** Rien.\n\n## U1 [x] — a\n"))
+                for page, gabarit in (("50-u.html", "artefact-chantier.html"),
+                                      ("feuille-de-route.html", "artefact-feuille-de-route.html")):
+                    ecrire(os.path.join(te, "ctx", "artefacts", page),
+                           open(os.path.join(ICI, "..", "templates", gabarit), encoding="utf-8").read())
+                if nuit:
+                    os.environ["VLP_NUIT"] = "1"
+                try:
+                    code, s = appel(["clore", te, "--livre", "fini", "--date", "2026-09-26"])
+                finally:
+                    os.environ.pop("VLP_NUIT", None)
+                vus[nuit] = (code, s, [[p, u] for p, u, _ in mod.lire_attente(os.path.join(te, "ctx", "artefacts"))])
+    finally:
+        if garde is not None:
+            os.environ["VLP_NUIT"] = garde
+    verifier("NPB1 (a) clore sous VLP_NUIT=1 met en attente la page du chantier et la feuille, et le dit ; sans la "
+             "nuit, rien — mutant : la garde VLP_NUIT forcée à faux",
+             vus[True][0] == 0 and vus[True][2] == [["50-u.html", "https://claude.ai/artifact/c"],
+                                                     ["feuille-de-route.html", "https://claude.ai/artifact/f"]]
+             and "ATTENTE 50-u.html — https://claude.ai/artifact/c\n" in vus[True][1]
+             and vus[False][0] == 0 and vus[False][2] == [], vus)
+
+
+groupe(tester_attentes_de_nuit)
+
+
 def tester_matin():
     """NUI15 : `vlp.py matin <projet> <date>` fusionne dans main les branches de la nuit et répare ce que Git perd sans
     conflit (methode-chantier.md:263-268). Un dépôt temporaire par cas, la config Git isolée, la date de chaque commit
@@ -7927,7 +7980,7 @@ def tester_matin():
                               GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t",
                               GIT_COMMITTER_EMAIL="t@t")
             for cas in (matin_a, matin_b, matin_c, matin_d, matin_e, matin_h, matin_g,
-                        matin_n_a, matin_n_b, matin_n_c, matin_n_d, matin_n_e, matin_n_f, matin_r, matin_s, matin_t):
+                        matin_n_a, matin_n_b, matin_n_c, matin_n_d, matin_n_e, matin_n_f, matin_r, matin_s, matin_t, matin_u):
                 cas(tr)
     finally:
         for k, v in gardes.items():

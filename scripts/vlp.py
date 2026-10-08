@@ -560,7 +560,9 @@ Les lignes des chantiers clos — lues ou écrites par `clore`, `recompter`, `pr
 `repeindre` et le prix moyen d'`ouvrir` — vivent dans `<contexte>/artefacts/archive-clos.html`
 s'il existe, sinon dans la feuille ; le graphique reste sur la feuille (`page_clos`, chantier ARC).
 `clore` y refait alors le bloc `ZONE:archive` de la feuille et met l'archive en liste d'attente
-(`ATTENTE archive-clos.html — <URL>`), ou dit `GARDE:` sans champ **artefact archive**.
+(`ATTENTE archive-clos.html — <URL>`), ou dit `GARDE:` sans champ **artefact archive**. Sous `VLP_NUIT=1`,
+`clore` y met aussi la page du chantier et la feuille, qu'une session `claude -p` ne peut pas publier ; `matin`
+imprime les `ATTENTE=` du projet avant sa ligne `MATIN` (NPB1).
 
 Python 3 sans dépendance, zéro appel modèle.
 
