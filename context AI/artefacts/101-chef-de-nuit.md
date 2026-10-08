@@ -37,7 +37,7 @@
 - NUI34 : grep « ne part pas dans git » 1→0, « exclut son contexte » 1→0, « fichier de fiches courant » dans init 1→0 ; aucun chemin de machine dans CHANTIER.md ni le gabarit ; test-vlp OK (4 min 56 s)
 - NUI35 : carte : kit GIT=suivi, Cairn GIT=ignoré CHANTIER.md, CLAUDE.md, context AI/* ; 7 contrôles neufs, suite OK ; mutant toujours-suivi ATTRAPÉ 4 écarts ; pyright 0 erreur
 - NUI36 : niveau, écarts git : Cairn 7, MapDecorator 10, ONZSM 4, TrackGen 5, kit 0 ; 5 contrôles neufs, suite OK ; mutant étape sautée ATTRAPÉ 2 écarts ; pyright 0 erreur
-- NUI37 : Cairn, ONZSM, TrackGen sous Git, sans push ; après NUI35, NUI36
+- NUI37 : Cairn 6aedfe7 (78 fichiers), ONZSM eacdb9a (9), TrackGen 5fb18f1 (17) : niveau 0 écart git:, carte GIT=suivi, COURANT inchangé, rien poussé ; MapDecorator : liste lue, 10 lignes de chemin rendues génériques, 4 fichiers sur Cairn gardés hors Git
 ## Journal
 - 2026-10-01 : Essai NUI14 sous NUIT=1 : une session claude -p sur une fiche triviale, 16 tours, 0,4623 $, 68 s (un appel lire nuit.md, 0 git commit, 0 cloture.md) ; boucle.py ne crée pas le dossier de --traces.
 - 2026-10-01 : NUI16 : essai D2, publie en union égal à la clé dans 3 cas sur 4 (empreintes différentes : deux lignes contre clé retirée) → publie par la clé, pas de merge=union au .gitattributes

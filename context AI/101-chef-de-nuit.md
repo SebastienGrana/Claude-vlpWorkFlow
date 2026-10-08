@@ -1509,8 +1509,9 @@ Tu ne fais pas : la migration des projets (`NUI37`).
 ---
 
 <!-- FICHE:NUI37 -->
-## NUI37 [ ] — Mettre Cairn, ONZSM et TrackGen sous Git
+## NUI37 [x] — Mettre Cairn, ONZSM et TrackGen sous Git
 
+**Session** : 8f1001ac-c741-4321-857f-e7254edea0a5
 **Dépend de** : `NUI35`, `NUI36`.
 **Fichiers** : dans `Cairn-VlpLib`, `ProjetONZSM`, `TrackGen` (frères du kit) : `.gitignore`, `CHANTIER.md`, `CLAUDE.md`,
 `context AI/*.md` ; lus : `vlp.py niveau` et `carte` de chacun — et rien d'autre. MapDecorator : lu seulement.
