@@ -8046,16 +8046,28 @@ def texte_mute(fichier, avant, apres):
     return octets, texte.replace(avant, apres)
 
 
+def kit_de(fichier):
+    """Rendre la racine du premier kit (`est_kit`) en remontant depuis le dossier de `fichier`, `None` hors de tout
+    kit : un worktree du kit est son propre kit, même rangé sous le dépôt principal (MUW1)."""
+    d = os.path.dirname(os.path.abspath(fichier))
+    while not est_kit(d):
+        if os.path.dirname(d) == d:
+            return None
+        d = os.path.dirname(d)
+    return d
+
+
 def copie_mutee(fichier, mute, dossier):
-    """Copier sous `dossier` le kit — ou, hors du kit, le dossier de `fichier` —, sans `MUTANT_EXCLUS`, puis y écrire
-    `mute` à la place de `fichier` ; rendre (la racine copiée, sa copie). Le vrai fichier n'est jamais écrit."""
+    """Copier sous `dossier` le kit qui contient `fichier` (`kit_de`) — ou, hors de tout kit, `KIT` s'il le contient,
+    sinon le dossier de `fichier` —, sans `MUTANT_EXCLUS`, puis y écrire `mute` à la place de `fichier` ; rendre
+    (la racine copiée, sa copie). Le vrai fichier n'est jamais écrit."""
     import shutil
     fichier = os.path.abspath(fichier)
     try:
         dans_kit = os.path.commonpath([os.path.normcase(KIT), os.path.normcase(fichier)]) == os.path.normcase(KIT)
     except ValueError:      # deux lecteurs différents
         dans_kit = False
-    racine = KIT if dans_kit else os.path.dirname(fichier)
+    racine = kit_de(fichier) or (KIT if dans_kit else os.path.dirname(fichier))
     copie = os.path.join(dossier, "kit")
 
     def exclus(r, noms):
@@ -8191,8 +8203,11 @@ def cmd_mutant(a, sortie):
     dossier = tempfile.mkdtemp(prefix="vlp-mutant-")
     try:
         racine, copie = copie_mutee(a.cible, mute, dossier)
-        commande = vers_copie(a.test or [sys.executable, os.path.join(KIT, "scripts", "test-vlp.py")], racine, copie)
+        suite = os.path.join(racine if est_kit(racine) else KIT, "scripts", "test-vlp.py")
+        commande = vers_copie(a.test or [sys.executable, suite], racine, copie)
         texte, code = jouer_mutant(commande, copie, a.attendu, vise=not a.test)
+        if not a.test:
+            texte += "TESTS %s\n" % os.path.dirname(os.path.dirname(suite))
     except (OSError, subprocess.SubprocessError) as e:
         texte, code = "GARDE: les tests ne se lancent pas : %s\n" % e, 1
     finally:

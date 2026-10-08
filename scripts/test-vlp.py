@@ -6999,6 +6999,33 @@ def tester_mutant_vise():
 
 groupe(tester_mutant_vise)
 
+
+def tester_mutant_worktree():
+    """MUW1 : une cible dans un worktree du kit rangé sous le dépôt principal (`KIT`) joue les tests du worktree,
+    pas ceux de `KIT`, et une ligne `TESTS` le nomme."""
+    with tempfile.TemporaryDirectory() as tm:
+        principal = os.path.join(tm, "principal")
+        interieur = os.path.join(principal, ".claude", "worktrees", "w")
+        for k, suite in ((principal, "print('OK')\n"),
+                         (interieur, SUITE_VISEE.replace("@JOURNAL@", repr(os.path.join(tm, "journal.txt"))))):
+            ecrire(os.path.join(k, ".claude-plugin", "plugin.json"), "{}\n")
+            ecrire(os.path.join(k, "scripts", "test-vlp.py"), suite)
+        f = os.path.join(interieur, "f.py")
+        ecrire(f, "a = 1\nb = 2\nc = 3\n")
+        o = io.StringIO()
+        garde, mod.KIT = mod.KIT, principal
+        try:
+            code = mod.main(["mutant", f, "a = 1", "a = 9", "--attendu", "porte a"], o)
+        finally:
+            mod.KIT = garde
+        verifier("MUW1 : cible d'un worktree sous KIT → ses tests à lui, MUTANT ATTRAPÉ et ligne TESTS du worktree — "
+                 "mutant : copie_mutee reprise sur KIT",
+                 code == 0 and "MUTANT ATTRAPÉ" in o.getvalue() and "TESTS %s\n" % interieur in o.getvalue()
+                 and mod.kit_de(f) == interieur, (code, o.getvalue()))
+
+
+groupe(tester_mutant_worktree)
+
 # Le faux cliquet et le faux pyright de VIT23 : le cliquet rompt si un fichier `rompu` est à la racine ; pyright
 # compte une erreur par fichier qui porte le mot `erreur`.
 CLIQUET_FAUX = """import os, sys
