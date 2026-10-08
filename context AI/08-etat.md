@@ -3109,3 +3109,27 @@ Les 6 fichiers relus en entier contre `methode-chantier.md` après `MET7` ; « t
 - **e** relevés : 4 worktrees (`main` `df04447`, `brave-matsumoto-e8ae4b` `df04447`, `vlp-check-82bbfe` `51de8a4`, `wonderful-elion-ec8521` `ae54499` détaché) ; `main` `df04447693302819bfef6d52be8b6d607848db51`, `origin/main` `846fd490aafd6e90955affc8d3d3e43cb5e86344` (rien poussé) ; `git status` de `main` : un non suivi, `context AI/observations-enchainer-agents-cairn.md`. Coût TODO : `TAB` « 3,5 fiches → 7 à 10,5, 26 à 39 $ » ; `APR` « sans fiche, une séance courte, non chiffrée » ; `CLV` fondu dans `TAB` à `MET10`.
 - **Écarts** : (1) le plan de Q7 (`TAB` puis `CLV` sur A, `APR` sur B) est périmé — `CLV` fondu, `APR` sans fiche ; l'utilisateur : « `/vlp:chef` choisit ce soir ». (2) La borne de 20 $ est sous le seul `TAB` (26 à 39 $) : à trancher au soir. (3) Le tri lisait la première estimation du coût (`TAB` 1 fiche, `EFF` 45) : `juger_decoupe` aurait refusé un découpage de `TAB` en plus de 2 fiches — corrigé par `NUI38` (`0f683b3`) avant la nuit. (4) Le critère 2 de `NUI32` comptait sa propre citation : « remet `aucun` » 2 → 1, pas 0.
 - **Reste** : la nuit, puis les comptes au retour (critères 2 à 5 de `NUI20`), dans une entrée à part.
+
+## 2026-10-08 — NUI20 — la nuit d'essai, comptée au retour
+
+- **Le plan joué** : celui du soir du 2026-10-08 (`bce2747`, `context AI/106-nuits.md`), pas celui de Q7 — A = `TAB` ; B = `APR` puis `BRA`. Borne posée au soir : **60 $** et 3 chantiers (`chef-2026-10-08-plan.json`, réponse Q2 « 60 ») ; l'utilisateur voulait 20 $ (« oups », le 2026-10-08). Sessions : soir `f053abf3` (« VLP Chef »), matin `f73fd246` (« Chef matin VLP »).
+- **Durée** : ≈ 22:41:42 → 23:20:32, soit ≈ 39 min (mtime des traces moins `duree_s` de la première session ; fin = `BRA-clore.jsonl`) ; 4 553 s de sessions cumulées, deux canaux en parallèle.
+- **Carnet** (`<git-common-dir>/vlp-nuit/2026-10-08.jsonl`, 40 lignes) : 11 sessions — `jouée` 10, `ratée` 1 ; rôles `jouer` 4, `découper` 3, `relire` 3, `clore` 1, `relance` **0** ; replis **0** (`modeles_vus` = `claude-opus-5-5` partout) ; `plugin_retard` 1, sur B à `clore` de `BRA` (attendu sur A après `TAB` : `TAB` n'a pas fini).
+
+| Chantier | Canal · branche | Issue | Fiches découpées / acceptées / refusées | Relances | `usd_kit` | `tours_kit` | `**Estimé.**` (branche) | Plan du soir | Cellule TODO (relevé avant) |
+|---|---|---|---|---|---|---|---|---|---|
+| `TAB` | A · `nuit/2026-10-08-A-TAB` | **mis de côté** : `TAB2` refusée à la relecture, refus 1, cause `fiche` (garde `cause-fiche`) | 4 / 1 (`TAB1`) / 1 (`TAB2`) | 0 | 5,26 $ | 89 | 7 fiches · ≈28 $ | 4 fiches ≈ 16 $ | 3,5 → 7 à 10,5 fiches, 26 à 39 $ |
+| `APR` | B · `nuit/2026-10-08-B-APR` | **mis de côté** : `APR1` non cochée (session `ratée`) | 1 / 0 / 0 | 0 | 2,13 $ | 31 | 1 fiche · ≈3,95 $ | 4 à 12 $ | sans fiche, non chiffrée |
+| `BRA` | B · `nuit/2026-10-08-B-BRA`, partie de `bce2747` (`main`, `APR` mis de côté) | **clos** (`4640345`), ligne `clore` au carnet, fusionné dans `main` (`bcf5de7`) | 1 / 1 (`BRA1`) / 0 | 0 | 3,54 $ | 59 | 1 fiche · ≈3,95 $ | 4 à 12 $ | ~½ fiche |
+| **Nuit** | — | 1 clos, 2 mis de côté, 0 sauté, 0 pas parti ; aucun 4e chantier | 6 / 2 / 1 | 0 | **10,93 $** | **179** | 3 lignes trouvées · ≈35,85 $ | 24 à 40 $ | — |
+
+- **Pot** : 10,93 $ (`usd_kit` sommé ; `usd_cli` 10,9447 $) — dans la borne de 60 $, et dans les 20 $ voulus. Soir à part : 3,81 $, 34 tours ; matin : 4,27 $, 46 tours (`mesure-tokens.py`). Nuit + soir + matin : 19,01 $.
+- **Écart à l'estimé**, sur le seul chantier fini : `BRA` 3,54 $ réels contre ≈3,95 $ estimés, −0,41 $ (−10 %). ⚠️ Pas le même instrument : l'`**Estimé.**` est au taux plat (3,95 $/fiche sur 91 clos), `usd_kit` est le coût pondéré. `TAB` et `APR` n'ont pas fini : pas d'écart à en tirer. Une nuit : un indice, pas une règle.
+- **Git** : les branches mises de côté (`TAB`, `APR`) ne sont pas dans `main` ; `BRA` l'est. `origin/main` : `846fd49` au relevé, `f85dd6f` ensuite — poussé par le chef du matin sur le oui de l'utilisateur, pas par la nuit. `git log df04447..main` : avant la nuit, `1f26885`, `0f683b3`, `70fad2f`, `293d5d2` (cette session : `NUI38`, l'avant de `NUI20`, ligne `BRA`) ; le plan `bce2747` ; la nuit, `26519ca`, `7d51e99`, `4640345` ; le matin, `bcf5de7` (fusion de `BRA`), `25a8451` (9 réponses), `f85dd6f` (pages publiées). Pages du matin : `vlp.py vigile` → `PAGE SAINE` (82 et 39 blocs) ; l'utilisateur a vu la fusion et la page du rapport.
+- **Défauts révélés** (rien corrigé ici ; la suite se décide à la clôture de `NUI`) :
+  1. **`test-vlp.py` hérite de `VLP_NUIT`, `VLP_CARNET`, `VLP_CANAL`** dans une session de nuit : 2 `ÉCART` (`boucle : test-boucle.py sort OK`, `NUI7 (a)`), donc `cocher` refuse. `APR1` ratée par là (carnet, ligne 13, canal B) ; `TAB1`, `TAB2` et `BRA1` ne sont passées qu'en lançant la suite sans ces variables (lignes 12, 24, 27). Le défaut le plus coûteux de la nuit.
+  2. **Aucun outil `Artifact` dans les sessions `-p`** : pages de chantier et feuille non publiées la nuit (lignes 5, 6, 21, 35) ; publiées au matin (`f85dd6f`).
+  3. `TAB2` refusée, cause `fiche`, avec une ligne `RÉÉCRITURE :` au carnet (ligne 33) : la fiche est à réécrire avant de rejouer.
+  4. `APR1` a compté 5 refus « joints non lus » après `JNT` (5/34 = 14,7 % contre 7,5 % avant, ligne 11) : cause non lue.
+  5. La relecture de `BRA1` a eu 1 refus de permission (ligne 30, `permission_denials : 1`).
+  6. La borne de 60 $ posée au soir n'était pas celle que l'utilisateur voulait (20 $).

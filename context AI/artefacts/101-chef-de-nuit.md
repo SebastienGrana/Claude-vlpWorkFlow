@@ -21,7 +21,7 @@
 - NUI17 : test-vlp.py OK, 784 verifier (743 + 41 neufs), mutants M1 M2 M3 attrapés sur (c) (d) (b), chef page ARTEFACTS.md 1 (0 avant), pyright 0 erreur sur vlp.py et test-vlp.py
 - NUI18 : test OK 784 verifier en 502 s, pyright 0 erreur, mutant attrapé (NIV1 et EVF4, 2 écarts), essai réel 0,216118 $ en 1 tour, 0 tool_use, 0 refus, bac 14/14 identique
 - NUI19 : test-vlp.py OK (794 verifier, 8 min 18 s), pyright 0 erreur ; mutants sous-agents non sommés, usd_exact None compté 0, ligne de table à chaque rejeu : trois ATTRAPÉS ; SKILL.md +2/+1/+1/+1 et nuit.md +1 constatés
-- NUI20 : une vraie nuit sur le kit, mesurée — dépend de toutes
+- NUI20 : nuit du 2026-10-08 comptée : 11 sessions, 10,93 $, 179 tours ; BRA clos et fusionné, TAB et APR mis de côté ; 0 relance, 0 repli ; borne 60 $ ; suite OK
 - NUI21 : test-vlp OK (code 0) ; mutant Pause ATTRAPÉ (1 écart) ; ouverts . → OUVERTS=0 ; sans CHANTIER.md / --rev inconnu → GARDE code 1 ; pyright 0 errors
 - NUI22 : test-vlp OK (0 ÉCART) ; mutant règle 2 ATTRAPÉ (1 écart, cas a) ; fichier_courant( 8 → 2 lignes (définition + appel unique dans courant_de, la fiche disait 1 à tort) ; pyright 0 errors
 - NUI23 : test-vlp OK (0 ÉCART, 6 anciens tests remis au modèle de la marque par sans_chantier) ; mutant artefact toujours repris ATTRAPÉ (1 écart) ; pyright 0 errors ; migré = fichier titré marqué seulement
