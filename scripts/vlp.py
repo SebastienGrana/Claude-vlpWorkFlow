@@ -265,7 +265,8 @@ Sous-commandes :
   et son archive (la ligne pour clé), `archive-clos.html` (la ligne close, `resommer`), `en-attente` (la page ; la plus
   récente gagne ; vide : retiré) et `publie` (la clé ; empreintes différentes : clé retirée, ligne `PUBLIE …`). Un
   désaccord ou un reste en conflit : `GARDE: <chemin> : <raison>`, puis l'`ARRÊT` ci-dessus. Pas de `merge=union` :
-  il garde les deux lignes de `publie` quand les empreintes diffèrent. Ni push, ni carnet.
+  il garde les deux lignes de `publie` quand les empreintes diffèrent. Ni push, ni carnet. Projet = le kit chargé
+  et des commits fusionnés qui touchent `CODE_PLUGIN` : `PLUGIN_RETARD=<n> …` avant `MATIN` (RTD1).
 - `fusionner <projet> <branche>` — la fusion du jour (NUI26) : `branche` dans celle du dossier, par le chemin de
   `matin` (`fusionner_branche`), commit `Fusion : <branche>`, `FUSIONNÉE <branche>`. Déjà contenue : `DÉJÀ <branche>`,
   sort 0. `GARDE:` (sort 1, rien fusionné) : non équipé, hors racine, `HEAD` détachée, `MERGE_HEAD` présent, arbre

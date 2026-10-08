@@ -7889,6 +7889,27 @@ def matin_s(tr):
              (code2, s2, intacte, code_r, s_r, code1, s1, code0, s0, codew, sw))
 
 
+def matin_t(tr):
+    """(t) une fusion qui touche `scripts/` : `PLUGIN_RETARD=1` avant `MATIN` quand le projet est le kit chargé (`KIT`),
+    rien pour un autre projet (RTD1)."""
+    sorties = []
+    for nom, est_kit in (("t-kit", True), ("t-autre", False)):
+        d = os.path.join(tr, nom)
+        depot_matin(d)
+        branche = branche_matin(d, "A", "RTD", "RTD", 1, x="a = 1\nb = 2\nc = 31\n")
+        garde, mod.KIT = mod.KIT, (d if est_kit else tr)
+        try:
+            sorties.append(appel(["matin", d, JOUR_MATIN]) + (branche,))
+        finally:
+            mod.KIT = garde
+    (code_k, s_k, b_k), (code_a, s_a, _) = sorties
+    retard = "PLUGIN_RETARD=1 commit(s) de code du plugin fusionné(s) — la session ouverte ne les voit qu'après /reload-plugins\n"
+    verifier("RTD1 (t) matin dit PLUGIN_RETARD= quand ses fusions touchent le code du kit chargé, rien pour un autre "
+             "projet — mutant : la condition « projet est KIT » forcée à faux",
+             code_k == 0 and s_k.endswith(retard + "MATIN 1 fusionnée(s) · 0 de côté\n") and "FUSIONNÉE %s" % b_k in s_k
+             and code_a == 0 and "PLUGIN_RETARD" not in s_a, sorties)
+
+
 def tester_matin():
     """NUI15 : `vlp.py matin <projet> <date>` fusionne dans main les branches de la nuit et répare ce que Git perd sans
     conflit (methode-chantier.md:263-268). Un dépôt temporaire par cas, la config Git isolée, la date de chaque commit
@@ -7906,7 +7927,7 @@ def tester_matin():
                               GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t",
                               GIT_COMMITTER_EMAIL="t@t")
             for cas in (matin_a, matin_b, matin_c, matin_d, matin_e, matin_h, matin_g,
-                        matin_n_a, matin_n_b, matin_n_c, matin_n_d, matin_n_e, matin_n_f, matin_r, matin_s):
+                        matin_n_a, matin_n_b, matin_n_c, matin_n_d, matin_n_e, matin_n_f, matin_r, matin_s, matin_t):
                 cas(tr)
     finally:
         for k, v in gardes.items():

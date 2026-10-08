@@ -7686,6 +7686,7 @@ def cmd_matin(a, sortie):
     branches, lu = ordre_nuit(pointes, date, projet)
     if not lu:
         sortie.write("ORDRE pointes — carnet absent\n")
+    _, avant = git_texte(["rev-parse", "HEAD"], projet)
     fusionnees = cote = 0
     for branche in branches:
         etat, courant = etat_branche_nuit(projet, branche)
@@ -7699,8 +7700,21 @@ def cmd_matin(a, sortie):
         if fusionner_branche(projet, branche, "Matin %s : %s" % (date, branche), sortie):
             return 1
         fusionnees += 1
+    retard_du_matin(projet, avant.strip(), sortie)
     sortie.write("MATIN %d fusionnée(s) · %d de côté\n" % (fusionnees, cote))
     return 0
+
+
+def retard_du_matin(projet, avant, sortie):
+    """Écrire `PLUGIN_RETARD=<n> …` : `n` commits fusionnés depuis `avant` qui touchent `CODE_PLUGIN`, quand `projet`
+    est le kit chargé (`KIT`) — la session ouverte a lu ses commandes avant la fusion (RTD1). Rien pour un autre
+    projet, aucun commit, ou Git muet."""
+    if not avant or os.path.normcase(os.path.realpath(projet)) != os.path.normcase(os.path.realpath(KIT)):
+        return
+    code, n = git_texte(["rev-list", "--count", "%s..HEAD" % avant, "--"] + list(CODE_PLUGIN), projet)
+    if code == 0 and n.strip().isdigit() and int(n) > 0:
+        sortie.write("PLUGIN_RETARD=%d commit(s) de code du plugin fusionné(s) — la session ouverte ne les voit "
+                     "qu'après /reload-plugins\n" % int(n))
 
 
 def cmd_fusionner(a, sortie):
