@@ -31,10 +31,11 @@
 - NUI27 : suite OK (0 écart, 9 min), mutant attrapé par NUI27 (a) seul ; pyright 0
 - NUI28 : test-vlp OK (309 s, 0 ÉCART), 2 contrôles NUI28 ; MUTANT ATTRAPÉ 2 écart(s) ; carte du kit 86 → 86 lignes ; pyright 0 errors (3 fichiers) ; coût gonflé par VIT/MET/ARP, à recouper avant clore
 - NUI29 : grep « ligne fichier de fiches courant » 1 → 0 ; COURANT= 0 → 14 ; bac : worktree COURANT=aucun + AILLEURS=F, /vlp:chantier ESS cadre ; test-vlp OK
-- NUI30 : les projets équipés reçoivent leurs marques, Cairn HD en pause ; après NUI23
+- NUI30 : test-vlp.py OK (3 contrôles NUI30, 2 mutants attrapés) ; COURANT= identique avant/après sur kit, Cairn, MapDecorator, bac ; ouverts 1 partout ; pyright 0 errors
 - NUI31 : la vieille ligne de CHANTIER.md disparaît ; après NUI29, NUI30
 - NUI32 : NUI20 remise au nouveau modèle ; après NUI21 à NUI31
 ## Journal
 - 2026-10-01 : Essai NUI14 sous NUIT=1 : une session claude -p sur une fiche triviale, 16 tours, 0,4623 $, 68 s (un appel lire nuit.md, 0 git commit, 0 cloture.md) ; boucle.py ne crée pas le dossier de --traces.
 - 2026-10-01 : NUI16 : essai D2, publie en union égal à la clé dans 3 cas sur 4 (empreintes différentes : deux lignes contre clé retirée) → publie par la clé, pas de merge=union au .gitattributes
+- 2026-10-08 : NUI30 : marques posées sur 3 projets, 0 commit possible (context AI/ ignoré, bac hors Git) ; copie FAM du worktree chantier-mor non marquée, à refaire avant NUI31
 ## Bilan

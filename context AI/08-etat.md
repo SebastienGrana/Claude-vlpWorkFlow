@@ -3089,3 +3089,8 @@ Les 6 fichiers relus en entier contre `methode-chantier.md` après `MET7` ; « t
   - Q10 de `MET1` (`pyproject.toml`, « à placer à MET10 ») : déjà fait par `MET5`.
 - **Les restes de `MET7` à `MET9`** (Q18, « répartir », lettres de la page) : (a) la méthode périmée sur `enchainer` et (b) l'effort du joueur, dans `NUI` ; (g) le cliquet de `sante.py` sans `pyproject.toml`, dans `REF` ; (c) l'effort que `/vlp:tache` ne dit pas, (d) l'exception « sans fiche » que `/vlp:chantier` ne connaît pas, (e) `favicon` dans `chantier` et `init`, (f) les sommaires d'`ARTEFACTS.md` et de `lecons-mesure.md`, (h) l'ancien total de `VIT` — sans fiche, après `MET10` ; (i) les 2 essais sur 55 non comptés restent à l'entrée « MET2 ».
 - **Les commandes** : la carte, rejouée sur une copie où `MET` est clos (seule façon qu'elle imprime la TODO) → `--- TODO : context AI/08-etat.md (lignes 365–394) ---`, 13 lignes, **0 `GARDE:`**, sort 0 ; `vlp.py feuille .` → `FEUILLE todo 13 · encours oui · lettres 91 · réécrite`, `FILES {}`.
+
+## 2026-10-08 — NUI30 — les marques posées, aucun commit possible
+
+- Cairn et MapDecorator ignorent `context AI/` (`.gitignore`), le bac n'est pas sous Git : les marques n'y voyagent pas, **0 commit** sur 3 projets ; aucun commit « Chantier X ouvert » non plus — FAM, P, S datés du jour de la migration.
+- Cairn : un worktree sans `CHANTIER.md` (ignoré) faisait planter `carte` et `niveau` (traceback, `textes_contexte`) — réparé. La copie de FAM dans le worktree `chantier-mor-61fb78` reste **non marquée** : à refaire là-bas avant `NUI31` (choix de l'utilisateur : migrer main malgré 3 worktrees ouverts).

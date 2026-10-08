@@ -5733,18 +5733,11 @@ def cmd_niveau(a, sortie):
         sortie.write("ÉCART: variable: %s:%d cite %s — une variable ne vaut que dans"
                      " le texte d'une commande, pas dans un fichier de données\n" % (chemin, i, v))
 
-    rang = table_des_clos(carte_)
-    if rang is not None:
-        neuve = sans_table_des_clos(carte_, lignes_index(projet, index)) if a.ecrire else None
-        if neuve is None:
-            ecarts += 1
-            sortie.write("ÉCART: clos: CHANTIER.md:%d — la table des chantiers clos vit"
-                         " dans l'index, pas dans la carte\n" % rang)
-        else:
-            ecritures.append((os.path.join(projet, "CHANTIER.md"), "\n".join(neuve) + "\n"))
-            corriges += 1
-            sortie.write("CORRIGÉ: clos: table des chantiers clos retirée de CHANTIER.md:%d —"
-                         " l'index nomme chacun de ses fichiers\n" % rang)
+    # Deux étapes de même forme : `(écarts, corrigés, écritures)`.
+    for e, c, ecrites in (retirer_clos(projet, carte_, index, a.ecrire, sortie),
+                          poser_ouverture(projet, date, a.ecrire, sortie)):
+        ecarts, corriges = ecarts + e, corriges + c
+        ecritures += ecrites
 
     for chemin, contenu in ecritures:
         dossier = os.path.dirname(chemin)
@@ -5760,6 +5753,48 @@ def cmd_niveau(a, sortie):
     else:
         sortie.write("NIVEAU %d écarts · %d avertissements — %s\n" % (ecarts, avertissements, projet))
     return 1 if ecarts else 0
+
+
+def retirer_clos(projet, carte_, index, ecrire, sortie):
+    """L'étape « clos » de `niveau` : la table des chantiers clos restée dans CHANTIER.md, retirée avec `ecrire` si
+    l'index nomme chacun de ses fichiers. `(écarts, corrigés, [(chemin, contenu)])`."""
+    rang = table_des_clos(carte_)
+    if rang is None:
+        return 0, 0, []
+    neuve = sans_table_des_clos(carte_, lignes_index(projet, index)) if ecrire else None
+    if neuve is None:
+        sortie.write("ÉCART: clos: CHANTIER.md:%d — la table des chantiers clos vit"
+                     " dans l'index, pas dans la carte\n" % rang)
+        return 1, 0, []
+    sortie.write("CORRIGÉ: clos: table des chantiers clos retirée de CHANTIER.md:%d —"
+                 " l'index nomme chacun de ses fichiers\n" % rang)
+    return 0, 1, [(os.path.join(projet, "CHANTIER.md"), "\n".join(neuve) + "\n")]
+
+
+def poser_ouverture(projet, date, ecrire, sortie):
+    """L'étape « marque » de `niveau` (NUI30) : un projet sans aucune marque d'ouverture — `migre` faux — la reçoit
+    sur le fichier que nomme l'ancienne ligne de CHANTIER.md, sous son titre, datée de son commit d'ouverture (`date`
+    à défaut, et la ligne le dit) ; ligne à `aucun`, projet migré : rien. Sans `ecrire`, introuvable ou sans titre :
+    `ÉCART: marque:`. `(écarts, corrigés, [(chemin, contenu)])`."""
+    fichier = None if migre(projet) else fichier_courant(lire(os.path.join(projet, "CHANTIER.md")))
+    if not fichier:
+        return 0, 0, []
+    chemin = os.path.join(projet, fichier)
+    lignes = lignes_de(chemin) if os.path.isfile(chemin) else None
+    ids = [l.split()[1] for l in lignes or () if TITRE.match(l)]
+    code = lettre_de(ids[0]) if ids else "?"
+    quand = date_ouverture(projet, code) if ids and ecrire else None
+    if lignes is None:
+        sortie.write("ÉCART: marque: %s introuvable — marque d'ouverture non posée\n" % fichier)
+    elif not ecrire:
+        sortie.write("ÉCART: marque: %s sans **Ouvert.** — « vlp.py niveau --ecrire » la pose\n" % fichier)
+    elif not poser_marque(lignes, OUVERT_LIGNE % (quand or date)):
+        sortie.write("ÉCART: marque: pas de titre « # Chantier » dans %s — marque non posée\n" % fichier)
+    else:
+        sortie.write("CORRIGÉ: marque: **Ouvert.** le %s sur %s — %s\n" % (quand or date, fichier, "son commit"
+                     " d'ouverture" if quand else "date de l'appel, aucun commit « Chantier %s ouvert »" % code))
+        return 0, 1, [(chemin, "\n".join(lignes) + "\n")]
+    return 1, 0, []
 
 
 # --- clore -------------------------------------------------------------------
@@ -5815,10 +5850,39 @@ def ouverts(racine, rev=None):
             and not any(l.startswith((MARQUE_CLOS, MARQUE_PAUSE)) for l in lignes)]
 
 
+def migre(racine, rev=None):
+    """Vrai si un fichier titré `# Chantier ` du contexte porte la marque d'ouverture — la règle de `ouverts`, sinon
+    une marque posée hors titre ferait un projet « migré » sans aucun chantier visible (NUI23). Faux : `courant_de`
+    lit encore l'ancienne ligne de CHANTIER.md, et `niveau --ecrire` pose la marque (NUI30)."""
+    return any(any(l.startswith("# Chantier ") for l in lignes) and any(l.startswith(MARQUE_OUVERT) for l in lignes)
+               for _, lignes in textes_contexte(racine, rev))
+
+
+def poser_marque(lignes, marque):
+    """Insère `marque`, précédée d'une ligne vide, sous le titre `# Chantier ` de `lignes`, en place ; faux sans
+    titre — `ouverts` ne verrait pas une marque posée ailleurs. Le seul poseur : `ouvrir`, `niveau`, `pause`."""
+    k = next((k for k, l in enumerate(lignes) if l.startswith("# Chantier ")), None)
+    if k is None:
+        return False
+    lignes[k + 1:k + 1] = ["", marque]
+    return True
+
+
+def date_ouverture(racine, code):
+    """`AAAA-MM-JJ` du plus ancien commit « Chantier <code> ouvert » ou « <code> : chantier ouvert », ou None (hors
+    Git, aucun tel commit) : la date de la marque que `niveau --ecrire` pose (NUI30)."""
+    motif = "^(chantier %s ouvert|%s : chantier ouvert)" % (re.escape(code), re.escape(code))
+    code_git, texte = git_texte(["log", "--format=%as", "-i", "-E", "--grep=" + motif], racine)
+    dates = texte.split() if code_git == 0 else []
+    return dates[-1] if dates else None
+
+
 def textes_contexte(racine, rev=None):
     """[(chemin relatif à `racine`, lignes)] des `.md` du dossier de contexte, triés par nom : l'arbre de travail,
     ou le commit `rev` lu par Git. Sans ligne `contexte` : []. Le lecteur commun de `ouverts` et `courant_de`."""
-    dossier = champ(lignes_de(os.path.join(racine, "CHANTIER.md")), "contexte")
+    carte_ = os.path.join(racine, "CHANTIER.md")
+    # Un worktree où CHANTIER.md n'est pas suivi n'en a pas (Cairn) : aucun texte, jamais un traceback (NUI30).
+    dossier = champ(lignes_de(carte_), "contexte") if os.path.isfile(carte_) else None
     if not dossier:
         return []
     dossier = dossier.strip("`").rstrip("/")
@@ -5958,10 +6022,7 @@ def courant_de(racine, rev=None):
     le chantier du dossier ; 3. sinon le seul ouvert. Deux ou plus : `Absent`, que `main` rend en `GARDE:`.
     4. Aucune marque d'ouverture dans le contexte (projet pas encore migré, NUI30) : l'ancienne ligne de
     CHANTIER.md. Avec `rev`, tout se lit dans ce commit."""
-    # Migré = un fichier titré `# Chantier ` porte la marque : la même règle que `ouverts`, sinon une marque
-    # posée hors titre ferait un projet « migré » sans aucun chantier visible (NUI23).
-    textes = [lignes for _, lignes in textes_contexte(racine, rev) if any(l.startswith("# Chantier ") for l in lignes)]
-    if not any(l.startswith(MARQUE_OUVERT) for lignes in textes for l in lignes):
+    if not migre(racine, rev):
         chemin = os.path.join(racine, "CHANTIER.md")
         if rev is None:
             code, carte_ = (0, lire(chemin)) if os.path.isfile(chemin) else (1, "")
@@ -6295,7 +6356,17 @@ def nombre_fiches(s):
     return v
 
 
+def lever_pause(lignes):
+    """Retire de `lignes`, en place, chaque `**Pause.**` et la ligne vide posée avant elle ; vrai s'il y en avait une :
+    `ouvrir` reprend un chantier en pause (NUI30)."""
+    rangs = [k for k, l in enumerate(lignes) if l.startswith(MARQUE_PAUSE)]
+    for k in reversed(rangs):
+        del lignes[k - 1 if k and not lignes[k - 1].strip() else k:k + 1]
+    return bool(rangs)
+
+
 def cmd_ouvrir(a, sortie):
+    """Ouvrir un chantier dans `a.projet` : les écritures mécaniques décrites à `ouvrir` dans la docstring de `vlp.py`."""
     projet = a.projet
     if not equipe(projet):
         sortie.write("GARDE: pas de CHANTIER.md dans %s\n" % projet)
@@ -6330,14 +6401,14 @@ def cmd_ouvrir(a, sortie):
     gardes = []
     fiches_change = False
 
-    # 0. la marque d'ouverture, une fois, sous le titre `# Chantier ` : sans ce titre, `ouverts` ne la verrait pas.
-    if not any(l.startswith(MARQUE_OUVERT) for l in fiches_):
-        k = next((k for k, l in enumerate(fiches_) if l.startswith("# Chantier ")), None)
-        if k is None:
-            gardes.append("pas de titre « # Chantier » dans %s — marque d'ouverture non posée" % fichier)
-        else:
-            fiches_[k + 1:k + 1] = ["", OUVERT_LIGNE % __import__("datetime").date.today().isoformat()]
-            fiches_change = True
+    # 0. une pause se lève — ouvrir un fichier en pause, c'est le reprendre (NUI30) —, puis la marque d'ouverture, une
+    # fois, sous le titre `# Chantier ` : sans ce titre, `ouverts` ne la verrait pas.
+    reprise = " · pause levée" if lever_pause(fiches_) else ""
+    neuve = not any(l.startswith(MARQUE_OUVERT) for l in fiches_)
+    fiches_change = neuve and poser_marque(fiches_, OUVERT_LIGNE % __import__("datetime").date.today().isoformat())
+    if neuve and not fiches_change:
+        gardes.append("pas de titre « # Chantier » dans %s — marque d'ouverture non posée" % fichier)
+    fiches_change = fiches_change or bool(reprise)
 
     # 1. CHANTIER.md
     vus = set()
@@ -6449,8 +6520,30 @@ def cmd_ouvrir(a, sortie):
             fh.write(fichier + "\n")
     for g in gardes:
         sortie.write("GARDE: %s — le reste est écrit\n" % g)
-    sortie.write("OUVERT %s %s · index %s · routage +%d · session +%d · artefact %s%s — %s\n"
-                 % (lettre, fait, n_index, n_routage, n_session, url, estime, projet))
+    sortie.write("OUVERT %s %s · index %s · routage +%d · session +%d · artefact %s%s%s — %s\n"
+                 % (lettre, fait, n_index, n_routage, n_session, url, estime, reprise, projet))
+    return 0
+
+
+def cmd_pause(a, sortie):
+    """`pause <fichier> "<raison>"` : `**Pause.** le <date> — <raison>` sous le titre `# Chantier ` ; `ouvrir` la lève
+    (NUI30). Introuvable, clos, déjà en pause, sans titre : `GARDE:`, rien d'écrit."""
+    nom = a.fichier.replace("\\", "/")
+    if not os.path.isfile(a.fichier):
+        sortie.write("GARDE: fichier de fiches introuvable : %s\n" % nom)
+        return 1
+    lignes = lignes_de(a.fichier)
+    deja = next((m for m in (MARQUE_CLOS, MARQUE_PAUSE) if any(l.startswith(m) for l in lignes)), None)
+    date = a.date or __import__("datetime").date.today().isoformat()
+    if deja:
+        sortie.write("GARDE: %s porte déjà %s — rien d'écrit\n" % (nom, deja))
+        return 1
+    if not poser_marque(lignes, PAUSE_LIGNE % (date, a.raison.strip())):
+        sortie.write("GARDE: pas de titre « # Chantier » dans %s — rien d'écrit\n" % nom)
+        return 1
+    with open(a.fichier, "w", encoding="utf-8", newline="") as fh:
+        fh.write("\n".join(lignes) + "\n")
+    sortie.write("PAUSE %s le %s\n" % (nom, date))
     return 0
 
 
@@ -8207,6 +8300,17 @@ def options_outils(sous):
     ra.add_argument("--racine")
 
 
+def options_marques(sous):
+    """Déclarer la ligne de commande de `ouverts` et de `pause`, les lecteur et poseur des marques (NUI21, NUI30)."""
+    ou = sous.add_parser("ouverts")
+    ou.add_argument("projet")
+    ou.add_argument("--rev")
+    pa = sous.add_parser("pause")
+    pa.add_argument("fichier")
+    pa.add_argument("raison")
+    pa.add_argument("--date")
+
+
 def options_carte(sous):
     """Déclarer la ligne de commande de `carte`."""
     c = sous.add_parser("carte")
@@ -8359,9 +8463,7 @@ def main(argv, sortie=None, entree=None, erreur=None):
     sous.add_parser("gardien")
     vg = sous.add_parser("vigile")
     vg.add_argument("fichier", nargs="?", default=None)
-    ou = sous.add_parser("ouverts")
-    ou.add_argument("projet")
-    ou.add_argument("--rev")
+    options_marques(sous)
     at = sous.add_parser("attente")
     ats = at.add_subparsers(dest="op", required=True)
     at_aj = ats.add_parser("ajouter")
@@ -8438,7 +8540,7 @@ def main(argv, sortie=None, entree=None, erreur=None):
 PAR_ARGUMENTS = {
     "ouvrir": cmd_ouvrir, "clore": cmd_clore, "archiver": cmd_archiver, "trier": cmd_trier, "feuille": cmd_feuille,
     "niveau": cmd_niveau, "comparer": cmd_comparer, "relecture": cmd_relecture, "contrat": cmd_contrat,
-    "forme": cmd_forme, "ouverts": cmd_ouverts, "plan": cmd_plan, "matin": cmd_matin, "fusionner": cmd_fusionner,
+    "forme": cmd_forme, "ouverts": cmd_ouverts, "pause": cmd_pause, "plan": cmd_plan, "matin": cmd_matin, "fusionner": cmd_fusionner,
     "sante": cmd_sante, "symboles": cmd_symboles, "compteur": cmd_compteur, "carte": cmd_carte,
     "rapide": cmd_rapide, "essai": cmd_essai,
 }

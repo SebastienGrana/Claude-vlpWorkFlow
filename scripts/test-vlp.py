@@ -7941,6 +7941,76 @@ def tester_ouvrir_marque():
 groupe(tester_ouvrir_marque)
 
 
+def tester_nui30_marque():
+    """NUI30 : `niveau --ecrire` pose la marque d'un projet à la Cairn (5 fichiers sans CLOS, un courant), datée de son
+    commit d'ouverture ; rejoué, rien ; `pause` la pose, `ouvrir` la lève."""
+    if not shutil.which("git"):
+        print("SAUTÉ: git absent — la marque de niveau et la pause ne sont pas testées")
+        return
+
+    def courant(dossier):
+        return next((l for l in appel(["carte", dossier])[1].split("\n") if l.startswith(("COURANT=", "GARDE:"))), "")
+
+    with tempfile.TemporaryDirectory() as tr:
+        d, sans_git, rien = os.path.join(tr, "ca"), os.path.join(tr, "sg"), os.path.join(tr, "rien")
+        ecrire(os.path.join(d, "CHANTIER.md"), "- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n"
+               "- **fichier de fiches courant** : ctx/59-f.md (F1..F1)\n- **artefact du chantier** : aucun\n")
+        for n, code in (("22-a", "A"), ("23-b", "B"), ("34-h", "H"), ("58-m", "M"), ("59-f", "F")):
+            ecrire(os.path.join(d, "ctx", n + ".md"), "# Chantier %s — x\n\n## %s1 [ ] — f\n" % (code, code))
+        ecrire(os.path.join(d, "ctx", "21-z.md"), "# Chantier Z — x\n\n" + mod.CLOS_LIGNE % "2026-09-01" + "\n")
+        for p_ in (d, sans_git, rien):
+            ecrire(os.path.join(p_, "ctx", "00-INDEX.md"), "# Index\n")
+        git_matin(d, "init", "-q", "-b", "main")
+        git_matin(d, "add", "-A")
+        git_matin(d, "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "--date=2026-09-20T12:00:00",
+                  "-m", "Chantier F ouvert : x")
+        avant = courant(d)
+        _, s0 = appel(["niveau", d])
+        _, s1 = appel(["niveau", d, "--ecrire", "--date", "2026-10-08"])
+        apres, ouverts1, f1 = courant(d), appel(["ouverts", d])[1], mod.lire(os.path.join(d, "ctx", "59-f.md"))
+        _, s2 = appel(["niveau", d, "--ecrire", "--date", "2026-10-08"])
+        f2 = mod.lire(os.path.join(d, "ctx", "59-f.md"))
+        code3, s3 = appel(["pause", os.path.join(d, "ctx", "34-h.md"), "en pause le soir même", "--date", "2026-09-20"])
+        code4, s4 = appel(["pause", os.path.join(d, "ctx", "34-h.md"), "encore"])
+        code5, s5 = appel(["pause", os.path.join(d, "ctx", "59-f.md"), "attend"])
+        ouverts2, f5 = appel(["ouverts", d])[1], mod.lire(os.path.join(d, "ctx", "59-f.md"))
+        code6, s6 = appel(["ouvrir", d, "--fiches", "ctx/59-f.md", "--titre", "x"])
+        ouverts3, f6 = appel(["ouverts", d])[1], mod.lire(os.path.join(d, "ctx", "59-f.md"))
+        code7, s7 = appel(["pause", os.path.join(d, "ctx", "21-z.md"), "x"])
+        code8, s8 = appel(["pause", os.path.join(d, "ctx", "absent.md"), "x"])
+        h3 = mod.lire(os.path.join(d, "ctx", "34-h.md"))
+        ecrire(os.path.join(sans_git, "CHANTIER.md"), "- **contexte** : ctx/\n- **fichier de fiches courant** : ctx/9-s.md\n")
+        ecrire(os.path.join(sans_git, "ctx", "9-s.md"), "# Chantier S — x\n\n## S1 [ ] — f\n")
+        _, s9 = appel(["niveau", sans_git, "--ecrire", "--date", "2026-10-08"])
+        ecrire(os.path.join(rien, "CHANTIER.md"), "- **contexte** : ctx/\n- **fichier de fiches courant** : aucun\n")
+        ecrire(os.path.join(rien, "ctx", "9-s.md"), "# Chantier S — x\n\n## S1 [ ] — f\n")
+        _, s10 = appel(["niveau", rien, "--ecrire", "--date", "2026-10-08"])
+    marque = "**Ouvert.** le 2026-09-20."
+    verifier("NUI30 niveau : projet à la Cairn — ÉCART sans --ecrire ; --ecrire pose la marque du commit d'ouverture sous "
+             "le titre ; COURANT= identique avant et après ; rejoué → rien écrit — mutant : `migre` ignoré, la marque doublée",
+             avant == apres == "COURANT=ctx/59-f.md"
+             and "ÉCART: marque: ctx/59-f.md sans **Ouvert.**" in s0
+             and "CORRIGÉ: marque: **Ouvert.** le 2026-09-20 sur ctx/59-f.md — son commit d'ouverture" in s1
+             and f1.startswith("# Chantier F — x\n\n" + marque + "\n\n## F1") and ouverts1 == "OUVERT ctx/59-f.md\n"
+             and "marque" not in s2 and f2 == f1,
+             "\n".join((avant, apres, s0, s1, s2, f1)))
+    verifier("NUI30 niveau : sans commit d'ouverture, la date de l'appel, dite ; ligne « aucun » → rien",
+             "CORRIGÉ: marque: **Ouvert.** le 2026-10-08 sur ctx/9-s.md — date de l'appel, aucun commit « Chantier S "
+             "ouvert »" in s9 and "marque" not in s10, s9 + s10)
+    verifier("NUI30 pause : posée sous le titre, le chantier sort des ouverts ; en double, sur un clos, introuvable → GARDE ; "
+             "ouvrir la lève — mutant : lever_pause ne rend rien",
+             (code3, s3) == (0, "PAUSE %s le 2026-09-20\n" % os.path.join(d, "ctx", "34-h.md").replace("\\", "/"))
+             and h3.startswith("# Chantier H — x\n\n**Pause.** le 2026-09-20 — en pause le soir même\n\n## H1")
+             and code4 == 1 and "porte déjà **Pause.**" in s4 and code5 == 0 and ouverts2 == "OUVERTS=0\n"
+             and "**Pause.**" in f5 and code6 == 0 and " · pause levée" in s6 and "**Pause.**" not in f6
+             and f6.startswith("# Chantier F — x\n\n" + marque + "\n\n## F1") and ouverts3 == "OUVERT ctx/59-f.md\n"
+             and code7 == 1 and "porte déjà **CLOS**" in s7 and code8 == 1 and s8.startswith("GARDE: fichier de fiches"),
+             "\n".join((s3, s4, s5, ouverts2, s6, ouverts3, f6, s7, s8, h3)))
+
+
+groupe(tester_nui30_marque)
+
+
 def tester_wip_de_cote():
     """NUI24 : une pointe WIP sans chantier n'est jamais fusionnée ; une branche qui hérite du chantier ouvert de main
     sans en ajouter reste fusionnable."""

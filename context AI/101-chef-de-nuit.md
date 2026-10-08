@@ -1362,8 +1362,9 @@ Une règle vit à un seul endroit : chaque commande renvoie à methode-chantier.
 ---
 
 <!-- FICHE:NUI30 -->
-## NUI30 [ ] — Remettre les projets équipés au modèle de la marque
+## NUI30 [x] — Remettre les projets équipés au modèle de la marque
 
+**Session** : 2db5ac9a-c4b6-4637-9755-4f057ebfc3ca
 **Dépend de** : `NUI23`.
 **Fichiers** : `scripts/vlp_coeur.py`, `scripts/test-vlp.py` ; lus : `cmd_niveau` (`vlp.py symboles`) ; écrits par le script seul :
 les fichiers de fiches courants des projets équipés — et rien d'autre.

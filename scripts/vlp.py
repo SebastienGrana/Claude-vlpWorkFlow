@@ -181,13 +181,16 @@ Sous-commandes :
   pas nul. Une copie locale de `methode-chantier.md` n'est pas un écart : la
   méthode la tolère pour un projet équipé avant la règle. Une ligne `ÉCART:
   <catégorie>: <phrase>`
-  par écart (`renvois`, `feuille`, `page`, `variable`, `clos`), puis `NIVEAU <n>
+  par écart (`renvois`, `feuille`, `page`, `variable`, `clos`, `marque`), puis `NIVEAU <n>
   écarts · <n> avertissements — <projet>`. Un écart : sort 1.
   `--ecrire` corrige les seuls écarts mécaniques — la table des chantiers clos
   retirée de `CHANTIER.md` (jamais si l'index ne nomme pas chacun de ses
   fichiers), la feuille de route posée depuis le gabarit puis régénérée, le
   bloc repliable des clos posé sur une feuille d'avant le 2026-09-17, et les
-  lignes closes écrites avant `gras_et_liens` converties en place. Les
+  lignes closes écrites avant `gras_et_liens` converties en place, et, dans un projet
+  sans aucune marque d'ouverture, `**Ouvert.** le <date>` sous le titre du fichier que
+  nomme l'ancienne ligne de `CHANTIER.md` — date du plus ancien commit « Chantier <code>
+  ouvert », sinon celle de l'appel, et la ligne `CORRIGÉ: marque:` le dit (NUI30). Les
   renvois absents et les fichiers de tête hors seuil restent en `ÉCART:`. Tout
   se calcule avant la première écriture. Bilan `NIVEAU <n> corrigés · <n> à la
   main — <projet>` ; un écart restant : sort 1. `--date` fige la date.
@@ -391,6 +394,9 @@ Sous-commandes :
   la même règle le dit et que `stop_hook_active` est faux, sinon muet (chantier RLG—FOR—JUG).
 - `ouverts <projet> [--rev R]` — les chantiers ouverts du dossier de contexte : `OUVERT <fichier>` chacun, ou
   `OUVERTS=0` ; ouvert = titre `# Chantier ` + marque `**Ouvert.**`, sans `**CLOS**` ni `**Pause.**` (chantier NUI21).
+- `pause <fichier> "<raison>" [--date D]` — `**Pause.** le <date> — <raison>` sous le titre `# Chantier `, puis
+  `PAUSE <fichier> le <date>` ; `ouvrir` sur ce fichier la lève (`· pause levée`). Introuvable, clos, déjà en pause,
+  sans titre : `GARDE:`, sort 1, rien d'écrit (NUI30).
 - `vigile [fichier]` — une page cassée ne part pas (chantier VID, `defauts_page`) : sans argument,
   le hook `PreToolUse` sur `Artifact`, `deny` pour un `.html` à défauts, muet sinon ; avec un chemin,
   une ligne `GARDE:` par défaut (sort 1) ou `PAGE SAINE <n> blocs`.
