@@ -142,6 +142,10 @@ eval du tri avant trois nuits ; `claude -w`. Écartés au cadrage, ou en attente
 | `NUI29` | La prose lit `COURANT=` | `NUI23`, `NUI25`, `NUI26`, `NUI28` |
 | `NUI30` | Remettre les projets équipés au modèle de la marque | `NUI23` |
 | `NUI31` | Retirer la vieille ligne de CHANTIER.md | `NUI29`, `NUI30` |
+| `NUI34` | La règle : les fichiers de la méthode sont suivis par Git | rien |
+| `NUI35` | La carte dit `GIT=` | `NUI34` |
+| `NUI36` | `niveau` signale `ÉCART: git:` | `NUI34` |
+| `NUI37` | Mettre Cairn, ONZSM et TrackGen sous Git | `NUI35`, `NUI36` |
 | `NUI32` | Remettre NUI20 au nouveau modèle | `NUI21` à `NUI31` |
 | `NUI33` | Le joueur en Opus 5.5 medium, la relance en xhigh | rien |
 | `NUI20` | Jouer une nuit réelle | toutes (`NUI1` à `NUI19`, `NUI32`, `NUI33`) |
@@ -1412,6 +1416,118 @@ Tu ne fais pas : NUI20 (`NUI32`).
    que des mentions de la sortie `COURANT=` ou d'histoire, chacune justifiée au rapport.
 2. `py -3 scripts/test-vlp.py` → `OK`, comptes bruts ; par projet, `COURANT=` identique avant → après.
 3. pyright : 0 erreur sur les `.py` touchés, compte brut.
+<!-- /FICHE -->
+
+---
+
+<!-- FICHE:NUI34 -->
+## NUI34 [ ] — La règle : les fichiers de la méthode sont suivis par Git
+
+**Dépend de** : rien.
+**Fichiers** : `methode-chantier.md` (« Ce qui ne part pas dans git » seul), `skills/init/SKILL.md`,
+`skills/chantier/SKILL.md` et `skills/check/SKILL.md` (la ligne « **kit** » seule), `templates/CHANTIER.md`, `CHANTIER.md`
+— et rien d'autre.
+
+**Prompt**
+Tranché par l'utilisateur le 2026-10-08 (option A) : la règle permettait de garder la méthode hors Git
+(`methode-chantier.md:291-294`, `skills/init/SKILL.md:164`), alors que la mécanique en dépend — commit par fiche, marque
+lue par `rev`, worktrees de nuit, fusion du matin. Dans les 4 projets équipés, `CHANTIER.md` n'est pas suivi.
+1. `methode-chantier.md` : la section devient « Ce qui part dans Git » — suivis : `CHANTIER.md`, `CLAUDE.md`, les `.md` du
+   contexte, ses artefacts ; hors Git : les tampons (post-it `vlp-chantier`, marques `vlp-*`) et `.claude/launch.json`.
+   Une phrase dit pourquoi (un worktree ne reçoit que les fichiers suivis), une autre qu'un dépôt public se trie à part.
+2. `skills/init/SKILL.md` : l'étape 4 ne propose plus d'exclure ; elle signale un `.gitignore` qui couvre ces fichiers et
+   renvoie à la règle. La phrase de la ligne 111 sur « fichier de fiches courant » (ligne retirée par `NUI31`) part.
+3. La ligne « **kit** » ne porte plus de chemin de machine (tranché le 2026-10-08) : « le plugin vlp ». Gabarit, init,
+   `CHANTIER.md` du kit (« Chez znorr : … » part), et ce qu'en disent `skills/chantier` (lignes 192, 274) et
+   `skills/check` (ligne 21) suivent.
+Tu ne fais pas : la carte (`NUI35`), `niveau` (`NUI36`), les projets équipés (`NUI37`).
+
+**Critère de fin**
+1. `grep -c "ne part pas dans git" methode-chantier.md` → 0 (avant : 1) ; `grep -c "exclut son contexte" skills/init/SKILL.md`
+   → 0 (avant : 1) ; `grep -c "fichier de fiches courant" skills/init/SKILL.md` → 0 (avant : 1).
+2. `grep -rn "znorr\|D:/ProgPerso" CHANTIER.md templates/CHANTIER.md` → rien.
+3. `py -3 scripts/test-vlp.py` → `OK`.
+<!-- /FICHE -->
+
+---
+
+<!-- FICHE:NUI35 -->
+## NUI35 [ ] — La carte dit `GIT=`
+
+**Dépend de** : `NUI34`.
+**Fichiers** : `scripts/vlp_coeur.py` (`carte`, et une fonction neuve), `scripts/vlp.py` (docstring de `carte`),
+`scripts/test-vlp.py`, `skills/tache/SKILL.md` et `skills/chantier/SKILL.md` (l'étape 0, une ligne chacun) — et rien d'autre.
+
+**Prompt**
+Sans elle, l'état de Git se découvre au moment de commiter, fiche après fiche (NUI30, NUI31). La carte le dit au premier
+tour, par `git ls-files` et `git check-ignore` (`git_texte`) sur les fichiers que la règle de `NUI34` veut suivis.
+1. Une ligne `GIT=` : `suivi` quand tout l'est ; sinon `GIT=ignoré <fichiers>` et/ou `GIT=non ajouté <fichiers>` (un
+   dossier se nomme par lui-même, pas fichier par fichier) ; hors d'un dépôt Git, `GIT=hors Git`.
+2. La ligne sort aussi pour un voisin (`VOISIN=`), jamais pour le relecteur.
+3. L'étape 0 de `tache` et `chantier` : `GIT=` autre que `suivi` → le dire en une ligne, et ne promettre aucun commit
+   sur ces fichiers.
+Tu ne fais pas : `niveau` (`NUI36`), corriger un `.gitignore`.
+
+**Critère de fin**
+1. Tests neufs : tout suivi, un fichier ignoré, un fichier permis mais non ajouté, hors Git — `py -3 scripts/test-vlp.py`
+   → `OK`, comptes bruts.
+2. `vlp.py carte` sur le kit → `GIT=suivi` ; sur Cairn → `GIT=ignoré` avec `CHANTIER.md` (lu le 2026-10-08 : ignoré par
+   `.gitignore:22`) ; sorties au rapport.
+3. Mutant : la ligne toujours à `suivi` → `MUTANT ATTRAPÉ`. pyright : 0 erreur, compte brut.
+<!-- /FICHE -->
+
+---
+
+<!-- FICHE:NUI36 -->
+## NUI36 [ ] — `niveau` signale `ÉCART: git:`
+
+**Dépend de** : `NUI34`.
+**Fichiers** : `scripts/vlp_coeur.py` (`niveau` et ses étapes), `scripts/vlp.py` (docstring de `niveau`),
+`scripts/test-vlp.py` — et rien d'autre.
+
+**Prompt**
+`niveau` contrôle tout un projet, sauf ce que Git en voit. Le choix à moitié appliqué passe : Cairn suit ses artefacts et
+ignore le reste, TrackGen permet le suivi mais n'a rien ajouté (lu le 2026-10-08).
+1. Une étape `git`, de la forme des autres (`etapes_niveau`) : un fichier que la règle de `NUI34` veut suivi, ignoré ou
+   non ajouté → `ÉCART: git: <fichier> — <ignoré par .gitignore:<n> | non ajouté>`. Hors Git : rien.
+2. Une ligne « **kit** » qui porte un chemin de machine → `ÉCART: git:` aussi (`NUI34`, point 3).
+3. `--ecrire` ne corrige rien ici : retirer une ligne de `.gitignore`, ajouter, commiter sont des gestes de
+   l'utilisateur ; l'écart le dit.
+Reprendre le calcul de `NUI35`, pas le recopier : une seule fonction lit l'état de Git.
+Tu ne fais pas : la migration des projets (`NUI37`).
+
+**Critère de fin**
+1. Tests neufs : ignoré, non ajouté, ligne « kit » à chemin, tout suivi → aucun écart `git:` — `py -3 scripts/test-vlp.py`
+   → `OK`, comptes bruts.
+2. `vlp.py niveau` sur Cairn, MapDecorator, ProjetONZSM, TrackGen : les écarts `git:` au rapport, comptés par projet.
+3. Mutant : l'étape `git` sautée → `MUTANT ATTRAPÉ`. pyright : 0 erreur, compte brut.
+<!-- /FICHE -->
+
+---
+
+<!-- FICHE:NUI37 -->
+## NUI37 [ ] — Mettre Cairn, ONZSM et TrackGen sous Git
+
+**Dépend de** : `NUI35`, `NUI36`.
+**Fichiers** : dans `Cairn-VlpLib`, `ProjetONZSM`, `TrackGen` (frères du kit) : `.gitignore`, `CHANTIER.md`, `CLAUDE.md`,
+`context AI/*.md` ; lus : `vlp.py niveau` et `carte` de chacun — et rien d'autre. MapDecorator : lu seulement.
+
+**Prompt**
+La règle de `NUI34` appliquée aux trois dépôts privés (lus `PRIVATE` par `gh repo view` le 2026-10-08). Un projet après
+l'autre, arrête-toi au premier doute :
+1. Relire chaque fichier qui porte un chemin de machine ou un mot sensible (`password`, `token`, `api key`, compté le
+   2026-10-08 : Cairn 17 et 2, ONZSM 1 et 2, TrackGen 3 et 0). Un vrai secret : **arrête-toi et demande**, ne commite
+   rien. Un chemin : le retirer ou le rendre relatif.
+2. `.gitignore` : retirer ce qui exclut ces fichiers, garder les tampons et `launch.json` hors Git.
+3. Un commit par projet, `git add` nommé fichier par fichier ; **jamais de push**.
+4. MapDecorator est public : rends la liste de ses fichiers à trier (suivre, garder hors Git, nettoyer avant), sans rien
+   écrire.
+Tu ne fais pas : un push ; toucher MapDecorator ; un fichier hors de la ligne Fichiers.
+
+**Critère de fin** (visuel)
+1. Par projet : `vlp.py niveau` → 0 écart `git:` ; `vlp.py carte` → `GIT=suivi` ; `COURANT=` identique avant → après.
+2. Par projet, le sha du commit et `git show --stat` au rapport ; `git log origin/<branche>..` non vide (rien poussé).
+3. La liste de MapDecorator au rapport ; l'utilisateur dit l'avoir lue.
 <!-- /FICHE -->
 
 ---

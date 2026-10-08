@@ -34,6 +34,10 @@
 - NUI30 : test-vlp.py OK (3 contrôles NUI30, 2 mutants attrapés) ; COURANT= identique avant/après sur kit, Cairn, MapDecorator, bac ; ouverts 1 partout ; pyright 0 errors
 - NUI31 : Suite OK ; RAPIDE VERT (pyright 0 errors, 5 fichiers ; cliquet tenu) ; grep : 54→9 mentions dans test-vlp.py, 11→9 vlp_coeur, 6→2 faux-claude, 6→0 test-boucle, 1→0 gabarit et CHANTIER.md, le reste conceptuel ou d'histoire ; COURANT= identique sur les 4 projets
 - NUI32 : NUI20 remise au nouveau modèle ; après NUI21 à NUI31
+- NUI34 : la règle : la méthode suivie par Git, la ligne kit sans chemin ; rien avant
+- NUI35 : la carte dit GIT= dès le premier tour ; après NUI34
+- NUI36 : niveau signale ÉCART: git: ; après NUI34
+- NUI37 : Cairn, ONZSM, TrackGen sous Git, sans push ; après NUI35, NUI36
 ## Journal
 - 2026-10-01 : Essai NUI14 sous NUIT=1 : une session claude -p sur une fiche triviale, 16 tours, 0,4623 $, 68 s (un appel lire nuit.md, 0 git commit, 0 cloture.md) ; boucle.py ne crée pas le dossier de --traces.
 - 2026-10-01 : NUI16 : essai D2, publie en union égal à la clé dans 3 cas sur 4 (empreintes différentes : deux lignes contre clé retirée) → publie par la clé, pas de merge=union au .gitattributes
