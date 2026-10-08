@@ -120,8 +120,13 @@ JOUES = []      # les groupes joués, sous `--seul` (VIT10)
 
 
 def porte_motif(f, motif):
-    """Dire si le nom ou le texte du groupe `f` (ses libellés) porte `motif`, sans tenir compte de la casse."""
-    return motif.lower() in (f.__name__ + " " + inspect.getsource(f)).lower()
+    """Dire si le nom ou le texte du groupe `f` (ses libellés) porte `motif`, sans tenir compte de la casse — son
+    texte, et celui des fonctions du module qu'il nomme, sur un niveau : un libellé écrit dans `matin_t`, que
+    `tester_matin` appelle, retient `tester_matin` (dette RTD)."""
+    source = inspect.getsource(f)
+    aides = [inspect.getsource(g) for nom, g in globals().items()
+             if inspect.isfunction(g) and g is not f and re.search(r"\b%s\b" % re.escape(nom), source)]
+    return motif.lower() in (f.__name__ + " " + source + "".join(aides)).lower()
 
 
 def groupe(f):
@@ -8905,6 +8910,9 @@ def tester_seul():
     verifier("seul : le nom porte le motif, sans casse — mutant : casse comptée", porte_motif(tester_temoin_nom, "TEMOIN_NOM"), "")
     verifier("seul : le texte porte le motif, sans casse — mutant : texte ignoré", porte_motif(temoin_texte, "vit10-témoin"), "")
     verifier("seul : ni le nom ni le texte, écarté", not porte_motif(temoin_texte, "autre-motif"), "")
+    verifier("seul : le texte d'une aide du module que le groupe appelle porte le motif — mutant : aides ignorées",
+             porte_motif(tester_matin, "npb1 (b) matin imprime") and not porte_motif(tester_mutant, "npb1 (b) matin imprime"),
+             "")
     garde, joues, SEUL = SEUL, len(JOUES), "temoin_nom"
     try:
         groupe(tester_temoin_nom)
