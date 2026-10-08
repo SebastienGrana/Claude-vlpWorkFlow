@@ -11,9 +11,13 @@ s'écrit que sur `main`, et ce contrôle n'arrive qu'en section 4. Le chantier m
 
 **Estimé.** 1 fiches · ≈3,95 $ — ≈3,95 $/fiche sur 91 clos (le 2026-10-08).
 
-**Fait.** Rien. Ouvert le 2026-10-08, la nuit (canal B), cadré en 1 fiche selon le plan du soir, `BRA1` à jouer.
+**CLOS** le 2026-10-08. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** BRA1..BRA1 (2026-10-08) : /vlp:chef s'arrête dès le tri hors de main : trier porte la garde de branche, testée et mutée — estimé 1 fiches ≈3,95 $ · cadré 1 · joué 1 fiches 3,32 $.
 
 **Session** : a829c7ca-064c-4d82-946e-856f5f9aa760
+
+**Session** : 2d385b79-afd7-4cd3-bd1c-7df7964b1269 (clore)
 
 ## Le socle commun
 

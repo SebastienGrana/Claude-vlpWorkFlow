@@ -17,7 +17,6 @@ a l'air proche.
 | `08-etat.md` | on reprend après une interruption, ou on choisit quoi faire ensuite |
 | `12-audit.md` | on choisit le prochain chantier du kit, ou on cherche la preuve d'un bug ou d'une mesure de l'audit du 2026-09-17 |
 | `38-audit-artefacts.md` | on choisit un chantier sur les pages publiées (six proposés, A à F), ou on cherche la preuve d'un défaut de page relevé le 2026-09-22 ; ses scripts sont dans `38-audit-scripts/`, sa page dans `artefacts/` |
-| `108-branche-chef.md` | on joue une fiche `BRA*` — chantier **ouvert** « /vlp:chef vérifie la branche dès son début », `BRA1..BRA1` |
 | `103-audit-vitesse.md` | on cherche la source d'un chiffre « (synthèse) », « A1 » ou « A2 » d'une fiche `VIT` — la synthèse des deux audits vitesse du 2026-10-03 |
 | `106-nuits.md` | on prépare ou on relit une nuit — plan du soir, table des nuits, leçons |
 | `101-chef-de-nuit.md` | on joue une fiche `NUI*` — chantier **ouvert** « Le chef de nuit », `NUI1..NUI37` |
