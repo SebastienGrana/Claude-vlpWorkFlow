@@ -148,7 +148,8 @@ eval du tri avant trois nuits ; `claude -w`. Écartés au cadrage, ou en attente
 | `NUI37` | Mettre Cairn, ONZSM et TrackGen sous Git | `NUI35`, `NUI36` |
 | `NUI32` | Remettre NUI20 au nouveau modèle | `NUI21` à `NUI31` |
 | `NUI33` | Le joueur en Opus 5.5 medium, la relance en xhigh | rien |
-| `NUI20` | Jouer une nuit réelle | toutes (`NUI1` à `NUI19`, `NUI32`, `NUI33`) |
+| `NUI38` | Le tri lit la dernière estimation du coût | rien |
+| `NUI20` | Jouer une nuit réelle | toutes (`NUI1` à `NUI19`, `NUI32`, `NUI33`, `NUI38`) |
 
 Deux voies se jouent en parallèle — boucle.py (`NUI1` → `NUI9`, en chaîne) et vlp.py avec sa prose (`NUI10` → `NUI17` ; `NUI15` et `NUI17` partent de rien) — et se rejoignent à `NUI11` (il lit les carnets par carnet.py, `NUI3`), à `NUI7` (il lit le plan de `NUI12`), puis à `NUI18`-`NUI19`. `NUI12` ne touche que vlp.py (`plan` écrit le plan, `carte` imprime `NUIT=1` quand `VLP_NUIT=1` est posé) : poser `VLP_NUIT=1` et lire le plan dans boucle.py reviennent à `NUI7`. Fiches à cheval, jamais en même temps qu'une fiche de l'autre voie : `NUI2` (test-vlp.py lance test-boucle.py, comme le test de `NUI10`), `NUI3`, `NUI5` et `NUI6` (vlp.py : `nuits noter`, relectures par canal, `cocher --session`, la constante de `refuser`). `NUI20` attend tout.
 
@@ -1593,10 +1594,35 @@ Tu ne fais pas : un essai `claude -p` ; les rôles `découper`, `relire`, `clore
 
 ---
 
+<!-- FICHE:NUI38 -->
+## NUI38 [ ] — Le tri lit la dernière estimation du coût
+
+**Dépend de** : rien.
+**Fichiers** : `scripts/vlp_coeur.py` (`borne_haute_cout` seule), `scripts/test-vlp.py` (le cas `FEU8 : borne_haute_cout`) ;
+lus : les appelants (`decompte_todo`, `trier`, `juger_decoupe` de `boucle.py`) et la TODO de `context AI/08-etat.md` — et rien d'autre.
+
+**Prompt**
+Vu le 2026-10-08 par le `/vlp:chef` d'une autre session, rejoué ici : `borne_haute_cout` prend le plus grand nombre avant le
+premier « fiche » de la cellule, donc la **première** estimation, alors que `MET10` a ajouté les siennes après ` · `. `TAB` est lu
+1 fiche (ré-estimé 7 à 10,5), `CTR` 1,5 (4,5), `PRP` 1 (6), `EFF` **45** (le « 1 h 45 »). La nuit, `boucle.py` refuse un découpage
+de plus de 2 × la borne : `TAB` découpé en 7 fiches serait refusé.
+1. La dernière estimation fait foi : le dernier segment ` · ` qui contient « fiche(s) ». Dans ce segment, après la dernière `→` si
+   elle porte une plage (`7 à 10,5`) ; sinon la dernière plage suivie de « fiche(s) ». Aucune : `None` (« sans fiche »).
+2. Les cas de `FEU8` restent vrais ; le test ajoute les onze cellules de la TODO du jour, recopiées telles quelles.
+Tu ne fais pas : réécrire les cellules de la TODO ; toucher `GROS_FICHES` ni les messages du tri.
+
+**Critère de fin**
+1. Sur la TODO : `NUI` 21, `AMD` 6, `ACA` 6, `REF` 9, `TAB` 10,5, `CTR` 4,5, `PRP` 6, `EFF` 3,5, `BDD` 1,5, `CAR` et `APR` `None` — avant → après.
+2. `py -3 scripts/test-vlp.py` → `OK` ; mutant (le premier segment au lieu du dernier) → `MUTANT ATTRAPÉ`.
+3. pyright : 0 erreur, compte brut.
+<!-- /FICHE -->
+
+---
+
 <!-- FICHE:NUI20 -->
 ## NUI20 [ ] — Jouer une nuit réelle
 
-**Dépend de** : `NUI1`, `NUI2`, `NUI3`, `NUI4`, `NUI5`, `NUI6`, `NUI7`, `NUI8`, `NUI9`, `NUI10`, `NUI11`, `NUI12`, `NUI13`, `NUI14`, `NUI15`, `NUI16`, `NUI17`, `NUI18`, `NUI19`, `NUI32`, `NUI33`.
+**Dépend de** : `NUI1`, `NUI2`, `NUI3`, `NUI4`, `NUI5`, `NUI6`, `NUI7`, `NUI8`, `NUI9`, `NUI10`, `NUI11`, `NUI12`, `NUI13`, `NUI14`, `NUI15`, `NUI16`, `NUI17`, `NUI18`, `NUI19`, `NUI32`, `NUI33`, `NUI38`.
 **Fichiers** : lus — `nuit.md` ; `CHANTIER.md` de `main` (`git show main:CHANTIER.md`) ; `context AI/08-etat.md`, lignes 381 (« Q7 essai réel ») et 384 à 386 (`APR`, `TAB`, `CLV`) ; le carnet et le fichier des nuits (socle, « Les noms retenus ») ; le fichier de fiches de chaque chantier de la nuit (`git show <branche>:<fichier>`) ; appelés : `scripts/vlp.py` (`carte`, `vigile`), `scripts/mesure-tokens.py`, `scripts/test-vlp.py` ; écrit — une entrée `## <date> — NUI20` au journal de `context AI/08-etat.md`, et rien d'autre.
 
 **Prompt**
