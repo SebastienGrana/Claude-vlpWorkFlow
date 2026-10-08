@@ -27,10 +27,12 @@
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
-  <section hidden>
-    <h2>Chantier clos le </h2>
+  <section>
+    <h2>Chantier clos le 2026-10-09</h2>
     <div class="bilan">
-      <p></p>
+      <p>Livré : Les deux suites retirent VLP_NUIT, VLP_CARNET et VLP_CANAL en tête (carnet.VARIABLES_NUIT) ; un test de 1,4 s et son mutant le gardent</p>
+      <p>Surpris : VLP_CANAL seule causait les 2 ÉCART ; VLP_NUIT était déjà retirée, VLP_CARNET ne gênait pas</p>
+      <p>Estimé : estimé 1 fiches ≈4,02 $ · cadré 1 · joué 1 fiches 4,09 $</p>
     </div>
   </section>
 
@@ -41,10 +43,10 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">ENV1</span></span>
         <details><summary><span class="titre">Reproduire, puis retirer les variables de la nuit</span><span class="etat">Faite</span></summary>
         <span class="note">Suite sous VLP_NUIT=1, VLP_CARNET, VLP_CANAL=B : OK, 0 ÉCART (avant : 2, causés par VLP_CANAL seule). Suite sans variable : OK. pyright 0 errors (3 fichiers). Mutant du retrait en tête de test-boucle.py : MUTANT ATTRAPÉ 1 écart(s). Test neuf : 1,4 s.</span></details>
-        <span class="cout mono">≈4,1M (4 076 824) · 32 tours · 1,89 $</span></li>
+        <span class="cout mono">≈4,3M (4 349 637) · 34 tours · 1,98 $</span></li>
     </ul>
-    <p class="mono cout-hors">Hors fiches : ≈3,1M (3 060 750) · 24 tours · 1,87 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈7,1M (7 137 574) · 56 tours · 3,76 $</p>
+    <p class="mono cout-hors">Hors fiches : ≈3,9M (3 909 785) · 30 tours · 2,11 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈8,3M (8 259 422) · 64 tours · 4,09 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
