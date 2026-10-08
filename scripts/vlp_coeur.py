@@ -317,6 +317,7 @@ def carte(depart, sortie, relecteur=False, neuve=False):
         for v in voisins:
             m = next((ALIAS.match(l) for l in lire(v).split("\n") if ALIAS.match(l)), None)
             sortie.write("VOISIN=%s alias=%s\n" % (os.path.dirname(v), m.group(1) if m else "?"))
+            sortie.write("".join(l + "\n" for l in ligne_git(os.path.dirname(v))))
         if not voisins:
             sortie.write("AUCUN_PROJET\n")
         return 0
@@ -341,6 +342,7 @@ def carte(depart, sortie, relecteur=False, neuve=False):
                          '/reload-plugins : git -C "%s" merge --ff-only %s\n'
                          % (retard[0], retard[1].replace("\\", "/"), retard[2]))
         ecrire_ailleurs(racine, sortie)
+        sortie.write("".join(l + "\n" for l in ligne_git(racine)))
     if courant is None:
         sortie.write("--- fichier de fiches courant : aucun ---\n")
         imprimer_todo(texte, racine, sortie)
@@ -1263,6 +1265,59 @@ def retard_plugin(racine, kit=None):
     if branche.strip() == "HEAD":
         _, branche = git_texte(["rev-parse", "--short", "HEAD"], racine)
     return int(n), principal, branche.strip()
+
+
+def regrouper_dossiers(racine, chemins):
+    """`chemins` (relatifs à `racine`, en barres obliques), où un dossier dont tous les fichiers sur disque sont
+    dans la liste se nomme par lui-même (`ctx/`), pas fichier par fichier, et ses seuls fichiers directs par `ctx/*`
+    (ses sous-dossiers restent nommés) ; la racine ne se regroupe jamais."""
+    par_dossier = {}
+    for c in chemins:
+        par_dossier.setdefault(c.rstrip("/").rpartition("/")[0], []).append(c)
+    rendus = []
+    for d, liste in sorted(par_dossier.items()):
+        noms = {c.rstrip("/").rpartition("/")[2] for c in liste}
+        try:
+            sur_disque = set(os.listdir(os.path.join(racine, d))) if d else None
+        except OSError:
+            sur_disque = None
+        if sur_disque is None:
+            rendus += sorted(liste)
+        elif sur_disque == noms:
+            rendus.append(d + "/")
+        elif {n for n in sur_disque if os.path.isfile(os.path.join(racine, d, n))} <= noms:
+            rendus += [d + "/*"] + sorted(c for c in liste if c.endswith("/"))
+        else:
+            rendus += sorted(liste)
+    return rendus
+
+
+def etat_git(racine):
+    """L'état Git de ce que la méthode veut suivi (`methode-chantier.md`, « Ce qui part dans Git ») : `CHANTIER.md`,
+    `CLAUDE.md`, le dossier de la ligne **contexte**. `None` hors d'un dépôt Git (ou Git muet) ; sinon
+    `{"ignoré": [...], "non ajouté": [...]}`, vides quand tout est suivi (NUI35, partagé avec `niveau`)."""
+    code, _ = git_texte(["rev-parse", "--show-toplevel"], racine)
+    if code != 0:
+        return None
+    contexte = champ(lignes_de(os.path.join(racine, "CHANTIER.md")), "contexte", "context AI/")
+    cibles = ["CHANTIER.md", "CLAUDE.md", contexte.rstrip("/") + "/"]
+    etat = {}
+    for nom, options in (("ignoré", ["--ignored"]), ("non ajouté", [])):
+        code, t = git_texte(["ls-files", "--others", "--exclude-standard", "--directory"] + options + ["--"] + cibles,
+                            racine)
+        # Le cache de Python n'est jamais du contexte : il reste ignoré sans écart.
+        chemins = [l for l in t.split("\n") if l and not l.endswith("__pycache__/")] if code == 0 else []
+        etat[nom] = regrouper_dossiers(racine, chemins)
+    return etat
+
+
+def ligne_git(racine):
+    """Les lignes `GIT=` de la carte : `GIT=suivi`, `GIT=hors Git`, ou `GIT=ignoré …` et/ou `GIT=non ajouté …`."""
+    etat = etat_git(racine)
+    if etat is None:
+        return ["GIT=hors Git"]
+    lignes = ["GIT=%s %s" % (nom, ", ".join(liste)) for nom, liste in etat.items() if liste]
+    return lignes or ["GIT=suivi"]
 
 
 def prefixe_relecture():

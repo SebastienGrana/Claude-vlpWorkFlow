@@ -211,8 +211,9 @@ def tester_carte_projet():
         ecrire(os.path.join(w, "a", "CHANTIER.md"), CHANTIER % ("aa", "context AI/"))
         ecrire(os.path.join(w, "c", "chantier.md"), "une commande\n")
         s = rendu(w)
-        verifier("voisins triés avec alias",
-                 s == "VOISIN=%s alias=aa\nVOISIN=%s alias=bb\n" % (os.path.join(w, "a"), os.path.join(w, "b")), s)
+        verifier("voisins triés avec alias, et leur GIT=",
+                 s == "VOISIN=%s alias=aa\nGIT=hors Git\nVOISIN=%s alias=bb\nGIT=hors Git\n"
+                 % (os.path.join(w, "a"), os.path.join(w, "b")), s)
 
         vide = os.path.join(t, "vide")
         os.makedirs(vide)
@@ -221,6 +222,46 @@ def tester_carte_projet():
 
 
 groupe(tester_carte_projet)
+
+
+def tester_carte_git():
+    """NUI35 : la ligne `GIT=` de la carte — tout suivi, un fichier ignoré, un fichier non ajouté, un dossier nommé
+    par lui-même, hors Git ; jamais pour le relecteur."""
+    def git(d, *args):
+        subprocess.run(["git"] + list(args), cwd=d, capture_output=True, check=True)
+
+    def lignes_git(d, relecteur=False):
+        s = io.StringIO()
+        mod.carte(d, s, relecteur)
+        return [l for l in s.getvalue().split("\n") if l.startswith("GIT=")]
+
+    with tempfile.TemporaryDirectory() as t:
+        p = os.path.join(t, "p")
+        ecrire(os.path.join(p, "CHANTIER.md"), CHANTIER % ("pg", "ctx/"))
+        verifier("git : hors Git", lignes_git(p) == ["GIT=hors Git"], lignes_git(p))
+        ecrire(os.path.join(p, "CLAUDE.md"), "# p\n")
+        ecrire(os.path.join(p, "ctx", "08-etat.md"), "# état\n")
+        ecrire(os.path.join(p, "ctx", "artefacts", "page.html"), "<p>\n")
+        git(p, "init", "-q")
+        verifier("git : dossier entier non ajouté",
+                 lignes_git(p) == ["GIT=non ajouté CHANTIER.md, CLAUDE.md, ctx/"], lignes_git(p))
+        git(p, "add", "-A")
+        verifier("git : tout suivi", lignes_git(p) == ["GIT=suivi"], lignes_git(p))
+        verifier("git : rien pour le relecteur", lignes_git(p, relecteur=True) == [], lignes_git(p, True))
+        ecrire(os.path.join(p, "ctx", "09-neuf.md"), "# neuf\n")
+        verifier("git : un fichier non ajouté", lignes_git(p) == ["GIT=non ajouté ctx/09-neuf.md"], lignes_git(p))
+        git(p, "rm", "-q", "--cached", "CHANTIER.md")
+        ecrire(os.path.join(p, ".gitignore"), "CHANTIER.md\n")
+        verifier("git : un fichier ignoré, l'autre non ajouté",
+                 lignes_git(p) == ["GIT=ignoré CHANTIER.md", "GIT=non ajouté ctx/09-neuf.md"], lignes_git(p))
+        git(p, "rm", "-q", "--cached", "ctx/08-etat.md")
+        ecrire(os.path.join(p, ".gitignore"), "CHANTIER.md\nctx/*\n!ctx/artefacts/\n__pycache__/\n")
+        ecrire(os.path.join(p, "ctx", "__pycache__", "x.pyc"), "x")
+        verifier("git : les fichiers directs d'un dossier en ctx/*, sans __pycache__",
+                 lignes_git(p) == ["GIT=ignoré CHANTIER.md, ctx/*"], lignes_git(p))
+
+
+groupe(tester_carte_git)
 
 
 def test_carte_relecteur():
@@ -241,7 +282,9 @@ def test_carte_relecteur():
                  "piège" not in r and "PROCHAINE=" not in r and "PROJET=%s\n" % pr in r, r)
         verifier("carte --relecteur : ni l'étendue des fiches (dette REL), mais le chemin",
                  "ZZZ2" not in r and "COURANT=context AI/20-z.md\n" in r, r)
-        verifier("carte --relecteur : le reste à l'octet près", s.startswith(r) and "- **alias** : pr" in r, r)
+        sans_git = "".join(l for l in s.splitlines(True) if not l.startswith("GIT="))   # NUI35 : pas pour le relecteur
+        verifier("carte --relecteur : le reste à l'octet près, sans GIT=",
+                 sans_git.startswith(r) and "- **alias** : pr" in r and "GIT=" in s and "GIT=" not in r, r)
         j = io.StringIO()
         mod.carte_injectee(pr, "py", False, j, relecteur=True)
         j = j.getvalue()

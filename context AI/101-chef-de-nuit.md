@@ -1453,8 +1453,9 @@ Tu ne fais pas : la carte (`NUI35`), `niveau` (`NUI36`), les projets équipés (
 ---
 
 <!-- FICHE:NUI35 -->
-## NUI35 [ ] — La carte dit `GIT=`
+## NUI35 [x] — La carte dit `GIT=`
 
+**Session** : 8f1001ac-c741-4321-857f-e7254edea0a5
 **Dépend de** : `NUI34`.
 **Fichiers** : `scripts/vlp_coeur.py` (`carte`, et une fonction neuve), `scripts/vlp.py` (docstring de `carte`),
 `scripts/test-vlp.py`, `skills/tache/SKILL.md` et `skills/chantier/SKILL.md` (l'étape 0, une ligne chacun) — et rien d'autre.

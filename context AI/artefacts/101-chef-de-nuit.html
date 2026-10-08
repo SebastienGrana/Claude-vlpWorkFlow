@@ -21,9 +21,9 @@
     <p>/vlp:chef cadre le soir, deux canaux jouent les chantiers la nuit sans humain, puis fusion et rapport le matin</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">37 fiches · 31 faites · en cours : NUI35</p>
+    <p class="mono" style="margin-top:.5rem">37 fiches · 32 faites · en cours : NUI36</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -161,29 +161,30 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">NUI34</span></span>
         <details><summary><span class="titre">La règle : les fichiers de la méthode sont suivis par Git</span><span class="etat">Faite</span></summary>
         <span class="note">grep « ne part pas dans git » 1→0, « exclut son contexte » 1→0, « fichier de fiches courant » dans init 1→0 ; aucun chemin de machine dans CHANTIER.md ni le gabarit ; test-vlp OK (4 min 56 s)</span></details>
-        <span class="cout mono">≈8,8M (8 768 113) · 39 tours · 3,47 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">NUI35</span></span>
-        <details open><summary><span class="titre">La carte dit GIT=</span><span class="etat">En cours</span></summary>
-        <span class="note">la carte dit GIT= dès le premier tour ; après NUI34</span></details></li>
-      <li class="fiche"><span class="gauche"><span class="id">NUI36</span></span>
-        <details><summary><span class="titre">niveau signale ÉCART: git:</span><span class="etat">À lancer</span></summary>
+        <span class="cout mono">≈9,4M (9 369 941) · 41 tours · 3,61 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">NUI35</span></span>
+        <details><summary><span class="titre">La carte dit GIT=</span><span class="etat">Faite</span></summary>
+        <span class="note">carte : kit GIT=suivi, Cairn GIT=ignoré CHANTIER.md, CLAUDE.md, context AI/* ; 7 contrôles neufs, suite OK ; mutant toujours-suivi ATTRAPÉ 4 écarts ; pyright 0 erreur</span></details>
+        <span class="cout mono">≈5,4M (5 443 904) · 31 tours · 2,51 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">NUI36</span></span>
+        <details open><summary><span class="titre">niveau signale ÉCART: git:</span><span class="etat">En cours · NUI33 peut partir en même temps</span></summary>
         <span class="note">niveau signale ÉCART: git: ; après NUI34</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">NUI37</span></span>
-        <details><summary><span class="titre">Mettre Cairn, ONZSM et TrackGen sous Git</span><span class="etat">Après NUI35, NUI36</span></summary>
+        <details><summary><span class="titre">Mettre Cairn, ONZSM et TrackGen sous Git</span><span class="etat">Après NUI36</span></summary>
         <span class="note">Cairn, ONZSM, TrackGen sous Git, sans push ; après NUI35, NUI36</span></details>
         <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
       <li class="fiche"><span class="gauche"><span class="id">NUI32</span></span>
         <details><summary><span class="titre">Remettre NUI20 au nouveau modèle</span><span class="etat">À lancer</span></summary>
         <span class="note">NUI20 remise au nouveau modèle ; après NUI21 à NUI31</span></details></li>
       <li class="fiche"><span class="gauche"><span class="id">NUI33</span></span>
-        <details><summary><span class="titre">Le joueur en Opus 5.5 medium, la relance en xhigh</span><span class="etat">À lancer</span></summary></details></li>
+        <details><summary><span class="titre">Le joueur en Opus 5.5 medium, la relance en xhigh</span><span class="etat">À lancer · en même temps que NUI36</span></summary></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">NUI20</span></span>
         <details><summary><span class="titre">Jouer une nuit réelle</span><span class="etat">Après NUI32, NUI33</span></summary>
         <span class="note">une vraie nuit sur le kit, mesurée — dépend de toutes</span></details>
         <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈679,9k (679 863) · 3 tours · 0,18 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈352,2M (352 232 266) · 2074 tours · 154,02 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈358,3M (358 277 998) · 2107 tours · 156,67 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

@@ -24,7 +24,11 @@ Sous-commandes :
   kit, de `## Le fichier de fiches` jusqu'avant le titre qui suit `## Les deux
   formes de critère de fin` — `--- méthode : <chemin> (lignes A–B) ---` et le
   texte, ou `METHODE=absente <chemin>` si un titre manque, ou `GARDE:`.
-  Pas trouvé : une ligne `VOISIN=` par sous-dossier équipé, avec son alias, ou
+  Hors `--relecteur`, après `PLUGIN_RETARD=` et `AILLEURS=` : `GIT=suivi` quand `CHANTIER.md`, `CLAUDE.md` et le
+  dossier **contexte** le sont, sinon `GIT=ignoré <chemins>` et/ou `GIT=non ajouté <chemins>` (séparés par `, ` ;
+  un dossier entier se nomme `ctx/`, ses seuls fichiers directs `ctx/*` ; `__pycache__/` écarté), ou `GIT=hors Git`
+  (NUI35, `etat_git`).
+  Pas trouvé : une ligne `VOISIN=` par sous-dossier équipé, avec son alias, suivie de sa ligne `GIT=`, ou
   `AUCUN_PROJET`. Sort toujours 0 : la commande lit la sortie, elle ne doit pas
   se faire refuser l'injection. `--python NOM` (les injections des skills : `"py -3"`, `python3` au relais ;
   VIT24) : une ligne vide, `PYTHON=NOM`,

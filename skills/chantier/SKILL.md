@@ -49,6 +49,7 @@ s'applique :
 **`NUIT=1`** : lis `nuit.md` par `<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" lire nuit.md` ; il prime sur les étapes qui suivent.
 
 Des lignes **`ATTENTE=<page> <url>`** : republie ces pages d'abord (`ARTEFACTS.md`, « Une publication refusée »).
+**`GIT=`** autre que `suivi` : dis-le en une ligne ; ne promets aucun commit sur ces fichiers.
 
 Dans les cas 2 et 3, relance la carte sur le dossier retenu —
 `<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte "<dossier>"` (`<python>` : la valeur de `PYTHON=` dans la carte). Sortie vide
