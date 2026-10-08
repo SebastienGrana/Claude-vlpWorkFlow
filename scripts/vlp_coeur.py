@@ -4235,9 +4235,16 @@ def trier(rangs, lettres):
 
 
 def cmd_trier(a, sortie):
+    """`trier <projet>` : le tri du soir ; dans Git, sur `main` seulement — ailleurs une `GARDE:`, rien trié (BRA1)."""
     if not equipe(a.projet):
         sortie.write("GARDE: pas de CHANTIER.md dans %s\n" % a.projet)
         return 1
+    if git_texte(["rev-parse", "--is-inside-work-tree"], a.projet)[0] == 0:
+        code, tete = git_texte(["symbolic-ref", "--short", "-q", "HEAD"], a.projet)
+        branche = tete.strip() if code == 0 else "rien (détaché)"
+        if branche != "main":
+            sortie.write("GARDE: trier hors de main (branche %s) — le plan ne s'écrit que sur main : rien trié\n" % branche)
+            return 1
     try:
         carte_ = lignes_de(os.path.join(a.projet, "CHANTIER.md"))
         etat = champ(carte_, "fichier d'état")

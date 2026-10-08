@@ -50,8 +50,10 @@ Une seule fiche : rien à paralléliser.
 ---
 
 <!-- FICHE:BRA1 -->
-## BRA1 [ ] — Garder `trier` hors de `main`, et le dire dans `/vlp:chef`
+## BRA1 [x] — Garder `trier` hors de `main`, et le dire dans `/vlp:chef`
 
+**Session** : d07d8dca-b35a-403d-b775-407e75d4c15b
+**Session** : 207c6c14-a02f-4b06-af9d-eb1734dad821 (relire)
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp_coeur.py`, `scripts/vlp.py`, `scripts/test-vlp.py`, `skills/chef/SKILL.md` — et rien d'autre.
 

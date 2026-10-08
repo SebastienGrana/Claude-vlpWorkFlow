@@ -220,7 +220,7 @@ Sous-commandes :
   `<img>` posée une fois avant `details.clos` (`balise_couts`), ses barres dans `data-couts`
   pour `vlp.js` ; sans coût, ni l'un ni l'autre.
 - `trier <projet>` — le tri du soir par script (chantier NUI) : lecture seule, aucun appel modèle, sur la TODO
-  du fichier d'état. Par rang : `PRÊT <code>` ou `ÉCARTÉE <code> — <raison>` (la marque `MARQUE_VISUELLE` ou `push`
+  du fichier d'état ; dans Git hors de `main` (ou tête détachée), `GARDE:`, rien trié, sort 1 (BRA1). Par rang : `PRÊT <code>` ou `ÉCARTÉE <code> — <raison>` (la marque `MARQUE_VISUELLE` ou `push`
   en cellule 3-4, ou une dépendance non close ; une prête du même soir compte pour close), `FICHIERS <code> <chemins>`,
   `MARQUES <code> <total> : …` (`MARQUES_TRI`), `SOIR <code> — <raison>` pour une prête à découper le soir
   (au-delà de `GROS_FICHES`, sans nombre, « à cadrer »). Puis `CANAL <k> : <codes> — <raisons>` par groupe de prêtes
