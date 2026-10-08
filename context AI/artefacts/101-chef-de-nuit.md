@@ -39,6 +39,7 @@
 - NUI36 : niveau, écarts git : Cairn 7, MapDecorator 10, ONZSM 4, TrackGen 5, kit 0 ; 5 contrôles neufs, suite OK ; mutant étape sautée ATTRAPÉ 2 écarts ; pyright 0 erreur
 - NUI37 : Cairn 6aedfe7 (78 fichiers), ONZSM eacdb9a (9), TrackGen 5fb18f1 (17) : niveau 0 écart git:, carte GIT=suivi, COURANT inchangé, rien poussé ; MapDecorator : liste lue, 10 lignes de chemin rendues génériques, 4 fichiers sur Cairn gardés hors Git
 - NUI33 : grep 0 et 0 (avant 2 et 1) ; test-vlp OK, 0 écart, 254 s ; MUTANT ATTRAPÉ 1 écart, arrêté sur NUI4 (b)(c) ; pyright 0 errors
+- NUI38 : TODO avant → après : NUI 6→21, AMD 2→6, ACA 2→6, REF 5→9, TAB 1→10,5, CTR 1,5→4,5, PRP 1→6, EFF 45→3,5, BDD 5→1,5, CAR et APR → None ; suite OK 334 s ; MUTANT ATTRAPÉ 1 écart (NUI38) ; pyright 0
 ## Journal
 - 2026-10-01 : Essai NUI14 sous NUIT=1 : une session claude -p sur une fiche triviale, 16 tours, 0,4623 $, 68 s (un appel lire nuit.md, 0 git commit, 0 cloture.md) ; boucle.py ne crée pas le dossier de --traces.
 - 2026-10-01 : NUI16 : essai D2, publie en union égal à la clé dans 3 cas sur 4 (empreintes différentes : deux lignes contre clé retirée) → publie par la clé, pas de merge=union au .gitattributes

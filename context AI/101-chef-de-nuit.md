@@ -1595,8 +1595,9 @@ Tu ne fais pas : un essai `claude -p` ; les rôles `découper`, `relire`, `clore
 ---
 
 <!-- FICHE:NUI38 -->
-## NUI38 [ ] — Le tri lit la dernière estimation du coût
+## NUI38 [x] — Le tri lit la dernière estimation du coût
 
+**Session** : ffc88598-6beb-4183-ab5f-3921daa16197
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp_coeur.py` (`borne_haute_cout` seule), `scripts/test-vlp.py` (le cas `FEU8 : borne_haute_cout`) ;
 lus : les appelants (`decompte_todo`, `trier`, `juger_decoupe` de `boucle.py`) et la TODO de `context AI/08-etat.md` — et rien d'autre.

@@ -5811,6 +5811,30 @@ def tester_decompte_todo():
              and mod.borne_haute_cout("~½ fiche") == 0.5 and mod.borne_haute_cout("1½ fiche") == 1.5
              and mod.borne_haute_cout("🟡 pas estimé") is None and mod.borne_haute_cout("—") is None,
              (mod.borne_haute_cout("~0,5 fiche"), mod.borne_haute_cout("~4 à 6 fiches")))
+    # les cellules « Coût » de la TODO du 2026-10-08, recopiées telles quelles (NUI38)
+    cellules = {
+        "~6 fiches, plus une nuit d'essai · ré-estimé à `MET10` (restent `NUI28` à `NUI32` et `NUI20`, `CLR` compris : "
+        "7 fiches) : 14 à 21 fiches, 52 à 77 $, plus la nuit d'essai (borne 20 $)": 21.0,
+        "~2 fiches de lecture et de mesure, sans code, plus un essai de Remote Build `(visuel)` : jeu ouvert, geste de "
+        "l'utilisateur (estimé, non mesuré — les estimations sous-estiment) · ré-estimé à `MET10` : 4 à 6 fiches, 15 à 22 $": 6.0,
+        "5 fiches, dont 2 qui demandent une réponse de l'utilisateur (REF2, REF5) et 1 de code (REF3, le script de mesure) "
+        "· ré-estimé à `MET10`, re-cadré en 3 fiches : 6 à 9 fiches, 22 à 33 $ ; le refactoring, chiffré par son bilan": 9.0,
+        "~1 fiche (estimé, non mesuré — les estimations sous-estiment) · ré-estimé à `MET10`, `CLV` et `OTE` compris : "
+        "3,5 fiches → 7 à 10,5, 26 à 39 $": 10.5,
+        "~1½ fiche (estimé, non mesuré ; ~½ avant la fonte) · ré-estimé à `MET10` : 3 à 4,5 fiches, 11 à 17 $": 4.5,
+        "~1 fiche (estimé, non mesuré) · ré-estimé à `MET10` : 2 à 3 fiches, 7,4 à 11 $ · avec la recopie (clôture de "
+        "`MET`) : 4 à 6 fiches, 15 à 22 $": 6.0,
+        "≈ 10 $ d'essais et ≈ 1 h 45, estimés depuis `MET4`, non mesurés ; plus le juge, ~1 fiche → 2 à 3 fiches, 7,4 à "
+        "11 $ · avec les 2 essais (clôture de `MET`) : +½ fiche → 2,5 à 3,5 fiches, 9 à 13 $": 3.5,
+        "~5 fiches · ≈15 $ au taux du 2026-09-29 (3,03 $/fiche sur 80 clos ; estimé, non mesuré — les estimations "
+        "sous-estiment : chantiers de pages joués `LOC` 5 fiches 11,74 $, `PLI` 7 fiches 17,96 $, `BTN` 7 fiches 47,08 $) "
+        "· re-cadré à `MET10`, l'étape (1) seule : 1 à 1,5 fiche, 3,7 à 5,5 $ ; le reste, sur sa mesure": 1.5,
+        "~1 fiche, sans code (estimé, non mesuré) · re-cadré à `MET10` : sans fiche, une séance courte, non chiffrée": None,
+    }
+    lues = {c: mod.borne_haute_cout(c) for c in cellules}
+    verifier("NUI38 : borne_haute_cout — la dernière estimation fait foi (segment ` · `, puis `→`), ni somme ni durée, "
+             "« sans fiche » → None",
+             lues == cellules, [(c[:40], lues[c], v) for c, v in cellules.items() if lues[c] != v])
     verifier("FEU8 : est_bloque — code absent, numéro ou plage d'un rang présent, tiret non bloquant",
              mod.est_bloque("`AAA`", ["AAA"], {"1", "2"}) is False
              and mod.est_bloque("`ZZZ`", ["AAA"], {"1", "2"}) is True

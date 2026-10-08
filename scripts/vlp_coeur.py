@@ -3655,16 +3655,26 @@ RESUME_TODO = re.compile(r'    <p class="(?:mono )?resume-todo"[^>]*>.*?</p>\n')
 GROS_FICHES = 4
 
 
+NOMBRE_COUT = r"(?:\d+(?:,\d+)?½?|½)"
+PLAGE_COUT = r"%s(?:\s*(?:à|-)\s*%s)?" % (NOMBRE_COUT, NOMBRE_COUT)
+
+
 def borne_haute_cout(cout):
     """La borne haute d'un « Coût » de TODO, en fiches — `~4 à 6` → 6, `2-3` → 3, `~0,5` → 0,5,
-    `~½` → 0,5 (`½` se lit 0,5 ; `1½`, 1,5) —, ou `None` sans nombre avant le premier « fiche(s) »
-    (`à cadrer`, `🟡 pas estimé`, `—`) (FEU8, NUI10)."""
-    m = re.search(r"\bfiches?\b", cout)
-    if not m:
+    `~½` → 0,5 (`½` se lit 0,5 ; `1½`, 1,5) —, ou `None` sans plage suivie de « fiche(s) »
+    (`à cadrer`, `🟡 pas estimé`, `—`, `sans fiche`) (FEU8, NUI10). La dernière estimation fait foi
+    (NUI38) : le dernier segment ` · ` qui dit « fiche(s) » ; dans ce segment, la plage qui suit la
+    dernière `→`, sinon la dernière plage suivie de « fiche(s) » — jamais une somme ni une durée."""
+    segments = [s for s in cout.split(" · ") if re.search(r"\bfiches?\b", s)]
+    if not segments:
         return None
-    nombres = re.findall(r"\d+(?:,\d+)?½?|½", cout[:m.start()])
-    valeurs = [float(n.rstrip("½").replace(",", ".") or 0) + (0.5 if n.endswith("½") else 0) for n in nombres]
-    return max(valeurs) if valeurs else None
+    segment = segments[-1]
+    apres = re.match(r"\s*[~≈+]?\s*(%s)" % PLAGE_COUT, segment.rsplit("→", 1)[1]) if "→" in segment else None
+    plages = [apres.group(1)] if apres else re.findall(r"(%s)\s*fiches?\b" % PLAGE_COUT, segment)
+    if not plages:
+        return None
+    nombres = re.findall(NOMBRE_COUT, plages[-1])
+    return max(float(n.rstrip("½").replace(",", ".") or 0) + (0.5 if n.endswith("½") else 0) for n in nombres)
 
 
 def dependances(depend):
