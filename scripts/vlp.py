@@ -9,7 +9,8 @@ Sous-commandes :
   d'attente (`attente`, sauf avec `--relecteur`), `NUIT=1` si `VLP_NUIT` vaut `1` (la nuit : toute autre
   valeur, absente, ou `--relecteur` : rien — chantier NUI), `PLUGIN_RETARD=<n> … merge --ff-only <branche>` si
   le plugin chargé n'a pas le code de ce worktree du kit (`retard_plugin`, chantier ESR, sauf avec
-  `--relecteur`), puis — si un fichier de fiches est courant — ses titres
+  `--relecteur`), une ligne `AILLEURS=<code> <dossier>` par chantier courant d'un autre worktree (`chantiers_ailleurs`,
+  NUI28, sauf avec `--relecteur`), puis — si un fichier de fiches est courant — ses titres
   de fiches numérotés, `PROCHAINE=<fiche>` (la première non cochée, dans l'ordre
   du fichier) ou `PROCHAINE=aucune`, et une `GARDE` si le fichier a des lignes
   mais aucun titre au format attendu. Aucun fichier courant : pour chaque

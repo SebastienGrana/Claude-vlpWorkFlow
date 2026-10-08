@@ -16,14 +16,14 @@
 
 <div class="page">
   <header>
-    <div class="eyebrow">vlp · fiches NUI1–NUI32 · <a href="https://claude.ai/artifact/YWDny8kjubq9DhdP5rbPxA">la feuille de route</a></div>
+    <div class="eyebrow">vlp · fiches NUI1–NUI33 · <a href="https://claude.ai/artifact/YWDny8kjubq9DhdP5rbPxA">la feuille de route</a></div>
     <h1>Le chef de nuit</h1>
     <p>/vlp:chef cadre le soir, deux canaux jouent les chantiers la nuit sans humain, puis fusion et rapport le matin</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">32 fiches · 26 faites · en cours : NUI28</p>
+    <p class="mono" style="margin-top:.5rem">33 fiches · 27 faites · en cours : NUI29</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -141,15 +141,16 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">NUI27</span></span>
         <details><summary><span class="titre">Une lettre en double n'est plus avalée</span><span class="etat">Faite</span></summary>
         <span class="note">suite OK (0 écart, 9 min), mutant attrapé par NUI27 (a) seul ; pyright 0</span></details>
-        <span class="cout mono">≈7,1M (7 060 942) · 34 tours · 2,84 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">NUI28</span></span>
-        <details open><summary><span class="titre">Voir les chantiers en cours dans les autres worktrees</span><span class="etat">En cours</span></summary>
-        <span class="note">la carte voit les chantiers des autres worktrees ; après NUI22</span></details></li>
-      <li class="fiche" data-attend><span class="gauche"><span class="id">NUI29</span></span>
-        <details><summary><span class="titre">La prose lit COURANT=</span><span class="etat">Après NUI28</span></summary>
+        <span class="cout mono">≈7,2M (7 181 477) · 35 tours · 2,88 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">NUI28</span></span>
+        <details><summary><span class="titre">Voir les chantiers en cours dans les autres worktrees</span><span class="etat">Faite</span></summary>
+        <span class="note">test-vlp OK (309 s, 0 ÉCART), 2 contrôles NUI28 ; MUTANT ATTRAPÉ 2 écart(s) ; carte du kit 86 → 86 lignes ; pyright 0 errors (3 fichiers) ; coût gonflé par VIT/MET/ARP, à recouper avant clore</span></details>
+        <span class="cout mono">≈29,8M (29 845 972) · 160 tours · 19,31 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">NUI29</span></span>
+        <details open><summary><span class="titre">La prose lit COURANT=</span><span class="etat">En cours · NUI30 peut partir en même temps</span></summary>
         <span class="note">la prose des commandes lit COURANT= ; après NUI23, NUI25, NUI26, NUI28</span></details></li>
       <li class="fiche"><span class="gauche"><span class="id">NUI30</span></span>
-        <details><summary><span class="titre">Remettre les projets équipés au modèle de la marque</span><span class="etat">À lancer</span></summary>
+        <details><summary><span class="titre">Remettre les projets équipés au modèle de la marque</span><span class="etat">À lancer · en même temps que NUI29</span></summary>
         <span class="note">les projets équipés reçoivent leurs marques, Cairn HD en pause ; après NUI23</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">NUI31</span></span>
         <details><summary><span class="titre">Retirer la vieille ligne de CHANTIER.md</span><span class="etat">Après NUI29, NUI30</span></summary>
@@ -157,13 +158,15 @@
       <li class="fiche" data-attend><span class="gauche"><span class="id">NUI32</span></span>
         <details><summary><span class="titre">Remettre NUI20 au nouveau modèle</span><span class="etat">Après NUI31</span></summary>
         <span class="note">NUI20 remise au nouveau modèle ; après NUI21 à NUI31</span></details></li>
+      <li class="fiche"><span class="gauche"><span class="id">NUI33</span></span>
+        <details><summary><span class="titre">Le joueur en Opus 5.5 medium, la relance en xhigh</span><span class="etat">À lancer</span></summary></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">NUI20</span></span>
-        <details><summary><span class="titre">Jouer une nuit réelle</span><span class="etat">Après NUI32</span></summary>
+        <details><summary><span class="titre">Jouer une nuit réelle</span><span class="etat">Après NUI32, NUI33</span></summary>
         <span class="note">une vraie nuit sur le kit, mesurée — dépend de toutes</span></details>
         <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈679,9k (679 863) · 3 tours · 0,18 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈268,6M (268 578 260) · 1621 tours · 111,17 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈298,5M (298 544 767) · 1782 tours · 130,52 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -187,7 +190,7 @@
 
   <footer>
     <span>Fichier de fiches : <span class="mono">context AI/101-chef-de-nuit.md</span></span>
-    <span>Mis à jour le <span class="mono">2026-10-03</span></span>
+    <span>Mis à jour le <span class="mono">2026-10-08</span></span>
   </footer>
 </div>
 <script src="vlp.js"></script>

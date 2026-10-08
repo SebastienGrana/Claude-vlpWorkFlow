@@ -29,7 +29,7 @@
 - NUI25 : test-boucle OK (NUI25 4/4 : hérité ni joué ni touché, découpage vide, GARDE au départ, GARDE après clore) ; test-vlp OK 0 ÉCART ; mutant 952 ligne brute ATTRAPÉ ; pyright 0 ; faux-claude.py touché hors liste (fichier dans le contexte)
 - NUI26 : test-vlp OK (0 écart, 19:32→19:41) ; mutant exception CLOS → MUTANT ATTRAPÉ 1 écart (NUI26 a) ; pyright 0 ; « main » en dur : vlp.py 2 → 1 (cmd_matin, choix A), boucle.py 2 (cause_de_refus, lanceur, choix A), label merge-file → HEAD
 - NUI27 : suite OK (0 écart, 9 min), mutant attrapé par NUI27 (a) seul ; pyright 0
-- NUI28 : la carte voit les chantiers des autres worktrees ; après NUI22
+- NUI28 : test-vlp OK (309 s, 0 ÉCART), 2 contrôles NUI28 ; MUTANT ATTRAPÉ 2 écart(s) ; carte du kit 86 → 86 lignes ; pyright 0 errors (3 fichiers) ; coût gonflé par VIT/MET/ARP, à recouper avant clore
 - NUI29 : la prose des commandes lit COURANT= ; après NUI23, NUI25, NUI26, NUI28
 - NUI30 : les projets équipés reçoivent leurs marques, Cairn HD en pause ; après NUI23
 - NUI31 : la vieille ligne de CHANTIER.md disparaît ; après NUI29, NUI30

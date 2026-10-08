@@ -8131,6 +8131,55 @@ def tester_lettres_doublon():
 groupe(tester_lettres_doublon)
 
 
+def tester_ailleurs():
+    """NUI28 : `carte` nomme le chantier de chaque autre worktree (`AILLEURS=`), jamais le sien, ni un worktree sans
+    chantier ; `niveau` ne compte pas d'écart de page à un chantier qui joue dans un autre worktree que le principal."""
+    if not shutil.which("git"):
+        print("SAUTÉ: git absent — AILLEURS= n'est pas testé")
+        return
+    with tempfile.TemporaryDirectory() as tr:
+        d = os.path.join(tr, "m")
+        depot_matin(d)
+        carte = os.path.join(d, "CHANTIER.md")
+        ecrire(carte, re.sub(r"(\*\*(?:fichier de fiches courant|artefact du chantier)\*\* : ).*", r"\g<1>aucun", lire(carte)))
+        ecrire(os.path.join(d, "ctx", "80-maa.md"), "# Chantier MAA — Main\n\n%s\n\n## MAA1 [ ] — a\n" % OUVERT_DU_JOUR)
+        commit_matin(d, "MAA ouvert", 3)
+        dossiers = {"m": d}
+        for nom, code in (("a", "WZA"), ("b", "WZB"), ("c", None)):
+            w = dossiers[nom] = os.path.join(tr, "wt-" + nom)
+            git_matin(d, "worktree", "add", "-q", "-b", nom, w, "main")
+            if code:
+                ecrire(os.path.join(w, "ctx", "81-%s.md" % nom), "# Chantier %s — %s\n\n%s\n\n## %s1 [ ] — a\n"
+                       % (code, nom, OUVERT_DU_JOUR, code))
+        vus = {}
+        for nom, w in dossiers.items():
+            s = appel(["carte", w])[1]
+            vus[nom] = sorted((l.split()[0][len("AILLEURS="):], os.path.basename(l.split(None, 1)[1].rstrip("/")))
+                              for l in s.splitlines() if l.startswith("AILLEURS="))
+    attendu = {"m": [("WZA", "wt-a"), ("WZB", "wt-b")], "a": [("MAA", "m"), ("WZB", "wt-b")],
+               "b": [("MAA", "m"), ("WZA", "wt-a")], "c": [("MAA", "m"), ("WZA", "wt-a"), ("WZB", "wt-b")]}
+    verifier("NUI28 (a) main + deux worktrees à chantier + un sans : la carte de chacun nomme les autres chantiers, "
+             "jamais le sien ; le worktree sans chantier n'est nommé par personne — mutant : le sien non filtré",
+             vus == attendu, vus)
+
+    with tempfile.TemporaryDirectory() as tr:
+        d, wl = os.path.join(tr, "n"), os.path.join(tr, "wt-l")
+        depot_matin(d)
+        _, seul = appel(["niveau", d])
+        git_matin(d, "worktree", "add", "-q", "-b", "l", wl, "main")
+        _, avec = appel(["niveau", d])
+        _, dans = appel(["niveau", wl])
+    verifier("NUI28 (b) niveau : LOC joué dans un worktree → « AILLEURS: page: LOC joue dans … », aucun ÉCART: page "
+             "dans le principal ; sans worktree, ou lancé dans le worktree, la page se compte",
+             "ÉCART: page:" in seul and "AILLEURS:" not in seul
+             and "AILLEURS: page: LOC joue dans " in avec and "wt-l" in avec and "ÉCART: page:" not in avec
+             and "AILLEURS:" not in dans,
+             (seul, avec, dans))
+
+
+groupe(tester_ailleurs)
+
+
 # VIT15 — des sondes, une règle de comptage chacune. SONDES_ATTENDU : leurs comptes par ruff 0.16.10, seuils à zéro et
 # `--preview` — complexité, branches, arguments, instructions, imbrication.
 SONDES = '''def f_vide():

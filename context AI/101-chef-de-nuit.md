@@ -1308,8 +1308,9 @@ Tu ne fais pas : voir les chantiers des autres worktrees dans la carte (`NUI28`)
 ---
 
 <!-- FICHE:NUI28 -->
-## NUI28 [ ] — Voir les chantiers en cours dans les autres worktrees
+## NUI28 [x] — Voir les chantiers en cours dans les autres worktrees
 
+**Session** : 3e844887-5662-42b0-bcd2-cf7323d0695a
 **Dépend de** : `NUI22`.
 **Fichiers** : `scripts/vlp_coeur.py`, `scripts/test-vlp.py` ; lus : `carte` et `cmd_niveau` (leurs lignes : `vlp.py symboles scripts/vlp_coeur.py carte cmd_niveau`) — et rien d'autre.
 

@@ -343,6 +343,7 @@ def carte(depart, sortie, relecteur=False, neuve=False):
             sortie.write('PLUGIN_RETARD=%d commit(s) de code du plugin absents du plugin chargé — avant un '
                          '/reload-plugins : git -C "%s" merge --ff-only %s\n'
                          % (retard[0], retard[1].replace("\\", "/"), retard[2]))
+        ecrire_ailleurs(racine, sortie)
     if courant is None:
         sortie.write("--- fichier de fiches courant : aucun ---\n")
         imprimer_todo(texte, racine, sortie)
@@ -5710,7 +5711,7 @@ def cmd_niveau(a, sortie):
         sortie.write("ÉCART: feuille: Markdown brut ou lien cassé%s\n"
                      % (" — « vlp.py niveau --ecrire » convertit les lignes closes" if n and not a.ecrire else ""))
 
-    courant = courant_de(projet)
+    courant = courant_a_compter(projet, sortie)
     if courant:
         fichier = chemin_garde(os.path.join(projet, courant), "fichier de fiches courant", courant)
         code, lignes = capte(cmd_page, argparse.Namespace(
@@ -5888,13 +5889,54 @@ def worktrees(racine):
     return blocs
 
 
+def autres_worktrees(racine):
+    """Les dossiers des autres worktrees du dépôt de `racine`, ceux qui existent encore, jamais le sien."""
+    ici = os.path.normcase(os.path.realpath(racine))
+    return [dossier for dossier, _ in worktrees(racine)
+            if os.path.isdir(dossier) and os.path.normcase(os.path.realpath(dossier)) != ici]
+
+
 def ouverts_ailleurs(racine):
     """`[(dossier, fichier)]` des chantiers ouverts dans les autres worktrees du dépôt de `racine`, lus dans leur arbre
     de travail par `ouverts` ; un dossier disparu n'en a aucun. `ouvrir` y refuse un code déjà pris (NUI27)."""
-    ici = os.path.normcase(os.path.realpath(racine))
-    return [(dossier, f) for dossier, _ in worktrees(racine)
-            if os.path.isdir(dossier) and os.path.normcase(os.path.realpath(dossier)) != ici
-            for f in ouverts(dossier)]
+    return [(dossier, f) for dossier in autres_worktrees(racine) for f in ouverts(dossier)]
+
+
+def chantiers_ailleurs(racine):
+    """`[(code, dossier)]` : le chantier que `courant_de` donne à chaque autre worktree, post-it compris ; un dossier
+    sans chantier, ou à plusieurs ouverts (`Absent`), n'en a aucun. `carte` les imprime en `AILLEURS=`, `niveau` n'y
+    compte pas d'écart de page (NUI28)."""
+    rendu = []
+    for dossier in autres_worktrees(racine):
+        try:
+            f = courant_de(dossier)
+        except Absent:
+            continue
+        ids = [l.split()[1] for l in lignes_de(os.path.join(dossier, f)) if TITRE.match(l)] if f else []
+        if ids:
+            rendu.append((lettre_de(ids[0]), dossier))
+    return rendu
+
+
+def ecrire_ailleurs(racine, sortie):
+    """Les lignes `AILLEURS=<code> <dossier>` de `carte`, une par chantier de `chantiers_ailleurs` (NUI28)."""
+    for code, dossier in chantiers_ailleurs(racine):
+        sortie.write("AILLEURS=%s %s\n" % (code, dossier))
+
+
+def courant_a_compter(projet, sortie):
+    """Le chantier courant dont `niveau` compte la page, ou None. Joué dans un autre worktree que le principal (Cairn,
+    MOR, 2026-09-29), sa page vit là-bas : `AILLEURS: page: …`, rien de compté (NUI28). Le principal n'en est pas un :
+    tout worktree hérite de lui son chantier."""
+    courant = courant_de(projet)
+    ids = [l.split()[1] for l in lignes_de(os.path.join(projet, courant)) if TITRE.match(l)] if courant else []
+    racine_p = os.path.normcase(os.path.realpath(principal(projet)[0] or projet))
+    joue = next((dossier for code, dossier in chantiers_ailleurs(projet) if ids and code == lettre_de(ids[0])
+                 and os.path.normcase(os.path.realpath(dossier)) != racine_p), None)
+    if joue:
+        sortie.write("AILLEURS: page: %s joue dans %s — non comptée\n" % (lettre_de(ids[0]), joue))
+        return None
+    return courant
 
 
 def branche_principale(racine):
