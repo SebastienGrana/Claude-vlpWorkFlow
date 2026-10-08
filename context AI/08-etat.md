@@ -3094,3 +3094,14 @@ Les 6 fichiers relus en entier contre `methode-chantier.md` après `MET7` ; « t
 
 - Cairn et MapDecorator ignorent `context AI/` (`.gitignore`), le bac n'est pas sous Git : les marques n'y voyagent pas, **0 commit** sur 3 projets ; aucun commit « Chantier X ouvert » non plus — FAM, P, S datés du jour de la migration.
 - Cairn : un worktree sans `CHANTIER.md` (ignoré) faisait planter `carte` et `niveau` (traceback, `textes_contexte`) — réparé. La copie de FAM dans le worktree `chantier-mor-61fb78` reste **non marquée** : à refaire là-bas avant `NUI31` (choix de l'utilisateur : migrer main malgré 3 worktrees ouverts).
+
+## 2026-10-08 — NUI20 — l'avant de la nuit, contrôles a à e
+
+- **Joué** dans le worktree `brave-matsumoto-e8ae4b`, sous `/vlp:enchainer` (série `NUI32` → `NUI20`), session `ffc88598`. Écrit avant la nuit, sur la réponse de l'utilisateur : le `/vlp:chef` d'une autre session, ouvert hors de `main`, croyait l'avant non joué faute de trace dans Git.
+- **a** ✅ 30 / 30 commits `<fiche> :` pour `NUI1` à `NUI31` (sauf `NUI20`) dans `main`.
+- **b** ✅ `vlp.py carte` dans un worktree neuf tiré de `main` → `COURANT=aucun` (main à `3de15fc`, puis à `df04447` après la fusion) ; worktree retiré.
+- **c** ✅ `PLUGIN_RETARD=1` au premier passage ; `main` avancé par `merge --ff-only` (`3de15fc` → `df04447`, réponse de l'utilisateur) ; `/reload-plugins` fait par l'utilisateur (« Reloaded: 7 plugins · 66 skills · 8 agents · 16 hooks ») ; `PLUGIN_RETARD=` absent ensuite (0 ligne).
+- **d** ✅ `py -3 scripts/test-vlp.py` sur `main` (`df04447`) → `OK`, code 0, `real 3m44.266s`.
+- **e** relevés : 4 worktrees (`main` `df04447`, `brave-matsumoto-e8ae4b` `df04447`, `vlp-check-82bbfe` `51de8a4`, `wonderful-elion-ec8521` `ae54499` détaché) ; `main` `df04447693302819bfef6d52be8b6d607848db51`, `origin/main` `846fd490aafd6e90955affc8d3d3e43cb5e86344` (rien poussé) ; `git status` de `main` : un non suivi, `context AI/observations-enchainer-agents-cairn.md`. Coût TODO : `TAB` « 3,5 fiches → 7 à 10,5, 26 à 39 $ » ; `APR` « sans fiche, une séance courte, non chiffrée » ; `CLV` fondu dans `TAB` à `MET10`.
+- **Écarts** : (1) le plan de Q7 (`TAB` puis `CLV` sur A, `APR` sur B) est périmé — `CLV` fondu, `APR` sans fiche ; l'utilisateur : « `/vlp:chef` choisit ce soir ». (2) La borne de 20 $ est sous le seul `TAB` (26 à 39 $) : à trancher au soir. (3) Le tri lisait la première estimation du coût (`TAB` 1 fiche, `EFF` 45) : `juger_decoupe` aurait refusé un découpage de `TAB` en plus de 2 fiches — corrigé par `NUI38` (`0f683b3`) avant la nuit. (4) Le critère 2 de `NUI32` comptait sa propre citation : « remet `aucun` » 2 → 1, pas 0.
+- **Reste** : la nuit, puis les comptes au retour (critères 2 à 5 de `NUI20`), dans une entrée à part.
