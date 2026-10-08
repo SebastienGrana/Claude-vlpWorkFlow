@@ -13,11 +13,11 @@ https://github.com/SebastienGrana/Claude-vlpWorkFlow — cloné et utilisé en g
 - Équipés : Cairn-VlpLib, MapDecorator, ProjetONZSM, TrackGen — et ce kit lui-même.
 - Chaque chantier clos a sa ligne dans `context AI/00-INDEX-archive.md`, son détail daté dans
   `context AI/08-etat.md` ; ici, les derniers seulement (`vlp.py clore` les tient).
-- Clos le 2026-10-08 : la méthode du kit triée, l'effort mesuré (medium, xhigh en recours), les essais hors bac comptés, la TODO relue de 17 à 13 lignes (chantier MET).
 - Clos le 2026-10-08 : consigne premier plan, alerte muette sous enchainer, ménage des tampons (chantier ARP).
 - Clos le 2026-10-08 : le chef vérifie la branche dès le tri (chantier BRA).
 - Clos le 2026-10-08 : le chef de nuit, essayé pour de vrai (chantier NUI).
 - Clos le 2026-10-09 : les tests ne voient plus les variables de la nuit (chantier ENV).
+- Clos le 2026-10-09 : le mutant suit le kit de sa cible (chantier MUW).
 
 ## Quatre règles non négociables
 
@@ -56,7 +56,6 @@ et seulement dans ce cas, ouvrir l'index.
 | savoir où vit quoi dans un projet équipé | `methode-chantier.md`, section « Où vit quoi » |
 | toucher aux pages publiées | `ARTEFACTS.md`, puis le gabarit dans `templates/` |
 | ouvrir un chantier, ou le découper en fiches | **lancer `/vlp:chantier`** |
-| jouer une fiche du chantier MUW (le mutant joue les tests du dépôt de sa cible) | `context AI/110-muw.md` — chantier **ouvert**, par `/vlp:tache MUW<n>` |
 | relire un chantier clos | `context AI/00-INDEX-archive.md` — sa ligne y nomme le fichier de fiches |
 | reprendre après une longue interruption | `context AI/08-etat.md` |
 | choisir le prochain chantier du kit, ou retrouver la preuve d'un bug relevé le 2026-09-17 | `context AI/12-audit.md` |

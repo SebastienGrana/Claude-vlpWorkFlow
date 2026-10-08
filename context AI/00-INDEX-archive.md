@@ -14,6 +14,7 @@ QUAND LIRE : on relit un chantier clos ; l'index n'en garde qu'une ligne qui ren
 | `101-chef-de-nuit.md` | on relit le socle du chantier NUI — **clos** « Le chef de nuit », `NUI1..NUI38` |
 | `109-env.md` | on relit le socle du chantier ENV — **clos** « Les tests ne voient plus les variables de la nuit », `ENV1..ENV1` |
 | `11-conso.md` | on joue une fiche `C*` — chantier **clos** « Afficher la conso sur toutes les pages », `C1..C2` |
+| `110-muw.md` | on relit le socle du chantier MUW — **clos** « Le mutant joue les tests du dépôt de sa cible », `MUW1..MUW1` |
 | `13-tours.md` | on joue une fiche `T*` — chantier **clos** « Compter les tours, pondérer le coût », `T1..T5` |
 | `14-bugs.md` | on joue une fiche `B*` — chantier **clos** « Corriger les bugs de l'audit », `B1..B3` |
 | `15-reduire.md` | on joue une fiche `R*` — chantier **clos** « Réduire les tours de `/vlp:tache` », `R1..R4` |
