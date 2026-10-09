@@ -3256,3 +3256,11 @@ Les 6 fichiers relus en entier contre `methode-chantier.md` après `MET7` ; « t
 - **Livré** : `PRP1..PRP4` — `cout` coupe aussi aux commits `<PRÉFIXE> :`, versés au « hors fiches » ; `recompter --ecrire` borné à un seul clos récrit ses quatre copies ; `heures_commits` retient le commit qui porte le titre de la fiche : `NUI20` 2 tours · 0,16 $ → 35 tours · 4,72 $.
 - **Coût** : chantier 13 620 781 (ligne `CLOS`) · joué 4 fiches 10,52 $ contre estimé 4 fiches ≈16 $.
 - **Laissé ouvert** : `TAB`, 14 tours · 1,91 $ de `790ba1d9` comptés nulle part, cause non trouvée ; recompter les vieux clos pour de vrai (geste de jour, deux oui). Clos par le `clore` du plugin chargé (`main`, sans `RTO1`) : la rangée n° 103 ôtée à la main, au format de `RTO1`.
+
+## 2026-10-09 — EFF1 : les 2 essais de `VIT25` que `cout` ne compte pas — pas de défaut
+
+- **Les 55** : `essais_de("17d950aa-47f3-44c8-a41f-13ecc4e4896b")` liste 55 transcripts (les deux motifs déclarés au registre) ; `essais_entiers` en compte **53** — un essai ne compte que s'il a un tour.
+- **Les 2** : `7bdcfcb8-87ae-470e-9f85-43e98d73ab8a.jsonl` et `87d8c859-6468-4202-9308-89a14f43b740.jsonl`, même dossier : le bac `scratchpad-sonde` de la copie `VIT20-medium-s2` (motif `C--Users-…-vlp-vit25-*`). 3 005 octets chacun, **0 tour**, aucune `GARDE:`, aucun sous-agent.
+- **La cause est dans les transcripts** : la commande `/sonde` y est morte au contrôle de permission de son injection `!` (« Shell command permission check failed for pattern »), avant tout appel au modèle — aucun message `assistant`, et leur ligne `cost-state` dit `"totalCostUSD":0`, `"modelUsage":{}`. Rien n'a été payé : le compte de 53 est juste, le code n'est pas touché.
+- **Pour `EFF`** : un essai `high` ne se perd pas de cette façon tant qu'il fait au moins un appel au modèle.
+- **Rejouable**, depuis `scripts/` : `py -3 -c "import vlp_coeur as v; m=v.mesure(); es=v.essais_de('17d950aa-47f3-44c8-a41f-13ecc4e4896b'); print(len(es), sum(1 for e in es if m.mesurer(e)[0]['tours'])); print([e for e in es if not m.mesurer(e)[0]['tours']])"`.
