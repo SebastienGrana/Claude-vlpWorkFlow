@@ -3237,9 +3237,14 @@ LIGNE_CHEMIN = re.compile(r"^\s*-\s*\*\*(contexte|index)\*\*\s*:\s*(.+?)\s*$")
 CODE = re.compile(r"`([^`]+)`")
 
 
-def cellules_de(ligne):
-    """Les cellules d'une ligne de table Markdown ; `\\|` reste un caractère de sa cellule (PIP, TAB2)."""
-    return [c.strip() for c in re.split(r"(?<!\\)\|", ligne.strip())[1:-1]]
+def cellules_de(ligne, ou):
+    """Les cellules d'une ligne de table Markdown ; `\\|` reste un caractère de sa cellule (PIP, TAB2).
+    Une ligne sans barre finale non échappée perdrait sa dernière cellule, en-tête compris, sans
+    que le compte le voie : elle lève une `ValueError` préfixée de `ou` (« ligne 4 »…)."""
+    morceaux = re.split(r"(?<!\\)\|", ligne.strip())
+    if len(morceaux) < 2 or morceaux[-1] != "":
+        raise ValueError("%s : pas de barre finale — une ligne de table se ferme par |" % ou)
+    return [c.strip() for c in morceaux[1:-1]]
 
 
 def noms_de_table(lignes, colonne, debut=None):
@@ -3257,7 +3262,7 @@ def noms_de_table(lignes, colonne, debut=None):
             continue
         if not dedans or not l.startswith("|") or SEPARATEUR.match(l):
             continue
-        cellules = cellules_de(l)
+        cellules = cellules_de(l, "ligne %d" % i)
         if attendu is None:
             attendu = len(cellules)
         elif len(cellules) != attendu:
@@ -3506,7 +3511,7 @@ def todo_du_fichier(lignes):
             break
         if SEPARATEUR.match(l):
             continue
-        cellules = cellules_de(l)
+        cellules = cellules_de(l, "ligne %s de la TODO" % (l.split("|")[1].strip() or "?"))
         if len(cellules) != 5:
             raise ValueError("ligne %s de la TODO : %d cellules au lieu de 5 — une barre verticale "
                              "dans une cellule s'écrit \\|" % (cellules[0] if cellules else "?", len(cellules)))
@@ -4011,7 +4016,7 @@ def nuits_du_fichier(lignes):
     for k in range(td + 1, tf):
         if re.match(r"^\|[\s|:-]+\|?$", lignes[k]):
             continue
-        cellules = cellules_de(lignes[k])
+        cellules = cellules_de(lignes[k], "ligne %d de la table des nuits" % (k + 1))
         if len(cellules) != 5:
             raise ValueError("ligne %d de la table des nuits : %d cellules au lieu de 5 — une barre verticale "
                              "dans une cellule s'écrit \\|" % (k + 1, len(cellules)))

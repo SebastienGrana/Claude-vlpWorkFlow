@@ -3129,10 +3129,10 @@ Les 6 fichiers relus en entier contre `methode-chantier.md` après `MET7` ; « t
 - **À garder par `TAB2`** : `noms_de_table` seul — passer à `re.split(r"(?<!\\)\|", …)[1:-1]` et dire une `GARDE:` quand le compte de cellules diffère de l'en-tête. Les autres lisent la ligne entière ou sa première cellule ; `todo_du_fichier` et `nuits_du_fichier` gardent déjà.
 - **Aucun fichier de `scripts/` modifié** (`git diff --stat scripts/` vide).
 
-## 2026-10-08 — TAB2 — `noms_de_table` gardé
+## 2026-10-09 — TAB2 — `noms_de_table` gardé, la barre finale exigée
 
-- **Gardé** : `noms_de_table` découpe par `cellules_de` (le `re.split(r"(?<!\)\|", …)[1:-1]` désormais commun avec `todo_du_fichier` et `nuits_du_fichier`) et lève une `ValueError` quand une ligne n'a pas le nombre de cellules de son en-tête ; `renvois` lit toutes ses sources avant de rien dire (`noms_des_sources`) et rend `GARDE: <source>, ligne N : …`, sort 1. Sur le kit : `RENVOIS 125 nommés · 0 absents`, inchangé.
-- **Imprévu** : sous la nuit, `test-vlp.py` sort 1 (2 `ÉCART`, `boucle` et `NUI7 (a)`) parce que `VLP_CANAL` et `VLP_CARNET` de la session fuient dans l'environnement du faux `claude` ; sans elles (`env -u VLP_NUIT -u VLP_CANAL -u VLP_CARNET`), code 0, 0 `ÉCART`. Hors de la fiche, non corrigé.
+- **Gardé** : `noms_de_table` découpe par `cellules_de`, commune avec `todo_du_fichier` et `nuits_du_fichier`, et lève une `ValueError` quand une ligne n'a pas le nombre de cellules de son en-tête ; `renvois` lit toutes ses sources avant de rien dire (`noms_des_sources`) et rend `GARDE: <source>, ligne N : …`, sort 1.
+- **Refus du 2026-10-08, corrigé** : `[1:-1]` perdait la dernière cellule d'une ligne sans `|` final, en-tête compris, sans que le compte le voie. `cellules_de` refuse désormais une telle ligne (`… : pas de barre finale — une ligne de table se ferme par |`), pour les trois lecteurs. 0 ligne sans barre finale sur 761 (kit et 4 projets) : rien de cassé. Sur le kit : `RENVOIS 129 nommés · 0 absents`, inchangé avant et après.
 
 ## 2026-10-08 — NUI20 — la nuit d'essai, comptée au retour
 

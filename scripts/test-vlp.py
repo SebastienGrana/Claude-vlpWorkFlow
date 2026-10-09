@@ -1252,6 +1252,32 @@ def tester_renvois_garde():
 
 groupe(tester_renvois_garde)
 
+
+def tester_barre_finale():
+    """TAB2 : une ligne de table sans barre finale rend GARDE, au lieu de perdre sa dernière cellule."""
+    with tempfile.TemporaryDirectory() as d:
+        ecrire(os.path.join(d, "CHANTIER.md"), "- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n")
+        ecrire(os.path.join(d, "ctx", "00-INDEX.md"), "| Fichier |\n|---|\n")
+        # (libellé, en-tête, lignes, numéro de la ligne fautive) ; le routage commence ligne 3
+        cas = (("ligne", "| La tâche | Ouvrir |", "| a | `01-a.md` |\n| b | `02-b.md`", 6),
+               ("en-tête", "| La tâche | Ouvrir", "| a | `01-a.md` | x\n| b | `02-b.md` | y |", 3))
+        for libelle, tete, corps, n in cas:
+            ecrire(os.path.join(d, "CLAUDE.md"), "## Routage\n\n%s\n|---|---|\n%s\n" % (tete, corps))
+            verifier("TAB2 : une ligne sans barre finale rend GARDE, sort 1 (%s)" % libelle,
+                     appel(["renvois", d]) == (1, "GARDE: CLAUDE.md, ligne %d : pas de barre finale — une ligne "
+                                                  "de table se ferme par |\n" % n), appel(["renvois", d]))
+    entete = ["| # | Chantier | Apporte | Coût | Dépend |", "|---|---|---|---|---|"]
+    try:
+        mod.todo_du_fichier(entete + ["| 1 | A | b | c | d"])
+        dit = "aucune erreur"
+    except ValueError as e:
+        dit = str(e)
+    verifier("TAB2 : une ligne sans barre finale lève, dans la TODO aussi",
+             dit.startswith("ligne 1 de la TODO : pas de barre finale"), dit)
+
+
+groupe(tester_barre_finale)
+
 # REP1 : le gras et les liens Markdown d'une cellule — jamais dans du code cité.
 def tester_gras_et_liens():
     """Contrôler `gras_et_liens` et `cellule` : le gras et les liens Markdown d'une cellule (chantier REP)."""
