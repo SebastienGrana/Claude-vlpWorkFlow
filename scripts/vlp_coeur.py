@@ -698,7 +698,8 @@ def heure_clore(chemin, lignes):
     que le commit de clôture ferme ; None sans lui. Ce que `clore` a vu en inscrivant son chiffre
     (chantier APC)."""
     fiches_ = fiches_du_fichier(lignes)
-    heures = heures_commits(chemin, [f[0] for f in fiches_], [], any(l.startswith("**CLOS**") for l in lignes))
+    heures = heures_commits(chemin, [f[0] for f in fiches_], [], any(l.startswith("**CLOS**") for l in lignes),
+                             {f[0]: f[1] for f in fiches_})
     trous = plages(fiches_, heures, [], clos=True)[1] if heures else []
     if not trous:
         return None
@@ -751,7 +752,7 @@ def decoupe_et_heures(chemin, lignes=None, fin=None):
     fiches_ = fiches_du_fichier(lignes)
     pourquoi, gardes = [], []
     clos = any(l.startswith("**CLOS**") for l in lignes)
-    heures = heures_commits(chemin, [f[0] for f in fiches_], pourquoi, clos)
+    heures = heures_commits(chemin, [f[0] for f in fiches_], pourquoi, clos, {f[0]: f[1] for f in fiches_})
     if fin is None and clos and heures:
         fin = heure_clore(chemin, lignes)
     decoupe = heures and parts_aux_commits(fiches_, heures, gardes, sessions_entete(lignes), fin)
@@ -2504,11 +2505,15 @@ COMMIT_FICHE = re.compile(r"^([A-Z]{1,3}[0-9]+) :")
 INFINI = float("inf")
 
 
-def heures_commits(fichier, ids, pourquoi=None, clos=False):
-    """({id: heure}, [heures], [autres heures]) en secondes UTC, lus par `git log` dans le
-    dossier du fichier : l'heure d'auteur du commit `<id> :` de chaque fiche — le plus ancien
-    s'il y en a deux —, celles de tous les commits qui nomment le préfixe (`REP`, `REP2`…),
-    puis celles des autres commits, triées : elles bornent le chantier (`plages`).
+def heures_commits(fichier, ids, pourquoi=None, clos=False, titres=None):
+    """({id: heure}, [heures], [autres heures], [coupes]) en secondes UTC, lus par `git log` dans
+    le dossier du fichier : l'heure d'auteur du commit `<id> :` de chaque fiche — s'il y en a deux,
+    le plus ancien de ceux dont le sujet suit par le titre de la fiche (`titres`, {id: titre} ;
+    le commit de 6 bis et de `boucle.py`), à défaut le plus ancien : un commit d'étape en cours de
+    fiche ne la coupe plus avant sa fin, un correctif d'après ne l'étire pas (chantier PRP, `NUI20`) —,
+    celles de tous les commits qui nomment le préfixe (`REP`, `REP2`…),
+    celles des autres commits, puis, à part, celles des seuls commits `<PRÉFIXE> :` (`VIT :`,
+    `Dette VIT :`, pas `Chantier VIT ouvert`), triées : elles bornent le chantier (`plages`).
     Sans commit de fiche, `{}` d'abord : un chantier en cours. None sans `git`, sans dépôt,
     sans commit qui nomme le préfixe, ou sans commit de fiche d'un chantier `clos` — sa
     dernière mention est sa clôture, rien ne tomberait après (chantier ZER) : le repli,
@@ -2529,15 +2534,20 @@ def heures_commits(fichier, ids, pourquoi=None, clos=False):
         return None
     nomme = re.compile(r"(?<![A-Za-z0-9])(?:%s)[0-9]*(?![A-Za-z0-9])"
                        % "|".join(sorted({lettre_de(i) for i in ids})))
-    commits, prefixe, autres = {}, [], []
+    coupe = re.compile(r"(?<![A-Za-z0-9])(?:%s) :" % "|".join(sorted({lettre_de(i) for i in ids})))
+    commits, au_titre, prefixe, autres, coupes = {}, {}, [], [], []
     for ligne in r.stdout.splitlines():
         heure, _, sujet = ligne.partition(" ")
         if not heure.isdigit():
             continue
         (prefixe if nomme.search(sujet) else autres).append(int(heure))
+        coupes.extend([int(heure)] if coupe.search(sujet) else [])
         c = COMMIT_FICHE.match(sujet)
         if c and c.group(1) in ids:
-            commits[c.group(1)] = min(int(heure), commits.get(c.group(1), int(heure)))
+            titre = (titres or {}).get(c.group(1))
+            vus = au_titre if titre and sujet[c.end():].replace("`", "").strip().startswith(titre) else commits
+            vus[c.group(1)] = min(int(heure), vus.get(c.group(1), int(heure)))
+    commits.update(au_titre)
     if not commits:
         if not prefixe:
             pourquoi.append("aucun commit qui nomme %s" % lettre_de(ids[0]))
@@ -2545,8 +2555,8 @@ def heures_commits(fichier, ids, pourquoi=None, clos=False):
         if clos:
             pourquoi.append("chantier clos sans commit « %s : » ni d'une autre fiche" % ids[0])
             return None
-        return {}, sorted(prefixe), sorted(autres)
-    return commits, sorted(prefixe), sorted(autres)
+        return {}, sorted(prefixe), sorted(autres), sorted(coupes)
+    return commits, sorted(prefixe), sorted(autres), sorted(coupes)
 
 
 def plages(fiches_, heures, gardes, clos=False):
@@ -2560,16 +2570,24 @@ def plages(fiches_, heures, gardes, clos=False):
     préfixe, avant ce début — le chantier d'avant, quand une session en enchaîne plusieurs ;
     à défaut, le début de la session. Hors fiches : de l'origine à la première fiche, et de
     la dernière au premier commit suivant qui nomme le préfixe — la clôture ; sans lui,
-    jusqu'au bout. Au-delà, rien ne compte : une mention plus tardive n'étire rien. Ni
-    commit de fiche ni fiche à session : ([], [])."""
-    commits, prefixe, autres = heures
+    jusqu'au bout. Au-delà, rien ne compte : une mention plus tardive n'étire rien. Un commit
+    `<PRÉFIXE> :` (4e liste de `heures`, absente : aucun) entre deux commits de fiche coupe la
+    suivante : elle part du dernier de ces commits, le morceau d'avant va hors fiches, le total
+    ne bouge pas (chantier PRP) ; une mention ailleurs dans le sujet (`Chantier VIT ouvert`) ne
+    coupe rien. Ni commit de fiche ni fiche à session : ([], [])."""
+    commits, prefixe, autres, *reste = heures
+    coupes = reste[0] if reste else []
     ordre = sorted(commits, key=commits.get)
     premier = commits[ordre[0]] if ordre else INFINI    # sans commit de fiche : le dernier qui nomme
     debut = max((t for t in prefixe if t < premier), default=-INFINI)
     origine = max((t for t in autres if t < (premier if debut == -INFINI else debut)), default=-INFINI)
     debut = max(debut, origine)
-    rendu = []
+    rendu, milieu = [], []
     for ident in ordre:
+        coupe = max((t for t in coupes if debut < t < commits[ident]), default=None)
+        if rendu and coupe is not None:
+            milieu.append((debut, coupe))
+            debut = coupe
         rendu.append((ident, (debut, commits[ident])))
         debut = commits[ident]
     sans = [f[0] for f in fiches_ if f[0] not in commits and f[3]]
@@ -2582,7 +2600,7 @@ def plages(fiches_, heures, gardes, clos=False):
         return [], []
     dernier = rendu[-1][1][1]
     fin = min((t for t in prefixe if t > dernier), default=INFINI)
-    return rendu, [p for p in ((origine, rendu[0][1][0]), (dernier, fin)) if p[0] < p[1]]
+    return rendu, [p for p in [(origine, rendu[0][1][0])] + milieu + [(dernier, fin)] if p[0] < p[1]]
 
 
 def transcripts_du_fichier(fiches_, entete, gardes):
@@ -4629,26 +4647,28 @@ def signe(n):
 
 
 def recompte(chemin):
-    """(recompté ou None, méthode, essais) d'un fichier de fiches clos : le nombre de la ligne `TOTAL` de
+    """(recompté ou None, méthode, essais, usd) d'un fichier de fiches clos : le nombre de la ligne `TOTAL` de
     `cout`, ou None et la raison de le garder — sans session, transcription absente, `DÉCOUPE
     aucune`, découpe à zéro (chantier REC). `essais` : les tokens de ses essais, ceux de la découpe
-    ou, sans découpe, des sessions entières (`essais_entiers`) — pour `--essais` (chantier ESD)."""
+    ou, sans découpe, des sessions entières (`essais_entiers`) — pour `--essais` (chantier ESD).
+    `usd` : le prix de la ligne `TOTAL`, None sans découpe — pour `--clos` (PRP3)."""
     lignes = lignes_de(chemin)
     ids = sessions_de(lignes)
     if not ids:
-        return None, "gardé — sans session", 0
+        return None, "gardé — sans session", 0, None
     for s in ids:
         if mesure().resoudre(s)[1]:
-            return None, "gardé — transcription absente (%s)" % s, 0
+            return None, "gardé — transcription absente (%s)" % s, 0, None
     decoupe, pourquoi, gardes = decouper(chemin, lignes)
     if not decoupe:
         gardes = []
         essais = essais_entiers(ids, gardes)[0]
         manque = " · %d transcript(s) d'essai non mesuré(s)" % len(gardes) if gardes else ""
-        return None, "gardé — DÉCOUPE aucune (%s)%s" % (pourquoi[0], manque), essais
+        return None, "gardé — DÉCOUPE aucune (%s)%s" % (pourquoi[0], manque), essais, None
     if any(g.startswith("GARDE: découpe à zéro") for g in gardes):
-        return None, "gardé — découpe à zéro", 0
-    return plus(*totaux(decoupe))[0], "découpe", totaux(decoupe)[2][0]
+        return None, "gardé — découpe à zéro", 0, None
+    total = plus(*totaux(decoupe))
+    return total[0], "découpe", totaux(decoupe)[2][0], total[2]
 
 
 # La cellule de coût d'une ligne close, seule sur sa ligne (`clore`), et les marques de
@@ -4841,8 +4861,7 @@ def cmd_recompter(projet, sortie, ecrire=False, essais=False, a_clore=False):
     parcours = clos_du_projet(projet, sortie)
     if parcours is None:
         return 1
-    html, d, f, rangs = parcours
-    page = page_clos(projet)
+    rangs = parcours[3]
     porteurs = {}
     for _, prefixe, _, chemin in rangs:
         for s in sessions_de(lignes_de(chemin)) if chemin else []:
@@ -4850,7 +4869,7 @@ def cmd_recompter(projet, sortie, ecrire=False, essais=False, a_clore=False):
     n = inscrit = ecart = recoivent = ajoute = 0
     neufs = {}      # chaque ligne et sa réécriture, toutes calculées avant d'écrire
     for r, prefixe, brut, chemin in rangs:
-        recompte_, methode, part = recompte(chemin) if chemin else (None, "gardé — fichier introuvable", 0)
+        recompte_, methode, part, _ = recompte(chemin) if chemin else (None, "gardé — fichier introuvable", 0, None)
         autres = sorted({p for s in (sessions_de(lignes_de(chemin)) if chemin else [])
                          for p in porteurs[s]} - {prefixe})
         partage = " · partagée avec %s" % ", ".join(autres) if autres else ""
@@ -4882,8 +4901,16 @@ def cmd_recompter(projet, sortie, ecrire=False, essais=False, a_clore=False):
     else:
         sortie.write("RECOMPTE %d clos · %d recomptés · %d gardés · inscrit %s · recompté %s · écart %s\n" % (
             len(rangs), n, len(rangs) - n, milliers(inscrit), milliers(inscrit + ecart), signe(ecart)))
-    if not ecrire:
-        return 0
+    if ecrire:
+        ecrire_clos(projet, parcours, neufs, sortie)
+    return 0
+
+
+def ecrire_clos(projet, parcours, neufs, sortie):
+    """`ZONE:clos` avec chaque ligne de `neufs` remplacée, pied et résumé resommés, `couts.svg`
+    refait — la fin de `recompter --ecrire`, `--clos` compris (PRP3)."""
+    html, d, f, rangs = parcours
+    page = page_clos(projet)
     corps = html[d:f]
     neuf_corps = RANG_CLOS.sub(lambda m: neufs.get(m.group(0), m.group(0)), corps)
     avant, apres = total_clos(corps), total_clos(neuf_corps)
@@ -4895,8 +4922,98 @@ def cmd_recompter(projet, sortie, ecrire=False, essais=False, a_clore=False):
             fh.write(neuf)
     rafraichir_couts(projet, page, neuf)
     sortie.write("ÉCRIT %d cellules · total %s → %s\n" % (
-        sum(neufs[r] != r for r, _, _, _ in rangs), milliers(avant), milliers(apres)))
+        sum(neufs.get(r, r) != r for r, _, _, _ in rangs), milliers(avant), milliers(apres)))
+
+
+def cmd_recompter_clos(projet, sortie, ecrire, clos):
+    """`recompter --clos` : le seul clos `clos` recompté ; avec `ecrire`, ses quatre copies du coût —
+    la cellule d'archive (`ecrire_clos`), puis `ecrire_copies` (PRP3)."""
+    parcours = clos_du_projet(projet, sortie)
+    if parcours is None:
+        return 1
+    rang = next((rg for rg in parcours[3] if rg[1] == clos), None)
+    if rang is None:
+        sortie.write("GARDE: clos %s absent de ZONE:clos — rien d'écrit\n" % clos)
+        return 1
+    r, _, brut, chemin = rang
+    recompte_, methode, _, usd = recompte(chemin) if chemin else (None, "gardé — fichier introuvable", 0, None)
+    sortie.write("%s inscrit %s · recompté %s · écart %s · %s\n" % (
+        clos, milliers(brut), "gardé" if recompte_ is None else milliers(recompte_),
+        signe(0 if recompte_ is None else recompte_ - brut), methode))
+    if not ecrire:
+        return 0
+    neuf = CELLULE_CLOS.sub(lambda c: c.group(1) + marquer_prix(c.group(2), brut, recompte_, methode, usd)
+                            + c.group(3), r, count=1)
+    ecrire_clos(projet, parcours, {r: neuf}, sortie)
+    ecrire_copies(chemin, usd, neuf != r, sortie)
     return 0
+
+
+def marquer_prix(cellule, brut, recompte_, methode, usd):
+    """`marquer` pour `--clos` : le prix d'en tête (`PRIX_CLOS`) mis à part, puis reposé — le
+    recompté s'il est connu, sinon l'ancien (PRP3)."""
+    m = re.match(r'(\d+,\d\d \$) · ', cellule)
+    prix = dollars(usd) if usd is not None else (m.group(1) if m else None)
+    marque = marquer(cellule[m.end():] if m else cellule, brut, recompte_, methode)
+    return "%s · %s" % (prix, marque) if prix else marque
+
+
+def copie_fait(chemin, usd):
+    """La ligne `**Fait.**` de `chemin` recalée sur `usd` : écrite ou non ; ValueError sans ligne
+    à joué (PRP3)."""
+    lignes = lignes_de(chemin)
+    k = next((k for k, l in enumerate(lignes) if l.startswith("**Fait.**") and JOUE_PRIX.search(l)), None)
+    if k is None:
+        raise ValueError("ligne **Fait.** avec un joué absente de %s" % chemin)
+    vieille, lignes[k] = lignes[k], recaler_texte(lignes[k], usd, tout=True)[0]
+    if lignes[k] != vieille:
+        ecrire_par_tmp([(chemin, "\n".join(lignes) + "\n")])
+    return lignes[k] != vieille
+
+
+def copie_bilan(page, usd):
+    """La `ZONE:bilan` de `page` recalée sur `usd` : écrite ou non ; ValueError sans page, sans zone
+    ou sans joué dedans (PRP3)."""
+    if not os.path.isfile(page):
+        raise ValueError("page introuvable : %s" % page)
+    pg = lire(page)
+    d, f = zone(pg, "bilan", "\n", "  </section>")
+    if not JOUE_PRIX.search(pg[d:f]):
+        raise ValueError("ZONE:bilan sans joué : %s" % page)
+    neuf = pg[:d] + recaler_texte(pg[d:f], usd, tout=True)[0] + pg[f:]
+    if neuf != pg:
+        ecrire_par_tmp([(page, neuf)])
+    return neuf != pg
+
+
+def copie_abri(md, usd):
+    """Le bilan du `.md` d'abri `md` recalé sur `usd` (`ecrire_abri`) : écrit ou non ; ValueError sans
+    `.md` ou sans joué au bilan (PRP3)."""
+    parts = lire_abri(md) if os.path.isfile(md) else None
+    if parts is None or not any(JOUE_PRIX.search(b) for b in parts["bilan"]):
+        raise ValueError(".md d'abri sans joué au bilan : %s" % md)
+    bilan = [recaler_texte(b, usd, tout=True)[0] for b in parts["bilan"]]
+    if bilan != parts["bilan"]:
+        ecrire_abri(md, dict(parts, bilan=bilan))
+    return bilan != parts["bilan"]
+
+
+def ecrire_copies(chemin, usd, archive, sortie):
+    """Les trois autres copies du coût d'un clos recalées sur `usd` : `copie_fait`, `copie_bilan`,
+    `copie_abri`. Une copie introuvable : `GARDE:`, les autres s'écrivent quand même. Puis
+    `COPIES <n> écrites · <n> inchangées · <n> introuvables`, l'archive (`archive`, déjà écrite)
+    comprise (PRP3)."""
+    n = {"écrites": int(archive), "inchangées": int(not archive), "introuvables": 0}
+    page = page_du_fichier(chemin) if chemin else ""
+    for copie, cible in ((copie_fait, chemin), (copie_bilan, page), (copie_abri, chemin_abri(page) if page else "")):
+        try:
+            if usd is None or not cible:
+                raise ValueError("prix non recompté")
+            n["écrites" if copie(cible, usd) else "inchangées"] += 1
+        except ValueError as e:
+            n["introuvables"] += 1
+            sortie.write("GARDE: %s — %s ; les autres copies s'écrivent\n" % (copie.__name__, e))
+    sortie.write("COPIES %d écrites · %d inchangées · %d introuvables\n" % tuple(n.values()))
 
 
 def poser_prix(cellule, prix):
@@ -4909,15 +5026,19 @@ def poser_prix(cellule, prix):
 
 # Le vieux joué à la louche (avec `≈`) et le vieil estimé non encore marqué — `prix` (chantier TAU).
 JOUE_LOUCHE = re.compile(r'joué (\d+) fiches ≈[\d,]+ \$')
+# Tout joué, mesuré, à la louche ou inconnu — `recompter --clos` (PRP3).
+JOUE_PRIX = re.compile(r'joué (\d+) fiches (?:≈?[\d,]+|\?) \$')
 ESTIME_NON_MARQUE = re.compile(r'(estimé \S+ fiches ≈[\d,]+ \$)(?! \(taux plat\))')
 
 
-def recaler_texte(texte, prix):
+def recaler_texte(texte, prix, tout=False):
     """`texte` (`**Fait.**`, page ou `.md` d'abri) avec le joué à la louche recalé sur `prix` (le
     pondéré mesuré de sa page, `dollars`) et le vieil estimé marqué `(taux plat)` s'il ne l'est
     pas déjà — (nouveau texte, un joué a été recalé, un estimé a été marqué) ; inchangé et deux
-    `False` si rien à faire (chantier TAU, `prix`)."""
-    neuf, n1 = JOUE_LOUCHE.subn(lambda m: "joué %s fiches %s" % (m.group(1), dollars(prix)), texte)
+    `False` si rien à faire (chantier TAU, `prix`). `tout` : tout joué recalé, mesuré compris
+    (`JOUE_PRIX`, `recompter --clos`)."""
+    neuf, n1 = (JOUE_PRIX if tout else JOUE_LOUCHE).subn(
+        lambda m: "joué %s fiches %s" % (m.group(1), dollars(prix)), texte)
     neuf, n2 = ESTIME_NON_MARQUE.subn(lambda m: m.group(1) + " (taux plat)", neuf)
     return neuf, bool(n1), bool(n2)
 
@@ -8852,9 +8973,9 @@ def main(argv, sortie=None, entree=None, erreur=None):
     lns.add_argument("projet")
     rc =sous.add_parser("recompter")
     rc.add_argument("projet")
-    rc.add_argument("--ecrire", action="store_true")
-    rc.add_argument("--essais", action="store_true")
-    rc.add_argument("--a-clore", action="store_true")
+    for o in ("--ecrire", "--essais", "--a-clore"):
+        rc.add_argument(o, action="store_true")
+    rc.add_argument("--clos")
     px = sous.add_parser("prix")
     px.add_argument("projet")
     px.add_argument("--a-blanc", action="store_true")
@@ -8957,7 +9078,8 @@ def repartir(a, sortie, entree, erreur):
     if a.cmd == "liens":
         return cmd_liens(a.projet, sortie)
     if a.cmd == "recompter":
-        return cmd_recompter(a.projet, sortie, a.ecrire, a.essais, a.a_clore)
+        return (cmd_recompter_clos(a.projet, sortie, a.ecrire, a.clos) if a.clos
+                else cmd_recompter(a.projet, sortie, a.ecrire, a.essais, a.a_clore))
     if a.cmd == "prix":
         return cmd_prix(a.projet, sortie, a.a_blanc)
     if a.cmd == "bac":

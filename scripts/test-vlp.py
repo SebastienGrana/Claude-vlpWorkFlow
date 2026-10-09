@@ -885,7 +885,7 @@ def tester_heures_commits():
                                capture_output=True, env=dict(env, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date))
             h = mod.heures_commits(os.path.join(avec, "q.md"), ["Q1", "Q2"])
             verifier("heures_commits : heure d'auteur, commits qui nomment le préfixe",
-                     h == ({"Q1": T0 + 300, "Q2": T0 + 600}, [T0 + 100, T0 + 300, T0 + 600, T0 + 800], [T0 + 900]), h)
+                     h == ({"Q1": T0 + 300, "Q2": T0 + 600}, [T0 + 100, T0 + 300, T0 + 600, T0 + 800], [T0 + 900], []), h)
             page = os.path.join(avec, "artefacts", "q.html")
             code, s = appel(["page", os.path.join(avec, "q.md"), page, "--creer", "--projet", "P", "--titre", "T",
                              "--resultat", "R", "--date", "2026-01-05"])
@@ -1003,7 +1003,7 @@ def tester_heures_commits():
                      and pourquoi == ["chantier clos sans commit « Q1 : » ni d'une autre fiche"], (h, pourquoi))
             h = mod.heures_commits(os.path.join(clq, "q.md"), ["Q1", "Q2"])
             verifier("heures_commits : en cours sans commit de fiche, la découpe",
-                     h == ({}, [T0 + 100, T0 + 1100], [T0 + 60, T0 + 1050]), h)
+                     h == ({}, [T0 + 100, T0 + 1100], [T0 + 60, T0 + 1050], []), h)
             code, s = appel(["cout", os.path.join(clq, "q.md")])
             verifier("cout : une découpe à zéro le dit", code == 0 and s.startswith(
                 "GARDE: découpe à zéro — aucun tour de 2 transcripts ne tombe dans une plage\n"
@@ -1111,6 +1111,45 @@ def tester_heures_commits():
 
 groupe(tester_heures_commits)
 
+
+def tester_commit_au_titre():
+    """PRP4 : une fiche à deux commits `<id> :` va jusqu'à celui qui porte son titre — `NUI20`,
+    coupée à son commit d'étape, perdait sa séance (2 tours au lieu de 35)."""
+    if not shutil.which("git"):
+        print("SAUTÉ: git absent — le commit au titre n'est pas testé")
+        return
+    with tempfile.TemporaryDirectory() as t:
+        d, sq = os.path.join(t, "q"), os.path.join(t, "s.jsonl")
+        transcript(sq, 6, [T0 + x for x in (50, 200, 250, 400, 700, 1000)])
+        os.makedirs(os.path.join(t, "s", "subagents"))
+        transcript(os.path.join(t, "s", "subagents", "agent-a1.jsonl"), 2, [T0 + 450, T0 + 460])
+        ecrire(os.path.join(d, "q.md"), QFICHES % (sq, sq))
+        env = dict(os.environ, GIT_CONFIG_GLOBAL=os.path.join(t, "gitconfig"), GIT_CONFIG_NOSYSTEM="1",
+                   GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t")
+        ecrire(env["GIT_CONFIG_GLOBAL"], "")
+        subprocess.run(["git", "init", "-q"], cwd=d, env=env, check=True, capture_output=True)
+        for x, sujet in ((100, "Chantier Q ouvert : cadré"), (300, "Q1 : Créer"), (350, "Q2 : l'avant, relevé"),
+                         (380, "Autre : un chantier voisin au milieu"), (600, "Q2 : Brancher"),
+                         (800, "Chantier Q clos : fini"), (950, "Q1 : correctif d'après")):
+            date = "%d +0000" % (T0 + x)
+            subprocess.run(["git", "commit", "-q", "--allow-empty", "-m", sujet], cwd=d, check=True,
+                           capture_output=True, env=dict(env, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date))
+        q = os.path.join(d, "q.md")
+        h = mod.heures_commits(q, ["Q1", "Q2"], titres={"Q1": "Créer", "Q2": "Brancher"})
+        verifier("PRP4 commit au titre : Q2 au sien, pas à l'étape ; Q1 pas étiré par son correctif",
+                 h is not None and h[0] == {"Q1": T0 + 300, "Q2": T0 + 600}, h)
+        h = mod.heures_commits(q, ["Q1", "Q2"])
+        verifier("PRP4 commit au titre : sans titres, le plus ancien, comme avant",
+                 h is not None and h[0] == {"Q1": T0 + 300, "Q2": T0 + 350}, h)
+        code, s = appel(["cout", q])
+        verifier("PRP4 commit au titre : cout donne à Q2 sa séance, sous-agent compris, total inchangé", code == 0
+                 and "\nQ1 · ≈200,0k (200 000) · 2 tours · 1,00 $" in s
+                 and "\nQ2 · ≈300,0k (300 000) · 3 tours · 1,50 $" in s
+                 and "TOTAL (fiches + hors fiches) · ≈700,0k (700 000) · 7 tours" in s, s)
+
+
+groupe(tester_commit_au_titre)
+
 # FIN1 : les bornes de `plages`, en fonction pure — heures (commits de fiche, qui nomment, autres).
 def tester_plages():
     """Contrôler les bornes de `plages`, en fonction pure (chantier FIN)."""
@@ -1145,6 +1184,21 @@ def tester_plages():
 
 
 groupe(tester_plages)
+
+
+def tester_plages_preparation():
+    """Contrôler qu'un commit `<PRÉFIXE> :` entre deux fiches coupe la suivante (chantier PRP)."""
+    P2, G = [("Q1", "a", True, ["s"]), ("Q2", "b", True, ["s"])], []
+    h = ({"Q1": 300, "Q2": 600}, [100, 300, 450, 600, 800], [30, 900], [450])
+    r = mod.plages(P2, h, G)
+    verifier("plages_preparation : la fiche 2 part du commit `<PRÉFIXE> :`, le morceau d'avant hors fiches",
+             r == ([("Q1", (100, 300)), ("Q2", (450, 600))], [(30, 100), (300, 450), (600, 800)]) and not G, (r, G))
+    longueur = lambda p: sum(b - a for _, (a, b) in p[0]) + sum(b - a for a, b in p[1])
+    verifier("plages_preparation : le total ne bouge pas",
+             longueur(r) == longueur(mod.plages(P2, h[:3], G)), (r, mod.plages(P2, h[:3], G)))
+
+
+groupe(tester_plages_preparation)
 
 
 # --- hook : le PostToolUse du plugin -----------------------------------------
@@ -2270,6 +2324,65 @@ def tester_recompter_essais():
 
 
 groupe(tester_recompter_essais)
+
+
+def tester_recompter_un_clos():
+    """`recompter --clos A --ecrire` (PRP3) : les quatre copies du coût de A écrites, B intact —
+    `recompte` simulé (90 000 tokens, 7,50 $), la découpe a ses propres tests."""
+    from decimal import Decimal
+    with tempfile.TemporaryDirectory() as tp:
+        ecrire(os.path.join(tp, "CHANTIER.md"), "# Chantier courant\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n")
+        ecrire(os.path.join(tp, "ctx", "00-INDEX.md"), "| Fichier | Lire quand |\n|---|---|\n"
+               "| `a.md` | chantier **clos** « A », `A1..A1` |\n| `b.md` | chantier **clos** « B », `B1..B1` |\n")
+        joue = "estimé 1 fiches ≈25 $ · cadré 1 · joué 1 fiches 12,34 $"
+        for x in ("A", "B"):
+            ecrire(os.path.join(tp, "ctx", x.lower() + ".md"),
+                   "# Chantier %s\n\n**CLOS** le 2026-01-06.\n\n**Fait.** %s1..%s1 (2026-01-06) : fini — %s.\n\n"
+                   "## Le socle commun\n\n<!-- FICHE:%s1 -->\n## %s1 [x] — Seule\n**Critère de fin**\n<!-- /FICHE -->\n"
+                   % (x, x, x, joue, x, x))
+            ecrire(os.path.join(tp, "ctx", "artefacts", x.lower() + ".html"),
+                   '<p class="mono cout-total">Coût : 12,34 $</p>\n  <!-- ZONE:bilan -->\n  <section>\n'
+                   '    <div class="bilan">\n      <p>Estimé : %s</p>\n    </div>\n  </section>\n' % joue)
+            ecrire(os.path.join(tp, "ctx", "artefacts", x.lower() + ".md"),
+                   "# %s — notes et journal\n## Résultat\nFini\n## Notes\n## Journal\n## Bilan\n- Estimé : %s\n" % (x, joue))
+        fdr = os.path.join(tp, "ctx", "artefacts", "feuille-de-route.html")
+        ecrire(fdr, '    <!-- ZONE:clos — test -->\n      <table>\n        <tbody>\n'
+               + "".join(ligne_close("12,34 $ · " + mod.arrondi(50000)).replace("Q1–Q2", pl) for pl in ("A1", "B1"))
+               + "        </tbody>\n      </table>\n")
+        b = [os.path.join(tp, "ctx", n) for n in ("b.md", os.path.join("artefacts", "b.html"), os.path.join("artefacts", "b.md"))]
+        avant_b = [lire(c) for c in b]
+        vrai = mod.recompte
+        mod.recompte = lambda chemin: (90000, "découpe", 0, Decimal("7.50"))
+        try:
+            absent = appel(["recompter", tp, "--clos", "Z", "--ecrire"])
+            initiale = lire(fdr)
+            un = appel(["recompter", tp, "--clos", "A", "--ecrire"])
+            copies_a = [lire(os.path.join(tp, "ctx", n)) for n in
+                        ("a.md", os.path.join("artefacts", "a.html"), os.path.join("artefacts", "a.md"))]
+            feuille_ = lire(fdr)
+            deux = appel(["recompter", tp, "--clos", "A", "--ecrire"])
+        finally:
+            mod.recompte = vrai
+        verifier("PRP3 : --clos absent de ZONE:clos, une GARDE, rien d'écrit",
+                 absent[0] == 1 and absent[1].startswith("GARDE: clos Z absent")
+                 and initiale.count("12,34 $ · %s" % mod.arrondi(50000)) == 2, absent[1])
+        neuf = "joué 1 fiches 7,50 $"
+        verifier("PRP3 : recompter --clos A --ecrire — 4 copies écrites pour A (archive, **Fait.**, ZONE:bilan, abri)"
+                 " — mutant : sauter l'écriture de la ZONE:bilan",
+                 un[0] == 0 and un[1].splitlines()[-1] == "COPIES 4 écrites · 0 inchangées · 0 introuvables"
+                 and un[1].splitlines()[0].startswith("A inscrit 50 000 · recompté 90 000")
+                 and '<td class="mono">7,50 $ · recompté (REC), était 50 000 · %s</td>' % mod.arrondi(90000) in feuille_
+                 and all(neuf in c for c in copies_a), un[1] + "\n".join(copies_a) + feuille_)
+        verifier("PRP3 : B n'a pas bougé — 0 copie changée (fiches, page, abri, cellule d'archive)",
+                 [lire(c) for c in b] == avant_b
+                 and '<td class="mono">B1</td>' in feuille_
+                 and feuille_.count('<td class="mono">12,34 $ · %s</td>' % mod.arrondi(50000)) == 1, feuille_)
+        verifier("PRP3 : relancé, les quatre copies inchangées",
+                 deux[0] == 0 and deux[1].splitlines()[-1] == "COPIES 0 écrites · 4 inchangées · 0 introuvables"
+                 and lire(fdr) == feuille_, deux[1])
+
+
+groupe(tester_recompter_un_clos)
 
 # --- chantier U : lire, cocher, page déduite ----------------------------------
 

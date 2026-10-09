@@ -1,0 +1,87 @@
+<meta charset="utf-8">
+<title>vlp — Le coût de la préparation, hors des fiches</title>
+<!--
+  GABARIT — artefact d'un chantier. Publié par /chantier à l'ouverture,
+  mis à jour par /tache à chaque fiche. Remplace les <…> et ne renomme pas
+  les marqueurs `ZONE:…` : les commandes les cherchent tels quels.
+
+  Convention de coût — posée ici, référencée (jamais recopiée) par
+  artefact-feuille-de-route.html, tache.md et cloture.md : un nombre < 1000
+  s'affiche tel quel ; au-delà, "≈<arrondi 1 décimale><k|M> (<compte brut>)"
+  — virgule française, k = mille, M = million. Le compte brut reste toujours
+  visible à côté de l'arrondi.
+-->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="vlp.css">
+
+<div class="page">
+  <header>
+    <div class="eyebrow">vlp · fiches PRP1–PRP4 · <a href="https://claude.ai/artifact/YWDny8kjubq9DhdP5rbPxA">la feuille de route</a></div>
+    <h1>Le coût de la préparation, hors des fiches</h1>
+    <p>vlp.py cout met le travail entre deux fiches dans « hors fiches », total inchangé ; recompter --clos récrit les quatre copies d'un seul clos ; les causes de NUI20 et de TAB relevées, corrigées si elles sont dans le code</p>
+    <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
+    <div class="avancement">
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span>
+    </div>
+    <p class="mono" style="margin-top:.5rem">4 fiches · 4 faites</p>
+  </header>
+
+  <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
+  <section>
+    <h2>Chantier clos le 2026-10-09</h2>
+    <div class="bilan">
+      <p>Livré : cout coupe aussi aux commits &lt;PRÉFIXE&gt; :, recompter --ecrire borné à un clos récrit ses quatre copies, NUI20 compté au commit qui porte son titre</p>
+      <p>Surpris : le total de NUI bouge de 3 tours (172,50 → 172,64 $) : la dernière plage hors fiches va désormais jusqu'à la clôture</p>
+      <p>Estimé : estimé 4 fiches ≈16 $ · cadré 4 · joué 4 fiches 10,52 $</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Les fiches, dans l'ordre des dépendances</h2>
+    <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
+    <ul class="fiches">
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">PRP1</span></span>
+        <details><summary><span class="titre">Relever les décisions passées et les deux causes</span><span class="etat">Faite</span></summary>
+        <span class="note">grep -c PRP1 08-etat.md = 3 ; découpe : permis ; NUI20 : cause dans heures_commits (min de deux commits) ; TAB : 5,26 inclus dans 11,71, écart 14 tours · 1,91 $ non trouvé</span></details>
+        <span class="cout mono">≈2,7M (2 721 746) · 32 tours · 1,91 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">PRP2</span></span>
+        <details><summary><span class="titre">Couper aussi aux commits &lt;PRÉFIXE&gt; :</span><span class="etat">Faite</span></summary>
+        <span class="note">test-vlp.py OK (code 0) ; plages_preparation : Q2 = (450, 600], hors fiches + (300, 450] ; mutant ATTRAPÉ 1 écart ; pyright 0 errors</span></details>
+        <span class="cout mono">≈1,4M (1 354 553) · 21 tours · 1,42 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">PRP3</span></span>
+        <details><summary><span class="titre">Borner recompter --ecrire à un seul clos, quatre copies</span><span class="etat">Faite</span></summary>
+        <span class="note">test-vlp.py vert (code 0, 0 ÉCART) ; tester_recompter_un_clos : COPIES 4 écrites pour A, B intact ; mutant ZONE:bilan ATTRAPÉ ; pyright 0 errors (3 fichiers)</span></details>
+        <span class="cout mono">≈4,3M (4 297 357) · 43 tours · 3,03 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">PRP4</span></span>
+        <details><summary><span class="titre">Corriger la cause de NUI20 ou de TAB</span><span class="etat">Faite</span></summary>
+        <span class="note">test-vlp OK, 0 écart ; tester_commit_au_titre 3 contrôles verts ; 2 mutants ATTRAPÉS ; NUI20 2 → 35 tours (0,16 → 4,72 $)</span></details>
+        <span class="cout mono">≈3,1M (3 052 787) · 37 tours · 2,21 $</span></li>
+    </ul>
+    <p class="mono cout-hors">Hors fiches : ≈2,2M (2 194 338) · 26 tours · 1,95 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈13,6M (13 620 781) · 159 tours · 10,52 $</p>
+    <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
+  </section>
+
+  <!-- ZONE:blocage — publiée quand /tache s'arrête après deux tentatives ; retirée dès que la fiche repasse -->
+  <section hidden>
+    <h2>Arrêt sur blocage</h2>
+    <div class="blocage">
+      <p></p>
+      <pre></pre>
+    </div>
+  </section>
+
+  <section>
+    <h2>Journal des décisions</h2>
+    <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
+    <ul class="journal">
+      <li><time datetime="2026-10-09">2026-10-09</time><span>PRP4 : heures_commits retient le commit au titre de la fiche ; NUI20 35 tours ; total NUI +3 tours (fin de plage à la clôture)</span></li>
+    </ul>
+  </section>
+
+  <footer>
+    <span>Fichier de fiches : <span class="mono">context AI/114-prp.md</span></span>
+    <span>Mis à jour le <span class="mono">2026-10-09</span></span>
+  </footer>
+</div>
+<script src="vlp.js"></script>
