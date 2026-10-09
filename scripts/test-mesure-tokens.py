@@ -138,6 +138,17 @@ LIGNES_SONNET55 = [assistant("msg_N", 10**6, 10**6, 10**6, 10**6, sous_objet=(40
                              modele="claude-sonnet-5-5")]
 ATTENDU_SONNET55 = {"tours": 1, "usd": "15.30", "inconnus": []}
 
+# claude-haiku-5-5 est dans la grille depuis le 2026-10-10, en deux paliers. Entrée 10 000, cache écrit
+# 40 000 en 1 h, cache lu 50 000 : 100 000 jetons pile, palier bas ; sortie 1 000 000, prix de la page :
+# 0,001 + 0,008 + 0,0005 + 0,50 = 0,5095 $. Un jeton d'entrée de plus, palier haut :
+# 10 001 × 0,50 + 40 000 × 1 + 50 000 × 0,05 + 10⁶ × 2,50 = 2,5475005 $.
+LIGNES_HAIKU55_BAS = [assistant("msg_K", 10_000, 10**6, 40_000, 50_000, sous_objet=(40_000, 0),
+                                modele="claude-haiku-5-5")]
+ATTENDU_HAIKU55_BAS = {"tours": 1, "usd": "0.51", "inconnus": []}
+LIGNES_HAIKU55_HAUT = [assistant("msg_L", 10_001, 10**6, 40_000, 50_000, sous_objet=(40_000, 0),
+                                 modele="claude-haiku-5-5")]
+ATTENDU_HAIKU55_HAUT = {"tours": 1, "usd": "2.55", "inconnus": []}
+
 # Les heures des plages : des minutes autour du 2026-09-23 à 10:00 UTC, écrites comme dans un
 # transcript (`iso`) ou comme une borne de plage (`sec`).
 ORIGINE = datetime.datetime(2026, 9, 23, 10, 0, tzinfo=datetime.timezone.utc)
@@ -430,6 +441,8 @@ def main():
         ("inconnu", LIGNES_INCONNU, {k: v for k, v in ATTENDU_INCONNU.items() if v is not None}),
         ("opus-5-5", LIGNES_OPUS55, ATTENDU_OPUS55),
         ("sonnet-5-5", LIGNES_SONNET55, ATTENDU_SONNET55),
+        ("haiku-5-5 palier bas", LIGNES_HAIKU55_BAS, ATTENDU_HAIKU55_BAS),
+        ("haiku-5-5 palier haut", LIGNES_HAIKU55_HAUT, ATTENDU_HAIKU55_HAUT),
     ] + CAS_PLAGE:
         ecart = verifier(nom, lignes, attendu, *options)
         if ecart:
