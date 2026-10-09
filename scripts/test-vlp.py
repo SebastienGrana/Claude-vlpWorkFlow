@@ -1278,6 +1278,38 @@ def tester_barre_finale():
 
 groupe(tester_barre_finale)
 
+
+def tester_clore_todo():
+    """TAB3 : `clore` lit la TODO avant sa première écriture — cassée, il n'écrit rien."""
+    gabarit = lambda nom: open(os.path.join(ICI, "..", "templates", nom), encoding="utf-8").read()
+
+    def empreinte(racine):
+        return {os.path.join(r, f): hashlib.sha256(open(os.path.join(r, f), "rb").read()).hexdigest()
+                for r, _, fs in os.walk(racine) for f in fs}
+
+    for saine in (False, True):
+        with tempfile.TemporaryDirectory() as te:
+            ecrire(os.path.join(te, "CHANTIER.md"), "# C\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n"
+                   "- **fichier d'état** : ctx/08-etat.md\n- **artefact du chantier** : aucun\n\n"
+                   "Lettres de fiche déjà prises : U (test).\n")
+            rang = "| 3 | Trois | a | 2 fiches | — |" if saine else "| 3 | Trois | a | b | 2 fiches | — |"
+            ecrire(os.path.join(te, "ctx", "08-etat.md"), "# État\n\n| # | Chantier | Ce qu'il apporte | Coût estimé "
+                   "| Dépend de |\n|---|---|---|---|---|\n%s\n\n## Journal\n" % rang)
+            ecrire(os.path.join(te, "ctx", "50-u.md"), ouvert("# Chantier U — u\n\n**Fait.** Rien.\n\n## U1 [x] — a\n"))
+            ecrire(os.path.join(te, "ctx", "artefacts", "50-u.html"), gabarit("artefact-chantier.html"))
+            ecrire(os.path.join(te, "ctx", "artefacts", "feuille-de-route.html"), gabarit("artefact-feuille-de-route.html"))
+            avant = empreinte(te)
+            code, s = appel(["clore", te, "--livre", "fini", "--date", "2026-10-09"])
+            if saine:
+                verifier("TAB3 : clore sur une TODO saine passe", code == 0 and "CLOS U " in s, s)
+            else:
+                verifier("TAB3 : clore sur une TODO cassée rend GARDE, sort 1, rien écrit",
+                         code == 1 and s.startswith("GARDE: ligne 3 de la TODO : 6 cellules au lieu de 5")
+                         and "rien écrit" in s and empreinte(te) == avant, (code, s))
+
+
+groupe(tester_clore_todo)
+
 # REP1 : le gras et les liens Markdown d'une cellule — jamais dans du code cité.
 def tester_gras_et_liens():
     """Contrôler `gras_et_liens` et `cellule` : le gras et les liens Markdown d'une cellule (chantier REP)."""

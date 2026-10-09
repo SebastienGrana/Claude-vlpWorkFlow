@@ -6271,6 +6271,22 @@ def cmd_ouverts(a, sortie):
     return 0
 
 
+def refus_de_clore(projet, carte_, courant, fiches_, ids):
+    """Le refus de `clore`, calculé avant toute écriture, ou None : aucune fiche, déjà **CLOS**, ou une TODO
+    du fichier d'état que `todo_du_fichier` refuse — la feuille la relirait après les écritures (TAB3)."""
+    if not ids:
+        return "aucune fiche dans %s" % courant
+    if any(l.startswith("**CLOS**") for l in fiches_):
+        return "%s porte déjà **CLOS**" % courant
+    etat = champ(carte_, "fichier d'état")
+    if etat and os.path.isfile(os.path.join(projet, etat)):
+        try:
+            todo_du_fichier(lignes_de(os.path.join(projet, etat)))
+        except ValueError as e:
+            return "%s — rien écrit" % e
+    return None
+
+
 def cmd_clore(a, sortie):
     """Clore le chantier courant de `a.projet` : les écritures mécaniques de `cloture.md`, décrites à `clore` dans la
     docstring de `vlp.py`."""
@@ -6287,11 +6303,9 @@ def cmd_clore(a, sortie):
     chemin_fiches = os.path.join(projet, courant)
     fiches_ = lignes_du_projet(projet, courant, "fichier de fiches")
     ids = [l.split()[1] for l in fiches_ if TITRE.match(l)]
-    if not ids:
-        sortie.write("GARDE: aucune fiche dans %s\n" % courant)
-        return 1
-    if any(l.startswith("**CLOS**") for l in fiches_):
-        sortie.write("GARDE: %s porte déjà **CLOS**\n" % courant)
+    garde = refus_de_clore(projet, carte_, courant, fiches_, ids)
+    if garde:
+        sortie.write("GARDE: %s\n" % garde)
         return 1
     lettre = lettre_de(ids[0])
     titre = next((re.sub(r"^# Chantier \S+ — ", "", l) for l in fiches_ if l.startswith("# ")), courant)

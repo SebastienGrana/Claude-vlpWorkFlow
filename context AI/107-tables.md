@@ -124,8 +124,9 @@ même compte avant et après ta correction, sans `GARDE:` (`RENVOIS 129 nommés 
 ---
 
 <!-- FICHE:TAB3 -->
-## TAB3 [ ] — `clore` lit la TODO avant sa première écriture
+## TAB3 [x] — `clore` lit la TODO avant sa première écriture
 
+**Session** : 790ba1d9-c8d7-4603-8479-b30ce961b7a7
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp_coeur.py`, `scripts/test-vlp.py` — et rien d'autre.
 
