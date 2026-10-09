@@ -2505,10 +2505,11 @@ INFINI = float("inf")
 
 
 def heures_commits(fichier, ids, pourquoi=None, clos=False):
-    """({id: heure}, [heures], [autres heures]) en secondes UTC, lus par `git log` dans le
-    dossier du fichier : l'heure d'auteur du commit `<id> :` de chaque fiche — le plus ancien
+    """({id: heure}, [heures], [autres heures], [coupes]) en secondes UTC, lus par `git log` dans
+    le dossier du fichier : l'heure d'auteur du commit `<id> :` de chaque fiche — le plus ancien
     s'il y en a deux —, celles de tous les commits qui nomment le préfixe (`REP`, `REP2`…),
-    puis celles des autres commits, triées : elles bornent le chantier (`plages`).
+    celles des autres commits, puis, à part, celles des seuls commits `<PRÉFIXE> :` (`VIT :`,
+    `Dette VIT :`, pas `Chantier VIT ouvert`), triées : elles bornent le chantier (`plages`).
     Sans commit de fiche, `{}` d'abord : un chantier en cours. None sans `git`, sans dépôt,
     sans commit qui nomme le préfixe, ou sans commit de fiche d'un chantier `clos` — sa
     dernière mention est sa clôture, rien ne tomberait après (chantier ZER) : le repli,
@@ -2529,12 +2530,14 @@ def heures_commits(fichier, ids, pourquoi=None, clos=False):
         return None
     nomme = re.compile(r"(?<![A-Za-z0-9])(?:%s)[0-9]*(?![A-Za-z0-9])"
                        % "|".join(sorted({lettre_de(i) for i in ids})))
-    commits, prefixe, autres = {}, [], []
+    coupe = re.compile(r"(?<![A-Za-z0-9])(?:%s) :" % "|".join(sorted({lettre_de(i) for i in ids})))
+    commits, prefixe, autres, coupes = {}, [], [], []
     for ligne in r.stdout.splitlines():
         heure, _, sujet = ligne.partition(" ")
         if not heure.isdigit():
             continue
         (prefixe if nomme.search(sujet) else autres).append(int(heure))
+        coupes.extend([int(heure)] if coupe.search(sujet) else [])
         c = COMMIT_FICHE.match(sujet)
         if c and c.group(1) in ids:
             commits[c.group(1)] = min(int(heure), commits.get(c.group(1), int(heure)))
@@ -2545,8 +2548,8 @@ def heures_commits(fichier, ids, pourquoi=None, clos=False):
         if clos:
             pourquoi.append("chantier clos sans commit « %s : » ni d'une autre fiche" % ids[0])
             return None
-        return {}, sorted(prefixe), sorted(autres)
-    return commits, sorted(prefixe), sorted(autres)
+        return {}, sorted(prefixe), sorted(autres), sorted(coupes)
+    return commits, sorted(prefixe), sorted(autres), sorted(coupes)
 
 
 def plages(fiches_, heures, gardes, clos=False):
@@ -2560,16 +2563,24 @@ def plages(fiches_, heures, gardes, clos=False):
     préfixe, avant ce début — le chantier d'avant, quand une session en enchaîne plusieurs ;
     à défaut, le début de la session. Hors fiches : de l'origine à la première fiche, et de
     la dernière au premier commit suivant qui nomme le préfixe — la clôture ; sans lui,
-    jusqu'au bout. Au-delà, rien ne compte : une mention plus tardive n'étire rien. Ni
-    commit de fiche ni fiche à session : ([], [])."""
-    commits, prefixe, autres = heures
+    jusqu'au bout. Au-delà, rien ne compte : une mention plus tardive n'étire rien. Un commit
+    `<PRÉFIXE> :` (4e liste de `heures`, absente : aucun) entre deux commits de fiche coupe la
+    suivante : elle part du dernier de ces commits, le morceau d'avant va hors fiches, le total
+    ne bouge pas (chantier PRP) ; une mention ailleurs dans le sujet (`Chantier VIT ouvert`) ne
+    coupe rien. Ni commit de fiche ni fiche à session : ([], [])."""
+    commits, prefixe, autres, *reste = heures
+    coupes = reste[0] if reste else []
     ordre = sorted(commits, key=commits.get)
     premier = commits[ordre[0]] if ordre else INFINI    # sans commit de fiche : le dernier qui nomme
     debut = max((t for t in prefixe if t < premier), default=-INFINI)
     origine = max((t for t in autres if t < (premier if debut == -INFINI else debut)), default=-INFINI)
     debut = max(debut, origine)
-    rendu = []
+    rendu, milieu = [], []
     for ident in ordre:
+        coupe = max((t for t in coupes if debut < t < commits[ident]), default=None)
+        if rendu and coupe is not None:
+            milieu.append((debut, coupe))
+            debut = coupe
         rendu.append((ident, (debut, commits[ident])))
         debut = commits[ident]
     sans = [f[0] for f in fiches_ if f[0] not in commits and f[3]]
@@ -2582,7 +2593,7 @@ def plages(fiches_, heures, gardes, clos=False):
         return [], []
     dernier = rendu[-1][1][1]
     fin = min((t for t in prefixe if t > dernier), default=INFINI)
-    return rendu, [p for p in ((origine, rendu[0][1][0]), (dernier, fin)) if p[0] < p[1]]
+    return rendu, [p for p in [(origine, rendu[0][1][0])] + milieu + [(dernier, fin)] if p[0] < p[1]]
 
 
 def transcripts_du_fichier(fiches_, entete, gardes):

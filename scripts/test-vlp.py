@@ -885,7 +885,7 @@ def tester_heures_commits():
                                capture_output=True, env=dict(env, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date))
             h = mod.heures_commits(os.path.join(avec, "q.md"), ["Q1", "Q2"])
             verifier("heures_commits : heure d'auteur, commits qui nomment le préfixe",
-                     h == ({"Q1": T0 + 300, "Q2": T0 + 600}, [T0 + 100, T0 + 300, T0 + 600, T0 + 800], [T0 + 900]), h)
+                     h == ({"Q1": T0 + 300, "Q2": T0 + 600}, [T0 + 100, T0 + 300, T0 + 600, T0 + 800], [T0 + 900], []), h)
             page = os.path.join(avec, "artefacts", "q.html")
             code, s = appel(["page", os.path.join(avec, "q.md"), page, "--creer", "--projet", "P", "--titre", "T",
                              "--resultat", "R", "--date", "2026-01-05"])
@@ -1003,7 +1003,7 @@ def tester_heures_commits():
                      and pourquoi == ["chantier clos sans commit « Q1 : » ni d'une autre fiche"], (h, pourquoi))
             h = mod.heures_commits(os.path.join(clq, "q.md"), ["Q1", "Q2"])
             verifier("heures_commits : en cours sans commit de fiche, la découpe",
-                     h == ({}, [T0 + 100, T0 + 1100], [T0 + 60, T0 + 1050]), h)
+                     h == ({}, [T0 + 100, T0 + 1100], [T0 + 60, T0 + 1050], []), h)
             code, s = appel(["cout", os.path.join(clq, "q.md")])
             verifier("cout : une découpe à zéro le dit", code == 0 and s.startswith(
                 "GARDE: découpe à zéro — aucun tour de 2 transcripts ne tombe dans une plage\n"
@@ -1145,6 +1145,21 @@ def tester_plages():
 
 
 groupe(tester_plages)
+
+
+def tester_plages_preparation():
+    """Contrôler qu'un commit `<PRÉFIXE> :` entre deux fiches coupe la suivante (chantier PRP)."""
+    P2, G = [("Q1", "a", True, ["s"]), ("Q2", "b", True, ["s"])], []
+    h = ({"Q1": 300, "Q2": 600}, [100, 300, 450, 600, 800], [30, 900], [450])
+    r = mod.plages(P2, h, G)
+    verifier("plages_preparation : la fiche 2 part du commit `<PRÉFIXE> :`, le morceau d'avant hors fiches",
+             r == ([("Q1", (100, 300)), ("Q2", (450, 600))], [(30, 100), (300, 450), (600, 800)]) and not G, (r, G))
+    longueur = lambda p: sum(b - a for _, (a, b) in p[0]) + sum(b - a for a, b in p[1])
+    verifier("plages_preparation : le total ne bouge pas",
+             longueur(r) == longueur(mod.plages(P2, h[:3], G)), (r, mod.plages(P2, h[:3], G)))
+
+
+groupe(tester_plages_preparation)
 
 
 # --- hook : le PostToolUse du plugin -----------------------------------------
