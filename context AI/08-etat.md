@@ -3208,3 +3208,10 @@ Les 6 fichiers relus en entier contre `methode-chantier.md` après `MET7` ; « t
 - **Livré** : `TAB1..TAB4` — `cellules_de` refuse une ligne de table au mauvais nombre de cellules ou sans barre finale (`renvois`, TODO, table des nuits) ; `clore` lit la TODO avant sa première écriture (`refus_de_clore`) ; `vlp.py oter` retire une ligne de la TODO, marque son numéro, l'écrit au journal.
 - **Coût** : chantier 23 142 467 (ligne `CLOS`) · joué 4 fiches 11,71 $ contre estimé 7 fiches ≈28 $.
 - **Laissé ouvert** : `oter` refuse un chantier ouvert ou clos, il ne sert donc pas au temps 1 de `cloture.md` (la ligne de `TAB` retirée à la main) ; non tranché.
+
+## 2026-10-09 — CTR1 : les couleurs de couts.svg au contraste de la lecture
+
+- `COUTS_BARRE`, `COUTS_TEXTE` = `--cours` `#8f5a0f`, `--doux` `#6e6151` de `templates/vlp.css` ; un test garde l'égalité.
+- **Contrastes WCAG** (barre/surface, barre/ground, texte/surface, texte/ground) : 5.15 4.76 5.37 4.96 — rendus par `py -3 scripts/test-vlp.py` (ligne `CTR1 contrastes`).
+- pyright sur `vlp_coeur.py` et `test-vlp.py` : 0 errors avant, 0 errors après.
+- Imprévu : `vlp.py feuille .` lancé par le plugin dessine avec les couleurs de `main` (le plugin suit `main`) ; refait par `scripts/vlp.py` du worktree.

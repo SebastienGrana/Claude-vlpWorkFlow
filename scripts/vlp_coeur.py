@@ -4536,11 +4536,11 @@ def total_clos(corps):
 
 
 # Le coût des chantiers clos en image (chantier BTN), joint à la feuille comme vlp.css. Une image
-# ne lit pas les variables de la page : couleurs en dur, lisibles sur le fond crème comme sur le
-# fond sombre de vlp.css ; chaque forme porte son `fill`.
+# ne lit pas les variables de la page : couleurs en dur, recopies de `--cours` (barres) et `--doux`
+# (traits, chiffres) de vlp.css — un test garde l'égalité (CTR1) ; chaque forme porte son `fill`.
 COUTS_SVG = "couts.svg"
 COUTS_TAILLE = (640, 160, 24)  # largeur, hauteur, bandeau du maximum en haut
-COUTS_BARRE, COUTS_TEXTE = "#c47f1a", "#7d8796"
+COUTS_BARRE, COUTS_TEXTE = "#8f5a0f", "#6e6151"
 BALISE_COUTS = re.compile(r'[ \t]*<img src="couts\.svg"[^>]*>\n')
 DETAILS_CLOS = re.compile(r'^([ \t]*)<details class="clos">', re.M)
 

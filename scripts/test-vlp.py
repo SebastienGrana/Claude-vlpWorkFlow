@@ -6387,6 +6387,23 @@ def tester_plan():
 groupe(tester_plan)
 
 
+def contrastes_couts(barre, texte):
+    """CTR1 : les variables de la ligne `:root` de vlp.css, et les rapports WCAG (luminance
+    relative) de `barre` puis `texte`, chacune sur `--surface` puis `--ground`."""
+    racine_css = next(l for l in lire(GABARIT_VLPCSS).splitlines() if l.startswith(":root"))
+    css = dict(re.findall(r"(--[\w-]+):(#[0-9a-f]{6})", racine_css))
+
+    def luminance(c):
+        v = [int(c[i:i + 2], 16) / 255 for i in (1, 3, 5)]
+        v = [x / 12.92 if x <= .03928 else ((x + .055) / 1.055) ** 2.4 for x in v]
+        return .2126 * v[0] + .7152 * v[1] + .0722 * v[2]
+
+    def contraste(a, b):
+        la, lb = sorted((luminance(a), luminance(b)), reverse=True)
+        return (la + .05) / (lb + .05)
+    return css, [contraste(c, css.get(f, "#000000")) for c in (barre, texte) for f in ("--surface", "--ground")]
+
+
 # --- BTN1: `vlp.js` joint aux pages, la ligne FILES ; charset et script posés une fois ---
 
 def tester_joints():
@@ -6578,6 +6595,15 @@ def tester_joints():
                  " de la plus ancienne à la plus récente — mutant : attribut retiré",
                  donnees == {"couleur": mod.COUTS_BARRE, "barres": [[n, t, mod.arrondi(t)] for n, t in
                              (("A", 1000), ("B", 2000), ("D", 4000))]}, str(donnees))
+        # CTR1 : l'image recopie `--cours` et `--doux` de vlp.css, lisibles à 4,5:1 sur les deux fonds.
+        css, rapports = contrastes_couts(mod.COUTS_BARRE, mod.COUTS_TEXTE)
+        verifier("Graphique : couleurs de couts.svg = --cours et --doux de vlp.css, contraste ≥ 4,5"
+                 " sur --surface et --ground — mutant : ancienne couleur des barres",
+                 mod.COUTS_BARRE == css.get("--cours") and mod.COUTS_TEXTE == css.get("--doux")
+                 and min(rapports) >= 4.5, "rapports %s · css %s" % (
+                     " ".join("%.2f" % r for r in rapports), css))
+        print("  CTR1 contrastes (barre/surface, barre/ground, texte/surface, texte/ground) : %s"
+              % " ".join("%.2f" % r for r in rapports))
         ecrire(fdr, mod.BALISE_COUTS.sub("", html))
         appel(["feuille", proj])
         verifier("BTN5 : une feuille d'avant, sans balise, la reçoit à sa régénération",
