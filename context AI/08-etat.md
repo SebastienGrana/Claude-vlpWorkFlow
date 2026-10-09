@@ -393,6 +393,9 @@ celle de `FIL` ; 48 à 51, de celle de `FIN` ; 52, des clôtures de la nuit du
 Une ligne par décision imprévue tranchée en cours de fiche — jamais un résumé
 de ce que le code dit déjà.
 
+- **2026-10-10** — AMD1 : `vlp.py symboles`, que la fiche cite pour donner la ligne d'un symbole,
+  ne lit que le Python (`ast`) ; sur un `.as` de MapDecorator il sort un traceback `SyntaxError`,
+  pas une `GARDE:`. `grep -n` l'a remplacé ; une fiche sur un projet non Python ne le cite plus.
 - **2026-10-09** — PRP1, la découpe : couper aussi aux commits `<PRÉFIXE> :` est **permis**, aucune
   décision passée ne l'interdit. `FIN` (`45-cout-aux-bords.md`) : « couper au commit est la seule
   règle qui tienne pour `/vlp:tache` comme pour `/vlp:enchainer` » ; il n'a borné que le début et la

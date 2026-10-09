@@ -21,9 +21,9 @@
     <p>Un rapport sur MapDecorator, une commande à Cairn, deux essais en jeu, et une page à cartes qui chiffre les chantiers de la V1.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">7 fiches · 0 faite · en cours : AMD1</p>
+    <p class="mono" style="margin-top:.5rem">7 fiches · 1 faite · en cours : AMD2</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -38,17 +38,18 @@
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">AMD1</span></span>
-        <details open><summary><span class="titre">Lire l'état réel de MapDecorator</span><span class="etat">En cours</span></summary>
-        <span class="note">Le code contre le contexte, et ce qui est prêt pour la V1 ; après la tâche qui commite MapDecorator.</span></details></li>
-      <li class="fiche"><span class="gauche"><span class="id">AMD2</span></span>
-        <details><summary><span class="titre">Lire le pont champ par champ, et écrire la commande à Cairn</span><span class="etat">À lancer</span></summary>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">AMD1</span></span>
+        <details><summary><span class="titre">Lire l'état réel de MapDecorator</span><span class="etat">Faite</span></summary>
+        <span class="note">Rapport 21-audit-amd.md écrit : V1 = 3 partiel, 1 absent, 1 présent ; 25 faits périmés, 25 consignes relues, 11 à reprendre</span></details>
+        <span class="cout mono">≈10,4M (10 424 350) · 48 tours · 6,08 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">AMD2</span></span>
+        <details open><summary><span class="titre">Lire le pont champ par champ, et écrire la commande à Cairn</span><span class="etat">En cours · AMD4 peut partir en même temps</span></summary>
         <span class="note">Le pont champ par champ, et la commande à Cairn rangée par version.</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">AMD3</span></span>
         <details><summary><span class="titre">Définir les stratégies et les outils de la V1</span><span class="etat">Après AMD2</span></summary>
         <span class="note">Les six outils de la V1, et les règles de guidage en hypothèses ; après AMD2.</span></details></li>
       <li class="fiche"><span class="gauche"><span class="id">AMD4</span></span>
-        <details><summary><span class="titre">Chercher l'existant : la boucle, les pinceaux, la pose d'items</span><span class="etat">À lancer</span></summary>
+        <details><summary><span class="titre">Chercher l'existant : la boucle, les pinceaux, la pose d'items</span><span class="etat">À lancer · en même temps que AMD2</span></summary>
         <span class="note">L'existant : rechargement, pinceaux, pose d'items — au plus 6 recherches.</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">AMD5</span></span>
         <details><summary><span class="titre">Essayer le pont minimal</span><span class="etat">Après AMD4</span></summary>
@@ -59,9 +60,11 @@
         <span class="note">Un item posé par un plugin, ou pas : la condition de la V2 ; jeu ouvert, après AMD5.</span></details>
         <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">AMD7</span></span>
-        <details><summary><span class="titre">Rendre le bilan : les chantiers chiffrés</span><span class="etat">Après AMD1, AMD2, AMD3, AMD4, AMD5, AMD6</span></summary>
+        <details><summary><span class="titre">Rendre le bilan : les chantiers chiffrés</span><span class="etat">Après AMD2, AMD3, AMD4, AMD5, AMD6</span></summary>
         <span class="note">Le bilan en page à cartes : les chantiers de la V1 chiffrés ; après toutes.</span></details></li>
     </ul>
+    <p class="mono cout-hors">Hors fiches : ≈14,6M (14 552 679) · 69 tours · 10,82 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈25,0M (24 977 029) · 117 tours · 16,90 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -78,6 +81,7 @@
     <h2>Journal des décisions</h2>
     <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
     <ul class="journal">
+      <li><time datetime="2026-10-10">2026-10-10</time><span>AMD1 : vlp.py symboles ne lit que le Python (ast) ; sur un .as de MapDecorator il sort un traceback SyntaxError, pas une GARDE. grep -n l'a remplacé ; une fiche sur un projet non Python ne le cite plus.</span></li>
     </ul>
   </section>
 
