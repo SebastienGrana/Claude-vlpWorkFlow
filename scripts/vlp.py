@@ -475,6 +475,10 @@ Sous-commandes :
   passe par `feuille`) ; relancé, rien ne change. Dernière ligne `ÉCRIT <n> cellules · total <avant> → <après>`.
   `--a-clore` : chaque ligne recomptée finit par ` · à clore <n> · après clore <n>` (le calcul de
   `cout --a-clore`, après clore = recompté − à clore), ou ` · sans appel clore`.
+  `--clos <PRÉFIXE>` : ce seul clos (absent : `GARDE:`, sort 1) ; avec `--ecrire`, ses quatre
+  copies du coût — la cellule d'archive (prix recompté en tête), le joué de sa ligne `**Fait.**`,
+  de la `ZONE:bilan` de sa page et du `.md` d'abri (`recaler_texte`) ; une copie introuvable :
+  `GARDE:`, les autres s'écrivent. Dernière ligne `COPIES <n> écrites · <n> inchangées · <n> introuvables`.
 - `prix <projet> [--a-blanc]` — pose le `$` du `cout-total` de la page de chaque ligne de
   `ZONE:clos` (parcours de `recompter`) en tête de sa cellule Tokens s'il n'y est pas ; recale
   son ancien `joué … ≈X $` sur ce prix et marque son vieil estimé `(taux plat)`, dans le fichier

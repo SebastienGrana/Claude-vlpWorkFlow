@@ -2286,6 +2286,65 @@ def tester_recompter_essais():
 
 groupe(tester_recompter_essais)
 
+
+def tester_recompter_un_clos():
+    """`recompter --clos A --ecrire` (PRP3) : les quatre copies du coût de A écrites, B intact —
+    `recompte` simulé (90 000 tokens, 7,50 $), la découpe a ses propres tests."""
+    from decimal import Decimal
+    with tempfile.TemporaryDirectory() as tp:
+        ecrire(os.path.join(tp, "CHANTIER.md"), "# Chantier courant\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n")
+        ecrire(os.path.join(tp, "ctx", "00-INDEX.md"), "| Fichier | Lire quand |\n|---|---|\n"
+               "| `a.md` | chantier **clos** « A », `A1..A1` |\n| `b.md` | chantier **clos** « B », `B1..B1` |\n")
+        joue = "estimé 1 fiches ≈25 $ · cadré 1 · joué 1 fiches 12,34 $"
+        for x in ("A", "B"):
+            ecrire(os.path.join(tp, "ctx", x.lower() + ".md"),
+                   "# Chantier %s\n\n**CLOS** le 2026-01-06.\n\n**Fait.** %s1..%s1 (2026-01-06) : fini — %s.\n\n"
+                   "## Le socle commun\n\n<!-- FICHE:%s1 -->\n## %s1 [x] — Seule\n**Critère de fin**\n<!-- /FICHE -->\n"
+                   % (x, x, x, joue, x, x))
+            ecrire(os.path.join(tp, "ctx", "artefacts", x.lower() + ".html"),
+                   '<p class="mono cout-total">Coût : 12,34 $</p>\n  <!-- ZONE:bilan -->\n  <section>\n'
+                   '    <div class="bilan">\n      <p>Estimé : %s</p>\n    </div>\n  </section>\n' % joue)
+            ecrire(os.path.join(tp, "ctx", "artefacts", x.lower() + ".md"),
+                   "# %s — notes et journal\n## Résultat\nFini\n## Notes\n## Journal\n## Bilan\n- Estimé : %s\n" % (x, joue))
+        fdr = os.path.join(tp, "ctx", "artefacts", "feuille-de-route.html")
+        ecrire(fdr, '    <!-- ZONE:clos — test -->\n      <table>\n        <tbody>\n'
+               + "".join(ligne_close("12,34 $ · " + mod.arrondi(50000)).replace("Q1–Q2", pl) for pl in ("A1", "B1"))
+               + "        </tbody>\n      </table>\n")
+        b = [os.path.join(tp, "ctx", n) for n in ("b.md", os.path.join("artefacts", "b.html"), os.path.join("artefacts", "b.md"))]
+        avant_b = [lire(c) for c in b]
+        vrai = mod.recompte
+        mod.recompte = lambda chemin: (90000, "découpe", 0, Decimal("7.50"))
+        try:
+            absent = appel(["recompter", tp, "--clos", "Z", "--ecrire"])
+            initiale = lire(fdr)
+            un = appel(["recompter", tp, "--clos", "A", "--ecrire"])
+            copies_a = [lire(os.path.join(tp, "ctx", n)) for n in
+                        ("a.md", os.path.join("artefacts", "a.html"), os.path.join("artefacts", "a.md"))]
+            feuille_ = lire(fdr)
+            deux = appel(["recompter", tp, "--clos", "A", "--ecrire"])
+        finally:
+            mod.recompte = vrai
+        verifier("PRP3 : --clos absent de ZONE:clos, une GARDE, rien d'écrit",
+                 absent[0] == 1 and absent[1].startswith("GARDE: clos Z absent")
+                 and initiale.count("12,34 $ · %s" % mod.arrondi(50000)) == 2, absent[1])
+        neuf = "joué 1 fiches 7,50 $"
+        verifier("PRP3 : recompter --clos A --ecrire — 4 copies écrites pour A (archive, **Fait.**, ZONE:bilan, abri)"
+                 " — mutant : sauter l'écriture de la ZONE:bilan",
+                 un[0] == 0 and un[1].splitlines()[-1] == "COPIES 4 écrites · 0 inchangées · 0 introuvables"
+                 and un[1].splitlines()[0].startswith("A inscrit 50 000 · recompté 90 000")
+                 and '<td class="mono">7,50 $ · recompté (REC), était 50 000 · %s</td>' % mod.arrondi(90000) in feuille_
+                 and all(neuf in c for c in copies_a), un[1] + "\n".join(copies_a) + feuille_)
+        verifier("PRP3 : B n'a pas bougé — 0 copie changée (fiches, page, abri, cellule d'archive)",
+                 [lire(c) for c in b] == avant_b
+                 and '<td class="mono">B1</td>' in feuille_
+                 and feuille_.count('<td class="mono">12,34 $ · %s</td>' % mod.arrondi(50000)) == 1, feuille_)
+        verifier("PRP3 : relancé, les quatre copies inchangées",
+                 deux[0] == 0 and deux[1].splitlines()[-1] == "COPIES 0 écrites · 4 inchangées · 0 introuvables"
+                 and lire(fdr) == feuille_, deux[1])
+
+
+groupe(tester_recompter_un_clos)
+
 # --- chantier U : lire, cocher, page déduite ----------------------------------
 
 def tester_lire_kit():

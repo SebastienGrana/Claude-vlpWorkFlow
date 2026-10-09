@@ -4640,26 +4640,28 @@ def signe(n):
 
 
 def recompte(chemin):
-    """(recompté ou None, méthode, essais) d'un fichier de fiches clos : le nombre de la ligne `TOTAL` de
+    """(recompté ou None, méthode, essais, usd) d'un fichier de fiches clos : le nombre de la ligne `TOTAL` de
     `cout`, ou None et la raison de le garder — sans session, transcription absente, `DÉCOUPE
     aucune`, découpe à zéro (chantier REC). `essais` : les tokens de ses essais, ceux de la découpe
-    ou, sans découpe, des sessions entières (`essais_entiers`) — pour `--essais` (chantier ESD)."""
+    ou, sans découpe, des sessions entières (`essais_entiers`) — pour `--essais` (chantier ESD).
+    `usd` : le prix de la ligne `TOTAL`, None sans découpe — pour `--clos` (PRP3)."""
     lignes = lignes_de(chemin)
     ids = sessions_de(lignes)
     if not ids:
-        return None, "gardé — sans session", 0
+        return None, "gardé — sans session", 0, None
     for s in ids:
         if mesure().resoudre(s)[1]:
-            return None, "gardé — transcription absente (%s)" % s, 0
+            return None, "gardé — transcription absente (%s)" % s, 0, None
     decoupe, pourquoi, gardes = decouper(chemin, lignes)
     if not decoupe:
         gardes = []
         essais = essais_entiers(ids, gardes)[0]
         manque = " · %d transcript(s) d'essai non mesuré(s)" % len(gardes) if gardes else ""
-        return None, "gardé — DÉCOUPE aucune (%s)%s" % (pourquoi[0], manque), essais
+        return None, "gardé — DÉCOUPE aucune (%s)%s" % (pourquoi[0], manque), essais, None
     if any(g.startswith("GARDE: découpe à zéro") for g in gardes):
-        return None, "gardé — découpe à zéro", 0
-    return plus(*totaux(decoupe))[0], "découpe", totaux(decoupe)[2][0]
+        return None, "gardé — découpe à zéro", 0, None
+    total = plus(*totaux(decoupe))
+    return total[0], "découpe", totaux(decoupe)[2][0], total[2]
 
 
 # La cellule de coût d'une ligne close, seule sur sa ligne (`clore`), et les marques de
@@ -4852,8 +4854,7 @@ def cmd_recompter(projet, sortie, ecrire=False, essais=False, a_clore=False):
     parcours = clos_du_projet(projet, sortie)
     if parcours is None:
         return 1
-    html, d, f, rangs = parcours
-    page = page_clos(projet)
+    rangs = parcours[3]
     porteurs = {}
     for _, prefixe, _, chemin in rangs:
         for s in sessions_de(lignes_de(chemin)) if chemin else []:
@@ -4861,7 +4862,7 @@ def cmd_recompter(projet, sortie, ecrire=False, essais=False, a_clore=False):
     n = inscrit = ecart = recoivent = ajoute = 0
     neufs = {}      # chaque ligne et sa réécriture, toutes calculées avant d'écrire
     for r, prefixe, brut, chemin in rangs:
-        recompte_, methode, part = recompte(chemin) if chemin else (None, "gardé — fichier introuvable", 0)
+        recompte_, methode, part, _ = recompte(chemin) if chemin else (None, "gardé — fichier introuvable", 0, None)
         autres = sorted({p for s in (sessions_de(lignes_de(chemin)) if chemin else [])
                          for p in porteurs[s]} - {prefixe})
         partage = " · partagée avec %s" % ", ".join(autres) if autres else ""
@@ -4893,8 +4894,16 @@ def cmd_recompter(projet, sortie, ecrire=False, essais=False, a_clore=False):
     else:
         sortie.write("RECOMPTE %d clos · %d recomptés · %d gardés · inscrit %s · recompté %s · écart %s\n" % (
             len(rangs), n, len(rangs) - n, milliers(inscrit), milliers(inscrit + ecart), signe(ecart)))
-    if not ecrire:
-        return 0
+    if ecrire:
+        ecrire_clos(projet, parcours, neufs, sortie)
+    return 0
+
+
+def ecrire_clos(projet, parcours, neufs, sortie):
+    """`ZONE:clos` avec chaque ligne de `neufs` remplacée, pied et résumé resommés, `couts.svg`
+    refait — la fin de `recompter --ecrire`, `--clos` compris (PRP3)."""
+    html, d, f, rangs = parcours
+    page = page_clos(projet)
     corps = html[d:f]
     neuf_corps = RANG_CLOS.sub(lambda m: neufs.get(m.group(0), m.group(0)), corps)
     avant, apres = total_clos(corps), total_clos(neuf_corps)
@@ -4906,8 +4915,98 @@ def cmd_recompter(projet, sortie, ecrire=False, essais=False, a_clore=False):
             fh.write(neuf)
     rafraichir_couts(projet, page, neuf)
     sortie.write("ÉCRIT %d cellules · total %s → %s\n" % (
-        sum(neufs[r] != r for r, _, _, _ in rangs), milliers(avant), milliers(apres)))
+        sum(neufs.get(r, r) != r for r, _, _, _ in rangs), milliers(avant), milliers(apres)))
+
+
+def cmd_recompter_clos(projet, sortie, ecrire, clos):
+    """`recompter --clos` : le seul clos `clos` recompté ; avec `ecrire`, ses quatre copies du coût —
+    la cellule d'archive (`ecrire_clos`), puis `ecrire_copies` (PRP3)."""
+    parcours = clos_du_projet(projet, sortie)
+    if parcours is None:
+        return 1
+    rang = next((rg for rg in parcours[3] if rg[1] == clos), None)
+    if rang is None:
+        sortie.write("GARDE: clos %s absent de ZONE:clos — rien d'écrit\n" % clos)
+        return 1
+    r, _, brut, chemin = rang
+    recompte_, methode, _, usd = recompte(chemin) if chemin else (None, "gardé — fichier introuvable", 0, None)
+    sortie.write("%s inscrit %s · recompté %s · écart %s · %s\n" % (
+        clos, milliers(brut), "gardé" if recompte_ is None else milliers(recompte_),
+        signe(0 if recompte_ is None else recompte_ - brut), methode))
+    if not ecrire:
+        return 0
+    neuf = CELLULE_CLOS.sub(lambda c: c.group(1) + marquer_prix(c.group(2), brut, recompte_, methode, usd)
+                            + c.group(3), r, count=1)
+    ecrire_clos(projet, parcours, {r: neuf}, sortie)
+    ecrire_copies(chemin, usd, neuf != r, sortie)
     return 0
+
+
+def marquer_prix(cellule, brut, recompte_, methode, usd):
+    """`marquer` pour `--clos` : le prix d'en tête (`PRIX_CLOS`) mis à part, puis reposé — le
+    recompté s'il est connu, sinon l'ancien (PRP3)."""
+    m = re.match(r'(\d+,\d\d \$) · ', cellule)
+    prix = dollars(usd) if usd is not None else (m.group(1) if m else None)
+    marque = marquer(cellule[m.end():] if m else cellule, brut, recompte_, methode)
+    return "%s · %s" % (prix, marque) if prix else marque
+
+
+def copie_fait(chemin, usd):
+    """La ligne `**Fait.**` de `chemin` recalée sur `usd` : écrite ou non ; ValueError sans ligne
+    à joué (PRP3)."""
+    lignes = lignes_de(chemin)
+    k = next((k for k, l in enumerate(lignes) if l.startswith("**Fait.**") and JOUE_PRIX.search(l)), None)
+    if k is None:
+        raise ValueError("ligne **Fait.** avec un joué absente de %s" % chemin)
+    vieille, lignes[k] = lignes[k], recaler_texte(lignes[k], usd, tout=True)[0]
+    if lignes[k] != vieille:
+        ecrire_par_tmp([(chemin, "\n".join(lignes) + "\n")])
+    return lignes[k] != vieille
+
+
+def copie_bilan(page, usd):
+    """La `ZONE:bilan` de `page` recalée sur `usd` : écrite ou non ; ValueError sans page, sans zone
+    ou sans joué dedans (PRP3)."""
+    if not os.path.isfile(page):
+        raise ValueError("page introuvable : %s" % page)
+    pg = lire(page)
+    d, f = zone(pg, "bilan", "\n", "  </section>")
+    if not JOUE_PRIX.search(pg[d:f]):
+        raise ValueError("ZONE:bilan sans joué : %s" % page)
+    neuf = pg[:d] + recaler_texte(pg[d:f], usd, tout=True)[0] + pg[f:]
+    if neuf != pg:
+        ecrire_par_tmp([(page, neuf)])
+    return neuf != pg
+
+
+def copie_abri(md, usd):
+    """Le bilan du `.md` d'abri `md` recalé sur `usd` (`ecrire_abri`) : écrit ou non ; ValueError sans
+    `.md` ou sans joué au bilan (PRP3)."""
+    parts = lire_abri(md) if os.path.isfile(md) else None
+    if parts is None or not any(JOUE_PRIX.search(b) for b in parts["bilan"]):
+        raise ValueError(".md d'abri sans joué au bilan : %s" % md)
+    bilan = [recaler_texte(b, usd, tout=True)[0] for b in parts["bilan"]]
+    if bilan != parts["bilan"]:
+        ecrire_abri(md, dict(parts, bilan=bilan))
+    return bilan != parts["bilan"]
+
+
+def ecrire_copies(chemin, usd, archive, sortie):
+    """Les trois autres copies du coût d'un clos recalées sur `usd` : `copie_fait`, `copie_bilan`,
+    `copie_abri`. Une copie introuvable : `GARDE:`, les autres s'écrivent quand même. Puis
+    `COPIES <n> écrites · <n> inchangées · <n> introuvables`, l'archive (`archive`, déjà écrite)
+    comprise (PRP3)."""
+    n = {"écrites": int(archive), "inchangées": int(not archive), "introuvables": 0}
+    page = page_du_fichier(chemin) if chemin else ""
+    for copie, cible in ((copie_fait, chemin), (copie_bilan, page), (copie_abri, chemin_abri(page) if page else "")):
+        try:
+            if usd is None or not cible:
+                raise ValueError("prix non recompté")
+            n["écrites" if copie(cible, usd) else "inchangées"] += 1
+        except ValueError as e:
+            n["introuvables"] += 1
+            sortie.write("GARDE: %s — %s ; les autres copies s'écrivent\n" % (copie.__name__, e))
+    sortie.write("COPIES %d écrites · %d inchangées · %d introuvables\n" % tuple(n.values()))
 
 
 def poser_prix(cellule, prix):
@@ -4920,15 +5019,19 @@ def poser_prix(cellule, prix):
 
 # Le vieux joué à la louche (avec `≈`) et le vieil estimé non encore marqué — `prix` (chantier TAU).
 JOUE_LOUCHE = re.compile(r'joué (\d+) fiches ≈[\d,]+ \$')
+# Tout joué, mesuré, à la louche ou inconnu — `recompter --clos` (PRP3).
+JOUE_PRIX = re.compile(r'joué (\d+) fiches (?:≈?[\d,]+|\?) \$')
 ESTIME_NON_MARQUE = re.compile(r'(estimé \S+ fiches ≈[\d,]+ \$)(?! \(taux plat\))')
 
 
-def recaler_texte(texte, prix):
+def recaler_texte(texte, prix, tout=False):
     """`texte` (`**Fait.**`, page ou `.md` d'abri) avec le joué à la louche recalé sur `prix` (le
     pondéré mesuré de sa page, `dollars`) et le vieil estimé marqué `(taux plat)` s'il ne l'est
     pas déjà — (nouveau texte, un joué a été recalé, un estimé a été marqué) ; inchangé et deux
-    `False` si rien à faire (chantier TAU, `prix`)."""
-    neuf, n1 = JOUE_LOUCHE.subn(lambda m: "joué %s fiches %s" % (m.group(1), dollars(prix)), texte)
+    `False` si rien à faire (chantier TAU, `prix`). `tout` : tout joué recalé, mesuré compris
+    (`JOUE_PRIX`, `recompter --clos`)."""
+    neuf, n1 = (JOUE_PRIX if tout else JOUE_LOUCHE).subn(
+        lambda m: "joué %s fiches %s" % (m.group(1), dollars(prix)), texte)
     neuf, n2 = ESTIME_NON_MARQUE.subn(lambda m: m.group(1) + " (taux plat)", neuf)
     return neuf, bool(n1), bool(n2)
 
@@ -8863,9 +8966,9 @@ def main(argv, sortie=None, entree=None, erreur=None):
     lns.add_argument("projet")
     rc =sous.add_parser("recompter")
     rc.add_argument("projet")
-    rc.add_argument("--ecrire", action="store_true")
-    rc.add_argument("--essais", action="store_true")
-    rc.add_argument("--a-clore", action="store_true")
+    for o in ("--ecrire", "--essais", "--a-clore"):
+        rc.add_argument(o, action="store_true")
+    rc.add_argument("--clos")
     px = sous.add_parser("prix")
     px.add_argument("projet")
     px.add_argument("--a-blanc", action="store_true")
@@ -8968,7 +9071,8 @@ def repartir(a, sortie, entree, erreur):
     if a.cmd == "liens":
         return cmd_liens(a.projet, sortie)
     if a.cmd == "recompter":
-        return cmd_recompter(a.projet, sortie, a.ecrire, a.essais, a.a_clore)
+        return (cmd_recompter_clos(a.projet, sortie, a.ecrire, a.clos) if a.clos
+                else cmd_recompter(a.projet, sortie, a.ecrire, a.essais, a.a_clore))
     if a.cmd == "prix":
         return cmd_prix(a.projet, sortie, a.a_blanc)
     if a.cmd == "bac":
