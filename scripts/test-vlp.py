@@ -1111,6 +1111,45 @@ def tester_heures_commits():
 
 groupe(tester_heures_commits)
 
+
+def tester_commit_au_titre():
+    """PRP4 : une fiche à deux commits `<id> :` va jusqu'à celui qui porte son titre — `NUI20`,
+    coupée à son commit d'étape, perdait sa séance (2 tours au lieu de 35)."""
+    if not shutil.which("git"):
+        print("SAUTÉ: git absent — le commit au titre n'est pas testé")
+        return
+    with tempfile.TemporaryDirectory() as t:
+        d, sq = os.path.join(t, "q"), os.path.join(t, "s.jsonl")
+        transcript(sq, 6, [T0 + x for x in (50, 200, 250, 400, 700, 1000)])
+        os.makedirs(os.path.join(t, "s", "subagents"))
+        transcript(os.path.join(t, "s", "subagents", "agent-a1.jsonl"), 2, [T0 + 450, T0 + 460])
+        ecrire(os.path.join(d, "q.md"), QFICHES % (sq, sq))
+        env = dict(os.environ, GIT_CONFIG_GLOBAL=os.path.join(t, "gitconfig"), GIT_CONFIG_NOSYSTEM="1",
+                   GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t")
+        ecrire(env["GIT_CONFIG_GLOBAL"], "")
+        subprocess.run(["git", "init", "-q"], cwd=d, env=env, check=True, capture_output=True)
+        for x, sujet in ((100, "Chantier Q ouvert : cadré"), (300, "Q1 : Créer"), (350, "Q2 : l'avant, relevé"),
+                         (380, "Autre : un chantier voisin au milieu"), (600, "Q2 : Brancher"),
+                         (800, "Chantier Q clos : fini"), (950, "Q1 : correctif d'après")):
+            date = "%d +0000" % (T0 + x)
+            subprocess.run(["git", "commit", "-q", "--allow-empty", "-m", sujet], cwd=d, check=True,
+                           capture_output=True, env=dict(env, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date))
+        q = os.path.join(d, "q.md")
+        h = mod.heures_commits(q, ["Q1", "Q2"], titres={"Q1": "Créer", "Q2": "Brancher"})
+        verifier("PRP4 commit au titre : Q2 au sien, pas à l'étape ; Q1 pas étiré par son correctif",
+                 h is not None and h[0] == {"Q1": T0 + 300, "Q2": T0 + 600}, h)
+        h = mod.heures_commits(q, ["Q1", "Q2"])
+        verifier("PRP4 commit au titre : sans titres, le plus ancien, comme avant",
+                 h is not None and h[0] == {"Q1": T0 + 300, "Q2": T0 + 350}, h)
+        code, s = appel(["cout", q])
+        verifier("PRP4 commit au titre : cout donne à Q2 sa séance, sous-agent compris, total inchangé", code == 0
+                 and "\nQ1 · ≈200,0k (200 000) · 2 tours · 1,00 $" in s
+                 and "\nQ2 · ≈300,0k (300 000) · 3 tours · 1,50 $" in s
+                 and "TOTAL (fiches + hors fiches) · ≈700,0k (700 000) · 7 tours" in s, s)
+
+
+groupe(tester_commit_au_titre)
+
 # FIN1 : les bornes de `plages`, en fonction pure — heures (commits de fiche, qui nomment, autres).
 def tester_plages():
     """Contrôler les bornes de `plages`, en fonction pure (chantier FIN)."""

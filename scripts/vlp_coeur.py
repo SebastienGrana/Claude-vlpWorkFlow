@@ -698,7 +698,8 @@ def heure_clore(chemin, lignes):
     que le commit de clôture ferme ; None sans lui. Ce que `clore` a vu en inscrivant son chiffre
     (chantier APC)."""
     fiches_ = fiches_du_fichier(lignes)
-    heures = heures_commits(chemin, [f[0] for f in fiches_], [], any(l.startswith("**CLOS**") for l in lignes))
+    heures = heures_commits(chemin, [f[0] for f in fiches_], [], any(l.startswith("**CLOS**") for l in lignes),
+                             {f[0]: f[1] for f in fiches_})
     trous = plages(fiches_, heures, [], clos=True)[1] if heures else []
     if not trous:
         return None
@@ -751,7 +752,7 @@ def decoupe_et_heures(chemin, lignes=None, fin=None):
     fiches_ = fiches_du_fichier(lignes)
     pourquoi, gardes = [], []
     clos = any(l.startswith("**CLOS**") for l in lignes)
-    heures = heures_commits(chemin, [f[0] for f in fiches_], pourquoi, clos)
+    heures = heures_commits(chemin, [f[0] for f in fiches_], pourquoi, clos, {f[0]: f[1] for f in fiches_})
     if fin is None and clos and heures:
         fin = heure_clore(chemin, lignes)
     decoupe = heures and parts_aux_commits(fiches_, heures, gardes, sessions_entete(lignes), fin)
@@ -2504,10 +2505,13 @@ COMMIT_FICHE = re.compile(r"^([A-Z]{1,3}[0-9]+) :")
 INFINI = float("inf")
 
 
-def heures_commits(fichier, ids, pourquoi=None, clos=False):
+def heures_commits(fichier, ids, pourquoi=None, clos=False, titres=None):
     """({id: heure}, [heures], [autres heures], [coupes]) en secondes UTC, lus par `git log` dans
-    le dossier du fichier : l'heure d'auteur du commit `<id> :` de chaque fiche — le plus ancien
-    s'il y en a deux —, celles de tous les commits qui nomment le préfixe (`REP`, `REP2`…),
+    le dossier du fichier : l'heure d'auteur du commit `<id> :` de chaque fiche — s'il y en a deux,
+    le plus ancien de ceux dont le sujet suit par le titre de la fiche (`titres`, {id: titre} ;
+    le commit de 6 bis et de `boucle.py`), à défaut le plus ancien : un commit d'étape en cours de
+    fiche ne la coupe plus avant sa fin, un correctif d'après ne l'étire pas (chantier PRP, `NUI20`) —,
+    celles de tous les commits qui nomment le préfixe (`REP`, `REP2`…),
     celles des autres commits, puis, à part, celles des seuls commits `<PRÉFIXE> :` (`VIT :`,
     `Dette VIT :`, pas `Chantier VIT ouvert`), triées : elles bornent le chantier (`plages`).
     Sans commit de fiche, `{}` d'abord : un chantier en cours. None sans `git`, sans dépôt,
@@ -2531,7 +2535,7 @@ def heures_commits(fichier, ids, pourquoi=None, clos=False):
     nomme = re.compile(r"(?<![A-Za-z0-9])(?:%s)[0-9]*(?![A-Za-z0-9])"
                        % "|".join(sorted({lettre_de(i) for i in ids})))
     coupe = re.compile(r"(?<![A-Za-z0-9])(?:%s) :" % "|".join(sorted({lettre_de(i) for i in ids})))
-    commits, prefixe, autres, coupes = {}, [], [], []
+    commits, au_titre, prefixe, autres, coupes = {}, {}, [], [], []
     for ligne in r.stdout.splitlines():
         heure, _, sujet = ligne.partition(" ")
         if not heure.isdigit():
@@ -2540,7 +2544,10 @@ def heures_commits(fichier, ids, pourquoi=None, clos=False):
         coupes.extend([int(heure)] if coupe.search(sujet) else [])
         c = COMMIT_FICHE.match(sujet)
         if c and c.group(1) in ids:
-            commits[c.group(1)] = min(int(heure), commits.get(c.group(1), int(heure)))
+            titre = (titres or {}).get(c.group(1))
+            vus = au_titre if titre and sujet[c.end():].replace("`", "").strip().startswith(titre) else commits
+            vus[c.group(1)] = min(int(heure), vus.get(c.group(1), int(heure)))
+    commits.update(au_titre)
     if not commits:
         if not prefixe:
             pourquoi.append("aucun commit qui nomme %s" % lettre_de(ids[0]))

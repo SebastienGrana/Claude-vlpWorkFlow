@@ -418,6 +418,17 @@ de ce que le code dit déjà.
   1,91 $ de `790ba1d9`, de 15:56:00 à la clôture `657cddb` 15:59:03, ne comptent nulle part
   (`--plage 2026-10-09T15:56:00 2026-10-09T15:59:03`) ; regardé : `git log` de la plage, seuls `TAB4`
   15:55:18 et la clôture.
+- **2026-10-09** — PRP4, la cause de `NUI20` **corrigée** : `PRP2` ne la touchait pas (`cout` du
+  fichier de `NUI` : `NUI20` 2 tours · 0,16 $ avant comme après `PRP2`). `heures_commits` retient
+  désormais, parmi deux commits `<id> :`, le plus ancien **qui suit par le titre de la fiche** (le
+  commit de 6 bis et de `boucle.py`), à défaut le plus ancien. Après : `NUI20` 35 tours · 4,72 $,
+  hors fiches 210 → 180 tours (25,95 → 21,53 $). Le total bouge, **imprévu** : 2275 → 2278 tours,
+  172,50 → 172,64 $ — la dernière plage hors fiches finissait au 2ᵉ commit `NUI20` (23:49:08), elle va
+  maintenant à la clôture `d37bb33` (23:51:04) : 3 tours qui ne comptaient nulle part. Sur les 11
+  fiches du dépôt à deux commits, 3 changent (`NUI20`, `LEC2`, `EVF1` : leur commit au titre est le
+  plus récent) ; `NIV1` (correctif 20 jours après, aucun au titre) garde le plus ancien ; `VIT14`,
+  retirée, n'est plus dans un fichier de fiches.
+  Aucun clos recompté. `TAB` (14 tours · 1,91 $ après le `clore`) : pas regardé ici.
 
 - **2026-09-25** — hors chantier, demandé par l'utilisateur contre le *scope creep* (« il y a trop
   de todo ») : la TODO ne grossit plus sans deux oui, justifiés — règle écrite dans
