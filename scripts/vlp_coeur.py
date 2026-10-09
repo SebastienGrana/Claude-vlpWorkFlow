@@ -4278,9 +4278,16 @@ def trier(rangs, lettres):
 
 
 def cmd_trier(a, sortie):
+    """`trier <projet>` : le tri du soir ; dans Git, sur `main` seulement — ailleurs une `GARDE:`, rien trié (BRA1)."""
     if not equipe(a.projet):
         sortie.write("GARDE: pas de CHANTIER.md dans %s\n" % a.projet)
         return 1
+    if git_texte(["rev-parse", "--is-inside-work-tree"], a.projet)[0] == 0:
+        code, tete = git_texte(["symbolic-ref", "--short", "-q", "HEAD"], a.projet)
+        branche = tete.strip() if code == 0 else "rien (détaché)"
+        if branche != "main":
+            sortie.write("GARDE: trier hors de main (branche %s) — le plan ne s'écrit que sur main : rien trié\n" % branche)
+            return 1
     try:
         carte_ = lignes_de(os.path.join(a.projet, "CHANTIER.md"))
         etat = champ(carte_, "fichier d'état")
@@ -5483,6 +5490,31 @@ def lignes_attente(artefacts):
     return ["ATTENTE=%s %s" % (p, u) for p, u, _ in lire_attente(artefacts)]
 
 
+def attentes_de_nuit(projet, pages, sortie):
+    """Sous `VLP_NUIT=1`, mettre en attente chaque `(chemin, url)` de `pages` — la session `claude -p` n'a pas l'outil
+    Artifact : le chef du matin les publie (NPB1) —, et écrire `ATTENTE <page> — <url>`. Hors nuit : rien."""
+    if os.environ.get("VLP_NUIT") == "1":
+        noter_attentes(projet, pages, sortie)
+
+
+def noter_attentes(projet, pages, sortie):
+    """Mettre en attente chaque `(chemin, url)` de `pages` dans le dossier artefacts du projet, et écrire
+    `ATTENTE <page> — <url>` ; une page hors de ce dossier est ignorée."""
+    artefacts = dossier_artefacts(projet)
+    heure = datetime.datetime.now().astimezone().isoformat(timespec="minutes")
+    for chemin, url in pages:
+        nom = page_relative(artefacts, os.path.abspath(chemin))
+        if nom:
+            ajouter_attente(artefacts, nom, url or "aucune", heure)
+            sortie.write("ATTENTE %s — %s\n" % (nom, url or "aucune"))
+
+
+def dire_attentes(projet, sortie):
+    """Écrire les `ATTENTE=` du projet après les fusions du matin : les pages qu'une nuit n'a pas pu publier (NPB1)."""
+    for ligne in lignes_attente(dossier_artefacts(projet)):
+        sortie.write(ligne + "\n")
+
+
 def page_relative(artefacts, page):
     """`page` relative au dossier artefacts, en barres obliques ; None si elle est ailleurs."""
     if os.path.isabs(page):
@@ -6448,6 +6480,8 @@ def cmd_clore(a, sortie):
         except ValueError as e:
             sortie.write("GARDE: %s — CHANTIER.md et fiches écrits, feuille non écrite\n" % e)
             return 1
+        attentes_de_nuit(projet, [(chemin_page, url), (page, champ(carte_, "artefact feuille de route", "aucune"))],
+                         sortie)
         if archive != page and clos_html is not None:
             # l'archive se publie en fin de séance, par la liste d'attente (chantier ARC)
             url_archive = champ(lignes_de(chemin_carte), "artefact archive", "aucune")
@@ -6456,9 +6490,7 @@ def cmd_clore(a, sortie):
                 sortie.write("GARDE: archive sans URL — publier %s, puis « vlp.py archive %s --url <URL> »\n"
                              % (archive, projet))
             else:
-                ajouter_attente(dossier_artefacts(projet), ARCHIVE_CLOS, url_archive,
-                                __import__("datetime").datetime.now().astimezone().isoformat(timespec="minutes"))
-                sortie.write("ATTENTE %s — %s\n" % (ARCHIVE_CLOS, url_archive))
+                noter_attentes(projet, [(archive, url_archive)], sortie)
         with open(page, "w", encoding="utf-8", newline="") as fh:
             fh.write(html)
         joints = recopier_joints(os.path.dirname(os.path.abspath(page)))
@@ -7534,7 +7566,8 @@ def fusionner_branche(projet, branche, message, sortie):
     # clos dans un worktree, il ne bloque plus la principale — à `aucun`, comme `clore` (NUI26).
     chemin_recu = os.path.join(projet, courant_recu) if courant_recu else None
     if chemin_recu and os.path.isfile(chemin_recu) and any(l.startswith(MARQUE_CLOS) for l in lignes_de(chemin_recu)):
-        valeurs = {libelle: "aucun" for libelle in valeurs}
+        # sa ligne a aussi quitté la TODO avec sa clôture : plus de badge « en cours » à remettre (dette NUI)
+        valeurs, rang = {libelle: "aucun" for libelle in valeurs}, None
     ecrire_comme(chemin_carte, restaurer(fusion, valeurs, lettres))
     if code_fusion == 0:
         conflits.discard("CHANTIER.md")
@@ -7721,6 +7754,7 @@ def cmd_matin(a, sortie):
     branches, lu = ordre_nuit(pointes, date, projet)
     if not lu:
         sortie.write("ORDRE pointes — carnet absent\n")
+    _, avant = git_texte(["rev-parse", "HEAD"], projet)
     fusionnees = cote = 0
     for branche in branches:
         etat, courant = etat_branche_nuit(projet, branche)
@@ -7734,8 +7768,22 @@ def cmd_matin(a, sortie):
         if fusionner_branche(projet, branche, "Matin %s : %s" % (date, branche), sortie):
             return 1
         fusionnees += 1
+    retard_du_matin(projet, avant.strip(), sortie)
+    dire_attentes(projet, sortie)
     sortie.write("MATIN %d fusionnée(s) · %d de côté\n" % (fusionnees, cote))
     return 0
+
+
+def retard_du_matin(projet, avant, sortie):
+    """Écrire `PLUGIN_RETARD=<n> …` : `n` commits fusionnés depuis `avant` qui touchent `CODE_PLUGIN`, quand `projet`
+    est le kit chargé (`KIT`) — la session ouverte a lu ses commandes avant la fusion (RTD1). Rien pour un autre
+    projet, aucun commit, ou Git muet."""
+    if not avant or os.path.normcase(os.path.realpath(projet)) != os.path.normcase(os.path.realpath(KIT)):
+        return
+    code, n = git_texte(["rev-list", "--count", "%s..HEAD" % avant, "--"] + list(CODE_PLUGIN), projet)
+    if code == 0 and n.strip().isdigit() and int(n) > 0:
+        sortie.write("PLUGIN_RETARD=%d commit(s) de code du plugin fusionné(s) — la session ouverte ne les voit "
+                     "qu'après /reload-plugins\n" % int(n))
 
 
 def cmd_fusionner(a, sortie):
@@ -8081,16 +8129,28 @@ def texte_mute(fichier, avant, apres):
     return octets, texte.replace(avant, apres)
 
 
+def kit_de(fichier):
+    """Rendre la racine du premier kit (`est_kit`) en remontant depuis le dossier de `fichier`, `None` hors de tout
+    kit : un worktree du kit est son propre kit, même rangé sous le dépôt principal (MUW1)."""
+    d = os.path.dirname(os.path.abspath(fichier))
+    while not est_kit(d):
+        if os.path.dirname(d) == d:
+            return None
+        d = os.path.dirname(d)
+    return d
+
+
 def copie_mutee(fichier, mute, dossier):
-    """Copier sous `dossier` le kit — ou, hors du kit, le dossier de `fichier` —, sans `MUTANT_EXCLUS`, puis y écrire
-    `mute` à la place de `fichier` ; rendre (la racine copiée, sa copie). Le vrai fichier n'est jamais écrit."""
+    """Copier sous `dossier` le kit qui contient `fichier` (`kit_de`) — ou, hors de tout kit, `KIT` s'il le contient,
+    sinon le dossier de `fichier` —, sans `MUTANT_EXCLUS`, puis y écrire `mute` à la place de `fichier` ; rendre
+    (la racine copiée, sa copie). Le vrai fichier n'est jamais écrit."""
     import shutil
     fichier = os.path.abspath(fichier)
     try:
         dans_kit = os.path.commonpath([os.path.normcase(KIT), os.path.normcase(fichier)]) == os.path.normcase(KIT)
     except ValueError:      # deux lecteurs différents
         dans_kit = False
-    racine = KIT if dans_kit else os.path.dirname(fichier)
+    racine = kit_de(fichier) or (KIT if dans_kit else os.path.dirname(fichier))
     copie = os.path.join(dossier, "kit")
 
     def exclus(r, noms):
@@ -8226,8 +8286,11 @@ def cmd_mutant(a, sortie):
     dossier = tempfile.mkdtemp(prefix="vlp-mutant-")
     try:
         racine, copie = copie_mutee(a.cible, mute, dossier)
-        commande = vers_copie(a.test or [sys.executable, os.path.join(KIT, "scripts", "test-vlp.py")], racine, copie)
+        suite = os.path.join(racine if est_kit(racine) else KIT, "scripts", "test-vlp.py")
+        commande = vers_copie(a.test or [sys.executable, suite], racine, copie)
         texte, code = jouer_mutant(commande, copie, a.attendu, vise=not a.test)
+        if not a.test:
+            texte += "TESTS %s\n" % os.path.dirname(os.path.dirname(suite))
     except (OSError, subprocess.SubprocessError) as e:
         texte, code = "GARDE: les tests ne se lancent pas : %s\n" % e, 1
     finally:

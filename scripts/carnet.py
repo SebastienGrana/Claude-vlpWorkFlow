@@ -43,6 +43,7 @@ NOTES_BOUCLE = ("depart ", "base ", "ÉVEIL ", "bascule ")   # le début des not
 VERROU_AGE = 30   # secondes : au-delà, le verrou est cassé — seul endroit du nombre
 PAS = 0.02        # secondes d'attente entre deux essais de verrou
 ENV_CARNET, ENV_CANAL = "VLP_CARNET", "VLP_CANAL"
+VARIABLES_NUIT = ("VLP_NUIT", ENV_CARNET, ENV_CANAL)   # ce que la nuit pose ; les suites de tests les retirent (ENV1)
 
 
 def du_jour(dossier: str, jour: Optional[str] = None) -> Optional[str]:

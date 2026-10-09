@@ -1,0 +1,74 @@
+<meta charset="utf-8">
+<title>vlp — Le mutant joue les tests du dépôt de sa cible</title>
+<!--
+  GABARIT — artefact d'un chantier. Publié par /chantier à l'ouverture,
+  mis à jour par /tache à chaque fiche. Remplace les <…> et ne renomme pas
+  les marqueurs `ZONE:…` : les commandes les cherchent tels quels.
+
+  Convention de coût — posée ici, référencée (jamais recopiée) par
+  artefact-feuille-de-route.html, tache.md et cloture.md : un nombre < 1000
+  s'affiche tel quel ; au-delà, "≈<arrondi 1 décimale><k|M> (<compte brut>)"
+  — virgule française, k = mille, M = million. Le compte brut reste toujours
+  visible à côté de l'arrondi.
+-->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="vlp.css">
+
+<div class="page">
+  <header>
+    <div class="eyebrow">vlp · fiches MUW1 · <a href="https://claude.ai/artifact/YWDny8kjubq9DhdP5rbPxA">la feuille de route</a></div>
+    <h1>Le mutant joue les tests du dépôt de sa cible</h1>
+    <p>vlp.py mutant lancé par le plugin joue les tests du kit qui contient la cible, et le dit (ligne TESTS)</p>
+    <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
+    <div class="avancement">
+      <span data-etat="faite"></span>
+    </div>
+    <p class="mono" style="margin-top:.5rem">1 fiches · 1 faite</p>
+  </header>
+
+  <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
+  <section>
+    <h2>Chantier clos le 2026-10-09</h2>
+    <div class="bilan">
+      <p>Livré : vlp.py mutant joue les tests du kit qui contient sa cible (kit_de), et le dit par une ligne TESTS</p>
+      <p>Surpris : le faux VIVANT valait pour tout test, même déjà dans main, et un worktree sous .claude/worktrees tombait en GARDE ; rapide était déjà juste</p>
+      <p>Estimé : estimé 1 fiches ≈4,02 $ · cadré 1 · joué 1 fiches 3,19 $</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Les fiches, dans l'ordre des dépendances</h2>
+    <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
+    <ul class="fiches">
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">MUW1</span></span>
+        <details><summary><span class="titre">Reproduire, puis le mutant suit le dépôt de sa cible</span><span class="etat">Faite</span></summary>
+        <span class="note">Reproduit le faux VIVANT, puis corrige copie_mutee et cmd_mutant ; test et mutant ; ne dépend de rien</span></details>
+        <span class="cout mono">≈4,1M (4 055 474) · 36 tours · 1,75 $</span></li>
+    </ul>
+    <p class="mono cout-hors">Hors fiches : ≈2,3M (2 338 002) · 19 tours · 1,44 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈6,4M (6 393 476) · 55 tours · 3,19 $</p>
+    <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
+  </section>
+
+  <!-- ZONE:blocage — publiée quand /tache s'arrête après deux tentatives ; retirée dès que la fiche repasse -->
+  <section hidden>
+    <h2>Arrêt sur blocage</h2>
+    <div class="blocage">
+      <p></p>
+      <pre></pre>
+    </div>
+  </section>
+
+  <section>
+    <h2>Journal des décisions</h2>
+    <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
+    <ul class="journal">
+    </ul>
+  </section>
+
+  <footer>
+    <span>Fichier de fiches : <span class="mono">context AI/110-muw.md</span></span>
+    <span>Mis à jour le <span class="mono">2026-10-09</span></span>
+  </footer>
+</div>
+<script src="vlp.js"></script>

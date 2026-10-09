@@ -20,7 +20,6 @@ a l'air proche.
 | `107-tables.md` | on joue une fiche `TAB*` — chantier **ouvert** « Les tables de vlp.py ne se coupent plus en silence », `TAB1..TAB4` |
 | `103-audit-vitesse.md` | on cherche la source d'un chiffre « (synthèse) », « A1 » ou « A2 » d'une fiche `VIT` — la synthèse des deux audits vitesse du 2026-10-03 |
 | `106-nuits.md` | on prépare ou on relit une nuit — plan du soir, table des nuits, leçons |
-| `101-chef-de-nuit.md` | on joue une fiche `NUI*` — chantier **ouvert** « Le chef de nuit », `NUI1..NUI37` |
 | `00-INDEX-archive.md` | on relit un chantier clos — chacun y a sa ligne, triée par numéro |
 | `35-bilan.md` | on doit expliquer le kit — d'où il vient, ce qu'il sait faire aujourd'hui, ce qu'il ne promet pas ; les 22 chantiers chiffrés |
 | *(racine du kit)* `methode-chantier.md` | on ouvre un chantier, ou on le découpe en fiches — ici le projet **est** le kit, la méthode est donc à la racine |

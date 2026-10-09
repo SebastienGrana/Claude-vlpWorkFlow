@@ -220,7 +220,7 @@ Sous-commandes :
   `<img>` posée une fois avant `details.clos` (`balise_couts`), ses barres dans `data-couts`
   pour `vlp.js` ; sans coût, ni l'un ni l'autre.
 - `trier <projet>` — le tri du soir par script (chantier NUI) : lecture seule, aucun appel modèle, sur la TODO
-  du fichier d'état. Par rang : `PRÊT <code>` ou `ÉCARTÉE <code> — <raison>` (la marque `MARQUE_VISUELLE` ou `push`
+  du fichier d'état ; dans Git hors de `main` (ou tête détachée), `GARDE:`, rien trié, sort 1 (BRA1). Par rang : `PRÊT <code>` ou `ÉCARTÉE <code> — <raison>` (la marque `MARQUE_VISUELLE` ou `push`
   en cellule 3-4, ou une dépendance non close ; une prête du même soir compte pour close), `FICHIERS <code> <chemins>`,
   `MARQUES <code> <total> : …` (`MARQUES_TRI`), `SOIR <code> — <raison>` pour une prête à découper le soir
   (au-delà de `GROS_FICHES`, sans nombre, « à cadrer »). Puis `CANAL <k> : <codes> — <raisons>` par groupe de prêtes
@@ -265,7 +265,8 @@ Sous-commandes :
   et son archive (la ligne pour clé), `archive-clos.html` (la ligne close, `resommer`), `en-attente` (la page ; la plus
   récente gagne ; vide : retiré) et `publie` (la clé ; empreintes différentes : clé retirée, ligne `PUBLIE …`). Un
   désaccord ou un reste en conflit : `GARDE: <chemin> : <raison>`, puis l'`ARRÊT` ci-dessus. Pas de `merge=union` :
-  il garde les deux lignes de `publie` quand les empreintes diffèrent. Ni push, ni carnet.
+  il garde les deux lignes de `publie` quand les empreintes diffèrent. Ni push, ni carnet. Projet = le kit chargé
+  et des commits fusionnés qui touchent `CODE_PLUGIN` : `PLUGIN_RETARD=<n> …` avant `MATIN` (RTD1).
 - `fusionner <projet> <branche>` — la fusion du jour (NUI26) : `branche` dans celle du dossier, par le chemin de
   `matin` (`fusionner_branche`), commit `Fusion : <branche>`, `FUSIONNÉE <branche>`. Déjà contenue : `DÉJÀ <branche>`,
   sort 0. `GARDE:` (sort 1, rien fusionné) : non équipé, hors racine, `HEAD` détachée, `MERGE_HEAD` présent, arbre
@@ -559,7 +560,9 @@ Les lignes des chantiers clos — lues ou écrites par `clore`, `recompter`, `pr
 `repeindre` et le prix moyen d'`ouvrir` — vivent dans `<contexte>/artefacts/archive-clos.html`
 s'il existe, sinon dans la feuille ; le graphique reste sur la feuille (`page_clos`, chantier ARC).
 `clore` y refait alors le bloc `ZONE:archive` de la feuille et met l'archive en liste d'attente
-(`ATTENTE archive-clos.html — <URL>`), ou dit `GARDE:` sans champ **artefact archive**.
+(`ATTENTE archive-clos.html — <URL>`), ou dit `GARDE:` sans champ **artefact archive**. Sous `VLP_NUIT=1`,
+`clore` y met aussi la page du chantier et la feuille, qu'une session `claude -p` ne peut pas publier ; `matin`
+imprime les `ATTENTE=` du projet avant sa ligne `MATIN` (NPB1).
 
 Python 3 sans dépendance, zéro appel modèle.
 

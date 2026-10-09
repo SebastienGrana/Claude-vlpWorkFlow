@@ -41,9 +41,10 @@ mod.TAMPON_HOOKS = None
 # `ouvrir` et `cocher` notent CLAUDE_CODE_SESSION_ID : un test le fixe lui-même, jamais celui de la
 # session qui lance la suite (chantier CAD).
 os.environ.pop("CLAUDE_CODE_SESSION_ID", None)
-# Une fiche jouée la nuit lance la suite sous `VLP_NUIT=1` : `carte` imprimerait `NUIT=1` partout et
-# `plan ecrire` refuserait. Un test le fixe lui-même (NUI12).
-os.environ.pop("VLP_NUIT", None)
+# Une fiche jouée la nuit lance la suite sous les variables de la nuit : `carte` imprimerait `NUIT=1` partout,
+# `plan ecrire` refuserait, `VLP_CANAL` passerait au faux `claude`. Un test les fixe lui-même (NUI12, ENV1).
+for _nom in mod.carnet.VARIABLES_NUIT:
+    os.environ.pop(_nom, None)
 
 # Le chantier ouvert se dit par sa marque, sous le titre du fichier de fiches du dossier `contexte` (NUI31).
 CHANTIER = "# Chantier courant\n\n- **alias** : %s\n- **contexte** : %s\n"
@@ -119,8 +120,13 @@ JOUES = []      # les groupes joués, sous `--seul` (VIT10)
 
 
 def porte_motif(f, motif):
-    """Dire si le nom ou le texte du groupe `f` (ses libellés) porte `motif`, sans tenir compte de la casse."""
-    return motif.lower() in (f.__name__ + " " + inspect.getsource(f)).lower()
+    """Dire si le nom ou le texte du groupe `f` (ses libellés) porte `motif`, sans tenir compte de la casse — son
+    texte, et celui des fonctions du module qu'il nomme, sur un niveau : un libellé écrit dans `matin_t`, que
+    `tester_matin` appelle, retient `tester_matin` (dette RTD)."""
+    source = inspect.getsource(f)
+    aides = [inspect.getsource(g) for nom, g in globals().items()
+             if inspect.isfunction(g) and g is not f and re.search(r"\b%s\b" % re.escape(nom), source)]
+    return motif.lower() in (f.__name__ + " " + source + "".join(aides)).lower()
 
 
 def groupe(f):
@@ -6014,6 +6020,24 @@ def tester_trier():
 groupe(tester_trier)
 
 
+def tester_trier_branche():
+    """BRA1 : dans Git, `trier` ne trie que sur `main` ; ailleurs, une seule ligne `GARDE:`, sort 1."""
+    with tempfile.TemporaryDirectory() as tb:
+        ecrire(os.path.join(tb, "CHANTIER.md"), "# C\n\n- **contexte** : ctx/\n- **fichier d'état** : ctx/08-etat.md\n")
+        ecrire(os.path.join(tb, "ctx", "08-etat.md"), "# État\n\n| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |\n"
+               "|---|---|---|---|---|\n| 1 | `AAA` — a | x | 1 fiche | — |\n\n## Journal\n")
+        subprocess.run(["git", "init", "-q", "-b", "main"], cwd=tb, capture_output=True)
+        code_main, s_main = appel(["trier", tb])
+        subprocess.run(["git", "switch", "-q", "-c", "nuit/x"], cwd=tb, capture_output=True)
+        code, s = appel(["trier", tb])
+        verifier("BRA1 : trier sort 0 sur main, 1 sur nuit/x — une seule ligne, GARDE: trier hors de main",
+                 code_main == 0 and code == 1 and len(s.splitlines()) == 1 and s.startswith("GARDE: trier hors de main"),
+                 "%s\n%s" % (s_main, s))
+
+
+groupe(tester_trier_branche)
+
+
 # --- NUI11 : le fichier des nuits, ses leçons et le TAUX imprimés par trier ---
 
 def tester_fichier_nuits():
@@ -6029,7 +6053,7 @@ def tester_fichier_nuits():
     env = os.environ.get("CLAUDE_CODE_SESSION_ID")
     os.environ["CLAUDE_CODE_SESSION_ID"] = ""
     with tempfile.TemporaryDirectory() as tp:
-        subprocess.run(["git", "init", "-q"], cwd=tp, check=True, capture_output=True)
+        subprocess.run(["git", "init", "-q", "-b", "main"], cwd=tp, check=True, capture_output=True)
         ecrire(os.path.join(tp, "CHANTIER.md"), carte)
         ecrire(os.path.join(tp, "ctx", "00-INDEX.md"), indice)
         ecrire(os.path.join(tp, "ctx", "08-etat.md"), "# État\n\n" + entete + "| 1 | `AAA` — a | x | 1 fiche | — |\n\n## Journal\n")
@@ -6999,6 +7023,33 @@ def tester_mutant_vise():
 
 groupe(tester_mutant_vise)
 
+
+def tester_mutant_worktree():
+    """MUW1 : une cible dans un worktree du kit rangé sous le dépôt principal (`KIT`) joue les tests du worktree,
+    pas ceux de `KIT`, et une ligne `TESTS` le nomme."""
+    with tempfile.TemporaryDirectory() as tm:
+        principal = os.path.join(tm, "principal")
+        interieur = os.path.join(principal, ".claude", "worktrees", "w")
+        for k, suite in ((principal, "print('OK')\n"),
+                         (interieur, SUITE_VISEE.replace("@JOURNAL@", repr(os.path.join(tm, "journal.txt"))))):
+            ecrire(os.path.join(k, ".claude-plugin", "plugin.json"), "{}\n")
+            ecrire(os.path.join(k, "scripts", "test-vlp.py"), suite)
+        f = os.path.join(interieur, "f.py")
+        ecrire(f, "a = 1\nb = 2\nc = 3\n")
+        o = io.StringIO()
+        garde, mod.KIT = mod.KIT, principal
+        try:
+            code = mod.main(["mutant", f, "a = 1", "a = 9", "--attendu", "porte a"], o)
+        finally:
+            mod.KIT = garde
+        verifier("MUW1 : cible d'un worktree sous KIT → ses tests à lui, MUTANT ATTRAPÉ et ligne TESTS du worktree — "
+                 "mutant : copie_mutee reprise sur KIT",
+                 code == 0 and "MUTANT ATTRAPÉ" in o.getvalue() and "TESTS %s\n" % interieur in o.getvalue()
+                 and mod.kit_de(f) == interieur, (code, o.getvalue()))
+
+
+groupe(tester_mutant_worktree)
+
 # Le faux cliquet et le faux pyright de VIT23 : le cliquet rompt si un fichier `rompu` est à la racine ; pyright
 # compte une erreur par fichier qui porte le mot `erreur`.
 CLIQUET_FAUX = """import os, sys
@@ -7103,6 +7154,19 @@ def tester_boucle():
     texte, err = sortie.read(), erreur.read()
     verifier("boucle : test-boucle.py (boucle.py et son faux claude) sort OK",
              code == 0 and texte.strip() == "OK", texte + err)
+
+
+def tester_boucle_nuit():
+    """ENV1 : cette suite retire les variables de la nuit avant de lancer `test-boucle.py`, qui ne les voit donc
+    jamais ; ce test les lui pose, sur sa seule partie qui les attend absentes, pour que son propre retrait se voie."""
+    debut = time.perf_counter()
+    r = subprocess.run([sys.executable, os.path.join(ICI, "test-boucle.py"), "--parties", "sans_nuit"],
+                       capture_output=True, encoding="utf-8", errors="replace",
+                       env=dict(os.environ, PYTHONIOENCODING="utf-8", VLP_NUIT="1", VLP_CANAL="B",
+                                VLP_CARNET=os.path.join(tempfile.gettempdir(), "carnet-env1.jsonl")))
+    verifier("ENV1 : test-boucle.py --parties sans_nuit, sous les trois variables de la nuit, sort 0 sans ÉCART "
+             "— mutant : le retrait en tête de test-boucle.py neutralisé",
+             r.returncode == 0 and "ÉCART" not in r.stdout, (time.perf_counter() - debut, r.stdout + r.stderr))
 
 
 def suite_voisine(chemin):
@@ -7849,6 +7913,80 @@ def matin_s(tr):
              (code2, s2, intacte, code_r, s_r, code1, s1, code0, s0, codew, sw))
 
 
+def matin_t(tr):
+    """(t) une fusion qui touche `scripts/` : `PLUGIN_RETARD=1` avant `MATIN` quand le projet est le kit chargé (`KIT`),
+    rien pour un autre projet (RTD1)."""
+    sorties = []
+    for nom, est_kit in (("t-kit", True), ("t-autre", False)):
+        d = os.path.join(tr, nom)
+        depot_matin(d)
+        branche = branche_matin(d, "A", "RTD", "RTD", 1, x="a = 1\nb = 2\nc = 31\n")
+        garde, mod.KIT = mod.KIT, (d if est_kit else tr)
+        try:
+            sorties.append(appel(["matin", d, JOUR_MATIN]) + (branche,))
+        finally:
+            mod.KIT = garde
+    (code_k, s_k, b_k), (code_a, s_a, _) = sorties
+    retard = "PLUGIN_RETARD=1 commit(s) de code du plugin fusionné(s) — la session ouverte ne les voit qu'après /reload-plugins\n"
+    verifier("RTD1 (t) matin dit PLUGIN_RETARD= quand ses fusions touchent le code du kit chargé, rien pour un autre "
+             "projet — mutant : la condition « projet est KIT » forcée à faux",
+             code_k == 0 and s_k.endswith(retard + "MATIN 1 fusionnée(s) · 0 de côté\n") and "FUSIONNÉE %s" % b_k in s_k
+             and code_a == 0 and "PLUGIN_RETARD" not in s_a, sorties)
+
+
+def matin_u(tr):
+    """(u) une branche qui laisse une page en attente : `matin` imprime son `ATTENTE=` avant `MATIN` (NPB1)."""
+    d = os.path.join(tr, "u")
+    depot_matin(d)
+    attente = "50-x.html\thttps://claude.ai/artifact/x\t2026-10-01T01:00+02:00\n"
+    branche_matin(d, "A", "NPB", "NPB", 1, modifs=lambda r: ecrire(os.path.join(r, "ctx", "artefacts", "en-attente"),
+                                                                    attente))
+    code, s = appel(["matin", d, JOUR_MATIN])
+    verifier("NPB1 (b) matin imprime l'ATTENTE= qu'une branche de la nuit a laissée, avant MATIN — mutant : "
+             "l'appel à dire_attentes retiré",
+             code == 0 and s.endswith("ATTENTE=50-x.html https://claude.ai/artifact/x\nMATIN 1 fusionnée(s) · 0 de côté\n"),
+             (code, s))
+
+
+def tester_attentes_de_nuit():
+    """NPB1 (a) : `clore` sous `VLP_NUIT=1` met en attente la page du chantier et la feuille ; sans, ni l'une ni l'autre."""
+    vus = {}
+    garde = os.environ.pop("VLP_NUIT", None)
+    try:
+        for nuit in (True, False):
+            with tempfile.TemporaryDirectory() as te:
+                ecrire(os.path.join(te, "CHANTIER.md"), "# C\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n"
+                       "- **fichier d'état** : ctx/08-etat.md\n- **artefact du chantier** : https://claude.ai/artifact/c\n"
+                       "- **artefact feuille de route** : https://claude.ai/artifact/f\n\n"
+                       "Lettres de fiche déjà prises : U (test).\n")
+                ecrire(os.path.join(te, "ctx", "08-etat.md"), "# État\n\n| # | Chantier | Ce qu'il apporte | Coût estimé "
+                       "| Dépend de |\n|---|---|---|---|---|\n| 3 | Trois | a | 2 fiches | — |\n\n## Journal\n")
+                ecrire(os.path.join(te, "ctx", "50-u.md"), ouvert("# Chantier U — u\n\n**Fait.** Rien.\n\n## U1 [x] — a\n"))
+                for page, gabarit in (("50-u.html", "artefact-chantier.html"),
+                                      ("feuille-de-route.html", "artefact-feuille-de-route.html")):
+                    ecrire(os.path.join(te, "ctx", "artefacts", page),
+                           open(os.path.join(ICI, "..", "templates", gabarit), encoding="utf-8").read())
+                if nuit:
+                    os.environ["VLP_NUIT"] = "1"
+                try:
+                    code, s = appel(["clore", te, "--livre", "fini", "--date", "2026-09-26"])
+                finally:
+                    os.environ.pop("VLP_NUIT", None)
+                vus[nuit] = (code, s, [[p, u] for p, u, _ in mod.lire_attente(os.path.join(te, "ctx", "artefacts"))])
+    finally:
+        if garde is not None:
+            os.environ["VLP_NUIT"] = garde
+    verifier("NPB1 (a) clore sous VLP_NUIT=1 met en attente la page du chantier et la feuille, et le dit ; sans la "
+             "nuit, rien — mutant : la garde VLP_NUIT forcée à faux",
+             vus[True][0] == 0 and vus[True][2] == [["50-u.html", "https://claude.ai/artifact/c"],
+                                                     ["feuille-de-route.html", "https://claude.ai/artifact/f"]]
+             and "ATTENTE 50-u.html — https://claude.ai/artifact/c\n" in vus[True][1]
+             and vus[False][0] == 0 and vus[False][2] == [], vus)
+
+
+groupe(tester_attentes_de_nuit)
+
+
 def tester_matin():
     """NUI15 : `vlp.py matin <projet> <date>` fusionne dans main les branches de la nuit et répare ce que Git perd sans
     conflit (methode-chantier.md:263-268). Un dépôt temporaire par cas, la config Git isolée, la date de chaque commit
@@ -7866,7 +8004,7 @@ def tester_matin():
                               GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t",
                               GIT_COMMITTER_EMAIL="t@t")
             for cas in (matin_a, matin_b, matin_c, matin_d, matin_e, matin_h, matin_g,
-                        matin_n_a, matin_n_b, matin_n_c, matin_n_d, matin_n_e, matin_n_f, matin_r, matin_s):
+                        matin_n_a, matin_n_b, matin_n_c, matin_n_d, matin_n_e, matin_n_f, matin_r, matin_s, matin_t, matin_u):
                 cas(tr)
     finally:
         for k, v in gardes.items():
@@ -8191,6 +8329,8 @@ def tester_fusionner():
         postit = mod.postit(wt)
         assert postit
         ecrire(postit, "ctx/40-loc.md\n")       # le worktree reprend le chantier de main : son post-it le nomme
+        etat_wt = os.path.join(wt, "ctx", "08-etat.md")    # la clôture ôte sa ligne de la TODO (cloture.md, étape 1)
+        ecrire(etat_wt, "".join(l for l in lire(etat_wt).splitlines(True) if not l.startswith("| 79 |")))
         code_clore, s_clore = appel(["clore", wt, "--livre", "LOC livré", "--date", JOUR_MATIN])
         commit_matin(wt, "Chantier LOC clos", 1)
         code, s = appel(["fusionner", d, "clot-loc"])
@@ -8199,7 +8339,8 @@ def tester_fusionner():
         code_ouvrir, s_ouvrir = appel(["ouvrir", d, "--fiches", "ctx/50-neo.md", "--titre", "Neuf"])
         neo = lire(os.path.join(d, "ctx", "50-neo.md"))
     verifier("NUI26 (a) un worktree clôt LOC, le chantier de main : clore dit la ligne FUSIONNER ; fusionner depuis main "
-             "→ FUSIONNÉE, commit « Fusion : clot-loc », main à aucun (courant et artefact) ; ouvrir passe ensuite — "
+             "→ FUSIONNÉE, commit « Fusion : clot-loc », main à aucun (courant et artefact) ; ouvrir passe ensuite ; "
+             "la ligne 79 ôtée de la TODO par la clôture ne fait plus s'arrêter la feuille (dette NUI, 2026-10-08) — "
              "mutant : l'exception **CLOS** retirée",
              code_clore == 0 and ('FUSIONNER depuis %s : ' % d.replace("\\", "/")) in s_clore.replace("\\", "/")
              and ' fusionner "' in s_clore and s_clore.rstrip().endswith(" clot-loc")
@@ -8788,6 +8929,9 @@ def tester_seul():
     verifier("seul : le nom porte le motif, sans casse — mutant : casse comptée", porte_motif(tester_temoin_nom, "TEMOIN_NOM"), "")
     verifier("seul : le texte porte le motif, sans casse — mutant : texte ignoré", porte_motif(temoin_texte, "vit10-témoin"), "")
     verifier("seul : ni le nom ni le texte, écarté", not porte_motif(temoin_texte, "autre-motif"), "")
+    verifier("seul : le texte d'une aide du module que le groupe appelle porte le motif — mutant : aides ignorées",
+             porte_motif(tester_matin, "npb1 (b) matin imprime") and not porte_motif(tester_mutant, "npb1 (b) matin imprime"),
+             "")
     garde, joues, SEUL = SEUL, len(JOUES), "temoin_nom"
     try:
         groupe(tester_temoin_nom)
@@ -9043,7 +9187,8 @@ def tester_compteur_commande():
 groupe(tester_compteur_lecture)
 groupe(tester_compteur_sortes)
 groupe(tester_compteur_commande)
-groupe(tester_boucle)     # en dernier : les trois quarts de la suite, un écart d'ailleurs tombe avant lui (VIT2)
+groupe(tester_boucle_nuit)
+groupe(tester_boucle)    # en dernier : les trois quarts de la suite, un écart d'ailleurs tombe avant lui (VIT2)
 
 if ECARTS:
     print("FIN: %d écart(s)" % len(ECARTS))     # la suite est allée au bout : `vlp.py mutant` ne la dit pas PLANTÉ

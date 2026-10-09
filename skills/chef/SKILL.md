@@ -1,7 +1,7 @@
 ---
 description: "Prépare le lancement de plusieurs chantiers d'affilée, à toute heure : trie la TODO, pose toutes les questions dans une page à cartes, écrit le plan ; avec `matin`, range la nuit passée : fusion, rapport, réponses"
 argument-hint: (rien) | <date du plan AAAA-MM-JJ> | matin [<date de la nuit AAAA-MM-JJ>]
-allowed-tools: Bash(python3:*), Bash(py:*), Bash(echo:*), Bash(git branch --show-current:*), Bash(git check-ignore:*), Bash(git rev-parse:*), Bash(git add:*), Bash(git commit:*), PowerShell(python3:*), PowerShell(py:*), PowerShell(echo:*), PowerShell(git branch --show-current:*), PowerShell(git check-ignore:*), PowerShell(git rev-parse:*), PowerShell(git add:*), PowerShell(git commit:*), Read, Write, Artifact
+allowed-tools: Bash(python3:*), Bash(py:*), Bash(echo:*), Bash(git check-ignore:*), Bash(git rev-parse:*), Bash(git add:*), Bash(git commit:*), PowerShell(python3:*), PowerShell(py:*), PowerShell(echo:*), PowerShell(git check-ignore:*), PowerShell(git rev-parse:*), PowerShell(git add:*), PowerShell(git commit:*), Read, Write, Artifact
 ---
 
 Arguments reçus :
@@ -26,6 +26,7 @@ celle du plan (`--date`) ; sans argument, le jour. L'argument **`matin`** change
 - **`NUIT=1`** : une session de nuit ne joue pas `/vlp:chef` — arrête-toi, voir `nuit.md`.
 - **`AUCUN_PROJET`**, ou pas de `PROJET=` : arrête-toi (`/vlp:init`). **`GARDE:`** : arrête-toi, sortie brute.
 - **`PLUGIN_RETARD=`** : dis-la en une ligne.
+- **Hors de `main`**, `trier` (section 1) s'arrête en `GARDE:` : dis-la, et arrête le chef.
 - Un script ou un champ qui manque : arrête-toi et dis lequel, **n'invente rien**.
 
 ## 1. Trier : le script d'abord, puis ton jugement
@@ -77,7 +78,7 @@ réponses »). **N'avance pas avant : rien ne se devine.**
 **canal** et l'**estimé** retenus, chacun avec **sa raison** (une puce de `reponses`), et `découpage : …`
 s'il l'a validé ; un chantier qu'il écarte n'y entre pas. Garde ses réponses brutes dans `chef-<date>.md`.
 
-**Avant** `plan ecrire` : `git branch --show-current` ≠ `main`, ou le fichier des nuits ignoré : dis-le et
+**Avant** `plan ecrire` : le fichier des nuits ignoré : dis-le et
 arrête-toi — **aucun `checkout`**. Ignoré, c'est `git check-ignore "<contexte>/NN-nuits.md"` qui imprime
 son nom ; le fichier absent, un nom de cette forme suffit.
 

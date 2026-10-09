@@ -1,16 +1,21 @@
 """JNT1 : publications `Artifact` et refus « joints non lus » dans les transcriptions.
 Usage : py "context AI/99-jnt1-mesure.py" "<motif de dossier sous ~/.claude/projects>"
-(défaut *vlpWorkflow*). Lit les blocs tool_use/tool_result, jamais le texte des messages :
+(défaut *vlpWorkflow*) ["<depuis, AAAA-MM-JJ>"] (APR, 2026-10-09 : borne par l'horodatage
+de chaque ligne ; chaque refus vu s'imprime, session et heure, pour en lire la cause). Lit les blocs tool_use/tool_result, jamais le texte des messages :
 un `grep` compte aussi les citations (13 fichiers, 76 occurrences le 2026-09-29)."""
 import glob, json, os, re, sys
 REFUS = "touches files whose published content is not what you last saw"
 motif = sys.argv[1] if len(sys.argv) > 1 else "*vlpWorkflow*"
+depuis = sys.argv[2] if len(sys.argv) > 2 else ""
 pub = {True: 0, False: 0}; refus = 0; s_refus = set(); s_pub = set(); repub = 0; passes = 0
 for f in glob.glob(os.path.join(os.path.expanduser("~/.claude/projects"), motif, "*.jsonl")):
     vus, appels = set(), {}
     for l in open(f, encoding="utf-8", errors="replace"):
         try:
-            c = (json.loads(l).get("message") or {}).get("content")
+            d = json.loads(l)
+            if depuis and (d.get("timestamp") or "") < depuis:
+                continue
+            c = (d.get("message") or {}).get("content")
         except (ValueError, AttributeError):
             continue
         for b in c if isinstance(c, list) else []:
@@ -27,6 +32,7 @@ for f in glob.glob(os.path.join(os.path.expanduser("~/.claude/projects"), motif,
                 t = b.get("content"); t = t if isinstance(t, str) else json.dumps(t, ensure_ascii=False)
                 if REFUS in t:
                     refus += 1; s_refus.add(f)
+                    print("REFUS %s %s %s" % (os.path.basename(f)[:8], d.get("timestamp", "?")[:16], url))
                 if not b.get("is_error"):
                     if url and files:
                         repub += 1; passes += url not in vus

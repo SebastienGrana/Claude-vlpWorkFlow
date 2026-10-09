@@ -20,7 +20,9 @@ la ligne **Repris** ci-dessus.
 
 **Estimé.** 6 fiches · ≈18 $ — ≈2,98 $/fiche sur 88 clos (le 2026-10-01).
 
-**Fait.** Rien. Ouvert le 2026-10-01, cadré en 20 fiches, `NUI1` à jouer.
+**CLOS** le 2026-10-08. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** NUI1..NUI38 (2026-10-08) : /vlp:chef : le soir trie et pose les questions, la nuit joue deux canaux par boucle.py, le matin fusionne ; une nuit réelle jouée et comptée (2026-10-08) — estimé 6 fiches ≈18 $ · cadré 38 · joué 38 fiches 172,49 $.
 
 **Session** : d0a75cf6-8b7d-417c-9775-44ffe5decb84
 
@@ -1621,8 +1623,9 @@ Tu ne fais pas : réécrire les cellules de la TODO ; toucher `GROS_FICHES` ni l
 ---
 
 <!-- FICHE:NUI20 -->
-## NUI20 [ ] — Jouer une nuit réelle
+## NUI20 [x] — Jouer une nuit réelle
 
+**Session** : ffc88598-6beb-4183-ab5f-3921daa16197
 **Dépend de** : `NUI1`, `NUI2`, `NUI3`, `NUI4`, `NUI5`, `NUI6`, `NUI7`, `NUI8`, `NUI9`, `NUI10`, `NUI11`, `NUI12`, `NUI13`, `NUI14`, `NUI15`, `NUI16`, `NUI17`, `NUI18`, `NUI19`, `NUI32`, `NUI33`, `NUI38`.
 **Fichiers** : lus — `nuit.md` ; `CHANTIER.md` de `main` (`git show main:CHANTIER.md`) ; `context AI/08-etat.md`, lignes 381 (« Q7 essai réel ») et 384 à 386 (`APR`, `TAB`, `CLV`) ; le carnet et le fichier des nuits (socle, « Les noms retenus ») ; le fichier de fiches de chaque chantier de la nuit (`git show <branche>:<fichier>`) ; appelés : `scripts/vlp.py` (`carte`, `vigile`), `scripts/mesure-tokens.py`, `scripts/test-vlp.py` ; écrit — une entrée `## <date> — NUI20` au journal de `context AI/08-etat.md`, et rien d'autre.
 

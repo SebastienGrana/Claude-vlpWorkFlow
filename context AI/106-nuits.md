@@ -4,6 +4,9 @@ QUAND LIRE : on prépare une nuit (plan du soir) ou on relit les nuits passées 
 
 | nuit | canal | chantier | jouées/acceptées/refusées | $ |
 |---|---|---|---|---|
+| 2026-10-08 | A | TAB | 2/1/1 | 5,26 |
+| 2026-10-08 | B | APR | 1/0/0 | 2,13 |
+| 2026-10-08 | B | BRA | 1/1/0 | 3,54 |
 
 ## Nuit 2026-10-08
 
@@ -30,3 +33,7 @@ Canal B · rang 2 · code BRA · préfixe BRA
 ## Leçons
 
 Forme d'une leçon, écrite ici seul : `- <date> · N=<n> · <une cause, pas un constat> · <nombres nommés> · nuits <dates> · sessions <ids>`. N sous `LECON_INDICE` (`vlp.py`) : « indice ». Retirée, elle reste, suffixée `— retirée le <date> par <chantier ou nuit>`. Tenue deux nuits, proposée au matin, deux oui de l'utilisateur : elle monte. La colonne `$` est la somme des `usd_kit` du carnet.
+
+- 2026-10-08 · N=4 · test-vlp.py hérite des VLP_NUIT, VLP_CARNET et VLP_CANAL de la session de nuit et sort rouge, ce qui bloque la case · 2 ÉCART par fiche, 4 fiches sur 4, 1 mise de côté (APR1) · nuits 2026-10-08 · sessions 3f47d6b9, 23bf8e86, 7905aed8, d07d8dca
+- 2026-10-08 · N=4 · une session claude -p de nuit n'a pas l'outil Artifact, donc aucune page ne part en ligne · 3 pages de chantier, feuille de route et archive en attente · nuits 2026-10-08 · sessions d0a38db6, 3e7acc3d, a829c7ca, 2d385b79
+- 2026-10-08 · N=1 · la fiche prescrivait la coupe d'une ligne de table sans le cas d'une ligne sans barre finale · 1 refus cause fiche, TAB2 mise de côté · nuits 2026-10-08 · sessions fa25bc3b
