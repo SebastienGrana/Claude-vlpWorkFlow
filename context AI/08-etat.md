@@ -3272,3 +3272,40 @@ Les 6 fichiers relus en entier contre `methode-chantier.md` après `MET7` ; « t
 - **Changé** : `KIT` et `ESSAIS` deviennent `--kit` et `--essais-dir`, exigés ; les motifs de `declarer` se dérivent du chemin (mêmes noms qu'avant, vérifié sur `VIT23-medium`) ; le relais lit le kit dans `MET4_KIT`, posé par le juge, et refuse sans lui ; `NIVEAUX` passe à `medium`, `high`, `xhigh` (juge et tableau) ; `--essais` refuse une fiche ou un niveau inconnu (`GARDE:`) ; `--a-blanc` sans valeur liste les essais sans rien lancer — l'ancien `--a-blanc <fiche>:<branche>` reste. La façon de juger n'a pas bougé.
 - **Le tableau** garde ses lignes par essai : `high` y est une rangée et une somme par niveau, pas une colonne.
 - **Contrôlé** : `met4-juge.py --a-blanc --kit ../x --essais-dir ../essais --essais VIT23:high` → `ESSAI VIT23-high · effort high · plafond 6 $ … à jouer`, code 0 ; `grep -rnE "[A-Z]:[/\\]|Users" evals/effort/` → 0 ligne ; pyright sur les 3 `.py` : 0 errors.
+
+## 2026-10-09 — EFF3 — high contre medium et xhigh
+
+- **Le jeu** : `py -3 evals/effort/met4-juge.py --kit <dossier principal du kit> --essais-dir <dossier des essais> --conception VIT12 --essais VIT23:high,VIT20:high,VIT19:high,VIT12:high --borne 36`, confirmé par l'utilisateur (estimé ≈ 10 $ et ≈ 1 h 45). 4 essais Opus 5.5, un à la fois, du 2026-10-09 22:35:46 à 23:57:13 (journal du juge) : **1 h 21**. **4 essais sur 4 cochés** ; ligne `FIN` : « 12 essais notés · 32.37 $ », soit **11,55 $** ce soir (32,37 − 20,82 de `MET4`).
+- **Mêmes mesures et mêmes branches de préparation** que `MET4`. **Pas le même `main`** : `15b7a67` contre `742daed`, 102 commits de plus, dont 9 dans `skills/`, `agents/`, `hooks/` — choix de l'utilisateur (« main d'aujourd'hui »), les commandes viennent du plugin chargé.
+- **Le tableau**, par `PYTHONUTF8=1 py -3 evals/effort/met4-tableau.py` (sans `PYTHONUTF8`, la console cp1252 plante sur « → »). Les traces de `MET4`, recopiées du scratchpad de la session `240bd893` dans `evals/effort/traces/`, non versées. Les lignes `medium` et `xhigh` sont celles de l'entrée « MET4 » ; les lignes `high` :
+
+| Fiche · effort | Cochée | Tours | Essai | Durée | Réflexion (jetons) | Sortie (jetons) | Suite | pyright | Cliquet | `verifier(` | Mutants a/v/p | Relecteur |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| VIT23 · `high` | oui | 33 | 2,34 $ | 624 s | 18 070 | 31 640 | OK | 0 | tenu (1 touchées, 11 neuves) | 815 → 822 | 1/0/0 | ACCEPTÉE (0,90 $) |
+| VIT20 · `high` | oui | 53 | 2,49 $ | 654 s | 14 844 | 32 379 | OK | 0 | tenu (5 touchées, 4 neuves) | 802 → 809 | 2/0/0 | ACCEPTÉE (0,74 $) |
+| VIT19 · `high` | oui | 48 | 2,75 $ | 980 s | 19 038 | 41 036 | OK | 0 | tenu (6 touchées, 6 neuves) | 798 → 803 | 1/1/0 | ACCEPTÉE (0,64 $) |
+| VIT12 · `high` | oui | 18 | 1,06 $ | 492 s | 4 925 | 10 616 | OK | aucun .py touché | tenu (0 touchées, 0 neuves) | 781 → 781 | 0/0/0 | ACCEPTÉE (0,64 $) |
+
+**Par niveau** (sommes, sortie de `met4-tableau.py`) :
+
+| Périmètre | Effort | Essais | Tours | Durée | Réflexion (jetons) | Relecteur | Face à `medium` |
+|---|---|---|---|---|---|---|---|
+| 3 fiches de code | `medium` | 4,67 $ | 85 | 2 104 s | 22 449 | 3/3 ACCEPTÉE (2,39 $) | — |
+| 3 fiches de code | `high` | 7,58 $ | 134 | 2 258 s | 51 952 | 3/3 ACCEPTÉE (2,27 $) | **+62 % de $**, +7 % de durée |
+| 3 fiches de code | `xhigh` | 8,01 $ | 121 | 3 055 s | 82 088 | 3/3 ACCEPTÉE (2,09 $) | **+72 % de $**, +45 % de durée |
+| 4 fiches | `medium` | 5,44 $ | 100 | 2 511 s | 23 560 | 4/4 ACCEPTÉE (3,16 $) | — |
+| 4 fiches | `high` | 8,64 $ | 152 | 2 750 s | 56 877 | 4/4 ACCEPTÉE (2,91 $) | **+59 % de $**, +10 % de durée |
+| 4 fiches | `xhigh` | 9,70 $ | 148 | 3 530 s | 98 627 | 4/4 ACCEPTÉE (2,52 $) | **+78 % de $**, +41 % de durée |
+
+- **L'effort s'applique, par paliers** : réflexion ×2,4 en `high`, ×4,2 en `xhigh` face à `medium` (4 fiches). Sur la conception (`VIT12`) : 1 111 → 4 925 → 16 539 jetons.
+- **Le prix ne suit pas la réflexion** : `high` coûte 89 % de `xhigh` (8,64 contre 9,70 $) pour 58 % de sa réflexion, et fait plus de tours (152 contre 148). Sur `VIT23`, `high` coûte plus que `xhigh` (2,34 contre 2,16 $). Il est en revanche nettement plus court (2 750 contre 3 530 s).
+- **La qualité mesurée ne bouge pas** : aux trois niveaux, 12 essais cochés, suite `OK`, pyright 0 sur les `.py` touchés, cliquet tenu, relecteur **12/12 ACCEPTÉE**.
+- **Le mutant vivant de `VIT19 · high`** n'est pas un défaut : à la ligne 389 de sa trace, « MUTANT VIVANT pour hook : l'app sans claude.exe » ; l'essai ajoute un test, et à la ligne 398 le même mutant est « ATTRAPÉ 1 écart(s) ». Le tableau compte la dernière ligne de chaque appel : 1 attrapé, 1 vivant.
+- **`cout`** : 9 transcripts déclarés pour la session de `EFF3` (`essais_de`, registre : 2 motifs par essai), 9 avec un tour = 4 essais + 4 relecteurs + 1 `/sonde` lancée **par l'essai `VIT20 · high` lui-même** dans son bac, en `claude-haiku-5-5`, prix `?` — modèle absent de la table de prix de `mesure-tokens.py` (hors fiche, signalé).
+
+**Les limites, à dire avec le chiffre** :
+- **Un essai par case**, et 4 fiches. Une seule fiche de conception, petite.
+- **Aucune fiche refusée ni bloquée** dans le jeu : la mesure ne voit pas le **recours** (rejouer une fiche qui a échoué) — elle ne dit donc pas si `high` y suffit.
+- **Un autre `main`** que `MET4` (ci-dessus) : la comparaison avec `medium` et `xhigh` mêle effort et kit.
+- **La durée** a été prise avec une autre session ouverte en parallèle (audit lancé par l'utilisateur, en worktree) : un repère, pas une mesure propre. Le $ n'en dépend pas.
+- La qualité au-delà des portes repose sur le **seul relecteur**.
