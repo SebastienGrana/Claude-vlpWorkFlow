@@ -3264,3 +3264,11 @@ Les 6 fichiers relus en entier contre `methode-chantier.md` après `MET7` ; « t
 - **La cause est dans les transcripts** : la commande `/sonde` y est morte au contrôle de permission de son injection `!` (« Shell command permission check failed for pattern »), avant tout appel au modèle — aucun message `assistant`, et leur ligne `cost-state` dit `"totalCostUSD":0`, `"modelUsage":{}`. Rien n'a été payé : le compte de 53 est juste, le code n'est pas touché.
 - **Pour `EFF`** : un essai `high` ne se perd pas de cette façon tant qu'il fait au moins un appel au modèle.
 - **Rejouable**, depuis `scripts/` : `py -3 -c "import vlp_coeur as v; m=v.mesure(); es=v.essais_de('17d950aa-47f3-44c8-a41f-13ecc4e4896b'); print(len(es), sum(1 for e in es if m.mesurer(e)[0]['tours'])); print([e for e in es if not m.mesurer(e)[0]['tours']])"`.
+
+## 2026-10-09 — EFF2 : le juge de `MET4` à l'abri dans `evals/effort/`, avec `high`
+
+- **Copié** du scratchpad de la session `240bd893` (`scratchpad/met4`) : `met4-juge.py`, `met4-tableau.py`, `claude-relais.py`, `met4-resultats.jsonl` (8 essais, `medium` et `xhigh`) — relu avant : 0 chemin de machine (`[A-Z]:[/\\]` 0, `Users` 0).
+- **Laissé** : `traces/`, `serie.txt`, `a-blanc.txt`, `tableau.md` — sorties d'un jour, résumées à l'entrée « MET4 ». Sans `traces/`, `met4-tableau.py` donne 0 jeton de réflexion et des mutants `?` pour les 8 essais anciens.
+- **Changé** : `KIT` et `ESSAIS` deviennent `--kit` et `--essais-dir`, exigés ; les motifs de `declarer` se dérivent du chemin (mêmes noms qu'avant, vérifié sur `VIT23-medium`) ; le relais lit le kit dans `MET4_KIT`, posé par le juge, et refuse sans lui ; `NIVEAUX` passe à `medium`, `high`, `xhigh` (juge et tableau) ; `--essais` refuse une fiche ou un niveau inconnu (`GARDE:`) ; `--a-blanc` sans valeur liste les essais sans rien lancer — l'ancien `--a-blanc <fiche>:<branche>` reste. La façon de juger n'a pas bougé.
+- **Le tableau** garde ses lignes par essai : `high` y est une rangée et une somme par niveau, pas une colonne.
+- **Contrôlé** : `met4-juge.py --a-blanc --kit ../x --essais-dir ../essais --essais VIT23:high` → `ESSAI VIT23-high · effort high · plafond 6 $ … à jouer`, code 0 ; `grep -rnE "[A-Z]:[/\\]|Users" evals/effort/` → 0 ligne ; pyright sur les 3 `.py` : 0 errors.

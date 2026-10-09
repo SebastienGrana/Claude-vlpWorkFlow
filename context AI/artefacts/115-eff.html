@@ -21,9 +21,9 @@
     <p>Les essais de VIT25 comptés juste, le juge de MET4 dans le dépôt, et la règle de l'effort dit ce que high vaut, mesuré sur les 4 fiches de MET4.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="encours"></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">3 fiches · 1 faite · en cours : EFF2</p>
+    <p class="mono" style="margin-top:.5rem">3 fiches · 2 faites · en cours : EFF3</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -41,17 +41,18 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">EFF1</span></span>
         <details><summary><span class="titre">Trouver les 2 essais de VIT25 que cout ne compte pas</span><span class="etat">Faite</span></summary>
         <span class="note">55 transcripts listés, 53 comptés ; les 2 manquants (7bdcfcb8, 87d8c859, bac sonde de VIT20-medium-s2) ont 0 tour et totalCostUSD 0 : /sonde morte au contrôle de permission — pas de défaut, code inchangé</span></details>
-        <span class="cout mono">≈934,2k (934 154) · 12 tours · 0,81 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">EFF2</span></span>
-        <details open><summary><span class="titre">Mettre le juge de MET4 à l'abri dans le dépôt, avec high</span><span class="etat">En cours</span></summary>
-        <span class="note">Le juge de MET4 dans evals/effort/, sans chemin local, avec le niveau high ; ne dépend de rien</span></details></li>
-      <li class="fiche" data-attend><span class="gauche"><span class="id">EFF3</span></span>
-        <details><summary><span class="titre">Jouer les 4 fiches de MET4 en high et écrire la règle</span><span class="etat">Après EFF2</span></summary>
+        <span class="cout mono">≈1,2M (1 201 816) · 18 tours · 1,19 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">EFF2</span></span>
+        <details><summary><span class="titre">Mettre le juge de MET4 à l'abri dans le dépôt, avec high</span><span class="etat">Faite</span></summary>
+        <span class="note">met4-juge.py --a-blanc --kit ../x --essais-dir ../essais --essais VIT23:high : ESSAI VIT23-high listé, code 0, aucun appel ; grep chemins evals/effort/ : 0 ligne ; pyright 3 .py : 0 errors ; suite OK</span></details>
+        <span class="cout mono">≈2,2M (2 194 674) · 24 tours · 1,48 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">EFF3</span></span>
+        <details open><summary><span class="titre">Jouer les 4 fiches de MET4 en high et écrire la règle</span><span class="etat">En cours</span></summary>
         <span class="note">Les 4 fiches jouées en high, le tableau et la règle de l'effort récrite ; fiche de jour, après EFF1 et EFF2</span></details>
         <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈1,2M (1 217 795) · 15 tours · 1,09 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈2,2M (2 151 949) · 27 tours · 1,90 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈4,6M (4 614 285) · 57 tours · 3,76 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
