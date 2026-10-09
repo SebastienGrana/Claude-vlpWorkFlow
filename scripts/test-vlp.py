@@ -1310,6 +1310,38 @@ def tester_clore_todo():
 
 groupe(tester_clore_todo)
 
+
+def tester_oter():
+    """TAB4 : `vlp.py oter` retire une rangée de la TODO, marque son numéro, l'écrit au journal ; refuse un code
+    absent, ouvert ou clos sans rien écrire."""
+    etat = ("# État\n\n## La TODO\n\nProvenance : 3, de x ; 4, de y.\n\n"
+            "| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |\n|---|---|---|---|---|\n"
+            "| 3 | `AAA` — a | x | 1 | — |\n| 4 | `BBB` — b | x | 1 | — |\n| 5 | `U` — u | x | 1 | — |\n"
+            "| 6 | `OUV` — o | x | 1 | — |\n\n## Journal des décisions\n\n## 2026-10-01 — x\n")
+    with tempfile.TemporaryDirectory() as to:
+        ecrire(os.path.join(to, "CHANTIER.md"), "# C\n\n- **contexte** : ctx/\n- **fichier d'état** : ctx/08-etat.md\n\n"
+               "Lettres de fiche déjà prises : U (test). Un nouveau chantier en choisit un autre.\n")
+        ecrire(os.path.join(to, "ctx", "50-ouv.md"), ouvert("# Chantier OUV — o\n\n## OUV1 [ ] — a\n"))
+        chemin = os.path.join(to, "ctx", "08-etat.md")
+        ecrire(chemin, etat)
+        for code, quoi in (("ZZZ", "absent"), ("OUV", "ouvert"), ("U", "clos")):
+            res = appel(["oter", to, code, "--raison", "r", "--date", "2026-10-09"])
+            verifier("TAB4 : oter refuse un code %s — GARDE, sort 1, fichier inchangé" % quoi,
+                     res[0] == 1 and res[1].startswith("GARDE: ") and "rien écrit" in res[1]
+                     and open(chemin, encoding="utf-8").read() == etat, res)
+        res = appel(["oter", to, "AAA", "--raison", "fait ailleurs", "--date", "2026-10-09"])
+        lu = open(chemin, encoding="utf-8").read()
+        verifier("TAB4 : oter ôte la rangée, et elle seule", res[0] == 0 and "| 3 | `AAA`" not in lu
+                 and "| 4 | `BBB`" in lu and len(mod.todo_du_fichier(lu.split("\n"))) == 3, (res, lu))
+        verifier("TAB4 : oter marque le numéro retiré dans la phrase de provenance",
+                 "Provenance : 3, de x ; 4, de y. 3, `AAA`, retiré le 2026-10-09 : fait ailleurs.\n" in lu, lu)
+        verifier("TAB4 : oter écrit une entrée datée au journal",
+                 lu.endswith("## 2026-10-01 — x\n\n## 2026-10-09 — `AAA` retiré de la TODO (n° 3)\n\n"
+                             "- **Raison** : fait ailleurs.\n"), lu)
+
+
+groupe(tester_oter)
+
 # REP1 : le gras et les liens Markdown d'une cellule — jamais dans du code cité.
 def tester_gras_et_liens():
     """Contrôler `gras_et_liens` et `cellule` : le gras et les liens Markdown d'une cellule (chantier REP)."""

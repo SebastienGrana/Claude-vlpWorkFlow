@@ -321,7 +321,12 @@ Sous-commandes :
   que `clore` pose dans `CLAUDE.md` pointe l'archive.
   `CLOS <lettre> <plage> · chantier <n> · cumul <brut> · routage <0|1> · index
   <0|1> · archivé <n> · bilan <0|1> · <estimé> — <projet>`. Aucun chantier ouvert, ou
-  déjà `**CLOS**` : `GARDE:`, sort 1.
+  déjà `**CLOS**` : `GARDE:`, sort 1. Une TODO que `todo_du_fichier` refuse : `GARDE: … — rien écrit`, sort 1 (TAB3).
+- `oter <projet> <code> --raison T [--date D]` — retire de la TODO du fichier d'état la rangée dont la
+  2e cellule commence par `` `<code>` `` ; dans la phrase au-dessus de la table, ajoute `<n>, `<code>`, retiré
+  le D : T.` ; au journal, une entrée `## D — `<code>` retiré de la TODO (n° <n>)`. Le numéro n'est jamais
+  réattribué. `OTÉ `<code>` · n° <n> · provenance marquée · journal D — <fichier>`. Code absent, ouvert
+  (`courant_de`) ou clos (« Lettres de fiche déjà prises »), TODO illisible : `GARDE: … — rien écrit`, sort 1 (TAB4).
 - `archiver <projet>` — chaque ligne de table `**clos**` de l'index quitte l'index pour
   `00-INDEX-archive.md`, dans son dossier (créée au besoin : titre, « QUAND LIRE », en-tête
   `| Fichier | Lire quand |`), déplacée telle quelle et triée par numéro de fichier ; l'index

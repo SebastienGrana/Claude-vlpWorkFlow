@@ -6271,6 +6271,78 @@ def cmd_ouverts(a, sortie):
     return 0
 
 
+def rangee_todo(lignes, code):
+    """(indice de l'en-tête `| # | Chantier`, indice de la rangée dont la 2e cellule commence par `` `code` ``,
+    son numéro) ; sans en-tête ou sans rangée, None à leur place (TAB4)."""
+    tete = next((k for k, l in enumerate(lignes) if l.startswith("| # | Chantier")), None)
+    if tete is None:
+        return None, None, None
+    for k in range(tete + 1, len(lignes)):
+        if not lignes[k].startswith("|"):
+            break
+        m = re.match(r"^\|\s*(\d+)\s*\|\s*`%s`" % re.escape(code), lignes[k])
+        if m:
+            return tete, k, m.group(1)
+    return tete, None, None
+
+
+def refus_d_oter(projet, carte_, code, lignes):
+    """Le refus de `oter`, calculé avant toute écriture, ou None : TODO illisible, code absent de la TODO,
+    chantier clos (« Lettres de fiche déjà prises ») ou ouvert (`courant_de`), journal absent (TAB4)."""
+    try:
+        todo_du_fichier(lignes)
+    except ValueError as e:
+        return "%s — rien écrit" % e
+    if rangee_todo(lignes, code)[1] is None:
+        return "`%s` absent de la TODO — rien écrit" % code
+    if code in lettres_prises(carte_):
+        return "`%s` est un chantier clos (« %s ») — rien écrit" % (code, LETTRES)
+    courant = courant_de(projet)
+    ids = [l.split()[1] for l in lignes_du_projet(projet, courant, "fichier de fiches") if TITRE.match(l)] \
+        if courant else []
+    if ids and lettre_de(ids[0]) == code:
+        return "`%s` est le chantier ouvert (%s) — rien écrit" % (code, courant)
+    if "## Journal des décisions" not in lignes:
+        return "pas de « ## Journal des décisions » — rien écrit"
+    return None
+
+
+def cmd_oter(a, sortie):
+    """Retirer la rangée `a.code` de la TODO : rangée ôtée, numéro marqué retiré dans la phrase de provenance,
+    entrée datée au journal ; tout calculé avant d'écrire, puis `.tmp` et `os.replace` (TAB4)."""
+    projet, date = a.projet, a.date or __import__("datetime").date.today().isoformat()
+    if not equipe(projet):
+        sortie.write("GARDE: pas de CHANTIER.md dans %s\n" % projet)
+        return 1
+    carte_ = lignes_de(os.path.join(projet, "CHANTIER.md"))
+    etat = champ(carte_, "fichier d'état")
+    chemin = os.path.join(projet, etat) if etat else None
+    if not chemin or not os.path.isfile(chemin):
+        sortie.write("GARDE: fichier d'état introuvable : %s — rien écrit\n" % etat)
+        return 1
+    lignes = lignes_de(chemin)
+    garde = refus_d_oter(projet, carte_, a.code, lignes)
+    if garde:
+        sortie.write("GARDE: %s\n" % garde)
+        return 1
+    tete, k, numero = rangee_todo(lignes, a.code)
+    assert tete is not None and k is not None   # `refus_d_oter` a trouvé la rangée
+    raison = a.raison.strip().rstrip(".")
+    p = tete - 1
+    while p > 0 and not lignes[p].strip():
+        p -= 1
+    lignes[p] += " %s, `%s`, retiré le %s : %s." % (numero, a.code, date, raison)
+    del lignes[k]
+    while lignes and not lignes[-1].strip():
+        lignes.pop()
+    lignes += ["", "## %s — `%s` retiré de la TODO (n° %s)" % (date, a.code, numero), "", "- **Raison** : %s." % raison]
+    with open(chemin + ".tmp", "w", encoding="utf-8", newline="") as fh:
+        fh.write("\n".join(lignes) + "\n")
+    os.replace(chemin + ".tmp", chemin)
+    sortie.write("OTÉ `%s` · n° %s · provenance marquée · journal %s — %s\n" % (a.code, numero, date, etat))
+    return 0
+
+
 def refus_de_clore(projet, carte_, courant, fiches_, ids):
     """Le refus de `clore`, calculé avant toute écriture, ou None : aucune fiche, déjà **CLOS**, ou une TODO
     du fichier d'état que `todo_du_fichier` refuse — la feuille la relirait après les écritures (TAB3)."""
@@ -8559,6 +8631,24 @@ def options_outils(sous):
     ra.add_argument("--racine")
 
 
+def options_clore(sous):
+    """Déclarer la ligne de commande de `clore` et d'`oter`, les deux qui ôtent un chantier de la TODO (TAB4)."""
+    cl = sous.add_parser("clore")
+    cl.add_argument("projet")
+    cl.add_argument("--livre", required=True)
+    cl.add_argument("--tokens", type=int)
+    cl.add_argument("--abandon")
+    cl.add_argument("--fait")
+    cl.add_argument("--surpris")
+    cl.add_argument("--resume")
+    cl.add_argument("--date")
+    ot = sous.add_parser("oter")
+    ot.add_argument("projet")
+    ot.add_argument("code")
+    ot.add_argument("--raison", required=True)
+    ot.add_argument("--date")
+
+
 def options_marques(sous):
     """Déclarer la ligne de commande de `ouverts` et de `pause`, les lecteur et poseur des marques (NUI21, NUI30)."""
     ou = sous.add_parser("ouverts")
@@ -8675,15 +8765,7 @@ def main(argv, sortie=None, entree=None, erreur=None):
     fe.add_argument("--todo")
     fe.add_argument("--verifier", action="store_true")
     fe.add_argument("--date")
-    cl = sous.add_parser("clore")
-    cl.add_argument("projet")
-    cl.add_argument("--livre", required=True)
-    cl.add_argument("--tokens", type=int)
-    cl.add_argument("--abandon")
-    cl.add_argument("--fait")
-    cl.add_argument("--surpris")
-    cl.add_argument("--resume")
-    cl.add_argument("--date")
+    options_clore(sous)
     sous.add_parser("archiver").add_argument("projet")
     ar = sous.add_parser("archive")
     ar.add_argument("projet")
@@ -8797,7 +8879,7 @@ def main(argv, sortie=None, entree=None, erreur=None):
 
 # Les sous-commandes qui ne demandent que leurs options et la sortie : `repartir` les lance d'une ligne.
 PAR_ARGUMENTS = {
-    "ouvrir": cmd_ouvrir, "clore": cmd_clore, "archiver": cmd_archiver, "trier": cmd_trier, "feuille": cmd_feuille,
+    "ouvrir": cmd_ouvrir, "clore": cmd_clore, "oter": cmd_oter, "archiver": cmd_archiver, "trier": cmd_trier, "feuille": cmd_feuille,
     "niveau": cmd_niveau, "comparer": cmd_comparer, "relecture": cmd_relecture, "contrat": cmd_contrat,
     "forme": cmd_forme, "ouverts": cmd_ouverts, "pause": cmd_pause, "plan": cmd_plan, "matin": cmd_matin, "fusionner": cmd_fusionner,
     "sante": cmd_sante, "symboles": cmd_symboles, "compteur": cmd_compteur, "carte": cmd_carte,

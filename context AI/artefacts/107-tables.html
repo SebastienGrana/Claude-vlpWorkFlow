@@ -21,9 +21,9 @@
     <p>Une table Markdown mal découpée rend une GARDE au lieu d'une coupe muette ; clore lit la TODO avant d'écrire ; vlp.py oter retire une ligne de la TODO.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">4 fiches · 3 faites · en cours : TAB4</p>
+    <p class="mono" style="margin-top:.5rem">4 fiches · 4 faites</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -49,13 +49,14 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">TAB3</span></span>
         <details><summary><span class="titre">clore lit la TODO avant sa première écriture</span><span class="etat">Faite</span></summary>
         <span class="note">Reproduit : GARDE … CHANTIER.md et fiches écrits, feuille non écrite ; après : GARDE … rien écrit, sort 1, empreintes identiques ; TODO saine passe ; MUTANT ATTRAPÉ ; suite code 0, 0 ÉCART ; pyright 0 errors</span></details>
-        <span class="cout mono">≈3,3M (3 348 820) · 17 tours · 1,18 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">TAB4</span></span>
-        <details open><summary><span class="titre">Retirer une ligne de la TODO par vlp.py oter</span><span class="etat">En cours</span></summary>
-        <span class="note">La sous-commande oter, test et mutant ; sans dépendance.</span></details></li>
+        <span class="cout mono">≈3,6M (3 563 282) · 18 tours · 1,24 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">TAB4</span></span>
+        <details><summary><span class="titre">Retirer une ligne de la TODO par vlp.py oter</span><span class="etat">Faite</span></summary>
+        <span class="note">6 contrôles : rangée ôtée, numéro marqué, journal ; absent, ouvert, clos → GARDE, sort 1, fichier inchangé ; MUTANT ATTRAPÉ (refus du clos sauté) ; sur le kit, oter TAB → GARDE chantier ouvert ; suite code 0, 0 ÉCART ; pyright 0 errors</span></details>
+        <span class="cout mono">≈4,9M (4 917 267) · 21 tours · 1,49 $</span></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈1,4M (1 396 585) · 15 tours · 1,25 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈17,5M (17 515 525) · 158 tours · 10,02 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈22,6M (22 647 254) · 180 tours · 11,57 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

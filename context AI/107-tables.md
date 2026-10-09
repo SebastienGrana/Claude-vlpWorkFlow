@@ -149,8 +149,9 @@ la lecture anticipée fait tomber le premier (`vlp.py mutant … --attendu "TAB3
 ---
 
 <!-- FICHE:TAB4 -->
-## TAB4 [ ] — Retirer une ligne de la TODO par `vlp.py oter`
+## TAB4 [x] — Retirer une ligne de la TODO par `vlp.py oter`
 
+**Session** : 790ba1d9-c8d7-4603-8479-b30ce961b7a7
 **Dépend de** : rien.
 **Fichiers** : `scripts/vlp_coeur.py`, `scripts/vlp.py` (sa docstring), `scripts/test-vlp.py` — et rien d'autre.
 
