@@ -3270,3 +3270,14 @@ Les 6 fichiers relus en entier contre `methode-chantier.md` après `MET7` ; « t
 - **Livré** : `PRP1..PRP4` — `cout` coupe aussi aux commits `<PRÉFIXE> :`, versés au « hors fiches » ; `recompter --ecrire` borné à un seul clos récrit ses quatre copies ; `heures_commits` retient le commit qui porte le titre de la fiche : `NUI20` 2 tours · 0,16 $ → 35 tours · 4,72 $.
 - **Coût** : chantier 13 620 781 (ligne `CLOS`) · joué 4 fiches 10,52 $ contre estimé 4 fiches ≈16 $.
 - **Laissé ouvert** : `TAB`, 14 tours · 1,91 $ de `790ba1d9` comptés nulle part, cause non trouvée ; recompter les vieux clos pour de vrai (geste de jour, deux oui). Clos par le `clore` du plugin chargé (`main`, sans `RTO1`) : la rangée n° 103 ôtée à la main, au format de `RTO1`.
+
+## 2026-10-10 — Cadrage AMD : ce que le kit en retient
+
+- **Cadré** : `AMD` en 7 fiches (`115-amd.md`), avant `ACA` (choix de l'utilisateur, 2026-10-09), dans le worktree `brave-matsumoto-e8ae4b`. Ce qui revient à Cairn est au journal de Cairn (privé), entrée du 2026-10-10.
+- **Observations pour le kit**, notées à la demande de l'utilisateur — pas encore des lignes de TODO (à redemander) :
+  - **Un chantier du kit sur un projet voisin** (`AMD`, `ACA`) n'a pas de convention pour nommer ce projet sans chemin de machine ; `115-amd.md` dit « dossier voisin du dossier principal du kit ».
+  - **Une fuite possible** : depuis `NUI37`, le `context AI/` d'un projet équipé suit Git (Cairn, `6aedfe7`). MapDecorator est public et garde le sien ignoré (carte : `GIT=ignoré`) ; suivi par Git, il publierait les comptes de Cairn qu'on y range. Aucune garde « dépôt public » dans le kit.
+  - **Un état qui ment, dans deux projets équipés** : le `CLAUDE.md` de Cairn dit « **Aucun ouvert** » (ligne 26) alors que `FAM` l'est ; `20-pont-cairn.md` de MapDecorator dit « **Fait.** Rien. » (ligne 14) avec `P1` cochée. Le « Fait. » du gabarit n'est tenu par aucun script.
+  - **Un projet laissé un mois** : MapDecorator, 16 fichiers modifiés ou non suivis, dernier commit `39acf92` ; rien dans le kit ne le signale à l'ouverture d'une séance.
+  - **Le message entre séances a marché** : `EFF3` a dit main libre (23 h 57, 2026-10-09), en information seulement.
+  - **Un cadrage long traverse un compactage** : autocompact relevé à 350 000 par l'utilisateur ; ses 24 messages relus dans la transcription après coup — rien ne manquait.
