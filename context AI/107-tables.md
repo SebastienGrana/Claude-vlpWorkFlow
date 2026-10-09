@@ -34,7 +34,9 @@ Invariants, valables pour toutes les fiches :
 - Une coupe découverte se dit : `GARDE: <ce qui cloche>` sur la sortie, **sort 1**, et **rien d'écrit** — tout se
   calcule avant la première écriture. Un fichier s'écrit par `.tmp` puis `os.replace`.
 - Une barre dans une cellule s'écrit `\|` (`PIP`) ; le découpage se fait par `re.split(r"(?<!\\)\|", …)`, comme
-  `todo_du_fichier`, jamais par `split("|")`.
+  `todo_du_fichier`, jamais par `split("|")`. Une ligne de table s'ouvre **et se ferme** par une barre non
+  échappée : sans barre finale, `[1:-1]` perd sa dernière cellule en silence, en-tête compris (refus de `TAB2`,
+  2026-10-08) — elle se refuse, jamais ne se lit (0 cas sur 761 lignes, kit et 4 projets, le 2026-10-09).
 - Chaque test bâtit son projet dans un dossier temporaire (`tempfile`), jamais le vrai dépôt ; un nouveau bloc se
   met **dans une fonction** (`test-vlp.py` est au seuil de complexité de pyright) et ne réutilise pas le `t`
   d'un `with` voisin. Chaque test a son mutant, joué par `vlp.py mutant … --attendu "<début du libellé>"`.
@@ -97,19 +99,27 @@ Erreur : REFUSÉE — fiche : le nouveau découpage de `noms_de_table` (`re.spli
 **Fichiers** : `scripts/vlp_coeur.py`, `scripts/test-vlp.py`, `context AI/08-etat.md` — et rien d'autre.
 
 **Prompt**
-Lis l'entrée `TAB1` du journal. Pour chaque lecteur qu'elle classe **tronque** ou **jette**, donne-lui la garde de
-`todo_du_fichier` : découpage par `re.split(r"(?<!\\)\|", …)`, et une ligne au mauvais nombre de cellules lève une
-`ValueError` qui la nomme ; la sous-commande qui l'appelle la rend en `GARDE:`, sort 1, sans écrire. Si plusieurs
-lecteurs partagent le même découpage, une fonction commune — pas une copie par lecteur.
+Le code de la tentative refusée est déjà là (commit `2d40dfd`) : `cellules_de`, la garde de `noms_de_table`,
+`noms_des_sources` et `chemins_de_carte` pour `cmd_renvois`, ses tests `TAB2 : …`. **Pars de lui, ne le réécris
+pas** : lis `git show 2d40dfd -- scripts/`, puis corrige le seul défaut que le relecteur a relevé (le refus, plus
+haut) — `cellules_de` perd la dernière cellule d'une ligne sans barre finale, en-tête compris, sans rien dire.
 
-Si `TAB1` n'en a trouvé aucun, ne touche pas au code : écris au journal une entrée `## 2026-10-08 — TAB2` qui le
-dit, et coche.
+`cellules_de` refuse une telle ligne : une ligne qui ne finit pas par une barre non échappée (après `strip`) lève
+une `ValueError` qui le dit (« pas de barre finale »). Les trois appelants — `noms_de_table`, `todo_du_fichier`,
+`nuits_du_fichier` — y gagnent la même garde ; leurs messages nomment toujours la ligne. Une ligne qui ne
+commence pas par `|` n'est pas une ligne de table : ne change pas ce critère.
+
+L'entrée `## 2026-10-08 — TAB2` du journal de `08-etat.md` dit « gardé » d'une tentative refusée : réécris-la en
+`## 2026-10-09 — TAB2`, ce qui est vrai après ta correction. Retire sa puce « Imprévu » : la fuite des variables de
+nuit est réglée par `ENV` (clos le 2026-10-09).
 
 **Critère de fin**
-Par lecteur gardé, un test `TAB2 : …` dans `test-vlp.py` : une ligne à 4 cellules et une à 6 lèvent la
-`ValueError` (ou rendent `GARDE:` et sort 1), une table saine passe ; son mutant, qui retire la garde, le fait
-tomber (`vlp.py mutant … --attendu "TAB2 : …"`). `test-vlp.py` passe en entier ; `pyright` 0 erreur sur
-`vlp_coeur.py`. Comptes bruts au compte rendu.
+Les tests `TAB2 : …` du WIP passent toujours, et un nouveau : `TAB2 : une ligne sans barre finale rend GARDE` —
+un routage de `CLAUDE.md` dont une ligne (puis l'en-tête seul) n'a pas de `|` final : `renvois` rend `GARDE:`,
+sort 1 ; une ligne de TODO sans barre finale lève la `ValueError`. Son mutant, qui rend `cellules_de` tolérante,
+le fait tomber (`vlp.py mutant … --attendu "TAB2 : une ligne sans barre finale"`). `renvois` sur le kit rend le
+même compte avant et après ta correction, sans `GARDE:` (`RENVOIS 129 nommés · 0 absents` le 2026-10-09). `test-vlp.py` passe en entier ;
+`pyright` 0 erreur sur `vlp_coeur.py`. Comptes bruts au compte rendu.
 <!-- /FICHE -->
 
 ---
