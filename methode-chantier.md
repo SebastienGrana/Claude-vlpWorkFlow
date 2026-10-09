@@ -455,6 +455,10 @@ l'utilisateur au chantier `MET` (`context AI/08-etat.md`, entrée « MET1 — ce
   `sante.py` exige alors compte elle-même une instruction pour ruff. Sortir le travail dans
   une fonction neuve, documentée, et gagner une instruction dans l'ancienne (dette `ARP`,
   `main` de `boucle.py` : 100 → 104, puis 101, puis 100, 2026-10-08).
+- **Un lecteur refuse ce qu'il ne sait pas lire, et une commande vérifie tout avant sa
+  première écriture** : une `GARDE:` qui sort 1 et dit « rien écrit », jamais une ligne lue
+  à moitié ni un fichier écrit sur deux (`TAB`, 2026-10-09 : une table coupée en silence,
+  `clore` qui écrivait avant de lire la TODO).
 
 **La prose que Claude lit** — commandes, agents, doctrine, `CLAUDE.md` :
 
