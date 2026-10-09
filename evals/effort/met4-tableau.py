@@ -2,9 +2,11 @@
 """Le tableau de MET4 : une ligne par essai, depuis met4-resultats.jsonl et la ligne `result` de chaque trace ;
 puis les sommes par niveau (4 fiches, et les 3 fiches de code seules, à comparer à VIT25 série 2). Imprime du
 markdown. Repris de `tableau-vit25.py` (VIT25, reconstitué du transcript de sa session) ; `compteur` retiré."""
+import io
 import json
 import os
 import re
+import sys
 
 ICI = os.path.dirname(os.path.abspath(__file__))
 FICHES = ["VIT23", "VIT20", "VIT19", "VIT12"]
@@ -87,6 +89,8 @@ def lignes():
 
 
 rangs = lignes()
+# « → » et « · » ne passent pas dans une console cp1252 : la même sortie que le juge (EFF3, 2026-10-10)
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace", line_buffering=True)
 print("| Fiche · effort | Cochée | Tours | Essai | Durée | Réflexion (jetons) | Sortie (jetons) | Suite | pyright "
       "| Cliquet | `verifier(` | Mutants a/v/p | Relecteur |")
 print("|---|---|---|---|---|---|---|---|---|---|---|---|---|")
