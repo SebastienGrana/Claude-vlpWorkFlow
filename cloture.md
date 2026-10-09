@@ -17,8 +17,8 @@ Des fiches restent non cochées (clôture décidée, pas atteinte) : elles sont
 
 ## 1. La TODO
 
-Au fichier d'état, retire la ligne du chantier de la TODO : la feuille de
-route que l'étape 2 écrit la relit. Un reste qui garderait la ligne ouverte
+Rien à écrire à la main : `clore` (étape 2) ôte la ligne du chantier de la TODO
+avant de régénérer la feuille de route. Un reste qui garderait la ligne ouverte
 demande d'abord deux oui (`methode-chantier.md`, règle « La TODO ne grossit pas »).
 
 ## 2. Tout ce qui se déduit — un appel

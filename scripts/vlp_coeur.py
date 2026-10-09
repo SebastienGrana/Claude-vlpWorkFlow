@@ -6286,6 +6286,38 @@ def rangee_todo(lignes, code):
     return tete, None, None
 
 
+def oter_rangee(lignes, tete, k, ajout):
+    """Ôter la rangée `k` de la TODO et ajouter `ajout` à la phrase de provenance, la dernière ligne non vide
+    au-dessus de l'en-tête `tete` — commun à `oter` et à `clore` (RTO1)."""
+    p = tete - 1
+    while p > 0 and not lignes[p].strip():
+        p -= 1
+    lignes[p] += ajout
+    del lignes[k]
+
+
+def ecrire_par_tmp(ecritures):
+    """Écrire chaque `(chemin, contenu)` dans `chemin.tmp`, puis `os.replace` — commun à `oter` et à `clore`."""
+    for chemin, contenu in ecritures:
+        with open(chemin + ".tmp", "w", encoding="utf-8", newline="") as fh:
+            fh.write(contenu)
+        os.replace(chemin + ".tmp", chemin)
+
+
+def todo_de_clore(projet, carte_, code, date, ecritures):
+    """La TODO à la clôture de `code` : sa rangée ôtée et ` <n>, `<code>`, clos le <date>.` à la provenance, sans
+    entrée au journal — la ligne d'archive dit la clôture ; ajoutée à `ecritures`. Rend la ligne à imprimer ; un
+    code absent de la TODO (chantier hors TODO) n'écrit rien et n'est pas une GARDE (RTO1)."""
+    chemin = os.path.join(projet, champ(carte_, "fichier d'état") or "")
+    lignes = lignes_de(chemin) if os.path.isfile(chemin) else []
+    tete, k, numero = rangee_todo(lignes, code)
+    if tete is None or k is None:
+        return "TODO `%s` absente — rien ôté" % code
+    oter_rangee(lignes, tete, k, " %s, `%s`, clos le %s." % (numero, code, date))
+    ecritures.append((chemin, "\n".join(lignes) + "\n"))
+    return "TODO `%s` ôtée · n° %s" % (code, numero)
+
+
 def refus_d_oter(projet, carte_, code, lignes):
     """Le refus de `oter`, calculé avant toute écriture, ou None : TODO illisible, code absent de la TODO,
     chantier clos (« Lettres de fiche déjà prises ») ou ouvert (`courant_de`), journal absent (TAB4)."""
@@ -6328,17 +6360,11 @@ def cmd_oter(a, sortie):
     tete, k, numero = rangee_todo(lignes, a.code)
     assert tete is not None and k is not None   # `refus_d_oter` a trouvé la rangée
     raison = a.raison.strip().rstrip(".")
-    p = tete - 1
-    while p > 0 and not lignes[p].strip():
-        p -= 1
-    lignes[p] += " %s, `%s`, retiré le %s : %s." % (numero, a.code, date, raison)
-    del lignes[k]
+    oter_rangee(lignes, tete, k, " %s, `%s`, retiré le %s : %s." % (numero, a.code, date, raison))
     while lignes and not lignes[-1].strip():
         lignes.pop()
     lignes += ["", "## %s — `%s` retiré de la TODO (n° %s)" % (date, a.code, numero), "", "- **Raison** : %s." % raison]
-    with open(chemin + ".tmp", "w", encoding="utf-8", newline="") as fh:
-        fh.write("\n".join(lignes) + "\n")
-    os.replace(chemin + ".tmp", chemin)
+    ecrire_par_tmp([(chemin, "\n".join(lignes) + "\n")])
     sortie.write("OTÉ `%s` · n° %s · provenance marquée · journal %s — %s\n" % (a.code, numero, date, etat))
     return 0
 
@@ -6493,6 +6519,9 @@ def cmd_clore(a, sortie):
         parts_page["bilan"][-1] = "Estimé : %s" % texte_estime
         ecritures.append((md_page, texte_abri(parts_page)))
 
+    # 1 quinquies. la rangée du chantier quitte la TODO, écrite avec le reste, avant la feuille qui la relit (RTO1)
+    todo_dit = todo_de_clore(projet, carte_, lettre, date, ecritures)
+
     # 2. CHANTIER.md
     for k, l in enumerate(carte_):
         m = re.match(r"^(\s*-\s*\*\*artefact du chantier\*\*\s*:\s*)", l)
@@ -6555,12 +6584,9 @@ def cmd_clore(a, sortie):
     p = postit(projet)
     if p and os.path.isfile(p) and lire(p).strip() == courant:
         os.remove(p)
-    for chemin, contenu in ecritures:
-        with open(chemin, "w", encoding="utf-8", newline="") as fh:
-            fh.write(contenu)
-    if html is not None and archive != page and clos_html is not None:
-        with open(archive, "w", encoding="utf-8", newline="") as fh:
-            fh.write(clos_html)
+    ecrire_par_tmp(ecritures + ([(archive, clos_html)] if html is not None and archive != page and clos_html is not None
+                                else []))
+    sortie.write(todo_dit + "\n")
     for g in gardes:
         sortie.write("GARDE: %s — le reste est écrit\n" % g)
     if html is None:

@@ -13,11 +13,11 @@ https://github.com/SebastienGrana/Claude-vlpWorkFlow — cloné et utilisé en g
 - Équipés : Cairn-VlpLib, MapDecorator, ProjetONZSM, TrackGen — et ce kit lui-même.
 - Chaque chantier clos a sa ligne dans `context AI/00-INDEX-archive.md`, son détail daté dans
   `context AI/08-etat.md` ; ici, les derniers seulement (`vlp.py clore` les tient).
-- Clos le 2026-10-09 : les tests ne voient plus les variables de la nuit (chantier ENV).
 - Clos le 2026-10-09 : le mutant suit le kit de sa cible (chantier MUW).
 - Clos le 2026-10-09 : le matin dit le plugin en retard (chantier RTD).
 - Clos le 2026-10-09 : la nuit met en attente, le matin le dit (chantier NPB).
 - Clos le 2026-10-09 : les tables de vlp.py gardées, clore lit la TODO d'abord, vlp.py oter (chantier TAB).
+- Clos le 2026-10-09 : clore retire la ligne de la TODO (chantier RTO).
 
 ## Quatre règles non négociables
 

@@ -18,6 +18,7 @@ QUAND LIRE : on relit un chantier clos ; l'index n'en garde qu'une ligne qui ren
 | `110-muw.md` | on relit le socle du chantier MUW — **clos** « Le mutant joue les tests du dépôt de sa cible », `MUW1..MUW1` |
 | `111-rtd.md` | on relit le socle du chantier RTD — **clos** « Le matin dit le plugin en retard », `RTD1..RTD1` |
 | `112-npb.md` | on relit le socle du chantier NPB — **clos** « Ce que la nuit n'a pas pu publier, publié au matin », `NPB1..NPB1` |
+| `113-rto.md` | on relit le socle du chantier RTO — **clos** « clore retire lui-même la ligne de la TODO », `RTO1..RTO1` |
 | `13-tours.md` | on joue une fiche `T*` — chantier **clos** « Compter les tours, pondérer le coût », `T1..T5` |
 | `14-bugs.md` | on joue une fiche `B*` — chantier **clos** « Corriger les bugs de l'audit », `B1..B3` |
 | `15-reduire.md` | on joue une fiche `R*` — chantier **clos** « Réduire les tours de `/vlp:tache` », `R1..R4` |
