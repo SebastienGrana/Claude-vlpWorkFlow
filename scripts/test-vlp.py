@@ -1233,6 +1233,115 @@ def tester_renvois():
 
 groupe(tester_renvois)
 
+
+def tester_renvois_garde():
+    """TAB2 : une ligne d'index qui n'a pas le nombre de cellules de son en-tête arrête `renvois`."""
+    with tempfile.TemporaryDirectory() as d:
+        ecrire(os.path.join(d, "CHANTIER.md"), "- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n")
+        ecrire(os.path.join(d, "ctx", "01-a.md"), "a\n")
+        tete = "| Fichier | a | b | c | d |\n|---|---|---|---|---|\n| `01-a.md` | x \\| y | b | c | d |\n"
+        ecrire(os.path.join(d, "ctx", "00-INDEX.md"), tete)
+        verifier("TAB2 : renvois, table saine et \\| gardé", appel(["renvois", d]) == (0, "POIDS CLAUDE.md absent/80 · CHANTIER.md 2/50 · index 3/80\n"
+                 "RENVOIS 1 nommés · 0 absents\n"), appel(["renvois", d]))
+        for ligne, n in (("| `01-a.md` | a | b | c |\n", 4), ("| `01-a.md` | a | b | c | d | e |\n", 6)):
+            ecrire(os.path.join(d, "ctx", "00-INDEX.md"), tete + ligne)
+            verifier("TAB2 : renvois, %d cellules au lieu de 5 → GARDE, sort 1" % n, appel(["renvois", d]) == (
+                1, "GARDE: ctx/00-INDEX.md, ligne 4 : %d cellules au lieu de 5 — une barre verticale dans une "
+                "cellule s'écrit \\|\n" % n), appel(["renvois", d]))
+
+
+groupe(tester_renvois_garde)
+
+
+def tester_barre_finale():
+    """TAB2 : une ligne de table sans barre finale rend GARDE, au lieu de perdre sa dernière cellule."""
+    with tempfile.TemporaryDirectory() as d:
+        ecrire(os.path.join(d, "CHANTIER.md"), "- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n")
+        ecrire(os.path.join(d, "ctx", "00-INDEX.md"), "| Fichier |\n|---|\n")
+        # (libellé, en-tête, lignes, numéro de la ligne fautive) ; le routage commence ligne 3
+        cas = (("ligne", "| La tâche | Ouvrir |", "| a | `01-a.md` |\n| b | `02-b.md`", 6),
+               ("en-tête", "| La tâche | Ouvrir", "| a | `01-a.md` | x\n| b | `02-b.md` | y |", 3))
+        for libelle, tete, corps, n in cas:
+            ecrire(os.path.join(d, "CLAUDE.md"), "## Routage\n\n%s\n|---|---|\n%s\n" % (tete, corps))
+            verifier("TAB2 : une ligne sans barre finale rend GARDE, sort 1 (%s)" % libelle,
+                     appel(["renvois", d]) == (1, "GARDE: CLAUDE.md, ligne %d : pas de barre finale — une ligne "
+                                                  "de table se ferme par |\n" % n), appel(["renvois", d]))
+    entete = ["| # | Chantier | Apporte | Coût | Dépend |", "|---|---|---|---|---|"]
+    try:
+        mod.todo_du_fichier(entete + ["| 1 | A | b | c | d"])
+        dit = "aucune erreur"
+    except ValueError as e:
+        dit = str(e)
+    verifier("TAB2 : une ligne sans barre finale lève, dans la TODO aussi",
+             dit.startswith("ligne 1 de la TODO : pas de barre finale"), dit)
+
+
+groupe(tester_barre_finale)
+
+
+def tester_clore_todo():
+    """TAB3 : `clore` lit la TODO avant sa première écriture — cassée, il n'écrit rien."""
+    gabarit = lambda nom: open(os.path.join(ICI, "..", "templates", nom), encoding="utf-8").read()
+
+    def empreinte(racine):
+        return {os.path.join(r, f): hashlib.sha256(open(os.path.join(r, f), "rb").read()).hexdigest()
+                for r, _, fs in os.walk(racine) for f in fs}
+
+    for saine in (False, True):
+        with tempfile.TemporaryDirectory() as te:
+            ecrire(os.path.join(te, "CHANTIER.md"), "# C\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n"
+                   "- **fichier d'état** : ctx/08-etat.md\n- **artefact du chantier** : aucun\n\n"
+                   "Lettres de fiche déjà prises : U (test).\n")
+            rang = "| 3 | Trois | a | 2 fiches | — |" if saine else "| 3 | Trois | a | b | 2 fiches | — |"
+            ecrire(os.path.join(te, "ctx", "08-etat.md"), "# État\n\n| # | Chantier | Ce qu'il apporte | Coût estimé "
+                   "| Dépend de |\n|---|---|---|---|---|\n%s\n\n## Journal\n" % rang)
+            ecrire(os.path.join(te, "ctx", "50-u.md"), ouvert("# Chantier U — u\n\n**Fait.** Rien.\n\n## U1 [x] — a\n"))
+            ecrire(os.path.join(te, "ctx", "artefacts", "50-u.html"), gabarit("artefact-chantier.html"))
+            ecrire(os.path.join(te, "ctx", "artefacts", "feuille-de-route.html"), gabarit("artefact-feuille-de-route.html"))
+            avant = empreinte(te)
+            code, s = appel(["clore", te, "--livre", "fini", "--date", "2026-10-09"])
+            if saine:
+                verifier("TAB3 : clore sur une TODO saine passe", code == 0 and "CLOS U " in s, s)
+            else:
+                verifier("TAB3 : clore sur une TODO cassée rend GARDE, sort 1, rien écrit",
+                         code == 1 and s.startswith("GARDE: ligne 3 de la TODO : 6 cellules au lieu de 5")
+                         and "rien écrit" in s and empreinte(te) == avant, (code, s))
+
+
+groupe(tester_clore_todo)
+
+
+def tester_oter():
+    """TAB4 : `vlp.py oter` retire une rangée de la TODO, marque son numéro, l'écrit au journal ; refuse un code
+    absent, ouvert ou clos sans rien écrire."""
+    etat = ("# État\n\n## La TODO\n\nProvenance : 3, de x ; 4, de y.\n\n"
+            "| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |\n|---|---|---|---|---|\n"
+            "| 3 | `AAA` — a | x | 1 | — |\n| 4 | `BBB` — b | x | 1 | — |\n| 5 | `U` — u | x | 1 | — |\n"
+            "| 6 | `OUV` — o | x | 1 | — |\n\n## Journal des décisions\n\n## 2026-10-01 — x\n")
+    with tempfile.TemporaryDirectory() as to:
+        ecrire(os.path.join(to, "CHANTIER.md"), "# C\n\n- **contexte** : ctx/\n- **fichier d'état** : ctx/08-etat.md\n\n"
+               "Lettres de fiche déjà prises : U (test). Un nouveau chantier en choisit un autre.\n")
+        ecrire(os.path.join(to, "ctx", "50-ouv.md"), ouvert("# Chantier OUV — o\n\n## OUV1 [ ] — a\n"))
+        chemin = os.path.join(to, "ctx", "08-etat.md")
+        ecrire(chemin, etat)
+        for code, quoi in (("ZZZ", "absent"), ("OUV", "ouvert"), ("U", "clos")):
+            res = appel(["oter", to, code, "--raison", "r", "--date", "2026-10-09"])
+            verifier("TAB4 : oter refuse un code %s — GARDE, sort 1, fichier inchangé" % quoi,
+                     res[0] == 1 and res[1].startswith("GARDE: ") and "rien écrit" in res[1]
+                     and open(chemin, encoding="utf-8").read() == etat, res)
+        res = appel(["oter", to, "AAA", "--raison", "fait ailleurs", "--date", "2026-10-09"])
+        lu = open(chemin, encoding="utf-8").read()
+        verifier("TAB4 : oter ôte la rangée, et elle seule", res[0] == 0 and "| 3 | `AAA`" not in lu
+                 and "| 4 | `BBB`" in lu and len(mod.todo_du_fichier(lu.split("\n"))) == 3, (res, lu))
+        verifier("TAB4 : oter marque le numéro retiré dans la phrase de provenance",
+                 "Provenance : 3, de x ; 4, de y. 3, `AAA`, retiré le 2026-10-09 : fait ailleurs.\n" in lu, lu)
+        verifier("TAB4 : oter écrit une entrée datée au journal",
+                 lu.endswith("## 2026-10-01 — x\n\n## 2026-10-09 — `AAA` retiré de la TODO (n° 3)\n\n"
+                             "- **Raison** : fait ailleurs.\n"), lu)
+
+
+groupe(tester_oter)
+
 # REP1 : le gras et les liens Markdown d'une cellule — jamais dans du code cité.
 def tester_gras_et_liens():
     """Contrôler `gras_et_liens` et `cellule` : le gras et les liens Markdown d'une cellule (chantier REP)."""
