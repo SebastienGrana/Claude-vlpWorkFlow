@@ -66,6 +66,10 @@ SOMMABLES = ["tours", "appels", "input", "output", "cache_creation", "cache_1h",
 #   - claude-haiku-4-5-20251001 : alias daté de claude-haiku-4-5, prix de la
 #     ligne « Claude Haiku 4.5 » — la page ne nomme pas les ids, la skill
 #     claude-api si (shared/models.md:70).
+#   - claude-haiku-5-5 : ligne « Claude Haiku 5.5 », lue le 2026-10-10 (dette d'EFF :
+#     une sonde le rendait « ? »). Deux paliers : « pour les requêtes jusqu'à 100 000
+#     jetons » dans GRILLE, au-delà dans PALIERS. La page ne dit pas ce qu'elle compte :
+#     ici, les jetons d'entrée de l'appel, cache lu et écrit compris.
 # Seuls les modèles que nomment les transcripts y figurent. Le mode « fast »
 # n'y est pas : le 2026-09-17, la skill claude-api donnait son prix d'entrée et
 # de sortie, pas celui de son cache — un tour fast compte comme un modèle inconnu.
@@ -80,8 +84,14 @@ GRILLE = {
     "claude-sonnet-4-6":         ("3",     "15",   "0.3",    "3.75",      "6"),
     "claude-haiku-4-5":          ("1",     "5",    "0.1",    "1.25",      "2"),
     "claude-haiku-4-5-20251001": ("1",     "5",    "0.1",    "1.25",      "2"),
+    "claude-haiku-5-5":          ("0.10",  "0.50", "0.01",   "0.125",     "0.20"),
 }
 GRILLE = {m: tuple(Decimal(p) for p in prix) for m, prix in GRILLE.items()}
+# modèle: (jetons d'entrée au-delà desquels, prix du palier haut, même ordre que GRILLE)
+PALIERS = {
+    "claude-haiku-5-5": (100_000, ("0.50", "2.50", "0.05", "0.625", "1")),
+}
+PALIERS = {m: (seuil, tuple(Decimal(p) for p in prix)) for m, (seuil, prix) in PALIERS.items()}
 
 
 def ratios(prix):
@@ -203,6 +213,8 @@ def _cout(comptes, modele):
         return Decimal(0), Decimal(0)   # tour vide (ex. <synthetic>) : rien à payer
     ecrit_5m = creation - ecrit_1h
     prix = GRILLE.get(modele)
+    if modele in PALIERS and entree + creation + lu > PALIERS[modele][0]:
+        prix = PALIERS[modele][1]
     r = ratios(prix) if prix else RATIOS_COMMUNS
     equiv = None
     if r:
