@@ -21,16 +21,18 @@
     <p>Les essais de VIT25 comptés juste, le juge de MET4 dans le dépôt, et la règle de l'effort dit ce que high vaut, mesuré sur les 4 fiches de MET4.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">3 fiches · 2 faites · en cours : EFF3</p>
+    <p class="mono" style="margin-top:.5rem">3 fiches · 3 faites</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
-  <section hidden>
-    <h2>Chantier clos le </h2>
+  <section>
+    <h2>Chantier clos le 2026-10-10</h2>
     <div class="bilan">
-      <p></p>
+      <p>Livré : l'effort high mesuré sur les 4 fiches de MET4 : même qualité, +59 % de $ sur medium, −11 % sous xhigh ; le juge à l'abri dans evals/effort/</p>
+      <p>Surpris : high coûte presque autant que xhigh (89 %) pour 58 % de sa réflexion ; une sonde en claude-haiku-5-5, sans prix connu, rend le total de cout « ? »</p>
+      <p>Estimé : estimé 3 fiches ≈12 $ · cadré 3 · joué 3 fiches ? $</p>
     </div>
   </section>
 
@@ -45,14 +47,14 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">EFF2</span></span>
         <details><summary><span class="titre">Mettre le juge de MET4 à l'abri dans le dépôt, avec high</span><span class="etat">Faite</span></summary>
         <span class="note">met4-juge.py --a-blanc --kit ../x --essais-dir ../essais --essais VIT23:high : ESSAI VIT23-high listé, code 0, aucun appel ; grep chemins evals/effort/ : 0 ligne ; pyright 3 .py : 0 errors ; suite OK</span></details>
-        <span class="cout mono">≈2,2M (2 194 674) · 24 tours · 1,48 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">EFF3</span></span>
-        <details open><summary><span class="titre">Jouer les 4 fiches de MET4 en high et écrire la règle</span><span class="etat">En cours</span></summary>
+        <span class="cout mono">≈3,0M (3 005 623) · 37 tours · 2,37 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">EFF3</span></span>
+        <details><summary><span class="titre">Jouer les 4 fiches de MET4 en high et écrire la règle</span><span class="etat">Faite</span></summary>
         <span class="note">Les 4 fiches jouées en high, le tableau et la règle de l'effort récrite ; fiche de jour, après EFF1 et EFF2</span></details>
-        <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
+        <span class="cout mono">≈28,8M (28 762 498) · 246 tours · ? $</span></li>
     </ul>
-    <p class="mono cout-hors">Hors fiches : ≈1,2M (1 217 795) · 15 tours · 1,09 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈4,6M (4 614 285) · 57 tours · 3,76 $</p>
+    <p class="mono cout-hors">Hors fiches : ≈1,4M (1 413 018) · 16 tours · 1,14 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈34,4M (34 382 955) · 317 tours · ? $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -74,7 +76,7 @@
 
   <footer>
     <span>Fichier de fiches : <span class="mono">context AI/115-eff.md</span></span>
-    <span>Mis à jour le <span class="mono">2026-10-09</span></span>
+    <span>Mis à jour le <span class="mono">2026-10-10</span></span>
   </footer>
 </div>
 <script src="vlp.js"></script>
