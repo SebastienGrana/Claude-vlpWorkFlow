@@ -392,6 +392,33 @@ celle de `FIL` ; 48 à 51, de celle de `FIN` ; 52, des clôtures de la nuit du
 Une ligne par décision imprévue tranchée en cours de fiche — jamais un résumé
 de ce que le code dit déjà.
 
+- **2026-10-09** — PRP1, la découpe : couper aussi aux commits `<PRÉFIXE> :` est **permis**, aucune
+  décision passée ne l'interdit. `FIN` (`45-cout-aux-bords.md`) : « couper au commit est la seule
+  règle qui tienne pour `/vlp:tache` comme pour `/vlp:enchainer` » ; il n'a borné que le début et la
+  fin. `CPT` (`40-cout-juste.md`) : « Une fiche = les tours `(commit d'avant, son commit]` », sans
+  exclure le reste. `CAD` (`49-cadrage-compte.md`) : « Les bornes de `plages` ne changent pas » —
+  dans « Ce qu'on ne fait pas », un hors-périmètre, pas une règle. `UNI` et `TAU` ne parlent pas de
+  la découpe (le chiffre de clôture, le prix). Garde-fou à tenir : `FIN`, « une mention plus tardive
+  (un recompte) ne l'étire plus ».
+- **2026-10-09** — PRP1, la cause de `NUI20` à 2 tours · 0,16 $ : **trouvée dans le code**,
+  `heures_commits` (`scripts/vlp_coeur.py`), « le plus ancien s'il y en a deux » —
+  `commits[id] = min(...)`. `NUI20` a deux commits : `70fad2f` 20:15:50 (« l'avant de la nuit ») et
+  `453a26c` 23:49:08. Sa plage devient `(NUI38 0f683b3 20:15:07, 20:15:50]` :
+  `mesure-tokens.py ffc88598… --plage 2026-10-08T20:15:07 2026-10-08T20:15:50` rend 2 tours · 514 805 ·
+  0,16 $, le chiffre de `cout`. La séance (20:15:50, 23:49:08] — 33 tours · 8 312 092 · 4,56 $ —
+  tombe dans « hors fiches » (36 tours · 4,74 $), par `plages` : fin = le 1er commit qui nomme `NUI`
+  après la dernière fiche, `453a26c`. Les 7 commits `BRA`/`Matin` ne coupent rien : ils ne
+  nomment pas `NUI`.
+- **2026-10-09** — PRP1, l'écart de `TAB` : les 5,26 $ **sont inclus** dans les 11,71 $. Le carnet
+  (`.git/vlp-nuit/2026-10-08.jsonl`) : 5 sessions, `usd_kit` 1,25 + 1,61 + 0,49 + 1,36 + 0,55 = 5,26,
+  89 tours ; toutes dans `107-tables.md` (`**Session**`), toutes entières dans la plage du chantier
+  (`mesure-tokens.py --plage 2026-10-08T20:30:03 2026-10-08T23:20:01` : mêmes 89 tours). `cout` :
+  `TAB1` 38 tours (31 + 8 de nuit), `TAB2` 88 (26 + 9 de nuit + 52 de `790ba1d9`), hors fiches 17
+  (15 du découpage + 2), total 182 tours · 11,71 $. Reste un écart, **cause non trouvée** : 14 tours ·
+  1,91 $ de `790ba1d9`, de 15:56:00 à la clôture `657cddb` 15:59:03, ne comptent nulle part
+  (`--plage 2026-10-09T15:56:00 2026-10-09T15:59:03`) ; regardé : `git log` de la plage, seuls `TAB4`
+  15:55:18 et la clôture.
+
 - **2026-09-25** — hors chantier, demandé par l'utilisateur contre le *scope creep* (« il y a trop
   de todo ») : la TODO ne grossit plus sans deux oui, justifiés — règle écrite dans
   `methode-chantier.md`, renvoyée par `cloture.md` et `tache-contraintes.md`. Compté : des entrées

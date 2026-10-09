@@ -21,9 +21,9 @@
     <p>vlp.py cout met le travail entre deux fiches dans « hors fiches », total inchangé ; recompter --clos récrit les quatre copies d'un seul clos ; les causes de NUI20 et de TAB relevées, corrigées si elles sont dans le code</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="encours"></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">4 fiches · 0 faite · en cours : PRP1</p>
+    <p class="mono" style="margin-top:.5rem">4 fiches · 1 faite · en cours : PRP2</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -38,19 +38,22 @@
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">PRP1</span></span>
-        <details open><summary><span class="titre">Relever les décisions passées et les deux causes</span><span class="etat">En cours</span></summary>
-        <span class="note">relevé au journal, sans code : décisions passées sur la découpe, causes de NUI20 et de l'écart TAB</span></details></li>
-      <li class="fiche" data-attend><span class="gauche"><span class="id">PRP2</span></span>
-        <details><summary><span class="titre">Couper aussi aux commits &lt;PRÉFIXE&gt; :</span><span class="etat">Après PRP1</span></summary>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">PRP1</span></span>
+        <details><summary><span class="titre">Relever les décisions passées et les deux causes</span><span class="etat">Faite</span></summary>
+        <span class="note">grep -c PRP1 08-etat.md = 3 ; découpe : permis ; NUI20 : cause dans heures_commits (min de deux commits) ; TAB : 5,26 inclus dans 11,71, écart 14 tours · 1,91 $ non trouvé</span></details>
+        <span class="cout mono">≈2,4M (2 414 585) · 26 tours · 1,49 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">PRP2</span></span>
+        <details open><summary><span class="titre">Couper aussi aux commits &lt;PRÉFIXE&gt; :</span><span class="etat">En cours</span></summary>
         <span class="note">cout coupe aux commits &lt;PRÉFIXE&gt; : ; dépend de PRP1, s'arrête si une décision l'interdit</span></details></li>
       <li class="fiche"><span class="gauche"><span class="id">PRP3</span></span>
         <details><summary><span class="titre">Borner recompter --ecrire à un seul clos, quatre copies</span><span class="etat">À lancer</span></summary>
         <span class="note">recompter --ecrire borné à un clos, ses quatre copies, testé sur un faux projet</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">PRP4</span></span>
-        <details><summary><span class="titre">Corriger la cause de NUI20 ou de TAB</span><span class="etat">Après PRP1, PRP2</span></summary>
+        <details><summary><span class="titre">Corriger la cause de NUI20 ou de TAB</span><span class="etat">Après PRP2</span></summary>
         <span class="note">corrige la cause trouvée par PRP1 si elle est dans le code ; dépend de PRP1 et PRP2</span></details></li>
     </ul>
+    <p class="mono cout-hors">Hors fiches : ≈1,9M (1 852 655) · 21 tours · 1,34 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈4,3M (4 267 240) · 47 tours · 2,83 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
