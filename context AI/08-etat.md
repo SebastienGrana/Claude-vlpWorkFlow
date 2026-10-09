@@ -3167,3 +3167,9 @@ Les 6 fichiers relus en entier contre `methode-chantier.md` après `MET7` ; « t
 - `context AI/99-jnt1-mesure.py` prend une borne `<depuis>` (horodatage de chaque ligne) et imprime chaque refus (session, heure, URL). Rejoué depuis le 2026-09-30 : 50 publications avec `files`, **10 refus** « joints non lus » (6 sessions) — 20 %, contre 14 sur 187 (7,5 %) avant `JNT` ; tout compris : 436 avec `files`, 38 refus, 30 sessions.
 - Cause lue (session `38f8ede7`, 2026-10-08) : les 10 visent la feuille ou l'archive, et nomment **`couts.svg`** — `clore` le régénère à chaque clôture, une autre session (nuit, worktree) l'a publié, et celle qui republie ne l'a ni lu ni listé. Le kit n'est pas en faute : `ARTEFACTS.md` (« Une publication refusée ») dit déjà de lire le joint par son `path`, puis republier ; le refus coûte un appel raté.
 - 💡 Proposé, non fait (règle de doctrine, à trancher) : à l'étape 4 de `cloture.md`, lire `couts.svg` par son `path` avant de republier la feuille — 2 appels au lieu de 3.
+- Tranché le 2026-10-09 au matin (rapport de nuit, Q1 « sans fiche ») : la phrase est dans `cloture.md`, étape 4 (`6e8025d`). Branche `nuit/2026-10-08-B-APR` relue (APR1 non cochée, mesure d'avant la cause lue) et supprimée (Q2).
+
+## 2026-10-09 — Le coût d'un chantier compte-t-il son relecteur ? Oui
+
+- Question du rapport de nuit (Q4). `vlp.py cout` sur les trois clos de la nuit : chacun compte **1 sous-agent** — MUW 0,49 $ (10 tours), RTD 0,31 $ (10 tours), NPB 0,32 $ (9 tours), dans les 3,19 $, 1,49 $ et 1,80 $ des clos.
+- Les trois sous-agents de la session `fa25c7c9` sont `vlp:relecture` (`subagents/*.meta.json`, `agentType`) : le relecteur lancé par `vlp:relire` est compté. Le doute est levé.
