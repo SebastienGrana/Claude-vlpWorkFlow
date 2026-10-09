@@ -1311,6 +1311,39 @@ def tester_clore_todo():
 groupe(tester_clore_todo)
 
 
+def tester_clore_ote_todo():
+    """RTO1 : `clore` ôte la rangée du chantier de la TODO et marque la provenance, sans toucher au journal ;
+    un code absent de la TODO n'écrit rien au fichier d'état, et ce n'est pas une GARDE."""
+    gabarit = lambda nom: open(os.path.join(ICI, "..", "templates", nom), encoding="utf-8").read()
+    journal = "## Journal des décisions\n\n## 2026-10-01 — x\n"
+    for present in (True, False):
+        with tempfile.TemporaryDirectory() as tr:
+            ecrire(os.path.join(tr, "CHANTIER.md"), "# C\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n"
+                   "- **fichier d'état** : ctx/08-etat.md\n- **artefact du chantier** : aucun\n\n"
+                   "Lettres de fiche déjà prises : A (test).\n")
+            rangs = ("| 3 | `U` — u | a | 2 fiches | — |\n" if present else "") + "| 4 | `AAA` — a | a | 1 | — |\n"
+            etat = ("# État\n\nProvenance : 3, de x ; 4, de y.\n\n| # | Chantier | Ce qu'il apporte | Coût estimé "
+                    "| Dépend de |\n|---|---|---|---|---|\n%s\n%s" % (rangs, journal))
+            chemin = os.path.join(tr, "ctx", "08-etat.md")
+            ecrire(chemin, etat)
+            ecrire(os.path.join(tr, "ctx", "50-u.md"), ouvert("# Chantier U — u\n\n**Fait.** Rien.\n\n## U1 [x] — a\n"))
+            ecrire(os.path.join(tr, "ctx", "artefacts", "50-u.html"), gabarit("artefact-chantier.html"))
+            ecrire(os.path.join(tr, "ctx", "artefacts", "feuille-de-route.html"), gabarit("artefact-feuille-de-route.html"))
+            code, s = appel(["clore", tr, "--livre", "fini", "--date", "2026-10-09"])
+            lu = open(chemin, encoding="utf-8").read()
+            if present:
+                verifier("RTO1 : clore ôte la rangée U, garde l'autre, marque la provenance, journal inchangé",
+                         code == 0 and "| 3 | `U`" not in lu and "| 4 | `AAA`" in lu
+                         and "Provenance : 3, de x ; 4, de y. 3, `U`, clos le 2026-10-09.\n" in lu
+                         and lu.endswith(journal) and "TODO `U` ôtée · n° 3\n" in s and "CLOS U " in s, (code, s, lu))
+            else:
+                verifier("RTO1 : clore sur un code absent de la TODO — rien ôté, fichier d'état inchangé, pas de GARDE",
+                         code == 0 and "TODO `U` absente — rien ôté\n" in s and lu == etat and "CLOS U " in s, (code, s, lu))
+
+
+groupe(tester_clore_ote_todo)
+
+
 def tester_oter():
     """TAB4 : `vlp.py oter` retire une rangée de la TODO, marque son numéro, l'écrit au journal ; refuse un code
     absent, ouvert ou clos sans rien écrire."""

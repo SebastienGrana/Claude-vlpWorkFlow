@@ -319,6 +319,9 @@ Sous-commandes :
   dans `ZONE:bilan`, et dans `CLOS` avant ` — <projet>`.
   Après l'index, `archiver` (ci-dessous) ; la ligne « relire un chantier clos »
   que `clore` pose dans `CLAUDE.md` pointe l'archive.
+  Au fichier d'état, avant la feuille qui relit la TODO, la rangée `` `<lettre>` `` ôtée et ` <n>, `<lettre>`, clos le
+  D.` ajouté à la phrase de provenance, comme `oter` mais sans journal : `TODO `<lettre>` ôtée · n° <n>`, ou, code
+  absent de la TODO, `TODO `<lettre>` absente — rien ôté` et rien écrit (RTO1).
   `CLOS <lettre> <plage> · chantier <n> · cumul <brut> · routage <0|1> · index
   <0|1> · archivé <n> · bilan <0|1> · <estimé> — <projet>`. Aucun chantier ouvert, ou
   déjà `**CLOS**` : `GARDE:`, sort 1. Une TODO que `todo_du_fichier` refuse : `GARDE: … — rien écrit`, sort 1 (TAB3).
