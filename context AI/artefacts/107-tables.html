@@ -27,10 +27,12 @@
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
-  <section hidden>
-    <h2>Chantier clos le </h2>
+  <section>
+    <h2>Chantier clos le 2026-10-09</h2>
     <div class="bilan">
-      <p></p>
+      <p>Livré : Les tables de vlp.py ne se coupent plus en silence : une ligne au mauvais nombre de cellules ou sans barre finale rend GARDE (renvois, TODO, nuits) ; clore lit la TODO avant d'écrire ; vlp.py oter retire une ligne de la TODO</p>
+      <p>Surpris : TAB2 refusée la nuit : le découpage [1:-1] perdait la dernière cellule d'une ligne sans barre finale, en-tête compris ; oter refuse un chantier ouvert, donc ne sert pas au temps 1 de la clôture</p>
+      <p>Estimé : estimé 7 fiches ≈28 $ · cadré 4 · joué 4 fiches 11,71 $</p>
     </div>
   </section>
 
@@ -55,8 +57,8 @@
         <span class="note">6 contrôles : rangée ôtée, numéro marqué, journal ; absent, ouvert, clos → GARDE, sort 1, fichier inchangé ; MUTANT ATTRAPÉ (refus du clos sauté) ; sur le kit, oter TAB → GARDE chantier ouvert ; suite code 0, 0 ÉCART ; pyright 0 errors</span></details>
         <span class="cout mono">≈4,9M (4 917 267) · 21 tours · 1,49 $</span></li>
     </ul>
-    <p class="mono cout-hors">Hors fiches : ≈1,4M (1 396 585) · 15 tours · 1,25 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈22,6M (22 647 254) · 180 tours · 11,57 $</p>
+    <p class="mono cout-hors">Hors fiches : ≈1,9M (1 891 798) · 17 tours · 1,39 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈23,1M (23 142 467) · 182 tours · 11,71 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

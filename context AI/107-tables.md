@@ -11,7 +11,9 @@ une ligne mal découpée sans rien dire ; `clore` écrit avant de lire la TODO ;
 
 **Estimé.** 7 fiches · ≈28 $ — ≈3,95 $/fiche sur 91 clos (le 2026-10-08).
 
-**Fait.** Rien. Ouvert le 2026-10-08 (nuit, canal A), cadré en 4 fiches par le plan du soir (`context AI/106-nuits.md`, « TAB »), `TAB1` à jouer.
+**CLOS** le 2026-10-09. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+
+**Fait.** TAB1..TAB4 (2026-10-09) : Les tables de vlp.py ne se coupent plus en silence : une ligne au mauvais nombre de cellules ou sans barre finale rend GARDE (renvois, TODO, nuits) ; clore lit la TODO avant d'écrire ; vlp.py oter retire une ligne de la TODO — estimé 7 fiches ≈28 $ · cadré 4 · joué 4 fiches 11,71 $.
 
 **Session** : d0a38db6-ada6-4167-acf3-bc2c5e81333f
 

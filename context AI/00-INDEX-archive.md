@@ -13,6 +13,7 @@ QUAND LIRE : on relit un chantier clos ; l'index n'en garde qu'une ligne qui ren
 | `108-branche-chef.md` | on relit le socle du chantier BRA — **clos** « /vlp:chef vérifie la branche dès son début », `BRA1..BRA1` |
 | `101-chef-de-nuit.md` | on relit le socle du chantier NUI — **clos** « Le chef de nuit », `NUI1..NUI38` |
 | `109-env.md` | on relit le socle du chantier ENV — **clos** « Les tests ne voient plus les variables de la nuit », `ENV1..ENV1` |
+| `107-tables.md` | on relit le socle du chantier TAB — **clos** « Les tables de vlp.py ne se coupent plus en silence », `TAB1..TAB4` |
 | `11-conso.md` | on joue une fiche `C*` — chantier **clos** « Afficher la conso sur toutes les pages », `C1..C2` |
 | `110-muw.md` | on relit le socle du chantier MUW — **clos** « Le mutant joue les tests du dépôt de sa cible », `MUW1..MUW1` |
 | `111-rtd.md` | on relit le socle du chantier RTD — **clos** « Le matin dit le plugin en retard », `RTD1..RTD1` |

@@ -8,3 +8,6 @@ Une table Markdown mal découpée rend une GARDE au lieu d'une coupe muette ; cl
 - TAB4 : 6 contrôles : rangée ôtée, numéro marqué, journal ; absent, ouvert, clos → GARDE, sort 1, fichier inchangé ; MUTANT ATTRAPÉ (refus du clos sauté) ; sur le kit, oter TAB → GARDE chantier ouvert ; suite code 0, 0 ÉCART ; pyright 0 errors
 ## Journal
 ## Bilan
+- Livré : Les tables de vlp.py ne se coupent plus en silence : une ligne au mauvais nombre de cellules ou sans barre finale rend GARDE (renvois, TODO, nuits) ; clore lit la TODO avant d'écrire ; vlp.py oter retire une ligne de la TODO
+- Surpris : TAB2 refusée la nuit : le découpage [1:-1] perdait la dernière cellule d'une ligne sans barre finale, en-tête compris ; oter refuse un chantier ouvert, donc ne sert pas au temps 1 de la clôture
+- Estimé : estimé 7 fiches ≈28 $ · cadré 4 · joué 4 fiches 11,71 $
