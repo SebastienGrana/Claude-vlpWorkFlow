@@ -21,9 +21,9 @@
     <p>Un rapport sur MapDecorator, une commande à Cairn, deux essais en jeu, et une page à cartes qui chiffre les chantiers de la V1.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">7 fiches · 5 faites · en cours : AMD6</p>
+    <p class="mono" style="margin-top:.5rem">7 fiches · 6 faites · en cours : AMD7</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -57,17 +57,17 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">AMD5</span></span>
         <details><summary><span class="titre">Essayer le pont minimal</span><span class="etat">Faite</span></summary>
         <span class="note">ping → pong (71, 14, 25 ms) ; netstat : 127.0.0.1:47815 LISTENING seul ; summary.json 7 840 481 octets : Json::FromFile 278, 403, 332 ms ; MapDecorator rechargé par le socket, ses 5 erreurs lues dans Openplanet.log, sans geste</span></details>
-        <span class="cout mono">≈2,8M (2 842 599) · 18 tours · 1,39 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">AMD6</span></span>
-        <details open><summary><span class="titre">Essayer de poser un item depuis un plugin</span><span class="etat">En cours</span></summary>
-        <span class="note">Un item posé par un plugin, ou pas : la condition de la V2 ; jeu ouvert, après AMD5.</span></details>
-        <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
-      <li class="fiche" data-attend><span class="gauche"><span class="id">AMD7</span></span>
-        <details><summary><span class="titre">Rendre le bilan : les chantiers chiffrés</span><span class="etat">Après AMD6</span></summary>
+        <span class="cout mono">≈3,0M (3 025 019) · 19 tours · 1,45 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">AMD6</span></span>
+        <details><summary><span class="titre">Essayer de poser un item depuis un plugin</span><span class="etat">Faite</span></summary>
+        <span class="note">Oui : un plugin pose un item par un macrobloc (vu par l'utilisateur, 24/9/24) ; 12 poses, 12 true ; NoUnvalidate garde la carte validée (2 → 2), NoDestruction non (2 → 1) ; un Ctrl+Z défait les poses et le dernier geste, sauf AutoSave() après chaque pose (C2 : 1 sur 3 défaite)</span></details>
+        <span class="cout mono">≈14,5M (14 454 434) · 62 tours · 5,96 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">AMD7</span></span>
+        <details open><summary><span class="titre">Rendre le bilan : les chantiers chiffrés</span><span class="etat">En cours</span></summary>
         <span class="note">Le bilan en page à cartes : les chantiers de la V1 chiffrés ; après toutes.</span></details></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈20,7M (20 740 586) · 93 tours · 13,21 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈48,5M (48 479 242) · 236 tours · 29,68 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈63,1M (63 116 096) · 299 tours · 35,70 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
