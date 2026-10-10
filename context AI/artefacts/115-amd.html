@@ -21,9 +21,9 @@
     <p>Un rapport sur MapDecorator, une commande à Cairn, deux essais en jeu, et une page à cartes qui chiffre les chantiers de la V1.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">7 fiches · 3 faites · en cours : AMD4</p>
+    <p class="mono" style="margin-top:.5rem">7 fiches · 4 faites · en cours : AMD5</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -49,24 +49,25 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">AMD3</span></span>
         <details><summary><span class="titre">Définir les stratégies et les outils de la V1</span><span class="etat">Faite</span></summary>
         <span class="note">rapport 21-audit-amd.md : 6 outils x 4 rubriques, 7 hypothèses de guidage, 12 questions pour AMD7 (comptes en tête)</span></details>
-        <span class="cout mono">≈2,5M (2 456 446) · 13 tours · 1,34 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">AMD4</span></span>
-        <details open><summary><span class="titre">Chercher l'existant : la boucle, les pinceaux, la pose d'items</span><span class="etat">En cours</span></summary>
-        <span class="note">L'existant : rechargement, pinceaux, pose d'items — au plus 6 recherches.</span></details></li>
-      <li class="fiche" data-attend><span class="gauche"><span class="id">AMD5</span></span>
-        <details><summary><span class="titre">Essayer le pont minimal</span><span class="etat">Après AMD4</span></summary>
+        <span class="cout mono">≈2,7M (2 674 386) · 14 tours · 1,42 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">AMD4</span></span>
+        <details><summary><span class="titre">Chercher l'existant : la boucle, les pinceaux, la pose d'items</span><span class="etat">Faite</span></summary>
+        <span class="note">Table besoin × piste : 11 lignes (a 3, b 5, c 3), licence et lien sur chacune ; 4 plugins installés, 1 sous licence ; coût : 4 recherches sur 6, 5 pages par extrait (1 échouée), 0 en entier</span></details>
+        <span class="cout mono">≈11,8M (11 756 584) · 53 tours · 4,89 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">AMD5</span></span>
+        <details open><summary><span class="titre">Essayer le pont minimal</span><span class="etat">En cours</span></summary>
         <span class="note">Un plugin minimal qui répond pong, et la durée de lecture du modèle ; jeu ouvert, après AMD4.</span></details>
         <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">AMD6</span></span>
-        <details><summary><span class="titre">Essayer de poser un item depuis un plugin</span><span class="etat">Après AMD4, AMD5</span></summary>
+        <details><summary><span class="titre">Essayer de poser un item depuis un plugin</span><span class="etat">Après AMD5</span></summary>
         <span class="note">Un item posé par un plugin, ou pas : la condition de la V2 ; jeu ouvert, après AMD5.</span></details>
         <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">AMD7</span></span>
-        <details><summary><span class="titre">Rendre le bilan : les chantiers chiffrés</span><span class="etat">Après AMD4, AMD5, AMD6</span></summary>
+        <details><summary><span class="titre">Rendre le bilan : les chantiers chiffrés</span><span class="etat">Après AMD5, AMD6</span></summary>
         <span class="note">Le bilan en page à cartes : les chantiers de la V1 chiffrés ; après toutes.</span></details></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈14,6M (14 552 679) · 69 tours · 10,82 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈33,4M (33 401 698) · 162 tours · 23,23 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈45,4M (45 376 222) · 216 tours · 28,20 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
