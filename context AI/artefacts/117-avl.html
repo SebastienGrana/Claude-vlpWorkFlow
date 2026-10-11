@@ -1,0 +1,98 @@
+<meta charset="utf-8">
+<title>vlp — L'audit du kit vlp : l'enchaînement jusqu'au bout</title>
+<!--
+  GABARIT — artefact d'un chantier. Publié par /chantier à l'ouverture,
+  mis à jour par /tache à chaque fiche. Remplace les <…> et ne renomme pas
+  les marqueurs `ZONE:…` : les commandes les cherchent tels quels.
+
+  Convention de coût — posée ici, référencée (jamais recopiée) par
+  artefact-feuille-de-route.html, tache.md et cloture.md : un nombre < 1000
+  s'affiche tel quel ; au-delà, "≈<arrondi 1 décimale><k|M> (<compte brut>)"
+  — virgule française, k = mille, M = million. Le compte brut reste toujours
+  visible à côté de l'arrondi.
+-->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="vlp.css">
+
+<div class="page">
+  <header>
+    <div class="eyebrow">vlp · fiches AVL1–AVL10 · <a href="https://claude.ai/artifact/YWDny8kjubq9DhdP5rbPxA">la feuille de route</a></div>
+    <h1>L'audit du kit vlp : l'enchaînement jusqu'au bout</h1>
+    <p>Une page à cartes répondue qui range la TODO du kit vers sa V1 (servir Cairn et MapDecorator, rester juste), la page d'enchaînement à jour, et le sommaire des trois audits envoyé seul.</p>
+    <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
+    <div class="avancement">
+      <span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+    </div>
+    <p class="mono" style="margin-top:.5rem">10 fiches · 0 faite · en cours : AVL1</p>
+  </header>
+
+  <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
+  <section hidden>
+    <h2>Chantier clos le </h2>
+    <div class="bilan">
+      <p></p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Les fiches, dans l'ordre des dépendances</h2>
+    <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
+    <ul class="fiches">
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">AVL1</span></span>
+        <details open><summary><span class="titre">Lire le kit : ce qu'il a, en chiffres</span><span class="etat">En cours</span></summary>
+        <span class="note">Le kit en chiffres : tailles, santé du code, ce qui reste vrai de l'audit du 2026-09-17 ; crée le fichier d'audit</span></details></li>
+      <li class="fiche"><span class="gauche"><span class="id">AVL2</span></span>
+        <details><summary><span class="titre">Mesurer les séances du kit depuis le 2026-09-17</span><span class="etat">À lancer</span></summary>
+        <span class="note">Le coût des séances du kit depuis le 2026-09-17, par chantier et hors chantier</span></details></li>
+      <li class="fiche"><span class="gauche"><span class="id">AVL3</span></span>
+        <details><summary><span class="titre">Relire les règles du kit comme un modèle les lit</span><span class="etat">À lancer</span></summary>
+        <span class="note">Les règles relues comme un modèle les lit : contradictions, faits périmés, gestes qui ratent</span></details></li>
+      <li class="fiche"><span class="gauche"><span class="id">AVL4</span></span>
+        <details><summary><span class="titre">Mesurer l'usage réel du kit dans les 4 projets</span><span class="etat">À lancer</span></summary>
+        <span class="note">L'usage réel du kit dans les 4 projets équipés : à niveau, commandes lancées, pannes</span></details></li>
+      <li class="fiche"><span class="gauche"><span class="id">AVL5</span></span>
+        <details><summary><span class="titre">Compter les faits tirés d'un autre projet</span><span class="etat">À lancer</span></summary>
+        <span class="note">Combien de faits viennent d'un autre projet, combien sont encore justes ; l'outil chiffré</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">AVL6</span></span>
+        <details><summary><span class="titre">Chercher ce qui existe déjà, 6 recherches au plus</span><span class="etat">Après AVL1, AVL2, AVL3, AVL4, AVL5</span></summary>
+        <span class="note">Ce qui existe déjà, 6 recherches au plus ; session principale (web) ; dépend d'AVL1 à AVL5</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">AVL7</span></span>
+        <details><summary><span class="titre">Ranger la TODO du kit vers sa V1</span><span class="etat">Après AVL1, AVL2, AVL3, AVL4, AVL5, AVL6</span></summary>
+        <span class="note">La TODO du kit rangée vers sa V1, REF placé ; dépend d'AVL1 à AVL6</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">AVL8</span></span>
+        <details><summary><span class="titre">Publier la page à cartes de l'audit</span><span class="etat">Après AVL7</span></summary>
+        <span class="note">La page à cartes, remplie par l'utilisateur (visuel) ; dépend d'AVL7</span></details>
+        <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">AVL9</span></span>
+        <details><summary><span class="titre">Écrire les réponses, puis la page d'enchaînement</span><span class="etat">Après AVL8</span></summary>
+        <span class="note">Les réponses appliquées, la page d'enchaînement republiée ; dépend d'AVL8</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">AVL10</span></span>
+        <details><summary><span class="titre">Le sommaire des trois audits, en langage clair</span><span class="etat">Après AVL9</span></summary>
+        <span class="note">Le sommaire des trois audits, en langage clair, envoyé seul (visuel) ; dépend d'AVL9</span></details>
+        <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
+    </ul>
+    <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
+  </section>
+
+  <!-- ZONE:blocage — publiée quand /tache s'arrête après deux tentatives ; retirée dès que la fiche repasse -->
+  <section hidden>
+    <h2>Arrêt sur blocage</h2>
+    <div class="blocage">
+      <p></p>
+      <pre></pre>
+    </div>
+  </section>
+
+  <section>
+    <h2>Journal des décisions</h2>
+    <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
+    <ul class="journal">
+    </ul>
+  </section>
+
+  <footer>
+    <span>Fichier de fiches : <span class="mono">context AI/117-avl.md</span></span>
+    <span>Mis à jour le <span class="mono">2026-10-11</span></span>
+  </footer>
+</div>
+<script src="vlp.js"></script>
