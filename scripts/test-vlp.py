@@ -1496,7 +1496,7 @@ def tester_feuille_clore():
                  and '<span class="mono">2026-01-02</span>' in html, s + html)
         verifier("feuille : TODO rendue", '<span class="gauche"><span class="rang mono">3</span></span><details><summary>'
                  '<span class="titre">Le <span class="mono">sh</span></span></summary><div class="detail">a || b &lt;c&gt;</div>'
-                 '</details><span class="meta mono">2 fiches</span></li>' in html
+                 '</details><span class="meta"><span class="seg">2 fiches</span></span></li>' in html
                  and "&lt;U, R&gt;" not in html and 'data-etat="cours"' not in html.split("ZONE:todo")[1], html)
         avant_todo = html.split("<!-- ZONE:todo")[0].split("Les chantiers possibles")[1]
         verifier("feuille : décompte au-dessus de la TODO, détaillé (FEU8)", avant_todo.count("resume-todo") == 1
@@ -1611,6 +1611,62 @@ def tester_feuille_clore():
 
 
 groupe(tester_feuille_clore)
+
+
+def tester_feuille_phases():
+    """Contrôler la TODO de la feuille en sous-listes (AVL12) : phase et score lus en tête de la case
+    Coût, une pastille à gauche, une sous-liste par phase écrite, « Sans phase » en dernier."""
+    verifier("phase_todo : lue en tête, retirée du coût",
+             mod.phase_todo("**V1 · score 25 (5 × 5)** · 1 fiche") == ("V1", "25", "5 × 5", "1 fiche")
+             and mod.phase_todo("**après · score ? (1 × ?)** · à cadrer") == ("après", "?", "1 × ?", "à cadrer")
+             and mod.phase_todo("2 fiches") == (None, None, None, "2 fiches"), mod.phase_todo("**V1 · score 25 (5 × 5)** · 1 fiche"))
+    verifier("rang_phase : V1, V2, V10, après, puis sans phase",
+             sorted([None, "après", "V10", "V1", "V2"], key=mod.rang_phase) == ["V1", "V2", "V10", "après", None], "")
+    tailles = [mod.taille_todo(c) for c in ("1 fiche", "**V2 · score 12 (3 × 4)** · 3 fiches", "6 fiches", "à cadrer")]
+    verifier("taille_todo : les parts du décompte, phase en tête comprise", tailles == ["petit", "moyen", "gros", "pas-estime"], tailles)
+    rangs = [("5", "Cinq", "a", "**V2 · score 12 (3 × 4)** · 2 fiches", "—"),
+             ("6", "Six", "b", "1 fiche", "—"),
+             ("7", "Sept", "c", "**V1 · score 25 (5 × 5)** · 1 fiche", "5"),
+             ("8", "Huit", "d", "**V1 · score ? (5 × ?)** · à cadrer", "—")]
+    corps = mod.corps_todo(rangs, "8", [])
+    ordre = re.findall(r'<li class="(?:phase-titre|carte-todo)"(?: data-phase="([^"]*)")?', corps)
+    titres = re.findall(r"<h3>([^<]*)</h3>", corps)
+    verifier("corps_todo : V1, V2, puis Sans phase, l'ordre de la TODO gardé dans chacune — mutant : trier les cartes par score",
+             titres == ["V1 · 2&nbsp;chantiers", "V2 · 1&nbsp;chantier", "Sans phase · 1&nbsp;chantier"]
+             and corps.index('rang mono">7<') < corps.index('rang mono">8<') < corps.index('rang mono">5<') < corps.index('rang mono">6<')
+             and ordre == ["V1", "V1", "V1", "V2", "V2", "aucune", ""], corps)
+    verifier("carte_todo : pastille à gauche, détail en infobulle, la phase ôtée de droite",
+             '<span class="rang mono">7</span><span class="phase mono" data-phase="V1" title="score 25 = 5 × 5 (importance × facilité)">V1 · 25</span>'
+             in corps and '<span class="meta"><span class="seg">1 fiche</span></span>' in corps and "score 25 (5" not in corps.split("title=")[-1], corps)
+    seg = mod.carte_todo(("9", "Neuf", "e", "**V2 · score 6 (3 × 2)** · 5 fiches · ≈ 22 $ (estimé) · → 6 fiches en tout", "—"), "", False)
+    verifier("carte_todo : le coût sous le titre, un segment ` · ` par ligne (dit « en pâtés » le 2026-10-12)",
+             '<span class="meta"><span class="seg">5 fiches</span><span class="seg">≈ 22 $ (estimé)</span>'
+             '<span class="seg">→ 6 fiches en tout</span></span>' in seg, seg)
+    methode = " ".join(open(os.path.join(ICI, "..", "methode-chantier.md"), encoding="utf-8").read().split())
+    echelle = ("vaut %d en `V1`, %d en `V2`, %d `après`" % tuple(n for _, n in mod.IMPORTANCE_PHASE),
+               " · ".join("%s → %d" % f for f in mod.FACILITE_FICHES), "« sans fiche » vaut 5", "note de 1 à 5")
+    verifier("aide du score : son échelle est celle de methode-chantier.md — mutant : changer un nombre d'un côté",
+             [p for p, _ in mod.IMPORTANCE_PHASE] == ["V1", "V2", "après"] and all(e in methode for e in echelle)
+             and "5 en V1, 3 en V2, 1 après" in mod.aide_score() and "1 → 5 · 2 → 4 · 3 à 4 → 3 · 5 à 7 → 2 · 8 et plus → 1"
+             in mod.aide_score(), [e for e in echelle if e not in methode])
+    verifier("aide du score : en tête des sous-listes, absente sans phase",
+             corps.startswith('          <li class="aide-score"><details class="aide">') and "aide-score" not in
+             mod.corps_todo([r for r in rangs if r[0] == "6"], "", []), corps[:200])
+    verifier("carte_todo : data- des filtres — prêt, bloqué, score ? vide, badge en cours",
+             '<li class="carte-todo" data-phase="V1" data-score="25" data-taille="petit" data-pret="non">' in corps
+             and '<li class="carte-todo" data-phase="V1" data-score="" data-taille="pas-estime" data-pret="oui">' in corps
+             and '<li class="carte-todo" data-taille="petit" data-pret="oui">' in corps
+             and '<span class="rang mono">8</span><span class="phase mono" data-phase="V1" title="score ? = 5 × ? (importance × facilité)">V1 · ?</span>'
+             + mod.BADGE_COURS in corps, corps)
+    sans = mod.corps_todo([r for r in rangs if r[0] == "6"], "", [])
+    verifier("corps_todo : aucune phase écrite, les cartes seules sans titre",
+             "phase-titre" not in sans and sans.count('<li class="carte-todo"') == 1, sans)
+    verifier("corps_todo : TODO vide", "Rien en attente" in mod.corps_todo([], "", []), "")
+    verifier("feuille : rang en cours relu derrière la pastille",
+             mod.rang_en_cours(corps, "cartes") == "8", mod.rang_en_cours(corps, "cartes"))
+
+
+groupe(tester_feuille_phases)
 
 # archiver : les lignes clos quittent l'index pour l'archive, telles quelles (chantier IDX)
 def test_archiver():
@@ -3564,7 +3620,7 @@ def test_feuille_en_cartes():
         verifier("FEU3 : tableau → cartes, une par rang, chaque cellule telle quelle (« Dépend de » en flèche),"
                  " badge sur la carte 4, préambule gardé",
                  code == 0 and forme == "cartes" and "<table" not in zone_t and "<tr" not in zone_t
-                 and html[d:f].count('<li class="carte-todo">') == len(rangs) == 3 and not absentes
+                 and html[d:f].count('<li class="carte-todo"') == len(rangs) == 3 and not absentes
                  and html[d:f].count(mod.BADGE_COURS) == 1 and mod.rang_en_cours(html[d:f], forme) == "4"
                  and "<p>Un préambule gardé.</p>" in zone_t and zone_t.count("resume-todo") == 0,
                  (s, absentes, zone_t))

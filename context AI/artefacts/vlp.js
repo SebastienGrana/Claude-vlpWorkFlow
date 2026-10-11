@@ -6,9 +6,11 @@
   Aucun code de bouton dans le HTML : ce fichier fabrique ses boutons au
   chargement, à partir des crochets que la page porte déjà ; il pose des
   classes, jamais d'attribut style — les styles vivent dans vlp.css.
-  BTN3 : tout déplier et tout replier, sous le titre de chaque liste de
-  cartes ; copier la commande d'une fiche prête, dans la colonne de gauche.
-  BTN4 : filtrer la feuille par état, sous son sommaire.
+  BTN3 : tout déplier ou tout replier, sous le titre de chaque liste de
+  cartes — un seul bouton qui alterne depuis AVL12 ; copier la commande d'une
+  fiche prête, dans la colonne de gauche.
+  BTN4 : filtrer la feuille par état, sous son sommaire ; AVL12 : filtrer les
+  chantiers possibles par phase, score, taille, prêt ou bloqué.
   Le graphique des coûts : Chart.js (MIT), chargé à la demande sur la feuille —
   pas de roue réinventée pour les axes et les bulles (demande du 2026-09-28).
   Lecture (2026-10-05) : un nombre ne se coupe plus en fin de ligne — le bloc
@@ -62,20 +64,26 @@
     return b;
   };
 
-  // Tout déplier, tout replier : deux boutons sous le titre de chaque liste de cartes — fiches
-  // du chantier, chantiers possibles —, qui n'ouvrent et ne ferment que les cartes de la liste.
+  // Tout déplier ou tout replier : un seul bouton sous le titre de chaque liste de cartes — fiches
+  // du chantier, chantiers possibles —, qui n'ouvre et ne ferme que les cartes de la liste. Son
+  // texte suit l'état : « Tout replier » quand toutes sont ouvertes, « Tout déplier » sinon (AVL12).
   page.querySelectorAll("ul.fiches, ol.todo").forEach((liste) => {
     const titre = liste.closest("section")?.querySelector("h2");
     if (!titre || !liste.querySelector("details")) return;
     const replis = document.createElement("span");
     replis.className = "replis";
-    [["Tout déplier", true], ["Tout replier", false]].forEach(([texte, ouvrir]) => {
-      const b = bouton(texte);
-      b.addEventListener("click", () => {
-        liste.querySelectorAll("details").forEach((d) => { d.open = ouvrir; });
-      });
-      replis.append(b);
+    const b = bouton("");
+    const cartes = () => [...liste.querySelectorAll("details:not(.aide)")]; // l'aide du score reste à part
+    const ouverts = () => cartes().every((d) => d.open);
+    const maj = () => { b.textContent = ouverts() ? "Tout replier" : "Tout déplier"; };
+    b.addEventListener("click", () => {
+      const ouvrir = !ouverts();
+      cartes().forEach((d) => { d.open = ouvrir; });
+      maj();
     });
+    liste.addEventListener("toggle", maj, true); // une carte ouverte à la main remet le texte juste
+    maj();
+    replis.append(b);
     titre.after(replis);
   });
 
@@ -183,6 +191,7 @@
   const clos = document.getElementById("clos");
   if (!sommaire || !todo || !clos) return;
   const cartes = [...todo.querySelectorAll("li.carte-todo")];
+  const titres = [...todo.querySelectorAll("li.phase-titre")];
   const enCours = (li) => !!li.querySelector('.badge[data-etat="cours"]');
   const replisClos = [...clos.querySelectorAll("details")];
   let avant = null; // l'état des replis de #clos au moment de quitter « Tout »
@@ -192,7 +201,82 @@
     cours: enCours,
     clos: () => false,
   };
+  // Les filtres des chantiers possibles (AVL12, demandé le 2026-10-11) : phase, score minimum,
+  // taille, prêt ou bloqué, lus dans les data- que vlp.py pose sur chaque carte (`carte_todo`).
+  // Ils s'ajoutent au filtre par état ; une sous-liste dont plus rien ne se voit cache son titre.
+  let etatChoisi = "tout";
+  const choix = { phase: "", score: "", taille: "", pret: "" }; // "" : tout
+  const replies = new Set(); // les sous-listes repliées, par phase
+  let compte = null;
+  // Replier une sous-liste : un clic sur son titre (demandé le 2026-10-12). Le titre reste un h3,
+  // pas un bouton, pour que le lecteur à voix haute le lise encore (il saute le texte des boutons).
+  titres.forEach((t) => {
+    const h = t.querySelector("h3");
+    if (!h) return;
+    h.setAttribute("role", "button");
+    h.tabIndex = 0;
+    h.setAttribute("aria-expanded", "true");
+    const basculer = () => {
+      const p = t.dataset.phase;
+      const rouvrir = replies.has(p);
+      if (rouvrir) replies.delete(p); else replies.add(p);
+      h.setAttribute("aria-expanded", String(rouvrir));
+      appliquer();
+    };
+    h.addEventListener("click", basculer);
+    h.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); basculer(); }
+    });
+  });
+  const garder = (li) => filtres[etatChoisi](li)
+    && (!choix.phase || (li.dataset.phase || "aucune") === choix.phase)
+    && (!choix.score || Number(li.dataset.score || 0) >= Number(choix.score))
+    && (!choix.taille || li.dataset.taille === choix.taille)
+    && (!choix.pret || li.dataset.pret === choix.pret);
+  const appliquer = () => {
+    // une sous-liste repliée garde son titre ; seul un filtre qui la vide le cache
+    cartes.forEach((li) => { li.hidden = !garder(li) || replies.has(li.dataset.phase || "aucune"); });
+    titres.forEach((t) => {
+      let vu = false;
+      for (let n = t.nextElementSibling; n && !n.matches("li.phase-titre"); n = n.nextElementSibling) {
+        if (n.matches("li.carte-todo") && garder(n)) vu = true;
+      }
+      t.hidden = !vu;
+    });
+    if (compte) {
+      const vus = cartes.filter(garder).length;
+      compte.textContent = vus + " sur " + cartes.length + (cartes.length > 1 ? " chantiers" : " chantier");
+    }
+  };
+  if (cartes.some((li) => li.dataset.taille)) {
+    const zone = document.createElement("div");
+    zone.className = "filtres-todo";
+    zone.setAttribute("role", "group");
+    zone.setAttribute("aria-label", "Filtrer les chantiers possibles");
+    const menu = (libelle, cle, options) => {
+      const etiquette = document.createElement("label");
+      const liste = document.createElement("select");
+      [["Tout", ""], ...options].forEach(([texte, valeur]) => liste.append(new Option(texte, valeur)));
+      liste.addEventListener("change", () => { choix[cle] = liste.value; appliquer(); });
+      etiquette.append(libelle + " ", liste);
+      zone.append(etiquette);
+    };
+    const nomPhase = (p) => (p === "aucune" ? "Sans phase" : p === "après" ? "Après" : p);
+    if (titres.length) menu("Phase", "phase", titres.map((t) => [nomPhase(t.dataset.phase), t.dataset.phase]));
+    if (cartes.some((li) => li.dataset.score)) {
+      menu("Score minimum", "score", [10, 15, 20, 25].map((s) => ["≥ " + s, String(s)]));
+    }
+    menu("Taille", "taille", [["Petit", "petit"], ["Moyen", "moyen"], ["Gros", "gros"], ["Pas estimé", "pas-estime"]]);
+    menu("Prêt ou bloqué", "pret", [["Prêt", "oui"], ["Bloqué", "non"]]);
+    compte = document.createElement("span");
+    compte.className = "compte";
+    compte.setAttribute("aria-live", "polite");
+    zone.append(compte);
+    todo.querySelector("ol.todo")?.before(zone);
+    appliquer();
+  }
   const filtrer = (etat) => {
+    etatChoisi = etat;
     if (etat === "tout") {
       if (avant) replisClos.forEach((d, i) => { d.open = avant[i]; });
       avant = null;
@@ -202,7 +286,7 @@
     if (encours) encours.hidden = !(etat === "tout" || etat === "cours");
     todo.hidden = etat === "clos";
     clos.hidden = !(etat === "tout" || etat === "clos");
-    cartes.forEach((li) => { li.hidden = !filtres[etat](li); });
+    appliquer();
     if (etat === "clos") replisClos.forEach((d) => { d.open = true; });
   };
   const barre = document.createElement("div");

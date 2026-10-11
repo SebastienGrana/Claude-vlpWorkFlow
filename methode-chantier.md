@@ -153,6 +153,9 @@ titre (`MET6`, 2026-10-07).
     `**V1 · score 25 (5 × 5)** · ` — aucune colonne de plus. Le coût qui suit
     finit par le compte de fiches que `vlp.py` lit : un ajout se totalise (`→ 2 fiches en tout`), un prix
     ne s'écrit pas « la fiche » (6 coûts sur 12 mal lus à `AVL7`).
+  - **La feuille de route** en fait une sous-liste par phase écrite — celles du
+    projet, `V3` compris s'il en écrit — puis « Sans phase » ; phase et score en
+    pastille à gauche, des filtres au-dessus (`AVL12`, demandé le 2026-10-11).
 - **Ne pas réinventer la roue — ni un outil, ni un chiffre** — décision de
   l'utilisateur, le 2026-09-28 pour l'outil, le 2026-09-29 pour le chiffre. Avant
   de coder, chercher si l'outil existe déjà (bibliothèque, module standard) ;
