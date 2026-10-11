@@ -73,7 +73,8 @@ Sous-commandes :
 - `compteur <fichier> [<fiche>…] [--recoupe]` — où passe le temps, aux plages de `cout` :
   `COMPTEUR aux commits de fiche`, une ligne par fiche — durée de commit à commit, actif
   = modèle + outils + attente + autre (chaque écart à la part de la ligne qui le ferme),
-  outils par sorte en minutes (appels), tours et $ de `cout`, garde-fous —, `hors fiches`,
+  outils par sorte en minutes (appels ; `relance` : les `commandes longues` que déclare
+  `CHANTIER.md`, entre accents graves), tours et $ de `cout`, garde-fous —, `hors fiches`,
   `TOTAL`. Des fiches nommées : elles seules, `TOTAL (fiches nommées)` ; une sans plage :
   `GARDE:`, sort 1. Un champ qui manque aux transcripts : `AVERTISSEMENT:`. `--recoupe` :
   une ligne `RECOUPE` par `cost-state` des sessions, face à ses totaux. Sans découpe :

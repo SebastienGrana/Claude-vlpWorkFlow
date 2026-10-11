@@ -18,6 +18,9 @@
 - **livraison** : <./deploy.sh — ou : aucune>
 - **vérification** : <la commande que la session lance et lit elle-même — ou :
   le geste que seul l'utilisateur peut faire, et ce qu'il doit regarder>
+- **commandes longues** : aucune — <ou les calculs longs du projet, chacun entre accents
+  graves (`calcul.py`) : `vlp.py compteur` compte leurs relances à part>
+
 
 ## Contraintes d'écriture
 

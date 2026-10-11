@@ -9458,8 +9458,8 @@ def ecrire_compteur(chemin, cout_etat=None):
 
 
 TOUT_COMPTEUR = ("actif 16 = modèle 2 + outils 13 + attente 1 + autre 0 · outils : suite 6 (2), --seul 1 (1), "
-                 "test-boucle 0 (0), mutant 4 (1), pyright 0 (0), Git 0 (1), publication 0 (1), reste 2 (4) · 14 tours"
-                 " · 7,00 $ · garde-fous : suites 1/3, ÉCART 1, MUTANT ATTRAPÉ 1, GARDE 1, relecteur 1 ACCEPTÉE + 1 "
+                 "test-boucle 0 (0), mutant 4 (1), pyright 0 (0), Git 0 (1), publication 0 (1), relance 0 (0), reste 2 "
+                 "(4) · 14 tours · 7,00 $ · garde-fous : suites 1/3, ÉCART 1, MUTANT ATTRAPÉ 1, GARDE 1, relecteur 1 ACCEPTÉE + 1 "
                  "REFUSÉE")
 
 
@@ -9480,10 +9480,10 @@ def tester_compteur_lecture():
              mesure_)
     verifier("compteur : l'attente d'une tâche de fond va à l'appel qui l'a lancée — boucle, Monitor, notification",
              mesure_["outils"] == {"suite": 342, "--seul": 30, "test-boucle": 0, "mutant": 236, "pyright": 0, "Git": 5,
-                                   "publication": 10, "reste": 130} and mesure_["fond"] == 285, mesure_)
+                                   "publication": 10, "relance": 0, "reste": 130} and mesure_["fond"] == 285, mesure_)
     verifier("compteur : un appel par sortie directe — ni la notification, ni l'attente, ni la réponse à une question",
              mesure_["appels"] == {"suite": 2, "--seul": 1, "test-boucle": 0, "mutant": 1, "pyright": 0, "Git": 1,
-                                   "publication": 1, "reste": 4}, mesure_["appels"])
+                                   "publication": 1, "relance": 0, "reste": 4}, mesure_["appels"])
     verifier("compteur : les garde-fous lus là où ils disent vrai, les suites jugées sur leur verdict",
              (mesure_["suites"], mesure_["garde_fous"]) == ([3, 1], [1, 1, 1, 1, 1]), mesure_)
     verifier("compteur : la ligne en minutes, chaque total juste à la minute (plus gros restes)",
@@ -9564,16 +9564,26 @@ def tester_compteur_commande():
         finally:
             os.environ.clear()
             os.environ.update(garde_env)
+        ecrire(os.path.join(dep, "CHANTIER.md"), "# Chantier\n\n- **alias** : q\n- **commandes longues** : "
+                                                 "`vlp.py cocher`, `calcul.py`\n")
+        os.environ.update(HOME=t, USERPROFILE=t)
+        try:
+            relance = appel(["compteur", os.path.join(dep, "q.md"), "Q1"])
+        finally:
+            os.environ.clear()
+            os.environ.update(garde_env)
+        declarees = (mod.relances_de(os.path.join(dep, "q.md")), mod.relances_de(os.path.join(t, "q.md")))
     rien = ("actif 0 = modèle 0 + outils 0 + attente 0 + autre 0 · outils : suite 0 (0), --seul 0 (0), test-boucle 0 "
-            "(0), mutant 0 (0), pyright 0 (0), Git 0 (%d), publication 0 (%d), reste 0 (0) · %d tours · %s $ · "
+            "(0), mutant 0 (0), pyright 0 (0), Git 0 (%d), publication 0 (%d), relance 0 (0), reste 0 (0) · %d tours · "
+            "%s $ · "
             "garde-fous : suites -, ÉCART -, MUTANT ATTRAPÉ -, GARDE -, relecteur -")
     q2 = "Q2 · durée 34 · " + rien % (1, 1, 2, "1,00")
     lignes = ["AVERTISSEMENT: sss.jsonl : 1 ligne(s) de message sans heure, hors du temps",
               "AVERTISSEMENT: sss.jsonl : 1 sortie(s) sans appel connu, rangée(s) au reste",
               mod.ENTETE_COMPTEUR % 30,
               "Q1 · durée 17 · actif 16 = modèle 2 + outils 12 + attente 1 + autre 1 · outils : suite 6 (2), --seul 0 "
-              "(1), test-boucle 0 (0), mutant 4 (1), pyright 0 (0), Git 0 (0), publication 0 (0), reste 2 (4) · 12 "
-              "tours · 6,00 $ · garde-fous : suites 1/3, ÉCART 1, MUTANT ATTRAPÉ 1, GARDE 1, relecteur 1 ACCEPTÉE + 1 "
+              "(1), test-boucle 0 (0), mutant 4 (1), pyright 0 (0), Git 0 (0), publication 0 (0), relance 0 (0), reste 2 "
+              "(4) · 12 tours · 6,00 $ · garde-fous : suites 1/3, ÉCART 1, MUTANT ATTRAPÉ 1, GARDE 1, relecteur 1 ACCEPTÉE + 1 "
               "REFUSÉE", q2, "hors fiches · durée - · " + rien % (0, 0, 0, "0,00"),
               "TOTAL (fiches + hors fiches) · durée - · " + TOUT_COMPTEUR]
     verifier("compteur : une ligne par fiche aux plages de cout, hors fiches, TOTAL — l'écart à cheval sur un commit "
@@ -9587,6 +9597,10 @@ def tester_compteur_commande():
                "· durée 12,8 contre totalDuration absent\n")
     verifier("compteur --recoupe : la cost-state face au compteur, du startTime à sa dernière ligne horodatée ; un "
              "champ absent se dit", rendus[3] == (0, "\n".join(lignes) + "\n" + recoupe), rendus[3][1])
+    verifier("RLA : les commandes longues se lisent au CHANTIER.md du projet, entre accents graves ; sans carte, aucune",
+             declarees == (("vlp.py cocher", "calcul.py"), ()), declarees)
+    verifier("RLA : une commande longue déclarée tombe en relance, plus au reste — la suite et Git gardent leur sorte",
+             relance[0] == 0 and "Git 0 (0), publication 0 (0), relance 0 (1), reste 2 (3) · " in relance[1], relance)
 
 
 groupe(tester_compteur_lecture)

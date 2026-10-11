@@ -777,7 +777,7 @@ def totaux(decoupe):
 # dans celle d'un Bash ou d'un PowerShell, le verdict du relecteur au retour d'un `Agent` ou dans le message d'une
 # autre session. Une sortie relue — la boucle qui attend une tâche de fond, puis un `Read` du même fichier — compte
 # chaque fois.
-SORTES_OUTIL = ("suite", "--seul", "test-boucle", "mutant", "pyright", "Git", "publication", "reste")
+SORTES_OUTIL = ("suite", "--seul", "test-boucle", "mutant", "pyright", "Git", "publication", "relance", "reste")
 SUITES = SORTES_OUTIL[:3]
 COMMANDES = (("mutant", appel_python(r"vlp\.py", r"[ \t]+mutant\b")), ("suite", appel_python(r"test-vlp\.py")),
              ("test-boucle", appel_python(r"test-boucle\.py")),
@@ -799,9 +799,10 @@ def seul_lance(commande, trouve):
     return re.search(r"(?<!\S)--seul\b", segment) is not None
 
 
-def sorte_outil(appel):
+def sorte_outil(appel, relances=()):
     """Rendre la sorte d'un appel (nom, entrée) parmi `SORTES_OUTIL` : l'outil Artifact est la publication ; une
-    commande Bash ou PowerShell, ce qu'elle lance (`COMMANDES`) — la suite avec `--seul`, « --seul » ; le reste
+    commande Bash ou PowerShell, ce qu'elle lance (`COMMANDES`) — la suite avec `--seul`, « --seul » —, puis
+    « relance » si elle porte une des commandes longues que le projet déclare (`relances_de`, RLA) ; le reste
     sinon."""
     nom, entree = appel
     if nom == "Artifact":
@@ -813,7 +814,18 @@ def sorte_outil(appel):
         trouve = motif.search(commande)
         if trouve:
             return "--seul" if sorte == "suite" and seul_lance(commande, trouve) else sorte
-    return "reste"
+    return "relance" if any(r in commande for r in relances) else "reste"
+
+
+def relances_de(fichier):
+    """Rendre les commandes longues que déclare le `CHANTIER.md` au-dessus d'un fichier de fiches : la ligne
+    `- **commandes longues** :`, chaque motif entre accents graves (RLA) ; le projet les écrit, jamais le kit. Pas de
+    carte, ni de ligne : aucune."""
+    racine = trouver(os.path.dirname(os.path.abspath(fichier)))
+    if racine is None:
+        return ()
+    valeur = champ(lignes_de(os.path.join(racine, "CHANTIER.md")), "commandes longues", "")
+    return tuple(m for m in re.findall(r"`([^`\n]+)`", valeur) if m.strip())
 
 
 def verdict_suite(texte, lien):
@@ -840,13 +852,13 @@ def garde_fous(texte):
     return tuple(sum(d.startswith(g) for d in debuts) for g in GARDE_FOUS)
 
 
-def lire_sortie(appel, texte, lien):
+def lire_sortie(appel, texte, lien, relances=()):
     """Rendre ce que `compteur` garde d'une sortie, lue au fil du transcript, sans son texte : (sorte d'outil — None
     pour le message d'une autre session —, 1 si elle compte un appel — 0 pour une notification ou l'attente d'une
     tâche de fond (`lien`) —, verdict de suite — None hors suite, ou s'il ne s'y lit pas —, garde-fous, chacun lu là
     où il dit vrai, puis vrai pour une notification : ce qu'elle ferme n'est pas un appel d'outil, mais l'attente de
-    la tâche)."""
-    sorte, nom = (None, None) if appel is None else (sorte_outil(appel), appel[0])
+    la tâche) ; `relances` : les commandes longues du projet (`sorte_outil`)."""
+    sorte, nom = (None, None) if appel is None else (sorte_outil(appel, relances), appel[0])
     releve = nom in (None, "Agent")
     ou = (sorte in SUITES, sorte == "mutant", nom in ("Bash", "PowerShell"), releve, releve)
     vus = tuple(n if lu else 0 for n, lu in zip(garde_fous(texte), ou))
@@ -960,13 +972,18 @@ def manques(journaux):
     return rendu
 
 
-def lire_journaux(chemins, sortie):
-    """Rendre [(chemin, journal)] des transcripts lisibles, chaque sortie lue au fil (`lire_sortie`) ; un illisible se
-    dit, puis ce qui manque aux autres (`manques`)."""
+def lire_journaux(chemins, sortie, relances=()):
+    """Rendre [(chemin, journal)] des transcripts lisibles, chaque sortie lue au fil (`lire_sortie`, avec les
+    commandes longues du projet) ; un illisible se dit, puis ce qui manque aux autres (`manques`)."""
     m = mesure()
     rendu = []
+
+    def lire(appel, texte, lien):
+        """`lire_sortie` avec les commandes longues du projet : `journal` n'en passe que trois."""
+        return lire_sortie(appel, texte, lien, relances)
+
     for chemin in chemins:
-        j, erreur = m.journal(chemin, lire_sortie)
+        j, erreur = m.journal(chemin, lire)
         if erreur:
             sortie.write("AVERTISSEMENT: transcript non lu : %s — %s\n" % (chemin, erreur))
             continue
@@ -1048,7 +1065,7 @@ def cmd_compteur(a, sortie):
         sortie.write("GARDE: pas de découpe — %s\n" % pourquoi[0])
         return 1
     fichiers = transcripts_du_fichier(fiches_, sessions_entete(lignes), [])
-    journaux = lire_journaux([c for c, sorte in fichiers if sorte < 2], sortie)
+    journaux = lire_journaux([c for c, sorte in fichiers if sorte < 2], sortie, relances_de(a.fichier))
     sortie.write(ENTETE_COMPTEUR % (mesure().PAUSE // 60) + "\n")
     rangs = rangs_compteur(a.fiches, plages_du_cout(fiches_, heures, [], fin), decoupe, sortie)
     total = mesure_vide()
