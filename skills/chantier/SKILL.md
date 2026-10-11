@@ -263,7 +263,7 @@ feuille de route locale, `--todo` seulement si le chantier a un numéro dans la 
 <python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" ouvrir . --fiches "<contexte>/<NN>-<chantier>.md" --titre "<Nom du chantier>" --artefact <URL> --estime-fiches <n>; <python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" feuille . --todo <N>
 ```
 
-`<n>` : recopié de la colonne « Coût estimé » de la ligne TODO ; pas estimé, ou hors TODO : l'option s'omet.
+`<n>` : recopié de la colonne « Coût estimé » de la ligne TODO, puis doublé (`methode-chantier.md`, « L'estimé du cadrage se double ») ; pas estimé, ou hors TODO : l'option s'omet.
 
 Publication échouée : pas de `--artefact`, la ligne reste à « aucun ». Lis les
 lignes `OUVERT` et `FEUILLE` ; une `GARDE:` dit ce qui n'est pas écrit — écris-le

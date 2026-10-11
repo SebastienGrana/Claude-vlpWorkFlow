@@ -29,7 +29,7 @@ https://github.com/SebastienGrana/Claude-vlpWorkFlow — cloné et utilisé en g
    indiagnosticable.
 3. **Une règle vit à un seul endroit — un nombre aussi** (250, 80, 5…) : une
    commande renvoie à `cloture.md` ou à `methode-chantier.md`, elle ne les
-   recopie pas ; ailleurs, on pointe.
+   recopie pas, sauf un nombre qu'un test compare à sa source ; ailleurs, on pointe.
 4. **Le déterministe est un script, le jugement est de la prose.** Extraire,
    valider, régénérer, mesurer vivent dans `scripts/` — Python 3 sans
    dépendance, zéro appel modèle, testé : `vlp.py` porte la mécanique (ses
@@ -59,7 +59,7 @@ et seulement dans ce cas, ouvrir l'index.
 | jouer une fiche du chantier AVL (l'audit du kit vlp : l'enchaînement jusqu'au bout) | `context AI/117-avl.md` — chantier **ouvert**, par `/vlp:tache AVL<n>` |
 | relire un chantier clos | `context AI/00-INDEX-archive.md` — sa ligne y nomme le fichier de fiches |
 | reprendre après une longue interruption | `context AI/08-etat.md` |
-| choisir le prochain chantier du kit, ou retrouver la preuve d'un bug relevé le 2026-09-17 | `context AI/12-audit.md` |
+| choisir le prochain chantier du kit, ou retrouver la preuve d'un bug relevé le 2026-09-17 | `context AI/118-audit-du-kit.md`, section `AVL9` (audit du 2026-10-11) ; la preuve du bug : `context AI/12-audit.md` |
 | expliquer le kit, ou citer un gain chiffré | `context AI/35-bilan.md` |
 
 ## Économie de contexte

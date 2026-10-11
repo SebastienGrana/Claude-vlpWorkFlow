@@ -1223,3 +1223,151 @@ Mes réponses — L'audit du kit : l'ordre à valider :
   `VCL` 10 · `BDD` 8.
 - 🟡 **Q30, à cadrer à AVL9** : où le double s'écrit (le compte de `/vlp:chantier`, ou la facilité du
   score), et s'il vaut pour les estimés déjà écrits.
+
+## AVL9 — Les réponses écrites, puis la page d'enchaînement
+
+**Fait le 2026-10-11.** Les 84 réponses de l'envoi 2 sont portées dans la TODO, la méthode et le
+routage ; la page d'enchaînement entre projets est refaite claire, à sa demande. Q30 tranchée à la
+conversation : « Prochains cadrages seulement (Recommandé) » — le double ne touche pas les estimés écrits.
+
+### La TODO, réécrite
+
+- **12 → 27 lignes** ; la table passe de **22 147 à 33 795 octets** (+53 %). Écrite par un script du
+  scratchpad, hors du dépôt, puis relue par script : borne, facilité et score justes sur les 27.
+- **Comptes : V1 14 · V2 13 · après 0.** Ils égalent les réponses d'`AVL8`, fusions comprises :
+
+| Phase | Lignes | Le compte |
+|---|---|---|
+| V1 | 14 | les 11 notées V1 (`BDD` compris) + `AVL` (ce chantier) + `PRX` (Q3, sorti de `VCL`) + `NET` (Q24) |
+| V2 | 13 | les 12 notées V2 − `AVL4.1` (fondue dans `HOR`, Q18) + `EVR` (le bouton Envoyer) + `COP` (Q32) |
+| après | 0 | `AVL3.A12` versée dans `NET` (Q14), `AVL3.C4` refusée (Q15 « non »), `BDD` passée en V1 |
+
+- **L'ordre** : les dépendances d'abord, puis le score ; `NET` puis `ENA` en tête, place voulue par
+  l'utilisateur (« Ménage, puis ENA », au questionnaire d'AVL9) ; `AVL`, en cours, reste en haut.
+
+| Rang | Code | N° | Phase | Note × facilité | Score | Fiches lues |
+|---|---|---|---|---|---|---|
+| — | `AVL` | 118 | V1 | 5 × 1 | 5 | 11 |
+| 1 | `NET` | 122 | V1 | 5 × 5 | 25 | sans fiche |
+| 2 | `ENA` | 115 | V2 | 3 × 2 | 6 | 6 |
+| 3 | `SYM` | 116 | V1 | 5 × 5 | 25 | 1 |
+| 4 | `CHM` | 123 | V1 | 5 × 5 | 25 | 1 |
+| 5 | `PRF` | 124 | V1 | 5 × 5 | 25 | 1 |
+| 6 | `CLU` | 125 | V1 | 5 × 5 | 25 | 1 |
+| 7 | `PRX` | 126 | V1 | 5 × 5 | 25 | 1 |
+| 8 | `NWT` | 119 | V1 | 5 × 4 | 20 | 2 |
+| 9 | `RLA` | 120 | V1 | 4 × 5 | 20 | 1 |
+| 10 | `ESH` | 127 | V1 | 4 × 5 | 20 | 1 |
+| 11 | `ORD` | 117 | V1 | 5 × 3 | 15 | 3 |
+| 12 | `VCL` | 114 | V1 | 5 × 3 | 15 | 4 |
+| 13 | `CAR` | 90 | V2 | 3 × 5 | 15 | sans fiche |
+| 14 | `VAR` | 128 | V2 | 3 × 5 | 15 | 1 |
+| 15 | `DER` | 129 | V2 | 3 × 5 | 15 | 1 |
+| 16 | `ALC` | 130 | V2 | 3 × 5 | 15 | 1 |
+| 17 | `EFC` | 131 | V2 | 3 × 5 | 15 | 1 |
+| 18 | `LIR` | 132 | V2 | 3 × 5 | 15 | 1 |
+| 19 | `COP` | 133 | V2 | 3 × 5 | 15 | 1 |
+| 20 | `HOR` | 121 | V1 | 4 × 3 | 12 | 2,5 |
+| 21 | `EVR` | 134 | V2 | 3 × 4 | 12 | 2 |
+| 22 | `RMS` | 135 | V2 | 3 × 3 | 9 | 3 |
+| 23 | `SCO` | 136 | V2 | 3 × 3 | 9 | 2,5 |
+| 24 | `BDD` | 73 | V1 | 2 × 4 | 8 | 1,5 |
+| 25 | `CAN` | 113 | V2 | 3 × 2 | 6 | 7 |
+| 26 | `REF` | 96 | V2 | 3 × 1 | 3 | 9 |
+
+- **Deux scores ont bougé depuis `AVL8`**, par la règle et non par une note :
+  - `VCL` 10 → **15** : le prix du cache en sort (`PRX`), il lui reste 4 fiches, facilité 3 ;
+  - `HOR` 16 → **12** : `usage` (`AVL4.1`) y entre, 2½ fiches arrondies à 3, facilité 3.
+- **Rejouer les fiches lues** (`borne_haute_cout`, `scripts/vlp_coeur.py`) :
+  `py -3 -X utf8 -c "import sys; sys.path.insert(0, 'scripts'); import vlp_coeur as v; [print(r[0],
+  v.codes_todo([r])[0], v.borne_haute_cout(r[3])) for r in v.todo_du_fichier(v.lignes_de('context
+  AI/08-etat.md'))]"` — sur une ligne.
+- **Les codes neufs**, n° 122 à 136 : `NET` (Q24, plus `AVL3.A12`), `CHM` (`AVL1.1`), `PRF` (`AVL2.5`),
+  `CLU` (`AVL7.1`), `PRX` (Q3), `ESH` (`AVL3.C6`), `VAR` (`AVL1.2`), `DER` (`AVL2.2`), `ALC` (`AVL3.2`),
+  `EFC` (`AVL3.A2`), `LIR` (`AVL3.C5`), `COP` (Q32), `EVR` (le bouton Envoyer), `RMS` (`AVL5.1`),
+  `SCO` (`AVL7.2`, Q7 « quatre »). `ENR` était déjà pris, par une ligne retirée le 2026-09-27 :
+  ➡️ `EVR`.
+- **Les lignes reprises** : `VCL` perd son point (0), dépend de `PRX`, 4 fiches ; `ENA` porte la
+  précision de l'utilisateur (une option du mode agents qui lance ensemble les fiches lançables) ;
+  `NWT` reçoit `N2` (Q26) et le fait n° 9 corrigé ; `HOR` reçoit `usage` ; `SYM`, `RLA` perdent
+  « (3,68 $ la fiche) » (Q29) ; `ORD` porte son troisième usage, cette page.
+- **Une place voulue** (`EVR`, `COP`) : « V2, score 12 » et « V2, score 15 », au questionnaire
+  d'AVL9, comme conseillé.
+
+### Les règles écrites, et où
+
+| Réponse | Où | Ce qui s'écrit |
+|---|---|---|
+| Q2, Q4 à Q6 | `methode-chantier.md:136` | le score : la phase, puis importance × facilité ; l'échelle ; l'ordre ; le format de la case |
+| Q25 | `methode-chantier.md:209` | un audit rouvre la liste du précédent |
+| Q30 | `methode-chantier.md:200`, `skills/chantier/SKILL.md:266` | l'estimé du cadrage se double, pour les prochains cadrages seulement |
+| Q32 | `methode-chantier.md:31`, `CLAUDE.md` règle 3, `CHANTIER.md` | un nombre recopié est permis si un test compare les copies ; ce test est `COP` |
+| Q22 | `CLAUDE.md`, routage ; `context AI/12-audit.md:1-4` | choisir le prochain chantier ouvre ce fichier, section `AVL9` |
+
+- `CLAUDE.md` est passé à 82 lignes, au-dessus de son seuil (80, `vlp.py renvois`) : deux lignes
+  resserrées, ➡️ **80/80**.
+
+### Les corrections sans fiche, une par une
+
+- **Q23** « laisser » et **Q31** « laisser » : rien fait.
+- **Q26** : `N2` dans `NWT` ; « → 2 fiches en tout, `N2` compris ».
+- **Q27** : le fait n° 3 du socle de `AVL` corrigé dans `117-avl.md` (sa source compte 11 lignes
+  périmées sur `20-pont-cairn.md`) ; le fait n° 9 corrigé dans `NWT` (8 écarts à `:4`, 1 à `:5`, 1 à `:6`).
+- **Q28** essayé, **non adopté** : `claude plugin validate --strict` (Claude Code 2.1.295) échoue sur
+  `plugin.json`, 1 avertissement — « root: CLAUDE.md at the plugin root is not loaded as project
+  context » ; `marketplace.json` passe. Ce `CLAUDE.md` est voulu (la consigne du dépôt) : `--strict`
+  refuserait chaque commit.
+- **Q29** : les coûts de la TODO réécrits ; les 27 lus justes par `borne_haute_cout`.
+- **Q33** vérifié — doc officielle https://code.claude.com/docs/en/claude-directory, section
+  « Cleaned up automatically », lue le 2026-10-11 :
+  - les fichiers de séance `projects/<projet>/<séance>.jsonl` sont effacés passé `cleanupPeriodDays` :
+    « The default is 30 days and the minimum is 1 » ;
+  - les séances lancées ou reprises dans l'app de bureau sont gardées sans limite d'âge depuis la
+    v2.1.248 (réglable par `desktopSessionCleanupPeriodDays`) ;
+  - le `settings.json` de l'utilisateur ne règle pas `cleanupPeriodDays` : 30 jours ;
+  - 🟡 ➡️ une séance CLI (`claude -p`, un essai) de plus de 30 jours peut avoir disparu : le recompte
+    d'un vieux clos la perd sans le dire. Coût : 1 recherche, 2 pages.
+- **Q34** « hors-v1 » : ProjetONZSM et TrackGen sortent de la V1 du kit ; ➡️ à porter à `AVL10`.
+
+### La page d'enchaînement, refaite claire
+
+**Page** : https://claude.ai/artifact/8sXMFzM7wXP7TieDwLPFLX — privée, **version 4**. Sa demande :
+« ce qui serait conseillé de faire dans […] les trois projets », l'enchaînement « que conseilles-tu »,
+« qu'est-ce qui est obligatoire et qu'est-ce qui est à la marge ».
+
+- **Ce qu'elle montre** : mon conseil en 5 étapes ; un bloc par projet (obligatoire, conseillé, à la
+  marge) ; les vagues 0 à 6, puis « Après la V1 » ; le coût en deux graphiques Chart.js 4.5.1, en
+  fiches ; ses décisions prises en compte ; ce qui n'est pas tranché ; les sources.
+- **Les totaux**, au taux de 4,40 $ la fiche (`AMD` et `ACA` : 66,08 $ pour 15 fiches) :
+
+| Groupe | Fiches | Coût estimé |
+|---|---|---|
+| obligatoire, vers la V1 des trois projets | 29 | 127,60 $ |
+| conseillé | 12 à 13 | 52,80 à 57,20 $ |
+| la V1 du kit | 18,5 à 20 | 81,40 à 88,00 $ |
+| la V2 du kit | 28 à 35,5 | 123,20 à 156,20 $ |
+
+- **Contrôles**, en local avant publication : 0 erreur de console, 0 texte sous 15 px, 0 capitale,
+  fond `rgb(243, 232, 212)`, aucun débordement à 375 px ; en ligne, 3 fichiers relus (`index.html`,
+  `vlp.css`, `vlp.js`).
+- 💡 **Le classement obligatoire, conseillé ou à la marge est mon avis** : rien ne l'a tranché ; il
+  se corrige d'un mot.
+- Générée par un script du scratchpad (une source pour les tableaux et les deux graphiques) :
+  ➡️ c'est le troisième usage d'`ORD`, noté sur sa ligne.
+
+### Pour `AVL10`
+
+- **Q34** : ProjetONZSM et TrackGen hors de la V1, mais toujours équipés ; leur TODO reçoit-elle la
+  phase et le score ? À lui demander.
+- **Cairn et MapDecorator** : relire leur TODO réelle avant d'écrire, jamais ce fichier-ci.
+
+### Restent ouverts
+
+- 🟡 **B11** (le repli « copie simple ») et **C2** (`comparer` avant une feuille), « à décider » à
+  `AVL3`, n'étaient pas sur la page d'`AVL8`.
+- 🟡 **Q33** : la perte des vieilles séances CLI pour le recompte n'a pas de ligne de TODO.
+- ⚠️ **`trier` ne voit pas la dépendance de `RMS`** : « `C1` de MapDecorator » ne suit pas le motif
+  des codes du kit (`[A-Za-z]+`, `scripts/vlp_coeur.py:3761`) : aucun code lu, `RMS` paraît prête
+  alors qu'elle attend `C1`.
+- ⚠️ **La carte de cadrage grossit** : la TODO +53 % (22 147 → 33 795 octets), lue à chaque
+  `/vlp:chantier` ; c'est le sujet d'`ALC`, en V2.

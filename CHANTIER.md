@@ -25,7 +25,8 @@
 Les règles que toute fiche respecte, quel que soit son sujet.
 
 - Une règle vit à un seul endroit — un nombre aussi : on la référence, on ne la
-  recopie jamais (le kit a souffert de six copies divergentes).
+  recopie jamais (le kit a souffert de six copies divergentes). Seule exception :
+  un nombre qu'une commande recopie, si un test compare les copies (`methode-chantier.md`).
 - Une commande est autoportante : chaque étape nomme ce qu'elle ouvre, et rien
   d'autre. Elle ne découpe jamais une autre commande au `sed` : ce qui est
   partagé vit dans un fichier ou un script commun.
