@@ -13,11 +13,11 @@ https://github.com/SebastienGrana/Claude-vlpWorkFlow — cloné et utilisé en g
 - Équipés : Cairn-VlpLib, MapDecorator, ProjetONZSM, TrackGen — et ce kit lui-même.
 - Chaque chantier clos a sa ligne dans `context AI/00-INDEX-archive.md`, son détail daté dans
   `context AI/08-etat.md` ; ici, les derniers seulement (`vlp.py clore` les tient).
-- Clos le 2026-10-09 : clore retire la ligne de la TODO (chantier RTO).
 - Clos le 2026-10-09 : le graphique des coûts au contraste de la lecture (chantier CTR).
 - Clos le 2026-10-09 : la préparation hors des fiches, le recompte d'un clos partout, NUI20 juste (chantier PRP).
 - Clos le 2026-10-10 : l'effort high mesuré (chantier EFF).
 - Clos le 2026-10-11 : la V1 de MapDecorator chiffrée : 4 chantiers, 17 fiches (chantier AMD).
+- Clos le 2026-10-11 : l'audit de Cairn, sa TODO rangée vers la V1 (chantier ACA).
 
 ## Quatre règles non négociables
 

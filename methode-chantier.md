@@ -173,6 +173,10 @@ ne se repaye pas à chaque fiche.
 Avant de promettre un chiffre de la TODO, le cadrage vérifie que les cas visés
 passent par le code qu'on va changer : `ESS` visait 11 clos, 9 étaient en
 `DÉCOUPE aucune`, hors du chemin modifié (journal `ESS4` du fichier d'état).
+**Un chantier d'audit finit par une fiche de sommaire** : en quelques puces, en
+langage clair et lisible à voix haute, ce qui a été compris, décidé, fait, et ce
+qui reste à faire ; critère `(visuel)`. Décidé par l'utilisateur le 2026-10-11
+(`ACA6`, Q16 : « tout audit ») ; premiers cas `ACA8` et la dernière fiche d'`AVL`.
 
 **2. Exécution — une fiche, une session.** `/vlp:tache X1`, puis `/clear`, puis
 `/vlp:tache X2`. Jamais deux fiches dans la même session : la seconde traînerait

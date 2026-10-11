@@ -111,7 +111,9 @@ def resoudre(argument):
     """Rend (chemin, None) ou (None, erreur), sans rien ouvrir.
 
     `~` → home ; un chemin (`C:\\…`, `C:/…`, `/…`) tel quel ; un id seul (ni
-    séparateur ni `.jsonl`) → le premier `~/.claude/projects/*/<id>.jsonl`.
+    séparateur ni `.jsonl`) → le plus long des `~/.claude/projects/*/<id>.jsonl`.
+    Un transcript ne fait que grandir : de deux copies (le déménagement C: → D:
+    du 2026-10-03 en a laissé 404), la plus longue est la complète (ACA, 2026-10-11).
     """
     argument = argument.strip()
     if "/" in argument or "\\" in argument or argument.endswith(".jsonl"):
@@ -120,7 +122,7 @@ def resoudre(argument):
     trouves = sorted(glob.glob(motif))
     if not trouves:
         return None, f"id introuvable : aucun {motif}"
-    return trouves[0], None
+    return max(trouves, key=os.path.getsize), None
 
 
 # Les sous-agents de la session `<dossier>/<id>.jsonl` : `<dossier>/<id>/subagents/agent-*.jsonl`
