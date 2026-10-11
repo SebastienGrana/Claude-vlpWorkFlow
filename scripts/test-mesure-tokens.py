@@ -248,6 +248,14 @@ def verifier_resolution():
             chemin, erreur = mod.resoudre("inconnu-999")
             if chemin is not None or not erreur:
                 return f"resoudre(id inconnu) = {chemin!r} / {erreur!r}, attendu une erreur"
+            # Deux copies du même id (le déménagement C: → D:) : la plus longue,
+            # même rangée après l'autre par ordre alphabétique.
+            courte = os.path.join(tmp, ".claude", "projects", "a-copie", "abc-123.jsonl")
+            ecrire(courte, LIGNES[:1])
+            chemin, erreur = mod.resoudre("abc-123")
+            os.remove(courte)
+            if erreur or os.path.normcase(chemin) != os.path.normcase(attendu):
+                return f"resoudre(id en double) = {chemin!r} / {erreur!r}, attendu la plus longue {attendu!r}"
             chemin, erreur = mod.resoudre("~/a/b.jsonl")
             if erreur or not os.path.normcase(chemin).startswith(os.path.normcase(tmp)):
                 return f"resoudre(~) = {chemin!r}, attendu sous {tmp!r}"
