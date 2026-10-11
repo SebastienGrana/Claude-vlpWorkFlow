@@ -3887,9 +3887,12 @@ def dependances(depend):
 def est_bloque(depend, lettres_todo, rangs_presents):
     """Vrai si `depend` (cellule « Dépend de ») nomme un code entre backticks absent de
     `lettres_todo`, ou un numéro (`3`) ou une plage (`1..9`) qui touche un rang de
-    `rangs_presents` — encore dans la TODO (FEU8)."""
+    `rangs_presents` — encore dans la TODO (FEU8). Un nom entre backticks qui n'est pas un code de
+    lettres (`C1`, `V1-3`) est une fiche d'un autre projet, que le kit ne sait pas lire : il bloque
+    (dette d'`AVL`, 2026-10-12 : `RMS` paraissait prête en attendant `C1` de MapDecorator)."""
     codes, rangs = dependances(depend)
-    return any(lettre_de(c) not in lettres_todo for c in codes) or bool(rangs & set(rangs_presents))
+    ailleurs = [n for n in re.findall(r"`([^`]+)`", depend) if not re.fullmatch(r"[A-Za-z]+", n)]
+    return bool(ailleurs) or any(lettre_de(c) not in lettres_todo for c in codes) or bool(rangs & set(rangs_presents))
 
 
 def decompte_todo(rangs, lettres_todo):

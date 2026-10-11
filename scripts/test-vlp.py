@@ -6178,7 +6178,8 @@ def tester_decompte_todo():
              and mod.est_bloque("`ZZZ`", ["AAA"], {"1", "2"}) is True
              and mod.est_bloque("3", ["AAA"], {"1", "3"}) is True
              and mod.est_bloque("1..9", ["AAA"], {"5"}) is True
-             and mod.est_bloque("—", ["AAA"], {"1"}) is False, "")
+             and mod.est_bloque("—", ["AAA"], {"1"}) is False
+             and mod.est_bloque("`C1` de MapDecorator", ["AAA"], set()) is True, "")
     # Fichier d'état en mémoire, comme demandé par le critère de fin de FEU8 : 4 rangs, un de
     # chaque taille et un pas estimé ; deux bloqués (code `ZZZ` absent, numéro 1 encore présent).
     lignes = ["| # | Chantier | Apporte | Coût | Dépend |", "|---|---|---|---|---|",
