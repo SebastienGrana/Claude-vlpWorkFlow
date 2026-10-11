@@ -1410,3 +1410,39 @@ Fait le 2026-10-12. Ses 9 questions sont tranchées sur une page à cartes priv�
   - Cairn : un chantier en pause dans un worktree ; sa TODO à lui n'est pas touchée.
 - ⚠️ **Le plugin suit `main`** : tant qu'`AVL10` n'y est pas fusionnée, une `feuille` lancée depuis
   un projet redessine l'ancienne forme.
+
+## AVL11 — Le sommaire de l'audit du kit, en langage clair
+
+Écrit le 2026-10-12. Le sommaire entier des trois audits (`AMD`, `ACA`, `AVL`) vit dans le dépôt
+privé de Cairn, `context AI/61-audit-par-le-kit.md`, section `AVL11` : ce dépôt public ne garde que
+le bloc du kit (projet privé, des comptes seulement).
+
+### AVL — l'audit du kit, clos à la suite de cette fiche
+
+- **Compris.** Le kit est l'atelier : il marche, mais chaque pièce coûte de plus en plus cher. 437
+  fichiers, 71 230 lignes. Depuis le 2026-09-17, 98 chantiers clos et chiffrés : 369 fiches,
+  1 472,07 $. La fiche est passée de 2,46 à 4,52 $ en quatre semaines (sans `VIT`), cause non
+  trouvée. Le cadrage sous-estime d'un facteur proche de 2. 297,56 $, 16,8 %, partent hors de tout
+  chantier, sur aucune page. Les consignes portent 33 constats : 13 contradictions, 13 faits
+  périmés, 7 gestes déjà ratés. cairn se sert vraiment du kit, 162 lancements ; ProjetONZSM et
+  TrackGen, jamais.
+- **Décidé, par tes réponses (84 sur 84).** La V1 du kit : servir cairn et MapDecorator, puis
+  garder le kit juste — un coût faux, une fuite sur le dépôt public. Chaque ligne de TODO, dans les
+  cinq dépôts, porte sa version et un score : l'importance (V1 5, V2 3, V3 2, après 1) fois la
+  facilité. On range les dépendances d'abord, puis le score. Le ménage (`NET`) puis l'enchaînement
+  en parallèle (`ENA`) passent en tête, à ta demande. ProjetONZSM et TrackGen restent hors de la
+  V1, mais notés. Le bouton « Envoyer à Claude » a marché au premier essai.
+- **Fait.** La TODO du kit : 12 → 27 lignes, V1 14, V2 13. La règle du score écrite dans la
+  méthode. La feuille de route en sous-listes V1, V2, après, le score sur chaque carte, une ligne
+  vers les autres pages. Les TODO des 4 projets : 63 lignes, toutes notées, leurs feuilles
+  republiées. La page d'enchaînement refaite claire : obligatoire, conseillé, à la marge. L'audit a
+  coûté 67,01 $ pour 11 fiches, jusqu'à `AVL10` (page du chantier).
+- **À faire, dans l'ordre de la TODO.** Clore cet audit. Puis le ménage (`NET` : 21 corrections
+  d'une phrase chacune), puis réparer l'enchaînement par sous-agents (`ENA`). Puis la V1 du kit,
+  18,5 à 20 fiches, 81,40 à 88,00 $ estimés : d'abord de petites réparations d'une fiche —
+  `vlp.py symboles` ne plante plus sur un fichier non Python (`SYM`), plus de chemin de ta machine
+  dans le dépôt public (`CHM`), la première fiche garde son coût (`PRF`), le coût de chaque ligne
+  de TODO lu juste (`CLU`), le prix du cache revérifié (`PRX`) ; puis le kit voit un worktree
+  (`NWT`), le compteur sépare lire et relancer (`RLA`), un essai hors du bac signalé (`ESH`) ;
+  enfin la page d'enchaînement en gabarit (`ORD`), les vieux clos remis à jour (`VCL`), le coût
+  hors chantier sur la feuille de route (`HOR`), le journal des pages en base (`BDD`).
