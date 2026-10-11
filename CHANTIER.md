@@ -15,6 +15,7 @@
 - **artefact feuille de route** : https://claude.ai/artifact/YWDny8kjubq9DhdP5rbPxA
 - **artefact archive** : https://claude.ai/artifact/JzWV9N32aJuZf9zweyZdjn
 - **artefact du chantier** : https://claude.ai/artifact/EXRXkD7FADsFFzSZffgGup
+- **artefact enchaînement** : https://claude.ai/artifact/8sXMFzM7wXP7TieDwLPFLX
 - **livraison** : aucune — le plugin est chargé en place ; `/reload-plugins` pour
   que la session en cours voie une modification
 - **vérification** : geste de l'utilisateur — rejouer la commande modifiée sur un

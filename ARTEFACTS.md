@@ -84,7 +84,10 @@ Les URL, elles, se rangent dans `CHANTIER.md` — c'est la seule carte :
 ```
 - **artefact feuille de route** : https://…
 - **artefact du chantier** : https://…
+- **artefact enchaînement** : https://… — facultatif, la page commune à plusieurs projets
 ```
+
+La feuille de route les relie tous sous son sommaire (« Les autres pages », `vlp.py feuille`).
 
 et une colonne « Artefact » dans la table des chantiers clos.
 

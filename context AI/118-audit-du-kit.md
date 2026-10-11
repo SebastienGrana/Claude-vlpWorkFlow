@@ -1371,3 +1371,42 @@ conversation : « Prochains cadrages seulement (Recommandé) » — le double ne
   alors qu'elle attend `C1`.
 - ⚠️ **La carte de cadrage grossit** : la TODO +53 % (22 147 → 33 795 octets), lue à chaque
   `/vlp:chantier` ; c'est le sujet d'`ALC`, en V2.
+
+## AVL10 — La phase et le score dans les TODO des 4 projets
+
+Fait le 2026-10-12. Ses 9 questions sont tranchées sur une page à cartes privée
+(https://claude.ai/artifact/ETn8TgjXiyziTwhecWT7JN) : l'option conseillée partout.
+
+- **Q1** : `V3` vaut **2** d'importance — écrit dans `methode-chantier.md`, dans l'aide de la
+  feuille et dans son test.
+- **Q2** : une ligne sans compte de fiches reçoit le score **« ? »** jusqu'à son cadrage.
+- **Q3 à Q5** (Cairn), **Q6** (MapDecorator) : les phases des audits `ACA5` et `AMD7`, complétées ;
+  deux lignes déjà faites retirées de Cairn ; deux coûts de Cairn totalisés (`→ N fiches en tout`).
+- **Q7, Q8** : ProjetONZSM et TrackGen reçoivent une phase par ligne — Q34 d'`AVL9` réglée.
+- **Q9** : le lien vers la page d'enchaînement sur les 3 feuilles qu'elle concerne (Cairn,
+  MapDecorator, le kit).
+
+| Projet | Lignes | Lignes notées | V1 | V2 | V3 | après | Score « ? » |
+|---|---|---|---|---|---|---|---|
+| Cairn-VlpLib | 25 (27 avant, 2 retirées) | 25 | 11 | 12 | 2 | 0 | 8 |
+| MapDecorator | 19 | 19 | 6 | 5 | 0 | 8 | 7 |
+| ProjetONZSM | 8 | 8 | 2 | 4 | 0 | 2 | 2 |
+| TrackGen | 11 | 11 | 2 | 6 | 0 | 3 | 1 |
+| **Total** | **63** | **63** | **21** | **27** | **2** | **13** | **18** |
+
+- **Comptes** : lus sur les feuilles régénérées (`li.phase-titre`, `li.carte-todo`, `data-score`
+  vide) ; `vlp.py feuille <projet>` : 0 `GARDE:` sur les 4.
+- **Ordre** : les dépendances d'abord, puis le score. Une ligne qui en attend d'autres les tire
+  juste avant elle. Les numéros restent ceux du fichier là où une dépendance les cite.
+- **Comparées à la version en ligne** (`vlp.py comparer`) avant republication : rien de vrai ne se
+  perd. Une remarque écrite à la main sur la page TrackGen du 2026-09-05, absente du fichier,
+  y est rapatriée. Le bloc « Comment lire cette liste » de Cairn, qui décrivait l'ancien tri,
+  est réécrit.
+- **Git** :
+  - Cairn et TrackGen : un commit chacun, leurs seuls fichiers ;
+  - MapDecorator : `08-etat.md` et `CHANTIER.md` sont ignorés par Git, aucun commit ;
+  - ProjetONZSM : sur la branche de travail de l'utilisateur, `panel-more-actions`, rien n'est
+    commité — 4 fichiers modifiés, à lui de les prendre ;
+  - Cairn : un chantier en pause dans un worktree ; sa TODO à lui n'est pas touchée.
+- ⚠️ **Le plugin suit `main`** : tant qu'`AVL10` n'y est pas fusionnée, une `feuille` lancée depuis
+  un projet redessine l'ancienne forme.

@@ -14,6 +14,7 @@
 - **index** : <context AI/00-INDEX.md>
 - **artefact feuille de route** : <https://… — posé par /vlp:init>
 - **artefact du chantier** : aucun
+- **artefact enchaînement** : aucun — <ou l'URL de la page qui ordonne les chantiers de plusieurs projets>
 - **livraison** : <./deploy.sh — ou : aucune>
 - **vérification** : <la commande que la session lance et lit elle-même — ou :
   le geste que seul l'utilisateur peut faire, et ce qu'il doit regarder>

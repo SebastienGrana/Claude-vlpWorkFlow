@@ -1643,11 +1643,11 @@ def tester_feuille_phases():
              '<span class="meta"><span class="seg">5 fiches</span><span class="seg">≈ 22 $ (estimé)</span>'
              '<span class="seg">→ 6 fiches en tout</span></span>' in seg, seg)
     methode = " ".join(open(os.path.join(ICI, "..", "methode-chantier.md"), encoding="utf-8").read().split())
-    echelle = ("vaut %d en `V1`, %d en `V2`, %d `après`" % tuple(n for _, n in mod.IMPORTANCE_PHASE),
+    echelle = ("vaut %d en `V1`, %d en `V2`, %d en `V3`, %d `après`" % tuple(n for _, n in mod.IMPORTANCE_PHASE),
                " · ".join("%s → %d" % f for f in mod.FACILITE_FICHES), "« sans fiche » vaut 5", "note de 1 à 5")
     verifier("aide du score : son échelle est celle de methode-chantier.md — mutant : changer un nombre d'un côté",
-             [p for p, _ in mod.IMPORTANCE_PHASE] == ["V1", "V2", "après"] and all(e in methode for e in echelle)
-             and "5 en V1, 3 en V2, 1 après" in mod.aide_score() and "1 → 5 · 2 → 4 · 3 à 4 → 3 · 5 à 7 → 2 · 8 et plus → 1"
+             [p for p, _ in mod.IMPORTANCE_PHASE] == ["V1", "V2", "V3", "après"] and all(e in methode for e in echelle)
+             and "5 en V1, 3 en V2, 2 en V3, 1 après" in mod.aide_score() and "1 → 5 · 2 → 4 · 3 à 4 → 3 · 5 à 7 → 2 · 8 et plus → 1"
              in mod.aide_score(), [e for e in echelle if e not in methode])
     verifier("aide du score : en tête des sous-listes, absente sans phase",
              corps.startswith('          <li class="aide-score"><details class="aide">') and "aide-score" not in
@@ -1662,6 +1662,15 @@ def tester_feuille_phases():
     verifier("corps_todo : aucune phase écrite, les cartes seules sans titre",
              "phase-titre" not in sans and sans.count('<li class="carte-todo"') == 1, sans)
     verifier("corps_todo : TODO vide", "Rien en attente" in mod.corps_todo([], "", []), "")
+    carte_ = ["- **artefact du chantier** : aucun", "- **artefact archive** : https://a/b",
+              "- **artefact enchaînement** : <https://c/d>"]
+    page_ = "<header></header>\n" + mod.SOMMAIRE + "<p>x</p>\n"
+    une = mod.liens_pages(page_, carte_)
+    verifier("liens_pages : archive et enchaînement sous le sommaire, refaite sans doublon, ôtée sans lien (AVL10)",
+             '\n  <nav class="pages" aria-label="Les autres pages">Les autres pages : <a href="https://a/b">l\'archive des '
+             'clos</a> · <a href="https://c/d">la page d\'enchaînement</a></nav>\n<p>x</p>' in une
+             and mod.liens_pages(une, carte_) == une and mod.liens_pages(une, carte_[:1]) == page_
+             and mod.liens_pages("<p>x</p>", carte_) == "<p>x</p>", une)
     verifier("feuille : rang en cours relu derrière la pastille",
              mod.rang_en_cours(corps, "cartes") == "8", mod.rang_en_cours(corps, "cartes"))
 

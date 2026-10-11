@@ -154,6 +154,8 @@ details.clos[open] > summary { margin-bottom:.85rem; }
 .replis,.filtres { display:flex; flex-wrap:wrap; gap:.5rem; }
 /* filtre de la feuille, collé sous le sommaire ; l'état enfoncé se voit sans la couleur seule */
 .filtres { margin-top:-1.25rem; }
+/* les autres pages du projet, sous le sommaire (vlp.py, `liens_pages`) */
+.pages { margin-top:-1.25rem; font-size:1rem; color:var(--doux); }
 .filtre[aria-pressed="true"] { color:var(--surface); background:var(--accent); border-color:var(--accent); font-weight:600; }
 .copier { font-size:.9375rem; padding:.1rem .4rem; margin:.1rem 0; }
 /* presse-papiers refusé : une ligne sous la carte, la commande sélectionnée et quoi faire */

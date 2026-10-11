@@ -3703,7 +3703,7 @@ def taille_todo(cout):
 
 # L'échelle du score, recopiée de `methode-chantier.md` (« Le score d'une ligne de TODO ») pour l'aide
 # de la feuille : `test-vlp.py` la compare à la règle (AVL12, demandé le 2026-10-12).
-IMPORTANCE_PHASE = (("V1", 5), ("V2", 3), ("après", 1))
+IMPORTANCE_PHASE = (("V1", 5), ("V2", 3), ("V3", 2), ("après", 1))
 FACILITE_FICHES = (("1", 5), ("2", 4), ("3 à 4", 3), ("5 à 7", 2), ("8 et plus", 1))
 
 
@@ -3716,8 +3716,8 @@ def aide_score():
             "            <p><strong>Score = importance × facilité</strong>, de 1 à 25 : plus il est haut, plus le "
             "chantier rapporte pour peu d'effort.</p>\n            <ul>\n"
             "              <li><strong>La phase</strong> : V1, ce que la première version du projet demande, ou ce "
-            "qui le garde juste ; V2, plus vite, moins cher ou plus lisible, sans que la V1 l'attende ; après, le "
-            "confort.</li>\n"
+            "qui le garde juste ; V2, plus vite, moins cher ou plus lisible, sans que la V1 l'attende ; V3, si le "
+            "projet l'écrit, la version suivante ; après, le confort.</li>\n"
             "              <li><strong>L'importance</strong> suit la phase : %s — sauf une note de 1 à 5 donnée à "
             "la ligne.</li>\n"
             "              <li><strong>La facilité</strong> suit le nombre de fiches estimé (une fiche : une tâche, "
@@ -3772,6 +3772,28 @@ def corps_todo(rangs, todo, lettres_todo):
     return corps
 
 
+# Les autres pages du projet, sous le sommaire de la feuille, lues dans `CHANTIER.md` : la page
+# du chantier ouvert, l'archive des clos, la page d'enchaînement entre projets (AVL10, demandé le
+# 2026-10-12 : « retrouver toutes les pages du kit depuis la feuille de route »).
+PAGES_LIENS = (("artefact du chantier", "la page du chantier"), ("artefact archive", "l'archive des clos"),
+               ("artefact enchaînement", "la page d'enchaînement"))
+PAGES_NAV = re.compile(r'  <nav class="pages"[^\n]*</nav>\n')
+
+
+def liens_pages(html, carte_):
+    """La ligne « Les autres pages » refaite sous le sommaire, à chaque appel ; ôtée quand aucun
+    champ ne porte d'URL, jamais posée sans sommaire."""
+    html = PAGES_NAV.sub("", html)
+    liens = ['<a href="%s">%s</a>' % (esc(url), nom) for url, nom in
+             ((champ(carte_, c, "aucun").strip("<> "), nom) for c, nom in PAGES_LIENS) if url.startswith("http")]
+    i = html.find('<nav class="sommaire"')
+    if not liens or i < 0:
+        return html
+    j = html.find("\n", i) + 1
+    return (html[:j] + '  <nav class="pages" aria-label="Les autres pages">Les autres pages : %s</nav>\n'
+            % " · ".join(liens) + html[j:])
+
+
 def feuille(projet, html, todo, date):
     """(page régénérée, bilan) : encours, todo et lettres depuis `CHANTIER.md` et le fichier d'état."""
     html = migrer_joints(migrer_style(html))
@@ -3812,7 +3834,7 @@ def feuille(projet, html, todo, date):
     neuf = neuf[:d] + encours + neuf[f:]
     neuf = re.sub(r'(Lettres de fiche prises : <span class="mono">).*?(</span>)',
                   lambda m: m.group(1) + ", ".join(lettres) + m.group(2), neuf, count=1)
-    neuf = balise_couts(sommaire(neuf), couts_du_projet(projet, neuf))
+    neuf = balise_couts(liens_pages(sommaire(neuf), carte_), couts_du_projet(projet, neuf))
     if neuf != html:
         neuf = re.sub(r'(Mis à jour le <span class="mono">).*?(</span>)',
                       lambda m: m.group(1) + date + m.group(2), neuf, count=1)

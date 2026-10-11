@@ -140,7 +140,8 @@ titre (`MET6`, 2026-10-07).
     le projet juste (un test, un coût faux) ; `V2`, plus vite, moins cher ou plus
     lisible, sans que la V1 l'attende ; `après`, le confort, l'attente d'un
     déclencheur, un gain non mesuré.
-  - **L'importance** vaut 5 en `V1`, 3 en `V2`, 1 `après` — sauf la note de 1 à 5
+  - **L'importance** vaut 5 en `V1`, 3 en `V2`, 2 en `V3`, 1 `après` (`V3` : AVL10,
+    le 2026-10-12, pour un projet qui l'écrit) — sauf la note de 1 à 5
     que l'utilisateur donne à la ligne. **La facilité** se lit sur le haut de la
     fourchette du coût, en fiches : 1 → 5 · 2 → 4 · 3 à 4 → 3 · 5 à 7 → 2 · 8 et
     plus → 1 ; entre deux paliers, le compte s'arrondit vers le haut ; « sans
