@@ -143,7 +143,10 @@ titre (`MET6`, 2026-10-07).
   pour rejouer une fiche refusée ou bloquée — décision du 2026-10-07, après `MET4`
   (même qualité mesurée, `xhigh` nettement plus cher ; `context AI/08-etat.md`, entrée
   « MET4 — xhigh contre medium »). Elle remplace « `xhigh` pour une fiche de code »,
-  décidé le même jour après `VIT25`. `high` n'est pas mesuré.
+  décidé le même jour après `VIT25`. `high` mesuré le 2026-10-09 sur les mêmes 4
+  fiches (`EFF3`) : même qualité aux trois niveaux, `high` +59 % de $ sur `medium`,
+  −11 % sous `xhigh`. Aucune fiche du jeu n'était refusée ni bloquée : la mesure ne
+  dit pas si `high` suffit au recours (entrée « EFF3 — high contre medium et xhigh »).
   Tout changement s'annonce d'abord par un petit message : le modèle et
   l'effort, avant → après, et pourquoi (« Opus 5.5 · effort high → medium : la
   suite est mécanique »). Le niveau en cours se lit, il ne se suppose pas
