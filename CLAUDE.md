@@ -13,11 +13,11 @@ https://github.com/SebastienGrana/Claude-vlpWorkFlow — cloné et utilisé en g
 - Équipés : Cairn-VlpLib, MapDecorator, ProjetONZSM, TrackGen — et ce kit lui-même.
 - Chaque chantier clos a sa ligne dans `context AI/00-INDEX-archive.md`, son détail daté dans
   `context AI/08-etat.md` ; ici, les derniers seulement (`vlp.py clore` les tient).
-- Clos le 2026-10-09 : les tables de vlp.py gardées, clore lit la TODO d'abord, vlp.py oter (chantier TAB).
 - Clos le 2026-10-09 : clore retire la ligne de la TODO (chantier RTO).
 - Clos le 2026-10-09 : le graphique des coûts au contraste de la lecture (chantier CTR).
 - Clos le 2026-10-09 : la préparation hors des fiches, le recompte d'un clos partout, NUI20 juste (chantier PRP).
 - Clos le 2026-10-10 : l'effort high mesuré (chantier EFF).
+- Clos le 2026-10-11 : la V1 de MapDecorator chiffrée : 4 chantiers, 17 fiches (chantier AMD).
 
 ## Quatre règles non négociables
 
@@ -56,7 +56,6 @@ et seulement dans ce cas, ouvrir l'index.
 | savoir où vit quoi dans un projet équipé | `methode-chantier.md`, section « Où vit quoi » |
 | toucher aux pages publiées | `ARTEFACTS.md`, puis le gabarit dans `templates/` |
 | ouvrir un chantier, ou le découper en fiches | **lancer `/vlp:chantier`** |
-| jouer une fiche du chantier AMD (l'audit de MapDecorator, vers sa V1) | `context AI/115-amd.md` — chantier **ouvert**, par `/vlp:tache AMD<n>` |
 | relire un chantier clos | `context AI/00-INDEX-archive.md` — sa ligne y nomme le fichier de fiches |
 | reprendre après une longue interruption | `context AI/08-etat.md` |
 | choisir le prochain chantier du kit, ou retrouver la preuve d'un bug relevé le 2026-09-17 | `context AI/12-audit.md` |
