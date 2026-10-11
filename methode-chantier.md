@@ -106,10 +106,13 @@ titre (`MET6`, 2026-10-07).
   sous-agent après un changement d'agent : relancer l'app, ou au moins vérifier
   que la session parente a démarré après le commit. Un **script de hook**, lui,
   est relu à chaque appel.
-- **Un fait qui dit comment écrire un fichier se revérifie au moment d'écrire —
-  même marqué « mesuré ».** Fins de ligne, encodage, séparateur : une commande les
-  tranche en une seconde. Un fait réfuté se corrige **là où il sera relu**, pas
-  seulement dans le bilan qui le réfute.
+- **Un fait qui dit comment écrire un fichier, ou ce que rend un autre projet, se
+  revérifie au moment de s'en servir — même marqué « mesuré ».** Fins de ligne,
+  encodage, séparateur : une commande les tranche en une seconde. Un autre projet
+  avance sans prévenir : le fichier qu'il produit, ses champs, ses comptes se
+  remesurent avant la première fiche qui s'en sert après une pause (2026-10-11).
+  Un fait réfuté se corrige **là où il sera relu**, pas seulement dans le bilan
+  qui le réfute.
 - **La TODO ne grossit pas sans deux oui de l'utilisateur** — décision de
   l'utilisateur, le 2026-09-25, contre le *scope creep*. Chaque chantier laisse
   des restes ; versés tels quels, ils ouvrent du travail que personne n'a choisi.

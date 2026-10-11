@@ -1,0 +1,99 @@
+<meta charset="utf-8">
+<title>vlp — L'audit de MapDecorator, vers sa V1</title>
+<!--
+  GABARIT — artefact d'un chantier. Publié par /chantier à l'ouverture,
+  mis à jour par /tache à chaque fiche. Remplace les <…> et ne renomme pas
+  les marqueurs `ZONE:…` : les commandes les cherchent tels quels.
+
+  Convention de coût — posée ici, référencée (jamais recopiée) par
+  artefact-feuille-de-route.html, tache.md et cloture.md : un nombre < 1000
+  s'affiche tel quel ; au-delà, "≈<arrondi 1 décimale><k|M> (<compte brut>)"
+  — virgule française, k = mille, M = million. Le compte brut reste toujours
+  visible à côté de l'arrondi.
+-->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="vlp.css">
+
+<div class="page">
+  <header>
+    <div class="eyebrow">vlp · fiches AMD1–AMD7 · <a href="https://claude.ai/artifact/YWDny8kjubq9DhdP5rbPxA">la feuille de route</a></div>
+    <h1>L'audit de MapDecorator, vers sa V1</h1>
+    <p>Un rapport sur MapDecorator, une commande à Cairn, deux essais en jeu, et une page à cartes qui chiffre les chantiers de la V1.</p>
+    <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
+    <div class="avancement">
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span>
+    </div>
+    <p class="mono" style="margin-top:.5rem">7 fiches · 7 faites</p>
+  </header>
+
+  <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
+  <section>
+    <h2>Chantier clos le 2026-10-11</h2>
+    <div class="bilan">
+      <p>Livré : l'audit de MapDecorator : l'état réel lu (25 faits périmés, 11 consignes à reprendre), une commande de 18 besoins à Cairn, la boucle sans geste et la pose d'un item par un plugin essayées en jeu, la V1 chiffrée en 4 chantiers (17 fiches, 62,56 $ estimés)</p>
+      <p>Surpris : un plugin pose un item par un macrobloc, mais ses poses se collent au dernier geste à la main dans l'annulation, sauf AutoSave() après chaque pose</p>
+      <p>Estimé : estimé 6 fiches ≈24 $ · cadré 7 · joué 7 fiches 37,80 $</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Les fiches, dans l'ordre des dépendances</h2>
+    <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
+    <ul class="fiches">
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">AMD1</span></span>
+        <details><summary><span class="titre">Lire l'état réel de MapDecorator</span><span class="etat">Faite</span></summary>
+        <span class="note">Rapport 21-audit-amd.md écrit : V1 = 3 partiel, 1 absent, 1 présent ; 25 faits périmés, 25 consignes relues, 11 à reprendre</span></details>
+        <span class="cout mono">≈11,0M (10 974 942) · 50 tours · 6,21 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">AMD2</span></span>
+        <details><summary><span class="titre">Lire le pont champ par champ, et écrire la commande à Cairn</span><span class="etat">Faite</span></summary>
+        <span class="note">table du pont : 8 lignes pour 8 champs lus (HasKey : 8, mêmes noms) ; 2 champs sur 8 absents de summary.json ; commande écrite dans Cairn : 17 besoins, V1 6, V2 9, V3 2 (12 couverts, 4 à créer, 1 bloqué)</span></details>
+        <span class="cout mono">≈5,4M (5 417 631) · 30 tours · 4,86 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">AMD3</span></span>
+        <details><summary><span class="titre">Définir les stratégies et les outils de la V1</span><span class="etat">Faite</span></summary>
+        <span class="note">rapport 21-audit-amd.md : 6 outils x 4 rubriques, 7 hypothèses de guidage, 12 questions pour AMD7 (comptes en tête)</span></details>
+        <span class="cout mono">≈2,7M (2 674 386) · 14 tours · 1,42 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">AMD4</span></span>
+        <details><summary><span class="titre">Chercher l'existant : la boucle, les pinceaux, la pose d'items</span><span class="etat">Faite</span></summary>
+        <span class="note">Table besoin × piste : 11 lignes (a 3, b 5, c 3), licence et lien sur chacune ; 4 plugins installés, 1 sous licence ; coût : 4 recherches sur 6, 5 pages par extrait (1 échouée), 0 en entier</span></details>
+        <span class="cout mono">≈5,8M (5 829 098) · 31 tours · 2,59 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">AMD5</span></span>
+        <details><summary><span class="titre">Essayer le pont minimal</span><span class="etat">Faite</span></summary>
+        <span class="note">ping → pong (71, 14, 25 ms) ; netstat : 127.0.0.1:47815 LISTENING seul ; summary.json 7 840 481 octets : Json::FromFile 278, 403, 332 ms ; MapDecorator rechargé par le socket, ses 5 erreurs lues dans Openplanet.log, sans geste</span></details>
+        <span class="cout mono">≈3,0M (3 025 019) · 19 tours · 1,45 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">AMD6</span></span>
+        <details><summary><span class="titre">Essayer de poser un item depuis un plugin</span><span class="etat">Faite</span></summary>
+        <span class="note">Oui : un plugin pose un item par un macrobloc (vu par l'utilisateur, 24/9/24) ; 12 poses, 12 true ; NoUnvalidate garde la carte validée (2 → 2), NoDestruction non (2 → 1) ; un Ctrl+Z défait les poses et le dernier geste, sauf AutoSave() après chaque pose (C2 : 1 sur 3 défaite)</span></details>
+        <span class="cout mono">≈14,7M (14 735 400) · 63 tours · 6,04 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">AMD7</span></span>
+        <details><summary><span class="titre">Rendre le bilan : les chantiers chiffrés</span><span class="etat">Faite</span></summary>
+        <span class="note">page à cartes publiée (TFTG6dnacHxSfP3txepa6C) : 29 cartes, 29 réponses ; V1 = 4 chantiers, 17 fiches, 62,56 $ estimés ; TODO acceptées : MapDecorator 10, Cairn 2, kit 1 (1 refusée) ; écrit au rapport 21-audit-amd.md</span></details>
+        <span class="cout mono">≈10,2M (10 209 831) · 45 tours · 7,21 $</span></li>
+    </ul>
+    <p class="mono cout-hors">Hors fiches : ≈19,6M (19 610 084) · 76 tours · 8,02 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈72,5M (72 476 391) · 328 tours · 37,80 $</p>
+    <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
+  </section>
+
+  <!-- ZONE:blocage — publiée quand /tache s'arrête après deux tentatives ; retirée dès que la fiche repasse -->
+  <section hidden>
+    <h2>Arrêt sur blocage</h2>
+    <div class="blocage">
+      <p></p>
+      <pre></pre>
+    </div>
+  </section>
+
+  <section>
+    <h2>Journal des décisions</h2>
+    <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
+    <ul class="journal">
+      <li><time datetime="2026-10-10">2026-10-10</time><span>AMD1 : vlp.py symboles ne lit que le Python (ast) ; sur un .as de MapDecorator il sort un traceback SyntaxError, pas une GARDE. grep -n l'a remplacé ; une fiche sur un projet non Python ne le cite plus.</span></li>
+    </ul>
+  </section>
+
+  <footer>
+    <span>Fichier de fiches : <span class="mono">context AI/115-amd.md</span></span>
+    <span>Mis à jour le <span class="mono">2026-10-11</span></span>
+  </footer>
+</div>
+<script src="vlp.js"></script>

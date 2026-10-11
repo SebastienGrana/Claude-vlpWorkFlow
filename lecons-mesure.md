@@ -128,13 +128,20 @@ effet » sur une session qui avait démarré 21 minutes **avant** le commit, san
 changeait nettement la mesure. Un script de hook, lui, est relu à chaque appel : le
 gardien changé a jugé en vrai sans relance (chantier `JUG`).
 
-### Un fait qui dit comment écrire un fichier se revérifie au moment d'écrire — même marqué « mesuré »
+### Un fait qui dit comment écrire un fichier, ou ce que rend un autre projet, se revérifie au moment de s'en servir — même marqué « mesuré »
 
 Mesuré sur cairn : le socle de deux chantiers de suite (`PUB`, puis `REP`) disait
 trois pages en CRLF, le second avec leurs comptes de lignes et « mesuré le
 2026-09-27 » ; `git ls-files --eol` les disait LF, dans l'index et sur le disque. `PUB` l'avait
 écrit dans son bilan, et le cadrage suivant ne l'a pas vu : il relit son socle, pas
 les bilans.
+
+Mesuré sur MapDecorator, à l'audit `AMD` du kit (2026-10-11) : le socle du chantier `P`,
+« mesuré le 2026-09-15 », citait `summary.json` de cairn — sa taille, ses comptes, deux de
+ses champs. Le fichier avait été refait le 2026-09-30 : ces 5 faits étaient tous périmés,
+les deux champs avaient disparu, et `P2`, écrite pour les lire, n'en aurait rien tiré ; elle
+ne compilait pas non plus, pour d'autres raisons, dans son code (`21-audit-amd.md` de
+MapDecorator, faits 3 à 7 et section `P2`).
 
 ### La TODO ne grossit pas sans deux oui de l'utilisateur
 
