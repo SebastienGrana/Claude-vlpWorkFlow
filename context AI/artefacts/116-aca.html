@@ -21,9 +21,9 @@
     <p>La page à cartes de l'audit répondue ; la TODO de Cairn rangée vers la V1, ses 17 lignes marquées V1, V2, V3 ou hors MapDecorator ; la page d'enchaînement à jour ; les pistes acceptées devenues lignes de TODO.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">7 fiches · 1 faite · en cours : ACA2</p>
+    <p class="mono" style="margin-top:.5rem">7 fiches · 2 faites · en cours : ACA3</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -41,21 +41,22 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">ACA1</span></span>
         <details><summary><span class="titre">Lire Cairn : ce qu'il a, ce qu'il montre</span><span class="etat">Faite</span></summary>
         <span class="note">Section ACA1 écrite dans le fichier d'audit de Cairn : table dossier → fichiers → lignes (121 fichiers, 37 873 lignes) et sa commande, 6 vues dont 2D et 3D (toutes sombres), 11 calculs longs sourcés ; git log -1 --stat : 1 fichier, 167 insertions</span></details>
-        <span class="cout mono">≈6,9M (6 866 704) · 40 tours · 3,33 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">ACA2</span></span>
-        <details open><summary><span class="titre">Mesurer les séances de Cairn depuis le 2026-09-27</span><span class="etat">En cours</span></summary>
-        <span class="note">Le coût des séances de Cairn depuis le 2026-09-27, en tours et en $ ; sans dépendance.</span></details></li>
-      <li class="fiche"><span class="gauche"><span class="id">ACA3</span></span>
-        <details><summary><span class="titre">Relire les consignes de Cairn comme un modèle les lit</span><span class="etat">À lancer</span></summary>
+        <span class="cout mono">≈7,2M (7 217 211) · 42 tours · 3,43 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">ACA2</span></span>
+        <details><summary><span class="titre">Mesurer les séances de Cairn depuis le 2026-09-27</span><span class="etat">Faite</span></summary>
+        <span class="note">section ## ACA2 écrite dans 61-audit-par-le-kit.md de Cairn (492f138) : table 5 clos (36 fiches, 1 635 tours, 136,82 $, 3,80 $/fiche) + FAM (5 fiches, 326 tours, 21,83 $) + hors chantier (5 séances, 389 tours, 48,25 $) ; transcripts d'avant le 2026-10-03 retrouvés : oui, 200, identiques sur D:</span></details>
+        <span class="cout mono">≈5,3M (5 337 816) · 36 tours · 3,02 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">ACA3</span></span>
+        <details open><summary><span class="titre">Relire les consignes de Cairn comme un modèle les lit</span><span class="etat">En cours</span></summary>
         <span class="note">Les consignes relues comme un modèle : contradictions, faits périmés, gestes à mettre en commande ; sans dépendance.</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">ACA4</span></span>
-        <details><summary><span class="titre">Chercher ce qui existe déjà, 6 recherches au plus</span><span class="etat">Après ACA2, ACA3</span></summary>
+        <details><summary><span class="titre">Chercher ce qui existe déjà, 6 recherches au plus</span><span class="etat">Après ACA3</span></summary>
         <span class="note">L'existant publié pour chaque piste, l'IHM d'abord, 6 recherches au plus ; après ACA1 à ACA3.</span></details></li>
       <li class="fiche"><span class="gauche"><span class="id">ACA5</span></span>
         <details><summary><span class="titre">Ranger la TODO de Cairn vers la V1</span><span class="etat">À lancer</span></summary>
         <span class="note">L'ordre proposé : la chaîne V1, FAM5 à FAM10, les 17 lignes de la TODO, quand reprendre Cairn ; sans dépendance.</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">ACA6</span></span>
-        <details><summary><span class="titre">Publier la page à cartes de l'audit</span><span class="etat">Après ACA2, ACA3, ACA4, ACA5</span></summary>
+        <details><summary><span class="titre">Publier la page à cartes de l'audit</span><span class="etat">Après ACA3, ACA4, ACA5</span></summary>
         <span class="note">La page à cartes, tes réponses notées telles quelles (visuel) ; après ACA1 à ACA5.</span></details>
         <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">ACA7</span></span>
@@ -63,7 +64,7 @@
         <span class="note">La TODO de Cairn rangée, les lignes du kit, la page d'enchaînement à jour ; après ACA6.</span></details></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈6,1M (6 064 982) · 30 tours · 4,23 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈12,9M (12 931 686) · 70 tours · 7,56 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈18,6M (18 620 009) · 108 tours · 10,68 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -80,6 +81,7 @@
     <h2>Journal des décisions</h2>
     <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
     <ul class="journal">
+      <li><time datetime="2026-10-11">2026-10-11</time><span>ACA2 — les transcripts d'avant le déménagement existent deux fois (C: et D:) ; resoudre prend la copie de C: d'abord — Cairn 0 cas, le reste non vérifié</span></li>
     </ul>
   </section>
 
