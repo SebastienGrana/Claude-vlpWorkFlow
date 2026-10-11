@@ -888,3 +888,52 @@ dossier qui contient les projets, le 2026-10-11 :
   🟡 À trancher sur la page d'`AVL8`.
 - **Sans fiche** : corriger le n° 3 dans le socle d'`AVL` et le n° 9 dans la ligne `NWT` de la TODO,
   là où ils seront relus (la règle le demande).
+
+## AVL6 — Chercher ce qui existe déjà, 6 recherches au plus
+
+Recherches du 2026-10-11, accordées par l'utilisateur (6 au lieu de 3, règle globale « Recherche
+web »). Les pistes d'`AVL1` à `AVL5` qui écriraient un outil, par coût décroissant.
+
+### Ce qui existe, à côté du « nous-mêmes »
+
+| Piste | Existant (nom, version, licence, lien) | Rang, lu le | Nous-mêmes | Avis 💡 |
+|---|---|---|---|---|
+| **Remesurer un fait avant de s'en servir** (`AVL5`) | **stalebrain** 0.1.3, MIT, publié le 2026-07-31, Python ≥ 3.9, 0 dépendance — [pypi.org/project/stalebrain](https://pypi.org/project/stalebrain/) | registre officiel (fiche JSON), 2026-10-11 | 2 à 3 fiches | ne couvre pas notre cas (plus bas) ; s'en inspirer |
+| idem | **txm**, **mdx**, **shelldoc**, **scram**, **mdtest**, **markdown-clitest** : rejouent les commandes d'un Markdown et comparent la sortie — [anko/txm](https://github.com/anko/txm), [samoht/mdx](https://github.com/samoht/mdx), [endocode/shelldoc](https://github.com/endocode/shelldoc) ; version, licence : non lues | dépôts, par extraits de recherche, 2026-10-11 | — | le modèle de la convention : une annotation avant le fait |
+| idem | **ctxharness** (MIT, TypeScript, `npx`), **Depthfinder**, `check_claudemd_drift` de **trace-mcp** — [FlorianBruniaux/ctxharness](https://awesome.ecosyste.ms/projects/github.com%2FFlorianBruniaux%2Fctxharness), [phdev/depthfinder](https://github.com/phdev/depthfinder) ; versions : non lues | pages de registre et dépôts, par extraits, 2026-10-11 | — | même limite que stalebrain |
+| **Cinq gestes en script** (`AVL3` : A2, A12, C4, C5, C6) | C4 (relancer l'app après un changement d'agent) : **rien trouvé**. `claude plugin validate` vérifie la forme du manifeste et le frontmatter des skills, agents et commandes, pas ce qu'une séance a chargé — [plugins-reference](https://code.claude.com/docs/en/plugins-reference), [cli-reference](https://code.claude.com/docs/en/plugins/cli-reference). A2, A12, C5, C6 : propres au kit, non cherchés | doc officielle, par extraits, 2026-10-11 | 1 fiche chacun | nous-mêmes |
+| **Usage et hors chantier lus dans les transcripts** (`AVL2` + `AVL4`) | **ccusage** : lit `~/.claude/projects/<projet>/<conversation>.jsonl`, rapports par jour, mois, séance, par projet ; racine du dépôt en 20.0.29, licence absente de la racine — [ryoppippi/ccusage](https://github.com/ryoppippi/ccusage) | dépôt (`package.json` lu), blogs par extraits, 2026-10-11 | 1 fiche | nous-mêmes : rien sur les commandes lancées, ni sur les lignes `**Session**` |
+| **Refuser un chemin local au commit** (`AVL1`) | **pre-commit**, un hook `language: pygrep` qui refuse un motif — [adamj.eu, 2021-01-26](https://adamj.eu/tech/2021/01/26/cheap-bug-protection-with-pre-commit-regex-hooks/) ; version, licence : non lues | blog, par extraits, 2026-10-11 | ¼ fiche | nous-mêmes : une ligne de `grep` dans `.githooks/pre-commit` |
+
+### Ce que ça change
+
+- ✅ **stalebrain** dit sa méthode : « Verification is mechanical: glob, grep, and read-only git. No
+  embeddings, no server, no database, no network. » Quatre verdicts, un tampon daté pour un fait
+  confirmé, les commits qui contredisent un fait faux (fiche PyPI).
+- 💡 Mais il juge un fichier de consignes **contre le dépôt qui le porte** : les faits d'`AVL5`
+  portent sur **un autre projet** (son fichier, ses comptes). Aucun des outils trouvés ne vise ce
+  cas. La convention de **txm** (une annotation en commentaire HTML avant le bloc, rejouée et
+  comparée) est le bon modèle ; le code reste à nous — le kit garde zéro paquet à l'exécution, et
+  la remesure tournerait dans `/vlp:tache`.
+- ✅ **`claude plugin validate`** est déjà au pre-commit du kit (`.githooks/pre-commit:51`, sur
+  `plugin.json` et `marketplace.json`) ; `vlp.py claude` trouve le CLI ce jour. La doc donne
+  `--strict` (les avertissements font échouer) et des codes de sortie 0, 1, 2. 💡 `--strict` au
+  pre-commit : sans fiche, à essayer.
+- ✅ **ccusage** couvre le coût, que `mesure-tokens.py` fait déjà ; ni les commandes lancées
+  (`AVL4`), ni le hors chantier (`AVL2`), qui dépendent des lignes `**Session**` du kit.
+- 🟡 **Non établi, à vérifier** : un extrait de recherche dit que Claude Code efface les vieux
+  transcripts (« default ~30 days »), sans source officielle dans le résultat. Toute la mesure du
+  kit en dépend ; `AVL2` a pourtant retrouvé des séances du 2026-09-10. À trancher dans la doc
+  officielle des réglages.
+
+### Ce qui n'est pas trouvé
+
+- Un outil qui revérifie un fait **tiré d'un autre dépôt** (tous jugent le dépôt qui les porte).
+- Pour C4 : un outil qui dit qu'une définition d'agent a changé après le début d'une séance.
+- Les versions et licences de txm, mdx, shelldoc, scram, mdtest, markdown-clitest, ctxharness,
+  Depthfinder, pre-commit ; la licence de ccusage.
+- Le compte des commandes lancées dans ccusage.
+
+**Coût : 6 recherches, 2 pages lues en entier** (la fiche JSON de stalebrain sur PyPI, le
+`package.json` de ccusage) ; 2 pages tentées sans succès (PyPI en HTML : « A required part of this
+site couldn't load » ; npm : 403).
