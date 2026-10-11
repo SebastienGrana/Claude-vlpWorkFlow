@@ -2389,13 +2389,25 @@ def fiches_du_fichier(lignes):
 
 
 DEPEND = re.compile(r"\b[A-Z]{1,3}[0-9]+\b")
+PLAGE_DEPEND = re.compile(r"\b([A-Z]{1,3})([0-9]+)`?\s+à\s+`?\1([0-9]+)\b")
 VISUEL = '<span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span>'
+
+
+def deplier_plages(ligne):
+    """`ligne` où chaque plage « `X1` à `X4` » — même préfixe, bornes croissantes — devient `X1 X2 X3 X4`,
+    que `DEPEND` lit ensuite nom à nom : lue telle quelle, elle ne donnait que X1 et X4 (cadrage d'ACA,
+    2026-10-11). Des bornes à l'envers restent telles quelles."""
+    def developper(m):
+        """La plage de `m` en noms séparés par une espace, ou telle quelle si ses bornes sont à l'envers."""
+        bas, haut = int(m.group(2)), int(m.group(3))
+        return " ".join(m.group(1) + str(n) for n in range(bas, haut + 1)) if bas < haut else m.group(0)
+    return PLAGE_DEPEND.sub(developper, ligne)
 
 
 def apercu_fiches(lignes):
     """{id: (dépendances, critère visuel, fichiers)} lus dans le bloc de chaque fiche : les
-    identifiants de sa ligne `**Dépend de**` et de ses suites, vrai si son `**Critère de fin**`
-    porte `(visuel)` — la colonne de gauche et celle de droite de sa carte sur la page (gabarit en
+    identifiants de sa ligne `**Dépend de**` et de ses suites, une plage dépliée (`deplier_plages`), vrai
+    si son `**Critère de fin**` porte `(visuel)` — la colonne de gauche et celle de droite de sa carte sur la page (gabarit en
     colonnes) —, et le nom seul de chaque fichier de sa ligne `**Fichiers**` : `vlp.css` pour
     `templates/vlp.css`, pour qu'un même fichier nommé de deux façons compte comme commun."""
     titres = [i for i, l in enumerate(lignes) if TITRE.match(l)] + [len(lignes)]
@@ -2410,7 +2422,7 @@ def apercu_fiches(lignes):
             elif dedans and (not l.strip() or l.startswith("**")):
                 dedans = False
             if dedans:
-                deps += [d for d in DEPEND.findall(l) if d not in deps]
+                deps += [d for d in DEPEND.findall(deplier_plages(l)) if d not in deps]
             visuel = visuel or bool(CRITERE_VISUEL.match(l))
         # Un fichier : un chemin, ou un nom à extension — pas `compte_todo`, `:3124` ni « rien ».
         fichiers = {n.rstrip("/").rsplit("/", 1)[-1] for n in noms_fichiers(lignes[i + 1:suivant])
