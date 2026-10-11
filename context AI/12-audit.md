@@ -1,6 +1,7 @@
-> **QUAND LIRE** : on choisit le prochain chantier du kit, ou on cherche la
-> preuve d'un bug ou d'une mesure de l'audit du 2026-09-17. Pas besoin de ce
-> fichier pour jouer une fiche : chaque chantier aura le sien.
+> **QUAND LIRE** : on cherche la preuve d'un bug ou d'une mesure de l'audit du
+> 2026-09-17. Pour choisir le prochain chantier du kit : `118-audit-du-kit.md`
+> (l'audit `AVL`, 2026-10-11). Pas besoin de ce fichier pour jouer une fiche :
+> chaque chantier aura le sien.
 
 # Audit du kit — 2026-09-17
 

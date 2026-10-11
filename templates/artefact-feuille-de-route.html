@@ -7,6 +7,10 @@
 
   Colonne Tokens de ZONE:clos : même convention de coût que dans
   artefact-chantier.html (posée là, pas recopiée ici).
+
+  La page de présentation du projet. `vlp.py feuille` y pose le reste : les
+  sous-listes par phase, la pastille du score, l'aide du score (AVL12) et la
+  ligne « Les autres pages » sous les liens du haut (AVL10).
 -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="vlp.css">
@@ -37,7 +41,8 @@
     <p class="resume-todo"><strong>&lt;n&gt; chantiers possibles</strong></p>
     <!-- ZONE:todo — miroir de la TODO ordonnée du fichier d'état ; le fichier reste la vérité -->
     <ol class="todo">
-          <li class="carte-todo"><span class="gauche"><span class="rang mono">1</span> <span class="badge" data-etat="cours">en cours</span></span><details><summary><span class="titre">&lt;nom&gt;</span></summary><div class="detail">&lt;ce qu'il apporte&gt;</div></details><span class="meta mono">&lt;n&gt; fiches</span></li>
+          <li class="phase-titre" data-phase="V1"><h3>V1 · 1&nbsp;chantier</h3></li>
+          <li class="carte-todo" data-phase="V1" data-score="25" data-taille="petit" data-pret="oui"><span class="gauche"><span class="rang mono">1</span><span class="phase mono" data-phase="V1" title="score 25 = 5 × 5 (importance × facilité)">V1 · 25</span> <span class="badge" data-etat="cours">en cours</span></span><details><summary><span class="titre">&lt;nom&gt;</span></summary><div class="detail">&lt;ce qu'il apporte&gt;</div></details><span class="meta"><span class="seg">&lt;n&gt; fiches</span></span></li>
         </ol>
   </section>
 

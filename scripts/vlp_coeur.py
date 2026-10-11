@@ -3669,6 +3669,131 @@ def depend_todo(de):
     return "" if de.strip() in ("", "—", "-", "rien") else '<span class="dep mono">← %s</span>' % cellule_md(de)
 
 
+# La phase et le score en tête de la case « Coût » (`methode-chantier.md`, « Le score d'une ligne de
+# TODO ») : `**V1 · score 25 (5 × 5)** · `, un score `?` tant que la facilité n'est pas chiffrée. La
+# feuille les montre à gauche de la carte, et fait une sous-liste par phase écrite dans la TODO —
+# celles du projet, `V3` compris s'il en a (AVL12, demandé le 2026-10-11).
+PHASE_COUT = re.compile(r"\*\*(V\d+|après) · score (\d+|\?) \(([^)]*)\)\*\*(?: · )?")
+
+
+def phase_todo(cout):
+    """(phase, score, détail, reste) d'une case « Coût » : `**V1 · score 25 (5 × 5)** · 1 fiche` →
+    `("V1", "25", "5 × 5", "1 fiche")` ; sans phase en tête, `(None, None, None, cout)`."""
+    m = PHASE_COUT.match(cout.strip())
+    if not m:
+        return None, None, None, cout
+    return m.group(1), m.group(2), m.group(3), cout.strip()[m.end():]
+
+
+def rang_phase(phase):
+    """La clé de tri des sous-listes : `V1`, `V2`, `V3`… dans l'ordre, puis `après`, puis sans phase."""
+    if phase is None:
+        return (2, 0)
+    return (1, 0) if phase == "après" else (0, int(phase[1:]))
+
+
+def taille_todo(cout):
+    """`petit`, `moyen`, `gros` ou `pas-estime`, sur la borne haute du coût — les parts du décompte
+    (`decompte_todo`), et le filtre « Taille » de la feuille (AVL12)."""
+    borne = borne_haute_cout(cout)
+    if borne is None:
+        return "pas-estime"
+    return "petit" if borne <= 1 else "moyen" if borne <= GROS_FICHES else "gros"
+
+
+# L'échelle du score, recopiée de `methode-chantier.md` (« Le score d'une ligne de TODO ») pour l'aide
+# de la feuille : `test-vlp.py` la compare à la règle (AVL12, demandé le 2026-10-12).
+IMPORTANCE_PHASE = (("V1", 5), ("V2", 3), ("V3", 2), ("après", 1))
+FACILITE_FICHES = (("1", 5), ("2", 4), ("3 à 4", 3), ("5 à 7", 2), ("8 et plus", 1))
+
+
+def aide_score():
+    """L'aide repliée en tête des chantiers possibles, quand la TODO écrit des phases : ce que vaut
+    le score et comment il se calcule, pour qui découvre le kit (AVL12)."""
+    importance = ", ".join(("%d %s" if p == "après" else "%d en %s") % (n, p) for p, n in IMPORTANCE_PHASE)
+    facilite = " · ".join("%s → %d" % (f, n) for f, n in FACILITE_FICHES)
+    return ('          <li class="aide-score"><details class="aide"><summary>Comment se lit le score</summary>\n'
+            "            <p><strong>Score = importance × facilité</strong>, de 1 à 25 : plus il est haut, plus le "
+            "chantier rapporte pour peu d'effort.</p>\n            <ul>\n"
+            "              <li><strong>La phase</strong> : V1, ce que la première version du projet demande, ou ce "
+            "qui le garde juste ; V2, plus vite, moins cher ou plus lisible, sans que la V1 l'attende ; V3, si le "
+            "projet l'écrit, la version suivante ; après, le confort.</li>\n"
+            "              <li><strong>L'importance</strong> suit la phase : %s — sauf une note de 1 à 5 donnée à "
+            "la ligne.</li>\n"
+            "              <li><strong>La facilité</strong> suit le nombre de fiches estimé (une fiche : une tâche, "
+            "une séance), le haut de la fourchette : %s ; « sans fiche » → 5.</li>\n"
+            "              <li><strong>Un score « ? »</strong> : la facilité n'est pas encore chiffrée.</li>\n"
+            "              <li><strong>L'ordre</strong> : les dépendances d'abord, puis le score.</li>\n"
+            '            </ul>\n            <p>La règle entière : <span class="mono">methode-chantier.md</span>, '
+            "« Le score d'une ligne de TODO ».</p></details></li>\n") % (importance, facilite)
+
+
+def carte_todo(rang, todo, bloque):
+    """La carte d'un chantier possible, en colonnes comme les fiches : rang, pastille de phase et de
+    score, badge et dépendances à gauche ; le titre qui replie « Ce qu'il apporte » (chantier FEU) ; le
+    coût sous le titre, sans sa phase, un segment ` · ` par ligne (AVL12). Ses `data-` (phase, score,
+    taille, prêt) servent aux filtres de `vlp.js`."""
+    n, ch, ap, co, de = rang
+    phase, score, detail, reste = phase_todo(co)
+    attributs = ' data-taille="%s" data-pret="%s"' % (taille_todo(co), "non" if bloque else "oui")
+    pastille = ""
+    if phase:
+        attributs = ' data-phase="%s" data-score="%s"' % (phase, "" if score == "?" else score) + attributs
+        pastille = ('<span class="phase mono" data-phase="%s" title="score %s = %s (importance × facilité)">%s · %s</span>'
+                    % (phase, score, esc(detail), phase, score))
+    return ('          <li class="carte-todo"%s><span class="gauche"><span class="rang mono">%s</span>%s%s%s</span>'
+            '<details><summary><span class="titre">%s</span></summary><div class="detail">%s</div></details>'
+            '<span class="meta">%s</span></li>\n'
+            % (attributs, esc(n), pastille, BADGE_COURS if n == todo else "", depend_todo(de), cellule_md(ch),
+               cellule_md(ap), "".join('<span class="seg">%s</span>' % s
+                                       for s in cellule_md(reste).split(" · ") if s.strip())))
+
+
+def corps_todo(rangs, todo, lettres_todo):
+    """Les cartes de `ZONE:todo`. Sans aucune phase écrite, dans l'ordre de la TODO ; sinon une
+    sous-liste par phase (`rang_phase`), titrée et comptée, l'ordre de la TODO gardé dans chacune ;
+    une ligne sans phase va dans « Sans phase », en dernier — jamais perdue (AVL12)."""
+    if not rangs:
+        return '          <li class="rien">Rien en attente.</li>\n'
+    presents = {r[0] for r in rangs}
+    cartes = [(phase_todo(r[3])[0], carte_todo(r, todo, est_bloque(r[4], lettres_todo, presents))) for r in rangs]
+    if not any(p for p, _ in cartes):
+        return "".join(c for _, c in cartes)
+    groupes = {}
+    for phase, carte in cartes:
+        groupes.setdefault(phase, []).append(carte)
+    corps = aide_score()
+    for phase in sorted(groupes, key=rang_phase):
+        nom = "Sans phase" if phase is None else "Après" if phase == "après" else phase
+        nombre = len(groupes[phase])
+        corps += ('          <li class="phase-titre" data-phase="%s"><h3>%s · %d&nbsp;%s</h3></li>\n'
+                  % (phase or "aucune", nom, nombre, "chantier" if nombre == 1 else "chantiers"))
+        corps += "".join(groupes[phase])
+    return corps
+
+
+# Les autres pages du projet, sous le sommaire de la feuille, lues dans `CHANTIER.md` : la page
+# du chantier ouvert, l'archive des clos, la page d'enchaînement entre projets (AVL10, demandé le
+# 2026-10-12 : « retrouver toutes les pages du kit depuis la feuille de route »).
+PAGES_LIENS = (("artefact du chantier", "la page du chantier"), ("artefact archive", "l'archive des clos"),
+               ("artefact enchaînement", "la page d'enchaînement"))
+PAGES_NAV = re.compile(r'  <nav class="pages"[^\n]*</nav>\n')
+
+
+def liens_pages(html, carte_):
+    """La ligne « Les autres pages » refaite sous le sommaire, à chaque appel ; ôtée quand aucun
+    champ ne porte d'URL, jamais posée sans sommaire."""
+    html = PAGES_NAV.sub("", html)
+    liens = ['<a href="%s">%s</a>' % (esc(url), nom) for url, nom in
+             ((champ(carte_, c, "aucun").strip("<> "), nom) for c, nom in PAGES_LIENS) if url.startswith("http")]
+    i = html.find('<nav class="sommaire"')
+    if not liens or i < 0:
+        return html
+    j = html.find("\n", i) + 1
+    return (html[:j] + '  <nav class="pages" aria-label="Les autres pages">Les autres pages : %s</nav>\n'
+            % " · ".join(liens) + html[j:])
+
+
 def feuille(projet, html, todo, date):
     """(page régénérée, bilan) : encours, todo et lettres depuis `CHANTIER.md` et le fichier d'état."""
     html = migrer_joints(migrer_style(html))
@@ -3701,14 +3826,7 @@ def feuille(projet, html, todo, date):
     rangs = todo_du_fichier(lignes_etat)
     if todo is not None and todo not in [r[0] for r in rangs]:
         raise ValueError("--todo %s absent de la TODO de %s" % (todo, etat))
-    # Une carte par rang, en colonnes comme les fiches : rang, badge et dépendances à gauche, le
-    # titre qui replie « Ce qu'il apporte » (chantier FEU), le coût estimé à droite.
-    corps = "".join('          <li class="carte-todo"><span class="gauche"><span class="rang mono">%s</span>%s%s</span>'
-                    '<details><summary><span class="titre">%s</span></summary><div class="detail">%s</div></details>'
-                    '<span class="meta mono">%s</span></li>\n'
-                    % (esc(n), BADGE_COURS if n == todo else "", depend_todo(de), cellule_md(ch), cellule_md(ap),
-                       cellule_md(co)) for n, ch, ap, co, de in rangs) \
-        or '          <li class="rien">Rien en attente.</li>\n'
+    corps = corps_todo(rangs, todo, lettres_todo)
     cartes = replier_lecture(en_cartes(html))
     d, f, _ = zone_todo(cartes)
     neuf = compte_todo(cartes[:d] + corps + cartes[f:], rangs, lettres_todo)
@@ -3716,7 +3834,7 @@ def feuille(projet, html, todo, date):
     neuf = neuf[:d] + encours + neuf[f:]
     neuf = re.sub(r'(Lettres de fiche prises : <span class="mono">).*?(</span>)',
                   lambda m: m.group(1) + ", ".join(lettres) + m.group(2), neuf, count=1)
-    neuf = balise_couts(sommaire(neuf), couts_du_projet(projet, neuf))
+    neuf = balise_couts(liens_pages(sommaire(neuf), carte_), couts_du_projet(projet, neuf))
     if neuf != html:
         neuf = re.sub(r'(Mis à jour le <span class="mono">).*?(</span>)',
                       lambda m: m.group(1) + date + m.group(2), neuf, count=1)
@@ -3769,9 +3887,12 @@ def dependances(depend):
 def est_bloque(depend, lettres_todo, rangs_presents):
     """Vrai si `depend` (cellule « Dépend de ») nomme un code entre backticks absent de
     `lettres_todo`, ou un numéro (`3`) ou une plage (`1..9`) qui touche un rang de
-    `rangs_presents` — encore dans la TODO (FEU8)."""
+    `rangs_presents` — encore dans la TODO (FEU8). Un nom entre backticks qui n'est pas un code de
+    lettres (`C1`, `V1-3`) est une fiche d'un autre projet, que le kit ne sait pas lire : il bloque
+    (dette d'`AVL`, 2026-10-12 : `RMS` paraissait prête en attendant `C1` de MapDecorator)."""
     codes, rangs = dependances(depend)
-    return any(lettre_de(c) not in lettres_todo for c in codes) or bool(rangs & set(rangs_presents))
+    ailleurs = [n for n in re.findall(r"`([^`]+)`", depend) if not re.fullmatch(r"[A-Za-z]+", n)]
+    return bool(ailleurs) or any(lettre_de(c) not in lettres_todo for c in codes) or bool(rangs & set(rangs_presents))
 
 
 def decompte_todo(rangs, lettres_todo):
@@ -3781,17 +3902,12 @@ def decompte_todo(rangs, lettres_todo):
     petits = moyens = gros = pas_estimes = bloques = 0
     total = 0.0
     for _, _, _, cout, depend in rangs:
-        borne = borne_haute_cout(cout)
-        if borne is None:
-            pas_estimes += 1
-        else:
-            total += borne
-            if borne <= 1:
-                petits += 1
-            elif borne <= GROS_FICHES:
-                moyens += 1
-            else:
-                gros += 1
+        taille = taille_todo(cout)
+        total += borne_haute_cout(cout) or 0.0
+        petits += taille == "petit"
+        moyens += taille == "moyen"
+        gros += taille == "gros"
+        pas_estimes += taille == "pas-estime"
         if est_bloque(depend, lettres_todo, presents):
             bloques += 1
     return petits, moyens, gros, pas_estimes, bloques, total

@@ -116,6 +116,35 @@ details.clos[open] > summary { margin-bottom:.85rem; }
 .graphique { position:relative; height:200px; margin:.25rem 0 .75rem; }
 .resume-todo { margin:0; color:var(--doux); font-size:1rem; }
 .resume-todo strong { font-size:1.3rem; color:var(--texte); }
+/* la phase d'un chantier possible, en pastille sous son rang et en bord gauche ; une sous-liste par
+   phase, titrée de sa couleur (AVL12). Chaque couleur tient 4,5:1 au moins sur les deux fonds, en
+   texte comme sous le texte --surface de la pastille (4,62 à 6,52, mesuré le 2026-10-12) */
+:root { --v1:#9a3412; --v2:#2c6170; --v3:#6b4a7a; --apres:#606877; }
+[data-phase="V1"] { --phase:var(--v1); } [data-phase="V2"] { --phase:var(--v2); }
+[data-phase="V3"] { --phase:var(--v3); } [data-phase="après"] { --phase:var(--apres); }
+.carte-todo { grid-template-columns:6.2rem 1fr; grid-template-rows:auto 1fr; }
+.carte-todo > .gauche { grid-row:1 / span 2; }
+/* le coût sous le titre, sur toute la largeur, un segment par ligne : à droite sur 12rem en chasse
+   fixe, il tombait « en pâtés » (dit le 2026-10-12) */
+.carte-todo > .meta { grid-column:2; justify-self:start; text-align:left; max-width:none; margin-top:.3rem; }
+.carte-todo .meta .seg { display:block; }
+/* l'aide du score, repliée en tête des chantiers possibles */
+.aide > summary { cursor:pointer; font-size:1rem; color:var(--accent); }
+.aide[open] { background:var(--surface); border:1px solid var(--line); border-radius:3px; padding:.6rem .9rem; }
+.aide p,.aide ul { margin:.5rem 0 0; font-size:1rem; } .aide ul { padding-left:1.2rem; } .aide li { margin-top:.3rem; }
+.carte-todo[data-phase] { border-left:5px solid var(--phase, var(--attente)); }
+.carte-todo .phase { font-size:.9375rem; font-weight:500; color:var(--surface); background:var(--phase, var(--attente)); border-radius:3px; padding:.05rem .4rem; cursor:help; }
+.phase-titre { margin-top:.75rem; } .phase-titre:first-child { margin-top:0; }
+.phase-titre h3 { margin:0; font-size:1.15rem; font-weight:700; color:var(--phase, var(--texte)); border-bottom:2px solid var(--phase, var(--line-fort)); padding-bottom:.2rem; }
+/* le titre d'une sous-liste la replie d'un clic (vlp.js) ; la flèche dit son état */
+.phase-titre h3[role="button"] { cursor:pointer; }
+.phase-titre h3[role="button"]::after { content:" ▾"; font-weight:400; }
+.phase-titre h3[aria-expanded="false"]::after { content:" ▸"; }
+.phase-titre h3:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+.filtres-todo { display:flex; flex-wrap:wrap; align-items:center; gap:.5rem 1.1rem; font-size:.9375rem; color:var(--doux); }
+.filtres-todo select { font:inherit; color:var(--texte); background:var(--surface); border:1px solid var(--bord-bouton); border-radius:3px; padding:.2rem .4rem; margin-left:.3rem; }
+.filtres-todo select:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+.filtres-todo .compte { font-family:"IBM Plex Mono",monospace; letter-spacing:normal; white-space:nowrap; }
 
 /* --- boutons posés par vlp.js (chantier BTN) : tout déplier, copier la commande, filtrer --- */
 /* le bord d'un bouton ou d'un champ se voit à 3:1 sur les deux fonds (--bord-bouton) */
@@ -125,6 +154,8 @@ details.clos[open] > summary { margin-bottom:.85rem; }
 .replis,.filtres { display:flex; flex-wrap:wrap; gap:.5rem; }
 /* filtre de la feuille, collé sous le sommaire ; l'état enfoncé se voit sans la couleur seule */
 .filtres { margin-top:-1.25rem; }
+/* les autres pages du projet, sous le sommaire (vlp.py, `liens_pages`) */
+.pages { margin-top:-1.25rem; font-size:1rem; color:var(--doux); }
 .filtre[aria-pressed="true"] { color:var(--surface); background:var(--accent); border-color:var(--accent); font-weight:600; }
 .copier { font-size:.9375rem; padding:.1rem .4rem; margin:.1rem 0; }
 /* presse-papiers refusé : une ligne sous la carte, la commande sélectionnée et quoi faire */

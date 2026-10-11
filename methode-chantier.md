@@ -26,7 +26,11 @@ titre (`MET6`, 2026-10-07).
   et une correction n'en atteint aucun : c'est ainsi que le kit a divergé sur
   six copies sans qu'aucune alarme ne sonne. Un seuil vit dans
   `scripts/vlp.py`, qui avertit quand il est dépassé ; la doc dit « le seuil de
-  `vlp.py` » et n'écrit pas le chiffre.
+  `vlp.py` » et n'écrit pas le chiffre. Une seule exception, tranchée par
+  l'utilisateur le 2026-10-11 (`AVL8`, Q32) : une commande, qui doit rester
+  autoportante, peut recopier un nombre — si un test compare les copies, comme
+  `tester_lecteur_copie` (`scripts/test-vlp.py`) le fait pour le lecteur à voix
+  haute ; ce test pour les nombres est à faire (`COP`).
 - **Les comptes bruts s'affichent à côté du verdict.** « OK », « plus court »,
   « moins cher » ne se croient pas seuls : on montre les nombres qui les
   fondent, avant et après. Un instrument muet rend son propre échec
@@ -129,6 +133,30 @@ titre (`MET6`, 2026-10-07).
   - Une case cochée dans un menu n'est pas un oui, pas plus que pour le push
     (`cloture.md`). Retirer une entrée ou en fondre deux ne fait pas grossir la
     TODO : cette règle ne s'y applique pas.
+- **Le score d'une ligne de TODO : sa phase, puis importance × facilité** —
+  décision de l'utilisateur, le 2026-10-11 (audit `AVL`, page à cartes d'`AVL8`,
+  Q1 et Q2). La TODO se range par score ; ailleurs, on renvoie ici.
+  - **La phase** : `V1`, ce que la V1 d'un projet servi demande, ou ce qui garde
+    le projet juste (un test, un coût faux) ; `V2`, plus vite, moins cher ou plus
+    lisible, sans que la V1 l'attende ; `après`, le confort, l'attente d'un
+    déclencheur, un gain non mesuré.
+  - **L'importance** vaut 5 en `V1`, 3 en `V2`, 2 en `V3`, 1 `après` (`V3` : AVL10,
+    le 2026-10-12, pour un projet qui l'écrit) — sauf la note de 1 à 5
+    que l'utilisateur donne à la ligne. **La facilité** se lit sur le haut de la
+    fourchette du coût, en fiches : 1 → 5 · 2 → 4 · 3 à 4 → 3 · 5 à 7 → 2 · 8 et
+    plus → 1 ; entre deux paliers, le compte s'arrondit vers le haut ; « sans
+    fiche » vaut 5. **Le score** est leur produit.
+  - **L'ordre** : les dépendances d'abord, puis le score ; à égalité,
+    l'importance, puis ce qui sert un projet avant ce qui garde juste, puis le
+    numéro de la TODO. Une **place voulue par l'utilisateur prime**, écrite et
+    datée dans la ligne.
+  - **Le format**, en tête de la case « Coût estimé » :
+    `**V1 · score 25 (5 × 5)** · ` — aucune colonne de plus. Le coût qui suit
+    finit par le compte de fiches que `vlp.py` lit : un ajout se totalise (`→ 2 fiches en tout`), un prix
+    ne s'écrit pas « la fiche » (6 coûts sur 12 mal lus à `AVL7`).
+  - **La feuille de route** en fait une sous-liste par phase écrite — celles du
+    projet, `V3` compris s'il en écrit — puis « Sans phase » ; phase et score en
+    pastille à gauche, des filtres au-dessus (`AVL12`, demandé le 2026-10-11).
 - **Ne pas réinventer la roue — ni un outil, ni un chiffre** — décision de
   l'utilisateur, le 2026-09-28 pour l'outil, le 2026-09-29 pour le chiffre. Avant
   de coder, chercher si l'outil existe déjà (bibliothèque, module standard) ;
@@ -173,10 +201,19 @@ ne se repaye pas à chaque fiche.
 Avant de promettre un chiffre de la TODO, le cadrage vérifie que les cas visés
 passent par le code qu'on va changer : `ESS` visait 11 clos, 9 étaient en
 `DÉCOUPE aucune`, hors du chemin modifié (journal `ESS4` du fichier d'état).
+**L'estimé du cadrage se double** : à l'ouverture, le compte de fiches recopié de
+la TODO se double — un chantier joué coûte en moyenne ×1,85 son estimé, en
+fiches comme en $ (45 clos, `AVL2`). La TODO, elle, ne bouge pas : deux sortes
+d'estimés coexistent un temps. Décidé par l'utilisateur le 2026-10-11 (`AVL8`,
+Q30, pour les prochains cadrages seulement).
 **Un chantier d'audit finit par une fiche de sommaire** : en quelques puces, en
 langage clair et lisible à voix haute, ce qui a été compris, décidé, fait, et ce
 qui reste à faire ; critère `(visuel)`. Décidé par l'utilisateur le 2026-10-11
 (`ACA6`, Q16 : « tout audit ») ; premiers cas `ACA8` et la dernière fiche d'`AVL`.
+**Un audit rouvre la liste du précédent** : il relit les constats de l'audit
+d'avant, un à un, et dit lesquels tiennent encore — `AVL3` en a retrouvé quatre
+du 2026-09-20, toujours vrais, que rien ne rappelait. Décidé par l'utilisateur le
+2026-10-11 (`AVL8`, Q25).
 
 **2. Exécution — une fiche, une session.** `/vlp:tache X1`, puis `/clear`, puis
 `/vlp:tache X2`. Jamais deux fiches dans la même session : la seconde traînerait
