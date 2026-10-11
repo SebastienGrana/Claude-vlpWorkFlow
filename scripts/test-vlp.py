@@ -6172,6 +6172,23 @@ def tester_decompte_todo():
              and mod.borne_haute_cout("~½ fiche") == 0.5 and mod.borne_haute_cout("1½ fiche") == 1.5
              and mod.borne_haute_cout("🟡 pas estimé") is None and mod.borne_haute_cout("—") is None,
              (mod.borne_haute_cout("~0,5 fiche"), mod.borne_haute_cout("~4 à 6 fiches")))
+    # CLU : les cellules lues de travers à `AVL7`, recopiées de la TODO d'avant `AVL9` (69e47df~1)
+    fautives = {
+        "estimé comme `ACA` : 4 à 6 fiches, 15 à 22 $ (`AMD` : 7 fiches, 37,80 $ mesurés)": 6.0,
+        "~3 fiches · 11 à 15 $ au taux de `MET10`, plus ≈ 4 $ de republication (2,98 $ pour 66 pages, `HAB5`) "
+        "(estimé, non mesuré) · avec (0), ajouté le 2026-10-10 : 3 à 4 fiches (l'ajout estimé, non mesuré) · avec (4), "
+        "ajouté le 2026-10-11 : ≈ +½ fiche (estimé, non mesuré) · avec (5), ajouté le 2026-10-11 : ≈ +½ fiche "
+        "(estimé, non mesuré)": 5.0,
+        "1 fiche · 3,68 $ au taux de `MET10` du kit (3,68 $ la fiche), estimé, non mesuré": 1.0,
+        "1 fiche · 3,68 $ au taux de `MET10` du kit (3,68 $ la fiche), estimé, non mesuré · avec `c8`, ajouté le "
+        "2026-10-11 : ≈ +½ fiche (estimé, non mesuré) · avec le contexte ignoré, ajouté le 2026-10-11 : ≈ +½ fiche "
+        "(estimé, non mesuré)": 2.0,
+        "2 fiches · 7,36 $ au taux de `MET10` du kit (3,68 $ la fiche), estimé, non mesuré": 2.0,
+        "~1 fiche, sans code (estimé, non mesuré) · re-cadré à `MET10` : sans fiche": None,
+    }
+    lues_clu = {c: mod.borne_haute_cout(c) for c in fautives}
+    verifier("CLU : borne_haute_cout — un ajout « +½ » s'additionne, un prix par fiche et une parenthèse ne se lisent pas",
+             lues_clu == fautives, [(c[:40], v) for c, v in lues_clu.items() if v != fautives[c]])
     # les cellules « Coût » de la TODO du 2026-10-08, recopiées telles quelles (NUI38)
     cellules = {
         "~6 fiches, plus une nuit d'essai · ré-estimé à `MET10` (restent `NUI28` à `NUI32` et `NUI20`, `CLR` compris : "

@@ -3865,18 +3865,31 @@ def borne_haute_cout(cout):
     """La borne haute d'un « Coût » de TODO, en fiches — `~4 à 6` → 6, `2-3` → 3, `~0,5` → 0,5,
     `~½` → 0,5 (`½` se lit 0,5 ; `1½`, 1,5) —, ou `None` sans plage suivie de « fiche(s) »
     (`à cadrer`, `🟡 pas estimé`, `—`, `sans fiche`) (FEU8, NUI10). La dernière estimation fait foi
-    (NUI38) : le dernier segment ` · ` qui dit « fiche(s) » ; dans ce segment, la plage qui suit la
-    dernière `→`, sinon la dernière plage suivie de « fiche(s) » — jamais une somme ni une durée."""
-    segments = [s for s in cout.split(" · ") if re.search(r"\bfiches?\b", s)]
-    if not segments:
-        return None
-    segment = segments[-1]
-    apres = re.match(r"\s*[~≈+]?\s*(%s)" % PLAGE_COUT, segment.rsplit("→", 1)[1]) if "→" in segment else None
-    plages = [apres.group(1)] if apres else re.findall(r"(%s)\s*fiches?\b" % PLAGE_COUT, segment)
-    if not plages:
-        return None
-    nombres = re.findall(NOMBRE_COUT, plages[-1])
-    return max(float(n.rstrip("½").replace(",", ".") or 0) + (0.5 if n.endswith("½") else 0) for n in nombres)
+    (NUI38) : le dernier segment ` · ` qui porte une plage suivie de « fiche(s) » — un prix « (3,68 $ la
+    fiche) » n'en est pas une ; dans ce segment, la plage qui suit la dernière `→`, sinon la dernière plage
+    suivie de « fiche(s) ». Le texte entre parenthèses ne se lit pas (« (`AMD` : 7 fiches) » compare, il
+    n'estime pas) ; une plage précédée de `+` (« ≈ +½ fiche ») s'ajoute à l'estimation d'avant au lieu de la
+    remplacer (CLU). Jamais une durée."""
+    borne = None
+    for brut in cout.split(" · "):
+        segment = brut
+        while True:     # les parenthèses, imbriquées comprises, de l'intérieur vers l'extérieur
+            neuf = re.sub(r"\([^()]*\)", "", segment)
+            if neuf == segment:
+                break
+            segment = neuf
+        if not re.search(r"\bfiches?\b", segment):
+            continue
+        apres = re.match(r"\s*[~≈]?\s*(\+?)\s*(%s)" % PLAGE_COUT, segment.rsplit("→", 1)[1]) if "→" in segment else None
+        plages = [apres.groups()] if apres else re.findall(r"(\+?)\s*(%s)\s*fiches?\b" % PLAGE_COUT, segment)
+        if not plages:
+            borne = None if re.search(r"\bsans fiche\b", segment) else borne    # « re-cadré : sans fiche » fait foi
+            continue
+        ajout, plage = plages[-1]
+        nombres = re.findall(NOMBRE_COUT, plage)
+        valeur = max(float(n.rstrip("½").replace(",", ".") or 0) + (0.5 if n.endswith("½") else 0) for n in nombres)
+        borne = borne + valeur if ajout and borne is not None else valeur
+    return borne
 
 
 def dependances(depend):
