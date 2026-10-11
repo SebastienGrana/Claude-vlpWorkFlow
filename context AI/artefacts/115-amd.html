@@ -21,9 +21,9 @@
     <p>Un rapport sur MapDecorator, une commande à Cairn, deux essais en jeu, et une page à cartes qui chiffre les chantiers de la V1.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">7 fiches · 6 faites · en cours : AMD7</p>
+    <p class="mono" style="margin-top:.5rem">7 fiches · 7 faites</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -61,13 +61,14 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">AMD6</span></span>
         <details><summary><span class="titre">Essayer de poser un item depuis un plugin</span><span class="etat">Faite</span></summary>
         <span class="note">Oui : un plugin pose un item par un macrobloc (vu par l'utilisateur, 24/9/24) ; 12 poses, 12 true ; NoUnvalidate garde la carte validée (2 → 2), NoDestruction non (2 → 1) ; un Ctrl+Z défait les poses et le dernier geste, sauf AutoSave() après chaque pose (C2 : 1 sur 3 défaite)</span></details>
-        <span class="cout mono">≈14,5M (14 454 434) · 62 tours · 5,96 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">AMD7</span></span>
-        <details open><summary><span class="titre">Rendre le bilan : les chantiers chiffrés</span><span class="etat">En cours</span></summary>
-        <span class="note">Le bilan en page à cartes : les chantiers de la V1 chiffrés ; après toutes.</span></details></li>
+        <span class="cout mono">≈14,7M (14 735 400) · 63 tours · 6,04 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">AMD7</span></span>
+        <details><summary><span class="titre">Rendre le bilan : les chantiers chiffrés</span><span class="etat">Faite</span></summary>
+        <span class="note">page à cartes publiée (TFTG6dnacHxSfP3txepa6C) : 29 cartes, 29 réponses ; V1 = 4 chantiers, 17 fiches, 62,56 $ estimés ; TODO acceptées : MapDecorator 10, Cairn 2, kit 1 (1 refusée) ; écrit au rapport 21-audit-amd.md</span></details>
+        <span class="cout mono">≈11,1M (11 105 100) · 48 tours · 7,42 $</span></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈20,7M (20 740 586) · 93 tours · 13,21 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈63,1M (63 116 096) · 299 tours · 35,70 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈74,5M (74 502 162) · 348 tours · 43,20 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -90,7 +91,7 @@
 
   <footer>
     <span>Fichier de fiches : <span class="mono">context AI/115-amd.md</span></span>
-    <span>Mis à jour le <span class="mono">2026-10-10</span></span>
+    <span>Mis à jour le <span class="mono">2026-10-11</span></span>
   </footer>
 </div>
 <script src="vlp.js"></script>
