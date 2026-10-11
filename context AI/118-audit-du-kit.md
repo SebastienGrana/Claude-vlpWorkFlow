@@ -781,3 +781,110 @@ dans les 3 autres projets, aucun après le 2026-10-05.
 3. **N1 = constat C3 d'`AVL3`**, sans fiche : la ligne `--allow-empty` dans `/vlp:tache`.
 4. 🟡 **ProjetONZSM et TrackGen n'ont jamais lancé le kit depuis le 2026-09-17**, et n'ont aucun
    chantier : à trancher pour `AVL7` et `AVL10` — les garder dans la V1 du kit, ou non.
+
+## AVL5 — Compter les faits tirés d'un autre projet
+
+✅ La règle : `methode-chantier.md:109-115` — « Un fait qui dit comment écrire un fichier, ou ce
+que rend un autre projet, se revérifie au moment de s'en servir » (2026-10-11). Rien ne la fait
+appliquer : aucun script, aucune étape de commande ne la cite.
+
+### Comment je reconnais un fait importé
+
+- **Un fait importé** : une ligne du socle (`vlp.py socle`, de `## Le socle commun` à `## L'ordre
+  des fiches`) qui **nomme un autre projet** et porte **un chiffre ou un nom entre accents graves**.
+- « Autre projet » : l'un des 4 projets ou le kit, sauf le dépôt du fichier lui-même.
+- Le nom d'un projet cherché d'abord dans tout le fichier (grep), le socle lu ensuite, sur ceux-là
+  seulement.
+- ⚠️ Une règle de machine, donc grossière ; relue à la main sur les 67 lignes retenues (plus bas).
+
+### Ce que portent les socles
+
+| Dépôt | Fichiers de fiches | Citent un autre projet | Socles lus | Lignes qui le nomment | Faits importés |
+|---|---:|---:|---:|---:|---:|
+| kit | 106 | 27 | 27 | 77 | **60** |
+| `<Cairn>` | 37 | 12 | 11 (1 vide) | 4 | **1** |
+| `<MapDecorator>` | 5 | 5 | 4 (1 vide) | 7 | **6** |
+| `<ProjetONZSM>` | 0 | 0 | 0 | 0 | 0 |
+| `<TrackGen>` | 0 | 0 | 0 | 0 | 0 |
+| **Total** | **148** | **44** | **42** | **88** | **67** |
+
+- 💡 Relu à la main, ligne à ligne : **46 des 67** sont de vrais faits sur un autre projet (kit 41
+  sur 60, MapDecorator 4 sur 6, Cairn 1 sur 1). Les 21 autres : une consigne, un périmètre, un
+  chemin à suivre. Les 17 lignes du kit qui nomment un projet sans chiffre ni nom : aucun fait
+  raté ; les 4 de Cairn et de MapDecorator, non relues.
+- ✅ Dans le kit, les trois audits portent près de la moitié des faits : `116-aca.md` 12, `115-amd.md`
+  9, `117-avl.md` 7 — 28 lignes sur 60.
+- ✅ Le cas qui fonde la règle est seul de son espèce dans les projets : 5 des 6 lignes de
+  MapDecorator (dont 4 vrais faits) sont dans `20-pont-cairn.md`, le socle de `P`, qui lit le
+  fichier que Cairn produit.
+- ⚠️ Un fait à cheval sur deux lignes compte deux fois ; un fait dont la ligne ne nomme pas le projet
+  (une suite de phrase) n'est pas compté.
+
+Depuis la racine du kit, dossier principal (`R=..`, les 4 projets sont ses voisins) :
+
+```bash
+R=..; py -3 -X utf8 -c "
+import glob,re,subprocess,sys
+N={'kit':r'\bkit\b|vlp\.py|Claude-vlpWorkflow','Cairn':'[Cc]airn','MapDecorator':'MapDeco','ProjetONZSM':'ONZSM|Onzbot','TrackGen':'TrackGen'}
+D={'kit':'.','Cairn':'$R/Cairn-VlpLib','MapDecorator':'$R/MapDecorator','ProjetONZSM':'$R/ProjetONZSM','TrackGen':'$R/TrackGen'}
+for d,r in D.items():
+ A='|'.join(v for k,v in N.items() if k!=d);F=C=S=n=f=0
+ for p in glob.glob(r+'/context AI/*.md'):
+  t=open(p,encoding='utf-8').read()
+  if not re.search(r'^## [A-Z]{1,4}[0-9]+[a-z]? \[[ x]\]',t,re.M):continue
+  F+=1
+  if not re.search(A,t):continue
+  C+=1;o=subprocess.run([sys.executable,'-X','utf8','scripts/vlp.py','socle',p],capture_output=True,text=True,encoding='utf-8')
+  if o.returncode:continue
+  S+=1;L=[l for l in o.stdout.splitlines() if re.search(A,l) and not l.startswith('--- socle')];n+=len(L);f+=sum(1 for l in L if re.search(r'[0-9]|\`[^\`]+\`',l))
+ print(d,F,C,S,n,f)"
+```
+
+### Dix faits revérifiés
+
+✅ Pris d'abord dans le chantier ouvert (`AVL`), puis dans celui qui est en pause (`FAM`, vu par le
+socle d'`ACA`), puis dans la TODO à venir (`CAR`, `NWT`, `SYM`). Commandes lancées depuis le
+dossier qui contient les projets, le 2026-10-11 :
+
+| # | Le fait, et où il est écrit | Commande | Verdict |
+|---:|---|---|---|
+| 1 | Worktrees : Cairn 4, MapDecorator 2, ProjetONZSM 3, TrackGen 1 (socle d'`AVL`) | `git -C <projet> worktree list \| wc -l` | ✅ juste : 4 · 2 · 3 · 1 |
+| 2 | Le `context AI/` de MapDecorator est ignoré exprès (socle d'`AVL`) | `git -C MapDecorator check-ignore -v "context AI/08-etat.md"` | ✅ juste : `.gitignore:4` |
+| 3 | Le chantier `P` de MapDecorator : « 5 faits périmés sur 5 » (socle d'`AVL`) | `grep -n '20-pont-cairn' "MapDecorator/context AI/21-audit-amd.md"` | ❌ **faux tel qu'écrit** : sa source compte 11 lignes périmées sur `20-pont-cairn.md`, et dit que d'autres faits du socle de `P` « restent vrais » (`21-audit-amd.md:112`) |
+| 4 | `FAM` en pause dans le worktree `chantier-mor-61fb78`, branche `claude/chantier-fam` (socle d'`ACA`) | `git -C Cairn-VlpLib worktree list` ; `git -C Cairn-VlpLib log -1 claude/chantier-fam` | ✅ juste : 1 worktree, dernier commit le 2026-10-02 |
+| 5 | `families.json` n'est que dans ce worktree (socle d'`ACA`) | `find Cairn-VlpLib -name families.json` | ✅ juste : 1 seul, sous `.claude/worktrees/chantier-mor-61fb78/analysis/` |
+| 6 | Git de Cairn suit `context AI/` et `CLAUDE.md` (socle d'`ACA`) | `git -C Cairn-VlpLib ls-files "context AI/" CLAUDE.md \| wc -l` | ✅ juste : 148 + 1 |
+| 7 | `<Cairn>/.claude/` ne porte que `settings.local.json` et `worktrees/` (socle d'`ACA`) | `ls -A Cairn-VlpLib/.claude` | ✅ juste |
+| 8 | La feuille de Cairn pesait 65 960 octets, 35 `<tr>`, au cadrage d'`ARC` (TODO, `CAR`) | `wc -c` et `grep -o '<tr' \| wc -l` sur `feuille-de-route.html`, disque et `HEAD` | ❌ **périmé** : 63 997 octets et 36 `<tr>` dans Git ; 77 877 et 36 sur le disque (modifiée, non commitée) |
+| 9 | Sur MapDecorator, `niveau` rend 10 écarts « ignoré par `.gitignore:4` » (TODO, `NWT`) | `vlp.py niveau MapDecorator \| grep -c '^ÉCART: git'` | 🟡 juste sur le compte, faux sur un détail : 10 écarts, dont 8 à `:4`, 1 à `:5`, 1 à `:6` |
+| 10 | Sur un `.as` de MapDecorator, `vlp.py symboles` sort un traceback `SyntaxError` (TODO, `SYM`) | `vlp.py symboles MapDecorator/files/MapDecorator.as` | ✅ juste : `SyntaxError: unterminated string literal` |
+
+- ✅ **7 justes, 2 faux, 1 juste à un détail près, 0 invérifiable.**
+- ⚠️ Les 2 faux sont dans le kit lui-même : le socle d'`AVL` (n° 3), écrit ce matin, et une ligne de
+  la TODO (n° 8). Le n° 8 est daté (« au cadrage d'`ARC` ») : juste pour sa date, faux pour qui
+  s'en servirait comme point de départ de `CAR`.
+
+### L'outil, chiffré
+
+💡 Proposé — sans recherche de l'existant (`AVL6`). Ne rien construire ici.
+
+- **Ce qu'il ferait** (piste versée à la clôture d'`AMD`) : un fait importé porte sa commande de
+  mesure dans le socle ; `/vlp:tache` la rejoue avant la fiche et montre ce qui a changé.
+- **Le coût, estimé** : 1 fiche pour le script (`vlp.py` lit les commandes marquées, les lance, compare
+  à la valeur écrite ; testé) · 1 fiche pour la convention (`methode-chantier.md`, `/vlp:chantier`
+  qui l'écrit au cadrage, `/vlp:tache` qui l'appelle à l'étape 1) · ½ à 1 fiche pour la garde : ne
+  lancer que des commandes de lecture, une commande écrite dans un fichier étant du texte exécuté.
+  **2 à 3 fiches, ≈ 8,80 à 13,20 $** (4,40 $ la fiche, le socle d'`AVL`).
+- **Ce que disent les comptes** :
+  - ➕ 3 faits sur 10 ne sont pas justes tels qu'écrits ; le cas fondateur en avait 11 lignes
+    périmées ;
+  - ➖ les faits importés vivent surtout dans les audits du kit (28 lignes sur 60), qui se mesurent
+    de toute façon ; dans les projets, les vrais faits importés tiennent **dans un seul socle**
+    (`P`, 4 sur 5, aujourd'hui clos) ;
+  - ➖ revérifier à la main coûte peu : ces 10 faits ont tenu en **3 appels**.
+- **Avis** : 💡 **attendre.** Le faire juste avant que le pont entre Cairn et MapDecorator ne
+  rouvre (la V1 de MapDecorator lit le fichier que Cairn produit) : c'est là que les faits importés
+  pèseront. D'ici là, une ligne « remesurer : <commande> » écrite à la main dans le socle suffit.
+  🟡 À trancher sur la page d'`AVL8`.
+- **Sans fiche** : corriger le n° 3 dans le socle d'`AVL` et le n° 9 dans la ligne `NWT` de la TODO,
+  là où ils seront relus (la règle le demande).
