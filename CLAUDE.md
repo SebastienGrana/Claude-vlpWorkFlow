@@ -9,7 +9,7 @@ https://github.com/SebastienGrana/Claude-vlpWorkFlow — cloné et utilisé en g
 
 - Prouvé : le kit est un plugin (« degré 3 », version dans `.claude-plugin/plugin.json`),
   chargé en place par un lien dans `~/.claude/skills/vlp` ; six commandes `/vlp:init`,
-  `/vlp:chantier`, `/vlp:tache`, `/vlp:enchainer`, `/vlp:chef`, `/vlp:check`, et l'agent `vlp:fiche`.
+  `/vlp:chantier`, `/vlp:tache`, `/vlp:enchainer`, `/vlp:chef`, `/vlp:check`, et les agents `vlp:fiche` et `vlp:relecture`.
 - Équipés : Cairn-VlpLib, MapDecorator, ProjetONZSM, TrackGen — et ce kit lui-même.
 - Chaque chantier clos a sa ligne dans `context AI/00-INDEX-archive.md`, son détail daté dans
   `context AI/08-etat.md` ; ici, les derniers seulement (`vlp.py clore` les tient).
@@ -27,7 +27,7 @@ https://github.com/SebastienGrana/Claude-vlpWorkFlow — cloné et utilisé en g
    et afficher les comptes bruts à côté du verdict. Un gain sans mesure
    avant/après n'est pas un gain ; un instrument muet rend son propre échec
    indiagnosticable.
-3. **Une règle vit à un seul endroit — un nombre aussi** (250, 80, 5…) : une
+3. **Une règle vit à un seul endroit — un nombre aussi** (un seuil, un plafond…) : une
    commande renvoie à `cloture.md` ou à `methode-chantier.md`, elle ne les
    recopie pas, sauf un nombre qu'un test compare à sa source ; ailleurs, on pointe.
 4. **Le déterministe est un script, le jugement est de la prose.** Extraire,
@@ -45,13 +45,13 @@ Prose en français, texte des commandes en français.
 
 ## Routage — ouvrir ceci, et rien d'autre
 
-Cette table remplace la lecture de `00-INDEX.md`. Si la tâche n'y figure pas,
+Cette table remplace la lecture de `context AI/00-INDEX.md`. Si la tâche n'y figure pas,
 et seulement dans ce cas, ouvrir l'index.
 
 | La tâche | Ouvrir |
 |---|---|
 | modifier une commande | `skills/<nom>/SKILL.md` — celle-là seule |
-| modifier le sous-agent ou le contrat de `/vlp:enchainer` | `skills/jouer/SKILL.md`, `agents/fiche.md`, ou `enchainement.md` |
+| modifier un sous-agent ou le contrat de `/vlp:enchainer` | `skills/jouer/SKILL.md` et `agents/fiche.md`, `skills/relire/SKILL.md` et `agents/relecture.md`, ou `enchainement.md` |
 | changer une règle de méthode, ou en chercher la preuve | `methode-chantier.md`, `lecons-mesure.md` pour sa preuve mesurée, `cloture.md` pour la clôture, ou `nuit.md` pour la nuit |
 | savoir où vit quoi dans un projet équipé | `methode-chantier.md`, section « Où vit quoi » |
 | toucher aux pages publiées | `ARTEFACTS.md`, puis le gabarit dans `templates/` |
@@ -71,7 +71,7 @@ dans cet ordre :
 - **Ne jamais lire le dossier de contexte en entier**, ni le README.
 - **Une tâche, une session.** `/clear` entre deux tâches : une session laissée
   ouverte relit tout son passé à chaque tour.
-- **Le coût est dans les tours, pas dans les lignes** (mesuré : une fiche =
+- **Le coût est dans les tours, pas dans les lignes** (mesuré le 2026-09-17 : une fiche =
   28–66 tours, la commande = 8 % du premier tour). Grouper les lectures en un
   appel, injecter la carte avant le premier tour, ne jamais retaper ce qu'un
   script régénère.

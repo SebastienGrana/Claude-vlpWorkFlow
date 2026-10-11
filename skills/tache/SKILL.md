@@ -164,11 +164,12 @@ dit `tache-page.md`, lu à l'étape 1, `files` : le JSON de la ligne `FILES`
 Le travail écrit, **commite sans demander** (`methode-chantier.md`) :
 
 ```bash
-git add -A; git commit -m "<fiche retenue> : <titre de la fiche>"
+git add -A; git commit --allow-empty -m "<fiche retenue> : <titre de la fiche>"
 ```
 
 La fiche tient ainsi dans un commit à elle : mauvaise, elle se défait par un
-`git revert` seul. Finis par la jauge, une ligne — les titres de fiches sont
+`git revert` seul ; une fiche sans écriture y pose un commit vide, borne de
+`vlp.py cout`. Finis par la ligne d'avancement — les titres de fiches sont
 dans la carte de l'étape 0, rien à relancer : `fiche 3/7 ✅✅✅⬜⬜⬜⬜`.
 
 ## 7. Si c'était la dernière fiche

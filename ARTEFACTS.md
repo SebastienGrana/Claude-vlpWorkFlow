@@ -9,19 +9,21 @@ sont dérivés, et pourquoi une seule page suit les fiches : `methode-chantier.m
 > publication échoue ou n'est pas disponible, la commande le dit en une ligne
 > et continue. Le fichier local, lui, est écrit dans tous les cas.
 
-**Sommaire** : Deux artefacts, et pas un de plus · Le nommage · Où vivent les
+**Sommaire** : Les artefacts suivis, et pas un de plus · Le nommage · Où vivent les
 fichiers, où vivent les URL · Republier : lire d'abord, `url` toujours · Une
 publication refusée · La page se régénère, elle ne se retouche pas · Le budget de
 contexte · Où vivent le CSS et les données · La lecture · Les commentaires.
 
-## Deux artefacts, et pas un de plus
+## Les artefacts suivis, et pas un de plus
 
 | Artefact | Combien | Créé par | Mis à jour par |
 |---|---|---|---|
 | **Feuille de route** | un par projet, permanent | `/vlp:init` | `/vlp:chantier` (ouverture), `/vlp:tache` et `/vlp:enchainer` (clôture seulement) |
 | **Chantier** | un par chantier | `/vlp:chantier` (étape 5 bis) | `/vlp:tache` (chaque fiche), `/vlp:enchainer` (une fois par lancement) |
+| **Archive** | un par projet, après `vlp.py archive` | `vlp.py archive` | la clôture (`cloture.md`) |
+| **Enchaînement** | facultatif, commun à plusieurs projets | à la main | la clôture, si le projet en a une (`cloture.md`) |
 
-Hors de ces deux, une page **ponctuelle** : le rapport à cartes ou la page de
+Hors de ceux-là, une page **ponctuelle** : le rapport à cartes ou la page de
 choix (`templates/rapport-choix.html`) — des décisions à garder ou revoir, des
 questions à options, un commentaire libre replié sous chaque carte, un bouton
 qui copie les réponses et les commentaires. Elle ne suit aucun
@@ -208,9 +210,9 @@ Tranché le 2026-09-26 par le chantier `ALE` ; chiffres et commandes dans
 ## La lecture — tranchée une fois, écrite dans les gabarits
 
 Choix de l'utilisateur, tranchés un à un le 2026-10-05 pour lire plus vite et
-plus longtemps : clair seulement, contraste adouci, Atkinson Hyperlegible à
-18 px espacée de 0,05 em, rien sous 15 px, aucun texte en capitales, nombres
-et dates jamais coupés. Les valeurs vivent dans `templates/vlp.css` (son
+plus longtemps : clair seulement, contraste adouci, Atkinson Hyperlegible
+à un corps et un espacement choisis, une taille plancher, aucun texte en
+capitales, nombres et dates jamais coupés. Les valeurs vivent dans `templates/vlp.css` (son
 commentaire de tête les résume) et dans `templates/rapport-choix.html`, qui
 reprend la même palette (accent bleu compris depuis le 2026-10-07) avec un
 bord d'option un cran plus foncé, pour son fond pêche ; ailleurs, on renvoie à

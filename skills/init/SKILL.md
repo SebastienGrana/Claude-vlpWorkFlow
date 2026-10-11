@@ -61,7 +61,8 @@ mémoire : ils portent des titres de sections et des marqueurs que
 
 ## 2. Le questionnaire — sept réponses, pas une de plus
 
-Pose-les d'un coup, avec une proposition par défaut pour chacune :
+Pose-les en deux questionnaires — l'outil en prend quatre au plus : 1 à 4, puis
+5 à 7 —, avec une proposition par défaut pour chacune :
 
 1. **Le projet en une phrase** — ce qu'il fait, et ce qu'il ne fait pas.
 2. **L'alias court** (`md`, `cairn`, `api`…) : il ne sert que dans un
