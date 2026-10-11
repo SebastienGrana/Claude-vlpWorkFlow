@@ -5302,6 +5302,18 @@ def tester_pretes_et_paralleles():
         verifier("prêtes : en cours et en attente — « En cours · attend » et tous les noms, data-attend",
                  code == 0 and li.get("S1", "").startswith(tete(' data-etat="encours" data-attend', "S1"))
                  and dit(li, "S1", "En cours · attend S2, S3, S4"), s + "%r" % li)
+        # Une plage « `P1` à `P4` » (cadrage d'ACA, 2026-10-11) : lue en deux noms, P5 se disait « À lancer »,
+        # sans data-attend, alors que P2 et P3, au milieu, ne sont pas faites.
+        ecrire(fiches, "# Chantier P\n\n" + "".join(fiche(i, c, "rien.", "`%s.md`" % i) for i, c in
+                                                     (("P1", "x"), ("P2", " "), ("P3", " "), ("P4", "x")))
+               + fiche("P5", " ", "`P1` à `P4`.", "`p5.md`"))
+        code, s = appel(["page", fiches, os.path.join(tpp, "artefacts", "p.html"), "--creer", "--projet", "P",
+                         "--titre", "T", "--resultat", "R"])
+        li = cartes(lire(os.path.join(tpp, "artefacts", "p.html")))
+        verifier("prêtes : une plage « P1 à P4 » attend chaque fiche du milieu pas faite, data-attend — mutant :"
+                 " plage lue en deux noms ; des bornes à l'envers restent telles quelles",
+                 code == 0 and li.get("P5", "").startswith(tete(" data-attend", "P5")) and dit(li, "P5", "Après P2, P3")
+                 and mod.deplier_plages("`P4` à `P2`") == "`P4` à `P2`", s + "%r" % li)
 
 
 groupe(tester_pretes_et_paralleles)
