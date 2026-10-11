@@ -13,7 +13,7 @@ et le récit mesuré des règles restées, sous leur titre et dans leur ordre.
 une ligne de mesure · une hypothèse vraie sur un cas · un commentaire périmé · un
 seuil arbitraire · un chantier cité par son code · une fiche payée jusqu'au bout ·
 une définition d'agent · un fait qui dit comment écrire · la TODO et ses deux oui ·
-ne pas réinventer la roue.
+ne pas réinventer la roue · l'estimé qui se double.
 
 ## Trois leçons parties de la méthode
 
@@ -156,3 +156,16 @@ Mesuré : le graphique des coûts des pages, dessiné à la main, passé à Char
 la skill `claude-api` écartait déjà Haiku 4.5 des longues boucles d'agent et donnait
 la méthode (tout en effort bas, relancer les échecs plus haut) — restait seulement le
 coût par fiche dans le kit.
+
+### L'estimé du cadrage se double
+
+Mesuré à `AVL2` (2026-10-11), sur les 45 clos qui portent un estimé chiffré : estimé 91
+fiches · 348,03 $, joué 167 fiches · 574,89 $ — ×1,84 en fiches, ×1,65 en $ ; l'écart
+grandit d'une semaine à l'autre (×1,25, ×1,64, ×1,96 en $). Revu à la clôture d'`AVL`
+(2026-10-12), le premier chantier ouvert après la règle mais cadré avant elle : estimé
+6 fiches ≈ 24 $, joué 12 fiches · 68,08 $ (ligne `CLOS`) — ×2 en fiches.
+
+Ce qui a le plus coûté, un indice sur trois fiches de deux audits, pas une mesure : une
+fiche qui écrit dans plusieurs projets et republie leurs pages — `AVL9` (121 tours ·
+13,08 $), `AVL10` (105 tours · 9,90 $), `ACA7` (68 tours · 7,80 $), la plus chère de
+chacun.
