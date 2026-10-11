@@ -628,3 +628,156 @@ en lecture seule, elle ne pose qu'un tampon dans le dossier temporaire (docstrin
 4. **Cinq gestes candidats à un script** (A2, A12, C4, C5, C6) : 1 fiche chacun, ≈ 22 $ en tout.
 5. **Quatre constats du 2026-09-20 tiennent encore** (3, 4, 6, 7) : rien ne les rappelait. 💡 Un
    audit de consignes qui rouvre la liste du précédent, comme `AVL1` l'a fait pour `12-audit.md`.
+
+## AVL4 — Mesurer l'usage réel du kit dans les 4 projets
+
+Mesuré le 2026-10-11, en lecture seule : `vlp.py niveau` et `vlp.py carte` sur chaque projet, son
+Git, et ses transcripts depuis le 2026-09-17. Des comptes, des codes et des noms de fichiers
+seulement.
+
+### Ce qui marche — à ne pas « corriger »
+
+- ✅ **0 traceback** des scripts du kit dans les 4 projets, du 2026-09-17 au 2026-10-11.
+- ✅ **Cairn s'en sert vraiment** : 162 lancements, `/vlp:tache` dans 56 séances.
+- ✅ Sur 107 `GARDE:`, **39** sont des garde-fous ordinaires qui ont joué leur rôle (table plus bas).
+
+### Les 4 projets : écarts, chantier ouvert, dernier clos
+
+| Projet | Écarts de `niveau` | Chantier ouvert | Dernier clos |
+|---|---|---|---|
+| `<Cairn>` | 4 : **0 vrai, 4 faux** — `FAM` se joue dans un worktree (`NWT`) · 1 avertissement vrai : `CLAUDE.md` 93/80 | `FAM`, 5 fiches cochées sur 12 ; 1er commit le 2026-10-01, dernier le 2026-10-02 ; en pause dans son worktree | `MOR`, le 2026-09-30 |
+| `<MapDecorator>` | 10 : **0 vrai, 10 faux** — `context AI/`, `CLAUDE.md`, `CHANTIER.md` ignorés exprès (`.gitignore:4-6`, `NWT`) | aucun | `P`, le 2026-10-11 — 1 fiche cochée sur 6 ; sa ligne d'archive nomme `AMD` |
+| `<ProjetONZSM>` | 0 | aucun | **aucun** — ni fichier de fiches, ni commit de fiche |
+| `<TrackGen>` | 0 | aucun | **aucun** — ni fichier de fiches, ni commit de fiche |
+
+- ✅ Les 4 faux écarts de Cairn : la page du dossier principal date du 2026-10-01 22:50 (3 faites),
+  son fichier de fiches du 2026-10-08 13:17 (5 faites). Dans le worktree, page et fichier disent
+  tous deux 5 faites, en cours `FAM5`. La branche `claude/chantier-fam` a 7 commits hors de `main`,
+  partie de `800a6db`.
+- ✅ Près du seuil (lignes `POIDS`) : Cairn `CHANTIER.md` 47/50, index 78/80 ; MapDecorator
+  `CLAUDE.md` 80/80.
+- ✅ ProjetONZSM et TrackGen : `CHANTIER.md` suivi par Git depuis le 2026-10-08 (premier commit) ;
+  leur carte charge une méthode locale, `context AI/09-chantiers.md` (tolérée par `niveau`).
+- ✅ ProjetONZSM : 2 de ses 3 worktrees pointent vers l'ancien chemin `C:` et sont `prunable` (le
+  déménagement du 2026-10-03). Ménage du projet, pas du kit.
+- ✅ `MOR` et `FAM` datent leur clôture et leur début par leurs commits de fiche (`git log --all`) et
+  par la ligne « Clos le » de `CLAUDE.md` ; MapDecorator, ProjetONZSM et TrackGen n'ont aucun commit
+  de fiche.
+
+Depuis la racine du kit, dossier principal (les 4 projets sont ses voisins) :
+
+```bash
+for p in Cairn-VlpLib MapDecorator ProjetONZSM TrackGen; do py -3 -X utf8 scripts/vlp.py niveau "../$p"; py -3 -X utf8 scripts/vlp.py carte "../$p" | grep -E '^(COURANT|PROCHAINE|GIT)='; done
+```
+
+### Les commandes lancées, par projet
+
+✅ Du 2026-09-17 au 2026-10-11, **164 lancements**, tous dans Cairn (162) et MapDecorator (2) :
+
+| Commande | Cairn | MapDecorator | ProjetONZSM | TrackGen |
+|---|---:|---:|---:|---:|
+| `/vlp:tache` | **87** (46 tapées · 41 par `Skill`) | 0 | 0 | 0 |
+| `/vlp:jouer` | 35 (par `Skill`) | 1 | 0 | 0 |
+| `/vlp:chantier` | 22 (9 · 13) | 0 | 0 | 0 |
+| `/vlp:enchainer` | 14 (11 · 3) | 1 (tapée) | 0 | 0 |
+| `/vlp:relire` | 3 (par `Skill`) | 0 | 0 | 0 |
+| `/vlp:check` | 1 (tapée) | 0 | 0 | 0 |
+| `/vlp:init` | 0 | 0 | 0 | 0 |
+| `/vlp:chef` | 0 | 0 | 0 | 0 |
+| **Total** | **162** | **2** | **0** | **0** |
+
+- ✅ **Jamais lancées** : `/vlp:init` et `/vlp:chef` nulle part ; sur MapDecorator, tout sauf
+  `enchainer` et `jouer` ; sur ProjetONZSM et TrackGen, **aucune**.
+- ✅ Séances distinctes dans Cairn : `tache` 56, `chantier` 19, `enchainer` 13, `jouer` 7, `relire`
+  2, `check` 1.
+- ✅ **Le dernier lancement date du 2026-10-01 22:38 UTC** (Cairn, `/vlp:tache`, l'heure du commit
+  de `FAM4`). Par semaine : Cairn 34 (du 17 au 20) · 95 (du 2026-09-21) · 33 (du 2026-09-28) · **0
+  (du 2026-10-05)** ; MapDecorator 2, semaine du 2026-09-14. Des séances ont tourné dans Cairn
+  jusqu'au 2026-10-10, sans commande du kit.
+- Comment on compte :
+  - « tapée » : un message de l'utilisateur porteur de `<command-name>/vlp:…` ;
+  - « par `Skill` » : un appel de l'outil `Skill` par le modèle (enchaînement, `/vlp:enchainer`) ;
+  - le texte `<command-name>` repris dans une sortie d'outil n'est pas compté ;
+  - les dossiers `~/.claude/projects/*<projet>*` (C: et D:, worktrees et sous-agents compris),
+    dédoublonnés par `uuid` : 148 144 messages lus.
+- ⚠️ Une séance lancée depuis le dossier du kit sur un projet (`AMD`, `ACA`, `NIV`…) compte au kit,
+  pas ici.
+
+```bash
+py -3 -X utf8 -c "
+import glob,json,os,re,collections as C
+n=C.Counter();vu=set()
+for p in ['Cairn','MapDecorator','ProjetONZSM','TrackGen']:
+ for f in glob.glob(os.path.expanduser('~/.claude/projects/*'+p+'*/**/*.jsonl'),recursive=True):
+  for l in open(f,encoding='utf-8'):
+   r=json.loads(l);u=r.get('uuid')
+   if not u or u in vu or r.get('timestamp','')<'2026-09-16T22' or r.get('isCompactSummary') or r.get('isMeta'):continue
+   vu.add(u);c=(r.get('message')or{}).get('content');B=c if isinstance(c,list) else[{'type':'text','text':c}]if isinstance(c,str)else[]
+   for b in B:
+    if r['type']=='user' and b.get('type')=='text':n.update((p,m) for m in re.findall(r'<command-name>/(vlp:[a-z]+)<',b.get('text')or'')[:1])
+    if b.get('type')=='tool_use' and b.get('name')=='Skill' and str(b['input'].get('skill','')).startswith('vlp:'):n[(p,b['input']['skill'])]+=1
+print(sorted(n.items()),sum(n.values()))"
+```
+
+### Les pannes vues dans ces projets
+
+✅ Dans les sorties des commandes qui appellent `vlp.py`, `mesure-tokens.py` ou `boucle.py` : **2
+tracebacks et 107 `GARDE:`**, tous dans Cairn, du 2026-09-17 au 2026-10-05 (dates UTC) ; aucun
+dans les 3 autres projets, aucun après le 2026-10-05.
+
+- ❌ **Les 2 tracebacks ne sont pas du kit** : la commande nommait un script du kit, mais l'erreur
+  vient d'un script du modèle — un `py -` qui retire une ligne (`AssertionError`, 2026-09-26) et un
+  script de scratchpad qui écrit `→` sur une console cp1252 (`UnicodeEncodeError`, 2026-10-05).
+
+| Ce que dit la `GARDE:` | Nombre | Dates | Verdict |
+|---|---:|---|---|
+| « sans commit » sur `C1`–`C6` | 52 | 2026-09-26 | ➡️ panne **N1** |
+| « sans commit » sur `MOR1`, `MOR2`, `MOR12` | 3 | 2026-09-30 | ➡️ **N2**, cause supposée |
+| « sans commit » sur `GAR2` | 3 | 2026-09-27 | non creusé (1 séance) |
+| en worktree : page introuvable 4 · `page --creer` incomplet 2 · fiche introuvable 1 · relecteur « fiche absente » 3 | 10 | 2026-09-30 → 2026-10-01 | ➡️ panne **N2** |
+| « partage la session » | 18 | 2026-09-17 → 2026-09-22 | ✅ garde-fou : deux fiches dans une séance |
+| page au-delà du seuil | 9 | 2026-09-17 → 2026-09-18 | ✅ garde-fou ; plus revue après, `PLI` clos le 2026-09-27 |
+| ligne de routage ou ligne ouverte absente (`clore`, `ouvrir`) | 7 | 2026-09-18 → 2026-09-26 | ✅ garde-fou : `clore` écrit le reste |
+| pas de marqueurs | 3 | 2026-09-20 | ✅ prévu par `/vlp:tache`, étape 1 |
+| relecteur « fiche absente » sur un rejeu | 1 | 2026-09-24 | ✅ connu, clos par `FFE` (2026-09-26) |
+| `rapide` : aucun groupe ne porte ce motif | 1 | 2026-10-04 | ✅ garde-fou (`scripts/vlp_coeur.py:8518`), travail sur le kit |
+| **Total** | **107** | | |
+
+**Les pannes nouvelles** — absentes de la TODO du kit (12 lignes, `08-etat.md`) :
+
+- **N1 — Une fiche sans commit, dans un projet au contexte ignoré.**
+  - ✅ Le cas : 52 `GARDE:` « porte une session sans commit » sur `C1` à `C6`, dans 2 séances du
+    2026-09-26 (`09681ac7`, `566a3cb3`) ; `git log --all` : 0 commit `C1 :`. Le coût de ces fiches
+    tombe hors fiches.
+  - ✅ La règle du commit vide est née le lendemain, de `SEG` sur Cairn
+    (`methode-chantier.md:221`, `42a4549`, 2026-09-27) ; `/vlp:tache` ne la cite pas (`grep -c
+    allow-empty skills/tache/SKILL.md` : 0) — déjà le constat **C3** d'`AVL3`.
+  - 💡 Peut revenir : la carte de MapDecorator dit toujours `GIT=ignoré`.
+- **N2 — Un chantier joué dans un worktree né avant le suivi du contexte.**
+  - ✅ Le cas : 10 `GARDE:` du 2026-09-30 au 2026-10-01, sur `MOR` puis `FAM` — 9 dans le worktree
+    `chantier-mor-61fb78`, 1 depuis le dossier principal pendant `MOR` : pages introuvables,
+    `page --creer` lancé sans ses arguments, une fiche introuvable, un relecteur qui ne trouve pas
+    `FAM3`.
+  - ✅ Aujourd'hui : `niveau` sur ce worktree s'arrête — `GARDE: index introuvable` et « fichier
+    d'état introuvable ». Sa branche part de `800a6db`, d'avant le suivi du contexte de Cairn
+    (`6aedfe7`, 2026-10-08).
+  - ✅ `NWT` couvre le côté du dossier principal (faux écarts, carte qui nomme le worktree), pas un
+    worktree auquel manquent l'index et l'état : **reprendre `FAM` là-bas butera dessus**, au plus
+    tard à la clôture.
+  - 💡 Cause supposée, non vérifiée : les 3 « sans commit » de `MOR` (2026-09-30), alors que
+    `MOR1` a son commit (`0df5510`, 2026-09-29, dans `main` aujourd'hui) — `cout` lancé depuis le
+    dossier principal avant la fusion du worktree.
+
+### Les pistes
+
+💡 Proposé — sans recherche de l'existant (`AVL6`).
+
+1. **Le kit ne sert plus aux projets depuis le 2026-10-02** : 0 lancement en 9 jours, quand la V1
+   du kit vise Cairn et MapDecorator. 💡 Un `vlp.py usage <projet> --depuis D` ferait la commande
+   ci-dessus en un appel ; à grouper avec le `hors` d'`AVL2` (piste 1) — 1 fiche pour les deux
+   (≈ 4,40 $). 🟡 À décider : suivre ce chiffre sur la feuille de route ?
+2. **N2 dans `NWT`**, sans fiche : une phrase de plus — la carte dit qu'un worktree est en retard
+   sur `main` pour son contexte, et propose de l'y mettre à jour.
+3. **N1 = constat C3 d'`AVL3`**, sans fiche : la ligne `--allow-empty` dans `/vlp:tache`.
+4. 🟡 **ProjetONZSM et TrackGen n'ont jamais lancé le kit depuis le 2026-09-17**, et n'ont aucun
+   chantier : à trancher pour `AVL7` et `AVL10` — les garder dans la V1 du kit, ou non.
