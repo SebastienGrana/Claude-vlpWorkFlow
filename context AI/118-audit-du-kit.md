@@ -937,3 +937,163 @@ web »). Les pistes d'`AVL1` à `AVL5` qui écriraient un outil, par coût décr
 **Coût : 6 recherches, 2 pages lues en entier** (la fiche JSON de stalebrain sur PyPI, le
 `package.json` de ccusage) ; 2 pages tentées sans succès (PyPI en HTML : « A required part of this
 site couldn't load » ; npm : 403).
+
+## AVL7 — Ranger la TODO du kit vers sa V1
+
+💡 Proposé : rien n'est écrit dans la TODO, c'est `AVL9` ; la page d'`AVL8` le soumet. Sources : la
+table de la TODO (`context AI/08-etat.md`, « La TODO ordonnée », 12 lignes), les pistes d'`AVL1` à
+`AVL6` ci-dessus, la page d'enchaînement (`Artifact` `read`, le 2026-10-11).
+
+### La chaîne V1, en une ligne
+
+**`SYM` → `RLA` → `AVL1.1` → `AVL2.5` → `AVL3.C6` → `AVL7.1` → `NWT` → `HOR` → `ORD` → `VCL`** —
+servir Cairn et MapDecorator : `SYM`, `RLA`, `NWT`, `HOR`, `ORD` (les pistes « kit » d'`AMD` et
+d'`ACA`, socle Q1 A) ; puis garder le kit juste : un coût faux, une fuite sur le dépôt public. 18
+fiches, ≈ 79,20 $ (4,40 $ la fiche, estimé) ; `AVL`, en cours, n'y est pas.
+
+- ✅ **Aucune dépendance ouverte** : la colonne « Dépend de » en porte 2 — `BDD` ← `PLI`, `ORD` ←
+  `ACA` —, tous deux clos (lettres prises, `CHANTIER.md`) ; `vlp.py trier` sur une copie n'écarte
+  aucune ligne pour une dépendance (les 2 écartées le sont pour `(visuel)`).
+- 💡 Une seule dépendance proposée entre pistes neuves, faute de colonne : `AVL7.2` après `AVL7.1`.
+
+### Comment je range
+
+- **V1** : ce que la V1 de Cairn ou de MapDecorator demande au kit, ou ce qui garde le kit juste —
+  un test ou un coût faux (socle, Q1 A). 💡 J'y ajoute une fuite sur le dépôt public (`AVL1.1`) : la
+  règle globale dit « aucun chemin local dans un dépôt ».
+- **V2** : plus vite, moins cher ou plus lisible, sans que la V1 l'attende. **Après** : confort,
+  attente d'un déclencheur, ou gain non mesuré.
+- **Facilité** : l'échelle du socle, sur le haut de la fourchette **lu par moi dans la case** — pas
+  par `borne_haute_cout`, qui en lit 6 de travers (plus bas) ; entre deux paliers (1,5 ; 2½),
+  arrondi vers le haut ; « sans fiche » → 5.
+- **Égalité de score** : l'importance d'abord, puis servir avant garder juste, puis le numéro de la
+  TODO, puis l'ordre des fiches d'`AVL`.
+- **Code d'une piste neuve** : sa source (`AVL3.C6` = `AVL3`, constat C6) ; le vrai code à trois
+  majuscules se choisit quand `AVL9` l'écrit.
+
+### La table
+
+| Rang | Code | Version | Raison | Fiches (haut) | Importance | Facilité | Score |
+|---:|---|---|---|---|---:|---:|---:|
+| 1 | `SYM` | V1 | MapDecorator code en `.as`, que `symboles` ne lit pas (`AMD1`) | 1 | 5 | 5 | 25 |
+| 2 | `RLA` | V1 | Cairn : une relance de ≈ 34 min compte comme une lecture (`ACA6`, Q14) | 1 | 5 | 5 | 25 |
+| 3 | `AVL1.1` | V1 | 13 lignes, 5 fichiers portent un chemin de la machine, sur un dépôt public | 1 | 5 | 5 | 25 |
+| 4 | `AVL2.5` | V1 | la 1re fiche d'un chantier perd ses tours derrière un commit d'étape (`AVL1` : 0 tour) | 1 | 5 | 5 | 25 |
+| 5 | `AVL3.C6` | V1 | un essai `claude -p` hors bac sort du coût (`VIT` clos sans ses essais) | 1 | 5 | 5 | 25 |
+| 6 | `AVL7.1` | V1 | `trier` et la feuille lisent de travers 6 coûts sur 12 (plus bas) | 1 | 5 | 5 | 25 |
+| 7 | `NWT` | V1 | faux écarts de `niveau` : Cairn (worktree), MapDecorator (contexte ignoré) | 2 (1 + ½ + ½) | 5 | 4 | 20 |
+| 8 | `HOR` | V1 | Cairn : 23 % du coût hors chantier, sur aucune page (`ACA2`) ; couvre `AVL2`, piste 1 | 2 | 5 | 4 | 20 |
+| 9 | `ORD` | V1 | la page d'enchaînement se refait à la main, coûts recopiés à quatre endroits | 3, estimé ici (2 à 3) | 5 | 3 | 15 |
+| 10 | `CAR` | V2 | la feuille de Cairn (65 960 octets au cadrage d'`ARC`) plus légère à chaque clôture | sans fiche | 3 | 5 | 15 |
+| 11 | `AVL1.2` | V2 | `${CLAUDE_PLUGIN_ROOT}` en clair dans `cloture.md`, 5 lignes ; aucun raté vu | 1 | 3 | 5 | 15 |
+| 12 | `AVL2.2` | V2 | comprendre la hausse du $ par fiche (2,46 → 4,52 $) avant le remède | 1 | 3 | 5 | 15 |
+| 13 | `AVL3.2` | V2 | la TODO fait 68 % de la carte de `/vlp:chantier` ; 💡 la carte n'en garde que code, coût, dépendance, score | 1 | 3 | 5 | 15 |
+| 14 | `AVL3.A2` | V2 | la carte imprime l'effort voulu, que `tache` ne peut pas lire dans la méthode | 1 | 3 | 5 | 15 |
+| 15 | `AVL3.C5` | V2 | `clore` imprime les chemins à lire avant de republier (10 refus sur 50, `APR`) | 1 | 3 | 5 | 15 |
+| 16 | `AVL4.1` | V2 | `vlp.py usage` : 0 lancement du kit dans les projets depuis le 2026-10-02 | 1 | 3 | 5 | 15 |
+| 17 | `VCL` | V1 | un prix du cache en doute (0,20 ou 0,10 $), des tours perdus (`TAB`, `AMD`), ≈ 88 pages | 5 (3 à 4 + ½ + ½) | 5 | 2 | 10 |
+| 18 | `AVL5.1` | V2 | la remesure d'un fait tiré d'un autre projet ; avis d'`AVL5` : attendre `C1` | 3 (2 à 3) | 3 | 3 | 9 |
+| 19 | `AVL7.2` | V2 | l'outil du score (socle d'`AVL`), chiffré plus bas ; après `AVL7.1` | 3 (2 à 2½) | 3 | 3 | 9 |
+| 20 | `CAN` | V2 | la nuit suivie d'un coup d'œil, et 5 accrocs de nuit (ses points 4 à 8) | 7 | 3 | 2 | 6 |
+| 21 | `ENA` | V2 | `enchainer agents` bloque, ≈ 45 min par fiche, sans parallèle ; 💡 y joindre la page qui marque un blocage (`AVL3`, A6) | 6, estimé ici (5 à 6) | 3 | 2 | 6 |
+| 22 | `AVL3.A12` | après | 5 récits chiffrés de la méthode vers `lecons-mesure.md` | 1 | 1 | 5 | 5 |
+| 23 | `AVL3.C4` | après | la carte avertit quand `agents/` a changé en cours de séance — rare | 1 | 1 | 5 | 5 |
+| 24 | `BDD` | après | l'étape 1 : compter ce que la base ferait gagner ; gain inconnu | 1,5 | 1 | 4 | 4 |
+| 25 | `REF` | V2 | 35 des 59 dépassements dans `vlp_coeur.py` (`AVL1`) ; placé, pas joué | 9 | 3 | 1 | 3 |
+| en cours | `AVL` | V1 | cet audit | 11, joué | 5 | 1 | 5 |
+
+**Comptes** : 26 lignes = 12 de la TODO + 14 neuves (12 d'`AVL1` à `AVL6`, `AVL7.1` trouvée ici,
+`AVL7.2` venue du socle). Par version : **V1 11 · V2 12 · après 3** = 26. En fiches, hors `AVL` :
+V1 18 · V2 34 · après 3,5 — 55,5 fiches, ≈ 244,20 $ (estimé).
+
+- ⚠️ Effet de la formule : 7 lignes V2 à 15 passent avant `VCL` (V1, 10). 🟡 À trancher sur la page
+  d'`AVL8` : garder, ou relever la note de `VCL`. Son point (0), le prix du cache, fausse tous les
+  coûts s'il est faux : 💡 le jouer seul d'abord.
+- `AVL2`, piste 1 (le hors chantier) est `HOR` : pas de ligne de plus. `AVL4`, piste 1 (`usage`) lit
+  les mêmes transcripts : 💡 à joindre à `HOR` au cadrage, si les deux passent ensemble.
+
+### Les corrections sans fiche, à part
+
+1. `AVL1`, p. 8 — la ligne de routage de `CLAUDE.md` vers ce fichier : déjà dans `AVL9`.
+2. `AVL1`, p. 9 — `scripts/sante-base.json` suit `main` : la prochaine fiche de code le verrouille.
+3. `AVL3` — les **21** « sans fiche » de sa table (colonne Piste), dont `N1` d'`AVL4` (= C3) : une
+   séance de ménage ; trois touchent le global (A4, A5, C1).
+4. `AVL3`, p. 5 — un audit rouvre la liste du précédent : une phrase de méthode.
+5. `AVL4`, p. 2 — `N2` dans la ligne `NWT` : une phrase.
+6. `AVL5` — corriger le n° 3 dans le socle d'`AVL`, le n° 9 dans la ligne `NWT`.
+7. `AVL6` — `--strict` à `claude plugin validate`, au pre-commit : à essayer.
+8. `AVL7` — réécrire les coûts de `VCL`, `NWT`, `SYM`, `RLA`, `HOR` pour que `trier` les lise :
+   retirer « (3,68 $ la fiche) », finir `VCL` par « → 4 à 5 fiches en tout » et `NWT` par « → 2
+   fiches en tout ». ✅ Essayé sur la copie : lus 5, 2, 1, 1, 2 (plus bas).
+
+🟡 **À trancher sur la page d'`AVL8`**, sans fiche : l'estimé ×1,85 (`AVL2`, p. 3 : doubler le
+compte du cadrage, ou le tirer des clos) ; les 5 clos sans `$` (`AVL2`, p. 4) ; la règle 3 contre
+la commande autoportante (`AVL3`, A10) ; la rétention des transcripts, « ~30 jours » non établi
+(`AVL6`) ; ProjetONZSM et TrackGen — 💡 hors de la V1 du kit, toujours équipés : 0 lancement et 0
+chantier depuis le 2026-09-17 (`AVL4`, p. 4).
+
+### L'outil du score, chiffré
+
+💡 Proposé, estimé à 4,40 $ la fiche ; rien construit (socle, « Dehors »).
+
+| Pièce | Ce qu'elle fait | Fiches |
+|---|---|---|
+| le champ | le format plus bas, écrit à la main par `AVL9` (le kit) et `AVL10` (les 4 projets) | 0 |
+| `vlp.py trier` | lit phase et importance, calcule facilité et score sur la borne lue, range les prêts par score, dépendances d'abord ; part de `trier` (`scripts/vlp_coeur.py:4263`), testé | 1 |
+| la garde | signale un score écrit qui ne vaut plus son produit, ou une facilité qui ne suit plus le coût | ½ |
+| la feuille | phase et score déjà lisibles en tête de la case de coût, sans code (essai) ; une pastille et les cartes rangées par score | 0 à ½ |
+| `/vlp:chantier` | une ligne neuve de TODO reçoit sa phase et son score au cadrage | ½ |
+| les 3 projets | les TODO de Cairn (27 lignes) et MapDecorator (19) se lisent déjà par `todo_du_fichier` : 0 erreur ; le même code sert | 0 |
+
+**2 à 2½ fiches, ≈ 8,80 à 11 $**, après `AVL7.1` : la facilité se calcule sur le coût lu, faux
+aujourd'hui sur 6 lignes du kit sur 12.
+
+### Entre projets — pour la page d'enchaînement
+
+1. **Cairn** reprend juste après `AVL`, par `SCH` (tranché, D11) ; `NWT` passe avant `FAM11`, la
+   fusion d'un chantier joué en worktree, que `niveau` voit de travers.
+2. **MapDecorator** : ses notes, son ménage et `C2` dès maintenant ; `SYM` d'abord, il code en
+   `.as` ; la remesure d'`AVL5`, si elle est gardée, juste avant `C1`.
+3. **Le kit** : ses V1 d'une ou deux fiches se glissent entre deux vagues, une à la fois ; `VCL`,
+   `ORD` et la V2 après la V1 de MapDecorator, `REF` en dernier.
+
+### Le format, essayé sur une copie
+
+- **Le format** : en tête de la case « Coût estimé », `**<phase> · score <s> (<importance> ×
+  <facilité>)** · ` — par exemple `**V1 · score 25 (5 × 5)** · 1 fiche · …`. Phase : `V1`, `V2`
+  ou `après`. Aucune colonne de plus.
+- **Pourquoi là** : à côté du coût dont vient la facilité ; la feuille le montre déjà, en tête de la
+  case de droite de chaque carte. Le segment ne dit pas « fiche » : `borne_haute_cout`
+  (`scripts/vlp_coeur.py:3740`) l'ignore ; ni marque du tri (`MARQUES_TRI`, `:4193`), ni backtick.
+- **L'essai** : `CHANTIER.md`, la TODO et la feuille copiés deux fois hors de Git (le scratchpad de
+  la séance) ; dans la seconde, les 12 cases de coût marquées ; `vlp.py trier` et `vlp.py feuille`
+  lancés sur les deux.
+- **Le coût lu, avant et après** :
+  - `trier` : sort 0 deux fois ; sorties identiques (`True`), `TRI 12 rangs · 10 prêts · 2
+    écartées` ; `SOIR` identiques — `AVL` et `REF` « gros : jusqu'à 7 » et « 9 fiches » ; `CAR`,
+    `ENA`, `SYM`, `ORD`, `RLA`, `HOR` « coût sans nombre de fiches ».
+  - `borne_haute_cout` : 12 lignes sur 12 identiques.
+  - `feuille` : sort 0 deux fois ; le résumé identique, « 12 chantiers possibles · 2 petits, 1
+    moyen, 3 gros, 6 pas estimés · ≈25,5 fiches estimées » ; 24 lignes de page diffèrent, les 24
+    portent une case de coût (12 cartes, avant et après).
+- ⚠️ **Le même coût qu'avant, mais pas le juste** : 6 lignes sur 12 mal lues, dès avant le format.
+
+  | Code | Lu | Dans la case | Pourquoi |
+  |---|---|---|---|
+  | `AVL` | 7 | 4 à 6 | lit « `AMD` : 7 fiches », dans la parenthèse |
+  | `VCL` | 0,5 | 3 à 4, + ½, + ½ | le dernier ajout, « +½ fiche », lu comme le total |
+  | `NWT` | 0,5 | 1, + ½, + ½ | idem |
+  | `SYM` | rien | 1 | le dernier segment qui dit « fiche » est le prix, « (3,68 $ la fiche) », sans nombre devant |
+  | `RLA` | rien | 1 | idem |
+  | `HOR` | rien | 2 | idem |
+
+  Le même contrôle sur Cairn (27 lignes) et MapDecorator (19) : **0** ligne douteuse — ce sont
+  des tournures du kit, ajoutées le 2026-10-11 (dates des cases). Après la réécriture sans fiche n° 8, sur la
+  copie : `VCL` 5, `NWT` 2, `SYM` 1, `RLA` 1, `HOR` 2 ; `SOIR VCL — gros : jusqu'à 5 fiches` ; le
+  résumé, « 2 petits, 3 moyens, 4 gros, 3 pas estimés · ≈35,5 fiches estimées » (`AVL` encore lu
+  7 : sa ligne part à la clôture). `AVL7.1` empêche la rechute.
+- **Rejouer le coût lu**, depuis la racine du kit :
+
+  ```
+  py -3 -X utf8 -c "import sys; sys.path.insert(0, 'scripts'); import vlp_coeur as v; [print(r[0], v.codes_todo([r])[0], v.borne_haute_cout(r[3])) for r in v.todo_du_fichier(v.lignes_de('context AI/08-etat.md'))]"
+  ```

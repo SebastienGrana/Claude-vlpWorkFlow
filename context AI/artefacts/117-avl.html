@@ -21,9 +21,9 @@
     <p>Une page à cartes répondue qui range la TODO du kit vers sa V1 (servir Cairn et MapDecorator, rester juste), la page d'enchaînement à jour, et le sommaire des trois audits envoyé seul.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">11 fiches · 6 faites · en cours : AVL7</p>
+    <p class="mono" style="margin-top:.5rem">11 fiches · 7 faites · en cours : AVL8</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -61,12 +61,13 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">AVL6</span></span>
         <details><summary><span class="titre">Chercher ce qui existe déjà, 6 recherches au plus</span><span class="etat">Faite</span></summary>
         <span class="note">table de 4 pistes → existant → nous-mêmes ; remesure : stalebrain 0.1.3 (MIT) et 9 autres outils, aucun ne vise un fait tiré d'un autre dépôt — nous-mêmes, 2 à 3 fiches, sur le modèle de txm ; claude plugin validate déjà au pre-commit ; coût : 6 recherches, 2 pages lues</span></details>
-        <span class="cout mono">≈3,4M (3 417 946) · 12 tours · 1,30 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">AVL7</span></span>
-        <details open><summary><span class="titre">Ranger la TODO du kit vers sa V1</span><span class="etat">En cours</span></summary>
-        <span class="note">La TODO du kit rangée vers sa V1 par score (importance × facilité), dépendances d'abord ; REF placé, l'outil du score chiffré ; dépend d'AVL1 à AVL6</span></details></li>
-      <li class="fiche" data-attend><span class="gauche"><span class="id">AVL8</span></span>
-        <details><summary><span class="titre">Publier la page à cartes de l'audit</span><span class="etat">Après AVL7</span></summary>
+        <span class="cout mono">≈3,7M (3 720 541) · 13 tours · 1,38 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">AVL7</span></span>
+        <details><summary><span class="titre">Ranger la TODO du kit vers sa V1</span><span class="etat">Faite</span></summary>
+        <span class="note">26 lignes classées : V1 11, V2 12, après 3 = 12 + 14 neuves, 0 score faux (vérifié par script) ; chaîne V1 : SYM, RLA, AVL1.1, AVL2.5, AVL3.C6, AVL7.1, NWT, HOR, ORD, VCL, 18 fiches ; outil du score : 2 à 2½ fiches ; format en tête de la case Coût : trier et feuille lisent le même coût avant et après (12/12) — mais 6 coûts sur 12 mal lus dès avant (AVL7.1)</span></details>
+        <span class="cout mono">≈5,5M (5 535 184) · 27 tours · 4,19 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">AVL8</span></span>
+        <details open><summary><span class="titre">Publier la page à cartes de l'audit</span><span class="etat">En cours</span></summary>
         <span class="note">La page à cartes, remplie par l'utilisateur, dont une note d'importance par chantier (visuel) ; dépend d'AVL7</span></details>
         <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">AVL9</span></span>
@@ -82,7 +83,7 @@
         <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈10,0M (9 993 019) · 51 tours · 4,91 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈52,6M (52 613 399) · 265 tours · 25,72 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈58,5M (58 451 178) · 293 tours · 29,99 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
