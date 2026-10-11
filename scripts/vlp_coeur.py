@@ -8875,13 +8875,19 @@ def cmd_symboles(a, sortie):
     """Imprimer `nom début-fin` pour chaque fonction ou classe de premier niveau de `a.fichier`, lu par `ast` sans
     l'importer — ou pour les seuls `a.noms`, `ABSENT <nom>` pour ceux qui n'y sont pas (sort 1) : une fiche cite un
     nom, ce script rend sa ligne du jour (VIT9). `ast` plutôt que `pyclbr`, bâti dessus : `pyclbr` garde un cache par
-    nom de module, faux d'un fichier à l'autre dans un même processus. Fichier absent : `GARDE:`, sort 1."""
+    nom de module, faux d'un fichier à l'autre dans un même processus. Fichier absent, ou qui ne se lit pas en
+    Python (un `.as`, `AMD1`) : `GARDE:`, sort 1 — jamais un traceback (SYM)."""
     import ast
     if not os.path.isfile(a.fichier):
         sortie.write("GARDE: %s n'est pas un fichier\n" % a.fichier)
         return 1
-    with open(a.fichier, encoding="utf-8") as f:
-        corps = ast.parse(f.read()).body
+    try:
+        with open(a.fichier, encoding="utf-8") as f:
+            corps = ast.parse(f.read()).body
+    except (SyntaxError, UnicodeDecodeError, ValueError) as e:
+        sortie.write("GARDE: %s ne se lit pas en Python (symboles ne lit que le Python ; grep -n ailleurs) : %s\n"
+                     % (a.fichier, str(e).splitlines()[0] if str(e) else type(e).__name__))
+        return 1
     trouves = {n.name: n for n in corps if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))}
     for n in a.noms or list(trouves):
         o = trouves.get(n)

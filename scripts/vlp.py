@@ -541,7 +541,8 @@ Sous-commandes :
 - `symboles <fichier> [<nom>…]` — une ligne `nom début-fin` par fonction ou classe de premier niveau d'un
   fichier Python, dans l'ordre du fichier, lue par `ast` sans l'importer (VIT9) : une fiche cite un nom,
   ceci rend sa ligne du jour. Avec des noms, leurs seules lignes, dans l'ordre demandé, et `ABSENT <nom>`
-  pour un nom introuvable (sort 1). Fichier absent : `GARDE:`, sort 1.
+  pour un nom introuvable (sort 1). Fichier absent, ou qui ne se lit pas en Python : `GARDE:`, sort 1
+  (SYM).
 - `rapide <motif> [--racine R]` — le contrôle rapide d'une fiche du kit, avant la suite entière (VIT23), joué en
   parallèle sous la racine (défaut : le dossier courant) : les groupes de `test-vlp.py` qui portent le motif
   (`--seul`), pyright sur les `.py` ajoutés, modifiés ou neufs depuis `HEAD`, et `sante --cliquet`. Une ligne

@@ -4418,6 +4418,16 @@ def tester_symboles():
         code = mod.main(["symboles", chemin, "Trois", "rien", "un"], o)
         verifier("VIT9 : symboles avec des noms, leurs seules lignes, ABSENT pour l'inconnu, sort 1",
                  code == 1 and o.getvalue() == "Trois 14-16\nABSENT rien\nun 4-5\n", o.getvalue())
+        angel = os.path.join(t, "deco.as")
+        ecrire(angel, "class Deco {\n    void Poser() { int x = 1; }\n}\n")
+        o = io.StringIO()
+        try:
+            code = mod.main(["symboles", angel], o)
+        except SyntaxError as e:    # l'ancien comportement : le traceback, rendu en écart
+            code = "traceback %s" % e
+        verifier("SYM : symboles sur un fichier non Python, une GARDE: et sort 1, jamais un traceback",
+                 code == 1 and o.getvalue().startswith("GARDE: %s ne se lit pas en Python" % angel)
+                 and o.getvalue().count("\n") == 1, o.getvalue())
 
 
 groupe(tester_symboles)
