@@ -1146,6 +1146,19 @@ def tester_commit_au_titre():
                  and "\nQ1 · ≈200,0k (200 000) · 2 tours · 1,00 $" in s
                  and "\nQ2 · ≈300,0k (300 000) · 3 tours · 1,50 $" in s
                  and "TOTAL (fiches + hors fiches) · ≈700,0k (700 000) · 7 tours" in s, s)
+        # PRF : un commit `Q1 : case cochée` posé juste avant `Q1 : Créer` ne devient pas le début de Q1.
+        d2 = os.path.join(t, "q2")
+        ecrire(os.path.join(d2, "q.md"), QFICHES % (sq, sq))
+        subprocess.run(["git", "init", "-q"], cwd=d2, env=env, check=True, capture_output=True)
+        for x, sujet in ((100, "Chantier Q ouvert : cadré"), (298, "Q1 : case cochée, en route"), (300, "Q1 : Créer"),
+                         (600, "Q2 : Brancher"), (800, "Chantier Q clos : fini")):
+            date = "%d +0000" % (T0 + x)
+            subprocess.run(["git", "commit", "-q", "--allow-empty", "-m", sujet], cwd=d2, check=True,
+                           capture_output=True, env=dict(env, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date))
+        code, s = appel(["cout", os.path.join(d2, "q.md")])
+        verifier("PRF : la première fiche part de l'ouverture, pas d'un commit à elle posé avant le sien",
+                 code == 0 and "\nQ1 · ≈200,0k (200 000) · 2 tours · 1,00 $" in s
+                 and "TOTAL (fiches + hors fiches) · ≈700,0k (700 000) · 7 tours" in s, s)
 
 
 groupe(tester_commit_au_titre)

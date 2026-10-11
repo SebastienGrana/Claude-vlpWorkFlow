@@ -2523,7 +2523,8 @@ def heures_commits(fichier, ids, pourquoi=None, clos=False, titres=None):
     le plus ancien de ceux dont le sujet suit par le titre de la fiche (`titres`, {id: titre} ;
     le commit de 6 bis et de `boucle.py`), à défaut le plus ancien : un commit d'étape en cours de
     fiche ne la coupe plus avant sa fin, un correctif d'après ne l'étire pas (chantier PRP, `NUI20`) —,
-    celles de tous les commits qui nomment le préfixe (`REP`, `REP2`…),
+    celles de tous les commits qui nomment le préfixe (`REP`, `REP2`…) — sauf un commit de fiche plus
+    ancien que le premier retenu, une étape de celle-ci, qui ne borne pas son début (PRF) —,
     celles des autres commits, puis, à part, celles des seuls commits `<PRÉFIXE> :` (`VIT :`,
     `Dette VIT :`, pas `Chantier VIT ouvert`), triées : elles bornent le chantier (`plages`).
     Sans commit de fiche, `{}` d'abord : un chantier en cours. None sans `git`, sans dépôt,
@@ -2547,7 +2548,7 @@ def heures_commits(fichier, ids, pourquoi=None, clos=False, titres=None):
     nomme = re.compile(r"(?<![A-Za-z0-9])(?:%s)[0-9]*(?![A-Za-z0-9])"
                        % "|".join(sorted({lettre_de(i) for i in ids})))
     coupe = re.compile(r"(?<![A-Za-z0-9])(?:%s) :" % "|".join(sorted({lettre_de(i) for i in ids})))
-    commits, au_titre, prefixe, autres, coupes = {}, {}, [], [], []
+    commits, au_titre, prefixe, autres, coupes, etapes = {}, {}, [], [], [], set()
     for ligne in r.stdout.splitlines():
         heure, _, sujet = ligne.partition(" ")
         if not heure.isdigit():
@@ -2556,6 +2557,7 @@ def heures_commits(fichier, ids, pourquoi=None, clos=False, titres=None):
         coupes.extend([int(heure)] if coupe.search(sujet) else [])
         c = COMMIT_FICHE.match(sujet)
         if c and c.group(1) in ids:
+            etapes.add(int(heure))
             titre = (titres or {}).get(c.group(1))
             vus = au_titre if titre and sujet[c.end():].replace("`", "").strip().startswith(titre) else commits
             vus[c.group(1)] = min(int(heure), vus.get(c.group(1), int(heure)))
@@ -2568,6 +2570,10 @@ def heures_commits(fichier, ids, pourquoi=None, clos=False, titres=None):
             pourquoi.append("chantier clos sans commit « %s : » ni d'une autre fiche" % ids[0])
             return None
         return {}, sorted(prefixe), sorted(autres), sorted(coupes)
+    # Un commit `<id> :` plus ancien que le premier commit de fiche retenu est une étape de cette fiche
+    # (`AVL1 : case cochée`, deux secondes avant `AVL1 : <titre>`) : il ne borne pas son début (PRF).
+    premier = min(commits.values())
+    prefixe = [t for t in prefixe if not (t < premier and t in etapes)]
     return commits, sorted(prefixe), sorted(autres), sorted(coupes)
 
 
