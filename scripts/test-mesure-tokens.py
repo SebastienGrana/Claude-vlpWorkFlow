@@ -2,7 +2,8 @@
 """Teste mesure-tokens.py sans fixture sur disque.
 
 Écrit des jsonl synthétiques dans un dossier temporaire, appelle `mesurer`,
-`resoudre`, `sous_agents` et `main`, compare. Imprime `OK` et sort 0, ou le premier écart et sort 1.
+`resoudre`, `sous_agents` et `main`, compare. Imprime `OK` et sort 0, ou le premier écart
+(`ÉCART: …`) et sort 1 ; sous `VLP_TOUS_ECARTS=1` (`vlp.py mutant`), tous, puis `FIN:`.
 """
 import contextlib
 import datetime
@@ -441,7 +442,19 @@ def verifier_actif():
     return None
 
 
-def main():
+def verifier_grille():
+    sortie = io.StringIO()
+    with contextlib.redirect_stdout(sortie):
+        code = mod.main(["--grille"])
+    n = len(sortie.getvalue().splitlines())
+    if code != 0 or n != 1 + len(mod.GRILLE):
+        return f"main(--grille) : code {code}, {n} lignes, attendu {1 + len(mod.GRILLE)}"
+    return None
+
+
+def ecarts():
+    """Le résultat de chaque cas, dans l'ordre : un écart ou None. Un générateur : la suite s'arrête où `main` cesse
+    de lire."""
     for nom, lignes, attendu, *options in [
         ("trois-tours", LIGNES, ATTENDU),
         ("divergent", LIGNES_DIVERGENT, ATTENDU_DIVERGENT),
@@ -452,20 +465,25 @@ def main():
         ("haiku-5-5 palier bas", LIGNES_HAIKU55_BAS, ATTENDU_HAIKU55_BAS),
         ("haiku-5-5 palier haut", LIGNES_HAIKU55_HAUT, ATTENDU_HAIKU55_HAUT),
     ] + CAS_PLAGE:
-        ecart = verifier(nom, lignes, attendu, *options)
+        yield verifier(nom, lignes, attendu, *options)
+    for bloc in (verifier_resolution, verifier_sous_agents, verifier_chemin_long, verifier_plage_cli, verifier_actif,
+                 verifier_grille):
+        yield bloc()
+
+
+def main():
+    """`OK` et 0 ; sinon `ÉCART: …` et 1, au premier écart — sous `VLP_TOUS_ECARTS=1`, tous puis `FIN:`, pour que
+    `vlp.py mutant` dise ATTRAPÉ et non PLANTÉ (dette d'`ACA`, 2026-10-11)."""
+    tous = os.environ.get("VLP_TOUS_ECARTS") == "1"
+    vus = 0
+    for ecart in ecarts():
         if ecart:
-            print(ecart)
-            return 1
-    for bloc in (verifier_resolution, verifier_sous_agents, verifier_chemin_long, verifier_plage_cli, verifier_actif):
-        ecart = bloc()
-        if ecart:
-            print(ecart)
-            return 1
-    sortie = io.StringIO()
-    with contextlib.redirect_stdout(sortie):
-        code = mod.main(["--grille"])
-    if code != 0 or len(sortie.getvalue().splitlines()) != 1 + len(mod.GRILLE):
-        print(f"main(--grille) : code {code}, {len(sortie.getvalue().splitlines())} lignes, attendu {1 + len(mod.GRILLE)}")
+            print("ÉCART:", ecart)
+            vus += 1
+            if not tous:
+                return 1
+    if vus:
+        print(f"FIN: {vus} écart(s)")
         return 1
     print("OK")
     return 0
