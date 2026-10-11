@@ -1097,3 +1097,129 @@ aujourd'hui sur 6 lignes du kit sur 12.
   ```
   py -3 -X utf8 -c "import sys; sys.path.insert(0, 'scripts'); import vlp_coeur as v; [print(r[0], v.codes_todo([r])[0], v.borne_haute_cout(r[3])) for r in v.todo_du_fichier(v.lignes_de('context AI/08-etat.md'))]"
   ```
+
+## AVL8 — La page à cartes, et les réponses de l'utilisateur
+
+**Page** : https://claude.ai/artifact/TcavVedKARnVpVgZYxwyqe — privée, version 2 ; 34 cartes, 25 lignes
+de la TODO notées d'office (version et note) ; bâtie sur `templates/rapport-choix.html` par un script du
+scratchpad, hors du dépôt ; `vlp.py vigile` : `PAGE SAINE`.
+
+**Comment les réponses sont arrivées** (2026-10-11) :
+
+- **Envoi 1, collé** dans la conversation : Q1 à Q3 seulement — « les réponses d'apres était pré remplis ».
+  Avec ces mots : « voici mes réponses jusque la , mais pour la liste dotn on viens de parler met ce que tu
+  conseil stp », puis « j'en suis a la Q4 ». La liste en question : l'onglet V1, après sa question « pour
+  `La V1 — 10 lignes à noter` que conseil tu ? ».
+- **Mon conseil, posé sur la page** (version 2) : `RLA`, `AVL3.C6`, `HOR` à la note 4 (rien ne casse
+  sans eux : de la visibilité), les 7 autres à 5 ; Q4 cochée « change ». Il l'a remise à « garder » :
+  les notes de l'envoi 2 font foi.
+- **Envoi 2, le dernier** : par le bouton « 📨 Envoyer à Claude », ajouté à sa demande (essai, capacité
+  `db`, document `envois/dernier`), lu par `ArtifactData` `get` ; `envoye_le` 2026-10-11T21:19:06.489Z,
+  « 84 sur 84 répondues ». Il le recopie ci-dessous **tel quel**.
+
+**Décidé hors de la page**, au questionnaire de la conversation :
+
+- L'envoi direct : « Essai ici, puis TODO (Recommandé) » — l'essai a marché au premier clic ;
+  ➡️ AVL9 écrit la ligne de TODO : le bouton dans le gabarit de tous les rapports (estimé 1 à 2 fiches).
+- Le bouton « conseil » par carte : « À la voix (Recommandé) » — « Explique-moi » (`sample`) reste éteint.
+
+### Les réponses, telles quelles (envoi 2)
+
+```
+Mes réponses — L'audit du kit : l'ordre à valider :
+- Q1 : garder
+- Q2 : garder
+- Q3 : sortir-prix
+- SYM-version : V1
+- SYM-note : 5
+- RLA-version : V1
+- RLA-note : 4
+- AVL1.1-version : V1
+- AVL1.1-note : 5
+- AVL2.5-version : V1
+- AVL2.5-note : 5
+- AVL3.C6-version : V1
+- AVL3.C6-note : 4
+- AVL7.1-version : V1
+- AVL7.1-note : 5
+- NWT-version : V1
+- NWT-note : 5
+- HOR-version : V1
+- HOR-note : 4
+- ORD-version : V1
+- ORD-note : 5
+- VCL-version : V1
+- VCL-note : 5
+- Q4 : garder
+- CAR-version : V2
+- CAR-note : 3
+- AVL1.2-version : V2
+- AVL1.2-note : 3
+- AVL2.2-version : V2
+- AVL2.2-note : 3
+- AVL3.2-version : V2
+- AVL3.2-note : 3
+- AVL3.A2-version : V2
+- AVL3.A2-note : 3
+- AVL3.C5-version : V2
+- AVL3.C5-note : 3
+- AVL4.1-version : V2
+- AVL4.1-note : 3
+- AVL5.1-version : V2
+- AVL5.1-note : 3
+- AVL7.2-version : V2
+- AVL7.2-note : 3
+- CAN-version : V2
+- CAN-note : 3
+- ENA-version : V2
+- ENA-note : 3
+- REF-version : V2
+- REF-note : 3
+- Q5 : garder
+- AVL3.A12-version : après
+- AVL3.A12-note : 1
+- AVL3.C4-version : après
+- AVL3.C4-note : 1
+- BDD-version : V1
+- BDD-note : 2
+- Q6 : change
+- Q7 : quatre
+- Q8 : oui
+- Q9 : oui
+- Q10 : oui
+- Q11 : oui
+- Q12 : oui
+- Q13 : oui
+- Q14 : menage
+- Q15 : non
+- Q16 : oui
+- Q17 : oui
+- Q18 : avec-hor
+- Q19 : attendre
+- Q20 : oui
+- Q21 : garder
+- Q22 : garder
+- Q23 : laisser
+- Q24 : seance
+- Q25 : oui
+- Q26 : oui
+- Q27 : oui
+- Q28 : oui
+- Q29 : oui
+- Q30 : doubler
+- Q31 : laisser
+- Q32 : copie-testee
+- Q33 : verifier
+- Q34 : hors-v1
+```
+
+### Ce que j'en lis, pour AVL9
+
+- **Tout suit le choix conseillé, sauf deux** : `BDD` passe d'« après » (note 1) à **V1, note 2** —
+  score 2 × 4 = **8**, sous `VCL` (10) ; **Q30 « doubler »** le compte du cadrage, où la page ne
+  conseillait rien. Aucun commentaire écrit (aucune ligne « ↳ »).
+- **La V1 rangée** (score = note × facilité) : `SYM`, `AVL1.1`, `AVL2.5`, `AVL7.1` et le prix du cache
+  sorti de `VCL` (Q3, 1 fiche, V1 : 5 × 5) à 25 · `NWT`, `RLA`, `AVL3.C6` à 20 · `HOR` 16 · `ORD` 15 ·
+  `VCL` 10 · `BDD` 8.
+- 🟡 **Q30, à cadrer à AVL9** : où le double s'écrit (le compte de `/vlp:chantier`, ou la facilité du
+  score), et s'il vaut pour les estimés déjà écrits.
