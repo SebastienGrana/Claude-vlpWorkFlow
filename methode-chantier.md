@@ -339,7 +339,8 @@ fichiers suivis, et la mécanique en vit — un commit par fiche, la marque
 d'ouverture lue dans un commit, les canaux de nuit, la fusion du matin.
 Restent hors Git ce qui est propre à une machine : les tampons (post-it
 `vlp-chantier`, marques `vlp-*`) et `.claude/launch.json`. Aucun de ces
-fichiers ne porte de chemin de machine. Un dépôt public se trie fichier par
+fichiers ne porte de chemin de machine : le `pre-commit` du kit refuse une ligne
+ajoutée qui en porte un (`CHM`). Un dépôt public se trie fichier par
 fichier avant d'y verser le contexte. Tranché le 2026-10-08 (`NUI34`).
 
 ## Le fichier de fiches

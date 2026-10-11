@@ -32,7 +32,7 @@ Claude Code dans Linux. La session prépare les commandes, ne les tape pas à sa
 
 **Lancer depuis Linux** : `claude plugin eval <kit> --tag wsl2 --runs 1 --ablation none --no-publish --scaffold
 --allow-tools Read Glob Grep Skill Bash --trust-plugin --max-cost-usd 3 -j 2`, lancé par
-`wsl.exe -d Ubuntu -- bash -lc "…"`. `<kit>` vu de Linux : `/mnt/c/Users/znorr/Documents/ProgPerso/Claude-vlpWorkflow`.
+`wsl.exe -d Ubuntu -- bash -lc "…"`. `<kit>` vu de Linux : `/mnt/c/Users/<nom>/Documents/ProgPerso/Claude-vlpWorkflow`.
 Plafond du chantier : **3 $** d'evals en tout ; au-delà, la fiche s'arrête. Coût et tours : `costUsd` et `turns` de
 `aggregate-result.json`, sous `evals/results/<date>/` (ignoré par git).
 

@@ -6022,6 +6022,31 @@ def tester_hook_pyright():
 groupe(tester_hook_pyright)
 
 
+def tester_hook_chemin():
+    # CHM : le hook refuse une ligne ajoutée qui porte un chemin de machine, sous ses trois formes ; `~` passe, et une
+    # ligne ancienne, gardée telle quelle, ne bloque rien. Les chemins se bâtissent par morceaux : écrits d'un bloc
+    # dans ce fichier, ils feraient refuser son propre commit.
+    if not shutil.which("git"):
+        print("SAUTÉ: git absent — le bloc des chemins du hook n'est pas testé")
+        return
+    with tempfile.TemporaryDirectory() as t:
+        depot, sans, git = hook_isole(t)
+        ecrire(os.path.join(depot, "a.md"), "le kit : ~/.claude/skills/vlp\n")
+        git(sans, "add", "a.md")
+        code, s = git(sans, "commit", "-q", "-m", "tilde")
+        verifier("CHM : hook, un chemin en ~ passe", code == 0 and "chemin de machine" not in s, s)
+        refus = []
+        for forme in ("C:" + "/Users/bob/x", "C:" + "\\Users\\bob\\x", "/mnt/c/" + "Users/bob/x", "C-" + "-Users-bob-Documents"):
+            ecrire(os.path.join(depot, "b.md"), "voir `%s`\n" % forme)
+            git(sans, "add", "b.md")
+            code, s = git(sans, "commit", "-q", "-m", "chemin")
+            refus.append(code == 1 and "pre-commit : chemin de machine dans une ligne ajoutée" in s)
+        verifier("CHM : hook, les trois formes de chemin de machine refusées (4 cas)", refus == [True] * 4, refus)
+
+
+groupe(tester_hook_chemin)
+
+
 def tester_hook_claude():
     # VIT19 : le hook demande claude à `vlp.py claude`. L'app là sans son claude.exe refuse le commit, en le
     # disant ; ni app ni claude, il passe averti. claude trouvé, validate lancé : `tester_pre_commit`.
