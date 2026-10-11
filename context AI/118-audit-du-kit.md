@@ -434,3 +434,197 @@ comm -3 <(ls C--Users-<nom>-Documents-ProgPerso-Claude-vlpWorkflow/*.jsonl | xar
    secondes. Le total du chantier ne change pas, seul son partage. Les fiches suivantes partent du
    commit de la précédente : non touchées. 💡 Le début de la première fiche ignorerait les commits
    de cette même fiche — 1 fiche de code, avec son test.
+
+## AVL3 — Relire les règles du kit comme un modèle les lit
+
+Lu le 2026-10-11 comme un modèle qui ouvre une séance du kit, puis une séance d'un projet équipé,
+par la méthode de `ProgPerso/NLP/audit-consignes-2026-09-20.md` : trois sortes de constats, le
+lecteur le plus faible en tête. **Lu en entier** : les 18 fichiers du kit de la ligne
+**Fichiers** d'`AVL3`, la méthode d'audit et `~/.claude/CLAUDE.md`, soit 20 fichiers, 3 084
+lignes, 183 280 octets (`wc -lc`) ;
+plus `skills/tache/references/tache-blocage.md`, pour le constat 6 du 2026-09-20. Rien n'est
+corrigé.
+
+### Ce qui marche — à ne pas « corriger »
+
+- ✅ Aucun renvoi mort : `vlp.py renvois .` rend `RENVOIS 136 nommés · 0 absents`.
+- ✅ Aucune sous-commande à l'ancien nom : 36 citées, 0 absente de la docstring de `vlp.py`.
+- ✅ Le contrat du sous-agent tient face au `CLAUDE.md` global : le constat 1 du 2026-09-20,
+  le plus grave, est corrigé (`agents/fiche.md:71-73`, `agents/relecture.md:48-50`).
+- ✅ Les noms d'outils cités sont à jour : `favicon` 0 ligne, `ArtifactComments` là où il faut.
+
+### Les fichiers routés par `CLAUDE.md`
+
+✅ **16** fichiers nommés par la table de routage (`CLAUDE.md` lignes 46–63) : **15** présents
+tels qu'écrits, **1** écrit sans son dossier.
+
+| Fichier routé | Présent ? |
+|---|---|
+| `00-INDEX.md` (`CLAUDE.md:48`) | ⚠️ absent à la racine ; présent comme `context AI/00-INDEX.md` |
+| `skills/<nom>/SKILL.md` | ✅ 8 fichiers `skills/*/SKILL.md` |
+| `skills/jouer/SKILL.md` | ✅ |
+| `agents/fiche.md` | ✅ |
+| `enchainement.md` | ✅ |
+| `methode-chantier.md` | ✅ |
+| `lecons-mesure.md` | ✅ |
+| `cloture.md` | ✅ |
+| `nuit.md` | ✅ |
+| `ARTEFACTS.md` | ✅ |
+| `templates/` | ✅ |
+| `context AI/117-avl.md` | ✅ |
+| `context AI/00-INDEX-archive.md` | ✅ |
+| `context AI/08-etat.md` | ✅ |
+| `context AI/12-audit.md` | ✅ |
+| `context AI/35-bilan.md` | ✅ |
+
+La commande, depuis la racine du kit (Git Bash) — la ligne `skills/<nom>/SKILL.md` y sort
+`ABSENT` : c'est un modèle de chemin, pas un fichier.
+
+```bash
+sed -n '46,63p' CLAUDE.md | grep -oE '`[^`]+`' | tr -d '`' | grep -E '\.md$|/$' | sort -u | while read -r f; do [ -e "$f" ] && echo "présent $f" || echo "ABSENT $f"; done
+```
+
+- ✅ `vlp.py renvois .` (index et routage) : `RENVOIS 136 nommés · 0 absents`, et
+  `POIDS CLAUDE.md 80/80` — **au seuil** : une ligne de plus en demande une de moins.
+- ✅ 25 fichiers que la doctrine cite, dont 5 déjà routés (`79-vigile.md`,
+  `99-joints-changes.md`, `77-alleger.md`, `skills/enchainer/references/refus.md`, les gabarits
+  de `templates/`, `hooks/hooks.json`, `scripts/carnet.py`…), vérifiés un par un par `[ -e ]` :
+  25 présents.
+
+### Les sous-commandes citées
+
+✅ **56** sous-commandes dans la docstring de `vlp.py` ; **36** citées par les 18 fichiers du kit
+lus ; **0** citée sous un nom absent. **20** ne sont citées nulle part : `bac`, `claude`,
+`comparer`, `compteur`, `etat`, `filet`, `forme`, `gardien`, `hook`, `kit-essai`, `liens`, `oter`,
+`ouverts`, `pause`, `prix`, `recompter`, `repeindre`, `servir`, `sessions`, `transcription` —
+`comparer` compte (constat C2).
+
+```bash
+py -3 -c "import ast,re,glob;d=ast.get_docstring(ast.parse(open('scripts/vlp.py',encoding='utf-8').read()));doc=set(re.findall(r'(?m)^- \`([a-z][a-z_-]*)',d));F=['CLAUDE.md','CHANTIER.md','methode-chantier.md','cloture.md','nuit.md','enchainement.md','ARTEFACTS.md','lecons-mesure.md']+glob.glob('skills/*/SKILL.md')+glob.glob('agents/*.md');c={m for f in F for m in re.findall(r'vlp\.py\"? ([a-z][a-z_-]+)',open(f,encoding='utf-8').read())};print(len(doc),len(c),sorted(c-doc),sorted(doc-c))"
+```
+
+### Les 7 constats du 2026-09-20, aujourd'hui
+
+| N° | Constat du 2026-09-20 | Aujourd'hui | Preuve |
+|---|---|---|---|
+| 1 | le global contre le contrat du sous-agent | ✅ corrigé | `agents/fiche.md:71-73` : « Ton lecteur est le chef, pas l'humain. » |
+| 2 | des outils cités sous un nom périmé | 🟡 3 sur 4 corrigés | `favicon` : 0 ligne ; `ArtifactComments` : `skills/chantier/SKILL.md:4,78` ; menu à 4 cases : `cloture.md:112` ; reste `init` (B10) |
+| 3 | « jauge », deux sens | toujours vrai | A3 |
+| 4 | « celui-ci » vise le mauvais nom | toujours vrai | A5 |
+| 5 | « message à part », sans le moyen | 🟡 en partie | `~/.claude/CLAUDE.md:14` dit désormais que l'app replie le texte suivi d'un appel d'outil |
+| 6 | une référence que l'agent ne peut pas appliquer | toujours vrai | A6 |
+| 7 | « 0 ter » sans « 0 bis » | toujours vrai | B13 |
+
+Bilan : **1** corrigé, **2** en partie, **4** toujours vrais — 7.
+
+### Les constats d'aujourd'hui
+
+Sorte : (a) contradiction, entre fichiers du kit ou avec `~/.claude/CLAUDE.md` · (b) fait
+périmé · (c) geste en prose qu'un oubli a déjà fait rater. Citations recopiées, moins de 15 mots.
+
+| N° | Sorte | Constat | Où | Citation | Statut | Piste |
+|---|---|---|---|---|---|---|
+| A1 | (a) | `/vlp:enchainer` sans argument joue toutes les fiches dans la même séance ; la méthode dit l'inverse | `methode-chantier.md:181-184` ; `skills/enchainer/SKILL.md:16-18` ; `CLAUDE.md:73` | « Jamais deux fiches dans la même session » / « Sans argument (ou `main`) : aucun sous-agent. » | ✅ texte | sans fiche : la méthode nomme les trois modes (`main`, `agents`, `clear`) |
+| A2 | (a) | `tache` veut l'effort tiré de la méthode, et interdit d'ouvrir la méthode | `skills/tache/SKILL.md:57-58` ; `:23` | « effort voulu (`methode-chantier.md`, « L'effort se règle selon la tâche ») » / « ni `CLAUDE.md`, ni index, ni méthode » | ✅ texte | 💡 1 fiche : la carte imprime l'effort voulu |
+| A3 | (a) | « jauge » : l'avancement des fiches, ou le ressenti de fin | `skills/tache/SKILL.md:171` ; `~/.claude/CLAUDE.md:104` | « Finis par la jauge, une ligne » / « Toute tâche finit par une ligne de jauge » | ✅ texte (constat 3) | sans fiche : « ligne d'avancement » dans `tache` |
+| A4 | (a) | `tache` ferme sa fin, le global en ajoute une | `skills/tache/SKILL.md:126` ; `~/.claude/CLAUDE.md:7` | « écris trois choses et rien de plus » / « Toute tâche finit par un résumé » | ✅ texte (constat 1 bis) | sans fiche : au global, « une fin imposée par une commande passe d'abord » |
+| A5 | (a) | un pronom qui, lu à la lettre, contredit une autre ligne du global | `~/.claude/CLAUDE.md:141` ; `:11` | « celui-ci reste dans le même message que le questionnaire » / « Ce résumé part dans un message à part » | ✅ texte (constat 4) | sans fiche : « Avant de choisir » au lieu de « celui-ci » |
+| A6 | (a) | l'agent `vlp:fiche` lit une consigne de republication qu'il ne peut pas suivre, et qui retouche la page à la main | `skills/tache/references/tache-blocage.md:25-27` ; `agents/fiche.md:33,60` ; `skills/tache/references/tache-page.md:5-7` | « marque le blocage sur l'artefact » / « Aucun artefact » | ✅ texte (constat 6) | sans fiche : un titre « session principale seulement » ; 💡 `page` qui marque un blocage : 1 fiche |
+| A7 | (a) | la page du chantier, « une fois par lancement » d'`enchainer` ; en mode `main`, chaque fiche la republie déjà | `ARTEFACTS.md:22` ; `methode-chantier.md:251` ; `skills/enchainer/SKILL.md:83-84,130` | « elle coche, publie et commite elle-même » / « une seule fois pour tout le lancement » | ✅ texte | sans fiche : l'étape 4 d'`enchainer` se saute en mode `main` |
+| A8 | (a) | en mode `main`, la dernière fiche se clôt deux fois : `tache` étape 7, puis `enchainer` étape 5 ; le second `clore` sort en `GARDE:`, et `cloture.md` dit alors d'écrire à la main | `skills/tache/SKILL.md:174-176` ; `skills/enchainer/SKILL.md:152-155` ; `cloture.md:40-41` | « écris-le alors à la main » | 🟡 plausible, non essayé ; docstring de `clore` : « déjà `**CLOS**` : `GARDE:`, sort 1 » | sans fiche : l'étape 5 regarde `**CLOS**` d'abord |
+| A9 | (a) | un critère de fiche qui règle le commit contredit le commit unique de `tache`, et fausse le coût | `context AI/117-avl.md:131-132` ; `skills/tache/SKILL.md:167` ; `scripts/vlp_coeur.py:2576` | « `git log -1 --stat` ne montre que le fichier d'audit » | ✅ mesuré : `AVL1 · 0 tours` | sans fiche : au cadrage, un critère ne règle pas le commit ; le code : `AVL2`, piste 5 |
+| A10 | (a) | deux règles tirent en sens contraire ; le nombre se recopie dans chaque commande | `CHANTIER.md:27,29` ; « deux tentatives » ×6 : `skills/tache/SKILL.md:117`, `methode-chantier.md:416,445`, `enchainement.md:12`, `agents/fiche.md:41`, `tache-blocage.md:3` ; « trois majuscules » ×3 : `CHANTIER.md:45`, `methode-chantier.md:295`, `skills/chantier/SKILL.md:163-164` | « Une règle vit à un seul endroit — un nombre aussi » / « Une commande est autoportante » | ✅ comptes ; 💡 la lecture | 🟡 à décider : laquelle prime, et où le dire |
+| A11 | (a) | une séance de nuit charge le global, qui commite après chaque tâche, et `nuit.md`, qui l'interdit | `~/.claude/CLAUDE.md:191` ; `nuit.md:19` | « Commit après chaque tâche terminée, automatiquement » / « Elle ne commite pas non plus. » | 🟡 non vérifié : ce qui arrête un commit de nuit n'a pas été lu | 💡 lire le gardien (`VRB`) avant toute fiche |
+| A12 | (a) | la méthode garde des récits chiffrés que sa propre règle envoie à `lecons-mesure.md` | `methode-chantier.md:20-22` ; récits : `:145-152` (`MET4`, `EFF3`), `:173-175` (`ESS`), `:221-226` (`SEG`), `:370-371` (`VIT9`), `:379-380` (`FIN1`, `FIN2`) | « Le récit mesuré qui a fait naître une règle […] vit dans `lecons-mesure.md` » | ✅ texte, 5 passages | 💡 1 fiche de tri, comme `MET6` |
+| A13 | (a) | `${CLAUDE_PLUGIN_ROOT}` dans `cloture.md`, lu par `vlp.py lire`, où rien ne le remplace | `cloture.md:5,27,54,80,103` ; `CLAUDE.md:39-40` | « dans le texte des commandes et `hooks/hooks.json` seulement » | ✅ déjà vu | `AVL1`, piste 2 |
+| B1 | (b) | « l'agent » : le kit en a deux depuis `REV` | `CLAUDE.md:12` | « et l'agent `vlp:fiche` » | ✅ `ls agents` : `fiche.md`, `relecture.md` | sans fiche |
+| B2 | (b) | le routage du contrat oublie le relecteur | `CLAUDE.md:54` | « `skills/jouer/SKILL.md`, `agents/fiche.md`, ou `enchainement.md` » | ✅ texte | sans fiche : `skills/relire/SKILL.md`, `agents/relecture.md` |
+| B3 | (b) | le choix du prochain chantier, routé vers l'audit du 2026-09-17 | `CLAUDE.md:62` | « choisir le prochain chantier du kit » | ✅ déjà vu | `AVL1`, piste 8 |
+| B4 | (b) | `00-INDEX.md` écrit sans son dossier | `CLAUDE.md:48` | « Cette table remplace la lecture de `00-INDEX.md` » | ✅ absent à la racine | sans fiche |
+| B5 | (b) | une mesure sans sa date | `CLAUDE.md:75-76` | « une fiche = 28–66 tours, la commande = 8 % du premier tour » | non vérifié : mesure du chantier `T` (2026-09-17) ; `AVL2` n'a pas compté les tours par fiche | sans fiche : la dater ; la remesurer : `AVL2`, piste 2 |
+| B6 | (b) | la règle 3 recopie trois nombres | `CLAUDE.md:30` | « (250, 80, 5…) » | ✅ exacts ce jour : `SEUIL_PAGE = 250` (`scripts/vlp_coeur.py:2237`), `SEUIL_CLAUDE = 80` (`:1509`), plafond 5 (`skills/enchainer/SKILL.md:13`) | sans fiche : « les seuils de `vlp.py` » |
+| B7 | (b) | « deux artefacts » : il y en a trois | `ARTEFACTS.md:12,17` ; `CHANTIER.md:15-17` | « Deux artefacts, et pas un de plus » | ✅ texte ; l'archive : `ARTEFACTS.md:50-52` | sans fiche |
+| B8 | (b) | les valeurs de lecture recopiées, à côté de la phrase qui dit qu'elles vivent ailleurs | `ARTEFACTS.md:208-211` | « Les valeurs vivent dans `templates/vlp.css` » | ✅ texte ; recopiées aussi au global | sans fiche : renvoyer |
+| B9 | (b) | à la fusion, `CHANTIER.md` ne peut plus perdre un chantier ouvert : il n'en porte plus | `methode-chantier.md:231-235` ; `CHANTIER.md:8-21` ; `methode-chantier.md:321-322` | « `CHANTIER.md` a perdu le chantier resté ouvert de l'autre côté » | ✅ texte ; 💡 la feuille et les lettres restent à relire | sans fiche |
+| B10 | (b) | sept questions d'un coup ; l'outil en prend quatre | `skills/init/SKILL.md:62-64` | « Pose-les d'un coup » | ✅ schéma d'`AskUserQuestion`, lu ce jour : 1 à 4 questions | sans fiche : deux questionnaires (constat 2) |
+| B11 | (b) | le repli « copie simple » survit au chantier `K` | `skills/chantier/SKILL.md:183-186` ; `skills/init/SKILL.md:49-52` ; `skills/check/SKILL.md:97,106-112` | « Hors du plugin, en copie simple dans `~/.claude/commands/` » | ✅ `~/.claude/commands/` vide sur ce poste ; non vérifié chez les autres membres | 🟡 à décider : garder ou retirer |
+| B12 | (b) | `py -3` en dur, où le reste dit `<python>` | `skills/chef/SKILL.md:92` | « `py -3 "${CLAUDE_PLUGIN_ROOT}/scripts/boucle.py" --nuit --lancer` » | ✅ texte | sans fiche |
+| B13 | (b) | « 0 ter » sans « 0 bis » | `skills/chantier/SKILL.md:64` ; `cloture.md:4` | « ## 0 ter. » | ✅ texte (constat 7) | sans fiche |
+| C1 | (c) | remplir le gabarit de page à cartes à la main ; le global le demande encore | `~/.claude/CLAUDE.md:32-36` ; `ARTEFACTS.md:28-30` | « remplir les `<…>` » | ✅ raté : une page publiée vide, commit `3aecd04`, chantier `VID` ; le script existe : `vlp.py chef page` | sans fiche : le global nomme `chef page` |
+| C2 | (c) | comparer à la page en ligne avant de republier une feuille | `ARTEFACTS.md:95-107` ; `context AI/08-etat.md:2364` | « la republier les aurait effacés » | ✅ raté de peu (`VOI6`) ; `comparer` existe, cité 0 fois dans les 18 fichiers | 🟡 à décider : le citer, ou l'appeler dans `feuille` |
+| C3 | (c) | le commit vide d'une fiche sans écriture : dans la méthode, absent de `tache`, qui ne l'ouvre pas | `methode-chantier.md:221-226` ; `skills/tache/SKILL.md:166-168` | « Une fiche sans rien à commiter pose un commit vide » | ✅ raté : `SEG` (cairn), `DÉCOUPE aucune` | sans fiche : `--allow-empty` dans la ligne de commit de `tache` |
+| C4 | (c) | relancer l'app après un changement d'agent, avant de mesurer | `methode-chantier.md:103-108` | « Une définition d'agent se charge au démarrage de la session » | ✅ raté : `FOR` (`lecons-mesure.md:125-129`) | 💡 1 fiche : la carte avertit quand `agents/` a changé après le début de la séance |
+| C5 | (c) | lire `couts.svg` avant de republier la feuille | `cloture.md:62-63` | « Ce `read` passe aussi `paths: ["couts.svg"]` » | ✅ raté : 10 refus sur 50 (`APR`, cité là) | 💡 1 fiche : `clore` imprime les chemins à lire |
+| C6 | (c) | déclarer un essai lancé hors d'un bac | `methode-chantier.md:99-102` | « Un essai part d'un bac, ou se déclare. » | ✅ raté avant la règle : `VIT` clos à 242,53 $ sans ses essais (`context AI/08-etat.md:2923`) ; depuis : non vérifié | 💡 1 fiche : `cout` signale un `claude -p` hors bac |
+| C7 | (c) | remettre `scripts/sante-base.json` après `sante --base` dans un worktree en retard sur `main` | `skills/tache/SKILL.md:143` | « `sante --base --si-base --racine .` » | ✅ fait deux fois à la main ce jour (`AVL1`, `AVL2`) | `AVL1`, piste 9 |
+
+**Les comptes bruts** :
+
+| Sorte | Constats | dont ✅ établis | dont 🟡 ou non vérifiés | dont déjà vus (`AVL1`, 2026-09-20) |
+|---|---:|---:|---:|---:|
+| (a) contradiction | 13 | 11 | 2 (A8, A11) | 5 (A3, A4, A5, A6, A13) |
+| (b) fait périmé | 13 | 11 | 2 (B5, B11) | 3 (B3, B10, B13) |
+| (c) geste en prose déjà raté | 7 | 7 | 0 | 1 (C7) |
+| **Total** | **33** | **29** | **4** | **9** |
+
+Les pistes : **21** « sans fiche » (une phrase chacune), **5** d'une fiche (A2, A12, C4, C5, C6),
+**3** à décider (A10, B11, C2), **4** renvoyées ailleurs (A11 à lire d'abord ; A13, B3, C7 déjà
+pistes d'`AVL1`).
+
+### Ce que chaque commande charge à son lancement
+
+✅ Son `SKILL.md` en octets, plus la sortie de son injection `!` rejouée telle quelle, mesurées
+dans ce worktree le 2026-10-11, chantier `AVL` ouvert, sans `CLAUDE_CODE_SESSION_ID` (l'id de la
+séance pose la marque d'`--enchaine` : rien posé). Erreurs de l'injection : 0 octet partout.
+
+| Commande | `SKILL.md` | Injection | Total au lancement | Avec l'agent forké |
+|---|---:|---:|---:|---:|
+| `/vlp:chantier` | 15 138 | 8 359 | 23 497 | — |
+| `/vlp:tache` | 9 539 | 8 359 | 17 898 | — |
+| `/vlp:chef` | 8 978 | 8 359 | 17 337 | — |
+| `/vlp:enchainer` | 8 577 | 8 359 | 16 936 | — |
+| `/vlp:init` | 8 285 | 8 359 | 16 644 | — |
+| `/vlp:check` | 6 508 | 8 359 | 14 867 | — |
+| `vlp:jouer` | 1 346 | 8 359 | 9 705 | 13 648 (+ `agents/fiche.md`, 3 943) |
+| `vlp:relire` | 1 269 | 7 595 | 8 864 | 12 070 (+ `agents/relecture.md`, 3 206) |
+
+La commande, depuis la racine du kit (Git Bash) :
+
+```bash
+K="$(pwd -W)"; for s in chantier tache enchainer chef init check jouer relire; do inj=$(grep -o '!`[^`]*`' "skills/$s/SKILL.md" | sed 's/^!`//; s/`$//'); inj=${inj//'${CLAUDE_PLUGIN_ROOT}'/$K}; echo "$s $(wc -c < skills/$s/SKILL.md) $(env -u CLAUDE_CODE_SESSION_ID bash -c "$inj" 2>/dev/null | wc -c)"; done
+```
+
+✅ L'injection est la carte, et la carte change avec le projet : sans chantier ouvert, elle
+imprime la TODO et le format des fiches. `carte --python "py -3"`, lancée dans chaque dossier —
+en lecture seule, elle ne pose qu'un tampon dans le dossier temporaire (docstring de `carte`) :
+
+| Projet | Chantier ouvert | Carte, octets |
+|---|---|---:|
+| le kit (dossier principal, `main`) | aucun | **41 773** |
+| `<Cairn>` | oui | 4 684 |
+| `<MapDecorator>` | aucun | 9 666 |
+| `<ProjetONZSM>` | aucun | 6 354 |
+| `<TrackGen>` | aucun | 7 244 |
+
+- ✅ La carte du kit sans chantier : `CHANTIER.md` 7 456 octets, la TODO de `08-etat.md` (lignes
+  365–393) **28 252** — **68 %** —, le format des fiches (`methode-chantier.md`, lignes 310–411)
+  5 773. Elle recoupe les 40,7 Ko du cadrage (socle).
+- ➡️ `/vlp:chantier` sur le kit sans chantier ouvert charge donc 15 138 + 41 773 = **56 911**
+  octets avant son premier tour, dont la moitié pour une TODO de 29 lignes, ≈ 974 octets la
+  ligne. Pour `AVL7`, qui range cette TODO.
+- non mesuré : le reste du premier tour (prompt système, les `CLAUDE.md`, la liste des skills).
+
+### Les pistes
+
+💡 Proposé — sans recherche de l'existant (`AVL6`).
+
+1. **Les 21 corrections « sans fiche »** tiennent chacune en une phrase : une seule fiche de
+   ménage les ferait toutes, ≈ 1 fiche (4,40 $). Trois touchent le global (A4, A5, C1), le
+   reste le kit.
+2. **La TODO fait 68 % de la carte de `/vlp:chantier` sur le kit** : une TODO plus courte allège
+   chaque cadrage. Pour `AVL7`.
+3. 🟡 **Règle 3 contre commande autoportante** (A10) : à trancher sur la page d'`AVL8` — un
+   nombre recopié dans six fichiers ne se corrige pas en un.
+4. **Cinq gestes candidats à un script** (A2, A12, C4, C5, C6) : 1 fiche chacun, ≈ 22 $ en tout.
+5. **Quatre constats du 2026-09-20 tiennent encore** (3, 4, 6, 7) : rien ne les rappelait. 💡 Un
+   audit de consignes qui rouvre la liste du précédent, comme `AVL1` l'a fait pour `12-audit.md`.
