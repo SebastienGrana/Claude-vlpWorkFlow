@@ -21,9 +21,9 @@
     <p>/vlp:enchainer agents ne bloque plus la conversation, et une option lance ensemble les fiches lançables (2 par défaut, réglable)</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">6 fiches · 0 faite · en cours : ENA1</p>
+    <p class="mono" style="margin-top:.5rem">6 fiches · 1 faite · en cours : ENA2</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -38,15 +38,16 @@
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">ENA1</span></span>
-        <details open><summary><span class="titre">Mesurer où passent les 45 min</span><span class="etat">En cours · ENA3 peut partir en même temps</span></summary>
-        <span class="note">La cause des 45 min, mesurée, et le remède ; rien avant</span></details></li>
-      <li class="fiche" data-attend><span class="gauche"><span class="id">ENA2</span></span>
-        <details><summary><span class="titre">Réparer le blocage</span><span class="etat">Après ENA1</span></summary>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">ENA1</span></span>
+        <details><summary><span class="titre">Mesurer où passent les 45 min</span><span class="etat">Faite</span></summary>
+        <span class="note">45 min = fiche 20,6–22,1 + relecteur 23,4 ; 4 passages de suite ≈ 600 s (NUI21, 2026-10-03), ≈ 200 s le 2026-10-09 ; remède : retirer background: false (doc lue)</span></details>
+        <span class="cout mono">≈7,3M (7 263 123) · 28 tours · 2,22 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">ENA2</span></span>
+        <details open><summary><span class="titre">Réparer le blocage</span><span class="etat">En cours</span></summary>
         <span class="note">Le blocage réparé, vu par l'utilisateur ; après ENA1</span></details>
         <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
       <li class="fiche"><span class="gauche"><span class="id">ENA3</span></span>
-        <details><summary><span class="titre">Exposer pretes en vlp.py lancables</span><span class="etat">À lancer · en même temps que ENA1</span></summary>
+        <details><summary><span class="titre">Exposer pretes en vlp.py lancables</span><span class="etat">À lancer</span></summary>
         <span class="note">vlp.py lancables, sur pretes déjà écrite ; indépendante</span></details></li>
       <li class="fiche"><span class="gauche"><span class="id">ENA4</span></span>
         <details><summary><span class="titre">Commiter une fiche par ses seuls fichiers</span><span class="etat">À lancer</span></summary>
@@ -59,6 +60,8 @@
         <span class="note">L'essai réel à 2 puis 3, le défaut réglé ; après ENA5</span></details>
         <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
     </ul>
+    <p class="mono cout-hors">Hors fiches : ≈4,4M (4 437 570) · 26 tours · 2,81 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈11,7M (11 700 693) · 54 tours · 5,03 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
