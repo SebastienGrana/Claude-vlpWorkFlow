@@ -5,6 +5,7 @@ lancement. La doc des sous-commandes vit dans la docstring de `vlp.py`, et nulle
 import argparse
 import collections
 import datetime
+import fnmatch
 import glob
 import hashlib
 import html.parser
@@ -545,15 +546,20 @@ def motif_sur(motif):
     return bool(motif) and not re.search(r"[\\/\s]|\.\.", motif)
 
 
-def essais_declares(session):
-    """Les motifs de dossier de `~/.claude/projects/` que le registre déclare pour `session` ;
-    [] sans registre. Une ligne qui n'a pas deux champs, ou un motif qui sortirait du dossier,
-    ne compte pas (`motif_sur`)."""
+def declarations():
+    """Les paires (session, motif) du registre ; [] sans registre. Une ligne qui n'a pas deux
+    champs, ou un motif qui sortirait du dossier, ne compte pas (`motif_sur`)."""
     if not os.path.isfile(registre_essais()):
         return []
     with open(registre_essais(), encoding="utf-8") as f:
         paires = [l.split() for l in f]
-    return [p[1] for p in paires if len(p) == 2 and p[0] == session and motif_sur(p[1])]
+    return [(p[0], p[1]) for p in paires if len(p) == 2 and motif_sur(p[1])]
+
+
+def essais_declares(session):
+    """Les motifs de dossier de `~/.claude/projects/` que le registre déclare pour `session`
+    (`declarations`)."""
+    return [motif for s, motif in declarations() if s == session]
 
 
 def cmd_essai(a, sortie):
@@ -576,6 +582,103 @@ def cmd_essai(a, sortie):
                  % (session, a.motif, len(glob.glob(os.path.join(projets, a.motif))),
                     len(glob.glob(os.path.join(projets, a.motif, "*.jsonl")))))
     return 0
+
+
+# La marque `turnOrigin` de la première ligne `user` qui en porte une : "sdk" pour `claude -p`, "human" pour l'app ou
+# le terminal, "peer" pour le message d'une autre séance. Interne, non documentée ; lue le 2026-10-12 sur 1 278
+# transcripts : 148 "sdk", tous des `claude -p` — `entrypoint` ne la remplace pas, 100 d'entre eux, lancés depuis l'app,
+# y portent `claude-desktop`. Vue d'abord le 2026-09-22 : avant, son absence ne dit rien (chantier ESH).
+MARQUE_DEPUIS = datetime.datetime(2026, 9, 22, tzinfo=datetime.timezone.utc).timestamp()
+NUIT_DOSSIER = "-claude-worktrees-nuit-"    # le dossier de transcripts d'un worktree `nuit-<date>-<canal>` (boucle.py)
+
+
+def origine_de(chemin, jusqu_au_bout=False):
+    """(marque `turnOrigin`, départ, fin) d'un transcript : la marque de la première ligne `user` qui en porte une, None
+    sans ; l'heure UTC de sa première ligne horodatée, None sans. La lecture s'arrête dès les deux trouvés ; la fin —
+    l'heure de la dernière ligne horodatée — ne se lit qu'avec `jusqu_au_bout`, None sinon. Illisible : trois None."""
+    m, marque, debut, fin = mesure(), None, None, None
+    try:
+        with m.ouvrir(chemin) as f:
+            for ligne in f:
+                if debut is not None and not jusqu_au_bout and '"turnOrigin"' not in ligne:
+                    continue
+                try:
+                    d = json.loads(ligne)
+                except ValueError:
+                    continue
+                if not isinstance(d, dict):
+                    continue
+                t = m.heure(d)
+                if t is not None:
+                    debut, fin = (t if debut is None else debut), t
+                if marque is None and d.get("type") == "user" and isinstance(d.get("turnOrigin"), str):
+                    marque = d["turnOrigin"]
+                if marque is not None and debut is not None and not jusqu_au_bout:
+                    break
+    except OSError:
+        return None, None, None
+    return marque, debut, fin if jusqu_au_bout else None
+
+
+def fenetres_du_chantier(comptes, bornes):
+    """([(début, fin, session)], marque vue, session récente) : la fenêtre de chaque session de `comptes` (sorte 0),
+    de sa première à sa dernière ligne horodatée, coupée à `bornes` ; vrai si l'une porte une marque `turnOrigin`, vrai
+    si l'une est partie après `MARQUE_DEPUIS`."""
+    fenetres, marquee, recente = [], False, False
+    for chemin, sorte in comptes:
+        marque, debut, fin = origine_de(chemin, jusqu_au_bout=True) if sorte == 0 else (None, None, None)
+        marquee = marquee or marque is not None
+        if debut is None or fin is None:
+            continue
+        recente = recente or debut >= MARQUE_DEPUIS
+        lo, hi = max(debut, bornes[0]), min(fin, bornes[1])
+        if lo <= hi:
+            fenetres.append((lo, hi, os.path.splitext(os.path.basename(chemin))[0]))
+    return fenetres, marquee, recente
+
+
+def essais_hors_bac(ids, bornes=None):
+    """Les `GARDE:` d'un essai `claude -p` lancé hors d'un bac et pas déclaré (chantier ESH). Un transcript de
+    `~/.claude/projects/*/` marqué "sdk" (`origine_de`), parti pendant une session de `ids` et dans `bornes` — la
+    plage du chantier, en secondes UTC —, est un essai ; une ligne pour chacun que rien ne compte : ni transcript du
+    chantier (`transcripts_du_fichier`), ni dossier d'un bac (`-scratchpad-`), ni dossier que le registre déclare
+    (`declarations`), ni worktree de nuit (`NUIT_DOSSIER`). Elle dit la commande qui le déclare. Puis, si une session
+    de `ids` est partie après `MARQUE_DEPUIS` et qu'aucun transcript vu ne porte de marque, une ligne qui le dit : le
+    contrôle ne verrait plus rien. Le chiffre de `cout` n'en change pas. Sans `bornes` : rien ne coupe."""
+    from decimal import ROUND_HALF_UP, Decimal
+    m = mesure()
+    comptes = transcripts_du_fichier([], ids, [])
+    vus = {os.path.normcase(os.path.abspath(c)) for c, _ in comptes}
+    fenetres, marquee, recente = fenetres_du_chantier(comptes, bornes or (-INFINI, INFINI))
+    projets = os.path.join(os.path.expanduser("~"), ".claude", "projects")
+    motifs, plus_tot, gardes = [motif for _, motif in declarations()], min((f[0] for f in fenetres), default=INFINI), []
+    for chemin in sorted(glob.glob(os.path.join(projets, "*", "*.jsonl"))):
+        try:
+            if os.path.normcase(os.path.abspath(chemin)) in vus or os.path.getmtime(chemin) < plus_tot:
+                continue    # écrit pour la dernière fois avant la première fenêtre : parti avant elle
+        except OSError:
+            continue
+        marque, debut, _ = origine_de(chemin)
+        session = next((s for lo, hi, s in fenetres if debut is not None and lo <= debut <= hi), None)
+        if session is None:
+            continue
+        marquee = marquee or marque is not None
+        dossier = os.path.basename(os.path.dirname(chemin))
+        if marque != "sdk" or "-scratchpad-" in dossier or NUIT_DOSSIER in dossier \
+                or any(fnmatch.fnmatch(dossier, motif) for motif in motifs):
+            continue
+        r, erreur = m.mesurer(chemin)
+        usd = None if erreur or r["usd_exact"] is None else r["usd_exact"].quantize(Decimal("0.01"), ROUND_HALF_UP)
+        n = len(glob.glob(os.path.join(glob.escape(os.path.dirname(chemin)), "*.jsonl")))
+        gardes.append("GARDE: essai claude -p hors bac, non déclaré : %s · parti le %s · %s · dossier %s%s — le "
+                      "déclarer : vlp.py essai %s --session %s (ESH)"
+                      % (os.path.splitext(os.path.basename(chemin))[0], time.strftime("%Y-%m-%d %H:%M", time.localtime(debut)),
+                         "non mesuré (%s)" % erreur if erreur else ligne_cout(r["total"], r["tours"], usd), dossier,
+                         " (%d transcripts : le motif les compte tous)" % n if n > 1 else "", dossier, session))
+    if recente and not marquee:
+        gardes.append("GARDE: aucune séance de la plage ne porte la marque turnOrigin — un essai claude -p hors bac n'y "
+                      "serait pas vu (marque interne, non documentée ; ESH)")
+    return gardes
 
 
 def cmd_extraire(chemin, fiche, sortie):
@@ -631,7 +734,7 @@ def cmd_cout(chemin, session, sortie, a_clore=False):
     elif not ids:
         sortie.write("SESSIONS 0 — pas de total\n")
         return 0
-    decoupe, pourquoi, gardes = decouper(chemin, lignes)
+    decoupe, pourquoi, gardes, (fiches_, heures, fin) = decoupe_et_heures(chemin, lignes)
     for g in gardes:
         sortie.write(g + "\n")
     if not decoupe:
@@ -646,6 +749,7 @@ def cmd_cout(chemin, session, sortie, a_clore=False):
             sortie.write(ligne_parts("essais", zero, zero, essais) + "\n")
         if a_clore:
             sortie.write("GARDE: --a-clore sans découpe — pas de ligne à clore\n")
+        sortie.writelines(g + "\n" for g in essais_hors_bac(ids))
         return code
     parts, hors = decoupe
     sortie.write("DÉCOUPE aux commits de fiche — une fiche va du commit d'avant au sien, "
@@ -655,16 +759,28 @@ def cmd_cout(chemin, session, sortie, a_clore=False):
     sortie.write(ligne_parts("hors fiches", *hors) + "\n")
     sortie.write(ligne_parts("TOTAL (fiches + hors fiches)", *totaux(decoupe)) + "\n")
     if a_clore:
-        avant = totaux_a_clore(chemin, lignes)
-        if avant is None:
-            sortie.write("GARDE: aucun appel « vlp.py clore » dans la dernière plage hors fiches"
-                         " — pas de ligne à clore\n")
-            return code
-        tout = totaux(decoupe)
-        sortie.write(ligne_parts("à clore", *avant) + "\n")
-        sortie.write(ligne_parts("après clore", *[(a[0] - b[0], a[1] - b[1], moins(a[2], b[2]), a[3] - b[3])
-                                                  for a, b in zip(tout, avant)]) + "\n")
+        sortie.writelines(l + "\n" for l in lignes_a_clore(chemin, lignes, decoupe))
+    sortie.writelines(g + "\n" for g in essais_hors_bac(ids, bornes_du_cout(fiches_, heures, fin)))
     return code
+
+
+def lignes_a_clore(chemin, lignes, decoupe):
+    """Les lignes de `cout --a-clore` après `TOTAL` : `à clore` et `après clore`, ou la `GARDE:` d'une dernière plage
+    hors fiches sans appel `vlp.py clore` (chantier APC)."""
+    avant = totaux_a_clore(chemin, lignes)
+    if avant is None:
+        return ["GARDE: aucun appel « vlp.py clore » dans la dernière plage hors fiches — pas de ligne à clore"]
+    return [ligne_parts("à clore", *avant),
+            ligne_parts("après clore", *[(a[0] - b[0], a[1] - b[1], moins(a[2], b[2]), a[3] - b[3])
+                                         for a, b in zip(totaux(decoupe), avant)])]
+
+
+def bornes_du_cout(fiches_, heures, fin):
+    """(début, fin) en secondes UTC de toutes les plages de `cout` — fiches et hors fiches —, ou None sans plage : ce
+    que `essais_hors_bac` regarde (chantier ESH)."""
+    par_fiche, trous = plages_du_cout(fiches_, heures, [], fin)
+    bornes = [p for _, p in par_fiche] + trous
+    return (min(b[0] for b in bornes), max(b[1] for b in bornes)) if bornes else None
 
 
 # Un appel qui lance un script Python : en tête d'un segment (début, `;`, `&`, `|`, `(`, fin de ligne), après

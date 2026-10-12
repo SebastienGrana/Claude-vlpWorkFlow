@@ -65,7 +65,11 @@ Sous-commandes :
   celles du fichier. `--a-clore` : après `TOTAL`, `à clore` — le total si la dernière
   plage hors fiches s'arrêtait au dernier appel `vlp.py clore` qu'elle contient — et
   `après clore`, la différence ; sans cet appel, une `GARDE:` et pas de ligne. Les essais
-  d'une session : ceux de ses bacs, et ceux qu'`essai` déclare (`essais_de`).
+  d'une session : ceux de ses bacs, et ceux qu'`essai` déclare (`essais_de`). En dernier, une
+  `GARDE: essai claude -p hors bac, non déclaré` par essai parti pendant une session du fichier,
+  dans sa plage, que rien ne compte — hors bac, hors registre, hors nuit —, avec la commande
+  `essai` qui le déclare ; le chiffre n'en change pas. Une plage récente où aucune séance ne porte
+  la marque `turnOrigin` : une `GARDE:` le dit (`essais_hors_bac`, chantier ESH).
 - `essai <motif> [--session <id>]` — déclare, une fois, un essai `claude -p` lancé hors d'un
   bac : une ligne `<session> <motif>` au registre `~/.claude/vlp-essais.txt` ; le motif est un
   nom de dossier de `~/.claude/projects/`, glob permis ; la session, `CLAUDE_CODE_SESSION_ID`
