@@ -1,7 +1,7 @@
 ---
 description: Enchaîne les fiches du chantier courant une après l'autre, dans cette session (par défaut), chacune sur une page blanche (agents, un sous-agent neuf) ou en session neuve par script (clear), jusqu'à un arrêt prévu ou le plafond
 argument-hint: (rien) | agents | clear | <alias> | <alias> agents
-allowed-tools: Bash(python3:*), Bash(py:*), Bash(echo:*), PowerShell(python3:*), PowerShell(py:*), PowerShell(echo:*), Skill, Artifact
+allowed-tools: Bash(python3:*), Bash(py:*), Bash(echo:*), PowerShell(python3:*), PowerShell(py:*), PowerShell(echo:*), Skill, Agent, Artifact
 ---
 
 Arguments reçus :
@@ -17,10 +17,10 @@ passait bien.
 toi-même, par `vlp:tache`, dans cette session (étape 3, point 1) ; ni
 `vlp:jouer` ni `vlp:relire`. Le contexte grossit d'une fiche à l'autre.
 
-**`agents` dans les arguments : un sous-agent neuf par fiche**, par la skill
-`vlp:jouer` — forkée dans `vlp:fiche`, jamais deux fiches dans le même
-contexte. Tu ne lis ni le socle ni les fiches : la skill les donne au
-sous-agent. Le contrat qu'il rend (`FAITE`, `RETOUR`, `BLOQUÉE`) est dans
+**`agents` dans les arguments : un sous-agent neuf par fiche**, `vlp:fiche`
+lancé par l'outil `Agent` en arrière-plan, jamais deux fiches dans le même
+contexte. Tu ne lis ni le socle ni les fiches : le sous-agent les lit
+lui-même. Le contrat qu'il rend (`FAITE`, `RETOUR`, `BLOQUÉE`) est dans
 `${CLAUDE_PLUGIN_ROOT}/enchainement.md`, qui fait foi.
 
 **`clear` dans les arguments (`main clear` se lit `clear`) : une session neuve
@@ -83,10 +83,14 @@ Pour chaque fiche de la série, dans l'ordre :
 1. Un seul appel : `Skill`, `skill: "vlp:tache"`, `args` : la fiche — elle
    coche, publie et commite elle-même. Fiche cochée ensuite : passe à la
    suivante ; sinon, c'est un `RETOUR` (étape 3 bis).
-   Avec `agents` : `skill: "vlp:jouer"` à la place. Elle part en arrière-plan :
-   ce qui revient tout de suite n'est pas son `Result` — rends la main sans
-   autre appel, la conversation reste libre. Son `Result` arrive dans la
-   **notification de fin**, à un tour suivant ; `vlp:relire` de même. Puis le point 2.
+   Avec `agents` : l'outil `Agent` à la place — `skill: "vlp:jouer"` attend la
+   fin même en `background: true` (bac `ENA2`, 2026-10-12). `subagent_type:
+   "vlp:fiche"`, `run_in_background: true`, `description` : la fiche, `prompt` :
+   `Fiche à jouer : <fiche> — Kit : ${CLAUDE_PLUGIN_ROOT}. Ton premier appel, depuis <PROJET=>,
+   avec les lectures de ton étape 1 : <python> "<kit>/scripts/vlp.py" carte --python "<python>";
+   <python> "<kit>/scripts/vlp.py" socle "<fichier de fiches courant>"; <python> "<kit>/scripts/vlp.py" extraire "<fichier de fiches courant>" <fiche>`.
+   Puis rends la main sans autre appel : la conversation reste libre. Le
+   `Result` arrive dans la **notification de fin**, à un tour suivant. Puis le point 2.
 2. Lis le premier mot du `Result` rendu. Ce n'est pas un statut : prends la
    première ligne qui **commence** par `FAITE`, `RETOUR` ou `BLOQUÉE` ; aucune,
    c'est « aucun statut » ci-dessous.
@@ -96,8 +100,11 @@ Pour chaque fiche de la série, dans l'ordre :
      `<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" cocher "<fichier de fiches courant>" <fiche> --verifier`.
      Sortie 1 — case `[ ]`, ou `TÊTE` : le sous-agent a commité — : c'est un
      `RETOUR` (étape 3 bis). `SANS GIT` : ni relecture ni commit, passe à la
-     suivante. Sinon, un seul appel : `Skill`, `skill: "vlp:relire"`, `args` : la
-     fiche. Premier mot du `Result` (`enchainement.md`, « Relecture ») :
+     suivante. Sinon, un seul appel : `Agent`, `subagent_type: "vlp:relecture"`,
+     `run_in_background: true`, `prompt` : `Fiche à relire : <fiche> — Kit : ${CLAUDE_PLUGIN_ROOT}.
+     Ton premier appel, depuis <PROJET=>, avec la lecture de ton étape 1 : <python> "<kit>/scripts/vlp.py"
+     carte --python "<python>" --relecteur; <python> "<kit>/scripts/vlp.py" relecture <fiche>` —
+     son `Result` à la notification de fin. Premier mot du `Result` (`enchainement.md`, « Relecture ») :
      `ACCEPTÉE` → commite la fiche — `git add -A; git commit -m "<fiche> : <titre>"`,
      sans demander (`methode-chantier.md`) ; le sous-agent ne commite jamais. Puis
      passe à la suivante. `REFUSÉE`, ou aucun verdict →

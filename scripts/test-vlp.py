@@ -3113,16 +3113,17 @@ groupe(tester_arp3_marque)
 
 
 def tester_ena2_arriere_plan():
-    """ENA2 : `vlp:jouer` et `vlp:relire` partent en arrière-plan — `background: false` faisait attendre la
-    conversation tout le temps de la fiche (≈ 45 min le 2026-10-03, `ENA1`) ; le chef lit le statut à la
-    notification de fin, pas dans ce que l'appel rend tout de suite."""
-    tetes = {}
-    for skill in ("jouer", "relire"):
-        texte = io.open(os.path.join(RACINE, "skills", skill, "SKILL.md"), encoding="utf-8").read()
-        tetes[skill] = [l for l in texte.split("---")[1].splitlines() if l.startswith(("context:", "background:"))]
-    verifier("ENA2 : jouer et relire forkées en arrière-plan (background: true)",
-             all(t == ["context: fork", "background: true"] for t in tetes.values()), repr(tetes))
+    """ENA2 : la fiche et son relecteur partent par l'outil `Agent` en arrière-plan — la skill forkée
+    attendait la fin même en `background: true` (bac `ENA2`, 2026-10-12), la conversation restait prise
+    tout le temps de la fiche (≈ 45 min le 2026-10-03, `ENA1`) ; le chef lit le statut à la notification
+    de fin, pas dans ce que l'appel rend tout de suite."""
     chef = io.open(os.path.join(RACINE, "skills", "enchainer", "SKILL.md"), encoding="utf-8").read()
+    plat = " ".join(chef.split())
+    verifier("ENA2 : fiche et relecteur lancés par Agent, en arrière-plan",
+             'subagent_type: "vlp:fiche"' in plat and 'subagent_type: "vlp:relecture"' in plat
+             and plat.count("run_in_background: true") == 2, "skills/enchainer/SKILL.md")
+    verifier("ENA2 : le prompt de la fiche se lit par FICHE_A_JOUER (id suivi d'une espace, pas d'un point)",
+             "Fiche à jouer : <fiche> " in plat, "skills/enchainer/SKILL.md")
     verifier("ENA2 : le chef lit le Result à la notification de fin",
              "**notification de fin**" in chef, "absent de skills/enchainer/SKILL.md")
 
