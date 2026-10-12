@@ -21,9 +21,9 @@
     <p>/vlp:enchainer agents ne bloque plus la conversation, et une option lance ensemble les fiches lançables (2 par défaut, réglable)</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="bloquee"></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">6 fiches · 5 faites · en cours : ENA6</p>
+    <p class="mono" style="margin-top:.5rem">6 fiches · 4 faites · bloquée : ENA5</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -54,12 +54,12 @@
         <details><summary><span class="titre">Commiter une fiche par ses seuls fichiers</span><span class="etat">Faite</span></summary>
         <span class="note">commiter C1 : src/a.py + ctx/fiches.md, HORS: src/b.py laissé hors du commit ; mutant git add -A attrapé ; suite entière verte</span></details>
         <span class="cout mono">≈5,8M (5 805 778) · 35 tours · 2,55 $</span></li>
-      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">ENA5</span></span>
-        <details><summary><span class="titre">Écrire l'option parallèle</span><span class="etat">Faite</span></summary>
-        <span class="note">Liste d'invités, partiels en nom seul : arbre 0 raté sur 12090 paires de noms, historique 0 lancée ensemble à tort sur 1444 (347 ensemble) ; suite entière OK (354 s), 12 mutants attrapés</span></details>
+      <li class="fiche" data-etat="bloquee"><span class="gauche"><span class="id">ENA5</span></span>
+        <details open><summary><span class="titre">Écrire l'option parallèle</span><span class="etat">Bloquée</span></summary>
+        <span class="note">5 tentatives, 5 refus de la même famille (deux noms d'un même fichier lancés ensemble) ; arrêtée pour un recul, la décision de l'utilisateur d'abord</span></details>
         <span class="cout mono">≈7,6M (7 620 150) · 56 tours · 3,25 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">ENA6</span></span>
-        <details open><summary><span class="titre">Essayer pour de vrai, et régler le défaut</span><span class="etat">En cours</span></summary>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">ENA6</span></span>
+        <details><summary><span class="titre">Essayer pour de vrai, et régler le défaut</span><span class="etat">Après ENA5</span></summary>
         <span class="note">L'essai réel à 2 puis 3, le défaut réglé ; après ENA5</span></details>
         <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
     </ul>
@@ -69,11 +69,11 @@
   </section>
 
   <!-- ZONE:blocage — publiée quand /tache s'arrête après deux tentatives ; retirée dès que la fiche repasse -->
-  <section hidden>
+  <section>
     <h2>Arrêt sur blocage</h2>
     <div class="blocage">
-      <p></p>
-      <pre></pre>
+      <p>ENA5 bloquée après 5 tentatives et 5 refus de la même famille : deux noms d'un même fichier lancés ensemble (motif, dossier, filtre, chemin partiel, dossier sans barre). Pas de 6e rustine : <a href="https://claude.ai/artifact/S2q1E3soU2Bh27CpeGSEAG">le recul et les choix à trancher</a>.</p>
+      <pre>REFUSÉE — copie : `lancables` lance ensemble deux fiches qui nomment le même dossier quand l'une écrit ce dossier sans barre finale, et le juge de l'arbre ne voit pas ce cas. Le « 0 séparé à tort » du critère ne tient donc pas : la sonde trouve 4 paires sur les vraies données du kit.</pre>
     </div>
   </section>
 
