@@ -2604,6 +2604,33 @@ def pretes(fiches_, etat, apercu):
     return attend, ensemble if len(ensemble) > 1 else []
 
 
+def lancables(lignes, nom, plafond):
+    """Les fiches que `/vlp:enchainer` peut lancer ensemble (ENA3) : `pretes`, le fichier de fiches `nom` ôté des
+    fichiers de chacune — toutes le cochent, il n'est pas commun —, ou la première prête seule ; prises dans
+    l'ordre jusqu'à `plafond`, et avant la première `(visuel)`, qui ne part que seule."""
+    fiches_ = fiches_du_fichier(lignes)
+    apercu = {i: (d, v, f - {nom}) for i, (d, v, f) in apercu_fiches(lignes).items()}
+    attend, ensemble = pretes(fiches_, {i: "faite" if c else "" for i, _, c, _ in fiches_}, apercu)
+    rendu = []
+    for i in ensemble or [i for i, _, _, _ in fiches_ if i in attend and not attend[i]][:1]:
+        if apercu.get(i, ([], False))[1]:
+            return rendu or [i]
+        rendu.append(i)
+        if len(rendu) == plafond:
+            break
+    return rendu
+
+
+def cmd_lancables(a, sortie):
+    """Imprimer `LANCABLES <id>…`, ou `LANCABLES aucune` : ce que `lancables` rend sur `a.fichier`, `a.max` au plus."""
+    if not os.path.isfile(a.fichier) or a.max < 1:
+        sortie.write("GARDE: lancables veut un fichier de fiches et --max ≥ 1 : %s, %d\n" % (a.fichier, a.max))
+        return 1
+    ids = lancables(lignes_de(a.fichier), os.path.basename(a.fichier), a.max)
+    sortie.write("LANCABLES %s\n" % (" ".join(ids) or "aucune"))
+    return 0
+
+
 def fleche(noms, unite):
     """Les dépendances d'une carte de la feuille, dans sa colonne de gauche : `← A, B` ; au-delà de
     deux, `← n <unite>` et la liste au survol (`title`) — la colonne est étroite ; rien sans dépendance."""
@@ -9108,7 +9135,10 @@ def cmd_symboles(a, sortie):
 
 
 def options_outils(sous):
-    """Déclarer les lignes de commande des outils : `bac`, `claude`, `kit-essai`, `symboles`, `rapide`."""
+    """Déclarer les lignes de commande des outils : `bac`, `claude`, `kit-essai`, `symboles`, `rapide`, `lancables`."""
+    la = sous.add_parser("lancables")
+    la.add_argument("fichier")
+    la.add_argument("--max", type=int, default=2)
     bc = sous.add_parser("bac")
     bc.add_argument("dossier")
     sous.add_parser("claude")
@@ -9377,7 +9407,7 @@ PAR_ARGUMENTS = {
     "niveau": cmd_niveau, "comparer": cmd_comparer, "relecture": cmd_relecture, "contrat": cmd_contrat,
     "forme": cmd_forme, "ouverts": cmd_ouverts, "pause": cmd_pause, "plan": cmd_plan, "matin": cmd_matin, "fusionner": cmd_fusionner,
     "sante": cmd_sante, "symboles": cmd_symboles, "compteur": cmd_compteur, "carte": cmd_carte,
-    "rapide": cmd_rapide, "essai": cmd_essai,
+    "rapide": cmd_rapide, "essai": cmd_essai, "lancables": cmd_lancables,
 }
 
 

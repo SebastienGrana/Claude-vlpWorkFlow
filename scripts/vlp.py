@@ -89,6 +89,10 @@ Sous-commandes :
   · <n> écarts · <n> avertissements — <fichier>`. Avertit si une fiche ou le
   socle dépasse son seuil. Un écart : sort 1. `--plan` : ensuite, `<n>:<ligne>`
   pour chaque titre de fiche, `**Dépend de**`, `**Tentatives**`, `**Critère de fin**`.
+- `lancables <fichier> [--max N]` — `LANCABLES <id>…` : les fiches non cochées, prêtes, aux lignes
+  **Fichiers** disjointes (le fichier de fiches ôté), dans l'ordre, `N` au plus (2 par défaut) et avant la
+  première `(visuel)`, qui ne part que seule ; une seule prête, elle seule ; aucune, `LANCABLES aucune`
+  (ENA3). Fichier absent ou `N` < 1 : `GARDE:`, sort 1.
 - `lignes <chemin>…` — `<n> <fichier>`, `DOSSIER <d>` (` → <réel>` si lien) ou
   `ABSENT <chemin>` ; `~` et `*` développés ; puis `SEUILS page · fiche · socle`. Sort 0.
 - `equiper <dossier> [--contexte C]` — ce que `/vlp:init` regarde : `DOSSIER=`,

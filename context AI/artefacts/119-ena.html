@@ -21,9 +21,9 @@
     <p>/vlp:enchainer agents ne bloque plus la conversation, et une option lance ensemble les fiches lançables (2 par défaut, réglable)</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">6 fiches · 2 faites · en cours : ENA3</p>
+    <p class="mono" style="margin-top:.5rem">6 fiches · 3 faites · en cours : ENA4</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -46,22 +46,23 @@
         <details><summary><span class="titre">Réparer le blocage</span><span class="etat">Faite</span></summary>
         <span class="note">Conversation libre : coucou répondu 3 s après le lancement, F1 46 s, F2 relancée par la notification ; par Agent, background: true ne libérait pas</span></details>
         <span class="cout mono">≈6,2M (6 201 888) · 35 tours · 2,07 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">ENA3</span></span>
-        <details open><summary><span class="titre">Exposer pretes en vlp.py lancables</span><span class="etat">En cours</span></summary>
-        <span class="note">vlp.py lancables, sur pretes déjà écrite ; indépendante</span></details></li>
-      <li class="fiche"><span class="gauche"><span class="id">ENA4</span></span>
-        <details><summary><span class="titre">Commiter une fiche par ses seuls fichiers</span><span class="etat">À lancer</span></summary>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">ENA3</span></span>
+        <details><summary><span class="titre">Exposer pretes en vlp.py lancables</span><span class="etat">Faite</span></summary>
+        <span class="note">LANCABLES T1 T3 (défaut et --max 3), T1 (--max 1), puis T2, T4, aucune ; 3 mutants sur 3 attrapés ; sur ENA : LANCABLES ENA3</span></details>
+        <span class="cout mono">≈23,7M (23 727 647) · 189 tours · 9,41 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">ENA4</span></span>
+        <details open><summary><span class="titre">Commiter une fiche par ses seuls fichiers</span><span class="etat">En cours</span></summary>
         <span class="note">vlp.py commiter, sans git add -A ; indépendante</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">ENA5</span></span>
-        <details><summary><span class="titre">Écrire l'option parallèle</span><span class="etat">Après ENA3, ENA4</span></summary>
+        <details><summary><span class="titre">Écrire l'option parallèle</span><span class="etat">Après ENA4</span></summary>
         <span class="note">L'option parallèle dans /vlp:enchainer ; après ENA2 à ENA4</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">ENA6</span></span>
         <details><summary><span class="titre">Essayer pour de vrai, et régler le défaut</span><span class="etat">Après ENA5</span></summary>
         <span class="note">L'essai réel à 2 puis 3, le défaut réglé ; après ENA5</span></details>
         <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
     </ul>
-    <p class="mono cout-hors">Hors fiches : ≈12,6M (12 557 402) · 106 tours · 6,72 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈26,3M (26 301 265) · 170 tours · 11,09 $</p>
+    <p class="mono cout-hors">Hors fiches : ≈4,4M (4 437 570) · 26 tours · 2,81 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈41,9M (41 909 080) · 279 tours · 16,59 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

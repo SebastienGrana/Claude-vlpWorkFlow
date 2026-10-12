@@ -3131,6 +3131,38 @@ def tester_ena2_arriere_plan():
 groupe(tester_ena2_arriere_plan)
 
 
+def tester_ena3_lancables():
+    """ENA3 : `lancables` — les fiches prêtes aux fichiers disjoints, le fichier de fiches ôté (toutes le cochent),
+    `--max` au plus, coupées avant la première `(visuel)`, qui ne part que seule."""
+    def fiche(ident, fichiers, visuel=False):
+        """Une fiche minimale : ses `fichiers` sur la ligne **Fichiers**, son critère `(visuel)` ou non."""
+        return ("<!-- FICHE:%s -->\n## %s [ ] — %s\n\n**Dépend de** : rien.\n**Fichiers** : %s.\n\n**Critère de fin**%s\n"
+                "Rien.\n<!-- /FICHE -->\n" % (ident, ident, ident, fichiers, " (visuel)" if visuel else ""))
+    with tempfile.TemporaryDirectory() as t:
+        chemin = os.path.join(t, "fiches.md")
+        corps = ("# Essai\n\n## Le socle commun\n\nRien.\n\n## L'ordre des fiches\n\nT1 à T4.\n\n---\n"
+                 + fiche("T1", "`a.py`, `ctx/fiches.md`") + fiche("T2", "`a.py`, `b.py`")
+                 + fiche("T3", "`c.py`, `ctx/fiches.md`") + fiche("T4", "`d.py`", visuel=True))
+        ecrire(chemin, corps)
+        vus = [appel(["lancables", chemin] + o)[1].strip() for o in ([], ["--max", "3"], ["--max", "1"])]
+        verifier("ENA3 : T2 croise T1, fiches.md n'est pas commun, coupé à 2, 3 ou 1 avant T4 (visuel)",
+                 vus == ["LANCABLES T1 T3", "LANCABLES T1 T3", "LANCABLES T1"], repr(vus))
+        suite = []
+        for cochees in (("T1", "T3"), ("T1", "T2", "T3"), ("T1", "T2", "T3", "T4")):
+            texte = corps
+            for c in cochees:
+                texte = texte.replace("## %s [ ]" % c, "## %s [x]" % c)
+            ecrire(chemin, texte)
+            suite.append(appel(["lancables", chemin, "--max", "3"])[1].strip())
+        verifier("ENA3 : T2 seule avant la (visuel), puis T4 seule, puis aucune",
+                 suite == ["LANCABLES T2", "LANCABLES T4", "LANCABLES aucune"], repr(suite))
+        code, sortie = appel(["lancables", os.path.join(t, "absent.md")])
+        verifier("ENA3 : fichier absent → GARDE:, sort 1", code == 1 and sortie.startswith("GARDE:"), sortie)
+
+
+groupe(tester_ena3_lancables)
+
+
 def tester_arp4_menage():
     """Contrôler le ménage des tampons (ARP4) sur ses deux chemins réels, chacun dans son dossier temporaire :
     `carte_injectee` (`vlp-carte-` à RELAIS_SECONDES, `vlp-enchaine-` à MARQUE_SECONDES) et `tampon_neuf`
