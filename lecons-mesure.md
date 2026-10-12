@@ -12,7 +12,7 @@ et le récit mesuré des règles restées, sous leur titre et dans leur ordre.
 **Sommaire** : Trois leçons parties de la méthode · Les récits des règles restées —
 une ligne de mesure · une hypothèse vraie sur un cas · un commentaire périmé · un
 seuil arbitraire · un chantier cité par son code · une fiche payée jusqu'au bout ·
-une définition d'agent · un fait qui dit comment écrire · la TODO et ses deux oui ·
+un essai hors bac · une définition d'agent · un fait qui dit comment écrire · la TODO et ses deux oui ·
 ne pas réinventer la roue · l'effort selon la tâche · le chemin du code changé ·
 l'estimé qui se double · le commit vide · le code cité par son nom · le mutant.
 
@@ -120,6 +120,18 @@ Mesuré : une fiche enchaînée a coûté 1,53 $ à son commit ; sa reprise à l
 cocher, journal, page — 0,55 $ de plus, que `vlp.py cout`, qui coupe aux commits de
 fiche, rangeait dans la fiche **suivante**. Le vrai prix, 2,08 $, n'était écrit nulle
 part, et la suivante paraissait plus chère qu'elle n'était.
+
+### Un essai part d'un bac, ou se déclare
+
+Mesuré à `ESH` (2026-10-12), sur 1 278 transcripts : 148 portent la marque `turnOrigin`
+« sdk », tous des `claude -p`. Le champ `entrypoint` ne dit pas qui a lancé : 100 de ces
+148, lancés depuis l'app, y portent `claude-desktop`, comme une séance humaine. Un seul
+essai hors bac n'était compté nulle part : `PAR`, le 2026-09-29, 1 tour · 0,08 $.
+
+Le filtre qui semblait évident a été mesuré avant d'être écrit : écarter les séances
+ouvertes par `/vlp:tache`, pour taire celles d'`enchainer clear`. Il aurait caché
+**36 essais réels** hors bac (`MET4`, `VIT25`), pour **0** séance de boucle hors nuit
+trouvée. Le faux signal reste possible, et se lit dans la docstring d'`essais_hors_bac`.
 
 ### Une définition d'agent se charge au démarrage de la session — pas à la volée
 
