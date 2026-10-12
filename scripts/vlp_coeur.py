@@ -6690,12 +6690,25 @@ def cmd_oter(a, sortie):
     tete, k, numero = rangee_todo(lignes, a.code)
     assert tete is not None and k is not None   # `refus_d_oter` a trouvé la rangée
     raison = a.raison.strip().rstrip(".")
-    oter_rangee(lignes, tete, k, " %s, `%s`, retiré le %s : %s." % (numero, a.code, date, raison))
+    ecritures, quoi, prise = [], "retiré", ""
+    if a.fait:      # fait sans fiche : sa lettre est prise, ceux qui l'attendent ne sont plus bloqués
+        texte = "\n".join(carte_) + "\n"
+        j = texte.find(LETTRES)
+        if j < 0:
+            sortie.write("GARDE: ligne « %s » absente de CHANTIER.md — rien écrit\n" % LETTRES)
+            return 1
+        m = re.match(r"^\|\s*\d+\s*\|\s*`[^`]+`\s*—\s*(.*?)\s*\|", lignes[k])
+        fin = fin_lettres(texte, j)
+        texte = texte[:fin] + ", %s (%s, sans fiche)" % (a.code, m.group(1) if m else a.code) + texte[fin:]
+        ecritures.append((os.path.join(projet, "CHANTIER.md"), texte))
+        quoi, prise = "fait sans fiche", " · lettre prise"
+    oter_rangee(lignes, tete, k, " %s, `%s`, %s le %s : %s." % (numero, a.code, quoi, date, raison))
     while lignes and not lignes[-1].strip():
         lignes.pop()
-    lignes += ["", "## %s — `%s` retiré de la TODO (n° %s)" % (date, a.code, numero), "", "- **Raison** : %s." % raison]
-    ecrire_par_tmp([(chemin, "\n".join(lignes) + "\n")])
-    sortie.write("OTÉ `%s` · n° %s · provenance marquée · journal %s — %s\n" % (a.code, numero, date, etat))
+    lignes += ["", "## %s — `%s` %s, retiré de la TODO (n° %s)" % (date, a.code, quoi, numero) if a.fait
+               else "## %s — `%s` retiré de la TODO (n° %s)" % (date, a.code, numero), "", "- **Raison** : %s." % raison]
+    ecrire_par_tmp([(chemin, "\n".join(lignes) + "\n")] + ecritures)
+    sortie.write("OTÉ `%s` · n° %s · provenance marquée · journal %s — %s%s\n" % (a.code, numero, date, etat, prise))
     return 0
 
 
@@ -9009,6 +9022,7 @@ def options_clore(sous):
     ot.add_argument("code")
     ot.add_argument("--raison", required=True)
     ot.add_argument("--date")
+    ot.add_argument("--fait", action="store_true")
 
 
 def options_marques(sous):

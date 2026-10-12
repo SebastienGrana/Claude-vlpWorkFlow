@@ -333,6 +333,8 @@ Sous-commandes :
   le D : T.` ; au journal, une entrée `## D — `<code>` retiré de la TODO (n° <n>)`. Le numéro n'est jamais
   réattribué. `OTÉ `<code>` · n° <n> · provenance marquée · journal D — <fichier>`. Code absent, ouvert
   (`courant_de`) ou clos (« Lettres de fiche déjà prises »), TODO illisible : `GARDE: … — rien écrit`, sort 1 (TAB4).
+  `--fait` : un chantier fait sans fiche — « fait sans fiche » au lieu de « retiré », et `<code> (<titre>, sans
+  fiche)` ajouté aux « Lettres de fiche déjà prises » : ce qui l'attend n'est plus bloqué ; `· lettre prise` en fin.
 - `archiver <projet>` — chaque ligne de table `**clos**` de l'index quitte l'index pour
   `00-INDEX-archive.md`, dans son dossier (créée au besoin : titre, « QUAND LIRE », en-tête
   `| Fichier | Lire quand |`), déplacée telle quelle et triée par numéro de fichier ; l'index

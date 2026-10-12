@@ -1448,6 +1448,16 @@ def tester_oter():
         verifier("TAB4 : oter écrit une entrée datée au journal",
                  lu.endswith("## 2026-10-01 — x\n\n## 2026-10-09 — `AAA` retiré de la TODO (n° 3)\n\n"
                              "- **Raison** : fait ailleurs.\n"), lu)
+        res = appel(["oter", to, "BBB", "--raison", "fait cette nuit", "--date", "2026-10-12", "--fait"])
+        lu, carte_ = open(chemin, encoding="utf-8").read(), open(os.path.join(to, "CHANTIER.md"), encoding="utf-8").read()
+        prises = mod.lettres_prises(carte_.split("\n"))
+        verifier("oter --fait : la lettre est prise, ce qui l'attend n'est plus bloqué — mutant : sans l'ajout aux lettres",
+                 res[0] == 0 and res[1].rstrip().endswith("· lettre prise")
+                 and "U (test), BBB (b, sans fiche). Un nouveau chantier" in carte_
+                 and not mod.est_bloque("`BBB`", prises, []), (res, carte_))
+        verifier("oter --fait : « fait sans fiche » dans la provenance et au journal",
+                 "4, `BBB`, fait sans fiche le 2026-10-12 : fait cette nuit.\n" in lu
+                 and "## 2026-10-12 — `BBB` fait sans fiche, retiré de la TODO (n° 4)\n" in lu, lu)
 
 
 groupe(tester_oter)
