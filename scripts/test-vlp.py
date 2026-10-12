@@ -3220,16 +3220,23 @@ def tester_ena5_ensemble():
                 ("T5", " ", "`T1`", "`e.py`"))))
         vus = [appel(["lancables", chemin] + o)[1].strip() for o in (
             ["--max", "3", "--tourne", "T1"], ["--max", "3"], ["--max", "2", "--tourne", "T2"], ["--tourne", "T9"])]
-        # Relecteur d'ENA5 : `scripts/*.py` et `scripts/vlp.py` partaient ensemble (noms seuls `*.py`, `vlp.py`).
+        # Relecteurs d'ENA5 : `scripts/*.py`, puis `scripts/`, partaient avec `scripts/vlp.py` (noms seuls comparés).
         ecrire(chemin, "# Essai\n\n## Le socle commun\n\nRien.\n\n---\n" + "".join(
             "<!-- FICHE:%s -->\n## %s [ ] — %s\n\n**Dépend de** : rien.\n**Fichiers** : `%s`.\n\n**Critère de fin**\n"
             "Rien.\n<!-- /FICHE -->\n" % (i, i, i, f) for i, f in (
-                ("P1", "scripts/*.py"), ("P2", "scripts/vlp.py"), ("P3", "doc/*.md"), ("P4", "c.txt"))))
-        vus += [appel(["lancables", chemin] + o)[1].strip() for o in (["--max", "4"], ["--max", "4", "--tourne", "P1"])]
+                ("P1", "scripts/*.py"), ("P2", "scripts/vlp.py"), ("P3", "doc/*.md"), ("P4", "src/"), ("P5", "src/a.py"))))
+        vus += [appel(["lancables", chemin] + o)[1].strip() for o in (["--max", "5"], ["--max", "5", "--tourne", "P4"])]
     verifier("ENA5 : T1 en relecture retient T5 et prend a.py ; T2 compte dans --max ; une lancée inconnue part seule ; "
-             "un motif croise le nom qu'il prend et tout autre motif",
-             vus == ["LANCABLES T3", "LANCABLES T2 T3 T5", "LANCABLES T3", "LANCABLES aucune", "LANCABLES P1 P4",
-                     "LANCABLES P4"], repr(vus))
+             "un motif ou un dossier croise ce qu'il prend",
+             vus == ["LANCABLES T3", "LANCABLES T2 T3 T5", "LANCABLES T3", "LANCABLES aucune", "LANCABLES P1 P3 P4",
+                     "LANCABLES P1 P3"], repr(vus))
+    # Toutes les façons d'écrire scripts/vlp.py, deux à deux : la famille entière, pas les deux exemples des relecteurs.
+    meme = ["scripts/vlp.py", "vlp.py", "scripts/", "scripts/*.py", "scripts/{vlp,x}.py", "*.py", "scripts/*",
+            "scripts/v*.py", "*/vlp.py"]
+    manque = [(x, y) for x in meme for y in meme if not mod.croisent({x}, {y})]
+    verifier("ENA5 : croisent voit les 81 paires d'un même fichier, et sépare scripts/ de doc/a.md",
+             manque == [] and not mod.croisent({"scripts/"}, {"doc/a.md"}) and not mod.croisent({"vlp.py"}, {"a.md"}),
+             repr(manque))
     chef = io.open(os.path.join(RACINE, "skills", "enchainer", "SKILL.md"), encoding="utf-8").read()
     plat = " ".join(chef.split())
     verifier("ENA5 : le chef commite par commiter, jamais git add -A, et lance par lancables --tourne",

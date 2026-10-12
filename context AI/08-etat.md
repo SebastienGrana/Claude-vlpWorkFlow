@@ -3428,3 +3428,13 @@ Les 6 fichiers relus en entier contre `methode-chantier.md` après `MET7` ; « t
 - **Mesuré** (bac `ENA2`, Claude Code 2.1.296, session interactive `cli`) : `Skill` `vlp:jouer` en `background: true` a attendu la fin de F1 (55 s) et rendu le `Result` dans le même appel (`status: "forked"`) — contre la doc des skills, lue le jour même, dont aucune des 4 exceptions ne s'appliquait.
 - **Ce qui marche** (2e bac) : `Agent` `subagent_type: "vlp:fiche"`, `run_in_background: true` — rendu en 1 s, « coucou » répondu 3 s après le lancement, F1 en 46 s, la notification de fin a relancé F2 seule (7 s plus tard).
 - **Conséquence** : `/vlp:enchainer agents` lance fiche et relecteur par `Agent` ; les skills `vlp:jouer` et `vlp:relire` ne sont plus appelées par lui. `fiche_jouee` lit `Fiche à jouer : <id>` suivi d'une espace : un point collé à l'id le fausserait (testé).
+
+### ENA5 : deux refus, une cause — un repère pris pour une garantie (2026-10-12)
+
+- `lancables` (ENA3) comparait les **noms seuls** d'`apercu_fiches`, écrit pour la page (BTN) : « le repère prévient,
+  il ne garantit rien ». `commiter` (ENA4) lit les chemins entiers : deux règles du « même fichier », en désaccord.
+- Refus 1 : `scripts/*.py` et `scripts/vlp.py` partaient ensemble ; corrigé pour les motifs seuls. Refus 2 : `scripts/`
+  et `scripts/vlp.py`. Chaque fois l'exemple réparé, pas la famille.
+- Sonde de toutes les écritures d'un même fichier, deux à deux : 14 paires ratées sur 64 avant, **0 sur 81** après
+  (`croisent`, chemins entiers, prudent dans le doute : 14 faux croisements sur 54, voulus). La sonde est dans le test.
+- Leçon : un refus de relecteur nomme un exemple ; sonder sa famille entière avant de rendre la main.

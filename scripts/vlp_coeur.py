@@ -1304,10 +1304,33 @@ def releve(chemin, nom):
 
 
 def croisent(uns, autres):
-    """Vrai si deux ensembles de noms de fichiers peuvent viser un même fichier : un nom commun, l'un pris par le
-    motif de l'autre (`releve`), ou deux motifs — leur croisement ne se calcule pas, on le suppose (ENA5)."""
-    return any(x == y or releve(x, y) or releve(y, x) or (bool(re.search(r"[*?[{]", x)) and bool(re.search(r"[*?[{]", y)))
-               for x in uns for y in autres)
+    """Vrai si deux ensembles de chemins, tels qu'écrits sur des lignes **Fichiers**, peuvent viser un même fichier
+    (ENA5) — dans le doute, oui : deux fiches qui se croisent ne partent jamais ensemble. `{a,b}` se déplie. Deux
+    chemins à `/` : égaux, l'un sous le dossier de l'autre, ou, s'il y a un motif, leurs parts littérales (avant le
+    premier `*?[`) dont l'une commence l'autre. Un nom seul (`vlp.py`) peut vivre dans tout dossier : il croise un
+    dossier, et un chemin dont le dernier nom le prend ou qu'il prend (`fnmatch`) ; deux derniers noms à motif aussi."""
+    motif = re.compile(r"[*?[]")
+
+    def peut(x, y):
+        """Vrai si `x` et `y`, sans accolade, peuvent viser un même fichier."""
+        if "/" in x and "/" in y:
+            if not motif.search(x) and not motif.search(y):
+                return releve(x, y) or releve(y, x)
+            px, py = (motif.split(n, 1)[0] for n in (x, y))
+            return px.startswith(py) or py.startswith(px)
+        if x.endswith("/") or y.endswith("/"):
+            return True
+        bx, by = x.rsplit("/", 1)[-1], y.rsplit("/", 1)[-1]
+        return bool(motif.search(bx) and motif.search(by)) or fnmatch.fnmatchcase(bx, by) or fnmatch.fnmatchcase(by, bx)
+    return any(peut(a, b) for x in uns for y in autres for a in deplie(x) for b in deplie(y))
+
+
+def deplie(nom):
+    """Les noms que les accolades de `nom` désignent : `a/{b,c}.py` → `a/b.py`, `a/c.py`."""
+    accolade = re.search(r"\{([^{}]*)\}", nom)
+    if not accolade:
+        return [nom]
+    return [n for choix in accolade.group(1).split(",") for n in deplie(nom[:accolade.start()] + choix + nom[accolade.end():])]
 
 
 def cmd_commiter(a, sortie):
@@ -2633,12 +2656,13 @@ def deplier_plages(ligne):
     return PLAGE_DEPEND.sub(developper, ligne)
 
 
-def apercu_fiches(lignes):
+def apercu_fiches(lignes, entiers=False):
     """{id: (dépendances, critère visuel, fichiers)} lus dans le bloc de chaque fiche : les
     identifiants de sa ligne `**Dépend de**` et de ses suites, une plage dépliée (`deplier_plages`), vrai
     si son `**Critère de fin**` porte `(visuel)` — la colonne de gauche et celle de droite de sa carte sur la page (gabarit en
     colonnes) —, et le nom seul de chaque fichier de sa ligne `**Fichiers**` : `vlp.css` pour
-    `templates/vlp.css`, pour qu'un même fichier nommé de deux façons compte comme commun."""
+    `templates/vlp.css`, pour qu'un même fichier nommé de deux façons compte comme commun. `entiers` : le chemin
+    tel qu'écrit, dossier et motif gardés — `croisent` les compare (ENA5)."""
     titres = [i for i, l in enumerate(lignes) if TITRE.match(l)] + [len(lignes)]
     rendu = {}
     for i, suivant in zip(titres, titres[1:]):
@@ -2654,7 +2678,7 @@ def apercu_fiches(lignes):
                 deps += [d for d in DEPEND.findall(deplier_plages(l)) if d not in deps]
             visuel = visuel or bool(CRITERE_VISUEL.match(l))
         # Un fichier : un chemin, ou un nom à extension — pas `compte_todo`, `:3124` ni « rien ».
-        fichiers = {n.rstrip("/").rsplit("/", 1)[-1] for n in noms_fichiers(lignes[i + 1:suivant])
+        fichiers = {n if entiers else n.rstrip("/").rsplit("/", 1)[-1] for n in noms_fichiers(lignes[i + 1:suivant])
                     if "/" in n or re.fullmatch(r"[\w-]+(?:\.[\w-]+)+", n)}
         rendu[lignes[i].split()[1]] = (deps, visuel, fichiers)
     return rendu
@@ -2686,7 +2710,8 @@ def lancables(lignes, nom, plafond, tournent=()):
     `plafond`, leurs fichiers sont pris, rien ne part à côté d'une qui part seule, et une cochée en relecture ne
     libère pas encore ce qui dépend d'elle."""
     fiches_ = fiches_du_fichier(lignes)
-    apercu = {i: (d, v, f - {nom}) for i, (d, v, f) in apercu_fiches(lignes).items()}
+    apercu = {i: (d, v, {x for x in f if x.rstrip("/").rsplit("/", 1)[-1] != nom})
+              for i, (d, v, f) in apercu_fiches(lignes, entiers=True).items()}
     attend, _ = pretes(fiches_, {i: "faite" if c and i not in tournent else "" for i, _, c, _ in fiches_}, apercu)
     lancees = [apercu.get(i, ([], False, set())) for i in tournent]
     if any(v or not f for _, v, f in lancees):
