@@ -21,9 +21,9 @@
     <p>/vlp:enchainer agents ne bloque plus la conversation ; le parallèle repart au chantier ISO (recul du 2026-10-12)</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="bloquee"></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="bloquee"></span><span></span><span data-etat="faite"></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">8 fiches · 4 faites · bloquée : ENA5</p>
+    <p class="mono" style="margin-top:.5rem">8 fiches · 5 faites · bloquée : ENA5</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -62,15 +62,16 @@
         <details><summary><span class="titre">Essayer pour de vrai, et régler le défaut</span><span class="etat">Après ENA5</span></summary>
         <span class="note">Abandonnée à la clôture : sans le parallèle, rien à essayer ici ; l'essai réel passe à ISO</span></details>
         <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
-      <li class="fiche"><span class="gauche"><span class="id">ENA7</span></span>
-        <details><summary><span class="titre">Le 2e refus d'une même famille arrête, et le compteur compte juste</span><span class="etat">À lancer</span></summary>
-        <span class="note">Les freins : le rang du refus survit à « résolu », et le 2e refus d'une même famille arrête ; ne dépend de rien</span></details></li>
-      <li class="fiche" data-attend><span class="gauche"><span class="id">ENA8</span></span>
-        <details><summary><span class="titre">Débrancher l'option parallèle, garder son code</span><span class="etat">Après ENA7</span></summary>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">ENA7</span></span>
+        <details><summary><span class="titre">Le 2e refus d'une même famille arrête, et le compteur compte juste</span><span class="etat">Faite</span></summary>
+        <span class="note">cycle par cocher : refus 1 → --resolu → refus 2 · dernier : motif un (le bloc le montre encore) → refus 3 ; cas d'avant identiques (tester_cocher, REFUS_PISTE) ; mutant de l'ancienne réduction attrapé (1 écart) ; rapide vert (3 contrôles, pyright 0 erreur sur 5 fichiers, cliquet tenu) ; suite entière OK (sortie 0, 467 s)</span></details>
+        <span class="cout mono">≈64,6M (64 555 515) · 345 tours · 35,43 $</span></li>
+      <li class="fiche"><span class="gauche"><span class="id">ENA8</span></span>
+        <details><summary><span class="titre">Débrancher l'option parallèle, garder son code</span><span class="etat">À lancer</span></summary>
         <span class="note">L'option agents ensemble retirée du texte, son code gardé pour ISO ; après ENA7</span></details></li>
     </ul>
-    <p class="mono cout-hors">Hors fiches : ≈8,8M (8 832 836) · 63 tours · 4,50 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈60,1M (60 092 362) · 409 tours · 24,21 $</p>
+    <p class="mono cout-hors">Hors fiches : ≈4,4M (4 437 570) · 26 tours · 2,81 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈120,3M (120 252 611) · 717 tours · 57,95 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -88,12 +89,13 @@
     <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
     <ul class="journal">
       <li><time datetime="2026-10-12">2026-10-12</time><span>Recul sur ENA5 : Git garde la sécurité ; le parallèle repart au chantier ISO ; ENA se ferme par ENA7 (les freins) et ENA8 (débrancher), ENA5 et ENA6 abandonnées</span></li>
+      <li><time datetime="2026-10-13">2026-10-13</time><span>ENA7 : test-boucle.py (c) attendait « cocher rend refus 1 au 2e refus » — passé à refus 2, et la docstring de boucle.py (« le fichier ne s'en souvient pas ») corrigée ; la sortie de --refuser ne donne « · dernier : » qu'après un « résolu », pour que les cas d'avant sortent à l'identique.</span></li>
     </ul>
   </section>
 
   <footer>
     <span>Fichier de fiches : <span class="mono">context AI/119-ena.md</span></span>
-    <span>Mis à jour le <span class="mono">2026-10-12</span></span>
+    <span>Mis à jour le <span class="mono">2026-10-13</span></span>
   </footer>
 </div>
 <script src="vlp.js"></script>

@@ -20,7 +20,9 @@ Erreur : <la ligne d'erreur qui compte, pas la trace entière>
 
 Trois à cinq lignes, pas plus : ce bloc est relu à chaque reprise de la fiche,
 il se paye autant de fois. Une deuxième session bloquée **complète** ce bloc,
-elle n'en ouvre pas un second.
+elle n'en ouvre pas un second. Une tête qui finit par
+` · refus <n> · dernier : <motif>` — des refus de relecture déjà soldés — le
+garde : `cocher --refuser` le relit.
 
 ## L'artefact — session principale seulement
 

@@ -10,7 +10,16 @@
   disait, le sous-agent ne l'a pas fait) — `enchainement.md`.
 - **Réécriture proposée** : sous une cause `fiche`, la ligne
   `RÉÉCRITURE : <phrase> → <ce qu'elle devient>` ; sinon absente.
-- **Rang** : `· refus <n>`, lu sur la sortie de `cocher --refuser`.
+- **Rang** : `· refus <n>`, lu sur la sortie de `cocher --refuser` ; après un
+  « résolu », elle porte aussi le motif d'avant, `· dernier : <motif>` — sinon,
+  c'est celui de ton refus précédent.
+- **Famille**, dès `n` ≥ 2 : compare le motif de ce refus au précédent. **Même
+  famille** — le même genre de défaut, sur un autre exemple (`ENA5` : motif,
+  dossier, filtre, chemin partiel, dossier sans barre, chaque fois deux noms d'un
+  même fichier lancés ensemble) : la cause se lit `fiche`, quoi qu'en dise le
+  relecteur, et seules restent 1 — recadrer : chercher l'existant, revoir le
+  critère ; le recadrage se montre, rien ne se relance sans la réponse de
+  l'utilisateur — et 4. **Famille différente** : les quatre.
 
 Pose un questionnaire (`AskUserQuestion`), ces quatre options :
 

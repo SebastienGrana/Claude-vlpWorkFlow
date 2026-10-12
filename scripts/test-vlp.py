@@ -2730,6 +2730,46 @@ Erreur : blocage initial
 
 groupe(tester_cocher_refuser)
 
+# Le cycle du chef (ENA7) : refus, `--resolu`, refus — le rang et le motif d'avant survivent au solde.
+def tester_cocher_cycle():
+    """Contrôler que le rang d'un refus et son motif survivent à `cocher --resolu` (ENA7), par `cocher` comme le chef."""
+    cycle = """<!-- FICHE:VAL3 -->
+## VAL3 [x] — Troisième
+
+**Dépend de** : rien.
+<!-- /FICHE -->
+"""
+    with tempfile.TemporaryDirectory() as t:
+        f = os.path.join(t, "ctx", "08-v3.md")
+        ecrire(f, cycle)
+        garde_env, vus, textes = dict(os.environ), [], []
+        try:
+            os.environ["CLAUDE_CODE_SESSION_ID"] = ""   # pas de ligne Session : seul le bloc change
+            for k, motif in enumerate(("motif un", "motif deux", "motif trois")):
+                vus.append(appel(["cocher", f, "VAL3", "--refuser", motif, "--date", "2026-01-1%d" % (2 * k)]))
+                textes.append(lire(f))
+                appel(["cocher", f, "VAL3", "--resolu", "repris %d" % (k + 1), "--date", "2026-01-1%d" % (2 * k + 1)])
+                textes.append(lire(f))
+        finally:
+            os.environ.clear()
+            os.environ.update(garde_env)
+    deux = cycle.replace("## VAL3 [x] — Troisième\n\n", "## VAL3 [ ] — Troisième\n\n**Tentatives** (2026-01-12) — non résolu"
+                         " · refus 1 · dernier : motif un\n2. FAITE refusée à la relecture.\nErreur : motif deux\n\n")
+    verifier("cocher --refuser après --resolu (ENA7) : refus 1, 2, 3, le motif d'avant sur la sortie",
+             vus == [(0, "REFUSÉ VAL3 · refus 1\n"), (0, "REFUSÉ VAL3 · refus 2 · dernier : motif un\n"),
+                     (0, "REFUSÉ VAL3 · refus 3 · dernier : motif deux\n")], vus)
+    verifier("cocher --resolu (ENA7) : la ligne soldée garde le rang et le dernier motif",
+             "**Tentatives** (2026-01-11) — résolu par : repris 1 · refus 1 · dernier : motif un\n\n" in textes[1]
+             and "**Tentatives** (2026-01-15) — résolu par : repris 3 · refus 3 · dernier : motif trois\n\n" in textes[5],
+             textes[1] + "\n---\n" + textes[5])
+    verifier("cocher --refuser après --resolu (ENA7) : le bloc montre encore « motif un », la ligne suit le report",
+             textes[2] == deux and textes[4].count("**Tentatives**") == 1
+             and "— non résolu · refus 2 · dernier : motif deux\n3. FAITE refusée à la relecture.\nErreur : motif trois\n"
+             in textes[4], textes[2] + "\n---\n" + textes[4])
+
+
+groupe(tester_cocher_cycle)
+
 # --- Z2 : un chemin de CHANTIER.md ne fait plus tomber une sous-commande ---
 # Un cas par ligne « plante » de la table de Z1, plus le point de lecture unique.
 GABARIT_FEUILLE = os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html")

@@ -850,9 +850,10 @@ def tester_relance():
         refus = [d["refus_n"] for d in lignes_carnet(t, role="relire")]
         arret = arret_de(t)
         neuf("(c) F1 refusée copie deux fois, motifs différents : une seule relance (qui a coché --resolu), cocher "
-             "rend refus 1 au 2e refus, et pourtant refus-max ; F2 pas jouée",
-             code == 1 and len(relances(argvs)) == 1 and refus == [1, 1] and "1. FAITE refusée" in fiches
-             and "2. FAITE refusée" not in fiches and "motif factice 2" in fiches and "garde refus-max" in s
+             "rend refus 2 au 2e refus — le report du --resolu (ENA7) —, refus-max ; F2 pas jouée",
+             code == 1 and len(relances(argvs)) == 1 and refus == [1, 2]
+             and "· refus 1 · dernier : REFUSÉE — copie : motif factice 1" in fiches and "2. FAITE refusée" in fiches
+             and "motif factice 2" in fiches and "garde refus-max" in s
              and "JOUE F2" not in s and cases_de(t) == "..." and len(arret) == 1 and arret[0]["garde"] == "refus-max"
              and arret[0]["refus_n"] == 2, (s, refus, arret))
 

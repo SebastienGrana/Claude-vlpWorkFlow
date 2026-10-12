@@ -3457,3 +3457,9 @@ Les 6 fichiers relus en entier contre `methode-chantier.md` après `MET7` ; « t
 - Reste hors règle : 73 paires lancées ensemble ont écrit un même fichier qu'une ligne **Fichiers** ne nommait pas,
   dont **71** sur `context AI/08-etat.md` (le fichier d'état) — à trancher à l'essai d'`ENA6`. Et 162 noms écrits
   sur 318 ne désignent aucun fichier (à créer, ou mots parasites) : l'arbre ne les juge pas.
+
+## 2026-10-13 — ENA7 : un test de nuit figeait le défaut
+
+- ENA7 : `test-boucle.py` (c) attendait « `cocher` rend refus 1 au 2e refus » — passé à refus 2, et la docstring de
+  `boucle.py` (« le fichier ne s'en souvient pas ») corrigée ; la sortie de `--refuser` ne donne ` · dernier :`
+  qu'après un « résolu », pour que les cas d'avant sortent à l'identique.

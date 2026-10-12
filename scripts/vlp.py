@@ -115,7 +115,8 @@ Sous-commandes :
 - `cocher <fichier> <fiche> [--resolu T] [--date D] [--verifier | --refuser M]` — `[ ]` → `[x]`
   sur le titre de la fiche et, si `CLAUDE_CODE_SESSION_ID` n'est pas vide, `**Session** : <id>`
   avant sa ligne `**Dépend de**` (déjà là : pas redoublée) ; `--resolu` réduit
-  un bloc `**Tentatives**` à `**Tentatives** (<date>) — résolu par : T`.
+  un bloc `**Tentatives**` à `**Tentatives** (<date>) — résolu par : T` — s'il portait des refus de
+  relecture, suivi de leur report ` · refus <n> · dernier : <motif>` (ENA7 ; motif : sa ligne `Erreur :`).
   `COCHÉ <fiche> · Session <id|absente>`. Introuvable ou déjà cochée : `GARDE:`,
   rien écrit, sort 1. `--verifier` n'écrit rien, et rend `CASE <fiche> [x]` (sort 0) ou
   `CASE <fiche> [ ]` (sort 1) ; puis, si le sujet du dernier commit du dépôt du fichier commence
@@ -123,8 +124,10 @@ Sous-commandes :
   dépôt, `SANS GIT`, et la case seule décide. `--refuser M` (chantier REV) : `[x]` → `[ ]`, et
   sous le titre le bloc `**Tentatives** (<date>) — non résolu.`, `1. FAITE refusée à la
   relecture.`, `Erreur : M` ; déjà là, il gagne la ligne numérotée suivante et son `Erreur :`
-  prend M, sans se doubler. `REFUSÉ <fiche> · refus <n>` : `<n>` compte, dans le bloc après
-  l'ajout, les seules lignes numérotées `FAITE refusée à la relecture.`. `--session <uuid> --role <rôle>`
+  prend M, sans se doubler ; une tête soldée redevient `— non résolu`, son report gardé, et la ligne
+  numérotée suit le report. `REFUSÉ <fiche> · refus <n>` : `<n>` compte le report et, dans le bloc après
+  l'ajout, les lignes numérotées `FAITE refusée à la relecture.` ; un report ajoute ` · dernier : <motif>`,
+  le motif d'avant. `--session <uuid> --role <rôle>`
   (chantier NUI ; exclusif de `--verifier` et `--refuser`) : la session d'un rôle de la nuit, que la
   boucle connaît et non la session elle-même — `**Session** : <uuid> (<rôle>)`, fiche cochée ou non,
   jamais doublée (`NOTÉ` ou `DÉJÀ`) ; `--role clore` l'écrit dans l'en-tête, avant le premier `## `, comme
