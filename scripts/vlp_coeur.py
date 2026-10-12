@@ -1612,20 +1612,63 @@ def instantane(racine):
     return git_texte(["commit-tree", arbre.strip(), "-p", "HEAD", "-m", "vlp relecture : instantané"], racine, env)
 
 
-def noms_fichiers(fiche):
-    """Ce que nomme la ligne **Fichiers** d'une fiche, jusqu'à la ligne vide ou au champ suivant :
-    chaque `…` entre backticks, et chaque mot hors d'eux — le gabarit n'en met pas."""
+def texte_fichiers(fiche):
+    """Le texte de la ligne **Fichiers** d'une fiche, libellé ôté, jusqu'à la ligne vide ou au champ suivant ;
+    "" sans elle."""
     k = next((i for i, l in enumerate(fiche) if l.startswith("**Fichiers**")), None)
     if k is None:
-        return set()
+        return ""
     para = [fiche[k][len("**Fichiers**"):]]
     for l in fiche[k + 1:]:
         if not l.strip() or l.startswith(("**", "<!--")):
             break
         para.append(l)
-    texte = " ".join(para)
+    return " ".join(para)
+
+
+def noms_fichiers(fiche):
+    """Ce que nomme la ligne **Fichiers** d'une fiche (`texte_fichiers`) :
+    chaque `…` entre backticks, et chaque mot hors d'eux — le gabarit n'en met pas."""
+    texte = texte_fichiers(fiche)
     return (set(re.findall(r"`([^`]+)`", texte))
             | set(re.split(r"[\s,;:()]+", re.sub(r"`[^`]*`", " ", texte)))) - {""}
+
+
+def entrees(dossier):
+    """{nom en minuscules : vrai si dossier} des entrées de `dossier` — la racine d'un projet, pour `invites`."""
+    try:
+        return {e.lower(): os.path.isdir(os.path.join(dossier, e)) for e in os.listdir(dossier)}
+    except OSError:
+        return {}
+
+
+def invites(fiche, racine):
+    """La liste d'invités de la ligne **Fichiers** d'une fiche, pour `lancables` (ENA5 ; jugée sur l'historique Git par
+    `context AI/119-ena5-juge.py`). Un nom se normalise — `\\` en `/`, `./`, guillemets et ponctuation de fin ôtés,
+    minuscules — et n'entre que chemin (un `/`), motif, nom à extension (`.gitignore` compris) ou entrée de `racine`
+    (`entrees`) : `skills` → `skills/`, pas `carte`. Entre backticks, le tout, et chaque mot s'ils sont plusieurs,
+    coupés aux blancs et aux `:` (`vlp.py niveau`, `vlp.py:513`) ; hors d'eux, chaque mot — un chemin à espace se
+    coupe pareil des deux côtés (`ai/08-etat.md`). Un nom de trop ne coûte qu'un départ ensemble ; un nom manqué,
+    un conflit."""
+    texte = texte_fichiers(fiche)
+
+    def propre(n):
+        """Le nom normalisé."""
+        n = n.strip().strip("\"'").rstrip(".,;").replace("\\", "/").lower()
+        return n[2:] if n.startswith("./") else n
+    candidats = []
+    for brut in re.findall(r"`([^`]+)`", texte):
+        mots = [m for m in re.split(r"[\s:\"']+", brut) if m]
+        candidats += [propre(brut)] + (list(map(propre, mots)) if len(mots) > 1 else [])
+    candidats += map(propre, re.split(r"[\s,;:()]+", re.sub(r"`[^`]*`", " ", texte)))
+    rendu = set()
+    for n in candidats:
+        if n.strip("/") and ("/" in n or re.search(r"[*?[{]", n)
+                             or re.fullmatch(r"\.[\w-]+(?:\.[\w-]+)*|[\w-]+(?:\.[\w-]+)+", n)):
+            rendu.add(n)
+        elif n in racine:
+            rendu.add(n + "/" if racine[n] else n)
+    return rendu
 
 
 def nomme(chemin, noms):
@@ -2656,13 +2699,13 @@ def deplier_plages(ligne):
     return PLAGE_DEPEND.sub(developper, ligne)
 
 
-def apercu_fiches(lignes, entiers=False):
+def apercu_fiches(lignes, racine=None):
     """{id: (dépendances, critère visuel, fichiers)} lus dans le bloc de chaque fiche : les
     identifiants de sa ligne `**Dépend de**` et de ses suites, une plage dépliée (`deplier_plages`), vrai
     si son `**Critère de fin**` porte `(visuel)` — la colonne de gauche et celle de droite de sa carte sur la page (gabarit en
     colonnes) —, et le nom seul de chaque fichier de sa ligne `**Fichiers**` : `vlp.css` pour
-    `templates/vlp.css`, pour qu'un même fichier nommé de deux façons compte comme commun. `entiers` : le chemin
-    tel qu'écrit, dossier et motif gardés — `croisent` les compare (ENA5)."""
+    `templates/vlp.css`, pour qu'un même fichier nommé de deux façons compte comme commun. `racine` (les entrées
+    du projet, `entrees`) : sa liste d'invités (`invites`) à la place — `croisent` les compare (ENA5)."""
     titres = [i for i, l in enumerate(lignes) if TITRE.match(l)] + [len(lignes)]
     rendu = {}
     for i, suivant in zip(titres, titres[1:]):
@@ -2678,8 +2721,9 @@ def apercu_fiches(lignes, entiers=False):
                 deps += [d for d in DEPEND.findall(deplier_plages(l)) if d not in deps]
             visuel = visuel or bool(CRITERE_VISUEL.match(l))
         # Un fichier : un chemin, ou un nom à extension — pas `compte_todo`, `:3124` ni « rien ».
-        fichiers = {n if entiers else n.rstrip("/").rsplit("/", 1)[-1] for n in noms_fichiers(lignes[i + 1:suivant])
-                    if "/" in n or re.fullmatch(r"[\w-]+(?:\.[\w-]+)+", n)}
+        fichiers = invites(lignes[i + 1:suivant], racine) if racine is not None else {
+            n.rstrip("/").rsplit("/", 1)[-1] for n in noms_fichiers(lignes[i + 1:suivant])
+            if "/" in n or re.fullmatch(r"[\w-]+(?:\.[\w-]+)+", n)}
         rendu[lignes[i].split()[1]] = (deps, visuel, fichiers)
     return rendu
 
@@ -2702,16 +2746,17 @@ def pretes(fiches_, etat, apercu):
     return attend, ensemble if len(ensemble) > 1 else []
 
 
-def lancables(lignes, nom, plafond, tournent=()):
+def lancables(lignes, nom, plafond, tournent=(), racine=None):
     """Les fiches que `/vlp:enchainer` peut lancer ensemble (ENA3) : les prêtes de `pretes`, le fichier de fiches
     `nom` ôté des fichiers de chacune — toutes le cochent, il n'est pas commun —, prises dans l'ordre si leurs
     fichiers ne se croisent pas (`croisent`, motifs compris), jusqu'à `plafond` et avant la première `(visuel)`. Une `(visuel)` ou une fiche sans
     ligne **Fichiers** ne part que seule. `tournent` (ENA5) : les fiches déjà lancées — elles comptent dans
     `plafond`, leurs fichiers sont pris, rien ne part à côté d'une qui part seule, et une cochée en relecture ne
-    libère pas encore ce qui dépend d'elle."""
+    libère pas encore ce qui dépend d'elle. Les fichiers : la liste d'invités (`invites`), `racine` les entrées du
+    projet (`entrees`) — sans elle, un mot seul n'est jamais un dossier."""
     fiches_ = fiches_du_fichier(lignes)
-    apercu = {i: (d, v, {x for x in f if x.rstrip("/").rsplit("/", 1)[-1] != nom})
-              for i, (d, v, f) in apercu_fiches(lignes, entiers=True).items()}
+    apercu = {i: (d, v, {x for x in f if x.rstrip("/").rsplit("/", 1)[-1] != nom.lower()})
+              for i, (d, v, f) in apercu_fiches(lignes, racine or {}).items()}
     attend, _ = pretes(fiches_, {i: "faite" if c and i not in tournent else "" for i, _, c, _ in fiches_}, apercu)
     lancees = [apercu.get(i, ([], False, set())) for i in tournent]
     if any(v or not f for _, v, f in lancees):
@@ -2730,11 +2775,14 @@ def lancables(lignes, nom, plafond, tournent=()):
 
 
 def cmd_lancables(a, sortie):
-    """Imprimer `LANCABLES <id>…`, ou `LANCABLES aucune` : ce que `lancables` rend sur `a.fichier`, `a.max` au plus."""
+    """Imprimer `LANCABLES <id>…`, ou `LANCABLES aucune` : ce que `lancables` rend sur `a.fichier`, `a.max` au plus ;
+    la racine : le projet qui porte le fichier (`trouver`)."""
     if not os.path.isfile(a.fichier) or a.max < 1:
         sortie.write("GARDE: lancables veut un fichier de fiches et --max ≥ 1 : %s, %d\n" % (a.fichier, a.max))
         return 1
-    ids = lancables(lignes_de(a.fichier), os.path.basename(a.fichier), a.max, a.tourne)
+    projet = trouver(os.path.dirname(os.path.abspath(a.fichier)))
+    ids = lancables(lignes_de(a.fichier), os.path.basename(a.fichier), a.max, a.tourne,
+                    entrees(projet) if projet else {})
     sortie.write("LANCABLES %s\n" % (" ".join(ids) or "aucune"))
     return 0
 

@@ -3237,6 +3237,42 @@ def tester_ena5_ensemble():
     verifier("ENA5 : croisent voit les 81 paires d'un même fichier, et sépare scripts/ de doc/a.md",
              manque == [] and not mod.croisent({"scripts/"}, {"doc/a.md"}) and not mod.croisent({"vlp.py"}, {"a.md"}),
              repr(manque))
+    # 3e relecteur d'ENA5 : le filtre d'apercu_fiches jetait `.gitignore`, `skills`, `*.py`. Les formes relevées sur les
+    # 421 lignes **Fichiers** du kit, par `lancables` — chaque paire vise un même fichier ; les libres, non.
+    racine = {"skills": True, "scripts": True, "context ai": True, ".gitignore": False, ".gitattributes": False}
+
+    def deux(x, y):
+        """Vrai si `lancables` lance ensemble deux fiches aux lignes **Fichiers** `x` et `y` — chacune un fichier à elle
+        en tête : un nom perdu ne la laisse pas sans fichier, ce qui la ferait partir seule et cacherait la perte."""
+        lignes = ("# E\n\n## Le socle commun\n\nRien.\n\n---\n" + "".join(
+            "<!-- FICHE:%s -->\n## %s [ ] — %s\n\n**Dépend de** : rien.\n**Fichiers** : `%s.md`, %s.\n\n"
+            "**Critère de fin**\nRien.\n<!-- /FICHE -->\n" % (i, i, i, i, f) for i, f in (("A1", x), ("B1", y)))).split("\n")
+        return mod.lancables(lignes, "f.md", 2, racine=racine) == ["A1", "B1"]
+    formes = [("`.gitignore`, `a.py`", "`.gitignore`, `b.py`"), ("`skills`, `doc/a.md`", "`skills/a/SKILL.md`"),
+              ("skills", "`skills/tache/SKILL.md`"), ("`*.py`, `doc/b.md`", "`scripts/vlp.py`"),
+              ("`scripts/`", "`scripts/vlp.py`"), ("`scripts\\vlp.py`", "`scripts/vlp.py`"),
+              ("`./scripts/vlp.py`", "`scripts/vlp.py`"), ("`Scripts/vlp.py`", "`scripts/vlp.py`"),
+              ("`CLAUDE.md`", "CLAUDE.md"), ("`skills/{a,b}/SKILL.md`", "`skills/b/SKILL.md`"),
+              ("`vlp.css`", "`templates/vlp.css`"), ("`.gitattributes`", "`.gitattributes`, `a.md`"),
+              ("`.editorconfig`, `a.py`", "`.editorconfig`, `b.py`"),
+              ("`vlp.py:513`", "`scripts/vlp.py`"), ("`scripts/vlp.py:10-20`", "`scripts/vlp.py`"),
+              ("`vlp.py niveau`", "`scripts/vlp.py`"), ("`git show main:CHANTIER.md`", "`CHANTIER.md`"),
+              ("context AI/08-etat.md", "`context AI/08-etat.md`"), ("context AI/08-etat.md", "`context AI/*.md`"),
+              ("`grep -n x context AI/08-etat.md`", "`context AI/08-etat.md`")]
+    libres = [("`carte`, `a.py`", "`cmd_niveau`, `b.py`"), ("`skills/tache/SKILL.md`", "`skills/chantier/SKILL.md`"),
+              ("`scripts/vlp.py`", "`doc/a.md`"), ("`scripts/vlp.py:10`", "`scripts/boucle.py`")]
+    rates = [f for f in formes if deux(*f)] + [f for f in libres if not deux(*f)]
+    with tempfile.TemporaryDirectory() as projet:
+        ecrire(os.path.join(projet, "CHANTIER.md"), "x\n")
+        os.mkdir(os.path.join(projet, "skills"))
+        fiches = os.path.join(projet, "context AI", "f.md")
+        ecrire(fiches, "# E\n\n## Le socle commun\n\nRien.\n\n---\n" + "".join(
+            "<!-- FICHE:%s -->\n## %s [ ] — %s\n\n**Dépend de** : rien.\n**Fichiers** : %s.\n\n**Critère de fin**\n"
+            "Rien.\n<!-- /FICHE -->\n" % (i, i, i, f) for i, f in (
+                ("Q1", "skills"), ("Q2", "`skills/a/SKILL.md`"), ("Q3", "`carte`, `doc/c.py`"))))
+        rates += [] if appel(["lancables", fiches, "--max", "3"])[1].strip() == "LANCABLES Q1 Q3" else [("cli", "racine")]
+    verifier("ENA5 : lancables lit les formes réelles (liste d'invités, racine du projet), et laisse partir les libres",
+             rates == [], repr(rates))
     chef = io.open(os.path.join(RACINE, "skills", "enchainer", "SKILL.md"), encoding="utf-8").read()
     plat = " ".join(chef.split())
     verifier("ENA5 : le chef commite par commiter, jamais git add -A, et lance par lancables --tourne",

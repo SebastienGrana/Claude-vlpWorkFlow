@@ -3438,3 +3438,12 @@ Les 6 fichiers relus en entier contre `methode-chantier.md` après `MET7` ; « t
 - Sonde de toutes les écritures d'un même fichier, deux à deux : 14 paires ratées sur 64 avant, **0 sur 81** après
   (`croisent`, chemins entiers, prudent dans le doute : 14 faux croisements sur 54, voulus). La sonde est dans le test.
 - Leçon : un refus de relecteur nomme un exemple ; sonder sa famille entière avant de rendre la main.
+- Refus 3 : le filtre d'`apercu_fiches` jetait `.gitignore`, `skills`, `*.py` avant `croisent` ; le test visait
+  `croisent` seule. Remède (4e tentative) : une liste d'invités (`invites`), jugée sur l'historique Git par
+  `context AI/119-ena5-juge.py` — 1444 paires, 721 conflits prévisibles, **0** lancée ensemble à tort, 361 lancées
+  ensemble (406 avant), 326 faux croisements (289 avant) ; formes réelles relevées sur 421 lignes **Fichiers** : 9
+  sur 20 ratées avant, **0** après, dans le test par `lancables`. Deux règles écrites en route, en double, retirées
+  sur mutant vivant (nom seul des fragments, `:<ligne>`) ; un piège de test : une fiche qui perd son seul nom part
+  seule, et cache la perte — chaque paire du test porte un fichier à elle.
+- Reste hors règle : 79 paires lancées ensemble ont écrit un même fichier qu'une ligne **Fichiers** ne nommait pas,
+  dont **73** sur `context AI/08-etat.md` (le fichier d'état) — à trancher à l'essai d'`ENA6`.

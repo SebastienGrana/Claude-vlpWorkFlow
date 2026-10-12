@@ -90,8 +90,8 @@ Sous-commandes :
   socle dépasse son seuil. Un écart : sort 1. `--plan` : ensuite, `<n>:<ligne>`
   pour chaque titre de fiche, `**Dépend de**`, `**Tentatives**`, `**Critère de fin**`.
 - `lancables <fichier> [--max N] [--tourne <id>…]` — `LANCABLES <id>…` : les fiches non cochées, prêtes, aux
-  lignes **Fichiers** qui ne se croisent pas (le fichier de fiches ôté ; chemins entiers, dossiers et motifs
-  compris — dans le doute, ils se croisent), dans l'ordre, `N` au plus (2 par défaut) et avant la
+  lignes **Fichiers** qui ne se croisent pas (le fichier de fiches ôté ; lues en liste d'invités — chemins,
+  motifs, noms à extension, entrées de la racine du projet ; dans le doute, ils se croisent), dans l'ordre, `N` au plus (2 par défaut) et avant la
   première `(visuel)` ; une `(visuel)` ou une fiche sans ligne **Fichiers** ne part que seule ; aucune,
   `LANCABLES aucune` (ENA3). `--tourne` : les fiches déjà lancées — comptées dans `N`, leurs fichiers pris, non
   rendues (ENA5). Fichier absent ou `N` < 1 : `GARDE:`, sort 1.
