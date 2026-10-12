@@ -163,7 +163,7 @@ puis `Artifact` avec le `file_path` de la page, cette `url` et `files` : le JSON
 de la ligne `FILES` (`ARTEFACTS.md`), sans
 `icon`, `label` : les fiches jouées (`E5→E7`). Rien d'autre à lire : les règles de la page sont dans
 `skills/tache/references/tache-page.md`, pour `/vlp:tache`. Puis commite la page seule — aucun commit de
-fiche ne l'emporte : `git add -- "<page>"; git commit -m "Page du chantier après <E5→E7>"`.
+fiche ne l'emporte : `git add -- "<page>" "<page, en .md>"; git commit -m "Page du chantier après <E5→E7>"`.
 
 Si un `BLOQUÉE` a clos la série, marque aussi la page bloquée :
 

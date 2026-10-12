@@ -49,22 +49,22 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">ENA3</span></span>
         <details><summary><span class="titre">Exposer pretes en vlp.py lancables</span><span class="etat">Faite</span></summary>
         <span class="note">LANCABLES T1 T3 (défaut et --max 3), T1 (--max 1), puis T2, T4, aucune ; 3 mutants sur 3 attrapés ; sur ENA : LANCABLES ENA3</span></details>
-        <span class="cout mono">≈24,0M (24 011 978) · 190 tours · 9,49 $</span></li>
+        <span class="cout mono">≈24,1M (24 089 735) · 191 tours · 9,54 $</span></li>
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">ENA4</span></span>
         <details><summary><span class="titre">Commiter une fiche par ses seuls fichiers</span><span class="etat">Faite</span></summary>
         <span class="note">commiter C1 : src/a.py + ctx/fiches.md, HORS: src/b.py laissé hors du commit ; mutant git add -A attrapé ; suite entière verte</span></details>
         <span class="cout mono">≈5,8M (5 805 778) · 35 tours · 2,55 $</span></li>
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">ENA5</span></span>
         <details><summary><span class="titre">Écrire l'option parallèle</span><span class="etat">Faite</span></summary>
-        <span class="note">agents ensemble [N] : lancables --tourne, commiter (motifs, sante-base commun) ; git add -A dans le chef : 0 ; 4 mutants sur 4 attrapés ; suite entière verte</span></details>
-        <span class="cout mono">≈7,4M (7 422 637) · 55 tours · 3,19 $</span></li>
+        <span class="note">agents ensemble [N] : lancables --tourne, motifs croisés (relecteur), commiter ; git add -A dans le chef : 0 ; 6 mutants sur 6 ; suite verte</span></details>
+        <span class="cout mono">≈7,6M (7 620 150) · 56 tours · 3,25 $</span></li>
       <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">ENA6</span></span>
         <details open><summary><span class="titre">Essayer pour de vrai, et régler le défaut</span><span class="etat">En cours</span></summary>
         <span class="note">L'essai réel à 2 puis 3, le défaut réglé ; après ENA5</span></details>
         <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
     </ul>
-    <p class="mono cout-hors">Hors fiches : ≈4,4M (4 437 570) · 26 tours · 2,81 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈55,4M (55 421 826) · 370 tours · 22,41 $</p>
+    <p class="mono cout-hors">Hors fiches : ≈8,8M (8 832 836) · 63 tours · 4,50 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈60,1M (60 092 362) · 409 tours · 24,21 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

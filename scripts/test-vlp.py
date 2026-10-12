@@ -3220,8 +3220,16 @@ def tester_ena5_ensemble():
                 ("T5", " ", "`T1`", "`e.py`"))))
         vus = [appel(["lancables", chemin] + o)[1].strip() for o in (
             ["--max", "3", "--tourne", "T1"], ["--max", "3"], ["--max", "2", "--tourne", "T2"], ["--tourne", "T9"])]
-    verifier("ENA5 : T1 en relecture retient T5 et prend a.py ; T2 compte dans --max ; une lancée sans Fichiers part seule",
-             vus == ["LANCABLES T3", "LANCABLES T2 T3 T5", "LANCABLES T3", "LANCABLES aucune"], repr(vus))
+        # Relecteur d'ENA5 : `scripts/*.py` et `scripts/vlp.py` partaient ensemble (noms seuls `*.py`, `vlp.py`).
+        ecrire(chemin, "# Essai\n\n## Le socle commun\n\nRien.\n\n---\n" + "".join(
+            "<!-- FICHE:%s -->\n## %s [ ] — %s\n\n**Dépend de** : rien.\n**Fichiers** : `%s`.\n\n**Critère de fin**\n"
+            "Rien.\n<!-- /FICHE -->\n" % (i, i, i, f) for i, f in (
+                ("P1", "scripts/*.py"), ("P2", "scripts/vlp.py"), ("P3", "doc/*.md"), ("P4", "c.txt"))))
+        vus += [appel(["lancables", chemin] + o)[1].strip() for o in (["--max", "4"], ["--max", "4", "--tourne", "P1"])]
+    verifier("ENA5 : T1 en relecture retient T5 et prend a.py ; T2 compte dans --max ; une lancée inconnue part seule ; "
+             "un motif croise le nom qu'il prend et tout autre motif",
+             vus == ["LANCABLES T3", "LANCABLES T2 T3 T5", "LANCABLES T3", "LANCABLES aucune", "LANCABLES P1 P4",
+                     "LANCABLES P4"], repr(vus))
     chef = io.open(os.path.join(RACINE, "skills", "enchainer", "SKILL.md"), encoding="utf-8").read()
     plat = " ".join(chef.split())
     verifier("ENA5 : le chef commite par commiter, jamais git add -A, et lance par lancables --tourne",

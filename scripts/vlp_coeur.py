@@ -1303,6 +1303,13 @@ def releve(chemin, nom):
         bool(re.search(r"[*?[]", nom)) and bool(re.search(r"\w", nom)) and fnmatch.fnmatchcase(chemin, nom))
 
 
+def croisent(uns, autres):
+    """Vrai si deux ensembles de noms de fichiers peuvent viser un même fichier : un nom commun, l'un pris par le
+    motif de l'autre (`releve`), ou deux motifs — leur croisement ne se calcule pas, on le suppose (ENA5)."""
+    return any(x == y or releve(x, y) or releve(y, x) or (bool(re.search(r"[*?[{]", x)) and bool(re.search(r"[*?[{]", y)))
+               for x in uns for y in autres)
+
+
 def cmd_commiter(a, sortie):
     """Commiter une fiche par ses seuls fichiers (ENA4) : la cocher si sa case est vide (`cmd_cocher`, ses gardes
     comprises), puis ajouter à l'index ses chemins changés — ceux de sa ligne **Fichiers**, un dossier y valant ce qu'il
@@ -2673,8 +2680,8 @@ def pretes(fiches_, etat, apercu):
 
 def lancables(lignes, nom, plafond, tournent=()):
     """Les fiches que `/vlp:enchainer` peut lancer ensemble (ENA3) : les prêtes de `pretes`, le fichier de fiches
-    `nom` ôté des fichiers de chacune — toutes le cochent, il n'est pas commun —, prises dans l'ordre si elles n'ont
-    aucun fichier en commun, jusqu'à `plafond` et avant la première `(visuel)`. Une `(visuel)` ou une fiche sans
+    `nom` ôté des fichiers de chacune — toutes le cochent, il n'est pas commun —, prises dans l'ordre si leurs
+    fichiers ne se croisent pas (`croisent`, motifs compris), jusqu'à `plafond` et avant la première `(visuel)`. Une `(visuel)` ou une fiche sans
     ligne **Fichiers** ne part que seule. `tournent` (ENA5) : les fiches déjà lancées — elles comptent dans
     `plafond`, leurs fichiers sont pris, rien ne part à côté d'une qui part seule, et une cochée en relecture ne
     libère pas encore ce qui dépend d'elle."""
@@ -2691,7 +2698,7 @@ def lancables(lignes, nom, plafond, tournent=()):
             break
         if (visuel or not touche) and not (rendu or lancees):
             return [i]
-        if touche and not touche & pris:
+        if touche and not croisent(touche, pris):
             rendu.append(i)
             pris |= touche
     return rendu
