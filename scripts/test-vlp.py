@@ -3163,6 +3163,44 @@ def tester_ena3_lancables():
 groupe(tester_ena3_lancables)
 
 
+def tester_ena4_commiter():
+    """ENA4 : `commiter` — coche la fiche et ne commite que ses fichiers changés et le fichier de fiches ; un changé
+    hors de sa ligne **Fichiers** se dit `HORS:` et reste hors du commit (jamais `git add -A`)."""
+    with tempfile.TemporaryDirectory() as t:
+        d = os.path.join(t, "d")
+        os.makedirs(os.path.join(d, "ctx"))
+        fiches = os.path.join(d, "ctx", "fiches.md")
+        ecrire(fiches, "# Essai\n\n## Le socle commun\n\nRien.\n\n---\n" + "".join(
+            "<!-- FICHE:%s -->\n## %s [ ] — Toucher %s\n\n**Dépend de** : rien.\n**Fichiers** : `src/%s`.\n\n"
+            "**Critère de fin**\nRien.\n<!-- /FICHE -->\n" % (f, f, n, n) for f, n in (("C1", "a.py"), ("C2", "b.py"))))
+        for n in ("a.py", "b.py"):
+            ecrire(os.path.join(d, "src", n), "x = 1\n")
+        vieux = dict(os.environ)
+        os.environ.update(GIT_CONFIG_GLOBAL=os.path.join(t, "gitconfig"), GIT_CONFIG_NOSYSTEM="1", GIT_AUTHOR_NAME="t",
+                          GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t")
+        try:
+            ecrire(os.environ["GIT_CONFIG_GLOBAL"], "")
+            for args in (["init", "-q"], ["add", "-A"], ["commit", "-q", "-m", "départ"]):
+                subprocess.run(["git"] + args, cwd=d, check=True, capture_output=True)
+            for n in ("a.py", "b.py"):
+                ecrire(os.path.join(d, "src", n), "x = 2\n")
+            code, sortie = appel(["commiter", fiches, "C1"])
+            montre = subprocess.run(["git", "show", "--name-only", "--format=%s", "HEAD"], cwd=d, capture_output=True,
+                                    encoding="utf-8").stdout.split()
+            reste = subprocess.run(["git", "status", "--porcelain"], cwd=d, capture_output=True, encoding="utf-8").stdout
+        finally:
+            os.environ.clear()
+            os.environ.update(vieux)
+        verifier("ENA4 : commiter C1 ne prend que src/a.py et le fichier de fiches, coché",
+                 code == 0 and "src/a.py" in montre and "ctx/fiches.md" in montre and "src/b.py" not in montre
+                 and "## C1 [x]" in io.open(fiches, encoding="utf-8").read(), repr((code, sortie, montre)))
+        verifier("ENA4 : src/b.py dit HORS: et reste à commiter",
+                 "HORS: src/b.py" in sortie and reste.strip() == "M src/b.py", repr((sortie, reste)))
+
+
+groupe(tester_ena4_commiter)
+
+
 def tester_arp4_menage():
     """Contrôler le ménage des tampons (ARP4) sur ses deux chemins réels, chacun dans son dossier temporaire :
     `carte_injectee` (`vlp-carte-` à RELAIS_SECONDES, `vlp-enchaine-` à MARQUE_SECONDES) et `tampon_neuf`

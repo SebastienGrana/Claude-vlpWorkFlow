@@ -93,6 +93,11 @@ Sous-commandes :
   **Fichiers** disjointes (le fichier de fiches ôté), dans l'ordre, `N` au plus (2 par défaut) et avant la
   première `(visuel)`, qui ne part que seule ; une seule prête, elle seule ; aucune, `LANCABLES aucune`
   (ENA3). Fichier absent ou `N` < 1 : `GARDE:`, sort 1.
+- `commiter <fichier> <fiche>` — coche la fiche si sa case est vide (comme `cocher`, ses gardes comprises), ajoute à
+  l'index ses seuls chemins changés — ceux de sa ligne **Fichiers**, un dossier valant ce qu'il contient — et le
+  fichier de fiches, puis commite `<fiche> : <titre>` ; jamais `git add -A` (ENA4). Un changé hors de sa liste :
+  `HORS: <chemins>`, laissé hors du commit. Puis `COMMIT <fiche> : <titre> · <n> fichier(s)`. Limite : le fichier
+  de fiches est commun, la case ou le bloc **Tentatives** d'une autre fiche y part avec. Hors Git : `GARDE:`.
 - `lignes <chemin>…` — `<n> <fichier>`, `DOSSIER <d>` (` → <réel>` si lien) ou
   `ABSENT <chemin>` ; `~` et `*` développés ; puis `SEUILS page · fiche · socle`. Sort 0.
 - `equiper <dossier> [--contexte C]` — ce que `/vlp:init` regarde : `DOSSIER=`,

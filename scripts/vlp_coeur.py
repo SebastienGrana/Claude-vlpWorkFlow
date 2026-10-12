@@ -1275,6 +1275,58 @@ def cmd_cocher(a, sortie):
     return 0
 
 
+def chemins_changes(racine):
+    """Les chemins que `git status` dit changés sous `racine` — suivis ou non, un par fichier, relatifs à la racine du
+    dépôt ; `-z` : ni guillemets ni échappement, l'ancien nom d'un renommage sauté ; None hors Git."""
+    code, texte = git_texte(["status", "--porcelain", "-z", "--untracked-files=all"], racine)
+    if code != 0:
+        return None
+    rendu, morceaux = [], iter(texte.split("\0"))
+    for m in morceaux:
+        if len(m) > 3:
+            rendu.append(m[3:])
+            if m[0] in "RC":
+                next(morceaux, None)
+    return rendu
+
+
+def cmd_commiter(a, sortie):
+    """Commiter une fiche par ses seuls fichiers (ENA4) : la cocher si sa case est vide (`cmd_cocher`, ses gardes
+    comprises), puis ajouter à l'index ses chemins changés — ceux de sa ligne **Fichiers**, un dossier y valant ce qu'il
+    contient — et le fichier de fiches, jamais `git add -A` : en parallèle, il avalerait le travail d'une autre fiche.
+    Un changé hors de sa liste : `HORS:`, laissé hors du commit. Limite : le fichier de fiches est commun, la case ou le
+    bloc **Tentatives** d'une autre fiche y part avec."""
+    lignes = lignes_de(a.fichier)
+    fiche = next((f for f in fiches_du_fichier(lignes) if f[0] == a.fiche), None)
+    racine = git_texte(["rev-parse", "--show-toplevel"], os.path.dirname(os.path.abspath(a.fichier)))
+    changes = chemins_changes(racine[1].strip()) if racine[0] == 0 else None
+    if fiche is None or changes is None:
+        sortie.write("GARDE: commiter veut une fiche du fichier, dans un dépôt Git : %s %s\n" % (a.fichier, a.fiche))
+        return 1
+    if not fiche[2] and cmd_cocher(argparse.Namespace(fichier=a.fichier, fiche=a.fiche, verifier=False, refuser=None,
+                                                      session=None, role=None, resolu=None, date=None), sortie):
+        return 1
+    racine = racine[1].strip()
+    propre = os.path.relpath(os.path.abspath(a.fichier), racine).replace(os.sep, "/")
+    debut = next(i for i, l in enumerate(lignes) if l.startswith("## %s [" % a.fiche))
+    fin = next((i for i in range(debut + 1, len(lignes)) if TITRE.match(lignes[i])), len(lignes))
+    siens = [n.rstrip("/") for n in noms_fichiers(lignes[debut:fin])]
+    ajout = [c for c in chemins_changes(racine) or [] if c == propre or any(c == n or c.startswith(n + "/") for n in siens)]
+    hors = [c for c in changes if c not in ajout and c != propre]
+    if hors:
+        sortie.write("HORS: %s — changés hors de la ligne Fichiers de %s, laissés hors du commit\n" % (", ".join(hors), a.fiche))
+    # Sans chemin, `git add -A --` ajouterait tout le dépôt : l'ajout se saute.
+    etapes = ([["add", "-A", "--"] + ajout] if ajout else []) + [
+        ["commit", "--allow-empty", "-q", "-m", "%s : %s" % (a.fiche, fiche[1])]]
+    for etape in etapes:
+        code, texte = git_texte(etape, racine)
+        if code != 0:
+            sortie.write("GARDE: git %s : %s\n" % (etape[0], texte.strip()))
+            return 1
+    sortie.write("COMMIT %s : %s · %d fichier(s)\n" % (a.fiche, fiche[1], len(ajout)))
+    return 0
+
+
 def garde_avant_coche(a, titre):
     """Rendre la `GARDE:` qui empêche de cocher `a.fiche` — déjà cochée, ou, dans le kit, sans suite entière verte sur
     le code d'aujourd'hui (VIT11) —, ou `None`."""
@@ -9135,10 +9187,14 @@ def cmd_symboles(a, sortie):
 
 
 def options_outils(sous):
-    """Déclarer les lignes de commande des outils : `bac`, `claude`, `kit-essai`, `symboles`, `rapide`, `lancables`."""
+    """Déclarer les lignes de commande des outils : `bac`, `claude`, `kit-essai`, `symboles`, `rapide`, `lancables`,
+    `commiter`."""
     la = sous.add_parser("lancables")
     la.add_argument("fichier")
     la.add_argument("--max", type=int, default=2)
+    cm = sous.add_parser("commiter")
+    cm.add_argument("fichier")
+    cm.add_argument("fiche")
     bc = sous.add_parser("bac")
     bc.add_argument("dossier")
     sous.add_parser("claude")
@@ -9408,6 +9464,7 @@ PAR_ARGUMENTS = {
     "forme": cmd_forme, "ouverts": cmd_ouverts, "pause": cmd_pause, "plan": cmd_plan, "matin": cmd_matin, "fusionner": cmd_fusionner,
     "sante": cmd_sante, "symboles": cmd_symboles, "compteur": cmd_compteur, "carte": cmd_carte,
     "rapide": cmd_rapide, "essai": cmd_essai, "lancables": cmd_lancables,
+    "commiter": cmd_commiter,
 }
 
 
