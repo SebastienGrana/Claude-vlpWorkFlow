@@ -3171,8 +3171,9 @@ def tester_ena4_commiter():
         os.makedirs(os.path.join(d, "ctx"))
         fiches = os.path.join(d, "ctx", "fiches.md")
         ecrire(fiches, "# Essai\n\n## Le socle commun\n\nRien.\n\n---\n" + "".join(
-            "<!-- FICHE:%s -->\n## %s [ ] — Toucher %s\n\n**Dépend de** : rien.\n**Fichiers** : `src/%s`.\n\n"
-            "**Critère de fin**\nRien.\n<!-- /FICHE -->\n" % (f, f, n, n) for f, n in (("C1", "a.py"), ("C2", "b.py"))))
+            "<!-- FICHE:%s -->\n## %s [ ] — Toucher %s\n\n**Dépend de** : rien.\n**Fichiers** : `src/%s`%s.\n\n"
+            "**Critère de fin**\nRien.\n<!-- /FICHE -->\n" % (f, f, n, n, p) for f, n, p in (
+                ("C1", "a.py", " (la ligne « **b** » seule)"), ("C2", "b.py", ""))))
         for n in ("a.py", "b.py"):
             ecrire(os.path.join(d, "src", n), "x = 1\n")
         vieux = dict(os.environ)
@@ -3194,7 +3195,7 @@ def tester_ena4_commiter():
         verifier("ENA4 : commiter C1 ne prend que src/a.py et le fichier de fiches, coché",
                  code == 0 and "src/a.py" in montre and "ctx/fiches.md" in montre and "src/b.py" not in montre
                  and "## C1 [x]" in io.open(fiches, encoding="utf-8").read(), repr((code, sortie, montre)))
-        verifier("ENA4 : src/b.py dit HORS: et reste à commiter",
+        verifier("ENA4 : src/b.py dit HORS: et reste à commiter — le « **b** » de la prose n'est pas un motif (ENA5)",
                  "HORS: src/b.py" in sortie and reste.strip() == "M src/b.py", repr((sortie, reste)))
 
 
@@ -3213,6 +3214,9 @@ def tester_ena5_ensemble():
              vus == [True, True, False, True, False, False, True], repr(vus))
     with tempfile.TemporaryDirectory() as t:
         chemin = os.path.join(t, "fiches.md")
+        ecrire(os.path.join(t, "CHANTIER.md"), "x\n")
+        for dossier in ("scripts", "doc", "src"):
+            os.mkdir(os.path.join(t, dossier))
         ecrire(chemin, "# Essai\n\n## Le socle commun\n\nRien.\n\n---\n" + "".join(
             "<!-- FICHE:%s -->\n## %s [%s] — %s\n\n**Dépend de** : %s.\n**Fichiers** : %s.\n\n**Critère de fin**\n"
             "Rien.\n<!-- /FICHE -->\n" % (i, i, c, i, d, f) for i, c, d, f in (
@@ -3239,13 +3243,15 @@ def tester_ena5_ensemble():
              repr(manque))
     # 3e relecteur d'ENA5 : le filtre d'apercu_fiches jetait `.gitignore`, `skills`, `*.py`. Les formes relevées sur les
     # 421 lignes **Fichiers** du kit, par `lancables` — chaque paire vise un même fichier ; les libres, non.
-    racine = {"skills": True, "scripts": True, "context ai": True, ".gitignore": False, ".gitattributes": False}
+    racine = {"skills": True, "scripts": True, "context ai": True, "seul": True, ".gitignore": False,
+              ".gitattributes": False}
 
     def deux(x, y):
         """Vrai si `lancables` lance ensemble deux fiches aux lignes **Fichiers** `x` et `y` — chacune un fichier à elle
-        en tête : un nom perdu ne la laisse pas sans fichier, ce qui la ferait partir seule et cacherait la perte."""
+        en tête, ancré dans `seul/` que rien d'autre ne nomme : un nom perdu ne la laisse pas sans fichier, ce qui la
+        ferait partir seule et cacherait la perte ; un nom seul (`A1.md`) croiserait tout dossier, et le cacherait aussi."""
         lignes = ("# E\n\n## Le socle commun\n\nRien.\n\n---\n" + "".join(
-            "<!-- FICHE:%s -->\n## %s [ ] — %s\n\n**Dépend de** : rien.\n**Fichiers** : `%s.md`, %s.\n\n"
+            "<!-- FICHE:%s -->\n## %s [ ] — %s\n\n**Dépend de** : rien.\n**Fichiers** : `seul/%s.txt`, %s.\n\n"
             "**Critère de fin**\nRien.\n<!-- /FICHE -->\n" % (i, i, i, i, f) for i, f in (("A1", x), ("B1", y)))).split("\n")
         return mod.lancables(lignes, "f.md", 2, racine=racine) == ["A1", "B1"]
     formes = [("`.gitignore`, `a.py`", "`.gitignore`, `b.py`"), ("`skills`, `doc/a.md`", "`skills/a/SKILL.md`"),
@@ -3258,13 +3264,21 @@ def tester_ena5_ensemble():
               ("`vlp.py:513`", "`scripts/vlp.py`"), ("`scripts/vlp.py:10-20`", "`scripts/vlp.py`"),
               ("`vlp.py niveau`", "`scripts/vlp.py`"), ("`git show main:CHANTIER.md`", "`CHANTIER.md`"),
               ("context AI/08-etat.md", "`context AI/08-etat.md`"), ("context AI/08-etat.md", "`context AI/*.md`"),
-              ("`grep -n x context AI/08-etat.md`", "`context AI/08-etat.md`")]
+              ("`grep -n x context AI/08-etat.md`", "`context AI/08-etat.md`"),
+              # 4e relecteur : un chemin partiel — son premier nom n'est pas à la racine — contre le chemin entier.
+              ("`references/tache-page.md`", "`skills/tache/references/tache-page.md`"),
+              ("`tache/SKILL.md`", "`skills/tache/SKILL.md`"), ("`references/*.md`", "`skills/`"),
+              ("`references/tache-page.md`", "`skills/tache/references/`"), ("`references/`", "`skills/a/references/b.md`"),
+              ("`skills/tache/SKILL.md`", "`skills/tache/skill.md`")]
     libres = [("`carte`, `a.py`", "`cmd_niveau`, `b.py`"), ("`skills/tache/SKILL.md`", "`skills/chantier/SKILL.md`"),
-              ("`scripts/vlp.py`", "`doc/a.md`"), ("`scripts/vlp.py:10`", "`scripts/boucle.py`")]
+              ("`scripts/vlp.py`", "`doc/a.md`"), ("`scripts/vlp.py:10`", "`scripts/boucle.py`"),
+              ("`references/a.md`", "`skills/tache/references/b.md`"), ("`skills/`", "`scripts/vlp.py`"),
+              ("`./scripts/`", "`skills/a.md`")]
     rates = [f for f in formes if deux(*f)] + [f for f in libres if not deux(*f)]
     with tempfile.TemporaryDirectory() as projet:
         ecrire(os.path.join(projet, "CHANTIER.md"), "x\n")
         os.mkdir(os.path.join(projet, "skills"))
+        os.mkdir(os.path.join(projet, "doc"))
         fiches = os.path.join(projet, "context AI", "f.md")
         ecrire(fiches, "# E\n\n## Le socle commun\n\nRien.\n\n---\n" + "".join(
             "<!-- FICHE:%s -->\n## %s [ ] — %s\n\n**Dépend de** : rien.\n**Fichiers** : %s.\n\n**Critère de fin**\n"

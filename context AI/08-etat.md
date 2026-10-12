@@ -3445,5 +3445,14 @@ Les 6 fichiers relus en entier contre `methode-chantier.md` après `MET7` ; « t
   sur 20 ratées avant, **0** après, dans le test par `lancables`. Deux règles écrites en route, en double, retirées
   sur mutant vivant (nom seul des fragments, `:<ligne>`) ; un piège de test : une fiche qui perd son seul nom part
   seule, et cache la perte — chaque paire du test porte un fichier à elle.
-- Reste hors règle : 79 paires lancées ensemble ont écrit un même fichier qu'une ligne **Fichiers** ne nommait pas,
-  dont **73** sur `context AI/08-etat.md` (le fichier d'état) — à trancher à l'essai d'`ENA6`.
+- Refus 4 : un chemin partiel (`references/tache-page.md`) partait avec son chemin entier, et `commiter` lisait
+  `**kit**` de la prose comme un motif. L'historique ne pouvait pas le voir : aucune paire jouée n'y tombe. Second
+  juge, **l'arbre** : chaque nom écrit résolu en vrais fichiers (`git ls-files` et l'historique) — **13** paires de
+  noms d'un même fichier séparées à tort sur 12 090, dont 10 que la piste du relecteur (« l'un finit l'autre ») ne
+  couvrait pas. Remède : un chemin dont le premier nom n'est pas à la racine est partiel, il vaut son nom seul
+  (`ancre`) — arbre **0**, historique 0 à tort et 347 lancées ensemble ; `commiter` ne lit un motif qu'entre backticks.
+- Leçon de la série : la vérité d'une règle sur des noms de fichiers est l'arbre des fichiers, pas une liste de
+  formes choisies ni les seules paires jouées — trois juges successifs, chacun aveugle à ce que le suivant a vu.
+- Reste hors règle : 73 paires lancées ensemble ont écrit un même fichier qu'une ligne **Fichiers** ne nommait pas,
+  dont **71** sur `context AI/08-etat.md` (le fichier d'état) — à trancher à l'essai d'`ENA6`. Et 162 noms écrits
+  sur 318 ne désignent aucun fichier (à créer, ou mots parasites) : l'arbre ne les juge pas.

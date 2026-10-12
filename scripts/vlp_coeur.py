@@ -1355,8 +1355,10 @@ def cmd_commiter(a, sortie):
     communs = {os.path.relpath(os.path.abspath(a.fichier), racine).replace(os.sep, "/"), "scripts/sante-base.json"}
     debut = next(i for i, l in enumerate(lignes) if l.startswith("## %s [" % a.fiche))
     fin = next((i for i in range(debut + 1, len(lignes)) if TITRE.match(lignes[i])), len(lignes))
-    siens = noms_fichiers(lignes[debut:fin])
-    ajout = [c for c in chemins_changes(racine) or [] if c in communs or any(releve(c, n) for n in siens)]
+    # Un motif ne se lit qu'entre backticks : `**kit**` de la prose prendrait tout chemin qui contient « kit » (ENA5).
+    cites = set(re.findall(r"`([^`]+)`", texte_fichiers(lignes[debut:fin])))
+    siens = {n for n in noms_fichiers(lignes[debut:fin]) if n in cites or not re.search(r"[*?[{]", n)}
+    ajout =[c for c in chemins_changes(racine) or [] if c in communs or any(releve(c, n) for n in siens)]
     hors = [c for c in changes if c not in ajout]
     if hors:
         sortie.write("HORS: %s — changés hors de la ligne Fichiers de %s, laissés hors du commit\n" % (", ".join(hors), a.fiche))
@@ -1643,13 +1645,26 @@ def entrees(dossier):
 
 
 def invites(fiche, racine):
-    """La liste d'invités de la ligne **Fichiers** d'une fiche, pour `lancables` (ENA5 ; jugée sur l'historique Git par
-    `context AI/119-ena5-juge.py`). Un nom se normalise — `\\` en `/`, `./`, guillemets et ponctuation de fin ôtés,
-    minuscules — et n'entre que chemin (un `/`), motif, nom à extension (`.gitignore` compris) ou entrée de `racine`
-    (`entrees`) : `skills` → `skills/`, pas `carte`. Entre backticks, le tout, et chaque mot s'ils sont plusieurs,
-    coupés aux blancs et aux `:` (`vlp.py niveau`, `vlp.py:513`) ; hors d'eux, chaque mot — un chemin à espace se
-    coupe pareil des deux côtés (`ai/08-etat.md`). Un nom de trop ne coûte qu'un départ ensemble ; un nom manqué,
-    un conflit."""
+    """La liste d'invités de la ligne **Fichiers** d'une fiche, pour `lancables` (ENA5 ; jugée sur l'historique Git et
+    sur l'arbre par `context AI/119-ena5-juge.py`) : ses noms écrits (`noms_ecrits`), chacun lu par `ancre`."""
+    return {ancre(n, racine) for n in noms_ecrits(fiche, racine)}
+
+
+def ancre(nom, racine):
+    """`nom` tel que `croisent` le compare. Un chemin dont le premier nom n'est pas une entrée de `racine` est partiel
+    (`references/tache-page.md`, `ai/08-etat.md` coupé d'un chemin à espace) : il vaut son nom seul, que `croisent`
+    fait croiser tout dossier et tout chemin de même nom ; un dossier partiel vaut `*`, qui croise tout."""
+    if "/" in nom and nom.split("/", 1)[0] not in racine:
+        return "*" if nom.endswith("/") else nom.rsplit("/", 1)[-1]
+    return nom
+
+
+def noms_ecrits(fiche, racine):
+    """Les noms de la ligne **Fichiers** d'une fiche, normalisés — `\\` en `/`, `./`, guillemets et ponctuation de fin
+    ôtés, minuscules. N'entre que chemin (un `/`), motif, nom à extension (`.gitignore` compris) ou entrée de
+    `racine` (`entrees`) : `skills` → `skills/`, pas `carte`. Entre backticks, le tout, et chaque mot s'ils sont
+    plusieurs, coupés aux blancs et aux `:` (`vlp.py niveau`, `vlp.py:513`) ; hors d'eux, chaque mot. Un nom de trop
+    ne coûte qu'un départ ensemble ; un nom manqué, un conflit."""
     texte = texte_fichiers(fiche)
 
     def propre(n):

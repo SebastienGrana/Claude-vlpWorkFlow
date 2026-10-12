@@ -9,14 +9,21 @@ ligne, ce qu'aucun texte ne peut prévoir.
 
 Sortie : paires jugées, conflits prévisibles, lancées ensemble à tort (le critère veut 0), débordements
 lancés ensemble, faux croisements (aucun fichier commun, et pourtant séparées). `--detail` liste les paires.
-Les formes réelles d'écriture, elles, sont dans `scripts/test-vlp.py` (`tester_ena5_ensemble`).
+
+L'historique ne voit que les paires d'un même fichier de fiches qui ont vraiment joué : le 4e relecteur d'ENA5 a
+trouvé un chemin partiel (`references/tache-page.md`) qu'aucune n'avait croisé. D'où le second juge, **l'arbre** :
+chaque nom écrit des lignes **Fichiers** du kit (`noms_ecrits`) se résout en vrais fichiers (`git ls-files` et tout
+chemin de l'historique) — ancré, depuis la racine ; partiel ou nom seul, toute fin de chemin. Deux noms qui
+désignent un même fichier doivent se croiser par `croisent` après `ancre` : ratés, le critère veut 0. Un nom qui ne
+désigne aucun fichier (à créer, ou mot parasite) n'est pas jugé ; leur nombre est imprimé.
 Usage, depuis la racine du kit : py -3 "context AI/119-ena5-juge.py" [--detail]
 
-Mesuré le 2026-10-12, avant la liste d'invités (noms tels qu'écrits, filtre d'`apercu_fiches`) : 0 raté sur
-l'historique, 406 paires lancées ensemble, 87 débordements, 289 faux croisements — mais 9 formes réelles sur 20
-lancées ensemble à tort. Avec elle : 0 raté, 358, 76, 326, et 0 forme sur 20.
+Mesuré le 2026-10-12. Historique — noms tels qu'écrits : 0 raté, 406 lancées ensemble, 87 débordements, 289 faux
+croisements ; 1re liste d'invités : 0, 361, 79, 326 ; partiels en nom seul : 0, 347, 73, 334. Arbre (156 noms
+résolus sur 318) — noms tels qu'écrits : 13 ratés, 520 faux croisements ; partiels en nom seul : 0, 818.
 """
 import collections
+import fnmatch
 import glob
 import importlib.util
 import itertools
@@ -128,5 +135,54 @@ def juger(detail):
     return len(rates)
 
 
+def resout(nom, reels):
+    """Les vrais chemins que `nom` (écrit, normalisé) peut désigner : ancré (premier nom à la racine), depuis la
+    racine ; sinon, toute fin de chemin. Un dossier prend ce qu'il contient ; un motif, ce que `fnmatch` prend."""
+    rendu = set()
+    for m in mod.deplie(nom):
+        ancre = "/" in m and m.split("/", 1)[0] in RACINE
+        motif = bool(re.search(r"[*?[]", m))
+        for p in reels:
+            if m.endswith("/"):
+                ok = p.startswith(m) if ancre else ("/" + m) in ("/" + p)
+            elif motif:
+                ok = fnmatch.fnmatchcase(p, m) or (not ancre and fnmatch.fnmatchcase(p, "*/" + m))
+            else:
+                ok = p == m or (not ancre and p.endswith("/" + m))
+            if ok:
+                rendu.add(p)
+    return rendu
+
+
+def arbre(detail):
+    """Imprimer le juge de l'arbre ; rendre le nombre de paires de noms d'un même fichier que `croisent` sépare."""
+    log = subprocess.run(["git", "-C", KIT, "-c", "core.quotepath=off", "log", "--all", "--format=", "--name-only"],
+                         capture_output=True, encoding="utf-8", check=True).stdout
+    actuels = subprocess.run(["git", "-C", KIT, "-c", "core.quotepath=off", "ls-files"], capture_output=True,
+                             encoding="utf-8", check=True).stdout
+    reels = {l.strip().lower() for l in (actuels + log).splitlines() if l.strip()}
+    noms = set()
+    for chemin in sorted(glob.glob(os.path.join(ICI, "*.md"))):
+        lignes = mod.lignes_de(chemin)
+        for f in mod.fiches_du_fichier(lignes):
+            noms |= mod.noms_ecrits(ligne_fichiers(lignes, f[0]), RACINE)
+    vise = {n: resout(n, reels) for n in noms}
+    connus = sorted(n for n in noms if vise[n])
+    rates, faux = [], 0
+    for x, y in itertools.combinations(connus, 2):
+        vrai = bool(vise[x] & vise[y])
+        dit = mod.croisent({mod.ancre(x, RACINE)}, {mod.ancre(y, RACINE)})
+        if vrai and not dit:
+            rates.append((x, y, sorted(vise[x] & vise[y])[0]))
+        faux += dit and not vrai
+    print("arbre : %d chemins réels · %d noms écrits · %d résolus · %d paires" % (
+        len(reels), len(noms), len(connus), len(connus) * (len(connus) - 1) // 2))
+    print("arbre, faux croisements : %d" % faux)
+    print("arbre, même fichier séparés à tort : %d" % len(rates))
+    for r in rates if detail else rates[:10]:
+        print("  RATÉ %s + %s : %s" % r)
+    return len(rates)
+
+
 if __name__ == "__main__":
-    sys.exit(1 if juger("--detail" in sys.argv) else 0)
+    sys.exit(1 if juger("--detail" in sys.argv) + arbre("--detail" in sys.argv) else 0)
