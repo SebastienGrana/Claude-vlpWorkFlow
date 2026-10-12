@@ -3422,3 +3422,9 @@ Les 6 fichiers relus en entier contre `methode-chantier.md` après `MET7` ; « t
 ## 2026-10-12 — `ESH` fait sans fiche, retiré de la TODO (n° 127)
 
 - **Raison** : fait sans fiche : cout signale d'une GARDE: un essai claude -p (marque turnOrigin "sdk") parti pendant une session du fichier, dans sa plage, que rien ne compte — ni bac, ni registre, ni worktree de nuit —, avec la commande essai qui le déclare ; le chiffre ne change pas ; une plage récente sans marque se dit aussi ; sur 1 278 transcripts, 148 sdk dont 1 hors bac jamais compté (PAR, 2026-09-29, 1 tour · 0,08 $) ; entrypoint écarté (100 claude -p lancés depuis l'app y portent claude-desktop) ; testé, 7 mutants attrapés.
+
+## 2026-10-12 — ENA2 : `background: true` ne libère pas, l'outil `Agent` oui
+
+- **Mesuré** (bac `ENA2`, Claude Code 2.1.296, session interactive `cli`) : `Skill` `vlp:jouer` en `background: true` a attendu la fin de F1 (55 s) et rendu le `Result` dans le même appel (`status: "forked"`) — contre la doc des skills, lue le jour même, dont aucune des 4 exceptions ne s'appliquait.
+- **Ce qui marche** (2e bac) : `Agent` `subagent_type: "vlp:fiche"`, `run_in_background: true` — rendu en 1 s, « coucou » répondu 3 s après le lancement, F1 en 46 s, la notification de fin a relancé F2 seule (7 s plus tard).
+- **Conséquence** : `/vlp:enchainer agents` lance fiche et relecteur par `Agent` ; les skills `vlp:jouer` et `vlp:relire` ne sont plus appelées par lui. `fiche_jouee` lit `Fiche à jouer : <id>` suivi d'une espace : un point collé à l'id le fausserait (testé).

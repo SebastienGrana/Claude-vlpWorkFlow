@@ -435,6 +435,7 @@
 {"fichier": "scripts/test-vlp.py", "fonction": "tester_cout_sans_decoupe", "empreinte": "67bfd0bbbf77", "ast": [3, 3, 0, 21, 2], "doc": true},
 {"fichier": "scripts/test-vlp.py", "fonction": "tester_cout_session", "empreinte": "0c8a823559ed", "ast": [3, 3, 0, 29, 2], "doc": true},
 {"fichier": "scripts/test-vlp.py", "fonction": "tester_decompte_todo", "empreinte": "2777d65ce38e", "ast": [1, 0, 0, 38, 1], "doc": false},
+{"fichier": "scripts/test-vlp.py", "fonction": "tester_ena2_arriere_plan", "empreinte": "138e0d8d9af7", "ast": [1, 0, 0, 6, 0], "doc": true},
 {"fichier": "scripts/test-vlp.py", "fonction": "tester_essais_de", "empreinte": "46dc1bd97c01", "ast": [3, 4, 0, 29, 2], "doc": true},
 {"fichier": "scripts/test-vlp.py", "fonction": "tester_essais_hors_bac", "empreinte": "0f0589628ccb", "ast": [3, 3, 0, 26, 2], "doc": true},
 {"fichier": "scripts/test-vlp.py", "fonction": "tester_etat", "empreinte": "8ef26d14ae93", "ast": [1, 0, 0, 11, 1], "doc": true},
