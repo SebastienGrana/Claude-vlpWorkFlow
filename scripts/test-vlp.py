@@ -641,6 +641,18 @@ def transcript(chemin, tours, heures=None):
             f.write(json.dumps(ligne) + "\n")
 
 
+def transcript_marque(chemin, marque, heures):
+    """`transcript`, précédé d'une ligne `user` à la marque `turnOrigin` donnée (aucune si None), à la première heure (ESH)."""
+    transcript(chemin, len(heures), heures)
+    if marque:
+        iso = datetime.datetime.fromtimestamp(heures[0], datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z")
+        with open(chemin, encoding="utf-8") as f:
+            suite = f.read()
+        with open(chemin, "w", encoding="utf-8") as f:
+            f.write(json.dumps({"type": "user", "turnOrigin": marque, "timestamp": iso,
+                                "message": {"role": "user", "content": "x"}}) + "\n" + suite)
+
+
 def tester_arrondi():
     """Contrôler l'arrondi d'un compte de tokens."""
     verifier("arrondi", [mod.arrondi(n) for n in (999, 1000, 999949, 999950, 1505630)] == ["999", "≈1,0k (1 000)", "≈999,9k (999 949)", "≈1,0M (999 950)", "≈1,5M (1 505 630)"],
@@ -2163,6 +2175,8 @@ def tester_cout_essai_plage():
             transcript(os.path.join(pr, "C--x-sss-scratchpad-" + bac, "e.jsonl"), 1, [T0 + h_])
         os.makedirs(os.path.join(pr, "C--x-sss-scratchpad-b1", "e", "subagents"))
         transcript(os.path.join(pr, "C--x-sss-scratchpad-b1", "e", "subagents", "agent-a1.jsonl"), 1, [T0 + 260])
+        os.makedirs(os.path.join(pr, "D--x-hors"))      # ESH : un essai hors bac, non déclaré — signalé, pas compté
+        transcript_marque(os.path.join(pr, "D--x-hors", "h.jsonl"), "sdk", [T0 + 250])
         ecrire(os.path.join(dep, "q.md"), QFICHES % ("sss", "sss"))
         if not shutil.which("git"):
             print("SAUTÉ: git absent — les essais dans la découpe ne sont pas testés")
@@ -2188,12 +2202,63 @@ def tester_cout_essai_plage():
                        + "Q2 · %s = session %s + 0 sous-agent\n" % (cent, cent)
                        + "hors fiches · %s = session 0 · 0 tours · 0,00 $ + 0 sous-agent + 1 essai %s\n" % (cent, cent)
                        + "TOTAL (fiches + hors fiches) · ≈500,0k (500 000) · 5 tours · 2,50 $ = session %s"
-                         " + 0 sous-agent + 2 essais %s\n" % (deux, trois))
-            verifier("cout : l'essai de la plage à Q1, sous-agent compris ; l'autre hors fiches ; TOTAL les deux",
-                     code == 0 and s == attendu, s)
+                         " + 0 sous-agent + 2 essais %s\n" % (deux, trois)
+                       + "GARDE: essai claude -p hors bac, non déclaré : h · parti le %s · %s · dossier D--x-hors — le "
+                         "déclarer : vlp.py essai D--x-hors --session sss (ESH)\n"
+                         % (time.strftime("%Y-%m-%d %H:%M", time.localtime(T0 + 250)), cent))
+            verifier("cout : l'essai de la plage à Q1, sous-agent compris ; l'autre hors fiches ; TOTAL les deux ; "
+                     "l'essai hors bac signalé en dernier, hors du TOTAL (ESH)", code == 0 and s == attendu, s)
 
 
 groupe(tester_cout_essai_plage)
+
+
+def tester_essais_hors_bac():
+    """ESH : `cout` signale un essai `claude -p` (marque `turnOrigin` "sdk") parti pendant une session du fichier, hors
+    bac, hors nuit, non déclaré ; et dit une plage sans marque, après `MARQUE_DEPUIS` seulement."""
+    t1, jsonl = T0 + 5 * 86400, transcript_marque     # t1 : après MARQUE_DEPUIS (2026-09-22) ; T0 est avant
+    with tempfile.TemporaryDirectory() as t:
+        pr = os.path.join(t, ".claude", "projects")
+        for dossier, nom, marque, heures in (
+                ("p", "sss", "human", [t1 + 100, t1 + 1000]),           # la session du chantier
+                ("D--x-essai", "e1", "sdk", [t1 + 500]),                # hors bac, non déclaré : signalé
+                ("C--x-zzz-scratchpad-b1", "e2", "sdk", [t1 + 500]),    # dans le bac d'une autre session
+                ("D--x-declare", "e3", "sdk", [t1 + 500]),              # déclaré au registre
+                ("D--k-claude-worktrees-nuit-2026-10-01-A", "e4", "sdk", [t1 + 500]),   # une séance de nuit
+                ("D--x-app", "h1", "human", [t1 + 500]),                # l'app : pas un essai
+                ("D--x-tard", "e5", "sdk", [t1 + 5000])):               # parti après la session
+            os.makedirs(os.path.join(pr, dossier), exist_ok=True)
+            jsonl(os.path.join(pr, dossier, nom + ".jsonl"), marque, heures)
+        ecrire(os.path.join(t, ".claude", "vlp-essais.txt"), "zzz D--x-declare\n")
+        ecrire(os.path.join(t, "y.md"), "## Y1 [ ] — x\n**Session** : sss\n")
+        for dossier, nom, marque, heures in (("q", "ttt", None, [t1 + 20000, t1 + 21000]),  # récente, seule, sans marque
+                                             ("q", "vvv", None, [T0 + 100, T0 + 1000])):    # d'avant la marque
+            os.makedirs(os.path.join(pr, dossier), exist_ok=True)
+            jsonl(os.path.join(pr, dossier, nom + ".jsonl"), marque, heures)
+        garde_env = dict(os.environ)
+        os.environ.update(HOME=t, USERPROFILE=t)
+        try:
+            gardes = mod.essais_hors_bac(["sss"])
+            coupe = mod.essais_hors_bac(["sss"], (t1 + 600, t1 + 2000))
+            sans, avant = mod.essais_hors_bac(["ttt"]), mod.essais_hors_bac(["vvv"])
+            code, s = appel(["cout", os.path.join(t, "y.md")])
+        finally:
+            os.environ.clear()
+            os.environ.update(garde_env)
+        parti = time.strftime("%Y-%m-%d %H:%M", time.localtime(t1 + 500))
+        verifier("ESH : un seul essai signalé, e1 — ni bac, ni déclaré, ni nuit, ni l'app, ni parti après la session ; "
+                 "la commande qui le déclare — mutant : le filtre du bac retiré",
+                 gardes == ["GARDE: essai claude -p hors bac, non déclaré : e1 · parti le %s · ≈100,0k (100 000) · "
+                            "1 tours · 0,50 $ · dossier D--x-essai — le déclarer : vlp.py essai D--x-essai --session sss "
+                            "(ESH)" % parti], gardes)
+        verifier("ESH : un essai parti avant les bornes de la plage n'est pas signalé", coupe == [], coupe)
+        verifier("ESH : une session récente sans marque turnOrigin, une GARDE ; d'avant la marque, rien",
+                 sans == ["GARDE: aucune séance de la plage ne porte la marque turnOrigin — un essai claude -p hors bac "
+                          "n'y serait pas vu (marque interne, non documentée ; ESH)"] and avant == [], (sans, avant))
+        verifier("ESH : cout imprime la GARDE en dernière ligne, sort 0", code == 0 and s.splitlines()[-1] == gardes[0], s)
+
+
+groupe(tester_essais_hors_bac)
 
 # APC1 : cout --a-clore. Q1 (200), Q2 (400), l'appel clore (700), un tour après lui (800), le commit
 # de clôture (900), un clore rejoué après lui (1000), hors plage : à clore = 3 tours, après = 1.

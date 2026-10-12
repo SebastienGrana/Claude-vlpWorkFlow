@@ -103,7 +103,8 @@ titre (`MET6`, 2026-10-07).
 - **Un essai part d'un bac, ou se déclare.** `vlp.py cout` ne voit un essai `claude -p`
   que lancé d'un bac du scratchpad de la session. Lancé ailleurs — une copie du kit, un
   worktree jetable —, il se déclare au lancement : `vlp.py essai "<dossier de
-  ~/.claude/projects/>"`, glob permis (`MET2`, 2026-10-07).
+  ~/.claude/projects/>"`, glob permis (`MET2`, 2026-10-07). Oublié, `cout` le signale
+  d'une `GARDE:` qui donne la commande, sans changer son chiffre (`ESH`, 2026-10-12).
 - **Une définition d'agent se charge au démarrage de la session — pas à la
   volée.** Mesurer l'effet d'un changement dans `agents/*.md` sur une session
   déjà ouverte mesure l'ancienne définition. Avant de mesurer la forme d'un
