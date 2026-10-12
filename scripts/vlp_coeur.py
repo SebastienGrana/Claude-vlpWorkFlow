@@ -644,7 +644,9 @@ def essais_hors_bac(ids, bornes=None):
     chantier (`transcripts_du_fichier`), ni dossier d'un bac (`-scratchpad-`), ni dossier que le registre déclare
     (`declarations`), ni worktree de nuit (`NUIT_DOSSIER`). Elle dit la commande qui le déclare. Puis, si une session
     de `ids` est partie après `MARQUE_DEPUIS` et qu'aucun transcript vu ne porte de marque, une ligne qui le dit : le
-    contrôle ne verrait plus rien. Le chiffre de `cout` n'en change pas. Sans `bornes` : rien ne coupe."""
+    contrôle ne verrait plus rien. Le chiffre de `cout` n'en change pas. Sans `bornes` : rien ne coupe. Limite : la
+    séance `claude -p` d'un autre chantier (`enchainer clear` hors nuit) dans la même plage se signale à tort ; aucune
+    sur 1 278 transcripts, et écarter celles qui s'ouvrent par `/vlp:tache` cacherait 36 essais réels (2026-10-12)."""
     from decimal import ROUND_HALF_UP, Decimal
     m = mesure()
     comptes = transcripts_du_fichier([], ids, [])
