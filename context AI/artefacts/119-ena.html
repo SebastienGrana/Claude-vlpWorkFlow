@@ -16,14 +16,14 @@
 
 <div class="page">
   <header>
-    <div class="eyebrow">vlp · fiches ENA1–ENA6 · <a href="https://claude.ai/artifact/YWDny8kjubq9DhdP5rbPxA">la feuille de route</a></div>
+    <div class="eyebrow">vlp · fiches ENA1–ENA8 · <a href="https://claude.ai/artifact/YWDny8kjubq9DhdP5rbPxA">la feuille de route</a></div>
     <h1>Réparer /vlp:enchainer agents, puis le parallèle</h1>
-    <p>/vlp:enchainer agents ne bloque plus la conversation, et une option lance ensemble les fiches lançables (2 par défaut, réglable)</p>
+    <p>/vlp:enchainer agents ne bloque plus la conversation ; le parallèle repart au chantier ISO (recul du 2026-10-12)</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="bloquee"></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="bloquee"></span><span></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">6 fiches · 4 faites · bloquée : ENA5</p>
+    <p class="mono" style="margin-top:.5rem">8 fiches · 4 faites · bloquée : ENA5</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -56,12 +56,18 @@
         <span class="cout mono">≈5,8M (5 805 778) · 35 tours · 2,55 $</span></li>
       <li class="fiche" data-etat="bloquee"><span class="gauche"><span class="id">ENA5</span></span>
         <details open><summary><span class="titre">Écrire l'option parallèle</span><span class="etat">Bloquée</span></summary>
-        <span class="note">5 tentatives, 5 refus de la même famille (deux noms d'un même fichier lancés ensemble) ; arrêtée pour un recul, la décision de l'utilisateur d'abord</span></details>
+        <span class="note">5 refus de la même famille ; ne se rejoue pas : le parallèle repart au chantier ISO (recul du 2026-10-12)</span></details>
         <span class="cout mono">≈7,6M (7 620 150) · 56 tours · 3,25 $</span></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">ENA6</span></span>
         <details><summary><span class="titre">Essayer pour de vrai, et régler le défaut</span><span class="etat">Après ENA5</span></summary>
-        <span class="note">L'essai réel à 2 puis 3, le défaut réglé ; après ENA5</span></details>
+        <span class="note">Abandonnée à la clôture : sans le parallèle, rien à essayer ici ; l'essai réel passe à ISO</span></details>
         <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
+      <li class="fiche"><span class="gauche"><span class="id">ENA7</span></span>
+        <details><summary><span class="titre">Le 2e refus d'une même famille arrête, et le compteur compte juste</span><span class="etat">À lancer</span></summary>
+        <span class="note">Les freins : le rang du refus survit à « résolu », et le 2e refus d'une même famille arrête ; ne dépend de rien</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">ENA8</span></span>
+        <details><summary><span class="titre">Débrancher l'option parallèle, garder son code</span><span class="etat">Après ENA7</span></summary>
+        <span class="note">L'option agents ensemble retirée du texte, son code gardé pour ISO ; après ENA7</span></details></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈8,8M (8 832 836) · 63 tours · 4,50 $</p>
     <p class="mono cout-total">Coût du chantier : ≈60,1M (60 092 362) · 409 tours · 24,21 $</p>
@@ -72,7 +78,7 @@
   <section>
     <h2>Arrêt sur blocage</h2>
     <div class="blocage">
-      <p>ENA5 bloquée après 5 tentatives et 5 refus de la même famille : deux noms d'un même fichier lancés ensemble (motif, dossier, filtre, chemin partiel, dossier sans barre). Pas de 6e rustine : <a href="https://claude.ai/artifact/S2q1E3soU2Bh27CpeGSEAG">le recul et les choix à trancher</a>.</p>
+      <p>ENA5 bloquée après 5 tentatives et 5 refus de la même famille : deux noms d'un même fichier lancés ensemble (motif, dossier, filtre, chemin partiel, dossier sans barre). Tranché <a href="https://claude.ai/artifact/S2q1E3soU2Bh27CpeGSEAG">au recul</a> : elle ne se rejoue pas, le parallèle repart au chantier ISO ; ENA se ferme par ENA7 puis ENA8.</p>
       <pre>REFUSÉE — copie : `lancables` lance ensemble deux fiches qui nomment le même dossier quand l'une écrit ce dossier sans barre finale, et le juge de l'arbre ne voit pas ce cas. Le « 0 séparé à tort » du critère ne tient donc pas : la sonde trouve 4 paires sur les vraies données du kit.</pre>
     </div>
   </section>
@@ -81,6 +87,7 @@
     <h2>Journal des décisions</h2>
     <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
     <ul class="journal">
+      <li><time datetime="2026-10-12">2026-10-12</time><span>Recul sur ENA5 : Git garde la sécurité ; le parallèle repart au chantier ISO ; ENA se ferme par ENA7 (les freins) et ENA8 (débrancher), ENA5 et ENA6 abandonnées</span></li>
     </ul>
   </section>
 
