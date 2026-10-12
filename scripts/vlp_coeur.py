@@ -1338,7 +1338,27 @@ def ligne_git(racine):
     if etat is None:
         return ["GIT=hors Git"]
     lignes = ["GIT=%s %s" % (nom, ", ".join(n for n, _ in liste)) for nom, liste in etat.items() if liste]
+    principale, retard = suivi_en_retard(racine)
+    if retard:
+        lignes.append("GIT=en retard sur %s : %s suivi(s) là-bas, pas ici — worktree né avant ; y fusionner %s"
+                      % (principale, ", ".join(retard), principale))
     return lignes or ["GIT=suivi"]
+
+
+def suivi_en_retard(racine):
+    """`(branche principale, [cibles])` : `CHANTIER.md` et `CLAUDE.md` que la branche principale suit et que `HEAD`
+    ne suit pas — un worktree né avant que Git suive le contexte (Cairn, `FAM`, panne `N2` d'`AVL4`, NWT) ; sa carte
+    lit alors un vieux `CHANTIER.md`. Sur la branche principale, ou hors Git : `[]`."""
+    principale = branche_principale(racine)
+    code, nom = git_texte(["rev-parse", "--abbrev-ref", "HEAD"], racine)
+    if not principale or code != 0 or nom.strip() == principale:
+        return principale, []
+
+    def suivi(rev, cible):
+        """Vrai si `rev` suit `cible`."""
+        code, s = git_texte(["ls-tree", "--name-only", rev, "--", cible], racine)
+        return code == 0 and bool(s.strip())
+    return principale, [c for c in ("CHANTIER.md", "CLAUDE.md") if suivi(principale, c) and not suivi("HEAD", c)]
 
 
 def prefixe_relecture():
@@ -6208,7 +6228,12 @@ def ecarts_git(projet, sortie):
     if etat is None:
         return 0, 0, []
     ecarts = 0
-    for nom, exemple in etat["ignoré"]:
+    # Ignoré exprès (NWT) : le projet le déclare, `- **contexte dans Git** : non — <pourquoi>` ; une ligne le dit.
+    expres = champ(lignes_de(os.path.join(projet, "CHANTIER.md")), "contexte dans Git", "")
+    if etat["ignoré"] and re.match(r"non\b", expres, re.I):
+        sortie.write("EXPRÈS: git: %d chemin(s) ignoré(s) exprès — CHANTIER.md, « contexte dans Git » : %s ; aucun "
+                     "écart compté\n" % (len(etat["ignoré"]), expres))
+    for nom, exemple in [] if re.match(r"non\b", expres, re.I) else etat["ignoré"]:
         code, t = git_texte(["check-ignore", "-v", "--", exemple], projet)
         source = t.split("\t")[0].rpartition(":")[0] if code == 0 and "\t" in t else "?"
         sortie.write("ÉCART: git: %s — ignoré par %s — à retirer à la main, puis ajouter\n" % (nom, source))
@@ -6465,17 +6490,37 @@ def ouverts_ailleurs(racine):
 def chantiers_ailleurs(racine):
     """`[(code, dossier)]` : le chantier que `courant_de` donne à chaque autre worktree, post-it compris ; un dossier
     sans chantier, ou à plusieurs ouverts (`Absent`), n'en a aucun. `carte` les imprime en `AILLEURS=`, `niveau` n'y
-    compte pas d'écart de page (NUI28)."""
-    rendu = []
+    compte pas d'écart de page (NUI28). Sans chantier à lui, un worktree nomme ceux de ses commits de fiche ouverts
+    dans le principal (`codes_joues`, NWT)."""
+    rendu, (dossier_p, principale) = [], principal(racine)
+    ouverts_p = {code_du_fichier(dossier_p, f) for f in ouverts(dossier_p)} if dossier_p else set()
     for dossier in autres_worktrees(racine):
         try:
             f = courant_de(dossier)
         except Absent:
             continue
-        ids = [l.split()[1] for l in lignes_de(os.path.join(dossier, f)) if TITRE.match(l)] if f else []
-        if ids:
-            rendu.append((lettre_de(ids[0]), dossier))
+        code = code_du_fichier(dossier, f) if f else None
+        joues = [code] if code else [c for c in codes_joues(dossier, principale) if c in ouverts_p]
+        rendu += [(c, dossier) for c in joues]
     return rendu
+
+
+def code_du_fichier(dossier, f):
+    """Le préfixe de la première fiche d'un fichier de fiches (`FAM` pour `## FAM1 …`), ou None sans fiche."""
+    ids = [l.split()[1] for l in lignes_de(os.path.join(dossier, f)) if TITRE.match(l)]
+    return lettre_de(ids[0]) if ids else None
+
+
+def codes_joues(dossier, principale):
+    """Les préfixes, triés, des commits de fiche `<id> : …` (`COMMIT_FICHE`) de la branche de `dossier` absents de
+    `principale` ; [] sans elle. Un worktree né avant que Git suive le contexte n'a pas la marque d'ouverture, que
+    `niveau --ecrire` a posée dans le principal : ses commits disent quel chantier il joue (Cairn, `FAM`, NWT) ; un
+    vieux commit jamais fusionné aussi — `chantiers_ailleurs` ne garde que les ouverts du principal."""
+    if not principale:
+        return []
+    code, s = git_texte(["log", "--format=%s", principale + "..HEAD"], dossier)
+    trouves = (COMMIT_FICHE.match(l) for l in (s.splitlines() if code == 0 else []))
+    return sorted({lettre_de(t.group(1)) for t in trouves if t})
 
 
 def ecrire_ailleurs(racine, sortie):

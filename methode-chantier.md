@@ -341,7 +341,9 @@ Restent hors Git ce qui est propre à une machine : les tampons (post-it
 `vlp-chantier`, marques `vlp-*`) et `.claude/launch.json`. Aucun de ces
 fichiers ne porte de chemin de machine : le `pre-commit` du kit refuse une ligne
 ajoutée qui en porte un (`CHM`). Un dépôt public se trie fichier par
-fichier avant d'y verser le contexte. Tranché le 2026-10-08 (`NUI34`).
+fichier avant d'y verser le contexte. Tranché le 2026-10-08 (`NUI34`). Un
+projet qui garde exprès son contexte hors de Git le déclare dans `CHANTIER.md`
+(« contexte dans Git » : non) : `niveau` ne le compte plus en écart (`NWT`).
 
 ## Le fichier de fiches
 

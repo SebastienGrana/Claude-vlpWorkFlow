@@ -45,6 +45,8 @@ demande de l'autoriser — pas de contournement.
 - **`PLUGIN_RETARD=`** : dis-la avant tout `/reload-plugins` ; sa commande, sur le oui de l'utilisateur.
 - **`AVERTISSEMENT:`** : relaie-la à l'utilisateur en une ligne, puis continue.
 - **`GIT=`** autre que `suivi` : dis-le en une ligne ; ne promets aucun commit sur ces fichiers.
+- **`AILLEURS=<code> <dossier>`** au code de la fiche voulue : son chantier se joue dans ce worktree, la page
+  d'ici est en retard ; arrête-toi et nomme le dossier — la fiche se joue là-bas.
 - **Sortie vide, ou consigne de la lancer** : lance-la toi-même, une fois.
 - **`COURANT=aucun`** : arrête-toi — `/vlp:chantier`
   d'abord. **`GARDE:`** : arrête-toi et montre la sortie brute ; une

@@ -299,6 +299,16 @@ def tester_niveau_git():
                  len(e) == 2 and e[0].startswith("ÉCART: git: CHANTIER.md — ignoré par .gitignore:2")
                  and e[1].startswith("ÉCART: git: ctx/09-neuf.md — non ajouté"), e)
         verifier("niveau git : --ecrire ne corrige rien", ecarts_git(p, ecrire=True) == e, ecarts_git(p, True))
+        carte = mod.lire(os.path.join(p, "CHANTIER.md"))
+        ecrire(os.path.join(p, "CHANTIER.md"), carte + "- **contexte dans Git** : non — dépôt public\n")
+        s = io.StringIO()
+        mod.ecarts_git(p, s)
+        ecrire(os.path.join(p, "CHANTIER.md"), carte)
+        verifier("NWT (c) niveau git : l'ignoré déclaré exprès (« contexte dans Git » : non) se dit en une ligne EXPRÈS, "
+                 "sans écart ; le non ajouté reste un écart",
+                 "EXPRÈS: git: 1 chemin(s) ignoré(s) exprès — CHANTIER.md, « contexte dans Git » : non — dépôt public ; "
+                 "aucun écart compté\n" in s.getvalue() and "ignoré par" not in s.getvalue()
+                 and "ÉCART: git: ctx/09-neuf.md — non ajouté" in s.getvalue(), s.getvalue())
         ecrire(os.path.join(p, ".gitignore"), "# rien\n")
         git(p, "add", "-A")
         ecrire(os.path.join(p, "CHANTIER.md"), CHANTIER % ("pn", "ctx/") + "- **kit** : D:/Projets/kit, lié dans"
@@ -8928,6 +8938,38 @@ def tester_ailleurs():
              and "AILLEURS: page: LOC joue dans " in avec and "wt-l" in avec and "ÉCART: page:" not in avec
              and "AILLEURS:" not in dans,
              (seul, avec, dans))
+
+    with tempfile.TemporaryDirectory() as tr:
+        d, wl = os.path.join(tr, "n"), os.path.join(tr, "wt-l")
+        depot_matin(d)
+        git_matin(d, "worktree", "add", "-q", "-b", "l", wl, "main")
+        ecrire(os.path.join(wl, "b.txt"), "b\n")
+        commit_matin(wl, "LOC1 : a", 2)          # ni post-it ni marque à lui : ses commits disent ce qu'il joue
+        ecrire(os.path.join(wl, "c.txt"), "c\n")
+        commit_matin(wl, "ZZZ1 : vieux", 3)      # un vieux commit jamais fusionné, d'un chantier ouvert nulle part
+        _, joue = appel(["niveau", d])
+        carte = [l for l in appel(["carte", d])[1].splitlines() if l.startswith("AILLEURS=")]
+    verifier("NWT (a) un worktree sans marque ni post-it : ses commits « LOC1 : » disent qu'il joue LOC, ouvert dans le "
+             "principal → AILLEURS ; « ZZZ1 : », ouvert nulle part, ne compte pas",
+             "AILLEURS: page: LOC joue dans " in joue and "ÉCART: page:" not in joue and len(carte) == 1
+             and carte[0].startswith("AILLEURS=LOC ") and carte[0].rstrip("/").endswith("wt-l"), (joue, carte))
+
+    with tempfile.TemporaryDirectory() as tr:
+        d, wv = os.path.join(tr, "v"), os.path.join(tr, "wt-v")
+        os.makedirs(d)
+        git_matin(d, "init", "-q", "-b", "main")
+        ecrire(os.path.join(d, "a.txt"), "a\n")
+        commit_matin(d, "avant le suivi", 1)
+        git_matin(d, "worktree", "add", "-q", "-b", "v", wv, "main")
+        ecrire(os.path.join(wv, "CHANTIER.md"), CARTE_MATIN)      # sa vieille copie locale, jamais suivie
+        ecrire(os.path.join(d, "CHANTIER.md"), CARTE_MATIN)
+        ecrire(os.path.join(d, "CLAUDE.md"), "# v\n")
+        commit_matin(d, "contexte suivi", 2)
+        retard, principal_ = mod.ligne_git(wv), mod.ligne_git(d)
+    verifier("NWT (b) un worktree né avant que main suive CHANTIER.md et CLAUDE.md : la carte le dit et propose de "
+             "fusionner main ; main lui-même, non",
+             "GIT=en retard sur main : CHANTIER.md, CLAUDE.md suivi(s) là-bas, pas ici — worktree né avant ; y fusionner "
+             "main" in retard and not any("retard" in l for l in principal_), (retard, principal_))
 
 
 groupe(tester_ailleurs)

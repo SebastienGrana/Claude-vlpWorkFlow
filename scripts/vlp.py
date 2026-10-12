@@ -10,7 +10,7 @@ Sous-commandes :
   valeur, absente, ou `--relecteur` : rien — chantier NUI), `PLUGIN_RETARD=<n> … merge --ff-only <branche>` si
   le plugin chargé n'a pas le code de ce worktree du kit (`retard_plugin`, chantier ESR, sauf avec
   `--relecteur`), une ligne `AILLEURS=<code> <dossier>` par chantier courant d'un autre worktree (`chantiers_ailleurs`,
-  NUI28, sauf avec `--relecteur`), puis — si un fichier de fiches est courant — ses titres
+  NUI28, sauf avec `--relecteur` ; sans marque à lui, ses commits de fiche d'un chantier ouvert ici, NWT), puis — si un fichier de fiches est courant — ses titres
   de fiches numérotés, `PROCHAINE=<fiche>` (la première non cochée, dans l'ordre
   du fichier) ou `PROCHAINE=aucune`, et une `GARDE` si le fichier a des lignes
   mais aucun titre au format attendu. Aucun fichier courant : pour chaque
@@ -27,7 +27,8 @@ Sous-commandes :
   Hors `--relecteur`, après `PLUGIN_RETARD=` et `AILLEURS=` : `GIT=suivi` quand `CHANTIER.md`, `CLAUDE.md` et le
   dossier **contexte** le sont, sinon `GIT=ignoré <chemins>` et/ou `GIT=non ajouté <chemins>` (séparés par `, ` ;
   un dossier entier se nomme `ctx/`, ses seuls fichiers directs `ctx/*` ; `__pycache__/` écarté), ou `GIT=hors Git`
-  (NUI35, `etat_git`).
+  (NUI35, `etat_git`) ; un worktree né avant que la branche principale suive `CHANTIER.md` ou `CLAUDE.md` : en plus,
+  `GIT=en retard sur <branche> : … ; y fusionner <branche>` (`suivi_en_retard`, NWT).
   Pas trouvé : une ligne `VOISIN=` par sous-dossier équipé, avec son alias, suivie de sa ligne `GIT=`, ou
   `AUCUN_PROJET`. Sort toujours 0 : la commande lit la sortie, elle ne doit pas
   se faire refuser l'injection. `--python NOM` (les injections des skills : `"py -3"`, `python3` au relais ;
@@ -199,7 +200,8 @@ Sous-commandes :
   cette ligne retirée, que plus rien ne lit — gardée, en `ÉCART: ligne:`, tant que la marque
   manque (NUI31). Les écarts `git:` (NUI36, `etat_git` de la carte) ne se corrigent jamais :
   `ÉCART: git: <chemin> — ignoré par .gitignore:<n> …` ou `— non ajouté …`, et la ligne « kit » qui porte un
-  chemin de machine ; hors Git, aucun. Les
+  chemin de machine ; hors Git, aucun. L'ignoré que `CHANTIER.md` déclare exprès (`- **contexte dans Git** : non
+  — <pourquoi>`) : une ligne `EXPRÈS: git:`, sans écart (NWT). Les
   renvois absents et les fichiers de tête hors seuil restent en `ÉCART:`. Tout
   se calcule avant la première écriture. Bilan `NIVEAU <n> corrigés · <n> à la
   main — <projet>` ; un écart restant : sort 1. `--date` fige la date.
