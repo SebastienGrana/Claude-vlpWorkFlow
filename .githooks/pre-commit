@@ -3,6 +3,17 @@
 # Activer une fois par clone : git config core.hooksPath .githooks
 racine=$(git rev-parse --show-toplevel) || exit 1
 
+# Aucun chemin de machine dans un dépôt public (chantier CHM) : les seules lignes ajoutées — l'historique poussé
+# garde les anciennes. Trois formes : un dossier d'utilisateur Windows, sa vue WSL, et le nom de dossier qu'en tire
+# ~/.claude/projects. Écrire `~` ou `<nom>` à la place.
+chemins=$(git diff --cached -U0 --no-color --diff-filter=ACMR | grep '^+' | grep -v '^+++' \
+  | grep -i -E '[a-z]:[/\\]{1,2}users[/\\]{1,2}[a-z]|/mnt/[a-z]/users/[a-z]|[a-z]--users-[a-z]')
+if [ -n "$chemins" ]; then
+  printf '%s\n' "$chemins" >&2
+  echo "pre-commit : chemin de machine dans une ligne ajoutée — écrire ~ ou <nom>, commit refusé." >&2
+  exit 1
+fi
+
 # pyright, si le commit indexe un .py (chantier TYP) ; avant claude, dont l'absence sort par exit 0.
 # Il lit l'arbre de travail, pas l'index : un .py corrigé mais non indexé passe.
 if git diff --cached --name-only --diff-filter=ACMR | grep -q '\.py$'; then

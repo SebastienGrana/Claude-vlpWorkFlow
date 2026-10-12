@@ -13,7 +13,8 @@ et le récit mesuré des règles restées, sous leur titre et dans leur ordre.
 une ligne de mesure · une hypothèse vraie sur un cas · un commentaire périmé · un
 seuil arbitraire · un chantier cité par son code · une fiche payée jusqu'au bout ·
 une définition d'agent · un fait qui dit comment écrire · la TODO et ses deux oui ·
-ne pas réinventer la roue · l'estimé qui se double.
+ne pas réinventer la roue · l'effort selon la tâche · le chemin du code changé ·
+l'estimé qui se double · le commit vide · le code cité par son nom · le mutant.
 
 ## Trois leçons parties de la méthode
 
@@ -157,6 +158,20 @@ la skill `claude-api` écartait déjà Haiku 4.5 des longues boucles d'agent et 
 la méthode (tout en effort bas, relancer les échecs plus haut) — restait seulement le
 coût par fiche dans le kit.
 
+### L'effort se règle selon la tâche
+
+Mesuré à `MET4` (2026-10-07) : même qualité, `xhigh` nettement plus cher que `medium`
+(`context AI/08-etat.md`, entrée « MET4 — xhigh contre medium ») ; la décision remplace
+« `xhigh` pour une fiche de code », prise le même jour après `VIT25`. `high` mesuré le
+2026-10-09 sur les mêmes 4 fiches (`EFF3`) : même qualité aux trois niveaux, `high` +59 %
+de $ sur `medium`, −11 % sous `xhigh`. Aucune fiche du jeu n'était refusée ni bloquée : la
+mesure ne dit pas si `high` suffit au recours (entrée « EFF3 — high contre medium et xhigh »).
+
+### Le cadrage vérifie le chemin du code changé
+
+Mesuré à `ESS` : le chantier visait 11 clos, 9 étaient en `DÉCOUPE aucune`, hors du chemin
+modifié (journal `ESS4` du fichier d'état).
+
 ### L'estimé du cadrage se double
 
 Mesuré à `AVL2` (2026-10-11), sur les 45 clos qui portent un estimé chiffré : estimé 91
@@ -169,3 +184,18 @@ Ce qui a le plus coûté, un indice sur trois fiches de deux audits, pas une mes
 fiche qui écrit dans plusieurs projets et republie leurs pages — `AVL9` (121 tours ·
 13,08 $), `AVL10` (105 tours · 9,90 $), `ACA7` (68 tours · 7,80 $), la plus chère de
 chacun.
+
+### Une fiche sans rien à commiter pose un commit vide
+
+Mesuré à la clôture de `SEG` (cairn, 2026-09-27) : tout y était hors git, aucun commit ne
+nommait `SEG`, et `cout` a rendu `DÉCOUPE aucune` — des sessions entières, dont une session
+parallèle, **18 147 448** tokens contre **11 262 523** pour le chantier seul (`clore`).
+
+### Du code se cite par son nom, jamais par sa ligne
+
+Mesuré à `VIT9` : 7 renvois sur 7 périmés dans `NUI`.
+
+### Un critère de code nomme son mutant
+
+Vu le 2026-09-24 : « les tests passent » ne prouvait rien, un test creux passait aussi —
+à `FIN1`, puis à `FIN2` alors que son test était nommé avec ses valeurs.

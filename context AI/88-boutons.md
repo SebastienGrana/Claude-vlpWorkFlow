@@ -310,7 +310,7 @@ tombe. `pyright` : 0 erreur sur les fichiers touchés, compte brut.
 **Dépend de** : `BTN1`, `BTN2`, `BTN3`, `BTN4`, `BTN5`, `BTN7`.
 **Fichiers** : `context AI/artefacts/feuille-de-route.html`, `context AI/artefacts/88-boutons.html`,
 `context AI/88-boutons.md`, et la feuille de Cairn :
-`C:/Users/znorr/Documents/ProgPerso/Cairn-VlpLib/context AI/artefacts/feuille-de-route.html` —
+`~/Documents/ProgPerso/Cairn-VlpLib/context AI/artefacts/feuille-de-route.html` —
 et rien d'autre.
 
 **Prompt**

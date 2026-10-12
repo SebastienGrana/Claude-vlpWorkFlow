@@ -89,7 +89,7 @@ son nom ; le fichier absent, un nom de cette forme suffit.
 `PLAN <fichier> · <date> · <n> chantiers` : `git add` de ce fichier **et** de l'index (ligne `index` de
 `CHANTIER.md` : le jour où `plan` crée le fichier, il l'y déclare), puis un commit au sujet
 `Plan du <date> : <n> chantiers` — qui n'est pas celui d'une fiche. Enfin donne la ligne de lancement de la docstring de
-`boucle.py` (« Lancer une nuit ») : `py -3 "${CLAUDE_PLUGIN_ROOT}/scripts/boucle.py" --nuit --lancer "<PROJET>"`,
+`boucle.py` (« Lancer une nuit ») : `<python> "${CLAUDE_PLUGIN_ROOT}/scripts/boucle.py" --nuit --lancer "<PROJET>"`,
 plus `--date <date>` si le lancement tombe un autre jour. **Tu ne la lances pas** : c'est lui, à l'heure
 qu'il veut.
 

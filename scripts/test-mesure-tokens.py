@@ -134,10 +134,10 @@ LIGNES_OPUS55 = [assistant("msg_O", 10**6, 10**6, 10**6, 10**6, sous_objet=(400_
 ATTENDU_OPUS55 = {"tours": 1, "usd": "30.40", "inconnus": []}
 
 # claude-sonnet-5-5 est dans la grille depuis le 2026-09-28. Même tour que ci-dessus, aux prix de
-# la page officielle : 2 + 10 + 0,20 + 0,6 × 2,5 + 0,4 × 4 = 15,30 $.
+# la page officielle, cache lu relu le 2026-10-12 (PRX) : 2 + 10 + 0,10 + 0,6 × 2,5 + 0,4 × 4 = 15,20 $.
 LIGNES_SONNET55 = [assistant("msg_N", 10**6, 10**6, 10**6, 10**6, sous_objet=(400_000, 600_000),
                              modele="claude-sonnet-5-5")]
-ATTENDU_SONNET55 = {"tours": 1, "usd": "15.30", "inconnus": []}
+ATTENDU_SONNET55 = {"tours": 1, "usd": "15.20", "inconnus": []}
 
 # claude-haiku-5-5 est dans la grille depuis le 2026-10-10, en deux paliers. Entrée 10 000, cache écrit
 # 40 000 en 1 h, cache lu 50 000 : 100 000 jetons pile, palier bas ; sortie 1 000 000, prix de la page :

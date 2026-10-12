@@ -45,6 +45,8 @@ demande de l'autoriser — pas de contournement.
 - **`PLUGIN_RETARD=`** : dis-la avant tout `/reload-plugins` ; sa commande, sur le oui de l'utilisateur.
 - **`AVERTISSEMENT:`** : relaie-la à l'utilisateur en une ligne, puis continue.
 - **`GIT=`** autre que `suivi` : dis-le en une ligne ; ne promets aucun commit sur ces fichiers.
+- **`AILLEURS=<code> <dossier>`** au code de la fiche voulue : son chantier se joue dans ce worktree, la page
+  d'ici est en retard ; arrête-toi et nomme le dossier — la fiche se joue là-bas.
 - **Sortie vide, ou consigne de la lancer** : lance-la toi-même, une fois.
 - **`COURANT=aucun`** : arrête-toi — `/vlp:chantier`
   d'abord. **`GARDE:`** : arrête-toi et montre la sortie brute ; une
@@ -164,11 +166,12 @@ dit `tache-page.md`, lu à l'étape 1, `files` : le JSON de la ligne `FILES`
 Le travail écrit, **commite sans demander** (`methode-chantier.md`) :
 
 ```bash
-git add -A; git commit -m "<fiche retenue> : <titre de la fiche>"
+git add -A; git commit --allow-empty -m "<fiche retenue> : <titre de la fiche>"
 ```
 
 La fiche tient ainsi dans un commit à elle : mauvaise, elle se défait par un
-`git revert` seul. Finis par la jauge, une ligne — les titres de fiches sont
+`git revert` seul ; une fiche sans écriture y pose un commit vide, borne de
+`vlp.py cout`. Finis par la ligne d'avancement — les titres de fiches sont
 dans la carte de l'étape 0, rien à relancer : `fiche 3/7 ✅✅✅⬜⬜⬜⬜`.
 
 ## 7. Si c'était la dernière fiche

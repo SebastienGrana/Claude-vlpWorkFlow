@@ -777,7 +777,7 @@ def totaux(decoupe):
 # dans celle d'un Bash ou d'un PowerShell, le verdict du relecteur au retour d'un `Agent` ou dans le message d'une
 # autre session. Une sortie relue — la boucle qui attend une tâche de fond, puis un `Read` du même fichier — compte
 # chaque fois.
-SORTES_OUTIL = ("suite", "--seul", "test-boucle", "mutant", "pyright", "Git", "publication", "reste")
+SORTES_OUTIL = ("suite", "--seul", "test-boucle", "mutant", "pyright", "Git", "publication", "relance", "reste")
 SUITES = SORTES_OUTIL[:3]
 COMMANDES = (("mutant", appel_python(r"vlp\.py", r"[ \t]+mutant\b")), ("suite", appel_python(r"test-vlp\.py")),
              ("test-boucle", appel_python(r"test-boucle\.py")),
@@ -799,9 +799,10 @@ def seul_lance(commande, trouve):
     return re.search(r"(?<!\S)--seul\b", segment) is not None
 
 
-def sorte_outil(appel):
+def sorte_outil(appel, relances=()):
     """Rendre la sorte d'un appel (nom, entrée) parmi `SORTES_OUTIL` : l'outil Artifact est la publication ; une
-    commande Bash ou PowerShell, ce qu'elle lance (`COMMANDES`) — la suite avec `--seul`, « --seul » ; le reste
+    commande Bash ou PowerShell, ce qu'elle lance (`COMMANDES`) — la suite avec `--seul`, « --seul » —, puis
+    « relance » si elle porte une des commandes longues que le projet déclare (`relances_de`, RLA) ; le reste
     sinon."""
     nom, entree = appel
     if nom == "Artifact":
@@ -813,7 +814,18 @@ def sorte_outil(appel):
         trouve = motif.search(commande)
         if trouve:
             return "--seul" if sorte == "suite" and seul_lance(commande, trouve) else sorte
-    return "reste"
+    return "relance" if any(r in commande for r in relances) else "reste"
+
+
+def relances_de(fichier):
+    """Rendre les commandes longues que déclare le `CHANTIER.md` au-dessus d'un fichier de fiches : la ligne
+    `- **commandes longues** :`, chaque motif entre accents graves (RLA) ; le projet les écrit, jamais le kit. Pas de
+    carte, ni de ligne : aucune."""
+    racine = trouver(os.path.dirname(os.path.abspath(fichier)))
+    if racine is None:
+        return ()
+    valeur = champ(lignes_de(os.path.join(racine, "CHANTIER.md")), "commandes longues", "")
+    return tuple(m for m in re.findall(r"`([^`\n]+)`", valeur) if m.strip())
 
 
 def verdict_suite(texte, lien):
@@ -840,13 +852,13 @@ def garde_fous(texte):
     return tuple(sum(d.startswith(g) for d in debuts) for g in GARDE_FOUS)
 
 
-def lire_sortie(appel, texte, lien):
+def lire_sortie(appel, texte, lien, relances=()):
     """Rendre ce que `compteur` garde d'une sortie, lue au fil du transcript, sans son texte : (sorte d'outil — None
     pour le message d'une autre session —, 1 si elle compte un appel — 0 pour une notification ou l'attente d'une
     tâche de fond (`lien`) —, verdict de suite — None hors suite, ou s'il ne s'y lit pas —, garde-fous, chacun lu là
     où il dit vrai, puis vrai pour une notification : ce qu'elle ferme n'est pas un appel d'outil, mais l'attente de
-    la tâche)."""
-    sorte, nom = (None, None) if appel is None else (sorte_outil(appel), appel[0])
+    la tâche) ; `relances` : les commandes longues du projet (`sorte_outil`)."""
+    sorte, nom = (None, None) if appel is None else (sorte_outil(appel, relances), appel[0])
     releve = nom in (None, "Agent")
     ou = (sorte in SUITES, sorte == "mutant", nom in ("Bash", "PowerShell"), releve, releve)
     vus = tuple(n if lu else 0 for n, lu in zip(garde_fous(texte), ou))
@@ -960,13 +972,18 @@ def manques(journaux):
     return rendu
 
 
-def lire_journaux(chemins, sortie):
-    """Rendre [(chemin, journal)] des transcripts lisibles, chaque sortie lue au fil (`lire_sortie`) ; un illisible se
-    dit, puis ce qui manque aux autres (`manques`)."""
+def lire_journaux(chemins, sortie, relances=()):
+    """Rendre [(chemin, journal)] des transcripts lisibles, chaque sortie lue au fil (`lire_sortie`, avec les
+    commandes longues du projet) ; un illisible se dit, puis ce qui manque aux autres (`manques`)."""
     m = mesure()
     rendu = []
+
+    def lire(appel, texte, lien):
+        """`lire_sortie` avec les commandes longues du projet : `journal` n'en passe que trois."""
+        return lire_sortie(appel, texte, lien, relances)
+
     for chemin in chemins:
-        j, erreur = m.journal(chemin, lire_sortie)
+        j, erreur = m.journal(chemin, lire)
         if erreur:
             sortie.write("AVERTISSEMENT: transcript non lu : %s — %s\n" % (chemin, erreur))
             continue
@@ -1048,7 +1065,7 @@ def cmd_compteur(a, sortie):
         sortie.write("GARDE: pas de découpe — %s\n" % pourquoi[0])
         return 1
     fichiers = transcripts_du_fichier(fiches_, sessions_entete(lignes), [])
-    journaux = lire_journaux([c for c, sorte in fichiers if sorte < 2], sortie)
+    journaux = lire_journaux([c for c, sorte in fichiers if sorte < 2], sortie, relances_de(a.fichier))
     sortie.write(ENTETE_COMPTEUR % (mesure().PAUSE // 60) + "\n")
     rangs = rangs_compteur(a.fiches, plages_du_cout(fiches_, heures, [], fin), decoupe, sortie)
     total = mesure_vide()
@@ -1321,7 +1338,27 @@ def ligne_git(racine):
     if etat is None:
         return ["GIT=hors Git"]
     lignes = ["GIT=%s %s" % (nom, ", ".join(n for n, _ in liste)) for nom, liste in etat.items() if liste]
+    principale, retard = suivi_en_retard(racine)
+    if retard:
+        lignes.append("GIT=en retard sur %s : %s suivi(s) là-bas, pas ici — worktree né avant ; y fusionner %s"
+                      % (principale, ", ".join(retard), principale))
     return lignes or ["GIT=suivi"]
+
+
+def suivi_en_retard(racine):
+    """`(branche principale, [cibles])` : `CHANTIER.md` et `CLAUDE.md` que la branche principale suit et que `HEAD`
+    ne suit pas — un worktree né avant que Git suive le contexte (Cairn, `FAM`, panne `N2` d'`AVL4`, NWT) ; sa carte
+    lit alors un vieux `CHANTIER.md`. Sur la branche principale, ou hors Git : `[]`."""
+    principale = branche_principale(racine)
+    code, nom = git_texte(["rev-parse", "--abbrev-ref", "HEAD"], racine)
+    if not principale or code != 0 or nom.strip() == principale:
+        return principale, []
+
+    def suivi(rev, cible):
+        """Vrai si `rev` suit `cible`."""
+        code, s = git_texte(["ls-tree", "--name-only", rev, "--", cible], racine)
+        return code == 0 and bool(s.strip())
+    return principale, [c for c in ("CHANTIER.md", "CLAUDE.md") if suivi(principale, c) and not suivi("HEAD", c)]
 
 
 def prefixe_relecture():
@@ -2523,7 +2560,8 @@ def heures_commits(fichier, ids, pourquoi=None, clos=False, titres=None):
     le plus ancien de ceux dont le sujet suit par le titre de la fiche (`titres`, {id: titre} ;
     le commit de 6 bis et de `boucle.py`), à défaut le plus ancien : un commit d'étape en cours de
     fiche ne la coupe plus avant sa fin, un correctif d'après ne l'étire pas (chantier PRP, `NUI20`) —,
-    celles de tous les commits qui nomment le préfixe (`REP`, `REP2`…),
+    celles de tous les commits qui nomment le préfixe (`REP`, `REP2`…) — sauf un commit de fiche plus
+    ancien que le premier retenu, une étape de celle-ci, qui ne borne pas son début (PRF) —,
     celles des autres commits, puis, à part, celles des seuls commits `<PRÉFIXE> :` (`VIT :`,
     `Dette VIT :`, pas `Chantier VIT ouvert`), triées : elles bornent le chantier (`plages`).
     Sans commit de fiche, `{}` d'abord : un chantier en cours. None sans `git`, sans dépôt,
@@ -2547,7 +2585,7 @@ def heures_commits(fichier, ids, pourquoi=None, clos=False, titres=None):
     nomme = re.compile(r"(?<![A-Za-z0-9])(?:%s)[0-9]*(?![A-Za-z0-9])"
                        % "|".join(sorted({lettre_de(i) for i in ids})))
     coupe = re.compile(r"(?<![A-Za-z0-9])(?:%s) :" % "|".join(sorted({lettre_de(i) for i in ids})))
-    commits, au_titre, prefixe, autres, coupes = {}, {}, [], [], []
+    commits, au_titre, prefixe, autres, coupes, etapes = {}, {}, [], [], [], set()
     for ligne in r.stdout.splitlines():
         heure, _, sujet = ligne.partition(" ")
         if not heure.isdigit():
@@ -2556,6 +2594,7 @@ def heures_commits(fichier, ids, pourquoi=None, clos=False, titres=None):
         coupes.extend([int(heure)] if coupe.search(sujet) else [])
         c = COMMIT_FICHE.match(sujet)
         if c and c.group(1) in ids:
+            etapes.add(int(heure))
             titre = (titres or {}).get(c.group(1))
             vus = au_titre if titre and sujet[c.end():].replace("`", "").strip().startswith(titre) else commits
             vus[c.group(1)] = min(int(heure), vus.get(c.group(1), int(heure)))
@@ -2568,6 +2607,10 @@ def heures_commits(fichier, ids, pourquoi=None, clos=False, titres=None):
             pourquoi.append("chantier clos sans commit « %s : » ni d'une autre fiche" % ids[0])
             return None
         return {}, sorted(prefixe), sorted(autres), sorted(coupes)
+    # Un commit `<id> :` plus ancien que le premier commit de fiche retenu est une étape de cette fiche
+    # (`AVL1 : case cochée`, deux secondes avant `AVL1 : <titre>`) : il ne borne pas son début (PRF).
+    premier = min(commits.values())
+    prefixe = [t for t in prefixe if not (t < premier and t in etapes)]
     return commits, sorted(prefixe), sorted(autres), sorted(coupes)
 
 
@@ -3859,18 +3902,31 @@ def borne_haute_cout(cout):
     """La borne haute d'un « Coût » de TODO, en fiches — `~4 à 6` → 6, `2-3` → 3, `~0,5` → 0,5,
     `~½` → 0,5 (`½` se lit 0,5 ; `1½`, 1,5) —, ou `None` sans plage suivie de « fiche(s) »
     (`à cadrer`, `🟡 pas estimé`, `—`, `sans fiche`) (FEU8, NUI10). La dernière estimation fait foi
-    (NUI38) : le dernier segment ` · ` qui dit « fiche(s) » ; dans ce segment, la plage qui suit la
-    dernière `→`, sinon la dernière plage suivie de « fiche(s) » — jamais une somme ni une durée."""
-    segments = [s for s in cout.split(" · ") if re.search(r"\bfiches?\b", s)]
-    if not segments:
-        return None
-    segment = segments[-1]
-    apres = re.match(r"\s*[~≈+]?\s*(%s)" % PLAGE_COUT, segment.rsplit("→", 1)[1]) if "→" in segment else None
-    plages = [apres.group(1)] if apres else re.findall(r"(%s)\s*fiches?\b" % PLAGE_COUT, segment)
-    if not plages:
-        return None
-    nombres = re.findall(NOMBRE_COUT, plages[-1])
-    return max(float(n.rstrip("½").replace(",", ".") or 0) + (0.5 if n.endswith("½") else 0) for n in nombres)
+    (NUI38) : le dernier segment ` · ` qui porte une plage suivie de « fiche(s) » — un prix « (3,68 $ la
+    fiche) » n'en est pas une ; dans ce segment, la plage qui suit la dernière `→`, sinon la dernière plage
+    suivie de « fiche(s) ». Le texte entre parenthèses ne se lit pas (« (`AMD` : 7 fiches) » compare, il
+    n'estime pas) ; une plage précédée de `+` (« ≈ +½ fiche ») s'ajoute à l'estimation d'avant au lieu de la
+    remplacer (CLU). Jamais une durée."""
+    borne = None
+    for brut in cout.split(" · "):
+        segment = brut
+        while True:     # les parenthèses, imbriquées comprises, de l'intérieur vers l'extérieur
+            neuf = re.sub(r"\([^()]*\)", "", segment)
+            if neuf == segment:
+                break
+            segment = neuf
+        if not re.search(r"\bfiches?\b", segment):
+            continue
+        apres = re.match(r"\s*[~≈]?\s*(\+?)\s*(%s)" % PLAGE_COUT, segment.rsplit("→", 1)[1]) if "→" in segment else None
+        plages = [apres.groups()] if apres else re.findall(r"(\+?)\s*(%s)\s*fiches?\b" % PLAGE_COUT, segment)
+        if not plages:
+            borne = None if re.search(r"\bsans fiche\b", segment) else borne    # « re-cadré : sans fiche » fait foi
+            continue
+        ajout, plage = plages[-1]
+        nombres = re.findall(NOMBRE_COUT, plage)
+        valeur = max(float(n.rstrip("½").replace(",", ".") or 0) + (0.5 if n.endswith("½") else 0) for n in nombres)
+        borne = borne + valeur if ajout and borne is not None else valeur
+    return borne
 
 
 def dependances(depend):
@@ -6172,7 +6228,12 @@ def ecarts_git(projet, sortie):
     if etat is None:
         return 0, 0, []
     ecarts = 0
-    for nom, exemple in etat["ignoré"]:
+    # Ignoré exprès (NWT) : le projet le déclare, `- **contexte dans Git** : non — <pourquoi>` ; une ligne le dit.
+    expres = champ(lignes_de(os.path.join(projet, "CHANTIER.md")), "contexte dans Git", "")
+    if etat["ignoré"] and re.match(r"non\b", expres, re.I):
+        sortie.write("EXPRÈS: git: %d chemin(s) ignoré(s) exprès — CHANTIER.md, « contexte dans Git » : %s ; aucun "
+                     "écart compté\n" % (len(etat["ignoré"]), expres))
+    for nom, exemple in [] if re.match(r"non\b", expres, re.I) else etat["ignoré"]:
         code, t = git_texte(["check-ignore", "-v", "--", exemple], projet)
         source = t.split("\t")[0].rpartition(":")[0] if code == 0 and "\t" in t else "?"
         sortie.write("ÉCART: git: %s — ignoré par %s — à retirer à la main, puis ajouter\n" % (nom, source))
@@ -6429,17 +6490,37 @@ def ouverts_ailleurs(racine):
 def chantiers_ailleurs(racine):
     """`[(code, dossier)]` : le chantier que `courant_de` donne à chaque autre worktree, post-it compris ; un dossier
     sans chantier, ou à plusieurs ouverts (`Absent`), n'en a aucun. `carte` les imprime en `AILLEURS=`, `niveau` n'y
-    compte pas d'écart de page (NUI28)."""
-    rendu = []
+    compte pas d'écart de page (NUI28). Sans chantier à lui, un worktree nomme ceux de ses commits de fiche ouverts
+    dans le principal (`codes_joues`, NWT)."""
+    rendu, (dossier_p, principale) = [], principal(racine)
+    ouverts_p = {code_du_fichier(dossier_p, f) for f in ouverts(dossier_p)} if dossier_p else set()
     for dossier in autres_worktrees(racine):
         try:
             f = courant_de(dossier)
         except Absent:
             continue
-        ids = [l.split()[1] for l in lignes_de(os.path.join(dossier, f)) if TITRE.match(l)] if f else []
-        if ids:
-            rendu.append((lettre_de(ids[0]), dossier))
+        code = code_du_fichier(dossier, f) if f else None
+        joues = [code] if code else [c for c in codes_joues(dossier, principale) if c in ouverts_p]
+        rendu += [(c, dossier) for c in joues]
     return rendu
+
+
+def code_du_fichier(dossier, f):
+    """Le préfixe de la première fiche d'un fichier de fiches (`FAM` pour `## FAM1 …`), ou None sans fiche."""
+    ids = [l.split()[1] for l in lignes_de(os.path.join(dossier, f)) if TITRE.match(l)]
+    return lettre_de(ids[0]) if ids else None
+
+
+def codes_joues(dossier, principale):
+    """Les préfixes, triés, des commits de fiche `<id> : …` (`COMMIT_FICHE`) de la branche de `dossier` absents de
+    `principale` ; [] sans elle. Un worktree né avant que Git suive le contexte n'a pas la marque d'ouverture, que
+    `niveau --ecrire` a posée dans le principal : ses commits disent quel chantier il joue (Cairn, `FAM`, NWT) ; un
+    vieux commit jamais fusionné aussi — `chantiers_ailleurs` ne garde que les ouverts du principal."""
+    if not principale:
+        return []
+    code, s = git_texte(["log", "--format=%s", principale + "..HEAD"], dossier)
+    trouves = (COMMIT_FICHE.match(l) for l in (s.splitlines() if code == 0 else []))
+    return sorted({lettre_de(t.group(1)) for t in trouves if t})
 
 
 def ecrire_ailleurs(racine, sortie):
@@ -6609,12 +6690,25 @@ def cmd_oter(a, sortie):
     tete, k, numero = rangee_todo(lignes, a.code)
     assert tete is not None and k is not None   # `refus_d_oter` a trouvé la rangée
     raison = a.raison.strip().rstrip(".")
-    oter_rangee(lignes, tete, k, " %s, `%s`, retiré le %s : %s." % (numero, a.code, date, raison))
+    ecritures, quoi, prise = [], "retiré", ""
+    if a.fait:      # fait sans fiche : sa lettre est prise, ceux qui l'attendent ne sont plus bloqués
+        texte = "\n".join(carte_) + "\n"
+        j = texte.find(LETTRES)
+        if j < 0:
+            sortie.write("GARDE: ligne « %s » absente de CHANTIER.md — rien écrit\n" % LETTRES)
+            return 1
+        m = re.match(r"^\|\s*\d+\s*\|\s*`[^`]+`\s*—\s*(.*?)\s*\|", lignes[k])
+        fin = fin_lettres(texte, j)
+        texte = texte[:fin] + ", %s (%s, sans fiche)" % (a.code, m.group(1) if m else a.code) + texte[fin:]
+        ecritures.append((os.path.join(projet, "CHANTIER.md"), texte))
+        quoi, prise = "fait sans fiche", " · lettre prise"
+    oter_rangee(lignes, tete, k, " %s, `%s`, %s le %s : %s." % (numero, a.code, quoi, date, raison))
     while lignes and not lignes[-1].strip():
         lignes.pop()
-    lignes += ["", "## %s — `%s` retiré de la TODO (n° %s)" % (date, a.code, numero), "", "- **Raison** : %s." % raison]
-    ecrire_par_tmp([(chemin, "\n".join(lignes) + "\n")])
-    sortie.write("OTÉ `%s` · n° %s · provenance marquée · journal %s — %s\n" % (a.code, numero, date, etat))
+    lignes += ["", "## %s — `%s` %s, retiré de la TODO (n° %s)" % (date, a.code, quoi, numero) if a.fait
+               else "## %s — `%s` retiré de la TODO (n° %s)" % (date, a.code, numero), "", "- **Raison** : %s." % raison]
+    ecrire_par_tmp([(chemin, "\n".join(lignes) + "\n")] + ecritures)
+    sortie.write("OTÉ `%s` · n° %s · provenance marquée · journal %s — %s%s\n" % (a.code, numero, date, etat, prise))
     return 0
 
 
@@ -8875,13 +8969,19 @@ def cmd_symboles(a, sortie):
     """Imprimer `nom début-fin` pour chaque fonction ou classe de premier niveau de `a.fichier`, lu par `ast` sans
     l'importer — ou pour les seuls `a.noms`, `ABSENT <nom>` pour ceux qui n'y sont pas (sort 1) : une fiche cite un
     nom, ce script rend sa ligne du jour (VIT9). `ast` plutôt que `pyclbr`, bâti dessus : `pyclbr` garde un cache par
-    nom de module, faux d'un fichier à l'autre dans un même processus. Fichier absent : `GARDE:`, sort 1."""
+    nom de module, faux d'un fichier à l'autre dans un même processus. Fichier absent, ou qui ne se lit pas en
+    Python (un `.as`, `AMD1`) : `GARDE:`, sort 1 — jamais un traceback (SYM)."""
     import ast
     if not os.path.isfile(a.fichier):
         sortie.write("GARDE: %s n'est pas un fichier\n" % a.fichier)
         return 1
-    with open(a.fichier, encoding="utf-8") as f:
-        corps = ast.parse(f.read()).body
+    try:
+        with open(a.fichier, encoding="utf-8") as f:
+            corps = ast.parse(f.read()).body
+    except (SyntaxError, UnicodeDecodeError, ValueError) as e:
+        sortie.write("GARDE: %s ne se lit pas en Python (symboles ne lit que le Python ; grep -n ailleurs) : %s\n"
+                     % (a.fichier, str(e).splitlines()[0] if str(e) else type(e).__name__))
+        return 1
     trouves = {n.name: n for n in corps if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))}
     for n in a.noms or list(trouves):
         o = trouves.get(n)
@@ -8922,6 +9022,7 @@ def options_clore(sous):
     ot.add_argument("code")
     ot.add_argument("--raison", required=True)
     ot.add_argument("--date")
+    ot.add_argument("--fait", action="store_true")
 
 
 def options_marques(sous):

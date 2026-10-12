@@ -39,7 +39,7 @@ enchaînement / jeu à la main, `README.md`, la version du plugin, la TODO n° 2
 
 **Le bac de sonde** (méthode validée en `U`, socle de `context AI/33-sans-refus.md`) : scripts `bac.py <nom>`,
 `lire.py`, `detail.py` du scratchpad de `U` —
-`C:/Users/znorr/AppData/Local/Temp/claude/C--Users-znorr-Documents-ProgPerso-Claude-vlpWorkflow/1b086951-ecc7-4072-8bdd-86bf3948ebee/scratchpad/`.
+`~/AppData/Local/Temp/claude/C--Users-<nom>-Documents-ProgPerso-Claude-vlpWorkflow/1b086951-ecc7-4072-8bdd-86bf3948ebee/scratchpad/`.
 Ils se **recopient** avant d'être modifiés. `bac.py` copie le plugin dans `plugz/` (`name` → `vlpz`,
 `shell: powershell` avant les `allowed-tools` de chaque skill) et écrit un bac **sans `.git`**. Ici, il lui faut
 **deux** fiches triviales, pour qu'un enchaînement ait une suite. Lancement :

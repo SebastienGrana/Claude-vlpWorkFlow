@@ -22,7 +22,7 @@ déjà renvoyé n'est plus jugé (TODO n° 59). GAR ferme ce trou, retire la son
 | `verdict_fin` : tête hors `STATUTS` → renvoi ; `FAITE` → `cocher --verifier`, `TÊTE ` ou `CASE <fiche> [ ]` → renvoi | `scripts/vlp.py`, `def verdict_fin` |
 | la sonde de `CON3` : `SONDE`, `cmd_sonde`, sous-commande `sonde`, sa docstring, ses tests ; hors de `hooks/hooks.json` | `scripts/vlp.py`, `scripts/test-vlp.py` (« sonde (chantier CON3) ») |
 | tests du gardien, dont « déjà renvoyé une fois, laissé » | `scripts/test-vlp.py`, « gardien (chantier CON4) » |
-| le cas vrai : `GLO1`, transcription `agent-ac9db03f95e8ec2b0`, lignes 113–116 : deux `Stop hook feedback` sur « Excellent! », puis `FAITE` sur case vide non renvoyé | `~/.claude/projects/C--Users-znorr-Documents-ProgPerso-Claude-vlpWorkflow/ca431cf8-…/subagents/` |
+| le cas vrai : `GLO1`, transcription `agent-ac9db03f95e8ec2b0`, lignes 113–116 : deux `Stop hook feedback` sur « Excellent! », puis `FAITE` sur case vide non renvoyé | `~/.claude/projects/C--Users-<nom>-Documents-ProgPerso-Claude-vlpWorkflow/ca431cf8-…/subagents/` |
 | tests : `py scripts/test-vlp.py` ; pyright sur les fichiers touchés ; une fiche de code nomme son mutant | `methode-chantier.md`, « Anatomie d'une fiche » |
 
 Décidé au cadrage, seul : sous `stop_hook_active`, on juge **encore** un `FAITE` (case

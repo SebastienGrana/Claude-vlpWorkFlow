@@ -10,7 +10,7 @@ Sous-commandes :
   valeur, absente, ou `--relecteur` : rien — chantier NUI), `PLUGIN_RETARD=<n> … merge --ff-only <branche>` si
   le plugin chargé n'a pas le code de ce worktree du kit (`retard_plugin`, chantier ESR, sauf avec
   `--relecteur`), une ligne `AILLEURS=<code> <dossier>` par chantier courant d'un autre worktree (`chantiers_ailleurs`,
-  NUI28, sauf avec `--relecteur`), puis — si un fichier de fiches est courant — ses titres
+  NUI28, sauf avec `--relecteur` ; sans marque à lui, ses commits de fiche d'un chantier ouvert ici, NWT), puis — si un fichier de fiches est courant — ses titres
   de fiches numérotés, `PROCHAINE=<fiche>` (la première non cochée, dans l'ordre
   du fichier) ou `PROCHAINE=aucune`, et une `GARDE` si le fichier a des lignes
   mais aucun titre au format attendu. Aucun fichier courant : pour chaque
@@ -27,7 +27,8 @@ Sous-commandes :
   Hors `--relecteur`, après `PLUGIN_RETARD=` et `AILLEURS=` : `GIT=suivi` quand `CHANTIER.md`, `CLAUDE.md` et le
   dossier **contexte** le sont, sinon `GIT=ignoré <chemins>` et/ou `GIT=non ajouté <chemins>` (séparés par `, ` ;
   un dossier entier se nomme `ctx/`, ses seuls fichiers directs `ctx/*` ; `__pycache__/` écarté), ou `GIT=hors Git`
-  (NUI35, `etat_git`).
+  (NUI35, `etat_git`) ; un worktree né avant que la branche principale suive `CHANTIER.md` ou `CLAUDE.md` : en plus,
+  `GIT=en retard sur <branche> : … ; y fusionner <branche>` (`suivi_en_retard`, NWT).
   Pas trouvé : une ligne `VOISIN=` par sous-dossier équipé, avec son alias, suivie de sa ligne `GIT=`, ou
   `AUCUN_PROJET`. Sort toujours 0 : la commande lit la sortie, elle ne doit pas
   se faire refuser l'injection. `--python NOM` (les injections des skills : `"py -3"`, `python3` au relais ;
@@ -73,7 +74,8 @@ Sous-commandes :
 - `compteur <fichier> [<fiche>…] [--recoupe]` — où passe le temps, aux plages de `cout` :
   `COMPTEUR aux commits de fiche`, une ligne par fiche — durée de commit à commit, actif
   = modèle + outils + attente + autre (chaque écart à la part de la ligne qui le ferme),
-  outils par sorte en minutes (appels), tours et $ de `cout`, garde-fous —, `hors fiches`,
+  outils par sorte en minutes (appels ; `relance` : les `commandes longues` que déclare
+  `CHANTIER.md`, entre accents graves), tours et $ de `cout`, garde-fous —, `hors fiches`,
   `TOTAL`. Des fiches nommées : elles seules, `TOTAL (fiches nommées)` ; une sans plage :
   `GARDE:`, sort 1. Un champ qui manque aux transcripts : `AVERTISSEMENT:`. `--recoupe` :
   une ligne `RECOUPE` par `cost-state` des sessions, face à ses totaux. Sans découpe :
@@ -198,7 +200,8 @@ Sous-commandes :
   cette ligne retirée, que plus rien ne lit — gardée, en `ÉCART: ligne:`, tant que la marque
   manque (NUI31). Les écarts `git:` (NUI36, `etat_git` de la carte) ne se corrigent jamais :
   `ÉCART: git: <chemin> — ignoré par .gitignore:<n> …` ou `— non ajouté …`, et la ligne « kit » qui porte un
-  chemin de machine ; hors Git, aucun. Les
+  chemin de machine ; hors Git, aucun. L'ignoré que `CHANTIER.md` déclare exprès (`- **contexte dans Git** : non
+  — <pourquoi>`) : une ligne `EXPRÈS: git:`, sans écart (NWT). Les
   renvois absents et les fichiers de tête hors seuil restent en `ÉCART:`. Tout
   se calcule avant la première écriture. Bilan `NIVEAU <n> corrigés · <n> à la
   main — <projet>` ; un écart restant : sort 1. `--date` fige la date.
@@ -330,6 +333,8 @@ Sous-commandes :
   le D : T.` ; au journal, une entrée `## D — `<code>` retiré de la TODO (n° <n>)`. Le numéro n'est jamais
   réattribué. `OTÉ `<code>` · n° <n> · provenance marquée · journal D — <fichier>`. Code absent, ouvert
   (`courant_de`) ou clos (« Lettres de fiche déjà prises »), TODO illisible : `GARDE: … — rien écrit`, sort 1 (TAB4).
+  `--fait` : un chantier fait sans fiche — « fait sans fiche » au lieu de « retiré », et `<code> (<titre>, sans
+  fiche)` ajouté aux « Lettres de fiche déjà prises » : ce qui l'attend n'est plus bloqué ; `· lettre prise` en fin.
 - `archiver <projet>` — chaque ligne de table `**clos**` de l'index quitte l'index pour
   `00-INDEX-archive.md`, dans son dossier (créée au besoin : titre, « QUAND LIRE », en-tête
   `| Fichier | Lire quand |`), déplacée telle quelle et triée par numéro de fichier ; l'index
@@ -541,7 +546,8 @@ Sous-commandes :
 - `symboles <fichier> [<nom>…]` — une ligne `nom début-fin` par fonction ou classe de premier niveau d'un
   fichier Python, dans l'ordre du fichier, lue par `ast` sans l'importer (VIT9) : une fiche cite un nom,
   ceci rend sa ligne du jour. Avec des noms, leurs seules lignes, dans l'ordre demandé, et `ABSENT <nom>`
-  pour un nom introuvable (sort 1). Fichier absent : `GARDE:`, sort 1.
+  pour un nom introuvable (sort 1). Fichier absent, ou qui ne se lit pas en Python : `GARDE:`, sort 1
+  (SYM).
 - `rapide <motif> [--racine R]` — le contrôle rapide d'une fiche du kit, avant la suite entière (VIT23), joué en
   parallèle sous la racine (défaut : le dossier courant) : les groupes de `test-vlp.py` qui portent le motif
   (`--seul`), pyright sur les `.py` ajoutés, modifiés ou neufs depuis `HEAD`, et `sante --cliquet`. Une ligne

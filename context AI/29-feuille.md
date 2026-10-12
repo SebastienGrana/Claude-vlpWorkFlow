@@ -48,7 +48,7 @@ F1 et F2 sont indépendantes ; F3 réutilise la régénération de F2 ; F4 vient
 **Mesuré** (2026-09-17, appels qui nomment la cible — lecture, retouche, script, publication) : X `fd4ebe27` — 77 tours, feuille 14 appels, `CHANTIER.md` 4, tours concernés 15 (11 + 4), refus `Artifact` 2, contexte relu par ces tours 2 630 821 ; W `20b6f6d2` — 61 tours, feuille 12, `CHANTIER.md` 2, tours concernés 11 (11 + 2), refus 1, contexte 1 518 818.
 
 **Dépend de** : rien.
-**Fichiers** : `~/.claude/projects/C--Users-znorr-Documents-ProgPerso-Claude-vlpWorkflow/fd4ebe27-5975-4250-89c7-13c5e861cc33.jsonl` (chantier X), `…/20b6f6d2-b753-45d0-9f79-4e0e0aa0deed.jsonl` (chantier W), ce fichier de fiches.
+**Fichiers** : `~/.claude/projects/C--Users-<nom>-Documents-ProgPerso-Claude-vlpWorkflow/fd4ebe27-5975-4250-89c7-13c5e861cc33.jsonl` (chantier X), `…/20b6f6d2-b753-45d0-9f79-4e0e0aa0deed.jsonl` (chantier W), ce fichier de fiches.
 
 **Prompt**
 Écris dans le scratchpad un script Python (Write, `PYTHONUTF8=1`) qui lit ces deux transcripts et compte,

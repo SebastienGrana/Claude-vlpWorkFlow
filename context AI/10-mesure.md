@@ -19,7 +19,7 @@ JSONL, et l'affiche à deux moments : fin de fiche, fin de chantier.
   `~/.claude/projects/<projet-slugifié>/<session-id>.jsonl`, où
   `<projet-slugifié>` est le chemin absolu du projet avec `/`, `\` et `:`
   remplacés par `-` (observé pour ce projet :
-  `C--Users-znorr-Documents-ProgPerso-Claude-vlpWorkflow`).
+  `C--Users-<nom>-Documents-ProgPerso-Claude-vlpWorkflow`).
 - **Champ à sommer** : `usage` (input_tokens, output_tokens,
   cache_creation_input_tokens, cache_read_input_tokens) — à confirmer sur un
   vrai fichier JSONL en M2, ne pas deviner son emplacement exact dans le JSON.

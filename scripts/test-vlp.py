@@ -299,6 +299,16 @@ def tester_niveau_git():
                  len(e) == 2 and e[0].startswith("ÉCART: git: CHANTIER.md — ignoré par .gitignore:2")
                  and e[1].startswith("ÉCART: git: ctx/09-neuf.md — non ajouté"), e)
         verifier("niveau git : --ecrire ne corrige rien", ecarts_git(p, ecrire=True) == e, ecarts_git(p, True))
+        carte = mod.lire(os.path.join(p, "CHANTIER.md"))
+        ecrire(os.path.join(p, "CHANTIER.md"), carte + "- **contexte dans Git** : non — dépôt public\n")
+        s = io.StringIO()
+        mod.ecarts_git(p, s)
+        ecrire(os.path.join(p, "CHANTIER.md"), carte)
+        verifier("NWT (c) niveau git : l'ignoré déclaré exprès (« contexte dans Git » : non) se dit en une ligne EXPRÈS, "
+                 "sans écart ; le non ajouté reste un écart",
+                 "EXPRÈS: git: 1 chemin(s) ignoré(s) exprès — CHANTIER.md, « contexte dans Git » : non — dépôt public ; "
+                 "aucun écart compté\n" in s.getvalue() and "ignoré par" not in s.getvalue()
+                 and "ÉCART: git: ctx/09-neuf.md — non ajouté" in s.getvalue(), s.getvalue())
         ecrire(os.path.join(p, ".gitignore"), "# rien\n")
         git(p, "add", "-A")
         ecrire(os.path.join(p, "CHANTIER.md"), CHANTIER % ("pn", "ctx/") + "- **kit** : D:/Projets/kit, lié dans"
@@ -1146,6 +1156,19 @@ def tester_commit_au_titre():
                  and "\nQ1 · ≈200,0k (200 000) · 2 tours · 1,00 $" in s
                  and "\nQ2 · ≈300,0k (300 000) · 3 tours · 1,50 $" in s
                  and "TOTAL (fiches + hors fiches) · ≈700,0k (700 000) · 7 tours" in s, s)
+        # PRF : un commit `Q1 : case cochée` posé juste avant `Q1 : Créer` ne devient pas le début de Q1.
+        d2 = os.path.join(t, "q2")
+        ecrire(os.path.join(d2, "q.md"), QFICHES % (sq, sq))
+        subprocess.run(["git", "init", "-q"], cwd=d2, env=env, check=True, capture_output=True)
+        for x, sujet in ((100, "Chantier Q ouvert : cadré"), (298, "Q1 : case cochée, en route"), (300, "Q1 : Créer"),
+                         (600, "Q2 : Brancher"), (800, "Chantier Q clos : fini")):
+            date = "%d +0000" % (T0 + x)
+            subprocess.run(["git", "commit", "-q", "--allow-empty", "-m", sujet], cwd=d2, check=True,
+                           capture_output=True, env=dict(env, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date))
+        code, s = appel(["cout", os.path.join(d2, "q.md")])
+        verifier("PRF : la première fiche part de l'ouverture, pas d'un commit à elle posé avant le sien",
+                 code == 0 and "\nQ1 · ≈200,0k (200 000) · 2 tours · 1,00 $" in s
+                 and "TOTAL (fiches + hors fiches) · ≈700,0k (700 000) · 7 tours" in s, s)
 
 
 groupe(tester_commit_au_titre)
@@ -1425,6 +1448,16 @@ def tester_oter():
         verifier("TAB4 : oter écrit une entrée datée au journal",
                  lu.endswith("## 2026-10-01 — x\n\n## 2026-10-09 — `AAA` retiré de la TODO (n° 3)\n\n"
                              "- **Raison** : fait ailleurs.\n"), lu)
+        res = appel(["oter", to, "BBB", "--raison", "fait cette nuit", "--date", "2026-10-12", "--fait"])
+        lu, carte_ = open(chemin, encoding="utf-8").read(), open(os.path.join(to, "CHANTIER.md"), encoding="utf-8").read()
+        prises = mod.lettres_prises(carte_.split("\n"))
+        verifier("oter --fait : la lettre est prise, ce qui l'attend n'est plus bloqué — mutant : sans l'ajout aux lettres",
+                 res[0] == 0 and res[1].rstrip().endswith("· lettre prise")
+                 and "U (test), BBB (b, sans fiche). Un nouveau chantier" in carte_
+                 and not mod.est_bloque("`BBB`", prises, []), (res, carte_))
+        verifier("oter --fait : « fait sans fiche » dans la provenance et au journal",
+                 "4, `BBB`, fait sans fiche le 2026-10-12 : fait cette nuit.\n" in lu
+                 and "## 2026-10-12 — `BBB` fait sans fiche, retiré de la TODO (n° 4)\n" in lu, lu)
 
 
 groupe(tester_oter)
@@ -4418,6 +4451,16 @@ def tester_symboles():
         code = mod.main(["symboles", chemin, "Trois", "rien", "un"], o)
         verifier("VIT9 : symboles avec des noms, leurs seules lignes, ABSENT pour l'inconnu, sort 1",
                  code == 1 and o.getvalue() == "Trois 14-16\nABSENT rien\nun 4-5\n", o.getvalue())
+        angel = os.path.join(t, "deco.as")
+        ecrire(angel, "class Deco {\n    void Poser() { int x = 1; }\n}\n")
+        o = io.StringIO()
+        try:
+            code = mod.main(["symboles", angel], o)
+        except SyntaxError as e:    # l'ancien comportement : le traceback, rendu en écart
+            code = "traceback %s" % e
+        verifier("SYM : symboles sur un fichier non Python, une GARDE: et sort 1, jamais un traceback",
+                 code == 1 and o.getvalue().startswith("GARDE: %s ne se lit pas en Python" % angel)
+                 and o.getvalue().count("\n") == 1, o.getvalue())
 
 
 groupe(tester_symboles)
@@ -5999,6 +6042,31 @@ def tester_hook_pyright():
 groupe(tester_hook_pyright)
 
 
+def tester_hook_chemin():
+    # CHM : le hook refuse une ligne ajoutée qui porte un chemin de machine, sous ses trois formes ; `~` passe, et une
+    # ligne ancienne, gardée telle quelle, ne bloque rien. Les chemins se bâtissent par morceaux : écrits d'un bloc
+    # dans ce fichier, ils feraient refuser son propre commit.
+    if not shutil.which("git"):
+        print("SAUTÉ: git absent — le bloc des chemins du hook n'est pas testé")
+        return
+    with tempfile.TemporaryDirectory() as t:
+        depot, sans, git = hook_isole(t)
+        ecrire(os.path.join(depot, "a.md"), "le kit : ~/.claude/skills/vlp\n")
+        git(sans, "add", "a.md")
+        code, s = git(sans, "commit", "-q", "-m", "tilde")
+        verifier("CHM : hook, un chemin en ~ passe", code == 0 and "chemin de machine" not in s, s)
+        refus = []
+        for forme in ("C:" + "/Users/bob/x", "C:" + "\\Users\\bob\\x", "/mnt/c/" + "Users/bob/x", "C-" + "-Users-bob-Documents"):
+            ecrire(os.path.join(depot, "b.md"), "voir `%s`\n" % forme)
+            git(sans, "add", "b.md")
+            code, s = git(sans, "commit", "-q", "-m", "chemin")
+            refus.append(code == 1 and "pre-commit : chemin de machine dans une ligne ajoutée" in s)
+        verifier("CHM : hook, les trois formes de chemin de machine refusées (4 cas)", refus == [True] * 4, refus)
+
+
+groupe(tester_hook_chemin)
+
+
 def tester_hook_claude():
     # VIT19 : le hook demande claude à `vlp.py claude`. L'app là sans son claude.exe refuse le commit, en le
     # disant ; ni app ni claude, il passe averti. claude trouvé, validate lancé : `tester_pre_commit`.
@@ -6149,6 +6217,23 @@ def tester_decompte_todo():
              and mod.borne_haute_cout("~½ fiche") == 0.5 and mod.borne_haute_cout("1½ fiche") == 1.5
              and mod.borne_haute_cout("🟡 pas estimé") is None and mod.borne_haute_cout("—") is None,
              (mod.borne_haute_cout("~0,5 fiche"), mod.borne_haute_cout("~4 à 6 fiches")))
+    # CLU : les cellules lues de travers à `AVL7`, recopiées de la TODO d'avant `AVL9` (69e47df~1)
+    fautives = {
+        "estimé comme `ACA` : 4 à 6 fiches, 15 à 22 $ (`AMD` : 7 fiches, 37,80 $ mesurés)": 6.0,
+        "~3 fiches · 11 à 15 $ au taux de `MET10`, plus ≈ 4 $ de republication (2,98 $ pour 66 pages, `HAB5`) "
+        "(estimé, non mesuré) · avec (0), ajouté le 2026-10-10 : 3 à 4 fiches (l'ajout estimé, non mesuré) · avec (4), "
+        "ajouté le 2026-10-11 : ≈ +½ fiche (estimé, non mesuré) · avec (5), ajouté le 2026-10-11 : ≈ +½ fiche "
+        "(estimé, non mesuré)": 5.0,
+        "1 fiche · 3,68 $ au taux de `MET10` du kit (3,68 $ la fiche), estimé, non mesuré": 1.0,
+        "1 fiche · 3,68 $ au taux de `MET10` du kit (3,68 $ la fiche), estimé, non mesuré · avec `c8`, ajouté le "
+        "2026-10-11 : ≈ +½ fiche (estimé, non mesuré) · avec le contexte ignoré, ajouté le 2026-10-11 : ≈ +½ fiche "
+        "(estimé, non mesuré)": 2.0,
+        "2 fiches · 7,36 $ au taux de `MET10` du kit (3,68 $ la fiche), estimé, non mesuré": 2.0,
+        "~1 fiche, sans code (estimé, non mesuré) · re-cadré à `MET10` : sans fiche": None,
+    }
+    lues_clu = {c: mod.borne_haute_cout(c) for c in fautives}
+    verifier("CLU : borne_haute_cout — un ajout « +½ » s'additionne, un prix par fiche et une parenthèse ne se lisent pas",
+             lues_clu == fautives, [(c[:40], v) for c, v in lues_clu.items() if v != fautives[c]])
     # les cellules « Coût » de la TODO du 2026-10-08, recopiées telles quelles (NUI38)
     cellules = {
         "~6 fiches, plus une nuit d'essai · ré-estimé à `MET10` (restent `NUI28` à `NUI32` et `NUI20`, `CLR` compris : "
@@ -8864,6 +8949,38 @@ def tester_ailleurs():
              and "AILLEURS:" not in dans,
              (seul, avec, dans))
 
+    with tempfile.TemporaryDirectory() as tr:
+        d, wl = os.path.join(tr, "n"), os.path.join(tr, "wt-l")
+        depot_matin(d)
+        git_matin(d, "worktree", "add", "-q", "-b", "l", wl, "main")
+        ecrire(os.path.join(wl, "b.txt"), "b\n")
+        commit_matin(wl, "LOC1 : a", 2)          # ni post-it ni marque à lui : ses commits disent ce qu'il joue
+        ecrire(os.path.join(wl, "c.txt"), "c\n")
+        commit_matin(wl, "ZZZ1 : vieux", 3)      # un vieux commit jamais fusionné, d'un chantier ouvert nulle part
+        _, joue = appel(["niveau", d])
+        carte = [l for l in appel(["carte", d])[1].splitlines() if l.startswith("AILLEURS=")]
+    verifier("NWT (a) un worktree sans marque ni post-it : ses commits « LOC1 : » disent qu'il joue LOC, ouvert dans le "
+             "principal → AILLEURS ; « ZZZ1 : », ouvert nulle part, ne compte pas",
+             "AILLEURS: page: LOC joue dans " in joue and "ÉCART: page:" not in joue and len(carte) == 1
+             and carte[0].startswith("AILLEURS=LOC ") and carte[0].rstrip("/").endswith("wt-l"), (joue, carte))
+
+    with tempfile.TemporaryDirectory() as tr:
+        d, wv = os.path.join(tr, "v"), os.path.join(tr, "wt-v")
+        os.makedirs(d)
+        git_matin(d, "init", "-q", "-b", "main")
+        ecrire(os.path.join(d, "a.txt"), "a\n")
+        commit_matin(d, "avant le suivi", 1)
+        git_matin(d, "worktree", "add", "-q", "-b", "v", wv, "main")
+        ecrire(os.path.join(wv, "CHANTIER.md"), CARTE_MATIN)      # sa vieille copie locale, jamais suivie
+        ecrire(os.path.join(d, "CHANTIER.md"), CARTE_MATIN)
+        ecrire(os.path.join(d, "CLAUDE.md"), "# v\n")
+        commit_matin(d, "contexte suivi", 2)
+        retard, principal_ = mod.ligne_git(wv), mod.ligne_git(d)
+    verifier("NWT (b) un worktree né avant que main suive CHANTIER.md et CLAUDE.md : la carte le dit et propose de "
+             "fusionner main ; main lui-même, non",
+             "GIT=en retard sur main : CHANTIER.md, CLAUDE.md suivi(s) là-bas, pas ici — worktree né avant ; y fusionner "
+             "main" in retard and not any("retard" in l for l in principal_), (retard, principal_))
+
 
 groupe(tester_ailleurs)
 
@@ -9393,8 +9510,8 @@ def ecrire_compteur(chemin, cout_etat=None):
 
 
 TOUT_COMPTEUR = ("actif 16 = modèle 2 + outils 13 + attente 1 + autre 0 · outils : suite 6 (2), --seul 1 (1), "
-                 "test-boucle 0 (0), mutant 4 (1), pyright 0 (0), Git 0 (1), publication 0 (1), reste 2 (4) · 14 tours"
-                 " · 7,00 $ · garde-fous : suites 1/3, ÉCART 1, MUTANT ATTRAPÉ 1, GARDE 1, relecteur 1 ACCEPTÉE + 1 "
+                 "test-boucle 0 (0), mutant 4 (1), pyright 0 (0), Git 0 (1), publication 0 (1), relance 0 (0), reste 2 "
+                 "(4) · 14 tours · 7,00 $ · garde-fous : suites 1/3, ÉCART 1, MUTANT ATTRAPÉ 1, GARDE 1, relecteur 1 ACCEPTÉE + 1 "
                  "REFUSÉE")
 
 
@@ -9415,10 +9532,10 @@ def tester_compteur_lecture():
              mesure_)
     verifier("compteur : l'attente d'une tâche de fond va à l'appel qui l'a lancée — boucle, Monitor, notification",
              mesure_["outils"] == {"suite": 342, "--seul": 30, "test-boucle": 0, "mutant": 236, "pyright": 0, "Git": 5,
-                                   "publication": 10, "reste": 130} and mesure_["fond"] == 285, mesure_)
+                                   "publication": 10, "relance": 0, "reste": 130} and mesure_["fond"] == 285, mesure_)
     verifier("compteur : un appel par sortie directe — ni la notification, ni l'attente, ni la réponse à une question",
              mesure_["appels"] == {"suite": 2, "--seul": 1, "test-boucle": 0, "mutant": 1, "pyright": 0, "Git": 1,
-                                   "publication": 1, "reste": 4}, mesure_["appels"])
+                                   "publication": 1, "relance": 0, "reste": 4}, mesure_["appels"])
     verifier("compteur : les garde-fous lus là où ils disent vrai, les suites jugées sur leur verdict",
              (mesure_["suites"], mesure_["garde_fous"]) == ([3, 1], [1, 1, 1, 1, 1]), mesure_)
     verifier("compteur : la ligne en minutes, chaque total juste à la minute (plus gros restes)",
@@ -9499,16 +9616,26 @@ def tester_compteur_commande():
         finally:
             os.environ.clear()
             os.environ.update(garde_env)
+        ecrire(os.path.join(dep, "CHANTIER.md"), "# Chantier\n\n- **alias** : q\n- **commandes longues** : "
+                                                 "`vlp.py cocher`, `calcul.py`\n")
+        os.environ.update(HOME=t, USERPROFILE=t)
+        try:
+            relance = appel(["compteur", os.path.join(dep, "q.md"), "Q1"])
+        finally:
+            os.environ.clear()
+            os.environ.update(garde_env)
+        declarees = (mod.relances_de(os.path.join(dep, "q.md")), mod.relances_de(os.path.join(t, "q.md")))
     rien = ("actif 0 = modèle 0 + outils 0 + attente 0 + autre 0 · outils : suite 0 (0), --seul 0 (0), test-boucle 0 "
-            "(0), mutant 0 (0), pyright 0 (0), Git 0 (%d), publication 0 (%d), reste 0 (0) · %d tours · %s $ · "
+            "(0), mutant 0 (0), pyright 0 (0), Git 0 (%d), publication 0 (%d), relance 0 (0), reste 0 (0) · %d tours · "
+            "%s $ · "
             "garde-fous : suites -, ÉCART -, MUTANT ATTRAPÉ -, GARDE -, relecteur -")
     q2 = "Q2 · durée 34 · " + rien % (1, 1, 2, "1,00")
     lignes = ["AVERTISSEMENT: sss.jsonl : 1 ligne(s) de message sans heure, hors du temps",
               "AVERTISSEMENT: sss.jsonl : 1 sortie(s) sans appel connu, rangée(s) au reste",
               mod.ENTETE_COMPTEUR % 30,
               "Q1 · durée 17 · actif 16 = modèle 2 + outils 12 + attente 1 + autre 1 · outils : suite 6 (2), --seul 0 "
-              "(1), test-boucle 0 (0), mutant 4 (1), pyright 0 (0), Git 0 (0), publication 0 (0), reste 2 (4) · 12 "
-              "tours · 6,00 $ · garde-fous : suites 1/3, ÉCART 1, MUTANT ATTRAPÉ 1, GARDE 1, relecteur 1 ACCEPTÉE + 1 "
+              "(1), test-boucle 0 (0), mutant 4 (1), pyright 0 (0), Git 0 (0), publication 0 (0), relance 0 (0), reste 2 "
+              "(4) · 12 tours · 6,00 $ · garde-fous : suites 1/3, ÉCART 1, MUTANT ATTRAPÉ 1, GARDE 1, relecteur 1 ACCEPTÉE + 1 "
               "REFUSÉE", q2, "hors fiches · durée - · " + rien % (0, 0, 0, "0,00"),
               "TOTAL (fiches + hors fiches) · durée - · " + TOUT_COMPTEUR]
     verifier("compteur : une ligne par fiche aux plages de cout, hors fiches, TOTAL — l'écart à cheval sur un commit "
@@ -9522,6 +9649,10 @@ def tester_compteur_commande():
                "· durée 12,8 contre totalDuration absent\n")
     verifier("compteur --recoupe : la cost-state face au compteur, du startTime à sa dernière ligne horodatée ; un "
              "champ absent se dit", rendus[3] == (0, "\n".join(lignes) + "\n" + recoupe), rendus[3][1])
+    verifier("RLA : les commandes longues se lisent au CHANTIER.md du projet, entre accents graves ; sans carte, aucune",
+             declarees == (("vlp.py cocher", "calcul.py"), ()), declarees)
+    verifier("RLA : une commande longue déclarée tombe en relance, plus au reste — la suite et Git gardent leur sorte",
+             relance[0] == 0 and "Git 0 (0), publication 0 (0), relance 0 (1), reste 2 (3) · " in relance[1], relance)
 
 
 groupe(tester_compteur_lecture)

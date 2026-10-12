@@ -182,7 +182,7 @@ raison.
 
 **Session** : d98b430f-ec71-4508-9675-9ebb341b93ca
 **Dépend de** : `Z2`.
-**Fichiers** : `C:/Users/znorr/Documents/ProgPerso/Cairn-VlpLib/CHANTIER.md` —
+**Fichiers** : `~/Documents/ProgPerso/Cairn-VlpLib/CHANTIER.md` —
 et rien d'autre dans ce projet ; le kit n'est pas modifié par cette fiche.
 
 **Prompt**

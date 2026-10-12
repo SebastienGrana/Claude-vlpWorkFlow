@@ -22,6 +22,11 @@ Trois à cinq lignes, pas plus : ce bloc est relu à chaque reprise de la fiche,
 il se paye autant de fois. Une deuxième session bloquée **complète** ce bloc,
 elle n'en ouvre pas un second.
 
+## L'artefact — session principale seulement
+
+L'agent `vlp:fiche` saute cette section : il n'a aucun artefact, le chef marque
+la page (`/vlp:enchainer`, étape 4).
+
 Puis **marque le blocage sur l'artefact** — c'est le moment où l'on a le plus
 besoin de le voir. Suis la régénération de `tache-page.md` (grep, lire, réécrire,
 republier), avec : la fiche passée en

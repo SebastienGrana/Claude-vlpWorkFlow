@@ -16,7 +16,7 @@ de le refaire à la main cinq fois.
 
 ## Le socle commun
 
-**Le kit.** `C:/Users/znorr/Documents/ProgPerso/Claude-vlpWorkflow`, lié dans
+**Le kit.** `~/Documents/ProgPerso/Claude-vlpWorkflow`, lié dans
 `~/.claude/skills/vlp`. Toute la mécanique est dans `scripts/vlp.py` (1576
 lignes) ; les tests dans `scripts/test-vlp.py` — `py scripts/test-vlp.py`
 imprime `OK` et sort 0, ou le premier écart et sort 1. Une fiche qui touche
@@ -33,7 +33,7 @@ imprime `OK` et sort 0, ou le premier écart et sort 1. Une fiche qui touche
 | `main` | `scripts/vlp.py:1453` | où une sous-commande s'ajoute (`sous.add_parser`) |
 | les seuils | `scripts/vlp.py:469-474` | `SEUIL_FICHE` 50, `SEUIL_SOCLE` 80, `SEUIL_CLAUDE` 80, `SEUIL_CHANTIER` 50, `SEUIL_INDEX` 80 |
 
-**Les cinq projets**, tous sous `C:/Users/znorr/Documents/ProgPerso/` :
+**Les cinq projets**, tous sous `~/Documents/ProgPerso/` :
 `Cairn-VlpLib`, `MapDecorator`, `TrackGen`, `ProjetONZSM`, `vlp-bac-a-sable`.
 Écarts déjà mesurés le 2026-09-17 : Cairn `CLAUDE.md` 89/80, index 111/80, table
 des clos encore dans `CHANTIER.md`, 2 renvois absents ; MapDecorator 84/80 ;

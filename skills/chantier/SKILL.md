@@ -61,7 +61,7 @@ trouvé à l'étape 0, il désigne le projet et les suivants forment le nom du
 chantier. Sinon, l'alias n'était
 pas nécessaire : tous les arguments forment le **nom du chantier**.
 
-## 0 ter. Si un chantier est déjà ouvert : reprendre, pas rouvrir
+## 0 bis. Si un chantier est déjà ouvert : reprendre, pas rouvrir
 
 Si `COURANT=` ne vaut pas « aucun », **un chantier est en cours dans ce
 dossier**. On n'en ouvre pas deux à la fois : ici, la séance sert à reprendre
@@ -136,7 +136,7 @@ questionnaire pour choisir. Pour chacun, dis en une ou deux lignes :
 Donne ton avis, y compris sur ceux que tu écartes : dis lequel tu ferais en
 premier et pourquoi. L'utilisateur veut un échange d'idées, pas un menu.
 
-Cette étape suppose qu'aucun chantier n'est ouvert : sinon, l'étape 0 ter s'est
+Cette étape suppose qu'aucun chantier n'est ouvert : sinon, l'étape 0 bis s'est
 déjà appliquée et on n'en propose pas un second.
 
 ## 3. Comprendre le chantier retenu — en questions

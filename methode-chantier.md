@@ -171,13 +171,9 @@ titre (`MET6`, 2026-10-07).
   l'utilisateur, le 2026-10-04. Plus bas pour le mécanique (lancer un script,
   publier, commiter, mesurer), plus haut pour ce qui se conçoit ou se débogue.
   Une fiche, de code ou de conception, en Opus 5.5 : `medium` ; `xhigh` en recours,
-  pour rejouer une fiche refusée ou bloquée — décision du 2026-10-07, après `MET4`
-  (même qualité mesurée, `xhigh` nettement plus cher ; `context AI/08-etat.md`, entrée
-  « MET4 — xhigh contre medium »). Elle remplace « `xhigh` pour une fiche de code »,
-  décidé le même jour après `VIT25`. `high` mesuré le 2026-10-09 sur les mêmes 4
-  fiches (`EFF3`) : même qualité aux trois niveaux, `high` +59 % de $ sur `medium`,
-  −11 % sous `xhigh`. Aucune fiche du jeu n'était refusée ni bloquée : la mesure ne
-  dit pas si `high` suffit au recours (entrée « EFF3 — high contre medium et xhigh »).
+  pour rejouer une fiche refusée ou bloquée — décision du 2026-10-07, que la mesure
+  de `high` du 2026-10-09 n'a pas changée (récits dans `lecons-mesure.md`, « L'effort
+  se règle selon la tâche »).
   Tout changement s'annonce d'abord par un petit message : le modèle et
   l'effort, avant → après, et pourquoi (« Opus 5.5 · effort high → medium : la
   suite est mécanique »). Le niveau en cours se lit, il ne se suppose pas
@@ -199,8 +195,8 @@ proposition du découpage, écriture du fichier de fiches, mise à jour de
 `CHANTIER.md`, et la main rendue. Le coût du cadrage est payé **une fois** ; il
 ne se repaye pas à chaque fiche.
 Avant de promettre un chiffre de la TODO, le cadrage vérifie que les cas visés
-passent par le code qu'on va changer : `ESS` visait 11 clos, 9 étaient en
-`DÉCOUPE aucune`, hors du chemin modifié (journal `ESS4` du fichier d'état).
+passent par le code qu'on va changer (récit dans `lecons-mesure.md`, « Le cadrage
+vérifie le chemin du code changé »).
 **L'estimé du cadrage se double** : à l'ouverture, le compte de fiches recopié de
 la TODO se double — un chantier joué coûte en moyenne ×1,85 son estimé, en
 fiches comme en $ (45 clos, `AVL2`). La TODO, elle, ne bouge pas : deux sortes
@@ -217,12 +213,16 @@ du 2026-09-20, toujours vrais, que rien ne rappelait. Décidé par l'utilisateur
 
 **2. Exécution — une fiche, une session.** `/vlp:tache X1`, puis `/clear`, puis
 `/vlp:tache X2`. Jamais deux fiches dans la même session : la seconde traînerait
-derrière elle tout le contexte de la première. `/vlp:enchainer` tient la même
-règle autrement — chaque fiche dans un sous-agent neuf, jusqu'au premier arrêt,
-par la skill forkée `vlp:jouer` : le chef ne lit ni socle ni fiche, un appel par
-fiche (mesures au journal du fichier d'état du kit, chantier N).
+derrière elle tout le contexte de la première. `/vlp:enchainer` a trois modes :
+`agents` tient la règle — chaque fiche dans un sous-agent neuf, jusqu'au premier
+arrêt, par la skill forkée `vlp:jouer` : le chef ne lit ni socle ni fiche, un appel
+par fiche (mesures au journal du fichier d'état du kit, chantier N) ; `clear` aussi
+— une session neuve par fiche, par `boucle.py` ; `main`, le défaut, est l'exception
+assumée : toutes les fiches dans la séance, le contexte grossit d'une fiche à l'autre.
 **Sans fiche** : une modification qui se dit en une phrase se fait directement, sans
-chantier ni fiche (source dans « Coder dans le kit »).
+chantier ni fiche (source dans « Coder dans le kit »). Une ligne de la TODO ainsi
+faite se retire par `vlp.py oter <projet> <code> --raison … --fait` : sa lettre est
+prise, et ce qui l'attend n'est plus bloqué (nuit du 2026-10-12).
 
 **3. Clôture.** Elle est décrite dans `cloture.md` à la racine du kit, que
 `/vlp:tache`, `/vlp:enchainer` et `/vlp:chantier` lisent au moment de clore :
@@ -258,18 +258,18 @@ par un `git revert` au lieu d'une reconstitution à la main.
 **Une fiche sans rien à commiter pose un commit vide** —
 `git commit --allow-empty -m "<PRÉFIXE><n> : <titre>"` : c'est la borne où
 `vlp.py cout` coupe. Décision de l'utilisateur, 2026-09-27, à la clôture de
-`SEG` (cairn) : tout y était hors git, aucun commit ne nommait `SEG`, et `cout`
-a rendu `DÉCOUPE aucune` — des sessions entières, dont une session parallèle,
-**18 147 448** tokens contre **11 262 523** pour le chantier seul (`clore`).
+`SEG` (récit dans `lecons-mesure.md`, « Une fiche sans rien à commiter pose un
+commit vide »).
 
 **Un push à la clôture seulement, et jamais sans confirmation** : il publie, et
 ne se reprend pas. `cloture.md` le porte.
 
-**Une branche de chantier fusionnée dans `main` : relire `CHANTIER.md` et la feuille** —
-Git ne voit pas ces pertes-là. Vu deux fois : prédit par `PAR4`, puis à la fusion de `PAR`
-(`2cef70f`, 2026-09-29) : sans conflit, `CHANTIER.md` a perdu le chantier resté ouvert de
-l'autre côté (`LOC`), et la feuille régénérée son badge « en cours » — `vlp.py feuille .
---todo <rang>` le rend. Les conflits, eux, se prédisent :
+**Une branche de chantier fusionnée dans `main` : relire la feuille, et les lettres
+de `CHANTIER.md`** — Git ne voit pas ces pertes-là. Vu à la fusion de `PAR` (`2cef70f`,
+2026-09-29) : sans conflit, la feuille régénérée a perdu le badge « en cours » du
+chantier resté ouvert de l'autre côté (`LOC`) — `vlp.py feuille . --todo <rang>` le
+rend. `CHANTIER.md` ne porte plus le chantier ouvert (« Le chantier ouvert ») ; sa
+ligne des lettres prises, si. Les conflits, eux, se prédisent :
 `git merge-tree --write-tree --name-only <branche> main`.
 
 Le sous-agent de `/vlp:enchainer` ne commite pas — il n'a ni le contexte ni le
@@ -341,8 +341,11 @@ fichiers suivis, et la mécanique en vit — un commit par fiche, la marque
 d'ouverture lue dans un commit, les canaux de nuit, la fusion du matin.
 Restent hors Git ce qui est propre à une machine : les tampons (post-it
 `vlp-chantier`, marques `vlp-*`) et `.claude/launch.json`. Aucun de ces
-fichiers ne porte de chemin de machine. Un dépôt public se trie fichier par
-fichier avant d'y verser le contexte. Tranché le 2026-10-08 (`NUI34`).
+fichiers ne porte de chemin de machine : le `pre-commit` du kit refuse une ligne
+ajoutée qui en porte un (`CHM`). Un dépôt public se trie fichier par
+fichier avant d'y verser le contexte. Tranché le 2026-10-08 (`NUI34`). Un
+projet qui garde exprès son contexte hors de Git le déclare dans `CHANTIER.md`
+(« contexte dans Git » : non) : `niveau` ne le compte plus en écart (`NWT`).
 
 ## Le fichier de fiches
 
@@ -404,17 +407,18 @@ Quatre exigences, apprises en cassant :
 1. **Tout fichier à ouvrir est nommé dans la fiche.** Une fiche qui laisse
    chercher fait ouvrir trois fichiers au hasard — plus cher que le chantier.
    Du code se cite par son **nom** — fonction, classe, constante —, jamais par
-   sa ligne : le code bouge, la ligne ment (7 renvois sur 7 périmés dans NUI,
-   `VIT9`) ; `vlp.py symboles <fichier> <nom>` rend sa ligne du jour.
+   sa ligne : le code bouge, la ligne ment (récit dans `lecons-mesure.md`) ; `vlp.py symboles <fichier> <nom>` rend sa ligne du jour.
 2. **Aucun libellé ni chiffre inventé** : les libellés viennent de la plage de
    maquette citée ; tant qu'une mesure n'existe pas, la fiche demande la
    mesure, elle n'annonce pas son résultat.
 3. **Un critère de fin observable**, sinon la fiche ne peut pas être cochée. Il
-   affiche ses comptes bruts (voir « Les règles qui valent partout »). Pour du
+   affiche ses comptes bruts (voir « Les règles qui valent partout »). Il ne règle
+   pas le commit : `/vlp:tache` commite seul, une fois, tout le travail de la
+   fiche — un critère qui l'exige se contredit et fausse le coût (`AVL1`, rendu
+   à 0 tour). Pour du
    code, il nomme le test, l'appel, la valeur attendue, et **le mutant** — le
    code cassé exprès que ce test doit faire tomber : « les tests passent » ne
-   prouve rien, un test creux passe aussi (`FIN1`, puis `FIN2` alors que son
-   test était nommé avec ses valeurs, 2026-09-24). Le mutant se joue par
+   prouve rien, un test creux passe aussi (récit dans `lecons-mesure.md`). Le mutant se joue par
    `vlp.py mutant … --attendu "<début du libellé du test>"` : il mute une copie du kit, jamais le vrai
    fichier, et s'arrête dès que ce test tombe (`VIT2`) ; `--tous` les liste tous (`MUT1`). Un critère joué dans un
    clone y copie d'abord le fichier modifié : un clone part du dernier commit,

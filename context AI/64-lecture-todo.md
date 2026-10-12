@@ -81,7 +81,7 @@ l'étape 0 ter, `feuille`, `todo_du_fichier` ou `/vlp:tache` ; alléger le reste
 
 **Session** : 819d1b08-9d1c-421c-b547-43124bc57994
 **Dépend de** : rien.
-**Fichiers** : `~/.claude/projects/C--Users-znorr-Documents-ProgPerso-Claude-vlpWorkflow/*.jsonl`,
+**Fichiers** : `~/.claude/projects/C--Users-<nom>-Documents-ProgPerso-Claude-vlpWorkflow/*.jsonl`,
 `scripts/mesure-tokens.py`, le `CHANTIER.md` et les fichiers du tableau « projets équipés » du
 socle (par `grep -n "^## "` seulement), `context AI/08-etat.md` (journal, en fin) — et rien d'autre.
 

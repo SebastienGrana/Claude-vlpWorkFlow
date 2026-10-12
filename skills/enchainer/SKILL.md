@@ -128,7 +128,8 @@ comptes bruts du critère compris ; « — » pour un arrêt sans sous-agent. Le
 coût se lit sur la session, pas ici : un `Result` ne porte pas d'usage.
 
 Puis régénère la page du chantier, **une seule fois** pour tout le lancement —
-sauf si « artefact du chantier » vaut « aucun », ou si l'étape 5 suit. La page
+sauf si « artefact du chantier » vaut « aucun », si l'étape 5 suit, ou en mode
+`main` : chaque `vlp:tache` l'a déjà republiée. La page
 porte le nom du fichier de fiches, en `.html`, dans `<contexte>/artefacts/` ;
 un `--note` par fiche faite, le critère constaté en une ligne :
 
@@ -152,7 +153,9 @@ Si un `BLOQUÉE` a clos la série, marque aussi la page bloquée :
 ## 5. Clore le chantier
 
 Plus aucune fiche non cochée : applique la clôture, à l'identique de
-`/vlp:tache` à sa propre étape 7 — cette commande ne la recopie pas.
+`/vlp:tache` à sa propre étape 7 — cette commande ne la recopie pas. En mode
+`main`, cette étape 7 l'a déjà faite : ne relance pas `clore` (un second appel
+sort en `GARDE:`), passe à l'affichage du bilan.
 
 ```bash
 <python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" lire cloture.md
