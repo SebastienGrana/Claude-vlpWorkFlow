@@ -3,7 +3,7 @@ description: Joue une fiche du chantier courant dans un sous-agent vlp:fiche neu
 argument-hint: <fiche>
 context: fork
 agent: vlp:fiche
-background: false
+background: true
 user-invocable: false
 allowed-tools: Bash(python3:*), Bash(py:*), Bash(echo:*), PowerShell(python3:*), PowerShell(py:*), PowerShell(echo:*)
 ---

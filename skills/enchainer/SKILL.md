@@ -83,7 +83,10 @@ Pour chaque fiche de la série, dans l'ordre :
 1. Un seul appel : `Skill`, `skill: "vlp:tache"`, `args` : la fiche — elle
    coche, publie et commite elle-même. Fiche cochée ensuite : passe à la
    suivante ; sinon, c'est un `RETOUR` (étape 3 bis).
-   Avec `agents` : `skill: "vlp:jouer"` à la place, puis le point 2.
+   Avec `agents` : `skill: "vlp:jouer"` à la place. Elle part en arrière-plan :
+   ce qui revient tout de suite n'est pas son `Result` — rends la main sans
+   autre appel, la conversation reste libre. Son `Result` arrive dans la
+   **notification de fin**, à un tour suivant ; `vlp:relire` de même. Puis le point 2.
 2. Lis le premier mot du `Result` rendu. Ce n'est pas un statut : prends la
    première ligne qui **commence** par `FAITE`, `RETOUR` ou `BLOQUÉE` ; aucune,
    c'est « aucun statut » ci-dessous.

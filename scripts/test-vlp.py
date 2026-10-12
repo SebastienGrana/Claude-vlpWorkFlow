@@ -3112,6 +3112,24 @@ def tester_arp3_marque():
 groupe(tester_arp3_marque)
 
 
+def tester_ena2_arriere_plan():
+    """ENA2 : `vlp:jouer` et `vlp:relire` partent en arrière-plan — `background: false` faisait attendre la
+    conversation tout le temps de la fiche (≈ 45 min le 2026-10-03, `ENA1`) ; le chef lit le statut à la
+    notification de fin, pas dans ce que l'appel rend tout de suite."""
+    tetes = {}
+    for skill in ("jouer", "relire"):
+        texte = io.open(os.path.join(RACINE, "skills", skill, "SKILL.md"), encoding="utf-8").read()
+        tetes[skill] = [l for l in texte.split("---")[1].splitlines() if l.startswith(("context:", "background:"))]
+    verifier("ENA2 : jouer et relire forkées en arrière-plan (background: true)",
+             all(t == ["context: fork", "background: true"] for t in tetes.values()), repr(tetes))
+    chef = io.open(os.path.join(RACINE, "skills", "enchainer", "SKILL.md"), encoding="utf-8").read()
+    verifier("ENA2 : le chef lit le Result à la notification de fin",
+             "**notification de fin**" in chef, "absent de skills/enchainer/SKILL.md")
+
+
+groupe(tester_ena2_arriere_plan)
+
+
 def tester_arp4_menage():
     """Contrôler le ménage des tampons (ARP4) sur ses deux chemins réels, chacun dans son dossier temporaire :
     `carte_injectee` (`vlp-carte-` à RELAIS_SECONDES, `vlp-enchaine-` à MARQUE_SECONDES) et `tampon_neuf`

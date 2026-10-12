@@ -3,7 +3,7 @@ description: Relit une fiche rendue FAITE dans un sous-agent vlp:relecture neuf,
 argument-hint: <fiche> [<sha>]
 context: fork
 agent: vlp:relecture
-background: false
+background: true
 user-invocable: false
 allowed-tools: Bash(python3:*), Bash(py:*), Bash(echo:*), PowerShell(python3:*), PowerShell(py:*), PowerShell(echo:*)
 ---
