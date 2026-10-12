@@ -64,7 +64,7 @@
         <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">ENA7</span></span>
         <details><summary><span class="titre">Le 2e refus d'une même famille arrête, et le compteur compte juste</span><span class="etat">Faite</span></summary>
-        <span class="note">cycle par cocher : refus 1 → --resolu → refus 2 · dernier : motif un (le bloc le montre encore) → refus 3 ; cas d'avant identiques (tester_cocher, REFUS_PISTE) ; mutant de l'ancienne réduction attrapé (1 écart) ; rapide vert (3 contrôles, pyright 0 erreur sur 5 fichiers, cliquet tenu) ; suite entière OK (sortie 0, 467 s)</span></details>
+        <span class="note">refus 1 (relecteur) corrigé à la racine : les refus soldés sur leur ligne (Refus soldés), la tête lue à sa place ; cycle refus 1, puis refus 2 · dernier : motif un, puis refus 3 ; 5 textes libres piégés (non résolu deux fois, · refus 2, · refus 9, un blocage) sans effet ; 3 mutants attrapés (1 écart chacun) ; rapide vert (8 contrôles, pyright 0 erreur sur 5 fichiers, cliquet tenu) ; suite entière OK (sortie 0, 369 s)</span></details>
         <span class="cout mono">≈65,9M (65 940 234) · 350 tours · 35,94 $</span></li>
       <li class="fiche"><span class="gauche"><span class="id">ENA8</span></span>
         <details><summary><span class="titre">Débrancher l'option parallèle, garder son code</span><span class="etat">À lancer</span></summary>
@@ -92,10 +92,15 @@
     <h2>Journal des décisions</h2>
     <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
     <ul class="journal">
-      <li><time datetime="2026-10-12">2026-10-12</time><span>Recul sur ENA5 : Git garde la sécurité ; le parallèle repart au chantier ISO ; ENA se ferme par ENA7 (les freins) et ENA8 (débrancher), ENA5 et ENA6 abandonnées</span></li>
       <li><time datetime="2026-10-13">2026-10-13</time><span>ENA7 : test-boucle.py (c) attendait « cocher rend refus 1 au 2e refus » — passé à refus 2, et la docstring de boucle.py (« le fichier ne s'en souvient pas ») corrigée ; la sortie de --refuser ne donne « · dernier : » qu'après un « résolu », pour que les cas d'avant sortent à l'identique.</span></li>
       <li><time datetime="2026-10-13">2026-10-13</time><span>ENA9 ajoutée à la demande de l'utilisateur : le bilan d'ENA, et dans quels cas un bilan vaut le coup (dès le moindre accroc, son idée, parmi les critères à compter) ; la clôture suit ENA9</span></li>
+      <li><time datetime="2026-10-13">2026-10-13</time><span>ENA7, refus 1 (cause copie) : un motif contenant « non résolu » laissait la tête soldée ; une sonde trouve un 2e cas de la même famille (« · refus 2 » dans un --resolu donnait refus 3). Tranché par l'utilisateur : corriger ici, toute la famille (les refus soldés sur leur propre ligne), et les deux remarques du relecteur (refus.md, motif après un blocage)</span></li>
     </ul>
+    <details class="journal-ancien"><summary>1 entrée plus ancienne</summary>
+    <ul class="journal">
+      <li><time datetime="2026-10-12">2026-10-12</time><span>Recul sur ENA5 : Git garde la sécurité ; le parallèle repart au chantier ISO ; ENA se ferme par ENA7 (les freins) et ENA8 (débrancher), ENA5 et ENA6 abandonnées</span></li>
+    </ul>
+    </details>
   </section>
 
   <footer>

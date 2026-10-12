@@ -3463,3 +3463,12 @@ Les 6 fichiers relus en entier contre `methode-chantier.md` après `MET7` ; « t
 - ENA7 : `test-boucle.py` (c) attendait « `cocher` rend refus 1 au 2e refus » — passé à refus 2, et la docstring de
   `boucle.py` (« le fichier ne s'en souvient pas ») corrigée ; la sortie de `--refuser` ne donne ` · dernier :`
   qu'après un « résolu », pour que les cas d'avant sortent à l'identique.
+
+## 2026-10-13 — ENA7, refus 1 : un compte ne partage pas sa ligne avec un texte libre
+
+- Le 1er essai mettait les refus soldés en fin de tête (` · refus <n> · dernier : <motif>`), à côté de deux textes
+  libres. Le relecteur : un motif contenant « non résolu » laissait la tête soldée à la fiche rouverte ; une sonde,
+  même famille : un `--resolu` finissant par « · refus 2 » faisait sortir `refus 3` au lieu de `refus 1`. Tranché
+  par l'utilisateur, toute la famille : une ligne à eux, `Refus soldés : <n> · dernier : <motif>`, et la tête lue à
+  sa place. Avec, deux remarques du relecteur : le motif d'un blocage n'est plus gardé comme celui d'un refus ;
+  `refus.md` ne demande plus au chef de chercher l'existant (il n'ouvre que son contrat) — ça attend l'utilisateur.

@@ -17,14 +17,16 @@
   famille** — le même genre de défaut, sur un autre exemple (`ENA5` : motif,
   dossier, filtre, chemin partiel, dossier sans barre, chaque fois deux noms d'un
   même fichier lancés ensemble) : la cause se lit `fiche`, quoi qu'en dise le
-  relecteur, et seules restent 1 — recadrer : chercher l'existant, revoir le
-  critère ; le recadrage se montre, rien ne se relance sans la réponse de
-  l'utilisateur — et 4. **Famille différente** : les quatre.
+  relecteur, et seules restent 1 et 4. Recadrer — chercher l'existant, revoir le
+  critère — attend la réponse de l'utilisateur : rien ne se cherche ni ne se
+  relance avant. **Famille différente** : les quatre.
 
 Pose un questionnaire (`AskUserQuestion`), ces quatre options :
 
 1. **Réécrire la fiche** — cause `fiche` seulement : montre `RÉÉCRITURE` telle
-   quelle ; sur oui, un `Edit` qui l'applique, puis reprends l'étape 3 point 1.
+   quelle — même famille, sans elle : montre les deux motifs, la réécriture vient
+   de l'utilisateur ; sur oui, un `Edit` qui l'applique, puis reprends l'étape 3
+   point 1.
 2. **Rejouer telle quelle** — cause `copie` : reprends l'étape 3 point 1.
 3. **Jouer à la main** — recommandée dès `n` ≥ 2 : `Skill`, `skill: "vlp:tache"`.
 4. **S'arrêter** — le `BLOQUÉE` d'aujourd'hui : étapes 3 bis et 4.

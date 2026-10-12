@@ -1263,8 +1263,9 @@ def cmd_cocher(a, sortie):
         if t is not None:
             n = next((i for i in range(t + 1, fin) if not lignes[i].strip() or lignes[i].startswith("**")), fin)
             date = a.date or __import__("datetime").date.today().isoformat()
-            lignes[t:n] = [ligne_soldee(lignes[t:n], date, a.resolu)]
-            fin -= n - t - 1
+            avant = len(lignes)
+            lignes[t:n] = bloc_solde(lignes[t:n], date, a.resolu)
+            fin += len(lignes) - avant
     s = os.environ.get("CLAUDE_CODE_SESSION_ID", "").strip()
     if s and "**Session** : %s" % s not in lignes[debut:fin]:
         dep = next((i for i in range(debut + 1, fin) if lignes[i].startswith("**Dépend de**")), debut + 1)
@@ -1417,33 +1418,39 @@ def noter_session(a, lignes, debut, sortie):
     return 0
 
 
-REPORT_REFUS = re.compile(r" · refus ([0-9]+)(?: · dernier : (.*))?$")   # fin de tête d'un bloc Tentatives (ENA7)
+# Les refus de relecture soldés d'un bloc Tentatives, sur une ligne à eux sous la tête (ENA7) : aucun texte libre
+# (motif, `--resolu`) ne partage une ligne avec un compte, il s'y lirait comme un compte. La tête est ouverte si son
+# premier « résolu » est « non résolu » : le texte de `--resolu` ne vient qu'après « résolu par : ».
+REFUS_SOLDES = re.compile(r"Refus soldés : ([0-9]+)(?: · dernier : (.*))?$")
+TETE_OUVERTE = re.compile(r"\*\*Tentatives\*\*(?:(?!résolu).)*non résolu")
 
 
 def refus_du_bloc(bloc):
     """Les refus de relecture d'un bloc **Tentatives** (`bloc` : ses lignes, tête comprise), dont le rang survit à
-    `--resolu` (ENA7) : `(rang, motif, report)` — `report`, la fin ` · refus <p>[ · dernier : <m>]` de la tête, ou
-    "" ; `rang`, `p` plus les lignes numérotées `ESSAI_REFUSE` ; `motif`, la ligne `Erreur :`, sinon `m`, sinon None."""
-    vu = REPORT_REFUS.search(bloc[0])
-    rang = (int(vu.group(1)) if vu else 0) + sum(
-        1 for l in bloc[1:] if re.match(r"[0-9]+\. ", l) and l.split(". ", 1)[1] == ESSAI_REFUSE)
+    `--resolu` (ENA7) : `(rang, motif, soldes)` — `soldes`, l'indice dans `bloc` de sa ligne
+    `Refus soldés : <p>[ · dernier : <m>]`, ou None ; `rang`, `p` plus les lignes numérotées `ESSAI_REFUSE` ;
+    `motif`, la ligne `Erreur :` si la dernière ligne numérotée est un refus (un blocage l'écrase), sinon `m`."""
+    soldes = next((i for i in range(1, len(bloc)) if REFUS_SOLDES.match(bloc[i])), None)
+    vu = REFUS_SOLDES.match(bloc[soldes]) if soldes else None
+    essais = [l.split(". ", 1)[1] for l in bloc[1:] if re.match(r"[0-9]+\. ", l)]
     erreur = next((l[len("Erreur :"):].strip() for l in bloc[1:] if l.startswith("Erreur :")), None)
-    return rang, erreur or (vu.group(2) if vu else None), vu.group(0) if vu else ""
+    motif = erreur if essais and essais[-1] == ESSAI_REFUSE else None
+    return (int(vu.group(1)) if vu else 0) + essais.count(ESSAI_REFUSE), motif or (vu.group(2) if vu else None), soldes
 
 
-def ligne_soldee(bloc, date, resolu):
-    """La ligne qui remplace un bloc **Tentatives** à la fiche cochée (`cocher --resolu`) : `résolu par`, puis, s'il
-    portait des refus de relecture, leur report ` · refus <n> · dernier : <motif>`, que `refuser` relit (ENA7)."""
+def bloc_solde(bloc, date, resolu):
+    """Ce qui remplace un bloc **Tentatives** à la fiche cochée (`cocher --resolu`) : la tête `résolu par`, puis, s'il
+    portait des refus de relecture, leur ligne `Refus soldés : <n> · dernier : <motif>`, que `refuser` relit (ENA7)."""
     rang, motif, _ = refus_du_bloc(bloc)
-    report = (" · refus %d" % rang + (" · dernier : %s" % motif if motif else "")) if rang else ""
-    return "**Tentatives** (%s) — résolu par : %s%s" % (date, resolu, report)
+    soldes = ["Refus soldés : %d" % rang + (" · dernier : %s" % motif if motif else "")] if rang else []
+    return ["**Tentatives** (%s) — résolu par : %s" % (date, resolu)] + soldes
 
 
 def refuser(a, lignes, debut, sortie):
     """Le refus du relecteur (chantier REV) : la case rouverte, et sous le titre le bloc de
     `tache-blocage.md` — déjà là, il gagne la ligne numérotée suivante et son `Erreur :` prend
-    le nouveau motif ; il ne se double jamais. Une tête soldée redevient « non résolu », son
-    report gardé : le rang compte les refus d'avant le `--resolu`, et la sortie leur dernier motif (ENA7)."""
+    le nouveau motif ; il ne se double jamais. Une tête soldée redevient `— non résolu.`, sa ligne
+    `Refus soldés` gardée : le rang la compte, et la sortie redit son dernier motif (ENA7)."""
     fin = next((i for i in range(debut + 1, len(lignes))
                 if lignes[i].strip() == FERMANT or TITRE.match(lignes[i])), len(lignes))
     lignes[debut] = lignes[debut].replace("[x]", "[ ]", 1)
@@ -1455,15 +1462,15 @@ def refuser(a, lignes, debut, sortie):
         k = debut + 2 if debut + 1 < fin and not lignes[debut + 1].strip() else debut + 1
         lignes[k:k] = (["**Tentatives** (%s) — non résolu." % date, "1. " + essai, erreur]
                        + ([""] if k == debut + 2 else []))
-        rang, dernier, report = 0, None, ""
+        rang, dernier, soldes = 0, None, None
     else:
         n = next((i for i in range(bloc + 1, fin) if not lignes[i].strip() or lignes[i].startswith("**")), fin)
-        # Compté avant l'ajout : le report de la tête, et les tentatives qui étaient déjà un refus de relecture.
-        rang, dernier, report = refus_du_bloc(lignes[bloc:n])
-        if "non résolu" not in lignes[bloc]:
-            lignes[bloc] = "**Tentatives** (%s) — non résolu%s" % (date, report or ".")
+        # Compté avant l'ajout : la ligne Refus soldés, et les tentatives qui étaient déjà un refus de relecture.
+        rang, dernier, soldes = refus_du_bloc(lignes[bloc:n])
+        if not TETE_OUVERTE.match(lignes[bloc]):
+            lignes[bloc] = "**Tentatives** (%s) — non résolu." % date
         numeros = [i for i in range(bloc + 1, n) if re.match(r"[0-9]+\. ", lignes[i])]
-        p = numeros[-1] + 1 if numeros else bloc + 1
+        p = numeros[-1] + 1 if numeros else bloc + 1 + (soldes or 0)
         suivant = int(lignes[numeros[-1]].split(".")[0]) + 1 if numeros else rang + 1
         lignes.insert(p, "%d. %s" % (suivant, essai))
         e = next((i for i in range(p + 1, n + 1) if lignes[i].startswith("Erreur :")), None)
@@ -1474,7 +1481,7 @@ def refuser(a, lignes, debut, sortie):
     with open(a.fichier, "w", encoding="utf-8", newline="") as f:
         f.write("\n".join(lignes) + "\n")
     sortie.write("REFUSÉ %s · refus %d%s\n" % (a.fiche, rang + 1,
-                                                " · dernier : %s" % dernier if report and dernier else ""))
+                                                " · dernier : %s" % dernier if soldes and dernier else ""))
     return 0
 
 

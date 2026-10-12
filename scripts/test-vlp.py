@@ -2753,22 +2753,68 @@ def tester_cocher_cycle():
         finally:
             os.environ.clear()
             os.environ.update(garde_env)
-    deux = cycle.replace("## VAL3 [x] — Troisième\n\n", "## VAL3 [ ] — Troisième\n\n**Tentatives** (2026-01-12) — non résolu"
-                         " · refus 1 · dernier : motif un\n2. FAITE refusée à la relecture.\nErreur : motif deux\n\n")
+    deux = cycle.replace("## VAL3 [x] — Troisième\n\n", "## VAL3 [ ] — Troisième\n\n**Tentatives** (2026-01-12) — non résolu."
+                         "\nRefus soldés : 1 · dernier : motif un\n2. FAITE refusée à la relecture.\nErreur : motif deux\n\n")
     verifier("cocher --refuser après --resolu (ENA7) : refus 1, 2, 3, le motif d'avant sur la sortie",
              vus == [(0, "REFUSÉ VAL3 · refus 1\n"), (0, "REFUSÉ VAL3 · refus 2 · dernier : motif un\n"),
                      (0, "REFUSÉ VAL3 · refus 3 · dernier : motif deux\n")], vus)
-    verifier("cocher --resolu (ENA7) : la ligne soldée garde le rang et le dernier motif",
-             "**Tentatives** (2026-01-11) — résolu par : repris 1 · refus 1 · dernier : motif un\n\n" in textes[1]
-             and "**Tentatives** (2026-01-15) — résolu par : repris 3 · refus 3 · dernier : motif trois\n\n" in textes[5],
-             textes[1] + "\n---\n" + textes[5])
-    verifier("cocher --refuser après --resolu (ENA7) : le bloc montre encore « motif un », la ligne suit le report",
+    verifier("cocher --resolu (ENA7) : le bloc soldé garde le rang et le dernier motif, sur leur ligne Refus soldés",
+             "**Tentatives** (2026-01-11) — résolu par : repris 1\nRefus soldés : 1 · dernier : motif un\n\n" in textes[1]
+             and "**Tentatives** (2026-01-15) — résolu par : repris 3\nRefus soldés : 3 · dernier : motif trois\n\n"
+             in textes[5], textes[1] + "\n---\n" + textes[5])
+    verifier("cocher --refuser après --resolu (ENA7) : le bloc montre encore « motif un », la ligne numérotée suit Refus soldés",
              textes[2] == deux and textes[4].count("**Tentatives**") == 1
-             and "— non résolu · refus 2 · dernier : motif deux\n3. FAITE refusée à la relecture.\nErreur : motif trois\n"
+             and "— non résolu.\nRefus soldés : 2 · dernier : motif deux\n3. FAITE refusée à la relecture.\nErreur : motif trois\n"
              in textes[4], textes[2] + "\n---\n" + textes[4])
 
 
 groupe(tester_cocher_cycle)
+
+
+# Un texte libre ne se lit jamais comme un compte (ENA7, refus 1) : ni un motif, ni un texte de `--resolu`, ni un blocage.
+def tester_cocher_texte_libre():
+    """Contrôler qu'un motif ou un texte de `--resolu` qui imite la tête ou ses comptes ne trompe pas `cocher` (ENA7)."""
+    gabarit = "<!-- FICHE:VAL3 -->\n## VAL3 [%s] — Troisième\n\n%s**Dépend de** : rien.\n<!-- /FICHE -->\n"
+    piste = "**Tentatives** (2026-01-01) — non résolu.\n1. essai un\nErreur : boum\n\n"
+    bloque = "**Tentatives** (2026-01-01) — non résolu.\n1. FAITE refusée à la relecture.\n2. piste X\nErreur : blocage X\n\n"
+    cas = {  # nom : (case, bloc de départ, étapes, sortie du dernier refus, extrait du fichier final)
+        "un motif « non résolu »": ("x", "", [("--refuser", "la tête reste non résolu"), ("--resolu", "r1"), ("--refuser", "m2")],
+                                    "REFUSÉ VAL3 · refus 2 · dernier : la tête reste non résolu\n",
+                                    "(2026-02-03) — non résolu.\nRefus soldés : 1 · dernier : la tête reste non résolu\n2. FAITE"),
+        "un --resolu « non résolu »": ("x", "", [("--refuser", "m1"), ("--resolu", "non résolu hier"), ("--refuser", "m2")],
+                                       "REFUSÉ VAL3 · refus 2 · dernier : m1\n",
+                                       "(2026-02-03) — non résolu.\nRefus soldés : 1 · dernier : m1\n2. FAITE"),
+        "un --resolu « · refus 2 »": (" ", piste, [("--resolu", "cocher rend REFUSÉ X · refus 2"), ("--refuser", "m1")],
+                                      "REFUSÉ VAL3 · refus 1\n",
+                                      "(2026-02-02) — non résolu.\n1. FAITE refusée à la relecture.\nErreur : m1\n"),
+        "un motif « · refus 9 · dernier : »": ("x", "", [("--refuser", "m1 · refus 9 · dernier : leurre"), ("--resolu", "r1"),
+                                                         ("--refuser", "m2")],
+                                               "REFUSÉ VAL3 · refus 2 · dernier : m1 · refus 9 · dernier : leurre\n",
+                                               "\nRefus soldés : 1 · dernier : m1 · refus 9 · dernier : leurre\n2. FAITE"),
+        "un blocage après un refus": (" ", bloque, [("--resolu", "r1"), ("--refuser", "m2")], "REFUSÉ VAL3 · refus 2\n",
+                                      "(2026-02-02) — non résolu.\nRefus soldés : 1\n2. FAITE"),
+    }
+    vus = {}
+    with tempfile.TemporaryDirectory() as t:
+        garde_env = dict(os.environ)
+        try:
+            os.environ["CLAUDE_CODE_SESSION_ID"] = ""   # pas de ligne Session : seul le bloc change
+            for k, (nom, (case, bloc, etapes, _, _)) in enumerate(cas.items()):
+                f = os.path.join(t, "ctx", "08-v%d.md" % k)
+                ecrire(f, gabarit % (case, bloc))
+                sorties = [appel(["cocher", f, "VAL3", o, v, "--date", "2026-02-0%d" % (j + 1)])
+                           for j, (o, v) in enumerate(etapes)]
+                vus[nom] = (sorties[-1], lire(f))
+        finally:
+            os.environ.clear()
+            os.environ.update(garde_env)
+    for nom, (_, _, _, sortie, extrait) in cas.items():
+        verifier("cocher (ENA7) : %s ne se lit pas comme un compte" % nom,
+                 vus[nom][0] == (0, sortie) and extrait in vus[nom][1] and vus[nom][1].count("**Tentatives**") == 1,
+                 vus[nom])
+
+
+groupe(tester_cocher_texte_libre)
 
 # --- Z2 : un chemin de CHANTIER.md ne fait plus tomber une sous-commande ---
 # Un cas par ligne « plante » de la table de Z1, plus le point de lecture unique.

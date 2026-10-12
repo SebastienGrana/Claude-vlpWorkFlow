@@ -464,7 +464,7 @@ Quand elle s'arrête ainsi, elle écrit un bloc « **Tentatives** » **dans la
 fiche**, sous son titre. C'est ce qui rend la reprise utile : la session
 suivante le lit à l'étape 1, avant d'écrire, et cherche autre chose au lieu de
 rejouer les mêmes deux essais. Le bloc se solde à la fiche cochée ; ses refus de
-relecture survivent au solde, leur rang et le dernier motif en tête (`cocher --resolu`).
+relecture survivent au solde, leur rang et le dernier motif sur une ligne à eux (`cocher --resolu`).
 Au 2e refus d'une même famille, on recadre au lieu de relancer
 (`skills/enchainer/references/refus.md`) : `ENA5`, 5 refus d'une même famille,
 ≈ 21 $ pour 4,06 $ estimés ; Best practices, « After two failed corrections,

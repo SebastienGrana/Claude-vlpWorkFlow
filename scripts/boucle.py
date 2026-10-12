@@ -70,8 +70,8 @@ puis les deux `cocher` ; ACCEPTÉE : `cocher --session`, puis un commit de cette
 refusé, `TÊTE`) ; le coût du relecteur entre au `TOTAL`.
 
 Relancer ou arrêter (NUI6, sous `--nuit` seulement) : la boucle tient elle-même, par fiche, son `n` de refus
-et le dernier motif — le report que `cocher --resolu` de la relance laisse en tête du bloc Tentatives (ENA7),
-elle ne le lit pas. Départ : lu par `extraire` avant la première session de la fiche (`tentatives()` : `n` = lignes
+et le dernier motif — la ligne `Refus soldés` que `cocher --resolu` de la relance laisse dans le bloc (ENA7),
+elle ne la lit pas. Départ : lu par `extraire` avant la première session de la fiche (`tentatives()` : `n` = lignes
 numérotées égales à `ESSAI_REFUSE` de vlp.py, motif = la ligne `Erreur :`). Un bloc de refus seuls n'arrête plus
 la boucle ; tout autre bloc, si. À chaque REFUSÉE (ou aucun verdict), `garde_de` tranche, dans cet ordre :
 `meme-erreur` (motif égal au dernier), `refus-max` (`n` ≥ `REFUS_MAX`), puis la cause — `copie` : une session du
