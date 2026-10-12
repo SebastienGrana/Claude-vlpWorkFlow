@@ -1,6 +1,6 @@
 ---
 name: fiche
-description: Exécute une seule fiche vlp et rend FAITE, RETOUR ou BLOQUÉE. Lancé par la skill vlp:jouer, que /vlp:enchainer appelle — jamais seul.
+description: Exécute une seule fiche vlp et rend FAITE, RETOUR ou BLOQUÉE. Lancé par /vlp:enchainer (outil Agent), ou par la skill vlp:jouer des evals — jamais seul.
 model: opus
 effort: medium
 maxTurns: 80

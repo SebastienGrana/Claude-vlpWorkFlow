@@ -1,6 +1,6 @@
 ---
-description: Enchaîne les fiches du chantier courant une après l'autre, dans cette session (par défaut), chacune sur une page blanche (agents, un sous-agent neuf) ou en session neuve par script (clear), jusqu'à un arrêt prévu ou le plafond
-argument-hint: (rien) | agents | clear | <alias> | <alias> agents
+description: Enchaîne les fiches du chantier courant une après l'autre, dans cette session (par défaut), chacune sur une page blanche (agents, un sous-agent neuf ; agents ensemble, plusieurs à la fois) ou en session neuve par script (clear), jusqu'à un arrêt prévu ou le plafond
+argument-hint: (rien) | agents | agents ensemble [N] | clear | <alias> | <alias> agents
 allowed-tools: Bash(python3:*), Bash(py:*), Bash(echo:*), PowerShell(python3:*), PowerShell(py:*), PowerShell(echo:*), Skill, Agent, Artifact
 ---
 
@@ -22,6 +22,13 @@ lancé par l'outil `Agent` en arrière-plan, jamais deux fiches dans le même
 contexte. Tu ne lis ni le socle ni les fiches : le sous-agent les lit
 lui-même. Le contrat qu'il rend (`FAITE`, `RETOUR`, `BLOQUÉE`) est dans
 `${CLAUDE_PLUGIN_ROOT}/enchainement.md`, qui fait foi.
+
+**`agents ensemble [N]` : plusieurs sous-agents à la fois**, `N` au plus (2 par défaut), jamais deux sur
+les mêmes fichiers — tout est `agents`, sauf qui démarre. Au départ, puis après chaque fiche commitée ou
+arrêtée : `<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" lancables "<fichier de fiches courant>" --max <N> --tourne <les lancées ni commitées ni arrêtées>` ;
+démarre **dans un seul message** chaque fiche listée (étape 3, points 0 et 1), le plafond de 5 comptant
+toutes les lancées. Un `RETOUR` ou un `BLOQUÉE` : plus aucun départ ; attends la fin de celles qui
+tournent, puis l'étape 3 bis. `LANCABLES aucune` et rien ne tourne : la série est finie.
 
 **`clear` dans les arguments (`main clear` se lit `clear`) : une session neuve
 par fiche, par script.**
@@ -46,7 +53,7 @@ La carte du projet, lue avant ton premier tour :
 
 `PROJET=` : c'est le projet ; `COURANT=`, le fichier de fiches courant
 (`methode-chantier.md`, « Le chantier ouvert ») ; `CHANTIER.md` suit. `VOISIN=… alias=…` : un
-workspace — `vlp:jouer` ne joue que le projet du dossier courant ; dis-le, et
+workspace — le sous-agent ne joue que le projet du dossier courant ; dis-le, et
 demande de relancer depuis ce dossier. Sortie vide ou consigne de la lancer :
 lance-la toi-même, une fois. `AUCUN_PROJET`, `GARDE:`, `COURANT=aucun`,
 ou `PROCHAINE=aucune` : arrête-toi — il n'y a rien à
@@ -88,7 +95,8 @@ Pour chaque fiche de la série, dans l'ordre :
    "vlp:fiche"`, `run_in_background: true`, `description` : la fiche, `prompt` :
    `Fiche à jouer : <fiche> — Kit : ${CLAUDE_PLUGIN_ROOT}. Ton premier appel, depuis <PROJET=>,
    avec les lectures de ton étape 1 : <python> "<kit>/scripts/vlp.py" carte --python "<python>";
-   <python> "<kit>/scripts/vlp.py" socle "<fichier de fiches courant>"; <python> "<kit>/scripts/vlp.py" extraire "<fichier de fiches courant>" <fiche>`.
+   <python> "<kit>/scripts/vlp.py" socle "<fichier de fiches courant>"; <python> "<kit>/scripts/vlp.py" extraire "<fichier de fiches courant>" <fiche>.
+   Pas de PROJET=, une GARDE:, ou une fiche de moins de cinq lignes : rends RETOUR avec la sortie brute.`
    Puis rends la main sans autre appel : la conversation reste libre. Le
    `Result` arrive dans la **notification de fin**, à un tour suivant. Puis le point 2.
 2. Lis le premier mot du `Result` rendu. Ce n'est pas un statut : prends la
@@ -101,12 +109,14 @@ Pour chaque fiche de la série, dans l'ordre :
      Sortie 1 — case `[ ]`, ou `TÊTE` : le sous-agent a commité — : c'est un
      `RETOUR` (étape 3 bis). `SANS GIT` : ni relecture ni commit, passe à la
      suivante. Sinon, un seul appel : `Agent`, `subagent_type: "vlp:relecture"`,
-     `run_in_background: true`, `prompt` : `Fiche à relire : <fiche> — Kit : ${CLAUDE_PLUGIN_ROOT}.
+     `run_in_background: true`, `description` : `relire <fiche>`, `prompt` : `Fiche à relire : <fiche> — Kit : ${CLAUDE_PLUGIN_ROOT}.
      Ton premier appel, depuis <PROJET=>, avec la lecture de ton étape 1 : <python> "<kit>/scripts/vlp.py"
-     carte --python "<python>" --relecteur; <python> "<kit>/scripts/vlp.py" relecture <fiche>` —
+     carte --python "<python>" --relecteur; <python> "<kit>/scripts/vlp.py" relecture <fiche>.
+     Pas de PROJET=, ou une GARDE: : rends REFUSÉE avec la sortie brute.` —
      son `Result` à la notification de fin. Premier mot du `Result` (`enchainement.md`, « Relecture ») :
-     `ACCEPTÉE` → commite la fiche — `git add -A; git commit -m "<fiche> : <titre>"`,
-     sans demander (`methode-chantier.md`) ; le sous-agent ne commite jamais. Puis
+     `ACCEPTÉE` → commite la fiche par ses seuls fichiers, sans demander (`methode-chantier.md`) —
+     `<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" commiter "<fichier de fiches courant>" <fiche>` ;
+     une ligne `HORS:`, relaie-la ; une `GARDE:`, c'est un `BLOQUÉE`. Le sous-agent ne commite jamais. Puis
      passe à la suivante. `REFUSÉE`, ou aucun verdict →
      `<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" cocher "<fichier de fiches courant>" <fiche> --refuser "<première ligne du Result>"`,
      puis, sur `REFUSÉE`, `<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" lire
@@ -152,7 +162,8 @@ appels : `Artifact` `action: "read"` sur l'`url` de « artefact du chantier »,
 puis `Artifact` avec le `file_path` de la page, cette `url` et `files` : le JSON
 de la ligne `FILES` (`ARTEFACTS.md`), sans
 `icon`, `label` : les fiches jouées (`E5→E7`). Rien d'autre à lire : les règles de la page sont dans
-`skills/tache/references/tache-page.md`, pour `/vlp:tache`.
+`skills/tache/references/tache-page.md`, pour `/vlp:tache`. Puis commite la page seule — aucun commit de
+fiche ne l'emporte : `git add -- "<page>"; git commit -m "Page du chantier après <E5→E7>"`.
 
 Si un `BLOQUÉE` a clos la série, marque aussi la page bloquée :
 

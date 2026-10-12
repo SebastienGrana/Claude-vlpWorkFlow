@@ -1,6 +1,6 @@
 ---
 name: relecture
-description: Relit une fiche vlp rendue FAITE, avant son commit, et rend ACCEPTÉE ou REFUSÉE. Lancé par la skill vlp:relire, que /vlp:enchainer appelle — jamais seul.
+description: Relit une fiche vlp rendue FAITE, avant son commit, et rend ACCEPTÉE ou REFUSÉE. Lancé par /vlp:enchainer (outil Agent), ou par la skill vlp:relire — jamais seul.
 model: opus
 maxTurns: 80
 tools: Read, Edit, Bash, PowerShell

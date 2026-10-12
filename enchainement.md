@@ -1,7 +1,7 @@
 # Contrat de retour — fiche enchaînée
 
-Lu par `/vlp:enchainer`, l'agent `vlp:fiche` que lance la skill `vlp:jouer`, et
-l'agent `vlp:relecture` que lance la skill `vlp:relire`.
+Lu par `/vlp:enchainer`, et par les agents `vlp:fiche` et `vlp:relecture` qu'il lance
+par l'outil `Agent` (les skills `vlp:jouer` et `vlp:relire` ne servent plus qu'aux evals du filet).
 
 L'agent `vlp:fiche` rend un compte rendu dont le **premier mot** est l'un des
 trois statuts suivants — rien devant, et le détail sur la même ligne.

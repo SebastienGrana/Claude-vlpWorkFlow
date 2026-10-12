@@ -1,9 +1,9 @@
 ---
-description: Relit une fiche rendue FAITE dans un sous-agent vlp:relecture neuf, avant son commit, et rend ACCEPTÉE ou REFUSÉE. Appelée par /vlp:enchainer, une fois par FAITE.
+description: Relit une fiche rendue FAITE dans un sous-agent vlp:relecture neuf, avant son commit, et rend ACCEPTÉE ou REFUSÉE. Gardée à côté de vlp:jouer ; /vlp:enchainer passe par l'outil Agent depuis ENA2.
 argument-hint: <fiche> [<sha>]
 context: fork
 agent: vlp:relecture
-background: true
+background: false
 user-invocable: false
 allowed-tools: Bash(python3:*), Bash(py:*), Bash(echo:*), PowerShell(python3:*), PowerShell(py:*), PowerShell(echo:*)
 ---

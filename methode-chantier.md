@@ -216,7 +216,7 @@ du 2026-09-20, toujours vrais, que rien ne rappelait. Décidé par l'utilisateur
 `/vlp:tache X2`. Jamais deux fiches dans la même session : la seconde traînerait
 derrière elle tout le contexte de la première. `/vlp:enchainer` a trois modes :
 `agents` tient la règle — chaque fiche dans un sous-agent neuf, jusqu'au premier
-arrêt, par la skill forkée `vlp:jouer` : le chef ne lit ni socle ni fiche, un appel
+arrêt, par l'outil `Agent` en arrière-plan : le chef ne lit ni socle ni fiche, un appel
 par fiche (mesures au journal du fichier d'état du kit, chantier N) ; `clear` aussi
 — une session neuve par fiche, par `boucle.py` ; `main`, le défaut, est l'exception
 assumée : toutes les fiches dans la séance, le contexte grossit d'une fiche à l'autre.

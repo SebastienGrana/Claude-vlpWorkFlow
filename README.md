@@ -28,7 +28,7 @@ La parade tient en une phrase :
   les chantiers possibles, questionne, découpe en fiches, puis rend la main.
 - **Exécution** — `/vlp:tache R1`, `/clear`, `/vlp:tache R2`… Une fiche par
   session, jamais deux. `/vlp:enchainer` les joue à la suite, chacune dans un
-  sous-agent neuf, par la skill forkée `vlp:jouer` : le chef ne lit ni socle ni fiche.
+  sous-agent neuf (`agents`), ou plusieurs à la fois (`agents ensemble`) : le chef ne lit ni socle ni fiche.
 - **Clôture** — à la dernière case cochée, le chantier est marqué clos et ne se
   rejoue plus.
 
@@ -84,8 +84,8 @@ ln -s "<chemin>/Claude-vlpWorkflow" ~/.claude/skills/vlp
 ```
 
 Les commandes deviennent `/vlp:init`, `/vlp:chantier`, `/vlp:tache`,
-`/vlp:enchainer`, `/vlp:chef` et `/vlp:check`, avec l'agent `vlp:fiche` et la skill interne
-`vlp:jouer`, que seul `/vlp:enchainer` appelle. Le préfixe `vlp:`
+`/vlp:enchainer`, `/vlp:chef` et `/vlp:check`, avec les agents `vlp:fiche` et `vlp:relecture`,
+que seul `/vlp:enchainer` lance. Le préfixe `vlp:`
 évite qu'un `/tache` d'ailleurs prenne la place du tien. **Si tu déplaces le
 kit**, refais le lien ; `/vlp:check` dira quels `CHANTIER.md` le citent encore
 à l'ancien endroit.

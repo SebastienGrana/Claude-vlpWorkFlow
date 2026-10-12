@@ -3201,6 +3201,37 @@ def tester_ena4_commiter():
 groupe(tester_ena4_commiter)
 
 
+def tester_ena5_ensemble():
+    """ENA5 : `agents ensemble [N]` — `lancables --tourne` réserve les fichiers des lancées et retient ce qui dépend
+    d'une cochée encore en relecture ; `releve` lit les motifs d'une ligne **Fichiers** ; le chef commite par
+    `commiter`, jamais `git add -A`."""
+    vus = [mod.releve(c, n) for c, n in (
+        ("skills/a/SKILL.md", "skills/*/SKILL.md"), ("skills/b/SKILL.md", "skills/{a,b}/SKILL.md"),
+        ("skills/c/SKILL.md", "skills/{a,b}/SKILL.md"), ("src/y/z.py", "src/"), ("srcx/w.py", "src"),
+        ("a.py", "*"), ("a.py", "a.py"))]
+    verifier("ENA5 : releve — *, {a,b}, dossier, un * d'italique ne prend rien",
+             vus == [True, True, False, True, False, False, True], repr(vus))
+    with tempfile.TemporaryDirectory() as t:
+        chemin = os.path.join(t, "fiches.md")
+        ecrire(chemin, "# Essai\n\n## Le socle commun\n\nRien.\n\n---\n" + "".join(
+            "<!-- FICHE:%s -->\n## %s [%s] — %s\n\n**Dépend de** : %s.\n**Fichiers** : %s.\n\n**Critère de fin**\n"
+            "Rien.\n<!-- /FICHE -->\n" % (i, i, c, i, d, f) for i, c, d, f in (
+                ("T1", "x", "rien", "`a.py`"), ("T2", " ", "rien", "`a.py`, `b.py`"), ("T3", " ", "rien", "`c.py`"),
+                ("T5", " ", "`T1`", "`e.py`"))))
+        vus = [appel(["lancables", chemin] + o)[1].strip() for o in (
+            ["--max", "3", "--tourne", "T1"], ["--max", "3"], ["--max", "2", "--tourne", "T2"], ["--tourne", "T9"])]
+    verifier("ENA5 : T1 en relecture retient T5 et prend a.py ; T2 compte dans --max ; une lancée sans Fichiers part seule",
+             vus == ["LANCABLES T3", "LANCABLES T2 T3 T5", "LANCABLES T3", "LANCABLES aucune"], repr(vus))
+    chef = io.open(os.path.join(RACINE, "skills", "enchainer", "SKILL.md"), encoding="utf-8").read()
+    plat = " ".join(chef.split())
+    verifier("ENA5 : le chef commite par commiter, jamais git add -A, et lance par lancables --tourne",
+             'vlp.py" commiter "' in plat and "git add -A" not in plat and "--tourne" in plat
+             and "agents ensemble [N]" in plat, "skills/enchainer/SKILL.md")
+
+
+groupe(tester_ena5_ensemble)
+
+
 def tester_arp4_menage():
     """Contrôler le ménage des tampons (ARP4) sur ses deux chemins réels, chacun dans son dossier temporaire :
     `carte_injectee` (`vlp-carte-` à RELAIS_SECONDES, `vlp-enchaine-` à MARQUE_SECONDES) et `tampon_neuf`

@@ -1290,12 +1290,26 @@ def chemins_changes(racine):
     return rendu
 
 
+def releve(chemin, nom):
+    """Vrai si `chemin` (relatif au dépôt, en `/`) relève de `nom`, lu sur une ligne **Fichiers** : égal, sous ce
+    dossier, ou pris par son motif — `{a,b}` déplié, puis `*`, `?`, `[…]` par `fnmatch`, où `*` passe aussi les `/`
+    (ENA5). Un motif sans lettre (`*` d'un italique) ne prend rien."""
+    accolade = re.search(r"\{([^{}]*)\}", nom)
+    if accolade:
+        return any(releve(chemin, nom[:accolade.start()] + choix + nom[accolade.end():])
+                   for choix in accolade.group(1).split(","))
+    nom = nom.rstrip("/")
+    return chemin == nom or chemin.startswith(nom + "/") or (
+        bool(re.search(r"[*?[]", nom)) and bool(re.search(r"\w", nom)) and fnmatch.fnmatchcase(chemin, nom))
+
+
 def cmd_commiter(a, sortie):
     """Commiter une fiche par ses seuls fichiers (ENA4) : la cocher si sa case est vide (`cmd_cocher`, ses gardes
     comprises), puis ajouter à l'index ses chemins changés — ceux de sa ligne **Fichiers**, un dossier y valant ce qu'il
-    contient — et le fichier de fiches, jamais `git add -A` : en parallèle, il avalerait le travail d'une autre fiche.
-    Un changé hors de sa liste : `HORS:`, laissé hors du commit. Limite : le fichier de fiches est commun, la case ou le
-    bloc **Tentatives** d'une autre fiche y part avec."""
+    contient, un motif ce qu'il prend (`releve`) — et les communs : le fichier de fiches, `scripts/sante-base.json` ;
+    jamais `git add -A` : en parallèle, il avalerait le travail d'une autre fiche. Un changé hors de sa liste : `HORS:`,
+    laissé hors du commit. Limite : un commun porte aussi ce qu'une autre fiche y a écrit — sa case, son bloc
+    **Tentatives**, ses empreintes."""
     lignes = lignes_de(a.fichier)
     fiche = next((f for f in fiches_du_fichier(lignes) if f[0] == a.fiche), None)
     racine = git_texte(["rev-parse", "--show-toplevel"], os.path.dirname(os.path.abspath(a.fichier)))
@@ -1307,12 +1321,13 @@ def cmd_commiter(a, sortie):
                                                       session=None, role=None, resolu=None, date=None), sortie):
         return 1
     racine = racine[1].strip()
-    propre = os.path.relpath(os.path.abspath(a.fichier), racine).replace(os.sep, "/")
+    # Communs : chaque fiche coche le fichier de fiches et réécrit la base du cliquet (`sante --base`).
+    communs = {os.path.relpath(os.path.abspath(a.fichier), racine).replace(os.sep, "/"), "scripts/sante-base.json"}
     debut = next(i for i, l in enumerate(lignes) if l.startswith("## %s [" % a.fiche))
     fin = next((i for i in range(debut + 1, len(lignes)) if TITRE.match(lignes[i])), len(lignes))
-    siens = [n.rstrip("/") for n in noms_fichiers(lignes[debut:fin])]
-    ajout = [c for c in chemins_changes(racine) or [] if c == propre or any(c == n or c.startswith(n + "/") for n in siens)]
-    hors = [c for c in changes if c not in ajout and c != propre]
+    siens = noms_fichiers(lignes[debut:fin])
+    ajout = [c for c in chemins_changes(racine) or [] if c in communs or any(releve(c, n) for n in siens)]
+    hors = [c for c in changes if c not in ajout]
     if hors:
         sortie.write("HORS: %s — changés hors de la ligne Fichiers de %s, laissés hors du commit\n" % (", ".join(hors), a.fiche))
     # Sans chemin, `git add -A --` ajouterait tout le dépôt : l'ajout se saute.
@@ -2656,20 +2671,29 @@ def pretes(fiches_, etat, apercu):
     return attend, ensemble if len(ensemble) > 1 else []
 
 
-def lancables(lignes, nom, plafond):
-    """Les fiches que `/vlp:enchainer` peut lancer ensemble (ENA3) : `pretes`, le fichier de fiches `nom` ôté des
-    fichiers de chacune — toutes le cochent, il n'est pas commun —, ou la première prête seule ; prises dans
-    l'ordre jusqu'à `plafond`, et avant la première `(visuel)`, qui ne part que seule."""
+def lancables(lignes, nom, plafond, tournent=()):
+    """Les fiches que `/vlp:enchainer` peut lancer ensemble (ENA3) : les prêtes de `pretes`, le fichier de fiches
+    `nom` ôté des fichiers de chacune — toutes le cochent, il n'est pas commun —, prises dans l'ordre si elles n'ont
+    aucun fichier en commun, jusqu'à `plafond` et avant la première `(visuel)`. Une `(visuel)` ou une fiche sans
+    ligne **Fichiers** ne part que seule. `tournent` (ENA5) : les fiches déjà lancées — elles comptent dans
+    `plafond`, leurs fichiers sont pris, rien ne part à côté d'une qui part seule, et une cochée en relecture ne
+    libère pas encore ce qui dépend d'elle."""
     fiches_ = fiches_du_fichier(lignes)
     apercu = {i: (d, v, f - {nom}) for i, (d, v, f) in apercu_fiches(lignes).items()}
-    attend, ensemble = pretes(fiches_, {i: "faite" if c else "" for i, _, c, _ in fiches_}, apercu)
-    rendu = []
-    for i in ensemble or [i for i, _, _, _ in fiches_ if i in attend and not attend[i]][:1]:
-        if apercu.get(i, ([], False))[1]:
-            return rendu or [i]
-        rendu.append(i)
-        if len(rendu) == plafond:
+    attend, _ = pretes(fiches_, {i: "faite" if c and i not in tournent else "" for i, _, c, _ in fiches_}, apercu)
+    lancees = [apercu.get(i, ([], False, set())) for i in tournent]
+    if any(v or not f for _, v, f in lancees):
+        return []
+    rendu, pris = [], set().union(*(f for _, _, f in lancees))
+    for i in [i for i, _, _, _ in fiches_ if i in attend and not attend[i] and i not in tournent]:
+        _, visuel, touche = apercu.get(i, ([], False, set()))
+        if len(rendu) + len(lancees) >= plafond or (visuel and (rendu or lancees)):
             break
+        if (visuel or not touche) and not (rendu or lancees):
+            return [i]
+        if touche and not touche & pris:
+            rendu.append(i)
+            pris |= touche
     return rendu
 
 
@@ -2678,7 +2702,7 @@ def cmd_lancables(a, sortie):
     if not os.path.isfile(a.fichier) or a.max < 1:
         sortie.write("GARDE: lancables veut un fichier de fiches et --max ≥ 1 : %s, %d\n" % (a.fichier, a.max))
         return 1
-    ids = lancables(lignes_de(a.fichier), os.path.basename(a.fichier), a.max)
+    ids = lancables(lignes_de(a.fichier), os.path.basename(a.fichier), a.max, a.tourne)
     sortie.write("LANCABLES %s\n" % (" ".join(ids) or "aucune"))
     return 0
 
@@ -9192,6 +9216,7 @@ def options_outils(sous):
     la = sous.add_parser("lancables")
     la.add_argument("fichier")
     la.add_argument("--max", type=int, default=2)
+    la.add_argument("--tourne", nargs="*", default=[])
     cm = sous.add_parser("commiter")
     cm.add_argument("fichier")
     cm.add_argument("fiche")

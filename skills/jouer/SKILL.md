@@ -1,9 +1,9 @@
 ---
-description: Joue une fiche du chantier courant dans un sous-agent vlp:fiche neuf, et rend FAITE, RETOUR ou BLOQUÉE. Appelée par /vlp:enchainer, une fois par fiche.
+description: Joue une fiche du chantier courant dans un sous-agent vlp:fiche neuf, et rend FAITE, RETOUR ou BLOQUÉE. Appelée par les evals du filet (evals/filet*/) ; /vlp:enchainer passe par l'outil Agent depuis ENA2.
 argument-hint: <fiche>
 context: fork
 agent: vlp:fiche
-background: true
+background: false
 user-invocable: false
 allowed-tools: Bash(python3:*), Bash(py:*), Bash(echo:*), PowerShell(python3:*), PowerShell(py:*), PowerShell(echo:*)
 ---

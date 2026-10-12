@@ -89,15 +89,18 @@ Sous-commandes :
   · <n> écarts · <n> avertissements — <fichier>`. Avertit si une fiche ou le
   socle dépasse son seuil. Un écart : sort 1. `--plan` : ensuite, `<n>:<ligne>`
   pour chaque titre de fiche, `**Dépend de**`, `**Tentatives**`, `**Critère de fin**`.
-- `lancables <fichier> [--max N]` — `LANCABLES <id>…` : les fiches non cochées, prêtes, aux lignes
-  **Fichiers** disjointes (le fichier de fiches ôté), dans l'ordre, `N` au plus (2 par défaut) et avant la
-  première `(visuel)`, qui ne part que seule ; une seule prête, elle seule ; aucune, `LANCABLES aucune`
-  (ENA3). Fichier absent ou `N` < 1 : `GARDE:`, sort 1.
+- `lancables <fichier> [--max N] [--tourne <id>…]` — `LANCABLES <id>…` : les fiches non cochées, prêtes, aux
+  lignes **Fichiers** disjointes (le fichier de fiches ôté), dans l'ordre, `N` au plus (2 par défaut) et avant la
+  première `(visuel)` ; une `(visuel)` ou une fiche sans ligne **Fichiers** ne part que seule ; aucune,
+  `LANCABLES aucune` (ENA3). `--tourne` : les fiches déjà lancées — comptées dans `N`, leurs fichiers pris, non
+  rendues (ENA5). Fichier absent ou `N` < 1 : `GARDE:`, sort 1.
 - `commiter <fichier> <fiche>` — coche la fiche si sa case est vide (comme `cocher`, ses gardes comprises), ajoute à
-  l'index ses seuls chemins changés — ceux de sa ligne **Fichiers**, un dossier valant ce qu'il contient — et le
-  fichier de fiches, puis commite `<fiche> : <titre>` ; jamais `git add -A` (ENA4). Un changé hors de sa liste :
-  `HORS: <chemins>`, laissé hors du commit. Puis `COMMIT <fiche> : <titre> · <n> fichier(s)`. Limite : le fichier
-  de fiches est commun, la case ou le bloc **Tentatives** d'une autre fiche y part avec. Hors Git : `GARDE:`.
+  l'index ses seuls chemins changés — ceux de sa ligne **Fichiers**, un dossier valant ce qu'il contient, un motif
+  (`*`, `{a,b}`, ENA5) ce qu'il prend — et les communs, le fichier de fiches et `scripts/sante-base.json`, puis
+  commite `<fiche> : <titre>` ; jamais `git add -A` (ENA4). Un changé hors de sa liste : `HORS: <chemins>`, laissé
+  hors du commit. Puis `COMMIT <fiche> : <titre> · <n> fichier(s)`. Limites : un commun porte aussi ce qu'une autre
+  fiche y a écrit (sa case, ses empreintes) ; les chemins se lisent depuis la racine Git — un projet dans un
+  sous-dossier du dépôt voit tout en `HORS:`. Hors Git : `GARDE:`.
 - `lignes <chemin>…` — `<n> <fichier>`, `DOSSIER <d>` (` → <réel>` si lien) ou
   `ABSENT <chemin>` ; `~` et `*` développés ; puis `SEUILS page · fiche · socle`. Sort 0.
 - `equiper <dossier> [--contexte C]` — ce que `/vlp:init` regarde : `DOSSIER=`,
