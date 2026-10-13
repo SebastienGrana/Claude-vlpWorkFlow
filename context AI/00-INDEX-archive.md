@@ -25,6 +25,7 @@ QUAND LIRE : on relit un chantier clos ; l'index n'en garde qu'une ligne qui ren
 | `115-amd.md` | on relit le socle du chantier AMD — **clos** « L'audit de MapDecorator, vers sa V1 », `AMD1..AMD7` |
 | `116-aca.md` | on relit le socle du chantier ACA — **clos** « L'audit de Cairn : ce que le kit peut lui apporter », `ACA1..ACA8` |
 | `117-avl.md` | on relit le socle du chantier AVL — **clos** « L'audit du kit vlp : l'enchaînement jusqu'au bout », `AVL1..AVL12` |
+| `119-ena.md` | on relit le socle du chantier ENA — **clos** « Réparer /vlp:enchainer agents, puis le parallèle », `ENA1..ENA9` |
 | `13-tours.md` | on joue une fiche `T*` — chantier **clos** « Compter les tours, pondérer le coût », `T1..T5` |
 | `14-bugs.md` | on joue une fiche `B*` — chantier **clos** « Corriger les bugs de l'audit », `B1..B3` |
 | `15-reduire.md` | on joue une fiche `R*` — chantier **clos** « Réduire les tours de `/vlp:tache` », `R1..R4` |
