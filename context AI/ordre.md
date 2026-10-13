@@ -41,7 +41,7 @@ fait. Pour un pas que la TODO connaît, la dernière colonne est une note, montr
 | `MD4` | md | les notes justes | ✅ clos le 2026-10-13 (chantier NOT) |
 | `MD5` | md | les 11 consignes reprises | ✅ fait le 2026-10-13 (sans fiche) |
 | `MD7` | md | les six outils à la place des deux stratégies | ✅ fait le 2026-10-13 (sans fiche) |
-| `MD2` | md | | |
+| `MD2` | md | le ménage du code | ✅ fait le 2026-10-14 (sans fiche) |
 | `MD3` | md | | |
 | `C2` | md | | |
 | `SCH` | cairn | | compté avec `REG` |
@@ -77,6 +77,7 @@ Un pas sans phase dans une TODO (un chantier clos) qui n'est pas obligatoire : l
 | `NET` | conseillé | clos le 2026-10-12, conseillé sur la page du même jour |
 | `ENA` | conseillé | clos le 2026-10-13, conseillé sur la page du 2026-10-12 |
 | `SYM` | conseillé | clos le 2026-10-12, conseillé sur la page du même jour |
+| `MD2` | à la marge | fait le 2026-10-14 sans fiche, sorti de la TODO ; V2 quand il y était |
 
 ## Le jugement
 
