@@ -4844,6 +4844,13 @@ ORDRE_SOURCE = """# L'ordre
 | `A1` | a | | |
 | `A2` | a | une fiche | 1 fiche |
 | `X1` | x | | |
+
+## Les niveaux forcés
+
+| Pas | Niveau | Pourquoi |
+|---|---|---|
+| `K9` | conseillé | fait |
+| `A2` | à la marge | sans phase |
 """
 
 
@@ -4869,12 +4876,16 @@ def tester_ordre():
              and "ORDRE 5 pas · 2 trouvés en TODO · 2 pris de la source\n" in s, s)
     a1 = [p for p in donnees["pas"] if p["code"] == "A1"]
     verifier("ORD1 : un pas lu en TODO garde son nom, sa phase, son score, ses fiches et sa dépendance brute",
-             a1 == [{"projet": "a", "code": "A1", "nom": "Le pont", "phase": "V2", "score": 9, "bas": 4.0, "haut": 4.0,
-                     "fait": False, "note": "", "depend": "`K1`"}], a1)
+             a1 == [{"projet": "a", "code": "A1", "numero": "7", "nom": "Le pont", "phase": "V2", "score": 9,
+                     "bas": 4.0, "haut": 4.0, "fait": False, "note": "", "depend": "`K1`", "niveau": "obligatoire",
+                     "vague": 1}], a1)
     verifier("ORD1 : les totaux du JSON — fiches bas et haut des pas chiffrés, faits, par projet",
              donnees["totaux"] == {"pas": 4, "bas": 7.0, "haut": 8.0, "faits": ["K9"], "non_chiffres": [],
                                    "par_projet": {"k": {"pas": 2, "bas": 2.0, "haut": 3.0},
-                                                  "a": {"pas": 2, "bas": 5.0, "haut": 5.0}}}
+                                                  "a": {"pas": 2, "bas": 5.0, "haut": 5.0}},
+                                   "par_niveau": {"obligatoire": {"pas": 2, "bas": 6.0, "haut": 7.0},
+                                                  "conseillé": {"pas": 1, "bas": 0, "haut": 0},
+                                                  "à la marge": {"pas": 1, "bas": 1.0, "haut": 1.0}}}
              and donnees["cible"] == {"a": ["A1"]} and donnees["projets_absents"] == ["x"], donnees)
     verifier("ORD1 : un pas ni en TODO ni chiffré par la source, une GARDE qui le nomme, sort 1",
              sans[0] == 1 and "GARDE: pas A2 (a) : ni dans la TODO, ni un coût en fiches dans la source\n" in sans[1],
@@ -4888,6 +4899,73 @@ def tester_ordre():
 
 
 groupe(tester_ordre)
+
+
+CLASSE_SOURCE = """# L'ordre
+
+## Les projets
+
+| Clé | Dossier |
+|---|---|
+| p | `.` |
+
+## La cible
+
+| Projet | Codes |
+|---|---|
+| p | `P3` |
+
+## Le chemin conseillé
+
+| Pas | Projet | Nom | Coût |
+|---|---|---|---|
+| `P1` | p | | |
+| `P2` | p | | |
+| `P3` | p | | |
+| `P4` | p | | |
+| `P5` | p | | |
+| `P6` | p | six | 1 fiche |
+
+## Les dépendances ajoutées
+
+| Pas | Dépend de | Pourquoi |
+|---|---|---|
+| `P2` | `P6` | le test |
+"""
+
+
+def tester_ordre_classement():
+    """ORD2 : un graphe de 6 pas — une chaîne P3 → P2 (par son numéro de ligne) → P1, P2 → P6 ajoutée par la source,
+    une branche conseillée P4, un `V2` — classé et mis en vagues ; puis un cycle, et une dépendance illisible."""
+    def classer(dep1, dep5):
+        with tempfile.TemporaryDirectory() as t:
+            lignes = [(1, "V1", dep1), (2, "V1", "`P1`"), (3, "V1", "2"), (4, "V1", "`P1`"), (5, "V2", dep5)]
+            ecrire(os.path.join(t, "p", "CHANTIER.md"), "# Chantier\n\n- **chantiers possibles** : `ctx/etat.md`\n")
+            ecrire(os.path.join(t, "p", "ctx", "etat.md"), "## TODO\n\n| # | Chantier | Apporte | Coût | Dépend de |\n"
+                   "|---|---|---|---|---|\n" + "".join("| %d | `P%d` — pas | a | **%s · score 9 (3 × 3)** · 1 fiche | %s |\n"
+                                                       % (n, n, phase, dep) for n, phase, dep in lignes))
+            ecrire(os.path.join(t, "p", "ctx", "ordre.md"), CLASSE_SOURCE)
+            code, s = appel(["ordre", "--json", "--source", os.path.join(t, "p", "ctx", "ordre.md")])
+            chemin = os.path.join(t, "p", "ctx", "ordre", "donnees.json")
+            return code, s, json.load(open(chemin, encoding="utf-8")) if os.path.isfile(chemin) else None
+    code, s, donnees = classer("—", "—")
+    niveaux = donnees and {p["code"]: p["niveau"] for p in donnees["pas"]}
+    verifier("ORD2 : obligatoire de proche en proche depuis la cible, conseillé en V1, à la marge en V2",
+             code == 0 and niveaux == {"P1": "obligatoire", "P2": "obligatoire", "P3": "obligatoire", "P4": "conseillé",
+                                       "P5": "à la marge", "P6": "obligatoire"}, (s, niveaux))
+    verifier("ORD2 : les vagues du tri, dans l'ordre du chemin, et le compte des dépendances",
+             donnees is not None and donnees["vagues"] == [["P1", "P5", "P6"], ["P2", "P4"], ["P3"]]
+             and "CLASSEMENT 4 obligatoires · 1 conseillés · 1 à la marge · 3 vagues · dépendances : 3 lues en TODO, "
+                 "1 écrites par la source, 0 hors du chemin\n" in s, (s, donnees and donnees["vagues"]))
+    cycle = classer("`P3`", "—")
+    verifier("ORD2 : un cycle, une GARDE qui le nomme, rien d'écrit, sort 1",
+             cycle[0] == 1 and cycle[1].startswith("GARDE: cycle de dépendances : ") and cycle[2] is None, cycle[:2])
+    illisible = classer("—", "plus tard")
+    verifier("ORD2 : une dépendance illisible, une GARDE qui nomme le pas, sort 1",
+             illisible[0] == 1 and "GARDE: pas P5 : dépendance illisible « plus tard »\n" in illisible[1], illisible[:2])
+
+
+groupe(tester_ordre_classement)
 
 
 def tester_suite_verte():

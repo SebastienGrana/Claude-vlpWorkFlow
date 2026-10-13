@@ -21,9 +21,9 @@
     <p>vlp.py ordre régénère la page d'enchaînement d'une source et des TODO des trois projets, classée, servie par une base db, refaite à chaque clôture — et la vraie page migrée, regardée par l'utilisateur.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">6 fiches · 1 faite · en cours : ORD2</p>
+    <p class="mono" style="margin-top:.5rem">6 fiches · 2 faites · en cours : ORD3</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -41,12 +41,13 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">ORD1</span></span>
         <details><summary><span class="titre">Écrire la source et en tirer les données</span><span class="etat">Faite</span></summary>
         <span class="note">ordre --json sur les vrais projets : ORDRE 21 pas · 16 trouvés en TODO · 5 pris de la source ; 31 fiches, comme la page (25 + 6) ; test ORD1 vert (5 contrôles), mutant attrapé (1 écart), suite OK ; check-ignore répond</span></details>
-        <span class="cout mono">≈6,4M (6 386 892) · 38 tours · 3,19 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">ORD2</span></span>
-        <details open><summary><span class="titre">Calculer le classement et les vagues</span><span class="etat">En cours</span></summary>
-        <span class="note">Obligatoire, conseillé, à la marge et les vagues, calculés des dépendances ; après ORD1.</span></details></li>
-      <li class="fiche" data-attend><span class="gauche"><span class="id">ORD3</span></span>
-        <details><summary><span class="titre">Écrire le gabarit et la page statique</span><span class="etat">Après ORD2</span></summary>
+        <span class="cout mono">≈7,0M (6 984 802) · 41 tours · 3,36 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">ORD2</span></span>
+        <details><summary><span class="titre">Calculer le classement et les vagues</span><span class="etat">Faite</span></summary>
+        <span class="note">CLASSEMENT 11 obligatoires · 8 conseillés · 2 à la marge · 5 vagues · dépendances : 8 lues en TODO, 6 écrites par la source, 14 hors du chemin ; face à la page : 4 écarts de niveau (MD2, MD3, SCH, REG) ; tests ORD2 verts, mutant attrapé, suite OK</span></details>
+        <span class="cout mono">≈5,8M (5 790 706) · 24 tours · 2,24 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">ORD3</span></span>
+        <details open><summary><span class="titre">Écrire le gabarit et la page statique</span><span class="etat">En cours</span></summary>
         <span class="note">Le gabarit templates/ordre.html et la page statique, regardée en local ; après ORD2.</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">ORD4</span></span>
         <details><summary><span class="titre">Servir la page par sa base db</span><span class="etat">Après ORD3</span></summary>
@@ -60,7 +61,7 @@
         <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈3,9M (3 942 418) · 23 tours · 2,81 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈10,3M (10 329 310) · 61 tours · 6,00 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈16,7M (16 717 926) · 88 tours · 8,41 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

@@ -56,6 +56,28 @@ fait. Pour un pas que la TODO connaît, la dernière colonne est une note, montr
 | `C4` | md | | |
 | `MD1` | md | | après `C3` |
 
+## Les dépendances ajoutées
+
+Celles qu'aucune TODO n'écrit entre accents graves, ou qu'elle écrit sous un autre code ; chacune dit
+d'où elle vient. Le reste se lit dans la colonne « Dépend de » des TODO.
+
+| Pas | Dépend de | Pourquoi |
+|---|---|---|
+| `C1` | `FAM11` | la TODO de MapDecorator : `C1` attend `FAM` fusionné, dont `FAM11` est le pas du chemin |
+| `PRS` | `FAM11` | la TODO de Cairn : `PRS` dépend de `FAM`, dont `FAM11` est le pas du chemin |
+| `FAM11` | `NWT` | la page du 2026-10-12 : `NWT` avant `FAM11` |
+| `C2` | `MD4` `MD5` `MD7` | la page du 2026-10-12 : les notes justes avant de coder |
+
+## Les niveaux forcés
+
+Un pas sans phase dans une TODO (un chantier clos) qui n'est pas obligatoire : la source dit son niveau.
+
+| Pas | Niveau | Pourquoi |
+|---|---|---|
+| `NET` | conseillé | clos le 2026-10-12, conseillé sur la page du même jour |
+| `ENA` | conseillé | clos le 2026-10-13, conseillé sur la page du 2026-10-12 |
+| `SYM` | conseillé | clos le 2026-10-12, conseillé sur la page du même jour |
+
 ## Le jugement
 
 - MapDecorator est la maison à décorer, Cairn le magasin qui fournit les meubles, le kit la boîte

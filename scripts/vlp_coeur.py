@@ -9393,10 +9393,10 @@ def pas_ordre(code, cle, todo, nom_src, cout_src):
         return None, None, "pas %s (%s) : %d lignes de TODO le portent (n° %s)" % (
             code, cle, len(lignes), ", ".join(r[0] for r in lignes))
     if lignes:
-        _, chantier, _, cout, depend = lignes[0]
+        numero, chantier, _, cout, depend = lignes[0]
         phase, score, _, _ = phase_todo(cout)
         bornes = bornes_cout(cout)
-        return {"projet": cle, "code": code, "nom": nom_todo(chantier, code), "phase": phase,
+        return {"projet": cle, "code": code, "numero": numero, "nom": nom_todo(chantier, code), "phase": phase,
                 "score": int(score) if score and score.isdigit() else None,
                 "bas": bornes and bornes[0], "haut": bornes and bornes[1], "fait": False,
                 "note": cout_src, "depend": depend}, "todo", None
@@ -9404,7 +9404,7 @@ def pas_ordre(code, cle, todo, nom_src, cout_src):
     bornes = None if fait else bornes_cout(cout_src)
     if not fait and bornes is None:
         return None, None, "pas %s (%s) : ni dans la TODO, ni un coût en fiches dans la source" % (code, cle)
-    return {"projet": cle, "code": code, "nom": nom_src or None, "phase": None, "score": None,
+    return {"projet": cle, "code": code, "numero": None, "nom": nom_src or None, "phase": None, "score": None,
             "bas": bornes and bornes[0], "haut": bornes and bornes[1], "fait": fait,
             "note": cout_src if fait else "", "depend": ""}, "source", None
 
@@ -9420,7 +9420,178 @@ def totaux_ordre(pas):
     return dict(somme_ordre(pas), faits=[p["code"] for p in pas if p["fait"]],
                 non_chiffres=[p["code"] for p in pas if not p["fait"] and p["haut"] is None],
                 par_projet={cle: somme_ordre([p for p in pas if p["projet"] == cle])
-                            for cle in dict.fromkeys(p["projet"] for p in pas)})
+                            for cle in dict.fromkeys(p["projet"] for p in pas)},
+                par_niveau={n: somme_ordre([p for p in pas if p.get("niveau") == n]) for n in NIVEAUX_ORDRE})
+
+
+def numeros_todo(todos):
+    """{projet: {numéros des lignes de sa TODO}} : un numéro dans « Dépend de » se lit contre eux."""
+    return {cle: {r[0] for r in todo} for cle, todo in todos.items()}
+
+
+NIVEAUX_ORDRE = ("obligatoire", "conseillé", "à la marge")
+
+
+def cle_pas(p):
+    """La clé d'un pas dans le graphe : (projet, code)."""
+    return p["projet"], p["code"]
+
+
+def pas_du_code(code, projet, pas):
+    """Les pas du chemin qui portent `code` : celui du projet `projet` s'il y est, sinon ceux des autres projets —
+    `[]` hors du chemin, plusieurs : ambigu."""
+    memes = [p for p in pas if p["code"] == code]
+    return [p for p in memes if p["projet"] == projet] or memes
+
+
+def deps_todo(p, pas, numeros):
+    """(pas dont `p` dépend, nombre hors du chemin, gardes, illisible) lus dans sa cellule « Dépend de » : les codes
+    entre accents graves (un autre projet compris), et les numéros de ligne de la TODO de son projet."""
+    brut = p["depend"].strip()
+    codes = CODE_MD.findall(brut)
+    nombres = re.findall(r"(?<![\w-])\d+(?![\w-])", CODE_MD.sub("", brut))
+    deps, hors, gardes = [], 0, []
+    for code in codes:
+        trouves = pas_du_code(code, p["projet"], pas)
+        if len(trouves) > 1:
+            gardes.append("pas %s : dépend de %s, que %d projets portent" % (p["code"], code, len(trouves)))
+        deps += trouves[:1]
+        hors += not trouves
+    for n in nombres:
+        trouves = [q for q in pas if q["projet"] == p["projet"] and q["numero"] == n]
+        if not trouves and n not in numeros.get(p["projet"], ()):
+            gardes.append("pas %s : dépend de la ligne %s, absente de la TODO de %s" % (p["code"], n, p["projet"]))
+        deps += trouves[:1]
+        hors += not trouves and n in numeros.get(p["projet"], ())
+    return [d for d in deps if d is not p], hors, gardes, brut not in ("", "—") and not codes and not nombres
+
+
+def ajouts_ordre(lignes, pas, sautes):
+    """({clé: [clés]} des dépendances que la source ajoute, gardes) : une ligne `| pas | dépend de | pourquoi |` ;
+    un pas ou une dépendance introuvable, ou sans raison, une garde ; d'un projet absent, la ligne sautée."""
+    ajouts, gardes = {}, []
+    for cellules in lignes:
+        code, depend, pourquoi = (cellules + ["", ""])[:3]
+        code, depend = (CODE_MD.findall(code) or [code])[0], CODE_MD.findall(depend)
+        if code in sautes or sautes.intersection(depend):
+            continue
+        porteurs = pas_du_code(code, None, pas)
+        cibles = [pas_du_code(d, porteurs[0]["projet"], pas) for d in depend] if len(porteurs) == 1 else []
+        if not pourquoi.strip() or not cibles or any(len(c) != 1 for c in cibles):
+            gardes.append("dépendance ajoutée %s → %s : pas, dépendance ou raison introuvable" % (code, ", ".join(depend)))
+            continue
+        ajouts.setdefault(cle_pas(porteurs[0]), []).extend(cle_pas(c[0]) for c in cibles)
+    return ajouts, gardes
+
+
+def forces_ordre(lignes, pas, sautes):
+    """({clé: niveau} que la source force, gardes) : une ligne `| pas | niveau | pourquoi |`, le niveau l'un de
+    `NIVEAUX_ORDRE` ; un pas introuvable, un niveau inconnu ou sans raison, une garde."""
+    forces, gardes = {}, []
+    for cellules in lignes:
+        code, niveau, pourquoi = (cellules + ["", ""])[:3]
+        code = (CODE_MD.findall(code) or [code])[0]
+        if code in sautes:
+            continue
+        porteurs = pas_du_code(code, None, pas)
+        if len(porteurs) != 1 or niveau.strip() not in NIVEAUX_ORDRE or not pourquoi.strip():
+            gardes.append("niveau forcé de %s : pas, niveau (%s) ou raison introuvable" % (code, " | ".join(NIVEAUX_ORDRE)))
+            continue
+        forces[cle_pas(porteurs[0])] = niveau.strip()
+    return forces, gardes
+
+
+def graphe_ordre(pas, ajouts, numeros):
+    """(graphe {clé: {clés dont il dépend}}, compte des dépendances lues en TODO, écrites par la source, hors du
+    chemin, gardes) ; une cellule « Dépend de » illisible n'est une garde que si la source n'ajoute rien au pas."""
+    graphe, compte, gardes = {}, {"todo": 0, "source": 0, "hors": 0}, []
+    for p in pas:
+        deps, hors, g, illisible = deps_todo(p, pas, numeros)
+        lues = {cle_pas(d) for d in deps}
+        ajoutees = set(ajouts.get(cle_pas(p), [])) - lues
+        if illisible and not ajoutees:
+            g.append("pas %s : dépendance illisible « %s »" % (p["code"], p["depend"].strip()))
+        graphe[cle_pas(p)] = lues | ajoutees
+        compte["todo"] += len(lues)
+        compte["source"] += len(ajoutees)
+        compte["hors"] += hors
+        gardes += g
+    return graphe, compte, gardes
+
+
+def graines_ordre(cibles, pas, forces):
+    """(clés obligatoires d'office : la cible, et les pas forcés obligatoires ; gardes pour un code de la cible
+    absent du chemin)."""
+    graines, gardes = {k for k, n in forces.items() if n == NIVEAUX_ORDRE[0]}, []
+    for projet, codes in cibles.items():
+        for code in codes:
+            if (projet, code) in {cle_pas(p) for p in pas}:
+                graines.add((projet, code))
+            else:
+                gardes.append("cible %s (%s) : absente du chemin" % (code, projet))
+    return graines, gardes
+
+
+def niveaux_ordre(pas, graphe, graines, forces):
+    """({clé: niveau}, gardes) : obligatoire, les graines et ce dont elles dépendent, de proche en proche ; puis
+    conseillé, une phase `V1` ; à la marge, `V2`, `V3`… ou `après`. Un niveau forcé l'emporte ; un pas sans phase,
+    ni obligatoire ni forcé, une garde — jamais un niveau deviné."""
+    obligatoires = set(graines)
+    pile = list(obligatoires)
+    while pile:
+        for dep in graphe[pile.pop()]:
+            if dep not in obligatoires:
+                obligatoires.add(dep)
+                pile.append(dep)
+    niveaux, gardes = {}, []
+    for p in pas:
+        k = cle_pas(p)
+        if k in forces or k in obligatoires:
+            niveaux[k] = forces.get(k, NIVEAUX_ORDRE[0])
+        elif p["phase"]:
+            niveaux[k] = NIVEAUX_ORDRE[1] if p["phase"] == "V1" else NIVEAUX_ORDRE[2]
+        else:
+            gardes.append("pas %s : ni obligatoire, ni une phase dans la TODO — la source doit forcer son niveau"
+                          % p["code"])
+    return niveaux, gardes
+
+
+def vagues_ordre(pas, graphe):
+    """(vagues, garde) : une vague par niveau du tri topologique (`graphlib`), ses pas dans l'ordre du chemin ;
+    un cycle, une garde qui le nomme."""
+    import graphlib
+    tri = graphlib.TopologicalSorter(graphe)
+    try:
+        tri.prepare()
+    except graphlib.CycleError as e:
+        return [], "cycle de dépendances : %s" % " → ".join(code for _, code in e.args[1])
+    rang = {cle_pas(p): i for i, p in enumerate(pas)}
+    vagues = []
+    while tri.is_active():
+        pretes = sorted(tri.get_ready(), key=lambda k: rang[k])
+        vagues.append(pretes)
+        tri.done(*pretes)
+    return vagues, None
+
+
+def classer_ordre(pas, tables, cibles, numeros, sautes):
+    """Le niveau et la vague de chaque pas, écrits dans le pas ; rend (vagues en codes, compte des dépendances,
+    gardes) — une garde, rien d'écrit."""
+    ajouts, gardes = ajouts_ordre(tables.get("Les dépendances ajoutées", []), pas, sautes)
+    forces, g_forces = forces_ordre(tables.get("Les niveaux forcés", []), pas, sautes)
+    graphe, compte, g_graphe = graphe_ordre(pas, ajouts, numeros)
+    graines, g_graines = graines_ordre(cibles, pas, forces)
+    gardes += g_forces + g_graphe + g_graines
+    niveaux, g_niveaux = niveaux_ordre(pas, graphe, graines, forces) if not gardes else ({}, [])
+    vagues, cycle = vagues_ordre(pas, graphe) if not gardes else ([], None)
+    gardes += g_niveaux + ([cycle] if cycle else [])
+    if gardes:
+        return [], compte, gardes
+    for i, vague in enumerate(vagues):
+        for k in vague:
+            p = next(q for q in pas if cle_pas(q) == k)
+            p["niveau"], p["vague"] = niveaux[k], i
+    return [[code for _, code in v] for v in vagues], compte, []
 
 
 def projets_ordre(lignes, racine, sortie):
@@ -9478,13 +9649,16 @@ def cmd_ordre(a, sortie):
     todos, absents = projets_ordre(tables.get("Les projets", []), racine, sortie)
     chemin_pas = tables.get("Le chemin conseillé", [])
     pas, origines, gardes = chemin_ordre(chemin_pas, todos, absents)
-    for g in gardes:
+    cibles = {cle: CODE_MD.findall(codes) for cle, codes in tables.get("La cible", []) if cle not in absents}
+    sautes = {(CODE_MD.findall(c[0]) or [c[0]])[0] for c in chemin_pas if len(c) > 1 and c[1] in absents}
+    vagues, compte, gardes_classement = classer_ordre(pas, tables, cibles, numeros_todo(todos), sautes) \
+        if not gardes else ([], {}, [])
+    for g in gardes + gardes_classement:
         sortie.write("GARDE: %s\n" % g)
-    if gardes:
+    if gardes or gardes_classement:
         return 1
-    cibles = {cle: CODE_MD.findall(codes) for cle, codes in tables.get("La cible", [])}
     donnees = {"source": os.path.basename(source), "cible": cibles, "projets_absents": absents,
-               "pas": pas, "totaux": totaux_ordre(pas)}
+               "pas": pas, "vagues": vagues, "dependances": compte, "totaux": totaux_ordre(pas)}
     dossier = os.path.join(os.path.dirname(source), "ordre")
     os.makedirs(dossier, exist_ok=True)
     with open(os.path.join(dossier, "donnees.json"), "w", encoding="utf-8", newline="\n") as f:
@@ -9492,6 +9666,11 @@ def cmd_ordre(a, sortie):
         f.write("\n")
     sortie.write("ORDRE %d pas · %d trouvés en TODO · %d pris de la source\n"
                  % (len(chemin_pas), origines.count("todo"), origines.count("source")))
+    par_niveau = donnees["totaux"]["par_niveau"]
+    sortie.write("CLASSEMENT %d obligatoires · %d conseillés · %d à la marge · %d vagues · dépendances : %d lues en "
+                 "TODO, %d écrites par la source, %d hors du chemin\n"
+                 % (tuple(par_niveau[n]["pas"] for n in NIVEAUX_ORDRE)
+                    + (len(vagues), compte["todo"], compte["source"], compte["hors"])))
     sortie.write("ÉCRIT %s\n" % os.path.join(dossier, "donnees.json"))
     return 0
 

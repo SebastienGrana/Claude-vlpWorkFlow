@@ -579,7 +579,12 @@ Sous-commandes :
   source : par pas, projet, code, nom, phase, score, fiches (bas, haut), fait, note, dépendance brute ; puis les
   totaux. Imprime `ORDRE <n> pas · <t> trouvés en TODO · <s> pris de la source` et `ÉCRIT <chemin>`. Projet
   absent : `GARDE:`, ses pas sautés. Pas ni en TODO ni chiffré par la source, ou porté par deux lignes : `GARDE:`,
-  rien d'écrit, sort 1. Sans `--json` : `GARDE:`, sort 1.
+  rien d'écrit, sort 1. Sans `--json` : `GARDE:`, sort 1. Puis le classement (ORD2) : obligatoire, la cible et ce
+  dont elle dépend de proche en proche — codes entre accents graves et numéros de ligne de la colonne « Dépend
+  de », plus les dépendances ajoutées de la source ; conseillé, `V1` ; à la marge, `V2` et `après` ; un niveau
+  forcé de la source l'emporte. Les vagues : `graphlib.TopologicalSorter`. Ligne `CLASSEMENT <o> obligatoires · <c>
+  conseillés · <m> à la marge · <v> vagues · dépendances : <t> lues en TODO, <s> écrites par la source, <h> hors du
+  chemin`. Dépendance illisible, cycle, pas sans phase ni niveau : `GARDE:`, rien d'écrit, sort 1.
 - `rapide <motif> [--racine R]` — le contrôle rapide d'une fiche du kit, avant la suite entière (VIT23), joué en
   parallèle sous la racine (défaut : le dossier courant) : les groupes de `test-vlp.py` qui portent le motif
   (`--seul`), pyright sur les `.py` ajoutés, modifiés ou neufs depuis `HEAD`, et `sante --cliquet`. Une ligne
