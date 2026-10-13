@@ -64,12 +64,7 @@ un joint non lu refuse la publication (`APR`, 2026-10-09 : 10 refus sur 50, tous
 Un projet qui a lancé `vlp.py archive` : `clore` a mis l'archive des clos en liste
 d'attente (ligne `ATTENTE`) — elle part avec les autres en fin de séance.
 
-**La page d'enchaînement**, si `CHANTIER.md` en nomme une (« **artefact enchaînement** ») :
-`action: "read"` sur son `url`, puis mets-y à jour ce qui touche ce projet — le chantier clos
-marqué fait, la suite de ce projet dans l'ordre de sa TODO, les coûts et les totaux — et
-republie-la, `label` : `<chantier> clos`. Elle n'a ni source sur disque ni script tant qu'`ORD`
-n'est pas fait : la version lue en ligne fait foi (demandé le 2026-10-12, clôture d'`AVL`).
-« aucun » : rien à faire.
+**La page d'enchaînement** : la ligne `ORDRE envoyer <fichier> → <url>` de `clore` s'envoie par `ArtifactData`, sa base seule, sans republier la page (`ARTEFACTS.md`, la page d'enchaînement) ; une `GARDE:` d'`ordre` à la place, ou l'`url` « aucune » : dis-le en une ligne.
 
 Publication refusée : `ARTEFACTS.md`, « Une publication refusée ».
 

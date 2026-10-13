@@ -37,6 +37,9 @@ spec.loader.exec_module(mod)
 # Les tests rejouent des entrées identiques : le tampon de hook serait créé une fois,
 # et les rejoues se tairaient. `TAMPON_HOOKS = None` : toujours vrai (FIL3, PYT1).
 mod.TAMPON_HOOKS = None
+# `clore` refait les données de la page d'enchaînement du vrai kit : un test de clôture ne le fait pas, sauf celui
+# qui le vérifie, sur un kit à lui (ORD5).
+mod.SOURCE_ORDRE = None
 
 # `ouvrir` et `cocher` notent CLAUDE_CODE_SESSION_ID : un test le fixe lui-même, jamais celui de la
 # session qui lance la suite (chantier CAD).
@@ -5074,6 +5077,52 @@ def tester_ordre_db():
 
 
 groupe(tester_ordre_db)
+
+
+def tester_ordre_clore():
+    """ORD5 : `clore` d'un projet, quel qu'il soit, refait les données de la page d'enchaînement du kit et dit quoi
+    envoyer où (ligne `ORDRE`) ; sans source, une GARDE, et la clôture finit."""
+    gabarit = lambda nom: open(os.path.join(ICI, "..", "templates", nom), encoding="utf-8").read()
+    sorties = []
+    for avec_source in (True, False):
+        with tempfile.TemporaryDirectory() as tk:
+            kit, projet = os.path.join(tk, "kit"), os.path.join(tk, "p")
+            ecrire(os.path.join(kit, "CHANTIER.md"), "# Chantier\n\n- **chantiers possibles** : `ctx/etat.md`\n"
+                   "- **artefact enchaînement** : https://claude.ai/artifact/essai\n")
+            ecrire(os.path.join(kit, "ctx", "etat.md"), "## TODO\n\n| # | Chantier | Apporte | Coût | Dépend de |\n"
+                   "|---|---|---|---|---|\n| 1 | `K1` — pas | a | **V1 · score 9 (3 × 3)** · 1 fiche | — |\n")
+            source = os.path.join(kit, "ctx", "ordre.md")
+            if avec_source:
+                ecrire(source, "## Les projets\n\n| Clé | Dossier |\n|---|---|\n| k | `.` |\n\n## La cible\n\n"
+                       "| Projet | Codes |\n|---|---|\n| k | `K1` |\n\n## Le chemin conseillé\n\n| Pas | Projet | Nom | "
+                       "Coût |\n|---|---|---|---|\n| `K1` | k | | |\n")
+            ecrire(os.path.join(projet, "CHANTIER.md"), "# C\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n"
+                   "- **fichier d'état** : ctx/08-etat.md\n- **artefact du chantier** : aucun\n\n"
+                   "Lettres de fiche déjà prises : A (test).\n")
+            ecrire(os.path.join(projet, "ctx", "08-etat.md"), "# État\n")
+            ecrire(os.path.join(projet, "ctx", "50-u.md"), ouvert("# Chantier U — u\n\n**Fait.** Rien.\n\n## U1 [x] — a\n"))
+            ecrire(os.path.join(projet, "ctx", "artefacts", "50-u.html"), gabarit("artefact-chantier.html"))
+            ecrire(os.path.join(projet, "ctx", "artefacts", "feuille-de-route.html"),
+                   gabarit("artefact-feuille-de-route.html"))
+            avant = mod.SOURCE_ORDRE
+            try:
+                mod.SOURCE_ORDRE = source
+                code, s = appel(["clore", projet, "--livre", "fini", "--date", "2026-10-13"])
+            finally:
+                mod.SOURCE_ORDRE = avant
+            donnees = os.path.join(kit, "ctx", "ordre", "donnees.json")
+            sorties.append((code, s, os.path.isfile(donnees) and json.load(open(donnees, encoding="utf-8")),
+                            donnees, source))
+    (code, s, doc, donnees, _), (code_sans, s_sans, doc_sans, _, source_sans) = sorties
+    verifier("ORD5 : clore d'un autre projet refait les données du kit et dit quoi envoyer où",
+             code == 0 and "CLOS U " in s and "ORDRE envoyer %s → https://claude.ai/artifact/essai\n" % donnees in s
+             and isinstance(doc, dict) and [p["code"] for p in doc["pas"]] == ["K1"], (code, s))
+    verifier("ORD5 : sans source, une GARDE qui le dit, pas de ligne ORDRE, et la clôture finit",
+             code_sans == 0 and "CLOS U " in s_sans and "ORDRE envoyer" not in s_sans and doc_sans is False
+             and "GARDE: ordre : source introuvable (%s)" % source_sans in s_sans, (code_sans, s_sans))
+
+
+groupe(tester_ordre_clore)
 
 
 def tester_suite_verte():

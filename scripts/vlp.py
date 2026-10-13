@@ -350,6 +350,8 @@ Sous-commandes :
   Au fichier d'état, avant la feuille qui relit la TODO, la rangée `` `<lettre>` `` ôtée et ` <n>, `<lettre>`, clos le
   D.` ajouté à la phrase de provenance, comme `oter` mais sans journal : `TODO `<lettre>` ôtée · n° <n>`, ou, code
   absent de la TODO, `TODO `<lettre>` absente — rien ôté` et rien écrit (RTO1).
+  Puis, quel que soit le projet, `ordre --db` sur la source du kit : `ORDRE envoyer <donnees.json> → <URL>`
+  (« artefact enchaînement » du kit) ; source absente ou garde d'`ordre` : une `GARDE:`, la clôture continue (ORD5).
   `CLOS <lettre> <plage> · chantier <n> · cumul <brut> · routage <0|1> · index
   <0|1> · archivé <n> · bilan <0|1> · <estimé> — <projet>`. Aucun chantier ouvert, ou
   déjà `**CLOS**` : `GARDE:`, sort 1. Une TODO que `todo_du_fichier` refuse : `GARDE: … — rien écrit`, sort 1 (TAB3).

@@ -7285,7 +7285,7 @@ def cmd_clore(a, sortie):
         os.remove(p)
     ecrire_par_tmp(ecritures + ([(archive, clos_html)] if html is not None and archive != page and clos_html is not None
                                 else []))
-    sortie.write(todo_dit + "\n")
+    ordre_de_clore(todo_dit, sortie)
     for g in gardes:
         sortie.write("GARDE: %s — le reste est écrit\n" % g)
     if html is None:
@@ -9731,7 +9731,7 @@ def cmd_ordre(a, sortie):
     option, aussi la page `ordre/ordre.html` et ses joints (`page_ordre`). Projet absent : une `GARDE:`, ses pas sautés. Un pas
     introuvable sans coût dans la source, ou porté par deux lignes : une `GARDE:` qui le nomme, rien d'écrit,
     sort 1."""
-    source = os.path.abspath(a.source or os.path.join(KIT, "context AI", "ordre.md"))
+    source = os.path.abspath(a.source or SOURCE_ORDRE or os.path.join(KIT, "context AI", "ordre.md"))
     lignes = lignes_gardees(source, "source de l'ordre")
     tables = tables_ordre(lignes)
     racine = trouver(os.path.dirname(source))
@@ -9766,6 +9766,37 @@ def cmd_ordre(a, sortie):
     if donnees_ordre(dossier, donnees, a.db, sortie):
         return 1
     return 0 if a.json or a.db else page_ordre(dossier, donnees, sortie)
+
+
+SOURCE_ORDRE = os.path.join(KIT, "context AI", "ordre.md")   # `None` : clore ne la refait pas (la suite de tests)
+
+
+def ordre_de_clore(todo_dit, sortie):
+    """Dire `todo_dit`, la ligne de la TODO d'une clôture ; puis, quel que soit le projet clos, refaire les données
+    de la page d'enchaînement du kit (`cmd_ordre --db` sur `SOURCE_ORDRE`) et la ligne `ORDRE envoyer
+    <donnees.json> → <URL>` — l'URL lue à la ligne `artefact enchaînement` du `CHANTIER.md` du projet de la source.
+    Source absente, ou une garde d'`ordre` : une `GARDE:`, la clôture continue."""
+    sortie.write(todo_dit + "\n")
+    source = SOURCE_ORDRE
+    if source is None:
+        return
+    if not os.path.isfile(source):
+        sortie.write("GARDE: ordre : source introuvable (%s) — page d'enchaînement non refaite\n" % source)
+        return
+    tampon = io.StringIO()
+    try:
+        code = cmd_ordre(argparse.Namespace(source=source, json=False, db=True), tampon)
+    except ValueError as e:
+        code = 1
+        tampon.write("GARDE: %s\n" % e)
+    for ligne in tampon.getvalue().splitlines():
+        if ligne.startswith(("GARDE:", "AVERTISSEMENT:")):
+            sortie.write("%s — page d'enchaînement non refaite\n" % ligne if code else ligne + "\n")
+    if code:
+        return
+    url = champ(lignes_de(os.path.join(trouver(os.path.dirname(source)) or KIT, "CHANTIER.md")),
+                "artefact enchaînement", "aucune")
+    sortie.write("ORDRE envoyer %s → %s\n" % (os.path.join(os.path.dirname(source), "ordre", "donnees.json"), url))
 
 
 def options_outils(sous):
