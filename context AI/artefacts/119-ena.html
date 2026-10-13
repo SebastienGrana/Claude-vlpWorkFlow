@@ -21,9 +21,9 @@
     <p>/vlp:enchainer agents ne bloque plus la conversation ; le parallèle repart au chantier ISO (recul du 2026-10-12)</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="bloquee"></span><span></span><span data-etat="faite"></span><span data-etat="faite"></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="bloquee"></span><span></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">9 fiches · 6 faites · bloquée : ENA5</p>
+    <p class="mono" style="margin-top:.5rem">9 fiches · 7 faites · bloquée : ENA5</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -70,13 +70,13 @@
         <details><summary><span class="titre">Débrancher l'option parallèle, garder son code</span><span class="etat">Faite</span></summary>
         <span class="note">2e tentative : la docstring de lancables dit le trou rejoué (10 cas sondés : skills/tache + tache/SKILL.md ou SKILL.md partent ensemble, avec la barre séparés) ; grep « agents ensemble » ou « lancables » : 0 dans SKILL.md, 0 dans README.md ; « add -A » : 0 ; LANCABLES ENA5 ; valider : 0 écart sur 9 fiches ; rapide vert (5 contrôles, pyright 0 erreur, cliquet tenu) ; suite entière OK (sortie 0) ; 2e relecteur : ACCEPTÉE (32 cas rejoués, 2 mutants attrapés)</span></details>
         <span class="cout mono">≈25,0M (25 034 493) · 136 tours · 19,65 $</span></li>
-      <li class="fiche"><span class="gauche"><span class="id">ENA9</span></span>
-        <details><summary><span class="titre">Le bilan d'ENA, et dans quels cas un bilan vaut le coup</span><span class="etat">À lancer</span></summary>
-        <span class="note">Le bilan : ce qu'on avait mal fait, ce qu'on fait mieux, ce qu'on fera ; et quand un bilan vaut le coup (dès le moindre accroc ? la taille ?) ; page à cartes et résumé à écouter ; après ENA8</span></details>
-        <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">ENA9</span></span>
+        <details><summary><span class="titre">Le bilan d'ENA, et dans quels cas un bilan vaut le coup</span><span class="etat">Faite</span></summary>
+        <span class="note">Page à cartes publiée (ArfuSTrHgZVTZBfFmDkS5z), 6 cartes gardées sur 6 ; 3 leçons écrites (lecons-mesure.md +21, methode-chantier.md +3), critère versé en TODO n° 139 BIL ; git diff --stat : 3 fichiers, 26 insertions, 1 suppression</span></details>
+        <span class="cout mono">≈18,7M (18 700 995) · 116 tours · 9,26 $</span></li>
     </ul>
-    <p class="mono cout-hors">Hors fiches : ≈11,0M (10 973 621) · 68 tours · 6,03 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈153,2M (153 207 874) · 900 tours · 81,33 $</p>
+    <p class="mono cout-hors">Hors fiches : ≈4,4M (4 437 570) · 26 tours · 2,81 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈165,4M (165 372 818) · 974 tours · 87,37 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

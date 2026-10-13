@@ -517,6 +517,9 @@ l'utilisateur au chantier `MET` (`context AI/08-etat.md`, entrée « MET1 — ce
   première écriture** : une `GARDE:` qui sort 1 et dit « rien écrit », jamais une ligne lue
   à moitié ni un fichier écrit sur deux (`TAB`, 2026-10-09 : une table coupée en silence,
   `clore` qui écrivait avant de lire la TODO).
+- **Un nombre qu'un script relit vit sur sa ligne à lui**, jamais collé à un texte libre :
+  le texte finit par contenir ce que le lecteur cherche (`ENA7`, 2026-10-13 ; récit dans
+  `lecons-mesure.md`).
 
 **La prose que Claude lit** — commandes, agents, doctrine, `CLAUDE.md` :
 

@@ -95,6 +95,19 @@ Fondues dans cette règle par `MET6` :
   chacune seule, 0, 0 et 2 — `VLP_CANAL` seule, quand le libellé de l'écart nommait
   `VLP_NUIT absent`. Le libellé d'un contrôle dit ce qu'il vérifie d'abord, pas ce qui
   le fait tomber.
+- Un fait tiré d'un refus, d'un relecteur ou d'une page **se rejoue avant de s'écrire** —
+  Mesuré (`ENA8`, 2026-10-13) : la docstring de `lancables` recopiait la formule du 5e
+  refus d'`ENA5` ; rejouée par le relecteur, elle était fausse (refus 1, `2a3f2fc`) ; la
+  2e tentative a rejoué 10 cas et dit le trou vrai (`77f75b8`, acceptée).
+
+### Un nombre qu'un script relit vit sur sa ligne à lui
+
+Mesuré (`ENA7`, 2026-10-13) : le compte de refus, posé en fin de la tête du bloc
+**Tentatives**, à côté du motif libre du relecteur. Un motif contenant « non résolu »
+laissait la tête soldée sur une fiche rouverte ; une sonde de la même famille : « · refus 2 »
+dans un `--resolu` faisait lire `refus 3`. Remède : une ligne à elle,
+`Refus soldés : <n> · dernier : <motif>`, et la tête lue à sa place (`0811c7a`, 3 mutants
+attrapés).
 
 ### Un commentaire périmé coûte plus cher qu'un chiffre périmé
 
@@ -169,6 +182,14 @@ Mesuré : le graphique des coûts des pages, dessiné à la main, passé à Char
 la skill `claude-api` écartait déjà Haiku 4.5 des longues boucles d'agent et donnait
 la méthode (tout en effort bas, relancer les échecs plus haut) — restait seulement le
 coût par fiche dans le kit.
+
+Une sécurité aussi : `ENA5` (2026-10-12) a voulu garantir « jamais deux fiches sur un même
+fichier » en lisant les lignes **Fichiers**, sur `apercu_fiches`, dont la doc dit « le repère
+prévient, il ne garantit rien » ; `commiter` lisait les chemins entiers — deux règles du même
+fichier, en désaccord. 5 refus d'une même famille, ≈ 21 $ pour 4,06 $ estimés ; et même juste,
+la lecture ratait 73 paires sur 347. Git voit déjà les conflits : le parallèle est parti à
+`ISO`, chaque fiche dans son worktree. Avant de bâtir une garantie sur une fonction, lire ce
+qu'elle promet — un indice ou une garantie — et chercher l'outil qui la porte déjà.
 
 ### L'effort se règle selon la tâche
 
