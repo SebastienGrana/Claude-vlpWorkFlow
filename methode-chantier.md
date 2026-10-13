@@ -85,6 +85,12 @@ titre (`MET6`, 2026-10-07).
   suivant part chercher le coupable là où on le lui montre. Quand une relecture
   change une règle, le commentaire qui la décrit fait partie de la règle : il se
   corrige dans le même geste, ou il devient un piège daté.
+- **Ce qu'une fiche réalise, d'autres textes l'annonçaient au futur.** En fin
+  de fiche, grep dans tout le projet — code, ADR, rapports — les annonces de ce
+  qu'elle vient de faire : « l'écrira », « pas encore codé », « non fait », le
+  code de la fiche. Chantier `API` du Fil Rouge (2026-10-13) : 21 mentions
+  périmées corrigées après la dernière fiche, dont 8 trouvées au second grep
+  seulement.
 - **Un seuil calé sur une distribution qui ne pouvait pas répondre reste
   arbitraire, même quand il tombe juste.** Avant de lire un histogramme pour
   choisir une borne, vérifier que la population mesurée peut contenir des
