@@ -21,9 +21,9 @@
     <p>vlp.py ordre régénère la page d'enchaînement d'une source et des TODO des trois projets, classée, servie par une base db, refaite à chaque clôture — et la vraie page migrée, regardée par l'utilisateur.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">6 fiches · 5 faites · en cours : ORD6</p>
+    <p class="mono" style="margin-top:.5rem">6 fiches · 6 faites</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -57,14 +57,14 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">ORD5</span></span>
         <details><summary><span class="titre">Refaire la page à chaque clôture</span><span class="etat">Faite</span></summary>
         <span class="note">clore d'un autre projet : ORDRE envoyer &lt;donnees.json&gt; → URL du kit ; sans source GARDE et CLOS ; test ORD5 vert (2 contrôles), mutant attrapé (1 écart), suite OK ; ArtifactData la nuit : non vérifié</span></details>
-        <span class="cout mono">≈7,1M (7 079 724) · 43 tours · 2,86 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">ORD6</span></span>
-        <details open><summary><span class="titre">Migrer la vraie page, et la regarder</span><span class="etat">En cours</span></summary>
-        <span class="note">(visuel) La vraie page migrée à la même URL, regardée par l'utilisateur ; après ORD5.</span></details>
-        <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
+        <span class="cout mono">≈7,4M (7 417 114) · 45 tours · 2,98 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">ORD6</span></span>
+        <details><summary><span class="titre">Migrer la vraie page, et la regarder</span><span class="etat">Faite</span></summary>
+        <span class="note">la vraie page migrée à la même URL (version 9, capacité db), base ordre/donnees écrite (version 1, 11243 octets, 4,3 %) ; regardée par l'utilisateur sur l'ordinateur et à 375 px : c'est bon, aucun écart</span></details>
+        <span class="cout mono">≈3,3M (3 328 477) · 16 tours · 1,27 $</span></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈3,9M (3 942 418) · 23 tours · 2,81 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈47,0M (47 013 053) · 237 tours · 20,10 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈50,7M (50 678 920) · 255 tours · 21,49 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

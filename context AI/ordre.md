@@ -99,10 +99,28 @@ Ce que l'utilisateur a tranché, et que le chemin applique ; une puce par décis
 - Les notes justes de MapDecorator avant de coder : `MD4`, `MD5` et `MD7` avant `C2` (page du
   2026-10-12).
 - Toute la V1 de MapDecorator avant sa V2 (page du 2026-10-12).
+- **`ENA` clos** : `/vlp:enchainer agents` réparé ; `ENA5` et `ENA6` abandonnées, le parallèle repart au
+  chantier `ISO` (2026-10-13).
+- **`ESH`** : la marque `turnOrigin`, nuits exclues ; le signal avertit sans changer le chiffre (2026-10-12).
+- **La nuit du 2026-10-12** : 8 chantiers de la V1 du kit faits sans fiche, un commit chacun ; le rapport du
+  matin dit les choix pris seul.
+- **`SCH` en tête de Cairn ; chez MapDecorator, toute la V1 avant la V2** (`C4` après `MD1`) : à la clôture
+  d'`AVL` (2026-10-12).
+- **Le sommaire des trois audits** : dans Cairn, section `AVL11`, écouté et approuvé (2026-10-12).
+- **Après `AVL` : le ménage, puis `ENA`.** Cairn attend (questionnaire d'`AVL9`, 2026-10-11).
+- **`ENA`** : d'abord réparer `/vlp:enchainer agents` ; puis une option du mode agents qui lance ensemble les
+  fiches lançables au même moment.
+- **L'ordre du kit** : 27 lignes rangées par score à `AVL9`, 14 en V1 et 13 en V2.
+- **`BDD` en V1, note 2** (`AVL8`).
+- **Le bouton « Envoyer à Claude »** : une ligne de TODO, `EVR`, en V2, score 12.
+- **ProjetONZSM et TrackGen** : hors de la V1 du kit, toujours équipés.
+- **L'estimé d'un cadrage se double**, pour les prochains cadrages ; la TODO ne bouge pas.
 
 ## Pas encore tranché
 
 - Obligatoire ou conseillé : ce classement est à corriger si tu vois autrement.
-- `SCH` et `PRS` sont à cadrer.
+- `SCH` et `PRS` sont à cadrer : `PRS` manque aux totaux, `SCH` est compté avec `REG`.
+- **`ISO`, au cadrage** : combien de fiches en même temps (16 Go de mémoire), que faire d'un conflit à la
+  fusion, et le fichier d'état que toutes écrivent.
 - Deux séances en même temps, le kit et Cairn, vont plus vite mais demandent deux fois plus de
   suivi.
