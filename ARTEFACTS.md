@@ -108,7 +108,9 @@ Une session neuve n'a ni publié ni lu l'artefact. La séquence est toujours :
 
 Sans `url`, la publication crée un artefact séparé. Sans lecture préalable,
 elle est refusée : ce `read` est **imposé par le protocole**, s'en passer ne
-gagne rien. En cas de conflit — quelqu'un a publié entre-temps — on
+gagne rien. Le `read` doit **avoir répondu** avant que la publication parte :
+deux appels dans le même tour, c'est un refus de plus (feuille de route
+fil-rouge, clôture DRO, 2026-10-13 : refusée deux fois). En cas de conflit — quelqu'un a publié entre-temps — on
 **fusionne sur la version rendue**, on ne force jamais.
 
 `icon` ne se repasse pas : une icône qui change se lit comme une autre page.
