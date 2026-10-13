@@ -3473,3 +3473,13 @@ Les 6 fichiers relus en entier contre `methode-chantier.md` après `MET7` ; « t
   par l'utilisateur, toute la famille : une ligne à eux, `Refus soldés : <n> · dernier : <motif>`, et la tête lue à
   sa place. Avec, deux remarques du relecteur : le motif d'un blocage n'est plus gardé comme celui d'un refus ;
   `refus.md` ne demande plus au chef de chercher l'existant (il n'ouvre que son contrat) — ça attend l'utilisateur.
+
+## 2026-10-13 — ENA8, refus 1 : un mécanisme recopié d'un refus se rejoue avant de s'écrire
+
+- La 1re tentative recopiait dans la docstring de `lancables` la formule du 5e refus d'`ENA5` (« deux fiches qui
+  nomment le même dossier quand l'une écrit ce dossier sans barre finale »). Le relecteur l'a rejouée :
+  `skills/tache/` + `skills/tache` se séparent. Rejoué ici (10 cas) : une fiche qui nomme un dossier sans barre
+  finale (`skills/tache`) part avec une qui nomme un fichier qu'il contient par un chemin partiel ou son seul nom
+  (`tache/SKILL.md`, `SKILL.md`) ; avec la barre, elles se séparent. Tranché par l'utilisateur : la docstring dit le
+  trou rejoué — l'indice laissé à `ISO` —, plutôt que les seuls mots de la fiche (« 4 paires, page du recul »). Non
+  rejoué, pour `ISO` : le 1er relecteur voit aussi `.claude-plugin` + `.claude-plugin/plugin.json` partir ensemble.
