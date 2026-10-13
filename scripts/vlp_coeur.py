@@ -1337,7 +1337,7 @@ def deplie(nom):
 def cmd_commiter(a, sortie):
     """Commiter une fiche par ses seuls fichiers (ENA4) : la cocher si sa case est vide (`cmd_cocher`, ses gardes
     comprises), puis ajouter à l'index ses chemins changés — ceux de sa ligne **Fichiers**, un dossier y valant ce qu'il
-    contient, un motif ce qu'il prend (`releve`) — et les communs : le fichier de fiches, `scripts/sante-base.json` ;
+    contient, un motif ce qu'il prend (`releve`) — et les communs : le fichier de fiches, `scripts/sante-base.json` dans le kit ;
     jamais `git add -A` : en parallèle, il avalerait le travail d'une autre fiche. Un changé hors de sa liste : `HORS:`,
     laissé hors du commit. Limite : un commun porte aussi ce qu'une autre fiche y a écrit — sa case, son bloc
     **Tentatives**, ses empreintes."""
@@ -1352,8 +1352,10 @@ def cmd_commiter(a, sortie):
                                                       session=None, role=None, resolu=None, date=None), sortie):
         return 1
     racine = racine[1].strip()
-    # Communs : chaque fiche coche le fichier de fiches et réécrit la base du cliquet (`sante --base`).
-    communs = {os.path.relpath(os.path.abspath(a.fichier), racine).replace(os.sep, "/"), "scripts/sante-base.json"}
+    # Communs : chaque fiche coche le fichier de fiches, et, dans le kit seul, réécrit la base du cliquet (`sante --base`).
+    communs = {os.path.relpath(os.path.abspath(a.fichier), racine).replace(os.sep, "/")}
+    if est_kit(racine):
+        communs.add("scripts/sante-base.json")
     debut = next(i for i, l in enumerate(lignes) if l.startswith("## %s [" % a.fiche))
     fin = next((i for i in range(debut + 1, len(lignes)) if TITRE.match(lignes[i])), len(lignes))
     # Un motif ne se lit qu'entre backticks : `**kit**` de la prose prendrait tout chemin qui contient « kit » (ENA5).

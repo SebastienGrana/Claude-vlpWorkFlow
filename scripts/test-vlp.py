@@ -3260,8 +3260,9 @@ def tester_ena4_commiter():
             "<!-- FICHE:%s -->\n## %s [ ] — Toucher %s\n\n**Dépend de** : rien.\n**Fichiers** : `src/%s`%s.\n\n"
             "**Critère de fin**\nRien.\n<!-- /FICHE -->\n" % (f, f, n, n, p) for f, n, p in (
                 ("C1", "a.py", " (la ligne « **b** » seule)"), ("C2", "b.py", ""))))
-        for n in ("a.py", "b.py"):
-            ecrire(os.path.join(d, "src", n), "x = 1\n")
+        for n in ("src/a.py", "src/b.py", "scripts/sante-base.json"):
+            os.makedirs(os.path.dirname(os.path.join(d, n)), exist_ok=True)
+            ecrire(os.path.join(d, n), "x = 1\n")
         vieux = dict(os.environ)
         os.environ.update(GIT_CONFIG_GLOBAL=os.path.join(t, "gitconfig"), GIT_CONFIG_NOSYSTEM="1", GIT_AUTHOR_NAME="t",
                           GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t")
@@ -3269,12 +3270,23 @@ def tester_ena4_commiter():
             ecrire(os.environ["GIT_CONFIG_GLOBAL"], "")
             for args in (["init", "-q"], ["add", "-A"], ["commit", "-q", "-m", "départ"]):
                 subprocess.run(["git"] + args, cwd=d, check=True, capture_output=True)
-            for n in ("a.py", "b.py"):
-                ecrire(os.path.join(d, "src", n), "x = 2\n")
+            for n in ("src/a.py", "src/b.py", "scripts/sante-base.json"):
+                ecrire(os.path.join(d, n), "x = 2\n")
             code, sortie = appel(["commiter", fiches, "C1"])
             montre = subprocess.run(["git", "show", "--name-only", "--format=%s", "HEAD"], cwd=d, capture_output=True,
                                     encoding="utf-8").stdout.split()
             reste = subprocess.run(["git", "status", "--porcelain"], cwd=d, capture_output=True, encoding="utf-8").stdout
+            # Puis le même dépôt devient le kit (`est_kit`) : C2 y prend la base du cliquet, commun.
+            marques = (".claude-plugin/plugin.json", "scripts/test-vlp.py")
+            for n in marques:
+                os.makedirs(os.path.dirname(os.path.join(d, n)), exist_ok=True)
+                ecrire(os.path.join(d, n), "{}\n")
+            for args in (["add", "--"] + list(marques), ["commit", "-q", "-m", "kit"]):
+                subprocess.run(["git"] + args, cwd=d, check=True, capture_output=True)
+            mod.noter_suite_verte(d, mod.empreinte_kit(d))  # cocher dans le kit exige la suite verte (VIT11)
+            kit = appel(["commiter", fiches, "C2"])
+            montre_kit = subprocess.run(["git", "show", "--name-only", "--format=%s", "HEAD"], cwd=d,
+                                        capture_output=True, encoding="utf-8").stdout.split()
         finally:
             os.environ.clear()
             os.environ.update(vieux)
@@ -3282,7 +3294,12 @@ def tester_ena4_commiter():
                  code == 0 and "src/a.py" in montre and "ctx/fiches.md" in montre and "src/b.py" not in montre
                  and "## C1 [x]" in io.open(fiches, encoding="utf-8").read(), repr((code, sortie, montre)))
         verifier("ENA4 : src/b.py dit HORS: et reste à commiter — le « **b** » de la prose n'est pas un motif (ENA5)",
-                 "HORS: src/b.py" in sortie and reste.strip() == "M src/b.py", repr((sortie, reste)))
+                 "src/b.py" in sortie.partition("HORS:")[2] and "M src/b.py" in reste, repr((sortie, reste)))
+        verifier("ENA4 : hors du kit, scripts/sante-base.json n'est pas un commun — HORS:, laissé hors du commit",
+                 "scripts/sante-base.json" not in montre and "scripts/sante-base.json" in sortie.partition("HORS:")[2]
+                 and "M scripts/sante-base.json" in reste, repr((sortie, montre, reste)))
+        verifier("ENA4 : dans le kit, scripts/sante-base.json est un commun — commité avec src/b.py",
+                 "scripts/sante-base.json" in montre_kit and "src/b.py" in montre_kit, repr((kit, montre_kit)))
 
 
 groupe(tester_ena4_commiter)
