@@ -242,6 +242,11 @@ déduit (`CLOS`, `CHANTIER.md`, index, `CLAUDE.md`, pages locales), et les deux
 pages republiées. Un fichier de fiches clos ne se rejoue pas : il ne sert plus qu'à
 relire un socle d'API quand une fiche l'y renvoie.
 
+Les textes de `clore` (`--livre`, `--surpris`, `--resume`) sont **recopiés tels
+quels** dans le fichier de fiches, la page, son `.md` et `CLAUDE.md` : ils
+s'écrivent dans leur forme finale, en français accentué. Écrits sans accents à la
+clôture de `SCH` (Cairn, 2026-10-14), ils ont dû être repris dans quatre fichiers.
+
 Un chantier peut aussi se clore **inachevé** : les fiches non jouées y sont
 dites **abandonnées**, jamais cochées. Mieux vaut un chantier clos honnête
 qu'un chantier ouvert que personne ne reprendra.
