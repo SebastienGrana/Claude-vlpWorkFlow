@@ -12,7 +12,7 @@ et le récit mesuré des règles restées, sous leur titre et dans leur ordre.
 **Sommaire** : Trois leçons parties de la méthode · Les récits des règles restées —
 une ligne de mesure · une hypothèse vraie sur un cas · un commentaire périmé · un
 seuil arbitraire · un chantier cité par son code · une fiche payée jusqu'au bout ·
-un essai hors bac · une définition d'agent · un fait qui dit comment écrire · la TODO et ses deux oui ·
+un essai hors bac · une définition d'agent · une option de Claude Code · un fait qui dit comment écrire · la TODO et ses deux oui ·
 ne pas réinventer la roue · l'effort selon la tâche · le chemin du code changé ·
 l'estimé qui se double · le commit vide · le code cité par son nom · le mutant.
 
@@ -153,6 +153,16 @@ effet » sur une session qui avait démarré 21 minutes **avant** le commit, san
 `/reload-plugins` (chantier `FOR`). Rejouée après relance de l'app, la même phrase
 changeait nettement la mesure. Un script de hook, lui, est relu à chaque appel : le
 gardien changé a jugé en vrai sans relance (chantier `JUG`).
+
+### Une option de Claude Code se mesure dans un bac avant qu'on bâtisse dessus — sa doc ne suffit pas
+
+Mesuré (`ENA2`, 2026-10-12, Claude Code 2.1.296) : la doc des skills, lue mot pour mot le
+jour même, disait `background: true` « running it in the background » ; dans le bac, la
+`Skill` `vlp:jouer` a attendu la fin de la fiche (55 s) et rendu son résultat dans le même
+appel, aucune des 4 exceptions écrites ne s'appliquant. L'outil `Agent` en
+`run_in_background: true`, lui, a rendu la main en 1 s (`08-etat.md`, journal du
+2026-10-12). Chercher la doc d'abord (« Ne pas réinventer la roue », plus bas), puis
+l'essayer sur le cas du kit avant d'y poser une commande.
 
 ### Un fait qui dit comment écrire un fichier, ou ce que rend un autre projet, se revérifie au moment de s'en servir — même marqué « mesuré »
 

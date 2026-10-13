@@ -117,6 +117,10 @@ titre (`MET6`, 2026-10-07).
   sous-agent après un changement d'agent : relancer l'app, ou au moins vérifier
   que la session parente a démarré après le commit. Un **script de hook**, lui,
   est relu à chaque appel.
+- **Une option de Claude Code se mesure dans un bac avant qu'on bâtisse dessus —
+  sa doc ne suffit pas.** Lue mot pour mot, `background: true` promettait
+  l'arrière-plan ; essayée, la skill a attendu (`ENA2`, 2026-10-12). Une commande ne
+  s'appuie sur une option qu'après l'avoir vue faire, sur le cas du kit.
 - **Un fait qui dit comment écrire un fichier, ou ce que rend un autre projet, se
   revérifie au moment de s'en servir — même marqué « mesuré ».** Fins de ligne,
   encodage, séparateur : une commande les tranche en une seconde. Un autre projet
