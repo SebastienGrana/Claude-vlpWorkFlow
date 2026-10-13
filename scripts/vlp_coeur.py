@@ -6681,6 +6681,17 @@ PAUSE_LIGNE = "**Pause.** le %s — %s"
 MARQUE_OUVERT, MARQUE_CLOS, MARQUE_PAUSE = "**Ouvert.**", "**CLOS**", "**Pause.**"
 ENTREE_CLOS = re.compile(r"^- Clos le \S+ : .* \(chantier [A-Z]{1,3}\)\.$")
 ROUTAGE_CLOS = "| relire un chantier clos |"
+
+
+def rang_routage_clos(lignes, repli=None):
+    """L'indice de la ligne « relire un chantier clos » du routage ; à défaut, de la première qui commence par
+    `repli` ; sinon None. Sa cellule peut se prolonger (`| relire un chantier clos — filet de tests… |`,
+    Cairn) : ratée, la clôture de SCH en a posé une seconde (2026-10-14)."""
+    debut = ROUTAGE_CLOS[:-2]
+    rang = next((k for k, l in enumerate(lignes) if l.startswith(debut) and l[len(debut):][:1] in (" ", "|")), None)
+    if rang is None and repli:
+        rang = next((k for k, l in enumerate(lignes) if l.startswith(repli)), None)
+    return rang
 # La ligne que `ouvrir --estime-fiches` pose : N fiches et leur coût, relus par `clore` (chantier EST).
 ESTIME = re.compile(r"^\*\*Estimé\.\*\* (\S+) fiches · (≈\S+ \$)")
 ESTIME_A_ECRIRE = "\x00estimé\x00"   # posé dans la ZONE:bilan, remplacé une fois le total mesuré connu
@@ -6958,15 +6969,16 @@ def cmd_ouverts(a, sortie):
 
 
 def rangee_todo(lignes, code):
-    """(indice de l'en-tête `| # | Chantier`, indice de la rangée dont la 2e cellule commence par `` `code` ``,
-    son numéro) ; sans en-tête ou sans rangée, None à leur place (TAB4)."""
+    """(indice de l'en-tête `| # | Chantier`, indice de la rangée dont `` `code` `` est le premier code de la 2e
+    cellule, son numéro) ; sans en-tête ou sans rangée, None à leur place (TAB4). Des repères peuvent le
+    précéder (`| 1 | 🔴📅 `SCH` — …`, Cairn) : ratés, la clôture de SCH a gardé sa rangée (2026-10-14)."""
     tete = next((k for k, l in enumerate(lignes) if l.startswith("| # | Chantier")), None)
     if tete is None:
         return None, None, None
     for k in range(tete + 1, len(lignes)):
         if not lignes[k].startswith("|"):
             break
-        m = re.match(r"^\|\s*(\d+)\s*\|\s*`%s`" % re.escape(code), lignes[k])
+        m = re.match(r"^\|\s*(\d+)\s*\|[^|`]*`%s`" % re.escape(code), lignes[k])
         if m:
             return tete, k, m.group(1)
     return tete, None, None
@@ -7164,7 +7176,7 @@ def cmd_clore(a, sortie):
             gardes.append("ligne « jouer une fiche du chantier %s » absente de CLAUDE.md" % lettre)
         else:
             del cl[k]
-            if not any(l.startswith(ROUTAGE_CLOS) for l in cl):
+            if rang_routage_clos(cl) is None:
                 cl.insert(k, "%s `%s` — sa ligne y nomme le fichier de fiches |" % (ROUTAGE_CLOS, chemin_archive(index or "00-INDEX.md")))
             faits["routage"] = 1
         if a.resume:
@@ -7479,8 +7491,7 @@ def cmd_ouvrir(a, sortie):
     else:
         cl = lignes_de(chemin_claude)
         if not any("`%s`" % fichier in l for l in cl if l.startswith("|")):
-            rang = next((k for k, l in enumerate(cl) if l.startswith(ROUTAGE_CLOS)),
-                        next((k for k, l in enumerate(cl) if l.startswith("| relire le chantier")), None))
+            rang = rang_routage_clos(cl, "| relire le chantier")
             if rang is None:
                 gardes.append("aucune ligne « relire un chantier clos » ni « relire le chantier » dans CLAUDE.md")
             else:

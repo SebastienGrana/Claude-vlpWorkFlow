@@ -1436,6 +1436,28 @@ def tester_clore_ote_todo():
 groupe(tester_clore_ote_todo)
 
 
+def tester_clore_reperes_et_routage():
+    """Dette SCH (Cairn, 2026-10-14) : une rangée de TODO dont le code suit des repères (🔴📅) se trouve, un code
+    cité plus loin dans la ligne non ; une ligne « relire un chantier clos — … » prolongée compte comme présente."""
+    todo = ["| # | Chantier | a | b | c |", "|---|---|---|---|---|", "| 1 | 🔴📅 `SCH` — x | a | b | — |",
+            "| 2 | 🟡💤 ⏸️ `HD` — y | voir `REG` | b | — |", "| 3 | `REG` — z | a | b | — |"]
+    verifier("dette SCH : rangée trouvée derrière ses repères, code cité ailleurs ignoré — mutant : `\\s*` au lieu de `[^|`]*`",
+             mod.rangee_todo(todo, "SCH") == (0, 2, "1") and mod.rangee_todo(todo, "HD") == (0, 3, "2")
+             and mod.rangee_todo(todo, "REG") == (0, 4, "3") and mod.rangee_todo(todo, "SC") == (0, None, None),
+             [mod.rangee_todo(todo, c) for c in ("SCH", "HD", "REG", "SC")])
+    cl = ["| T | O |", "|---|---|", "| relire un chantier clos — filet de tests | `ctx/00-INDEX-archive.md` |"]
+    verifier("dette SCH : ligne « relire un chantier clos — … » reconnue, « closes » non — mutant : startswith(ROUTAGE_CLOS)",
+             mod.rang_routage_clos(cl) == 2 and mod.rang_routage_clos(["| relire un chantier clos | x |"]) == 0
+             and mod.rang_routage_clos(["| relire un chantier closes | x |"]) is None, mod.rang_routage_clos(cl))
+    vieux = ["| T | O |", "| relire le chantier E (e) | x |"]
+    verifier("dette SCH : sans « relire un chantier clos », le repli « relire le chantier » ; sans repli, None",
+             mod.rang_routage_clos(vieux, "| relire le chantier") == 1 and mod.rang_routage_clos(vieux) is None
+             and mod.rang_routage_clos(cl, "| relire le chantier") == 2, vieux)
+
+
+groupe(tester_clore_reperes_et_routage)
+
+
 def tester_oter():
     """TAB4 : `vlp.py oter` retire une rangée de la TODO, marque son numéro, l'écrit au journal ; refuse un code
     absent, ouvert ou clos sans rien écrire."""
