@@ -4819,6 +4819,77 @@ def tester_symboles():
 groupe(tester_symboles)
 
 
+ORDRE_SOURCE = """# L'ordre
+
+## Les projets
+
+| Clé | Dossier |
+|---|---|
+| k | `.` |
+| a | `autre` |
+| x | `absent` |
+
+## La cible
+
+| Projet | Codes |
+|---|---|
+| a | `A1` |
+
+## Le chemin conseillé
+
+| Pas | Projet | Nom | Coût |
+|---|---|---|---|
+| `K9` | k | fait avant | ✅ fait le 2026-10-01 |
+| `K1` | k | | une note |
+| `A1` | a | | |
+| `A2` | a | une fiche | 1 fiche |
+| `X1` | x | | |
+"""
+
+
+def tester_ordre():
+    """ORD1 : `vlp.py ordre --json` sur deux projets bâtis à côté l'un de l'autre (le kit `.` et `autre`) et un
+    absent : les pas lus en TODO ou pris de la source, les totaux du JSON ; un pas sans coût nulle part, une GARDE ;
+    le dossier écrit, ignoré par Git dans le vrai kit."""
+    with tempfile.TemporaryDirectory() as t:
+        kit, autre = os.path.join(t, "kit"), os.path.join(t, "autre")
+        for racine, todo in ((kit, "| 1 | `K1` — le premier | apporte | **V1 · score 15 (5 × 3)** · 2 à 3 fiches | — |"),
+                             (autre, "| 7 | Le pont (`A1`) | apporte | **V2 · score 9 (3 × 3)** · 4 fiches | `K1` |")):
+            ecrire(os.path.join(racine, "CHANTIER.md"), "# Chantier\n\n- **chantiers possibles** : `ctx/etat.md`\n")
+            ecrire(os.path.join(racine, "ctx", "etat.md"), "## TODO\n\n| # | Chantier | Apporte | Coût | Dépend de |\n"
+                                                           "|---|---|---|---|---|\n%s\n" % todo)
+        source = os.path.join(kit, "ctx", "ordre.md")
+        ecrire(source, ORDRE_SOURCE)
+        code, s = appel(["ordre", "--json", "--source", source])
+        donnees = json.load(open(os.path.join(kit, "ctx", "ordre", "donnees.json"), encoding="utf-8"))
+        ecrire(source, ORDRE_SOURCE.replace("| 1 fiche |", "| |"))
+        sans = appel(["ordre", "--json", "--source", source])
+    verifier("ORD1 : ordre --json compte les pas, ceux lus en TODO, ceux pris de la source ; le projet absent dit",
+             code == 0 and s.startswith("GARDE: projet x absent : absent n'est pas un dossier équipé")
+             and "ORDRE 5 pas · 2 trouvés en TODO · 2 pris de la source\n" in s, s)
+    a1 = [p for p in donnees["pas"] if p["code"] == "A1"]
+    verifier("ORD1 : un pas lu en TODO garde son nom, sa phase, son score, ses fiches et sa dépendance brute",
+             a1 == [{"projet": "a", "code": "A1", "nom": "Le pont", "phase": "V2", "score": 9, "bas": 4.0, "haut": 4.0,
+                     "fait": False, "note": "", "depend": "`K1`"}], a1)
+    verifier("ORD1 : les totaux du JSON — fiches bas et haut des pas chiffrés, faits, par projet",
+             donnees["totaux"] == {"pas": 4, "bas": 7.0, "haut": 8.0, "faits": ["K9"], "non_chiffres": [],
+                                   "par_projet": {"k": {"pas": 2, "bas": 2.0, "haut": 3.0},
+                                                  "a": {"pas": 2, "bas": 5.0, "haut": 5.0}}}
+             and donnees["cible"] == {"a": ["A1"]} and donnees["projets_absents"] == ["x"], donnees)
+    verifier("ORD1 : un pas ni en TODO ni chiffré par la source, une GARDE qui le nomme, sort 1",
+             sans[0] == 1 and "GARDE: pas A2 (a) : ni dans la TODO, ni un coût en fiches dans la source\n" in sans[1],
+             sans)
+    with tempfile.TemporaryDirectory() as t:     # un dépôt neuf, le .gitignore du kit : vrai aussi dans une copie
+        shutil.copy(os.path.join(mod.KIT, ".gitignore"), t)
+        subprocess.run(["git", "init", "-q", t], capture_output=True)
+        ignore = subprocess.run(["git", "check-ignore", "context AI/ordre/donnees.json"], cwd=t,
+                                capture_output=True, text=True)
+    verifier("ORD1 : ce que le script écrit est ignoré par le .gitignore du kit", ignore.returncode == 0, ignore)
+
+
+groupe(tester_ordre)
+
+
 def tester_suite_verte():
     """`cocher` dans le kit exige la suite entière verte sur le code du jour (VIT11) : refus sans empreinte, accord
     après `noter_suite_verte`, refus après un script touché — pas après `sante-base.json` ni `context AI/` ; un projet

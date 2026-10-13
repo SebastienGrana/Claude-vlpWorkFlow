@@ -4248,7 +4248,13 @@ PLAGE_COUT = r"%s(?:\s*(?:à|-)\s*%s)?" % (NOMBRE_COUT, NOMBRE_COUT)
 
 
 def borne_haute_cout(cout):
-    """La borne haute d'un « Coût » de TODO, en fiches — `~4 à 6` → 6, `2-3` → 3, `~0,5` → 0,5,
+    """La borne haute d'un « Coût » de TODO, en fiches, ou `None` : le haut de `bornes_cout`."""
+    bornes = bornes_cout(cout)
+    return None if bornes is None else bornes[1]
+
+
+def bornes_cout(cout):
+    """(bas, haut) d'un « Coût » de TODO, en fiches — `~4 à 6` → (4, 6), `2-3` → (2, 3), `~0,5` → (0,5, 0,5),
     `~½` → 0,5 (`½` se lit 0,5 ; `1½`, 1,5) —, ou `None` sans plage suivie de « fiche(s) »
     (`à cadrer`, `🟡 pas estimé`, `—`, `sans fiche`) (FEU8, NUI10). La dernière estimation fait foi
     (NUI38) : le dernier segment ` · ` qui porte une plage suivie de « fiche(s) » — un prix « (3,68 $ la
@@ -4272,9 +4278,10 @@ def borne_haute_cout(cout):
             borne = None if re.search(r"\bsans fiche\b", segment) else borne    # « re-cadré : sans fiche » fait foi
             continue
         ajout, plage = plages[-1]
-        nombres = re.findall(NOMBRE_COUT, plage)
-        valeur = max(float(n.rstrip("½").replace(",", ".") or 0) + (0.5 if n.endswith("½") else 0) for n in nombres)
-        borne = borne + valeur if ajout and borne is not None else valeur
+        valeurs = [float(n.rstrip("½").replace(",", ".") or 0) + (0.5 if n.endswith("½") else 0)
+                   for n in re.findall(NOMBRE_COUT, plage)]
+        neuves = (min(valeurs), max(valeurs))
+        borne = (borne[0] + neuves[0], borne[1] + neuves[1]) if ajout and borne is not None else neuves
     return borne
 
 
@@ -9338,9 +9345,160 @@ def cmd_symboles(a, sortie):
     return 1 if any(n not in trouves for n in a.noms) else 0
 
 
+# --- ordre : l'enchaînement entre projets (chantier ORD) ---------------------
+
+CODE_MD = re.compile(r"`([^`]+)`")
+
+
+def tables_ordre(lignes):
+    """{titre de section `## `: [cellules de chaque ligne de table, en-tête et séparateur ôtés]} de la source."""
+    tables, titre, entete = {}, None, False
+    for l in lignes:
+        if l.startswith("## "):
+            titre, entete = l[3:].strip(), True
+            tables[titre] = []
+        elif titre and l.startswith("|"):
+            if not entete and not SEPARATEUR.match(l):
+                tables[titre].append(cellules_de(l, "%s, %s" % (titre, l.split("|")[1].strip())))
+            entete = False
+    return tables
+
+
+def todo_projet(racine, sortie):
+    """Les lignes de TODO d'un projet équipé, de chaque fichier de sa ligne **chantiers possibles** (comme
+    `imprimer_todo`) ; un fichier introuvable ou une table cassée : une `GARDE:`, le fichier sauté."""
+    possibles = CHANTIERS_POSSIBLES.search(lire(os.path.join(racine, "CHANTIER.md")))
+    rangs = []
+    for chemin in chemins_md(possibles.group(1), racine) if possibles else []:
+        try:
+            rangs += todo_du_fichier(lignes_du_projet(racine, chemin, "fichier"))
+        except (Absent, ValueError) as e:
+            sortie.write("GARDE: %s — %s\n" % (os.path.basename(racine), e))
+    return rangs
+
+
+def nom_todo(chantier, code):
+    """Le nom d'un chantier de TODO sans son code : `🔴📅 \\`SCH\\` — Un numéro…` → `Un numéro…` ;
+    `La course et la marge (\\`C2\\`)` → `La course et la marge`."""
+    nom = re.sub(r"\s*\([^()]*`%s`[^()]*\)" % re.escape(code), "", chantier)
+    return re.sub(r"^[^`\w]*`%s`\s*—\s*" % re.escape(code), "", nom).strip()
+
+
+def pas_ordre(code, cle, todo, nom_src, cout_src):
+    """Le pas `code` du projet `cle` : sa ligne de TODO (celle dont la cellule « Chantier » le porte entre accents
+    graves), sinon le nom et le coût de la source (`✅ …` : fait). Rend (pas, origine, garde) — origine `todo`,
+    `source` ou `None` ; garde : le texte d'une `GARDE:`, ou `None`."""
+    lignes = [r for r in todo if code in CODE_MD.findall(r[1])]
+    if len(lignes) > 1:
+        return None, None, "pas %s (%s) : %d lignes de TODO le portent (n° %s)" % (
+            code, cle, len(lignes), ", ".join(r[0] for r in lignes))
+    if lignes:
+        _, chantier, _, cout, depend = lignes[0]
+        phase, score, _, _ = phase_todo(cout)
+        bornes = bornes_cout(cout)
+        return {"projet": cle, "code": code, "nom": nom_todo(chantier, code), "phase": phase,
+                "score": int(score) if score and score.isdigit() else None,
+                "bas": bornes and bornes[0], "haut": bornes and bornes[1], "fait": False,
+                "note": cout_src, "depend": depend}, "todo", None
+    fait = cout_src.startswith("✅")
+    bornes = None if fait else bornes_cout(cout_src)
+    if not fait and bornes is None:
+        return None, None, "pas %s (%s) : ni dans la TODO, ni un coût en fiches dans la source" % (code, cle)
+    return {"projet": cle, "code": code, "nom": nom_src or None, "phase": None, "score": None,
+            "bas": bornes and bornes[0], "haut": bornes and bornes[1], "fait": fait,
+            "note": cout_src if fait else "", "depend": ""}, "source", None
+
+
+def somme_ordre(liste):
+    """Le nombre de pas, et la somme de leurs fiches (bas, haut) — les pas chiffrés seuls."""
+    chiffres = [p for p in liste if p["haut"] is not None]
+    return {"pas": len(liste), "bas": sum(p["bas"] for p in chiffres), "haut": sum(p["haut"] for p in chiffres)}
+
+
+def totaux_ordre(pas):
+    """Les totaux des pas : nombre, fiches (bas, haut) des pas chiffrés, codes faits et non chiffrés, et par projet."""
+    return dict(somme_ordre(pas), faits=[p["code"] for p in pas if p["fait"]],
+                non_chiffres=[p["code"] for p in pas if not p["fait"] and p["haut"] is None],
+                par_projet={cle: somme_ordre([p for p in pas if p["projet"] == cle])
+                            for cle in dict.fromkeys(p["projet"] for p in pas)})
+
+
+def projets_ordre(lignes, racine, sortie):
+    """({clé: lignes de TODO}, [clés absentes]) des projets de la source : un dossier cherché à côté de `racine`,
+    `.` étant `racine` même ; absent ou non équipé, une `GARDE:` le dit, et ses pas seront sautés."""
+    todos, absents = {}, []
+    for cle, dossier in lignes:
+        dossier = (CODE_MD.findall(dossier) or [dossier])[0]
+        chemin = racine if dossier == "." else os.path.join(os.path.dirname(racine), dossier)
+        if equipe(chemin):
+            todos[cle] = todo_projet(chemin, sortie)
+        else:
+            absents.append(cle)
+            sortie.write("GARDE: projet %s absent : %s n'est pas un dossier équipé à côté du kit ; ses pas sautés\n"
+                         % (cle, dossier))
+    return todos, absents
+
+
+def chemin_ordre(lignes, todos, absents):
+    """(pas, origines, gardes) des lignes du chemin, dans l'ordre : le pas d'un projet absent est sauté, celui d'un
+    projet inconnu ou introuvable donne le texte d'une `GARDE:`."""
+    pas, origines, gardes = [], [], []
+    for cellules in lignes:
+        code, cle, nom_src, cout_src = (cellules + ["", "", ""])[:4]
+        code = (CODE_MD.findall(code) or [code])[0]
+        if cle in absents:
+            continue
+        if cle not in todos:
+            gardes.append("pas %s : projet %s inconnu de la table « Les projets »" % (code, cle))
+            continue
+        un, origine, garde = pas_ordre(code, cle, todos[cle], nom_src, cout_src)
+        if garde:
+            gardes.append(garde)
+        else:
+            pas.append(un)
+            origines.append(origine)
+    return pas, origines, gardes
+
+
+def cmd_ordre(a, sortie):
+    """`vlp.py ordre --json` : lire la source (`context AI/ordre.md` du kit, ou `--source`), puis la TODO de chaque
+    projet qu'elle nomme — cherché à côté du projet de la source, `.` étant ce projet même —, et écrire
+    `ordre/donnees.json` à côté de la source : un pas par ligne du chemin, puis les totaux. Projet absent : une
+    `GARDE:`, ses pas sautés. Un pas introuvable sans coût dans la source, ou porté par deux lignes : une `GARDE:`
+    qui le nomme, rien d'écrit, sort 1."""
+    if not a.json:
+        sortie.write("GARDE: ordre sans --json : seule l'écriture des données existe (la page : ORD3)\n")
+        return 1
+    source = os.path.abspath(a.source or os.path.join(KIT, "context AI", "ordre.md"))
+    tables = tables_ordre(lignes_gardees(source, "source de l'ordre"))
+    racine = trouver(os.path.dirname(source))
+    if racine is None:
+        sortie.write("GARDE: %s n'est dans aucun projet équipé (pas de CHANTIER.md au-dessus)\n" % source)
+        return 1
+    todos, absents = projets_ordre(tables.get("Les projets", []), racine, sortie)
+    chemin_pas = tables.get("Le chemin conseillé", [])
+    pas, origines, gardes = chemin_ordre(chemin_pas, todos, absents)
+    for g in gardes:
+        sortie.write("GARDE: %s\n" % g)
+    if gardes:
+        return 1
+    cibles = {cle: CODE_MD.findall(codes) for cle, codes in tables.get("La cible", [])}
+    donnees = {"source": os.path.basename(source), "cible": cibles, "projets_absents": absents,
+               "pas": pas, "totaux": totaux_ordre(pas)}
+    dossier = os.path.join(os.path.dirname(source), "ordre")
+    os.makedirs(dossier, exist_ok=True)
+    with open(os.path.join(dossier, "donnees.json"), "w", encoding="utf-8", newline="\n") as f:
+        json.dump(donnees, f, ensure_ascii=False, indent=1)
+        f.write("\n")
+    sortie.write("ORDRE %d pas · %d trouvés en TODO · %d pris de la source\n"
+                 % (len(chemin_pas), origines.count("todo"), origines.count("source")))
+    sortie.write("ÉCRIT %s\n" % os.path.join(dossier, "donnees.json"))
+    return 0
+
+
 def options_outils(sous):
     """Déclarer les lignes de commande des outils : `bac`, `claude`, `kit-essai`, `symboles`, `rapide`, `lancables`,
-    `commiter`."""
+    `commiter`, `ordre`."""
     la = sous.add_parser("lancables")
     la.add_argument("fichier")
     la.add_argument("--max", type=int, default=2)
@@ -9358,6 +9516,9 @@ def options_outils(sous):
     sy = sous.add_parser("symboles")
     sy.add_argument("fichier")
     sy.add_argument("noms", nargs="*")
+    od = sous.add_parser("ordre")
+    od.add_argument("--json", action="store_true")
+    od.add_argument("--source")
     ra = sous.add_parser("rapide")
     ra.add_argument("motif")
     ra.add_argument("--racine")
@@ -9617,7 +9778,7 @@ PAR_ARGUMENTS = {
     "forme": cmd_forme, "ouverts": cmd_ouverts, "pause": cmd_pause, "plan": cmd_plan, "matin": cmd_matin, "fusionner": cmd_fusionner,
     "sante": cmd_sante, "symboles": cmd_symboles, "compteur": cmd_compteur, "carte": cmd_carte,
     "rapide": cmd_rapide, "essai": cmd_essai, "lancables": cmd_lancables,
-    "commiter": cmd_commiter,
+    "commiter": cmd_commiter, "ordre": cmd_ordre,
 }
 
 

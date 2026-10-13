@@ -573,6 +573,13 @@ Sous-commandes :
   ceci rend sa ligne du jour. Avec des noms, leurs seules lignes, dans l'ordre demandé, et `ABSENT <nom>`
   pour un nom introuvable (sort 1). Fichier absent, ou qui ne se lit pas en Python : `GARDE:`, sort 1
   (SYM).
+- `ordre --json [--source S]` — l'enchaînement entre projets (chantier ORD) : lit la source (défaut
+  `context AI/ordre.md` du kit) — ses projets (nom de dossier, cherché à côté du projet de la source ; `.` : ce
+  projet même), sa cible, son chemin —, puis la TODO de chaque projet, et écrit `ordre/donnees.json` à côté de la
+  source : par pas, projet, code, nom, phase, score, fiches (bas, haut), fait, note, dépendance brute ; puis les
+  totaux. Imprime `ORDRE <n> pas · <t> trouvés en TODO · <s> pris de la source` et `ÉCRIT <chemin>`. Projet
+  absent : `GARDE:`, ses pas sautés. Pas ni en TODO ni chiffré par la source, ou porté par deux lignes : `GARDE:`,
+  rien d'écrit, sort 1. Sans `--json` : `GARDE:`, sort 1.
 - `rapide <motif> [--racine R]` — le contrôle rapide d'une fiche du kit, avant la suite entière (VIT23), joué en
   parallèle sous la racine (défaut : le dossier courant) : les groupes de `test-vlp.py` qui portent le motif
   (`--seul`), pyright sur les `.py` ajoutés, modifiés ou neufs depuis `HEAD`, et `sante --cliquet`. Une ligne
