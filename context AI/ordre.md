@@ -39,8 +39,8 @@ fait. Pour un pas que la TODO connaît, la dernière colonne est une note, montr
 | `NWT` | kit | le kit voit un worktree | ✅ fait le 2026-10-12 |
 | `SYM` | kit | un outil qui lit le .as | ✅ fait le 2026-10-12 |
 | `MD4` | md | les notes justes | ✅ clos le 2026-10-13 (chantier NOT) |
-| `MD5` | md | | avant `C2` |
-| `MD7` | md | | avant `C2` |
+| `MD5` | md | les 11 consignes reprises | ✅ fait le 2026-10-13 (sans fiche) |
+| `MD7` | md | les six outils à la place des deux stratégies | ✅ fait le 2026-10-13 (sans fiche) |
 | `MD2` | md | | |
 | `MD3` | md | | |
 | `C2` | md | | |
