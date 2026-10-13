@@ -4968,6 +4968,67 @@ def tester_ordre_classement():
 groupe(tester_ordre_classement)
 
 
+def donnees_de_page(html_):
+    """Le bloc JSON d'une page d'ordre, relu ; `{}` sans bloc."""
+    m = re.search(r'<script type="application/json" id="donnees">(.*?)</script>', html_, re.S)
+    return json.loads(m.group(1)) if m else {}
+
+
+def tester_ordre_page():
+    """ORD3 : `vlp.py ordre` sans `--json` écrit la page d'un projet temporaire — le JSON embarqué égal au fichier de
+    données, chaque pas et chaque total, aucune balise de gabarit restante, un `</script>` de TODO échappé, ses joints
+    et la ligne `FILES` ; un gabarit à deux balises, une GARDE ; Chart.js à la même URL que `vlp.js`."""
+    source_page = ORDRE_SOURCE.replace("| Clé | Dossier |\n|---|---|\n| k | `.` |\n| a | `autre` |",
+                                       "| Clé | Dossier | Nom |\n|---|---|---|\n| k | `.` | Le kit |\n| a | `autre` | |") \
+        + "\n## Le jugement\n\n- `A1` d'abord, puis\n  le reste.\n\n## Les décisions\n\n- **K1** avant tout.\n"
+    with tempfile.TemporaryDirectory() as t:
+        kit, autre = os.path.join(t, "kit"), os.path.join(t, "autre")
+        for racine, todo in ((kit, "| 1 | `K1` — le premier </script> | apporte | **V1 · score 15 (5 × 3)** · 2 à 3 fiches | — |"),
+                             (autre, "| 7 | Le pont (`A1`) | apporte | **V2 · score 9 (3 × 3)** · 4 fiches | `K1` |")):
+            ecrire(os.path.join(racine, "CHANTIER.md"), "# Chantier\n\n- **chantiers possibles** : `ctx/etat.md`\n")
+            ecrire(os.path.join(racine, "ctx", "etat.md"), "## TODO\n\n| # | Chantier | Apporte | Coût | Dépend de |\n"
+                                                           "|---|---|---|---|---|\n%s\n" % todo)
+        source = os.path.join(kit, "ctx", "ordre.md")
+        ecrire(source, source_page)
+        code, s = appel(["ordre", "--source", source])
+        dossier = os.path.join(kit, "ctx", "ordre")
+        donnees = json.load(open(os.path.join(dossier, "donnees.json"), encoding="utf-8"))
+        page = lire(os.path.join(dossier, "ordre.html")) if os.path.isfile(os.path.join(dossier, "ordre.html")) else ""
+        joints = sorted(n for n in os.listdir(dossier) if n.startswith("vlp."))
+        double = os.path.join(t, "double.html")
+        ecrire(double, "<données><données>")
+        avant, mod.GABARIT_ORDRE = mod.GABARIT_ORDRE, double
+        try:
+            garde = appel(["ordre", "--source", source])
+        finally:
+            mod.GABARIT_ORDRE = avant
+    embarque = donnees_de_page(page)
+    verifier("ORD3 : ordre sans --json écrit la page et ses joints, puis la ligne FILES",
+             code == 0 and "\nPAGE " in s and "\nFILES {" in s and '"vlp.css"' in s and joints == ["vlp.css", "vlp.js"],
+             (s, joints))
+    verifier("ORD3 : la page porte les données entières — chaque pas, dans l'ordre, et chaque total",
+             embarque == donnees and [p["code"] for p in embarque["pas"]] == ["K9", "K1", "A1", "A2"]
+             and embarque["totaux"]["par_niveau"]["obligatoire"] == {"pas": 2, "bas": 6.0, "haut": 7.0}
+             and [p["nom"] for p in embarque["projets"]] == ["Le kit", "a"], embarque)
+    verifier("ORD3 : la prose de la source en HTML, puce continuée comprise, et la piste du projet de la source",
+             embarque and embarque["prose"]["Le jugement"] == ['<span class="mono">A1</span> d\'abord, puis le reste.']
+             and embarque["prose"]["Les décisions"] == ["<strong>K1</strong> avant tout."]
+             and [x["code"] for x in embarque["piste"]] == ["K1"], embarque and embarque["prose"])
+    restes = re.findall(r"<[^\x00-\x7f]|<…", page)
+    verifier("ORD3 : aucune balise de gabarit restante, un </script> de TODO échappé, la page saine, la balise viewport",
+             page and not restes and page.count("</script>") == lire(mod.GABARIT_ORDRE).count("</script>")
+             and mod.defauts_page(page) == [] and '<meta name="viewport"' in page, restes)
+    verifier("ORD3 : un gabarit à deux balises, une GARDE qui le dit, sort 1",
+             garde[0] == 1 and "la balise <données> y est 2 fois, attendu 1" in garde[1], garde)
+    url = re.compile(r"https://cdn\.jsdelivr\.net/npm/chart\.js@[^\"']+")
+    verifier("ORD3 : Chart.js chargé à la même URL que vlp.js",
+             url.findall(lire(mod.GABARIT_ORDRE)) == url.findall(lire(os.path.join(mod.KIT, "templates", "vlp.js")))
+             and len(url.findall(lire(mod.GABARIT_ORDRE))) == 1, url.findall(lire(mod.GABARIT_ORDRE)))
+
+
+groupe(tester_ordre_page)
+
+
 def tester_suite_verte():
     """`cocher` dans le kit exige la suite entière verte sur le code du jour (VIT11) : refus sans empreinte, accord
     après `noter_suite_verte`, refus après un script touché — pas après `sante-base.json` ni `context AI/` ; un projet

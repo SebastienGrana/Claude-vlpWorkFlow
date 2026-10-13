@@ -1,0 +1,318 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>L'enchaînement entre projets</title>
+<!--
+  GABARIT — la page d'enchaînement entre projets (chantier ORD). `vlp.py ordre` la remplit :
+  il pose les données dans le bloc JSON d'id « donnees », et rien d'autre ; le script plus bas
+  bâtit chaque section à partir d'elles. La source est `context AI/ordre.md` du kit ; la page
+  écrite va dans `context AI/ordre/`, ignoré par Git (Cairn est privé).
+  Part de vlp.css et vlp.js, joints. L'URL de Chart.js est la même que dans vlp.js : un test
+  compare les deux copies.
+-->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="vlp.css">
+<style>
+  /* Une couleur par projet, dans l'ordre de la source : le premier bleu, le deuxième vert, le troisième ambre. */
+  :root { --p0:#2f5d8c; --p1:#2d7551; --p2:#8f5a0f; }
+  [data-p="0"] { --c:var(--p0); --cl:rgba(47,93,140,.32); }
+  [data-p="1"] { --c:var(--p1); --cl:rgba(45,117,81,.32); }
+  [data-p="2"] { --c:var(--p2); --cl:rgba(143,90,15,.32); }
+  h3 { margin:0; font-size:1.1rem; font-weight:700; }
+  .intro { margin:0; color:var(--doux); }
+  .code { font-family:"IBM Plex Mono",monospace; letter-spacing:normal; font-weight:500; }
+  .liste-nue { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:.5rem; }
+  .liste-nue li { background:var(--surface); border:1px solid var(--line); border-radius:3px; padding:.55rem .8rem; }
+
+  /* obligatoire, conseillé, à la marge : un bloc par projet, une ligne par niveau */
+  .niveaux-cle { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:.35rem; }
+  .projets { display:flex; flex-direction:column; gap:1rem; }
+  .projet-bloc { background:var(--surface); border:1px solid var(--line); border-left:6px solid var(--c); border-radius:3px; padding:.7rem .9rem; display:flex; flex-direction:column; gap:.55rem; }
+  .projet-bloc h3 { color:var(--c); }
+  .niv { margin:0; display:grid; grid-template-columns:1.4rem minmax(0,1fr); column-gap:.4rem; }
+  .pastille { display:inline-block; width:1rem; height:1rem; border-radius:2px; background:var(--c, var(--p0)); vertical-align:-.15rem; margin-right:.4rem; }
+  .niv .pastille { margin:.3rem 0 0; }
+  .pastille.claire { background:var(--cl, rgba(47,93,140,.32)); }
+  .pastille.vide { background:transparent; border:2px solid var(--line-fort); }
+
+  /* les vagues : une vague commence quand la précédente a livré */
+  .vagues { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:1.25rem; }
+  .vague { border-left:3px solid var(--line-fort); padding:.1rem 0 .1rem 1rem; display:flex; flex-direction:column; gap:.5rem; }
+  .items { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:.45rem; }
+  .item { display:grid; grid-template-columns:minmax(0,1fr); gap:.1rem; background:var(--surface); border:1px solid var(--line); border-left:6px solid var(--c); border-radius:3px; padding:.55rem .8rem; }
+  .item.con { border-left-color:var(--cl); }
+  .item.marge { border-left-style:dashed; border-left-color:var(--line-fort); }
+  .item .projet { font-size:.9375rem; font-weight:700; color:var(--c); }
+  .item .detail { font-size:1rem; color:var(--doux); }
+  @media (min-width:40rem) { .item { grid-template-columns:9rem minmax(0,1fr); column-gap:.9rem; } .item .projet { grid-row:1 / 3; } }
+
+  /* le coût */
+  .legende { display:flex; flex-wrap:wrap; gap:.4rem 1.3rem; margin:0; padding:0; list-style:none; font-size:.9375rem; color:var(--doux); }
+  .cadre-graphique { position:relative; background:var(--surface); border:1px solid var(--line); border-radius:3px; padding:.6rem; }
+  .totaux { margin:0; display:flex; flex-direction:column; gap:.3rem; }
+  .avertir { margin:0; background:var(--surface); border:1px solid var(--line); border-left:6px solid var(--bloque); border-radius:3px; padding:.6rem .8rem; }
+  details.chiffres > summary { cursor:pointer; color:var(--accent); font-size:1rem; }
+  details.chiffres .tableau { margin-top:.6rem; }
+  .tableau table { border-collapse:collapse; font-size:.9375rem; }
+  .tableau th, .tableau td { text-align:left; padding:.3rem .5rem; border-bottom:1px solid var(--line); vertical-align:top; }
+  .sources { margin:0; padding-left:1.2rem; display:flex; flex-direction:column; gap:.35rem; font-size:1rem; }
+</style>
+
+<div class="page">
+  <header>
+    <div class="eyebrow" id="eyebrow"></div>
+    <h1>L'enchaînement entre projets</h1>
+    <p>Dans quel ordre avancer, ce qui est obligatoire, ce qui peut attendre, et ce que coûte chaque pas — calculé des TODO de chaque projet, à chaque clôture.</p>
+  </header>
+
+  <section aria-labelledby="t-conseil">
+    <h2 id="t-conseil">Mon conseil, en un coup d'œil</h2>
+    <ul class="liste-nue" id="conseil"></ul>
+  </section>
+
+  <section aria-labelledby="t-niveaux">
+    <h2 id="t-niveaux">Obligatoire, conseillé, à la marge</h2>
+    <ul class="niveaux-cle">
+      <li><span class="pastille"></span><strong>Obligatoire</strong> : la cible, et tout ce dont elle dépend, de proche en proche.</li>
+      <li><span class="pastille claire"></span><strong>Conseillé</strong> : la phase V1 de sa TODO, sans que la cible l'attende.</li>
+      <li><span class="pastille vide"></span><strong>À la marge</strong> : la V2 et l'après, qui peuvent attendre.</li>
+    </ul>
+    <div class="projets" id="projets"></div>
+  </section>
+
+  <section aria-labelledby="t-vagues">
+    <h2 id="t-vagues">L'enchaînement, vague par vague</h2>
+    <p class="intro">Une vague commence quand la précédente a livré ce dont elle dépend. Dans une même vague, les cartes se font dans l'ordre que tu veux, ou en même temps. Bord plein : obligatoire ; clair : conseillé ; tirets : à la marge.</p>
+    <ol class="vagues" id="vagues"></ol>
+  </section>
+
+  <section aria-labelledby="t-cout">
+    <h2 id="t-cout">Ce que coûte chaque pas, estimé</h2>
+    <p class="intro">Chaque barre est un pas, de haut en bas dans l'ordre conseillé. Sa longueur : le haut de l'estimé, en fiches. Sous son nom : les fiches et les dollars, arrondis ; le détail en passant dessus, ou dans le tableau.</p>
+    <ul class="legende" id="legende"></ul>
+    <h3>Le chemin conseillé</h3>
+    <div class="cadre-graphique" id="cadre-chemin"><canvas id="graphique-chemin" role="img" aria-label="Fiches estimées de chaque pas du chemin conseillé, dans l'ordre"></canvas></div>
+    <div class="totaux" id="totaux-chemin"></div>
+    <h3 id="titre-piste"></h3>
+    <div class="cadre-graphique" id="cadre-piste"><canvas id="graphique-piste" role="img" aria-label="Fiches estimées de chaque ligne de la TODO du kit, dans l'ordre"></canvas></div>
+    <div class="totaux" id="totaux-piste"></div>
+    <p class="avertir" id="avertir"></p>
+    <details class="chiffres">
+      <summary>Les chiffres, en tableau</summary>
+      <div class="tableau">
+        <table>
+          <thead><tr><th>Niveau</th><th>Projet</th><th>Pas</th><th>Fiches</th><th>Coût estimé</th></tr></thead>
+          <tbody id="tableau"></tbody>
+        </table>
+      </div>
+    </details>
+  </section>
+
+  <section aria-labelledby="t-decisions" id="section-decisions">
+    <h2 id="t-decisions">Tes décisions, prises en compte</h2>
+    <ul class="liste-nue" id="decisions"></ul>
+  </section>
+
+  <section aria-labelledby="t-ouvert" id="section-ouvert">
+    <h2 id="t-ouvert">Pas encore tranché</h2>
+    <ul class="liste-nue" id="ouvert"></ul>
+  </section>
+
+  <section aria-labelledby="t-sources">
+    <h2 id="t-sources">D'où viennent les chiffres</h2>
+    <ul class="sources" id="sources"></ul>
+  </section>
+
+  <footer>
+    <span id="pied"></span>
+    <span>Estimés, non mesurés</span>
+  </footer>
+</div>
+
+<script type="application/json" id="donnees"><données></script>
+<script>
+(() => {
+  const D = JSON.parse(document.getElementById("donnees").textContent);
+  const NIVEAUX = ["obligatoire", "conseillé", "à la marge"];
+  const CLASSE = { "obligatoire": "", "conseillé": "con", "à la marge": "marge" };
+  const PASTILLE = { "obligatoire": "pastille", "conseillé": "pastille claire", "à la marge": "pastille vide" };
+  const rang = {};
+  const nomProjet = {};
+  D.projets.forEach((p, i) => { rang[p.cle] = String(i); nomProjet[p.cle] = p.nom; });
+  const racine = D.projets.find((p) => p.racine);
+  const $ = (id) => document.getElementById(id);
+
+  // le texte d'une donnée : `code` en chasse fixe, le reste en texte brut
+  const texte = (e, s) => String(s).split("`").forEach((m, i) => {
+    if (!m) return;
+    if (i % 2) { const c = document.createElement("span"); c.className = "code"; c.textContent = m; e.append(c); }
+    else e.append(m);
+  });
+  const el = (tag, cls, s) => {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (s !== undefined && s !== null) texte(e, s);
+    return e;
+  };
+  const majuscule = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+
+  const nombre = (v) => v.toLocaleString("fr-FR", { maximumFractionDigits: 1 });
+  const euros = (v) => v.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  // un nombre, une plage ne se coupent jamais : espaces insécables autour d'eux
+  const NB = " ";
+  const plage = (bas, haut, f) => bas === haut ? f(haut) : f(bas) + NB + "à" + NB + f(haut);
+  const fiches = (x) => plage(x.bas, x.haut, nombre) + NB + (x.haut <= 1 ? "fiche" : "fiches");
+  const dollars = (x) => !D.taux ? "" : "≈" + NB + plage(x.bas, x.haut, (v) => euros(v * D.taux.usd)) + NB + "$";
+  const ronds = (x) => !D.taux ? "" : "≈" + NB + plage(x.bas, x.haut, (v) => Math.round(v * D.taux.usd)) + NB + "$";
+  const joindre = (...morceaux) => morceaux.filter(Boolean).join(" · ");
+  const detail = (x) => x.fait ? x.note : x.haut === null ? joindre("non chiffré", x.note) : joindre(fiches(x), dollars(x), x.note);
+  const coupe = (s, n) => !s ? "" : s.length <= n ? s : s.slice(0, n - 1).trimEnd() + "…";
+  const brut = (s) => String(s || "").replace(/`/g, "");
+  // l'étiquette sous la barre reste courte (dollars arrondis, sans la note) : une longue se coupe à gauche (vu à AVL9) ;
+  // sur un écran étroit, le code seul en tête, les fiches seules dessous
+  const etroit = window.matchMedia("(max-width: 40rem)").matches;
+  const court = (x) => x.fait ? "✅ fait" : x.haut === null ? "non chiffré" : etroit ? fiches(x) : joindre(fiches(x), ronds(x));
+  const etiquette = (x, phase) => etroit ? [joindre(x.code, phase), court(x)]
+    : [coupe(joindre(x.code, brut(x.nom)), 30), joindre(phase, court(x))];
+
+  // l'en-tête et le conseil
+  $("eyebrow").textContent = joindre("vlp", D.projets.map((p) => p.nom).join(", "), "le " + D.date);
+  (D.prose["Le jugement"] || []).forEach((h) => { const li = document.createElement("li"); li.innerHTML = h; $("conseil").append(li); });
+
+  // un bloc par projet, une ligne par niveau
+  D.projets.forEach((pr) => {
+    const bloc = el("div", "projet-bloc");
+    bloc.dataset.p = rang[pr.cle];
+    bloc.append(el("h3", "", pr.nom));
+    NIVEAUX.forEach((n) => {
+      const siens = D.pas.filter((p) => p.projet === pr.cle && p.niveau === n);
+      if (!siens.length) return;
+      const ligne = el("p", "niv");
+      ligne.append(el("span", PASTILLE[n]));
+      const corps = el("span");
+      corps.append(el("strong", "", majuscule(n)), " : ");
+      siens.forEach((p, i) => { if (i) corps.append(" "); corps.append(el("span", "code", p.code + (p.fait ? " ✅" : ""))); });
+      ligne.append(corps);
+      bloc.append(ligne);
+    });
+    $("projets").append(bloc);
+  });
+
+  // les vagues, chacune dans l'ordre du chemin
+  const nbVagues = Math.max(-1, ...D.pas.map((p) => p.vague)) + 1;
+  for (let v = 0; v < nbVagues; v++) {
+    const li = el("li", "vague");
+    li.append(el("h3", "", "Vague " + v));
+    const items = el("ul", "items");
+    D.pas.filter((p) => p.vague === v).forEach((p) => {
+      const it = el("li", ("item " + CLASSE[p.niveau]).trim());
+      it.dataset.p = rang[p.projet];
+      it.append(el("span", "projet", nomProjet[p.projet]));
+      const titre = el("span");
+      titre.append(el("span", "code", p.code));
+      if (p.nom) { titre.append(" "); texte(titre, p.nom); }
+      it.append(titre, el("span", "detail", joindre(p.niveau, detail(p))));
+      items.append(it);
+    });
+    li.append(items);
+    $("vagues").append(li);
+  }
+
+  // la légende, les totaux, l'avertissement, le tableau
+  D.projets.forEach((p) => { const li = el("li"); li.dataset.p = rang[p.cle]; li.append(el("span", "pastille"), p.nom); $("legende").append(li); });
+  const somme = (liste) => liste.filter((x) => x.haut !== null).reduce((t, x) => ({ bas: t.bas + x.bas, haut: t.haut + x.haut }), { bas: 0, haut: 0 });
+  const ligneTotal = (libelle, liste) => {
+    const t = somme(liste);
+    const sans = liste.filter((x) => !x.fait && x.haut === null).map((x) => x.code);
+    const faits = liste.filter((x) => x.fait).length;
+    const div = el("div");
+    div.append(el("strong", "", libelle), " : " + joindre(liste.length + NB + "pas", t.haut ? fiches(t) : "", t.haut ? dollars(t) : "",
+      faits ? faits + NB + "fait" + (faits > 1 ? "s" : "") : "", sans.length ? "non chiffrés : " + sans.join(", ") : ""));
+    return div;
+  };
+  NIVEAUX.forEach((n) => { const siens = D.pas.filter((p) => p.niveau === n); if (siens.length) $("totaux-chemin").append(ligneTotal(majuscule(n), siens)); });
+  if (racine && D.piste.length) {
+    $("titre-piste").textContent = racine.nom + " : sa TODO, dans son ordre";
+    [...new Set(D.piste.map((x) => x.phase || "sans phase"))].forEach((ph) =>
+      $("totaux-piste").append(ligneTotal(majuscule(ph), D.piste.filter((x) => (x.phase || "sans phase") === ph))));
+  } else {
+    $("titre-piste").hidden = true;
+    $("cadre-piste").hidden = true;
+  }
+  $("avertir").textContent = D.taux
+    ? "⚠️ Des estimés, pas des mesures : ≈" + NB + euros(D.taux.usd) + NB + "$ la fiche, la moyenne de " + D.taux.clos
+      + NB + "chantiers clos du kit. Compte large."
+    : "⚠️ Aucun prix par fiche mesuré : les fiches seules, sans dollars.";
+  const ligneTableau = (niveau, projet, x) => {
+    const tr = document.createElement("tr");
+    [niveau, projet, x.code, x.fait ? "fait" : x.haut === null ? "non chiffré" : fiches(x), x.fait ? x.note : dollars(x) || "—"]
+      .forEach((c) => tr.append(el("td", "", c)));
+    $("tableau").append(tr);
+  };
+  D.pas.forEach((p) => ligneTableau(p.niveau, nomProjet[p.projet], p));
+  if (racine) D.piste.forEach((x) => ligneTableau(joindre(x.phase, x.score !== null ? "score " + x.score : ""), racine.nom, x));
+
+  // décisions, pas encore tranché, sources
+  [["Les décisions", "decisions", "section-decisions"], ["Pas encore tranché", "ouvert", "section-ouvert"]].forEach(([t, id, sec]) => {
+    const items = D.prose[t] || [];
+    if (!items.length) { $(sec).hidden = true; return; }
+    items.forEach((h) => { const li = document.createElement("li"); li.innerHTML = h; $(id).append(li); });
+  });
+  D.projets.forEach((p) => $("sources").append(el("li", "", p.nom + " : sa TODO, " + p.todo.map((c) => "`" + c + "`").join(", ") + ".")));
+  D.projets_absents.forEach((c) => $("sources").append(el("li", "", "⚠️ Projet absent de cette machine : " + c + " ; ses pas sont sautés.")));
+  $("sources").append(el("li", "", D.taux ? "Le prix d'une fiche : `vlp.py` sur la feuille de route du kit, " + D.taux.clos + NB + "chantiers clos." : "Le prix d'une fiche : aucun chantier clos au prix mesuré."));
+  $("sources").append(el("li", "", "L'ordre, la cible et le jugement : `" + D.source + "`, la source suivie par Git."));
+  $("pied").textContent = "Écrite le " + D.date + " par vlp.py ordre";
+
+  // les deux graphiques : Chart.js chargé à la demande ; sans lui, le tableau s'ouvre à leur place
+  const ouvrirTableau = () => {
+    document.querySelectorAll(".cadre-graphique").forEach((c) => { c.hidden = true; });
+    document.querySelector("details.chiffres").open = true;
+  };
+  const script = document.createElement("script");
+  script.src = "https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js";
+  script.addEventListener("error", () => { console.warn("graphique — Chart.js n'a pas chargé ; le tableau s'ouvre à la place"); ouvrirTableau(); });
+  script.addEventListener("load", () => {
+    const style = getComputedStyle(document.documentElement);
+    const jeton = (n) => style.getPropertyValue(n).trim();
+    const couleurs = [0, 1, 2].map((i) => jeton("--p" + i));
+    const claires = ["rgba(47,93,140,.32)", "rgba(45,117,81,.32)", "rgba(143,90,15,.32)"];
+    const Chart = window.Chart;
+    Chart.defaults.font.family = '"Atkinson Hyperlegible", system-ui, sans-serif';
+    Chart.defaults.font.size = 15;
+    const animation = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? false : { duration: 400 };
+    const dessiner = (id, pas, libelle, teinte) => {
+      const toile = $(id);
+      toile.parentElement.style.height = (pas.length * 46 + 70) + "px";
+      return new Chart(toile, {
+        type: "bar",
+        data: { labels: pas.map(libelle), datasets: [{ label: "fiches", data: pas.map((x) => x.haut ?? 0), backgroundColor: pas.map(teinte) }] },
+        options: {
+          indexAxis: "y", maintainAspectRatio: false, animation,
+          plugins: {
+            legend: { display: false },
+            tooltip: { titleFont: { size: 15 }, bodyFont: { size: 15 }, callbacks: { label: (c) => brut(detail(pas[c.dataIndex])) } },
+          },
+          scales: {
+            x: { beginAtZero: true, suggestedMax: Math.max(1, ...pas.map((x) => x.haut ?? 0)) + 1,
+                 ticks: { color: jeton("--doux"), stepSize: 1, maxRotation: 0 }, grid: { color: jeton("--line") },
+                 title: { display: true, text: "fiches, estimées", color: jeton("--doux") } },
+            y: { ticks: { color: jeton("--texte"), autoSkip: false }, grid: { display: false } },
+          },
+        },
+      });
+    };
+    (document.fonts ? document.fonts.ready : Promise.resolve())
+      .then(() => {
+        dessiner("graphique-chemin", D.pas, (x) => etiquette(x, ""),
+          (x) => x.niveau === "obligatoire" ? couleurs[rang[x.projet]] : claires[rang[x.projet]]);
+        if (racine && D.piste.length) {
+          dessiner("graphique-piste", D.piste, (x) => etiquette(x, x.phase),
+            (x) => x.phase === "V1" ? couleurs[rang[racine.cle]] : claires[rang[racine.cle]]);
+        }
+      })
+      .catch((e) => { console.warn("graphique — dessin raté :", e); ouvrirTableau(); });
+  });
+  document.head.append(script);
+})();
+</script>
+<script src="vlp.js"></script>

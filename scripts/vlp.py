@@ -573,13 +573,15 @@ Sous-commandes :
   ceci rend sa ligne du jour. Avec des noms, leurs seules lignes, dans l'ordre demandé, et `ABSENT <nom>`
   pour un nom introuvable (sort 1). Fichier absent, ou qui ne se lit pas en Python : `GARDE:`, sort 1
   (SYM).
-- `ordre --json [--source S]` — l'enchaînement entre projets (chantier ORD) : lit la source (défaut
-  `context AI/ordre.md` du kit) — ses projets (nom de dossier, cherché à côté du projet de la source ; `.` : ce
-  projet même), sa cible, son chemin —, puis la TODO de chaque projet, et écrit `ordre/donnees.json` à côté de la
-  source : par pas, projet, code, nom, phase, score, fiches (bas, haut), fait, note, dépendance brute ; puis les
-  totaux. Imprime `ORDRE <n> pas · <t> trouvés en TODO · <s> pris de la source` et `ÉCRIT <chemin>`. Projet
-  absent : `GARDE:`, ses pas sautés. Pas ni en TODO ni chiffré par la source, ou porté par deux lignes : `GARDE:`,
-  rien d'écrit, sort 1. Sans `--json` : `GARDE:`, sort 1. Puis le classement (ORD2) : obligatoire, la cible et ce
+- `ordre [--json] [--source S]` — l'enchaînement entre projets (chantier ORD) : lit la source (défaut
+  `context AI/ordre.md` du kit) — ses projets (clé, dossier cherché à côté du projet de la source — `.` : ce
+  projet même —, nom montré), sa cible, son chemin, sa prose en puces —, puis la TODO de chaque projet, et écrit
+  `ordre/donnees.json` à côté de la source : par pas, projet, code, nom, phase, score, fiches (bas, haut), fait,
+  note, dépendance brute ; puis les totaux, la TODO du projet de la source, le prix d'une fiche de ses clos.
+  Imprime `ORDRE <n> pas · <t> trouvés en TODO · <s> pris de la source` et `ÉCRIT <chemin>`. Sans `--json`, aussi
+  `ordre/ordre.html` (ORD3), le gabarit `templates/ordre.html` et ses données en un bloc JSON, puis ses joints :
+  `PAGE <chemin>` et la ligne `FILES`, comme `page`. Projet absent : `GARDE:`, ses pas sautés. Pas ni en TODO ni
+  chiffré par la source, ou porté par deux lignes : `GARDE:`, rien d'écrit, sort 1. Puis le classement (ORD2) : obligatoire, la cible et ce
   dont elle dépend de proche en proche — codes entre accents graves et numéros de ligne de la colonne « Dépend
   de », plus les dépendances ajoutées de la source ; conseillé, `V1` ; à la marge, `V2` et `après` ; un niveau
   forcé de la source l'emporte. Les vagues : `graphlib.TopologicalSorter`. Ligne `CLASSEMENT <o> obligatoires · <c>

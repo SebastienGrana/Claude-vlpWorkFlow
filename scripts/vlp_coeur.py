@@ -9347,9 +9347,6 @@ def cmd_symboles(a, sortie):
 
 # --- ordre : l'enchaînement entre projets (chantier ORD) ---------------------
 
-CODE_MD = re.compile(r"`([^`]+)`")
-
-
 def tables_ordre(lignes):
     """{titre de section `## `: [cellules de chaque ligne de table, en-tête et séparateur ôtés]} de la source."""
     tables, titre, entete = {}, None, False
@@ -9365,16 +9362,58 @@ def tables_ordre(lignes):
 
 
 def todo_projet(racine, sortie):
-    """Les lignes de TODO d'un projet équipé, de chaque fichier de sa ligne **chantiers possibles** (comme
-    `imprimer_todo`) ; un fichier introuvable ou une table cassée : une `GARDE:`, le fichier sauté."""
+    """(lignes de TODO, chemins lus) d'un projet équipé, de chaque fichier de sa ligne **chantiers possibles**
+    (comme `imprimer_todo`) ; un fichier introuvable ou une table cassée : une `GARDE:`, le fichier sauté."""
     possibles = CHANTIERS_POSSIBLES.search(lire(os.path.join(racine, "CHANTIER.md")))
-    rangs = []
+    rangs, lus = [], []
     for chemin in chemins_md(possibles.group(1), racine) if possibles else []:
         try:
             rangs += todo_du_fichier(lignes_du_projet(racine, chemin, "fichier"))
+            lus.append(chemin)
         except (Absent, ValueError) as e:
             sortie.write("GARDE: %s — %s\n" % (os.path.basename(racine), e))
-    return rangs
+    return rangs, lus
+
+
+def prose_ordre(lignes):
+    """{titre de section `## `: [HTML de chaque puce]} de la source : une puce commence par `- `, ses lignes
+    indentées la continuent ; le HTML par `cellule_md` (accents graves, gras, liens)."""
+    prose, titre = {}, None
+    for l in lignes:
+        if l.startswith("## "):
+            titre = l[3:].strip()
+        elif titre and l.startswith("- "):
+            prose.setdefault(titre, []).append(l[2:].strip())
+        elif titre in prose and l.startswith("  ") and l.strip():
+            prose[titre][-1] += " " + l.strip()
+    return {t: [cellule_md(p) for p in puces] for t, puces in prose.items()}
+
+
+def piste_ordre(todo):
+    """Les lignes de la TODO du projet de la source, dans son ordre : code (le premier entre accents graves,
+    sinon `n° <numéro>`), nom, phase, score et fiches (bas, haut) — le second graphique de la page."""
+    piste = []
+    for numero, chantier, _, cout, _ in todo:
+        codes = CODE.findall(chantier)
+        phase, score, _, _ = phase_todo(cout)
+        bornes = bornes_cout(cout)
+        piste.append({"code": codes[0] if codes else "n° %s" % numero,
+                      "nom": nom_todo(chantier, codes[0]) if codes else chantier.strip(), "phase": phase,
+                      "score": int(score) if score and score.isdigit() else None,
+                      "bas": bornes and bornes[0], "haut": bornes and bornes[1], "fait": False, "note": ""})
+    return piste
+
+
+def taux_ordre(racine):
+    """{usd, clos} : le prix d'une fiche au prix mesuré des chantiers clos du projet (celui de `taux_jour`),
+    arrondi au cent ; `None` sans feuille de route ou sans clos au prix mesuré."""
+    page = page_clos(racine)
+    if not os.path.isfile(page):
+        return None
+    _, n_fiches, n_clos, usd, fiches_usd = moyenne_clos(lire(page))
+    if not n_fiches or usd is None:
+        return None
+    return {"usd": round(usd_par_fiche(usd, fiches_usd), 2), "clos": n_clos}
 
 
 def nom_todo(chantier, code):
@@ -9388,7 +9427,7 @@ def pas_ordre(code, cle, todo, nom_src, cout_src):
     """Le pas `code` du projet `cle` : sa ligne de TODO (celle dont la cellule « Chantier » le porte entre accents
     graves), sinon le nom et le coût de la source (`✅ …` : fait). Rend (pas, origine, garde) — origine `todo`,
     `source` ou `None` ; garde : le texte d'une `GARDE:`, ou `None`."""
-    lignes = [r for r in todo if code in CODE_MD.findall(r[1])]
+    lignes = [r for r in todo if code in CODE.findall(r[1])]
     if len(lignes) > 1:
         return None, None, "pas %s (%s) : %d lignes de TODO le portent (n° %s)" % (
             code, cle, len(lignes), ", ".join(r[0] for r in lignes))
@@ -9448,8 +9487,8 @@ def deps_todo(p, pas, numeros):
     """(pas dont `p` dépend, nombre hors du chemin, gardes, illisible) lus dans sa cellule « Dépend de » : les codes
     entre accents graves (un autre projet compris), et les numéros de ligne de la TODO de son projet."""
     brut = p["depend"].strip()
-    codes = CODE_MD.findall(brut)
-    nombres = re.findall(r"(?<![\w-])\d+(?![\w-])", CODE_MD.sub("", brut))
+    codes = CODE.findall(brut)
+    nombres = re.findall(r"(?<![\w-])\d+(?![\w-])", CODE.sub("", brut))
     deps, hors, gardes = [], 0, []
     for code in codes:
         trouves = pas_du_code(code, p["projet"], pas)
@@ -9472,7 +9511,7 @@ def ajouts_ordre(lignes, pas, sautes):
     ajouts, gardes = {}, []
     for cellules in lignes:
         code, depend, pourquoi = (cellules + ["", ""])[:3]
-        code, depend = (CODE_MD.findall(code) or [code])[0], CODE_MD.findall(depend)
+        code, depend = (CODE.findall(code) or [code])[0], CODE.findall(depend)
         if code in sautes or sautes.intersection(depend):
             continue
         porteurs = pas_du_code(code, None, pas)
@@ -9490,7 +9529,7 @@ def forces_ordre(lignes, pas, sautes):
     forces, gardes = {}, []
     for cellules in lignes:
         code, niveau, pourquoi = (cellules + ["", ""])[:3]
-        code = (CODE_MD.findall(code) or [code])[0]
+        code = (CODE.findall(code) or [code])[0]
         if code in sautes:
             continue
         porteurs = pas_du_code(code, None, pas)
@@ -9595,19 +9634,22 @@ def classer_ordre(pas, tables, cibles, numeros, sautes):
 
 
 def projets_ordre(lignes, racine, sortie):
-    """({clé: lignes de TODO}, [clés absentes]) des projets de la source : un dossier cherché à côté de `racine`,
+    """({clé: lignes de TODO}, [clés absentes], [projets présents : clé, nom, TODO lues, racine ou non]) des
+    projets de la source — `| clé | dossier | nom |`, le nom facultatif : un dossier cherché à côté de `racine`,
     `.` étant `racine` même ; absent ou non équipé, une `GARDE:` le dit, et ses pas seront sautés."""
-    todos, absents = {}, []
-    for cle, dossier in lignes:
-        dossier = (CODE_MD.findall(dossier) or [dossier])[0]
+    todos, absents, infos = {}, [], []
+    for cellules in lignes:
+        cle, dossier, nom = (cellules + ["", ""])[:3]
+        dossier = (CODE.findall(dossier) or [dossier])[0]
         chemin = racine if dossier == "." else os.path.join(os.path.dirname(racine), dossier)
         if equipe(chemin):
-            todos[cle] = todo_projet(chemin, sortie)
+            todos[cle], lus = todo_projet(chemin, sortie)
+            infos.append({"cle": cle, "nom": nom.strip() or cle, "todo": lus, "racine": dossier == "."})
         else:
             absents.append(cle)
             sortie.write("GARDE: projet %s absent : %s n'est pas un dossier équipé à côté du kit ; ses pas sautés\n"
                          % (cle, dossier))
-    return todos, absents
+    return todos, absents, infos
 
 
 def chemin_ordre(lignes, todos, absents):
@@ -9616,7 +9658,7 @@ def chemin_ordre(lignes, todos, absents):
     pas, origines, gardes = [], [], []
     for cellules in lignes:
         code, cle, nom_src, cout_src = (cellules + ["", "", ""])[:4]
-        code = (CODE_MD.findall(code) or [code])[0]
+        code = (CODE.findall(code) or [code])[0]
         if cle in absents:
             continue
         if cle not in todos:
@@ -9631,34 +9673,58 @@ def chemin_ordre(lignes, todos, absents):
     return pas, origines, gardes
 
 
-def cmd_ordre(a, sortie):
-    """`vlp.py ordre --json` : lire la source (`context AI/ordre.md` du kit, ou `--source`), puis la TODO de chaque
-    projet qu'elle nomme — cherché à côté du projet de la source, `.` étant ce projet même —, et écrire
-    `ordre/donnees.json` à côté de la source : un pas par ligne du chemin, puis les totaux. Projet absent : une
-    `GARDE:`, ses pas sautés. Un pas introuvable sans coût dans la source, ou porté par deux lignes : une `GARDE:`
-    qui le nomme, rien d'écrit, sort 1."""
-    if not a.json:
-        sortie.write("GARDE: ordre sans --json : seule l'écriture des données existe (la page : ORD3)\n")
+GABARIT_ORDRE = os.path.join(os.path.dirname(GABARIT), "ordre.html")
+BALISE_ORDRE = "<données>"   # la seule balise du gabarit : un seul bloc JSON, jamais citée ailleurs
+
+
+def page_ordre(dossier, donnees, sortie):
+    """Écrire `ordre.html` dans `dossier` : le gabarit `GABARIT_ORDRE`, sa balise remplacée par `donnees` en JSON
+    (`<` échappé, rien ne ferme le script) ; puis ses joints, et la ligne `FILES` comme `vlp.py page`. Balise
+    absente ou en double : une `GARDE:`, rien d'écrit, sort 1."""
+    gabarit = lire(GABARIT_ORDRE)
+    if gabarit.count(BALISE_ORDRE) != 1:
+        sortie.write("GARDE: %s : la balise %s y est %d fois, attendu 1\n"
+                     % (GABARIT_ORDRE, BALISE_ORDRE, gabarit.count(BALISE_ORDRE)))
         return 1
+    page = os.path.join(dossier, "ordre.html")
+    with open(page, "w", encoding="utf-8", newline="\n") as f:
+        f.write(gabarit.replace(BALISE_ORDRE, json.dumps(donnees, ensure_ascii=False).replace("<", "\\u003c")))
+    sortie.write("PAGE %s\n" % page)
+    sortie.write(ligne_files(recopier_joints(dossier), page))
+    return 0
+
+
+def cmd_ordre(a, sortie):
+    """`vlp.py ordre [--json]` : lire la source (`context AI/ordre.md` du kit, ou `--source`), puis la TODO de
+    chaque projet qu'elle nomme — cherché à côté du projet de la source, `.` étant ce projet même —, et écrire
+    `ordre/donnees.json` à côté de la source : un pas par ligne du chemin, puis les totaux ; sans `--json`, aussi
+    la page `ordre/ordre.html` et ses joints (`page_ordre`). Projet absent : une `GARDE:`, ses pas sautés. Un pas
+    introuvable sans coût dans la source, ou porté par deux lignes : une `GARDE:` qui le nomme, rien d'écrit,
+    sort 1."""
     source = os.path.abspath(a.source or os.path.join(KIT, "context AI", "ordre.md"))
-    tables = tables_ordre(lignes_gardees(source, "source de l'ordre"))
+    lignes = lignes_gardees(source, "source de l'ordre")
+    tables = tables_ordre(lignes)
     racine = trouver(os.path.dirname(source))
     if racine is None:
         sortie.write("GARDE: %s n'est dans aucun projet équipé (pas de CHANTIER.md au-dessus)\n" % source)
         return 1
-    todos, absents = projets_ordre(tables.get("Les projets", []), racine, sortie)
+    todos, absents, infos = projets_ordre(tables.get("Les projets", []), racine, sortie)
     chemin_pas = tables.get("Le chemin conseillé", [])
     pas, origines, gardes = chemin_ordre(chemin_pas, todos, absents)
-    cibles = {cle: CODE_MD.findall(codes) for cle, codes in tables.get("La cible", []) if cle not in absents}
-    sautes = {(CODE_MD.findall(c[0]) or [c[0]])[0] for c in chemin_pas if len(c) > 1 and c[1] in absents}
+    cibles = {cle: CODE.findall(codes) for cle, codes in tables.get("La cible", []) if cle not in absents}
+    sautes = {(CODE.findall(c[0]) or [c[0]])[0] for c in chemin_pas if len(c) > 1 and c[1] in absents}
     vagues, compte, gardes_classement = classer_ordre(pas, tables, cibles, numeros_todo(todos), sautes) \
         if not gardes else ([], {}, [])
     for g in gardes + gardes_classement:
         sortie.write("GARDE: %s\n" % g)
     if gardes or gardes_classement:
         return 1
-    donnees = {"source": os.path.basename(source), "cible": cibles, "projets_absents": absents,
-               "pas": pas, "vagues": vagues, "dependances": compte, "totaux": totaux_ordre(pas)}
+    donnees = {"source": os.path.relpath(source, racine).replace("\\", "/"),
+               "date": __import__("datetime").date.today().isoformat(), "projets": infos, "cible": cibles,
+               "projets_absents": absents, "pas": pas, "vagues": vagues, "dependances": compte,
+               "totaux": totaux_ordre(pas), "prose": prose_ordre(lignes),
+               "piste": piste_ordre(next((todos[p["cle"]] for p in infos if p["racine"]), [])),
+               "taux": taux_ordre(racine)}
     dossier = os.path.join(os.path.dirname(source), "ordre")
     os.makedirs(dossier, exist_ok=True)
     with open(os.path.join(dossier, "donnees.json"), "w", encoding="utf-8", newline="\n") as f:
@@ -9672,7 +9738,7 @@ def cmd_ordre(a, sortie):
                  % (tuple(par_niveau[n]["pas"] for n in NIVEAUX_ORDRE)
                     + (len(vagues), compte["todo"], compte["source"], compte["hors"])))
     sortie.write("ÉCRIT %s\n" % os.path.join(dossier, "donnees.json"))
-    return 0
+    return 0 if a.json else page_ordre(dossier, donnees, sortie)
 
 
 def options_outils(sous):

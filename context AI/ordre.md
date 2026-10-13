@@ -9,14 +9,14 @@
 
 ## Les projets
 
-Une clé courte par projet, et son dossier, cherché à côté du kit. `.` : le projet de ce fichier
-même, où qu'il soit cloné.
+Une clé courte par projet, son dossier, cherché à côté du kit, et le nom montré sur la page. `.` :
+le projet de ce fichier même, où qu'il soit cloné ; sa TODO a son propre graphique.
 
-| Clé | Dossier |
-|---|---|
-| kit | `.` |
-| cairn | `Cairn-VlpLib` |
-| md | `MapDecorator` |
+| Clé | Dossier | Nom |
+|---|---|---|
+| kit | `.` | Le kit |
+| cairn | `Cairn-VlpLib` | Cairn |
+| md | `MapDecorator` | MapDecorator |
 
 ## La cible
 
@@ -90,6 +90,19 @@ Un pas sans phase dans une TODO (un chantier clos) qui n'est pas obligatoire : l
   avant la V2.
 - Dès maintenant, si tu veux : MapDecorator prépare ce qui n'attend pas Cairn — ses notes justes,
   son ménage, puis `C2`.
-- Pas encore tranché : obligatoire ou conseillé, ce classement est à corriger si tu vois
-  autrement ; `SCH` et `PRS` sont à cadrer ; deux séances en même temps, le kit et Cairn, vont plus
-  vite mais demandent deux fois plus de suivi.
+
+## Les décisions
+
+Ce que l'utilisateur a tranché, et que le chemin applique ; une puce par décision, sa date.
+
+- `NWT` avant `FAM11` : le kit doit voir un worktree avant que Cairn y joue (page du 2026-10-12).
+- Les notes justes de MapDecorator avant de coder : `MD4`, `MD5` et `MD7` avant `C2` (page du
+  2026-10-12).
+- Toute la V1 de MapDecorator avant sa V2 (page du 2026-10-12).
+
+## Pas encore tranché
+
+- Obligatoire ou conseillé : ce classement est à corriger si tu vois autrement.
+- `SCH` et `PRS` sont à cadrer.
+- Deux séances en même temps, le kit et Cairn, vont plus vite mais demandent deux fois plus de
+  suivi.
