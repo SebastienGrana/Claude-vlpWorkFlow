@@ -28,7 +28,7 @@ La parade tient en une phrase :
   les chantiers possibles, questionne, découpe en fiches, puis rend la main.
 - **Exécution** — `/vlp:tache R1`, `/clear`, `/vlp:tache R2`… Une fiche par
   session, jamais deux. `/vlp:enchainer` les joue à la suite, chacune dans un
-  sous-agent neuf (`agents`), ou plusieurs à la fois (`agents ensemble`) : le chef ne lit ni socle ni fiche.
+  sous-agent neuf (`agents`) : le chef ne lit ni socle ni fiche.
 - **Clôture** — à la dernière case cochée, le chantier est marqué clos et ne se
   rejoue plus.
 

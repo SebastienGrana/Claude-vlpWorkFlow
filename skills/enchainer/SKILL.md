@@ -1,6 +1,6 @@
 ---
-description: Enchaîne les fiches du chantier courant une après l'autre, dans cette session (par défaut), chacune sur une page blanche (agents, un sous-agent neuf ; agents ensemble, plusieurs à la fois) ou en session neuve par script (clear), jusqu'à un arrêt prévu ou le plafond
-argument-hint: (rien) | agents | agents ensemble [N] | clear | <alias> | <alias> agents
+description: Enchaîne les fiches du chantier courant une après l'autre, dans cette session (par défaut), chacune sur une page blanche (agents, un sous-agent neuf) ou en session neuve par script (clear), jusqu'à un arrêt prévu ou le plafond
+argument-hint: (rien) | agents | clear | <alias> | <alias> agents
 allowed-tools: Bash(python3:*), Bash(py:*), Bash(echo:*), PowerShell(python3:*), PowerShell(py:*), PowerShell(echo:*), Skill, Agent, Artifact
 ---
 
@@ -22,13 +22,6 @@ lancé par l'outil `Agent` en arrière-plan, jamais deux fiches dans le même
 contexte. Tu ne lis ni le socle ni les fiches : le sous-agent les lit
 lui-même. Le contrat qu'il rend (`FAITE`, `RETOUR`, `BLOQUÉE`) est dans
 `${CLAUDE_PLUGIN_ROOT}/enchainement.md`, qui fait foi.
-
-**`agents ensemble [N]` : plusieurs sous-agents à la fois**, `N` au plus (2 par défaut), jamais deux sur
-les mêmes fichiers — tout est `agents`, sauf qui démarre. Au départ, puis après chaque fiche commitée ou
-arrêtée : `<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" lancables "<fichier de fiches courant>" --max <N> --tourne <les lancées ni commitées ni arrêtées>` ;
-démarre **dans un seul message** chaque fiche listée (étape 3, points 0 et 1), le plafond de 5 comptant
-toutes les lancées. Un `RETOUR` ou un `BLOQUÉE` : plus aucun départ ; attends la fin de celles qui
-tournent, puis l'étape 3 bis. `LANCABLES aucune` et rien ne tourne : la série est finie.
 
 **`clear` dans les arguments (`main clear` se lit `clear`) : une session neuve
 par fiche, par script.**

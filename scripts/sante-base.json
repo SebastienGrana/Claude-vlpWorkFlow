@@ -441,7 +441,7 @@
 {"fichier": "scripts/test-vlp.py", "fonction": "tester_ena3_lancables", "empreinte": "f4796166c211", "ast": [4, 2, 0, 17, 3], "doc": true},
 {"fichier": "scripts/test-vlp.py", "fonction": "tester_ena3_lancables.fiche", "empreinte": "2147bf54d9f2", "ast": [1, 0, 3, 1, 0], "doc": true},
 {"fichier": "scripts/test-vlp.py", "fonction": "tester_ena4_commiter", "empreinte": "99a6f2c7e794", "ast": [4, 4, 0, 22, 3], "doc": true},
-{"fichier": "scripts/test-vlp.py", "fonction": "tester_ena5_ensemble", "empreinte": "be291e1b5122", "ast": [3, 1, 0, 33, 2], "doc": true},
+{"fichier": "scripts/test-vlp.py", "fonction": "tester_ena5_ensemble", "empreinte": "d7d129e05704", "ast": [3, 1, 0, 33, 2], "doc": true},
 {"fichier": "scripts/test-vlp.py", "fonction": "tester_ena5_ensemble.deux", "empreinte": "251b691b33a1", "ast": [1, 0, 2, 2, 0], "doc": true},
 {"fichier": "scripts/test-vlp.py", "fonction": "tester_essais_de", "empreinte": "46dc1bd97c01", "ast": [3, 4, 0, 29, 2], "doc": true},
 {"fichier": "scripts/test-vlp.py", "fonction": "tester_essais_hors_bac", "empreinte": "0f0589628ccb", "ast": [3, 3, 0, 26, 2], "doc": true},

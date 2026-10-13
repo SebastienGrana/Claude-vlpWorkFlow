@@ -21,9 +21,9 @@
     <p>/vlp:enchainer agents ne bloque plus la conversation ; le parallèle repart au chantier ISO (recul du 2026-10-12)</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="bloquee"></span><span></span><span data-etat="faite"></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="bloquee"></span><span></span><span data-etat="faite"></span><span data-etat="faite"></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">9 fiches · 5 faites · bloquée : ENA5</p>
+    <p class="mono" style="margin-top:.5rem">9 fiches · 6 faites · bloquée : ENA5</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -66,16 +66,17 @@
         <details><summary><span class="titre">Le 2e refus d'une même famille arrête, et le compteur compte juste</span><span class="etat">Faite</span></summary>
         <span class="note">refus 1 (relecteur) corrigé à la racine : les refus soldés sur leur ligne (Refus soldés), la tête lue à sa place ; cycle refus 1, puis refus 2 · dernier : motif un, puis refus 3 ; 5 textes libres piégés (non résolu deux fois, · refus 2, · refus 9, un blocage) sans effet ; 3 mutants attrapés (1 écart chacun) ; rapide vert (8 contrôles, pyright 0 erreur sur 5 fichiers, cliquet tenu) ; suite entière OK (sortie 0, 369 s)</span></details>
         <span class="cout mono">≈65,9M (65 940 234) · 350 tours · 35,94 $</span></li>
-      <li class="fiche"><span class="gauche"><span class="id">ENA8</span></span>
-        <details><summary><span class="titre">Débrancher l'option parallèle, garder son code</span><span class="etat">À lancer</span></summary>
-        <span class="note">L'option agents ensemble retirée du texte, son code gardé pour ISO ; après ENA7</span></details></li>
-      <li class="fiche" data-attend><span class="gauche"><span class="id">ENA9</span></span>
-        <details><summary><span class="titre">Le bilan d'ENA, et dans quels cas un bilan vaut le coup</span><span class="etat">Après ENA8</span></summary>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">ENA8</span></span>
+        <details><summary><span class="titre">Débrancher l'option parallèle, garder son code</span><span class="etat">Faite</span></summary>
+        <span class="note">grep « agents ensemble » ou « lancables » : 0 dans SKILL.md, 0 dans README.md ; « add -A » : 0, comme avant ; lancables répond (LANCABLES ENA5) ; valider : 0 écart sur 9 fiches ; rapide vert (5 contrôles, pyright 0 erreur sur 2 fichiers, cliquet tenu) ; suite entière OK (sortie 0)</span></details>
+        <span class="cout mono">≈24,4M (24 444 517) · 133 tours · 19,38 $</span></li>
+      <li class="fiche"><span class="gauche"><span class="id">ENA9</span></span>
+        <details><summary><span class="titre">Le bilan d'ENA, et dans quels cas un bilan vaut le coup</span><span class="etat">À lancer</span></summary>
         <span class="note">Le bilan : ce qu'on avait mal fait, ce qu'on fait mieux, ce qu'on fera ; et quand un bilan vaut le coup (dès le moindre accroc ? la taille ?) ; page à cartes et résumé à écouter ; après ENA8</span></details>
         <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
     </ul>
-    <p class="mono cout-hors">Hors fiches : ≈10,4M (10 394 136) · 62 tours · 7,23 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈127,6M (127 593 896) · 758 tours · 62,88 $</p>
+    <p class="mono cout-hors">Hors fiches : ≈4,4M (4 437 570) · 26 tours · 2,81 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈146,1M (146 081 847) · 855 tours · 77,84 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

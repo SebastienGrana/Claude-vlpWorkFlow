@@ -94,7 +94,10 @@ Sous-commandes :
   motifs, noms à extension, entrées de la racine du projet ; dans le doute, ils se croisent), dans l'ordre, `N` au plus (2 par défaut) et avant la
   première `(visuel)` ; une `(visuel)` ou une fiche sans ligne **Fichiers** ne part que seule ; aucune,
   `LANCABLES aucune` (ENA3). `--tourne` : les fiches déjà lancées — comptées dans `N`, leurs fichiers pris, non
-  rendues (ENA5). Fichier absent ou `N` < 1 : `GARDE:`, sort 1.
+  rendues (ENA5). Fichier absent ou `N` < 1 : `GARDE:`, sort 1. Aucune commande ne l'appelle (ENA8) : lire la ligne
+  **Fichiers** laisse des trous — 5 refus d'ENA5, le dernier : deux fiches qui nomment un même dossier, l'une sans
+  barre finale, partent ensemble (4 paires sur les vraies données du kit ; page « Recul sur ENA5 », 2026-10-12).
+  La sous-commande reste, ses tests et `context AI/119-ena5-juge.py` aussi, pour le chantier `ISO`, qui tranchera.
 - `commiter <fichier> <fiche>` — coche la fiche si sa case est vide (comme `cocher`, ses gardes comprises), ajoute à
   l'index ses seuls chemins changés — ceux de sa ligne **Fichiers**, un dossier valant ce qu'il contient, un motif
   (`*`, `{a,b}`, ENA5) ce qu'il prend — et les communs, le fichier de fiches et `scripts/sante-base.json`, puis

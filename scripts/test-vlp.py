@@ -3289,9 +3289,9 @@ groupe(tester_ena4_commiter)
 
 
 def tester_ena5_ensemble():
-    """ENA5 : `agents ensemble [N]` — `lancables --tourne` réserve les fichiers des lancées et retient ce qui dépend
-    d'une cochée encore en relecture ; `releve` lit les motifs d'une ligne **Fichiers** ; le chef commite par
-    `commiter`, jamais `git add -A`."""
+    """ENA5 : `lancables --tourne` réserve les fichiers des lancées et retient ce qui dépend d'une cochée encore en
+    relecture ; `releve` lit les motifs d'une ligne **Fichiers** ; le chef commite par `commiter`, jamais
+    `git add -A`, et ne propose plus `agents ensemble [N]` (ENA8 : le code reste, pour le chantier `ISO`)."""
     vus = [mod.releve(c, n) for c, n in (
         ("skills/a/SKILL.md", "skills/*/SKILL.md"), ("skills/b/SKILL.md", "skills/{a,b}/SKILL.md"),
         ("skills/c/SKILL.md", "skills/{a,b}/SKILL.md"), ("src/y/z.py", "src/"), ("srcx/w.py", "src"),
@@ -3375,9 +3375,9 @@ def tester_ena5_ensemble():
              rates == [], repr(rates))
     chef = io.open(os.path.join(RACINE, "skills", "enchainer", "SKILL.md"), encoding="utf-8").read()
     plat = " ".join(chef.split())
-    verifier("ENA5 : le chef commite par commiter, jamais git add -A, et lance par lancables --tourne",
-             'vlp.py" commiter "' in plat and "git add -A" not in plat and "--tourne" in plat
-             and "agents ensemble [N]" in plat, "skills/enchainer/SKILL.md")
+    verifier("ENA8 : le chef commite par commiter, jamais git add -A, et ne propose plus agents ensemble ni lancables",
+             'vlp.py" commiter "' in plat and "git add -A" not in plat and "agents ensemble" not in plat
+             and "lancables" not in plat, "skills/enchainer/SKILL.md")
 
 
 groupe(tester_ena5_ensemble)
