@@ -4,7 +4,9 @@
 <!--
   GABARIT — la page d'enchaînement entre projets (chantier ORD). `vlp.py ordre` la remplit :
   il pose les données dans le bloc JSON d'id « donnees », et rien d'autre ; le script plus bas
-  bâtit chaque section à partir d'elles. La source est `context AI/ordre.md` du kit ; la page
+  bâtit chaque section à partir d'elles, puis les remplace par le document « donnees » de la
+  collection « ordre » de la base db, s'il existe (ORD4) ; sinon il dit pourquoi il garde les siennes. Les
+  données s'affichent en texte, jamais en HTML : la base peut être écrite par d'autres que le script. La source est `context AI/ordre.md` du kit ; la page
   écrite va dans `context AI/ordre/`, ignoré par Git (Cairn est privé).
   Part de vlp.css et vlp.js, joints. L'URL de Chart.js est la même que dans vlp.js : un test
   compare les deux copies.
@@ -62,6 +64,7 @@
     <div class="eyebrow" id="eyebrow"></div>
     <h1>L'enchaînement entre projets</h1>
     <p>Dans quel ordre avancer, ce qui est obligatoire, ce qui peut attendre, et ce que coûte chaque pas — calculé des TODO de chaque projet, à chaque clôture.</p>
+    <p class="intro" id="origine"></p>
   </header>
 
   <section aria-labelledby="t-conseil">
@@ -131,20 +134,22 @@
 <script type="application/json" id="donnees"><données></script>
 <script>
 (() => {
-  const D = JSON.parse(document.getElementById("donnees").textContent);
+  // les données embarquées à la génération ; la base `db` (collection ordre, document donnees) les remplace si elle répond
+  const EMBARQUEES = JSON.parse(document.getElementById("donnees").textContent);
+  let D = EMBARQUEES;
   const NIVEAUX = ["obligatoire", "conseillé", "à la marge"];
   const CLASSE = { "obligatoire": "", "conseillé": "con", "à la marge": "marge" };
   const PASTILLE = { "obligatoire": "pastille", "conseillé": "pastille claire", "à la marge": "pastille vide" };
-  const rang = {};
-  const nomProjet = {};
-  D.projets.forEach((p, i) => { rang[p.cle] = String(i); nomProjet[p.cle] = p.nom; });
-  const racine = D.projets.find((p) => p.racine);
+  let rang = {};
+  let nomProjet = {};
+  let racine = null;
   const $ = (id) => document.getElementById(id);
 
-  // le texte d'une donnée : `code` en chasse fixe, le reste en texte brut
-  const texte = (e, s) => String(s).split("`").forEach((m, i) => {
+  // le texte d'une donnée, jamais du HTML : `code` en chasse fixe, **gras** en gras, le reste en texte brut
+  const texte = (e, s) => String(s).split(/(`[^`]+`|\*\*[^*]+\*\*)/).forEach((m) => {
     if (!m) return;
-    if (i % 2) { const c = document.createElement("span"); c.className = "code"; c.textContent = m; e.append(c); }
+    if (m.length > 2 && m.startsWith("`")) { const c = document.createElement("span"); c.className = "code"; c.textContent = m.slice(1, -1); e.append(c); }
+    else if (m.length > 4 && m.startsWith("**")) { const b = document.createElement("strong"); texte(b, m.slice(2, -2)); e.append(b); }
     else e.append(m);
   });
   const el = (tag, cls, s) => {
@@ -166,59 +171,13 @@
   const joindre = (...morceaux) => morceaux.filter(Boolean).join(" · ");
   const detail = (x) => x.fait ? x.note : x.haut === null ? joindre("non chiffré", x.note) : joindre(fiches(x), dollars(x), x.note);
   const coupe = (s, n) => !s ? "" : s.length <= n ? s : s.slice(0, n - 1).trimEnd() + "…";
-  const brut = (s) => String(s || "").replace(/`/g, "");
+  const brut = (s) => String(s || "").replace(/`|\*\*/g, "");
   // l'étiquette sous la barre reste courte (dollars arrondis, sans la note) : une longue se coupe à gauche (vu à AVL9) ;
   // sur un écran étroit, le code seul en tête, les fiches seules dessous
   const etroit = window.matchMedia("(max-width: 40rem)").matches;
   const court = (x) => x.fait ? "✅ fait" : x.haut === null ? "non chiffré" : etroit ? fiches(x) : joindre(fiches(x), ronds(x));
   const etiquette = (x, phase) => etroit ? [joindre(x.code, phase), court(x)]
     : [coupe(joindre(x.code, brut(x.nom)), 30), joindre(phase, court(x))];
-
-  // l'en-tête et le conseil
-  $("eyebrow").textContent = joindre("vlp", D.projets.map((p) => p.nom).join(", "), "le " + D.date);
-  (D.prose["Le jugement"] || []).forEach((h) => { const li = document.createElement("li"); li.innerHTML = h; $("conseil").append(li); });
-
-  // un bloc par projet, une ligne par niveau
-  D.projets.forEach((pr) => {
-    const bloc = el("div", "projet-bloc");
-    bloc.dataset.p = rang[pr.cle];
-    bloc.append(el("h3", "", pr.nom));
-    NIVEAUX.forEach((n) => {
-      const siens = D.pas.filter((p) => p.projet === pr.cle && p.niveau === n);
-      if (!siens.length) return;
-      const ligne = el("p", "niv");
-      ligne.append(el("span", PASTILLE[n]));
-      const corps = el("span");
-      corps.append(el("strong", "", majuscule(n)), " : ");
-      siens.forEach((p, i) => { if (i) corps.append(" "); corps.append(el("span", "code", p.code + (p.fait ? " ✅" : ""))); });
-      ligne.append(corps);
-      bloc.append(ligne);
-    });
-    $("projets").append(bloc);
-  });
-
-  // les vagues, chacune dans l'ordre du chemin
-  const nbVagues = Math.max(-1, ...D.pas.map((p) => p.vague)) + 1;
-  for (let v = 0; v < nbVagues; v++) {
-    const li = el("li", "vague");
-    li.append(el("h3", "", "Vague " + v));
-    const items = el("ul", "items");
-    D.pas.filter((p) => p.vague === v).forEach((p) => {
-      const it = el("li", ("item " + CLASSE[p.niveau]).trim());
-      it.dataset.p = rang[p.projet];
-      it.append(el("span", "projet", nomProjet[p.projet]));
-      const titre = el("span");
-      titre.append(el("span", "code", p.code));
-      if (p.nom) { titre.append(" "); texte(titre, p.nom); }
-      it.append(titre, el("span", "detail", joindre(p.niveau, detail(p))));
-      items.append(it);
-    });
-    li.append(items);
-    $("vagues").append(li);
-  }
-
-  // la légende, les totaux, l'avertissement, le tableau
-  D.projets.forEach((p) => { const li = el("li"); li.dataset.p = rang[p.cle]; li.append(el("span", "pastille"), p.nom); $("legende").append(li); });
   const somme = (liste) => liste.filter((x) => x.haut !== null).reduce((t, x) => ({ bas: t.bas + x.bas, haut: t.haut + x.haut }), { bas: 0, haut: 0 });
   const ligneTotal = (libelle, liste) => {
     const t = somme(liste);
@@ -229,90 +188,178 @@
       faits ? faits + NB + "fait" + (faits > 1 ? "s" : "") : "", sans.length ? "non chiffrés : " + sans.join(", ") : ""));
     return div;
   };
-  NIVEAUX.forEach((n) => { const siens = D.pas.filter((p) => p.niveau === n); if (siens.length) $("totaux-chemin").append(ligneTotal(majuscule(n), siens)); });
-  if (racine && D.piste.length) {
-    $("titre-piste").textContent = racine.nom + " : sa TODO, dans son ordre";
-    [...new Set(D.piste.map((x) => x.phase || "sans phase"))].forEach((ph) =>
-      $("totaux-piste").append(ligneTotal(majuscule(ph), D.piste.filter((x) => (x.phase || "sans phase") === ph))));
-  } else {
-    $("titre-piste").hidden = true;
-    $("cadre-piste").hidden = true;
-  }
-  $("avertir").textContent = D.taux
-    ? "⚠️ Des estimés, pas des mesures : ≈" + NB + euros(D.taux.usd) + NB + "$ la fiche, la moyenne de " + D.taux.clos
-      + NB + "chantiers clos du kit. Compte large."
-    : "⚠️ Aucun prix par fiche mesuré : les fiches seules, sans dollars.";
   const ligneTableau = (niveau, projet, x) => {
     const tr = document.createElement("tr");
     [niveau, projet, x.code, x.fait ? "fait" : x.haut === null ? "non chiffré" : fiches(x), x.fait ? x.note : dollars(x) || "—"]
       .forEach((c) => tr.append(el("td", "", c)));
     $("tableau").append(tr);
   };
-  D.pas.forEach((p) => ligneTableau(p.niveau, nomProjet[p.projet], p));
-  if (racine) D.piste.forEach((x) => ligneTableau(joindre(x.phase, x.score !== null ? "score " + x.score : ""), racine.nom, x));
-
-  // décisions, pas encore tranché, sources
-  [["Les décisions", "decisions", "section-decisions"], ["Pas encore tranché", "ouvert", "section-ouvert"]].forEach(([t, id, sec]) => {
-    const items = D.prose[t] || [];
-    if (!items.length) { $(sec).hidden = true; return; }
-    items.forEach((h) => { const li = document.createElement("li"); li.innerHTML = h; $(id).append(li); });
-  });
-  D.projets.forEach((p) => $("sources").append(el("li", "", p.nom + " : sa TODO, " + p.todo.map((c) => "`" + c + "`").join(", ") + ".")));
-  D.projets_absents.forEach((c) => $("sources").append(el("li", "", "⚠️ Projet absent de cette machine : " + c + " ; ses pas sont sautés.")));
-  $("sources").append(el("li", "", D.taux ? "Le prix d'une fiche : `vlp.py` sur la feuille de route du kit, " + D.taux.clos + NB + "chantiers clos." : "Le prix d'une fiche : aucun chantier clos au prix mesuré."));
-  $("sources").append(el("li", "", "L'ordre, la cible et le jugement : `" + D.source + "`, la source suivie par Git."));
-  $("pied").textContent = "Écrite le " + D.date + " par vlp.py ordre";
+  const VIDES = ["eyebrow", "conseil", "projets", "vagues", "legende", "totaux-chemin", "titre-piste", "totaux-piste",
+    "avertir", "tableau", "decisions", "ouvert", "sources", "pied"];
 
   // les deux graphiques : Chart.js chargé à la demande ; sans lui, le tableau s'ouvre à leur place
+  const graphiques = [];
   const ouvrirTableau = () => {
     document.querySelectorAll(".cadre-graphique").forEach((c) => { c.hidden = true; });
     document.querySelector("details.chiffres").open = true;
   };
+  const dessiner = (id, pas, libelle, teinte) => {
+    const style = getComputedStyle(document.documentElement);
+    const jeton = (n) => style.getPropertyValue(n).trim();
+    const toile = $(id);
+    toile.parentElement.style.height = (pas.length * 46 + 70) + "px";
+    graphiques.push(new window.Chart(toile, {
+      type: "bar",
+      data: { labels: pas.map(libelle), datasets: [{ label: "fiches", data: pas.map((x) => x.haut ?? 0), backgroundColor: pas.map(teinte) }] },
+      options: {
+        indexAxis: "y", maintainAspectRatio: false,
+        animation: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? false : { duration: 400 },
+        plugins: {
+          legend: { display: false },
+          tooltip: { titleFont: { size: 15 }, bodyFont: { size: 15 }, callbacks: { label: (c) => brut(detail(pas[c.dataIndex])) } },
+        },
+        scales: {
+          x: { beginAtZero: true, suggestedMax: Math.max(1, ...pas.map((x) => x.haut ?? 0)) + 1,
+               ticks: { color: jeton("--doux"), stepSize: 1, maxRotation: 0 }, grid: { color: jeton("--line") },
+               title: { display: true, text: "fiches, estimées", color: jeton("--doux") } },
+          y: { ticks: { color: jeton("--texte"), autoSkip: false }, grid: { display: false } },
+        },
+      },
+    }));
+  };
+  const dessinerTout = () => {
+    if (!window.Chart) return;
+    graphiques.splice(0).forEach((g) => g.destroy());
+    const style = getComputedStyle(document.documentElement);
+    const couleurs = [0, 1, 2].map((i) => style.getPropertyValue("--p" + i).trim());
+    const claires = ["rgba(47,93,140,.32)", "rgba(45,117,81,.32)", "rgba(143,90,15,.32)"];
+    try {
+      dessiner("graphique-chemin", D.pas, (x) => etiquette(x, ""),
+        (x) => x.niveau === "obligatoire" ? couleurs[rang[x.projet]] : claires[rang[x.projet]]);
+      if (racine && D.piste.length) {
+        dessiner("graphique-piste", D.piste, (x) => etiquette(x, x.phase),
+          (x) => x.phase === "V1" ? couleurs[rang[racine.cle]] : claires[rang[racine.cle]]);
+      }
+    } catch (e) { console.warn("graphique — dessin raté :", e); ouvrirTableau(); }
+  };
+
+  // toute la page depuis D : rejouée telle quelle quand la base répond
+  const rendre = () => {
+    VIDES.forEach((id) => $(id).replaceChildren());
+    rang = {};
+    nomProjet = {};
+    D.projets.forEach((p, i) => { rang[p.cle] = String(i); nomProjet[p.cle] = p.nom; });
+    racine = D.projets.find((p) => p.racine) || null;
+
+    // l'en-tête et le conseil
+    $("eyebrow").textContent = joindre("vlp", D.projets.map((p) => p.nom).join(", "), "le " + D.date);
+    (D.prose["Le jugement"] || []).forEach((h) => $("conseil").append(el("li", "", h)));
+
+    // un bloc par projet, une ligne par niveau
+    D.projets.forEach((pr) => {
+      const bloc = el("div", "projet-bloc");
+      bloc.dataset.p = rang[pr.cle];
+      bloc.append(el("h3", "", pr.nom));
+      NIVEAUX.forEach((n) => {
+        const siens = D.pas.filter((p) => p.projet === pr.cle && p.niveau === n);
+        if (!siens.length) return;
+        const ligne = el("p", "niv");
+        ligne.append(el("span", PASTILLE[n]));
+        const corps = el("span");
+        corps.append(el("strong", "", majuscule(n)), " : ");
+        siens.forEach((p, i) => { if (i) corps.append(" "); corps.append(el("span", "code", p.code + (p.fait ? " ✅" : ""))); });
+        ligne.append(corps);
+        bloc.append(ligne);
+      });
+      $("projets").append(bloc);
+    });
+
+    // les vagues, chacune dans l'ordre du chemin
+    const nbVagues = Math.max(-1, ...D.pas.map((p) => p.vague)) + 1;
+    for (let v = 0; v < nbVagues; v++) {
+      const li = el("li", "vague");
+      li.append(el("h3", "", "Vague " + v));
+      const items = el("ul", "items");
+      D.pas.filter((p) => p.vague === v).forEach((p) => {
+        const it = el("li", ("item " + CLASSE[p.niveau]).trim());
+        it.dataset.p = rang[p.projet];
+        it.append(el("span", "projet", nomProjet[p.projet]));
+        const titre = el("span");
+        titre.append(el("span", "code", p.code));
+        if (p.nom) { titre.append(" "); texte(titre, p.nom); }
+        it.append(titre, el("span", "detail", joindre(p.niveau, detail(p))));
+        items.append(it);
+      });
+      li.append(items);
+      $("vagues").append(li);
+    }
+
+    // la légende, les totaux, l'avertissement, le tableau
+    D.projets.forEach((p) => { const li = el("li"); li.dataset.p = rang[p.cle]; li.append(el("span", "pastille"), p.nom); $("legende").append(li); });
+    NIVEAUX.forEach((n) => { const siens = D.pas.filter((p) => p.niveau === n); if (siens.length) $("totaux-chemin").append(ligneTotal(majuscule(n), siens)); });
+    const piste = !!(racine && D.piste.length);
+    $("titre-piste").hidden = !piste;
+    $("cadre-piste").hidden = !piste;
+    if (piste) {
+      $("titre-piste").textContent = racine.nom + " : sa TODO, dans son ordre";
+      [...new Set(D.piste.map((x) => x.phase || "sans phase"))].forEach((ph) =>
+        $("totaux-piste").append(ligneTotal(majuscule(ph), D.piste.filter((x) => (x.phase || "sans phase") === ph))));
+    }
+    $("avertir").textContent = D.taux
+      ? "⚠️ Des estimés, pas des mesures : ≈" + NB + euros(D.taux.usd) + NB + "$ la fiche, la moyenne de " + D.taux.clos
+        + NB + "chantiers clos du kit. Compte large."
+      : "⚠️ Aucun prix par fiche mesuré : les fiches seules, sans dollars.";
+    D.pas.forEach((p) => ligneTableau(p.niveau, nomProjet[p.projet], p));
+    if (racine) D.piste.forEach((x) => ligneTableau(joindre(x.phase, x.score !== null ? "score " + x.score : ""), racine.nom, x));
+
+    // décisions, pas encore tranché, sources
+    [["Les décisions", "decisions", "section-decisions"], ["Pas encore tranché", "ouvert", "section-ouvert"]].forEach(([t, id, sec]) => {
+      const items = D.prose[t] || [];
+      $(sec).hidden = !items.length;
+      items.forEach((h) => $(id).append(el("li", "", h)));
+    });
+    D.projets.forEach((p) => $("sources").append(el("li", "", p.nom + " : sa TODO, " + p.todo.map((c) => "`" + c + "`").join(", ") + ".")));
+    D.projets_absents.forEach((c) => $("sources").append(el("li", "", "⚠️ Projet absent de cette machine : " + c + " ; ses pas sont sautés.")));
+    $("sources").append(el("li", "", D.taux ? "Le prix d'une fiche : `vlp.py` sur la feuille de route du kit, " + D.taux.clos + NB + "chantiers clos." : "Le prix d'une fiche : aucun chantier clos au prix mesuré."));
+    $("sources").append(el("li", "", "L'ordre, la cible et le jugement : `" + D.source + "`, la source suivie par Git."));
+    $("pied").textContent = "Écrite le " + D.date + " par vlp.py ordre";
+    dessinerTout();
+  };
+
   const script = document.createElement("script");
   script.src = "https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js";
   script.addEventListener("error", () => { console.warn("graphique — Chart.js n'a pas chargé ; le tableau s'ouvre à la place"); ouvrirTableau(); });
   script.addEventListener("load", () => {
-    const style = getComputedStyle(document.documentElement);
-    const jeton = (n) => style.getPropertyValue(n).trim();
-    const couleurs = [0, 1, 2].map((i) => jeton("--p" + i));
-    const claires = ["rgba(47,93,140,.32)", "rgba(45,117,81,.32)", "rgba(143,90,15,.32)"];
-    const Chart = window.Chart;
-    Chart.defaults.font.family = '"Atkinson Hyperlegible", system-ui, sans-serif';
-    Chart.defaults.font.size = 15;
-    const animation = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? false : { duration: 400 };
-    const dessiner = (id, pas, libelle, teinte) => {
-      const toile = $(id);
-      toile.parentElement.style.height = (pas.length * 46 + 70) + "px";
-      return new Chart(toile, {
-        type: "bar",
-        data: { labels: pas.map(libelle), datasets: [{ label: "fiches", data: pas.map((x) => x.haut ?? 0), backgroundColor: pas.map(teinte) }] },
-        options: {
-          indexAxis: "y", maintainAspectRatio: false, animation,
-          plugins: {
-            legend: { display: false },
-            tooltip: { titleFont: { size: 15 }, bodyFont: { size: 15 }, callbacks: { label: (c) => brut(detail(pas[c.dataIndex])) } },
-          },
-          scales: {
-            x: { beginAtZero: true, suggestedMax: Math.max(1, ...pas.map((x) => x.haut ?? 0)) + 1,
-                 ticks: { color: jeton("--doux"), stepSize: 1, maxRotation: 0 }, grid: { color: jeton("--line") },
-                 title: { display: true, text: "fiches, estimées", color: jeton("--doux") } },
-            y: { ticks: { color: jeton("--texte"), autoSkip: false }, grid: { display: false } },
-          },
-        },
-      });
-    };
-    (document.fonts ? document.fonts.ready : Promise.resolve())
-      .then(() => {
-        dessiner("graphique-chemin", D.pas, (x) => etiquette(x, ""),
-          (x) => x.niveau === "obligatoire" ? couleurs[rang[x.projet]] : claires[rang[x.projet]]);
-        if (racine && D.piste.length) {
-          dessiner("graphique-piste", D.piste, (x) => etiquette(x, x.phase),
-            (x) => x.phase === "V1" ? couleurs[rang[racine.cle]] : claires[rang[racine.cle]]);
-        }
-      })
-      .catch((e) => { console.warn("graphique — dessin raté :", e); ouvrirTableau(); });
+    window.Chart.defaults.font.family = '"Atkinson Hyperlegible", system-ui, sans-serif';
+    window.Chart.defaults.font.size = 15;
+    (document.fonts ? document.fonts.ready : Promise.resolve()).then(dessinerTout);
   });
   document.head.append(script);
+
+  // d'où viennent les données affichées : la base, ou l'embarqué et pourquoi
+  const origine = (s) => { $("origine").textContent = s; };
+  const embarque = "Données embarquées à la génération, le " + EMBARQUEES.date;
+  origine(embarque + ".");
+  rendre();
+  const lisible = (d) => !!d && Array.isArray(d.pas) && Array.isArray(d.projets) && Array.isArray(d.piste)
+    && Array.isArray(d.projets_absents) && typeof d.prose === "object" && typeof d.date === "string";
+  const base = async () => {
+    const db = window.claude && window.claude.use ? await window.claude.use("db") : null;
+    if (!db) { origine(embarque + " : la base ne répond pas ici."); return; }
+    db.doc("ordre/donnees").onSnapshot((snap) => {
+      const d = snap.exists ? snap.data() : null;
+      if (lisible(d)) {
+        D = d;
+        origine("Données lues dans la base, écrites le " + d.date + ".");
+      } else {
+        if (d) console.warn("base — document ordre/donnees illisible ; données embarquées gardées");
+        D = EMBARQUEES;
+        origine(embarque + (d ? " : le document de la base est illisible." : " : la base est vide."));
+      }
+      rendre();
+    }, (e) => { console.warn("base — lecture refusée :", e.code, e.message); origine(embarque + " : la base a refusé la lecture."); });
+  };
+  base().catch((e) => { console.warn("base — indisponible :", e); origine(embarque + " : la base ne répond pas ici."); });
 })();
 </script>
 <script src="vlp.js"></script>

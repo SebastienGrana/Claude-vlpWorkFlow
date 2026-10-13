@@ -5010,9 +5010,9 @@ def tester_ordre_page():
              embarque == donnees and [p["code"] for p in embarque["pas"]] == ["K9", "K1", "A1", "A2"]
              and embarque["totaux"]["par_niveau"]["obligatoire"] == {"pas": 2, "bas": 6.0, "haut": 7.0}
              and [p["nom"] for p in embarque["projets"]] == ["Le kit", "a"], embarque)
-    verifier("ORD3 : la prose de la source en HTML, puce continuée comprise, et la piste du projet de la source",
-             embarque and embarque["prose"]["Le jugement"] == ['<span class="mono">A1</span> d\'abord, puis le reste.']
-             and embarque["prose"]["Les décisions"] == ["<strong>K1</strong> avant tout."]
+    verifier("ORD3 : la prose de la source en texte, puce continuée comprise, et la piste du projet de la source",
+             embarque and embarque["prose"]["Le jugement"] == ["`A1` d'abord, puis le reste."]
+             and embarque["prose"]["Les décisions"] == ["**K1** avant tout."]
              and [x["code"] for x in embarque["piste"]] == ["K1"], embarque and embarque["prose"])
     restes = re.findall(r"<[^\x00-\x7f]|<…", page)
     verifier("ORD3 : aucune balise de gabarit restante, un </script> de TODO échappé, la page saine, la balise viewport",
@@ -5027,6 +5027,53 @@ def tester_ordre_page():
 
 
 groupe(tester_ordre_page)
+
+
+CLES_ORDRE_DB = ["source", "date", "projets", "cible", "projets_absents", "pas", "vagues", "dependances", "totaux",
+                 "prose", "piste", "taux"]
+
+
+def tester_ordre_db():
+    """ORD4 : `vlp.py ordre --db` écrit le document de la base — un objet JSON compact, chaque clé que la page lit, sa
+    taille dite face à la limite d'un document `db`, et pas de page ; passé un dixième, un AVERTISSEMENT ; passé la
+    limite, une GARDE, rien d'écrit."""
+    with tempfile.TemporaryDirectory() as t:
+        ecrire(os.path.join(t, "p", "CHANTIER.md"), "# Chantier\n\n- **chantiers possibles** : `ctx/etat.md`\n")
+        ecrire(os.path.join(t, "p", "ctx", "etat.md"), "## TODO\n\n| # | Chantier | Apporte | Coût | Dépend de |\n"
+               "|---|---|---|---|---|\n| 1 | `P1` — pas | a | **V1 · score 9 (3 × 3)** · 1 fiche | — |\n")
+        source = os.path.join(t, "p", "ctx", "ordre.md")
+        ecrire(source, "## Les projets\n\n| Clé | Dossier |\n|---|---|\n| p | `.` |\n\n## La cible\n\n| Projet | Codes |\n"
+               "|---|---|\n| p | `P1` |\n\n## Le chemin conseillé\n\n| Pas | Projet | Nom | Coût |\n|---|---|---|---|\n"
+               "| `P1` | p | | |\n\n## Le jugement\n\n- `P1` d'abord.\n")
+        code, s = appel(["ordre", "--db", "--source", source])
+        chemin = os.path.join(t, "p", "ctx", "ordre", "donnees.json")
+        brut = open(chemin, encoding="utf-8").read()
+        page = os.path.isfile(os.path.join(t, "p", "ctx", "ordre", "ordre.html"))
+        avant = mod.LIMITE_DOC_DB
+        try:
+            mod.LIMITE_DOC_DB = len(brut.encode("utf-8")) * 5
+            dixieme = appel(["ordre", "--db", "--source", source])
+            mod.LIMITE_DOC_DB = 100
+            os.remove(chemin)
+            trop = appel(["ordre", "--db", "--source", source])
+        finally:
+            mod.LIMITE_DOC_DB = avant
+        reecrit = os.path.isfile(chemin)
+    doc = json.loads(brut)
+    taille = len(brut.rstrip("\n").encode("utf-8"))
+    verifier("ORD4 : ordre --db écrit un objet JSON compact, chaque clé que la page lit, sans page",
+             code == 0 and isinstance(doc, dict) and list(doc) == CLES_ORDRE_DB and "\n " not in brut and not page,
+             (s, list(doc)))
+    verifier("ORD4 : la ligne DB dit la taille en octets face à la limite d'un document db (256 KiB)",
+             mod.LIMITE_DOC_DB == 262144 and "DB ordre/donnees %d octets · limite 262144 · " % taille in s
+             and "AVERTISSEMENT" not in s, s)
+    verifier("ORD4 : passé un dixième de la limite, un AVERTISSEMENT ; passé la limite, une GARDE, rien d'écrit",
+             dixieme[0] == 0 and "AVERTISSEMENT: ordre/donnees passe le dixième" in dixieme[1]
+             and trop[0] == 1 and "au-delà de la limite d'un document db (100)" in trop[1] and not reecrit,
+             (dixieme, trop))
+
+
+groupe(tester_ordre_db)
 
 
 def tester_suite_verte():

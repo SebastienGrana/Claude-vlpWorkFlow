@@ -9376,8 +9376,9 @@ def todo_projet(racine, sortie):
 
 
 def prose_ordre(lignes):
-    """{titre de section `## `: [HTML de chaque puce]} de la source : une puce commence par `- `, ses lignes
-    indentées la continuent ; le HTML par `cellule_md` (accents graves, gras, liens)."""
+    """{titre de section `## `: [texte de chaque puce]} de la source : une puce commence par `- `, ses lignes
+    indentées la continuent. Le texte reste en markdown (accents graves, gras) : la page l'affiche en texte, jamais
+    en HTML, car la base `db` qui peut le remplacer s'écrit hors du script (ORD4)."""
     prose, titre = {}, None
     for l in lignes:
         if l.startswith("## "):
@@ -9386,7 +9387,7 @@ def prose_ordre(lignes):
             prose.setdefault(titre, []).append(l[2:].strip())
         elif titre in prose and l.startswith("  ") and l.strip():
             prose[titre][-1] += " " + l.strip()
-    return {t: [cellule_md(p) for p in puces] for t, puces in prose.items()}
+    return prose
 
 
 def piste_ordre(todo):
@@ -9694,11 +9695,40 @@ def page_ordre(dossier, donnees, sortie):
     return 0
 
 
+LIMITE_DOC_DB = 256 * 1024   # octets d'un document `db` : contrat d'artefact 0.2.75, db.d.ts, « at most 256 KiB serialized »
+
+
+def donnees_ordre(dossier, donnees, db, sortie):
+    """Écrire `donnees.json` dans `dossier`, puis `ÉCRIT` ; avec `db`, compact — l'objet du document `donnees` de la
+    collection `ordre`, tel qu'`ArtifactData` l'envoie par `file_path` — et la ligne `DB` : sa taille face à
+    `LIMITE_DOC_DB` ; passé un dixième, un `AVERTISSEMENT:` (un seul document ne suffira plus longtemps) ; passé la
+    limite, une `GARDE:`, rien d'écrit. Rend 1 sur une garde, sinon 0."""
+    texte = json.dumps(donnees, ensure_ascii=False, separators=(",", ":")) if db \
+        else json.dumps(donnees, ensure_ascii=False, indent=1)
+    taille = len(texte.encode("utf-8"))
+    if db and taille > LIMITE_DOC_DB:
+        sortie.write("GARDE: ordre/donnees : %d octets, au-delà de la limite d'un document db (%d)\n"
+                     % (taille, LIMITE_DOC_DB))
+        return 1
+    os.makedirs(dossier, exist_ok=True)
+    chemin = os.path.join(dossier, "donnees.json")
+    with open(chemin, "w", encoding="utf-8", newline="\n") as f:
+        f.write(texte + "\n")
+    sortie.write("ÉCRIT %s\n" % chemin)
+    if db:
+        sortie.write("DB ordre/donnees %d octets · limite %d · %.1f %%\n"
+                     % (taille, LIMITE_DOC_DB, 100.0 * taille / LIMITE_DOC_DB))
+        if taille * 10 > LIMITE_DOC_DB:
+            sortie.write("AVERTISSEMENT: ordre/donnees passe le dixième de la limite d'un document db : "
+                         "le découper avant qu'elle ne bloque\n")
+    return 0
+
+
 def cmd_ordre(a, sortie):
-    """`vlp.py ordre [--json]` : lire la source (`context AI/ordre.md` du kit, ou `--source`), puis la TODO de
-    chaque projet qu'elle nomme — cherché à côté du projet de la source, `.` étant ce projet même —, et écrire
-    `ordre/donnees.json` à côté de la source : un pas par ligne du chemin, puis les totaux ; sans `--json`, aussi
-    la page `ordre/ordre.html` et ses joints (`page_ordre`). Projet absent : une `GARDE:`, ses pas sautés. Un pas
+    """`vlp.py ordre [--json | --db]` : lire la source (`context AI/ordre.md` du kit, ou `--source`), puis la TODO
+    de chaque projet qu'elle nomme — cherché à côté du projet de la source, `.` étant ce projet même —, et écrire
+    `ordre/donnees.json` à côté de la source : un pas par ligne du chemin, puis les totaux (`donnees_ordre`) ; sans
+    option, aussi la page `ordre/ordre.html` et ses joints (`page_ordre`). Projet absent : une `GARDE:`, ses pas sautés. Un pas
     introuvable sans coût dans la source, ou porté par deux lignes : une `GARDE:` qui le nomme, rien d'écrit,
     sort 1."""
     source = os.path.abspath(a.source or os.path.join(KIT, "context AI", "ordre.md"))
@@ -9726,10 +9756,6 @@ def cmd_ordre(a, sortie):
                "piste": piste_ordre(next((todos[p["cle"]] for p in infos if p["racine"]), [])),
                "taux": taux_ordre(racine)}
     dossier = os.path.join(os.path.dirname(source), "ordre")
-    os.makedirs(dossier, exist_ok=True)
-    with open(os.path.join(dossier, "donnees.json"), "w", encoding="utf-8", newline="\n") as f:
-        json.dump(donnees, f, ensure_ascii=False, indent=1)
-        f.write("\n")
     sortie.write("ORDRE %d pas · %d trouvés en TODO · %d pris de la source\n"
                  % (len(chemin_pas), origines.count("todo"), origines.count("source")))
     par_niveau = donnees["totaux"]["par_niveau"]
@@ -9737,8 +9763,9 @@ def cmd_ordre(a, sortie):
                  "TODO, %d écrites par la source, %d hors du chemin\n"
                  % (tuple(par_niveau[n]["pas"] for n in NIVEAUX_ORDRE)
                     + (len(vagues), compte["todo"], compte["source"], compte["hors"])))
-    sortie.write("ÉCRIT %s\n" % os.path.join(dossier, "donnees.json"))
-    return 0 if a.json else page_ordre(dossier, donnees, sortie)
+    if donnees_ordre(dossier, donnees, a.db, sortie):
+        return 1
+    return 0 if a.json or a.db else page_ordre(dossier, donnees, sortie)
 
 
 def options_outils(sous):
@@ -9763,6 +9790,7 @@ def options_outils(sous):
     sy.add_argument("noms", nargs="*")
     od = sous.add_parser("ordre")
     od.add_argument("--json", action="store_true")
+    od.add_argument("--db", action="store_true")
     od.add_argument("--source")
     ra = sous.add_parser("rapide")
     ra.add_argument("motif")

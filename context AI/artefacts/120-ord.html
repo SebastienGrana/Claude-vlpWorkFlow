@@ -21,9 +21,9 @@
     <p>vlp.py ordre régénère la page d'enchaînement d'une source et des TODO des trois projets, classée, servie par une base db, refaite à chaque clôture — et la vraie page migrée, regardée par l'utilisateur.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">6 fiches · 3 faites · en cours : ORD4</p>
+    <p class="mono" style="margin-top:.5rem">6 fiches · 4 faites · en cours : ORD5</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -49,12 +49,13 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">ORD3</span></span>
         <details><summary><span class="titre">Écrire le gabarit et la page statique</span><span class="etat">Faite</span></summary>
         <span class="note">page écrite (21 pas, 2 graphiques) ; test ORD3 vert (6 contrôles), mutant attrapé (1 écart), suite OK ; captures 1536 et 375 px sans débordement (scrollWidth = largeur)</span></details>
-        <span class="cout mono">≈14,5M (14 514 096) · 74 tours · 5,75 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">ORD4</span></span>
-        <details open><summary><span class="titre">Servir la page par sa base db</span><span class="etat">En cours</span></summary>
-        <span class="note">La page lit sa base db, données embarquées en repli ; après ORD3.</span></details></li>
-      <li class="fiche" data-attend><span class="gauche"><span class="id">ORD5</span></span>
-        <details><summary><span class="titre">Refaire la page à chaque clôture</span><span class="etat">Après ORD4</span></summary>
+        <span class="cout mono">≈15,0M (14 954 526) · 76 tours · 5,86 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">ORD4</span></span>
+        <details><summary><span class="titre">Servir la page par sa base db</span><span class="etat">Faite</span></summary>
+        <span class="note">ordre --db : DB ordre/donnees 9788 octets · limite 262144 · 3.7 % (un seul document) ; page lue en base, repli embarqué dit ; test ORD4 vert (3 contrôles), mutant attrapé (1 écart), suite OK</span></details>
+        <span class="cout mono">≈7,4M (7 396 535) · 27 tours · 2,74 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">ORD5</span></span>
+        <details open><summary><span class="titre">Refaire la page à chaque clôture</span><span class="etat">En cours</span></summary>
         <span class="note">clore refait les données dans tout projet équipé ; après ORD4.</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">ORD6</span></span>
         <details><summary><span class="titre">Migrer la vraie page, et la regarder</span><span class="etat">Après ORD5</span></summary>
@@ -62,7 +63,7 @@
         <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈3,9M (3 942 418) · 23 tours · 2,81 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈31,5M (31 493 851) · 163 tours · 14,24 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈39,3M (39 330 816) · 192 tours · 17,09 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

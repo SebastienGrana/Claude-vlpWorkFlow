@@ -206,6 +206,19 @@ Tranché le 2026-09-26 par le chantier `ALE` ; chiffres et commandes dans
   montre plus rien hors claude.ai et ne se partage plus par lien public. `PLI`
   et `FEU` ne l'attendent pas : ils restent en HTML statique, et le `.md` reste
   la source ; un chantier à part passera les données en base.
+- **La page d'enchaînement (`vlp.py ordre`, chantier `ORD`) : la première en base.**
+  Elle lit le document `donnees` de la collection `ordre` ; base vide, absente ou
+  illisible, elle garde les données embarquées et le dit en tête. Elle affiche ces
+  données en texte, jamais en HTML ; seul le propriétaire écrit la base.
+  - **On publie la page** à sa première publication, ou quand `templates/ordre.html`
+    ou un joint change : `vlp.py ordre`, puis `Artifact` avec la ligne `FILES` et
+    `capabilities` : `{"db": {"rules": [{"path": "ordre", "read": "view", "write": "owner"}]}}`.
+  - **On écrit seulement la base** pour des chiffres neufs : `vlp.py ordre --db`,
+    puis `ArtifactData` `set`, collection `ordre`, document `donnees`, `file_path` :
+    le `donnees.json` écrit, `if_version` : la version lue juste avant.
+  - **Sa taille** : la ligne `DB` la dit face à la limite d'un document du contrat
+    (`LIMITE_DOC_DB` de `vlp_coeur.py`) ; passé un dixième, un `AVERTISSEMENT:`
+    demande de découper. Mesurée le 2026-10-13 : 9 788 octets, 3,7 %.
 
 ## La lecture — tranchée une fois, écrite dans les gabarits
 
