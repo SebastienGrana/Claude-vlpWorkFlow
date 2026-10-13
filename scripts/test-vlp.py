@@ -5112,7 +5112,7 @@ def tester_ordre_clore():
                 mod.SOURCE_ORDRE = avant
             donnees = os.path.join(kit, "ctx", "ordre", "donnees.json")
             sorties.append((code, s, os.path.isfile(donnees) and json.load(open(donnees, encoding="utf-8")),
-                            donnees, source))
+                            os.path.realpath(donnees), os.path.realpath(source)))
     (code, s, doc, donnees, _), (code_sans, s_sans, doc_sans, _, source_sans) = sorties
     verifier("ORD5 : clore d'un autre projet refait les données du kit et dit quoi envoyer où",
              code == 0 and "CLOS U " in s and "ORDRE envoyer %s → https://claude.ai/artifact/essai\n" % donnees in s
@@ -5123,6 +5123,38 @@ def tester_ordre_clore():
 
 
 groupe(tester_ordre_clore)
+
+
+def lien_dossier(cible, lien):
+    """Un lien vers le dossier `cible` : une jonction sous Windows (`mklink /J`, sans droit d'administrateur), comme
+    `~/.claude/skills/vlp` ; un lien symbolique ailleurs."""
+    if os.name == "nt":
+        subprocess.run(["cmd", "/c", "mklink", "/J", lien, cible], capture_output=True, check=True)
+    else:
+        os.symlink(cible, lien)
+
+
+def tester_ordre_jonction():
+    """Dette ORD : lancé par le plugin, le kit est vu par une jonction ; `ordre` cherche les projets voisins à côté du
+    vrai kit, pas à côté du lien."""
+    with tempfile.TemporaryDirectory() as tj:
+        kit, autre, lien = os.path.join(tj, "vrai", "kit"), os.path.join(tj, "vrai", "autre"), os.path.join(tj, "lien")
+        for racine, todo in ((kit, "| 1 | `K1` — pas | a | **V1 · score 9 (3 × 3)** · 1 fiche | — |"),
+                             (autre, "| 2 | `A1` — pas | a | **V1 · score 9 (3 × 3)** · 1 fiche | — |")):
+            ecrire(os.path.join(racine, "CHANTIER.md"), "# Chantier\n\n- **chantiers possibles** : `ctx/etat.md`\n")
+            ecrire(os.path.join(racine, "ctx", "etat.md"), "## TODO\n\n| # | Chantier | Apporte | Coût | Dépend de |\n"
+                   "|---|---|---|---|---|\n%s\n" % todo)
+        ecrire(os.path.join(kit, "ctx", "ordre.md"), "## Les projets\n\n| Clé | Dossier |\n|---|---|\n| k | `.` |\n"
+               "| a | `autre` |\n\n## La cible\n\n| Projet | Codes |\n|---|---|\n| a | `A1` |\n\n## Le chemin conseillé\n\n"
+               "| Pas | Projet | Nom | Coût |\n|---|---|---|---|\n| `K1` | k | | |\n| `A1` | a | | |\n")
+        lien_dossier(kit, lien)
+        code, s = appel(["ordre", "--json", "--source", os.path.join(lien, "ctx", "ordre.md")])
+        os.rmdir(lien) if os.name == "nt" else os.remove(lien)   # la jonction seule, jamais ce qu'elle vise
+    verifier("Dette ORD : la source lue par une jonction trouve le projet voisin du vrai kit",
+             code == 0 and "GARDE" not in s and "ORDRE 2 pas · 2 trouvés en TODO" in s, (code, s))
+
+
+groupe(tester_ordre_jonction)
 
 
 def tester_suite_verte():

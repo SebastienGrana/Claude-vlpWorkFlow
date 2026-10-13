@@ -9731,7 +9731,8 @@ def cmd_ordre(a, sortie):
     option, aussi la page `ordre/ordre.html` et ses joints (`page_ordre`). Projet absent : une `GARDE:`, ses pas sautés. Un pas
     introuvable sans coût dans la source, ou porté par deux lignes : une `GARDE:` qui le nomme, rien d'écrit,
     sort 1."""
-    source = os.path.abspath(a.source or SOURCE_ORDRE or os.path.join(KIT, "context AI", "ordre.md"))
+    # realpath : lancé par le plugin, KIT est la jonction `~/.claude/skills/vlp` ; les voisins sont à côté du vrai kit
+    source = os.path.realpath(a.source or SOURCE_ORDRE or os.path.join(KIT, "context AI", "ordre.md"))
     lignes = lignes_gardees(source, "source de l'ordre")
     tables = tables_ordre(lignes)
     racine = trouver(os.path.dirname(source))
@@ -9777,9 +9778,9 @@ def ordre_de_clore(todo_dit, sortie):
     <donnees.json> → <URL>` — l'URL lue à la ligne `artefact enchaînement` du `CHANTIER.md` du projet de la source.
     Source absente, ou une garde d'`ordre` : une `GARDE:`, la clôture continue."""
     sortie.write(todo_dit + "\n")
-    source = SOURCE_ORDRE
-    if source is None:
+    if SOURCE_ORDRE is None:
         return
+    source = os.path.realpath(SOURCE_ORDRE)
     if not os.path.isfile(source):
         sortie.write("GARDE: ordre : source introuvable (%s) — page d'enchaînement non refaite\n" % source)
         return
