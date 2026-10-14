@@ -232,7 +232,8 @@ par fiche (mesures au journal du fichier d'état du kit, chantier N) ; `clear` a
 assumée : toutes les fiches dans la séance, le contexte grossit d'une fiche à l'autre.
 **Sans fiche** : une modification qui se dit en une phrase se fait directement, sans
 chantier ni fiche (source dans « Coder dans le kit »). Une ligne de la TODO ainsi
-faite se retire par `vlp.py oter <projet> <code> --raison … --fait` : sa lettre est
+faite se retire par `vlp.py oter <projet> <code> --raison … --fait` (son numéro, dans
+une TODO sans codes) : sa lettre est
 prise, et ce qui l'attend n'est plus bloqué (nuit du 2026-10-12).
 
 **3. Clôture.** Elle est décrite dans `cloture.md` à la racine du kit, que

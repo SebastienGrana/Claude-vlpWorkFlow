@@ -1499,6 +1499,72 @@ def tester_oter():
 
 groupe(tester_oter)
 
+
+def tester_todo_sans_code():
+    """Dette FIN (Fil-Rouge, 2026-10-14) : une TODO sans codes (`| 10 | Finitions … |`) — `clore` trouve la rangée par
+    le titre du chantier, `oter` par son numéro ; un routage sans « relire un chantier clos » ni « relire le
+    chantier », mais des lignes **clos** : `ouvrir` y pose sa ligne, que `clore` retrouve."""
+    gabarit = lambda nom: open(os.path.join(ICI, "..", "templates", nom), encoding="utf-8").read()
+    lire = lambda c: open(c, encoding="utf-8").read()
+    todo = ["| # | Chantier | a | b | c |", "|---|---|---|---|---|", "| 10 | Finitions de l'API : erreurs et Swagger | a | b | — |",
+            "| 11 | Réparer le banc | a | b | — |", "| 12 | Réparer le banc | a | b | — |"]
+    verifier("dette FIN : rangée par numéro, ou par titre (apostrophe courbe, casse) s'il est seul ; deux pareils, aucune "
+             "— mutant : sans le repli du titre",
+             mod.rangee_todo(todo, "11") == (0, 3, "11") and mod.rangee_todo(todo, "1") == (0, None, None)
+             and mod.rangee_todo(todo, "FIN", "finitions de l’API :  erreurs et Swagger") == (0, 2, "10")
+             and mod.rangee_todo(todo, "BAN", "Réparer le banc") == (0, None, None)
+             and mod.rangee_todo(todo, "FIN") == (0, None, None),
+             [mod.rangee_todo(todo, "11"), mod.rangee_todo(todo, "FIN", "finitions de l’API :  erreurs et Swagger")])
+    etat = ("# État\n\nProvenance : 10, de x ; 11, de y.\n\n| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |\n"
+            "|---|---|---|---|---|\n| 10 | Finitions de l'API : erreurs et Swagger | a | 1 | `DRO` |\n"
+            "| 11 | Réparer le banc | a | 1 | rien |\n| 12 | Seed | a | 1 | 10..11 |\n\n## Journal des décisions\n\n## 2026-10-01 — x\n")
+    with tempfile.TemporaryDirectory() as tf:
+        ancien = os.environ.get("CLAUDE_CODE_SESSION_ID")
+        os.environ["CLAUDE_CODE_SESSION_ID"] = ""
+        carte_f = ("# C\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n- **fichier d'état** : ctx/08-etat.md\n"
+                   "- **artefact du chantier** : aucun\n\nLettres de fiche déjà prises : DRO (droits).\n")
+        ecrire(os.path.join(tf, "CHANTIER.md"), carte_f)
+        ecrire(os.path.join(tf, "ctx", "00-INDEX.md"), "| Fichier | Lire |\n|---|---|\n| `12-dro.md` | on relit |\n")
+        routage = ("| La tâche | Ouvrir |\n|---|---|\n| modifier | x |\n"
+                   "| relire une fiche `DRO1` à `DRO2` | `ctx/12-dro.md` — chantier **clos** le 2026-10-13 |\n| reprendre | y |\n")
+        ecrire(os.path.join(tf, "CLAUDE.md"), routage)
+        chemin = os.path.join(tf, "ctx", "08-etat.md")
+        ecrire(chemin, etat)
+        ecrire(os.path.join(tf, "ctx", "13-fin.md"), "# Chantier FIN — Finitions de l'API : erreurs et Swagger\n\n"
+               "**Fait.** Rien.\n\n## FIN1 [x] — a\n")
+        ecrire(os.path.join(tf, "ctx", "artefacts", "13-fin.html"), gabarit("artefact-chantier.html"))
+        ecrire(os.path.join(tf, "ctx", "artefacts", "feuille-de-route.html"), gabarit("artefact-feuille-de-route.html"))
+        code, s = appel(["ouvrir", tf, "--fiches", "ctx/13-fin.md", "--titre", "Finitions de l'API : erreurs et Swagger"])
+        verifier("dette FIN : ouvrir pose sa ligne avant la première ligne **clos** — mutant : sans ce repli",
+                 code == 0 and "routage +1" in s and "GARDE" not in s and "| modifier | x |\n| jouer une fiche du chantier FIN "
+                 "(finitions de l'API : erreurs et Swagger) | `ctx/13-fin.md` — chantier **ouvert**, par `/vlp:tache FIN<n>` |\n"
+                 "| relire une fiche `DRO1`" in lire(os.path.join(tf, "CLAUDE.md")), (s, lire(os.path.join(tf, "CLAUDE.md"))))
+        for code_, quoi in (("10", "ouvert, trouvé par son titre"), ("99", "absent")):
+            res = appel(["oter", tf, code_, "--raison", "r", "--date", "2026-10-14"])
+            verifier("dette FIN : oter refuse un numéro %s — GARDE, fichier inchangé" % quoi,
+                     res[0] == 1 and res[1].startswith("GARDE: ") and lire(chemin) == etat, res)
+        res = appel(["oter", tf, "11", "--raison", "fait à la main", "--date", "2026-10-14", "--fait"])
+        lu = lire(chemin)
+        verifier("dette FIN : oter par numéro ôte la rangée, marque provenance et journal, ne prend aucune lettre "
+                 "— mutant : sans la branche du numéro",
+                 res[0] == 0 and "| 11 |" not in lu and "| 10 |" in lu and "| 12 |" in lu
+                 and "11, « Réparer le banc », fait sans fiche le 2026-10-14 : fait à la main.\n" in lu
+                 and "## 2026-10-14 — « Réparer le banc » fait sans fiche, retiré de la TODO (n° 11)\n" in lu
+                 and lire(os.path.join(tf, "CHANTIER.md")) == carte_f and "lettre prise" not in res[1], (res, lu))
+        code, s = appel(["clore", tf, "--livre", "fini", "--date", "2026-10-14"])
+        lu, claude_lu = lire(chemin), lire(os.path.join(tf, "CLAUDE.md"))
+        verifier("dette FIN : clore trouve la rangée par le titre du chantier, et la ligne de routage posée par ouvrir",
+                 code == 0 and "TODO `FIN` ôtée · n° 10\n" in s and "| 10 |" not in lu and "| 12 | Seed" in lu
+                 and "10, `FIN`, clos le 2026-10-14." in lu and "routage 1" in s and "jouer une fiche" not in claude_lu
+                 and "ligne « jouer une fiche" not in s, (s, lu, claude_lu))
+        if ancien is None:
+            del os.environ["CLAUDE_CODE_SESSION_ID"]
+        else:
+            os.environ["CLAUDE_CODE_SESSION_ID"] = ancien
+
+
+groupe(tester_todo_sans_code)
+
 # REP1 : le gras et les liens Markdown d'une cellule — jamais dans du code cité.
 def tester_gras_et_liens():
     """Contrôler `gras_et_liens` et `cellule` : le gras et les liens Markdown d'une cellule (chantier REP)."""

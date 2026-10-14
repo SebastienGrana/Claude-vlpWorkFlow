@@ -349,7 +349,8 @@ Sous-commandes :
   que `clore` pose dans `CLAUDE.md` pointe l'archive.
   Au fichier d'état, avant la feuille qui relit la TODO, la rangée `` `<lettre>` `` ôtée et ` <n>, `<lettre>`, clos le
   D.` ajouté à la phrase de provenance, comme `oter` mais sans journal : `TODO `<lettre>` ôtée · n° <n>`, ou, code
-  absent de la TODO, `TODO `<lettre>` absente — rien ôté` et rien écrit (RTO1).
+  absent de la TODO, `TODO `<lettre>` absente — rien ôté` et rien écrit (RTO1). Une TODO sans codes : la seule
+  rangée dont la 2e cellule est le titre du chantier (casse, espaces et apostrophe courbe ignorés).
   Puis, quel que soit le projet, `ordre --db` sur la source du kit : `ORDRE envoyer <donnees.json> → <URL>`
   (« artefact enchaînement » du kit) ; source absente ou garde d'`ordre` : une `GARDE:`, la clôture continue (ORD5).
   `CLOS <lettre> <plage> · chantier <n> · cumul <brut> · routage <0|1> · index
@@ -362,6 +363,8 @@ Sous-commandes :
   (`courant_de`) ou clos (« Lettres de fiche déjà prises »), TODO illisible : `GARDE: … — rien écrit`, sort 1 (TAB4).
   `--fait` : un chantier fait sans fiche — « fait sans fiche » au lieu de « retiré », et `<code> (<titre>, sans
   fiche)` ajouté aux « Lettres de fiche déjà prises » : ce qui l'attend n'est plus bloqué ; `· lettre prise` en fin.
+  `<code>` tout en chiffres (TODO sans codes) : la rangée de ce numéro, nommée `« <2e cellule> »` au lieu de
+  `` `<code>` `` ; `--fait` n'y prend aucune lettre.
 - `archiver <projet>` — chaque ligne de table `**clos**` de l'index quitte l'index pour
   `00-INDEX-archive.md`, dans son dossier (créée au besoin : titre, « QUAND LIRE », en-tête
   `| Fichier | Lire quand |`), déplacée telle quelle et triée par numéro de fichier ; l'index
@@ -383,7 +386,7 @@ Sous-commandes :
   `aucun`, ou l'ancienne si F est déjà courant) ; une
   ligne « on joue une fiche » après la ligne de l'index au plus grand numéro ;
   une ligne « jouer une fiche du chantier » avant « relire un chantier clos »
-  (sinon le premier « relire le chantier ») du routage de `CLAUDE.md`. Une ligne
+  (sinon le premier « relire le chantier », sinon la première ligne `**clos**`) du routage de `CLAUDE.md`. Une ligne
   déjà là n'est pas redoublée ; relancé sur F, seule la plage de sa ligne
   d'index `**ouvert**` suit le fichier. `CLAUDE_CODE_SESSION_ID` non vide et sur
   aucune ligne `**Session**` du fichier : `**Session** : <id>` avant sa première

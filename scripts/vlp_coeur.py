@@ -6692,6 +6692,16 @@ def rang_routage_clos(lignes, repli=None):
     if rang is None and repli:
         rang = next((k for k, l in enumerate(lignes) if l.startswith(repli)), None)
     return rang
+
+
+def rang_routage_ouvrir(lignes):
+    """Où `ouvrir` pose sa ligne : « relire un chantier clos », sinon le premier « relire le chantier », sinon la
+    première ligne de table **clos** (`| relire une fiche `C1` à `C5` | … **clos** … |`, Fil-Rouge : ratée, FIN y a
+    eu sa ligne écrite à la main, que `clore` n'a pas retrouvée, 2026-10-14) ; sinon None."""
+    rang = rang_routage_clos(lignes, "| relire le chantier")
+    if rang is None:
+        rang = next((k for k, l in enumerate(lignes) if l.startswith("| ") and "**clos**" in l), None)
+    return rang
 # La ligne que `ouvrir --estime-fiches` pose : N fiches et leur coût, relus par `clore` (chantier EST).
 ESTIME = re.compile(r"^\*\*Estimé\.\*\* (\S+) fiches · (≈\S+ \$)")
 ESTIME_A_ECRIRE = "\x00estimé\x00"   # posé dans la ZONE:bilan, remplacé une fois le total mesuré connu
@@ -6968,20 +6978,29 @@ def cmd_ouverts(a, sortie):
     return 0
 
 
-def rangee_todo(lignes, code):
+def rangee_todo(lignes, code, titre=None):
     """(indice de l'en-tête `| # | Chantier`, indice de la rangée dont `` `code` `` est le premier code de la 2e
     cellule, son numéro) ; sans en-tête ou sans rangée, None à leur place (TAB4). Des repères peuvent le
-    précéder (`| 1 | 🔴📅 `SCH` — …`, Cairn) : ratés, la clôture de SCH a gardé sa rangée (2026-10-14)."""
+    précéder (`| 1 | 🔴📅 `SCH` — …`, Cairn) : ratés, la clôture de SCH a gardé sa rangée (2026-10-14).
+    `code` tout en chiffres : la rangée de ce numéro ; sinon, à défaut de code, la seule dont la 2e cellule est
+    `titre` — une TODO sans codes (`| 10 | Finitions de l'API : erreurs et Swagger |`, Fil-Rouge) : ratée, la
+    clôture de FIN l'a gardée (2026-10-14)."""
     tete = next((k for k, l in enumerate(lignes) if l.startswith("| # | Chantier")), None)
     if tete is None:
         return None, None, None
+    pareil = lambda t: " ".join(t.replace("’", "'").split()).casefold()
+    motif = r"^\|\s*(%s)\s*\|" % code if code.isdigit() else r"^\|\s*(\d+)\s*\|[^|`]*`%s`" % re.escape(code)
+    par_titre = []
     for k in range(tete + 1, len(lignes)):
         if not lignes[k].startswith("|"):
             break
-        m = re.match(r"^\|\s*(\d+)\s*\|[^|`]*`%s`" % re.escape(code), lignes[k])
+        m = re.match(motif, lignes[k])
         if m:
             return tete, k, m.group(1)
-    return tete, None, None
+        m = re.match(r"^\|\s*(\d+)\s*\|([^|]*)\|", lignes[k])
+        if titre and m and pareil(m.group(2)) == pareil(titre):
+            par_titre.append((k, m.group(1)))
+    return (tete,) + par_titre[0] if len(par_titre) == 1 else (tete, None, None)
 
 
 def oter_rangee(lignes, tete, k, ajout):
@@ -7002,13 +7021,13 @@ def ecrire_par_tmp(ecritures):
         os.replace(chemin + ".tmp", chemin)
 
 
-def todo_de_clore(projet, carte_, code, date, ecritures):
-    """La TODO à la clôture de `code` : sa rangée ôtée et ` <n>, `<code>`, clos le <date>.` à la provenance, sans
-    entrée au journal — la ligne d'archive dit la clôture ; ajoutée à `ecritures`. Rend la ligne à imprimer ; un
-    code absent de la TODO (chantier hors TODO) n'écrit rien et n'est pas une GARDE (RTO1)."""
-    chemin = os.path.join(projet, champ(carte_, "fichier d'état") or "")
+def todo_de_clore(chemin, code, titre, date, ecritures):
+    """La TODO du fichier d'état `chemin` à la clôture de `code` : sa rangée ôtée et ` <n>, `<code>`, clos le
+    <date>.` à la provenance, sans entrée au journal — la ligne d'archive dit la clôture ; ajoutée à `ecritures`.
+    Rend la ligne à imprimer ; un code absent de la TODO (chantier hors TODO) n'écrit rien et n'est pas une GARDE
+    (RTO1). Une TODO sans codes : la rangée au `titre` du chantier (`rangee_todo`)."""
     lignes = lignes_de(chemin) if os.path.isfile(chemin) else []
-    tete, k, numero = rangee_todo(lignes, code)
+    tete, k, numero = rangee_todo(lignes, code, titre)
     if tete is None or k is None:
         return "TODO `%s` absente — rien ôté" % code
     oter_rangee(lignes, tete, k, " %s, `%s`, clos le %s." % (numero, code, date))
@@ -7018,19 +7037,22 @@ def todo_de_clore(projet, carte_, code, date, ecritures):
 
 def refus_d_oter(projet, carte_, code, lignes):
     """Le refus de `oter`, calculé avant toute écriture, ou None : TODO illisible, code absent de la TODO,
-    chantier clos (« Lettres de fiche déjà prises ») ou ouvert (`courant_de`), journal absent (TAB4)."""
+    chantier clos (« Lettres de fiche déjà prises ») ou ouvert (`courant_de`) — sa rangée, par code ou par titre
+    (`rangee_todo`) —, journal absent (TAB4)."""
     try:
         todo_du_fichier(lignes)
     except ValueError as e:
         return "%s — rien écrit" % e
-    if rangee_todo(lignes, code)[1] is None:
+    k = rangee_todo(lignes, code)[1]
+    if k is None:
         return "`%s` absent de la TODO — rien écrit" % code
     if code in lettres_prises(carte_):
         return "`%s` est un chantier clos (« %s ») — rien écrit" % (code, LETTRES)
     courant = courant_de(projet)
-    ids = [l.split()[1] for l in lignes_du_projet(projet, courant, "fichier de fiches") if TITRE.match(l)] \
-        if courant else []
-    if ids and lettre_de(ids[0]) == code:
+    fiches_ = lignes_du_projet(projet, courant, "fichier de fiches") if courant else []
+    ids = [l.split()[1] for l in fiches_ if TITRE.match(l)]
+    titre = next((re.sub(r"^# Chantier \S+ — ", "", l) for l in fiches_ if l.startswith("# ")), None)
+    if ids and rangee_todo(lignes, lettre_de(ids[0]), titre)[1] == k:
         return "`%s` est le chantier ouvert (%s) — rien écrit" % (code, courant)
     if "## Journal des décisions" not in lignes:
         return "pas de « ## Journal des décisions » — rien écrit"
@@ -7059,7 +7081,11 @@ def cmd_oter(a, sortie):
     assert tete is not None and k is not None   # `refus_d_oter` a trouvé la rangée
     raison = a.raison.strip().rstrip(".")
     ecritures, quoi, prise = [], "retiré", ""
-    if a.fait:      # fait sans fiche : sa lettre est prise, ceux qui l'attendent ne sont plus bloqués
+    # Un numéro (TODO sans codes, Fil-Rouge) : la rangée se nomme par son titre, et n'a pas de lettre à prendre.
+    nomme = "« %s »" % lignes[k].split("|")[2].strip() if a.code.isdigit() else "`%s`" % a.code
+    if a.fait and a.code.isdigit():
+        quoi = "fait sans fiche"
+    elif a.fait:    # fait sans fiche : sa lettre est prise, ceux qui l'attendent ne sont plus bloqués
         texte = "\n".join(carte_) + "\n"
         j = texte.find(LETTRES)
         if j < 0:
@@ -7070,13 +7096,13 @@ def cmd_oter(a, sortie):
         texte = texte[:fin] + ", %s (%s, sans fiche)" % (a.code, m.group(1) if m else a.code) + texte[fin:]
         ecritures.append((os.path.join(projet, "CHANTIER.md"), texte))
         quoi, prise = "fait sans fiche", " · lettre prise"
-    oter_rangee(lignes, tete, k, " %s, `%s`, %s le %s : %s." % (numero, a.code, quoi, date, raison))
+    oter_rangee(lignes, tete, k, " %s, %s, %s le %s : %s." % (numero, nomme, quoi, date, raison))
     while lignes and not lignes[-1].strip():
         lignes.pop()
-    lignes += ["", "## %s — `%s` %s, retiré de la TODO (n° %s)" % (date, a.code, quoi, numero) if a.fait
-               else "## %s — `%s` retiré de la TODO (n° %s)" % (date, a.code, numero), "", "- **Raison** : %s." % raison]
+    lignes += ["", "## %s — %s %s, retiré de la TODO (n° %s)" % (date, nomme, quoi, numero) if a.fait
+               else "## %s — %s retiré de la TODO (n° %s)" % (date, nomme, numero), "", "- **Raison** : %s." % raison]
     ecrire_par_tmp([(chemin, "\n".join(lignes) + "\n")] + ecritures)
-    sortie.write("OTÉ `%s` · n° %s · provenance marquée · journal %s — %s%s\n" % (a.code, numero, date, etat, prise))
+    sortie.write("OTÉ %s · n° %s · provenance marquée · journal %s — %s%s\n" % (nomme, numero, date, etat, prise))
     return 0
 
 
@@ -7231,7 +7257,7 @@ def cmd_clore(a, sortie):
         ecritures.append((md_page, texte_abri(parts_page)))
 
     # 1 quinquies. la rangée du chantier quitte la TODO, écrite avec le reste, avant la feuille qui la relit (RTO1)
-    todo_dit = todo_de_clore(projet, carte_, lettre, date, ecritures)
+    todo_dit = todo_de_clore(os.path.join(projet, champ(carte_, "fichier d'état") or ""), lettre, titre, date, ecritures)
 
     # 2. CHANTIER.md
     for k, l in enumerate(carte_):
@@ -7491,9 +7517,9 @@ def cmd_ouvrir(a, sortie):
     else:
         cl = lignes_de(chemin_claude)
         if not any("`%s`" % fichier in l for l in cl if l.startswith("|")):
-            rang = rang_routage_clos(cl, "| relire le chantier")
+            rang = rang_routage_ouvrir(cl)
             if rang is None:
-                gardes.append("aucune ligne « relire un chantier clos » ni « relire le chantier » dans CLAUDE.md")
+                gardes.append("aucune ligne « relire un chantier clos », « relire le chantier » ni **clos** dans CLAUDE.md")
             else:
                 titre = a.titre[:1].lower() + a.titre[1:]
                 cl.insert(rang, "| jouer une fiche du chantier %s (%s) | `%s` — chantier **ouvert**, par `/vlp:tache %s<n>` |"
