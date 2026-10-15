@@ -96,7 +96,7 @@ Recherche du 2026-10-15 : 9 recherches réussies, 2 échouées ; 2 pages lues pa
 9. 🟡 **Taille de fichier et IA** : un faisceau d'indices (LoCoBench-Agent, arXiv 2511.13998 ; un fil
    NVIDIA), **aucune étude** qui mesure l'effet de la taille seule. Le seuil de 1 000 reste une convention.
 
-## Ce que je conseille (💡 proposé — rien n'est tranché)
+## Ce que je conseille (💡 proposé — rien n'est tranché ; 16 idées)
 
 **A. Garde-fous mécaniques — le plus important** (la leçon : une règle sans script n'a pas tenu)
 
@@ -130,6 +130,26 @@ test-vlp.py », lancée le 2026-10-15)
 11. 💡 **Des tests « small »** (Google) : sortir du disque et des sous-processus ce qui peut l'être.
 12. 🟡 **`cocher` sans la suite entière pour une fiche sans `.py`** : à trancher par l'utilisateur
     (aujourd'hui, `VIT11` l'exige toujours).
+16. 🟡 **La protection de Windows, qui analyse ce qu'on lance** (demandé par l'utilisateur le
+    2026-10-16 : « le firewall Windows […] analyse souvent ce que l'on fait et ça ralentit notre
+    travail »). À prendre en compte au cadrage :
+    - **Sans doute l'antivirus plutôt que le pare-feu** : le pare-feu filtre le réseau, que les tests
+      n'utilisent pas ; l'analyse en temps réel de Microsoft Defender, elle, regarde chaque fichier
+      ouvert et chaque programme lancé. **Non mesuré** : à vérifier avant d'en conclure.
+    - **Un indice** : la sous-session de mesure trouve ≈ 75 ms par appel `git` (167 s pour 2 234 appels
+      dans `tester_matin`, son calcul du 2026-10-16), et 5 094 appels `git` dans la suite ; le coût de
+      lancer un programme sous Windows, où Defender peut peser. Réduire le nombre d'appels (idée 10)
+      aide quelle que soit la cause.
+    - **Ce que dit Microsoft** (doc officielle, lue le 2026-10-16) : le « performance mode » de Defender
+      sur un **Dev Drive** reporte l'analyse après l'ouverture du fichier — **Windows 11 seulement**
+      ([Protect Dev Drive using performance mode](https://learn.microsoft.com/en-us/defender-endpoint/microsoft-defender-endpoint-antivirus-performance-mode)) ;
+      la machine est en Windows 10 (19045). Une exclusion de dossier coupe l'analyse et ouvre un trou
+      de protection : à garder étroite et rare
+      ([Exclusions in Microsoft Defender Antivirus](https://learn.microsoft.com/en-us/defender-endpoint/microsoft-defender-antivirus-exclusions-overview)).
+    - ⚠️ **Un réglage de sécurité est un geste de l'utilisateur**, jamais d'une fiche : Claude ne touche
+      pas aux réglages de sécurité. Une fiche peut **mesurer** (suite chronométrée, avec et sans une
+      exclusion que l'utilisateur pose lui-même sur le dossier du kit), puis lui **présenter** le gain
+      et le risque ; il tranche.
 
 **D. Relecture et méthode**
 
