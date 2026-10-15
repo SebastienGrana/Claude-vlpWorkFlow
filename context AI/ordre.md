@@ -45,9 +45,9 @@ fait. Pour un pas que la TODO connaît, la dernière colonne est une note, montr
 | `MD3` | md | AmdPont rangé dans le dépôt | ✅ fait le 2026-10-14 (sans fiche) |
 | `C2` | md | | |
 | `SCH` | cairn | le numéro de schéma | ✅ clos le 2026-10-14 |
-| `CLR` | cairn | | |
-| `MEN` | cairn | | |
-| `SEL` | cairn | | |
+| `CLR` | cairn | les vues en clair | ✅ clos le 2026-10-14 |
+| `MEN` | cairn | le menu des cartes de la vue 3D | ✅ clos le 2026-10-14 |
+| `SEL` | cairn | les vues 2D à la demande | ✅ clos le 2026-10-15 |
 | `FAM11` | cairn | | 1 fiche |
 | `PRS` | cairn | | |
 | `REG` | cairn | | |
@@ -80,6 +80,9 @@ Un pas sans phase dans une TODO (un chantier clos) qui n'est pas obligatoire : l
 | `MD2` | à la marge | fait le 2026-10-14 sans fiche, sorti de la TODO ; V2 quand il y était |
 | `MD3` | à la marge | fait le 2026-10-14 sans fiche, sorti de la TODO ; V2 quand il y était |
 | `SCH` | conseillé | clos le 2026-10-14, sorti de la TODO ; V1 quand il y était |
+| `CLR` | conseillé | clos le 2026-10-14, sorti de la TODO ; V1 quand il y était |
+| `MEN` | conseillé | clos le 2026-10-14, sorti de la TODO ; V1 quand il y était |
+| `SEL` | conseillé | clos le 2026-10-15, sorti de la TODO ; V1 quand il y était |
 
 ## Le jugement
 
