@@ -121,12 +121,11 @@ Recherche du 2026-10-15 : 9 recherches réussies, 2 échouées ; 2 pages lues pa
    2026-10-05) : il apporte la découverte des tests, le parallèle (`pytest-xdist`), les marqueurs
    « lent ». Coût : migrer 960 vérifications, ou faire tourner les deux côte à côte. À trancher.
 
-**C. Des tests plus rapides** (chiffres à venir de la session « Mesurer puis accélérer la suite
-test-vlp.py », lancée le 2026-10-15)
+**C. Des tests plus rapides** (chiffres : section « Mesures de durée », en bas de cette note)
 
 9. 💡 **Lancer les groupes de tests en parallèle**, comme `rapide` le fait déjà pour une fiche.
-10. 💡 **Un dépôt Git d'essai commun**, au lieu de 41 `git init` (déjà dans `REF` : ≈ 18 tests posent
-    `GIT_CONFIG_GLOBAL` à la main).
+10. 💡 **Un dépôt Git d'essai commun**, au lieu de 41 `git init` écrits dans `test-vlp.py`, **76** lancés
+    par une suite (mesuré le 2026-10-16) ; déjà dans `REF` : ≈ 18 tests posent `GIT_CONFIG_GLOBAL` à la main.
 11. 💡 **Des tests « small »** (Google) : sortir du disque et des sous-processus ce qui peut l'être.
 12. 🟡 **`cocher` sans la suite entière pour une fiche sans `.py`** : à trancher par l'utilisateur
     (aujourd'hui, `VIT11` l'exige toujours).
@@ -135,14 +134,13 @@ test-vlp.py », lancée le 2026-10-15)
     travail »). À prendre en compte au cadrage :
     - **C'est la protection en temps réel de Microsoft Defender**, pas le pare-feu (confirmé par
       l'utilisateur le 2026-10-16) : elle regarde chaque fichier ouvert et chaque programme lancé.
-      **Non mesuré** : à vérifier avant d'en conclure.
     - **Les mesures de la sous-session la croisent** : l'utilisateur l'avait coupée pendant la nuit du
       2026-10-15 au 16, et l'a **réactivée juste avant 00:56:37** (heure lue par `date`). Chaque durée
       reportée ici dit son état : coupée, active, ou à cheval — une mesure à cheval ne vaut pour aucun.
-    - **Un indice** : la sous-session de mesure trouve ≈ 75 ms par appel `git` (167 s pour 2 234 appels
-      dans `tester_matin`, son calcul du 2026-10-16), et 5 094 appels `git` dans la suite ; le coût de
-      lancer un programme sous Windows, où Defender peut peser. Réduire le nombre d'appels (idée 10)
-      aide quelle que soit la cause.
+    - **Mesuré ensuite** (section « Mesures de durée ») : **+ 40 s (+ 13 %)** avec la protection active,
+      surtout sur le groupe qui lit des fichiers ; lancer `git` presque pas ralenti (43 → 44 ms). Une
+      mesure de chaque côté : un faisceau. Réduire le nombre d'appels `git` (idée 10) aide quand même :
+      5 094 appels par suite.
     - **Ce que dit Microsoft** (doc officielle, lue le 2026-10-16) : le « performance mode » de Defender
       sur un **Dev Drive** reporte l'analyse après l'ouverture du fichier — **Windows 11 seulement**
       ([Protect Dev Drive using performance mode](https://learn.microsoft.com/en-us/defender-endpoint/microsoft-defender-endpoint-antivirus-performance-mode)) ;
@@ -188,11 +186,12 @@ test-vlp.py », lancée le 2026-10-15)
 
 Premier oui donné le 2026-10-16 (questionnaire d'`ISO1`) : **fondre dans `REF`**, en V1, **juste après `ISO`**.
 La ligne ci-dessous est écrite, **pas encore relue ni confirmée** par l'utilisateur : elle n'est **pas**
-dans la TODO. Sur son oui, elle remplace la ligne n° 96 de `08-etat.md` et se place juste après `ISO` (n° 137).
-Copie de sauvegarde : `ref-en-attente.patch` (scratchpad de la séance d'`ISO1`, jetable).
+dans la TODO. Retouchée le 2026-10-16 à 01:13, après les mesures : l'ajout (6) nomme `HOME` et les durées.
+Sur son oui, elle remplace la ligne n° 96 de `08-etat.md` et se place juste après `ISO` (n° 137).
+Copie de sauvegarde, **version d'avant la retouche** : `ref-en-attente.patch` (scratchpad de la séance d'`ISO1`, jetable).
 
 - **Titre** : `REF` — La qualité du code et des tests : fichiers plus courts, tests rapides et bien écrits, guides et garde-fous
-- **Ajouté à la fin de « Ce qu'il apporte »**, après `<br>` : **Élargi et passé en V1 le 2026-10-16, placé juste après `ISO`** (questionnaire d'`ISO1`, réponses de l'utilisateur : fondre ici le chantier « qualité du code et des tests », un seul chantier long plutôt que plusieurs). **Le constat** : la règle des 1 000 lignes (« Coder dans le kit », `MET7`) n'a aucune garde, et les fichiers ont continué de grossir — `test-vlp.py` 5 879 lignes (2026-10-01), 8 694 (2026-10-07), 10 448 (2026-10-16) ; `vlp_coeur.py` 8 446 puis 10 206 ; `pytest` n'est pas branché (`git grep -i pytest`, 2026-10-16). **Ajouts** : (4) des garde-fous par script — taille de fichier, test supprimé ou désactivé, forme des tests ; (5) un guide court des tests dans « Coder dans le kit » — un comportement par test, le test d'abord, un commit de rangement à part ; (6) des tests plus rapides — groupes en parallèle, dépôt d'essai commun, durées mesurées par la session « Mesurer puis accélérer la suite test-vlp.py » ; (7) `vlp:relecture` regarde aussi la qualité ; deux questions à l'utilisateur au cadrage : brancher `pytest`, et `cocher` sans la suite entière pour une fiche sans `.py`. Mesures, 9 sources et 15 idées : `context AI/122-qualite-code-tests.md`.
+- **Ajouté à la fin de « Ce qu'il apporte »**, après `<br>` : **Élargi et passé en V1 le 2026-10-16, placé juste après `ISO`** (questionnaire d'`ISO1`, réponses de l'utilisateur : fondre ici le chantier « qualité du code et des tests », un seul chantier long plutôt que plusieurs). **Le constat** : la règle des 1 000 lignes (« Coder dans le kit », `MET7`) n'a aucune garde, et les fichiers ont continué de grossir — `test-vlp.py` 5 879 lignes (2026-10-01), 8 694 (2026-10-07), 10 448 (2026-10-16) ; `vlp_coeur.py` 8 446 puis 10 206 ; `pytest` n'est pas branché (`git grep -i pytest`, 2026-10-16). **Ajouts** : (4) des garde-fous par script — taille de fichier, test supprimé ou désactivé, forme des tests ; (5) un guide court des tests dans « Coder dans le kit » — un comportement par test, le test d'abord, un commit de rangement à part ; (6) des tests plus rapides — isoler `HOME` (un groupe lit les 3,1 Go de transcripts réels de l'utilisateur), groupes en parallèle, dépôt d'essai commun ; la suite dure 313 s seule, 353 s protection de Windows active (2026-10-16) ; (7) `vlp:relecture` regarde aussi la qualité ; deux questions à l'utilisateur au cadrage : brancher `pytest`, et `cocher` sans la suite entière pour une fiche sans `.py`. Mesures, 9 sources et 16 idées : `context AI/122-qualite-code-tests.md`.
 - **Coût estimé** (remplace la case) : **V1 · score 5 (5 × 1)** · élargi le 2026-10-16, estimé en séance sans mesure : 11 à 17 fiches, ≈ 40 à 62 $ au prix par fiche du re-cadrage `MET10` (22 à 33 $ pour 6 à 9 fiches) ; le refactoring, chiffré par son bilan → 17 fiches en tout
 - **Dépend de** : `ISO`
 
@@ -207,7 +206,96 @@ Copie de sauvegarde : `ref-en-attente.patch` (scratchpad de la séance d'`ISO1`,
 (`methode-chantier.md`, « L'ordre »). Vérifié avant de le mettre à l'abri : `vlp.py trier .` lisait
 `REF` « dépendance non close : `ISO` », `vlp.py ordre` rendait 23 pas, code 0.
 
-## Mesures de durée — à venir
+## Mesures de durée — nuit du 2026-10-15 au 16
 
-La session « Mesurer puis accélérer la suite test-vlp.py » (2026-10-15) mesure la durée totale et par
-groupe, seule sur la machine, en trois passages. Ses chiffres s'ajoutent ici, avec leur commande.
+**Image simple** : la suite, c'est surtout **5 000 petits lancements de `git`** ; et un groupe qui relit
+**tout l'historique de Claude** de l'utilisateur, 3,1 Go.
+
+**Source** : la session « Mesurer puis accélérer la suite test-vlp.py », note `duree-test-vlp-2026-10-16.md`
+(notes partagées de l'app, hors dépôt), recopiée ici. Code mesuré : commit `2b32499`. Machine : 8 cœurs,
+Windows 10, Python 3.14.6. Heures lues par `date`, durées par `date +%s`.
+
+**Commandes** : `python scripts/test-vlp.py` ; chronométré par groupe : `python <scratchpad>/chrono.py
+scripts/test-vlp.py <sortie.json>`. ⚠️ `chrono.py` est jetable (scratchpad de la sous-session, pas dans le
+dépôt). Sa méthode, pour le refaire : il joue `test-vlp.py` tel quel, enveloppe l'appel `f()` qui suit
+`JOUES.append(f.__name__)` d'un chrono, et compte par groupe `subprocess.Popen`, appels `git`, `git init`,
+`tempfile.mkdtemp`. Surcoût vérifié nul : `--seul tester_matin` 210 s puis 146 s brut, 167 s puis 167 s chronométré.
+
+### La suite entière — chaque durée avec l'état de la protection
+
+Protection en temps réel coupée à **00:34:08**, réactivée juste avant **00:56:37** (idée 16).
+
+| Passage | Début → fin | Durée | Code | Protection | Charge |
+|---|---|---|---|---|---|
+| 1 | 23:48:35 → 23:57:39 | 544 s | 0 | active | une autre suite entière (`ISO1`) en même temps |
+| 2 | 23:57:57 → 00:03:50 | 353 s | 1 | active | seule ; rouge au passage de minuit (défaut 2) |
+| A, chronométré | 00:07:14 → 00:17:51 | 637 s | 0 | active | `pyright` d'une autre session dès 00:12:21 |
+| 3 | 00:30:36 → 00:37:47 | 431 s | 0 | à cheval | logiciels fermés pendant le passage |
+| **B, chronométré** | 00:37:57 → 00:43:10 | **313 s** | 0 | **coupée** | machine allégée — **la référence** |
+| après correctif minuit | 00:52:48 → 00:58:44 | 356 s | 0 | à cheval | — |
+| **C, chronométré** | 00:59:17 → 01:05:10 | **353 s** | 0 | **active** | code `f386792` : + 1 partie de 1,4 s |
+
+➡️ Sous charge, la même suite passe de **313 à 637 s** : une mesure ne vaut que seule sur la machine.
+
+### Ce qui coûte — passage B, 313 s
+
+- **166 groupes** ; **5 139 sous-processus**, dont **5 094 `git`** (99 %) ; **76 `git init`** ; **281** dossiers
+  temporaires. Comptes identiques aux trois passages chronométrés.
+- **89 groupes appellent `git`** : **299,4 s** (96 %). Les 77 autres : 13,4 s.
+- 123 groupes sous 1 s : 30,3 s à eux tous.
+- `test-boucle.py` seul : **179 s** (00:03:51 → 00:06:50), sa partie `canal` 160,5 s. Lancé en fond dès le
+  début (`VIT7`, `scripts/test-vlp.py:144`) : c'est le **plancher** de la suite tant qu'il dure.
+
+| # | Groupe | B coupée | C active | (A) | `git` | `git init` | ms par `git` (B) |
+|---|---|---|---|---|---|---|---|
+| 1 | `tester_matin` | 95,6 s | 98,6 s | (183,1) | 2 234 | 28 | 43 |
+| 2 | `tester_heures_commits` | 42,0 s | 63,1 s | (71,7) | 58 | 5 | 724 |
+| 3 | `tester_ailleurs` | 10,3 s | 11,0 s | (19,4) | 256 | 4 | 40 |
+| 4 | `tester_commit_au_titre` | 8,5 s | 8,2 s | (26,3) | 18 | 2 | 473 |
+| 5 | `tester_carte_git` | 8,4 s | 11,2 s | (10,8) | 146 | 1 | 57 |
+| 6 | `tester_arp3_marque` | 8,3 s | 7,7 s | (14,0) | 136 | 0 | 61 |
+| 7 | `tester_fusionner` | 7,7 s | 8,1 s | (17,3) | 186 | 2 | 42 |
+| 8 | `tester_lettres_doublon` | 7,4 s | 7,4 s | (15,8) | 160 | 2 | 46 |
+| 9 | `tester_relecture` | 6,9 s | 6,4 s | (10,7) | 137 | 2 | 50 |
+| 10 | `tester_courant_de` | 6,3 s | 5,1 s | (10,5) | 139 | 1 | 45 |
+
+- Les 10 font **201,5 s des 313** (64 %).
+- `tester_matin` seul fait **2 234 des 5 094** appels `git` (44 %).
+
+### La protection de Windows — coupée ou active
+
+- **313 → 353 s : + 40 s (+ 13 %).**
+- Dont **+ 21 s** sur `tester_heures_commits` (42,0 → 63,1 s), le groupe qui **lit des fichiers** (défaut 1).
+- `tester_matin` bouge à peine (95,6 → 98,6 s) : **43 → 44 ms** par appel `git`. Lancer `git` n'est
+  presque pas ralenti par la protection.
+- ⚠️ **Une mesure de chaque côté**, sur une machine où un même groupe varie de ± 20 % : un faisceau, pas une
+  preuve. Corrige l'indice de l'idée 16 (≈ 75 ms par `git`, pris sous charge) : seule, la machine fait 43 ms.
+
+### Deux défauts trouvés en mesurant
+
+1. ❌ **Fuite hors du bac** : `tester_heures_commits` (`scripts/test-vlp.py:878`) lance `cout` sans isoler
+   `HOME` ; `essais_hors_bac` lit alors **les vrais transcripts** de l'utilisateur (`scripts/vlp_coeur.py:655`
+   puis `:657`, le `glob` de `~/.claude/projects/*/*.jsonl`) — **1 337 fichiers, 3,1 Go** (`ls … | wc -l`,
+   `du -sh`, 2026-10-16).
+   - Profil rejoué le 2026-10-16 à 01:10 (`python -m cProfile -s cumtime scripts/test-vlp.py --seul
+     tester_heures_commits`) : **26,3 s** en tout, dont **20,6 s** dans `essais_hors_bac` (11 appels) et
+     **19,2 s** dans `origine_de` (**8 523** appels). La sous-session avait lu 28,3 s et 20,9 s.
+   - ➡️ La durée **grandit avec l'historique**, et le test dépend de la machine qui le joue.
+   - Deux autres fonctions lisent ce dossier : `essais_de` (`vlp_coeur.py:532`) et `cmd_essai` (`:580`).
+     **Non vérifié** : si des tests les appellent sans isoler `HOME`.
+2. ✅ **Passage de minuit** : `test-boucle.py` relisait la date après minuit, la boucle non (passage 2, ÉCART
+   « NUI4 (e) … carnet `2026-10-15.jsonl` »). Corrigé au commit `f386792`, sur la branche
+   `refs/heads/claude/xenodochial-poincare-ac89b4` : le test lit sa date une fois et la passe à `boucle.py` ;
+   partie `minuit` ajoutée, mutant attrapé, `test-vlp.py` vert, pyright 0 avant et après.
+   - ⚠️ **Ni poussé ni fusionné** dans `main` ; fait hors du brief (mesurer, pas coder). 🟡 Fusion sur le oui
+     de l'utilisateur.
+
+### Les pistes — 💡 proposé, 🟡 à trancher
+
+- 💡 **Piste A — isoler `HOME`** dans les tests qui lancent `cout` : retire **42 à 63 s** et la dépendance à
+  la machine. C'est aussi une correction : un test ne lit pas les données de l'utilisateur.
+- 💡 **Piste B — les groupes en 4 processus** : ≈ 180 s selon la sous-session, **non mesuré** ; le plancher
+  est `test-boucle.py`, 179 s.
+- 💡 **`tester_matin` d'abord** pour le dépôt d'essai commun (idée 10) : 44 % des appels `git`.
+- 💡 **Une option `--chrono` dans `test-vlp.py`**, pour rejouer ce tableau sans le script jetable.
+- 🟡 **`cocher` sans la suite entière** pour une fiche sans `.py` (idée 12).
