@@ -35,6 +35,19 @@ titre (`MET6`, 2026-10-07).
   « moins cher » ne se croient pas seuls : on montre les nombres qui les
   fondent, avant et après. Un instrument muet rend son propre échec
   indiagnosticable.
+- **Un questionnaire se pose en deux tours.** L'app replie tout texte suivi
+  d'un appel d'outil, et `AskUserQuestion` en est un : la section « Avant de
+  choisir » écrite juste au-dessus du questionnaire n'est pas vue — cinq fois
+  de suite le 2026-10-15 (`FAM10` de Cairn), alors que la fiche disait
+  « Pose les cas avec `AskUserQuestion` » et rien de la section.
+  - **Tour 1** : la section « Avant de choisir » (un tableau : les cas ou les
+    options, ce que chaque réponse change) est le **dernier texte du tour**,
+    sans aucun appel d'outil après elle ; elle finit par « Dites ok, le
+    questionnaire suit ».
+  - **Tour 2** : le questionnaire est le **premier appel**, sans texte avant ;
+    chaque option rappelle son cas dans `preview`.
+  - Une fiche, une commande ou un `CLAUDE.md` qui dit « pose un questionnaire »
+    ou « `AskUserQuestion` » s'entend ainsi.
 - **Une ligne de mesure nomme les quantités qu'elle compare.** Un compte juste
   ne prouve rien s'il ne dit pas de quoi il est le compte, et c'est ainsi qu'on
   publie une cause qu'on n'a pas mesurée. ⚠️ Le piège n'est pas l'erreur de

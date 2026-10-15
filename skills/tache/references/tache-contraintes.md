@@ -10,6 +10,10 @@ Ces contraintes valent dans tout projet, quoi que dise le reste :
   calculer (`methode-chantier.md`). Sans outil web, une ligne dans ton compte
   rendu.
 - Un **contrôle neutralisé affiche toujours sa raison**.
+- Un **questionnaire** (`AskUserQuestion`), même nommé par la fiche, se pose en
+  **deux tours** : la section « Avant de choisir » en dernier texte d'un tour,
+  le questionnaire au tour suivant — sinon l'app la replie et elle n'est pas vue
+  (`methode-chantier.md`, « Les règles qui valent partout »).
 - **Ce que tu repères hors de la fiche ne se fait pas**, et ne s'écrit pas
   dans la TODO : une ligne dans ton compte rendu, sans plus. Le versement
   demande deux oui de l'utilisateur (`methode-chantier.md`, règle « La TODO ne
