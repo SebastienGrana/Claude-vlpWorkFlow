@@ -161,6 +161,29 @@ test-vlp.py », lancée le 2026-10-15)
 - ⚠️ `test-vlp.py` est au seuil de complexité de pyright : un `verifier` ajouté au niveau du module
   le casse (mémoire `NUI2`) ; découper les tests aide aussi là.
 
+## La ligne de TODO proposée — en attente du 2e oui
+
+Premier oui donné le 2026-10-16 (questionnaire d'`ISO1`) : **fondre dans `REF`**, en V1, **juste après `ISO`**.
+La ligne ci-dessous est écrite, **pas encore relue ni confirmée** par l'utilisateur : elle n'est **pas**
+dans la TODO. Sur son oui, elle remplace la ligne n° 96 de `08-etat.md` et se place juste après `ISO` (n° 137).
+Copie de sauvegarde : `ref-en-attente.patch` (scratchpad de la séance d'`ISO1`, jetable).
+
+- **Titre** : `REF` — La qualité du code et des tests : fichiers plus courts, tests rapides et bien écrits, guides et garde-fous
+- **Ajouté à la fin de « Ce qu'il apporte »**, après `<br>` : **Élargi et passé en V1 le 2026-10-16, placé juste après `ISO`** (questionnaire d'`ISO1`, réponses de l'utilisateur : fondre ici le chantier « qualité du code et des tests », un seul chantier long plutôt que plusieurs). **Le constat** : la règle des 1 000 lignes (« Coder dans le kit », `MET7`) n'a aucune garde, et les fichiers ont continué de grossir — `test-vlp.py` 5 879 lignes (2026-10-01), 8 694 (2026-10-07), 10 448 (2026-10-16) ; `vlp_coeur.py` 8 446 puis 10 206 ; `pytest` n'est pas branché (`git grep -i pytest`, 2026-10-16). **Ajouts** : (4) des garde-fous par script — taille de fichier, test supprimé ou désactivé, forme des tests ; (5) un guide court des tests dans « Coder dans le kit » — un comportement par test, le test d'abord, un commit de rangement à part ; (6) des tests plus rapides — groupes en parallèle, dépôt d'essai commun, durées mesurées par la session « Mesurer puis accélérer la suite test-vlp.py » ; (7) `vlp:relecture` regarde aussi la qualité ; deux questions à l'utilisateur au cadrage : brancher `pytest`, et `cocher` sans la suite entière pour une fiche sans `.py`. Mesures, 9 sources et 15 idées : `context AI/122-qualite-code-tests.md`.
+- **Coût estimé** (remplace la case) : **V1 · score 5 (5 × 1)** · élargi le 2026-10-16, estimé en séance sans mesure : 11 à 17 fiches, ≈ 40 à 62 $ au prix par fiche du re-cadrage `MET10` (22 à 33 $ pour 6 à 9 fiches) ; le refactoring, chiffré par son bilan → 17 fiches en tout
+- **Dépend de** : `ISO`
+
+**Dans `context AI/ordre.md`**, sur le même oui :
+
+- au chemin conseillé, juste après la ligne `SEL`, deux pas du projet `kit` : `ISO`, note « en cours depuis
+  le 2026-10-15 », puis `REF`, note « juste après `ISO` (2026-10-16) » ;
+- aux décisions, après « L'estimé d'un cadrage se double » : « **`REF` élargi, en V1, juste après `ISO`** :
+  la qualité du code et des tests y est fondue, un seul chantier long (questionnaire d'`ISO1`, 2026-10-16). »
+
+⚠️ Le score 5 est bas (facilité 1 au-delà de 8 fiches) ; la place voulue par l'utilisateur prime
+(`methode-chantier.md`, « L'ordre »). Vérifié avant de le mettre à l'abri : `vlp.py trier .` lisait
+`REF` « dépendance non close : `ISO` », `vlp.py ordre` rendait 23 pas, code 0.
+
 ## Mesures de durée — à venir
 
 La session « Mesurer puis accélérer la suite test-vlp.py » (2026-10-15) mesure la durée totale et par
