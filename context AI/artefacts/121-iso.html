@@ -1,0 +1,88 @@
+<meta charset="utf-8">
+<title>vlp — Le parallèle, chaque fiche dans son worktree</title>
+<!--
+  GABARIT — artefact d'un chantier. Publié par /chantier à l'ouverture,
+  mis à jour par /tache à chaque fiche. Remplace les <…> et ne renomme pas
+  les marqueurs `ZONE:…` : les commandes les cherchent tels quels.
+
+  Convention de coût — posée ici, référencée (jamais recopiée) par
+  artefact-feuille-de-route.html, tache.md et cloture.md : un nombre < 1000
+  s'affiche tel quel ; au-delà, "≈<arrondi 1 décimale><k|M> (<compte brut>)"
+  — virgule française, k = mille, M = million. Le compte brut reste toujours
+  visible à côté de l'arrondi.
+-->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="vlp.css">
+
+<div class="page">
+  <header>
+    <div class="eyebrow">vlp · fiches ISO1–ISO7 · <a href="https://claude.ai/artifact/YWDny8kjubq9DhdP5rbPxA">la feuille de route</a></div>
+    <h1>Le parallèle, chaque fiche dans son worktree</h1>
+    <p>/vlp:enchainer agents joue en même temps toutes les fiches lançables (2 d'office), chacune dans son worktree, et un mini-chantier à blanc le prouve, mesuré à la file puis en parallèle</p>
+    <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
+    <div class="avancement">
+      <span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span><span></span>
+    </div>
+    <p class="mono" style="margin-top:.5rem">7 fiches · 0 faite · en cours : ISO1</p>
+  </header>
+
+  <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
+  <section hidden>
+    <h2>Chantier clos le </h2>
+    <div class="bilan">
+      <p></p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Les fiches, dans l'ordre des dépendances</h2>
+    <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
+    <ul class="fiches">
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">ISO1</span></span>
+        <details open><summary><span class="titre">Essayer un sous-agent en worktree, et noter ce qu'on voit</span><span class="etat">En cours · ISO2 peut partir en même temps</span></summary>
+        <span class="note">un essai en worktree, ses réponses écrites sous le socle ; ne dépend de rien</span></details></li>
+      <li class="fiche"><span class="gauche"><span class="id">ISO2</span></span>
+        <details><summary><span class="titre">Faire taire l'alerte « ailleurs » d'un worktree qui n'a qu'hérité</span><span class="etat">À lancer · en même temps que ISO1</span></summary>
+        <span class="note">plus de fausse alerte « ailleurs » pour un worktree hérité ; ne dépend de rien</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">ISO3</span></span>
+        <details><summary><span class="titre">Faire de lancables un indice, à largeur réglable</span><span class="etat">Après ISO1</span></summary>
+        <span class="note">lancables devient un indice, largeur 2 réglable ; après ISO1</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">ISO4</span></span>
+        <details><summary><span class="titre">Fusionner la branche d'une fiche, annuler sur conflit</span><span class="etat">Après ISO1</span></summary>
+        <span class="note">vlp.py fusionner, qui annule sur conflit ; après ISO1</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">ISO5</span></span>
+        <details><summary><span class="titre">Rendre le texte d'état au chef au lieu de l'écrire</span><span class="etat">Après ISO1</span></summary>
+        <span class="note">le texte d'état rendu au chef, vlp.py etat ; après ISO1</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">ISO6</span></span>
+        <details><summary><span class="titre">Lancer en parallèle d'office dans /vlp:enchainer agents</span><span class="etat">Après ISO3, ISO4, ISO5</span></summary>
+        <span class="note">le parallèle d'office dans /vlp:enchainer agents ; après ISO3, ISO4, ISO5</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">ISO7</span></span>
+        <details><summary><span class="titre">Mesurer le mini-chantier à blanc, à la file puis en parallèle</span><span class="etat">Après ISO6, ISO2</span></summary>
+        <span class="note">le mini-chantier à blanc mesuré, à la file puis en parallèle ; après ISO6 et ISO2</span></details>
+        <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
+    </ul>
+    <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
+  </section>
+
+  <!-- ZONE:blocage — publiée quand /tache s'arrête après deux tentatives ; retirée dès que la fiche repasse -->
+  <section hidden>
+    <h2>Arrêt sur blocage</h2>
+    <div class="blocage">
+      <p></p>
+      <pre></pre>
+    </div>
+  </section>
+
+  <section>
+    <h2>Journal des décisions</h2>
+    <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
+    <ul class="journal">
+    </ul>
+  </section>
+
+  <footer>
+    <span>Fichier de fiches : <span class="mono">context AI/121-iso.md</span></span>
+    <span>Mis à jour le <span class="mono">2026-10-15</span></span>
+  </footer>
+</div>
+<script src="vlp.js"></script>
