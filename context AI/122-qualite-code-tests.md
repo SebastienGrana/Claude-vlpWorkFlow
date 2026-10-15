@@ -133,9 +133,12 @@ test-vlp.py », lancée le 2026-10-15)
 16. 🟡 **La protection de Windows, qui analyse ce qu'on lance** (demandé par l'utilisateur le
     2026-10-16 : « le firewall Windows […] analyse souvent ce que l'on fait et ça ralentit notre
     travail »). À prendre en compte au cadrage :
-    - **Sans doute l'antivirus plutôt que le pare-feu** : le pare-feu filtre le réseau, que les tests
-      n'utilisent pas ; l'analyse en temps réel de Microsoft Defender, elle, regarde chaque fichier
-      ouvert et chaque programme lancé. **Non mesuré** : à vérifier avant d'en conclure.
+    - **C'est la protection en temps réel de Microsoft Defender**, pas le pare-feu (confirmé par
+      l'utilisateur le 2026-10-16) : elle regarde chaque fichier ouvert et chaque programme lancé.
+      **Non mesuré** : à vérifier avant d'en conclure.
+    - **Les mesures de la sous-session la croisent** : l'utilisateur l'avait coupée pendant la nuit du
+      2026-10-15 au 16, et l'a **réactivée juste avant 00:56:37** (heure lue par `date`). Chaque durée
+      reportée ici dit son état : coupée, active, ou à cheval — une mesure à cheval ne vaut pour aucun.
     - **Un indice** : la sous-session de mesure trouve ≈ 75 ms par appel `git` (167 s pour 2 234 appels
       dans `tester_matin`, son calcul du 2026-10-16), et 5 094 appels `git` dans la suite ; le coût de
       lancer un programme sous Windows, où Defender peut peser. Réduire le nombre d'appels (idée 10)
