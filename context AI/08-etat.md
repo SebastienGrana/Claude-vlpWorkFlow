@@ -3499,3 +3499,9 @@ Les 6 fichiers relus en entier contre `methode-chantier.md` après `MET7` ; « t
 - **Chantier** : 51 143 335 (ligne `CLOS`) · joué 6 fiches 21,64 $ contre estimé 6 fiches ≈25 $. La plus chère, `ORD3` (76 tours · 5,86 $) : le gabarit, ses deux graphiques et les captures à 1536 et 375 px.
 - **Laissé ouvert** : la question de la nuit d'`ORD5` — `ArtifactData` répond-il dans une session `claude -p` ? — non vérifiée ; les écarts `REG` et `SCH` d'`ORD2` (conseillés au calcul, obligatoires sur l'ancienne page) ; les 🟡 de la source.
 - **Pour le kit** : (1) la première clôture après `ORD5` n'a pas refait la page : lancé par le plugin, `KIT` est la jonction `~/.claude/skills/vlp`, et les projets voisins se cherchent à côté d'elle — `realpath`, pas `abspath` (dette corrigée juste après) ; (2) un appel ajouté à `clore` touche tous ses tests : la suite met `SOURCE_ORDRE` à `None`.
+
+## 2026-10-15 — ISO1 : un sous-agent en worktree ne voit pas le chantier qu'il a hérité
+
+- Le worktree de l'outil `Agent` naît dans le dépôt **de la session**, et part d'`origin/main` sans `worktree.baseRef: "head"` : un chantier ouvert non poussé n'y est pas (`bbe45f2` contre `2b32499`).
+- Même parti de `HEAD`, `carte` y rend `COURANT=aucun` (chantier hérité) : `relecture` et `commiter` n'y marchent qu'avec le post-it `vlp-chantier` posé.
+- Le modèle ne peut pas écrire `.claude/settings.local.json` (refus « Self-Modification ») : `baseRef` se pose à la main. Détail : `121-iso.md`, « Mesuré à ISO1 ».
