@@ -48,6 +48,13 @@ titre (`MET6`, 2026-10-07).
     chaque option rappelle son cas dans `preview`.
   - Une fiche, une commande ou un `CLAUDE.md` qui dit « pose un questionnaire »
     ou « `AskUserQuestion` » s'entend ainsi.
+- **Un témoin doit pouvoir produire l'artefact qu'il contrôle.** Un témoin
+  (décalage, tirage au hasard) qui casse un artefact de la mesure ne le
+  reproduit jamais : l'écart « mesure moins témoin » le compte alors comme un
+  effet réel, et biaise pour l'hypothèse. Avant de lancer, écrire comment la
+  grandeur se comporte aux bords (bout de route, bord de carte, colonne sans
+  direction) et vérifier que le témoin y passe aussi. Récit : `lecons-mesure.md`,
+  sous ce titre.
 - **Une ligne de mesure nomme les quantités qu'elle compare.** Un compte juste
   ne prouve rien s'il ne dit pas de quoi il est le compte, et c'est ainsi qu'on
   publie une cause qu'on n'a pas mesurée. ⚠️ Le piège n'est pas l'erreur de

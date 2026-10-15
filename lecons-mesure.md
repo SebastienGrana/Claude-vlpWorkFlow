@@ -242,3 +242,15 @@ Mesuré à `VIT9` : 7 renvois sur 7 périmés dans `NUI`.
 
 Vu le 2026-09-24 : « les tests passent » ne prouvait rien, un test creux passait aussi —
 à `FIN1`, puis à `FIN2` alors que son test était nommé avec ses valeurs.
+
+### Un témoin doit pouvoir produire l'artefact qu'il contrôle
+
+Mesuré à la relecture de fin du chantier `FAM` (cairn, 2026-10-15). `FAM8` cherchait les
+objets en miroir de part et d'autre de la route, et comparait au témoin « un côté décalé de
+50 m le long de la course » : écart **2,47 points**, hypothèse tenue. Mais la position le long
+de la course était celle du **nœud de route le plus proche** : tous les objets au-delà d'un
+bout de route avaient la même, et s'appariaient entre eux. **14 913** paires sur **27 801**
+(53,6 %) venaient de là ; le décalage de 50 m cassait cette collision, donc le témoin ne la
+reproduisait jamais. Sans ces objets : **1,77 point**, hypothèse renversée. Dix fiches et une
+validation à l'œil (en bloc) ne l'avaient pas vu ; un relecteur qui recalculait chaque cas,
+puis une seconde vérification de ses chiffres, l'ont trouvé.
