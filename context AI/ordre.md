@@ -67,6 +67,7 @@ d'où elle vient. Le reste se lit dans la colonne « Dépend de » des TODO.
 | `PRS` | `FAM11` | la TODO de Cairn : `PRS` dépend de `FAM`, dont `FAM11` est le pas du chemin |
 | `FAM11` | `NWT` | la page du 2026-10-12 : `NWT` avant `FAM11` |
 | `C2` | `MD4` `MD5` `MD7` | la page du 2026-10-12 : les notes justes avant de coder |
+| `SEL` | `CLR` | la TODO de Cairn, quand `SEL` y était : des vues claires d'abord |
 
 ## Les niveaux forcés
 
