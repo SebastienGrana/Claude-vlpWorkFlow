@@ -55,7 +55,7 @@ et seulement dans ce cas, ouvrir l'index.
 | changer une règle de méthode, ou en chercher la preuve | `methode-chantier.md`, `lecons-mesure.md` pour sa preuve mesurée, `cloture.md` pour la clôture, ou `nuit.md` pour la nuit |
 | savoir où vit quoi dans un projet équipé | `methode-chantier.md`, section « Où vit quoi » |
 | toucher aux pages publiées | `ARTEFACTS.md`, puis le gabarit dans `templates/` |
-| ouvrir un chantier, ou le découper en fiches | **lancer `/vlp:chantier`** |
+| ouvrir un chantier, ou le découper en fiches | **lancer `/vlp:chantier`** ; celui de la qualité du code et des tests part de `context AI/122-qualite-code-tests.md` |
 | jouer une fiche du chantier ISO (le parallèle, chaque fiche dans son worktree) | `context AI/121-iso.md` — chantier **ouvert**, par `/vlp:tache ISO<n>` |
 | relire un chantier clos | `context AI/00-INDEX-archive.md` — sa ligne y nomme le fichier de fiches |
 | reprendre après une longue interruption | `context AI/08-etat.md` |
