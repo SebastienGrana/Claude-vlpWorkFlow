@@ -186,6 +186,11 @@ Sous-commandes :
 - `etat <contexte>` — `ETAT=<NN>-etat.md` : le fichier d'état déjà présent,
   sinon le premier nombre à deux chiffres libre après le plus grand (`01` si le
   dossier est vide ou absent). Sort 0.
+- `etat <fichier d'état> --texte <fichier>` — ajoute le texte du fichier à la fin
+  du fichier d'état, une ligne vide avant : celui qu'une fiche jouée en worktree
+  rend entre `ÉTAT:` et `/ÉTAT` (`enchainement.md`). `ÉTAT ajouté <n> ligne(s)
+  à <fichier d'état>`, sort 0 ; un des deux fichiers absent ou un texte vide :
+  `GARDE:`, rien d'écrit, sort 1.
 - `renvois <projet>` — les fichiers que l'index (1re cellule de ses tables) et
   le routage de `CLAUDE.md` (dernière cellule) nomment entre accents graves et
   qui n'existent ni contre le dossier de contexte ni contre la racine : une

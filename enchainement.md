@@ -18,6 +18,18 @@ La première ligne, telle quelle, sans un mot devant — ni « Parfait », ni ti
 FAITE — <critère constaté, comptes bruts>
 ```
 
+**Fichier d'état, en worktree.** Lancée dans un worktree, une fiche qui doit écrire le fichier
+d'état (`CHANTIER.md`, ligne **fichier d'état**) n'y touche pas : elle met ce texte dans son compte
+rendu, sous la ligne de statut, entre une ligne `ÉTAT:` et une ligne `/ÉTAT`. Le chef l'y ajoute
+après la fusion de sa branche.
+
+```
+FAITE — <critère constaté, comptes bruts>
+ÉTAT:
+<le texte à ajouter au fichier d'état>
+/ÉTAT
+```
+
 **Arrêts imprévus** (rendent `RETOUR`) : décision que la fiche ne tranche pas,
 dépendance non cochée, permission refusée, fiche portant déjà un bloc Tentatives
 — sauf si toutes ses lignes numérotées sont `FAITE refusée à la relecture.`,

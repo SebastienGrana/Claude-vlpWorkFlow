@@ -3677,6 +3677,33 @@ def nom_etat(contexte):
     return "%02d-etat.md" % (max(pris) + 1 if pris else 1)
 
 
+def ajouter_etat(chemin, texte_de, sortie):
+    """Le texte du fichier `texte_de` ajouté à la fin du fichier d'état `chemin`, une ligne vide avant : celui qu'une
+    fiche jouée en worktree rend entre `ÉTAT:` et `/ÉTAT` au lieu de l'écrire (`enchainement.md`, ISO5). Un des deux
+    fichiers absent, ou un texte vide : `GARDE:`, rien d'écrit, sort 1. Sinon `ÉTAT ajouté <n> ligne(s) à <chemin>`."""
+    for nom, quoi in ((chemin, "fichier d'état"), (texte_de, "texte")):
+        if not os.path.isfile(nom):
+            sortie.write("GARDE: %s absent : %s — rien d'écrit\n" % (quoi, nom))
+            return 1
+    texte = lire(texte_de).strip("\n")
+    if not texte.strip():
+        sortie.write("GARDE: texte vide : %s — rien d'écrit\n" % texte_de)
+        return 1
+    avant = lire(chemin).rstrip("\n")
+    ecrire_comme(chemin, (avant + "\n\n" if avant.strip() else "") + texte + "\n")
+    sortie.write("ÉTAT ajouté %d ligne(s) à %s\n" % (texte.count("\n") + 1, chemin))
+    return 0
+
+
+def cmd_etat(a, sortie):
+    """`etat <contexte>` : le nom du fichier d'état (`nom_etat`) ; `etat <fichier d'état> --texte <fichier>` : le
+    texte d'une fiche ajouté à sa fin (`ajouter_etat`, ISO5)."""
+    if a.texte is not None:
+        return ajouter_etat(a.contexte, a.texte, sortie)
+    sortie.write("ETAT=%s\n" % nom_etat(a.contexte))
+    return 0
+
+
 # --- renvois -----------------------------------------------------------------
 
 LIGNE_CHEMIN = re.compile(r"^\s*-\s*\*\*(contexte|index)\*\*\s*:\s*(.+?)\s*$")
@@ -10008,6 +10035,14 @@ def options_fusionner(sous):
     fu.add_argument("--worktree")
 
 
+def options_etat(sous):
+    """Déclarer la ligne de commande de `etat` : le nom du fichier d'état, ou, avec `--texte`, un texte ajouté à sa
+    fin (ISO5)."""
+    et = sous.add_parser("etat")
+    et.add_argument("contexte")
+    et.add_argument("--texte")
+
+
 def options_carte(sous):
     """Déclarer la ligne de commande de `carte`."""
     c = sous.add_parser("carte")
@@ -10096,8 +10131,7 @@ def main(argv, sortie=None, entree=None, erreur=None):
     pg.add_argument("--date")
     sous.add_parser("hook")
     sous.add_parser("filet")
-    et = sous.add_parser("etat")
-    et.add_argument("contexte")
+    options_etat(sous)
     rv = sous.add_parser("renvois")
     rv.add_argument("projet")
     nv = sous.add_parser("niveau")
@@ -10230,7 +10264,7 @@ PAR_ARGUMENTS = {
     "forme": cmd_forme, "ouverts": cmd_ouverts, "pause": cmd_pause, "plan": cmd_plan, "matin": cmd_matin, "fusionner": cmd_fusionner,
     "sante": cmd_sante, "symboles": cmd_symboles, "compteur": cmd_compteur, "carte": cmd_carte,
     "rapide": cmd_rapide, "essai": cmd_essai, "lancables": cmd_lancables,
-    "commiter": cmd_commiter, "ordre": cmd_ordre,
+    "commiter": cmd_commiter, "ordre": cmd_ordre, "etat": cmd_etat,
 }
 
 
@@ -10247,9 +10281,6 @@ def repartir(a, sortie, entree, erreur):
         return cmd_abri(a.pages, sortie)
     if a.cmd == "renvois":
         return cmd_renvois(a.projet, sortie)
-    if a.cmd == "etat":
-        sortie.write("ETAT=%s\n" % nom_etat(a.contexte))
-        return 0
     if a.cmd == "hook":
         return une_fois(entree, cmd_hook, sortie, erreur or sys.stderr)
     if a.cmd == "filet":

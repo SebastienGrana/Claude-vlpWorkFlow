@@ -3520,3 +3520,8 @@ Les 6 fichiers relus en entier contre `methode-chantier.md` après `MET7` ; « t
 
 - `vlp.py fusionner <projet> <branche>` existait (la fusion du jour, NUI26) : la forme de la fiche passe par la même sous-commande, **`--worktree` choisit** — avec lui, les deux arguments sont `<fichier de fiches> <fiche>` (`fusionner_fiche`).
 - Le worktree est retiré par `git worktree remove --force` : ce qu'il garde hors commit se perd, mais se dit (`PERDU <n> chemin(s) …`). La garde du dépôt principal ne regarde que les fichiers **suivis** (`--untracked-files=no`) ; un non suivi que la fusion écraserait, Git le refuse avant d'écrire (`GARDE:`).
+
+## 2026-10-16 — ISO5 : `etat` avait déjà un sens
+
+- `vlp.py etat <contexte>` existait (le nom du fichier d'état, pour `/vlp:init`) : comme `fusionner` à `ISO4`, **`--texte` choisit** — avec lui, l'argument est le fichier d'état lui-même (`ajouter_etat`).
+- Le fichier d'état garde ses fins de ligne (CRLF compris, `ecrire_comme`) et reçoit **une seule** ligne vide avant le texte, quelle que soit sa fin. Cette entrée-ci est la première écrite par `etat --texte`.

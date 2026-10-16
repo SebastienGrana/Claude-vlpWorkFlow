@@ -9699,6 +9699,39 @@ def tester_iso4_fusionner_fiche():
 groupe(tester_iso4_fusionner_fiche)
 
 
+def tester_iso5_etat_texte():
+    """ISO5 : `etat <fichier d'état> --texte <fichier>` ajoute le texte à la fin, une ligne vide avant, CRLF gardé ;
+    un texte vide, un texte ou un fichier d'état absent : `GARDE:`, sort 1, rien d'écrit."""
+    with tempfile.TemporaryDirectory() as tr:
+        etat, crlf, texte, vide = (os.path.join(tr, n) for n in ("08-etat.md", "crlf.md", "t.txt", "v.txt"))
+        ecrire(etat, "# État\n\n- a\n")
+        ecrire(texte, "\n- ISO9 : b\n  suite\n\n")
+        ecrire(vide, "  \n\n")
+        with open(crlf, "wb") as f:
+            f.write(b"- a\r\n\r\n\r\n")
+        ajout = appel(["etat", etat, "--texte", texte])
+        ajout_crlf = appel(["etat", crlf, "--texte", texte])
+        gardes = [appel(["etat", etat, "--texte", vide]), appel(["etat", etat, "--texte", os.path.join(tr, "non.txt")]),
+                  appel(["etat", os.path.join(tr, "non.md"), "--texte", texte])]
+        apres = lire(etat)
+        with open(crlf, "rb") as f:
+            octets = f.read()
+        cree = os.path.exists(os.path.join(tr, "non.md"))
+    verifier("ISO5 : etat --texte → ÉTAT ajouté 2 ligne(s), le texte à la fin, une ligne vide avant",
+             ajout == (0, "ÉTAT ajouté 2 ligne(s) à %s\n" % etat) and apres == "# État\n\n- a\n\n- ISO9 : b\n  suite\n",
+             (ajout, apres))
+    verifier("ISO5 : un fichier d'état en CRLF le reste, une seule ligne vide avant le texte",
+             ajout_crlf[0] == 0 and octets == b"- a\r\n\r\n- ISO9 : b\r\n  suite\r\n", (ajout_crlf, octets))
+    verifier("ISO5 : texte vide, texte absent, fichier d'état absent → GARDE:, sort 1, rien d'écrit — mutant : pas de "
+             "garde du vide",
+             [c for c, _ in gardes] == [1, 1, 1] and gardes[0][1].startswith("GARDE: texte vide")
+             and gardes[1][1].startswith("GARDE: texte absent") and gardes[2][1].startswith("GARDE: fichier d'état absent")
+             and apres.endswith("  suite\n") and not cree, (gardes, apres, cree))
+
+
+groupe(tester_iso5_etat_texte)
+
+
 def tester_lettres_doublon():
     """NUI27 : un code pris deux fois n'est plus avalé — à la fusion, même lettre et titres différents → `GARDE:` avant
     toute écriture, même entrée → rien ; `ouvrir` refuse un code déjà ouvert dans un autre worktree, pas le sien hérité."""

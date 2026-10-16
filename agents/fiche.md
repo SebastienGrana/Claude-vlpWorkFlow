@@ -36,6 +36,8 @@ que l'utilisateur doit trancher à ta place.
    suivant, les plages que la fiche cite et les fichiers de sa ligne
    **Fichiers** — la zone utile, pas plus.
 2. Applique son bloc **Prompt**, dans le respect du socle et des contraintes.
+   Lancée dans un worktree, tu n'écris pas le fichier d'état : le contrat,
+   « Fichier d'état, en worktree », dit où va ce texte.
 3. Livre, puis vérifie. Vérification scriptable : lance-la, lis la sortie.
    `ARRÊT:` ou geste humain : rends `RETOUR`, en disant quoi regarder.
 4. Échec : corrige et revérifie — deux tentatives au plus. Puis écris le bloc
