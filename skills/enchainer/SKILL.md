@@ -95,9 +95,8 @@ Pour chaque fiche de la série, dans l'ordre — en worktree, dès que `lancable
    avec les lectures de ton étape 1 : <python> "<kit>/scripts/vlp.py" carte --python "<python>";
    <python> "<kit>/scripts/vlp.py" socle "<fichier de fiches courant>"; <python> "<kit>/scripts/vlp.py" extraire "<fichier de fiches courant>" <fiche>.
    Pas de PROJET=, une GARDE:, ou une fiche de moins de cinq lignes : rends RETOUR avec la sortie brute.`
-   En worktree, `depuis <PROJET=>` devient `depuis ton dossier courant, ton worktree`, et le prompt ajoute :
-   `Dans ce premier appel, git rev-parse --git-path vlp-chantier ; puis écris <fichier de fiches courant> dans ce
-   fichier (Write) : le post-it du chantier, que la relecture lit.` Ce qui part se lit, à chaque fois, par
+   En worktree, `depuis <PROJET=>` devient `depuis ton dossier courant, ton worktree`. Ce qui part se lit, à
+   chaque fois, par
    ```bash
    <python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" lancables "<fichier de fiches courant>" --max <largeur> --tourne <les lancées pas encore fusionnées>
    ```
@@ -113,7 +112,9 @@ Pour chaque fiche de la série, dans l'ordre — en worktree, dès que `lancable
    - `FAITE` : relis d'abord la case et la tête du dépôt —
      `<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" cocher "<fichier de fiches courant>" <fiche> --verifier`
      (en worktree, ce fichier pris dans le dossier de la ligne `DOSSIER:` du `Result`, ici comme pour la
-     relecture et `commiter` ci-dessous). Sortie 1 — case `[ ]`, ou `TÊTE` : le sous-agent a commité — : c'est un
+     relecture et `commiter` ci-dessous ; dans le même appel, rejeu compris, le post-it que la relecture lit et
+     qu'un sous-agent isolé ne peut pas écrire : `<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" postit "<dossier>" "<fichier de fiches courant>"`).
+     Sortie 1 — case `[ ]`, ou `TÊTE` : le sous-agent a commité — : c'est un
      `RETOUR` (étape 3 bis). `SANS GIT` : ni relecture ni commit, passe à la
      suivante. Sinon, un seul appel : `Agent`, `subagent_type: "vlp:relecture"`,
      `run_in_background: true`, `description` : `relire <fiche>`, `prompt` : `Fiche à relire : <fiche> — Kit : ${CLAUDE_PLUGIN_ROOT}.

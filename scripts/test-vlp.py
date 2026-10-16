@@ -9401,6 +9401,47 @@ def tester_courant_de():
 groupe(tester_courant_de)
 
 
+def tester_postit():
+    """ISO8 : `postit` pose le post-it d'un worktree pour son sous-agent isolé — `carte` y lit alors le chantier."""
+    if not shutil.which("git"):
+        print("SAUTÉ: git absent — postit n'est pas testé")
+        return
+    signe = ("-c", "user.name=t", "-c", "user.email=t@t")
+    with tempfile.TemporaryDirectory() as tr:
+        d, wt, hors = os.path.join(tr, "cd"), os.path.join(tr, "wt"), os.path.join(tr, "hors")
+        ecrire(os.path.join(d, "CHANTIER.md"), "- **alias** : cd\n- **contexte** : ctx/\n")
+        ecrire(os.path.join(d, "ctx", "a.md"), "# Chantier A — x\n\n%s\n\n## A1 [ ] — f\n" % (OUVERT % "2026-10-17"))
+        ecrire(os.path.join(d, "ctx", "c.md"), "# Chantier C — x\n\n%s\n\n%s\n\n## C1 [x] — f\n"
+               % (OUVERT % "2026-10-01", mod.CLOS_LIGNE % "2026-10-02"))
+        ecrire(os.path.join(hors, "CHANTIER.md"), "- **contexte** : ctx/\n")
+        git_matin(d, "init", "-q", "-b", "main")
+        git_matin(d, "add", "-A")
+        git_matin(d, *signe, "commit", "-q", "-m", "base")
+        git_matin(d, "worktree", "add", "-q", "-b", "wt", wt)
+        p = mod.postit(wt)
+        clos = appel(["postit", wt, "ctx/c.md"])
+        clos_rien = not os.path.exists(p)
+        sans_git = appel(["postit", hors, "ctx/a.md"])
+        avant = next(l for l in appel(["carte", wt])[1].split("\n") if l.startswith("COURANT="))
+        pose = appel(["postit", wt, "ctx\\a.md"])
+        apres = next(l for l in appel(["carte", wt])[1].split("\n") if l.startswith("COURANT="))
+        lu = mod.lire(p) if os.path.exists(p) else None
+        git_matin(d, "worktree", "remove", "--force", wt)
+    chef = io.open(os.path.join(RACINE, "skills", "enchainer", "SKILL.md"), encoding="utf-8").read()
+    trois = chef[chef.find("## 3. Jouer chaque fiche"):chef.find("## 3 bis.")]
+    verifier("ISO8 : postit écrit le post-it du worktree, carte y lit COURANT=ctx/a.md — mutant : postit qui n'écrit rien",
+             avant == "COURANT=aucun" and pose == (0, "POSTIT ctx/a.md — %s\n" % wt) and lu == "ctx/a.md\n"
+             and apres == "COURANT=ctx/a.md", repr((avant, pose, lu, apres)))
+    verifier("ISO8 : postit refuse un fichier non ouvert et un dossier hors Git — GARDE:, sort 1, rien d'écrit",
+             clos[0] == 1 and clos[1].startswith("GARDE: ctx/c.md n'est pas un chantier ouvert") and clos_rien
+             and sans_git[0] == 1 and sans_git[1].startswith("GARDE: %s hors Git" % hors), repr((clos, clos_rien, sans_git)))
+    verifier("ISO8 : le prompt du sous-agent ne lui fait plus écrire le post-it — l'étape 3 sans (Write), avec postit",
+             "(Write)" not in trois and "scripts/vlp.py\" postit " in trois, trois[:200])
+
+
+groupe(tester_postit)
+
+
 def tester_ouvrir_marque():
     """NUI23 : `ouvrir` pose la marque et le post-it ; un worktree ouvre le sien sans la page de main ; `clore`
     efface le post-it ; un 2e chantier dans le même dossier est refusé."""
@@ -9744,7 +9785,7 @@ def tester_iso6_parallele():
     trois = " ".join(chef[debut:fin].split()) if 0 <= debut < fin else ""
     attendus = ['isolation: "worktree"', 'lancables "<fichier de fiches courant>" --max <largeur> --tourne', "INDICE:",
                 "DOSSIER:", 'fusionner "<fichier de fiches courant>" <fiche> --worktree "<dossier>"',
-                'etat "<fichier d\'état>" --texte', "CONFLIT", "git rev-parse --git-path vlp-chantier"]
+                'etat "<fichier d\'état>" --texte', "CONFLIT", 'postit "<dossier>" "<fichier de fiches courant>"']
     plat = " ".join(chef.split())
     verifier("ISO6 : l'étape 3 lance en worktree par lancables, fusionne, écrit l'état et rejoue un CONFLIT",
              [a for a in attendus if a not in trois] == [], [a for a in attendus if a not in trois])

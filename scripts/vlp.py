@@ -460,6 +460,8 @@ Sous-commandes :
   la même règle le dit et que `stop_hook_active` est faux, sinon muet (chantier RLG—FOR—JUG).
 - `ouverts <projet> [--rev R]` — les chantiers ouverts du dossier de contexte : `OUVERT <fichier>` chacun, ou
   `OUVERTS=0` ; ouvert = titre `# Chantier ` + marque `**Ouvert.**`, sans `**CLOS**` ni `**Pause.**` (chantier NUI21).
+- `postit <dossier> <fichier>` — `<fichier>`, un ouvert du dossier, dans son post-it (`POSTIT <fichier> — <dossier>`) :
+  le chef le pose pour un sous-agent en worktree (ISO8). Hors Git, non ouvert : `GARDE:`, sort 1, rien d'écrit.
 - `pause <fichier> "<raison>" [--date D]` — `**Pause.** le <date> — <raison>` sous le titre `# Chantier `, puis
   `PAUSE <fichier> le <date>` ; `ouvrir` sur ce fichier la lève (`· pause levée`). Introuvable, clos, déjà en pause,
   sans titre : `GARDE:`, sort 1, rien d'écrit (NUI30).

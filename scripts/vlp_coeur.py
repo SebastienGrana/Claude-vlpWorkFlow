@@ -7039,6 +7039,26 @@ def cmd_ouverts(a, sortie):
     return 0
 
 
+def cmd_postit(a, sortie):
+    """`postit <dossier> <fichier>` : `<fichier>` dans le post-it du dossier, écrit comme `ouvrir` le fait. Le chef le
+    pose pour un sous-agent isolé en worktree, qui ne peut pas écrire dans le `.git` du dossier principal (ISO7, ISO8).
+    Hors Git, ou `<fichier>` qui n'est pas un ouvert du dossier : `GARDE:`, sort 1, rien d'écrit."""
+    fichier = a.fichier.replace("\\", "/")
+    p = postit(a.dossier) if os.path.isdir(a.dossier) else None
+    if not p:
+        sortie.write("GARDE: %s hors Git ou introuvable — pas de post-it, rien d'écrit\n" % a.dossier)
+        return 1
+    liste = ouverts(a.dossier)
+    if fichier not in liste:
+        sortie.write("GARDE: %s n'est pas un chantier ouvert de %s (ouverts : %s) — rien d'écrit\n"
+                     % (fichier, a.dossier, ", ".join(liste) or "aucun"))
+        return 1
+    with open(p, "w", encoding="utf-8", newline="") as fh:
+        fh.write(fichier + "\n")
+    sortie.write("POSTIT %s — %s\n" % (fichier, a.dossier))
+    return 0
+
+
 def rangee_todo(lignes, code, titre=None):
     """(indice de l'en-tête `| # | Chantier`, indice de la rangée dont `` `code` `` est le premier code de la 2e
     cellule, son numéro) ; sans en-tête ou sans rangée, None à leur place (TAB4). Des repères peuvent le
@@ -10016,10 +10036,14 @@ def options_clore(sous):
 
 
 def options_marques(sous):
-    """Déclarer la ligne de commande de `ouverts` et de `pause`, les lecteur et poseur des marques (NUI21, NUI30)."""
+    """Déclarer la ligne de commande de `ouverts` et de `pause`, les lecteur et poseur des marques (NUI21, NUI30), et
+    de `postit`, le poseur du post-it d'un worktree (ISO8)."""
     ou = sous.add_parser("ouverts")
     ou.add_argument("projet")
     ou.add_argument("--rev")
+    po = sous.add_parser("postit")
+    po.add_argument("dossier")
+    po.add_argument("fichier")
     pa = sous.add_parser("pause")
     pa.add_argument("fichier")
     pa.add_argument("raison")
@@ -10261,7 +10285,7 @@ def main(argv, sortie=None, entree=None, erreur=None):
 PAR_ARGUMENTS = {
     "ouvrir": cmd_ouvrir, "clore": cmd_clore, "oter": cmd_oter, "archiver": cmd_archiver, "trier": cmd_trier, "feuille": cmd_feuille,
     "niveau": cmd_niveau, "comparer": cmd_comparer, "relecture": cmd_relecture, "contrat": cmd_contrat,
-    "forme": cmd_forme, "ouverts": cmd_ouverts, "pause": cmd_pause, "plan": cmd_plan, "matin": cmd_matin, "fusionner": cmd_fusionner,
+    "forme": cmd_forme, "ouverts": cmd_ouverts, "postit": cmd_postit, "pause": cmd_pause, "plan": cmd_plan, "matin": cmd_matin, "fusionner": cmd_fusionner,
     "sante": cmd_sante, "symboles": cmd_symboles, "compteur": cmd_compteur, "carte": cmd_carte,
     "rapide": cmd_rapide, "essai": cmd_essai, "lancables": cmd_lancables,
     "commiter": cmd_commiter, "ordre": cmd_ordre, "etat": cmd_etat,
