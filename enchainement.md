@@ -18,13 +18,15 @@ La première ligne, telle quelle, sans un mot devant — ni « Parfait », ni ti
 FAITE — <critère constaté, comptes bruts>
 ```
 
-**Fichier d'état, en worktree.** Lancée dans un worktree, une fiche qui doit écrire le fichier
-d'état (`CHANTIER.md`, ligne **fichier d'état**) n'y touche pas : elle met ce texte dans son compte
-rendu, sous la ligne de statut, entre une ligne `ÉTAT:` et une ligne `/ÉTAT`. Le chef l'y ajoute
-après la fusion de sa branche.
+**Fichier d'état, en worktree.** Lancée dans un worktree, une fiche donne son dossier — le `PROJET=`
+de sa carte — sur une ligne `DOSSIER: <chemin>` sous la ligne de statut, quel qu'il soit : le chef
+y relit, commite et fusionne. Si elle doit écrire le fichier d'état (`CHANTIER.md`, ligne
+**fichier d'état**), elle n'y touche pas : elle met ce texte dans son compte rendu, sous la ligne
+de statut, entre une ligne `ÉTAT:` et une ligne `/ÉTAT`. Le chef l'y ajoute après la fusion de sa branche.
 
 ```
 FAITE — <critère constaté, comptes bruts>
+DOSSIER: <chemin du worktree>
 ÉTAT:
 <le texte à ajouter au fichier d'état>
 /ÉTAT

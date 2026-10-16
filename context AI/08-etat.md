@@ -3525,3 +3525,10 @@ Les 6 fichiers relus en entier contre `methode-chantier.md` après `MET7` ; « t
 
 - `vlp.py etat <contexte>` existait (le nom du fichier d'état, pour `/vlp:init`) : comme `fusionner` à `ISO4`, **`--texte` choisit** — avec lui, l'argument est le fichier d'état lui-même (`ajouter_etat`).
 - Le fichier d'état garde ses fins de ligne (CRLF compris, `ecrire_comme`) et reçoit **une seule** ligne vide avant le texte, quelle que soit sa fin. Cette entrée-ci est la première écrite par `etat --texte`.
+
+## 2026-10-16 — ISO6 : le chef ne sait pas où est le worktree
+
+- La doc (https://code.claude.com/docs/en/worktrees, lue le 2026-10-16) ne dit **pas** que le `Result` d'un sous-agent en worktree donne son dossier : le contrat lui fait écrire `DOSSIER: <son PROJET=>` sous son statut (`enchainement.md`).
+- La fiche pose elle-même le post-it `vlp-chantier` de son worktree (`git rev-parse --git-path`, puis `Write`) : aucune sous-commande ne le pose seule, hors `ouvrir`.
+- En worktree, le chef commite l'état (« État après <fiche> ») et le refus (« Refus : <fiche> ») aussitôt : la fusion suivante veut un arbre propre, et ces sujets n'ont pas la forme `<fiche> :` que `cout` découpe.
+- Un rejeu, après refus comme après `CONFLIT`, compte dans le plafond de 5 (règle de `refus.md`, étendue).

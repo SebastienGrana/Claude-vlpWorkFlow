@@ -3489,9 +3489,10 @@ def tester_ena5_ensemble():
              rates == [], repr(rates))
     chef = io.open(os.path.join(RACINE, "skills", "enchainer", "SKILL.md"), encoding="utf-8").read()
     plat = " ".join(chef.split())
-    verifier("ENA8 : le chef commite par commiter, jamais git add -A, et ne propose plus agents ensemble ni lancables",
-             'vlp.py" commiter "' in plat and "git add -A" not in plat and "agents ensemble" not in plat
-             and "lancables" not in plat, "skills/enchainer/SKILL.md")
+    verifier("ENA8 : le chef commite par commiter, jamais git add -A, et ne propose plus agents ensemble — lancables "
+             "revient avec ISO6",
+             'vlp.py" commiter "' in plat and "git add -A" not in plat and "agents ensemble" not in plat,
+             "skills/enchainer/SKILL.md")
 
 
 groupe(tester_ena5_ensemble)
@@ -9730,6 +9731,32 @@ def tester_iso5_etat_texte():
 
 
 groupe(tester_iso5_etat_texte)
+
+
+def tester_iso6_parallele():
+    """ISO6 : `/vlp:enchainer agents` lance en parallèle d'office — chaque fiche en worktree au rythme de `lancables`,
+    puis `commiter` là-bas, `fusionner` ici, `etat` du bloc `ÉTAT:`, `CONFLIT` rejoué en fin ; `file`, le mode sans
+    argument et `clear` restent ; le contrat dit `DOSSIER:` et `ÉTAT:`."""
+    chef = io.open(os.path.join(RACINE, "skills", "enchainer", "SKILL.md"), encoding="utf-8").read()
+    contrat = io.open(os.path.join(RACINE, "enchainement.md"), encoding="utf-8").read()
+    indice = next((l for l in chef.splitlines() if l.startswith("argument-hint:")), "")
+    debut, fin = chef.find("## 3. Jouer chaque fiche"), chef.find("## 3 bis.")
+    trois = " ".join(chef[debut:fin].split()) if 0 <= debut < fin else ""
+    attendus = ['isolation: "worktree"', 'lancables "<fichier de fiches courant>" --max <largeur> --tourne', "INDICE:",
+                "DOSSIER:", 'fusionner "<fichier de fiches courant>" <fiche> --worktree "<dossier>"',
+                'etat "<fichier d\'état>" --texte', "CONFLIT", "git rev-parse --git-path vlp-chantier"]
+    plat = " ".join(chef.split())
+    verifier("ISO6 : l'étape 3 lance en worktree par lancables, fusionne, écrit l'état et rejoue un CONFLIT",
+             [a for a in attendus if a not in trois] == [], [a for a in attendus if a not in trois])
+    verifier("ISO6 : argument-hint dit la largeur et file ; main, clear et le plafond de 5 restent",
+             "agents [<largeur>]" in indice and "agents file" in indice and "`agents file`" in plat
+             and "**Sans argument (ou `main`) : aucun sous-agent.**" in plat and 'boucle.py" . --plafond' in plat
+             and "Plafond : **5 fiches**" in plat, indice)
+    verifier("ISO6 : le contrat porte DOSSIER:, ÉTAT: et /ÉTAT",
+             all(m in contrat for m in ("DOSSIER: <chemin", "\nÉTAT:\n", "\n/ÉTAT\n")), "enchainement.md")
+
+
+groupe(tester_iso6_parallele)
 
 
 def tester_lettres_doublon():

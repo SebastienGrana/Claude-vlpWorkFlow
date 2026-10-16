@@ -21,9 +21,9 @@
     <p>/vlp:enchainer agents joue en même temps toutes les fiches lançables (2 d'office), chacune dans son worktree, et un mini-chantier à blanc le prouve, mesuré à la file puis en parallèle</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">7 fiches · 5 faites · en cours : ISO6</p>
+    <p class="mono" style="margin-top:.5rem">7 fiches · 6 faites · en cours : ISO7</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -57,17 +57,18 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">ISO5</span></span>
         <details><summary><span class="titre">Rendre le texte d'état au chef au lieu de l'écrire</span><span class="etat">Faite</span></summary>
         <span class="note">test-vlp OK, 0 ÉCART ; etat --texte → ÉTAT ajouté 2 ligne(s), CRLF gardé ; GARDE sur vide, texte absent, fichier absent ; mutant pas de garde du vide : ATTRAPÉ 2 écarts ; pyright 0 errors ; ÉTAT: et /ÉTAT dans enchainement.md</span></details>
-        <span class="cout mono">≈6,0M (6 017 455) · 34 tours · 2,47 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">ISO6</span></span>
-        <details open><summary><span class="titre">Lancer en parallèle d'office dans /vlp:enchainer agents</span><span class="etat">En cours</span></summary>
-        <span class="note">le parallèle d'office dans /vlp:enchainer agents ; après ISO3, ISO4, ISO5</span></details></li>
-      <li class="fiche" data-attend><span class="gauche"><span class="id">ISO7</span></span>
-        <details><summary><span class="titre">Mesurer le mini-chantier à blanc, à la file puis en parallèle</span><span class="etat">Après ISO6</span></summary>
+        <span class="cout mono">≈6,3M (6 323 031) · 36 tours · 2,56 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">ISO6</span></span>
+        <details><summary><span class="titre">Lancer en parallèle d'office dans /vlp:enchainer agents</span><span class="etat">Faite</span></summary>
+        <span class="note">test-vlp OK ; ISO6 3 contrôles verts (étape 3 : isolation worktree, lancables, fusionner, etat, CONFLIT ; file, main, clear, plafond 5 gardés ; contrat DOSSIER: et ÉTAT:) ; renvois 144 nommés, 0 absents, aucun avertissement ; pyright 0 errors</span></details>
+        <span class="cout mono">≈5,4M (5 413 889) · 26 tours · 2,52 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">ISO7</span></span>
+        <details open><summary><span class="titre">Mesurer le mini-chantier à blanc, à la file puis en parallèle</span><span class="etat">En cours</span></summary>
         <span class="note">le mini-chantier à blanc mesuré, à la file puis en parallèle ; après ISO6 et ISO2</span></details>
         <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈435,9k (435 931) · 2 tours · 0,20 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈60,8M (60 767 826) · 310 tours · 22,95 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈66,5M (66 487 291) · 338 tours · 25,56 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -84,14 +85,15 @@
     <h2>Journal des décisions</h2>
     <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
     <ul class="journal">
-      <li><time datetime="2026-10-16">2026-10-16</time><span>ISO3 : lancables ne retient plus rien sur les fichiers ; une fiche sans ligne Fichiers part avec les autres, seule la (visuel) part seule ; un id inconnu de --tourne est ignoré, hors largeur</span></li>
       <li><time datetime="2026-10-16">2026-10-16</time><span>ISO4 : vlp.py fusionner existait (NUI26) ; --worktree choisit la fusion d'une fiche ; ce que le worktree garde hors commit se perd, dit par PERDU</span></li>
       <li><time datetime="2026-10-16">2026-10-16</time><span>ISO5 : vlp.py etat existait (nom du fichier d'état) ; --texte choisit l'ajout ; cette entrée d'état est la première écrite par etat --texte</span></li>
+      <li><time datetime="2026-10-16">2026-10-16</time><span>ISO6 : la doc ne dit pas que le Result donne le dossier du worktree : la fiche écrit DOSSIER: ; elle pose son post-it ; le chef commite état et refus aussitôt ; un rejeu compte dans le plafond</span></li>
     </ul>
-    <details class="journal-ancien"><summary>2 entrées plus anciennes</summary>
+    <details class="journal-ancien"><summary>3 entrées plus anciennes</summary>
     <ul class="journal">
       <li><time datetime="2026-10-15">2026-10-15</time><span>ISO1 : le worktree d'Agent naît dans le dépôt de la session et part d'origin/main ; même parti de HEAD, le chantier hérité n'y est vu qu'avec le post-it vlp-chantier</span></li>
       <li><time datetime="2026-10-16">2026-10-16</time><span>ISO2 : au même chantier, un autre worktree n'est nommé AILLEURS= qu'avec un commit de fiche de ce code qu'ici n'a pas ; un post-it seul se tait aussi</span></li>
+      <li><time datetime="2026-10-16">2026-10-16</time><span>ISO3 : lancables ne retient plus rien sur les fichiers ; une fiche sans ligne Fichiers part avec les autres, seule la (visuel) part seule ; un id inconnu de --tourne est ignoré, hors largeur</span></li>
     </ul>
     </details>
   </section>
