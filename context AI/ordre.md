@@ -51,6 +51,7 @@ fait. Pour un pas que la TODO connaît, la dernière colonne est une note, montr
 | `ISO` | kit | | en cours depuis le 2026-10-15 |
 | `REF` | kit | | juste après `ISO` (2026-10-16) |
 | `FAM11` | cairn | | 1 fiche |
+| `ONE` | cairn | | avant `PRS` (2026-10-16) |
 | `PRS` | cairn | | |
 | `REG` | cairn | | |
 | `C1` | md | | |
@@ -125,6 +126,7 @@ Ce que l'utilisateur a tranché, et que le chemin applique ; une puce par décis
 - **ProjetONZSM et TrackGen** : hors de la V1 du kit, toujours équipés.
 - **L'estimé d'un cadrage se double**, pour les prochains cadrages ; la TODO ne bouge pas.
 - **`REF` élargi, en V1, juste après `ISO`** : la qualité du code et des tests y est fondue, un seul chantier long (questionnaire d'`ISO1`, 2026-10-16).
+- **`ONE` avant `PRS`** : `PRS` apprend sur des objets, pas sur des cases (clôture de `CMP` de Cairn, 2026-10-16).
 
 ## Pas encore tranché
 
