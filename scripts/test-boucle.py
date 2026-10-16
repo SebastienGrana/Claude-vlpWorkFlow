@@ -277,8 +277,13 @@ def depot(t):
     return faux_
 
 
+# La date des nuits sans --date, lue une fois : une suite qui passe minuit cherchait le carnet du lendemain, la boucle
+# ayant écrit celui de la veille (NUI4 (e) rouge le 2026-10-16 à 00:03). `nuit()` la passe donc à boucle.py.
+JOUR = time.strftime("%Y-%m-%d")
+
+
 def carnet_de(t):
-    chemin = carnet.du_jour(t)
+    chemin = carnet.du_jour(t, JOUR)
     assert chemin, "pas de carnet : %s n'est pas un dépôt Git" % t
     return chemin
 
@@ -290,7 +295,10 @@ def cases_de(t):
 
 def nuit(t, *options, rate="", claude=FAUX_CLAUDE, traces=None, **env):
     """boucle.py --nuit dans `t` : (code, sortie). VLP_CARNET et VLP_CANAL d'ici ne passent pas. Les traces
-    vont hors du dépôt (`traces`, sinon un dossier jeté) : la boucle commite tout ce qu'elle y trouverait."""
+    vont hors du dépôt (`traces`, sinon un dossier jeté) : la boucle commite tout ce qu'elle y trouverait. Sans
+    --date ni --reprendre (qui la refuse), la date `JOUR`, celle de `carnet_de`."""
+    if "--date" not in options and "--reprendre" not in options:
+        options += ("--date", JOUR)
     base = {k: v for k, v in os.environ.items() if k not in (carnet.ENV_CARNET, carnet.ENV_CANAL)}
     base.update(ENV_GIT)
     base.update(VLP_FAUX_VLP=os.path.join(ICI, "vlp.py"), VLP_FAUX_RATE=rate, PYTHONIOENCODING="utf-8")
@@ -1497,7 +1505,7 @@ def tester_reprise():
                 with pilote(VLP_FAUX_VLP=os.path.join(ICI, "vlp.py"), PYTHONIOENCODING="utf-8", **ENV_GIT), \
                         contextlib.redirect_stdout(sortie):
                     code = bmod.main([t, "--claude", FAUX_CLAUDE, "--traces", hors, "--nuit", "--canal", "A",
-                                      "--chantier", "X", "--plafond", "1"])
+                                      "--chantier", "X", "--plafond", "1", "--date", JOUR])
             finally:
                 bmod.appel_eveil = vrai
             notes = [d["note"] for d in carnet.lire(carnet_de(t)) if (d["note"] or "").startswith("ÉVEIL")]
@@ -1774,11 +1782,33 @@ def tester_traces():
              and code_f == 1 and "GARDE: dossier de traces" in s_f and cases_f == "...", (s, s_f))
 
 
+def tester_minuit():
+    """Une suite qui passe minuit : `JOUR` posé à une autre date que l'horloge, comme après minuit. La boucle lancée
+    par `nuit()` sans --date écrit le carnet de `JOUR`, celui que `carnet_de` relit."""
+    global JOUR
+    vrai = JOUR
+    JOUR = "2099-01-01"
+    try:
+        with tempfile.TemporaryDirectory() as t:
+            depot(t)
+            with pilote(VLP_FAUX_ERREUR="api"):
+                code, s = nuit(t, "--canal", "A", "--chantier", "X")
+            chemin = carnet_de(t)
+            lignes = carnet.lire(chemin)
+    finally:
+        JOUR = vrai
+    verifier("minuit : sans --date, nuit() passe JOUR à boucle.py, et carnet_de relit ce carnet-là, l'horloge "
+             "fût-elle à un autre jour — mutant : le --date de nuit() retiré",
+             code == 1 and os.path.basename(chemin) == "2099-01-01.jsonl"
+             and [d["issue"] for d in lignes if carnet.est_session(d)] == ["pas partie"], (s, chemin, lignes))
+
+
 PARTIES = {"simple": tester_simple, "faux": tester_faux, "nuit": tester_nuit, "plafonds": tester_plafonds,
            "relecture": tester_relecture, "relance": tester_relance, "canal": tester_canal,
            "sans_nuit": tester_sans_nuit, "herite": tester_herite,
            "reprise": tester_reprise, "lanceur": tester_lanceur, "dans_processus": tester_vlp_dans_processus,
-           "premier_plan": tester_premier_plan, "traces": tester_traces, "parties": tester_parties}
+           "premier_plan": tester_premier_plan, "traces": tester_traces, "parties": tester_parties,
+           "minuit": tester_minuit}
 EN_PARALLELE = (("canal",), ("relecture", "reprise"), ("herite", "lanceur"))
 
 
