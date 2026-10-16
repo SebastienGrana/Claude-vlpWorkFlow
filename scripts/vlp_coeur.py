@@ -1306,7 +1306,7 @@ def releve(chemin, nom):
 
 def croisent(uns, autres):
     """Vrai si deux ensembles de chemins, tels qu'écrits sur des lignes **Fichiers**, peuvent viser un même fichier
-    (ENA5) — dans le doute, oui : deux fiches qui se croisent ne partent jamais ensemble. `{a,b}` se déplie. Deux
+    (ENA5) — dans le doute, oui : `lancables` en fait un `INDICE:` (ISO3). `{a,b}` se déplie. Deux
     chemins à `/` : égaux, l'un sous le dossier de l'autre, ou, s'il y a un motif, leurs parts littérales (avant le
     premier `*?[`) dont l'une commence l'autre. Un nom seul (`vlp.py`) peut vivre dans tout dossier : il croise un
     dossier, et un chemin dont le dernier nom le prend ou qu'il prend (`fnmatch`) ; deux derniers noms à motif aussi."""
@@ -2794,44 +2794,68 @@ def pretes(fiches_, etat, apercu):
     return attend, ensemble if len(ensemble) > 1 else []
 
 
+def apercu_lancables(lignes, nom, racine=None):
+    """`apercu_fiches` de `lignes`, le fichier de fiches `nom` ôté des fichiers de chacune — toutes le cochent, il
+    n'est pas commun. Les fichiers : la liste d'invités (`invites`), `racine` les entrées du projet (`entrees`) —
+    sans elle, un mot seul n'est jamais un dossier."""
+    return {i: (d, v, {x for x in f if x.rstrip("/").rsplit("/", 1)[-1] != nom.lower()})
+            for i, (d, v, f) in apercu_fiches(lignes, racine or {}).items()}
+
+
 def lancables(lignes, nom, plafond, tournent=(), racine=None):
-    """Les fiches que `/vlp:enchainer` peut lancer ensemble (ENA3) : les prêtes de `pretes`, le fichier de fiches
-    `nom` ôté des fichiers de chacune — toutes le cochent, il n'est pas commun —, prises dans l'ordre si leurs
-    fichiers ne se croisent pas (`croisent`, motifs compris), jusqu'à `plafond` et avant la première `(visuel)`. Une `(visuel)` ou une fiche sans
-    ligne **Fichiers** ne part que seule. `tournent` (ENA5) : les fiches déjà lancées — elles comptent dans
-    `plafond`, leurs fichiers sont pris, rien ne part à côté d'une qui part seule, et une cochée en relecture ne
-    libère pas encore ce qui dépend d'elle. Les fichiers : la liste d'invités (`invites`), `racine` les entrées du
-    projet (`entrees`) — sans elle, un mot seul n'est jamais un dossier."""
+    """Les fiches que `/vlp:enchainer agents` lance ensemble, chacune dans son worktree (ENA3, ISO3) : les prêtes de
+    `pretes`, dans l'ordre, jusqu'à `plafond` et avant la première `(visuel)`, qui ne part que seule. Deux fiches qui
+    nomment un même fichier partent quand même : Git tranche à la fusion (Q7), `indices` le signale. `tournent`
+    (ENA5) : les fiches déjà lancées — elles comptent dans `plafond`, rien ne part à côté d'une `(visuel)`, et une
+    cochée en relecture ne libère pas encore ce qui dépend d'elle ; un id inconnu du fichier n'y compte pas
+    (`cmd_lancables` le dit). `racine` : pour `apercu_lancables`."""
     fiches_ = fiches_du_fichier(lignes)
-    apercu = {i: (d, v, {x for x in f if x.rstrip("/").rsplit("/", 1)[-1] != nom.lower()})
-              for i, (d, v, f) in apercu_fiches(lignes, racine or {}).items()}
+    apercu = apercu_lancables(lignes, nom, racine)
     attend, _ = pretes(fiches_, {i: "faite" if c and i not in tournent else "" for i, _, c, _ in fiches_}, apercu)
-    lancees = [apercu.get(i, ([], False, set())) for i in tournent]
-    if any(v or not f for _, v, f in lancees):
+    lancees = [apercu[i] for i in tournent if i in apercu]
+    if any(v for _, v, _ in lancees):
         return []
-    rendu, pris = [], set().union(*(f for _, _, f in lancees))
+    rendu = []
     for i in [i for i, _, _, _ in fiches_ if i in attend and not attend[i] and i not in tournent]:
-        _, visuel, touche = apercu.get(i, ([], False, set()))
+        visuel = apercu.get(i, ([], False, set()))[1]
         if len(rendu) + len(lancees) >= plafond or (visuel and (rendu or lancees)):
             break
-        if (visuel or not touche) and not (rendu or lancees):
-            return [i]
-        if touche and not croisent(touche, pris):
-            rendu.append(i)
-            pris |= touche
+        rendu.append(i)
+        if visuel:
+            break
+    return rendu
+
+
+def indices(apercu, ids):
+    """Les `(a, b, fichier)` de deux fiches de `ids`, dans l'ordre, dont les lignes **Fichiers** se croisent
+    (`croisent`, motifs compris) — `fichier`, le premier de `a`, trié, qui croise `b`. Elles partent ensemble quand
+    même : le repère prévient, Git tranche à la fusion (ISO3, Q7)."""
+    rendu = []
+    for n, a in enumerate(ids):
+        for b in ids[n + 1:]:
+            uns, autres = (apercu.get(i, ([], False, set()))[2] for i in (a, b))
+            f = next((x for x in sorted(uns) if croisent({x}, autres)), None)
+            rendu += [(a, b, f)] if f else []
     return rendu
 
 
 def cmd_lancables(a, sortie):
-    """Imprimer `LANCABLES <id>…`, ou `LANCABLES aucune` : ce que `lancables` rend sur `a.fichier`, `a.max` au plus ;
-    la racine : le projet qui porte le fichier (`trouver`)."""
+    """Imprimer `LANCABLES <id>…`, ou `LANCABLES aucune` : ce que `lancables` rend sur `a.fichier`, `a.max` au plus,
+    puis une ligne `INDICE: <a> <b> <fichier>` par paire qui se croise, lancées comprises (`indices`). Un id de
+    `--tourne` inconnu du fichier : une `GARDE:` avant, il est ignoré et le reste sort, sort 0 (ISO3). La racine :
+    le projet qui porte le fichier (`trouver`)."""
     if not os.path.isfile(a.fichier) or a.max < 1:
         sortie.write("GARDE: lancables veut un fichier de fiches et --max ≥ 1 : %s, %d\n" % (a.fichier, a.max))
         return 1
     projet = trouver(os.path.dirname(os.path.abspath(a.fichier)))
-    ids = lancables(lignes_de(a.fichier), os.path.basename(a.fichier), a.max, a.tourne,
-                    entrees(projet) if projet else {})
+    lignes, nom, racine = lignes_de(a.fichier), os.path.basename(a.fichier), entrees(projet) if projet else {}
+    apercu = apercu_lancables(lignes, nom, racine)
+    for i in [i for i in a.tourne if i not in apercu]:
+        sortie.write("GARDE: --tourne %s : aucune fiche de ce nom dans %s, ignorée\n" % (i, a.fichier))
+    ids = lancables(lignes, nom, a.max, a.tourne, racine)
     sortie.write("LANCABLES %s\n" % (" ".join(ids) or "aucune"))
+    for x, y, f in indices(apercu, [i for i in a.tourne if i in apercu] + ids):
+        sortie.write("INDICE: %s %s %s\n" % (x, y, f))
     return 0
 
 

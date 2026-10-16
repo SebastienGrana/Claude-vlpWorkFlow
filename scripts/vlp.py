@@ -89,15 +89,17 @@ Sous-commandes :
   · <n> écarts · <n> avertissements — <fichier>`. Avertit si une fiche ou le
   socle dépasse son seuil. Un écart : sort 1. `--plan` : ensuite, `<n>:<ligne>`
   pour chaque titre de fiche, `**Dépend de**`, `**Tentatives**`, `**Critère de fin**`.
-- `lancables <fichier> [--max N] [--tourne <id>…]` — `LANCABLES <id>…` : les fiches non cochées, prêtes, aux
-  lignes **Fichiers** qui ne se croisent pas (le fichier de fiches ôté ; lues en liste d'invités — chemins,
-  motifs, noms à extension, entrées de la racine du projet ; dans le doute, ils se croisent), dans l'ordre, `N` au plus (2 par défaut) et avant la
-  première `(visuel)` ; une `(visuel)` ou une fiche sans ligne **Fichiers** ne part que seule ; aucune,
-  `LANCABLES aucune` (ENA3). `--tourne` : les fiches déjà lancées — comptées dans `N`, leurs fichiers pris, non
-  rendues (ENA5). Fichier absent ou `N` < 1 : `GARDE:`, sort 1. Aucune commande ne l'appelle (ENA8) : un trou
-  connu — une fiche qui nomme un dossier sans barre finale (`skills/tache`) peut partir avec une qui nomme un
-  fichier qu'il contient (`tache/SKILL.md`, `SKILL.md`) ; avec la barre, ces exemples se séparent (rejoué à ENA8).
-  Le 5e refus d'ENA5 avait trouvé 4 paires sur les vraies données du kit (page « Recul sur ENA5 », 2026-10-12).
+- `lancables <fichier> [--max N] [--tourne <id>…]` — `LANCABLES <id>…` : les fiches non cochées, prêtes, dans
+  l'ordre, `N` au plus (2 par défaut) et avant la première `(visuel)`, qui ne part que seule ; aucune,
+  `LANCABLES aucune` (ENA3). Deux qui nomment un même fichier partent quand même, chacune dans son worktree — Git
+  tranche à la fusion (ISO3) : une ligne `INDICE: <a> <b> <fichier>` par paire, lancées comprises (lignes
+  **Fichiers** lues en liste d'invités — chemins, motifs, noms à extension, entrées de la racine du projet, le
+  fichier de fiches ôté ; dans le doute, elles se croisent). `--tourne` : les fiches déjà lancées — comptées dans
+  `N`, non rendues (ENA5) ; un id inconnu du fichier : `GARDE:`, ignoré, le reste sort (sort 0). Fichier absent ou
+  `N` < 1 : `GARDE:`, sort 1. Aucune commande ne l'appelle (ENA8) : un trou connu de l'indice — une fiche qui
+  nomme un dossier sans barre finale (`skills/tache`) ne croise pas une qui nomme un fichier qu'il contient
+  (`tache/SKILL.md`, `SKILL.md`) ; avec la barre, si (rejoué à ENA8). Le 5e refus d'ENA5 avait trouvé 4 paires
+  sur les vraies données du kit (page « Recul sur ENA5 », 2026-10-12).
   La sous-commande reste, ses tests et `context AI/119-ena5-juge.py` aussi, pour le chantier `ISO`, qui tranchera.
 - `commiter <fichier> <fiche>` — coche la fiche si sa case est vide (comme `cocher`, ses gardes comprises), ajoute à
   l'index ses seuls chemins changés — ceux de sa ligne **Fichiers**, un dossier valant ce qu'il contient, un motif

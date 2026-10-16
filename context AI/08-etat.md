@@ -3510,3 +3510,8 @@ Les 6 fichiers relus en entier contre `methode-chantier.md` après `MET7` ; « t
 
 - Au même chantier qu'ici, un autre worktree n'est nommé `AILLEURS=` que s'il porte un commit de fiche de ce code qu'ici n'a pas : l'hérité de la TODO 140 se tait, et le post-it `vlp-chantier` seul aussi — l'ancien `NUI28 (b)` a reçu un commit `LOC1 : a` pour rester nommé.
 - Pour `ISO6` : vu de main, un worktree de fiche n'est « ailleurs » qu'après son premier commit de fiche ; vu du worktree, main se nomme dès qu'il a fusionné une fiche `ISO` que le worktree n'a pas — et `/vlp:tache` s'arrête sur un `AILLEURS=` au code de sa fiche (son étape 0).
+
+## 2026-10-16 — ISO3 : seule la `(visuel)` part encore seule
+
+- `lancables` ne retient plus rien sur les fichiers : une fiche **sans ligne `**Fichiers**`** part avec les autres (avant : seule), Git tranche comme pour deux qui se croisent ; elle ne lève simplement aucun `INDICE:`.
+- Un id inconnu passé à `--tourne` est ignoré, **hors de la largeur** : `GARDE:`, puis le reste, sort 0.

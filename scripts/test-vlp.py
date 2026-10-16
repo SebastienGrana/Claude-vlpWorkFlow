@@ -3309,8 +3309,8 @@ groupe(tester_ena2_arriere_plan)
 
 
 def tester_ena3_lancables():
-    """ENA3 : `lancables` — les fiches prêtes aux fichiers disjoints, le fichier de fiches ôté (toutes le cochent),
-    `--max` au plus, coupées avant la première `(visuel)`, qui ne part que seule."""
+    """ENA3 : `lancables` — les fiches prêtes, `--max` au plus, coupées avant la première `(visuel)`, qui ne part que
+    seule ; deux qui se croisent partent, en `INDICE:` (ISO3), le fichier de fiches ôté (toutes le cochent)."""
     def fiche(ident, fichiers, visuel=False):
         """Une fiche minimale : ses `fichiers` sur la ligne **Fichiers**, son critère `(visuel)` ou non."""
         return ("<!-- FICHE:%s -->\n## %s [ ] — %s\n\n**Dépend de** : rien.\n**Fichiers** : %s.\n\n**Critère de fin**%s\n"
@@ -3321,9 +3321,11 @@ def tester_ena3_lancables():
                  + fiche("T1", "`a.py`, `ctx/fiches.md`") + fiche("T2", "`a.py`, `b.py`")
                  + fiche("T3", "`c.py`, `ctx/fiches.md`") + fiche("T4", "`d.py`", visuel=True))
         ecrire(chemin, corps)
-        vus = [appel(["lancables", chemin] + o)[1].strip() for o in ([], ["--max", "3"], ["--max", "1"])]
-        verifier("ENA3 : T2 croise T1, fiches.md n'est pas commun, coupé à 2, 3 ou 1 avant T4 (visuel)",
-                 vus == ["LANCABLES T1 T3", "LANCABLES T1 T3", "LANCABLES T1"], repr(vus))
+        vus = [appel(["lancables", chemin] + o)[1].splitlines() for o in ([], ["--max", "3"], ["--max", "1"])]
+        verifier("ENA3 : T2 croise T1 et part quand même, en INDICE: (ISO3) ; fiches.md n'est pas commun ; coupé à 2, 3 "
+                 "ou 1 avant T4 (visuel)",
+                 vus == [["LANCABLES T1 T2", "INDICE: T1 T2 a.py"], ["LANCABLES T1 T2 T3", "INDICE: T1 T2 a.py"],
+                         ["LANCABLES T1"]], repr(vus))
         suite = []
         for cochees in (("T1", "T3"), ("T1", "T2", "T3"), ("T1", "T2", "T3", "T4")):
             texte = corps
@@ -3416,18 +3418,20 @@ def tester_ena5_ensemble():
             "Rien.\n<!-- /FICHE -->\n" % (i, i, c, i, d, f) for i, c, d, f in (
                 ("T1", "x", "rien", "`a.py`"), ("T2", " ", "rien", "`a.py`, `b.py`"), ("T3", " ", "rien", "`c.py`"),
                 ("T5", " ", "`T1`", "`e.py`"))))
-        vus = [appel(["lancables", chemin] + o)[1].strip() for o in (
+        vus = [appel(["lancables", chemin] + o)[1].replace(chemin, "F").splitlines() for o in (
             ["--max", "3", "--tourne", "T1"], ["--max", "3"], ["--max", "2", "--tourne", "T2"], ["--tourne", "T9"])]
         # Relecteurs d'ENA5 : `scripts/*.py`, puis `scripts/`, partaient avec `scripts/vlp.py` (noms seuls comparés).
         ecrire(chemin, "# Essai\n\n## Le socle commun\n\nRien.\n\n---\n" + "".join(
             "<!-- FICHE:%s -->\n## %s [ ] — %s\n\n**Dépend de** : rien.\n**Fichiers** : `%s`.\n\n**Critère de fin**\n"
             "Rien.\n<!-- /FICHE -->\n" % (i, i, i, f) for i, f in (
                 ("P1", "scripts/*.py"), ("P2", "scripts/vlp.py"), ("P3", "doc/*.md"), ("P4", "src/"), ("P5", "src/a.py"))))
-        vus += [appel(["lancables", chemin] + o)[1].strip() for o in (["--max", "5"], ["--max", "5", "--tourne", "P4"])]
-    verifier("ENA5 : T1 en relecture retient T5 et prend a.py ; T2 compte dans --max ; une lancée inconnue part seule ; "
-             "un motif ou un dossier croise ce qu'il prend",
-             vus == ["LANCABLES T3", "LANCABLES T2 T3 T5", "LANCABLES T3", "LANCABLES aucune", "LANCABLES P1 P3 P4",
-                     "LANCABLES P1 P3"], repr(vus))
+        vus += [appel(["lancables", chemin] + o)[1].splitlines() for o in (["--max", "5"], ["--max", "5", "--tourne", "P4"])]
+    verifier("ENA5 : T1 en relecture retient T5, T2 part à côté en INDICE: (ISO3) ; T2 compte dans --max ; une lancée "
+             "inconnue : GARDE:, le reste sort ; un motif ou un dossier croise ce qu'il prend",
+             vus == [["LANCABLES T2 T3", "INDICE: T1 T2 a.py"], ["LANCABLES T2 T3 T5"], ["LANCABLES T3"],
+                     ["GARDE: --tourne T9 : aucune fiche de ce nom dans F, ignorée", "LANCABLES T2 T3"],
+                     ["LANCABLES P1 P2 P3 P4 P5", "INDICE: P1 P2 scripts/*.py", "INDICE: P4 P5 src/"],
+                     ["LANCABLES P1 P2 P3 P5", "INDICE: P4 P5 src/", "INDICE: P1 P2 scripts/*.py"]], repr(vus))
     # Toutes les façons d'écrire scripts/vlp.py, deux à deux : la famille entière, pas les deux exemples des relecteurs.
     meme = ["scripts/vlp.py", "vlp.py", "scripts/", "scripts/*.py", "scripts/{vlp,x}.py", "*.py", "scripts/*",
             "scripts/v*.py", "*/vlp.py"]
@@ -3441,13 +3445,13 @@ def tester_ena5_ensemble():
               ".gitattributes": False}
 
     def deux(x, y):
-        """Vrai si `lancables` lance ensemble deux fiches aux lignes **Fichiers** `x` et `y` — chacune un fichier à elle
-        en tête, ancré dans `seul/` que rien d'autre ne nomme : un nom perdu ne la laisse pas sans fichier, ce qui la
-        ferait partir seule et cacherait la perte ; un nom seul (`A1.md`) croiserait tout dossier, et le cacherait aussi."""
+        """Vrai si `lancables` ne signale pas en `INDICE:` (ISO3) deux fiches aux lignes **Fichiers** `x` et `y` —
+        chacune un fichier à elle en tête, ancré dans `seul/` que rien d'autre ne nomme : un nom seul (`A1.md`)
+        croiserait tout dossier, et cacherait un nom perdu."""
         lignes = ("# E\n\n## Le socle commun\n\nRien.\n\n---\n" + "".join(
             "<!-- FICHE:%s -->\n## %s [ ] — %s\n\n**Dépend de** : rien.\n**Fichiers** : `seul/%s.txt`, %s.\n\n"
             "**Critère de fin**\nRien.\n<!-- /FICHE -->\n" % (i, i, i, i, f) for i, f in (("A1", x), ("B1", y)))).split("\n")
-        return mod.lancables(lignes, "f.md", 2, racine=racine) == ["A1", "B1"]
+        return mod.indices(mod.apercu_lancables(lignes, "f.md", racine), ["A1", "B1"]) == []
     formes = [("`.gitignore`, `a.py`", "`.gitignore`, `b.py`"), ("`skills`, `doc/a.md`", "`skills/a/SKILL.md`"),
               ("skills", "`skills/tache/SKILL.md`"), ("`*.py`, `doc/b.md`", "`scripts/vlp.py`"),
               ("`scripts/`", "`scripts/vlp.py`"), ("`scripts\\vlp.py`", "`scripts/vlp.py`"),
@@ -3478,8 +3482,10 @@ def tester_ena5_ensemble():
             "<!-- FICHE:%s -->\n## %s [ ] — %s\n\n**Dépend de** : rien.\n**Fichiers** : %s.\n\n**Critère de fin**\n"
             "Rien.\n<!-- /FICHE -->\n" % (i, i, i, f) for i, f in (
                 ("Q1", "skills"), ("Q2", "`skills/a/SKILL.md`"), ("Q3", "`carte`, `doc/c.py`"))))
-        rates += [] if appel(["lancables", fiches, "--max", "3"])[1].strip() == "LANCABLES Q1 Q3" else [("cli", "racine")]
-    verifier("ENA5 : lancables lit les formes réelles (liste d'invités, racine du projet), et laisse partir les libres",
+        cli = appel(["lancables", fiches, "--max", "3"])[1].splitlines()
+        rates += [] if cli[:1] == ["LANCABLES Q1 Q2 Q3"] and [l[:14] for l in cli[1:]] == ["INDICE: Q1 Q2 "] else [cli]
+    verifier("ENA5 : l'INDICE: de lancables lit les formes réelles (liste d'invités, racine du projet), et tait les "
+             "libres (ISO3)",
              rates == [], repr(rates))
     chef = io.open(os.path.join(RACINE, "skills", "enchainer", "SKILL.md"), encoding="utf-8").read()
     plat = " ".join(chef.split())
@@ -3489,6 +3495,34 @@ def tester_ena5_ensemble():
 
 
 groupe(tester_ena5_ensemble)
+
+
+def tester_iso3_indice():
+    """ISO3 : `lancables` ne retient plus deux fiches qui se croisent — elles partent, chacune dans son worktree, et
+    une ligne `INDICE:` le dit ; `--tourne` compte dans la largeur, un id inconnu n'arrête plus tout."""
+    with tempfile.TemporaryDirectory() as t:
+        chemin = os.path.join(t, "fiches.md")
+        ecrire(os.path.join(t, "CHANTIER.md"), "x\n")      # un projet, `src` à sa racine : le chemin entier reste
+        os.mkdir(os.path.join(t, "src"))
+        ecrire(chemin, "# Essai\n\n## Le socle commun\n\nRien.\n\n---\n" + "".join(
+            "<!-- FICHE:%s -->\n## %s [ ] — %s\n\n**Dépend de** : rien.\n**Fichiers** : %s.\n\n**Critère de fin**\n"
+            "Rien.\n<!-- /FICHE -->\n" % (i, i, i, f) for i, f in (
+                ("I1", "`src/a.py`"), ("I2", "`src/a.py`, `src/b.py`"), ("I3", "`src/c.py`"))))
+        vus = [appel(["lancables", chemin] + o) for o in (
+            ["--max", "2"], ["--max", "3"], ["--max", "2", "--tourne", "I1"], ["--max", "3", "--tourne", "I9"])]
+    vus = [(code, s.replace(chemin, "F").splitlines()) for code, s in vus]
+    verifier("ISO3 : trois prêtes dont deux se croisent — --max 2 → les deux et une ligne INDICE: ; --max 3 → les "
+             "trois — mutant : exclure les croisées",
+             vus[:2] == [(0, ["LANCABLES I1 I2", "INDICE: I1 I2 src/a.py"]),
+                         (0, ["LANCABLES I1 I2 I3", "INDICE: I1 I2 src/a.py"])], repr(vus[:2]))
+    verifier("ISO3 : --tourne I1 compte dans la largeur, son croisement avec I2 en INDICE: ; un id inconnu → GARDE:, "
+             "ignoré, le reste sort, sort 0",
+             vus[2:] == [(0, ["LANCABLES I2", "INDICE: I1 I2 src/a.py"]),
+                         (0, ["GARDE: --tourne I9 : aucune fiche de ce nom dans F, ignorée", "LANCABLES I1 I2 I3",
+                              "INDICE: I1 I2 src/a.py"])], repr(vus[2:]))
+
+
+groupe(tester_iso3_indice)
 
 
 def tester_arp4_menage():
