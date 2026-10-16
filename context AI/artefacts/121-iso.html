@@ -21,9 +21,9 @@
     <p>/vlp:enchainer agents joue en même temps toutes les fiches lançables (2 d'office), chacune dans son worktree, et un mini-chantier à blanc le prouve, mesuré à la file puis en parallèle</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">7 fiches · 1 faite · en cours : ISO2</p>
+    <p class="mono" style="margin-top:.5rem">7 fiches · 2 faites · en cours : ISO3</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -41,12 +41,13 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">ISO1</span></span>
         <details><summary><span class="titre">Essayer un sous-agent en worktree, et noter ce qu'on voit</span><span class="etat">Faite</span></summary>
         <span class="note">VALIDE 7 fiches · socle 48 lignes · 0 écarts ; section « Mesuré à ISO1 » : 5 réponses, base fresh = origin/main, post-it requis ; baseRef head simulé, non posé (refus)</span></details>
-        <span class="cout mono">≈10,5M (10 504 495) · 79 tours · 3,93 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">ISO2</span></span>
-        <details open><summary><span class="titre">Faire taire l'alerte « ailleurs » d'un worktree qui n'a qu'hérité</span><span class="etat">En cours</span></summary>
-        <span class="note">plus de fausse alerte « ailleurs » pour un worktree hérité ; ne dépend de rien</span></details></li>
-      <li class="fiche"><span class="gauche"><span class="id">ISO3</span></span>
-        <details><summary><span class="titre">Faire de lancables un indice, à largeur réglable</span><span class="etat">À lancer</span></summary>
+        <span class="cout mono">≈11,1M (11 074 667) · 82 tours · 4,10 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">ISO2</span></span>
+        <details><summary><span class="titre">Faire taire l'alerte « ailleurs » d'un worktree qui n'a qu'hérité</span><span class="etat">Faite</span></summary>
+        <span class="note">test-vlp OK, 0 ÉCART ; NUI28 (c) et (d) nommés ; mutant toujours nommer : ATTRAPÉ 2 écarts ; pyright 0 errors</span></details>
+        <span class="cout mono">≈30,6M (30 626 281) · 142 tours · 11,52 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">ISO3</span></span>
+        <details open><summary><span class="titre">Faire de lancables un indice, à largeur réglable</span><span class="etat">En cours</span></summary>
         <span class="note">lancables devient un indice, largeur 2 réglable ; après ISO1</span></details></li>
       <li class="fiche"><span class="gauche"><span class="id">ISO4</span></span>
         <details><summary><span class="titre">Fusionner la branche d'une fiche, annuler sur conflit</span><span class="etat">À lancer</span></summary>
@@ -58,12 +59,12 @@
         <details><summary><span class="titre">Lancer en parallèle d'office dans /vlp:enchainer agents</span><span class="etat">Après ISO3, ISO4, ISO5</span></summary>
         <span class="note">le parallèle d'office dans /vlp:enchainer agents ; après ISO3, ISO4, ISO5</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">ISO7</span></span>
-        <details><summary><span class="titre">Mesurer le mini-chantier à blanc, à la file puis en parallèle</span><span class="etat">Après ISO6, ISO2</span></summary>
+        <details><summary><span class="titre">Mesurer le mini-chantier à blanc, à la file puis en parallèle</span><span class="etat">Après ISO6</span></summary>
         <span class="note">le mini-chantier à blanc mesuré, à la file puis en parallèle ; après ISO6 et ISO2</span></details>
         <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈435,9k (435 931) · 2 tours · 0,20 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈10,9M (10 940 426) · 81 tours · 4,13 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈42,1M (42 136 879) · 226 tours · 15,82 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -81,12 +82,13 @@
     <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
     <ul class="journal">
       <li><time datetime="2026-10-15">2026-10-15</time><span>ISO1 : le worktree d'Agent naît dans le dépôt de la session et part d'origin/main ; même parti de HEAD, le chantier hérité n'y est vu qu'avec le post-it vlp-chantier</span></li>
+      <li><time datetime="2026-10-16">2026-10-16</time><span>ISO2 : au même chantier, un autre worktree n'est nommé AILLEURS= qu'avec un commit de fiche de ce code qu'ici n'a pas ; un post-it seul se tait aussi</span></li>
     </ul>
   </section>
 
   <footer>
     <span>Fichier de fiches : <span class="mono">context AI/121-iso.md</span></span>
-    <span>Mis à jour le <span class="mono">2026-10-15</span></span>
+    <span>Mis à jour le <span class="mono">2026-10-16</span></span>
   </footer>
 </div>
 <script src="vlp.js"></script>

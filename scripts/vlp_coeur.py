@@ -6868,8 +6868,10 @@ def chantiers_ailleurs(racine):
     """`[(code, dossier)]` : le chantier que `courant_de` donne à chaque autre worktree, post-it compris ; un dossier
     sans chantier, ou à plusieurs ouverts (`Absent`), n'en a aucun. `carte` les imprime en `AILLEURS=`, `niveau` n'y
     compte pas d'écart de page (NUI28). Sans chantier à lui, un worktree nomme ceux de ses commits de fiche ouverts
-    dans le principal (`codes_joues`, NWT)."""
-    rendu, (dossier_p, principale) = [], principal(racine)
+    dans le principal (`codes_joues`, NWT). Au même chantier que `racine`, il ne se nomme que s'il a un commit de
+    fiche de ce code que `racine` n'a pas (`codes_joues` contre son `HEAD`) : un hérité se tait, chaque côté
+    renvoyait à l'autre (ISO2, TODO 140) ; une fiche jouée là-bas se dit."""
+    rendu, (dossier_p, principale), (mien, tete) = [], principal(racine), code_et_tete(racine)
     ouverts_p = {code_du_fichier(dossier_p, f) for f in ouverts(dossier_p)} if dossier_p else set()
     for dossier in autres_worktrees(racine):
         try:
@@ -6878,8 +6880,16 @@ def chantiers_ailleurs(racine):
             continue
         code = code_du_fichier(dossier, f) if f else None
         joues = [code] if code else [c for c in codes_joues(dossier, principale) if c in ouverts_p]
-        rendu += [(c, dossier) for c in joues]
+        rendu += [(c, dossier) for c in joues if c != mien or c in codes_joues(dossier, tete)]
     return rendu
+
+
+def code_et_tete(racine):
+    """`(code, sha)` de `racine` : le code de son chantier courant (`courant_ou_rien`, None sans lui) et son `HEAD`
+    (None hors Git) — ce contre quoi `chantiers_ailleurs` juge un autre worktree au même chantier (ISO2)."""
+    f = courant_ou_rien(racine)
+    code, tete = git_texte(["rev-parse", "HEAD"], racine)
+    return (code_du_fichier(racine, f) if f else None), (tete.strip() if code == 0 else None)
 
 
 def code_du_fichier(dossier, f):
@@ -6890,7 +6900,7 @@ def code_du_fichier(dossier, f):
 
 def codes_joues(dossier, principale):
     """Les préfixes, triés, des commits de fiche `<id> : …` (`COMMIT_FICHE`) de la branche de `dossier` absents de
-    `principale` ; [] sans elle. Un worktree né avant que Git suive le contexte n'a pas la marque d'ouverture, que
+    `principale` — une branche, ou le `HEAD` d'un autre worktree (ISO2) ; [] sans elle. Un worktree né avant que Git suive le contexte n'a pas la marque d'ouverture, que
     `niveau --ecrire` a posée dans le principal : ses commits disent quel chantier il joue (Cairn, `FAM`, NWT) ; un
     vieux commit jamais fusionné aussi — `chantiers_ailleurs` ne garde que les ouverts du principal."""
     if not principale:

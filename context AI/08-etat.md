@@ -3505,3 +3505,8 @@ Les 6 fichiers relus en entier contre `methode-chantier.md` après `MET7` ; « t
 - Le worktree de l'outil `Agent` naît dans le dépôt **de la session**, et part d'`origin/main` sans `worktree.baseRef: "head"` : un chantier ouvert non poussé n'y est pas (`bbe45f2` contre `2b32499`).
 - Même parti de `HEAD`, `carte` y rend `COURANT=aucun` (chantier hérité) : `relecture` et `commiter` n'y marchent qu'avec le post-it `vlp-chantier` posé.
 - Le modèle ne peut pas écrire `.claude/settings.local.json` (refus « Self-Modification ») : `baseRef` se pose à la main. Détail : `121-iso.md`, « Mesuré à ISO1 ».
+
+## 2026-10-16 — ISO2 : un post-it seul ne dit plus « joué ailleurs »
+
+- Au même chantier qu'ici, un autre worktree n'est nommé `AILLEURS=` que s'il porte un commit de fiche de ce code qu'ici n'a pas : l'hérité de la TODO 140 se tait, et le post-it `vlp-chantier` seul aussi — l'ancien `NUI28 (b)` a reçu un commit `LOC1 : a` pour rester nommé.
+- Pour `ISO6` : vu de main, un worktree de fiche n'est « ailleurs » qu'après son premier commit de fiche ; vu du worktree, main se nomme dès qu'il a fusionné une fiche `ISO` que le worktree n'a pas — et `/vlp:tache` s'arrête sur un `AILLEURS=` au code de sa fiche (son étape 0).

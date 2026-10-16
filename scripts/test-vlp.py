@@ -9680,6 +9680,13 @@ def tester_lettres_doublon():
 groupe(tester_lettres_doublon)
 
 
+def noms_ailleurs(dossier):
+    """Les `(code, nom du dossier)`, triés, des lignes `AILLEURS=` de la carte de `dossier` (NUI28)."""
+    s = appel(["carte", dossier])[1]
+    return sorted((l.split()[0][len("AILLEURS="):], os.path.basename(l.split(None, 1)[1].rstrip("/")))
+                  for l in s.splitlines() if l.startswith("AILLEURS="))
+
+
 def tester_ailleurs():
     """NUI28 : `carte` nomme le chantier de chaque autre worktree (`AILLEURS=`), jamais le sien, ni un worktree sans
     chantier ; `niveau` ne compte pas d'écart de page à un chantier qui joue dans un autre worktree que le principal."""
@@ -9702,31 +9709,12 @@ def tester_ailleurs():
             if code:
                 ecrire(os.path.join(w, "ctx", "81-%s.md" % nom), "# Chantier %s — %s\n\n%s\n\n## %s1 [ ] — a\n"
                        % (code, nom, OUVERT_DU_JOUR, code))
-        vus = {}
-        for nom, w in dossiers.items():
-            s = appel(["carte", w])[1]
-            vus[nom] = sorted((l.split()[0][len("AILLEURS="):], os.path.basename(l.split(None, 1)[1].rstrip("/")))
-                              for l in s.splitlines() if l.startswith("AILLEURS="))
-    attendu = {"m": [("WZA", "wt-a"), ("WZB", "wt-b")], "a": [("MAA", "m"), ("WZB", "wt-b")],
+        vus = {nom: noms_ailleurs(w) for nom, w in dossiers.items()}
+    attendu ={"m": [("WZA", "wt-a"), ("WZB", "wt-b")], "a": [("MAA", "m"), ("WZB", "wt-b")],
                "b": [("MAA", "m"), ("WZA", "wt-a")], "c": [("MAA", "m"), ("WZA", "wt-a"), ("WZB", "wt-b")]}
     verifier("NUI28 (a) main + deux worktrees à chantier + un sans : la carte de chacun nomme les autres chantiers, "
              "jamais le sien ; le worktree sans chantier n'est nommé par personne — mutant : le sien non filtré",
              vus == attendu, vus)
-
-    with tempfile.TemporaryDirectory() as tr:
-        d, wl = os.path.join(tr, "n"), os.path.join(tr, "wt-l")
-        depot_matin(d)
-        _, seul = appel(["niveau", d])
-        git_matin(d, "worktree", "add", "-q", "-b", "l", wl, "main")
-        ecrire(mod.postit(wl), "ctx/40-loc.md\n")      # le worktree joue LOC : son post-it le nomme (NUI31)
-        _, avec = appel(["niveau", d])
-        _, dans = appel(["niveau", wl])
-    verifier("NUI28 (b) niveau : LOC joué dans un worktree → « AILLEURS: page: LOC joue dans … », aucun ÉCART: page "
-             "dans le principal ; sans worktree, ou lancé dans le worktree, la page se compte",
-             "ÉCART: page:" in seul and "AILLEURS:" not in seul
-             and "AILLEURS: page: LOC joue dans " in avec and "wt-l" in avec and "ÉCART: page:" not in avec
-             and "AILLEURS:" not in dans,
-             (seul, avec, dans))
 
     with tempfile.TemporaryDirectory() as tr:
         d, wl = os.path.join(tr, "n"), os.path.join(tr, "wt-l")
@@ -9762,6 +9750,49 @@ def tester_ailleurs():
 
 
 groupe(tester_ailleurs)
+
+
+def tester_ailleurs_meme_chantier():
+    """NUI28 (b) à (d) : au même chantier qu'ici, un autre worktree n'est nommé (`AILLEURS=`, `niveau`) que s'il a
+    joué une fiche de ce code qu'ici n'a pas — un hérité se tait des deux côtés (ISO2, TODO 140)."""
+    if not shutil.which("git"):
+        print("SAUTÉ: git absent — AILLEURS= au même chantier n'est pas testé")
+        return
+    with tempfile.TemporaryDirectory() as tr:
+        d, wl = os.path.join(tr, "n"), os.path.join(tr, "wt-l")
+        depot_matin(d)
+        _, seul = appel(["niveau", d])
+        git_matin(d, "worktree", "add", "-q", "-b", "l", wl, "main")
+        ecrire(mod.postit(wl), "ctx/40-loc.md\n")      # le worktree joue LOC : son post-it le nomme (NUI31)
+        ecrire(os.path.join(wl, "b.txt"), "b\n")
+        commit_matin(wl, "LOC1 : a", 2)                 # et une fiche de LOC que main n'a pas (ISO2)
+        _, avec = appel(["niveau", d])
+        _, dans = appel(["niveau", wl])
+    verifier("NUI28 (b) niveau : LOC joué dans un worktree → « AILLEURS: page: LOC joue dans … », aucun ÉCART: page "
+             "dans le principal ; sans worktree, ou lancé dans le worktree, la page se compte",
+             "ÉCART: page:" in seul and "AILLEURS:" not in seul
+             and "AILLEURS: page: LOC joue dans " in avec and "wt-l" in avec and "ÉCART: page:" not in avec
+             and "AILLEURS:" not in dans,
+             (seul, avec, dans))
+
+    with tempfile.TemporaryDirectory() as tr:
+        d, wh = os.path.join(tr, "h"), os.path.join(tr, "wt-h")
+        depot_matin(d)
+        git_matin(d, "worktree", "add", "-q", "-b", "h", wh, "main")
+        ecrire(mod.postit(wh), "ctx/40-loc.md\n")      # LOC hérité de main, nommé par le post-it : le même des deux côtés
+        herite = [noms_ailleurs(w) for w in (d, wh)]
+        ecrire(os.path.join(wh, "b.txt"), "b\n")
+        commit_matin(wh, "LOC1 : a", 2)                 # une fiche de LOC jouée dans le worktree, pas dans main
+        joue = [noms_ailleurs(w) for w in (d, wh)]
+    verifier("NUI28 (c) ISO2 : même chantier hérité, aucun commit de fiche d'un côté ni de l'autre → ni main ni le "
+             "worktree ne nomment l'autre (TODO 140) — mutant : toujours nommer",
+             herite == [[], []], herite)
+    verifier("NUI28 (d) ISO2 : même code, une fiche LOC jouée dans le worktree → main le nomme, le worktree ne nomme "
+             "pas main — mutant : toujours nommer",
+             joue == [[("LOC", "wt-h")], []], joue)
+
+
+groupe(tester_ailleurs_meme_chantier)
 
 
 # VIT15 — des sondes, une règle de comptage chacune. SONDES_ATTENDU : leurs comptes par ruff 0.16.10, seuils à zéro et
