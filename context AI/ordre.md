@@ -48,6 +48,8 @@ fait. Pour un pas que la TODO connaît, la dernière colonne est une note, montr
 | `CLR` | cairn | les vues en clair | ✅ clos le 2026-10-14 |
 | `MEN` | cairn | le menu des cartes de la vue 3D | ✅ clos le 2026-10-14 |
 | `SEL` | cairn | les vues 2D à la demande | ✅ clos le 2026-10-15 |
+| `ISO` | kit | | en cours depuis le 2026-10-15 |
+| `REF` | kit | | juste après `ISO` (2026-10-16) |
 | `FAM11` | cairn | | 1 fiche |
 | `PRS` | cairn | | |
 | `REG` | cairn | | |
@@ -122,6 +124,7 @@ Ce que l'utilisateur a tranché, et que le chemin applique ; une puce par décis
 - **Le bouton « Envoyer à Claude »** : une ligne de TODO, `EVR`, en V2, score 12.
 - **ProjetONZSM et TrackGen** : hors de la V1 du kit, toujours équipés.
 - **L'estimé d'un cadrage se double**, pour les prochains cadrages ; la TODO ne bouge pas.
+- **`REF` élargi, en V1, juste après `ISO`** : la qualité du code et des tests y est fondue, un seul chantier long (questionnaire d'`ISO1`, 2026-10-16).
 
 ## Pas encore tranché
 
