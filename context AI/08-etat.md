@@ -3532,3 +3532,8 @@ Les 6 fichiers relus en entier contre `methode-chantier.md` après `MET7` ; « t
 - La fiche pose elle-même le post-it `vlp-chantier` de son worktree (`git rev-parse --git-path`, puis `Write`) : aucune sous-commande ne le pose seule, hors `ouvrir`.
 - En worktree, le chef commite l'état (« État après <fiche> ») et le refus (« Refus : <fiche> ») aussitôt : la fusion suivante veut un arbre propre, et ces sujets n'ont pas la forme `<fiche> :` que `cout` découpe.
 - Un rejeu, après refus comme après `CONFLIT`, compte dans le plafond de 5 (règle de `refus.md`, étendue).
+
+## 2026-10-17 — ISO7 : un sous-agent isolé ne peut pas poser son post-it
+
+- Passage en parallèle du chantier à blanc `BLA` : `BLA1` et `BLA2` tournent ensemble et réussissent, puis leurs deux relectures sont `REFUSÉE` (`GARDE: … d'APRÈS : aucun`). Le `Write` du post-it est refusé au sous-agent : son chemin (`.git/worktrees/<id>/vlp-chantier`) est dans le dossier principal, et la doc dit « Claude Code blocks an `Edit`, `Write`, or `NotebookEdit` that targets a path in the main checkout » (https://code.claude.com/docs/en/worktrees, lue le 2026-10-16). Ce que prévoyait l'entrée `ISO6` ci-dessus ne marche donc pas : `ISO8`, ajoutée au chantier, le fait poser par le chef, par script.
+- À la file, le même chantier passe : 10,8 min, 3,24 $, `OK tout` (`121-iso.md`, « Mesuré à ISO7 »).
