@@ -303,6 +303,13 @@ Sous-commandes :
   sale, branche absente, branche qui garde un chantier ouvert (`de_cote` : le clore dans son worktree d'abord).
   Un code des lettres pris des deux côtés sous deux titres : `GARDE: le code <X> est pris deux fois : « <a> » et
   « <b> »`, avant le merge, rien d'écrit — `matin` aussi ; même entrée des deux côtés, comptée une fois (NUI27).
+- `fusionner <fichier de fiches> <fiche> --worktree <dossier>` — la branche d'une fiche jouée dans son worktree (ISO4) :
+  depuis la racine du dépôt du fichier, la tête du worktree — le commit de la fiche, fait là-bas par `commiter` —
+  fusionnée sous « Fusion : <fiche> », `FUSIONNÉ <fiche> <sha>` (la tête d'après), puis le worktree et sa branche
+  retirés ; ce qu'il garde hors commit se perd, `PERDU <n> chemin(s) …` le dit d'abord. Conflit : `git merge
+  --abort`, rien de gardé, le worktree retiré quand même, `CONFLIT <fiche> <fichiers>`, sort 1 — le chef rejoue la
+  fiche. `GARDE:`, rien touché, sort 1 : dossier qui n'est pas un autre worktree du dépôt, `MERGE_HEAD` présent,
+  fichier suivi changé, aucun commit `<fiche> :` du worktree que la racine n'a pas, merge refusé par Git.
   `clore` dans un worktree hors de la principale imprime la ligne `FUSIONNER` à lancer depuis elle (sauf `VLP_NUIT=1`).
 - `matin <projet> <date> --rapport <json>` — le rapport du matin (NUI19), sans fusion ni commit, rejouable. La date
   est obligatoire : sans elle, `GARDE:`. Trois premières gardes de `matin` (équipé, date, racine du dépôt) ; carnet

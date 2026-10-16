@@ -3515,3 +3515,8 @@ Les 6 fichiers relus en entier contre `methode-chantier.md` après `MET7` ; « t
 
 - `lancables` ne retient plus rien sur les fichiers : une fiche **sans ligne `**Fichiers**`** part avec les autres (avant : seule), Git tranche comme pour deux qui se croisent ; elle ne lève simplement aucun `INDICE:`.
 - Un id inconnu passé à `--tourne` est ignoré, **hors de la largeur** : `GARDE:`, puis le reste, sort 0.
+
+## 2026-10-16 — ISO4 : `fusionner` avait déjà un sens
+
+- `vlp.py fusionner <projet> <branche>` existait (la fusion du jour, NUI26) : la forme de la fiche passe par la même sous-commande, **`--worktree` choisit** — avec lui, les deux arguments sont `<fichier de fiches> <fiche>` (`fusionner_fiche`).
+- Le worktree est retiré par `git worktree remove --force` : ce qu'il garde hors commit se perd, mais se dit (`PERDU <n> chemin(s) …`). La garde du dépôt principal ne regarde que les fichiers **suivis** (`--untracked-files=no`) ; un non suivi que la fusion écraserait, Git le refuse avant d'écrire (`GARDE:`).

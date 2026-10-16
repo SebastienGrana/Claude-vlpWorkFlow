@@ -8673,10 +8673,79 @@ def retard_du_matin(projet, avant, sortie):
                      "qu'après /reload-plugins\n" % int(n))
 
 
+def fusion_fiche_refusee(racine, fiche, dossier):
+    """`(raison, sha, branche)` pour `fusionner_fiche` (ISO4) : la raison de ne rien toucher, sinon `(None, …)` avec
+    la tête et la branche du worktree `dossier` (None si détachée). Refusé : `dossier` qui n'est pas un autre
+    worktree du dépôt de `racine`, `MERGE_HEAD` présent ou fichier suivi changé dans `racine`, aucun commit
+    `<fiche> :` (`COMMIT_FICHE`) du worktree que `racine` n'a pas."""
+    blocs = {os.path.normcase(os.path.realpath(d)): b for d, b in worktrees(racine)}
+    cle = os.path.normcase(os.path.realpath(dossier))
+    if cle not in blocs or cle == os.path.normcase(os.path.realpath(racine)):
+        return "%s n'est pas un autre worktree de ce dépôt" % dossier, None, None
+    if git_texte(["rev-parse", "-q", "--verify", "MERGE_HEAD"], racine)[0] == 0:
+        return "une fusion est déjà en cours (MERGE_HEAD)", None, None
+    code, sale = git_texte(["status", "--porcelain", "--untracked-files=no"], racine)
+    if code != 0 or sale.strip():
+        return "fichier suivi changé dans %s" % racine, None, None
+    code, sha = git_texte(["rev-parse", "HEAD"], dossier)
+    sujets = git_texte(["log", "--format=%s", "HEAD.." + sha.strip()], racine)[1].splitlines() if code == 0 else []
+    if not any(m and m.group(1) == fiche for m in map(COMMIT_FICHE.match, sujets)):
+        return "aucun commit « %s : » du worktree que %s n'a pas" % (fiche, racine), None, None
+    return None, sha.strip(), blocs[cle]
+
+
+def retirer_worktree(racine, dossier, branche, sortie):
+    """Retirer le worktree `dossier` et sa `branche` après `fusionner_fiche` (ISO4). Ce qu'il garde hors commit se
+    perd : `PERDU <n> chemin(s) non commités du worktree : …` le dit d'abord ; un échec de Git, une `GARDE:`."""
+    code, reste = git_texte(["status", "--porcelain"], dossier)
+    if code == 0 and reste.strip():
+        lignes = reste.splitlines()
+        sortie.write("PERDU %d chemin(s) non commités du worktree : %s\n" % (len(lignes), ", ".join(l[3:] for l in lignes)))
+    for args in [["worktree", "remove", "--force", dossier]] + ([["branch", "-D", branche]] if branche else []):
+        code, texte = git_texte(args, racine)
+        if code != 0:
+            sortie.write("GARDE: git %s : %s\n" % (" ".join(args[:2]), texte))
+
+
+def fusionner_fiche(fichier, fiche, dossier, sortie):
+    """`fusionner <fichier de fiches> <fiche> --worktree <dossier>` (ISO4) : depuis la racine du dépôt du fichier,
+    fusionne la tête du worktree — le commit de la fiche, fait là-bas par `commiter` — sous « Fusion : <fiche> »,
+    `FUSIONNÉ <fiche> <sha>` (la tête d'après), puis retire le worktree et sa branche (`retirer_worktree`), sort 0.
+    Conflit : `git merge --abort`, rien de gardé, le worktree retiré quand même, `CONFLIT <fiche> <fichiers>`,
+    sort 1 — le chef rejoue la fiche (Q3). `GARDE:`, rien touché, sort 1 : `fusion_fiche_refusee`, ou un merge que
+    Git refuse avant d'écrire ; un `--abort` raté laisse la fusion en cours, et le worktree."""
+    code, racine = git_texte(["rev-parse", "--show-toplevel"], os.path.dirname(os.path.abspath(fichier)))
+    raison, sha, branche = (fusion_fiche_refusee(racine.strip(), fiche, dossier) if code == 0
+                            else ("%s hors Git" % fichier, None, None))
+    if raison or not sha:
+        sortie.write("GARDE: %s — rien touché\n" % raison)
+        return 1
+    racine = racine.strip()
+    code, texte = git_texte(["merge", "--no-edit", "-m", "Fusion : %s" % fiche, sha], racine)
+    if code != 0:
+        conflits = git_texte(["diff", "--name-only", "--diff-filter=U"], racine)[1].splitlines()
+        if not conflits:
+            sortie.write("GARDE: git refuse la fusion : %s — rien touché\n" % texte)
+            return 1
+        code, texte = git_texte(["merge", "--abort"], racine)
+        if code != 0:
+            sortie.write("GARDE: git merge --abort : %s — fusion laissée en cours, worktree gardé\n" % texte)
+            return 1
+        retirer_worktree(racine, dossier, branche, sortie)
+        sortie.write("CONFLIT %s %s\n" % (fiche, ", ".join(conflits)))
+        return 1
+    sortie.write("FUSIONNÉ %s %s\n" % (fiche, git_texte(["rev-parse", "--short", "HEAD"], racine)[1].strip()))
+    retirer_worktree(racine, dossier, branche, sortie)
+    return 0
+
+
 def cmd_fusionner(a, sortie):
     """`fusionner <projet> <branche>` (NUI26) : la fusion du jour, `branche` dans celle du dossier, par
     `fusionner_branche` sous « Fusion : <branche> ». Gardes, rien fusionné : non équipé ou hors racine, `HEAD`
-    détachée, `MERGE_HEAD` présent, arbre sale, branche absente, branche qui garde un chantier ouvert (`de_cote`)."""
+    détachée, `MERGE_HEAD` présent, arbre sale, branche absente, branche qui garde un chantier ouvert (`de_cote`).
+    Avec `--worktree`, les deux arguments sont `<fichier de fiches> <fiche>` : `fusionner_fiche` (ISO4)."""
+    if a.worktree:
+        return fusionner_fiche(a.projet, a.branche, a.worktree, sortie)
     projet = os.path.abspath(a.projet)
     if not equipe(projet):
         sortie.write("GARDE: pas de CHANTIER.md dans %s — rien fusionné\n" % projet)
@@ -9930,6 +9999,15 @@ def options_marques(sous):
     pa.add_argument("--date")
 
 
+def options_fusionner(sous):
+    """Déclarer la ligne de commande de `fusionner` : la fusion du jour (NUI26), ou, avec `--worktree`, la branche
+    d'une fiche (ISO4)."""
+    fu = sous.add_parser("fusionner")
+    fu.add_argument("projet")
+    fu.add_argument("branche")
+    fu.add_argument("--worktree")
+
+
 def options_carte(sous):
     """Déclarer la ligne de commande de `carte`."""
     c = sous.add_parser("carte")
@@ -10125,9 +10203,7 @@ def main(argv, sortie=None, entree=None, erreur=None):
     pl.add_argument("--date")
     pl.add_argument("--canal", choices=CANAUX)
     pl.add_argument("--chantier")
-    fu = sous.add_parser("fusionner")
-    fu.add_argument("projet")
-    fu.add_argument("branche")
+    options_fusionner(sous)
     ma = sous.add_parser("matin")
     ma.add_argument("projet")
     ma.add_argument("date", nargs="?")

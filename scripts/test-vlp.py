@@ -9646,6 +9646,59 @@ def tester_fusionner():
 groupe(tester_fusionner)
 
 
+def noms_worktrees(d):
+    """Les noms de dossier des worktrees du dépôt de `d`, le principal en tête (ISO4)."""
+    return [os.path.basename(l[len("worktree "):].rstrip("/")) for l in git_matin(d, "worktree", "list", "--porcelain")
+            .splitlines() if l.startswith("worktree ")]
+
+
+def tester_iso4_fusionner_fiche():
+    """ISO4 : `fusionner <fichier> <fiche> --worktree <dossier>` sur un dépôt et deux worktrees — sans conflit,
+    `FUSIONNÉ`, le fichier dans main, plus de worktree ni de branche ; même ligne changée des deux côtés, `CONFLIT`,
+    sort 1, `git status` propre ; un dossier hors des worktrees, ou sans commit de la fiche : `GARDE:`, rien touché."""
+    if not shutil.which("git"):
+        print("SAUTÉ: git absent — fusionner --worktree n'est pas testé")
+        return
+    with tempfile.TemporaryDirectory() as tr:
+        d, wa, wc = (os.path.join(tr, n) for n in ("d", "wt-a", "wt-c"))
+        os.makedirs(d)
+        git_matin(d, "init", "-q", "-b", "main")
+        fiches = os.path.join(d, "ctx", "f.md")
+        ecrire(fiches, "# F\n\n## W1 [ ] — a\n\n## W2 [ ] — c\n")
+        ecrire(os.path.join(d, "a.txt"), "1\n2\n3\n")
+        commit_matin(d, "départ", 1)
+        for nom, w in (("a", wa), ("c", wc)):
+            git_matin(d, "worktree", "add", "-q", "-b", nom, w, "main")
+        gardes = [appel(["fusionner", fiches, "W1", "--worktree", w]) for w in (wa, tr)]   # W1 pas encore commitée
+        intact = noms_worktrees(d) == ["d", "wt-a", "wt-c"] and git_matin(d, "status", "--porcelain") == ""
+        ecrire(os.path.join(wa, "b.txt"), "b\n")
+        commit_matin(wa, "W1 : a", 2)
+        ecrire(os.path.join(wc, "a.txt"), "1\nc\n3\n")
+        commit_matin(wc, "W2 : c", 3)
+        ecrire(os.path.join(d, "a.txt"), "1\nm\n3\n")
+        commit_matin(d, "main change la ligne 2", 4)
+        fus = appel(["fusionner", fiches, "W1", "--worktree", wa])
+        apres_fus = (os.path.isfile(os.path.join(d, "b.txt")), noms_worktrees(d))
+        conf = appel(["fusionner", fiches, "W2", "--worktree", wc])
+        apres_conf = (git_matin(d, "status", "--porcelain"), code_git(d, "rev-parse", "-q", "--verify", "MERGE_HEAD"),
+                      lire(os.path.join(d, "a.txt")).replace("\r\n", "\n"), noms_worktrees(d),
+                      git_matin(d, "branch", "--format=%(refname:short)").split())
+    verifier("ISO4 : sans conflit → FUSIONNÉ W1 <sha>, sort 0, b.txt dans main, le worktree wt-a retiré",
+             fus[0] == 0 and re.fullmatch(r"FUSIONNÉ W1 [0-9a-f]{7,}\n", fus[1]) is not None
+             and apres_fus == (True, ["d", "wt-c"]), (fus, apres_fus))
+    verifier("ISO4 : même ligne changée des deux côtés → CONFLIT W2 a.txt, sort 1, git status propre, pas de "
+             "MERGE_HEAD, la ligne de main gardée, plus de worktree ni de branche a ou c — mutant : pas d'abort",
+             conf == (1, "CONFLIT W2 a.txt\n") and apres_conf == ("", 1, "1\nm\n3\n", ["d"], ["main"]),
+             (conf, apres_conf))
+    verifier("ISO4 : sans commit « W1 : » dans le worktree, ou un dossier hors des worktrees → GARDE:, sort 1, rien "
+             "touché",
+             [c for c, _ in gardes] == [1, 1] and gardes[0][1].startswith("GARDE: aucun commit « W1 : »")
+             and "n'est pas un autre worktree" in gardes[1][1] and intact, (gardes, intact))
+
+
+groupe(tester_iso4_fusionner_fiche)
+
+
 def tester_lettres_doublon():
     """NUI27 : un code pris deux fois n'est plus avalé — à la fusion, même lettre et titres différents → `GARDE:` avant
     toute écriture, même entrée → rien ; `ouvrir` refuse un code déjà ouvert dans un autre worktree, pas le sien hérité."""
