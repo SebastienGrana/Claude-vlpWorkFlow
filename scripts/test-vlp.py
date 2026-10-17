@@ -874,6 +874,8 @@ QFICHES = """# Chantier Q
 <!-- /FICHE -->
 """
 T0 = 1790000000
+DECOUPE_TETE = ("DÉCOUPE aux commits de fiche — une fiche va du commit d'avant au sien, "
+                "un sous-agent compte à la fiche que nomme son prompt, sinon à son départ\n")
 
 def tester_heures_commits():
     """Contrôler la découpe aux commits : `heures_commits`, puis `page`, `cout` et `recompter` coupés."""
@@ -941,7 +943,7 @@ def tester_heures_commits():
             # cout : la découpe de la page, en détail — la somme d'abord, puis session + sous-agents.
             q = os.path.join(avec, "q.md")
             code, s = appel(["cout", q])
-            attendu = ("DÉCOUPE aux commits de fiche — une fiche va du commit d'avant au sien, un sous-agent compte à son départ\n"
+            attendu = (DECOUPE_TETE +
                        "Q1 · ≈200,0k (200 000) · 2 tours · 1,00 $ = session ≈200,0k (200 000) · 2 tours · 1,00 $ + 0 sous-agent\n"
                        "Q2 · ≈300,0k (300 000) · 3 tours · 1,50 $ = session ≈100,0k (100 000) · 1 tours · 0,50 $"
                        " + 1 sous-agent ≈200,0k (200 000) · 2 tours · 1,00 $\n"
@@ -1135,6 +1137,55 @@ def tester_heures_commits():
 
 
 groupe(tester_heures_commits)
+
+
+def tester_cout_sous_agent_nomme():
+    """CPF1 : trois sous-agents partent pendant Q1 ; deux nomment Q2 (jouer, relire) et lui comptent en
+    entier, le troisième ne nomme rien et reste à son départ, à Q1 ; le total ne change pas."""
+    if not shutil.which("git"):
+        print("SAUTÉ: git absent — le sous-agent nommé n'est pas testé")
+        return
+    with tempfile.TemporaryDirectory() as t:
+        sq = os.path.join(t, "s.jsonl")
+        transcript(sq, 4, [T0 + d for d in (50, 200, 400, 700)])
+        os.makedirs(os.path.join(t, "s", "subagents"))
+        for nom, prompt, heures in (("a1", "Fiche à jouer : Q2 — Kit : k", [250, 260]),
+                                    ("a2", "Fiche à relire, et le commit s'il y en a un :\nQ2 abc1234", [270]),
+                                    ("a3", "Lis ceci", [280])):
+            chemin = os.path.join(t, "s", "subagents", "agent-%s.jsonl" % nom)
+            transcript(chemin, len(heures), [T0 + h for h in heures])
+            iso = datetime.datetime.fromtimestamp(T0 + heures[0], datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z")
+            suite = lire(chemin)
+            ecrire(chemin, json.dumps({"type": "user", "timestamp": iso,
+                                       "message": {"role": "user", "content": prompt}}) + "\n" + suite)
+        a2 = os.path.join(t, "s", "subagents", "agent-a2.jsonl")
+        verifier("CPF1 : le filet ne lit que « Fiche à jouer », cout lit aussi « Fiche à relire »",
+                 (mod.fiche_jouee(a2), mod.fiche_jouee(a2, mod.FICHE_NOMMEE)) == (None, "Q2"),
+                 (mod.fiche_jouee(a2), mod.fiche_jouee(a2, mod.FICHE_NOMMEE)))
+        env = dict(os.environ, GIT_CONFIG_GLOBAL=os.path.join(t, "gitconfig"), GIT_CONFIG_NOSYSTEM="1",
+                   GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t")
+        ecrire(env["GIT_CONFIG_GLOBAL"], "")
+        depot = os.path.join(t, "d")
+        os.makedirs(depot)
+        subprocess.run(["git", "init", "-q"], cwd=depot, env=env, check=True, capture_output=True)
+        for d, sujet in ((100, "Chantier Q ouvert : cadré"), (300, "Q1 : Créer"), (600, "Q2 : Brancher"),
+                         (800, "Chantier Q clos : fini")):
+            date = "%d +0000" % (T0 + d)
+            subprocess.run(["git", "commit", "-q", "--allow-empty", "-m", sujet], cwd=depot, check=True,
+                           capture_output=True, env=dict(env, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date))
+        ecrire(os.path.join(depot, "q.md"), QFICHES % (sq, sq))
+        code, s = appel(["cout", os.path.join(depot, "q.md")])
+        cent, deux = "≈100,0k (100 000) · 1 tours · 0,50 $", "≈200,0k (200 000) · 2 tours · 1,00 $"
+        verifier("CPF1 : un sous-agent compte à la fiche que nomme son prompt, sinon à son départ", code == 0
+                 and s.startswith(DECOUPE_TETE)
+                 and "\nQ1 · %s = session %s + 1 sous-agent %s\n" % (deux, cent, cent) in s
+                 and "\nQ2 · ≈400,0k (400 000) · 4 tours · 2,00 $ = session %s + 2 sous-agents "
+                     "≈300,0k (300 000) · 3 tours · 1,50 $\n" % cent in s
+                 and "\nhors fiches · %s = session %s + 0 sous-agent\n" % (deux, deux) in s
+                 and "\nTOTAL (fiches + hors fiches) · ≈800,0k (800 000) · 8 tours · 4,00 $ = " in s, s)
+
+
+groupe(tester_cout_sous_agent_nomme)
 
 
 def tester_commit_au_titre():
@@ -2324,7 +2375,7 @@ def tester_cout_essai_plage():
                 os.environ.clear()
                 os.environ.update(garde_env)
             cent, deux, trois = "≈100,0k (100 000) · 1 tours · 0,50 $", "≈200,0k (200 000) · 2 tours · 1,00 $", "≈300,0k (300 000) · 3 tours · 1,50 $"
-            attendu = ("DÉCOUPE aux commits de fiche — une fiche va du commit d'avant au sien, un sous-agent compte à son départ\n"
+            attendu = (DECOUPE_TETE +
                        "Q1 · %s = session %s + 0 sous-agent + 1 essai %s\n" % (trois, cent, deux)
                        + "Q2 · %s = session %s + 0 sous-agent\n" % (cent, cent)
                        + "hors fiches · %s = session 0 · 0 tours · 0,00 $ + 0 sous-agent + 1 essai %s\n" % (cent, cent)

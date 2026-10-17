@@ -21,9 +21,9 @@
     <p>vlp.py cout range chaque sous-agent à la fiche que nomme son prompt, même joué en parallèle ; testé et mutant</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="encours"></span>
+      <span data-etat="faite"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">1 fiches · 0 faite · en cours : CPF1</p>
+    <p class="mono" style="margin-top:.5rem">1 fiches · 1 faite</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -38,10 +38,13 @@
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">CPF1</span></span>
-        <details open><summary><span class="titre">Compter chaque sous-agent à la fiche que nomme son prompt</span><span class="etat">En cours</span></summary>
-        <span class="note">cout compte un sous-agent entier à la fiche que nomme son prompt (Fiche à jouer / à relire) ; ne dépend de rien</span></details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">CPF1</span></span>
+        <details><summary><span class="titre">Compter chaque sous-agent à la fiche que nomme son prompt</span><span class="etat">Faite</span></summary>
+        <span class="note">test ciblé vert (2 contrôles), mutant attrapé (1 écart), suite entière OK code 0, pyright 0 erreur ; cout sur 119-ena : chaque relecteur rangé à sa fiche (ENA5 3,25 → 7,64 $), total 87,95 $ inchangé</span></details>
+        <span class="cout mono">≈8,4M (8 408 794) · 38 tours · 2,60 $</span></li>
     </ul>
+    <p class="mono cout-hors">Hors fiches : ≈3,8M (3 813 982) · 28 tours · 2,07 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈12,2M (12 222 776) · 66 tours · 4,67 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

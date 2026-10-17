@@ -755,7 +755,7 @@ def cmd_cout(chemin, session, sortie, a_clore=False):
         return code
     parts, hors = decoupe
     sortie.write("DÉCOUPE aux commits de fiche — une fiche va du commit d'avant au sien, "
-                 "un sous-agent compte à son départ\n")
+                 "un sous-agent compte à la fiche que nomme son prompt, sinon à son départ\n")
     for ident, *r in parts:
         sortie.write(ligne_parts(ident, *r) + "\n")
     sortie.write(ligne_parts("hors fiches", *hors) + "\n")
@@ -2468,11 +2468,13 @@ def cmd_forme(a, sortie):
 
 
 FICHE_A_JOUER = re.compile(r"Fiche à jouer :\s*(\S+)")
+# Jouer ou relire : les prompts de `/vlp:enchainer` et de `vlp:relire` (« Fiche à relire, et le commit… : »).
+FICHE_NOMMEE = re.compile(r"Fiche à (?:jouer|relire)[^:\n]*:\s*(\S+)")
 
 
-def fiche_jouee(chemin):
-    """La fiche que `vlp:jouer` a donnée au sous-agent : `Fiche à jouer :` suivi de son id, dans
-    le premier message utilisateur de sa transcription ; None si rien ne se lit."""
+def fiche_jouee(chemin, motif=FICHE_A_JOUER):
+    """La fiche que `vlp:jouer` a donnée au sous-agent : `motif` (`Fiche à jouer :` d'office) suivi de
+    son id, dans le premier message utilisateur de sa transcription ; None si rien ne se lit."""
     try:
         with mesure().ouvrir(chemin) as f:
             for ligne in f:
@@ -2485,7 +2487,7 @@ def fiche_jouee(chemin):
                 c = m.get("content")
                 texte = c if isinstance(c, str) else " ".join(
                     b.get("text", "") for b in c if isinstance(b, dict)) if isinstance(c, list) else ""
-                t = FICHE_A_JOUER.search(texte)
+                t = motif.search(texte)
                 return t.group(1) if t else None
     except (OSError, UnicodeDecodeError):
         return None
@@ -3068,6 +3070,20 @@ def plages_du_cout(fiches_, heures, gardes, fin=None):
     return par_fiche, trous
 
 
+def sous_agents_nommes(fichiers, idents):
+    """{chemin: fiche} des sous-agents (sorte 1) dont le prompt nomme une fiche d'`idents` (`FICHE_NOMMEE`) :
+    ils comptent en entier à elle, même partis pendant la plage d'une autre — en parallèle (chantier CPF)."""
+    nommes = {c: fiche_jouee(c, FICHE_NOMMEE) for c, sorte in fichiers if sorte == 1}
+    return {c: f for c, f in nommes.items() if f in idents}
+
+
+def plages_du_transcript(chemin, bornes, ident, nommes):
+    """Les plages où mesurer `chemin` pour la part `ident` (None : hors fiches) : un sous-agent de `nommes`
+    en entier ([None]) à sa fiche, nulle part ailleurs ; tout autre transcript, sur `bornes`."""
+    fiche = nommes.get(chemin)
+    return bornes if fiche is None else [None] if fiche == ident else []
+
+
 def parts_aux_commits(fiches_, heures, gardes, entete=(), fin=None):
     """([(id, session, sous-agents, essais)], (session, sous-agents, essais) hors fiches), ou None
     sans transcript mesurable, ou sans fiche à découper. Les sessions : celles des fiches, puis
@@ -3078,7 +3094,8 @@ def parts_aux_commits(fiches_, heures, gardes, entete=(), fin=None):
     centime : tout s'additionne, dans `cout` comme sur la page. Aucun tour gardé, ni aux
     fiches ni hors fiches : une `GARDE:` le dit, les nombres restent (chantier ZER). `fin` : la
     dernière plage hors fiches s'y arrête — l'heure de l'appel `clore` (chantier APC). Donné, le
-    chantier est clos : sa fiche sans commit s'arrête au commit suivant (`plages`, chantier ECA)."""
+    chantier est clos : sa fiche sans commit s'arrête au commit suivant (`plages`, chantier ECA). Un sous-agent
+    dont le prompt nomme une fiche qui a une plage lui compte en entier (`sous_agents_nommes`, chantier CPF)."""
     from decimal import ROUND_HALF_UP, Decimal
     m = mesure()
     fichiers = transcripts_du_fichier(fiches_, entete, gardes)
@@ -3087,12 +3104,14 @@ def parts_aux_commits(fiches_, heures, gardes, entete=(), fin=None):
     par_fiche, trous = plages_du_cout(fiches_, heures, gardes, fin)
     if not par_fiche:
         return None
+    nommes = sous_agents_nommes(fichiers, {ident for ident, _ in par_fiche})
 
-    def part(bornes):
-        rendu = [[0, 0, Decimal(0), 0], [0, 0, Decimal(0), 0], [0, 0, Decimal(0), 0]]
+    def part(bornes, ident=None):
+        """(session, sous-agents, essais) mesurés sur `bornes`, pour la fiche `ident` (None : hors fiches)."""
+        rendu =[[0, 0, Decimal(0), 0], [0, 0, Decimal(0), 0], [0, 0, Decimal(0), 0]]
         for chemin, sorte in fichiers:
             p, tours = rendu[min(sorte, 2)], 0
-            for plage in bornes:
+            for plage in plages_du_transcript(chemin, bornes, ident, nommes):
                 r, erreur = m.mesurer(chemin, plage)
                 if erreur:
                     g = "GARDE: transcript non mesuré : %s — %s" % (chemin, erreur)
@@ -3104,7 +3123,7 @@ def parts_aux_commits(fiches_, heures, gardes, entete=(), fin=None):
         return tuple((t, n, None if u is None else u.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP), k)
                      for t, n, u, k in rendu)
 
-    parts, hors = [(ident,) + part([p]) for ident, p in par_fiche], part(trous)
+    parts, hors = [(ident,) + part([p], ident) for ident, p in par_fiche], part(trous)
     if not plus(*[q for _, *r in parts for q in r], *hors)[1]:
         gardes.append("GARDE: découpe à zéro — aucun tour de %d transcript%s ne tombe dans une plage"
                       % (len(fichiers), "s" if len(fichiers) > 1 else ""))
