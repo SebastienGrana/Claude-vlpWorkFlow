@@ -3315,6 +3315,21 @@ def tester_ena2_arriere_plan():
 groupe(tester_ena2_arriere_plan)
 
 
+def tester_gai1_rejeu():
+    """GAI1 : le rejeu après `CONFLIT` sort du plafond et de `--tourne` — il repart aussitôt ; seul un 2ᵉ `CONFLIT`
+    de la même fiche attend que plus rien ne tourne (les deux causes d'`ISO7`, tranchées le 2026-10-17)."""
+    plat = " ".join(io.open(os.path.join(RACINE, "skills", "enchainer", "SKILL.md"), encoding="utf-8").read().split())
+    verifier("GAI1 : le plafond compte chaque fiche une fois, le rejeu après CONFLIT hors plafond",
+             "plafond compte chaque fiche une fois, plus chaque rejeu après `REFUSÉE` ; un rejeu après `CONFLIT`, non"
+             in plat and "chaque départ, rejeu compris" not in plat, "skills/enchainer/SKILL.md")
+    verifier("GAI1 : CONFLIT sort de --tourne et repart aussitôt ; le 2ᵉ attend",
+             "`CONFLIT` : la fiche sort de `--tourne` et repart aussitôt" in plat
+             and "à son 2ᵉ `CONFLIT`, elle y reste" in plat, "skills/enchainer/SKILL.md")
+
+
+groupe(tester_gai1_rejeu)
+
+
 def tester_ena3_lancables():
     """ENA3 : `lancables` — les fiches prêtes, `--max` au plus, coupées avant la première `(visuel)`, qui ne part que
     seule ; deux qui se croisent partent, en `INDICE:` (ISO3), le fichier de fiches ôté (toutes le cochent)."""

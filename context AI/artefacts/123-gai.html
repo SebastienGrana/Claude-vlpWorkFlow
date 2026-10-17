@@ -21,9 +21,9 @@
     <p>Le parallèle finit en un lancement, la piégée rejouée à côté d'une autre ; remesuré contre la file le même jour, avec un verdict : gain ou pas</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="encours"></span><span></span>
+      <span data-etat="faite"></span><span data-etat="encours"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">2 fiches · 0 faite · en cours : GAI1</p>
+    <p class="mono" style="margin-top:.5rem">2 fiches · 1 faite · en cours : GAI2</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -38,14 +38,17 @@
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">GAI1</span></span>
-        <details open><summary><span class="titre">Sortir le rejeu après conflit du plafond, et lui rendre sa voie</span><span class="etat">En cours</span></summary>
-        <span class="note">Le rejeu après conflit hors du plafond, sa voie rendue aussitôt ; la suite entière une fois</span></details></li>
-      <li class="fiche" data-attend><span class="gauche"><span class="id">GAI2</span></span>
-        <details><summary><span class="titre">Remesurer à la file et en parallèle, le même jour</span><span class="etat">Après GAI1</span></summary>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">GAI1</span></span>
+        <details><summary><span class="titre">Sortir le rejeu après conflit du plafond, et lui rendre sa voie</span><span class="etat">Faite</span></summary>
+        <span class="note">test ciblé GAI1 vert (2 contrôles, 4,8 s) ; mutant « rejeu compris » ATTRAPÉ, 1 écart ; suite entière OK, code 0, 6 min 09 s ; pyright 0 errors</span></details>
+        <span class="cout mono">≈2,9M (2 881 984) · 20 tours · 1,38 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">GAI2</span></span>
+        <details open><summary><span class="titre">Remesurer à la file et en parallèle, le même jour</span><span class="etat">En cours</span></summary>
         <span class="note">La file contre le parallèle, le même jour, sur un bac neuf ; dépend de GAI1</span></details>
         <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
     </ul>
+    <p class="mono cout-hors">Hors fiches : ≈5,3M (5 313 640) · 32 tours · 3,12 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈8,2M (8 195 624) · 52 tours · 4,50 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

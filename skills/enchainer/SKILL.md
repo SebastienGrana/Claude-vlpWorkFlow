@@ -101,7 +101,7 @@ Pour chaque fiche de la série, dans l'ordre — en worktree, dès que `lancable
    <python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" lancables "<fichier de fiches courant>" --max <largeur> --tourne <les lancées pas encore fusionnées>
    ```
    — chaque id de `LANCABLES` part, dans le même message ; relaie les lignes `INDICE:` en une ligne. Le
-   plafond compte chaque départ, rejeu compris.
+   plafond compte chaque fiche une fois, plus chaque rejeu après `REFUSÉE` ; un rejeu après `CONFLIT`, non.
    Puis rends la main sans autre appel : la conversation reste libre. Le
    `Result` arrive dans la **notification de fin**, à un tour suivant. Puis le point 2.
 2. Lis le premier mot du `Result` rendu. Ce n'est pas un statut : prends la
@@ -130,8 +130,8 @@ Pour chaque fiche de la série, dans l'ordre — en worktree, dès que `lancable
      `FUSIONNÉ` : un bloc `ÉTAT:` dans le `Result` de la fiche → son texte, sans ses deux lignes, dans un
      fichier du dossier temporaire, puis `<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" etat "<fichier d'état>" --texte "<ce fichier>"`
      (`CHANTIER.md`, ligne **fichier d'état**) et `git add -- "<fichier d'état>"; git commit -m "État après <fiche>"`.
-     `CONFLIT` : la fiche reste dans `--tourne` jusqu'à ce que plus rien ne tourne ni ne parte, puis repart
-     (point 1), depuis la version fusionnée, dans un worktree neuf ; `fusionner` a retiré l'ancien — encore
+     `CONFLIT` : la fiche sort de `--tourne` et repart aussitôt (point 1), depuis la version fusionnée, dans
+     un worktree neuf — à son 2ᵉ `CONFLIT`, elle y reste jusqu'à ce que plus rien ne tourne ni ne parte ; `fusionner` a retiré l'ancien — encore
      dans `git worktree list` (une `GARDE: git worktree`) : `git worktree remove --force "<dossier>"` avant le rejeu. `GARDE:` : un `BLOQUÉE`. Puis passe à la suivante — en worktree,
      relance `lancables`. `REFUSÉE`, ou aucun verdict →
      `<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" cocher "<fichier de fiches courant>" <fiche> --refuser "<première ligne du Result>"`
