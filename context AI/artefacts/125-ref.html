@@ -1,0 +1,146 @@
+<meta charset="utf-8">
+<title>vlp — La qualité du code et des tests</title>
+<!--
+  GABARIT — artefact d'un chantier. Publié par /chantier à l'ouverture,
+  mis à jour par /tache à chaque fiche. Remplace les <…> et ne renomme pas
+  les marqueurs `ZONE:…` : les commandes les cherchent tels quels.
+
+  Convention de coût — posée ici, référencée (jamais recopiée) par
+  artefact-feuille-de-route.html, tache.md et cloture.md : un nombre < 1000
+  s'affiche tel quel ; au-delà, "≈<arrondi 1 décimale><k|M> (<compte brut>)"
+  — virgule française, k = mille, M = million. Le compte brut reste toujours
+  visible à côté de l'arrondi.
+-->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="vlp.css">
+
+<div class="page">
+  <header>
+    <div class="eyebrow">vlp · fiches REF1–REF26 · <a href="https://claude.ai/artifact/YWDny8kjubq9DhdP5rbPxA">la feuille de route</a></div>
+    <h1>La qualité du code et des tests</h1>
+    <p>Le kit tourne sur pytest et une couverture mesurée, sans une seule régression ; des scripts gardent la taille des fichiers et interdisent de toucher aux tests pendant une fiche ; les erreurs connues sont réparées, les gros fichiers découpés, et chaque angle revu jusqu'à deux passes vides.</p>
+    <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
+    <div class="avancement">
+      <span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+    </div>
+    <p class="mono" style="margin-top:.5rem">26 fiches · 0 faite · en cours : REF1</p>
+  </header>
+
+  <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
+  <section hidden>
+    <h2>Chantier clos le </h2>
+    <div class="bilan">
+      <p></p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Les fiches, dans l'ordre des dépendances</h2>
+    <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
+    <ul class="fiches">
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">REF1</span></span>
+        <details open><summary><span class="titre">Faire l'inventaire des erreurs connues</span><span class="etat">En cours · REF2 peut partir en même temps</span></summary>
+        <span class="note">La liste de toutes les erreurs connues, en page à cartes : tu choisis ce qu'on répare ; ajoute des fiches.</span></details>
+        <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
+      <li class="fiche"><span class="gauche"><span class="id">REF2</span></span>
+        <details><summary><span class="titre">Ramener la carte de chaque commande sous la limite d'injection</span><span class="etat">À lancer · en même temps que REF1</span></summary>
+        <span class="note">La carte de chaque commande sous 25 000 caractères : elle n'arrive plus coupée.</span></details></li>
+      <li class="fiche"><span class="gauche"><span class="id">REF3</span></span>
+        <details><summary><span class="titre">Poser un seul pyproject.toml et uv pour l'atelier</span><span class="etat">À lancer</span></summary>
+        <span class="note">Un seul pyproject.toml, uv pour l'atelier, pyright migré, sante qui lit nos réglages.</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">REF4</span></span>
+        <details><summary><span class="titre">Poser le socle pytest et isoler chaque test</span><span class="etat">Après REF3</span></summary>
+        <span class="note">Le socle pytest : chaque test isolé de ta machine ; le test qui lisait tes fichiers, migré. Après REF3.</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">REF5</span></span>
+        <details><summary><span class="titre">Écrire les portes de parité entre les deux suites</span><span class="etat">Après REF4</span></summary>
+        <span class="note">Un script qui compare l'ancienne et la nouvelle suite, vérification par vérification. Après REF4.</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">REF6</span></span>
+        <details><summary><span class="titre">Choisir l'outil de photographie</span><span class="etat">Après REF4</span></summary>
+        <span class="note">syrupy ou pytest-regtest : l'outil de photographie choisi par essai. Après REF4.</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">REF7</span></span>
+        <details><summary><span class="titre">Photographier toutes les sous-commandes de vlp.py</span><span class="etat">Après REF6</span></summary>
+        <span class="note">Une photo de chacune des 60 sous-commandes de vlp.py : toute différence crie. Après REF6.</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">REF8</span></span>
+        <details><summary><span class="titre">Mesurer la couverture et l'exiger sur les lignes changées</span><span class="etat">Après REF4</span></summary>
+        <span class="note">La couverture mesurée ; 90 % des lignes changées exigés au commit. Après REF4.</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">REF9</span></span>
+        <details><summary><span class="titre">Garder la taille des fichiers</span><span class="etat">Après REF3</span></summary>
+        <span class="note">Un fichier de plus de 1 000 lignes ne grossit plus, bloquant au commit. Après REF3.</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">REF10</span></span>
+        <details><summary><span class="titre">Mettre les tests existants en lecture seule pendant une fiche</span><span class="etat">Après REF4</span></summary>
+        <span class="note">Pendant une fiche, les tests existants ne se modifient pas : un hook le bloque. Après REF4.</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">REF11</span></span>
+        <details><summary><span class="titre">Rendre visible un test retiré ou affaibli</span><span class="etat">Après REF5</span></summary>
+        <span class="note">Un test retiré ou mis en skip bloque le commit, sauf raison écrite. Après REF5.</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">REF12</span></span>
+        <details><summary><span class="titre">Transformer les règles écrites en hooks</span><span class="etat">Après REF9, REF10, REF11</span></summary>
+        <span class="note">Les règles écrites qu'un script peut garantir deviennent des hooks. Après REF9 à REF11.</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">REF13</span></span>
+        <details><summary><span class="titre">Écrire le test d'abord, avec la liste des tests concernés</span><span class="etat">Après REF8</span></summary>
+        <span class="note">Le test d'abord, vu échouer, avec la liste des tests concernés. Après REF8.</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">REF14</span></span>
+        <details><summary><span class="titre">Faire tout rapporter au relecteur, en Fable</span><span class="etat">Après REF11</span></summary>
+        <span class="note">Le relecteur rapporte tout, avec gravité et confiance, en Fable. Après REF11.</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">REF15</span></span>
+        <details><summary><span class="titre">Écrire le guide court des tests</span><span class="etat">Après REF13</span></summary>
+        <span class="note">Le guide court des tests, chaque point avec sa source. Après REF13.</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">REF16</span></span>
+        <details><summary><span class="titre">Découper les consignes du kit par mode de chargement</span><span class="etat">Après REF2</span></summary>
+        <span class="note">Les consignes du kit découpées par mode de chargement, sans perdre une règle. Après REF2.</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">REF17</span></span>
+        <details><summary><span class="titre">Ramener le CLAUDE.md global sous 200 lignes</span><span class="etat">Après REF16</span></summary>
+        <span class="note">Ton CLAUDE.md global sous 200 lignes, section par section, avec ton accord. Après REF16.</span></details>
+        <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">REF18</span></span>
+        <details><summary><span class="titre">Écrire le plan de découpe et de migration</span><span class="etat">Après REF5, REF7, REF9</span></summary>
+        <span class="note">Le plan de découpe des gros fichiers et de la migration ; ajoute ses fiches. Après REF5, REF7, REF9.</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">REF19</span></span>
+        <details><summary><span class="titre">Lancer moins de git, puis paralléliser sous garde</span><span class="etat">Après REF18</span></summary>
+        <span class="note">Moins de lancements de git, puis le parallèle sous garde, mesuré. Après la découpe.</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">REF20</span></span>
+        <details><summary><span class="titre">Essayer une campagne de mutation sur les lignes changées</span><span class="etat">Après REF18</span></summary>
+        <span class="note">Un essai de mutation automatique sur les lignes changées (poodle). Après la découpe.</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">REF21</span></span>
+        <details><summary><span class="titre">Essayer de typer un lecteur JSON</span><span class="etat">Après REF3</span></summary>
+        <span class="note">Un essai de typage d'un lecteur JSON. Après REF3.</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">REF22</span></span>
+        <details><summary><span class="titre">Revoir l'angle des bugs</span><span class="etat">Après REF1, REF2, REF3, REF4, REF5, REF6, REF7, REF8, REF9, REF10, REF11, REF12, REF13, REF14, REF15, REF16, REF17, REF18, REF19, REF20, REF21</span></summary>
+        <span class="note">Revue des bugs, jusqu'à deux passes sans défaut confirmé. Après tout le reste.</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">REF23</span></span>
+        <details><summary><span class="titre">Revoir l'angle des tests</span><span class="etat">Après REF22</span></summary>
+        <span class="note">Revue des tests creux. Après REF22.</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">REF24</span></span>
+        <details><summary><span class="titre">Revoir l'angle de la sécurité</span><span class="etat">Après REF22</span></summary>
+        <span class="note">Revue de la sécurité du dépôt public. Après REF22.</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">REF25</span></span>
+        <details><summary><span class="titre">Revoir l'angle de la simplicité</span><span class="etat">Après REF22</span></summary>
+        <span class="note">Revue de la simplicité, sans changer un comportement. Après REF22.</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">REF26</span></span>
+        <details><summary><span class="titre">Revoir l'angle de la doc qui ment</span><span class="etat">Après REF22</span></summary>
+        <span class="note">Revue de la doc qui ment. Après REF22.</span></details></li>
+    </ul>
+    <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
+  </section>
+
+  <!-- ZONE:blocage — publiée quand /tache s'arrête après deux tentatives ; retirée dès que la fiche repasse -->
+  <section hidden>
+    <h2>Arrêt sur blocage</h2>
+    <div class="blocage">
+      <p></p>
+      <pre></pre>
+    </div>
+  </section>
+
+  <section>
+    <h2>Journal des décisions</h2>
+    <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
+    <ul class="journal">
+    </ul>
+  </section>
+
+  <footer>
+    <span>Fichier de fiches : <span class="mono">context AI/125-ref.md</span></span>
+    <span>Mis à jour le <span class="mono">2026-10-17</span></span>
+  </footer>
+</div>
+<script src="vlp.js"></script>

@@ -310,6 +310,36 @@ Protection en temps réel coupée à **00:34:08**, réactivée juste avant **00:
 - 💡 **Une option `--chrono` dans `test-vlp.py`**, pour rejouer ce tableau sans le script jetable.
 - 🟡 **`cocher` sans la suite entière** pour une fiche sans `.py` (idée 12).
 
+## Les réponses du cadrage de `REF` (2026-10-17)
+
+Page à cartes https://claude.ai/artifact/CChuXu6B6YUZqL1xCp8qRS (version 4) ; 21 réponses sur 21,
+toutes égales à l'avis donné ; le découpage en 26 fiches validé tel quel (« on va partir sur ce que
+tu proposes »). Le pourquoi de chaque avis : la section suivante.
+
+| Carte | Retenu |
+|---|---|
+| D1 | migrer vers pytest, côte à côte, l'ancienne suite gardée jusqu'aux portes de parité |
+| D2 | photographier le comportement d'abord (`syrupy` ou `pytest-regtest`, par essai) |
+| D3 | l'isolation en un seul `conftest.py` (HOME, USERPROFILE, Git) ; un dépôt modèle copié |
+| D4 | hooks en Python seul ; l'atelier sous `uv`, un seul `pyproject.toml`, outils d'atelier exigés |
+| D5 | garder `vlp.py mutant` et `sante` ; `sante` sans `--isolated` |
+| D6 | la garde de taille : 6e compte de `sante`, bloquante ; pylint après la découpe |
+| D7 | `coverage` + `diff-cover`, 90 % des lignes changées ; aucun seuil global |
+| D8 | toute la suite avant de cocher, toujours |
+| D9 | Defender hors du chantier |
+| D10 | la découpe dans `REF`, après un plan ; façade, module d'état ; les restes pendant la découpe |
+| Q1 | moins de `git` d'abord, puis `pytest-xdist` sous délai de garde |
+| Q2 | les tests existants en lecture seule pendant une fiche qui code, par un hook |
+| Q3 | le test d'abord, vu échouer, avec la liste des tests concernés |
+| Q4 | le relecteur rapporte tout, avec gravité et confiance |
+| Q5 | une fiche d'essai de mutation automatique, `poodle` d'abord |
+| Q6 | les consignes découpées par mode de chargement, le kit et le `CLAUDE.md` global (accord ligne à ligne) |
+| Q7 | l'inventaire des règles écrites, puis leur conversion en hooks |
+| Q8 | une fiche d'inventaire des erreurs ; l'utilisateur choisit ce qui entre |
+| Q9 | les revues par angle, chaque défaut vérifié, deux passes vides pour finir |
+| Q10 | Opus écrit, Fable relit |
+| Q11 | une fiche d'essai de `TypedDict` |
+
 ## Recherche du 2026-10-17 — quatre sous-agents, au cadrage de `REF`
 
 **Le point de départ, dit par l'utilisateur ce jour-là** : le kit sert lui seul, sur son PC
