@@ -48,7 +48,8 @@ fait. Pour un pas que la TODO connaît, la dernière colonne est une note, montr
 | `CLR` | cairn | les vues en clair | ✅ clos le 2026-10-14 |
 | `MEN` | cairn | le menu des cartes de la vue 3D | ✅ clos le 2026-10-14 |
 | `SEL` | cairn | les vues 2D à la demande | ✅ clos le 2026-10-15 |
-| `ISO` | kit | | en cours depuis le 2026-10-15 |
+| `ISO` | kit | le parallèle en worktree | ✅ clos le 2026-10-17 |
+| `GAI` | kit | le parallèle qui gagne du temps | ✅ clos le 2026-10-17 |
 | `REF` | kit | | juste après `ISO` (2026-10-16) |
 | `FAM11` | cairn | | 1 fiche |
 | `ONE` | cairn | | avant `PRS` (2026-10-16) |
@@ -87,6 +88,8 @@ Un pas sans phase dans une TODO (un chantier clos) qui n'est pas obligatoire : l
 | `CLR` | conseillé | clos le 2026-10-14, sorti de la TODO ; V1 quand il y était |
 | `MEN` | conseillé | clos le 2026-10-14, sorti de la TODO ; V1 quand il y était |
 | `SEL` | conseillé | clos le 2026-10-15, sorti de la TODO ; V1 quand il y était |
+| `ISO` | conseillé | clos le 2026-10-17, sorti de la TODO ; sur le chemin avant `REF` |
+| `GAI` | conseillé | clos le 2026-10-17, sans ligne de TODO ; la suite d'`ISO` |
 
 ## Le jugement
 
