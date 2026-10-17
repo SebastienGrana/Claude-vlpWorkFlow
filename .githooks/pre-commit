@@ -15,16 +15,18 @@ if [ -n "$chemins" ]; then
 fi
 
 # pyright, si le commit indexe un .py (chantier TYP) ; avant claude, dont l'absence sort par exit 0.
-# Il lit l'arbre de travail, pas l'index : un .py corrigé mais non indexé passe.
+# Il lit l'arbre de travail, pas l'index : un .py corrigé mais non indexé passe. Par `uv run`, l'atelier de
+# `pyproject.toml`, sans toucher au verrou (`--frozen`) ; ni uv ni pyright : le commit est refusé, jamais
+# passé en silence (REF3, défaut E27).
 if git diff --cached --name-only --diff-filter=ACMR | grep -q '\.py$'; then
-  if command -v pyright >/dev/null 2>&1; then
-    if ! sortie=$(cd "$racine" && pyright 2>&1); then
-      printf '%s\n' "$sortie" >&2
-      echo "pre-commit : pyright en erreur, commit refusé." >&2
-      exit 1
-    fi
-  else
-    echo "pre-commit : pyright introuvable, vérification de types sautée." >&2
+  if ! command -v uv >/dev/null 2>&1; then
+    echo "pre-commit : uv introuvable, pyright non lancé, commit refusé — installer uv, puis uv sync." >&2
+    exit 1
+  fi
+  if ! sortie=$(cd "$racine" && uv run --frozen pyright 2>&1); then
+    printf '%s\n' "$sortie" >&2
+    echo "pre-commit : pyright en erreur ou absent de l'atelier (uv sync), commit refusé." >&2
+    exit 1
   fi
 fi
 

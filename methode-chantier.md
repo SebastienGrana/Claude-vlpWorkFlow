@@ -196,8 +196,8 @@ titre (`MET6`, 2026-10-07).
   puis la communauté. On ne code ou ne mesure que ce qu'aucune source ne donne —
   le propre du projet : son coût par fiche, ses tours, ses fichiers. Le web dit
   le général, la mesure dit le nôtre ; un chiffre du fournisseur que personne n'a
-  refait se dit tel. Une contrainte du projet prime, et se dit : les scripts du
-  kit restent sans dépendance.
+  refait se dit tel. Une contrainte du projet prime, et se dit : zéro paquet à
+  l'exécution (« Coder dans le kit »).
 - **L'effort se règle selon la tâche, et se dit avant** — décision de
   l'utilisateur, le 2026-10-04. Plus bas pour le mécanique (lancer un script,
   publier, commiter, mesurer), plus haut pour ce qui se conçoit ou se débogue.
@@ -536,10 +536,14 @@ l'utilisateur au chantier `MET` (`context AI/08-etat.md`, entrée « MET1 — ce
 **Le code Python des scripts :**
 
 - **Le style est celui de ruff**, réglé par `pyproject.toml` à la racine du kit : chaque
-  écart au défaut y porte sa raison (`MET5`). Le code d'avant n'est pas corrigé : `REF`.
-  ⚠️ Le cliquet de `sante.py` lance ruff `--isolated` : il ne voit pas ce réglage.
-- **`pyproject.toml` ne règle que les outils d'atelier**, jamais un paquet à installer : le
-  kit garde zéro paquet à l'exécution (`MET1`, Q10).
+  écart au défaut y porte sa raison (`MET5`) ; le cliquet de `sante.py` le lit (`REF3`). Le
+  code d'avant n'est pas corrigé : `REF`.
+- **Zéro paquet à l'exécution ; à l'atelier, le groupe `dev`, exigé** (`MET1`, Q10 ; `REF3`, D4).
+  Ce qui tourne chez l'utilisateur — commandes, hooks et les scripts qu'ils lancent — reste en
+  Python seul, sans paquet ni `uv`. L'atelier — tests, contrôles, cliquet, pyright au commit —
+  exige les paquets du groupe `dev` de `pyproject.toml`, par `uv run` après un `uv sync` ; un
+  outil absent refuse, il ne se saute pas. `pyproject.toml` ne règle que l'atelier, jamais un
+  paquet à installer. ⚠️ Un repli reste : sans ruff, `sante` compte par `ast`.
 - **Un fichier Python de plus de 1 000 lignes ne grossit plus ; un nouveau reste en
   dessous** — le défaut de Pylint, `max-module-lines` (message C0302, « too-many-lines »).
   Aucun script ne le garde encore ; la découpe des gros fichiers : `REF`.

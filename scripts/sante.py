@@ -248,8 +248,8 @@ def trouver_ruff():
 
 def lancer_ruff(commande, chemins):
     """Lancer ruff sur `chemins`, les cinq seuils à zéro pour que chaque fonction sorte ses comptes, sans
-    fichier de réglages ni cache ; rendre sa sortie JSON, ou lever `ValueError`."""
-    args = ["check", "--isolated", "--no-cache", "--preview", "--select", ",".join(REGLES),
+    cache, en lisant `pyproject.toml` (REF3, D5) ; rendre sa sortie JSON, ou lever `ValueError`."""
+    args = ["check", "--no-cache", "--preview", "--select", ",".join(REGLES),
             "--output-format", "json", "--exit-zero"]
     for reglage in REGLAGES:
         args += ["--config", "%s = 0" % reglage]

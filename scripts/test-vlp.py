@@ -6989,13 +6989,13 @@ groupe(tester_liens)
 
 def hook_isole(t):
     """Rendre un dépôt neuf sous `t`, le hook du kit branché et `scripts/` copié hors suivi (le hook y lance
-    `vlp.py claude`, VIT19), le PATH sans pyright ni claude, et `git(chemins, *args, **env)` : claude caché,
+    `vlp.py claude`, VIT19), le PATH sans pyright, uv ni claude, et `git(chemins, *args, **env)` : claude caché,
     APPDATA et LOCALAPPDATA vides sauf `env`."""
     depot = os.path.join(t, "depot")
     for nom in (".githooks", "scripts"):
         shutil.copytree(os.path.join(RACINE, nom), os.path.join(depot, nom))
     sans = [d for d in os.environ.get("PATH", "").split(os.pathsep)
-            if d and not shutil.which("pyright", path=d) and not shutil.which("claude", path=d)]
+            if d and not any(shutil.which(n, path=d) for n in ("pyright", "uv", "claude"))]
     base = dict(os.environ, GIT_CONFIG_GLOBAL=os.path.join(t, "gitconfig"), GIT_CONFIG_NOSYSTEM="1",
                 GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t",
                 APPDATA="", LOCALAPPDATA="")
@@ -7013,29 +7013,35 @@ def hook_isole(t):
 
 
 def tester_hook_pyright():
-    # TYP1 : le hook lance pyright quand un .py est indexé. claude caché (`hook_isole`), le vrai pyright aussi :
-    # un faux, en tête du PATH, sort 1.
+    # TYP1, REF3 : le hook lance `uv run --frozen pyright` quand un .py est indexé. claude, uv et pyright cachés
+    # (`hook_isole`) ; un faux uv en tête du PATH — un script sh, que le hook lance, quand uv ne saurait pas lancer
+    # un faux pyright sous Windows — rend le verdict de pyright.
     if not shutil.which("git"):
         print("SAUTÉ: git absent — le bloc pyright du hook n'est pas testé")
         return
     with tempfile.TemporaryDirectory() as t:
         depot, sans, git = hook_isole(t)
-        faux = os.path.join(t, "faux")
-        os.mkdir(faux)
-        ecrire(os.path.join(faux, "pyright"), '#!/bin/sh\necho "faux pyright : 1 error"\nexit 1\n')
-        os.chmod(os.path.join(faux, "pyright"), 0o755)
+        def faux_uv(nom, code):
+            d = os.path.join(t, nom)
+            ecrire(os.path.join(d, "uv"), '#!/bin/sh\necho "faux uv $* : sortie %d"\nexit %d\n' % (code, code))
+            os.chmod(os.path.join(d, "uv"), 0o755)
+            return d
+        rouge, vert = faux_uv("rouge", 1), faux_uv("vert", 0)
         ecrire(os.path.join(depot, "a.md"), "a\n")
         git(sans, "add", "a.md")
-        code, s = git([faux] + sans, "commit", "-q", "-m", "md")
+        code, s = git([rouge] + sans, "commit", "-q", "-m", "md")
         verifier("hook pyright : un .md seul passe", code == 0 and "pyright" not in s, s)
         ecrire(os.path.join(depot, "a.py"), "x = 1\n")
         git(sans, "add", "a.py")
-        code, s = git([faux] + sans, "commit", "-q", "-m", "py")
-        verifier("hook pyright : un .py en erreur est refusé", code == 1 and "faux pyright : 1 error" in s
-                 and "pre-commit : pyright en erreur, commit refusé." in s, s)
+        code, s = git([rouge] + sans, "commit", "-q", "-m", "py")
+        verifier("hook pyright : un .py en erreur est refusé", code == 1 and "faux uv run --frozen pyright : sortie 1" in s
+                 and "pre-commit : pyright en erreur ou absent de l'atelier (uv sync), commit refusé." in s, s)
         code, s = git(sans, "commit", "-q", "-m", "py")
-        verifier("hook pyright : sans pyright, le .py passe en le disant", code == 0
-                 and "pre-commit : pyright introuvable, vérification de types sautée." in s, s)
+        verifier("hook pyright : sans uv, le .py est refusé en le disant (E27)", code == 1
+                 and "pre-commit : uv introuvable, pyright non lancé, commit refusé" in s, s)
+        code, s = git([vert] + sans, "commit", "-q", "-m", "py")
+        verifier("hook pyright : pyright vert sous uv, le .py passe", code == 0
+                 and "faux uv run --frozen pyright : sortie 0" not in s, s)
 
 
 groupe(tester_hook_pyright)
@@ -10438,6 +10444,16 @@ def tester_sante_ruff():
              code == 0 and s.startswith("SANTE ruff %s · " % reel) and "AST=RUFF 15/15 fonctions\n" in s, s)
 
 
+def tester_sante_reglages():
+    """REF3 (D5) : la commande ruff de `sante` lit `pyproject.toml` — sans `--isolated`. Un faux ruff rend ses
+    arguments, que `lancer_ruff` reçoit comme sa sortie."""
+    import sante
+    sortie = sante.lancer_ruff([sys.executable, "-c", "import json, sys; print(json.dumps(sys.argv[1:]))"], ["x.py"])
+    args = json.loads(sortie)
+    verifier("sante : la commande ruff lit pyproject.toml, sans --isolated",
+             "--isolated" not in args and args[:1] == ["check"] and args[-1] == "x.py", sortie)
+
+
 def tester_sante_cliquet():
     """VIT15 : le cliquet sur un faux kit, sans ruff — la base, ce qui empire, ce qui grandit sous le seuil, la fonction
     neuve, la docstring, les tests, le renommage et le déplacement, le verrou d'une amélioration, et la base qui ne se
@@ -10634,6 +10650,7 @@ def bilan_seul():
 
 groupe(tester_sante_comptes)
 groupe(tester_sante_ruff)
+groupe(tester_sante_reglages)
 groupe(tester_sante_cliquet)
 groupe(tester_sante_si_base)
 groupe(tester_sante_kit)
