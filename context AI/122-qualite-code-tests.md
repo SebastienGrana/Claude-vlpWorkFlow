@@ -560,8 +560,8 @@ la séance ; **27 égales à l'avis donné**, deux écarts : `Q20` (E20, `compar
 **À la clôture de `REF`**, retirer de la TODO les lignes couvertes : `VAR` (128), `ALC` (130), `EFC`
 (131), `LIR` (132), `COP` (133), `SOL` (138), `ATT` (141).
 
-**En attente du 2e oui** (`methode-chantier.md`, « La TODO ne grossit pas ») — rien n'est écrit dans la
-TODO ; codes proposés, 🟡 à confirmer :
+**Versés le 2026-10-17, sur le 2e oui de l'utilisateur** (`methode-chantier.md`, « La TODO ne grossit
+pas ») — TODO n° 114 (`VCL`, points 7 et 8 ; score 15 → 10, rangée après `HOR`), 144 (`AGT`), 145 (`PYU`) :
 
 - **`VCL` (n° 114), point (7)** : une même séance, trois chiffres — `clore` du bac « non mesuré »,
   `vlp.py cout` 3,20 $, `mesure-tokens.py --actif` 3,42 $ (clôture de `GAI`, 2026-10-17) ; cause non
