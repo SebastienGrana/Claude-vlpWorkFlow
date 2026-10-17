@@ -29,6 +29,7 @@ QUAND LIRE : on relit un chantier clos ; l'index n'en garde qu'une ligne qui ren
 | `120-ord.md` | on relit le socle du chantier ORD — **clos** « Une page d'enchaînement entre projets, en gabarit », `ORD1..ORD6` |
 | `121-iso.md` | on relit le socle du chantier ISO — **clos** « Le parallèle, chaque fiche dans son worktree », `ISO1..ISO8` |
 | `123-gai.md` | on relit le socle du chantier GAI — **clos** « Le parallèle qui gagne enfin du temps », `GAI1..GAI2` |
+| `124-cpf.md` | on relit le socle du chantier CPF — **clos** « Chaque sous-agent compté à sa fiche », `CPF1..CPF1` |
 | `13-tours.md` | on joue une fiche `T*` — chantier **clos** « Compter les tours, pondérer le coût », `T1..T5` |
 | `14-bugs.md` | on joue une fiche `B*` — chantier **clos** « Corriger les bugs de l'audit », `B1..B3` |
 | `15-reduire.md` | on joue une fiche `R*` — chantier **clos** « Réduire les tours de `/vlp:tache` », `R1..R4` |
