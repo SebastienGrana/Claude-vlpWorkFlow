@@ -463,3 +463,120 @@ relus sur le texte brut (`curl`) ou mesurés ; les autres sont plausibles, non r
 - **Contradictions** : vérifier par sous-agent — conseillé par Claude Code et Fable 5, déconseillé
   par la page Opus 5 ; ton ferme — Anthropic contre, superpowers pour ; fichiers de contexte — moins de
   réussite (ETH, preprint) contre −28,64 % de temps (Lulla, preprint).
+
+## L'inventaire des erreurs (`REF1`)
+
+**Fait le 2026-10-17** (`Q8` : réparer toutes les erreurs connues ; l'utilisateur choisit ce qui entre).
+Lu par grep et par plages, jamais un fichier de fiches entier ; chaque défaut encore cité a été
+**revérifié dans le code du jour** quand une commande le permettait (colonne « Preuve », « revérifié ») ;
+les autres sont cités tels que leur source les écrit. Estimations en fiches : **estimé, non mesuré**.
+
+### Les comptes bruts, par source
+
+| Source | Lu | Défauts gardés | Écartés |
+|---|---|---:|---|
+| (1) la TODO (`08-etat.md:379-399`) | 19 lignes | **10** (E1–E10) | 9 lignes sans défaut : `REF` (ce chantier), `CAR`, `DER` (une enquête), `HOR`, `EVR`, `RMS`, `SCO`, `BDD`, `BIL` — des ajouts ou des mesures |
+| (2) « Restes repérés », « Hors du chantier », et les « **Laissé ouvert** » des clôtures | 1 + 7 sections, 11 lignes du journal | **6** (E11–E16) | 7 sections « Hors du chantier » : des choix de périmètre, 0 défaut neuf ; restes déjà en TODO : 2 ; réparés depuis : 6 ; autres projets ou questions ouvertes : le reste |
+| (3) les audits `12` et `AVL` | 18 constats (`12`), 9 + 5 pistes (`AVL1`, `AVL2`), 33 constats (`AVL3`), 2 pannes (`AVL4`), 5 « Restent ouverts » (`AVL9`) | **7** (E17–E23) | `12` : 14 corrigés, 2 périmés, 2 vrais déjà en TODO (`VAR`, `COP`) ; `AVL3` : 28 sur 33 faits ou en TODO |
+| (4) le cadrage (« Recherche du 2026-10-17 », « Deux défauts trouvés en mesurant », socle de `REF`) | 9 défauts | **6** (E24–E29) | la carte coupée fondue dans E3 ; le passage de minuit réparé (`f386792` est dans `main` : `git merge-base --is-ancestor` → 0) |
+| **Total** | | **29** | |
+
+⚠️ La source (2) déborde de la fiche : elle nommait « Restes repérés » et « Hors du chantier » ; les
+« **Laissé ouvert** » des clôtures (`08-etat.md`) disent la même chose et ont donné 4 défauts sur 6.
+
+**Réparés en route, sans carte** (vus dans le code ou le journal du jour) : `trier` lit la dépendance
+de `RMS` (`est_bloque`, `scripts/vlp_coeur.py:4397-4405`) ; le prix de `claude-haiku-5-5` est dans
+`scripts/mesure-tokens.py` (3 lignes) ; `evals/effort/traces/` est ignoré (`.gitignore:3`) ; `equiper`
+sur un dossier absent rend une `GARDE:` (`scripts/vlp_coeur.py:1827-1829`) ; le plafond qui comptait
+le rejeu et la voie gardée après un conflit (`GAI1`, `08-etat.md:3551`) ; `oter` et la ligne de `TAB`
+(`clore` retire la ligne depuis `RTO`) ; le passage de minuit. Les consignes globales `A4`, `A5`, `C1`
+d'`AVL3` : faites dans le `CLAUDE.md` global (lu le 2026-10-17).
+
+### La liste
+
+| N° | Défaut | Preuve | Effet | Fiches | Recoupe `REF` |
+|---|---|---|---|---|---|
+| E1 | `VCL` — des tours qui disparaissent du compte : 14 tours · 1,91 $ de `TAB` comptés nulle part ; le coût d'`AMD` qui baisse (43,20 → 37,80 $) ; `cout` ne range pas les tentatives d'une fiche refusée ; `recompter --ecrire` laisse la page d'un clos à moitié juste | `08-etat.md:382` ; `ENA5` 3,25 → 7,64 $ depuis `CPF` pour ≈ 20,94 $ réels (`08-etat.md:3564`) | le coût par fiche d'un clos est faux, le total juste | ≈ 4 (TODO) | aucune |
+| E2 | `VAR` — `${CLAUDE_PLUGIN_ROOT}` en clair dans `cloture.md`, lu par `vlp.py lire`, où rien ne le remplace | revérifié : `vlp.py lire cloture.md` en porte **5** lignes | un modèle qui recopie la ligne lance `/scripts/vlp.py` ; aucun raté vu | 1 | aucune |
+| E3 | `ALC` + la carte coupée — la carte de `/vlp:chantier` passe la limite d'une injection (≈ 30 000 caractères) : reçue en aperçu | 53,5 Ko au cadrage de `REF` (« Les consignes et l'IA ») ; la TODO en fait 68 % (`118-audit-du-kit.md`, `AVL3`) | le cadrage décide sur une carte coupée | 1 | **`REF2`** |
+| E4 | `EFC` — `/vlp:tache` doit annoncer l'effort tiré de la méthode, qu'il lui est interdit d'ouvrir | `AVL3` `A2` ; revérifié : `EFFORT=` dans `scripts/vlp_coeur.py` → **0** | l'effort annoncé se devine | 1 | aucune |
+| E5 | `LIR` — `clore` ne dit pas quels fichiers relire avant de republier la feuille | 10 refus sur 50 à `APR` (`08-etat.md:388`) | une publication refusée, puis rejouée | 1 | aucune |
+| E6 | `COP` — un nombre recopié dans plusieurs commandes sans test qui compare les copies (« deux tentatives » ×6, « trois majuscules » ×3) | `AVL3` `A10` ; revérifié : aucun test ne compare ces copies | une copie diverge en silence ; la règle 3 n'est pas tenue | 1 | aucune |
+| E7 | `HER` — **déjà réparé par `ISO2`**, la ligne de TODO est restée | `chantiers_ailleurs` (`scripts/vlp_coeur.py:6965-6982`), docstring « ISO2, TODO 140 » ; `08-etat.md:3510` ; ⚠️ le cas exact d'`ENA5` n'est pas rejoué | une ligne morte, injectée à chaque cadrage | 0 | — |
+| E8 | `ATT` — `mutant --attendu` ne reconnaît l'attendu qu'en début de libellé : `MUTANT VIVANT` pour un mutant attrapé | deux fois de suite, clôture d'`ENA` (`08-etat.md:391`) | un verdict de mutant à l'envers | 1 | aucune |
+| E9 | `CAN`, points (4) à (8) — deux canaux d'une nuit prennent le même numéro (`113-rto.md`, `113-ctr.md`) ; une `(visuel)` jouée avant l'arrêt ; l'archive sans liens ; le résumé des clos perdu à la fusion (2 fois) ; une branche republie la feuille sans les clos de `main` | `08-etat.md:397` ; `61b2300` | des pages fausses après une nuit à deux canaux | ≈ 3 à 4 sur les 6 à 7 de `CAN` | aucune |
+| E10 | `SOL` — un bloc Tentatives soldé garde le motif d'avant ; une tête hors gabarit se récrit | rejoué par sonde le 2026-10-13 (`08-etat.md:398`) ; jamais vu sur une vraie fiche | le chef compare un refus au mauvais motif | 1 | aucune |
+| E11 | `git` absent des `allowed-tools` d'`/vlp:enchainer`, quand le chef commite en worktree (`ISO6`) | revérifié : `skills/enchainer/SKILL.md:4` ; reste d'`ENA5` (`119-ena.md:405`) ; ⚠️ qui lance `git` là : non vérifié | une demande de permission par `git`, hors mode auto | ½ | aucune |
+| E12 | `commiter` compte `scripts/sante-base.json` parmi les communs de tout projet | `119-ena.md:407` ; 💡 changé par une autre fiche, il partirait dans le mauvais commit (déduit, non vu) | un commit de fiche qui emporte un fichier d'une autre | ½ | aucune |
+| E13 | `relecture --retirer` en parallèle effacerait les copies de l'autre relecteur | dit par un relecteur d'`ISO`, non vérifié (`08-etat.md:3546`, (3)) | un relecteur sans ses copies, un refus faux | 1 | aucune |
+| E14 | `vlp.py mutant` rend `MUTANT PLANTÉ` sur un juge sans `ÉCART:` | `08-etat.md:3546`, (4) ; non revérifié | un verdict de mutant faux | ½ | aucune |
+| E15 | une même séance, trois chiffres : `clore` du bac « non mesuré », `vlp.py cout` 3,20 $, `mesure-tokens.py --actif` 3,42 $ | `08-etat.md:3554`, (2) et (3) ; cause non vérifiée | deux outils du kit ne s'accordent pas sur un coût | 1 | aucune |
+| E16 | `clore` du kit sort `GARDE: pas ISO (kit)` : la page d'enchaînement n'est pas refaite | `08-etat.md:3554`, (4) ; non revérifié | la page d'enchaînement en retard après une clôture | ½ | aucune |
+| E17 | la docstring de `vlp.py`, où `CLAUDE.md` envoie lire les sous-commandes, pèse **62 851** octets (54 523 à `AVL1`) ; `--help` rend **7** lignes | revérifié (`ast`, `--help`) ; `AVL1`, piste 5 | lire une sous-commande coûte toute la docstring, ou un grep | 1 | `REF7`, `REF16` (en partie) |
+| E18 | une séance de nuit charge le `CLAUDE.md` global, qui commite après chaque tâche, et `nuit.md`, qui l'interdit (`nuit.md:19`) | `AVL3` `A11` ; `nuit.md` ne nomme pas le global (grep : 0) ; ⚠️ ce qui arrête un commit de nuit : non lu | un commit hors de la boucle, possible | 1 | `REF16`, `REF17` (en partie) |
+| E19 | le repli « copie simple » dans `~/.claude/commands/` survit au chantier `K` | `AVL3` `B11` ; revérifié : 4 lignes (`skills/chantier/SKILL.md:183,185`, `skills/check/SKILL.md:107`, `skills/init/SKILL.md:50`) ; le kit sert son auteur seul, en plugin (`CLAUDE.md`, « Pour qui ») | du texte mort, payé à chaque lancement | 0 (sans fiche) | `REF25` |
+| E20 | comparer à la page en ligne avant de republier une feuille : `comparer` existe, aucune commande ne le cite | `AVL3` `C2`, raté de peu à `VOI6` ; revérifié : 0 citation dans `skills/*/SKILL.md`, `cloture.md`, `ARTEFACTS.md` | une feuille republiée efface ce qu'une autre branche y a mis (recoupe E9) | ½ | aucune |
+| E21 | une définition d'agent changée n'est pas vue par la séance ouverte ; rien n'avertit | `AVL3` `C4`, raté à `FOR` ; revérifié : aucune alerte dans `scripts/vlp_coeur.py` ; noté « après · 1 » à `AVL8`, jamais versé | une mesure faite sur l'ancien agent | 1 | aucune |
+| E22 | `sante --base` dans un worktree en retard sur `main` recale la base sur un autre état | `AVL3` `C7` ; remis à la main deux fois (`AVL1`, `AVL2`) | le cliquet juge contre une base fausse | ½ | aucune |
+| E23 | une séance CLI de plus de 30 jours est effacée (`cleanupPeriodDays`) : le recompte d'un vieux clos la perd sans le dire | `118-audit-du-kit.md:1328-1329` (doc lue le 2026-10-11) | un recompte qui baisse en silence (recoupe E1) | 1 | aucune |
+| E24 | un test lit les vrais transcripts : `tester_heures_commits` n'isole ni `HOME` ni `USERPROFILE` | 1 337 fichiers, 3,1 Go ; 20,6 s sur 26,3 s du test (« Deux défauts trouvés en mesurant ») | test lent, lié à la machine, qui lit des données privées | — | **`REF4`** |
+| E25 | chaque hook se lance deux fois, `python3` (3.14.7) puis `py -3` (3.14.6) ; le tampon de `vlp_hook.py` évite le double effet | « L'outillage » ci-dessus ; **gardé exprès** à `VIT8` (`08-etat.md:2643`) | deux Python pour un hook, ≈ 85 ms de plus par entrée | 0 | aucune (`REF10` en tient compte) |
+| E26 | le piège de l'état global : `test-vlp.py` change des attributs du module (`mod.TAMPON_HOOKS = None`…) ; coupé, `vlp_coeur.py` ne verrait plus l'assignation, sans erreur | « L'outillage » ci-dessus | des tests verts qui ne testent plus rien, après la découpe | — | **`REF18`** |
+| E27 | `.githooks/pre-commit` saute `pyright` s'il manque, et le commit passe | revérifié : `.githooks/pre-commit:27` | la règle « pyright avant le commit » n'est pas garantie | ½ | `REF3` (en partie : la règle, pas le hook) |
+| E28 | le cliquet de `sante.py` lance ruff `--isolated` : il ne lit pas `pyproject.toml` | revérifié : `scripts/sante.py:252` | le cliquet ne juge pas aux règles du dépôt | — | **`REF3`** |
+| E29 | aucune garde de taille de fichier : `test-vlp.py` 5 879 → 10 448 lignes (2026-10-01 → 2026-10-16) | la ligne `REF` de la TODO (`08-etat.md:381`) | les fichiers grossissent sans frein | — | **`REF9`** |
+
+**La page à cartes** : une carte par défaut, trois réponses (« dans `REF` », « garder en TODO »,
+« abandonné ») ; les réponses s'écrivent ici, puis les fiches neuves se placent après `REF3`.
+
+### Les réponses (2026-10-17)
+
+Page https://claude.ai/artifact/5L3gARLfctW9wELerNyP1A (version 1) ; 29 réponses sur 29, collées dans
+la séance ; **27 égales à l'avis donné**, deux écarts : `Q20` (E20, `comparer`) « dans `REF` » au lieu de
+« garder en TODO » ; `Q25` (E25, deux Python) « garder en TODO » au lieu d'« abandonné ».
+
+| Réponse | Défauts | Ce qui suit |
+|---|---|---|
+| dans `REF` (22) | E2–E6, E8, E10–E14, E16–E20, E22, E24, E26–E29 | 15 défauts en 13 fiches neuves, `REF27` à `REF39`, après `REF3` ; E27 ajouté à `REF3` ; E3, E24, E26, E28, E29 déjà couverts (`REF2`, `REF4`, `REF18`, `REF3`, `REF9`) ; ⚠️ E14 trouvé réparé après la page (`1c9a4a0`, `verdict_juge`) : pas de fiche |
+| garder en TODO (6) | E1, E9, E15, E21, E23, E25 | E1 (`VCL`) et E9 (`CAN`) : rien ne change ; E15 et E23 joints à `VCL`, E21 et E25 en lignes neuves : **en attente du 2e oui** (ci-dessous) |
+| abandonné (1) | E7 | la ligne `HER` (n° 140) retirée par `vlp.py oter` |
+
+| Fiche | Défauts |
+|---|---|
+| `REF27` | E2 (`VAR`) |
+| `REF28` | E4 (`EFC`) |
+| `REF29` | E5 (`LIR`), E20 |
+| `REF30` | E6 (`COP`) |
+| `REF31` | E8 (`ATT`) |
+| `REF32` | E10 (`SOL`) |
+| `REF33` | E11, E12 |
+| `REF34` | E13 |
+| `REF35` | E16 — le symptôme réparé à la main (`cfa68e4`), la cause reste |
+| `REF36` | E17 |
+| `REF37` | E18 |
+| `REF38` | E19 — la carte disait « sans fiche » : une fiche de rangement, la plus courte, le garde tracé |
+| `REF39` | E22 |
+
+**À la clôture de `REF`**, retirer de la TODO les lignes couvertes : `VAR` (128), `ALC` (130), `EFC`
+(131), `LIR` (132), `COP` (133), `SOL` (138), `ATT` (141).
+
+**En attente du 2e oui** (`methode-chantier.md`, « La TODO ne grossit pas ») — rien n'est écrit dans la
+TODO ; codes proposés, 🟡 à confirmer :
+
+- **`VCL` (n° 114), point (7)** : une même séance, trois chiffres — `clore` du bac « non mesuré »,
+  `vlp.py cout` 3,20 $, `mesure-tokens.py --actif` 3,42 $ (clôture de `GAI`, 2026-10-17) ; cause non
+  vérifiée (E15). Coût : ≈ +1 fiche (estimé, non mesuré).
+- **`VCL`, point (8)** : les vieilles séances CLI effacées — une séance de ligne de commande de plus de
+  30 jours disparaît (`cleanupPeriodDays`, doc lue le 2026-10-11) ; le recompte d'un vieux clos la perd
+  sans le dire ; remède : une `GARDE:` quand une séance citée manque (`AVL9`, Q33 ; E23). Coût : ≈ +1 fiche
+  (estimé, non mesuré).
+- **Ligne neuve `AGT` — Une définition d'agent changée, la séance avertit** : après une retouche
+  d'`agents/`, la séance ouverte garde l'ancienne définition (raté à `FOR`) ; la carte avertirait quand
+  `agents/` a changé depuis le début de la séance ; testé (`AVL3` `C4`, noté « après · 1 » à `AVL8` ; E21).
+  **après · score 5 (1 × 5)** · 1 fiche · ≈ 4,40 $ (estimé, non mesuré) · dépend de : —.
+- **Ligne neuve `PYU` — Chaque hook lancé par un seul Python** : chaque entrée de `hooks/hooks.json`
+  part deux fois, `python3` puis `py -3` ; le tampon de `vlp_hook.py` évite le double effet ; gardé exprès
+  à `VIT8` (la doc des hooks n'avait pas de forme à un seul lancement sans shell) ; ≈ 85 ms de plus par
+  entrée (E25). Ce qu'elle ferait : relire la doc des hooks du jour ; une forme à un seul lancement, on
+  la prend, testée ; sinon la ligne se retire. **après · score 5 (1 × 5)** · 1 fiche · ≈ 4,40 $ (estimé,
+  non mesuré) · dépend de : —.

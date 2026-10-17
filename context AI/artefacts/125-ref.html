@@ -16,14 +16,14 @@
 
 <div class="page">
   <header>
-    <div class="eyebrow">vlp · fiches REF1–REF26 · <a href="https://claude.ai/artifact/YWDny8kjubq9DhdP5rbPxA">la feuille de route</a></div>
+    <div class="eyebrow">vlp · fiches REF1–REF39 · <a href="https://claude.ai/artifact/YWDny8kjubq9DhdP5rbPxA">la feuille de route</a></div>
     <h1>La qualité du code et des tests</h1>
     <p>Le kit tourne sur pytest et une couverture mesurée, sans une seule régression ; des scripts gardent la taille des fichiers et interdisent de toucher aux tests pendant une fiche ; les erreurs connues sont réparées, les gros fichiers découpés, et chaque angle revu jusqu'à deux passes vides.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">26 fiches · 0 faite · en cours : REF1</p>
+    <p class="mono" style="margin-top:.5rem">39 fiches · 1 faite · en cours : REF2</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -38,16 +38,42 @@
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">REF1</span></span>
-        <details open><summary><span class="titre">Faire l'inventaire des erreurs connues</span><span class="etat">En cours · REF2 peut partir en même temps</span></summary>
-        <span class="note">La liste de toutes les erreurs connues, en page à cartes : tu choisis ce qu'on répare ; ajoute des fiches.</span></details>
-        <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
-      <li class="fiche"><span class="gauche"><span class="id">REF2</span></span>
-        <details><summary><span class="titre">Ramener la carte de chaque commande sous la limite d'injection</span><span class="etat">À lancer · en même temps que REF1</span></summary>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REF1</span></span>
+        <details><summary><span class="titre">Faire l'inventaire des erreurs connues</span><span class="etat">Faite</span></summary>
+        <span class="note">29 défauts dans la note 122 (TODO 10, restes et clôtures 6, audits 7, cadrage 6), chacun sa preuve ; page publiée, 29 réponses sur 29 (27 = l'avis) ; 13 fiches ajoutées, REF27 à REF39 : VALIDE 39 fiches</span></details>
+        <span class="cout mono">≈16,5M (16 454 416) · 55 tours · 9,82 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">REF2</span></span>
+        <details open><summary><span class="titre">Ramener la carte de chaque commande sous la limite d'injection</span><span class="etat">En cours</span></summary>
         <span class="note">La carte de chaque commande sous 25 000 caractères : elle n'arrive plus coupée.</span></details></li>
       <li class="fiche"><span class="gauche"><span class="id">REF3</span></span>
         <details><summary><span class="titre">Poser un seul pyproject.toml et uv pour l'atelier</span><span class="etat">À lancer</span></summary>
         <span class="note">Un seul pyproject.toml, uv pour l'atelier, pyright migré, sante qui lit nos réglages.</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">REF27</span></span>
+        <details><summary><span class="titre">vlp.py lire remplace la racine du kit</span><span class="etat">Après REF3</span></summary></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">REF28</span></span>
+        <details><summary><span class="titre">La carte dit l'effort voulu</span><span class="etat">Après REF3</span></summary></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">REF29</span></span>
+        <details><summary><span class="titre">Republier la feuille sans refus ni perte</span><span class="etat">Après REF3</span></summary></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">REF30</span></span>
+        <details><summary><span class="titre">Un test compare chaque nombre recopié</span><span class="etat">Après REF3</span></summary></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">REF31</span></span>
+        <details><summary><span class="titre">mutant --attendu reconnaît son texte au milieu d'un écart</span><span class="etat">Après REF3</span></summary></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">REF32</span></span>
+        <details><summary><span class="titre">Un bloc Tentatives soldé garde le bon motif</span><span class="etat">Après REF3</span></summary></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">REF33</span></span>
+        <details><summary><span class="titre">Les écritures Git sous /vlp:enchainer, vérifiées</span><span class="etat">Après REF3</span></summary></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">REF34</span></span>
+        <details><summary><span class="titre">Deux relecteurs en parallèle ne s'effacent pas</span><span class="etat">Après REF3</span></summary></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">REF35</span></span>
+        <details><summary><span class="titre">clore marque le chantier clos dans la source d'enchaînement</span><span class="etat">Après REF3</span></summary></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">REF36</span></span>
+        <details><summary><span class="titre">Une aide par sous-commande de vlp.py</span><span class="etat">Après REF3</span></summary></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">REF37</span></span>
+        <details><summary><span class="titre">La nuit : qui prime, commiter ou non</span><span class="etat">Après REF3</span></summary></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">REF38</span></span>
+        <details><summary><span class="titre">Retirer le repli « copie simple » d'avant le plugin</span><span class="etat">Après REF3</span></summary></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">REF39</span></span>
+        <details><summary><span class="titre">sante --base refuse un worktree en retard sur main</span><span class="etat">Après REF3</span></summary></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">REF4</span></span>
         <details><summary><span class="titre">Poser le socle pytest et isoler chaque test</span><span class="etat">Après REF3</span></summary>
         <span class="note">Le socle pytest : chaque test isolé de ta machine ; le test qui lisait tes fichiers, migré. Après REF3.</span></details></li>
@@ -104,7 +130,7 @@
         <details><summary><span class="titre">Essayer de typer un lecteur JSON</span><span class="etat">Après REF3</span></summary>
         <span class="note">Un essai de typage d'un lecteur JSON. Après REF3.</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">REF22</span></span>
-        <details><summary><span class="titre">Revoir l'angle des bugs</span><span class="etat">Après REF1, REF2, REF3, REF4, REF5, REF6, REF7, REF8, REF9, REF10, REF11, REF12, REF13, REF14, REF15, REF16, REF17, REF18, REF19, REF20, REF21</span></summary>
+        <details><summary><span class="titre">Revoir l'angle des bugs</span><span class="etat">Après REF2, REF3, REF4, REF5, REF6, REF7, REF8, REF9, REF10, REF11, REF12, REF13, REF14, REF15, REF16, REF17, REF18, REF19, REF20, REF21</span></summary>
         <span class="note">Revue des bugs, jusqu'à deux passes sans défaut confirmé. Après tout le reste.</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">REF23</span></span>
         <details><summary><span class="titre">Revoir l'angle des tests</span><span class="etat">Après REF22</span></summary>
@@ -119,6 +145,8 @@
         <details><summary><span class="titre">Revoir l'angle de la doc qui ment</span><span class="etat">Après REF22</span></summary>
         <span class="note">Revue de la doc qui ment. Après REF22.</span></details></li>
     </ul>
+    <p class="mono cout-hors">Hors fiches : ≈77,7M (77 682 919) · 384 tours · 16,95 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈94,1M (94 137 335) · 439 tours · 26,77 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
