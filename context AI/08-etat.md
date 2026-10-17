@@ -3547,3 +3547,10 @@ Les 6 fichiers relus en entier contre `methode-chantier.md` après `MET7` ; « t
 - **Mesuré** (`121-iso.md`, « Mesuré à ISO7 ») : à la file 10,8 min · 3,24 $ ; en parallèle 17,8 min · 5,12 $, `OK tout` des deux côtés, 2 fiches ensemble une seule fois. **Aucun gain** : ne pas conseiller le parallèle tant que les deux causes restent.
 - **Laissé ouvert** : (1) le plafond de 5 départs compte le rejeu — 5 fiches + 1 conflit = deux lancements ; (2) la piégée garde sa voie (`--tourne`) après le conflit ; (3) `relecture --retirer` en parallèle aurait effacé les copies de l'autre relecteur (dit par un relecteur, non vérifié) ; (4) `vlp mutant` → `MUTANT PLANTÉ` sur un juge sans `ÉCART:` ; (5) `vlp.py equiper` sur un dossier absent → traceback.
 - **Pour le kit** : un sous-agent isolé n'écrit rien dans le dossier principal, `.git/worktrees/` compris (doc worktrees, lue le 2026-10-16) — ce qu'il doit y poser, le chef le pose.
+
+## 2026-10-17 — Chantier `GAI` clos : le parallèle gagne enfin du temps
+
+- **Livré** : `GAI1` — le rejeu après `CONFLIT` hors plafond, et sur une voie à lui (la fiche sort de `--tourne`, repart aussitôt) ; `GAI2` — le bac d'`ISO7` refait (`vlp-essai-gai2`), la file et le parallèle remesurés le même jour.
+- **Chantier** : 20 368 057 (ligne `CLOS`) · joué 2 fiches 8,96 $, estimé non noté. La plus chère, `GAI2` (71 tours · 4,24 $) : surveiller deux séances et mesurer. Hors de ce compte : les deux séances du bac, 6,99 $ (3,42 + 3,57).
+- **Mesuré** (`123-gai.md`, « Mesuré à GAI2 ») : à la file 9,8 min · 3,42 $ ; en parallèle **7,1 min** · 3,57 $, **un** lancement, `BLA2` rejouée à côté de `BLA3`, deux fiches ensemble 3 fois, `OK tout` des deux côtés. **Gain en temps (−28 %), pas en coût (+4 %)** ; un seul essai par mode.
+- **Laissé ouvert** : (1) des fiches de ~30 s, où le gain possible reste petit (3ᵉ cause d'`ISO7`) ; (2) `clore` du bac écrit « non mesuré » quand `vlp.py cout` donne 3,20 $ (cause non vérifiée) ; (3) `cout` (3,20 $) et `mesure-tokens.py --actif` (3,42 $) ne disent pas le même chiffre pour la même séance ; (4) `clore` du kit : `GARDE: pas ISO (kit)`, page d'enchaînement non refaite.
