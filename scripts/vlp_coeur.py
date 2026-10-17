@@ -3315,6 +3315,30 @@ def bilan_en_haut(html):
     return reste[:apres] + "\n" + bloc + reste[apres:]
 
 
+def couts_du_fichier(fichier, anciens, ancien_total, gardes):
+    """`couts` d'un fichier de fiches aux heures de ses commits, comme la page les écrit ; `anciens` et `ancien_total`
+    viennent de l'ancienne page, `{}` et None sans elle — `clore` d'un projet sans page (dette GAI)."""
+    lignes = lignes_de(fichier)
+    fiches_ = fiches_du_fichier(lignes)
+    clos = any(l.startswith("**CLOS**") for l in lignes)
+    heures = heures_commits(fichier, [f[0] for f in fiches_], clos=clos) if any(f[3] for f in fiches_) else None
+    # Un clos s'arrête à son appel clore, comme cout : un chantier, un seul chiffre (dette PLI).
+    fin = heure_clore(fichier, lignes) if clos and heures else None
+    return couts(fiches_, anciens, ancien_total, gardes, heures, sessions_entete(lignes), fin)
+
+
+def total_sans_page(carte_, chemin_page, chemin_fiches, gardes):
+    """`clore` sans page du chantier : sa garde dans `gardes`, sans « GARDE: », et le total (total, tours, usd) que la
+    page écrirait — le bac de GAI2 closait en « non mesuré » (dette GAI) ; None sans fiche."""
+    gardes.extend(garde_page(carte_, "artefact du chantier", "page du chantier introuvable : %s" % chemin_page))
+    if not fiches_du_fichier(lignes_de(chemin_fiches)):
+        return None
+    couts_f = []    # celles de couts portent déjà « GARDE: »
+    total = couts_du_fichier(chemin_fiches, {}, None, couts_f)[1]
+    gardes.extend(re.sub(r"^GARDE: ", "", g) for g in couts_f)
+    return total
+
+
 def regenerer(html, fichier, parts, date, gardes, forme=False):
     """`parts` (`lire_abri`/`abri_de_page`) fait foi pour résultat, notes et journal — recopiés
     en entier dans la page, plus jamais lus dans son ancienne version (chantier ABR). `forme` :
@@ -3346,12 +3370,7 @@ def regenerer(html, fichier, parts, date, gardes, forme=False):
         total = triplet(ancien_total.group(1)) if ancien_total else None
         hors = triplet(vieux.get("hors"))
     else:
-        clos = any(l.startswith("**CLOS**") for l in lignes)
-        heures = heures_commits(fichier, [f[0] for f in fiches_], clos=clos) if any(f[3] for f in fiches_) else None
-        # Un clos s'arrête à son appel clore, comme cout : un chantier, un seul chiffre (dette PLI).
-        fin = heure_clore(fichier, lignes) if clos and heures else None
-        cout, total, hors = couts(fiches_, anciens, ancien_total and ancien_total.group(1), gardes, heures,
-                                  sessions_entete(lignes), fin)
+        cout, total, hors = couts_du_fichier(fichier, anciens, ancien_total and ancien_total.group(1), gardes)
     html, n = re.subn(r'(</h1>\s*<p>).*?(</p>)', lambda m: m.group(1) + esc(parts["resultat"]) + m.group(2),
                       html, count=1, flags=re.S)
     if not n:
@@ -7305,7 +7324,7 @@ def cmd_clore(a, sortie):
     chemin_page = os.path.join(projet, os.path.dirname(courant), "artefacts", nom[:-3] + ".html")
     md_page = parts_page = None
     if not os.path.isfile(chemin_page):
-        gardes.extend(garde_page(carte_, "artefact du chantier", "page du chantier introuvable : %s" % chemin_page))
+        total_mesure = total_sans_page(carte_, chemin_page, chemin_fiches, gardes)
     else:
         pg = lire(chemin_page)
         try:

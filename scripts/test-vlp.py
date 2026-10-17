@@ -1199,6 +1199,20 @@ def tester_commit_au_titre():
                  h is not None and T0 + 601 not in h[1] and T0 + 601 in h[2] and code == 0
                  and "\nhors fiches · ≈200,0k (200 000) · 2 tours" in s
                  and "TOTAL (fiches + hors fiches) · ≈700,0k (700 000) · 7 tours" in s, (h, s))
+        # Dette GAI : `clore` d'un projet sans page de chantier (le bac de GAI2) compte son total, comme `cout`.
+        d4 = os.path.join(t, "q4")
+        ecrire(os.path.join(d4, "CHANTIER.md"), "# C\n\n- **contexte** : ctx/\n- **artefact du chantier** : aucun\n\n"
+               "Lettres de fiche déjà prises : U (test).\n")
+        ecrire(os.path.join(d4, "ctx", "q.md"), ouvert(QFICHES % (sq, sq)))
+        subprocess.run(["git", "init", "-q"], cwd=d4, env=env, check=True, capture_output=True)
+        for x, sujet in ((100, "Chantier Q ouvert : cadré"), (300, "Q1 : Créer"), (600, "Q2 : Brancher")):
+            date = "%d +0000" % (T0 + x)
+            subprocess.run(["git", "commit", "-q", "--allow-empty", "-m", sujet], cwd=d4, check=True,
+                           capture_output=True, env=dict(env, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date))
+        code, s = appel(["clore", d4, "--livre", "fini", "--date", "2026-10-17"])
+        verifier("dette GAI : clore sans page de chantier écrit le total mesuré, pas « non mesuré »",
+                 code == 0 and "CLOS Q " in s and "· chantier 800 000 ·" in s and "joué 2 fiches 4,00 $" in s
+                 and "non mesuré" not in open(os.path.join(d4, "ctx", "q.md"), encoding="utf-8").read(), s)
 
 
 groupe(tester_commit_au_titre)
