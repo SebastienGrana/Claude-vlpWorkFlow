@@ -1195,16 +1195,18 @@ groupe(tester_heures_commits)
 
 def tester_pont_pytest():
     """REF4 : le pont vers la suite `pytest` de `tests/` — elle tourne dans un processus à part, `-q`, et sort 0 ;
-    la suite entière, `cocher` et `vlp.py mutant` la voient ainsi. pytest manque (l'atelier, `uv sync`) : un écart,
-    jamais un saut silencieux."""
+    la suite entière, `cocher` et `vlp.py mutant` la voient ainsi. Par l'atelier, `uv run --frozen pytest` : syrupy
+    (REF6) n'est que là, pas dans le Python de la machine. uv ou pytest manque (`uv sync`) : un écart, jamais un saut
+    silencieux."""
     racine = os.path.join(ICI, "..")
+    uv = shutil.which("uv")
     try:
-        r = subprocess.run([sys.executable, "-m", "pytest", "-q"], cwd=racine, capture_output=True,
+        r = subprocess.run([uv or "uv", "run", "--frozen", "pytest", "-q"], cwd=racine, capture_output=True,
                            encoding="utf-8", errors="replace", timeout=600)
         code, texte = r.returncode, (r.stdout + r.stderr).strip()
     except (OSError, subprocess.SubprocessError) as e:
-        code, texte = None, "pytest ne se lance pas : %s" % e
-    verifier("REF4 pont : py -3 -m pytest -q sur tests/ sort 0 (l'atelier : uv sync)", code == 0,
+        code, texte = None, "uv run pytest ne se lance pas : %s" % e
+    verifier("REF4 pont : uv run --frozen pytest -q sur tests/ sort 0 (l'atelier : uv sync)", code == 0,
              "\n".join(texte.splitlines()[-40:]))
 
 

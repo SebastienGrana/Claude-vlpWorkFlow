@@ -15,7 +15,6 @@ dev = [
     "coverage==7.16.2",
     "diff-cover==10.6.0",
     "syrupy==6.1.1",
-    "pytest-regtest==2.7.0",
     "ruff==0.16.10",
     "pyright==1.1.414",
 ]

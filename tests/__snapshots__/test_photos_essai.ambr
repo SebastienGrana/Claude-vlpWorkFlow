@@ -1,0 +1,43 @@
+# serializer version: 1
+# name: test_photo[carte]
+  '''
+  code 0
+  PROJET=<TMP>/depot
+  COURANT=ctx/z.md
+  --- CHANTIER.md ---
+  # Chantier courant
+  
+  - **alias** : p
+  - **contexte** : ctx/
+  GIT=non ajouté CHANTIER.md, ctx/
+  --- fiches : ctx/z.md (25 lignes, 2 titres) ---
+  12:## Z1 [x] — faite
+  20:## Z2 [ ] — à faire
+  EFFORT=medium (défaut de methode-chantier.md)
+  PROCHAINE=Z2
+  
+  '''
+# ---
+# name: test_photo[cout]
+  '''
+  code 0
+  DÉCOUPE aux commits de fiche — une fiche va du commit d'avant au sien, un sous-agent compte à la fiche que nomme son prompt, sinon à son départ
+  Z1 · ≈300,0k (300 000) · 3 tours · 1,50 $ = session ≈300,0k (300 000) · 3 tours · 1,50 $ + 0 sous-agent
+  hors fiches · 0 · 0 tours · 0,00 $ = session 0 · 0 tours · 0,00 $ + 0 sous-agent
+  TOTAL (fiches + hors fiches) · ≈300,0k (300 000) · 3 tours · 1,50 $ = session ≈300,0k (300 000) · 3 tours · 1,50 $ + 0 sous-agent
+  
+  '''
+# ---
+# name: test_photo[valider]
+  '''
+  code 0
+  VALIDE 2 fiches · socle 4 lignes · 0 écarts · 0 avertissements — ctx\z.md
+  12:## Z1 [x] — faite
+  14:**Dépend de** : rien.
+  16:**Critère de fin**
+  20:## Z2 [ ] — à faire
+  22:**Dépend de** : `Z1`.
+  23:**Critère de fin** (visuel)
+  
+  '''
+# ---

@@ -599,3 +599,26 @@ compare : une ligne `ÉCART:` par copie qui diffère de sa source, ou dont le mo
 Écartés : les seuils de `vlp.py` (page, fiche, socle) — les commandes y renvoient sans recopier ;
 « 5 refus » (`methode-chantier.md`) et « 10 refus » (`cloture.md`) — des faits datés, pas des règles ;
 « trois à cinq lignes » du bloc Tentatives — une seule occurrence.
+
+## L'outil de photographie (`REF6`)
+
+Essai du 2026-10-18 : les deux outils sur trois vraies sorties de `vlp.py` (`carte`, `valider --plan`, `cout`),
+dans un projet temporaire (`tests/test_photos_essai.py`), le chemin du test et la racine du kit filtrés à la main
+(`propre`) — aucun des deux ne filtre seul le dossier `tmp_path` de pytest. Lancés chacun seul (`-p no:…`) :
+installés ensemble, la fixture `snapshot` est celle de pytest-regtest, et syrupy est masqué.
+
+| Critère | syrupy 6.1.1 | pytest-regtest 2.7.0 |
+|---|---|---|
+| Écrire, puis relire | `3 snapshots generated` puis `3 snapshots passed`, `3 passed in 0.77s` | flux `regtest` : `3 failed` — « recorded output for regression test contains unprintable characters. » ; `snapshot.check` : `3 passed in 0.70s` |
+| Caractères du kit (« — », « ≈ ») | acceptés | le flux `regtest` refuse tout caractère au-delà de U+00FF (`contains_binary`, `pytest_regtest.py` l. 641) |
+| La photo | `__snapshots__/test_photos_essai.ambr`, texte, 43 lignes pour 3 | `_regtest_outputs/…/object.pkl` : un pickle, illisible dans un diff Git |
+| Un libellé changé (`PROCHAINE=` → `SUIVANTE=`) | échoue, diff `- PROCHAINE=Z2` / `+ SUIVANTE=Z2` avec contexte | échoue, diff unifié des lignes en `repr` |
+| Refaire la photo | `uv run pytest --snapshot-update` | `--regtest-reset` |
+| Lignes de test | 1 `assert … == snapshot` | 1 `snapshot.check(…)` |
+| Dépendances | pytest seul (`Requires-Dist: pytest>=8.0.0`) | pytest et `deepdiff>=9.0.0` (avec `cachebox`, `orderly-set`) |
+| Windows | passe, photo en CRLF comprise | passe (`snapshot.check`) |
+
+**Gardé : syrupy** — l'essai tranche seul, sans recherche web : une photo en texte, qui se relit dans un diff, et
+les caractères du kit acceptés. pytest-regtest retiré du groupe `dev` (`uv remove --group dev pytest-regtest`).
+Le pont de `test-vlp.py` lance désormais `uv run --frozen pytest -q` : syrupy n'est que dans l'atelier, pas dans
+le Python de la machine.
