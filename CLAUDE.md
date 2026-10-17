@@ -2,8 +2,12 @@
 
 Le kit « vlp » : un plugin Claude Code qui porte la méthode des chantiers et des
 fiches. Il ne contient que des commandes en markdown, des gabarits et de la
-doctrine — aucun code applicatif. Dépôt public :
-https://github.com/SebastienGrana/Claude-vlpWorkFlow — cloné et utilisé en groupe.
+doctrine — aucun code applicatif. Dépôt : https://github.com/SebastienGrana/Claude-vlpWorkFlow.
+
+**Pour qui** (décidé par l'utilisateur le 2026-10-17) : le kit sert **son auteur seul**, sur
+**son PC seul**, pour au moins 2 à 3 ans ; le groupe n'y a pas accès. Un choix se pèse sur ses
+besoins à lui — jamais sur ceux d'un groupe, d'un clone ou d'une autre machine. Le dépôt GitHub
+est public (vu le 2026-10-17) : aucun secret ni chemin local n'y entre pour autant.
 
 ## Où on en est — en cinq lignes
 
