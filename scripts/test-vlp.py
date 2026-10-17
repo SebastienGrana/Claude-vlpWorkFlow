@@ -1184,6 +1184,21 @@ def tester_commit_au_titre():
         verifier("PRF : la première fiche part de l'ouverture, pas d'un commit à elle posé avant le sien",
                  code == 0 and "\nQ1 · ≈200,0k (200 000) · 2 tours · 1,00 $" in s
                  and "TOTAL (fiches + hors fiches) · ≈700,0k (700 000) · 7 tours" in s, s)
+        # Dette GAI : en parallèle, `Fusion : Q2` suit `Q2 :` d'une seconde ; la clôture va jusqu'au commit qui clôt.
+        d3 = os.path.join(t, "q3")
+        ecrire(os.path.join(d3, "q.md"), QFICHES % (sq, sq))
+        subprocess.run(["git", "init", "-q"], cwd=d3, env=env, check=True, capture_output=True)
+        for x, sujet in ((100, "Chantier Q ouvert : cadré"), (300, "Q1 : Créer"), (301, "Fusion : Q1"),
+                         (600, "Q2 : Brancher"), (601, "Fusion : Q2"), (800, "Chantier Q clos : fini")):
+            date = "%d +0000" % (T0 + x)
+            subprocess.run(["git", "commit", "-q", "--allow-empty", "-m", sujet], cwd=d3, check=True,
+                           capture_output=True, env=dict(env, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date))
+        h = mod.heures_commits(os.path.join(d3, "q.md"), ["Q1", "Q2"])
+        code, s = appel(["cout", os.path.join(d3, "q.md")])
+        verifier("dette GAI : un commit « Fusion : Q2 » ne ferme pas la clôture, son tour reste hors fiches",
+                 h is not None and T0 + 601 not in h[1] and T0 + 601 in h[2] and code == 0
+                 and "\nhors fiches · ≈200,0k (200 000) · 2 tours" in s
+                 and "TOTAL (fiches + hors fiches) · ≈700,0k (700 000) · 7 tours" in s, (h, s))
 
 
 groupe(tester_commit_au_titre)

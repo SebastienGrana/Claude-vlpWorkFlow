@@ -2930,6 +2930,7 @@ def moins(a, b):
 
 GIT = "git"     # test-vlp.py le remplace pour simuler un poste sans Git
 COMMIT_FICHE = re.compile(r"^([A-Z]{1,3}[0-9]+) :")
+COMMIT_FUSION = re.compile(r"^Fusion : ([A-Z]{1,3}[0-9]+)$")    # le sujet de `fusionner --worktree`
 INFINI = float("inf")
 
 
@@ -2969,7 +2970,9 @@ def heures_commits(fichier, ids, pourquoi=None, clos=False, titres=None):
         heure, _, sujet = ligne.partition(" ")
         if not heure.isdigit():
             continue
-        (prefixe if nomme.search(sujet) else autres).append(int(heure))
+        # `Fusion : BLA4`, posé une seconde après `BLA4 :` en parallèle, fermait la clôture avant `clore` (dette GAI).
+        fusion = COMMIT_FUSION.match(sujet)
+        (prefixe if nomme.search(sujet) and not (fusion and fusion.group(1) in ids) else autres).append(int(heure))
         coupes.extend([int(heure)] if coupe.search(sujet) else [])
         c = COMMIT_FICHE.match(sujet)
         if c and c.group(1) in ids:
