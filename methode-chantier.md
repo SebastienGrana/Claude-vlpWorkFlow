@@ -405,6 +405,10 @@ déclaré le jour même : l'index, le routage de `CLAUDE.md`, la ligne
   du dossier : `COURANT=aucun`, on peut en cadrer un autre ici.
 - **Les autres worktrees** : une ligne `AILLEURS=<code> <dossier>` par
   chantier ; ce code se joue là-bas, il ne se rouvre pas ici.
+- **Un sous-agent isolé n'écrit rien dans le dossier principal**, pas même
+  sous `.git/worktrees/<id>/`, où vit le post-it de son worktree : Claude Code
+  y bloque `Edit` et `Write` (doc « worktrees », lue le 2026-10-16). Ce qu'il
+  faut là, le chef le pose, par script — `vlp.py postit` (`ISO8`).
 - **La fusion du jour** : `vlp.py fusionner <projet> <branche>` ; une branche
   qui ajoute un chantier encore ouvert ne se fusionne pas.
 

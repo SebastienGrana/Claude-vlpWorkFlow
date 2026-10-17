@@ -243,6 +243,16 @@ Mesuré à `VIT9` : 7 renvois sur 7 périmés dans `NUI`.
 Vu le 2026-09-24 : « les tests passent » ne prouvait rien, un test creux passait aussi —
 à `FIN1`, puis à `FIN2` alors que son test était nommé avec ses valeurs.
 
+### Le parallèle se mesure contre la file, sur le même chantier
+
+Mesuré à `ISO7` (2026-10-17) : le même chantier à blanc de 5 fiches, joué à la file puis en
+parallèle (2 worktrees). À la file : **10,8 min · 3,24 $**. En parallèle : **17,8 min · 5,12 $**
+— **+65 %** de temps, **+58 %** de coût —, et deux fiches ensemble une seule fois (46 s). Le
+parallèle marche de bout en bout, sans geste à la main, mais il paie un conflit rejoué, des
+relectures en double et un second lancement (le plafond compte le rejeu). Une variante ne
+s'emploie que sur un gain mesuré : celle-ci n'en a pas (`context AI/121-iso.md`, « Mesuré à ISO7 »).
+
+
 ### Un témoin doit pouvoir produire l'artefact qu'il contrôle
 
 Mesuré à la relecture de fin du chantier `FAM` (cairn, 2026-10-15). `FAM8` cherchait les
