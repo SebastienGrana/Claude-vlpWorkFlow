@@ -580,3 +580,22 @@ pas ») — TODO n° 114 (`VCL`, points 7 et 8 ; score 15 → 10, rangée après
   entrée (E25). Ce qu'elle ferait : relire la doc des hooks du jour ; une forme à un seul lancement, on
   la prend, testée ; sinon la ligne se retire. **après · score 5 (1 × 5)** · 1 fiche · ≈ 4,40 $ (estimé,
   non mesuré) · dépend de : —.
+
+## Les nombres recopiés (`REF30`)
+
+**Relevé le 2026-10-17** (défaut `E6`, ligne `COP` de la TODO), par grep dans `skills/`, `agents/`,
+`methode-chantier.md`, `enchainement.md`, `cloture.md`, `nuit.md` et `CHANTIER.md`. **5 nombres,
+12 copies.** Le test `tester_nombres_recopies` (`scripts/test-vlp.py`, table `NOMBRES_RECOPIES`) les
+compare : une ligne `ÉCART:` par copie qui diffère de sa source, ou dont le motif ne se retrouve plus.
+
+| Nombre | Source | Copies |
+|---|---|---|
+| deux tentatives, puis `BLOQUÉE` | `methode-chantier.md`, « Ce que `/vlp:tache` garantit » | `skills/tache/SKILL.md` ; `agents/fiche.md` ; `enchainement.md` ; `tache-blocage.md` ×2 (titre, commentaire de tête) ; `methode-chantier.md`, table des sources — **6** |
+| trois majuscules d'un préfixe | `methode-chantier.md`, « Trois lettres, depuis le 2026-09-17 » | `CHANTIER.md` ; `skills/chantier/SKILL.md` — **2** |
+| cinq lignes : une fiche plus courte arrête | `skills/tache/SKILL.md`, « Gardes » | `skills/jouer/SKILL.md` ; `skills/enchainer/SKILL.md` (prompt du sous-agent) — **2** |
+| deux tours pour un questionnaire | `methode-chantier.md`, « Les règles qui valent partout » | `skills/tache/references/tache-contraintes.md` — **1** |
+| 5 fiches par lancement d'`enchainer` | `skills/enchainer/SKILL.md`, « Plafond » | `skills/enchainer/references/refus.md` — **1** |
+
+Écartés : les seuils de `vlp.py` (page, fiche, socle) — les commandes y renvoient sans recopier ;
+« 5 refus » (`methode-chantier.md`) et « 10 refus » (`cloture.md`) — des faits datés, pas des règles ;
+« trois à cinq lignes » du bloc Tentatives — une seule occurrence.

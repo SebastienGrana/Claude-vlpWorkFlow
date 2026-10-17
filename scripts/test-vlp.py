@@ -6813,6 +6813,79 @@ def tester_lecteur_copie():
 
 groupe(tester_lecteur_copie)
 
+# COP (REF30) : un nombre recopié n'est permis que si un test compare ses copies (`methode-chantier.md`,
+# « Une règle vit à un seul endroit »). Chaque ligne : le nom, la source (fichier, motif), puis les copies.
+# Le motif capture le nombre en un groupe ; `\**\s+\**` tient le gras et la coupure de ligne. La table
+# lisible vit dans `context AI/122-qualite-code-tests.md`, section « Les nombres recopiés (`REF30`) ».
+NOMBRES_RECOPIES = (
+    ("tentatives avant BLOQUÉE",
+     ("methode-chantier.md", r"s'arrête à (\w+) tentatives"),
+     (("skills/tache/SKILL.md", r"\*\*(\w+) tentatives au maximum\*\*"),
+      ("agents/fiche.md", r"revérifie — (\w+) tentatives au plus"),
+      ("enchainement.md", r"`BLOQUÉE` — (\w+) tentatives épuisées"),
+      ("skills/tache/references/tache-blocage.md", r"# Bloquée après (\w+) tentatives"),
+      ("skills/tache/references/tache-blocage.md", r"\(étape 5, après (\w+) tentatives\)"),
+      ("methode-chantier.md", r"\| (\w+) tentatives, puis arrêt"))),
+    ("majuscules d'un préfixe de fiche",
+     ("methode-chantier.md", r"Un préfixe s'écrit en (\w+) majuscules"),
+     (("CHANTIER.md", r"\*\*(\w+) majuscules\*\* depuis"),
+      ("skills/chantier/SKILL.md", r"les \*\*(\w+)\s+majuscules\*\* qui nommeront"))),
+    ("lignes sous lesquelles une fiche extraite arrête",
+     ("skills/tache/SKILL.md", r"Fiche à moins de (\w+) lignes"),
+     (("skills/jouer/SKILL.md", r"une fiche de moins de (\w+) lignes"),
+      ("skills/enchainer/SKILL.md", r"une fiche de moins de (\w+) lignes"))),
+    ("tours d'un questionnaire",
+     ("methode-chantier.md", r"Un questionnaire se pose en (\w+) tours"),
+     (("skills/tache/references/tache-contraintes.md", r"\*\*(\w+) tours\*\* : la section"),)),
+    ("fiches par lancement d'enchainer",
+     ("skills/enchainer/SKILL.md", r"Plafond : \*\*(\w+) fiches\*\* par lancement"),
+     (("skills/enchainer/references/refus.md", r"le plafond de (\w+)\."),)),
+)
+
+
+def ecarts_nombres(racine, table=NOMBRES_RECOPIES):
+    """Une ligne `ÉCART:` par copie qui diffère de sa source, ou par motif introuvable (copie reformulée)."""
+    def premier(fichier, motif):
+        m = re.search(motif, mod.lire(os.path.join(racine, fichier)))
+        return m.group(1).lower() if m else None
+
+    ecarts = []
+    for nom, (fsrc, msrc), copies in table:
+        source = premier(fsrc, msrc)
+        if source is None:
+            ecarts.append("ÉCART: %s — source introuvable dans %s" % (nom, fsrc))
+            continue
+        for fichier, motif in copies:
+            copie = premier(fichier, motif)
+            if copie != source:
+                ecarts.append("ÉCART: %s — %s dit %s, la source (%s) dit %s" % (
+                    nom, fichier, "rien (motif introuvable)" if copie is None else "« %s »" % copie, fsrc, source))
+    return ecarts
+
+
+def tester_nombres_recopies():
+    """COP (REF30) : chaque nombre recopié dans les commandes, les agents et la méthode est égal à sa source ;
+    un écart, ou une copie reformulée, sort en `ÉCART:`. Lit le dépôt seul, jamais la machine."""
+    racine = os.path.join(ICI, "..")
+    ecarts = ecarts_nombres(racine)
+    copies = sum(len(c) for _, _, c in NOMBRES_RECOPIES)
+    verifier("COP : les %d nombres recopiés (%d copies) égaux à leur source" % (len(NOMBRES_RECOPIES), copies),
+             ecarts == [], "\n".join(ecarts))
+    with tempfile.TemporaryDirectory() as tnr:
+        os.makedirs(os.path.join(tnr, "skills"))
+        with open(os.path.join(tnr, "a.md"), "w", encoding="utf-8") as f:
+            f.write("en deux tours\n")
+        with open(os.path.join(tnr, "skills", "b.md"), "w", encoding="utf-8") as f:
+            f.write("en trois tours\n")
+        faux = (("tours", ("a.md", r"en (\w+) tours"), (("skills/b.md", r"en (\w+) tours"),
+                                                        ("skills/b.md", r"absent (\w+)"))),)
+        e = ecarts_nombres(tnr, faux)
+        verifier("COP : une copie qui diffère, et une copie introuvable, sortent chacune en ÉCART:",
+                 len(e) == 2 and "« trois »" in e[0] and "introuvable" in e[1], "\n".join(e))
+
+
+groupe(tester_nombres_recopies)
+
 
 def tester_chef_page_explique():
     """chef page, `explique` (2026-10-06) : l'Explique-moi en option — `data-explique` sur la page et `CAPACITES sample`
