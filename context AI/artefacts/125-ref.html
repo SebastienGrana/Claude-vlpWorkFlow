@@ -21,9 +21,9 @@
     <p>Le kit tourne sur pytest et une couverture mesurée, sans une seule régression ; des scripts gardent la taille des fichiers et interdisent de toucher aux tests pendant une fiche ; les erreurs connues sont réparées, les gros fichiers découpés, et chaque angle revu jusqu'à deux passes vides.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">39 fiches · 4 faites · en cours : REF28</p>
+    <p class="mono" style="margin-top:.5rem">39 fiches · 8 faites · en cours : REF32</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -53,17 +53,25 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REF27</span></span>
         <details><summary><span class="titre">vlp.py lire remplace la racine du kit</span><span class="etat">Faite</span></summary>
         <span class="note">vlp.py lire cloture.md : 0 ligne avec CLAUDE_PLUGIN_ROOT (5 avant) ; test vu échouer puis vert ; mutant attrapé ; suite verte (5 min 14 s)</span></details>
-        <span class="cout mono">≈4,0M (4 014 188) · 13 tours · 1,18 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">REF28</span></span>
-        <details open><summary><span class="titre">La carte dit l'effort voulu</span><span class="etat">En cours · REF37 peut partir en même temps</span></summary></details></li>
-      <li class="fiche"><span class="gauche"><span class="id">REF29</span></span>
-        <details><summary><span class="titre">Republier la feuille sans refus ni perte</span><span class="etat">À lancer</span></summary></details></li>
-      <li class="fiche"><span class="gauche"><span class="id">REF30</span></span>
-        <details><summary><span class="titre">Un test compare chaque nombre recopié</span><span class="etat">À lancer</span></summary></details></li>
-      <li class="fiche"><span class="gauche"><span class="id">REF31</span></span>
-        <details><summary><span class="titre">mutant --attendu reconnaît son texte au milieu d'un écart</span><span class="etat">À lancer</span></summary></details></li>
-      <li class="fiche"><span class="gauche"><span class="id">REF32</span></span>
-        <details><summary><span class="titre">Un bloc Tentatives soldé garde le bon motif</span><span class="etat">À lancer</span></summary></details></li>
+        <span class="cout mono">≈4,3M (4 333 043) · 14 tours · 1,26 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REF28</span></span>
+        <details><summary><span class="titre">La carte dit l'effort voulu</span><span class="etat">Faite</span></summary>
+        <span class="note">EFFORT=high (socle) sur le kit, défaut medium de la méthode ailleurs ; mutant attrapé ; suite OK</span></details>
+        <span class="cout mono">≈12,7M (12 720 329) · 69 tours · 7,09 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REF29</span></span>
+        <details><summary><span class="titre">Republier la feuille sans refus ni perte</span><span class="etat">Faite</span></summary>
+        <span class="note">ligne LIRE dans feuille et clore ; 2 mutants attrapés ; suite OK (rejouée après un CONFLIT sur sante-base.json)</span></details>
+        <span class="cout mono">≈17,9M (17 877 498) · 129 tours · 8,23 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REF30</span></span>
+        <details><summary><span class="titre">Un test compare chaque nombre recopié</span><span class="etat">Faite</span></summary>
+        <span class="note">5 nombres, 12 copies comparées à leur source ; 2 mutants attrapés ; suite OK</span></details>
+        <span class="cout mono">≈7,5M (7 549 813) · 46 tours · 2,91 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REF31</span></span>
+        <details><summary><span class="titre">mutant --attendu reconnaît son texte au milieu d'un écart</span><span class="etat">Faite</span></summary>
+        <span class="note">ligne ATTENDU AU MILIEU quand --attendu tombe au milieu d'un écart ; 2 mutants attrapés ; suite OK</span></details>
+        <span class="cout mono">≈1,9M (1 874 056) · 24 tours · 1,13 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">REF32</span></span>
+        <details open><summary><span class="titre">Un bloc Tentatives soldé garde le bon motif</span><span class="etat">En cours · REF37, REF38 peuvent partir en même temps</span></summary></details></li>
       <li class="fiche"><span class="gauche"><span class="id">REF33</span></span>
         <details><summary><span class="titre">Les écritures Git sous /vlp:enchainer, vérifiées</span><span class="etat">À lancer</span></summary></details></li>
       <li class="fiche"><span class="gauche"><span class="id">REF34</span></span>
@@ -73,9 +81,9 @@
       <li class="fiche"><span class="gauche"><span class="id">REF36</span></span>
         <details><summary><span class="titre">Une aide par sous-commande de vlp.py</span><span class="etat">À lancer</span></summary></details></li>
       <li class="fiche"><span class="gauche"><span class="id">REF37</span></span>
-        <details><summary><span class="titre">La nuit : qui prime, commiter ou non</span><span class="etat">À lancer · en même temps que REF28</span></summary></details></li>
+        <details><summary><span class="titre">La nuit : qui prime, commiter ou non</span><span class="etat">À lancer · en même temps que REF32, REF38</span></summary></details></li>
       <li class="fiche"><span class="gauche"><span class="id">REF38</span></span>
-        <details><summary><span class="titre">Retirer le repli « copie simple » d'avant le plugin</span><span class="etat">À lancer</span></summary></details></li>
+        <details><summary><span class="titre">Retirer le repli « copie simple » d'avant le plugin</span><span class="etat">À lancer · en même temps que REF32, REF37</span></summary></details></li>
       <li class="fiche"><span class="gauche"><span class="id">REF39</span></span>
         <details><summary><span class="titre">sante --base refuse un worktree en retard sur main</span><span class="etat">À lancer</span></summary></details></li>
       <li class="fiche"><span class="gauche"><span class="id">REF4</span></span>
@@ -149,8 +157,8 @@
         <details><summary><span class="titre">Revoir l'angle de la doc qui ment</span><span class="etat">Après REF22</span></summary>
         <span class="note">Revue de la doc qui ment. Après REF22.</span></details></li>
     </ul>
-    <p class="mono cout-hors">Hors fiches : ≈77,7M (77 682 919) · 384 tours · 16,95 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈127,0M (127 048 277) · 559 tours · 38,28 $</p>
+    <p class="mono cout-hors">Hors fiches : ≈78,1M (78 098 770) · 385 tours · 17,06 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈167,8M (167 804 679) · 829 tours · 57,83 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -172,7 +180,7 @@
 
   <footer>
     <span>Fichier de fiches : <span class="mono">context AI/125-ref.md</span></span>
-    <span>Mis à jour le <span class="mono">2026-10-17</span></span>
+    <span>Mis à jour le <span class="mono">2026-10-18</span></span>
   </footer>
 </div>
 <script src="vlp.js"></script>
