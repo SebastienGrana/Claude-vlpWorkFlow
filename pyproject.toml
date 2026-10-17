@@ -26,6 +26,18 @@ dev = [
 package = false
 required-version = ">=0.13.1,<0.14"
 
+[tool.pytest]
+# La suite pytest, côte à côte avec `scripts/test-vlp.py` jusqu'aux portes de parité (REF4, D1). L'import par
+# chemin (`importlib`) : aucun `__init__.py`, aucun nom de module partagé. Sur le chemin : `tests/` pour `aides`,
+# `scripts/` pour les voisins que `vlp_coeur.py` importe par leur nom (`carnet`, `vlp_hook`) — jamais
+# `test-vlp.py`, que son tiret rend inimportable et que `testpaths` ne collecte pas.
+# `strict` : une option inconnue, une marque non déclarée ou un xfail qui passe font échouer (REF4, D3).
+testpaths = ["tests"]
+pythonpath = ["tests", "scripts"]
+addopts = ["--import-mode=importlib", "-p", "no:cacheprovider"]
+strict = true
+tmp_path_retention_policy = "failed"
+
 [tool.pyright]
 # Ex-`pyrightconfig.json`, retiré : un `.json` présent prime en silence sur ce bloc (REF3).
 include = ["scripts"]

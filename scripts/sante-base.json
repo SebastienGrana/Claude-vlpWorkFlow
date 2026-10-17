@@ -564,6 +564,7 @@
 {"fichier": "scripts/test-vlp.py", "fonction": "tester_plan.octets", "empreinte": "2e137bb12b08", "ast": [1, 0, 0, 1, 0], "doc": false},
 {"fichier": "scripts/test-vlp.py", "fonction": "tester_plan.plan", "empreinte": "34bef00eceea", "ast": [1, 0, 1, 2, 0], "doc": false},
 {"fichier": "scripts/test-vlp.py", "fonction": "tester_plan.texte", "empreinte": "a041eebb209e", "ast": [1, 0, 0, 1, 0], "doc": false},
+{"fichier": "scripts/test-vlp.py", "fonction": "tester_pont_pytest", "empreinte": "c21eb4c9663e", "ast": [2, 1, 0, 8, 1], "doc": true},
 {"fichier": "scripts/test-vlp.py", "fonction": "tester_postit", "empreinte": "d0b7a117ad0f", "ast": [2, 1, 0, 28, 1], "doc": true},
 {"fichier": "scripts/test-vlp.py", "fonction": "tester_pre_commit", "empreinte": "7c48900f2488", "ast": [7, 7, 0, 35, 5], "doc": true},
 {"fichier": "scripts/test-vlp.py", "fonction": "tester_pre_commit.git", "empreinte": "3aa138abbcdb", "ast": [1, 0, 0, 1, 0], "doc": false},
