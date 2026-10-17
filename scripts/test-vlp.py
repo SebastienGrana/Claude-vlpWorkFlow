@@ -4634,6 +4634,13 @@ def tester_relecture():
                          [l for l in s.splitlines() if l.startswith("HORS FICHE")] == ["HORS FICHE b.py"]
                          and -1 not in reperes and reperes == sorted(reperes)
                          and "\nFICHIER=" not in "\n" + s, s)  # FFE
+                # Deux relecteurs lancés ensemble (chantier ISO, ISO7) : celui d'une autre fiche, même en GARDE:,
+                # ne retire pas les copies de X1.
+                autre = [appel(["relecture", "X9"]), appel(["relecture", "X9", "--retirer"])]
+                noms = [os.path.basename(l.split(" ")[0].rstrip("/\\")) for l in g("worktree", "list").splitlines()[1:]]
+                verifier("relecture : deux fiches ensemble, chacune ne retire que ses copies (chantier ISO)",
+                         autre[0][0] == 1 and autre[1] == (0, "RETIRÉ 0\n") and len(noms) == 2
+                         and all(n.startswith("vlp-relecture-X1-") for n in noms), "%s %s" % (autre, noms))
                 code, s = appel(["relecture", "--retirer"])
                 verifier("relecture : --retirer", code == 0 and s == "RETIRÉ 2\n"
                          and len(g("worktree", "list").splitlines()) == 1, s + g("worktree", "list"))

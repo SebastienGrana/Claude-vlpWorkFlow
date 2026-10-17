@@ -148,7 +148,8 @@ Sous-commandes :
   `git diff --name-status`, une ligne `HORS FICHE <chemin>` par fichier changé que la ligne
   **Fichiers** ne nomme pas — hors le fichier de fiches, le **fichier d'état** du `CHANTIER.md`
   d'APRÈS et `artefacts/` —, puis le diff. `--retirer` :
-  retire ces worktrees, `RETIRÉ <n>`. `VLP_CANAL` posé (chantier NUI) : ils s'appellent
+  retire ces worktrees, `RETIRÉ <n>` ; `relecture <fiche> --retirer`, ceux de la fiche seule — ils s'appellent
+  `vlp-relecture-<fiche>-…`, et le retrait d'avant relecture ne touche qu'eux (deux relecteurs ensemble, ISO). `VLP_CANAL` posé (chantier NUI) : ils s'appellent
   `vlp-relecture-<canal>-…`, et `--retirer` comme les retraits d'avant relecture ne retirent que ceux du canal. Pas de dépôt, commit inconnu ou sans parent, fiche absente :
   `GARDE:`, aucun worktree ne reste, sort 1.
 - `page <fichier> [<page.html>]` — régénère la page du chantier depuis le fichier

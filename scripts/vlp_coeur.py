@@ -1611,21 +1611,23 @@ def suivi_en_retard(racine):
     return principale, [c for c in ("CHANTIER.md", "CLAUDE.md") if suivi(principale, c) and not suivi("HEAD", c)]
 
 
-def prefixe_relecture():
+def prefixe_relecture(fiche=None):
     """`vlp-relecture-`, ou `vlp-relecture-<canal>-` quand `VLP_CANAL` est posé (chantier NUI) : deux
-    canaux de nuit relisent dans le même dépôt, chacun ne retire que ses worktrees."""
+    canaux de nuit relisent dans le même dépôt, chacun ne retire que ses worktrees. Avec `fiche`, suivi de
+    `<fiche>-` : deux relecteurs lancés ensemble (chantier ISO) ne retirent chacun que les copies de sa fiche."""
     canal = re.sub(r"[^\w.]", "_", os.environ.get(carnet.ENV_CANAL, "").strip())
-    return RELECTURE + (canal + "-" if canal else "")
+    propre = re.sub(r"[^\w.]", "_", fiche.strip()) if fiche else ""
+    return RELECTURE + (canal + "-" if canal else "") + (propre + "-" if propre else "")
 
 
-def retirer_relectures(racine):
-    """Retire les worktrees `vlp-relecture-*` du dépôt — ceux du canal seul si `VLP_CANAL` est posé —,
-    puis `prune` : le nombre retiré."""
+def retirer_relectures(racine, fiche=None):
+    """Retire les worktrees `vlp-relecture-*` du dépôt — ceux du canal seul si `VLP_CANAL` est posé, ceux
+    de `fiche` seule si elle est donnée —, puis `prune` : le nombre retiré."""
     code, liste = git_texte(["worktree", "list", "--porcelain"], racine)
     n = 0
     for ligne in liste.splitlines() if code == 0 else []:
         chemin = ligne[len("worktree "):] if ligne.startswith("worktree ") else ""
-        if os.path.basename(chemin.rstrip("/\\")).startswith(prefixe_relecture()):
+        if os.path.basename(chemin.rstrip("/\\")).startswith(prefixe_relecture(fiche)):
             n += git_texte(["worktree", "remove", "--force", chemin], racine)[0] == 0
     git_texte(["worktree", "prune"], racine)
     return n
@@ -1736,13 +1738,13 @@ def cmd_relecture(a, sortie):
         return 1
     racine = racine.strip()
     if a.retirer:
-        sortie.write("RETIRÉ %d\n" % retirer_relectures(racine))
+        sortie.write("RETIRÉ %d\n" % retirer_relectures(racine, a.fiche))
         return 0
     if not a.fiche or projet is None:
         sortie.write("GARDE: %s\n" % ("relecture <fiche> [--sha S], ou relecture --retirer" if not a.fiche
                                       else "pas de CHANTIER.md au-dessus de %s" % os.getcwd()))
         return 1
-    retirer_relectures(racine)
+    retirer_relectures(racine, a.fiche)
     if a.sha:
         code, sha = git_texte(["rev-parse", "--verify", "--quiet", a.sha + "^{commit}"], racine)
         pourquoi = "commit inconnu : %s" % a.sha
@@ -1760,11 +1762,11 @@ def cmd_relecture(a, sortie):
     parent = parent.strip()
     dossiers = []
     for nom, rev in (("apres", sha), ("avant", parent)):
-        d = tempfile.mkdtemp(prefix=prefixe_relecture() + nom + "-")
+        d = tempfile.mkdtemp(prefix=prefixe_relecture(a.fiche) + nom + "-")
         code, err = git_texte(["worktree", "add", "--detach", d, rev], racine)
         dossiers.append(d)
         if code != 0:
-            retirer_relectures(racine)
+            retirer_relectures(racine, a.fiche)
             sortie.write("GARDE: worktree %s impossible — %s\n" % (nom, err))
             return 1
     # Le fichier de fiches que nomme CHANTIER.md dans APRÈS, au même endroit du dépôt que le projet.
@@ -1777,7 +1779,7 @@ def cmd_relecture(a, sortie):
     fichier = os.path.normpath(os.path.join(apres_projet, courant)) if courant else ""
     fiche, _ = extraire_lignes(lignes_de(fichier) if os.path.isfile(fichier) else [], a.fiche)
     if not fiche:
-        retirer_relectures(racine)
+        retirer_relectures(racine, a.fiche)
         sortie.write("GARDE: fiche %s absente du fichier de fiches courant d'APRÈS : %s\n" % (a.fiche, courant or "aucun"))
         return 1
     # Pas de `FICHIER=` : le fichier entier porte la suite du chantier (FFE, REL1 : 1 lecture sur 42).
