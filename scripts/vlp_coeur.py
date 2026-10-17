@@ -357,6 +357,43 @@ def carte_bornee(depart, sortie, tete="", relecteur=False, neuve=False):
     return code
 
 
+EFFORT_SOCLE = re.compile(r"effort `([a-z]+)`")
+EFFORT_REGLE = "- **L'effort se règle selon la tâche"
+EFFORT_DEFAUT = re.compile(r"Une fiche[^`]*: `([a-z]+)`")
+
+
+def effort_defaut(chemin=None):
+    """L'effort d'une fiche que dit la règle « L'effort se règle selon la tâche » de `methode-chantier.md` (sous
+    `KIT`, ou `chemin`) — le premier `Une fiche … : `<niveau>`` de sa puce ; None si la puce ou le niveau manque. Lu,
+    jamais recopié (REF28, règle 3)."""
+    try:
+        lignes = lignes_de(chemin or os.path.join(KIT, "methode-chantier.md"))
+    except OSError:
+        return None
+    debut = next((i for i, l in enumerate(lignes) if l.startswith(EFFORT_REGLE)), None)
+    if debut is None:
+        return None
+    puce = [lignes[debut]]
+    for l in lignes[debut + 1:]:
+        if not l.startswith("  "):
+            break
+        puce.append(l.strip())
+    m = EFFORT_DEFAUT.search(" ".join(puce))
+    return m.group(1) if m else None
+
+
+def ligne_effort(lignes, methode=None):
+    """La ligne `EFFORT=` de la carte (REF28) : le premier « effort `<niveau>` » du socle du fichier de fiches
+    `lignes`, sinon le défaut d'`effort_defaut`, sinon `EFFORT=absent`."""
+    m = next((EFFORT_SOCLE.search(l) for l in socle_lignes(lignes) if EFFORT_SOCLE.search(l)), None)
+    if m:
+        return "EFFORT=%s (socle du chantier)" % m.group(1)
+    defaut = effort_defaut(methode)
+    if defaut:
+        return "EFFORT=%s (défaut de methode-chantier.md)" % defaut
+    return "EFFORT=absent (ni le socle ni methode-chantier.md ne le disent)"
+
+
 def carte(depart, sortie, relecteur=False, neuve=False):
     """Écrire la carte du projet qui contient `depart`, ligne à ligne comme le dit la docstring de `vlp.py` ; `neuve`
     (`--session-neuve`, `/vlp:tache` seule) y ajoute l'avertissement d'`avertir_session` (VIT20)."""
@@ -414,6 +451,7 @@ def carte(depart, sortie, relecteur=False, neuve=False):
         return 0
     for i, l in titres:
         sortie.write("%d:%s\n" % (i, l))
+    sortie.write(ligne_effort(lignes_de(os.path.join(racine, courant))) + "\n")
     sortie.write("PROCHAINE=%s\n" % (prochaine or "aucune"))
     avertir_session(os.path.join(racine, courant), neuve, sortie)
     return 0

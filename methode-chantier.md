@@ -204,7 +204,8 @@ titre (`MET6`, 2026-10-07).
   Une fiche, de code ou de conception, en Opus 5.5 : `medium` ; `xhigh` en recours,
   pour rejouer une fiche refusée ou bloquée — décision du 2026-10-07, que la mesure
   de `high` du 2026-10-09 n'a pas changée (récits dans `lecons-mesure.md`, « L'effort
-  se règle selon la tâche »).
+  se règle selon la tâche »). La carte lit ce niveau en `EFFORT=`, sauf si le socle du
+  chantier dit le sien (`ligne_effort`, `REF28`) : garder la forme « Une fiche … : niveau ».
   Tout changement s'annonce d'abord par un petit message : le modèle et
   l'effort, avant → après, et pourquoi (« Opus 5.5 · effort high → medium : la
   suite est mécanique »). Le niveau en cours se lit, il ne se suppose pas

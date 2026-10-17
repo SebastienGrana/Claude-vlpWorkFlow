@@ -199,6 +199,20 @@ def tester_carte_projet():
         verifier("chemin avec espace et plage", "--- fiches : context AI/20-z.md (10 lignes, 3 titres) ---" in s, s)
         verifier("titres numérotés", "7:## Z1 [x] — faite\n9:## Z2 [ ] — à faire\n10:## Z10 [ ] — après\n" in s, s)
         verifier("prochaine dans l'ordre du fichier", s.endswith("PROCHAINE=Z2\n"), s)
+        # REF28 : sans effort au socle, le défaut lu dans la méthode du kit (`medium`, copie que ce test compare à
+        # sa source) ; avec, celui du socle — jamais au-delà de « L'ordre des fiches ».
+        verifier("effort : défaut de la méthode", "\nEFFORT=medium (défaut de methode-chantier.md)\nPROCHAINE=" in s, s)
+        ecrire(os.path.join(p, "context AI", "20-z.md"), FICHES.replace(
+            "## Le socle commun\n", "## Le socle commun\n\n- la fiche en Opus, effort `high`.\n\n"
+            "## L'ordre des fiches\n\n- effort `low` hors du socle\n"))
+        s = rendu(p)
+        verifier("effort : celui du socle", "\nEFFORT=high (socle du chantier)\nPROCHAINE=" in s, s)
+        m = os.path.join(t, "methode-chantier.md")
+        ecrire(m, "- **L'effort se règle selon la tâche** — plus bas\n  pour le mécanique. Une fiche, de code, en Opus"
+               " :\n  `xhigh` ; `max` en recours.\n- autre puce : `low`\n")
+        verifier("effort : défaut sur deux lignes", mod.effort_defaut(m) == "xhigh", mod.effort_defaut(m))
+        verifier("effort : règle absente", mod.ligne_effort([], os.path.join(t, "absente.md")).startswith(
+            "EFFORT=absent"), mod.ligne_effort([], os.path.join(t, "absente.md")))
 
         ecrire(os.path.join(p, "context AI", "20-z.md"), FICHES.replace("[ ]", "[x]"))
         s = rendu(p)
@@ -334,7 +348,8 @@ def test_carte_relecteur():
         s = rendu(pr)
         verifier("carte sans --relecteur : titres et PROCHAINE inchangés",
                  s.endswith("--- fiches : context AI/20-z.md (7 lignes, 2 titres) ---\n"
-                            "5:## ZZZ1 [ ] — à relire\n7:## ZZZ2 [x] — piège\nPROCHAINE=ZZZ1\n"), s)
+                            "5:## ZZZ1 [ ] — à relire\n7:## ZZZ2 [x] — piège\nEFFORT=medium (défaut de "
+                            "methode-chantier.md)\nPROCHAINE=ZZZ1\n"), s)
         r = io.StringIO()
         mod.carte(pr, r, relecteur=True)
         r = r.getvalue()
