@@ -321,9 +321,11 @@ Sous-commandes :
 - `fusionner <fichier de fiches> <fiche> --worktree <dossier>` — la branche d'une fiche jouée dans son worktree (ISO4) :
   depuis la racine du dépôt du fichier, la tête du worktree — le commit de la fiche, fait là-bas par `commiter` —
   fusionnée sous « Fusion : <fiche> », `FUSIONNÉ <fiche> <sha>` (la tête d'après), puis le worktree et sa branche
-  retirés ; ce qu'il garde hors commit se perd, `PERDU <n> chemin(s) …` le dit d'abord. Conflit : `git merge
-  --abort`, rien de gardé, le worktree retiré quand même, `CONFLIT <fiche> <fichiers>`, sort 1 — le chef rejoue la
-  fiche. `GARDE:`, rien touché, sort 1 : dossier qui n'est pas un autre worktree du dépôt, `MERGE_HEAD` présent,
+  retirés ; ce qu'il garde hors commit va d'abord dans un correctif sous le dossier Git, `GARDÉ <n> chemin(s) :
+  <correctif>` (REF41 ; `PERDU <n> chemin(s) …` si Git ne l'écrit pas). Conflit sur la seule base du cliquet :
+  relevé refait sur le code fusionné, cliquet tenu → `FUSIONNÉ` et `BASE REFAITE` (REF40). Autre conflit, ou
+  cliquet rompu : `git merge --abort`, rien de gardé, le worktree retiré quand même, `CONFLIT <fiche> <fichiers>`,
+  sort 1 — le chef rejoue la fiche. `GARDE:`, rien touché, sort 1 : dossier qui n'est pas un autre worktree du dépôt, `MERGE_HEAD` présent,
   fichier suivi changé, aucun commit `<fiche> :` du worktree que la racine n'a pas, merge refusé par Git.
   `clore` dans un worktree hors de la principale imprime la ligne `FUSIONNER` à lancer depuis elle (sauf `VLP_NUIT=1`).
 - `matin <projet> <date> --rapport <json>` — le rapport du matin (NUI19), sans fusion ni commit, rejouable. La date

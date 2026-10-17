@@ -10164,6 +10164,43 @@ def tester_ref40_base_refaite():
 groupe(tester_ref40_base_refaite)
 
 
+def tester_ref41_hors_garde():
+    """REF41 : un worktree retiré par `fusionner` qui garde des chemins hors commit (un `HORS:` laissé par
+    `commiter`) : leur diff, non suivis compris, va dans un correctif sous le dossier Git, `GARDÉ <n> chemin(s) :
+    <correctif>` le dit, et `git apply --check` passe sur la branche fusionnée — plus de `PERDU`."""
+    if not shutil.which("git"):
+        print("SAUTÉ: git absent — le correctif gardé à la fusion n'est pas testé")
+        return
+    with tempfile.TemporaryDirectory() as tr:
+        d, wa = os.path.join(tr, "d"), os.path.join(tr, "wt-a")
+        os.makedirs(d)
+        git_matin(d, "init", "-q", "-b", "main")
+        fiches = os.path.join(d, "ctx", "f.md")
+        ecrire(fiches, "# F\n\n## W1 [ ] — a\n")
+        ecrire(os.path.join(d, "doc.txt"), "un\n")
+        commit_matin(d, "départ", 1)
+        git_matin(d, "worktree", "add", "-q", "-b", "a", wa, "main")
+        ecrire(os.path.join(wa, "b.txt"), "b\n")
+        commit_matin(wa, "W1 : a", 2)
+        ecrire(os.path.join(wa, "doc.txt"), "un\ndeux\n")          # suivi, hors commit
+        ecrire(os.path.join(wa, "neuf.txt"), "neuf\n")             # non suivi
+        code, s = appel(["fusionner", fiches, "W1", "--worktree", wa])
+        m = re.search(r"^GARDÉ (\d+) chemin\(s\) : (.+)$", s, re.M)
+        correctif = m.group(2) if m else ""
+        existe = bool(correctif) and os.path.isfile(correctif)
+        sous_git = existe and os.path.normcase(os.path.realpath(correctif)).startswith(
+            os.path.normcase(os.path.realpath(os.path.join(d, ".git"))) + os.sep)
+        check = code_git(d, "apply", "--check", correctif) if existe else None
+        intact = git_matin(d, "status", "--porcelain")
+    verifier("REF41 : chemins hors commit → GARDÉ 2 chemin(s) : <correctif sous .git>, sort 0, pas de PERDU, "
+             "git apply --check passe sur main fusionnée, arbre propre",
+             code == 0 and m is not None and m.group(1) == "2" and sous_git and "PERDU" not in s and check == 0
+             and intact == "", (code, s, correctif, sous_git, check, intact))
+
+
+groupe(tester_ref41_hors_garde)
+
+
 def tester_iso5_etat_texte():
     """ISO5 : `etat <fichier d'état> --texte <fichier>` ajoute le texte à la fin, une ligne vide avant, CRLF gardé ;
     un texte vide, un texte ou un fichier d'état absent : `GARDE:`, sort 1, rien d'écrit."""

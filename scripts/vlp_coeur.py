@@ -8898,13 +8898,38 @@ def fusion_fiche_refusee(racine, fiche, dossier):
     return None, sha.strip(), blocs[cle]
 
 
+def garder_hors_commit(racine, dossier):
+    """REF41 : le diff des chemins que le worktree `dossier` garde hors commit — non suivis compris, indexés là-bas
+    juste avant son retrait — écrit dans un correctif sous le dossier Git commun de `racine`
+    (`vlp-gardes/<worktree>-<heure>.patch`) ; rend son chemin, ou None si Git échoue."""
+    code_add = git_texte(["add", "-A"], dossier)[0]
+    code, diff = git_texte(["diff", "--cached", "--binary", "HEAD"], dossier) if code_add == 0 else (1, "")
+    code_dir, commun = git_texte(["rev-parse", "--path-format=absolute", "--git-common-dir"], racine)
+    if code != 0 or code_dir != 0 or not diff.strip():
+        return None
+    dossier_gardes = os.path.join(commun.strip(), "vlp-gardes")
+    os.makedirs(dossier_gardes, exist_ok=True)
+    chemin = os.path.join(dossier_gardes, "%s-%s.patch" % (
+        os.path.basename(os.path.normpath(dossier)), datetime.datetime.now().strftime("%Y%m%d-%H%M%S")))
+    with open(chemin, "w", encoding="utf-8", newline="\n") as f:
+        f.write(diff if diff.endswith("\n") else diff + "\n")
+    return os.path.normpath(chemin)
+
+
 def retirer_worktree(racine, dossier, branche, sortie):
-    """Retirer le worktree `dossier` et sa `branche` après `fusionner_fiche` (ISO4). Ce qu'il garde hors commit se
-    perd : `PERDU <n> chemin(s) non commités du worktree : …` le dit d'abord ; un échec de Git, une `GARDE:`."""
+    """Retirer le worktree `dossier` et sa `branche` après `fusionner_fiche` (ISO4). Ce qu'il garde hors commit va
+    d'abord dans un correctif (`garder_hors_commit`, REF41) : `GARDÉ <n> chemin(s) : <correctif>` — à appliquer,
+    ou non, par `git apply` ; si Git ne l'écrit pas, `PERDU <n> chemin(s) non commités du worktree : …` le dit.
+    Un échec de Git au retrait, une `GARDE:`."""
     code, reste = git_texte(["status", "--porcelain"], dossier)
     if code == 0 and reste.strip():
         lignes = reste.splitlines()
-        sortie.write("PERDU %d chemin(s) non commités du worktree : %s\n" % (len(lignes), ", ".join(l[3:] for l in lignes)))
+        correctif = garder_hors_commit(racine, dossier)
+        if correctif:
+            sortie.write("GARDÉ %d chemin(s) : %s\n" % (len(lignes), correctif))
+        else:
+            sortie.write("PERDU %d chemin(s) non commités du worktree : %s\n"
+                         % (len(lignes), ", ".join(l[3:] for l in lignes)))
     for args in [["worktree", "remove", "--force", dossier]] + ([["branch", "-D", branche]] if branche else []):
         code, texte = git_texte(args, racine)
         if code != 0:

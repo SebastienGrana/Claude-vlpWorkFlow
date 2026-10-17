@@ -127,7 +127,8 @@ Pour chaque fiche de la série, dans l'ordre — en worktree, dès que `lancable
      `<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" commiter "<fichier de fiches courant>" <fiche>` ;
      une ligne `HORS:`, relaie-la ; une `GARDE:`, c'est un `BLOQUÉE`. Le sous-agent ne commite jamais. En
      worktree, puis, d'ici : `<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" fusionner "<fichier de fiches courant>" <fiche> --worktree "<dossier>"`.
-     `FUSIONNÉ` (une ligne `BASE REFAITE`, relaie-la : seul le relevé du cliquet était en conflit) : un bloc `ÉTAT:` dans le `Result` de la fiche → son texte, sans ses deux lignes, dans un
+     `FUSIONNÉ` (relaie une ligne `BASE REFAITE` — seul le relevé du cliquet était en conflit — ou `GARDÉ` — le
+     hors-commit du worktree en correctif, l'utilisateur tranche par `git apply`) : un bloc `ÉTAT:` dans le `Result` de la fiche → son texte, sans ses deux lignes, dans un
      fichier du dossier temporaire, puis `<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" etat "<fichier d'état>" --texte "<ce fichier>"`
      (`CHANTIER.md`, ligne **fichier d'état**) et `git add -- "<fichier d'état>"; git commit -m "État après <fiche>"`.
      `CONFLIT` : la fiche sort de `--tourne` et repart aussitôt (point 1), depuis la version fusionnée, dans

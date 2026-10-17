@@ -21,9 +21,9 @@
     <p>Le kit tourne sur pytest et une couverture mesurée, sans une seule régression ; des scripts gardent la taille des fichiers et interdisent de toucher aux tests pendant une fiche ; les erreurs connues sont réparées, les gros fichiers découpés, et chaque angle revu jusqu'à deux passes vides.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">42 fiches · 10 faites · en cours : REF41</p>
+    <p class="mono" style="margin-top:.5rem">42 fiches · 11 faites · en cours : REF4</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -77,11 +77,13 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REF40</span></span>
         <details><summary><span class="titre">fusionner régénère sante-base.json au lieu d'un conflit</span><span class="etat">Faite</span></summary>
         <span class="note">conflit sur sante-base.json seul : FUSIONNÉ + BASE REFAITE, base = sante --base neuf ; fonction qui empire : CONFLIT ; 2 mutants attrapés ; suite OK (282 s)</span></details>
-        <span class="cout mono">≈4,8M (4 770 715) · 25 tours · 1,77 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">REF41</span></span>
-        <details open><summary><span class="titre">Un fichier HORS: n'est plus perdu à la fusion</span><span class="etat">En cours · REF37 peut partir en même temps</span></summary></details></li>
-      <li class="fiche"><span class="gauche"><span class="id">REF4</span></span>
-        <details><summary><span class="titre">Poser le socle pytest et isoler chaque test</span><span class="etat">À lancer</span></summary>
+        <span class="cout mono">≈5,0M (4 982 058) · 26 tours · 1,83 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REF41</span></span>
+        <details><summary><span class="titre">Un fichier HORS: n'est plus perdu à la fusion</span><span class="etat">Faite</span></summary>
+        <span class="note">hors commit du worktree → GARDÉ 2 chemin(s) : correctif sous .git, git apply --check passe ; mutant attrapé ; suite OK (261 s)</span></details>
+        <span class="cout mono">≈2,5M (2 506 970) · 11 tours · 0,83 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">REF4</span></span>
+        <details open><summary><span class="titre">Poser le socle pytest et isoler chaque test</span><span class="etat">En cours · REF21, REF38 peuvent partir en même temps</span></summary>
         <span class="note">Le socle pytest : chaque test isolé de ta machine ; le test qui lisait tes fichiers, migré. Après REF3.</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">REF5</span></span>
         <details><summary><span class="titre">Écrire les portes de parité entre les deux suites</span><span class="etat">Après REF4</span></summary>
@@ -133,7 +135,7 @@
         <details><summary><span class="titre">Essayer une campagne de mutation sur les lignes changées</span><span class="etat">Après REF18</span></summary>
         <span class="note">Un essai de mutation automatique sur les lignes changées (poodle). Après la découpe.</span></details></li>
       <li class="fiche"><span class="gauche"><span class="id">REF21</span></span>
-        <details><summary><span class="titre">Essayer de typer un lecteur JSON</span><span class="etat">À lancer</span></summary>
+        <details><summary><span class="titre">Essayer de typer un lecteur JSON</span><span class="etat">À lancer · en même temps que REF4, REF38</span></summary>
         <span class="note">Un essai de typage d'un lecteur JSON. Après REF3.</span></details></li>
       <li class="fiche"><span class="gauche"><span class="id">REF32</span></span>
         <details><summary><span class="titre">Un bloc Tentatives soldé garde le bon motif</span><span class="etat">À lancer</span></summary></details></li>
@@ -146,9 +148,9 @@
       <li class="fiche"><span class="gauche"><span class="id">REF36</span></span>
         <details><summary><span class="titre">Une aide par sous-commande de vlp.py</span><span class="etat">À lancer</span></summary></details></li>
       <li class="fiche"><span class="gauche"><span class="id">REF37</span></span>
-        <details><summary><span class="titre">La nuit : qui prime, commiter ou non</span><span class="etat">À lancer · en même temps que REF41</span></summary></details></li>
+        <details><summary><span class="titre">La nuit : qui prime, commiter ou non</span><span class="etat">À lancer</span></summary></details></li>
       <li class="fiche"><span class="gauche"><span class="id">REF38</span></span>
-        <details><summary><span class="titre">Retirer le repli « copie simple » d'avant le plugin</span><span class="etat">À lancer</span></summary></details></li>
+        <details><summary><span class="titre">Retirer le repli « copie simple » d'avant le plugin</span><span class="etat">À lancer · en même temps que REF4, REF21</span></summary></details></li>
       <li class="fiche"><span class="gauche"><span class="id">REF39</span></span>
         <details><summary><span class="titre">sante --base refuse un worktree en retard sur main</span><span class="etat">À lancer</span></summary></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">REF22</span></span>
@@ -168,7 +170,7 @@
         <span class="note">Revue de la doc qui ment. Après REF22.</span></details></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈85,5M (85 479 812) · 402 tours · 19,13 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈186,5M (186 502 210) · 901 tours · 64,04 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈189,2M (189 220 523) · 913 tours · 64,93 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
