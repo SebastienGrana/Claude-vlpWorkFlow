@@ -10104,6 +10104,66 @@ def tester_iso4_fusionner_fiche():
 groupe(tester_iso4_fusionner_fiche)
 
 
+def tester_ref40_base_refaite():
+    """REF40 : un `CONFLIT` sur `scripts/sante-base.json` seul — deux fiches ont réécrit le relevé du cliquet — se
+    règle par le relevé refait sur le code fusionné : `FUSIONNÉ` et `BASE REFAITE`, la base égale à celle d'un
+    `sante --base` neuf ; une fonction qui empire (base relâchée par `--forcer` dans la fiche) : `CONFLIT` comme avant."""
+    if not shutil.which("git"):
+        print("SAUTÉ: git absent — la base refaite à la fusion n'est pas testée")
+        return
+    def fonction(nom, params=""):
+        return "def %s(%s):\n    \"\"\"%s.\"\"\"\n    return 1\n\n\n" % (nom, params, nom)
+
+    def base(d):
+        return lire(os.path.join(d, "scripts", "sante-base.json")).replace("\r\n", "\n")
+
+    with tempfile.TemporaryDirectory() as tr:
+        d, wa, wb = (os.path.join(tr, n) for n in ("d", "wt-a", "wt-b"))
+        os.makedirs(d)
+        git_matin(d, "init", "-q", "-b", "main")
+        fiches = os.path.join(d, "ctx", "f.md")
+        ecrire(fiches, "# F\n\n## W1 [ ] — a\n\n## W2 [ ] — b\n")
+        for nom, f in (("a", "f"), ("b", "g"), ("c", "h")):
+            ecrire(os.path.join(d, "scripts", nom + ".py"), fonction(f))
+        appel(["sante", "--base", "--racine", d])
+        commit_matin(d, "départ", 1)
+        for nom, w in (("a", wa), ("b", wb)):
+            git_matin(d, "worktree", "add", "-q", "-b", nom, w, "main")
+        # La base est triée par (fichier, fonction) : a.py:f2 (W1) et a2.py:g2 (main) s'insèrent au même endroit,
+        # b2.py:k (main) juste avant c.py:h, que W2 change — chaque fusion bute sur la base seule.
+        ecrire(os.path.join(wa, "scripts", "a.py"), fonction("f") + fonction("f2"))
+        appel(["sante", "--base", "--racine", wa])
+        commit_matin(wa, "W1 : a", 2)
+        ecrire(os.path.join(wb, "scripts", "c.py"), fonction("h", "a, b, c, d, e, f"))   # 6 arguments, seuil 5
+        appel(["sante", "--base", "--racine", wb, "--forcer", "essai"])
+        commit_matin(wb, "W2 : b", 3)
+        ecrire(os.path.join(d, "scripts", "a2.py"), fonction("g2"))
+        ecrire(os.path.join(d, "scripts", "b2.py"), fonction("k"))
+        appel(["sante", "--base", "--racine", d])
+        commit_matin(d, "main ajoute g2 et k", 4)
+        fus = appel(["fusionner", fiches, "W1", "--worktree", wa])
+        fusionnee = (base(d), git_matin(d, "status", "--porcelain"), noms_worktrees(d),
+                     git_matin(d, "log", "-1", "--format=%s").strip())
+        appel(["sante", "--base", "--racine", d])
+        neuve = base(d)
+        conf = appel(["fusionner", fiches, "W2", "--worktree", wb])
+        apres_conf = (git_matin(d, "status", "--porcelain"), code_git(d, "rev-parse", "-q", "--verify", "MERGE_HEAD"),
+                      base(d) == neuve)
+    verifier("REF40 : conflit sur sante-base.json seul → FUSIONNÉ W1 et BASE REFAITE, sort 0, arbre propre, "
+             "worktree retiré, commit « Fusion : W1 »",
+             fus[0] == 0 and fus[1].startswith("FUSIONNÉ W1 ") and "\nBASE REFAITE scripts/sante-base.json" in fus[1]
+             and fusionnee[1:] == ("", ["d", "wt-b"], "Fusion : W1"), (fus, fusionnee[1:]))
+    verifier("REF40 : la base fusionnée égale celle d'un sante --base neuf, f2 et g2 comprises",
+             fusionnee[0] == neuve and '"f2"' in neuve and '"g2"' in neuve, (fusionnee[0], neuve))
+    verifier("REF40 : une fonction qui empire sur le code fusionné → CONFLIT W2 scripts/sante-base.json, sort 1, "
+             "arbre propre, pas de MERGE_HEAD, base de main intacte",
+             conf[0] == 1 and conf[1].endswith("CONFLIT W2 scripts/sante-base.json\n") and apres_conf == ("", 1, True),
+             (conf, apres_conf))
+
+
+groupe(tester_ref40_base_refaite)
+
+
 def tester_iso5_etat_texte():
     """ISO5 : `etat <fichier d'état> --texte <fichier>` ajoute le texte à la fin, une ligne vide avant, CRLF gardé ;
     un texte vide, un texte ou un fichier d'état absent : `GARDE:`, sort 1, rien d'écrit."""

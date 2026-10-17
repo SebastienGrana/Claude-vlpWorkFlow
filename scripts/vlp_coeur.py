@@ -8911,11 +8911,42 @@ def retirer_worktree(racine, dossier, branche, sortie):
             sortie.write("GARDE: git %s : %s\n" % (" ".join(args[:2]), texte))
 
 
+def base_refaite(racine, sortie):
+    """REF40 : une fusion en conflit sur la seule base du cliquet (`sante.BASE`, un relevé que `sante --base` refait)
+    se règle sur le code fusionné — la base de `racine` reprise, le cliquet tenu contre elle, puis la base refaite et
+    la fusion commitée. Rend True, `BASE REFAITE …` écrit ; cliquet rompu ou Git en échec : False, sa ligne écrite,
+    la fusion laissée à `merge --abort`."""
+    import sante
+    if git_texte(["checkout", "--ours", "--", sante.BASE], racine)[0] != 0:
+        sortie.write("BASE NON REFAITE : git checkout --ours %s a échoué\n" % sante.BASE)
+        return False
+    tampon = io.StringIO()
+    try:
+        fonctions, version = sante.mesurer(racine, sante.chemins_de(racine, None), sante.trouver_ruff(), tampon)
+        tenu = (sante.tenir_cliquet(racine, fonctions, version, tampon) == 0
+                and sante.poser_base(racine, fonctions, version, None, tampon) == 0)
+    except (SyntaxError, OSError, ValueError) as e:
+        tampon.write("GARDE: %s\n" % e)
+        tenu = False
+    if not tenu:
+        sortie.write("".join(l + "\n" for l in tampon.getvalue().splitlines()
+                             if l.startswith(("CLIQUET ROMPU", "GARDE:"))))
+        return False
+    for args in (["add", "--", sante.BASE], ["commit", "--no-edit"]):
+        code, texte = git_texte(args, racine)
+        if code != 0:
+            sortie.write("BASE NON REFAITE : git %s : %s\n" % (args[0], texte.strip()))
+            return False
+    sortie.write("BASE REFAITE %s · seul conflit, cliquet tenu sur le code fusionné\n" % sante.BASE)
+    return True
+
+
 def fusionner_fiche(fichier, fiche, dossier, sortie):
     """`fusionner <fichier de fiches> <fiche> --worktree <dossier>` (ISO4) : depuis la racine du dépôt du fichier,
     fusionne la tête du worktree — le commit de la fiche, fait là-bas par `commiter` — sous « Fusion : <fiche> »,
     `FUSIONNÉ <fiche> <sha>` (la tête d'après), puis retire le worktree et sa branche (`retirer_worktree`), sort 0.
-    Conflit : `git merge --abort`, rien de gardé, le worktree retiré quand même, `CONFLIT <fiche> <fichiers>`,
+    Conflit sur la seule base du cliquet : `base_refaite` (REF40), `FUSIONNÉ` s'il tient. Sinon, ou un autre
+    fichier en conflit : `git merge --abort`, rien de gardé, le worktree retiré quand même, `CONFLIT <fiche> <fichiers>`,
     sort 1 — le chef rejoue la fiche (Q3). `GARDE:`, rien touché, sort 1 : `fusion_fiche_refusee`, ou un merge que
     Git refuse avant d'écrire ; un `--abort` raté laisse la fusion en cours, et le worktree."""
     code, racine = git_texte(["rev-parse", "--show-toplevel"], os.path.dirname(os.path.abspath(fichier)))
@@ -8931,6 +8962,14 @@ def fusionner_fiche(fichier, fiche, dossier, sortie):
         if not conflits:
             sortie.write("GARDE: git refuse la fusion : %s — rien touché\n" % texte)
             return 1
+        import sante
+        tampon = io.StringIO()
+        if conflits == [sante.BASE] and base_refaite(racine, tampon):
+            sortie.write("FUSIONNÉ %s %s\n" % (fiche, git_texte(["rev-parse", "--short", "HEAD"], racine)[1].strip()))
+            sortie.write(tampon.getvalue())
+            retirer_worktree(racine, dossier, branche, sortie)
+            return 0
+        sortie.write(tampon.getvalue())
         code, texte = git_texte(["merge", "--abort"], racine)
         if code != 0:
             sortie.write("GARDE: git merge --abort : %s — fusion laissée en cours, worktree gardé\n" % texte)
