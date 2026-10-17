@@ -252,6 +252,13 @@ parallèle marche de bout en bout, sans geste à la main, mais il paie un confli
 relectures en double et un second lancement (le plafond compte le rejeu). Une variante ne
 s'emploie que sur un gain mesuré : celle-ci n'en a pas (`context AI/121-iso.md`, « Mesuré à ISO7 »).
 
+Remesuré à `GAI2` (2026-10-17), même bac, le même jour, après `GAI1` (rejeu après conflit hors
+plafond, la piégée repart aussitôt sur une autre voie) : à la file **9,8 min · 3,42 $**, en
+parallèle **7,1 min · 3,57 $** — **−28 %** de temps, **+4 %** de coût —, un seul lancement, deux
+fiches ensemble 3 fois. **Le parallèle gagne en temps, pas en coût** : le rejeu d'un conflit
+ajoute une fiche et sa relecture. Un seul essai par mode, sur des fiches de ~30 s : le gain sur
+des fiches longues reste à mesurer (`context AI/123-gai.md`, « Mesuré à GAI2 »).
+
 
 ### Un témoin doit pouvoir produire l'artefact qu'il contrôle
 
