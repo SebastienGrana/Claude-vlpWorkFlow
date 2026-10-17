@@ -383,6 +383,7 @@
 {"fichier": "scripts/test-vlp.py", "fonction": "test_zone_todo", "empreinte": "0e47b926add1", "ast": [2, 1, 0, 14, 1], "doc": false},
 {"fichier": "scripts/test-vlp.py", "fonction": "tester_abr2", "empreinte": "e7acfb3a7198", "ast": [1, 0, 0, 34, 1], "doc": false},
 {"fichier": "scripts/test-vlp.py", "fonction": "tester_abri", "empreinte": "654dc5c4c891", "ast": [1, 0, 0, 17, 2], "doc": false},
+{"fichier": "scripts/test-vlp.py", "fonction": "tester_agents_suite_rapide", "empreinte": "9c312fc532e9", "ast": [1, 0, 0, 6, 0], "doc": true},
 {"fichier": "scripts/test-vlp.py", "fonction": "tester_ailleurs", "empreinte": "baee2c10d44b", "ast": [4, 3, 0, 44, 3], "doc": true},
 {"fichier": "scripts/test-vlp.py", "fonction": "tester_ailleurs_meme_chantier", "empreinte": "620e0d8e618f", "ast": [2, 1, 0, 25, 1], "doc": true},
 {"fichier": "scripts/test-vlp.py", "fonction": "tester_apc3", "empreinte": "b6eb0bcb8194", "ast": [4, 3, 0, 30, 3], "doc": true},

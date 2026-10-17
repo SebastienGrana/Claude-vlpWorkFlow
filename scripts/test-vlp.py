@@ -6894,6 +6894,27 @@ def tester_nombres_recopies():
 groupe(tester_nombres_recopies)
 
 
+def tester_agents_suite_rapide():
+    """REF42 : les suites entières faisaient 67 % du temps des sous-agents (bilan REF28→REF31). La règle vit à
+    l'étape 4 de `skills/tache/SKILL.md` (`rapide` avant toute suite entière) ; `agents/fiche.md` y renvoie et dit
+    une seule suite entière, à la fin ; `agents/relecture.md` joue AVANT par `--seul`, APRÈS la suite entière."""
+    racine = os.path.join(ICI, "..")
+    textes = {f: mod.lire(os.path.join(racine, f)) for f in
+              ("skills/tache/SKILL.md", "agents/fiche.md", "agents/relecture.md")}
+    attendus = (("skills/tache/SKILL.md", "avant toute suite entière : `<python> \"${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py\" rapide"),
+                ("agents/fiche.md", "itère par `<python> \"<kit>/scripts/vlp.py\" rapide <fiche>"),
+                ("agents/fiche.md", "(étape 4 de `skills/tache/SKILL.md`)"),
+                ("agents/fiche.md", "la suite entière, **une seule fois**, à la fin, avant `FAITE`"),
+                ("agents/relecture.md", "`test-vlp.py --seul <motif>`"),
+                ("agents/relecture.md", "Dans APRÈS, la suite **entière**"))
+    manquants = ["%s : « %s »" % (f, t) for f, t in attendus if t not in textes[f]]
+    verifier("REF42 : les deux agents portent la règle de rapide et de la suite entière (%d textes)" % len(attendus),
+             manquants == [], "\n".join(manquants))
+
+
+groupe(tester_agents_suite_rapide)
+
+
 def tester_chef_page_explique():
     """chef page, `explique` (2026-10-06) : l'Explique-moi en option — `data-explique` sur la page et `CAPACITES sample`
     en sortie avec `true`, rien sans, `GARDE:` pour un autre genre."""

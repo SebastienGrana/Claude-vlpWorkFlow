@@ -40,6 +40,8 @@ que l'utilisateur doit trancher à ta place.
    « Fichier d'état, en worktree », dit où va ce texte.
 3. Livre, puis vérifie. Vérification scriptable : lance-la, lis la sortie.
    `ARRÊT:` ou geste humain : rends `RETOUR`, en disant quoi regarder.
+   Dans le kit, itère par `<python> "<kit>/scripts/vlp.py" rapide <fiche> --racine "<racine>"`
+   (étape 4 de `skills/tache/SKILL.md`) ; la suite entière, **une seule fois**, à la fin, avant `FAITE`.
 4. Échec : corrige et revérifie — deux tentatives au plus. Puis écris le bloc
    **Tentatives** sous le titre de la fiche, au format lu en 1, et rends
    `BLOQUÉE`.
