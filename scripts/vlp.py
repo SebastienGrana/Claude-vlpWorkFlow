@@ -11,7 +11,8 @@ Sous-commandes :
   le plugin chargé n'a pas le code de ce worktree du kit (`retard_plugin`, chantier ESR, sauf avec
   `--relecteur`), une ligne `AILLEURS=<code> <dossier>` par chantier courant d'un autre worktree (`chantiers_ailleurs`,
   NUI28, sauf avec `--relecteur` ; sans marque à lui, ses commits de fiche d'un chantier ouvert ici, NWT), puis — si un fichier de fiches est courant — ses titres
-  de fiches numérotés, `PROCHAINE=<fiche>` (la première non cochée, dans l'ordre
+  de fiches numérotés, `EFFORT=<niveau> (socle du chantier)` — à défaut le niveau lu dans
+  `methode-chantier.md`, ou `EFFORT=absent` (`ligne_effort`, REF28) —, `PROCHAINE=<fiche>` (la première non cochée, dans l'ordre
   du fichier) ou `PROCHAINE=aucune`, et une `GARDE` si le fichier a des lignes
   mais aucun titre au format attendu. Aucun fichier courant : pour chaque
   chemin `.md` de la ligne **chantiers possibles** (backticks ôtés, prose
@@ -258,7 +259,8 @@ Sous-commandes :
   sommaire sous l'en-tête ; la date seulement si la page change.
   `FEUILLE todo <n> · encours <oui|non> · lettres <n> · <réécrite|inchangée>
   — <page>`. `--verifier` n'écrit rien, dit `identique|écart`, sort 1 sur écart.
-  Avant `FEUILLE`, les joints recopiés et les lignes `CSS` et `FILES`, comme `page`. Avec au
+  Avant `FEUILLE`, les joints recopiés et les lignes `CSS` et `FILES`, comme `page`, puis
+  `LIRE <nom>…` (ou `LIRE aucun`) : les joints de `FILES`, à passer en `paths` au `read` (REF29). Avec au
   moins un coût clos, `couts.svg` (`svg_couts`) écrit à côté et nommé dans `FILES`, sa balise
   `<img>` posée une fois avant `details.clos` (`balise_couts`), ses barres dans `data-couts`
   pour `vlp.js` ; sans coût, ni l'un ni l'autre.
@@ -354,7 +356,7 @@ Sous-commandes :
   cette forme restent ; dans `CHANTIER.md`, l'artefact à `aucun`,
   la lettre aux lettres prises (plus de table des clos) ; dans la feuille
   de route, une ligne en tête de `ZONE:clos`, le total cumulé resommé des
-  comptes bruts, puis `feuille`, et sa ligne `FILES` (joints et `couts.svg`, comme `feuille`).
+  comptes bruts, puis `feuille`, et ses lignes `FILES` (joints et `couts.svg`, comme `feuille`) et `LIRE`.
   Tout est calculé avant la première écriture.
   La ligne du chantier sur la feuille prend le total mesuré (étape « 1 ter ») ;
   sans page ou sans mesure, elle retombe sur `--tokens`, puis sur « non mesuré ».
