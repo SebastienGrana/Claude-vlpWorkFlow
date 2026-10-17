@@ -1528,6 +1528,9 @@ def tester_clore_todo():
             code, s = appel(["clore", te, "--livre", "fini", "--date", "2026-10-09"])
             if saine:
                 verifier("TAB3 : clore sur une TODO saine passe", code == 0 and "CLOS U " in s, s)
+                verifier("REF29 : clore sans couts.svg dit LIRE sans lui",
+                         "\nLIRE vlp.css vlp.js\n" in s
+                         and not os.path.exists(os.path.join(te, "ctx", "artefacts", "couts.svg")), s)
             else:
                 verifier("TAB3 : clore sur une TODO cassée rend GARDE, sort 1, rien écrit",
                          code == 1 and s.startswith("GARDE: ligne 3 de la TODO : 6 cellules au lieu de 5")
@@ -1824,6 +1827,8 @@ def tester_feuille_clore():
         code, s = appel(["clore", t, "--livre", "Livré `a` <b>", "--tokens", "1500", "--abandon", "Q2 abandonnée", "--date", "2026-05-06", "--surpris", "x < y", "--resume", "b `c`."])
         carte_lue, fiches_lues, html = lire(os.path.join(t, "CHANTIER.md")), lire(os.path.join(t, "ctx", "30-q.md")), lire(fdr)
         verifier("clore : routage, index, bilan, résumé comptés", "· routage 1 · index 1 · archivé 1 · bilan 1 · résumé 1 ·" in s and "GARDE" not in s, s)
+        verifier("REF29 : clore, coût mesuré, dit LIRE avec couts.svg",
+                 "\nLIRE vlp.css vlp.js couts.svg\n" in s and os.path.exists(os.path.join(os.path.dirname(fdr), "couts.svg")), s)
         verifier("clore : résumé, une ligne par clos", "- Clos le 2026-05-06 : a (chantier E).\n- Clos le 2026-05-06 : b `c` (chantier Q).\n\n## Routage" in lire(os.path.join(t, "CLAUDE.md")), lire(os.path.join(t, "CLAUDE.md")))
         cl, gr = ["## Où on en est", "", "- Clos le 2026-01-01 : a (chantier E).", "", "## Règles"], []
         verifier("résumé : ligne ajoutée après la dernière", mod.resume_claude(cl, "Q", "b", "2026-02-02", gr)
@@ -3129,6 +3134,8 @@ def test_page_clos():
         barres = lire(svg).count('class="barre"') if os.path.isfile(svg) else 0
         verifier("ARC1 : couts.svg à côté de la feuille, trois barres lues dans l'archive",
                  barres == 3 and 'data-couts=' in lire(fdr), "%d barres\n%s" % (barres, s))
+        verifier("REF29 : clore dit LIRE avec couts.svg joint — mutant : ligne LIRE retirée",
+                 "\nLIRE vlp.css vlp.js couts.svg\n" in s, s)
         ecrire(os.path.join(proj, "ctx", "31-b.md"), "# Chantier B\n\n**Fait.** Rien.\n\n## Le socle commun\n\n"
                "## L'ordre des fiches\n\n<!-- FICHE:B1 -->\n## B1 [ ] — Seule\n**Critère de fin**\n<!-- /FICHE -->\n")
         code, s = appel(["ouvrir", proj, "--fiches", "ctx/31-b.md", "--titre", "b", "--estime-fiches", "1"])
@@ -7992,6 +7999,8 @@ def tester_joints():
         verifier("BTN5 : FILES nomme couts.svg, à côté de la feuille",
                  "couts.svg" in files and "\\" not in files["couts.svg"]
                  and os.path.samefile(files["couts.svg"], svg), s)
+        verifier("REF29 : feuille dit LIRE avec couts.svg joint — mutant : ligne LIRE retirée",
+                 "\nLIRE vlp.css vlp.js couts.svg\n" in s, s)
         html = lire(fdr)
         alt = re.search(r'<img src="couts\.svg" alt="([^"]*)"', html)
         verifier("BTN5 : la balise <img> une fois, avant details.clos ; alt : 3 barres, D le plus cher",
@@ -8030,6 +8039,7 @@ def tester_joints():
         verifier("BTN5 : une feuille sans coût n'a ni couts.svg, ni balise, ni entrée FILES",
                  code == 0 and not os.path.exists(svg) and IMG not in lire(fdr)
                  and "couts.svg" not in (files_de(s) or {}), s + lire(fdr)[-2000:])
+        verifier("REF29 : feuille sans couts.svg dit LIRE sans lui", "\nLIRE vlp.css vlp.js\n" in s, s)
 
     # Des coûts mesurés, tous à 0 (dette BTN) : rien à dessiner, et pas de division par un maximum nul.
     with tempfile.TemporaryDirectory() as tab:
