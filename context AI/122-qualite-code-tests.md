@@ -309,3 +309,127 @@ Protection en temps réel coupée à **00:34:08**, réactivée juste avant **00:
 - 💡 **`tester_matin` d'abord** pour le dépôt d'essai commun (idée 10) : 44 % des appels `git`.
 - 💡 **Une option `--chrono` dans `test-vlp.py`**, pour rejouer ce tableau sans le script jetable.
 - 🟡 **`cocher` sans la suite entière** pour une fiche sans `.py` (idée 12).
+
+## Recherche du 2026-10-17 — quatre sous-agents, au cadrage de `REF`
+
+**Le point de départ, dit par l'utilisateur ce jour-là** : le kit sert lui seul, sur son PC
+(`CLAUDE.md`, « Pour qui ») ; ni le coût ni le temps ne freinent `REF` ; zéro régression ; l'outil
+éprouvé d'abord, quitte à réécrire. Quatre sous-agents Sonnet, lecture seule, sans plafond de pages :
+23 + 22 + 8 + 9 recherches web, ≈ 186 pages ou fichiers bruts lus. Toutes les lectures du 2026-10-17.
+Rangs : doc = doc officielle ; dépôt ; article (relu par des pairs) ; preprint ; blog ; forum.
+⚠️ Les citations passent par WebFetch (petit modèle, ≈ 125 caractères) : les faits décisifs ont été
+relus sur le texte brut (`curl`) ou mesurés ; les autres sont plausibles, non revérifiés.
+
+### Versions (PyPI JSON, 2026-10-17)
+
+| Outil | Version | Date | Licence | Chez lui |
+|---|---|---|---|---|
+| pytest | 9.1.1 | 2026-06-19 | MIT | **installé** |
+| pytest-xdist | 3.8.0 | 2025-07-01 | MIT | non |
+| coverage | 7.16.2 | 2026-09-27 | Apache-2.0 | 7.16.0 |
+| diff-cover | 10.6.0 | 2026-09-22 | Apache-2.0 | non |
+| syrupy | 6.1.1 | 2026-09-13 | MIT | non |
+| pytest-regtest | 2.7.0 | 2026-07-09 | MIT | non |
+| uv | 0.13.1 | 2026-10-14 | MIT OR Apache-2.0 | **installé** |
+| ruff | 0.17.1 | 2026-10-15 | MIT | 0.16.10 |
+| pyright | 1.1.414 | 2026-09-10 | MIT | 1.1.414 |
+| poodle (mutation) | 1.3.4 | 2026-04-05 | MIT | non |
+| cosmic-ray (mutation) | 8.7.0 | 2026-08-09 | MIT | non |
+| mutmut | 3.8.0 | 2026-09-12 | BSD-3 | non — WSL seulement |
+
+### Les tests : migrer vers pytest sans rien perdre
+
+- **Côte à côte** : l'ancienne suite et la nouvelle tournent ensemble ; l'ancienne ne part qu'aux portes
+  de parité — « a gradual process of modernization » ([Fowler](https://martinfowler.com/bliki/StranglerFigApplication.html), blog, 2024-08-22) ;
+  « 34% of the systems rely on both testing frameworks » ([Barbosa et Hora, SANER 2022](https://homepages.dcc.ufmg.br/~andrehora/pub/2022-saner-test-migration.pdf), article).
+- **Portes de parité proposées** (💡 sous-agent) : manifeste `ast` des 986 `verifier("nom"…)` ; mêmes
+  verdicts par groupe ; couverture ligne et branche ≥ référence ; diff de `pytest --collect-only -q`.
+- **pytest ne doit jamais importer `test-vlp.py` tel quel** : ses 175 `groupe(...)` au niveau du module
+  lanceraient la suite à la collecte, une fois par worker. Sous pytest, un `SystemExit` pendant un test
+  n'échoue que ce test ([runner.py](https://raw.githubusercontent.com/pytest-dev/pytest/main/src/_pytest/runner.py), dépôt) ;
+  pendant la collecte, il arrête tout.
+- **Photographier le comportement d'abord** (tests de caractérisation, Feathers) : `syrupy` (zéro
+  dépendance hors pytest) ou `pytest-regtest` (« Changing code with no or little testing setup yet »,
+  [PyPI](https://pypi.org/project/pytest-regtest/)) ; aucune source ne tranche : essayer sur 3 vraies sorties.
+  Chemins temporaires et dates à filtrer avant la comparaison.
+- ❌ **Windows ignore `HOME`** : « Changed in version 3.8: No longer uses `HOME` on Windows » —
+  `USERPROFILE` est lu ([doc Python](https://docs.python.org/3/library/os.path.html#os.path.expanduser)) ; Git lit `HOME`
+  ([doc git](https://git-scm.com/docs/git#_environment_variables)). Poser **les deux**, comme le `pytester`
+  de pytest. `test-vlp.py` pose `USERPROFILE` sur 12 lignes (compté le 2026-10-17), pas dans
+  `tester_heures_commits` (défaut 1 plus haut) ; `vlp_coeur.py` lit `os.path.expanduser("~")`.
+- **Git** : `GIT_CONFIG_GLOBAL` (Git ≥ 2.32) remplace `$HOME/.gitconfig` ; `GIT_CONFIG_NOSYSTEM=1`.
+  Mesuré chez lui (une série, Defender actif) : un `git` seul **32 ms** ; `git init` + `add` + `commit`
+  **208 ms** ; `copytree` d'un dépôt modèle **25 ms** — le coût est le nombre de processus.
+- ⚠️ **xdist sous Windows + Python 3.14** : blocage intermittent après la fin des tests, « ~50%
+  reproduction rate on a 2000-test suite » ([issue #1313](https://github.com/pytest-dev/pytest-xdist/issues/1313), ouverte) ;
+  contre-témoignage dans [#1289](https://github.com/pytest-dev/pytest-xdist/issues/1289). Délai externe et repli `-n 0`.
+- **Smells** : aucun détecteur mûr en ligne de commande ; aucun plugin pour « test supprimé ou `skip`
+  ajouté » — comparer `--collect-only` avant/après, `-rs`, plus ruff `PT018`, `PLR0915`, `C901` sur `tests/`.
+
+### Les outils de qualité : garder, ajouter
+
+- **`vlp.py mutant` : garder** — aucun outil n'exprime « ce test-là doit attraper ce mutant »
+  (`--attendu`). Ce qui manque : une **campagne sur les lignes changées** — Google mute « only changed
+  code during code review » ([arXiv 2102.11378](https://arxiv.org/abs/2102.11378), résumé lu). Candidats :
+  `poodle` (CI Windows, Python 3.10 à 3.14, commande libre) ; `cosmic-ray` (`cr-filter-git`, mais CI
+  Linux seule et pas de 3.14 déclaré). Tout `vlp_coeur.py` : ≈ 8 000 nœuds mutables, ≈ 11 jours en
+  séquentiel (calcul du sous-agent, pas une mesure).
+- **`vlp.py sante` : garder** — aucun standard ne le remplace ; même idée que les « bulk suppressions »
+  d'ESLint ([blog](https://eslint.org/blog/2025/04/introducing-bulk-suppressions/), 2025-04-04) ; la baseline de ruff
+  est une issue ouverte depuis 2022 ([#1149](https://github.com/astral-sh/ruff/issues/1149)).
+- **Garde de taille** : ruff n'a pas `too-many-lines` (« not compatible with the formatter »,
+  [issue 970](https://github.com/astral-sh/ruff/issues/970)) ; pylint `C0302` a un seuil fixe, sans cliquet → écrire la garde
+  (un 6e compte dans `sante`), pylint après la découpe.
+- **Couverture** : `coverage run --branch` avec `patch = subprocess` (7.10 et après ; `pytest-cov` 7
+  a retiré les sous-processus), puis `diff-cover --fail-under` sur les lignes changées. Google :
+  « per-commit coverage goals of 99% are reasonable, and 90% is a good lower threshold »
+  ([blog Google](https://testing.googleblog.com/2020/08/code-coverage-best-practices.html), 2020-08-07) ; Fowler : utile pour
+  trouver le non-testé, « of little use as a numeric statement » ([bliki](https://martinfowler.com/bliki/TestCoverage.html)).
+- **Hooks de commit** : `pre-commit` refuse `core.hooksPath` ; `prek` l'honore. Garder le hook maison,
+  qui appelle une seule sous-commande de `vlp.py`, testable.
+- **Types** : garder pyright ; `ty` est en bêta (« ty does not yet have a stable API », [README](https://github.com/astral-sh/ty)).
+
+### L'outillage : uv à l'atelier, Python seul dans les hooks
+
+- **Hooks** : rester sans paquet. Les plugins officiels d'Anthropic lancent `python3` sans `uv`
+  ([claude-plugins-official](https://github.com/anthropics/claude-plugins-official)) ; `uv run` ajoute **+40 à +90 ms**
+  par lancement (mesuré chez lui, bruit > 30 ms) ; un hook dont le lanceur ne démarre pas laisse
+  l'action se faire (doc hooks), sauf `"onFailure": "block"` ; `uv` est en 0.x (cassant à chaque
+  version mineure). La doc des plugins ne parle que des dépendances Node.
+- **Atelier** : `uv` + un seul `pyproject.toml` (`[dependency-groups] dev`, `uv.lock`) pour ruff,
+  pytest, coverage et pyright — « A "pyrightconfig.json" file always takes precedent over
+  "pyproject.toml" » : migrer puis retirer le `.json`. `target-version` passe de `py39` à `py314`.
+- ⚠️ **`hooks/hooks.json` lance chaque hook deux fois**, `python3` (Python 3.14.7, 136 ms) et `py -3`
+  (3.14.6, 85 ms) ; `vlp_hook.py` s'en protège par un tampon. Deux Python pour un même hook.
+- ⚠️ **Le piège de la découpe** : `test-vlp.py` assigne des attributs du module (`mod.TAMPON_HOOKS =
+  None`…) ; une fois `vlp_coeur.py` coupé, l'assignation ne toucherait que la façade, sans erreur.
+  Parade proposée : façade avec `__all__`, les globales changées par les tests dans un module d'état lu
+  par `etat.NOM` ; la liste des noms publics comparée avant et après.
+
+### Les consignes et l'IA
+
+- **Taille** : « target under 200 lines per CLAUDE.md file. Longer files consume more context and
+  reduce adherence » ([doc memory](https://code.claude.com/docs/en/memory)) ; « Keep SKILL.md under 500 lines »
+  ([doc skills](https://code.claude.com/docs/en/skills)). Le `CLAUDE.md` global de l'utilisateur : **265** lignes ;
+  celui du kit : 87 ; `methode-chantier.md` : 582 ; le plus long `SKILL.md` : 293 (`wc -l`, 2026-10-17).
+- **Une consigne n'est pas une garantie** : « CLAUDE.md instructions which are advisory, hooks are
+  deterministic » ([best practices](https://code.claude.com/docs/en/best-practices)) ; les modèles oublient en
+  silence quand les règles s'empilent (IFScale, preprint 2025 : « omission errors »).
+- ❌ **La carte de `/vlp:chantier` arrive coupée** : une injection garde « roughly 30,000 characters »,
+  au-delà un fichier et un aperçu de 2 000 ([tools-reference](https://code.claude.com/docs/en/tools-reference)) ; la carte
+  pesait **53,5 Ko** au cadrage de `REF`, reçue en aperçu (constaté dans la séance, 2026-10-17).
+  Recoupe la ligne `ALC` de la TODO (n° 130).
+- **Tricher aux tests est documenté** : « modifying the problematic tests themselves to match the
+  code's output » (carte système de Claude 3.7, Anthropic, 2025) ; « Hiding tests from agents reduces
+  cheating success rate to near zero » ([ImpossibleBench](https://arxiv.org/html/2510.20270v1), preprint) ; dire « ne
+  triche pas » a eu un effet « nearly negligible » (METR, sur o3).
+- **Écrire les tests** : « have one Claude write tests, then another write code to pass them »
+  (best practices) ; « It's important to confirm that the tests fail before implementing the code »
+  ([Willison](https://simonwillison.net/guides/agentic-engineering-patterns/red-green-tdd/), guide) ; nuance : des consignes TDD sans
+  contexte ont **augmenté** les régressions, une carte des tests concernés les a réduites (TDAD, preprint 2026).
+- **Relecteur** : sur Sonnet 5, « only report high-severity issues » fait taire des bugs trouvés —
+  tout rapporter avec gravité et confiance, filtrer à part (guide de prompt) ; un relecteur « will
+  usually report some, even when the work is sound » : ne demander que la justesse.
+- **Contradictions** : vérifier par sous-agent — conseillé par Claude Code et Fable 5, déconseillé
+  par la page Opus 5 ; ton ferme — Anthropic contre, superpowers pour ; fichiers de contexte — moins de
+  réussite (ETH, preprint) contre −28,64 % de temps (Lulla, preprint).
