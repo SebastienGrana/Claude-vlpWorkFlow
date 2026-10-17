@@ -21,9 +21,9 @@
     <p>Le kit tourne sur pytest et une couverture mesurée, sans une seule régression ; des scripts gardent la taille des fichiers et interdisent de toucher aux tests pendant une fiche ; les erreurs connues sont réparées, les gros fichiers découpés, et chaque angle revu jusqu'à deux passes vides.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">42 fiches · 12 faites · en cours : REF5</p>
+    <p class="mono" style="margin-top:.5rem">42 fiches · 13 faites · en cours : REF6</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -85,12 +85,13 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REF4</span></span>
         <details><summary><span class="titre">Poser le socle pytest et isoler chaque test</span><span class="etat">Faite</span></summary>
         <span class="note">pytest -q : 15 passed ; test migré 5,7 s contre 22,2 s (Defender coupé) ; 29 assert pour 29 verifier ; expanduser = dossier du test, mutant USERPROFILE attrapé ; suite OK (257 s)</span></details>
-        <span class="cout mono">≈6,6M (6 629 316) · 24 tours · 2,34 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">REF5</span></span>
-        <details open><summary><span class="titre">Écrire les portes de parité entre les deux suites</span><span class="etat">En cours · REF6, REF38 peuvent partir en même temps</span></summary>
-        <span class="note">Un script qui compare l'ancienne et la nouvelle suite, vérification par vérification. Après REF4.</span></details></li>
-      <li class="fiche"><span class="gauche"><span class="id">REF6</span></span>
-        <details><summary><span class="titre">Choisir l'outil de photographie</span><span class="etat">À lancer · en même temps que REF5, REF38</span></summary>
+        <span class="cout mono">≈6,9M (6 924 876) · 25 tours · 2,41 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REF5</span></span>
+        <details><summary><span class="titre">Écrire les portes de parité entre les deux suites</span><span class="etat">Faite</span></summary>
+        <span class="note">parite sur le kit : MIGRÉ tester_heures_commits 29/29, 182 RESTE, vérifications 29/1045 ; test PARTIEL — manque : b2 ; mutant attrapé ; suite OK (258 s)</span></details>
+        <span class="cout mono">≈4,4M (4 426 922) · 14 tours · 1,33 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">REF6</span></span>
+        <details open><summary><span class="titre">Choisir l'outil de photographie</span><span class="etat">En cours · REF9, REF38 peuvent partir en même temps</span></summary>
         <span class="note">syrupy ou pytest-regtest : l'outil de photographie choisi par essai. Après REF4.</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">REF7</span></span>
         <details><summary><span class="titre">Photographier toutes les sous-commandes de vlp.py</span><span class="etat">Après REF6</span></summary>
@@ -99,13 +100,13 @@
         <details><summary><span class="titre">Mesurer la couverture et l'exiger sur les lignes changées</span><span class="etat">À lancer</span></summary>
         <span class="note">La couverture mesurée ; 90 % des lignes changées exigés au commit. Après REF4.</span></details></li>
       <li class="fiche"><span class="gauche"><span class="id">REF9</span></span>
-        <details><summary><span class="titre">Garder la taille des fichiers</span><span class="etat">À lancer</span></summary>
+        <details><summary><span class="titre">Garder la taille des fichiers</span><span class="etat">À lancer · en même temps que REF6, REF38</span></summary>
         <span class="note">Un fichier de plus de 1 000 lignes ne grossit plus, bloquant au commit. Après REF3.</span></details></li>
       <li class="fiche"><span class="gauche"><span class="id">REF10</span></span>
         <details><summary><span class="titre">Mettre les tests existants en lecture seule pendant une fiche</span><span class="etat">À lancer</span></summary>
         <span class="note">Pendant une fiche, les tests existants ne se modifient pas : un hook le bloque. Après REF4.</span></details></li>
-      <li class="fiche" data-attend><span class="gauche"><span class="id">REF11</span></span>
-        <details><summary><span class="titre">Rendre visible un test retiré ou affaibli</span><span class="etat">Après REF5</span></summary>
+      <li class="fiche"><span class="gauche"><span class="id">REF11</span></span>
+        <details><summary><span class="titre">Rendre visible un test retiré ou affaibli</span><span class="etat">À lancer</span></summary>
         <span class="note">Un test retiré ou mis en skip bloque le commit, sauf raison écrite. Après REF5.</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">REF12</span></span>
         <details><summary><span class="titre">Transformer les règles écrites en hooks</span><span class="etat">Après REF9, REF10, REF11</span></summary>
@@ -127,7 +128,7 @@
         <span class="note">Ton CLAUDE.md global sous 200 lignes, section par section, avec ton accord. Après REF16.</span></details>
         <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">REF18</span></span>
-        <details><summary><span class="titre">Écrire le plan de découpe et de migration</span><span class="etat">Après REF5, REF7, REF9</span></summary>
+        <details><summary><span class="titre">Écrire le plan de découpe et de migration</span><span class="etat">Après REF7, REF9</span></summary>
         <span class="note">Le plan de découpe des gros fichiers et de la migration ; ajoute ses fiches. Après REF5, REF7, REF9.</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">REF19</span></span>
         <details><summary><span class="titre">Lancer moins de git, puis paralléliser sous garde</span><span class="etat">Après REF18</span></summary>
@@ -151,11 +152,11 @@
       <li class="fiche"><span class="gauche"><span class="id">REF37</span></span>
         <details><summary><span class="titre">La nuit : qui prime, commiter ou non</span><span class="etat">À lancer</span></summary></details></li>
       <li class="fiche"><span class="gauche"><span class="id">REF38</span></span>
-        <details><summary><span class="titre">Retirer le repli « copie simple » d'avant le plugin</span><span class="etat">À lancer · en même temps que REF5, REF6</span></summary></details></li>
+        <details><summary><span class="titre">Retirer le repli « copie simple » d'avant le plugin</span><span class="etat">À lancer · en même temps que REF6, REF9</span></summary></details></li>
       <li class="fiche"><span class="gauche"><span class="id">REF39</span></span>
         <details><summary><span class="titre">sante --base refuse un worktree en retard sur main</span><span class="etat">À lancer</span></summary></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">REF22</span></span>
-        <details><summary><span class="titre">Revoir l'angle des bugs</span><span class="etat">Après REF5, REF6, REF7, REF8, REF9, REF10, REF11, REF12, REF13, REF14, REF15, REF16, REF17, REF18, REF19, REF20, REF21</span></summary>
+        <details><summary><span class="titre">Revoir l'angle des bugs</span><span class="etat">Après REF6, REF7, REF8, REF9, REF10, REF11, REF12, REF13, REF14, REF15, REF16, REF17, REF18, REF19, REF20, REF21</span></summary>
         <span class="note">Revue des bugs, jusqu'à deux passes sans défaut confirmé. Après tout le reste.</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">REF23</span></span>
         <details><summary><span class="titre">Revoir l'angle des tests</span><span class="etat">Après REF22</span></summary>
@@ -171,7 +172,7 @@
         <span class="note">Revue de la doc qui ment. Après REF22.</span></details></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈85,5M (85 479 812) · 402 tours · 19,13 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈196,1M (196 084 619) · 938 tours · 67,33 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈200,8M (200 807 101) · 953 tours · 68,73 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

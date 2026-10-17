@@ -606,6 +606,12 @@ Sous-commandes :
   `DÉLAI:` ou commande introuvable → `PLANTÉ`. Chaque `ÉCART:` vu est imprimé avant ; `COPIE restée : …`
   si la copie ne s'efface pas en 2 s ; puis `RENDU <sha1 12>` — `GARDE:` si l'empreinte a bougé, ou si les
   tests ne se lancent pas.
+- `parite [--racine <kit>]` — la parité entre `scripts/test-vlp.py` et la suite pytest de `tests/` (REF5). La
+  marque d'un test migré : le libellé d'origine du `verifier`, mot pour mot, en message de son `assert` (un
+  libellé formaté `"…" % x` : son gabarit). Une ligne par groupe — `MIGRÉ <groupe> n/n`, `PARTIEL <groupe> k/n —
+  manque : <libellés>`, `RESTE <groupe> 0/n` ; une fonction d'aide compte au groupe qui l'appelle —, puis
+  `PARITE <g> groupes · migrés … · vérifications k/n`. Un groupe ne sort de `test-vlp.py` que sur un `MIGRÉ` ; la
+  fiche qui le retire le cite. Fichier absent ou illisible : `GARDE:`, sort 1.
 - `symboles <fichier> [<nom>…]` — une ligne `nom début-fin` par fonction ou classe de premier niveau d'un
   fichier Python, dans l'ordre du fichier, lue par `ast` sans l'importer (VIT9) : une fiche cite un nom,
   ceci rend sa ligne du jour. Avec des noms, leurs seules lignes, dans l'ordre demandé, et `ABSENT <nom>`

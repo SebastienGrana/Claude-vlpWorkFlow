@@ -9789,6 +9789,82 @@ def cmd_symboles(a, sortie):
     return 1 if any(n not in trouves for n in a.noms) else 0
 
 
+def libelle_de(noeud):
+    """Le libellé d'un `verifier(<libellé>, …)` ou d'un `assert …, <libellé>` (REF5) : la chaîne telle quelle, le
+    gabarit d'un `"…" % x`, un f-string ses morceaux fixes autour de `{}` ; une autre forme, None."""
+    import ast
+    if isinstance(noeud, ast.Constant) and isinstance(noeud.value, str):
+        return noeud.value
+    if isinstance(noeud, ast.BinOp) and isinstance(noeud.op, ast.Mod):
+        return libelle_de(noeud.left)
+    if isinstance(noeud, ast.JoinedStr):
+        return "".join(str(v.value) if isinstance(v, ast.Constant) else "{}" for v in noeud.values)
+    return None
+
+
+def verifs_des_groupes(arbre):
+    """`[(groupe, [libellés])]` pour chaque `groupe(<fonction>)` de `test-vlp.py`, dans l'ordre : les `verifier` de
+    la fonction, et ceux des fonctions du module qu'elle nomme, de proche en proche (une aide compte au groupe qui
+    l'appelle)."""
+    import ast
+    fonctions = {n.name: n for n in arbre.body if isinstance(n, ast.FunctionDef)}
+
+    def propres(f):
+        """Les libellés des `verifier` écrits dans `f` même."""
+        return [libelle_de(c.args[0]) or "" for c in ast.walk(f) if isinstance(c, ast.Call)
+                and isinstance(c.func, ast.Name) and c.func.id == "verifier" and c.args]
+
+    def libelles(nom, vus):
+        """Ceux de `nom`, puis ceux des fonctions qu'il nomme et que `vus` n'a pas encore."""
+        vus.add(nom)
+        nommes = {n.id for n in ast.walk(fonctions[nom]) if isinstance(n, ast.Name) and n.id in fonctions}
+        return propres(fonctions[nom]) + [l for autre in sorted(nommes - vus) for l in libelles(autre, vus)]
+
+    groupes = [c.value.args[0].id for c in arbre.body if isinstance(c, ast.Expr) and isinstance(c.value, ast.Call)
+               and isinstance(c.value.func, ast.Name) and c.value.func.id == "groupe" and c.value.args
+               and isinstance(c.value.args[0], ast.Name) and c.value.args[0].id in fonctions]
+    return [(g, libelles(g, set())) for g in groupes]
+
+
+def cmd_parite(a, sortie):
+    """`parite [--racine <kit>]` (REF5) : la parité entre `scripts/test-vlp.py` et la suite pytest de `tests/`. La
+    marque d'un test migré : le libellé d'origine du `verifier`, mot pour mot, en message de son `assert`
+    (`assert cond, "<libellé>"` ; un libellé formaté, par son gabarit). Une ligne par groupe — `MIGRÉ <groupe> n/n`,
+    `PARTIEL <groupe> k/n — manque : <libellés>`, `RESTE <groupe> 0/n` —, puis `PARITE …` et les comptes bruts.
+    Un groupe ne sort de `test-vlp.py` que sur un `MIGRÉ`. Fichier absent ou illisible : `GARDE:`, sort 1."""
+    import ast
+    racine = os.path.abspath(a.racine or KIT)
+    try:
+        with open(os.path.join(racine, "scripts", "test-vlp.py"), encoding="utf-8") as f:
+            groupes = verifs_des_groupes(ast.parse(f.read()))
+        migres = set()
+        for chemin in sorted(glob.glob(os.path.join(racine, "tests", "**", "*.py"), recursive=True)):
+            with open(chemin, encoding="utf-8") as f:
+                migres.update(libelle_de(n.msg) for n in ast.walk(ast.parse(f.read()))
+                              if isinstance(n, ast.Assert) and n.msg is not None)
+    except (OSError, SyntaxError, UnicodeDecodeError, ValueError) as e:
+        sortie.write("GARDE: parite ne lit pas %s : %s\n" % (racine, str(e).splitlines()[0] if str(e) else type(e).__name__))
+        return 1
+    etats = collections.Counter()
+    trouvees = total = 0
+    for nom, libelles in groupes:
+        manque = [l for l in libelles if l not in migres]
+        k, n = len(libelles) - len(manque), len(libelles)
+        trouvees, total = trouvees + k, total + n
+        if not manque:
+            etats["migrés"] += 1
+            sortie.write("MIGRÉ %s %d/%d\n" % (nom, k, n))
+        elif k:
+            etats["partiels"] += 1
+            sortie.write("PARTIEL %s %d/%d — manque : %s\n" % (nom, k, n, " ; ".join(dict.fromkeys(manque))))
+        else:
+            etats["restent"] += 1
+            sortie.write("RESTE %s 0/%d\n" % (nom, n))
+    sortie.write("PARITE %d groupes · migrés %d · partiels %d · restent %d · vérifications %d/%d\n" % (
+        len(groupes), etats["migrés"], etats["partiels"], etats["restent"], trouvees, total))
+    return 0
+
+
 # --- ordre : l'enchaînement entre projets (chantier ORD) ---------------------
 
 def tables_ordre(lignes):
@@ -10287,6 +10363,7 @@ def options_outils(sous):
     sy = sous.add_parser("symboles")
     sy.add_argument("fichier")
     sy.add_argument("noms", nargs="*")
+    sous.add_parser("parite").add_argument("--racine")
     od = sous.add_parser("ordre")
     od.add_argument("--json", action="store_true")
     od.add_argument("--db", action="store_true")
@@ -10566,7 +10643,7 @@ PAR_ARGUMENTS = {
     "ouvrir": cmd_ouvrir, "clore": cmd_clore, "oter": cmd_oter, "archiver": cmd_archiver, "trier": cmd_trier, "feuille": cmd_feuille,
     "niveau": cmd_niveau, "comparer": cmd_comparer, "relecture": cmd_relecture, "contrat": cmd_contrat,
     "forme": cmd_forme, "ouverts": cmd_ouverts, "postit": cmd_postit, "pause": cmd_pause, "plan": cmd_plan, "matin": cmd_matin, "fusionner": cmd_fusionner,
-    "sante": cmd_sante, "symboles": cmd_symboles, "compteur": cmd_compteur, "carte": cmd_carte,
+    "sante": cmd_sante, "symboles": cmd_symboles, "parite": cmd_parite, "compteur": cmd_compteur, "carte": cmd_carte,
     "rapide": cmd_rapide, "essai": cmd_essai, "lancables": cmd_lancables,
     "commiter": cmd_commiter, "ordre": cmd_ordre, "etat": cmd_etat,
 }

@@ -10219,6 +10219,29 @@ def tester_ref41_hors_garde():
 groupe(tester_ref41_hors_garde)
 
 
+def tester_ref5_parite():
+    """REF5 : `vlp.py parite` relie chaque `verifier` d'un groupe de `scripts/test-vlp.py` à l'`assert` de `tests/`
+    qui porte son libellé en message — `MIGRÉ`, `PARTIEL … — manque :`, `RESTE`, puis le total. Un libellé formaté
+    (`"… %d" % n`) se compare par son gabarit ; une fonction d'aide compte au groupe qui l'appelle."""
+    with tempfile.TemporaryDirectory() as r:
+        ecrire(os.path.join(r, "scripts", "test-vlp.py"),
+               "def aide_c():\n    verifier(\"c1\", True, '')\n\n\n"
+               "def tester_a():\n    verifier(\"a1\", True, '')\n    verifier(\"a2 : %d fiches\" % 3, True, '')\n\n\n"
+               "def tester_b():\n    verifier(\"b1\", True, '')\n    verifier(\"b2\", True, '')\n\n\n"
+               "def tester_c():\n    aide_c()\n\n\n"
+               "groupe(tester_a)\ngroupe(tester_b)\ngroupe(tester_c)\n")
+        ecrire(os.path.join(r, "tests", "test_ab.py"),
+               "def test_a():\n    assert True, \"a1\"\n    assert True, \"a2 : %d fiches\" % 3\n\n\n"
+               "def test_b():\n    assert True, (\"b\"\n                  \"1\")\n")
+        code, s = appel(["parite", "--racine", r])
+    verifier("REF5 : parite rend MIGRÉ, PARTIEL — manque : <nom>, RESTE (aide comprise), puis le total",
+             code == 0 and s == "MIGRÉ tester_a 2/2\nPARTIEL tester_b 1/2 — manque : b2\nRESTE tester_c 0/1\n"
+             "PARITE 3 groupes · migrés 1 · partiels 1 · restent 1 · vérifications 3/5\n", s)
+
+
+groupe(tester_ref5_parite)
+
+
 def tester_iso5_etat_texte():
     """ISO5 : `etat <fichier d'état> --texte <fichier>` ajoute le texte à la fin, une ligne vide avant, CRLF gardé ;
     un texte vide, un texte ou un fichier d'état absent : `GARDE:`, sort 1, rien d'écrit."""
