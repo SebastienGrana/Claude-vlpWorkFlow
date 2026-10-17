@@ -122,7 +122,8 @@ Sous-commandes :
   pour `<dossier>/C` (défaut `context AI`). Sort 0.
 - `lire <chemin>…` — imprime des fichiers du kit, chemins relatifs à sa racine
   (le parent de `scripts/`) : remplace un `cat` hors du projet, que PowerShell
-  refuse. Hors du kit : `GARDE:` ; absent : `ABSENT <chemin>` ; l'un ou l'autre
+  refuse. Seul changement au texte : `${CLAUDE_PLUGIN_ROOT}` devient cette racine,
+  en barres obliques (REF27). Hors du kit : `GARDE:` ; absent : `ABSENT <chemin>` ; l'un ou l'autre
   sort 1, les autres fichiers sont imprimés.
 - `cocher <fichier> <fiche> [--resolu T] [--date D] [--verifier | --refuser M]` — `[ ]` → `[x]`
   sur le titre de la fiche et, si `CLAUDE_CODE_SESSION_ID` n'est pas vide, `**Session** : <id>`

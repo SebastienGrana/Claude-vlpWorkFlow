@@ -1254,7 +1254,8 @@ VLP_PY = os.path.join(KIT, "scripts", "vlp.py")   # le lanceur : les commandes q
 
 def cmd_lire(chemins, sortie):
     """Un `cat` d'un fichier du kit est hors du projet : PowerShell le refuse
-    (chantier U). Python, lui, est permis par `allowed-tools`."""
+    (chantier U). Python, lui, est permis par `allowed-tools`. `${CLAUDE_PLUGIN_ROOT}`, que seules les commandes
+    voient remplacé, devient la racine du kit en barres obliques : recopiée, la ligne se lance (REF27)."""
     racine = os.path.realpath(KIT)
     code = 0
     for c in chemins:
@@ -1266,7 +1267,7 @@ def cmd_lire(chemins, sortie):
             sortie.write("ABSENT %s\n" % c)
             code = 1
         else:
-            texte = lire(vrai)
+            texte = lire(vrai).replace("${CLAUDE_PLUGIN_ROOT}", racine.replace("\\", "/"))
             sortie.write(texte if texte.endswith("\n") else texte + "\n")
     return code
 
