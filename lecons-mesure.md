@@ -134,6 +134,12 @@ cocher, journal, page — 0,55 $ de plus, que `vlp.py cout`, qui coupe aux commi
 fiche, rangeait dans la fiche **suivante**. Le vrai prix, 2,08 $, n'était écrit nulle
 part, et la suivante paraissait plus chère qu'elle n'était.
 
+Mesuré à `CPF1` (2026-10-17) : le même décalage touchait **chaque relecteur**, à la file comme en
+parallèle — il part après le commit de sa fiche, et `cout` le jugeait à son départ. Rejoué sur
+`119-ena.md` : les 13 relecteurs nomment leur fiche ; rangés par leur prompt, `ENA5` passe de
+**3,25 $ à 7,64 $** (ses 5 relectures refusées), `ENA9` de 9,46 $ à 7,15 $, total **87,95 $**
+inchangé. Un sous-agent se range à la fiche qu'il nomme, pas à l'heure où il part.
+
 ### Un essai part d'un bac, ou se déclare
 
 Mesuré à `ESH` (2026-10-12), sur 1 278 transcripts : 148 portent la marque `turnOrigin`
