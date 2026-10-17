@@ -2733,17 +2733,31 @@ def noter_publie(dossier, page, empreintes):
     os.replace(chemin + ".tmp", chemin)
 
 
+def joints_changes(copies, page=None):
+    """Les joints de `copies` à republier : avec `page`, ceux dont l'empreinte diffère de celle notée
+    à sa dernière publication (`publie`, écrit par `attente hook`) ; page jamais notée, ou sans
+    `page` : tous (chantier JNT)."""
+    if not page:
+        return copies
+    dossier, nom_page = os.path.split(os.path.abspath(page))
+    notes = lire_publie(dossier)
+    return {nom: c for nom, c in copies.items() if notes.get((nom_page, nom)) != empreinte(c)}
+
+
 def ligne_files(copies, page=None):
     """`FILES {…}` : le JSON de `recopier_joints`, chemins en barres obliques — à passer
-    tel quel au paramètre `files` d'`Artifact` (chantier BTN). Avec `page`, seuls les joints
-    dont l'empreinte diffère de celle notée à sa dernière publication (`publie`, écrit par
-    `attente hook`) ; page jamais notée : tous ; rien de changé : `FILES {}` (chantier JNT)."""
-    if page:
-        dossier, nom_page = os.path.split(os.path.abspath(page))
-        notes = lire_publie(dossier)
-        copies = {nom: c for nom, c in copies.items() if notes.get((nom_page, nom)) != empreinte(c)}
-    return "FILES %s\n" % json.dumps({nom: chemin.replace("\\", "/") for nom, chemin in copies.items()},
+    tel quel au paramètre `files` d'`Artifact` (chantier BTN) ; `joints_changes` les filtre
+    par `page` ; rien de changé : `FILES {}` (chantier JNT)."""
+    return "FILES %s\n" % json.dumps({nom: chemin.replace("\\", "/") for nom, chemin in joints_changes(copies, page).items()},
                                      ensure_ascii=False)
+
+
+def ligne_lire(copies, page=None):
+    """`LIRE <nom>…` : les joints que la republication remplace — les noms de `FILES` —, à passer en
+    `paths` au `read` d'`Artifact` avant de republier : un joint en ligne non lu la refuse (`APR`,
+    10 refus sur 50, tous sur `couts.svg`) ; rien à remplacer : `LIRE aucun` (REF29)."""
+    noms = list(joints_changes(copies, page))
+    return "LIRE %s\n" % (" ".join(noms) if noms else "aucun")
 
 
 def cmd_joints(dossier, sortie):
@@ -5214,6 +5228,8 @@ def cmd_plan(a, sortie):
 
 
 def cmd_feuille(a, sortie):
+    """`feuille` : la feuille de route régénérée, ses joints recopiés, puis les lignes `FILES` et
+    `LIRE` de sa republication ; `--verifier` compare sans écrire."""
     if not equipe(a.projet):
         sortie.write("GARDE: pas de CHANTIER.md dans %s\n" % a.projet)
         return 1
@@ -5235,7 +5251,7 @@ def cmd_feuille(a, sortie):
     joints = recopier_joints(os.path.dirname(os.path.abspath(page)))
     sortie.write("CSS %s\n" % joints["vlp.css"])
     joints.update(ecrire_couts(page, neuf, couts_du_projet(a.projet, neuf)))
-    sortie.write(ligne_files(joints, page))
+    sortie.write(ligne_files(joints, page) + ligne_lire(joints, page))
     sortie.write("%s · %s — %s\n" % (bilan, "inchangée" if neuf == html else "réécrite", page))
     return 0
 
@@ -7571,7 +7587,7 @@ def cmd_clore(a, sortie):
             fh.write(html)
         joints = recopier_joints(os.path.dirname(os.path.abspath(page)))
         joints.update(ecrire_couts(page, html, couts_du_projet(projet, html)))
-        sortie.write(ligne_files(joints))
+        sortie.write(ligne_files(joints) + ligne_lire(joints))
         sortie.write(bilan + " · réécrite — %s\n" % page)
     if ecart:
         sortie.write("ÉCART tokens %s donné · %s mesuré — le mesuré fait foi\n"

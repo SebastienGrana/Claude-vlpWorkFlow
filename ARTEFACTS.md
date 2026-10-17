@@ -202,6 +202,13 @@ Tranché le 2026-09-26 par le chantier `ALE` ; chiffres et commandes dans
   inchangé n'est pas renvoyé, donc pas refusé (`JNT1` : 14 refus sur 187
   publications avec `files` avant). `.gitattributes` tient les joints en LF, pour
   les mêmes octets dans tout clone.
+- **Republier la feuille : lire, comparer, puis publier** (`REF29`). `clore` et `feuille`
+  impriment, sous `FILES`, une ligne `LIRE <nom>…` : les joints que la republication
+  remplace, `couts.svg` compris quand il est joint, à passer en `paths` au `read`
+  (`LIRE aucun` : rien). Puis `vlp.py comparer <lue.html> <neuve.html>` entre la version lue
+  en ligne, écrite dans un fichier, et la neuve : un `PERDU:` se montre à l'utilisateur
+  avant toute publication — une feuille republiée depuis une branche efface ce qu'une
+  autre y a mis (`VOI6`).
 - **Les données : dans la page pour l'instant — la base `db` adoptée pour
   plus tard.** Une écriture en base ajoute bien moins encore, sans relire la
   page, et ne demande aucun accord, même hors mode auto. En échange, la page ne

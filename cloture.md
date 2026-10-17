@@ -59,8 +59,12 @@ pas d'`icon`, `label` : `clos`. Des fiches abandonnées y restent **non faites**
 Déjà écrite à l'étape 2 : `action: "read"` sur son `url` (« **artefact feuille
 de route** » de `CHANTIER.md`), puis republication du fichier local avec cette `url`
 et `files` : le même JSON, `label` : `<chantier> clos`.
-Ce `read` passe aussi `paths: ["couts.svg"]` : une autre session a pu le publier, et
-un joint non lu refuse la publication (`APR`, 2026-10-09 : 10 refus sur 50, tous sur lui).
+Ce `read` passe aussi en `paths` les noms de la ligne `LIRE` de `clore` (ou de `feuille`) :
+les joints que la republication remplace, `couts.svg` compris quand il est joint — un joint
+en ligne non lu refuse la publication (`APR`, 2026-10-09 : 10 refus sur 50, tous sur `couts.svg`).
+Avant de publier, `<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" comparer <lue.html> <neuve.html>` entre
+la version lue en ligne et la neuve (`ARTEFACTS.md`) : un `PERDU:` se montre à l'utilisateur
+avant toute publication — une autre branche a pu y mettre ce que celle-ci n'a pas (`VOI6`).
 Un projet qui a lancé `vlp.py archive` : `clore` a mis l'archive des clos en liste
 d'attente (ligne `ATTENTE`) — elle part avec les autres en fin de séance.
 
