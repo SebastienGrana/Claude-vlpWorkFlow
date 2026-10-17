@@ -9411,11 +9411,24 @@ def verdict_juge(lignes, code, attendu):
     return "MUTANT ATTRAPÉ · juge hors kit sorti %d — « %s »\n" % (code, ligne), 0
 
 
+def attendu_au_milieu(ecarts, attendu):
+    """Rendre une ligne `ATTENDU AU MILIEU` par `ÉCART:` qui contient `attendu` ailleurs qu'en tête de son libellé
+    (`jouer_suite` ne reconnaît que le début, défaut `E8` vu à la clôture d'ENA), avec le début à recopier."""
+    texte = ""
+    for e in ecarts:
+        libelle = e[len("ÉCART:"):].strip()
+        i = libelle.find(attendu)
+        if i > 0:
+            texte += "ATTENDU AU MILIEU · « %s » est dans « %s » : --attendu \"%s\"\n" % (
+                attendu, libelle, libelle[:i + len(attendu)])
+    return texte
+
+
 def verdict_mutant(lignes, code, attrape, attendu, juge=False):
     """Rendre (texte, code de sortie) : les `ÉCART:` vus, puis `MUTANT ATTRAPÉ`, `VIVANT` ou `PLANTÉ`. Une suite
     finie sort 0 ou dit `OK` ou `FIN:` en dernière ligne ; arrêtée avant, elle est `PLANTÉ`, écarts vus ou non. Un
     `juge` hors kit (`--test`) qui ne parle pas ainsi — ni `ÉCART:`, ni cette dernière ligne — est jugé à son code
-    (`verdict_juge`)."""
+    (`verdict_juge`). Un `attendu` non attrapé mais lu au milieu d'un écart se signale (`attendu_au_milieu`)."""
     ecarts = [l for l in lignes if l.startswith("ÉCART:")]
     texte = "".join(l + "\n" for l in ecarts)
     fin = next((l.strip() for l in reversed(lignes) if l.strip()), "")
@@ -9423,12 +9436,13 @@ def verdict_mutant(lignes, code, attrape, attendu, juge=False):
         return verdict_juge(lignes, code, attendu)
     if attrape:
         return texte + "MUTANT ATTRAPÉ %d écart(s) · arrêté sur « %s »\n" % (len(ecarts), attendu), 0
+    milieu = attendu_au_milieu(ecarts, attendu) if attendu else ""
     if not (code == 0 or fin == "OK" or fin.startswith("FIN:")):
         dernieres = [l.strip() for l in lignes if l.strip()][-3:]
         return texte + "MUTANT PLANTÉ · tests sortis %d sans finir, après %d écart(s) — %s\n" % (
-            code, len(ecarts), " / ".join(dernieres)), 1
+            code, len(ecarts), " / ".join(dernieres)) + milieu, 1
     if attendu:
-        return texte + "MUTANT VIVANT pour %s\n" % attendu, 1
+        return texte + "MUTANT VIVANT pour %s\n" % attendu + milieu, 1
     if ecarts:
         return texte + "MUTANT ATTRAPÉ %d écart(s)\n" % len(ecarts), 0
     return texte + "MUTANT VIVANT\n", 1

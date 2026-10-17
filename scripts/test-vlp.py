@@ -8477,6 +8477,13 @@ def tester_mutant_attendu():
         verifier("VIT2 : --attendu d'un test qui ne tombe pas → MUTANT VIVANT pour …, sort 1, avec les écarts vus",
                  vivant[0] == 1 and vivant[1].startswith("ÉCART: autre\nMUTANT VIVANT pour jamais\n") and vivant[3],
                  vivant)
+        milieu = mutant("x = 4", "--attendu", "utr")
+        verifier("REF31 : --attendu au milieu d'un écart (cas d'ENA) → VIVANT, puis la ligne ATTENDU AU MILIEU qui "
+                 "donne le début du libellé à recopier — mutant : la ligne retirée",
+                 milieu[0] == 1 and milieu[1].startswith(
+                     "ÉCART: autre\nMUTANT VIVANT pour utr\n"
+                     "ATTENDU AU MILIEU · « utr » est dans « autre » : --attendu \"autr\"\n") and milieu[3],
+                 milieu)
         plante = mutant("x = 3", "--attendu", "attendu")
         plante_tous = mutant("x = 3")
         verifier("VIT2 : la suite arrêtée en erreur après un autre écart → MUTANT PLANTÉ, sort 1, avec --attendu comme "
