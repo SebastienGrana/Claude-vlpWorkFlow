@@ -16,8 +16,12 @@ Sous-commandes :
   mais aucun titre au format attendu. Aucun fichier courant : pour chaque
   chemin `.md` de la ligne **chantiers possibles** (backticks ôtés, prose
   ignorée ; sans backticks, le disque tranche où le chemin commence), l'en-tête
-  `--- TODO : <chemin> (lignes A–B) ---` suivi du texte de la section TODO (du
-  premier titre qui contient « TODO » jusqu'avant le titre suivant), ou
+  `--- TODO : <chemin> (lignes A–B) ---` suivi de la section TODO (du
+  premier titre qui contient « TODO » jusqu'avant le titre suivant) — condensée si
+  elle porte la table `| # | Chantier |` : son titre, une ligne `(condensée : …)`,
+  puis chaque rang sans « Ce qu'il apporte », précédé de son numéro de ligne
+  (`382:| 96 | …`) ; sans table, le texte entier ; un rang cassé, `GARDE:` puis le
+  texte entier (REF2) —, ou
   `TODO=absente <chemin>`, ou `GARDE:` s'il est introuvable. Ligne absente :
   `TODO=absente (pas de ligne « chantiers possibles »)`. Puis le format des
   fiches : premier chemin de la ligne **méthode**, dans le projet sinon sous le
@@ -30,7 +34,9 @@ Sous-commandes :
   (NUI35, `etat_git`) ; un worktree né avant que la branche principale suive `CHANTIER.md` ou `CLAUDE.md` : en plus,
   `GIT=en retard sur <branche> : … ; y fusionner <branche>` (`suivi_en_retard`, NWT).
   Pas trouvé : une ligne `VOISIN=` par sous-dossier équipé, avec son alias, suivie de sa ligne `GIT=`, ou
-  `AUCUN_PROJET`. Sort toujours 0 : la commande lit la sortie, elle ne doit pas
+  `AUCUN_PROJET`. Au-delà de `PLAFOND_CARTE` caractères (`--python` compris), une
+  `GARDE: carte de <n> caractères …` en première ligne, la carte entière ensuite (REF2).
+  Sort toujours 0 : la commande lit la sortie, elle ne doit pas
   se faire refuser l'injection. `--python NOM` (les injections des skills : `"py -3"`, `python3` au relais ;
   VIT24) : une ligne vide, `PYTHON=NOM`,
   puis la carte, et un tampon dans le dossier temporaire ; `--relais` en plus :

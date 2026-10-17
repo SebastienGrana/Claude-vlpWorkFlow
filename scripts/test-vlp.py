@@ -409,6 +409,45 @@ def test_carte_todo():
         verifier("carte TODO : chantier ouvert, aucun bloc", "--- TODO :" not in s and "TODO=absente" not in s, s)
 
 
+def test_carte_plafond():
+    """REF2 : sans chantier ouvert, la carte injectée reste sous `PLAFOND_CARTE`, sa TODO condensée ; un rang cassé,
+    une `GARDE:` et la TODO entière ; au-delà du plafond, une `GARDE:` en première ligne, la carte entière ensuite."""
+    with tempfile.TemporaryDirectory() as t:
+        pr = os.path.join(t, "pr")
+        def chantier(prose=""):
+            ecrire(os.path.join(pr, "CHANTIER.md"), "# C\n\n- **alias** : pr\n- **chantiers possibles** : `08-etat.md`\n"
+                   "- **contexte** : ctx/\n%s" % prose)
+        def etat(rangs):
+            ecrire(os.path.join(pr, "08-etat.md"), "# État\n\n## La TODO\n\nProse de tête.\n\n| # | Chantier | Ce qu'il "
+                   "apporte | Coût estimé | Dépend de |\n|---|---|---|---|---|\n%s\nProse de fin.\n## Suite\n\nFin.\n" % rangs)
+        def injectee():
+            s = io.StringIO()
+            mod.carte_injectee(pr, "py -3", False, s)
+            return s.getvalue()
+        apporte = "Ce que le chantier apporte, aussi long qu'une vraie ligne de TODO. " * 12
+        chantier()
+        etat("".join("| %d | `C%02d` — Le chantier %d | %s | **V2 · score 15 (3 × 5)** · 1 fiche | — |\n"
+                     % (n, n, n, apporte) for n in range(1, 61)))
+        s = injectee()
+        verifier("carte sous PLAFOND_CARTE : TODO de 60 lignes, %d caractères" % len(s),
+                 len(s) <= mod.PLAFOND_CARTE and "GARDE" not in s, s[:2000])
+        verifier("carte sous PLAFOND_CARTE : rangs numérotés, sans « Ce qu'il apporte » ni la prose",
+                 "--- TODO : 08-etat.md (lignes 3–" in s and "| # | Chantier | Coût estimé | Dépend de |\n" in s
+                 and "9:| 1 | `C01` — Le chantier 1 | **V2 · score 15 (3 × 5)** · 1 fiche | — |\n" in s
+                 and "68:| 60 | `C60` — " in s and "Ce que le chantier apporte" not in s and "Prose de" not in s, s[:2000])
+
+        etat("| 1 | `C01` — Cassé | apporte | coût |\n")
+        s = rendu(pr)
+        verifier("carte sous PLAFOND_CARTE : rang cassé → GARDE, TODO entière",
+                 "GARDE: 08-etat.md : ligne 1 de la TODO : 4 cellules" in s and "Prose de tête.\n" in s, s)
+
+        chantier("\n%s\nDernière ligne de CHANTIER.md.\n" % ("Une prose de CHANTIER.md bien trop longue. " * 700))
+        s = injectee()
+        verifier("carte au-delà de PLAFOND_CARTE : GARDE en première ligne, carte entière",
+                 s.startswith("GARDE: carte de %d caractères" % (len(s) - len(s.split("\n", 1)[0]) - 1))
+                 and "\nPYTHON=py -3\n" in s and "Dernière ligne de CHANTIER.md.\n" in s, s[:500])
+
+
 def test_carte_methode():
     """LEC3 : le format des fiches de la ligne **méthode**, quand aucun chantier n'est ouvert."""
     kit = mod.KIT
@@ -4933,6 +4972,7 @@ groupe(tester_forme_depuis)
 # Test de carte avec TODO
 groupe(test_carte_relecteur)
 groupe(test_carte_todo)
+groupe(test_carte_plafond)
 groupe(test_carte_methode)
 
 # PYT1 : premier lancement des hooks — restaurer TAMPON_HOOKS pour ce test

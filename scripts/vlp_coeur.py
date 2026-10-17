@@ -259,8 +259,30 @@ def imprimer_section(sortie, nom, chemin, lignes, plage):
     sortie.write("".join(l + "\n" for l in lignes[plage[0] - 1:plage[1]]))
 
 
+def todo_condensee(lignes, plage):
+    """Le texte de la section TODO `plage` que la carte imprime : son titre, puis chaque rang de la table
+    `| # | Chantier |` sans « Ce qu'il apporte », précédé de son numéro de ligne (`382:| 96 | …`) — code,
+    titre, coût et score, dépendance (REF2, piste `ALC`). La prose et cette colonne se lisent dans le
+    fichier, à leur ligne. Sans table : None. Un rang cassé : la `ValueError` de `rangs_todo`."""
+    corps = lignes[plage[0] - 1:plage[1]]
+    rangs = rangs_todo(corps)
+    entete = next((l for l in corps if l.startswith("| # | Chantier")), None)
+    if entete is None:
+        return None
+    texte = [corps[0], "(condensée : ni la prose ni « Ce qu'il apporte » — une ligne entière se lit à son numéro)",
+             sans_apporte(cellules_de(entete, "en-tête de la TODO"))]
+    texte += ["%d:%s" % (plage[0] + i, sans_apporte(c)) for i, c in rangs]
+    return "".join(l + "\n" for l in texte)
+
+
+def sans_apporte(cellules):
+    """La ligne de table des cinq `cellules` d'un rang de TODO, sans la 3e, « Ce qu'il apporte »."""
+    return "| %s |" % " | ".join(cellules[:2] + cellules[3:])
+
+
 def imprimer_todo(texte, racine, sortie):
-    """La TODO de chaque fichier que nomme la ligne **chantiers possibles**."""
+    """La TODO de chaque fichier que nomme la ligne **chantiers possibles** : condensée (`todo_condensee`), sinon
+    — pas de table — la section entière ; une table cassée : une `GARDE:`, puis la section entière."""
     possibles = CHANTIERS_POSSIBLES.search(texte)
     if possibles is None:
         sortie.write("TODO=absente (pas de ligne « chantiers possibles »)\n")
@@ -274,8 +296,16 @@ def imprimer_todo(texte, racine, sortie):
         plage = section(lignes, lambda t: "TODO" in t, lambda t: "TODO" in t)
         if plage is None:
             sortie.write("TODO=absente %s\n" % chemin)
-        else:
+            continue
+        try:
+            court = todo_condensee(lignes, plage)
+        except ValueError as e:
+            sortie.write("GARDE: %s : %s — TODO entière\n" % (chemin, e))
+            court = None
+        if court is None:
             imprimer_section(sortie, "TODO", chemin, lignes, plage)
+        else:
+            sortie.write("--- TODO : %s (lignes %d–%d) ---\n%s" % (chemin, plage[0], plage[1], court))
 
 
 def imprimer_methode(texte, racine, sortie):
@@ -306,6 +336,25 @@ def fiches(chemin):
     titres = [(i, l) for i, l in enumerate(lignes, 1) if TITRE.match(l)]
     prochaine = next((l.split()[1] for _, l in titres if "[x]" not in l), None)
     return len(lignes), titres, prochaine
+
+
+# Une injection `!` ne garde qu'un nombre borné de caractères, puis un aperçu (doc « tools-reference », chiffre dans
+# le socle de `REF`) : la carte reste sous ce plafond, avec de la marge (REF2).
+PLAFOND_CARTE = 25000
+
+
+def carte_bornee(depart, sortie, tete="", relecteur=False, neuve=False):
+    """Écrire `tete`, puis la `carte` du projet qui contient `depart` — ce que lance `vlp.py carte`. Au-delà de
+    `PLAFOND_CARTE` caractères, `tete` comprise, une `GARDE:` en première ligne le dit, et la carte suit entière :
+    jamais de coupe silencieuse (REF2)."""
+    tampon = io.StringIO()
+    code = carte(depart, tampon, relecteur, neuve)
+    texte = tete + tampon.getvalue()
+    if len(texte) > PLAFOND_CARTE:
+        sortie.write("GARDE: carte de %d caractères, au-delà de PLAFOND_CARTE (%d) : une injection `!` la réduirait "
+                     "à un aperçu — alléger CHANTIER.md ou la TODO\n" % (len(texte), PLAFOND_CARTE))
+    sortie.write(texte)
+    return code
 
 
 def carte(depart, sortie, relecteur=False, neuve=False):
@@ -463,8 +512,7 @@ def carte_injectee(depart, python, relais, sortie, **options):
                 f.write(python)
         except OSError:
             pass
-    sortie.write("\nPYTHON=%s\n" % python)
-    return carte(depart, sortie, **options)
+    return carte_bornee(depart, sortie, tete="\nPYTHON=%s\n" % python, **options)
 
 
 def cmd_carte(a, sortie):
@@ -475,7 +523,7 @@ def cmd_carte(a, sortie):
         poser_marque_enchaine()
     if a.python:
         return carte_injectee(depart, a.python, a.relais, sortie, relecteur=a.relecteur, neuve=a.session_neuve)
-    return carte(depart, sortie, a.relecteur, a.session_neuve)
+    return carte_bornee(depart, sortie, relecteur=a.relecteur, neuve=a.session_neuve)
 
 
 # --- extraire, socle, sessions -----------------------------------------------
@@ -4020,8 +4068,14 @@ def todo_du_fichier(lignes):
     qui n'a pas ses 5 cellules — une barre verticale non échappée dans une cellule — lève une
     `ValueError` qui la nomme, au lieu d'être tronquée en silence (chantier PIP) ; `\\|` reste
     un caractère."""
+    return [cellules for _, cellules in rangs_todo(lignes)]
+
+
+def rangs_todo(lignes):
+    """[(indice dans `lignes`, cellules)] des rangs de `todo_du_fichier` — l'indice pour la carte, qui
+    numérote chaque ligne qu'elle condense (REF2)."""
     rangs, dedans = [], False
-    for l in lignes:
+    for i, l in enumerate(lignes):
         if l.startswith("| # | Chantier"):
             dedans = True
             continue
@@ -4035,7 +4089,7 @@ def todo_du_fichier(lignes):
         if len(cellules) != 5:
             raise ValueError("ligne %s de la TODO : %d cellules au lieu de 5 — une barre verticale "
                              "dans une cellule s'écrit \\|" % (cellules[0] if cellules else "?", len(cellules)))
-        rangs.append(cellules)
+        rangs.append((i, cellules))
     return rangs
 
 
