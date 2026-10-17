@@ -2198,6 +2198,13 @@ def tester_cout_session():
         verifier("equiper : dossier, sous-dossiers, CLAUDE.md, carte, état",
                  appel(["equiper", d]) == (0, "DOSSIER=%s\nA/\nb/\nCLAUDE.md\nAUCUN_PROJET\nETAT=01-etat.md\n" % os.path.abspath(d)),
                  appel(["equiper", d]))
+        absent = os.path.join(t, "absent")
+        try:
+            vu = appel(["equiper", absent])
+        except OSError as e:
+            vu = (None, repr(e))
+        verifier("equiper : un dossier absent → une GARDE, sort 1, pas de trace Python (chantier ISO)",
+                 vu == (1, "GARDE: dossier absent : %s — rien lu\n" % os.path.abspath(absent)), vu)
 
 
 groupe(tester_cout_session)
@@ -5255,6 +5262,42 @@ def tester_ordre_clore():
 groupe(tester_ordre_clore)
 
 
+def tester_clore_pages_aucun():
+    """ISO : un projet dont `CHANTIER.md` dit ses trois pages « aucun » se clôt sans ligne `ORDRE` vers la page
+    d'enchaînement du kit, ni `GARDE:` de page absente ; une ligne `SANS PAGE` le dit."""
+    with tempfile.TemporaryDirectory() as tk:
+        kit, projet = os.path.join(tk, "kit"), os.path.join(tk, "p")
+        ecrire(os.path.join(kit, "CHANTIER.md"), "# Chantier\n\n- **chantiers possibles** : `ctx/etat.md`\n"
+               "- **artefact enchaînement** : https://claude.ai/artifact/essai\n")
+        ecrire(os.path.join(kit, "ctx", "etat.md"), "## TODO\n\n| # | Chantier | Apporte | Coût | Dépend de |\n"
+               "|---|---|---|---|---|\n| 1 | `K1` — pas | a | **V1 · score 9 (3 × 3)** · 1 fiche | — |\n")
+        source = os.path.join(kit, "ctx", "ordre.md")
+        ecrire(source, "## Les projets\n\n| Clé | Dossier |\n|---|---|\n| k | `.` |\n\n## La cible\n\n"
+               "| Projet | Codes |\n|---|---|\n| k | `K1` |\n\n## Le chemin conseillé\n\n| Pas | Projet | Nom | "
+               "Coût |\n|---|---|---|---|\n| `K1` | k | | |\n")
+        ecrire(os.path.join(projet, "CHANTIER.md"), "# C\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n"
+               "- **fichier d'état** : ctx/08-etat.md\n- **artefact feuille de route** : aucun\n"
+               "- **artefact du chantier** : aucun\n- **artefact enchaînement** : aucun\n\n"
+               "Lettres de fiche déjà prises : A (test).\n")
+        ecrire(os.path.join(projet, "ctx", "08-etat.md"), "# État\n")
+        ecrire(os.path.join(projet, "ctx", "50-u.md"), ouvert("# Chantier U — u\n\n**Fait.** Rien.\n\n## U1 [x] — a\n"))
+        avant = mod.SOURCE_ORDRE
+        try:
+            mod.SOURCE_ORDRE = source
+            code, s = appel(["clore", projet, "--livre", "fini", "--date", "2026-10-17"])
+        finally:
+            mod.SOURCE_ORDRE = avant
+        donnees = os.path.join(kit, "ctx", "ordre", "donnees.json")
+        verifier("ISO : clore d'un projet aux pages « aucun » — ni ORDRE vers le kit, ni GARDE de page absente, "
+                 "une ligne SANS PAGE — clore : enchaînement « aucun » ignoré",
+                 code == 0 and "CLOS U " in s and "ORDRE envoyer" not in s and not os.path.exists(donnees)
+                 and "page du chantier introuvable" not in s and "feuille de route introuvable" not in s
+                 and "SANS PAGE la page du chantier, la feuille de route — CHANTIER.md dit « aucun »\n" in s, (code, s))
+
+
+groupe(tester_clore_pages_aucun)
+
+
 def lien_dossier(cible, lien):
     """Un lien vers le dossier `cible` : une jonction sous Windows (`mklink /J`, sans droit d'administrateur), comme
     `~/.claude/skills/vlp` ; un lien symbolique ailleurs."""
@@ -8197,6 +8240,45 @@ def tester_mutant_attendu():
 
 
 groupe(tester_mutant_attendu)
+
+# Un juge hors kit, comme le `verif.py` du projet jetable d'ISO7 : `OK`/`KO` en tête de ligne, ni `ÉCART:` ni `FIN:`.
+JUGE_HORS_KIT = """import sys
+t = open(sys.argv[1], encoding="utf-8").read()
+if "x = 9" in t:
+    raise ValueError("juge cassé")
+print("OK X -- lu" if "x = 1" in t else "KO X -- lu")
+sys.exit(0 if "x = 1" in t else 1)
+"""
+
+
+def tester_mutant_juge():
+    """ISO : un juge hors kit (`--test`) qui n'imprime ni `ÉCART:` ni `FIN:` est jugé à son code de sortie —
+    ATTRAPÉ s'il sort 1 et dit `--attendu`, VIVANT s'il sort 0 ou ne le dit pas, PLANTÉ sur une erreur Python."""
+    with tempfile.TemporaryDirectory() as tm:
+        f, juge = os.path.join(tm, "f.py"), os.path.join(tm, "juge.py")
+        ecrire(f, "x = 1\ny = 1\n")
+        ecrire(juge, JUGE_HORS_KIT)
+        test = '"%s" "%s" "%s"' % (sys.executable, juge, f)
+
+        def mutant(avant, apres, *options):
+            o = io.StringIO()
+            return mod.main(["mutant", f, avant, apres, "--test", test, *options], o), o.getvalue()
+        vus = {"attrapé": mutant("x = 1", "x = 2", "--attendu", "KO X"), "nu": mutant("x = 1", "x = 2"),
+               "vivant": mutant("y = 1", "y = 2", "--attendu", "KO X"),
+               "muet": mutant("x = 1", "x = 2", "--attendu", "jamais"),
+               "planté": mutant("x = 1", "x = 9", "--attendu", "KO X")}
+        verifier("ISO : mutant d'un juge hors kit — sorti 1 en disant --attendu → ATTRAPÉ ; sorti 0, ou sans le "
+                 "dire → VIVANT ; erreur Python → PLANTÉ — mutant : juge hors kit dit PLANTÉ",
+                 vus["attrapé"][0] == 0 and "MUTANT ATTRAPÉ · juge hors kit sorti 1 — « KO X -- lu »" in vus["attrapé"][1]
+                 and vus["nu"][0] == 0 and "MUTANT ATTRAPÉ · juge hors kit sorti 1" in vus["nu"][1]
+                 and vus["vivant"][0] == 1 and "MUTANT VIVANT pour KO X · juge hors kit sorti 0" in vus["vivant"][1]
+                 and vus["muet"][0] == 1 and "MUTANT VIVANT pour jamais · juge hors kit sorti 1 sans le dire"
+                 in vus["muet"][1]
+                 and vus["planté"][0] == 1 and "MUTANT PLANTÉ · juge hors kit sorti 1" in vus["planté"][1]
+                 and "ValueError" in vus["planté"][1], vus)
+
+
+groupe(tester_mutant_juge)
 
 # La suite factice de VIT21, posée en `scripts/test-vlp.py` d'un faux kit : deux groupes, et un contrôle hors de
 # tout groupe, comme ceux de test-boucle.py ; `--seul` filtre les groupes sur leur texte, comme `porte_motif`, et

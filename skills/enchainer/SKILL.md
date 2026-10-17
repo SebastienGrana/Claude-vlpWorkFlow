@@ -113,12 +113,13 @@ Pour chaque fiche de la série, dans l'ordre — en worktree, dès que `lancable
      `<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" cocher "<fichier de fiches courant>" <fiche> --verifier`
      (en worktree, ce fichier pris dans le dossier de la ligne `DOSSIER:` du `Result`, ici comme pour la
      relecture et `commiter` ci-dessous ; dans le même appel, rejeu compris, le post-it que la relecture lit et
-     qu'un sous-agent isolé ne peut pas écrire : `<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" postit "<dossier>" "<fichier de fiches courant>"`).
+     qu'un sous-agent isolé ne peut pas écrire : `<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" postit "<dossier>" "<fichier de fiches courant>"` —
+     chaque worktree a le sien, un appel par worktree).
      Sortie 1 — case `[ ]`, ou `TÊTE` : le sous-agent a commité — : c'est un
      `RETOUR` (étape 3 bis). `SANS GIT` : ni relecture ni commit, passe à la
      suivante. Sinon, un seul appel : `Agent`, `subagent_type: "vlp:relecture"`,
      `run_in_background: true`, `description` : `relire <fiche>`, `prompt` : `Fiche à relire : <fiche> — Kit : ${CLAUDE_PLUGIN_ROOT}.
-     Ton premier appel, depuis <PROJET=>, avec la lecture de ton étape 1 : <python> "<kit>/scripts/vlp.py"
+     Ton premier appel, depuis <PROJET= ; en worktree, le DOSSIER: du Result>, avec la lecture de ton étape 1 : <python> "<kit>/scripts/vlp.py"
      carte --python "<python>" --relecteur; <python> "<kit>/scripts/vlp.py" relecture <fiche>.
      Pas de PROJET=, ou une GARDE: : rends REFUSÉE avec la sortie brute.` —
      son `Result` à la notification de fin. Premier mot du `Result` (`enchainement.md`, « Relecture ») :
@@ -130,7 +131,8 @@ Pour chaque fiche de la série, dans l'ordre — en worktree, dès que `lancable
      fichier du dossier temporaire, puis `<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" etat "<fichier d'état>" --texte "<ce fichier>"`
      (`CHANTIER.md`, ligne **fichier d'état**) et `git add -- "<fichier d'état>"; git commit -m "État après <fiche>"`.
      `CONFLIT` : la fiche reste dans `--tourne` jusqu'à ce que plus rien ne tourne ni ne parte, puis repart
-     (point 1), depuis la version fusionnée. `GARDE:` : un `BLOQUÉE`. Puis passe à la suivante — en worktree,
+     (point 1), depuis la version fusionnée, dans un worktree neuf ; `fusionner` a retiré l'ancien — encore
+     dans `git worktree list` (une `GARDE: git worktree`) : `git worktree remove --force "<dossier>"` avant le rejeu. `GARDE:` : un `BLOQUÉE`. Puis passe à la suivante — en worktree,
      relance `lancables`. `REFUSÉE`, ou aucun verdict →
      `<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" cocher "<fichier de fiches courant>" <fiche> --refuser "<première ligne du Result>"`
      — en worktree, sur le fichier d'ici, puis `git add -- "<fichier de fiches courant>"; git commit -m "Refus : <fiche>"` :

@@ -36,7 +36,8 @@ demande un : le script crée et retire les copies. **Rien ne s'écrit sous `PROJ
    `<python> "<vlp.py>" mutant "<APRÈS>/<fichier>" "<avant>" "<après>" --attendu "<début du libellé>"`,
    `<vlp.py>` celui d'APRÈS pour une fiche du kit — sans `--test`, il ne joue que les
    groupes qui portent ce libellé, la suite entière s'ils ne l'attrapent pas —, sinon
-   celui du kit avec `--test "<commande>"`. Il mute une copie, jamais APRÈS, et doit
+   celui du kit avec `--test "<commande>"` — un juge qui n'imprime pas `ÉCART:` y est jugé à son code de
+   sortie, `--attendu` cherché dans toute sa sortie. Il mute une copie, jamais APRÈS, et doit
    rendre `MUTANT ATTRAPÉ`.
 5. `<python> "<kit>/scripts/vlp.py" relecture <fiche> --retirer` — même après un défaut ;
    la fiche nommée, il ne retire que tes copies, pas celles d'un relecteur lancé en même temps.

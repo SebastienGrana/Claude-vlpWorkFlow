@@ -368,6 +368,8 @@ Sous-commandes :
   rangée dont la 2e cellule est le titre du chantier (casse, espaces et apostrophe courbe ignorés).
   Puis, quel que soit le projet, `ordre --db` sur la source du kit : `ORDRE envoyer <donnees.json> → <URL>`
   (« artefact enchaînement » du kit) ; source absente ou garde d'`ordre` : une `GARDE:`, la clôture continue (ORD5).
+  Un projet dont `CHANTIER.md` dit « artefact enchaînement : aucun » : rien de tout ça. Ses pages dites « aucun »
+  (chantier, feuille de route) et absentes : pas de `GARDE:`, une ligne `SANS PAGE <pages> — …` (chantier ISO).
   `CLOS <lettre> <plage> · chantier <n> · cumul <brut> · routage <0|1> · index
   <0|1> · archivé <n> · bilan <0|1> · <estimé> — <projet>`. Aucun chantier ouvert, ou
   déjà `**CLOS**` : `GARDE:`, sort 1. Une TODO que `todo_du_fichier` refuse : `GARDE: … — rien écrit`, sort 1 (TAB3).
@@ -587,7 +589,10 @@ Sous-commandes :
   `SUITE ENTIÈRE · …` en tête. `--tous`, ou
   ni l'un ni l'autre : `MUTANT ATTRAPÉ <n> écart(s)` (sort 0) ou `MUTANT VIVANT` (sort 1). Une suite finie
   sort 0 ou dit `OK` ou `FIN:` en dernière ligne ; arrêtée avant — erreur, ou `DÉLAI:` de 1800 s —, c'est
-  `MUTANT PLANTÉ …` (sort 1), même après un écart. Chaque `ÉCART:` vu est imprimé avant ; `COPIE restée : …`
+  `MUTANT PLANTÉ …` (sort 1), même après un écart. Un juge `--test` hors kit, qui n'imprime ni `ÉCART:` ni
+  cette dernière ligne (chantier ISO), est jugé à son code : sorti non nul → `MUTANT ATTRAPÉ · juge hors kit …`,
+  avec `--attendu` s'il le dit dans une ligne quelconque ; sorti 0, ou sans le dire → `VIVANT` ; erreur Python,
+  `DÉLAI:` ou commande introuvable → `PLANTÉ`. Chaque `ÉCART:` vu est imprimé avant ; `COPIE restée : …`
   si la copie ne s'efface pas en 2 s ; puis `RENDU <sha1 12>` — `GARDE:` si l'empreinte a bougé, ou si les
   tests ne se lancent pas.
 - `symboles <fichier> [<nom>…]` — une ligne `nom début-fin` par fonction ou classe de premier niveau d'un

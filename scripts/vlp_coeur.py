@@ -1821,8 +1821,12 @@ PLAN = re.compile(r"^## [A-Z]{1,3}[0-9]|^\*\*(Dépend de|Tentatives|Critère de 
 
 
 def cmd_equiper(dossier, contexte, sortie):
-    """Ce que `/vlp:init` regarde avant d'équiper, sans `pwd`, `ls`, `head` ni `grep`."""
+    """Ce que `/vlp:init` regarde avant d'équiper, sans `pwd`, `ls`, `head` ni `grep` ; un dossier absent, une
+    `GARDE:`, sort 1 (chantier ISO)."""
     d = os.path.abspath(dossier)
+    if not os.path.isdir(d):
+        sortie.write("GARDE: dossier absent : %s — rien lu\n" % d)
+        return 1
     sortie.write("DOSSIER=%s\n" % d)
     sous = sorted((n for n in os.listdir(d) if not n.startswith(".") and os.path.isdir(os.path.join(d, n))), key=str.lower)
     for n in sous[:20]:
@@ -7298,7 +7302,7 @@ def cmd_clore(a, sortie):
     chemin_page = os.path.join(projet, os.path.dirname(courant), "artefacts", nom[:-3] + ".html")
     md_page = parts_page = None
     if not os.path.isfile(chemin_page):
-        gardes.append("page du chantier introuvable : %s" % chemin_page)
+        gardes.extend(garde_page(carte_, "artefact du chantier", "page du chantier introuvable : %s" % chemin_page))
     else:
         pg = lire(chemin_page)
         try:
@@ -7406,11 +7410,12 @@ def cmd_clore(a, sortie):
         os.remove(p)
     ecrire_par_tmp(ecritures + ([(archive, clos_html)] if html is not None and archive != page and clos_html is not None
                                 else []))
-    ordre_de_clore(todo_dit, sortie)
-    for g in gardes:
-        sortie.write("GARDE: %s — le reste est écrit\n" % g)
+    ordre_de_clore(todo_dit, sortie, carte_)
+    dire_sans_page(carte_, [(chemin_page, "artefact du chantier", "la page du chantier"),
+                            (page, "artefact feuille de route", "la feuille de route")], sortie, gardes)
     if html is None:
-        sortie.write("GARDE: feuille de route introuvable : %s — CHANTIER.md et fiches écrits\n" % page)
+        sortie.write("".join("GARDE: %s\n" % g for g in garde_page(
+            carte_, "artefact feuille de route", "feuille de route introuvable : %s — CHANTIER.md et fiches écrits" % page)))
     else:
         try:
             html, bilan = feuille(projet, html, None, date)
@@ -9238,12 +9243,34 @@ def effacer_copie(dossier):
     return False
 
 
-def verdict_mutant(lignes, code, attrape, attendu):
+def verdict_juge(lignes, code, attendu):
+    """Rendre (texte, code de sortie) d'un juge hors kit (`--test`, chantier ISO) — il n'imprime ni `ÉCART:`, ni
+    `OK` ou `FIN:` en dernière ligne : son code de sortie tranche. Un `DÉLAI:`, une erreur Python ou une commande
+    introuvable (126, 127, 9009) → `PLANTÉ` ; 0 → `VIVANT` ; sinon `ATTRAPÉ`, et avec `attendu`, la première
+    ligne qui le contient — aucune, `VIVANT pour`."""
+    vues = [l.strip() for l in lignes if l.strip()]
+    if code in (126, 127, 9009) or any(l.startswith(("DÉLAI:", "Traceback (most recent call last)"))
+                                       or re.match(r"\w+(Error|Exception):", l) for l in vues):
+        return "MUTANT PLANTÉ · juge hors kit sorti %d — %s\n" % (code, " / ".join(vues[-3:])), 1
+    if code == 0:
+        return "MUTANT VIVANT%s · juge hors kit sorti 0\n" % (" pour %s" % attendu if attendu else ""), 1
+    ligne = next((l for l in vues if attendu in l), None) if attendu else (vues[-1] if vues else "")
+    if ligne is None:
+        return "MUTANT VIVANT pour %s · juge hors kit sorti %d sans le dire — %s\n" % (
+            attendu, code, " / ".join(vues[-3:])), 1
+    return "MUTANT ATTRAPÉ · juge hors kit sorti %d — « %s »\n" % (code, ligne), 0
+
+
+def verdict_mutant(lignes, code, attrape, attendu, juge=False):
     """Rendre (texte, code de sortie) : les `ÉCART:` vus, puis `MUTANT ATTRAPÉ`, `VIVANT` ou `PLANTÉ`. Une suite
-    finie sort 0 ou dit `OK` ou `FIN:` en dernière ligne ; arrêtée avant, elle est `PLANTÉ`, écarts vus ou non."""
+    finie sort 0 ou dit `OK` ou `FIN:` en dernière ligne ; arrêtée avant, elle est `PLANTÉ`, écarts vus ou non. Un
+    `juge` hors kit (`--test`) qui ne parle pas ainsi — ni `ÉCART:`, ni cette dernière ligne — est jugé à son code
+    (`verdict_juge`)."""
     ecarts = [l for l in lignes if l.startswith("ÉCART:")]
     texte = "".join(l + "\n" for l in ecarts)
     fin = next((l.strip() for l in reversed(lignes) if l.strip()), "")
+    if juge and not (attrape or ecarts or fin == "OK" or fin.startswith("FIN:")):
+        return verdict_juge(lignes, code, attendu)
     if attrape:
         return texte + "MUTANT ATTRAPÉ %d écart(s) · arrêté sur « %s »\n" % (len(ecarts), attendu), 0
     if not (code == 0 or fin == "OK" or fin.startswith("FIN:")):
@@ -9272,7 +9299,7 @@ def jouer_mutant(commande, copie, attendu, vise):
         aucun = any(l.startswith("GARDE: aucun groupe") for l in lignes)
         tete = "SUITE ENTIÈRE · %s\n" % (("aucun groupe ne porte « %s »" if aucun
                                           else "« %s » n'est pas tombé dans ses groupes") % attendu)
-    texte, code = verdict_mutant(*jouer_suite(commande, copie, attendu), attendu)
+    texte, code = verdict_mutant(*jouer_suite(commande, copie, attendu), attendu, juge=not vise)
     return tete + texte, code
 
 
@@ -9961,13 +9988,36 @@ def cmd_ordre(a, sortie):
 SOURCE_ORDRE = os.path.join(KIT, "context AI", "ordre.md")   # `None` : clore ne la refait pas (la suite de tests)
 
 
-def ordre_de_clore(todo_dit, sortie):
+def dit_aucun(carte_, nom):
+    """Vrai si la ligne `nom` de `CHANTIER.md` (`carte_`) existe et vaut « aucun » ou « aucune » : le projet n'a pas
+    cette page, et le veut ; une ligne absente n'en dit rien."""
+    valeur = champ(carte_, nom)
+    return valeur is not None and valeur.strip().lower() in ("aucun", "aucune")
+
+
+def garde_page(carte_, nom, garde):
+    """`[garde]` pour une page absente, `[]` si `CHANTIER.md` dit sa ligne `nom` « aucun » (`dit_aucun`) : voulu."""
+    return [] if dit_aucun(carte_, nom) else [garde]
+
+
+def dire_sans_page(carte_, pages, sortie, gardes):
+    """Dire les `gardes` de `clore`, puis une ligne `SANS PAGE <pages> — CHANTIER.md dit « aucun »` pour les
+    `pages` — (chemin, ligne de `CHANTIER.md`, nom) — absentes et dites « aucun » ; rien s'il n'y en a pas
+    (chantier ISO)."""
+    sortie.write("".join("GARDE: %s — le reste est écrit\n" % g for g in gardes))
+    sans = [nom for chemin, ligne, nom in pages if not os.path.isfile(chemin) and dit_aucun(carte_, ligne)]
+    if sans:
+        sortie.write("SANS PAGE %s — CHANTIER.md dit « aucun »\n" % ", ".join(sans))
+
+
+def ordre_de_clore(todo_dit, sortie, carte_=()):
     """Dire `todo_dit`, la ligne de la TODO d'une clôture ; puis, quel que soit le projet clos, refaire les données
     de la page d'enchaînement du kit (`cmd_ordre --db` sur `SOURCE_ORDRE`) et la ligne `ORDRE envoyer
     <donnees.json> → <URL>` — l'URL lue à la ligne `artefact enchaînement` du `CHANTIER.md` du projet de la source.
+    Sauf si le `CHANTIER.md` du projet clos (`carte_`) dit cette ligne « aucun » (`dit_aucun`, chantier ISO) : rien.
     Source absente, ou une garde d'`ordre` : une `GARDE:`, la clôture continue."""
     sortie.write(todo_dit + "\n")
-    if SOURCE_ORDRE is None:
+    if SOURCE_ORDRE is None or dit_aucun(carte_, "artefact enchaînement"):
         return
     source = os.path.realpath(SOURCE_ORDRE)
     if not os.path.isfile(source):
