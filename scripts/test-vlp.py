@@ -1199,10 +1199,15 @@ def tester_pont_pytest():
     (REF6) n'est que là, pas dans le Python de la machine. uv ou pytest manque (`uv sync`) : un écart, jamais un saut
     silencieux."""
     racine = os.path.join(ICI, "..")
+    if os.environ.get("VLP_PONT") == "1":
+        # REF7 : cette suite lancée depuis pytest (un `mutant` qu'un test joue) relancerait pytest, qui la
+        # relancerait : une chaîne sans fin, vue le 2026-10-18. Le pont ne se joue qu'au premier niveau.
+        print("SAUTÉ: pont pytest — déjà dans une suite lancée par le pont (VLP_PONT=1)")
+        return
     uv = shutil.which("uv")
     try:
         r = subprocess.run([uv or "uv", "run", "--frozen", "pytest", "-q"], cwd=racine, capture_output=True,
-                           encoding="utf-8", errors="replace", timeout=600)
+                           encoding="utf-8", errors="replace", timeout=600, env=dict(os.environ, VLP_PONT="1"))
         code, texte = r.returncode, (r.stdout + r.stderr).strip()
     except (OSError, subprocess.SubprocessError) as e:
         code, texte = None, "uv run pytest ne se lance pas : %s" % e

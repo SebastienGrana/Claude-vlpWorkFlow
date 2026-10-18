@@ -1,0 +1,1538 @@
+# serializer version: 1
+# name: test_photo[abri]
+  '''
+  code 0
+  --- sortie
+  ABRI ctx/artefacts/feuille-de-route.md · résultat 1 · notes 0 · journal 0 · bilan 0
+  
+  --- erreur
+  
+  --- écrits
+  == ajouté ctx/artefacts/feuille-de-route.md
+  # Démo — notes et journal
+  ## Résultat
+  Démo
+  ## Notes
+  ## Journal
+  ## Bilan
+  
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[apercu]
+  '''
+  code 0
+  --- sortie
+  APERCU écrit apercu-demo · port 8790 · <P>/.claude/launch.json
+  GARDE: .claude/launch.json n'est pas couvert par .gitignore : il porte des chemins de machine, et partirait dans le dépôt
+  
+  --- erreur
+  
+  --- écrits
+  == ajouté .claude/launch.json
+  {
+    "version": "0.0.1",
+    "configurations": [
+      {
+        "name": "apercu-demo",
+        "runtimeExecutable": "py",
+        "runtimeArgs": [
+          "<KIT>/scripts/vlp.py",
+          "servir",
+          "<P>/ctx/artefacts",
+          "8790"
+        ],
+        "port": 8790
+      }
+    ]
+  }
+  
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[archive]
+  '''
+  code 0
+  --- sortie
+  FILES {"vlp.css": "<P>/ctx/artefacts/vlp.css", "vlp.js": "<P>/ctx/artefacts/vlp.js"}
+  ARCHIVE 1 déplacées · 1 dans l'archive · feuille 3924 → 3303 octets · sans url — .\ctx/artefacts\archive-clos.html
+  
+  --- erreur
+  
+  --- écrits
+  == ajouté ctx/artefacts/archive-clos.html
+  <meta charset="utf-8">
+  <title>demo — Chantiers clos</title>
+  <!--
+    GABARIT — l'archive des chantiers clos (chantier ARC). `vlp.py archive` la crée et y
+    déplace la table des clos de la feuille de route ; `clore` y ajoute sa ligne et la met
+    en liste d'attente : elle se publie une fois, en fin de séance.
+  -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="vlp.css">
+  
+  <div class="page">
+    <header>
+      <div class="eyebrow">Archive · alias <span class="mono">demo</span> · <a href="https://claude.ai/artifact/FEUILLE">la feuille de route</a></div>
+      <h1>Chantiers clos</h1>
+      <p>Tous les chantiers clos du projet, le plus récent en haut. Ils ne se rejouent pas ; le
+        graphique de leur coût reste sur la feuille de route.</p>
+    </header>
+  
+    <section id="clos">
+      <h2>Chantiers clos — ils ne se rejouent pas</h2>
+      <!-- ZONE:clos — une ligne ajoutée à chaque clôture, la plus récente en haut.
+           Colonne Tokens, total en pied de table et image des coûts absents
+           tant qu'aucun chantier clos ne porte de coût mesuré. -->
+      <details class="clos" open>
+        <summary><span class="resume-clos">Démo chantiers clos · Démo tokens · Démo</span></summary>
+      <div class="tableau">
+        <table>
+          <thead>
+            <tr><th>Chantier</th><th>Fiches</th><th>Clos le</th><th>Tokens</th><th>Ce qu'il a livré</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><a href="Démo">Démo</a></td>
+              <td class="mono">Démo</td><td class="mono">Démo</td>
+              <td class="mono">Démo</td>
+              <td>Démo</td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>Démo</strong></td><td class="mono">Démo</td></tr>
+          </tfoot>
+        </table>
+      </div>
+      </details>
+    </section>
+  </div>
+  <script src="vlp.js"></script>
+  
+  == changé ctx/artefacts/feuille-de-route.html
+  <meta charset="utf-8">
+  <title>Démo — Feuille de route</title>
+  <!--
+    GABARIT — artefact permanent d'un projet. Posé par /vlp-init, mis à jour à
+    l'ouverture et à la clôture de chaque chantier. Un seul par projet, il ne
+    change jamais d'URL. Remplace les <…>, ne renomme pas les marqueurs `ZONE:…`.
+  
+    Colonne Tokens de ZONE:clos : même convention de coût que dans
+    artefact-chantier.html (posée là, pas recopiée ici).
+  
+    La page de présentation du projet. `vlp.py feuille` y pose le reste : les
+    sous-listes par phase, la pastille du score, l'aide du score (AVL12) et la
+    ligne « Les autres pages » sous les liens du haut (AVL10).
+  -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="vlp.css">
+  
+  <div class="page">
+    <header>
+      <div class="eyebrow">Feuille de route · alias <span class="mono">Démo</span></div>
+      <h1>Démo</h1>
+      <p>Démo</p>
+    </header>
+  
+    <nav class="sommaire" aria-label="Sommaire"><a href="#encours">Chantier en cours</a><a href="#todo">Chantiers possibles</a><a href="#clos">Chantiers clos</a></nav>
+  
+    <section id="encours">
+      <h2>Chantier en cours</h2>
+      <!-- ZONE:encours — remplacé à chaque ouverture, remis à « aucun » à chaque clôture.
+           /tache n'y touche pas : l'avancement fiche par fiche est sur la page du chantier. -->
+      <div class="encours">
+        <div class="titre">Démo</div>
+        <div class="mono">fiches Démo–Démo · avancement sur la page du chantier</div>
+        <div><a href="Démo">Voir le détail des fiches</a></div>
+      </div>
+    </section>
+  
+    <section id="todo">
+      <h2>Les chantiers possibles, dans l'ordre</h2>
+      <p class="resume-todo"><strong>Démo chantiers possibles</strong></p>
+      <!-- ZONE:todo — miroir de la TODO ordonnée du fichier d'état ; le fichier reste la vérité -->
+      <ol class="todo">
+            <li class="phase-titre" data-phase="V1"><h3>V1 · 1&nbsp;chantier</h3></li>
+            <li class="carte-todo" data-phase="V1" data-score="25" data-taille="petit" data-pret="oui"><span class="gauche"><span class="rang mono">1</span><span class="phase mono" data-phase="V1" title="score 25 = 5 × 5 (importance × facilité)">V1 · 25</span> <span class="badge" data-etat="cours">en cours</span></span><details><summary><span class="titre">Démo</span></summary><div class="detail">Démo</div></details><span class="meta"><span class="seg">Démo fiches</span></span></li>
+          </ol>
+    </section>
+  
+    <section id="clos">
+      <h2>Chantiers clos — ils ne se rejouent pas</h2>
+      <!-- ZONE:archive — les chantiers clos vivent dans l'archive (chantier ARC) ; refait par clore -->
+      <details class="clos">
+        <summary><span class="resume-clos">1 chantiers clos · coût non mesuré</span></summary>
+        <p>Le détail de chacun, le plus récent en haut : dans l'archive, pas encore publiée.</p>
+      </details>
+      <!-- /ZONE:archive -->
+    </section>
+  
+    <footer>
+      <span>Lettres de fiche prises : <span class="mono">Démo</span></span>
+      <span>État détaillé : <span class="mono">Démo/Démo-etat.md</span></span>
+      <span>Mis à jour le <span class="mono">Démo</span></span>
+    </footer>
+  </div>
+  <script src="vlp.js"></script>
+  
+  == ajouté ctx/artefacts/vlp.css, copie à l'octet de templates/vlp.css
+  == ajouté ctx/artefacts/vlp.js, copie à l'octet de templates/vlp.js
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[archiver]
+  '''
+  code 0
+  --- sortie
+  ARCHIVÉ 1 · index 29 lignes · archive 7 lignes
+  
+  --- erreur
+  
+  --- écrits
+  == ajouté ctx/00-INDEX-archive.md
+  # Archive de l'index — les chantiers clos
+  
+  QUAND LIRE : on relit un chantier clos ; l'index n'en garde qu'une ligne qui renvoie ici.
+  
+  | Fichier | Lire quand |
+  |---|---|
+  | `10-dem.md` | **clos** — ne se rejoue pas, garde son socle d'API |
+  
+  == changé ctx/00-INDEX.md
+  # Index du contexte Démo
+  
+  **`CLAUDE.md`, à la racine, est le fichier d'entrée** : il porte l'identité du
+  projet, l'état en cinq lignes, les règles, et une table « tâche → fichier » qui
+  suffit dans presque tous les cas. Cet index-ci ne sert que lorsque la tâche n'y
+  figure pas.
+  
+  Un fichier = un sujet. **Ne charger que ce que la tâche demande.**
+  Chaque fichier s'ouvre sur une ligne « QUAND LIRE » : elle seule décide. Si
+  elle ne décrit pas la tâche en cours, le fichier n'est pas à ouvrir, même s'il
+  a l'air proche.
+  
+  ## Stable — ce qui ne bouge presque plus
+  
+  | Fichier | Lire quand |
+  |---|---|
+  | `01-etat.md` | on reprend après une interruption, ou on choisit quoi faire ensuite |
+  | *(hors dossier)* `methode-chantier.md`, à la racine du kit | on ouvre un chantier, ou on le découpe en fiches — la méthode n'est pas recopiée ici, elle voyage avec le plugin `vlp` et sert tous les projets |
+  
+  ## Chantiers — un fichier de fiches par chantier
+  
+  | Fichier | Lire quand |
+  |---|---|
+  | `10-dem.md` | on joue une fiche `DEM*` — chantier **ouvert** |
+  | `00-INDEX-archive.md` | on relit un chantier clos — chacun y a sa ligne, triée par numéro |
+  
+  ## à remplir
+  
+  à remplir
+  
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[attente]
+  '''
+  code 0
+  --- sortie
+  ATTENTE 0
+  
+  --- erreur
+  
+  --- écrits
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[bac]
+  '''
+  code 0
+  --- sortie
+  BAC <TMP>/bac
+  claude -p "Appelle l'outil Skill avec skill \"vlp:jouer\" et args \"F1\", puis recopie son resultat tel quel. Rien d'autre." --model haiku --max-budget-usd 1 --permission-mode acceptEdits --allowedTools "Skill" --output-format stream-json --verbose
+  claude -p "Appelle l'outil Skill avec skill \"vlp:jouer\" et args \"F2\", puis recopie son resultat tel quel. Rien d'autre." --model haiku --max-budget-usd 1 --permission-mode acceptEdits --allowedTools "Skill" "Bash" --output-format stream-json --verbose < /dev/null
+  SESSION Set-Location "<TMP>/bac"; & "<CLAUDE>"
+  
+  --- erreur
+  
+  --- écrits
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[carte]
+  '''
+  code 0
+  --- sortie
+  PROJET=<P>
+  COURANT=ctx/10-dem.md
+  --- CHANTIER.md ---
+  # Chantier courant — Démo
+  
+  > Fichier lu **en entier** par `/vlp:chantier` et `/vlp:tache`, depuis la racine du
+  > projet. C'est la seule table à tenir : rien à mettre à jour ailleurs quand un
+  > chantier s'ouvre ou se clôt. Garde-le sous le seuil de `scripts/vlp.py` : `renvois` avertit.
+  > Les libellés en gras se recopient **à l'identique** : ils sont lus tels quels.
+  
+  - **alias** : demo
+  - **kit** : le plugin vlp — sans chemin de machine, ce fichier part dans Git
+  - **contexte** : ctx/
+  - **méthode** : methode-chantier.md, à la racine du kit — il voyage avec le plugin
+  - **chantiers possibles** : ctx/01-etat.md
+  - **fichier d'état** : ctx/01-etat.md
+  - **index** : ctx/00-INDEX.md
+  - **artefact feuille de route** : https://claude.ai/artifact/FEUILLE
+  - **artefact du chantier** : aucun
+  - **artefact enchaînement** : aucun
+  - **livraison** : aucune
+  - **vérification** : py -3 scripts/outil.py
+  - **contexte dans Git** : oui
+  - **commandes longues** : aucune
+  
+  
+  ## Contraintes d'écriture
+  
+  - Prose en français, code et commentaires de code en anglais.
+  
+  ## Chantiers clos — dans l'index, pas ici
+  
+  Lettres de fiche déjà prises : DEM. Un nouveau chantier en choisit un autre —
+  trois majuscules, jamais réemployées, même après clôture.
+  GIT=suivi
+  --- fiches : ctx/10-dem.md (51 lignes, 3 titres) ---
+  14:## DEM1 [x] — Écrire l'outil
+  28:## DEM2 [ ] — Le tester
+  41:## DEM3 [ ] — Le montrer
+  EFFORT=medium (défaut de methode-chantier.md)
+  PROCHAINE=DEM2
+  
+  --- erreur
+  
+  --- écrits
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[chef]
+  '''
+  code 1
+  --- sortie
+  GARDE: JSON illisible : Expecting value: line 1 column 1 (char 0)
+  
+  --- erreur
+  
+  --- écrits
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[clore]
+  '''
+  code 0
+  --- sortie
+  TODO `DEM` absente — rien ôté
+  GARDE: ligne « jouer une fiche du chantier DEM » absente de CLAUDE.md — le reste est écrit
+  SANS PAGE la page du chantier — CHANTIER.md dit « aucun »
+  FILES {"vlp.css": "<P>/ctx/artefacts/vlp.css", "vlp.js": "<P>/ctx/artefacts/vlp.js", "couts.svg": "<P>/ctx/artefacts/couts.svg"}
+  LIRE vlp.css vlp.js couts.svg
+  FEUILLE todo 2 · encours non · lettres 1 · réécrite — .\ctx/artefacts\feuille-de-route.html
+  CLOS DEM DEM1..DEM3 · chantier 300 000 · cumul 300 000 · routage 0 · index 1 · archivé 2 · bilan 0 · estimé non noté · cadré 3 · joué 1 fiches 1,50 $ — .
+  
+  --- erreur
+  
+  --- écrits
+  == ajouté ctx/00-INDEX-archive.md
+  # Archive de l'index — les chantiers clos
+  
+  QUAND LIRE : on relit un chantier clos ; l'index n'en garde qu'une ligne qui renvoie ici.
+  
+  | Fichier | Lire quand |
+  |---|---|
+  | `10-dem.md` | on relit le socle du chantier DEM — **clos** « La démo », `DEM1..DEM3` |
+  | `10-dem.md` | **clos** — ne se rejoue pas, garde son socle d'API |
+  
+  == changé ctx/00-INDEX.md
+  # Index du contexte Démo
+  
+  **`CLAUDE.md`, à la racine, est le fichier d'entrée** : il porte l'identité du
+  projet, l'état en cinq lignes, les règles, et une table « tâche → fichier » qui
+  suffit dans presque tous les cas. Cet index-ci ne sert que lorsque la tâche n'y
+  figure pas.
+  
+  Un fichier = un sujet. **Ne charger que ce que la tâche demande.**
+  Chaque fichier s'ouvre sur une ligne « QUAND LIRE » : elle seule décide. Si
+  elle ne décrit pas la tâche en cours, le fichier n'est pas à ouvrir, même s'il
+  a l'air proche.
+  
+  ## Stable — ce qui ne bouge presque plus
+  
+  | Fichier | Lire quand |
+  |---|---|
+  | `01-etat.md` | on reprend après une interruption, ou on choisit quoi faire ensuite |
+  | *(hors dossier)* `methode-chantier.md`, à la racine du kit | on ouvre un chantier, ou on le découpe en fiches — la méthode n'est pas recopiée ici, elle voyage avec le plugin `vlp` et sert tous les projets |
+  
+  ## Chantiers — un fichier de fiches par chantier
+  
+  | Fichier | Lire quand |
+  |---|---|
+  | `00-INDEX-archive.md` | on relit un chantier clos — chacun y a sa ligne, triée par numéro |
+  
+  ## à remplir
+  
+  à remplir
+  
+  == changé ctx/10-dem.md
+  # Chantier DEM — La démo
+  
+  **CLOS** le 2026-01-05. Ne se rejoue pas — ne sert plus qu'à relire son socle.
+  
+  **Fait.** DEM1..DEM3 (2026-01-05) : La démo — estimé non noté · cadré 3 · joué 1 fiches 1,50 $.
+  
+  **Ouvert.** le <AUJOURDHUI>.
+  
+  > **QUAND LIRE** : on joue une fiche `DEM*`.
+  
+  ## Le socle commun
+  
+  Le projet de démonstration des photos : trois fiches, la première faite.
+  
+  ## L'ordre des fiches
+  
+  <!-- FICHE:DEM1 -->
+  ## DEM1 [x] — Écrire l'outil
+  
+  **Dépend de** : rien.
+  **Fichiers** : `scripts/outil.py`.
+  **Session** : <MODELE>/s.jsonl
+  
+  **Prompt**
+  Écris `outil.py`.
+  
+  **Critère de fin**
+  `py -3 scripts/outil.py` sort 0.
+  <!-- /FICHE -->
+  
+  <!-- FICHE:DEM2 -->
+  ## DEM2 [ ] — Le tester
+  
+  **Dépend de** : `DEM1`.
+  **Fichiers** : `scripts/outil.py`.
+  
+  **Prompt**
+  Teste-le.
+  
+  **Critère de fin**
+  Le test passe.
+  <!-- /FICHE -->
+  
+  <!-- FICHE:DEM3 -->
+  ## DEM3 [ ] — Le montrer
+  
+  **Dépend de** : `DEM2`.
+  **Fichiers** : `ctx/artefacts/feuille-de-route.html`.
+  
+  **Prompt**
+  Montre-le.
+  
+  **Critère de fin** (visuel)
+  La page le montre.
+  <!-- /FICHE -->
+  
+  == ajouté ctx/artefacts/couts.svg
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 160"><text x="0" y="16" font-family="system-ui,sans-serif" font-size="14" fill="#6e6151">≈300,0k (300 000) tokens</text><rect class="barre" x="64.0" y="24.0" width="512.0" height="136.0" fill="#8f5a0f"/><rect x="0" y="159" width="640" height="1" fill="#6e6151"/></svg>
+  
+  == changé ctx/artefacts/feuille-de-route.html
+  <meta charset="utf-8">
+  <title>Démo — Feuille de route</title>
+  <!--
+    GABARIT — artefact permanent d'un projet. Posé par /vlp-init, mis à jour à
+    l'ouverture et à la clôture de chaque chantier. Un seul par projet, il ne
+    change jamais d'URL. Remplace les <…>, ne renomme pas les marqueurs `ZONE:…`.
+  
+    Colonne Tokens de ZONE:clos : même convention de coût que dans
+    artefact-chantier.html (posée là, pas recopiée ici).
+  
+    La page de présentation du projet. `vlp.py feuille` y pose le reste : les
+    sous-listes par phase, la pastille du score, l'aide du score (AVL12) et la
+    ligne « Les autres pages » sous les liens du haut (AVL10).
+  -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="vlp.css">
+  
+  <div class="page">
+    <header>
+      <div class="eyebrow">Feuille de route · alias <span class="mono">Démo</span></div>
+      <h1>Démo</h1>
+      <p>Démo</p>
+    </header>
+  
+    <nav class="sommaire" aria-label="Sommaire"><a href="#encours">Chantier en cours</a><a href="#todo">Chantiers possibles</a><a href="#clos">Chantiers clos</a></nav>
+  
+    <section id="encours">
+      <h2>Chantier en cours</h2>
+      <!-- ZONE:encours — remplacé à chaque ouverture, remis à « aucun » à chaque clôture.
+           /tache n'y touche pas : l'avancement fiche par fiche est sur la page du chantier. -->
+      <div class="encours">
+        <div class="titre">Aucun chantier ouvert</div>
+        <div>Lancer <span class="mono">/vlp:chantier</span> pour en ouvrir un.</div>
+      </div>
+    </section>
+  
+    <section id="todo">
+      <h2>Les chantiers possibles, dans l'ordre</h2>
+      <p class="resume-todo"><strong>2 chantiers possibles</strong> · 2 moyens · 1 bloqué · ≈6 fiches estimées</p>
+      <!-- ZONE:todo — miroir de la TODO ordonnée du fichier d'état ; le fichier reste la vérité -->
+      <ol class="todo">
+            <li class="carte-todo" data-taille="moyen" data-pret="oui"><span class="gauche"><span class="rang mono">1</span></span><details><summary><span class="titre">Une suite</span></summary><div class="detail">la suite de la démo</div></details><span class="meta"><span class="seg">3 fiches</span></span></li>
+            <li class="carte-todo" data-taille="moyen" data-pret="non"><span class="gauche"><span class="rang mono">2</span><span class="dep mono">← 1</span></span><details><summary><span class="titre">Une suite</span></summary><div class="detail">la suite de la démo</div></details><span class="meta"><span class="seg">3 fiches</span></span></li>
+          </ol>
+    </section>
+  
+    <section id="clos">
+      <h2>Chantiers clos — ils ne se rejouent pas</h2>
+      <!-- ZONE:clos — une ligne ajoutée à chaque clôture, la plus récente en haut.
+           Colonne Tokens, total en pied de table et image des coûts absents
+           tant qu'aucun chantier clos ne porte de coût mesuré. -->
+      <img src="couts.svg" alt="Coût des chantiers clos en tokens : 1 barres, du plus ancien au plus récent ; le plus cher : La démo" data-couts="{&quot;couleur&quot;: &quot;#8f5a0f&quot;, &quot;barres&quot;: [[&quot;La démo&quot;, 300000, &quot;≈300,0k (300 000)&quot;]]}">
+      <details class="clos">
+        <summary><span class="resume-clos">2 chantiers clos · ≈300,0k (300 000) tokens · 1,50 $ sur 1 clos mesurés</span></summary>
+      <div class="tableau">
+        <table>
+          <thead>
+            <tr><th>Chantier</th><th>Fiches</th><th>Clos le</th><th>Tokens</th><th>Ce qu'il a livré</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>La démo <span class="badge" data-etat="clos">clos</span></td>
+              <td class="mono">DEM1–DEM3</td><td class="mono">2026-01-05</td>
+              <td class="mono">1,50 $ · ≈300,0k (300 000)</td>
+              <td>La démo</td>
+            </tr>
+            <tr>
+              <td><a href="Démo">Démo</a></td>
+              <td class="mono">Démo</td><td class="mono">Démo</td>
+              <td class="mono">Démo</td>
+              <td>Démo</td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>≈300,0k (300 000)</strong></td><td class="mono">1,50 $ sur 1 clos mesurés</td></tr>
+          </tfoot>
+        </table>
+      </div>
+      </details>
+    </section>
+  
+    <footer>
+      <span>Lettres de fiche prises : <span class="mono">DEM</span></span>
+      <span>État détaillé : <span class="mono">Démo/Démo-etat.md</span></span>
+      <span>Mis à jour le <span class="mono">2026-01-05</span></span>
+    </footer>
+  </div>
+  <script src="vlp.js"></script>
+  
+  == ajouté ctx/artefacts/vlp.css, copie à l'octet de templates/vlp.css
+  == ajouté ctx/artefacts/vlp.js, copie à l'octet de templates/vlp.js
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[cocher]
+  '''
+  code 0
+  --- sortie
+  COCHÉ DEM2 · Session absente
+  
+  --- erreur
+  
+  --- écrits
+  == changé ctx/10-dem.md
+  # Chantier DEM — La démo
+  
+  **Ouvert.** le <AUJOURDHUI>.
+  
+  > **QUAND LIRE** : on joue une fiche `DEM*`.
+  
+  ## Le socle commun
+  
+  Le projet de démonstration des photos : trois fiches, la première faite.
+  
+  ## L'ordre des fiches
+  
+  <!-- FICHE:DEM1 -->
+  ## DEM1 [x] — Écrire l'outil
+  
+  **Dépend de** : rien.
+  **Fichiers** : `scripts/outil.py`.
+  **Session** : <MODELE>/s.jsonl
+  
+  **Prompt**
+  Écris `outil.py`.
+  
+  **Critère de fin**
+  `py -3 scripts/outil.py` sort 0.
+  <!-- /FICHE -->
+  
+  <!-- FICHE:DEM2 -->
+  ## DEM2 [x] — Le tester
+  
+  **Dépend de** : `DEM1`.
+  **Fichiers** : `scripts/outil.py`.
+  
+  **Prompt**
+  Teste-le.
+  
+  **Critère de fin**
+  Le test passe.
+  <!-- /FICHE -->
+  
+  <!-- FICHE:DEM3 -->
+  ## DEM3 [ ] — Le montrer
+  
+  **Dépend de** : `DEM2`.
+  **Fichiers** : `ctx/artefacts/feuille-de-route.html`.
+  
+  **Prompt**
+  Montre-le.
+  
+  **Critère de fin** (visuel)
+  La page le montre.
+  <!-- /FICHE -->
+  
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[commiter]
+  '''
+  code 0
+  --- sortie
+  COMMIT DEM1 : Écrire l'outil · 0 fichier(s)
+  
+  --- erreur
+  
+  --- écrits
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[comparer]
+  '''
+  code 0
+  --- sortie
+  COMPARER 0 perdus · 0 ajoutés
+  
+  --- erreur
+  
+  --- écrits
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[compteur]
+  '''
+  code 0
+  --- sortie
+  COMPTEUR aux commits de fiche, en minutes — une fiche va du commit d'avant au sien ; actif : les écarts entre lignes voisines, sessions et sous-agents (sans les essais), sans les pauses de plus de 30 min, chacun à la part de la ligne qui le ferme ; outils : minutes (appels) ; tours et $ : ceux de cout ; suites : vertes sur celles dont la sortie dit le verdict
+  DEM1 · durée 3 · actif 0 = modèle 0 + outils 0 + attente 0 + autre 0 · outils : suite 0 (0), --seul 0 (0), test-boucle 0 (0), mutant 0 (0), pyright 0 (0), Git 0 (0), publication 0 (0), relance 0 (0), reste 0 (0) · 1 tours · 0,50 $ · garde-fous : suites -, ÉCART -, MUTANT ATTRAPÉ -, GARDE -, relecteur -
+  hors fiches · durée - · actif 0 = modèle 0 + outils 0 + attente 0 + autre 0 · outils : suite 0 (0), --seul 0 (0), test-boucle 0 (0), mutant 0 (0), pyright 0 (0), Git 0 (0), publication 0 (0), relance 0 (0), reste 0 (0) · 2 tours · 1,00 $ · garde-fous : suites -, ÉCART -, MUTANT ATTRAPÉ -, GARDE -, relecteur -
+  TOTAL (fiches + hors fiches) · durée - · actif 0 = modèle 0 + outils 0 + attente 0 + autre 0 · outils : suite 0 (0), --seul 0 (0), test-boucle 0 (0), mutant 0 (0), pyright 0 (0), Git 0 (0), publication 0 (0), relance 0 (0), reste 0 (0) · 3 tours · 1,50 $ · garde-fous : suites -, ÉCART -, MUTANT ATTRAPÉ -, GARDE -, relecteur -
+  
+  --- erreur
+  
+  --- écrits
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[contrat]
+  '''
+  code 0
+  --- sortie
+   ? ? (vide) git 0 bloqué 0
+  CONTRAT 1 sous-agents · 0 écrivent dans Git · 0 bloqués par le gardien · 1 sans statut en tête · 0 interrompus
+  
+  --- erreur
+  
+  --- écrits
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[cout]
+  '''
+  code 0
+  --- sortie
+  DÉCOUPE aux commits de fiche — une fiche va du commit d'avant au sien, un sous-agent compte à la fiche que nomme son prompt, sinon à son départ
+  DEM1 · ≈100,0k (100 000) · 1 tours · 0,50 $ = session ≈100,0k (100 000) · 1 tours · 0,50 $ + 0 sous-agent
+  hors fiches · ≈200,0k (200 000) · 2 tours · 1,00 $ = session ≈200,0k (200 000) · 2 tours · 1,00 $ + 0 sous-agent
+  TOTAL (fiches + hors fiches) · ≈300,0k (300 000) · 3 tours · 1,50 $ = session ≈300,0k (300 000) · 3 tours · 1,50 $ + 0 sous-agent
+  
+  --- erreur
+  
+  --- écrits
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[equiper]
+  '''
+  code 0
+  --- sortie
+  DOSSIER=<P>
+  ctx/
+  notes/
+  scripts/
+  CLAUDE.md
+  PROJET=<P>
+  ETAT=01-etat.md
+  
+  --- erreur
+  
+  --- écrits
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[essai]
+  '''
+  code 0
+  --- sortie
+  ESSAI s1 demo · 0 dossier(s) · 0 transcript(s)
+  
+  --- erreur
+  
+  --- écrits
+  --- écrits sous le dossier personnel
+  == ajouté .claude/vlp-essais.txt
+  s1 demo
+  
+  '''
+# ---
+# name: test_photo[etat]
+  '''
+  code 0
+  --- sortie
+  ÉTAT ajouté 1 ligne(s) à ctx/01-etat.md
+  
+  --- erreur
+  
+  --- écrits
+  == changé ctx/01-etat.md
+  > **QUAND LIRE** : on reprend après une longue interruption, on choisit le
+  > prochain chantier, ou on doute d'une décision passée. Les cinq lignes de
+  > `CLAUDE.md` suffisent dans la plupart des cas — ouvrir ceci seulement quand
+  > elles ne suffisent pas.
+  
+  # État du projet — daté
+  
+  ## Où on en est
+  
+  à remplir
+  
+  ## La TODO ordonnée — les chantiers possibles
+  
+  C'est d'ici que `/chantier` tire ses propositions. Un chantier par entrée,
+  ordonné par ce qui débloque le reste.
+  
+  | # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |
+  |---|---|---|---|---|
+  | 1 | Une suite | la suite de la démo | 3 fiches | rien |
+  | 2 | Une suite | la suite de la démo | 3 fiches | 1 |
+  
+  ## Journal des décisions
+  
+  Une ligne par décision imprévue tranchée en cours de fiche — jamais un résumé
+  de ce que le code dit déjà.
+  
+  - **2026-01-05** — à remplir.
+  
+  - **2026-01-05** — une décision de la démo.
+  
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[extraire]
+  '''
+  code 0
+  --- sortie
+  <!-- FICHE:DEM2 -->
+  ## DEM2 [ ] — Le tester
+  
+  **Dépend de** : `DEM1`.
+  **Fichiers** : `scripts/outil.py`.
+  
+  **Prompt**
+  Teste-le.
+  
+  **Critère de fin**
+  Le test passe.
+  <!-- /FICHE -->
+  --- fiche, lignes : 12
+  
+  --- erreur
+  
+  --- écrits
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[feuille]
+  '''
+  code 0
+  --- sortie
+  CSS <P>/ctx/artefacts/vlp.css
+  FILES {"vlp.css": "<P>/ctx/artefacts/vlp.css", "vlp.js": "<P>/ctx/artefacts/vlp.js"}
+  LIRE vlp.css vlp.js
+  FEUILLE todo 2 · encours oui · lettres 1 · réécrite — .\ctx/artefacts\feuille-de-route.html
+  
+  --- erreur
+  
+  --- écrits
+  == changé ctx/artefacts/feuille-de-route.html
+  <meta charset="utf-8">
+  <title>Démo — Feuille de route</title>
+  <!--
+    GABARIT — artefact permanent d'un projet. Posé par /vlp-init, mis à jour à
+    l'ouverture et à la clôture de chaque chantier. Un seul par projet, il ne
+    change jamais d'URL. Remplace les <…>, ne renomme pas les marqueurs `ZONE:…`.
+  
+    Colonne Tokens de ZONE:clos : même convention de coût que dans
+    artefact-chantier.html (posée là, pas recopiée ici).
+  
+    La page de présentation du projet. `vlp.py feuille` y pose le reste : les
+    sous-listes par phase, la pastille du score, l'aide du score (AVL12) et la
+    ligne « Les autres pages » sous les liens du haut (AVL10).
+  -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="vlp.css">
+  
+  <div class="page">
+    <header>
+      <div class="eyebrow">Feuille de route · alias <span class="mono">Démo</span></div>
+      <h1>Démo</h1>
+      <p>Démo</p>
+    </header>
+  
+    <nav class="sommaire" aria-label="Sommaire"><a href="#encours">Chantier en cours</a><a href="#todo">Chantiers possibles</a><a href="#clos">Chantiers clos</a></nav>
+  
+    <section id="encours">
+      <h2>Chantier en cours</h2>
+      <!-- ZONE:encours — remplacé à chaque ouverture, remis à « aucun » à chaque clôture.
+           /tache n'y touche pas : l'avancement fiche par fiche est sur la page du chantier. -->
+      <div class="encours">
+        <div class="titre">La démo <span class="badge" data-etat="cours">en cours</span></div>
+        <div>Fiches <span class="mono">DEM1–DEM3</span></div>
+      </div>
+    </section>
+  
+    <section id="todo">
+      <h2>Les chantiers possibles, dans l'ordre</h2>
+      <p class="resume-todo"><strong>2 chantiers possibles</strong> · 2 moyens · 1 bloqué · ≈6 fiches estimées</p>
+      <!-- ZONE:todo — miroir de la TODO ordonnée du fichier d'état ; le fichier reste la vérité -->
+      <ol class="todo">
+            <li class="carte-todo" data-taille="moyen" data-pret="oui"><span class="gauche"><span class="rang mono">1</span> <span class="badge" data-etat="cours">en cours</span></span><details><summary><span class="titre">Une suite</span></summary><div class="detail">la suite de la démo</div></details><span class="meta"><span class="seg">3 fiches</span></span></li>
+            <li class="carte-todo" data-taille="moyen" data-pret="non"><span class="gauche"><span class="rang mono">2</span><span class="dep mono">← 1</span></span><details><summary><span class="titre">Une suite</span></summary><div class="detail">la suite de la démo</div></details><span class="meta"><span class="seg">3 fiches</span></span></li>
+          </ol>
+    </section>
+  
+    <section id="clos">
+      <h2>Chantiers clos — ils ne se rejouent pas</h2>
+      <!-- ZONE:clos — une ligne ajoutée à chaque clôture, la plus récente en haut.
+           Colonne Tokens, total en pied de table et image des coûts absents
+           tant qu'aucun chantier clos ne porte de coût mesuré. -->
+      <details class="clos">
+        <summary><span class="resume-clos">Démo chantiers clos · Démo tokens · Démo</span></summary>
+      <div class="tableau">
+        <table>
+          <thead>
+            <tr><th>Chantier</th><th>Fiches</th><th>Clos le</th><th>Tokens</th><th>Ce qu'il a livré</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><a href="Démo">Démo</a></td>
+              <td class="mono">Démo</td><td class="mono">Démo</td>
+              <td class="mono">Démo</td>
+              <td>Démo</td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr><td colspan="3">Total cumulé</td><td class="mono"><strong>Démo</strong></td><td class="mono">Démo</td></tr>
+          </tfoot>
+        </table>
+      </div>
+      </details>
+    </section>
+  
+    <footer>
+      <span>Lettres de fiche prises : <span class="mono">DEM</span></span>
+      <span>État détaillé : <span class="mono">Démo/Démo-etat.md</span></span>
+      <span>Mis à jour le <span class="mono">2026-01-05</span></span>
+    </footer>
+  </div>
+  <script src="vlp.js"></script>
+  
+  == ajouté ctx/artefacts/vlp.css, copie à l'octet de templates/vlp.css
+  == ajouté ctx/artefacts/vlp.js, copie à l'octet de templates/vlp.js
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[filet]
+  '''
+  code 0
+  --- sortie
+  
+  --- erreur
+  
+  --- écrits
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[forme]
+  '''
+  code 0
+  --- sortie
+   ? 2026-09-21T14:14:10Z user 0 projet 0 memoire 0 resume 0 jauge 0 tete 0
+  FORME 1 sous-agents · user 0 car. · resume 0 · jauge 0 · tete 0
+  
+  --- erreur
+  
+  --- écrits
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[fusionner]
+  '''
+  code 1
+  --- sortie
+  GARDE: branche absente : inexistante — rien fusionné
+  
+  --- erreur
+  
+  --- écrits
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[gardien]
+  '''
+  code 0
+  --- sortie
+  
+  --- erreur
+  
+  --- écrits
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[hook]
+  '''
+  code 0
+  --- sortie
+  
+  --- erreur
+  
+  --- écrits
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[joints]
+  '''
+  code 0
+  --- sortie
+  FILES {"vlp.css": "<P>/ctx/artefacts/vlp.css", "vlp.js": "<P>/ctx/artefacts/vlp.js"}
+  
+  --- erreur
+  
+  --- écrits
+  == ajouté ctx/artefacts/vlp.css, copie à l'octet de templates/vlp.css
+  == ajouté ctx/artefacts/vlp.js, copie à l'octet de templates/vlp.js
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[kit-essai]
+  '''
+  code 0
+  --- sortie
+  KIT <TMP>/ke · maxTurns 80 → 6
+  
+  --- erreur
+  
+  --- écrits
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[lancables]
+  '''
+  code 0
+  --- sortie
+  LANCABLES DEM2
+  
+  --- erreur
+  
+  --- écrits
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[lien]
+  '''
+  code 0
+  --- sortie
+  LIEN écrit · ctx/artefacts/feuille-de-route.md · https://claude.ai/artifact/LIEN
+  
+  --- erreur
+  
+  --- écrits
+  == ajouté ctx/artefacts/feuille-de-route.md
+  # Démo — notes et journal
+  ## Lien
+  https://claude.ai/artifact/LIEN
+  ## Résultat
+  Démo
+  ## Notes
+  ## Journal
+  ## Bilan
+  
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[liens]
+  '''
+  code 0
+  --- sortie
+  LIENS 0 écrits · 0 déjà · 0 doublons · 0 sans lien · 0 sans page
+  
+  --- erreur
+  
+  --- écrits
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[lignes]
+  '''
+  code 0
+  --- sortie
+  31 CHANTIER.md
+  51 ctx/10-dem.md
+  SEUILS page 250 · fiche 50 · socle 80
+  
+  --- erreur
+  
+  --- écrits
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[lire]
+  '''
+  code EXCEPTION ValueError: Paths don't have the same drive
+  --- sortie
+  
+  --- erreur
+  
+  --- écrits
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[matin]
+  '''
+  code 1
+  --- sortie
+  GARDE: aucune branche nuit/2026-01-05-* (la date est-elle juste ?) — rien fusionné
+  
+  --- erreur
+  
+  --- écrits
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[niveau]
+  '''
+  code 1
+  --- sortie
+  ÉCART: renvois: CLAUDE.md:29: ctx/00-INDEX-archive.md — nommé, introuvable
+  ÉCART: feuille: le bloc repliable des chantiers clos manque, et son estimation en dollars — le gabarit les a
+  ÉCART: feuille: écart — « vlp.py feuille . » la régénère
+  MARKDOWN 0 ** · 0 liens Markdown · 0 liens cassés — .\ctx/artefacts\feuille-de-route.html
+  ÉCART: page: page introuvable : .\ctx\artefacts\10-dem.html — --creer pour la créer
+  POIDS CLAUDE.md 45/80 · CHANTIER.md 31/50 · index 29/80
+  NIVEAU 4 écarts · 0 avertissements — .
+  
+  --- erreur
+  
+  --- écrits
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[nuits]
+  '''
+  code 0
+  --- sortie
+  NOTÉ <P>/.git/vlp-nuit/<AUJOURDHUI>.jsonl
+  
+  --- erreur
+  
+  --- écrits
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[ordre]
+  '''
+  code 1
+  --- sortie
+  GARDE: source de l'ordre introuvable : <TMP>/absente.json
+  
+  --- erreur
+  
+  --- écrits
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[oter]
+  '''
+  code 1
+  --- sortie
+  GARDE: `DEM` absent de la TODO — rien écrit
+  
+  --- erreur
+  
+  --- écrits
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[ouverts]
+  '''
+  code 0
+  --- sortie
+  OUVERT ctx/10-dem.md
+  
+  --- erreur
+  
+  --- écrits
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[ouvrir]
+  '''
+  code 0
+  --- sortie
+  OUVERT DEM DEM1..DEM3 · index +0 · routage +0 · session +0 · artefact aucun — .
+  
+  --- erreur
+  
+  --- écrits
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[page]
+  '''
+  code 0
+  --- sortie
+  PAGE ctx\artefacts\10-dem.html · 3 fiches · 1 faite · en cours : DEM2 · 77 lignes · total ≈300,0k (300 000) · 3 tours · 1,50 $, dont hors fiches ≈200,0k (200 000) · 2 tours · 1,00 $
+  CSS <P>/ctx/artefacts/vlp.css
+  FILES {"vlp.css": "<P>/ctx/artefacts/vlp.css", "vlp.js": "<P>/ctx/artefacts/vlp.js"}
+  
+  --- erreur
+  
+  --- écrits
+  == ajouté ctx/artefacts/10-dem.html
+  <meta charset="utf-8">
+  <title>Démo — La démo</title>
+  <!--
+    GABARIT — artefact d'un chantier. Publié par /chantier à l'ouverture,
+    mis à jour par /tache à chaque fiche. Remplace les <…> et ne renomme pas
+    les marqueurs `ZONE:…` : les commandes les cherchent tels quels.
+  
+    Convention de coût — posée ici, référencée (jamais recopiée) par
+    artefact-feuille-de-route.html, tache.md et cloture.md : un nombre < 1000
+    s'affiche tel quel ; au-delà, "≈<arrondi 1 décimale><k|M> (<compte brut>)"
+    — virgule française, k = mille, M = million. Le compte brut reste toujours
+    visible à côté de l'arrondi.
+  -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="vlp.css">
+  
+  <div class="page">
+    <header>
+      <div class="eyebrow">Démo · fiches DEM1–DEM3 · <a href="https://claude.ai/artifact/FEUILLE">la feuille de route</a></div>
+      <h1>La démo</h1>
+      <p>R</p>
+      <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
+      <div class="avancement">
+        <span data-etat="faite"></span><span data-etat="encours"></span><span></span>
+      </div>
+      <p class="mono" style="margin-top:.5rem">3 fiches · 1 faite · en cours : DEM2</p>
+    </header>
+  
+    <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
+    <section hidden>
+      <h2>Chantier clos le </h2>
+      <div class="bilan">
+        <p></p>
+      </div>
+    </section>
+  
+    <section>
+      <h2>Les fiches, dans l'ordre des dépendances</h2>
+      <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
+      <ul class="fiches">
+        <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">DEM1</span></span>
+          <details><summary><span class="titre">Écrire l'outil</span><span class="etat">Faite</span></summary>
+          <span class="note">vu</span></details>
+          <span class="cout mono">≈100,0k (100 000) · 1 tours · 0,50 $</span></li>
+        <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">DEM2</span></span>
+          <details open><summary><span class="titre">Le tester</span><span class="etat">En cours</span></summary></details></li>
+        <li class="fiche" data-attend><span class="gauche"><span class="id">DEM3</span></span>
+          <details><summary><span class="titre">Le montrer</span><span class="etat">Après DEM2</span></summary></details>
+          <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
+      </ul>
+      <p class="mono cout-hors">Hors fiches : ≈200,0k (200 000) · 2 tours · 1,00 $</p>
+      <p class="mono cout-total">Coût du chantier : ≈300,0k (300 000) · 3 tours · 1,50 $</p>
+      <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
+    </section>
+  
+    <!-- ZONE:blocage — publiée quand /tache s'arrête après deux tentatives ; retirée dès que la fiche repasse -->
+    <section hidden>
+      <h2>Arrêt sur blocage</h2>
+      <div class="blocage">
+        <p></p>
+        <pre></pre>
+      </div>
+    </section>
+  
+    <section>
+      <h2>Journal des décisions</h2>
+      <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
+      <ul class="journal">
+      </ul>
+    </section>
+  
+    <footer>
+      <span>Fichier de fiches : <span class="mono">ctx/10-dem.md</span></span>
+      <span>Mis à jour le <span class="mono">2026-01-05</span></span>
+    </footer>
+  </div>
+  <script src="vlp.js"></script>
+  
+  == ajouté ctx/artefacts/10-dem.md
+  # La démo — notes et journal
+  ## Résultat
+  R
+  ## Notes
+  - DEM1 : vu
+  ## Journal
+  ## Bilan
+  
+  == ajouté ctx/artefacts/vlp.css, copie à l'octet de templates/vlp.css
+  == ajouté ctx/artefacts/vlp.js, copie à l'octet de templates/vlp.js
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[parite]
+  '''
+  code 1
+  --- sortie
+  GARDE: parite ne lit pas <P> : [Errno 2] No such file or directory: '<P>/scripts/test-vlp.py'
+  
+  --- erreur
+  
+  --- écrits
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[pause]
+  '''
+  code 0
+  --- sortie
+  PAUSE ctx/10-dem.md le 2026-01-05
+  
+  --- erreur
+  
+  --- écrits
+  == changé ctx/10-dem.md
+  # Chantier DEM — La démo
+  
+  **Pause.** le 2026-01-05 — une raison
+  
+  **Ouvert.** le <AUJOURDHUI>.
+  
+  > **QUAND LIRE** : on joue une fiche `DEM*`.
+  
+  ## Le socle commun
+  
+  Le projet de démonstration des photos : trois fiches, la première faite.
+  
+  ## L'ordre des fiches
+  
+  <!-- FICHE:DEM1 -->
+  ## DEM1 [x] — Écrire l'outil
+  
+  **Dépend de** : rien.
+  **Fichiers** : `scripts/outil.py`.
+  **Session** : <MODELE>/s.jsonl
+  
+  **Prompt**
+  Écris `outil.py`.
+  
+  **Critère de fin**
+  `py -3 scripts/outil.py` sort 0.
+  <!-- /FICHE -->
+  
+  <!-- FICHE:DEM2 -->
+  ## DEM2 [ ] — Le tester
+  
+  **Dépend de** : `DEM1`.
+  **Fichiers** : `scripts/outil.py`.
+  
+  **Prompt**
+  Teste-le.
+  
+  **Critère de fin**
+  Le test passe.
+  <!-- /FICHE -->
+  
+  <!-- FICHE:DEM3 -->
+  ## DEM3 [ ] — Le montrer
+  
+  **Dépend de** : `DEM2`.
+  **Fichiers** : `ctx/artefacts/feuille-de-route.html`.
+  
+  **Prompt**
+  Montre-le.
+  
+  **Critère de fin** (visuel)
+  La page le montre.
+  <!-- /FICHE -->
+  
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[plan]
+  '''
+  code 1
+  --- sortie
+  GARDE: pas de fichier des nuits — le plan s'écrit le soir (plan ecrire)
+  
+  --- erreur
+  
+  --- écrits
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[postit]
+  '''
+  code 0
+  --- sortie
+  POSTIT ctx/10-dem.md — .
+  
+  --- erreur
+  
+  --- écrits
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[prix]
+  '''
+  code 0
+  --- sortie
+  PRIX 0 posés · 0 déjà · 0 sans prix · 0 joués recalés · 0 estimés marqués · à blanc, rien d'écrit
+  
+  --- erreur
+  
+  --- écrits
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[rapide]
+  '''
+  code 1
+  --- sortie
+  GARDE: <P> n'est pas le kit : pas de scripts/test-vlp.py
+  
+  --- erreur
+  
+  --- écrits
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[recompter]
+  '''
+  code 0
+  --- sortie
+  RECOMPTE 0 clos · 0 recomptés · 0 gardés · inscrit 0 · recompté 0 · écart +0
+  
+  --- erreur
+  
+  --- écrits
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[relecture]
+  '''
+  code 0
+  --- sortie
+  APRÈS=<TEMP>/vlp-relecture-DEM1-apres-<ALÉA>
+  AVANT=<TEMP>/vlp-relecture-DEM1-avant-<ALÉA>
+  ## Le socle commun
+  
+  Le projet de démonstration des photos : trois fiches, la première faite.
+  
+  --- socle, lignes : 4
+  <!-- FICHE:DEM1 -->
+  ## DEM1 [x] — Écrire l'outil
+  
+  **Dépend de** : rien.
+  **Fichiers** : `scripts/outil.py`.
+  **Session** : <MODELE>/s.jsonl
+  
+  **Prompt**
+  Écris `outil.py`.
+  
+  **Critère de fin**
+  `py -3 scripts/outil.py` sort 0.
+  <!-- /FICHE -->
+  --- fiche, lignes : 13
+  
+  --- erreur
+  
+  --- écrits
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[renvois]
+  '''
+  code 1
+  --- sortie
+  ABSENT: CLAUDE.md:29: ctx/00-INDEX-archive.md
+  POIDS CLAUDE.md 45/80 · CHANTIER.md 31/50 · index 29/80
+  RENVOIS 6 nommés · 1 absents
+  
+  --- erreur
+  
+  --- écrits
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[repeindre]
+  '''
+  code 0
+  --- sortie
+  REPEINDRE 0 repeintes · 0 avec lien · 0 sans lien · 0 refusées · 0 déjà · 0 sans page · à blanc, rien d'écrit
+  
+  --- erreur
+  
+  --- écrits
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[sante]
+  '''
+  code 0
+  --- sortie
+  SANTE sans ruff, comptes estimés (ast) · seuils : complexité 10 · branches 12 · arguments 5 · instructions 50 · imbrication 5
+  scripts/outil.py:1 principal · complexité 1 · branches 0 · arguments 0 · instructions 1 · imbrication 0 · docstring oui
+  FICHIER scripts/outil.py · 1 fonctions · 0 au-dessus d'un seuil · 1 avec docstring
+  TOTAL 1 fichiers · 1 fonctions · 0 au-dessus d'un seuil · 1 avec docstring
+  
+  --- erreur
+  
+  --- écrits
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[sessions]
+  '''
+  code 0
+  --- sortie
+  <MODELE>/s.jsonl
+  
+  --- erreur
+  
+  --- écrits
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[socle]
+  '''
+  code 0
+  --- sortie
+  ## Le socle commun
+  
+  Le projet de démonstration des photos : trois fiches, la première faite.
+  
+  --- socle, lignes : 4
+  
+  --- erreur
+  
+  --- écrits
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[symboles]
+  '''
+  code 0
+  --- sortie
+  principal 1-3
+  
+  --- erreur
+  
+  --- écrits
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[transcription]
+  '''
+  code 0
+  --- sortie
+  TOURS=3
+  APPELS=0 — aucun
+  AVERTISSEMENTS=0
+  AVERTIS_PAR_TOUR=aucun
+  PREMIER_AVERTISSEMENT aucun
+  HOOK_ERREURS=0 pour 0 appels
+  DERNIER mot= stop_reason=None
+  DERNIERE_LIGNE=
+  
+  --- erreur
+  
+  --- écrits
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[trier]
+  '''
+  code 0
+  --- sortie
+  PRÊT 1
+  PRÊT 2
+  CANAL 1 : 1, 2 — 2 dépend de 1
+  TRI 2 rangs · 2 prêts · 0 écartées
+  NUITS absent — pas de fichier *-nuits.md
+  TAUX jour indice — aucun chantier clos au prix mesuré
+  TAUX nuit indice — 0 fiches acceptées
+  
+  --- erreur
+  
+  --- écrits
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[valider]
+  '''
+  code 0
+  --- sortie
+  VALIDE 3 fiches · socle 4 lignes · 0 écarts · 0 avertissements — ctx/10-dem.md
+  14:## DEM1 [x] — Écrire l'outil
+  16:**Dépend de** : rien.
+  23:**Critère de fin**
+  28:## DEM2 [ ] — Le tester
+  30:**Dépend de** : `DEM1`.
+  36:**Critère de fin**
+  41:## DEM3 [ ] — Le montrer
+  43:**Dépend de** : `DEM2`.
+  49:**Critère de fin** (visuel)
+  
+  --- erreur
+  
+  --- écrits
+  --- écrits sous le dossier personnel
+  '''
+# ---
+# name: test_photo[vigile]
+  '''
+  code 0
+  --- sortie
+  PAGE SAINE 20 blocs
+  
+  --- erreur
+  
+  --- écrits
+  --- écrits sous le dossier personnel
+  '''
+# ---

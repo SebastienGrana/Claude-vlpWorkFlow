@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """La mécanique du kit vlp : ce que les commandes faisaient au `sed` et à l'`awk`.
 
-Sous-commandes :
+Sous-commandes — chacune a sa photo dans `tests/test_photos_vlp.py` (REF7) ; une sous-commande neuve sans photo,
+ni raison de la sauter, fait échouer la suite :
 
 - `carte [dossier]` — la carte d'un projet, à injecter avant le 1er tour d'une
   commande. Remonte jusqu'au premier `CHANTIER.md`. Trouvé : `PROJET=<racine>`,
