@@ -1,4 +1,4 @@
-{"format": 1, "ruff": "0.16.10", "forcee": [], "fichiers": {"scripts/boucle.py": 1485, "scripts/carnet.py": 243, "scripts/faux-claude.py": 370, "scripts/mesure-tokens.py": 814, "scripts/sante.py": 557, "scripts/test-boucle.py": 1875, "scripts/test-mesure-tokens.py": 493, "scripts/test-vlp.py": 10548, "scripts/vlp.py": 696, "scripts/vlp_coeur.py": 10728, "scripts/vlp_hook.py": 87, "tests/aides.py": 81, "tests/conftest.py": 69, "tests/test_heures_commits.py": 330, "tests/test_isolation.py": 19, "tests/test_matin.py": 803, "tests/test_photos_essai.py": 75, "tests/test_photos_vlp.py": 337}, "fonctions": [
+{"format": 1, "ruff": "0.16.10", "forcee": [], "fichiers": {"scripts/boucle.py": 1485, "scripts/carnet.py": 243, "scripts/faux-claude.py": 370, "scripts/mesure-tokens.py": 814, "scripts/sante.py": 557, "scripts/test-boucle.py": 1875, "scripts/test-mesure-tokens.py": 493, "scripts/test-vlp.py": 10548, "scripts/vlp.py": 696, "scripts/vlp_coeur.py": 10728, "scripts/vlp_hook.py": 87, "tests/aides.py": 81, "tests/conftest.py": 69, "tests/test_heures_commits.py": 330, "tests/test_isolation.py": 19, "tests/test_lire.py": 22, "tests/test_matin.py": 803, "tests/test_photos_essai.py": 75, "tests/test_photos_vlp.py": 337}, "fonctions": [
 {"fichier": "scripts/boucle.py", "fonction": "appel_eveil", "empreinte": "03053b628c2e", "ast": [3, 2, 1, 8, 1], "doc": true},
 {"fichier": "scripts/boucle.py", "fonction": "arbre_propre", "empreinte": "aeb3d9b4ef94", "ast": [1, 0, 1, 2, 0], "doc": true},
 {"fichier": "scripts/boucle.py", "fonction": "bloquant", "empreinte": "e06aa97d452d", "ast": [3, 2, 4, 8, 1], "doc": true},
@@ -705,7 +705,7 @@
 {"fichier": "scripts/vlp_coeur.py", "fonction": "cmd_lien", "empreinte": "d7339ae17440", "ast": [3, 2, 3, 5, 1], "doc": false},
 {"fichier": "scripts/vlp_coeur.py", "fonction": "cmd_liens", "empreinte": "21e9044f6eed", "ast": [7, 6, 2, 21, 2], "doc": true},
 {"fichier": "scripts/vlp_coeur.py", "fonction": "cmd_lignes", "empreinte": "3a2ea20ef4ac", "ast": [5, 5, 2, 10, 3], "doc": true},
-{"fichier": "scripts/vlp_coeur.py", "fonction": "cmd_lire", "empreinte": "b52f3513dad9", "ast": [4, 4, 2, 13, 2], "doc": true},
+{"fichier": "scripts/vlp_coeur.py", "fonction": "cmd_lire", "empreinte": "f253ad38336f", "ast": [4, 4, 2, 13, 2], "doc": true},
 {"fichier": "scripts/vlp_coeur.py", "fonction": "cmd_matin", "empreinte": "100511b3d2d5", "ast": [14, 13, 2, 38, 2], "doc": true},
 {"fichier": "scripts/vlp_coeur.py", "fonction": "cmd_matin_rapport", "empreinte": "da87a828e257", "ast": [9, 8, 2, 31, 2], "doc": true},
 {"fichier": "scripts/vlp_coeur.py", "fonction": "cmd_mutant", "empreinte": "8d69e93faf32", "ast": [5, 5, 2, 26, 2], "doc": true},

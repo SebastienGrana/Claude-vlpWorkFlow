@@ -1295,10 +1295,10 @@ def cmd_lire(chemins, sortie):
     (chantier U). Python, lui, est permis par `allowed-tools`. `${CLAUDE_PLUGIN_ROOT}`, que seules les commandes
     voient remplacé, devient la racine du kit en barres obliques : recopiée, la ligne se lance (REF27)."""
     racine = os.path.realpath(KIT)
-    code = 0
+    code, disque = 0, os.path.normcase(os.path.splitdrive(racine)[0])  # commonpath lève entre deux disques (REF55)
     for c in chemins:
         vrai = os.path.realpath(os.path.join(racine, c))
-        if os.path.commonpath([racine, vrai]) != racine:
+        if os.path.normcase(os.path.splitdrive(vrai)[0]) != disque or os.path.commonpath([racine, vrai]) != racine:
             sortie.write("GARDE: hors du kit : %s\n" % c)
             code = 1
         elif not os.path.isfile(vrai):

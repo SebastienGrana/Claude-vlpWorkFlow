@@ -1011,8 +1011,9 @@
 # ---
 # name: test_photo[lire]
   '''
-  code EXCEPTION ValueError: Paths don't have the same drive
+  code 1
   --- sortie
+  GARDE: hors du kit : <P>/CHANTIER.md
   
   --- erreur
   
