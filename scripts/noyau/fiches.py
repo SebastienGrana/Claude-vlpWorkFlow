@@ -146,10 +146,10 @@ def cmd_cocher(a, sortie):
         # La tête du dépôt (chantier REV) : un dernier commit qui nomme la fiche est celui du
         # sous-agent — `VAL1:` compris, que `COMMIT_FICHE` laisse passer.
         dossier = os.path.dirname(os.path.abspath(a.fichier))
-        if coeur.git_texte(["rev-parse", "--git-dir"], dossier)[0] != 0:
+        if noyau.relecture.git_texte(["rev-parse", "--git-dir"], dossier)[0] != 0:
             sortie.write("SANS GIT\n")
             return 0 if cocher else 1
-        code, tete = coeur.git_texte(["log", "-1", "--format=%h %s"], dossier)
+        code, tete = noyau.relecture.git_texte(["log", "-1", "--format=%h %s"], dossier)
         ligne = tete_de_fiche(a.fiche, tete if code == 0 else "")
         if ligne:
             sortie.write(ligne)
@@ -193,7 +193,7 @@ def tete_de_fiche(fiche, tete):
 
 def chemins_changes(racine):
     """Les chemins que `git status` dit changés sous `racine` (`chemins_du_statut`) ; None hors Git."""
-    code, texte = coeur.git_texte(["status", "--porcelain", "-z", "--untracked-files=all"], racine)
+    code, texte = noyau.relecture.git_texte(["status", "--porcelain", "-z", "--untracked-files=all"], racine)
     return chemins_du_statut(texte) if code == 0 else None
 
 
@@ -261,7 +261,7 @@ def cmd_commiter(a, sortie):
     **Tentatives**, ses empreintes."""
     lignes = lignes_de(a.fichier)
     fiche = next((f for f in coeur.fiches_du_fichier(lignes) if f[0] == a.fiche), None)
-    racine = coeur.git_texte(["rev-parse", "--show-toplevel"], os.path.dirname(os.path.abspath(a.fichier)))
+    racine = noyau.relecture.git_texte(["rev-parse", "--show-toplevel"], os.path.dirname(os.path.abspath(a.fichier)))
     changes = chemins_changes(racine[1].strip()) if racine[0] == 0 else None
     if fiche is None or changes is None:
         sortie.write("GARDE: commiter veut une fiche du fichier, dans un dépôt Git : %s %s\n" % (a.fichier, a.fiche))
@@ -281,7 +281,7 @@ def cmd_commiter(a, sortie):
     etapes = ([["add", "-A", "--"] + ajout] if ajout else []) + [
         ["commit", "--allow-empty", "-q", "-m", "%s : %s" % (a.fiche, fiche[1])]]
     for etape in etapes:
-        code, texte = coeur.git_texte(etape, racine)
+        code, texte = noyau.relecture.git_texte(etape, racine)
         if code != 0:
             sortie.write("GARDE: git %s : %s\n" % (etape[0], texte.strip()))
             return 1
@@ -547,3 +547,7 @@ def rapport(chemin, lignes, sortie):
     sortie.write("%s %d fiches · socle %d lignes · %d écarts · %d avertissements — %s\n"
                  % ("INVALIDE" if ecarts else "VALIDE", n, socle, len(ecarts), len(avert), chemin))
     return len(ecarts)
+
+
+# En fin de fichier : `relecture` importe des noms d'ici, qui doivent exister avant lui (REF47).
+import noyau.relecture  # noqa: E402 — `noyau.relecture.git_texte` : un test la remplace là

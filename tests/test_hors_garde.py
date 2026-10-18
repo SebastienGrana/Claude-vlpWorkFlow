@@ -91,7 +91,7 @@ def test_ref56_correctif_rejete_est_perdu(tmp_path, monkeypatch):
     _, wa, fiches = deposer(tmp_path, {"doc.txt": b"un\n"})
     ecrire(os.path.join(wa, "doc.txt"), "un\ndeux\n")
     vrai = mod.git_texte
-    monkeypatch.setattr(mod, "git_texte", lambda args, cwd, env=None: (1, "refusé") if args[:2] == ["apply", "--check"]
+    monkeypatch.setattr(mod.noyau.relecture, "git_texte", lambda args, cwd, env=None: (1, "refusé") if args[:2] == ["apply", "--check"]
                         else vrai(args, cwd, env))
     code, s = appel(["fusionner", fiches, "W1", "--worktree", wa])
     m = re.search(r"^PERDU 1 chemin\(s\) non commités du worktree : doc\.txt — correctif rejeté par git apply "

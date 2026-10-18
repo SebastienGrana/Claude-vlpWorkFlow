@@ -37,966 +37,11 @@ from noyau.notes import *       # noqa: E402,F403
 from noyau.feuille import *     # noqa: E402,F403
 from noyau.clos import *        # noqa: E402,F403
 import noyau.page   # noqa: E402 — `noyau.page.regenerer` : un test la remplace là (REF46)
-
-
-# --- relecture ---------------------------------------------------------------
-
-RELECTURE = "vlp-relecture-"    # le préfixe des worktrees de relecture : `--retirer` ne retire qu'eux
-
-
-def git_texte(args, cwd, env=None):
-    """(code, texte) de `git <args>` dans `cwd` : la sortie si le code vaut 0, sinon la première ligne
-    d'erreur. Git qui ne se lance pas : (None, raison) — jamais un traceback."""
-    import subprocess
-    try:
-        r = subprocess.run([etat.GIT, "-c", "core.quotepath=false"] + args, cwd=cwd, env=env, capture_output=True,
-                           encoding="utf-8", errors="replace", timeout=120)
-    except (OSError, subprocess.SubprocessError) as e:
-        return None, "git ne se lance pas : %s" % e
-    if r.returncode:
-        return r.returncode, ((r.stderr or "").strip().splitlines() or ["code %d" % r.returncode])[0]
-    return 0, r.stdout
-
-
-# Le code du plugin : ce qu'un `/reload-plugins` recharge, ou que les commandes lisent (chantier ESR).
-CODE_PLUGIN = ("skills", "agents", "hooks", "scripts", "templates", ".claude-plugin", "methode-chantier.md",
-               "cloture.md", "enchainement.md", "ARTEFACTS.md", "nuit.md")
-
-
-def retard_plugin(racine, kit=None):
-    """`(n, principal, branche)` : `n` commits de `racine` qui touchent `CODE_PLUGIN` et manquent au
-    `HEAD` du kit chargé (`kit`, défaut `KIT`, résolu en `principal`) — un worktree du kit en avance
-    sur le dossier que suit `~/.claude/skills/vlp` (chantier ESR). `branche` : celle de `racine`, ou
-    son sha court si `HEAD` est détaché. `None` : autre dépôt, même dossier, retard nul, git muet."""
-    principal = os.path.realpath(kit or etat.KIT)
-    lieux = []
-    for d in (principal, racine):
-        code, t = git_texte(["rev-parse", "--path-format=absolute", "--git-common-dir", "--show-toplevel"], d)
-        if code != 0 or len(t.split()) < 2:
-            return None
-        lieux.append([os.path.normcase(os.path.realpath(x)) for x in t.strip().split("\n")[:2]])
-    if lieux[0][0] != lieux[1][0] or lieux[0][1] == lieux[1][1]:
-        return None
-    code, tete = git_texte(["rev-parse", "HEAD"], principal)
-    code2, n = git_texte(["rev-list", "--count", "%s..HEAD" % tete.strip(), "--"] + list(CODE_PLUGIN), racine)
-    if code != 0 or code2 != 0 or not n.strip().isdigit() or int(n) == 0:
-        return None
-    _, branche = git_texte(["rev-parse", "--abbrev-ref", "HEAD"], racine)
-    if branche.strip() == "HEAD":
-        _, branche = git_texte(["rev-parse", "--short", "HEAD"], racine)
-    return int(n), principal, branche.strip()
-
-
-def regrouper_dossiers(racine, chemins):
-    """`chemins` (relatifs à `racine`, en barres obliques), où un dossier dont tous les fichiers sur disque sont
-    dans la liste se nomme par lui-même (`ctx/`), pas fichier par fichier, et ses seuls fichiers directs par `ctx/*`
-    (ses sous-dossiers restent nommés) ; la racine ne se regroupe jamais. Rend `[(nom, exemple)]` : `exemple`, un
-    chemin de la liste sous ce nom, de préférence un fichier — ce que `git check-ignore` interroge (NUI36)."""
-    par_dossier = {}
-    for c in chemins:
-        par_dossier.setdefault(c.rstrip("/").rpartition("/")[0], []).append(c)
-    rendus = []
-    for d, liste in sorted(par_dossier.items()):
-        noms = {c.rstrip("/").rpartition("/")[2] for c in liste}
-        try:
-            sur_disque = set(os.listdir(os.path.join(racine, d))) if d else None
-        except OSError:
-            sur_disque = None
-        exemple = sorted(liste, key=lambda c: (c.endswith("/"), c))[0]
-        if sur_disque is None:
-            rendus += [(c, c) for c in sorted(liste)]
-        elif sur_disque == noms:
-            rendus.append((d + "/", exemple))
-        elif {n for n in sur_disque if os.path.isfile(os.path.join(racine, d, n))} <= noms:
-            rendus += [(d + "/*", exemple)] + [(c, c) for c in sorted(liste) if c.endswith("/")]
-        else:
-            rendus += [(c, c) for c in sorted(liste)]
-    return rendus
-
-
-def etat_git(racine):
-    """L'état Git de ce que la méthode veut suivi (`methode-chantier.md`, « Ce qui part dans Git ») : `CHANTIER.md`,
-    `CLAUDE.md`, le dossier de la ligne **contexte**. `None` hors d'un dépôt Git (ou Git muet) ; sinon
-    `{"ignoré": [(nom, exemple)], "non ajouté": [...]}` (`regrouper_dossiers`), vides quand tout est suivi (NUI35,
-    partagé avec `niveau`)."""
-    code, _ = git_texte(["rev-parse", "--show-toplevel"], racine)
-    if code != 0:
-        return None
-    contexte = champ(lignes_de(os.path.join(racine, "CHANTIER.md")), "contexte", "context AI/")
-    cibles = ["CHANTIER.md", "CLAUDE.md", contexte.rstrip("/") + "/"]
-    etat = {}
-    for nom, options in (("ignoré", ["--ignored"]), ("non ajouté", [])):
-        code, t = git_texte(["ls-files", "--others", "--exclude-standard", "--directory"] + options + ["--"] + cibles,
-                            racine)
-        # Le cache de Python n'est jamais du contexte : il reste ignoré sans écart.
-        chemins = [l for l in t.split("\n") if l and not l.endswith("__pycache__/")] if code == 0 else []
-        etat[nom] = regrouper_dossiers(racine, chemins)
-    return etat
-
-
-def ligne_git(racine):
-    """Les lignes `GIT=` de la carte : `GIT=suivi`, `GIT=hors Git`, ou `GIT=ignoré …` et/ou `GIT=non ajouté …`."""
-    etat = etat_git(racine)
-    if etat is None:
-        return ["GIT=hors Git"]
-    lignes = ["GIT=%s %s" % (nom, ", ".join(n for n, _ in liste)) for nom, liste in etat.items() if liste]
-    principale, retard = suivi_en_retard(racine)
-    if retard:
-        lignes.append("GIT=en retard sur %s : %s suivi(s) là-bas, pas ici — worktree né avant ; y fusionner %s"
-                      % (principale, ", ".join(retard), principale))
-    return lignes or ["GIT=suivi"]
-
-
-def suivi_en_retard(racine):
-    """`(branche principale, [cibles])` : `CHANTIER.md` et `CLAUDE.md` que la branche principale suit et que `HEAD`
-    ne suit pas — un worktree né avant que Git suive le contexte (Cairn, `FAM`, panne `N2` d'`AVL4`, NWT) ; sa carte
-    lit alors un vieux `CHANTIER.md`. Sur la branche principale, ou hors Git : `[]`."""
-    principale = branche_principale(racine)
-    code, nom = git_texte(["rev-parse", "--abbrev-ref", "HEAD"], racine)
-    if not principale or code != 0 or nom.strip() == principale:
-        return principale, []
-
-    def suivi(rev, cible):
-        """Vrai si `rev` suit `cible`."""
-        code, s = git_texte(["ls-tree", "--name-only", rev, "--", cible], racine)
-        return code == 0 and bool(s.strip())
-    return principale, [c for c in ("CHANTIER.md", "CLAUDE.md") if suivi(principale, c) and not suivi("HEAD", c)]
-
-
-def prefixe_relecture(fiche=None):
-    """`vlp-relecture-`, ou `vlp-relecture-<canal>-` quand `VLP_CANAL` est posé (chantier NUI) : deux
-    canaux de nuit relisent dans le même dépôt, chacun ne retire que ses worktrees. Avec `fiche`, suivi de
-    `<fiche>-` : deux relecteurs lancés ensemble (chantier ISO) ne retirent chacun que les copies de sa fiche."""
-    canal = re.sub(r"[^\w.]", "_", os.environ.get(carnet.ENV_CANAL, "").strip())
-    propre = re.sub(r"[^\w.]", "_", fiche.strip()) if fiche else ""
-    return RELECTURE + (canal + "-" if canal else "") + (propre + "-" if propre else "")
-
-
-def retirer_relectures(racine, fiche=None):
-    """Retire les worktrees `vlp-relecture-*` du dépôt — ceux du canal seul si `VLP_CANAL` est posé, ceux
-    de `fiche` seule si elle est donnée —, puis `prune` : le nombre retiré."""
-    code, liste = git_texte(["worktree", "list", "--porcelain"], racine)
-    n = 0
-    for ligne in liste.splitlines() if code == 0 else []:
-        chemin = ligne[len("worktree "):] if ligne.startswith("worktree ") else ""
-        if os.path.basename(chemin.rstrip("/\\")).startswith(prefixe_relecture(fiche)):
-            n += git_texte(["worktree", "remove", "--force", chemin], racine)[0] == 0
-    git_texte(["worktree", "prune"], racine)
-    return n
-
-
-def instantane(racine):
-    """(code, sha) : l'arbre de travail — suivis et non suivis, selon `.gitignore` — en commit de
-    parent `HEAD`, par un index temporaire : ni `HEAD` ni l'index réel ne bougent."""
-    import tempfile
-    with tempfile.TemporaryDirectory(prefix="vlp-index-") as d:
-        env = dict(os.environ, GIT_INDEX_FILE=os.path.join(d, "index"))
-        for args in (["read-tree", "HEAD"], ["add", "-A"], ["write-tree"]):
-            code, arbre = git_texte(args, racine, env)
-            if code != 0:
-                return code, arbre
-    # Une identité à lui : l'instantané ne dépend pas de la configuration du poste.
-    env = dict(os.environ, GIT_AUTHOR_NAME="vlp", GIT_AUTHOR_EMAIL="vlp@relecture",
-               GIT_COMMITTER_NAME="vlp", GIT_COMMITTER_EMAIL="vlp@relecture")
-    return git_texte(["commit-tree", arbre.strip(), "-p", "HEAD", "-m", "vlp relecture : instantané"], racine, env)
-
-
-def texte_fichiers(fiche):
-    """Le texte de la ligne **Fichiers** d'une fiche, libellé ôté, jusqu'à la ligne vide ou au champ suivant ;
-    "" sans elle."""
-    k = next((i for i, l in enumerate(fiche) if l.startswith("**Fichiers**")), None)
-    if k is None:
-        return ""
-    para = [fiche[k][len("**Fichiers**"):]]
-    for l in fiche[k + 1:]:
-        if not l.strip() or l.startswith(("**", "<!--")):
-            break
-        para.append(l)
-    return " ".join(para)
-
-
-def noms_fichiers(fiche):
-    """Ce que nomme la ligne **Fichiers** d'une fiche (`texte_fichiers`) :
-    chaque `…` entre backticks, et chaque mot hors d'eux — le gabarit n'en met pas."""
-    texte = texte_fichiers(fiche)
-    return (set(re.findall(r"`([^`]+)`", texte))
-            | set(re.split(r"[\s,;:()]+", re.sub(r"`[^`]*`", " ", texte)))) - {""}
-
-
-def entrees(dossier):
-    """{nom en minuscules : vrai si dossier} des entrées de `dossier` — la racine d'un projet, pour `invites`."""
-    try:
-        return {e.lower(): os.path.isdir(os.path.join(dossier, e)) for e in os.listdir(dossier)}
-    except OSError:
-        return {}
-
-
-def invites(fiche, racine):
-    """La liste d'invités de la ligne **Fichiers** d'une fiche, pour `lancables` (ENA5 ; jugée sur l'historique Git et
-    sur l'arbre par `context AI/119-ena5-juge.py`) : ses noms écrits (`noms_ecrits`), chacun lu par `ancre`."""
-    return {ancre(n, racine) for n in noms_ecrits(fiche, racine)}
-
-
-def ancre(nom, racine):
-    """`nom` tel que `croisent` le compare. Un chemin dont le premier nom n'est pas une entrée de `racine` est partiel
-    (`references/tache-page.md`, `ai/08-etat.md` coupé d'un chemin à espace) : il vaut son nom seul, que `croisent`
-    fait croiser tout dossier et tout chemin de même nom ; un dossier partiel vaut `*`, qui croise tout."""
-    if "/" in nom and nom.split("/", 1)[0] not in racine:
-        return "*" if nom.endswith("/") else nom.rsplit("/", 1)[-1]
-    return nom
-
-
-def noms_ecrits(fiche, racine):
-    """Les noms de la ligne **Fichiers** d'une fiche, normalisés — `\\` en `/`, `./`, guillemets et ponctuation de fin
-    ôtés, minuscules. N'entre que chemin (un `/`), motif, nom à extension (`.gitignore` compris) ou entrée de
-    `racine` (`entrees`) : `skills` → `skills/`, pas `carte`. Entre backticks, le tout, et chaque mot s'ils sont
-    plusieurs, coupés aux blancs et aux `:` (`vlp.py niveau`, `vlp.py:513`) ; hors d'eux, chaque mot. Un nom de trop
-    ne coûte qu'un départ ensemble ; un nom manqué, un conflit."""
-    texte = texte_fichiers(fiche)
-
-    def propre(n):
-        """Le nom normalisé."""
-        n = n.strip().strip("\"'").rstrip(".,;").replace("\\", "/").lower()
-        return n[2:] if n.startswith("./") else n
-    candidats = []
-    for brut in re.findall(r"`([^`]+)`", texte):
-        mots = [m for m in re.split(r"[\s:\"']+", brut) if m]
-        candidats += [propre(brut)] + (list(map(propre, mots)) if len(mots) > 1 else [])
-    candidats += map(propre, re.split(r"[\s,;:()]+", re.sub(r"`[^`]*`", " ", texte)))
-    rendu = set()
-    for n in candidats:
-        if n.strip("/") and ("/" in n or re.search(r"[*?[{]", n)
-                             or re.fullmatch(r"\.[\w-]+(?:\.[\w-]+)*|[\w-]+(?:\.[\w-]+)+", n)):
-            rendu.add(n)
-        elif n in racine:
-            rendu.add(n + "/" if racine[n] else n)
-    return rendu
-
-
-def nomme(chemin, noms):
-    """Vrai si `chemin` (relatif au dépôt, en `/`) est nommé : égal, fin de chemin après un `/`
-    (`vlp.py` pour `scripts/vlp.py`), ou sous un dossier nommé (`templates/`)."""
-    return any(chemin == n or chemin.endswith("/" + n) or (n.endswith("/") and "/" + n in "/" + chemin)
-               for n in noms)
-
-
-def cmd_relecture(a, sortie):
-    """La relecture d'une fiche (chantier REV) : ce qu'en dit la docstring du module."""
-    import tempfile
-    projet = trouver(os.getcwd())
-    code, racine = git_texte(["rev-parse", "--show-toplevel"], projet or os.getcwd())
-    if code != 0:
-        sortie.write("GARDE: pas de dépôt Git — %s\n" % racine)
-        return 1
-    racine = racine.strip()
-    if a.retirer:
-        sortie.write("RETIRÉ %d\n" % retirer_relectures(racine, a.fiche))
-        return 0
-    if not a.fiche or projet is None:
-        sortie.write("GARDE: %s\n" % ("relecture <fiche> [--sha S], ou relecture --retirer" if not a.fiche
-                                      else "pas de CHANTIER.md au-dessus de %s" % os.getcwd()))
-        return 1
-    retirer_relectures(racine, a.fiche)
-    if a.sha:
-        code, sha = git_texte(["rev-parse", "--verify", "--quiet", a.sha + "^{commit}"], racine)
-        pourquoi = "commit inconnu : %s" % a.sha
-    else:
-        code, sha = instantane(racine)
-        pourquoi = "instantané impossible — %s" % sha
-    if code != 0:
-        sortie.write("GARDE: %s\n" % pourquoi)
-        return 1
-    sha = sha.strip()
-    code, parent = git_texte(["rev-parse", "--verify", "--quiet", sha + "^"], racine)
-    if code != 0:
-        sortie.write("GARDE: commit sans parent : %s\n" % sha[:12])
-        return 1
-    parent = parent.strip()
-    dossiers = []
-    for nom, rev in (("apres", sha), ("avant", parent)):
-        d = tempfile.mkdtemp(prefix=prefixe_relecture(a.fiche) + nom + "-")
-        code, err = git_texte(["worktree", "add", "--detach", d, rev], racine)
-        dossiers.append(d)
-        if code != 0:
-            retirer_relectures(racine, a.fiche)
-            sortie.write("GARDE: worktree %s impossible — %s\n" % (nom, err))
-            return 1
-    # Le fichier de fiches que nomme CHANTIER.md dans APRÈS, au même endroit du dépôt que le projet.
-    code, prefixe = git_texte(["rev-parse", "--show-prefix"], projet)
-    prefixe = prefixe.strip() if code == 0 else ""
-    apres_projet = os.path.normpath(os.path.join(dossiers[0], prefixe))
-    # Le chantier du dossier qui relit, pas celui de la copie : APRÈS est un worktree détaché, que la règle des
-    # branches de `courant_de` verrait toujours hériter de la principale (chantier NUI22).
-    courant = courant_de(projet) if equipe(apres_projet) else None
-    fichier = os.path.normpath(os.path.join(apres_projet, courant)) if courant else ""
-    fiche, _ = extraire_lignes(lignes_de(fichier) if os.path.isfile(fichier) else [], a.fiche)
-    if not fiche:
-        retirer_relectures(racine, a.fiche)
-        sortie.write("GARDE: fiche %s absente du fichier de fiches courant d'APRÈS : %s\n" % (a.fiche, courant or "aucun"))
-        return 1
-    # Pas de `FICHIER=` : le fichier entier porte la suite du chantier (FFE, REL1 : 1 lecture sur 42).
-    sortie.write("APRÈS=%s\nAVANT=%s\n" % (dossiers[0], dossiers[1]))
-    cmd_socle(fichier, sortie)
-    cmd_extraire(fichier, a.fiche, sortie)
-    code, etat = git_texte(["diff", "--name-status", "--no-color", parent, sha], racine)
-    sortie.write(etat if code == 0 else "GARDE: git diff --name-status en échec — %s\n" % etat)
-    fiches_rel, noms = prefixe + (courant or "").replace("\\", "/"), noms_fichiers(fiche)
-    # Le fichier d'état : toute fiche peut écrire à son journal (REV7).
-    etat_val = champ(lignes_de(os.path.join(apres_projet, "CHANTIER.md")), "fichier d'état", "aucun")
-    exclus = {fiches_rel} | (set() if etat_val.startswith("aucun") else {prefixe + etat_val.replace("\\", "/")})
-    for ligne in etat.splitlines() if code == 0 else []:
-        chemin = ligne.split("\t")[-1]
-        if chemin not in exclus and "/artefacts/" not in "/" + chemin and not nomme(chemin, noms):
-            sortie.write("HORS FICHE %s\n" % chemin)
-    code, diff = git_texte(["diff", "--no-color", "--no-ext-diff", parent, sha], racine)
-    sortie.write(diff if code == 0 else "GARDE: git diff en échec — %s\n" % diff)
-    return 0
-
-
-def cmd_lignes(chemins, sortie):
-    """`wc -l` et `ls` sans shell : une ligne par chemin (motif `*` et `~` compris)."""
-    for motif in chemins:
-        trouves = sorted(glob.glob(os.path.expanduser(motif))) or [os.path.expanduser(motif)]
-        for c in trouves:
-            if os.path.isdir(c):
-                reel = os.path.realpath(c)
-                sortie.write("DOSSIER %s%s\n" % (c, "" if os.path.normcase(reel) == os.path.normcase(os.path.abspath(c)) else " → " + reel))
-            elif os.path.isfile(c):
-                sortie.write("%d %s\n" % (len(lignes_de(c)), c))
-            else:
-                sortie.write("ABSENT %s\n" % motif)
-    sortie.write("SEUILS page %d · fiche %d · socle %d\n" % (SEUIL_PAGE, SEUIL_FICHE, SEUIL_SOCLE))
-    return 0
-
-
-PLAN = re.compile(r"^## [A-Z]{1,3}[0-9]|^\*\*(Dépend de|Tentatives|Critère de fin)\*\*")
-
-
-def cmd_equiper(dossier, contexte, sortie):
-    """Ce que `/vlp:init` regarde avant d'équiper, sans `pwd`, `ls`, `head` ni `grep` ; un dossier absent, une
-    `GARDE:`, sort 1 (chantier ISO)."""
-    d = os.path.abspath(dossier)
-    if not os.path.isdir(d):
-        sortie.write("GARDE: dossier absent : %s — rien lu\n" % d)
-        return 1
-    sortie.write("DOSSIER=%s\n" % d)
-    sous = sorted((n for n in os.listdir(d) if not n.startswith(".") and os.path.isdir(os.path.join(d, n))), key=str.lower)
-    for n in sous[:20]:
-        sortie.write("%s/\n" % n)
-    if "CLAUDE.md" in os.listdir(d):
-        sortie.write("CLAUDE.md\n")
-    c = io.StringIO()
-    carte(d, c)
-    for l in c.getvalue().splitlines():
-        if re.match(r"^(PROJET|VOISIN)=|^AUCUN_PROJET", l):
-            sortie.write(l + "\n")
-    sortie.write("ETAT=%s\n" % nom_etat(os.path.join(d, contexte)))
-    return 0
-
-
-# --- hook --------------------------------------------------------------------
-
-MARQUE = re.compile(r"^<!-- FICHE:[A-Z]{1,3}[0-9]+ -->$")
-
-
-def est_fichier_de_fiches(lignes):
-    """Un marqueur de fiche ou le titre du socle, hors bloc de code : la méthode
-    et les commandes en montrent dans des blocs, elles ne sont pas des fiches."""
-    code = False
-    for l in lignes:
-        if l.lstrip().startswith("```"):
-            code = not code
-        elif not code and (MARQUE.match(l.strip()) or l.startswith("## Le socle commun")):
-            return True
-    return False
-
-
-def cmd_hook(entree, sortie, erreur):
-    try:
-        d = json.loads(entree.read())
-    except ValueError:
-        return 0
-    ti = d.get("tool_input") if isinstance(d, dict) else None
-    chemin = ti.get("file_path") if isinstance(ti, dict) else None
-    if not isinstance(chemin, str) or not chemin.lower().endswith(".md"):
-        return 0
-    if not os.path.isabs(chemin) and isinstance(d.get("cwd"), str):
-        chemin = os.path.join(d["cwd"], chemin)
-    if not os.path.isfile(chemin):
-        return 0
-    lignes = lignes_de(chemin)
-    if not est_fichier_de_fiches(lignes):
-        return 0
-    texte = io.StringIO()
-    if rapport(chemin, lignes, texte):
-        erreur.write(texte.getvalue() + "Corrige ce fichier de fiches avant de continuer.\n")
-        return 2
-    bilan = texte.getvalue().strip().splitlines()[-1]
-    sortie.write(json.dumps({"hookSpecificOutput": {"hookEventName": "PostToolUse", "additionalContext": bilan}},
-                            ensure_ascii=False) + "\n")
-    return 0
-
-
-# --- filet -------------------------------------------------------------------
-
-SEUIL_FILET = 3  # Tours restants à partir desquels on avertit le sous-agent
-
-
-def cmd_filet(entree, sortie, erreur):
-    """Avertit quand le sous-agent approche du plafond de tours.
-
-    Lit le JSON du hook sur stdin — `PostToolUse` ou `PostToolUseFailure`, après
-    tout outil. Si nous sommes dans un sous-agent (agent_type contient 'fiche'
-    et agent_id existe), compte les tours déjà rendus et avertit si
-    tours_restants <= SEUIL_FILET, au nom de l'événement reçu.
-    Une fois par tour : le tampon `vlp-filet-<agent_id>-<tours>` (`tampon_neuf`) tait les suivants (TOU2).
-    """
-    try:
-        d = json.loads(entree.read())
-    except (ValueError, AttributeError, TypeError):
-        return 0
-
-    # Vérifier que c'est un sous-agent de fiche
-    agent_type = d.get("agent_type", "")
-    agent_id = d.get("agent_id")
-    if "fiche" not in agent_type or not agent_id:
-        return 0
-
-    transcript_path = d.get("transcript_path")
-    if not isinstance(transcript_path, str):
-        return 0
-
-    # Chemin du transcript du sous-agent
-    # Sur Windows, les chemins JSON peuvent avoir des barres obliques
-    transcript_path_os = transcript_path.replace("/", os.sep)
-    base = os.path.splitext(transcript_path_os)[0]
-    subagent_path = os.path.join(base, "subagents", f"agent-{agent_id}.jsonl")
-
-    # Compter les tours du sous-agent — None : le transcript ne s'ouvre pas
-    tours = comptoir_tours(subagent_path)
-    if tours is None:
-        return 0
-
-    # Lire maxTurns depuis agents/fiche.md
-    # Le chemin est relatif au kit — nous sommes dans scripts/vlp.py
-    kit_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    fiche_path = os.path.join(kit_root, "agents", "fiche.md")
-
-    max_turns = lire_max_turns(fiche_path)
-    if max_turns is None:
-        return 0
-
-    tours_restants = max_turns - tours
-    if 0 < tours_restants <= SEUIL_FILET and tampon_neuf(f"vlp-filet-{agent_id}-{tours}"):
-        tour_mot = "tour" if tours_restants == 1 else "tours"
-        message = f"Attention : {tours_restants} {tour_mot} restant{'s' if tours_restants > 1 else ''}. Rends ton statut maintenant — RETOUR avec ce qui est fait et ce qui reste, si la fiche n'est pas finie."
-        # Même forme après un succès ou un échec (doc des hooks, lue le 2026-09-24) :
-        # seul le nom change, celui de l'événement reçu.
-        evenement = d.get("hook_event_name") or "PostToolUse"
-        sortie.write(json.dumps(
-            {"hookSpecificOutput": {"hookEventName": evenement, "additionalContext": message}},
-            ensure_ascii=False
-        ) + "\n")
-
-    return 0
-
-
-def comptoir_tours(chemin):
-    """Compte les tours distincts (message.id) dans un transcript de sous-agent ;
-    None s'il ne s'ouvre pas. Ouvert par `ouvrir` de mesure-tokens.py : sous
-    Windows, dès 260 caractères, isfile et open disent absent un fichier présent (FIL1)."""
-    tours = set()
-    try:
-        with mesure().ouvrir(chemin) as f:
-            for ligne in f:
-                ligne = ligne.strip()
-                if not ligne:
-                    continue
-                try:
-                    d = json.loads(ligne)
-                    message = d.get("message")
-                    if isinstance(message, dict):
-                        usage = message.get("usage")
-                        if isinstance(usage, dict):
-                            mid = message.get("id")
-                            if mid:
-                                tours.add(mid)
-                except json.JSONDecodeError:
-                    pass
-    except UnicodeDecodeError:
-        pass
-    except OSError:
-        return None
-    return len(tours)
-
-
-def lire_max_turns(chemin):
-    """Lit maxTurns depuis le frontmatter YAML d'un fichier."""
-    try:
-        with open(chemin, "r", encoding="utf-8") as f:
-            lignes = f.readlines()
-    except (OSError, UnicodeDecodeError):
-        return None
-
-    # Chercher le frontmatter YAML
-    if len(lignes) < 2 or not lignes[0].strip().startswith("---"):
-        return None
-
-    for i in range(1, len(lignes)):
-        ligne = lignes[i].strip()
-        if ligne.startswith("---"):
-            break
-        if ligne.startswith("maxTurns:"):
-            try:
-                return int(ligne.split(":", 1)[1].strip())
-            except (ValueError, IndexError):
-                pass
-
-    return None
-
-
-# --- contrat (chantier CON) ----------------------------------------------------
-
-# Les verbes Git qui ne font que lire : tout autre verbe écrit, inconnu compris (chantier VRB).
-LECTURE_GIT = frozenset(("diff", "status", "log", "show", "rev-parse", "ls-files", "blame", "grep"))
-# Un appel Git : `git` en position de commande — début de ligne, après `;` `&` `|` `(` `)` `{` un
-# accent grave, une quote ouvrante (`ssh h 'git …'`) ou au bout d'un chemin (`…/git.exe`), derrière
-# d'éventuels `VAR=val`, `sudo`, `if`… —, ses options globales, puis son verbe (`verbe`). Ancré
-# pour que `grep -c git f` ne lise pas le verbe `f`.
-APPEL_GIT = re.compile(
-    r"""(?:^|(?<=[;&|(){`'"/\\]))[ \t]*"""
-    r"""(?:(?:\w+=\S*|sudo|env|time|command|nohup|exec|xargs|if|then|else|do|while|until|!)[ \t]+)*"""
-    r"""git(?:\.exe)?['"]?(?![\w.-])"""
-    r"""(?:[ \t]+(?:-[Cc][ \t]+(?:"[^"]*"|'[^']*'|\S+)|--no-pager|-P|--(?:git-dir|work-tree|namespace)=\S+))*"""
-    r"""(?:[ \t]+(?P<verbe>-\S*|[A-Za-z][\w-]*))?""", re.M)
-# Un heredoc `<<[-]MOT` (mot nu ou cité) : sa ligne d'ouverture, dont la suite (groupe 3), son
-# corps (groupe 4), sa fin.
-HEREDOC = re.compile(r"<<-?[ \t]*(['\"]?)([A-Za-z_]\w*)\1([^\n]*)\n(.*?)\n[ \t]*\2[ \t]*$", re.S | re.M)
-STATUTS = ("FAITE", "RETOUR", "BLOQUÉE")
-# Le cœur du refus du gardien (chantier ENQ) : `cmd_gardien` le met dans sa raison, `lire_contrat`
-# le retrouve dans le `tool_result` d'un appel qui écrit dans Git pour le compter en bloqué plutôt
-# qu'en écrit — indépendant de l'agent (`vlp:fiche`/`vlp:relecture`) et de la fin de phrase.
-# `REFUS_GIT_AVANT`, celui d'avant VRB, se reconnaît encore dans les vieilles transcriptions.
-REFUS_GIT = "retire tout appel Git hors lecture (diff, status, log, show…), le chef commite après"
-REFUS_GIT_AVANT = "retire git commit/add/reset, le chef commite après"
-# Un message utilisateur qui commence ainsi, après le dernier texte de l'assistant, marque le
-# sous-agent interrompu plutôt que sans statut en tête (chantier ENQ).
-INTERROMPU = "[Request interrupted by user"
-
-
-def sans_heredoc(commande):
-    """La commande, le corps des heredocs qui ne font qu'écrire un fichier tu : reçus par `cat`
-    ou `tee`, hors `$(…)` et accents graves, sans `|` derrière — un heredoc reçu par `py`,
-    `bash`… s'exécute, il reste lu ; les chaînes citées aussi (`ssh '…'`) (chantiers ECH, ECA)."""
-    def taire(m):
-        avant = commande[:m.start()]
-        mots = [w for w in re.split(r"[;&|(\n`]", avant)[-1].split() if not re.match(r"\w+=", w)]
-        recoit = os.path.basename(mots[0].strip("'\"")).lower() if mots else ""
-        dans_sous = re.search(r"(?:\$\(|`)[^;&|()\n`]*$", avant)
-        if recoit not in ("cat", "tee") or dans_sous or "|" in m.group(3):
-            return m.group(0)
-        return commande[m.start():m.start(4)] + commande[m.end(4):m.end()]
-    return HEREDOC.sub(taire, commande)
-
-
-ECHO_DONNEE = re.compile(r"""\b(?:echo|printf)\b(?P<args>[^\n;&|`]*?)"""
-                         r"""(?:(?P<redir>>{1,2})[ \t]*(?:"[^"]*"|'[^']*'|\S+)|(?=[\n;&]|$))""", re.M)
-
-
-def sans_echo(commande):
-    """La commande, le texte cité d'un `echo`/`printf` dont la sortie va dans un fichier (`>`/`>>`)
-    ou à l'écran tu : sans `|` dans le même segment, hors `$(…)` et accents graves — comme
-    `sans_heredoc` pour `cat`/`tee` (chantier ENQ ; l'écran, dette VRB). Un `"…$(…)…"` reste lu :
-    il s'exécute. Limite acceptée : `echo 'git add' > s.sh` puis `sh s.sh` passe — le
-    gardien arrête une habitude, pas un attaquant."""
-    def taire(m):
-        avant = commande[:m.start()]
-        dans_sous = re.search(r"(?:\$\(|`)[^;&|()\n`]*$", avant)
-        if dans_sous:
-            return m.group(0)
-        args = re.sub(r"'[^']*'", "''", m.group("args"))
-        args = re.sub(r'"[^"]*"', lambda q: q.group(0) if "$(" in q.group(0) else '""', args)
-        return commande[m.start():m.start("args")] + args + commande[m.end("args"):m.end()]
-    return ECHO_DONNEE.sub(taire, commande)
-
-
-def ecrit_git(commande):
-    """Vrai si un `APPEL_GIT` de la commande a un verbe hors `LECTURE_GIT` — une option inconnue
-    en tient lieu, `git` seul n'écrit pas (chantier VRB). Lu sur la commande `sans_heredoc` puis
-    `sans_echo` : un heredoc ou un `echo`/`printf` qui ne font qu'écrire les mots `git commit` dans
-    un fichier n'écrivent pas dans Git (chantiers ECH, ENQ)."""
-    return any(m.group("verbe") not in (None, *LECTURE_GIT)
-               for m in APPEL_GIT.finditer(sans_echo(sans_heredoc(commande))))
-
-
-def lire_contrat(chemin):
-    """(premier mot du dernier message texte, appels qui écrivent dans Git, ceux que le gardien a
-    bloqués (`REFUS_GIT` dans leur `tool_result`), interrompu) d'une transcription. Un appel qui
-    écrit dans Git compte d'abord en écrit ; si son `tool_result` porte `REFUS_GIT`, il bascule en
-    bloqué — sans `tool_result` (transcription coupée), il reste écrit. (None, 0, 0, False) si
-    elle ne s'ouvre pas."""
-    mot, git, bloque, interrompu = "", 0, 0, False
-    en_attente = {}
-    try:
-        with mesure().ouvrir(chemin) as f:
-            for ligne in f:
-                try:
-                    d = json.loads(ligne)
-                except json.JSONDecodeError:
-                    continue
-                m = d.get("message") if isinstance(d, dict) else None
-                if not isinstance(m, dict):
-                    continue
-                contenu = m.get("content")
-                if m.get("role") == "user":
-                    for b in contenu if isinstance(contenu, list) else []:
-                        if not (isinstance(b, dict) and b.get("type") == "tool_result"):
-                            continue
-                        tid = b.get("tool_use_id")
-                        if tid not in en_attente:
-                            continue
-                        texte_res = b.get("content")
-                        if isinstance(texte_res, list):
-                            texte_res = " ".join(x.get("text", "") for x in texte_res if isinstance(x, dict))
-                        if isinstance(texte_res, str) and (REFUS_GIT in texte_res or REFUS_GIT_AVANT in texte_res):
-                            git -= 1
-                            bloque += 1
-                        del en_attente[tid]
-                    texte = contenu if isinstance(contenu, str) else None
-                    if texte is None and isinstance(contenu, list):
-                        textes = [x.get("text", "") for x in contenu if isinstance(x, dict) and x.get("type") == "text"]
-                        texte = textes[0] if textes else None
-                    if mot and isinstance(texte, str) and texte.startswith(INTERROMPU):
-                        interrompu = True
-                    continue
-                if m.get("role") != "assistant" or not isinstance(contenu, list):
-                    continue
-                for b in contenu:
-                    if not isinstance(b, dict):
-                        continue
-                    if b.get("type") == "text" and b.get("text", "").strip():
-                        mot, interrompu = b["text"].split()[0], False
-                    elif b.get("type") == "tool_use" and b.get("name") in ("Bash", "PowerShell"):
-                        commande = (b.get("input") or {}).get("command")
-                        if isinstance(commande, str) and ecrit_git(commande):
-                            git += 1
-                            en_attente[b.get("id")] = True
-    except (OSError, UnicodeDecodeError):
-        return None, 0, 0, False
-    return mot, git, bloque, interrompu
-
-
-def type_agent(chemin):
-    """L'`agentType` du `.meta.json` voisin ; `?` s'il manque ou ne se lit pas."""
-    try:
-        with mesure().ouvrir(chemin[:-len(".jsonl")] + ".meta.json") as f:
-            return json.load(f).get("agentType") or "?"
-    except (OSError, ValueError, AttributeError):
-        return "?"
-
-
-def ouverture(chemin):
-    """(heure, None) : l'heure d'auteur du plus ancien commit qui ajoute le fichier de fiches —
-    « Chantier X ouvert » pour 69 fichiers sur 80 ; le premier commit qui nomme le préfixe est
-    souvent l'ajout à la TODO (chantier CHK). (None, raison) sans git ou sans ce commit."""
-    import subprocess
-    try:
-        r = subprocess.run([etat.GIT, "log", "--diff-filter=A", "--format=%at", "--", os.path.basename(chemin)],
-                           cwd=os.path.dirname(os.path.abspath(chemin)), capture_output=True, encoding="utf-8",
-                           errors="replace", timeout=60)
-    except (OSError, subprocess.SubprocessError) as e:
-        return None, "git ne se lance pas : %s" % e
-    heures = r.stdout.split()
-    if r.returncode or not heures or not heures[-1].isdigit():
-        return None, "aucun commit n'ajoute ce fichier : l'ouverture n'est pas commitée"
-    return int(heures[-1]), None
-
-
-def cmd_contrat(a, sortie):
-    """Une ligne par transcription de sous-agent : id, type, départ de la session parente, dernier
-    mot (`(interrompu)` sinon), appels qui écrivent dans Git, ceux que le gardien a bloqués ; puis
-    le bilan. Un interrompu ne compte pas en sans-statut (chantier ENQ). `--ouverture` :
-    ceux partis — leur heure à eux, pas celle de la session parente — depuis l'ajout du fichier."""
-    m = mesure()
-    depuis = ouvert = None
-    if a.depuis:
-        depuis, err = m.borne(a.depuis)
-        if err:
-            sortie.write("GARDE: --depuis %s : %s\n" % (a.depuis, err))
-            return 1
-    if a.ouverture:
-        ouvert, err = ouverture(a.ouverture)
-        if err:
-            sortie.write("GARDE: --ouverture %s : %s\n" % (a.ouverture, err))
-            return 1
-        sortie.write("DEPUIS %s · ouverture de %s\n" % (time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(ouvert)),
-                                                        a.ouverture))
-    chemins = a.transcriptions
-    if not chemins:
-        motif = os.path.join(os.path.expanduser("~"), ".claude", "projects", "*", "*", *m.SOUS_AGENTS)
-        chemins = [c for c in sorted(glob.glob(motif)) if type_agent(c) == "vlp:fiche"]
-    n = commitent = bloques = sans_statut = interrompus = 0
-    for c in chemins:
-        parent = os.path.dirname(os.path.dirname(c)) + ".jsonl"
-        t, _ = m.depart(parent)     # absente ou illisible : t None
-        if depuis is not None and (t is None or t < depuis):
-            continue
-        if ouvert is not None and (m.depart(c)[0] or 0) < ouvert:
-            continue
-        mot, git, bloque, interrompu = lire_contrat(c)
-        if mot is None:
-            sortie.write("ILLISIBLE %s\n" % c)
-            continue
-        heure_ = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(t)) if t is not None else "?"
-        id_ = os.path.basename(c)[len("agent-"):-len(".jsonl")]
-        affiche = "(interrompu)" if interrompu else (mot or "(vide)")
-        sortie.write("%s %s %s %s git %d bloqué %d\n" % (id_, type_agent(c), heure_, affiche, git, bloque))
-        n += 1
-        commitent += git > 0
-        bloques += bloque > 0
-        if interrompu:
-            interrompus += 1
-        elif mot not in STATUTS:
-            sans_statut += 1
-    sortie.write("CONTRAT %d sous-agents · %d écrivent dans Git · %d bloqués par le gardien · "
-                 "%d sans statut en tête · %d interrompus\n" % (n, commitent, bloques, sans_statut, interrompus))
-    return 0
-
-
-VERDICTS = ("ACCEPTÉE", "REFUSÉE")     # les mots de tête de `vlp:relecture`
-ESSAI_REFUSE = "FAITE refusée à la relecture."   # la ligne numérotée que `cocher --refuser` écrit ; boucle.py l'importe
-JAUGE = ("Tout va bien", "Ça tient, mais", "Imprévu", "Pas bon", "Grosse erreur")
-# La forme d'une jauge (chantier OUV) : un de ces émojis en tête, ou le mot suivi de `—`, `…`
-# ou de la fin de ligne — `- Imprévu : j'ai dû…` est une puce, pas une jauge.
-EMOJIS_JAUGE = ("✅", "🟢", "⚠", "❌", "🔥")
-SUITE_JAUGE = re.compile(r"\*{0,2}\.?\*{0,2}[ \t]*(?:—|–|…|$)")
-
-
-REGLES = ("tout", "tiret", "deux", "tete")     # la partie du texte que juge `forme_texte` (chantier JUG)
-REGLE = "tete"     # retenue en JUG1 : le défaut du gardien et de `forme` ; `tout` rejoue l'ancienne mesure
-
-
-def ouvre(ligne):
-    """La ligne sans ses marques de tête — espaces, `#`, `*`, `-`, `>` et émojis ; `«` reste."""
-    i = 0
-    while i < len(ligne) and (ligne[i] in " \t#*->" or unicodedata.category(ligne[i]) in ("So", "Mn", "Cf")):
-        i += 1
-    return ligne[i:]
-
-
-def forme_texte(texte, regle=REGLE):
-    """(resume 0|1, jauge 0|1) de la partie du texte que juge `regle` ; (0, 0) si vide ou absent.
-    `tete` (défaut, celle du gardien) : le mot doit ouvrir une ligne, marques retirées — une
-    citation en milieu de phrase ne compte pas — et une jauge en avoir la forme, `EMOJIS_JAUGE`
-    en tête ou `SUITE_JAUGE` derrière (chantier OUV) ; `tout` : le texte entier ; `tiret` : après la
-    dernière ligne `---`, sinon tout ; `deux` : les deux dernières lignes non vides."""
-    if not isinstance(texte, str):
-        return 0, 0
-    lignes = texte.splitlines()
-    if regle == "tete":
-        tetes = [(l[:len(l) - len(ouvre(l))], ouvre(l)) for l in lignes]
-        return (int(any(t.startswith("En résumé") for _, t in tetes)),
-                int(any(re.match(re.escape(j) + r'\b', t) and (any(e in marques for e in EMOJIS_JAUGE)
-                                                               or SUITE_JAUGE.match(t[len(j):]))
-                        for marques, t in tetes for j in JAUGE)))
-    if regle == "tiret":
-        tirets = [i for i, l in enumerate(lignes) if l.strip() == "---"]
-        if tirets:
-            texte = "\n".join(lignes[tirets[-1] + 1:])
-    elif regle == "deux":
-        texte = "\n".join([l for l in lignes if l.strip()][-2:])
-    resume = int("En résumé" in texte)
-    # Mots entiers, pas sous-chaîne : « Pas bon » ne matche pas « Pas bonne » ; `tete` borne de même
-    jauge = int(any(re.search(r'\b' + re.escape(j) + r'\b', texte) for j in JAUGE))
-    return resume, jauge
-
-
-def lire_forme(chemin, regle=REGLE):
-    """(caractères par type User/Project/AutoMem, resume 0|1, jauge 0|1, tete 0|1) d'une
-    transcription, resume et jauge selon `regle` ; (None, 0, 0, 0) si elle ne s'ouvre pas. Les fichiers d'instructions sont
-    ceux du premier attachment `instructions` — une entrée de premier niveau
-    `{"attachment": {"type": "instructions", "files": […]}}`, pas un champ de `message`."""
-    chars = {"User": 0, "Project": 0, "AutoMem": 0}
-    vu, dernier = False, ""
-    try:
-        with mesure().ouvrir(chemin) as f:
-            for ligne in f:
-                try:
-                    d = json.loads(ligne)
-                except json.JSONDecodeError:
-                    continue
-                if not isinstance(d, dict):
-                    continue
-                att = d.get("attachment")
-                if not vu and isinstance(att, dict) and att.get("type") == "instructions":
-                    vu = True
-                    for fi in att.get("files") or []:
-                        if isinstance(fi, dict) and fi.get("type") in chars and isinstance(fi.get("content"), str):
-                            chars[fi["type"]] += len(fi["content"])
-                m = d.get("message")
-                if not isinstance(m, dict) or m.get("role") != "assistant" or not isinstance(m.get("content"), list):
-                    continue
-                for b in m["content"]:
-                    if isinstance(b, dict) and b.get("type") == "text" and b.get("text", "").strip():
-                        dernier = b["text"].strip()
-    except (OSError, UnicodeDecodeError):
-        return None, 0, 0, 0
-    resume, jauge = forme_texte(dernier, regle)
-    tete = int(bool(dernier) and dernier.split()[0] in STATUTS + VERDICTS)
-    return chars, resume, jauge, tete
-
-
-def cmd_forme(a, sortie):
-    """Une ligne par transcription de sous-agent : id, type, départ, et caractères
-    d'instructions par type, plus resume, jauge, tete ; puis le bilan."""
-    m = mesure()
-    depuis = None
-    if a.depuis:
-        depuis, err = m.borne(a.depuis)
-        if err:
-            sortie.write("GARDE: --depuis %s : %s\n" % (a.depuis, err))
-            return 1
-    chemins = a.transcriptions
-    if not chemins:
-        motif = os.path.join(os.path.expanduser("~"), ".claude", "projects", "*", "*", *m.SOUS_AGENTS)
-        chemins = [c for c in sorted(glob.glob(motif)) if type_agent(c) in ("vlp:fiche", "vlp:relecture")]
-    n = resume_total = jauge_total = tete_total = user_total = 0
-    for c in chemins:
-        t, _ = m.depart(c)
-        if depuis is not None and (t is None or t < depuis):
-            continue
-        chars, resume, jauge, tete = lire_forme(c, a.regle)
-        if chars is None:
-            sortie.write("ILLISIBLE %s\n" % c)
-            continue
-        heure_ = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(t)) if t is not None else "?"
-        id_ = os.path.basename(c)[len("agent-"):-len(".jsonl")]
-        sortie.write("%s %s %s user %d projet %d memoire %d resume %d jauge %d tete %d\n" % (
-            id_, type_agent(c), heure_, chars["User"], chars["Project"], chars["AutoMem"], resume, jauge, tete))
-        n += 1
-        user_total += chars["User"]
-        resume_total += resume
-        jauge_total += jauge
-        tete_total += tete
-    user_moyenne = user_total // n if n > 0 else 0
-    sortie.write("FORME %d sous-agents · user %d car. · resume %d · jauge %d · tete %d\n"
-                 % (n, user_moyenne, resume_total, jauge_total, tete_total))
-    return 0
-
-
-FICHE_A_JOUER = re.compile(r"Fiche à jouer :\s*(\S+)")
-# Jouer ou relire : les prompts de `/vlp:enchainer` et de `vlp:relire` (« Fiche à relire, et le commit… : »).
-FICHE_NOMMEE = re.compile(r"Fiche à (?:jouer|relire)[^:\n]*:\s*(\S+)")
-
-
-def fiche_jouee(chemin, motif=FICHE_A_JOUER):
-    """La fiche que `vlp:jouer` a donnée au sous-agent : `motif` (`Fiche à jouer :` d'office) suivi de
-    son id, dans le premier message utilisateur de sa transcription ; None si rien ne se lit."""
-    try:
-        with mesure().ouvrir(chemin) as f:
-            for ligne in f:
-                try:
-                    m = json.loads(ligne).get("message")
-                except (ValueError, AttributeError):
-                    continue
-                if not isinstance(m, dict) or m.get("role") != "user":
-                    continue
-                c = m.get("content")
-                texte = c if isinstance(c, str) else " ".join(
-                    b.get("text", "") for b in c if isinstance(b, dict)) if isinstance(c, list) else ""
-                t = motif.search(texte)
-                return t.group(1) if t else None
-    except (OSError, UnicodeDecodeError):
-        return None
-    return None
-
-
-def verdict_fin(d, deja_renvoye=False):
-    """La raison de renvoyer au travail un sous-agent `vlp:fiche` qui s'arrête, ou None.
-    `deja_renvoye` (`stop_hook_active`) : la tête n'est plus jugée — un troisième renvoi ne la
-    corrigerait pas —, un `FAITE` l'est encore (chantier GAR)."""
-    message = d.get("last_assistant_message")
-    if not isinstance(message, str):
-        return None
-    mot = message.split()[0] if message.strip() else "(vide)"
-    if mot not in STATUTS:
-        return None if deja_renvoye else (
-            "Ton dernier message commence par « %s » : son premier mot doit être FAITE, RETOUR ou "
-            "BLOQUÉE (agents/fiche.md). Réécris-le, statut en tête." % mot)
-    if mot != "FAITE" or not isinstance(d.get("agent_transcript_path"), str):
-        return None
-    fiche = fiche_jouee(d["agent_transcript_path"])
-    racine = trouver(d.get("cwd") or os.getcwd())
-    if fiche is None or racine is None:
-        return None
-    try:
-        courant = courant_de(racine)
-    except Absent:
-        return None
-    if courant is None:
-        return None
-    o = io.StringIO()
-    cmd_cocher(argparse.Namespace(fichier=os.path.join(racine, courant), fiche=fiche, verifier=True), o)
-    s = o.getvalue()
-    if "TÊTE " in s:
-        return ("Le dernier commit du dépôt nomme %s : tu as commité, contre agents/fiche.md. N'y touche "
-                "pas ; rends RETOUR en le disant, le chef décidera." % fiche)
-    if "CASE %s [ ]" % fiche in s:
-        return ("FAITE, mais la case de %s est vide : coche-la par vlp.py cocher, puis rends FAITE." % fiche)
-    return None
-
-
-def cmd_gardien(entree, sortie):
-    """Le contrat d'`agents/fiche.md` tenu à la sortie du sous-agent (chantier CON), le refus
-    de l'écriture Git étendu à `vlp:relecture` (chantier RLG), et le filtrage de la forme (résumé
-    et jauge) pour les deux agents — renvoi si une ligne du dernier message s'ouvre par « En
-    résumé » ou un mot de JAUGE, selon `forme_texte` et sa règle par défaut (chantiers FOR, JUG). Muet hors de ces deux agents et sur une entrée illisible : il ne
-    bloque jamais sur ce qu'il ne lit pas."""
-    try:
-        d = json.loads(entree.read())
-    except (ValueError, AttributeError, TypeError):
-        return 0
-    if not isinstance(d, dict):
-        return 0
-    agent_type = d.get("agent_type")
-    if not isinstance(agent_type, str):
-        return 0
-    relecteur = "relecture" in agent_type
-    if "fiche" not in agent_type and not relecteur:
-        return 0
-    ev = d.get("hook_event_name")
-    if ev == "PreToolUse" and d.get("tool_name") in ("Bash", "PowerShell"):
-        outil = d.get("tool_input")
-        commande = outil.get("command") if isinstance(outil, dict) else None
-        if isinstance(commande, str) and ecrit_git(commande):
-            agent, fin = ("relecture", "ton verdict") if relecteur else ("fiche", "ton statut")
-            sortie.write(json.dumps({"hookSpecificOutput": {
-                "hookEventName": "PreToolUse", "permissionDecision": "deny",
-                "permissionDecisionReason": ("Un sous-agent vlp:%s n'écrit pas dans Git (agents/%s.md) : %s %s."
-                                            % (agent, agent, REFUS_GIT, fin))}},
-                ensure_ascii=False) + "\n")
-    elif ev == "SubagentStop":
-        dernier_msg = d.get("last_assistant_message", "")
-        resume, jauge = forme_texte(dernier_msg)
-        stop_hook_active = bool(d.get("stop_hook_active"))
-
-        # Pour vlp:fiche : d'abord verdict_fin (statut, case, commit), puis forme si aucune raison et pas déjà renvoyé
-        if not relecteur:
-            try:
-                raison = verdict_fin(d, deja_renvoye=stop_hook_active)
-            except (Absent, OSError, ValueError):
-                raison = None
-            if raison:
-                sortie.write(json.dumps({"decision": "block", "reason": raison}, ensure_ascii=False) + "\n")
-            elif (resume or jauge) and not stop_hook_active:
-                raison = "Ton dernier message porte un « En résumé » ou une jauge : ton lecteur est le chef (agents/fiche.md). Réécris-le sans eux, statut en tête."
-                sortie.write(json.dumps({"decision": "block", "reason": raison}, ensure_ascii=False) + "\n")
-        # Pour vlp:relecture : seulement forme
-        else:
-            if (resume or jauge) and not stop_hook_active:
-                raison = "Ton dernier message porte un « En résumé » ou une jauge : ton lecteur est le chef (agents/relecture.md). Réécris-le sans eux, statut en tête."
-                sortie.write(json.dumps({"decision": "block", "reason": raison}, ensure_ascii=False) + "\n")
-    return 0
+from noyau.relecture import *   # noqa: E402,F403
+from noyau.hooks import *       # noqa: E402,F403
+from noyau.niveau import *      # noqa: E402,F403
+from noyau.bac import *         # noqa: E402,F403
+import noyau.relecture   # noqa: E402 — `noyau.relecture.git_texte` : un test la remplace là (REF47)
 
 
 # --- le fichier des nuits : `<contexte>/NN-nuits.md` (chantier NUI) ------------
@@ -1352,8 +397,8 @@ def cmd_trier(a, sortie):
     if not equipe(a.projet):
         sortie.write("GARDE: pas de CHANTIER.md dans %s\n" % a.projet)
         return 1
-    if git_texte(["rev-parse", "--is-inside-work-tree"], a.projet)[0] == 0:
-        code, tete = git_texte(["symbolic-ref", "--short", "-q", "HEAD"], a.projet)
+    if noyau.relecture.git_texte(["rev-parse", "--is-inside-work-tree"], a.projet)[0] == 0:
+        code, tete = noyau.relecture.git_texte(["symbolic-ref", "--short", "-q", "HEAD"], a.projet)
         branche = tete.strip() if code == 0 else "rien (détaché)"
         if branche != "main":
             sortie.write("GARDE: trier hors de main (branche %s) — le plan ne s'écrit que sur main : rien trié\n" % branche)
@@ -1792,585 +837,6 @@ def cmd_chef_page(questions, chemin, sortie, gabarit):
     return 0
 
 
-# --- attente : les pages que la limite du jour a refusées (chantier LOC) ------
-
-TEXTE_LIMITE = "publish 429"                    # le début du texte du refus, relevé par LOC1
-MARGE_TACHE = datetime.timedelta(minutes=10)    # la tâche planifiée part après la remise à zéro
-
-
-def dossier_artefacts(racine):
-    contexte = champ(lignes_de(os.path.join(racine, "CHANTIER.md")), "contexte", "context AI/")
-    return os.path.join(racine, contexte, "artefacts")
-
-
-def entrees_attente(lignes):
-    """[(page, url, heure)] des lignes d'un fichier `en-attente`, dans leur ordre."""
-    entrees = []
-    for l in lignes:
-        c = l.split("\t") + ["aucune", ""]
-        if c[0]:
-            entrees.append((c[0], c[1], c[2]))
-    return entrees
-
-
-def texte_attente(entrees):
-    """Le fichier `en-attente` de `entrees` : une ligne par page — le texte que `ecrire_attente` écrit (chantier NUI)."""
-    return "".join("\t".join(e) + "\n" for e in entrees)
-
-
-def lire_attente(artefacts):
-    """[(page, url, heure)] dans l'ordre du fichier `en-attente` ; absent : liste vide."""
-    chemin = os.path.join(artefacts, "en-attente")
-    return entrees_attente(lignes_de(chemin)) if os.path.isfile(chemin) else []
-
-
-def ecrire_attente(artefacts, entrees):
-    """Le fichier en entier dans un `.tmp` puis `os.replace` ; liste vide : le fichier disparaît."""
-    chemin = os.path.join(artefacts, "en-attente")
-    if not entrees:
-        if os.path.exists(chemin):
-            os.remove(chemin)
-        return
-    os.makedirs(artefacts, exist_ok=True)
-    with open(chemin + ".tmp", "w", encoding="utf-8", newline="\n") as f:
-        f.write(texte_attente(entrees))
-    os.replace(chemin + ".tmp", chemin)
-
-
-def ajouter_attente(artefacts, page, url, heure):
-    """La page prend la place de son ancienne entrée, en fin de liste : la dernière gagne."""
-    ecrire_attente(artefacts, [e for e in lire_attente(artefacts) if e[0] != page] + [(page, url, heure)])
-
-
-def retirer_attente(artefacts, page):
-    """Le nombre d'entrées restantes ; rien n'est écrit si la page n'y était pas."""
-    avant = lire_attente(artefacts)
-    restant = [e for e in avant if e[0] != page]
-    if len(restant) != len(avant):
-        ecrire_attente(artefacts, restant)
-    return len(restant)
-
-
-def lignes_attente(artefacts):
-    return ["ATTENTE=%s %s" % (p, u) for p, u, _ in lire_attente(artefacts)]
-
-
-def attentes_de_nuit(projet, pages, sortie):
-    """Sous `VLP_NUIT=1`, mettre en attente chaque `(chemin, url)` de `pages` — la session `claude -p` n'a pas l'outil
-    Artifact : le chef du matin les publie (NPB1) —, et écrire `ATTENTE <page> — <url>`. Hors nuit : rien."""
-    if os.environ.get("VLP_NUIT") == "1":
-        noter_attentes(projet, pages, sortie)
-
-
-def noter_attentes(projet, pages, sortie):
-    """Mettre en attente chaque `(chemin, url)` de `pages` dans le dossier artefacts du projet, et écrire
-    `ATTENTE <page> — <url>` ; une page hors de ce dossier est ignorée."""
-    artefacts = dossier_artefacts(projet)
-    heure = datetime.datetime.now().astimezone().isoformat(timespec="minutes")
-    for chemin, url in pages:
-        nom = page_relative(artefacts, os.path.abspath(chemin))
-        if nom:
-            ajouter_attente(artefacts, nom, url or "aucune", heure)
-            sortie.write("ATTENTE %s — %s\n" % (nom, url or "aucune"))
-
-
-def dire_attentes(projet, sortie):
-    """Écrire les `ATTENTE=` du projet après les fusions du matin : les pages qu'une nuit n'a pas pu publier (NPB1)."""
-    for ligne in lignes_attente(dossier_artefacts(projet)):
-        sortie.write(ligne + "\n")
-
-
-def page_relative(artefacts, page):
-    """`page` relative au dossier artefacts, en barres obliques ; None si elle est ailleurs."""
-    if os.path.isabs(page):
-        try:
-            page = os.path.relpath(page, artefacts)
-        except ValueError:
-            return None
-    page = page.replace("\\", "/")
-    return None if page == ".." or page.startswith("../") else page
-
-
-def remise_a_zero(maintenant):
-    """(remise à zéro, tâche planifiée) : le prochain minuit UTC après `maintenant`, puis
-    `MARGE_TACHE` plus tard, dans le fuseau de `maintenant`."""
-    utc = maintenant.astimezone(datetime.timezone.utc)
-    zero = datetime.datetime.combine(utc.date() + datetime.timedelta(days=1), datetime.time(),
-                                     tzinfo=datetime.timezone.utc)
-    return zero.astimezone(maintenant.tzinfo), (zero + MARGE_TACHE).astimezone(maintenant.tzinfo)
-
-
-def cmd_attente(a, sortie, maintenant=None):
-    if a.op == "lister":
-        # la racine d'un projet équipé vaut son dossier artefacts : sinon `.` rendait « ATTENTE 0 » en silence
-        dossier = dossier_artefacts(a.dossier) if equipe(a.dossier) else a.dossier
-        for l in lignes_attente(dossier):
-            sortie.write(l + "\n")
-        sortie.write("ATTENTE %d\n" % len(lire_attente(dossier)))
-        return 0
-    racine = trouver(a.projet or os.getcwd())
-    if racine is None:
-        sortie.write("GARDE: pas de projet équipé ici : %s\n" % (a.projet or os.getcwd()))
-        return 1
-    artefacts = dossier_artefacts(racine)
-    page = page_relative(artefacts, a.page)
-    url = getattr(a, "url", None) or "aucune"
-    if page is None or any(c in page + url for c in "\t\r\n"):
-        sortie.write("GARDE: page hors du dossier artefacts, ou tabulation dans la page ou l'url : %s\n" % a.page)
-        return 1
-    if a.op == "retirer":
-        n = retirer_attente(artefacts, page)
-    else:
-        heure = (maintenant or datetime.datetime.now().astimezone()).isoformat(timespec="minutes")
-        ajouter_attente(artefacts, page, url, heure)
-        n = len(lire_attente(artefacts))
-    sortie.write("ATTENTE %d\n" % n)
-    return 0
-
-
-def noter_joints(outil, cwd, page):
-    """Après une publication réussie : l'empreinte de chaque fichier de `files` (forme dict,
-    source en chemin ou `{from}` ; relative à `root`, puis au dossier courant) dans `publie`,
-    à côté de `page` (chantier JNT). Un fichier copié d'un autre artefact ou absent : ignoré."""
-    fichiers = outil.get("files")
-    if not isinstance(fichiers, dict):
-        return
-    base = cwd if isinstance(cwd, str) else os.getcwd()
-    if isinstance(outil.get("root"), str):
-        base = os.path.join(base, outil["root"])
-    empreintes = {}
-    for nom, source in fichiers.items():
-        if isinstance(source, dict):
-            source = source.get("from")
-        if isinstance(nom, str) and isinstance(source, str):
-            source = os.path.join(base, source)
-            if os.path.isfile(source):
-                empreintes[nom] = empreinte(source)
-    if empreintes:
-        noter_publie(os.path.dirname(page), os.path.basename(page), empreintes)
-
-
-def cmd_attente_hook(entree, sortie, maintenant=None):
-    """Le hook `PostToolUse` et `PostToolUseFailure` sur `Artifact` (chantier LOC). Un échec dont
-    `error` porte `TEXTE_LIMITE` ajoute la page à la liste et, la première fois du jour UTC pour
-    ce projet, propose une tâche planifiée ; un succès retire la page et note l'empreinte des
-    joints passés (`noter_joints`, chantier JNT). Muet sur tout le reste : un autre refus, une
-    page hors des artefacts d'un projet équipé, une entrée illisible."""
-    try:
-        d = json.loads(entree.read())
-    except (ValueError, AttributeError, TypeError):
-        return 0
-    if not isinstance(d, dict) or d.get("tool_name") != "Artifact":
-        return 0
-    evenement, outil = d.get("hook_event_name"), d.get("tool_input")
-    if evenement not in ("PostToolUse", "PostToolUseFailure") or not isinstance(outil, dict) \
-            or outil.get("asset") is True:
-        return 0
-    chemin = outil.get("file_path")
-    if not isinstance(chemin, str) or not chemin:
-        return 0
-    cwd = d.get("cwd")
-    if not os.path.isabs(chemin) and isinstance(cwd, str):
-        chemin = os.path.join(cwd, chemin)
-    chemin = os.path.abspath(chemin)
-    racine = trouver(os.path.dirname(chemin))
-    if racine is None:
-        return 0
-    artefacts = dossier_artefacts(racine)
-    page = page_relative(artefacts, chemin)
-    if page is None:
-        return 0
-    if evenement == "PostToolUse":
-        retirer_attente(artefacts, page)
-        noter_joints(outil, cwd, chemin)
-        return 0
-    erreur = d.get("error")
-    if not isinstance(erreur, str) or TEXTE_LIMITE not in erreur:
-        return 0
-    maintenant = maintenant or datetime.datetime.now().astimezone()
-    url = outil.get("url")
-    ajouter_attente(artefacts, page, url if isinstance(url, str) and url else "aucune",
-                    maintenant.isoformat(timespec="minutes"))
-    jour = maintenant.astimezone(datetime.timezone.utc).date().isoformat()
-    if not tampon_neuf("vlp-attente-%s-%s" % (hashlib.sha1(racine.encode("utf-8")).hexdigest()[:16], jour)):
-        return 0
-    zero, tache = remise_a_zero(maintenant)
-    message = ("Limite de publication du jour atteinte : %s attend dans la liste (`attente lister`). "
-               "Remise à zéro à %s locale ; propose à l'utilisateur une tâche planifiée à %s qui "
-               "republie la liste." % (page, zero.strftime("%H:%M"), tache.strftime("%H:%M")))
-    sortie.write(json.dumps({"hookSpecificOutput": {"hookEventName": evenement, "additionalContext": message}},
-                            ensure_ascii=False) + "\n")
-    return 0
-
-
-# « Fiches » avec majuscule aussi : l'encart du chantier en cours l'écrit ainsi (dette BTN).
-PLAGE_TEXTE = re.compile(r"[Ff]iches [A-Z]{1,3}[0-9]+(?:–[A-Z]{1,3}[0-9]+)?")
-
-
-def cmd_comparer(a, sortie):
-    """`PERDU:`/`AJOUTÉ:` entre le texte visible de deux pages, en multiset —
-    une mesure, pas une garde : sort 0 même avec des pertes."""
-    for chemin in (a.ancienne, a.neuve):
-        if not os.path.isfile(chemin):
-            sortie.write("GARDE: introuvable %s\n" % chemin)
-            return 1
-    anciens = textes_visibles(lire(a.ancienne))
-    neufs = textes_visibles(lire(a.neuve))
-    restant_neufs = collections.Counter(neufs)
-    perdus = []
-    for t in anciens:
-        if restant_neufs[t] > 0:
-            restant_neufs[t] -= 1
-        else:
-            perdus.append(t)
-    restant_anciens = collections.Counter(anciens)
-    ajoutes = []
-    for t in neufs:
-        if restant_anciens[t] > 0:
-            restant_anciens[t] -= 1
-        else:
-            ajoutes.append(t)
-    # Dette HAB : une plage d'en-tête refaite (« fiches X1–X7 » → « X1–X8 ») n'est
-    # pas une perte — la paire sort en `PLAGE:`, ni perdue ni ajoutée.
-    plages = []
-    for t in list(perdus):
-        forme = PLAGE_TEXTE.sub("fiches #", t)
-        if forme == t:
-            continue
-        for n in ajoutes:
-            if PLAGE_TEXTE.sub("fiches #", n) == forme:
-                plages.append((t, n))
-                perdus.remove(t)
-                ajoutes.remove(n)
-                break
-    for t in perdus:
-        sortie.write("PERDU: %s\n" % t)
-    for t in ajoutes:
-        sortie.write("AJOUTÉ: %s\n" % t)
-    for t, n in plages:
-        sortie.write("PLAGE: %s → %s\n" % (t, n))
-    sortie.write("COMPARER %d perdus · %d ajoutés%s\n" % (
-        len(perdus), len(ajoutes), " · %d plages refaites" % len(plages) if plages else ""))
-    return 0
-
-
-def markdown_brut(html):
-    """(`**`, liens Markdown, liens cassés) restés dans les zones todo, encours et
-    clos d'une feuille de route, en occurrences — hors code cité, hors ligne
-    d'exemple du gabarit."""
-    (a, b, _), (c, d) = zone_todo(html), zone(html, "encours", "\n", "  </section>")
-    # une feuille dont les clos sont partis dans l'archive n'a plus de ZONE:clos (chantier ARC)
-    e, f = zone(html, "clos", "<tbody>\n", "        </tbody>") if "<!-- ZONE:clos" in html else (0, 0)
-    clos = RANG_CLOS.sub(lambda m: "".join(lignes_clos(m.group(0))), html[e:f])
-    texte = MONO.sub("", html[a:b] + html[c:d] + clos)
-    return texte.count("**"), texte.count("](http"), texte.count('href="&lt;')
-
-
-# --- niveau ------------------------------------------------------------------
-
-# Ce qu'on ne regarde pas : une copie locale de `methode-chantier.md`. La
-# méthode dit qu'un projet équipé avant la règle garde la sienne — on a
-# seulement cessé d'en fabriquer.
-VARIABLE = re.compile(r"\$\{[A-Za-z_][A-Za-z0-9_]*\}")
-# Une variable ne compte que là où une commande lit un chemin : le champ d'une
-# ligne `- **nom** : …`, ou une cellule de table. Ailleurs c'est de la prose qui
-# cite la règle, et le fichier d'état en cite beaucoup.
-PORTEUSE = re.compile(r"^\s*(?:-\s*\*\*[^*]+\*\*\s*:|\|)")
-TITRE_CLOS = re.compile(r"^#+\s.*\bclos\b", re.I)
-
-
-def capte(fn, *args):
-    """(code, lignes) d'une sous-commande rejouée pour son texte : `niveau`
-    n'invente aucun contrôle que les autres savent déjà faire."""
-    s = io.StringIO()
-    code = fn(*(args + (s,)))
-    return code, s.getvalue().splitlines()
-
-
-def variables_citees(projet, sources):
-    """(chemin, numéro, variable) de chaque `${…}` posée en chemin lisible."""
-    for libelle, chemin in sources:
-        for i, l in enumerate(lignes_du_projet(projet, chemin, libelle), 1):
-            if PORTEUSE.match(l):
-                for v in VARIABLE.findall(l):
-                    yield chemin, i, v
-
-
-def table_des_clos(lignes):
-    """Le numéro du titre « Chantiers clos » suivi d'une table, ou None : le
-    titre seul ne gêne pas, c'est la table qui double l'index."""
-    debut = None
-    for i, l in enumerate(lignes, 1):
-        if l.startswith("#"):
-            debut = i if TITRE_CLOS.match(l) else None
-        elif debut and l.startswith("|"):
-            return debut
-    return None
-
-
-FICHIER_MD = re.compile(r"[\w][\w./ -]*\.md")
-
-
-def entete_clos():
-    """Le titre et la phrase que le gabarit de `CHANTIER.md` pose à la place
-    d'une table des chantiers clos."""
-    g = lignes_de(os.path.join(etat.KIT, "templates", "CHANTIER.md"))
-    i = next(k for k, l in enumerate(g) if TITRE_CLOS.match(l))
-    j = next(k for k in range(i, len(g)) if g[k].startswith("Lettres de fiche déjà prises"))
-    return g[i:j]
-
-
-def sans_table_des_clos(carte_, index):
-    """`CHANTIER.md` sans sa table des chantiers clos, ou None si la retirer
-    perdrait quelque chose : la ligne des lettres prises doit suivre la table,
-    et l'index nommer chacun de ses fichiers."""
-    i = table_des_clos(carte_)
-    if i is None:
-        return None
-    i -= 1
-    j = next((k for k in range(i, len(carte_)) if carte_[k].startswith("Lettres de fiche déjà prises")), None)
-    if j is None:
-        return None
-    vus = "\n".join(index)
-    for l in carte_[i:j]:
-        if l.startswith("|") and any(os.path.basename(nom) not in vus for nom in FICHIER_MD.findall(l)):
-            return None
-    return carte_[:i] + entete_clos() + carte_[j:]
-
-
-def cmd_niveau(a, sortie):
-    """En quoi un projet équipé a dérivé du kit. Sans `--ecrire`, n'écrit rien
-    nulle part ; avec, corrige les écarts dont la bonne valeur se déduit sans
-    jugement, et laisse les autres en `ÉCART:`. Comme `clore`, tout se calcule
-    avant la première écriture."""
-    projet = a.projet
-    if not equipe(projet):
-        sortie.write("GARDE: pas de CHANTIER.md dans %s\n" % projet)
-        return 1
-    date = a.date or __import__("datetime").date.today().isoformat()
-    ecarts = avertissements = corriges = 0
-    ecritures = []
-    carte_ = lignes_du_projet(projet, "CHANTIER.md", "carte")
-
-    _, lignes = capte(cmd_renvois, projet)
-    poids = "POIDS non mesuré"
-    for l in lignes:
-        if l.startswith("ABSENT: "):
-            ecarts += 1
-            sortie.write("ÉCART: renvois: %s — nommé, introuvable\n" % l[8:])
-        elif l.startswith("AVERTISSEMENT: "):
-            avertissements += 1
-            sortie.write("AVERTISSEMENT: poids: %s\n" % l[15:])
-        elif l.startswith("POIDS "):
-            poids = l
-        elif l.startswith("GARDE: "):
-            ecarts += 1
-            sortie.write("ÉCART: renvois: %s\n" % l[7:])
-
-    page = page_feuille(projet)
-    absente = not os.path.isfile(page)
-    html = lire(os.path.join(etat.KIT, GABARIT_FEUILLE)) if absente else lire(page)
-    migre = migrer_feuille(html)
-    converti, n = html, 0
-    try:
-        neuf, _ = feuille(projet, migre, None, date)
-        converti, n = migrer_clos(neuf)
-        # sans --ecrire : la page que l'on voit ; absente, le gabarit régénéré, comme avant VOI1
-        md = markdown_brut(converti if a.ecrire else neuf if absente else html)
-    except ValueError as e:
-        neuf = md = None
-        ecarts += 1
-        sortie.write("ÉCART: feuille: %s\n" % e)
-    if neuf is None:
-        pass
-    elif absente:
-        if a.ecrire:
-            ecritures.append((page, converti))
-            corriges += 1
-            sortie.write("CORRIGÉ: feuille: posée depuis le gabarit puis régénérée — %s\n" % page)
-        else:
-            ecarts += 1
-            sortie.write("ÉCART: feuille: feuille de route introuvable : %s — le gabarit la pose\n" % page)
-    else:
-        for present, manque, pose in (
-                (migre != html, "le bloc repliable des chantiers clos manque, et son estimation en"
-                                " dollars — le gabarit les a", "bloc repliable des chantiers clos posé"),
-                (neuf != migre, "écart — « vlp.py feuille %s » la régénère" % projet, "régénérée")):
-            if not present:
-                continue
-            if a.ecrire:
-                corriges += 1
-                sortie.write("CORRIGÉ: feuille: %s\n" % pose)
-            else:
-                ecarts += 1
-                sortie.write("ÉCART: feuille: %s\n" % manque)
-        if a.ecrire and n:
-            corriges += 1
-            sortie.write("CORRIGÉ: feuille: %d lignes closes converties\n" % n)
-        if a.ecrire and converti != html:
-            ecritures.append((page, converti))
-    sortie.write("MARKDOWN non mesuré, la feuille ne se régénère pas — %s\n" % page if md is None
-                 else "MARKDOWN %d ** · %d liens Markdown · %d liens cassés — %s\n" % (md + (page,)))
-    if md and any(md):
-        ecarts += 1
-        sortie.write("ÉCART: feuille: Markdown brut ou lien cassé%s\n"
-                     % (" — « vlp.py niveau --ecrire » convertit les lignes closes" if n and not a.ecrire else ""))
-
-    courant = courant_a_compter(projet, sortie)
-    if courant:
-        fichier = chemin_garde(os.path.join(projet, courant), "fichier de fiches courant", courant)
-        code, lignes = capte(cmd_page, argparse.Namespace(
-            fichier=fichier, page=page_du_fichier(fichier), note=None, journal=None,
-            creer=False, projet=None, titre=None, resultat=None, verifier=True, date=None, forme=False))
-        for l in lignes:
-            if l.startswith("ÉCART: ") or l.startswith("GARDE: "):
-                ecarts += 1
-                sortie.write("ÉCART: page: %s\n" % l[7:])
-
-    contexte = champ(carte_, "contexte", "context AI/")
-    index = champ(carte_, "index", contexte.rstrip("/") + "/00-INDEX.md")
-    sources = [("carte", "CHANTIER.md"), ("index", index)]
-    fichier_etat = champ(carte_, "fichier d'état")
-    if fichier_etat:
-        sources.append(("fichier d'état", fichier_etat))
-    for chemin, i, v in variables_citees(projet, sources):
-        ecarts += 1
-        sortie.write("ÉCART: variable: %s:%d cite %s — une variable ne vaut que dans"
-                     " le texte d'une commande, pas dans un fichier de données\n" % (chemin, i, v))
-
-    for e, c, ecrites in etapes_niveau(projet, retirer_clos(projet, carte_, index, a.ecrire, sortie), date, a.ecrire,
-                                       sortie):
-        ecarts, corriges = ecarts + e, corriges + c
-        ecritures += ecrites
-
-    for chemin, contenu in ecritures:
-        dossier = os.path.dirname(chemin)
-        if dossier and not os.path.isdir(dossier):
-            os.makedirs(dossier)
-        with open(chemin, "w", encoding="utf-8", newline="") as fh:
-            fh.write(contenu)
-        if chemin == page:
-            ecrire_couts(page, contenu, couts_du_projet(projet, contenu))
-    sortie.write(poids + "\n")
-    if a.ecrire:
-        sortie.write("NIVEAU %d corrigés · %d à la main — %s\n" % (corriges, ecarts, projet))
-    else:
-        sortie.write("NIVEAU %d écarts · %d avertissements — %s\n" % (ecarts, avertissements, projet))
-    return 1 if ecarts else 0
-
-
-def etapes_niveau(projet, clos, date, ecrire, sortie):
-    """Les quatre étapes de `niveau` de même forme, `[(écarts, corrigés, écritures)]`, dans l'ordre : `clos`, ce que
-    `retirer_clos` a rendu, puis la marque, la ligne et Git. La ligne ne part
-    qu'après la marque, que `poser_ouverture` pose en la lisant, et du CHANTIER.md que `retirer_clos` a peut-être
-    réécrit (NUI31)."""
-    etapes = [clos, poser_ouverture(projet, date, ecrire, sortie)]
-    ecrites = [ec for _, _, ecs in etapes for ec in ecs]
-    return etapes + [retirer_ligne_courant(projet, ecrites, etapes[1][0] == 0, ecrire, sortie),
-                     ecarts_git(projet, sortie)]
-
-
-# Un chemin de machine : un lecteur Windows, le dossier personnel, ou une racine Unix d'utilisateur.
-CHEMIN_MACHINE = re.compile(r"(?<![\w/])(?:[A-Za-z]:[\\/]|~[\\/]|/(?:home|Users|mnt)/)")
-
-
-def ecarts_git(projet, sortie):
-    """L'étape « git » de `niveau` (NUI36) : ce que la règle veut suivi (`etat_git`) mais que Git ignore — avec la
-    ligne de `.gitignore` qui le couvre — ou n'a pas ajouté, et une ligne **kit** qui porte un chemin de machine. Hors
-    Git : rien. `--ecrire` ne corrige rien : retirer une ligne, ajouter, commiter sont des gestes de l'utilisateur.
-    `(écarts, 0, [])`."""
-    etat = etat_git(projet)
-    if etat is None:
-        return 0, 0, []
-    ecarts = 0
-    # Ignoré exprès (NWT) : le projet le déclare, `- **contexte dans Git** : non — <pourquoi>` ; une ligne le dit.
-    expres = champ(lignes_de(os.path.join(projet, "CHANTIER.md")), "contexte dans Git", "")
-    if etat["ignoré"] and re.match(r"non\b", expres, re.I):
-        sortie.write("EXPRÈS: git: %d chemin(s) ignoré(s) exprès — CHANTIER.md, « contexte dans Git » : %s ; aucun "
-                     "écart compté\n" % (len(etat["ignoré"]), expres))
-    for nom, exemple in [] if re.match(r"non\b", expres, re.I) else etat["ignoré"]:
-        code, t = git_texte(["check-ignore", "-v", "--", exemple], projet)
-        source = t.split("\t")[0].rpartition(":")[0] if code == 0 and "\t" in t else "?"
-        sortie.write("ÉCART: git: %s — ignoré par %s — à retirer à la main, puis ajouter\n" % (nom, source))
-        ecarts += 1
-    for nom, _ in etat["non ajouté"]:
-        sortie.write("ÉCART: git: %s — non ajouté — à ajouter et commiter à la main\n" % nom)
-        ecarts += 1
-    kit = champ(lignes_de(os.path.join(projet, "CHANTIER.md")), "kit", "")
-    if CHEMIN_MACHINE.search(kit):
-        sortie.write("ÉCART: git: CHANTIER.md — la ligne « kit » porte un chemin de machine, et le fichier part"
-                     " dans Git : « le plugin vlp », à la main\n")
-        ecarts += 1
-    return ecarts, 0, []
-
-
-def retirer_clos(projet, carte_, index, ecrire, sortie):
-    """L'étape « clos » de `niveau` : la table des chantiers clos restée dans CHANTIER.md, retirée avec `ecrire` si
-    l'index nomme chacun de ses fichiers. `(écarts, corrigés, [(chemin, contenu)])`."""
-    rang = table_des_clos(carte_)
-    if rang is None:
-        return 0, 0, []
-    neuve = sans_table_des_clos(carte_, lignes_index(projet, index)) if ecrire else None
-    if neuve is None:
-        sortie.write("ÉCART: clos: CHANTIER.md:%d — la table des chantiers clos vit"
-                     " dans l'index, pas dans la carte\n" % rang)
-        return 1, 0, []
-    sortie.write("CORRIGÉ: clos: table des chantiers clos retirée de CHANTIER.md:%d —"
-                 " l'index nomme chacun de ses fichiers\n" % rang)
-    return 0, 1, [(os.path.join(projet, "CHANTIER.md"), "\n".join(neuve) + "\n")]
-
-
-def poser_ouverture(projet, date, ecrire, sortie):
-    """L'étape « marque » de `niveau` (NUI30) : un projet sans aucune marque d'ouverture — `migre` faux — la reçoit
-    sur le fichier que nomme l'ancienne ligne de CHANTIER.md, sous son titre, datée de son commit d'ouverture (`date`
-    à défaut, et la ligne le dit) ; ligne à `aucun`, projet migré : rien. Sans `ecrire`, introuvable ou sans titre :
-    `ÉCART: marque:`. `(écarts, corrigés, [(chemin, contenu)])`."""
-    fichier = None if migre(projet) else fichier_courant(lire(os.path.join(projet, "CHANTIER.md")))
-    if not fichier:
-        return 0, 0, []
-    chemin = os.path.join(projet, fichier)
-    lignes = lignes_de(chemin) if os.path.isfile(chemin) else None
-    ids = [l.split()[1] for l in lignes or () if TITRE.match(l)]
-    code = lettre_de(ids[0]) if ids else "?"
-    quand = date_ouverture(projet, code) if ids and ecrire else None
-    if lignes is None:
-        sortie.write("ÉCART: marque: %s introuvable — marque d'ouverture non posée\n" % fichier)
-    elif not ecrire:
-        sortie.write("ÉCART: marque: %s sans **Ouvert.** — « vlp.py niveau --ecrire » la pose\n" % fichier)
-    elif not poser_marque(lignes, OUVERT_LIGNE % (quand or date)):
-        sortie.write("ÉCART: marque: pas de titre « # Chantier » dans %s — marque non posée\n" % fichier)
-    else:
-        sortie.write("CORRIGÉ: marque: **Ouvert.** le %s sur %s — %s\n" % (quand or date, fichier, "son commit"
-                     " d'ouverture" if quand else "date de l'appel, aucun commit « Chantier %s ouvert »" % code))
-        return 0, 1, [(chemin, "\n".join(lignes) + "\n")]
-    return 1, 0, []
-
-
-def retirer_ligne_courant(projet, ecritures, marque_posee, ecrire, sortie):
-    """L'étape « ligne » de `niveau` (NUI31) : la ligne « fichier de fiches courant » restée dans CHANTIER.md — plus
-    aucun lecteur ne la suit, elle ne peut que mentir —, retirée avec `ecrire` si `marque_posee` (l'étape « marque »
-    sans écart : sinon elle reste, seule trace du chantier ouvert). Part du dernier CHANTIER.md de `ecritures`, sinon
-    du disque, fins de ligne gardées. `(écarts, corrigés, [(chemin, contenu)])`."""
-    chemin = os.path.join(projet, "CHANTIER.md")
-    texte = next((c for ch, c in reversed(ecritures) if ch == chemin), None)
-    if texte is None:
-        with open(chemin, encoding="utf-8", newline="") as fh:
-            texte = fh.read()
-    fin = "\r\n" if "\r\n" in texte else "\n"
-    lignes = texte.replace("\r\n", "\n").split("\n")
-    rangs = [k for k, l in enumerate(lignes) if COURANT.match(l)]
-    if not rangs:
-        return 0, 0, []
-    if not (ecrire and marque_posee):
-        sortie.write("ÉCART: ligne: CHANTIER.md:%d — « fichier de fiches courant » n'est plus lue (NUI31) — %s\n"
-                     % (rangs[0] + 1, "« vlp.py niveau --ecrire » la retire" if marque_posee
-                        else "gardée tant que la marque d'ouverture manque"))
-        return 1, 0, []
-    sortie.write("CORRIGÉ: ligne: « fichier de fiches courant » retirée de CHANTIER.md:%d — la marque d'ouverture"
-                 " dit le chantier\n" % (rangs[0] + 1))
-    return 0, 1, [(chemin, fin.join(l for k, l in enumerate(lignes) if k not in rangs))]
-
-
 # --- clore -------------------------------------------------------------------
 
 CLOS_LIGNE = "**CLOS** le %s. Ne se rejoue pas — ne sert plus qu'à relire son socle."
@@ -2467,7 +933,7 @@ def date_ouverture(racine, code):
     """`AAAA-MM-JJ` du plus ancien commit « Chantier <code> ouvert » ou « <code> : chantier ouvert », ou None (hors
     Git, aucun tel commit) : la date de la marque que `niveau --ecrire` pose (NUI30)."""
     motif = "^(chantier %s ouvert|%s : chantier ouvert)" % (re.escape(code), re.escape(code))
-    code_git, texte = git_texte(["log", "--format=%as", "-i", "-E", "--grep=" + motif], racine)
+    code_git, texte = noyau.relecture.git_texte(["log", "--format=%as", "-i", "-E", "--grep=" + motif], racine)
     dates = texte.split() if code_git == 0 else []
     return dates[-1] if dates else None
 
@@ -2487,13 +953,13 @@ def textes_contexte(racine, rev=None):
         base = os.path.join(racine, dossier)
         noms = sorted(n for n in os.listdir(base) if n.endswith(".md")) if os.path.isdir(base) else []
         return [(rel % n, lignes_de(os.path.join(base, n))) for n in noms]
-    code, sortie_git = git_texte(["ls-tree", "--name-only", rev, "./%s/" % dossier], racine)
+    code, sortie_git = noyau.relecture.git_texte(["ls-tree", "--name-only", rev, "./%s/" % dossier], racine)
     noms = sorted(os.path.basename(l) for l in (sortie_git.splitlines() if code == 0 else []) if l.endswith(".md"))
     specs = ["%s:./%s/%s" % (rev, dossier, n) for n in noms]
     textes = []
     for n, spec, t in zip(noms, specs, blobs_git(specs, racine)):
         if t is None:       # pas un blob lisible d'un coup : `git show`, comme avant VIT3
-            code, t = git_texte(["show", spec], racine)
+            code, t = noyau.relecture.git_texte(["show", spec], racine)
             t = t if code == 0 else None
         textes.append((rel % n, t.split("\n") if t is not None else []))
     return textes
@@ -2536,7 +1002,7 @@ def principal(racine):
 def worktrees(racine):
     """`[(dossier, branche)]` des blocs de `git worktree list --porcelain`, le principal en tête ; branche None sur une
     tête détachée ; [] hors Git. Lu par `principal` et `ouverts_ailleurs` (NUI27)."""
-    code, s = git_texte(["worktree", "list", "--porcelain"], racine)
+    code, s = noyau.relecture.git_texte(["worktree", "list", "--porcelain"], racine)
     blocs, dossier, branche = [], None, None
     for l in (s.split("\n") if code == 0 else []) + [""]:
         if not l.strip():
@@ -2587,7 +1053,7 @@ def code_et_tete(racine):
     """`(code, sha)` de `racine` : le code de son chantier courant (`courant_ou_rien`, None sans lui) et son `HEAD`
     (None hors Git) — ce contre quoi `chantiers_ailleurs` juge un autre worktree au même chantier (ISO2)."""
     f = courant_ou_rien(racine)
-    code, tete = git_texte(["rev-parse", "HEAD"], racine)
+    code, tete = noyau.relecture.git_texte(["rev-parse", "HEAD"], racine)
     return (code_du_fichier(racine, f) if f else None), (tete.strip() if code == 0 else None)
 
 
@@ -2604,7 +1070,7 @@ def codes_joues(dossier, principale):
     vieux commit jamais fusionné aussi — `chantiers_ailleurs` ne garde que les ouverts du principal."""
     if not principale:
         return []
-    code, s = git_texte(["log", "--format=%s", principale + "..HEAD"], dossier)
+    code, s = noyau.relecture.git_texte(["log", "--format=%s", principale + "..HEAD"], dossier)
     trouves = (COMMIT_FICHE.match(l) for l in (s.splitlines() if code == 0 else []))
     return sorted({lettre_de(t.group(1)) for t in trouves if t})
 
@@ -2638,7 +1104,7 @@ def branche_principale(racine):
 def postit(racine):
     """Le chemin du post-it local du dossier — `git rev-parse --git-path vlp-chantier`, propre à chaque worktree,
     jamais suivi ni fusionné —, ou None hors Git (chantier NUI22)."""
-    code, p = git_texte(["rev-parse", "--git-path", "vlp-chantier"], racine)
+    code, p = noyau.relecture.git_texte(["rev-parse", "--git-path", "vlp-chantier"], racine)
     return os.path.join(racine, p.strip()) if code == 0 and p.strip() else None
 
 
@@ -2656,9 +1122,9 @@ def courant_de(racine, rev=None):
             return nomme
     tete = rev or "HEAD"
     principale = branche_principale(racine)
-    code, nom = git_texte(["rev-parse", "--abbrev-ref", tete], racine)
+    code, nom = noyau.relecture.git_texte(["rev-parse", "--abbrev-ref", tete], racine)
     if principale and code == 0 and nom.strip() != principale:
-        code, base = git_texte(["merge-base", tete, principale], racine)
+        code, base = noyau.relecture.git_texte(["merge-base", tete, principale], racine)
         if code == 0:
             herites = set(ouverts(racine, base.strip()))
             liste = [f for f in liste if f not in herites]
@@ -2676,10 +1142,12 @@ def courant_ou_rien(racine):
 
 
 def cmd_ouverts(a, sortie):
+    """`ouverts <projet> [--rev <révision>]` : une ligne `OUVERT <fichier>` par chantier ouvert du projet (`ouverts`), sinon
+    `OUVERTS=0` ; sans `CHANTIER.md` ou révision inconnue : `GARDE:`, sort 1."""
     if not equipe(a.projet):
         sortie.write("GARDE: pas de CHANTIER.md dans %s\n" % a.projet)
         return 1
-    if a.rev is not None and git_texte(["rev-parse", "--verify", "-q", a.rev + "^{commit}"], a.projet)[0] != 0:
+    if a.rev is not None and noyau.relecture.git_texte(["rev-parse", "--verify", "-q", a.rev + "^{commit}"], a.projet)[0] != 0:
         sortie.write("GARDE: révision inconnue : %s\n" % a.rev)
         return 1
     liste = ouverts(a.projet, a.rev)
@@ -3092,7 +1560,7 @@ def cmd_clore(a, sortie):
     # Clos dans un worktree hors de la principale : la ligne qui le fusionne, à lancer depuis elle (NUI26). La nuit
     # ne la lit pas : `matin` fusionne ses branches.
     dossier_principal, principale = principal(projet)
-    code, ici = git_texte(["symbolic-ref", "--short", "-q", "HEAD"], projet)
+    code, ici = noyau.relecture.git_texte(["symbolic-ref", "--short", "-q", "HEAD"], projet)
     if os.environ.get("VLP_NUIT") != "1" and dossier_principal and principale and code == 0 \
             and ici.strip() != principale:
         sortie.write('FUSIONNER depuis %s : "%s" "%s" fusionner "%s" %s\n' % (
@@ -3334,404 +1802,6 @@ def cmd_pause(a, sortie):
     return 0
 
 
-# --- entrée ------------------------------------------------------------------
-
-# --- bac ---------------------------------------------------------------------
-
-# Le bac d'essai de FIL3 (journal du 2026-09-24) : fixe, en constantes.
-# Le fichier de fiches porte la marque d'ouverture, dans le dossier de contexte : `courant_de` le trouve (NUI31).
-BAC_FICHES = "ctx/fiches.md"
-BAC_CHANTIER = """# Chantier courant — bac d'essai
-
-- **contexte** : ctx/
-- **artefact du chantier** : aucun
-- **livraison** : aucune
-- **vérification** : aucune — lire le statut rendu
-
-Lettres de fiche déjà prises : F (Deux fiches factices). Un nouveau chantier en choisit un autre.
-"""
-BAC_FICHIER = """# Chantier F — bac d'essai, deux fiches factices
-
-**Ouvert.** le 2026-09-24.
-
-## Le socle commun
-
-Un bac d'essai : rien à écrire, rien à commiter.
-
-## L'ordre des fiches
-
-F1, puis F2.
-
----
-
-<!-- FICHE:F1 -->
-## F1 [ ] — Lire douze fichiers
-
-**Prompt**
-Lis `n01.txt`, `n02.txt`, … jusqu'à `n12.txt`, dans l'ordre, par l'outil `Read` :
-un appel par message, d'affilée, dans cette même exécution.
-
-**Critère de fin**
-Les douze fichiers lus.
-<!-- /FICHE -->
-
----
-
-<!-- FICHE:F2 -->
-## F2 [ ] — Lancer douze fois exit 3
-
-**Prompt**
-Lance douze fois `exit 3` par l'outil `Bash` : un appel par message, d'affilée,
-dans cette même exécution.
-
-**Critère de fin**
-Douze appels lancés.
-<!-- /FICHE -->
-"""
-BAC_COMMANDES = (
-    'claude -p "Appelle l\'outil Skill avec skill \\"vlp:jouer\\" et args \\"F1\\", puis recopie son'
-    ' resultat tel quel. Rien d\'autre." --model haiku --max-budget-usd 1 --permission-mode acceptEdits'
-    ' --allowedTools "Skill" --output-format stream-json --verbose',
-    'claude -p "Appelle l\'outil Skill avec skill \\"vlp:jouer\\" et args \\"F2\\", puis recopie son'
-    ' resultat tel quel. Rien d\'autre." --model haiku --max-budget-usd 1 --permission-mode acceptEdits'
-    ' --allowedTools "Skill" "Bash" --output-format stream-json --verbose < /dev/null',
-)
-
-
-CLAUDE_ABSENT = "GARDE: claude.exe introuvable — PATH, Packages et APPDATA vus\n"
-# Le pre-commit refuse le commit sur ce début de ligne, et laisse passer sur celui de CLAUDE_ABSENT (VIT19).
-CLAUDE_SANS_EXE = "GARDE: claude.exe absent de l'app Claude — cherché à */ et à */*/ sous %s\n"
-# L'app Claude : Packages d'abord — l'app du Store, vue d'un terminal comme de l'app —, puis `%APPDATA%`, vue de
-# l'app seule (REG3).
-CLAUDE_APP = (("LOCALAPPDATA", ("Packages", "Claude_*", "LocalCache", "Roaming", "Claude")), ("APPDATA", ("Claude",)))
-
-
-def dossiers_claude_code():
-    """Rendre les dossiers `claude-code` de l'app Claude, une liste par racine de `CLAUDE_APP`, dans son ordre ; une
-    variable absente ou une app absente rend une liste vide (VIT19)."""
-    return [glob.glob(os.path.join(os.environ[v], *parties, "claude-code")) if os.environ.get(v) else []
-            for v, parties in CLAUDE_APP]
-
-
-def version_claude(dossier, chemin):
-    """Rendre la version de `chemin`, lue au dossier juste sous `dossier` (`claude-code/<version>/…`), en nombres :
-    2.1.99 passe avant 2.1.280 (CLI) ; l'empreinte que l'app range dessous (VIT19) n'y compte pas."""
-    nom = os.path.relpath(chemin, dossier).split(os.sep)[0]
-    return [int(x) if x.isdigit() else 0 for x in nom.split(".")]
-
-
-def trouver_claude():
-    """Rendre le `claude` du kit (chantier CLI) : `VLP_CLAUDE`, le PATH, puis la plus haute version de l'app, racine
-    par racine (`CLAUDE_APP`) — à `claude-code/<version>/` comme à `claude-code/<version>/<empreinte>/` (VIT19) —,
-    sinon None."""
-    import shutil
-    if os.environ.get("VLP_CLAUDE"):
-        return os.environ["VLP_CLAUDE"]
-    sur_path = shutil.which("claude")
-    if sur_path:
-        return sur_path
-    for dossiers in dossiers_claude_code():
-        trouves = [(d, p) for d in dossiers for motif in ("*", os.path.join("*", "*"))
-                   for p in glob.glob(os.path.join(d, motif, "claude.exe"))]
-        if trouves:
-            return max(trouves, key=lambda t: version_claude(*t))[1]
-    return None
-
-
-def cmd_claude(sortie):
-    """Imprimer `CLAUDE <chemin>` et rendre 0 ; sinon une `GARDE:` et rendre 1 — `CLAUDE_SANS_EXE` si l'app est là
-    sans son `claude.exe`, que le pre-commit refuse, `CLAUDE_ABSENT` sinon, qu'il laisse passer (VIT19)."""
-    chemin = trouver_claude()
-    if chemin:
-        sortie.write("CLAUDE %s\n" % chemin)
-        return 0
-    app = [d for dossiers in dossiers_claude_code() for d in dossiers]
-    sortie.write(CLAUDE_SANS_EXE % " et ".join(app) if app else CLAUDE_ABSENT)
-    return 1
-
-
-def cmd_bac(dossier, sortie):
-    """Pose le bac d'essai de FIL3 dans `dossier`, vide ou absent, et imprime ses commandes `claude -p`."""
-    if os.path.exists(dossier) and (not os.path.isdir(dossier) or os.listdir(dossier)):
-        sortie.write("GARDE: %s existe et n'est pas un dossier vide — rien d'écrit\n" % dossier)
-        return 1
-    os.makedirs(dossier, exist_ok=True)
-    fichiers = {"CHANTIER.md": BAC_CHANTIER, BAC_FICHES: BAC_FICHIER}
-    fichiers.update(("n%02d.txt" % k, "fichier %02d\n" % k) for k in range(1, 13))
-    os.makedirs(os.path.join(dossier, os.path.dirname(BAC_FICHES)), exist_ok=True)
-    for nom, texte in fichiers.items():
-        with open(os.path.join(dossier, nom), "w", encoding="utf-8", newline="") as f:
-            f.write(texte)
-    sortie.write("BAC %s\n" % dossier)
-    for c in BAC_COMMANDES:
-        sortie.write(c + "\n")
-    chemin = trouver_claude()
-    if not chemin:
-        sortie.write(CLAUDE_ABSENT)
-    sortie.write('SESSION Set-Location "%s"; & "%s"\n' % (os.path.abspath(dossier), chemin or "claude"))
-    return 0
-
-
-KIT_EXCLUS = (".git", ".claude", "context AI", "__pycache__", "relais-python.err", ".venv", ".couverture")  # atelier (REF3, REF8)
-# La copie d'un mutant garde `context AI/` : la suite y lit la carte du kit (NIV1) et la pièce de JUG2 (VIT2).
-MUTANT_EXCLUS = tuple(n for n in KIT_EXCLUS if n != "context AI")
-# L'empreinte d'une suite verte (VIT11) laisse aussi ce que la clôture d'une fiche écrit après la suite (`sante --base`)
-# et les sorties des evals, ignorées par Git ; elle vit dans le dossier Git du kit, hors suivi, une par worktree.
-EMPREINTE_EXCLUS = KIT_EXCLUS + ("sante-base.json", "results")
-SUITE_VERTE = "vlp-suite-verte"
-
-
-def empreinte_kit(racine):
-    """Rendre le sha256 des fichiers du kit `racine` tels qu'ils sont sur disque, commités ou non : chemins relatifs
-    et contenus, dans l'ordre, sans `EMPREINTE_EXCLUS` (VIT11)."""
-    h = hashlib.sha256()
-    for dossier, sous, fichiers in os.walk(racine):
-        sous[:] = sorted(s for s in sous if s not in EMPREINTE_EXCLUS)
-        for nom in sorted(f for f in fichiers if f not in EMPREINTE_EXCLUS):
-            chemin = os.path.join(dossier, nom)
-            with open(chemin, "rb") as f:
-                h.update(os.path.relpath(chemin, racine).replace(os.sep, "/").encode("utf-8") + b"\0" + f.read() + b"\0")
-    return h.hexdigest()
-
-
-def chemin_suite_verte(racine):
-    """Rendre `<dossier Git de racine>/vlp-suite-verte`, ou `None` hors dépôt (la copie d'un mutant)."""
-    code, dossier = git_texte(["rev-parse", "--absolute-git-dir"], racine)
-    return os.path.join(dossier.strip(), SUITE_VERTE) if code == 0 and dossier.strip() else None
-
-
-def noter_suite_verte(racine, empreinte):
-    """Écrire `empreinte` comme celle de la dernière suite entière verte du kit `racine` ; hors dépôt, rien (VIT11)."""
-    chemin = chemin_suite_verte(racine)
-    if chemin:
-        with open(chemin, "w", encoding="utf-8") as f:
-            f.write(empreinte + "\n")
-
-
-def est_kit(racine):
-    """Vrai si `racine` est le kit vlp lui-même — son plugin et sa suite —, pas un projet équipé (VIT11)."""
-    return all(os.path.isfile(os.path.join(racine, *p)) for p in ((".claude-plugin", "plugin.json"), ("scripts", "test-vlp.py")))
-
-
-def suite_manquante(fichier):
-    """Rendre le kit dont `fichier` fait partie si sa dernière suite verte n'a pas joué ses fichiers d'aujourd'hui,
-    sinon `None` — et `None` hors du kit : un projet équipé a ses propres tests (VIT11)."""
-    code, racine = git_texte(["rev-parse", "--show-toplevel"], os.path.dirname(os.path.abspath(fichier)))
-    racine = racine.strip()
-    if code != 0 or not racine or not est_kit(racine):
-        return None
-    chemin = chemin_suite_verte(racine)
-    try:
-        with open(chemin or "", encoding="utf-8") as f:
-            notee = f.read().strip()
-    except OSError:
-        notee = ""
-    return None if notee == empreinte_kit(racine) else racine
-
-
-def cmd_kit_essai(dossier, max_turns, source, sortie):
-    """Une copie jetable du kit à plafond bas (EVF2) : l'eval se lance sur elle, le vrai kit ne bouge pas."""
-    import shutil
-    source = os.path.abspath(source or os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    if os.path.exists(dossier) and (not os.path.isdir(dossier) or os.listdir(dossier)):
-        sortie.write("GARDE: %s existe et n'est pas un dossier vide — rien d'écrit\n" % dossier)
-        return 1
-    fiche = os.path.join(source, "agents", "fiche.md")
-    avant = lire_max_turns(fiche)
-    if avant is None:
-        sortie.write("GARDE: pas de ligne maxTurns dans %s — rien d'écrit\n" % fiche)
-        return 1
-
-    def exclus(racine, noms):
-        rel = os.path.relpath(racine, source).replace(os.sep, "/")
-        return [n for n in noms if n in KIT_EXCLUS or (rel == "evals" and n == "results")]
-
-    if os.path.isdir(dossier):
-        os.rmdir(dossier)
-    shutil.copytree(source, dossier, ignore=exclus)
-    copie = os.path.join(dossier, "agents", "fiche.md")
-    with open(copie, encoding="utf-8", newline="") as f:
-        texte = f.read()
-    texte = re.sub(r"(?m)^maxTurns:.*$", "maxTurns: %d" % max_turns, texte, count=1)
-    with open(copie, "w", encoding="utf-8", newline="") as f:
-        f.write(texte)
-    sortie.write("KIT %s · maxTurns %d → %d\n" % (dossier, avant, max_turns))
-    return 0
-
-
-def cmd_transcription(chemin, sortie):
-    """Compte la transcription d'un sous-agent (chantier BAC) : tours comme `comptoir_tours`,
-    appels, avertissements du filet et l'appel qui les précède, erreurs de hook, dernier message."""
-    tours, appels, erreurs_outil, avertis = [], {}, {}, []
-    hook_erreurs, dernier_id, stop, textes = 0, None, None, {}
-    try:
-        with mesure().ouvrir(chemin) as f:
-            for ligne in f:
-                try:
-                    d = json.loads(ligne)
-                except json.JSONDecodeError:
-                    continue
-                if not isinstance(d, dict):
-                    continue
-                att = d.get("attachment")
-                if isinstance(att, dict):
-                    if att.get("type") == "hook_additional_context":
-                        avertis.append(att)
-                    elif att.get("type") == "hook_non_blocking_error":
-                        hook_erreurs += 1
-                message = d.get("message")
-                if not isinstance(message, dict):
-                    continue
-                contenu = message.get("content")
-                blocs = contenu if isinstance(contenu, list) else []
-                if d.get("type") == "user":
-                    for b in blocs:
-                        if isinstance(b, dict) and b.get("type") == "tool_result":
-                            erreurs_outil[b.get("tool_use_id")] = bool(b.get("is_error"))
-                    continue
-                mid = message.get("id")
-                if d.get("type") != "assistant" or not mid or not isinstance(message.get("usage"), dict):
-                    continue
-                if mid not in tours:
-                    tours.append(mid)
-                if mid != dernier_id:
-                    dernier_id, stop = mid, None
-                stop = message.get("stop_reason") or stop
-                for b in blocs:
-                    if not isinstance(b, dict):
-                        continue
-                    if b.get("type") == "tool_use":
-                        appels[b.get("id")] = (len(tours), b.get("name") or "?")
-                    elif b.get("type") == "text":
-                        textes.setdefault(mid, []).append(b.get("text") or "")
-    except (OSError, UnicodeDecodeError) as e:
-        sortie.write("GARDE: transcription illisible : %s — %s\n" % (chemin, e))
-        return 1
-    par_outil = {}
-    for _, nom in appels.values():
-        par_outil[nom] = par_outil.get(nom, 0) + 1
-    sortie.write("TOURS=%d\n" % len(tours))
-    sortie.write("APPELS=%d — %s\n" % (len(appels), ", ".join("%s %d" % o for o in par_outil.items()) or "aucun"))
-    sortie.write("AVERTISSEMENTS=%d\n" % len(avertis))
-    par_tour = {}
-    for a in avertis:
-        tour = appels.get(a.get("toolUseID"), ("?", "?"))[0]
-        par_tour[tour] = par_tour.get(tour, 0) + 1
-    sortie.write("AVERTIS_PAR_TOUR=%s\n" % (",".join("%s:%d" % t for t in par_tour.items()) or "aucun"))
-    if avertis:
-        a = avertis[0]
-        uid = a.get("toolUseID")
-        tour, outil = appels.get(uid, ("?", "?"))
-        is_error = erreurs_outil.get(uid)
-        sortie.write("PREMIER_AVERTISSEMENT tour=%s outil=%s is_error=%s hook=%s\n" % (
-            tour, outil, "?" if is_error is None else ("oui" if is_error else "non"), a.get("hookName")))
-        texte = a.get("content")
-        if isinstance(texte, list):
-            texte = " ".join(str(t) for t in texte)
-        sortie.write("TEXTE=%s\n" % " ".join(str(texte or "").split()))
-    else:
-        sortie.write("PREMIER_AVERTISSEMENT aucun\n")
-    sortie.write("HOOK_ERREURS=%d pour %d appels\n" % (hook_erreurs, len(appels)))
-    texte = "\n".join(textes.get(dernier_id, [])) if dernier_id else ""
-    mots = texte.split()
-    sortie.write("DERNIER mot=%s stop_reason=%s\n" % (mots[0] if mots else "", stop))
-    non_vides = [l.strip() for l in texte.splitlines() if l.strip()]
-    sortie.write("DERNIERE_LIGNE=%s\n" % (non_vides[-1] if non_vides else ""))
-    return 0
-
-
-# --- aperçu local (chantier LOC) --------------------------------------------
-
-TYPES_APERCU = {".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8",
-                ".css": "text/css; charset=utf-8", ".svg": "image/svg+xml; charset=utf-8"}
-LARGEUR_TELEPHONE = 375
-PORT_APERCU = 8790      # le premier port qu'`apercu` essaie ; +1 tant qu'une autre entrée le prend
-PAGE_SERVIE = re.compile(r"[\w.\- ]+(/[\w.\- ]+)*$")    # relatif ; `..` se rejette à part
-
-
-def faire_serveur(dossier, port):
-    """Le serveur de `servir`, lié à 127.0.0.1 (port 0 : un port libre) ; `serve_forever` le lance."""
-    import functools
-    import html
-    import http.server
-    import urllib.parse
-
-    class Apercu(http.server.SimpleHTTPRequestHandler):
-        extensions_map = {**http.server.SimpleHTTPRequestHandler.extensions_map, **TYPES_APERCU}
-
-        def end_headers(self):
-            self.send_header("Cache-Control", "no-store")
-            super().end_headers()
-
-        def do_GET(self):
-            url = urllib.parse.urlsplit(self.path)
-            if url.path != "/_telephone":
-                return super().do_GET()
-            page = urllib.parse.parse_qs(url.query).get("page", [""])[0]
-            if not PAGE_SERVIE.match(page) or ".." in page.split("/"):
-                return self.send_error(400, "page=<page> : un chemin relatif au dossier servi")
-            cadre = ('<!doctype html><html lang="fr"><meta charset="utf-8"><title>Téléphone</title>'
-                     '<body style="margin:0;background:#f4ede4"><iframe src="/%s" title="%s" '
-                     'style="display:block;margin:0 auto;border:0;width:%dpx;height:100vh"></iframe>'
-                     % (html.escape(urllib.parse.quote(page)), html.escape(page), LARGEUR_TELEPHONE))
-            corps = cadre.encode("utf-8")
-            self.send_response(200)
-            self.send_header("Content-Type", "text/html; charset=utf-8")
-            self.send_header("Content-Length", str(len(corps)))
-            self.end_headers()
-            self.wfile.write(corps)
-
-    return http.server.ThreadingHTTPServer(("127.0.0.1", port), functools.partial(Apercu, directory=dossier))
-
-
-def cmd_servir(dossier, port, sortie):
-    if not os.path.isdir(dossier):
-        sortie.write("GARDE: dossier introuvable : %s\n" % dossier)
-        return 1
-    try:
-        serveur = faire_serveur(dossier, port)
-    except (OSError, OverflowError) as e:
-        sortie.write("GARDE: port %s inutilisable : %s\n" % (port, e))
-        return 1
-    sortie.write("SERVIR http://127.0.0.1:%d/ · %s\n" % (serveur.server_port, dossier))
-    sortie.flush()
-    try:
-        serveur.serve_forever()
-    except KeyboardInterrupt:
-        pass
-    finally:
-        serveur.server_close()
-    return 0
-
-
-def lire_arg(x):
-    """`@chemin` : le contenu du fichier, tel quel ; sinon le texte même."""
-    if x.startswith("@"):
-        with open(x[1:], encoding="utf-8", newline="") as f:
-            return f.read()
-    return x
-
-
-def cmd_nuits_noter(texte, canal, arret, sortie, dossier=None, sorte=None):
-    """Une ligne `note` (ou `stop`, avec `arret`) au carnet de nuit : `VLP_CARNET`, sinon celui du jour
-    du dépôt de `dossier` (défaut : le dossier courant). Sans l'un ni l'autre : `GARDE:`, sort 1. `sorte` (une de
-    `carnet.SORTES`) : ce que le matin fait de la note ; avec `arret`, `GARDE:` — un `stop` n'a pas de sorte."""
-    if arret and sorte:
-        print("GARDE: --sorte ne va pas avec --stop — un stop n'est pas une note du matin", file=sortie)
-        return 1
-    chemin = os.environ.get(carnet.ENV_CARNET) or carnet.du_jour(dossier or os.getcwd())
-    if not chemin:
-        print("GARDE: pas de dépôt Git ni de VLP_CARNET — pas de carnet de nuit où écrire", file=sortie)
-        return 1
-    canal = canal or os.environ.get(carnet.ENV_CANAL) or None
-    if arret:
-        carnet.stop(chemin, canal, texte)
-    else:
-        carnet.noter(chemin, canal, texte, sorte)
-    print("NOTÉ %s" % chemin, file=sortie)
-    return 0
-
-
 # --- matin : fusionner la nuit dans main (chantier NUI, fiche NUI15) --------------------------
 # Git fusionne sans conflit ce que `clore` remet à `aucun` dans `CHANTIER.md` : le chantier ouvert de `main`
 # s'efface. `neutre` met à part le libellé de l'artefact et la liste des lettres, `restaurer` les rend ; la feuille,
@@ -3763,7 +1833,7 @@ def restaurer(texte, valeurs, liste):
 
 def pointes_nuit(projet, date):
     """`([(branche, heure de la pointe)], None)` des `refs/heads/nuit/<date>-*`, ou `(None, erreur)`."""
-    code, t = git_texte(["for-each-ref", "--format=%(refname) %(committerdate:unix)",
+    code, t = noyau.relecture.git_texte(["for-each-ref", "--format=%(refname) %(committerdate:unix)",
                          "refs/heads/nuit/%s-*" % date], projet)
     if code != 0:
         return None, t
@@ -3911,7 +1981,7 @@ def fusion_texte(projet, textes, branche):
             chemins.append(os.path.join(t, nom))
             with open(chemins[-1], "w", encoding="utf-8", newline="") as fh:
                 fh.write(contenu)
-        code, msg = git_texte(["merge-file", "-L", "HEAD", "-L", "base", "-L", branche] + chemins, projet)
+        code, msg = noyau.relecture.git_texte(["merge-file", "-L", "HEAD", "-L", "base", "-L", branche] + chemins, projet)
         if code is None or code > 127:
             return None, "git merge-file : %s" % msg
         return code, lire(chemins[0])
@@ -4046,7 +2116,7 @@ def fusion_publie(projet, branche, textes, gardes, infos):
 
 def lire_rev(projet, rev, chemin):
     """Le texte de `chemin` à `rev` — lu par `git show`, jamais dans l'arbre marqué — ou `None` s'il n'y est pas."""
-    code, t = git_texte(["show", "%s:%s" % (rev, chemin)], projet)
+    code, t = noyau.relecture.git_texte(["show", "%s:%s" % (rev, chemin)], projet)
     return t if code == 0 else None
 
 
@@ -4081,10 +2151,10 @@ def fusionner_fichiers(projet, branche, base, prevus, conflits, sortie):
         if texte == "":
             if os.path.exists(complet):
                 os.remove(complet)
-            code, msg = git_texte(["rm", "-q", "--cached", "--ignore-unmatch", "--", chemin], projet)
+            code, msg = noyau.relecture.git_texte(["rm", "-q", "--cached", "--ignore-unmatch", "--", chemin], projet)
         else:
             ecrire_comme(complet, texte)
-            code, msg = git_texte(["add", "--", chemin], projet)
+            code, msg = noyau.relecture.git_texte(["add", "--", chemin], projet)
         if code != 0:
             return "%s : git %s" % (chemin, msg)
         conflits.discard(chemin)
@@ -4117,22 +2187,22 @@ def fusionner_branche(projet, branche, message, sortie):
         return True
 
     # un code pris des deux côtés sous deux titres : refusé avant le merge, rien d'écrit (NUI27)
-    code_leur, texte_leur = git_texte(["show", "%s:CHANTIER.md" % branche], projet)
+    code_leur, texte_leur = noyau.relecture.git_texte(["show", "%s:CHANTIER.md" % branche], projet)
     carte_leur, _, liste_leur = neutre(texte_leur if code_leur == 0 else "")
     garde = doublon_lettres(liste_main.split(":", 1)[-1], (liste_leur or "").split(":", 1)[-1])
     if garde:
         sortie.write("%s — %s non fusionnée\n" % (garde, branche))
         return True
 
-    code, msg = git_texte(["merge", "--no-ff", "--no-commit", branche], projet)
-    if code not in (0, 1) or git_texte(["rev-parse", "-q", "--verify", "MERGE_HEAD"], projet)[0] != 0:
+    code, msg = noyau.relecture.git_texte(["merge", "--no-ff", "--no-commit", branche], projet)
+    if code not in (0, 1) or noyau.relecture.git_texte(["rev-parse", "-q", "--verify", "MERGE_HEAD"], projet)[0] != 0:
         return arret("fusion impossible : %s" % msg)
-    code, t = git_texte(["diff", "--name-only", "--diff-filter=U"], projet)
+    code, t = noyau.relecture.git_texte(["diff", "--name-only", "--diff-filter=U"], projet)
     conflits = set(t.splitlines()) if code == 0 else set()
 
     # CHANTIER.md : les trois versions sans leurs libellés ni leurs lettres, fusionnées, puis les valeurs de `main`
-    _, base = git_texte(["merge-base", "HEAD", branche], projet)
-    code_base, texte_base = git_texte(["show", "%s:CHANTIER.md" % base.strip()], projet)
+    _, base = noyau.relecture.git_texte(["merge-base", "HEAD", branche], projet)
+    code_base, texte_base = noyau.relecture.git_texte(["show", "%s:CHANTIER.md" % base.strip()], projet)
     carte_base = neutre(texte_base)[0] if code_base == 0 else ""
     pris = {lettre_entree(e) for e in entrees_lettres(liste_main.split(":", 1)[-1])}
     ajouts = []
@@ -4154,7 +2224,7 @@ def fusionner_branche(projet, branche, message, sortie):
     ecrire_comme(chemin_carte, restaurer(fusion, valeurs, lettres))
     if code_fusion == 0:
         conflits.discard("CHANTIER.md")
-        git_texte(["add", "CHANTIER.md"], projet)
+        noyau.relecture.git_texte(["add", "CHANTIER.md"], projet)
     else:
         conflits.add("CHANTIER.md")
 
@@ -4182,7 +2252,7 @@ def fusionner_branche(projet, branche, message, sortie):
     if raison:
         return arret(raison)
     for chemin in sorted(conflits & derives):
-        code, msg = git_texte(["checkout", "--ours", "--", chemin], projet)
+        code, msg = noyau.relecture.git_texte(["checkout", "--ours", "--", chemin], projet)
         if code != 0:
             return arret("conflit sur %s, celui de main non repris : %s" % (chemin, msg))
         conflits.discard(chemin)
@@ -4203,10 +2273,10 @@ def fusionner_branche(projet, branche, message, sortie):
                 ecrire_couts(page, neuf, couts_du_projet(projet, neuf))
         except ValueError as e:
             return arret("feuille : %s" % e)
-    code, msg = git_texte(["add", "-A"], projet)
+    code, msg = noyau.relecture.git_texte(["add", "-A"], projet)
     if code != 0:
         return arret("git add : %s" % msg)
-    code, msg = git_texte(["commit", "-q", "-m", message], projet)
+    code, msg = noyau.relecture.git_texte(["commit", "-q", "-m", message], projet)
     if code != 0:
         return arret("commit refusé : %s" % msg)
     sortie.write("FUSIONNÉE %s\n" % branche)
@@ -4231,7 +2301,7 @@ def projet_du_matin(a, sortie):
 
 def racine_du_depot(projet, sortie):
     """Vrai si `projet` est la racine de son dépôt Git, sinon une `GARDE:` (rien fusionné) : `matin` et `fusionner`."""
-    code, haut = git_texte(["rev-parse", "--show-toplevel"], projet)
+    code, haut = noyau.relecture.git_texte(["rev-parse", "--show-toplevel"], projet)
     try:
         racine = code == 0 and os.path.samefile(haut.strip(), projet)
     except OSError:
@@ -4258,14 +2328,14 @@ def de_cote(projet, branche):
         return str(e)
     if courant:
         return courant
-    code, sujet = git_texte(["log", "-1", "--format=%s", branche], projet)
+    code, sujet = noyau.relecture.git_texte(["log", "-1", "--format=%s", branche], projet)
     return sujet.strip() if code == 0 and WIP_MOTIF.match(sujet.strip()) else None
 
 
 def etat_branche_nuit(projet, branche):
     """Ce que `matin` fait de `branche` : `("deja", None)` si elle est ancêtre de `HEAD`, `("cote", <chantier ouvert>)`
     si son `CHANTIER.md` garde un chantier ouvert (`de_cote`), sinon `("fusion", None)`."""
-    if git_texte(["merge-base", "--is-ancestor", branche, "HEAD"], projet)[0] == 0:
+    if noyau.relecture.git_texte(["merge-base", "--is-ancestor", branche, "HEAD"], projet)[0] == 0:
         return "deja", None
     courant = de_cote(projet, branche)
     return ("cote", courant) if courant else ("fusion", None)
@@ -4278,7 +2348,7 @@ def nuit_a_ranger(projet, sortie):
     """La date de la nuit que `matin` range quand on ne lui en donne pas : la seule qui a une branche à fusionner
     (`etat_branche_nuit`), dite par `NUIT <date> — la seule à ranger : <n> branche(s)`. Aucune, ou plusieurs (leurs
     dates, la plus ancienne d'abord) : None, après une `GARDE:`."""
-    code, t = git_texte(["for-each-ref", "--format=%(refname)", "refs/heads/nuit/*"], projet)
+    code, t = noyau.relecture.git_texte(["for-each-ref", "--format=%(refname)", "refs/heads/nuit/*"], projet)
     if code != 0:
         sortie.write("GARDE: %s — rien fusionné\n" % t.strip())
         return None
@@ -4313,11 +2383,11 @@ def cmd_matin(a, sortie):
     projet = projet_du_matin(a, sortie)
     if projet is None:
         return 1
-    code, tete = git_texte(["symbolic-ref", "--short", "-q", "HEAD"], projet)
+    code, tete = noyau.relecture.git_texte(["symbolic-ref", "--short", "-q", "HEAD"], projet)
     if code != 0 or tete.strip() != "main":
         sortie.write("GARDE: HEAD est sur %s, pas sur main — rien fusionné\n" % (tete.strip() if code == 0 else "rien (détaché)"))
         return 1
-    code, sale = git_texte(["status", "--porcelain"], projet)
+    code, sale = noyau.relecture.git_texte(["status", "--porcelain"], projet)
     if code != 0 or sale.strip():
         sortie.write("GARDE: arbre pas propre (%s) — rien fusionné\n" % (
             "%d chemin(s)" % len(sale.splitlines()) if code == 0 else sale))
@@ -4337,7 +2407,7 @@ def cmd_matin(a, sortie):
     branches, lu = ordre_nuit(pointes, date, projet)
     if not lu:
         sortie.write("ORDRE pointes — carnet absent\n")
-    _, avant = git_texte(["rev-parse", "HEAD"], projet)
+    _, avant = noyau.relecture.git_texte(["rev-parse", "HEAD"], projet)
     fusionnees = cote = 0
     for branche in branches:
         etat, courant = etat_branche_nuit(projet, branche)
@@ -4363,7 +2433,7 @@ def retard_du_matin(projet, avant, sortie):
     projet, aucun commit, ou Git muet."""
     if not avant or os.path.normcase(os.path.realpath(projet)) != os.path.normcase(os.path.realpath(etat.KIT)):
         return
-    code, n = git_texte(["rev-list", "--count", "%s..HEAD" % avant, "--"] + list(CODE_PLUGIN), projet)
+    code, n = noyau.relecture.git_texte(["rev-list", "--count", "%s..HEAD" % avant, "--"] + list(CODE_PLUGIN), projet)
     if code == 0 and n.strip().isdigit() and int(n) > 0:
         sortie.write("PLUGIN_RETARD=%d commit(s) de code du plugin fusionné(s) — la session ouverte ne les voit "
                      "qu'après /reload-plugins\n" % int(n))
@@ -4378,13 +2448,13 @@ def fusion_fiche_refusee(racine, fiche, dossier):
     cle = os.path.normcase(os.path.realpath(dossier))
     if cle not in blocs or cle == os.path.normcase(os.path.realpath(racine)):
         return "%s n'est pas un autre worktree de ce dépôt" % dossier, None, None
-    if git_texte(["rev-parse", "-q", "--verify", "MERGE_HEAD"], racine)[0] == 0:
+    if noyau.relecture.git_texte(["rev-parse", "-q", "--verify", "MERGE_HEAD"], racine)[0] == 0:
         return "une fusion est déjà en cours (MERGE_HEAD)", None, None
-    code, sale = git_texte(["status", "--porcelain", "--untracked-files=no"], racine)
+    code, sale = noyau.relecture.git_texte(["status", "--porcelain", "--untracked-files=no"], racine)
     if code != 0 or sale.strip():
         return "fichier suivi changé dans %s" % racine, None, None
-    code, sha = git_texte(["rev-parse", "HEAD"], dossier)
-    sujets = git_texte(["log", "--format=%s", "HEAD.." + sha.strip()], racine)[1].splitlines() if code == 0 else []
+    code, sha = noyau.relecture.git_texte(["rev-parse", "HEAD"], dossier)
+    sujets = noyau.relecture.git_texte(["log", "--format=%s", "HEAD.." + sha.strip()], racine)[1].splitlines() if code == 0 else []
     if not any(m and m.group(1) == fiche for m in map(COMMIT_FICHE.match, sujets)):
         return "aucun commit « %s : » du worktree que %s n'a pas" % (fiche, racine), None, None
     return None, sha.strip(), blocs[cle]
@@ -4395,17 +2465,17 @@ def garder_hors_commit(racine, dossier):
     juste avant son retrait — dans `vlp-gardes/<worktree>-<heure>.patch` du dossier Git commun de `racine`, écrit
     par Git en octets (REF56 : lu en texte, un CRLF ou un latin-1 s'y perdait) ; rend (chemin, `git apply --check`
     passé dans `racine`), ou (None, False) si Git échoue ou n'écrit rien."""
-    code_dir, commun = git_texte(["rev-parse", "--path-format=absolute", "--git-common-dir"], racine)
-    if code_dir != 0 or git_texte(["add", "-A"], dossier)[0] != 0:
+    code_dir, commun = noyau.relecture.git_texte(["rev-parse", "--path-format=absolute", "--git-common-dir"], racine)
+    if code_dir != 0 or noyau.relecture.git_texte(["add", "-A"], dossier)[0] != 0:
         return None, False
     dossier_gardes = os.path.join(commun.strip(), "vlp-gardes")
     os.makedirs(dossier_gardes, exist_ok=True)
     chemin = os.path.normpath(os.path.join(dossier_gardes, "%s-%s.patch" % (
         os.path.basename(os.path.normpath(dossier)), datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))))
-    if git_texte(["diff", "--cached", "--binary", "HEAD", "--output=" + chemin], dossier)[0] != 0 \
+    if noyau.relecture.git_texte(["diff", "--cached", "--binary", "HEAD", "--output=" + chemin], dossier)[0] != 0 \
             or not os.path.getsize(chemin):
         return None, False
-    return chemin, git_texte(["apply", "--check", chemin], racine)[0] == 0
+    return chemin, noyau.relecture.git_texte(["apply", "--check", chemin], racine)[0] == 0
 
 
 def retirer_worktree(racine, dossier, branche, sortie):
@@ -4413,7 +2483,7 @@ def retirer_worktree(racine, dossier, branche, sortie):
     d'abord dans un correctif (`garder_hors_commit`, REF41) : `GARDÉ <n> chemin(s) : <correctif>` — à appliquer,
     ou non, par `git apply` ; s'il manque ou échoue à `git apply --check`, `PERDU <n> chemin(s) …` (et son chemin).
     Un échec de Git au retrait, une `GARDE:`."""
-    code, reste = git_texte(["status", "--porcelain"], dossier)
+    code, reste = noyau.relecture.git_texte(["status", "--porcelain"], dossier)
     if code == 0 and reste.strip():
         lignes = reste.splitlines()
         correctif, applicable = garder_hors_commit(racine, dossier)
@@ -4423,7 +2493,7 @@ def retirer_worktree(racine, dossier, branche, sortie):
             sortie.write("PERDU %d chemin(s) non commités du worktree : %s%s\n" % (len(lignes), ", ".join(
                 l[3:] for l in lignes), " — correctif rejeté par git apply --check : %s" % correctif if correctif else ""))
     for args in [["worktree", "remove", "--force", dossier]] + ([["branch", "-D", branche]] if branche else []):
-        code, texte = git_texte(args, racine)
+        code, texte = noyau.relecture.git_texte(args, racine)
         if code != 0:
             sortie.write("GARDE: git %s : %s\n" % (" ".join(args[:2]), texte))
 
@@ -4434,7 +2504,7 @@ def base_refaite(racine, sortie):
     la fusion commitée. Rend True, `BASE REFAITE …` écrit ; cliquet rompu ou Git en échec : False, sa ligne écrite,
     la fusion laissée à `merge --abort`."""
     import sante
-    if git_texte(["checkout", "--ours", "--", sante.BASE], racine)[0] != 0:
+    if noyau.relecture.git_texte(["checkout", "--ours", "--", sante.BASE], racine)[0] != 0:
         sortie.write("BASE NON REFAITE : git checkout --ours %s a échoué\n" % sante.BASE)
         return False
     tampon = io.StringIO()
@@ -4450,7 +2520,7 @@ def base_refaite(racine, sortie):
                              if l.startswith(("CLIQUET ROMPU", "GARDE:"))))
         return False
     for args in (["add", "--", sante.BASE], ["commit", "--no-edit"]):
-        code, texte = git_texte(args, racine)
+        code, texte = noyau.relecture.git_texte(args, racine)
         if code != 0:
             sortie.write("BASE NON REFAITE : git %s : %s\n" % (args[0], texte.strip()))
             return False
@@ -4466,35 +2536,35 @@ def fusionner_fiche(fichier, fiche, dossier, sortie):
     fichier en conflit : `git merge --abort`, rien de gardé, le worktree retiré quand même, `CONFLIT <fiche> <fichiers>`,
     sort 1 — le chef rejoue la fiche (Q3). `GARDE:`, rien touché, sort 1 : `fusion_fiche_refusee`, ou un merge que
     Git refuse avant d'écrire ; un `--abort` raté laisse la fusion en cours, et le worktree."""
-    code, racine = git_texte(["rev-parse", "--show-toplevel"], os.path.dirname(os.path.abspath(fichier)))
+    code, racine = noyau.relecture.git_texte(["rev-parse", "--show-toplevel"], os.path.dirname(os.path.abspath(fichier)))
     raison, sha, branche = (fusion_fiche_refusee(racine.strip(), fiche, dossier) if code == 0
                             else ("%s hors Git" % fichier, None, None))
     if raison or not sha:
         sortie.write("GARDE: %s — rien touché\n" % raison)
         return 1
     racine = racine.strip()
-    code, texte = git_texte(["merge", "--no-edit", "-m", "Fusion : %s" % fiche, sha], racine)
+    code, texte = noyau.relecture.git_texte(["merge", "--no-edit", "-m", "Fusion : %s" % fiche, sha], racine)
     if code != 0:
-        conflits = git_texte(["diff", "--name-only", "--diff-filter=U"], racine)[1].splitlines()
+        conflits = noyau.relecture.git_texte(["diff", "--name-only", "--diff-filter=U"], racine)[1].splitlines()
         if not conflits:
             sortie.write("GARDE: git refuse la fusion : %s — rien touché\n" % texte)
             return 1
         import sante
         tampon = io.StringIO()
         if conflits == [sante.BASE] and base_refaite(racine, tampon):
-            sortie.write("FUSIONNÉ %s %s\n" % (fiche, git_texte(["rev-parse", "--short", "HEAD"], racine)[1].strip()))
+            sortie.write("FUSIONNÉ %s %s\n" % (fiche, noyau.relecture.git_texte(["rev-parse", "--short", "HEAD"], racine)[1].strip()))
             sortie.write(tampon.getvalue())
             retirer_worktree(racine, dossier, branche, sortie)
             return 0
         sortie.write(tampon.getvalue())
-        code, texte = git_texte(["merge", "--abort"], racine)
+        code, texte = noyau.relecture.git_texte(["merge", "--abort"], racine)
         if code != 0:
             sortie.write("GARDE: git merge --abort : %s — fusion laissée en cours, worktree gardé\n" % texte)
             return 1
         retirer_worktree(racine, dossier, branche, sortie)
         sortie.write("CONFLIT %s %s\n" % (fiche, ", ".join(conflits)))
         return 1
-    sortie.write("FUSIONNÉ %s %s\n" % (fiche, git_texte(["rev-parse", "--short", "HEAD"], racine)[1].strip()))
+    sortie.write("FUSIONNÉ %s %s\n" % (fiche, noyau.relecture.git_texte(["rev-parse", "--short", "HEAD"], racine)[1].strip()))
     retirer_worktree(racine, dossier, branche, sortie)
     return 0
 
@@ -4512,21 +2582,21 @@ def cmd_fusionner(a, sortie):
         return 1
     if not racine_du_depot(projet, sortie):
         return 1
-    if git_texte(["symbolic-ref", "--short", "-q", "HEAD"], projet)[0] != 0:
+    if noyau.relecture.git_texte(["symbolic-ref", "--short", "-q", "HEAD"], projet)[0] != 0:
         sortie.write("GARDE: HEAD détachée — rien fusionné\n")
         return 1
-    if git_texte(["rev-parse", "-q", "--verify", "MERGE_HEAD"], projet)[0] == 0:
+    if noyau.relecture.git_texte(["rev-parse", "-q", "--verify", "MERGE_HEAD"], projet)[0] == 0:
         sortie.write("GARDE: une fusion est déjà en cours (MERGE_HEAD) — rien fusionné\n")
         return 1
-    code, sale = git_texte(["status", "--porcelain"], projet)
+    code, sale = noyau.relecture.git_texte(["status", "--porcelain"], projet)
     if code != 0 or sale.strip():
         sortie.write("GARDE: arbre pas propre (%s) — rien fusionné\n" % (
             "%d chemin(s)" % len(sale.splitlines()) if code == 0 else sale))
         return 1
-    if git_texte(["rev-parse", "-q", "--verify", "%s^{commit}" % a.branche], projet)[0] != 0:
+    if noyau.relecture.git_texte(["rev-parse", "-q", "--verify", "%s^{commit}" % a.branche], projet)[0] != 0:
         sortie.write("GARDE: branche absente : %s — rien fusionné\n" % a.branche)
         return 1
-    if git_texte(["merge-base", "--is-ancestor", a.branche, "HEAD"], projet)[0] == 0:
+    if noyau.relecture.git_texte(["merge-base", "--is-ancestor", a.branche, "HEAD"], projet)[0] == 0:
         sortie.write("DÉJÀ %s\n" % a.branche)
         return 0
     ouvert = de_cote(projet, a.branche)
@@ -4664,7 +2734,7 @@ def chantiers_de_cote(projet, date, lignes):
     git_cote = {}
     for branche, _ in pointes or []:
         canal, _, code = branche[len(prefixe):].partition("-")
-        if git_texte(["merge-base", "--is-ancestor", branche, "HEAD"], projet)[0] != 0 and de_cote(projet, branche):
+        if noyau.relecture.git_texte(["merge-base", "--is-ancestor", branche, "HEAD"], projet)[0] != 0 and de_cote(projet, branche):
             git_cote[(canal, code)] = branche
     raisons = {}
     for d in lignes:
@@ -5140,7 +3210,7 @@ def cmd_apercu(projet, sortie, port=None):
         os.replace(chemin + ".tmp", chemin)
     sortie.write("APERCU %s %s · port %d · %s\n"
                  % ("déjà" if neuf == texte else "remplacé" if ici else "écrit", nom, port, chemin))
-    code, _ = git_texte(["check-ignore", "-q", ".claude/launch.json"], racine)
+    code, _ = noyau.relecture.git_texte(["check-ignore", "-q", ".claude/launch.json"], racine)
     if code == 1:
         sortie.write("GARDE: .claude/launch.json n'est pas couvert par .gitignore : il porte des chemins "
                      "de machine, et partirait dans le dépôt\n")
@@ -5156,10 +3226,10 @@ def cmd_sante(a, sortie):
 def py_touches(racine):
     """Rendre les `.py` ajoutés, modifiés ou neufs du dépôt de `racine` depuis `HEAD` — index et arbre de travail, lus
     par `git status` —, en chemins absolus triés ; un fichier effacé n'y est pas. Git muet : `None`."""
-    code, haut = git_texte(["rev-parse", "--show-toplevel"], racine)
+    code, haut = noyau.relecture.git_texte(["rev-parse", "--show-toplevel"], racine)
     if code != 0:
         return None
-    code, texte = git_texte(["status", "--porcelain=v1", "-z", "--untracked-files=all"], racine)
+    code, texte = noyau.relecture.git_texte(["status", "--porcelain=v1", "-z", "--untracked-files=all"], racine)
     if code != 0:
         return None
     champs, fichiers = iter(texte.split("\0")), set()
