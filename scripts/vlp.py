@@ -592,11 +592,11 @@ ni raison de la sauter, fait échouer la suite :
   les `\n` d'`avant`/`après` suivent la fin de ligne du fichier. `avant` doit y être une fois exactement
   (sinon `GARDE:`, rien écrit). Le vrai fichier n'est jamais écrit : le kit — ou, hors du kit, le dossier du
   fichier — est copié dans un dossier temporaire (sans `MUTANT_EXCLUS`), la copie mutée, et les tests y
-  tournent (défaut : le `test-vlp.py` de la copie, par ce Python ; dans `--test`, les chemins sous la racine
+  tournent (défaut : pytest dans la copie, sur `-n 4`, par l'environnement `uv` du kit ; dans `--test`, les chemins sous la racine
   copiée pointent dans la copie), avec `VLP_TOUS_ECARTS=1`, sortie lue ligne à ligne. `--attendu` : dès
   l'`ÉCART:` dont le libellé commence ainsi, l'arbre de processus est tué → `MUTANT ATTRAPÉ <n> écart(s) ·
   arrêté sur « … »` (sort 0) ; la suite finie sans lui → `MUTANT VIVANT pour <libellé>` (sort 1). `--attendu`
-  sans `--test` (VIT21) : d'abord les seuls groupes qui portent le libellé (`test-vlp.py --seul`) — l'écart
+  sans `--test` (VIT21) : d'abord les seuls tests qui portent le libellé (`pytest --seul`, sans `-n`) — l'écart
   tombé là, `VISÉ --seul « … »` en tête ; sinon (aucun groupe, ou pas cet écart), la suite entière tranche,
   `SUITE ENTIÈRE · …` en tête. `--tous`, ou
   ni l'un ni l'autre : `MUTANT ATTRAPÉ <n> écart(s)` (sort 0) ou `MUTANT VIVANT` (sort 1). Une suite finie
@@ -607,12 +607,6 @@ ni raison de la sauter, fait échouer la suite :
   `DÉLAI:` ou commande introuvable → `PLANTÉ`. Chaque `ÉCART:` vu est imprimé avant ; `COPIE restée : …`
   si la copie ne s'efface pas en 2 s ; puis `RENDU <sha1 12>` — `GARDE:` si l'empreinte a bougé, ou si les
   tests ne se lancent pas.
-- `parite [--racine <kit>]` — la parité entre `scripts/test-vlp.py` et la suite pytest de `tests/` (REF5). La
-  marque d'un test migré : le libellé d'origine du `verifier`, mot pour mot, en message de son `assert` (un
-  libellé formaté `"…" % x` : son gabarit). Une ligne par groupe — `MIGRÉ <groupe> n/n`, `PARTIEL <groupe> k/n —
-  manque : <libellés>`, `RESTE <groupe> 0/n` ; une fonction d'aide compte au groupe qui l'appelle —, puis
-  `PARITE <g> groupes · migrés … · vérifications k/n`. Un groupe ne sort de `test-vlp.py` que sur un `MIGRÉ` ; la
-  fiche qui le retire le cite. Fichier absent ou illisible : `GARDE:`, sort 1.
 - `symboles <fichier> [<nom>…]` — une ligne `nom début-fin` par fonction ou classe de premier niveau d'un
   fichier Python, dans l'ordre du fichier, lue par `ast` sans l'importer (VIT9) : une fiche cite un nom,
   ceci rend sa ligne du jour. Avec des noms, leurs seules lignes, dans l'ordre demandé, et `ABSENT <nom>`
@@ -635,12 +629,12 @@ ni raison de la sauter, fait échouer la suite :
   conseillés · <m> à la marge · <v> vagues · dépendances : <t> lues en TODO, <s> écrites par la source, <h> hors du
   chemin`. Dépendance illisible, cycle, pas sans phase ni niveau : `GARDE:`, rien d'écrit, sort 1.
 - `rapide <motif> [--racine R]` — le contrôle rapide d'une fiche du kit, avant la suite entière (VIT23), joué en
-  parallèle sous la racine (défaut : le dossier courant) : les groupes de `test-vlp.py` qui portent le motif
+  parallèle sous la racine (défaut : le dossier courant) : les tests de la suite pytest qui portent le motif
   (`--seul`), pyright sur les `.py` ajoutés, modifiés ou neufs depuis `HEAD`, et `sante --cliquet`. Une ligne
   `RAPIDE <contrôle> : vert|rouge|sauté · <s> s · …` par contrôle — rouge, ses lignes (30 au plus) ; sauté, sa
   raison (aucun groupe, aucun `.py` touché, pyright introuvable) —, puis `RAPIDE VERT` (sort 0) ou `RAPIDE ROUGE`
   (sort 1) et la durée. Il ne remplace pas la suite entière, que `cocher` exige toujours. Pas de
-  `scripts/test-vlp.py` sous la racine : `GARDE:`, sort 1.
+  `tests/conftest.py` sous la racine : `GARDE:`, sort 1.
 - `nuits noter "<texte>" [--canal C] [--stop]` — une ligne `note` au carnet de nuit (`carnet.py`, chantier
   NUI) ; avec `--stop`, la ligne `stop` (le texte en est la raison) que la boucle lit avant chaque
   session. Carnet : `VLP_CARNET`, sinon celui du jour du dépôt Git courant ; canal : `--canal`, sinon
@@ -653,8 +647,8 @@ ni raison de la sauter, fait échouer la suite :
   `.githooks/pre-commit`) : sans `.py` indexé, `COUVERTURE rien à couvrir …` (sort 0) ; sans rapport mesuré sur le
   code du jour (empreinte de VIT11), `GARDE: couverture — pas de rapport mesuré sur ce code …` (sort 1) ; sinon,
   par `diff-cover`, `NON COUVERT <fichier> : <lignes>` par fichier, puis `COUVERTURE <taux> % des <n> lignes
-  changées, seuil <SEUIL> % — passe` (sort 0) ou `— commit refusé` (sort 1). La mesure : `scripts/test-vlp.py`,
-  lancé seul, se relance sous `coverage` et écrit `.couverture/coverage.xml` — `COUVERTURE mesurée : …`.
+  changées, seuil <SEUIL> % — passe` (sort 0) ou `— commit refusé` (sort 1). La mesure : la suite pytest,
+  lancée entière, se relance sous `coverage` et écrit `.couverture/coverage.xml` — `COUVERTURE mesurée : …`.
 - `sante [<fichiers>] [--base [--forcer "<raison>"] [--si-base] | --cliquet] [--racine R] [--sans-ruff]` — la
   santé du code, fonction par fonction (`sante.py`, qui en tient les règles ; chantier VIT) : les comptes de
   `COMPTES` (socle de VIT) et la docstring, par ruff s'il répond (`ruff`, sinon `-m ruff`), sinon par `ast`, « comptes

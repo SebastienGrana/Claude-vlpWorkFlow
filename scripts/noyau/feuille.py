@@ -361,7 +361,7 @@ def taille_todo(cout):
 
 
 # L'échelle du score, recopiée de `methode-chantier.md` (« Le score d'une ligne de TODO ») pour l'aide
-# de la feuille : `test-vlp.py` la compare à la règle (AVL12, demandé le 2026-10-12).
+# de la feuille : `tests/test_feuille.py` la compare à la règle (AVL12, demandé le 2026-10-12).
 IMPORTANCE_PHASE = (("V1", 5), ("V2", 3), ("V3", 2), ("après", 1))
 FACILITE_FICHES = (("1", 5), ("2", 4), ("3 à 4", 3), ("5 à 7", 2), ("8 et plus", 1))
 

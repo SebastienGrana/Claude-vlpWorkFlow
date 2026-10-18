@@ -21,7 +21,7 @@
   Le lecteur à voix haute (2026-10-06) : un bouton « Écouter » sous le titre, une
   barre en bas de l'écran pendant la lecture. Son style et son script, entre les
   repères LECTEUR, sont la copie à l'octet de ceux de vlp.css et vlp.js : ils se
-  modifient là-bas, puis se recopient ici ; test-vlp.py compare les deux.
+  modifient là-bas, puis se recopient ici ; tests/test_commun.py compare les deux.
   Explique-moi (2026-10-06), en option : `data-explique` sur la div de classe
   `page` pose sous chaque carte un repli « Explique-moi cette carte » ; à son
   ouverture, Claude la réexplique en mots simples, et « Écouter l'explication »
@@ -40,7 +40,7 @@
   - l'option dont le libellé finit par « (recommandé) » : le mot devient une
     étiquette « 👍 conseillé », et son bord passe en pointillé ;
   - nombres et dates insécables : le bloc INSECABLE, copié de vlp.js à l'octet,
-    comme le lecteur (même règle, test-vlp.py compare aussi) ;
+    comme le lecteur (même règle, tests/test_commun.py compare aussi) ;
   - sous le titre, « ✂️ Version courte », éteinte d'office, gardée dans le
     navigateur : elle replie tout sauf l'en-tête, les titres, les lignes qui
     s'ouvrent par 💬 (en clair), les options, et toute ligne qui porte ⚠️ ; le
@@ -246,7 +246,7 @@
     body.vlp-lit .flottant { bottom:13rem; max-height:calc(100vh - 14rem - var(--haut-suivi)); }
   }
 /* LECTEUR — début. Le lecteur à voix haute (son script : LECTEUR dans vlp.js), copié à l'octet dans
-   vlp.css et dans le style de rapport-choix.html ; test-vlp.py vérifie les deux copies. Les jetons
+   vlp.css et dans le style de rapport-choix.html ; tests/test_commun.py vérifie les deux copies. Les jetons
    ont un repli pour les deux palettes : --surface ou --carte, --line ou --trait. */
 .lecteur { display:flex; flex-wrap:wrap; align-items:center; gap:.4rem .9rem; margin:.3rem 0; }
 /* caché pendant qu'on prend le texte de la page : sans cette règle, display:flex l'emporte sur hidden */
@@ -450,7 +450,7 @@ body.vlp-lit { padding-bottom:9rem; }
 
 <script>
 // INSECABLE — début. Nombres et dates jamais coupés en fin de ligne, copié à l'octet dans templates/vlp.js
-// et dans le script de templates/rapport-choix.html ; test-vlp.py vérifie que les deux copies sont pareilles.
+// et dans le script de templates/rapport-choix.html ; tests/test_commun.py vérifie que les deux copies sont pareilles.
 // « 5 069 068 », « 2,57 $ », « 47 % », « 41 tours », « 3 s », « 16,3 → 11,7 » reçoivent une espace
 // insécable ; une date (« 2026-09-30 ») ou une plage (« MOR1–MOR14 », « 28–66 ») passe dans un
 // `span.insecable`, que le style garde sur une ligne. À l'affichage seulement : vlp.py écrit des espaces
@@ -556,7 +556,7 @@ body.vlp-lit { padding-bottom:9rem; }
     const bouton = (classe, texte) => { const b = element("button", classe, texte); b.type = "button"; return b; };
 
     // L'option conseillée : « recommandé » entre parenthèses quitte le libellé et devient une étiquette, que le lecteur
-    // dit ; la page bâtie par vlp.py chef page ne porte ce mot qu'une fois par option (test-vlp.py le compte)
+    // dit ; la page bâtie par vlp.py chef page ne porte ce mot qu'une fois par option (tests/test_nuit.py le compte)
     const CONSEIL = /\s*\((recommandé|conseillé)\)/i;
     for (const b of page.querySelectorAll(".choix label > span > b:first-child")) {
       if (!CONSEIL.test(b.textContent)) continue;
@@ -926,7 +926,7 @@ body.vlp-lit { padding-bottom:9rem; }
   })();
 
 // LECTEUR — début. Le lecteur à voix haute, copié à l'octet dans templates/vlp.js et dans le script de
-// templates/rapport-choix.html ; test-vlp.py vérifie que les deux copies sont pareilles (2026-10-06).
+// templates/rapport-choix.html ; tests/test_commun.py vérifie que les deux copies sont pareilles (2026-10-06).
 // La voix du navigateur (Web Speech, sans paquet ; essayée dans le cadre d'un artefact le 2026-10-06)
 // lit la sélection s'il y en a une, sinon le texte visible de la page — une carte repliée ne se lit
 // pas. Un morceau par ligne ou par phrase : certains navigateurs coupent une lecture trop longue.

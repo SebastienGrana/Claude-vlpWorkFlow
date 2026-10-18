@@ -1,4 +1,4 @@
-"""La découpe aux commits, migrée de `tester_heures_commits` (`scripts/test-vlp.py`, REF4) : `heures_commits`, puis
+"""La découpe aux commits, migrée de `tester_heures_commits` (l'ancienne suite maison, REF4) : `heures_commits`, puis
 `page`, `cout` et `recompter` coupés. Un test par comportement ; chaque `assert` porte en message le libellé de la
 vérification d'origine, mot pour mot — 29 en tout, comme les 29 `verifier` du groupe (REF5 les compare).
 

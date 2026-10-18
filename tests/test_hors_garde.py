@@ -1,6 +1,6 @@
 """REF41 : un worktree retiré par `fusionner` qui garde des chemins hors commit (un `HORS:` laissé par `commiter`) :
 leur diff, non suivis compris, va dans un correctif sous le dossier Git, et `GARDÉ <n> chemin(s) : <correctif>` le
-dit — migré de `tester_ref41_hors_garde` (`scripts/test-vlp.py`, REF56). REF56 : le correctif est écrit par Git en
+dit — migré de `tester_ref41_hors_garde` (l'ancienne suite maison, REF56). REF56 : le correctif est écrit par Git en
 octets, un fichier CRLF ou latin-1 y garde ses octets ; un correctif que `git apply --check` rejette est `PERDU`.
 """
 import os

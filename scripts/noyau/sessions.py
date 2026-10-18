@@ -439,7 +439,11 @@ def totaux(decoupe):
 # chaque fois.
 SORTES_OUTIL = ("suite", "--seul", "test-boucle", "mutant", "pyright", "Git", "publication", "relance", "reste")
 SUITES = SORTES_OUTIL[:3]
-COMMANDES = (("mutant", appel_python(r"vlp\.py", r"[ \t]+mutant\b")), ("suite", appel_python(r"test-vlp\.py")),
+# La suite du kit, pytest depuis REF59 : `uv run [options] pytest`, `py -3 -m pytest`, ou `pytest` en tête de segment.
+APPEL_PYTEST = re.compile(TETE_SEGMENT + r"""(?:(?:\S*[/\\])?uv(?:\.exe)?[ \t]+run"""
+                          r"""(?:[ \t]+-[\w-]+(?:[ \t]+(?![-"'])(?!pytest\b)\S+)?)*[ \t]+|""" + INTERPRETE
+                          + r""")?pytest\b""", re.M)
+COMMANDES = (("mutant", appel_python(r"vlp\.py", r"[ \t]+mutant\b")), ("suite", APPEL_PYTEST),
              ("test-boucle", appel_python(r"test-boucle\.py")),
              ("pyright", re.compile(TETE_SEGMENT + r"pyright\b", re.M)),
              ("Git", re.compile(TETE_SEGMENT + r"git\b", re.M)))

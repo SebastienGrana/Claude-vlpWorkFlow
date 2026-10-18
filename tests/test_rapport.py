@@ -1,5 +1,5 @@
 """`noyau/rapport.py` : `symboles`, `mutant`, `rapide`, `sante` et son cliquet, la base refaite à la fusion, les tailles
-— migré de `scripts/test-vlp.py` (REF51). Chaque `assert` garde le libellé d'origine de son `verifier` en tête de son
+— migré de l'ancienne suite maison (REF51). Chaque `assert` garde le libellé d'origine de son `verifier` en tête de son
 message (REF5), puis le diagnostic.
 """
 import io
@@ -16,7 +16,7 @@ import pytest
 from aides import SCRIPTS, appel, ecrire, lire, mod
 from noyau import rapport
 
-ICI = SCRIPTS     # le dossier de scripts/test-vlp.py, d'où ces tests viennent
+ICI = SCRIPTS     # le dossier des scripts, d'où ces tests viennent
 
 def test_py_du_statut():
     texte = " M scripts/a.py\0?? tests/neuf.py\0R  b.py\0ancien.py\0 M notes.md\0"
@@ -199,15 +199,17 @@ sys.exit(1 if ecarts else 0)
 """
 
 
-def test_mutant_vise(tmp_path):
+def test_mutant_vise(tmp_path, monkeypatch):
     """VIT21 : `--attendu` sans `--test` ne joue d'abord que les groupes qui portent son libellé (`--seul`) ; attrapé
     là, une ligne `VISÉ` le dit ; aucun groupe, ou pas cet écart : la suite entière tranche, dite ; `--test` garde le
     dernier mot."""
+    monkeypatch.setattr(mod.noyau.bac, "commande_suite",   # le faux script du faux kit (REF59)
+                        lambda projet, parallele=True: [sys.executable, os.path.join("scripts", "suite.py")])
     with tempfile.TemporaryDirectory(dir=tmp_path) as tm:
         kit, journal = os.path.join(tm, "kit"), os.path.join(tm, "journal.txt")
         f = os.path.join(kit, "f.py")
         ecrire(f, "a = 1\nb = 2\nc = 3\n")
-        ecrire(os.path.join(kit, "scripts", "test-vlp.py"), SUITE_VISEE.replace("@JOURNAL@", repr(journal)))
+        ecrire(os.path.join(kit, "scripts", "suite.py"), SUITE_VISEE.replace("@JOURNAL@", repr(journal)))
 
         def mutant(avant, apres, attendu, *options):
             """Jouer le mutant `avant` → `apres` sur le faux kit ; rendre (code, sortie, motifs des lancements)."""
@@ -235,22 +237,25 @@ def test_mutant_vise(tmp_path):
                                                        "ÉCART: voisin b\nMUTANT VIVANT pour porte a\n")
                  and "ATTRAPÉ" not in autre[1] and autre[2] == ["porte a", ""]), ("VIT21 : un groupe qui ne porte pas le contrôle ne rend jamais ATTRAPÉ — suite entière, dite, "
                  "MUTANT VIVANT pour …, sort 1") + "\n" + str(autre)
-        test = '"%s" "%s"' % (sys.executable, os.path.join(kit, "scripts", "test-vlp.py"))
+        test = '"%s" "%s"' % (sys.executable, os.path.join(kit, "scripts", "suite.py"))
         dernier = mutant("a = 1", "a = 9", "porte a", "--test", test)
         assert (dernier[0] == 0 and dernier[1].startswith("ÉCART: porte a\nMUTANT ATTRAPÉ 1 écart(s)")
                  and dernier[2] == [""]), ("VIT21 : --test donné garde le dernier mot — sa seule commande, ni VISÉ ni SUITE ENTIÈRE") + "\n" + str(dernier)
 
 
-def test_mutant_worktree(tmp_path):
+def test_mutant_worktree(tmp_path, monkeypatch):
     """MUW1 : une cible dans un worktree du kit rangé sous le dépôt principal (`KIT`) joue les tests du worktree,
     pas ceux de `KIT`, et une ligne `TESTS` le nomme."""
+    monkeypatch.setattr(mod.noyau.bac, "commande_suite",   # le faux script du faux kit (REF59)
+                        lambda projet, parallele=True: [sys.executable, os.path.join("scripts", "suite.py")])
     with tempfile.TemporaryDirectory(dir=tmp_path) as tm:
         principal = os.path.join(tm, "principal")
         interieur = os.path.join(principal, ".claude", "worktrees", "w")
         for k, suite in ((principal, "print('OK')\n"),
                          (interieur, SUITE_VISEE.replace("@JOURNAL@", repr(os.path.join(tm, "journal.txt"))))):
             ecrire(os.path.join(k, ".claude-plugin", "plugin.json"), "{}\n")
-            ecrire(os.path.join(k, "scripts", "test-vlp.py"), suite)
+            ecrire(os.path.join(k, "scripts", "suite.py"), suite)
+            ecrire(os.path.join(k, "tests", "conftest.py"), "")   # la marque du kit (REF59)
         f = os.path.join(interieur, "f.py")
         ecrire(f, "a = 1\nb = 2\nc = 3\n")
         o = io.StringIO()
@@ -283,18 +288,20 @@ sys.exit(1 if fautifs else 0)
 """
 
 
-def test_rapide(tmp_path):
+def test_rapide(tmp_path, monkeypatch, init_git):
     """VIT23 : `vlp.py rapide` joue les groupes de la fiche (`--seul`), pyright sur les `.py` touchés et le cliquet ;
     un écart semé dans le groupe d'une fiche → rouge, sans suite entière ; un contrôle sauté dit sa raison."""
+    monkeypatch.setattr(mod.noyau.bac, "commande_suite",   # le faux script du faux kit (REF59)
+                        lambda projet, parallele=True: [sys.executable, os.path.join("scripts", "suite.py")])
     with tempfile.TemporaryDirectory(dir=tmp_path) as tr:
         kit, journal = os.path.join(tr, "kit"), os.path.join(tr, "journal.txt")
         pyright = [sys.executable, os.path.join(tr, "pyright.py")]
         ecrire(pyright[1], PYRIGHT_FAUX)
         ecrire(os.path.join(kit, "f.py"), "a = 1\nb = 2\nc = 3\n")
-        ecrire(os.path.join(kit, "scripts", "test-vlp.py"), SUITE_VISEE.replace("@JOURNAL@", repr(journal)))
+        ecrire(os.path.join(kit, "scripts", "suite.py"), SUITE_VISEE.replace("@JOURNAL@", repr(journal)))
         ecrire(os.path.join(kit, "scripts", "vlp.py"), CLIQUET_FAUX)
-        for args in (["init", "-q"], ["add", "-A"],
-                     ["-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "-m", "0"]):
+        init_git(kit)
+        for args in (["add", "-A"], ["-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "-m", "0"]):
             subprocess.run(["git"] + args, cwd=kit, capture_output=True, check=True)
         propre = mod.controles_rapides(kit, "porte", pyright)[1]
         assert (propre == ("pyright", None, "aucun .py touché")), ("VIT23 : arbre propre → pyright sauté, « aucun .py touché » — mutant : pyright lancé sur rien") + "\n" + str(propre)
@@ -344,7 +351,7 @@ def test_rapide(tmp_path):
         hors = io.StringIO()
         assert (absent and "RAPIDE x : rouge · " in o.getvalue() and "  ne se lance pas : " in o.getvalue()
                  and mod.main(["rapide", "porte", "--racine", tr], hors) == 1
-                 and hors.getvalue().startswith("GARDE: ") and "pas de scripts/test-vlp.py" in hors.getvalue()), ("VIT23 : une commande qui ne se lance pas → rouge, dite ; hors du kit → GARDE, sort 1") + "\n" + str((o.getvalue(), hors.getvalue()))
+                 and hors.getvalue().startswith("GARDE: ") and "pas de tests/conftest.py" in hors.getvalue()), ("VIT23 : une commande qui ne se lance pas → rouge, dite ; hors du kit → GARDE, sort 1") + "\n" + str((o.getvalue(), hors.getvalue()))
 
 
 JOUR_MATIN = "2026-10-01"
@@ -374,7 +381,7 @@ def noms_worktrees(d):
             .splitlines() if l.startswith("worktree ")]
 
 
-def test_ref40_base_refaite(tmp_path):
+def test_ref40_base_refaite(tmp_path, init_git):
     """REF40 : un `CONFLIT` sur `scripts/sante-base.json` seul — deux fiches ont réécrit le relevé du cliquet — se
     règle par le relevé refait sur le code fusionné : `FUSIONNÉ` et `BASE REFAITE`, la base égale à celle d'un
     `sante --base` neuf ; une fonction qui empire (base relâchée par `--forcer` dans la fiche) : `CONFLIT` comme avant."""
@@ -390,7 +397,7 @@ def test_ref40_base_refaite(tmp_path):
     with tempfile.TemporaryDirectory(dir=tmp_path) as tr:
         d, wa, wb = (os.path.join(tr, n) for n in ("d", "wt-a", "wt-b"))
         os.makedirs(d)
-        git_matin(d, "init", "-q", "-b", "main")
+        init_git(d)
         fiches = os.path.join(d, "ctx", "f.md")
         ecrire(fiches, "# F\n\n## W1 [ ] — a\n\n## W2 [ ] — b\n")
         for nom, f in (("a", "f"), ("b", "g"), ("c", "h")):

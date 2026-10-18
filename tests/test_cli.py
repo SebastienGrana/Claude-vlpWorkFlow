@@ -1,5 +1,5 @@
 """Les règles d'`enchainer` et du lanceur : l'arrière-plan, le rejeu, `commiter`, le parallèle, le tri du lanceur —
-migré de `scripts/test-vlp.py` (REF51). Chaque `assert` garde le libellé d'origine de son `verifier` en tête de son
+migré de l'ancienne suite maison (REF51). Chaque `assert` garde le libellé d'origine de son `verifier` en tête de son
 message (REF5), puis le diagnostic.
 """
 import io
@@ -12,7 +12,7 @@ import time
 
 from aides import RACINE, SCRIPTS, appel, ecrire, mod
 
-ICI = SCRIPTS     # le dossier de scripts/test-vlp.py, d'où ces tests viennent
+ICI = SCRIPTS     # le dossier des scripts, d'où ces tests viennent
 
 def test_ena2_arriere_plan():
     """ENA2 : la fiche et son relecteur partent par l'outil `Agent` en arrière-plan — la skill forkée
@@ -37,7 +37,7 @@ def test_gai1_rejeu():
              and "à son 2ᵉ `CONFLIT`, elle y reste" in plat), ("GAI1 : CONFLIT sort de --tourne et repart aussitôt ; le 2ᵉ attend") + "\n" + "skills/enchainer/SKILL.md"
 
 
-def test_ena4_commiter(tmp_path):
+def test_ena4_commiter(tmp_path, init_git):
     """ENA4 : `commiter` — coche la fiche et ne commite que ses fichiers changés et le fichier de fiches ; un changé
     hors de sa ligne **Fichiers** se dit `HORS:` et reste hors du commit (jamais `git add -A`)."""
     with tempfile.TemporaryDirectory(dir=tmp_path) as t:
@@ -56,7 +56,8 @@ def test_ena4_commiter(tmp_path):
                           GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t")
         try:
             ecrire(os.environ["GIT_CONFIG_GLOBAL"], "")
-            for args in (["init", "-q"], ["add", "-A"], ["commit", "-q", "-m", "départ"]):
+            init_git(d)
+            for args in (["add", "-A"], ["commit", "-q", "-m", "départ"]):
                 subprocess.run(["git"] + args, cwd=d, check=True, capture_output=True)
             for n in ("src/a.py", "src/b.py", "scripts/sante-base.json"):
                 ecrire(os.path.join(d, n), "x = 2\n")
@@ -65,7 +66,7 @@ def test_ena4_commiter(tmp_path):
                                     encoding="utf-8").stdout.split()
             reste = subprocess.run(["git", "status", "--porcelain"], cwd=d, capture_output=True, encoding="utf-8").stdout
             # Puis le même dépôt devient le kit (`est_kit`) : C2 y prend la base du cliquet, commun.
-            marques = (".claude-plugin/plugin.json", "scripts/test-vlp.py")
+            marques = (".claude-plugin/plugin.json", "tests/conftest.py")
             for n in marques:
                 os.makedirs(os.path.dirname(os.path.join(d, n)), exist_ok=True)
                 ecrire(os.path.join(d, n), "{}\n")

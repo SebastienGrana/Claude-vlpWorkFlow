@@ -29,7 +29,7 @@ demande un : le script crée et retire les copies. **Rien ne s'écrit sous `PROJ
 3. Rejoue le critère de fin et les commandes que le diff touche, dans AVANT puis dans
    APRÈS — par leurs chemins dans ces dossiers —, et compare les sorties. Les tests :
    AVANT était vert au commit précédent, n'y joue que **le test que la fiche ajoute** —
-   dans le kit, `test-vlp.py --seul <motif>` (le code de la fiche, ou un mot de son
+   dans le kit, `uv run --frozen pytest --seul <motif>` (le code de la fiche, ou un mot de son
    libellé) ; il doit y sortir 1 (`ÉCART:`, ou `GARDE: aucun groupe` s'il n'y est pas
    encore). Dans APRÈS, la suite **entière** : `OK`.
 4. En dernier, dans APRÈS : le mutant que nomme le critère, jamais par `Edit` —

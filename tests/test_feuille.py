@@ -1,5 +1,5 @@
 """`noyau/feuille.py` : la feuille de route, sa TODO, ses phases, ses cartes, les lettres prises — migré de
-`scripts/test-vlp.py` (REF58). Chaque `assert` garde le libellé d'origine de son `verifier` en tête de son message
+l'ancienne suite maison (REF58). Chaque `assert` garde le libellé d'origine de son `verifier` en tête de son message
 (REF5), puis le diagnostic.
 """
 import io
@@ -9,7 +9,7 @@ import tempfile
 
 from aides import SCRIPTS, appel, ecrire, ligne_close, lire, mod
 
-ICI = SCRIPTS     # le dossier de scripts/test-vlp.py, d'où ces tests viennent
+ICI = SCRIPTS     # le dossier des scripts, d'où ces tests viennent
 
 OUVERT = "**Ouvert.** le 2026-10-08."
 

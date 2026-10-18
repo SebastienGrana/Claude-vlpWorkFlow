@@ -272,7 +272,6 @@ APPELS = [
     ("bac", ["bac", "{t}/bac"], None),
     ("kit-essai", ["kit-essai", "{t}/ke", "--max-turns", "6"], None),
     ("symboles", ["symboles", "scripts/outil.py"], None),
-    ("parite", ["parite", "--racine", "."], None),
     ("ordre", ["ordre", "--json", "--source", "{t}/absente.json"], None),
     ("rapide", ["rapide", "DEM1", "--racine", "."], None),
     ("joints", ["joints", "ctx/artefacts"], None),

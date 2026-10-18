@@ -19,7 +19,7 @@ __all__ = [
     "BAC_FICHES", "BAC_CHANTIER", "BAC_FICHIER", "BAC_COMMANDES", "CLAUDE_ABSENT", "CLAUDE_SANS_EXE", "CLAUDE_APP",
     "dossiers_claude_code", "version_claude", "trouver_claude", "cmd_claude", "cmd_bac", "KIT_EXCLUS",
     "MUTANT_EXCLUS", "EMPREINTE_EXCLUS", "SUITE_VERTE", "empreinte_kit", "chemin_suite_verte", "noter_suite_verte",
-    "est_kit", "suite_manquante", "cmd_kit_essai", "cmd_transcription", "TYPES_APERCU", "LARGEUR_TELEPHONE",
+    "MARQUE_SUITE", "est_kit", "commande_suite", "suite_manquante", "cmd_kit_essai", "cmd_transcription", "TYPES_APERCU", "LARGEUR_TELEPHONE",
     "PORT_APERCU", "PAGE_SERVIE", "faire_serveur", "cmd_servir", "lire_arg", "cmd_nuits_noter",
 ]
 
@@ -160,7 +160,8 @@ def cmd_bac(dossier, sortie):
     return 0
 
 
-KIT_EXCLUS = (".git", ".claude", "context AI", "__pycache__", "relais-python.err", ".venv", ".couverture")  # atelier (REF3, REF8)
+KIT_EXCLUS = (".git", ".claude", "context AI", "__pycache__", "relais-python.err", ".venv", ".couverture",
+              ".ruff_cache")  # atelier (REF3, REF8) ; le cache de ruff, écrit après la suite, la rendait périmée (REF59)
 # La copie d'un mutant garde `context AI/` : la suite y lit la carte du kit (NIV1) et la pièce de JUG2 (VIT2).
 MUTANT_EXCLUS = tuple(n for n in KIT_EXCLUS if n != "context AI")
 # L'empreinte d'une suite verte (VIT11) laisse aussi ce que la clôture d'une fiche écrit après la suite (`sante --base`)
@@ -196,9 +197,21 @@ def noter_suite_verte(racine, empreinte):
             f.write(empreinte + "\n")
 
 
+MARQUE_SUITE = ("tests", "conftest.py")   # la suite du kit, pytest (REF59) ; sa présence dit le kit
+
+
 def est_kit(racine):
     """Vrai si `racine` est le kit vlp lui-même — son plugin et sa suite —, pas un projet équipé (VIT11)."""
-    return all(os.path.isfile(os.path.join(racine, *p)) for p in ((".claude-plugin", "plugin.json"), ("scripts", "test-vlp.py")))
+    return all(os.path.isfile(os.path.join(racine, *p)) for p in ((".claude-plugin", "plugin.json"), MARQUE_SUITE))
+
+
+def commande_suite(projet, parallele=True):
+    """La commande de la suite du kit, à lancer depuis le dossier dont on joue les tests (le kit, ou la copie d'un
+    mutant) : pytest par `uv`, dans l'environnement de `projet` — le kit qui a son `.venv` (REF59). `parallele` : sur
+    4 processus (`-n 4`, REF19). Un test la remplace ici par son faux script."""
+    import shutil
+    return ([shutil.which("uv") or "uv", "run", "--frozen", "--project", projet, "pytest", "-q"]
+            + (["-n", "4"] if parallele else []))
 
 
 def suite_manquante(fichier):

@@ -48,7 +48,6 @@ from noyau.rapport import (
     cmd_apercu,
     cmd_mutant,
     cmd_nuits_lecon,
-    cmd_parite,
     cmd_rapide,
     cmd_sante,
     cmd_symboles,
@@ -83,7 +82,6 @@ def options_outils(sous):
     sy = sous.add_parser("symboles")
     sy.add_argument("fichier")
     sy.add_argument("noms", nargs="*")
-    sous.add_parser("parite").add_argument("--racine")
     od = sous.add_parser("ordre")
     od.add_argument("--json", action="store_true")
     od.add_argument("--db", action="store_true")
@@ -363,7 +361,7 @@ PAR_ARGUMENTS = {
     "ouvrir": cmd_ouvrir, "clore": cmd_clore, "oter": cmd_oter, "archiver": cmd_archiver, "trier": cmd_trier, "feuille": cmd_feuille,
     "niveau": cmd_niveau, "comparer": cmd_comparer, "relecture": cmd_relecture, "contrat": cmd_contrat,
     "forme": cmd_forme, "ouverts": cmd_ouverts, "postit": cmd_postit, "pause": cmd_pause, "plan": cmd_plan, "matin": cmd_matin, "fusionner": cmd_fusionner,
-    "sante": cmd_sante, "symboles": cmd_symboles, "parite": cmd_parite, "compteur": cmd_compteur, "carte": cmd_carte,
+    "sante": cmd_sante, "symboles": cmd_symboles, "compteur": cmd_compteur, "carte": cmd_carte,
     "rapide": cmd_rapide, "essai": cmd_essai, "lancables": cmd_lancables,
     "commiter": cmd_commiter, "ordre": cmd_ordre, "etat": cmd_etat,
 }

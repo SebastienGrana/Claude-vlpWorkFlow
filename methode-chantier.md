@@ -29,7 +29,7 @@ titre (`MET6`, 2026-10-07).
   `vlp.py` » et n'écrit pas le chiffre. Une seule exception, tranchée par
   l'utilisateur le 2026-10-11 (`AVL8`, Q32) : une commande, qui doit rester
   autoportante, peut recopier un nombre — si un test compare les copies, comme
-  `tester_lecteur_copie` (`scripts/test-vlp.py`) le fait pour le lecteur à voix
+  `test_lecteur_copie` (`tests/test_commun.py`) le fait pour le lecteur à voix
   haute ; ce test pour les nombres est à faire (`COP`).
 - **Les comptes bruts s'affichent à côté du verdict.** « OK », « plus court »,
   « moins cher » ne se croient pas seuls : on montre les nombres qui les

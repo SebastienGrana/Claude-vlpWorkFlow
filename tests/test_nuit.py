@@ -1,5 +1,5 @@
 """`noyau/nuit.py` : le fichier des nuits, `trier`, `plan`, `chef page`, les joints d'une page, le sommaire — migré de
-`scripts/test-vlp.py` (REF51). Chaque `assert` garde le libellé d'origine de son `verifier` en tête de son message
+l'ancienne suite maison (REF51). Chaque `assert` garde le libellé d'origine de son `verifier` en tête de son message
 (REF5), puis le diagnostic.
 """
 import datetime
@@ -12,7 +12,7 @@ import tempfile
 
 from aides import SCRIPTS, appel, ecrire, ligne_close, lire, mod
 
-ICI = SCRIPTS     # le dossier de scripts/test-vlp.py, d'où ces tests viennent
+ICI = SCRIPTS     # le dossier des scripts, d'où ces tests viennent
 
 CHANTIER = "# Chantier courant\n\n- **alias** : %s\n- **contexte** : %s\n"
 
@@ -316,20 +316,20 @@ def test_trier(tmp_path):
         assert (code == 1 and s.startswith("GARDE: ligne 1 de la TODO")), ("NUI10 : une barre non échappée — GARDE, sort 1") + "\n" + str(s)
 
 
-def test_trier_branche(tmp_path):
+def test_trier_branche(tmp_path, init_git):
     """BRA1 : dans Git, `trier` ne trie que sur `main` ; ailleurs, une seule ligne `GARDE:`, sort 1."""
     with tempfile.TemporaryDirectory(dir=tmp_path) as tb:
         ecrire(os.path.join(tb, "CHANTIER.md"), "# C\n\n- **contexte** : ctx/\n- **fichier d'état** : ctx/08-etat.md\n")
         ecrire(os.path.join(tb, "ctx", "08-etat.md"), "# État\n\n| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |\n"
                "|---|---|---|---|---|\n| 1 | `AAA` — a | x | 1 fiche | — |\n\n## Journal\n")
-        subprocess.run(["git", "init", "-q", "-b", "main"], cwd=tb, capture_output=True)
+        init_git(tb)
         code_main, s_main = appel(["trier", tb])
         subprocess.run(["git", "switch", "-q", "-c", "nuit/x"], cwd=tb, capture_output=True)
         code, s = appel(["trier", tb])
         assert (code_main == 0 and code == 1 and len(s.splitlines()) == 1 and s.startswith("GARDE: trier hors de main")), ("BRA1 : trier sort 0 sur main, 1 sur nuit/x — une seule ligne, GARDE: trier hors de main") + "\n" + str("%s\n%s" % (s_main, s))
 
 
-def test_fichier_nuits(tmp_path):
+def test_fichier_nuits(tmp_path, init_git):
     entete = "| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |\n|---|---|---|---|---|\n"
     carte = ("# C\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n- **fichier d'état** : ctx/08-etat.md\n"
              "- **artefact du chantier** : aucun\n\n"
@@ -342,7 +342,7 @@ def test_fichier_nuits(tmp_path):
     env = os.environ.get("CLAUDE_CODE_SESSION_ID")
     os.environ["CLAUDE_CODE_SESSION_ID"] = ""
     with tempfile.TemporaryDirectory(dir=tmp_path) as tp:
-        subprocess.run(["git", "init", "-q", "-b", "main"], cwd=tp, check=True, capture_output=True)
+        init_git(tp)
         ecrire(os.path.join(tp, "CHANTIER.md"), carte)
         ecrire(os.path.join(tp, "ctx", "00-INDEX.md"), indice)
         ecrire(os.path.join(tp, "ctx", "08-etat.md"), "# État\n\n" + entete + "| 1 | `AAA` — a | x | 1 fiche | — |\n\n## Journal\n")

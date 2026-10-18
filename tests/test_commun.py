@@ -1,6 +1,6 @@
 """Les aides communes du noyau (noyau/commun.py) vues par leurs commandes : `archiver`, le chemin de l'archive
 (`IDX1`), `premier_lancement` et le tampon des hooks, les copies du lecteur et des nombres recopiés, la règle de
-`rapide` dans les agents, l'option `explique` de `chef page` — migré de `scripts/test-vlp.py` (REF50). Chaque
+`rapide` dans les agents, l'option `explique` de `chef page` — migré de l'ancienne suite maison (REF50). Chaque
 `assert` garde le libellé d'origine de son `verifier` en tête de son message (REF5), puis le diagnostic.
 """
 import io
@@ -12,7 +12,7 @@ import tempfile
 
 from aides import SCRIPTS, appel, ecrire, ligne_close, mod
 
-ICI = SCRIPTS     # le dossier de scripts/test-vlp.py, d'où ces tests viennent
+ICI = SCRIPTS     # le dossier des scripts, d'où ces tests viennent
 
 def test_archiver(tmp_path):
     with tempfile.TemporaryDirectory(dir=tmp_path) as ta:
@@ -287,7 +287,7 @@ def test_agents_suite_rapide():
                 ("agents/fiche.md", "itère par `<python> \"<kit>/scripts/vlp.py\" rapide <fiche>"),
                 ("agents/fiche.md", "(étape 4 de `skills/tache/SKILL.md`)"),
                 ("agents/fiche.md", "la suite entière, **une seule fois**, à la fin, avant `FAITE`"),
-                ("agents/relecture.md", "`test-vlp.py --seul <motif>`"),
+                ("agents/relecture.md", "`uv run --frozen pytest --seul <motif>`"),
                 ("agents/relecture.md", "Dans APRÈS, la suite **entière**"))
     manquants = ["%s : « %s »" % (f, t) for f, t in attendus if t not in textes[f]]
     assert (manquants == []), ("REF42 : les deux agents portent la règle de rapide et de la suite entière (%d textes)" % len(attendus)) + "\n" + str("\n".join(manquants))

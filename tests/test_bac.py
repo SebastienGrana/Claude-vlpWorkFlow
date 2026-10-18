@@ -1,5 +1,5 @@
 """`noyau/bac.py` : le bac d'essai, `claude`, le kit d'essai, la transcription, l'aperçu local, la suite verte, les
-crochets Git du dépôt — migré de `scripts/test-vlp.py` (REF51). Chaque `assert` garde le libellé d'origine de son
+crochets Git du dépôt — migré de l'ancienne suite maison (REF51). Chaque `assert` garde le libellé d'origine de son
 `verifier` en tête de son message (REF5), puis le diagnostic.
 """
 import importlib.util
@@ -14,12 +14,12 @@ import tempfile
 import pytest
 from aides import RACINE, SCRIPTS, appel, ecrire, lire, mod
 
-ICI = SCRIPTS     # le dossier de scripts/test-vlp.py, d'où ces tests viennent
+ICI = SCRIPTS     # le dossier des scripts, d'où ces tests viennent
 
 CHANTIER = "# Chantier courant\n\n- **alias** : %s\n- **contexte** : %s\n"
 
 
-def test_pre_commit(tmp_path):
+def test_pre_commit(tmp_path, init_git):
     """Contrôler le pre-commit, lancé par `git commit` dans un dépôt à part (chantier REV)."""
     if not shutil.which("git"):
         pytest.skip("git absent — le hook pre-commit n'est pas testé")
@@ -44,7 +44,7 @@ def test_pre_commit(tmp_path):
                                    errors="replace")
                 return r.returncode, r.stdout + r.stderr
 
-            git("init", "-q")
+            init_git(depot)
             git("config", "core.hooksPath", ".githooks")
             # Le hook lance `scripts/vlp.py claude` (VIT19) ; hors suivi, ses .py ne réveillent pas pyright.
             ecrire(os.path.join(depot, ".git", "info", "exclude"), "scripts/\n")
@@ -70,7 +70,7 @@ def test_pre_commit(tmp_path):
                      "templates/vlp.js: eol: lf\na/couts.svg: eol: lf\n"), (".gitattributes : les joints (.css, .js, .svg) en LF") + "\n" + str(s)
 
 
-def test_suite_verte(tmp_path):
+def test_suite_verte(tmp_path, init_git):
     """`cocher` dans le kit exige la suite entière verte sur le code du jour (VIT11) : refus sans empreinte, accord
     après `noter_suite_verte`, refus après un script touché — pas après `sante-base.json` ni `context AI/` ; un projet
     équipé, sans plugin, coche sans suite."""
@@ -80,8 +80,8 @@ def test_suite_verte(tmp_path):
         return mod.main(["cocher", fichier, fiche], o), o.getvalue()
 
     with tempfile.TemporaryDirectory(dir=tmp_path) as t:
-        subprocess.run(["git", "init", "-q", t], check=True, capture_output=True)
-        for chemin, texte in ((".claude-plugin/plugin.json", "{}"), ("scripts/test-vlp.py", "print('OK')\n"),
+        init_git(t)
+        for chemin, texte in ((".claude-plugin/plugin.json", "{}"), ("tests/conftest.py", ""),
                               ("scripts/sante-base.json", "[]\n")):
             ecrire(os.path.join(t, chemin), texte)
         fiches = os.path.join(t, "context AI", "f.md")
@@ -282,7 +282,7 @@ def test_transcription(tmp_path):
         assert (code == 1 and s.startswith("GARDE:")), ("transcription : illisible rend une GARDE") + "\n" + str(s)
 
 
-def hook_isole(t):
+def hook_isole(init_git, t):
     """Rendre un dépôt neuf sous `t`, le hook du kit branché et `scripts/` copié hors suivi (le hook y lance
     `vlp.py claude`, VIT19), le PATH sans pyright, uv ni claude, et `git(chemins, *args, **env)` : claude caché,
     APPDATA et LOCALAPPDATA vides sauf `env`."""
@@ -301,13 +301,13 @@ def hook_isole(t):
                            capture_output=True, encoding="utf-8", errors="replace")
         return r.returncode, r.stdout + r.stderr
 
-    git(sans, "init", "-q")
+    init_git(depot)
     git(sans, "config", "core.hooksPath", ".githooks")
     ecrire(os.path.join(depot, ".git", "info", "exclude"), "scripts/\n")
     return depot, sans, git
 
 
-def test_hook_pyright(tmp_path):
+def test_hook_pyright(tmp_path, init_git):
     # TYP1, REF3 : le hook lance `uv run --frozen pyright` quand un .py est indexé. claude, uv et pyright cachés
     # (`hook_isole`) ; un faux uv en tête du PATH — un script sh, que le hook lance, quand uv ne saurait pas lancer
     # un faux pyright sous Windows — rend le verdict de pyright.
@@ -315,7 +315,7 @@ def test_hook_pyright(tmp_path):
         pytest.skip("git absent — le bloc pyright du hook n'est pas testé")
         return
     with tempfile.TemporaryDirectory(dir=tmp_path) as t:
-        depot, sans, git = hook_isole(t)
+        depot, sans, git = hook_isole(init_git, t)
         def faux_uv(nom, code):
             d = os.path.join(t, nom)
             ecrire(os.path.join(d, "uv"), '#!/bin/sh\necho "faux uv $* : sortie %d"\nexit %d\n' % (code, code))
@@ -339,7 +339,7 @@ def test_hook_pyright(tmp_path):
                  and "faux uv run --frozen pyright : sortie 0" not in s), ("hook pyright : pyright vert sous uv, le .py passe") + "\n" + str(s)
 
 
-def test_hook_chemin(tmp_path):
+def test_hook_chemin(tmp_path, init_git):
     # CHM : le hook refuse une ligne ajoutée qui porte un chemin de machine, sous ses trois formes ; `~` passe, et une
     # ligne ancienne, gardée telle quelle, ne bloque rien. Les chemins se bâtissent par morceaux : écrits d'un bloc
     # dans ce fichier, ils feraient refuser son propre commit.
@@ -347,7 +347,7 @@ def test_hook_chemin(tmp_path):
         pytest.skip("git absent — le bloc des chemins du hook n'est pas testé")
         return
     with tempfile.TemporaryDirectory(dir=tmp_path) as t:
-        depot, sans, git = hook_isole(t)
+        depot, sans, git = hook_isole(init_git, t)
         ecrire(os.path.join(depot, "a.md"), "le kit : ~/.claude/skills/vlp\n")
         git(sans, "add", "a.md")
         code, s = git(sans, "commit", "-q", "-m", "tilde")
@@ -361,14 +361,14 @@ def test_hook_chemin(tmp_path):
         assert (refus == [True] * 4), ("CHM : hook, les trois formes de chemin de machine refusées (4 cas)") + "\n" + str(refus)
 
 
-def test_hook_claude(tmp_path):
+def test_hook_claude(tmp_path, init_git):
     # VIT19 : le hook demande claude à `vlp.py claude`. L'app là sans son claude.exe refuse le commit, en le
     # disant ; ni app ni claude, il passe averti. claude trouvé, validate lancé : `tester_pre_commit`.
     if not shutil.which("git"):
         pytest.skip("git absent — le bloc claude du hook n'est pas testé")
         return
     with tempfile.TemporaryDirectory(dir=tmp_path) as t:
-        depot, sans, git = hook_isole(t)
+        depot, sans, git = hook_isole(init_git, t)
         app = os.path.join(t, "loc", "Packages", "Claude_x1", "LocalCache", "Roaming", "Claude", "claude-code")
         os.makedirs(os.path.join(app, "2.1.288", "36aa8c97bf86"))
         ecrire(os.path.join(depot, "a.md"), "a\n")
@@ -382,7 +382,7 @@ def test_hook_claude(tmp_path):
                  and "pre-commit : claude introuvable, ni dans le PATH ni dans l'app, validate sauté." in s), ("hook claude : ni app ni claude, le commit passe averti") + "\n" + str(s)
 
 
-def test_apercu(tmp_path):
+def test_apercu(tmp_path, init_git):
     """servir et apercu (chantier LOC4) : un serveur sans cache, et une seule entrée dans launch.json."""
     import contextlib
     import threading
@@ -406,7 +406,7 @@ def test_apercu(tmp_path):
             entrees = lambda: [e for e in json.loads(lu())["configurations"] if e["name"].startswith("apercu-")]
             git_ok = bool(shutil.which("git"))
             if git_ok:
-                subprocess.run(["git", "init", "-q"], cwd=p, check=True, capture_output=True)
+                init_git(p)
 
             code, s = appel(["apercu", p])
             assert (code == 0 and s.startswith("APERCU écrit apercu-proj · port 8790 · ")
@@ -495,7 +495,7 @@ def test_apercu(tmp_path):
                     os.environ[k] = v
 
 
-def test_nuits(tmp_path):
+def test_nuits(tmp_path, init_git):
     """NUI3 : `vlp.py nuits noter` écrit une `note`, ou le `stop`, au carnet de `VLP_CARNET`, sinon au
     carnet du jour du dépôt ; sans l'un ni l'autre : GARDE, sort 1."""
     env = {k: os.environ.pop(k, None) for k in ("VLP_CARNET", "VLP_CANAL")}
@@ -519,7 +519,7 @@ def test_nuits(tmp_path):
             o = io.StringIO()
             code = mod.cmd_nuits_noter("sans dépôt", None, False, o, dossier=t)
             assert (code == 1 and o.getvalue().startswith("GARDE:") and os.listdir(t) == ["nuit.jsonl"]), ("nuits noter : sans dépôt Git ni VLP_CARNET → GARDE:, sort 1, rien d'écrit") + "\n" + str((code, o.getvalue()))
-            subprocess.run(["git", "init", "-q", t], check=True, capture_output=True)
+            init_git(t)
             o = io.StringIO()
             code = mod.cmd_nuits_noter("du jour", "A", False, o, dossier=t)
             jour = mod.carnet.du_jour(t)

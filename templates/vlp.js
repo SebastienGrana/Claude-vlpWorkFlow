@@ -19,7 +19,7 @@
   fichier, recopié à l'octet dans rapport-choix.html.
 */
 // INSECABLE — début. Nombres et dates jamais coupés en fin de ligne, copié à l'octet dans templates/vlp.js
-// et dans le script de templates/rapport-choix.html ; test-vlp.py vérifie que les deux copies sont pareilles.
+// et dans le script de templates/rapport-choix.html ; tests/test_commun.py vérifie que les deux copies sont pareilles.
 // « 5 069 068 », « 2,57 $ », « 47 % », « 41 tours », « 3 s », « 16,3 → 11,7 » reçoivent une espace
 // insécable ; une date (« 2026-09-30 ») ou une plage (« MOR1–MOR14 », « 28–66 ») passe dans un
 // `span.insecable`, que le style garde sur une ligne. À l'affichage seulement : vlp.py écrit des espaces
@@ -306,7 +306,7 @@
 })();
 
 // LECTEUR — début. Le lecteur à voix haute, copié à l'octet dans templates/vlp.js et dans le script de
-// templates/rapport-choix.html ; test-vlp.py vérifie que les deux copies sont pareilles (2026-10-06).
+// templates/rapport-choix.html ; tests/test_commun.py vérifie que les deux copies sont pareilles (2026-10-06).
 // La voix du navigateur (Web Speech, sans paquet ; essayée dans le cadre d'un artefact le 2026-10-06)
 // lit la sélection s'il y en a une, sinon le texte visible de la page — une carte repliée ne se lit
 // pas. Un morceau par ligne ou par phrase : certains navigateurs coupent une lecture trop longue.

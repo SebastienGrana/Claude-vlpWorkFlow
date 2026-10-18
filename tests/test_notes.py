@@ -1,5 +1,5 @@
 """`noyau/notes.py` : l'abri des notes et du journal, l'état, les renvois, la forme des pages et leurs liens — migré de
-`scripts/test-vlp.py` (REF58). Chaque `assert` garde le libellé d'origine de son `verifier` en tête de son message
+l'ancienne suite maison (REF58). Chaque `assert` garde le libellé d'origine de son `verifier` en tête de son message
 (REF5), puis le diagnostic.
 """
 import io
@@ -13,7 +13,7 @@ import tempfile
 import pytest
 from aides import SCRIPTS, appel, ecrire, ligne_close, lire, mod, transcript
 
-ICI = SCRIPTS     # le dossier de scripts/test-vlp.py, d'où ces tests viennent
+ICI = SCRIPTS     # le dossier des scripts, d'où ces tests viennent
 
 CHANTIER = "# Chantier courant\n\n- **alias** : %s\n- **contexte** : %s\n"
 

@@ -1,5 +1,5 @@
 """`noyau/ouvrir.py` : `ouvrir`, l'estimé d'un chantier, sa marque, les chevrons de la feuille — migré de
-`scripts/test-vlp.py` (REF51). Chaque `assert` garde le libellé d'origine de son `verifier` en tête de son message
+l'ancienne suite maison (REF51). Chaque `assert` garde le libellé d'origine de son `verifier` en tête de son message
 (REF5), puis le diagnostic.
 """
 import io
@@ -12,7 +12,7 @@ import tempfile
 import pytest
 from aides import SCRIPTS, appel, ecrire, mod
 
-ICI = SCRIPTS     # le dossier de scripts/test-vlp.py, d'où ces tests viennent
+ICI = SCRIPTS     # le dossier des scripts, d'où ces tests viennent
 
 OUVERT = "**Ouvert.** le 2026-10-08."
 
@@ -23,11 +23,11 @@ def ouvert(texte):
     return re.sub(r"^(# Chantier [^\n]*\n)", r"\g<1>\n%s\n" % OUVERT, texte, count=1, flags=re.M)
 
 
-OUVERT_LIGNE = mod.OUVERT_LIGNE   # la seconde valeur d'`OUVERT` dans test-vlp.py, lue par les groupes de sa fin
+OUVERT_LIGNE = mod.OUVERT_LIGNE   # la seconde valeur d'`OUVERT` dans l'ancienne suite maison, lue par les groupes de sa fin
 
 
 def ouvert_ligne(texte):
-    """`ouvert`, tel que les groupes de la fin de test-vlp.py l'appelaient : le gabarit `OUVERT_LIGNE` inséré
+    """`ouvert`, tel que les groupes de la fin de l'ancienne suite maison l'appelaient : le gabarit `OUVERT_LIGNE` inséré
     brut, `%s` compris."""
     return re.sub(r"^(# Chantier [^\n]*\n)", r"\g<1>\n%s\n" % OUVERT_LIGNE, texte, count=1, flags=re.M)
 
@@ -331,7 +331,7 @@ def git_matin(d, *args):
     return r.stdout
 
 
-def test_ouvrir_marque(tmp_path):
+def test_ouvrir_marque(tmp_path, init_git):
     """NUI23 : `ouvrir` pose la marque et le post-it ; un worktree ouvre le sien sans la page de main ; `clore`
     efface le post-it ; un 2e chantier dans le même dossier est refusé."""
     if not shutil.which("git"):
@@ -345,7 +345,7 @@ def test_ouvrir_marque(tmp_path):
                "Lettres de fiche déjà prises : N (nuit), P (par).\n")
         ecrire(os.path.join(d, "ctx", "50-nui.md"), ouvert_ligne("# Chantier N — nuit\n\n" + OUVERT_LIGNE % "2026-10-03" + "\n\n## N1 [ ] — a\n"))
         ecrire(os.path.join(d, "ctx", "51-par.md"), "# Chantier P — par\n\n**Fait.** Rien.\n\n## P1 [x] — a\n")
-        git_matin(d, "init", "-q", "-b", "main")
+        init_git(d)
         git_matin(d, "add", "-A")
         git_matin(d, *signe, "commit", "-q", "-m", "base")
         git_matin(d, "worktree", "add", "-q", "-b", "par", wt)
@@ -371,7 +371,7 @@ def test_ouvrir_marque(tmp_path):
 
 
 # Pas sous tmp_path : son nom porterait « marque », que ce test cherche absent de la sortie.
-def test_nui30_marque():
+def test_nui30_marque(init_git):
     """NUI30 : `niveau --ecrire` pose la marque d'un projet à la Cairn (5 fichiers sans CLOS, un courant), datée de son
     commit d'ouverture ; rejoué, rien ; `pause` la pose, `ouvrir` la lève."""
     if not shutil.which("git"):
@@ -390,7 +390,7 @@ def test_nui30_marque():
         ecrire(os.path.join(d, "ctx", "21-z.md"), "# Chantier Z — x\n\n" + mod.CLOS_LIGNE % "2026-09-01" + "\n")
         for p_ in (d, sans_git, rien):
             ecrire(os.path.join(p_, "ctx", "00-INDEX.md"), "# Index\n")
-        git_matin(d, "init", "-q", "-b", "main")
+        init_git(d)
         git_matin(d, "add", "-A")
         git_matin(d, "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "--date=2026-09-20T12:00:00",
                   "-m", "Chantier F ouvert : x")

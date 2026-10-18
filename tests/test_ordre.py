@@ -1,5 +1,5 @@
 """`noyau/ordre.py` : la page d'enchaînement entre projets, son classement, sa base, sa clôture, sa jonction — migré de
-`scripts/test-vlp.py` (REF51). Chaque `assert` garde le libellé d'origine de son `verifier` en tête de son message
+l'ancienne suite maison (REF51). Chaque `assert` garde le libellé d'origine de son `verifier` en tête de son message
 (REF5), puis le diagnostic.
 """
 import json
@@ -11,7 +11,7 @@ import tempfile
 
 from aides import SCRIPTS, appel, ecrire, lire, mod
 
-ICI = SCRIPTS     # le dossier de scripts/test-vlp.py, d'où ces tests viennent
+ICI = SCRIPTS     # le dossier des scripts, d'où ces tests viennent
 
 OUVERT = "**Ouvert.** le 2026-10-08."
 
@@ -57,7 +57,7 @@ ORDRE_SOURCE = """# L'ordre
 """
 
 
-def test_ordre(tmp_path):
+def test_ordre(tmp_path, init_git):
     """ORD1 : `vlp.py ordre --json` sur deux projets bâtis à côté l'un de l'autre (le kit `.` et `autre`) et un
     absent : les pas lus en TODO ou pris de la source, les totaux du JSON ; un pas sans coût nulle part, une GARDE ;
     le dossier écrit, ignoré par Git dans le vrai kit."""
@@ -90,7 +90,7 @@ def test_ordre(tmp_path):
     assert (sans[0] == 1 and "GARDE: pas A2 (a) : ni dans la TODO, ni un coût en fiches dans la source\n" in sans[1]), ("ORD1 : un pas ni en TODO ni chiffré par la source, une GARDE qui le nomme, sort 1") + "\n" + str(sans)
     with tempfile.TemporaryDirectory(dir=tmp_path) as t:     # un dépôt neuf, le .gitignore du kit : vrai aussi dans une copie
         shutil.copy(os.path.join(mod.etat.KIT, ".gitignore"), t)
-        subprocess.run(["git", "init", "-q", t], capture_output=True)
+        init_git(t)
         ignore = subprocess.run(["git", "check-ignore", "context AI/ordre/donnees.json"], cwd=t,
                                 capture_output=True, text=True)
     assert (ignore.returncode == 0), ("ORD1 : ce que le script écrit est ignoré par le .gitignore du kit") + "\n" + str(ignore)

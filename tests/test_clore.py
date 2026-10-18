@@ -1,5 +1,5 @@
 """`noyau/clore.py` : `clore`, la TODO qu'il retire, ses repères, le chantier courant, le post-it, les blobs — la
-décision sans Git (REF48) puis les commandes, migré de `scripts/test-vlp.py` (REF51). Chaque `assert` garde le
+décision sans Git (REF48) puis les commandes, migré de l'ancienne suite maison (REF51). Chaque `assert` garde le
 libellé d'origine de son `verifier` en tête de son message (REF5), puis le diagnostic.
 """
 import datetime
@@ -25,7 +25,7 @@ from aides import (
 )
 from noyau import clore
 
-ICI = SCRIPTS     # le dossier de scripts/test-vlp.py, d'où ces tests viennent
+ICI = SCRIPTS     # le dossier des scripts, d'où ces tests viennent
 
 def test_blocs_worktrees_principal_en_tete():
     texte = "\n".join(["worktree /d/kit", "HEAD abc", "branch refs/heads/main", "",
@@ -55,11 +55,11 @@ def ouvert(texte):
     return re.sub(r"^(# Chantier [^\n]*\n)", r"\g<1>\n%s\n" % OUVERT, texte, count=1, flags=re.M)
 
 
-OUVERT_LIGNE = mod.OUVERT_LIGNE   # la seconde valeur d'`OUVERT` dans test-vlp.py, lue par les groupes de sa fin
+OUVERT_LIGNE = mod.OUVERT_LIGNE   # la seconde valeur d'`OUVERT` dans l'ancienne suite maison, lue par les groupes de sa fin
 
 
 def ouvert_ligne(texte):
-    """`ouvert`, tel que les groupes de la fin de test-vlp.py l'appelaient : le gabarit `OUVERT_LIGNE` inséré
+    """`ouvert`, tel que les groupes de la fin de l'ancienne suite maison l'appelaient : le gabarit `OUVERT_LIGNE` inséré
     brut, `%s` compris."""
     return re.sub(r"^(# Chantier [^\n]*\n)", r"\g<1>\n%s\n" % OUVERT_LIGNE, texte, count=1, flags=re.M)
 
@@ -511,11 +511,11 @@ def commit_matin(d, message, heure):
     git_matin(d, "commit", "-q", "-m", message)
 
 
-def depot_matin(d, archive=True, etat=ETAT_MATIN):
+def depot_matin(init_git, d, archive=True, etat=ETAT_MATIN):
     """Le dépôt de 2cef70f : `main` à courant LOC et son artefact, des lettres jusqu'à ENQ, une archive de deux clos
     (`archive` faux : ils restent sur la feuille), la feuille au rang 79 — un seul commit, à l'heure 0."""
     os.makedirs(d)
-    git_matin(d, "init", "-q", "-b", "main")
+    init_git(d)
     ecrire(os.path.join(d, "CHANTIER.md"), CARTE_MATIN)
     ecrire(os.path.join(d, "ctx", "08-etat.md"), etat)
     ecrire(os.path.join(d, "ctx", "00-INDEX.md"), "| Fichier | Lire quand |\n|---|---|\n")
@@ -533,7 +533,7 @@ def depot_matin(d, archive=True, etat=ETAT_MATIN):
     commit_matin(d, "base", 0)
 
 
-def test_ouverts(tmp_path):
+def test_ouverts(tmp_path, init_git):
     """NUI21 : `ouverts` — la marque d'ouverture, sans CLOS ni Pause ; `--rev` lit un commit, pas l'arbre."""
     if not shutil.which("git"):
         pytest.skip("git absent — ouverts n'est pas testé")
@@ -552,7 +552,7 @@ def test_ouverts(tmp_path):
         ecrire(os.path.join(d, "ctx", "b.md"), "# Chantier B — x\n\n" + OUVERT_LIGNE % "2026-10-03" + "\n" + mod.PAUSE_LIGNE % ("2026-10-04", "attend") + "\n")
         code3, s3 = appel(["ouverts", d])
         ecrire(os.path.join(d, "ctx", "b.md"), "# Chantier B — x\n\n" + OUVERT_LIGNE % "2026-10-03" + "\n")
-        git_matin(d, "init", "-q", "-b", "main")
+        init_git(d)
         git_matin(d, "add", "-A")
         git_matin(d, "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "-m", "base")
         git_matin(d, "checkout", "-q", "-b", "autre")
@@ -574,7 +574,7 @@ def test_ouverts(tmp_path):
              and code8 == 1 and s8.startswith("GARDE: pas de CHANTIER.md")), ("NUI21 ouverts : un dossier sans CHANTIER.md, un --rev inconnu → GARDE et code 1, jamais un traceback") + "\n" + str(s7 + s8)
 
 
-def test_blobs_git(tmp_path):
+def test_blobs_git(tmp_path, init_git):
     """VIT3 : `textes_contexte` avec `rev` lit en un `git cat-file --batch` ce que l'ancien lecteur — un `git show` par
     fichier — lisait, au caractère près : CRLF, `\\r` seul, accents, fin sans LF, et un dossier en `.md` ; une entrée
     absente ou qui n'est pas un blob ne décale pas la suivante."""
@@ -589,7 +589,7 @@ def test_blobs_git(tmp_path):
                             ("ctx/c.md", b"un\rdeux\n\n"), ("ctx/d.md/x.txt", b"x\n")):
             with open(os.path.join(d, nom), "wb") as f:
                 f.write(octets)
-        git_matin(d, "init", "-q")
+        init_git(d)
         git_matin(d, "-c", "core.autocrlf=false", "add", "-A")
         git_matin(d, "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "-m", "base")
 
@@ -608,7 +608,7 @@ def test_blobs_git(tmp_path):
              "d'après le contenu") + "\n" + str(lus)
 
 
-def test_courant_de(tmp_path):
+def test_courant_de(tmp_path, init_git):
     """NUI22 : `courant_de`, seul lecteur du chantier du dossier — post-it, branche, principale, ancienne ligne."""
     if not shutil.which("git"):
         pytest.skip("git absent — courant_de n'est pas testé")
@@ -628,7 +628,7 @@ def test_courant_de(tmp_path):
         ecrire(os.path.join(d, "CHANTIER.md"), "- **alias** : cd\n- **contexte** : ctx/\n")
         ecrire(os.path.join(d, "ctx", "a.md"), chantier("A", OUVERT_LIGNE % "2026-10-03"))
         ecrire(os.path.join(d, "ctx", "c.md"), chantier("C", OUVERT_LIGNE % "2026-10-01", mod.CLOS_LIGNE % "2026-10-02"))
-        git_matin(d, "init", "-q", "-b", "main")
+        init_git(d)
         git_matin(d, "add", "-A")
         git_matin(d, *signe, "commit", "-q", "-m", "base")
         git_matin(d, "worktree", "add", "-q", "-b", "wt", wt)
@@ -661,7 +661,7 @@ def test_courant_de(tmp_path):
              "GARDE ; projet sans marque → l'ancienne ligne de CHANTIER.md") + "\n" + str(repr((c_clos, c_deux, c_postit, d_vieux)))
 
 
-def test_postit(tmp_path):
+def test_postit(tmp_path, init_git):
     """ISO8 : `postit` pose le post-it d'un worktree pour son sous-agent isolé — `carte` y lit alors le chantier."""
     if not shutil.which("git"):
         pytest.skip("git absent — postit n'est pas testé")
@@ -674,7 +674,7 @@ def test_postit(tmp_path):
         ecrire(os.path.join(d, "ctx", "c.md"), "# Chantier C — x\n\n%s\n\n%s\n\n## C1 [x] — f\n"
                % (OUVERT_LIGNE % "2026-10-01", mod.CLOS_LIGNE % "2026-10-02"))
         ecrire(os.path.join(hors, "CHANTIER.md"), "- **contexte** : ctx/\n")
-        git_matin(d, "init", "-q", "-b", "main")
+        init_git(d)
         git_matin(d, "add", "-A")
         git_matin(d, *signe, "commit", "-q", "-m", "base")
         git_matin(d, "worktree", "add", "-q", "-b", "wt", wt)
@@ -703,7 +703,7 @@ def noms_ailleurs(dossier):
                   for l in s.splitlines() if l.startswith("AILLEURS="))
 
 
-def test_ailleurs(tmp_path):
+def test_ailleurs(tmp_path, init_git):
     """NUI28 : `carte` nomme le chantier de chaque autre worktree (`AILLEURS=`), jamais le sien, ni un worktree sans
     chantier ; `niveau` ne compte pas d'écart de page à un chantier qui joue dans un autre worktree que le principal."""
     if not shutil.which("git"):
@@ -711,7 +711,7 @@ def test_ailleurs(tmp_path):
         return
     with tempfile.TemporaryDirectory(dir=tmp_path) as tr:
         d = os.path.join(tr, "m")
-        depot_matin(d)
+        depot_matin(init_git, d)
         loc = os.path.join(d, "ctx", "40-loc.md")      # main libre : LOC sans sa marque, l'artefact à aucun
         ecrire(loc, lire(loc).replace("\n%s\n" % OUVERT_LIGNE, ""))
         carte = os.path.join(d, "CHANTIER.md")
@@ -733,7 +733,7 @@ def test_ailleurs(tmp_path):
 
     with tempfile.TemporaryDirectory(dir=tmp_path) as tr:
         d, wl = os.path.join(tr, "n"), os.path.join(tr, "wt-l")
-        depot_matin(d)
+        depot_matin(init_git, d)
         git_matin(d, "worktree", "add", "-q", "-b", "l", wl, "main")
         ecrire(os.path.join(wl, "b.txt"), "b\n")
         commit_matin(wl, "LOC1 : a", 2)          # ni post-it ni marque à lui : ses commits disent ce qu'il joue
@@ -748,7 +748,7 @@ def test_ailleurs(tmp_path):
     with tempfile.TemporaryDirectory(dir=tmp_path) as tr:
         d, wv = os.path.join(tr, "v"), os.path.join(tr, "wt-v")
         os.makedirs(d)
-        git_matin(d, "init", "-q", "-b", "main")
+        init_git(d)
         ecrire(os.path.join(d, "a.txt"), "a\n")
         commit_matin(d, "avant le suivi", 1)
         git_matin(d, "worktree", "add", "-q", "-b", "v", wv, "main")

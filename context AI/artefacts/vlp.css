@@ -165,7 +165,7 @@ details.clos[open] > summary { margin-bottom:.85rem; }
 footer { border-top:1px solid var(--line); padding-top:.9rem; font-size:.9375rem; color:var(--doux); display:flex; flex-wrap:wrap; gap:.25rem 1.25rem; }
 
 /* LECTEUR — début. Le lecteur à voix haute (son script : LECTEUR dans vlp.js), copié à l'octet dans
-   vlp.css et dans le style de rapport-choix.html ; test-vlp.py vérifie les deux copies. Les jetons
+   vlp.css et dans le style de rapport-choix.html ; tests/test_commun.py vérifie les deux copies. Les jetons
    ont un repli pour les deux palettes : --surface ou --carte, --line ou --trait. */
 .lecteur { display:flex; flex-wrap:wrap; align-items:center; gap:.4rem .9rem; margin:.3rem 0; }
 /* caché pendant qu'on prend le texte de la page : sans cette règle, display:flex l'emporte sur hidden */

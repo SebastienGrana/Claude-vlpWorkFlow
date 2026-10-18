@@ -1,5 +1,5 @@
 """NUI15 : `vlp.py matin <projet> <date>` fusionne dans main les branches de la nuit et répare ce que Git perd
-sans conflit (methode-chantier.md:263-268) — migré de `tester_matin` (`scripts/test-vlp.py`, REF43). Un dépôt
+sans conflit (methode-chantier.md:263-268) — migré de `tester_matin` (l'ancienne suite maison, REF43). Un dépôt
 temporaire par cas ; `conftest.py` isole la config Git et l'environnement. Chaque `assert` garde le libellé
 d'origine de son `verifier` en tête de son message (REF5), puis le diagnostic.
 """
@@ -16,7 +16,7 @@ from aides import RACINE, SCRIPTS, appel, ecrire, ligne_close, lire, mod, transc
 pytestmark = pytest.mark.skipif(shutil.which("git") is None, reason="git absent : matin n'est pas testé")
 GABARIT_FEUILLE = os.path.join(RACINE, "templates", "artefact-feuille-de-route.html")
 
-ICI = SCRIPTS     # le dossier de scripts/test-vlp.py, d'où ce test vient
+ICI = SCRIPTS     # le dossier des scripts, d'où ce test vient
 OUVERT = "**Ouvert.** le 2026-10-08."
 JOUR_MATIN = "2026-10-01"
 CARTE_MATIN = ("# Chantier courant\n\n- **alias** : mt\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n"

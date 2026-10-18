@@ -239,7 +239,7 @@ LIMITE_RE = re.compile(r"\s*You've hit your (\w+) limit", re.I)
 RESET_RE = re.compile(r"resets\s+(\d{1,2})(?::(\d{2}))?\s*([ap]m)\b", re.I)
 FIN = float("inf")   # « fin de la nuit » : un reset illisible
 BASCULE = {"jusqu": 0.0}   # instant jusqu'où les rôles Opus tournent en SONNET
-_KIT: list[Any] = []   # vlp.py chargé comme module, une fois (`scripts/test-vlp.py:29`)
+_KIT: list[Any] = []   # vlp.py chargé comme module, une fois (comme `tests/aides.py` le charge)
 
 
 def kit():

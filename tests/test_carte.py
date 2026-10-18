@@ -1,6 +1,6 @@
 """`vlp.py carte` (noyau/carte.py) : la carte d'un projet, sa TODO, sa méthode, son plafond, la ligne `GIT=`,
 l'injection des skills, l'avertissement d'une session déjà notée, la marque d'enchaînement et le ménage des
-tampons — migré de `scripts/test-vlp.py` (REF50). Chaque `assert` garde le libellé d'origine de son `verifier` en
+tampons — migré de l'ancienne suite maison (REF50). Chaque `assert` garde le libellé d'origine de son `verifier` en
 tête de son message (REF5), puis le diagnostic ; `conftest.py` isole l'environnement et la config Git.
 """
 import glob

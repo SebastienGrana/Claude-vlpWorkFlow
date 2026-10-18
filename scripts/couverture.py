@@ -1,7 +1,8 @@
 """La couverture des lignes changées (REF8, décision D7 de la note `122`).
 
-- La mesure : `scripts/test-vlp.py`, lancé seul, se relance sous `coverage` (`a_mesurer`, `mesurer`) ; vert, les
-  mesures de chaque processus sont réunies en `.couverture/coverage.xml`, avec l'empreinte du code joué (VIT11).
+- La mesure : la suite pytest, lancée entière, se relance sous `coverage` (`a_mesurer`, `mesurer`, appelés par
+  `tests/conftest.py`, REF59) ; vert, les mesures de chaque processus sont réunies en `.couverture/coverage.xml`,
+  avec l'empreinte du code joué (VIT11).
 - Le jugement : `vlp.py couverture`, appelé par `.githooks/pre-commit`, fait lire à `diff-cover` les lignes changées
   indexées ; sous `SEUIL` %, ou sans rapport pour ce code, le commit est refusé. Aucun seuil global.
 
@@ -122,7 +123,7 @@ def juger(racine, sortie, seuil=SEUIL, empreinte_de=empreinte_du_kit):
         return 0
     if not rapport_a_jour(racine, empreinte_de(racine)):
         sortie.write("GARDE: couverture — pas de rapport mesuré sur ce code : lancer la suite entière, "
-                     "py -3 scripts/test-vlp.py, puis commiter (REF8)\n")
+                     "uv run --frozen pytest -n 4, puis commiter (REF8)\n")
         return 1
     outil = shutil.which("diff-cover")
     if not outil:

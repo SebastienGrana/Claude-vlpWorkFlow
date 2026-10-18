@@ -310,7 +310,7 @@ def garde_avant_coche(a, titre):
     kit = coeur.suite_manquante(a.fichier)
     if kit:
         return ("GARDE: %s non cochée — la suite entière n'a pas tourné verte sur le code d'aujourd'hui : "
-                "py -3 \"%s/scripts/test-vlp.py\", puis cocher (VIT11)\n" % (a.fiche, kit))
+                "uv run --frozen pytest -n 4, depuis %s, puis cocher (VIT11)\n" % (a.fiche, kit))
     return None
 
 

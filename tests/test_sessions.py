@@ -1,5 +1,5 @@
 """`noyau/sessions.py` : le coût d'une session et d'un chantier (`cout`), les essais `claude -p` comptés à leur fiche,
-la découpe aux commits, le compteur d'une boucle — migré de `scripts/test-vlp.py` (REF58). Chaque `assert` garde le
+la découpe aux commits, le compteur d'une boucle — migré de l'ancienne suite maison (REF58). Chaque `assert` garde le
 libellé d'origine de son `verifier` en tête de son message (REF5), puis le diagnostic.
 """
 import datetime
@@ -509,11 +509,11 @@ def lignes_compteur():
     """La transcription faite main de VIT17, en secondes après T0 : chaque écart a sa part en face, et la somme des
     parts se fait à la main — modèle 127, outils 753, attente 80, autre 25 ; une pause (960 → 3000)."""
     sortie_b = '"C:/t/tasks/%s.output"'
-    mutant = 'py -3 scripts/vlp.py mutant scripts/a.py "x" "y" --test "py -3 scripts/test-vlp.py --seul z"'
+    mutant = 'py -3 scripts/vlp.py mutant scripts/a.py "x" "y" --test "uv run pytest --seul z"'
     return [
         {"type": "queue-operation", "operation": "enqueue", "timestamp": horodate(0)},    # hors conversation
         user_compteur(0, "vas-y", "human"),                                                # attente 0
-        tour_compteur(10, 1, outil_compteur("u1", "Bash", command="py -3 scripts/test-vlp.py")),   # modèle 10
+        tour_compteur(10, 1, outil_compteur("u1", "Bash", command="uv run --frozen pytest -n 4")),   # modèle 10
         sortie_compteur(70, "u1", "SAUTÉ: x\nOK"),                                        # suite 60, verte
         {"type": "attachment", "timestamp": horodate(80)},                                # hors conversation
         tour_compteur(90, 2, outil_compteur("u2", "AskUserQuestion", questions=[])),      # modèle 10 + 10
@@ -524,7 +524,7 @@ def lignes_compteur():
                                              % (sortie_b % "b1", sortie_b % "b1"))),   # modèle 9
         sortie_compteur(400, "u7", "ÉCART: z\nMUTANT ATTRAPÉ 1 écart(s)"),                 # attend b1 : mutant 230
         notification_compteur(405, "<tool-use-id>u3</tool-use-id>", "fini (exit code 0)"),   # mutant 5, fond
-        tour_compteur(410, 5, outil_compteur("u9", "Bash", command="py -3 scripts/test-vlp.py", run_in_background=True)),
+        tour_compteur(410, 5, outil_compteur("u9", "Bash", command="uv run --frozen pytest -n 4", run_in_background=True)),
         sortie_compteur(411, "u9", "Command running in background with ID: b2."),          # suite 1, sans verdict
         tour_compteur(420, 6, outil_compteur("u8", "Monitor", command='until grep -q "^OK" %s; do sleep 5; done'
                                              % (sortie_b % "b2"))),   # modèle 9
@@ -532,7 +532,7 @@ def lignes_compteur():
         tour_compteur(430, 7),                                                             # modèle 9
         notification_compteur(700, "<task-id>m1</task-id>", "Monitor event"),             # par m1 : suite 270
         notification_compteur(710, "<tool-use-id>u9</tool-use-id>", "fini (exit code 1)"),   # suite 10, rouge
-        tour_compteur(720, 8, outil_compteur("u11", "Bash", command="py -3 scripts/test-vlp.py --seul compteur")),
+        tour_compteur(720, 8, outil_compteur("u11", "Bash", command="uv run --frozen pytest --seul compteur")),
         sortie_compteur(750, "u11", "ÉCART: w\nFIN: 1 écart(s)"),                          # --seul 30, rouge
         tour_compteur(760, 9, outil_compteur("u4", "Read", file_path="C:/t/x.md")),        # modèle 10
         sortie_compteur(770, "u4", "     1→MUTANT ATTRAPÉ 1 écart(s)\n     2→GARDE: x"),   # reste 10, rien de lu
@@ -597,14 +597,14 @@ def test_compteur_lecture(tmp_path):
 def test_compteur_sortes():
     """Contrôler les sortes d'outil, le verdict d'une suite, l'arrondi qui somme juste et la recoupe sans plage de
     `compteur` (VIT17)."""
-    cas = [("Bash", "py -3 scripts/test-vlp.py", "suite"),
-           ("Bash", 'cd "D:/x" && py -3 scripts/test-vlp.py --seul compteur', "--seul"),
-           ("Bash", "py -3 scripts/test-vlp.py > o.txt; grep -- --seul o.txt", "suite"),
-           ("Bash", 'py -3 scripts/vlp.py mutant a.py "x" "y" --test "py -3 scripts/test-vlp.py --seul z"', "mutant"),
+    cas = [("Bash", "uv run --frozen pytest -n 4", "suite"), ("Bash", "py -3 -m pytest -q", "suite"), ("Bash", "uv run --frozen --project D:/kit pytest -q", "suite"),
+           ("Bash", 'cd "D:/x" && uv run pytest --seul compteur', "--seul"),
+           ("Bash", "uv run pytest > o.txt; grep -- --seul o.txt", "suite"),
+           ("Bash", 'py -3 scripts/vlp.py mutant a.py "x" "y" --test "uv run pytest --seul z"', "mutant"),
            ("PowerShell", '& "C:/Python/python.exe" scripts/test-boucle.py', "test-boucle"),
            ("Bash", "pyright scripts/vlp.py", "pyright"), ("PowerShell", "git -C . log -1", "Git"),
-           ("Bash", 'grep -n "test-vlp.py" scripts/x.py', "reste"),
-           ("Bash", "cat > f.sh <<'EOF'\npy -3 scripts/test-vlp.py\nEOF", "reste"),
+           ("Bash", 'grep -n "pytest" scripts/x.py', "reste"),
+           ("Bash", "cat > f.sh <<'EOF'\nuv run pytest\nEOF", "reste"),
            ("Artifact", "", "publication"), ("Read", "", "reste")]
     rendus = [mod.sorte_outil((nom, {"command": c})) for nom, c, _ in cas]
     assert (rendus == [s for _, _, s in cas]), ("compteur : la sorte d'un appel, à ce qu'il lance en tête d'un segment — ni cité, ni dans un heredoc") + "\n" + str(list(zip(rendus, [s for _, _, s in cas])))

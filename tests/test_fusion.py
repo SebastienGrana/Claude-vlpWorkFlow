@@ -1,5 +1,5 @@
 """`noyau/matin.py`, la fusion d'une fiche jouée en worktree (`fusionner`), le travail mis de côté, les lettres en
-double — migré de `scripts/test-vlp.py` (REF51). Chaque `assert` garde le libellé d'origine de son `verifier` en tête
+double — migré de l'ancienne suite maison (REF51). Chaque `assert` garde le libellé d'origine de son `verifier` en tête
 de son message (REF5), puis le diagnostic.
 """
 import os
@@ -11,7 +11,7 @@ import tempfile
 import pytest
 from aides import SCRIPTS, appel, ecrire, ligne_close, lire, mod
 
-ICI = SCRIPTS     # le dossier de scripts/test-vlp.py, d'où ces tests viennent
+ICI = SCRIPTS     # le dossier des scripts, d'où ces tests viennent
 
 OUVERT = "**Ouvert.** le 2026-10-08."
 
@@ -22,11 +22,11 @@ def ouvert(texte):
     return re.sub(r"^(# Chantier [^\n]*\n)", r"\g<1>\n%s\n" % OUVERT, texte, count=1, flags=re.M)
 
 
-OUVERT_LIGNE = mod.OUVERT_LIGNE   # la seconde valeur d'`OUVERT` dans test-vlp.py, lue par les groupes de sa fin
+OUVERT_LIGNE = mod.OUVERT_LIGNE   # la seconde valeur d'`OUVERT` dans l'ancienne suite maison, lue par les groupes de sa fin
 
 
 def ouvert_ligne(texte):
-    """`ouvert`, tel que les groupes de la fin de test-vlp.py l'appelaient : le gabarit `OUVERT_LIGNE` inséré
+    """`ouvert`, tel que les groupes de la fin de l'ancienne suite maison l'appelaient : le gabarit `OUVERT_LIGNE` inséré
     brut, `%s` compris."""
     return re.sub(r"^(# Chantier [^\n]*\n)", r"\g<1>\n%s\n" % OUVERT_LIGNE, texte, count=1, flags=re.M)
 
@@ -71,11 +71,11 @@ def commit_matin(d, message, heure):
     git_matin(d, "commit", "-q", "-m", message)
 
 
-def depot_matin(d, archive=True, etat=ETAT_MATIN):
+def depot_matin(init_git, d, archive=True, etat=ETAT_MATIN):
     """Le dépôt de 2cef70f : `main` à courant LOC et son artefact, des lettres jusqu'à ENQ, une archive de deux clos
     (`archive` faux : ils restent sur la feuille), la feuille au rang 79 — un seul commit, à l'heure 0."""
     os.makedirs(d)
-    git_matin(d, "init", "-q", "-b", "main")
+    init_git(d)
     ecrire(os.path.join(d, "CHANTIER.md"), CARTE_MATIN)
     ecrire(os.path.join(d, "ctx", "08-etat.md"), etat)
     ecrire(os.path.join(d, "ctx", "00-INDEX.md"), "| Fichier | Lire quand |\n|---|---|\n")
@@ -93,7 +93,7 @@ def depot_matin(d, archive=True, etat=ETAT_MATIN):
     commit_matin(d, "base", 0)
 
 
-def test_wip_de_cote(tmp_path):
+def test_wip_de_cote(tmp_path, init_git):
     """NUI24 : une pointe WIP sans chantier n'est jamais fusionnée ; une branche qui hérite du chantier ouvert de main
     sans en ajouter reste fusionnable."""
     if not shutil.which("git"):
@@ -101,7 +101,7 @@ def test_wip_de_cote(tmp_path):
         return
     with tempfile.TemporaryDirectory(dir=tmp_path) as tr:
         d = os.path.join(tr, "w")
-        depot_matin(d)
+        depot_matin(init_git, d)
         noms = {}
         for canal, code, sujet in (("A", "WIP", mod.WIP_SUJET % ("WIP", "découpage coupé")), ("B", "HER", "HER1 : her")):
             noms[code] = "nuit/%s-%s-%s" % (JOUR_MATIN, canal, code)
@@ -117,7 +117,7 @@ def test_wip_de_cote(tmp_path):
              "mutant : la pointe WIP n'est plus lue") + "\n" + str(repr((etat_wip, etat_her, wip_fusionne)) + "\n" + s)
 
 
-def test_fusionner(tmp_path):
+def test_fusionner(tmp_path, init_git):
     """NUI26 : `vlp.py fusionner <projet> <branche>`, la fusion du jour par le chemin de `matin` — un worktree qui clôt
     le chantier de main le libère ; un worktree qui ouvre puis clôt PAR laisse à main le sien ; six refus et `DÉJÀ`."""
     if not shutil.which("git"):
@@ -125,7 +125,7 @@ def test_fusionner(tmp_path):
         return
     with tempfile.TemporaryDirectory(dir=tmp_path) as tr:
         d, wt = os.path.join(tr, "f"), os.path.join(tr, "wt-clot")
-        depot_matin(d)
+        depot_matin(init_git, d)
         git_matin(d, "worktree", "add", "-q", "-b", "clot-loc", wt, "main")
         postit = mod.postit(wt)
         assert postit
@@ -150,7 +150,7 @@ def test_fusionner(tmp_path):
 
     with tempfile.TemporaryDirectory(dir=tmp_path) as tr:
         d, vide = os.path.join(tr, "g"), os.path.join(tr, "vide")
-        depot_matin(d)
+        depot_matin(init_git, d)
         os.makedirs(vide)
 
         def branche(nom, fichier, corps, carte_aucun):
@@ -207,7 +207,7 @@ def noms_worktrees(d):
             .splitlines() if l.startswith("worktree ")]
 
 
-def test_iso4_fusionner_fiche(tmp_path):
+def test_iso4_fusionner_fiche(tmp_path, init_git):
     """ISO4 : `fusionner <fichier> <fiche> --worktree <dossier>` sur un dépôt et deux worktrees — sans conflit,
     `FUSIONNÉ`, le fichier dans main, plus de worktree ni de branche ; même ligne changée des deux côtés, `CONFLIT`,
     sort 1, `git status` propre ; un dossier hors des worktrees, ou sans commit de la fiche : `GARDE:`, rien touché."""
@@ -217,7 +217,7 @@ def test_iso4_fusionner_fiche(tmp_path):
     with tempfile.TemporaryDirectory(dir=tmp_path) as tr:
         d, wa, wc = (os.path.join(tr, n) for n in ("d", "wt-a", "wt-c"))
         os.makedirs(d)
-        git_matin(d, "init", "-q", "-b", "main")
+        init_git(d)
         fiches = os.path.join(d, "ctx", "f.md")
         ecrire(fiches, "# F\n\n## W1 [ ] — a\n\n## W2 [ ] — c\n")
         ecrire(os.path.join(d, "a.txt"), "1\n2\n3\n")
@@ -247,7 +247,7 @@ def test_iso4_fusionner_fiche(tmp_path):
              "touché") + "\n" + str((gardes, intact))
 
 
-def test_lettres_doublon(tmp_path):
+def test_lettres_doublon(tmp_path, init_git):
     """NUI27 : un code pris deux fois n'est plus avalé — à la fusion, même lettre et titres différents → `GARDE:` avant
     toute écriture, même entrée → rien ; `ouvrir` refuse un code déjà ouvert dans un autre worktree, pas le sien hérité."""
     if not shutil.which("git"):
@@ -255,7 +255,7 @@ def test_lettres_doublon(tmp_path):
         return
     with tempfile.TemporaryDirectory(dir=tmp_path) as tr:
         d = os.path.join(tr, "l")
-        depot_matin(d)
+        depot_matin(init_git, d)
 
         def lettre(nom, entree):
             """`nom`, depuis main, dans un worktree : `entree` ajoutée à la liste des lettres et CHANTIER.md à `aucun`,
@@ -284,7 +284,7 @@ def test_lettres_doublon(tmp_path):
 
     with tempfile.TemporaryDirectory(dir=tmp_path) as tr:
         d, wz, wh = os.path.join(tr, "o"), os.path.join(tr, "wt-zed"), os.path.join(tr, "wt-her")
-        depot_matin(d)
+        depot_matin(init_git, d)
         loc = os.path.join(d, "ctx", "40-loc.md")      # main libre : LOC sans sa marque, l'artefact à aucun
         ecrire(loc, lire(loc).replace("\n%s\n" % OUVERT_LIGNE, ""))
         carte = os.path.join(d, "CHANTIER.md")

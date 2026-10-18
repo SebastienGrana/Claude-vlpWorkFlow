@@ -253,7 +253,7 @@ def tester_faux():
 
 # --- le carnet de nuit et la borne double (NUI3) --------------------------------------
 
-# Git sans le poste (NUI5) : config globale et système neutralisées, une identité d'essai — comme test-vlp.py.
+# Git sans le poste (NUI5) : config globale et système neutralisées, une identité d'essai — comme `tests/conftest.py`.
 _GIT_TMP = tempfile.TemporaryDirectory()
 with open(os.path.join(_GIT_TMP.name, "gitconfig"), "w", encoding="utf-8") as _h:
     _h.write("")
@@ -1170,7 +1170,7 @@ def tester_canal():
 
 
 def tester_sans_nuit():
-    """NUI7 (a), partie à elle : la seule qui attend les variables de la nuit absentes ; `test-vlp.py` la lance seule,
+    """NUI7 (a), partie à elle : la seule qui attend les variables de la nuit absentes ; `tests/test_suites_voisines.py` la lance seule,
     sous ces variables, pour que leur retrait en tête se voie (ENV1)."""
     with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors:
         depot(t)

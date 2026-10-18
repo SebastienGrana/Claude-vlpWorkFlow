@@ -2,7 +2,7 @@
 `--resolu`, `--session`), le point unique des chemins (`Z2`).
 
 Deux étages (socle de `REF`, « La découpe sépare la décision de Git ») : les décisions qui ne lancent pas `git`
-(REF45), chacune sur le texte qu'un `git` aurait rendu ; puis les commandes, migrées de `scripts/test-vlp.py` (REF50),
+(REF45), chacune sur le texte qu'un `git` aurait rendu ; puis les commandes, migrées de l'ancienne suite maison (REF50),
 un seul test sur vrai dépôt par branchement. Chaque `assert` migré garde le libellé d'origine de son `verifier` en
 tête de son message (REF5), puis le diagnostic.
 """
@@ -15,7 +15,7 @@ import pytest
 from aides import SCRIPTS, appel, commits, ecrire, lire, mod
 from noyau import fiches
 
-ICI = SCRIPTS     # le dossier de scripts/test-vlp.py, d'où ces tests viennent
+ICI = SCRIPTS     # le dossier des scripts, d'où ces tests viennent
 FICHES = ["# Fiches", "",
           "## W1 [ ] — Une fiche", "", "**Fichiers** : `src/a.py`, `docs/`, `src/*.txt`.", "",
           "## W2 [ ] — La suivante", "", "**Fichiers** : `src/b.py`."]

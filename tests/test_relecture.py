@@ -1,6 +1,6 @@
 """`noyau/relecture.py`. Deux étages (socle de `REF`, « La découpe sépare la décision de Git ») : les décisions qui ne
 lancent pas `git` (REF47), chacune sur le texte qu'un `git` aurait rendu ; puis `relecture` et le retard du plugin
-sur un vrai dépôt, migrés de `scripts/test-vlp.py` (REF58), chaque `assert` migré au libellé d'origine de son
+sur un vrai dépôt, migrés de l'ancienne suite maison (REF58), chaque `assert` migré au libellé d'origine de son
 `verifier` (REF5).
 """
 import io

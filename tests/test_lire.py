@@ -1,6 +1,6 @@
 """`vlp.py lire` : un fichier du kit s'imprime tel quel, `${CLAUDE_PLUGIN_ROOT}` remplacé par la racine du kit en barres
 obliques (REF27) ; un chemin qui sort du kit, par `..` ou sur un autre disque (REF55), sort 1 par sa GARDE — jamais un
-traceback (`os.path.commonpath` lève entre deux lecteurs). Migré de `tester_lire_kit` (`scripts/test-vlp.py`, REF8)."""
+traceback (`os.path.commonpath` lève entre deux lecteurs). Migré de `tester_lire_kit` (l'ancienne suite maison, REF8)."""
 import os
 
 import pytest

@@ -1,5 +1,5 @@
 """`noyau/niveau.py` : `niveau` et ses écarts, l'attente de publication, la comparaison des pages, `AILLEURS=` — la
-décision sans Git (REF47) puis les commandes, migré de `scripts/test-vlp.py` (REF51). Chaque `assert` garde le
+décision sans Git (REF47) puis les commandes, migré de l'ancienne suite maison (REF51). Chaque `assert` garde le
 libellé d'origine de son `verifier` en tête de son message (REF5), puis le diagnostic.
 """
 import datetime
@@ -15,7 +15,7 @@ import pytest
 from aides import SCRIPTS, appel, ecrire, ligne_close, lire, mod
 from noyau import niveau
 
-ICI = SCRIPTS     # le dossier de scripts/test-vlp.py, d'où ces tests viennent
+ICI = SCRIPTS     # le dossier des scripts, d'où ces tests viennent
 
 def test_source_ignore():
     assert niveau.source_ignore(".gitignore:3:context AI/\tcontext AI/a.md\n") == ".gitignore:3"   # le fichier et sa ligne : « ignoré par .gitignore:3 »
@@ -54,7 +54,7 @@ def rendu(depart):
     return s.getvalue()
 
 
-def test_niveau_git(tmp_path):
+def test_niveau_git(tmp_path, init_git):
     """NUI36 : l'étape `git` de `niveau` — ignoré avec sa ligne de `.gitignore`, non ajouté, ligne « kit » à chemin
     de machine, tout suivi sans écart, hors Git sans écart ; `--ecrire` ne corrige rien."""
     def git(d, *args):
@@ -72,7 +72,7 @@ def test_niveau_git(tmp_path):
         ecrire(os.path.join(p, "ctx", "08-etat.md"), "# état\n")
         ecrire(os.path.join(p, "ctx", "00-INDEX.md"), "# Index\n")
         assert (ecarts_git(p) == []), ("niveau git : hors Git, aucun écart") + "\n" + str(ecarts_git(p))
-        git(p, "init", "-q")
+        init_git(p)
         git(p, "add", "-A")
         assert (ecarts_git(p) == []), ("niveau git : tout suivi, aucun écart") + "\n" + str(ecarts_git(p))
         git(p, "rm", "-q", "--cached", "CHANTIER.md")
@@ -615,11 +615,11 @@ def commit_matin(d, message, heure):
     git_matin(d, "commit", "-q", "-m", message)
 
 
-def depot_matin(d, archive=True, etat=ETAT_MATIN):
+def depot_matin(init_git, d, archive=True, etat=ETAT_MATIN):
     """Le dépôt de 2cef70f : `main` à courant LOC et son artefact, des lettres jusqu'à ENQ, une archive de deux clos
     (`archive` faux : ils restent sur la feuille), la feuille au rang 79 — un seul commit, à l'heure 0."""
     os.makedirs(d)
-    git_matin(d, "init", "-q", "-b", "main")
+    init_git(d)
     ecrire(os.path.join(d, "CHANTIER.md"), CARTE_MATIN)
     ecrire(os.path.join(d, "ctx", "08-etat.md"), etat)
     ecrire(os.path.join(d, "ctx", "00-INDEX.md"), "| Fichier | Lire quand |\n|---|---|\n")
@@ -679,7 +679,7 @@ def noms_ailleurs(dossier):
                   for l in s.splitlines() if l.startswith("AILLEURS="))
 
 
-def test_ailleurs_meme_chantier(tmp_path):
+def test_ailleurs_meme_chantier(tmp_path, init_git):
     """NUI28 (b) à (d) : au même chantier qu'ici, un autre worktree n'est nommé (`AILLEURS=`, `niveau`) que s'il a
     joué une fiche de ce code qu'ici n'a pas — un hérité se tait des deux côtés (ISO2, TODO 140)."""
     if not shutil.which("git"):
@@ -687,7 +687,7 @@ def test_ailleurs_meme_chantier(tmp_path):
         return
     with tempfile.TemporaryDirectory(dir=tmp_path) as tr:
         d, wl = os.path.join(tr, "n"), os.path.join(tr, "wt-l")
-        depot_matin(d)
+        depot_matin(init_git, d)
         _, seul = appel(["niveau", d])
         git_matin(d, "worktree", "add", "-q", "-b", "l", wl, "main")
         ecrire(mod.postit(wl), "ctx/40-loc.md\n")      # le worktree joue LOC : son post-it le nomme (NUI31)
@@ -702,7 +702,7 @@ def test_ailleurs_meme_chantier(tmp_path):
 
     with tempfile.TemporaryDirectory(dir=tmp_path) as tr:
         d, wh = os.path.join(tr, "h"), os.path.join(tr, "wt-h")
-        depot_matin(d)
+        depot_matin(init_git, d)
         git_matin(d, "worktree", "add", "-q", "-b", "h", wh, "main")
         ecrire(mod.postit(wh), "ctx/40-loc.md\n")      # LOC hérité de main, nommé par le post-it : le même des deux côtés
         herite = [noms_ailleurs(w) for w in (d, wh)]

@@ -8,7 +8,7 @@ import os
 import vlp_hook
 
 KIT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))   # scripts/noyau/ → le kit
-GIT = "git"     # test-vlp.py le remplace pour simuler un poste sans Git
+GIT = "git"     # un test le remplace pour simuler un poste sans Git
 TAMPON_HOOKS = vlp_hook.TAMPON
 GABARIT_ORDRE = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "..", "templates", "ordre.html")
 LIMITE_DOC_DB = 256 * 1024   # octets d'un document `db` : contrat d'artefact 0.2.75, db.d.ts, « at most 256 KiB serialized »

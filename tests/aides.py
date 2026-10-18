@@ -1,14 +1,16 @@
 """Les aides communes de la suite pytest (REF4) : le code de `vlp.py` chargé par chemin, comme
-`scripts/test-vlp.py` le charge, et les petits bâtisseurs que les tests migrés partagent.
+l'ancienne suite maison le charge, et les petits bâtisseurs que les tests migrés partagent.
 
 Le chargement se fait une fois par processus ; un test qui change l'état du module (`mod.etat.GIT`…) passe par
 `monkeypatch.setattr`, qui le remet à la fin du test.
 """
 import datetime
 import importlib.util
+import inspect
 import io
 import json
 import os
+import re
 import subprocess
 from typing import Any
 
@@ -18,7 +20,7 @@ SCRIPTS = os.path.join(RACINE, "scripts")
 
 def charger_coeur():
     """Charger `scripts/vlp_coeur.py` par son chemin (`spec_from_file_location`), puis le régler comme
-    `test-vlp.py` le règle : tampon des hooks coupé, page d'enchaînement du vrai kit jamais refaite."""
+    l'ancienne suite maison le règle : tampon des hooks coupé, page d'enchaînement du vrai kit jamais refaite."""
     spec = importlib.util.spec_from_file_location("vlp_coeur", os.path.join(SCRIPTS, "vlp_coeur.py"))
     assert spec and spec.loader
     module: Any = importlib.util.module_from_spec(spec)
@@ -29,6 +31,20 @@ def charger_coeur():
 
 
 mod: Any = charger_coeur()
+
+
+def porte_motif(fonction, motif, nom=None):
+    """Dire si le test `fonction` porte `motif`, sans tenir compte de la casse : dans son nom (`nom`, l'id d'un test
+    paramétré compris), son texte, ou celui des fonctions de son module qu'il nomme — un libellé écrit dans une aide
+    retient le test qui l'appelle (VIT10, l'option `--seul` de `conftest.py`, REF59)."""
+    try:
+        source = inspect.getsource(fonction)
+    except (OSError, TypeError):
+        source = ""
+    module = inspect.getmodule(fonction)
+    aides = [inspect.getsource(g) for n, g in sorted(vars(module).items()) if inspect.isfunction(g)
+             and g is not fonction and re.search(r"\b%s\b" % re.escape(n), source)] if module else []
+    return motif.lower() in ((nom or fonction.__name__) + " " + source + "".join(aides)).lower()
 
 
 def appel(argv):

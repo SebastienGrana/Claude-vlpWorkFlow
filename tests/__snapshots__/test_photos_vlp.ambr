@@ -1215,18 +1215,6 @@
   --- écrits sous le dossier personnel
   '''
 # ---
-# name: test_photo[parite]
-  '''
-  code 1
-  --- sortie
-  GARDE: parite ne lit pas <P> : [Errno 2] No such file or directory: '<P>/scripts/test-vlp.py'
-  
-  --- erreur
-  
-  --- écrits
-  --- écrits sous le dossier personnel
-  '''
-# ---
 # name: test_photo[pause]
   '''
   code 0
@@ -1334,7 +1322,7 @@
   '''
   code 1
   --- sortie
-  GARDE: <P> n'est pas le kit : pas de scripts/test-vlp.py
+  GARDE: <P> n'est pas le kit : pas de tests/conftest.py
   
   --- erreur
   

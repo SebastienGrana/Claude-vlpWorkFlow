@@ -27,10 +27,10 @@ package = false
 required-version = ">=0.13.1,<0.14"
 
 [tool.pytest]
-# La suite pytest, côte à côte avec `scripts/test-vlp.py` jusqu'aux portes de parité (REF4, D1). L'import par
-# chemin (`importlib`) : aucun `__init__.py`, aucun nom de module partagé. Sur le chemin : `tests/` pour `aides`,
-# `scripts/` pour les voisins que `vlp_coeur.py` importe par leur nom (`carnet`, `vlp_hook`) — jamais
-# `test-vlp.py`, que son tiret rend inimportable et que `testpaths` ne collecte pas.
+# La suite du kit, seule depuis REF59 : `uv run --frozen pytest -n 4` la joue entière (`tests/conftest.py` :
+# `--seul`, la suite verte de `cocher`, la couverture). L'import par chemin (`importlib`) : aucun `__init__.py`,
+# aucun nom de module partagé. Sur le chemin : `tests/` pour `aides`, `scripts/` pour les voisins que
+# `vlp_coeur.py` importe par leur nom (`carnet`, `vlp_hook`).
 # `strict` : une option inconnue, une marque non déclarée ou un xfail qui passe font échouer (REF4, D3).
 testpaths = ["tests"]
 pythonpath = ["tests", "scripts"]

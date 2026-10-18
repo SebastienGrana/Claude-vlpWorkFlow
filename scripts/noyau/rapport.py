@@ -4,7 +4,6 @@ Sorti de `vlp_coeur.py`, qui le ré-exporte. Un nom d'un module pas encore sorti
 de l'appel (`noyau/facade.py`) ; un nom d'un module chargé avant se lit par import.
 """
 import collections
-import glob
 import hashlib
 import io
 import json
@@ -27,6 +26,7 @@ from noyau.nuit import (LECON_FORME, fichier_nuits, nuits_du_fichier, nuits_ecri
 from noyau.matin import (de_cote, pointes_nuit, projet_du_matin)
 
 import noyau.relecture   # `noyau.relecture.<nom>` : un test remplace ce nom là
+import noyau.bac   # `noyau.bac.commande_suite` : un test y met son faux script (REF59)
 
 # Ce que la façade ré-exporte : les noms d'avant la découpe (photo de `tests/test_noms_publics.py`). Les décisions
 # sorties de Git par REF49 — `py_du_statut` — se lisent ici seulement.
@@ -35,9 +35,8 @@ __all__ = [
     "derniere_valeur", "chantiers_de_cote", "option_matin", "question_de_cote", "question_de_note", "rapport_matin",
     "cmd_matin_rapport", "cmd_nuits_lecon", "DELAI_MUTANT", "texte_mute", "kit_de", "copie_mutee", "vers_copie",
     "tuer_arbre", "jouer_suite", "effacer_copie", "verdict_juge", "attendu_au_milieu", "verdict_mutant",
-    "jouer_mutant", "cmd_mutant", "entrees_launch", "cmd_apercu", "cmd_sante", "py_touches", "controles_rapides",
-    "jouer_rapide", "ecrire_rapide", "controle_rapide", "cmd_rapide", "cmd_symboles", "libelle_de",
-    "verifs_des_groupes", "cmd_parite",
+    "sans_parallele", "jouer_mutant", "cmd_mutant", "entrees_launch", "cmd_apercu", "cmd_sante", "py_touches", "controles_rapides",
+    "jouer_rapide", "ecrire_rapide", "controle_rapide", "cmd_rapide", "cmd_symboles",
 ]
 
 
@@ -508,15 +507,29 @@ def verdict_mutant(lignes, code, attrape, attendu, juge=False):
     return texte + "MUTANT VIVANT\n", 1
 
 
+def sans_parallele(commande):
+    """`commande` sans son `-n <n>` : `--seul` filtre à la collecte, que `pytest-xdist` fait dans ses processus — la
+    `GARDE:` d'un motif que rien ne porte n'en sortirait pas (REF59). Ne lance rien."""
+    rendue, sauter = [], False
+    for x in commande:
+        if sauter:
+            sauter = False
+        elif x == "-n":
+            sauter = True
+        else:
+            rendue.append(x)
+    return rendue
+
+
 def jouer_mutant(commande, copie, attendu, vise):
     """Jouer les tests `commande` dans `copie` et rendre (texte, code de sortie) de leur verdict (`verdict_mutant`).
-    Avec `vise` — pas de `--test` — et `attendu` (VIT21), d'abord les seuls groupes de `test-vlp.py` qui portent
-    `attendu` (`--seul`) : l'écart attendu tombé là, une ligne `VISÉ` le dit ; sinon — aucun groupe, ou pas cet
+    Avec `vise` — pas de `--test` — et `attendu` (VIT21), d'abord les seuls tests de la suite qui portent `attendu`
+    (`--seul`, sans `-n`) : l'écart attendu tombé là, une ligne `VISÉ` le dit ; sinon — aucun test, ou pas cet
     écart —, la suite entière tranche, et une ligne `SUITE ENTIÈRE` le dit. Un ATTRAPÉ ne vient que de l'écart
     attendu, un VIVANT que de la suite entière."""
     tete = ""
     if vise and attendu:
-        lignes, code, attrape = jouer_suite(commande + ["--seul", attendu], copie, attendu)
+        lignes, code, attrape = jouer_suite(sans_parallele(commande) + ["--seul", attendu], copie, attendu)
         if attrape:
             texte, code = verdict_mutant(lignes, code, attrape, attendu)
             return "VISÉ --seul « %s »\n" % attendu + texte, code
@@ -542,11 +555,12 @@ def cmd_mutant(a, sortie):
     dossier = tempfile.mkdtemp(prefix="vlp-mutant-")
     try:
         racine, copie = copie_mutee(a.cible, mute, dossier)
-        suite = os.path.join(racine if est_kit(racine) else etat.KIT, "scripts", "test-vlp.py")
-        commande = vers_copie(a.test or [sys.executable, suite], racine, copie)
+        kit = racine if est_kit(racine) else etat.KIT
+        # La suite par défaut se lance dans la copie, l'environnement `uv` du kit : rien à y réécrire (REF59).
+        commande = vers_copie(a.test, racine, copie) if a.test else noyau.bac.commande_suite(etat.KIT)
         texte, code = jouer_mutant(commande, copie, a.attendu, vise=not a.test)
         if not a.test:
-            texte += "TESTS %s\n" % os.path.dirname(os.path.dirname(suite))
+            texte += "TESTS %s\n" % kit
     except (OSError, subprocess.SubprocessError) as e:
         texte, code = "GARDE: les tests ne se lancent pas : %s\n" % e, 1
     finally:
@@ -683,9 +697,9 @@ def py_du_statut(texte):
 
 
 def controles_rapides(racine, motif, pyright):
-    """Rendre les trois contrôles de `rapide` (VIT23), en (nom, commande, raison d'un saut) : les groupes de
-    `test-vlp.py` qui portent `motif` (`--seul`), pyright sur les `.py` touchés — `pyright` : sa commande, `None`
-    s'il manque —, et `sante --cliquet`. Un contrôle sauté a une commande `None` et dit sa raison."""
+    """Rendre les trois contrôles de `rapide` (VIT23), en (nom, commande, raison d'un saut) : les tests de la suite
+    qui portent `motif` (`--seul`, sans `-n`), pyright sur les `.py` touchés — `pyright` : sa commande, `None` s'il
+    manque —, et `sante --cliquet`. Un contrôle sauté a une commande `None` et dit sa raison."""
     scripts = os.path.join(racine, "scripts")
     fichiers = py_touches(racine)
     if fichiers is None:
@@ -696,7 +710,7 @@ def controles_rapides(racine, motif, pyright):
         typage = ("pyright", None, "pyright introuvable")
     else:
         typage = ("pyright %d fichier(s)" % len(fichiers), list(pyright) + fichiers, None)
-    return [("groupes « %s »" % motif, [sys.executable, os.path.join(scripts, "test-vlp.py"), "--seul", motif], None),
+    return [("groupes « %s »" % motif, noyau.bac.commande_suite(etat.KIT, parallele=False) + ["--seul", motif], None),
             typage,
             ("cliquet", [sys.executable, os.path.join(scripts, "vlp.py"), "sante", "--cliquet", "--racine", racine],
              None)]
@@ -755,13 +769,13 @@ def controle_rapide(racine, motif, pyright, sortie):
 
 
 def cmd_rapide(a, sortie):
-    """Le contrôle rapide d'une fiche du kit, avant la suite entière (VIT23) : ses groupes de `test-vlp.py`, pyright
-    sur les `.py` touchés et le cliquet, en parallèle (`controle_rapide`). Il ne remplace pas la suite entière, que
-    `cocher` exige toujours (VIT11). Hors du kit — pas de `scripts/test-vlp.py` sous la racine — : `GARDE:`."""
+    """Le contrôle rapide d'une fiche du kit, avant la suite entière (VIT23) : ses tests (`--seul`), pyright sur les
+    `.py` touchés et le cliquet, en parallèle (`controle_rapide`). Il ne remplace pas la suite entière, que `cocher`
+    exige toujours (VIT11). Hors du kit — pas de `tests/conftest.py` sous la racine — : `GARDE:`."""
     import shutil
     racine = os.path.abspath(a.racine or ".")
-    if not os.path.isfile(os.path.join(racine, "scripts", "test-vlp.py")):
-        sortie.write("GARDE: %s n'est pas le kit : pas de scripts/test-vlp.py\n" % racine)
+    if not os.path.isfile(os.path.join(racine, *noyau.bac.MARQUE_SUITE)):
+        sortie.write("GARDE: %s n'est pas le kit : pas de %s\n" % (racine, "/".join(noyau.bac.MARQUE_SUITE)))
         return 1
     pyright = shutil.which("pyright")
     return controle_rapide(racine, a.motif, [pyright] if pyright else None, sortie)
@@ -789,79 +803,3 @@ def cmd_symboles(a, sortie):
         o = trouves.get(n)
         sortie.write("%s %d-%d\n" % (n, o.lineno, o.end_lineno or o.lineno) if o else "ABSENT %s\n" % n)
     return 1 if any(n not in trouves for n in a.noms) else 0
-
-
-def libelle_de(noeud):
-    """Le libellé d'un `verifier(<libellé>, …)` ou d'un `assert …, <libellé>` (REF5) : la chaîne telle quelle, le
-    gabarit d'un `"…" % x`, la gauche d'un `+` (`libellé + diagnostic`, REF43), un f-string ses morceaux fixes ; sinon None."""
-    import ast
-    if isinstance(noeud, ast.Constant) and isinstance(noeud.value, str):
-        return noeud.value
-    if isinstance(noeud, ast.BinOp) and isinstance(noeud.op, (ast.Mod, ast.Add)):
-        return libelle_de(noeud.left)
-    if isinstance(noeud, ast.JoinedStr):
-        return "".join(str(v.value) if isinstance(v, ast.Constant) else "{}" for v in noeud.values)
-    return None
-
-
-def verifs_des_groupes(arbre):
-    """`[(groupe, [libellés])]` pour chaque `groupe(<fonction>)` de `test-vlp.py`, dans l'ordre : les `verifier` de
-    la fonction, et ceux des fonctions du module qu'elle nomme, de proche en proche (une aide compte au groupe qui
-    l'appelle ; un autre groupe qu'elle nomme, non : REF43)."""
-    import ast
-    fonctions = {n.name: n for n in arbre.body if isinstance(n, ast.FunctionDef)}
-
-    def propres(f):
-        """Les libellés des `verifier` écrits dans `f` même."""
-        return [libelle_de(c.args[0]) or "" for c in ast.walk(f) if isinstance(c, ast.Call)
-                and isinstance(c.func, ast.Name) and c.func.id == "verifier" and c.args]
-
-    def libelles(nom, vus):
-        """Ceux de `nom`, puis ceux des fonctions qu'il nomme et que `vus` n'a pas encore."""
-        vus.add(nom)
-        nommes = {n.id for n in ast.walk(fonctions[nom]) if isinstance(n, ast.Name) and n.id in fonctions} - set(groupes)
-        return propres(fonctions[nom]) + [l for autre in sorted(nommes - vus) for l in libelles(autre, vus)]
-
-    groupes = [c.value.args[0].id for c in arbre.body if isinstance(c, ast.Expr) and isinstance(c.value, ast.Call)
-               and isinstance(c.value.func, ast.Name) and c.value.func.id == "groupe" and c.value.args
-               and isinstance(c.value.args[0], ast.Name) and c.value.args[0].id in fonctions]
-    return [(g, libelles(g, set())) for g in groupes]
-
-
-def cmd_parite(a, sortie):
-    """`parite [--racine <kit>]` (REF5) : la parité entre `scripts/test-vlp.py` et la suite pytest de `tests/`. La
-    marque d'un test migré : le libellé d'origine du `verifier`, mot pour mot, en message de son `assert`
-    (`assert cond, "<libellé>"` ; un libellé formaté, par son gabarit). Une ligne par groupe — `MIGRÉ <groupe> n/n`,
-    `PARTIEL <groupe> k/n — manque : <libellés>`, `RESTE <groupe> 0/n` —, puis `PARITE …` et les comptes bruts.
-    Un groupe ne sort de `test-vlp.py` que sur un `MIGRÉ`. Fichier absent ou illisible : `GARDE:`, sort 1."""
-    import ast
-    racine = os.path.abspath(a.racine or etat.KIT)
-    try:
-        with open(os.path.join(racine, "scripts", "test-vlp.py"), encoding="utf-8") as f:
-            groupes = verifs_des_groupes(ast.parse(f.read()))
-        migres = set()
-        for chemin in sorted(glob.glob(os.path.join(racine, "tests", "**", "*.py"), recursive=True)):
-            with open(chemin, encoding="utf-8") as f:
-                migres.update(libelle_de(n.msg) for n in ast.walk(ast.parse(f.read()))
-                              if isinstance(n, ast.Assert) and n.msg is not None)
-    except (OSError, SyntaxError, UnicodeDecodeError, ValueError) as e:
-        sortie.write("GARDE: parite ne lit pas %s : %s\n" % (racine, str(e).splitlines()[0] if str(e) else type(e).__name__))
-        return 1
-    etats = collections.Counter()
-    trouvees = total = 0
-    for nom, libelles in groupes:
-        manque = [l for l in libelles if l not in migres]
-        k, n = len(libelles) - len(manque), len(libelles)
-        trouvees, total = trouvees + k, total + n
-        if not manque:
-            etats["migrés"] += 1
-            sortie.write("MIGRÉ %s %d/%d\n" % (nom, k, n))
-        elif k:
-            etats["partiels"] += 1
-            sortie.write("PARTIEL %s %d/%d — manque : %s\n" % (nom, k, n, " ; ".join(dict.fromkeys(manque))))
-        else:
-            etats["restent"] += 1
-            sortie.write("RESTE %s 0/%d\n" % (nom, n))
-    sortie.write("PARITE %d groupes · migrés %d · partiels %d · restent %d · vérifications %d/%d\n" % (
-        len(groupes), etats["migrés"], etats["partiels"], etats["restent"], trouvees, total))
-    return 0
