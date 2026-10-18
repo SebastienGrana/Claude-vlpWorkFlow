@@ -16,14 +16,14 @@
 
 <div class="page">
   <header>
-    <div class="eyebrow">vlp · fiches REF1–REF55 · <a href="https://claude.ai/artifact/YWDny8kjubq9DhdP5rbPxA">la feuille de route</a></div>
+    <div class="eyebrow">vlp · fiches REF1–REF57 · <a href="https://claude.ai/artifact/YWDny8kjubq9DhdP5rbPxA">la feuille de route</a></div>
     <h1>La qualité du code et des tests</h1>
     <p>Le kit tourne sur pytest et une couverture mesurée, sans une seule régression ; des scripts gardent la taille des fichiers et interdisent de toucher aux tests pendant une fiche ; les erreurs connues sont réparées, les gros fichiers découpés, et chaque angle revu jusqu'à deux passes vides.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span data-etat="faite"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span data-etat="faite"></span><span data-etat="faite"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span data-etat="faite"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span data-etat="faite"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span data-etat="faite"></span><span data-etat="faite"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span data-etat="faite"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">55 fiches · 19 faites · en cours : REF55</p>
+    <p class="mono" style="margin-top:.5rem">57 fiches · 19 faites · en cours : REF55</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -77,11 +77,11 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REF40</span></span>
         <details><summary><span class="titre">fusionner régénère sante-base.json au lieu d'un conflit</span><span class="etat">Faite</span></summary>
         <span class="note">conflit sur sante-base.json seul : FUSIONNÉ + BASE REFAITE, base = sante --base neuf ; fonction qui empire : CONFLIT ; 2 mutants attrapés ; suite OK (282 s)</span></details>
-        <span class="cout mono">≈5,0M (4 982 058) · 26 tours · 1,83 $</span></li>
+        <span class="cout mono">≈5,8M (5 791 893) · 41 tours · 2,88 $</span></li>
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REF41</span></span>
         <details><summary><span class="titre">Un fichier HORS: n'est plus perdu à la fusion</span><span class="etat">Faite</span></summary>
         <span class="note">hors commit du worktree → GARDÉ 2 chemin(s) : correctif sous .git, git apply --check passe ; mutant attrapé ; suite OK (261 s)</span></details>
-        <span class="cout mono">≈2,7M (2 741 750) · 12 tours · 0,89 $</span></li>
+        <span class="cout mono">≈3,5M (3 549 148) · 27 tours · 1,67 $</span></li>
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REF4</span></span>
         <details><summary><span class="titre">Poser le socle pytest et isoler chaque test</span><span class="etat">Faite</span></summary>
         <span class="note">pytest -q : 15 passed ; test migré 5,7 s contre 22,2 s (Defender coupé) ; 29 assert pour 29 verifier ; expanduser = dossier du test, mutant USERPROFILE attrapé ; suite OK (257 s)</span></details>
@@ -89,7 +89,7 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REF5</span></span>
         <details><summary><span class="titre">Écrire les portes de parité entre les deux suites</span><span class="etat">Faite</span></summary>
         <span class="note">parite sur le kit : MIGRÉ tester_heures_commits 29/29, 182 RESTE, vérifications 29/1045 ; test PARTIEL — manque : b2 ; mutant attrapé ; suite OK (258 s)</span></details>
-        <span class="cout mono">≈4,8M (4 751 730) · 15 tours · 1,41 $</span></li>
+        <span class="cout mono">≈5,6M (5 569 996) · 30 tours · 2,10 $</span></li>
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REF6</span></span>
         <details><summary><span class="titre">Choisir l'outil de photographie</span><span class="etat">Faite</span></summary>
         <span class="note">syrupy gardé : 3 photos en texte (.ambr), 3 passed ; pytest-regtest refuse « — » (flux) ou écrit un pickle (snapshot), retiré du groupe dev ; tableau dans la note 122 ; mutant d'un libellé attrapé ; suite OK</span></details>
@@ -99,14 +99,18 @@
         <span class="note">61 sous-commandes : 58 photographiées (47 à 0, 10 GARDE, 1 traceback de lire), 3 sautées avec raison (claude, servir, mutant) ; pytest 77 passed ; couverture de vlp_coeur.py par les photos 49 % (3 734 / 7 251 non vues) ; mutant d'une constante attrapé ; suite OK</span></details>
         <span class="cout mono">≈15,9M (15 915 220) · 38 tours · 4,56 $</span></li>
       <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">REF55</span></span>
-        <details open><summary><span class="titre">vlp.py lire refuse un autre disque sans traceback</span><span class="etat">En cours · REF20, REF38 peuvent partir en même temps</span></summary></details></li>
+        <details open><summary><span class="titre">vlp.py lire refuse un autre disque sans traceback</span><span class="etat">En cours · REF57, REF20, REF38 peuvent partir en même temps</span></summary></details></li>
+      <li class="fiche"><span class="gauche"><span class="id">REF56</span></span>
+        <details><summary><span class="titre">Le correctif GARDÉ garde les octets tels quels</span><span class="etat">À lancer</span></summary></details></li>
+      <li class="fiche"><span class="gauche"><span class="id">REF57</span></span>
+        <details><summary><span class="titre">La doc de sante dit les tailles</span><span class="etat">À lancer · en même temps que REF55, REF20, REF38</span></summary></details></li>
       <li class="fiche"><span class="gauche"><span class="id">REF8</span></span>
         <details><summary><span class="titre">Mesurer la couverture et l'exiger sur les lignes changées</span><span class="etat">À lancer</span></summary>
         <span class="note">La couverture mesurée ; 90 % des lignes changées exigés au commit. Après REF4.</span></details></li>
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REF9</span></span>
         <details><summary><span class="titre">Garder la taille des fichiers</span><span class="etat">Faite</span></summary>
         <span class="note">CLIQUET TENU sur le kit, tailles de base : vlp_coeur.py 10 728, test-vlp.py 11 235, test-boucle.py 1 875, boucle.py 1 485 ; tests : +1 ligne refusée, neuf de 1 001 refusé (scripts/ et tests/), base qui descend ; mutant attrapé ; suite OK (268 s)</span></details>
-        <span class="cout mono">≈7,1M (7 082 301) · 15 tours · 1,96 $</span></li>
+        <span class="cout mono">≈7,7M (7 737 261) · 26 tours · 2,73 $</span></li>
       <li class="fiche"><span class="gauche"><span class="id">REF10</span></span>
         <details><summary><span class="titre">Mettre les tests existants en lecture seule pendant une fiche</span><span class="etat">À lancer</span></summary>
         <span class="note">Pendant une fiche, les tests existants ne se modifient pas : un hook le bloque. Après REF4.</span></details></li>
@@ -139,7 +143,7 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REF43</span></span>
         <details><summary><span class="titre">Migrer tester_matin vers pytest</span><span class="etat">Faite</span></summary>
         <span class="note">parite : MIGRÉ tester_matin 33/33, puis le groupe retiré (test-vlp.py 11 235 → 10 549 lignes) ; tests/test_matin.py 17 passed en 54,5 s contre 72,7 s (Defender coupé) ; 2 mutants attrapés ; suite OK (249 s)</span></details>
-        <span class="cout mono">≈15,3M (15 326 126) · 25 tours · 3,88 $</span></li>
+        <span class="cout mono">≈17,0M (17 041 841) · 48 tours · 5,07 $</span></li>
       <li class="fiche"><span class="gauche"><span class="id">REF44</span></span>
         <details><summary><span class="titre">Le module d'état et la photo des noms publics</span><span class="etat">À lancer</span></summary></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">REF45</span></span>
@@ -165,9 +169,9 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REF19</span></span>
         <details><summary><span class="titre">Lancer moins de git, puis paralléliser sous garde</span><span class="etat">Faite</span></summary>
         <span class="note">suite entière 253 s → 200 s, git 13 521 → 13 395 ; pytest 66,6 s → 40,9 s (-n 4) ; xdist : 20 lancements, 0 blocage ; pont lancé en fond dès le début ; mutant vu par le pont attrapé ; suite OK</span></details>
-        <span class="cout mono">≈17,1M (17 074 231) · 26 tours · 4,21 $</span></li>
+        <span class="cout mono">≈18,4M (18 362 438) · 46 tours · 4,84 $</span></li>
       <li class="fiche"><span class="gauche"><span class="id">REF20</span></span>
-        <details><summary><span class="titre">Essayer une campagne de mutation sur les lignes changées</span><span class="etat">À lancer · en même temps que REF55, REF38</span></summary>
+        <details><summary><span class="titre">Essayer une campagne de mutation sur les lignes changées</span><span class="etat">À lancer · en même temps que REF55, REF57, REF38</span></summary>
         <span class="note">Un essai de mutation automatique sur les lignes changées (poodle). Après la découpe.</span></details></li>
       <li class="fiche"><span class="gauche"><span class="id">REF21</span></span>
         <details><summary><span class="titre">Essayer de typer un lecteur JSON</span><span class="etat">À lancer</span></summary>
@@ -185,7 +189,7 @@
       <li class="fiche"><span class="gauche"><span class="id">REF37</span></span>
         <details><summary><span class="titre">La nuit : qui prime, commiter ou non</span><span class="etat">À lancer</span></summary></details></li>
       <li class="fiche"><span class="gauche"><span class="id">REF38</span></span>
-        <details><summary><span class="titre">Retirer le repli « copie simple » d'avant le plugin</span><span class="etat">À lancer · en même temps que REF55, REF20</span></summary></details></li>
+        <details><summary><span class="titre">Retirer le repli « copie simple » d'avant le plugin</span><span class="etat">À lancer · en même temps que REF55, REF57, REF20</span></summary></details></li>
       <li class="fiche"><span class="gauche"><span class="id">REF39</span></span>
         <details><summary><span class="titre">sante --base refuse un worktree en retard sur main</span><span class="etat">À lancer</span></summary></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">REF22</span></span>
@@ -205,7 +209,7 @@
         <span class="note">Revue de la doc qui ment. Après REF22.</span></details></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈93,3M (93 272 074) · 428 tours · 23,30 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈285,2M (285 225 468) · 1133 tours · 93,71 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈291,3M (291 319 849) · 1232 tours · 98,82 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
