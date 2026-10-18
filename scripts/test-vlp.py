@@ -10249,6 +10249,55 @@ def tester_ref5_parite():
 groupe(tester_ref5_parite)
 
 
+def tester_ref9_tailles():
+    """REF9 : le cliquet garde la taille des fichiers `.py` de `scripts/` et de `tests/` — au-dessus de
+    `SEUIL_LIGNES`, la taille de base est le plafond, qui descend quand le fichier maigrit ; un fichier neuf, ou de
+    1 000 lignes ou moins, ne passe pas le seuil."""
+    seuil = mod_sante().SEUIL_LIGNES
+    lignes = lambda n: "".join("x%d = %d\n" % (i, i) for i in range(n))
+    with tempfile.TemporaryDirectory() as tc:
+        def lancer(fichiers, *options):
+            """Écrire `fichiers` (`{chemin: lignes}`, None efface), puis lancer `sante --sans-ruff`."""
+            for nom, n in fichiers.items():
+                if n is None:
+                    os.remove(os.path.join(tc, nom))
+                else:
+                    ecrire(os.path.join(tc, nom), lignes(n))
+            return appel(["sante", "--racine", tc, "--sans-ruff"] + list(options))
+
+        pose = lancer({"scripts/gros.py": 1200, "scripts/petit.py": 10}, "--base")
+        tenu = lancer({}, "--cliquet")
+        grossi = lancer({"scripts/gros.py": 1201}, "--cliquet")
+        neuf = lancer({"scripts/gros.py": 1200, "scripts/neuf.py": seuil + 1}, "--cliquet")
+        test_neuf = lancer({"scripts/neuf.py": None, "tests/test_gros.py": seuil + 1}, "--cliquet")
+        maigri = lancer({"tests/test_gros.py": None, "scripts/gros.py": 1100}, "--base")
+        regrossi = lancer({"scripts/gros.py": 1150}, "--cliquet")
+        refuse = lancer({}, "--base")
+    verifier("REF9 : la base pose les tailles ; le même code → TENU, et la ligne des gros fichiers, taille/plafond",
+             pose[0] == 0 and tenu[0] == 0 and "TAILLES au-dessus de %d lignes, taille/plafond : scripts/gros.py "
+             "1200/1200\n" % seuil in tenu[1] and tenu[1].endswith("CLIQUET TENU\n"), (pose, tenu))
+    verifier("REF9 : une ligne ajoutée à un gros fichier → TAILLE …, plafond 1200 (base), ROMPU",
+             grossi[0] == 1 and "TAILLE scripts/gros.py · 1201 lignes, plafond 1200 (base)\n" in grossi[1], grossi)
+    verifier("REF9 : un fichier neuf de 1 001 lignes, dans scripts/ ou tests/ → TAILLE …, plafond 1000 (seuil), ROMPU",
+             neuf[0] == 1 and "TAILLE scripts/neuf.py · %d lignes, plafond %d (seuil)\n" % (seuil + 1, seuil) in neuf[1]
+             and test_neuf[0] == 1 and "TAILLE tests/test_gros.py · %d lignes" % (seuil + 1) in test_neuf[1],
+             (neuf, test_neuf))
+    verifier("REF9 : un gros fichier qui maigrit (1100) fait baisser sa base : 1150 → ROMPU, plafond 1100, et --base "
+             "refuse de relâcher",
+             maigri[0] == 0 and regrossi[0] == 1 and "TAILLE scripts/gros.py · 1150 lignes, plafond 1100 (base)\n"
+             in regrossi[1] and refuse[0] == 1 and "GARDE: la base ne se relâche pas" in refuse[1],
+             (maigri, regrossi, refuse))
+
+
+def mod_sante():
+    """Le module `sante`, chargé comme `cmd_sante` le charge (REF9)."""
+    import sante
+    return sante
+
+
+groupe(tester_ref9_tailles)
+
+
 def tester_iso5_etat_texte():
     """ISO5 : `etat <fichier d'état> --texte <fichier>` ajoute le texte à la fin, une ligne vide avant, CRLF gardé ;
     un texte vide, un texte ou un fichier d'état absent : `GARDE:`, sort 1, rien d'écrit."""

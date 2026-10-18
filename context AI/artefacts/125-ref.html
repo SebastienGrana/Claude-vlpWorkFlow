@@ -21,9 +21,9 @@
     <p>Le kit tourne sur pytest et une couverture mesurée, sans une seule régression ; des scripts gardent la taille des fichiers et interdisent de toucher aux tests pendant une fiche ; les erreurs connues sont réparées, les gros fichiers découpés, et chaque angle revu jusqu'à deux passes vides.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span data-etat="faite"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">42 fiches · 15 faites · en cours : REF8</p>
+    <p class="mono" style="margin-top:.5rem">42 fiches · 16 faites · en cours : REF8</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -97,13 +97,14 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REF7</span></span>
         <details><summary><span class="titre">Photographier toutes les sous-commandes de vlp.py</span><span class="etat">Faite</span></summary>
         <span class="note">61 sous-commandes : 58 photographiées (47 à 0, 10 GARDE, 1 traceback de lire), 3 sautées avec raison (claude, servir, mutant) ; pytest 77 passed ; couverture de vlp_coeur.py par les photos 49 % (3 734 / 7 251 non vues) ; mutant d'une constante attrapé ; suite OK</span></details>
-        <span class="cout mono">≈15,5M (15 467 121) · 37 tours · 4,45 $</span></li>
+        <span class="cout mono">≈15,9M (15 915 220) · 38 tours · 4,56 $</span></li>
       <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">REF8</span></span>
         <details open><summary><span class="titre">Mesurer la couverture et l'exiger sur les lignes changées</span><span class="etat">En cours · REF38 peut partir en même temps</span></summary>
         <span class="note">La couverture mesurée ; 90 % des lignes changées exigés au commit. Après REF4.</span></details></li>
-      <li class="fiche"><span class="gauche"><span class="id">REF9</span></span>
-        <details><summary><span class="titre">Garder la taille des fichiers</span><span class="etat">À lancer</span></summary>
-        <span class="note">Un fichier de plus de 1 000 lignes ne grossit plus, bloquant au commit. Après REF3.</span></details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REF9</span></span>
+        <details><summary><span class="titre">Garder la taille des fichiers</span><span class="etat">Faite</span></summary>
+        <span class="note">CLIQUET TENU sur le kit, tailles de base : vlp_coeur.py 10 728, test-vlp.py 11 235, test-boucle.py 1 875, boucle.py 1 485 ; tests : +1 ligne refusée, neuf de 1 001 refusé (scripts/ et tests/), base qui descend ; mutant attrapé ; suite OK (268 s)</span></details>
+        <span class="cout mono">≈6,6M (6 600 248) · 14 tours · 1,85 $</span></li>
       <li class="fiche"><span class="gauche"><span class="id">REF10</span></span>
         <details><summary><span class="titre">Mettre les tests existants en lecture seule pendant une fiche</span><span class="etat">À lancer</span></summary>
         <span class="note">Pendant une fiche, les tests existants ne se modifient pas : un hook le bloque. Après REF4.</span></details></li>
@@ -111,7 +112,7 @@
         <details><summary><span class="titre">Rendre visible un test retiré ou affaibli</span><span class="etat">À lancer</span></summary>
         <span class="note">Un test retiré ou mis en skip bloque le commit, sauf raison écrite. Après REF5.</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">REF12</span></span>
-        <details><summary><span class="titre">Transformer les règles écrites en hooks</span><span class="etat">Après REF9, REF10, REF11</span></summary>
+        <details><summary><span class="titre">Transformer les règles écrites en hooks</span><span class="etat">Après REF10, REF11</span></summary>
         <span class="note">Les règles écrites qu'un script peut garantir deviennent des hooks. Après REF9 à REF11.</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">REF13</span></span>
         <details><summary><span class="titre">Écrire le test d'abord, avec la liste des tests concernés</span><span class="etat">Après REF8</span></summary>
@@ -129,8 +130,8 @@
         <details><summary><span class="titre">Ramener le CLAUDE.md global sous 200 lignes</span><span class="etat">Après REF16</span></summary>
         <span class="note">Ton CLAUDE.md global sous 200 lignes, section par section, avec ton accord. Après REF16.</span></details>
         <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
-      <li class="fiche" data-attend><span class="gauche"><span class="id">REF18</span></span>
-        <details><summary><span class="titre">Écrire le plan de découpe et de migration</span><span class="etat">Après REF9</span></summary>
+      <li class="fiche"><span class="gauche"><span class="id">REF18</span></span>
+        <details><summary><span class="titre">Écrire le plan de découpe et de migration</span><span class="etat">À lancer</span></summary>
         <span class="note">Le plan de découpe des gros fichiers et de la migration ; ajoute ses fiches. Après REF5, REF7, REF9.</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">REF19</span></span>
         <details><summary><span class="titre">Lancer moins de git, puis paralléliser sous garde</span><span class="etat">Après REF18</span></summary>
@@ -158,7 +159,7 @@
       <li class="fiche"><span class="gauche"><span class="id">REF39</span></span>
         <details><summary><span class="titre">sante --base refuse un worktree en retard sur main</span><span class="etat">À lancer</span></summary></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">REF22</span></span>
-        <details><summary><span class="titre">Revoir l'angle des bugs</span><span class="etat">Après REF8, REF9, REF10, REF11, REF12, REF13, REF14, REF15, REF16, REF17, REF18, REF19, REF20, REF21</span></summary>
+        <details><summary><span class="titre">Revoir l'angle des bugs</span><span class="etat">Après REF8, REF10, REF11, REF12, REF13, REF14, REF15, REF16, REF17, REF18, REF19, REF20, REF21</span></summary>
         <span class="note">Revue des bugs, jusqu'à deux passes sans défaut confirmé. Après tout le reste.</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">REF23</span></span>
         <details><summary><span class="titre">Revoir l'angle des tests</span><span class="etat">Après REF22</span></summary>
@@ -174,7 +175,7 @@
         <span class="note">Revue de la doc qui ment. Après REF22.</span></details></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈85,5M (85 479 812) · 402 tours · 19,13 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈226,8M (226 848 355) · 1020 tours · 76,06 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈233,9M (233 896 702) · 1035 tours · 78,02 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

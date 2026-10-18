@@ -12,6 +12,8 @@ Le cliquet compare chaque fonction à la base (`scripts/sante-base.json`).
 - Une fonction neuve passe les cinq seuils. Un compte d'une vieille fonction empire quand il passe au-dessus
   du plus haut de son seuil et de sa base : sous les seuils, elle grandit jusqu'au seuil, comme une neuve.
 - Toute fonction neuve ou touchée a sa docstring. Un `test-*.py` n'a ni instructions ni docstring à tenir.
+- Un fichier `.py` de `scripts/` ou de `tests/` ne passe pas `SEUIL_LIGNES` ; au-dessus, sa taille de base est son
+  plafond, qui descend quand il maigrit (REF9).
 """
 import ast
 import collections
@@ -32,6 +34,7 @@ REGLES = ("C901", "PLR0912", "PLR0913", "PLR0915", "PLR1702")
 REGLAGES = ("lint.mccabe.max-complexity", "lint.pylint.max-branches", "lint.pylint.max-args",
             "lint.pylint.max-statements", "lint.pylint.max-nested-blocks")
 EXEMPTS_TESTS = ("instructions",)     # un long scénario de test reste permis (socle de VIT, Q4)
+SEUIL_LIGNES = 1000   # le défaut de Pylint, `max-module-lines` (C0302) : la taille d'un fichier (REF9, D6)
 BASE = "scripts/sante-base.json"
 FORMAT = 1
 MUET = re.compile(r"^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$")    # `lint.dummy-variable-rgx` de ruff, par défaut
@@ -365,9 +368,37 @@ def charger_base(chemin):
     return base
 
 
-def ecrire_base(chemin, fonctions, version, forcees):
+def tailles_de(racine):
+    """`{chemin: lignes}` de chaque `.py` de `scripts/` et de `tests/` (sous-dossiers compris) sous `racine` (REF9)."""
+    tailles = {}
+    for motif in (os.path.join(racine, "scripts", "*.py"), os.path.join(racine, "tests", "**", "*.py")):
+        for chemin in glob.glob(motif, recursive=True):
+            with open(chemin, encoding="utf-8", errors="replace") as fichier:
+                tailles[relatif(chemin, racine)] = len(fichier.read().splitlines())
+    return dict(sorted(tailles.items()))
+
+
+def ecarts_tailles(tailles, base):
+    """Les écarts de taille (REF9) : un fichier au-delà du plus haut de `SEUIL_LIGNES` et de sa taille de base. Une
+    base d'avant REF9, sans `fichiers` : aucun écart — `--base` les pose."""
+    if base is None or "fichiers" not in base:
+        return []
+    avant = base["fichiers"]
+    return ["TAILLE %s · %d lignes, plafond %d (%s)\n" % (c, n, max(SEUIL_LIGNES, avant.get(c, 0)),
+                                                         "base" if avant.get(c, 0) > SEUIL_LIGNES else "seuil")
+            for c, n in tailles.items() if n > max(SEUIL_LIGNES, avant.get(c, 0))]
+
+
+def ligne_tailles(tailles, base):
+    """La ligne des fichiers au-dessus de `SEUIL_LIGNES`, et leur plafond — rien s'il n'y en a pas (REF9)."""
+    avant = (base or {}).get("fichiers", {})
+    gros = ["%s %d/%d" % (c, n, max(SEUIL_LIGNES, avant.get(c, 0))) for c, n in tailles.items() if n > SEUIL_LIGNES]
+    return "TAILLES au-dessus de %d lignes, taille/plafond : %s\n" % (SEUIL_LIGNES, " · ".join(gros)) if gros else ""
+
+
+def ecrire_base(chemin, fonctions, version, forcees, tailles):
     """Écrire la base, triée, une fonction par ligne : un diff Git s'y lit fonction par fonction. Les comptes
-    ruff n'y sont que s'ils s'écartent des comptes `ast`."""
+    ruff n'y sont que s'ils s'écartent des comptes `ast` ; la taille de chaque fichier, en tête (REF9)."""
     lignes = []
     for f in sorted(fonctions, key=lambda f: (f["fichier"], f["fonction"])):
         entree = {"fichier": f["fichier"], "fonction": f["fonction"], "empreinte": f["empreinte"],
@@ -375,7 +406,8 @@ def ecrire_base(chemin, fonctions, version, forcees):
         if version and f["ruff"] != f["ast"]:
             entree["ruff"] = f["ruff"]
         lignes.append(json.dumps(entree, ensure_ascii=False))
-    tete = json.dumps({"format": FORMAT, "ruff": version, "forcee": forcees}, ensure_ascii=False)[:-1]
+    tete = json.dumps({"format": FORMAT, "ruff": version, "forcee": forcees, "fichiers": tailles},
+                      ensure_ascii=False)[:-1]
     os.makedirs(os.path.dirname(chemin), exist_ok=True)
     with open(chemin, "w", encoding="utf-8", newline="\n") as fichier:
         fichier.write(tete + ', "fonctions": [\n' + ",\n".join(lignes) + "\n]}\n")
@@ -455,8 +487,9 @@ def tenir_cliquet(racine, fonctions, version, sortie):
     cote, tete = cote_de(version, base)
     sortie.write(tete)
     paires = apparier(fonctions, base["fonctions"])
-    ecarts = [l for f, b in paires for l in ecarts_de(f, b, cote)]
-    sortie.write("".join(ecarts) + bilan_cliquet(paires, cote))
+    tailles = tailles_de(racine)
+    ecarts = [l for f, b in paires for l in ecarts_de(f, b, cote)] + ecarts_tailles(tailles, base)
+    sortie.write("".join(ecarts) + ligne_tailles(tailles, base) + bilan_cliquet(paires, cote))
     if ecarts:
         sortie.write("CLIQUET ROMPU · %d écart(s)\n" % len(ecarts))
         return 1
@@ -471,9 +504,11 @@ def poser_base(racine, fonctions, version, forcer, sortie):
     ancienne = charger_base(chemin)
     forcees = list(ancienne.get("forcee") or []) if ancienne else []
     ecarts = []
+    tailles = tailles_de(racine)
     if ancienne is not None:
         cote = cote_de(version, ancienne)[0]
         ecarts = [l for f, b in apparier(fonctions, ancienne["fonctions"]) for l in ecarts_de(f, b, cote)]
+        ecarts += ecarts_tailles(tailles, ancienne)
     if ecarts and not forcer:
         sortie.write("".join(ecarts))
         sortie.write("GARDE: la base ne se relâche pas : %d écart(s) ci-dessus — corrige, ou "
@@ -481,7 +516,7 @@ def poser_base(racine, fonctions, version, forcer, sortie):
         return 1
     if ecarts:
         forcees.append({"date": datetime.date.today().isoformat(), "ecarts": len(ecarts), "raison": forcer})
-    ecrire_base(chemin, fonctions, version, forcees)
+    ecrire_base(chemin, fonctions, version, forcees, tailles)
     sortie.write("BASE %s · %d fonctions · %s%s\n" % (BASE, len(fonctions), "ruff %s" % version if version
                                                        else "sans ruff", " · relâchée : %s" % forcer if ecarts else ""))
     return 0

@@ -545,9 +545,10 @@ l'utilisateur au chantier `MET` (`context AI/08-etat.md`, entrée « MET1 — ce
   exige les paquets du groupe `dev` de `pyproject.toml`, par `uv run` après un `uv sync` ; un
   outil absent refuse, il ne se saute pas. `pyproject.toml` ne règle que l'atelier, jamais un
   paquet à installer. ⚠️ Un repli reste : sans ruff, `sante` compte par `ast`.
-- **Un fichier Python de plus de 1 000 lignes ne grossit plus ; un nouveau reste en
-  dessous** — le défaut de Pylint, `max-module-lines` (message C0302, « too-many-lines »).
-  Aucun script ne le garde encore ; la découpe des gros fichiers : `REF`.
+- **Un fichier Python au-dessus du seuil ne grossit plus ; un nouveau reste en
+  dessous** — le seuil, `SEUIL_LIGNES` de `scripts/sante.py`, est le défaut de Pylint,
+  `max-module-lines` (message C0302, « too-many-lines »). Le cliquet de `vlp.py sante` le
+  garde, sur `scripts/` et `tests/` (REF9) ; la découpe des gros fichiers : `REF`.
 - **Un fichier nouveau se nomme en minuscules, mots liés par un tiret bas** (PEP 8,
   « Package and Module Names ») ; les noms à tiret déjà là restent, leur renommage : `REF`.
 - **Une sous-commande porte sa fonction**, branchée par `set_defaults(func=…)` (argparse,
