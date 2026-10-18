@@ -78,6 +78,38 @@ méthode a changé entre les deux ; je ne les réconcilie pas.
 3. **Réduire les `git` de `vlp.py matin`** dans ses tests (dépôts plus petits, moins de cas qui fusionnent) :
    aucune fiche ne le prévoit aujourd'hui.
 
+## ❓ Où part le temps — et pourquoi des « tests unitaires » si lents ?
+
+Question de l'utilisateur, le 2026-10-18 après-midi.
+
+- ✅ **La plupart de ces tests ne sont pas des tests unitaires** : ce sont des **tests d'intégration**.
+- Un test unitaire essaie une fonction seule, avec des données en mémoire : quelques millisecondes.
+- Ici, un test typique **crée un vrai dépôt Git**, y fait des commits, des branches, des worktrees, puis lance
+  la vraie commande `vlp.py`, qui appelle `git` à son tour.
+
+Les chiffres (passage B, 313 s, 2026-10-16) :
+
+| Ce qui tourne | Temps | Part |
+|---|---|---|
+| les **89 groupes qui appellent `git`** | **299,4 s** | **96 %** |
+| les **77 autres** | **13,4 s** | 4 % |
+| dont 123 groupes sous 1 s | 30,3 s à eux tous | — |
+| `test-boucle.py`, en parallèle dès le début | **179 s**, dont sa partie `canal` 160,5 s | le plancher |
+
+- ➡️ Les vrais tests unitaires du kit existent et vont vite : **13,4 s** pour 77 groupes.
+- ➡️ Le temps part dans **5 094 lancements de `git`** à **≈ 43 ms** chacun, et `76 git init`.
+
+### Pourquoi le code oblige à tester ainsi
+
+- 💡 Mon analyse, pas une mesure : dans `vlp_coeur.py`, **la décision et l'appel à `git` sont mêlés** dans la
+  même fonction. Exemple : `retirer_worktree` lit `git status`, décide, puis appelle `git worktree remove`.
+- Pour vérifier la décision, il faut donc un vrai dépôt.
+- La méthode connue s'appelle « **noyau fonctionnel, coquille impérative** » (functional core, imperative shell) :
+  - le **noyau** décide, à partir de textes en mémoire : testé en millisecondes, sans `git` ;
+  - la **coquille** lance `git` et passe ses sorties au noyau : quelques tests d'intégration suffisent.
+- 🟡 **Aucune fiche ne le prévoit aujourd'hui**. La découpe `REF44`–`REF49` déplace le code en modules, mais
+  sans séparer décision et `git`. Ce serait un chantier à part, ou un ajout à la découpe : votre décision.
+
 ## Sources
 
 - `context AI/122-qualite-code-tests.md` : « Mesures de durée — nuit du 2026-10-15 au 16 » (lignes 218–289),
