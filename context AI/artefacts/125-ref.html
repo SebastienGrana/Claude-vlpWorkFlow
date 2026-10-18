@@ -16,14 +16,14 @@
 
 <div class="page">
   <header>
-    <div class="eyebrow">vlp · fiches REF1–REF42 · <a href="https://claude.ai/artifact/YWDny8kjubq9DhdP5rbPxA">la feuille de route</a></div>
+    <div class="eyebrow">vlp · fiches REF1–REF54 · <a href="https://claude.ai/artifact/YWDny8kjubq9DhdP5rbPxA">la feuille de route</a></div>
     <h1>La qualité du code et des tests</h1>
     <p>Le kit tourne sur pytest et une couverture mesurée, sans une seule régression ; des scripts gardent la taille des fichiers et interdisent de toucher aux tests pendant une fiche ; les erreurs connues sont réparées, les gros fichiers découpés, et chaque angle revu jusqu'à deux passes vides.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span data-etat="faite"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span data-etat="faite"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span data-etat="faite"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">42 fiches · 16 faites · en cours : REF8</p>
+    <p class="mono" style="margin-top:.5rem">54 fiches · 17 faites · en cours : REF8</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -104,7 +104,7 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REF9</span></span>
         <details><summary><span class="titre">Garder la taille des fichiers</span><span class="etat">Faite</span></summary>
         <span class="note">CLIQUET TENU sur le kit, tailles de base : vlp_coeur.py 10 728, test-vlp.py 11 235, test-boucle.py 1 875, boucle.py 1 485 ; tests : +1 ligne refusée, neuf de 1 001 refusé (scripts/ et tests/), base qui descend ; mutant attrapé ; suite OK (268 s)</span></details>
-        <span class="cout mono">≈6,6M (6 600 248) · 14 tours · 1,85 $</span></li>
+        <span class="cout mono">≈7,1M (7 082 301) · 15 tours · 1,96 $</span></li>
       <li class="fiche"><span class="gauche"><span class="id">REF10</span></span>
         <details><summary><span class="titre">Mettre les tests existants en lecture seule pendant une fiche</span><span class="etat">À lancer</span></summary>
         <span class="note">Pendant une fiche, les tests existants ne se modifient pas : un hook le bloque. Après REF4.</span></details></li>
@@ -130,14 +130,39 @@
         <details><summary><span class="titre">Ramener le CLAUDE.md global sous 200 lignes</span><span class="etat">Après REF16</span></summary>
         <span class="note">Ton CLAUDE.md global sous 200 lignes, section par section, avec ton accord. Après REF16.</span></details>
         <span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span></li>
-      <li class="fiche"><span class="gauche"><span class="id">REF18</span></span>
-        <details><summary><span class="titre">Écrire le plan de découpe et de migration</span><span class="etat">À lancer</span></summary>
-        <span class="note">Le plan de découpe des gros fichiers et de la migration ; ajoute ses fiches. Après REF5, REF7, REF9.</span></details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REF18</span></span>
+        <details><summary><span class="titre">Écrire le plan de découpe et de migration</span><span class="etat">Faite</span></summary>
+        <span class="note">plan dans la note 122 : 20 modules sous scripts/noyau/ (1 000 lignes au plus), état 8 noms · 41 affectations + _mesure, 531 défs publiques, 1 007 appels entre sections ; 12 fiches ajoutées (REF43–REF54) ; VALIDE 54 fiches ; REF19 ne dépend plus que de REF43 (proposé de nuit)</span></details>
+        <span class="cout mono">≈10,1M (10 076 603) · 19 tours · 3,18 $</span></li>
+      <li class="fiche"><span class="gauche"><span class="id">REF43</span></span>
+        <details><summary><span class="titre">Migrer tester_matin vers pytest</span><span class="etat">À lancer</span></summary></details></li>
+      <li class="fiche"><span class="gauche"><span class="id">REF44</span></span>
+        <details><summary><span class="titre">Le module d'état et la photo des noms publics</span><span class="etat">À lancer</span></summary></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">REF45</span></span>
+        <details><summary><span class="titre">Sortir commun, carte, fiches et sessions</span><span class="etat">Après REF44</span></summary></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">REF46</span></span>
+        <details><summary><span class="titre">Sortir page, notes, feuille et clos</span><span class="etat">Après REF45</span></summary></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">REF47</span></span>
+        <details><summary><span class="titre">Sortir relecture, hooks, niveau et bac</span><span class="etat">Après REF46</span></summary></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">REF48</span></span>
+        <details><summary><span class="titre">Sortir clore, ouvrir et nuit</span><span class="etat">Après REF47</span></summary></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">REF49</span></span>
+        <details><summary><span class="titre">Sortir matin, rapport, ordre, puis cli</span><span class="etat">Après REF48</span></summary></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">REF50</span></span>
+        <details><summary><span class="titre">Migrer les tests des premiers modules</span><span class="etat">Après REF43, REF49</span></summary></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">REF51</span></span>
+        <details><summary><span class="titre">Migrer le reste des tests, puis retirer test-vlp.py</span><span class="etat">Après REF50</span></summary></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">REF52</span></span>
+        <details><summary><span class="titre">Renommer et migrer les fichiers à tiret</span><span class="etat">Après REF51</span></summary></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">REF53</span></span>
+        <details><summary><span class="titre">Découper boucle.py sous le seuil</span><span class="etat">Après REF52</span></summary></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">REF54</span></span>
+        <details><summary><span class="titre">Solder les remarques de ruff</span><span class="etat">Après REF53</span></summary></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">REF19</span></span>
-        <details><summary><span class="titre">Lancer moins de git, puis paralléliser sous garde</span><span class="etat">Après REF18</span></summary>
+        <details><summary><span class="titre">Lancer moins de git, puis paralléliser sous garde</span><span class="etat">Après REF43</span></summary>
         <span class="note">Moins de lancements de git, puis le parallèle sous garde, mesuré. Après la découpe.</span></details></li>
-      <li class="fiche" data-attend><span class="gauche"><span class="id">REF20</span></span>
-        <details><summary><span class="titre">Essayer une campagne de mutation sur les lignes changées</span><span class="etat">Après REF18</span></summary>
+      <li class="fiche"><span class="gauche"><span class="id">REF20</span></span>
+        <details><summary><span class="titre">Essayer une campagne de mutation sur les lignes changées</span><span class="etat">À lancer</span></summary>
         <span class="note">Un essai de mutation automatique sur les lignes changées (poodle). Après la découpe.</span></details></li>
       <li class="fiche"><span class="gauche"><span class="id">REF21</span></span>
         <details><summary><span class="titre">Essayer de typer un lecteur JSON</span><span class="etat">À lancer</span></summary>
@@ -159,7 +184,7 @@
       <li class="fiche"><span class="gauche"><span class="id">REF39</span></span>
         <details><summary><span class="titre">sante --base refuse un worktree en retard sur main</span><span class="etat">À lancer</span></summary></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">REF22</span></span>
-        <details><summary><span class="titre">Revoir l'angle des bugs</span><span class="etat">Après REF8, REF10, REF11, REF12, REF13, REF14, REF15, REF16, REF17, REF18, REF19, REF20, REF21</span></summary>
+        <details><summary><span class="titre">Revoir l'angle des bugs</span><span class="etat">Après REF8, REF10, REF11, REF12, REF13, REF14, REF15, REF16, REF17, REF19, REF20, REF21</span></summary>
         <span class="note">Revue des bugs, jusqu'à deux passes sans défaut confirmé. Après tout le reste.</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">REF23</span></span>
         <details><summary><span class="titre">Revoir l'angle des tests</span><span class="etat">Après REF22</span></summary>
@@ -175,7 +200,7 @@
         <span class="note">Revue de la doc qui ment. Après REF22.</span></details></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈85,5M (85 479 812) · 402 tours · 19,13 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈233,9M (233 896 702) · 1035 tours · 78,02 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈244,5M (244 455 358) · 1055 tours · 81,31 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -194,6 +219,7 @@
     <ul class="journal">
       <li><time datetime="2026-10-18">2026-10-18</time><span>2026-10-18 — bilan REF28→REF31 : suites entières = 67 % du temps des sous-agents, 0 appel à rapide ; REF42, REF40, REF41 ajoutées, accélérateurs d'abord, mode main jusqu'à REF19 (décision de l'utilisateur)</span></li>
       <li><time datetime="2026-10-18">2026-10-18</time><span>2026-10-18 — REF7 : la photo de mutant relançait la suite, puis pytest, puis mutant, en chaîne (18 processus) ; le pont pose VLP_PONT=1 et ne se rejoue plus dedans</span></li>
+      <li><time datetime="2026-10-18">2026-10-18</time><span>2026-10-18 — REF18 : REF19 ne dépend plus que de REF43 (tester_matin migré), pas de toute la découpe — décidé de nuit sans l'utilisateur, à revoir</span></li>
     </ul>
   </section>
 

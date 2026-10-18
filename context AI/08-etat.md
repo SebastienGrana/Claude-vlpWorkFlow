@@ -3571,3 +3571,5 @@ Les 6 fichiers relus en entier contre `methode-chantier.md` après `MET7` ; « t
 - 2026-10-18 (REF, bilan de REF28 → REF31 en `/vlp:enchainer agents`) : mesuré sur les transcriptions des 10 sous-agents, les suites entières font 65 min sur les 97 des fiches (67 %), le modèle 16 min ; REF28 lance 7 suites, REF29 9 puis 12 ; aucun sous-agent n'appelle `vlp.py rapide`. Mode `main` l'après-midi : ≈ 19 min/fiche, comme `agents` le soir, qui ajoute 1 `CONFLIT` (`sante-base.json`) et 2 docstrings `HORS:` perdues. Décision de l'utilisateur : REF42, REF40, REF41 ajoutées, accélérateurs d'abord (REF4 à REF21 avant REF32), mode `main` jusqu'à REF19.
 
 - **2026-10-18** — REF7 : la photo de `vlp.py mutant` lançait la suite du kit, dont le pont relançait pytest, qui relançait `mutant` — 18 processus en chaîne, arrêtés à la main. Le pont pose `VLP_PONT=1` et ne se rejoue plus dedans ; `mutant` n'est pas photographié.
+
+- **2026-10-18** — REF18 : le plan ajoute REF43 à REF54 (découpe en `scripts/noyau/`, migration des tests) ; REF19 ne dépend plus que de REF43 (`tester_matin` migré, 72,7 s seul) au lieu de toute la découpe — décidé de nuit, sans l'utilisateur, à revoir.

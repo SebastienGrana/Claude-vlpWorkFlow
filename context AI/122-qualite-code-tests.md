@@ -622,3 +622,87 @@ installés ensemble, la fixture `snapshot` est celle de pytest-regtest, et syrup
 les caractères du kit acceptés. pytest-regtest retiré du groupe `dev` (`uv remove --group dev pytest-regtest`).
 Le pont de `test-vlp.py` lance désormais `uv run --frozen pytest -q` : syrupy n'est que dans l'atelier, pas dans
 le Python de la machine.
+
+## Le plan de découpe et de migration (`REF18`)
+
+Relevé du 2026-10-18 par `ast`, sans lire les fichiers en entier (script de relevé hors dépôt) ;
+`vlp_coeur.py` à **10 728 lignes**, `test-vlp.py` à **11 235**, gelés par le cliquet depuis `REF9`.
+
+**Ce qui est relevé**
+
+- `vlp_coeur.py` : **29 sections** (`# --- … ---`), **531 définitions** de premier niveau, **204 constantes**,
+  **205 noms** affectés au niveau du module ; **1 007 appels** d'une section à une autre, en 172 paires. Les plus
+  appelées du dehors : `feuille` 210, la tête 189, `page` 189, `relecture` 117, `abri` 59 — elles sortent les
+  premières, puisque tout le reste les appelle.
+- **L'état que les tests changent : 8 noms, 41 affectations** — `KIT` 10, `GIT` 8, `TAMPON_HOOKS` 7,
+  `SOURCE_ORDRE` 5, `regenerer` 4 (une fonction remplacée), `LIMITE_DOC_DB` 3, `recompte` 2 (une fonction),
+  `GABARIT_ORDRE` 2 ; plus une globale réécrite par `global` dans une fonction, `_mesure`. Aucun `mod.x.Y =`.
+- Les plus longues : `cmd_clore` 247 lignes, `main` 160, `cmd_ouvrir` 155, `regenerer` 142. `main` porte
+  **32 `if a.cmd ==`**.
+- ruff, sur `scripts/` et `tests/` : **306 remarques** (la fiche en comptait 259, avant `py314`) — en tête
+  `SIM115` 94, `UP020` 58, `PLW1510` 47, `UP045` 23.
+- `tester_matin` et ses 34 aides : **682 lignes**, **72 657 ms** seul (≈ 27 % des 268 s de la suite).
+- Au-dessus du seuil hors `vlp_coeur.py` : `test-boucle.py` 1 875, `boucle.py` 1 485.
+
+**Le paquet** — `scripts/noyau/`, pas `scripts/vlp/` : un dossier `vlp` à côté de `vlp.py` prendrait sa place à
+l'import. Chaque module garde ses sections dans l'ordre du fichier, 1 000 lignes au plus :
+
+| Module | Sections reprises | Lignes aujourd'hui |
+|---|---|---|
+| `etat.py` | les 8 noms que les tests changent, `_mesure` | ≈ 40 |
+| `commun.py` | la tête | 194 |
+| `carte.py` | carte | 372 |
+| `fiches.py` | extraire, socle, valider | ≈ 650 |
+| `sessions.py` | sessions, cout, la découpe aux commits | ≈ 500 |
+| `relecture.py` | relecture | 355 |
+| `hooks.py` | hook, filet, contrat | 605 |
+| `page.py` | page | 959 |
+| `notes.py` | abri, etat, renvois | 337 |
+| `feuille.py` | feuille | 732 |
+| `clos.py` | la ZONE:clos, comparer | 810 |
+| `nuit.py` | le fichier des nuits, trier, plan, chef page | 793 |
+| `niveau.py` | niveau, attente | 579 |
+| `bac.py` | bac, aperçu local | 396 |
+| `clore.py` | clore | 729 |
+| `ouvrir.py` | ouvrir | 234 |
+| `matin.py` | matin | 805 |
+| `rapport.py` | matin --rapport | 820 |
+| `ordre.py` | ordre, sans `main` | ≈ 700 |
+| `cli.py` | `main` et les sous-parseurs, `set_defaults(func=…)` au lieu des 32 `if a.cmd ==` | ≈ 400 |
+
+**Les règles de la découpe**
+
+- `vlp_coeur.py` reste, **en façade** : il importe les modules et ré-exporte leurs noms (`__all__` de chacun) —
+  `vlp.py`, les hooks, les tests et `boucle.py` le chargent comme avant.
+- **L'état vit dans `etat.py`, lu `etat.NOM`**, jamais `from etat import NOM` : un test qui change `mod.GIT`
+  ne changerait que la façade. Les 41 affectations des tests deviennent `mod.etat.NOM = …` ; une fonction
+  remplacée (`regenerer`, `recompte`) s'appelle par son module (`page.regenerer`) et se remplace là.
+- **La liste des noms publics se photographie** (syrupy, `REF6`) : avant la découpe, puis inchangée à chaque
+  pas — un nom perdu crie.
+- **Chaque pas** : la suite entière verte, `vlp.py parite` sans recul, les photos de `REF7` inchangées, le
+  cliquet tenu (un module neuf passe le seuil de taille).
+- **Les tests suivent module par module** : `tests/test_<module>.py`, un groupe ne quitte `test-vlp.py` que
+  sur un `MIGRÉ` de `parite`. Les fichiers à tiret (`test-boucle.py`, `test-mesure-tokens.py`,
+  `faux-claude.py`) se renomment en tiret bas : pytest ne collecte que `test_*.py`.
+
+**Les fiches — 12, de `REF43` à `REF54`**, placées entre `REF18` et `REF19` :
+
+| Fiche | Le pas | Pourquoi là |
+|---|---|---|
+| `REF43` | migrer `tester_matin` vers pytest | 27 % du temps de la suite : `REF19` n'a besoin que de lui |
+| `REF44` | `etat.py` et la photo des noms publics | le filet de toute la suite |
+| `REF45` | `commun`, `carte`, `fiches`, `sessions` | le bas du graphe des appels |
+| `REF46` | `page`, `notes`, `feuille`, `clos` | les plus appelées du dehors |
+| `REF47` | `relecture`, `hooks`, `niveau`, `bac` | |
+| `REF48` | `clore`, `ouvrir`, `nuit` | |
+| `REF49` | `matin`, `rapport`, `ordre`, puis `cli` et ses `set_defaults` | le haut du graphe, en dernier |
+| `REF50` | migrer les tests de la première moitié des modules | |
+| `REF51` | migrer le reste, puis rebrancher `cocher`, `rapide`, `mutant` sur pytest et retirer `test-vlp.py` | |
+| `REF52` | renommer et migrer `test-boucle.py`, `test-mesure-tokens.py`, `faux-claude.py` | |
+| `REF53` | découper `boucle.py` sous le seuil | 1 485 lignes |
+| `REF54` | les 306 remarques de ruff | après la découpe : chaque remarque y change de fichier |
+
+💡 **Proposé, à revoir** (décidé de nuit, sans l'utilisateur) : `REF19` ne dépend que de `REF43`, au lieu de
+toutes les fiches de `REF18` — sa première partie copie le dépôt modèle « là où un test crée un dépôt, les tests
+issus de `tester_matin` d'abord », ce qui ne demande que leur migration ; le parallèle, ensuite, vaut pour la
+suite pytest telle qu'elle est.
