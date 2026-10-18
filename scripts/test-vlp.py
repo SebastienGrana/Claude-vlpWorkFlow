@@ -2218,12 +2218,12 @@ def test_estime():
                    open(os.path.join(ICI, "..", "templates", "artefact-chantier.html"), encoding="utf-8").read())
             fdr = os.path.join(te, "ctx", "artefacts", "feuille-de-route.html")
             ecrire(fdr, open(os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html"), encoding="utf-8").read())
-            regenerer_vrai = mod.regenerer
-            mod.regenerer = lambda *x, p=prix: (lambda r: r[:3] + ((2_000_000, 3, p), r[4]))(regenerer_vrai(*x))
+            regenerer_vrai = mod.noyau.page.regenerer
+            mod.noyau.page.regenerer = lambda *x, p=prix: (lambda r: r[:3] + ((2_000_000, 3, p), r[4]))(regenerer_vrai(*x))
             try:
                 code, s = appel(["clore", te, "--livre", "fini", "--date", "2026-09-26"])
             finally:
-                mod.regenerer = regenerer_vrai
+                mod.noyau.page.regenerer = regenerer_vrai
             texte = "estimé 3 fiches ≈9,00 $ · cadré 1 · joué 1 fiches " + joue
             lu = lambda c: open(c, encoding="utf-8").read()
             feuille = lu(fdr)
@@ -2778,8 +2778,8 @@ def tester_recompter_un_clos():
                + "        </tbody>\n      </table>\n")
         b = [os.path.join(tp, "ctx", n) for n in ("b.md", os.path.join("artefacts", "b.html"), os.path.join("artefacts", "b.md"))]
         avant_b = [lire(c) for c in b]
-        vrai = mod.recompte
-        mod.recompte = lambda chemin: (90000, "découpe", 0, Decimal("7.50"))
+        vrai = mod.noyau.clos.recompte
+        mod.noyau.clos.recompte = lambda chemin: (90000, "découpe", 0, Decimal("7.50"))
         try:
             absent = appel(["recompter", tp, "--clos", "Z", "--ecrire"])
             initiale = lire(fdr)
@@ -2789,7 +2789,7 @@ def tester_recompter_un_clos():
             feuille_ = lire(fdr)
             deux = appel(["recompter", tp, "--clos", "A", "--ecrire"])
         finally:
-            mod.recompte = vrai
+            mod.noyau.clos.recompte = vrai
         verifier("PRP3 : --clos absent de ZONE:clos, une GARDE, rien d'écrit",
                  absent[0] == 1 and absent[1].startswith("GARDE: clos Z absent")
                  and initiale.count("12,34 $ · %s" % mod.arrondi(50000)) == 2, absent[1])
@@ -4390,12 +4390,12 @@ def tester_uni1_total():
                open(os.path.join(ICI, "..", "templates", "artefact-chantier.html"), encoding="utf-8").read())
         feuille_u = os.path.join(proj, "ctx", "artefacts", "feuille-de-route.html")
         ecrire(feuille_u, open(os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html"), encoding="utf-8").read())
-        regenerer_vrai = mod.regenerer
-        mod.regenerer = lambda *x: (lambda r: r[:3] + ((4321, 3, None), r[4]))(regenerer_vrai(*x))
+        regenerer_vrai = mod.noyau.page.regenerer
+        mod.noyau.page.regenerer = lambda *x: (lambda r: r[:3] + ((4321, 3, None), r[4]))(regenerer_vrai(*x))
         try:
             code, s = appel(["clore", proj, "--livre", "fini", "--tokens", "950", "--date", "2026-09-25"])
         finally:
-            mod.regenerer = regenerer_vrai
+            mod.noyau.page.regenerer = regenerer_vrai
         fu = open(feuille_u, encoding="utf-8").read()
         verifier("UNI1 : --tokens faux, ÉCART et le mesuré écrit sur la feuille", code == 0
                  and "ÉCART tokens 950 donné · 4 321 mesuré — le mesuré fait foi" in s and "· chantier 4 321 ·" in s

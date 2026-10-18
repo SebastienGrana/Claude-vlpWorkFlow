@@ -369,9 +369,10 @@ def charger_base(chemin):
 
 
 def tailles_de(racine):
-    """`{chemin: lignes}` de chaque `.py` de `scripts/` et de `tests/` (sous-dossiers compris) sous `racine` (REF9)."""
+    """`{chemin: lignes}` de chaque `.py` de `scripts/` et de `tests/` (sous-dossiers compris, `scripts/noyau/` depuis
+    REF46) sous `racine` (REF9)."""
     tailles = {}
-    for motif in (os.path.join(racine, "scripts", "*.py"), os.path.join(racine, "tests", "**", "*.py")):
+    for motif in (os.path.join(racine, "scripts", "**", "*.py"), os.path.join(racine, "tests", "**", "*.py")):
         for chemin in glob.glob(motif, recursive=True):
             with open(chemin, encoding="utf-8", errors="replace") as fichier:
                 tailles[relatif(chemin, racine)] = len(fichier.read().splitlines())
@@ -523,10 +524,11 @@ def poser_base(racine, fonctions, version, forcer, sortie):
 
 
 def chemins_de(racine, fichiers):
-    """Rendre les fichiers à mesurer : ceux donnés, sinon les `.py` de `scripts/` sous la racine, triés."""
+    """Rendre les fichiers à mesurer : ceux donnés, sinon les `.py` de `scripts/` sous la racine, sous-dossiers compris
+    — le code sorti de `vlp_coeur.py` vit dans `scripts/noyau/` (REF46) —, triés."""
     if fichiers:
         return [os.path.abspath(f) for f in fichiers]
-    chemins = sorted(glob.glob(os.path.join(racine, "scripts", "*.py")))
+    chemins = sorted(glob.glob(os.path.join(racine, "scripts", "**", "*.py"), recursive=True))
     if not chemins:
         raise ValueError("aucun fichier Python dans %s" % os.path.join(racine, "scripts"))
     return chemins

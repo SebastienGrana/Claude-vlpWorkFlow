@@ -514,6 +514,8 @@ def valider_lignes(lignes):
 
 
 def cmd_valider(chemins, sortie, plan=False):
+    """`vlp.py valider` : valider chaque fichier de fiches (`cmd_valider_seul`) ; avec `plan`, lister aussi ses titres,
+    dépendances, blocs Tentatives et critères de fin (`PLAN`), numéro de ligne en tête."""
     code = cmd_valider_seul(chemins, sortie)
     for chemin in chemins if plan else []:
         for n, l in enumerate(lignes_de(chemin) if os.path.isfile(chemin) else [], 1):

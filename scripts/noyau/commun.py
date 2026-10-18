@@ -192,6 +192,8 @@ def archiver(idx, arch, nom_archive):
 
 
 def cmd_archiver(a, sortie):
+    """`vlp.py archiver` : déplacer les chantiers clos de l'index du projet vers son archive (`archiver`), puis
+    écrire ce qui a changé ; sans `CHANTIER.md` ou sans champ **index** : `GARDE:`, rien écrit."""
     projet = a.projet
     if not coeur.equipe(projet):
         sortie.write("GARDE: pas de CHANTIER.md dans %s\n" % projet)

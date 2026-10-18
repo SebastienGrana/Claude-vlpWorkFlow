@@ -13,9 +13,11 @@ class Espace:
     """Un espace de noms lu à chaque accès : `coeur.champ` rend `noms["champ"]` au moment de l'appel."""
 
     def __init__(self):
+        """Un espace vide : la façade y pose ses `globals()` avant d'importer ses modules."""
         self.noms: dict[str, Any] = {}
 
     def __getattr__(self, nom: str) -> Any:
+        """Le nom `nom` de la façade, lu à cet instant ; absent : `AttributeError`, jamais un `KeyError`."""
         try:
             return self.noms[nom]
         except KeyError:
