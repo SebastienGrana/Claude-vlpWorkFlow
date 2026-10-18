@@ -650,15 +650,20 @@ ni raison de la sauter, fait échouer la suite :
   besoin), dans la forme de `LECON_FORME` (NUI11). Hors forme, ou fichier illisible : `GARDE:`, sort 1, rien d'écrit.
   Imprime `LEÇON <fichier> · ajoutée` ou `· déjà là`.
 - `sante [<fichiers>] [--base [--forcer "<raison>"] [--si-base] | --cliquet] [--racine R] [--sans-ruff]` — la
-  santé du code, fonction par fonction (`sante.py`, qui en tient les règles ; chantier VIT) : les cinq comptes du
-  socle de VIT et la docstring, par ruff s'il répond (`ruff`, sinon `-m ruff`), sinon par `ast`, « comptes estimés ». Sans fichier :
-  les `.py` de `<racine>/scripts/`, racine par défaut le kit. Imprime une ligne par fonction (`!` sur un compte
-  au-dessus de son seuil), `FICHIER` par fichier, `TOTAL`, puis, avec ruff, `AST=RUFF <n>/<m>` et chaque `AST≠RUFF`.
-  `--base` écrit `scripts/sante-base.json` sous la racine — `BASE …`, ou `GARDE:` si elle se relâcherait, rien
-  d'écrit, sauf `--forcer`, dont la raison y reste. `--si-base` : sans base sous la racine, `SANS BASE …`, sort 0,
-  rien d'écrit (`/vlp:tache`, étape 6 bis, VIT16). `--cliquet` lui compare les fonctions : `EMPIRE`, `SEUIL` ou
-  `DOCSTRING` par écart, le bilan `CLIQUET <n> fonctions · …`, puis `CLIQUET TENU` (sort 0) ou `CLIQUET ROMPU`
-  (sort 1) ; sans base, `GARDE:`. ruff en échec : `RUFF ÉCHEC …`, et `ast` seul.
+  santé du code, fonction par fonction (`sante.py`, qui en tient les règles ; chantier VIT) : les comptes de
+  `COMPTES` (socle de VIT) et la docstring, par ruff s'il répond (`ruff`, sinon `-m ruff`), sinon par `ast`, « comptes
+  estimés ». Fonctions sans fichier donné : les `.py` de `<racine>/scripts/`, racine par défaut le kit ; tailles
+  (REF9) : les `.py` de `<racine>/scripts/` et de `<racine>/tests/`, sous-dossiers compris (`tailles_de`). Imprime
+  `SANTE …`, une ligne par fonction (`!` sur un compte au-dessus de son seuil), `FICHIER` par fichier, `TOTAL`,
+  puis, avec ruff, `AST=RUFF <n>/<m>` et chaque `AST≠RUFF`. `--base` écrit `scripts/sante-base.json` sous la
+  racine, fonctions et tailles — `BASE …`, ou `GARDE:` si elle se relâcherait, rien d'écrit, sauf `--forcer`, dont
+  la raison y reste. `--si-base` : sans base sous la racine, `SANS BASE …`, sort 0, rien d'écrit (`/vlp:tache`,
+  étape 6 bis, VIT16). `--cliquet` lui compare fonctions et tailles : `CLIQUET sur ruff <version>` (ou `CLIQUET sur
+  ast, comptes estimés (…)`), un écart par ligne — `EMPIRE`, `SEUIL`, `DOCSTRING`, ou
+  `TAILLE <c> · <n> lignes, plafond <p> (base|seuil)` pour un fichier au-delà du plus haut de `SEUIL_LIGNES` et de
+  sa taille de base —, puis `TAILLES au-dessus de <SEUIL_LIGNES> lignes, taille/plafond : <c> <n>/<p> · …` s'il y
+  en a, le bilan `CLIQUET <n> fonctions · …`, et `CLIQUET TENU` (sort 0) ou `CLIQUET ROMPU · <n> écart(s)` (sort
+  1) ; sans base, `GARDE:`. ruff en échec : `RUFF ÉCHEC …`, et `ast` seul.
 
 Les lignes des chantiers clos — lues ou écrites par `clore`, `recompter`, `prix`, `liens`,
 `repeindre` et le prix moyen d'`ouvrir` — vivent dans `<contexte>/artefacts/archive-clos.html`
