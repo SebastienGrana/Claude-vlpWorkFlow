@@ -563,6 +563,14 @@ l'utilisateur au chantier `MET` (`context AI/08-etat.md`, entrée « MET1 — ce
   première écriture** : une `GARDE:` qui sort 1 et dit « rien écrit », jamais une ligne lue
   à moitié ni un fichier écrit sur deux (`TAB`, 2026-10-09 : une table coupée en silence,
   `clore` qui écrivait avant de lire la TODO).
+- **La décision se teste sans Git ; seul le branchement se teste avec** (l'utilisateur,
+  2026-10-18). Une fonction qui décide reçoit des textes — sortie de `git`, contenu d'un
+  fichier — et rend son verdict sans lancer de processus : son test tourne en mémoire. La
+  fonction qui lance `git` ne fait que lire, passer à la décision, puis écrire ; un ou deux
+  tests sur un vrai dépôt la gardent, et un défaut se rejoue toujours sur le chemin réel de la
+  commande. Le modèle : « functional core, imperative shell » (Gary Bernhardt). Pourquoi : le
+  temps de la suite part presque tout dans les `git` (note `122`, « Mesures de durée »). Le
+  code d'avant reste tel quel jusqu'à la fiche qui le reprend.
 - **Un nombre qu'un script relit vit sur sa ligne à lui**, jamais collé à un texte libre :
   le texte finit par contenir ce que le lecteur cherche (`ENA7`, 2026-10-13 ; récit dans
   `lecons-mesure.md`).
