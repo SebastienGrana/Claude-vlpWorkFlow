@@ -1,10 +1,10 @@
 """Les noms du cœur pas encore sortis, lus au moment de l'appel (REF45, option 1 tranchée par l'utilisateur le 2026-10-18).
 
-27 des 29 sections de `vlp_coeur.py` s'appellent en cycle : un module sorti lit encore des noms restés dans la
-façade. Il les lit `coeur.<nom>`, jamais par import — la façade l'importe avant d'avoir défini ces noms. `coeur.noms`
-est l'espace de la façade (`globals()`), posé par elle avant d'importer les modules : un test qui remplace
-`mod.git_texte` remplace aussi ce que lisent les modules. Quand un nom sort à son tour (`REF46` à `REF49`), son
-`coeur.` devient un import.
+27 des 29 sections de l'ancien `vlp_coeur.py` s'appellent en cycle : un module lit des noms d'un module chargé après
+lui. Il les lit `coeur.<nom>`, jamais par import — à son import, ces noms n'existent pas encore. `coeur.noms` est
+l'espace de la façade (`globals()`), posé par elle avant d'importer les modules, et rempli à mesure. Un nom d'un
+module chargé avant se lit, lui, par import (REF45 à REF49). Une fonction qu'un test remplace s'appelle par son module
+— `noyau.page.regenerer`, `noyau.clos.recompte`, `noyau.relecture.git_texte` — et se remplace là.
 """
 from typing import Any
 
