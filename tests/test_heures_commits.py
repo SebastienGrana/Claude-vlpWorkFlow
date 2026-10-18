@@ -86,7 +86,7 @@ def test_sans_depot(q):
 
 
 def test_sans_git(q, monkeypatch):
-    monkeypatch.setattr(mod, "GIT", "git-absent-vlp")
+    monkeypatch.setattr(mod.etat, "GIT", "git-absent-vlp")
     pourquoi = []
     h = mod.heures_commits(os.path.join(q["sans"], "q.md"), ["Q1", "Q2"], pourquoi)
     assert h is None and pourquoi[0].startswith("git ne se lance pas : "), \

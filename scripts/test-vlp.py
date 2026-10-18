@@ -36,10 +36,10 @@ spec.loader.exec_module(mod)
 
 # Les tests rejouent des entrées identiques : le tampon de hook serait créé une fois,
 # et les rejoues se tairaient. `TAMPON_HOOKS = None` : toujours vrai (FIL3, PYT1).
-mod.TAMPON_HOOKS = None
+mod.etat.TAMPON_HOOKS = None
 # `clore` refait les données de la page d'enchaînement du vrai kit : un test de clôture ne le fait pas, sauf celui
 # qui le vérifie, sur un kit à lui (ORD5).
-mod.SOURCE_ORDRE = None
+mod.etat.SOURCE_ORDRE = None
 
 # `ouvrir` et `cocher` notent CLAUDE_CODE_SESSION_ID : un test le fixe lui-même, jamais celui de la
 # session qui lance la suite (chantier CAD).
@@ -121,7 +121,7 @@ def seul_demande():
 SEUL = seul_demande()
 JOUES = []      # les groupes joués, sous `--seul` (VIT10)
 import couverture  # REF8 : lancée seule, la suite se relance sous `coverage`, avant la boucle et le pont
-MESURE = couverture.mesurer(mod.KIT, os.path.abspath(__file__), sys.argv[1:], mod.empreinte_kit(mod.KIT)) if couverture.a_mesurer(SEUL) else None
+MESURE = couverture.mesurer(mod.etat.KIT, os.path.abspath(__file__), sys.argv[1:], mod.empreinte_kit(mod.etat.KIT)) if couverture.a_mesurer(SEUL) else None
 if MESURE is not None:
     sys.exit(MESURE)
 
@@ -179,14 +179,14 @@ BOUCLE = boucle_du_debut()
 PONT_ARGV = [shutil.which("uv") or "uv", "run", "--frozen", "pytest", "-q", "-n", "4"]  # REF19 : 40,9 s contre 66,6 en série
 PONT = None if os.environ.get("VLP_PONT") == "1" or SEUL else lancer_boucle(PONT_ARGV, {"VLP_PONT": "1"})  # REF19
 # Le code que cette suite joue, pris au départ : une suite verte l'écrit à la fin, et `cocher` exige de le retrouver (VIT11).
-EMPREINTE_DEPART = mod.empreinte_kit(mod.KIT)
+EMPREINTE_DEPART = mod.empreinte_kit(mod.etat.KIT)
 
 
 def noter_si_verte():
     """Noter `EMPREINTE_DEPART` comme celle de la dernière suite entière verte — jamais sous `vlp.py mutant`
     (`VLP_TOUS_ECARTS=1`), qui joue une copie mutée (VIT11), ni sous `--seul`, qui n'en joue qu'une part (VIT10)."""
     if os.environ.get("VLP_TOUS_ECARTS") != "1" and not SEUL:
-        mod.noter_suite_verte(mod.KIT, EMPREINTE_DEPART)
+        mod.noter_suite_verte(mod.etat.KIT, EMPREINTE_DEPART)
 
 
 def tester_carte_projet():
@@ -471,7 +471,7 @@ def test_carte_plafond():
 
 def test_carte_methode():
     """LEC3 : le format des fiches de la ligne **méthode**, quand aucun chantier n'est ouvert."""
-    kit = mod.KIT
+    kit = mod.etat.KIT
     with tempfile.TemporaryDirectory() as t:
         pr, faux_kit = os.path.join(t, "pr"), os.path.join(t, "kit")
         def chantier(methode):
@@ -493,7 +493,7 @@ def test_carte_methode():
         verifier("carte méthode : titre de fin manquant", "METHODE=absente sans.md\n" in s and "--- méthode" not in s, s)
 
         ecrire(os.path.join(faux_kit, "methode-chantier.md"), trois)
-        mod.KIT = faux_kit
+        mod.etat.KIT = faux_kit
         try:
             chantier("methode-chantier.md, à la racine du kit")
             s = rendu(pr)
@@ -504,7 +504,7 @@ def test_carte_methode():
             verifier("carte méthode : introuvable des deux côtés",
                      "GARDE: fichier introuvable : nulle-part.md\n" in s and "--- méthode" not in s, s)
         finally:
-            mod.KIT = kit
+            mod.etat.KIT = kit
 
         chantier(None)
         s = rendu(pr)
@@ -951,10 +951,10 @@ def tester_heures_commits():
         h = mod.heures_commits(os.path.join(sans, "q.md"), ["Q1", "Q2"], pourquoi)
         verifier("heures_commits : sans .git, rien, et pourquoi", h is None and len(pourquoi) == 1
                  and pourquoi[0].startswith(("git log en échec : ", "git ne se lance pas : ")), (h, pourquoi))
-        mod.GIT = "git-absent-vlp"
+        mod.etat.GIT = "git-absent-vlp"
         pourquoi = []
         h = mod.heures_commits(os.path.join(sans, "q.md"), ["Q1", "Q2"], pourquoi)
-        mod.GIT = "git"
+        mod.etat.GIT = "git"
         verifier("heures_commits : sans git, rien — jamais un traceback", h is None
                  and pourquoi[0].startswith("git ne se lance pas : "), (h, pourquoi))
         if not shutil.which("git"):
@@ -4479,8 +4479,8 @@ def tester_filet():
                  and '"additionalContext": "Attention : 3 tours restants' in o, o + e)
 
         # TOU2 : une fois par tour — tampon `vlp-filet-<agent_id>-<tours>` dans un TAMPON_HOOKS neuf
-        ancien_tampon = mod.TAMPON_HOOKS
-        mod.TAMPON_HOOKS = tempfile.mkdtemp()
+        ancien_tampon = mod.etat.TAMPON_HOOKS
+        mod.etat.TAMPON_HOOKS = tempfile.mkdtemp()
         try:
             def salve(*ids):
                 """Un appel par id d'outil (entrées différentes) ; rend le nombre de sorties non vides."""
@@ -4498,8 +4498,8 @@ def tester_filet():
                 del os.environ["VLP_SANS_TAMPON"]
             verifier("TOU2 : VLP_SANS_TAMPON, deux sorties", n == 2, str(n))
         finally:
-            shutil.rmtree(mod.TAMPON_HOOKS, ignore_errors=True)
-            mod.TAMPON_HOOKS = ancien_tampon
+            shutil.rmtree(mod.etat.TAMPON_HOOKS, ignore_errors=True)
+            mod.etat.TAMPON_HOOKS = ancien_tampon
 
         # Un vrai chemin de plus de 260 caractères, bâti comme dans FIL1 : sans le préfixe,
         # isfile et open y disent absent un transcript présent ; le filet doit avertir quand même
@@ -4833,14 +4833,14 @@ def tester_relecture():
                          s + liste)
                 tester_canaux(g)
                 gardes = [appel(["relecture", "X9"]), appel(["relecture", "X1", "--sha", "0badc0de"])]
-                mod.GIT = "git-absent-vlp"
+                mod.etat.GIT = "git-absent-vlp"
                 gardes.append(appel(["relecture", "X1"]))
-                mod.GIT = "git"
+                mod.etat.GIT = "git"
                 verifier("relecture : fiche absente, commit inconnu, sans Git — GARDE, sort 1, aucun worktree",
                          all(c == 1 and s.startswith("GARDE: ") for c, s in gardes)
                          and len(g("worktree", "list").splitlines()) == 1, gardes)
             finally:
-                mod.GIT = "git"
+                mod.etat.GIT = "git"
                 tempfile.tempdir = tmp
                 os.chdir(ici)
 
@@ -5021,8 +5021,8 @@ def gardien_test(texte):
 
 def test_premier_lancement():
     # Sauvegarder et restaurer TAMPON_HOOKS pour ce test
-    ancien_tampon = mod.TAMPON_HOOKS
-    mod.TAMPON_HOOKS = tempfile.mkdtemp()     # neuf : un tampon d'un run d'avant ferait taire le 1er appel
+    ancien_tampon = mod.etat.TAMPON_HOOKS
+    mod.etat.TAMPON_HOOKS = tempfile.mkdtemp()     # neuf : un tampon d'un run d'avant ferait taire le 1er appel
 
     try:
         # Entrée PreToolUse qui essaie de commiter
@@ -5074,8 +5074,8 @@ def test_premier_lancement():
                  gardien_test(entree_commit)[1] == "", "")
     finally:
         # Restaurer TAMPON_HOOKS à None pour les tests suivants
-        shutil.rmtree(mod.TAMPON_HOOKS, ignore_errors=True)
-        mod.TAMPON_HOOKS = ancien_tampon
+        shutil.rmtree(mod.etat.TAMPON_HOOKS, ignore_errors=True)
+        mod.etat.TAMPON_HOOKS = ancien_tampon
 
 
 groupe(test_premier_lancement)
@@ -5203,7 +5203,7 @@ def tester_ordre():
              sans[0] == 1 and "GARDE: pas A2 (a) : ni dans la TODO, ni un coût en fiches dans la source\n" in sans[1],
              sans)
     with tempfile.TemporaryDirectory() as t:     # un dépôt neuf, le .gitignore du kit : vrai aussi dans une copie
-        shutil.copy(os.path.join(mod.KIT, ".gitignore"), t)
+        shutil.copy(os.path.join(mod.etat.KIT, ".gitignore"), t)
         subprocess.run(["git", "init", "-q", t], capture_output=True)
         ignore = subprocess.run(["git", "check-ignore", "context AI/ordre/donnees.json"], cwd=t,
                                 capture_output=True, text=True)
@@ -5309,11 +5309,11 @@ def tester_ordre_page():
         joints = sorted(n for n in os.listdir(dossier) if n.startswith("vlp."))
         double = os.path.join(t, "double.html")
         ecrire(double, "<données><données>")
-        avant, mod.GABARIT_ORDRE = mod.GABARIT_ORDRE, double
+        avant, mod.etat.GABARIT_ORDRE = mod.etat.GABARIT_ORDRE, double
         try:
             garde = appel(["ordre", "--source", source])
         finally:
-            mod.GABARIT_ORDRE = avant
+            mod.etat.GABARIT_ORDRE = avant
     embarque = donnees_de_page(page)
     verifier("ORD3 : ordre sans --json écrit la page et ses joints, puis la ligne FILES",
              code == 0 and "\nPAGE " in s and "\nFILES {" in s and '"vlp.css"' in s and joints == ["vlp.css", "vlp.js"],
@@ -5328,14 +5328,14 @@ def tester_ordre_page():
              and [x["code"] for x in embarque["piste"]] == ["K1"], embarque and embarque["prose"])
     restes = re.findall(r"<[^\x00-\x7f]|<…", page)
     verifier("ORD3 : aucune balise de gabarit restante, un </script> de TODO échappé, la page saine, la balise viewport",
-             page and not restes and page.count("</script>") == lire(mod.GABARIT_ORDRE).count("</script>")
+             page and not restes and page.count("</script>") == lire(mod.etat.GABARIT_ORDRE).count("</script>")
              and mod.defauts_page(page) == [] and '<meta name="viewport"' in page, restes)
     verifier("ORD3 : un gabarit à deux balises, une GARDE qui le dit, sort 1",
              garde[0] == 1 and "la balise <données> y est 2 fois, attendu 1" in garde[1], garde)
     url = re.compile(r"https://cdn\.jsdelivr\.net/npm/chart\.js@[^\"']+")
     verifier("ORD3 : Chart.js chargé à la même URL que vlp.js",
-             url.findall(lire(mod.GABARIT_ORDRE)) == url.findall(lire(os.path.join(mod.KIT, "templates", "vlp.js")))
-             and len(url.findall(lire(mod.GABARIT_ORDRE))) == 1, url.findall(lire(mod.GABARIT_ORDRE)))
+             url.findall(lire(mod.etat.GABARIT_ORDRE)) == url.findall(lire(os.path.join(mod.etat.KIT, "templates", "vlp.js")))
+             and len(url.findall(lire(mod.etat.GABARIT_ORDRE))) == 1, url.findall(lire(mod.etat.GABARIT_ORDRE)))
 
 
 groupe(tester_ordre_page)
@@ -5361,15 +5361,15 @@ def tester_ordre_db():
         chemin = os.path.join(t, "p", "ctx", "ordre", "donnees.json")
         brut = open(chemin, encoding="utf-8").read()
         page = os.path.isfile(os.path.join(t, "p", "ctx", "ordre", "ordre.html"))
-        avant = mod.LIMITE_DOC_DB
+        avant = mod.etat.LIMITE_DOC_DB
         try:
-            mod.LIMITE_DOC_DB = len(brut.encode("utf-8")) * 5
+            mod.etat.LIMITE_DOC_DB = len(brut.encode("utf-8")) * 5
             dixieme = appel(["ordre", "--db", "--source", source])
-            mod.LIMITE_DOC_DB = 100
+            mod.etat.LIMITE_DOC_DB = 100
             os.remove(chemin)
             trop = appel(["ordre", "--db", "--source", source])
         finally:
-            mod.LIMITE_DOC_DB = avant
+            mod.etat.LIMITE_DOC_DB = avant
         reecrit = os.path.isfile(chemin)
     doc = json.loads(brut)
     taille = len(brut.rstrip("\n").encode("utf-8"))
@@ -5377,7 +5377,7 @@ def tester_ordre_db():
              code == 0 and isinstance(doc, dict) and list(doc) == CLES_ORDRE_DB and "\n " not in brut and not page,
              (s, list(doc)))
     verifier("ORD4 : la ligne DB dit la taille en octets face à la limite d'un document db (256 KiB)",
-             mod.LIMITE_DOC_DB == 262144 and "DB ordre/donnees %d octets · limite 262144 · " % taille in s
+             mod.etat.LIMITE_DOC_DB == 262144 and "DB ordre/donnees %d octets · limite 262144 · " % taille in s
              and "AVERTISSEMENT" not in s, s)
     verifier("ORD4 : passé un dixième de la limite, un AVERTISSEMENT ; passé la limite, une GARDE, rien d'écrit",
              dixieme[0] == 0 and "AVERTISSEMENT: ordre/donnees passe le dixième" in dixieme[1]
@@ -5413,12 +5413,12 @@ def tester_ordre_clore():
             ecrire(os.path.join(projet, "ctx", "artefacts", "50-u.html"), gabarit("artefact-chantier.html"))
             ecrire(os.path.join(projet, "ctx", "artefacts", "feuille-de-route.html"),
                    gabarit("artefact-feuille-de-route.html"))
-            avant = mod.SOURCE_ORDRE
+            avant = mod.etat.SOURCE_ORDRE
             try:
-                mod.SOURCE_ORDRE = source
+                mod.etat.SOURCE_ORDRE = source
                 code, s = appel(["clore", projet, "--livre", "fini", "--date", "2026-10-13"])
             finally:
-                mod.SOURCE_ORDRE = avant
+                mod.etat.SOURCE_ORDRE = avant
             donnees = os.path.join(kit, "ctx", "ordre", "donnees.json")
             sorties.append((code, s, os.path.isfile(donnees) and json.load(open(donnees, encoding="utf-8")),
                             os.path.realpath(donnees), os.path.realpath(source)))
@@ -5453,12 +5453,12 @@ def tester_clore_pages_aucun():
                "Lettres de fiche déjà prises : A (test).\n")
         ecrire(os.path.join(projet, "ctx", "08-etat.md"), "# État\n")
         ecrire(os.path.join(projet, "ctx", "50-u.md"), ouvert("# Chantier U — u\n\n**Fait.** Rien.\n\n## U1 [x] — a\n"))
-        avant = mod.SOURCE_ORDRE
+        avant = mod.etat.SOURCE_ORDRE
         try:
-            mod.SOURCE_ORDRE = source
+            mod.etat.SOURCE_ORDRE = source
             code, s = appel(["clore", projet, "--livre", "fini", "--date", "2026-10-17"])
         finally:
-            mod.SOURCE_ORDRE = avant
+            mod.etat.SOURCE_ORDRE = avant
         donnees = os.path.join(kit, "ctx", "ordre", "donnees.json")
         verifier("ISO : clore d'un projet aux pages « aucun » — ni ORDRE vers le kit, ni GARDE de page absente, "
                  "une ligne SANS PAGE — clore : enchaînement « aucun » ignoré",
@@ -8130,8 +8130,8 @@ def tester_attente():
                  (code, s) == (0, "ATTENTE 0\n") and not os.path.exists(liste), s)
 
         # Le hook : un vrai dossier de tampons, comme TOU2 — le tampon du jour fait la différence
-        ancien_tampon = mod.TAMPON_HOOKS
-        mod.TAMPON_HOOKS = tempfile.mkdtemp()
+        ancien_tampon = mod.etat.TAMPON_HOOKS
+        mod.etat.TAMPON_HOOKS = tempfile.mkdtemp()
         try:
             echec = {"hook_event_name": "PostToolUseFailure", "tool_name": "Artifact", "cwd": p,
                      "tool_input": {"file_path": page, "url": url}, "error": refus}
@@ -8174,8 +8174,8 @@ def tester_attente():
             code = mod.main(["attente", "hook"], o, io.StringIO("pas du json"))
             verifier("attente hook : entrée illisible, muet, code 0", (code, o.getvalue()) == (0, ""), o.getvalue())
         finally:
-            shutil.rmtree(mod.TAMPON_HOOKS, ignore_errors=True)
-            mod.TAMPON_HOOKS = ancien_tampon
+            shutil.rmtree(mod.etat.TAMPON_HOOKS, ignore_errors=True)
+            mod.etat.TAMPON_HOOKS = ancien_tampon
 
     zero, tache = mod.remise_a_zero(soir)
     verifier("attente : remise à zéro 02:00 et tâche 02:10 pour 2026-09-28 20:00 UTC+2",
@@ -8390,12 +8390,12 @@ def tester_retard_plugin():
         commit(wt, "context AI/n.md", "note\n")
         r2 = mod.retard_plugin(wt, kit=kit)
         muets = (mod.retard_plugin(kit, kit=kit), mod.retard_plugin(autre, kit=kit))
-        garde, mod.KIT = mod.KIT, kit
+        garde, mod.etat.KIT = mod.etat.KIT, kit
         try:
             o = io.StringIO()
             mod.carte(wt, o)
         finally:
-            mod.KIT = garde
+            mod.etat.KIT = garde
         lignes = [l for l in o.getvalue().split("\n") if l.startswith("PLUGIN_RETARD=")]
         verifier("ESR1 : retard du plugin — 1 commit de scripts/ compté, context AI/ non, muet sur le kit "
                  "et un autre dépôt, une ligne dans la carte — mutant : chemins retirés du rev-list",
@@ -8599,11 +8599,11 @@ def tester_mutant_vise():
             """Jouer le mutant `avant` → `apres` sur le faux kit ; rendre (code, sortie, motifs des lancements)."""
             ecrire(journal, "")
             o = io.StringIO()
-            garde, mod.KIT = mod.KIT, kit
+            garde, mod.etat.KIT = mod.etat.KIT, kit
             try:
                 code = mod.main(["mutant", f, avant, apres, "--attendu", attendu, *options], o)
             finally:
-                mod.KIT = garde
+                mod.etat.KIT = garde
             with open(journal, encoding="utf-8") as j:
                 return code, o.getvalue(), j.read().split("\n")[:-1]
         vise = mutant("a = 1", "a = 9", "porte a")
@@ -8647,11 +8647,11 @@ def tester_mutant_worktree():
         f = os.path.join(interieur, "f.py")
         ecrire(f, "a = 1\nb = 2\nc = 3\n")
         o = io.StringIO()
-        garde, mod.KIT = mod.KIT, principal
+        garde, mod.etat.KIT = mod.etat.KIT, principal
         try:
             code = mod.main(["mutant", f, "a = 1", "a = 9", "--attendu", "porte a"], o)
         finally:
-            mod.KIT = garde
+            mod.etat.KIT = garde
         verifier("MUW1 : cible d'un worktree sous KIT → ses tests à lui, MUTANT ATTRAPÉ et ligne TESTS du worktree — "
                  "mutant : copie_mutee reprise sur KIT",
                  code == 0 and "MUTANT ATTRAPÉ" in o.getvalue() and "TESTS %s\n" % interieur in o.getvalue()
@@ -10416,11 +10416,11 @@ def tester_compteur_commande():
         ecrire_compteur(os.path.join(pr, "sss.jsonl"), {"startTime": (T0 - 10) * 1000, "totalToolDuration": 300000,
                                                         "totalAPIDuration": 120000})
         ecrire(os.path.join(dep, "q.md"), QFICHES % ("sss", "sss"))
-        mod.GIT = "git-absent-vlp"
+        mod.etat.GIT = "git-absent-vlp"
         try:
             sans_git = appel(["compteur", os.path.join(dep, "q.md")])
         finally:
-            mod.GIT = "git"
+            mod.etat.GIT = "git"
         verifier("compteur : sans découpe, une GARDE: et 1", sans_git[0] == 1 and sans_git[1].startswith(
             "GARDE: pas de découpe — git ne se lance pas"), sans_git)
         if not shutil.which("git"):

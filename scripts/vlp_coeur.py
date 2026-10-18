@@ -23,7 +23,7 @@ import unicodedata
 import carnet
 import vlp_hook
 
-TAMPON_HOOKS = vlp_hook.TAMPON
+from noyau import etat   # l'état que les tests changent, lu `etat.NOM` (REF44)
 
 TITRE = re.compile(r"^## [A-Z]{1,3}[0-9]")
 TITRE_GENERIQUE = re.compile(r"^##\s+\S")
@@ -67,7 +67,7 @@ def premier_lancement(texte, nom=""):
 
 def tampon_neuf(nom):
     """Vrai si `<TAMPON_HOOKS>/<nom>` se crée en exclusif — `vlp_hook.tampon_neuf`, dans le dossier de ce module."""
-    return vlp_hook.tampon_neuf(nom, TAMPON_HOOKS)
+    return vlp_hook.tampon_neuf(nom, etat.TAMPON_HOOKS)
 
 
 def une_fois(entree, commande, *args):
@@ -317,7 +317,7 @@ def imprimer_methode(texte, racine, sortie):
         sortie.write("METHODE=absente (pas de ligne « méthode »)\n")
         return
     chemin = chemins[0]
-    lieu = racine if os.path.isfile(os.path.join(racine, chemin)) else KIT
+    lieu = racine if os.path.isfile(os.path.join(racine, chemin)) else etat.KIT
     try:
         lignes = lignes_gardees(os.path.join(lieu, chemin), "fichier", chemin)
     except Absent as e:
@@ -367,7 +367,7 @@ def effort_defaut(chemin=None):
     `KIT`, ou `chemin`) — le premier `Une fiche … : `<niveau>`` de sa puce ; None si la puce ou le niveau manque. Lu,
     jamais recopié (REF28, règle 3)."""
     try:
-        lignes = lignes_de(chemin or os.path.join(KIT, "methode-chantier.md"))
+        lignes = lignes_de(chemin or os.path.join(etat.KIT, "methode-chantier.md"))
     except OSError:
         return None
     debut = next((i for i, l in enumerate(lignes) if l.startswith(EFFORT_REGLE)), None)
@@ -1286,15 +1286,14 @@ def cmd_compteur(a, sortie):
     return int(len(rangs) < len(set(a.fiches)))
 
 
-KIT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-VLP_PY = os.path.join(KIT, "scripts", "vlp.py")   # le lanceur : les commandes qu'on affiche le nomment (VIT5)
+VLP_PY = os.path.join(etat.KIT, "scripts", "vlp.py")   # le lanceur : les commandes qu'on affiche le nomment (VIT5)
 
 
 def cmd_lire(chemins, sortie):
     """Un `cat` d'un fichier du kit est hors du projet : PowerShell le refuse
     (chantier U). Python, lui, est permis par `allowed-tools`. `${CLAUDE_PLUGIN_ROOT}`, que seules les commandes
     voient remplacé, devient la racine du kit en barres obliques : recopiée, la ligne se lance (REF27)."""
-    racine = os.path.realpath(KIT)
+    racine = os.path.realpath(etat.KIT)
     code, disque = 0, os.path.normcase(os.path.splitdrive(racine)[0])  # commonpath lève entre deux disques (REF55)
     for c in chemins:
         vrai = os.path.realpath(os.path.join(racine, c))
@@ -1584,7 +1583,7 @@ def git_texte(args, cwd, env=None):
     d'erreur. Git qui ne se lance pas : (None, raison) — jamais un traceback."""
     import subprocess
     try:
-        r = subprocess.run([GIT, "-c", "core.quotepath=false"] + args, cwd=cwd, env=env, capture_output=True,
+        r = subprocess.run([etat.GIT, "-c", "core.quotepath=false"] + args, cwd=cwd, env=env, capture_output=True,
                            encoding="utf-8", errors="replace", timeout=120)
     except (OSError, subprocess.SubprocessError) as e:
         return None, "git ne se lance pas : %s" % e
@@ -1603,7 +1602,7 @@ def retard_plugin(racine, kit=None):
     `HEAD` du kit chargé (`kit`, défaut `KIT`, résolu en `principal`) — un worktree du kit en avance
     sur le dossier que suit `~/.claude/skills/vlp` (chantier ESR). `branche` : celle de `racine`, ou
     son sha court si `HEAD` est détaché. `None` : autre dépôt, même dossier, retard nul, git muet."""
-    principal = os.path.realpath(kit or KIT)
+    principal = os.path.realpath(kit or etat.KIT)
     lieux = []
     for d in (principal, racine):
         code, t = git_texte(["rev-parse", "--path-format=absolute", "--git-common-dir", "--show-toplevel"], d)
@@ -2371,7 +2370,7 @@ def ouverture(chemin):
     souvent l'ajout à la TODO (chantier CHK). (None, raison) sans git ou sans ce commit."""
     import subprocess
     try:
-        r = subprocess.run([GIT, "log", "--diff-filter=A", "--format=%at", "--", os.path.basename(chemin)],
+        r = subprocess.run([etat.GIT, "log", "--diff-filter=A", "--format=%at", "--", os.path.basename(chemin)],
                            cwd=os.path.dirname(os.path.abspath(chemin)), capture_output=True, encoding="utf-8",
                            errors="replace", timeout=60)
     except (OSError, subprocess.SubprocessError) as e:
@@ -2779,20 +2778,18 @@ UL_FICHES = re.compile(r'(<ul class="fiches">)(.*?)(\n[ \t]*</ul>)', re.S)
 # manque. Un négatif, `couts` l'écrit sans Git quand l'ancienne page affiche plus
 # que la session mesurée : il se relit avec son signe (chantier TAR).
 COUT = re.compile(r"(?:\((\d[\d ]*)\)|(-?\d+)) · (\d+) tours · (-?[\d,]+|\?) \$")
-_mesure = None
 
 
 def mesure():
     """`mesure-tokens.py`, importé une fois (le tiret interdit `import`)."""
-    global _mesure
-    if _mesure is None:
+    if etat._mesure is None:
         import importlib.util
         spec = importlib.util.spec_from_file_location(
             "mesure_tokens", os.path.join(os.path.dirname(os.path.abspath(__file__)), "mesure-tokens.py"))
         assert spec and spec.loader
-        _mesure = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(_mesure)
-    return _mesure
+        etat._mesure = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(etat._mesure)
+    return etat._mesure
 
 
 def esc(texte):
@@ -3031,7 +3028,6 @@ def moins(a, b):
     return None if a is None or b is None else a - b
 
 
-GIT = "git"     # test-vlp.py le remplace pour simuler un poste sans Git
 COMMIT_FICHE = re.compile(r"^([A-Z]{1,3}[0-9]+) :")
 COMMIT_FUSION = re.compile(r"^Fusion : ([A-Z]{1,3}[0-9]+)$")    # le sujet de `fusionner --worktree`
 INFINI = float("inf")
@@ -3057,7 +3053,7 @@ def heures_commits(fichier, ids, pourquoi=None, clos=False, titres=None):
         pourquoi.append("aucune fiche au fichier")
         return None
     try:
-        r = subprocess.run([GIT, "log", "--format=%at %s"], cwd=os.path.dirname(os.path.abspath(fichier)),
+        r = subprocess.run([etat.GIT, "log", "--format=%at %s"], cwd=os.path.dirname(os.path.abspath(fichier)),
                            capture_output=True, encoding="utf-8", errors="replace", timeout=60)
     except (OSError, subprocess.SubprocessError) as e:
         pourquoi.append("git ne se lance pas : %s" % e)
@@ -4663,7 +4659,7 @@ def cmd_archive(projet, url, sortie):
         table = BALISE_COUTS.sub("", html[i:j]).replace('<details class="clos">', '<details class="clos" open>', 1)
         deplacees = len(lignes_clos(table))
         alias = champ(carte_, "alias", os.path.basename(os.path.abspath(projet)))
-        gabarit = lire(os.path.join(KIT, GABARIT_ARCHIVE))
+        gabarit = lire(os.path.join(etat.KIT, GABARIT_ARCHIVE))
         archive_html = (gabarit.replace("&lt;md&gt;", esc(alias))
                         .replace("&lt;URL de la feuille&gt;", esc(champ(carte_, "artefact feuille de route", "")))
                         .replace(ICI_ARCHIVE, table))
@@ -6622,7 +6618,7 @@ FICHIER_MD = re.compile(r"[\w][\w./ -]*\.md")
 def entete_clos():
     """Le titre et la phrase que le gabarit de `CHANTIER.md` pose à la place
     d'une table des chantiers clos."""
-    g = lignes_de(os.path.join(KIT, "templates", "CHANTIER.md"))
+    g = lignes_de(os.path.join(etat.KIT, "templates", "CHANTIER.md"))
     i = next(k for k, l in enumerate(g) if TITRE_CLOS.match(l))
     j = next(k for k in range(i, len(g)) if g[k].startswith("Lettres de fiche déjà prises"))
     return g[i:j]
@@ -6677,7 +6673,7 @@ def cmd_niveau(a, sortie):
 
     page = page_feuille(projet)
     absente = not os.path.isfile(page)
-    html = lire(os.path.join(KIT, GABARIT_FEUILLE)) if absente else lire(page)
+    html = lire(os.path.join(etat.KIT, GABARIT_FEUILLE)) if absente else lire(page)
     migre = migrer_feuille(html)
     converti, n = html, 0
     try:
@@ -6738,9 +6734,9 @@ def cmd_niveau(a, sortie):
     contexte = champ(carte_, "contexte", "context AI/")
     index = champ(carte_, "index", contexte.rstrip("/") + "/00-INDEX.md")
     sources = [("carte", "CHANTIER.md"), ("index", index)]
-    etat = champ(carte_, "fichier d'état")
-    if etat:
-        sources.append(("fichier d'état", etat))
+    fichier_etat = champ(carte_, "fichier d'état")
+    if fichier_etat:
+        sources.append(("fichier d'état", fichier_etat))
     for chemin, i, v in variables_citees(projet, sources):
         ecarts += 1
         sortie.write("ÉCART: variable: %s:%d cite %s — une variable ne vaut que dans"
@@ -7013,7 +7009,7 @@ def blobs_git(specs, cwd):
     ou Git en échec."""
     import subprocess
     try:
-        r = subprocess.run([GIT, "-c", "core.quotepath=false", "cat-file", "--batch"], cwd=cwd, capture_output=True,
+        r = subprocess.run([etat.GIT, "-c", "core.quotepath=false", "cat-file", "--batch"], cwd=cwd, capture_output=True,
                            input="".join(s + "\n" for s in specs).encode("utf-8"), timeout=120)
     except (OSError, subprocess.SubprocessError):
         return [None] * len(specs)
@@ -8869,7 +8865,7 @@ def retard_du_matin(projet, avant, sortie):
     """Écrire `PLUGIN_RETARD=<n> …` : `n` commits fusionnés depuis `avant` qui touchent `CODE_PLUGIN`, quand `projet`
     est le kit chargé (`KIT`) — la session ouverte a lu ses commandes avant la fusion (RTD1). Rien pour un autre
     projet, aucun commit, ou Git muet."""
-    if not avant or os.path.normcase(os.path.realpath(projet)) != os.path.normcase(os.path.realpath(KIT)):
+    if not avant or os.path.normcase(os.path.realpath(projet)) != os.path.normcase(os.path.realpath(etat.KIT)):
         return
     code, n = git_texte(["rev-list", "--count", "%s..HEAD" % avant, "--"] + list(CODE_PLUGIN), projet)
     if code == 0 and n.strip().isdigit() and int(n) > 0:
@@ -9371,10 +9367,10 @@ def copie_mutee(fichier, mute, dossier):
     import shutil
     fichier = os.path.abspath(fichier)
     try:
-        dans_kit = os.path.commonpath([os.path.normcase(KIT), os.path.normcase(fichier)]) == os.path.normcase(KIT)
+        dans_kit = os.path.commonpath([os.path.normcase(etat.KIT), os.path.normcase(fichier)]) == os.path.normcase(etat.KIT)
     except ValueError:      # deux lecteurs différents
         dans_kit = False
-    racine = kit_de(fichier) or (KIT if dans_kit else os.path.dirname(fichier))
+    racine = kit_de(fichier) or (etat.KIT if dans_kit else os.path.dirname(fichier))
     copie = os.path.join(dossier, "kit")
 
     def exclus(r, noms):
@@ -9546,7 +9542,7 @@ def cmd_mutant(a, sortie):
     dossier = tempfile.mkdtemp(prefix="vlp-mutant-")
     try:
         racine, copie = copie_mutee(a.cible, mute, dossier)
-        suite = os.path.join(racine if est_kit(racine) else KIT, "scripts", "test-vlp.py")
+        suite = os.path.join(racine if est_kit(racine) else etat.KIT, "scripts", "test-vlp.py")
         commande = vers_copie(a.test or [sys.executable, suite], racine, copie)
         texte, code = jouer_mutant(commande, copie, a.attendu, vise=not a.test)
         if not a.test:
@@ -9658,7 +9654,7 @@ def cmd_apercu(projet, sortie, port=None):
 def cmd_sante(a, sortie):
     """La santé du code (`sante.py`, VIT15) — chargé ici seulement : son `import ast` coûterait à chaque hook."""
     import sante
-    return sante.principal(a, sortie, KIT)
+    return sante.principal(a, sortie, etat.KIT)
 
 
 def py_touches(racine):
@@ -9833,7 +9829,7 @@ def cmd_parite(a, sortie):
     `PARTIEL <groupe> k/n — manque : <libellés>`, `RESTE <groupe> 0/n` —, puis `PARITE …` et les comptes bruts.
     Un groupe ne sort de `test-vlp.py` que sur un `MIGRÉ`. Fichier absent ou illisible : `GARDE:`, sort 1."""
     import ast
-    racine = os.path.abspath(a.racine or KIT)
+    racine = os.path.abspath(a.racine or etat.KIT)
     try:
         with open(os.path.join(racine, "scripts", "test-vlp.py"), encoding="utf-8") as f:
             groupes = verifs_des_groupes(ast.parse(f.read()))
@@ -10194,7 +10190,6 @@ def chemin_ordre(lignes, todos, absents):
     return pas, origines, gardes
 
 
-GABARIT_ORDRE = os.path.join(os.path.dirname(GABARIT), "ordre.html")
 BALISE_ORDRE = "<données>"   # la seule balise du gabarit : un seul bloc JSON, jamais citée ailleurs
 
 
@@ -10202,10 +10197,10 @@ def page_ordre(dossier, donnees, sortie):
     """Écrire `ordre.html` dans `dossier` : le gabarit `GABARIT_ORDRE`, sa balise remplacée par `donnees` en JSON
     (`<` échappé, rien ne ferme le script) ; puis ses joints, et la ligne `FILES` comme `vlp.py page`. Balise
     absente ou en double : une `GARDE:`, rien d'écrit, sort 1."""
-    gabarit = lire(GABARIT_ORDRE)
+    gabarit = lire(etat.GABARIT_ORDRE)
     if gabarit.count(BALISE_ORDRE) != 1:
         sortie.write("GARDE: %s : la balise %s y est %d fois, attendu 1\n"
-                     % (GABARIT_ORDRE, BALISE_ORDRE, gabarit.count(BALISE_ORDRE)))
+                     % (etat.GABARIT_ORDRE, BALISE_ORDRE, gabarit.count(BALISE_ORDRE)))
         return 1
     page = os.path.join(dossier, "ordre.html")
     with open(page, "w", encoding="utf-8", newline="\n") as f:
@@ -10213,9 +10208,6 @@ def page_ordre(dossier, donnees, sortie):
     sortie.write("PAGE %s\n" % page)
     sortie.write(ligne_files(recopier_joints(dossier), page))
     return 0
-
-
-LIMITE_DOC_DB = 256 * 1024   # octets d'un document `db` : contrat d'artefact 0.2.75, db.d.ts, « at most 256 KiB serialized »
 
 
 def donnees_ordre(dossier, donnees, db, sortie):
@@ -10226,9 +10218,9 @@ def donnees_ordre(dossier, donnees, db, sortie):
     texte = json.dumps(donnees, ensure_ascii=False, separators=(",", ":")) if db \
         else json.dumps(donnees, ensure_ascii=False, indent=1)
     taille = len(texte.encode("utf-8"))
-    if db and taille > LIMITE_DOC_DB:
+    if db and taille > etat.LIMITE_DOC_DB:
         sortie.write("GARDE: ordre/donnees : %d octets, au-delà de la limite d'un document db (%d)\n"
-                     % (taille, LIMITE_DOC_DB))
+                     % (taille, etat.LIMITE_DOC_DB))
         return 1
     os.makedirs(dossier, exist_ok=True)
     chemin = os.path.join(dossier, "donnees.json")
@@ -10237,8 +10229,8 @@ def donnees_ordre(dossier, donnees, db, sortie):
     sortie.write("ÉCRIT %s\n" % chemin)
     if db:
         sortie.write("DB ordre/donnees %d octets · limite %d · %.1f %%\n"
-                     % (taille, LIMITE_DOC_DB, 100.0 * taille / LIMITE_DOC_DB))
-        if taille * 10 > LIMITE_DOC_DB:
+                     % (taille, etat.LIMITE_DOC_DB, 100.0 * taille / etat.LIMITE_DOC_DB))
+        if taille * 10 > etat.LIMITE_DOC_DB:
             sortie.write("AVERTISSEMENT: ordre/donnees passe le dixième de la limite d'un document db : "
                          "le découper avant qu'elle ne bloque\n")
     return 0
@@ -10252,7 +10244,7 @@ def cmd_ordre(a, sortie):
     introuvable sans coût dans la source, ou porté par deux lignes : une `GARDE:` qui le nomme, rien d'écrit,
     sort 1."""
     # realpath : lancé par le plugin, KIT est la jonction `~/.claude/skills/vlp` ; les voisins sont à côté du vrai kit
-    source = os.path.realpath(a.source or SOURCE_ORDRE or os.path.join(KIT, "context AI", "ordre.md"))
+    source = os.path.realpath(a.source or etat.SOURCE_ORDRE or os.path.join(etat.KIT, "context AI", "ordre.md"))
     lignes = lignes_gardees(source, "source de l'ordre")
     tables = tables_ordre(lignes)
     racine = trouver(os.path.dirname(source))
@@ -10289,9 +10281,6 @@ def cmd_ordre(a, sortie):
     return 0 if a.json or a.db else page_ordre(dossier, donnees, sortie)
 
 
-SOURCE_ORDRE = os.path.join(KIT, "context AI", "ordre.md")   # `None` : clore ne la refait pas (la suite de tests)
-
-
 def dit_aucun(carte_, nom):
     """Vrai si la ligne `nom` de `CHANTIER.md` (`carte_`) existe et vaut « aucun » ou « aucune » : le projet n'a pas
     cette page, et le veut ; une ligne absente n'en dit rien."""
@@ -10321,9 +10310,9 @@ def ordre_de_clore(todo_dit, sortie, carte_=()):
     Sauf si le `CHANTIER.md` du projet clos (`carte_`) dit cette ligne « aucun » (`dit_aucun`, chantier ISO) : rien.
     Source absente, ou une garde d'`ordre` : une `GARDE:`, la clôture continue."""
     sortie.write(todo_dit + "\n")
-    if SOURCE_ORDRE is None or dit_aucun(carte_, "artefact enchaînement"):
+    if etat.SOURCE_ORDRE is None or dit_aucun(carte_, "artefact enchaînement"):
         return
-    source = os.path.realpath(SOURCE_ORDRE)
+    source = os.path.realpath(etat.SOURCE_ORDRE)
     if not os.path.isfile(source):
         sortie.write("GARDE: ordre : source introuvable (%s) — page d'enchaînement non refaite\n" % source)
         return
@@ -10338,7 +10327,7 @@ def ordre_de_clore(todo_dit, sortie, carte_=()):
             sortie.write("%s — page d'enchaînement non refaite\n" % ligne if code else ligne + "\n")
     if code:
         return
-    url = champ(lignes_de(os.path.join(trouver(os.path.dirname(source)) or KIT, "CHANTIER.md")),
+    url = champ(lignes_de(os.path.join(trouver(os.path.dirname(source)) or etat.KIT, "CHANTIER.md")),
                 "artefact enchaînement", "aucune")
     sortie.write("ORDRE envoyer %s → %s\n" % (os.path.join(os.path.dirname(source), "ordre", "donnees.json"), url))
 
@@ -10711,7 +10700,7 @@ def repartir(a, sortie, entree, erreur):
             return cmd_nuits_lecon(a.texte, a.projet, sortie)
         return cmd_nuits_noter(a.texte, a.canal, a.stop, sortie, sorte=a.sorte)
     if a.cmd == "chef":
-        return cmd_chef_page(a.questions, a.sortie, sortie, lire(os.path.join(KIT, GABARIT_CHOIX)))
+        return cmd_chef_page(a.questions, a.sortie, sortie, lire(os.path.join(etat.KIT, GABARIT_CHOIX)))
     if a.cmd == "joints":
         return cmd_joints(a.dossier, sortie)
     if a.cmd == "transcription":

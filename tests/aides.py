@@ -1,7 +1,7 @@
 """Les aides communes de la suite pytest (REF4) : le code de `vlp.py` chargé par chemin, comme
 `scripts/test-vlp.py` le charge, et les petits bâtisseurs que les tests migrés partagent.
 
-Le chargement se fait une fois par processus ; un test qui change l'état du module (`mod.GIT`…) passe par
+Le chargement se fait une fois par processus ; un test qui change l'état du module (`mod.etat.GIT`…) passe par
 `monkeypatch.setattr`, qui le remet à la fin du test.
 """
 import datetime
@@ -23,8 +23,8 @@ def charger_coeur():
     assert spec and spec.loader
     module: Any = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
-    module.TAMPON_HOOKS = None
-    module.SOURCE_ORDRE = None
+    module.etat.TAMPON_HOOKS = None
+    module.etat.SOURCE_ORDRE = None
     return module
 
 

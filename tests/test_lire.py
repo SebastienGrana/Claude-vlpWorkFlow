@@ -8,8 +8,8 @@ from aides import appel, lire, mod
 
 
 def attendu_et_source():
-    source = lire(os.path.join(mod.KIT, "cloture.md"))
-    racine = os.path.realpath(mod.KIT).replace("\\", "/")
+    source = lire(os.path.join(mod.etat.KIT, "cloture.md"))
+    racine = os.path.realpath(mod.etat.KIT).replace("\\", "/")
     attendu = source.replace("${CLAUDE_PLUGIN_ROOT}", racine)
     return (attendu if attendu.endswith("\n") else attendu + "\n"), source, racine
 
@@ -38,5 +38,5 @@ def test_hors_du_kit_et_absent_sortent_1():
 
 @pytest.mark.skipif(os.name != "nt", reason="seul Windows a des lecteurs")
 def test_un_autre_disque_est_hors_du_kit():
-    autre = "Y:" if os.path.splitdrive(mod.KIT)[0].upper() == "Z:" else "Z:"
+    autre = "Y:" if os.path.splitdrive(mod.etat.KIT)[0].upper() == "Z:" else "Z:"
     assert appel(["lire", autre + "/hors.md"]) == (1, "GARDE: hors du kit : %s/hors.md\n" % autre)

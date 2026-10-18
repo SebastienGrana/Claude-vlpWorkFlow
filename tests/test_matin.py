@@ -709,11 +709,11 @@ def matin_t(tr):
         d = os.path.join(tr, nom)
         depot_matin(d)
         branche = branche_matin(d, "A", "RTD", "RTD", 1, x="a = 1\nb = 2\nc = 31\n")
-        garde, mod.KIT = mod.KIT, (d if est_kit else tr)
+        garde, mod.etat.KIT = mod.etat.KIT, (d if est_kit else tr)
         try:
             sorties.append(appel(["matin", d, JOUR_MATIN]) + (branche,))
         finally:
-            mod.KIT = garde
+            mod.etat.KIT = garde
     (code_k, s_k, b_k), (code_a, s_a, _) = sorties
     retard = "PLUGIN_RETARD=1 commit(s) de code du plugin fusionné(s) — la session ouverte ne les voit qu'après /reload-plugins\n"
     assert (code_k == 0 and s_k.endswith(retard + "MATIN 1 fusionnée(s) · 0 de côté\n") and "FUSIONNÉE %s" % b_k in s_k
