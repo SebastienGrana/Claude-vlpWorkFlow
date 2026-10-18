@@ -3573,3 +3573,5 @@ Les 6 fichiers relus en entier contre `methode-chantier.md` après `MET7` ; « t
 - **2026-10-18** — REF7 : la photo de `vlp.py mutant` lançait la suite du kit, dont le pont relançait pytest, qui relançait `mutant` — 18 processus en chaîne, arrêtés à la main. Le pont pose `VLP_PONT=1` et ne se rejoue plus dedans ; `mutant` n'est pas photographié.
 
 - **2026-10-18** — REF18 : le plan ajoute REF43 à REF54 (découpe en `scripts/noyau/`, migration des tests) ; REF19 ne dépend plus que de REF43 (`tester_matin` migré, 72,7 s seul) au lieu de toute la découpe — décidé de nuit, sans l'utilisateur, à revoir.
+
+REF45 (2026-10-18) — le plan de `REF18` disait `commun`, `carte`, `fiches`, `sessions` « le bas du graphe » : faux, 27 des 29 sections de `vlp_coeur.py` s'appellent en cycle (relevé `ast`). Tranché par l'utilisateur, option 1 : un module sorti lit un nom resté dans la façade par `coeur.<nom>` au moment de l'appel (`scripts/noyau/facade.py`) ; chaque fiche suivante (`REF46` à `REF49`) change ces renvois en imports quand le nom sort.
