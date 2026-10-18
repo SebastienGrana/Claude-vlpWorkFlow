@@ -702,7 +702,7 @@ l'import. Chaque module garde ses sections dans l'ordre du fichier, 1 000 lignes
 | `REF53` | découper `boucle.py` sous le seuil | 1 485 lignes |
 | `REF54` | les 306 remarques de ruff | après la découpe : chaque remarque y change de fichier |
 
-💡 **Proposé, à revoir** (décidé de nuit, sans l'utilisateur) : `REF19` ne dépend que de `REF43`, au lieu de
+✅ **Gardé par l'utilisateur le 2026-10-18** (décidé de nuit, rapport de la nuit, `Q1`) : `REF19` ne dépend que de `REF43`, au lieu de
 toutes les fiches de `REF18` — sa première partie copie le dépôt modèle « là où un test crée un dépôt, les tests
 issus de `tester_matin` d'abord », ce qui ne demande que leur migration ; le parallèle, ensuite, vaut pour la
 suite pytest telle qu'elle est.

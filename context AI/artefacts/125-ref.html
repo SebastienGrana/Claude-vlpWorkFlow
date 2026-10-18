@@ -16,14 +16,14 @@
 
 <div class="page">
   <header>
-    <div class="eyebrow">vlp · fiches REF1–REF54 · <a href="https://claude.ai/artifact/YWDny8kjubq9DhdP5rbPxA">la feuille de route</a></div>
+    <div class="eyebrow">vlp · fiches REF1–REF55 · <a href="https://claude.ai/artifact/YWDny8kjubq9DhdP5rbPxA">la feuille de route</a></div>
     <h1>La qualité du code et des tests</h1>
     <p>Le kit tourne sur pytest et une couverture mesurée, sans une seule régression ; des scripts gardent la taille des fichiers et interdisent de toucher aux tests pendant une fiche ; les erreurs connues sont réparées, les gros fichiers découpés, et chaque angle revu jusqu'à deux passes vides.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span data-etat="faite"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span data-etat="faite"></span><span data-etat="faite"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span data-etat="faite"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span data-etat="faite"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span data-etat="faite"></span><span data-etat="faite"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span data-etat="faite"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">54 fiches · 19 faites · en cours : REF8</p>
+    <p class="mono" style="margin-top:.5rem">55 fiches · 19 faites · en cours : REF55</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -98,8 +98,10 @@
         <details><summary><span class="titre">Photographier toutes les sous-commandes de vlp.py</span><span class="etat">Faite</span></summary>
         <span class="note">61 sous-commandes : 58 photographiées (47 à 0, 10 GARDE, 1 traceback de lire), 3 sautées avec raison (claude, servir, mutant) ; pytest 77 passed ; couverture de vlp_coeur.py par les photos 49 % (3 734 / 7 251 non vues) ; mutant d'une constante attrapé ; suite OK</span></details>
         <span class="cout mono">≈15,9M (15 915 220) · 38 tours · 4,56 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">REF8</span></span>
-        <details open><summary><span class="titre">Mesurer la couverture et l'exiger sur les lignes changées</span><span class="etat">En cours · REF38 peut partir en même temps</span></summary>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">REF55</span></span>
+        <details open><summary><span class="titre">vlp.py lire refuse un autre disque sans traceback</span><span class="etat">En cours · REF20, REF38 peuvent partir en même temps</span></summary></details></li>
+      <li class="fiche"><span class="gauche"><span class="id">REF8</span></span>
+        <details><summary><span class="titre">Mesurer la couverture et l'exiger sur les lignes changées</span><span class="etat">À lancer</span></summary>
         <span class="note">La couverture mesurée ; 90 % des lignes changées exigés au commit. Après REF4.</span></details></li>
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REF9</span></span>
         <details><summary><span class="titre">Garder la taille des fichiers</span><span class="etat">Faite</span></summary>
@@ -163,9 +165,9 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REF19</span></span>
         <details><summary><span class="titre">Lancer moins de git, puis paralléliser sous garde</span><span class="etat">Faite</span></summary>
         <span class="note">suite entière 253 s → 200 s, git 13 521 → 13 395 ; pytest 66,6 s → 40,9 s (-n 4) ; xdist : 20 lancements, 0 blocage ; pont lancé en fond dès le début ; mutant vu par le pont attrapé ; suite OK</span></details>
-        <span class="cout mono">≈16,4M (16 402 580) · 25 tours · 4,06 $</span></li>
+        <span class="cout mono">≈17,1M (17 074 231) · 26 tours · 4,21 $</span></li>
       <li class="fiche"><span class="gauche"><span class="id">REF20</span></span>
-        <details><summary><span class="titre">Essayer une campagne de mutation sur les lignes changées</span><span class="etat">À lancer</span></summary>
+        <details><summary><span class="titre">Essayer une campagne de mutation sur les lignes changées</span><span class="etat">À lancer · en même temps que REF55, REF38</span></summary>
         <span class="note">Un essai de mutation automatique sur les lignes changées (poodle). Après la découpe.</span></details></li>
       <li class="fiche"><span class="gauche"><span class="id">REF21</span></span>
         <details><summary><span class="titre">Essayer de typer un lecteur JSON</span><span class="etat">À lancer</span></summary>
@@ -183,7 +185,7 @@
       <li class="fiche"><span class="gauche"><span class="id">REF37</span></span>
         <details><summary><span class="titre">La nuit : qui prime, commiter ou non</span><span class="etat">À lancer</span></summary></details></li>
       <li class="fiche"><span class="gauche"><span class="id">REF38</span></span>
-        <details><summary><span class="titre">Retirer le repli « copie simple » d'avant le plugin</span><span class="etat">À lancer · en même temps que REF8</span></summary></details></li>
+        <details><summary><span class="titre">Retirer le repli « copie simple » d'avant le plugin</span><span class="etat">À lancer · en même temps que REF55, REF20</span></summary></details></li>
       <li class="fiche"><span class="gauche"><span class="id">REF39</span></span>
         <details><summary><span class="titre">sante --base refuse un worktree en retard sur main</span><span class="etat">À lancer</span></summary></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">REF22</span></span>
@@ -202,8 +204,8 @@
         <details><summary><span class="titre">Revoir l'angle de la doc qui ment</span><span class="etat">Après REF22</span></summary>
         <span class="note">Revue de la doc qui ment. Après REF22.</span></details></li>
     </ul>
-    <p class="mono cout-hors">Hors fiches : ≈85,5M (85 479 812) · 402 tours · 19,13 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈276,8M (276 761 555) · 1106 tours · 89,39 $</p>
+    <p class="mono cout-hors">Hors fiches : ≈93,3M (93 272 074) · 428 tours · 23,30 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈285,2M (285 225 468) · 1133 tours · 93,71 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
