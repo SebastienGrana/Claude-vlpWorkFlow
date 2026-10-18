@@ -10,7 +10,6 @@ import shutil
 import subprocess
 
 import pytest
-
 from aides import mod
 
 AUTEUR = {"GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@t", "GIT_COMMITTER_NAME": "t", "GIT_COMMITTER_EMAIL": "t@t"}
@@ -61,6 +60,15 @@ def depots(tmp_path, depot_modele):
         shutil.copytree(depot_modele, copie)
         return copie
     return copier
+
+
+@pytest.fixture
+def init_git(depot_modele):
+    """`init_git(d)` fait de `d` un dépôt Git vide sur `main` — le `.git` du dépôt modèle copié dedans, `d` créé au
+    besoin, son contenu gardé ; la place d'un `git init` dans un test migré (REF58)."""
+    def poser(d):
+        shutil.copytree(os.path.join(depot_modele, ".git"), os.path.join(d, ".git"))
+    return poser
 
 
 @pytest.fixture

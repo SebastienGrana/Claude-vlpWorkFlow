@@ -21,9 +21,9 @@
     <p>Le kit tourne sur pytest et une couverture mesurée, sans une seule régression ; des scripts gardent la taille des fichiers et interdisent de toucher aux tests pendant une fiche ; les erreurs connues sont réparées, les gros fichiers découpés, et chaque angle revu jusqu'à deux passes vides.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span><span data-etat="faite"></span><span data-etat="faite"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span data-etat="faite"></span><span data-etat="faite"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">58 fiches · 30 faites · en cours : REF58</p>
+    <p class="mono" style="margin-top:.5rem">58 fiches · 31 faites · en cours : REF51</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -137,11 +137,13 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REF50</span></span>
         <details><summary><span class="titre">Migrer les tests des premiers modules</span><span class="etat">Faite</span></summary>
         <span class="note">parite : 25 groupes MIGRÉ (commun, carte, fiches + heures_commits), 160/978 vérifications ; test-vlp.py 10 496 → 9 041 lignes ; suite verte, 335 492 → 246 314 ms, 13 495 → 13 287 git ; reste en REF58</span></details>
-        <span class="cout mono">≈18,7M (18 700 940) · 76 tours · 6,99 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">REF58</span></span>
-        <details open><summary><span class="titre">Migrer les tests de sessions à clos</span><span class="etat">En cours · REF20, REF38 peuvent partir en même temps</span></summary></details></li>
-      <li class="fiche" data-attend><span class="gauche"><span class="id">REF51</span></span>
-        <details><summary><span class="titre">Migrer le reste des tests, puis retirer test-vlp.py</span><span class="etat">Après REF58</span></summary></details></li>
+        <span class="cout mono">≈19,7M (19 651 652) · 79 tours · 7,21 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REF58</span></span>
+        <details><summary><span class="titre">Migrer les tests de sessions à clos</span><span class="etat">Faite</span></summary>
+        <span class="note">parite : 69 groupes de plus MIGRÉ (sessions 12, relecture 2, hooks 11, page 9, notes 16, feuille 11, clos 8), 87 restent pour REF51 ; test-vlp.py 9 041 → 5 387 lignes ; suite verte, 246 314 → 247 837 ms, 13 287 → 13 297 git (à plat)</span></details>
+        <span class="cout mono">≈12,9M (12 894 510) · 36 tours · 3,56 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">REF51</span></span>
+        <details open><summary><span class="titre">Migrer le reste des tests, puis retirer test-vlp.py</span><span class="etat">En cours · REF20, REF38 peuvent partir en même temps</span></summary></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">REF52</span></span>
         <details><summary><span class="titre">Renommer et migrer les fichiers à tiret</span><span class="etat">Après REF51</span></summary></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">REF53</span></span>
@@ -194,7 +196,7 @@
         <span class="note">suite entière 253 s → 200 s, git 13 521 → 13 395 ; pytest 66,6 s → 40,9 s (-n 4) ; xdist : 20 lancements, 0 blocage ; pont lancé en fond dès le début ; mutant vu par le pont attrapé ; suite OK</span></details>
         <span class="cout mono">≈18,4M (18 362 438) · 46 tours · 4,84 $</span></li>
       <li class="fiche"><span class="gauche"><span class="id">REF20</span></span>
-        <details><summary><span class="titre">Essayer une campagne de mutation sur les lignes changées</span><span class="etat">À lancer · en même temps que REF58, REF38</span></summary>
+        <details><summary><span class="titre">Essayer une campagne de mutation sur les lignes changées</span><span class="etat">À lancer · en même temps que REF51, REF38</span></summary>
         <span class="note">Un essai de mutation automatique sur les lignes changées (poodle). Après la découpe.</span></details></li>
       <li class="fiche"><span class="gauche"><span class="id">REF21</span></span>
         <details><summary><span class="titre">Essayer de typer un lecteur JSON</span><span class="etat">À lancer</span></summary>
@@ -212,7 +214,7 @@
       <li class="fiche"><span class="gauche"><span class="id">REF37</span></span>
         <details><summary><span class="titre">La nuit : qui prime, commiter ou non</span><span class="etat">À lancer</span></summary></details></li>
       <li class="fiche"><span class="gauche"><span class="id">REF38</span></span>
-        <details><summary><span class="titre">Retirer le repli « copie simple » d'avant le plugin</span><span class="etat">À lancer · en même temps que REF58, REF20</span></summary></details></li>
+        <details><summary><span class="titre">Retirer le repli « copie simple » d'avant le plugin</span><span class="etat">À lancer · en même temps que REF51, REF20</span></summary></details></li>
       <li class="fiche"><span class="gauche"><span class="id">REF39</span></span>
         <details><summary><span class="titre">sante --base refuse un worktree en retard sur main</span><span class="etat">À lancer</span></summary></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">REF22</span></span>
@@ -232,7 +234,7 @@
         <span class="note">Revue de la doc qui ment. Après REF22.</span></details></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈106,8M (106 808 546) · 481 tours · 29,99 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈432,6M (432 649 835) · 1706 tours · 146,45 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈446,5M (446 495 057) · 1745 tours · 150,23 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
