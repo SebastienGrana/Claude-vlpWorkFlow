@@ -9791,11 +9791,11 @@ def cmd_symboles(a, sortie):
 
 def libelle_de(noeud):
     """Le libellé d'un `verifier(<libellé>, …)` ou d'un `assert …, <libellé>` (REF5) : la chaîne telle quelle, le
-    gabarit d'un `"…" % x`, un f-string ses morceaux fixes autour de `{}` ; une autre forme, None."""
+    gabarit d'un `"…" % x`, la gauche d'un `+` (`libellé + diagnostic`, REF43), un f-string ses morceaux fixes ; sinon None."""
     import ast
     if isinstance(noeud, ast.Constant) and isinstance(noeud.value, str):
         return noeud.value
-    if isinstance(noeud, ast.BinOp) and isinstance(noeud.op, ast.Mod):
+    if isinstance(noeud, ast.BinOp) and isinstance(noeud.op, (ast.Mod, ast.Add)):
         return libelle_de(noeud.left)
     if isinstance(noeud, ast.JoinedStr):
         return "".join(str(v.value) if isinstance(v, ast.Constant) else "{}" for v in noeud.values)
@@ -9805,7 +9805,7 @@ def libelle_de(noeud):
 def verifs_des_groupes(arbre):
     """`[(groupe, [libellés])]` pour chaque `groupe(<fonction>)` de `test-vlp.py`, dans l'ordre : les `verifier` de
     la fonction, et ceux des fonctions du module qu'elle nomme, de proche en proche (une aide compte au groupe qui
-    l'appelle)."""
+    l'appelle ; un autre groupe qu'elle nomme, non : REF43)."""
     import ast
     fonctions = {n.name: n for n in arbre.body if isinstance(n, ast.FunctionDef)}
 
@@ -9817,7 +9817,7 @@ def verifs_des_groupes(arbre):
     def libelles(nom, vus):
         """Ceux de `nom`, puis ceux des fonctions qu'il nomme et que `vus` n'a pas encore."""
         vus.add(nom)
-        nommes = {n.id for n in ast.walk(fonctions[nom]) if isinstance(n, ast.Name) and n.id in fonctions}
+        nommes = {n.id for n in ast.walk(fonctions[nom]) if isinstance(n, ast.Name) and n.id in fonctions} - set(groupes)
         return propres(fonctions[nom]) + [l for autre in sorted(nommes - vus) for l in libelles(autre, vus)]
 
     groupes = [c.value.args[0].id for c in arbre.body if isinstance(c, ast.Expr) and isinstance(c.value, ast.Call)
