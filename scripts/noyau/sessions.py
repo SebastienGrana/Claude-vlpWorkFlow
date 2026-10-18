@@ -429,7 +429,8 @@ def totaux(decoupe):
 
 
 # Ce que `compteur` lit d'une sortie d'outil (VIT17). La sorte de son appel : la suite entière, `--seul`,
-# `test-boucle`, le mutant, pyright, Git, la publication — l'outil Artifact —, et le reste. Une commande Bash ou
+# `test-boucle` (l'ancien script, lu dans les sessions d'avant REF52, qui l'a migré vers pytest), le mutant, pyright,
+# Git, la publication — l'outil Artifact —, et le reste. Une commande Bash ou
 # PowerShell se reconnaît à ce qu'elle lance en tête d'un segment, le corps des heredocs tu (`sans_heredoc`) :
 # `mutant` d'abord, son `--test` cite la suite ; un script de mesure qui lance la suite par `subprocess` est du reste.
 # Les garde-fous sont des débuts de ligne, chacun lu là seulement où il dit vrai — le même ordre que `GARDE_FOUS` :

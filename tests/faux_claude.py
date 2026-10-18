@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Le faux `claude` des tests de boucle.py : aucun appel modèle, un rôle par prompt.
 
-Lancé tel quel par `--claude` : `faux-claude.py -p "<prompt>" [--model M] [--agent A] ...`, il rend
+Lancé tel quel par `--claude` : `faux_claude.py -p "<prompt>" [--model M] [--agent A] ...`, il rend
 les lignes `stream-json` relevées par NUI1 (`system/init`, `assistant`, `result`), réduites.
 Rôles (le prompt dit lequel) : `/vlp:chantier <code>` découpe, `/vlp:tache <fiche>` joue et coche,
 `/vlp:tache` clôt, `--agent vlp:relecture` relit (`<fiche> [--sha <sha>]`). Autre prompt : une
@@ -17,7 +17,7 @@ VLP_FAUX_ARGV (chemin : y ajoute, une ligne JSON par lancement, les arguments re
 y ajoute `{role, VLP_CANAL, VLP_CARNET, VLP_NUIT}` de chaque lancement), VLP_FAUX_COMMIT (fiches, séparées par des
 virgules : après les avoir cochées, le rôle `jouer` fait `git add -A` et `git commit -m "<fiche> : fiche
 <fiche>"` dans le dossier courant — la session qui commite malgré tout), VLP_FAUX_VLP (chemin de vlp.py, par
-défaut celui d'à côté). La boucle d'un canal (NUI7) en ajoute quatre : VLP_FAUX_CLORE (`commit` : le rôle `clore`
+défaut celui de `scripts/`). La boucle d'un canal (NUI7) en ajoute quatre : VLP_FAUX_CLORE (`commit` : le rôle `clore`
 fait `git add -A` et `git commit -m "Chantier <code> clos : faux"`, comme `cloture.md:72`), VLP_FAUX_CLOT (fiches,
 séparées par des virgules : après les avoir cochées, le rôle `jouer` ferme le chantier — la session de jeu qui clôt
 hors de son rôle), VLP_FAUX_VIDE (codes, séparés par des virgules : `/vlp:chantier <code>` n'écrit rien — le
@@ -82,7 +82,7 @@ ARTEFACT = r"^(\s*-\s*\*\*artefact du chantier\*\*\s*:\s*)[^\r\n]*"
 
 
 def inconnu(raison: str) -> int:
-    sys.stderr.write("faux-claude : %s\n" % raison)
+    sys.stderr.write("faux claude : %s\n" % raison)
     return 2  # prompt inconnu
 
 
@@ -175,7 +175,7 @@ def jouer(fiche: str, session: Optional[str] = None) -> int:
         return inconnu("aucun fichier de fiches courant")
     if fiche in os.environ.get("VLP_FAUX_RATE", "").split(","):
         return 0
-    vlp = os.environ.get("VLP_FAUX_VLP") or os.path.join(ICI, "vlp.py")
+    vlp = os.environ.get("VLP_FAUX_VLP") or os.path.join(ICI, os.pardir, "scripts", "vlp.py")
     # Le vrai claude pose l'id de sa session aux commandes qu'il lance, et `cocher` le lit.
     env = dict(os.environ, CLAUDE_CODE_SESSION_ID=session) if session else None
     # Une fiche à bloc Tentatives se coche `--resolu`, comme `skills/tache/SKILL.md` : le bloc est remplacé.

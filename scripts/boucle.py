@@ -45,7 +45,7 @@ Sous `--nuit`, chaque session prend ses réglages dans `ROLES`, en tête du fich
 (découper, jouer, relire, relance, clore) — prompt, modèle, repli, effort, outils, `--max-turns`,
 `--max-budget-usd`, timeout —, la source de chaque plafond en commentaire. Sans `--nuit`, `jouer()` bâtit
 la commande d'avant (REG). `main()` joue le rôle jouer, puis relire (NUI5) ; `jouer(…, role=…)` joue les autres,
-test-boucle.py le charge comme module, et pour un test `ROLES[<rôle>]["timeout"]` se remplace sur ce module.
+`tests/aides_boucle.py` le charge comme module, et pour un test `ROLES[<rôle>]["timeout"]` se remplace sur ce module.
 Toute session `--nuit` : un `--session-id` neuf, `--permission-prompts none`, le timeout à `subprocess.run`.
 Issue de chaque session, dans la ligne du carnet : `timeout`, `coupure` (aucune ligne `result`), `plafond`
 (`subtype` `error_max_*`), `limite` (texte du `result`), `pas partie` (`is_error`, ou aucun message

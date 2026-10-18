@@ -1,9 +1,7 @@
-#!/usr/bin/env python3
-"""Teste mesure-tokens.py sans fixture sur disque.
+"""Teste `mesure-tokens.py` sans fixture sur disque (REF52, ex-`scripts/` à tiret, migré vers pytest).
 
-Écrit des jsonl synthétiques dans un dossier temporaire, appelle `mesurer`,
-`resoudre`, `sous_agents` et `main`, compare. Imprime `OK` et sort 0, ou le premier écart
-(`ÉCART: …`) et sort 1 ; sous `VLP_TOUS_ECARTS=1` (`vlp.py mutant`), tous, puis `FIN:`.
+Écrit des jsonl synthétiques dans un dossier temporaire, appelle `mesurer`, `resoudre`, `sous_agents` et `main`,
+compare. Chaque cas est un test ; son écart, le message d'échec, que `conftest.py` reprend dans sa ligne `ÉCART:`.
 """
 import contextlib
 import datetime
@@ -12,12 +10,13 @@ import io
 import json
 import os
 import subprocess
-import sys
 import tempfile
 from decimal import ROUND_HALF_UP, Decimal
 
-ICI = os.path.dirname(os.path.abspath(__file__))
-spec = importlib.util.spec_from_file_location("mesure_tokens", os.path.join(ICI, "mesure-tokens.py"))
+import pytest
+from aides import SCRIPTS
+
+spec = importlib.util.spec_from_file_location("mesure_tokens", os.path.join(SCRIPTS, "mesure-tokens.py"))
 assert spec and spec.loader
 mod = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(mod)
@@ -452,42 +451,58 @@ def verifier_grille():
     return None
 
 
-def ecarts():
-    """Le résultat de chaque cas, dans l'ordre : un écart ou None. Un générateur : la suite s'arrête où `main` cesse
-    de lire."""
-    for nom, lignes, attendu, *options in [
-        ("trois-tours", LIGNES, ATTENDU),
-        ("divergent", LIGNES_DIVERGENT, ATTENDU_DIVERGENT),
-        ("poids", LIGNES_POIDS, ATTENDU_POIDS),
-        ("inconnu", LIGNES_INCONNU, {k: v for k, v in ATTENDU_INCONNU.items() if v is not None}),
-        ("opus-5-5", LIGNES_OPUS55, ATTENDU_OPUS55),
-        ("sonnet-5-5", LIGNES_SONNET55, ATTENDU_SONNET55),
-        ("haiku-5-5 palier bas", LIGNES_HAIKU55_BAS, ATTENDU_HAIKU55_BAS),
-        ("haiku-5-5 palier haut", LIGNES_HAIKU55_HAUT, ATTENDU_HAIKU55_HAUT),
-    ] + CAS_PLAGE:
-        yield verifier(nom, lignes, attendu, *options)
-    for bloc in (verifier_resolution, verifier_sous_agents, verifier_chemin_long, verifier_plage_cli, verifier_actif,
-                 verifier_grille):
-        yield bloc()
+CAS = [
+    ("trois-tours", LIGNES, ATTENDU),
+    ("divergent", LIGNES_DIVERGENT, ATTENDU_DIVERGENT),
+    ("poids", LIGNES_POIDS, ATTENDU_POIDS),
+    ("inconnu", LIGNES_INCONNU, {k: v for k, v in ATTENDU_INCONNU.items() if v is not None}),
+    ("opus-5-5", LIGNES_OPUS55, ATTENDU_OPUS55),
+    ("sonnet-5-5", LIGNES_SONNET55, ATTENDU_SONNET55),
+    ("haiku-5-5 palier bas", LIGNES_HAIKU55_BAS, ATTENDU_HAIKU55_BAS),
+    ("haiku-5-5 palier haut", LIGNES_HAIKU55_HAUT, ATTENDU_HAIKU55_HAUT),
+] + CAS_PLAGE
 
 
-def main():
-    """`OK` et 0 ; sinon `ÉCART: …` et 1, au premier écart — sous `VLP_TOUS_ECARTS=1`, tous puis `FIN:`, pour que
-    `vlp.py mutant` dise ATTRAPÉ et non PLANTÉ (dette d'`ACA`, 2026-10-11)."""
-    tous = os.environ.get("VLP_TOUS_ECARTS") == "1"
-    vus = 0
-    for ecart in ecarts():
-        if ecart:
-            print("ÉCART:", ecart)
-            vus += 1
-            if not tous:
-                return 1
-    if vus:
-        print(f"FIN: {vus} écart(s)")
-        return 1
-    print("OK")
-    return 0
+@pytest.mark.parametrize("cas", CAS, ids=[c[0] for c in CAS])
+def test_mesurer(cas):
+    """Un transcript synthétique : `mesurer` rend les colonnes attendues, et « sans heure » sur stderr si et seulement
+    si un tour en manque."""
+    nom, lignes, attendu, *options = cas
+    ecart = verifier(nom, lignes, attendu, *options)
+    assert ecart is None, ecart
 
 
-if __name__ == "__main__":
-    sys.exit(main())
+def test_resolution():
+    """Un identifiant de session trouve son transcript sous `~/.claude/projects` (`verifier_resolution`)."""
+    ecart = verifier_resolution()
+    assert ecart is None, ecart
+
+
+def test_sous_agents():
+    """Une session et ses sous-agents, que `main` range sous sa ligne (`verifier_sous_agents`)."""
+    ecart = verifier_sous_agents()
+    assert ecart is None, ecart
+
+
+def test_chemin_long():
+    """Sous Windows, un transcript de sous-agent de 260 caractères se trouve et se lit (`verifier_chemin_long`)."""
+    ecart = verifier_chemin_long()
+    assert ecart is None, ecart
+
+
+def test_plage_cli():
+    """`--plage DEBUT FIN` en ligne de commande (`verifier_plage_cli`)."""
+    ecart = verifier_plage_cli()
+    assert ecart is None, ecart
+
+
+def test_actif():
+    """`--actif` : pauses, attente, sessions et sous-agents (`verifier_actif`)."""
+    ecart = verifier_actif()
+    assert ecart is None, ecart
+
+
+def test_grille():
+    """`--grille` : une ligne d'en-tête, puis une par modèle de la grille."""
+    ecart = verifier_grille()
+    assert ecart is None, ecart

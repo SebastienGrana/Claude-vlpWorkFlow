@@ -1,57 +1,25 @@
-"""Les suites voisines, lancées par pytest (REF59, choix Q1 : A) : `test-boucle.py` (la boucle de nuit et son faux
-`claude`), sa partie qui attend les variables de la nuit absentes, et `test-mesure-tokens.py` — jusque-là lancées par
-l'ancienne suite maison. Puis l'option `--seul` de `conftest.py` (VIT10, choix Q2 : A)."""
+"""Ce qui reste des suites voisines, migrées vers pytest par REF52 (`test_boucle.py`, `test_boucle_canal.py`,
+`test_mesure_tokens.py`) : la boucle sous les variables de la nuit (ENV1), puis l'option `--seul` de `conftest.py`
+(VIT10, choix Q2 : A)."""
 import os
 import subprocess
 import sys
 import tempfile
 import time
 
-from aides import RACINE, SCRIPTS, ecrire, mod, porte_motif
-
-
-def suite_voisine(chemin):
-    """Jouer jusqu'au bout la suite de tests `chemin` ; rendre (verte, sa sortie) — verte : elle sort 0 et dit `OK`
-    en dernière ligne (VIT24)."""
-    r = subprocess.run([sys.executable, chemin], capture_output=True, encoding="utf-8", errors="replace",
-                       env=dict(os.environ, PYTHONIOENCODING="utf-8"))
-    return r.returncode == 0 and r.stdout.strip().endswith("OK"), r.stdout + r.stderr
-
-
-def test_boucle():
-    """NUI2 : test-boucle.py joue boucle.py et faux-claude.py ; sa sortie passe en entier : son `ÉCART:` y remonte."""
-    verte, texte = suite_voisine(os.path.join(SCRIPTS, "test-boucle.py"))
-    assert verte, "boucle : test-boucle.py (boucle.py et son faux claude) sort OK" + "\n" + texte
+from aides import RACINE, mod, porte_motif
 
 
 def test_boucle_nuit():
-    """ENV1 : `test-boucle.py` retire les variables de la nuit en tête ; ce test les lui pose, sur sa seule partie qui
-    les attend absentes, pour que son propre retrait se voie."""
+    """ENV1 : une fiche de nuit lance la suite sous ses variables ; `isoler` (`conftest.py`) les retire à chaque test.
+    Ce test les pose au seul test de la boucle qui les attend absentes, pour que leur retrait se voie."""
     debut = time.perf_counter()
-    r = subprocess.run([sys.executable, os.path.join(SCRIPTS, "test-boucle.py"), "--parties", "sans_nuit"],
-                       capture_output=True, encoding="utf-8", errors="replace",
-                       env=dict(os.environ, PYTHONIOENCODING="utf-8", VLP_NUIT="1", VLP_CANAL="B",
-                                VLP_CARNET=os.path.join(tempfile.gettempdir(), "carnet-env1.jsonl")))
-    texte = r.stdout + r.stderr   # une partie seule ne finit pas sur `OK` : sortie 0 et aucun `ÉCART`, comme avant
-    assert r.returncode == 0 and "ÉCART" not in r.stdout, (
-        "ENV1 : test-boucle.py --parties sans_nuit, sous les trois variables de la nuit, sort 0 sans ÉCART "
-        "— mutant : le retrait en tête de test-boucle.py neutralisé") + "\n" + str((time.perf_counter() - debut, texte))
-
-
-def test_voisine_rouge(tmp_path):
-    """VIT24 : une voisine qui sort 1, même en disant `OK`, ou qui sort 0 sans le dire, n'est pas verte."""
-    rate, muette = os.path.join(tmp_path, "test-rate.py"), os.path.join(tmp_path, "test-muette.py")
-    ecrire(rate, 'print("ÉCART: semé")\nprint("OK")\nraise SystemExit(1)\n')
-    ecrire(muette, 'print("FIN: 1 écart(s)")\n')
-    rouges = [suite_voisine(rate), suite_voisine(muette)]
-    assert [r[0] for r in rouges] == [False, False] and "ÉCART: semé" in rouges[0][1], (
-        "VIT24 : une voisine qui sort 1, ou qui sort 0 sans OK, n'est pas verte — mutant : le code de sortie "
-        "ignoré") + "\n" + str(rouges)
-
-
-def test_mesure_tokens():
-    verte, texte = suite_voisine(os.path.join(SCRIPTS, "test-mesure-tokens.py"))
-    assert verte, "mesure-tokens : test-mesure-tokens.py sort OK" + "\n" + texte
+    code, texte = lancer_pytest("tests/test_boucle_canal.py::test_sans_nuit", VLP_NUIT="1", VLP_CANAL="B",
+                                VLP_CARNET=os.path.join(tempfile.gettempdir(), "carnet-env1.jsonl"))
+    assert code == 0 and "1 passed" in texte and "ÉCART" not in texte, (
+        "ENV1 : test_sans_nuit, sous les trois variables de la nuit, passe sans ÉCART "
+        "— mutant : le retrait des variables de la nuit dans `isoler` neutralisé") + "\n" + str(
+        (time.perf_counter() - debut, texte))
 
 
 def _temoin_nom():
@@ -77,10 +45,10 @@ def test_porte_motif():
     assert porte_motif(_temoin_nom, "cas-b", "test_x[cas-b]"), "seul : l'id d'un test paramétré compte comme son nom"
 
 
-def lancer_pytest(*args):
-    """Lancer pytest sur ce kit avec `args` ; rendre (code de sortie, sortie)."""
+def lancer_pytest(*args, **env):
+    """Lancer pytest sur ce kit avec `args`, sous les variables `env` en plus ; rendre (code de sortie, sortie)."""
     r = subprocess.run([sys.executable, "-m", "pytest", "-q", *args], cwd=RACINE, capture_output=True,
-                       encoding="utf-8", errors="replace", env=dict(os.environ, PYTHONIOENCODING="utf-8"))
+                       encoding="utf-8", errors="replace", env=dict(os.environ, PYTHONIOENCODING="utf-8", **env))
     return r.returncode, r.stdout + r.stderr
 
 
