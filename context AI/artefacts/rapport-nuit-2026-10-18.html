@@ -1,0 +1,1046 @@
+<title>vlp — La nuit du 18 octobre : REF42 à REF19</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    color-scheme: light;
+    --fond:#f3e8d4; --carte:#faf1e2; --trait:#dcd0b7; --texte:#50433b; --doux:#6e6151;
+    --accent:#2f5d8c; --ok:#2c6e48; --ok-fond:#e4f0e2; --warn:#8a5a0c; --warn-fond:#fbe9cc;
+    --ko:#9c3431; --ko-fond:#f8e0da; --q-fond:#fbe4d2;
+    /* le bord d'un bouton ou d'une option, à 3:1 sur les trois fonds : un cran plus foncé que celui de
+       vlp.css (#92846b), qui tombe à 2,99:1 sur --q-fond (calculé le 2026-10-07, formule WCAG) */
+    --bord-bouton:#908269;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--fond); color:var(--texte); font-family:"Atkinson Hyperlegible",Verdana,system-ui,sans-serif; font-size:18px; letter-spacing:.05em; line-height:1.7; padding-inline:16px; text-align:left; }
+  .page { max-width:46rem; margin:0 auto; padding-block:2.5rem 4rem; display:flex; flex-direction:column; gap:2.6rem; }
+  h1,h2,h3 { margin:0; text-wrap:balance; line-height:1.25; }
+  h1 { font-size:2.1rem; }
+  h2 { font-size:1.35rem; color:var(--accent); }
+  h3 { font-size:1.08rem; }
+  p { margin:0; }
+  ul { margin:0; padding-left:1.2rem; display:flex; flex-direction:column; gap:.35rem; }
+  .mono, .fil time, td.n, textarea { letter-spacing:normal; }
+  .mono { font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:max(.85em, 15px); font-variant-numeric:tabular-nums; }
+  section { display:flex; flex-direction:column; gap:1rem; }
+  .sous { color:var(--doux); }
+  .jauge { align-self:flex-start; display:inline-flex; gap:.5rem; align-items:center; padding:.35rem .8rem; border-radius:6px; background:var(--ok-fond); color:var(--ok); font-weight:700; }
+  .jauge.moyen { background:var(--warn-fond); color:var(--warn); }
+  .jauge.ko { background:var(--ko-fond); color:var(--ko); }
+  /* un gros chiffre ne se coupe jamais : sa tuile s'élargit à lui, et passe à la ligne s'il le faut */
+  .chiffres { display:flex; flex-wrap:wrap; gap:.75rem; }
+  .chiffre { flex:1 1 12rem; background:var(--carte); border:1px solid var(--trait); border-radius:8px; padding:.8rem 1rem; display:flex; flex-direction:column; gap:.1rem; }
+  .chiffre b { font-size:1.6rem; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .insecable { white-space:nowrap; }
+  .chiffre span { color:var(--doux); font-size:1rem; line-height:1.4; }
+  .decision { background:var(--carte); border:1px solid var(--trait); border-radius:8px; padding:1rem 1.1rem; display:flex; flex-direction:column; gap:.6rem; }
+  .decision .tete { display:flex; flex-wrap:wrap; gap:.5rem; align-items:baseline; justify-content:space-between; }
+  .puce { font-size:.9375rem; font-weight:700; padding:.1rem .5rem; border-radius:4px; white-space:nowrap; }
+  .puce.faible { background:var(--ok-fond); color:var(--ok); }
+  .puce.moyen { background:var(--warn-fond); color:var(--warn); }
+  .grille { display:grid; grid-template-columns:9rem 1fr; gap:.25rem .9rem; margin:0; }
+  .grille dt { color:var(--doux); font-size:1rem; }
+  .grille dd { margin:0; }
+  .choix { display:flex; flex-wrap:wrap; gap:.5rem; padding-top:.3rem; border-top:1px dashed var(--trait); }
+  .choix label { display:inline-flex; align-items:center; gap:.5rem; padding:.3rem .75rem; border:2px solid var(--bord-bouton); border-radius:999px; cursor:pointer; font-size:.95rem; background:var(--carte); }
+  .choix.options { flex-direction:column; }
+  .choix.options label { border-radius:8px; align-items:flex-start; }
+  .choix.options label > span > b:first-child { display:block; }
+  .choix input { accent-color:var(--accent); width:22px; height:22px; margin:0; flex:none; }
+  .choix.options input { margin-top:.15rem; }
+  .choix label:has(input:checked) { border-color:var(--accent); box-shadow:inset 0 0 0 1px var(--accent); background:var(--q-fond); }
+  .choix:not(.options) label:has(input:checked)::after,
+  .choix.options label:has(input:checked) > span > b:first-child::after { content:"✓"; margin-left:.35rem; color:var(--accent); font-weight:700; }
+  /* l'option conseillée (le script lit « recommandé » entre parenthèses dans son libellé) : une étiquette, un bord
+     en pointillé */
+  .choix label.conseil { border-style:dashed; border-color:var(--accent); }
+  .choix label.conseil:has(input:checked) { border-style:solid; }
+  .etiquette-conseil { display:inline-block; margin-left:.4rem; padding:0 .45rem; border-radius:4px; background:var(--accent); color:var(--carte); font-size:.9375rem; font-weight:700; white-space:nowrap; }
+  .choix label:focus-within { outline:2px solid var(--accent); outline-offset:2px; }
+  .question { background:var(--q-fond); border-radius:8px; padding:1rem 1.1rem; display:flex; flex-direction:column; gap:.6rem; }
+  .alerte { background:var(--warn-fond); border-radius:8px; padding:1rem 1.1rem; display:flex; flex-direction:column; gap:.5rem; }
+  .erreur { background:var(--ko-fond); border-radius:8px; padding:1rem 1.1rem; display:flex; flex-direction:column; gap:.5rem; }
+  .fil { list-style:none; padding:0; gap:0; }
+  .fil li { display:grid; grid-template-columns:3.6rem 1fr; gap:.8rem; padding:.55rem 0; border-top:1px solid var(--trait); }
+  .fil time { font-family:"IBM Plex Mono",monospace; color:var(--doux); font-size:.9375rem; padding-top:.15rem; }
+  .tableau { overflow-x:auto; }
+  table { border-collapse:collapse; width:100%; font-size:.95rem; }
+  th { text-align:left; color:var(--doux); font-weight:700; font-size:.9375rem; padding:.4rem .7rem .4rem 0; border-bottom:2px solid var(--trait); }
+  td { padding:.6rem .7rem .6rem 0; border-bottom:1px solid var(--trait); vertical-align:top; }
+  td.n { font-family:"IBM Plex Mono",monospace; white-space:nowrap; }
+  a { color:var(--accent); }
+  button { font:inherit; font-weight:700; color:var(--carte); background:var(--accent); border:0; border-radius:6px; padding:.6rem 1.1rem; cursor:pointer; }
+  button:focus-visible { outline:2px solid var(--texte); outline-offset:2px; }
+  textarea { width:100%; min-height:8rem; font-family:"IBM Plex Mono",monospace; font-size:.9375rem; background:var(--carte); color:var(--texte); border:1px solid var(--trait); border-radius:6px; padding:.6rem; }
+  .ligne { display:flex; flex-wrap:wrap; gap:.8rem; align-items:center; }
+  .note summary, .explique summary { display:inline-block; list-style:none; cursor:pointer; color:var(--accent); font-weight:700; font-size:.95rem; padding:.2rem .7rem; border:1px dashed var(--trait); border-radius:6px; }
+  .note summary::-webkit-details-marker, .explique summary::-webkit-details-marker { display:none; }
+  .note summary:focus-visible, .explique summary:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+  .note textarea { display:block; margin-top:.5rem; min-height:4.5rem; font-family:inherit; font-size:.95rem; line-height:1.5; }
+  .explique > p, .explique > .explication, .explique > .ligne { margin-top:.5rem; }
+  .explique > p:empty { display:none; }
+  .explique > p.niveau { margin-top:.25rem; font-size:.9375rem; }
+  .explication { white-space:pre-line; background:var(--fond); border:1px solid var(--trait); border-radius:6px; padding:.6rem .8rem; }
+  .clair { background:var(--carte); border:1px solid var(--trait); border-radius:8px; padding:1rem 1.1rem; display:flex; flex-direction:column; gap:.9rem; }
+  .grille dt.net { color:var(--texte); font-weight:700; }
+  .grille dt.plus { color:var(--ok); font-weight:700; }
+  .grille dt.moins { color:var(--ko); font-weight:700; }
+  .technique { border-top:1px dashed var(--trait); padding-top:.5rem; }
+  .technique summary { cursor:pointer; color:var(--doux); font-weight:700; font-size:.95rem; }
+  .technique summary:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+  .technique > .grille, .technique > p { margin-top:.6rem; }
+  .effet { display:flex; flex-direction:column; gap:.15rem; }
+  @media (max-width:480px) { .grille { grid-template-columns:1fr; } .grille dt { margin-top:.4rem; } }
+  /* Lire et répondre plus vite (2026-10-07) — tout est posé par le script. La barre de suivi, collée en haut
+     de l'écran : la page descend de sa hauteur (--haut-suivi, mesurée par le script). */
+  body { --haut-suivi:0px; }
+  body.avec-suivi { padding-top:calc(var(--haut-suivi) + 12px); }
+  body.avec-suivi :is(section, .question, .decision, [id]) { scroll-margin-top:calc(var(--haut-suivi) + 1rem); }
+  .barre-suivi { position:fixed; top:0; left:0; right:0; z-index:9; background:var(--carte); border-bottom:2px solid var(--accent); box-shadow:0 2px 6px rgba(80,67,59,.1); padding:calc(.5rem + env(safe-area-inset-top, 0px)) 16px .5rem; }
+  .barre-suivi .dedans { max-width:46rem; margin:0 auto; display:flex; flex-wrap:wrap; align-items:center; gap:.4rem .8rem; }
+  .compte-suivi { font-weight:700; white-space:nowrap; }
+  .barre-suivi progress { flex:1 1 5rem; height:6px; -webkit-appearance:none; appearance:none; border:0; border-radius:3px; background:var(--trait); overflow:hidden; }
+  .barre-suivi progress::-webkit-progress-bar { background:var(--trait); }
+  .barre-suivi progress::-webkit-progress-value { background:var(--accent); }
+  .barre-suivi progress::-moz-progress-bar { background:var(--accent); }
+  .etat-suivi { flex-basis:100%; font-size:.9375rem; color:var(--doux); }
+  .etat-suivi:empty { display:none; }
+  .barre-suivi button, .ecouter-carte, .suivante { font:inherit; font-size:.9375rem; font-weight:700; line-height:1.4; white-space:nowrap; color:var(--accent); background:var(--carte); border:1px solid var(--bord-bouton); border-radius:6px; padding:.3rem .8rem; cursor:pointer; }
+  .barre-suivi .copier-suivi { color:var(--carte); background:var(--accent); border-color:var(--accent); }
+  :is(.barre-suivi button, .ecouter-carte, .suivante, .une-ligne):focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+  /* « 🔊 Écouter » à droite du titre de chaque carte */
+  .tete-carte { display:flex; gap:.6rem; align-items:flex-start; justify-content:space-between; }
+  .tete-carte > h3 { flex:1; min-width:0; }
+  .decision .tete > .tete-carte { flex:1 1 16rem; }
+  /* « Suivante » sous une carte répondue ; la carte repliée tient en une ligne, titre → réponse, un clic la rouvre */
+  .une-ligne, .suivante { display:none; }
+  :is(.question, .decision):has(input:checked):not(.repliee) > .suivante { display:inline-block; align-self:flex-start; }
+  :is(.question, .decision).repliee { padding-block:.45rem; background:var(--carte); border:1px solid var(--trait); border-left:4px solid var(--ok); }
+  .repliee > :not(.une-ligne) { display:none; }
+  .repliee > .une-ligne { display:flex; }
+  .une-ligne { width:100%; flex-wrap:wrap; justify-content:space-between; align-items:baseline; gap:.2rem .8rem; font:inherit; font-weight:400; line-height:1.5; text-align:left; color:var(--texte); background:none; border:0; padding:.15rem 0; cursor:pointer; }
+  .une-ligne .choisie { color:var(--ok); font-weight:700; }
+  /* La version courte, éteinte d'office : body.courte replie ce que le script a marqué « long » */
+  .bascule-courte { align-self:flex-start; display:inline-flex; gap:.5rem; align-items:center; cursor:pointer; font-size:.95rem; font-weight:700; color:var(--accent); }
+  .bascule-courte input { accent-color:var(--accent); width:20px; height:20px; margin:0; flex:none; }
+  .bascule-courte:focus-within { outline:2px solid var(--accent); outline-offset:2px; border-radius:4px; }
+  .aide-courte, .replie-court { display:none; font-size:.9375rem; }
+  body.courte .aide-courte, body.courte .replie-court { display:block; }
+  body.courte .page .long { display:none; }
+  /* Format « gros rapport » (data-format="gros" sur la page) : une section par onglet. */
+  .page[data-format="gros"] [hidden] { display:none !important; }
+  .vue { background:var(--carte); border:1px solid var(--trait); border-radius:8px; padding:.7rem 1rem; }
+  .vue > summary { cursor:pointer; font-weight:700; color:var(--accent); }
+  .vue > summary:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+  .commandes { display:flex; flex-direction:column; gap:.6rem; margin-top:.7rem; }
+  .commandes .rangee { display:flex; flex-wrap:wrap; gap:.4rem; }
+  .commandes button { font-size:.95rem; font-weight:400; color:var(--texte); background:var(--fond); border:1px solid var(--trait); padding:.25rem .7rem; text-align:left; line-height:1.4; }
+  .commandes button[aria-current="true"] { color:var(--carte); background:var(--accent); border-color:var(--accent); font-weight:700; }
+  .commandes .compte { white-space:nowrap; }
+  .commandes label { display:inline-flex; gap:.4rem; align-items:center; cursor:pointer; font-size:.95rem; }
+  .commandes input { accent-color:var(--accent); }
+  .flottant { position:fixed; z-index:5; background:var(--carte); border:1px solid var(--trait); border-radius:8px; padding:.7rem .9rem; overflow:auto; }
+  .flottant > p { font-weight:700; color:var(--accent); }
+  .flottant .rangee { flex-direction:column; align-items:stretch; }
+  #ouvrir-menu { position:fixed; z-index:6; right:16px; bottom:16px; box-shadow:0 2px 6px rgba(80,67,59,.25); }
+  /* Grand écran : colonne fixe à gauche, comme un site de doc ; la page se décale pour ne jamais être
+     recouverte. 1080 px = colonne 16 rem + page 46 rem + marges (16 + 32 + 16 px). */
+  @media (min-width:1080px) {
+    /* la colonne commence sous la barre de suivi (--haut-suivi vaut 0 sans elle) */
+    .flottant { top:calc(1rem + var(--haut-suivi)); left:16px; width:16rem; max-height:calc(100vh - 2rem - var(--haut-suivi)); }
+    body.avec-colonne { padding-left:calc(16rem + 48px); }
+    #ouvrir-menu { display:none; }
+    /* la barre du lecteur (LECTEUR, plus bas) et celle de suivi suivent la page décalée */
+    body.avec-colonne .barre-lecture, body.avec-colonne .barre-suivi { padding-left:calc(16rem + 48px); }
+    body.vlp-lit .flottant { max-height:calc(100vh - 8rem - var(--haut-suivi)); }
+  }
+  /* Les onglets remplacent le sommaire de liens : le garder ferait doublon. Sans JavaScript, il reste. */
+  body.avec-colonne .page nav[aria-label="Sommaire"] { display:none; }
+  @media (max-width:1079px) {
+    .flottant { right:16px; bottom:4.6rem; width:min(20rem, calc(100vw - 32px)); max-height:calc(100vh - 6rem - var(--haut-suivi)); box-shadow:0 2px 10px rgba(80,67,59,.3); }
+    .flottant:not(.ouvert) { display:none; }
+    .page[data-format="gros"] { padding-bottom:6rem; }
+    /* pendant la lecture, le bouton « Sections » et son menu passent au-dessus de la barre du lecteur */
+    body.vlp-lit #ouvrir-menu { bottom:10.5rem; }
+    body.vlp-lit .flottant { bottom:13rem; max-height:calc(100vh - 14rem - var(--haut-suivi)); }
+  }
+/* LECTEUR — début. Le lecteur à voix haute (son script : LECTEUR dans vlp.js), copié à l'octet dans
+   vlp.css et dans le style de rapport-choix.html ; test-vlp.py vérifie les deux copies. Les jetons
+   ont un repli pour les deux palettes : --surface ou --carte, --line ou --trait. */
+.lecteur { display:flex; flex-wrap:wrap; align-items:center; gap:.4rem .9rem; margin:.3rem 0; }
+/* caché pendant qu'on prend le texte de la page : sans cette règle, display:flex l'emporte sur hidden */
+.lecteur[hidden],.barre-lecture[hidden] { display:none; }
+.lecteur .suivi,.barre-lecture .ou,.barre-lecture .etiquette { font-size:.9375rem; color:var(--doux); }
+.principal { display:inline-flex; align-items:center; gap:.5rem; font:inherit; font-size:1rem; font-weight:700; color:var(--surface, var(--carte)); background:var(--accent); border:1px solid var(--accent); border-radius:6px; padding:.4rem 1rem .4rem .8rem; min-height:2.6rem; cursor:pointer; }
+.principal svg { flex:none; }
+.principal:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+.vitesses { display:inline-flex; flex-wrap:wrap; border:1px solid var(--bord-bouton, var(--doux)); border-radius:6px; overflow:hidden; }
+.vitesses button { font-family:"IBM Plex Mono",monospace; font-weight:400; letter-spacing:normal; font-size:.9375rem; min-height:2.5rem; padding:0 .7rem; border:0; border-right:1px solid var(--line, var(--trait)); border-radius:0; background:var(--surface, var(--carte)); color:var(--texte); cursor:pointer; }
+.vitesses button:last-child { border-right:0; }
+.vitesses button[aria-pressed="true"] { background:var(--accent); color:var(--surface, var(--carte)); }
+.vitesses button:focus-visible { outline:2px solid var(--accent); outline-offset:-4px; }
+.barre-lecture { position:fixed; left:0; right:0; bottom:0; z-index:10; background:var(--surface, var(--carte)); border-top:2px solid var(--accent); box-shadow:0 -2px 6px rgba(80,67,59,.08); padding:.6rem 16px calc(.6rem + env(safe-area-inset-bottom, 0px)); }
+.barre-lecture .dedans { max-width:46rem; margin:0 auto; display:flex; flex-wrap:wrap; align-items:center; gap:.5rem .9rem; }
+.barre-lecture progress { flex-basis:100%; height:5px; -webkit-appearance:none; appearance:none; border:0; border-radius:3px; background:var(--line, var(--trait)); overflow:hidden; }
+.barre-lecture progress::-webkit-progress-bar { background:var(--line, var(--trait)); }
+.barre-lecture progress::-webkit-progress-value { background:var(--accent); }
+.barre-lecture progress::-moz-progress-bar { background:var(--accent); }
+body.vlp-lit { padding-bottom:9rem; }
+/* LECTEUR — fin */
+</style>
+
+<div class="page" data-cle="vlp-2026-10-18-nuit-ref">
+
+  <header style="display:flex;flex-direction:column;gap:.8rem">
+    <p class="mono sous">vlp · 2026-10-18 · REF42 → REF19 · 11 fiches · de 00:46 à 03:16</p>
+    <h1>La nuit du 18 octobre : REF42 à REF19</h1>
+    <span class="jauge moyen">⚠️ Imprévu</span>
+    <ul>
+      <li><strong>11 fiches faites</strong>, une par commit, de <strong>REF42</strong> à <strong>REF19</strong> — l'objectif que tu as donné en partant.</li>
+      <li><strong>La suite entière passe de 253 s à 200 s</strong> (−21 %) ; pytest seul de 66,6 s à 40,9 s en parallèle.</li>
+      <li><strong>Aucun push</strong> : 11 commits locaux sur <span class="mono">main</span>, à pousser quand tu le dis.</li>
+      <li>⚠️ <strong>Un imprévu, réglé</strong> : une photo a relancé la suite en chaîne (18 processus), arrêtés à la main ; garde posée.</li>
+      <li>⚠️ <strong>Aucune fiche n'a été relue</strong> par un relecteur : tu l'as demandé à 01:05, je n'avais pas ta réponse — voir la question 2.</li>
+    </ul>
+  </header>
+
+  <section>
+    <h2>Les chiffres</h2>
+    <div class="chiffres">
+      <div class="chiffre"><b>11</b><span>fiches faites, chacune son commit</span></div>
+      <div class="chiffre"><b>253 → 200 s</b><span>la suite entière que <span class="mono">cocher</span> lance</span></div>
+      <div class="chiffre"><b>66,6 → 40,9 s</b><span>pytest, en série puis <span class="mono">-n 4</span> (médianes de 5)</span></div>
+      <div class="chiffre"><b>29,29 $</b><span>la séance, 256 tours (<span class="mono">vlp.py cout --session</span>)</span></div>
+    </div>
+    <ul class="sous" style="font-size:.95rem">
+      <li>Durées et <span class="mono">git</span> : <span class="mono">context AI/122-qualite-code-tests.md</span>, section « Moins de <span class="mono">git</span>, puis le parallèle (<span class="mono">REF19</span>) » — Defender coupé, 8 cœurs, seul sur la machine.</li>
+      <li>Coût par fiche : <span class="mono">vlp.py cout</span> coupe aux commits ; leur somme, 30,50 $, dépasse la séance, car REF42 compte aussi des tours d'avant son début.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Ce qui a été fait</h2>
+    <div class="tableau">
+      <table>
+        <thead><tr><th>Réf.</th><th>Quoi</th><th>Ce qu'il livre</th><th>Coût</th></tr></thead>
+        <tbody>
+          <tr><td class="n">REF42</td><td><b>73745f9</b><br>Le sous-agent itère par <span class="mono">rapide</span>, une seule suite entière</td><td>La règle dans <span class="mono">agents/fiche.md</span>, un test, 2 mutants attrapés.</td><td class="n">4,36 $</td></tr>
+          <tr><td class="n">REF40</td><td><b>3536c47</b><br><span class="mono">fusionner</span> refait <span class="mono">sante-base.json</span> au lieu d'un conflit</td><td>Conflit sur le seul relevé : <span class="mono">FUSIONNÉ</span> et <span class="mono">BASE REFAITE</span> ; une fonction qui empire : <span class="mono">CONFLIT</span>.</td><td class="n">1,77 $</td></tr>
+          <tr><td class="n">REF41</td><td><b>2d0da3a</b><br>Un fichier <span class="mono">HORS:</span> n'est plus perdu à la fusion</td><td><span class="mono">GARDÉ &lt;n&gt; chemin(s) : &lt;correctif&gt;</span> sous <span class="mono">.git</span>, <span class="mono">git apply --check</span> passe.</td><td class="n">0,83 $</td></tr>
+          <tr><td class="n">REF4</td><td><b>7a8ad04</b><br>Le socle <span class="mono">pytest</span>, chaque test isolé</td><td><span class="mono">tests/conftest.py</span>, le 1er groupe migré : 29 <span class="mono">assert</span> pour 29 vérifications, 5,7 s contre 22,2 s.</td><td class="n">2,34 $</td></tr>
+          <tr><td class="n">REF5</td><td><b>8a074f0</b><br>Les portes de parité</td><td><span class="mono">vlp.py parite</span> : <span class="mono">MIGRÉ</span>, <span class="mono">PARTIEL — manque :</span>, <span class="mono">RESTE</span>.</td><td class="n">1,33 $</td></tr>
+          <tr><td class="n">REF6</td><td><b>b866327</b><br>L'outil de photographie</td><td><strong>syrupy</strong> gardé, pytest-regtest retiré : l'essai a tranché seul.</td><td class="n">2,71 $</td></tr>
+          <tr><td class="n">REF7</td><td><b>12dc83f</b><br>Une photo par sous-commande</td><td>58 sous-commandes photographiées sur 61, 3 sautées avec raison ; couverture 49 %.</td><td class="n">4,33 $</td></tr>
+          <tr><td class="n">REF9</td><td><b>966b74d</b><br>La taille des fichiers gardée</td><td>Au-dessus de 1 000 lignes, un fichier ne grossit plus : <span class="mono">vlp_coeur.py</span> et <span class="mono">test-vlp.py</span> gelés.</td><td class="n">1,85 $</td></tr>
+          <tr><td class="n">REF18</td><td><b>3b7e42f</b><br>Le plan de découpe</td><td>20 modules dans <span class="mono">scripts/noyau/</span>, <strong>12 fiches ajoutées</strong> (REF43 à REF54).</td><td class="n">3,18 $</td></tr>
+          <tr><td class="n">REF43</td><td><b>cc803e3</b><br><span class="mono">tester_matin</span> migré vers pytest</td><td><span class="mono">MIGRÉ 33/33</span>, l'ancien groupe retiré : <span class="mono">test-vlp.py</span> 11 235 → 10 549 lignes.</td><td class="n">3,74 $</td></tr>
+          <tr><td class="n">REF19</td><td><b>5ad9946</b><br>Moins de <span class="mono">git</span>, puis le parallèle</td><td>xdist <span class="mono">-n 4</span>, 0 blocage sur 20 essais ; pytest lancé en fond dès le début de la suite.</td><td class="n">4,06 $</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Les décisions prises seul — à valider</h2>
+    <p class="sous">Ce que j'ai tranché seul cette nuit, sans pouvoir te demander. Chacune se défait seule. Coche ce que tu gardes, ajoute un commentaire si besoin ; en bas, un bouton copie tes réponses.</p>
+
+    <div class="decision">
+      <div class="tete"><h3>D1 · REF19 ne dépend plus que de REF43</h3><span class="puce moyen">l'ordre du chantier REF</span></div>
+      <dl class="grille">
+        <dt>Le problème</dt><dd>REF19 attendait toutes les fiches de la découpe (12) : impossible cette nuit.</dd>
+        <dt>Mon choix</dt><dd>Sa première partie ne demande que les tests de <span class="mono">matin</span> dans pytest : REF43 suffit. J'ai changé sa ligne <strong>Dépend de</strong>.</dd>
+        <dt>Écarté</dt><dd>Attendre toute la découpe, ou sauter REF19.</dd>
+        <dt>Le prix</dt><dd>Le parallèle ne vaut que pour la partie déjà migrée (pytest, 41 s) ; le reste de <span class="mono">test-vlp.py</span> attend REF50 et REF51.</dd>
+        <dt>Défaire</dt><dd>Remettre « les fiches ajoutées par <span class="mono">REF18</span> » dans <span class="mono">context AI/125-ref.md</span>, fiche REF19.</dd>
+      </dl>
+      <div class="choix"><label><input type="radio" name="D1" value="garder">Je garde</label><label><input type="radio" name="D1" value="revoir">À revoir</label></div>
+    </div>
+
+    <div class="decision">
+      <div class="tete"><h3>D2 · syrupy plutôt que pytest-regtest</h3><span class="puce faible">l'outil des photos</span></div>
+      <dl class="grille">
+        <dt>Le problème</dt><dd>La fiche REF6 demandait de garder un des deux.</dd>
+        <dt>Mon choix</dt><dd>syrupy : photo en texte, lisible dans un diff ; pytest-regtest refuse « — » et « ≈ », ou écrit un pickle binaire.</dd>
+        <dt>Écarté</dt><dd>pytest-regtest ; une recherche web (l'essai suffisait, comme tu l'avais dit).</dd>
+        <dt>Le prix</dt><dd>Aucun connu.</dd>
+        <dt>Défaire</dt><dd><span class="mono">uv add --group dev pytest-regtest</span>, refaire les photos.</dd>
+      </dl>
+      <div class="choix"><label><input type="radio" name="D2" value="garder">Je garde</label><label><input type="radio" name="D2" value="revoir">À revoir</label></div>
+    </div>
+
+    <div class="decision">
+      <div class="tete"><h3>D3 · Le pont pytest part en fond, <span class="mono">-n 4</span></h3><span class="puce faible">la suite que <span class="mono">cocher</span> lance</span></div>
+      <dl class="grille">
+        <dt>Le problème</dt><dd>pytest tournait en série au milieu de la suite.</dd>
+        <dt>Mon choix</dt><dd>Il part dès le début (comme <span class="mono">test-boucle.py</span>), en 4 processus, et se récolte à la fin.</dd>
+        <dt>Écarté</dt><dd><span class="mono">--dist loadfile</span> (58,6 s), <span class="mono">-n 2</span> (42,4 s).</dd>
+        <dt>Le prix</dt><dd>Plus de processus en même temps ; 20 essais sans blocage ne prouvent pas que le bug #1313 ne viendra jamais.</dd>
+        <dt>Défaire</dt><dd>Retirer <span class="mono">-n 4</span> de <span class="mono">PONT_ARGV</span> dans <span class="mono">scripts/test-vlp.py</span>.</dd>
+      </dl>
+      <div class="choix"><label><input type="radio" name="D3" value="garder">Je garde</label><label><input type="radio" name="D3" value="revoir">À revoir</label></div>
+    </div>
+
+    <div class="decision">
+      <div class="tete"><h3>D4 · Au-delà du plafond de 5 fiches</h3><span class="puce faible">ce lancement d'<span class="mono">enchainer</span></span></div>
+      <dl class="grille">
+        <dt>Le problème</dt><dd><span class="mono">/vlp:enchainer</span> s'arrête à 5 fiches.</dd>
+        <dt>Mon choix</dt><dd>Continué jusqu'à 11, sur ta demande d'aller jusqu'à REF19.</dd>
+        <dt>Écarté</dt><dd>S'arrêter à REF5.</dd>
+        <dt>Le prix</dt><dd>Une séance longue : le contexte a grossi d'une fiche à l'autre.</dd>
+        <dt>Défaire</dt><dd>Rien à défaire : chaque fiche a son commit.</dd>
+      </dl>
+      <div class="choix"><label><input type="radio" name="D4" value="garder">Je garde</label><label><input type="radio" name="D4" value="revoir">À revoir</label></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Les choix à trancher</h2>
+    <p class="sous">Une carte par question. Chaque option dit ce qu'elle change.</p>
+
+    <div class="question">
+      <h3>🟡 Q1 · Garder REF19 dépendant de REF43 seul ?</h3>
+      <ul>
+        <li>Voir la première décision ci-dessus.</li>
+      </ul>
+      <div class="choix options">
+        <label><input type="radio" name="Q1" value="garder"><span><b>Garder (recommandé)</b>L'ordre reste celui de cette nuit.</span></label>
+        <label><input type="radio" name="Q1" value="revenir"><span><b>Revenir en arrière</b>REF19 redevient dépendant de toute la découpe (déjà cochée : on la rouvre ?).</span></label>
+      </div>
+    </div>
+
+    <div class="question">
+      <h3>🟡 Q2 · Faire relire les fiches de la nuit ?</h3>
+      <ul>
+        <li>En mode <span class="mono">main</span>, aucun relecteur ne passe ; mes garde-fous : test vu échouer, mutant attrapé, suite verte, pyright, cliquet.</li>
+        <li>Prix d'une relecture : pas mesuré pour ces fiches.</li>
+      </ul>
+      <div class="choix options">
+        <label><input type="radio" name="Q2" value="six"><span><b>Les 6 qui changent du code (recommandé)</b>REF40, REF41, REF5, REF9, REF43, REF19 relues par <span class="mono">vlp:relecture</span>.</span></label>
+        <label><input type="radio" name="Q2" value="toutes"><span><b>Les 11</b>Tout relire, doc comprise.</span></label>
+        <label><input type="radio" name="Q2" value="aucune"><span><b>Aucune</b>Les tests suffisent.</span></label>
+      </div>
+    </div>
+
+    <div class="question">
+      <h3>🟡 Q3 · Le traceback de <span class="mono">vlp.py lire</span> sur un autre disque ?</h3>
+      <ul>
+        <li>Vu en photographiant (REF7) : <span class="mono">lire D:\…</span> depuis un projet sur <span class="mono">C:</span> tombe en <span class="mono">ValueError</span> au lieu d'une <span class="mono">GARDE:</span> (<span class="mono">vlp_coeur.py</span>, <span class="mono">cmd_lire</span>).</li>
+        <li>La photo garde ce comportement : elle changera quand il sera réparé.</li>
+      </ul>
+      <div class="choix options">
+        <label><input type="radio" name="Q3" value="todo"><span><b>Une ligne de TODO (recommandé)</b>Versé comme une petite correction, avec ton second oui.</span></label>
+        <label><input type="radio" name="Q3" value="rien"><span><b>Rien</b>Le défaut reste noté ici seulement.</span></label>
+      </div>
+    </div>
+
+    <div class="question">
+      <h3>🟡 Q4 · Pousser les 11 commits ?</h3>
+      <ul>
+        <li>Ta règle : un push à la fin d'un chantier, toujours confirmé. REF n'est pas fini (19 fiches sur 54).</li>
+      </ul>
+      <div class="choix options">
+        <label><input type="radio" name="Q4" value="attendre"><span><b>Pas encore (recommandé)</b>Ils restent locaux.</span></label>
+        <label><input type="radio" name="Q4" value="pousser"><span><b>Pousser maintenant</b><span class="mono">git push</span> sur <span class="mono">main</span>, après un <span class="mono">fetch</span> (d'autres séances y poussent).</span></label>
+      </div>
+    </div>
+
+    <div class="question">
+      <h3>🟡 Q5 · La suite ?</h3>
+      <ul>
+        <li>Restent 35 fiches ; la découpe REF44 → REF49, puis la migration des tests REF50 et REF51, rendront toute la suite parallèle.</li>
+      </ul>
+      <div class="choix options">
+        <label><input type="radio" name="Q5" value="decoupe"><span><b>La découpe, REF44 → REF49 (recommandé)</b><span class="mono">vlp_coeur.py</span> en 20 modules ; la suite reste verte à chaque pas.</span></label>
+        <label><input type="radio" name="Q5" value="garde"><span><b>Les garde-fous d'abord</b>REF8, REF10, REF11 : couverture, tests en lecture seule, test retiré visible.</span></label>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Ce qui a mal tourné</h2>
+    <div class="alerte">
+      <h3>⚠️ Une chaîne de 18 processus, à 02:00</h3>
+      <p>La photo de <span class="mono">vlp.py mutant</span> lançait la suite du kit, dont le pont relançait pytest, qui relançait la photo. Arrêtés à la main (ceux de Cairn intacts), dépôt vérifié propre. Garde : le pont pose <span class="mono">VLP_PONT=1</span> et ne se rejoue plus dedans ; <span class="mono">mutant</span> n'est plus photographié.</p>
+    </div>
+    <div class="erreur">
+      <h3>🔥 <span class="mono">vlp.py lire</span> tombe en traceback sur un autre disque</h3>
+      <p><span class="mono">ValueError: Paths don't have the same drive</span>. Hors des fiches : non corrigé, photographié tel quel (question 3).</p>
+    </div>
+    <div class="alerte">
+      <h3>⚠️ La feuille de route était en retard</h3>
+      <p>Elle disait <span class="mono">REF1–REF39</span> depuis l'ajout de REF40 à REF42 ; refaite et republiée à REF18 (<span class="mono">REF1–REF54</span>).</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Le fil</h2>
+    <p class="sous" style="font-size:.95rem">Heures lues sur les commits.</p>
+    <ul class="fil">
+      <li><time>00:46</time><span><b>REF42</b> · le sous-agent itère par <span class="mono">rapide</span></span></li>
+      <li><time>00:56</time><span><b>REF40</b> · <span class="mono">fusionner</span> refait le relevé du cliquet</span></li>
+      <li><time>01:03</time><span><b>REF41</b> · le hors-commit gardé en correctif</span></li>
+      <li><time>01:15</time><span><b>REF4</b> · le socle pytest</span></li>
+      <li><time>01:22</time><span><b>REF5</b> · <span class="mono">vlp.py parite</span></span></li>
+      <li><time>01:33</time><span><b>REF6</b> · syrupy choisi</span></li>
+      <li><time>02:00</time><span><b>REF7</b> · 58 photos — et la chaîne de processus arrêtée</span></li>
+      <li><time>02:08</time><span><b>REF9</b> · la taille des fichiers gelée</span></li>
+      <li><time>02:19</time><span><b>REF18</b> · le plan, 12 fiches ajoutées</span></li>
+      <li><time>02:34</time><span><b>REF43</b> · <span class="mono">tester_matin</span> dans pytest</span></li>
+      <li><time>03:16</time><span><b>REF19</b> · le parallèle : 253 → 200 s</span></li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Tes réponses</h2>
+    <p class="sous">Le bouton copie tes coches et tes commentaires. Colle-les dans la conversation.</p>
+    <div class="ligne"><button type="button" id="copier">Copier mes réponses</button><span id="etat" class="sous" aria-live="polite"></span></div>
+    <textarea id="reponses" readonly aria-label="Tes réponses"></textarea>
+  </section>
+
+  <footer class="sous" style="font-size:.9375rem;border-top:1px solid var(--trait);padding-top:1rem">
+    Rapport de la nuit du 2026-10-18, bâti par <span class="mono">vlp.py chef page</span>. Le détail : <span class="mono">context AI/122-qualite-code-tests.md</span> et la page du chantier.
+  </footer>
+</div>
+
+<script>
+// INSECABLE — début. Nombres et dates jamais coupés en fin de ligne, copié à l'octet dans templates/vlp.js
+// et dans le script de templates/rapport-choix.html ; test-vlp.py vérifie que les deux copies sont pareilles.
+// « 5 069 068 », « 2,57 $ », « 47 % », « 41 tours », « 3 s », « 16,3 → 11,7 » reçoivent une espace
+// insécable ; une date (« 2026-09-30 ») ou une plage (« MOR1–MOR14 », « 28–66 ») passe dans un
+// `span.insecable`, que le style garde sur une ligne. À l'affichage seulement : vlp.py écrit des espaces
+// ordinaires, que ses propres lectures de la page attendent. Le texte brut (pre), les scripts, les styles
+// et les champs de saisie n'y passent pas. La flèche, %, s, ms, min, px et les plages de nombres : ajoutés
+// le 2026-10-07, pour les rapports à cartes.
+(() => {
+  const page = document.querySelector(".page");
+  if (!page) return;
+  const insecable = /(\d) (?=\d{3}(?!\d)|[$%→]|(?:tours?|fiches?|tokens|mutants?|appels?|min|ms|px|s|k)(?![\p{L}\p{N}]))|(→) (?=\d)/gu;
+  const bloc = /(\d{4}-\d\d-\d\d|[A-Z]{2,4}\d+–[A-Z]{2,4}\d+|\d+(?:,\d+)?–\d+(?:,\d+)?)/u;
+  const textes = [];
+  const marche = document.createTreeWalker(page, NodeFilter.SHOW_TEXT);
+  for (let n = marche.nextNode(); n; n = marche.nextNode()) {
+    if (!n.parentElement.closest("pre, script, style, textarea")) textes.push(n);
+  }
+  textes.forEach((n) => {
+    const morceaux = n.data.replace(insecable, "$1$2\u00a0").split(bloc);
+    if (morceaux.length === 1) {
+      if (morceaux[0] !== n.data) n.data = morceaux[0];
+      return;
+    }
+    n.replaceWith(...morceaux.map((m, i) => {
+      if (i % 2 === 0) return m;
+      const s = document.createElement("span");
+      s.className = "insecable";
+      s.textContent = m;
+      return s;
+    }));
+  });
+})();
+// INSECABLE — fin
+  const page = document.querySelector(".page");
+  const cle = "rapport:" + (page.dataset.cle || document.title);
+  const titre = document.querySelector("h1").textContent.trim() || document.title;
+  const zone = document.getElementById("reponses");
+  const noms = [...new Set([...document.querySelectorAll('input[type="radio"]')].map(e => e.name))];
+  function lireStock() { try { return JSON.parse(localStorage.getItem(cle) || "{}"); } catch (e) { return {}; } }
+  function ecrireStock(v) { try { localStorage.setItem(cle, JSON.stringify(v)); } catch (e) {} }
+  const notes = {};
+  function texte() {
+    const lignes = ["Mes réponses — " + titre + " :"];
+    for (const n of noms) {
+      const c = document.querySelector('input[name="' + n + '"]:checked');
+      lignes.push("- " + n + " : " + (c ? c.value : "pas répondu"));
+      const note = notes[n].value.trim();
+      if (note) lignes.push("  ↳ " + note.replace(/\s*\n\s*/g, "\n    "));
+    }
+    return lignes.join("\n");
+  }
+  function maj() { zone.value = texte(); }
+  const stock = lireStock();
+  for (const n of noms) {
+    const radio = document.querySelector('input[name="' + n + '"]');
+    const carte = radio.closest(".decision, .question") || radio.parentElement;
+    const bloc = document.createElement("details");
+    const bouton = document.createElement("summary");
+    const champ = document.createElement("textarea");
+    bloc.className = "note";
+    bouton.dataset.muet = "";  // le lecteur ne le dit pas
+    champ.dataset.note = n;
+    champ.setAttribute("aria-label", "Commentaire sur " + n);
+    champ.value = stock["note:" + n] || "";
+    const libelle = () => { bouton.textContent = bloc.open ? "− Replier le commentaire" : champ.value.trim() ? "✏️ Voir mon commentaire" : "+ Ajouter un commentaire"; };
+    bloc.addEventListener("toggle", () => { libelle(); if (bloc.open) champ.focus(); });
+    bloc.append(bouton, champ);
+    carte.appendChild(bloc);
+    notes[n] = champ;
+    libelle();
+    if (!stock[n]) continue;
+    for (const el of document.querySelectorAll('input[name="' + n + '"]')) if (el.value === stock[n]) el.checked = true;
+  }
+  document.addEventListener("change", e => {
+    if (e.target.matches('input[type="radio"]')) { const s = lireStock(); s[e.target.name] = e.target.value; ecrireStock(s); maj(); }
+  });
+  document.addEventListener("input", e => {
+    if (e.target.matches("textarea[data-note]")) { const s = lireStock(); s["note:" + e.target.dataset.note] = e.target.value; ecrireStock(s); maj(); }
+  });
+  // Copie les réponses, et rend le mot affiché à côté du bouton (la barre de suivi le reprend). Presse-papier
+  // refusé ou absent : le texte se sélectionne, à copier au clavier.
+  function copier() {
+    const etat = document.getElementById("etat");
+    return Promise.resolve().then(() => navigator.clipboard.writeText(zone.value)).then(() => "Copié.")
+      .catch(e => { console.warn("rapport — copie refusée, texte sélectionné :", e); zone.focus(); zone.select(); return "Sélectionné : fais Ctrl+C."; })
+      .then(mot => (etat.textContent = mot));
+  }
+  document.getElementById("copier").addEventListener("click", copier);
+  maj();
+
+  /* Lire et répondre plus vite (2026-10-07, choix tranchés sur la page « Des rapports plus beaux et plus malins ») :
+     l'option recommandée prend l'étiquette « 👍 conseillé » ; chaque carte, « 🔊 Écouter » à côté de son titre ;
+     une carte répondue, « Suivante », qui la replie en une ligne (un clic la rouvre) et mène à la prochaine sans
+     réponse ; en haut de l'écran, la barre de suivi ; sous le titre, la version courte, éteinte d'office. */
+  (() => {
+    const cartes = [...page.querySelectorAll(".question, .decision")].filter(c => c.querySelector('input[type="radio"]'));
+    const doux = () => (matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth");
+    const element = (balise, classe, texte) => {
+      const e = document.createElement(balise);
+      if (classe) e.className = classe;
+      if (texte) e.textContent = texte;
+      return e;
+    };
+    const bouton = (classe, texte) => { const b = element("button", classe, texte); b.type = "button"; return b; };
+
+    // L'option conseillée : « recommandé » entre parenthèses quitte le libellé et devient une étiquette, que le lecteur
+    // dit ; la page bâtie par vlp.py chef page ne porte ce mot qu'une fois par option (test-vlp.py le compte)
+    const CONSEIL = /\s*\((recommandé|conseillé)\)/i;
+    for (const b of page.querySelectorAll(".choix label > span > b:first-child")) {
+      if (!CONSEIL.test(b.textContent)) continue;
+      const w = document.createTreeWalker(b, NodeFilter.SHOW_TEXT);
+      for (let n = w.nextNode(); n; n = w.nextNode()) n.data = n.data.replace(CONSEIL, "");
+      b.closest("label").classList.add("conseil");
+      b.append(" ", element("span", "etiquette-conseil", "👍 conseillé"));
+    }
+
+    // « Écouter » une carte : la carte seule passe au lecteur de la page (bloc LECTEUR, plus bas), comme une sélection
+    if (window.speechSynthesis) for (const c of cartes) {
+      const h = c.querySelector("h3");
+      if (!h) continue;
+      const tete = element("div", "tete-carte");
+      const ecouter = bouton("ecouter-carte", "🔊 Écouter");
+      ecouter.setAttribute("aria-label", "Écouter cette carte");
+      ecouter.addEventListener("click", () => {
+        const lecteur = document.querySelector(".lecteur .principal");
+        if (!lecteur) { console.warn("rapport — pas de lecteur à voix haute sur la page"); return; }
+        if (document.body.classList.contains("vlp-lit")) lecteur.click();  // la lecture en cours s'arrête d'abord
+        window.getSelection().selectAllChildren(c);
+        lecteur.click();
+        window.getSelection().removeAllRanges();  // le lecteur a déjà pris le texte
+      });
+      h.before(tete);
+      tete.append(h, ecouter);
+    }
+
+    // La barre de suivi : le compte, la prochaine carte sans réponse (après `depuis`, sinon sous le haut de l'écran), copier
+    const barre = element("div", "barre-suivi");
+    const etat = element("span", "etat-suivi");
+    const dire = texte => { etat.textContent = texte; };
+    const repondue = c => !!c.querySelector('input[type="radio"]:checked');
+    const allerSuivante = depuis => {
+      const ouvertes = cartes.filter(c => !repondue(c));
+      if (!ouvertes.length) { dire("✅ Tout est répondu : tu peux copier."); return; }
+      const cible = (depuis ? ouvertes.find(c => cartes.indexOf(c) > cartes.indexOf(depuis))
+        : ouvertes.find(c => c.offsetParent && c.getBoundingClientRect().top > barre.offsetHeight + 24)) || ouvertes[0];
+      document.dispatchEvent(new CustomEvent("vlp-montrer", { detail: cible }));  // le format gros ouvre son onglet
+      cible.scrollIntoView({ behavior: doux(), block: "start" });
+      cible.querySelector('input[type="radio"]').focus({ preventScroll: true });
+      dire("");
+    };
+    if (cartes.length) {
+      const dedans = element("div", "dedans");
+      const compte = element("span", "compte-suivi");
+      const jauge = document.createElement("progress");
+      const aller = bouton("", "➡️ Suivante sans réponse");
+      const copie = bouton("copier-suivi", "📋 Copier");
+      barre.setAttribute("role", "region");
+      barre.setAttribute("aria-label", "Suivi des réponses");
+      jauge.setAttribute("aria-label", "Cartes répondues");
+      etat.setAttribute("aria-live", "polite");
+      dedans.append(compte, jauge, aller, copie, etat);
+      barre.append(dedans);
+      document.body.prepend(barre);
+      document.body.classList.add("avec-suivi");
+      aller.addEventListener("click", () => allerSuivante(null));
+      copie.addEventListener("click", () => copier().then(dire));
+      const suivi = () => {
+        const n = noms.filter(x => document.querySelector('input[name="' + x + '"]:checked')).length;
+        compte.textContent = n + " sur " + noms.length + " répondues";
+        jauge.max = noms.length;
+        jauge.value = n;
+      };
+      // la page descend de la hauteur de la barre, mesurée tout de suite et police chargée (un onglet caché ne lance
+      // pas l'observateur), puis à chaque fois qu'elle change, quand elle passe sur deux lignes
+      const mesurer = () => document.body.style.setProperty("--haut-suivi", barre.offsetHeight + "px");
+      mesurer();
+      document.fonts?.ready.then(mesurer);
+      new ResizeObserver(mesurer).observe(barre);
+      document.addEventListener("change", e => { if (e.target.matches('input[type="radio"]')) suivi(); });
+      suivi();
+    }
+
+    // « Suivante » : la carte répondue se replie en une ligne, titre → réponse ; un clic sur la ligne la rouvre
+    for (const c of cartes) {
+      const ligne = bouton("une-ligne");
+      const titre = element("span");
+      const choisie = element("span", "choisie");
+      ligne.append(titre, choisie);
+      ligne.addEventListener("click", () => { c.classList.remove("repliee"); c.querySelector('input[type="radio"]:checked')?.focus(); });
+      const suivante = bouton("suivante", "Suivante ➡️");
+      suivante.addEventListener("click", () => {
+        const h = c.querySelector("h3");
+        const label = c.querySelector('input[type="radio"]:checked').closest("label");
+        const libelle = (label.querySelector("b") || label).cloneNode(true);
+        libelle.querySelectorAll(".etiquette-conseil").forEach(x => x.remove());
+        titre.textContent = "✅ " + (h ? h.textContent.replace(/^[^\p{L}\p{N}]+/u, "").trim() : "");
+        choisie.textContent = "→ " + libelle.textContent.trim();
+        c.classList.add("repliee");
+        ligne.focus({ preventScroll: true });  // la carte suivante prend la main, s'il en reste une
+        allerSuivante(c);
+      });
+      c.prepend(ligne);
+      c.append(suivante);
+    }
+
+    // La version courte : ne restent que l'en-tête, les titres, les lignes « 💬 en clair », les options et toute ligne
+    // qui porte ⚠️ ; le reste reçoit la classe « long », que body.courte replie. Une section vide le dit.
+    const PARLE = /^\s*💬|⚠/u;
+    const TOUJOURS = "h3, .tete, .tete-carte, .choix, .note, .explique, .suivante, .une-ligne";
+    const plier = el => el.classList.add("long");
+    const trier = racine => {  // vrai si quelque chose reste visible dans `racine`
+      let reste = false;
+      for (const el of racine.children) {
+        let garde = false;
+        if (el.matches("h2")) continue;
+        if (el.matches(TOUJOURS)) garde = true;
+        else if (el.matches("dl")) {
+          for (const dt of el.querySelectorAll(":scope > dt")) {
+            const dd = dt.nextElementSibling?.matches("dd") ? dt.nextElementSibling : null;
+            if (dt.matches(".net") || PARLE.test(dt.textContent + " " + (dd ? dd.textContent : ""))) garde = true;
+            else { plier(dt); if (dd) plier(dd); }
+          }
+        } else if (el.matches("ul, ol")) {
+          for (const li of el.children) if (PARLE.test(li.textContent)) garde = true; else plier(li);
+        } else if (el.matches("div:not(.chiffres, .tableau)")) garde = trier(el);
+        else garde = el.matches("p, h4") && PARLE.test(el.textContent);
+        if (garde) reste = true; else plier(el);
+      }
+      return reste;
+    };
+    const fixe = document.getElementById("reponses").closest("section");
+    for (const s of page.querySelectorAll(":scope > section")) {
+      if (s === fixe || trier(s)) continue;
+      const vide = element("p", "replie-court sous", "✂️ Repliée en version courte");
+      vide.dataset.muet = "";  // le lecteur ne le dit pas
+      const h2 = s.querySelector(":scope > h2");
+      if (h2) h2.after(vide); else s.prepend(vide);
+    }
+    page.querySelector(":scope > footer")?.classList.add("long");
+    const CLE_COURTE = "vlp-courte";  // une préférence de lecture, la même pour tous les rapports
+    const bascule = element("label", "bascule-courte");
+    const coche = document.createElement("input");
+    const aide = element("p", "aide-courte sous",
+      "Ne restent que les lignes en clair, les options et les alertes — rien n'est effacé, décoche pour tout revoir");
+    coche.type = "checkbox";
+    try { coche.checked = localStorage.getItem(CLE_COURTE) === "1"; }
+    catch (e) { console.warn("rapport — version courte gardée illisible :", e); }
+    bascule.dataset.muet = aide.dataset.muet = "";
+    bascule.append(coche, element("span", "", "✂️ Version courte"));
+    coche.addEventListener("change", () => {
+      document.body.classList.toggle("courte", coche.checked);
+      try { localStorage.setItem(CLE_COURTE, coche.checked ? "1" : "0"); }
+      catch (e) { console.warn("rapport — version courte non gardée :", e); }
+    });
+    const h1 = page.querySelector("header h1");
+    if (h1) h1.after(bascule, aide); else page.querySelector("header")?.append(bascule, aide);
+    document.body.classList.toggle("courte", coche.checked);
+  })();
+
+  /* Explique-moi, éteint sauf data-explique sur la page : sous chaque carte, un repli « Explique-moi cette carte »
+     demande à Claude, à son ouverture, de la réexpliquer en mots simples (capacité sample, payée sur le compte de qui
+     clique) ; « Écouter l'explication » la passe au lecteur. Sans Claude joignable, rien n'apparaît ; un accès refusé
+     retire les autres replis, et la page ne redemande jamais. Le prompt envoie l'en-tête et la carte, repli compris. */
+  if ("explique" in page.dataset) (async () => {
+    let sample = null;
+    try { sample = window.claude ? await window.claude.use("sample") : null; }
+    catch (e) { console.warn("Explique-moi : capacité sample illisible —", e); }
+    if (!sample) return;
+    const MOTS = {
+      not_granted: "Accès refusé : la page ne demandera plus rien à Claude.",
+      sampling_disabled: "Demander à Claude est coupé pour ce compte.",
+      rate_limited: "Trop de demandes d'un coup : attends un peu, puis réessaie.",
+      session_expired: "Ta session Claude a expiré : recharge la page.",
+      prompt_too_large: "La carte est trop longue pour une seule demande.",
+      refused: "Claude a refusé de répondre.",
+      empty_completion: "La réponse est revenue vide.",
+      upstream_error: "Le service a eu un souci : réessaie plus tard."
+    };
+    const FIN = ["not_granted", "sampling_disabled", "not_declared", "capability_disabled", "capability_removed"];
+    // le niveau qui a répondu (la plateforme ne donne pas le nom du modèle) ; l'Explique-moi demande « default »
+    const NIVEAUX = { quick: "rapide (quick)", default: "équilibré (default)", complex: "le plus capable (complex)" };
+    const brut = (el, sans) => {
+      const c = el.cloneNode(true);
+      c.querySelectorAll(sans).forEach(x => x.remove());
+      c.querySelectorAll("dt").forEach(x => x.after(" : "));  // « Le problème : … », pas « Le problèmela … »
+      c.querySelectorAll("dd, li, p, h1, h2, h3, label, summary, div, td, .puce").forEach(x => x.after("\n"));
+      return c.textContent.replace(/[ \t]+/g, " ").replace(/\s*\n\s*/g, "\n").trim();
+    };
+    const entete = brut(page.querySelector("header"), ".lecteur, .bascule-courte, .aide-courte").slice(0, 2000);
+    const replis = [];
+    for (const n of noms) {
+      const note = notes[n].parentElement;
+      const carte = note.parentElement;
+      const repli = document.createElement("details");
+      const resume = document.createElement("summary");
+      const etat = document.createElement("p");
+      const reponse = document.createElement("div");
+      const niveau = document.createElement("p");
+      const ligne = document.createElement("div");
+      const ecouter = document.createElement("button");
+      const relancer = document.createElement("button");
+      repli.className = "explique";
+      resume.dataset.muet = "";
+      etat.className = "sous";
+      etat.setAttribute("aria-live", "polite");
+      reponse.className = "explication";
+      niveau.className = "sous niveau";
+      niveau.dataset.muet = "";  // discret : le lecteur ne le dit pas
+      ligne.className = "ligne";
+      ecouter.type = relancer.type = "button";
+      ecouter.textContent = "🔊 Écouter l'explication";
+      relancer.textContent = "Réessayer";
+      reponse.hidden = niveau.hidden = ecouter.hidden = relancer.hidden = true;
+      ligne.append(ecouter, relancer);
+      repli.append(resume, etat, reponse, niveau, ligne);
+      carte.insertBefore(repli, note);
+      replis.push(repli);
+      let demande = false;
+      const libelle = () => { resume.textContent = repli.open ? "− Replier l'explication" : "💬 Explique-moi cette carte"; };
+      const demander = async () => {
+        demande = true;
+        relancer.hidden = ecouter.hidden = niveau.hidden = true;
+        reponse.hidden = false;
+        reponse.textContent = "";
+        etat.textContent = "Claude réfléchit… (de 5 à 60 secondes)";
+        const consigne =
+          "Tu expliques une carte d'un rapport de travail à une personne qui a une dyslexie très sévère ; " +
+          "elle écoute souvent la réponse en synthèse vocale.\n" +
+          "Réponds en français, en 8 lignes au plus, qui commencent par « - ». Une idée par ligne, des phrases " +
+          "courtes, des mots simples.\n" +
+          "Commence par une image simple de la vie de tous les jours, si elle aide. Puis dis ce que la carte " +
+          "demande ou décide, et ce que chaque option change, concrètement.\n" +
+          "Un mot technique s'explique entre parenthèses. N'invente rien qui ne soit dans le rapport. " +
+          "Pas de titre, pas de gras, pas d'émoji.\n\n" +
+          "L'en-tête du rapport :\n" + entete + "\n\nLa carte :\n" +
+          brut(carte, ".note, .explique, .une-ligne, .suivante, .ecouter-carte").slice(0, 8000);
+        try {
+          const r = await sample(consigne, { onText: ({ text }) => { reponse.textContent = text; etat.textContent = "Claude écrit…"; } });
+          reponse.textContent = r.text;
+          etat.textContent = r.truncated ? "Réponse coupée avant la fin." : "";
+          niveau.textContent = "Répondu par le niveau " + (NIVEAUX[r.modelTierApplied] || r.modelTierApplied) + ".";
+          niveau.hidden = !r.modelTierApplied;
+          ecouter.hidden = !document.querySelector(".lecteur .principal");
+        } catch (e) {
+          console.warn("Explique-moi : sample a échoué —", e.code, e.message);
+          reponse.textContent = e.text || "";
+          reponse.hidden = !e.text;
+          etat.textContent = "❌ " + (MOTS[e.code] || "L'explication n'a pas marché (" + e.code + ").");
+          if (FIN.includes(e.code)) replis.filter(x => x !== repli).forEach(x => x.remove());
+          else relancer.hidden = false;
+        }
+      };
+      repli.addEventListener("toggle", () => { libelle(); if (repli.open && !demande) demander(); });
+      relancer.addEventListener("click", demander);
+      ecouter.addEventListener("click", () => {
+        const lecteur = document.querySelector(".lecteur .principal");
+        if (document.body.classList.contains("vlp-lit")) lecteur.click();  // la lecture en cours s'arrête d'abord
+        window.getSelection().selectAllChildren(reponse);
+        lecteur.click();
+      });
+      libelle();
+    }
+  })();
+
+  /* Format « gros rapport », éteint sauf data-format="gros" sur la page. Lit la page telle quelle : une section = un onglet ; la section
+     « Tes réponses » reste toujours visible. Une carte « à répondre » : elle a des boutons radio à elle
+     et aucun n'est coché (réponse du registre ou coche gardée dans ton navigateur). */
+  if (page.dataset.format === "gros") (() => {
+    const cleVue = "vue:" + (page.dataset.cle || document.title);
+    const lire = () => { try { return JSON.parse(localStorage.getItem(cleVue) || "{}"); } catch (e) { return {}; } };
+    const ecrire = v => { try { localStorage.setItem(cleVue, JSON.stringify(v)); } catch (e) {} };
+    const fixe = document.getElementById("reponses").closest("section");
+    const sections = [...page.querySelectorAll(":scope > section")].filter(s => s !== fixe);
+    sections.forEach((s, i) => { if (!s.id) s.id = "s-" + i; });
+    const nom = s => (s.querySelector("h2")?.textContent || s.id).trim();
+    const cartes = [...page.querySelectorAll(".question, .decision")].map(c => ({
+      c, radios: [...c.querySelectorAll('input[type="radio"]')].filter(r => r.closest(".question, .decision") === c)
+    })).filter(x => x.radios.length);
+    const aRepondre = x => !x.radios.some(r => r.checked);
+    let vue = Object.assign({ onglet: sections[0].id, ouvertes: false }, lire());
+    if (vue.onglet !== "tout" && !sections.some(s => s.id === vue.onglet)) vue.onglet = sections[0].id;
+
+    function appliquer() {
+      const ouvertes = new Set(cartes.filter(aRepondre).map(x => x.c));
+      for (const x of cartes) x.c.hidden = vue.ouvertes && !ouvertes.has(x.c);
+      for (const s of sections) {
+        const n = cartes.filter(x => s.contains(x.c) && ouvertes.has(x.c)).length;
+        const vide = vue.ouvertes && n === 0;
+        s.hidden = (vue.onglet !== "tout" && vue.onglet !== s.id) || (vue.onglet === "tout" && vide);
+        for (const b of document.querySelectorAll('[data-onglet="' + s.id + '"]')) {
+          b.querySelector(".compte").textContent = n ? " · " + n + " à répondre" : "";
+        }
+      }
+      for (const b of document.querySelectorAll("[data-onglet]")) b.setAttribute("aria-current", b.dataset.onglet === vue.onglet ? "true" : "false");
+      for (const c of document.querySelectorAll("[data-filtre]")) c.checked = vue.ouvertes;
+      const actif = sections.find(s => s.id === vue.onglet);
+      const vides = document.querySelectorAll(".vide-ouvertes");
+      for (const v of vides) v.remove();
+      if (actif && vue.ouvertes && cartes.some(x => actif.contains(x.c)) && !cartes.some(x => actif.contains(x.c) && ouvertes.has(x.c))) {
+        const p = document.createElement("p");
+        p.className = "vide-ouvertes sous";
+        p.textContent = "✅ Rien à répondre dans cette section. Décoche « à répondre seulement » pour tout revoir.";
+        actif.querySelector("h2").after(p);
+      }
+      ecrire(vue);
+    }
+    function choisir(id) { vue.onglet = id; appliquer(); }
+
+    function commandes() {
+      const bloc = document.createElement("div");
+      bloc.className = "commandes";
+      const filtre = document.createElement("label");
+      filtre.innerHTML = '<input type="checkbox" data-filtre> À répondre seulement';
+      filtre.querySelector("input").addEventListener("change", e => { vue.ouvertes = e.target.checked; appliquer(); });
+      const rangee = document.createElement("div");
+      rangee.className = "rangee";
+      const ajouter = (id, texte) => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.dataset.onglet = id;
+        b.innerHTML = '<span></span><span class="compte"></span>';
+        b.firstChild.textContent = texte;
+        b.addEventListener("click", () => { choisir(id); document.querySelector(".flottant")?.classList.remove("ouvert"); page.scrollIntoView(); });
+        rangee.append(b);
+      };
+      for (const s of sections) ajouter(s.id, nom(s));
+      ajouter("tout", "📜 Tout afficher");
+      bloc.append(filtre, rangee);
+      return bloc;
+    }
+
+    const haut = document.createElement("details");
+    haut.className = "vue";
+    // Ouvert d'office, même à côté de la colonne de gauche (voulu le 2026-10-06) ; ton choix est retenu.
+    haut.open = "haut" in vue ? vue.haut : true;
+    haut.innerHTML = "<summary>🗂️ Sections et filtres</summary>";
+    haut.append(commandes());
+    haut.addEventListener("toggle", () => { vue.haut = haut.open; ecrire(vue); });
+    page.querySelector("header").after(haut);
+
+    const flottant = document.createElement("nav");
+    flottant.className = "flottant";
+    flottant.setAttribute("aria-label", "Sections");
+    flottant.innerHTML = "<p>🗂️ Sections</p>";
+    flottant.append(commandes());
+    document.body.append(flottant);
+    document.body.classList.add("avec-colonne");  // décale la page derrière la colonne (style ci-dessus)
+    const bouton = document.createElement("button");
+    bouton.type = "button";
+    bouton.id = "ouvrir-menu";
+    bouton.textContent = "🗂️ Sections";
+    bouton.setAttribute("aria-expanded", "false");
+    bouton.addEventListener("click", () => { const o = flottant.classList.toggle("ouvert"); bouton.setAttribute("aria-expanded", String(o)); });
+    document.body.append(bouton);
+
+    // Un lien interne (#Q-MIG-09, #sources…), ou la barre de suivi (évènement vlp-montrer), ouvre d'abord l'onglet
+    // qui contient sa cible.
+    function viser(hash) {
+      const cible = hash && document.getElementById(decodeURIComponent(hash.slice(1)));
+      if (cible) montrer(cible);
+    }
+    document.addEventListener("vlp-montrer", e => montrer(e.detail));
+    function montrer(cible) {
+      const s = sections.find(x => x.contains(cible));
+      if (!s) return;
+      if (s.hidden) { if (vue.onglet === "tout") vue.ouvertes = false; else vue.onglet = s.id; }
+      if (cible.closest("[hidden]")) vue.ouvertes = false;  // une carte déjà répondue, cachée par le filtre
+      appliquer();
+    }
+    document.addEventListener("click", e => { const a = e.target.closest('a[href^="#"]'); if (a) viser(a.getAttribute("href")); });
+    window.addEventListener("hashchange", () => { viser(location.hash); document.getElementById(decodeURIComponent(location.hash.slice(1)))?.scrollIntoView(); });
+    appliquer();
+    if (location.hash) { viser(location.hash); document.getElementById(decodeURIComponent(location.hash.slice(1)))?.scrollIntoView(); }
+  })();
+
+// LECTEUR — début. Le lecteur à voix haute, copié à l'octet dans templates/vlp.js et dans le script de
+// templates/rapport-choix.html ; test-vlp.py vérifie que les deux copies sont pareilles (2026-10-06).
+// La voix du navigateur (Web Speech, sans paquet ; essayée dans le cadre d'un artefact le 2026-10-06)
+// lit la sélection s'il y en a une, sinon le texte visible de la page — une carte repliée ne se lit
+// pas. Un morceau par ligne ou par phrase : certains navigateurs coupent une lecture trop longue.
+// Au repos, un seul bouton « Écouter » sous le titre. Pendant la lecture, une barre collée en bas de
+// l'écran : Arrêter, cinq vitesses en un clic (gardées dans le navigateur), « phrase n sur N », la
+// progression. Une vitesse changée en pleine lecture reprend la phrase en cours ; Échap arrête. Ce
+// qui se passe s'affiche à côté du bouton, et une erreur part en console.
+(() => {
+  const page = document.querySelector(".page");
+  const entete = page && page.querySelector("header");
+  const voix = window.speechSynthesis;
+  if (!entete || !voix) return;
+  // l'émoji part avec ses liants invisibles (U+FE0F, U+200D), sinon il en reste une « phrase » muette
+  const sansEmoji = (t) => t.replace(/[\p{Extended_Pictographic}️‍]/gu, "").trim();
+  const VITESSES = [0.75, 1, 1.25, 1.5, 2];
+  const CLE_VITESSE = "vlp-vitesse";
+  let vitesse = 1.25; // plus vite que la normale (1), à sa demande du 2026-10-06
+  try {
+    const gardee = Number(localStorage.getItem(CLE_VITESSE));
+    if (VITESSES.includes(gardee)) vitesse = gardee;
+  } catch (e) { console.warn("lecteur — vitesse gardée illisible :", e); }
+  const ICONES = {
+    ecouter: '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.6 6a8.6 8.6 0 0 1 0 12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>',
+    arreter: '<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="2" fill="currentColor"/></svg>',
+  };
+  let morceaux = [];
+  let choisi = "";
+  let encours = -1; // le morceau qui se lit, -1 hors lecture
+  let lit = false;
+  let numero = 0; // la dernière lecture lancée : une ancienne ne parle plus à sa place
+  const element = (balise, classe, texte) => {
+    const e = document.createElement(balise);
+    if (classe) e.className = classe;
+    if (texte) e.textContent = texte;
+    return e;
+  };
+  const principaux = [];
+  const principal = () => {
+    const b = element("button", "principal");
+    b.type = "button";
+    b.addEventListener("click", () => (lit ? arreter("Arrêté.") : ecouter()));
+    principaux.push(b);
+    return b;
+  };
+
+  const lecteur = element("div", "lecteur");
+  const suivi = element("span", "suivi");
+  suivi.setAttribute("aria-live", "polite");
+  lecteur.append(principal(), suivi);
+  const titre = entete.querySelector("h1");
+  if (titre) titre.after(lecteur);
+  else entete.append(lecteur);
+
+  const barre = element("div", "barre-lecture");
+  barre.hidden = true;
+  barre.setAttribute("role", "region");
+  barre.setAttribute("aria-label", "Lecture en cours");
+  const dedans = element("div", "dedans");
+  const vitesses = element("span", "vitesses");
+  vitesses.setAttribute("role", "group");
+  vitesses.setAttribute("aria-label", "Vitesse de lecture");
+  VITESSES.forEach((v) => {
+    const b = element("button", "", v.toLocaleString("fr-FR"));
+    b.type = "button";
+    b.dataset.vitesse = String(v);
+    b.addEventListener("click", () => changer(v));
+    vitesses.append(b);
+  });
+  const ou = element("span", "ou");
+  const avance = document.createElement("progress");
+  dedans.append(principal(), element("span", "etiquette", "Vitesse"), vitesses, ou, avance);
+  barre.append(dedans);
+  document.body.append(barre);
+
+  const rendre = () => {
+    principaux.forEach((b) => {
+      b.innerHTML = (lit ? ICONES.arreter : ICONES.ecouter) + "<span>" + (lit ? "Arrêter" : "Écouter") + "</span>";
+    });
+    vitesses.querySelectorAll("button").forEach((b) => {
+      b.setAttribute("aria-pressed", String(Number(b.dataset.vitesse) === vitesse));
+    });
+    barre.hidden = !lit;
+    document.body.classList.toggle("vlp-lit", lit);
+    ou.textContent = lit && encours >= 0 ? "Phrase " + (encours + 1) + " sur " + morceaux.length : "";
+    avance.max = Math.max(morceaux.length, 1);
+    avance.value = Math.max(encours + 1, 0);
+  };
+  const fin = (texte) => {
+    lit = false;
+    encours = -1;
+    suivi.textContent = texte;
+    rendre();
+  };
+  const arreter = (texte) => {
+    numero++;
+    voix.cancel();
+    fin(texte);
+  };
+  const lancer = (depart) => {
+    voix.cancel();
+    const tour = ++numero;
+    const fr = voix.getVoices().find((v) => v.lang.toLowerCase().startsWith("fr"));
+    let parti = false;
+    morceaux.slice(depart).forEach((m, k) => {
+      const i = depart + k;
+      const phrase = new SpeechSynthesisUtterance(m);
+      phrase.lang = "fr-FR";
+      phrase.rate = vitesse;
+      if (fr) phrase.voice = fr;
+      phrase.onstart = () => {
+        if (tour !== numero) return;
+        encours = i;
+        if (!parti) suivi.textContent = choisi ? "Lecture de la sélection…" : "Lecture de la page…";
+        parti = true;
+        rendre();
+      };
+      if (i === morceaux.length - 1) phrase.onend = () => {
+        if (tour === numero) fin("Lecture finie.");
+      };
+      phrase.onerror = (e) => {
+        if (tour !== numero || e.error === "interrupted" || e.error === "canceled") return;
+        console.warn("lecteur — voix en erreur :", e.error);
+        fin("Erreur de la voix : " + e.error);
+      };
+      voix.speak(phrase);
+    });
+    lit = true;
+    if (!depart) suivi.textContent = "Lancement…";
+    rendre();
+    setTimeout(() => {
+      if (parti || tour !== numero) return;
+      console.warn("lecteur — la voix n'a pas démarré en 3 s");
+      fin("La voix n'a pas démarré.");
+    }, 3000);
+  };
+  const ecouter = () => {
+    choisi = String(window.getSelection() || "").trim();
+    suivi.textContent = "";
+    lecteur.hidden = true; // le lecteur ne se lit pas lui-même
+    const brut = choisi || page.innerText;
+    lecteur.hidden = false;
+    // ne se disent pas : un bouton, ni ce qui porte data-muet (le libellé d'un repli de commande)
+    const etiquettes = new Set([...page.querySelectorAll("button, [data-muet]")]
+      .filter((b) => !lecteur.contains(b))
+      .map((b) => sansEmoji(b.textContent)));
+    morceaux = sansEmoji(brut)
+      .split(/\n+|(?<=[.!?;:])\s+/)
+      .map((m) => m.trim())
+      .filter((m) => /[\p{L}\p{N}]/u.test(m) && !etiquettes.has(m)); // sans lettre ni chiffre, rien à dire
+    if (!morceaux.length) { fin("Rien à lire."); return; }
+    lancer(0);
+  };
+  const changer = (v) => {
+    vitesse = v;
+    try { localStorage.setItem(CLE_VITESSE, String(vitesse)); }
+    catch (e) { console.warn("lecteur — vitesse non gardée :", e); }
+    rendre();
+    if (lit && encours >= 0) lancer(encours);
+  };
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && lit) arreter("Arrêté."); });
+  rendre();
+})();
+// LECTEUR — fin
+</script>
