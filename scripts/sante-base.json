@@ -1,4 +1,4 @@
-{"format": 1, "ruff": "0.16.10", "forcee": [], "fichiers": {"scripts/boucle.py": 1485, "scripts/carnet.py": 243, "scripts/faux-claude.py": 370, "scripts/mesure-tokens.py": 814, "scripts/sante.py": 557, "scripts/test-boucle.py": 1875, "scripts/test-mesure-tokens.py": 493, "scripts/test-vlp.py": 10549, "scripts/vlp.py": 696, "scripts/vlp_coeur.py": 10728, "scripts/vlp_hook.py": 87, "tests/aides.py": 81, "tests/conftest.py": 69, "tests/test_heures_commits.py": 330, "tests/test_isolation.py": 19, "tests/test_matin.py": 787, "tests/test_photos_essai.py": 75, "tests/test_photos_vlp.py": 337}, "fonctions": [
+{"format": 1, "ruff": "0.16.10", "forcee": [], "fichiers": {"scripts/boucle.py": 1485, "scripts/carnet.py": 243, "scripts/faux-claude.py": 370, "scripts/mesure-tokens.py": 814, "scripts/sante.py": 557, "scripts/test-boucle.py": 1875, "scripts/test-mesure-tokens.py": 493, "scripts/test-vlp.py": 10548, "scripts/vlp.py": 696, "scripts/vlp_coeur.py": 10728, "scripts/vlp_hook.py": 87, "tests/aides.py": 81, "tests/conftest.py": 69, "tests/test_heures_commits.py": 330, "tests/test_isolation.py": 19, "tests/test_matin.py": 803, "tests/test_photos_essai.py": 75, "tests/test_photos_vlp.py": 337}, "fonctions": [
 {"fichier": "scripts/boucle.py", "fonction": "appel_eveil", "empreinte": "03053b628c2e", "ast": [3, 2, 1, 8, 1], "doc": true},
 {"fichier": "scripts/boucle.py", "fonction": "arbre_propre", "empreinte": "aeb3d9b4ef94", "ast": [1, 0, 1, 2, 0], "doc": true},
 {"fichier": "scripts/boucle.py", "fonction": "bloquant", "empreinte": "e06aa97d452d", "ast": [3, 2, 4, 8, 1], "doc": true},
@@ -306,7 +306,7 @@
 {"fichier": "scripts/test-vlp.py", "fonction": "hook_isole.git", "empreinte": "37d9ca8c42ff", "ast": [1, 0, 1, 1, 0], "doc": false},
 {"fichier": "scripts/test-vlp.py", "fonction": "horodate", "empreinte": "6a6905d29373", "ast": [1, 0, 1, 0, 0], "doc": false},
 {"fichier": "scripts/test-vlp.py", "fonction": "idx1", "empreinte": "80bbc10ad6dc", "ast": [1, 0, 0, 22, 1], "doc": false},
-{"fichier": "scripts/test-vlp.py", "fonction": "lancer_boucle", "empreinte": "8486cfc8a204", "ast": [1, 0, 0, 5, 0], "doc": true},
+{"fichier": "scripts/test-vlp.py", "fonction": "lancer_boucle", "empreinte": "e82795ffe0d0", "ast": [1, 0, 2, 5, 0], "doc": true},
 {"fichier": "scripts/test-vlp.py", "fonction": "lien_dossier", "empreinte": "0abde5ef8204", "ast": [2, 2, 2, 5, 1], "doc": true},
 {"fichier": "scripts/test-vlp.py", "fonction": "ligne_close", "empreinte": "7d0dd5197b24", "ast": [1, 0, 1, 1, 0], "doc": true},
 {"fichier": "scripts/test-vlp.py", "fonction": "lignes_compteur", "empreinte": "88f67f284b62", "ast": [1, 0, 0, 3, 0], "doc": true},
@@ -534,7 +534,7 @@
 {"fichier": "scripts/test-vlp.py", "fonction": "tester_plan.octets", "empreinte": "2e137bb12b08", "ast": [1, 0, 0, 1, 0], "doc": false},
 {"fichier": "scripts/test-vlp.py", "fonction": "tester_plan.plan", "empreinte": "34bef00eceea", "ast": [1, 0, 1, 2, 0], "doc": false},
 {"fichier": "scripts/test-vlp.py", "fonction": "tester_plan.texte", "empreinte": "a041eebb209e", "ast": [1, 0, 0, 1, 0], "doc": false},
-{"fichier": "scripts/test-vlp.py", "fonction": "tester_pont_pytest", "empreinte": "5c15eb0c881b", "ast": [3, 2, 0, 11, 1], "doc": true},
+{"fichier": "scripts/test-vlp.py", "fonction": "tester_pont_pytest", "empreinte": "b7d1fdc2d334", "ast": [3, 2, 0, 12, 1], "doc": true},
 {"fichier": "scripts/test-vlp.py", "fonction": "tester_postit", "empreinte": "d0b7a117ad0f", "ast": [2, 1, 0, 28, 1], "doc": true},
 {"fichier": "scripts/test-vlp.py", "fonction": "tester_pre_commit", "empreinte": "7c48900f2488", "ast": [7, 7, 0, 35, 5], "doc": true},
 {"fichier": "scripts/test-vlp.py", "fonction": "tester_pre_commit.git", "empreinte": "3aa138abbcdb", "ast": [1, 0, 0, 1, 0], "doc": false},

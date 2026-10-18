@@ -17,6 +17,7 @@ dev = [
     "syrupy==6.1.1",
     "ruff==0.16.10",
     "pyright==1.1.414",
+    "pytest-xdist==3.8.0",   # résolu par uv le 2026-10-18 (REF19)
 ]
 
 [tool.uv]

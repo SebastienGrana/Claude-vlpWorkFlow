@@ -21,9 +21,9 @@
     <p>Le kit tourne sur pytest et une couverture mesurée, sans une seule régression ; des scripts gardent la taille des fichiers et interdisent de toucher aux tests pendant une fiche ; les erreurs connues sont réparées, les gros fichiers découpés, et chaque angle revu jusqu'à deux passes vides.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span data-etat="faite"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span data-etat="faite"></span><span data-etat="faite"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span data-etat="faite"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span data-etat="faite"></span><span data-etat="faite"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span data-etat="faite"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">54 fiches · 18 faites · en cours : REF8</p>
+    <p class="mono" style="margin-top:.5rem">54 fiches · 19 faites · en cours : REF8</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -137,7 +137,7 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REF43</span></span>
         <details><summary><span class="titre">Migrer tester_matin vers pytest</span><span class="etat">Faite</span></summary>
         <span class="note">parite : MIGRÉ tester_matin 33/33, puis le groupe retiré (test-vlp.py 11 235 → 10 549 lignes) ; tests/test_matin.py 17 passed en 54,5 s contre 72,7 s (Defender coupé) ; 2 mutants attrapés ; suite OK (249 s)</span></details>
-        <span class="cout mono">≈14,7M (14 699 792) · 24 tours · 3,74 $</span></li>
+        <span class="cout mono">≈15,3M (15 326 126) · 25 tours · 3,88 $</span></li>
       <li class="fiche"><span class="gauche"><span class="id">REF44</span></span>
         <details><summary><span class="titre">Le module d'état et la photo des noms publics</span><span class="etat">À lancer</span></summary></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">REF45</span></span>
@@ -160,9 +160,10 @@
         <details><summary><span class="titre">Découper boucle.py sous le seuil</span><span class="etat">Après REF52</span></summary></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">REF54</span></span>
         <details><summary><span class="titre">Solder les remarques de ruff</span><span class="etat">Après REF53</span></summary></details></li>
-      <li class="fiche"><span class="gauche"><span class="id">REF19</span></span>
-        <details><summary><span class="titre">Lancer moins de git, puis paralléliser sous garde</span><span class="etat">À lancer</span></summary>
-        <span class="note">Moins de lancements de git, puis le parallèle sous garde, mesuré. Après la découpe.</span></details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REF19</span></span>
+        <details><summary><span class="titre">Lancer moins de git, puis paralléliser sous garde</span><span class="etat">Faite</span></summary>
+        <span class="note">suite entière 253 s → 200 s, git 13 521 → 13 395 ; pytest 66,6 s → 40,9 s (-n 4) ; xdist : 20 lancements, 0 blocage ; pont lancé en fond dès le début ; mutant vu par le pont attrapé ; suite OK</span></details>
+        <span class="cout mono">≈16,4M (16 402 580) · 25 tours · 4,06 $</span></li>
       <li class="fiche"><span class="gauche"><span class="id">REF20</span></span>
         <details><summary><span class="titre">Essayer une campagne de mutation sur les lignes changées</span><span class="etat">À lancer</span></summary>
         <span class="note">Un essai de mutation automatique sur les lignes changées (poodle). Après la découpe.</span></details></li>
@@ -186,7 +187,7 @@
       <li class="fiche"><span class="gauche"><span class="id">REF39</span></span>
         <details><summary><span class="titre">sante --base refuse un worktree en retard sur main</span><span class="etat">À lancer</span></summary></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">REF22</span></span>
-        <details><summary><span class="titre">Revoir l'angle des bugs</span><span class="etat">Après REF8, REF10, REF11, REF12, REF13, REF14, REF15, REF16, REF17, REF19, REF20, REF21</span></summary>
+        <details><summary><span class="titre">Revoir l'angle des bugs</span><span class="etat">Après REF8, REF10, REF11, REF12, REF13, REF14, REF15, REF16, REF17, REF20, REF21</span></summary>
         <span class="note">Revue des bugs, jusqu'à deux passes sans défaut confirmé. Après tout le reste.</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">REF23</span></span>
         <details><summary><span class="titre">Revoir l'angle des tests</span><span class="etat">Après REF22</span></summary>
@@ -202,7 +203,7 @@
         <span class="note">Revue de la doc qui ment. Après REF22.</span></details></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈85,5M (85 479 812) · 402 tours · 19,13 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈259,7M (259 732 641) · 1080 tours · 85,19 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈276,8M (276 761 555) · 1106 tours · 89,39 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

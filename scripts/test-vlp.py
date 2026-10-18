@@ -140,14 +140,14 @@ def groupe(f):
     f()
 
 
-def lancer_boucle():
-    """Lancer `test-boucle.py` sans l'attendre (VIT7) : rendre `(processus, stdout, stderr)`, ses deux sorties dans
-    des fichiers temporaires — un tube plein bloquerait l'enfant. Un arrêt de la suite avant la récolte (un écart sans
-    `VLP_TOUS_ECARTS`) le tue à la sortie (`arreter_boucle`, par `atexit`)."""
+def lancer_boucle(argv=None, env=None):
+    """Lancer `test-boucle.py` — ou `argv`, depuis la racine du kit : le pont pytest (REF19) — sans l'attendre (VIT7) :
+    rendre `(processus, stdout, stderr)`, ses deux sorties dans des fichiers temporaires — un tube plein bloquerait
+    l'enfant. Un arrêt de la suite avant la récolte le tue à la sortie (`arreter_boucle`, par `atexit`)."""
     import atexit
     sorties = [tempfile.TemporaryFile("w+", encoding="utf-8", errors="replace") for _ in range(2)]
-    p = subprocess.Popen([sys.executable, os.path.join(ICI, "test-boucle.py")], stdout=sorties[0], stderr=sorties[1],
-                         env=dict(os.environ, PYTHONIOENCODING="utf-8"))
+    p = subprocess.Popen(argv or [sys.executable, os.path.join(ICI, "test-boucle.py")], stdout=sorties[0], stderr=sorties[1],
+                         cwd=os.path.join(ICI, "..") if argv else None, env=dict(os.environ, PYTHONIOENCODING="utf-8", **(env or {})))
     atexit.register(arreter_boucle, p)
     return p, sorties[0], sorties[1]
 
@@ -172,6 +172,8 @@ def boucle_du_debut():
 
 
 BOUCLE = boucle_du_debut()
+PONT_ARGV = [shutil.which("uv") or "uv", "run", "--frozen", "pytest", "-q", "-n", "4"]  # REF19 : 40,9 s contre 66,6 en série
+PONT = None if os.environ.get("VLP_PONT") == "1" or SEUL else lancer_boucle(PONT_ARGV, {"VLP_PONT": "1"})  # REF19
 # Le code que cette suite joue, pris au départ : une suite verte l'écrit à la fin, et `cocher` exige de le retrouver (VIT11).
 EMPREINTE_DEPART = mod.empreinte_kit(mod.KIT)
 
@@ -1194,28 +1196,24 @@ groupe(tester_heures_commits)
 
 
 def tester_pont_pytest():
-    """REF4 : le pont vers la suite `pytest` de `tests/` — elle tourne dans un processus à part, `-q`, et sort 0 ;
-    la suite entière, `cocher` et `vlp.py mutant` la voient ainsi. Par l'atelier, `uv run --frozen pytest` : syrupy
-    (REF6) n'est que là, pas dans le Python de la machine. uv ou pytest manque (`uv sync`) : un écart, jamais un saut
-    silencieux."""
-    racine = os.path.join(ICI, "..")
+    """REF4 : le pont vers la suite `pytest` de `tests/`, par l'atelier (`uv run --frozen pytest`, syrupy n'est que là),
+    en parallèle (`PONT_ARGV`), qui sort 0 ; uv ou pytest manque : un écart, jamais un saut silencieux. Lancé dès le
+    début de la suite (`PONT`, REF19) et récolté ici, en fin ; sous `--seul`, lancé et attendu ici. Pas sous
+    `VLP_PONT=1` : une suite lancée depuis pytest le relancerait sans fin (REF7, vu le 2026-10-18)."""
     if os.environ.get("VLP_PONT") == "1":
-        # REF7 : cette suite lancée depuis pytest (un `mutant` qu'un test joue) relancerait pytest, qui la
-        # relancerait : une chaîne sans fin, vue le 2026-10-18. Le pont ne se joue qu'au premier niveau.
         print("SAUTÉ: pont pytest — déjà dans une suite lancée par le pont (VLP_PONT=1)")
         return
-    uv = shutil.which("uv")
     try:
-        r = subprocess.run([uv or "uv", "run", "--frozen", "pytest", "-q"], cwd=racine, capture_output=True,
-                           encoding="utf-8", errors="replace", timeout=600, env=dict(os.environ, VLP_PONT="1"))
-        code, texte = r.returncode, (r.stdout + r.stderr).strip()
+        p, sortie, erreur = PONT or lancer_boucle(PONT_ARGV, {"VLP_PONT": "1"})
+        code = p.wait(timeout=600)
+        sortie.seek(0)
+        erreur.seek(0)
+        texte = (sortie.read() + erreur.read()).strip()
     except (OSError, subprocess.SubprocessError) as e:
         code, texte = None, "uv run pytest ne se lance pas : %s" % e
     verifier("REF4 pont : uv run --frozen pytest -q sur tests/ sort 0 (l'atelier : uv sync)", code == 0,
              "\n".join(texte.splitlines()[-40:]))
 
-
-groupe(tester_pont_pytest)
 
 
 def tester_cout_sous_agent_nomme():
@@ -10539,6 +10537,7 @@ groupe(tester_compteur_lecture)
 groupe(tester_compteur_sortes)
 groupe(tester_compteur_commande)
 groupe(tester_boucle_nuit)
+groupe(tester_pont_pytest)    # récolte le pont lancé au début (REF19)
 groupe(tester_boucle)    # en dernier : les trois quarts de la suite, un écart d'ailleurs tombe avant lui (VIT2)
 
 if ECARTS:

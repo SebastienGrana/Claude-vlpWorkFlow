@@ -3,11 +3,13 @@ sans conflit (methode-chantier.md:263-268) — migré de `tester_matin` (`script
 temporaire par cas ; `conftest.py` isole la config Git et l'environnement. Chaque `assert` garde le libellé
 d'origine de son `verifier` en tête de son message (REF5), puis le diagnostic.
 """
+import atexit
 import json
 import os
 import re
 import shutil
 import subprocess
+import tempfile
 from decimal import Decimal
 
 import pytest
@@ -77,9 +79,23 @@ def commit_matin(d, message, heure):
 
 
 
+_MODELES = {}     # (archive, etat) → un dépôt bâti une fois par processus, copié ensuite (REF19)
+
+
 def depot_matin(d, archive=True, etat=ETAT_MATIN):
     """Le dépôt de 2cef70f : `main` à courant LOC et son artefact, des lettres jusqu'à ENQ, une archive de deux clos
-    (`archive` faux : ils restent sur la feuille), la feuille au rang 79 — un seul commit, à l'heure 0."""
+    (`archive` faux : ils restent sur la feuille), la feuille au rang 79 — un seul commit, à l'heure 0. Bâti une fois
+    par réglage, puis copié (`shutil.copytree`) : le commit, à date fixe, est le même octet pour octet (REF19)."""
+    if (archive, etat) not in _MODELES:
+        dossier = tempfile.mkdtemp(prefix="vlp-matin-")
+        atexit.register(shutil.rmtree, dossier, True)
+        _MODELES[archive, etat] = os.path.join(dossier, "modele")
+        batir_depot_matin(_MODELES[archive, etat], archive, etat)
+    shutil.copytree(_MODELES[archive, etat], d)
+
+
+def batir_depot_matin(d, archive, etat):
+    """Bâtir dans `d` le dépôt que `depot_matin` copie."""
     os.makedirs(d)
     git_matin(d, "init", "-q", "-b", "main")
     ecrire(os.path.join(d, "CHANTIER.md"), CARTE_MATIN)

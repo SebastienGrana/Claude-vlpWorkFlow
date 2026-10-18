@@ -706,3 +706,38 @@ l'import. Chaque module garde ses sections dans l'ordre du fichier, 1 000 lignes
 toutes les fiches de `REF18` — sa première partie copie le dépôt modèle « là où un test crée un dépôt, les tests
 issus de `tester_matin` d'abord », ce qui ne demande que leur migration ; le parallèle, ensuite, vaut pour la
 suite pytest telle qu'elle est.
+
+## Moins de `git`, puis le parallèle (`REF19`)
+
+Mesuré le 2026-10-18 entre 02:35 et 03:05, seul sur la machine (8 cœurs), protection en temps réel de Windows
+**coupée** (`RealTimeProtectionEnabled` : `False`). Les `git` comptés sont ceux que Python lance (un
+`sitecustomize.py` jetable, hors dépôt, qui note chaque `subprocess.Popen` de `git`) ; les `git` que `git` lance
+lui-même n'y sont pas.
+
+| Ce qui tourne | Avant | Après |
+|---|---|---|
+| `test_matin.py` seul | 57 499 ms · 2 233 `git` | 53 156 ms · 2 119 `git` (le dépôt de départ bâti une fois, copié) |
+| pytest entier | 68 484 ms · 2 431 `git` | 40 865 ms en médiane (`-n 4`) |
+| la suite entière (`test-vlp.py`, ce que `cocher` lance) | **253 s** · 13 521 `git` | **200 s** · 13 395 `git` |
+
+**Le parallèle, `pytest-xdist` 3.8.0** — 5 lancements de chaque réglage, chacun sous `timeout 300` :
+
+| Réglage | Durées (ms) | Blocages |
+|---|---|---|
+| en série | 66 574 · 65 925 · 66 174 · 69 110 · 69 015 | 0 / 5 |
+| `-n 2` | 42 347 · 42 375 · 42 205 · 42 395 · 42 637 | 0 / 5 |
+| `-n 4` | 40 793 · 40 865 · 40 885 · 40 769 · 40 891 | 0 / 5 |
+| `-n 4 --dist loadfile` | 58 638 · 58 405 · 58 947 · 58 601 · 58 620 | 0 / 5 |
+
+**Gardé : `-n 4`** — le plus rapide, aucun blocage sur 20 lancements (le bug #1313 cité au cadrage n'est pas
+apparu ; 20 lancements ne prouvent pas qu'il ne viendra pas). `loadfile` perd : `test_matin.py`, le plus long, reste
+alors sur un seul processus. `-n 4` gagne peu sur `-n 2` : les tests de `matin` durent chacun plusieurs secondes.
+
+**Branché** sur la suite que `cocher` lance : le pont de `test-vlp.py` part **dès le début** (`PONT`, comme
+`test-boucle.py` depuis `VIT7`) en `-n 4`, et se récolte en fin ; sous `--seul`, il se lance et s'attend. Le gain de
+la suite entière (−53 s) vient surtout de là : les 41 s de pytest courent pendant le reste. Vérifié sous garde : un
+mutant que seule une photo voit (`RELECTURE`) fait échouer la suite entière par l'écart du pont.
+
+**Ce qui reste** : les `git` de `matin` viennent de `vlp.py matin` lui-même (fusions, branches) — la copie du dépôt
+n'en retire que 114 ; le reste de la suite (`test-vlp.py`, ≈ 160 s) attend la migration (`REF50`, `REF51`) pour
+passer en parallèle.
