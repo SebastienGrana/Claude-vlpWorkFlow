@@ -16,14 +16,14 @@
 
 <div class="page">
   <header>
-    <div class="eyebrow">vlp · fiches REF1–REF58 · <a href="https://claude.ai/artifact/YWDny8kjubq9DhdP5rbPxA">la feuille de route</a></div>
+    <div class="eyebrow">vlp · fiches REF1–REF59 · <a href="https://claude.ai/artifact/YWDny8kjubq9DhdP5rbPxA">la feuille de route</a></div>
     <h1>La qualité du code et des tests</h1>
     <p>Le kit tourne sur pytest et une couverture mesurée, sans une seule régression ; des scripts gardent la taille des fichiers et interdisent de toucher aux tests pendant une fiche ; les erreurs connues sont réparées, les gros fichiers découpés, et chaque angle revu jusqu'à deux passes vides.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span data-etat="faite"></span><span data-etat="faite"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span data-etat="faite"></span><span data-etat="faite"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">58 fiches · 31 faites · en cours : REF51</p>
+    <p class="mono" style="margin-top:.5rem">59 fiches · 32 faites · en cours : REF59</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -141,11 +141,15 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REF58</span></span>
         <details><summary><span class="titre">Migrer les tests de sessions à clos</span><span class="etat">Faite</span></summary>
         <span class="note">parite : 69 groupes de plus MIGRÉ (sessions 12, relecture 2, hooks 11, page 9, notes 16, feuille 11, clos 8), 87 restent pour REF51 ; test-vlp.py 9 041 → 5 387 lignes ; suite verte, 246 314 → 247 837 ms, 13 287 → 13 297 git (à plat)</span></details>
-        <span class="cout mono">≈12,9M (12 894 510) · 36 tours · 3,56 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">REF51</span></span>
-        <details open><summary><span class="titre">Migrer le reste des tests, puis retirer test-vlp.py</span><span class="etat">En cours · REF20, REF38 peuvent partir en même temps</span></summary></details></li>
+        <span class="cout mono">≈13,7M (13 650 790) · 38 tours · 3,73 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REF51</span></span>
+        <details><summary><span class="titre">Migrer le reste des tests</span><span class="etat">Faite</span></summary>
+        <span class="note">parite : 81 groupes de plus MIGRÉ, 0 PARTIEL, 6 RESTE (la machinerie, pour REF59) ; test-vlp.py 5 387 → 322 lignes ; pytest 328 passed ; suite verte, 247 837 → 285 933 ms (+15 %), 13 297 → 13 256 git</span></details>
+        <span class="cout mono">≈15,1M (15 084 809) · 35 tours · 4,42 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">REF59</span></span>
+        <details open><summary><span class="titre">Brancher cocher, rapide et mutant sur pytest, puis retirer test-vlp.py</span><span class="etat">En cours · REF20, REF38 peuvent partir en même temps</span></summary></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">REF52</span></span>
-        <details><summary><span class="titre">Renommer et migrer les fichiers à tiret</span><span class="etat">Après REF51</span></summary></details></li>
+        <details><summary><span class="titre">Renommer et migrer les fichiers à tiret</span><span class="etat">Après REF59</span></summary></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">REF53</span></span>
         <details><summary><span class="titre">Découper boucle.py sous le seuil</span><span class="etat">Après REF52</span></summary></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">REF54</span></span>
@@ -196,7 +200,7 @@
         <span class="note">suite entière 253 s → 200 s, git 13 521 → 13 395 ; pytest 66,6 s → 40,9 s (-n 4) ; xdist : 20 lancements, 0 blocage ; pont lancé en fond dès le début ; mutant vu par le pont attrapé ; suite OK</span></details>
         <span class="cout mono">≈18,4M (18 362 438) · 46 tours · 4,84 $</span></li>
       <li class="fiche"><span class="gauche"><span class="id">REF20</span></span>
-        <details><summary><span class="titre">Essayer une campagne de mutation sur les lignes changées</span><span class="etat">À lancer · en même temps que REF51, REF38</span></summary>
+        <details><summary><span class="titre">Essayer une campagne de mutation sur les lignes changées</span><span class="etat">À lancer · en même temps que REF59, REF38</span></summary>
         <span class="note">Un essai de mutation automatique sur les lignes changées (poodle). Après la découpe.</span></details></li>
       <li class="fiche"><span class="gauche"><span class="id">REF21</span></span>
         <details><summary><span class="titre">Essayer de typer un lecteur JSON</span><span class="etat">À lancer</span></summary>
@@ -214,7 +218,7 @@
       <li class="fiche"><span class="gauche"><span class="id">REF37</span></span>
         <details><summary><span class="titre">La nuit : qui prime, commiter ou non</span><span class="etat">À lancer</span></summary></details></li>
       <li class="fiche"><span class="gauche"><span class="id">REF38</span></span>
-        <details><summary><span class="titre">Retirer le repli « copie simple » d'avant le plugin</span><span class="etat">À lancer · en même temps que REF51, REF20</span></summary></details></li>
+        <details><summary><span class="titre">Retirer le repli « copie simple » d'avant le plugin</span><span class="etat">À lancer · en même temps que REF59, REF20</span></summary></details></li>
       <li class="fiche"><span class="gauche"><span class="id">REF39</span></span>
         <details><summary><span class="titre">sante --base refuse un worktree en retard sur main</span><span class="etat">À lancer</span></summary></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">REF22</span></span>
@@ -234,7 +238,7 @@
         <span class="note">Revue de la doc qui ment. Après REF22.</span></details></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈106,8M (106 808 546) · 481 tours · 29,99 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈446,5M (446 495 057) · 1745 tours · 150,23 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈462,3M (462 336 146) · 1782 tours · 154,82 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -251,17 +255,18 @@
     <h2>Journal des décisions</h2>
     <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
     <ul class="journal">
-      <li><time datetime="2026-10-18">2026-10-18</time><span>REF46 : le cliquet ne voyait pas scripts/noyau/ depuis REF45 — sante.py lit scripts/ en entier ; 11 écarts dus au préfixe coeur. forcés avec leur raison, 4 docstrings ajoutées (option 3)</span></li>
       <li><time datetime="2026-10-18">2026-10-18</time><span>REF47 : git_texte s'appelle noyau.relecture.git_texte partout, import en fin de fiches.py contre le cycle ; 5 écarts de seuil forcés (comptes identiques, option 3)</span></li>
       <li><time datetime="2026-10-18">2026-10-18</time><span>REF49 : la découpe finie, vlp_coeur.py façade de 51 lignes ; set_defaults(func=…) remplace les 32 if a.cmd ; la décision de fusionner_branche, fusionner_fiche, cmd_relecture reste à sortir de Git</span></li>
+      <li><time datetime="2026-10-18">2026-10-18</time><span>REF51 découpée (Q4 : A) : la migration ici, le retrait de test-vlp.py dans REF59 — pytest seul (Q1), --seul en option pytest (Q2), parite retirée (Q3)</span></li>
     </ul>
-    <details class="journal-ancien"><summary>5 entrées plus anciennes</summary>
+    <details class="journal-ancien"><summary>6 entrées plus anciennes</summary>
     <ul class="journal">
       <li><time datetime="2026-10-18">2026-10-18</time><span>2026-10-18 — bilan REF28→REF31 : suites entières = 67 % du temps des sous-agents, 0 appel à rapide ; REF42, REF40, REF41 ajoutées, accélérateurs d'abord, mode main jusqu'à REF19 (décision de l'utilisateur)</span></li>
       <li><time datetime="2026-10-18">2026-10-18</time><span>2026-10-18 — REF7 : la photo de mutant relançait la suite, puis pytest, puis mutant, en chaîne (18 processus) ; le pont pose VLP_PONT=1 et ne se rejoue plus dedans</span></li>
       <li><time datetime="2026-10-18">2026-10-18</time><span>2026-10-18 — REF18 : REF19 ne dépend plus que de REF43 (tester_matin migré), pas de toute la découpe — décidé de nuit sans l'utilisateur, à revoir</span></li>
       <li><time datetime="2026-10-18">2026-10-18</time><span>2026-10-18 — REF8 : la couverture à chaque suite (+34 s) et le commit de .py sans rapport refusé (choix de l'utilisateur) ; la découpe REF44–REF54 passe avant REF8 et sépare la décision de Git (option 1)</span></li>
       <li><time datetime="2026-10-18">2026-10-18</time><span>REF45 : le « bas du graphe » de REF18 n'existe pas (27 sections sur 29 en cycle) ; option 1 tranchée : un module sorti lit la façade par coeur.&lt;nom&gt;, à l'appel</span></li>
+      <li><time datetime="2026-10-18">2026-10-18</time><span>REF46 : le cliquet ne voyait pas scripts/noyau/ depuis REF45 — sante.py lit scripts/ en entier ; 11 écarts dus au préfixe coeur. forcés avec leur raison, 4 docstrings ajoutées (option 3)</span></li>
     </ul>
     </details>
   </section>
