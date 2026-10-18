@@ -1,4 +1,4 @@
-{"format": 1, "ruff": "0.16.10", "forcee": [], "fichiers": {"scripts/boucle.py": 1485, "scripts/carnet.py": 243, "scripts/faux-claude.py": 370, "scripts/mesure-tokens.py": 814, "scripts/sante.py": 557, "scripts/test-boucle.py": 1875, "scripts/test-mesure-tokens.py": 493, "scripts/test-vlp.py": 10548, "scripts/vlp.py": 696, "scripts/vlp_coeur.py": 10728, "scripts/vlp_hook.py": 87, "tests/aides.py": 81, "tests/conftest.py": 69, "tests/test_heures_commits.py": 330, "tests/test_isolation.py": 19, "tests/test_lire.py": 22, "tests/test_matin.py": 803, "tests/test_photos_essai.py": 75, "tests/test_photos_vlp.py": 337}, "fonctions": [
+{"format": 1, "ruff": "0.16.10", "forcee": [], "fichiers": {"scripts/boucle.py": 1485, "scripts/carnet.py": 243, "scripts/faux-claude.py": 370, "scripts/mesure-tokens.py": 814, "scripts/sante.py": 557, "scripts/test-boucle.py": 1875, "scripts/test-mesure-tokens.py": 493, "scripts/test-vlp.py": 10511, "scripts/vlp.py": 696, "scripts/vlp_coeur.py": 10728, "scripts/vlp_hook.py": 87, "tests/aides.py": 81, "tests/conftest.py": 69, "tests/test_heures_commits.py": 330, "tests/test_hors_garde.py": 100, "tests/test_isolation.py": 19, "tests/test_lire.py": 22, "tests/test_matin.py": 803, "tests/test_photos_essai.py": 75, "tests/test_photos_vlp.py": 337}, "fonctions": [
 {"fichier": "scripts/boucle.py", "fonction": "appel_eveil", "empreinte": "03053b628c2e", "ast": [3, 2, 1, 8, 1], "doc": true},
 {"fichier": "scripts/boucle.py", "fonction": "arbre_propre", "empreinte": "aeb3d9b4ef94", "ast": [1, 0, 1, 2, 0], "doc": true},
 {"fichier": "scripts/boucle.py", "fonction": "bloquant", "empreinte": "e06aa97d452d", "ast": [3, 2, 4, 8, 1], "doc": true},
@@ -556,7 +556,6 @@
 {"fichier": "scripts/test-vlp.py", "fonction": "tester_ref40_base_refaite", "empreinte": "24917964d581", "ast": [6, 3, 0, 34, 2], "doc": true},
 {"fichier": "scripts/test-vlp.py", "fonction": "tester_ref40_base_refaite.base", "empreinte": "be5ef007d669", "ast": [1, 0, 1, 0, 0], "doc": false},
 {"fichier": "scripts/test-vlp.py", "fonction": "tester_ref40_base_refaite.fonction", "empreinte": "edc24adeda54", "ast": [1, 0, 2, 0, 0], "doc": false},
-{"fichier": "scripts/test-vlp.py", "fonction": "tester_ref41_hors_garde", "empreinte": "f9648d78fbcb", "ast": [2, 1, 0, 24, 1], "doc": true},
 {"fichier": "scripts/test-vlp.py", "fonction": "tester_ref5_parite", "empreinte": "0ae5f2c2de0d", "ast": [1, 0, 0, 6, 1], "doc": true},
 {"fichier": "scripts/test-vlp.py", "fonction": "tester_ref9_tailles", "empreinte": "cad541d2287a", "ast": [4, 0, 0, 22, 3], "doc": true},
 {"fichier": "scripts/test-vlp.py", "fonction": "tester_ref9_tailles.lancer", "empreinte": "70f566ce9a3c", "ast": [3, 3, 1, 5, 0], "doc": true},
@@ -879,7 +878,7 @@
 {"fichier": "scripts/vlp_coeur.py", "fonction": "garde_avant_coche", "empreinte": "bc0068001138", "ast": [3, 2, 2, 4, 1], "doc": true},
 {"fichier": "scripts/vlp_coeur.py", "fonction": "garde_fous", "empreinte": "2be2e5fab483", "ast": [2, 1, 1, 3, 1], "doc": true},
 {"fichier": "scripts/vlp_coeur.py", "fonction": "garde_page", "empreinte": "07b23f2d054e", "ast": [1, 0, 3, 1, 0], "doc": true},
-{"fichier": "scripts/vlp_coeur.py", "fonction": "garder_hors_commit", "empreinte": "3a2458ff8139", "ast": [2, 1, 2, 10, 1], "doc": true},
+{"fichier": "scripts/vlp_coeur.py", "fonction": "garder_hors_commit", "empreinte": "f59d4cf46fd9", "ast": [3, 2, 2, 7, 1], "doc": true},
 {"fichier": "scripts/vlp_coeur.py", "fonction": "git_texte", "empreinte": "9e2c55d8a432", "ast": [3, 2, 3, 6, 1], "doc": true},
 {"fichier": "scripts/vlp_coeur.py", "fonction": "graines_ordre", "empreinte": "19088f6ee0fa", "ast": [4, 4, 3, 6, 3], "doc": true},
 {"fichier": "scripts/vlp_coeur.py", "fonction": "graphe_ordre", "empreinte": "bc3079bdfd3a", "ast": [3, 2, 3, 12, 2], "doc": true},
@@ -1099,7 +1098,7 @@
 {"fichier": "scripts/vlp_coeur.py", "fonction": "retirer_clos", "empreinte": "6493d766178c", "ast": [3, 2, 5, 7, 1], "doc": true},
 {"fichier": "scripts/vlp_coeur.py", "fonction": "retirer_ligne_courant", "empreinte": "0d7b98630168", "ast": [4, 3, 5, 13, 2], "doc": true},
 {"fichier": "scripts/vlp_coeur.py", "fonction": "retirer_relectures", "empreinte": "e15192fe0b32", "ast": [3, 2, 2, 7, 2], "doc": true},
-{"fichier": "scripts/vlp_coeur.py", "fonction": "retirer_worktree", "empreinte": "185b75be0031", "ast": [5, 5, 4, 12, 2], "doc": true},
+{"fichier": "scripts/vlp_coeur.py", "fonction": "retirer_worktree", "empreinte": "333d57f0a9c3", "ast": [5, 5, 4, 12, 2], "doc": true},
 {"fichier": "scripts/vlp_coeur.py", "fonction": "sans_apporte", "empreinte": "2a4904c14081", "ast": [1, 0, 1, 1, 0], "doc": true},
 {"fichier": "scripts/vlp_coeur.py", "fonction": "sans_echo", "empreinte": "c06a194f455b", "ast": [3, 0, 1, 7, 0], "doc": true},
 {"fichier": "scripts/vlp_coeur.py", "fonction": "sans_echo.taire", "empreinte": "2d3162b1e812", "ast": [2, 1, 1, 5, 1], "doc": false},
