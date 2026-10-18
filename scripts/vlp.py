@@ -649,6 +649,12 @@ ni raison de la sauter, fait échouer la suite :
 - `nuits lecon "<ligne>" [--projet P]` — une leçon sous `## Leçons` du fichier des nuits (`fichier_nuits`, créé au
   besoin), dans la forme de `LECON_FORME` (NUI11). Hors forme, ou fichier illisible : `GARDE:`, sort 1, rien d'écrit.
   Imprime `LEÇON <fichier> · ajoutée` ou `· déjà là`.
+- `couverture [--racine R]` — juge le commit indexé (REF8 ; `couverture.py`, aiguillé avant le cœur ; lancé par
+  `.githooks/pre-commit`) : sans `.py` indexé, `COUVERTURE rien à couvrir …` (sort 0) ; sans rapport mesuré sur le
+  code du jour (empreinte de VIT11), `GARDE: couverture — pas de rapport mesuré sur ce code …` (sort 1) ; sinon,
+  par `diff-cover`, `NON COUVERT <fichier> : <lignes>` par fichier, puis `COUVERTURE <taux> % des <n> lignes
+  changées, seuil <SEUIL> % — passe` (sort 0) ou `— commit refusé` (sort 1). La mesure : `scripts/test-vlp.py`,
+  lancé seul, se relance sous `coverage` et écrit `.couverture/coverage.xml` — `COUVERTURE mesurée : …`.
 - `sante [<fichiers>] [--base [--forcer "<raison>"] [--si-base] | --cliquet] [--racine R] [--sans-ruff]` — la
   santé du code, fonction par fonction (`sante.py`, qui en tient les règles ; chantier VIT) : les comptes de
   `COMPTES` (socle de VIT) et la docstring, par ruff s'il répond (`ruff`, sinon `-m ruff`), sinon par `ast`, « comptes
@@ -693,6 +699,9 @@ if __name__ == "__main__":
         except (AttributeError, ValueError):
             pass
     sys.dont_write_bytecode = False     # le .pyc du cœur sert même sous PYTHONDONTWRITEBYTECODE (VIT5)
+    if sys.argv[1:2] == ["couverture"]:     # REF8 : son module à lui, hors du cœur au plafond de taille (REF9)
+        import couverture
+        sys.exit(couverture.principal(sys.argv[2:]))
     import vlp_hook
     triee = vlp_hook.trier(sys.argv[1:])
     if triee == "":                     # un hook déjà pris par l'autre lanceur : sortir sans charger le cœur (VIT8)

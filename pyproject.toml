@@ -38,9 +38,19 @@ addopts = ["--import-mode=importlib", "-p", "no:cacheprovider"]
 strict = true
 tmp_path_retention_policy = "failed"
 
+[tool.coverage.run]
+# La couverture (REF8, D7) : les branches aussi ; les scripts se lancent par `subprocess`, qui se mesure
+# (`patch`), chaque processus dans son fichier (`parallel`), réunis par `coverage combine`. Le moteur
+# `sysmon` est celui d'office sous CPython 3.14 (coverage 7.16.2, `env.SYSMON_DEFAULT`).
+branch = true
+patch = ["subprocess"]
+parallel = true
+source = ["scripts"]
+
 [tool.pyright]
 # Ex-`pyrightconfig.json`, retiré : un `.json` présent prime en silence sur ce bloc (REF3).
 include = ["scripts"]
+extraPaths = ["scripts"]   # un test de `tests/` importe un module de `scripts/`, comme le `pythonpath` de pytest (REF8)
 typeCheckingMode = "standard"
 
 [tool.ruff]

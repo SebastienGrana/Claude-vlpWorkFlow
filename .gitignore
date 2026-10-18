@@ -5,3 +5,6 @@ relais-python.err
 .claude/launch.json
 context AI/ordre/
 .venv/
+.couverture/
+.coverage
+.coverage.*

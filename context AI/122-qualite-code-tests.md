@@ -741,3 +741,45 @@ mutant que seule une photo voit (`RELECTURE`) fait échouer la suite entière pa
 **Ce qui reste** : les `git` de `matin` viennent de `vlp.py matin` lui-même (fusions, branches) — la copie du dépôt
 n'en retire que 114 ; le reste de la suite (`test-vlp.py`, ≈ 160 s) attend la migration (`REF50`, `REF51`) pour
 passer en parallèle.
+
+## La couverture des lignes changées (`REF8`)
+
+**Réglage** : `[tool.coverage.run]` de `pyproject.toml` — `branch`, `patch = ["subprocess"]`, `parallel`,
+`source = ["scripts"]` ; coverage 7.16.2, moteur `sysmon` d'office sous CPython 3.14 (`env.SYSMON_DEFAULT`,
+lu dans sa source). **Choix de l'utilisateur** (questionnaire du 2026-10-18) : la mesure à **chaque** suite
+entière ; un commit de `.py` sans rapport mesuré sur son code est **refusé**.
+
+**La durée**, `test-vlp.py` entier, une mesure de chaque :
+
+| Passage | Durée | Protection de Windows | Charge |
+|---|---|---|---|
+| sans mesure, 13:49:58 → 13:53:19 | **201 s** | coupée | cette session seule |
+| avec mesure (`uv run coverage run`), 13:53:19 → 13:57:14 | **235 s** | coupée | cette session seule |
+| avec mesure, relancée d'elle-même, 16:12:27 → 16:18:29 | **362 s** | **active** | Firefox ouvert |
+
+➡️ À conditions égales : **+34 s (+17 %)**. Le passage à 362 s n'est pas comparable (protection active, autre
+charge) : à remesurer seul avant d'en conclure quoi que ce soit.
+
+**La référence par fichier** (passage de 13:53, `coverage report`, lignes et branches) :
+
+| Fichier | Lignes | Non vues | Branches | Partielles | Couverture |
+|---|---|---|---|---|---|
+| `scripts/boucle.py` | 963 | 85 | 404 | 60 | 89 % |
+| `scripts/carnet.py` | 150 | 11 | 30 | 3 | 92 % |
+| `scripts/faux-claude.py` | 237 | 12 | 112 | 11 | 93 % |
+| `scripts/mesure-tokens.py` | 484 | 40 | 206 | 17 | 91 % |
+| `scripts/sante.py` | 363 | 11 | 142 | 9 | 96 % |
+| `scripts/test-boucle.py` | 1 068 | 15 | 74 | 7 | 98 % |
+| `scripts/test-mesure-tokens.py` | 267 | 33 | 92 | 30 | 82 % |
+| `scripts/test-vlp.py` | 5 577 | 115 | 450 | 61 | 97 % |
+| `scripts/vlp.py` | 16 | 2 | 8 | 2 | 83 % |
+| `scripts/vlp_coeur.py` | 7 249 | 454 | 2 812 | 299 | 92 % |
+| `scripts/vlp_hook.py` | 49 | 6 | 14 | 1 | 89 % |
+| **Total** | **16 423** | **784** | **4 344** | **500** | **94 %** |
+
+**Le jugement au commit** : `vlp.py couverture` (`scripts/couverture.py`), lancé par `.githooks/pre-commit` ; le
+seuil, `SEUIL` de `couverture.py`, ne porte que sur les lignes changées indexées. Premier essai sur le vrai kit,
+le commit de `REF8` lui-même : **86 % des 103 lignes changées — commit refusé** (les branches d'erreur de
+`couverture.py` sans test) ; quatre tests en mémoire ajoutés, suite refaite (16:20:35 → 16:25:47, **312 s**,
+protection active), puis rejugé : **98 % des 103 lignes changées — passe** ; restent `couverture.py:48` (uv trouvé)
+et `test-vlp.py:126` (la sortie du parent), qui ne tournent que hors mesure.

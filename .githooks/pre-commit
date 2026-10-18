@@ -28,6 +28,13 @@ if git diff --cached --name-only --diff-filter=ACMR | grep -q '\.py$'; then
     echo "pre-commit : pyright en erreur ou absent de l'atelier (uv sync), commit refusé." >&2
     exit 1
   fi
+  # Les lignes changées couvertes à 90 % (REF8) : `vlp.py couverture` juge, aucune logique ici.
+  if ! sortie=$(cd "$racine" && uv run --frozen python scripts/vlp.py couverture 2>&1); then
+    printf '%s\n' "$sortie" >&2
+    echo "pre-commit : couverture des lignes changées insuffisante ou sans rapport, commit refusé." >&2
+    exit 1
+  fi
+  printf '%s\n' "$sortie" | tail -1 >&2
 fi
 
 # claude : demandé à `vlp.py claude`, seule recherche du kit — PATH, puis l'app Claude sous Windows (chantiers VAL,

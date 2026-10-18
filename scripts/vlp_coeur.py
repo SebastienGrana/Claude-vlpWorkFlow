@@ -7980,7 +7980,7 @@ def cmd_bac(dossier, sortie):
     return 0
 
 
-KIT_EXCLUS = (".git", ".claude", "context AI", "__pycache__", "relais-python.err", ".venv")   # `.venv` : l'atelier d'`uv` (REF3)
+KIT_EXCLUS = (".git", ".claude", "context AI", "__pycache__", "relais-python.err", ".venv", ".couverture")  # atelier (REF3, REF8)
 # La copie d'un mutant garde `context AI/` : la suite y lit la carte du kit (NIV1) et la pièce de JUG2 (VIT2).
 MUTANT_EXCLUS = tuple(n for n in KIT_EXCLUS if n != "context AI")
 # L'empreinte d'une suite verte (VIT11) laisse aussi ce que la clôture d'une fiche écrit après la suite (`sante --base`)

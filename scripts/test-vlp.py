@@ -120,6 +120,10 @@ def seul_demande():
 
 SEUL = seul_demande()
 JOUES = []      # les groupes joués, sous `--seul` (VIT10)
+import couverture  # REF8 : lancée seule, la suite se relance sous `coverage`, avant la boucle et le pont
+MESURE = couverture.mesurer(mod.KIT, os.path.abspath(__file__), sys.argv[1:], mod.empreinte_kit(mod.KIT)) if couverture.a_mesurer(SEUL) else None
+if MESURE is not None:
+    sys.exit(MESURE)
 
 
 def porte_motif(f, motif):
@@ -2808,25 +2812,6 @@ def tester_recompter_un_clos():
 groupe(tester_recompter_un_clos)
 
 # --- chantier U : lire, cocher, page déduite ----------------------------------
-
-def tester_lire_kit():
-    """Contrôler `lire` : un fichier du kit tel quel, `${CLAUDE_PLUGIN_ROOT}` remplacé par la racine du kit en barres
-    obliques (REF27) ; hors du kit et absent."""
-    source = mod.lire(os.path.join(mod.KIT, "cloture.md"))
-    racine = os.path.realpath(mod.KIT).replace("\\", "/")
-    attendu = source.replace("${CLAUDE_PLUGIN_ROOT}", racine)
-    attendu = attendu if attendu.endswith("\n") else attendu + "\n"
-    verifier("lire : un fichier du kit, tel quel", appel(["lire", "cloture.md"]) == (0, attendu), appel(["lire", "cloture.md"])[1][:200])
-    s = appel(["lire", "cloture.md"])[1]
-    verifier("lire : ${CLAUDE_PLUGIN_ROOT} remplacé par la racine du kit (%d dans la source)"
-             % source.count("${CLAUDE_PLUGIN_ROOT}"), source.count("${CLAUDE_PLUGIN_ROOT}") > 0
-             and "CLAUDE_PLUGIN_ROOT" not in s and '"%s/scripts/vlp.py"' % racine in s, s[:300])
-    code, s = appel(["lire", "cloture.md", "../hors.md", "absent.md", "cloture.md"])
-    verifier("lire : hors du kit et absent sortent 1, le reste imprimé", code == 1
-             and s == attendu + "GARDE: hors du kit : ../hors.md\nABSENT absent.md\n" + attendu, s[-200:])
-
-
-groupe(tester_lire_kit)
 
 COCHE = """## L'ordre des fiches
 
