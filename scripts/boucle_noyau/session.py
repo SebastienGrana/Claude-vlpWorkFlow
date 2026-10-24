@@ -131,8 +131,10 @@ def reset_de(texte):
     heure = int(m.group(1)) % 12 + (12 if m.group(3).lower() == "pm" else 0)
     maintenant = time.time()
     an, mois, jour = time.localtime(maintenant)[:3]
-    cible = time.mktime((an, mois, jour, heure, int(m.group(2) or 0), 0, 0, 0, -1))
-    return cible if cible > maintenant else cible + 86400
+    minute = int(m.group(2) or 0)
+    cible = time.mktime((an, mois, jour, heure, minute, 0, 0, 0, -1))
+    # Demain, même heure : `mktime` sur le jour suivant, pas `+ 86400` — un changement d'heure le décale d'une heure.
+    return cible if cible > maintenant else time.mktime((an, mois, jour + 1, heure, minute, 0, 0, 0, -1))
 
 
 def ligne_carnet(a, **champs):

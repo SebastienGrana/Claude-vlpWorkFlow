@@ -10,6 +10,7 @@ import time
 from typing import Any
 
 import carnet
+import pytest
 from aides import SCRIPTS
 from aides_boucle import (FAUX_CLAUDE, OPUS, REPLI, SONNET, autorises, bmod, boucle, carnet_de, cases_de, depot,
                           drapeau, faux, git, journal_de, lancer, lire, nuit, pilote, projet, tours_de, verdict_de,
@@ -460,6 +461,30 @@ def test_plafonds():
     bmod.BASCULE["jusqu"] = 0.0
     verifier("NUI4 : pendant la bascule un rôle Opus passe en Sonnet (jouer aussi, NUI33), après le reset il revient en Opus",
              pendant == (SONNET, SONNET) and apres == OPUS, (pendant, apres))
+
+
+def veille_de_changement():
+    """Le premier jour de 2026 (heure locale) dont le lendemain n'a pas 24 h, ou `None` si le fuseau n'en a pas."""
+    for i in range(366):
+        midi, lendemain = (time.mktime((2026, 1, 1 + j, 12, 0, 0, 0, 0, -1)) for j in (i, i + 1))
+        if lendemain - midi != 86400:
+            return time.localtime(midi)[:3]
+    return None
+
+
+def test_reset_de_changement_d_heure(monkeypatch):
+    """`reset_de` la veille d'un changement d'heure : « resets 3:45pm » lu à 16 h vise le lendemain à 15:45 local,
+    pas 24 h plus tard (25 octobre 2026, `test_plafonds` rouge ce jour-là). Fuseau sans changement d'heure :
+    sauté."""
+    veille = veille_de_changement()
+    if veille is None:
+        pytest.skip("le fuseau de la machine n'a pas de changement d'heure en 2026")
+    an, mois, jour = veille
+    monkeypatch.setattr(time, "time", lambda: time.mktime((an, mois, jour, 16, 0, 0, 0, 0, -1)))
+    lu = time.localtime(bmod.reset_de("You've hit your Opus limit · resets 3:45pm"))
+    attendu = time.localtime(time.mktime((an, mois, jour + 1, 12, 0, 0, 0, 0, -1)))[:3] + (15, 45)
+    verifier("reset_de la veille du changement d'heure du %04d-%02d-%02d : lendemain 15:45 local" % veille,
+             lu[:5] == attendu, (lu[:5], attendu))
 
 
 def test_relecture():
