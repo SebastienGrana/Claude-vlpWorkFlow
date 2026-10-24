@@ -1,0 +1,97 @@
+# serializer version: 1
+# name: test_photo_aide[help]
+  '''
+  code 0
+  usage: boucle.py [-h] [--plafond PLAFOND] [--claude CLAUDE] [--model MODEL] [--effort EFFORT]
+                   [--permission-mode PERMISSION_MODE] [--budget BUDGET] [--traces TRACES] [--nuit]
+                   [--canal CANAL] [--chantier CHANTIER] [--date DATE] [--borne-usd BORNE_USD]
+                   [--borne-chantiers BORNE_CHANTIERS] [--carnet CARNET] [--reprendre] [--lancer]
+                   [dossier]
+  
+  Une session claude -p neuve par fiche.
+  
+  positional arguments:
+    dossier
+  
+  options:
+    -h, --help            show this help message and exit
+    --plafond PLAFOND
+    --claude CLAUDE
+    --model MODEL
+    --effort EFFORT
+    --permission-mode PERMISSION_MODE
+    --budget BUDGET
+    --traces TRACES
+    --nuit
+    --canal CANAL
+    --chantier CHANTIER
+    --date DATE
+    --borne-usd BORNE_USD
+    --borne-chantiers BORNE_CHANTIERS
+    --carnet CARNET
+    --reprendre
+    --lancer
+  
+  '''
+# ---
+# name: test_photo_plafond_0
+  '''
+  code 0 · cases ...
+  CLAUDE=<KIT>\tests\faux_claude.py
+  PROJET=<PROJET> · FICHIER=fiches.md
+  ARRÊT plafond de 0 fiches
+  TOTAL 0 fiches · 0 tours · 0.0000 $ · 0 s
+  --- fiches.md ---
+  # Chantier F — fiches
+  
+  **Ouvert.** le 2026-10-08.
+  
+  ## Le socle commun
+  
+  Rien.
+  
+  ## L'ordre des fiches
+  
+  F1, F2, F3.
+  
+  ---
+  
+  <!-- FICHE:F1 -->
+  ## F1 [ ] — fiche F1
+  
+  **Prompt**
+  Rien.
+  
+  **Critère de fin**
+  Rien.
+  <!-- /FICHE -->
+  
+  ---
+  
+  <!-- FICHE:F2 -->
+  ## F2 [ ] — fiche F2
+  
+  **Prompt**
+  Rien.
+  
+  **Critère de fin**
+  Rien.
+  <!-- /FICHE -->
+  
+  ---
+  
+  <!-- FICHE:F3 -->
+  ## F3 [ ] — fiche F3
+  
+  **Prompt**
+  Rien.
+  
+  **Critère de fin**
+  Rien.
+  <!-- /FICHE -->
+  
+  ---
+  
+  
+  '''
+# ---

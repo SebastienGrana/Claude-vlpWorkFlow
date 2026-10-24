@@ -21,9 +21,9 @@
     <p>Le kit tourne sur pytest et une couverture mesurée, sans une seule régression ; des scripts gardent la taille des fichiers et interdisent de toucher aux tests pendant une fiche ; les erreurs connues sont réparées, les gros fichiers découpés, et chaque angle revu jusqu'à deux passes vides.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span data-etat="faite"></span><span data-etat="faite"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span data-etat="faite"></span><span data-etat="faite"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">59 fiches · 34 faites · en cours : REF53</p>
+    <p class="mono" style="margin-top:.5rem">59 fiches · 35 faites · en cours : REF54</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -153,11 +153,13 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REF52</span></span>
         <details><summary><span class="titre">Renommer et migrer les fichiers à tiret</span><span class="etat">Faite</span></summary>
         <span class="note">grep : 0 ancien nom dans commandes, hooks, méthode (seule reste la sorte test-boucle de sessions.py, voulue) ; tests migrés 41 passed ; 3 mutants attrapés ; suite verte 368 passed, 3 skipped en 695 s (439 s avant)</span></details>
-        <span class="cout mono">≈18,4M (18 404 279) · 75 tours · 6,52 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">REF53</span></span>
-        <details open><summary><span class="titre">Découper boucle.py sous le seuil</span><span class="etat">En cours · REF10, REF20, REF38 peuvent partir en même temps</span></summary></details></li>
-      <li class="fiche" data-attend><span class="gauche"><span class="id">REF54</span></span>
-        <details><summary><span class="titre">Solder les remarques de ruff</span><span class="etat">Après REF53</span></summary></details></li>
+        <span class="cout mono">≈19,2M (19 194 192) · 78 tours · 6,82 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REF53</span></span>
+        <details><summary><span class="titre">Découper boucle.py sous le seuil</span><span class="etat">Faite</span></summary>
+        <span class="note">boucle.py 1 485 → 858 lignes, modules boucle_noyau/ 161, 172, 345 : tous sous SEUIL_LIGNES (1 000) ; photo de boucle.py --plafond 0 et --help identique sur le code d'avant et d'après (2 snapshots) ; suite entière verte, 384 passed, 3 skipped</span></details>
+        <span class="cout mono">≈14,0M (13 972 050) · 73 tours · 4,71 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">REF54</span></span>
+        <details open><summary><span class="titre">Solder les remarques de ruff</span><span class="etat">En cours · REF10, REF38 peuvent partir en même temps</span></summary></details></li>
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REF8</span></span>
         <details><summary><span class="titre">Mesurer la couverture et l'exiger sur les lignes changées</span><span class="etat">Faite</span></summary>
         <span class="note">référence par fichier dans la note 122 (94 % au total, vlp_coeur.py 92 %) ; suite 201 → 235 s mesurée ; dépôt temporaire : ligne non couverte refusée, couverte passe ; 2 mutants du seuil ATTRAPÉS ; commit de REF8 jugé 98 % des 103 lignes ; suite OK</span></details>
@@ -167,7 +169,7 @@
         <span class="note">CLIQUET TENU sur le kit, tailles de base : vlp_coeur.py 10 728, test-vlp.py 11 235, test-boucle.py 1 875, boucle.py 1 485 ; tests : +1 ligne refusée, neuf de 1 001 refusé (scripts/ et tests/), base qui descend ; mutant attrapé ; suite OK (268 s)</span></details>
         <span class="cout mono">≈7,7M (7 737 261) · 26 tours · 2,73 $</span></li>
       <li class="fiche"><span class="gauche"><span class="id">REF10</span></span>
-        <details><summary><span class="titre">Mettre les tests existants en lecture seule pendant une fiche</span><span class="etat">À lancer · en même temps que REF53, REF20, REF38</span></summary>
+        <details><summary><span class="titre">Mettre les tests existants en lecture seule pendant une fiche</span><span class="etat">À lancer · en même temps que REF54, REF38</span></summary>
         <span class="note">Pendant une fiche, les tests existants ne se modifient pas : un hook le bloque. Après REF4.</span></details></li>
       <li class="fiche"><span class="gauche"><span class="id">REF11</span></span>
         <details><summary><span class="titre">Rendre visible un test retiré ou affaibli</span><span class="etat">À lancer</span></summary>
@@ -204,7 +206,7 @@
         <span class="note">suite entière 253 s → 200 s, git 13 521 → 13 395 ; pytest 66,6 s → 40,9 s (-n 4) ; xdist : 20 lancements, 0 blocage ; pont lancé en fond dès le début ; mutant vu par le pont attrapé ; suite OK</span></details>
         <span class="cout mono">≈18,4M (18 362 438) · 46 tours · 4,84 $</span></li>
       <li class="fiche"><span class="gauche"><span class="id">REF20</span></span>
-        <details><summary><span class="titre">Essayer une campagne de mutation sur les lignes changées</span><span class="etat">À lancer · en même temps que REF53, REF10, REF38</span></summary>
+        <details><summary><span class="titre">Essayer une campagne de mutation sur les lignes changées</span><span class="etat">À lancer</span></summary>
         <span class="note">Un essai de mutation automatique sur les lignes changées (poodle). Après la découpe.</span></details></li>
       <li class="fiche"><span class="gauche"><span class="id">REF21</span></span>
         <details><summary><span class="titre">Essayer de typer un lecteur JSON</span><span class="etat">À lancer</span></summary>
@@ -222,7 +224,7 @@
       <li class="fiche"><span class="gauche"><span class="id">REF37</span></span>
         <details><summary><span class="titre">La nuit : qui prime, commiter ou non</span><span class="etat">À lancer</span></summary></details></li>
       <li class="fiche"><span class="gauche"><span class="id">REF38</span></span>
-        <details><summary><span class="titre">Retirer le repli « copie simple » d'avant le plugin</span><span class="etat">À lancer · en même temps que REF53, REF10, REF20</span></summary></details></li>
+        <details><summary><span class="titre">Retirer le repli « copie simple » d'avant le plugin</span><span class="etat">À lancer · en même temps que REF54, REF10</span></summary></details></li>
       <li class="fiche"><span class="gauche"><span class="id">REF39</span></span>
         <details><summary><span class="titre">sante --base refuse un worktree en retard sur main</span><span class="etat">À lancer</span></summary></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">REF22</span></span>
@@ -242,7 +244,7 @@
         <span class="note">Revue de la doc qui ment. Après REF22.</span></details></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈106,8M (106 808 546) · 481 tours · 29,99 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈526,8M (526 832 917) · 1938 tours · 173,73 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈541,6M (541 594 880) · 2014 tours · 178,74 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -280,7 +282,7 @@
 
   <footer>
     <span>Fichier de fiches : <span class="mono">context AI/125-ref.md</span></span>
-    <span>Mis à jour le <span class="mono">2026-10-18</span></span>
+    <span>Mis à jour le <span class="mono">2026-10-24</span></span>
   </footer>
 </div>
 <script src="vlp.js"></script>
