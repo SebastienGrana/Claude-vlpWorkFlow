@@ -1054,7 +1054,7 @@
   ÉCART: feuille: écart — « vlp.py feuille . » la régénère
   MARKDOWN 0 ** · 0 liens Markdown · 0 liens cassés — .\ctx/artefacts\feuille-de-route.html
   ÉCART: page: page introuvable : .\ctx\artefacts\10-dem.html — --creer pour la créer
-  POIDS CLAUDE.md 45/80 · CHANTIER.md 31/50 · index 29/80
+  POIDS CLAUDE.md 45/100 · CHANTIER.md 31/50 · index 29/80
   NIVEAU 4 écarts · 0 avertissements — .
   
   --- erreur
@@ -1391,7 +1391,7 @@
   code 1
   --- sortie
   ABSENT: CLAUDE.md:29: ctx/00-INDEX-archive.md
-  POIDS CLAUDE.md 45/80 · CHANTIER.md 31/50 · index 29/80
+  POIDS CLAUDE.md 45/100 · CHANTIER.md 31/50 · index 29/80
   RENVOIS 6 nommés · 1 absents
   
   --- erreur

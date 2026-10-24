@@ -148,7 +148,7 @@ def test_niv2_ecarts(tmp_path):
         assert ("ÉCART: variable: CHANTIER.md:7 cite ${CLAUDE_PLUGIN_ROOT}" in s
                  and "08-etat.md:3" not in s), ("NIV2 : la variable est lue en champ et en cellule, jamais en prose") + "\n" + str(s)
         assert ("ÉCART: clos: CHANTIER.md:9 —" in s), ("NIV2 : la table des clos est repérée à son titre") + "\n" + str(s)
-        assert ("POIDS CLAUDE.md absent/80 · CHANTIER.md 13/50 · index 6/80\n" in s
+        assert ("POIDS CLAUDE.md absent/100 · CHANTIER.md 13/50 · index 6/80\n" in s
                  and s.rstrip().endswith("NIVEAU 5 écarts · 0 avertissements — %s" % proj)), ("NIV2 : le poids sort brut, et le bilan compte les deux genres") + "\n" + str(s)
 
 
@@ -190,6 +190,11 @@ def test_niv2_a_niveau(tmp_path):
         assert (code == 0 and "AVERTISSEMENT: poids: CLAUDE.md %d lignes > %d\n"
                  % (mod.SEUIL_CLAUDE + 1, mod.SEUIL_CLAUDE) in s
                  and "NIVEAU 0 écarts · 1 avertissements" in s), ("NIV2 : un fichier de tête trop lourd avertit, il ne fait pas un écart") + "\n" + str(s)
+
+        ecrire(os.path.join(proj, "CLAUDE.md"), "x\n" * 93)
+        code, s = appel(["niveau", proj])
+        assert (code == 0 and "AVERTISSEMENT:" not in s and "POIDS CLAUDE.md 93/100 ·" in s
+                 and "NIVEAU 0 écarts · 0 avertissements" in s), ("CLAUDE.md de 93 lignes : sous le plafond de 100, sans avertissement (décision de l'utilisateur, 2026-10-24)") + "\n" + str(s)
 
         code, s = appel(["niveau", os.path.join(t, "pas-un-projet")])
         assert (code == 1 and s.startswith("GARDE: pas de CHANTIER.md dans ")), ("NIV2 : sans CHANTIER.md, une GARDE et 1") + "\n" + str(s)

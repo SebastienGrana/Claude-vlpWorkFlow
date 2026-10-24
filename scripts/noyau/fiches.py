@@ -425,7 +425,8 @@ CODE_EN_LIGNE = re.compile(r"`[^`]*`")
 SEUIL_FICHE = 50
 SEUIL_SOCLE = 80
 # Fichiers de tête, lus à chaque session ou chaque fiche (mesure : chantier J, J1).
-SEUIL_CLAUDE = 80
+# `SEUIL_CLAUDE` : 80 → 100 le 2026-10-24, décision de l'utilisateur (« Le plafond, on va l'augmenter à 100 lignes »).
+SEUIL_CLAUDE = 100
 SEUIL_CHANTIER = 50
 SEUIL_INDEX = 80
 CLOS_GARDES = 5  # chantiers clos gardés dans « Où on en est » de CLAUDE.md

@@ -130,7 +130,7 @@ def test_idx1(tmp_path):
                "| Fichier | Lire quand |\n|---|---|\n| `20-mort.md` | chantier **clos** « M », `M1..M1` |\n")
         code, s = appel(["renvois", t])
         assert (code == 1 and s == "ABSENT: ctx/00-INDEX-archive.md:3: 20-mort.md\n"
-                 "POIDS CLAUDE.md absent/80 · CHANTIER.md 2/50 · index 3/80\nRENVOIS 2 nommés · 1 absents\n"), ("IDX1 : renvois lit l'archive, sans poids — mutant : archive non lue") + "\n" + str(s)
+                 "POIDS CLAUDE.md absent/100 · CHANTIER.md 2/50 · index 3/80\nRENVOIS 2 nommés · 1 absents\n"), ("IDX1 : renvois lit l'archive, sans poids — mutant : archive non lue") + "\n" + str(s)
 
 
 def gardien_test(texte):

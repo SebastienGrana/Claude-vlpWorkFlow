@@ -95,15 +95,15 @@ def test_renvois(tmp_path):
         ecrire(os.path.join(t, "CLAUDE.md"),
                "# P\n\n| hors routage | `perdu.md` |\n\n## Routage — ouvrir ceci\n\n| La tâche | Ouvrir |\n|---|---|\n"
                "| lire `vlp.py` | `ctx/01-a.md` |\n| lancer | **`/vlp:chantier`** |\n\n## Économie\n\n| x | `loin.md` |\n")
-        assert (appel(["renvois", t]) == (0, "POIDS CLAUDE.md 14/80 · CHANTIER.md 2/50 · index 9/80\n"
+        assert (appel(["renvois", t]) == (0, "POIDS CLAUDE.md 14/100 · CHANTIER.md 2/50 · index 9/80\n"
                  "RENVOIS 3 nommés · 0 absents\n")), ("renvois : tout présent, poids sous seuil") + "\n" + str(appel(["renvois", t]))
         ecrire(os.path.join(t, "CHANTIER.md"), "- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n" + "x\n" * 49)
         code, s = appel(["renvois", t])
         assert (code == 0 and s.startswith(
-            "AVERTISSEMENT: CHANTIER.md 51 lignes > 50\nPOIDS CLAUDE.md 14/80 · CHANTIER.md 51/50 · index 9/80\n")), ("renvois : poids au-delà, avertit sans changer la sortie") + "\n" + str(s)
+            "AVERTISSEMENT: CHANTIER.md 51 lignes > 50\nPOIDS CLAUDE.md 14/100 · CHANTIER.md 51/50 · index 9/80\n")), ("renvois : poids au-delà, avertit sans changer la sortie") + "\n" + str(s)
         os.remove(os.path.join(t, "CLAUDE.md"))
         code, s = appel(["renvois", t])
-        assert (code == 0 and "POIDS CLAUDE.md absent/80 · CHANTIER.md 51/50" in s), ("renvois : CLAUDE.md absent dans les poids") + "\n" + str(s)
+        assert (code == 0 and "POIDS CLAUDE.md absent/100 · CHANTIER.md 51/50" in s), ("renvois : CLAUDE.md absent dans les poids") + "\n" + str(s)
         ecrire(os.path.join(t, "CLAUDE.md"),
                "# P\n\n| hors routage | `perdu.md` |\n\n## Routage — ouvrir ceci\n\n| La tâche | Ouvrir |\n|---|---|\n"
                "| lire `vlp.py` | `ctx/01-a.md` |\n| lancer | **`/vlp:chantier`** |\n\n## Économie\n\n| x | `loin.md` |\n")
@@ -122,7 +122,7 @@ def test_renvois_garde(tmp_path):
         ecrire(os.path.join(d, "ctx", "01-a.md"), "a\n")
         tete = "| Fichier | a | b | c | d |\n|---|---|---|---|---|\n| `01-a.md` | x \\| y | b | c | d |\n"
         ecrire(os.path.join(d, "ctx", "00-INDEX.md"), tete)
-        assert (appel(["renvois", d]) == (0, "POIDS CLAUDE.md absent/80 · CHANTIER.md 2/50 · index 3/80\n"
+        assert (appel(["renvois", d]) == (0, "POIDS CLAUDE.md absent/100 · CHANTIER.md 2/50 · index 3/80\n"
                  "RENVOIS 1 nommés · 0 absents\n")), ("TAB2 : renvois, table saine et \\| gardé") + "\n" + str(appel(["renvois", d]))
         for ligne, n in (("| `01-a.md` | a | b | c |\n", 4), ("| `01-a.md` | a | b | c | d | e |\n", 6)):
             ecrire(os.path.join(d, "ctx", "00-INDEX.md"), tete + ligne)
