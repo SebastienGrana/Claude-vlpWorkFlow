@@ -1,0 +1,342 @@
+<title>__TITRE__</title>
+<!--
+  GABARIT — cahier d'essais. Une liste d'essais que l'utilisateur fait lui-même (pas Claude) : il coche,
+  remplit les « … », écrit ses remarques, puis copie un rapport texte qu'il recolle dans une séance Claude.
+  Page ponctuelle, comme le rapport à cartes : elle ne suit aucun chantier.
+  Ne se remplit pas à la main : `vlp.py cahier <source.md> <sortie.html>` pose le .md, le style entier de
+  vlp.css et le bloc INSECABLE de vlp.js aux repères __…__ ; aucune couleur ici, rien que des variables de
+  vlp.css. Le format du .md et l'usage : ARTEFACTS.md, « Le cahier d'essais ».
+  Clair seulement, jamais de thème sombre (choix de l'utilisateur, 2026-10-05).
+-->
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/*__VLP_CSS__*/
+  /* Une colonne de 46 rem ; chaque essai est une carte bordée, ses remarques à la fin ; le rapport à copier en bas. */
+  .cahier { display: block; padding-block: 2rem 5rem;
+            padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .cahier section { display: block; }
+  .cahier h1, .cahier h2 { line-height: 1.3; }
+  .cahier h1 { font-size: 1.75rem; margin: 2.5rem 0 1rem; }
+  .cahier h2 { font-size: 1.35rem; margin: 1.5rem 0 .75rem; }
+  :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  code, pre { font-family: "IBM Plex Mono", ui-monospace, monospace; letter-spacing: normal; font-size: 15px; }
+  pre { background: var(--ground); border: 1px solid var(--line); padding: 12px; overflow-x: auto; }
+  blockquote { background: var(--ground); margin: .5rem 0; padding: .5rem 1rem; border-left: 4px solid var(--line-fort); }
+  blockquote p { margin: 0; }
+  hr { border: 0; border-top: 2px solid var(--line-fort); margin: 2rem 0; }
+  .cahier ul, .cahier ol { padding-left: 1.5rem; } .cahier li { margin: .25rem 0; }
+  li:has(> input[type=checkbox]) { list-style: none; margin-left: -1.5rem; }
+  li > input[type=checkbox] + p { display: inline; margin: 0; }
+  input[type=checkbox] { width: 20px; height: 20px; margin: 0 .5rem 0 0; vertical-align: -4px; accent-color: var(--fait); }
+  .barre { display: none; }
+
+  /* chaque essai : une carte, nettement séparée de la suivante */
+  .essai { background: var(--surface); border: 2px solid var(--line-fort); border-left: 6px solid var(--accent);
+           border-radius: 4px; padding: .25rem 1.25rem 1.25rem; margin: 1.75rem 0; box-shadow: var(--ombre); }
+  .essai.fait { border-left-color: var(--fait); }
+  .essai > h2 { margin-top: 1rem; }
+  .fait-coche { display: inline-flex; align-items: center; gap: .4rem; font-size: 16px; color: var(--fait);
+                font-weight: 700; margin-left: .25rem; white-space: nowrap; }
+  .champ { font: inherit; letter-spacing: inherit; color: var(--texte); background: var(--ground); border: 1px solid var(--bord-bouton);
+           border-radius: 3px; padding: .1rem .4rem; width: 9rem; max-width: 100%; }
+  .remarques { margin-top: 1rem; display: flex; flex-direction: column; gap: .4rem; }
+  .remarques label { font-weight: 700; }
+  textarea { font: inherit; letter-spacing: inherit; color: var(--texte); background: var(--ground); width: 100%;
+             min-height: 5.5rem; border: 1px solid var(--bord-bouton); border-radius: 3px; padding: .5rem .6rem; resize: vertical; }
+
+  /* le rapport à copier */
+  #rapport { background: var(--surface); border: 2px solid var(--fait); border-radius: 4px; padding: 1rem 1.25rem 1.25rem; margin-top: 2.5rem; }
+  #rapport h1 { margin-top: .5rem; }
+  .ligne { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; }
+  .cahier button, .flottant { font: inherit; font-weight: 700; letter-spacing: inherit; cursor: pointer; border-radius: 4px;
+           padding: .55rem 1.1rem; border: 2px solid var(--fait); background: var(--fait); color: var(--surface); }
+  .cahier button.discret { background: transparent; color: var(--texte); border-color: var(--bord-bouton); font-weight: 400; }
+  #etat, .sous { color: var(--doux); font-size: 16px; }
+  #texte-rapport { font-family: "IBM Plex Mono", ui-monospace, monospace; letter-spacing: normal; font-size: 15px; min-height: 14rem; margin-top: .75rem; }
+  .flottant { position: fixed; right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+              box-shadow: var(--ombre); }
+  @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+
+  /* l'avancement, sous le titre du sommaire */
+  .avance { display: flex; flex-direction: column; gap: .5rem; margin: .5rem 0 1rem; }
+  .jauge { height: 14px; background: var(--line); border-radius: 7px; overflow: hidden; }
+  .jauge span { display: block; height: 100%; width: 0; background: var(--fait); border-radius: 7px; }
+  #avance-texte { margin: 0; font-weight: 700; }
+  .mode { display: inline-flex; align-items: center; gap: .5rem; font-weight: 700; cursor: pointer; }
+
+  /* un essai à la fois : les autres cartes ne gardent que leur titre */
+  .essai.replie { padding-bottom: .25rem; }
+  .essai.replie > :not(h2) { display: none; }
+  .essai.replie > h2 { cursor: pointer; }
+  .essai.replie > h2::after { content: "  ▸ ouvrir"; font-size: 16px; font-weight: 400; color: var(--doux); white-space: nowrap; }
+
+  /* ce qu'il faut pour l'essai, en tête de carte */
+  .besoin { margin: 0 0 .75rem; padding: .35rem .7rem; background: var(--ground); border: 1px dashed var(--line-fort); border-radius: 3px; }
+</style>
+
+<main class="page cahier" id="contenu"><p>Chargement de la page…</p></main>
+<button type="button" class="flottant" id="aller-rapport">📋 Mon rapport</button>
+
+<script type="application/json" id="source-md">__MARKDOWN__</script>
+<script>const REGLAGES = __REGLAGES__;</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<script>
+(function () {
+  const VERSION = REGLAGES.version;
+  const CLE = "cahier-" + REGLAGES.titre + "-" + VERSION;
+  const lire = () => { try { return JSON.parse(localStorage.getItem(CLE) || "{}"); } catch (e) { return {}; } };
+  const ecrire = v => { try { localStorage.setItem(CLE, JSON.stringify(v)); } catch (e) { console.warn("brouillon non gardé :", e); } };
+  const main = document.getElementById("contenu");
+
+  let md;
+  try { md = JSON.parse(document.getElementById("source-md").textContent); }
+  catch (e) { console.error(e); main.textContent = "La page n'a pas pu lire ses essais : " + e; return; }
+  if (!window.marked) { console.error("marked absent"); main.textContent = "La page n'a pas pu charger son outil d'affichage. Rechargez-la."; return; }
+  main.innerHTML = marked.parse(md, { gfm: true });
+
+  // une ligne vide entre deux cases du .md fait une liste aérée (<li><p><input>…) : la case remonte dans son <li>,
+  // comme dans une liste serrée, pour que le sommaire retrouve ses cartes
+  main.querySelectorAll("li > p:first-child > input[type=checkbox]:first-child").forEach(c => c.closest("li").prepend(c));
+
+  // les barres ━━━ du fichier : les cartes les remplacent
+  main.querySelectorAll("p").forEach(p => { if (/^━+$/.test(p.textContent.trim())) p.classList.add("barre"); });
+
+  // chaque essai (un titre « ▶️ ») devient une carte, jusqu'au titre ou à l'ancre suivante
+  const essais = [];
+  // une ancre du fichier (<a id>) arrive seule dans un paragraphe
+  const ancreDe = n => {
+    if (!n) return "";
+    if (n.matches("a[id]")) return n.id;
+    const a = n.matches("p") && n.children.length === 1 && !n.textContent.trim() ? n.firstElementChild : null;
+    return a && a.matches("a[id]") ? a.id : "";
+  };
+  main.querySelectorAll("h2").forEach(h => {
+    if (!h.textContent.trim().startsWith("▶️")) return;
+    const carte = document.createElement("section");
+    carte.className = "essai";
+    carte.dataset.ancre = ancreDe(h.previousElementSibling);
+    h.before(carte);
+    let n = h;
+    while (n && !(n !== h && (n.matches("h1, h2, .barre") || ancreDe(n)))) { const suite = n.nextElementSibling; carte.append(n); n = suite; }
+    essais.push(carte);
+  });
+
+  // les « … » à remplir deviennent des champs ; une puce faite seulement de « … » disparaît (la case Remarques la remplace)
+  let nChamp = 0;
+  main.querySelectorAll("li").forEach(li => {
+    if (li.textContent.trim() === "…") { const ul = li.parentElement; li.remove(); if (!ul.children.length) ul.remove(); return; }
+    const marcheur = document.createTreeWalker(li, NodeFilter.SHOW_TEXT);
+    const textes = []; while (marcheur.nextNode()) if (marcheur.currentNode.nodeValue.includes("…") && !marcheur.currentNode.parentElement.closest("ul ul, blockquote")) textes.push(marcheur.currentNode);
+    textes.forEach(t => {
+      const morceaux = t.nodeValue.split("…");
+      const frag = document.createDocumentFragment();
+      morceaux.forEach((m, i) => {
+        frag.append(m);
+        if (i < morceaux.length - 1) {
+          const champ = document.createElement("input");
+          champ.type = "text"; champ.className = "champ"; champ.id = "champ-" + (nChamp++);
+          champ.setAttribute("aria-label", li.textContent.replace("…", "").trim().slice(0, 60));
+          frag.append(champ);
+        }
+      });
+      t.replaceWith(frag);
+    });
+  });
+
+  // les cases deviennent cochables ; la case du sommaire marque l'essai fait
+  let nCase = 0;
+  main.querySelectorAll('input[type=checkbox]').forEach(c => { c.disabled = false; c.id = "case-" + (nCase++); });
+  const casesSommaire = {};
+  main.querySelectorAll('li > input[type=checkbox]').forEach(c => {
+    const lien = c.parentElement.querySelector('a[href^="#"]');
+    if (lien && !c.closest(".essai")) casesSommaire[lien.getAttribute("href").slice(1)] = c;
+  });
+
+  // une case « Remarques » au bas de chaque essai, et la case « fait » dans son titre
+  essais.forEach(carte => {
+    const bloc = document.createElement("div");
+    bloc.className = "remarques";
+    const id = "remarques-" + (carte.dataset.ancre || essais.indexOf(carte));
+    bloc.innerHTML = '<label for="' + id + '">✏️ Ce qui ne va pas, vos remarques</label><textarea id="' + id + '" placeholder="Écrivez ici, même en vrac."></textarea>';
+    carte.append(bloc);
+    // un « ✏️ Notez » resté sans rien dessous ferait doublon avec la case Remarques
+    const vide = bloc.previousElementSibling;
+    if (vide && vide.matches("p") && vide.textContent.trim().startsWith("✏️")) vide.remove();
+    const c = casesSommaire[carte.dataset.ancre];
+    if (c) {
+      const etiquette = document.createElement("label");
+      etiquette.className = "fait-coche";
+      const miroir = document.createElement("input");
+      miroir.type = "checkbox"; miroir.dataset.miroir = c.id;
+      etiquette.append(miroir, "fait");
+      carte.querySelector("h2").append(" ", etiquette);
+    }
+  });
+
+  // le rapport à copier
+  const rapport = document.createElement("section");
+  rapport.id = "rapport";
+  rapport.innerHTML = '<h1>📋 Mon rapport d\'essais</h1>' +
+    '<p>Il se remplit tout seul avec vos cases et vos remarques.</p>' +
+    '<p>➡️ Copiez-le, puis collez-le dans la <strong>'+ REGLAGES.seance.replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c]) +'</strong> : elle trie vos retours et corrige.</p>' +
+    '<div class="ligne"><button type="button" id="copier">📋 Copier le rapport</button><span id="etat" aria-live="polite"></span></div>' +
+    '<label class="sous" for="texte-rapport">Le texte qui sera copié :</label>' +
+    '<textarea id="texte-rapport" readonly></textarea>' +
+    '<div class="ligne" style="margin-top:1rem"><button type="button" class="discret" id="effacer">Tout effacer</button><span id="etat-effacer" class="sous" aria-live="polite"></span></div>';
+  main.append(rapport);
+  const zone = document.getElementById("texte-rapport");
+
+  // garder le brouillon dans ce navigateur, et le remettre au chargement
+  const stock = lire();
+  main.querySelectorAll("input[id], textarea[id]").forEach(el => {
+    if (el.id === "texte-rapport" || !(el.id in stock)) return;
+    if (el.type === "checkbox") el.checked = !!stock[el.id]; else el.value = stock[el.id];
+  });
+  // ce qu'il faut pour chaque essai : la fin de sa ligne du sommaire (après le « — »)
+  essais.forEach(carte => {
+    const c = casesSommaire[carte.dataset.ancre];
+    const morceaux = c ? c.parentElement.textContent.split("—") : [];
+    if (morceaux.length < 2) return;
+    const p = document.createElement("p");
+    p.className = "besoin";
+    p.textContent = "🎒 Ce qu'il faut : " + morceaux.slice(1).join("—").trim();
+    carte.querySelector("h2").after(p);
+  });
+
+  // l'avancement : les cases du sommaire, entre son titre et la barre suivante
+  const titreSommaire = [...main.querySelectorAll("h2")].find(h => h.textContent.includes("Sommaire"));
+  const casesAvance = [];
+  for (let n = titreSommaire && titreSommaire.nextElementSibling; n && !n.matches("hr"); n = n.nextElementSibling)
+    casesAvance.push(...n.querySelectorAll("input[type=checkbox]"));
+  const avance = document.createElement("div");
+  avance.className = "avance";
+  avance.innerHTML = '<div class="jauge" aria-hidden="true"><span></span></div><p id="avance-texte"></p>' +
+    '<label class="mode"><input type="checkbox" id="mode-un-a-la-fois"> 👁️ Un essai à la fois (les autres se replient)</label>';
+  if (titreSommaire) titreSommaire.after(avance);
+  const boutonRapport = document.getElementById("aller-rapport");
+
+  // un essai à la fois : la carte en cours reste ouverte ; un clic sur un titre replié l'ouvre
+  const CLE_MODE = CLE + "-mode";
+  const caseMode = document.getElementById("mode-un-a-la-fois");
+  try { caseMode.checked = localStorage.getItem(CLE_MODE) !== "0"; } catch (e) { caseMode.checked = true; }
+  const estFait = carte => { const m = carte.querySelector("input[data-miroir]"); return !!(m && m.checked); };
+  let courante = null;
+  const deplier = () => {
+    if (!courante || !essais.includes(courante)) courante = essais.find(c => !estFait(c)) || null;
+    essais.forEach(carte => carte.classList.toggle("replie", caseMode.checked && carte !== courante));
+  };
+  const ouvrir = carte => { if (carte) { courante = carte; deplier(); } };
+  caseMode.addEventListener("change", () => {
+    try { localStorage.setItem(CLE_MODE, caseMode.checked ? "1" : "0"); } catch (e) { console.warn(e); }
+    deplier();
+  });
+  essais.forEach(carte => carte.querySelector("h2").addEventListener("click", e => {
+    if (e.target.closest("label, input") || !carte.classList.contains("replie")) return;
+    ouvrir(carte);
+  }));
+  const carteDe = ancre => essais.find(c => c.dataset.ancre === ancre);
+  main.addEventListener("click", e => {
+    const lien = e.target.closest('a[href^="#"]');
+    if (lien) ouvrir(carteDe(lien.getAttribute("href").slice(1)));
+  });
+
+  const synchroniser = () => {
+    main.querySelectorAll("input[data-miroir]").forEach(m => { m.checked = document.getElementById(m.dataset.miroir).checked; });
+    essais.forEach(carte => carte.classList.toggle("fait", estFait(carte)));
+    const faits = casesAvance.filter(c => c.checked).length;
+    avance.querySelector(".jauge span").style.width = (casesAvance.length ? 100 * faits / casesAvance.length : 0) + "%";
+    document.getElementById("avance-texte").textContent = "✅ " + faits + " sur " + casesAvance.length + " faits";
+    boutonRapport.textContent = "📋 Mon rapport · " + faits + "/" + casesAvance.length;
+    deplier();
+  };
+
+  const texteDe = li => {
+    const copie = li.cloneNode(true);
+    const vrais = li.querySelectorAll("input.champ");
+    copie.querySelectorAll("input.champ").forEach((c, i) => c.replaceWith(vrais[i].value.trim() || "…"));
+    copie.querySelectorAll("input, ul, ol").forEach(x => x.remove());
+    return copie.textContent.replace(/\s+/g, " ").trim();
+  };
+  const titreDe = carte => {
+    const h = carte.querySelector("h2").cloneNode(true);
+    h.querySelectorAll("label").forEach(x => x.remove());
+    return h.textContent.replace("▶️", "").replace(/\s+/g, " ").trim();
+  };
+
+  function construire() {
+    const jour = new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+    const l = ["# Rapport d'essais — " + REGLAGES.titre, "",
+               "Rempli le " + jour + ", sur la page « " + REGLAGES.titre + " » (version du " + VERSION + ").",
+               "Cases : [x] = vu et bon, [ ] = pas vu, ou pas bon. Les remarques disent ce qui ne va pas.", ""];
+    // les gestes du sommaire : ses cases qui ne mènent à aucune carte d'essai
+    const gestes = casesAvance.filter(c => !essais.some(carte => casesSommaire[carte.dataset.ancre] === c));
+    if (gestes.length) {
+      l.push("## Gestes du sommaire");
+      gestes.forEach(c => l.push("- [" + (c.checked ? "x" : " ") + "] " + texteDe(c.parentElement).split(" — ")[0]));
+      l.push("");
+    }
+    essais.forEach(carte => {
+      const m = carte.querySelector("input[data-miroir]");
+      const fait = !!(m && m.checked);
+      const note = carte.querySelector(".remarques textarea").value.trim();
+      const lignes = [];
+      carte.querySelectorAll("li").forEach(li => {
+        const c = li.querySelector(":scope > input[type=checkbox]");
+        const champs = li.querySelectorAll(":scope input.champ");
+        if (c) lignes.push("- [" + (c.checked ? "x" : " ") + "] " + texteDe(li));
+        else if ([...champs].some(ch => ch.value.trim())) lignes.push("- " + texteDe(li));
+      });
+      const touche = fait || note || lignes.some(x => x.startsWith("- [x]")) || [...carte.querySelectorAll("input.champ")].some(ch => ch.value.trim());
+      if (!touche) { l.push("## " + titreDe(carte) + " : pas encore fait", ""); return; }
+      l.push("## " + titreDe(carte) + (fait ? " : fait" : " : commencé"));
+      l.push(...lignes);
+      l.push("Remarques : " + (note || "aucune"), "");
+    });
+    zone.value = l.join("\n").trim() + "\n";
+  }
+
+  main.addEventListener("input", e => {
+    const el = e.target;
+    if (el.id === "mode-un-a-la-fois") return;
+    // un essai coché « fait » : la page passe au suivant
+    const carteFaite = el.matches("input[data-miroir]") ? el.closest(".essai") : essais.find(c => c.dataset.ancre && casesSommaire[c.dataset.ancre] === el);
+    if (el.matches("input[data-miroir]")) { document.getElementById(el.dataset.miroir).checked = el.checked; }
+    if (carteFaite && el.checked && carteFaite === courante) courante = null;
+    const s = lire();
+    main.querySelectorAll("input[id], textarea[id]").forEach(x => { if (x.id !== "texte-rapport" && x.id !== "mode-un-a-la-fois") s[x.id] = x.type === "checkbox" ? x.checked : x.value; });
+    ecrire(s); synchroniser(); construire();
+  });
+
+  // copier : le presse-papier, sinon le texte se sélectionne
+  document.getElementById("copier").addEventListener("click", () => {
+    construire();
+    const etat = document.getElementById("etat");
+    Promise.resolve().then(() => navigator.clipboard.writeText(zone.value)).then(() => "✅ Copié. Collez-le dans la séance principale.")
+      .catch(e => { console.warn("copie refusée, texte sélectionné :", e); zone.focus(); zone.select(); return "Texte sélectionné : faites Ctrl+C."; })
+      .then(mot => { etat.textContent = mot; });
+  });
+
+  // tout effacer : en deux clics, la page n'a pas de fenêtre de confirmation
+  let armé = false;
+  document.getElementById("effacer").addEventListener("click", e => {
+    const etat = document.getElementById("etat-effacer");
+    if (!armé) { armé = true; e.target.textContent = "Oui, tout effacer"; etat.textContent = "⚠️ Cliquez encore pour confirmer."; return; }
+    try { localStorage.removeItem(CLE); } catch (err) { console.warn(err); }
+    main.querySelectorAll("input, textarea").forEach(x => { if (x.id === "texte-rapport" || x.id === "mode-un-a-la-fois") return; if (x.type === "checkbox") x.checked = false; else x.value = ""; });
+    armé = false; e.target.textContent = "Tout effacer"; etat.textContent = "Effacé.";
+    synchroniser(); construire();
+  });
+
+  document.getElementById("aller-rapport").addEventListener("click", () => rapport.scrollIntoView());
+  // un lien « copier le rapport » dans le sommaire
+  const aussi = [...main.querySelectorAll("p")].find(p => p.textContent.startsWith("Et aussi"));
+  if (aussi) aussi.insertAdjacentHTML("beforeend", ' · <a href="#rapport">📋 mon rapport</a>');
+
+  synchroniser(); construire();
+  // nombres et dates jamais coupés en fin de ligne : le bloc INSECABLE de vlp.js, posé par vlp.py cahier
+  (() => {
+/*__INSECABLE__*/
+  })();
+  if (location.hash) { const cible = document.getElementById(location.hash.slice(1)); ouvrir(carteDe(location.hash.slice(1))); if (cible) cible.scrollIntoView(); }
+})();
+</script>

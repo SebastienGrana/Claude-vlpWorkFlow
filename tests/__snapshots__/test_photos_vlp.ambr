@@ -259,6 +259,18 @@
   --- écrits sous le dossier personnel
   '''
 # ---
+# name: test_photo[cahier]
+  '''
+  code 1
+  --- sortie
+  GARDE: <TMP>/absent.md illisible : [Errno 2] No such file or directory: '<TMP>/absent.md' — rien d'écrit
+  
+  --- erreur
+  
+  --- écrits
+  --- écrits sous le dossier personnel
+  '''
+# ---
 # name: test_photo[carte]
   '''
   code 0

@@ -628,6 +628,12 @@ ni raison de la sauter, fait échouer la suite :
   forcé de la source l'emporte. Les vagues : `graphlib.TopologicalSorter`. Ligne `CLASSEMENT <o> obligatoires · <c>
   conseillés · <m> à la marge · <v> vagues · dépendances : <t> lues en TODO, <s> écrites par la source, <h> hors du
   chemin`. Dépendance illisible, cycle, pas sans phase ni niveau : `GARDE:`, rien d'écrit, sort 1.
+- `cahier <source.md> <sortie.html> [--titre T] [--version V] [--seance S]` — le cahier d'essais (`noyau/cahier.py`) :
+  la page à cocher, remplir et copier de `templates/cahier-essais.html`, bâtie du `.md` (format : `ARTEFACTS.md`, « Le
+  cahier d'essais »), `vlp.css` et le bloc INSECABLE de `vlp.js` posés dedans. Titre : le premier `# ` du `.md`, émoji
+  ôté ; version : la date du jour ; séance : celle où recoller le rapport. Imprime une `AVERTISSEMENT: lien sans ancre :
+  #<x>` par lien `](#x)` sans `<a id="x">`, puis `CAHIER <sortie> · <e> essais · <c> cases · <f> champs · <o> octets`.
+  Source illisible ou sans titre `## ▶️` : `GARDE:`, rien d'écrit, sort 1.
 - `rapide <motif> [--racine R]` — le contrôle rapide d'une fiche du kit, avant la suite entière (VIT23), joué en
   parallèle sous la racine (défaut : le dossier courant) : les tests de la suite pytest qui portent le motif
   (`--seul`), pyright sur les `.py` ajoutés, modifiés ou neufs depuis `HEAD`, et `sante --cliquet`. Une ligne

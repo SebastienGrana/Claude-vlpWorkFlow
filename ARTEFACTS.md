@@ -9,7 +9,7 @@ sont dérivés, et pourquoi une seule page suit les fiches : `methode-chantier.m
 > publication échoue ou n'est pas disponible, la commande le dit en une ligne
 > et continue. Le fichier local, lui, est écrit dans tous les cas.
 
-**Sommaire** : Les artefacts suivis, et pas un de plus · Le nommage · Où vivent les
+**Sommaire** : Les artefacts suivis, et pas un de plus · Le cahier d'essais · Le nommage · Où vivent les
 fichiers, où vivent les URL · Republier : lire d'abord, `url` toujours · Une
 publication refusée · La page se régénère, elle ne se retouche pas · Le budget de
 contexte · Où vivent le CSS et les données · La lecture · Les commentaires.
@@ -45,6 +45,8 @@ dessous ; bloc « Sections et filtres » en haut ; filtre « à répondre
 seulement ». Le sommaire de liens se masque, les réponses ne bougent pas.
 `vlp.py chef page` ne pose pas encore l'attribut : l'ajouter à la main.
 
+Autre page ponctuelle : le **cahier d'essais** (section suivante).
+
 La feuille de route ne change **jamais** d'URL : elle porte la TODO ordonnée,
 le chantier en cours, et la table des chantiers clos avec un lien vers chacun.
 Elle ne porte **pas de compteur** de fiches — elle renvoie à la page du
@@ -52,6 +54,37 @@ chantier, qui est à jour. L'artefact d'un chantier reste en ligne après sa
 clôture, marqué clos. Après `vlp.py archive`, la table des clos vit dans un
 artefact à part (`archive-clos.html`, champ « **artefact archive** ») ; la
 feuille n'en garde que le résumé, le lien et le graphique (chantier ARC).
+
+## Le cahier d'essais — des essais que l'utilisateur fait lui-même
+
+Nom choisi par l'utilisateur le 2026-10-21 : « rapport de test » laissait croire que Claude avait fait les
+tests. Une page où **lui** coche, remplit et commente une liste d'essais (en jeu, dans une appli), puis copie
+un rapport texte qu'il recolle dans une séance Claude. Page ponctuelle : elle ne suit aucun chantier.
+
+- **Bâtir** : `vlp.py cahier <source.md> <sortie.html>` (options et sorties : docstring de `vlp.py`). Le
+  `.md` reste la source ; on corrige le `.md`, on rebâtit — jamais le HTML à la main.
+- **Publier** : `Artifact` avec le `file_path` de la sortie, sans `files` : la page tient en un fichier, le
+  style de `vlp.css` posé dedans. `icon` : `checklist`. Une nouvelle version du `.md` : rebâtir, puis republier
+  sur la même `url` (lire d'abord, plus haut).
+- **Ce que fait la page** (validé le 2026-10-21) : avancement en barre, mode « un essai à la fois » allumé
+  d'office (un essai coché fait ouvre le suivant), « 🎒 Ce qu'il faut » en tête de carte, une case
+  Remarques par carte, brouillon gardé dans le navigateur, rapport à copier (repli : texte sélectionné),
+  « Tout effacer » en deux clics. Pas de bouton « Écouter » par essai : refusé par l'utilisateur.
+
+Le format du `.md` (exemple complet : `exemples/cahier-essais.md`) :
+
+| Dans le `.md` | Devient dans la page |
+|---|---|
+| `# 🧪 Titre` (le premier) | le titre de la page et du rapport, émoji ôté |
+| `## 📋 Sommaire …` puis des `- [ ] [Nom](#ancre) — ce qu'il faut` | l'avancement ; la case marque la carte faite ; après « — », la ligne « 🎒 Ce qu'il faut » |
+| une case du sommaire sans carte (`- [ ] Relancer`) | un geste, compté, à part dans le rapport |
+| `<a id="ancre"></a>` juste avant `## ▶️ Nom` | une carte d'essai, jusqu'au titre ou à l'ancre suivante |
+| `- [ ] …` dans une carte | une case à cocher, recopiée dans le rapport |
+| `…` dans une puce (`- Durée : …`) | un champ à remplir ; une puce faite de `…` seul disparaît |
+| une ligne `━━━` | rien : les cartes séparent déjà |
+| `**Et aussi :** …` dans le sommaire | gagne un lien vers le rapport |
+
+Un lien `#x` sans `<a id="x">` : `vlp.py cahier` le dit (`AVERTISSEMENT:`), et la carte perd sa case du sommaire.
 
 ## Le nommage — le projet d'abord
 

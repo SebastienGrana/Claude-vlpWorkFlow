@@ -274,6 +274,7 @@ APPELS = [
     ("symboles", ["symboles", "scripts/outil.py"], None),
     ("ordre", ["ordre", "--json", "--source", "{t}/absente.json"], None),
     ("rapide", ["rapide", "DEM1", "--racine", "."], None),
+    ("cahier", ["cahier", "{t}/absent.md", "{t}/cahier.html"], None),
     ("joints", ["joints", "ctx/artefacts"], None),
     ("apercu", ["apercu", "."], None),
     ("nuits", ["nuits", "noter", "un texte"], None),

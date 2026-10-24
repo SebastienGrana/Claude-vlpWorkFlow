@@ -53,6 +53,7 @@ from noyau.rapport import (
     cmd_symboles,
 )
 from noyau.ordre import (cmd_ordre)
+from noyau.cahier import (cmd_cahier)
 
 # Ce que la façade ré-exporte : les noms d'avant la découpe (photo de `tests/test_noms_publics.py`). `RENVOIS`,
 # `lire_arguments`, `page_gardee` et `fichier_garde`, posés par REF49 à la place de la chaîne de tests sur `a.cmd`, se lisent ici seulement.
@@ -64,7 +65,7 @@ __all__ = [
 
 def options_outils(sous):
     """Déclarer les lignes de commande des outils : `bac`, `claude`, `kit-essai`, `symboles`, `rapide`, `lancables`,
-    `commiter`, `ordre`."""
+    `commiter`, `ordre`, `cahier`."""
     la = sous.add_parser("lancables")
     la.add_argument("fichier")
     la.add_argument("--max", type=int, default=2)
@@ -86,6 +87,12 @@ def options_outils(sous):
     od.add_argument("--json", action="store_true")
     od.add_argument("--db", action="store_true")
     od.add_argument("--source")
+    ca = sous.add_parser("cahier")
+    ca.add_argument("source")
+    ca.add_argument("sortie")
+    ca.add_argument("--titre")
+    ca.add_argument("--version")
+    ca.add_argument("--seance")
     ra = sous.add_parser("rapide")
     ra.add_argument("motif")
     ra.add_argument("--racine")
@@ -363,7 +370,7 @@ PAR_ARGUMENTS = {
     "forme": cmd_forme, "ouverts": cmd_ouverts, "postit": cmd_postit, "pause": cmd_pause, "plan": cmd_plan, "matin": cmd_matin, "fusionner": cmd_fusionner,
     "sante": cmd_sante, "symboles": cmd_symboles, "compteur": cmd_compteur, "carte": cmd_carte,
     "rapide": cmd_rapide, "essai": cmd_essai, "lancables": cmd_lancables,
-    "commiter": cmd_commiter, "ordre": cmd_ordre, "etat": cmd_etat,
+    "commiter": cmd_commiter, "ordre": cmd_ordre, "cahier": cmd_cahier, "etat": cmd_etat,
 }
 
 
