@@ -554,7 +554,12 @@ def ecarts_git(projet, sortie):
     if etat["ignoré"] and re.match(r"non\b", expres, re.I):
         sortie.write("EXPRÈS: git: %d chemin(s) ignoré(s) exprès — CHANTIER.md, « contexte dans Git » : %s ; aucun "
                      "écart compté\n" % (len(etat["ignoré"]), expres))
+    # Ignoré exprès chemin par chemin (Q24, 2026-10-25) : `oui — sauf `<chemin>` (pourquoi)`, un chemin par accents graves.
+    sauf = set(re.findall(r"`([^`]+)`", expres.partition("sauf")[2])) if re.match(r"oui\b", expres, re.I) else set()
     for nom, exemple in [] if re.match(r"non\b", expres, re.I) else etat["ignoré"]:
+        if nom in sauf:
+            sortie.write("EXPRÈS: git: %s — CHANTIER.md, « contexte dans Git » : sauf ; aucun écart compté\n" % nom)
+            continue
         code, t = noyau.relecture.git_texte(["check-ignore", "-v", "--", exemple], projet)
         source = source_ignore(t) if code == 0 else "?"
         sortie.write("ÉCART: git: %s — ignoré par %s — à retirer à la main, puis ajouter\n" % (nom, source))

@@ -19,7 +19,8 @@
 - **vérification** : <la commande que la session lance et lit elle-même — ou :
   le geste que seul l'utilisateur peut faire, et ce qu'il doit regarder>
 - **contexte dans Git** : oui — <ou : non, et pourquoi (dépôt public…) ; `niveau` ne compte
-  alors pas en écart ce que `.gitignore` en écarte>
+  alors pas en écart ce que `.gitignore` en écarte ; ou : oui — sauf `<chemin>` (pourquoi),
+  chaque chemin ignoré exprès entre accents graves, tous sur cette seule ligne>
 - **commandes longues** : aucune — <ou les calculs longs du projet, chacun entre accents
   graves (`calcul.py`) : `vlp.py compteur` compte leurs relances à part>
 

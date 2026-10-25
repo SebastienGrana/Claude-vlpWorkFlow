@@ -99,6 +99,32 @@ def test_niveau_git(tmp_path, init_git):
         assert (len(e) == 1 and "la ligne « kit » porte un chemin de machine" in e[0]), ("niveau git : la ligne « kit » à chemin de machine") + "\n" + str(e)
 
 
+def test_niveau_git_sauf(tmp_path, init_git):
+    """Q24 (2026-10-25) : `- **contexte dans Git** : oui — sauf `<chemin>` (pourquoi)` déclare un ignoré exprès,
+    chemin par chemin : une ligne `EXPRÈS: git:` pour lui, sans écart ; un ignoré qu'elle ne nomme pas reste un écart."""
+    def git(d, *args):
+        subprocess.run(["git"] + list(args), cwd=d, capture_output=True, check=True)
+
+    with tempfile.TemporaryDirectory(dir=tmp_path) as t:
+        p = os.path.join(t, "p")
+        carte = CHANTIER % ("pn", "ctx/") + "- **kit** : le plugin vlp\n"
+        ecrire(os.path.join(p, "CLAUDE.md"), "# p\n")
+        ecrire(os.path.join(p, "ctx", "08-etat.md"), "# état\n")
+        ecrire(os.path.join(p, "ctx", "00-INDEX.md"), "# Index\n")
+        ecrire(os.path.join(p, "ctx", "ordre", "page.html"), "<p>régénérée</p>\n")
+        ecrire(os.path.join(p, "ctx", "note.md"), "# note\n")
+        ecrire(os.path.join(p, ".gitignore"), "ctx/ordre/\nctx/note.md\n")
+        ecrire(os.path.join(p, "CHANTIER.md"), carte + "- **contexte dans Git** : oui — sauf `ctx/ordre/` (régénéré)\n")
+        init_git(p)
+        git(p, "add", "-A")
+        s = io.StringIO()
+        mod.ecarts_git(p, s)
+        lignes = [l for l in s.getvalue().split("\n") if l.startswith(("ÉCART: git:", "EXPRÈS: git:"))]
+        assert sorted(lignes) == ["EXPRÈS: git: ctx/ordre/ — CHANTIER.md, « contexte dans Git » : sauf ; aucun écart compté",
+                          "ÉCART: git: ctx/note.md — ignoré par .gitignore:2 — à retirer à la main, puis ajouter"], (
+            "Q24 niveau git : le chemin déclaré « sauf » est exprès, l'autre reste un écart") + "\n" + str(lignes)
+
+
 def hook(texte):
     o, e = io.StringIO(), io.StringIO()
     code = mod.main(["hook"], o, io.StringIO(texte), e)

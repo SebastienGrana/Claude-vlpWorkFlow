@@ -384,6 +384,9 @@ ajoutée qui en porte un (`CHM`). Un dépôt public se trie fichier par
 fichier avant d'y verser le contexte. Tranché le 2026-10-08 (`NUI34`). Un
 projet qui garde exprès son contexte hors de Git le déclare dans `CHANTIER.md`
 (« contexte dans Git » : non) : `niveau` ne le compte plus en écart (`NWT`).
+Un projet qui n'en écarte que quelques chemins les nomme un à un
+(« contexte dans Git » : oui — sauf `<chemin>` (pourquoi), sur une seule ligne) : `niveau` les
+dit en `EXPRÈS:`, et compte les autres (2026-10-25).
 
 ## Le fichier de fiches
 

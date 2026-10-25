@@ -243,7 +243,7 @@ ni raison de la sauter, fait échouer la suite :
   manque (NUI31). Les écarts `git:` (NUI36, `etat_git` de la carte) ne se corrigent jamais :
   `ÉCART: git: <chemin> — ignoré par .gitignore:<n> …` ou `— non ajouté …`, et la ligne « kit » qui porte un
   chemin de machine ; hors Git, aucun. L'ignoré que `CHANTIER.md` déclare exprès (`- **contexte dans Git** : non
-  — <pourquoi>`) : une ligne `EXPRÈS: git:`, sans écart (NWT). Les
+  — <pourquoi>`) : une ligne `EXPRÈS: git:`, sans écart (NWT) ; avec `oui — sauf `<chemin>``, ce chemin seul. Les
   renvois absents et les fichiers de tête hors seuil restent en `ÉCART:`. Tout
   se calcule avant la première écriture. Bilan `NIVEAU <n> corrigés · <n> à la
   main — <projet>` ; un écart restant : sort 1. `--date` fige la date.

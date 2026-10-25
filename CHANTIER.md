@@ -20,6 +20,7 @@
   que la session en cours voie une modification
 - **vérification** : geste de l'utilisateur — rejouer la commande modifiée sur un
   projet équipé, et regarder ce qu'elle fait
+- **contexte dans Git** : oui — sauf `context AI/ordre/` (régénérée) et `context AI/observations-enchainer-agents-cairn.md` (note perso, 2026-10-08)
 
 ## Contraintes d'écriture
 
