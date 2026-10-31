@@ -44,6 +44,7 @@ la reprise pour ne pas les rejouer. Il ne se met pas à la main.>
 **Dépend de** : rien.
 **Fichiers** : <chemin/a.ext>, <chemin/b.ext> — et rien d'autre.
 **Maquette** : <mockups/src/body.html lignes 120–148>   (si des libellés existent)
+**Tests** : modifiés — <raison>   (seulement si la fiche change un test existant ; sinon le hook `figer` le refuse)
 
 **Prompt**
 <Ce qu'il faut écrire, en clair, à la deuxième personne. Nomme les fonctions,

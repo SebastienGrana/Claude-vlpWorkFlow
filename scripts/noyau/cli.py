@@ -46,6 +46,7 @@ from noyau.hooks import (
     REGLE,
     REGLES,
     cmd_contrat,
+    cmd_figer,
     cmd_filet,
     cmd_forme,
     cmd_gardien,
@@ -256,8 +257,8 @@ def main(argv, sortie=None, entree=None, erreur=None):
     pg.add_argument("--verifier", action="store_true")
     pg.add_argument("--forme", action="store_true")
     pg.add_argument("--date")
-    sous.add_parser("hook")
-    sous.add_parser("filet")
+    for nom in ("hook", "figer", "filet"):
+        sous.add_parser(nom)
     options_etat(sous)
     rv = sous.add_parser("renvois")
     rv.add_argument("projet")
@@ -435,6 +436,7 @@ RENVOIS.update({
     "abri": lambda a, s, _e, _er: cmd_abri(a.pages, s),
     "renvois": lambda a, s, _e, _er: cmd_renvois(a.projet, s),
     "hook": lambda _a, s, e, er: une_fois(e, cmd_hook, s, er or sys.stderr),
+    "figer": lambda _a, s, e, er: une_fois(e, cmd_figer, s, er or sys.stderr),
     "filet": lambda _a, s, e, er: une_fois(e, cmd_filet, s, er or sys.stderr),
     "page": lambda a, s, _e, _er: page_gardee(a, s),
     "valider": lambda a, s, _e, _er: cmd_valider(a.fichiers, s, a.plan),

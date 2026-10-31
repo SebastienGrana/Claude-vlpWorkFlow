@@ -371,9 +371,10 @@ def test_hooks_json():
     assert (any(g.get("matcher") == "Artifact" and paire(g, "attente", "hook") for g in succes)
              and echec[1].get("matcher") == "Artifact" and paire(echec[1], "attente", "hook")), ("hooks.json : attente sur Artifact après un succès et après un échec (chantier LOC)") + "\n" + str(json.dumps(crochets, ensure_ascii=False))
     avant, arret = crochets.get("PreToolUse", []), crochets.get("SubagentStop", [])
-    assert (len(avant) == 2 and avant[0].get("matcher") == "Bash|PowerShell" and paire(avant[0], "gardien")
+    assert (avant[0].get("matcher") == "Bash|PowerShell" and paire(avant[0], "gardien")
              and len(arret) == 1 and arret[0].get("matcher") == "*" and paire(arret[0], "gardien")), ("hooks.json : gardien avant Bash|PowerShell et à l'arrêt d'un sous-agent") + "\n" + str(json.dumps(crochets, ensure_ascii=False))
     assert (avant[1].get("matcher") == "Artifact" and paire(avant[1], "vigile")), ("hooks.json : vigile avant Artifact (chantier VID)") + "\n" + str(json.dumps(crochets, ensure_ascii=False))
+    assert (len(avant) == 3 and avant[2].get("matcher") == "Write|Edit" and paire(avant[2], "figer")), ("hooks.json : figer avant Write|Edit (REF10)") + "\n" + str(json.dumps(crochets, ensure_ascii=False))
 
 
 def test_forme_transcriptions(tmp_path):

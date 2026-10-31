@@ -237,6 +237,7 @@ APPELS = [
     ("page", ["page", "ctx/10-dem.md", "--creer", "--projet", "Démo", "--titre", "La démo", "--resultat", "R",
               "--note", "DEM1", "vu", "--date", "2026-01-05"], None),
     ("hook", ["hook"], "{}"),
+    ("figer", ["figer"], "{}"),
     ("filet", ["filet"], "{}"),
     ("etat", ["etat", "ctx/01-etat.md", "--texte", "notes/etat.txt"], None),
     ("renvois", ["renvois", "."], None),

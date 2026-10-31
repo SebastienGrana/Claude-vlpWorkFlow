@@ -877,6 +877,17 @@
   --- écrits sous le dossier personnel
   '''
 # ---
+# name: test_photo[figer]
+  '''
+  code 0
+  --- sortie
+  
+  --- erreur
+  
+  --- écrits
+  --- écrits sous le dossier personnel
+  '''
+# ---
 # name: test_photo[filet]
   '''
   code 0

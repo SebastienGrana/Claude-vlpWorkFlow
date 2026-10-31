@@ -482,6 +482,10 @@ Quatre exigences, apprises en cassant :
    dépôt ou les transcripts de la machine le fait casser dès qu'une fiche
    suivante écrit, et changer de résultat quand la machine change — l'historique
    grandit, un autre chantier écrit (`ESD2`, refusée à la relecture pour ça).
+   Pendant une fiche, **un test existant ne se modifie pas** : le hook `figer` refuse tout `Write`
+   ou `Edit` sur `tests/**` ou `scripts/test-*.py`, sauf un test neuf, un ajout pur, ou une fiche
+   qui le déclare, dans son texte commité, par `**Tests** : modifiés — <raison>` — une ligne que
+   l'utilisateur valide, jamais le modèle en cours de fiche (`REF10`, choix `Q2` de `122`).
 4. **Les fiches sont indépendantes autant que possible** ; les dépendances
    réelles sont écrites, pas devinées.
 

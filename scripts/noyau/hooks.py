@@ -4,6 +4,7 @@ Sorti de `vlp_coeur.py`, qui le ré-exporte. Un nom d'un module pas encore sorti
 de l'appel (`noyau/facade.py`) ; un nom d'un module chargé avant se lit par import.
 """
 import argparse
+import fnmatch
 import glob
 import io
 import json
@@ -12,6 +13,7 @@ import re
 import time
 import unicodedata
 
+import noyau.relecture  # `noyau.relecture.git_texte` : un test le remplace là
 from noyau import etat
 from noyau.carte import trouver
 from noyau.commun import Absent, lignes_de, tampon_neuf
@@ -72,6 +74,162 @@ def cmd_hook(entree, sortie, erreur):
     sortie.write(json.dumps({"hookSpecificOutput": {"hookEventName": "PostToolUse", "additionalContext": bilan}},
                             ensure_ascii=False) + "\n")
     return 0
+
+
+# --- figer : les tests existants, en lecture seule pendant une fiche (REF10) ---------------------------------------
+
+# Le corps de `/vlp:tache` que Claude Code injecte à chaque appel, tapé ou par l'outil `Skill` : ses arguments suivent.
+TACHE = re.compile(r"Base directory for this skill: [^\n]*[\\/]skills[\\/]tache[ \t]*\n[ \t]*\n"
+                   r"Arguments reçus :[ \t]*\n[ \t]*\n([^\n]*)")
+CODE_FICHE = re.compile(r"\b[A-Z]{1,3}[0-9]+\b")
+TITRE_FICHE = re.compile(r"^## ([A-Z]{1,3}[0-9]+) \[([ x])\]")
+TESTS_DECLARES = re.compile(r"^\*\*Tests\*\* : modifiés — \S")
+REFUS_TESTS = ("La fiche %s est en cours, et %s est un test existant : il ne se modifie pas pendant une fiche (REF10, "
+               "choix Q2 : un agent qui ne touche pas aux tests ne triche plus). Ajoute plutôt un test neuf, ou un Edit "
+               "d'ajout pur (old_string repris entier dans new_string). Si la fiche doit vraiment changer ce test, "
+               "elle le déclare dès son cadrage, commitée, par une ligne « **Tests** : modifiés — <raison> » : "
+               "demande-le à l'utilisateur, ne l'écris pas toi-même.\n")
+
+
+def est_test(rel):
+    """Vrai si `rel` (chemin relatif à la racine du projet, barres obliques) est un test : sous `tests/`, ou un
+    `scripts/test-*.py` d'avant `REF52`."""
+    return rel.startswith("tests/") or (os.path.dirname(rel) == "scripts" and fnmatch.fnmatch(
+        os.path.basename(rel), "test-*.py"))
+
+
+def texte_utilisateur(d):
+    """Le texte d'une ligne de transcription si c'est un message utilisateur, sinon None : la chaîne, ou ses blocs
+    `text` mis bout à bout — jamais un `tool_result`, qui citerait une transcription sans en être une."""
+    m = d.get("message") if isinstance(d, dict) else None
+    if not isinstance(m, dict) or m.get("role") != "user":
+        return None
+    c = m.get("content")
+    if isinstance(c, str):
+        return c
+    return "\n".join(b.get("text", "") for b in c if isinstance(b, dict) and b.get("type") == "text") \
+        if isinstance(c, list) else None
+
+
+def fiche_de_transcription(lignes):
+    """La fiche que joue une transcription (ses lignes JSON) : celle de `Fiche à jouer :` dans son premier message
+    utilisateur (un sous-agent), sinon le dernier code de fiche des arguments du dernier `/vlp:tache` — `""` si
+    l'appel n'en nomme pas (la prochaine fiche) —, sinon None. Ne lance rien."""
+    fiche, premier = None, True
+    for ligne in lignes:
+        try:
+            texte = texte_utilisateur(json.loads(ligne))
+        except ValueError:
+            continue
+        if texte is None:
+            continue
+        jouee = FICHE_A_JOUER.search(texte) if premier else None
+        if jouee:
+            return jouee.group(1)
+        premier = False
+        for m in TACHE.finditer(texte):
+            codes = CODE_FICHE.findall(m.group(1))
+            fiche = codes[-1] if codes else ""
+    return fiche
+
+
+def fiche_en_cours(lignes, fiche):
+    """Le code de la fiche en cours dans un fichier de fiches : `fiche` si sa case est vide, la première non cochée si
+    `fiche` vaut `""`, None si elle est cochée ou absente."""
+    for l in lignes:
+        m = TITRE_FICHE.match(l)
+        if m and (m.group(1) == fiche or (fiche == "" and m.group(2) == " ")):
+            return m.group(1) if m.group(2) == " " else None
+    return None
+
+
+def tests_declares(lignes, fiche):
+    """Vrai si la fiche `fiche` porte une ligne `**Tests** : modifiés — <raison>`, entre son titre et le suivant."""
+    dedans = False
+    for l in lignes:
+        m = TITRE_FICHE.match(l)
+        if m:
+            dedans = m.group(1) == fiche
+        elif dedans and TESTS_DECLARES.match(l):
+            return True
+    return False
+
+
+def ajout_pur(entree):
+    """Vrai si l'entrée d'un `Edit` n'ajoute que du texte : son `old_string` se retrouve entier dans son
+    `new_string`. Un `Write` (`content`) n'en est jamais un."""
+    old, new = entree.get("old_string"), entree.get("new_string")
+    return isinstance(old, str) and isinstance(new, str) and old in new
+
+
+def cible_test(d):
+    """(racine, chemin relatif) du test existant que l'entrée de hook `d` veut modifier, ou None : pas d'outil lisible,
+    fichier neuf, ajout pur, hors d'un projet équipé, ou pas un test."""
+    ti = d.get("tool_input") if isinstance(d, dict) else None
+    chemin = ti.get("file_path") if isinstance(ti, dict) else None
+    cwd = d["cwd"] if isinstance(d.get("cwd"), str) else os.getcwd()
+    if not isinstance(chemin, str) or not os.path.isfile(os.path.join(cwd, chemin)) or ajout_pur(ti):
+        return None
+    racine = trouver(cwd)
+    if racine is None:
+        return None
+    try:
+        rel = os.path.relpath(os.path.join(cwd, chemin), racine).replace(os.sep, "/")
+    except ValueError:   # un autre disque que le projet
+        return None
+    return (racine, rel) if est_test(rel) else None
+
+
+def lignes_transcription(d):
+    """Les lignes de la transcription de qui écrit : celle du sous-agent (`subagents/agent-<id>.jsonl` à côté de celle
+    de la session, comme `cmd_filet`) s'il y en a un, sinon celle de la session ; [] si elle ne se lit pas."""
+    chemin = d.get("transcript_path")
+    if not isinstance(chemin, str):
+        return []
+    if d.get("agent_id"):
+        sous = os.path.join(os.path.splitext(chemin)[0], "subagents", "agent-%s.jsonl" % d["agent_id"])
+        chemin = sous if os.path.isfile(sous) else chemin
+    try:
+        with open(chemin, encoding="utf-8", errors="replace") as f:
+            return f.read().splitlines()
+    except OSError:
+        return []
+
+
+def cmd_figer(entree, sortie, erreur):
+    """Le hook `PreToolUse` (`Write|Edit`) qui fige les tests existants pendant une fiche (REF10, choix Q2) : sort 2,
+    la raison sur stderr, si l'outil modifie un test existant (`est_test`) autrement que par un ajout pur, pendant
+    qu'une fiche est en cours et qu'elle ne déclare pas `**Tests** : modifiés — <raison>`. Muet et 0 sinon.
+
+    La fiche en cours se lit dans la transcription (`fiche_de_transcription`) : le dernier `/vlp:tache <fiche>` de la
+    session, ou le `Fiche à jouer :` du sous-agent — et elle n'est en cours que si sa case est vide dans le fichier de
+    fiches courant (`courant_de`) : `cocher` la clôt. La déclaration se lit dans ce fichier tel que `HEAD` le garde —
+    une ligne écrite pendant la fiche ne compte pas ; sans Git, dans l'arbre de travail. Limite : une écriture par
+    un script ou une commande (`sed`, Python) ne passe pas par `Write|Edit` et n'est pas vue. `sortie` reste muette."""
+    try:
+        d = json.loads(entree.read())
+    except (ValueError, AttributeError, TypeError):
+        return 0
+    cible = cible_test(d) if isinstance(d, dict) else None
+    if cible is None:
+        return 0
+    racine, rel = cible
+    fiche = fiche_de_transcription(lignes_transcription(d))
+    try:
+        courant = coeur.courant_de(racine) if fiche is not None else None
+    except Absent:
+        return 0
+    if not courant:
+        return 0
+    lignes = lignes_de(os.path.join(racine, courant))
+    code = fiche_en_cours(lignes, fiche)
+    if code is None:
+        return 0
+    rc, texte = noyau.relecture.git_texte(["show", "HEAD:" + courant.replace("\\", "/")], racine)
+    if tests_declares(texte.replace("\r\n", "\n").split("\n") if rc == 0 else lignes, code):
+        return 0
+    erreur.write(REFUS_TESTS % (code, rel))
+    return 2
 
 
 # --- filet -------------------------------------------------------------------

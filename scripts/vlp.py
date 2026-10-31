@@ -180,6 +180,10 @@ ni raison de la sauter, fait échouer la suite :
   `FILES {…}` ; une page d'avant BTN1 reçoit une fois `<meta charset>` et `<script src="vlp.js">`.
   `FILES` ne nomme que les joints changés depuis la dernière publication de la page (`publie`,
   noté par `attente hook`) ; page jamais notée : tous ; rien de changé : `FILES {}` (chantier JNT).
+- `figer` — le hook `PreToolUse` (`Write|Edit`) qui fige les tests existants pendant une fiche (REF10, `cmd_figer`,
+  qui dit comment il trouve la fiche en cours) : modifier un `tests/**` ou un `scripts/test-*.py` existant, hors
+  ajout pur, pendant une fiche qui ne déclare pas `**Tests** : modifiés — <raison>` → la raison sur stderr, sort
+  2 ; sinon muet, sort 0.
 - `hook` — le hook `PostToolUse` (`Write|Edit`) du plugin : lit sur stdin le
   JSON du hook, prend `tool_input.file_path` (relatif : contre `cwd`). Sort 0
   muet si ce n'est pas un fichier de fiches — JSON illisible, chemin absent, pas

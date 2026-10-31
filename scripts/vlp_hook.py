@@ -26,7 +26,8 @@ TAMPON = dossier_temporaire()
 # Les formes exactes de `hooks.json` (`args` après le script), et le nom de la commande du cœur
 # qu'elles appellent : le tampon porte ce nom, car `filet` et `hook` reçoivent la même entrée (PYT2).
 HOOKS = {("hook",): "cmd_hook", ("filet",): "cmd_filet", ("gardien",): "cmd_gardien",
-         ("vigile",): "cmd_vigile_hook", ("attente", "hook"): "cmd_attente_hook"}
+         ("vigile",): "cmd_vigile_hook", ("attente", "hook"): "cmd_attente_hook",
+         ("figer",): "cmd_figer"}
 
 
 class Triee(io.StringIO):
