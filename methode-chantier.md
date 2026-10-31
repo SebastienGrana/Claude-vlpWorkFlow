@@ -463,7 +463,9 @@ Quatre exigences, apprises en cassant :
    à 0 tour). Pour du
    code, il nomme le test, l'appel, la valeur attendue, et **le mutant** — le
    code cassé exprès que ce test doit faire tomber : « les tests passent » ne
-   prouve rien, un test creux passe aussi (récit dans `lecons-mesure.md`). Le mutant se joue par
+   prouve rien, un test creux passe aussi (récit dans `lecons-mesure.md`). Un mutant qui dépend
+   du minutage (processus, fils) se joue **plusieurs fois** : tombé une fois ne prouve rien, le
+   test qui le tue doit forcer l'ordre au lieu de l'attendre du hasard. Le mutant se joue par
    `vlp.py mutant … --attendu "<début du libellé du test>"` : il mute une copie du kit, jamais le vrai
    fichier, et s'arrête dès que ce test tombe (`VIT2`) ; `--tous` les liste tous (`MUT1`). Un critère joué dans un
    clone y copie d'abord le fichier modifié : un clone part du dernier commit,

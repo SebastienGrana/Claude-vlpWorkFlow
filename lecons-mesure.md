@@ -249,6 +249,12 @@ Mesuré à `VIT9` : 7 renvois sur 7 périmés dans `NUI`.
 Vu le 2026-09-24 : « les tests passent » ne prouvait rien, un test creux passait aussi —
 à `FIN1`, puis à `FIN2` alors que son test était nommé avec ses valeurs.
 
+Vu le 2026-10-31 (projet Emergence, `LAB2`) : le mutant « résultats rangés dans l'ordre
+d'arrivée » d'un calcul sur plusieurs processus, joué **5 fois**, n'est tombé que **3 fois** sous
+le test nommé par la fiche (`test_parallel_matches_serial`) : deux processus finissent souvent
+dans l'ordre. Un test qui force l'ordre inverse (des fils à la place des processus, chaque
+partie retardée selon sa place) l'a tué **5 fois sur 5**. Un mutant de minutage se rejoue.
+
 ### Le parallèle se mesure contre la file, sur le même chantier
 
 Mesuré à `ISO7` (2026-10-17) : le même chantier à blanc de 5 fiches, joué à la file puis en
