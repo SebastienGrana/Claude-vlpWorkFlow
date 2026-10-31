@@ -21,9 +21,9 @@
     <p>Le kit tourne sur pytest et une couverture mesurée, sans une seule régression ; des scripts gardent la taille des fichiers et interdisent de toucher aux tests pendant une fiche ; les erreurs connues sont réparées, les gros fichiers découpés, et chaque angle revu jusqu'à deux passes vides.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">59 fiches · 38 faites · en cours : REF12</p>
+    <p class="mono" style="margin-top:.5rem">59 fiches · 39 faites · en cours : REF13</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -176,13 +176,14 @@
         <span class="cout mono">≈16,3M (16 343 327) · 59 tours · 5,60 $</span></li>
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REF11</span></span>
         <details><summary><span class="titre">Rendre visible un test retiré ou affaibli</span><span class="etat">Faite</span></summary>
-        <span class="note">test_retraits : 5 verts (retiré refusé, skip refusé, raison acceptée, déplacé accepté, hook commit-msg) ; mutant du compte attrapé ; suite 395 passed, 3 skipped</span></details>
-        <span class="cout mono">≈3,9M (3 935 864) · 21 tours · 1,48 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">REF12</span></span>
-        <details open><summary><span class="titre">Transformer les règles écrites en hooks</span><span class="etat">En cours</span></summary>
-        <span class="note">Les règles écrites qu'un script peut garantir deviennent des hooks. Après REF9 à REF11.</span></details></li>
-      <li class="fiche"><span class="gauche"><span class="id">REF13</span></span>
-        <details><summary><span class="titre">Écrire le test d'abord, avec la liste des tests concernés</span><span class="etat">À lancer</span></summary>
+        <span class="note">test_retraits : 6 verts (retiré refusé, skip refusé, raison acceptée, déplacé accepté, hook commit-msg, principal) ; mutant du compte attrapé ; suite 396 passed, 3 skipped</span></details>
+        <span class="cout mono">≈5,0M (4 969 582) · 26 tours · 1,78 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REF12</span></span>
+        <details><summary><span class="titre">Transformer les règles écrites en hooks</span><span class="etat">Faite</span></summary>
+        <span class="note">52 règles · 30 scriptables (déjà 12, converties 3, à faire 13, gestes 2) · 22 non ; 3 tests (test_regles), 3 mutants attrapés ; suite 399 passed, 3 skipped</span></details>
+        <span class="cout mono">≈7,1M (7 082 271) · 29 tours · 2,34 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">REF13</span></span>
+        <details open><summary><span class="titre">Écrire le test d'abord, avec la liste des tests concernés</span><span class="etat">En cours · REF37 peut partir en même temps</span></summary>
         <span class="note">Le test d'abord, vu échouer, avec la liste des tests concernés. Après REF8.</span></details></li>
       <li class="fiche"><span class="gauche"><span class="id">REF14</span></span>
         <details><summary><span class="titre">Faire tout rapporter au relecteur, en Fable</span><span class="etat">À lancer</span></summary>
@@ -226,13 +227,13 @@
       <li class="fiche"><span class="gauche"><span class="id">REF36</span></span>
         <details><summary><span class="titre">Une aide par sous-commande de vlp.py</span><span class="etat">À lancer</span></summary></details></li>
       <li class="fiche"><span class="gauche"><span class="id">REF37</span></span>
-        <details><summary><span class="titre">La nuit : qui prime, commiter ou non</span><span class="etat">À lancer</span></summary></details></li>
+        <details><summary><span class="titre">La nuit : qui prime, commiter ou non</span><span class="etat">À lancer · en même temps que REF13</span></summary></details></li>
       <li class="fiche"><span class="gauche"><span class="id">REF38</span></span>
         <details><summary><span class="titre">Retirer le repli « copie simple » d'avant le plugin</span><span class="etat">À lancer</span></summary></details></li>
       <li class="fiche"><span class="gauche"><span class="id">REF39</span></span>
         <details><summary><span class="titre">sante --base refuse un worktree en retard sur main</span><span class="etat">À lancer</span></summary></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">REF22</span></span>
-        <details><summary><span class="titre">Revoir l'angle des bugs</span><span class="etat">Après REF12, REF13, REF14, REF15, REF16, REF17, REF20, REF21</span></summary>
+        <details><summary><span class="titre">Revoir l'angle des bugs</span><span class="etat">Après REF13, REF14, REF15, REF16, REF17, REF20, REF21</span></summary>
         <span class="note">Revue des bugs, jusqu'à deux passes sans défaut confirmé. Après tout le reste.</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">REF23</span></span>
         <details><summary><span class="titre">Revoir l'angle des tests</span><span class="etat">Après REF22</span></summary>
@@ -248,7 +249,7 @@
         <span class="note">Revue de la doc qui ment. Après REF22.</span></details></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈106,8M (106 808 546) · 481 tours · 29,99 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈600,1M (600 073 392) · 2250 tours · 199,96 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈608,2M (608 189 381) · 2284 tours · 202,60 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

@@ -783,3 +783,85 @@ le commit de `REF8` lui-même : **86 % des 103 lignes changées — commit refus
 `couverture.py` sans test) ; quatre tests en mémoire ajoutés, suite refaite (16:20:35 → 16:25:47, **312 s**,
 protection active), puis rejugé : **98 % des 103 lignes changées — passe** ; restent `couverture.py:48` (uv trouvé)
 et `test-vlp.py:126` (la sortie du parent), qui ne tournent que hors mesure.
+
+## Les règles écrites, scriptables ou non (`REF12`)
+
+Choix `Q7` : une consigne est une demande, un script une garantie. Relevé du 2026-10-31 : `grep -ciE
+"jamais|toujours|avant de|\bne [^.]{0,40} pas\b|\bn'[^.]{0,40} pas\b"` sur `CLAUDE.md`, `methode-chantier.md`,
+`cloture.md`, `skills/*/SKILL.md`, `.githooks/pre-commit` — **202 lignes** (méthode 87, chantier 28, clôture 18,
+chef 14, init 12, enchainer 12, check 12, `CLAUDE.md` 9, tache 8, pre-commit 2, jouer et relire 0), plus les
+« Contraintes d'écriture » de `CHANTIER.md`. Le reste des 202 décrit sans prescrire, ou redit une règle déjà
+listée. Une ligne par règle distincte ; `où` : la première occurrence, `fichier:ligne` du jour.
+
+État : ✅ déjà garantie par un script · 🔧 convertie par `REF12` · 🟡 scriptable, non convertie · 👤 geste de
+l'utilisateur (ses réglages) · ❌ non scriptable (jugement).
+
+| # | Règle | Où | État — comment |
+|---|---|---|---|
+| 1 | `$ARGUMENTS` seul sur sa ligne, jamais `$1` ni `$2` | `CHANTIER.md:38` | 🔧 `tests/test_regles.py`, `test_arguments_seuls` |
+| 2 | une commande n'en découpe pas une autre au `sed` | `CHANTIER.md:33` | 🔧 `test_pas_de_sed_sur_une_commande` |
+| 3 | `${CLAUDE_PLUGIN_ROOT}` hors des fichiers de données | `CLAUDE.md:43`, init:108 | 🔧 `test_plugin_root_hors_des_donnees` (les gabarits) |
+| 4 | aucun chemin de machine dans le dépôt | `CLAUDE.md:41` | ✅ `.githooks/pre-commit` (`CHM`) |
+| 5 | pyright au commit ; absent, refus | pre-commit:19, méthode:560 | ✅ pre-commit (`REF3`, `TYP`) ; `test_bac.py`, « sans uv » |
+| 6 | un outil absent refuse, il ne se saute pas (claude validate) | pre-commit:59 | ✅ pre-commit (`VIT19`) |
+| 7 | un test existant ne se modifie pas pendant une fiche | méthode:485 | ✅ hook `figer` (`REF10`) |
+| 8 | un test retiré ou affaibli s'explique dans le message | `REF11` | ✅ `.githooks/commit-msg` (`REF11`) |
+| 9 | un nombre recopié a son test qui compare les copies | méthode:25 | ✅ `REF30` |
+| 10 | une fiche faite est une case cochée, pas un `FAITE` | méthode:130 | ✅ le chef relit la case (`CAS`) |
+| 11 | le sous-agent ne commite jamais | méthode:318, enchainer:128 | ✅ `gardien` (`RLG`) |
+| 12 | pas deux chantiers ouverts à la fois | chantier:67 | ✅ `courant_de` : `Absent`, puis `GARDE:` |
+| 13 | un fichier de fiches clos ne se rejoue pas | méthode:269, tache:37 | ✅ la carte ne donne que `COURANT=` |
+| 14 | les marqueurs de fiche ne s'omettent pas | méthode:443 | ✅ `valider`, `extraire` (`GARDE: pas de marqueurs`) |
+| 15 | jamais deux fiches dans la même session | méthode:252 | ✅ la carte avertit (`AVERTISSEMENT:`) — avertit, ne bloque pas |
+| 16 | le push jamais sans un oui explicite | clôture:120, méthode:307, chef:143 | 👤 règle `ask` (gestes ci-dessous) |
+| 17 | `git branch -D` n'est jamais lancé par Claude | chef:138 | 👤 règle `ask` |
+| 18 | un fichier de fiches, le dossier de contexte : jamais lus en entier | `CLAUDE.md:76`, méthode:330, tache:22 | 🟡 hook `Read` sans `limit` ; risqué : `/vlp:chantier` écrit ce fichier |
+| 19 | la page du chantier ne se retape pas à la main | méthode:287, chantier:240 | 🟡 hook `Write\|Edit` sur `artefacts/*.html` ; à trancher (la page à la main reste permise à défaut) |
+| 20 | le cadrage n'écrit pas de code | chantier:13, méthode:225 | 🟡 même détection que `figer` (le dernier `/vlp:chantier`) |
+| 21 | un code de chantier ne se réemploie jamais | méthode:371, chantier:169 | 🟡 `ouvrir` refuserait un code des « Lettres déjà prises » — à vérifier |
+| 22 | le numéro `NN` se prend à la suite | chantier:199, méthode:368 | 🟡 `ouvrir` — à vérifier |
+| 23 | une nuit (`NUIT=1`) ne joue pas `/vlp:chef` | chef:26 | 🟡 la carte du chef sortirait en `GARDE:` |
+| 24 | du code se cite par son nom, jamais par sa ligne | méthode:459 | 🟡 `valider` avertirait sur « ligne N » dans un prompt |
+| 25 | un critère de fin ne règle pas le commit, et nomme son mutant | méthode:464 | 🟡 `valider` avertirait |
+| 26 | mode `main` : `clore` ne se relance pas | enchainer:200 | 🟡 `clore` refuserait un fichier déjà clos — à vérifier |
+| 27 | `/vlp:init` n'écrase pas un `CLAUDE.md` existant | init:102 | 🟡 à vérifier dans le script |
+| 28 | un sous-agent isolé n'écrit rien dans le dossier principal | méthode:417 | 🟡 à vérifier (`ISO`) |
+| 29 | une branche qui ajoute un chantier ouvert ne se fusionne pas | méthode:422 | 🟡 `fusionner` — à vérifier |
+| 30 | fiche introuvable ou cochée : s'arrêter | tache:79 | 🟡 `extraire` — à vérifier |
+| 31 | questionnaire en deux tours, « Avant de choisir » seul en dernier | méthode:39, clôture:90 | ❌ forme d'un message |
+| 32 | la TODO ne grossit pas sans deux oui | méthode:155, clôture:22 | ❌ le oui se dit en conversation |
+| 33 | comparer à la page en ligne avant de republier | clôture:65 | ❌ `comparer` existe ; l'appeler reste une consigne |
+| 34 | mesurer avant de corriger, comptes bruts à côté | `CLAUDE.md:30` | ❌ |
+| 35 | un énoncé renversé se garde, marqué | méthode:95 | ❌ |
+| 36 | un chantier se cite par son code, jamais son rang | méthode:123 | ❌ |
+| 37 | chercher l'existant avant de coder ou de payer un essai | méthode:198 | ❌ |
+| 38 | l'effort de sa propre session, Claude ne le change pas | méthode:217 | ❌ (l'app demande déjà) |
+| 39 | une modification d'une phrase n'est pas un chantier | chantier:30 | ❌ |
+| 40 | n'improvise pas la structure ni les gabarits | chantier:47, init:58 | ❌ |
+| 41 | les fiches non faites : abandonnées, jamais cochées | clôture:16, méthode:278 | ❌ |
+| 42 | le prompt du chantier suivant, toujours, après les questions | clôture:131 | ❌ |
+| 43 | Tentatives : ne rejouer aucune piste | tache:85 | ❌ |
+| 44 | une plage se lit par `Read`, jamais `sed` | tache:94 | ❌ |
+| 45 | critère scriptable : ne pas attendre de confirmation | tache:135 | ❌ |
+| 46 | après un cadrage, ne pas enchaîner sur la première fiche | chantier:291 | ❌ |
+| 47 | chaque marque du tri : une carte ou « écarté : raison » | chef:42 | ❌ |
+| 48 | ne pas avancer avant les réponses | chef:73 | ❌ |
+| 49 | la ligne de lancement de nuit : jamais lancée par Claude | chef:93 | ❌ |
+| 50 | un lecteur refuse ce qu'il ne sait pas lire (`GARDE:`) | méthode:576 | ❌ revue de code |
+| 51 | un nombre qu'un script relit vit sur sa ligne | méthode:588 | ❌ revue de code |
+| 52 | le kit sert son auteur seul | `CLAUDE.md:8` | ❌ |
+
+**Comptes** (recomptés sur le tableau) : 52 règles · 30 scriptables (✅ 12, 🔧 3, 🟡 13, 👤 2) · 22 non. **3 converties** par `REF12`, chacune
+avec son test et son mutant attrapé (`vlp.py mutant` : un `$1` dans `skills/tache/SKILL.md`, un `sed` sur une commande
+dans `skills/check/SKILL.md`, `${CLAUDE_PLUGIN_ROOT}` dans `templates/CHANTIER.md`). La règle de pyright absent
+était déjà garantie (n° 5). Les 🟡 « à vérifier » n'ont pas été lus dans le code : 💡 une fiche par lot, si
+l'utilisateur la veut.
+
+**Les gestes de l'utilisateur** — Claude ne change pas ses réglages. Syntaxe : doc Claude Code, « Configure
+permissions » (lue le 2026-10-31) : une règle `ask` force la question même quand un autre réglage permet ; la forme
+`PowerShell(…)` est celle de `Bash(…)` ; `Bash(git push *)` ne voit pas `git -C . push`, d'où la deuxième ligne.
+
+1. ☐ Ouvrir `~/.claude/settings.json`.
+2. ☐ Sous `"permissions"`, ajouter (ou compléter) la liste `"ask"` :
+   `"ask": ["Bash(git push *)", "Bash(git -C * push *)", "PowerShell(git push *)", "PowerShell(git -C * push *)", "Bash(git branch -D *)", "PowerShell(git branch -D *)"]`
+3. ☐ Enregistrer, puis dire « fait » : un `git push` de Claude doit alors demander, même en mode auto.

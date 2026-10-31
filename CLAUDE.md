@@ -41,7 +41,8 @@ est public (vu le 2026-10-17) : aucun secret ni chemin local n'y entre pour auta
    le coût — et une commande les appelle en un tour, elle ne décrit pas leur algorithme. Rien de propre
    à une machine dans `skills/`, `templates/` ni `scripts/` : un chemin passe par
    `${CLAUDE_PLUGIN_ROOT}`, **dans le texte des commandes et `hooks/hooks.json`
-   seulement** — la variable n'existe ni dans le shell ni dans un fichier de données.
+   seulement** — la variable n'existe ni dans le shell ni dans un fichier de données
+   (gardé pour les gabarits par `tests/test_regles.py`).
    Exception ouverte le 2026-09-10 pour le seul `mesure-tokens.py`, étendue à toute la
    mécanique le 2026-09-17 (audit, `context AI/12-audit.md`).
 
