@@ -37,9 +37,8 @@ titre (`MET6`, 2026-10-07).
   indiagnosticable.
 - **Un questionnaire se pose en deux tours.** L'app replie tout texte suivi
   d'un appel d'outil, et `AskUserQuestion` en est un : la section « Avant de
-  choisir » écrite juste au-dessus du questionnaire n'est pas vue — cinq fois
-  de suite le 2026-10-15 (`FAM10` de Cairn), alors que la fiche disait
-  « Pose les cas avec `AskUserQuestion` » et rien de la section.
+  choisir » écrite juste au-dessus du questionnaire n'est pas vue (récit dans
+  `lecons-mesure.md`).
   - **Tour 1** : la section « Avant de choisir » (un tableau : les cas ou les
     options, ce que chaque réponse change) est le **dernier texte du tour**,
     sans aucun appel d'outil après elle ; elle finit par « Dites ok, le
@@ -108,9 +107,7 @@ titre (`MET6`, 2026-10-07).
 - **Ce qu'une fiche réalise, d'autres textes l'annonçaient au futur.** En fin
   de fiche, grep dans tout le projet — code, ADR, rapports — les annonces de ce
   qu'elle vient de faire : « l'écrira », « pas encore codé », « non fait », le
-  code de la fiche. Chantier `API` du Fil Rouge (2026-10-13) : 21 mentions
-  périmées corrigées après la dernière fiche, dont 8 trouvées au second grep
-  seulement.
+  code de la fiche — et un second grep après le premier (récit dans `lecons-mesure.md`).
 - **Un seuil calé sur une distribution qui ne pouvait pas répondre reste
   arbitraire, même quand il tombe juste.** Avant de lire un histogramme pour
   choisir une borne, vérifier que la population mesurée peut contenir des
@@ -271,8 +268,7 @@ relire un socle d'API quand une fiche l'y renvoie.
 
 Les textes de `clore` (`--livre`, `--surpris`, `--resume`) sont **recopiés tels
 quels** dans le fichier de fiches, la page, son `.md` et `CLAUDE.md` : ils
-s'écrivent dans leur forme finale, en français accentué. Écrits sans accents à la
-clôture de `SCH` (Cairn, 2026-10-14), ils ont dû être repris dans quatre fichiers.
+s'écrivent dans leur forme finale, en français accentué.
 
 Un chantier peut aussi se clore **inachevé** : les fiches non jouées y sont
 dites **abandonnées**, jamais cochées. Mieux vaut un chantier clos honnête
@@ -308,10 +304,9 @@ commit vide »).
 ne se reprend pas. `cloture.md` le porte.
 
 **Une branche de chantier fusionnée dans `main` : relire la feuille, et les lettres
-de `CHANTIER.md`** — Git ne voit pas ces pertes-là. Vu à la fusion de `PAR` (`2cef70f`,
-2026-09-29) : sans conflit, la feuille régénérée a perdu le badge « en cours » du
-chantier resté ouvert de l'autre côté (`LOC`) — `vlp.py feuille . --todo <rang>` le
-rend. `CHANTIER.md` ne porte plus le chantier ouvert (« Le chantier ouvert ») ; sa
+de `CHANTIER.md`** — Git ne voit pas ces pertes-là : sans conflit, la feuille régénérée
+peut perdre le badge « en cours » d'un chantier resté ouvert de l'autre côté (récit dans
+`lecons-mesure.md`) — `vlp.py feuille . --todo <rang>` le rend. `CHANTIER.md` ne porte plus le chantier ouvert (« Le chantier ouvert ») ; sa
 ligne des lettres prises, si. Les conflits, eux, se prédisent :
 `git merge-tree --write-tree --name-only <branche> main`.
 
@@ -577,7 +572,7 @@ l'utilisateur au chantier `MET` (`context AI/08-etat.md`, entrée « MET1 — ce
 - **Retoucher une fonction déjà au-dessus d'un seuil du cliquet** : la docstring que
   `sante.py` exige alors compte elle-même une instruction pour ruff. Sortir le travail dans
   une fonction neuve, documentée, et gagner une instruction dans l'ancienne (dette `ARP`,
-  `main` de `boucle.py` : 100 → 104, puis 101, puis 100, 2026-10-08).
+  récit dans `lecons-mesure.md`).
 - **Un lecteur refuse ce qu'il ne sait pas lire, et une commande vérifie tout avant sa
   première écriture** : une `GARDE:` qui sort 1 et dit « rien écrit », jamais une ligne lue
   à moitié ni un fichier écrit sur deux (`TAB`, 2026-10-09 : une table coupée en silence,

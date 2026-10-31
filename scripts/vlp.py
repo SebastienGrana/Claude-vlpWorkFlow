@@ -664,6 +664,8 @@ ni raison de la sauter, fait échouer la suite :
   de la dernière suite entière (`.couverture/donnees`, `dynamic_context = "test_function"`). Imprime `ABSENTE <nom>`
   par fonction introuvable, `CONCERNES <n> test(s) pour <noms>`, puis un test par ligne ; sans mesure, ou sans
   contexte par test : `GARDE:`, sort 1. La carte en tire `CONCERNES <fiche>=…` pour la prochaine fiche.
+- `conserve <avant>… --apres <après>…` — aucune ligne de texte ne se perd quand une doc se découpe ou se range
+  (REF16 ; `conserve.py`, aiguillé avant le cœur, qui en documente la sortie).
 - `retraits <fichier du message> [--racine R]` — un test retiré ou affaibli au commit (REF11 ; `retraits.py`, aiguillé
   avant le cœur ; lancé par `.githooks/commit-msg`, la racine du dépôt par défaut) : compte par `ast`, sur l'ensemble
   des fichiers de test de `HEAD` et de l'index, les tests, `verifier`, `assert` et `skip`/`xfail`. Imprime
@@ -723,6 +725,9 @@ if __name__ == "__main__":
     if sys.argv[1:2] == ["retraits"]:       # REF11 : lancé à chaque commit, sans charger le cœur
         import retraits
         sys.exit(retraits.principal(sys.argv[2:]))
+    if sys.argv[1:2] == ["conserve"]:       # REF16 : son module à lui, hors du cœur
+        import conserve
+        sys.exit(conserve.principal(sys.argv[2:]))
     import vlp_hook
     triee = vlp_hook.trier(sys.argv[1:])
     if triee == "":                     # un hook déjà pris par l'autre lanceur : sortir sans charger le cœur (VIT8)

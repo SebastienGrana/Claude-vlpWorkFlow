@@ -298,3 +298,47 @@ série **17,4 à 17,9 s** (21,2 s à `LAB2`) : la machine allait plus vite. Le p
 **4,7 · 5,0 · 5,4 s**, sous le seuil écrit, mais seulement ~20 % sous le témoin du jour, au
 bord. Codé quand même, sur la lettre du seuil ; le gain réel, mesuré ensuite sur l'onglet
 Lab, était le démarrage évité : **15,0 · 14,6 s → 11,9 · 12,2 s**.
+
+### Sortis de la méthode par REF16 (2026-10-31)
+
+Les paragraphes d'origine, mot pour mot : la règle est restée dans `methode-chantier.md`, le récit vient ici (`vlp.py conserve` le vérifie).
+
+**Le questionnaire en deux tours (« Les règles qui valent partout »)**
+
+- **Un questionnaire se pose en deux tours.** L'app replie tout texte suivi
+d'un appel d'outil, et `AskUserQuestion` en est un : la section « Avant de
+choisir » écrite juste au-dessus du questionnaire n'est pas vue — cinq fois
+de suite le 2026-10-15 (`FAM10` de Cairn), alors que la fiche disait
+« Pose les cas avec `AskUserQuestion` » et rien de la section.
+
+**Les annonces au futur (« Les règles qui valent partout »)**
+
+- **Ce qu'une fiche réalise, d'autres textes l'annonçaient au futur.** En fin
+de fiche, grep dans tout le projet — code, ADR, rapports — les annonces de ce
+qu'elle vient de faire : « l'écrira », « pas encore codé », « non fait », le
+code de la fiche. Chantier `API` du Fil Rouge (2026-10-13) : 21 mentions
+périmées corrigées après la dernière fiche, dont 8 trouvées au second grep
+seulement.
+
+**Les textes de `clore` en forme finale (« Les trois temps »)**
+
+Les textes de `clore` (`--livre`, `--surpris`, `--resume`) sont **recopiés tels
+quels** dans le fichier de fiches, la page, son `.md` et `CLAUDE.md` : ils
+s'écrivent dans leur forme finale, en français accentué. Écrits sans accents à la
+clôture de `SCH` (Cairn, 2026-10-14), ils ont dû être repris dans quatre fichiers.
+
+**Une branche fusionnée : la feuille et les lettres (« Git »)**
+
+**Une branche de chantier fusionnée dans `main` : relire la feuille, et les lettres
+de `CHANTIER.md`** — Git ne voit pas ces pertes-là. Vu à la fusion de `PAR` (`2cef70f`,
+2026-09-29) : sans conflit, la feuille régénérée a perdu le badge « en cours » du
+chantier resté ouvert de l'autre côté (`LOC`) — `vlp.py feuille . --todo <rang>` le
+rend. `CHANTIER.md` ne porte plus le chantier ouvert (« Le chantier ouvert ») ; sa
+
+**Retoucher une fonction au-dessus d'un seuil (« Coder dans le kit »)**
+
+- **Retoucher une fonction déjà au-dessus d'un seuil du cliquet** : la docstring que
+`sante.py` exige alors compte elle-même une instruction pour ruff. Sortir le travail dans
+une fonction neuve, documentée, et gagner une instruction dans l'ancienne (dette `ARP`,
+`main` de `boucle.py` : 100 → 104, puis 101, puis 100, 2026-10-08).
+
