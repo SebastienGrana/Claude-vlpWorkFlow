@@ -221,6 +221,11 @@ mesure ne dit pas si `high` suffit au recours (entrée « EFF3 — high contre m
 Mesuré à `ESS` : le chantier visait 11 clos, 9 étaient en `DÉCOUPE aucune`, hors du chemin
 modifié (journal `ESS4` du fichier d'état).
 
+Revu à `VER4` (Emergence, 2026-10-31) : la fiche nommait `sweep.py` (le code changé) et
+`runner.py` (l'appelant), mais pas `maps.py`, par où `LabRun` passe (`tax_curve`,
+`fraud_map`). La fiche s'est arrêtée sur une question à l'utilisateur, et c'est la plus
+chère du chantier (**3 895 033** tokens · **1,35 $**, sur 12 602 579 pour quatre fiches).
+
 ### L'estimé du cadrage se double
 
 Mesuré à `AVL2` (2026-10-11), sur les 45 clos qui portent un estimé chiffré : estimé 91
@@ -283,3 +288,13 @@ bout de route avaient la même, et s'appariaient entre eux. **14 913** paires su
 reproduisait jamais. Sans ces objets : **1,77 point**, hypothèse renversée. Dix fiches et une
 validation à l'œil (en bloc) ne l'avaient pas vu ; un relecteur qui recalculait chaque cas,
 puis une seconde vérification de ses chiffres, l'ont trouvé.
+
+### Un seuil chiffré d'avance se compare au témoin du jour
+
+Mesuré à `VER4` (Emergence, 2026-10-31). Le seuil, fixé avant la mesure : coder si un pool
+gardé ouvert passe la grille sous **7,8 s**, 20 % de moins que les **9,8 s** mesurées à
+`LAB2`. Ce jour-là, sans aucun changement, `workers=None` faisait **7,9 · 6,3 · 6,0 s** et la
+série **17,4 à 17,9 s** (21,2 s à `LAB2`) : la machine allait plus vite. Le pool ouvert faisait
+**4,7 · 5,0 · 5,4 s**, sous le seuil écrit, mais seulement ~20 % sous le témoin du jour, au
+bord. Codé quand même, sur la lettre du seuil ; le gain réel, mesuré ensuite sur l'onglet
+Lab, était le démarrage évité : **15,0 · 14,6 s → 11,9 · 12,2 s**.

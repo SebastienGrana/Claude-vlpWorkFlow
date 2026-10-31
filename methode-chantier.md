@@ -116,6 +116,10 @@ titre (`MET6`, 2026-10-07).
   choisir une borne, vérifier que la population mesurée peut contenir des
   valeurs des deux côtés de cette borne : la raison écrite est ce que la session
   suivante relira.
+- **Un seuil chiffré d'avance se compare au témoin du jour.** Un seuil écrit
+  « 20 % de moins que X » porte X mesuré un autre jour : la fiche remesure X dans
+  la même séance que la variante, et juge sur l'écart des deux, pas sur le seul
+  chiffre écrit. Récit : `lecons-mesure.md`, sous ce titre.
 - **Un chantier se cite par son code, jamais par son rang** — décision de
   l'utilisateur, prise sur un compte. Un rang bouge à chaque re-tri, et chaque
   re-tri rend faux tous les renvois qui le citent. Donner à chaque chantier un
@@ -227,8 +231,9 @@ proposition du découpage, écriture du fichier de fiches, mise à jour de
 `CHANTIER.md`, et la main rendue. Le coût du cadrage est payé **une fois** ; il
 ne se repaye pas à chaque fiche.
 Avant de promettre un chiffre de la TODO, le cadrage vérifie que les cas visés
-passent par le code qu'on va changer (récit dans `lecons-mesure.md`, « Le cadrage
-vérifie le chemin du code changé »).
+passent par le code qu'on va changer, et la ligne **Fichiers** nomme chaque fichier
+que l'appel traverse entre l'appelant et le code changé, pas seulement les deux bouts
+(récit dans `lecons-mesure.md`, « Le cadrage vérifie le chemin du code changé »).
 **L'estimé du cadrage se double** : à l'ouverture, le compte de fiches recopié de
 la TODO se double — un chantier joué coûte en moyenne ×1,85 son estimé, en
 fiches comme en $ (45 clos, `AVL2`). La TODO, elle, ne bouge pas : deux sortes
