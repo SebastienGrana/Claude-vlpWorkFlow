@@ -659,6 +659,12 @@ ni raison de la sauter, fait échouer la suite :
   par `diff-cover`, `NON COUVERT <fichier> : <lignes>` par fichier, puis `COUVERTURE <taux> % des <n> lignes
   changées, seuil <SEUIL> % — passe` (sort 0) ou `— commit refusé` (sort 1). La mesure : la suite pytest,
   lancée entière, se relance sous `coverage` et écrit `.couverture/coverage.xml` — `COUVERTURE mesurée : …`.
+- `retraits <fichier du message> [--racine R]` — un test retiré ou affaibli au commit (REF11 ; `retraits.py`, aiguillé
+  avant le cœur ; lancé par `.githooks/commit-msg`, la racine du dépôt par défaut) : compte par `ast`, sur l'ensemble
+  des fichiers de test de `HEAD` et de l'index, les tests, `verifier`, `assert` et `skip`/`xfail`. Imprime
+  `RETRAITS tests a → b · …`, `ILLISIBLE <fichier>` par test qui ne se lit pas, puis `— passe` (sort 0) ou, sur une
+  baisse ou plus de `skip` sans ligne `Test retiré : <raison>` dans le message, `— commit refusé` (sort 1). Sans
+  `HEAD` : `RETRAITS premier commit …` (sort 0) ; message illisible : `GARDE:`, sort 1.
 - `sante [<fichiers>] [--base [--forcer "<raison>"] [--si-base] | --cliquet] [--racine R] [--sans-ruff]` — la
   santé du code, fonction par fonction (`sante.py`, qui en tient les règles ; chantier VIT) : les comptes de
   `COMPTES` (socle de VIT) et la docstring, par ruff s'il répond (`ruff`, sinon `-m ruff`), sinon par `ast`, « comptes
@@ -706,6 +712,9 @@ if __name__ == "__main__":
     if sys.argv[1:2] == ["couverture"]:     # REF8 : son module à lui, hors du cœur au plafond de taille (REF9)
         import couverture
         sys.exit(couverture.principal(sys.argv[2:]))
+    if sys.argv[1:2] == ["retraits"]:       # REF11 : lancé à chaque commit, sans charger le cœur
+        import retraits
+        sys.exit(retraits.principal(sys.argv[2:]))
     import vlp_hook
     triee = vlp_hook.trier(sys.argv[1:])
     if triee == "":                     # un hook déjà pris par l'autre lanceur : sortir sans charger le cœur (VIT8)

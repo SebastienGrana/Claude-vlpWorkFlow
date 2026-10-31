@@ -1,0 +1,18 @@
+#!/bin/sh
+# Un test retiré ou affaibli se voit au commit (REF11) : `vlp.py retraits` juge, aucune logique ici. Ce hook seul voit
+# le message, que `pre-commit` ne voit pas : une ligne « Test retiré : <raison> » y justifie la baisse.
+# Activer une fois par clone : git config core.hooksPath .githooks
+racine=$(git rev-parse --show-toplevel) || exit 1
+if command -v py >/dev/null 2>&1; then
+  python="py -3"
+elif command -v python3 >/dev/null 2>&1; then
+  python=python3
+else
+  echo "commit-msg : Python introuvable, tests retirés non comptés, commit refusé." >&2
+  exit 1
+fi
+if ! sortie=$($python "$racine/scripts/vlp.py" retraits "$1" --racine "$racine" 2>&1); then
+  printf '%s\n' "$sortie" >&2
+  exit 1
+fi
+printf '%s\n' "$sortie" | tail -1 >&2
