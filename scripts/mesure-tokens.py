@@ -36,6 +36,7 @@ import datetime
 import fnmatch
 import glob
 import io
+import itertools
 import json
 import os
 import re
@@ -162,7 +163,7 @@ def heure(d):
     if t is None:
         return None
     if t.tzinfo is None:        # sans fuseau, l'heure se lit en UTC
-        t = t.replace(tzinfo=datetime.timezone.utc)
+        t = t.replace(tzinfo=datetime.UTC)
     return t.timestamp()
 
 
@@ -444,7 +445,7 @@ def temps(liste):
     actif = attente = tampon = 0.0
     pauses = 0
     triee = sorted(liste)
-    for (avant, _), (t, sorte) in zip(triee, triee[1:]):
+    for (avant, _), (t, sorte) in itertools.pairwise(triee):
         ecart = t - avant
         if ecart > PAUSE:
             pauses += 1
@@ -633,7 +634,7 @@ def parts(evenements):
     somme = dict.fromkeys(PARTS, 0.0)
     fermes, tampon, pauses = [], 0.0, 0
     triee = sorted(evenements, key=lambda e: e[0])
-    for (avant, _, _), (t, part, lu) in zip(triee, triee[1:]):
+    for (avant, _, _), (t, part, lu) in itertools.pairwise(triee):
         ecart = t - avant
         if ecart > PAUSE:
             pauses, ecart = pauses + 1, 0.0
@@ -687,7 +688,7 @@ def borne(texte):
         return t.timestamp(), None      # sans fuseau, timestamp() lit l'heure locale
     # `--` : le texte est une révision, jamais un chemin — un fichier suivi n'est pas une borne.
     try:
-        r = subprocess.run(["git", "log", "-1", "--format=%ct", texte, "--"], capture_output=True, text=True)
+        r = subprocess.run(["git", "log", "-1", "--format=%ct", texte, "--"], capture_output=True, text=True, check=False)
     except OSError:
         return None, "ni heure ISO 8601, ni commit : git introuvable"
     if r.returncode == 0 and r.stdout.strip().isdigit():

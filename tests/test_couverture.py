@@ -105,7 +105,7 @@ def test_une_suite_rouge_ne_laisse_pas_de_rapport(tmp_path):
 
 def test_vlp_py_aiguille_couverture_avant_le_coeur(tmp_path):
     r = subprocess.run([sys.executable, os.path.join(RACINE, "scripts", "vlp.py"), "couverture", "--racine",
-                        str(tmp_path)], capture_output=True, encoding="utf-8", errors="replace")
+                        str(tmp_path)], capture_output=True, encoding="utf-8", errors="replace", check=False)
     assert r.returncode == 1 and r.stdout.startswith("GARDE: couverture — git diff --cached a échoué"), r
 
 

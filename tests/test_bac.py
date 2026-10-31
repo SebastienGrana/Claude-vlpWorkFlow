@@ -6,6 +6,7 @@ import importlib.util
 import io
 import json
 import os
+import pathlib
 import re
 import shutil
 import subprocess
@@ -41,7 +42,7 @@ def test_pre_commit(tmp_path, init_git):
 
             def git(*args):
                 r = subprocess.run(["git"] + list(args), cwd=depot, env=env, capture_output=True, encoding="utf-8",
-                                   errors="replace")
+                                   errors="replace", check=False)
                 return r.returncode, r.stdout + r.stderr
 
             init_git(depot)
@@ -242,8 +243,7 @@ def test_transcription(tmp_path):
     with tempfile.TemporaryDirectory(dir=tmp_path) as ttr:
         jsonl = os.path.join(ttr, "agent.jsonl")
         with open(jsonl, "w", encoding="utf-8") as f:
-            for ligne in lignes:
-                f.write(json.dumps(ligne, ensure_ascii=False) + "\n")
+            f.writelines(json.dumps(ligne, ensure_ascii=False) + "\n" for ligne in lignes)
         code, s = appel(["transcription", jsonl])
         attendu = ("TOURS=2\n"
                    "APPELS=2 — Bash 1, Read 1\n"
@@ -274,8 +274,7 @@ def test_transcription(tmp_path):
                   for i in ("s1", "s2", "s3", "s4")]
         par_tour = os.path.join(ttr, "par-tour.jsonl")
         with open(par_tour, "w", encoding="utf-8") as f:
-            for ligne in salve:
-                f.write(json.dumps(ligne) + "\n")
+            f.writelines(json.dumps(ligne) + "\n" for ligne in salve)
         code, s = appel(["transcription", par_tour])
         assert (code == 0 and "AVERTISSEMENTS=4\nAVERTIS_PAR_TOUR=2:3,3:1\n" in s), ("transcription : AVERTIS_PAR_TOUR range chaque avertissement au tour de son appel") + "\n" + str(s)
         code, s = appel(["transcription", os.path.join(ttr, "absent.jsonl")])
@@ -298,7 +297,7 @@ def hook_isole(init_git, t):
 
     def git(chemins, *args, **env):
         r = subprocess.run(["git"] + list(args), cwd=depot, env=dict(base, PATH=os.pathsep.join(chemins), **env),
-                           capture_output=True, encoding="utf-8", errors="replace")
+                           capture_output=True, encoding="utf-8", errors="replace", check=False)
         return r.returncode, r.stdout + r.stderr
 
     init_git(depot)
@@ -402,7 +401,7 @@ def test_apercu(tmp_path, init_git):
             p = os.path.join(t, "proj")
             ecrire(os.path.join(p, "CHANTIER.md"), CHANTIER % ("pz", "context AI/"))
             lancement = os.path.join(p, ".claude", "launch.json")
-            lu = lambda: open(lancement, encoding="utf-8", newline="").read()
+            lu = lambda: pathlib.Path(lancement).read_text(encoding="utf-8", newline="")
             entrees = lambda: [e for e in json.loads(lu())["configurations"] if e["name"].startswith("apercu-")]
             git_ok = bool(shutil.which("git"))
             if git_ok:

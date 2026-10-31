@@ -5,6 +5,7 @@ message (REF5), puis le diagnostic.
 import io
 import json
 import os
+import pathlib
 import re
 import shutil
 import subprocess
@@ -358,14 +359,14 @@ JOUR_MATIN = "2026-10-01"
 
 
 def git_matin(d, *args):
-    r = subprocess.run(["git"] + list(args), cwd=d, capture_output=True, encoding="utf-8", errors="replace")
+    r = subprocess.run(["git"] + list(args), cwd=d, capture_output=True, encoding="utf-8", errors="replace", check=False)
     if r.returncode:
         raise RuntimeError("git %s : %s" % (" ".join(args), r.stderr))
     return r.stdout
 
 
 def code_git(d, *args):
-    return subprocess.run(["git"] + list(args), cwd=d, capture_output=True).returncode
+    return subprocess.run(["git"] + list(args), cwd=d, capture_output=True, check=False).returncode
 
 
 def commit_matin(d, message, heure):
@@ -659,9 +660,6 @@ def test_sante_comptes(tmp_path):
              and [f["empreinte"] for f in crlf] == [f["empreinte"] for f in fonctions] and double == ["f", "f#2"]), ("VIT15 (a) les cinq comptes ast des sondes égalent ceux de ruff 0.16.10 — elif et else-if, boucles et leur "
              "else, try complet, imbrication, fonction et classe imbriquées, arguments muets et de méthode, instructions "
              "à la Pylint ; docstrings vues ; même empreinte en CRLF ; un nom en double → f#2") + "\n" + str((comptes, double))
-    if sys.version_info < (3, 10):
-        pytest.skip("Python < 3.10 — les sondes de `match` ne sont pas testées")
-        return
     with tempfile.TemporaryDirectory(dir=tmp_path) as ts:
         ecrire(os.path.join(ts, "choix.py"), SONDES_MATCH)
         choix = {f["fonction"]: f["ast"] for f in sante.mesurer_fichier(ts, os.path.join(ts, "choix.py"))[0]}
@@ -802,7 +800,7 @@ def test_sante_si_base(tmp_path):
     kit par `--racine .` ; avec une base, comme `--base` : elle se reprend, ou refuse de se relâcher."""
     import hashlib
     base_kit = os.path.join(ICI, "sante-base.json")
-    empreinte_kit = hashlib.sha1(open(base_kit, "rb").read()).hexdigest()
+    empreinte_kit = hashlib.sha1(pathlib.Path(base_kit).read_bytes()).hexdigest()
     m = 'def f(a):\n    """Rendre a."""\n    return a\n'
     ici = os.getcwd()
     with tempfile.TemporaryDirectory(dir=tmp_path) as tv:
@@ -817,7 +815,7 @@ def test_sante_si_base(tmp_path):
         sans_scripts = appel(["sante", "--base", "--si-base", "--racine", vide, "--sans-ruff"])
         cree = os.listdir(vide) + os.listdir(os.path.join(equipe, "scripts"))
         assert (dehors == sans_scripts == (0, "SANS BASE scripts/sante-base.json · rien écrit\n") and cree == ["m.py"]
-                 and hashlib.sha1(open(base_kit, "rb").read()).hexdigest() == empreinte_kit), ("VIT16 (a) --si-base sans base → SANS BASE, sort 0, rien d'écrit — dans un projet sans `scripts/`, et "
+                 and hashlib.sha1(pathlib.Path(base_kit).read_bytes()).hexdigest() == empreinte_kit), ("VIT16 (a) --si-base sans base → SANS BASE, sort 0, rien d'écrit — dans un projet sans `scripts/`, et "
                  "hors du kit par `--racine .`, la base du kit identique à l'octet — mutant : --si-base ignoré") + "\n" + str((dehors, sans_scripts, cree))
         posee = appel(["sante", "--base", "--racine", equipe, "--sans-ruff"])
         reprise = appel(["sante", "--base", "--si-base", "--racine", equipe, "--sans-ruff"])

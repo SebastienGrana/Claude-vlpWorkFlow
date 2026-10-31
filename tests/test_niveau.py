@@ -6,6 +6,7 @@ import datetime
 import io
 import json
 import os
+import pathlib
 import re
 import shutil
 import subprocess
@@ -258,9 +259,9 @@ GABARIT_VLPCSS = os.path.join(ICI, "..", "templates", "vlp.css")
 
 
 def feuille_ancienne():
-    css = "".join(l for l in io.open(GABARIT_VLPCSS, encoding="utf-8").read().splitlines(True)
+    css = "".join(l for l in pathlib.Path(GABARIT_VLPCSS).read_text(encoding="utf-8").splitlines(True)
                   if not l.lstrip().startswith(("details.clos", ".resume-clos")))
-    gabarit = io.open(GABARIT_FEUILLE, encoding="utf-8").read()
+    gabarit = pathlib.Path(GABARIT_FEUILLE).read_text(encoding="utf-8")
     gabarit = gabarit.replace('<link rel="stylesheet" href="vlp.css">', "<style>\n%s</style>" % css)
     lignes = gabarit.splitlines(True)
     return "".join(l for l in lignes
@@ -329,13 +330,12 @@ def test_niv3(tmp_path):
         assert (code == 1 and compte(apres, "ÉCART:") == n - m - 1 and "ÉCART: renvois: " in apres), ("NIV3 après : %d écarts, %d corrigés, %d restants — le compte se ferme"
                  % (n, m, n - m - 1)) + "\n" + str(apres)
 
-        carte_niv3 = io.open(os.path.join(proj, "CHANTIER.md"), encoding="utf-8").read()
+        carte_niv3 = pathlib.Path(os.path.join(proj, "CHANTIER.md")).read_text(encoding="utf-8")
         assert ("| ctx/10-a.md |" not in carte_niv3 and "## Chantiers clos — dans l'index, pas ici" in carte_niv3
                  and "Lettres de fiche déjà prises : A." in carte_niv3), ("NIV3 : la table est partie, le titre et la phrase du gabarit la remplacent,"
                  " les lettres prises restent") + "\n" + str(carte_niv3)
 
-        html_niv3 = io.open(os.path.join(proj, "ctx", "artefacts", "feuille-de-route.html"),
-                            encoding="utf-8").read()
+        html_niv3 = pathlib.Path(os.path.join(proj, "ctx", "artefacts", "feuille-de-route.html")).read_text(encoding="utf-8")
         assert ('<details class="clos">' in html_niv3 and '<span class="resume-clos">' in html_niv3
                  and html_niv3.count('href="vlp.css"') == 1 and "<style>" not in html_niv3), ("NIV3 : le bloc repliable et son résumé sont posés, le style migré vers vlp.css (PLI3)") + "\n" + str(html_niv3[:200])
         assert ('\n          <tr>\n' in html_niv3), ("NIV3 : les lignes de ZONE:clos gardent les dix espaces que `clore` repère") + "\n" + "indentation changée"
@@ -353,7 +353,7 @@ def test_niv3(tmp_path):
                  and "ÉCART: feuille: feuille de route introuvable :" in s), ("NIV3 : sans --ecrire, rien n'est posé") + "\n" + str(s)
         code, s = appel(["niveau", proj, "--ecrire", "--date", "2026-09-18"])
         assert (os.path.isfile(page) and "CORRIGÉ: feuille: posée depuis le gabarit" in s
-                 and '<span class="titre">un truc</span>' in io.open(page, encoding="utf-8").read()), ("NIV3 : la feuille absente est posée depuis le gabarit puis régénérée") + "\n" + str(s)
+                 and '<span class="titre">un truc</span>' in pathlib.Path(page).read_text(encoding="utf-8")), ("NIV3 : la feuille absente est posée depuis le gabarit puis régénérée") + "\n" + str(s)
 
     # L'index ne nomme pas un fichier de la table : la retirer le perdrait.
     with tempfile.TemporaryDirectory(dir=tmp_path) as t:
@@ -361,7 +361,7 @@ def test_niv3(tmp_path):
                                "| `08-etat.md` | on reprend |\n")
         code, s = appel(["niveau", proj, "--ecrire", "--date", "2026-09-18"])
         assert ("ÉCART: clos: " in s and "CORRIGÉ: clos: " not in s
-                 and "| ctx/10-a.md |" in io.open(os.path.join(proj, "CHANTIER.md"), encoding="utf-8").read()), ("NIV3 : une table dont l'index ne nomme pas les fichiers reste à la main") + "\n" + str(s)
+                 and "| ctx/10-a.md |" in pathlib.Path(os.path.join(proj, "CHANTIER.md")).read_text(encoding="utf-8")), ("NIV3 : une table dont l'index ne nomme pas les fichiers reste à la main") + "\n" + str(s)
 
     # Rien n'est écrit tant qu'un calcul peut échouer : un projet sans CHANTIER.md.
     with tempfile.TemporaryDirectory(dir=tmp_path) as t:
@@ -381,7 +381,7 @@ def visible(h):
 
 
 def rangs_clos(page):
-    html = io.open(page, encoding="utf-8").read()
+    html = pathlib.Path(page).read_text(encoding="utf-8")
     d, f = mod.zone(html, "clos", "<tbody>\n", "        </tbody>")
     return mod.lignes_clos(html[d:f])
 
@@ -402,8 +402,8 @@ def test_rep3_compteurs(tmp_path):
         assert (code == 0 and "ÉCART:" not in s
                  and "MARKDOWN 0 ** · 0 liens Markdown · 0 liens cassés — %s\n" % page in s), ("REP3 : une feuille propre sort ses trois compteurs, à zéro, sans écart") + "\n" + str(s)
 
-        html = io.open(page, encoding="utf-8").read()
-        d, f = mod.zone(html, "clos", "<tbody>\n", "        </tbody>")
+        html = pathlib.Path(page).read_text(encoding="utf-8")
+        d, _f = mod.zone(html, "clos", "<tbody>\n", "        </tbody>")
         ecrire(page, html[:d] + VIEILLE + html[d:])
         code, s = appel(["niveau", proj, "--date", "2026-09-18"])
         # Le second écart (BTN5) : la ligne close a un coût, la feuille n'a pas encore la balise de couts.svg.
@@ -413,7 +413,7 @@ def test_rep3_compteurs(tmp_path):
                      " convertit les lignes closes\n" in s), ("REP3 : la ligne close brute se compte hors code cité, fait un écart, et nomme --ecrire") + "\n" + str(s)
 
         code, s = appel(["niveau", proj, "--ecrire", "--date", "2026-09-18"])
-        apres = io.open(page, encoding="utf-8").read()
+        apres = pathlib.Path(page).read_text(encoding="utf-8")
         assert (code == 0 and "CORRIGÉ: feuille: 1 lignes closes converties\n" in s
                  and "MARKDOWN 0 ** · 0 liens Markdown · 0 liens cassés — %s\n" % page in s
                  and '<a href="&lt;URL de son artefact&gt;">' in apres), ("REP3 : --ecrire convertit la ligne close en place, et les compteurs tombent à zéro") + "\n" + str(s)
@@ -425,9 +425,9 @@ def test_rep3_compteurs(tmp_path):
                  and ligne.startswith("          <tr>\n")), ("REP3 : aucun texte visible perdu, chaque URL dans un href, le code cité et les dix espaces intacts") + "\n" + str(ligne)
 
         code, s = appel(["niveau", proj, "--ecrire", "--date", "2026-09-18"])
-        assert (io.open(page, encoding="utf-8").read() == apres and "CORRIGÉ: feuille:" not in s), ("REP3 : rejoué, --ecrire ne change plus rien — deux passes = une") + "\n" + str(s)
+        assert (pathlib.Path(page).read_text(encoding="utf-8") == apres and "CORRIGÉ: feuille:" not in s), ("REP3 : rejoué, --ecrire ne change plus rien — deux passes = une") + "\n" + str(s)
 
-        carte = io.open(os.path.join(proj, "CHANTIER.md"), encoding="utf-8").read()
+        carte = pathlib.Path(os.path.join(proj, "CHANTIER.md")).read_text(encoding="utf-8")
         ecrire(os.path.join(proj, "CHANTIER.md"), carte.replace(
             "- **méthode** :", "- **artefact du chantier** : https://exemple/w\n- **méthode** :")
             + "\nLettres de fiche déjà prises : A. Un nouveau chantier en choisit une autre.\n")
@@ -449,10 +449,10 @@ def test_voi1_markdown(tmp_path):
         os.makedirs(os.path.dirname(pagev))
         shutil.copy(GABARIT_FEUILLE, pagev)
         appel(["feuille", projv, "--date", "2026-09-18"])
-        htmlv = io.open(pagev, encoding="utf-8").read()
-        d, f, _ = mod.zone_todo(htmlv)
+        htmlv = pathlib.Path(pagev).read_text(encoding="utf-8")
+        d, _f, _ = mod.zone_todo(htmlv)
         ecrire(pagev, htmlv[:d] + "          <tr><td>**x**</td></tr>\n" + htmlv[d:])
-        code, s = appel(["niveau", projv, "--date", "2026-09-18"])
+        _code, s = appel(["niveau", projv, "--date", "2026-09-18"])
         assert ("MARKDOWN 2 ** · 0 liens Markdown · 0 liens cassés — %s\n" % pagev in s), ("VOI1 : sans --ecrire, le ** brut de la page du disque se compte, même si la régénération le fait tomber") + "\n" + str(s)  # un **x** = deux **
 
 
@@ -531,7 +531,7 @@ def test_plage_refaite(tmp_path):
 def test_attente(tmp_path):
     """attente (chantier LOC2) : la liste des pages refusées par la limite du jour, et son hook."""
     soir = datetime.datetime(2026, 9, 28, 20, 0, tzinfo=datetime.timezone(datetime.timedelta(hours=2)))
-    url, url2 = "https://claude.ai/artifact/AAA", "https://claude.ai/artifact/BBB"
+    url = "https://claude.ai/artifact/AAA"
     refus = "publish 429: daily publish limit for your plan reached (200) — resets at UTC midnight"
 
     def hook(d, maintenant=soir):
@@ -633,7 +633,7 @@ ETAT_MATIN = ("# État\n\n## TODO\n\n| # | Chantier | Ce qu'il apporte | Coût e
 
 
 def git_matin(d, *args):
-    r = subprocess.run(["git"] + list(args), cwd=d, capture_output=True, encoding="utf-8", errors="replace")
+    r = subprocess.run(["git"] + list(args), cwd=d, capture_output=True, encoding="utf-8", errors="replace", check=False)
     if r.returncode:
         raise RuntimeError("git %s : %s" % (" ".join(args), r.stderr))
     return r.stdout
@@ -685,7 +685,7 @@ def test_attentes_de_nuit(tmp_path):
                 for page, gabarit in (("50-u.html", "artefact-chantier.html"),
                                       ("feuille-de-route.html", "artefact-feuille-de-route.html")):
                     ecrire(os.path.join(te, "ctx", "artefacts", page),
-                           open(os.path.join(ICI, "..", "templates", gabarit), encoding="utf-8").read())
+                           pathlib.Path(os.path.join(ICI, "..", "templates", gabarit)).read_text(encoding="utf-8"))
                 if nuit:
                     os.environ["VLP_NUIT"] = "1"
                 try:

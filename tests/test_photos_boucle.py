@@ -9,7 +9,6 @@ import sys
 import tempfile
 
 import pytest
-
 from aides import SCRIPTS
 from aides_boucle import boucle, projet
 
@@ -33,5 +32,5 @@ def test_photo_aide(argv, snapshot):
     """`boucle.py --help` : la liste de ses arguments, à largeur fixe."""
     env = dict(os.environ, COLUMNS="100", PYTHONIOENCODING="utf-8")
     r = subprocess.run([sys.executable, os.path.join(SCRIPTS, "boucle.py")] + argv, env=env, capture_output=True,
-                       text=True, encoding="utf-8")
+                       text=True, encoding="utf-8", check=False)
     assert propre("code %d\n%s%s" % (r.returncode, r.stdout, r.stderr), "\0") == snapshot

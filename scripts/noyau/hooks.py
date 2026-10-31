@@ -13,20 +13,21 @@ import time
 import unicodedata
 
 from noyau import etat
+from noyau.carte import trouver
+from noyau.commun import Absent, lignes_de, tampon_neuf
 from noyau.facade import coeur
-from noyau.commun import (Absent, lignes_de, tampon_neuf)
-from noyau.fiches import (cmd_cocher, rapport)
-from noyau.carte import (trouver)
-from noyau.page import (mesure)
+from noyau.fiches import cmd_cocher, rapport
+from noyau.page import mesure
 
 # Ce que la façade ré-exporte : les noms d'avant la découpe (photo de `tests/test_noms_publics.py`). Les décisions
 # sorties de Git par REF47 — `heure_d_ajout` — se lisent ici seulement.
 __all__ = [
-    "MARQUE", "est_fichier_de_fiches", "cmd_hook", "SEUIL_FILET", "cmd_filet", "comptoir_tours", "lire_max_turns",
-    "LECTURE_GIT", "APPEL_GIT", "HEREDOC", "STATUTS", "REFUS_GIT", "REFUS_GIT_AVANT", "INTERROMPU", "sans_heredoc",
-    "ECHO_DONNEE", "sans_echo", "ecrit_git", "lire_contrat", "type_agent", "ouverture", "cmd_contrat", "VERDICTS",
-    "ESSAI_REFUSE", "JAUGE", "EMOJIS_JAUGE", "SUITE_JAUGE", "REGLES", "REGLE", "ouvre", "forme_texte", "lire_forme",
-    "cmd_forme", "FICHE_A_JOUER", "FICHE_NOMMEE", "fiche_jouee", "verdict_fin", "cmd_gardien",
+    "APPEL_GIT", "ECHO_DONNEE", "EMOJIS_JAUGE", "ESSAI_REFUSE", "FICHE_A_JOUER", "FICHE_NOMMEE", "HEREDOC",
+    "INTERROMPU", "JAUGE", "LECTURE_GIT", "MARQUE", "REFUS_GIT", "REFUS_GIT_AVANT", "REGLE", "REGLES",
+    "SEUIL_FILET", "STATUTS", "SUITE_JAUGE", "VERDICTS", "cmd_contrat", "cmd_filet", "cmd_forme", "cmd_gardien",
+    "cmd_hook", "comptoir_tours", "ecrit_git", "est_fichier_de_fiches", "fiche_jouee", "forme_texte",
+    "lire_contrat", "lire_forme", "lire_max_turns", "ouverture", "ouvre", "sans_echo", "sans_heredoc", "type_agent",
+    "verdict_fin",
 ]
 
 
@@ -339,7 +340,7 @@ def ouverture(chemin):
     try:
         r = subprocess.run([etat.GIT, "log", "--diff-filter=A", "--format=%at", "--", os.path.basename(chemin)],
                            cwd=os.path.dirname(os.path.abspath(chemin)), capture_output=True, encoding="utf-8",
-                           errors="replace", timeout=60)
+                           errors="replace", timeout=60, check=False)
     except (OSError, subprocess.SubprocessError) as e:
         return None, "git ne se lance pas : %s" % e
     return heure_d_ajout(r.returncode, r.stdout)

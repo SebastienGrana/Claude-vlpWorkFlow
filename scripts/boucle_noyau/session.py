@@ -15,10 +15,11 @@ from typing import Any
 
 import carnet
 
-__all__ = ["ICI", "VLP_COEUR", "HERITEES", "AUTORISES", "INTERDITS", "NON_GIT", "PREMIER_PLAN", "OPUS", "SONNET",
-    "REPLI_OPUS", "TIMEOUT_S", "REFUS_MAX", "COUPEES", "ROLES", "LIMITE_RE", "RESET_RE", "FIN", "BASCULE", "kit",
-    "max_tours", "modele_de", "reset_de", "ligne_carnet", "plafonds", "mesure_kit", "commande", "lire_trace",
-    "classer", "jouer", "verifier_nuit", "session_de"
+__all__ = [
+    "AUTORISES", "BASCULE", "COUPEES", "FIN", "HERITEES", "ICI", "INTERDITS", "LIMITE_RE", "NON_GIT", "OPUS",
+    "PREMIER_PLAN", "REFUS_MAX", "REPLI_OPUS", "RESET_RE", "ROLES", "SONNET", "TIMEOUT_S", "VLP_COEUR", "classer",
+    "commande", "jouer", "kit", "ligne_carnet", "lire_trace", "max_tours", "mesure_kit", "modele_de", "plafonds",
+    "reset_de", "session_de", "verifier_nuit",
 ]
 
 ICI = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # scripts/boucle_noyau/ → scripts/
@@ -276,7 +277,7 @@ def jouer(claude, fiche, racine, a, trace, role="jouer", controle=None, suite=""
         with open(trace, "w", encoding="utf-8") as f:
             try:
                 subprocess.run(cmd, cwd=racine, env=env, stdin=subprocess.DEVNULL, stdout=f,
-                               stderr=subprocess.STDOUT, timeout=delai)
+                               stderr=subprocess.STDOUT, timeout=delai, check=False)
             except subprocess.TimeoutExpired:
                 fini = False
         s = lire_trace(trace)
@@ -324,7 +325,7 @@ def verifier_nuit(commande, racine):
     et bornée par `TIMEOUT_S`."""
     try:
         r = subprocess.run(commande, cwd=racine, shell=True, stdin=subprocess.DEVNULL, capture_output=True,
-                           text=True, encoding="utf-8", errors="replace", timeout=TIMEOUT_S)
+                           text=True, encoding="utf-8", errors="replace", timeout=TIMEOUT_S, check=False)
     except subprocess.TimeoutExpired:
         return "dépasse le délai de %d s" % TIMEOUT_S
     if r.returncode:

@@ -4,9 +4,9 @@ libellé d'origine de son `verifier` en tête de son message (REF5), puis le dia
 """
 import datetime
 import hashlib
-import io
 import json
 import os
+import pathlib
 import re
 import shutil
 import subprocess
@@ -88,10 +88,10 @@ T0 = 1790000000
 
 def test_clore_todo(tmp_path):
     """TAB3 : `clore` lit la TODO avant sa première écriture — cassée, il n'écrit rien."""
-    gabarit = lambda nom: open(os.path.join(ICI, "..", "templates", nom), encoding="utf-8").read()
+    gabarit = lambda nom: pathlib.Path(os.path.join(ICI, "..", "templates", nom)).read_text(encoding="utf-8")
 
     def empreinte(racine):
-        return {os.path.join(r, f): hashlib.sha256(open(os.path.join(r, f), "rb").read()).hexdigest()
+        return {os.path.join(r, f): hashlib.sha256(pathlib.Path(os.path.join(r, f)).read_bytes()).hexdigest()
                 for r, _, fs in os.walk(racine) for f in fs}
 
     for saine in (False, True):
@@ -119,7 +119,7 @@ def test_clore_todo(tmp_path):
 def test_clore_ote_todo(tmp_path):
     """RTO1 : `clore` ôte la rangée du chantier de la TODO et marque la provenance, sans toucher au journal ;
     un code absent de la TODO n'écrit rien au fichier d'état, et ce n'est pas une GARDE."""
-    gabarit = lambda nom: open(os.path.join(ICI, "..", "templates", nom), encoding="utf-8").read()
+    gabarit = lambda nom: pathlib.Path(os.path.join(ICI, "..", "templates", nom)).read_text(encoding="utf-8")
     journal = "## Journal des décisions\n\n## 2026-10-01 — x\n"
     for present in (True, False):
         with tempfile.TemporaryDirectory(dir=tmp_path) as tr:
@@ -135,7 +135,7 @@ def test_clore_ote_todo(tmp_path):
             ecrire(os.path.join(tr, "ctx", "artefacts", "50-u.html"), gabarit("artefact-chantier.html"))
             ecrire(os.path.join(tr, "ctx", "artefacts", "feuille-de-route.html"), gabarit("artefact-feuille-de-route.html"))
             code, s = appel(["clore", tr, "--livre", "fini", "--date", "2026-10-09"])
-            lu = open(chemin, encoding="utf-8").read()
+            lu = pathlib.Path(chemin).read_text(encoding="utf-8")
             if present:
                 assert (code == 0 and "| 3 | `U`" not in lu and "| 4 | `AAA`" in lu
                          and "Provenance : 3, de x ; 4, de y. 3, `U`, clos le 2026-10-09.\n" in lu
@@ -175,16 +175,16 @@ def test_oter(tmp_path):
         for code, quoi in (("ZZZ", "absent"), ("OUV", "ouvert"), ("U", "clos")):
             res = appel(["oter", to, code, "--raison", "r", "--date", "2026-10-09"])
             assert (res[0] == 1 and res[1].startswith("GARDE: ") and "rien écrit" in res[1]
-                     and open(chemin, encoding="utf-8").read() == etat), ("TAB4 : oter refuse un code %s — GARDE, sort 1, fichier inchangé" % quoi) + "\n" + str(res)
+                     and pathlib.Path(chemin).read_text(encoding="utf-8") == etat), ("TAB4 : oter refuse un code %s — GARDE, sort 1, fichier inchangé" % quoi) + "\n" + str(res)
         res = appel(["oter", to, "AAA", "--raison", "fait ailleurs", "--date", "2026-10-09"])
-        lu = open(chemin, encoding="utf-8").read()
+        lu = pathlib.Path(chemin).read_text(encoding="utf-8")
         assert (res[0] == 0 and "| 3 | `AAA`" not in lu
                  and "| 4 | `BBB`" in lu and len(mod.todo_du_fichier(lu.split("\n"))) == 3), ("TAB4 : oter ôte la rangée, et elle seule") + "\n" + str((res, lu))
         assert ("Provenance : 3, de x ; 4, de y. 3, `AAA`, retiré le 2026-10-09 : fait ailleurs.\n" in lu), ("TAB4 : oter marque le numéro retiré dans la phrase de provenance") + "\n" + str(lu)
         assert (lu.endswith("## 2026-10-01 — x\n\n## 2026-10-09 — `AAA` retiré de la TODO (n° 3)\n\n"
                              "- **Raison** : fait ailleurs.\n")), ("TAB4 : oter écrit une entrée datée au journal") + "\n" + str(lu)
         res = appel(["oter", to, "BBB", "--raison", "fait cette nuit", "--date", "2026-10-12", "--fait"])
-        lu, carte_ = open(chemin, encoding="utf-8").read(), open(os.path.join(to, "CHANTIER.md"), encoding="utf-8").read()
+        lu, carte_ = pathlib.Path(chemin).read_text(encoding="utf-8"), pathlib.Path(os.path.join(to, "CHANTIER.md")).read_text(encoding="utf-8")
         prises = mod.lettres_prises(carte_.split("\n"))
         assert (res[0] == 0 and res[1].rstrip().endswith("· lettre prise")
                  and "U (test), BBB (b, sans fiche). Un nouveau chantier" in carte_
@@ -197,8 +197,8 @@ def test_todo_sans_code(tmp_path):
     """Dette FIN (Fil-Rouge, 2026-10-14) : une TODO sans codes (`| 10 | Finitions … |`) — `clore` trouve la rangée par
     le titre du chantier, `oter` par son numéro ; un routage sans « relire un chantier clos » ni « relire le
     chantier », mais des lignes **clos** : `ouvrir` y pose sa ligne, que `clore` retrouve."""
-    gabarit = lambda nom: open(os.path.join(ICI, "..", "templates", nom), encoding="utf-8").read()
-    lire = lambda c: open(c, encoding="utf-8").read()
+    gabarit = lambda nom: pathlib.Path(os.path.join(ICI, "..", "templates", nom)).read_text(encoding="utf-8")
+    lire = lambda c: pathlib.Path(c).read_text(encoding="utf-8")
     todo = ["| # | Chantier | a | b | c |", "|---|---|---|---|---|", "| 10 | Finitions de l'API : erreurs et Swagger | a | b | — |",
             "| 11 | Réparer le banc | a | b | — |", "| 12 | Réparer le banc | a | b | — |"]
     assert (mod.rangee_todo(todo, "11") == (0, 3, "11") and mod.rangee_todo(todo, "1") == (0, None, None)
@@ -271,8 +271,8 @@ def test_feuille_clore(tmp_path):
         q_ferme = "# Chantier Q — Un titre\n\n## Q1 [x] — a\n## Q2 [ ] — b\n"
         ecrire(os.path.join(t, "ctx", "30-q.md"), q_ferme)
         fdr = os.path.join(t, "ctx", "artefacts", "feuille-de-route.html")
-        ecrire(fdr, open(os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html"), encoding="utf-8").read())
-        lire = lambda c: open(c, encoding="utf-8").read()
+        ecrire(fdr, pathlib.Path(os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html")).read_text(encoding="utf-8"))
+        lire = lambda c: pathlib.Path(c).read_text(encoding="utf-8")
         code, s = appel(["feuille", t, "--date", "2026-01-02"])
         html = lire(fdr)
         assert (code == 0 and "FEUILLE todo 2 · encours non · lettres 2 · réécrite" in s
@@ -330,7 +330,7 @@ def test_feuille_clore(tmp_path):
         ecrire(os.path.join(t, "ctx", "00-INDEX.md"), "| F | L |\n|---|---|\n| `30-q.md` | on joue une fiche `Q*` — chantier **ouvert** « Un (vrai) titre », `Q1..Q2` |\n")
         ecrire(os.path.join(t, "CLAUDE.md"), "# P\n\n## Où on en est\n\n- Clos le 2026-05-06 : a (chantier E).\n\n## Routage\n\n| T | O |\n|---|---|\n| jouer une fiche du chantier Q (un (vrai) titre) | `ctx/30-q.md` — chantier **ouvert**, par `/vlp:tache Q<n>` |\n| relire le chantier E (e) | `ctx/10-e.md` — chantier **clos** |\n")
         page_q = os.path.join(t, "ctx", "artefacts", "30-q.html")
-        ecrire(page_q, open(os.path.join(ICI, "..", "templates", "artefact-chantier.html"), encoding="utf-8").read()
+        ecrire(page_q, pathlib.Path(os.path.join(ICI, "..", "templates", "artefact-chantier.html")).read_text(encoding="utf-8")
                .replace("<!-- ZONE:blocage — publiée quand /tache s'arrête après deux tentatives ; retirée dès que la fiche repasse -->\n  <section hidden>",
                         "<!-- ZONE:blocage — publiée quand /tache s'arrête après deux tentatives ; retirée dès que la fiche repasse -->\n  <section>"))
         assert (page_q and "<!-- ZONE:blocage" in lire(page_q) and lire(page_q).count("<section hidden>") == 1), ("clore : gabarit, blocage visible avant") + "\n" + str(lire(page_q))
@@ -408,7 +408,7 @@ def test_apc3(tmp_path, init_git):
         ecrire(os.path.join(proj, "ctx", "00-INDEX.md"), "| F | L |\n|---|---|\n| `q.md` | on joue `Q*` — **ouvert** |\n")
         ecrire(os.path.join(proj, "CLAUDE.md"), "| T | O |\n|---|---|\n| jouer Q | `ctx/q.md` **ouvert** |\n")
         ecrire(os.path.join(proj, "ctx", "artefacts", "q.html"),
-               open(os.path.join(ICI, "..", "templates", "artefact-chantier.html"), encoding="utf-8").read())
+               pathlib.Path(os.path.join(ICI, "..", "templates", "artefact-chantier.html")).read_text(encoding="utf-8"))
         if not shutil.which("git"):
             pytest.skip("git absent — clore = recompte n'est pas testé")
         else:
@@ -426,7 +426,7 @@ def test_apc3(tmp_path, init_git):
             code, s = appel(["clore", proj, "--livre", "fini", "--tokens", "1", "--date", "2026-09-25"])
             with open(s3, "a", encoding="utf-8") as f:
                 f.write(json.dumps(dict(lignes_[0], requestId="r9", timestamp=datetime.datetime.fromtimestamp(
-                    T0 + 800, datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z"),
+                    T0 + 800, datetime.UTC).strftime("%Y-%m-%dT%H:%M:%S.000Z"),
                     message=dict(lignes_[0]["message"], id="m9"))) + "\n")
             commit_(900, "Chantier Q clos : fini")
             code2, s2 = appel(["cout", os.path.join(proj, "ctx", "q.md")])
@@ -453,7 +453,7 @@ def test_uni1_total(tmp_path):
         ecrire(os.path.join(proj, "ctx", "00-INDEX.md"), "| F | L |\n|---|---|\n| `50-u.md` | on joue `U*` |\n")
         ecrire(os.path.join(proj, "CLAUDE.md"), "| T | O |\n|---|---|\n| jouer U | `ctx/50-u.md` **ouvert** |\n| relire un clos | `ctx/00-INDEX.md` |\n")
         page_u = os.path.join(proj, "ctx", "artefacts", "50-u.html")
-        ecrire(page_u, open(os.path.join(ICI, "..", "templates", "artefact-chantier.html"), encoding="utf-8").read())
+        ecrire(page_u, pathlib.Path(os.path.join(ICI, "..", "templates", "artefact-chantier.html")).read_text(encoding="utf-8"))
         code, s = appel(["clore", proj, "--livre", "fini", "--tokens", "950", "--date", "2026-09-25"])
         assert (code == 0 and "chantier 950" in s and "ÉCART" not in s), ("UNI1 : sans mesure, --tokens utilisé, pas d'ÉCART") + "\n" + str(s)
 
@@ -466,16 +466,19 @@ def test_uni1_total(tmp_path):
         ecrire(os.path.join(proj, "ctx", "00-INDEX.md"), "| F | L |\n|---|---|\n| `50-u.md` | on joue `U*` |\n")
         ecrire(os.path.join(proj, "CLAUDE.md"), "| T | O |\n|---|---|\n| jouer U | `ctx/50-u.md` **ouvert** |\n| relire un clos | `ctx/00-INDEX.md` |\n")
         ecrire(os.path.join(proj, "ctx", "artefacts", "50-u.html"),
-               open(os.path.join(ICI, "..", "templates", "artefact-chantier.html"), encoding="utf-8").read())
+               pathlib.Path(os.path.join(ICI, "..", "templates", "artefact-chantier.html")).read_text(encoding="utf-8"))
         feuille_u = os.path.join(proj, "ctx", "artefacts", "feuille-de-route.html")
-        ecrire(feuille_u, open(os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html"), encoding="utf-8").read())
+        ecrire(feuille_u, pathlib.Path(os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html")).read_text(encoding="utf-8"))
         regenerer_vrai = mod.noyau.page.regenerer
-        mod.noyau.page.regenerer = lambda *x: (lambda r: r[:3] + ((4321, 3, None), r[4]))(regenerer_vrai(*x))
+        def regenerer_faux(*x):
+            r = regenerer_vrai(*x)
+            return r[:3] + ((4321, 3, None), r[4])
+        mod.noyau.page.regenerer = regenerer_faux
         try:
             code, s = appel(["clore", proj, "--livre", "fini", "--tokens", "950", "--date", "2026-09-25"])
         finally:
             mod.noyau.page.regenerer = regenerer_vrai
-        fu = open(feuille_u, encoding="utf-8").read()
+        fu = pathlib.Path(feuille_u).read_text(encoding="utf-8")
         assert (code == 0
                  and "ÉCART tokens 950 donné · 4 321 mesuré — le mesuré fait foi" in s and "· chantier 4 321 ·" in s
                  and "(4 321)" in fu and ">950<" not in fu), ("UNI1 : --tokens faux, ÉCART et le mesuré écrit sur la feuille") + "\n" + str(s + fu[-800:])
@@ -498,7 +501,7 @@ ETAT_MATIN = ("# État\n\n## TODO\n\n| # | Chantier | Ce qu'il apporte | Coût e
 
 
 def git_matin(d, *args):
-    r = subprocess.run(["git"] + list(args), cwd=d, capture_output=True, encoding="utf-8", errors="replace")
+    r = subprocess.run(["git"] + list(args), cwd=d, capture_output=True, encoding="utf-8", errors="replace", check=False)
     if r.returncode:
         raise RuntimeError("git %s : %s" % (" ".join(args), r.stderr))
     return r.stdout
@@ -585,7 +588,7 @@ def test_blobs_git(tmp_path, init_git):
         d = os.path.join(tr, "bl")
         os.makedirs(os.path.join(d, "ctx", "d.md"))
         for nom, octets in (("CHANTIER.md", b"- **contexte** : ctx/\n"), ("ctx/a.md", b"# Chantier A\r\nligne\r\n"),
-                            ("ctx/b é.md", "# Chantier B — été\nfin sans LF".encode("utf-8")),
+                            ("ctx/b é.md", "# Chantier B — été\nfin sans LF".encode()),
                             ("ctx/c.md", b"un\rdeux\n\n"), ("ctx/d.md/x.txt", b"x\n")):
             with open(os.path.join(d, nom), "wb") as f:
                 f.write(octets)
@@ -687,7 +690,7 @@ def test_postit(tmp_path, init_git):
         apres = next(l for l in appel(["carte", wt])[1].split("\n") if l.startswith("COURANT="))
         lu = mod.lire(p) if os.path.exists(p) else None
         git_matin(d, "worktree", "remove", "--force", wt)
-    chef = io.open(os.path.join(RACINE, "skills", "enchainer", "SKILL.md"), encoding="utf-8").read()
+    chef = pathlib.Path(os.path.join(RACINE, "skills", "enchainer", "SKILL.md")).read_text(encoding="utf-8")
     trois = chef[chef.find("## 3. Jouer chaque fiche"):chef.find("## 3 bis.")]
     assert (avant == "COURANT=aucun" and pose == (0, "POSTIT ctx/a.md — %s\n" % wt) and lu == "ctx/a.md\n"
              and apres == "COURANT=ctx/a.md"), ("ISO8 : postit écrit le post-it du worktree, carte y lit COURANT=ctx/a.md — mutant : postit qui n'écrit rien") + "\n" + str(repr((avant, pose, lu, apres)))

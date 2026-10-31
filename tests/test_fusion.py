@@ -54,14 +54,14 @@ ETAT_MATIN = ("# État\n\n## TODO\n\n| # | Chantier | Ce qu'il apporte | Coût e
 
 
 def git_matin(d, *args):
-    r = subprocess.run(["git"] + list(args), cwd=d, capture_output=True, encoding="utf-8", errors="replace")
+    r = subprocess.run(["git"] + list(args), cwd=d, capture_output=True, encoding="utf-8", errors="replace", check=False)
     if r.returncode:
         raise RuntimeError("git %s : %s" % (" ".join(args), r.stderr))
     return r.stdout
 
 
 def code_git(d, *args):
-    return subprocess.run(["git"] + list(args), cwd=d, capture_output=True).returncode
+    return subprocess.run(["git"] + list(args), cwd=d, capture_output=True, check=False).returncode
 
 
 def commit_matin(d, message, heure):

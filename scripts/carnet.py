@@ -33,7 +33,7 @@ import json
 import os
 import subprocess
 import time
-from typing import Callable, Optional
+from collections.abc import Callable
 
 CLES = ("nuit", "canal", "chantier", "role", "fiche", "modele_demande", "modeles_vus", "tours_cli",
         "usd_cli", "duree_s", "issue", "refus_n", "cause", "reecriture", "garde", "plugin_retard",
@@ -46,11 +46,11 @@ ENV_CARNET, ENV_CANAL = "VLP_CARNET", "VLP_CANAL"
 VARIABLES_NUIT = ("VLP_NUIT", ENV_CARNET, ENV_CANAL)   # ce que la nuit pose ; les suites de tests les retirent (ENV1)
 
 
-def du_jour(dossier: str, jour: Optional[str] = None) -> Optional[str]:
+def du_jour(dossier: str, jour: str | None = None) -> str | None:
     """Le chemin du carnet de `jour` (défaut : aujourd'hui) pour le dépôt de `dossier`, ou None."""
     try:
         r = subprocess.run(["git", "rev-parse", "--path-format=absolute", "--git-common-dir"], cwd=dossier,
-                           capture_output=True, text=True, encoding="utf-8")
+                           capture_output=True, text=True, encoding="utf-8", check=False)
     except OSError:
         return None
     commun = r.stdout.strip()
@@ -104,7 +104,7 @@ def ecrire(carnet: str, d: dict) -> None:
         f.write(texte)
 
 
-def casser(verrou: str) -> Optional[tuple]:
+def casser(verrou: str) -> tuple | None:
     """(PID, âge en s) si le verrou a plus de `VERROU_AGE` s et vient d'être retiré, sinon None."""
     try:
         vu = os.path.getmtime(verrou)
@@ -121,7 +121,7 @@ def casser(verrou: str) -> Optional[tuple]:
     return pid, int(age)
 
 
-def prendre(verrou: str) -> Optional[tuple]:
+def prendre(verrou: str) -> tuple | None:
     """Crée le verrou, en attendant s'il est tenu. Rend (PID, âge) du verrou cassé, ou None."""
     casse = None
     while True:
@@ -151,7 +151,7 @@ def sous_verrou(carnet: str):
             pass
 
 
-def ligne_casse(carnet: str, casse: tuple, canal: Optional[str] = None) -> None:
+def ligne_casse(carnet: str, casse: tuple, canal: str | None = None) -> None:
     """La ligne `garde` qui dit un verrou cassé (PID, âge), écrite sous le verrou que `sous_verrou` vient de prendre."""
     ecrire(carnet, ligne({"nuit": nuit_de(carnet), "canal": canal, "garde": "verrou cassé : PID %s, âge %d s" % casse}))
 
@@ -166,7 +166,7 @@ def ajouter(carnet: str, **champs) -> None:
         ecrire(carnet, contenu)
 
 
-def mettre_a_jour(carnet: str, completer: Callable[[dict], Optional[dict]]) -> int:
+def mettre_a_jour(carnet: str, completer: Callable[[dict], dict | None]) -> int:
     """Réécrit sous verrou les lignes que `completer(ligne)` complète : il rend les clés à poser (une clé inconnue de
     `CLES` : `ValueError`, rien d'écrit) ou None. Une ligne qu'il laisse, une ligne illisible : reprise octet pour octet ;
     aucun changement : le fichier n'est pas touché. Le fichier neuf s'écrit à côté puis remplace l'ancien d'un coup :
@@ -196,15 +196,17 @@ def mettre_a_jour(carnet: str, completer: Callable[[dict], Optional[dict]]) -> i
         return changees
 
 
-def stop(carnet: str, canal: Optional[str], raison: str) -> None:
+def stop(carnet: str, canal: str | None, raison: str) -> None:
+    """Écrire au carnet la ligne `stop` de la nuit en cours, sur ce canal : la raison qui l'arrête."""
     ajouter(carnet, nuit=nuit_de(carnet), canal=canal, stop=raison)
 
 
-def noter(carnet: str, canal: Optional[str], texte: str, sorte: Optional[str] = None) -> None:
+def noter(carnet: str, canal: str | None, texte: str, sorte: str | None = None) -> None:
+    """Écrire au carnet une `note` de la nuit en cours, sur ce canal ; `sorte` la classe, s'il y a lieu."""
     ajouter(carnet, nuit=nuit_de(carnet), canal=canal, note=texte, sorte=sorte)
 
 
-def stop_de(lignes: list) -> Optional[str]:
+def stop_de(lignes: list) -> str | None:
     """La raison du dernier `stop` du carnet, d'un canal quelconque, ou None."""
     raisons = [str(d["stop"]) for d in lignes if d.get("stop") is not None]
     return raisons[-1] if raisons else None
@@ -219,7 +221,7 @@ def est_note_matin(d: dict) -> bool:
     return d.get("note") is not None and not str(d["note"]).startswith(NOTES_BOUCLE)
 
 
-def cout_de(d: dict, plafonds: Optional[dict] = None) -> float:
+def cout_de(d: dict, plafonds: dict | None = None) -> float:
     """Le coût d'une ligne de session : `usd_cli`, à défaut `usd_kit`, à défaut le plafond de son rôle, sinon 0."""
     for cle in ("usd_cli", "usd_kit"):
         if d.get(cle) is not None:
@@ -227,12 +229,13 @@ def cout_de(d: dict, plafonds: Optional[dict] = None) -> float:
     return (plafonds or {}).get(d.get("role"), 0)
 
 
-def pot(lignes: list, plafonds: Optional[dict] = None) -> float:
+def pot(lignes: list, plafonds: dict | None = None) -> float:
+    """Le coût des sessions de `lignes`, chacune par `cout_de`, arrondi à six décimales."""
     return round(sum(cout_de(d, plafonds) for d in lignes if est_session(d)), 6)
 
 
-def borne(lignes: list, chantier: str, borne_usd: Optional[float], borne_chantiers: Optional[int],
-          plafonds: Optional[dict] = None) -> Optional[str]:
+def borne(lignes: list, chantier: str, borne_usd: float | None, borne_chantiers: int | None,
+          plafonds: dict | None = None) -> str | None:
     """Le texte de la borne atteinte pour `chantier` qui veut partir, ou None."""
     p = pot(lignes, plafonds)
     if borne_usd is not None and p >= borne_usd:

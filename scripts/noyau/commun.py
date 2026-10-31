@@ -9,39 +9,14 @@ import re
 import sys
 
 import vlp_hook
-
 from noyau import etat
 from noyau.facade import coeur
 
 __all__ = [
-    "TITRE",
-    "TITRE_GENERIQUE",
-    "PREFIXE",
-    "COURANT",
-    "ALIAS",
-    "SESSION",
-    "FERMANT",
-    "CHANTIERS_POSSIBLES",
-    "METHODE",
-    "FORMAT_DEBUT",
-    "FORMAT_FIN",
-    "section",
-    "premier_lancement",
-    "tampon_neuf",
-    "une_fois",
-    "lire",
-    "lignes_de",
-    "Absent",
-    "chemin_garde",
-    "lignes_gardees",
-    "lignes_du_projet",
-    "chemin_archive",
-    "lignes_index",
-    "ARCHIVE_TETE",
-    "NUMERO_LIGNE",
-    "numero_ligne",
-    "archiver",
-    "cmd_archiver",
+    "ALIAS", "ARCHIVE_TETE", "CHANTIERS_POSSIBLES", "COURANT", "FERMANT", "FORMAT_DEBUT", "FORMAT_FIN", "METHODE",
+    "NUMERO_LIGNE", "PREFIXE", "SESSION", "TITRE", "TITRE_GENERIQUE", "Absent", "archiver", "chemin_archive",
+    "chemin_garde", "cmd_archiver", "lignes_de", "lignes_du_projet", "lignes_gardees", "lignes_index", "lire",
+    "numero_ligne", "premier_lancement", "section", "tampon_neuf", "une_fois",
 ]
 
 

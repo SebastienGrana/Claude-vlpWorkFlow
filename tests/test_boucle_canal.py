@@ -11,12 +11,32 @@ import sys
 import tempfile
 from typing import Any
 
-import carnet
 import aides_boucle
+import carnet
 import faux_claude
 from aides import SCRIPTS
-from aides_boucle import (ENV_GIT, FAUX_CLAUDE, FICHE, JOUR, SONNET, _PASSES, aides_du_canal, bmod, boucle, carnet_de,
-                          cases_de, depot, faux, git, journal_de, lire, nuit, pilote, projet, verifier)
+from aides_boucle import (
+    _PASSES,
+    ENV_GIT,
+    FAUX_CLAUDE,
+    FICHE,
+    JOUR,
+    SONNET,
+    aides_du_canal,
+    bmod,
+    boucle,
+    carnet_de,
+    cases_de,
+    depot,
+    faux,
+    git,
+    journal_de,
+    lire,
+    nuit,
+    pilote,
+    projet,
+    verifier,
+)
 
 
 def test_canal():
@@ -183,7 +203,7 @@ def test_sans_nuit():
         depot(t)
         journal = os.path.join(hors, "sans-nuit.jsonl")
         with pilote(VLP_FAUX_ENV=journal):
-            code, s, cases = boucle(t, FAUX_CLAUDE, 1)
+            code, s, _cases = boucle(t, FAUX_CLAUDE, 1)
         envs = journal_de(journal)
         verifier("NUI7 (a) sans --nuit : VLP_NUIT absent de l'environnement du faux", code == 0 and len(envs) == 1
                  and envs[0]["VLP_NUIT"] is None and envs[0]["VLP_CANAL"] is None, (s, envs))
@@ -193,7 +213,7 @@ def test_herite():
     """NUI25 : un canal part d'un worktree détaché sur main, comme le lanceur — main y porte un chantier marqué, que
     le canal hérite sans le jouer ; et une carte gardée (plusieurs ouverts) n'est jamais lue « aucun »."""
     aides = aides_du_canal()
-    DATE, ecrire_f, depot_canal, canal, br, sujet = (aides[k] for k in ("DATE", "ecrire_f", "depot_canal", "canal", "br",
+    DATE, ecrire_f, depot_canal, canal, br, _sujet = (aides[k] for k in ("DATE", "ecrire_f", "depot_canal", "canal", "br",
                                                                          "sujet"))
     ecrits = [0]
 
@@ -296,7 +316,7 @@ def test_reprise():
     def mesure_cli(h, sid):
         """`mesure-tokens.py <id>` lancé par le test sous le `~` de `h` : (tours, usd) de sa ligne."""
         r = subprocess.run([sys.executable, os.path.join(SCRIPTS, "mesure-tokens.py"), sid], capture_output=True, text=True,
-                           encoding="utf-8", env=dict(os.environ, HOME=h, USERPROFILE=h, PYTHONIOENCODING="utf-8"))
+                           encoding="utf-8", env=dict(os.environ, HOME=h, USERPROFILE=h, PYTHONIOENCODING="utf-8"), check=False)
         tete, valeurs = (r.stdout.splitlines() + ["", ""])[:2]
         d = dict(zip(tete.split("\t"), valeurs.split("\t")))
         return int(d.get("tours") or -1), float(d.get("usd") or -1)
@@ -562,7 +582,7 @@ def test_lanceur():
         env_.update(env)
         argv = [sys.executable, os.path.join(SCRIPTS, "boucle.py"), t, "--nuit", "--lancer", "--date", DATE]
         r = subprocess.run(argv + (["--claude", claude] if claude else []) + list(options), env=env_,
-                           capture_output=True, text=True, encoding="utf-8")
+                           capture_output=True, text=True, encoding="utf-8", check=False)
         return r.returncode, r.stdout + r.stderr
 
     def chemin_carnet(t):
@@ -685,7 +705,7 @@ def test_lanceur():
     with tempfile.TemporaryDirectory() as t:
         def argparse_refuse(*options):
             r = subprocess.run([sys.executable, os.path.join(SCRIPTS, "boucle.py"), t, *options], capture_output=True, text=True,
-                               encoding="utf-8")
+                               encoding="utf-8", check=False)
             return r.returncode, r.stdout + r.stderr
         code, s = argparse_refuse()
         neuf("(e) sans --lancer ni --nuit, --plafond absent : refusé par argparse (code 2)",
@@ -711,7 +731,7 @@ def test_vlp_dans_processus():
         for argv in (["carte", t], ["sous-commande-inconnue"]):
             rendus.append(bmod.vlp(argv, t))
             r = subprocess.run([sys.executable, os.path.join(SCRIPTS, "vlp.py")] + argv, cwd=t, capture_output=True,
-                               text=True, encoding="utf-8", env=dict(os.environ, PYTHONIOENCODING="utf-8"))
+                               text=True, encoding="utf-8", env=dict(os.environ, PYTHONIOENCODING="utf-8"), check=False)
             attendus.append((r.returncode, r.stdout))
         verifier("vlp dans le processus : même code et même sortie qu'un sous-processus, rien ne fuit",
                  rendus == attendus and attendus[1][0] == 2 and "PROCHAINE=F1" in attendus[0][1]
@@ -728,7 +748,7 @@ def test_premier_plan():
 
     with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors:
         journal = os.path.join(hors, "argv.jsonl")
-        code, s, cases = boucle(t, projet(t), 1, VLP_FAUX_ARGV=journal)
+        code, s, _cases = boucle(t, projet(t), 1, VLP_FAUX_ARGV=journal)
         simple = consignes(journal)
     with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors:
         depot(t)

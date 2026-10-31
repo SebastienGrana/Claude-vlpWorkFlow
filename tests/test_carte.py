@@ -7,6 +7,7 @@ import glob
 import hashlib
 import io
 import os
+import pathlib
 import re
 import shutil
 import subprocess
@@ -296,7 +297,7 @@ def test_niv1_injection():
     """Contrôler la ligne d'injection de chaque skill (NIV1, EVF4)."""
     lignes_injection = []
     for skill in ("chantier", "tache", "chef"):
-        texte = io.open(os.path.join(RACINE, "skills", skill, "SKILL.md"), encoding="utf-8").read()
+        texte = pathlib.Path(os.path.join(RACINE, "skills", skill, "SKILL.md")).read_text(encoding="utf-8")
         lignes_injection.append([l for l in texte.splitlines() if l.startswith("!`") and "vlp.py" in l])
 
     sans_option = [[l.replace(" --session-neuve", "") for l in x] for x in lignes_injection]
@@ -316,7 +317,7 @@ def test_niv1_injection():
     ecrit_fichier = []
     injections = 0
     for chemin_skill in skills_glob:
-        for bout in io.open(chemin_skill, encoding="utf-8").read().split("!`")[1:]:
+        for bout in pathlib.Path(chemin_skill).read_text(encoding="utf-8").split("!`")[1:]:
             bout = bout.split("`")[0]
             appels = bout.count('/scripts/vlp.py" carte')
             if appels:
@@ -326,7 +327,7 @@ def test_niv1_injection():
     assert (injections == len(skills_glob) > 0 and ecrit_fichier == []), ("EVF4 : une injection de carte par SKILL.md du glob, aucune n'écrit de fichier") + "\n" + str("%d injections pour %d SKILL.md, fautives : %r" % (injections, len(skills_glob), ecrit_fichier))
 
     # VIT24 : `py` seul relit le `#!` de vlp.py et relance un python3 (+54 ms) ; le relais python3 ne change pas.
-    textes = [io.open(c, encoding="utf-8").read() for c in skills_glob]
+    textes = [pathlib.Path(c).read_text(encoding="utf-8") for c in skills_glob]
     py3 = sum(t.count('py -3 "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python "py -3"') for t in textes)
     nus = sum(t.count('py "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte') for t in textes)
     relais = sum(t.count('python3 "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python python3 --relais') for t in textes)
@@ -400,8 +401,8 @@ def test_vit20_session_neuve(tmp_path):
         assert (s == "\nPYTHON=py -3\n" + avant + AVERTI_VIT20 % "ZZZ1, ZZZ2"), ("VIT20 : l'injection par main → PYTHON=py -3, la carte, l'AVERTISSEMENT: une fois ; le relais se tait") + "\n" + str(s)
 
     porteurs = sorted(os.path.basename(os.path.dirname(c)) for c in glob.glob(os.path.join(RACINE, "skills", "*", "SKILL.md"))
-                      if "--session-neuve" in io.open(c, encoding="utf-8").read())
-    tache = io.open(os.path.join(RACINE, "skills", "tache", "SKILL.md"), encoding="utf-8").read()
+                      if "--session-neuve" in pathlib.Path(c).read_text(encoding="utf-8"))
+    tache = pathlib.Path(os.path.join(RACINE, "skills", "tache", "SKILL.md")).read_text(encoding="utf-8")
     ligne = next((l for l in tache.splitlines() if l.startswith("!`") and "vlp.py" in l), "")
     assert (porteurs == ["tache"] and ligne.count("--session-neuve") == 3), ("VIT20 : --session-neuve sur les trois appels de l'injection de /vlp:tache, dans aucune autre skill") + "\n" + str((porteurs, ligne))
 
@@ -440,8 +441,8 @@ def test_arp3_marque(tmp_path):
         assert (marques == [] and s.endswith(AVERTI_VIT20 % "ZZZ1, ZZZ2")), ("ARP3 : id %r → aucune marque, l'AVERTISSEMENT: sort" % (sid,)) + "\n" + str((marques, s))
 
     porteurs = sorted(os.path.basename(os.path.dirname(c)) for c in glob.glob(os.path.join(RACINE, "skills", "*", "SKILL.md"))
-                      if "--enchaine" in io.open(c, encoding="utf-8").read())
-    texte = io.open(os.path.join(RACINE, "skills", "enchainer", "SKILL.md"), encoding="utf-8").read()
+                      if "--enchaine" in pathlib.Path(c).read_text(encoding="utf-8"))
+    texte = pathlib.Path(os.path.join(RACINE, "skills", "enchainer", "SKILL.md")).read_text(encoding="utf-8")
     ligne = next((l for l in texte.splitlines() if l.startswith("!`") and "vlp.py" in l), "")
     assert (porteurs == ["enchainer"] and ligne.count("--enchaine") == 3), ("ARP3 : --enchaine sur les trois appels de l'injection de /vlp:enchainer, dans aucune autre skill") + "\n" + str((porteurs, ligne))
 

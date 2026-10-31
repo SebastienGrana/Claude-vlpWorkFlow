@@ -8,7 +8,6 @@ import os
 import re
 
 import pytest
-
 from aides import RACINE, appel, commits, ecrire, transcript
 
 FICHES = """# Chantier Z

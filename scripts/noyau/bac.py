@@ -8,19 +8,19 @@ import hashlib
 import json
 import os
 import re
-import noyau.relecture   # `noyau.relecture.<nom>` : un test remplace ce nom là (REF46)
 
 import carnet
-
-from noyau.page import (mesure)
-from noyau.hooks import (lire_max_turns)
+import noyau.relecture  # `noyau.relecture.<nom>` : un test remplace ce nom là (REF46)
+from noyau.hooks import lire_max_turns
+from noyau.page import mesure
 
 __all__ = [
-    "BAC_FICHES", "BAC_CHANTIER", "BAC_FICHIER", "BAC_COMMANDES", "CLAUDE_ABSENT", "CLAUDE_SANS_EXE", "CLAUDE_APP",
-    "dossiers_claude_code", "version_claude", "trouver_claude", "cmd_claude", "cmd_bac", "KIT_EXCLUS",
-    "MUTANT_EXCLUS", "EMPREINTE_EXCLUS", "SUITE_VERTE", "empreinte_kit", "chemin_suite_verte", "noter_suite_verte",
-    "MARQUE_SUITE", "est_kit", "commande_suite", "suite_manquante", "cmd_kit_essai", "cmd_transcription", "TYPES_APERCU", "LARGEUR_TELEPHONE",
-    "PORT_APERCU", "PAGE_SERVIE", "faire_serveur", "cmd_servir", "lire_arg", "cmd_nuits_noter",
+    "BAC_CHANTIER", "BAC_COMMANDES", "BAC_FICHES", "BAC_FICHIER", "CLAUDE_ABSENT", "CLAUDE_APP", "CLAUDE_SANS_EXE",
+    "EMPREINTE_EXCLUS", "KIT_EXCLUS", "LARGEUR_TELEPHONE", "MARQUE_SUITE", "MUTANT_EXCLUS", "PAGE_SERVIE",
+    "PORT_APERCU", "SUITE_VERTE", "TYPES_APERCU", "chemin_suite_verte", "cmd_bac", "cmd_claude", "cmd_kit_essai",
+    "cmd_nuits_noter", "cmd_servir", "cmd_transcription", "commande_suite", "dossiers_claude_code", "empreinte_kit",
+    "est_kit", "faire_serveur", "lire_arg", "noter_suite_verte", "suite_manquante", "trouver_claude",
+    "version_claude",
 ]
 
 
@@ -77,12 +77,12 @@ Douze appels lancés.
 <!-- /FICHE -->
 """
 BAC_COMMANDES = (
-    'claude -p "Appelle l\'outil Skill avec skill \\"vlp:jouer\\" et args \\"F1\\", puis recopie son'
+    ('claude -p "Appelle l\'outil Skill avec skill \\"vlp:jouer\\" et args \\"F1\\", puis recopie son'
     ' resultat tel quel. Rien d\'autre." --model haiku --max-budget-usd 1 --permission-mode acceptEdits'
-    ' --allowedTools "Skill" --output-format stream-json --verbose',
-    'claude -p "Appelle l\'outil Skill avec skill \\"vlp:jouer\\" et args \\"F2\\", puis recopie son'
+    ' --allowedTools "Skill" --output-format stream-json --verbose'),
+    ('claude -p "Appelle l\'outil Skill avec skill \\"vlp:jouer\\" et args \\"F2\\", puis recopie son'
     ' resultat tel quel. Rien d\'autre." --model haiku --max-budget-usd 1 --permission-mode acceptEdits'
-    ' --allowedTools "Skill" "Bash" --output-format stream-json --verbose < /dev/null',
+    ' --allowedTools "Skill" "Bash" --output-format stream-json --verbose < /dev/null'),
 )
 
 
@@ -358,7 +358,8 @@ def faire_serveur(dossier, port):
     import urllib.parse
 
     class Apercu(http.server.SimpleHTTPRequestHandler):
-        extensions_map = {**http.server.SimpleHTTPRequestHandler.extensions_map, **TYPES_APERCU}
+        # noqa : l'attribut de classe que `http.server` lit, redéfini comme il le prévoit
+        extensions_map = {**http.server.SimpleHTTPRequestHandler.extensions_map, **TYPES_APERCU}  # noqa: RUF012
 
         def end_headers(self):
             self.send_header("Cache-Control", "no-store")

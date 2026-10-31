@@ -9,22 +9,28 @@ import os
 import re
 
 import carnet
-
 from noyau import etat
+from noyau.carte import carte, equipe, trouver
+from noyau.commun import lignes_de
 from noyau.facade import coeur
-from noyau.commun import (lignes_de)
-from noyau.fiches import (SEUIL_FICHE, SEUIL_SOCLE, cmd_extraire, cmd_socle, extraire_lignes)
-from noyau.carte import (carte, equipe, trouver)
-from noyau.page import (SEUIL_PAGE)
-from noyau.notes import (nom_etat)
-from noyau.feuille import (champ)
+from noyau.feuille import champ
+from noyau.fiches import (
+    SEUIL_FICHE,
+    SEUIL_SOCLE,
+    cmd_extraire,
+    cmd_socle,
+    extraire_lignes,
+)
+from noyau.notes import nom_etat
+from noyau.page import SEUIL_PAGE
 
 # Ce que la façade ré-exporte : les noms d'avant la découpe (photo de `tests/test_noms_publics.py`). Les décisions
 # sorties de Git par REF47 — `meme_depot_ailleurs`, `chemins_a_suivre`, `relectures_de` — se lisent ici seulement.
 __all__ = [
-    "RELECTURE", "git_texte", "CODE_PLUGIN", "retard_plugin", "regrouper_dossiers", "etat_git", "ligne_git",
-    "suivi_en_retard", "prefixe_relecture", "retirer_relectures", "instantane", "texte_fichiers", "noms_fichiers",
-    "entrees", "invites", "ancre", "noms_ecrits", "nomme", "cmd_relecture", "cmd_lignes", "PLAN", "cmd_equiper",
+    "CODE_PLUGIN", "PLAN", "RELECTURE", "ancre", "cmd_equiper", "cmd_lignes", "cmd_relecture", "entrees",
+    "etat_git", "git_texte", "instantane", "invites", "ligne_git", "nomme", "noms_ecrits", "noms_fichiers",
+    "prefixe_relecture", "regrouper_dossiers", "retard_plugin", "retirer_relectures", "suivi_en_retard",
+    "texte_fichiers",
 ]
 
 
@@ -39,7 +45,7 @@ def git_texte(args, cwd, env=None):
     import subprocess
     try:
         r = subprocess.run([etat.GIT, "-c", "core.quotepath=false"] + args, cwd=cwd, env=env, capture_output=True,
-                           encoding="utf-8", errors="replace", timeout=120)
+                           encoding="utf-8", errors="replace", timeout=120, check=False)
     except (OSError, subprocess.SubprocessError) as e:
         return None, "git ne se lance pas : %s" % e
     if r.returncode:
@@ -98,7 +104,7 @@ def regrouper_dossiers(racine, chemins):
             sur_disque = set(os.listdir(os.path.join(racine, d))) if d else None
         except OSError:
             sur_disque = None
-        exemple = sorted(liste, key=lambda c: (c.endswith("/"), c))[0]
+        exemple = min(liste, key=lambda c: (c.endswith("/"), c))
         if sur_disque is None:
             rendus += [(c, c) for c in sorted(liste)]
         elif sur_disque == noms:
@@ -262,7 +268,7 @@ def noms_ecrits(fiche, racine):
     def propre(n):
         """Le nom normalisé."""
         n = n.strip().strip("\"'").rstrip(".,;").replace("\\", "/").lower()
-        return n[2:] if n.startswith("./") else n
+        return n.removeprefix("./")
     candidats = []
     for brut in re.findall(r"`([^`]+)`", texte):
         mots = [m for m in re.split(r"[\s:\"']+", brut) if m]

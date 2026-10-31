@@ -11,14 +11,27 @@ import sys
 import tempfile
 
 import carnet
-
+import noyau.relecture  # `noyau.relecture.<nom>` : un test remplace ce nom là
 from noyau import etat
+from noyau.carte import equipe
+from noyau.clore import (
+    ENTREE_CLOS,
+    MARQUE_CLOS,
+    clos_a_couper,
+    courant_de,
+    courant_ou_rien,
+    worktrees,
+)
+from noyau.clos import (
+    COUTS_SVG,
+    ecrire_couts,
+    lignes_clos,
+    prix_clos,
+    resommer,
+    total_clos,
+)
+from noyau.commun import Absent, chemin_archive, lignes_de, lire, numero_ligne, section
 from noyau.facade import coeur
-import noyau.relecture   # `noyau.relecture.<nom>` : un test remplace ce nom là
-from noyau.commun import (Absent, chemin_archive, lignes_de, lire, numero_ligne, section)
-from noyau.fiches import (VLP_PY)
-from noyau.carte import (equipe)
-from noyau.page import (COMMIT_FICHE, JOINTS, PUBLIE, notes_publie, recopier_joints, texte_publie)
 from noyau.feuille import (
     LETTRES,
     SEPARATEUR,
@@ -37,23 +50,30 @@ from noyau.feuille import (
     zone,
     zone_todo,
 )
-from noyau.clos import (COUTS_SVG, ecrire_couts, lignes_clos, prix_clos, resommer, total_clos)
-from noyau.relecture import (CODE_PLUGIN)
-from noyau.niveau import (dire_attentes, entrees_attente, texte_attente)
-from noyau.clore import (ENTREE_CLOS, MARQUE_CLOS, clos_a_couper, courant_de, courant_ou_rien, worktrees)
+from noyau.fiches import VLP_PY
+from noyau.niveau import dire_attentes, entrees_attente, texte_attente
+from noyau.page import (
+    COMMIT_FICHE,
+    JOINTS,
+    PUBLIE,
+    notes_publie,
+    recopier_joints,
+    texte_publie,
+)
+from noyau.relecture import CODE_PLUGIN
 
 # Ce que la façade ré-exporte : les noms d'avant la découpe (photo de `tests/test_noms_publics.py`). Les décisions
 # sorties de Git par REF49 — `pointes_du_texte`, `choisir_nuit` — se lisent ici seulement.
 __all__ = [
-    "OUVERT_CARTE", "JETON_OUVERT", "JETON_LETTRES", "neutre", "restaurer", "pointes_nuit", "ordre_nuit",
-    "JETON_TRANCHE", "TITRE_JOURNAL", "en_dict", "trois_voies", "fusion_lignes", "cle_todo", "decouper_tables",
-    "decouper_index", "decouper_etat", "decouper_claude", "fusion_texte", "fusion_a_jetons", "fusion_tranche_etat",
-    "fusion_tranche_claude", "fusion_tranche_index", "fusion_etat", "fusion_claude", "fusion_index",
-    "fusion_archive_index", "fusion_archive_clos", "heure_attente", "fusion_attente", "fusion_publie", "lire_rev",
-    "ecrire_comme", "fusionner_fichiers", "fusionner_branche", "projet_du_matin", "racine_du_depot", "WIP_SUJET",
-    "WIP_MOTIF", "de_cote", "etat_branche_nuit", "NUIT_BRANCHE", "nuit_a_ranger", "cmd_matin", "retard_du_matin",
-    "fusion_fiche_refusee", "garder_hors_commit", "retirer_worktree", "base_refaite", "fusionner_fiche",
-    "cmd_fusionner",
+    "JETON_LETTRES", "JETON_OUVERT", "JETON_TRANCHE", "NUIT_BRANCHE", "OUVERT_CARTE", "TITRE_JOURNAL", "WIP_MOTIF",
+    "WIP_SUJET", "base_refaite", "cle_todo", "cmd_fusionner", "cmd_matin", "de_cote", "decouper_claude",
+    "decouper_etat", "decouper_index", "decouper_tables", "ecrire_comme", "en_dict", "etat_branche_nuit",
+    "fusion_a_jetons", "fusion_archive_clos", "fusion_archive_index", "fusion_attente", "fusion_claude",
+    "fusion_etat", "fusion_fiche_refusee", "fusion_index", "fusion_lignes", "fusion_publie", "fusion_texte",
+    "fusion_tranche_claude", "fusion_tranche_etat", "fusion_tranche_index", "fusionner_branche", "fusionner_fiche",
+    "fusionner_fichiers", "garder_hors_commit", "heure_attente", "lire_rev", "neutre", "nuit_a_ranger",
+    "ordre_nuit", "pointes_nuit", "projet_du_matin", "racine_du_depot", "restaurer", "retard_du_matin",
+    "retirer_worktree", "trois_voies",
 ]
 
 

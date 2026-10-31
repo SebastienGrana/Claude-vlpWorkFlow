@@ -9,24 +9,46 @@ import json
 import os
 import re
 
+from noyau.carte import equipe
+from noyau.commun import lignes_de, lignes_index, lire
 from noyau.facade import coeur
-from noyau.commun import (lignes_de, lignes_index, lire)
-from noyau.carte import (equipe)
-from noyau.sessions import (decouper, sessions_de, totaux, totaux_a_clore)
-from noyau.page import (arrondi, dollars, esc, essais_entiers, mesure, milliers, plus, recopier_joints)
-from noyau.notes import (abri_de_page, chemin_abri, ecrire_abri, lire_abri, page_du_fichier)
-from noyau.feuille import (champ, gras_et_liens, page_clos, page_feuille, rafraichir_couts, zone)
+from noyau.feuille import (
+    champ,
+    gras_et_liens,
+    page_clos,
+    page_feuille,
+    rafraichir_couts,
+    zone,
+)
+from noyau.notes import (
+    abri_de_page,
+    chemin_abri,
+    ecrire_abri,
+    lire_abri,
+    page_du_fichier,
+)
+from noyau.page import (
+    arrondi,
+    dollars,
+    esc,
+    essais_entiers,
+    mesure,
+    milliers,
+    plus,
+    recopier_joints,
+)
+from noyau.sessions import decouper, sessions_de, totaux, totaux_a_clore
 
 __all__ = [
-    "BRUT", "RANG_CLOS", "PIED_CLOS", "GABARIT_FEUILLE", "PRIX_CLOS", "prix_clos", "texte_cout_clos", "lignes_clos",
-    "total_clos", "COUTS_SVG", "COUTS_TAILLE", "COUTS_BARRE", "COUTS_TEXTE", "BALISE_COUTS", "DETAILS_CLOS",
-    "couts_clos", "svg_couts", "donnees_couts", "balise_couts", "ecrire_couts", "PLAGE_CLOS", "PLAGE_INDEX",
-    "signe", "recompte", "CELLULE_CLOS", "MARQUE_REC", "MARQUE_GARDE", "MARQUE_ESSAIS", "marquer", "ajout_essais",
-    "marquer_essais", "clos_du_projet", "cmd_repeindre", "poser_lien", "cmd_lien", "cmd_liens", "cmd_recompter",
-    "ecrire_clos", "cmd_recompter_clos", "marquer_prix", "copie_fait", "copie_bilan", "copie_abri", "ecrire_copies",
-    "poser_prix", "JOUE_LOUCHE", "JOUE_PRIX", "ESTIME_NON_MARQUE", "recaler_texte", "cmd_prix", "resume_clos",
-    "resommer", "migrer_feuille", "CHEVRONS_HREF", "migrer_clos", "BLOC", "Extracteur", "textes_visibles",
-    "COMMENTAIRE", "BALISE_STYLE", "LIEN_CSS", "defauts_page", "cmd_vigile", "cmd_vigile_hook",
+    "BALISE_COUTS", "BALISE_STYLE", "BLOC", "BRUT", "CELLULE_CLOS", "CHEVRONS_HREF", "COMMENTAIRE", "COUTS_BARRE",
+    "COUTS_SVG", "COUTS_TAILLE", "COUTS_TEXTE", "DETAILS_CLOS", "ESTIME_NON_MARQUE", "GABARIT_FEUILLE",
+    "JOUE_LOUCHE", "JOUE_PRIX", "LIEN_CSS", "MARQUE_ESSAIS", "MARQUE_GARDE", "MARQUE_REC", "PIED_CLOS",
+    "PLAGE_CLOS", "PLAGE_INDEX", "PRIX_CLOS", "RANG_CLOS", "Extracteur", "ajout_essais", "balise_couts",
+    "clos_du_projet", "cmd_lien", "cmd_liens", "cmd_prix", "cmd_recompter", "cmd_recompter_clos", "cmd_repeindre",
+    "cmd_vigile", "cmd_vigile_hook", "copie_abri", "copie_bilan", "copie_fait", "couts_clos", "defauts_page",
+    "donnees_couts", "ecrire_clos", "ecrire_copies", "ecrire_couts", "lignes_clos", "marquer", "marquer_essais",
+    "marquer_prix", "migrer_clos", "migrer_feuille", "poser_lien", "poser_prix", "prix_clos", "recaler_texte",
+    "recompte", "resommer", "resume_clos", "signe", "svg_couts", "texte_cout_clos", "textes_visibles", "total_clos",
 ]
 
 
@@ -401,7 +423,7 @@ def cmd_recompter(projet, sortie, ecrire=False, essais=False, a_clore=False):
             sortie.write("%s inscrit %s · essais %s · ajout %s · %s%s%s\n" % (
                 prefixe, milliers(brut), milliers(part), signe(a), methode, partage,
                 " · déjà ajoutés (ESD)" if c and MARQUE_ESSAIS in c.group(2) else ""))
-            neufs[r] = CELLULE_CLOS.sub(lambda c: c.group(1) + marquer_essais(c.group(2), brut, a)
+            neufs[r] = CELLULE_CLOS.sub(lambda c, brut=brut, a=a: c.group(1) + marquer_essais(c.group(2), brut, a)
                                         + c.group(3), r, count=1)
             continue
         e = 0 if recompte_ is None else recompte_ - brut
@@ -414,7 +436,8 @@ def cmd_recompter(projet, sortie, ecrire=False, essais=False, a_clore=False):
         sortie.write("%s inscrit %s · recompté %s · écart %s · %s%s%s\n" % (
             prefixe, milliers(brut), "gardé" if recompte_ is None else milliers(recompte_), signe(e), methode,
             partage, clore_))
-        neufs[r] = CELLULE_CLOS.sub(lambda c: c.group(1) + marquer(c.group(2), brut, recompte_, methode)
+        neufs[r] = CELLULE_CLOS.sub(lambda c, brut=brut, recompte_=recompte_, methode=methode: c.group(1)
+                                    + marquer(c.group(2), brut, recompte_, methode)
                                     + c.group(3), r, count=1)
     if essais:
         sortie.write("ESSAIS %d clos · %d reçoivent · inscrit %s · avec essais %s · ajout %s\n" % (
@@ -592,7 +615,7 @@ def cmd_prix(projet, sortie, a_blanc=False):
         if cellule and re.match(r'\d+,\d\d \$ · ', cellule.group(2)):
             n["déjà"] += 1
         elif cellule:
-            neufs[r] = CELLULE_CLOS.sub(lambda c: c.group(1) + poser_prix(c.group(2), prix) + c.group(3), r, count=1)
+            neufs[r] = CELLULE_CLOS.sub(lambda c, prix=prix: c.group(1) + poser_prix(c.group(2), prix) + c.group(3), r, count=1)
             n["posés"] += 1
         texte = "\n".join(lignes_de(chemin))
         neuf_texte, joue_r, estime_m = recaler_texte(texte, prix)

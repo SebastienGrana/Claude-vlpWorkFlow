@@ -5,6 +5,7 @@ l'ancienne suite maison (REF58). Chaque `assert` garde le libellé d'origine de 
 import io
 import json
 import os
+import pathlib
 import shutil
 import subprocess
 import tempfile
@@ -375,7 +376,7 @@ def test_page_clos(tmp_path):
 def avec_style_inline(html):
     """Une page déjà régénérée (donc liée à vlp.css), avec son <style> d'avant PLI3
     remis en place — comme une page publiée avant ce chantier, jamais régénérée depuis."""
-    css = io.open(os.path.join(ICI, "..", "templates", "vlp.css"), encoding="utf-8").read()
+    css = pathlib.Path(os.path.join(ICI, "..", "templates", "vlp.css")).read_text(encoding="utf-8")
     return html.replace('<link rel="stylesheet" href="vlp.css">', "<style>\n%s</style>" % css, 1)
 
 

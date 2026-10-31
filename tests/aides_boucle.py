@@ -42,7 +42,7 @@ def boucle(t, faux, plafond, rate="", options=(), **pilotes):
     env = dict(os.environ, VLP_FAUX_VLP=os.path.join(SCRIPTS, "vlp.py"), VLP_FAUX_RATE=rate,
                PYTHONIOENCODING="utf-8", **pilotes)
     r = subprocess.run([sys.executable, os.path.join(SCRIPTS, "boucle.py"), t, "--plafond", str(plafond),
-                        "--claude", faux, "--traces", t] + list(options), env=env, capture_output=True, text=True, encoding="utf-8")
+                        "--claude", faux, "--traces", t] + list(options), env=env, capture_output=True, text=True, encoding="utf-8", check=False)
     with open(os.path.join(t, "fiches.md"), encoding="utf-8") as h:
         texte = h.read()
     cases = "".join("x" if ("## %s [x]" % f) in texte else "." for f in ("F1", "F2", "F3"))
@@ -67,7 +67,7 @@ def faux(args, cwd, **env):
     base.update(VLP_FAUX_VLP=os.path.join(SCRIPTS, "vlp.py"), PYTHONIOENCODING="utf-8")
     base.update(env)
     r = subprocess.run([sys.executable, FAUX_CLAUDE] + args, cwd=cwd, env=base, capture_output=True,
-                       text=True, encoding="utf-8")
+                       text=True, encoding="utf-8", check=False)
     return r.returncode, [json.loads(l) for l in r.stdout.splitlines() if l.startswith("{")], r.stderr
 
 
@@ -86,8 +86,8 @@ def verdict_de(lignes):
 _GIT_TMP = tempfile.TemporaryDirectory()
 with open(os.path.join(_GIT_TMP.name, "gitconfig"), "w", encoding="utf-8") as _h:
     _h.write("")
-ENV_GIT = dict(GIT_CONFIG_GLOBAL=os.path.join(_GIT_TMP.name, "gitconfig"), GIT_CONFIG_NOSYSTEM="1",
-               GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t")
+ENV_GIT = {"GIT_CONFIG_GLOBAL": os.path.join(_GIT_TMP.name, "gitconfig"), "GIT_CONFIG_NOSYSTEM": "1",
+           "GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@t", "GIT_COMMITTER_NAME": "t", "GIT_COMMITTER_EMAIL": "t@t"}
 
 
 def git(t, *args):
@@ -135,7 +135,7 @@ def nuit(t, *options, rate="", claude=FAUX_CLAUDE, traces=None, **env):
     with tempfile.TemporaryDirectory() as jete:
         r = subprocess.run([sys.executable, os.path.join(SCRIPTS, "boucle.py"), t, "--claude", claude, "--traces",
                             traces or jete, "--nuit"] + list(options), env=base, capture_output=True, text=True,
-                           encoding="utf-8")
+                           encoding="utf-8", check=False)
     return r.returncode, r.stdout + r.stderr
 
 
@@ -239,7 +239,7 @@ def depot_canal(t, hors, codes, **reglages):
         ecrire_f(os.path.join(hors, "plan.json"), json.dumps(plan))
         r = subprocess.run([sys.executable, os.path.join(SCRIPTS, "vlp.py"), "plan", "ecrire", t, "--json",
                             os.path.join(hors, "plan.json"), "--date", DATE_CANAL], capture_output=True, text=True,
-                           encoding="utf-8", env=dict(os.environ, PYTHONIOENCODING="utf-8"))
+                           encoding="utf-8", env=dict(os.environ, PYTHONIOENCODING="utf-8"), check=False)
         assert r.returncode == 0, r.stdout + r.stderr
     git(t, "add", "-A")
     git(t, "commit", "-q", "-m", "plan")
@@ -274,7 +274,7 @@ def sujet(t, ref):
 
 def ancetre(t, x, y):
     return subprocess.run(["git", "merge-base", "--is-ancestor", x, y], cwd=t, env=dict(os.environ, **ENV_GIT),
-                          capture_output=True).returncode == 0
+                          capture_output=True, check=False).returncode == 0
 
 
 def branches(t):
@@ -294,5 +294,6 @@ def gardes(lignes, code):
 def aides_du_canal() -> dict[str, Any]:
     """Rendre les aides des cas d'un canal — dépôt équipé, canal lancé, carnet du jour, branches —, que NUI7, NUI25,
     NUI8 et NUI9 reprennent, sans jouer un seul cas : chaque partie les bâtit dans son processus (VIT22)."""
-    return dict(DATE=DATE_CANAL, ecrire_f=ecrire_f, depot_canal=depot_canal, carnet_du=carnet_du, canal=canal,
-                br=br, sha=sha, sujet=sujet, ancetre=ancetre, branches=branches, roles=roles, gardes=gardes)
+    return {"DATE": DATE_CANAL, "ecrire_f": ecrire_f, "depot_canal": depot_canal, "carnet_du": carnet_du, "canal": canal,
+            "br": br, "sha": sha, "sujet": sujet, "ancetre": ancetre, "branches": branches, "roles": roles,
+            "gardes": gardes}

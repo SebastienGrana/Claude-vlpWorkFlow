@@ -10,7 +10,6 @@ compte pas.
 import os
 
 import pytest
-
 from aides import appel, commits, ecrire, ligne_close, lire, mod, transcript
 
 QFICHES = """# Chantier Q
@@ -232,8 +231,8 @@ def test_session_du_cadrage(q, avec):
     code, s = appel(["cout", qc])
     assert code == 0 and s.splitlines() == ATTENDU.splitlines()[:3] + [
         "hors fiches · ≈400,0k (400 000) · 4 tours · 2,00 $ = session ≈400,0k (400 000) · 4 tours · 2,00 $ + 0 sous-agent",
-        "TOTAL (fiches + hors fiches) · ≈900,0k (900 000) · 9 tours · 4,50 $ = session ≈700,0k (700 000) · 7 tours · 3,50 $"
-        " + 1 sous-agent ≈200,0k (200 000) · 2 tours · 1,00 $"], "cout : la session du cadrage, en tête, compte hors fiches"
+        ("TOTAL (fiches + hors fiches) · ≈900,0k (900 000) · 9 tours · 4,50 $ = session ≈700,0k (700 000) · 7 tours · 3,50 $"
+        " + 1 sous-agent ≈200,0k (200 000) · 2 tours · 1,00 $")], "cout : la session du cadrage, en tête, compte hors fiches"
     code, s = appel(["page", qc, os.path.join(avec, "artefacts", "qc.html"), "--creer", "--projet", "P", "--titre", "T",
                      "--resultat", "R", "--date", "2026-01-05"])
     html = lire(os.path.join(avec, "artefacts", "qc.html")) if code == 0 else ""
@@ -281,8 +280,8 @@ def test_recompter_lit_sans_ecrire(rc):
     code, s = appel(["recompter", rc])
     assert code == 0 and s.splitlines() == [
         "Q inscrit 650 000 · recompté 700 000 · écart +50 000 · découpe · partagée avec M",
-        "M inscrit 300 000 · recompté gardé · écart +0 · gardé — DÉCOUPE aucune (aucun commit qui nomme M)"
-        " · partagée avec Q",
+        ("M inscrit 300 000 · recompté gardé · écart +0 · gardé — DÉCOUPE aucune (aucun commit qui nomme M)"
+        " · partagée avec Q"),
         "N inscrit 999 · recompté gardé · écart +0 · gardé — sans session",
         "P inscrit 2 000 · recompté gardé · écart +0 · gardé — transcription absente (rec1-transcription-absente)",
         "K inscrit 1 500 · recompté gardé · écart +0 · gardé — fichier introuvable",

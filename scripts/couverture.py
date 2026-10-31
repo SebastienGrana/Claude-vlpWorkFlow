@@ -56,7 +56,7 @@ def mesurer(racine, script, argv, empreinte, lanceur=None):
 
     def coverage(*args):
         """Lancer `coverage <args>` dans `racine`, sous `env` ; rendre son code de sortie."""
-        return subprocess.run([*lanceur, *args], cwd=racine, env=env).returncode
+        return subprocess.run([*lanceur, *args], cwd=racine, env=env, check=False).returncode
 
     coverage("erase")
     code = coverage("run", script, *argv)
@@ -89,7 +89,7 @@ def verdict(rapport, seuil=SEUIL):
 def py_indexes(racine):
     """Les `.py` indexés pour le commit (ajoutés, copiés, modifiés, renommés), ou None si Git échoue."""
     r = subprocess.run(["git", "diff", "--cached", "--name-only", "--diff-filter=ACMR"], cwd=racine,
-                       capture_output=True, encoding="utf-8", errors="replace")
+                       capture_output=True, encoding="utf-8", errors="replace", check=False)
     return None if r.returncode else [n for n in r.stdout.splitlines() if n.endswith(".py")]
 
 
@@ -133,7 +133,7 @@ def juger(racine, sortie, seuil=SEUIL, empreinte_de=empreinte_du_kit):
         json_ = os.path.join(t, "diff.json")
         r = subprocess.run([outil, chemins(racine)[1], "--compare-branch=HEAD", "--ignore-unstaged",
                             "--format", "json:" + json_], cwd=racine, capture_output=True, encoding="utf-8",
-                           errors="replace")
+                           errors="replace", check=False)
         if r.returncode or not os.path.isfile(json_):
             sortie.write("GARDE: couverture — diff-cover sorti %d : %s\n"
                          % (r.returncode, ((r.stderr or r.stdout).strip().splitlines() or [""])[-1]))

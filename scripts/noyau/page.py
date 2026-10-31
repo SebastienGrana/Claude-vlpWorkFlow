@@ -4,30 +4,31 @@ Sorti de `vlp_coeur.py`, qui le ré-exporte. Un nom d'un module pas encore sorti
 de l'appel (`noyau/facade.py`) ; un nom d'un module chargé avant se lit par import.
 """
 import hashlib
+import itertools
 import json
 import os
 import re
 
 from noyau import etat
+from noyau.carte import trouver
+from noyau.commun import ALIAS, TITRE, lignes_de, lire
 from noyau.facade import coeur
-from noyau.commun import (ALIAS, TITRE, lignes_de, lire)
-from noyau.fiches import (CRITERE_VISUEL, croisent)
-from noyau.carte import (trouver)
-from noyau.sessions import (essais_de, heure_clore, sessions_de, sessions_entete)
+from noyau.fiches import CRITERE_VISUEL, croisent
+from noyau.sessions import essais_de, heure_clore, sessions_de, sessions_entete
 
 # Ce que la façade ré-exporte : les noms d'avant la découpe (photo de `tests/test_noms_publics.py`). La décision
 # sortie de Git par REF46, `heures_du_log`, se lit ici seulement.
 __all__ = [
-    "SEUIL_PAGE", "GABARIT", "JOINTS", "recopier_joints", "PUBLIE", "empreinte", "notes_publie", "texte_publie",
-    "lire_publie", "noter_publie", "joints_changes", "ligne_files", "ligne_lire", "cmd_joints", "LI_FICHE",
-    "UL_FICHES", "COUT", "mesure", "esc", "milliers", "arrondi", "dollars", "approx", "ligne_cout",
-    "fiches_du_fichier", "DEPEND", "PLAGE_DEPEND", "VISUEL", "deplier_plages", "apercu_fiches", "pretes",
-    "apercu_lancables", "lancables", "indices", "cmd_lancables", "fleche", "libelle_calcule", "lis_page", "etats",
-    "triplet", "moins", "COMMIT_FICHE", "COMMIT_FUSION", "INFINI", "heures_commits", "plages",
-    "transcripts_du_fichier", "plages_du_cout", "sous_agents_nommes", "plages_du_transcript", "parts_aux_commits",
-    "essais_entiers", "plus", "ligne_parts", "couts_aux_commits", "couts", "comptage", "nom_du_projet", "creer",
-    "STYLE_INLINE", "migrer_style", "META_CHARSET", "SCRIPT_VLPJS", "migrer_joints", "JOURNAL_VISIBLE",
-    "JOURNAL_ANCIEN", "bilan_en_haut", "couts_du_fichier", "total_sans_page", "regenerer", "verifier_page",
+    "COMMIT_FICHE", "COMMIT_FUSION", "COUT", "DEPEND", "GABARIT", "INFINI", "JOINTS", "JOURNAL_ANCIEN",
+    "JOURNAL_VISIBLE", "LI_FICHE", "META_CHARSET", "PLAGE_DEPEND", "PUBLIE", "SCRIPT_VLPJS", "SEUIL_PAGE",
+    "STYLE_INLINE", "UL_FICHES", "VISUEL", "apercu_fiches", "apercu_lancables", "approx", "arrondi",
+    "bilan_en_haut", "cmd_joints", "cmd_lancables", "comptage", "couts", "couts_aux_commits", "couts_du_fichier",
+    "creer", "deplier_plages", "dollars", "empreinte", "esc", "essais_entiers", "etats", "fiches_du_fichier",
+    "fleche", "heures_commits", "indices", "joints_changes", "lancables", "libelle_calcule", "ligne_cout",
+    "ligne_files", "ligne_lire", "ligne_parts", "lire_publie", "lis_page", "mesure", "migrer_joints",
+    "migrer_style", "milliers", "moins", "nom_du_projet", "noter_publie", "notes_publie", "parts_aux_commits",
+    "plages", "plages_du_cout", "plages_du_transcript", "plus", "pretes", "recopier_joints", "regenerer",
+    "sous_agents_nommes", "texte_publie", "total_sans_page", "transcripts_du_fichier", "triplet", "verifier_page",
 ]
 
 
@@ -161,7 +162,8 @@ def esc(texte):
 
 
 def milliers(n):
-    return "{:,}".format(n).replace(",", " ")
+    """`n` écrit par groupes de trois chiffres séparés d'une espace : 1234567 → « 1 234 567 »."""
+    return f"{n:,}".replace(",", " ")
 
 
 def arrondi(n):
@@ -226,7 +228,7 @@ def apercu_fiches(lignes, racine=None):
     du projet, `entrees`) : sa liste d'invités (`invites`) à la place — `croisent` les compare (ENA5)."""
     titres = [i for i, l in enumerate(lignes) if TITRE.match(l)] + [len(lignes)]
     rendu = {}
-    for i, suivant in zip(titres, titres[1:]):
+    for i, suivant in itertools.pairwise(titres):
         deps, visuel, dedans = [], False, False
         for l in lignes[i + 1:suivant]:
             if l.startswith("<!-- /FICHE"):
@@ -418,7 +420,7 @@ def heures_commits(fichier, ids, pourquoi=None, clos=False, titres=None):
         return None
     try:
         r = subprocess.run([etat.GIT, "log", "--format=%at %s"], cwd=os.path.dirname(os.path.abspath(fichier)),
-                           capture_output=True, encoding="utf-8", errors="replace", timeout=60)
+                           capture_output=True, encoding="utf-8", errors="replace", timeout=60, check=False)
     except (OSError, subprocess.SubprocessError) as e:
         pourquoi.append("git ne se lance pas : %s" % e)
         return None
@@ -728,9 +730,10 @@ def nom_du_projet(projet):
 
 
 def creer(fichier, projet, titre, resultat):
+    """Le HTML d'une page de chantier neuve : le gabarit, avec projet, titre, résultat et fichier de fiches
+    posés ; un motif du gabarit introuvable lève `ValueError`."""
     projet = nom_du_projet(projet)
     html = lire(GABARIT)
-    fiches_ = fiches_du_fichier(lignes_de(fichier))
     remplacements = [
         (r"<title>.*?</title>", "<title>%s — %s</title>" % (esc(projet), esc(titre))),
         (r'(<div class="eyebrow">).*?(</div>)', r"\g<1>%s · fiches \g<2>" % esc(projet)),

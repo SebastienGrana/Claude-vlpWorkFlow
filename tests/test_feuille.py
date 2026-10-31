@@ -4,6 +4,7 @@ l'ancienne suite maison (REF58). Chaque `assert` garde le libellé d'origine de 
 """
 import io
 import os
+import pathlib
 import re
 import tempfile
 
@@ -80,7 +81,7 @@ def test_feuille_phases():
     seg = mod.carte_todo(("9", "Neuf", "e", "**V2 · score 6 (3 × 2)** · 5 fiches · ≈ 22 $ (estimé) · → 6 fiches en tout", "—"), "", False)
     assert ('<span class="meta"><span class="seg">5 fiches</span><span class="seg">≈ 22 $ (estimé)</span>'
              '<span class="seg">→ 6 fiches en tout</span></span>' in seg), ("carte_todo : le coût sous le titre, un segment ` · ` par ligne (dit « en pâtés » le 2026-10-12)") + "\n" + str(seg)
-    methode = " ".join(open(os.path.join(ICI, "..", "methode-chantier.md"), encoding="utf-8").read().split())
+    methode = " ".join(pathlib.Path(os.path.join(ICI, "..", "methode-chantier.md")).read_text(encoding="utf-8").split())
     echelle = ("vaut %d en `V1`, %d en `V2`, %d en `V3`, %d `après`" % tuple(n for _, n in mod.IMPORTANCE_PHASE),
                " · ".join("%s → %d" % f for f in mod.FACILITE_FICHES), "« sans fiche » vaut 5", "note de 1 à 5")
     assert ([p for p, _ in mod.IMPORTANCE_PHASE] == ["V1", "V2", "V3", "après"] and all(e in methode for e in echelle)
@@ -262,7 +263,7 @@ def test_feuille_en_cartes(tmp_path):
                "| 3 | Le `sh` | a \\|\\| b <c> | 2 fiches | — |\n| 4 | **Quatre** | rien | 1 fiche | 3 |\n"
                "| 7 | Sept | [un lien](https://x/y) | à cadrer | `E` |\n\n## Journal\n")
         ecrire(os.path.join(tc, "ctx", "30-q.md"), ouvert("# Chantier Q — Un titre\n\n## Q1 [x] — a\n## Q2 [ ] — b\n"))
-        gabarit = io.open(os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html"), encoding="utf-8").read()
+        gabarit = pathlib.Path(os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html")).read_text(encoding="utf-8")
         d, f, _ = mod.zone_todo(gabarit)
         debut, fin = gabarit.rindex('<ol class="todo">', 0, d), f + len("        </ol>")
         tableau = ('<p>Un préambule gardé.</p>\n    <div class="tableau">\n      <table>\n        <thead>\n'
@@ -273,7 +274,7 @@ def test_feuille_en_cartes(tmp_path):
         fdr = os.path.join(tc, "ctx", "artefacts", "feuille-de-route.html")
         ecrire(fdr, gabarit[:debut] + tableau + gabarit[fin:])
         code, s = appel(["feuille", tc, "--date", "2026-09-27"])
-        html = io.open(fdr, encoding="utf-8").read()
+        html = pathlib.Path(fdr).read_text(encoding="utf-8")
         d, f, forme = mod.zone_todo(html)
         zone_t = html[html.index("<!-- ZONE:todo"):html.index("<!-- ZONE:clos")]
         rangs = mod.todo_du_fichier(mod.lignes_de(os.path.join(tc, "ctx", "08-etat.md")))
@@ -304,7 +305,7 @@ def test_bornes(tmp_path):
         ecrire(os.path.join(tb, "CLAUDE.md"), "| La tâche | Ouvrir |\n|---|---|\n| relire un chantier clos | `ctx/00-INDEX.md` |\n")
         ecrire(os.path.join(tb, "ctx", "30-q.md"), "# Chantier Q — q\n\n## Q2 [ ] — b\n## Q1 [ ] — a\n")
         c, sortie = appel(["ouvrir", tb, "--fiches", "ctx/30-q.md", "--titre", "q"])
-        carte = open(os.path.join(tb, "CHANTIER.md"), encoding="utf-8").read()
+        carte = pathlib.Path(os.path.join(tb, "CHANTIER.md")).read_text(encoding="utf-8")
         assert (c == 0 and "OUVERT Q Q1..Q2 " in sortie
                  and mod.courant_de(tb) == "ctx/30-q.md"), ("PLG1 : ouvrir sur Q2 puis Q1 écrit Q1..Q2") + "\n" + str(sortie + carte)
 
@@ -445,17 +446,16 @@ def test_decompte_todo(tmp_path):
                "# État\n\n| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |\n|---|---|---|---|---|\n"
                "| 3 | Trois | a | 2 fiches | — |\n| 4 | Quatre | b | 1 fiche | 3 |\n\n## Journal\n")
         fdr = os.path.join(tb, "ctx", "artefacts", "feuille-de-route.html")
-        lire_fdr = lambda: io.open(fdr, encoding="utf-8").read()
+        lire_fdr = lambda: pathlib.Path(fdr).read_text(encoding="utf-8")
         # Le gabarit porte le décompte d'avant (`mono`, `style=`) : deux `feuille` n'en laissent qu'un.
-        ecrire(fdr, io.open(os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html"),
-                            encoding="utf-8").read())
+        ecrire(fdr, pathlib.Path(os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html")).read_text(encoding="utf-8"))
         appel(["feuille", tb, "--date", "2026-09-27"])
         code, s = appel(["feuille", tb, "--date", "2026-09-27"])
         sans = lire_fdr()
         decomptes = [l for l in sans.splitlines() if "resume-todo" in l]
-        css = io.open(os.path.join(tb, "ctx", "artefacts", "vlp.css"), encoding="utf-8").read()
-        assert (code == 0 and decomptes == ['    <p class="resume-todo"><strong>2 chantiers possibles</strong>'
-                                             ' · 1 petit, 1 moyen · 1 bloqué · ≈3 fiches estimées</p>']
+        css = pathlib.Path(os.path.join(tb, "ctx", "artefacts", "vlp.css")).read_text(encoding="utf-8")
+        assert (code == 0 and decomptes == [('    <p class="resume-todo"><strong>2 chantiers possibles</strong>'
+                                             ' · 1 petit, 1 moyen · 1 bloqué · ≈3 fiches estimées</p>')]
                  and ".resume-todo {" in css and ".resume-todo strong" in css), ("BTN7 : décompte en <strong>, sans style=, un seul après deux feuille sur la forme d'avant,"
                  " .resume-todo dans vlp.css — mutant : RESUME_TODO sans l'ancienne forme") + "\n" + str((s, decomptes))
         assert ('class="lecture"' not in sans), ("BTN7 : sans préambule, aucun details.lecture") + "\n" + ""
@@ -496,15 +496,14 @@ def test_barre_todo(tmp_path):
         ecrire(etat, "# État\n\n| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |\n|---|---|---|---|---|\n"
                      "| 3 | Trois | a | 2 fiches | — |\n\n## Journal\n")
         fdr = os.path.join(tp, "ctx", "artefacts", "feuille-de-route.html")
-        ecrire(fdr, io.open(os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html"),
-                            encoding="utf-8").read())
+        ecrire(fdr, pathlib.Path(os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html")).read_text(encoding="utf-8"))
         code, s = appel(["feuille", tp, "--date", "2026-09-29"])
-        avant = io.open(fdr, encoding="utf-8").read()
+        avant = pathlib.Path(fdr).read_text(encoding="utf-8")
         assert (code == 0 and "GARDE" not in s), ("PIP1 : une TODO saine passe") + "\n" + str(s)
         ecrire(etat, "# État\n\n| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |\n|---|---|---|---|---|\n"
                      "| 3 | Trois | `sed | sha256sum` | 2 fiches | — |\n\n## Journal\n")
         code, s = appel(["feuille", tp, "--date", "2026-09-29"])
         assert (code == 1 and "GARDE: ligne 3 de la TODO : 6 cellules" in s
-                 and io.open(fdr, encoding="utf-8").read() == avant), ("PIP1 : feuille rend GARDE avec le numéro, sort 1, la page ne bouge pas") + "\n" + str(s)
+                 and pathlib.Path(fdr).read_text(encoding="utf-8") == avant), ("PIP1 : feuille rend GARDE avec le numéro, sort 1, la page ne bouge pas") + "\n" + str(s)
         _, s = appel(["niveau", tp, "--date", "2026-09-29"])
         assert ("ÉCART: feuille: ligne 3 de la TODO : 6 cellules" in s), ("PIP1 : niveau compte la ligne comme un écart de la feuille") + "\n" + str(s)

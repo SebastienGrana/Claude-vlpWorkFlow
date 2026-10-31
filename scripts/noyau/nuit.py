@@ -12,14 +12,12 @@ import shlex
 import statistics
 
 import carnet
-
+import noyau.relecture  # `noyau.relecture.<nom>` : un test remplace ce nom là
+from noyau.bac import lire_arg
+from noyau.carte import equipe, imprimer_section
+from noyau.clos import COMMENTAIRE, defauts_page, ecrire_couts, textes_visibles
+from noyau.commun import PREFIXE, lignes_de, lignes_du_projet, lire
 from noyau.facade import coeur
-import noyau.relecture   # `noyau.relecture.<nom>` : un test remplace ce nom là
-from noyau.commun import (PREFIXE, lignes_de, lignes_du_projet, lire)
-from noyau.fiches import (MARQUE_VISUELLE)
-from noyau.carte import (equipe, imprimer_section)
-from noyau.page import (approx, esc, ligne_files, ligne_lire, recopier_joints)
-from noyau.notes import (CODE, cellules_de)
 from noyau.feuille import (
     GROS_FICHES,
     borne_haute_cout,
@@ -35,19 +33,20 @@ from noyau.feuille import (
     page_feuille,
     todo_du_fichier,
 )
-from noyau.clos import (COMMENTAIRE, defauts_page, ecrire_couts, textes_visibles)
-from noyau.hooks import (EMOJIS_JAUGE, JAUGE)
-from noyau.bac import (lire_arg)
+from noyau.fiches import MARQUE_VISUELLE
+from noyau.hooks import EMOJIS_JAUGE, JAUGE
+from noyau.notes import CODE, cellules_de
+from noyau.page import approx, esc, ligne_files, ligne_lire, recopier_joints
 
 __all__ = [
-    "LECON_INDICE", "LECONS_MAX", "CARNET_MIN", "NUITS_TETE", "LIGNE_NUMERO", "LECON_FORME", "fichier_nuits",
-    "sections_nuits", "nuits_du_fichier", "ecrire_lignes", "nuits_ecrire", "nuits_retirer", "usd_par_fiche",
-    "taux_jour", "taux_nuit", "lignes_taux_nuit", "lecons_nuits", "MARQUE_PUSH", "MARQUES_TRI", "EXTENSIONS_TRI",
-    "marques_tri", "fichiers_tri", "groupes_tri", "codes_todo", "trier", "cmd_trier", "CANAUX", "PLAN_BORNE",
-    "PLAN_CHANTIER", "plan_valider", "plan_section", "fin_de_section", "plan_poser", "plan_ecrire", "plan_lire",
-    "cmd_plan", "cmd_feuille", "GABARIT_CHOIX", "TETE_CHOIX", "CLASSE_JAUGE", "CHAMPS_DECISION", "EMOJI_MAL",
-    "morceaux_choix", "texte_json", "liste_json", "objet_json", "attribut", "html_jauge", "html_decision",
-    "html_question", "sections_choix", "explique_json", "page_choix", "cmd_chef_page",
+    "CANAUX", "CARNET_MIN", "CHAMPS_DECISION", "CLASSE_JAUGE", "EMOJI_MAL", "EXTENSIONS_TRI", "GABARIT_CHOIX",
+    "LECONS_MAX", "LECON_FORME", "LECON_INDICE", "LIGNE_NUMERO", "MARQUES_TRI", "MARQUE_PUSH", "NUITS_TETE",
+    "PLAN_BORNE", "PLAN_CHANTIER", "TETE_CHOIX", "attribut", "cmd_chef_page", "cmd_feuille", "cmd_plan",
+    "cmd_trier", "codes_todo", "ecrire_lignes", "explique_json", "fichier_nuits", "fichiers_tri", "fin_de_section",
+    "groupes_tri", "html_decision", "html_jauge", "html_question", "lecons_nuits", "lignes_taux_nuit", "liste_json",
+    "marques_tri", "morceaux_choix", "nuits_du_fichier", "nuits_ecrire", "nuits_retirer", "objet_json",
+    "page_choix", "plan_ecrire", "plan_lire", "plan_poser", "plan_section", "plan_valider", "sections_choix",
+    "sections_nuits", "taux_jour", "taux_nuit", "texte_json", "trier", "usd_par_fiche",
 ]
 
 
@@ -60,14 +59,14 @@ LECON_INDICE = 3
 LECONS_MAX = 12
 CARNET_MIN = 5
 NUITS_TETE = ["# Les nuits — le plan du soir, la table des nuits, les leçons", "",
-              "QUAND LIRE : on prépare une nuit (plan du soir) ou on relit les nuits passées (table, leçons) ;"
-              " `vlp.py trier` imprime les leçons.", "",
+              ("QUAND LIRE : on prépare une nuit (plan du soir) ou on relit les nuits passées (table, leçons) ;"
+              " `vlp.py trier` imprime les leçons."), "",
               "| nuit | canal | chantier | jouées/acceptées/refusées | $ |", "|---|---|---|---|---|", "",
               "## Leçons", "",
-              "Forme d'une leçon, écrite ici seul : `- <date> · N=<n> · <une cause, pas un constat> · <nombres nommés>"
+              ("Forme d'une leçon, écrite ici seul : `- <date> · N=<n> · <une cause, pas un constat> · <nombres nommés>"
               " · nuits <dates> · sessions <ids>`. N sous `LECON_INDICE` (`vlp.py`) : « indice ». Retirée, elle reste,"
               " suffixée `— retirée le <date> par <chantier ou nuit>`. Tenue deux nuits, proposée au matin, deux oui"
-              " de l'utilisateur : elle monte. La colonne `$` est la somme des `usd_kit` du carnet."]
+              " de l'utilisateur : elle monte. La colonne `$` est la somme des `usd_kit` du carnet.")]
 LIGNE_NUMERO = re.compile(r"^\|\s*`(\d+)")
 LECON_FORME = re.compile(r"^- (\d{4}-\d{2}-\d{2}) · N=(\d+) · (.+?) · (.+?) · nuits (.+?) · sessions (.+?)"
                          r"(?: — retirée le (\d{4}-\d{2}-\d{2}) par (.+))?$")
@@ -161,7 +160,7 @@ def nuits_ecrire(chemin, ligne):
     nuits_du_fichier(lignes)
     if ligne in lignes:
         return False
-    (td, tf), (ld, lf) = sections_nuits(lignes)
+    (_td, tf), (ld, lf) = sections_nuits(lignes)
     if ligne.startswith("- "):
         fin = lf
         while fin - 1 > ld and not lignes[fin - 1].strip():

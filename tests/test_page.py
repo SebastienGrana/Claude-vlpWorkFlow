@@ -2,8 +2,8 @@
 `heures_commits` sans Git (REF46), sur le texte de `git log` ; puis les commandes, migrées de l'ancienne suite maison
 (REF58), chaque `assert` migré au libellé d'origine de son `verifier` (REF5).
 """
-import io
 import os
+import pathlib
 import re
 import tempfile
 from decimal import Decimal
@@ -52,7 +52,7 @@ def test_arrondi():
 
 def test_triplet():
     """Contrôler que `triplet` relit ce que `ligne_cout` écrit, et le brut seul."""
-    allers = [(t, tours, u) for t in (0, 7, 999, 1000, 999999, 1000000, 123456789, -5, -1500) for tours in (0, 1, 42) for u in (None, Decimal("0"), Decimal("1.83"), Decimal("-0.05"))]
+    allers = [(t, tours, u) for t in (0, 7, 999, 1000, 999999, 1000000, 123456789, -5, -1500) for tours in (0, 1, 42) for u in (None, Decimal(0), Decimal("1.83"), Decimal("-0.05"))]
     assert (all(mod.triplet(mod.ligne_cout(*a)) == a for a in allers)), ("triplet relit ligne_cout") + "\n" + str([(a, mod.ligne_cout(*a), mod.triplet(mod.ligne_cout(*a)) == a) for a in allers if mod.triplet(mod.ligne_cout(*a)) != a])
     # Le brut entre parenthèses suffit, sans l'arrondi devant : une page d'un autre format se relit.
     assert (mod.triplet("(5 284 442) · 42 tours · 1,83 $") == (5284442, 42, Decimal("1.83"))), ("triplet : le brut entre parenthèses suffit") + "\n" + str(mod.triplet("(5 284 442) · 42 tours · 1,83 $"))
@@ -335,7 +335,7 @@ def test_ena5_ensemble(tmp_path):
         rates += [] if cli[:1] == ["LANCABLES Q1 Q2 Q3"] and [l[:14] for l in cli[1:]] == ["INDICE: Q1 Q2 "] else [cli]
     assert (rates == []), ("ENA5 : l'INDICE: de lancables lit les formes réelles (liste d'invités, racine du projet), et tait les "
              "libres (ISO3)") + "\n" + str(repr(rates))
-    chef = io.open(os.path.join(RACINE, "skills", "enchainer", "SKILL.md"), encoding="utf-8").read()
+    chef = pathlib.Path(os.path.join(RACINE, "skills", "enchainer", "SKILL.md")).read_text(encoding="utf-8")
     plat = " ".join(chef.split())
     assert ('vlp.py" commiter "' in plat and "git add -A" not in plat and "agents ensemble" not in plat), ("ENA8 : le chef commite par commiter, jamais git add -A, et ne propose plus agents ensemble — lancables "
              "revient avec ISO6") + "\n" + "skills/enchainer/SKILL.md"

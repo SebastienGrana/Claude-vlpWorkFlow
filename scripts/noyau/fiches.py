@@ -9,47 +9,17 @@ import os
 import re
 
 from noyau import etat
+from noyau.commun import FERMANT, SESSION, TITRE, lignes_de, lire
 from noyau.facade import coeur
-from noyau.commun import (FERMANT, SESSION, TITRE, lignes_de, lire)
 
 # Ce que la façade ré-exporte : les noms d'avant la découpe (photo de `tests/test_noms_publics.py`). Les décisions
 # sorties de Git par REF45 — `tete_de_fiche`, `chemins_du_statut`, `partage_commit` — se lisent ici seulement.
 __all__ = [
-    "extraire_lignes",
-    "socle_lignes",
-    "cmd_extraire",
-    "cmd_socle",
-    "VLP_PY",
-    "cmd_lire",
-    "cmd_cocher",
-    "chemins_changes",
-    "releve",
-    "croisent",
-    "deplie",
-    "cmd_commiter",
-    "garde_avant_coche",
-    "noter_session",
-    "REFUS_SOLDES",
-    "TETE_OUVERTE",
-    "refus_du_bloc",
-    "bloc_solde",
-    "refuser",
-    "OUVRANT",
-    "CRITERE",
-    "MARQUE_VISUELLE",
-    "CRITERE_VISUEL",
-    "ARRET",
-    "CODE_EN_LIGNE",
-    "SEUIL_FICHE",
-    "SEUIL_SOCLE",
-    "SEUIL_CLAUDE",
-    "SEUIL_CHANTIER",
-    "SEUIL_INDEX",
-    "CLOS_GARDES",
-    "valider_lignes",
-    "cmd_valider",
-    "cmd_valider_seul",
-    "rapport",
+    "ARRET", "CLOS_GARDES", "CODE_EN_LIGNE", "CRITERE", "CRITERE_VISUEL", "MARQUE_VISUELLE", "OUVRANT",
+    "REFUS_SOLDES", "SEUIL_CHANTIER", "SEUIL_CLAUDE", "SEUIL_FICHE", "SEUIL_INDEX", "SEUIL_SOCLE", "TETE_OUVERTE",
+    "VLP_PY", "bloc_solde", "chemins_changes", "cmd_cocher", "cmd_commiter", "cmd_extraire", "cmd_lire",
+    "cmd_socle", "cmd_valider", "cmd_valider_seul", "croisent", "deplie", "extraire_lignes", "garde_avant_coche",
+    "noter_session", "rapport", "refus_du_bloc", "refuser", "releve", "socle_lignes", "valider_lignes",
 ]
 
 
@@ -326,7 +296,7 @@ def noter_session(a, lignes, debut, sortie):
     fin = next((i for i in range(debut + 1, len(lignes))
                 if lignes[i].strip() == FERMANT or TITRE.match(lignes[i])), len(lignes))
     if a.role == "clore":
-        zone = range(0, next((i for i, l in enumerate(lignes) if TITRE.match(l)), len(lignes)))
+        zone = range(next((i for i, l in enumerate(lignes) if TITRE.match(l)), len(lignes)))
     else:
         zone = range(debut + 1, fin)
     if any(lignes[i] == ligne for i in zone):
@@ -551,4 +521,4 @@ def rapport(chemin, lignes, sortie):
 
 
 # En fin de fichier : `relecture` importe des noms d'ici, qui doivent exister avant lui (REF47).
-import noyau.relecture  # noqa: E402 — `noyau.relecture.git_texte` : un test la remplace là
+import noyau.relecture

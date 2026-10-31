@@ -4,6 +4,7 @@ l'ancienne suite maison (REF51). Chaque `assert` garde le libellé d'origine de 
 """
 import json
 import os
+import pathlib
 import re
 import shutil
 import subprocess
@@ -71,7 +72,7 @@ def test_ordre(tmp_path, init_git):
         source = os.path.join(kit, "ctx", "ordre.md")
         ecrire(source, ORDRE_SOURCE)
         code, s = appel(["ordre", "--json", "--source", source])
-        donnees = json.load(open(os.path.join(kit, "ctx", "ordre", "donnees.json"), encoding="utf-8"))
+        donnees = json.loads(pathlib.Path(os.path.join(kit, "ctx", "ordre", "donnees.json")).read_text(encoding="utf-8"))
         ecrire(source, ORDRE_SOURCE.replace("| 1 fiche |", "| |"))
         sans = appel(["ordre", "--json", "--source", source])
     assert (code == 0 and s.startswith("GARDE: projet x absent : absent n'est pas un dossier équipé")
@@ -92,7 +93,7 @@ def test_ordre(tmp_path, init_git):
         shutil.copy(os.path.join(mod.etat.KIT, ".gitignore"), t)
         init_git(t)
         ignore = subprocess.run(["git", "check-ignore", "context AI/ordre/donnees.json"], cwd=t,
-                                capture_output=True, text=True)
+                                capture_output=True, text=True, check=False)
     assert (ignore.returncode == 0), ("ORD1 : ce que le script écrit est ignoré par le .gitignore du kit") + "\n" + str(ignore)
 
 
@@ -142,7 +143,7 @@ def test_ordre_classement(tmp_path):
             ecrire(os.path.join(t, "p", "ctx", "ordre.md"), CLASSE_SOURCE)
             code, s = appel(["ordre", "--json", "--source", os.path.join(t, "p", "ctx", "ordre.md")])
             chemin = os.path.join(t, "p", "ctx", "ordre", "donnees.json")
-            return code, s, json.load(open(chemin, encoding="utf-8")) if os.path.isfile(chemin) else None
+            return code, s, json.loads(pathlib.Path(chemin).read_text(encoding="utf-8")) if os.path.isfile(chemin) else None
     code, s, donnees = classer("—", "—")
     niveaux = donnees and {p["code"]: p["niveau"] for p in donnees["pas"]}
     assert (code == 0 and niveaux == {"P1": "obligatoire", "P2": "obligatoire", "P3": "obligatoire", "P4": "conseillé",
@@ -180,7 +181,7 @@ def test_ordre_page(tmp_path):
         ecrire(source, source_page)
         code, s = appel(["ordre", "--source", source])
         dossier = os.path.join(kit, "ctx", "ordre")
-        donnees = json.load(open(os.path.join(dossier, "donnees.json"), encoding="utf-8"))
+        donnees = json.loads(pathlib.Path(os.path.join(dossier, "donnees.json")).read_text(encoding="utf-8"))
         page = lire(os.path.join(dossier, "ordre.html")) if os.path.isfile(os.path.join(dossier, "ordre.html")) else ""
         joints = sorted(n for n in os.listdir(dossier) if n.startswith("vlp."))
         double = os.path.join(t, "double.html")
@@ -225,7 +226,7 @@ def test_ordre_db(tmp_path):
                "| `P1` | p | | |\n\n## Le jugement\n\n- `P1` d'abord.\n")
         code, s = appel(["ordre", "--db", "--source", source])
         chemin = os.path.join(t, "p", "ctx", "ordre", "donnees.json")
-        brut = open(chemin, encoding="utf-8").read()
+        brut = pathlib.Path(chemin).read_text(encoding="utf-8")
         page = os.path.isfile(os.path.join(t, "p", "ctx", "ordre", "ordre.html"))
         avant = mod.etat.LIMITE_DOC_DB
         try:
@@ -249,7 +250,7 @@ def test_ordre_db(tmp_path):
 def test_ordre_clore(tmp_path):
     """ORD5 : `clore` d'un projet, quel qu'il soit, refait les données de la page d'enchaînement du kit et dit quoi
     envoyer où (ligne `ORDRE`) ; sans source, une GARDE, et la clôture finit."""
-    gabarit = lambda nom: open(os.path.join(ICI, "..", "templates", nom), encoding="utf-8").read()
+    gabarit = lambda nom: pathlib.Path(os.path.join(ICI, "..", "templates", nom)).read_text(encoding="utf-8")
     sorties = []
     for avec_source in (True, False):
         with tempfile.TemporaryDirectory(dir=tmp_path) as tk:
@@ -278,7 +279,7 @@ def test_ordre_clore(tmp_path):
             finally:
                 mod.etat.SOURCE_ORDRE = avant
             donnees = os.path.join(kit, "ctx", "ordre", "donnees.json")
-            sorties.append((code, s, os.path.isfile(donnees) and json.load(open(donnees, encoding="utf-8")),
+            sorties.append((code, s, os.path.isfile(donnees) and json.loads(pathlib.Path(donnees).read_text(encoding="utf-8")),
                             os.path.realpath(donnees), os.path.realpath(source)))
     (code, s, doc, donnees, _), (code_sans, s_sans, doc_sans, _, source_sans) = sorties
     assert (code == 0 and "CLOS U " in s and "ORDRE envoyer %s → https://claude.ai/artifact/essai\n" % donnees in s

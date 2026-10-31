@@ -7,23 +7,30 @@ import os
 import re
 
 from noyau import etat
+from noyau.carte import equipe
+from noyau.commun import PREFIXE, TITRE, lignes_de, lignes_du_projet, lire
 from noyau.facade import coeur
-from noyau.commun import (PREFIXE, TITRE, lignes_de, lignes_du_projet, lire)
-from noyau.carte import (equipe)
-from noyau.page import (esc, fleche, ligne_files, migrer_joints, migrer_style, recopier_joints)
-from noyau.notes import (CODE, cellules_de)
+from noyau.notes import CODE, cellules_de
+from noyau.page import (
+    esc,
+    fleche,
+    ligne_files,
+    migrer_joints,
+    migrer_style,
+    recopier_joints,
+)
 
 __all__ = [
-    "AUCUN_ENCOURS", "BADGE_COURS", "retirer_chevrons_url", "champ", "lettre_de", "LETTRES", "entrees_lettres",
-    "lettre_entree", "titre_entree", "doublon_lettres", "fin_lettres", "lettres_prises", "bornes", "plage", "MONO",
-    "MORCEAU", "JETON", "GRAS", "LIEN", "gras_et_liens", "cellule_md", "SEPARATEUR", "todo_du_fichier",
-    "rangs_todo", "zone", "FORMES_TODO", "zone_todo", "rang_en_cours", "en_cartes", "LECTURE", "replier_lecture",
-    "SOMMAIRE", "sommaire", "depend_todo", "PHASE_COUT", "phase_todo", "rang_phase", "taille_todo",
-    "IMPORTANCE_PHASE", "FACILITE_FICHES", "aide_score", "carte_todo", "corps_todo", "PAGES_LIENS", "PAGES_NAV",
-    "liens_pages", "feuille", "RESUME_TODO", "GROS_FICHES", "NOMBRE_COUT", "PLAGE_COUT", "borne_haute_cout",
-    "bornes_cout", "dependances", "est_bloque", "decompte_todo", "resume_todo", "compte_todo", "page_feuille",
-    "ARCHIVE_CLOS", "page_clos", "couts_du_projet", "rafraichir_couts", "GABARIT_ARCHIVE", "ICI_ARCHIVE",
-    "BLOC_ARCHIVE", "poser_bloc_archive", "poser_champ", "cmd_archive",
+    "ARCHIVE_CLOS", "AUCUN_ENCOURS", "BADGE_COURS", "BLOC_ARCHIVE", "FACILITE_FICHES", "FORMES_TODO",
+    "GABARIT_ARCHIVE", "GRAS", "GROS_FICHES", "ICI_ARCHIVE", "IMPORTANCE_PHASE", "JETON", "LECTURE", "LETTRES",
+    "LIEN", "MONO", "MORCEAU", "NOMBRE_COUT", "PAGES_LIENS", "PAGES_NAV", "PHASE_COUT", "PLAGE_COUT", "RESUME_TODO",
+    "SEPARATEUR", "SOMMAIRE", "aide_score", "borne_haute_cout", "bornes", "bornes_cout", "carte_todo", "cellule_md",
+    "champ", "cmd_archive", "compte_todo", "corps_todo", "couts_du_projet", "decompte_todo", "depend_todo",
+    "dependances", "doublon_lettres", "en_cartes", "entrees_lettres", "est_bloque", "feuille", "fin_lettres",
+    "gras_et_liens", "lettre_de", "lettre_entree", "lettres_prises", "liens_pages", "page_clos", "page_feuille",
+    "phase_todo", "plage", "poser_bloc_archive", "poser_champ", "rafraichir_couts", "rang_en_cours", "rang_phase",
+    "rangs_todo", "replier_lecture", "resume_todo", "retirer_chevrons_url", "sommaire", "taille_todo",
+    "titre_entree", "todo_du_fichier", "zone", "zone_todo",
 ]
 
 

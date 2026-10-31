@@ -5,6 +5,7 @@ l'ancienne suite maison (REF58). Chaque `assert` garde le libellé d'origine de 
 import io
 import json
 import os
+import pathlib
 import re
 import shutil
 import subprocess
@@ -95,8 +96,8 @@ def test_renvois(tmp_path):
         ecrire(os.path.join(t, "CLAUDE.md"),
                "# P\n\n| hors routage | `perdu.md` |\n\n## Routage — ouvrir ceci\n\n| La tâche | Ouvrir |\n|---|---|\n"
                "| lire `vlp.py` | `ctx/01-a.md` |\n| lancer | **`/vlp:chantier`** |\n\n## Économie\n\n| x | `loin.md` |\n")
-        assert (appel(["renvois", t]) == (0, "POIDS CLAUDE.md 14/100 · CHANTIER.md 2/50 · index 9/80\n"
-                 "RENVOIS 3 nommés · 0 absents\n")), ("renvois : tout présent, poids sous seuil") + "\n" + str(appel(["renvois", t]))
+        assert (appel(["renvois", t]) == (0, ("POIDS CLAUDE.md 14/100 · CHANTIER.md 2/50 · index 9/80\n"
+                 "RENVOIS 3 nommés · 0 absents\n"))), ("renvois : tout présent, poids sous seuil") + "\n" + str(appel(["renvois", t]))
         ecrire(os.path.join(t, "CHANTIER.md"), "- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n" + "x\n" * 49)
         code, s = appel(["renvois", t])
         assert (code == 0 and s.startswith(
@@ -122,8 +123,8 @@ def test_renvois_garde(tmp_path):
         ecrire(os.path.join(d, "ctx", "01-a.md"), "a\n")
         tete = "| Fichier | a | b | c | d |\n|---|---|---|---|---|\n| `01-a.md` | x \\| y | b | c | d |\n"
         ecrire(os.path.join(d, "ctx", "00-INDEX.md"), tete)
-        assert (appel(["renvois", d]) == (0, "POIDS CLAUDE.md absent/100 · CHANTIER.md 2/50 · index 3/80\n"
-                 "RENVOIS 1 nommés · 0 absents\n")), ("TAB2 : renvois, table saine et \\| gardé") + "\n" + str(appel(["renvois", d]))
+        assert (appel(["renvois", d]) == (0, ("POIDS CLAUDE.md absent/100 · CHANTIER.md 2/50 · index 3/80\n"
+                 "RENVOIS 1 nommés · 0 absents\n"))), ("TAB2 : renvois, table saine et \\| gardé") + "\n" + str(appel(["renvois", d]))
         for ligne, n in (("| `01-a.md` | a | b | c |\n", 4), ("| `01-a.md` | a | b | c | d | e |\n", 6)):
             ecrire(os.path.join(d, "ctx", "00-INDEX.md"), tete + ligne)
             assert (appel(["renvois", d]) == (
@@ -283,7 +284,7 @@ x
 
 
 def test_vlp_css_recopie(tmp_path):
-    source = io.open(os.path.join(ICI, "..", "templates", "vlp.css"), "rb").read()
+    source = pathlib.Path(os.path.join(ICI, "..", "templates", "vlp.css")).read_bytes()
 
     # `page --creer`, puis `page` sans --creer (régénération) : les deux recopient.
     with tempfile.TemporaryDirectory(dir=tmp_path) as tab:
@@ -292,12 +293,12 @@ def test_vlp_css_recopie(tmp_path):
         css = os.path.join(tab, "artefacts", "vlp.css")
         ecrire(fiches, FICHES_PLI2)
         code, s = appel(["page", fiches, page, "--creer", "--projet", "Proj", "--titre", "T", "--resultat", "R0"])
-        assert (code == 0 and os.path.isfile(css) and io.open(css, "rb").read() == source
+        assert (code == 0 and os.path.isfile(css) and pathlib.Path(css).read_bytes() == source
                  and "CSS %s\n" % css in s), ("PLI2 : page --creer recopie vlp.css, le dit en sortie") + "\n" + str(s)
         with open(css, "wb") as f:
             f.write(b"/* modifie a la main */")
         code, s = appel(["page", fiches, page])
-        assert (code == 0 and io.open(css, "rb").read() == source), ("PLI2 : page (régénération, sans --creer) remet vlp.css à l'identique"
+        assert (code == 0 and pathlib.Path(css).read_bytes() == source), ("PLI2 : page (régénération, sans --creer) remet vlp.css à l'identique"
                  " — mutant : ne copier qu'à --creer") + "\n" + str(s)
 
     # `feuille`, sur un projet équipé, recopie aussi.
@@ -310,23 +311,22 @@ def test_vlp_css_recopie(tmp_path):
         ecrire(os.path.join(proj, "ctx", "08-etat.md"),
                "# État\n\n## La TODO\n\n| # | Chantier | Apporte | Coût | Dépend |\n|---|---|---|---|---|\n")
         fdr = os.path.join(proj, "ctx", "artefacts", "feuille-de-route.html")
-        ecrire(fdr, io.open(os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html"),
-                            encoding="utf-8").read())
+        ecrire(fdr, pathlib.Path(os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html")).read_text(encoding="utf-8"))
         css = os.path.join(proj, "ctx", "artefacts", "vlp.css")
         code, s = appel(["feuille", proj])
-        assert (code == 0 and os.path.isfile(css) and io.open(css, "rb").read() == source
+        assert (code == 0 and os.path.isfile(css) and pathlib.Path(css).read_bytes() == source
                  and "CSS %s\n" % css in s), ("PLI2 : feuille recopie vlp.css, le dit en sortie") + "\n" + str(s)
 
     # Les deux gabarits ne portent plus de <style> inline (chantier PLI, fiche PLI2).
     for nom in ("artefact-chantier.html", "artefact-feuille-de-route.html"):
-        gabarit = io.open(os.path.join(ICI, "..", "templates", nom), encoding="utf-8").read()
+        gabarit = pathlib.Path(os.path.join(ICI, "..", "templates", nom)).read_text(encoding="utf-8")
         assert (gabarit.count("<style") == 0 and 'href="vlp.css"' in gabarit), ("PLI2 : %s sans <style> — %d" % (nom, gabarit.count("<style"))) + "\n" + str(gabarit[:400])
 
 
 def avec_style_inline(html):
     """Une page déjà régénérée (donc liée à vlp.css), avec son <style> d'avant PLI3
     remis en place — comme une page publiée avant ce chantier, jamais régénérée depuis."""
-    css = io.open(os.path.join(ICI, "..", "templates", "vlp.css"), encoding="utf-8").read()
+    css = pathlib.Path(os.path.join(ICI, "..", "templates", "vlp.css")).read_text(encoding="utf-8")
     return html.replace('<link rel="stylesheet" href="vlp.css">', "<style>\n%s</style>" % css, 1)
 
 
@@ -483,7 +483,7 @@ def test_journal_replie(tmp_path):
 
 
 def test_bilan_en_haut(tmp_path):
-    gabarit = io.open(os.path.join(ICI, "..", "templates", "artefact-chantier.html"), encoding="utf-8").read()
+    gabarit = pathlib.Path(os.path.join(ICI, "..", "templates", "artefact-chantier.html")).read_text(encoding="utf-8")
     # une page d'avant PLI6 : le bilan en bas, juste avant le pied de page
     i = gabarit.index("  <!-- ZONE:bilan")
     fin = gabarit.index("  </section>\n", i) + len("  </section>\n\n")
@@ -560,7 +560,7 @@ def test_forme(tmp_path, init_git):
         c1, c2 = "≈1,1k (1 111) · 1 tours · 0,01 $", "≈2,2k (2 222) · 2 tours · 0,02 $"
         for q, c in (("Q1", c1), ("Q2", c2)):
             html = re.sub(r'(<span class="id">%s</span>.*?)(\s*</li>)' % q,
-                          lambda m: m.group(1) + '\n        <span class="cout mono">%s</span>' % c + m.group(2),
+                          lambda m, c=c: m.group(1) + '\n        <span class="cout mono">%s</span>' % c + m.group(2),
                           html, count=1, flags=re.S)
         total = "Coût du chantier : ≈11,3M (11 262 523) · 42 tours · 3,40 $"
         hors = "Hors fiches : ≈5,0k (5 000) · 1 tours · 0,05 $"
@@ -677,29 +677,29 @@ def test_lien_feuille_de_route(tmp_path):
         carte = os.path.join(proj, "CHANTIER.md")
         ecrire(fiches, FICHES_FEU7)
         ecrire(carte, "# C\n\n- **artefact feuille de route** : https://exemple/route\n")
-        code, s = appel(["page", fiches, page, "--creer", "--projet", "Proj", "--titre", "T", "--resultat", "R0"])
+        code, _s = appel(["page", fiches, page, "--creer", "--projet", "Proj", "--titre", "T", "--resultat", "R0"])
         html = lire(page)
         assert (code == 0
                  and 'Proj · fiches P1–P2 · <a href="https://exemple/route">la feuille de route</a></div>' in html
                  and html.count("la feuille de route</a>") == 1), ("FEU7 : eyebrow, un lien vers la feuille de route") + "\n" + str(html)
-        code, s = appel(["page", fiches, page])
+        code, _s = appel(["page", fiches, page])
         html = lire(page)
         assert (code == 0 and html.count("la feuille de route</a>") == 1
                  and 'Proj · fiches P1–P2 · <a href="https://exemple/route">la feuille de route</a></div>' in html), ("FEU7 : régénérée deux fois, toujours un seul lien — mutant : garde d'unicité retirée") + "\n" + str(html)
         ecrire(carte, "# C\n\n- **artefact feuille de route** : https://exemple/autre\n")
-        code, s = appel(["page", fiches, page])
+        code, _s = appel(["page", fiches, page])
         html = lire(page)
         assert (code == 0
                  and 'Proj · fiches P1–P2 · <a href="https://exemple/autre">la feuille de route</a></div>' in html
                  and "exemple/route" not in html and html.count("la feuille de route</a>") == 1), ("FEU7 : URL changée, la nouvelle seule") + "\n" + str(html)
         ecrire(carte, "# C\n\n- **artefact feuille de route** : aucun\n")
-        code, s = appel(["page", fiches, page])
+        code, _s = appel(["page", fiches, page])
         html = lire(page)
         assert (code == 0
                  and "la feuille de route" not in html and "Proj · fiches P1–P2</div>" in html), ("FEU7 : « aucun », le lien se retire") + "\n" + str(html)
         ecrire(carte, "# C\n\n- **artefact feuille de route** : https://exemple/route\n")
         ecrire(fiches, lire(fiches) + '\n<!-- FICHE:P3 -->\n## P3 [ ] — c\n**Critère de fin**\n<!-- /FICHE -->\n')
-        code, s = appel(["page", fiches, page])
+        code, _s = appel(["page", fiches, page])
         html = lire(page)
         assert (code == 0
                  and 'Proj · fiches P1–P3 · <a href="https://exemple/route">la feuille de route</a></div>' in html), ("FEU7 : la plage reste intacte à côté du lien") + "\n" + str(html)

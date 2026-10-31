@@ -6,12 +6,12 @@ de l'appel (`noyau/facade.py`) ; un nom d'un module chargé avant se lit par imp
 import html.parser
 import os
 import re
-import noyau.page   # `noyau.page.<nom>` : un test remplace ce nom là (REF46)
 
+import noyau.page  # `noyau.page.<nom>` : un test remplace ce nom là (REF46)
+from noyau.carte import equipe
+from noyau.commun import chemin_archive, lignes_de, lire
 from noyau.facade import coeur
-from noyau.commun import (chemin_archive, lignes_de, lire)
-from noyau.fiches import (SEUIL_CHANTIER, SEUIL_CLAUDE, SEUIL_INDEX)
-from noyau.carte import (equipe)
+from noyau.fiches import SEUIL_CHANTIER, SEUIL_CLAUDE, SEUIL_INDEX
 from noyau.page import (
     JOURNAL_ANCIEN,
     SEUIL_PAGE,
@@ -26,9 +26,9 @@ from noyau.page import (
 )
 
 __all__ = [
-    "ABRI_SECTIONS", "chemin_abri", "une_ligne", "lire_abri", "texte_abri", "ecrire_abri", "brut", "abri_de_page",
-    "cmd_abri", "page_du_fichier", "cmd_page", "NUMERO", "nom_etat", "ajouter_etat", "cmd_etat", "LIGNE_CHEMIN",
-    "CODE", "cellules_de", "noms_de_table", "noms_des_sources", "chemins_de_carte", "cmd_renvois",
+    "ABRI_SECTIONS", "CODE", "LIGNE_CHEMIN", "NUMERO", "abri_de_page", "ajouter_etat", "brut", "cellules_de",
+    "chemin_abri", "chemins_de_carte", "cmd_abri", "cmd_etat", "cmd_page", "cmd_renvois", "ecrire_abri",
+    "lire_abri", "nom_etat", "noms_de_table", "noms_des_sources", "page_du_fichier", "texte_abri", "une_ligne",
 ]
 
 

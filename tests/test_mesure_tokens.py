@@ -151,7 +151,7 @@ ATTENDU_HAIKU55_HAUT = {"tours": 1, "usd": "2.55", "inconnus": []}
 
 # Les heures des plages : des minutes autour du 2026-09-23 à 10:00 UTC, écrites comme dans un
 # transcript (`iso`) ou comme une borne de plage (`sec`).
-ORIGINE = datetime.datetime(2026, 9, 23, 10, 0, tzinfo=datetime.timezone.utc)
+ORIGINE = datetime.datetime(2026, 9, 23, 10, 0, tzinfo=datetime.UTC)
 
 
 def iso(minutes):
@@ -352,12 +352,12 @@ def verifier_plage_cli():
         ecrire(os.path.join(tmp, "suivi.txt"), ["x"])
         # Deux commits datés -60 et +15 minutes ; le premier suit `suivi.txt`.
         git = ["git", "-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false"]
-        subprocess.run(git + ["init", "-q"], cwd=tmp, capture_output=True)
-        subprocess.run(git + ["add", "suivi.txt"], cwd=tmp, capture_output=True)
+        subprocess.run(git + ["init", "-q"], cwd=tmp, capture_output=True, check=False)
+        subprocess.run(git + ["add", "suivi.txt"], cwd=tmp, capture_output=True, check=False)
         for m in (-60, 15):
             date = "%d +0000" % sec(m)
             subprocess.run(git + ["commit", "-q", "--allow-empty", "-m", str(m)], cwd=tmp, capture_output=True,
-                           env=dict(os.environ, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date))
+                           env=dict(os.environ, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date), check=False)
         ancien = os.getcwd()
         os.chdir(tmp)
         try:

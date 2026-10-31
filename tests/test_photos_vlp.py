@@ -19,7 +19,6 @@ import tempfile
 from contextlib import redirect_stderr, redirect_stdout
 
 import pytest
-
 from aides import RACINE, ecrire, lire, mod, transcript
 
 T0 = 1790000000
@@ -309,7 +308,7 @@ def test_photo(nom, argv, entree, projet_vlp, tmp_path, isoler, monkeypatch, sna
             code = mod.main(args, sortie, io.StringIO(entree) if entree is not None else None, erreur)
     except SystemExit as e:
         code = "SystemExit %s" % e.code
-    except Exception as e:  # une photo de caractérisation garde aussi un défaut : il criera quand on le répare
+    except Exception as e:  # noqa: BLE001 — une photo de caractérisation garde aussi un défaut : il criera quand on le répare
         code = "EXCEPTION %s: %s" % (type(e).__name__, e)
     remplacements = [(str(projet), "<P>"), (str(isoler), "<MAISON>"), (str(tmp_path), "<TMP>"),
                      (str(projet_vlp.parent), "<MODELE>"), (RACINE, "<KIT>")]

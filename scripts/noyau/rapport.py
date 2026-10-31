@@ -14,29 +14,27 @@ import tempfile
 import time
 
 import carnet
-
+import noyau.bac  # `noyau.bac.commande_suite` : un test y met son faux script (REF59)
+import noyau.relecture  # `noyau.relecture.<nom>` : un test remplace ce nom là
 from noyau import etat
-from noyau.commun import (lignes_de)
-from noyau.fiches import (VLP_PY)
-from noyau.carte import (trouver)
-from noyau.page import (mesure, nom_du_projet)
-from noyau.niveau import (dossier_artefacts)
-from noyau.bac import (MUTANT_EXCLUS, PORT_APERCU, est_kit, lire_arg)
-from noyau.nuit import (LECON_FORME, fichier_nuits, nuits_du_fichier, nuits_ecrire)
-from noyau.matin import (de_cote, pointes_nuit, projet_du_matin)
-
-import noyau.relecture   # `noyau.relecture.<nom>` : un test remplace ce nom là
-import noyau.bac   # `noyau.bac.commande_suite` : un test y met son faux script (REF59)
+from noyau.bac import MUTANT_EXCLUS, PORT_APERCU, est_kit, lire_arg
+from noyau.carte import trouver
+from noyau.commun import lignes_de
+from noyau.fiches import VLP_PY
+from noyau.matin import de_cote, pointes_nuit, projet_du_matin
+from noyau.niveau import dossier_artefacts
+from noyau.nuit import LECON_FORME, fichier_nuits, nuits_du_fichier, nuits_ecrire
+from noyau.page import mesure, nom_du_projet
 
 # Ce que la façade ré-exporte : les noms d'avant la découpe (photo de `tests/test_noms_publics.py`). Les décisions
 # sorties de Git par REF49 — `py_du_statut` — se lisent ici seulement.
 __all__ = [
-    "mesure_session_kit", "completer_kit", "bilan_chantiers", "cout_du_bilan", "ecrire_table_nuits",
-    "derniere_valeur", "chantiers_de_cote", "option_matin", "question_de_cote", "question_de_note", "rapport_matin",
-    "cmd_matin_rapport", "cmd_nuits_lecon", "DELAI_MUTANT", "texte_mute", "kit_de", "copie_mutee", "vers_copie",
-    "tuer_arbre", "jouer_suite", "effacer_copie", "verdict_juge", "attendu_au_milieu", "verdict_mutant",
-    "sans_parallele", "jouer_mutant", "cmd_mutant", "entrees_launch", "cmd_apercu", "cmd_sante", "py_touches", "controles_rapides",
-    "jouer_rapide", "ecrire_rapide", "controle_rapide", "cmd_rapide", "cmd_symboles",
+    "DELAI_MUTANT", "attendu_au_milieu", "bilan_chantiers", "chantiers_de_cote", "cmd_apercu", "cmd_matin_rapport",
+    "cmd_mutant", "cmd_nuits_lecon", "cmd_rapide", "cmd_sante", "cmd_symboles", "completer_kit", "controle_rapide",
+    "controles_rapides", "copie_mutee", "cout_du_bilan", "derniere_valeur", "ecrire_rapide", "ecrire_table_nuits",
+    "effacer_copie", "entrees_launch", "jouer_mutant", "jouer_rapide", "jouer_suite", "kit_de",
+    "mesure_session_kit", "option_matin", "py_touches", "question_de_cote", "question_de_note", "rapport_matin",
+    "sans_parallele", "texte_mute", "tuer_arbre", "verdict_juge", "verdict_mutant", "vers_copie",
 ]
 
 
@@ -228,10 +226,10 @@ def question_de_note(canal, texte, sorte):
             option_matin("verser", "Verser", "Je t'écris la ligne et te la montre : elle ne part qu'après ton second oui."),
             option_matin("fondre", "Fondre dans une entrée existante", "Tu me nommes laquelle ; rien ne grossit."),
             option_matin("abandonner", "Abandonner", "Rien n'est écrit : abandonner est une réponse normale.")]}
-    titre, faire = (("Case 3 du menu de fin : essaimer", "Je lance `niveau` sur les autres projets équipés, comme "
-                     "`cloture.md` le dit.") if sorte == "case3" else
-                    ("Case 4 du menu de fin : la dette repérée", "Petite : une tâche et un commit à elle. Plus grosse : "
-                     "présentée comme un chantier (`cloture.md`)."))
+    titre, faire = (("Case 3 du menu de fin : essaimer", ("Je lance `niveau` sur les autres projets équipés, comme "
+                     "`cloture.md` le dit.")) if sorte == "case3" else
+                    ("Case 4 du menu de fin : la dette repérée", ("Petite : une tâche et un commit à elle. Plus grosse : "
+                     "présentée comme un chantier (`cloture.md`).")))
     return {"titre": titre, "puces": puces, "options": [
         option_matin("faire", "Faire", faire),
         option_matin("laisser", "Laisser", "Rien n'est fait ; la note reste au carnet.")]}
@@ -400,7 +398,7 @@ def tuer_arbre(p):
     if p.poll() is not None:
         return
     if sys.platform == "win32":
-        subprocess.run(["taskkill", "/F", "/T", "/PID", str(p.pid)], capture_output=True)
+        subprocess.run(["taskkill", "/F", "/T", "/PID", str(p.pid)], capture_output=True, check=False)
     else:
         import signal
         try:
@@ -723,7 +721,7 @@ def jouer_rapide(commande, racine):
     debut = time.perf_counter()
     env = dict(os.environ, PYTHONIOENCODING="utf-8", PYTHONUTF8="1")
     try:
-        r = subprocess.run(commande, cwd=racine, env=env, capture_output=True, encoding="utf-8", errors="replace")
+        r = subprocess.run(commande, cwd=racine, env=env, capture_output=True, encoding="utf-8", errors="replace", check=False)
     except OSError as e:
         return None, ["ne se lance pas : %s" % e], time.perf_counter() - debut
     return r.returncode, (r.stdout + r.stderr).splitlines(), time.perf_counter() - debut

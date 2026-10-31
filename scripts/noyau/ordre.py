@@ -10,20 +10,34 @@ import os
 import re
 
 from noyau import etat
-from noyau.commun import (Absent, CHANTIERS_POSSIBLES, lignes_de, lignes_du_projet, lignes_gardees, lire)
-from noyau.carte import (chemins_md, equipe, trouver)
-from noyau.page import (ligne_files, recopier_joints)
-from noyau.notes import (CODE, cellules_de)
-from noyau.feuille import (SEPARATEUR, bornes_cout, champ, page_clos, phase_todo, todo_du_fichier)
-from noyau.nuit import (usd_par_fiche)
-from noyau.ouvrir import (moyenne_clos)
+from noyau.carte import chemins_md, equipe, trouver
+from noyau.commun import (
+    CHANTIERS_POSSIBLES,
+    Absent,
+    lignes_de,
+    lignes_du_projet,
+    lignes_gardees,
+    lire,
+)
+from noyau.feuille import (
+    SEPARATEUR,
+    bornes_cout,
+    champ,
+    page_clos,
+    phase_todo,
+    todo_du_fichier,
+)
+from noyau.notes import CODE, cellules_de
+from noyau.nuit import usd_par_fiche
+from noyau.ouvrir import moyenne_clos
+from noyau.page import ligne_files, recopier_joints
 
 __all__ = [
-    "tables_ordre", "todo_projet", "prose_ordre", "piste_ordre", "taux_ordre", "nom_todo", "pas_ordre",
-    "somme_ordre", "totaux_ordre", "numeros_todo", "NIVEAUX_ORDRE", "cle_pas", "pas_du_code", "deps_todo",
-    "ajouts_ordre", "forces_ordre", "graphe_ordre", "graines_ordre", "niveaux_ordre", "vagues_ordre",
-    "classer_ordre", "projets_ordre", "chemin_ordre", "BALISE_ORDRE", "page_ordre", "donnees_ordre", "cmd_ordre",
-    "dit_aucun", "garde_page", "dire_sans_page", "ordre_de_clore",
+    "BALISE_ORDRE", "NIVEAUX_ORDRE", "ajouts_ordre", "chemin_ordre", "classer_ordre", "cle_pas", "cmd_ordre",
+    "deps_todo", "dire_sans_page", "dit_aucun", "donnees_ordre", "forces_ordre", "garde_page", "graines_ordre",
+    "graphe_ordre", "niveaux_ordre", "nom_todo", "numeros_todo", "ordre_de_clore", "page_ordre", "pas_du_code",
+    "pas_ordre", "piste_ordre", "projets_ordre", "prose_ordre", "somme_ordre", "tables_ordre", "taux_ordre",
+    "todo_projet", "totaux_ordre", "vagues_ordre",
 ]
 
 

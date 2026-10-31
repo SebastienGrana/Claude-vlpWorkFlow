@@ -13,12 +13,9 @@ import tempfile
 import time
 
 import vlp_hook
-
 from noyau import etat
-from noyau.facade import coeur
 from noyau.commun import (
     ALIAS,
-    Absent,
     CHANTIERS_POSSIBLES,
     COURANT,
     FORMAT_DEBUT,
@@ -26,6 +23,7 @@ from noyau.commun import (
     METHODE,
     SESSION,
     TITRE,
+    Absent,
     chemin_garde,
     lignes_de,
     lignes_du_projet,
@@ -33,36 +31,15 @@ from noyau.commun import (
     lire,
     section,
 )
-from noyau.fiches import (socle_lignes)
+from noyau.facade import coeur
+from noyau.fiches import socle_lignes
 
 __all__ = [
-    "equipe",
-    "trouver",
-    "fichier_courant",
-    "chemins_md",
-    "imprimer_section",
-    "todo_condensee",
-    "sans_apporte",
-    "imprimer_todo",
-    "imprimer_methode",
-    "fiches",
-    "PLAFOND_CARTE",
-    "carte_bornee",
-    "EFFORT_SOCLE",
-    "EFFORT_REGLE",
-    "EFFORT_DEFAUT",
-    "effort_defaut",
-    "ligne_effort",
-    "carte",
-    "places_de_session",
-    "SESSION_SURE",
-    "marque_enchaine",
-    "poser_marque_enchaine",
-    "avertir_session",
-    "RELAIS_SECONDES",
-    "MARQUE_SECONDES",
-    "carte_injectee",
-    "cmd_carte",
+    "EFFORT_DEFAUT", "EFFORT_REGLE", "EFFORT_SOCLE", "MARQUE_SECONDES", "PLAFOND_CARTE", "RELAIS_SECONDES",
+    "SESSION_SURE", "avertir_session", "carte", "carte_bornee", "carte_injectee", "chemins_md", "cmd_carte",
+    "effort_defaut", "equipe", "fiches", "fichier_courant", "imprimer_methode", "imprimer_section", "imprimer_todo",
+    "ligne_effort", "marque_enchaine", "places_de_session", "poser_marque_enchaine", "sans_apporte",
+    "todo_condensee", "trouver",
 ]
 
 
@@ -404,9 +381,7 @@ def carte_injectee(depart, python, relais, sortie, **options):
 
     Le ménage d'abord (ARP4) : `vlp-carte-` de plus de `RELAIS_SECONDES`, `vlp-enchaine-` de plus de
     `MARQUE_SECONDES` — avant d'écrire le tampon de cet appel, qui reste."""
-    import hashlib
     import tempfile
-    import time
     vlp_hook.menage(tempfile.gettempdir(), (("vlp-carte-", RELAIS_SECONDES), ("vlp-enchaine-", MARQUE_SECONDES)))
     cle = hashlib.sha1(os.path.abspath(depart).encode("utf-8")).hexdigest()[:16]
     tampon = os.path.join(tempfile.gettempdir(), "vlp-carte-%s" % cle)

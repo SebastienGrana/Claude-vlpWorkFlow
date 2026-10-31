@@ -69,3 +69,7 @@ ignore = [
     "FLY",      # join gardé, pas de f-string imposée
     "FA",       # from __future__ import annotations : écarté avec 3.9
 ]
+
+[tool.ruff.lint.per-file-ignores]
+# La façade importe ses modules dans l'ordre où ils se lisent (REF45) : trier changerait l'ordre de chargement (REF54).
+"scripts/vlp_coeur.py" = ["I001"]

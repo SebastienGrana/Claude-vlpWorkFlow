@@ -7,8 +7,9 @@ import tempfile
 
 from boucle_noyau.session import kit, ligne_carnet
 
-__all__ = ["commiter", "git_revert", "tete_de", "arbre_propre", "brancher", "mettre_de_cote", "cause_de_refus",
-    "exclure_worktrees", "ecrire_ligne", "suivre", "dossier_de_traces"
+__all__ = [
+    "arbre_propre", "brancher", "cause_de_refus", "commiter", "dossier_de_traces", "ecrire_ligne",
+    "exclure_worktrees", "git_revert", "mettre_de_cote", "suivre", "tete_de",
 ]
 
 

@@ -9,8 +9,9 @@ import carnet
 
 from boucle_noyau.session import COUPEES, REFUS_MAX, kit, ligne_carnet, mesure_kit
 
-__all__ = ["CarteGardee", "verdict_de", "tentatives", "garde_de", "noter_arret", "verification_de", "lire_todo",
-    "bloquant", "lire_reprise"
+__all__ = [
+    "CarteGardee", "bloquant", "garde_de", "lire_reprise", "lire_todo", "noter_arret", "tentatives", "verdict_de",
+    "verification_de",
 ]
 
 

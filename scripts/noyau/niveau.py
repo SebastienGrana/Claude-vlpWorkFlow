@@ -11,10 +11,19 @@ import io
 import json
 import os
 import re
-import noyau.relecture   # `noyau.relecture.<nom>` : un test remplace ce nom là (REF46)
 
+import noyau.relecture  # `noyau.relecture.<nom>` : un test remplace ce nom là (REF46)
 from noyau import etat
-from noyau.facade import coeur
+from noyau.carte import equipe, fichier_courant, trouver
+from noyau.clos import (
+    GABARIT_FEUILLE,
+    RANG_CLOS,
+    ecrire_couts,
+    lignes_clos,
+    migrer_clos,
+    migrer_feuille,
+    textes_visibles,
+)
 from noyau.commun import (
     COURANT,
     TITRE,
@@ -25,30 +34,30 @@ from noyau.commun import (
     lire,
     tampon_neuf,
 )
-from noyau.carte import (equipe, fichier_courant, trouver)
-from noyau.page import (empreinte, noter_publie)
-from noyau.notes import (cmd_page, cmd_renvois, page_du_fichier)
-from noyau.feuille import (MONO, champ, couts_du_projet, feuille, lettre_de, page_feuille, zone, zone_todo)
-from noyau.clos import (
-    GABARIT_FEUILLE,
-    RANG_CLOS,
-    ecrire_couts,
-    lignes_clos,
-    migrer_clos,
-    migrer_feuille,
-    textes_visibles,
+from noyau.facade import coeur
+from noyau.feuille import (
+    MONO,
+    champ,
+    couts_du_projet,
+    feuille,
+    lettre_de,
+    page_feuille,
+    zone,
+    zone_todo,
 )
-from noyau.relecture import (etat_git)
+from noyau.notes import cmd_page, cmd_renvois, page_du_fichier
+from noyau.page import empreinte, noter_publie
+from noyau.relecture import etat_git
 
 # Ce que la façade ré-exporte : les noms d'avant la découpe (photo de `tests/test_noms_publics.py`). Les décisions
 # sorties de Git par REF47 — `source_ignore` — se lisent ici seulement.
 __all__ = [
-    "TEXTE_LIMITE", "MARGE_TACHE", "dossier_artefacts", "entrees_attente", "texte_attente", "lire_attente",
-    "ecrire_attente", "ajouter_attente", "retirer_attente", "lignes_attente", "attentes_de_nuit", "noter_attentes",
-    "dire_attentes", "page_relative", "remise_a_zero", "cmd_attente", "noter_joints", "cmd_attente_hook",
-    "PLAGE_TEXTE", "cmd_comparer", "markdown_brut", "VARIABLE", "PORTEUSE", "TITRE_CLOS", "capte",
-    "variables_citees", "table_des_clos", "FICHIER_MD", "entete_clos", "sans_table_des_clos", "cmd_niveau",
-    "etapes_niveau", "CHEMIN_MACHINE", "ecarts_git", "retirer_clos", "poser_ouverture", "retirer_ligne_courant",
+    "CHEMIN_MACHINE", "FICHIER_MD", "MARGE_TACHE", "PLAGE_TEXTE", "PORTEUSE", "TEXTE_LIMITE", "TITRE_CLOS",
+    "VARIABLE", "ajouter_attente", "attentes_de_nuit", "capte", "cmd_attente", "cmd_attente_hook", "cmd_comparer",
+    "cmd_niveau", "dire_attentes", "dossier_artefacts", "ecarts_git", "ecrire_attente", "entete_clos",
+    "entrees_attente", "etapes_niveau", "lignes_attente", "lire_attente", "markdown_brut", "noter_attentes",
+    "noter_joints", "page_relative", "poser_ouverture", "remise_a_zero", "retirer_attente", "retirer_clos",
+    "retirer_ligne_courant", "sans_table_des_clos", "table_des_clos", "texte_attente", "variables_citees",
 ]
 
 
@@ -154,9 +163,9 @@ def page_relative(artefacts, page):
 def remise_a_zero(maintenant):
     """(remise à zéro, tâche planifiée) : le prochain minuit UTC après `maintenant`, puis
     `MARGE_TACHE` plus tard, dans le fuseau de `maintenant`."""
-    utc = maintenant.astimezone(datetime.timezone.utc)
+    utc = maintenant.astimezone(datetime.UTC)
     zero = datetime.datetime.combine(utc.date() + datetime.timedelta(days=1), datetime.time(),
-                                     tzinfo=datetime.timezone.utc)
+                                     tzinfo=datetime.UTC)
     return zero.astimezone(maintenant.tzinfo), (zero + MARGE_TACHE).astimezone(maintenant.tzinfo)
 
 
@@ -251,7 +260,7 @@ def cmd_attente_hook(entree, sortie, maintenant=None):
     url = outil.get("url")
     ajouter_attente(artefacts, page, url if isinstance(url, str) and url else "aucune",
                     maintenant.isoformat(timespec="minutes"))
-    jour = maintenant.astimezone(datetime.timezone.utc).date().isoformat()
+    jour = maintenant.astimezone(datetime.UTC).date().isoformat()
     if not tampon_neuf("vlp-attente-%s-%s" % (hashlib.sha1(racine.encode("utf-8")).hexdigest()[:16], jour)):
         return 0
     zero, tache = remise_a_zero(maintenant)
@@ -453,8 +462,8 @@ def cmd_niveau(a, sortie):
             sortie.write("ÉCART: feuille: feuille de route introuvable : %s — le gabarit la pose\n" % page)
     else:
         for present, manque, pose in (
-                (migre != html, "le bloc repliable des chantiers clos manque, et son estimation en"
-                                " dollars — le gabarit les a", "bloc repliable des chantiers clos posé"),
+                (migre != html, ("le bloc repliable des chantiers clos manque, et son estimation en"
+                                " dollars — le gabarit les a"), "bloc repliable des chantiers clos posé"),
                 (neuf != migre, "écart — « vlp.py feuille %s » la régénère" % projet, "régénérée")):
             if not present:
                 continue
@@ -479,11 +488,11 @@ def cmd_niveau(a, sortie):
     courant = coeur.courant_a_compter(projet, sortie)
     if courant:
         fichier = chemin_garde(os.path.join(projet, courant), "fichier de fiches courant", courant)
-        code, lignes = capte(cmd_page, argparse.Namespace(
+        _code, lignes = capte(cmd_page, argparse.Namespace(
             fichier=fichier, page=page_du_fichier(fichier), note=None, journal=None,
             creer=False, projet=None, titre=None, resultat=None, verifier=True, date=None, forme=False))
         for l in lignes:
-            if l.startswith("ÉCART: ") or l.startswith("GARDE: "):
+            if l.startswith(("ÉCART: ", "GARDE: ")):
                 ecarts += 1
                 sortie.write("ÉCART: page: %s\n" % l[7:])
 

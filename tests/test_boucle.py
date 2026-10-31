@@ -12,9 +12,30 @@ from typing import Any
 import carnet
 import pytest
 from aides import SCRIPTS
-from aides_boucle import (FAUX_CLAUDE, OPUS, REPLI, SONNET, autorises, bmod, boucle, carnet_de, cases_de, depot,
-                          drapeau, faux, git, journal_de, lancer, lire, nuit, pilote, projet, tours_de, verdict_de,
-                          verifier)
+from aides_boucle import (
+    FAUX_CLAUDE,
+    OPUS,
+    REPLI,
+    SONNET,
+    autorises,
+    bmod,
+    boucle,
+    carnet_de,
+    cases_de,
+    depot,
+    drapeau,
+    faux,
+    git,
+    journal_de,
+    lancer,
+    lire,
+    nuit,
+    pilote,
+    projet,
+    tours_de,
+    verdict_de,
+    verifier,
+)
 
 
 def test_simple():
@@ -61,7 +82,7 @@ def test_simple():
 def test_faux():
     """Jouer le faux `claude` lui-même : un rôle par prompt, un pilote par variable (NUI2)."""
     # Le premier test qui passe par la ligne `return 2  # prompt inconnu` du faux : un mutant qui la change tombe ici.
-    r = subprocess.run([sys.executable, FAUX_CLAUDE, "-p", "bonjour"], capture_output=True, text=True, encoding="utf-8")
+    r = subprocess.run([sys.executable, FAUX_CLAUDE, "-p", "bonjour"], capture_output=True, text=True, encoding="utf-8", check=False)
     verifier("faux : prompt inconnu → code 2",
              r.returncode == 2 and len(r.stderr.strip().splitlines()) == 1 and r.stdout == "", (r.returncode, r.stdout, r.stderr))
 
@@ -295,7 +316,7 @@ def test_nuit():
         code, s = nuit(t, "--chantier", "X")
         verifier("NUI3 : --nuit sans --canal est refusé (code 2)", code == 2 and "--nuit exige" in s, s)
         r = subprocess.run([sys.executable, os.path.join(SCRIPTS, "boucle.py"), t, "--claude", FAUX_CLAUDE],
-                           capture_output=True, text=True, encoding="utf-8")
+                           capture_output=True, text=True, encoding="utf-8", check=False)
         verifier("NUI3 : sans --nuit, --plafond reste exigé (code 2)",
                  r.returncode == 2 and "--plafond est exigé" in r.stderr, r.stderr)
 
@@ -306,7 +327,7 @@ def test_plafonds():
 
     with tempfile.TemporaryDirectory() as t:
         projet(t)
-        code, s, cases = boucle(t, FAUX_CLAUDE, 1)
+        code, s, _cases = boucle(t, FAUX_CLAUDE, 1)
         verifier("NUI4 (a) sans --nuit : ni --max-turns, ni --session-id, ni --permission-prompts, ni --fallback-model, "
                  "ni --max-budget-usd",
                  code == 0 and "joué F1 · -p," in s and not any(

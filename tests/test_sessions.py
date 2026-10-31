@@ -6,6 +6,7 @@ import datetime
 import io
 import json
 import os
+import pathlib
 import re
 import shutil
 import subprocess
@@ -62,7 +63,7 @@ def transcript_marque(chemin, marque, heures):
     """`transcript`, précédé d'une ligne `user` à la marque `turnOrigin` donnée (aucune si None), à la première heure (ESH)."""
     transcript(chemin, len(heures), heures)
     if marque:
-        iso = datetime.datetime.fromtimestamp(heures[0], datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z")
+        iso = datetime.datetime.fromtimestamp(heures[0], datetime.UTC).strftime("%Y-%m-%dT%H:%M:%S.000Z")
         with open(chemin, encoding="utf-8") as f:
             suite = f.read()
         with open(chemin, "w", encoding="utf-8") as f:
@@ -111,7 +112,7 @@ def test_cout_sous_agent_nomme(tmp_path, init_git):
                                     ("a3", "Lis ceci", [280])):
             chemin = os.path.join(t, "s", "subagents", "agent-%s.jsonl" % nom)
             transcript(chemin, len(heures), [T0 + h for h in heures])
-            iso = datetime.datetime.fromtimestamp(T0 + heures[0], datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z")
+            iso = datetime.datetime.fromtimestamp(T0 + heures[0], datetime.UTC).strftime("%Y-%m-%dT%H:%M:%S.000Z")
             suite = lire(chemin)
             ecrire(chemin, json.dumps({"type": "user", "timestamp": iso,
                                        "message": {"role": "user", "content": prompt}}) + "\n" + suite)
@@ -210,7 +211,7 @@ def test_commit_au_titre(tmp_path, init_git):
                            capture_output=True, env=dict(env, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date))
         code, s = appel(["clore", d4, "--livre", "fini", "--date", "2026-10-17"])
         assert (code == 0 and "CLOS Q " in s and "· chantier 800 000 ·" in s and "joué 2 fiches 4,00 $" in s
-                 and "non mesuré" not in open(os.path.join(d4, "ctx", "q.md"), encoding="utf-8").read()), ("dette GAI : clore sans page de chantier écrit le total mesuré, pas « non mesuré »") + "\n" + str(s)
+                 and "non mesuré" not in pathlib.Path(os.path.join(d4, "ctx", "q.md")).read_text(encoding="utf-8")), ("dette GAI : clore sans page de chantier écrit le total mesuré, pas « non mesuré »") + "\n" + str(s)
 
 
 def test_cout_session(tmp_path):
@@ -385,8 +386,8 @@ def test_essais_hors_bac(tmp_path):
                             "(ESH)" % parti]), ("ESH : un seul essai signalé, e1 — ni bac, ni déclaré, ni nuit, ni l'app, ni parti après la session ; "
                  "la commande qui le déclare — mutant : le filtre du bac retiré") + "\n" + str(gardes)
         assert (coupe == []), ("ESH : un essai parti avant les bornes de la plage n'est pas signalé") + "\n" + str(coupe)
-        assert (sans == ["GARDE: aucune séance de la plage ne porte la marque turnOrigin — un essai claude -p hors bac "
-                          "n'y serait pas vu (marque interne, non documentée ; ESH)"] and avant == []), ("ESH : une session récente sans marque turnOrigin, une GARDE ; d'avant la marque, rien") + "\n" + str((sans, avant))
+        assert (sans == [("GARDE: aucune séance de la plage ne porte la marque turnOrigin — un essai claude -p hors bac "
+                          "n'y serait pas vu (marque interne, non documentée ; ESH)")] and avant == []), ("ESH : une session récente sans marque turnOrigin, une GARDE ; d'avant la marque, rien") + "\n" + str((sans, avant))
         assert (code == 0 and s.splitlines()[-1] == gardes[0]), ("ESH : cout imprime la GARDE en dernière ligne, sort 0") + "\n" + str(s)
 
 
@@ -472,7 +473,7 @@ def test_clos_sans_commit(tmp_path, init_git):
 
 
 def horodate(d):
-    return datetime.datetime.fromtimestamp(T0 + d, datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z")
+    return datetime.datetime.fromtimestamp(T0 + d, datetime.UTC).strftime("%Y-%m-%dT%H:%M:%S.000Z")
 
 
 def tour_compteur(d, n, *blocs):
@@ -586,8 +587,8 @@ def test_compteur_lecture(tmp_path):
     assert ((mesure_["suites"], mesure_["garde_fous"]) == ([3, 1], [1, 1, 1, 1, 1])), ("compteur : les garde-fous lus là où ils disent vrai, les suites jugées sur leur verdict") + "\n" + str(mesure_)
     assert (mod.ligne_compteur("tout", mesure_, (0, 14, Decimal("7.00"), 1)) == "tout · durée - · " + TOUT_COMPTEUR), ("compteur : la ligne en minutes, chaque total juste à la minute (plus gros restes)") + "\n" + str(mod.ligne_compteur("tout", mesure_, (0, 14, Decimal("7.00"), 1)))
     vide = m.Journal(users=3)
-    assert (mod.manques([("a/s.jsonl", vide)]) == ["AVERTISSEMENT: s.jsonl : 3 ligne(s) user, aucune avec origin — "
-                                                    "l'attente tombe au reste"]), ("compteur : manques — une session sans origin, rien de tapé ne se lit, ça se dit") + "\n" + str(mod.manques([("a/s.jsonl", vide)]))
+    assert (mod.manques([("a/s.jsonl", vide)]) == [("AVERTISSEMENT: s.jsonl : 3 ligne(s) user, aucune avec origin — "
+                                                    "l'attente tombe au reste")]), ("compteur : manques — une session sans origin, rien de tapé ne se lit, ça se dit") + "\n" + str(mod.manques([("a/s.jsonl", vide)]))
     agent = os.path.join("s", "subagents", "agent-a.jsonl")
     evenements = [(T0 + 5, m.MODELE, None), (T0 + 2000, m.MODELE, None)]
     assert ((m.tranche(agent, evenements, (T0, T0 + 10)), m.tranche(agent, evenements, (T0 + 10, T0 + 9000)))
@@ -670,10 +671,10 @@ def test_compteur_commande(tmp_path, init_git):
     lignes = ["AVERTISSEMENT: sss.jsonl : 1 ligne(s) de message sans heure, hors du temps",
               "AVERTISSEMENT: sss.jsonl : 1 sortie(s) sans appel connu, rangée(s) au reste",
               mod.ENTETE_COMPTEUR % 30,
-              "Q1 · durée 17 · actif 16 = modèle 2 + outils 12 + attente 1 + autre 1 · outils : suite 6 (2), --seul 0 "
+              ("Q1 · durée 17 · actif 16 = modèle 2 + outils 12 + attente 1 + autre 1 · outils : suite 6 (2), --seul 0 "
               "(1), test-boucle 0 (0), mutant 4 (1), pyright 0 (0), Git 0 (0), publication 0 (0), relance 0 (0), reste 2 "
               "(4) · 12 tours · 6,00 $ · garde-fous : suites 1/3, ÉCART 1, MUTANT ATTRAPÉ 1, GARDE 1, relecteur 1 ACCEPTÉE + 1 "
-              "REFUSÉE", q2, "hors fiches · durée - · " + rien % (0, 0, 0, "0,00"),
+              "REFUSÉE"), q2, "hors fiches · durée - · " + rien % (0, 0, 0, "0,00"),
               "TOTAL (fiches + hors fiches) · durée - · " + TOUT_COMPTEUR]
     assert (rendus[0] == (0, "\n".join(lignes) + "\n")), ("compteur : une ligne par fiche aux plages de cout, hors fiches, TOTAL — l'écart à cheval sur un commit "
              "ne compte nulle part") + "\n" + str(rendus[0][1])

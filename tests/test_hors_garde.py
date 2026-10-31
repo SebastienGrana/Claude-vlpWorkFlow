@@ -4,6 +4,7 @@ dit — migré de `tester_ref41_hors_garde` (l'ancienne suite maison, REF56). RE
 octets, un fichier CRLF ou latin-1 y garde ses octets ; un correctif que `git apply --check` rejette est `PERDU`.
 """
 import os
+import pathlib
 import re
 import shutil
 import subprocess
@@ -15,14 +16,14 @@ pytestmark = pytest.mark.skipif(shutil.which("git") is None, reason="git absent 
 
 
 def git(d, *args):
-    r = subprocess.run(["git"] + list(args), cwd=d, capture_output=True, encoding="utf-8", errors="replace")
+    r = subprocess.run(["git"] + list(args), cwd=d, capture_output=True, encoding="utf-8", errors="replace", check=False)
     if r.returncode:
         raise RuntimeError("git %s : %s" % (" ".join(args), r.stderr))
     return r.stdout
 
 
 def code_git(d, *args):
-    return subprocess.run(["git"] + list(args), cwd=d, capture_output=True).returncode
+    return subprocess.run(["git"] + list(args), cwd=d, capture_output=True, check=False).returncode
 
 
 def commit(d, message):
@@ -81,7 +82,7 @@ def test_ref56_crlf_et_latin1_gardent_leurs_octets(tmp_path):
     n, correctif = garde(s)
     check = code_git(d, "apply", "--check", correctif) if correctif else None
     applique = code_git(d, "apply", correctif) if check == 0 else None
-    rendus = {nom: open(os.path.join(d, nom), "rb").read() for nom in neufs}
+    rendus = {nom: pathlib.Path(os.path.join(d, nom)).read_bytes() for nom in neufs}
     assert code == 0 and n == "2" and "PERDU" not in s and check == 0 and applique == 0 and rendus == neufs, (
         "REF56 : un CRLF et un latin-1 hors commit → GARDÉ 2, git apply --check passe, octets rendus exacts"
         + " · %r" % ((code, s, check, applique, rendus),))

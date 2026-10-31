@@ -48,7 +48,7 @@ def test_porte_motif():
 def lancer_pytest(*args, **env):
     """Lancer pytest sur ce kit avec `args`, sous les variables `env` en plus ; rendre (code de sortie, sortie)."""
     r = subprocess.run([sys.executable, "-m", "pytest", "-q", *args], cwd=RACINE, capture_output=True,
-                       encoding="utf-8", errors="replace", env=dict(os.environ, PYTHONIOENCODING="utf-8", **env))
+                       encoding="utf-8", errors="replace", env=dict(os.environ, PYTHONIOENCODING="utf-8", **env), check=False)
     return r.returncode, r.stdout + r.stderr
 
 

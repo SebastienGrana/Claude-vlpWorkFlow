@@ -6,6 +6,7 @@
 import io
 import json
 import os
+import pathlib
 import re
 import shutil
 import tempfile
@@ -54,9 +55,9 @@ GABARIT_VLPCSS = os.path.join(ICI, "..", "templates", "vlp.css")
 
 
 def feuille_ancienne():
-    css = "".join(l for l in io.open(GABARIT_VLPCSS, encoding="utf-8").read().splitlines(True)
+    css = "".join(l for l in pathlib.Path(GABARIT_VLPCSS).read_text(encoding="utf-8").splitlines(True)
                   if not l.lstrip().startswith(("details.clos", ".resume-clos")))
-    gabarit = io.open(GABARIT_FEUILLE, encoding="utf-8").read()
+    gabarit = pathlib.Path(GABARIT_FEUILLE).read_text(encoding="utf-8")
     gabarit = gabarit.replace('<link rel="stylesheet" href="vlp.css">', "<style>\n%s</style>" % css)
     lignes = gabarit.splitlines(True)
     return "".join(l for l in lignes
@@ -120,7 +121,7 @@ def test_idx1(tmp_path):
                "| Fichier | Lire quand |\n|---|---|\n| `10-a.md` | chantier **clos** « A », `A1..A2` |\n")
         code, s = appel(["niveau", proj, "--ecrire", "--date", "2026-09-18"])
         assert ("CORRIGÉ: clos: table des chantiers clos retirée de CHANTIER.md:8" in s
-                 and "| ctx/10-a.md |" not in io.open(os.path.join(proj, "CHANTIER.md"), encoding="utf-8").read()), ("IDX1 : niveau retire la table des clos que l'archive nomme — mutant : ne lire que l'index") + "\n" + str(s)
+                 and "| ctx/10-a.md |" not in pathlib.Path(os.path.join(proj, "CHANTIER.md")).read_text(encoding="utf-8")), ("IDX1 : niveau retire la table des clos que l'archive nomme — mutant : ne lire que l'index") + "\n" + str(s)
 
     with tempfile.TemporaryDirectory(dir=tmp_path) as t:
         ecrire(os.path.join(t, "CHANTIER.md"), "- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n")

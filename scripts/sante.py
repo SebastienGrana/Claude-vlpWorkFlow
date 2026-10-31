@@ -226,7 +226,7 @@ def version_de(commande):
     """Rendre la version de ruff que lance `commande`, ou None s'il ne répond pas."""
     try:
         r = subprocess.run(commande + ["--version"], capture_output=True, encoding="utf-8", errors="replace",
-                           timeout=60)
+                           timeout=60, check=False)
     except (OSError, subprocess.SubprocessError):
         return None
     m = re.match(r"ruff (\S+)", r.stdout or "")
@@ -258,7 +258,7 @@ def lancer_ruff(commande, chemins):
         args += ["--config", "%s = 0" % reglage]
     try:
         r = subprocess.run(commande + args + list(chemins), capture_output=True, encoding="utf-8",
-                           errors="replace", timeout=600)
+                           errors="replace", timeout=600, check=False)
     except (OSError, subprocess.SubprocessError) as e:
         raise ValueError("ruff ne se lance pas : %s" % e) from e
     if r.returncode != 0:

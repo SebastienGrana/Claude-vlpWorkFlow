@@ -10,15 +10,18 @@ from collections.abc import Callable
 from typing import Any
 
 import carnet
-
 from noyau import etat
-from noyau.commun import (Absent, chemin_garde, cmd_archiver, lire, une_fois)
-from noyau.fiches import (cmd_cocher, cmd_commiter, cmd_extraire, cmd_lire, cmd_socle, cmd_valider)
-from noyau.carte import (cmd_carte)
-from noyau.sessions import (cmd_compteur, cmd_cout, cmd_essai, cmd_sessions)
-from noyau.page import (cmd_joints, cmd_lancables)
-from noyau.notes import (cmd_abri, cmd_etat, cmd_page, cmd_renvois, page_du_fichier)
-from noyau.feuille import (cmd_archive)
+from noyau.bac import (
+    cmd_bac,
+    cmd_claude,
+    cmd_kit_essai,
+    cmd_nuits_noter,
+    cmd_servir,
+    cmd_transcription,
+)
+from noyau.cahier import cmd_cahier
+from noyau.carte import cmd_carte
+from noyau.clore import cmd_clore, cmd_oter, cmd_ouverts, cmd_postit
 from noyau.clos import (
     cmd_lien,
     cmd_liens,
@@ -29,21 +32,39 @@ from noyau.clos import (
     cmd_vigile,
     cmd_vigile_hook,
 )
-from noyau.relecture import (cmd_equiper, cmd_lignes, cmd_relecture)
-from noyau.hooks import (REGLE, REGLES, cmd_contrat, cmd_filet, cmd_forme, cmd_gardien, cmd_hook)
-from noyau.niveau import (cmd_attente, cmd_attente_hook, cmd_comparer, cmd_niveau)
-from noyau.bac import (
-    cmd_bac,
-    cmd_claude,
-    cmd_kit_essai,
-    cmd_nuits_noter,
-    cmd_servir,
-    cmd_transcription,
+from noyau.commun import Absent, chemin_garde, cmd_archiver, lire, une_fois
+from noyau.feuille import cmd_archive
+from noyau.fiches import (
+    cmd_cocher,
+    cmd_commiter,
+    cmd_extraire,
+    cmd_lire,
+    cmd_socle,
+    cmd_valider,
 )
-from noyau.nuit import (CANAUX, GABARIT_CHOIX, cmd_chef_page, cmd_feuille, cmd_plan, cmd_trier)
-from noyau.clore import (cmd_clore, cmd_oter, cmd_ouverts, cmd_postit)
-from noyau.ouvrir import (cmd_ouvrir, cmd_pause, nombre_fiches)
-from noyau.matin import (cmd_fusionner, cmd_matin)
+from noyau.hooks import (
+    REGLE,
+    REGLES,
+    cmd_contrat,
+    cmd_filet,
+    cmd_forme,
+    cmd_gardien,
+    cmd_hook,
+)
+from noyau.matin import cmd_fusionner, cmd_matin
+from noyau.niveau import cmd_attente, cmd_attente_hook, cmd_comparer, cmd_niveau
+from noyau.notes import cmd_abri, cmd_etat, cmd_page, cmd_renvois, page_du_fichier
+from noyau.nuit import (
+    CANAUX,
+    GABARIT_CHOIX,
+    cmd_chef_page,
+    cmd_feuille,
+    cmd_plan,
+    cmd_trier,
+)
+from noyau.ordre import cmd_ordre
+from noyau.ouvrir import cmd_ouvrir, cmd_pause, nombre_fiches
+from noyau.page import cmd_joints, cmd_lancables
 from noyau.rapport import (
     cmd_apercu,
     cmd_mutant,
@@ -52,14 +73,14 @@ from noyau.rapport import (
     cmd_sante,
     cmd_symboles,
 )
-from noyau.ordre import (cmd_ordre)
-from noyau.cahier import (cmd_cahier)
+from noyau.relecture import cmd_equiper, cmd_lignes, cmd_relecture
+from noyau.sessions import cmd_compteur, cmd_cout, cmd_essai, cmd_sessions
 
 # Ce que la façade ré-exporte : les noms d'avant la découpe (photo de `tests/test_noms_publics.py`). `RENVOIS`,
 # `lire_arguments`, `page_gardee` et `fichier_garde`, posés par REF49 à la place de la chaîne de tests sur `a.cmd`, se lisent ici seulement.
 __all__ = [
-    "options_outils", "options_clore", "options_marques", "options_fusionner", "options_etat", "options_carte",
-    "options_mesure", "options_mutant", "options_sante", "main", "PAR_ARGUMENTS", "repartir",
+    "PAR_ARGUMENTS", "main", "options_carte", "options_clore", "options_etat", "options_fusionner",
+    "options_marques", "options_mesure", "options_mutant", "options_outils", "options_sante", "repartir",
 ]
 
 
@@ -407,7 +428,7 @@ def fichier_garde(lancer):
 
 
 # Chaque sous-commande vers sa fonction `(a, sortie, entree, erreur)` ; `main` la pose par `set_defaults(func=…)`.
-RENVOIS: dict[str, Callable[..., Any]] = {nom: (lambda f: lambda a, s, _e, _er: f(a, s))(f) for nom, f in PAR_ARGUMENTS.items()}
+RENVOIS: dict[str, Callable[..., Any]] = {nom: (lambda a, s, _e, _er, f=f: f(a, s)) for nom, f in PAR_ARGUMENTS.items()}
 RENVOIS.update({
     "lire": lambda a, s, _e, _er: cmd_lire(a.chemins, s),
     "archive": lambda a, s, _e, _er: cmd_archive(a.projet, a.url, s),

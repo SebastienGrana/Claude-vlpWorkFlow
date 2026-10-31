@@ -150,10 +150,10 @@ from typing import Any
 
 import carnet
 
-from boucle_noyau.session import *   # noqa: F403 — REF53 : boucle.py ré-exporte le code sorti
-from boucle_noyau.lecture import *   # noqa: F403
-from boucle_noyau.depot import *     # noqa: F403
-# ruff: noqa: F405 — les noms ré-exportés ci-dessus ; pyright, qui lit leur `__all__`, vérifie qu'ils existent
+# REF53 : boucle.py ré-exporte le code sorti ; pyright, qui lit le `__all__` de chaque module, vérifie les noms.
+from boucle_noyau.depot import *
+from boucle_noyau.lecture import *
+from boucle_noyau.session import *
 
 for _flux in (sys.stdout, sys.stderr):
     try:
@@ -185,7 +185,7 @@ def vlp(argv, dossier):
             code = k.main(argv, sortie, erreur=io.StringIO()) or 0
     except SystemExit as e:
         code = e.code if isinstance(e.code, int) else (0 if e.code is None else 1)
-    except Exception:   # un traceback : le sous-processus sortait 1
+    except Exception:  # noqa: BLE001 — un traceback : le sous-processus sortait 1, quelle que soit l'exception
         code = 1
     finally:
         os.chdir(ici)
@@ -389,7 +389,7 @@ def relire_et_relancer(claude, fiche, titre, fichier, racine, a, traces, n_refus
         t0 = time.time()
         s = jouer(claude, fiche, racine, a, trace, role="relance",
                   controle=functools.partial(case_cochee, fichier, fiche, racine),
-                  apres=lambda texte, issue, session: {"refus_n": n_refus, "cause": cause})
+                  apres=lambda texte, issue, session, n_refus=n_refus, cause=cause: {"refus_n": n_refus, "cause": cause})
         tot[0], tot[1] = tot[0] + s["tours"], tot[1] + s["cout"]
         print("FICHE %s · CASE [%s] · tours %d · %.4f $ · %d s (relance)"
               % (fiche, "x" if s["ok"] else " ", s["tours"], s["cout"], int(time.time() - t0)))

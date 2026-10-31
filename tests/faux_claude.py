@@ -42,7 +42,6 @@ import subprocess
 import sys
 import time
 import uuid
-from typing import Optional
 
 for _flux in (sys.stdout, sys.stderr):
     try:
@@ -86,7 +85,7 @@ def inconnu(raison: str) -> int:
     return 2  # prompt inconnu
 
 
-def valeur(argv: list, option: str) -> Optional[str]:
+def valeur(argv: list, option: str) -> str | None:
     return argv[argv.index(option) + 1] if option in argv and argv.index(option) + 1 < len(argv) else None
 
 
@@ -104,15 +103,15 @@ def ecrire(chemin: str, texte: str) -> None:
         f.write(texte)
 
 
-def postit() -> Optional[str]:
+def postit() -> str | None:
     """Le post-it du dossier courant, `git rev-parse --git-path vlp-chantier` — celui qu'écrit `vlp.py ouvrir` —,
     ou None hors Git (NUI23)."""
     r = subprocess.run(["git", "rev-parse", "--git-path", "vlp-chantier"], capture_output=True, text=True,
-                       encoding="utf-8")
+                       encoding="utf-8", check=False)
     return r.stdout.strip() if r.returncode == 0 and r.stdout.strip() else None
 
 
-def courant() -> Optional[str]:
+def courant() -> str | None:
     """Le fichier de fiches courant du cwd : le post-it d'abord, comme `courant_de` (vlp.py) ; sinon le seul fichier
     du contexte ouvert — titre `# Chantier `, `**Ouvert.**`, ni `**CLOS**` ni `**Pause.**` (NUI31)."""
     p = postit()
@@ -132,7 +131,7 @@ def courant() -> Optional[str]:
     return ouverts[0] if len(ouverts) == 1 else None
 
 
-def resultat(sid: str, modele: Optional[str], cout: float, **champs) -> dict:
+def resultat(sid: str, modele: str | None, cout: float, **champs) -> dict:
     r = {"type": "result", "subtype": "success", "is_error": False, "duration_ms": 0, "num_turns": TOURS,
          "session_id": sid, "total_cost_usd": cout, "permission_denials": [],
          "modelUsage": {modele: {"costUSD": cout}} if modele else {}}
@@ -169,7 +168,7 @@ def decouper(code: str) -> int:
     return 0
 
 
-def jouer(fiche: str, session: Optional[str] = None) -> int:
+def jouer(fiche: str, session: str | None = None) -> int:
     fichier = courant()
     if not fichier:
         return inconnu("aucun fichier de fiches courant")
@@ -182,14 +181,14 @@ def jouer(fiche: str, session: Optional[str] = None) -> int:
     corps = re.search(r"<!-- FICHE:%s -->(.*?)<!-- /FICHE -->" % re.escape(fiche), lire(fichier), re.S)
     resolu = ["--resolu", "faux claude"] if corps and "**Tentatives**" in corps.group(1) else []
     r = subprocess.run([sys.executable, vlp, "cocher", fichier, fiche] + resolu, capture_output=True, text=True,
-                       encoding="utf-8", env=env)
+                       encoding="utf-8", env=env, check=False)
     if r.returncode:
         sys.stderr.write((r.stdout + r.stderr).strip() + "\n")
         return 2
     if fiche in os.environ.get("VLP_FAUX_COMMIT", "").split(","):
         # La session de jeu qui commite malgré tout : le cas `TÊTE` de la boucle.
         for git in (["add", "-A"], ["commit", "-q", "-m", "%s : fiche %s" % (fiche, fiche)]):
-            r = subprocess.run(["git"] + git, capture_output=True, text=True, encoding="utf-8")
+            r = subprocess.run(["git"] + git, capture_output=True, text=True, encoding="utf-8", check=False)
             if r.returncode:
                 sys.stderr.write((r.stdout + r.stderr).strip() + "\n")
                 return 2
@@ -197,7 +196,7 @@ def jouer(fiche: str, session: Optional[str] = None) -> int:
         fermer()   # la session de jeu qui clôt le chantier : le cas `cloture-hors-role` de la boucle d'un canal
     if fiche in os.environ.get("VLP_FAUX_CASSE", "").split(","):
         ecrire("CASSE", "casse\n")
-        r = subprocess.run(["git", "add", "CASSE"], capture_output=True, text=True, encoding="utf-8")
+        r = subprocess.run(["git", "add", "CASSE"], capture_output=True, text=True, encoding="utf-8", check=False)
         if r.returncode:
             sys.stderr.write((r.stdout + r.stderr).strip() + "\n")
             return 2
@@ -226,14 +225,14 @@ def clore() -> int:
     if os.environ.get("VLP_FAUX_CLORE") == "commit":
         # La session de clôture commite, `cloture.md:72` : le sujet n'est pas celui d'une fiche.
         for git in (["add", "-A"], ["commit", "-q", "-m", "Chantier %s clos : faux" % code]):
-            r = subprocess.run(["git"] + git, capture_output=True, text=True, encoding="utf-8")
+            r = subprocess.run(["git"] + git, capture_output=True, text=True, encoding="utf-8", check=False)
             if r.returncode:
                 sys.stderr.write((r.stdout + r.stderr).strip() + "\n")
                 return 2
     return 0
 
 
-def verdict(mots: list) -> Optional[str]:
+def verdict(mots: list) -> str | None:
     """Le texte de relire, ou None : le prompt n'est pas `<fiche> [--sha <sha>]`."""
     if not (len(mots) == 1 or (len(mots) == 3 and mots[1] == "--sha")):
         return None
@@ -258,7 +257,7 @@ def verdict(mots: list) -> Optional[str]:
     return texte
 
 
-def coupe(role: str, mots: list) -> Optional[int]:
+def coupe(role: str, mots: list) -> int | None:
     """Le code de sortie de la session que VLP_FAUX_COUPE coupe, ou None : l'entrée qui désigne cette session."""
     cible = {"jouer": mots[-1], "relire": "relire:%s" % mots[0], "découper": "découper:%s" % mots[-1], "clore": "clore"}[role]
     for entree in os.environ.get("VLP_FAUX_COUPE", "").split(","):

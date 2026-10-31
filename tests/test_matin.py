@@ -57,7 +57,7 @@ def ouvert(texte):
 
 
 def git_matin(d, *args):
-    r = subprocess.run(["git"] + list(args), cwd=d, capture_output=True, encoding="utf-8", errors="replace")
+    r = subprocess.run(["git"] + list(args), cwd=d, capture_output=True, encoding="utf-8", errors="replace", check=False)
     if r.returncode:
         raise RuntimeError("git %s : %s" % (" ".join(args), r.stderr))
     return r.stdout
@@ -65,7 +65,7 @@ def git_matin(d, *args):
 
 
 def code_git(d, *args):
-    return subprocess.run(["git"] + list(args), cwd=d, capture_output=True).returncode
+    return subprocess.run(["git"] + list(args), cwd=d, capture_output=True, check=False).returncode
 
 
 
@@ -381,8 +381,8 @@ def matin_n_b(tr, fab):
     """(b) 5d7fc42 : A et B ajoutent un bloc au journal, en fin de fichier."""
     d = os.path.join(tr, "nj")
     depot_nui16(fab, d)
-    a = branche_matin(d, "A", "AAA", "AAA", 1, modifs=retoucher(ETAT, lambda t: t + "## 2026-10-01 — AAA\nbloc de A\n"))
-    b = branche_matin(d, "B", "BBB", "BBB", 2, modifs=retoucher(ETAT, lambda t: t + "## 2026-10-01 — BBB\nbloc de B\n"))
+    branche_matin(d, "A", "AAA", "AAA", 1, modifs=retoucher(ETAT, lambda t: t + "## 2026-10-01 — AAA\nbloc de A\n"))
+    branche_matin(d, "B", "BBB", "BBB", 2, modifs=retoucher(ETAT, lambda t: t + "## 2026-10-01 — BBB\nbloc de B\n"))
     code, s = appel(["matin", d, JOUR_MATIN])
     etat = lire(os.path.join(d, ETAT))
     assert (code == 0 and s.endswith("MATIN 2 fusionnée(s) · 0 de côté\n") and "<<<<<<<" not in etat
@@ -396,10 +396,10 @@ def matin_n_c(tr, fab):
     """(c) CLAUDE.md à `CLOS_GARDES` lignes « Clos le » : A et B en closent un chacun ; le reste de chacun change aussi."""
     d = os.path.join(tr, "nk")
     depot_nui16(fab, d, {"CLAUDE.md": CLAUDE_NUI16})
-    a = branche_matin(d, "A", "AAA", "AAA", 1,
-                      modifs=retoucher("CLAUDE.md", lambda t: resumee("AAA", "fait A")(t).replace("le kit tient.", "le kit tient, A.")))
-    b = branche_matin(d, "B", "BBB", "BBB", 2,
-                      modifs=retoucher("CLAUDE.md", lambda t: resumee("BBB", "fait B")(t).replace("1. une règle.", "1. une règle, B.")))
+    branche_matin(d, "A", "AAA", "AAA", 1,
+                  modifs=retoucher("CLAUDE.md", lambda t: resumee("AAA", "fait A")(t).replace("le kit tient.", "le kit tient, A.")))
+    branche_matin(d, "B", "BBB", "BBB", 2,
+                  modifs=retoucher("CLAUDE.md", lambda t: resumee("BBB", "fait B")(t).replace("1. une règle.", "1. une règle, B.")))
     code, s = appel(["matin", d, JOUR_MATIN])
     claude = lire(os.path.join(d, "CLAUDE.md"))
     clos = [l for l in claude.splitlines() if mod.ENTREE_CLOS.match(l)]

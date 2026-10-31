@@ -2,8 +2,8 @@
 l'ancienne suite maison (REF51). Chaque `assert` garde le libellé d'origine de son `verifier` en tête de son message
 (REF5), puis le diagnostic.
 """
-import io
 import os
+import pathlib
 import re
 import shutil
 import subprocess
@@ -50,7 +50,7 @@ OUVERT_DU_JOUR = mod.OUVERT_LIGNE % __import__("datetime").date.today().isoforma
 def test_ouvrir(tmp_path):
     """Contrôler `ouvrir` : bilan, fichier de fiches posé, ligne de l'état."""
     with tempfile.TemporaryDirectory(dir=tmp_path) as t:
-        lire = lambda c: open(c, encoding="utf-8").read()
+        lire = lambda c: pathlib.Path(c).read_text(encoding="utf-8")
         os.environ["CLAUDE_CODE_SESSION_ID"] = "cadre"     # la session du cadrage, que `ouvrir` note
         carte_o = ("# C\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n"
                    "- **artefact du chantier** : %s\n")
@@ -137,7 +137,7 @@ def test_estime():
         # en tokens mais sans `$`, ne compte ni dans la somme ni dans les fiches de la moyenne — mutant :
         # la compter comme 0 $ ferait 4,00 $ sur 6 fiches, ≈0,67 $/fiche au lieu de ≈1,00 $/fiche. La
         # ligne non mesurable (E) ne compte pas non plus.
-        lire = lambda c: open(c, encoding="utf-8").read()
+        lire = lambda c: pathlib.Path(c).read_text(encoding="utf-8")
         os.environ["CLAUDE_CODE_SESSION_ID"] = ""
         rang = ('          <tr>\n            <td>x</td>\n            <td class="mono">%s</td><td class="mono">2026-01-01</td>\n'
                 '            <td class="mono">%s</td>\n            <td>y</td>\n          </tr>\n')
@@ -213,7 +213,7 @@ def test_estime():
         assert (code == 0
                  and " · estimé non noté · cadré 2 · joué 2 fiches ? $ — " in s and "stim" not in s.split("CLOS ")[0]
                  and "**Fait.** U1..U2 (2026-09-26) : fini — estimé non noté · cadré 2 · joué 2 fiches ? $.\n"
-                 in open(os.path.join(te, "ctx", "50-u.md"), encoding="utf-8").read()), ("EST2 : sans **Estimé.**, estimé non noté, réel ≈? $") + "\n" + str(s)
+                 in pathlib.Path(os.path.join(te, "ctx", "50-u.md")).read_text(encoding="utf-8")), ("EST2 : sans **Estimé.**, estimé non noté, réel ≈? $") + "\n" + str(s)
     # Le prix mesuré (le pondéré de la page, ici 12,34 $ pour 2 M tokens — la louche en dirait
     # ≈1,67 $) : au joué, et en tête de la cellule Tokens de la feuille ; inconnu, `? $` et une
     # cellule sans `$` (chantier TAU). Mutant : remettre `estimation_usd` au joué — le test tombe.
@@ -228,17 +228,20 @@ def test_estime():
                    "|---|---|---|---|---|\n| 3 | Trois | a | 2 fiches | — |\n\n## Journal\n")
             ecrire(os.path.join(te, "ctx", "50-u.md"), ouvert("# Chantier U — u\n\n**Estimé.** 3 fiches · ≈9,00 $ — ≈3,00 $/fiche sur 2 clos (le 2026-09-01).\n\n**Fait.** Rien.\n\n## U1 [x] — a\n"))
             ecrire(os.path.join(te, "ctx", "artefacts", "50-u.html"),
-                   open(os.path.join(ICI, "..", "templates", "artefact-chantier.html"), encoding="utf-8").read())
+                   pathlib.Path(os.path.join(ICI, "..", "templates", "artefact-chantier.html")).read_text(encoding="utf-8"))
             fdr = os.path.join(te, "ctx", "artefacts", "feuille-de-route.html")
-            ecrire(fdr, open(os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html"), encoding="utf-8").read())
+            ecrire(fdr, pathlib.Path(os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html")).read_text(encoding="utf-8"))
             regenerer_vrai = mod.noyau.page.regenerer
-            mod.noyau.page.regenerer = lambda *x, p=prix: (lambda r: r[:3] + ((2_000_000, 3, p), r[4]))(regenerer_vrai(*x))
+            def regenerer_faux(*x, p=prix, vrai=regenerer_vrai):
+                r = vrai(*x)
+                return r[:3] + ((2_000_000, 3, p), r[4])
+            mod.noyau.page.regenerer = regenerer_faux
             try:
                 code, s = appel(["clore", te, "--livre", "fini", "--date", "2026-09-26"])
             finally:
                 mod.noyau.page.regenerer = regenerer_vrai
             texte = "estimé 3 fiches ≈9,00 $ · cadré 1 · joué 1 fiches " + joue
-            lu = lambda c: open(c, encoding="utf-8").read()
+            lu = lambda c: pathlib.Path(c).read_text(encoding="utf-8")
             feuille = lu(fdr)
             assert (code == 0
                      and " · " + texte + " — " in s
@@ -296,8 +299,8 @@ def test_rep2_chevrons(tmp_path):
 """)
         ecrire(os.path.join(proj, "context AI", "00-index.md"), "| `a` | b |\n")
 
-        code, s = appel(["ouvrir", proj, "--fiches", "fiches.md", "--titre", "REP2", "--artefact", "<https://example.com/artifact>"])
-        carte = io.open(os.path.join(proj, "CHANTIER.md"), encoding="utf-8").read()
+        appel(["ouvrir", proj, "--fiches", "fiches.md", "--titre", "REP2", "--artefact", "<https://example.com/artifact>"])
+        carte = pathlib.Path(os.path.join(proj, "CHANTIER.md")).read_text(encoding="utf-8")
         assert ("- **artefact du chantier** : https://example.com/artifact" in carte), ("REP2 : ouvrir retire les chevrons de --artefact") + "\n" + str(carte)
 
         # Test 3 : cmd_ouvrir avec URL sans chevrons
@@ -319,13 +322,13 @@ def test_rep2_chevrons(tmp_path):
 """)
         ecrire(os.path.join(proj2, "context AI", "00-index.md"), "| `a` | b |\n")
 
-        code, s = appel(["ouvrir", proj2, "--fiches", "fiches.md", "--titre", "REP2b", "--artefact", "https://example.com/artifact"])
-        carte2 = io.open(os.path.join(proj2, "CHANTIER.md"), encoding="utf-8").read()
+        _code, _s = appel(["ouvrir", proj2, "--fiches", "fiches.md", "--titre", "REP2b", "--artefact", "https://example.com/artifact"])
+        carte2 = pathlib.Path(os.path.join(proj2, "CHANTIER.md")).read_text(encoding="utf-8")
         assert ("- **artefact du chantier** : https://example.com/artifact" in carte2), ("REP2 : ouvrir accepte une URL sans chevrons") + "\n" + str(carte2)
 
 
 def git_matin(d, *args):
-    r = subprocess.run(["git"] + list(args), cwd=d, capture_output=True, encoding="utf-8", errors="replace")
+    r = subprocess.run(["git"] + list(args), cwd=d, capture_output=True, encoding="utf-8", errors="replace", check=False)
     if r.returncode:
         raise RuntimeError("git %s : %s" % (" ".join(args), r.stderr))
     return r.stdout

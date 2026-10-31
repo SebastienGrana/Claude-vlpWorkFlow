@@ -7,26 +7,21 @@ import os
 import re
 import sys
 
+import noyau.page  # `noyau.page.<nom>` : un test remplace ce nom là
+import noyau.relecture  # `noyau.relecture.<nom>` : un test remplace ce nom là
 from noyau import etat
-from noyau.facade import coeur
-import noyau.page   # `noyau.page.<nom>` : un test remplace ce nom là
-import noyau.relecture   # `noyau.relecture.<nom>` : un test remplace ce nom là
-from noyau.commun import (Absent, TITRE, archiver, chemin_archive, lignes_de, lignes_du_projet, lire)
-from noyau.fiches import (CLOS_GARDES, VLP_PY)
-from noyau.carte import (equipe)
-from noyau.page import (
-    COMMIT_FICHE,
-    arrondi,
-    bilan_en_haut,
-    dollars,
-    esc,
-    ligne_files,
-    ligne_lire,
-    milliers,
-    recopier_joints,
-    total_sans_page,
+from noyau.carte import equipe
+from noyau.clos import ecrire_couts, lignes_clos, prix_clos, resommer, total_clos
+from noyau.commun import (
+    TITRE,
+    Absent,
+    archiver,
+    chemin_archive,
+    lignes_de,
+    lignes_du_projet,
+    lire,
 )
-from noyau.notes import (abri_de_page, chemin_abri, lire_abri, texte_abri)
+from noyau.facade import coeur
 from noyau.feuille import (
     LETTRES,
     bornes,
@@ -45,19 +40,32 @@ from noyau.feuille import (
     zone,
     zone_todo,
 )
-from noyau.clos import (ecrire_couts, lignes_clos, prix_clos, resommer, total_clos)
-from noyau.niveau import (attentes_de_nuit, noter_attentes)
+from noyau.fiches import CLOS_GARDES, VLP_PY
+from noyau.niveau import attentes_de_nuit, noter_attentes
+from noyau.notes import abri_de_page, chemin_abri, lire_abri, texte_abri
+from noyau.page import (
+    COMMIT_FICHE,
+    arrondi,
+    bilan_en_haut,
+    dollars,
+    esc,
+    ligne_files,
+    ligne_lire,
+    milliers,
+    recopier_joints,
+    total_sans_page,
+)
 
 # Ce que la façade ré-exporte : les noms d'avant la découpe (photo de `tests/test_noms_publics.py`). Les décisions
 # sorties de Git par REF48 — `textes_du_lot`, `blocs_worktrees`, `prefixes_joues` — se lisent ici seulement.
 __all__ = [
-    "CLOS_LIGNE", "OUVERT_LIGNE", "PAUSE_LIGNE", "MARQUE_OUVERT", "MARQUE_CLOS", "MARQUE_PAUSE", "ENTREE_CLOS",
-    "ROUTAGE_CLOS", "rang_routage_clos", "rang_routage_ouvrir", "ESTIME", "ESTIME_A_ECRIRE", "clos_a_couper",
-    "resume_claude", "ouverts", "migre", "poser_marque", "date_ouverture", "textes_contexte", "blobs_git",
-    "principal", "worktrees", "autres_worktrees", "ouverts_ailleurs", "chantiers_ailleurs", "code_et_tete",
-    "code_du_fichier", "codes_joues", "ecrire_ailleurs", "courant_a_compter", "branche_principale", "postit",
-    "courant_de", "courant_ou_rien", "cmd_ouverts", "cmd_postit", "rangee_todo", "oter_rangee", "ecrire_par_tmp",
-    "todo_de_clore", "refus_d_oter", "cmd_oter", "refus_de_clore", "cmd_clore",
+    "CLOS_LIGNE", "ENTREE_CLOS", "ESTIME", "ESTIME_A_ECRIRE", "MARQUE_CLOS", "MARQUE_OUVERT", "MARQUE_PAUSE",
+    "OUVERT_LIGNE", "PAUSE_LIGNE", "ROUTAGE_CLOS", "autres_worktrees", "blobs_git", "branche_principale",
+    "chantiers_ailleurs", "clos_a_couper", "cmd_clore", "cmd_oter", "cmd_ouverts", "cmd_postit", "code_du_fichier",
+    "code_et_tete", "codes_joues", "courant_a_compter", "courant_de", "courant_ou_rien", "date_ouverture",
+    "ecrire_ailleurs", "ecrire_par_tmp", "migre", "oter_rangee", "ouverts", "ouverts_ailleurs", "poser_marque",
+    "postit", "principal", "rang_routage_clos", "rang_routage_ouvrir", "rangee_todo", "refus_d_oter",
+    "refus_de_clore", "resume_claude", "textes_contexte", "todo_de_clore", "worktrees",
 ]
 
 
@@ -196,7 +204,7 @@ def blobs_git(specs, cwd):
     import subprocess
     try:
         r = subprocess.run([etat.GIT, "-c", "core.quotepath=false", "cat-file", "--batch"], cwd=cwd, capture_output=True,
-                           input="".join(s + "\n" for s in specs).encode("utf-8"), timeout=120)
+                           input="".join(s + "\n" for s in specs).encode("utf-8"), timeout=120, check=False)
     except (OSError, subprocess.SubprocessError):
         return [None] * len(specs)
     return [None] * len(specs) if r.returncode else textes_du_lot(r.stdout, len(specs))
@@ -642,9 +650,8 @@ def cmd_clore(a, sortie):
             if rang_routage_clos(cl) is None:
                 cl.insert(k, "%s `%s` — sa ligne y nomme le fichier de fiches |" % (ROUTAGE_CLOS, chemin_archive(index or "00-INDEX.md")))
             faits["routage"] = 1
-        if a.resume:
-            if resume_claude(cl, lettre, a.resume, date, gardes):
-                faits["résumé"] = 1
+        if a.resume and resume_claude(cl, lettre, a.resume, date, gardes):
+            faits["résumé"] = 1
         if faits["routage"] or faits.get("résumé"):
             ecritures.append((chemin_claude, "\n".join(cl) + "\n"))
 

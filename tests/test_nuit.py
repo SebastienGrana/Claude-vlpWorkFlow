@@ -6,6 +6,7 @@ import datetime
 import io
 import json
 import os
+import pathlib
 import re
 import subprocess
 import tempfile
@@ -72,12 +73,12 @@ def test_sommaire(tmp_path):
         ecrire(os.path.join(ts, "ctx", "08-etat.md"),
                "# État\n\n| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |\n|---|---|---|---|---|\n"
                "| 3 | Trois | a | 2 fiches | — |\n\n## Journal\n")
-        gabarit = io.open(os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html"), encoding="utf-8").read()
+        gabarit = pathlib.Path(os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html")).read_text(encoding="utf-8")
         sans = re.sub(r' id="(?:encours|todo|clos)"', "", gabarit.replace("\n" + mod.SOMMAIRE, ""))
         fdr = os.path.join(ts, "ctx", "artefacts", "feuille-de-route.html")
         ecrire(fdr, sans)
         code, s = appel(["feuille", ts, "--date", "2026-09-27"])
-        html = io.open(fdr, encoding="utf-8").read()
+        html = pathlib.Path(fdr).read_text(encoding="utf-8")
         noms = ("encours", "todo", "clos")
         assert (code == 0 and "sommaire" not in sans and 'id="' not in sans
                  and html.count('class="sommaire"') == 1 and html.count("<nav") == 1
@@ -310,7 +311,7 @@ def test_trier(tmp_path):
                  and "MARQUES DDD 5 : 🟡 1 · à trancher 1 · non mesuré 1 · %s 1 · push 1" % mod.MARQUE_VISUELLE in lignes), ("NUI10 : DDD porte les cinq marques, la visuelle en cellule 3 — ÉCARTÉE, MARQUES à 5 — mutant : cellule 3 retirée") + "\n" + str(s)
         assert (any(l.startswith("ÉCARTÉE FFF") for l in lignes) and any(l.startswith("ÉCARTÉE GGG") for l in lignes)), ("NUI10 : push en cellule 4 écarte FFF ; dépendance absente écarte GGG") + "\n" + str(s)
         assert (any(l.startswith("SOIR HHH") for l in lignes) and not any(l.startswith("SOIR III") for l in lignes)), ("NUI10 : SOIR pour HHH (~6 fiches), pas pour III (~½ fiche)") + "\n" + str(s)
-        assert (io.open(etat, encoding="utf-8").read() == "# État\n\n" + entete + lignes_todo + "\n## Journal\n"), ("NUI10 : trier n'écrit rien — le fichier d'état reste tel quel") + "\n" + ""
+        assert (pathlib.Path(etat).read_text(encoding="utf-8") == "# État\n\n" + entete + lignes_todo + "\n## Journal\n"), ("NUI10 : trier n'écrit rien — le fichier d'état reste tel quel") + "\n" + ""
         ecrire(etat, "# État\n\n" + entete + "| 1 | `AAA` — a | `sed x | sha256sum` | 2 fiches | — |\n\n## Journal\n")
         code, s = appel(["trier", tp])
         assert (code == 1 and s.startswith("GARDE: ligne 1 de la TODO")), ("NUI10 : une barre non échappée — GARDE, sort 1") + "\n" + str(s)
@@ -324,7 +325,7 @@ def test_trier_branche(tmp_path, init_git):
                "|---|---|---|---|---|\n| 1 | `AAA` — a | x | 1 fiche | — |\n\n## Journal\n")
         init_git(tb)
         code_main, s_main = appel(["trier", tb])
-        subprocess.run(["git", "switch", "-q", "-c", "nuit/x"], cwd=tb, capture_output=True)
+        subprocess.run(["git", "switch", "-q", "-c", "nuit/x"], cwd=tb, capture_output=True, check=False)
         code, s = appel(["trier", tb])
         assert (code_main == 0 and code == 1 and len(s.splitlines()) == 1 and s.startswith("GARDE: trier hors de main")), ("BRA1 : trier sort 0 sur main, 1 sur nuit/x — une seule ligne, GARDE: trier hors de main") + "\n" + str("%s\n%s" % (s_main, s))
 
@@ -347,7 +348,7 @@ def test_fichier_nuits(tmp_path, init_git):
         ecrire(os.path.join(tp, "ctx", "00-INDEX.md"), indice)
         ecrire(os.path.join(tp, "ctx", "08-etat.md"), "# État\n\n" + entete + "| 1 | `AAA` — a | x | 1 fiche | — |\n\n## Journal\n")
         ecrire(os.path.join(tp, "ctx", "100-x.md"), "# x\n")
-        lire_idx = lambda: io.open(os.path.join(tp, "ctx", "00-INDEX.md"), encoding="utf-8").read()
+        lire_idx = lambda: pathlib.Path(os.path.join(tp, "ctx", "00-INDEX.md")).read_text(encoding="utf-8")
         # (a) création : le numéro suivant le plus grand, la ligne sous le plus grand numéro lu en entier
         _, s0 = appel(["trier", tp])
         chemin = mod.fichier_nuits(tp, True)
@@ -364,7 +365,7 @@ def test_fichier_nuits(tmp_path, init_git):
         l2 = lecon % (2, "cause un")
         mod.nuits_ecrire(chemin, l2)
         mod.nuits_ecrire(chemin, l2)
-        lu = io.open(chemin, encoding="utf-8").read()
+        lu = pathlib.Path(chemin).read_text(encoding="utf-8")
         assert (premiere is True and seconde is False and lu.count(ligne_t) == 1 and lu.count(l2) == 1
                  and lu.index(ligne_t) < lu.index("## Leçons") < lu.index(l2)), ("NUI11 (b) : nuits_ecrire deux fois → une ligne de table, une leçon") + "\n" + str(lu)
         code, s = appel(["trier", tp])
@@ -381,10 +382,10 @@ def test_fichier_nuits(tmp_path, init_git):
         mod.nuits_ecrire(chemin, lecon % (3, "cause 12"))
         code, s = appel(["trier", tp])
         assert (code == 1 and "GARDE: 13 leçons vivantes" in s and "TRI 1 rangs" in s), ("NUI11 (b) : 13 vivantes → GARDE:, tri imprimé, sort 1") + "\n" + str(s)
-        ecrire(chemin, io.open(chemin, encoding="utf-8").read().replace(lecon % (3, "cause 12") + "\n", "- pas une forme\n"))
+        ecrire(chemin, pathlib.Path(chemin).read_text(encoding="utf-8").replace(lecon % (3, "cause 12") + "\n", "- pas une forme\n"))
         code, s = appel(["trier", tp])
         assert (code == 1 and "GARDE: leçon hors forme" in s and "- pas une forme" in s and "TRI 1 rangs" in s), ("NUI11 (b) : une leçon hors forme → GARDE: qui la cite, tri imprimé, sort 1") + "\n" + str(s)
-        ecrire(chemin, io.open(chemin, encoding="utf-8").read().replace("- pas une forme\n", ""))
+        ecrire(chemin, pathlib.Path(chemin).read_text(encoding="utf-8").replace("- pas une forme\n", ""))
         # (d) une ligne de table à 6 cellules
         try:
             mod.nuits_du_fichier(mod.NUITS_TETE[:6] + ["| a | b | c | d | e | f |"] + mod.NUITS_TETE[6:])
@@ -421,7 +422,7 @@ def test_fichier_nuits(tmp_path, init_git):
         _, s = appel(["trier", tp])
         ecrire(os.path.join(tp, "ctx", "30-q.md"), "# Chantier Q — q\n\n**Fait.** Rien.\n\n## Q1 [ ] — a\n")
         appel(["ouvrir", tp, "--fiches", "ctx/30-q.md", "--titre", "q", "--estime-fiches", "2"])
-        estime = re.search(r"— (≈[\d,]+ \$/fiche sur \d+ clos) \(le", io.open(os.path.join(tp, "ctx", "30-q.md"), encoding="utf-8").read())
+        estime = re.search(r"— (≈[\d,]+ \$/fiche sur \d+ clos) \(le", pathlib.Path(os.path.join(tp, "ctx", "30-q.md")).read_text(encoding="utf-8"))
         assert (estime is not None and estime.group(1) == "≈1,00 $/fiche sur 3 clos"
                  and "TAUX jour " + estime.group(1) in s.splitlines()), ("NUI11 (c) : TAUX jour = le prix par fiche de l'estimé d'ouvrir sur la même feuille (≈1,00 $/fiche sur 3 clos)") + "\n" + str((s, estime))
     if env is None:
@@ -449,7 +450,7 @@ def test_plan(tmp_path):
 
         def octets():
             with open(index, "rb") as fi:
-                return (open(nuits, "rb").read() if os.path.isfile(nuits) else None), fi.read()
+                return (pathlib.Path(nuits).read_bytes() if os.path.isfile(nuits) else None), fi.read()
 
         def texte():
             with open(nuits, "rb") as fn:
@@ -588,7 +589,7 @@ def test_joints(tmp_path):
         files = files_de(s)
         return (files is not None and sorted(files) == ["vlp.css", "vlp.js"]
                 and all("\\" not in c and os.path.isfile(c) and os.path.samefile(c, os.path.join(dossier, n))
-                        and io.open(c, "rb").read() == io.open(os.path.join(ICI, "..", "templates", n), "rb").read()
+                        and pathlib.Path(c).read_bytes() == pathlib.Path(os.path.join(ICI, "..", "templates", n)).read_bytes()
                         for n, c in files.items()))
 
     def balises_une_fois(html):
@@ -610,8 +611,7 @@ def test_joints(tmp_path):
         ecrire(os.path.join(proj, "ctx", "08-etat.md"),
                "# État\n\n## La TODO\n\n| # | Chantier | Apporte | Coût | Dépend |\n|---|---|---|---|---|\n")
         fdr = os.path.join(proj, "ctx", "artefacts", "feuille-de-route.html")
-        ecrire(fdr, io.open(os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html"),
-                            encoding="utf-8").read())
+        ecrire(fdr, pathlib.Path(os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html")).read_text(encoding="utf-8"))
         return proj, fdr
 
     # (c) d'abord : une page d'avant, sans charset ni script, les reçoit une fois ; une seconde
@@ -669,7 +669,7 @@ def test_joints(tmp_path):
 
     # Les deux gabarits : charset en première ligne, script en dernière, une fois chacun.
     for nom in ("artefact-chantier.html", "artefact-feuille-de-route.html"):
-        gabarit = io.open(os.path.join(ICI, "..", "templates", nom), encoding="utf-8").read()
+        gabarit = pathlib.Path(os.path.join(ICI, "..", "templates", nom)).read_text(encoding="utf-8")
         assert (balises_une_fois(gabarit)), ("BTN1 : (b) gabarit %s — charset et script une fois chacun" % nom) + "\n" + str(gabarit[:300])
         # Dette BTN : /vlp:init publie la feuille remplie à la main, sans `feuille` — un lien local vers
         # autre chose qu'un joint y reste sans fichier (l'image couts.svg y restait, cassée).
@@ -691,8 +691,7 @@ def test_joints(tmp_path):
         ecrire(os.path.join(proj, "ctx", "08-etat.md"),
                "# État\n\n## La TODO\n\n| # | Chantier | Apporte | Coût | Dépend |\n|---|---|---|---|---|\n")
         fdr = os.path.join(proj, "ctx", "artefacts", "feuille-de-route.html")
-        gabarit = io.open(os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html"),
-                          encoding="utf-8").read()
+        gabarit = pathlib.Path(os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html")).read_text(encoding="utf-8")
         i = gabarit.index("<tbody>\n", gabarit.index("<!-- ZONE:clos")) + len("<tbody>\n")
         ecrire(fdr, gabarit[:i] + "".join(rangs) + gabarit[i:])
         return proj, fdr

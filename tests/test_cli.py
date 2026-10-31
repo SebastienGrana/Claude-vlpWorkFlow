@@ -2,9 +2,9 @@
 migré de l'ancienne suite maison (REF51). Chaque `assert` garde le libellé d'origine de son `verifier` en tête de son
 message (REF5), puis le diagnostic.
 """
-import io
 import json
 import os
+import pathlib
 import subprocess
 import sys
 import tempfile
@@ -19,7 +19,7 @@ def test_ena2_arriere_plan():
     attendait la fin même en `background: true` (bac `ENA2`, 2026-10-12), la conversation restait prise
     tout le temps de la fiche (≈ 45 min le 2026-10-03, `ENA1`) ; le chef lit le statut à la notification
     de fin, pas dans ce que l'appel rend tout de suite."""
-    chef = io.open(os.path.join(RACINE, "skills", "enchainer", "SKILL.md"), encoding="utf-8").read()
+    chef = pathlib.Path(os.path.join(RACINE, "skills", "enchainer", "SKILL.md")).read_text(encoding="utf-8")
     plat = " ".join(chef.split())
     assert ('subagent_type: "vlp:fiche"' in plat and 'subagent_type: "vlp:relecture"' in plat
              and plat.count("run_in_background: true") == 2), ("ENA2 : fiche et relecteur lancés par Agent, en arrière-plan") + "\n" + "skills/enchainer/SKILL.md"
@@ -30,7 +30,7 @@ def test_ena2_arriere_plan():
 def test_gai1_rejeu():
     """GAI1 : le rejeu après `CONFLIT` sort du plafond et de `--tourne` — il repart aussitôt ; seul un 2ᵉ `CONFLIT`
     de la même fiche attend que plus rien ne tourne (les deux causes d'`ISO7`, tranchées le 2026-10-17)."""
-    plat = " ".join(io.open(os.path.join(RACINE, "skills", "enchainer", "SKILL.md"), encoding="utf-8").read().split())
+    plat = " ".join(pathlib.Path(os.path.join(RACINE, "skills", "enchainer", "SKILL.md")).read_text(encoding="utf-8").split())
     assert ("plafond compte chaque fiche une fois, plus chaque rejeu après `REFUSÉE` ; un rejeu après `CONFLIT`, non"
              in plat and "chaque départ, rejeu compris" not in plat), ("GAI1 : le plafond compte chaque fiche une fois, le rejeu après CONFLIT hors plafond") + "\n" + "skills/enchainer/SKILL.md"
     assert ("`CONFLIT` : la fiche sort de `--tourne` et repart aussitôt" in plat
@@ -63,8 +63,8 @@ def test_ena4_commiter(tmp_path, init_git):
                 ecrire(os.path.join(d, n), "x = 2\n")
             code, sortie = appel(["commiter", fiches, "C1"])
             montre = subprocess.run(["git", "show", "--name-only", "--format=%s", "HEAD"], cwd=d, capture_output=True,
-                                    encoding="utf-8").stdout.split()
-            reste = subprocess.run(["git", "status", "--porcelain"], cwd=d, capture_output=True, encoding="utf-8").stdout
+                                    encoding="utf-8", check=False).stdout.split()
+            reste = subprocess.run(["git", "status", "--porcelain"], cwd=d, capture_output=True, encoding="utf-8", check=False).stdout
             # Puis le même dépôt devient le kit (`est_kit`) : C2 y prend la base du cliquet, commun.
             marques = (".claude-plugin/plugin.json", "tests/conftest.py")
             for n in marques:
@@ -75,12 +75,12 @@ def test_ena4_commiter(tmp_path, init_git):
             mod.noter_suite_verte(d, mod.empreinte_kit(d))  # cocher dans le kit exige la suite verte (VIT11)
             kit = appel(["commiter", fiches, "C2"])
             montre_kit = subprocess.run(["git", "show", "--name-only", "--format=%s", "HEAD"], cwd=d,
-                                        capture_output=True, encoding="utf-8").stdout.split()
+                                        capture_output=True, encoding="utf-8", check=False).stdout.split()
         finally:
             os.environ.clear()
             os.environ.update(vieux)
         assert (code == 0 and "src/a.py" in montre and "ctx/fiches.md" in montre and "src/b.py" not in montre
-                 and "## C1 [x]" in io.open(fiches, encoding="utf-8").read()), ("ENA4 : commiter C1 ne prend que src/a.py et le fichier de fiches, coché") + "\n" + str(repr((code, sortie, montre)))
+                 and "## C1 [x]" in pathlib.Path(fiches).read_text(encoding="utf-8")), ("ENA4 : commiter C1 ne prend que src/a.py et le fichier de fiches, coché") + "\n" + str(repr((code, sortie, montre)))
         assert ("src/b.py" in sortie.partition("HORS:")[2] and "M src/b.py" in reste), ("ENA4 : src/b.py dit HORS: et reste à commiter — le « **b** » de la prose n'est pas un motif (ENA5)") + "\n" + str(repr((sortie, reste)))
         assert ("scripts/sante-base.json" not in montre and "scripts/sante-base.json" in sortie.partition("HORS:")[2]
                  and "M scripts/sante-base.json" in reste), ("ENA4 : hors du kit, scripts/sante-base.json n'est pas un commun — HORS:, laissé hors du commit") + "\n" + str(repr((sortie, montre, reste)))
@@ -97,7 +97,7 @@ def test_lanceur_trie(tmp_path):
         env = dict(os.environ, TMPDIR=t, PYTHONIOENCODING="utf-8")
         env.pop("VLP_SANS_TAMPON", None)
         r = [subprocess.run([sys.executable, "-X", "importtime", os.path.join(ICI, "vlp.py"), "gardien"], input=entree,
-                            capture_output=True, text=True, encoding="utf-8", env=env) for _ in range(2)]
+                            capture_output=True, text=True, encoding="utf-8", env=env, check=False) for _ in range(2)]
     assert ([x.returncode for x in r] == [0, 0] and "deny" in r[0].stdout and "vlp_coeur" in r[0].stderr
              and r[1].stdout == "" and "vlp_coeur" not in r[1].stderr), ("VIT8 : deux lanceurs, même entrée — le 1er refuse, le 2e sort muet sans charger le cœur") + "\n" + str("\n".join("code %d\n%s\n%s" % (x.returncode, x.stdout, x.stderr[-600:]) for x in r))
 
@@ -106,8 +106,8 @@ def test_iso6_parallele():
     """ISO6 : `/vlp:enchainer agents` lance en parallèle d'office — chaque fiche en worktree au rythme de `lancables`,
     puis `commiter` là-bas, `fusionner` ici, `etat` du bloc `ÉTAT:`, `CONFLIT` rejoué en fin ; `file`, le mode sans
     argument et `clear` restent ; le contrat dit `DOSSIER:` et `ÉTAT:`."""
-    chef = io.open(os.path.join(RACINE, "skills", "enchainer", "SKILL.md"), encoding="utf-8").read()
-    contrat = io.open(os.path.join(RACINE, "enchainement.md"), encoding="utf-8").read()
+    chef = pathlib.Path(os.path.join(RACINE, "skills", "enchainer", "SKILL.md")).read_text(encoding="utf-8")
+    contrat = pathlib.Path(os.path.join(RACINE, "enchainement.md")).read_text(encoding="utf-8")
     indice = next((l for l in chef.splitlines() if l.startswith("argument-hint:")), "")
     debut, fin = chef.find("## 3. Jouer chaque fiche"), chef.find("## 3 bis.")
     trois = " ".join(chef[debut:fin].split()) if 0 <= debut < fin else ""
