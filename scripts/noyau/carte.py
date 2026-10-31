@@ -12,6 +12,7 @@ import sys
 import tempfile
 import time
 
+import concernes
 import vlp_hook
 from noyau import etat
 from noyau.commun import (
@@ -32,7 +33,7 @@ from noyau.commun import (
     section,
 )
 from noyau.facade import coeur
-from noyau.fiches import socle_lignes
+from noyau.fiches import extraire_lignes, socle_lignes
 
 __all__ = [
     "EFFORT_DEFAUT", "EFFORT_REGLE", "EFFORT_SOCLE", "MARQUE_SECONDES", "PLAFOND_CARTE", "RELAIS_SECONDES",
@@ -304,6 +305,7 @@ def carte(depart, sortie, relecteur=False, neuve=False):
         sortie.write("%d:%s\n" % (i, l))
     sortie.write(ligne_effort(lignes_de(os.path.join(racine, courant))) + "\n")
     sortie.write("PROCHAINE=%s\n" % (prochaine or "aucune"))
+    ligne_concernes(racine, courant, prochaine, sortie)
     avertir_session(os.path.join(racine, courant), neuve, sortie)
     return 0
 
@@ -343,6 +345,17 @@ def poser_marque_enchaine():
             pass
     except OSError as e:
         sys.stderr.write("vlp: marque %s non posée : %s\n" % (marque, e))
+
+
+def ligne_concernes(racine, courant, prochaine, sortie):
+    """La ligne `CONCERNES <fiche>=…` de la prochaine fiche (REF13, `concernes.ligne_carte`) : les tests passés par
+    les fonctions qu'elle nomme ; rien sans fiche, ni sans mesure par test sous la racine."""
+    if not prochaine:
+        return
+    lignes, _ = extraire_lignes(lignes_de(os.path.join(racine, courant)), prochaine)
+    ligne = concernes.ligne_carte(racine, prochaine, "\n".join(lignes))
+    if ligne:
+        sortie.write(ligne + "\n")
 
 
 def avertir_session(chemin, neuve, sortie):

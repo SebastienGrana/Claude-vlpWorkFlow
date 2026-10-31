@@ -21,9 +21,9 @@
     <p>Le kit tourne sur pytest et une couverture mesurée, sans une seule régression ; des scripts gardent la taille des fichiers et interdisent de toucher aux tests pendant une fiche ; les erreurs connues sont réparées, les gros fichiers découpés, et chaque angle revu jusqu'à deux passes vides.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">59 fiches · 39 faites · en cours : REF13</p>
+    <p class="mono" style="margin-top:.5rem">59 fiches · 40 faites · en cours : REF14</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -181,15 +181,16 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REF12</span></span>
         <details><summary><span class="titre">Transformer les règles écrites en hooks</span><span class="etat">Faite</span></summary>
         <span class="note">52 règles · 30 scriptables (déjà 12, converties 3, à faire 13, gestes 2) · 22 non ; 3 tests (test_regles), 3 mutants attrapés ; suite 399 passed, 3 skipped</span></details>
-        <span class="cout mono">≈7,1M (7 082 271) · 29 tours · 2,34 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">REF13</span></span>
-        <details open><summary><span class="titre">Écrire le test d'abord, avec la liste des tests concernés</span><span class="etat">En cours · REF37 peut partir en même temps</span></summary>
-        <span class="note">Le test d'abord, vu échouer, avec la liste des tests concernés. Après REF8.</span></details></li>
-      <li class="fiche"><span class="gauche"><span class="id">REF14</span></span>
-        <details><summary><span class="titre">Faire tout rapporter au relecteur, en Fable</span><span class="etat">À lancer</span></summary>
+        <span class="cout mono">≈7,3M (7 347 287) · 30 tours · 2,41 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REF13</span></span>
+        <details><summary><span class="titre">Écrire le test d'abord, avec la liste des tests concernés</span><span class="etat">Faite</span></summary>
+        <span class="note">concernes cmd_carte : 14 tests sur le kit ; test_concernes 4 verts (projet temporaire) ; 2 mutants de la lecture attrapés ; valider sur le gabarit neuf : 2 fiches, 0 écart ; suite verte</span></details>
+        <span class="cout mono">≈18,0M (17 964 850) · 57 tours · 5,13 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">REF14</span></span>
+        <details open><summary><span class="titre">Faire tout rapporter au relecteur, en Fable</span><span class="etat">En cours · REF15, REF21 peuvent partir en même temps</span></summary>
         <span class="note">Le relecteur rapporte tout, avec gravité et confiance, en Fable. Après REF11.</span></details></li>
-      <li class="fiche" data-attend><span class="gauche"><span class="id">REF15</span></span>
-        <details><summary><span class="titre">Écrire le guide court des tests</span><span class="etat">Après REF13</span></summary>
+      <li class="fiche"><span class="gauche"><span class="id">REF15</span></span>
+        <details><summary><span class="titre">Écrire le guide court des tests</span><span class="etat">À lancer · en même temps que REF14, REF21</span></summary>
         <span class="note">Le guide court des tests, chaque point avec sa source. Après REF13.</span></details></li>
       <li class="fiche"><span class="gauche"><span class="id">REF16</span></span>
         <details><summary><span class="titre">Découper les consignes du kit par mode de chargement</span><span class="etat">À lancer</span></summary>
@@ -214,7 +215,7 @@
         <details><summary><span class="titre">Essayer une campagne de mutation sur les lignes changées</span><span class="etat">À lancer</span></summary>
         <span class="note">Un essai de mutation automatique sur les lignes changées (poodle). Après la découpe.</span></details></li>
       <li class="fiche"><span class="gauche"><span class="id">REF21</span></span>
-        <details><summary><span class="titre">Essayer de typer un lecteur JSON</span><span class="etat">À lancer</span></summary>
+        <details><summary><span class="titre">Essayer de typer un lecteur JSON</span><span class="etat">À lancer · en même temps que REF14, REF15</span></summary>
         <span class="note">Un essai de typage d'un lecteur JSON. Après REF3.</span></details></li>
       <li class="fiche"><span class="gauche"><span class="id">REF32</span></span>
         <details><summary><span class="titre">Un bloc Tentatives soldé garde le bon motif</span><span class="etat">À lancer</span></summary></details></li>
@@ -227,13 +228,13 @@
       <li class="fiche"><span class="gauche"><span class="id">REF36</span></span>
         <details><summary><span class="titre">Une aide par sous-commande de vlp.py</span><span class="etat">À lancer</span></summary></details></li>
       <li class="fiche"><span class="gauche"><span class="id">REF37</span></span>
-        <details><summary><span class="titre">La nuit : qui prime, commiter ou non</span><span class="etat">À lancer · en même temps que REF13</span></summary></details></li>
+        <details><summary><span class="titre">La nuit : qui prime, commiter ou non</span><span class="etat">À lancer</span></summary></details></li>
       <li class="fiche"><span class="gauche"><span class="id">REF38</span></span>
         <details><summary><span class="titre">Retirer le repli « copie simple » d'avant le plugin</span><span class="etat">À lancer</span></summary></details></li>
       <li class="fiche"><span class="gauche"><span class="id">REF39</span></span>
         <details><summary><span class="titre">sante --base refuse un worktree en retard sur main</span><span class="etat">À lancer</span></summary></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">REF22</span></span>
-        <details><summary><span class="titre">Revoir l'angle des bugs</span><span class="etat">Après REF13, REF14, REF15, REF16, REF17, REF20, REF21</span></summary>
+        <details><summary><span class="titre">Revoir l'angle des bugs</span><span class="etat">Après REF14, REF15, REF16, REF17, REF20, REF21</span></summary>
         <span class="note">Revue des bugs, jusqu'à deux passes sans défaut confirmé. Après tout le reste.</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">REF23</span></span>
         <details><summary><span class="titre">Revoir l'angle des tests</span><span class="etat">Après REF22</span></summary>
@@ -249,7 +250,7 @@
         <span class="note">Revue de la doc qui ment. Après REF22.</span></details></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈106,8M (106 808 546) · 481 tours · 29,99 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈608,2M (608 189 381) · 2284 tours · 202,60 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈626,4M (626 419 247) · 2342 tours · 207,80 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

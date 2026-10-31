@@ -41,8 +41,11 @@ tmp_path_retention_policy = "failed"
 [tool.coverage.run]
 # La couverture (REF8, D7) : les branches aussi ; les scripts se lancent par `subprocess`, qui se mesure
 # (`patch`), chaque processus dans son fichier (`parallel`), réunis par `coverage combine`. Le moteur
-# `sysmon` est celui d'office sous CPython 3.14 (coverage 7.16.2, `env.SYSMON_DEFAULT`).
+# `sysmon` est celui d'office sous CPython 3.14 (coverage 7.16.2, `env.SYSMON_DEFAULT`) — mais il ne sait pas
+# les contextes dynamiques (`coverage/core.py`) : avec eux, coverage prend `ctrace`.
+# `dynamic_context` : chaque ligne mesurée porte le test qui l'a exécutée, lu par `vlp.py concernes` (REF13).
 branch = true
+dynamic_context = "test_function"
 patch = ["subprocess"]
 parallel = true
 source = ["scripts"]

@@ -482,6 +482,11 @@ Quatre exigences, apprises en cassant :
    dépôt ou les transcripts de la machine le fait casser dès qu'une fiche
    suivante écrit, et changer de résultat quand la machine change — l'historique
    grandit, un autre chantier écrit (`ESD2`, refusée à la relecture pour ça).
+   **Pour du code : rouge → vert → mutant.** Le test s'écrit d'abord et se lance : il **échoue**, sortie recopiée
+   dans le compte rendu ; puis le code le fait passer ; puis le mutant le fait retomber. Avec la liste des **tests
+   concernés** (`vlp.py concernes`, `CONCERNES` de la carte), à garder verts : des consignes TDD seules ont augmenté
+   les régressions, cette liste les a réduites de 6,08 % à 1,82 % (TDAD, preprint 2026 ; note `122`, `REF13`). Un
+   test existant à changer pour le nouveau comportement : la fiche le déclare, par la ligne `**Tests**` qui suit.
    Pendant une fiche, **un test existant ne se modifie pas** : le hook `figer` refuse tout `Write`
    ou `Edit` sur `tests/**` ou `scripts/test-*.py`, sauf un test neuf, un ajout pur, ou une fiche
    qui le déclare, dans son texte commité, par `**Tests** : modifiés — <raison>` — une ligne que

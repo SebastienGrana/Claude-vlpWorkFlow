@@ -659,6 +659,11 @@ ni raison de la sauter, fait échouer la suite :
   par `diff-cover`, `NON COUVERT <fichier> : <lignes>` par fichier, puis `COUVERTURE <taux> % des <n> lignes
   changées, seuil <SEUIL> % — passe` (sort 0) ou `— commit refusé` (sort 1). La mesure : la suite pytest,
   lancée entière, se relance sous `coverage` et écrit `.couverture/coverage.xml` — `COUVERTURE mesurée : …`.
+- `concernes <fonction>… [--racine R]` — les tests qui exécutent ces fonctions (REF13 ; `concernes.py`, aiguillé
+  avant le cœur) : chaque fonction trouvée sous `<racine>/scripts/` par `ast`, ses lignes lues dans la mesure par test
+  de la dernière suite entière (`.couverture/donnees`, `dynamic_context = "test_function"`). Imprime `ABSENTE <nom>`
+  par fonction introuvable, `CONCERNES <n> test(s) pour <noms>`, puis un test par ligne ; sans mesure, ou sans
+  contexte par test : `GARDE:`, sort 1. La carte en tire `CONCERNES <fiche>=…` pour la prochaine fiche.
 - `retraits <fichier du message> [--racine R]` — un test retiré ou affaibli au commit (REF11 ; `retraits.py`, aiguillé
   avant le cœur ; lancé par `.githooks/commit-msg`, la racine du dépôt par défaut) : compte par `ast`, sur l'ensemble
   des fichiers de test de `HEAD` et de l'index, les tests, `verifier`, `assert` et `skip`/`xfail`. Imprime
@@ -712,6 +717,9 @@ if __name__ == "__main__":
     if sys.argv[1:2] == ["couverture"]:     # REF8 : son module à lui, hors du cœur au plafond de taille (REF9)
         import couverture
         sys.exit(couverture.principal(sys.argv[2:]))
+    if sys.argv[1:2] == ["concernes"]:      # REF13 : son module à lui, hors du cœur
+        import concernes
+        sys.exit(concernes.principal(sys.argv[2:]))
     if sys.argv[1:2] == ["retraits"]:       # REF11 : lancé à chaque commit, sans charger le cœur
         import retraits
         sys.exit(retraits.principal(sys.argv[2:]))

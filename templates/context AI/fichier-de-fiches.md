@@ -55,7 +55,8 @@ au-delà du seuil de vlp.py, `valider` avertit — c'est deux fiches.>
 <Ce qu'on doit voir pour dire que c'est fait. Une phrase. Soit une commande et
 ce que sa sortie doit montrer — comptes bruts à côté du verdict — soit ce que
 l'utilisateur doit constater à l'écran quand lui seul peut le faire. Pour du
-code : le test nommé et son mutant (`methode-chantier.md`, « Anatomie d'une fiche »).>
+code : le test nommé et son mutant — rouge, vert, puis mutant (`methode-chantier.md`, « Anatomie
+d'une fiche »).>
 <Dans ce second cas, le titre devient `**Critère de fin** (visuel)` — la marque que `/vlp:enchainer` reconnaît par grep pour s'y arrêter.>
 <!-- /FICHE -->
 
