@@ -1,0 +1,8 @@
+# Les règles de ruff qui tiennent lieu de guide des tests, pour `tests/` seul (REF15, « Coder dans le kit ») :
+# PT018 une assertion composée, PLR0915 plus de 50 instructions, C901 la complexité. Le reste vient de la racine.
+# Le cliquet de `sante.py` les lance avec son propre `--select` : ce fichier ne change pas ses comptes.
+extend = "../pyproject.toml"
+src = [".."]    # les imports se rangent comme depuis la racine : sans lui, `I001` sur 31 fichiers
+
+[lint]
+extend-select = ["PT018", "PLR0915", "C901"]

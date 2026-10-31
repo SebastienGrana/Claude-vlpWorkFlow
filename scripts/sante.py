@@ -9,9 +9,10 @@ Le cliquet compare chaque fonction à la base (`scripts/sante-base.json`).
 - Une fonction se suit par son fichier et son nom qualifié (`Classe.methode`, `externe.interne`, `nom#2`
   pour un doublon). Elle est touchée si son empreinte a changé — son texte, sans son nom, son retrait ni ses
   fins de ligne. Renommée ou déplacée, elle retrouve la fonction disparue de la base qui avait son empreinte.
-- Une fonction neuve passe les cinq seuils. Un compte d'une vieille fonction empire quand il passe au-dessus
+- Une fonction neuve passe les six seuils — le sixième, `PT018`, pour un test seul (REF15). Un compte d'une vieille fonction empire quand il passe au-dessus
   du plus haut de son seuil et de sa base : sous les seuils, elle grandit jusqu'au seuil, comme une neuve.
-- Toute fonction neuve ou touchée a sa docstring. Un `test-*.py` n'a ni instructions ni docstring à tenir.
+- Toute fonction neuve ou touchée a sa docstring. Un test — sous `tests/`, ou un `test-*.py` — n'a ni
+  instructions ni docstring à tenir.
 - Un fichier `.py` de `scripts/` ou de `tests/` ne passe pas `SEUIL_LIGNES` ; au-dessus, sa taille de base est son
   plafond, qui descend quand il maigrit (REF9).
 """
@@ -28,12 +29,13 @@ import subprocess
 import sys
 import textwrap
 
-COMPTES = ("complexité", "branches", "arguments", "instructions", "imbrication")
-SEUILS = (10, 12, 5, 50, 5)     # les défauts de ruff : `ruff rule C901`, `ruff config lint.pylint`…
-REGLES = ("C901", "PLR0912", "PLR0913", "PLR0915", "PLR1702")
+COMPTES = ("complexité", "branches", "arguments", "instructions", "imbrication", "assertions composées")
+SEUILS = (10, 12, 5, 50, 5, 0)  # les défauts de ruff : `ruff rule C901`, `ruff config lint.pylint`… ; PT018 : aucune
+REGLES = ("C901", "PLR0912", "PLR0913", "PLR0915", "PLR1702", "PT018")
 REGLAGES = ("lint.mccabe.max-complexity", "lint.pylint.max-branches", "lint.pylint.max-args",
             "lint.pylint.max-statements", "lint.pylint.max-nested-blocks")
-EXEMPTS_TESTS = ("instructions",)     # un long scénario de test reste permis (socle de VIT, Q4)
+EXEMPTS_TESTS = ("instructions",)     # un long scénario de test reste permis (socle de VIT, Q4 ; REF15, Q2 A)
+TESTS_SEULS = ("assertions composées",)     # PT018 ne tient que pour un test (REF15, Q1 A)
 SEUIL_LIGNES = 1000   # le défaut de Pylint, `max-module-lines` (C0302) : la taille d'un fichier (REF9, D6)
 BASE = "scripts/sante-base.json"
 FORMAT = 1
@@ -124,6 +126,23 @@ def instructions(corps) -> int:
                                           sum(instructions(c) for c in sous_corps(s))) for s in corps)
 
 
+def composee(s):
+    """Dire si une instruction est une assertion composée, comme `PT018` de ruff (sondé sur 0.16.10, REF15) : un
+    `and` en tête, message ou non, ou `not (… or …)`."""
+    if not isinstance(s, ast.Assert):
+        return False
+    e = s.test
+    if isinstance(e, ast.UnaryOp) and isinstance(e.op, ast.Not):
+        return isinstance(e.operand, ast.BoolOp) and isinstance(e.operand.op, ast.Or)
+    return isinstance(e, ast.BoolOp) and isinstance(e.op, ast.And)
+
+
+def composees(corps) -> int:
+    """Rendre les assertions composées d'une suite, sans celles d'une fonction imbriquée : ruff les donne à elle."""
+    return sum(composee(s) + (0 if isinstance(s, DEFS + (ast.ClassDef,)) else
+                              sum(composees(c) for c in sous_corps(s))) for s in corps)
+
+
 def arguments(f, methode):
     """Compter les arguments comme ruff (PLR0913) : ni `*args` ni `**kwargs`, ni le premier d'une méthode
     (sauf sous `@staticmethod`), ni les noms muets (`_`, `_x`)."""
@@ -202,10 +221,15 @@ def mesurer_fichier(racine, chemin):
             "fichier": relatif(chemin, racine), "fonction": nom if vus[nom] == 1 else "%s#%d" % (nom, vus[nom]),
             "ligne": f.lineno, "fin": f.end_lineno or f.lineno, "empreinte": empreinte(f, lignes),
             "ast": [1 + complexite(f.body), branches(f.body), arguments(f, methode), instructions(f.body),
-                    profondeurs.get(f, 0)],
+                    profondeurs.get(f, 0), composees(f.body)],
             "ruff": None, "doc": ast.get_docstring(f, clean=False) is not None,
-            "test": os.path.basename(chemin).startswith("test-")})
+            "test": est_test(relatif(chemin, racine))})
     return fonctions, len(lignes)
+
+
+def est_test(chemin):
+    """Dire si un fichier, relatif à la racine, porte des tests : sous `tests/`, ou un `test-*.py` d'avant REF52."""
+    return chemin.startswith("tests/") or os.path.basename(chemin).startswith("test-")
 
 
 def carte_lignes(fonctions, nombre):
@@ -275,12 +299,13 @@ def lire_ruff(texte, cartes):
         carte = cartes.get(cle(d.get("filename") or ""))
         m = re.search(r"\((\d+) > \d+\)", d.get("message") or "")
         ligne = (d.get("location") or {}).get("row")
-        if carte is None or d.get("code") not in rang or not m or not isinstance(ligne, int) or ligne >= len(carte):
+        if carte is None or d.get("code") not in rang or not (m or d.get("code") == "PT018") \
+                or not isinstance(ligne, int) or ligne >= len(carte):
             continue
         f = carte[ligne]
         if f is not None:
             i = rang[d["code"]]
-            f["ruff"][i] = max(f["ruff"][i], int(m.group(1)))
+            f["ruff"][i] = f["ruff"][i] + 1 if m is None else max(f["ruff"][i], int(m.group(1)))
 
 
 def mesurer(racine, chemins, ruff, sortie):
@@ -308,7 +333,8 @@ def mesurer(racine, chemins, ruff, sortie):
 
 def seuils_de(f):
     """Rendre les seuils qui tiennent pour une fonction : ceux de ruff, sans les instructions d'un test."""
-    return [None if f["test"] and nom in EXEMPTS_TESTS else s for nom, s in zip(COMPTES, SEUILS)]
+    return [None if (f["test"] and nom in EXEMPTS_TESTS) or (not f["test"] and nom in TESTS_SEULS) else s
+            for nom, s in zip(COMPTES, SEUILS)]
 
 
 def au_dessus(f, cote):
@@ -448,7 +474,7 @@ def ecarts_de(f, b, cote):
     avant = None if b is None else b.get(cote, b["ast"])
     lignes = []
     for i, (nom, n, s) in enumerate(zip(COMPTES, f[cote], seuils_de(f))):
-        if s is None or n <= (s if avant is None else max(s, avant[i])):
+        if s is None or n <= (s if avant is None else max(s, avant[i] if i < len(avant) else n)):
             continue
         if avant is None:
             lignes.append("SEUIL %s · %s %d, seuil %d (neuve)\n" % (lieu(f), nom, n, s))
@@ -525,13 +551,13 @@ def poser_base(racine, fonctions, version, forcer, sortie):
 
 def chemins_de(racine, fichiers):
     """Rendre les fichiers à mesurer : ceux donnés, sinon les `.py` de `scripts/` sous la racine, sous-dossiers compris
-    — le code sorti de `vlp_coeur.py` vit dans `scripts/noyau/` (REF46) —, triés."""
+    — le code sorti de `vlp_coeur.py` vit dans `scripts/noyau/` (REF46) —, puis ceux de `tests/` (REF15), triés."""
     if fichiers:
         return [os.path.abspath(f) for f in fichiers]
     chemins = sorted(glob.glob(os.path.join(racine, "scripts", "**", "*.py"), recursive=True))
     if not chemins:
         raise ValueError("aucun fichier Python dans %s" % os.path.join(racine, "scripts"))
-    return chemins
+    return sorted(chemins + glob.glob(os.path.join(racine, "tests", "**", "*.py"), recursive=True))
 
 
 def principal(a, sortie, kit):

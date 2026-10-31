@@ -610,12 +610,13 @@ def f_match_garde(a):
 
 
 SONDES_ATTENDU = {
-    "f_vide": [1, 0, 0, 1, 0], "f_if_elif_else": [3, 3, 1, 3, 1], "f_else_if": [3, 3, 1, 3, 2],
-    "f_boucles": [4, 5, 1, 5, 2], "f_try_tout": [4, 4, 1, 9, 1], "f_imbrique": [5, 4, 1, 7, 5],
-    "f_externe": [4, 1, 1, 4, 1], "f_externe.interne": [2, 1, 1, 1, 1], "f_args": [1, 0, 2, 0, 0],
-    "K.m": [1, 0, 2, 0, 0], "K.s": [1, 0, 2, 0, 0], "K.autre": [1, 0, 1, 0, 0], "f_chaine": [6, 1, 1, 4, 4],
-    "f_chaine.g": [4, 3, 1, 2, 0], "f_instr": [3, 2, 1, 9, 1],
-    "f_match": [3, 3, 1, 4, 0], "f_match_garde": [3, 3, 1, 4, 1],
+    # Le 6e compte, `PT018` (REF15) : aucune sonde n'a d'assertion composée.
+    "f_vide": [1, 0, 0, 1, 0, 0], "f_if_elif_else": [3, 3, 1, 3, 1, 0], "f_else_if": [3, 3, 1, 3, 2, 0],
+    "f_boucles": [4, 5, 1, 5, 2, 0], "f_try_tout": [4, 4, 1, 9, 1, 0], "f_imbrique": [5, 4, 1, 7, 5, 0],
+    "f_externe": [4, 1, 1, 4, 1, 0], "f_externe.interne": [2, 1, 1, 1, 1, 0], "f_args": [1, 0, 2, 0, 0, 0],
+    "K.m": [1, 0, 2, 0, 0, 0], "K.s": [1, 0, 2, 0, 0, 0], "K.autre": [1, 0, 1, 0, 0, 0],
+    "f_chaine": [6, 1, 1, 4, 4, 0], "f_chaine.g": [4, 3, 1, 2, 0, 0], "f_instr": [3, 2, 1, 9, 1, 0],
+    "f_match": [3, 3, 1, 4, 0, 0], "f_match_garde": [3, 3, 1, 4, 1, 0],
 }
 
 

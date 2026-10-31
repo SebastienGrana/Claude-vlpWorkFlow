@@ -594,6 +594,21 @@ l'utilisateur au chantier `MET` (`context AI/08-etat.md`, entrée « MET1 — ce
   le texte finit par contenir ce que le lecteur cherche (`ENA7`, 2026-10-13 ; récit dans
   `lecons-mesure.md`).
 
+**Les tests** (`REF15` ; sources dans la note `122` de `REF`, « Les sources ») :
+
+- **Un comportement par test, et un nom qui le dit** ; un « et » dans le nom en cache deux (Google,
+  « Software Engineering at Google », ch. 12).
+- **Pas de `if` ni de `for` dans un test** : du code en ligne droite, juste à la lecture (Google, ch. 12).
+  `C901` le garde, sur `tests/`.
+- **Une vérification dit ce qu'elle attend** : une assertion par fait, un message qui le nomme (Meszaros,
+  « Assertion Roulette »). `PT018` le garde : le 6e compte du cliquet de `sante.py`, sur les tests seuls.
+- **Un commit de rangement reste à part** d'un changement de comportement (Kent Beck, « Augmented
+  Coding », 2025).
+- **Le test d'abord, vu échouer** : « Anatomie d'une fiche », rouge → vert → mutant (`REF13`).
+- **Un test existant ne se modifie pas pendant une fiche** : le hook `figer` (`REF10`).
+- Ces règles de ruff, pour `tests/` seul : `tests/ruff.toml`. Un long scénario de test reste permis
+  (`PLR0915` signalé, pas tenu : décision `VIT`, Q4).
+
 **La prose que Claude lit** — commandes, agents, doctrine, `CLAUDE.md` :
 
 - **Court, et une seule façon par défaut** (Skill authoring, « Concise is key », « Avoid

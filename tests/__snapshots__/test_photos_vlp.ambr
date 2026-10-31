@@ -1427,8 +1427,8 @@
   '''
   code 0
   --- sortie
-  SANTE sans ruff, comptes estimés (ast) · seuils : complexité 10 · branches 12 · arguments 5 · instructions 50 · imbrication 5
-  scripts/outil.py:1 principal · complexité 1 · branches 0 · arguments 0 · instructions 1 · imbrication 0 · docstring oui
+  SANTE sans ruff, comptes estimés (ast) · seuils : complexité 10 · branches 12 · arguments 5 · instructions 50 · imbrication 5 · assertions composées 0
+  scripts/outil.py:1 principal · complexité 1 · branches 0 · arguments 0 · instructions 1 · imbrication 0 · assertions composées 0 · docstring oui
   FICHIER scripts/outil.py · 1 fonctions · 0 au-dessus d'un seuil · 1 avec docstring
   TOTAL 1 fichiers · 1 fonctions · 0 au-dessus d'un seuil · 1 avec docstring
   
