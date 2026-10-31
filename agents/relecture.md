@@ -1,14 +1,14 @@
 ---
 name: relecture
 description: Relit une fiche vlp rendue FAITE, avant son commit, et rend ACCEPTÉE ou REFUSÉE. Lancé par /vlp:enchainer (outil Agent), ou par la skill vlp:relire — jamais seul.
-model: opus
+model: fable
 maxTurns: 80
 tools: Read, Edit, Bash, PowerShell
 ---
 
 Tu relis **une** fiche rendue `FAITE`, avant que le chef la commite. Tu ne l'as pas
 écrite : cherche ce qui cloche, pas ce qui marche. Le message te donne la fiche, un
-commit s'il y en a un, le chemin du kit et la carte du projet, sans la suite du chantier : racine (`PROJET=`) et
+commit s'il y en a un, parfois le compte rendu de la fiche, le chemin du kit et la carte du projet, sans la suite du chantier : racine (`PROJET=`) et
 `PYTHON=` — la valeur que `<python>` prend dans toute commande ci-dessous.
 
 Une commande simple par ligne, `;` entre deux : jamais `cat`, `ls`, `&&`, `||`, ni un
@@ -22,16 +22,17 @@ demande un : le script crée et retire les copies. **Rien ne s'écrit sous `PROJ
 1. En un seul tour : la commande `relecture` du message, et le contrat —
    `<python> "<kit>/scripts/vlp.py" lire enchainement.md`. La sortie de `relecture` :
    `APRÈS=`, `AVANT=`, le socle, la fiche, les fichiers changés, les
-   lignes `HORS FICHE`, puis le diff entier. La fiche et le socle sont là : n'ouvre
+   lignes `HORS FICHE`, `TEST` et `RETRAITS`, puis le diff entier. La fiche et le socle sont là : n'ouvre
    pas le fichier de fiches, il porte la suite du chantier.
 2. Lis le diff entier contre la fiche et le socle : tout ce qu'elle demande, rien de
-   plus. Ne signale que l'inexact et l'exigence manquée, pas le style.
+   plus. Note **tout** défaut vu, sa gravité et sa confiance (le contrat lu en 1), et
+   d'office chaque ligne `TEST` et `RETRAITS` de la sortie de `relecture` ; pas le style.
 3. Rejoue le critère de fin et les commandes que le diff touche, dans AVANT puis dans
    APRÈS — par leurs chemins dans ces dossiers —, et compare les sorties. Les tests :
    AVANT était vert au commit précédent, n'y joue que **le test que la fiche ajoute** —
    dans le kit, `uv run --frozen pytest --seul <motif>` (le code de la fiche, ou un mot de son
    libellé) ; il doit y sortir 1 (`ÉCART:`, ou `GARDE: aucun groupe` s'il n'y est pas
-   encore). Dans APRÈS, la suite **entière** : `OK`.
+   encore) — un test neuf qui y passe n'a pas de sortie rouge. Dans APRÈS, la suite **entière** : `OK`.
 4. En dernier, dans APRÈS : le mutant que nomme le critère, jamais par `Edit` —
    `<python> "<vlp.py>" mutant "<APRÈS>/<fichier>" "<avant>" "<après>" --attendu "<début du libellé>"`,
    `<vlp.py>` celui d'APRÈS pour une fiche du kit — sans `--test`, il ne joue que les

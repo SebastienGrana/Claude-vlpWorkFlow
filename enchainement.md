@@ -50,9 +50,24 @@ REFUSÉE — fiche : <motifs>
 REFUSÉE — copie : <motifs>
 ```
 
-Aucun verdict vaut `REFUSÉE`. Trois motifs refusent, et eux seuls : le critère de fin
-non tenu ; un bug qu'une sortie prouve — du code, ou une doc qu'une commande rejouée
-contredit ; un mutant du critère qui survit. `REFUSÉE` porte sa cause avant les
+Sous la ligne du verdict, **tout** défaut vu, un par ligne — taire un défaut qu'on
+juge mineur fait taire des bugs trouvés (guide de prompt d'Anthropic, note `122`, `REF14`) :
+
+```
+- <gravité> · <confiance> — <le défaut> (`<fichier>:<ligne>`, la sortie qui le montre)
+```
+
+Gravité : `bloquant`, `à corriger`, `remarque`. Confiance : `sûr` (une sortie le
+prouve), `probable`, `douteux`. Aucun défaut vu : `- aucun défaut vu`. Chaque ligne
+`TEST` et `RETRAITS` de la sortie de `relecture` s'y recopie d'office ; un test retiré
+ou affaibli que la fiche ne déclare pas (`**Tests** : modifiés`) est `bloquant`.
+
+Aucun verdict vaut `REFUSÉE`. Seul un `bloquant · sûr` refuse. Sont bloquants, et eux
+seuls : le critère de fin non tenu ; un bug qu'une sortie prouve — du code, ou une doc
+qu'une commande rejouée contredit ; un mutant du critère qui survit ; un test affaibli
+sans déclaration ; pour du code, pas de sortie rouge — le compte rendu de la fiche,
+quand le message le donne, ne la recopie pas, ou le test neuf passe déjà dans AVANT
+(choix `B` de l'utilisateur, 2026-10-31). `REFUSÉE` porte sa cause avant les
 motifs, `fiche` ou `copie`. `fiche` : la faute reviendrait avec tout exécutant qui
 suit la fiche à la lettre — critère qui vérifie un signe au lieu de ce que le socle
 décide, fiche et socle qui se contredisent, règle inapplicable sur les vraies lignes,
@@ -60,8 +75,8 @@ fichier utile non nommé ; sous ce verdict, une ligne `RÉÉCRITURE : <phrase de
 fiche> → <ce qu'elle devient>` — le relecteur n'écrit jamais dans la fiche, seulement
 cette ligne. `copie` : la fiche le disait clairement, le sous-agent ne l'a pas fait.
 
-Le reste se remarque, sous la ligne du verdict, sans le changer : la lettre de la
-fiche, un `HORS FICHE`, un écart sans effet sur une sortie. Le style ne se signale pas.
+Le reste se liste sans changer le verdict, en `à corriger` ou `remarque` : la lettre
+de la fiche, un `HORS FICHE`, un écart sans effet sur une sortie. Le style ne se signale pas.
 
 Un soupçon se tranche par une sortie, jamais au jugé : rejoue-le dans AVANT et APRÈS
 avant de le classer. Une remarque au conditionnel (« serait », « pourrait ») est un

@@ -121,7 +121,8 @@ Pour chaque fiche de la série, dans l'ordre — en worktree, dès que `lancable
      `run_in_background: true`, `description` : `relire <fiche>`, `prompt` : `Fiche à relire : <fiche> — Kit : ${CLAUDE_PLUGIN_ROOT}.
      Ton premier appel, depuis <PROJET= ; en worktree, le DOSSIER: du Result>, avec la lecture de ton étape 1 : <python> "<kit>/scripts/vlp.py"
      carte --python "<python>" --relecteur; <python> "<kit>/scripts/vlp.py" relecture <fiche>.
-     Pas de PROJET=, ou une GARDE: : rends REFUSÉE avec la sortie brute.` —
+     Pas de PROJET=, ou une GARDE: : rends REFUSÉE avec la sortie brute. Le compte rendu de la fiche, tel quel :
+     <le Result de la fiche>` —
      son `Result` à la notification de fin. Premier mot du `Result` (`enchainement.md`, « Relecture ») :
      `ACCEPTÉE` → commite la fiche par ses seuls fichiers, sans demander (`methode-chantier.md`) —
      `<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" commiter "<fichier de fiches courant>" <fiche>` ;

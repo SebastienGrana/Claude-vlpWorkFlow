@@ -9,6 +9,7 @@ import os
 import re
 
 import carnet
+import retraits
 from noyau import etat
 from noyau.carte import carte, equipe, trouver
 from noyau.commun import lignes_de
@@ -291,6 +292,73 @@ def nomme(chemin, noms):
                for n in noms)
 
 
+STATUTS_TEST = {"A": "AJOUTÉ", "D": "SUPPRIMÉ", "R": "RENOMMÉ", "C": "COPIÉ"}
+
+
+def tests_touches(name_status, lire_avant, lire_apres):
+    """Les lignes `TEST <statut> <chemin>[ — <écarts>]` des fichiers de test que `git diff --name-status` nomme, puis
+    `RETRAITS` : les écarts de leur somme (REF14). `lire_avant`, `lire_apres` : chemin → texte, ou None s'il manque.
+    Les comptes et les écarts sont ceux de `retraits.py` (REF11) ; aucun test touché : rien."""
+    zero = dict.fromkeys((*retraits.BAISSES, "skip"), 0)
+    lignes, somme_avant, somme_apres = [], dict(zero), dict(zero)
+    for ligne in name_status.splitlines():
+        champs = ligne.split("\t")
+        if len(champs) < 2 or not any(retraits.est_test(c) for c in champs[1:]):
+            continue
+        statut, vieux, neuf = champs[0][:1], champs[1], champs[-1]
+        texte_avant = lire_avant(vieux) if statut != "A" else None
+        texte_apres = lire_apres(neuf) if statut != "D" else None
+        avant = retraits.compter(texte_avant) if texte_avant is not None else dict(zero)
+        apres = retraits.compter(texte_apres) if texte_apres is not None else dict(zero)
+        for somme, n in ((somme_avant, avant), (somme_apres, apres)):
+            if n is not None:     # un côté illisible ne compte pas, comme dans `retraits.total`
+                for k in somme:
+                    somme[k] += n[k]
+        if avant is None or apres is None:
+            fin = " — illisible"
+        else:
+            trop = retraits.ecarts(avant, apres) if statut != "A" else []
+            fin = " — " + ", ".join(trop) if trop else ""
+        nom = "%s → %s" % (vieux, neuf) if vieux != neuf else neuf
+        lignes.append("TEST %s %s%s" % (STATUTS_TEST.get(statut, "MODIFIÉ"), nom, fin))
+    if lignes:
+        trop = retraits.ecarts(somme_avant, somme_apres)
+        lignes.append("RETRAITS " + (", ".join(trop) if trop else "rien de retiré ni d'affaibli"))
+    return lignes
+
+
+def lecteur(dossier):
+    """chemin relatif → texte du fichier sous `dossier`, ou None s'il ne se lit pas (pour `tests_touches`)."""
+    def lire(chemin):
+        """Le texte de `chemin` sous `dossier`, ou None."""
+        try:
+            with open(os.path.join(dossier, chemin), encoding="utf-8", errors="replace") as f:
+                return f.read()
+        except OSError:
+            return None
+    return lire
+
+
+def exclus_de(prefixe, courant, apres_projet):
+    """Les chemins jamais `HORS FICHE` : le fichier de fiches, et le fichier d'état — toute fiche peut écrire à son
+    journal (REV7)."""
+    etat_val = champ(lignes_de(os.path.join(apres_projet, "CHANTIER.md")), "fichier d'état", "aucun")
+    return {prefixe + (courant or "").replace("\\", "/")} | (
+        set() if etat_val.startswith("aucun") else {prefixe + etat_val.replace("\\", "/")})
+
+
+def ecrire_changes(sortie, etat, exclus, noms, dossiers):
+    """Sous le `git diff --name-status` (`etat`) : une ligne `HORS FICHE` par fichier que la fiche ne nomme pas
+    (`noms`) ni `exclus`, puis les lignes `TEST` et `RETRAITS` (REF14). `dossiers` : APRÈS puis AVANT."""
+    for ligne in etat.splitlines():
+        chemin = ligne.split("\t")[-1]
+        if chemin not in exclus and "/artefacts/" not in "/" + chemin and not nomme(chemin, noms):
+            sortie.write("HORS FICHE %s\n" % chemin)
+    # REF14 : chaque test modifié, supprimé, mis en `skip` ou affaibli, d'office sous les yeux du relecteur.
+    for ligne in tests_touches(etat, lecteur(dossiers[1]), lecteur(dossiers[0])):
+        sortie.write(ligne + "\n")
+
+
 def cmd_relecture(a, sortie):
     """La relecture d'une fiche (chantier REV) : ce qu'en dit la docstring du module."""
     import tempfile
@@ -351,14 +419,8 @@ def cmd_relecture(a, sortie):
     cmd_extraire(fichier, a.fiche, sortie)
     code, etat = git_texte(["diff", "--name-status", "--no-color", parent, sha], racine)
     sortie.write(etat if code == 0 else "GARDE: git diff --name-status en échec — %s\n" % etat)
-    fiches_rel, noms = prefixe + (courant or "").replace("\\", "/"), noms_fichiers(fiche)
-    # Le fichier d'état : toute fiche peut écrire à son journal (REV7).
-    etat_val = champ(lignes_de(os.path.join(apres_projet, "CHANTIER.md")), "fichier d'état", "aucun")
-    exclus = {fiches_rel} | (set() if etat_val.startswith("aucun") else {prefixe + etat_val.replace("\\", "/")})
-    for ligne in etat.splitlines() if code == 0 else []:
-        chemin = ligne.split("\t")[-1]
-        if chemin not in exclus and "/artefacts/" not in "/" + chemin and not nomme(chemin, noms):
-            sortie.write("HORS FICHE %s\n" % chemin)
+    if code == 0:
+        ecrire_changes(sortie, etat, exclus_de(prefixe, courant, apres_projet), noms_fichiers(fiche), dossiers)
     code, diff = git_texte(["diff", "--no-color", "--no-ext-diff", parent, sha], racine)
     sortie.write(diff if code == 0 else "GARDE: git diff en échec — %s\n" % diff)
     return 0
