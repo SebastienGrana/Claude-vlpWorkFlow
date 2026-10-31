@@ -185,6 +185,12 @@ les deux champs avaient disparu, et `P2`, écrite pour les lire, n'en aurait rie
 ne compilait pas non plus, pour d'autres raisons, dans son code (`21-audit-amd.md` de
 MapDecorator, faits 3 à 7 et section `P2`).
 
+Mesuré sur Emergence, à `FEN12` (2026-10-31) : la piste de `VER4` disait « `workers=4` ≈
+`workers=None` » (7,3 · 6,9 · 7,1 s contre 7,9 · 6,3 · 6,0 s, sur une autre grille). Remesuré
+sur l'onglet Lab du jour, 8 cœurs, 3 essais : 24,0 · 25,4 · 22,9 s à 4 contre 12,6 · 12,5 ·
+18,2 s à 8 — deux fois plus lent. Le plafond suivi sans remesure aurait été 4. La fiche
+demandait la remesure ; c'est elle qui a tranché (`ARCHITECTURE.md` d'Emergence).
+
 ### La TODO ne grossit pas sans deux oui de l'utilisateur
 
 Mesuré le 2026-09-25 dans `context AI/08-etat.md` : des entrées 31 à 68, soit 38, le
