@@ -568,8 +568,8 @@ def refus_de_clore(projet, carte_, courant, fiches_, ids):
 
 
 def cmd_clore(a, sortie):
-    """Clore le chantier courant de `a.projet` : les écritures mécaniques de `cloture.md`, décrites à `clore` dans la
-    docstring de `vlp.py`."""
+    """Clore le chantier courant de `a.projet` : les écritures mécaniques de `cloture.md`, décrites par
+    `vlp.py clore --help`."""
     projet, date = a.projet, a.date or __import__("datetime").date.today().isoformat()
     if not equipe(projet):
         sortie.write("GARDE: pas de CHANTIER.md dans %s\n" % projet)

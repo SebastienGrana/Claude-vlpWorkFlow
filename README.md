@@ -164,7 +164,7 @@ skills/                    LE MOTEUR — init, chantier, tache, enchainer, check
 agents/fiche.md            le sous-agent qui joue une fiche, lancé par la skill jouer
 hooks/hooks.json           valide un fichier de fiches à chaque écriture
 scripts/                   LA MÉCANIQUE — Python sans dépendance, zéro appel modèle
-  vlp.py                   carte, extraire, socle, valider, page… (docstring)
+  vlp.py                   carte, extraire, socle, valider, page… (--help)
   mesure-tokens.py         le coût en tokens d'une session, en comptes bruts
 methode-chantier.md        LA DOCTRINE, et où vit quoi — lue depuis le kit, jamais recopiée
 cloture.md                 les quatre temps d'une clôture, décrits une fois

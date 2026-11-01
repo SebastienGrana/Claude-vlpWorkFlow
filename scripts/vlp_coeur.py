@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Le code de `vlp.py` (VIT5) : `vlp.py` le lance, et son `.pyc` évite de recompiler ce module à chaque
-lancement. La doc des sous-commandes vit dans la docstring de `vlp.py`, et nulle part ailleurs.
+lancement. La doc des sous-commandes vit dans `noyau/manuel.py` (`vlp.py <sous-commande> --help`), et nulle part ailleurs.
 """
 # Lus par les tests à travers la façade (`mod.argparse`, `mod.hashlib`, `mod.html`, `mod.carnet`, `mod.vlp_hook`) :
 # ré-exportés, pas inutiles (REF54).

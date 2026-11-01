@@ -66,7 +66,7 @@ def page_cahier(textes, md, choix=None):
 
 
 def cmd_cahier(a, sortie):
-    """`cahier <source.md> <sortie.html> [--titre T] [--version V] [--seance S]` (docstring de `vlp.py`) : tout se lit
+    """`cahier <source.md> <sortie.html> [--titre T] [--version V] [--seance S]` (`vlp.py cahier --help`) : tout se lit
     et se vérifie avant d'écrire ; un `.md` sans essai, illisible, ou un gabarit cassé : `GARDE:`, rien d'écrit."""
     try:
         md = lire(a.source)

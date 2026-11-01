@@ -34,7 +34,8 @@ def lignes(chemin):
 
 def principal(argv, sortie=None):
     """`vlp.py conserve <avant>… --apres <après>…` : ce que dit la docstring du module."""
-    p = argparse.ArgumentParser(prog="vlp.py conserve")
+    p = argparse.ArgumentParser(prog="vlp.py conserve", description=__doc__,
+                                formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("avant", nargs="+")
     p.add_argument("--apres", nargs="+", required=True)
     a = p.parse_args(argv)

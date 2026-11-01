@@ -28,7 +28,7 @@ choix (`templates/rapport-choix.html`) — des décisions à garder ou revoir, d
 questions à options, un commentaire libre replié sous chaque carte, un bouton
 qui copie les réponses et les commentaires. Elle ne suit aucun
 chantier et ne se republie pas. Un script la remplit : `vlp.py chef page`
-(sa forme est dans la docstring de `vlp.py`) ; à la main, elle suit le
+(sa forme : `vlp.py chef --help`) ; à la main, elle suit le
 commentaire de tête du gabarit.
 
 Depuis le 2026-10-07, son script pose seul de quoi lire et répondre plus
@@ -61,7 +61,7 @@ Nom choisi par l'utilisateur le 2026-10-21 : « rapport de test » laissait croi
 tests. Une page où **lui** coche, remplit et commente une liste d'essais (en jeu, dans une appli), puis copie
 un rapport texte qu'il recolle dans une séance Claude. Page ponctuelle : elle ne suit aucun chantier.
 
-- **Bâtir** : `vlp.py cahier <source.md> <sortie.html>` (options et sorties : docstring de `vlp.py`). Le
+- **Bâtir** : `vlp.py cahier <source.md> <sortie.html>` (options et sorties : `vlp.py cahier --help`). Le
   `.md` reste la source ; on corrige le `.md`, on rebâtit — jamais le HTML à la main.
 - **Publier** : `Artifact` avec le `file_path` de la sortie, sans `files` : la page tient en un fichier, le
   style de `vlp.css` posé dedans. `icon` : `checklist`. Une nouvelle version du `.md` : rebâtir, puis republier
@@ -171,7 +171,7 @@ Seul endroit de la règle : les commandes y renvoient, elles ne la recopient pas
   joint par son `path`, puis republier. Une publication sans `files` garde les joints déjà en
   ligne (doc de l'outil `Artifact`, essayé sur la feuille, version 185). Cause mesurée : des
   octets différents du disque, fins de ligne comprises (`JNT`, `context AI/99-joints-changes.md`).
-- Regarder une page **sans la publier** : `vlp.py apercu <projet>` (détail dans sa docstring).
+- Regarder une page **sans la publier** : `vlp.py apercu <projet>` (détail : `vlp.py apercu --help`).
 
 ## La page se régénère, elle ne se retouche pas
 

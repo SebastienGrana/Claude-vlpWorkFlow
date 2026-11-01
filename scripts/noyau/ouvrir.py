@@ -89,7 +89,7 @@ def lever_pause(lignes):
 
 
 def cmd_ouvrir(a, sortie):
-    """Ouvrir un chantier dans `a.projet` : les écritures mécaniques décrites à `ouvrir` dans la docstring de `vlp.py`."""
+    """Ouvrir un chantier dans `a.projet` : les écritures mécaniques décrites par `vlp.py ouvrir --help`."""
     projet = a.projet
     if not equipe(projet):
         sortie.write("GARDE: pas de CHANTIER.md dans %s\n" % projet)

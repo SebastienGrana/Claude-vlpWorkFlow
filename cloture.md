@@ -29,7 +29,7 @@ demande d'abord deux oui (`methode-chantier.md`, règle « La TODO ne grossit pa
 
 `<python>` : la valeur de `PYTHON=` dans la carte de la commande qui clôt. Sans
 abandon, pas de `--abandon`. Ce que le script écrit, fichier par fichier, est dans
-la docstring de `vlp.py`, `clore` : le fichier de fiches, `CHANTIER.md`, l'index et
+`vlp.py clore --help` : le fichier de fiches, `CHANTIER.md`, l'index et
 son archive, le routage et « Où on en est » de `CLAUDE.md`, la page du chantier
 (`ZONE:bilan`, coûts) et la feuille de route locale, qui relit la TODO de
 l'étape 1. Le total du

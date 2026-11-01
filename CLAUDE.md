@@ -37,7 +37,7 @@ est public (vu le 2026-10-17) : aucun secret ni chemin local n'y entre pour auta
 4. **Le déterministe est un script, le jugement est de la prose.** Extraire,
    valider, régénérer, mesurer vivent dans `scripts/` — Python 3 sans paquet à l'exécution, l'atelier
    sous `uv` (`methode-chantier.md`, « Coder dans le kit »), zéro appel modèle, testé : `vlp.py` porte la mécanique (ses
-   sous-commandes sont dans sa docstring, son code dans `vlp_coeur.py`, qu'il lance), `mesure-tokens.py`
+   sous-commandes par `vlp.py <sous-commande> --help`, son code dans `vlp_coeur.py`, qu'il lance), `mesure-tokens.py`
    le coût — et une commande les appelle en un tour, elle ne décrit pas leur algorithme. Rien de propre
    à une machine dans `skills/`, `templates/` ni `scripts/` : un chemin passe par
    `${CLAUDE_PLUGIN_ROOT}`, **dans le texte des commandes et `hooks/hooks.json`

@@ -9,6 +9,13 @@ système de Claude 3.7 — un test supprimé, mis en `skip`, ou une assertion re
   une ligne `Test retiré : <raison>` dans le message (hors commentaires `#`).
 
 Aiguillé avant le cœur, comme `couverture.py` : bibliothèque standard seule, rien d'importé du kit.
+
+`retraits <fichier du message> [--racine R]` — un test retiré ou affaibli au commit (REF11 ; `retraits.py`, aiguillé
+avant le cœur ; lancé par `.githooks/commit-msg`, la racine du dépôt par défaut) : compte par `ast`, sur l'ensemble
+des fichiers de test de `HEAD` et de l'index, les tests, `verifier`, `assert` et `skip`/`xfail`. Imprime
+`RETRAITS tests a → b · …`, `ILLISIBLE <fichier>` par test qui ne se lit pas, puis `— passe` (sort 0) ou, sur une
+baisse ou plus de `skip` sans ligne `Test retiré : <raison>` dans le message, `— commit refusé` (sort 1). Sans
+`HEAD` : `RETRAITS premier commit …` (sort 0) ; message illisible : `GARDE:`, sort 1.
 """
 import argparse
 import ast
@@ -130,7 +137,8 @@ def juger(racine, message, sortie):
 
 def principal(argv, sortie=None):
     """`vlp.py retraits <fichier du message> [--racine R]` : le hook `commit-msg`, la racine du dépôt par défaut."""
-    p = argparse.ArgumentParser(prog="vlp.py retraits")
+    p = argparse.ArgumentParser(prog="vlp.py retraits", description=__doc__,
+                                formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("message")
     p.add_argument("--racine", default=".")
     a = p.parse_args(argv)

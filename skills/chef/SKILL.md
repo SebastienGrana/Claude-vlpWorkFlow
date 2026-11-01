@@ -67,14 +67,14 @@ Les fichiers vont dans le dossier du carnet, `<git-common-dir>/vlp-nuit/`, que d
 <python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" chef page --questions "@<carnet>/chef-<date>.json" --sortie "<carnet>/chef-<date>.html"
 ```
 
-Sa forme et ses `GARDE:` : docstring de `vlp.py`, `chef page`. `PAGE SAINE <n> blocs`, puis `CARTES D1 Q1…` :
+Sa forme et ses `GARDE:` : `vlp.py chef --help`. `PAGE SAINE <n> blocs`, puis `CARTES D1 Q1…` :
 garde cette liste, elle dit quelle réponse est laquelle. Publie la page **telle qu'elle sort** (`Artifact`, sans
 la retoucher), donne le lien, et demande à l'utilisateur de coller ses réponses (bouton « Copier mes
 réponses »). **N'avance pas avant : rien ne se devine.**
 
 ## 4. Le plan
 
-Écris `chef-<date>-plan.json` dans le même dossier — forme : docstring de `vlp.py`, `plan`. Par chantier : le
+Écris `chef-<date>-plan.json` dans le même dossier — forme : `vlp.py plan --help`. Par chantier : le
 **canal** et l'**estimé** retenus, chacun avec **sa raison** (une puce de `reponses`), et `découpage : …`
 s'il l'a validé ; un chantier qu'il écarte n'y entre pas. Garde ses réponses brutes dans `chef-<date>.md`.
 
@@ -117,7 +117,7 @@ jamais le tien. Puis le rapport, sans fusion ni commit, rejouable :
 
 `KIT ?`, `ÉCART` et `NOTE SANS SORTE` : dis chacun en une ligne, ils sont aussi dans le JSON. Ajoute-y **une à trois
 leçons**, en cartes de décision (`decisions.cartes`, les cinq champs ; la ligne de la leçon, telle qu'elle s'écrirait,
-va dans `choix`), tirées des `cause` et `reecriture` du carnet, dans la forme de `NUI11` (docstring de `vlp.py`,
+va dans `choix`), tirées des `cause` et `reecriture` du carnet, dans la forme de `NUI11` (`vlp.py nuits --help`,
 `nuits lecon`) : une cause, pas un constat. Rien à en tirer : n'en invente pas. Puis la page, comme à la section 3 :
 
 ```bash

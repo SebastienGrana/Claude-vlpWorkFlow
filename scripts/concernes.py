@@ -8,6 +8,12 @@ régressions ; la liste des tests concernés par le changement les a réduites (
   `/vlp:tache` en imprime une ligne pour la prochaine fiche (`ligne_carte`).
 
 Aiguillé avant le cœur, comme `couverture.py` : bibliothèque standard seule, aucun paquet à l'exécution.
+
+`concernes <fonction>… [--racine R]` — les tests qui exécutent ces fonctions (REF13 ; `concernes.py`, aiguillé
+avant le cœur) : chaque fonction trouvée sous `<racine>/scripts/` par `ast`, ses lignes lues dans la mesure par test
+de la dernière suite entière (`.couverture/donnees`, `dynamic_context = "test_function"`). Imprime `ABSENTE <nom>`
+par fonction introuvable, `CONCERNES <n> test(s) pour <noms>`, puis un test par ligne ; sans mesure, ou sans
+contexte par test : `GARDE:`, sort 1. La carte en tire `CONCERNES <fiche>=…` pour la prochaine fiche.
 """
 import argparse
 import ast
@@ -108,7 +114,8 @@ def ligne_carte(racine, fiche, texte):
 def principal(argv, sortie=None):
     """`vlp.py concernes <fonction>… [--racine R]` : les tests qui exécutent ces fonctions, lus dans la dernière mesure
     de la suite entière ; la racine du kit par défaut."""
-    p = argparse.ArgumentParser(prog="vlp.py concernes")
+    p = argparse.ArgumentParser(prog="vlp.py concernes", description=__doc__,
+                                formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("noms", nargs="+")
     p.add_argument("--racine", default=os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     a = p.parse_args(argv)

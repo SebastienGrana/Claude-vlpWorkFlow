@@ -52,6 +52,7 @@ from noyau.hooks import (
     cmd_gardien,
     cmd_hook,
 )
+from noyau.manuel import AIDES, AIGUILLEES
 from noyau.matin import cmd_fusionner, cmd_matin
 from noyau.niveau import cmd_attente, cmd_attente_hook, cmd_comparer, cmd_niveau
 from noyau.notes import cmd_abri, cmd_etat, cmd_page, cmd_renvois, page_du_fichier
@@ -83,6 +84,31 @@ __all__ = [
     "PAR_ARGUMENTS", "main", "options_carte", "options_clore", "options_etat", "options_fusionner",
     "options_marques", "options_mesure", "options_mutant", "options_outils", "options_sante", "repartir",
 ]
+
+
+class Manuel:
+    """Les sous-parseurs de `main`, chacun avec sa ligne et son détail de `noyau/manuel.py` (REF36) : `add_parser`
+    les pose, `choices` reste celui d'argparse. Une sous-commande absente du manuel n'a ni l'une ni l'autre — elle
+    tourne quand même, et `tests/test_manuel.py` le voit."""
+
+    def __init__(self, sous):
+        """Envelopper `sous`, le retour d'`add_subparsers`."""
+        self.sous = sous
+        self.choices = sous.choices
+
+    def add_parser(self, nom, **options):
+        """Le sous-parseur `nom` : sa ligne en `help=`, son détail en `description=`, imprimé tel quel ; ni l'un ni
+        l'autre s'il manque au manuel."""
+        ligne, detail = AIDES.get(nom, (None, None))
+        return self.sous.add_parser(nom, help=ligne, description=detail,
+                                    formatter_class=argparse.RawDescriptionHelpFormatter, **options)
+
+
+def epilogue():
+    """Le pied de `vlp.py --help` : les sous-commandes aiguillées avant le cœur, chacune avec sa ligne (REF36)."""
+    largeur = max(map(len, AIGUILLEES))
+    return "aiguillées avant le cœur, détail par leur propre --help :\n" + "".join(
+        "  %-*s  %s\n" % (largeur, nom, ligne) for nom, ligne in AIGUILLEES.items())
 
 
 def options_outils(sous):
@@ -226,8 +252,10 @@ def options_sante(sous):
 def main(argv, sortie=None, entree=None, erreur=None):
     """Lire la ligne de commande, puis lancer la sous-commande demandée."""
     sortie = sortie or sys.stdout
-    p = argparse.ArgumentParser(prog="vlp.py", description="La mécanique du kit vlp.")
-    sous = p.add_subparsers(dest="cmd", required=True)
+    p = argparse.ArgumentParser(prog="vlp.py", description="La mécanique du kit vlp. Le détail d'une sous-commande : "
+                                "vlp.py <sous-commande> --help.", epilog=epilogue(),
+                                formatter_class=argparse.RawDescriptionHelpFormatter)
+    sous = Manuel(p.add_subparsers(dest="cmd", required=True))
     options_carte(sous)
     e = sous.add_parser("extraire")
     e.add_argument("fichier")

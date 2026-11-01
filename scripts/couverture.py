@@ -8,6 +8,13 @@
 
 Outils d'atelier, lancés par `uv run`, jamais importés. La décision (`verdict`) reçoit le rapport de `diff-cover`
 et ne lance rien : elle se teste en mémoire (`methode-chantier.md`, « Coder dans le kit »).
+
+`couverture [--racine R]` — juge le commit indexé (REF8 ; `couverture.py`, aiguillé avant le cœur ; lancé par
+`.githooks/pre-commit`) : sans `.py` indexé, `COUVERTURE rien à couvrir …` (sort 0) ; sans rapport mesuré sur le
+code du jour (empreinte de VIT11), `GARDE: couverture — pas de rapport mesuré sur ce code …` (sort 1) ; sinon,
+par `diff-cover`, `NON COUVERT <fichier> : <lignes>` par fichier, puis `COUVERTURE <taux> % des <n> lignes
+changées, seuil <SEUIL> % — passe` (sort 0) ou `— commit refusé` (sort 1). La mesure : la suite pytest,
+lancée entière, se relance sous `coverage` et écrit `.couverture/coverage.xml` — `COUVERTURE mesurée : …`.
 """
 import argparse
 import json
@@ -146,6 +153,7 @@ def juger(racine, sortie, seuil=SEUIL, empreinte_de=empreinte_du_kit):
 
 def principal(argv, sortie=None):
     """`vlp.py couverture [--racine R]` : juger le commit indexé de `R`, le kit par défaut (le hook de commit)."""
-    p = argparse.ArgumentParser(prog="vlp.py couverture")
+    p = argparse.ArgumentParser(prog="vlp.py couverture", description=__doc__,
+                                formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--racine", default=KIT)
     return juger(os.path.abspath(p.parse_args(argv).racine), sortie or sys.stdout)

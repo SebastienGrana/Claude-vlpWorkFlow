@@ -247,7 +247,7 @@ def ligne_effort(lignes, methode=None):
 
 
 def carte(depart, sortie, relecteur=False, neuve=False):
-    """Écrire la carte du projet qui contient `depart`, ligne à ligne comme le dit la docstring de `vlp.py` ; `neuve`
+    """Écrire la carte du projet qui contient `depart`, ligne à ligne comme le dit `vlp.py carte --help` ; `neuve`
     (`--session-neuve`, `/vlp:tache` seule) y ajoute l'avertissement d'`avertir_session` (VIT20)."""
     racine = trouver(depart)
     if racine is None:

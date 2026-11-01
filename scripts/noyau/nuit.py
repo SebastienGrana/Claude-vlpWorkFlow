@@ -780,7 +780,7 @@ def explique_json(d):
 
 
 def page_choix(gabarit, d):
-    """`(html, name des cartes)` : la page de `d` (voir `chef page`, dans la docstring du module), bâtie sur les morceaux
+    """`(html, name des cartes)` : la page de `d` (voir `vlp.py chef --help`), bâtie sur les morceaux
     de `gabarit`. `ValueError` : ce qui manque ou n'est pas du bon genre, `GARDE:` à l'appelant."""
     tete, reponses, script = morceaux_choix(gabarit)
     explique = " data-explique" if explique_json(d) else ""
@@ -810,7 +810,7 @@ def page_choix(gabarit, d):
 
 
 def cmd_chef_page(questions, chemin, sortie, gabarit):
-    """`chef page` (forme du JSON et `GARDE:` : docstring du module) : `questions` est le JSON ou `@fichier`,
+    """`chef page` (forme du JSON et `GARDE:` : `vlp.py chef --help`) : `questions` est le JSON ou `@fichier`,
     `gabarit` le texte du modèle. Écrit `chemin` seulement si la page bâtie passe `defauts_page`."""
     try:
         d = json.loads(lire_arg(questions))

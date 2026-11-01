@@ -360,7 +360,7 @@ def ecrire_changes(sortie, etat, exclus, noms, dossiers):
 
 
 def cmd_relecture(a, sortie):
-    """La relecture d'une fiche (chantier REV) : ce qu'en dit la docstring du module."""
+    """La relecture d'une fiche (chantier REV) : ce qu'en dit `vlp.py relecture --help`."""
     import tempfile
     projet = trouver(os.getcwd())
     code, racine = git_texte(["rev-parse", "--show-toplevel"], projet or os.getcwd())
