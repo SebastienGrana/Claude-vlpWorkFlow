@@ -865,3 +865,56 @@ permissions » (lue le 2026-10-31) : une règle `ask` force la question même qu
 2. ☐ Sous `"permissions"`, ajouter (ou compléter) la liste `"ask"` :
    `"ask": ["Bash(git push *)", "Bash(git -C * push *)", "PowerShell(git push *)", "PowerShell(git -C * push *)", "Bash(git branch -D *)", "PowerShell(git branch -D *)"]`
 3. ☐ Enregistrer, puis dire « fait » : un `git push` de Claude doit alors demander, même en mode auto.
+
+## La mutation sur les lignes changées (`REF20`)
+
+Essayé le 2026-11-01 entre 01:10 et 01:55, sur un clone du kit dans le dossier temporaire de la session, jamais
+sur le dépôt. `poodle` 1.3.4 (installé dans le `.venv` du clone seul ; `pyproject.toml` n'a pas changé), Python
+3.14.6, 8 cœurs. Protection en temps réel de Windows **active** (`RealTimeProtectionEnabled` : `True`) pendant la
+1re passe et l'essentiel de la 2de — coupée par l'utilisateur vers la fin : les durées sont gonflées, Defender
+prenait ≈ 20 % du processeur (capture du gestionnaire des tâches).
+
+**Les lignes visées** : les trois derniers commits de fiche, `REF15` (`13210ab`), `REF16` (`c89001d`), `REF17`
+(`59e78bd`, aucun `.py`) — `git diff -U0 13210ab~1 59e78bd` : `conserve.py` 53 lignes, `sante.py` 40, `vlp.py` 5.
+
+**Pas de filtre de diff dans `poodle`** (lu dans son code : options `--only`, `--exclude`, commentaires `# nomut`).
+Passé par ses options : un `poodle_config.py` d'≈ 50 lignes coupe ses mutateurs (`skip_mutators = ["all"]`) et en
+ajoute un (`add_mutators`) qui joue les douze d'office et ne garde que les mutants d'une ligne du diff. Trois pièges
+levés en route : `shlex` mange les `\` du chemin de Python ; `poodle` ne copie pas les dossiers cachés
+(`.claude-plugin`, `.githooks` : il faut `file_copy_flags` avec `DOTGLOB`) ; les tests qui lancent `uv` créent un
+`.venv` dans le dossier de travail, que Windows refuse ensuite d'effacer (`UV_PROJECT_ENVIRONMENT` vers un
+environnement à part).
+
+| Passe | Tests joués par mutant | Mutants | Tués | Vivants | Durée |
+|---|---|---|---|---|---|
+| 1 | `test_conserve`, `test_sante`, `test_sante_pt018`, `test_photos_vlp`, `test_cli` | 174 | 148 | 26 | 507 s (`-w 4`) |
+| 2 (les 26 vivants) | les mêmes + `test_rapport`, `test_bac` (seuls autres à appeler `lire_ruff` ou `sante`) | 26 | 12 | 14 | 463 s (`-w 4`) |
+| **Bilan** | | **174** | **160** | **14** | **970 s** |
+
+La suite entière par mutant a été tentée puis arrêtée : sa seule passe propre a pris ≈ 11 min 30 dans le dossier
+de `poodle` (01:22:53 → 01:34:25, contre ≈ 41 s d'habitude), soit ≈ 2 h 30 pour 26 mutants à deux en parallèle.
+
+**Chaque vivant classé** (14)
+
+| Ligne | Mutants | Classe | Pourquoi |
+|---|---|---|---|
+| `vlp.py:728` (`sys.argv[1:2] == ["conserve"]`) | 6 | **vrai trou** | aucun test ne lance `vlp.py conserve` : l'aiguillage n'est jamais joué |
+| `vlp.py:730` (`conserve.principal(sys.argv[2:])`) | 4 | **vrai trou** | même cause |
+| `conserve.py:35` (`sortie=None` → `' '`) | 1 | **vrai trou** | chaque test passe `sortie` : la sortie d'office (`sys.stdout`) n'est jouée que par la ligne de commande |
+| `conserve.py:39` (`required=True` → `False`) | 1 | **vrai trou** (petit) | aucun test n'oublie `--apres` |
+| `conserve.py:37` (`prog=` renommé) | 1 | équivalent | ne change que le texte d'usage d'argparse, que rien ne lit |
+| `sante.py:38` (`TESTS_SEULS` renommé) | 1 | équivalent aujourd'hui | `PT018` hors test : aucun `assert` dans `scripts/`, le compte reste 0 ≤ 0 |
+
+➡️ **12 vrais trous, une seule cause** : `vlp.py conserve` n'a pas de test de bout en bout (`REF16`). Pas corrigé
+ici : hors de la fiche.
+
+**Verdict : concluant, avec réserves.** `poodle` tourne sous Windows et Python 3.14, sur les lignes changées, et a
+trouvé un trou réel que `vlp.py mutant` n'aurait cherché que si on l'avait nommé. Réserves : pas de filtre de diff
+(une config à écrire), il copie tout le projet à chaque mutant (Defender le paie), et la suite entière par mutant est
+hors de portée. `cosmic-ray` n'a pas été essayé : l'essai de `poodle` est concluant.
+
+💡 **Proposé, pas adopté** : une étape de mutation en fin de fiche qui code — `poodle` sur les lignes changées par
+la fiche, avec les tests que `vlp.py concernes` nomme (puis, pour les vivants, les fichiers de tests qui appellent la
+fonction mutée), un vivant classé « vrai trou » ou « équivalent » dans le compte rendu. À trancher : le paquet dans
+le groupe `dev`, où vit la config (un script du kit qui la génère), une copie réduite à `scripts/` et `tests/`, et un
+plafond de durée.
