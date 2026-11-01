@@ -918,3 +918,38 @@ la fiche, avec les tests que `vlp.py concernes` nomme (puis, pour les vivants, l
 fonction mutée), un vivant classé « vrai trou » ou « équivalent » dans le compte rendu. À trancher : le paquet dans
 le groupe `dev`, où vit la config (un script du kit qui la génère), une copie réduite à `scripts/` et `tests/`, et un
 plafond de durée.
+
+## Typer un lecteur JSON (`REF21`)
+
+Essayé le 2026-11-01 sur le lecteur que `cout` lit pour chaque transcript : `mesurer` dans
+`scripts/mesure-tokens.py` (le `json.loads` d'une ligne de transcript). Comptes de
+`uv run --frozen pyright scripts/mesure-tokens.py`, réglages du `pyproject.toml` :
+
+| Étape | Erreurs pyright |
+|---|---|
+| avant (la ligne lue est `Any`) | **0** |
+| la ligne lue typée `object`, sans rien d'autre | **2** (lignes 288 et 295 : `d.get` sur un `object`) |
+| après : `TypedDict` (`Ligne`, `Message`, `Usage`, `Cache`, `Bloc`, `total=False`) + garde `isinstance(…, dict)` | **0** |
+
+**Ce qui a été attrapé** : un seul défaut, vu deux fois — **vrai bug, cas oublié**. Une ligne qui est du JSON mais
+pas un objet (`null`, `[1, 2]`, `"texte"`, `3`) passait `json.loads` puis faisait tomber `mesurer` sur `d.get`
+(`AttributeError`, rejoué sur un fichier de deux lignes). Corrigé (`ligne_transcript`, appelée par `mesurer`) : elle compte comme ligne invalide, comme un JSON
+illisible. Test `tests/test_mesure_tokens_json.py` (rouge, puis vert) ; mutant `vlp.py mutant` sur la garde : attrapé.
+
+**Ce que le `TypedDict` lui-même a attrapé : rien** (0 erreur de plus). Le lecteur vérifiait déjà chaque niveau
+(`isinstance(message, dict)`, `isinstance(usage, dict)`, `isinstance(contenu, list)`). Bruit : 0. Limite : le type
+dit `input_tokens: int` sans le vérifier à l'exécution — un `"input_tokens": null` passerait pyright et ferait
+tomber la somme ; aucun transcript lu ne le porte, rien n'a été corrigé pour ça.
+
+**Verdict** : le gain vient de typer la valeur lue `object` (pyright force alors la vérification de forme), pas du
+`TypedDict`, qui documente la forme (≈ 30 lignes) sans rien trouver ici. 💡 Proposé : la règle « un `json.loads` se
+lit en `object`, puis `isinstance` » ; les `TypedDict` seulement là où un lecteur descend profond sans garde.
+
+**Les autres lecteurs** (`grep "json\.loads\?("` sur `scripts/`, 26 appels hors celui-ci) — avis, rien de changé :
+
+- La plupart se gardent déjà : `isinstance` dans les lignes qui suivent, ou `except AttributeError`
+  (`hooks.py:488`, `hooks.py:700`).
+- Sans garde visible, mais JSON écrit par un outil, non par un humain — risque faible : `sante.py:298` (sortie de
+  ruff), `couverture.py:142` (rapport de coverage), `hooks.py:250` (l'entrée d'un hook, écrite par Claude Code).
+- À vérifier : `nuit.py:523` lit un plan `--json` écrit par le modèle ; si `plan_valider` ne refuse pas une liste,
+  c'est le même cas que celui-ci. Candidat pour la prochaine passe de l'angle des bugs (`REF22`).

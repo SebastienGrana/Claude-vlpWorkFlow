@@ -44,6 +44,40 @@ import subprocess
 import sys
 from dataclasses import dataclass, field
 from decimal import ROUND_HALF_UP, Decimal
+from typing import TypedDict, cast
+
+
+# La forme d'une ligne de transcript, telle que `mesurer` la lit (REF21) : rien n'y est garanti, d'où
+# `total=False`. Un type dit ce qu'on attend ; il ne vérifie rien à l'exécution (note `122`, « REF21 »).
+class Cache(TypedDict, total=False):
+    ephemeral_1h_input_tokens: int
+
+
+class Usage(TypedDict, total=False):
+    input_tokens: int
+    output_tokens: int
+    cache_creation_input_tokens: int
+    cache_creation: Cache
+    cache_read_input_tokens: int
+    speed: str
+
+
+class Bloc(TypedDict, total=False):
+    type: str
+    name: str
+
+
+class Message(TypedDict, total=False):
+    id: str
+    model: str
+    usage: Usage
+    content: list[Bloc] | str
+
+
+class Ligne(TypedDict, total=False):
+    message: Message
+    requestId: str
+    timestamp: str
 
 # Colonnes affichées, dans l'ordre du socle (context AI/13-tours.md).
 COLONNES = [
@@ -196,7 +230,17 @@ def depart(chemin):
     return None, None
 
 
-def _comptes(usage):
+def ligne_transcript(texte) -> Ligne | None:
+    """La ligne de transcript lue, ou None si elle est illisible ou du JSON qui n'est pas un objet
+    (`null`, `[1]`, `"texte"`) : lue en `object`, pyright force la vérification de forme (REF21)."""
+    try:
+        brute: object = json.loads(texte)
+    except json.JSONDecodeError:
+        return None
+    return cast(Ligne, brute) if isinstance(brute, dict) else None
+
+
+def _comptes(usage: Usage):
     """Les cinq nombres qu'on somme, tirés d'un `usage`."""
     cc = usage.get("cache_creation")
     # Sans sous-objet (vieux transcript), tout le cache écrit compte en 5 min,
@@ -241,6 +285,7 @@ def arrondir_usd(x):
 
 
 def mesurer(chemin, plage=None):
+    """(comptes d'un transcript, None), ou (None, erreur) s'il est illisible : tours, appels, jetons, coût."""
     # Un tour = un `message.id` ; un tour s'écrit sur 1 à 3 lignes `assistant`.
     # On garde les comptes de la DERNIÈRE ligne de chaque id, dans l'ordre
     # d'apparition, et on note les ids dont les comptes changent d'une ligne
@@ -280,9 +325,8 @@ def mesurer(chemin, plage=None):
             ligne = ligne.strip()
             if not ligne:
                 continue
-            try:
-                d = json.loads(ligne)
-            except json.JSONDecodeError:
+            d = ligne_transcript(ligne)
+            if d is None:
                 lignes_invalides += 1
                 continue
             message = d.get("message")
