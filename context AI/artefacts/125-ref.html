@@ -21,9 +21,9 @@
     <p>Le kit tourne sur pytest et une couverture mesurée, sans une seule régression ; des scripts gardent la taille des fichiers et interdisent de toucher aux tests pendant une fiche ; les erreurs connues sont réparées, les gros fichiers découpés, et chaque angle revu jusqu'à deux passes vides.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">59 fiches · 46 faites · en cours : REF32</p>
+    <p class="mono" style="margin-top:.5rem">59 fiches · 47 faites · en cours : REF33</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -222,10 +222,12 @@
         <details><summary><span class="titre">Essayer de typer un lecteur JSON</span><span class="etat">Faite</span></summary>
         <span class="note">pyright sur mesure-tokens.py : 0 avant, 2 en lisant le JSON en object, 0 après TypedDict ; 1 vrai bug (ligne JSON non objet → AttributeError), corrigé, test + mutant ; TypedDict seul : 0 trouvaille ; suite 418 passés</span></details>
         <span class="cout mono">≈11,0M (10 952 379) · 42 tours · 3,31 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">REF32</span></span>
-        <details open><summary><span class="titre">Un bloc Tentatives soldé garde le bon motif</span><span class="etat">En cours · REF37, REF38 peuvent partir en même temps</span></summary></details></li>
-      <li class="fiche"><span class="gauche"><span class="id">REF33</span></span>
-        <details><summary><span class="titre">Les écritures Git sous /vlp:enchainer, vérifiées</span><span class="etat">À lancer</span></summary></details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REF32</span></span>
+        <details><summary><span class="titre">Un bloc Tentatives soldé garde le bon motif</span><span class="etat">Faite</span></summary>
+        <span class="note">2 tests rouges puis verts (motif d'un refus écrasé non repris ; tête « irrésolu » gardée ouverte), 2 mutants attrapés ; suite entière verte</span></details>
+        <span class="cout mono">≈6,7M (6 739 604) · 21 tours · 1,95 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">REF33</span></span>
+        <details open><summary><span class="titre">Les écritures Git sous /vlp:enchainer, vérifiées</span><span class="etat">En cours · REF37 peut partir en même temps</span></summary></details></li>
       <li class="fiche"><span class="gauche"><span class="id">REF34</span></span>
         <details><summary><span class="titre">Deux relecteurs en parallèle ne s'effacent pas</span><span class="etat">À lancer</span></summary></details></li>
       <li class="fiche"><span class="gauche"><span class="id">REF35</span></span>
@@ -233,9 +235,9 @@
       <li class="fiche"><span class="gauche"><span class="id">REF36</span></span>
         <details><summary><span class="titre">Une aide par sous-commande de vlp.py</span><span class="etat">À lancer</span></summary></details></li>
       <li class="fiche"><span class="gauche"><span class="id">REF37</span></span>
-        <details><summary><span class="titre">La nuit : qui prime, commiter ou non</span><span class="etat">À lancer · en même temps que REF32, REF38</span></summary></details></li>
+        <details><summary><span class="titre">La nuit : qui prime, commiter ou non</span><span class="etat">À lancer · en même temps que REF33</span></summary></details></li>
       <li class="fiche"><span class="gauche"><span class="id">REF38</span></span>
-        <details><summary><span class="titre">Retirer le repli « copie simple » d'avant le plugin</span><span class="etat">À lancer · en même temps que REF32, REF37</span></summary></details></li>
+        <details><summary><span class="titre">Retirer le repli « copie simple » d'avant le plugin</span><span class="etat">À lancer</span></summary></details></li>
       <li class="fiche"><span class="gauche"><span class="id">REF39</span></span>
         <details><summary><span class="titre">sante --base refuse un worktree en retard sur main</span><span class="etat">À lancer</span></summary></details></li>
       <li class="fiche"><span class="gauche"><span class="id">REF22</span></span>
@@ -255,7 +257,7 @@
         <span class="note">Revue de la doc qui ment. Après REF22.</span></details></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈106,8M (106 808 546) · 481 tours · 29,99 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈722,1M (722 081 320) · 2716 tours · 241,01 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈728,8M (728 820 924) · 2737 tours · 242,96 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

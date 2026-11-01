@@ -319,20 +319,22 @@ def noter_session(a, lignes, debut, sortie):
 # (motif, `--resolu`) ne partage une ligne avec un compte, il s'y lirait comme un compte. La tête est ouverte si son
 # premier « résolu » est « non résolu » : le texte de `--resolu` ne vient qu'après « résolu par : ».
 REFUS_SOLDES = re.compile(r"Refus soldés : ([0-9]+)(?: · dernier : (.*))?$")
-TETE_OUVERTE = re.compile(r"\*\*Tentatives\*\*(?:(?!résolu).)*non résolu")
+TETE_OUVERTE = re.compile(r"\*\*Tentatives\*\*(?:(?!\brésolu).)*non résolu")     # `\b` : « irrésolu » ne ferme pas (REF32)
 
 
 def refus_du_bloc(bloc):
     """Les refus de relecture d'un bloc **Tentatives** (`bloc` : ses lignes, tête comprise), dont le rang survit à
     `--resolu` (ENA7) : `(rang, motif, soldes)` — `soldes`, l'indice dans `bloc` de sa ligne
     `Refus soldés : <p>[ · dernier : <m>]`, ou None ; `rang`, `p` plus les lignes numérotées `ESSAI_REFUSE` ;
-    `motif`, la ligne `Erreur :` si la dernière ligne numérotée est un refus (un blocage l'écrase), sinon `m`."""
+    `motif`, la ligne `Erreur :` si la dernière ligne numérotée est un refus ; None si un blocage a écrasé le motif
+    d'un refus du bloc (REF32) ; sinon `m`."""
     soldes = next((i for i in range(1, len(bloc)) if REFUS_SOLDES.match(bloc[i])), None)
     vu = REFUS_SOLDES.match(bloc[soldes]) if soldes else None
     essais = [l.split(". ", 1)[1] for l in bloc[1:] if re.match(r"[0-9]+\. ", l)]
     erreur = next((l[len("Erreur :"):].strip() for l in bloc[1:] if l.startswith("Erreur :")), None)
+    refus = essais.count(coeur.ESSAI_REFUSE)
     motif = erreur if essais and essais[-1] == coeur.ESSAI_REFUSE else None
-    return (int(vu.group(1)) if vu else 0) + essais.count(coeur.ESSAI_REFUSE), motif or (vu.group(2) if vu else None), soldes
+    return (int(vu.group(1)) if vu else 0) + refus, motif or (vu.group(2) if vu and not refus else None), soldes
 
 
 def bloc_solde(bloc, date, resolu):
