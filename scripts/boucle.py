@@ -215,7 +215,9 @@ def claude_de(choix):
 
 def lire_carte(dossier):
     """(racine, fichier de fiches, prochaine, retard) — None là où la carte ne dit rien ; `retard` : le nombre
-    de commits de la ligne `PLUGIN_RETARD=`, None sans elle. Projet trouvé sans ligne `COURANT=` : `CarteGardee`."""
+    de commits de la ligne `PLUGIN_RETARD=`, None sans elle. Projet trouvé sans ligne `COURANT=`, ou un fichier de
+    fiches courant sans ligne `PROCHAINE=` (la carte a gardé : fichier absent, aucun titre) : `CarteGardee`, sa
+    `GARDE:` en raison — jamais `prochaine` None, lu comme « aucune fiche à jouer » (REF22)."""
     _, s = vlp(["carte", dossier], dossier)
     racine = fichier = prochaine = retard = garde = None
     vu_courant = False
@@ -236,6 +238,8 @@ def lire_carte(dossier):
             fichier = None if valeur == "aucun" else valeur
     if racine and not vu_courant:
         raise CarteGardee(garde or "GARDE: la carte de %s ne dit pas son chantier (pas de ligne COURANT=)" % racine)
+    if fichier is not None and prochaine is None:
+        raise CarteGardee(garde or "GARDE: la carte de %s ne dit pas sa prochaine fiche (pas de ligne PROCHAINE=)" % racine)
     return racine, fichier, prochaine, retard
 
 
@@ -593,7 +597,8 @@ def boucle_canal(claude, a, racine, traces, etat, codes, todo, erreur_todo, repr
     branche part du dernier chantier réussi (`HEAD` au départ, noté au carnet : `base <sha>`), puis `un_chantier`.
     `reprise` (`lire_reprise`, NUI8) : la base vient d'elle ; un chantier de ses `faits` n'est ni rejoué ni recompté
     à l'écran ; le chantier `en_cours` reprend dans sa branche (jamais recréée) — de côté si une session a été coupée
-    ou si l'arbre est sale, sinon `un_chantier` sans `découper` s'il est déjà découpé."""
+    ou si l'arbre est sale, sinon `un_chantier` sans `découper` s'il est déjà découpé. Une branche neuve sur un arbre
+    sale (ou Git muet) ne se crée pas (`brancher`) : le canal s'arrête, `(1, raison)` (REF22)."""
     if reprise:
         base = reprise["base"]
     else:

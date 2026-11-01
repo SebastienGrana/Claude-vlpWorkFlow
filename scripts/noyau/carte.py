@@ -183,10 +183,12 @@ def imprimer_methode(texte, racine, sortie):
 
 
 def fiches(chemin):
-    """(nombre de lignes, [(numéro, titre)], prochaine ou None)."""
+    """(nombre de lignes, [(numéro, titre)], prochaine ou None) — `prochaine`, la première fiche dont la case elle-même,
+    le troisième mot du titre, n'est pas `[x]` : un `[x]` cité dans le titre ne la saute pas (REF22) ; toutes cochées,
+    None."""
     lignes = lignes_de(chemin)
     titres = [(i, l) for i, l in enumerate(lignes, 1) if TITRE.match(l)]
-    prochaine = next((l.split()[1] for _, l in titres if "[x]" not in l), None)
+    prochaine = next((l.split()[1] for _, l in titres if l.split()[2:3] != ["[x]"]), None)
     return len(lignes), titres, prochaine
 
 

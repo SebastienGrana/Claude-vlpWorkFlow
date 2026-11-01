@@ -454,10 +454,13 @@ def verdict_juge(lignes, code, attendu):
     """Rendre (texte, code de sortie) d'un juge hors kit (`--test`, chantier ISO) — il n'imprime ni `ÉCART:`, ni
     `OK` ou `FIN:` en dernière ligne : son code de sortie tranche. Un `DÉLAI:`, une erreur Python ou une commande
     introuvable (126, 127, 9009) → `PLANTÉ` ; 0 → `VIVANT` ; sinon `ATTRAPÉ`, et avec `attendu`, la première
-    ligne qui le contient — aucune, `VIVANT pour`."""
+    ligne qui le contient — aucune, `VIVANT pour`. Un test raté qui a tourné (`FAILED (failures=…`, `N failed`) n'est
+    pas une erreur Python, même si son `Traceback`/`AssertionError:` s'imprime (REF22) ; des `errors=` seules
+    restent `PLANTÉ`."""
     vues = [l.strip() for l in lignes if l.strip()]
-    if code in (126, 127, 9009) or any(l.startswith(("DÉLAI:", "Traceback (most recent call last)"))
-                                       or re.match(r"\w+(Error|Exception):", l) for l in vues):
+    rate = any(re.match(r"FAILED \(.*failures=", l) or re.search(r"\b\d+ failed\b", l) for l in vues)
+    if code in (126, 127, 9009) or any(l.startswith("DÉLAI:") for l in vues) or not rate and any(
+            l.startswith("Traceback (most recent call last)") or re.match(r"\w+(Error|Exception):", l) for l in vues):
         return "MUTANT PLANTÉ · juge hors kit sorti %d — %s\n" % (code, " / ".join(vues[-3:])), 1
     if code == 0:
         return "MUTANT VIVANT%s · juge hors kit sorti 0\n" % (" pour %s" % attendu if attendu else ""), 1
@@ -775,8 +778,17 @@ def cmd_rapide(a, sortie):
     if not os.path.isfile(os.path.join(racine, *noyau.bac.MARQUE_SUITE)):
         sortie.write("GARDE: %s n'est pas le kit : pas de %s\n" % (racine, "/".join(noyau.bac.MARQUE_SUITE)))
         return 1
-    pyright = shutil.which("pyright")
-    return controle_rapide(racine, a.motif, [pyright] if pyright else None, sortie)
+    return controle_rapide(racine, a.motif, commande_pyright(racine, shutil.which("pyright")), sortie)
+
+
+def commande_pyright(racine, pyright):
+    """La commande pyright de `rapide` : `[pyright]`, plus `--pythonpath` vers le Python de `<racine>/.venv` s'il
+    existe — sans lui, pyright ne voit pas les paquets de l'atelier, et un test qui importe `pytest` est rouge
+    (REF22). `pyright` absent (None) : None."""
+    if not pyright:
+        return None
+    python = os.path.join(racine, ".venv", *(("Scripts", "python.exe") if sys.platform == "win32" else ("bin", "python")))
+    return [pyright] + (["--pythonpath", python] if os.path.isfile(python) else [])
 
 
 def cmd_symboles(a, sortie):

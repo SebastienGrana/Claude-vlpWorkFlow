@@ -41,7 +41,12 @@ def arbre_propre(racine):
 
 
 def brancher(racine, branche, base):
-    """None si `git switch -c <branche> <base>` passe, sinon sa première ligne d'erreur."""
+    """None si `git switch -c <branche> <base>` passe, sinon sa première ligne d'erreur. Arbre sale, ou Git muet au
+    `status` : la raison, rien n'est branché — `switch -c` emporterait le travail non commité (le WIP d'un chantier de
+    côté jamais commité) dans la branche neuve, et le chantier suivant l'embarquerait (REF22)."""
+    propre = arbre_propre(racine)
+    if not propre:
+        return "git status impossible" if propre is None else "arbre non propre (git status --porcelain) — rien n'est branché"
     code, err = kit().git_texte(["switch", "-q", "-c", branche, base], racine)
     return None if code == 0 else err
 

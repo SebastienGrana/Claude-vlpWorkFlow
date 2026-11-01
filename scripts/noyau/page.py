@@ -192,14 +192,14 @@ def ligne_cout(total, tours, usd):
 
 
 def fiches_du_fichier(lignes):
-    """[(id, titre, coché, sessions)] dans l'ordre du fichier."""
+    """[(id, titre, coché, sessions)] dans l'ordre du fichier ; `coché` : la case elle-même, pas un `[x]` cité (REF22)."""
     titres = [(i, l) for i, l in enumerate(lignes) if TITRE.match(l)]
     rendu = []
     for n, (i, l) in enumerate(titres):
         suivant = titres[n + 1][0] if n + 1 < len(titres) else len(lignes)
         ident = l.split()[1]
         titre = l.split(" — ", 1)[1] if " — " in l else l
-        rendu.append((ident, titre.replace("`", "").strip(), "[x]" in l, sessions_de(lignes[i:suivant])))
+        rendu.append((ident, titre.replace("`", "").strip(), l.split()[2:3] == ["[x]"], sessions_de(lignes[i:suivant])))
     return rendu
 
 
@@ -731,14 +731,15 @@ def nom_du_projet(projet):
 
 def creer(fichier, projet, titre, resultat):
     """Le HTML d'une page de chantier neuve : le gabarit, avec projet, titre, résultat et fichier de fiches
-    posés ; un motif du gabarit introuvable lève `ValueError`."""
+    posés, leurs antislashs doublés pour `re.subn` (REF22) ; un motif du gabarit introuvable lève `ValueError`."""
     projet = nom_du_projet(projet)
     html = lire(GABARIT)
+    gabarit = lambda v: esc(v).replace("\\", "\\\\")
     remplacements = [
-        (r"<title>.*?</title>", "<title>%s — %s</title>" % (esc(projet), esc(titre))),
-        (r'(<div class="eyebrow">).*?(</div>)', r"\g<1>%s · fiches \g<2>" % esc(projet)),
-        (r"<h1>.*?</h1>", "<h1>%s</h1>" % esc(titre)),
-        (r"(</h1>\s*<p>).*?(</p>)", r"\g<1>%s\g<2>" % esc(resultat).replace("\\", "\\\\")),
+        (r"<title>.*?</title>", "<title>%s — %s</title>" % (gabarit(projet), gabarit(titre))),
+        (r'(<div class="eyebrow">).*?(</div>)', r"\g<1>%s · fiches \g<2>" % gabarit(projet)),
+        (r"<h1>.*?</h1>", "<h1>%s</h1>" % gabarit(titre)),
+        (r"(</h1>\s*<p>).*?(</p>)", r"\g<1>%s\g<2>" % gabarit(resultat)),
         (r'(<ul class="journal">).*?(\n[ \t]*</ul>)', r"\g<1>\g<2>"),
         (r'(<div class="blocage">\s*<p>).*?(</p>\s*<pre>).*?(</pre>)', r"\g<1>\g<2>\g<3>"),
         (r"(<h2>Chantier clos le ).*?(</h2>\s*<div class=\"bilan\">).*?(\n[ \t]*</div>)", r"\g<1>\g<2>\n      <p></p>\g<3>"),
@@ -806,11 +807,13 @@ def bilan_en_haut(html):
 
 def couts_du_fichier(fichier, anciens, ancien_total, gardes):
     """`couts` d'un fichier de fiches aux heures de ses commits, comme la page les écrit ; `anciens` et `ancien_total`
-    viennent de l'ancienne page, `{}` et None sans elle — `clore` d'un projet sans page (dette GAI)."""
+    viennent de l'ancienne page, `{}` et None sans elle — `clore` d'un projet sans page (dette GAI). Heures lues comme
+    `cout`, titres compris, dès qu'une fiche ou l'en-tête a une session (REF22) ; aucune : le repli sans heures."""
     lignes = lignes_de(fichier)
     fiches_ = fiches_du_fichier(lignes)
     clos = any(l.startswith("**CLOS**") for l in lignes)
-    heures = heures_commits(fichier, [f[0] for f in fiches_], clos=clos) if any(f[3] for f in fiches_) else None
+    heures = (heures_commits(fichier, [f[0] for f in fiches_], clos=clos, titres={f[0]: f[1] for f in fiches_})
+              if sessions_entete(lignes) or any(f[3] for f in fiches_) else None)
     # Un clos s'arrête à son appel clore, comme cout : un chantier, un seul chiffre (dette PLI).
     fin = heure_clore(fichier, lignes) if clos and heures else None
     return couts(fiches_, anciens, ancien_total, gardes, heures, sessions_entete(lignes), fin)

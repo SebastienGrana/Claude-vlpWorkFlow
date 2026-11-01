@@ -21,7 +21,7 @@ from noyau.clore import (
     rang_routage_ouvrir,
 )
 from noyau.clos import PRIX_CLOS, lignes_clos
-from noyau.commun import TITRE, lignes_de, lignes_gardees, lire
+from noyau.commun import TITRE, ecrire_lignes, lignes_de, lignes_gardees, lire, numero_ligne
 from noyau.feuille import bornes, champ, lettre_de, page_clos, retirer_chevrons_url
 from noyau.nuit import usd_par_fiche
 from noyau.page import approx
@@ -158,7 +158,7 @@ def cmd_ouvrir(a, sortie):
             if not rangs:
                 gardes.append("aucune ligne de fichier dans %s" % index)
             else:
-                rang = max(rangs, key=lambda k: int(idx[k][3:5]))
+                rang = max(rangs, key=lambda k: numero_ligne(idx[k]))     # le numéro entier (REF22)
                 idx.insert(rang + 1,"| `%s` | on joue une fiche `%s*` — chantier **ouvert** « %s », `%s` |"
                            % (nom, lettre, a.titre, fait))
                 ecritures.append((chemin_index, idx))
@@ -230,9 +230,7 @@ def cmd_ouvrir(a, sortie):
     if fiches_change:
         ecritures.append((chemin_fiches, fiches_))
     ecritures.append((chemin_carte, carte_))
-    for chemin, lignes in ecritures:
-        with open(chemin, "w", encoding="utf-8", newline="") as fh:
-            fh.write("\n".join(lignes) + "\n")
+    ecrire_lignes(ecritures)     # un texte lu non UTF-8 : `GARDE:`, rien d'écrit (REF22)
     # Le post-it du dossier : son chantier, propre à ce worktree, jamais suivi par Git (NUI23).
     p = postit(projet)
     if p:

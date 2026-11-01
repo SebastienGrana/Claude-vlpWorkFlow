@@ -596,15 +596,28 @@ def chemins_de(racine, fichiers):
     return sorted(chemins + glob.glob(os.path.join(racine, "tests", "**", "*.py"), recursive=True))
 
 
+def options_contraires(a):
+    """Rendre la faute des options `a` de `vlp.py sante`, ou None : `--forcer` ou `--si-base` sans `--base` ; `--base`
+    avec des fichiers, qui réécrirait la base avec eux seuls — les fonctions des autres, effacées, repasseraient
+    neuves au cliquet suivant (REF22)."""
+    if (a.forcer or a.si_base) and not a.base:
+        return "%s ne va qu'avec --base" % ("--forcer" if a.forcer else "--si-base")
+    if a.base and a.fichiers:
+        return "--base mesure toute la racine, sans fichiers : avec eux seuls, la base perdrait les autres, rien écrit"
+    return None
+
+
 def principal(a, sortie, kit):
     """Lancer `vlp.py sante` : lister les comptes, poser la base (`--base`) ou tenir le cliquet (`--cliquet`).
     Avec `--si-base`, ne reprendre qu'une base qui existe : sans elle, `SANS BASE`, rien mesuré ni écrit — un
     projet sans cliquet n'en reçoit pas un, même sans `scripts/`. `--base` sur une racine en retard sur `main` :
-    `GARDE:`, rien mesuré ni écrit, `--forcer` compris (REF39)."""
+    `GARDE:`, rien mesuré ni écrit, `--forcer` compris (REF39). Des options contraires (`options_contraires`) :
+    `GARDE:`, rien mesuré ni écrit."""
     racine = os.path.abspath(a.racine or kit)
     try:
-        if (a.forcer or a.si_base) and not a.base:
-            raise ValueError("%s ne va qu'avec --base" % ("--forcer" if a.forcer else "--si-base"))
+        faute = options_contraires(a)
+        if faute:
+            raise ValueError(faute)
         if a.si_base and not os.path.exists(os.path.join(racine, BASE)):
             sortie.write("SANS BASE %s · rien écrit\n" % BASE)
             return 0

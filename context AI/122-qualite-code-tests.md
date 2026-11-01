@@ -984,3 +984,59 @@ du dossier.
 
 **Repéré, hors de la fiche** (rien de changé) : le rôle `relance` a `git: True`, donc `AUTORISES` — `git commit` lui
 est permis en clair, alors que `nuit.md` dit qu'une relance ne commite pas.
+
+## L'angle des bugs (`REF22`)
+
+**Le protocole tel que joué** : `/code-review` relit dans la session qui l'appelle, donc toujours avec le même
+modèle ; pour changer de modèle d'une passe à l'autre, sa recette (lecture ligne à ligne, appelants suivis, un
+scénario par défaut) est donnée à des sous-agents de lecture seule, un par lot de ≈ 2 000 à 3 700 lignes, au modèle
+de la passe. Chaque défaut est rejoué par son relecteur (script dans un dossier temporaire), puis corrigé par un
+sous-agent par lot : test rouge, correction, vert, `vlp.py mutant` qui remet l'ancien code → `MUTANT ATTRAPÉ`.
+
+**Le journal des passes**
+
+| N° | Date | Relecteur | Lignes relues | Trouvés | Confirmés | Corrigés | Laissés |
+|---|---|---|---|---|---|---|---|
+| 1 | 2026-11-01 | Opus 5.5 (7 lots, `fiches.py` dans la session) | `scripts/`, `hooks/`, `.githooks/` | 39 | 38 | 33 | 5 |
+
+Trouvés : 39 lignes de rapport, 38 défauts uniques (`"[x]" in l` vu deux fois : `page.py` et `carte.py`) — dont un
+vu en route, hors des relecteurs (`rapide` lançait le pyright global, aveugle aux paquets de l'atelier : tout test
+touché qui importe `pytest` était rouge). Confirmés : chacun rejoué, puis rouge sous son test. Deux tests du lot 6
+(`env_sans_citation`, `verdict_de_l_index` sans Git) sont écrits après leur code ; leur mutant prouve qu'ils mordent.
+
+**Les corrigés, par lot** (tests `tests/test_ref22_*.py`, un fichier par lot) :
+
+- fiches, page, carte, clos, notes (9) : la case jugée sur `[x]` cité dans le titre ; `refuser` qui doublait
+  `Erreur :` ; `commiter` qui commitait vide sur un `git status` en échec ; `recompter` qui perdait le prix de tête de
+  104 cellules ; `repeindre` qui ne comptait qu'une ligne sans page ; la page coupée à l'étape et non au commit au
+  titre, comme `cout` ; la session d'en-tête non mesurée ; `creer` sur un `\` du titre ; l'abri écrit avant une
+  régénération en échec.
+- rapport, hooks, nuit (4 + 1) : un juge `unittest` qui attrape lu PLANTÉ ; `grep "git push"` lu écriture Git ; le
+  gel des tests sauté pour un test de worktree ; `nuits_retirer` qui doublait le suffixe ; `rapide` et son pyright.
+- boucle, mesure-tokens (6) : le délai de `verifier_nuit` et de `jouer` qui ne tuait pas l'arbre (une nuit figée) ;
+  `mesure_kit` sans les sous-agents ; une `GARDE:` de la carte lue « aucune fiche » ; `--reprendre` qui branchait sur
+  un arbre sale ; un sha de 8 chiffres lu comme une date.
+- feuille, ordre, niveau (5) : `sans_table_des_clos` qui effaçait une section ; `bornes_cout` qui lisait une date ;
+  `deps_todo` aligné sur `dependances` (`1..9`, `rien`) ; `V2` lu comme un rang ; `poser_champ` qui avalait une ligne vide.
+- commun, ouvrir (3) : le BOM ; un fichier non UTF-8 réécrit avec ses `é` perdus (refusé par `GARDE:`, dans
+  `ouvrir` seul) ; les numéros de fichier à trois chiffres. L'aide de `mutant` et de `sante` suit.
+- hooks de commit, sante, couverture, retraits, concernes (5) : les noms non ASCII cités par Git (pyright,
+  couverture, `diff-cover`, retraits) ; `/c/Users/…` et les quatre barres ; `sante <fichiers> --base` refusé ; un
+  `.py` indexé en partie refusé au commit ; la ligne du `def` dans `concernes`.
+
+**Les laissés** (5) :
+
+- 🟡 `page.couts`, repli sans Git : deux sessions d'une fiche s'écrasent (500 affiché, total 1 500) ; la somme
+  contredit `tests/test_page.py:147` (« session partagée, le reste à la dernière ») — l'intention est à trancher.
+- 🟡 `niveau.ecarts_git` : un chemin déclaré hors de Git mais non ignoré reste un `ÉCART` ; `tests/test_niveau.py`
+  (« NWT (c) ») le veut, `methode-chantier.md` (« ne le compte plus en écart ») se lit dans les deux sens — à trancher.
+- `retraits` sous `--amend` : aucun hook avant le commit ne sait qu'il tourne sous `--amend` (`githooks`, lu en
+  local ; les `GIT_*` de `commit-msg` identiques, essayé) — sans remède dans les hooks actuels.
+- `rapport.texte_mute` sur un fichier aux fins mêlées : un refus visible, 0 fichier du kit concerné.
+- `ecrit_git` et une continuation `\` ou accent grave : limite que dit sa docstring.
+
+**Effets à connaître** : un `git add -p` sur un `.py` est refusé au commit (couverture, indexé en partie) ; hors
+Windows, le `claude` d'un canal part dans sa propre session de processus.
+
+**Suite** : l'angle continue — passe 2 avec un autre relecteur (Fable 5.1, puis Sonnet 5.5), jusqu'à deux passes
+d'affilée à zéro confirmé.

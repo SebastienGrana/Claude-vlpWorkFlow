@@ -153,7 +153,8 @@ def page_du_fichier(fichier):
 
 def cmd_page(a, sortie):
     """`vlp.py page` : régénérer la page d'un chantier depuis son fichier de fiches (`noyau.page.regenerer`), la
-    créer (`--creer`) ou la vérifier ; une option en conflit ou une page introuvable : `GARDE:`, rien écrit."""
+    créer (`--creer`) ou la vérifier ; rend 0, ou 1 sur une `GARDE:` — une option en conflit, une page introuvable, ou
+    une régénération qui lève : rien écrit, l'abri `.md` compris (REF22)."""
     date = a.date or __import__("datetime").date.today().isoformat()
     if a.forme and a.creer:
         sortie.write("GARDE: --forme ne va pas avec --creer — une page neuve n'a aucun chiffre à garder\n")
@@ -185,13 +186,14 @@ def cmd_page(a, sortie):
         parts["notes"][ident] = texte
     for texte in (a.journal or []):
         parts["journal"].append((date, texte))
-    ecrire_abri(md, parts)
     gardes = []
     try:
         html, fiches_, etat, total, hors = noyau.page.regenerer(html, a.fichier, parts, date, gardes, forme=a.forme)
     except ValueError as e:
         sortie.write("GARDE: %s\n" % e)
         return 1
+    # L'abri après la régénération réussie : sur échec, rien d'écrit, la relance ne double pas l'entrée (REF22).
+    ecrire_abri(md, parts)
     # Un clos d'avant PLI6 a son bilan en bas : page le remonte aussi, pas seulement clore.
     i = html.find("<!-- ZONE:bilan")
     if i >= 0 and html.startswith("<section>", html.find("<section", i)):

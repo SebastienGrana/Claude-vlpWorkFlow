@@ -93,11 +93,42 @@ def verdict(rapport, seuil=SEUIL):
     return (0 if passe else 1), lignes
 
 
+def verdict_de_l_index(racine, py, rapport, seuil=SEUIL):
+    """(code, lignes) : le `verdict` du rapport JSON de `diff-cover` — sauf si un des `.py` indexés `py` a aussi des
+    changements non indexés. Indexé en partie, le rapport, mesuré sur l'arbre de travail, ne colle plus aux lignes de
+    l'index que lit `--ignore-unstaged` : une ligne couverte jugée nue, ou l'inverse (REF22) ; alors, `GARDE:` (1),
+    comme si `git diff` échoue — jamais un faux verdict."""
+    r = subprocess.run(["git", "-c", "core.quotepath=false", "diff", "--name-only"], cwd=racine, capture_output=True,
+                       encoding="utf-8", errors="replace", check=False)
+    if r.returncode:
+        return 1, ["GARDE: couverture — git diff a échoué dans %s\n" % racine]
+    partiels = sorted(set(py) & set(r.stdout.splitlines()))
+    if partiels:
+        return 1, ["GARDE: couverture — indexé en partie : %s ; le rapport, mesuré sur l'arbre de travail, ne colle "
+                   "pas à l'index : indexer tout le fichier, ou git stash --keep-index puis la suite (REF22)\n"
+                   % ", ".join(partiels)]
+    return verdict(rapport, seuil)
+
+
 def py_indexes(racine):
-    """Les `.py` indexés pour le commit (ajoutés, copiés, modifiés, renommés), ou None si Git échoue."""
-    r = subprocess.run(["git", "diff", "--cached", "--name-only", "--diff-filter=ACMR"], cwd=racine,
+    """Les `.py` indexés pour le commit (ajoutés, copiés, modifiés, renommés), ou None si Git échoue. Un nom non
+    ASCII se rend tel quel : `core.quotepath=false`, sans quoi Git le cite et il ne finit plus par `.py` (REF22)."""
+    r = subprocess.run(["git", "-c", "core.quotepath=false", "diff", "--cached", "--name-only", "--diff-filter=ACMR"],
+                       cwd=racine,
                        capture_output=True, encoding="utf-8", errors="replace", check=False)
     return None if r.returncode else [n for n in r.stdout.splitlines() if n.endswith(".py")]
+
+
+def env_sans_citation(env=None):
+    """Une copie de `env` (l'environnement d'office) où Git ne cite pas les noms non ASCII
+    (`core.quotepath=false`, REF22), pour `diff-cover`, qui lance Git lui-même : cité, un nom ne se retrouvait pas
+    dans le rapport, et ses lignes passaient pour « rien à couvrir ». La paire s'ajoute aux `GIT_CONFIG_COUNT`
+    déjà posées ; un compte absent ou vide vaut 0."""
+    env = dict(os.environ if env is None else env)
+    n = int(env.get("GIT_CONFIG_COUNT") or 0)
+    env.update({"GIT_CONFIG_COUNT": str(n + 1), "GIT_CONFIG_KEY_%d" % n: "core.quotepath",
+                "GIT_CONFIG_VALUE_%d" % n: "false"})
+    return env
 
 
 def rapport_a_jour(racine, empreinte):
@@ -120,7 +151,8 @@ def empreinte_du_kit(racine):
 
 def juger(racine, sortie, seuil=SEUIL, empreinte_de=empreinte_du_kit):
     """Juger le commit indexé dans `racine` : rien à couvrir sans `.py`, `GARDE:` sans rapport mesuré sur le code
-    d'aujourd'hui (`empreinte_de`), sinon le verdict de `diff-cover` sur les seules lignes indexées."""
+    d'aujourd'hui (`empreinte_de`), sinon le verdict de `diff-cover` sur les seules lignes indexées — `GARDE:` si un
+    `.py` est indexé en partie (`verdict_de_l_index`, REF22) ; rendre le code de sortie."""
     py = py_indexes(racine)
     if py is None:
         sortie.write("GARDE: couverture — git diff --cached a échoué dans %s\n" % racine)
@@ -139,14 +171,14 @@ def juger(racine, sortie, seuil=SEUIL, empreinte_de=empreinte_du_kit):
     with tempfile.TemporaryDirectory() as t:
         json_ = os.path.join(t, "diff.json")
         r = subprocess.run([outil, chemins(racine)[1], "--compare-branch=HEAD", "--ignore-unstaged",
-                            "--format", "json:" + json_], cwd=racine, capture_output=True, encoding="utf-8",
-                           errors="replace", check=False)
+                            "--format", "json:" + json_], cwd=racine, env=env_sans_citation(), capture_output=True,
+                           encoding="utf-8", errors="replace", check=False)
         if r.returncode or not os.path.isfile(json_):
             sortie.write("GARDE: couverture — diff-cover sorti %d : %s\n"
                          % (r.returncode, ((r.stderr or r.stdout).strip().splitlines() or [""])[-1]))
             return 1
         with open(json_, encoding="utf-8") as f:
-            code, lignes = verdict(json.load(f), seuil)
+            code, lignes = verdict_de_l_index(racine, py, json.load(f), seuil)
     sortie.write("".join(lignes))
     return code
 

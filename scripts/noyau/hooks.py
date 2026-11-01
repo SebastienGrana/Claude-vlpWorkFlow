@@ -164,13 +164,14 @@ def ajout_pur(entree):
 
 def cible_test(d):
     """(racine, chemin relatif) du test existant que l'entrée de hook `d` veut modifier, ou None : pas d'outil lisible,
-    fichier neuf, ajout pur, hors d'un projet équipé, ou pas un test."""
+    fichier neuf, ajout pur, hors d'un projet équipé, ou pas un test. La racine est le projet équipé le plus proche du
+    fichier visé, pas de `cwd` : un test d'un worktree écrit depuis le dossier principal se juge au worktree (REF22)."""
     ti = d.get("tool_input") if isinstance(d, dict) else None
     chemin = ti.get("file_path") if isinstance(ti, dict) else None
     cwd = d["cwd"] if isinstance(d.get("cwd"), str) else os.getcwd()
     if not isinstance(chemin, str) or not os.path.isfile(os.path.join(cwd, chemin)) or ajout_pur(ti):
         return None
-    racine = trouver(cwd)
+    racine = trouver(os.path.dirname(os.path.join(cwd, chemin)))
     if racine is None:
         return None
     try:
@@ -415,13 +416,40 @@ def sans_echo(commande):
     return ECHO_DONNEE.sub(taire, commande)
 
 
+# Un chercheur de texte en tête de segment (`grep`, `rg`, `Select-String`…) et ses arguments jusqu'au `;` `&` `|`
+# suivant hors quotes (`args`) ; ou la valeur citée d'un `--grep` (`valeur`) — des motifs, pas des appels (REF22).
+MOTIF_CITE = re.compile(
+    r"""(?:(?:^|(?<=[;&|(){\n`]))[ \t]*(?:\S*[/\\])?(?i:grep|egrep|fgrep|rg|select-string|sls|findstr)(?:\.exe)?"""
+    r"""(?![\w.-])(?P<args>(?:"[^"]*"|'[^']*'|[^\n;&|`'"])*)"""
+    r"""|--grep[= ][ \t]*(?P<valeur>"[^"]*"|'[^']*'))""", re.M)
+
+
+def sans_motif(commande):
+    """La commande, les chaînes citées d'un `grep`/`rg`/`Select-String`/`sls`/`findstr` en tête de segment, et la
+    valeur citée d'un `--grep=`, vidées : `grep "git push" f` cherche un texte, il n'appelle pas Git (REF22). Un
+    `"…$(…)…"` reste lu (il s'exécute), comme tout ce qui suit un `;` `&` `|` hors quotes ; un chercheur dans
+    `$(…)` ou entre accents graves aussi, comme `sans_echo`. Rend la commande telle quelle sans chercheur."""
+    def vider(q):
+        """La chaîne citée `q` vidée (`""` ou `''`) ; telle quelle si elle porte un `$(`."""
+        return q.group(0) if "$(" in q.group(0) else q.group(0)[0] * 2
+
+    def taire(m):
+        """Le chercheur ou le `--grep` de `m`, ses chaînes vidées ; tel quel dans un `$(…)` ou entre accents graves."""
+        if re.search(r"(?:\$\(|`)[^;&|()\n`]*$", commande[:m.start()]):
+            return m.group(0)
+        nom = "args" if m.group("args") is not None else "valeur"
+        dedans = re.sub(r""""[^"]*"|'[^']*'""", vider, m.group(nom))
+        return commande[m.start():m.start(nom)] + dedans + commande[m.end(nom):m.end()]
+    return MOTIF_CITE.sub(taire, commande)
+
+
 def ecrit_git(commande):
     """Vrai si un `APPEL_GIT` de la commande a un verbe hors `LECTURE_GIT` — une option inconnue
-    en tient lieu, `git` seul n'écrit pas (chantier VRB). Lu sur la commande `sans_heredoc` puis
-    `sans_echo` : un heredoc ou un `echo`/`printf` qui ne font qu'écrire les mots `git commit` dans
-    un fichier n'écrivent pas dans Git (chantiers ECH, ENQ)."""
+    en tient lieu, `git` seul n'écrit pas (chantier VRB). Lu sur la commande `sans_heredoc`, `sans_echo`
+    puis `sans_motif` : un heredoc ou un `echo`/`printf` qui ne font qu'écrire les mots `git commit` dans
+    un fichier, ou un `grep "git commit"` qui les cherche, n'écrivent pas dans Git (chantiers ECH, ENQ, REF22)."""
     return any(m.group("verbe") not in (None, *LECTURE_GIT)
-               for m in APPEL_GIT.finditer(sans_echo(sans_heredoc(commande))))
+               for m in APPEL_GIT.finditer(sans_motif(sans_echo(sans_heredoc(commande)))))
 
 
 def lire_contrat(chemin):

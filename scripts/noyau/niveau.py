@@ -392,19 +392,20 @@ def entete_clos():
 def sans_table_des_clos(carte_, index):
     """`CHANTIER.md` sans sa table des chantiers clos, ou None si la retirer
     perdrait quelque chose : la ligne des lettres prises doit suivre la table,
-    et l'index nommer chacun de ses fichiers."""
-    i = table_des_clos(carte_)
-    if i is None:
+    et l'index nommer chacun de ses fichiers. Seule la section de la table part, jusqu'au titre suivant : une
+    section posée entre elle et la ligne des lettres reste (REF22)."""
+    i = (table_des_clos(carte_) or 0) - 1
+    if i < 0:
         return None
-    i -= 1
     j = next((k for k in range(i, len(carte_)) if carte_[k].startswith("Lettres de fiche déjà prises")), None)
     if j is None:
         return None
+    fin = next((k for k in range(i + 1, j) if carte_[k].startswith("#")), j)
     vus = "\n".join(index)
-    for l in carte_[i:j]:
+    for l in carte_[i:fin]:
         if l.startswith("|") and any(os.path.basename(nom) not in vus for nom in FICHIER_MD.findall(l)):
             return None
-    return carte_[:i] + entete_clos() + carte_[j:]
+    return carte_[:i] + entete_clos() + carte_[fin:]
 
 
 def cmd_niveau(a, sortie):

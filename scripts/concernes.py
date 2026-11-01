@@ -84,13 +84,14 @@ def par_test(base):
 
 def concernes(racine, noms, base=None, trouvees=None):
     """(tests triés, fonctions absentes) : les tests passés par au moins une des fonctions `noms` ; `trouvees`, leurs
-    lieux déjà lus par `fonctions`."""
+    lieux déjà lus par `fonctions`. La ligne du `def` ne compte pas : jouée à l'import, elle attribuait la fonction au
+    test qui importe le module (REF22) — sauf une fonction tenue sur cette seule ligne, qui n'a qu'elle."""
     base = base or ouvrir(racine)
     trouvees, tests = trouvees if trouvees is not None else fonctions(racine, noms), set()
     if base is not None:
         for lieux in trouvees.values():
             for rel, debut, fin in lieux:
-                tests |= contextes(base, rel, debut, fin)
+                tests |= contextes(base, rel, min(debut + 1, fin), fin)
     return sorted(tests), [n for n in noms if n not in trouvees]
 
 

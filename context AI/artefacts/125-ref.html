@@ -193,11 +193,11 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REF15</span></span>
         <details><summary><span class="titre">Écrire le guide court des tests</span><span class="etat">Faite</span></summary>
         <span class="note">guide des tests : 14 lignes, chaque point sourcé ; ruff check tests : 770 remarques (PT018 740, PLR0915 26, C901 4) ; PT018 = 6e compte du cliquet, tests/ mesuré, ast=ruff 1506/1506 ; 3 mutants attrapés ; suite 412 passed, 3 skipped</span></details>
-        <span class="cout mono">≈7,7M (7 657 070) · 26 tours · 2,21 $</span></li>
+        <span class="cout mono">≈21,6M (21 627 450) · 69 tours · 5,79 $</span></li>
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REF16</span></span>
         <details><summary><span class="titre">Découper les consignes du kit par mode de chargement</span><span class="etat">Faite</span></summary>
         <span class="note">option B (l'utilisateur) : aucune commande ne charge methode-chantier.md d'office (0 lire ; ouvert à la main dans 43 séances sur 168) ; 5 récits sortis vers lecons-mesure.md, méthode 43 528 → 43 165 c ; vlp.py conserve : 766 lignes lues, 0 perdue ; renvois 147 nommés, 0 absent ; 2 mutants attrapés ; suite 417 passed, 3 skipped</span></details>
-        <span class="cout mono">≈24,2M (24 201 932) · 71 tours · 6,39 $</span></li>
+        <span class="cout mono">≈10,2M (10 231 552) · 28 tours · 2,80 $</span></li>
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REF17</span></span>
         <details><summary><span class="titre">Ramener le CLAUDE.md global sous 200 lignes</span><span class="etat">Faite</span></summary>
         <span class="note">page à cartes publiée, 11 réponses ; wc -l 395 → 172 ; copie CLAUDE.md.avant-REF17 ; conserve 357 lues · 0 perdue ; git grep : aucun extrait</span></details>
@@ -253,10 +253,11 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REF39</span></span>
         <details><summary><span class="titre">sante --base refuse un worktree en retard sur main</span><span class="etat">Faite</span></summary>
         <span class="note">worktree en retard → GARDE: (1 commit(s) de main), base inchangée à l'octet ; à jour → BASE 2 fonctions ; 2 mutants attrapés ; suite 431 passed, 3 skipped</span></details>
-        <span class="cout mono">≈2,6M (2 644 720) · 25 tours · 1,59 $</span></li>
+        <span class="cout mono">≈3,2M (3 222 571) · 29 tours · 2,02 $</span></li>
       <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">REF22</span></span>
         <details open><summary><span class="titre">Revoir l'angle des bugs</span><span class="etat">En cours</span></summary>
-        <span class="note">Revue des bugs, jusqu'à deux passes sans défaut confirmé. Après tout le reste.</span></details></li>
+        <span class="note">Passe 1 (Opus 5.5, 7 lots) : 39 trouvés, 38 confirmés, 33 corrigés (test rouge→vert, mutant attrapé), 5 laissés dont 2 à trancher ; suite 471 passed, 3 skipped ; angle non fini — passe 2 à jouer</span></details>
+        <span class="cout mono">≈64,9M (64 924 711) · 468 tours · 28,05 $</span></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">REF23</span></span>
         <details><summary><span class="titre">Revoir l'angle des tests</span><span class="etat">Après REF22</span></summary>
         <span class="note">Revue des tests creux. Après REF22.</span></details></li>
@@ -271,7 +272,7 @@
         <span class="note">Revue de la doc qui ment. Après REF22.</span></details></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈106,8M (106 808 546) · 481 tours · 29,99 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈770,9M (770 890 712) · 2952 tours · 261,97 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈836,4M (836 393 274) · 3424 tours · 290,44 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

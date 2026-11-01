@@ -23,6 +23,7 @@ from noyau.feuille import (
     SEPARATEUR,
     bornes_cout,
     champ,
+    dependances,
     page_clos,
     phase_todo,
     todo_du_fichier,
@@ -183,10 +184,13 @@ def pas_du_code(code, projet, pas):
 
 def deps_todo(p, pas, numeros):
     """(pas dont `p` dépend, nombre hors du chemin, gardes, illisible) lus dans sa cellule « Dépend de » : les codes
-    entre accents graves (un autre projet compris), et les numéros de ligne de la TODO de son projet."""
+    entre accents graves (un autre projet compris), et les numéros de ligne de la TODO de son projet, lus comme la
+    feuille les lit (`feuille.dependances`, REF22) : `1..9` touche chaque ligne de 1 à 9 — une ligne absente n'est une
+    garde que si elle est écrite seule, pas au milieu ni au bord d'une plage ; `rien`, `aucun(e)` ne dépendent de rien,
+    sans être illisibles."""
     brut = p["depend"].strip()
     codes = CODE.findall(brut)
-    nombres = re.findall(r"(?<![\w-])\d+(?![\w-])", CODE.sub("", brut))
+    nombres = sorted(dependances(brut)[1], key=int)
     deps, hors, gardes = [], 0, []
     for code in codes:
         trouves = pas_du_code(code, p["projet"], pas)
@@ -196,11 +200,12 @@ def deps_todo(p, pas, numeros):
         hors += not trouves
     for n in nombres:
         trouves = [q for q in pas if q["projet"] == p["projet"] and q["numero"] == n]
-        if not trouves and n not in numeros.get(p["projet"], ()):
+        if not trouves and n not in numeros.get(p["projet"], ()) and re.search(r"(?<![\w.-])%s(?![\w.-])" % n, brut):
             gardes.append("pas %s : dépend de la ligne %s, absente de la TODO de %s" % (p["code"], n, p["projet"]))
         deps += trouves[:1]
         hors += not trouves and n in numeros.get(p["projet"], ())
-    return [d for d in deps if d is not p], hors, gardes, brut not in ("", "—") and not codes and not nombres
+    return ([d for d in deps if d is not p], hors, gardes,
+            brut.lower() not in ("", "—", "rien", "aucun", "aucune") and not codes and not nombres)
 
 
 def ajouts_ordre(lignes, pas, sautes):

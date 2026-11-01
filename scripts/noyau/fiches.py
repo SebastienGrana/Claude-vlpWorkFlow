@@ -228,7 +228,8 @@ def cmd_commiter(a, sortie):
     contient, un motif ce qu'il prend (`releve`) — et les communs : le fichier de fiches, `scripts/sante-base.json` dans le kit ;
     jamais `git add -A` : en parallèle, il avalerait le travail d'une autre fiche. Un changé hors de sa liste : `HORS:`,
     laissé hors du commit. La base n'y entre que pour sa part (`indexer_part_de_base`, REF33). Limite : le fichier de
-    fiches porte aussi ce qu'une autre fiche y a écrit — sa case, son bloc **Tentatives**."""
+    fiches porte aussi ce qu'une autre fiche y a écrit — sa case, son bloc **Tentatives**. Rend 0 au commit fait, 1 sur
+    une `GARDE:` — dont un `git status` illisible après la coche : rien commité (REF22)."""
     lignes = lignes_de(a.fichier)
     fiche = next((f for f in coeur.fiches_du_fichier(lignes) if f[0] == a.fiche), None)
     racine = noyau.relecture.git_texte(["rev-parse", "--show-toplevel"], os.path.dirname(os.path.abspath(a.fichier)))
@@ -244,7 +245,12 @@ def cmd_commiter(a, sortie):
     communs = {os.path.relpath(os.path.abspath(a.fichier), racine).replace(os.sep, "/")}
     if coeur.est_kit(racine):
         communs.add("scripts/sante-base.json")
-    ajout, hors = partage_commit(lignes, a.fiche, communs, changes, chemins_changes(racine) or [])
+    apres = chemins_changes(racine)
+    if apres is None:
+        # Un statut illisible après la coche ne vaut pas « rien de changé » : pas de commit vide (REF22).
+        sortie.write("GARDE: git status illisible après la coche de %s — rien commité\n" % a.fiche)
+        return 1
+    ajout, hors = partage_commit(lignes, a.fiche, communs, changes, apres)
     if hors:
         sortie.write("HORS: %s — changés hors de la ligne Fichiers de %s, laissés hors du commit\n" % (", ".join(hors), a.fiche))
     ajout, garde = indexer_part_de_base(racine, ajout, communs)
@@ -383,7 +389,8 @@ def bloc_solde(bloc, date, resolu):
 def refuser(a, lignes, debut, sortie):
     """Le refus du relecteur (chantier REV) : la case rouverte, et sous le titre le bloc de
     `tache-blocage.md` — déjà là, il gagne la ligne numérotée suivante et son `Erreur :` prend
-    le nouveau motif ; il ne se double jamais. Une tête soldée redevient `— non résolu.`, sa ligne
+    le nouveau motif ; il ne se double jamais, et une `Erreur :` d'au-dessus de la nouvelle ligne s'efface : le
+    bloc n'en garde qu'une (REF22). Rend 0. Une tête soldée redevient `— non résolu.`, sa ligne
     `Refus soldés` gardée : le rang la compte, et la sortie redit son dernier motif (ENA7)."""
     fin = next((i for i in range(debut + 1, len(lignes))
                 if lignes[i].strip() == FERMANT or TITRE.match(lignes[i])), len(lignes))
@@ -412,6 +419,9 @@ def refuser(a, lignes, debut, sortie):
             lignes.insert(p + 1, erreur)
         else:
             lignes[e] = erreur
+        # Une `Erreur :` d'avant la nouvelle tentative partirait en double : le bloc n'en garde qu'une (REF22).
+        for i in reversed([i for i in range(bloc + 1, p) if lignes[i].startswith("Erreur :")]):
+            del lignes[i]
     with open(a.fichier, "w", encoding="utf-8", newline="") as f:
         f.write("\n".join(lignes) + "\n")
     sortie.write("REFUSÉ %s · refus %d%s\n" % (a.fiche, rang + 1,

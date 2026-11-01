@@ -81,8 +81,11 @@ def git(racine, *args, entree=None):
 
 
 def textes(racine, rev):
-    """Les fichiers de test de `rev` (`HEAD`, ou `""` pour l'index) : {chemin: texte}, lus d'un seul `cat-file`."""
-    code, liste = git(racine, *(["ls-tree", "-r", "--name-only", rev] if rev else ["ls-files", "--cached"]))
+    """Les fichiers de test de `rev` (`HEAD`, ou `""` pour l'index) : {chemin: texte}, lus d'un seul `cat-file` ; `{}`
+    sans fichier de test. Un nom non ASCII se lit tel quel (`core.quotepath=false`, REF22) : cité, il ne finissait
+    plus par `.py` et ses tests ne comptaient pas."""
+    code, liste = git(racine, "-c", "core.quotepath=false",
+                      *(["ls-tree", "-r", "--name-only", rev] if rev else ["ls-files", "--cached"]))
     chemins = [c for c in liste.decode("utf-8", "replace").splitlines() if est_test(c)] if code == 0 else []
     if not chemins:
         return {}

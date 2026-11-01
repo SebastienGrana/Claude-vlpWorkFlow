@@ -840,7 +840,8 @@ sort 0 ou dit `OK` ou `FIN:` en dernière ligne ; arrêtée avant — erreur, ou
 `MUTANT PLANTÉ …` (sort 1), même après un écart. Un juge `--test` hors kit, qui n'imprime ni `ÉCART:` ni
 cette dernière ligne (chantier ISO), est jugé à son code : sorti non nul → `MUTANT ATTRAPÉ · juge hors kit …`,
 avec `--attendu` s'il le dit dans une ligne quelconque ; sorti 0, ou sans le dire → `VIVANT` ; erreur Python,
-`DÉLAI:` ou commande introuvable → `PLANTÉ`. Chaque `ÉCART:` vu est imprimé avant ; `COPIE restée : …`
+`DÉLAI:` ou commande introuvable → `PLANTÉ` — sauf un test raté qui a tourné (`FAILED (…failures=`, `<n> failed`) :
+`ATTRAPÉ`, même avec son `Traceback`/`…Error:`. Chaque `ÉCART:` vu est imprimé avant ; `COPIE restée : …`
 si la copie ne s'efface pas en 2 s ; puis `RENDU <sha1 12>` — `GARDE:` si l'empreinte a bougé, ou si les
 tests ne se lancent pas.
 """),
@@ -920,7 +921,8 @@ puis, avec ruff, `AST=RUFF <n>/<m>` et chaque `AST≠RUFF`. `--base` écrit `scr
 racine, fonctions et tailles — `BASE …`, ou `GARDE:` si elle se relâcherait, rien d'écrit, sauf `--forcer`, dont
 la raison y reste. `--si-base` : sans base sous la racine, `SANS BASE …`, sort 0, rien d'écrit (`/vlp:tache`,
 étape 6 bis, VIT16). `--base` dans un dépôt à qui manquent des commits de `main` — un worktree en retard — :
-`GARDE: il manque <n> commit(s) de main ici …`, rien d'écrit, `--forcer` compris (REF39). `--cliquet` lui compare fonctions et tailles : `CLIQUET sur ruff <version>` (ou `CLIQUET sur
+`GARDE: il manque <n> commit(s) de main ici …`, rien d'écrit, `--forcer` compris (REF39). `--base` avec des
+fichiers : `GARDE:`, rien d'écrit — la base se pose sur toute la racine (REF22). `--cliquet` lui compare fonctions et tailles : `CLIQUET sur ruff <version>` (ou `CLIQUET sur
 ast, comptes estimés (…)`), un écart par ligne — `EMPIRE`, `SEUIL`, `DOCSTRING`, ou
 `TAILLE <c> · <n> lignes, plafond <p> (base|seuil)` pour un fichier au-delà du plus haut de `SEUIL_LIGNES` et de
 sa taille de base —, puis `TAILLES au-dessus de <SEUIL_LIGNES> lignes, taille/plafond : <c> <n>/<p> · …` s'il y

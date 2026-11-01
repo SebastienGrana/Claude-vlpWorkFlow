@@ -179,10 +179,12 @@ def nuits_ecrire(chemin, ligne):
 
 def nuits_retirer(chemin, lecon, date, par):
     """La leçon `lecon` (sa ligne entière) suffixée `— retirée le <date> par <par>` : elle reste. Déjà
-    retirée : rien (rend False). Introuvable : `ValueError`."""
+    retirée : rien (rend False), qu'on la passe nue ou suffixe compris (REF22). Introuvable : `ValueError`."""
     lignes = lignes_de(chemin)
     _, lecons = nuits_du_fichier(lignes)
     for l in lecons:
+        if lignes[l["i"]] == lecon and l["retiree"]:
+            return False
         if lignes[l["i"]] == lecon:
             lignes[l["i"]] += " — retirée le %s par %s" % (date, par)
             nuits_du_fichier(lignes)

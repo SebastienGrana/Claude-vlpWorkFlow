@@ -4,10 +4,11 @@
 racine=$(git rev-parse --show-toplevel) || exit 1
 
 # Aucun chemin de machine dans un dépôt public (chantier CHM) : les seules lignes ajoutées — l'historique poussé
-# garde les anciennes. Trois formes : un dossier d'utilisateur Windows, sa vue WSL, et le nom de dossier qu'en tire
-# ~/.claude/projects. Écrire `~` ou `<nom>` à la place.
+# garde les anciennes. Quatre formes : un dossier d'utilisateur Windows (jusqu'à quatre barres : un JSON échappé deux
+# fois), sa vue de Git Bash (`/c/Users/…`, en début de mot : pas au milieu d'une URL), sa vue WSL, et le nom de dossier
+# qu'en tire ~/.claude/projects (REF22). Écrire `~` ou `<nom>` à la place.
 chemins=$(git diff --cached -U0 --no-color --diff-filter=ACMR | grep '^+' | grep -v '^+++' \
-  | grep -i -E '[a-z]:[/\\]{1,2}users[/\\]{1,2}[a-z]|/mnt/[a-z]/users/[a-z]|[a-z]--users-[a-z]')
+  | grep -i -E '[a-z]:[/\\]{1,4}users[/\\]{1,4}[a-z]|(^|[^a-z0-9._~-])/[a-z]/users/[a-z]|/mnt/[a-z]/users/[a-z]|[a-z]--users-[a-z]')
 if [ -n "$chemins" ]; then
   printf '%s\n' "$chemins" >&2
   echo "pre-commit : chemin de machine dans une ligne ajoutée — écrire ~ ou <nom>, commit refusé." >&2
@@ -17,8 +18,9 @@ fi
 # pyright, si le commit indexe un .py (chantier TYP) ; avant claude, dont l'absence sort par exit 0.
 # Il lit l'arbre de travail, pas l'index : un .py corrigé mais non indexé passe. Par `uv run`, l'atelier de
 # `pyproject.toml`, sans toucher au verrou (`--frozen`) ; ni uv ni pyright : le commit est refusé, jamais
-# passé en silence (REF3, défaut E27).
-if git diff --cached --name-only --diff-filter=ACMR | grep -q '\.py$'; then
+# passé en silence (REF3, défaut E27). `core.quotepath=false` : un nom non ASCII, cité d'office, finirait par `.py"`
+# et sauterait pyright et la couverture (REF22).
+if git -c core.quotepath=false diff --cached --name-only --diff-filter=ACMR | grep -q '\.py$'; then
   if ! command -v uv >/dev/null 2>&1; then
     echo "pre-commit : uv introuvable, pyright non lancé, commit refusé — installer uv, puis uv sync." >&2
     exit 1

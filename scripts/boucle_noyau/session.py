@@ -17,7 +17,8 @@ import carnet
 
 __all__ = [
     "AUTORISES", "BASCULE", "COUPEES", "FIN", "HERITEES", "ICI", "INTERDITS", "LIMITE_RE", "NON_GIT", "OPUS",
-    "PREMIER_PLAN", "REFUS_MAX", "REPLI_OPUS", "RESET_RE", "ROLES", "SONNET", "TIMEOUT_S", "VLP_COEUR", "classer",
+    "PREMIER_PLAN", "REFUS_MAX", "REPLI_OPUS", "RESET_RE", "ROLES", "SONNET", "TIMEOUT_S", "VLP_COEUR",
+    "attendre_arbre", "classer",
     "commande", "jouer", "kit", "ligne_carnet", "lire_trace", "max_tours", "mesure_kit", "modele_de", "plafonds",
     "reset_de", "session_de", "verifier_nuit",
 ]
@@ -153,19 +154,25 @@ def plafonds():
 
 def mesure_kit(session):
     """`(usd_kit, tours_kit, garde)` d'une session sans ligne `result`, mesurés dans sa transcription par
-    `mesure-tokens.py` (`resoudre` de l'id, puis `mesurer`) : le `usd_exact` en flottant, les tours de la grille.
-    Transcription introuvable ou illisible, modèle hors grille : `(None, None, garde)` — jamais 0 —, et le pot
-    du carnet compte alors le plafond du rôle."""
+    `mesure-tokens.py` (`resoudre` de l'id, puis `mesurer` sur son transcript et sur chacun de ses `sous_agents`, sommés
+    comme `mesure_session_kit` du rapport — REF22) : le `usd_exact` en flottant, les tours de la grille.
+    Transcription introuvable ou illisible (la sienne ou celle d'un sous-agent) : `(None, None, garde)` ; un modèle hors
+    grille : `(None, tours, garde)` — jamais 0 —, et le pot du carnet compte alors le plafond du rôle."""
     m = kit().mesure()
     chemin, err = m.resoudre(session)
     if chemin is None:
         return None, None, "transcription introuvable pour la session %s — coût non mesuré, le pot compte le plafond du rôle" % session
-    r, err = m.mesurer(chemin)
-    if r is None:
-        return None, None, "transcription illisible (%s) — coût non mesuré, le pot compte le plafond du rôle" % err
-    if r["usd_exact"] is None:
-        return None, r["tours"], "modèle hors grille (%s) — coût non mesuré, le pot compte le plafond du rôle" % ", ".join(r["inconnus"])
-    return float(r["usd_exact"]), r["tours"], None
+    usd, tours, inconnus = 0, 0, []
+    for transcript in [chemin] + m.sous_agents(chemin):
+        r, err = m.mesurer(transcript)
+        if r is None:
+            return None, None, "transcription illisible (%s) — coût non mesuré, le pot compte le plafond du rôle" % err
+        tours += r["tours"]
+        usd = None if usd is None or r["usd_exact"] is None else usd + r["usd_exact"]
+        inconnus += [i for i in r["inconnus"] if i not in inconnus]
+    if usd is None:
+        return None, tours, "modèle hors grille (%s) — coût non mesuré, le pot compte le plafond du rôle" % ", ".join(inconnus)
+    return float(usd), tours, None
 
 
 def commande(claude, role, fiche, a, modele, session, suite=""):
@@ -273,13 +280,11 @@ def jouer(claude, fiche, racine, a, trace, role="jouer", controle=None, suite=""
         delai = ROLES[role]["timeout"] if a.nuit else None
         if a.nuit:   # avant la session, jamais pendant : sans ligne de session au même id, elle a été coupée (NUI8)
             ligne_carnet(a, fiche=fiche, note="depart %s" % role, session=demande)
-        fini, t0 = True, time.time()
+        t0 = time.time()
         with open(trace, "w", encoding="utf-8") as f:
-            try:
-                subprocess.run(cmd, cwd=racine, env=env, stdin=subprocess.DEVNULL, stdout=f,
-                               stderr=subprocess.STDOUT, timeout=delai, check=False)
-            except subprocess.TimeoutExpired:
-                fini = False
+            fini = attendre_arbre(subprocess.Popen(cmd, cwd=racine, env=env, stdin=subprocess.DEVNULL, stdout=f,
+                                                   stderr=subprocess.STDOUT, start_new_session=sys.platform != "win32"),
+                                  delai)
         s = lire_trace(trace)
         s["timeout"] = not fini
         r = s["result"] or {}
@@ -320,16 +325,33 @@ def jouer(claude, fiche, racine, a, trace, role="jouer", controle=None, suite=""
                 "session": s["session"] or demande, "coupee": coupee}
 
 
-def verifier_nuit(commande, racine):
-    """None si la vérification de nuit passe (code 0), sinon la raison, lue par le shell dans `racine`
-    et bornée par `TIMEOUT_S`."""
+def attendre_arbre(p, delai):
+    """Vrai si le processus `p` sort avant `delai` secondes (None : sans borne) ; faux s'il le dépasse — son arbre
+    entier est alors tué (`tuer_arbre` du kit), puis `p` attendu. Toute autre interruption (Ctrl+C) tue aussi l'arbre,
+    puis remonte. `p` doit être lancé avec `start_new_session` hors win32 : `tuer_arbre` y tue son groupe (REF22 : tuer
+    le seul `claude`, ou le seul `cmd.exe`, laissait ses enfants écrire, ou figeait la lecture du tube)."""
     try:
-        r = subprocess.run(commande, cwd=racine, shell=True, stdin=subprocess.DEVNULL, capture_output=True,
-                           text=True, encoding="utf-8", errors="replace", timeout=TIMEOUT_S, check=False)
+        p.wait(timeout=delai)
+        return True
     except subprocess.TimeoutExpired:
+        kit().tuer_arbre(p)
+        p.wait()
+        return False
+    except BaseException:
+        kit().tuer_arbre(p)
+        raise
+
+
+def verifier_nuit(commande, racine):
+    """None si la vérification de nuit passe (code 0), sinon la raison (`sort <code>`, ou le délai), lue par le shell
+    dans `racine` et bornée par `TIMEOUT_S` ; au délai, l'arbre entier est tué (`attendre_arbre`). Sa sortie n'est pas
+    lue : elle va à `DEVNULL`, aucun tube qu'un petit-enfant garderait ouvert (REF22)."""
+    p = subprocess.Popen(commande, cwd=racine, shell=True, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                         stderr=subprocess.DEVNULL, start_new_session=sys.platform != "win32")
+    if not attendre_arbre(p, TIMEOUT_S):
         return "dépasse le délai de %d s" % TIMEOUT_S
-    if r.returncode:
-        return "sort %d" % r.returncode
+    if p.returncode:
+        return "sort %d" % p.returncode
     return None
 
 

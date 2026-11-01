@@ -724,10 +724,11 @@ def afficher_grille():
 
 
 def borne(texte):
-    """Une borne de `--plage`, en secondes UTC : une heure ISO 8601 — sans décalage, l'heure
-    locale —, sinon un commit Git, à son heure de commit dans le dossier courant. Rend
-    (secondes, None) ou (None, erreur)."""
-    t = lire_iso(texte)
+    """Une borne de `--plage`, en secondes UTC : une heure ISO 8601 à tirets (`AAAA-MM-JJ…`) — sans
+    décalage, l'heure locale —, sinon un commit Git, à son heure de commit dans le dossier courant. Rend
+    (secondes, None) ou (None, erreur). Huit chiffres (`20251001`) sont un commit, jamais une date :
+    `fromisoformat` lit `AAAAMMJJ` depuis Python 3.11, un sha abrégé y passait (REF22)."""
+    t = lire_iso(texte) if re.match(r"\d{4}-\d{2}-\d{2}", texte) else None
     if t is not None:
         return t.timestamp(), None      # sans fuseau, timestamp() lit l'heure locale
     # `--` : le texte est une révision, jamais un chemin — un fichier suivi n'est pas une borne.

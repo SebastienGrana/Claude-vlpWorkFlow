@@ -533,7 +533,8 @@ def bornes_cout(cout):
     (`à cadrer`, `🟡 pas estimé`, `—`, `sans fiche`) (FEU8, NUI10). La dernière estimation fait foi
     (NUI38) : le dernier segment ` · ` qui porte une plage suivie de « fiche(s) » — un prix « (3,68 $ la
     fiche) » n'en est pas une ; dans ce segment, la plage qui suit la dernière `→`, sinon la dernière plage
-    suivie de « fiche(s) ». Le texte entre parenthèses ne se lit pas (« (`AMD` : 7 fiches) » compare, il
+    suivie de « fiche(s) » ; après la `→`, une date (`2026-10-12`) ou une plage suivie d'un autre mot que « fiche(s) »
+    (`2 séances`) n'en est pas une (REF22). Le texte entre parenthèses ne se lit pas (« (`AMD` : 7 fiches) » compare, il
     n'estime pas) ; une plage précédée de `+` (« ≈ +½ fiche ») s'ajoute à l'estimation d'avant au lieu de la
     remplacer (CLU). Jamais une durée."""
     borne = None
@@ -546,7 +547,8 @@ def bornes_cout(cout):
             segment = neuf
         if not re.search(r"\bfiches?\b", segment):
             continue
-        apres = re.match(r"\s*[~≈]?\s*(\+?)\s*(%s)" % PLAGE_COUT, segment.rsplit("→", 1)[1]) if "→" in segment else None
+        apres = re.match(r"\s*[~≈]?\s*(\+?)\s*(%s)(?![\d-])(?!,\d)(?!\s*(?!fiches?\b)[^\W\d_])" % PLAGE_COUT,
+                         segment.rsplit("→", 1)[1]) if "→" in segment else None
         plages = [apres.groups()] if apres else re.findall(r"(\+?)\s*(%s)\s*fiches?\b" % PLAGE_COUT, segment)
         if not plages:
             borne = None if re.search(r"\bsans fiche\b", segment) else borne    # « re-cadré : sans fiche » fait foi
@@ -561,10 +563,12 @@ def bornes_cout(cout):
 
 def dependances(depend):
     """(codes, rangs) d'une cellule « Dépend de » : les codes entre backticks, les numéros ou
-    plages hors backticks développés en rangs (`1..3` → `{"1", "2", "3"}`) (FEU8, NUI10)."""
+    plages hors backticks développés en rangs (`1..3` → `{"1", "2", "3"}`) (FEU8, NUI10). Un nombre collé à une
+    lettre ou à un tiret (`V2`, `V1-3`, une date) n'est pas un rang, comme dans `ordre.deps_todo` (REF22) ; sans
+    rang ni code (`—`, `rien`), `([], set())`."""
     codes = re.findall(r"`([A-Za-z]+)`", depend)
     rangs = set()
-    for m in re.finditer(r"(\d+)(?:\.\.(\d+))?", re.sub(r"`[^`]*`", "", depend)):
+    for m in re.finditer(r"(?<![\w-])(\d+)(?:\.\.(\d+))?(?![\w-])", re.sub(r"`[^`]*`", "", depend)):
         bas, haut = int(m.group(1)), int(m.group(2)) if m.group(2) else int(m.group(1))
         rangs.update(str(r) for r in range(bas, haut + 1))
     return codes, rangs
@@ -696,9 +700,10 @@ def poser_bloc_archive(feuille_html, archive_html, url):
 
 def poser_champ(texte, nom, valeur, apres):
     """`texte` (un `CHANTIER.md`) avec sa ligne `- **nom** : valeur`, remplacée, sinon posée après la
-    ligne du champ `apres`, sinon en fin de fichier."""
+    ligne du champ `apres`, sinon en fin de fichier. Les lignes vides au-dessus du champ restent (REF22 : `[ \\t]*`, pas
+    `\\s*`, qui traversait les fins de ligne)."""
     ligne = "- **%s** : %s" % (nom, valeur)
-    motif = re.compile(r"^\s*-\s*\*\*%s\*\*\s*:.*$" % re.escape(nom), re.M)
+    motif = re.compile(r"^[ \t]*-\s*\*\*%s\*\*\s*:.*$" % re.escape(nom), re.M)
     if motif.search(texte):
         return motif.sub(lambda _: ligne, texte, count=1)
     m = re.search(r"^\s*-\s*\*\*%s\*\*\s*:.*$" % re.escape(apres), texte, re.M)

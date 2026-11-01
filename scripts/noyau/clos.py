@@ -224,8 +224,12 @@ MARQUE_ESSAIS = "essais (ESD) "
 
 def marquer(cellule, brut, recompte_, methode):
     """La cellule de coût après `--ecrire` : le recompté au format de `clore` et l'ancien chiffre,
-    ou le chiffre gardé et sa raison — la même cellule si rien n'est à marquer."""
-    entre = lambda v: v if "(" in v or not v.isdigit() else "(%s)" % v   # un nu sous 1 000 reste lu
+    ou le chiffre gardé et sa raison — la même cellule si rien n'est à marquer. Le prix que `clore` pose en tête
+    (`NN,NN $ · `, que `PRIX_CLOS` lit) est mis à part, puis reposé en tête (REF22)."""
+    prix = re.match(r'\d+,\d\d \$ · ', cellule)
+    if prix:
+        return prix.group(0) + marquer(cellule[prix.end():], brut, recompte_, methode)
+    entre =lambda v: v if "(" in v or not v.isdigit() else "(%s)" % v   # un nu sous 1 000 reste lu
     if recompte_ is None:
         if MARQUE_GARDE in cellule:
             return cellule
@@ -253,9 +257,13 @@ def ajout_essais(cellule, brut, recompte_, methode, essais):
 
 def marquer_essais(cellule, brut, ajout):
     """La cellule après `recompter --essais --ecrire` : la marque et l'ajout en tête, la cellule
-    d'avant sans son chiffre, puis le chiffre + l'ajout en fin, où `BRUT` le lit."""
+    d'avant sans son chiffre, puis le chiffre + l'ajout en fin, où `BRUT` le lit ; sans ajout, la même cellule. Le
+    prix que `clore` pose en tête (`NN,NN $ · `) y reste, devant la marque (REF22)."""
     if not ajout:
         return cellule
+    prix = re.match(r'\d+,\d\d \$ · ', cellule)
+    if prix:
+        return prix.group(0) + marquer_essais(cellule[prix.end():], brut, ajout)
     tete = cellule.rsplit(" · ", 1)[0] + " · " if " · " in cellule else ""
     n = arrondi(brut + ajout)
     return "%s%s · %s%s" % (MARQUE_ESSAIS, signe(ajout), tete, n if "(" in n else "(%s)" % n)
@@ -297,7 +305,8 @@ def clos_du_projet(projet, sortie):
 
 def cmd_repeindre(projet, sortie, a_blanc=False):
     """Chaque page de chantier clos qui ne lie pas encore `vlp.css` passe par `page --forme`
-    puis par `vigile`, dans une copie : refusée, l'originale ne bouge pas (chantier HAB)."""
+    puis par `vigile`, dans une copie : refusée, l'originale ne bouge pas (chantier HAB). Rend 0, 1 si le parcours
+    des clos garde ; une page vue deux fois ne compte qu'une fois, mais chaque ligne sans page se compte (REF22)."""
     import shutil
     import tempfile
     parcours = clos_du_projet(projet, sortie)
@@ -306,7 +315,7 @@ def cmd_repeindre(projet, sortie, a_blanc=False):
     vues, n = set(), {"repeintes": 0, "avec lien": 0, "sans lien": 0, "refusées": 0, "déjà": 0, "sans page": 0}
     for _, prefixe, _, chemin in parcours[3]:
         page = page_du_fichier(chemin) if chemin else None
-        if page in vues:
+        if page is not None and page in vues:   # chaque ligne sans page se compte (REF22)
             continue
         vues.add(page)
         if not chemin or not page or not os.path.isfile(page):

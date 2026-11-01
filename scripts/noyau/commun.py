@@ -75,7 +75,10 @@ def une_fois(entree, commande, *args):
 
 
 def lire(chemin):
-    with open(chemin, encoding="utf-8", errors="replace") as f:
+    """Le texte de `chemin`, fins de ligne en `\\n` ; un BOM UTF-8 en tête est retiré (Bloc-notes, `Out-File` de
+    PowerShell 5 : sinon la première ligne ne commence plus par `# Chantier `, REF22). Un octet qui n'est pas de
+    l'UTF-8 devient U+FFFD, sans erreur : les lecteurs tolèrent ; `ecrire_lignes` refuse de le réécrire."""
+    with open(chemin, encoding="utf-8-sig", errors="replace") as f:
         return f.read().replace("\r\n", "\n")
 
 
@@ -99,6 +102,19 @@ def chemin_garde(chemin, libelle="fichier", nom=None):
     if not os.path.isfile(chemin):
         raise Absent("%s introuvable : %s" % (libelle, nom or chemin))
     return chemin
+
+
+def ecrire_lignes(ecritures):
+    """Écrire chaque `(chemin, lignes)` d'`ecritures`, en UTF-8, `\\n` entre les lignes et en fin ; rend None. Si une
+    seule porte U+FFFD — l'octet non UTF-8 que `lire` a remplacé, cp1252 d'un vieil éditeur —, `Absent` avant toute
+    écriture : réécrit, le caractère d'origine serait perdu sans un mot (REF22) ; `main` le rend en `GARDE:`.
+    Hors de `__all__` : la façade n'en reçoit pas un nom de plus (photo `test_noms_publics`) ; s'importe d'ici."""
+    for chemin, lignes in ecritures:
+        if any("�" in l for l in lignes):
+            raise Absent("%s n'est pas lisible en UTF-8 — rien d'écrit ; le réenregistrer en UTF-8" % chemin)
+    for chemin, lignes in ecritures:
+        with open(chemin, "w", encoding="utf-8", newline="") as fh:
+            fh.write("\n".join(lignes) + "\n")
 
 
 def lignes_gardees(chemin, libelle="fichier", nom=None):
@@ -129,13 +145,14 @@ def lignes_index(projet, index):
 ARCHIVE_TETE = ["# Archive de l'index — les chantiers clos", "",
                 "QUAND LIRE : on relit un chantier clos ; l'index n'en garde qu'une ligne qui renvoie ici.", "",
                 "| Fichier | Lire quand |", "|---|---|"]
-NUMERO_LIGNE = re.compile(r"^\|\s*`(\d\d)")
+NUMERO_LIGNE = re.compile(r"^\|\s*`(\d+)")
 
 
 def numero_ligne(ligne):
-    """Le numéro de fichier d'une ligne de table (2 premiers chiffres) ; sans numéro : après tout."""
+    """Le numéro de fichier d'une ligne de table, entier — `125-…` vaut 125, pas 12 (REF22) ; sans numéro : l'infini,
+    après tout numéro."""
     m = NUMERO_LIGNE.match(ligne)
-    return int(m.group(1)) if m else 100
+    return int(m.group(1)) if m else float("inf")
 
 
 def archiver(idx, arch, nom_archive):
