@@ -43,17 +43,8 @@ Les gabarits à recopier sont dans **le même plugin que cette commande**, à
 `${CLAUDE_PLUGIN_ROOT}`. Vérifie qu'ils répondent :
 
 ```bash
-<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" lignes "${CLAUDE_PLUGIN_ROOT}/templates" "${CLAUDE_PLUGIN_ROOT}" ../Claude-vlpWorkflow ~/Claude-vlpWorkflow
+<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" lignes "${CLAUDE_PLUGIN_ROOT}/templates" "${CLAUDE_PLUGIN_ROOT}"
 ```
-
-**La seconde moitié de la ligne est un repli, pas une recherche.** Il ne sert
-qu'au cas où cette commande tourne hors du plugin, en copie simple dans
-`~/.claude/commands/` : là, `${CLAUDE_PLUGIN_ROOT}` n'est pas remplacé. Dis-le si
-tu tombes dedans.
-
-`./Claude-vlpWorkflow` — une copie **dans** le projet — n'est jamais cherché :
-une copie posée là ne se met jamais à jour, et c'est comme ça que le kit a
-divergé sur quatre projets sans que rien ne le signale.
 
 Si rien ne répond, demande le chemin. Ne réinvente pas les gabarits de
 mémoire : ils portent des titres de sections et des marqueurs que

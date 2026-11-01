@@ -180,11 +180,6 @@ construction. Vérifie seulement qu'ils répondent :
 <python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" lignes "${CLAUDE_PLUGIN_ROOT}/templates/context AI/fichier-de-fiches.md" "${CLAUDE_PLUGIN_ROOT}/templates/artefact-chantier.html" "${CLAUDE_PLUGIN_ROOT}/cloture.md"
 ```
 
-**Hors du plugin**, en copie simple dans `~/.claude/commands/`, `${CLAUDE_PLUGIN_ROOT}`
-n'est pas remplacé et la commande échoue : cherche le kit à côté des projets
-(`../Claude-vlpWorkflow`, `~/Claude-vlpWorkflow`) et **dis-le en une ligne** : la copie simple est précisément ce que le
-plugin remplace, et elle peut avoir divergé.
-
 Si rien ne répond, **demande le chemin et arrête-toi là** : ne réinvente pas
 les gabarits de mémoire. Ils portent des titres de sections et des marqueurs
 que `scripts/vlp.py` lit — un titre reformulé casse l'extraction dans toutes

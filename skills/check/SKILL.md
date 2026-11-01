@@ -94,22 +94,13 @@ de mesurer un coût, pas de le doubler.
 **G — Le plugin est bien chargé, et c'est le bon kit.**
 
 ```bash
-<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" lignes "${CLAUDE_PLUGIN_ROOT}" "${CLAUDE_PLUGIN_ROOT}/methode-chantier.md" "${CLAUDE_PLUGIN_ROOT}/cloture.md" "~/.claude/commands/*.md"
+<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" lignes "${CLAUDE_PLUGIN_ROOT}" "${CLAUDE_PLUGIN_ROOT}/methode-chantier.md" "${CLAUDE_PLUGIN_ROOT}/cloture.md"
 ```
 
-Trois choses à lire dans cette sortie :
-
-1. **Le chemin réel de la ligne `DOSSIER`** doit être le kit réel — celui que la
-   ligne « kit » de `CHANTIER.md` nomme. S'ils diffèrent, deux kits coexistent :
-   dis lesquels, et lequel des deux les commandes utilisent vraiment (c'est
-   celui du plugin).
-2. **Si `${CLAUDE_PLUGIN_ROOT}` sort tel quel**, sans être remplacé, cette
-   commande ne tourne pas dans le plugin mais en copie simple. Dis-le : c'est
-   exactement la configuration que le plugin remplace.
-3. **Si `~/.claude/commands/` contient encore `chantier.md` ou `tache.md`**,
-   d'anciennes copies traînent. Elles offrent un `/chantier` et un `/tache` sans
-   préfixe, qui ne sont plus mis à jour et qui divergeront. Propose de les
-   déplacer — pas de les supprimer.
+**Le chemin réel de la ligne `DOSSIER`** doit être le kit réel — celui que la
+ligne « kit » de `CHANTIER.md` nomme. S'ils diffèrent, deux kits coexistent :
+dis lesquels, et lequel des deux les commandes utilisent vraiment (c'est
+celui du plugin).
 
 **H — Les renvois mènent quelque part.**
 
