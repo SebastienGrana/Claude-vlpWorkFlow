@@ -919,7 +919,8 @@ estimés ». Fonctions sans fichier donné : les `.py` de `<racine>/scripts/`, r
 puis, avec ruff, `AST=RUFF <n>/<m>` et chaque `AST≠RUFF`. `--base` écrit `scripts/sante-base.json` sous la
 racine, fonctions et tailles — `BASE …`, ou `GARDE:` si elle se relâcherait, rien d'écrit, sauf `--forcer`, dont
 la raison y reste. `--si-base` : sans base sous la racine, `SANS BASE …`, sort 0, rien d'écrit (`/vlp:tache`,
-étape 6 bis, VIT16). `--cliquet` lui compare fonctions et tailles : `CLIQUET sur ruff <version>` (ou `CLIQUET sur
+étape 6 bis, VIT16). `--base` dans un dépôt à qui manquent des commits de `main` — un worktree en retard — :
+`GARDE: il manque <n> commit(s) de main ici …`, rien d'écrit, `--forcer` compris (REF39). `--cliquet` lui compare fonctions et tailles : `CLIQUET sur ruff <version>` (ou `CLIQUET sur
 ast, comptes estimés (…)`), un écart par ligne — `EMPIRE`, `SEUIL`, `DOCSTRING`, ou
 `TAILLE <c> · <n> lignes, plafond <p> (base|seuil)` pour un fichier au-delà du plus haut de `SEUIL_LIGNES` et de
 sa taille de base —, puis `TAILLES au-dessus de <SEUIL_LIGNES> lignes, taille/plafond : <c> <n>/<p> · …` s'il y

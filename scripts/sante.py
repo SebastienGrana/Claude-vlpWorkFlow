@@ -569,6 +569,22 @@ def poser_base(racine, fonctions, version, forcer, sortie):
     return 0
 
 
+def garde_retard(code, texte):
+    """Rendre la ligne `GARDE:` d'une racine à qui manquent des commits de `main`, d'après `(code, sortie)` de
+    `git rev-list --count HEAD..main` ; `None` si rien ne manque, ou si Git n'a pas répondu — pas un dépôt, pas de
+    branche `main` : rien à garder. Ne lance rien (REF39)."""
+    if code != 0 or not texte.strip().isdigit() or int(texte) == 0:
+        return None
+    return ("GARDE: il manque %d commit(s) de main ici — `git merge main` d'abord : la base du cliquet se "
+            "recalerait sur un état ancien (E22), rien écrit\n" % int(texte))
+
+
+def retard_sur_main(racine):
+    """Rendre la `GARDE:` de `garde_retard` pour le dépôt de `racine` — un worktree en retard sur `main` —, ou `None`."""
+    import noyau.relecture
+    return garde_retard(*noyau.relecture.git_texte(["rev-list", "--count", "HEAD..main"], racine))
+
+
 def chemins_de(racine, fichiers):
     """Rendre les fichiers à mesurer : ceux donnés, sinon les `.py` de `scripts/` sous la racine, sous-dossiers compris
     — le code sorti de `vlp_coeur.py` vit dans `scripts/noyau/` (REF46) —, puis ceux de `tests/` (REF15), triés."""
@@ -583,7 +599,8 @@ def chemins_de(racine, fichiers):
 def principal(a, sortie, kit):
     """Lancer `vlp.py sante` : lister les comptes, poser la base (`--base`) ou tenir le cliquet (`--cliquet`).
     Avec `--si-base`, ne reprendre qu'une base qui existe : sans elle, `SANS BASE`, rien mesuré ni écrit — un
-    projet sans cliquet n'en reçoit pas un, même sans `scripts/`."""
+    projet sans cliquet n'en reçoit pas un, même sans `scripts/`. `--base` sur une racine en retard sur `main` :
+    `GARDE:`, rien mesuré ni écrit, `--forcer` compris (REF39)."""
     racine = os.path.abspath(a.racine or kit)
     try:
         if (a.forcer or a.si_base) and not a.base:
@@ -591,6 +608,10 @@ def principal(a, sortie, kit):
         if a.si_base and not os.path.exists(os.path.join(racine, BASE)):
             sortie.write("SANS BASE %s · rien écrit\n" % BASE)
             return 0
+        retard = retard_sur_main(racine) if a.base else None
+        if retard:
+            sortie.write(retard)
+            return 1
         ruff = (None, None) if a.sans_ruff else trouver_ruff()
         fonctions, version = mesurer(racine, chemins_de(racine, a.fichiers), ruff, sortie)
         if a.base:
