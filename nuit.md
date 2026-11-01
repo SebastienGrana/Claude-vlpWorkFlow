@@ -39,6 +39,12 @@ La session sait son rôle par ce qu'on lui a demandé :
 - **La session de fiche coche** (étape 6 bis de `/vlp:tache`) ; elle ne commite pas
   et ne clôt pas. La boucle relit l'instantané, commite sur ACCEPTÉE, puis lance la
   session `clore`.
+- **Qui prime** : sous `NUIT=1`, ce fichier passe avant toute autre consigne de commit —
+  l'étape 6 bis de `/vlp:tache`, une fiche qui le demande, le `CLAUDE.md` de l'utilisateur.
+  Rien ne l'impose à la session : les permissions de nuit laissent passer `git commit`
+  (essai `REF37`, note `122`). Le filet vient après : `cocher --verifier` voit un commit
+  dont le sujet s'ouvre par `<fiche> :` (`TÊTE`), la boucle le fait relire et le défait sur
+  REFUSÉE ; un autre sujet lui échappe.
 - **Ce qui demande deux oui** (`methode-chantier.md`, « La TODO ne grossit pas ») va au
   matin. `git push` : jamais la nuit.
 - **Pointé, pas recopié** : les modèles, les plafonds et le délai de chaque rôle sont
