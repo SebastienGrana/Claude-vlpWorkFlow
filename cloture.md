@@ -130,6 +130,17 @@ entre deux appels, et il n'est pas vu (constaté le 2026-09-25). Dans cet ordre 
 
 1. le **prompt du chantier suivant**, toujours, même si rien n'est coché, dans un
    bloc de code `text` : le sujet, ce que celui-ci vient de livrer, et les seuls
-   fichiers à ouvrir — jamais avant une question, où il n'est pas vu ;
+   fichiers à ouvrir — jamais avant une question, où il n'est pas vu. Il est lu
+   par une séance **qui ne sait rien** : avant de le donner, relis-le contre cette
+   liste, et ajoute ce qui manque (demandé le 2026-11-01, après deux oublis d'affilée) :
+   - les **séances filles qui tournent** : id, dossier, ce qu'elles font, ce qui est
+     déjà relu, et qui les surveille — la séance qui collera le prompt est-elle la
+     mère ? Alors : réarmer `supervise`, le chemin du tableau `surveillance.md`, et
+     quoi faire à leur fin ;
+   - les **questions encore ouvertes** et les choix « à trancher » de l'état ;
+   - ce qui **n'est pas poussé**, ou un dépôt pas encore branché ;
+   - les **règles nouvelles** de l'utilisateur prises pendant le chantier (où elles sont écrites) ;
+   - où le coller : après `/clear` ici, ou dans une **séance neuve** (et pourquoi) ;
+   puis dis en une ligne ce que tu as ajouté, ou « rien ne manquait » ;
 2. les deux liens ;
 3. la suite : `/clear`, puis coller le prompt.
