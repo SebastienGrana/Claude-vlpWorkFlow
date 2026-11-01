@@ -21,9 +21,9 @@
     <p>Le kit tourne sur pytest et une couverture mesurée, sans une seule régression ; des scripts gardent la taille des fichiers et interdisent de toucher aux tests pendant une fiche ; les erreurs connues sont réparées, les gros fichiers découpés, et chaque angle revu jusqu'à deux passes vides.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">59 fiches · 49 faites · en cours : REF35</p>
+    <p class="mono" style="margin-top:.5rem">59 fiches · 50 faites · en cours : REF36</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -234,14 +234,16 @@
         <details><summary><span class="titre">Deux relecteurs en parallèle ne s'effacent pas</span><span class="etat">Faite</span></summary>
         <span class="note">verdict : faux depuis ISO (prefixe_relecture porte la fiche) ; test sur vrai dépôt, W1/W12/W2 : relecture W1 --retirer → RETIRÉ 2, les 4 autres copies gardées ; mutant (préfixe sans tiret) attrapé ; suite verte</span></details>
         <span class="cout mono">≈5,1M (5 133 320) · 13 tours · 1,38 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">REF35</span></span>
-        <details open><summary><span class="titre">clore marque le chantier clos dans la source d'enchaînement</span><span class="etat">En cours · REF37, REF38 peuvent partir en même temps</span></summary></details></li>
-      <li class="fiche"><span class="gauche"><span class="id">REF36</span></span>
-        <details><summary><span class="titre">Une aide par sous-commande de vlp.py</span><span class="etat">À lancer</span></summary></details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">REF35</span></span>
+        <details><summary><span class="titre">clore marque le chantier clos dans la source d'enchaînement</span><span class="etat">Faite</span></summary>
+        <span class="note">clore écrit ✅ clos le &lt;date&gt; dans la source : 4 tests neufs verts, mutant attrapé (1 écart), suite entière 429 passés, pyright 0 erreur</span></details>
+        <span class="cout mono">≈12,6M (12 631 803) · 57 tours · 4,74 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">REF36</span></span>
+        <details open><summary><span class="titre">Une aide par sous-commande de vlp.py</span><span class="etat">En cours · REF37, REF38 peuvent partir en même temps</span></summary></details></li>
       <li class="fiche"><span class="gauche"><span class="id">REF37</span></span>
-        <details><summary><span class="titre">La nuit : qui prime, commiter ou non</span><span class="etat">À lancer · en même temps que REF35, REF38</span></summary></details></li>
+        <details><summary><span class="titre">La nuit : qui prime, commiter ou non</span><span class="etat">À lancer · en même temps que REF36, REF38</span></summary></details></li>
       <li class="fiche"><span class="gauche"><span class="id">REF38</span></span>
-        <details><summary><span class="titre">Retirer le repli « copie simple » d'avant le plugin</span><span class="etat">À lancer · en même temps que REF35, REF37</span></summary></details></li>
+        <details><summary><span class="titre">Retirer le repli « copie simple » d'avant le plugin</span><span class="etat">À lancer · en même temps que REF36, REF37</span></summary></details></li>
       <li class="fiche"><span class="gauche"><span class="id">REF39</span></span>
         <details><summary><span class="titre">sante --base refuse un worktree en retard sur main</span><span class="etat">À lancer</span></summary></details></li>
       <li class="fiche"><span class="gauche"><span class="id">REF22</span></span>
@@ -261,7 +263,7 @@
         <span class="note">Revue de la doc qui ment. Après REF22.</span></details></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈106,8M (106 808 546) · 481 tours · 29,99 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈741,5M (741 545 002) · 2771 tours · 246,53 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈754,2M (754 176 805) · 2828 tours · 251,27 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

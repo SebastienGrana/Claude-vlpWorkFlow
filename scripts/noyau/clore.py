@@ -767,7 +767,7 @@ def cmd_clore(a, sortie):
         os.remove(p)
     ecrire_par_tmp(ecritures + ([(archive, clos_html)] if html is not None and archive != page and clos_html is not None
                                 else []))
-    coeur.ordre_de_clore(todo_dit, sortie, carte_)
+    coeur.ordre_de_clore(todo_dit, sortie, carte_, (projet, lettre, date))
     coeur.dire_sans_page(carte_, [(chemin_page, "artefact du chantier", "la page du chantier"),
                             (page, "artefact feuille de route", "la feuille de route")], sortie, gardes)
     if html is None:

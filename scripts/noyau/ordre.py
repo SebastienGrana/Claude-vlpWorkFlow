@@ -33,9 +33,10 @@ from noyau.ouvrir import moyenne_clos
 from noyau.page import ligne_files, recopier_joints
 
 __all__ = [
-    "BALISE_ORDRE", "NIVEAUX_ORDRE", "ajouts_ordre", "chemin_ordre", "classer_ordre", "cle_pas", "cmd_ordre",
-    "deps_todo", "dire_sans_page", "dit_aucun", "donnees_ordre", "forces_ordre", "garde_page", "graines_ordre",
-    "graphe_ordre", "niveaux_ordre", "nom_todo", "numeros_todo", "ordre_de_clore", "page_ordre", "pas_du_code",
+    "BALISE_ORDRE", "NIVEAUX_ORDRE", "ajouts_ordre", "chemin_ordre", "classer_ordre", "cle_pas", "cles_du_projet",
+    "cmd_ordre", "deps_todo", "dire_sans_page", "dit_aucun", "donnees_ordre", "forces_ordre", "garde_page",
+    "graines_ordre", "graphe_ordre", "marquer_clos_ordre", "marquer_source", "niveaux_ordre", "nom_todo",
+    "numeros_todo", "ordre_de_clore", "page_ordre", "pas_du_code",
     "pas_ordre", "piste_ordre", "projets_ordre", "prose_ordre", "somme_ordre", "tables_ordre", "taux_ordre",
     "todo_projet", "totaux_ordre", "vagues_ordre",
 ]
@@ -483,8 +484,66 @@ def dire_sans_page(carte_, pages, sortie, gardes):
         sortie.write("SANS PAGE %s — CHANTIER.md dit « aucun »\n" % ", ".join(sans))
 
 
-def ordre_de_clore(todo_dit, sortie, carte_=()):
-    """Dire `todo_dit`, la ligne de la TODO d'une clôture ; puis, quel que soit le projet clos, refaire les données
+def marquer_clos_ordre(lignes, cles, code, date):
+    """Les lignes de la source, la cellule « Coût » du pas `code` des projets `cles` (section « Le chemin conseillé »)
+    devenue `✅ clos le <date>` (REF35, défaut `E16`) ; `None` s'il n'y a rien à écrire — pas absent, d'un autre
+    projet, ou déjà `✅`. Une cellule manquante est ajoutée ; les autres lignes restent telles quelles."""
+    neuves, change, titre = list(lignes), False, None
+    for i, l in enumerate(lignes):
+        if l.startswith("## "):
+            titre = l[3:].strip()
+            continue
+        if titre != "Le chemin conseillé" or not l.startswith("|") or SEPARATEUR.match(l):
+            continue
+        cellules = cellules_de(l, "%s, ligne %d" % (titre, i + 1))
+        if len(cellules) < 2 or (CODE.findall(cellules[0]) or [cellules[0]])[0] != code or cellules[1] not in cles:
+            continue
+        cellules += [""] * (4 - len(cellules))
+        if cellules[3].startswith("✅"):
+            continue
+        cellules[3] = "✅ clos le %s" % date
+        neuves[i] = "|%s|" % "|".join(" %s " % c if c else " " for c in cellules)
+        change = True
+    return neuves if change else None
+
+
+def cles_du_projet(lignes, racine, projet):
+    """Les clés de la table « Les projets » de la source (`lignes`, dans le projet `racine`) dont le dossier est
+    `projet` — résolu comme `projets_ordre` : `.` est `racine`, un autre dossier est cherché à côté ; jonctions
+    suivies. Aucune : un ensemble vide."""
+    cible = os.path.normcase(os.path.realpath(projet))
+    cles = set()
+    for cellules in tables_ordre(lignes).get("Les projets", []):
+        cle, dossier = (cellules + [""])[:2]
+        dossier = (CODE.findall(dossier) or [dossier])[0]
+        chemin = racine if dossier == "." else os.path.join(os.path.dirname(racine), dossier)
+        if os.path.normcase(os.path.realpath(chemin)) == cible:
+            cles.add(cle)
+    return cles
+
+
+def marquer_source(source, clos, sortie):
+    """Écrire dans la source `source` le pas clos `clos` — (dossier du projet, code, date) — `✅ clos le <date>`
+    (`marquer_clos_ordre`), puis la ligne `ORDRE marqué` ; rien à écrire : rien, en silence. Une table illisible :
+    une `GARDE:`, la source intacte."""
+    projet, code, date = clos
+    lignes = lignes_de(source)
+    racine = trouver(os.path.dirname(source)) or os.path.dirname(source)
+    try:
+        neuves = marquer_clos_ordre(lignes, cles_du_projet(lignes, racine, projet), code, date)
+    except ValueError as e:
+        sortie.write("GARDE: ordre : %s — %s non marqué clos dans la source\n" % (e, code))
+        return
+    if neuves is None:
+        return
+    with open(source, "w", encoding="utf-8", newline="") as f:
+        f.write("\n".join(neuves) + "\n")
+    sortie.write("ORDRE marqué %s ✅ clos le %s — %s\n" % (code, date, source))
+
+
+def ordre_de_clore(todo_dit, sortie, carte_=(), clos=None):
+    """Dire `todo_dit`, la ligne de la TODO d'une clôture ; puis, quel que soit le projet clos, marquer son pas
+    `✅ clos le <date>` dans la source (`clos` : (dossier, code, date), `marquer_source`, REF35), refaire les données
     de la page d'enchaînement du kit (`cmd_ordre --db` sur `SOURCE_ORDRE`) et la ligne `ORDRE envoyer
     <donnees.json> → <URL>` — l'URL lue à la ligne `artefact enchaînement` du `CHANTIER.md` du projet de la source.
     Sauf si le `CHANTIER.md` du projet clos (`carte_`) dit cette ligne « aucun » (`dit_aucun`, chantier ISO) : rien.
@@ -496,6 +555,8 @@ def ordre_de_clore(todo_dit, sortie, carte_=()):
     if not os.path.isfile(source):
         sortie.write("GARDE: ordre : source introuvable (%s) — page d'enchaînement non refaite\n" % source)
         return
+    if clos:
+        marquer_source(source, clos, sortie)
     tampon = io.StringIO()
     try:
         code = cmd_ordre(argparse.Namespace(source=source, json=False, db=True), tampon)
