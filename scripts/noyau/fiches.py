@@ -227,8 +227,8 @@ def cmd_commiter(a, sortie):
     comprises), puis ajouter à l'index ses chemins changés — ceux de sa ligne **Fichiers**, un dossier y valant ce qu'il
     contient, un motif ce qu'il prend (`releve`) — et les communs : le fichier de fiches, `scripts/sante-base.json` dans le kit ;
     jamais `git add -A` : en parallèle, il avalerait le travail d'une autre fiche. Un changé hors de sa liste : `HORS:`,
-    laissé hors du commit. Limite : un commun porte aussi ce qu'une autre fiche y a écrit — sa case, son bloc
-    **Tentatives**, ses empreintes."""
+    laissé hors du commit. La base n'y entre que pour sa part (`indexer_part_de_base`, REF33). Limite : le fichier de
+    fiches porte aussi ce qu'une autre fiche y a écrit — sa case, son bloc **Tentatives**."""
     lignes = lignes_de(a.fichier)
     fiche = next((f for f in coeur.fiches_du_fichier(lignes) if f[0] == a.fiche), None)
     racine = noyau.relecture.git_texte(["rev-parse", "--show-toplevel"], os.path.dirname(os.path.abspath(a.fichier)))
@@ -247,6 +247,10 @@ def cmd_commiter(a, sortie):
     ajout, hors = partage_commit(lignes, a.fiche, communs, changes, chemins_changes(racine) or [])
     if hors:
         sortie.write("HORS: %s — changés hors de la ligne Fichiers de %s, laissés hors du commit\n" % (", ".join(hors), a.fiche))
+    ajout, garde = indexer_part_de_base(racine, ajout, communs)
+    if garde:
+        sortie.write(garde)
+        return 1
     # Sans chemin, `git add -A --` ajouterait tout le dépôt : l'ajout se saute.
     etapes = ([["add", "-A", "--"] + ajout] if ajout else []) + [
         ["commit", "--allow-empty", "-q", "-m", "%s : %s" % (a.fiche, fiche[1])]]
@@ -257,6 +261,37 @@ def cmd_commiter(a, sortie):
             return 1
     sortie.write("COMMIT %s : %s · %d fichier(s)\n" % (a.fiche, fiche[1], len(ajout)))
     return 0
+
+
+def indexer_part_de_base(racine, ajout, communs):
+    """(ajout, garde) : si `ajout` porte la base du cliquet, n'en indexer que la part de la fiche — ses fichiers, les
+    autres de `ajout` hors `communs` — (`sante.part_de_base`, REF33) et la retirer de `ajout` ; une autre fiche du même
+    dossier garde la sienne sur le disque. Sans base à `HEAD`, ou une base illisible : la base entière, comme avant. Un
+    `git` en échec : la `GARDE:`, et `ajout` tel quel."""
+    import tempfile
+
+    import sante
+    if sante.BASE not in ajout:
+        return ajout, None
+    code, tete = noyau.relecture.git_texte(["show", "HEAD:" + sante.BASE], racine)
+    try:
+        with open(os.path.join(racine, sante.BASE), encoding="utf-8") as f:
+            texte = sante.part_de_base(tete, f.read(), {c for c in ajout if c not in communs}) if code == 0 else None
+    except (OSError, ValueError, KeyError, TypeError, AttributeError):
+        texte = None
+    if texte is None:
+        return ajout, None
+    with tempfile.TemporaryDirectory() as t:
+        chemin = os.path.join(t, "base.json")
+        with open(chemin, "w", encoding="utf-8", newline="\n") as f:
+            f.write(texte)
+        code, sha = noyau.relecture.git_texte(["hash-object", "-w", "--path", sante.BASE, chemin], racine)
+    if code == 0:
+        code, sha = noyau.relecture.git_texte(["update-index", "--cacheinfo", "100644,%s,%s" % (sha.strip(), sante.BASE)],
+                                              racine)
+    if code != 0:
+        return ajout, "GARDE: git (part de la base, REF33) : %s\n" % sha.strip()
+    return [c for c in ajout if c != sante.BASE], None
 
 
 def partage_commit(lignes, fiche, communs, avant, apres):

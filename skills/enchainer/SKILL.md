@@ -1,7 +1,7 @@
 ---
 description: Enchaîne les fiches du chantier courant une après l'autre, dans cette session (par défaut), chacune sur une page blanche (agents, un sous-agent neuf) ou en session neuve par script (clear), jusqu'à un arrêt prévu ou le plafond
 argument-hint: (rien) | agents [<largeur>] | agents file | clear | <alias> | <alias> agents
-allowed-tools: Bash(python3:*), Bash(py:*), Bash(echo:*), PowerShell(python3:*), PowerShell(py:*), PowerShell(echo:*), Skill, Agent, Artifact
+allowed-tools: Bash(python3:*), Bash(py:*), Bash(echo:*), Bash(git:*), PowerShell(python3:*), PowerShell(py:*), PowerShell(echo:*), PowerShell(git:*), Skill, Agent, Artifact
 ---
 
 Arguments reçus :

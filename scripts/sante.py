@@ -426,18 +426,38 @@ def ligne_tailles(tailles, base):
 def ecrire_base(chemin, fonctions, version, forcees, tailles):
     """Écrire la base, triée, une fonction par ligne : un diff Git s'y lit fonction par fonction. Les comptes
     ruff n'y sont que s'ils s'écartent des comptes `ast` ; la taille de chaque fichier, en tête (REF9)."""
-    lignes = []
-    for f in sorted(fonctions, key=lambda f: (f["fichier"], f["fonction"])):
+    entrees = []
+    for f in fonctions:
         entree = {"fichier": f["fichier"], "fonction": f["fonction"], "empreinte": f["empreinte"],
                   "ast": f["ast"], "doc": f["doc"]}
         if version and f["ruff"] != f["ast"]:
             entree["ruff"] = f["ruff"]
-        lignes.append(json.dumps(entree, ensure_ascii=False))
-    tete = json.dumps({"format": FORMAT, "ruff": version, "forcee": forcees, "fichiers": tailles},
-                      ensure_ascii=False)[:-1]
+        entrees.append(entree)
     os.makedirs(os.path.dirname(chemin), exist_ok=True)
     with open(chemin, "w", encoding="utf-8", newline="\n") as fichier:
-        fichier.write(tete + ', "fonctions": [\n' + ",\n".join(lignes) + "\n]}\n")
+        fichier.write(texte_base(entrees, version, forcees, tailles))
+
+
+def texte_base(entrees, version, forcees, tailles):
+    """Le texte de la base : la tête sur une ligne, puis une entrée de fonction par ligne, triées par (fichier,
+    fonction). `entrees` : les dictionnaires tels qu'ils s'écrivent. Ne lit ni n'écrit rien (REF33)."""
+    lignes = [json.dumps(e, ensure_ascii=False) for e in sorted(entrees, key=lambda e: (e["fichier"], e["fonction"]))]
+    tete = json.dumps({"format": FORMAT, "ruff": version, "forcee": forcees, "fichiers": tailles},
+                      ensure_ascii=False)[:-1]
+    return tete + ', "fonctions": [\n' + ",\n".join(lignes) + "\n]}\n"
+
+
+def part_de_base(tete, travail, fichiers):
+    """Le texte de la base que porte le commit d'une fiche (REF33) : depuis `travail` (le texte sur le disque), les
+    fonctions et tailles de `fichiers` (ceux que la fiche commite) ; depuis `tete` (le texte de `HEAD`), celles des
+    autres fichiers — la part d'une autre fiche reste sur le disque, à son commit. La version de ruff et les `forcee`
+    viennent du disque : une base forcée par l'autre fiche passerait avec celle-ci. Ne lit ni n'écrit rien."""
+    avant, apres = json.loads(tete), json.loads(travail)
+    entrees = ([e for e in avant["fonctions"] if e["fichier"] not in fichiers]
+               + [e for e in apres["fonctions"] if e["fichier"] in fichiers])
+    tailles = {c: n for c, n in avant.get("fichiers", {}).items() if c not in fichiers}
+    tailles.update({c: n for c, n in apres.get("fichiers", {}).items() if c in fichiers})
+    return texte_base(entrees, apres["ruff"], apres["forcee"], dict(sorted(tailles.items())))
 
 
 def apparier(fonctions, base):
