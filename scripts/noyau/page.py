@@ -653,13 +653,12 @@ def couts_aux_commits(fiches_, heures, gardes, entete=(), fin=None):
 
 
 def couts(fiches_, anciens, ancien_total, gardes, heures=None, entete=(), fin=None):
-    """({id: ligne de coût}, total, hors fiches) — total et hors fiches en (total, tours,
-    usd), ou None. Avec les heures des commits (`heures_commits`) : `couts_aux_commits`.
-    Sans elles, tirés de l'ancienne page, sans hors fiches. Une session portée
-    par plusieurs fiches : les premières gardent le coût déjà affiché (l'écart
-    du compteur à leur clôture), la dernière prend le reste — moins la part que
-    l'ancienne page n'attribuait à aucune fiche (le cadrage joué dans la même
-    session), si une seule session est partagée."""
+    """({id: ligne de coût}, total, hors fiches) — total et hors fiches en (total, tours, usd), ou None. Avec les
+    heures des commits (`heures_commits`) : `couts_aux_commits`. Sans elles, tirés de l'ancienne page, sans hors
+    fiches. Une session portée par plusieurs fiches : les premières gardent le coût déjà affiché (l'écart du compteur
+    à leur clôture), la dernière prend le reste — moins la part que l'ancienne page n'attribuait à aucune fiche (le
+    cadrage joué dans la même session), si une seule session est partagée. Une fiche qui porte en dernière plusieurs
+    sessions les additionne (REF22, tranché le 2026-11-02) ; un prix inconnu rend `? $`."""
     if heures:
         return couts_aux_commits(fiches_, heures, gardes, entete, fin)
     m = mesure()
@@ -684,7 +683,7 @@ def couts(fiches_, anciens, ancien_total, gardes, heures=None, entete=(), fin=No
     partagees = [s for s in mesures if mesures[s] and sum(1 for f in fiches_ if s in f[3]) > 1]
     if not base or len(partagees) != 1 or base[0] < 0 or base[1] < 0:
         base = (0, 0, 0)
-    rendu = {}
+    rendu, sommes = {}, {}    # sommes : ce que chaque fiche porte en dernière, ses sessions additionnées (REF22)
     for s, r in mesures.items():
         if r is None:
             continue
@@ -703,7 +702,8 @@ def couts(fiches_, anciens, ancien_total, gardes, heures=None, entete=(), fin=No
             rendu[ident] = ancien
             total, tours = total - c[0], tours - c[1]
             usd = moins(usd, c[2])
-        rendu[porteurs[-1]] = ligne_cout(total, tours, usd)
+        sommes[porteurs[-1]] = plus((total, tours, usd, 0), sommes.get(porteurs[-1], (0, 0, 0, 0)))
+        rendu[porteurs[-1]] = ligne_cout(*sommes[porteurs[-1]][:3])
     mesurees = [r for r in mesures.values() if r]
     if not mesurees:
         return rendu, None, None

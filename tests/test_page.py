@@ -134,7 +134,8 @@ def test_page_creer(tmp_path):
         appel(["page", fiches, page, "--date", "2026-01-03"])
         assert (lire(page) == avant), ("page : régénérer deux fois ne change rien") + "\n" + str(lire(page))
 
-        # P2 partage la session de P1 : P1 garde son coût affiché, P2 prend le reste ; b s'ajoute au total.
+        # P2 partage la session de P1 : P1 garde son coût affiché, P2 prend le reste, plus b, sa seconde session
+        # (REF22 : elles s'écrasaient, tranché le 2026-11-02 : on additionne).
         # L'ancien total compte 1 tour de cadrage (100 000) qu'aucune fiche ne porte : il reste hors de P2.
         ecrire(page, lire(page).replace("Coût du chantier : ≈200,0k (200 000) · 2 tours · 1,00 $",
                                         "Coût du chantier : ≈300,0k (300 000) · 3 tours · 1,50 $"))
@@ -143,8 +144,8 @@ def test_page_creer(tmp_path):
         code, s = appel(["page", fiches, page, "--date", "2026-01-04"])
         html = lire(page)
         assert (code == 0
-                 and '<span class="cout mono">≈200,0k (200 000) · 2 tours · 1,00 $</span>' in html
-                 and '<span class="cout mono">≈100,0k (100 000) · 1 tours · 0,50 $</span>' in html
+                 and html.count('<span class="cout mono">≈200,0k (200 000) · 2 tours · 1,00 $</span>') == 2
+                 and '<span class="cout mono">≈100,0k (100 000) · 1 tours · 0,50 $</span>' not in html
                  and "Coût du chantier : ≈500,0k (500 000) · 5 tours · 2,50 $" in html
                  and "3 fiches · 2 faites · en cours : P3" in html), ("page : session partagée, le reste à la dernière") + "\n" + str(s + html)
         avant = lire(page)

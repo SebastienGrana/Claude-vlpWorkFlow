@@ -1026,10 +1026,10 @@ touché qui importe `pytest` était rouge). Confirmés : chacun rejoué, puis ro
 
 **Les laissés** (5) :
 
-- 🟡 `page.couts`, repli sans Git : deux sessions d'une fiche s'écrasent (500 affiché, total 1 500) ; la somme
-  contredit `tests/test_page.py:147` (« session partagée, le reste à la dernière ») — l'intention est à trancher.
-- 🟡 `niveau.ecarts_git` : un chemin déclaré hors de Git mais non ignoré reste un `ÉCART` ; `tests/test_niveau.py`
-  (« NWT (c) ») le veut, `methode-chantier.md` (« ne le compte plus en écart ») se lit dans les deux sens — à trancher.
+- ✅ `page.couts`, repli sans Git : deux sessions d'une fiche s'écrasaient (500 affiché, total 1 500). Tranché
+  par l'utilisateur le 2026-11-02 : on additionne ; `tests/test_page.py` (« session partagée ») réécrit, mutant attrapé.
+- ✅ `niveau.ecarts_git` : un chemin déclaré hors de Git mais non ignoré reste un `ÉCART`. Tranché par
+  l'utilisateur le 2026-11-02 : l'écart reste (« NWT (c) » inchangé) ; `methode-chantier.md` précisé.
 - `retraits` sous `--amend` : aucun hook avant le commit ne sait qu'il tourne sous `--amend` (`githooks`, lu en
   local ; les `GIT_*` de `commit-msg` identiques, essayé) — sans remède dans les hooks actuels.
 - `rapport.texte_mute` sur un fichier aux fins mêlées : un refus visible, 0 fichier du kit concerné.
