@@ -289,14 +289,16 @@ def marques_tri(apporte, cout):
 
 
 def fichiers_tri(apporte, cout):
-    """Les fichiers cités entre backticks dans les cellules 3 et 4 : les mots (`shlex.split`, guillemets
-    retirés ; repli `split`) qui finissent en `EXTENSIONS_TRI` — `vlp.py archive` donne `vlp.py`."""
+    """Les fichiers cités entre backticks dans les cellules 3 et 4 : les mots (`shlex.split` hors mode POSIX,
+    qui garde les antislashs d'un chemin Windows ; repli `split` sur un guillemet seul), guillemets retirés, qui
+    finissent en `EXTENSIONS_TRI` — `vlp.py archive` donne `vlp.py`, `scripts\\noyau\\nuit.py` reste entier."""
     vus = []
     for bout in CODE.findall(apporte + "\n" + cout):
         try:
-            mots = shlex.split(bout)
+            mots = shlex.split(bout, posix=False)
         except ValueError:
-            mots = [w.strip("\"'") for w in bout.split()]
+            mots = bout.split()
+        mots = [w.strip("\"'") for w in mots]
         vus += [w for w in mots if w.lower().endswith(EXTENSIONS_TRI) and w not in vus]
     return vus
 

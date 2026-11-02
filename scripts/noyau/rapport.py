@@ -20,7 +20,7 @@ from noyau import etat
 from noyau.bac import MUTANT_EXCLUS, PORT_APERCU, est_kit, lire_arg
 from noyau.carte import trouver
 from noyau.commun import lignes_de
-from noyau.fiches import VLP_PY
+from noyau.fiches import VLP_PY, chemins_du_statut
 from noyau.matin import de_cote, pointes_nuit, projet_du_matin
 from noyau.niveau import dossier_artefacts
 from noyau.nuit import LECON_FORME, fichier_nuits, nuits_du_fichier, nuits_ecrire
@@ -686,15 +686,10 @@ def py_touches(racine):
 
 
 def py_du_statut(texte):
-    """Les `.py` d'une sortie de `git status --porcelain=v1 -z`, relatifs à la racine du dépôt ; l'ancien nom d'un
-    renommage ou d'une copie sauté. Ne lance rien (REF49)."""
-    champs, rendus = iter(texte.split("\0")), []
-    for entree in champs:
-        if entree[:1] in ("R", "C"):
-            next(champs, None)  # le nom d'origine suit un renommage ou une copie
-        if entree.endswith(".py"):
-            rendus.append(entree[3:])
-    return rendus
+    """Les `.py` d'une sortie de `git status --porcelain=v1 -z`, relatifs à la racine du dépôt, dans l'ordre : les
+    chemins de `chemins_du_statut` (l'ancien nom d'un renommage ou d'une copie sauté, ` R` compris, REF22) qui
+    finissent par `.py`. Texte vide : liste vide. Ne lance rien (REF49)."""
+    return [c for c in chemins_du_statut(texte) if c.endswith(".py")]
 
 
 def controles_rapides(racine, motif, pyright):

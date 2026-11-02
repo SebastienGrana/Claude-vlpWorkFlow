@@ -433,7 +433,8 @@ def fiches_du_chantier(claude, a, racine, fichier, traces, verif, etat, canal=Fa
             return 0, "aucune fiche à jouer", "fini"
         _, extrait = vlp(["extraire", fichier, fiche], racine)
         bloc = tentatives(extrait) if a.nuit else None
-        if "**Tentatives**" in extrait and not (bloc and bloc[0]):   # sous --nuit, des refus seuls ne l'arrêtent pas
+        porte = any(l.startswith("**Tentatives**") for l in extrait.splitlines())   # un début de ligne, comme tentatives()
+        if porte and not (bloc and bloc[0]):   # sous --nuit, des refus seuls ne l'arrêtent pas
             return 1, "%s porte un bloc Tentatives — à lire avant de rejouer" % fiche, "chantier"
         n_refus, dernier = (bloc[1], bloc[2]) if bloc else (0, None)
         if a.nuit and verif and not etat["verifiee"]:
@@ -487,14 +488,18 @@ def fiches_du_chantier(claude, a, racine, fichier, traces, verif, etat, canal=Fa
 def lire_plan(racine, a):
     """`(plan, erreur)` : `plan` = `(borne en $, borne en chantiers, codes du canal dans l'ordre de leur rang)`, lu
     par `vlp.py plan lire --date --canal` (sans canal : tous, pour le lanceur) — jamais à la main. `erreur` : la 1re ligne
-    de sa sortie."""
+    de sa sortie ; une borne qui n'est pas un nombre (`12,5`, plan édité à la main) : `borne illisible : 12,5` (REF22)."""
     code, s = vlp(["plan", "lire", racine, "--date", a.date] + (["--canal", a.canal] if a.canal else []), racine)
     borne = re.search(r"^BORNE (\S+) \$ · (\d+) chantiers$", s, re.M)
     liste = sorted((int(m.group(2)), m.group(1)) for l in s.splitlines()
                    for m in [re.match(r"CHANTIER (\S+) · canal \S+ · rang (\d+) · préfixe \S+$", l)] if m)
     if code or not borne or not liste:
         return None, (s.strip().splitlines() or ["plan illisible"])[0]
-    return (float(borne.group(1)), int(borne.group(2)), [c for _, c in liste]), None
+    try:
+        usd = float(borne.group(1))
+    except ValueError:
+        return None, "borne illisible : %s" % borne.group(1)
+    return (usd, int(borne.group(2)), [c for _, c in liste]), None
 
 
 def juger_decoupe(racine, fichier, code, todo):
@@ -721,7 +726,7 @@ def lanceur(a):
         if a.plafond is not None:
             cmd += ["--plafond", str(a.plafond)]
         proc = subprocess.Popen(cmd, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
-                                encoding="utf-8", errors="replace")
+                                encoding="utf-8", errors="replace", start_new_session=sys.platform != "win32")
         procs[canal] = proc
         ecrire_ligne(verrou, "DÉPART %s · pid %d · %s" % (canal, proc.pid, dossier))
         fil = threading.Thread(target=suivre, args=(canal, proc, verrou), daemon=True)
@@ -731,13 +736,31 @@ def lanceur(a):
         while any(f.is_alive() for f in fils):
             time.sleep(0.2)
     except KeyboardInterrupt:
-        for proc in procs.values():
-            proc.terminate()
-        ecrire_ligne(verrou, "ARRÊT Ctrl+C — terminate() aux deux canaux ; la reprise est --reprendre")
+        arreter_filles(procs.values(), k)
+        ecrire_ligne(verrou, "ARRÊT Ctrl+C — arbre tué aux deux canaux ; la reprise est --reprendre")
         return 1
     ecrire_ligne(verrou, "RIEN FUSIONNÉ, RIEN POUSSÉ — /vlp:chef le matin")
     codes = [proc.wait() for proc in procs.values()]
     return 0 if not any(codes) else 1
+
+
+def arreter_filles(procs, k):
+    """Arrêter chaque fille `boucle.py` de `procs` (Ctrl+C du lanceur) avec ses descendants — ses sessions `claude` —
+    par `k.tuer_arbre`, puis l'attendre. Ne rend rien ; une fille déjà sortie est seulement attendue (REF22)."""
+    for proc in procs:
+        k.tuer_arbre(proc)
+        proc.wait()
+
+
+def garde_dossier(a):
+    """La `GARDE:` du dossier lancé, ou None s'il se joue : sous `--reprendre`, un worktree absent ou sans commit ;
+    sinon un dossier absent — que le `chdir` de `vlp()` aurait levé en traceback (REF22)."""
+    if a.reprendre and (not os.path.isdir(a.dossier) or tete_de(os.path.abspath(a.dossier)) is None):
+        return "GARDE: le worktree du canal est absent, ou n'est pas un dépôt Git avec un commit — %s" % (
+            os.path.abspath(a.dossier))
+    if not os.path.isdir(a.dossier):
+        return "GARDE: dossier introuvable : %s" % a.dossier
+    return None
 
 
 def main(argv):
@@ -789,8 +812,8 @@ def main(argv):
     if a.lancer:
         return lanceur(a)
     canal = bool(a.nuit and not a.chantier)   # la boucle d'un canal (NUI7), sinon un seul chantier ouvert
-    if a.reprendre and (not os.path.isdir(a.dossier) or tete_de(os.path.abspath(a.dossier)) is None):
-        print("GARDE: le worktree du canal est absent, ou n'est pas un dépôt Git avec un commit — %s" % os.path.abspath(a.dossier))
+    if garde := garde_dossier(a):
+        print(garde)
         return 1
 
     claude = claude_de(a.claude)

@@ -409,7 +409,8 @@ def cmd_recompter(projet, sortie, ecrire=False, essais=False, a_clore=False):
     """Chaque ligne de `ZONE:clos` recomptée par `cout` sur son fichier de fiches, que l'index
     nomme au même préfixe ; n'écrit rien sans `ecrire` (chantier REC). Avec `--essais`,
     n'ajoute que la part essais (chantier ESD). `a_clore` : chaque ligne recomptée finit par
-    `à clore` et `après clore` (`totaux_a_clore`), ou `sans appel clore` (chantier APC)."""
+    `à clore` et `après clore` (`totaux_a_clore` : la découpe non coupée moins l'à clore), ou `sans appel clore`
+    (chantier APC, REF22)."""
     parcours = clos_du_projet(projet, sortie)
     if parcours is None:
         return 1
@@ -439,9 +440,9 @@ def cmd_recompter(projet, sortie, ecrire=False, essais=False, a_clore=False):
         n, inscrit, ecart = n + (recompte_ is not None), inscrit + brut, ecart + e
         clore_ = ""
         if a_clore and recompte_ is not None:
-            avant = totaux_a_clore(chemin, lignes_de(chemin))
-            clore_ = " · sans appel clore" if avant is None else " · à clore %s · après clore %s" % (
-                milliers(plus(*avant)[0]), milliers(recompte_ - plus(*avant)[0]))
+            paire = totaux_a_clore(chemin, lignes_de(chemin))    # (à clore, entier) : un clos est déjà coupé (REF22)
+            clore_ = " · sans appel clore" if paire is None else " · à clore %s · après clore %s" % (
+                milliers(plus(*paire[0])[0]), milliers(plus(*paire[1])[0] - plus(*paire[0])[0]))
         sortie.write("%s inscrit %s · recompté %s · écart %s · %s%s%s\n" % (
             prefixe, milliers(brut), "gardé" if recompte_ is None else milliers(recompte_), signe(e), methode,
             partage, clore_))

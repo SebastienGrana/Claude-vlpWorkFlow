@@ -19,6 +19,7 @@ import argparse
 import ast
 import glob
 import os
+import pathlib
 import re
 import sqlite3
 import sys
@@ -31,11 +32,11 @@ MONTRES = 12   # tests montrés sur la ligne de la carte ; le reste se compte
 
 def fonctions(racine, noms):
     """{nom: [(chemin relatif, première ligne, dernière ligne)]} des fonctions `noms` définies sous `racine/scripts/` ;
-    une fonction absente n'a pas d'entrée, un fichier illisible est sauté."""
+    une fonction absente n'a pas d'entrée, un fichier illisible est sauté ; un BOM UTF-8 se lit (REF22)."""
     voulus, trouvees = set(noms), {}
     for chemin in sorted(glob.glob(os.path.join(racine, "scripts", "**", "*.py"), recursive=True)):
         try:
-            with open(chemin, encoding="utf-8") as f:
+            with open(chemin, encoding="utf-8-sig") as f:
                 arbre = ast.parse(f.read())
         except (OSError, SyntaxError, ValueError):
             continue
@@ -70,11 +71,12 @@ def contextes(base, rel, debut, fin):
 
 
 def ouvrir(racine):
-    """La base de mesure de `racine` en lecture seule, ou None si elle manque."""
+    """La base de mesure de `racine` en lecture seule, ou None si elle manque. Le chemin s'encode dans l'URI
+    (`as_uri`) : un `#`, un `?` ou un `%` ne la coupent plus (REF22)."""
     chemin = os.path.join(racine, DONNEES)
     if not os.path.isfile(chemin):
         return None
-    return sqlite3.connect("file:%s?mode=ro" % chemin.replace("\\", "/"), uri=True)
+    return sqlite3.connect(pathlib.Path(chemin).resolve().as_uri() + "?mode=ro", uri=True)
 
 
 def par_test(base):

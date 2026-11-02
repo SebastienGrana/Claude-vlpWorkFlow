@@ -203,12 +203,19 @@ def relatif(chemin, racine):
         return chemin.replace("\\", "/")
 
 
+def lignes_source(chemin, erreurs="strict"):
+    """Rendre les lignes d'un fichier Python, coupées sur les seules fins de ligne (`\\n`, `\\r\\n`, `\\r`) — pas sur
+    `\\f` ni U+2028 comme `splitlines()` —, un BOM UTF-8 ôté : Python lance un fichier qui en porte (REF22). Un texte
+    qui finit par une fin de ligne garde sa chaîne vide finale ; `erreurs` : celles du décodage."""
+    with open(chemin, encoding="utf-8-sig", errors=erreurs) as fichier:
+        return fichier.read().split("\n")
+
+
 def mesurer_fichier(racine, chemin):
-    """Mesurer par `ast` les fonctions d'un fichier, dans l'ordre du texte ; rendre (fonctions, lignes)."""
-    with open(chemin, encoding="utf-8") as fichier:
-        texte = fichier.read().replace("\r\n", "\n")
-    arbre = ast.parse(texte, filename=chemin)
-    lignes = texte.split("\n")
+    """Mesurer par `ast` les fonctions d'un fichier, dans l'ordre du texte ; rendre (fonctions, lignes) — `lignes`
+    compte la chaîne vide qui suit la dernière fin de ligne. Un BOM UTF-8 se lit (REF22)."""
+    lignes = lignes_source(chemin)
+    arbre = ast.parse("\n".join(lignes), filename=chemin)
     trouvees = []
     cueillir(arbre.body, "", False, trouvees)
     profondeurs = {}
@@ -396,12 +403,13 @@ def charger_base(chemin):
 
 def tailles_de(racine):
     """`{chemin: lignes}` de chaque `.py` de `scripts/` et de `tests/` (sous-dossiers compris, `scripts/noyau/` depuis
-    REF46) sous `racine` (REF9)."""
+    REF46) sous `racine` (REF9). Les lignes se comptent comme `mesurer_fichier` les lit (`lignes_source`), sans la
+    chaîne vide finale : `\\f` ou U+2028 dans une chaîne n'ajoutent rien (REF22) ; un octet non UTF-8 ne casse rien."""
     tailles = {}
     for motif in (os.path.join(racine, "scripts", "**", "*.py"), os.path.join(racine, "tests", "**", "*.py")):
         for chemin in glob.glob(motif, recursive=True):
-            with open(chemin, encoding="utf-8", errors="replace") as fichier:
-                tailles[relatif(chemin, racine)] = len(fichier.read().splitlines())
+            lignes = lignes_source(chemin, "replace")
+            tailles[relatif(chemin, racine)] = len(lignes) - (lignes[-1] == "")
     return dict(sorted(tailles.items()))
 
 
@@ -587,9 +595,10 @@ def retard_sur_main(racine):
 
 def chemins_de(racine, fichiers):
     """Rendre les fichiers à mesurer : ceux donnés, sinon les `.py` de `scripts/` sous la racine, sous-dossiers compris
-    — le code sorti de `vlp_coeur.py` vit dans `scripts/noyau/` (REF46) —, puis ceux de `tests/` (REF15), triés."""
+    — le code sorti de `vlp_coeur.py` vit dans `scripts/noyau/` (REF46) —, puis ceux de `tests/` (REF15), triés. Un
+    fichier donné en relatif se lit sous la racine, pas sous le dossier courant (REF22)."""
     if fichiers:
-        return [os.path.abspath(f) for f in fichiers]
+        return [os.path.abspath(f if os.path.isabs(f) else os.path.join(racine, f)) for f in fichiers]
     chemins = sorted(glob.glob(os.path.join(racine, "scripts", "**", "*.py"), recursive=True))
     if not chemins:
         raise ValueError("aucun fichier Python dans %s" % os.path.join(racine, "scripts"))

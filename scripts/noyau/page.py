@@ -139,10 +139,10 @@ def cmd_joints(dossier, sortie):
 LI_FICHE =re.compile(r'[ \t]*<li class="fiche"[^>]*>.*?</li>\n?', re.S)
 UL_FICHES = re.compile(r'(<ul class="fiches">)(.*?)(\n[ \t]*</ul>)', re.S)
 # Relit tout ce que `ligne_cout` écrit : le total entre parenthèses, ou nu sous
-# 1 000 (`arrondi`), négatif compris ; le prix, négatif compris, ou `?` quand il
-# manque. Un négatif, `couts` l'écrit sans Git quand l'ancienne page affiche plus
-# que la session mesurée : il se relit avec son signe (chantier TAR).
-COUT = re.compile(r"(?:\((\d[\d ]*)\)|(-?\d+)) · (\d+) tours · (-?[\d,]+|\?) \$")
+# 1 000 (`arrondi`), négatif compris ; les tours et le prix, négatifs compris, ou `?` quand
+# le prix manque. Un négatif, `couts` l'écrit sans Git quand l'ancienne page affiche plus
+# que la session mesurée : il se relit avec son signe (chantier TAR, REF22).
+COUT = re.compile(r"(?:\((\d[\d ]*)\)|(-?\d+)) · (-?\d+) tours · (-?[\d,]+|\?) \$")
 
 
 def mesure():
@@ -814,8 +814,8 @@ def couts_du_fichier(fichier, anciens, ancien_total, gardes):
     clos = any(l.startswith("**CLOS**") for l in lignes)
     heures = (heures_commits(fichier, [f[0] for f in fiches_], clos=clos, titres={f[0]: f[1] for f in fiches_})
               if sessions_entete(lignes) or any(f[3] for f in fiches_) else None)
-    # Un clos s'arrête à son appel clore, comme cout : un chantier, un seul chiffre (dette PLI).
-    fin = heure_clore(fichier, lignes) if clos and heures else None
+    # Un clos s'arrête à son appel clore, comme cout, sans lui à l'infini mais clos (REF22) : un seul chiffre (PLI).
+    fin = (heure_clore(fichier, lignes) or INFINI) if clos and heures else None
     return couts(fiches_, anciens, ancien_total, gardes, heures, sessions_entete(lignes), fin)
 
 

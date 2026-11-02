@@ -88,8 +88,9 @@ def lettre_entree(entree):
 
 
 def titre_entree(entree):
-    """Le titre d'une entrée de la liste des lettres, entre ses parenthèses, espaces resserrés ; « » sans titre."""
-    m = re.match(r"\s*`?[A-Z]{1,3}`? \((.*)\)\s*$", entree, re.S)
+    """Le titre d'une entrée de la liste des lettres, entre ses parenthèses, espaces resserrés, un point final toléré
+    (la dernière entrée, REF22) ; « » sans titre."""
+    m = re.match(r"\s*`?[A-Z]{1,3}`? \((.*)\)\.?\s*$", entree, re.S)
     return " ".join(m.group(1).split()) if m else ""
 
 
@@ -110,11 +111,12 @@ def doublon_lettres(liste_a, liste_b):
 
 
 def fin_lettres(texte, j):
-    """Où finit la liste des lettres qui commence en `j` : le point avant « Un nouveau chantier »,
-    sinon la fin de sa ligne, sinon celle du texte. Partagé par `clore` et `matin` (NUI15)."""
-    k = texte.find(". Un nouveau chantier", j)
-    if k < 0:
-        k = texte.find("\n", j)
+    """Où finit la liste des lettres qui commence en `j` : le point avant « Un nouveau chantier », même à la ligne
+    suivante (REF22), sinon la fin de sa ligne, sinon celle du texte. Partagé par `clore` et `matin` (NUI15)."""
+    m = re.compile(r"\.[ \t]*(?:\r?\n[ \t]*)?Un nouveau chantier").search(texte, j)
+    if m:
+        return m.start()
+    k = texte.find("\n", j)
     return k if k >= 0 else len(texte)
 
 
@@ -461,7 +463,9 @@ def liens_pages(html, carte_):
 
 
 def feuille(projet, html, todo, date):
-    """(page régénérée, bilan) : encours, todo et lettres depuis `CHANTIER.md` et le fichier d'état."""
+    """(page régénérée, bilan) : encours, todo et lettres depuis `CHANTIER.md` et le fichier d'état. `todo` donné
+    absent de la TODO lève `ValueError` ; `None`, le badge relu dans la page, ignoré s'il n'y est plus ou s'il vient
+    du gabarit."""
     html = migrer_joints(migrer_style(html))
     carte_ = lignes_de(os.path.join(projet, "CHANTIER.md"))
     etat = champ(carte_, "fichier d'état")
@@ -487,9 +491,12 @@ def feuille(projet, html, todo, date):
     else:
         encours = AUCUN_ENCOURS
     d, f, forme = zone_todo(html)
-    if todo is None and courant:
-        todo = rang_en_cours(html[d:f], forme)
     rangs = todo_du_fichier(lignes_etat)
+    # Le badge relu dans la page ne vaut que pour une rangée encore dans la TODO (REF22 : `clore` vient d'ôter la
+    # sienne), jamais sur la carte d'exemple du gabarit, `&lt;nom&gt;` (page absente) ; `--todo` reste une garde.
+    if todo is None and courant and "&lt;nom&gt;" not in html[d:f]:
+        lu = rang_en_cours(html[d:f], forme)
+        todo = lu if lu in [r[0] for r in rangs] else None
     if todo is not None and todo not in [r[0] for r in rangs]:
         raise ValueError("--todo %s absent de la TODO de %s" % (todo, etat))
     corps = corps_todo(rangs, todo, lettres_todo)

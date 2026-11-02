@@ -217,11 +217,13 @@ def cmd_page(a, sortie):
 
 # --- etat --------------------------------------------------------------------
 
-NUMERO = re.compile(r"^(\d\d)-")
+NUMERO = re.compile(r"^(\d+)-")   # deux chiffres ou plus : le kit en est à `125-` (REF22)
 
 
 def nom_etat(contexte):
-    """Le `*-etat.md` présent, sinon le premier numéro libre après le plus grand."""
+    """Le nom du `<n>-etat.md` présent dans `contexte`, sinon `<n>-etat.md` au premier numéro libre après le plus
+    grand (deux chiffres au moins, `%02d` ; trois et plus comptent, REF22). Dossier absent ou sans numéro :
+    `01-etat.md`."""
     try:
         noms = sorted(os.listdir(contexte))
     except OSError:

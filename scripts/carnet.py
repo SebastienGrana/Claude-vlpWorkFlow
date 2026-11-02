@@ -72,9 +72,11 @@ def ligne(champs: dict) -> dict:
 
 
 def lire(carnet: str) -> list:
+    """Les lignes du carnet, en dicts, dans l'ordre : `[]` sans fichier ; une ligne illisible (JSON coupé) est sautée.
+    Coupé sur `\\n` seul, comme `ecrire` : U+2028, U+2029, U+0085 qu'un texte porte restent dans sa ligne (REF22)."""
     try:
         with open(carnet, encoding="utf-8", errors="replace") as f:
-            brutes = f.read().splitlines()
+            brutes = f.read().split("\n")
     except OSError:
         return []
     lignes = []

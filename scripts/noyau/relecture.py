@@ -258,6 +258,12 @@ def ancre(nom, racine):
     return nom
 
 
+def _propre(n):
+    """Le nom `n` normalisé — `\\` en `/`, blancs, guillemets, ponctuation de fin et `./` de tête ôtés, minuscules ;
+    `""` s'il n'en reste rien. La forme commune de `noms_ecrits` et de `nomme` (REF22)."""
+    return n.strip().strip("\"'").rstrip(".,;").replace("\\", "/").lower().removeprefix("./")
+
+
 def noms_ecrits(fiche, racine):
     """Les noms de la ligne **Fichiers** d'une fiche, normalisés — `\\` en `/`, `./`, guillemets et ponctuation de fin
     ôtés, minuscules. N'entre que chemin (un `/`), motif, nom à extension (`.gitignore` compris) ou entrée de
@@ -265,16 +271,11 @@ def noms_ecrits(fiche, racine):
     plusieurs, coupés aux blancs et aux `:` (`vlp.py niveau`, `vlp.py:513`) ; hors d'eux, chaque mot. Un nom de trop
     ne coûte qu'un départ ensemble ; un nom manqué, un conflit."""
     texte = texte_fichiers(fiche)
-
-    def propre(n):
-        """Le nom normalisé."""
-        n = n.strip().strip("\"'").rstrip(".,;").replace("\\", "/").lower()
-        return n.removeprefix("./")
     candidats = []
     for brut in re.findall(r"`([^`]+)`", texte):
         mots = [m for m in re.split(r"[\s:\"']+", brut) if m]
-        candidats += [propre(brut)] + (list(map(propre, mots)) if len(mots) > 1 else [])
-    candidats += map(propre, re.split(r"[\s,;:()]+", re.sub(r"`[^`]*`", " ", texte)))
+        candidats += [_propre(brut)] + (list(map(_propre, mots)) if len(mots) > 1 else [])
+    candidats += map(_propre, re.split(r"[\s,;:()]+", re.sub(r"`[^`]*`", " ", texte)))
     rendu = set()
     for n in candidats:
         if n.strip("/") and ("/" in n or re.search(r"[*?[{]", n)
@@ -287,9 +288,11 @@ def noms_ecrits(fiche, racine):
 
 def nomme(chemin, noms):
     """Vrai si `chemin` (relatif au dépôt, en `/`) est nommé : égal, fin de chemin après un `/`
-    (`vlp.py` pour `scripts/vlp.py`), ou sous un dossier nommé (`templates/`)."""
+    (`vlp.py` pour `scripts/vlp.py`), ou sous un dossier nommé (`templates/`). Chemin et noms comparés normalisés
+    (`_propre`) : `scripts\\x.py`, `./scripts/x.py` et `Scripts/x.py` nomment `scripts/x.py` ; un nom vide, rien (REF22)."""
+    chemin = _propre(chemin)
     return any(chemin == n or chemin.endswith("/" + n) or (n.endswith("/") and "/" + n in "/" + chemin)
-               for n in noms)
+               for n in map(_propre, noms) if n)
 
 
 STATUTS_TEST = {"A": "AJOUTÉ", "D": "SUPPRIMÉ", "R": "RENOMMÉ", "C": "COPIÉ"}

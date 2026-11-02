@@ -300,10 +300,13 @@ def cmd_filet(entree, sortie, erreur):
 def comptoir_tours(chemin):
     """Compte les tours distincts (message.id) dans un transcript de sous-agent ;
     None s'il ne s'ouvre pas. Ouvert par `ouvrir` de mesure-tokens.py : sous
-    Windows, dès 260 caractères, isfile et open disent absent un fichier présent (FIL1)."""
+    Windows, dès 260 caractères, isfile et open disent absent un fichier présent (FIL1).
+    Un octet non UTF-8 se lit remplacé (`errors="replace"`) : sa ligne compte encore,
+    le compte n'est jamais coupé à mi-fichier (REF22)."""
     tours = set()
     try:
         with mesure().ouvrir(chemin) as f:
+            f.reconfigure(errors="replace")
             for ligne in f:
                 ligne = ligne.strip()
                 if not ligne:
@@ -319,8 +322,6 @@ def comptoir_tours(chemin):
                                 tours.add(mid)
                 except json.JSONDecodeError:
                     pass
-    except UnicodeDecodeError:
-        pass
     except OSError:
         return None
     return len(tours)

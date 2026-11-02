@@ -998,6 +998,7 @@ sous-agent par lot : test rouge, correction, vert, `vlp.py mutant` qui remet l'a
 | N° | Date | Relecteur | Lignes relues | Trouvés | Confirmés | Corrigés | Laissés |
 |---|---|---|---|---|---|---|---|
 | 1 | 2026-11-01 | Opus 5.5 (7 lots, `fiches.py` dans la session) | `scripts/`, `hooks/`, `.githooks/` | 39 | 38 | 33 | 5 |
+| 2 | 2026-11-02 | Fable 5.1 (6 lots de lecture), correcteurs Opus 5.5 | `scripts/`, `hooks/`, `.githooks/` | 27 | 24 | 24 | 3 |
 
 Trouvés : 39 lignes de rapport, 38 défauts uniques (`"[x]" in l` vu deux fois : `page.py` et `carte.py`) — dont un
 vu en route, hors des relecteurs (`rapide` lançait le pyright global, aveugle aux paquets de l'atelier : tout test
@@ -1038,5 +1039,38 @@ touché qui importe `pytest` était rouge). Confirmés : chacun rejoué, puis ro
 **Effets à connaître** : un `git add -p` sur un `.py` est refusé au commit (couverture, indexé en partie) ; hors
 Windows, le `claude` d'un canal part dans sa propre session de processus.
 
-**Suite** : l'angle continue — passe 2 avec un autre relecteur (Fable 5.1, puis Sonnet 5.5), jusqu'à deux passes
-d'affilée à zéro confirmé.
+**Passe 2** (2026-11-02) : six relecteurs Fable 5.1, un par lot de 2 463 à 3 493 lignes, 17 505 lignes relues ; 22 défauts
+rejoués par leur relecteur et 5 plausibles. Les correcteurs Opus 5.5 (un par lot de fichiers disjoints) ont écrit chaque
+test d'abord : 24 rouges d'emblée — les 22, plus deux plausibles (`version_claude` à suffixe, `heure_clore` sur un
+`message` chaîne) —, puis vert, puis `MUTANT ATTRAPÉ` ; tests `tests/test_ref22_p2_*.py`, un par lot. Les corrigés :
+
+- statut Git, état (3) : un renommage de l'arbre (` R`, après `git add -N`) non sauté par `chemins_du_statut` ni
+  `py_du_statut` — chemin tronqué de trois caractères ; `py_du_statut` filtre désormais `chemins_du_statut` ;
+  `nom_etat` aveugle aux numéros à trois chiffres (`01-etat.md` à côté de `125-ref.md`).
+- nuit, hooks (2) : `fichiers_tri` mangeait les `\` d'un chemin cité (`shlex` POSIX) ; `comptoir_tours` rendait 0
+  sur un octet illisible — lu désormais avec `errors="replace"`.
+- boucle, carnet (5) : `carnet.lire` coupait sur U+2028 et U+0085 (une ligne perdue, un `stop` manqué) ;
+  « **Tentatives** » cherché en sous-chaîne arrêtait une fiche qui le mentionne ; le Ctrl+C du lanceur laissait vivre
+  les sessions `claude` (`tuer_arbre` à la place de `terminate`) ; une borne à virgule plantait `lire_plan` ; un
+  dossier absent plantait `main` (`garde_dossier`).
+- feuille, ouvrir (3) : le badge « en cours » relu d'une vieille page ou du gabarit cassait `clore` à deux chantiers
+  ouverts et trompait `niveau` ; « Un nouveau chantier » passé à la ligne faussait la liste des lettres (faux doublon
+  à la fusion) ; `moyenne_clos` lisait un `(nombre)` hors de la cellule Tokens.
+- sessions, page, relecture, clos (5) : un clos sans appel `clore` noté était découpé comme ouvert ; « après clore »
+  valait 0 par construction ; la ligne **Fichiers** non normalisée (`\`, `./`, casse) donnait de faux `HORS FICHE` ;
+  `heure_clore` sur un `message` chaîne ; `COUT` ne relisait pas des tours négatifs.
+- sante, concernes, retraits, conserve, bac (6) : un fichier relatif mesuré depuis le dossier courant, pas `--racine` ;
+  le BOM refusé ou lu `{}` en silence (trois scripts) ; l'URI sqlite non encodée (`#` ouvre et crée un autre fichier) ;
+  `tailles_de` comptait U+2028 et `` ; `***` et `___` perdus à tort, et un `#` de bloc de code pris pour un titre ;
+  `2.1.99-beta` classé sous `2.1.98`.
+
+**Les laissés de la passe 2** (3, non rejoués) : `heures_du_log` et un préfixe d'une lettre (`Z3`) — tout mot « A »
+d'un sujet de commit bornerait le chantier, aucun chantier du kit n'en a ; `cmd_contrat --ouverture` saute en silence
+un sous-agent à transcription illisible ; `relire` TÊTE ne défait que le dernier commit d'une session qui en a posé deux.
+
+**Effets à connaître (passe 2)** : hors Windows, les filles du lanceur partent dans leur groupe de processus
+(`start_new_session`), non essayé ici ; page absente et chantier ouvert au rang 3 : la page régénérée n'a plus de badge
+au lieu d'un faux ; `ouvrir.py` porte une erreur ruff `I001` (imports) qui précède la passe — hors de l'angle.
+
+**Suite** : passe 3 avec Sonnet 5.5 ; l'angle s'arrête à deux passes d'affilée à zéro confirmé — la passe 2 en a 24,
+il en faut donc encore deux.

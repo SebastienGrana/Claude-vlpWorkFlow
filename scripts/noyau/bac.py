@@ -103,9 +103,10 @@ def dossiers_claude_code():
 
 def version_claude(dossier, chemin):
     """Rendre la version de `chemin`, lue au dossier juste sous `dossier` (`claude-code/<version>/…`), en nombres :
-    2.1.99 passe avant 2.1.280 (CLI) ; l'empreinte que l'app range dessous (VIT19) n'y compte pas."""
+    2.1.99 passe avant 2.1.280 (CLI) ; l'empreinte que l'app range dessous (VIT19) n'y compte pas. Un morceau lu par
+    ses chiffres de tête : `99-beta` vaut 99, pas 0 (REF22) ; un morceau sans chiffre de tête vaut 0."""
     nom = os.path.relpath(chemin, dossier).split(os.sep)[0]
-    return [int(x) if x.isdigit() else 0 for x in nom.split(".")]
+    return [int(m.group()) if (m := re.match(r"\d+", x)) else 0 for x in nom.split(".")]
 
 
 def trouver_claude():

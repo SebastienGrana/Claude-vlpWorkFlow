@@ -83,7 +83,8 @@ def git(racine, *args, entree=None):
 def textes(racine, rev):
     """Les fichiers de test de `rev` (`HEAD`, ou `""` pour l'index) : {chemin: texte}, lus d'un seul `cat-file` ; `{}`
     sans fichier de test. Un nom non ASCII se lit tel quel (`core.quotepath=false`, REF22) : cité, il ne finissait
-    plus par `.py` et ses tests ne comptaient pas."""
+    plus par `.py` et ses tests ne comptaient pas. Un BOM UTF-8 en tête est ôté : `ast.parse` le refuse, et le
+    fichier ré-enregistré passait pour vidé de ses tests (REF22)."""
     code, liste = git(racine, "-c", "core.quotepath=false",
                       *(["ls-tree", "-r", "--name-only", rev] if rev else ["ls-files", "--cached"]))
     chemins = [c for c in liste.decode("utf-8", "replace").splitlines() if est_test(c)] if code == 0 else []
@@ -98,7 +99,7 @@ def textes(racine, rev):
         i = fin + 1
         if len(tete) == 3 and tete[1] == b"blob":
             taille = int(tete[2])
-            lus[c] = sortie[i:i + taille].decode("utf-8", "replace")
+            lus[c] = sortie[i:i + taille].decode("utf-8", "replace").lstrip("﻿")   # un BOM : REF22
             i += taille + 1
     return lus
 

@@ -256,20 +256,22 @@ def cmd_cout(chemin, session, sortie, a_clore=False):
     sortie.write(coeur.ligne_parts("hors fiches", *hors) + "\n")
     sortie.write(coeur.ligne_parts("TOTAL (fiches + hors fiches)", *totaux(decoupe)) + "\n")
     if a_clore:
-        sortie.writelines(l + "\n" for l in lignes_a_clore(chemin, lignes, decoupe))
+        sortie.writelines(l + "\n" for l in lignes_a_clore(chemin, lignes))
     sortie.writelines(g + "\n" for g in essais_hors_bac(ids, bornes_du_cout(fiches_, heures, fin)))
     return code
 
 
-def lignes_a_clore(chemin, lignes, decoupe):
-    """Les lignes de `cout --a-clore` après `TOTAL` : `à clore` et `après clore`, ou la `GARDE:` d'une dernière plage
-    hors fiches sans appel `vlp.py clore` (chantier APC)."""
-    avant = totaux_a_clore(chemin, lignes)
-    if avant is None:
+def lignes_a_clore(chemin, lignes):
+    """Les lignes de `cout --a-clore` après `TOTAL` : `à clore` et `après clore` — la découpe non coupée moins
+    l'à clore (`totaux_a_clore`) —, ou la `GARDE:` d'une dernière plage hors fiches sans appel `vlp.py clore`
+    (chantier APC)."""
+    paire = totaux_a_clore(chemin, lignes)
+    if paire is None:
         return ["GARDE: aucun appel « vlp.py clore » dans la dernière plage hors fiches — pas de ligne à clore"]
+    avant, entier = paire
     return [coeur.ligne_parts("à clore", *avant),
             coeur.ligne_parts("après clore", *[(a[0] - b[0], a[1] - b[1], coeur.moins(a[2], b[2]), a[3] - b[3])
-                                         for a, b in zip(totaux(decoupe), avant)])]
+                                         for a, b in zip(entier, avant)])]
 
 
 def bornes_du_cout(fiches_, heures, fin):
@@ -309,7 +311,7 @@ def heure_clore(chemin, lignes):
     """L'heure, en secondes UTC, du dernier `tool_use` dont la commande lance `vlp.py clore`
     (`lance_clore`), dans les sessions du fichier et dans sa dernière plage hors fiches — celle
     que le commit de clôture ferme ; None sans lui. Ce que `clore` a vu en inscrivant son chiffre
-    (chantier APC)."""
+    (chantier APC). Une ligne dont `message` n'est pas un objet (une chaîne) n'est pas un appel (REF22)."""
     fiches_ = coeur.fiches_du_fichier(lignes)
     heures = coeur.heures_commits(chemin, [f[0] for f in fiches_], [], any(l.startswith("**CLOS**") for l in lignes),
                              {f[0]: f[1] for f in fiches_})
@@ -332,7 +334,8 @@ def heure_clore(chemin, lignes):
                     d = json.loads(ligne)
                 except ValueError:
                     continue
-                contenu = (d.get("message") or {}).get("content") if isinstance(d, dict) else None
+                message = d.get("message") if isinstance(d, dict) else None
+                contenu = message.get("content") if isinstance(message, dict) else None
                 appel = isinstance(contenu, list) and any(
                     isinstance(c, dict) and c.get("type") == "tool_use"
                     and lance_clore(str((c.get("input") or {}).get("command", ""))) for c in contenu)
@@ -343,10 +346,11 @@ def heure_clore(chemin, lignes):
 
 
 def totaux_a_clore(chemin, lignes):
-    """Les `totaux` de la découpe dont la dernière plage hors fiches s'arrête à `heure_clore`, ou
-    None sans appel `clore` : le calcul de `cout --a-clore` et de `recompter --a-clore`."""
+    """(à clore, entier) : les `totaux` de la découpe dont la dernière plage hors fiches s'arrête à `heure_clore`, et
+    ceux de la même découpe non coupée — leur écart est l'« après clore » ; None sans appel `clore`. Le calcul de
+    `cout --a-clore` et de `recompter --a-clore` ; un clos, `decouper` le coupe déjà à l'appel `clore` (REF22)."""
     t = heure_clore(chemin, lignes)
-    return None if t is None else totaux(decouper(chemin, lignes, t)[0])
+    return None if t is None else tuple(totaux(decouper(chemin, lignes, f)[0]) for f in (t, coeur.INFINI))
 
 
 def decouper(chemin, lignes=None, fin=None):
@@ -360,14 +364,15 @@ def decouper(chemin, lignes=None, fin=None):
 
 def decoupe_et_heures(chemin, lignes=None, fin=None):
     """Rendre (découpe, pourquoi, gardes, (fiches, heures, fin)) : `decouper`, puis ce qu'elle a lu pour couper — les
-    fiches, les heures de commit et la fin du coût —, que `compteur` reprend sans relancer Git (VIT17)."""
+    fiches, les heures de commit et la fin du coût —, que `compteur` reprend sans relancer Git (VIT17). Un clos sans
+    appel `clore` dans ses sessions a pour fin l'infini : il reste clos pour `plages_du_cout`, rien n'est coupé (REF22)."""
     lignes = lignes_de(chemin) if lignes is None else lignes
     fiches_ = coeur.fiches_du_fichier(lignes)
     pourquoi, gardes = [], []
     clos = any(l.startswith("**CLOS**") for l in lignes)
     heures = coeur.heures_commits(chemin, [f[0] for f in fiches_], pourquoi, clos, {f[0]: f[1] for f in fiches_})
     if fin is None and clos and heures:
-        fin = heure_clore(chemin, lignes)
+        fin = heure_clore(chemin, lignes) or coeur.INFINI
     decoupe = heures and coeur.parts_aux_commits(fiches_, heures, gardes, sessions_entete(lignes), fin)
     if not decoupe and heures:
         pourquoi.append("aucune session de fiche mesurée")

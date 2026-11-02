@@ -1,7 +1,8 @@
 """Aucune règle ne se perd quand on découpe ou range une doc (REF16, `Q6` de la note `122`).
 
 `vlp.py conserve <avant>… --apres <après>…` : chaque ligne de texte des fichiers d'avant — hors titres (`#`), lignes
-vides et séparateurs (`---`, une clôture de bloc, une ligne de tableau sans lettre) — doit se retrouver, espaces de
+vides et séparateurs (`---`, `***`, `___`, une clôture de bloc, une ligne de tableau sans lettre ; un `#` dans un
+bloc de code est du texte) — doit se retrouver, espaces de
 bord ôtés, comme ligne d'un des fichiers d'après. `CONSERVE <n> lignes lues · <p> perdue(s)`, puis une ligne
 `PERDUE <fichier>:<ligne> <texte>` par perte ; sort 1 s'il y en a une. Un fichier illisible : `GARDE:`, sort 1.
 
@@ -11,7 +12,7 @@ import argparse
 import re
 import sys
 
-SEPARATEUR = re.compile(r"^(#.*|-{3,}|`{3,}.*|[|:\s-]*)$")
+SEPARATEUR = re.compile(r"^(#.*|-{3,}|\*{3,}|_{3,}|`{3,}.*|[|:\s-]*)$")
 
 
 def texte(ligne):
@@ -20,10 +21,21 @@ def texte(ligne):
     return None if SEPARATEUR.match(nue) else nue
 
 
+def textes(lignes):
+    """[texte ou None] de chaque ligne (`texte`) ; dans un bloc ```, une ligne `#…` est un commentaire de code, pas un
+    titre : elle compte (REF22). Un bloc ouvert sans clôture court jusqu'à la fin de la liste."""
+    dedans, rendu = False, []
+    for ligne in lignes:
+        nue = ligne.strip()
+        rendu.append(nue if dedans and nue.startswith("#") else texte(ligne))
+        dedans ^= nue.startswith("```")
+    return rendu
+
+
 def perdues(avant, apres):
     """[(numéro, texte)] des lignes de texte de `avant` (liste de lignes) absentes de `apres` (liste de lignes)."""
-    vues = {texte(l) for l in apres}
-    return [(i, t) for i, t in enumerate((texte(l) for l in avant), 1) if t is not None and t not in vues]
+    vues = set(textes(apres))
+    return [(i, t) for i, t in enumerate(textes(avant), 1) if t is not None and t not in vues]
 
 
 def lignes(chemin):
@@ -46,7 +58,7 @@ def principal(argv, sortie=None):
     except OSError as e:
         sortie.write("GARDE: conserve — fichier illisible : %s\n" % e)
         return 1
-    lues = sum(1 for ls in avant.values() for l in ls if texte(l) is not None)
+    lues = sum(1 for ls in avant.values() for t in textes(ls) if t is not None)
     pertes = [(c, i, t) for c, ls in avant.items() for i, t in perdues(ls, apres)]
     sortie.write("CONSERVE %d lignes lues · %d perdue(s)\n" % (lues, len(pertes)))
     for c, i, t in pertes:

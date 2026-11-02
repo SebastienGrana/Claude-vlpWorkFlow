@@ -169,12 +169,13 @@ def chemins_changes(racine):
 
 def chemins_du_statut(texte):
     """Les chemins d'une sortie de `git status --porcelain -z` — suivis ou non, un par fichier, relatifs à la racine du
-    dépôt ; `-z` : ni guillemets ni échappement, l'ancien nom d'un renommage sauté. Ne lance rien (REF45)."""
+    dépôt ; `-z` : ni guillemets ni échappement, l'ancien nom d'un renommage ou d'une copie sauté, qu'il soit vu dans
+    l'index (`R `) ou dans l'arbre de travail (` R`, REF22). Texte vide : liste vide. Ne lance rien (REF45)."""
     rendu, morceaux = [], iter(texte.split("\0"))
     for m in morceaux:
         if len(m) > 3:
             rendu.append(m[3:])
-            if m[0] in "RC":
+            if "R" in m[:2] or "C" in m[:2]:
                 next(morceaux, None)
     return rendu
 

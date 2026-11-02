@@ -37,9 +37,10 @@ __all__ = [
 
 LIGNE_FICHIER = re.compile(r"^\| `\d\d")
 # Une ligne close : sa plage `X1–Xn` (ou `X1` seule) et son total mesuré, le dernier nombre entre
-# parenthèses de la cellule — `non mesurable` n'en a pas (chantier EST).
+# parenthèses de la cellule — `non mesurable` n'en a pas (chantier EST). La cellule `mono` seule, comme
+# `clos.BRUT` : une cellule « Ce qu'il a livré » qui finit par `(429)` n'est pas un total (REF22).
 PLAGE_FICHES = re.compile(r'<td class="mono">[A-Z]{1,3}([0-9]+)(?:–[A-Z]{1,3}([0-9]+))?</td>')
-TOTAL_MESURE = re.compile(r"\((\d[\d ]*)\)</td>")
+TOTAL_MESURE = re.compile(r'<td class="mono">[^<]*\((\d[\d ]*)\)</td>')
 
 
 def moyenne_clos(html):
