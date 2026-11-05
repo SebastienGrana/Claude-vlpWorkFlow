@@ -419,3 +419,45 @@ def test_fiches_repliees(tmp_path):
         assert (len(vues_neuves) == 3 and vues_anciennes == vues_neuves
                  and vues_anciennes["Q2"][0] == "encours"), ("PLI5 : une page à l'ancienne forme se lit encore, mêmes fiches"
                  " — mutant : ne lire que la nouvelle forme") + "\n" + str("%r\n%r" % (vues_neuves, vues_anciennes))
+
+
+FICHES_ME = """# Chantier ME
+
+## Le socle commun
+
+## L'ordre des fiches
+
+<!-- FICHE:M1 -->
+## M1 [ ] — Avec ses lignes
+**Modèle** : Opus — une raison.
+**Effort** : high — une autre.
+**Critère de fin**
+x
+<!-- /FICHE -->
+
+<!-- FICHE:M2 -->
+## M2 [ ] — Sans elles
+**Critère de fin**
+x
+<!-- /FICHE -->
+"""
+
+
+def test_modele_et_effort_en_pastille_sous_le_titre(tmp_path):
+    """Le modèle et l'effort d'une fiche, lus sur ses lignes `**Modèle**` et `**Effort**`, en pastille sous son titre,
+    et toujours là après une deuxième régénération — demandé le 2026-11-05 (Emergence-Ants, cadrage GPU) : posée à la
+    main, la pastille se perdait au `vlp.py page` suivant. Une fiche sans ces lignes n'a pas de pastille."""
+    fiches = os.path.join(tmp_path, "m.md")
+    sortie = os.path.join(tmp_path, "artefacts", "m.html")
+    ecrire(fiches, FICHES_ME)
+    code, s = appel(["page", fiches, sortie, "--creer", "--projet", "Proj", "--titre", "T", "--resultat", "R0",
+                     "--note", "M1", "n1", "--note", "M2", "n2"])
+    attendu = '<span class="titre">Avec ses lignes</span><span class="me">Modèle Opus · effort high</span>'
+    assert code == 0, s
+    assert attendu in lire(sortie), "ME : la pastille sous le titre de M1 — mutant : ne pas la poser\n" + s
+    code, s = appel(["page", fiches, sortie])
+    html = lire(sortie)
+    assert code == 0, s
+    assert attendu in html, "ME : la pastille survit à la régénération\n" + s + html
+    assert html.count('class="me"') == 1, "ME : M2, sans lignes Modèle ni Effort, n'a pas de pastille\n" + html
+    assert mod.lis_page(html)["M1"][0] == "encours", "ME : la page se relit toujours\n" + html

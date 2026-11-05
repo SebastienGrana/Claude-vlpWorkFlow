@@ -51,6 +51,9 @@ section { display:flex; flex-direction:column; gap:.85rem; }
 .fiche:not([data-etat]):not([data-attend]) .etat { color:var(--accent); }
 .cout-total,.cout-hors { font-size:.9375rem; color:var(--doux); }
 .fiche .etat { display:block; margin-top:.1rem; font-size:1rem; color:var(--doux); }
+/* le modèle et l'effort d'une fiche, en pastille sous son titre (2026-11-05, Emergence-Ants) : un violet à part, ni
+   l'accent bleu de « À lancer » ni une couleur d'état ; #6b4a7a sur #f1e6ef, contraste ≈ 6:1 (calculé à la main) */
+.fiche .me { display:block; width:fit-content; margin:.3rem 0 .15rem; padding:.1rem .55rem; font-size:.9375rem; font-weight:600; white-space:nowrap; color:#6b4a7a; background:#f1e6ef; border:1px solid currentColor; border-radius:999px; }
 .fiche > details,.carte-todo > details { min-width:0; }
 /* page d'avant les trois colonnes (fiche sans `.gauche`, dette BTN) : son `details` prend toute la
    ligne, en-tête sur deux colonnes ; une note hors `details` passe sous le titre */

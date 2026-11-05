@@ -5,6 +5,8 @@ de l'appel (`noyau/facade.py`) ; un nom d'un module chargé avant se lit par imp
 """
 import argparse
 import fnmatch
+import html
+import itertools
 import os
 import re
 
@@ -152,6 +154,30 @@ def cmd_cocher(a, sortie):
         f.write("\n".join(lignes) + "\n")
     sortie.write("COCHÉ %s · Session %s\n" % (a.fiche, s or "absente"))
     return 0
+
+
+MODELE_EFFORT = re.compile(r"\*\*(Modèle|Effort)\*\* *: *(.+?)(?: +—.*)?$")
+
+
+def modeles_efforts(lignes):
+    """{id: `<span class="me">Modèle Opus · effort high</span>`}, échappé, lu sur les lignes `**Modèle** :` et `**Effort** :` du bloc de chaque fiche,
+    pour la pastille sous son titre (demandé le 2026-11-05, Emergence-Ants : posée à la main, elle se perdait à la
+    régénération suivante). Seule la valeur compte : la raison après « — » et les accents graves tombent. Une seule
+    des deux lignes : sa moitié seule ; aucune : la fiche n'est pas dans le dict, et n'a pas de pastille."""
+    titres = [i for i, l in enumerate(lignes) if TITRE.match(l)] + [len(lignes)]
+    rendu = {}
+    for i, suivant in itertools.pairwise(titres):
+        vu = {}
+        for l in lignes[i + 1:suivant]:
+            if l.startswith("<!-- /FICHE"):
+                break
+            m = MODELE_EFFORT.match(l.strip())
+            if m and m.group(1) not in vu:
+                vu[m.group(1)] = m.group(2).replace("`", "").strip()
+        morceaux = (["Modèle " + vu["Modèle"]] if "Modèle" in vu else []) + (["effort " + vu["Effort"]] if "Effort" in vu else [])
+        if morceaux:
+            rendu[lignes[i].split()[1]] = '<span class="me">%s</span>' % html.escape(" · ".join(morceaux))
+    return rendu
 
 
 def tete_de_fiche(fiche, tete):

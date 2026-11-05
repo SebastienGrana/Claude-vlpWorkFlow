@@ -13,7 +13,7 @@ from noyau import etat
 from noyau.carte import trouver
 from noyau.commun import ALIAS, TITRE, lignes_de, lire
 from noyau.facade import coeur
-from noyau.fiches import CRITERE_VISUEL, croisent
+from noyau.fiches import CRITERE_VISUEL, croisent, modeles_efforts
 from noyau.sessions import essais_de, heure_clore, sessions_de, sessions_entete
 
 # Ce que la façade ré-exporte : les noms d'avant la découpe (photo de `tests/test_noms_publics.py`). La décision
@@ -868,7 +868,7 @@ def regenerer(html, fichier, parts, date, gardes, forme=False):
     if not n:
         raise ValueError("page : résultat introuvable")
     etiquette = {"faite": "Faite", "encours": "En cours", "bloquee": "Bloquée"}
-    apercu = apercu_fiches(lignes)
+    apercu, pastilles = apercu_fiches(lignes), modeles_efforts(lignes)
     attend, ensemble = pretes(fiches_, etat, apercu)
     items = []
     for ident, titre, _, _ in fiches_:
@@ -902,11 +902,11 @@ def regenerer(html, fichier, parts, date, gardes, forme=False):
         droite = ('<span class="cout mono">%s</span>' % cout[ident] if ident in cout
                   else VISUEL if visuel and e != "faite" else "")
         items.append('      <li class="fiche"%s><span class="gauche"><span class="id">%s</span></span>\n'
-                     '        <details%s><summary><span class="titre">%s</span><span class="etat">%s</span></summary>'
+                     '        <details%s><summary><span class="titre">%s</span>%s<span class="etat">%s</span></summary>'
                      '%s</details>%s</li>'
                      % ((' data-etat="%s"' % e if e else "") + (" data-attend" if attend.get(ident) else ""), ident,
                         " open" if e in ("encours", "bloquee") else "",
-                        libelles[ident][0] if ident in libelles else esc(titre), libelle,
+                        libelles[ident][0] if ident in libelles else esc(titre), pastilles.get(ident, ""), libelle,
                         '\n        <span class="note">%s</span>' % note if note else "",
                         "\n        " + droite if droite else ""))
     prefixe = re.search(r'<p class="mono cout-total">(.*?) : ', html)
