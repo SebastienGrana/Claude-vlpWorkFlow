@@ -305,6 +305,19 @@ série **17,4 à 17,9 s** (21,2 s à `LAB2`) : la machine allait plus vite. Le p
 bord. Codé quand même, sur la lettre du seuil ; le gain réel, mesuré ensuite sur l'onglet
 Lab, était le démarrage évité : **15,0 · 14,6 s → 11,9 · 12,2 s**.
 
+### Une sélection de tests par impact est aveugle aux sous-processus
+
+Tranché à `ALG6` (2026-11-08, option A de l'utilisateur) : **pytest-testmon écarté, sans l'installer**. Mesuré
+dans Emergence-Ants par la séance de recherche (testmon 2.3.0, coverage 7.17.2, `--testmon-forceselect`) : une
+ligne de `sim_worker._serve`, joué dans un processus enfant, fait choisir **0 test**, alors que **10** tests
+unitaires lancent ce processus — un test qui aurait dû tomber est oublié ; la garde qu'il a fallu ajouter
+(`tools/changed_tests.py` : un module qui lance un `Process` force les tests qui l'importent) en remet 271.
+Dans le kit, **40 fichiers de tests sur 66** lancent un sous-processus, dont les trois plus lents
+(`test_boucle`, `test_boucle_canal`, `test_photos_boucle`). Et le palier par chemins (`vlp.py palier`, `ALG2`)
+donne déjà **2,5 s** pour une fiche de doc et **95 s** pour une fiche de script, contre **542 à 639 s** de suite
+entière. L'essai aurait coûté une dépendance et une heure de machine, pour un gain attendu faible. À rouvrir si
+le kit cesse de tester par sous-processus.
+
 ### Sortis de la méthode par REF16 (2026-10-31)
 
 Les paragraphes d'origine, mot pour mot : la règle est restée dans `methode-chantier.md`, le récit vient ici (`vlp.py conserve` le vérifie).
