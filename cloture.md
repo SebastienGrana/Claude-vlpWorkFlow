@@ -109,7 +109,7 @@ plusieurs à la fois se font, aucun aussi.
    `<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" niveau <projet>`.
 4. **La dette repérée** — ce qu'on a vu passer sans le traiter. Petite (une
    fiche ou moins) : elle se corrige **tout de suite**, une tâche par dette —
-   test et mutant s'il y a du code —, dans un commit à elle
+   le test d'abord s'il y a du code —, dans un commit à elle
    (`Dette <chantier> : …`), avant la question du push. Plus grosse : elle se
    présente comme un chantier, et l'utilisateur tranche sur le moment — ouvert
    tout de suite, ou versé dans la TODO après deux oui (`methode-chantier.md`, règle « La TODO ne grossit pas »). Ce qui n'est écrit nulle part est perdu

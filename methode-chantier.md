@@ -462,9 +462,10 @@ Quatre exigences, apprises en cassant :
    pas le commit : `/vlp:tache` commite seul, une fois, tout le travail de la
    fiche — un critère qui l'exige se contredit et fausse le coût (`AVL1`, rendu
    à 0 tour). Pour du
-   code, il nomme le test, l'appel, la valeur attendue, et **le mutant** — le
-   code cassé exprès que ce test doit faire tomber : « les tests passent » ne
-   prouve rien, un test creux passe aussi (récit dans `lecons-mesure.md`). Un mutant qui dépend
+   code, il nomme le test, l'appel et la valeur attendue. **Le mutant est facultatif** (choix de l'utilisateur,
+   `ALG1`, 2026-11-08) : le critère en nomme un — le code cassé exprès que ce test doit faire tomber — quand le
+   test peut passer à vide (une comparaison, un ordre, un minutage) ; « les tests passent » ne prouve alors rien,
+   un test creux passe aussi (récit dans `lecons-mesure.md`). Un mutant qui dépend
    du minutage (processus, fils) se joue **plusieurs fois** : tombé une fois ne prouve rien, le
    test qui le tue doit forcer l'ordre au lieu de l'attendre du hasard. Le mutant se joue par
    `vlp.py mutant … --attendu "<début du libellé du test>"` : il mute une copie du kit, jamais le vrai
@@ -478,8 +479,8 @@ Quatre exigences, apprises en cassant :
    dépôt ou les transcripts de la machine le fait casser dès qu'une fiche
    suivante écrit, et changer de résultat quand la machine change — l'historique
    grandit, un autre chantier écrit (`ESD2`, refusée à la relecture pour ça).
-   **Pour du code : rouge → vert → mutant.** Le test s'écrit d'abord et se lance : il **échoue**, sortie recopiée
-   dans le compte rendu ; puis le code le fait passer ; puis le mutant le fait retomber. Avec la liste des **tests
+   **Pour du code : rouge → vert.** Le test s'écrit d'abord et se lance : il **échoue**, sortie recopiée
+   dans le compte rendu ; puis le code le fait passer — et, si le critère en nomme un, le mutant le fait retomber. Avec la liste des **tests
    concernés** (`vlp.py concernes`, `CONCERNES` de la carte), à garder verts : des consignes TDD seules ont augmenté
    les régressions, cette liste les a réduites de 6,08 % à 1,82 % (TDAD, preprint 2026 ; note `122`, `REF13`). Un
    test existant à changer pour le nouveau comportement : la fiche le déclare, par la ligne `**Tests**` qui suit.
@@ -600,7 +601,7 @@ l'utilisateur au chantier `MET` (`context AI/08-etat.md`, entrée « MET1 — ce
   « Assertion Roulette »). `PT018` le garde : le 6e compte du cliquet de `sante.py`, sur les tests seuls.
 - **Un commit de rangement reste à part** d'un changement de comportement (Kent Beck, « Augmented
   Coding », 2025).
-- **Le test d'abord, vu échouer** : « Anatomie d'une fiche », rouge → vert → mutant (`REF13`).
+- **Le test d'abord, vu échouer** : « Anatomie d'une fiche », rouge → vert (`REF13`) ; le mutant, quand le critère en nomme un (`ALG1`).
 - **Un test existant ne se modifie pas pendant une fiche** : le hook `figer` (`REF10`).
 - Ces règles de ruff, pour `tests/` seul : `tests/ruff.toml`. Un long scénario de test reste permis
   (`PLR0915` signalé, pas tenu : décision `VIT`, Q4).

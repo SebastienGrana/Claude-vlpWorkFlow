@@ -102,8 +102,8 @@ Ceux de la ligne « **Fichiers** », rien d'autre — la zone utile s'ils sont l
 ## 4. Écrire
 
 Applique le bloc « Prompt », dans le respect du socle, des contraintes et
-des « **Contraintes d'écriture** » de `CHANTIER.md`. Pour du code : rouge → vert → mutant
-(`methode-chantier.md`, « Anatomie d'une fiche ») ; `CONCERNES` de la carte nomme les tests déjà
+des « **Contraintes d'écriture** » de `CHANTIER.md`. Pour du code : rouge → vert, le mutant
+si le critère en nomme un (`methode-chantier.md`, « Anatomie d'une fiche ») ; `CONCERNES` de la carte nomme les tests déjà
 concernés (une autre fiche : `vlp.py concernes <fonction>…`).
 
 **Dans le kit**, avant toute suite entière : `<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" rapide "<fiche retenue>"`

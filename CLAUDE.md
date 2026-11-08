@@ -56,7 +56,7 @@ et seulement dans ce cas, ouvrir l'index.
 | La tâche | Ouvrir |
 |---|---|
 | modifier une commande | `skills/<nom>/SKILL.md` — celle-là seule |
-| modifier un sous-agent ou le contrat de `/vlp:enchainer` | `skills/jouer/SKILL.md` et `agents/fiche.md`, `skills/relire/SKILL.md` et `agents/relecture.md`, ou `enchainement.md` |
+| modifier un sous-agent ou le contrat de `/vlp:enchainer` | `skills/jouer/SKILL.md` et `agents/fiche.md`, `agents/relecture.md` (le mode `agents` seul), ou `enchainement.md` |
 | changer une règle de méthode, ou en chercher la preuve | `methode-chantier.md`, `lecons-mesure.md` pour sa preuve mesurée, `cloture.md` pour la clôture, ou `nuit.md` pour la nuit |
 | savoir où vit quoi dans un projet équipé | `methode-chantier.md`, section « Où vit quoi » |
 | toucher aux pages publiées | `ARTEFACTS.md`, puis le gabarit dans `templates/` |

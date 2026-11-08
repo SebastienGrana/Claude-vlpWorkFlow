@@ -715,7 +715,7 @@ def cmd_forme(a, sortie):
 
 
 FICHE_A_JOUER = re.compile(r"Fiche à jouer :\s*(\S+)")
-# Jouer ou relire : les prompts de `/vlp:enchainer` et de `vlp:relire` (« Fiche à relire, et le commit… : »).
+# Jouer ou relire : les prompts de `/vlp:enchainer` (« Fiche à jouer : », « Fiche à relire : »).
 FICHE_NOMMEE = re.compile(r"Fiche à (?:jouer|relire)[^:\n]*:\s*(\S+)")
 
 

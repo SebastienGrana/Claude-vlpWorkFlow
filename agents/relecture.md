@@ -1,6 +1,6 @@
 ---
 name: relecture
-description: Relit une fiche vlp rendue FAITE, avant son commit, et rend ACCEPTÉE ou REFUSÉE. Lancé par /vlp:enchainer (outil Agent), ou par la skill vlp:relire — jamais seul.
+description: Relit une fiche vlp rendue FAITE, avant son commit, et rend ACCEPTÉE ou REFUSÉE. Lancé par /vlp:enchainer agents (outil Agent), ou par le rôle relire de la nuit — jamais seul.
 model: fable
 maxTurns: 80
 tools: Read, Edit, Bash, PowerShell

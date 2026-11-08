@@ -15,7 +15,7 @@ passait bien.
 
 **Sans argument (ou `main`) : aucun sous-agent.** Tu joues chaque fiche
 toi-même, par `vlp:tache`, dans cette session (étape 3, point 1) ; ni
-`vlp:jouer` ni `vlp:relire`. Le contexte grossit d'une fiche à l'autre.
+`vlp:jouer` ni relecteur. Le contexte grossit d'une fiche à l'autre.
 
 **`agents` dans les arguments : un sous-agent neuf par fiche**, `vlp:fiche`
 lancé par l'outil `Agent` en arrière-plan, jamais deux fiches dans le même
