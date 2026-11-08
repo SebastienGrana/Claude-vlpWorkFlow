@@ -6,30 +6,7 @@ QUAND LIRE : on relit un chantier clos ; l'index n'en garde qu'une ligne qui ren
 |---|---|
 | `09-enchainer.md` | on joue une fiche `E*` — chantier **clos**, abandonné, « Enchaîner les fiches » ; commande remise telle quelle le 2026-09-17 |
 | `10-mesure.md` | on joue une fiche `M*` — chantier **clos** « Mesurer les tokens », `M1..M4` |
-| `100-barre-todo.md` | on relit le socle du chantier PIP — **clos** « Une barre verticale dans une cellule de la TODO se signale », `PIP1..PIP1` |
-| `102-vitesse.md` | on relit le socle du chantier VIT — **clos** « Coder plus vite et mieux », `VIT1..VIT25` |
-| `104-methode.md` | on relit le socle du chantier MET — **clos** « La méthode du kit refaite, puis la TODO re-cadrée », `MET1..MET10` |
-| `105-arriere-plan.md` | on relit le socle du chantier ARP — **clos** « Une session claude -p ne meurt plus en attendant l'arrière-plan », `ARP1..ARP4` |
-| `108-branche-chef.md` | on relit le socle du chantier BRA — **clos** « /vlp:chef vérifie la branche dès son début », `BRA1..BRA1` |
-| `101-chef-de-nuit.md` | on relit le socle du chantier NUI — **clos** « Le chef de nuit », `NUI1..NUI38` |
-| `109-env.md` | on relit le socle du chantier ENV — **clos** « Les tests ne voient plus les variables de la nuit », `ENV1..ENV1` |
-| `107-tables.md` | on relit le socle du chantier TAB — **clos** « Les tables de vlp.py ne se coupent plus en silence », `TAB1..TAB4` |
 | `11-conso.md` | on joue une fiche `C*` — chantier **clos** « Afficher la conso sur toutes les pages », `C1..C2` |
-| `110-muw.md` | on relit le socle du chantier MUW — **clos** « Le mutant joue les tests du dépôt de sa cible », `MUW1..MUW1` |
-| `111-rtd.md` | on relit le socle du chantier RTD — **clos** « Le matin dit le plugin en retard », `RTD1..RTD1` |
-| `112-npb.md` | on relit le socle du chantier NPB — **clos** « Ce que la nuit n'a pas pu publier, publié au matin », `NPB1..NPB1` |
-| `113-rto.md` | on relit le socle du chantier RTO — **clos** « clore retire lui-même la ligne de la TODO », `RTO1..RTO1` |
-| `113-ctr.md` | on relit le socle du chantier CTR — **clos** « Les couleurs du graphique des coûts, au contraste de la lecture », `CTR1..CTR1` |
-| `114-prp.md` | on relit le socle du chantier PRP — **clos** « Le coût de la préparation, hors des fiches », `PRP1..PRP4` |
-| `115-eff.md` | on relit le socle du chantier EFF — **clos** « L'effort high mesuré », `EFF1..EFF3` |
-| `115-amd.md` | on relit le socle du chantier AMD — **clos** « L'audit de MapDecorator, vers sa V1 », `AMD1..AMD7` |
-| `116-aca.md` | on relit le socle du chantier ACA — **clos** « L'audit de Cairn : ce que le kit peut lui apporter », `ACA1..ACA8` |
-| `117-avl.md` | on relit le socle du chantier AVL — **clos** « L'audit du kit vlp : l'enchaînement jusqu'au bout », `AVL1..AVL12` |
-| `119-ena.md` | on relit le socle du chantier ENA — **clos** « Réparer /vlp:enchainer agents, puis le parallèle », `ENA1..ENA9` |
-| `120-ord.md` | on relit le socle du chantier ORD — **clos** « Une page d'enchaînement entre projets, en gabarit », `ORD1..ORD6` |
-| `121-iso.md` | on relit le socle du chantier ISO — **clos** « Le parallèle, chaque fiche dans son worktree », `ISO1..ISO8` |
-| `123-gai.md` | on relit le socle du chantier GAI — **clos** « Le parallèle qui gagne enfin du temps », `GAI1..GAI2` |
-| `124-cpf.md` | on relit le socle du chantier CPF — **clos** « Chaque sous-agent compté à sa fiche », `CPF1..CPF1` |
 | `13-tours.md` | on joue une fiche `T*` — chantier **clos** « Compter les tours, pondérer le coût », `T1..T5` |
 | `14-bugs.md` | on joue une fiche `B*` — chantier **clos** « Corriger les bugs de l'audit », `B1..B3` |
 | `15-reduire.md` | on joue une fiche `R*` — chantier **clos** « Réduire les tours de `/vlp:tache` », `R1..R4` |
@@ -115,3 +92,27 @@ QUAND LIRE : on relit un chantier clos ; l'index n'en garde qu'une ligne qui ren
 | `97-claude-bac.md` | on relit le socle du chantier CLI — **clos** « le bac dit comment ouvrir sa session », `CLI1..CLI1` |
 | `98-archive-clos.md` | on relit le socle du chantier ARC — **clos** « les chantiers clos vont à une page d'archive », `ARC1..ARC2` |
 | `99-joints-changes.md` | on relit le socle du chantier JNT — **clos** « Une republication ne joint que les joints changés », `JNT1..JNT3` |
+| `100-barre-todo.md` | on relit le socle du chantier PIP — **clos** « Une barre verticale dans une cellule de la TODO se signale », `PIP1..PIP1` |
+| `101-chef-de-nuit.md` | on relit le socle du chantier NUI — **clos** « Le chef de nuit », `NUI1..NUI38` |
+| `102-vitesse.md` | on relit le socle du chantier VIT — **clos** « Coder plus vite et mieux », `VIT1..VIT25` |
+| `104-methode.md` | on relit le socle du chantier MET — **clos** « La méthode du kit refaite, puis la TODO re-cadrée », `MET1..MET10` |
+| `105-arriere-plan.md` | on relit le socle du chantier ARP — **clos** « Une session claude -p ne meurt plus en attendant l'arrière-plan », `ARP1..ARP4` |
+| `107-tables.md` | on relit le socle du chantier TAB — **clos** « Les tables de vlp.py ne se coupent plus en silence », `TAB1..TAB4` |
+| `108-branche-chef.md` | on relit le socle du chantier BRA — **clos** « /vlp:chef vérifie la branche dès son début », `BRA1..BRA1` |
+| `109-env.md` | on relit le socle du chantier ENV — **clos** « Les tests ne voient plus les variables de la nuit », `ENV1..ENV1` |
+| `110-muw.md` | on relit le socle du chantier MUW — **clos** « Le mutant joue les tests du dépôt de sa cible », `MUW1..MUW1` |
+| `111-rtd.md` | on relit le socle du chantier RTD — **clos** « Le matin dit le plugin en retard », `RTD1..RTD1` |
+| `112-npb.md` | on relit le socle du chantier NPB — **clos** « Ce que la nuit n'a pas pu publier, publié au matin », `NPB1..NPB1` |
+| `113-rto.md` | on relit le socle du chantier RTO — **clos** « clore retire lui-même la ligne de la TODO », `RTO1..RTO1` |
+| `113-ctr.md` | on relit le socle du chantier CTR — **clos** « Les couleurs du graphique des coûts, au contraste de la lecture », `CTR1..CTR1` |
+| `114-prp.md` | on relit le socle du chantier PRP — **clos** « Le coût de la préparation, hors des fiches », `PRP1..PRP4` |
+| `115-eff.md` | on relit le socle du chantier EFF — **clos** « L'effort high mesuré », `EFF1..EFF3` |
+| `115-amd.md` | on relit le socle du chantier AMD — **clos** « L'audit de MapDecorator, vers sa V1 », `AMD1..AMD7` |
+| `116-aca.md` | on relit le socle du chantier ACA — **clos** « L'audit de Cairn : ce que le kit peut lui apporter », `ACA1..ACA8` |
+| `117-avl.md` | on relit le socle du chantier AVL — **clos** « L'audit du kit vlp : l'enchaînement jusqu'au bout », `AVL1..AVL12` |
+| `119-ena.md` | on relit le socle du chantier ENA — **clos** « Réparer /vlp:enchainer agents, puis le parallèle », `ENA1..ENA9` |
+| `120-ord.md` | on relit le socle du chantier ORD — **clos** « Une page d'enchaînement entre projets, en gabarit », `ORD1..ORD6` |
+| `121-iso.md` | on relit le socle du chantier ISO — **clos** « Le parallèle, chaque fiche dans son worktree », `ISO1..ISO8` |
+| `123-gai.md` | on relit le socle du chantier GAI — **clos** « Le parallèle qui gagne enfin du temps », `GAI1..GAI2` |
+| `124-cpf.md` | on relit le socle du chantier CPF — **clos** « Chaque sous-agent compté à sa fiche », `CPF1..CPF1` |
+| `126-alg.md` | on relit le socle du chantier ALG — **clos** « Alléger le registre et la durée des tests », `ALG1..ALG6` |

@@ -17,11 +17,11 @@ est public (vu le 2026-10-17) : aucun secret ni chemin local n'y entre pour auta
 - Équipés : Cairn-VlpLib, MapDecorator, ProjetONZSM, TrackGen — et ce kit lui-même.
 - Chaque chantier clos a sa ligne dans `context AI/00-INDEX-archive.md`, son détail daté dans
   `context AI/08-etat.md` ; ici, les derniers seulement (`vlp.py clore` les tient).
-- Clos le 2026-10-13 : enchainer agents réparé, le parallèle reporté à ISO (chantier ENA).
 - Clos le 2026-10-13 : la page d'enchaînement en gabarit, servie par sa base (chantier ORD).
 - Clos le 2026-10-17 : le parallèle en worktree, prouvé mais sans gain mesuré (chantier ISO).
 - Clos le 2026-10-17 : le parallèle gagne enfin du temps : −28 %, en un lancement (chantier GAI).
 - Clos le 2026-10-17 : chaque sous-agent compté à sa fiche (chantier CPF).
+- Clos le 2026-11-08 : fin de fiche en un appel, tests par palier, page et coverage à la clôture (chantier ALG).
 
 ## Quatre règles non négociables
 
@@ -62,7 +62,6 @@ et seulement dans ce cas, ouvrir l'index.
 | toucher aux pages publiées | `ARTEFACTS.md`, puis le gabarit dans `templates/` |
 | ouvrir un chantier, ou le découper en fiches | **lancer `/vlp:chantier`** ; celui de la qualité du code et des tests part de `context AI/122-qualite-code-tests.md` |
 | jouer une fiche du chantier REF (la qualité du code et des tests) | `context AI/125-ref.md` — chantier **en pause** depuis le 2026-11-08 (`ouvrir` le reprend), par `/vlp:tache REF<n>` |
-| jouer une fiche du chantier ALG (alléger le registre et la durée des tests) | `context AI/126-alg.md` — chantier **ouvert**, par `/vlp:tache ALG<n>` |
 | relire un chantier clos | `context AI/00-INDEX-archive.md` — sa ligne y nomme le fichier de fiches |
 | reprendre après une longue interruption | `context AI/08-etat.md` |
 | choisir le prochain chantier du kit, ou retrouver la preuve d'un bug relevé le 2026-09-17 | `context AI/118-audit-du-kit.md`, section `AVL9` (audit du 2026-10-11) ; la preuve du bug : `context AI/12-audit.md` |
