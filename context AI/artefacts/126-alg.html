@@ -1,0 +1,84 @@
+<meta charset="utf-8">
+<title>vlp — Alléger le registre et la durée des tests</title>
+<!--
+  GABARIT — artefact d'un chantier. Publié par /chantier à l'ouverture,
+  mis à jour par /tache à chaque fiche. Remplace les <…> et ne renomme pas
+  les marqueurs `ZONE:…` : les commandes les cherchent tels quels.
+
+  Convention de coût — posée ici, référencée (jamais recopiée) par
+  artefact-feuille-de-route.html, tache.md et cloture.md : un nombre < 1000
+  s'affiche tel quel ; au-delà, "≈<arrondi 1 décimale><k|M> (<compte brut>)"
+  — virgule française, k = mille, M = million. Le compte brut reste toujours
+  visible à côté de l'arrondi.
+-->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="vlp.css">
+
+<div class="page">
+  <header>
+    <div class="eyebrow">vlp · fiches ALG1–ALG6 · <a href="https://claude.ai/artifact/YWDny8kjubq9DhdP5rbPxA">la feuille de route</a></div>
+    <h1>Alléger le registre et la durée des tests</h1>
+    <p>La fin de fiche tient en un appel (vlp.py fin), la page et la coverage se font à la clôture, les tests suivent les fichiers touchés, et le mutant n'est plus exigé partout.</p>
+    <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
+    <div class="avancement">
+      <span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span>
+    </div>
+    <p class="mono" style="margin-top:.5rem">6 fiches · 0 faite · en cours : ALG1</p>
+  </header>
+
+  <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
+  <section hidden>
+    <h2>Chantier clos le </h2>
+    <div class="bilan">
+      <p></p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Les fiches, dans l'ordre des dépendances</h2>
+    <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
+    <ul class="fiches">
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">ALG1</span></span>
+        <details open><summary><span class="titre">Rendre le mutant facultatif et retirer la skill vlp:relire</span><span class="etat">En cours · ALG2 peut partir en même temps</span></summary>
+        <span class="note">La doctrine dit rouge → vert ; la skill vlp:relire part. Indépendante.</span></details></li>
+      <li class="fiche"><span class="gauche"><span class="id">ALG2</span></span>
+        <details><summary><span class="titre">Écrire vlp.py palier : les fichiers touchés choisissent les tests</span><span class="etat">À lancer · en même temps que ALG1</span></summary>
+        <span class="note">vlp.py palier : les fichiers touchés choisissent les tests, les lents de boucle.py à part. Indépendante.</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">ALG3</span></span>
+        <details><summary><span class="titre">Faire suivre le palier à cocher et au pre-commit, la coverage à la clôture</span><span class="etat">Après ALG2</span></summary>
+        <span class="note">cocher et le pre-commit suivent le palier ; la coverage à la clôture et au pre-push. Après ALG2.</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">ALG4</span></span>
+        <details><summary><span class="titre">Écrire vlp.py fin : la fin de fiche en un appel</span><span class="etat">Après ALG3</span></summary>
+        <span class="note">vlp.py fin : santé, palier, coche, note, coût, commit en un appel. Après ALG3.</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">ALG5</span></span>
+        <details><summary><span class="titre">Brancher /vlp:tache et /vlp:enchainer sur fin, la page à la clôture</span><span class="etat">Après ALG4</span></summary>
+        <span class="note">tache et enchainer appellent fin ; la page à la clôture ; check, niveau, migration. Après ALG4.</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">ALG6</span></span>
+        <details><summary><span class="titre">Essayer testmon, mesuré contre le palier</span><span class="etat">Après ALG2</span></summary>
+        <span class="note">Essai mesuré de testmon contre le palier, adopté seulement s'il gagne. Après ALG2, jouée en dernier.</span></details></li>
+    </ul>
+    <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
+  </section>
+
+  <!-- ZONE:blocage — publiée quand /tache s'arrête après deux tentatives ; retirée dès que la fiche repasse -->
+  <section hidden>
+    <h2>Arrêt sur blocage</h2>
+    <div class="blocage">
+      <p></p>
+      <pre></pre>
+    </div>
+  </section>
+
+  <section>
+    <h2>Journal des décisions</h2>
+    <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
+    <ul class="journal">
+    </ul>
+  </section>
+
+  <footer>
+    <span>Fichier de fiches : <span class="mono">context AI/126-alg.md</span></span>
+    <span>Mis à jour le <span class="mono">2026-11-08</span></span>
+  </footer>
+</div>
+<script src="vlp.js"></script>
