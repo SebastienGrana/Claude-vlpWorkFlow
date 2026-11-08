@@ -660,11 +660,21 @@ sans titre : `GARDE:`, sort 1, rien d'écrit (NUI30).
     "palier": (
         "les tests qu'un changement fait jouer, par les chemins changés",
         """\
-`palier [--depuis R] [--racine D]` — les chemins changés (index, arbre, non suivis, contre `HEAD` ou `R`) choisissent
+`palier [--depuis R] [--racine D] [--lancer]` — les chemins changés (index, arbre, non suivis, contre `HEAD` ou `R`) choisissent
 les tests par la table `REGLES_PALIER` de `noyau/palier.py` (ALG2) : `doc`, `script`, `boucle` (les tests lents),
 `coeur` (la suite entière) ; le plus haut gagne. `PALIER <nom> · <n> fichier(s) de tests · <chemins>`, une ligne
 `RÈGLE <chemin> : <palier> — <raison>` par chemin, puis `COMMANDE <pytest…>` ; rien de changé : `PALIER aucun`.
-Hors d'un dépôt : `GARDE:`, sort 1.
+`--lancer` joue la commande : vert, l'empreinte du code et le palier notés (`PALIER VERT <nom>`, que `cocher` relit,
+ALG3) ; rouge, rien noté (`PALIER ROUGE`, sort 1). Hors d'un dépôt : `GARDE:`, sort 1.
+"""),
+    "fin": (
+        "la fin d'une fiche en un appel : santé, palier, coche, note, coût, commit",
+        """\
+`fin <fichier> <fiche> --note "<critère constaté>" [--resolu T]` (ALG4) — dans l'ordre : `sante --base --si-base`,
+`palier --lancer` dans le kit s'il manque, `cocher` (`--resolu`), la ligne `**Constaté** : <texte>` dans la fiche,
+`cout --session`, puis le commit `<fiche> : <titre>` par chemins (`commiter`) ; un fichier changé hors de la ligne
+**Fichiers** arrête tout, avant la santé. Une ligne `FIN <étape> : …` par étape, puis
+`FIN <fiche> · COMMIT <sha>` ; au premier `GARDE:`, `FIN ARRÊT <étape>`, sort 1, rien d'écrit après.
 """),
     "vigile": (
         "une page cassée ne part pas : le hook, ou la vérification d'une page",

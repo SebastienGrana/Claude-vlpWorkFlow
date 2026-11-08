@@ -49,6 +49,7 @@ ni raison de la sauter, fait échouer la suite :
 - `postit` — le post-it d'un worktree, posé pour un sous-agent
 - `pause` — met un chantier en pause
 - `palier` — les tests qu'un changement fait jouer, par les chemins changés
+- `fin` — la fin d'une fiche en un appel : santé, palier, coche, note, coût, commit
 - `vigile` — une page cassée ne part pas : le hook, ou la vérification d'une page
 - `chef` — la page à cartes, remplie par script
 - `attente` — la liste des pages que la limite du jour a refusées, et son hook

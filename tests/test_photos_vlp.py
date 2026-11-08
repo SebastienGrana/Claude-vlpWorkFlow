@@ -292,6 +292,7 @@ SAUTEES = {
     "servir": "lance un serveur HTTP qui ne rend pas la main",
     "mutant": "joue la suite entière du kit (plus de 4 min), dont le pont vers pytest : depuis une photo, il se "
               "relançait en chaîne (vu le 2026-10-18)",
+    "fin": "commite : le sha du commit change à chaque fois ; ses étapes sont gardées par tests/test_fin.py (ALG4)",
 }
 
 
