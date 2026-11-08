@@ -48,6 +48,7 @@ ni raison de la sauter, fait échouer la suite :
 - `ouverts` — les chantiers ouverts d'un dossier de contexte
 - `postit` — le post-it d'un worktree, posé pour un sous-agent
 - `pause` — met un chantier en pause
+- `palier` — les tests qu'un changement fait jouer, par les chemins changés
 - `vigile` — une page cassée ne part pas : le hook, ou la vérification d'une page
 - `chef` — la page à cartes, remplie par script
 - `attente` — la liste des pages que la limite du jour a refusées, et son hook

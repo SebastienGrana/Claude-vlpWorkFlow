@@ -1238,6 +1238,18 @@
   --- écrits sous le dossier personnel
   '''
 # ---
+# name: test_photo[palier]
+  '''
+  code 0
+  --- sortie
+  PALIER aucun
+  
+  --- erreur
+  
+  --- écrits
+  --- écrits sous le dossier personnel
+  '''
+# ---
 # name: test_photo[pause]
   '''
   code 0

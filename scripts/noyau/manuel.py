@@ -657,6 +657,15 @@ le chef le pose pour un sous-agent en worktree (ISO8). Hors Git, non ouvert : `G
 `PAUSE <fichier> le <date>` ; `ouvrir` sur ce fichier la lève (`· pause levée`). Introuvable, clos, déjà en pause,
 sans titre : `GARDE:`, sort 1, rien d'écrit (NUI30).
 """),
+    "palier": (
+        "les tests qu'un changement fait jouer, par les chemins changés",
+        """\
+`palier [--depuis R] [--racine D]` — les chemins changés (index, arbre, non suivis, contre `HEAD` ou `R`) choisissent
+les tests par la table `REGLES_PALIER` de `noyau/palier.py` (ALG2) : `doc`, `script`, `boucle` (les tests lents),
+`coeur` (la suite entière) ; le plus haut gagne. `PALIER <nom> · <n> fichier(s) de tests · <chemins>`, une ligne
+`RÈGLE <chemin> : <palier> — <raison>` par chemin, puis `COMMANDE <pytest…>` ; rien de changé : `PALIER aucun`.
+Hors d'un dépôt : `GARDE:`, sort 1.
+"""),
     "vigile": (
         "une page cassée ne part pas : le hook, ou la vérification d'une page",
         """\

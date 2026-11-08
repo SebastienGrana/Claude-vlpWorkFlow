@@ -261,6 +261,7 @@ APPELS = [
     ("ouverts", ["ouverts", "."], None),
     ("postit", ["postit", ".", "ctx/10-dem.md"], None),
     ("pause", ["pause", "ctx/10-dem.md", "une raison", "--date", "2026-01-05"], None),
+    ("palier", ["palier"], None),
     ("attente", ["attente", "lister", "."], None),
     ("repeindre", ["repeindre", ".", "--a-blanc"], None),
     ("lien", ["lien", "ctx/artefacts/feuille-de-route.html", "https://claude.ai/artifact/LIEN"], None),

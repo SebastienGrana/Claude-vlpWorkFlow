@@ -67,6 +67,7 @@ from noyau.nuit import (
 from noyau.ordre import cmd_ordre
 from noyau.ouvrir import cmd_ouvrir, cmd_pause, nombre_fiches
 from noyau.page import cmd_joints, cmd_lancables
+from noyau.palier import cmd_palier
 from noyau.rapport import (
     cmd_apercu,
     cmd_mutant,
@@ -178,6 +179,9 @@ def options_marques(sous):
     pa.add_argument("fichier")
     pa.add_argument("raison")
     pa.add_argument("--date")
+    pl = sous.add_parser("palier")
+    pl.add_argument("--depuis")
+    pl.add_argument("--racine")
 
 
 def options_fusionner(sous):
@@ -417,7 +421,7 @@ def main(argv, sortie=None, entree=None, erreur=None):
 PAR_ARGUMENTS = {
     "ouvrir": cmd_ouvrir, "clore": cmd_clore, "oter": cmd_oter, "archiver": cmd_archiver, "trier": cmd_trier, "feuille": cmd_feuille,
     "niveau": cmd_niveau, "comparer": cmd_comparer, "relecture": cmd_relecture, "contrat": cmd_contrat,
-    "forme": cmd_forme, "ouverts": cmd_ouverts, "postit": cmd_postit, "pause": cmd_pause, "plan": cmd_plan, "matin": cmd_matin, "fusionner": cmd_fusionner,
+    "forme": cmd_forme, "ouverts": cmd_ouverts, "postit": cmd_postit, "pause": cmd_pause, "palier": cmd_palier, "plan": cmd_plan, "matin": cmd_matin, "fusionner": cmd_fusionner,
     "sante": cmd_sante, "symboles": cmd_symboles, "compteur": cmd_compteur, "carte": cmd_carte,
     "rapide": cmd_rapide, "essai": cmd_essai, "lancables": cmd_lancables,
     "commiter": cmd_commiter, "ordre": cmd_ordre, "cahier": cmd_cahier, "etat": cmd_etat,
