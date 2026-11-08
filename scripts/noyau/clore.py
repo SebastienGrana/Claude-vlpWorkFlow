@@ -563,6 +563,43 @@ def garde_couverture_clore(projet):
             "vlp.py couverture --depuis <commit du cadrage>, puis clore (ALG3) — rien écrit")
 
 
+def renoter_apres_clore(projet, avant=None, sortie=None):
+    """Dans le kit, re-noter sur le code d'après `clore` le rapport de couverture, la suite verte et le palier vert qui
+    étaient à jour sur `avant`, l'empreinte d'avant ses écritures — `CHANTIER.md` et `CLAUDE.md` changés par `clore`
+    rendaient périmé le rapport qu'il venait d'exiger (défaut d'ALG3, choix B de l'utilisateur, 2026-11-08). Sans
+    `avant`, celle que note le rapport : `clore` refuse sans rapport à jour (`garde_couverture_clore`), elle est donc
+    celle d'avant ses écritures. Un rapport périmé sur `avant` n'est pas re-noté ; hors du kit, rien. Rend vrai si le
+    rapport a été re-noté, et le dit sur `sortie`."""
+    import couverture
+    from noyau.bac import chemin_suite_verte, empreinte_kit, est_kit, noter_suite_verte
+    from noyau.palier import noter_palier_vert, palier_vert_note
+    if not est_kit(projet):
+        return False
+    if avant is None:
+        try:
+            with open(couverture.chemins(projet)[2], encoding="utf-8") as f:
+                avant = f.read().strip()
+        except OSError:
+            return False
+    if not couverture.rapport_a_jour(projet, avant):
+        return False
+    apres = empreinte_kit(projet)
+    with open(couverture.chemins(projet)[2], "w", encoding="utf-8") as f:
+        f.write(apres + "\n")
+    try:
+        with open(chemin_suite_verte(projet) or "", encoding="utf-8") as f:
+            if f.read().strip() == avant:
+                noter_suite_verte(projet, apres)
+    except OSError:
+        pass
+    note = palier_vert_note(projet)
+    if note and note[0] == avant:
+        noter_palier_vert(projet, apres, note[1])
+    if sortie:
+        sortie.write("COUVERTURE re-notée après les écritures de clore : le rapport reste à jour\n")
+    return True
+
+
 def refus_de_clore(projet, carte_, courant, fiches_, ids):
     """Le refus de `clore`, calculé avant toute écriture, ou None : aucune fiche, déjà **CLOS**, une TODO
     du fichier d'état que `todo_du_fichier` refuse — la feuille la relirait après les écritures (TAB3) —, ou, dans le
@@ -815,11 +852,12 @@ def cmd_clore(a, sortie):
     if ecart:
         sortie.write("ÉCART tokens %s donné · %s mesuré — le mesuré fait foi\n"
                      % (milliers(a.tokens), milliers(total_chantier)))
-    champ_chantier = "non mesuré" if total_chantier is None else milliers(total_chantier)
     sortie.write("CLOS %s %s · chantier %s · cumul %s · routage %d · index %d · archivé %d · bilan %d%s · %s — %s\n" % (
-        lettre, fait, champ_chantier, "non mesuré" if total is None else milliers(total), faits["routage"], faits["index"],
+        lettre, fait, "non mesuré" if total_chantier is None else milliers(total_chantier),
+        "non mesuré" if total is None else milliers(total), faits["routage"], faits["index"],
         faits["archivé"], faits["bilan"],
         " · résumé %d" % faits.get("résumé", 0) if a.resume else "", texte_estime, projet))
+    renoter_apres_clore(projet, sortie=sortie)   # le rapport à jour avant ses écritures le reste (ALG3)
     # Clos dans un worktree hors de la principale : la ligne qui le fusionne, à lancer depuis elle (NUI26). La nuit
     # ne la lit pas : `matin` fusionne ses branches.
     dossier_principal, principale = principal(projet)
