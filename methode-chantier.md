@@ -276,16 +276,19 @@ qu'un chantier ouvert que personne ne reprendra.
 
 **Les pages publiées, en marge des trois temps.** Le projet a une **feuille de
 route** (la TODO ordonnée, le chantier en cours, les clos) et chaque chantier a
-sa **page de fiches**, marquée au fur et à mesure — faite, en cours, bloquée.
-Seule la seconde vit au rythme des fiches : la feuille de route ne bouge qu'à
-l'ouverture et à la clôture, pour que `/vlp:tache` n'ait qu'une page à relire.
-Les commandes les tiennent seules ; leurs URL sont dans `CHANTIER.md`. Ce sont
-des **vues dérivées** : la page de chantier n'est pas retouchée à la main, elle
-est **régénérée** depuis le fichier de fiches à chaque fiche finie. En cas de
-désaccord, **le fichier a raison** — c'est le `grep` des cases cochées qui
-tranche, pas la mémoire de la session.
+sa **page de fiches** — faite, en cours, bloquée. Les deux ne bougent qu'à
+l'ouverture et à la clôture ; la page de fiches aussi **sur un blocage**, le moment
+où l'on a besoin de la voir — plus à chaque fiche (`ALG5`, choix de l'utilisateur
+le 2026-11-08 : 55 % des commits d'Emergence-Ants touchaient les pages, pour une
+page qu'on ne regarde pas pendant un lot). Une fiche faite laisse sa note dans le
+fichier de fiches, la ligne `**Constaté** :` de `vlp.py fin`, que la page relit à la
+clôture. Les commandes les tiennent seules ; leurs URL sont dans `CHANTIER.md`. Ce
+sont des **vues dérivées** : la page n'est pas retouchée à la main, elle est
+**régénérée** depuis le fichier de fiches. En cas de désaccord, **le fichier a
+raison** — c'est le `grep` des cases cochées qui tranche, pas la mémoire de la session.
 
-`/vlp:check` vérifie cet accord sans rien écrire, quand on a un doute.
+`/vlp:check` vérifie cet accord sans rien écrire, quand on a un doute ; sur un
+chantier ouvert, une page en retard est attendue (`RETARD: page:` de `niveau`).
 
 ## Git — un commit par fiche, un push par chantier
 
@@ -323,7 +326,7 @@ droit : c'est le chef qui commite, après chaque `FAITE` accepté à la relectur
 | `<contexte>/00-INDEX.md`, et son archive `00-INDEX-archive.md` à côté | non | l'index : quand le routage de `CLAUDE.md` ne répond pas ; l'archive : pour relire un chantier clos, dont `vlp.py clore` y déplace la ligne (`vlp.py archiver`) | l'index : le seuil de `vlp.py` ; l'archive : libre |
 | le **fichier d'état** | non | reprise à froid ; le choix du prochain chantier n'en lit que la TODO, par la carte | libre |
 | les **fichiers de fiches**, un par chantier | non | `/vlp:tache` et `/vlp:enchainer`, **par plages**, jamais en entier | libre |
-| `<contexte>/artefacts/*.html` | non | publié pour l'utilisateur ; relu par `/vlp:tache` à chaque fiche, par `/vlp:enchainer` une fois par lancement | le seuil de `vlp.py` |
+| `<contexte>/artefacts/*.html` | non | publié pour l'utilisateur ; régénéré à l'ouverture, à la clôture et sur un blocage (`ALG5`) | le seuil de `vlp.py` |
 | `<contexte>/NN-nuits.md`, un seul, créé par `vlp.py` à la première nuit | non | le plan du soir, la table des nuits et les leçons ; `vlp.py trier` imprime les leçons ; la ligne d'index le déclare | libre |
 
 Le dossier de contexte s'appelle `context AI/` par défaut. Son nom importe peu ;

@@ -151,6 +151,20 @@ def page_du_fichier(fichier):
                         os.path.splitext(os.path.basename(fichier))[0] + ".html")
 
 
+def constates(fichier):
+    """{fiche: texte} des lignes `**Constaté** : <texte>` du fichier de fiches — la note que `vlp.py fin` écrit à
+    chaque fiche faite (ALG4), que la page relit à sa régénération, à la clôture (ALG5) ; une fiche sans ligne
+    n'y est pas. Une `--note` donnée à `page` passe devant."""
+    notes, fiche = {}, None
+    for l in lignes_de(fichier):
+        m = re.match(r"## ([A-Z]{1,3}\d+) \[", l)
+        if m:
+            fiche = m.group(1)
+        elif fiche and l.startswith("**Constaté** : "):
+            notes[fiche] = l[len("**Constaté** : "):].strip()
+    return notes
+
+
 def cmd_page(a, sortie):
     """`vlp.py page` : régénérer la page d'un chantier depuis son fichier de fiches (`noyau.page.regenerer`), la
     créer (`--creer`) ou la vérifier ; rend 0, ou 1 sur une `GARDE:` — une option en conflit, une page introuvable, ou
@@ -182,6 +196,7 @@ def cmd_page(a, sortie):
         parts = {"titre": a.titre, "resultat": a.resultat, "notes": {}, "journal": [], "bilan": []}
     else:
         parts = abri_de_page(html)
+    parts["notes"].update(constates(a.fichier))
     for ident, texte in (a.note or []):
         parts["notes"][ident] = texte
     for texte in (a.journal or []):

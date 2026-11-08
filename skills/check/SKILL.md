@@ -59,8 +59,10 @@ extractible du tout.
 ```
 
 `--verifier` n'écrit rien. Le fichier a raison : sur `EN RETARD`, **la page
-est en retard** — dis-le, nomme les fiches des lignes `ÉCART:`, et propose de
-la régénérer, sans le faire tant que l'utilisateur n'a pas répondu.
+est en retard** — sur un chantier ouvert, c'est attendu : elle se régénère à la
+clôture ou sur un blocage (ALG5) ; dis-le en une ligne. Sur un chantier clos, nomme
+les fiches des lignes `ÉCART:`, et propose de la régénérer, sans le faire tant que
+l'utilisateur n'a pas répondu.
 
 **D — Les préfixes de fiches ne se marchent pas dessus.**
 

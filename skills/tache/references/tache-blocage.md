@@ -29,7 +29,8 @@ L'agent `vlp:fiche` saute cette section : il n'a aucun artefact, le chef marque
 la page (`/vlp:enchainer`, étape 4).
 
 Puis **marque le blocage sur l'artefact** — c'est le moment où l'on a le plus
-besoin de le voir. Suis la régénération de `tache-page.md` (grep, lire, réécrire,
+besoin de le voir, et un des deux seuls où la page se régénère (ALG5). Lis
+`skills/tache/references/tache-page.md` par `vlp.py lire`, et suis sa régénération (grep, lire, réécrire,
 republier), avec : la fiche passée en
 `data-etat="bloquee"` dans `ZONE:fiches` et dans `ZONE:avancement`, la section
 `ZONE:blocage` rendue visible — retire son `hidden` — portant les deux lignes

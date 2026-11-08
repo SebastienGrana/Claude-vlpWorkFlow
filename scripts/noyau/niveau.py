@@ -408,6 +408,20 @@ def sans_table_des_clos(carte_, index):
     return carte_[:i] + entete_clos() + carte_[fin:]
 
 
+def compter_page(lignes, sortie):
+    """Recopier, du `page --verifier` d'un chantier ouvert, ses `ÉCART:` en `RETARD: page:` — la page se régénère à
+    la clôture, plus à chaque fiche (ALG5) : en retard, elle se dit sans compter — et ses `GARDE:` (une page
+    introuvable) en `ÉCART: page:` ; rendre le nombre d'écarts comptés."""
+    ecarts = 0
+    for l in lignes:
+        if l.startswith("ÉCART: "):
+            sortie.write("RETARD: page: %s — régénérée à la clôture\n" % l[7:])
+        elif l.startswith("GARDE: "):
+            ecarts += 1
+            sortie.write("ÉCART: page: %s\n" % l[7:])
+    return ecarts
+
+
 def cmd_niveau(a, sortie):
     """En quoi un projet équipé a dérivé du kit. Sans `--ecrire`, n'écrit rien
     nulle part ; avec, corrige les écarts dont la bonne valeur se déduit sans
@@ -492,10 +506,7 @@ def cmd_niveau(a, sortie):
         _code, lignes = capte(cmd_page, argparse.Namespace(
             fichier=fichier, page=page_du_fichier(fichier), note=None, journal=None,
             creer=False, projet=None, titre=None, resultat=None, verifier=True, date=None, forme=False))
-        for l in lignes:
-            if l.startswith(("ÉCART: ", "GARDE: ")):
-                ecarts += 1
-                sortie.write("ÉCART: page: %s\n" % l[7:])
+        ecarts += compter_page(lignes, sortie)
 
     contexte = champ(carte_, "contexte", "context AI/")
     index = champ(carte_, "index", contexte.rstrip("/") + "/00-INDEX.md")

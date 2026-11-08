@@ -1,4 +1,4 @@
-<!-- Lu par /vlp:tache (étape 1) ; /vlp:enchainer porte sa propre commande. -->
+<!-- Lu sur un blocage (tache-blocage.md) et à la clôture : la page ne se régénère plus à chaque fiche (ALG5). -->
 
 # Régénérer l'artefact du chantier
 

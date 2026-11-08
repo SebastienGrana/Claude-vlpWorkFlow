@@ -86,7 +86,7 @@ Pour chaque fiche de la série, dans l'ordre — en worktree, dès que `lancable
    **Tentatives** dont une ligne numérotée n'est pas `FAITE refusée à la
    relecture.` (tout lu à l'étape 2). Traite-le comme un `RETOUR` (étape 3 bis).
 1. Un seul appel : `Skill`, `skill: "vlp:tache"`, `args` : la fiche — elle
-   coche, publie et commite elle-même. Fiche cochée ensuite : passe à la
+   coche et commite elle-même (`vlp.py fin`). Fiche cochée ensuite : passe à la
    suivante ; sinon, c'est un `RETOUR` (étape 3 bis).
    Avec `agents` : l'outil `Agent` à la place — `skill: "vlp:jouer"` attend la
    fin même en `background: true` (bac `ENA2`, 2026-10-12). `subagent_type:
@@ -170,25 +170,8 @@ comptes bruts du critère compris ; « — » pour un arrêt sans sous-agent ; e
 s'il n'a pas été fusionné — il reste sur le disque. Le
 coût se lit sur la session, pas ici : un `Result` ne porte pas d'usage.
 
-Puis régénère la page du chantier, **une seule fois** pour tout le lancement —
-sauf si « artefact du chantier » vaut « aucun », si l'étape 5 suit, ou en mode
-`main` : chaque `vlp:tache` l'a déjà republiée. La page
-porte le nom du fichier de fiches, en `.html`, dans `<contexte>/artefacts/` ;
-un `--note` par fiche faite, le critère constaté en une ligne :
-
-```bash
-<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" page "<fichier de fiches courant>" --note <fiche> "<critère constaté>"
-```
-
-Une `GARDE:` ou une sortie non nulle : une ligne, et continue. Sinon, deux
-appels : `Artifact` `action: "read"` sur l'`url` de « artefact du chantier »,
-puis `Artifact` avec le `file_path` de la page, cette `url` et `files` : le JSON
-de la ligne `FILES` (`ARTEFACTS.md`), sans
-`icon`, `label` : les fiches jouées (`E5→E7`). Rien d'autre à lire : les règles de la page sont dans
-`skills/tache/references/tache-page.md`, pour `/vlp:tache`. Puis commite la page seule — aucun commit de
-fiche ne l'emporte : `git add -- "<page>" "<page, en .md>"; git commit -m "Page du chantier après <E5→E7>"`.
-
-Si un `BLOQUÉE` a clos la série, marque aussi la page bloquée :
+**La page ne se régénère pas ici** (ALG5, choix de l'utilisateur, 2026-11-08) : seulement à la clôture (étape 5)
+et sur un blocage. Si un `BLOQUÉE` a clos la série, marque la page bloquée :
 
 ```bash
 <python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" lire skills/tache/references/tache-blocage.md

@@ -21,9 +21,9 @@
     <p>La fin de fiche tient en un appel (vlp.py fin), la page et la coverage se font à la clôture, les tests suivent les fichiers touchés, et le mutant n'est plus exigé partout.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">6 fiches · 3 faites · en cours : ALG4</p>
+    <p class="mono" style="margin-top:.5rem">6 fiches · 4 faites · en cours : ALG5</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -49,19 +49,20 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">ALG3</span></span>
         <details><summary><span class="titre">Faire suivre le palier à cocher et au pre-commit, la coverage à la clôture</span><span class="etat">Faite</span></summary>
         <span class="note">test_palier_gardes : rouge 9 failed, vert ; palier doc 2,5 s au lieu de 612 s ; pre-push refuse sans rapport, passe après la suite (523 verts, 542 s)</span></details>
-        <span class="cout mono">≈15,5M (15 492 026) · 32 tours · 4,01 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">ALG4</span></span>
-        <details open><summary><span class="titre">Écrire vlp.py fin : la fin de fiche en un appel</span><span class="etat">En cours · ALG6 peut partir en même temps</span></summary>
-        <span class="note">vlp.py fin : santé, palier, coche, note, coût, commit en un appel. Après ALG3.</span></details></li>
-      <li class="fiche" data-attend><span class="gauche"><span class="id">ALG5</span></span>
-        <details><summary><span class="titre">Brancher /vlp:tache et /vlp:enchainer sur fin, la page à la clôture</span><span class="etat">Après ALG4</span></summary>
+        <span class="cout mono">≈16,0M (15 993 785) · 33 tours · 4,14 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">ALG4</span></span>
+        <details><summary><span class="titre">Écrire vlp.py fin : la fin de fiche en un appel</span><span class="etat">Faite</span></summary>
+        <span class="note">fin en un appel : santé, palier coeur (suite verte), coche, note, coût, commit par chemins — FIN ALG4 COMMIT cc82eeb en 558 s</span></details>
+        <span class="cout mono">≈14,1M (14 145 808) · 27 tours · 3,64 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">ALG5</span></span>
+        <details open><summary><span class="titre">Brancher /vlp:tache et /vlp:enchainer sur fin, la page à la clôture</span><span class="etat">En cours · ALG6 peut partir en même temps</span></summary>
         <span class="note">tache et enchainer appellent fin ; la page à la clôture ; check, niveau, migration. Après ALG4.</span></details></li>
       <li class="fiche"><span class="gauche"><span class="id">ALG6</span></span>
-        <details><summary><span class="titre">Essayer testmon, mesuré contre le palier</span><span class="etat">À lancer · en même temps que ALG4</span></summary>
+        <details><summary><span class="titre">Essayer testmon, mesuré contre le palier</span><span class="etat">À lancer · en même temps que ALG5</span></summary>
         <span class="note">Essai mesuré de testmon contre le palier, adopté seulement s'il gagne. Après ALG2 et la mesure de testmon de la séance mère sur Emergence-Ants.</span></details></li>
     </ul>
-    <p class="mono cout-hors">Hors fiches : ≈9,4M (9 427 320) · 33 tours · 3,47 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈67,5M (67 524 924) · 175 tours · 18,57 $</p>
+    <p class="mono cout-hors">Hors fiches : ≈10,5M (10 515 487) · 35 tours · 3,74 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈83,3M (83 260 658) · 205 tours · 22,61 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 

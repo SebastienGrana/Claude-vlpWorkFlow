@@ -199,8 +199,8 @@ affiché — jamais un coût inventé.
 
 ## Le budget de contexte
 
-`/vlp:tache` relit la page du chantier à chaque fiche : sa taille se paye
-autant de fois qu'il reste de fiches. Elle reste sous le seuil de `vlp.py`, et
+La page du chantier se relit à la clôture et sur un blocage, plus à chaque fiche
+(`ALG5`) : sa taille se paye à ces moments-là. Elle reste sous le seuil de `vlp.py`, et
 `vlp.py page` rend une `GARDE:` au-delà — il faut alors le **dire** et proposer
 ce qui sort, avant de republier. Une fiche n'ajoute qu'une ligne de note et un
 `data-etat` ; si la page gonfle, c'est que des choses qui appartiennent au
