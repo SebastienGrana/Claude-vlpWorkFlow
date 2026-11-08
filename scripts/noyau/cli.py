@@ -182,6 +182,7 @@ def options_marques(sous):
     pl = sous.add_parser("palier")
     pl.add_argument("--depuis")
     pl.add_argument("--racine")
+    pl.add_argument("--lancer", action="store_true")
 
 
 def options_fusionner(sous):

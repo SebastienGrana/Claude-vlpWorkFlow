@@ -23,6 +23,10 @@ demande d'abord deux oui (`methode-chantier.md`, règle « La TODO ne grossit pa
 
 ## 2. Tout ce qui se déduit — un appel
 
+**Dans le kit seulement**, d'abord la couverture du chantier (ALG3) : la suite entière sous coverage
+(`uv run --frozen pytest -n 4`), puis `<python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" couverture --depuis <rev>`, `<rev>`
+le commit du cadrage (`git log --diff-filter=A --format=%h -- "<fichier de fiches>"`). Sans rapport à jour, `clore` refuse.
+
 ```bash
 <python> "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" clore . --livre "<ce qu'il a livré, une ligne>" --abandon "<fiches abandonnées et pourquoi>" --surpris "<ce qui a surpris, une ligne>" --resume "<ce qu'il a livré, en quelques mots>"
 ```

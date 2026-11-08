@@ -551,13 +551,29 @@ def cmd_oter(a, sortie):
     return 0
 
 
+def garde_couverture_clore(projet):
+    """Dans le kit seulement (ALG3) : le refus de clore sans rapport de couverture mesuré sur le code d'aujourd'hui —
+    la couverture du chantier se juge à la clôture, plus à chaque commit —, ou None ; un projet équipé n'a pas cette
+    garde."""
+    import couverture
+    from noyau.bac import empreinte_kit, est_kit
+    if not est_kit(projet) or couverture.rapport_a_jour(projet, empreinte_kit(projet)):
+        return None
+    return ("pas de rapport de couverture sur ce code : la suite entière (uv run --frozen pytest -n 4), puis "
+            "vlp.py couverture --depuis <commit du cadrage>, puis clore (ALG3) — rien écrit")
+
+
 def refus_de_clore(projet, carte_, courant, fiches_, ids):
-    """Le refus de `clore`, calculé avant toute écriture, ou None : aucune fiche, déjà **CLOS**, ou une TODO
-    du fichier d'état que `todo_du_fichier` refuse — la feuille la relirait après les écritures (TAB3)."""
+    """Le refus de `clore`, calculé avant toute écriture, ou None : aucune fiche, déjà **CLOS**, une TODO
+    du fichier d'état que `todo_du_fichier` refuse — la feuille la relirait après les écritures (TAB3) —, ou, dans le
+    kit, pas de rapport de couverture à jour (`garde_couverture_clore`, ALG3)."""
     if not ids:
         return "aucune fiche dans %s" % courant
     if any(l.startswith("**CLOS**") for l in fiches_):
         return "%s porte déjà **CLOS**" % courant
+    garde = garde_couverture_clore(projet)
+    if garde:
+        return garde
     etat = champ(carte_, "fichier d'état")
     if etat and os.path.isfile(os.path.join(projet, etat)):
         try:

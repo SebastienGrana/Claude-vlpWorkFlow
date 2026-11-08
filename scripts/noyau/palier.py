@@ -8,12 +8,18 @@ qu'au palier `boucle` ou `coeur`.
 import fnmatch
 import glob
 import os
+import shutil
+import subprocess
 
+from noyau.bac import chemin_suite_verte, empreinte_kit, est_kit
 from noyau.commun import lire
 from noyau.relecture import git_texte
 
-__all__ = ["PALIERS", "REGISTRE", "REGLES_PALIER", "TESTS_LENTS", "TOUJOURS", "chemins_changes", "choisir", "cmd_palier",
-           "commande", "regle_du_chemin"]
+__all__ = ["PALIERS", "PALIER_VERT", "REGISTRE", "REGLES_PALIER", "TESTS_LENTS", "TOUJOURS", "chemins_changes",
+           "choisir", "cmd_palier", "commande", "lancer", "noter_palier_vert", "palier_manquant", "palier_vert_note",
+           "regle_du_chemin"]
+
+PALIER_VERT = "vlp-palier-vert"   # à côté de `vlp-suite-verte`, dans le dossier Git du kit, hors suivi (ALG3)
 
 PALIERS = ("aucun", "doc", "script", "boucle", "coeur")   # du plus bas au plus haut
 
@@ -129,10 +135,73 @@ def commande(palier, fichiers):
     return "uv run --frozen pytest -n %d %s" % (min(4, max(1, len(fichiers))), " ".join(fichiers))
 
 
+def lancer(args, racine):
+    """Lancer `args` (la commande du palier, en liste) depuis `racine`, sortie à l'écran ; rendre son code de sortie,
+    127 si l'exécutable ne se lance pas. Un test le remplace par un faux."""
+    exe = shutil.which(args[0]) or args[0]
+    try:
+        return subprocess.run([exe, *args[1:]], cwd=racine, check=False).returncode
+    except OSError as e:
+        print("GARDE: palier — %s ne se lance pas : %s" % (args[0], e))
+        return 127
+
+
+def chemin_palier_vert(racine):
+    """`<dossier Git de racine>/vlp-palier-vert`, ou None hors dépôt."""
+    suite = chemin_suite_verte(racine)
+    return os.path.join(os.path.dirname(suite), PALIER_VERT) if suite else None
+
+
+def noter_palier_vert(racine, empreinte, palier):
+    """Écrire « `<empreinte> <palier>` », le dernier palier vert du kit `racine` ; hors dépôt, rien."""
+    chemin = chemin_palier_vert(racine)
+    if chemin:
+        with open(chemin, "w", encoding="utf-8") as f:
+            f.write("%s %s\n" % (empreinte, palier))
+
+
+def palier_vert_note(racine):
+    """(empreinte, palier) du dernier palier vert noté sous `racine`, ou None s'il n'y en a pas."""
+    chemin = chemin_palier_vert(racine)
+    try:
+        with open(chemin or "", encoding="utf-8") as f:
+            mots = f.read().split()
+    except OSError:
+        return None
+    return (mots[0], mots[1]) if len(mots) == 2 else None
+
+
+def palier_manquant(fichier):
+    """Rendre (racine, palier voulu) si le kit dont `fichier` fait partie n'a pas tourné vert, sur le code
+    d'aujourd'hui, au palier de ses chemins changés ; None sinon, et hors du kit (un projet équipé a ses propres tests).
+    Une suite entière verte (VIT11) vaut le palier `coeur` ; Git illisible : `coeur` est voulu."""
+    code, racine = git_texte(["rev-parse", "--show-toplevel"], os.path.dirname(os.path.abspath(fichier)))
+    racine = racine.strip()
+    if code != 0 or not racine or not est_kit(racine):
+        return None
+    chemins = chemins_changes(racine)
+    voulu = "coeur" if chemins is None else choisir(racine, chemins)[0]
+    if voulu == "aucun":
+        return None
+    empreinte = empreinte_kit(racine)
+    suite = chemin_suite_verte(racine)
+    try:
+        with open(suite or "", encoding="utf-8") as f:
+            if f.read().strip() == empreinte:
+                return None
+    except OSError:
+        pass
+    note = palier_vert_note(racine)
+    if note and note[0] == empreinte and PALIERS.index(note[1]) >= PALIERS.index(voulu):
+        return None
+    return racine, voulu
+
+
 def cmd_palier(a, sortie):
-    """`palier [--depuis R] [--racine D]` : `PALIER <nom> · <n> fichier(s) de tests · <chemins>`, une ligne
+    """`palier [--depuis R] [--racine D] [--lancer]` : `PALIER <nom> · <n> fichier(s) de tests · <chemins>`, une ligne
     `RÈGLE <chemin> : <palier> — <raison>` par chemin, puis `COMMANDE <pytest…>` ; rien de changé : `PALIER aucun`.
-    Hors d'un dépôt : `GARDE:`, sort 1."""
+    `--lancer` joue la commande : vert, l'empreinte du code et le palier notés (`PALIER VERT <nom>`, que `cocher`
+    relit) ; rouge, rien noté (`PALIER ROUGE <nom> · code <n>`, sort 1). Hors d'un dépôt : `GARDE:`, sort 1."""
     racine = os.path.abspath(a.racine or ".")
     chemins = chemins_changes(racine, a.depuis)
     if chemins is None:
@@ -146,5 +215,16 @@ def cmd_palier(a, sortie):
     sortie.write("PALIER %s · %s · %s\n" % (haut, n, ", ".join(chemins)))
     for c, p, r in regles:
         sortie.write("RÈGLE %s : %s — %s\n" % (c, p, r))
-    sortie.write("COMMANDE %s\n" % commande(haut, fichiers))
+    cmd = commande(haut, fichiers) or ""
+    sortie.write("COMMANDE %s\n" % cmd)
+    if not getattr(a, "lancer", False):
+        return 0
+    empreinte = empreinte_kit(racine)
+    sortie.flush()
+    code = lancer(cmd.split(), racine)
+    if code:
+        sortie.write("PALIER ROUGE %s · code %d\n" % (haut, code))
+        return 1
+    noter_palier_vert(racine, empreinte, haut)
+    sortie.write("PALIER VERT %s\n" % haut)
     return 0

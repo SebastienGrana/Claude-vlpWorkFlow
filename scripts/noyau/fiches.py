@@ -341,14 +341,15 @@ def partage_commit(lignes, fiche, communs, avant, apres):
 
 
 def garde_avant_coche(a, titre):
-    """Rendre la `GARDE:` qui empêche de cocher `a.fiche` — déjà cochée, ou, dans le kit, sans suite entière verte sur
-    le code d'aujourd'hui (VIT11) —, ou `None`."""
+    """Rendre la `GARDE:` qui empêche de cocher `a.fiche` — déjà cochée, ou, dans le kit, sans palier vert sur le code
+    d'aujourd'hui, au moins aussi haut que celui de ses chemins changés (VIT11, ALG3) —, ou `None`."""
+    from noyau.palier import palier_manquant
     if not titre.startswith("## %s [ ]" % a.fiche):
         return "GARDE: %s déjà cochée — rien écrit\n" % a.fiche
-    kit = coeur.suite_manquante(a.fichier)
-    if kit:
-        return ("GARDE: %s non cochée — la suite entière n'a pas tourné verte sur le code d'aujourd'hui : "
-                "uv run --frozen pytest -n 4, depuis %s, puis cocher (VIT11)\n" % (a.fiche, kit))
+    manque = palier_manquant(a.fichier)
+    if manque:
+        return ("GARDE: %s non cochée — le palier %s n'a pas tourné vert sur le code d'aujourd'hui : "
+                "vlp.py palier --lancer, depuis %s, puis cocher (VIT11, ALG3)\n" % (a.fiche, manque[1], manque[0]))
     return None
 
 

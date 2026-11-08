@@ -3,8 +3,10 @@
 - La mesure : la suite pytest, lancée entière, se relance sous `coverage` (`a_mesurer`, `mesurer`, appelés par
   `tests/conftest.py`, REF59) ; vert, les mesures de chaque processus sont réunies en `.couverture/coverage.xml`,
   avec l'empreinte du code joué (VIT11).
-- Le jugement : `vlp.py couverture`, appelé par `.githooks/pre-commit`, fait lire à `diff-cover` les lignes changées
-  indexées ; sous `SEUIL` %, ou sans rapport pour ce code, le commit est refusé. Aucun seuil global.
+- Le jugement : `vlp.py couverture --depuis <rev>`, à la clôture d'un chantier (ALG3, `cloture.md`), fait lire à
+  `diff-cover` les lignes changées du chantier ; sous `SEUIL` %, ou sans rapport pour ce code, la clôture est refusée.
+  `--a-jour` : le `.githooks/pre-push` refuse un push sans rapport mesuré sur ce code. Sans option : le commit
+  indexé, comme le `pre-commit` le jugeait avant ALG3. Aucun seuil global.
 
 Outils d'atelier, lancés par `uv run`, jamais importés. La décision (`verdict`) reçoit le rapport de `diff-cover`
 et ne lance rien : elle se teste en mémoire (`methode-chantier.md`, « Coder dans le kit »).
@@ -183,9 +185,66 @@ def juger(racine, sortie, seuil=SEUIL, empreinte_de=empreinte_du_kit):
     return code
 
 
+def a_jour(racine, sortie, empreinte_de=empreinte_du_kit):
+    """`--a-jour` (ALG3, le `pre-push`) : 0 et `COUVERTURE à jour` si le rapport a été mesuré sur le code d'aujourd'hui,
+    sinon `GARDE:` et 1."""
+    if rapport_a_jour(racine, empreinte_de(racine)):
+        sortie.write("COUVERTURE à jour : le rapport est mesuré sur ce code\n")
+        return 0
+    sortie.write("GARDE: couverture — pas de rapport mesuré sur ce code : lancer la suite entière, "
+                 "uv run --frozen pytest -n 4 (ALG3)\n")
+    return 1
+
+
+def juger_depuis(racine, rev, sortie, seuil=SEUIL, empreinte_de=empreinte_du_kit):
+    """`--depuis <rev>` (ALG3, la clôture) : juger les lignes changées depuis `rev` — le diff du chantier —, sur le
+    rapport de la suite entière ; sans `.py` changé, rien à couvrir ; sans rapport à jour ou si `diff-cover` échoue,
+    `GARDE:` ; rendre le code de sortie."""
+    r = subprocess.run(["git", "-c", "core.quotepath=false", "diff", "--name-only", rev, "--", "*.py"], cwd=racine,
+                       capture_output=True, encoding="utf-8", errors="replace", check=False)
+    if r.returncode:
+        sortie.write("GARDE: couverture — git diff %s a échoué dans %s\n" % (rev, racine))
+        return 1
+    if not r.stdout.strip():
+        sortie.write("COUVERTURE rien à couvrir : aucun .py changé depuis %s\n" % rev)
+        return 0
+    if not rapport_a_jour(racine, empreinte_de(racine)):
+        sortie.write("GARDE: couverture — pas de rapport mesuré sur ce code : lancer la suite entière, "
+                     "uv run --frozen pytest -n 4, puis clore (ALG3)\n")
+        return 1
+    outil = shutil.which("diff-cover")
+    if not outil:
+        sortie.write("GARDE: couverture — diff-cover introuvable : uv sync, puis uv run (REF8)\n")
+        return 1
+    with tempfile.TemporaryDirectory() as t:
+        json_ = os.path.join(t, "diff.json")
+        d = subprocess.run([outil, chemins(racine)[1], "--compare-branch=%s" % rev, "--format", "json:" + json_],
+                           cwd=racine, env=env_sans_citation(), capture_output=True, encoding="utf-8",
+                           errors="replace", check=False)
+        if d.returncode or not os.path.isfile(json_):
+            sortie.write("GARDE: couverture — diff-cover sorti %d : %s\n"
+                         % (d.returncode, ((d.stderr or d.stdout).strip().splitlines() or [""])[-1]))
+            return 1
+        with open(json_, encoding="utf-8") as f:
+            code, lignes = verdict(json.load(f), seuil)
+    sortie.write("".join(l.replace("commit refusé", "clôture refusée") for l in lignes))
+    return code
+
+
 def principal(argv, sortie=None):
-    """`vlp.py couverture [--racine R]` : juger le commit indexé de `R`, le kit par défaut (le hook de commit)."""
+    """`vlp.py couverture [--racine R] [--a-jour | --depuis REV]` : juger le commit indexé de `R`, le kit par défaut ;
+    `--a-jour` dit si le rapport est mesuré sur ce code (le `pre-push`) ; `--depuis` juge le diff du chantier
+    (la clôture, ALG3)."""
     p = argparse.ArgumentParser(prog="vlp.py couverture", description=__doc__,
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--racine", default=KIT)
-    return juger(os.path.abspath(p.parse_args(argv).racine), sortie or sys.stdout)
+    g = p.add_mutually_exclusive_group()
+    g.add_argument("--a-jour", action="store_true")
+    g.add_argument("--depuis")
+    a = p.parse_args(argv)
+    racine, sortie = os.path.abspath(a.racine), sortie or sys.stdout
+    if a.a_jour:
+        return a_jour(racine, sortie)
+    if a.depuis:
+        return juger_depuis(racine, a.depuis, sortie)
+    return juger(racine, sortie)

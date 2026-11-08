@@ -1,0 +1,16 @@
+#!/bin/sh
+# Un push publie : il exige un rapport de couverture mesuré sur le code poussé (ALG3, choix 5 B de l'utilisateur,
+# 2026-11-08). La couverture ne se juge plus à chaque commit ; `vlp.py couverture --a-jour` dit si la dernière suite
+# entière, sous coverage, a tourné sur ce code. Il ne lance pas la suite : il donne la commande.
+# Activer une fois par clone : git config core.hooksPath .githooks
+racine=$(git rev-parse --show-toplevel) || exit 1
+if ! command -v uv >/dev/null 2>&1; then
+  echo "pre-push : uv introuvable, couverture non vérifiée, push refusé — installer uv, puis uv sync." >&2
+  exit 1
+fi
+if ! sortie=$(cd "$racine" && uv run --frozen python scripts/vlp.py couverture --a-jour 2>&1); then
+  printf '%s\n' "$sortie" >&2
+  echo "pre-push : pas de rapport de couverture sur ce code, push refusé." >&2
+  exit 1
+fi
+printf '%s\n' "$sortie" | tail -1 >&2

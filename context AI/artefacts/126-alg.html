@@ -21,9 +21,9 @@
     <p>La fin de fiche tient en un appel (vlp.py fin), la page et la coverage se font à la clôture, les tests suivent les fichiers touchés, et le mutant n'est plus exigé partout.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="encours"></span><span></span><span></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">6 fiches · 2 faites · en cours : ALG3</p>
+    <p class="mono" style="margin-top:.5rem">6 fiches · 3 faites · en cours : ALG4</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -45,22 +45,23 @@
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">ALG2</span></span>
         <details><summary><span class="titre">Écrire vlp.py palier : les fichiers touchés choisissent les tests</span><span class="etat">Faite</span></summary>
         <span class="note">test_palier : rouge 9 failed, vert 10 passed ; 3 vrais commits : ffd664b doc 1 fichier, f771dfc script 20, bbfa469 coeur ; suite entière verte</span></details>
-        <span class="cout mono">≈23,6M (23 649 650) · 56 tours · 6,11 $</span></li>
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">ALG3</span></span>
-        <details open><summary><span class="titre">Faire suivre le palier à cocher et au pre-commit, la coverage à la clôture</span><span class="etat">En cours</span></summary>
-        <span class="note">cocher et le pre-commit suivent le palier ; la coverage à la clôture et au pre-push. Après ALG2.</span></details></li>
-      <li class="fiche" data-attend><span class="gauche"><span class="id">ALG4</span></span>
-        <details><summary><span class="titre">Écrire vlp.py fin : la fin de fiche en un appel</span><span class="etat">Après ALG3</span></summary>
+        <span class="cout mono">≈23,0M (22 955 694) · 54 tours · 5,93 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">ALG3</span></span>
+        <details><summary><span class="titre">Faire suivre le palier à cocher et au pre-commit, la coverage à la clôture</span><span class="etat">Faite</span></summary>
+        <span class="note">test_palier_gardes : rouge 9 failed, vert ; palier doc 2,5 s au lieu de 612 s ; pre-push refuse sans rapport, passe après la suite (523 verts, 542 s)</span></details>
+        <span class="cout mono">≈15,5M (15 492 026) · 32 tours · 4,01 $</span></li>
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">ALG4</span></span>
+        <details open><summary><span class="titre">Écrire vlp.py fin : la fin de fiche en un appel</span><span class="etat">En cours · ALG6 peut partir en même temps</span></summary>
         <span class="note">vlp.py fin : santé, palier, coche, note, coût, commit en un appel. Après ALG3.</span></details></li>
       <li class="fiche" data-attend><span class="gauche"><span class="id">ALG5</span></span>
         <details><summary><span class="titre">Brancher /vlp:tache et /vlp:enchainer sur fin, la page à la clôture</span><span class="etat">Après ALG4</span></summary>
         <span class="note">tache et enchainer appellent fin ; la page à la clôture ; check, niveau, migration. Après ALG4.</span></details></li>
       <li class="fiche"><span class="gauche"><span class="id">ALG6</span></span>
-        <details><summary><span class="titre">Essayer testmon, mesuré contre le palier</span><span class="etat">À lancer</span></summary>
+        <details><summary><span class="titre">Essayer testmon, mesuré contre le palier</span><span class="etat">À lancer · en même temps que ALG4</span></summary>
         <span class="note">Essai mesuré de testmon contre le palier, adopté seulement s'il gagne. Après ALG2 et la mesure de testmon de la séance mère sur Emergence-Ants.</span></details></li>
     </ul>
-    <p class="mono cout-hors">Hors fiches : ≈8,3M (8 279 505) · 30 tours · 3,18 $</p>
-    <p class="mono cout-total">Coût du chantier : ≈51,6M (51 579 039) · 142 tours · 14,45 $</p>
+    <p class="mono cout-hors">Hors fiches : ≈9,4M (9 427 320) · 33 tours · 3,47 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈67,5M (67 524 924) · 175 tours · 18,57 $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
