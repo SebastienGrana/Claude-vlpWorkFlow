@@ -305,6 +305,20 @@ série **17,4 à 17,9 s** (21,2 s à `LAB2`) : la machine allait plus vite. Le p
 bord. Codé quand même, sur la lettre du seuil ; le gain réel, mesuré ensuite sur l'onglet
 Lab, était le démarrage évité : **15,0 · 14,6 s → 11,9 · 12,2 s**.
 
+### Une sélection de tests par impact manque une faute jouée en sous-processus
+
+Mesuré à `ALG6` (2026-11-08, essai B choisi par l'utilisateur) : **pytest-testmon 2.3.0 écarté**, retiré de
+l'atelier. Les 10 derniers commits de code du kit (`f136b4d` à `7dceb5b`), rejoués un à un dans un worktree, à
+`-n 4`, sans coverage ; base testmon construite au départ en **330 s**. Temps mur, testmon contre palier : médiane
+**150,8 s** contre **166,1 s**, les commits « coeur » du palier comptés à la suite entière (**360 s**, mesurée le
+même jour, non rejouée) ; sur les six commits hors coeur, **541 s** contre **545 s** au total — à égalité. Puis
+trois fautes : `boucle.py` sous `__main__` (en sous-processus) vue par les deux (testmon : 4 rouges sur 11 tests ;
+palier : 17 sur 154) ; `palier.commande` (dans le processus) vue par les deux ; **`vlp.py` sous `__main__` (en
+sous-processus) : testmon choisit 0 test, la suite entière en voit 24 rouges**. Le critère « adopté seulement sans
+faute manquée » l'écarte : le gain est nul hors coeur, et la faute manquée est celle qu'Emergence-Ants avait vue
+(`sim_worker._serve`, 0 test choisi). Le palier par chemins (`ALG2`) reste seul. Tableau brut et script : hors Git,
+dans le dossier de la séance.
+
 ### Sortis de la méthode par REF16 (2026-10-31)
 
 Les paragraphes d'origine, mot pour mot : la règle est restée dans `methode-chantier.md`, le récit vient ici (`vlp.py conserve` le vérifie).
