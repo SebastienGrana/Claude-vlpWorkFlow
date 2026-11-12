@@ -26,6 +26,7 @@ from noyau.clos import (
 )
 from noyau.commun import (
     COURANT,
+    ID_FICHE,
     TITRE,
     chemin_garde,
     lignes_de,
@@ -273,7 +274,7 @@ def cmd_attente_hook(entree, sortie, maintenant=None):
 
 
 # « Fiches » avec majuscule aussi : l'encart du chantier en cours l'écrit ainsi (dette BTN).
-PLAGE_TEXTE = re.compile(r"[Ff]iches [A-Z]{1,3}[0-9]+(?:–[A-Z]{1,3}[0-9]+)?")
+PLAGE_TEXTE = re.compile(r"[Ff]iches %s(?:–%s)?" % (ID_FICHE, ID_FICHE))
 
 
 def cmd_comparer(a, sortie):

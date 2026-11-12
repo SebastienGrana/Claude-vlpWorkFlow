@@ -16,7 +16,7 @@ import unicodedata
 import noyau.relecture  # `noyau.relecture.git_texte` : un test le remplace là
 from noyau import etat
 from noyau.carte import trouver
-from noyau.commun import Absent, lignes_de, tampon_neuf
+from noyau.commun import ID_FICHE, Absent, lignes_de, tampon_neuf
 from noyau.facade import coeur
 from noyau.fiches import cmd_cocher, rapport
 from noyau.page import mesure
@@ -35,7 +35,7 @@ __all__ = [
 
 # --- hook --------------------------------------------------------------------
 
-MARQUE = re.compile(r"^<!-- FICHE:[A-Z]{1,3}[0-9]+ -->$")
+MARQUE = re.compile(r"^<!-- FICHE:%s -->$" % ID_FICHE)
 
 
 def est_fichier_de_fiches(lignes):
@@ -81,8 +81,8 @@ def cmd_hook(entree, sortie, erreur):
 # Le corps de `/vlp:tache` que Claude Code injecte à chaque appel, tapé ou par l'outil `Skill` : ses arguments suivent.
 TACHE = re.compile(r"Base directory for this skill: [^\n]*[\\/]skills[\\/]tache[ \t]*\n[ \t]*\n"
                    r"Arguments reçus :[ \t]*\n[ \t]*\n([^\n]*)")
-CODE_FICHE = re.compile(r"\b[A-Z]{1,3}[0-9]+\b")
-TITRE_FICHE = re.compile(r"^## ([A-Z]{1,3}[0-9]+) \[([ x])\]")
+CODE_FICHE = re.compile(r"\b%s\b" % ID_FICHE)
+TITRE_FICHE = re.compile(r"^## (%s) \[([ x])\]" % ID_FICHE)
 TESTS_DECLARES = re.compile(r"^\*\*Tests\*\* : modifiés — \S")
 REFUS_TESTS = ("La fiche %s est en cours, et %s est un test existant : il ne se modifie pas pendant une fiche (REF10, "
                "choix Q2 : un agent qui ne touche pas aux tests ne triche plus). Ajoute plutôt un test neuf, ou un Edit "

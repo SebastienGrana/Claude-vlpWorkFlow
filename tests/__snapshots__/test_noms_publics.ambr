@@ -87,6 +87,7 @@
     'GROS_FICHES',
     'HEREDOC',
     'ICI_ARCHIVE',
+    'ID_FICHE',
     'IMPORTANCE_PHASE',
     'INFINI',
     'INTERPRETE',

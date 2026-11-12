@@ -11,7 +11,7 @@ import re
 
 from noyau import etat
 from noyau.carte import trouver
-from noyau.commun import ALIAS, TITRE, lignes_de, lire
+from noyau.commun import ALIAS, ID_FICHE, TITRE, lignes_de, lire
 from noyau.facade import coeur
 from noyau.fiches import CRITERE_VISUEL, croisent, modeles_efforts
 from noyau.sessions import essais_de, heure_clore, sessions_de, sessions_entete
@@ -203,7 +203,7 @@ def fiches_du_fichier(lignes):
     return rendu
 
 
-DEPEND = re.compile(r"\b[A-Z]{1,3}[0-9]+[a-z]?\b")   # `SEG4b` compris : sans la lettre, \b la perdait (nuit SEG, 2026-11-12)
+DEPEND = re.compile(r"\b%s\b" % ID_FICHE)   # `SEG4b` compris : sans la lettre, \b la perdait (nuit SEG, 2026-11-12)
 PLAGE_DEPEND = re.compile(r"\b([A-Z]{1,3})([0-9]+)`?\s+à\s+`?\1([0-9]+)\b")
 VISUEL = '<span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span>'
 
@@ -394,8 +394,8 @@ def moins(a, b):
     return None if a is None or b is None else a - b
 
 
-COMMIT_FICHE = re.compile(r"^([A-Z]{1,3}[0-9]+) :")
-COMMIT_FUSION = re.compile(r"^Fusion : ([A-Z]{1,3}[0-9]+)$")    # le sujet de `fusionner --worktree`
+COMMIT_FICHE = re.compile(r"^(%s) :" % ID_FICHE)
+COMMIT_FUSION = re.compile(r"^Fusion : (%s)$" % ID_FICHE)    # le sujet de `fusionner --worktree`
 INFINI = float("inf")
 
 
@@ -933,7 +933,7 @@ def regenerer(html, fichier, parts, date, gardes, forme=False):
         raise ValueError("page : avancement ou ligne de comptage introuvable")
     blocage = re.search(r'<section( hidden)?>(\s*<h2>Arrêt sur blocage</h2>\s*<div class="blocage">\s*<p>)(.*?)</p>', html, re.S)
     if blocage and not blocage.group(1):
-        fiche_bloquee = re.match(r"\s*([A-Z]{1,3}[0-9]+)", blocage.group(3))
+        fiche_bloquee = re.match(r"\s*(%s)" % ID_FICHE, blocage.group(3))
         if fiche_bloquee and etat.get(fiche_bloquee.group(1)) == "faite":
             html = html[:blocage.start()] + "<section hidden>" + html[blocage.start() + len("<section>"):]
     # Les `JOURNAL_VISIBLE` dernières entrées restent visibles ; les plus anciennes, repliées à la
@@ -955,7 +955,7 @@ def regenerer(html, fichier, parts, date, gardes, forme=False):
         raise ValueError("page : journal introuvable")
     # La plage de l'en-tête, vide à la création (`creer`), suit le fichier ; ce qui la suit
     # (« · clos », écrit à la main) reste (chantier PLA). Tout autre en-tête reste tel quel (REV6).
-    html = re.sub(r'(<div class="eyebrow">[^<]*? · fiches )(?:[A-Z]{1,3}\d+(?:–[A-Z]{1,3}\d+)?)?(?=</div>| · )',
+    html = re.sub(r'(<div class="eyebrow">[^<]*? · fiches )(?:%s(?:–%s)?)?(?=</div>| · )' % (ID_FICHE, ID_FICHE),
                   lambda m: m.group(1) + coeur.plage([f[0] for f in fiches_]), html, count=1)
     # Le lien vers la feuille de route, en fin d'en-tête : `**artefact feuille de route**` du
     # CHANTIER.md du projet, retrouvé en remontant depuis le fichier de fiches (chantier FEU).

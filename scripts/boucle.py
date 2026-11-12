@@ -575,7 +575,7 @@ def chantier_du_canal(claude, a, racine, traces, etat, code, todo, erreur_todo, 
     if genre != "fini":
         return "fin", sortie, raison
     titres = [m.group(1) for l in kit().lignes_de(os.path.join(racine, fichier))
-              for m in [re.match(r"## ([A-Z]{1,3}[0-9]+) \[", l)] if m]
+              for m in [re.match(r"## (%s) \[" % kit().ID_FICHE, l)] if m]
     if not titres:
         return "de-cote", 0, "aucune fiche à nommer pour la ligne Session de la clôture"
     session = str(uuid.uuid4())

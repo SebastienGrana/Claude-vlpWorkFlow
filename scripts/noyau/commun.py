@@ -13,13 +13,18 @@ from noyau import etat
 from noyau.facade import coeur
 
 __all__ = [
-    "ALIAS", "ARCHIVE_TETE", "CHANTIERS_POSSIBLES", "COURANT", "FERMANT", "FORMAT_DEBUT", "FORMAT_FIN", "METHODE",
+    "ALIAS", "ARCHIVE_TETE", "CHANTIERS_POSSIBLES", "COURANT", "FERMANT", "FORMAT_DEBUT", "FORMAT_FIN", "ID_FICHE",
+    "METHODE",
     "NUMERO_LIGNE", "PREFIXE", "SESSION", "TITRE", "TITRE_GENERIQUE", "Absent", "archiver", "chemin_archive",
     "chemin_garde", "cmd_archiver", "lignes_de", "lignes_du_projet", "lignes_gardees", "lignes_index", "lire",
     "numero_ligne", "premier_lancement", "section", "tampon_neuf", "une_fois",
 ]
 
 
+# Un id de fiche : le préfixe du chantier, son numéro, et une lettre finale pour une fiche ajoutée en cours de chantier
+# (`SEG4b`). Le seul endroit où ce motif s'écrit ; sans la lettre, `SEG4b` se perdait (nuit SEG d'Emergence-Ants,
+# 2026-11-12 : note sur la fiche d'avant, commit de fiche non compté, dépendance oubliée).
+ID_FICHE = r"[A-Z]{1,3}[0-9]+[a-z]?"
 TITRE = re.compile(r"^## [A-Z]{1,3}[0-9]")
 TITRE_GENERIQUE = re.compile(r"^##\s+\S")
 PREFIXE = re.compile(r"^[A-Z]{1,3}")

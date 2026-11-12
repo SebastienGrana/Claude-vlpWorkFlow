@@ -10,7 +10,7 @@ import os
 import re
 
 from noyau.carte import equipe
-from noyau.commun import lignes_de, lignes_index, lire
+from noyau.commun import ID_FICHE, lignes_de, lignes_index, lire
 from noyau.facade import coeur
 from noyau.feuille import (
     champ,
@@ -181,8 +181,8 @@ def ecrire_couts(page, html, couts=None):
     return {COUTS_SVG: chemin}
 
 
-PLAGE_CLOS = re.compile(r'<td class="mono">([A-Z]{1,3})[0-9]+(?:–[A-Z]{1,3}[0-9]+)?</td>')
-PLAGE_INDEX = re.compile(r"^\|\s*`([^`]+)`\s*\|.*`([A-Z]{1,3})[0-9]+\.\.[A-Z]{1,3}[0-9]+`")
+PLAGE_CLOS = re.compile(r'<td class="mono">([A-Z]{1,3})[0-9]+[a-z]?(?:–%s)?</td>' % ID_FICHE)
+PLAGE_INDEX = re.compile(r"^\|\s*`([^`]+)`\s*\|.*`([A-Z]{1,3})[0-9]+[a-z]?\.\.%s`" % ID_FICHE)
 
 
 def signe(n):

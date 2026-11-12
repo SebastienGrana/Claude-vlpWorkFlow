@@ -9,7 +9,7 @@ import re
 
 import noyau.page  # `noyau.page.<nom>` : un test remplace ce nom là (REF46)
 from noyau.carte import equipe
-from noyau.commun import chemin_archive, lignes_de, lire
+from noyau.commun import ID_FICHE, chemin_archive, lignes_de, lire
 from noyau.facade import coeur
 from noyau.fiches import SEUIL_CHANTIER, SEUIL_CLAUDE, SEUIL_INDEX
 from noyau.page import (
@@ -158,7 +158,7 @@ def constates(fichier):
     titre `## ` ferme la fiche en cours : sa ligne Constaté ne retombe jamais sur la fiche d'avant (nuit SEG, 2026-11-12)."""
     notes, fiche = {}, None
     for l in lignes_de(fichier):
-        m = re.match(r"## ([A-Z]{1,3}\d+[a-z]?) \[", l)
+        m = re.match(r"## (%s) \[" % ID_FICHE, l)
         if m:
             fiche = m.group(1)
         elif l.startswith("## "):
