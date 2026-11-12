@@ -51,3 +51,51 @@ def test_niveau_dit_la_page_en_retard_sans_la_compter():
     assert n == 1, "niveau : seule la page introuvable compte\n" + s.getvalue()
     assert "RETARD: page: P1 faite" in s.getvalue(), "niveau : le retard se dit\n" + s.getvalue()
     assert "ÉCART: page: page introuvable" in s.getvalue(), "niveau : l'introuvable reste un écart\n" + s.getvalue()
+
+
+FICHES_LETTRE = """# Chantier P
+
+## Le socle commun
+
+## L'ordre des fiches
+
+<!-- FICHE:P1 -->
+## P1 [x] — Créer `a.py`
+**Constaté** : test_a vert, 3 lignes
+**Dépend de** : rien.
+**Critère de fin**
+<!-- /FICHE -->
+<!-- FICHE:P1b -->
+## P1b [x] — Une fiche ajoutée en cours de chantier
+**Constaté** : la note de P1b
+**Dépend de** : `P1`.
+**Critère de fin**
+<!-- /FICHE -->
+<!-- FICHE:P1c -->
+## P1c [ ] — Une deuxième fiche ajoutée
+**Dépend de** : `P1`.
+**Critère de fin**
+<!-- /FICHE -->
+<!-- FICHE:P2 -->
+## P2 [ ] — Brancher
+**Dépend de** : `P1c`.
+**Critère de fin**
+<!-- /FICHE -->
+"""
+
+
+def test_une_fiche_a_lettre_finale_garde_sa_note():
+    """Un id à lettre finale (`P1b`, comme `SEG4b`) est une fiche : sa ligne Constaté est sa note, jamais celle de la
+    fiche d'avant (nuit SEG du 2026-11-12 : la note de SEG4b s'affichait sous SEG3)."""
+    import noyau.notes
+    with tempfile.TemporaryDirectory() as t:
+        fiches = os.path.join(t, "p.md")
+        ecrire(fiches, FICHES_LETTRE)
+        assert noyau.notes.constates(fiches) == {"P1": "test_a vert, 3 lignes", "P1b": "la note de P1b"}
+
+
+def test_une_dependance_a_lettre_finale_compte():
+    """`Dépend de : P1c` nomme la fiche `P1c` : elle n'est pas lue comme rien (nuit SEG du 2026-11-12 : SEG6, qui
+    dépend de SEG5b et SEG9, s'affichait « Après SEG9 » seul)."""
+    import noyau.page
+    assert noyau.page.apercu_fiches(FICHES_LETTRE.splitlines())["P2"][0] == ["P1c"]

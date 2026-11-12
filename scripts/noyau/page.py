@@ -203,7 +203,7 @@ def fiches_du_fichier(lignes):
     return rendu
 
 
-DEPEND = re.compile(r"\b[A-Z]{1,3}[0-9]+\b")
+DEPEND = re.compile(r"\b[A-Z]{1,3}[0-9]+[a-z]?\b")   # `SEG4b` compris : sans la lettre, \b la perdait (nuit SEG, 2026-11-12)
 PLAGE_DEPEND = re.compile(r"\b([A-Z]{1,3})([0-9]+)`?\s+à\s+`?\1([0-9]+)\b")
 VISUEL = '<span class="badge visuel" title="Critère de fin visuel : il faudra regarder">visuel</span>'
 

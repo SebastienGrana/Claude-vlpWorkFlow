@@ -154,12 +154,15 @@ def page_du_fichier(fichier):
 def constates(fichier):
     """{fiche: texte} des lignes `**Constaté** : <texte>` du fichier de fiches — la note que `vlp.py fin` écrit à
     chaque fiche faite (ALG4), que la page relit à sa régénération, à la clôture (ALG5) ; une fiche sans ligne
-    n'y est pas. Une `--note` donnée à `page` passe devant."""
+    n'y est pas. Une `--note` donnée à `page` passe devant. Un id à lettre finale (`SEG4b`) est une fiche ; un autre
+    titre `## ` ferme la fiche en cours : sa ligne Constaté ne retombe jamais sur la fiche d'avant (nuit SEG, 2026-11-12)."""
     notes, fiche = {}, None
     for l in lignes_de(fichier):
-        m = re.match(r"## ([A-Z]{1,3}\d+) \[", l)
+        m = re.match(r"## ([A-Z]{1,3}\d+[a-z]?) \[", l)
         if m:
             fiche = m.group(1)
+        elif l.startswith("## "):
+            fiche = None
         elif fiche and l.startswith("**Constaté** : "):
             notes[fiche] = l[len("**Constaté** : "):].strip()
     return notes
