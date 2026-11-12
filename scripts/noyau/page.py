@@ -433,7 +433,7 @@ def heures_commits(fichier, ids, pourquoi=None, clos=False, titres=None):
 def heures_du_log(texte, ids, pourquoi, clos=False, titres=None):
     """La décision de `heures_commits`, sur `texte`, la sortie de `git log --format="%at %s"` : mêmes rendus, même
     `pourquoi`. Ne lance rien (REF46)."""
-    nomme = re.compile(r"(?<![A-Za-z0-9])(?:%s)[0-9]*(?![A-Za-z0-9])"
+    nomme = re.compile(r"(?<![A-Za-z0-9])(?:%s)(?:[0-9]+[a-z]?)?(?![A-Za-z0-9])"   # `SEG4b` compris (`ID_FICHE`)
                        % "|".join(sorted({coeur.lettre_de(i) for i in ids})))
     coupe = re.compile(r"(?<![A-Za-z0-9])(?:%s) :" % "|".join(sorted({coeur.lettre_de(i) for i in ids})))
     commits, au_titre, prefixe, autres, coupes, etapes = {}, {}, [], [], [], set()

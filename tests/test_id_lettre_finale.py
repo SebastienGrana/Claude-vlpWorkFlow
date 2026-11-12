@@ -52,3 +52,13 @@ def test_les_plages_acceptent_une_borne_a_lettre_finale():
     assert groupe(noyau.niveau.PLAGE_TEXTE.search("fiches SEG1–SEG4c"), 0) == "fiches SEG1–SEG4c"
     assert groupe(noyau.clos.PLAGE_CLOS.search('<td class="mono">SEG1–SEG4c</td>')) == "SEG"
     assert groupe(noyau.clos.PLAGE_INDEX.match("| `20` | x | `SEG1..SEG4c` |"), 2) == "SEG"
+
+
+def test_un_commit_qui_ne_nomme_qu_une_fiche_a_lettre_finale_nomme_le_chantier():
+    """`SEG4b (en cours) : …` nomme le chantier SEG : son heure borne le chantier comme celle de `SEG4 (en cours)`."""
+    texte = "200 SEG4b (en cours) : les nids\n100 Autre chose\n"
+    rendu = noyau.page.heures_du_log(texte, ["SEG4b"], [])
+    assert rendu is not None
+    _, nomment, autres, _ = rendu
+    assert 200 in nomment
+    assert 200 not in autres

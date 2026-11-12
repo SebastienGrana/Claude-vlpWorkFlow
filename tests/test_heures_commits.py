@@ -33,7 +33,7 @@ T0 = 1790000000
 DECOUPE_TETE = ("DÉCOUPE aux commits de fiche — une fiche va du commit d'avant au sien, "
                 "un sous-agent compte à la fiche que nomme son prompt, sinon à son départ\n")
 SUJETS_Q = [(100, "Chantier Q ouvert : cadré"), (300, "Q1 : Créer"), (600, "Q2 : Brancher"),
-            (800, "Chantier Q clos : fini"), (900, "Autre : QA et Q12x ne nomment pas le préfixe")]
+            (800, "Chantier Q clos : fini"), (900, "Autre : QA et Q12xy ne nomment pas le préfixe")]
 ATTENDU = (DECOUPE_TETE +
            "Q1 · ≈200,0k (200 000) · 2 tours · 1,00 $ = session ≈200,0k (200 000) · 2 tours · 1,00 $ + 0 sous-agent\n"
            "Q2 · ≈300,0k (300 000) · 3 tours · 1,50 $ = session ≈100,0k (100 000) · 1 tours · 0,50 $"
