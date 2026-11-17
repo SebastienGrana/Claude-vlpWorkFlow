@@ -13,7 +13,7 @@ from noyau import etat
 from noyau.carte import trouver
 from noyau.commun import ALIAS, ID_FICHE, TITRE, lignes_de, lire
 from noyau.facade import coeur
-from noyau.fiches import CRITERE_VISUEL, croisent, modeles_efforts
+from noyau.fiches import CRITERE_VISUEL, abandonnees, croisent, modeles_efforts
 from noyau.sessions import essais_de, heure_clore, sessions_de, sessions_entete
 
 # Ce que la façade ré-exporte : les noms d'avant la découpe (photo de `tests/test_noms_publics.py`). La décision
@@ -255,8 +255,8 @@ def pretes(fiches_, etat, apercu):
     avec celles déjà prises — une prête sans ligne `**Fichiers**` n'en est pas : on ne sait pas ce
     qu'elle touche. Moins de deux : aucune. Les fichiers sont ceux que la fiche annonce, pas ceux
     qu'elle touchera — le repère prévient, il ne garantit rien (chantier BTN)."""
-    attend = {i: [d for d in apercu.get(i, ([],))[0] if etat.get(d, "faite") not in FINIES]
-              for i, _, _, _ in fiches_ if etat[i] not in FINIES}
+    attend = {i: [d for d in apercu.get(i, ([],))[0] if etat.get(d, "faite") not in ("faite", "abandonnee")]
+              for i, _, _, _ in fiches_ if etat[i] not in ("faite", "abandonnee")}
     ensemble, pris = [], set()
     for i, _, _, _ in fiches_:
         touche = apercu.get(i, ([], False, set()))[2]
@@ -363,26 +363,9 @@ def lis_page(html):
     return vues
 
 
-ABANDON = re.compile(r"^\*\*Constaté\*\* : abandonnée\b")
-FINIES = ("faite", "abandonnee")   # les états d'une fiche cochée : plus rien à attendre d'elle
-
-
-def abandonnees(lignes):
-    """Les codes des fiches dont une ligne commence par « **Constaté** : abandonnée » — cochées sans rien livrer
-    (FIG3, 2026-11-17) ; un ensemble vide sans elles."""
-    rendu, ident = set(), None
-    for l in lignes:
-        if TITRE.match(l):
-            ident = l.split()[1]
-        elif ident and ABANDON.match(l):
-            rendu.add(ident)
-    return rendu
-
-
 def etats(fiches_, anciens, abandon=()):
-    """{id: faite | abandonnee | encours | bloquee | None} — le fichier a raison ; seul
-    `bloquee` vient de la page, et ne survit pas à la case cochée. Une fiche cochée de `abandon`
-    (`abandonnees`) est `abandonnee`, pas `faite`."""
+    """{id: faite | abandonnee | encours | bloquee | None} — le fichier a raison ; seul `bloquee` vient de la page, et
+    ne survit pas à la case cochée ; une fiche cochée d'`abandon` (`abandonnees`) est `abandonnee`, pas `faite`."""
     rendu, premiere = {}, True
     for ident, _, coche, _ in fiches_:
         if coche:
@@ -993,19 +976,17 @@ def regenerer(html, fichier, parts, date, gardes, forme=False):
 
 
 def verifier_page(html, fichier, sortie):
-    lignes = lignes_de(fichier)
-    fiches_ = fiches_du_fichier(lignes)
+    """Écrit les écarts d'état et d'avancement entre la page et le fichier ; rend 1 s'il y en a, sinon 0."""
+    fiches_ = fiches_du_fichier(lignes_de(fichier))
     anciens = lis_page(html)
-    etat = etats(fiches_, anciens, abandonnees(lignes))
+    etat = etats(fiches_, anciens, abandonnees(lignes_de(fichier)))
     ecarts = []
     for ident, _, _, _ in fiches_:
         if ident not in anciens:
             ecarts.append("%s : absente de la page" % ident)
         elif anciens[ident][0] != etat[ident]:
             ecarts.append("%s : page %s, fichier %s" % (ident, anciens[ident][0] or "à faire", etat[ident] or "à faire"))
-    for ident in anciens:
-        if ident not in etat:
-            ecarts.append("%s : sur la page, absente du fichier" % ident)
+    ecarts += ["%s : sur la page, absente du fichier" % i for i in anciens if i not in etat]
     avancement = re.search(r'<div class="avancement">(.*?)</div>', html, re.S)
     spans = re.findall(r'<span(?: data-etat="(\w+)")?></span>', avancement.group(1)) if avancement else []
     attendu = [etat[f[0]] or "" for f in fiches_]

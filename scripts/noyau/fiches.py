@@ -627,5 +627,20 @@ def rapport(chemin, lignes, sortie):
     return len(ecarts)
 
 
+ABANDON = re.compile(r"^\*\*Constaté\*\* : abandonnée\b")
+
+
+def abandonnees(lignes):
+    """Les codes des fiches dont une ligne commence par « **Constaté** : abandonnée » — cochées sans rien livrer
+    (FIG3, 2026-11-17) ; un ensemble vide sans elles."""
+    rendu, ident = set(), None
+    for l in lignes:
+        if TITRE.match(l):
+            ident = l.split()[1]
+        elif ident and ABANDON.match(l):
+            rendu.add(ident)
+    return rendu
+
+
 # En fin de fichier : `relecture` importe des noms d'ici, qui doivent exister avant lui (REF47).
 import noyau.relecture
