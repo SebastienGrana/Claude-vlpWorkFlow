@@ -29,9 +29,15 @@ MOTIF_UN = "[1]"
 
 def pytest_dans(dossier, *args):
     """Lancer pytest dans `dossier` en sous-processus, avec les aides du kit importables et sans relance sous
-    `coverage` (`VLP_COUVERTURE=1`) ; rendre (code de sortie, sortie entière décodée en UTF-8, remplacement compris)."""
-    env = {k: v for k, v in os.environ.items() if k not in ("VLP_TOUS_ECARTS", "VLP_PONT")}
-    env.update(VLP_COUVERTURE="1", PYTHONIOENCODING="utf-8", PYTHONPATH=os.pathsep.join([TESTS, SCRIPTS]))
+    `coverage` (`VLP_COUVERTURE=1`), ni les variables d'un processus de `-n` : `PYTEST_XDIST_WORKER` hérité tait le
+    rapport de syrupy (mesuré le 2026-11-17 : code 0 au lieu de 1) ; rendre (code de sortie, sortie entière décodée en
+    UTF-8, remplacement compris)."""
+    env = {k: v for k, v in os.environ.items()
+           if k not in ("VLP_TOUS_ECARTS", "VLP_PONT") and not k.startswith("PYTEST_XDIST_")}
+    # Un `GIT_DIR` qui n'existe pas : une « suite entière » verte du petit projet ne note pas la suite verte du vrai
+    # kit (`noter_suite_verte(mod.etat.KIT)`, vu le 2026-11-17 à 12:58) — `chemin_suite_verte` ne trouve aucun dépôt.
+    env.update(VLP_COUVERTURE="1", PYTHONIOENCODING="utf-8", PYTHONPATH=os.pathsep.join([TESTS, SCRIPTS]),
+               GIT_DIR=os.path.join(str(dossier), "pas-de-depot.git"))
     fini = subprocess.run([sys.executable, "-m", "pytest", "-p", "no:cacheprovider", "--rootdir", str(dossier), *args],
                           cwd=dossier, env=env, capture_output=True, timeout=300)
     return fini.returncode, (fini.stdout + fini.stderr).decode("utf-8", errors="replace")
