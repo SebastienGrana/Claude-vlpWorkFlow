@@ -121,7 +121,7 @@ def pytest_configure(config):
                                   mod.empreinte_kit(mod.etat.KIT))
         if code is not None:
             pytest.exit("suite jouée sous coverage, ci-dessus", returncode=code)
-    config.vlp_empreinte = mod.empreinte_kit(mod.etat.KIT)
+    config.vlp_empreinte = mod.empreinte_kit(str(config.rootpath))
 
 
 def pytest_collection_modifyitems(config, items):
@@ -158,14 +158,16 @@ ECARTS = []     # les écarts de la session du contrôleur, dans l'ordre
 
 def pytest_sessionfinish(session, exitstatus):
     """Sur le contrôleur : `--seul` sans test → sort 1 ; la suite entière verte → son empreinte de départ notée,
-    celle que `cocher` retrouve (VIT11)."""
+    celle que `cocher` retrouve (VIT11) — sous la racine de la session pytest, le projet réellement lancé : un petit
+    projet au `conftest.py` copié ne note plus la suite verte du kit dont il importe les aides (FIG2) ; hors dépôt,
+    rien."""
     config = session.config
     if not controleur(config):
         return
     if config.vlp_aucun:
         session.exitstatus = 1
     elif exitstatus == 0 and suite_entiere(config) and hasattr(config, "vlp_empreinte"):
-        mod.noter_suite_verte(mod.etat.KIT, config.vlp_empreinte)
+        mod.noter_suite_verte(str(config.rootpath), config.vlp_empreinte)
     config.vlp_fin = session.exitstatus
 
 
