@@ -234,7 +234,7 @@ def test_figer_head_cas_du_refus(tmp_path, init_git):
     assert remplace(t, trans, a, "5 == 5", "6 == 6") == 0, "figer : la ligne de l'ajout pur se corrige"
     assert remplace(t, trans, a, "1 == 1\n    assert 5 == 5", "5 == 5") == 2, (
         "figer : ajout pur puis remplacement qui mord sur HEAD")
-    assert remplace(t, trans, a, "    assert 1 == 1\n    assert 1", "x", ) == 2, "figer : un passage introuvable"
+    assert remplace(t, trans, a, "    assert 1 == 1\n    assert 1", "x") == 2, "figer : un passage introuvable"
 
     autre = os.path.join(t, "tests", "TEST_A.py")
     if os.path.isfile(autre):   # disque insensible à la casse (Windows)
