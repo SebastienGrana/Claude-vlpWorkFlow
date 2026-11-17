@@ -477,9 +477,26 @@ SEUIL_INDEX = 80
 CLOS_GARDES = 5  # chantiers clos gardés dans « Où on en est » de CLAUDE.md
 
 
-def valider_lignes(lignes):
+def tests_sans_permission(corps, racine):
+    """Les tests existants que nomme la ligne **Fichiers** de `corps` (les lignes d'une fiche), triés, si la fiche ne
+    porte pas de ligne `**Tests** : modifiés — …` (`TESTS_DECLARES`) ; [] sinon, ou sans `racine`. Test : `est_test` ;
+    existant comme pour `figer` (FIG1) — présent dans `HEAD` (`version_head`) ; Git illisible, présent sur le disque
+    sous `racine`. Un test que la fiche écrira, ou a écrit sans le commiter, n'y est pas (FIG4)."""
+    from noyau import hooks
+    if racine is None or any(hooks.TESTS_DECLARES.match(l) for l in corps):
+        return []
+    rendu = []
+    for nom in sorted(n for n in noyau.relecture.noms_fichiers(corps) if hooks.est_test(n)):
+        statut, _texte = hooks.version_head(racine, nom)
+        if statut == "lu" or (statut is None and os.path.isfile(os.path.join(racine, nom))):
+            rendu.append(nom)
+    return rendu
+
+
+def valider_lignes(lignes, racine=None):
     """(écarts, avertissements, nombre de fiches, lignes du socle) ; un écart
-    ou un avertissement est un couple (numéro de ligne, message)."""
+    ou un avertissement est un couple (numéro de ligne, message). Avec `racine`, le projet du fichier, une fiche qui
+    nomme un test existant sans permission avertit aussi (`tests_sans_permission`, FIG4)."""
     ecarts, avert = [], []
     blocs = []          # (id du marqueur, début, fin) — indices 0
     ouvert = None       # (id, début)
@@ -556,7 +573,20 @@ def valider_lignes(lignes):
         if len(corps) > SEUIL_FICHE:
             avert.append((debut + 1, "fiche %s : %d lignes, au-delà du seuil de vlp.py (%d)"
                           % (ident, len(corps), SEUIL_FICHE)))
-    return sorted(ecarts), avert, len(vus), len(socle)
+    return sorted(ecarts), avert + avertir_tests(lignes, fiches_, racine), len(vus), len(socle)
+
+
+def avertir_tests(lignes, fiches_, racine):
+    """Les avertissements (numéro de la ligne **Fichiers**, message) des tests existants nommés sans permission
+    (`tests_sans_permission`), fiche par fiche — `fiches_` : (code, début, fin), indices 0 dans `lignes`. [] sans
+    `racine`, ou sans tel test (FIG4)."""
+    rendu = []
+    for ident, debut, fin in fiches_:
+        corps = lignes[debut:fin + 1]
+        ligne = next((j for j, l in enumerate(corps, debut + 1) if l.startswith("**Fichiers**")), debut + 1)
+        rendu += [(ligne, "fiche %s : %s est un test existant, sans ligne « **Tests** : modifiés — <raison> » — figer "
+                   "n'y laissera qu'un ajout pur" % (ident, nom)) for nom in tests_sans_permission(corps, racine)]
+    return rendu
 
 
 def cmd_valider(chemins, sortie, plan=False):
@@ -584,8 +614,10 @@ def cmd_valider_seul(chemins, sortie):
 
 
 def rapport(chemin, lignes, sortie):
-    """Écrit les écarts, les avertissements et le bilan ; rend le nombre d'écarts."""
-    ecarts, avert, n, socle = valider_lignes(lignes)
+    """Écrit les écarts, les avertissements et le bilan ; rend le nombre d'écarts. Les tests nommés se jugent au
+    projet équipé le plus proche de `chemin` (`trouver`) ; hors d'un projet, sans ce contrôle."""
+    from noyau.carte import trouver
+    ecarts, avert, n, socle = valider_lignes(lignes, trouver(os.path.dirname(os.path.abspath(chemin))))
     for ligne, message in ecarts:
         sortie.write("%s:%d: %s\n" % (chemin, ligne, message))
     for ligne, message in avert:
