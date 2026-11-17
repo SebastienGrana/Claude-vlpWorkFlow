@@ -174,3 +174,84 @@ def test_figer_sous_agent(tmp_path, init_git):
     change = {"file_path": os.path.join(t, "tests", "test_a.py"), "old_string": "1 == 1", "new_string": "2 == 2"}
     assert figer(t, "Edit", change, trans, agent_id="a1", agent_type="vlp:fiche")[0] == 2, (
         "figer : le sous-agent qui joue F1 ne modifie pas un test existant")
+
+
+TEST_B = "\n\ndef test_b():\n    assert 3 == 3\n"
+
+
+def en_fiche(tmp_path, init_git):
+    """Le projet commité, et la transcription d'un `/vlp:tache F1` : rend (dossier, transcription, test_a.py)."""
+    t = projet(tmp_path, init_git)
+    trans = str(tmp_path / "s.jsonl")
+    ecrire(trans, invocation("F1") + "\n")
+    return t, trans, os.path.join(t, "tests", "test_a.py")
+
+
+def remplace(t, trans, chemin, old, new="X"):
+    """Le code de `figer` sur un `Edit` de `chemin` qui remplace `old` par `new`."""
+    return figer(t, "Edit", {"file_path": chemin, "old_string": old, "new_string": new}, trans)[0]
+
+
+def test_figer_libere_test_absent_de_head(tmp_path, init_git):
+    """FIG1 : un test écrit par la fiche — sur le disque, mais absent de `HEAD`, suivi ou non — se corrige."""
+    t, trans, _a = en_fiche(tmp_path, init_git)
+    neuf = os.path.join(t, "tests", "test_neuf.py")
+    ecrire(neuf, TEST_A)
+    assert remplace(t, trans, neuf, "1 == 1", "2 == 2") == 0, "figer : un test absent de HEAD se corrige (Edit)"
+    assert figer(t, "Write", {"file_path": neuf, "content": "x\n"}, trans)[0] == 0, (
+        "figer : un test absent de HEAD se réécrit (Write)")
+    git(t, "add", "--", "tests/test_neuf.py")
+    assert remplace(t, trans, neuf, "1 == 1", "2 == 2") == 0, "figer : ajouté à l'index, pas commité : libre"
+
+
+def test_figer_libere_passage_absent_de_head(tmp_path, init_git):
+    """FIG1 : dans un test commité, un passage que la fiche a ajouté — absent de la version `HEAD` — se corrige."""
+    t, trans, a = en_fiche(tmp_path, init_git)
+    ecrire(a, TEST_A + TEST_B)
+    assert remplace(t, trans, a, "3 == 3", "4 == 4") == 0, "figer : un passage absent de la version HEAD se corrige"
+    assert remplace(t, trans, a, "def test_b():\n    assert 3 == 3\n", "") == 0, (
+        "figer : une fonction entière écrite par la fiche se retire")
+
+
+def test_figer_garde_passage_de_head(tmp_path, init_git):
+    """FIG1 : un passage présent dans la version `HEAD` reste figé, même dans un fichier que la fiche a changé."""
+    t, trans, a = en_fiche(tmp_path, init_git)
+    ecrire(a, TEST_A + TEST_B)
+    assert remplace(t, trans, a, "1 == 1", "2 == 2") == 2, "figer : un passage de HEAD reste figé"
+    assert figer(t, "Write", {"file_path": a, "content": "x\n"}, trans)[0] == 2, (
+        "figer : réécrire un test présent dans HEAD reste refusé")
+
+
+def test_figer_head_cas_du_refus(tmp_path, init_git):
+    """FIG1, les quatre entrées du refus de la relecture : passage à cheval sur une ligne de `HEAD`, ajout pur puis
+    remplacement, casse du chemin, version `HEAD` qui ne se décode pas — et Git illisible : tout reste figé."""
+    t, trans, a = en_fiche(tmp_path, init_git)
+    ecrire(a, TEST_A + TEST_B)
+    assert remplace(t, trans, a, "1\n\n\ndef test_b") == 2, "figer : un passage à cheval sur une ligne de HEAD"
+    assert remplace(t, trans, a, "\n\n\ndef test_b") == 2, "figer : le saut de la dernière ligne de HEAD en est"
+
+    ecrire(a, TEST_A.replace("1 == 1\n", "1 == 1\n    assert 5 == 5\n"))   # l'ajout pur, déjà joué
+    assert remplace(t, trans, a, "5 == 5", "6 == 6") == 0, "figer : la ligne de l'ajout pur se corrige"
+    assert remplace(t, trans, a, "1 == 1\n    assert 5 == 5", "5 == 5") == 2, (
+        "figer : ajout pur puis remplacement qui mord sur HEAD")
+    assert remplace(t, trans, a, "    assert 1 == 1\n    assert 1", "x", ) == 2, "figer : un passage introuvable"
+
+    autre = os.path.join(t, "tests", "TEST_A.py")
+    if os.path.isfile(autre):   # disque insensible à la casse (Windows)
+        assert remplace(t, trans, autre, "1 == 1") == 2, "figer : un chemin d'une autre casse désigne le même test"
+        assert remplace(t, trans, autre, "5 == 5") == 0, "figer : … et sa version HEAD se lit"
+
+    latin = os.path.join(t, "tests", "test_l.py")
+    with open(latin, "wb") as f:
+        f.write("# café\n".encode("latin-1") + TEST_A.encode())
+    git(t, "add", "-A")
+    git(t, "commit", "-q", "-m", "latin")
+    ecrire(latin, "# café\n" + TEST_A + TEST_B)
+    assert remplace(t, trans, latin, "3 == 3") == 2, "figer : une version HEAD qui ne se décode pas, figé"
+
+    sans = str(tmp_path / "sans")
+    ecrire(os.path.join(sans, "CHANTIER.md"), "# Chantier courant\n\n- **contexte** : .\n")
+    ecrire(os.path.join(sans, "fiches.md"), fiches())
+    ecrire(os.path.join(sans, "tests", "test_a.py"), TEST_A + TEST_B)
+    assert remplace(sans, trans, os.path.join(sans, "tests", "test_a.py"), "3 == 3") == 2, (
+        "figer : sans Git, rien ne se lit de HEAD, figé")

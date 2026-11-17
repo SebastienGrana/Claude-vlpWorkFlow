@@ -162,23 +162,95 @@ def ajout_pur(entree):
     return isinstance(old, str) and isinstance(new, str) and old in new
 
 
+def version_head(racine, rel):
+    """La version `HEAD` du fichier `rel` (relatif à `racine`, barres obliques) : `("lu", texte)` — fins de ligne
+    ramenées à `\\n` —, `("absent", None)` si `HEAD` ne le suit pas, ou `(None, None)` si rien ne se lit : Git, un dépôt
+    sans commit, une version qui ne se décode pas en UTF-8, ou deux noms de `HEAD` qui ne diffèrent que par la casse.
+
+    Le chemin se cherche dans `HEAD` sans tenir compte de la casse (sous Windows, `TEST_A.py` désigne `test_a.py`),
+    puis se lit sous le nom que Git suit ; ses octets se décodent ici, sans remplacement silencieux (FIG1)."""
+    import subprocess
+    rc, prefixe = noyau.relecture.git_texte(["rev-parse", "--show-prefix"], racine)
+    rc2, noms = noyau.relecture.git_texte(["ls-tree", "-r", "-z", "--name-only", "--full-tree", "HEAD"], racine) \
+        if rc == 0 else (rc, "")
+    if rc2 != 0:
+        return None, None
+    voulu = prefixe.strip() + rel
+    pareils = [n for n in noms.split("\0") if n.casefold() == voulu.casefold()]
+    nom = voulu if voulu in pareils else (pareils[0] if len(pareils) == 1 else None)
+    if not pareils:
+        return "absent", None
+    try:
+        r = subprocess.run([etat.GIT, "show", "HEAD:" + nom], cwd=racine, capture_output=True, timeout=120,
+                           check=False) if nom else None
+        texte = r.stdout.decode("utf-8") if r is not None and r.returncode == 0 else None
+    except (OSError, subprocess.SubprocessError, UnicodeDecodeError):
+        texte = None
+    return ("lu", texte.replace("\r\n", "\n")) if texte is not None else (None, None)
+
+
+def lignes_de_head(head, disque):
+    """Les numéros (base 0) des lignes de `disque` que le diff rattache à `head` (deux listes de lignes) : les lignes
+    communes de `difflib`, sans `autojunk` — qui écarterait les lignes fréquentes, vides comprises, et les croirait
+    neuves. Une ligne neuve identique à une ligne de `HEAD` peut lui être rattachée : elle reste alors figée."""
+    import difflib
+    blocs = difflib.SequenceMatcher(None, head, disque, autojunk=False).get_matching_blocks()
+    return {b + i for _a, b, n in blocs for i in range(n)}
+
+
+def ecrit_par_la_fiche(racine, rel, absolu, ti):
+    """Vrai si l'outil `ti` ne touche que ce que la fiche a écrit (FIG1, choix du 2026-11-17) : un fichier absent de
+    `HEAD`, ou un `Edit` dont chaque occurrence de l'`old_string` dans le fichier `absolu` ne recouvre, même d'un
+    caractère, aucune ligne que le diff rattache à la version `HEAD`. Faux sinon, et dès que quelque chose ne se lit
+    pas (`version_head`, le fichier sur le disque en UTF-8) ou qu'un `old_string` est vide ou introuvable ; un `Write`
+    sur un fichier de `HEAD` est faux."""
+    import bisect
+    statut, head = version_head(racine, rel)
+    if statut != "lu" or head is None:
+        return statut == "absent"
+    old = ti.get("old_string")
+    try:
+        with open(absolu, encoding="utf-8", newline="") as f:
+            disque = f.read().replace("\r\n", "\n")
+    except (OSError, UnicodeDecodeError):
+        return False
+    old = old.replace("\r\n", "\n") if isinstance(old, str) else ""
+    lignes = disque.split("\n")
+    debuts = [0]
+    for ligne in lignes[:-1]:
+        debuts.append(debuts[-1] + len(ligne) + 1)
+    figees = lignes_de_head(head.split("\n"), lignes)
+    pos = disque.find(old) if old else -1
+    if pos < 0:
+        return False
+    while pos >= 0:
+        de, a = bisect.bisect_right(debuts, pos) - 1, bisect.bisect_right(debuts, pos + len(old) - 1) - 1
+        if figees.intersection(range(de, a + 1)):
+            return False
+        pos = disque.find(old, pos + len(old))
+    return True
+
+
 def cible_test(d):
     """(racine, chemin relatif) du test existant que l'entrée de hook `d` veut modifier, ou None : pas d'outil lisible,
-    fichier neuf, ajout pur, hors d'un projet équipé, ou pas un test. La racine est le projet équipé le plus proche du
-    fichier visé, pas de `cwd` : un test d'un worktree écrit depuis le dossier principal se juge au worktree (REF22)."""
+    fichier absent du disque, ajout pur, hors d'un projet équipé, pas un test, ou ce que la fiche a écrit elle-même —
+    test absent de `HEAD`, passage remplacé qui ne recouvre aucune ligne de la version `HEAD` (`ecrit_par_la_fiche`,
+    FIG1) ; Git ou `HEAD` illisible : le test reste existant. La racine est le projet équipé le plus proche du fichier
+    visé, pas de `cwd` : un test d'un worktree écrit depuis le dossier principal se juge au worktree (REF22)."""
     ti = d.get("tool_input") if isinstance(d, dict) else None
     chemin = ti.get("file_path") if isinstance(ti, dict) else None
     cwd = d["cwd"] if isinstance(d.get("cwd"), str) else os.getcwd()
     if not isinstance(chemin, str) or not os.path.isfile(os.path.join(cwd, chemin)) or ajout_pur(ti):
         return None
-    racine = trouver(os.path.dirname(os.path.join(cwd, chemin)))
+    absolu = os.path.join(cwd, chemin)
+    racine = trouver(os.path.dirname(absolu))
     if racine is None:
         return None
     try:
-        rel = os.path.relpath(os.path.join(cwd, chemin), racine).replace(os.sep, "/")
+        rel = os.path.relpath(absolu, racine).replace(os.sep, "/")
     except ValueError:   # un autre disque que le projet
         return None
-    return (racine, rel) if est_test(rel) else None
+    return None if not est_test(rel) or ecrit_par_la_fiche(racine, rel, absolu, ti) else (racine, rel)
 
 
 def lignes_transcription(d):
