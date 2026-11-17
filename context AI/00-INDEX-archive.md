@@ -117,3 +117,4 @@ QUAND LIRE : on relit un chantier clos ; l'index n'en garde qu'une ligne qui ren
 | `124-cpf.md` | on relit le socle du chantier CPF — **clos** « Chaque sous-agent compté à sa fiche », `CPF1..CPF1` |
 | `126-alg.md` | on relit le socle du chantier ALG — **clos** « Alléger le registre et la durée des tests », `ALG1..ALG6` |
 | `127-rou.md` | on relit le socle du chantier ROU — **clos** « Un rouge qui compte juste », `ROU1..ROU2` |
+| `128-fig.md` | on relit le socle du chantier FIG — **clos** « Les garde-fous de fin de fiche », `FIG1..FIG4` |
