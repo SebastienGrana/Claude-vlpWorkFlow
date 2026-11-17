@@ -8,6 +8,7 @@
 import os
 import shutil
 import subprocess
+import sys
 
 import pytest
 from aides import mod
@@ -136,13 +137,16 @@ def pytest_collection_modifyitems(config, items):
 
 def pytest_runtest_logreport(report):
     """Un test rouge : une ligne `ÉCART: <libellé>`, la première de son message d'erreur — le libellé que porte son
-    `assert` (REF5) — sitôt connu, pour que `vlp.py mutant --attendu` s'arrête dessus."""
+    `assert` (REF5) — sitôt connu, pour que `vlp.py mutant --attendu` s'arrête dessus. Un caractère que la console
+    ne sait pas écrire (« → » en cp1252, sous `-n`) devient « ? » : la ligne s'écrit, pytest ne plante pas (ROU1)."""
     if report.failed:
         crash = getattr(report.longrepr, "reprcrash", None)
         message = (getattr(crash, "message", "") or str(report.longrepr)).split("\n")[0]
         libelle = message.split(": ", 1)[1] if message.startswith("AssertionError: ") else message
         ECARTS.append(libelle)
-        print("\nÉCART: %s — %s" % (libelle, report.nodeid), flush=True)
+        ligne = "\nÉCART: %s — %s" % (libelle, report.nodeid)
+        encodage = getattr(sys.stdout, "encoding", None) or "utf-8"
+        print(ligne.encode(encodage, errors="replace").decode(encodage), flush=True)
 
 
 ECARTS = []     # les écarts de la session du contrôleur, dans l'ordre
