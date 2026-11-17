@@ -106,9 +106,13 @@ def suite_entiere(config):
 def pytest_configure(config):
     """La suite entière se relance sous `coverage` (`couverture.mesurer`), puis sort de son code : la mesure réunit
     les processus de `-n` (REF8, vérifié le 2026-10-18 : même couverture en série et sous `-n 4`). Déjà mesurée, ou
-    sans `uv` : elle tourne telle quelle, et note son empreinte de départ pour la suite verte (VIT11)."""
+    sans `uv` : elle tourne telle quelle, et note son empreinte de départ pour la suite verte (VIT11). Hors de la suite
+    entière, une photo laissée de côté n'est qu'un avertissement de syrupy (`--snapshot-warn-unused`) : un lancement
+    filtré vert reste vert (ROU2) ; la suite entière garde le rouge d'une photo orpheline."""
     config.vlp_ecarts = []
     config.vlp_aucun = False
+    if not suite_entiere(config):
+        config.option.warn_unused_snapshots = True
     if not (controleur(config) and suite_entiere(config)):
         return
     import couverture
