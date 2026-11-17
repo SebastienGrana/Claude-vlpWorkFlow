@@ -1,0 +1,72 @@
+<meta charset="utf-8">
+<title>vlp — Pages et enchaînement : un chantier reconnu à son code</title>
+<!--
+  GABARIT — artefact d'un chantier. Publié par /chantier à l'ouverture,
+  mis à jour par /tache à chaque fiche. Remplace les <…> et ne renomme pas
+  les marqueurs `ZONE:…` : les commandes les cherchent tels quels.
+
+  Convention de coût — posée ici, référencée (jamais recopiée) par
+  artefact-feuille-de-route.html, tache.md et cloture.md : un nombre < 1000
+  s'affiche tel quel ; au-delà, "≈<arrondi 1 décimale><k|M> (<compte brut>)"
+  — virgule française, k = mille, M = million. Le compte brut reste toujours
+  visible à côté de l'arrondi.
+-->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="vlp.css">
+
+<div class="page">
+  <header>
+    <div class="eyebrow">vlp · fiches PEN1–PEN2 · <a href="https://claude.ai/artifact/YWDny8kjubq9DhdP5rbPxA">la feuille de route</a></div>
+    <h1>Pages et enchaînement : un chantier reconnu à son code</h1>
+    <p>La page d'enchaînement et le badge « en cours » trouvent un chantier par son code : les tests neufs rouges puis verts, et l'archive des clos de Cairn publiée à la clôture.</p>
+    <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
+    <div class="avancement">
+      <span data-etat="encours"></span><span></span>
+    </div>
+    <p class="mono" style="margin-top:.5rem">2 fiches · 0 faite · en cours : PEN1</p>
+  </header>
+
+  <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
+  <section hidden>
+    <h2>Chantier clos le </h2>
+    <div class="bilan">
+      <p></p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Les fiches, dans l'ordre des dépendances</h2>
+    <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
+    <ul class="fiches">
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">PEN1</span></span>
+        <details open><summary><span class="titre">Faire lire à la page d'enchaînement le code d'une ligne, pas ses citations</span><span class="etat">En cours</span></summary>
+        <span class="note">La page d'enchaînement ne prend plus une ligne qui cite un code pour la sienne ; codes_todo rejoint feuille.py. Ne dépend de rien.</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">PEN2</span></span>
+        <details><summary><span class="titre">Poser le badge « en cours » sur la ligne du code du chantier</span><span class="etat">Après PEN1</span></summary>
+        <span class="note">Le badge « en cours » suit le code du chantier, plus un numéro que la TODO de Cairn décale ; matin aussi, si un test le montre. Après PEN1.</span></details></li>
+    </ul>
+    <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
+  </section>
+
+  <!-- ZONE:blocage — publiée quand /tache s'arrête après deux tentatives ; retirée dès que la fiche repasse -->
+  <section hidden>
+    <h2>Arrêt sur blocage</h2>
+    <div class="blocage">
+      <p></p>
+      <pre></pre>
+    </div>
+  </section>
+
+  <section>
+    <h2>Journal des décisions</h2>
+    <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
+    <ul class="journal">
+    </ul>
+  </section>
+
+  <footer>
+    <span>Fichier de fiches : <span class="mono">context AI/129-pen.md</span></span>
+    <span>Mis à jour le <span class="mono">2026-11-18</span></span>
+  </footer>
+</div>
+<script src="vlp.js"></script>
