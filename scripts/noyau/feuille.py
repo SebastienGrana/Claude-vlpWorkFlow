@@ -471,8 +471,9 @@ def liens_pages(html, carte_):
 
 def feuille(projet, html, todo, date):
     """(page régénérée, bilan) : encours, todo et lettres depuis `CHANTIER.md` et le fichier d'état. `todo` donné
-    absent de la TODO lève `ValueError` ; `None`, le badge relu dans la page, ignoré s'il n'y est plus ou s'il vient
-    du gabarit."""
+    absent de la TODO lève `ValueError` ; `None` et un chantier ouvert, la rangée dont le code (`codes_todo`) est
+    celui du chantier — une TODO renumérotée ne déplace plus le badge (PEN2) —, à défaut le badge relu dans la page,
+    ignoré s'il n'y est plus ou s'il vient du gabarit."""
     html = migrer_joints(migrer_style(html))
     carte_ = lignes_de(os.path.join(projet, "CHANTIER.md"))
     etat = champ(carte_, "fichier d'état")
@@ -484,6 +485,7 @@ def feuille(projet, html, todo, date):
     # Sans la lettre du chantier en cours : `feuille` l'ajoute plus bas pour l'affichage, mais un
     # chantier possible qui en dépend n'est pas bloqué par ce seul ajout (chantier FEU).
     lettres_todo = list(lettres)
+    code_courant = None
     if courant:
         lignes = lignes_du_projet(projet, courant, "fichier de fiches courant")
         ids = [l.split()[1] for l in lignes if TITRE.match(l)]
@@ -493,17 +495,20 @@ def feuille(projet, html, todo, date):
         encours = ('    <div class="encours">\n      <div class="titre">%s%s</div>\n'
                    '      <div>Fiches <span class="mono">%s</span>%s</div>\n    </div>\n'
                    % (cellule_md(titre), BADGE_COURS, plage(ids) if ids else "?", lien))
-        if ids and lettre_de(ids[0]) not in lettres:
-            lettres.append(lettre_de(ids[0]))
+        code_courant = lettre_de(ids[0]) if ids else None
+        if code_courant and code_courant not in lettres:
+            lettres.append(code_courant)
     else:
         encours = AUCUN_ENCOURS
     d, f, forme = zone_todo(html)
     rangs = todo_du_fichier(lignes_etat)
     # Le badge relu dans la page ne vaut que pour une rangée encore dans la TODO (REF22 : `clore` vient d'ôter la
     # sienne), jamais sur la carte d'exemple du gabarit, `&lt;nom&gt;` (page absente) ; `--todo` reste une garde.
+    # PEN2 : la rangée du code du chantier d'abord, le numéro relu seulement pour une TODO sans ce code.
     if todo is None and courant and "&lt;nom&gt;" not in html[d:f]:
+        par_code = [r[0] for r, c in zip(rangs, codes_todo(rangs)) if c == code_courant]
         lu = rang_en_cours(html[d:f], forme)
-        todo = lu if lu in [r[0] for r in rangs] else None
+        todo = par_code[0] if par_code else lu if lu in [r[0] for r in rangs] else None
     if todo is not None and todo not in [r[0] for r in rangs]:
         raise ValueError("--todo %s absent de la TODO de %s" % (todo, etat))
     corps = corps_todo(rangs, todo, lettres_todo)

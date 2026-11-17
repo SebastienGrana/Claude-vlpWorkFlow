@@ -542,7 +542,8 @@ def fusionner_branche(projet, branche, message, sortie):
 
     if os.path.isfile(page):
         try:
-            neuf, _ = feuille(projet, lire(page), rang, datetime.date.today().isoformat())
+            # `None` : `feuille` pose le badge sur la rangée du code du chantier, que la branche a pu renuméroter (PEN2)
+            neuf, _ = feuille(projet, lire(page), None, datetime.date.today().isoformat())
             with open(page, "w", encoding="utf-8", newline="") as fh:
                 fh.write(neuf)
             recopier_joints(dossier)
