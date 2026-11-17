@@ -21,9 +21,9 @@
     <p>Une fiche corrige le test qu'elle a écrit, un ancien test reste figé ; le palier sauté de ROU2 est refait puis réparé ; aucun petit projet de test n'écrit plus l'état du vrai kit.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="abandonnee"></span><span data-etat="faite"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">4 fiches · 4 faites</p>
+    <p class="mono" style="margin-top:.5rem">4 fiches · 3 faites</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
@@ -42,18 +42,18 @@
     <ul class="fiches">
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">FIG1</span></span>
         <details><summary><span class="titre">Laisser une fiche corriger le test qu'elle a écrit</span><span class="etat">Faite</span></summary>
-        <span class="note">figer libère un test absent du dernier commit, ou un passage écrit pendant la fiche ; dépend de rien</span></details>
+        <span class="note">4 tests neufs de tests/test_figer.py : avant le code 3 failed, 5 passed ; après 13 passed (avec test_ref22) ; mutant cible_test qui ignore HEAD : ATTRAPÉ 1 écart sur « un test absent de HEAD se corrige » ; pyright 0 errors</span></details>
         <span class="cout mono">≈16,5M (16 465 137) · 100 tours · ? $</span></li>
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">FIG2</span></span>
         <details><summary><span class="titre">Refaire le palier sauté de ROU2, puis le réparer</span><span class="etat">Faite</span></summary>
         <span class="note">un test refait le palier sauté de ROU2, puis la réparation au centre (conftest) ; dépend de rien</span></details>
         <span class="cout mono">≈7,1M (7 077 477) · 66 tours · ? $</span></li>
-      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">FIG3</span></span>
-        <details><summary><span class="titre">Mettre tous les petits projets de test au brouillon</span><span class="etat">Faite</span></summary>
-        <span class="note">tous les petits projets de test au brouillon, seulement si FIG2 ne répare pas au centre ; dépend de FIG2</span></details></li>
+      <li class="fiche" data-etat="abandonnee"><span class="gauche"><span class="id">FIG3</span></span>
+        <details><summary><span class="titre">Mettre tous les petits projets de test au brouillon</span><span class="etat">Abandonnée</span></summary>
+        <span class="note">abandonnée, rien écrit — `FIG2` a réparé au centre (`95479e9`) ; cochée sur l'accord de l'utilisateur (2026-11-17).</span></details></li>
       <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">FIG4</span></span>
         <details><summary><span class="titre">Avertir dès le cadrage d'un test existant sans permission</span><span class="etat">Faite</span></summary>
-        <span class="note">valider avertit d'un test existant nommé sans ligne Tests ; dépend de FIG1</span></details>
+        <span class="note">tests/test_valider_tests.py : avant le code 2 failed, après 2 passed ; mutant rapport sans racine ATTRAPÉ 1 écart ; vlp.py valider context AI/128-fig.md : 1 avertissement, FIG1 (tests/test_figer.py), rien sur FIG2 ; pyright 0 errors, cliquet tenu</span></details>
         <span class="cout mono">≈7,7M (7 663 464) · 37 tours · 2,49 $</span></li>
     </ul>
     <p class="mono cout-hors">Hors fiches : ≈8,7M (8 725 701) · 51 tours · 3,93 $</p>

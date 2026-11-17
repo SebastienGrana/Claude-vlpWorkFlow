@@ -255,8 +255,8 @@ def pretes(fiches_, etat, apercu):
     avec celles déjà prises — une prête sans ligne `**Fichiers**` n'en est pas : on ne sait pas ce
     qu'elle touche. Moins de deux : aucune. Les fichiers sont ceux que la fiche annonce, pas ceux
     qu'elle touchera — le repère prévient, il ne garantit rien (chantier BTN)."""
-    attend = {i: [d for d in apercu.get(i, ([],))[0] if etat.get(d, "faite") != "faite"]
-              for i, _, _, _ in fiches_ if etat[i] != "faite"}
+    attend = {i: [d for d in apercu.get(i, ([],))[0] if etat.get(d, "faite") not in FINIES]
+              for i, _, _, _ in fiches_ if etat[i] not in FINIES}
     ensemble, pris = [], set()
     for i, _, _, _ in fiches_:
         touche = apercu.get(i, ([], False, set()))[2]
@@ -363,13 +363,30 @@ def lis_page(html):
     return vues
 
 
-def etats(fiches_, anciens):
-    """{id: faite | encours | bloquee | None} — le fichier a raison ; seul
-    `bloquee` vient de la page, et ne survit pas à la case cochée."""
+ABANDON = re.compile(r"^\*\*Constaté\*\* : abandonnée\b")
+FINIES = ("faite", "abandonnee")   # les états d'une fiche cochée : plus rien à attendre d'elle
+
+
+def abandonnees(lignes):
+    """Les codes des fiches dont une ligne commence par « **Constaté** : abandonnée » — cochées sans rien livrer
+    (FIG3, 2026-11-17) ; un ensemble vide sans elles."""
+    rendu, ident = set(), None
+    for l in lignes:
+        if TITRE.match(l):
+            ident = l.split()[1]
+        elif ident and ABANDON.match(l):
+            rendu.add(ident)
+    return rendu
+
+
+def etats(fiches_, anciens, abandon=()):
+    """{id: faite | abandonnee | encours | bloquee | None} — le fichier a raison ; seul
+    `bloquee` vient de la page, et ne survit pas à la case cochée. Une fiche cochée de `abandon`
+    (`abandonnees`) est `abandonnee`, pas `faite`."""
     rendu, premiere = {}, True
     for ident, _, coche, _ in fiches_:
         if coche:
-            rendu[ident] = "faite"
+            rendu[ident] = "abandonnee" if ident in abandon else "faite"
         elif premiere:
             rendu[ident] = "bloquee" if anciens.get(ident, (None,))[0] == "bloquee" else "encours"
             premiere = False
@@ -841,7 +858,7 @@ def regenerer(html, fichier, parts, date, gardes, forme=False):
     if not fiches_:
         raise ValueError("aucun titre de fiche au format '## X1' dans %s" % fichier)
     anciens = lis_page(html)
-    etat = etats(fiches_, anciens)
+    etat = etats(fiches_, anciens, abandonnees(lignes))
     ancien_total = re.search(r'<p class="mono cout-total">(.*?)</p>', html, re.S)
     vieux = {k: m.group(1) for k in ("hors", "total")
              for m in [re.search(r'<p class="mono cout-%s">(.*?)</p>' % k, html, re.S)] if m}
@@ -867,7 +884,7 @@ def regenerer(html, fichier, parts, date, gardes, forme=False):
                       html, count=1, flags=re.S)
     if not n:
         raise ValueError("page : résultat introuvable")
-    etiquette = {"faite": "Faite", "encours": "En cours", "bloquee": "Bloquée"}
+    etiquette = {"faite": "Faite", "abandonnee": "Abandonnée", "encours": "En cours", "bloquee": "Bloquée"}
     apercu, pastilles = apercu_fiches(lignes), modeles_efforts(lignes)
     attend, ensemble = pretes(fiches_, etat, apercu)
     items = []
@@ -976,9 +993,10 @@ def regenerer(html, fichier, parts, date, gardes, forme=False):
 
 
 def verifier_page(html, fichier, sortie):
-    fiches_ = fiches_du_fichier(lignes_de(fichier))
+    lignes = lignes_de(fichier)
+    fiches_ = fiches_du_fichier(lignes)
     anciens = lis_page(html)
-    etat = etats(fiches_, anciens)
+    etat = etats(fiches_, anciens, abandonnees(lignes))
     ecarts = []
     for ident, _, _, _ in fiches_:
         if ident not in anciens:
