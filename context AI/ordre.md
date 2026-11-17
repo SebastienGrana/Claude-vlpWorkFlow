@@ -52,9 +52,9 @@ fait. Pour un pas que la TODO connaît, la dernière colonne est une note, montr
 | `GAI` | kit | le parallèle qui gagne du temps | ✅ clos le 2026-10-17 |
 | `REF` | kit | | juste après `ISO` (2026-10-16) |
 | `FAM11` | cairn | | 1 fiche |
-| `ONE` | cairn | | avant `PRS` (2026-10-16) |
-| `PRS` | cairn | | |
-| `REG` | cairn | | |
+| `ONE` | cairn | un objet gonflable compté une fois | ✅ clos le 2026-10-23 |
+| `PRS` | cairn | la table de présence et la densité | ✅ clos le 2026-10-24 |
+| `REG` | cairn | fondu dans `LIV`, la V1 livrée | ✅ clos le 2026-10-25 (chantier LIV) |
 | `C1` | md | | |
 | `C3` | md | | |
 | `C4` | md | | |
@@ -90,6 +90,8 @@ Un pas sans phase dans une TODO (un chantier clos) qui n'est pas obligatoire : l
 | `SEL` | conseillé | clos le 2026-10-15, sorti de la TODO ; V1 quand il y était |
 | `ISO` | conseillé | clos le 2026-10-17, sorti de la TODO ; sur le chemin avant `REF` |
 | `GAI` | conseillé | clos le 2026-10-17, sans ligne de TODO ; la suite d'`ISO` |
+| `ONE` | conseillé | clos le 2026-10-23, sorti de la TODO ; sur le chemin avant `PRS` (phase d'avant non relue) |
+| `REG` | conseillé | clos le 2026-10-25 dans `LIV`, sorti de la TODO (phase d'avant non relue) |
 
 ## Le jugement
 
