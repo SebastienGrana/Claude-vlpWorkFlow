@@ -23,6 +23,7 @@ from noyau.feuille import (
     borne_haute_cout,
     cellule_md,
     champ,
+    codes_todo,
     couts_du_projet,
     dependances,
     est_bloque,
@@ -342,12 +343,6 @@ def groupes_tri(rangs, codes, prets, fichiers):
                 raisons.append(texte)
         rendu.append((membres, raisons))
     return sorted(rendu, key=lambda g: g[0][0])
-
-
-def codes_todo(rangs):
-    """Le code de chaque rang de la TODO : le premier texte entre accents graves de sa cellule Chantier,
-    sinon son numéro. `trier` et `plan` le lisent ici, d'un seul endroit (NUI10, NUI12)."""
-    return [m.group(1) if m else r[0] for r in rangs for m in [CODE.search(r[1])]]
 
 
 def trier(rangs, lettres):

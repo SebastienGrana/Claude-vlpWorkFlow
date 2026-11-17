@@ -23,6 +23,7 @@ from noyau.feuille import (
     SEPARATEUR,
     bornes_cout,
     champ,
+    codes_todo,
     dependances,
     page_clos,
     phase_todo,
@@ -123,10 +124,10 @@ def nom_todo(chantier, code):
 
 
 def pas_ordre(code, cle, todo, nom_src, cout_src):
-    """Le pas `code` du projet `cle` : sa ligne de TODO (celle dont la cellule « Chantier » le porte entre accents
-    graves), sinon le nom et le coût de la source (`✅ …` : fait). Rend (pas, origine, garde) — origine `todo`,
-    `source` ou `None` ; garde : le texte d'une `GARDE:`, ou `None`."""
-    lignes = [r for r in todo if code in CODE.findall(r[1])]
+    """Le pas `code` du projet `cle` : sa ligne de TODO (celle dont le code, lu par `codes_todo`, est `code` — une
+    ligne qui ne fait que le citer n'est pas la sienne, PEN1), sinon le nom et le coût de la source (`✅ …` : fait).
+    Rend (pas, origine, garde) — origine `todo`, `source` ou `None` ; garde : le texte d'une `GARDE:`, ou `None`."""
+    lignes = [r for r, c in zip(todo, codes_todo(todo)) if c == code]
     if len(lignes) > 1:
         return None, None, "pas %s (%s) : %d lignes de TODO le portent (n° %s)" % (
             code, cle, len(lignes), ", ".join(r[0] for r in lignes))

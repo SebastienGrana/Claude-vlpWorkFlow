@@ -25,7 +25,7 @@ __all__ = [
     "GABARIT_ARCHIVE", "GRAS", "GROS_FICHES", "ICI_ARCHIVE", "IMPORTANCE_PHASE", "JETON", "LECTURE", "LETTRES",
     "LIEN", "MONO", "MORCEAU", "NOMBRE_COUT", "PAGES_LIENS", "PAGES_NAV", "PHASE_COUT", "PLAGE_COUT", "RESUME_TODO",
     "SEPARATEUR", "SOMMAIRE", "aide_score", "borne_haute_cout", "bornes", "bornes_cout", "carte_todo", "cellule_md",
-    "champ", "cmd_archive", "compte_todo", "corps_todo", "couts_du_projet", "decompte_todo", "depend_todo",
+    "champ", "cmd_archive", "codes_todo", "compte_todo", "corps_todo", "couts_du_projet", "decompte_todo", "depend_todo",
     "dependances", "doublon_lettres", "en_cartes", "entrees_lettres", "est_bloque", "feuille", "fin_lettres",
     "gras_et_liens", "lettre_de", "lettre_entree", "lettres_prises", "liens_pages", "page_clos", "page_feuille",
     "phase_todo", "plage", "poser_bloc_archive", "poser_champ", "rafraichir_couts", "rang_en_cours", "rang_phase",
@@ -193,6 +193,13 @@ def todo_du_fichier(lignes):
     `ValueError` qui la nomme, au lieu d'être tronquée en silence (chantier PIP) ; `\\|` reste
     un caractère."""
     return [cellules for _, cellules in rangs_todo(lignes)]
+
+
+def codes_todo(rangs):
+    """Le code de chaque rang de la TODO (`rangs` de `todo_du_fichier`) : le premier texte entre accents graves de
+    sa cellule Chantier, sinon son numéro (une TODO sans codes). Le seul endroit qui lit le code d'une rangée :
+    `trier`, `plan` (NUI10, NUI12) et `pas_ordre` (PEN1) le lisent ici."""
+    return [m.group(1) if m else r[0] for r in rangs for m in [CODE.search(r[1])]]
 
 
 def rangs_todo(lignes):
