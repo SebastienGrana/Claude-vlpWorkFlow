@@ -418,10 +418,10 @@ sinon l'heure de la pointe puis le nom (`ORDRE pointes — carnet absent`). Par 
 libellé de l'artefact et la liste des lettres sont remplacés par un jeton (`neutre`), puis rendus (`restaurer`) : celui
 de `main` — à `aucun` si son chantier porte `**CLOS**` dans l'arbre fusionné (NUI26) —, et ses lettres
 suivies de celles de la branche qui lui manquent — Git perd sans conflit ce que `clore` remet à `aucun`. Un conflit sur la feuille (avec une archive des clos), `couts.svg` ou un joint : celui de `main`,
-ils se refont. `feuille` est refaite au rang « en cours » que `main` portait avant la fusion, avec joints, `couts.svg`
+ils se refont. `feuille` est refaite, le badge « en cours » sur la rangée du code du chantier (PEN2), avec joints, `couts.svg`
 et bloc d'archive (`rafraichir_couts`) ; `git add -A` ; commit `Matin <date> : <b>` ; `FUSIONNÉE <b>`. Autre
 conflit (code, `08-etat.md`, archive…), ou feuille en conflit sans archive : `ARRÊT <b> — conflit : <fichiers> —
-après résolution : <python> <vlp.py> feuille <projet> --todo <rang>` ; commit refusé : `ARRÊT <b> — commit
+après résolution : <python> <vlp.py> feuille <projet>` ; commit refusé : `ARRÊT <b> — commit
 refusé : <1re ligne>` ; sort 1, la fusion reste en cours, les suivantes ne sont pas touchées. En fin :
 `MATIN <n> fusionnée(s) · <m> de côté`. Avant la feuille, les fichiers que les deux côtés ont changés sont refaits
 par clé depuis la base, `main` et la branche (NUI16, `fusionner_fichiers`) : le fichier d'état (TODO par n°,

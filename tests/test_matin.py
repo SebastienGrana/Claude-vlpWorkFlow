@@ -245,10 +245,10 @@ def matin_d(tr, fab):
     code, s = appel(["matin", d, JOUR_MATIN])
     carte_ = lire(os.path.join(d, "CHANTIER.md"))
     assert (code == 1 and s.startswith(ORDRE_ABSENT + "ARRÊT %s — conflit : scripts/x.py — après résolution : " % a)
-                 and s.endswith(' feuille "%s" --todo 79\n' % d)
+                 and s.endswith(' feuille "%s"\n' % d)
                  and code_git(d, "rev-parse", "-q", "--verify", "MERGE_HEAD") == 0
                  and code_git(d, "merge-base", "--is-ancestor", b, "main") == 1
-                 and "- **artefact du chantier** : https://claude.ai/artifact/LOC" in carte_ and "<<<<<<<" not in carte_), ("NUI15 (d) un .py changé des deux côtés : ARRÊT qui le nomme et donne feuille --todo 79, sort 1, MERGE_HEAD "
+                 and "- **artefact du chantier** : https://claude.ai/artifact/LOC" in carte_ and "<<<<<<<" not in carte_), ("NUI15 (d) un .py changé des deux côtés : ARRÊT qui le nomme et donne feuille sans --todo (PEN2 : le badge suit le code), sort 1, MERGE_HEAD "
                  "là, CHANTIER.md réparé sans marque, la suivante pas fusionnée") + "\n" + str((code, s))
     ecrire(os.path.join(d, "scripts", "x.py"), "a = 1\nb = 22\nc = 3\n")
     appel(["feuille", d, "--todo", "79", "--date", JOUR_MATIN])
@@ -280,7 +280,7 @@ def matin_h(tr, fab):
     a, b = branche_matin(d, "A", "AAA", "AAA", 1), branche_matin(d, "B", "BBB", "BBB", 2)
     code, s = appel(["matin", d, JOUR_MATIN])
     assert (code == 1 and s.startswith(ORDRE_ABSENT + "FUSIONNÉE %s\nARRÊT %s — conflit : ctx/artefacts/feuille-de-route.html"
-                                            " — après résolution : " % (a, b)) and s.endswith(" --todo 79\n")
+                                            " — après résolution : " % (a, b)) and s.endswith(' feuille "%s"\n' % d)
                  and code_git(d, "rev-parse", "-q", "--verify", "MERGE_HEAD") == 0), ("NUI15 (h) sans archive, feuille changée des deux côtés : la 1re fusionnée, ARRÊT sur la feuille pour la "
                  "2e, fusion en cours") + "\n" + str((code, s))
 

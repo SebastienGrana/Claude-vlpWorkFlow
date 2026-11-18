@@ -45,10 +45,8 @@ from noyau.feuille import (
     page_clos,
     page_feuille,
     rafraichir_couts,
-    rang_en_cours,
     todo_du_fichier,
     zone,
-    zone_todo,
 )
 from noyau.fiches import VLP_PY
 from noyau.niveau import dire_attentes, entrees_attente, texte_attente
@@ -80,7 +78,7 @@ __all__ = [
 # --- matin : fusionner la nuit dans main (chantier NUI, fiche NUI15) --------------------------
 # Git fusionne sans conflit ce que `clore` remet à `aucun` dans `CHANTIER.md` : le chantier ouvert de `main`
 # s'efface. `neutre` met à part le libellé de l'artefact et la liste des lettres, `restaurer` les rend ; la feuille,
-# elle, se refait toujours, au rang « en cours » que `main` portait avant la fusion.
+# elle, se refait toujours, le badge « en cours » sur la rangée du code du chantier ouvert (PEN2).
 
 OUVERT_CARTE = re.compile(r"^([ \t]*-[ \t]*\*\*(artefact du chantier)\*\*[ \t]*:[ \t]*)(.*)$", re.M)
 JETON_OUVERT, JETON_LETTRES = "§ouvert§", "§lettres§"
@@ -452,14 +450,6 @@ def fusionner_branche(projet, branche, message, sortie):
     carte_main, valeurs, liste_main = neutre(avant)
     courant_recu = courant_ou_rien(projet)     # avant le merge : le chantier de la branche qui reçoit (NUI31)
     liste_main = liste_main or ""     # `cmd_matin` a refusé un main sans sa ligne de lettres
-    rang = None
-    if os.path.isfile(page):
-        try:
-            html = lire(page)
-            d, f, forme = zone_todo(html)
-            rang = rang_en_cours(html[d:f], forme)
-        except ValueError:
-            pass
 
     def arret(raison):
         sortie.write("ARRÊT %s — %s\n" % (branche, raison))
@@ -499,7 +489,7 @@ def fusionner_branche(projet, branche, message, sortie):
     chemin_recu = os.path.join(projet, courant_recu) if courant_recu else None
     if chemin_recu and os.path.isfile(chemin_recu) and any(l.startswith(MARQUE_CLOS) for l in lignes_de(chemin_recu)):
         # sa ligne a aussi quitté la TODO avec sa clôture : plus de badge « en cours » à remettre (dette NUI)
-        valeurs, rang = {libelle: "aucun" for libelle in valeurs}, None
+        valeurs = {libelle: "aucun" for libelle in valeurs}
     ecrire_comme(chemin_carte, restaurer(fusion, valeurs, lettres))
     if code_fusion == 0:
         conflits.discard("CHANTIER.md")
@@ -536,8 +526,8 @@ def fusionner_branche(projet, branche, message, sortie):
             return arret("conflit sur %s, celui de main non repris : %s" % (chemin, msg))
         conflits.discard(chemin)
     if conflits:
-        suite = ' — après résolution : "%s" "%s" feuille "%s"%s' % (
-            sys.executable, VLP_PY, projet, (" --todo %s" % rang) if rang else "")
+        # sans `--todo` : `feuille` pose le badge sur la rangée du code du chantier, même renumérotée (PEN2)
+        suite = ' — après résolution : "%s" "%s" feuille "%s"' % (sys.executable, VLP_PY, projet)
         return arret("conflit : %s%s" % (", ".join(sorted(conflits)), suite))
 
     if os.path.isfile(page):
