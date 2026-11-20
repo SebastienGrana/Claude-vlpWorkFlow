@@ -41,7 +41,7 @@ def jouer_cinq_tests(tmp_path):
     env["PYTHONPATH"] = os.pathsep.join([TESTS, SCRIPTS])
     fini = subprocess.run([sys.executable, "-m", "pytest", "-n", "2", "-p", "no:cacheprovider",
                            "--rootdir", str(tmp_path), "test_cinq.py"],
-                          cwd=tmp_path, env=env, capture_output=True, timeout=300)
+                          cwd=tmp_path, env=env, capture_output=True, timeout=300, check=False)
     return (fini.stdout + fini.stderr).decode("cp1252", errors="replace")
 
 

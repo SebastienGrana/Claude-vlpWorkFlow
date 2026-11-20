@@ -6,7 +6,6 @@
 - les nuits : une leçon déjà retirée, passée entière, ne prend pas un second suffixe (`nuits_retirer`).
 """
 import io
-import os
 import sys
 
 from aides import ecrire, lire, mod

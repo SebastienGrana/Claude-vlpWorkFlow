@@ -14,11 +14,11 @@ import sys
 import time
 
 import aides_boucle
-import boucle_noyau.session as session
 import carnet
 import faux_claude
 from aides import SCRIPTS
 from aides_boucle import aides_du_canal, bmod, carnet_de
+from boucle_noyau import session
 
 _spec = importlib.util.spec_from_file_location("mesure_tokens_ref22", os.path.join(SCRIPTS, "mesure-tokens.py"))
 assert _spec

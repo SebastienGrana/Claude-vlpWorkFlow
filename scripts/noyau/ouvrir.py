@@ -21,7 +21,14 @@ from noyau.clore import (
     rang_routage_ouvrir,
 )
 from noyau.clos import PRIX_CLOS, lignes_clos
-from noyau.commun import TITRE, ecrire_lignes, lignes_de, lignes_gardees, lire, numero_ligne
+from noyau.commun import (
+    TITRE,
+    ecrire_lignes,
+    lignes_de,
+    lignes_gardees,
+    lire,
+    numero_ligne,
+)
 from noyau.feuille import bornes, champ, lettre_de, page_clos, retirer_chevrons_url
 from noyau.nuit import usd_par_fiche
 from noyau.page import approx

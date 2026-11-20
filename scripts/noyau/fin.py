@@ -21,7 +21,7 @@ CONSTATE = "**Constaté** : "   # la note d'une fiche faite, que la page relit �
 
 def etape(argv):
     """Lancer `vlp.py <argv>` dans ce processus ; rendre (code de sortie, sortie). Un test le remplace."""
-    from noyau import cli   # importé ici : `cli` importe ce module
+    from noyau import cli  # importé ici : `cli` importe ce module
     s = io.StringIO()
     code = cli.main(argv, s)
     return code, s.getvalue()

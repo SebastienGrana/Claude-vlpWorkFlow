@@ -42,6 +42,7 @@ from noyau.fiches import (
     cmd_socle,
     cmd_valider,
 )
+from noyau.fin import cmd_fin
 from noyau.hooks import (
     REGLE,
     REGLES,
@@ -65,7 +66,6 @@ from noyau.nuit import (
     cmd_trier,
 )
 from noyau.ordre import cmd_ordre
-from noyau.fin import cmd_fin
 from noyau.ouvrir import cmd_ouvrir, cmd_pause, nombre_fiches
 from noyau.page import cmd_joints, cmd_lancables
 from noyau.palier import cmd_palier

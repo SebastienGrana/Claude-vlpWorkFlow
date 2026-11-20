@@ -4,7 +4,14 @@ numérote par rang, et une renumérotation faisait passer le badge sur un autre 
 import os
 
 from aides import appel, ecrire, lire, mod
-from test_fusion import (CARTE_MATIN, GABARIT_FEUILLE, commit_matin, depot_matin, git_matin, ouvert_ligne)
+from test_fusion import (
+    CARTE_MATIN,
+    GABARIT_FEUILLE,
+    commit_matin,
+    depot_matin,
+    git_matin,
+    ouvert_ligne,
+)
 
 TETE = "# État\n\n## TODO\n\n| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |\n|---|---|---|---|---|\n"
 

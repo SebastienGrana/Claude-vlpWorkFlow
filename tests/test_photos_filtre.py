@@ -39,7 +39,7 @@ def pytest_dans(dossier, *args):
     env.update(VLP_COUVERTURE="1", PYTHONIOENCODING="utf-8", PYTHONPATH=os.pathsep.join([TESTS, SCRIPTS]),
                GIT_DIR=os.path.join(str(dossier), "pas-de-depot.git"))
     fini = subprocess.run([sys.executable, "-m", "pytest", "-p", "no:cacheprovider", "--rootdir", str(dossier), *args],
-                          cwd=dossier, env=env, capture_output=True, timeout=300)
+                          cwd=dossier, env=env, capture_output=True, timeout=300, check=False)
     return fini.returncode, (fini.stdout + fini.stderr).decode("utf-8", errors="replace")
 
 

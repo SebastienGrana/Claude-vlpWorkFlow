@@ -143,9 +143,9 @@ def test_ref22_couverture_refuse_un_py_indexe_en_partie(depot):
     assert couverture.mesurer(str(depot), "appel.py", [], "E", lanceur=lanceur) == 0, "REF22 : la mesure"
     sortie = io.StringIO()
     code = couverture.juger(str(depot), sortie, empreinte_de=lambda _: "E")
-    assert (code, sortie.getvalue()) == (1, "GARDE: couverture — indexé en partie : scripts/x.py ; le rapport, "
-                                            "mesuré sur l'arbre de travail, ne colle pas à l'index : indexer tout le "
-                                            "fichier, ou git stash --keep-index puis la suite (REF22)\n"), (
+    assert (code, sortie.getvalue()) == (1, ("GARDE: couverture — indexé en partie : scripts/x.py ; le rapport, "
+                                             "mesuré sur l'arbre de travail, ne colle pas à l'index : indexer tout le "
+                                             "fichier, ou git stash --keep-index puis la suite (REF22)\n")), (
         "REF22 : couverture, un .py indexé en partie refusé\n" + sortie.getvalue())
 
 

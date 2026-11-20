@@ -44,7 +44,7 @@ def jouer_petit_projet(projet, kit):
     env.update(VLP_COUVERTURE="1", PYTHONIOENCODING="utf-8", PYTHONDONTWRITEBYTECODE="1",
                PYTHONPATH=os.pathsep.join([str(kit / "tests"), str(kit / "scripts")]))
     fini = subprocess.run([sys.executable, "-m", "pytest", "-p", "no:cacheprovider", "--rootdir", str(projet)],
-                          cwd=projet, env=env, capture_output=True, timeout=300)
+                          cwd=projet, env=env, capture_output=True, timeout=300, check=False)
     return fini.returncode, (fini.stdout + fini.stderr).decode("utf-8", errors="replace")
 
 
