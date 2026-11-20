@@ -84,14 +84,16 @@ def test_carte_projet(tmp_path):
 
         ecrire(os.path.join(p, "context AI", "20-z.md"), "# Chantier Z\n\n%s\n### Z1 reformulé\n" % OUVERT)
         s = rendu(p)
-        assert ("GARDE: aucun titre" in s and "PROCHAINE" not in s), ("garde grep muet") + "\n" + str(s)
+        assert "GARDE: aucun titre" in s
+        assert "PROCHAINE" not in s
 
         # Sans marque, aucun chantier : l'ancienne ligne « fichier de fiches courant » ne nomme plus rien (NUI31).
         ecrire(os.path.join(p, "context AI", "20-z.md"), FICHES.replace(OUVERT, "Fermé."))
         ecrire(os.path.join(p, "CHANTIER.md"), CHANTIER % ("pz", "context AI/") + "- **fichier de fiches courant** :"
                " context AI/20-z.md (Z1..Z10)\n")
         s = rendu(p)
-        assert ("--- fichier de fiches courant : aucun ---\n" in s and "TODO=absente (pas de ligne « chantiers possibles »)" in s), ("aucun courant") + "\n" + str(s)
+        assert "--- fichier de fiches courant : aucun ---\n" in s
+        assert "TODO=absente (pas de ligne « chantiers possibles »)" in s
 
         w = os.path.join(t, "ws")
         ecrire(os.path.join(w, "b", "CHANTIER.md"), CHANTIER % ("bb", "context AI/"))
@@ -155,14 +157,22 @@ def test_carte_relecteur(tmp_path):
         r = io.StringIO()
         mod.carte(pr, r, relecteur=True)
         r = r.getvalue()
-        assert ("piège" not in r and "PROCHAINE=" not in r and "PROJET=%s\n" % pr in r), ("carte --relecteur : ni titre ni PROCHAINE=, mais PROJET=") + "\n" + str(r)
-        assert ("ZZZ2" not in r and "COURANT=context AI/20-z.md\n" in r), ("carte --relecteur : ni l'étendue des fiches (dette REL), mais le chemin") + "\n" + str(r)
+        assert "piège" not in r
+        assert "PROCHAINE=" not in r
+        assert "PROJET=%s\n" % pr in r
+        assert "ZZZ2" not in r
+        assert "COURANT=context AI/20-z.md\n" in r
         sans_git = "".join(l for l in s.splitlines(True) if not l.startswith("GIT="))   # NUI35 : pas pour le relecteur
-        assert (sans_git.startswith(r) and "- **alias** : pr" in r and "GIT=" in s and "GIT=" not in r), ("carte --relecteur : le reste à l'octet près, sans GIT=") + "\n" + str(r)
+        assert sans_git.startswith(r)
+        assert "- **alias** : pr" in r
+        assert "GIT=" in s
+        assert "GIT=" not in r
         j = io.StringIO()
         mod.carte_injectee(pr, "py", False, j, relecteur=True)
         j = j.getvalue()
-        assert (j.startswith("\nPYTHON=py\n") and "piège" not in j and "PROCHAINE=" not in j), ("carte --python --relecteur : l'option passe l'injection") + "\n" + str(j)
+        assert j.startswith("\nPYTHON=py\n")
+        assert "piège" not in j
+        assert "PROCHAINE=" not in j
 
 
 def test_carte_todo(tmp_path):
@@ -178,8 +188,8 @@ def test_carte_todo(tmp_path):
                "## TODO deuxième\n\nLigne TODO2.\n## Autre\n\nAprès.\n## Quatre\n\nFin.\n")
         chantier("`08-etat.md`")
         s = rendu(pr)
-        assert ("--- TODO : 08-etat.md (lignes 3–6) ---\n## TODO première\n\nLigne 1.\nLigne 2.\n" in s
-                 and "## TODO deuxième" not in s), ("carte TODO : premier titre TODO seul, texte jusqu'avant le titre suivant") + "\n" + str(s)
+        assert "--- TODO : 08-etat.md (lignes 3–6) ---\n## TODO première\n\nLigne 1.\nLigne 2.\n" in s
+        assert "## TODO deuxième" not in s
 
         ecrire(os.path.join(pr, "sans.md"), "# X\n\n## Un\n\nTexte.\n## Deux\n")
         chantier("`sans.md`")
@@ -194,7 +204,8 @@ def test_carte_todo(tmp_path):
 
         chantier("`a.md` (section TODO)")
         s = rendu(pr)
-        assert (s.count("--- TODO :") == 1 and "--- TODO : a.md " in s), ("carte TODO : prose entre parenthèses") + "\n" + str(s)
+        assert s.count("--- TODO :") == 1
+        assert "--- TODO : a.md " in s
 
         chantier("`absent.md`, puis `b.md`")
         s = rendu(pr)
@@ -211,12 +222,14 @@ def test_carte_todo(tmp_path):
             chantier(possibles)
             s = rendu(pr)
             vus = re.findall(r"^--- TODO : (.+) \(lignes", s, re.M)
-            assert (vus == attendus and "GARDE" not in s), ("carte TODO : le disque tranche — %s" % possibles) + "\n" + str(s)
+            assert vus == attendus
+            assert "GARDE" not in s
 
         chantier("`a.md`")
         ecrire(os.path.join(pr, "ctx", "fiches.md"), "# Chantier Z\n\n%s\n\n## Z1 [ ] — Fiche\n" % OUVERT)
         s = rendu(pr)
-        assert ("--- TODO :" not in s and "TODO=absente" not in s), ("carte TODO : chantier ouvert, aucun bloc") + "\n" + str(s)
+        assert "--- TODO :" not in s
+        assert "TODO=absente" not in s
 
 
 def test_carte_plafond(tmp_path):
@@ -239,19 +252,25 @@ def test_carte_plafond(tmp_path):
         etat("".join("| %d | `C%02d` — Le chantier %d | %s | **V2 · score 15 (3 × 5)** · 1 fiche | — |\n"
                      % (n, n, n, apporte) for n in range(1, 61)))
         s = injectee()
-        assert (len(s) <= mod.PLAFOND_CARTE and "GARDE" not in s), ("carte sous PLAFOND_CARTE : TODO de 60 lignes, %d caractères" % len(s)) + "\n" + str(s[:2000])
-        assert ("--- TODO : 08-etat.md (lignes 3–" in s and "| # | Chantier | Coût estimé | Dépend de |\n" in s
-                 and "9:| 1 | `C01` — Le chantier 1 | **V2 · score 15 (3 × 5)** · 1 fiche | — |\n" in s
-                 and "68:| 60 | `C60` — " in s and "Ce que le chantier apporte" not in s and "Prose de" not in s), ("carte sous PLAFOND_CARTE : rangs numérotés, sans « Ce qu'il apporte » ni la prose") + "\n" + str(s[:2000])
+        assert len(s) <= mod.PLAFOND_CARTE
+        assert "GARDE" not in s
+        assert "--- TODO : 08-etat.md (lignes 3–" in s
+        assert "| # | Chantier | Coût estimé | Dépend de |\n" in s
+        assert "9:| 1 | `C01` — Le chantier 1 | **V2 · score 15 (3 × 5)** · 1 fiche | — |\n" in s
+        assert "68:| 60 | `C60` — " in s
+        assert "Ce que le chantier apporte" not in s
+        assert "Prose de" not in s
 
         etat("| 1 | `C01` — Cassé | apporte | coût |\n")
         s = rendu(pr)
-        assert ("GARDE: 08-etat.md : ligne 1 de la TODO : 4 cellules" in s and "Prose de tête.\n" in s), ("carte sous PLAFOND_CARTE : rang cassé → GARDE, TODO entière") + "\n" + str(s)
+        assert "GARDE: 08-etat.md : ligne 1 de la TODO : 4 cellules" in s
+        assert "Prose de tête.\n" in s
 
         chantier("\n%s\nDernière ligne de CHANTIER.md.\n" % ("Une prose de CHANTIER.md bien trop longue. " * 700))
         s = injectee()
-        assert (s.startswith("GARDE: carte de %d caractères" % (len(s) - len(s.split("\n", 1)[0]) - 1))
-                 and "\nPYTHON=py -3\n" in s and "Dernière ligne de CHANTIER.md.\n" in s), ("carte au-delà de PLAFOND_CARTE : GARDE en première ligne, carte entière") + "\n" + str(s[:500])
+        assert s.startswith("GARDE: carte de %d caractères" % (len(s) - len(s.split("\n", 1)[0]) - 1))
+        assert "\nPYTHON=py -3\n" in s
+        assert "Dernière ligne de CHANTIER.md.\n" in s
 
 
 def test_carte_methode(tmp_path):
@@ -269,12 +288,14 @@ def test_carte_methode(tmp_path):
         chantier("m.md")
         s = rendu(pr)
         assert ("--- méthode : m.md (lignes 4–9) ---\n## Le fichier de fiches\na\n## Anatomie d'une fiche\nb\n"
-                 "## Les deux formes de critère de fin\nc\n" in s and "## Après" not in s), ("carte méthode : trois sections, le titre qui suit exclu") + "\n" + str(s)
+                 "## Les deux formes de critère de fin\nc\n" in s)
+        assert "## Après" not in s
 
         ecrire(os.path.join(pr, "sans.md"), "# M\n## Le fichier de fiches\na\n## Anatomie d'une fiche\nb\n")
         chantier("sans.md")
         s = rendu(pr)
-        assert ("METHODE=absente sans.md\n" in s and "--- méthode" not in s), ("carte méthode : titre de fin manquant") + "\n" + str(s)
+        assert "METHODE=absente sans.md\n" in s
+        assert "--- méthode" not in s
 
         ecrire(os.path.join(faux_kit, "methode-chantier.md"), trois)
         mod.etat.KIT = faux_kit
@@ -284,7 +305,8 @@ def test_carte_methode(tmp_path):
             assert ("--- méthode : methode-chantier.md (lignes 4–9) ---\n" in s), ("carte méthode : absente du projet, trouvée sous le kit") + "\n" + str(s)
             chantier("nulle-part.md")
             s = rendu(pr)
-            assert ("GARDE: fichier introuvable : nulle-part.md\n" in s and "--- méthode" not in s), ("carte méthode : introuvable des deux côtés") + "\n" + str(s)
+            assert "GARDE: fichier introuvable : nulle-part.md\n" in s
+            assert "--- méthode" not in s
         finally:
             mod.etat.KIT = kit
 
@@ -301,16 +323,18 @@ def test_niv1_injection():
         lignes_injection.append([l for l in texte.splitlines() if l.startswith("!`") and "vlp.py" in l])
 
     sans_option = [[l.replace(" --session-neuve", "") for l in x] for x in lignes_injection]
-    assert ([len(x) for x in lignes_injection] == [1, 1, 1]
-             and sans_option[0] == sans_option[1] == sans_option[2]), ("NIV1 : une ligne d'injection par skill, les trois identiques (au --session-neuve de tache près, VIT20)") + "\n" + str(repr(lignes_injection))
+    assert [len(x) for x in lignes_injection] == [1, 1, 1]
+    assert sans_option[0] == sans_option[1] == sans_option[2]
 
     injection = lignes_injection[0][0]
     # EVF4 : plus aucune redirection — `2>"${CLAUDE_PLUGIN_ROOT}/…"` écrivait hors du workspace, refusé sous
     # eval même Bash accordé (variante A, seule à laisser forker vlp:jouer). Le prix : `py: command not found`
     # entre dans la carte là où `py` manque (2 lignes sur 60 sous Ubuntu, 0 sous Windows, mesuré le 2026-09-26).
-    assert (injection.count('/scripts/vlp.py" carte') == 3 and ">" not in injection), ("EVF4 : trois appels de lanceur, aucune redirection") + "\n" + str(injection)
+    assert injection.count('/scripts/vlp.py" carte') == 3
+    assert ">" not in injection
 
-    assert ("$null" not in injection and "/dev/null" not in injection), ("NIV1 : aucune syntaxe propre a un seul shell") + "\n" + str(injection)
+    assert "$null" not in injection
+    assert "/dev/null" not in injection
 
     # Dette REL, puis EVF4 : toute injection de carte (une par SKILL.md du glob) — trois appels, et aucune écriture de fichier.
     skills_glob = sorted(glob.glob(os.path.join(RACINE, "skills", "*", "SKILL.md")))
@@ -324,15 +348,17 @@ def test_niv1_injection():
                 injections += 1
                 if appels != 3 or ">" in bout:
                     ecrit_fichier.append(os.path.basename(os.path.dirname(chemin_skill)))
-    assert (injections == len(skills_glob) > 0 and ecrit_fichier == []), ("EVF4 : une injection de carte par SKILL.md du glob, aucune n'écrit de fichier") + "\n" + str("%d injections pour %d SKILL.md, fautives : %r" % (injections, len(skills_glob), ecrit_fichier))
+    assert injections == len(skills_glob) > 0
+    assert ecrit_fichier == []
 
     # VIT24 : `py` seul relit le `#!` de vlp.py et relance un python3 (+54 ms) ; le relais python3 ne change pas.
     textes = [pathlib.Path(c).read_text(encoding="utf-8") for c in skills_glob]
     py3 = sum(t.count('py -3 "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python "py -3"') for t in textes)
     nus = sum(t.count('py "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte') for t in textes)
     relais = sum(t.count('python3 "${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py" carte --python python3 --relais') for t in textes)
-    assert (py3 == 2 * len(skills_glob) and nus == 0 and relais == len(skills_glob)), ("VIT24 : chaque injection lance la carte par py -3 et dit PYTHON=py -3 (deux appels sur trois), aucun py "
-             "nu ; le relais python3 reste") + "\n" + str((py3, nus, relais, len(skills_glob)))
+    assert py3 == 2 * len(skills_glob)
+    assert nus == 0
+    assert relais == len(skills_glob)
 
     s_niv1 = io.StringIO()
     mod.carte_injectee(os.path.join(RACINE, "scripts"), "py -3", False, s_niv1)
@@ -340,8 +366,10 @@ def test_niv1_injection():
     # L'en-tête seul : la carte recopie ensuite CHANTIER.md et, sans chantier courant, la TODO du kit, dont une
     # ligne (n° 101, EXE) cite « claude.exe introuvable » — une donnée du projet, pas un message de lanceur.
     entete_n = lu_n.split("\n--- ")[0]
-    assert (lu_n.splitlines()[:2] == ["", "PYTHON=py -3"] and "introuvable" not in entete_n
-             and "not found" not in entete_n and "PROJET=" in entete_n), ("NIV1 : la carte ne dit que PYTHON= et le projet") + "\n" + str(entete_n[:200])
+    assert lu_n.splitlines()[:2] == ["", "PYTHON=py -3"]
+    assert "introuvable" not in entete_n
+    assert "not found" not in entete_n
+    assert "PROJET=" in entete_n
 
 
 FICHES_VIT20 = ("# Chantier ZZZ\n\n**Ouvert.** le 2026-10-08.\n\n**Session** : cadre-1\n\n## Le socle commun\n\n"
@@ -394,7 +422,8 @@ def test_vit20_session_neuve(tmp_path):
         s = carte_sous(pr, "joue-1")
         assert (s == avant), ("VIT20 : sans --session-neuve (/vlp:jouer, /vlp:enchainer, /vlp:chantier) → la carte d'avant") + "\n" + str(s)
         s = carte_sous(pr, "cadre-1", nuit=True, neuve=True)
-        assert (s == carte_sous(pr, nuit=True) and "NUIT=1\n" in s), ("VIT20 : VLP_NUIT=1 (la nuit note l'id de clore avant sa session) → la carte de nuit d'avant") + "\n" + str(s)
+        assert s == carte_sous(pr, nuit=True)
+        assert "NUIT=1\n" in s
         injection = [["carte", pr, "--python", "py -3", "--session-neuve"],
                      ["carte", pr, "--python", "python3", "--relais", "--session-neuve"]]
         s = carte_sous(pr, "joue-1", argv=injection)
@@ -404,7 +433,8 @@ def test_vit20_session_neuve(tmp_path):
                       if "--session-neuve" in pathlib.Path(c).read_text(encoding="utf-8"))
     tache = pathlib.Path(os.path.join(RACINE, "skills", "tache", "SKILL.md")).read_text(encoding="utf-8")
     ligne = next((l for l in tache.splitlines() if l.startswith("!`") and "vlp.py" in l), "")
-    assert (porteurs == ["tache"] and ligne.count("--session-neuve") == 3), ("VIT20 : --session-neuve sur les trois appels de l'injection de /vlp:tache, dans aucune autre skill") + "\n" + str((porteurs, ligne))
+    assert porteurs == ["tache"]
+    assert ligne.count("--session-neuve") == 3
 
 
 def test_arp3_marque(tmp_path):
@@ -431,20 +461,26 @@ def test_arp3_marque(tmp_path):
         return s, marques
 
     s, marques = cas("joue-1", "joue-1", enchainer)
-    assert (marques == ["vlp-enchaine-joue-1"] and "AVERTISSEMENT:" not in s and s.endswith("PROCHAINE=ZZZ3\n")), ("ARP3 : l'injection d'enchainer pose la marque de sa session, la carte de tache s'y tait") + "\n" + str((marques, s))
+    assert marques == ["vlp-enchaine-joue-1"]
+    assert "AVERTISSEMENT:" not in s
+    assert s.endswith("PROCHAINE=ZZZ3\n")
     s, marques = cas("autre-1", "joue-1", enchainer)
-    assert (marques == ["vlp-enchaine-autre-1"] and s.endswith(AVERTI_VIT20 % "ZZZ1, ZZZ2")), ("ARP3 : la marque d'une autre session → l'AVERTISSEMENT: sort encore") + "\n" + str((marques, s))
+    assert marques == ["vlp-enchaine-autre-1"]
+    assert s.endswith(AVERTI_VIT20 % "ZZZ1, ZZZ2")
     s, marques = cas("joue-1", "joue-1", enchainer[1:])
-    assert (marques == ["vlp-enchaine-joue-1"] and "AVERTISSEMENT:" not in s), ("ARP3 : les appels relais seuls posent la marque (sous Ubuntu, le premier appel échoue)") + "\n" + str((marques, s))
+    assert marques == ["vlp-enchaine-joue-1"]
+    assert "AVERTISSEMENT:" not in s
     for sid in (None, "", "../joue-1", "a/b", "joue 1"):
         s, marques = cas(sid, "joue-1", enchainer)
-        assert (marques == [] and s.endswith(AVERTI_VIT20 % "ZZZ1, ZZZ2")), ("ARP3 : id %r → aucune marque, l'AVERTISSEMENT: sort" % (sid,)) + "\n" + str((marques, s))
+        assert marques == []
+        assert s.endswith(AVERTI_VIT20 % "ZZZ1, ZZZ2")
 
     porteurs = sorted(os.path.basename(os.path.dirname(c)) for c in glob.glob(os.path.join(RACINE, "skills", "*", "SKILL.md"))
                       if "--enchaine" in pathlib.Path(c).read_text(encoding="utf-8"))
     texte = pathlib.Path(os.path.join(RACINE, "skills", "enchainer", "SKILL.md")).read_text(encoding="utf-8")
     ligne = next((l for l in texte.splitlines() if l.startswith("!`") and "vlp.py" in l), "")
-    assert (porteurs == ["enchainer"] and ligne.count("--enchaine") == 3), ("ARP3 : --enchaine sur les trois appels de l'injection de /vlp:enchainer, dans aucune autre skill") + "\n" + str((porteurs, ligne))
+    assert porteurs == ["enchainer"]
+    assert ligne.count("--enchaine") == 3
 
 
 def test_arp4_menage(tmp_path):
@@ -493,4 +529,5 @@ def test_arp4_menage(tmp_path):
         neuf = mod.vlp_hook.tampon_neuf("vlp-hook-neuf", bac)
         reste = restants(bac)
         attendu = sorted(["vlp-filet-0dossier", "vlp-hook-frais", "vlp-carte-vieux", "vlp-hook-neuf"])
-        assert (neuf is True and reste == attendu), ("ARP4 : tampon_neuf efface vlp-hook- et vlp-filet- de plus de 60 s, garde le reste, crée le sien") + "\n" + str((neuf, reste, attendu))
+        assert neuf is True
+        assert reste == attendu

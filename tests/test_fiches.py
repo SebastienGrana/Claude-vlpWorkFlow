@@ -88,45 +88,59 @@ def test_extraire_socle(tmp_path):
         f = os.path.join(t, "y.md")
         ecrire(f, AVEC)
         code, s = appel(["extraire", f, "Y1"])
-        assert (code == 0 and s.startswith("<!-- FICHE:Y1 -->\n## Y1")
-                 and "## pas un titre\n```\n<!-- /FICHE -->\n--- fiche, lignes : 9\n" in s and "GARDE" not in s), ("extraire : marqueurs, --- dans un bloc de code") + "\n" + str(s)
+        assert code == 0
+        assert s.startswith("<!-- FICHE:Y1 -->\n## Y1")
+        assert "## pas un titre\n```\n<!-- /FICHE -->\n--- fiche, lignes : 9\n" in s
+        assert "GARDE" not in s
         assert ("ARRÊT" not in s), ("extraire : fiche scriptable, pas d'ARRÊT") + "\n" + str(s)
         ecrire(f, AVEC.replace("**Prompt**\n", "**Critère de fin** (visuel)\n"))
         code, s = appel(["extraire", f, "Y1"])
-        assert (code == 0
-                 and s.endswith("<!-- /FICHE -->\n" + mod.ARRET + "\n--- fiche, lignes : 9\n")), ("extraire : fiche (visuel), ARRÊT avant le compte") + "\n" + str(s)
+        assert code == 0
+        assert s.endswith("<!-- /FICHE -->\n" + mod.ARRET + "\n--- fiche, lignes : 9\n")
         ecrire(f, AVEC)
         code, s = appel(["extraire", f, "Y9"])
-        assert (code == 1 and "GARDE: fiche introuvable : Y9" in s), ("extraire : fiche absente") + "\n" + str(s)
+        assert code == 1
+        assert "GARDE: fiche introuvable : Y9" in s
         code, s = appel(["socle", f])
-        assert (code == 0 and s == "## Le socle commun\n\nSocle, ligne 1.\n\n--- socle, lignes : 4\n"), ("socle : du titre à l'ordre exclu") + "\n" + str(s)
+        assert code == 0
+        assert s == "## Le socle commun\n\nSocle, ligne 1.\n\n--- socle, lignes : 4\n"
         code, s = appel(["sessions", f])
-        assert (code == 0 and s == "aaa\nbbb\n"), ("sessions : dédoublonnées, dans l'ordre") + "\n" + str(s)
+        assert code == 0
+        assert s == "aaa\nbbb\n"
 
         ecrire(f, AVEC.replace("<!-- /FICHE -->\n\n---\n\n<!-- FICHE:Y2", "\n---\n\n<!-- FICHE:Y2"))
         code, s = appel(["extraire", f, "Y1"])
-        assert (code == 0 and s.startswith("GARDE: marqueur fermant absent")
-                 and "Y2" not in s and s.endswith("```\n\n---\n\n--- fiche, lignes : 11\n")), ("extraire : fermant absent, arrêt au marqueur suivant") + "\n" + str(s)
+        assert code == 0
+        assert s.startswith("GARDE: marqueur fermant absent")
+        assert "Y2" not in s
+        assert s.endswith("```\n\n---\n\n--- fiche, lignes : 11\n")
 
         ecrire(f, SANS)
         code, s = appel(["extraire", f, "Z1"])
-        assert (code == 0 and "GARDE: pas de marqueurs" in s
-                 and s.endswith("## Z1 [ ] — ancien\nlong\n---\n--- fiche, lignes : 3\n")), ("extraire : repli sans marqueurs") + "\n" + str(s)
+        assert code == 0
+        assert "GARDE: pas de marqueurs" in s
+        assert s.endswith("## Z1 [ ] — ancien\nlong\n---\n--- fiche, lignes : 3\n")
         code, s = appel(["extraire", f, "Z2"])
         assert (s.endswith("fin\n--- fiche, lignes : 2\n")), ("extraire : repli jusqu'à la fin") + "\n" + str(s)
         code, s = appel(["socle", f])
-        assert (code == 1 and s == "--- socle, lignes : 0\n"), ("socle : absent") + "\n" + str(s)
+        assert code == 1
+        assert s == "--- socle, lignes : 0\n"
         code, s = appel(["sessions", f])
-        assert (code == 0 and s == ""), ("sessions : aucune") + "\n" + str(s)
+        assert code == 0
+        assert s == ""
 
         ecrire(f, AVEC.replace("\n", "\r\n"))
         code, s = appel(["socle", f])
-        assert (code == 0 and "\r" not in s and s.endswith("--- socle, lignes : 4\n")), ("CRLF toléré") + "\n" + str(s)
+        assert code == 0
+        assert "\r" not in s
+        assert s.endswith("--- socle, lignes : 4\n")
         code, s = appel(["extraire", os.path.join(t, "absent.md"), "Y1"])
-        assert (code == 1 and "GARDE: fichier introuvable" in s), ("fichier absent") + "\n" + str(s)
+        assert code == 1
+        assert "GARDE: fichier introuvable" in s
 
         code, s = appel(["carte", os.path.join(t, "nulle-part")])
-        assert (code == 0 and s == "AUCUN_PROJET\n"), ("carte par main, sortie 0") + "\n" + str(s)
+        assert code == 0
+        assert s == "AUCUN_PROJET\n"
         nulle = os.path.join(t, "nulle-part")
         r1 = appel(["carte", nulle, "--python", "py -3"])
         r2 = appel(["carte", nulle, "--python", "python3", "--relais"])
@@ -196,24 +210,31 @@ CAS_VALIDER = [
 def test_valider_ecart(nom, texte, attendu):
     """Chaque écart de `valider` dans son test : le libellé d'origine, « valider : » + le cas, en garde le nom."""
     code, s = valide(texte)
-    assert (code == 1 and attendu in s and s.splitlines()[-1].startswith("INVALIDE")), ("valider : " + nom) + "\n" + str(s)
+    assert code == 1
+    assert attendu in s
+    assert s.splitlines()[-1].startswith("INVALIDE")
 
 
 def test_valider():
     """Contrôler `valider` : un fichier sain, les avertissements de longueur et de socle, un bilan par fichier."""
     code, s = valide(SAIN)
-    assert (code == 0 and s == "VALIDE 2 fiches · socle 4 lignes · 0 écarts · 0 avertissements — F\n"), ("valider : sain") + "\n" + str(s)
+    assert code == 0
+    assert s == "VALIDE 2 fiches · socle 4 lignes · 0 écarts · 0 avertissements — F\n"
     code, s = valide(SAIN.replace("Une commande.\n", "Une commande.\n" + "x\n" * 60))
-    assert (code == 0
-             and "F:11: avertissement : fiche V1 : 68 lignes, au-delà du seuil" in s and "0 écarts · 1 avertissements" in s), ("valider : avertissement de longueur, pas écart") + "\n" + str(s)
+    assert code == 0
+    assert "F:11: avertissement : fiche V1 : 68 lignes, au-delà du seuil" in s
+    assert "0 écarts · 1 avertissements" in s
     code, s = valide(SAIN.replace("Un socle.\n", "Un socle.\n" + "x\n" * 77))
-    assert (code == 0
-             and "F:3: avertissement : socle : 81 lignes, au-delà du seuil" in s and "1 avertissements" in s), ("valider : socle de 81 lignes avertit") + "\n" + str(s)
+    assert code == 0
+    assert "F:3: avertissement : socle : 81 lignes, au-delà du seuil" in s
+    assert "1 avertissements" in s
     code, s = valide(SAIN.replace("Un socle.\n", "Un socle.\n" + "x\n" * 76))
-    assert (code == 0
-             and "socle : 80 lignes" not in s and "0 avertissements" in s), ("valider : socle de 80 lignes n'avertit pas") + "\n" + str(s)
+    assert code == 0
+    assert "socle : 80 lignes" not in s
+    assert "0 avertissements" in s
     code, s = appel(["valider", "absent-1.md", "absent-2.md"])
-    assert (code == 1 and s.count("INVALIDE 0 fiches") == 2), ("valider : un bilan par fichier") + "\n" + str(s)
+    assert code == 1
+    assert s.count("INVALIDE 0 fiches") == 2
 
 
 PAGE = """# Chantier P
@@ -265,19 +286,24 @@ def _tester_cocher_session(f):
         code, s = appel(["cocher", f, "U1", "--session", "abc", "--role", "relire"])
         une = lire(f)
         code2, s2 = appel(["cocher", f, "U1", "--session", "abc", "--role", "relire"])
-        assert (code == 0 and s == "NOTÉ U1 · **Session** : abc (relire)\n" and "## U1 [ ]" in une
-                 and une.count("**Session** : abc (relire)\n**Dépend de**") == 1
-                 and (code2, s2) == (0, "DÉJÀ U1 · **Session** : abc (relire)\n") and lire(f) == une), ("cocher --session : une ligne, la fiche reste ouverte, jamais doublée") + "\n" + str(s + s2 + lire(f))
+        assert code == 0
+        assert s == "NOTÉ U1 · **Session** : abc (relire)\n"
+        assert "## U1 [ ]" in une
+        assert une.count("**Session** : abc (relire)\n**Dépend de**") == 1
+        assert (code2, s2) == (0, "DÉJÀ U1 · **Session** : abc (relire)\n")
+        assert lire(f) == une
         appel(["cocher", f, "U1"])
         code, s = appel(["cocher", f, "U1", "--session", "cl1", "--role", "clore"])
         texte = lire(f)
-        assert (code == 0 and texte.index("**Session** : cl1 (clore)\n") < texte.index("## Le socle commun")
-                 and mod.sessions_entete(mod.lignes_de(f)) == ["cl1"]
-                 and "## U1 [x]" in texte and "**Session** : abc (relire)\n**Session** : xyz\n**Dépend de**" in texte), ("cocher --session --role clore : l'en-tête, avant le premier titre, vu de sessions_entete") + "\n" + str(s + texte)
+        assert code == 0
+        assert texte.index("**Session** : cl1 (clore)\n") < texte.index("## Le socle commun")
+        assert mod.sessions_entete(mod.lignes_de(f)) == ["cl1"]
+        assert "## U1 [x]" in texte
+        assert "**Session** : abc (relire)\n**Session** : xyz\n**Dépend de**" in texte
         assert (appel(["sessions", f]) == (0, "cl1\nabc\nxyz\n")), ("cocher --session : sessions rend l'id sans suffixe, dédoublonné") + "\n" + str(appel(["sessions", f]))
         avant3 = lire(f)
-        assert (appel(["cocher", f, "U1", "--session", "abc"]) == (1, "GARDE: --session <uuid> --role <rôle>, sans espace ni parenthèse\n")
-                 and lire(f) == avant3), ("cocher --session sans --role : GARDE, rien écrit") + "\n" + str(lire(f))
+        assert appel(["cocher", f, "U1", "--session", "abc"]) == (1, "GARDE: --session <uuid> --role <rôle>, sans espace ni parenthèse\n")
+        assert lire(f) == avant3
     finally:
         os.environ.clear()
         os.environ.update(garde_env)
@@ -292,23 +318,27 @@ def test_cocher(tmp_path):
         try:
             os.environ["CLAUDE_CODE_SESSION_ID"] = "abc"
             code, s = appel(["cocher", f, "U1", "--resolu", "lire par vlp.py", "--date", "2026-01-02"])
-            assert (code == 0 and s == "COCHÉ U1 · Session abc\n"
-                     and lire(f) == COCHE.replace("## U1 [ ]", "## U1 [x]").replace(
+            assert code == 0
+            assert s == "COCHÉ U1 · Session abc\n"
+            assert (lire(f) == COCHE.replace("## U1 [ ]", "## U1 [x]").replace(
                          "**Tentatives** (2026-01-01) — non résolu.\n1. essai un\n2. essai deux\nErreur : boum\n",
-                         "**Tentatives** (2026-01-02) — résolu par : lire par vlp.py\n**Session** : abc\n")), ("cocher : coche, Tentatives réduit, Session avant Dépend de") + "\n" + str(s + lire(f))
+                         "**Tentatives** (2026-01-02) — résolu par : lire par vlp.py\n**Session** : abc\n"))
             avant = lire(f)
             code, s = appel(["cocher", f, "U1"])
-            assert (code == 1 and s == "GARDE: U1 déjà cochée — rien écrit\n"
-                     and lire(f) == avant), ("cocher : déjà cochée, refus sans écrire") + "\n" + str(s)
+            assert code == 1
+            assert s == "GARDE: U1 déjà cochée — rien écrit\n"
+            assert lire(f) == avant
             assert (appel(["cocher", f, "U9"]) == (1, "GARDE: fiche introuvable : U9\n")), ("cocher : fiche introuvable") + "\n" + str(appel(["cocher", f, "U9"]))
             assert (appel(["cocher", f, "U1", "--verifier"]) == (0, "CASE U1 [x]\nSANS GIT\n")), ("cocher --verifier : cochée") + "\n" + str(appel(["cocher", f, "U1", "--verifier"]))
             avant2 = lire(f)
-            assert (appel(["cocher", f, "U2", "--verifier"]) == (1, "CASE U2 [ ]\nSANS GIT\n") and lire(f) == avant2), ("cocher --verifier : non cochée, pas d'écriture") + "\n" + str(appel(["cocher", f, "U2", "--verifier"]))
+            assert appel(["cocher", f, "U2", "--verifier"]) == (1, "CASE U2 [ ]\nSANS GIT\n")
+            assert lire(f) == avant2
             assert (appel(["cocher", f, "U9", "--verifier"]) == (1, "GARDE: fiche introuvable : U9\n")), ("cocher --verifier : fiche introuvable") + "\n" + str(appel(["cocher", f, "U9", "--verifier"]))
             os.environ["CLAUDE_CODE_SESSION_ID"] = ""
             code, s = appel(["cocher", f, "U2"])
-            assert (code == 0 and s == "COCHÉ U2 · Session absente\n"
-                     and lire(f) == avant.replace("## U2 [ ]", "## U2 [x]")), ("cocher : id vide, pas de ligne Session") + "\n" + str(s + lire(f))
+            assert code == 0
+            assert s == "COCHÉ U2 · Session absente\n"
+            assert lire(f) == avant.replace("## U2 [ ]", "## U2 [x]")
         finally:
             os.environ.clear()
             os.environ.update(garde_env)
@@ -318,10 +348,12 @@ def test_cocher(tmp_path):
         ecrire(f, PAGE % (" ", "", " ", ""))
         page = os.path.join(t, "ctx", "artefacts", "05-u.html")
         code, s = appel(["page", f, "--creer", "--projet", "P", "--titre", "T", "--resultat", "R", "--date", "2026-01-02"])
-        assert (code == 0 and os.path.isfile(page)
-                 and s.startswith("PAGE %s · 3 fiches" % page)), ("page sans chemin : artefacts/<même nom>.html, dossier créé") + "\n" + str(s)
+        assert code == 0
+        assert os.path.isfile(page)
+        assert s.startswith("PAGE %s · 3 fiches" % page)
         code, s = appel(["page", f, "--verifier"])
-        assert (code == 0 and s.startswith("À JOUR 3 fiches")), ("page --verifier sans chemin : la même page") + "\n" + str(s)
+        assert code == 0
+        assert s.startswith("À JOUR 3 fiches")
 
 
 REFUS = """<!-- FICHE:VAL1 -->
@@ -361,10 +393,12 @@ def test_cocher_refuser(tmp_path):
         bloc = "**Tentatives** (2026-01-03) — non résolu.\n1. FAITE refusée à la relecture.\n"
         un = REFUS.replace("## VAL1 [x] — Valider\n\n", "## VAL1 [ ] — Valider\n\n" + bloc + "Erreur : motif un\n\n")
         deux = un.replace(bloc + "Erreur : motif un\n", bloc + "2. FAITE refusée à la relecture.\nErreur : motif deux\n")
-        assert ((code, s, code2, s2) == (0, "REFUSÉ VAL1 · refus 1\n", 0, "REFUSÉ VAL1 · refus 2\n")
-                 and premier == un and lire(f) == deux and lire(f).count("**Tentatives**") == 1
-                 and lire(f).count("Erreur :") == 1
-                 and appel(["cocher", f, "VAL9", "--refuser", "m"]) == (1, "GARDE: fiche introuvable : VAL9\n")), ("cocher --refuser") + "\n" + str(premier + "\n---\n" + lire(f))
+        assert (code, s, code2, s2) == (0, "REFUSÉ VAL1 · refus 1\n", 0, "REFUSÉ VAL1 · refus 2\n")
+        assert premier == un
+        assert lire(f) == deux
+        assert lire(f).count("**Tentatives**") == 1
+        assert lire(f).count("Erreur :") == 1
+        assert appel(["cocher", f, "VAL9", "--refuser", "m"]) == (1, "GARDE: fiche introuvable : VAL9\n")
 
     # refus dans un bloc déjà existant mais dont l'unique tentative n'est PAS un refus de
     # relecture (une piste écrite à la main, ou une BLOQUÉE) : le rang repart à 1, pas à 2 —
@@ -385,7 +419,8 @@ Erreur : blocage initial
         attendu2 = REFUS_PISTE.replace("## VAL2 [x]", "## VAL2 [ ]").replace(
             "1. <une piste>\nErreur : blocage initial\n",
             "1. <une piste>\n2. FAITE refusée à la relecture.\nErreur : motif trois\n")
-        assert ((code3, s3) == (0, "REFUSÉ VAL2 · refus 1\n") and lire(f2) == attendu2), ("cocher --refuser : bloc existant sans refus de relecture, rang repart à 1") + "\n" + str(s3 + lire(f2))
+        assert (code3, s3) == (0, "REFUSÉ VAL2 · refus 1\n")
+        assert lire(f2) == attendu2
 
 
 def test_cocher_cycle(tmp_path):
@@ -414,12 +449,13 @@ def test_cocher_cycle(tmp_path):
                          "\nRefus soldés : 1 · dernier : motif un\n2. FAITE refusée à la relecture.\nErreur : motif deux\n\n")
     assert (vus == [(0, "REFUSÉ VAL3 · refus 1\n"), (0, "REFUSÉ VAL3 · refus 2 · dernier : motif un\n"),
                      (0, "REFUSÉ VAL3 · refus 3 · dernier : motif deux\n")]), ("cocher --refuser après --resolu (ENA7) : refus 1, 2, 3, le motif d'avant sur la sortie") + "\n" + str(vus)
-    assert ("**Tentatives** (2026-01-11) — résolu par : repris 1\nRefus soldés : 1 · dernier : motif un\n\n" in textes[1]
-             and "**Tentatives** (2026-01-15) — résolu par : repris 3\nRefus soldés : 3 · dernier : motif trois\n\n"
-             in textes[5]), ("cocher --resolu (ENA7) : le bloc soldé garde le rang et le dernier motif, sur leur ligne Refus soldés") + "\n" + str(textes[1] + "\n---\n" + textes[5])
-    assert (textes[2] == deux and textes[4].count("**Tentatives**") == 1
-             and "— non résolu.\nRefus soldés : 2 · dernier : motif deux\n3. FAITE refusée à la relecture.\nErreur : motif trois\n"
-             in textes[4]), ("cocher --refuser après --resolu (ENA7) : le bloc montre encore « motif un », la ligne numérotée suit Refus soldés") + "\n" + str(textes[2] + "\n---\n" + textes[4])
+    assert "**Tentatives** (2026-01-11) — résolu par : repris 1\nRefus soldés : 1 · dernier : motif un\n\n" in textes[1]
+    assert ("**Tentatives** (2026-01-15) — résolu par : repris 3\nRefus soldés : 3 · dernier : motif trois\n\n"
+             in textes[5])
+    assert textes[2] == deux
+    assert textes[4].count("**Tentatives**") == 1
+    assert ("— non résolu.\nRefus soldés : 2 · dernier : motif deux\n3. FAITE refusée à la relecture.\nErreur : motif trois\n"
+             in textes[4])
 
 
 def test_cocher_texte_libre(tmp_path):
@@ -459,7 +495,9 @@ def test_cocher_texte_libre(tmp_path):
             os.environ.clear()
             os.environ.update(garde_env)
     for nom, (_, _, _, sortie, extrait) in cas.items():
-        assert (vus[nom][0] == (0, sortie) and extrait in vus[nom][1] and vus[nom][1].count("**Tentatives**") == 1), ("cocher (ENA7) : %s ne se lit pas comme un compte" % nom) + "\n" + str(vus[nom])
+        assert vus[nom][0] == (0, sortie)
+        assert extrait in vus[nom][1]
+        assert vus[nom][1].count("**Tentatives**") == 1
 
 
 GABARIT_FEUILLE = os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html")
@@ -485,16 +523,19 @@ def test_z2_chemin(tmp_path):
 
         # Un fichier courant absent ne se nomme plus : seule la marque ouvre, sur un fichier qui existe (NUI31).
         code, s = appel(["ouvrir", proj, "--fiches", "ctx/absent.md", "--titre", "T"])
-        assert (code == 1 and s == manque), ("Z2 ouvrir : fiches absent, GARDE et 1") + "\n" + str(s)
+        assert code == 1
+        assert s == manque
 
         absent = os.path.join(proj, "ctx", "absent.md")
         for sous in (["extraire", absent, "Z1"], ["socle", absent], ["cocher", absent, "Z1"],
                      ["cout", absent], ["page", absent]):
             code, s = appel(sous)
-            assert (code == 1 and s == "GARDE: fichier introuvable : %s\n" % absent), ("Z2 %s : chemin absent, GARDE du point unique et 1" % sous[0]) + "\n" + str(s)
+            assert code == 1
+            assert s == "GARDE: fichier introuvable : %s\n" % absent
 
         try:
             mod.lignes_du_projet(proj, "ctx/absent.md", "fichier de fiches")
             assert (False), ("Z2 point unique : lève Absent") + "\nrien levé"
         except mod.Absent as e:
-            assert (isinstance(e, ValueError) and str(e) == "fichier de fiches introuvable : ctx/absent.md"), ("Z2 point unique : Absent est une ValueError, les gardes locales la voient") + "\n" + str(str(e))
+            assert isinstance(e, ValueError)
+            assert str(e) == "fichier de fiches introuvable : ctx/absent.md"

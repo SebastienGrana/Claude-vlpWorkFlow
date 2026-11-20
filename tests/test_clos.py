@@ -21,13 +21,11 @@ OUVERT = "**Ouvert.** le 2026-10-08."
 
 def test_total_clos(tmp_path):
     """Contrôler `total_clos` et `couts` sur des lignes closes, dont un « ? $ » d'une ancienne page."""
-    assert (mod.total_clos(ligne_close(mod.arrondi(950))) == 950 and
-             mod.total_clos(ligne_close(mod.arrondi(1500)) + ligne_close(mod.arrondi(950))) == 2450), ("total_clos : une ligne close sous 1 000") + "\n" + str((mod.total_clos(ligne_close(mod.arrondi(950))),
-              mod.total_clos(ligne_close(mod.arrondi(1500)) + ligne_close(mod.arrondi(950)))))
+    assert mod.total_clos(ligne_close(mod.arrondi(950))) == 950
+    assert mod.total_clos(ligne_close(mod.arrondi(1500)) + ligne_close(mod.arrondi(950))) == 2450
 
-    assert (mod.total_clos(ligne_close("non mesuré")) == 0 and
-             mod.total_clos('<td class="mono"><strong>≈3,8k (3 812)</strong></td><td class="mono">≈0,00 $</td>') == 0), ("total_clos : ni plage, ni date, ni pied") + "\n" + str((mod.total_clos(ligne_close("non mesuré")),
-              mod.total_clos('<td class="mono"><strong>≈3,8k (3 812)</strong></td><td class="mono">≈0,00 $</td>')))
+    assert mod.total_clos(ligne_close("non mesuré")) == 0
+    assert mod.total_clos('<td class="mono"><strong>≈3,8k (3 812)</strong></td><td class="mono">≈0,00 $</td>') == 0
 
     # Un « ? $ » de l'ancienne page traverse les soustractions de couts : P1 garde son coût
     # affiché, P2 prend le reste, en « ? » puisque la part de P1 en dollars est inconnue.
@@ -38,8 +36,10 @@ def test_total_clos(tmp_path):
         cout, total, hors = mod.couts([("P1", "a", True, [s]), ("P2", "b", True, [s])],
                                       {"P1": ("faite", None, "≈100,0k (100 000) · 1 tours · ? $")},
                                       "Coût du chantier : ≈100,0k (100 000) · 1 tours · ? $", gardes)
-        assert (cout == {"P1": "≈100,0k (100 000) · 1 tours · ? $", "P2": "≈200,0k (200 000) · 2 tours · ? $"}
-                 and total == (300000, 3, Decimal("1.5")) and hors is None and not gardes), ("couts : « ? $ » relu sans planter") + "\n" + str((cout, total, hors, gardes))
+        assert cout == {"P1": "≈100,0k (100 000) · 1 tours · ? $", "P2": "≈200,0k (200 000) · 2 tours · ? $"}
+        assert total == (300000, 3, Decimal("1.5"))
+        assert hors is None
+        assert not gardes
 
 
 QFICHES = """# Chantier Q
@@ -120,10 +120,9 @@ def test_prix(tmp_path):
         ok = '<td class="mono">12,34 $ · ≈50,0k (50 000)</td>' in feuille
         ok = ok and '<td class="mono">≈20,0k (20 000)</td>' in feuille
         assert (ok), ("TAU3 : prix posé en tête de la cellule Tokens de X, Y intacte") + "\n" + str(feuille)
-        assert ('<strong>%s</strong></td><td class="mono">12,34 $ sur 1 clos mesurés</td>' % mod.arrondi(70000) in feuille
-                 and '<span class="resume-clos">%s</span>' % mod.resume_clos(2, 70000, __import__("decimal").Decimal("12.34"), 1)
-                 in feuille), ("TAU4 : pied et résumé de la feuille resommés au premier passage (X mesuré, Y non) —"
-                 " mutant : le résumé et le pied non resommés, restés « vieux »") + "\n" + str(feuille)
+        assert '<strong>%s</strong></td><td class="mono">12,34 $ sur 1 clos mesurés</td>' % mod.arrondi(70000) in feuille
+        assert ('<span class="resume-clos">%s</span>' % mod.resume_clos(2, 70000, __import__("decimal").Decimal("12.34"), 1)
+                 in feuille)
         recale = "estimé 1 fiches ≈25 $ (taux plat) · cadré 1 · joué 1 fiches 12,34 $"
         x_md = lire(os.path.join(tp, "ctx", "x.md"))
         assert (recale + "." in x_md), ("TAU3 : joué de X recalé sur le prix mesuré, estimé marqué (taux plat), fichier de fiches") + "\n" + str(x_md)
@@ -143,7 +142,8 @@ def test_prix(tmp_path):
         ok = ok and disque() == apres
         assert (ok), ("TAU3 : relancé, plus rien à écrire — fichiers identiques à l'octet") + "\n" + str(s)
         code, s = appel(["prix", os.path.join(tp, "ctx")])
-        assert (code == 1 and s.startswith("GARDE: pas de CHANTIER.md")), ("TAU3 : pas de CHANTIER.md, une GARDE") + "\n" + str(s)
+        assert code == 1
+        assert s.startswith("GARDE: pas de CHANTIER.md")
 
 
 def test_cout_a_clore(tmp_path, init_git):
@@ -197,20 +197,27 @@ def test_cout_a_clore(tmp_path, init_git):
                 os.environ.clear()
                 os.environ.update(garde_env)
             lignes_ = s.splitlines()
-            assert (code == 0 and len(lignes_) == 7 and lignes_[4].startswith("TOTAL ")
-                     and mod.triplet(lignes_[4])[:2] == (400000, 4)
-                     and lignes_[5].startswith("à clore · ") and mod.triplet(lignes_[5])[:2] == (300000, 3)
-                     and lignes_[6].startswith("après clore · ") and mod.triplet(lignes_[6])[:3] == (100000, 1, Decimal("0.50"))), ("cout --a-clore : TOTAL 4 tours, à clore 3, après clore 1 — le clore hors plage et le grep ignorés") + "\n" + str(s)
-            assert (code2 == 0
-                     and s2.splitlines()[-1] == "GARDE: aucun appel « vlp.py clore » dans la dernière plage hors fiches"
-                     " — pas de ligne à clore" and "à clore ·" not in s2), ("cout --a-clore : sans appel clore, une GARDE et pas de ligne") + "\n" + str(s2)
-            assert (code3 == 0 and s3.splitlines()[0] ==
-                     "Q inscrit 250 000 · recompté 400 000 · écart +150 000 · découpe · à clore 300 000 · après clore 100 000"), ("recompter --a-clore : à clore 300 000, après clore = recompté − à clore — mutant :"
-                     " après clore = recompté − inscrit") + "\n" + str(s3)
-            assert (code4 == 0 and s4.splitlines()[0] ==
-                     "Q inscrit 250 000 · recompté 300 000 · écart +50 000 · découpe · sans appel clore"), ("recompter --a-clore : sans appel clore, la ligne le dit") + "\n" + str(s4)
-            assert (code5 == 0 and s5.splitlines()[0] ==
-                     "Q inscrit 250 000 · recompté 400 000 · écart +150 000 · découpe"), ("recompter sans --a-clore : la ligne d'avant APC2") + "\n" + str(s5)
+            assert code == 0
+            assert len(lignes_) == 7
+            assert lignes_[4].startswith("TOTAL ")
+            assert mod.triplet(lignes_[4])[:2] == (400000, 4)
+            assert lignes_[5].startswith("à clore · ")
+            assert mod.triplet(lignes_[5])[:2] == (300000, 3)
+            assert lignes_[6].startswith("après clore · ")
+            assert mod.triplet(lignes_[6])[:3] == (100000, 1, Decimal("0.50"))
+            assert code2 == 0
+            assert (s2.splitlines()[-1] == "GARDE: aucun appel « vlp.py clore » dans la dernière plage hors fiches"
+                     " — pas de ligne à clore")
+            assert "à clore ·" not in s2
+            assert code3 == 0
+            assert (s3.splitlines()[0] ==
+                     "Q inscrit 250 000 · recompté 400 000 · écart +150 000 · découpe · à clore 300 000 · après clore 100 000")
+            assert code4 == 0
+            assert (s4.splitlines()[0] ==
+                     "Q inscrit 250 000 · recompté 300 000 · écart +50 000 · découpe · sans appel clore")
+            assert code5 == 0
+            assert (s5.splitlines()[0] ==
+                     "Q inscrit 250 000 · recompté 400 000 · écart +150 000 · découpe")
 
 
 def test_recompter_essais(tmp_path):
@@ -248,18 +255,24 @@ def test_recompter_essais(tmp_path):
             os.environ.clear()
             os.environ.update(garde_env)
         l_ = simule[1].splitlines()
-        assert (simule[0] == 0 and len(l_) == 3 and avant == initial
-                 and l_[0].startswith("M inscrit 300 000 · essais 200 000 · ajout +200 000 · gardé — DÉCOUPE aucune (")
-                 and l_[1].startswith("N inscrit 2 000 · essais 0 · ajout +0 · gardé — DÉCOUPE aucune (")
-                 and l_[2] == "ESSAIS 2 clos · 1 reçoivent · inscrit 302 000 · avec essais 502 000 · ajout +200 000"), ("recompter --essais : le gardé DÉCOUPE aucune reçoit ses essais, sous-agent compris ; l'autre +0 ;"
-                 " rien d'écrit") + "\n" + str(simule[1])
-        assert (un[0] == 0 and un[1].splitlines()[-1] == "ÉCRIT 1 cellules · total 302 000 → 502 000"
-                 and '<td class="mono">essais (ESD) +200 000 · ≈500,0k (500 000)</td>' in feuille_
-                 and '<td class="mono">≈2,0k (2 000)</td>' in feuille_ and mod.total_clos(feuille_) == 502000), ("recompter --essais --ecrire : le chiffre + l'essai, la marque en tête, BRUT le relit") + "\n" + str(un[1] + feuille_)
-        assert (deux[0] == 0 and lire(fr) == feuille_ and deux[1].splitlines()[-1] == "ÉCRIT 0 cellules · total 502 000 → 502 000"), ("recompter --essais --ecrire, second passage : cellule identique — mutant : ignorer la marque") + "\n" + str(deux[1] + lire(fr))
-        assert (resimule[0] == 0 and resimule[1].splitlines()[0].startswith("M inscrit 500 000 · essais 200 000 · ajout +0 · ")
-                 and resimule[1].splitlines()[0].endswith(" · déjà ajoutés (ESD)")
-                 and resimule[1].splitlines()[-1].endswith(" · 0 reçoivent · inscrit 502 000 · avec essais 502 000 · ajout +0")), ("recompter --essais après écriture : la simulation dit +0, déjà ajoutés") + "\n" + str(resimule[1])
+        assert simule[0] == 0
+        assert len(l_) == 3
+        assert avant == initial
+        assert l_[0].startswith("M inscrit 300 000 · essais 200 000 · ajout +200 000 · gardé — DÉCOUPE aucune (")
+        assert l_[1].startswith("N inscrit 2 000 · essais 0 · ajout +0 · gardé — DÉCOUPE aucune (")
+        assert l_[2] == "ESSAIS 2 clos · 1 reçoivent · inscrit 302 000 · avec essais 502 000 · ajout +200 000"
+        assert un[0] == 0
+        assert un[1].splitlines()[-1] == "ÉCRIT 1 cellules · total 302 000 → 502 000"
+        assert '<td class="mono">essais (ESD) +200 000 · ≈500,0k (500 000)</td>' in feuille_
+        assert '<td class="mono">≈2,0k (2 000)</td>' in feuille_
+        assert mod.total_clos(feuille_) == 502000
+        assert deux[0] == 0
+        assert lire(fr) == feuille_
+        assert deux[1].splitlines()[-1] == "ÉCRIT 0 cellules · total 502 000 → 502 000"
+        assert resimule[0] == 0
+        assert resimule[1].splitlines()[0].startswith("M inscrit 500 000 · essais 200 000 · ajout +0 · ")
+        assert resimule[1].splitlines()[0].endswith(" · déjà ajoutés (ESD)")
+        assert resimule[1].splitlines()[-1].endswith(" · 0 reçoivent · inscrit 502 000 · avec essais 502 000 · ajout +0")
         # La règle du découpé, en fonction pure : les essais sans passer le recompté.
         assert ([mod.ajout_essais("x", 100, 150, "découpe", 80), mod.ajout_essais("x", 100, 300, "découpe", 80),
                   mod.ajout_essais("x", 100, 90, "découpe", 80), mod.ajout_essais("x", 100, None, "gardé — sans session", 80),
@@ -310,19 +323,21 @@ def test_recompter_un_clos(tmp_path):
             deux = appel(["recompter", tp, "--clos", "A", "--ecrire"])
         finally:
             mod.noyau.clos.recompte = vrai
-        assert (absent[0] == 1 and absent[1].startswith("GARDE: clos Z absent")
-                 and initiale.count("12,34 $ · %s" % mod.arrondi(50000)) == 2), ("PRP3 : --clos absent de ZONE:clos, une GARDE, rien d'écrit") + "\n" + str(absent[1])
+        assert absent[0] == 1
+        assert absent[1].startswith("GARDE: clos Z absent")
+        assert initiale.count("12,34 $ · %s" % mod.arrondi(50000)) == 2
         neuf = "joué 1 fiches 7,50 $"
-        assert (un[0] == 0 and un[1].splitlines()[-1] == "COPIES 4 écrites · 0 inchangées · 0 introuvables"
-                 and un[1].splitlines()[0].startswith("A inscrit 50 000 · recompté 90 000")
-                 and '<td class="mono">7,50 $ · recompté (REC), était 50 000 · %s</td>' % mod.arrondi(90000) in feuille_
-                 and all(neuf in c for c in copies_a)), ("PRP3 : recompter --clos A --ecrire — 4 copies écrites pour A (archive, **Fait.**, ZONE:bilan, abri)"
-                 " — mutant : sauter l'écriture de la ZONE:bilan") + "\n" + str(un[1] + "\n".join(copies_a) + feuille_)
-        assert ([lire(c) for c in b] == avant_b
-                 and '<td class="mono">B1</td>' in feuille_
-                 and feuille_.count('<td class="mono">12,34 $ · %s</td>' % mod.arrondi(50000)) == 1), ("PRP3 : B n'a pas bougé — 0 copie changée (fiches, page, abri, cellule d'archive)") + "\n" + str(feuille_)
-        assert (deux[0] == 0 and deux[1].splitlines()[-1] == "COPIES 0 écrites · 4 inchangées · 0 introuvables"
-                 and lire(fdr) == feuille_), ("PRP3 : relancé, les quatre copies inchangées") + "\n" + str(deux[1])
+        assert un[0] == 0
+        assert un[1].splitlines()[-1] == "COPIES 4 écrites · 0 inchangées · 0 introuvables"
+        assert un[1].splitlines()[0].startswith("A inscrit 50 000 · recompté 90 000")
+        assert '<td class="mono">7,50 $ · recompté (REC), était 50 000 · %s</td>' % mod.arrondi(90000) in feuille_
+        assert all(neuf in c for c in copies_a)
+        assert [lire(c) for c in b] == avant_b
+        assert '<td class="mono">B1</td>' in feuille_
+        assert feuille_.count('<td class="mono">12,34 $ · %s</td>' % mod.arrondi(50000)) == 1
+        assert deux[0] == 0
+        assert deux[1].splitlines()[-1] == "COPIES 0 écrites · 4 inchangées · 0 introuvables"
+        assert lire(fdr) == feuille_
 
 
 GABARIT_FEUILLE = os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html")
@@ -357,15 +372,21 @@ def test_page_clos(tmp_path):
         ecrire(archive, gabarit[:d] + deux + gabarit[f:])
         assert (os.path.normpath(mod.page_clos(proj)) == os.path.normpath(archive)), ("ARC1 : page_clos rend l'archive") + "\n" + str(mod.page_clos(proj))
         code, s = appel(["recompter", proj])
-        assert (code == 0 and "RECOMPTE 2 clos" in s), ("ARC1 : recompter lit les deux clos de l'archive") + "\n" + str(s)
+        assert code == 0
+        assert "RECOMPTE 2 clos" in s
         code, s = appel(["prix", proj, "--a-blanc"])
-        assert (code == 0 and "2 sans prix" in s), ("ARC1 : prix lit l'archive") + "\n" + str(s)
+        assert code == 0
+        assert "2 sans prix" in s
         code, s = appel(["clore", proj, "--livre", "fini", "--tokens", "1000"])
         lignes_a, lignes_f = mod.lignes_clos(lire(archive)), mod.lignes_clos(lire(fdr))
-        assert (code == 0 and len(lignes_a) == 3 and "A1" in lignes_a[0] and not lignes_f), ("ARC1 : clore ajoute sa ligne en tête de l'archive, la feuille n'en a aucune") + "\n" + str(s)
+        assert code == 0
+        assert len(lignes_a) == 3
+        assert "A1" in lignes_a[0]
+        assert not lignes_f
         svg = os.path.join(proj, "ctx", "artefacts", mod.COUTS_SVG)
         barres = lire(svg).count('class="barre"') if os.path.isfile(svg) else 0
-        assert (barres == 3 and 'data-couts=' in lire(fdr)), ("ARC1 : couts.svg à côté de la feuille, trois barres lues dans l'archive") + "\n" + str("%d barres\n%s" % (barres, s))
+        assert barres == 3
+        assert 'data-couts=' in lire(fdr)
         assert ("\nLIRE vlp.css vlp.js couts.svg\n" in s), ("REF29 : clore dit LIRE avec couts.svg joint — mutant : ligne LIRE retirée") + "\n" + str(s)
         ecrire(os.path.join(proj, "ctx", "31-b.md"), "# Chantier B\n\n**Fait.** Rien.\n\n## Le socle commun\n\n"
                "## L'ordre des fiches\n\n<!-- FICHE:B1 -->\n## B1 [ ] — Seule\n**Critère de fin**\n<!-- /FICHE -->\n")
@@ -404,22 +425,32 @@ def test_vigile(tmp_path):
         code, s = appel(["vigile", saine])
         assert ((code, s) == (0, "PAGE SAINE 2 blocs\n")), ("vigile : page saine, PAGE SAINE 2 blocs") + "\n" + str(s)
         code, s = appel(["vigile", cairn])
-        assert (code == 1 and "GARDE: %s — commentaire ouvert ligne 1" % cairn in s), ("vigile : page Cairn, commentaire ouvert ligne 1 — mutant : ne plus le chercher") + "\n" + str(s)
-        assert ("aucun style" in s and "aucun bloc de texte visible" in s and s.count("GARDE:") == 3), ("vigile : page Cairn, style et texte cachés dans le commentaire comptent pour rien") + "\n" + str(s)
+        assert code == 1
+        assert "GARDE: %s — commentaire ouvert ligne 1" % cairn in s
+        assert "aucun style" in s
+        assert "aucun bloc de texte visible" in s
+        assert s.count("GARDE:") == 3
         code, s = appel(["vigile", sans_style])
-        assert (code == 1 and s == "GARDE: %s — aucun style (ni balise style, ni link rel=\"stylesheet\")\n"
-                 % sans_style), ("vigile : page sans style, GARDE — mutant : l'accepter") + "\n" + str(s)
+        assert code == 1
+        assert (s == "GARDE: %s — aucun style (ni balise style, ni link rel=\"stylesheet\")\n"
+                 % sans_style)
         code, s = appel(["vigile", sans_bloc])
-        assert (code == 1 and s == "GARDE: %s — aucun bloc de texte visible\n" % sans_bloc), ("vigile : page sans bloc, GARDE — mutant : accepter zéro bloc") + "\n" + str(s)
+        assert code == 1
+        assert s == "GARDE: %s — aucun bloc de texte visible\n" % sans_bloc
         code, s = appel(["vigile", lien])
         assert ((code, s) == (0, "PAGE SAINE 1 blocs\n")), ("vigile : page stylée par un seul link, saine") + "\n" + str(s)
         code, s = appel(["vigile", os.path.join(tvg, "absente.html")])
-        assert (code == 1 and s.startswith("GARDE: introuvable")), ("vigile : fichier absent, GARDE introuvable") + "\n" + str(s)
+        assert code == 1
+        assert s.startswith("GARDE: introuvable")
 
         pub = {"hook_event_name": "PreToolUse", "tool_name": "Artifact"}
         code, s = hook(dict(pub, tool_input={"file_path": cairn}))
-        assert (code == 0 and '"permissionDecision": "deny"' in s and json.dumps(cairn)[1:-1] in s
-                 and "commentaire ouvert" in s and "aucun style" in s and "aucun bloc" in s), ("vigile : hook, page Cairn refusée, raison nomme fichier et défauts") + "\n" + str(s)
+        assert code == 0
+        assert '"permissionDecision": "deny"' in s
+        assert json.dumps(cairn)[1:-1] in s
+        assert "commentaire ouvert" in s
+        assert "aucun style" in s
+        assert "aucun bloc" in s
         code, s = hook(dict(pub, tool_input={"file_path": "sans-style.html"}, cwd=tvg))
         assert ('"permissionDecision": "deny"' in s), ("vigile : hook, chemin relatif au cwd refusé") + "\n" + str(s)
         assert (hook(dict(pub, tool_input={"file_path": saine})) == (0, "")), ("vigile : hook, page saine, muet") + "\n" + ""
@@ -429,7 +460,8 @@ def test_vigile(tmp_path):
         md = os.path.join(tvg, "page.md")
         ecrire(md, "<!-- ouvert\n")
         assert (hook(dict(pub, tool_input={"file_path": md})) == (0, "")), ("vigile : hook, un .md, muet") + "\n" + ""
-        assert (hook("pas du json") == (0, "") and hook('[1, "x"]') == (0, "")), ("vigile : hook, JSON illisible, muet") + "\n" + ""
+        assert hook("pas du json") == (0, "")
+        assert hook('[1, "x"]') == (0, "")
         assert (hook(dict(pub, tool_input={"file_path": os.path.join(tvg, "absente.html")})) == (0, "")), ("vigile : hook, fichier illisible, muet") + "\n" + ""
 
 
@@ -464,15 +496,20 @@ def test_repeindre(tmp_path):
                           for r, _, ns in os.walk(trp) for n in ns}
         avant = disque()
         code, s = appel(["repeindre", trp, "--a-blanc"])
-        assert (code == 0 and "2 repeintes · 0 avec lien · 2 sans lien · 0 refusées · 1 déjà" in s
-                 and disque() == avant), ("HAB2 : --a-blanc annonce 2 repeintes et ne change aucun octet") + "\n" + str(s)
+        assert code == 0
+        assert "2 repeintes · 0 avec lien · 2 sans lien · 0 refusées · 1 déjà" in s
+        assert disque() == avant
         code, s = appel(["repeindre", trp])
         pages = [lire(os.path.join(trp, "ctx", "artefacts", "%s.html" % x)) for x in "ab"]
-        assert (code == 0 and s.splitlines()[-1] == "REPEINDRE 2 repeintes · 0 avec lien · 2 sans lien"
-                 " · 0 refusées · 1 déjà · 0 sans page" and s.count("REPEINTE ") == 2
-                 and all("<style>" not in p and 'href="vlp.css"' in p for p in pages)), ("HAB2 : repeindre, 2 repeintes · 0 avec lien · 2 sans lien · 0 refusées, 1 déjà"
-                 " — mutant : ne pas filtrer les pages déjà au format") + "\n" + str(s)
+        assert code == 0
+        assert (s.splitlines()[-1] == "REPEINDRE 2 repeintes · 0 avec lien · 2 sans lien"
+                 " · 0 refusées · 1 déjà · 0 sans page")
+        assert s.count("REPEINTE ") == 2
+        assert all("<style>" not in p and 'href="vlp.css"' in p for p in pages)
         code, s = appel(["repeindre", trp])
-        assert (code == 0 and "0 repeintes" in s and "3 déjà" in s), ("HAB2 : relancé, 0 repeintes, 3 déjà") + "\n" + str(s)
+        assert code == 0
+        assert "0 repeintes" in s
+        assert "3 déjà" in s
         code, s = appel(["repeindre", os.path.join(trp, "ctx")])
-        assert (code == 1 and s.startswith("GARDE: pas de CHANTIER.md")), ("HAB2 : pas de CHANTIER.md, une GARDE") + "\n" + str(s)
+        assert code == 1
+        assert s.startswith("GARDE: pas de CHANTIER.md")

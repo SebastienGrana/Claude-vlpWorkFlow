@@ -184,16 +184,19 @@ def matin_a(tr, fab):
     carte_, html, rang, archive = etat_matin(d)
     lettres = mod.lettres_prises(carte_)
     parents = git_matin(d, "rev-list", "--parents", "-n", "1", "HEAD").split()
-    assert (code == 0 and s == ORDRE_ABSENT + "FUSIONNÉE %s\nMATIN 1 fusionnée(s) · 0 de côté\n" % nom
-                 and mod.courant_de(d) == "ctx/40-loc.md"
-                 and mod.champ(carte_, "artefact du chantier") == "https://claude.ai/artifact/LOC"
-                 and lettres == ["E", "ENQ", "PAR"] and rang == "79" and "3 chantiers clos" in archive
-                 and "<<<<<<<" not in "\n".join(carte_) + html and "Aucun chantier ouvert" not in html
-                 and len(parents) == 3 and not git_matin(d, "status", "--porcelain")
-                 and git_matin(d, "log", "-1", "--format=%s").strip() == "Matin %s : %s" % (JOUR_MATIN, nom)
-                 and "| 80 |" not in lire(os.path.join(d, "ctx", "08-etat.md"))), ("NUI15 (a) 2cef70f rejoué : courant et artefact de LOC rendus, PAR une fois après ENQ, rang 79, archive à "
-                 "3 clos, aucun conflit, HEAD à deux parents, arbre propre — mutants : lettres de la branche gardées, "
-                 "todo laissé à None") + "\n" + str((code, s, carte_, rang, archive[:300]))
+    assert code == 0
+    assert s == ORDRE_ABSENT + "FUSIONNÉE %s\nMATIN 1 fusionnée(s) · 0 de côté\n" % nom
+    assert mod.courant_de(d) == "ctx/40-loc.md"
+    assert mod.champ(carte_, "artefact du chantier") == "https://claude.ai/artifact/LOC"
+    assert lettres == ["E", "ENQ", "PAR"]
+    assert rang == "79"
+    assert "3 chantiers clos" in archive
+    assert "<<<<<<<" not in "\n".join(carte_) + html
+    assert "Aucun chantier ouvert" not in html
+    assert len(parents) == 3
+    assert not git_matin(d, "status", "--porcelain")
+    assert git_matin(d, "log", "-1", "--format=%s").strip() == "Matin %s : %s" % (JOUR_MATIN, nom)
+    assert "| 80 |" not in lire(os.path.join(d, "ctx", "08-etat.md"))
     assert (git_matin(origine, "rev-parse", "main").strip() == pousse != git_matin(d, "rev-parse", "main").strip()), ("NUI15 (f) un dépôt nu en origin : sa main n'a pas bougé, matin ne pousse rien") + "\n" + str((pousse, git_matin(d, "rev-parse", "main")))
 
 
@@ -211,13 +214,14 @@ def matin_b(tr, fab):
     code, s = appel(["matin", d, JOUR_MATIN])
     carte_, html, rang, _ = etat_matin(d)
     sujets = git_matin(d, "log", "--first-parent", "--format=%s", "main").splitlines()
-    assert (code == 0 and "ORDRE" not in s and s.endswith("MATIN 2 fusionnée(s) · 0 de côté\n")
-                 and mod.lettres_prises(carte_) == ["E", "ENQ", "BBB", "AAA"] and rang == "79"
-                 and 'Lettres de fiche prises : <span class="mono">E, ENQ, BBB, AAA, LOC</span>' in html
-                 and [x for x in reversed(sujets) if x.startswith("Matin")]
-                 == ["Matin %s : %s" % (JOUR_MATIN, b), "Matin %s : %s" % (JOUR_MATIN, a)]), ("NUI15 (b) deux nuits, une lettre chacune sur la même ligne, la feuille changée des deux côtés : les deux "
-                 "lettres gardées, le badge au rang 79, B avant A comme au carnet (pointe de B plus récente) — mutant : "
-                 "lettres de la branche gardées") + "\n" + str((code, s, mod.lettres_prises(carte_), rang, sujets))
+    assert code == 0
+    assert "ORDRE" not in s
+    assert s.endswith("MATIN 2 fusionnée(s) · 0 de côté\n")
+    assert mod.lettres_prises(carte_) == ["E", "ENQ", "BBB", "AAA"]
+    assert rang == "79"
+    assert 'Lettres de fiche prises : <span class="mono">E, ENQ, BBB, AAA, LOC</span>' in html
+    assert ([x for x in reversed(sujets) if x.startswith("Matin")]
+                 == ["Matin %s : %s" % (JOUR_MATIN, b), "Matin %s : %s" % (JOUR_MATIN, a)])
 
 
 
@@ -228,9 +232,10 @@ def matin_c(tr, fab):
     wip = branche_matin(d, "A", "WIP", None, 1, clos=False, x="a = 1\nb = 2\nc = 30\n")
     ok = branche_matin(d, "B", "OKK", "OKK", 2)
     code, s = appel(["matin", d, JOUR_MATIN])
-    assert (code == 0 and s == (ORDRE_ABSENT + "DE CÔTÉ %s — ctx/41-wip.md\nFUSIONNÉE %s\n"
-                                     "MATIN 1 fusionnée(s) · 1 de côté\n" % (wip, ok))
-                 and code_git(d, "merge-base", "--is-ancestor", wip, "main") == 1), ("NUI15 (c) sans carnet : ORDRE pointes, la pointe WIP DE CÔTÉ avant la suivante fusionnée, hors de main") + "\n" + str((code, s))
+    assert code == 0
+    assert (s == (ORDRE_ABSENT + "DE CÔTÉ %s — ctx/41-wip.md\nFUSIONNÉE %s\n"
+                                     "MATIN 1 fusionnée(s) · 1 de côté\n" % (wip, ok)))
+    assert code_git(d, "merge-base", "--is-ancestor", wip, "main") == 1
 
 
 
@@ -244,17 +249,19 @@ def matin_d(tr, fab):
     commit_matin(d, "main avance", 3)
     code, s = appel(["matin", d, JOUR_MATIN])
     carte_ = lire(os.path.join(d, "CHANTIER.md"))
-    assert (code == 1 and s.startswith(ORDRE_ABSENT + "ARRÊT %s — conflit : scripts/x.py — après résolution : " % a)
-                 and s.endswith(' feuille "%s"\n' % d)
-                 and code_git(d, "rev-parse", "-q", "--verify", "MERGE_HEAD") == 0
-                 and code_git(d, "merge-base", "--is-ancestor", b, "main") == 1
-                 and "- **artefact du chantier** : https://claude.ai/artifact/LOC" in carte_ and "<<<<<<<" not in carte_), ("NUI15 (d) un .py changé des deux côtés : ARRÊT qui le nomme et donne feuille sans --todo (PEN2 : le badge suit le code), sort 1, MERGE_HEAD "
-                 "là, CHANTIER.md réparé sans marque, la suivante pas fusionnée") + "\n" + str((code, s))
+    assert code == 1
+    assert s.startswith(ORDRE_ABSENT + "ARRÊT %s — conflit : scripts/x.py — après résolution : " % a)
+    assert s.endswith(' feuille "%s"\n' % d)
+    assert code_git(d, "rev-parse", "-q", "--verify", "MERGE_HEAD") == 0
+    assert code_git(d, "merge-base", "--is-ancestor", b, "main") == 1
+    assert "- **artefact du chantier** : https://claude.ai/artifact/LOC" in carte_
+    assert "<<<<<<<" not in carte_
     ecrire(os.path.join(d, "scripts", "x.py"), "a = 1\nb = 22\nc = 3\n")
     appel(["feuille", d, "--todo", "79", "--date", JOUR_MATIN])
     commit_matin(d, "résolu", 4)
     code, s = appel(["matin", d, JOUR_MATIN])
-    assert (code == 0 and s == ORDRE_ABSENT + "DÉJÀ %s\nFUSIONNÉE %s\nMATIN 1 fusionnée(s) · 0 de côté\n" % (a, b)), ("NUI15 (d) résolu, commité, relancé : DÉJÀ pour la branche résolue, la suivante fusionnée") + "\n" + str((code, s))
+    assert code == 0
+    assert s == ORDRE_ABSENT + "DÉJÀ %s\nFUSIONNÉE %s\nMATIN 1 fusionnée(s) · 0 de côté\n" % (a, b)
 
 
 
@@ -268,8 +275,9 @@ def matin_e(tr, fab):
         os.chmod(os.path.join(hooks, h), 0o755)
     git_matin(d, "config", "core.hooksPath", hooks.replace("\\", "/"))
     code, s = appel(["matin", d, JOUR_MATIN])
-    assert (code == 1 and s == ORDRE_ABSENT + "ARRÊT %s — commit refusé : hook : refusé\n" % nom
-                 and code_git(d, "rev-parse", "-q", "--verify", "MERGE_HEAD") == 0), ("NUI15 (e) hook exit 1 par core.hooksPath : ARRÊT … commit refusé, la 1re ligne du hook, fusion en cours") + "\n" + str((code, s))
+    assert code == 1
+    assert s == ORDRE_ABSENT + "ARRÊT %s — commit refusé : hook : refusé\n" % nom
+    assert code_git(d, "rev-parse", "-q", "--verify", "MERGE_HEAD") == 0
 
 
 
@@ -279,10 +287,11 @@ def matin_h(tr, fab):
     fab.depot(d, archive=False)
     a, b = branche_matin(d, "A", "AAA", "AAA", 1), branche_matin(d, "B", "BBB", "BBB", 2)
     code, s = appel(["matin", d, JOUR_MATIN])
-    assert (code == 1 and s.startswith(ORDRE_ABSENT + "FUSIONNÉE %s\nARRÊT %s — conflit : ctx/artefacts/feuille-de-route.html"
-                                            " — après résolution : " % (a, b)) and s.endswith(' feuille "%s"\n' % d)
-                 and code_git(d, "rev-parse", "-q", "--verify", "MERGE_HEAD") == 0), ("NUI15 (h) sans archive, feuille changée des deux côtés : la 1re fusionnée, ARRÊT sur la feuille pour la "
-                 "2e, fusion en cours") + "\n" + str((code, s))
+    assert code == 1
+    assert (s.startswith(ORDRE_ABSENT + "FUSIONNÉE %s\nARRÊT %s — conflit : ctx/artefacts/feuille-de-route.html"
+                                            " — après résolution : " % (a, b)))
+    assert s.endswith(' feuille "%s"\n' % d)
+    assert code_git(d, "rev-parse", "-q", "--verify", "MERGE_HEAD") == 0
 
 
 
@@ -309,10 +318,9 @@ def matin_g(tr, fab):
     attendu = ("GARDE: pas de CHANTIER.md dans", "GARDE: AAAA-MM-JJ attendu : hier", "GARDE: aucune branche nuit/2026-01-01-*",
                "GARDE: CHANTIER.md de main sans sa ligne « artefact du chantier »", "GARDE: HEAD est sur autre, pas sur main",
                "n'est pas la racine d'un dépôt Git", "GARDE: arbre pas propre (1 chemin(s))")
-    assert (all(c == 1 and a in s and "GARDE:" in s for (c, s), a in zip(sorties, attendu))
-                 and code_git(d, "merge-base", "--is-ancestor", nom, "main") == 1
-                 and code_git(d, "rev-parse", "-q", "--verify", "MERGE_HEAD") != 0), ("NUI15 (g) sept gardes : non équipé, date illisible, aucune branche, CHANTIER.md sans libellés, HEAD hors "
-                 "main, pas la racine, arbre sale — sort 1, « rien fusionné », aucune fusion commencée") + "\n" + str(sorties)
+    assert all(c == 1 and a in s and "GARDE:" in s for (c, s), a in zip(sorties, attendu))
+    assert code_git(d, "merge-base", "--is-ancestor", nom, "main") == 1
+    assert code_git(d, "rev-parse", "-q", "--verify", "MERGE_HEAD") != 0
 
 
 
@@ -360,20 +368,23 @@ def matin_n_a(tr, fab):
     code, s = appel(["matin", d, JOUR_MATIN])
     etat = lire(os.path.join(d, ETAT))
     parents = git_matin(d, "rev-list", "--parents", "-n", "1", "HEAD").split()
-    assert (code == 0 and s == ORDRE_ABSENT + "FUSIONNÉE %s\nFUSIONNÉE %s\nMATIN 2 fusionnée(s) · 0 de côté\n" % (a, b)
-                 and re.findall(r"^\| (\d+) \|", etat, re.M) == ["79", "80", "82", "83"] and "<<<<<<<" not in etat
-                 and code_git(d, "rev-parse", "-q", "--verify", "MERGE_HEAD") != 0 and len(parents) == 3), ("NUI16 (a) 2cef70f : A retire la 58, B ajoute la 83 → 58 absente, 79, 80, 82, 83 là dans l'ordre, aucune marque, "
-                 "MERGE_HEAD absent, HEAD à deux parents — mutant : retiré d'un côté gardé") + "\n" + str((code, s, etat))
+    assert code == 0
+    assert s == ORDRE_ABSENT + "FUSIONNÉE %s\nFUSIONNÉE %s\nMATIN 2 fusionnée(s) · 0 de côté\n" % (a, b)
+    assert re.findall(r"^\| (\d+) \|", etat, re.M) == ["79", "80", "82", "83"]
+    assert "<<<<<<<" not in etat
+    assert code_git(d, "rev-parse", "-q", "--verify", "MERGE_HEAD") != 0
+    assert len(parents) == 3
     d = os.path.join(tr, "nb")
     depot_nui16(fab, d)
     a = branche_matin(d, "A", "AAA", "AAA", 1, modifs=retoucher(ETAT, lambda t: t.replace("| c |", "| cA |")))
     b = branche_matin(d, "B", "BBB", "BBB", 2, modifs=retoucher(ETAT, lambda t: t.replace("| c |", "| cB |")))
     code, s = appel(["matin", d, JOUR_MATIN])
-    assert (code == 1 and "GARDE: ctx/08-etat.md : TODO : la rangée n° 82 est changée des deux côtés" in s
-                 and "FUSIONNÉE %s\n" % a in s and "ARRÊT %s — conflit : ctx/08-etat.md" % b in s
-                 and code_git(d, "rev-parse", "-q", "--verify", "MERGE_HEAD") == 0
-                 and git_matin(d, "log", "-1", "--format=%s").strip() == "Matin %s : %s" % (JOUR_MATIN, a)), ("NUI16 (a) la 82 changée en A et en B : GARDE: qui la nomme, sort 1, la fusion de B reste en cours, aucun commit "
-                 "pour B") + "\n" + str((code, s))
+    assert code == 1
+    assert "GARDE: ctx/08-etat.md : TODO : la rangée n° 82 est changée des deux côtés" in s
+    assert "FUSIONNÉE %s\n" % a in s
+    assert "ARRÊT %s — conflit : ctx/08-etat.md" % b in s
+    assert code_git(d, "rev-parse", "-q", "--verify", "MERGE_HEAD") == 0
+    assert git_matin(d, "log", "-1", "--format=%s").strip() == "Matin %s : %s" % (JOUR_MATIN, a)
 
 
 
@@ -385,10 +396,12 @@ def matin_n_b(tr, fab):
     branche_matin(d, "B", "BBB", "BBB", 2, modifs=retoucher(ETAT, lambda t: t + "## 2026-10-01 — BBB\nbloc de B\n"))
     code, s = appel(["matin", d, JOUR_MATIN])
     etat = lire(os.path.join(d, ETAT))
-    assert (code == 0 and s.endswith("MATIN 2 fusionnée(s) · 0 de côté\n") and "<<<<<<<" not in etat
-                 and etat.index("une ligne de base") < etat.index("bloc de A") < etat.index("bloc de B")
-                 and etat.count("## 2026-10-01 — AAA") == etat.count("## 2026-10-01 — BBB") == 1
-                 and re.findall(r"^\| (\d+) \|", etat, re.M) == ["58", "79", "80", "82"]), ("NUI16 (b) 5d7fc42 : le journal de A puis celui de B, après le journal de la base, aucune marque, la TODO intacte") + "\n" + str((code, s, etat))
+    assert code == 0
+    assert s.endswith("MATIN 2 fusionnée(s) · 0 de côté\n")
+    assert "<<<<<<<" not in etat
+    assert etat.index("une ligne de base") < etat.index("bloc de A") < etat.index("bloc de B")
+    assert etat.count("## 2026-10-01 — AAA") == etat.count("## 2026-10-01 — BBB") == 1
+    assert re.findall(r"^\| (\d+) \|", etat, re.M) == ["58", "79", "80", "82"]
 
 
 
@@ -400,13 +413,18 @@ def matin_n_c(tr, fab):
                   modifs=retoucher("CLAUDE.md", lambda t: resumee("AAA", "fait A")(t).replace("le kit tient.", "le kit tient, A.")))
     branche_matin(d, "B", "BBB", "BBB", 2,
                   modifs=retoucher("CLAUDE.md", lambda t: resumee("BBB", "fait B")(t).replace("1. une règle.", "1. une règle, B.")))
-    code, s = appel(["matin", d, JOUR_MATIN])
+    code, _s = appel(["matin", d, JOUR_MATIN])
     claude = lire(os.path.join(d, "CLAUDE.md"))
     clos = [l for l in claude.splitlines() if mod.ENTREE_CLOS.match(l)]
-    assert (code == 0 and len(clos) == mod.CLOS_GARDES and clos[-2].endswith("(chantier AAA).") and clos[-1].endswith("(chantier BBB).")
-                 and "(chantier CCB)" not in claude and "(chantier CCC)" in claude and "le kit tient, A." in claude and "1. une règle, B." in claude
-                 and "<<<<<<<" not in claude), ("NUI16 (c) CLAUDE.md : CLOS_GARDES lignes « Clos le », les deux neuves dont A avant B, les plus anciennes coupées, "
-                 "le reste de A et de B gardé, aucune marque — mutant : coupe non appelée") + "\n" + str((code, s, claude))
+    assert code == 0
+    assert len(clos) == mod.CLOS_GARDES
+    assert clos[-2].endswith("(chantier AAA).")
+    assert clos[-1].endswith("(chantier BBB).")
+    assert "(chantier CCB)" not in claude
+    assert "(chantier CCC)" in claude
+    assert "le kit tient, A." in claude
+    assert "1. une règle, B." in claude
+    assert "<<<<<<<" not in claude
 
 
 
@@ -426,20 +444,25 @@ def matin_n_d(tr, fab):
     branche_matin(d, "B", "BBB", "BBB", 2, ligne="BBB1", modifs=clot(
         "| `42-bbb.md` | on joue BBB — chantier **ouvert** |\n", "| `44-ddd.md` | on joue DDD — chantier **ouvert** |\n",
         "| `10-x.md` | chantier **clos** X |\n", "| `20-bbb.md` | chantier **clos** BBB |\n"))
-    code, s = appel(["matin", d, JOUR_MATIN])
+    code, _s = appel(["matin", d, JOUR_MATIN])
     index, archive = lire(os.path.join(d, "ctx", "00-INDEX.md")), lire(os.path.join(d, "ctx", "00-INDEX-archive.md"))
     clos = lire(os.path.join(d, "ctx", "artefacts", mod.ARCHIVE_CLOS))
     debut, fin = mod.zone(clos, "clos", "<tbody>\n", "        </tbody>")
     corps = clos[debut:fin]
     places = [corps.find(m) for m in ("BBB1", "AAA1–AAA2", "X1", "Y1")]
     pied = re.search(r'Total cumulé</td><td class="mono"><strong>(.*?)</strong>', clos)
-    assert (code == 0 and rangees(index) == ["08", "00", "40", "43", "44"] and "<<<<<<<" not in index + archive
-                 and rangees(archive) == ["10", "20", "41", "50"]), ("NUI16 (d) index : 41 et 42 retirées, 43 et 44 ajoutées une fois, A avant B, le reste intact ; archive : "
-                 "10, 20, 41, 50 triées") + "\n" + str((code, s, index, archive))
-    assert (len(mod.lignes_clos(corps)) == 4 and -1 not in places and places == sorted(places)
-                 and pied is not None and pied.group(1) == mod.arrondi(mod.total_clos(corps)) and mod.total_clos(corps) == 72000
-                 and "4 chantiers clos" in clos and "<<<<<<<" not in clos), ("NUI16 (d) archive-clos.html : 4 lignes, celle de B en tête puis celle de A puis celles de la base ; le pied est "
-                 "`total_clos` de ces 4 lignes, le résumé en compte 4") + "\n" + str((code, s, corps, pied))
+    assert code == 0
+    assert rangees(index) == ["08", "00", "40", "43", "44"]
+    assert "<<<<<<<" not in index + archive
+    assert rangees(archive) == ["10", "20", "41", "50"]
+    assert len(mod.lignes_clos(corps)) == 4
+    assert -1 not in places
+    assert places == sorted(places)
+    assert pied is not None
+    assert pied.group(1) == mod.arrondi(mod.total_clos(corps))
+    assert mod.total_clos(corps) == 72000
+    assert "4 chantiers clos" in clos
+    assert "<<<<<<<" not in clos
 
 
 
@@ -454,26 +477,28 @@ def matin_n_e(tr, fab):
     depot_nui16(fab, d, {ATTENTE: attente(("P", heure(8)), ("Q", heure(8)))})
     branche_matin(d, "A", "AAA", "AAA", 1, modifs=retoucher(ATTENTE, lambda t: attente(("Q", heure(11)))))
     branche_matin(d, "B", "BBB", "BBB", 2, modifs=retoucher(ATTENTE, lambda t: attente(("P", heure(8)), ("Q", heure(10)))))
-    code, s = appel(["matin", d, JOUR_MATIN])
-    assert (code == 0 and lire(os.path.join(d, ATTENTE)) == attente(("Q", heure(11)))), ("NUI16 (e) en-attente : P retirée par A et intacte en B → absente ; Q changée des deux côtés → l'heure la plus "
-                 "récente, celle de A bien que B soit fusionnée après") + "\n" + str((code, s))
+    code, _ = appel(["matin", d, JOUR_MATIN])
+    assert code == 0
+    assert lire(os.path.join(d, ATTENTE)) == attente(("Q", heure(11)))
     d = os.path.join(tr, "ne2")
     depot_nui16(fab, d, {ATTENTE: attente(("P", heure(8)), ("Q", heure(8)))})
     branche_matin(d, "A", "AAA", "AAA", 1, modifs=retoucher(ATTENTE, lambda t: attente(("Q", heure(8)))))
     branche_matin(d, "B", "BBB", "BBB", 2, modifs=retoucher(ATTENTE, lambda t: attente(("P", heure(8)))))
-    code, s = appel(["matin", d, JOUR_MATIN])
+    code, _ = appel(["matin", d, JOUR_MATIN])
     suivis = git_matin(d, "ls-tree", "-r", "--name-only", "HEAD").splitlines()
-    assert (code == 0 and not os.path.exists(os.path.join(d, ATTENTE)) and ATTENTE not in suivis
-                 and not git_matin(d, "status", "--porcelain")), ("NUI16 (e) en-attente : P retirée par A, Q par B → vide → le fichier est retiré, de l'arbre et de l'index — "
-                 "mutant : retrait ignoré") + "\n" + str((code, s, suivis))
+    assert code == 0
+    assert not os.path.exists(os.path.join(d, ATTENTE))
+    assert ATTENTE not in suivis
+    assert not git_matin(d, "status", "--porcelain")
     d = os.path.join(tr, "ne3")
     depot_nui16(fab, d)
     ecrire(os.path.join(d, ".git", "info", "exclude"), "en-attente\n")
     ecrire(os.path.join(d, ATTENTE), attente(("P", heure(9))))
     branche_matin(d, "A", "AAA", "AAA", 1)
     branche_matin(d, "B", "BBB", "BBB", 2)
-    code, s = appel(["matin", d, JOUR_MATIN])
-    assert (code == 0 and lire(os.path.join(d, ATTENTE)) == attente(("P", heure(9)))), ("NUI16 (e) en-attente non suivie, présente dans l'arbre de main : ni écrite ni retirée") + "\n" + str((code, s))
+    code, _s = appel(["matin", d, JOUR_MATIN])
+    assert code == 0
+    assert lire(os.path.join(d, ATTENTE)) == attente(("P", heure(9)))
 
 
 
@@ -513,20 +538,21 @@ def matin_n_f(tr, fab):
            ("sans-base", None, {"a": h["1"], "k": h["2"]}, {"c": h["3"], "k": h["2"]}))
     mesures = [publie_essai(fab, tr, nom, base, ea, eb) for nom, base, ea, eb in cas]
     gitattributes = lire(os.path.join(ICI, "..", ".gitattributes"))
-    assert ([u == c for u, c, _ in mesures] == [True, True, False, True] and "merge=union" not in gitattributes
-                 and mesures[2][1] == {} and list(mesures[2][0].values()) == [h["3"]]
-                 and [len(i) for _, _, i in mesures] == [0, 0, 1, 0] and mesures[2][2][0].startswith("PUBLIE P a — ")), ("NUI16 (f) essai D2, 4 cas : `merge=union` donne comme la clé pour des clés disjointes, une même clé de même "
-                 "empreinte et un fichier absent de la base, et non pour des empreintes différentes (deux lignes, la dernière lue ; "
-                 "la clé dit : retirée) — d'où la fusion par clé, et aucune ligne `merge=union` au .gitattributes du kit") + "\n" + str([(u, c, i) for u, c, i in mesures])
+    assert [u == c for u, c, _ in mesures] == [True, True, False, True]
+    assert "merge=union" not in gitattributes
+    assert mesures[2][1] == {}
+    assert list(mesures[2][0].values()) == [h["3"]]
+    assert [len(i) for _, _, i in mesures] == [0, 0, 1, 0]
+    assert mesures[2][2][0].startswith("PUBLIE P a — ")
     d = os.path.join(tr, "np")
     css, js = "feuille-de-route.html\tvlp.css\t", "feuille-de-route.html\tvlp.js\t"
     depot_nui16(fab, d, {PUBLIE_MATIN: css + h["1"] + "\n" + js + h["1"] + "\n"})
     branche_matin(d, "A", "AAA", "AAA", 1, modifs=retoucher(PUBLIE_MATIN, lambda t: css + h["2"] + "\n" + js + h["1"] + "\n"))
     branche_matin(d, "B", "BBB", "BBB", 2, modifs=retoucher(PUBLIE_MATIN, lambda t: css + h["3"] + "\n" + js + h["2"] + "\n"))
     code, s = appel(["matin", d, JOUR_MATIN])
-    assert (code == 0 and "PUBLIE feuille-de-route.html vlp.css — empreintes différentes des deux côtés, clé retirée" in s
-                 and lire(os.path.join(d, PUBLIE_MATIN)) == js + h["2"] + "\n"), ("NUI16 (f) matin : vlp.css aux empreintes différentes → clé retirée et dite (`PUBLIE …`), vlp.js changée d'un seul "
-                 "côté → la valeur de B") + "\n" + str((code, s))
+    assert code == 0
+    assert "PUBLIE feuille-de-route.html vlp.css — empreintes différentes des deux côtés, clé retirée" in s
+    assert lire(os.path.join(d, PUBLIE_MATIN)) == js + h["2"] + "\n"
 
 
 
@@ -593,10 +619,14 @@ def matin_r(tr, fab):
                  appel(["nuits", "noter", "oubli de sorte", "--canal", "A"])[0]]
         code_stop, s_stop = appel(["nuits", "noter", "x", "--stop", "--sorte", "reste"])
         sortes = [(x["note"], x["sorte"]) for x in mod.carnet.lire(c) if x["note"] and not x["note"].startswith(("depart", "base"))]
-        assert (codes == [0, 0, 0] and sortes == [("verser ceci", "reste"), ("faire niveau", "case3"), ("oubli de sorte", None)]
-                     and code_stop == 1 and s_stop.startswith("GARDE: --sorte") and len(mod.carnet.lire(c)) == 13), ("NUI19 (sorte) nuits noter --sorte : reste, case3 et sans sorte au carnet ; --sorte avec --stop → GARDE:, rien d'écrit") + "\n" + str((codes, sortes, s_stop))
+        assert codes == [0, 0, 0]
+        assert sortes == [("verser ceci", "reste"), ("faire niveau", "case3"), ("oubli de sorte", None)]
+        assert code_stop == 1
+        assert s_stop.startswith("GARDE: --sorte")
+        assert len(mod.carnet.lire(c)) == 13
         code, s = appel(["matin", d, JOUR_MATIN])
-        assert (code == 0 and s.endswith("MATIN 1 fusionnée(s) · 1 de côté\n")), ("NUI19 (r) matin d'abord : la branche close fusionnée, PAR de côté") + "\n" + str((code, s))
+        assert code == 0
+        assert s.endswith("MATIN 1 fusionnée(s) · 1 de côté\n")
         avant = git_matin(d, "rev-list", "--count", "HEAD")
         rapport = os.path.join(tr, "rapport-r.json")
         code1, s1 = appel(["matin", d, JOUR_MATIN, "--rapport", rapport])
@@ -610,24 +640,30 @@ def matin_r(tr, fab):
         u_a, t_a = somme(chemins["s-aaa-1"], sous["s-aaa-1"])
         u_r, t_r = somme(chemins["s-aaa-r"])
         u_p, t_p = somme(chemins["s-par-r"])
-        assert (code1 == 0 and (par_session["s-aaa-1"]["usd_kit"], par_session["s-aaa-1"]["tours_kit"]) == (u_a, t_a)
-                     and (par_session["s-aaa-r"]["usd_kit"], par_session["s-aaa-r"]["tours_kit"]) == (u_r, t_r)
-                     and (par_session["s-par-r"]["usd_kit"], par_session["s-par-r"]["tours_kit"]) == (u_p, t_p)
-                     and par_session["s-aaa-1"]["usd_cli"] == 7.77 and t_a == 3 and s1.startswith("KIT ? ")), ("NUI19 (a) usd_kit et tours_kit = la somme de mesurer sur la session et son sous-agent, au centime ; usd_cli gardé — "
-                     "mutant : sous-agents non sommés") + "\n" + str((par_session, s1))
-        assert (all(par_session[n]["usd_kit"] is None and par_session[n]["tours_kit"] is None for n in ("s-aaa-c", "s-par-1"))
-                     and "KIT ? s-aaa-c — transcription introuvable\n" in s1
-                     and "KIT ? s-par-1 — modèle hors grille (claude-inconnu-9)\n" in s1 and s1.count("KIT ? ") == 2), ("NUI19 (c) sans transcript, et sous-agent hors GRILLE : aucune clé _kit, une ligne KIT ? chacune, jamais 0 — "
-                     "mutant : usd_exact None compté 0") + "\n" + str((par_session, s1))
+        assert code1 == 0
+        assert (par_session["s-aaa-1"]["usd_kit"], par_session["s-aaa-1"]["tours_kit"]) == (u_a, t_a)
+        assert (par_session["s-aaa-r"]["usd_kit"], par_session["s-aaa-r"]["tours_kit"]) == (u_r, t_r)
+        assert (par_session["s-par-r"]["usd_kit"], par_session["s-par-r"]["tours_kit"]) == (u_p, t_p)
+        assert par_session["s-aaa-1"]["usd_cli"] == 7.77
+        assert t_a == 3
+        assert s1.startswith("KIT ? ")
+        assert all(par_session[n]["usd_kit"] is None and par_session[n]["tours_kit"] is None for n in ("s-aaa-c", "s-par-1"))
+        assert "KIT ? s-aaa-c — transcription introuvable\n" in s1
+        assert "KIT ? s-par-1 — modèle hors grille (claude-inconnu-9)\n" in s1
+        assert s1.count("KIT ? ") == 2
         table = [l for l in octets(nuits).decode("utf-8").splitlines() if l.startswith("| " + JOUR_MATIN)]
         euros = lambda v: ("%.2f" % v).replace(".", ",")
-        assert (code2 == 0 and carnet1 == octets(c) and nuits1 == octets(nuits) and json1 == octets(rapport)
-                     and len(table) == 4 and "NUITS ctx/41-nuits.md · 4 ligne(s) ajoutée(s)\n" in s1
-                     and "NUITS ctx/41-nuits.md · 0 ligne(s) ajoutée(s)\n" in s2
-                     and "| %s | A | AAA | 1/1/0 | ≥ %s |" % (JOUR_MATIN, euros(u_a + u_r)) in table
-                     and "| %s | B | PAR | 1/0/1 | ≥ %s |" % (JOUR_MATIN, euros(u_p)) in table
-                     and not os.path.exists(c + ".verrou") and git_matin(d, "rev-list", "--count", "HEAD") == avant), ("NUI19 (b) --rapport rejoué : carnet, fichier des nuits et JSON identiques à l'octet, une ligne de table par chantier "
-                     "(4), aucune ajoutée au rejeu, verrou absent, HEAD inchangé") + "\n" + str((code2, table, s1, s2))
+        assert code2 == 0
+        assert carnet1 == octets(c)
+        assert nuits1 == octets(nuits)
+        assert json1 == octets(rapport)
+        assert len(table) == 4
+        assert "NUITS ctx/41-nuits.md · 4 ligne(s) ajoutée(s)\n" in s1
+        assert "NUITS ctx/41-nuits.md · 0 ligne(s) ajoutée(s)\n" in s2
+        assert "| %s | A | AAA | 1/1/0 | ≥ %s |" % (JOUR_MATIN, euros(u_a + u_r)) in table
+        assert "| %s | B | PAR | 1/0/1 | ≥ %s |" % (JOUR_MATIN, euros(u_p)) in table
+        assert not os.path.exists(c + ".verrou")
+        assert git_matin(d, "rev-list", "--count", "HEAD") == avant
         donnees = json.loads(json1.decode("utf-8"))
         choix = donnees.get("choix", [])
         titres = [q["titre"] for q in choix]
@@ -635,39 +671,53 @@ def matin_r(tr, fab):
         reste = next((q for q in choix if q["titre"].startswith("Reste à verser")), {})
         case3 = next((q for q in choix if q["titre"].startswith("Case 3")), {})
         sans = [m for m in donnees.get("mal", []) if m["titre"] == "NOTE SANS SORTE"]
-        assert ([len(q.get("options", [])) for q in (cote, reste, case3)] == [3, 3, 2]
-                     and [o["valeur"] for o in cote["options"]] == ["reprendre", "abandonner", "rejouer"]
-                     and [o["valeur"] for o in reste["options"]] == ["verser", "fondre", "abandonner"]
-                     and len(sans) == 1 and "oubli de sorte" in sans[0]["texte"]
-                     and "NOTE SANS SORTE A — oubli de sorte\n" in s1
-                     and "ÉCART B-ZZZ — le carnet le met de côté, Git non" in s1 and s1.count("ÉCART ") == 1
-                     and any("Chantiers sautés à cause de lui : DEP" in p for p in cote["puces"])
-                     and any("la cause du refus" in p for p in cote["puces"]) and any("`git branch -D nuit/" in o["effet"] for o in cote["options"])
-                     and "7,77" not in json1.decode("utf-8") and "7.77" not in json1.decode("utf-8")
-                     and "push" not in json1.decode("utf-8").lower() and len(titres) == 4
-                     and [t.startswith("Mis de côté : ") for t in titres].count(True) == 2 and any("ZZZ" in t for t in titres)), ("NUI19 (d) JSON : le mis de côté et le reste à trois réponses, la case 3 à deux, NOTE SANS SORTE une fois (les notes "
-                     "de la boucle n'y sont pas), l'ÉCART de ZZZ dit, jamais un _cli ni un push") + "\n" + str((titres, cote, reste, case3, sans, s1))
+        assert [len(q.get("options", [])) for q in (cote, reste, case3)] == [3, 3, 2]
+        assert [o["valeur"] for o in cote["options"]] == ["reprendre", "abandonner", "rejouer"]
+        assert [o["valeur"] for o in reste["options"]] == ["verser", "fondre", "abandonner"]
+        assert len(sans) == 1
+        assert "oubli de sorte" in sans[0]["texte"]
+        assert "NOTE SANS SORTE A — oubli de sorte\n" in s1
+        assert "ÉCART B-ZZZ — le carnet le met de côté, Git non" in s1
+        assert s1.count("ÉCART ") == 1
+        assert any("Chantiers sautés à cause de lui : DEP" in p for p in cote["puces"])
+        assert any("la cause du refus" in p for p in cote["puces"])
+        assert any("`git branch -D nuit/" in o["effet"] for o in cote["options"])
+        assert "7,77" not in json1.decode("utf-8")
+        assert "7.77" not in json1.decode("utf-8")
+        assert "push" not in json1.decode("utf-8").lower()
+        assert len(titres) == 4
+        assert [t.startswith("Mis de côté : ") for t in titres].count(True) == 2
+        assert any("ZZZ" in t for t in titres)
         html = os.path.join(tr, "rapport-r.html")
         code, s = appel(["chef", "page", "--questions", "@" + rapport, "--sortie", html])
-        assert (code == 0 and s.startswith("PAGE SAINE ")
-                     and s.endswith("CARTES Q1 Q2 Q3 Q4\n")), ("NUI19 (d) le JSON passe `chef page` : PAGE SAINE, les cartes Q1 à Q4") + "\n" + str((code, s))
+        assert code == 0
+        assert s.startswith("PAGE SAINE ")
+        assert s.endswith("CARTES Q1 Q2 Q3 Q4\n")
         code_h, s_h = appel(["nuits", "lecon", "hors forme", "--projet", d])
         lecon = "- %s · N=1 · cause un · jouées 3 sur 5 · nuits %s · sessions s-aaa-1" % (JOUR_MATIN, JOUR_MATIN)
         code_l, s_l = appel(["nuits", "lecon", lecon, "--projet", d])
         code_m, s_m = appel(["nuits", "lecon", lecon, "--projet", d])
         textes = octets(nuits).decode("utf-8").splitlines()
-        assert (code_h == 1 and s_h.startswith("GARDE: leçon hors forme") and code_l == 0 and s_l == "LEÇON ctx/41-nuits.md · ajoutée\n"
-                     and code_m == 0 and s_m == "LEÇON ctx/41-nuits.md · déjà là\n" and textes.count(lecon) == 1
-                     and textes.index("## Leçons") < textes.index(lecon)), ("NUI19 (d) nuits lecon : hors forme → GARDE:, sort 1, rien d'écrit ; une leçon sous `## Leçons`, rejouée → déjà là") + "\n" + str((code_h, s_h, s_l, s_m))
+        assert code_h == 1
+        assert s_h.startswith("GARDE: leçon hors forme")
+        assert code_l == 0
+        assert s_l == "LEÇON ctx/41-nuits.md · ajoutée\n"
+        assert code_m == 0
+        assert s_m == "LEÇON ctx/41-nuits.md · déjà là\n"
+        assert textes.count(lecon) == 1
+        assert textes.index("## Leçons") < textes.index(lecon)
         transcript(os.path.join(pr, "s-aaa-c.jsonl"), 1)     # la transcription qui manquait paraît : le chiffre de A/AAA changerait
         code3, s3 = appel(["matin", d, JOUR_MATIN, "--rapport", rapport])
         table3 = [l for l in octets(nuits).decode("utf-8").splitlines() if l.startswith("| " + JOUR_MATIN)]
         mesuree = next(x for x in mod.carnet.lire(c) if x["session"] == "s-aaa-c")
-        assert (code3 == 0 and mesuree["usd_kit"] is not None and table3 == table
-                     and "NUITS ctx/41-nuits.md · 0 ligne(s) ajoutée(s)\n" in s3 and "KIT ? s-aaa-c" not in s3), ("NUI19 (b) une ligne de table déjà là n'est pas refaite quand son chiffre aurait changé : toujours 4 lignes, "
-                     "A/AAA inchangée, la session enfin mesurée au carnet — mutant : une ligne de table à chaque rejeu") + "\n" + str((code3, table, table3, s3))
+        assert code3 == 0
+        assert mesuree["usd_kit"] is not None
+        assert table3 == table
+        assert "NUITS ctx/41-nuits.md · 0 ligne(s) ajoutée(s)\n" in s3
+        assert "KIT ? s-aaa-c" not in s3
         code_a, s_a = appel(["matin", d, "2026-10-02", "--rapport", rapport])
-        assert (code_a == 1 and s_a.startswith("GARDE: carnet de la nuit 2026-10-02 absent ou vide")), ("NUI19 (r) --rapport sans carnet à cette date → GARDE:, sort 1") + "\n" + str((code_a, s_a))
+        assert code_a == 1
+        assert s_a.startswith("GARDE: carnet de la nuit 2026-10-02 absent ou vide")
     finally:
         for k, v in sauve.items():
             if v is None:
@@ -695,17 +745,22 @@ def matin_s(tr, fab):
     wip = branche_matin(wip_d, "A", "WIP", None, 1, clos=False, x="a = 1\nb = 2\nc = 30\n")
     codew, sw = appel(["matin", wip_d])
     aucune = "GARDE: aucune nuit à ranger (1 branche(s) nuit/* déjà fusionnée(s) ou de côté) — rien fusionné\n"
-    assert (code2 == 1 and s2 == "GARDE: plusieurs nuits à ranger : 2026-09-30 (1), 2026-10-01 (1) — rien fusionné ; "
-                 "donne la date\n" and intacte
-                 and code_r == 1 and s_r.startswith("GARDE: --rapport veut la date de la nuit") and not os.path.exists(rapport)
-                 and code1 == 0 and s1 == ("NUIT 2026-10-01 — la seule à ranger : 1 branche(s)\n" + ORDRE_ABSENT
-                                           + "FUSIONNÉE %s\nMATIN 1 fusionnée(s) · 0 de côté\n" % nom)
-                 and code_git(d, "merge-base", "--is-ancestor", nom, "main") == 0
-                 and code0 == 1 and s0 == aucune and codew == 1 and sw == aucune
-                 and code_git(wip_d, "merge-base", "--is-ancestor", wip, "main") == 1), ("NUI15 (s) matin sans date : deux nuits → GARDE qui les liste (la plus ancienne d'abord), rien fusionné ; "
-                 "--rapport sans date → GARDE ; la seule nuit → NUIT <date> puis la fusion ; plus rien à ranger, ou une "
-                 "branche de côté seule → GARDE aucune nuit, sort 1 — mutants : « plusieurs » prend la première, une "
-                 "branche de côté compte comme à ranger") + "\n" + str((code2, s2, intacte, code_r, s_r, code1, s1, code0, s0, codew, sw))
+    assert code2 == 1
+    assert (s2 == "GARDE: plusieurs nuits à ranger : 2026-09-30 (1), 2026-10-01 (1) — rien fusionné ; "
+                 "donne la date\n")
+    assert intacte
+    assert code_r == 1
+    assert s_r.startswith("GARDE: --rapport veut la date de la nuit")
+    assert not os.path.exists(rapport)
+    assert code1 == 0
+    assert (s1 == ("NUIT 2026-10-01 — la seule à ranger : 1 branche(s)\n" + ORDRE_ABSENT
+                                           + "FUSIONNÉE %s\nMATIN 1 fusionnée(s) · 0 de côté\n" % nom))
+    assert code_git(d, "merge-base", "--is-ancestor", nom, "main") == 0
+    assert code0 == 1
+    assert s0 == aucune
+    assert codew == 1
+    assert sw == aucune
+    assert code_git(wip_d, "merge-base", "--is-ancestor", wip, "main") == 1
 
 
 
@@ -724,9 +779,11 @@ def matin_t(tr, fab):
             mod.etat.KIT = garde
     (code_k, s_k, b_k), (code_a, s_a, _) = sorties
     retard = "PLUGIN_RETARD=1 commit(s) de code du plugin fusionné(s) — la session ouverte ne les voit qu'après /reload-plugins\n"
-    assert (code_k == 0 and s_k.endswith(retard + "MATIN 1 fusionnée(s) · 0 de côté\n") and "FUSIONNÉE %s" % b_k in s_k
-                 and code_a == 0 and "PLUGIN_RETARD" not in s_a), ("RTD1 (t) matin dit PLUGIN_RETARD= quand ses fusions touchent le code du kit chargé, rien pour un autre "
-                 "projet — mutant : la condition « projet est KIT » forcée à faux") + "\n" + str(sorties)
+    assert code_k == 0
+    assert s_k.endswith(retard + "MATIN 1 fusionnée(s) · 0 de côté\n")
+    assert "FUSIONNÉE %s" % b_k in s_k
+    assert code_a == 0
+    assert "PLUGIN_RETARD" not in s_a
 
 
 
@@ -738,8 +795,8 @@ def matin_u(tr, fab):
     branche_matin(d, "A", "NPB", "NPB", 1, modifs=lambda r: ecrire(os.path.join(r, "ctx", "artefacts", "en-attente"),
                                                                     attente))
     code, s = appel(["matin", d, JOUR_MATIN])
-    assert (code == 0 and s.endswith("ATTENTE=50-x.html https://claude.ai/artifact/x\nMATIN 1 fusionnée(s) · 0 de côté\n")), ("NPB1 (b) matin imprime l'ATTENTE= qu'une branche de la nuit a laissée, avant MATIN — mutant : "
-                 "l'appel à dire_attentes retiré") + "\n" + str((code, s))
+    assert code == 0
+    assert s.endswith("ATTENTE=50-x.html https://claude.ai/artifact/x\nMATIN 1 fusionnée(s) · 0 de côté\n")
 
 
 

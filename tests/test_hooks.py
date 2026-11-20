@@ -83,15 +83,21 @@ def test_hook_fiches(tmp_path):
         ecrire(os.path.join(t, "y.md"), AVEC.replace("\n**Prompt**\n```\n---\n## pas un titre\n```", "\n**Critère de fin**")
                .replace("**Session** : bbb", "**Critère de fin**"))
         code, o, e = hook(json_de("y.md"))
-        assert (code == 0 and e == ""
-                 and '"additionalContext": "VALIDE 2 fiches' in o and '"hookEventName": "PostToolUse"' in o), ("hook : fiches valides, bilan en JSON, sort 0") + "\n" + str(o + e)
+        assert code == 0
+        assert e == ""
+        assert '"additionalContext": "VALIDE 2 fiches' in o
+        assert '"hookEventName": "PostToolUse"' in o
         ecrire(os.path.join(t, "y.md"), lire(os.path.join(t, "y.md")).replace("<!-- /FICHE -->\n\n---", "\n---", 1))
         code, o, e = hook(json_de("y.md"))
-        assert (code == 2 and o == "" and "marqueur" in e
-                 and "INVALIDE" in e and e.endswith("Corrige ce fichier de fiches avant de continuer.\n")), ("hook : fermant manquant, sort 2 sur stderr") + "\n" + str(o + e)
+        assert code == 2
+        assert o == ""
+        assert "marqueur" in e
+        assert "INVALIDE" in e
+        assert e.endswith("Corrige ce fichier de fiches avant de continuer.\n")
         ecrire(os.path.join(t, "y.md"), AVEC.replace("## Le socle commun", "## Socle"))
         code, o, e = hook(json_de("y.md"))
-        assert (code == 2 and "section absente : ## Le socle commun" in e), ("hook : titre de section reformulé, sort 2") + "\n" + str(o + e)
+        assert code == 2
+        assert "section absente : ## Le socle commun" in e
 
 
 def test_filet(tmp_path):
@@ -128,24 +134,28 @@ def test_filet(tmp_path):
         sub_path = os.path.join(t, "s", "subagents", "agent-a1.jsonl")
         creer_trans(sub_path, 77)
         code, o, e = filet_test({"agent_type": "vlp:fiche", "agent_id": "a1", "transcript_path": t_fwd + "/s.jsonl"})
-        assert (code == 0 and '"additionalContext": "Attention : 3 tours restants' in o), ("filet : 3 tours restants, avertissement") + "\n" + str(o + e)
+        assert code == 0
+        assert '"additionalContext": "Attention : 3 tours restants' in o
 
         # 76 tours = 4 restants → muet
         creer_trans(sub_path, 76)
         code, o, e = filet_test({"agent_type": "vlp:fiche", "agent_id": "a1", "transcript_path": t_fwd + "/s.jsonl"})
-        assert (code == 0 and o == ""), ("filet : 4 tours restants, muet") + "\n" + str(o + e)
+        assert code == 0
+        assert o == ""
 
         # 78 tours = 2 restants → avertissement
         creer_trans(sub_path, 78)
         code, o, e = filet_test({"agent_type": "vlp:fiche", "agent_id": "a1", "transcript_path": t_fwd + "/s.jsonl"})
-        assert (code == 0 and '"additionalContext": "Attention : 2 tours restants' in o), ("filet : 2 tours restants, avertissement") + "\n" + str(o + e)
+        assert code == 0
+        assert '"additionalContext": "Attention : 2 tours restants' in o
 
         # Après un échec (PostToolUseFailure) : même avertissement, au nom de l'événement reçu
         creer_trans(sub_path, 77)
         code, o, e = filet_test({"hook_event_name": "PostToolUseFailure", "agent_type": "vlp:fiche",
                                  "agent_id": "a1", "transcript_path": t_fwd + "/s.jsonl"})
-        assert (code == 0 and '"hookEventName": "PostToolUseFailure"' in o
-                 and '"additionalContext": "Attention : 3 tours restants' in o), ("filet : après un échec, avertissement au nom de PostToolUseFailure") + "\n" + str(o + e)
+        assert code == 0
+        assert '"hookEventName": "PostToolUseFailure"' in o
+        assert '"additionalContext": "Attention : 3 tours restants' in o
 
         # TOU2 : une fois par tour — tampon `vlp-filet-<agent_id>-<tours>` dans un TAMPON_HOOKS neuf
         ancien_tampon = mod.etat.TAMPON_HOOKS
@@ -185,7 +195,8 @@ def test_filet(tmp_path):
             try:
                 code, o, e = filet_test({"agent_type": "vlp:fiche", "agent_id": "a1",
                                          "transcript_path": long_base.replace(os.sep, "/") + ".jsonl"})
-                assert (len(long_sub) > 260 and '"additionalContext": "Attention : 3 tours restants' in o), (f"filet : transcript à {len(long_sub)} caractères, avertissement") + "\n" + str(o + e)
+                assert len(long_sub) > 260
+                assert '"additionalContext": "Attention : 3 tours restants' in o
             finally:    # même après un écart : sans le préfixe, le nettoyage du dossier temporaire échouerait
                 shutil.rmtree(prefixe + long_base)
 
@@ -210,14 +221,17 @@ def test_contrat(tmp_path):
         code, s = appel(["contrat", propre, sale])
         assert ("propre vlp:fiche 2026-09-24T10:00:00Z FAITE git 0 bloqué 0\n" in s), ("contrat : témoin propre, aucun appel qui écrit dans Git") + "\n" + str(s)
         assert ("sale vlp:fiche 2026-09-24T10:00:00Z ✅ git 2 bloqué 0\n" in s), ("contrat : témoin sale, git -C … commit et git add comptés, sans tool_result : écrits") + "\n" + str(s)
-        assert (code == 0 and s.endswith(
+        assert code == 0
+        assert (s.endswith(
             "CONTRAT 2 sous-agents · 1 écrivent dans Git · 0 bloqués par le gardien · "
-            "1 sans statut en tête · 0 interrompus\n")), ("contrat : bilan") + "\n" + str(s)
+            "1 sans statut en tête · 0 interrompus\n"))
         code, s = appel(["contrat", propre, "--depuis", "2026-09-24T10:00:01+00:00"])
-        assert (code == 0 and s == "CONTRAT 0 sous-agents · 0 écrivent dans Git · 0 bloqués par le gardien · "
-                 "0 sans statut en tête · 0 interrompus\n"), ("contrat : --depuis écarte une session partie avant") + "\n" + str(s)
+        assert code == 0
+        assert (s == "CONTRAT 0 sous-agents · 0 écrivent dans Git · 0 bloqués par le gardien · "
+                 "0 sans statut en tête · 0 interrompus\n")
         code, s = appel(["contrat", "--depuis", "pas-une-borne-zz"])
-        assert (code == 1 and s.startswith("GARDE: --depuis pas-une-borne-zz")), ("contrat : borne illisible, GARDE") + "\n" + str(s)
+        assert code == 1
+        assert s.startswith("GARDE: --depuis pas-une-borne-zz")
 
 
     # ENQ1 : un appel refusé par le gardien compte en bloqué, pas en écrit ; un interrompu pas en sans-statut
@@ -251,9 +265,9 @@ def test_contrat(tmp_path):
             {"message": {"role": "assistant", "content": [{"type": "text", "text": "Je lance le dernier essai…"}]}},
             {"message": {"role": "user", "content": "[Request interrupted by user]"}}])
         code, s = appel(["contrat", refusee, ecrit, avant, interrompue])
-        assert (code == 0 and s.endswith("CONTRAT 4 sous-agents · 1 écrivent dans Git · 2 bloqués par le gardien · "
-                                           "0 sans statut en tête · 1 interrompus\n")), ("ENQ1 : bilan — refusé compté en bloqué (phrase d'avant VRB comprise), interrompu pas en "
-                 "sans-statut — mutant : compter un refus comme une écriture, ou oublier REFUS_GIT_AVANT, le fait tomber") + "\n" + str(s)
+        assert code == 0
+        assert (s.endswith("CONTRAT 4 sous-agents · 1 écrivent dans Git · 2 bloqués par le gardien · "
+                                           "0 sans statut en tête · 1 interrompus\n"))
         assert ("refusee vlp:fiche 2026-09-24T10:00:00Z RETOUR git 0 bloqué 1\n" in s), ("ENQ1 : la ligne du refusé porte git 0 bloqué 1") + "\n" + str(s)
         assert ("interrompue vlp:fiche 2026-09-24T10:00:00Z (interrompu) git 0 bloqué 0\n" in s), ("ENQ1 : la ligne de l'interrompu porte (interrompu)") + "\n" + str(s)
 
@@ -271,9 +285,13 @@ def test_gardien(tmp_path, init_git):
         commit = {"hook_event_name": "PreToolUse", "tool_name": "Bash",
                   "tool_input": {"command": 'git -C "C:/a b" commit -m "X1 : fin"'}}
         code, s = gardien(dict(commit, **relecture))
-        assert (code == 0 and '"permissionDecision": "deny"' in s and "vlp:relecture" in s), ("gardien : sous-agent vlp:relecture git commit refusé") + "\n" + str(s)
+        assert code == 0
+        assert '"permissionDecision": "deny"' in s
+        assert "vlp:relecture" in s
         code, s = gardien(dict(fiche, **commit))
-        assert (code == 0 and '"permissionDecision": "deny"' in s and "vlp:fiche" in s), ("gardien : git -C … commit refusé pour vlp:fiche") + "\n" + str(s)
+        assert code == 0
+        assert '"permissionDecision": "deny"' in s
+        assert "vlp:fiche" in s
         code, s = gardien(dict(relecture, hook_event_name="PreToolUse", tool_name="Bash",
                                tool_input={"command": "git diff HEAD~1"}))
         assert ((code, s) == (0, "")), ("gardien : relecteur git diff laissé passer") + "\n" + str(s)
@@ -281,11 +299,13 @@ def test_gardien(tmp_path, init_git):
                                tool_input={"command": "git status; git log -1"}))
         assert ((code, s) == (0, "")), ("gardien : fiche git status laissé passer") + "\n" + str(s)
         assert (gardien("pas du json") == (0, "")), ("gardien : entrée illisible, muet") + "\n" + ""
-        assert (gardien('[43, "sonde"]') == (0, "") and gardien('"x"') == (0, "")), ("gardien : JSON qui n'est pas un objet, muet") + "\n" + ""
+        assert gardien('[43, "sonde"]') == (0, "")
+        assert gardien('"x"') == (0, "")
         assert (all(
             gardien(dict(agent, hook_event_name="PreToolUse", tool_name="Bash", tool_input=ti)) == (0, "")
-            for agent in (fiche, relecture) for ti in ("git commit", ["git commit"], 7)) and gardien(dict(
-                commit, agent_id="a3", agent_type=["vlp:relecture"])) == (0, "")), ("gardien : tool_input ou agent_type qui ne sont pas ce qu'on attend, muet") + "\n" + ""
+            for agent in (fiche, relecture) for ti in ("git commit", ["git commit"], 7)))
+        assert (gardien(dict(
+                commit, agent_id="a3", agent_type=["vlp:relecture"])) == (0, ""))
 
         proj = os.path.join(t, "proj")
         ecrire(os.path.join(proj, "CHANTIER.md"), CHANTIER % ("px", "."))
@@ -296,13 +316,16 @@ def test_gardien(tmp_path, init_git):
         fin = dict(fiche, hook_event_name="SubagentStop", stop_hook_active=False, cwd=proj,
                    agent_transcript_path=trans)
         code, s = gardien(dict(fin, last_assistant_message="Parfait, la fiche est faite."))
-        assert ('"decision": "block"' in s and "« Parfait, »" in s), ("gardien : statut absent, renvoyé") + "\n" + str(s)
+        assert '"decision": "block"' in s
+        assert "« Parfait, »" in s
         code, s = gardien(dict(fin, last_assistant_message="Parfait.", stop_hook_active=True))
         assert ((code, s) == (0, "")), ("gardien : déjà renvoyé une fois, laissé") + "\n" + str(s)
         code, s = gardien(dict(fin, last_assistant_message="FAITE — X1.", stop_hook_active=True))
-        assert ('"decision": "block"' in s and "case de X1 est vide" in s), ("gardien : FAITE sur case vide sous stop_hook_active, renvoyé") + "\n" + str(s)
+        assert '"decision": "block"' in s
+        assert "case de X1 est vide" in s
         code, s = gardien(dict(fin, last_assistant_message="FAITE — X1."))
-        assert ('"decision": "block"' in s and "case de X1 est vide" in s), ("gardien : FAITE sur case vide, renvoyé") + "\n" + str(s)
+        assert '"decision": "block"' in s
+        assert "case de X1 est vide" in s
         ecrire(os.path.join(proj, "f.md"), "# Chantier X\n\n**Ouvert.** le 2026-10-08.\n\n<!-- FICHE:X1 -->\n## X1 [x] — une\n<!-- /FICHE -->\n")
         if not shutil.which("git"):
             pytest.skip("git absent — le gardien sur HEAD n'est pas testé")
@@ -317,7 +340,8 @@ def test_gardien(tmp_path, init_git):
             assert ((code, s) == (0, "")), ("gardien : FAITE sur case cochée, sans commit de fiche, laissé") + "\n" + str(s)
             subprocess.run(["git", "commit", "-q", "--allow-empty", "-m", "X1 : une"], cwd=proj, env=env, check=True)
             code, s = gardien(dict(fin, last_assistant_message="FAITE — X1."))
-            assert ('"decision": "block"' in s and "tu as commité" in s), ("gardien : HEAD nomme la fiche, renvoyé") + "\n" + str(s)
+            assert '"decision": "block"' in s
+            assert "tu as commité" in s
         fin_relecture = dict(relecture, hook_event_name="SubagentStop", stop_hook_active=False, cwd=proj,
                              agent_transcript_path=trans)
         code, s = gardien(dict(fin_relecture, last_assistant_message="ACCEPTÉE — tout va bien"))
@@ -325,11 +349,13 @@ def test_gardien(tmp_path, init_git):
         code, s = gardien(dict(fin_relecture, last_assistant_message="REFUSÉE — erreur"))
         assert ((code, s) == (0, "")), ("gardien : relecteur REFUSÉE muet") + "\n" + str(s)
         code, s = gardien(dict(fin, last_assistant_message="RETOUR — x\n\n---\n✅ Tout va bien"))
-        assert ('"decision": "block"' in s and "« En résumé » ou une jauge" in s), ("gardien : fiche jauge « Tout va bien », renvoyée") + "\n" + str(s)
+        assert '"decision": "block"' in s
+        assert "« En résumé » ou une jauge" in s
         code, s = gardien(dict(fin, last_assistant_message="RETOUR — x\n\n---\n✅ Tout va bien", stop_hook_active=True))
         assert ((code, s) == (0, "")), ("gardien : fiche jauge sous stop_hook_active, muet") + "\n" + str(s)
         code, s = gardien(dict(fin_relecture, last_assistant_message="ACCEPTÉE — ok\nEn résumé : y"))
-        assert ('"decision": "block"' in s and "« En résumé » ou une jauge" in s), ("gardien : relecteur « En résumé », renvoyé") + "\n" + str(s)
+        assert '"decision": "block"' in s
+        assert "« En résumé » ou une jauge" in s
         code, s = gardien(dict(fin_relecture, last_assistant_message="ACCEPTÉE — ok"))
         assert ((code, s) == (0, "")), ("gardien : relecteur sans « En résumé » ni jauge, muet") + "\n" + str(s)
         # JUG2 : la pièce de JUG1 se lit au journal, jamais recopiée ici (elle porte des chemins de machine)
@@ -337,10 +363,13 @@ def test_gardien(tmp_path, init_git):
             piece = re.search(r"La pièce, pour `JUG2` :\n\n```text\n(.*?)\n```", f.read(), re.S)
         piece = piece.group(1) if piece else ""
         code, s = gardien(dict(fin_relecture, last_assistant_message=piece))
-        assert (piece.startswith("ACCEPTÉE") and "« Tout va bien »" in piece and (code, s) == (0, "")), ("gardien : relecteur de FOR3 qui cite la jauge en prose (JUG1), muet") + "\n" + str(s or piece[:80])
+        assert piece.startswith("ACCEPTÉE")
+        assert "« Tout va bien »" in piece
+        assert (code, s) == (0, "")
         code, s = gardien(dict(fin_relecture, last_assistant_message=(
             "ACCEPTÉE — ok\n\n✅ **Tout va bien** — relu\n\n**En résumé**\n\nLa fiche tient.")))
-        assert ('"decision": "block"' in s and "« En résumé » ou une jauge" in s), ("gardien : relecteur ACCEPTÉE puis résumé à part, renvoyé") + "\n" + str(s)
+        assert '"decision": "block"' in s
+        assert "« En résumé » ou une jauge" in s
         # Mutation test : les tests « renvoyé » reposent sur forme_texte (chantier FOR3)
         code, s = gardien(dict(fin, last_assistant_message="RETOUR — Pas bonne action"))
         assert ((code, s) == (0, "")), ("gardien : fiche « Pas bonne » (pas jauge), muet — substring bug") + "\n" + str(s)
@@ -364,17 +393,26 @@ with open(os.path.join(RACINE, "hooks", "hooks.json"), encoding="utf-8") as f:
 def test_hooks_json():
     """Contrôler hooks.json : filet, hook d'écriture, attente, gardien et vigile."""
     succes, echec = crochets.get("PostToolUse", []), crochets.get("PostToolUseFailure", [])
-    assert (len(succes) == 3 and len(echec) == 2
-             and any(g.get("matcher") == "*" and paire(g, "filet") for g in succes)
-             and any(g.get("matcher") == "Write|Edit" and paire(g, "hook") for g in succes)
-             and echec[0].get("matcher") == "*" and paire(echec[0], "filet")), ("hooks.json : filet sur tout outil après un succès et après un échec, hook sur Write|Edit") + "\n" + str(json.dumps(crochets, ensure_ascii=False))
-    assert (any(g.get("matcher") == "Artifact" and paire(g, "attente", "hook") for g in succes)
-             and echec[1].get("matcher") == "Artifact" and paire(echec[1], "attente", "hook")), ("hooks.json : attente sur Artifact après un succès et après un échec (chantier LOC)") + "\n" + str(json.dumps(crochets, ensure_ascii=False))
+    assert len(succes) == 3
+    assert len(echec) == 2
+    assert any(g.get("matcher") == "*" and paire(g, "filet") for g in succes)
+    assert any(g.get("matcher") == "Write|Edit" and paire(g, "hook") for g in succes)
+    assert echec[0].get("matcher") == "*"
+    assert paire(echec[0], "filet")
+    assert any(g.get("matcher") == "Artifact" and paire(g, "attente", "hook") for g in succes)
+    assert echec[1].get("matcher") == "Artifact"
+    assert paire(echec[1], "attente", "hook")
     avant, arret = crochets.get("PreToolUse", []), crochets.get("SubagentStop", [])
-    assert (avant[0].get("matcher") == "Bash|PowerShell" and paire(avant[0], "gardien")
-             and len(arret) == 1 and arret[0].get("matcher") == "*" and paire(arret[0], "gardien")), ("hooks.json : gardien avant Bash|PowerShell et à l'arrêt d'un sous-agent") + "\n" + str(json.dumps(crochets, ensure_ascii=False))
-    assert (avant[1].get("matcher") == "Artifact" and paire(avant[1], "vigile")), ("hooks.json : vigile avant Artifact (chantier VID)") + "\n" + str(json.dumps(crochets, ensure_ascii=False))
-    assert (len(avant) == 3 and avant[2].get("matcher") == "Write|Edit" and paire(avant[2], "figer")), ("hooks.json : figer avant Write|Edit (REF10)") + "\n" + str(json.dumps(crochets, ensure_ascii=False))
+    assert avant[0].get("matcher") == "Bash|PowerShell"
+    assert paire(avant[0], "gardien")
+    assert len(arret) == 1
+    assert arret[0].get("matcher") == "*"
+    assert paire(arret[0], "gardien")
+    assert avant[1].get("matcher") == "Artifact"
+    assert paire(avant[1], "vigile")
+    assert len(avant) == 3
+    assert avant[2].get("matcher") == "Write|Edit"
+    assert paire(avant[2], "figer")
 
 
 def test_forme_transcriptions(tmp_path):
@@ -419,9 +457,9 @@ def test_forme_transcriptions(tmp_path):
         # Appel direct (pas par glob)
         code, s = appel(["forme", "--regle", "tout", sa, sb])     # le texte entier : la mesure d'avant JUG2
         lignes = s.strip().split("\n")
-        assert (code == 0
-                 and len(lignes) == 3  # deux lignes de données + une ligne de bilan
-                 and lignes[2].startswith("FORME 2 sous-agents · user 50 car. · resume 1 · jauge 1 · tete 1")), ("forme : deux transcriptions, bilan attendu") + "\n" + str(s)
+        assert code == 0
+        assert len(lignes) == 3  # deux lignes de données + une ligne de bilan
+        assert lignes[2].startswith("FORME 2 sous-agents · user 50 car. · resume 1 · jauge 1 · tete 1")
 
 
 def test_forme_texte():
@@ -461,8 +499,8 @@ def test_forme_depuis(tmp_path):
             f.write(json.dumps({"type": "session", "timestamp": "2026-09-25T08:00:00Z"}) + "\n")
         # Appel avec --depuis après le timestamp du sous-agent mais avant celui de la parent session
         code, s = appel(["forme", "--depuis", "2026-09-25T10:00:00Z", sc])
-        assert (code == 0
-                 and "FORME 1 sous-agents" in s), ("forme --depuis filtre sur le départ du sous-agent") + "\n" + str(s)
+        assert code == 0
+        assert "FORME 1 sous-agents" in s
 
 
 def test_heredoc():
@@ -495,13 +533,12 @@ def test_heredoc():
     faux = [(c, attendu) for c, attendu in cas if refuse(c) != attendu]
     assert (not faux), ("ECH1/ENQ2 : heredoc de cat/tee et echo/printf vers un fichier muets, le reste refusé "
              "(%d cas) — mutant : rien retiré" % len(cas)) + "\n" + str(repr(faux))
-    assert (mod.ecrit_git("cat > f <<'EOF'\ngit commit\nEOF") is False
-             and mod.ecrit_git("git -C x commit -m y") is True), ("ECH1 : lire_contrat ne compte pas le heredoc de cat") + "\n" + ""
-    assert (mod.ecrit_git('echo \'{"command":"git add ."}\' > f') is False
-             and mod.ecrit_git("printf '%s' 'git commit' >> f") is False
-             and mod.ecrit_git('echo "git add ." | sh') is True
-             and mod.ecrit_git("ssh h 'git reset --hard'") is True), ("ENQ2 : lire_contrat ne compte pas le texte cité d'un echo/printf vers un fichier — "
-             "mutant : retirer sans_echo fait tomber les deux « faux »") + "\n" + ""
+    assert mod.ecrit_git("cat > f <<'EOF'\ngit commit\nEOF") is False
+    assert mod.ecrit_git("git -C x commit -m y") is True
+    assert mod.ecrit_git('echo \'{"command":"git add ."}\' > f') is False
+    assert mod.ecrit_git("printf '%s' 'git commit' >> f") is False
+    assert mod.ecrit_git('echo "git add ." | sh') is True
+    assert mod.ecrit_git("ssh h 'git reset --hard'") is True
     ecrit = ["git checkout f.py", "git checkout main", "git switch x", "git stash", "git -C x stash",
              "git restore f", "git clean -fd", "git push", "git rebase main", "git merge x",
              "cd x && git stash", "& git.exe push", "PYTHONUTF8=1 git commit -m x", "git --bare add x",
@@ -577,12 +614,13 @@ def test_contrat_ouverture(tmp_path, init_git):
 
         avant, apres = agent("avant", 500), agent("apres", 1500)
         code, s = appel(["contrat", avant, apres, "--ouverture", q])
-        assert (code == 0
-                 and s == "DEPUIS %s · ouverture de %s\napres vlp:fiche %s FAITE git 0 bloqué 0\n"
+        assert code == 0
+        assert (s == "DEPUIS %s · ouverture de %s\napres vlp:fiche %s FAITE git 0 bloqué 0\n"
                  "CONTRAT 1 sous-agents · 0 écrivent dans Git · 0 bloqués par le gardien · "
-                 "0 sans statut en tête · 0 interrompus\n" % (iso(1000), q, iso(200))), ("CHK1 : --ouverture garde le sous-agent parti après, session parente partie avant") + "\n" + str(s)
+                 "0 sans statut en tête · 0 interrompus\n" % (iso(1000), q, iso(200)))
         r = os.path.join(depot, "r.md")
         ecrire(r, "r\n")
         code, s = appel(["contrat", avant, "--ouverture", r])
-        assert (code == 1 and s == "GARDE: --ouverture %s : aucun commit "
-                 "n'ajoute ce fichier : l'ouverture n'est pas commitée\n" % r), ("CHK1 : fichier jamais commité, GARDE") + "\n" + str(s)
+        assert code == 1
+        assert (s == "GARDE: --ouverture %s : aucun commit "
+                 "n'ajoute ce fichier : l'ouverture n'est pas commitée\n" % r)

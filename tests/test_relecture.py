@@ -48,11 +48,14 @@ def _tester_canaux(g):
     retire_b = appel(["relecture", "--retirer"])
     reste_a = [os.path.basename(l.split(" ")[0].rstrip("/\\")) for l in g("worktree", "list").splitlines()[1:]]
     del os.environ["VLP_CANAL"]
-    assert (len(noms) == 4 and sum(n.startswith("vlp-relecture-A-") for n in noms) == 2
-             and sum(n.startswith("vlp-relecture-B-") for n in noms) == 2 and retire_b == (0, "RETIRÉ 2\n")
-             and len(reste_a) == 2 and all(n.startswith("vlp-relecture-A-") for n in reste_a)), ("relecture : canaux — chacun ne retire que ses worktrees") + "\n" + str("%s %s %s" % (noms, retire_b, reste_a))
-    assert (appel(["relecture", "--retirer"]) == (0, "RETIRÉ 2\n")
-             and len(g("worktree", "list").splitlines()) == 1), ("relecture : sans canal, --retirer retire tout") + "\n" + str(g("worktree", "list"))
+    assert len(noms) == 4
+    assert sum(n.startswith("vlp-relecture-A-") for n in noms) == 2
+    assert sum(n.startswith("vlp-relecture-B-") for n in noms) == 2
+    assert retire_b == (0, "RETIRÉ 2\n")
+    assert len(reste_a) == 2
+    assert all(n.startswith("vlp-relecture-A-") for n in reste_a)
+    assert appel(["relecture", "--retirer"]) == (0, "RETIRÉ 2\n")
+    assert len(g("worktree", "list").splitlines()) == 1
 
 
 def test_relecture(tmp_path, init_git):
@@ -97,39 +100,47 @@ def test_relecture(tmp_path, init_git):
                 code, s = appel(["relecture", "X1"])
                 vu = dict(l.split("=", 1) for l in s.splitlines() if l.startswith(("APRÈS=", "AVANT=")))
                 apres, avant = vu.get("APRÈS", "?"), vu.get("AVANT", "?")
-                assert (code == 0
-                         and g("rev-parse", "HEAD") == tete and g("status", "--porcelain") == etat
-                         and lu(apres, "a.py") == "a2\n" and lu(apres, "b.py") == "b\n"
-                         and lu(avant, "a.py") == "a\n" and lu(avant, "b.py") is None), ("relecture : l'instantané prend l'arbre sans bouger HEAD") + "\n" + str(s + g("status", "--porcelain"))
+                assert code == 0
+                assert g("rev-parse", "HEAD") == tete
+                assert g("status", "--porcelain") == etat
+                assert lu(apres, "a.py") == "a2\n"
+                assert lu(apres, "b.py") == "b\n"
+                assert lu(avant, "a.py") == "a\n"
+                assert lu(avant, "b.py") is None
                 reperes = [s.find(r) for r in ("APRÈS=", "AVANT=", "Socle X.", "--- socle, lignes : ", "## X1 [x] — relire",
                                                "--- fiche, lignes : ", "M\ta.py", "HORS FICHE", "diff --git")]
-                assert ([l for l in s.splitlines() if l.startswith("HORS FICHE")] == ["HORS FICHE b.py"]
-                         and -1 not in reperes and reperes == sorted(reperes)
-                         and "\nFICHIER=" not in "\n" + s), ("relecture : un fichier hors fiche") + "\n" + str(s)  # FFE
+                assert [l for l in s.splitlines() if l.startswith("HORS FICHE")] == ["HORS FICHE b.py"]
+                assert -1 not in reperes
+                assert reperes == sorted(reperes)
+                assert "\nFICHIER=" not in "\n" + s  # FFE
                 # Deux relecteurs lancés ensemble (chantier ISO, ISO7) : celui d'une autre fiche, même en GARDE:,
                 # ne retire pas les copies de X1.
                 autre = [appel(["relecture", "X9"]), appel(["relecture", "X9", "--retirer"])]
                 noms = [os.path.basename(l.split(" ")[0].rstrip("/\\")) for l in g("worktree", "list").splitlines()[1:]]
-                assert (autre[0][0] == 1 and autre[1] == (0, "RETIRÉ 0\n") and len(noms) == 2
-                         and all(n.startswith("vlp-relecture-X1-") for n in noms)), ("relecture : deux fiches ensemble, chacune ne retire que ses copies (chantier ISO)") + "\n" + str("%s %s" % (autre, noms))
+                assert autre[0][0] == 1
+                assert autre[1] == (0, "RETIRÉ 0\n")
+                assert len(noms) == 2
+                assert all(n.startswith("vlp-relecture-X1-") for n in noms)
                 code, s = appel(["relecture", "--retirer"])
-                assert (code == 0 and s == "RETIRÉ 2\n"
-                         and len(g("worktree", "list").splitlines()) == 1), ("relecture : --retirer") + "\n" + str(s + g("worktree", "list"))
+                assert code == 0
+                assert s == "RETIRÉ 2\n"
+                assert len(g("worktree", "list").splitlines()) == 1
                 g("add", "-A")
                 g("commit", "-q", "-m", "X1 : relire")
                 appel(["relecture", "X1", "--sha", "HEAD"])
                 code, s = appel(["relecture", "X1", "--sha", "HEAD"])
                 liste = g("worktree", "list")
-                assert (code == 0
-                         and "M\ta.py\nA\tb.py\nM\tctx d/etat.md\nM\tf.md\nHORS FICHE b.py\ndiff --git" in s
-                         and len(liste.splitlines()) == 3 and appel(["relecture", "--retirer"]) == (0, "RETIRÉ 2\n")), ("relecture --sha : le commit contre son parent, ceux de l'appel d'avant retirés") + "\n" + str(s + liste)
+                assert code == 0
+                assert "M\ta.py\nA\tb.py\nM\tctx d/etat.md\nM\tf.md\nHORS FICHE b.py\ndiff --git" in s
+                assert len(liste.splitlines()) == 3
+                assert appel(["relecture", "--retirer"]) == (0, "RETIRÉ 2\n")
                 _tester_canaux(g)
                 gardes = [appel(["relecture", "X9"]), appel(["relecture", "X1", "--sha", "0badc0de"])]
                 mod.etat.GIT = "git-absent-vlp"
                 gardes.append(appel(["relecture", "X1"]))
                 mod.etat.GIT = "git"
-                assert (all(c == 1 and s.startswith("GARDE: ") for c, s in gardes)
-                         and len(g("worktree", "list").splitlines()) == 1), ("relecture : fiche absente, commit inconnu, sans Git — GARDE, sort 1, aucun worktree") + "\n" + str(gardes)
+                assert all(c == 1 and s.startswith("GARDE: ") for c, s in gardes)
+                assert len(g("worktree", "list").splitlines()) == 1
             finally:
                 mod.etat.GIT = "git"
                 tempfile.tempdir = tmp
@@ -171,11 +182,17 @@ def test_retard_plugin(tmp_path, init_git):
         finally:
             mod.etat.KIT = garde
         lignes = [l for l in o.getvalue().split("\n") if l.startswith("PLUGIN_RETARD=")]
-        assert (r1 is not None and r1[0] == 1 and r1[2] == "fiche" and r2 is not None and r2[0] == 1
-                 and muets == (None, None) and len(lignes) == 1 and lignes[0].startswith("PLUGIN_RETARD=1 ")
-                 and lignes[0].endswith("merge --ff-only fiche")), ("ESR1 : retard du plugin — 1 commit de scripts/ compté, context AI/ non, muet sur le kit "
-                 "et un autre dépôt, une ligne dans la carte — mutant : chemins retirés du rev-list") + "\n" + str((r1, r2, muets, lignes))
+        assert r1 is not None
+        assert r1[0] == 1
+        assert r1[2] == "fiche"
+        assert r2 is not None
+        assert r2[0] == 1
+        assert muets == (None, None)
+        assert len(lignes) == 1
+        assert lignes[0].startswith("PLUGIN_RETARD=1 ")
+        assert lignes[0].endswith("merge --ff-only fiche")
         commit(wt, "nuit.md", "nuit\n")
         r3 = mod.retard_plugin(wt, kit=kit)
-        assert (r3 is not None and r3[0] == 2 and r3[2] == "fiche"), ("NUI13 : nuit.md compte dans le code du plugin — scripts/x.py et nuit.md font 2, context AI/n.md "
-                 "reste hors compte — mutant : nuit.md retiré de CODE_PLUGIN") + "\n" + str(r3)
+        assert r3 is not None
+        assert r3[0] == 2
+        assert r3[2] == "fiche"

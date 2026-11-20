@@ -100,18 +100,21 @@ def test_renvois(tmp_path):
                  "RENVOIS 3 nommés · 0 absents\n"))), ("renvois : tout présent, poids sous seuil") + "\n" + str(appel(["renvois", t]))
         ecrire(os.path.join(t, "CHANTIER.md"), "- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n" + "x\n" * 49)
         code, s = appel(["renvois", t])
-        assert (code == 0 and s.startswith(
-            "AVERTISSEMENT: CHANTIER.md 51 lignes > 50\nPOIDS CLAUDE.md 14/100 · CHANTIER.md 51/50 · index 9/80\n")), ("renvois : poids au-delà, avertit sans changer la sortie") + "\n" + str(s)
+        assert code == 0
+        assert (s.startswith(
+            "AVERTISSEMENT: CHANTIER.md 51 lignes > 50\nPOIDS CLAUDE.md 14/100 · CHANTIER.md 51/50 · index 9/80\n"))
         os.remove(os.path.join(t, "CLAUDE.md"))
         code, s = appel(["renvois", t])
-        assert (code == 0 and "POIDS CLAUDE.md absent/100 · CHANTIER.md 51/50" in s), ("renvois : CLAUDE.md absent dans les poids") + "\n" + str(s)
+        assert code == 0
+        assert "POIDS CLAUDE.md absent/100 · CHANTIER.md 51/50" in s
         ecrire(os.path.join(t, "CLAUDE.md"),
                "# P\n\n| hors routage | `perdu.md` |\n\n## Routage — ouvrir ceci\n\n| La tâche | Ouvrir |\n|---|---|\n"
                "| lire `vlp.py` | `ctx/01-a.md` |\n| lancer | **`/vlp:chantier`** |\n\n## Économie\n\n| x | `loin.md` |\n")
         ecrire(os.path.join(t, "ctx", "00-INDEX.md"), "| Fichier | Lire |\n|---|---|\n| `99-mort.md` | jamais |\n")
         code, s = appel(["renvois", t])
-        assert (code == 1 and s.startswith("ABSENT: ctx/00-INDEX.md:3: 99-mort.md\n")
-                 and s.endswith("index 3/80\nRENVOIS 2 nommés · 1 absents\n")), ("renvois : absent, sort 1") + "\n" + str(s)
+        assert code == 1
+        assert s.startswith("ABSENT: ctx/00-INDEX.md:3: 99-mort.md\n")
+        assert s.endswith("index 3/80\nRENVOIS 2 nommés · 1 absents\n")
         os.remove(os.path.join(t, "CHANTIER.md"))
         assert (appel(["renvois", t])[0] == 1), ("renvois : pas équipé") + "\n" + str(appel(["renvois", t]))
 
@@ -190,21 +193,25 @@ def test_abri(tmp_path):
         md = os.path.join(tab, "artefacts", "76-abri.md")
         assert (mod.chemin_abri(page) == md), ("ABR1 : chemin du .md à côté de la page") + "\n" + str(mod.chemin_abri(page))
         code, s = appel(["abri", page])
-        assert (code == 0 and s == "ABRI %s · résultat 1 · notes 2 · journal 3 · bilan 1\n" % md), ("ABR1 : abri — 2 notes, 3 lignes de journal, un bilan") + "\n" + str(s)
+        assert code == 0
+        assert s == "ABRI %s · résultat 1 · notes 2 · journal 3 · bilan 1\n" % md
         parts = mod.lire_abri(md)
-        assert (parts["titre"] == "Abri & journal" and parts["resultat"] == "Notes <à l'abri>"
-                 and parts["notes"] == {"ABR1": "test 3/3 & pyright 0", "ABR2": "dépend de ABR1"}
-                 and parts["journal"] == [("2026-09-25", "Pierre & Paul"), ("2026-09-26", "E3 : allowed-tools muet"),
-                                          ("2026-09-26", "sur deux lignes")]
-                 and parts["bilan"] == ["Livré : un .md & une page"]), ("ABR1 : .md relu, texte désechappé — mutant : ne pas désechapper") + "\n" + str(repr(parts))
+        assert parts["titre"] == "Abri & journal"
+        assert parts["resultat"] == "Notes <à l'abri>"
+        assert parts["notes"] == {"ABR1": "test 3/3 & pyright 0", "ABR2": "dépend de ABR1"}
+        assert (parts["journal"] == [("2026-09-25", "Pierre & Paul"), ("2026-09-26", "E3 : allowed-tools muet"),
+                                          ("2026-09-26", "sur deux lignes")])
+        assert parts["bilan"] == ["Livré : un .md & une page"]
         with open(page, "rb") as f:
             assert (f.read() == PAGE_ABR.encode("utf-8")), ("ABR1 : la page identique octet pour octet") + "\n" + "page modifiée"
         mod.ecrire_abri(md, parts)
         assert (mod.lire_abri(md) == parts), ("ABR1 : écrire puis relire redonne les mêmes parts") + "\n" + str(lire(md))
         code, s = appel(["abri", page])
-        assert (code == 0 and s == "DÉJÀ %s\n" % md), ("ABR1 : second abri — DÉJÀ, .md non réécrit") + "\n" + str(s)
+        assert code == 0
+        assert s == "DÉJÀ %s\n" % md
         code, s = appel(["abri", os.path.join(tab, "absente.html")])
-        assert (code == 1 and s.startswith("GARDE:")), ("ABR1 : page absente — GARDE, code 1") + "\n" + str(s)
+        assert code == 1
+        assert s.startswith("GARDE:")
 
 
 FICHES_ABR2 = """# Chantier ABR
@@ -226,20 +233,23 @@ def test_abr2(tmp_path):
         page = os.path.join(tab, "artefacts", "abr.html")
         md = mod.chemin_abri(page)
         ecrire(fiches, FICHES_ABR2)
-        code, s = appel(["page", fiches, page, "--creer", "--projet", "Proj", "--titre", "T", "--resultat", "R0"])
-        assert (code == 0 and os.path.exists(md)), ("ABR2 : --creer amorce le .md") + "\n" + str(s)
-        code, s = appel(["page", fiches, page, "--note", "P1", "x", "--journal", "y", "--date", "2026-09-26"])
-        assert (code == 0
-                 and mod.lire_abri(md)["notes"] == {"P1": "x"}
-                 and mod.lire_abri(md)["journal"] == [("2026-09-26", "y")]), ("ABR2 : page — note et journal écrits d'abord dans le .md") + "\n" + str(s + lire(md))
+        code, _ = appel(["page", fiches, page, "--creer", "--projet", "Proj", "--titre", "T", "--resultat", "R0"])
+        assert code == 0
+        assert os.path.exists(md)
+        code, _ = appel(["page", fiches, page, "--note", "P1", "x", "--journal", "y", "--date", "2026-09-26"])
+        assert code == 0
+        assert mod.lire_abri(md)["notes"] == {"P1": "x"}
+        assert mod.lire_abri(md)["journal"] == [("2026-09-26", "y")]
         html_avant = lire(page)
         os.remove(page)
-        code, s = appel(["page", fiches, page, "--creer", "--projet", "Proj", "--titre", "T", "--resultat", "R0"])
+        code, _ = appel(["page", fiches, page, "--creer", "--projet", "Proj", "--titre", "T", "--resultat", "R0"])
         html = lire(page)
-        assert (code == 0 and '<span class="note">x</span>' in html
-                 and '<time datetime="2026-09-26">2026-09-26</time><span>y</span>' in html
-                 and "<p>R0</p>" in html), ("ABR2 : la page effacée reprend x et y depuis le .md — mutant : lire l'ancienne page") + "\n" + str(s + html)
-        assert (mod.lire_abri(md)["notes"] == {"P1": "x"} and mod.lire_abri(md)["journal"] == [("2026-09-26", "y")]), ("ABR2 : le .md n'a pas bougé au second --creer — mutant : --creer réécrit le .md") + "\n" + str(lire(md))
+        assert code == 0
+        assert '<span class="note">x</span>' in html
+        assert '<time datetime="2026-09-26">2026-09-26</time><span>y</span>' in html
+        assert "<p>R0</p>" in html
+        assert mod.lire_abri(md)["notes"] == {"P1": "x"}
+        assert mod.lire_abri(md)["journal"] == [("2026-09-26", "y")]
 
         # Une page ancienne, sans .md : elle garde ses notes (pas de perte à l'amorçage).
         ancienne = os.path.join(tab, "artefacts", "anc.html")
@@ -247,26 +257,30 @@ def test_abr2(tmp_path):
         fiches_anc = os.path.join(tab, "anc.md")
         ecrire(fiches_anc, FICHES_ABR2)
         assert (not os.path.exists(mod.chemin_abri(ancienne))), ("ABR2 : pas de .md avant ce test") + "\n" + ""
-        code, s = appel(["page", fiches_anc, ancienne, "--date", "2026-09-27"])
+        code, _ = appel(["page", fiches_anc, ancienne, "--date", "2026-09-27"])
         html = lire(ancienne)
-        assert (code == 0
-                 and '<span class="note">x</span>' in html
-                 and '<span>y</span>' in html), ("ABR2 : page ancienne sans .md — garde ses notes") + "\n" + str(s + html)
-        assert (os.path.exists(mod.chemin_abri(ancienne)) and mod.lire_abri(mod.chemin_abri(ancienne))["notes"] == {"P1": "x"}), ("ABR2 : l'amorçage a posé le .md de l'ancienne page") + "\n" + str(lire(mod.chemin_abri(ancienne)))
+        assert code == 0
+        assert '<span class="note">x</span>' in html
+        assert '<span>y</span>' in html
+        assert os.path.exists(mod.chemin_abri(ancienne))
+        assert mod.lire_abri(mod.chemin_abri(ancienne))["notes"] == {"P1": "x"}
         # Le .md prime désormais sur l'ancienne page : une note différente dans le .md l'emporte
         # — mutant : lire la note dans l'ancienne page (`anciens`) au lieu du .md.
-        code, s = appel(["page", fiches_anc, ancienne, "--note", "P1", "z", "--date", "2026-09-27"])
+        code, _ = appel(["page", fiches_anc, ancienne, "--note", "P1", "z", "--date", "2026-09-27"])
         html = lire(ancienne)
-        assert (code == 0 and '<span class="note">z</span>' in html and '<span class="note">x</span>' not in html), ("ABR2 : le .md l'emporte sur l'ancienne note de la page — mutant : lire l'ancienne page") + "\n" + str(s + html)
+        assert code == 0
+        assert '<span class="note">z</span>' in html
+        assert '<span class="note">x</span>' not in html
         # Une note retirée du .md disparaît de la page — mutant : retomber sur l'ancienne page (`anciens`),
         # qui la garde encore. C'est le seul cas où le mutant se distingue d'une note passée par --note.
         md_anc = mod.chemin_abri(ancienne)
         parts_anc = mod.lire_abri(md_anc)
         del parts_anc["notes"]["P1"]
         mod.ecrire_abri(md_anc, parts_anc)
-        code, s = appel(["page", fiches_anc, ancienne, "--date", "2026-09-28"])
+        code, _s = appel(["page", fiches_anc, ancienne, "--date", "2026-09-28"])
         html = lire(ancienne)
-        assert (code == 0 and '<span class="note">' not in html.split("<ul class=\"journal\">")[0].split('id">P1')[1].split("</li>")[0]), ("ABR2 : note retirée du .md — absente de la page — mutant : retombe sur l'ancienne page") + "\n" + str(s + html)
+        assert code == 0
+        assert '<span class="note">' not in html.split("<ul class=\"journal\">")[0].split('id">P1')[1].split("</li>")[0]
 
 
 FICHES_PLI2 = """# Chantier PLI2
@@ -293,13 +307,15 @@ def test_vlp_css_recopie(tmp_path):
         css = os.path.join(tab, "artefacts", "vlp.css")
         ecrire(fiches, FICHES_PLI2)
         code, s = appel(["page", fiches, page, "--creer", "--projet", "Proj", "--titre", "T", "--resultat", "R0"])
-        assert (code == 0 and os.path.isfile(css) and pathlib.Path(css).read_bytes() == source
-                 and "CSS %s\n" % css in s), ("PLI2 : page --creer recopie vlp.css, le dit en sortie") + "\n" + str(s)
+        assert code == 0
+        assert os.path.isfile(css)
+        assert pathlib.Path(css).read_bytes() == source
+        assert "CSS %s\n" % css in s
         with open(css, "wb") as f:
             f.write(b"/* modifie a la main */")
         code, s = appel(["page", fiches, page])
-        assert (code == 0 and pathlib.Path(css).read_bytes() == source), ("PLI2 : page (régénération, sans --creer) remet vlp.css à l'identique"
-                 " — mutant : ne copier qu'à --creer") + "\n" + str(s)
+        assert code == 0
+        assert pathlib.Path(css).read_bytes() == source
 
     # `feuille`, sur un projet équipé, recopie aussi.
     with tempfile.TemporaryDirectory(dir=tmp_path) as tab:
@@ -314,13 +330,16 @@ def test_vlp_css_recopie(tmp_path):
         ecrire(fdr, pathlib.Path(os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html")).read_text(encoding="utf-8"))
         css = os.path.join(proj, "ctx", "artefacts", "vlp.css")
         code, s = appel(["feuille", proj])
-        assert (code == 0 and os.path.isfile(css) and pathlib.Path(css).read_bytes() == source
-                 and "CSS %s\n" % css in s), ("PLI2 : feuille recopie vlp.css, le dit en sortie") + "\n" + str(s)
+        assert code == 0
+        assert os.path.isfile(css)
+        assert pathlib.Path(css).read_bytes() == source
+        assert "CSS %s\n" % css in s
 
     # Les deux gabarits ne portent plus de <style> inline (chantier PLI, fiche PLI2).
     for nom in ("artefact-chantier.html", "artefact-feuille-de-route.html"):
         gabarit = pathlib.Path(os.path.join(ICI, "..", "templates", nom)).read_text(encoding="utf-8")
-        assert (gabarit.count("<style") == 0 and 'href="vlp.css"' in gabarit), ("PLI2 : %s sans <style> — %d" % (nom, gabarit.count("<style"))) + "\n" + str(gabarit[:400])
+        assert gabarit.count("<style") == 0
+        assert 'href="vlp.css"' in gabarit
 
 
 def avec_style_inline(html):
@@ -342,12 +361,16 @@ def test_style_migre(tmp_path):
         ecrire(ancienne, lire(page))
         code, s = appel(["page", fiches, page])
         html = lire(page)
-        assert (code == 0 and "<style>" not in html and html.count('href="vlp.css"') == 1), ("PLI3 : régénérée, la page n'a plus de <style>, un seul <link> vers vlp.css"
-                 " — mutant : ajouter le <link> sans retirer le <style>") + "\n" + str(html[:400])
+        assert code == 0
+        assert "<style>" not in html
+        assert html.count('href="vlp.css"') == 1
         code, s = appel(["comparer", ancienne, page])
-        assert (code == 0 and "PERDU:" not in s and s.rstrip().startswith("COMPARER 0 perdus")), ("PLI3 : comparer ne dit aucune ligne de texte perdue") + "\n" + str(s)
+        assert code == 0
+        assert "PERDU:" not in s
+        assert s.rstrip().startswith("COMPARER 0 perdus")
         code, s = appel(["page", fiches, page])
-        assert (code == 0 and lire(page).count('href="vlp.css"') == 1), ("PLI3 : régénérée deux fois, toujours un seul <link>") + "\n" + str(lire(page)[:400])
+        assert code == 0
+        assert lire(page).count('href="vlp.css"') == 1
 
 
 FICHES_PLI5 = """# Chantier PLI5
@@ -403,22 +426,28 @@ def test_pretes_et_paralleles(tmp_path):
         fiches = os.path.join(tpp, "r.md")
         page = os.path.join(tpp, "artefacts", "r.html")
         ecrire(fiches, fichier_md(()))
-        code, s = appel(["page", fiches, page, "--creer", "--projet", "Proj", "--titre", "T", "--resultat", "R0"])
+        code, _ = appel(["page", fiches, page, "--creer", "--projet", "Proj", "--titre", "T", "--resultat", "R0"])
         html = lire(page)
         li = cartes(html)
-        assert (code == 0 and li.get("R5", "").startswith(tete(" data-attend", "R5")) and dit(li, "R5", "Après R2, R3, R4")
-                 and li.get("R7", "").startswith(tete(" data-attend", "R7")) and dit(li, "R7", "Après R3")), ("prêtes : une fiche qui attend dit « Après » et tous les noms pas faits de ce fichier"
-                 " — mutant : attente ignorée") + "\n" + str(s + html)
-        assert (dit(li, "R4", "À lancer") and dit(li, "R6", "À lancer") and all('class="dep' not in c for c in li.values())
-                 and li.get("R2", "").startswith(tete(' data-etat="encours"', "R2"))
-                 and dit(li, "R2", "En cours · R3 peut partir en même temps")), ("prêtes : une fiche qui se lance dit « À lancer », sans ses dépendances faites ; en cours, son état") + "\n" + str("%r" % li)
-        assert (dit(li, "R3", "À lancer · en même temps que R2")
-                 and all("même temps" not in li.get(i, "même temps") for i in ("R1", "R4", "R5", "R6", "R7"))), ("en même temps : sur les prêtes sans fichier commun (même nommé autrement), pas sur celle sans"
-                 " ligne Fichiers — mutants : fichiers communs ignorés, prête sans Fichiers comptée") + "\n" + str("%r" % li)
-        assert (mod.lis_page(html).get("R2", ("?",))[0] == "encours" and mod.lis_page(html).get("R5", ("?",))[0] is None), ("prêtes : la page se relit — lis_page lit l'état malgré data-attend") + "\n" + str("%r" % mod.lis_page(html))
-        code, s = appel(["page", fiches, page])
-        code2, s2 = appel(["page", fiches, page, "--forme"])
-        assert (code == 0 and code2 == 0 and lire(page) == html), ("prêtes : régénérer, puis repeindre, ne change rien") + "\n" + str(s + s2 + lire(page))
+        assert code == 0
+        assert li.get("R5", "").startswith(tete(" data-attend", "R5"))
+        assert dit(li, "R5", "Après R2, R3, R4")
+        assert li.get("R7", "").startswith(tete(" data-attend", "R7"))
+        assert dit(li, "R7", "Après R3")
+        assert dit(li, "R4", "À lancer")
+        assert dit(li, "R6", "À lancer")
+        assert all('class="dep' not in c for c in li.values())
+        assert li.get("R2", "").startswith(tete(' data-etat="encours"', "R2"))
+        assert dit(li, "R2", "En cours · R3 peut partir en même temps")
+        assert dit(li, "R3", "À lancer · en même temps que R2")
+        assert all("même temps" not in li.get(i, "même temps") for i in ("R1", "R4", "R5", "R6", "R7"))
+        assert mod.lis_page(html).get("R2", ("?",))[0] == "encours"
+        assert mod.lis_page(html).get("R5", ("?",))[0] is None
+        code, _ = appel(["page", fiches, page])
+        code2, _s2 = appel(["page", fiches, page, "--forme"])
+        assert code == 0
+        assert code2 == 0
+        assert lire(page) == html
         # Une page d'avant : « à faire » (avant BTN), « à lancer » et « après » en minuscules (v12 de la page
         # BTN), une phrase périmée, et un libellé écrit à la main.
         vieille = html
@@ -426,38 +455,44 @@ def test_pretes_et_paralleles(tmp_path):
                              ("R5", "à faire"), ("R7", "après R3")):
             vieille = libelle(vieille, ident, texte)
         ecrire(page, vieille)
-        code, s = appel(["page", fiches, page, "--forme"])
+        code, _ = appel(["page", fiches, page, "--forme"])
         li = cartes(lire(page))
-        assert (code == 0 and dit(li, "R3", "À lancer · en même temps que R2") and dit(li, "R4", "À lancer")
-                 and dit(li, "R5", "Après R2, R3, R4") and dit(li, "R7", "Après R3") and dit(li, "R6", "abandonnée")), ("prêtes : --forme recalcule les libellés qu'il a écrits, dans toutes leurs formes, garde « abandonnée »"
-                 " — mutants : tout libellé gardé, casse, phrase entière comparée") + "\n" + str(s + lire(page))
+        assert code == 0
+        assert dit(li, "R3", "À lancer · en même temps que R2")
+        assert dit(li, "R4", "À lancer")
+        assert dit(li, "R5", "Après R2, R3, R4")
+        assert dit(li, "R7", "Après R3")
+        assert dit(li, "R6", "abandonnée")
         ecrire(fiches, fichier_md(("R2", "R3")))
         appel(["page", fiches, page])
         li = cartes(lire(page))
-        assert (dit(li, "R4", "En cours · R7 peut partir en même temps") and dit(li, "R7", "À lancer · en même temps que R4")
-                 and dit(li, "R5", "Après R4")), ("en même temps : suit les cases — R2 et R3 faites, R4 en cours, R4 et R7 ensemble, R5 après R4") + "\n" + str("%r" % li)
+        assert dit(li, "R4", "En cours · R7 peut partir en même temps")
+        assert dit(li, "R7", "À lancer · en même temps que R4")
+        assert dit(li, "R5", "Après R4")
         ecrire(fiches, fichier_md(("R2", "R3", "R4", "R7")))
         appel(["page", fiches, page])
         assert (all("même temps" not in c for c in cartes(lire(page)).values())), ("en même temps : une seule prête avec des fichiers — aucun « en même temps »") + "\n" + str(lire(page))
         # En cours, mais une dépendance plus bas n'est pas faite : l'état reste, puis « attend ».
         ecrire(fiches, "# Chantier S\n\n" + fiche("S1", " ", "`S2`, `S3`, `S4`.", "`f.md`")
                + "".join(fiche(i, " ", "rien.", "`g.md`") for i in ("S2", "S3", "S4")))
-        code, s = appel(["page", fiches, os.path.join(tpp, "artefacts", "s.html"), "--creer", "--projet", "P",
+        code, _ = appel(["page", fiches, os.path.join(tpp, "artefacts", "s.html"), "--creer", "--projet", "P",
                          "--titre", "T", "--resultat", "R"])
         li = cartes(lire(os.path.join(tpp, "artefacts", "s.html")))
-        assert (code == 0 and li.get("S1", "").startswith(tete(' data-etat="encours" data-attend', "S1"))
-                 and dit(li, "S1", "En cours · attend S2, S3, S4")), ("prêtes : en cours et en attente — « En cours · attend » et tous les noms, data-attend") + "\n" + str(s + "%r" % li)
+        assert code == 0
+        assert li.get("S1", "").startswith(tete(' data-etat="encours" data-attend', "S1"))
+        assert dit(li, "S1", "En cours · attend S2, S3, S4")
         # Une plage « `P1` à `P4` » (cadrage d'ACA, 2026-10-11) : lue en deux noms, P5 se disait « À lancer »,
         # sans data-attend, alors que P2 et P3, au milieu, ne sont pas faites.
         ecrire(fiches, "# Chantier P\n\n" + "".join(fiche(i, c, "rien.", "`%s.md`" % i) for i, c in
                                                      (("P1", "x"), ("P2", " "), ("P3", " "), ("P4", "x")))
                + fiche("P5", " ", "`P1` à `P4`.", "`p5.md`"))
-        code, s = appel(["page", fiches, os.path.join(tpp, "artefacts", "p.html"), "--creer", "--projet", "P",
+        code, _s = appel(["page", fiches, os.path.join(tpp, "artefacts", "p.html"), "--creer", "--projet", "P",
                          "--titre", "T", "--resultat", "R"])
         li = cartes(lire(os.path.join(tpp, "artefacts", "p.html")))
-        assert (code == 0 and li.get("P5", "").startswith(tete(" data-attend", "P5")) and dit(li, "P5", "Après P2, P3")
-                 and mod.deplier_plages("`P4` à `P2`") == "`P4` à `P2`"), ("prêtes : une plage « P1 à P4 » attend chaque fiche du milieu pas faite, data-attend — mutant :"
-                 " plage lue en deux noms ; des bornes à l'envers restent telles quelles") + "\n" + str(s + "%r" % li)
+        assert code == 0
+        assert li.get("P5", "").startswith(tete(" data-attend", "P5"))
+        assert dit(li, "P5", "Après P2, P3")
+        assert mod.deplier_plages("`P4` à `P2`") == "`P4` à `P2`"
 
 
 def test_journal_replie(tmp_path):
@@ -469,17 +504,19 @@ def test_journal_replie(tmp_path):
             argv = ["page", fiches, page, "--creer", "--projet", "Proj", "--titre", "T", "--resultat", "R0"]
             for k in range(1, n + 1):
                 argv += ["--journal", "j%d" % k]
-            code, s = appel(argv)
+            code, _s = appel(argv)
             html = lire(page)
             ancien = re.search(r'<details class="journal-ancien">.*?</details>', html, re.S)
             premier = re.search(r'<ul class="journal">(.*?)</ul>', html, re.S)
             vus = premier.group(1).count("<li>") if premier else -1
             caches = ancien.group(0).count("<li>") if ancien else 0
             textes = [t for _, t in mod.abri_de_page(html)["journal"]]
-            assert (code == 0 and vus == visibles and caches == repliees and bool(ancien) == bool(repliees)
-                     and textes == ["j%d" % k for k in range(1, n + 1)]
-                     and (not ancien or "%d entrées plus anciennes" % repliees in ancien.group(0))), ("PLI6 : %d entrées → %d visibles, %d repliées, abri les relit dans l'ordre"
-                     " — mutant : garder tout visible" % (n, visibles, repliees)) + "\n" + str("%s\nvus=%d caches=%d %r\n%s" % (s, vus, caches, textes, html[html.find("Journal"):][:900]))
+            assert code == 0
+            assert vus == visibles
+            assert caches == repliees
+            assert bool(ancien) == bool(repliees)
+            assert textes == ["j%d" % k for k in range(1, n + 1)]
+            assert not ancien or "%d entrées plus anciennes" % repliees in ancien.group(0)
 
 
 def test_bilan_en_haut(tmp_path):
@@ -497,33 +534,34 @@ def test_bilan_en_haut(tmp_path):
         page = os.path.join(tb, "ctx", "artefacts", "50-u.html")
         ecrire(page, ancienne)
         assert (ancienne.index("ZONE:bilan") > ancienne.index("ZONE:fiches")), ("PLI6 : la page de départ a son bilan en bas") + "\n" + ""
-        code, s = appel(["clore", tb, "--livre", "fini", "--date", "2026-09-27"])
+        code, _ = appel(["clore", tb, "--livre", "fini", "--date", "2026-09-27"])
         html = lire(page)
-        assert (code == 0 and html.count("ZONE:bilan") == 1
-                 and html.index("ZONE:bilan") < html.index("ZONE:fiches")
-                 and "<section>\n    <h2>Chantier clos le 2026-09-27</h2>" in html), ("PLI6 : après clore, ZONE:bilan précède ZONE:fiches, visible, une seule fois"
-                 " — mutant : laisser le bilan en bas") + "\n" + str(s + html[:1500])
+        assert code == 0
+        assert html.count("ZONE:bilan") == 1
+        assert html.index("ZONE:bilan") < html.index("ZONE:fiches")
+        assert "<section>\n    <h2>Chantier clos le 2026-09-27</h2>" in html
         # un clos d'avant PLI6 : bilan visible, mais en bas — `page` le remonte aussi (dette PLI)
         j = html.index("  <!-- ZONE:bilan")
         fin_b = html.index("  </section>\n", j) + len("  </section>\n")
         clos_bas = (html[:j] + html[fin_b:]).replace("  <footer>", html[j:fin_b] + "\n  <footer>", 1)
         ecrire(page, clos_bas)
-        code, s = appel(["page", os.path.join(tb, "ctx", "50-u.md"), page])
+        code, _ = appel(["page", os.path.join(tb, "ctx", "50-u.md"), page])
         html = lire(page)
-        assert (code == 0 and clos_bas.index("ZONE:bilan") > clos_bas.index("ZONE:fiches")
-                 and html.count("ZONE:bilan") == 1 and html.index("ZONE:bilan") < html.index("ZONE:fiches")), ("dette PLI : page remonte le bilan d'un clos resté en bas, une seule fois"
-                 " — mutant : ne le remonter qu'à clore") + "\n" + str(s + html[:1500])
+        assert code == 0
+        assert clos_bas.index("ZONE:bilan") > clos_bas.index("ZONE:fiches")
+        assert html.count("ZONE:bilan") == 1
+        assert html.index("ZONE:bilan") < html.index("ZONE:fiches")
     with tempfile.TemporaryDirectory(dir=tmp_path) as tbo:
         # témoin : une page ouverte à l'ancienne forme (bilan caché, en bas) n'est pas touchée
         ouverte = os.path.join(tbo, "artefacts", "q.html")
         fiches_o = os.path.join(tbo, "q.md")
         ecrire(fiches_o, FICHES_PLI5)
         ecrire(ouverte, ancienne)
-        code, s = appel(["page", fiches_o, ouverte])
+        code, _s = appel(["page", fiches_o, ouverte])
         html = lire(ouverte)
-        assert (code == 0 and html.index("ZONE:bilan") > html.index("ZONE:fiches")
-                 and "<section hidden>\n    <h2>Chantier clos le" in html), ("dette PLI : un chantier ouvert garde son bilan caché là où il est"
-                 " — mutant : toujours remonter le bilan") + "\n" + str(s + html[-1500:])
+        assert code == 0
+        assert html.index("ZONE:bilan") > html.index("ZONE:fiches")
+        assert "<section hidden>\n    <h2>Chantier clos le" in html
 
 
 def test_forme(tmp_path, init_git):
@@ -570,35 +608,48 @@ def test_forme(tmp_path, init_git):
         fin = html.index("  </section>\n", i) + len("  </section>\n\n")
         bloc = html[i:fin].replace("<section hidden>", "<section>", 1).replace("<p></p>", "<p>Fini.</p>", 1)
         html = (html[:i] + html[fin:]).replace("  <footer>", bloc + "  <footer>", 1)
-        assert ("<style>" in html and "<details" not in html and total in html
-                 and html.index("ZONE:bilan") > html.index("ZONE:fiches")), ("HAB1 : la page de départ est à l'ancien format") + "\n" + str(html[:600])
+        assert "<style>" in html
+        assert "<details" not in html
+        assert total in html
+        assert html.index("ZONE:bilan") > html.index("ZONE:fiches")
         ecrire(page, html)
         code, s = appel(["page", fiches, page, "--forme", "--date", "2026-01-06"])
         apres = lire(page)
         lu = mod.lis_page(apres)
-        assert (code == 0 and apres.count(total) == 1 and apres.count(hors) == 1
-                 and "total ≈11,3M (11 262 523) · 42 tours · 3,40 $" in s), ("HAB1 : --forme garde le total 11 262 523 et le hors fiches — mutant : --forme ignoré") + "\n" + str(s + apres)
-        assert (lu["Q1"][2] == c1 and lu["Q2"][2] == c2), ("HAB1 : --forme garde les deux coûts de fiche (%s ; %s)" % (c1, c2)) + "\n" + str(lu)
-        assert ("<style>" not in apres and apres.count('href="vlp.css"') == 1 and apres.count("<details") >= 2
-                 and apres.index("ZONE:bilan") < apres.index("ZONE:fiches") and "<p>Fini.</p>" in apres), ("HAB1 : --forme lie vlp.css, replie les fiches, remonte le bilan") + "\n" + str(apres[:1500])
-        assert ("<span class=\"etat\">abandonnée</span>" in apres and "2 fiches · Q2 abandonnée · clos" in apres
-                 and 'Mis à jour le <span class="mono">2026-01-05</span>' in apres), ("HAB1 : --forme garde libellé, comptage et date écrits sur l'ancienne page"
-                 " — mutant : reprendre la date du jour") + "\n" + str(apres)
+        assert code == 0
+        assert apres.count(total) == 1
+        assert apres.count(hors) == 1
+        assert "total ≈11,3M (11 262 523) · 42 tours · 3,40 $" in s
+        assert lu["Q1"][2] == c1
+        assert lu["Q2"][2] == c2
+        assert "<style>" not in apres
+        assert apres.count('href="vlp.css"') == 1
+        assert apres.count("<details") >= 2
+        assert apres.index("ZONE:bilan") < apres.index("ZONE:fiches")
+        assert "<p>Fini.</p>" in apres
+        assert "<span class=\"etat\">abandonnée</span>" in apres
+        assert "2 fiches · Q2 abandonnée · clos" in apres
+        assert 'Mis à jour le <span class="mono">2026-01-05</span>' in apres
         ecrire(os.path.join(tfo, "avant.html"), html)
         code, s = appel(["comparer", os.path.join(tfo, "avant.html"), page])
-        assert (code == 0 and s.rstrip().startswith("COMPARER 0 perdus")), ("HAB1 : comparer, 0 ligne de texte perdue") + "\n" + str(s)
+        assert code == 0
+        assert s.rstrip().startswith("COMPARER 0 perdus")
         code, s = appel(["vigile", page])
-        assert (code == 0 and s.startswith("PAGE SAINE")), ("HAB1 : la page repeinte, vigile PAGE SAINE") + "\n" + str(s)
+        assert code == 0
+        assert s.startswith("PAGE SAINE")
         avant = lire(page)
         code, s = appel(["page", fiches, page, "--forme", "--date", "2026-01-06"])
-        assert (code == 0 and lire(page) == avant), ("HAB1 : --forme deux fois ne change rien") + "\n" + str(s)
+        assert code == 0
+        assert lire(page) == avant
         code, s = appel(["page", fiches, os.path.join(tfo, "neuve.html"), "--forme", "--creer", "--projet", "P",
                          "--titre", "T", "--resultat", "R"])
-        assert (code == 1 and s.startswith("GARDE: --forme ne va pas avec --creer")
-                 and not os.path.exists(os.path.join(tfo, "neuve.html"))), ("HAB1 : --forme refuse --creer par une GARDE") + "\n" + str(s)
+        assert code == 1
+        assert s.startswith("GARDE: --forme ne va pas avec --creer")
+        assert not os.path.exists(os.path.join(tfo, "neuve.html"))
         # Témoin : sans --forme, la même page recompte — la preuve que le dépôt ferait changer le total.
         code, s = appel(["page", fiches, page, "--date", "2026-01-06"])
-        assert (code == 0 and total not in lire(page)), ("HAB1 : sans --forme, le total change (témoin)") + "\n" + str(s)
+        assert code == 0
+        assert total not in lire(page)
 
 
 def projet_clos(dossier, liens=()):
@@ -634,22 +685,27 @@ def test_liens(tmp_path):
         avant = mod.lire_abri(md_c)
         code, s = appel(["lien", os.path.join(art, "c.html"), "https://claude.ai/artifact/ccc"])
         apres = mod.lire_abri(md_c)
-        assert (code == 0 and s.startswith("LIEN écrit") and apres["lien"] == "https://claude.ai/artifact/ccc"
-                 and dict(apres, lien="") == avant and "## Lien\nhttps://claude.ai/artifact/ccc\n" in lire(md_c)), ("HAB3 : lien écrit l'URL, lire_abri la relit, le reste intact"
-                 " — mutant : texte_abri oublie la section") + "\n" + str((s, apres, avant))
+        assert code == 0
+        assert s.startswith("LIEN écrit")
+        assert apres["lien"] == "https://claude.ai/artifact/ccc"
+        assert dict(apres, lien="") == avant
+        assert "## Lien\nhttps://claude.ai/artifact/ccc\n" in lire(md_c)
         code, s = appel(["lien", os.path.join(art, "c.html"), "https://claude.ai/artifact/ccc"])
-        assert (code == 0 and s.startswith("LIEN déjà")), ("HAB3 : lien relancé, déjà") + "\n" + str(s)
+        assert code == 0
+        assert s.startswith("LIEN déjà")
         code, s = appel(["lien", os.path.join(art, "c.html"), "pas-une-url"])
-        assert (code == 1 and s.startswith("GARDE: lien inattendu")), ("HAB3 : lien refuse une URL inattendue") + "\n" + str(s)
+        assert code == 1
+        assert s.startswith("GARDE: lien inattendu")
         code, s = appel(["liens", tli])
-        assert (code == 0 and s.splitlines()[-1] == "LIENS 1 écrits · 0 déjà · 1 doublons · 1 sans lien · 0 sans page"
-                 and "DOUBLON %s · %s · %s" % (os.path.join(art, "b.html"), ub, ub2) in s
-                 and mod.lire_abri(os.path.join(art, "a.md"))["lien"] == ua
-                 and mod.lire_abri(os.path.join(art, "b.md"))["lien"] == ""), ("HAB3 : liens pose A, signale B en doublon, C sans lien dans la feuille") + "\n" + str(s)
+        assert code == 0
+        assert s.splitlines()[-1] == "LIENS 1 écrits · 0 déjà · 1 doublons · 1 sans lien · 0 sans page"
+        assert "DOUBLON %s · %s · %s" % (os.path.join(art, "b.html"), ub, ub2) in s
+        assert mod.lire_abri(os.path.join(art, "a.md"))["lien"] == ua
+        assert mod.lire_abri(os.path.join(art, "b.md"))["lien"] == ""
         code, s = appel(["repeindre", tli, "--a-blanc"])
-        assert (code == 0
-                 and "REPEINTE %s · lien %s" % (os.path.join(art, "a.html"), ua) in s
-                 and "2 repeintes · 1 avec lien · 1 sans lien" in s), ("HAB3 : repeindre lit le lien du .md") + "\n" + str(s)
+        assert code == 0
+        assert "REPEINTE %s · lien %s" % (os.path.join(art, "a.html"), ua) in s
+        assert "2 repeintes · 1 avec lien · 1 sans lien" in s
 
 
 FICHES_FEU7 = """# Chantier FEU7
@@ -679,30 +735,33 @@ def test_lien_feuille_de_route(tmp_path):
         ecrire(carte, "# C\n\n- **artefact feuille de route** : https://exemple/route\n")
         code, _s = appel(["page", fiches, page, "--creer", "--projet", "Proj", "--titre", "T", "--resultat", "R0"])
         html = lire(page)
-        assert (code == 0
-                 and 'Proj · fiches P1–P2 · <a href="https://exemple/route">la feuille de route</a></div>' in html
-                 and html.count("la feuille de route</a>") == 1), ("FEU7 : eyebrow, un lien vers la feuille de route") + "\n" + str(html)
+        assert code == 0
+        assert 'Proj · fiches P1–P2 · <a href="https://exemple/route">la feuille de route</a></div>' in html
+        assert html.count("la feuille de route</a>") == 1
         code, _s = appel(["page", fiches, page])
         html = lire(page)
-        assert (code == 0 and html.count("la feuille de route</a>") == 1
-                 and 'Proj · fiches P1–P2 · <a href="https://exemple/route">la feuille de route</a></div>' in html), ("FEU7 : régénérée deux fois, toujours un seul lien — mutant : garde d'unicité retirée") + "\n" + str(html)
+        assert code == 0
+        assert html.count("la feuille de route</a>") == 1
+        assert 'Proj · fiches P1–P2 · <a href="https://exemple/route">la feuille de route</a></div>' in html
         ecrire(carte, "# C\n\n- **artefact feuille de route** : https://exemple/autre\n")
         code, _s = appel(["page", fiches, page])
         html = lire(page)
-        assert (code == 0
-                 and 'Proj · fiches P1–P2 · <a href="https://exemple/autre">la feuille de route</a></div>' in html
-                 and "exemple/route" not in html and html.count("la feuille de route</a>") == 1), ("FEU7 : URL changée, la nouvelle seule") + "\n" + str(html)
+        assert code == 0
+        assert 'Proj · fiches P1–P2 · <a href="https://exemple/autre">la feuille de route</a></div>' in html
+        assert "exemple/route" not in html
+        assert html.count("la feuille de route</a>") == 1
         ecrire(carte, "# C\n\n- **artefact feuille de route** : aucun\n")
         code, _s = appel(["page", fiches, page])
         html = lire(page)
-        assert (code == 0
-                 and "la feuille de route" not in html and "Proj · fiches P1–P2</div>" in html), ("FEU7 : « aucun », le lien se retire") + "\n" + str(html)
+        assert code == 0
+        assert "la feuille de route" not in html
+        assert "Proj · fiches P1–P2</div>" in html
         ecrire(carte, "# C\n\n- **artefact feuille de route** : https://exemple/route\n")
         ecrire(fiches, lire(fiches) + '\n<!-- FICHE:P3 -->\n## P3 [ ] — c\n**Critère de fin**\n<!-- /FICHE -->\n')
         code, _s = appel(["page", fiches, page])
         html = lire(page)
-        assert (code == 0
-                 and 'Proj · fiches P1–P3 · <a href="https://exemple/route">la feuille de route</a></div>' in html), ("FEU7 : la plage reste intacte à côté du lien") + "\n" + str(html)
+        assert code == 0
+        assert 'Proj · fiches P1–P3 · <a href="https://exemple/route">la feuille de route</a></div>' in html
 
 
 def test_publie(tmp_path):
@@ -726,7 +785,8 @@ def test_publie(tmp_path):
         ecrire(fiches, FICHES_PLI2)
         code, s = appel(["page", fiches, page, "--creer", "--projet", "Proj", "--titre", "T", "--resultat", "R0"])
         files = files_de(s) or {}
-        assert (code == 0 and sorted(files) == ["vlp.css", "vlp.js"]), ("JNT3 : page jamais notée — FILES nomme les 2 joints") + "\n" + str(s)
+        assert code == 0
+        assert sorted(files) == ["vlp.css", "vlp.js"]
         # vlp.js en `{from}` relatif au dossier courant : les deux formes du paramètre `files`
         passe = {"vlp.css": files.get("vlp.css"), "vlp.js": {"from": os.path.relpath(files.get("vlp.js", t), p)}}
         succes = {"hook_event_name": "PostToolUse", "tool_name": "Artifact", "cwd": p,
@@ -744,7 +804,8 @@ def test_publie(tmp_path):
         assert (sorted(files_de(s) or {"x": 0}) == ["vlp.css"]), ("JNT3 : vlp.css changé depuis la note — FILES ne nomme que lui") + "\n" + str(s)
         hook(dict(succes, tool_input={"file_path": page, "files": {"vlp.css": files.get("vlp.css")}}))
         code, s = appel(["page", fiches, page])
-        assert (files_de(s) == {} and len(mod.lignes_de(notes)) == 2), ("JNT3 : republié avec vlp.css seul — vlp.js garde sa note, FILES {}") + "\n" + str(s + lire(notes))
+        assert files_de(s) == {}
+        assert len(mod.lignes_de(notes)) == 2
 
 
 def test_iso5_etat_texte(tmp_path):
@@ -765,9 +826,13 @@ def test_iso5_etat_texte(tmp_path):
         with open(crlf, "rb") as f:
             octets = f.read()
         cree = os.path.exists(os.path.join(tr, "non.md"))
-    assert (ajout == (0, "ÉTAT ajouté 2 ligne(s) à %s\n" % etat) and apres == "# État\n\n- a\n\n- ISO9 : b\n  suite\n"), ("ISO5 : etat --texte → ÉTAT ajouté 2 ligne(s), le texte à la fin, une ligne vide avant") + "\n" + str((ajout, apres))
-    assert (ajout_crlf[0] == 0 and octets == b"- a\r\n\r\n- ISO9 : b\r\n  suite\r\n"), ("ISO5 : un fichier d'état en CRLF le reste, une seule ligne vide avant le texte") + "\n" + str((ajout_crlf, octets))
-    assert ([c for c, _ in gardes] == [1, 1, 1] and gardes[0][1].startswith("GARDE: texte vide")
-             and gardes[1][1].startswith("GARDE: texte absent") and gardes[2][1].startswith("GARDE: fichier d'état absent")
-             and apres.endswith("  suite\n") and not cree), ("ISO5 : texte vide, texte absent, fichier d'état absent → GARDE:, sort 1, rien d'écrit — mutant : pas de "
-             "garde du vide") + "\n" + str((gardes, apres, cree))
+    assert ajout == (0, "ÉTAT ajouté 2 ligne(s) à %s\n" % etat)
+    assert apres == "# État\n\n- a\n\n- ISO9 : b\n  suite\n"
+    assert ajout_crlf[0] == 0
+    assert octets == b"- a\r\n\r\n- ISO9 : b\r\n  suite\r\n"
+    assert [c for c, _ in gardes] == [1, 1, 1]
+    assert gardes[0][1].startswith("GARDE: texte vide")
+    assert gardes[1][1].startswith("GARDE: texte absent")
+    assert gardes[2][1].startswith("GARDE: fichier d'état absent")
+    assert apres.endswith("  suite\n")
+    assert not cree

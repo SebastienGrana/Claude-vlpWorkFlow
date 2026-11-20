@@ -23,17 +23,16 @@ def test_un_fichier_du_kit_tel_quel():
 def test_la_racine_du_kit_remplace_la_variable():
     _, source, racine = attendu_et_source()
     s = appel(["lire", "cloture.md"])[1]
-    assert source.count("${CLAUDE_PLUGIN_ROOT}") > 0 and "CLAUDE_PLUGIN_ROOT" not in s \
-        and '"%s/scripts/vlp.py"' % racine in s, \
-        "lire : ${CLAUDE_PLUGIN_ROOT} remplacé par la racine du kit (%d dans la source)" \
-        % source.count("${CLAUDE_PLUGIN_ROOT}") + " · %r" % (s[:300],)
+    assert source.count("${CLAUDE_PLUGIN_ROOT}") > 0
+    assert "CLAUDE_PLUGIN_ROOT" not in s
+    assert '"%s/scripts/vlp.py"' % racine in s
 
 
 def test_hors_du_kit_et_absent_sortent_1():
     attendu, _, _ = attendu_et_source()
     code, s = appel(["lire", "cloture.md", "../hors.md", "absent.md", "cloture.md"])
-    assert code == 1 and s == attendu + "GARDE: hors du kit : ../hors.md\nABSENT absent.md\n" + attendu, \
-        "lire : hors du kit et absent sortent 1, le reste imprimé" + " · %r" % (s[-200:],)
+    assert code == 1
+    assert s == attendu + "GARDE: hors du kit : ../hors.md\nABSENT absent.md\n" + attendu
 
 
 @pytest.mark.skipif(os.name != "nt", reason="seul Windows a des lecteurs")

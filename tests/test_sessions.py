@@ -132,13 +132,13 @@ def test_cout_sous_agent_nomme(tmp_path, init_git):
         ecrire(os.path.join(depot, "q.md"), QFICHES % (sq, sq))
         code, s = appel(["cout", os.path.join(depot, "q.md")])
         cent, deux = "≈100,0k (100 000) · 1 tours · 0,50 $", "≈200,0k (200 000) · 2 tours · 1,00 $"
-        assert (code == 0
-                 and s.startswith(DECOUPE_TETE)
-                 and "\nQ1 · %s = session %s + 1 sous-agent %s\n" % (deux, cent, cent) in s
-                 and "\nQ2 · ≈400,0k (400 000) · 4 tours · 2,00 $ = session %s + 2 sous-agents "
-                     "≈300,0k (300 000) · 3 tours · 1,50 $\n" % cent in s
-                 and "\nhors fiches · %s = session %s + 0 sous-agent\n" % (deux, deux) in s
-                 and "\nTOTAL (fiches + hors fiches) · ≈800,0k (800 000) · 8 tours · 4,00 $ = " in s), ("CPF1 : un sous-agent compte à la fiche que nomme son prompt, sinon à son départ") + "\n" + str(s)
+        assert code == 0
+        assert s.startswith(DECOUPE_TETE)
+        assert "\nQ1 · %s = session %s + 1 sous-agent %s\n" % (deux, cent, cent) in s
+        assert ("\nQ2 · ≈400,0k (400 000) · 4 tours · 2,00 $ = session %s + 2 sous-agents "
+                     "≈300,0k (300 000) · 3 tours · 1,50 $\n" % cent in s)
+        assert "\nhors fiches · %s = session %s + 0 sous-agent\n" % (deux, deux) in s
+        assert "\nTOTAL (fiches + hors fiches) · ≈800,0k (800 000) · 8 tours · 4,00 $ = " in s
 
 
 def test_commit_au_titre(tmp_path, init_git):
@@ -165,14 +165,16 @@ def test_commit_au_titre(tmp_path, init_git):
                            capture_output=True, env=dict(env, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date))
         q = os.path.join(d, "q.md")
         h = mod.heures_commits(q, ["Q1", "Q2"], titres={"Q1": "Créer", "Q2": "Brancher"})
-        assert (h is not None and h[0] == {"Q1": T0 + 300, "Q2": T0 + 600}), ("PRP4 commit au titre : Q2 au sien, pas à l'étape ; Q1 pas étiré par son correctif") + "\n" + str(h)
+        assert h is not None
+        assert h[0] == {"Q1": T0 + 300, "Q2": T0 + 600}
         h = mod.heures_commits(q, ["Q1", "Q2"])
-        assert (h is not None and h[0] == {"Q1": T0 + 300, "Q2": T0 + 350}), ("PRP4 commit au titre : sans titres, le plus ancien, comme avant") + "\n" + str(h)
+        assert h is not None
+        assert h[0] == {"Q1": T0 + 300, "Q2": T0 + 350}
         code, s = appel(["cout", q])
-        assert (code == 0
-                 and "\nQ1 · ≈200,0k (200 000) · 2 tours · 1,00 $" in s
-                 and "\nQ2 · ≈300,0k (300 000) · 3 tours · 1,50 $" in s
-                 and "TOTAL (fiches + hors fiches) · ≈700,0k (700 000) · 7 tours" in s), ("PRP4 commit au titre : cout donne à Q2 sa séance, sous-agent compris, total inchangé") + "\n" + str(s)
+        assert code == 0
+        assert "\nQ1 · ≈200,0k (200 000) · 2 tours · 1,00 $" in s
+        assert "\nQ2 · ≈300,0k (300 000) · 3 tours · 1,50 $" in s
+        assert "TOTAL (fiches + hors fiches) · ≈700,0k (700 000) · 7 tours" in s
         # PRF : un commit `Q1 : case cochée` posé juste avant `Q1 : Créer` ne devient pas le début de Q1.
         d2 = os.path.join(t, "q2")
         ecrire(os.path.join(d2, "q.md"), QFICHES % (sq, sq))
@@ -183,8 +185,9 @@ def test_commit_au_titre(tmp_path, init_git):
             subprocess.run(["git", "commit", "-q", "--allow-empty", "-m", sujet], cwd=d2, check=True,
                            capture_output=True, env=dict(env, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date))
         code, s = appel(["cout", os.path.join(d2, "q.md")])
-        assert (code == 0 and "\nQ1 · ≈200,0k (200 000) · 2 tours · 1,00 $" in s
-                 and "TOTAL (fiches + hors fiches) · ≈700,0k (700 000) · 7 tours" in s), ("PRF : la première fiche part de l'ouverture, pas d'un commit à elle posé avant le sien") + "\n" + str(s)
+        assert code == 0
+        assert "\nQ1 · ≈200,0k (200 000) · 2 tours · 1,00 $" in s
+        assert "TOTAL (fiches + hors fiches) · ≈700,0k (700 000) · 7 tours" in s
         # Dette GAI : en parallèle, `Fusion : Q2` suit `Q2 :` d'une seconde ; la clôture va jusqu'au commit qui clôt.
         d3 = os.path.join(t, "q3")
         ecrire(os.path.join(d3, "q.md"), QFICHES % (sq, sq))
@@ -196,9 +199,12 @@ def test_commit_au_titre(tmp_path, init_git):
                            capture_output=True, env=dict(env, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date))
         h = mod.heures_commits(os.path.join(d3, "q.md"), ["Q1", "Q2"])
         code, s = appel(["cout", os.path.join(d3, "q.md")])
-        assert (h is not None and T0 + 601 not in h[1] and T0 + 601 in h[2] and code == 0
-                 and "\nhors fiches · ≈200,0k (200 000) · 2 tours" in s
-                 and "TOTAL (fiches + hors fiches) · ≈700,0k (700 000) · 7 tours" in s), ("dette GAI : un commit « Fusion : Q2 » ne ferme pas la clôture, son tour reste hors fiches") + "\n" + str((h, s))
+        assert h is not None
+        assert T0 + 601 not in h[1]
+        assert T0 + 601 in h[2]
+        assert code == 0
+        assert "\nhors fiches · ≈200,0k (200 000) · 2 tours" in s
+        assert "TOTAL (fiches + hors fiches) · ≈700,0k (700 000) · 7 tours" in s
         # Dette GAI : `clore` d'un projet sans page de chantier (le bac de GAI2) compte son total, comme `cout`.
         d4 = os.path.join(t, "q4")
         ecrire(os.path.join(d4, "CHANTIER.md"), "# C\n\n- **contexte** : ctx/\n- **artefact du chantier** : aucun\n\n"
@@ -210,8 +216,11 @@ def test_commit_au_titre(tmp_path, init_git):
             subprocess.run(["git", "commit", "-q", "--allow-empty", "-m", sujet], cwd=d4, check=True,
                            capture_output=True, env=dict(env, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date))
         code, s = appel(["clore", d4, "--livre", "fini", "--date", "2026-10-17"])
-        assert (code == 0 and "CLOS Q " in s and "· chantier 800 000 ·" in s and "joué 2 fiches 4,00 $" in s
-                 and "non mesuré" not in pathlib.Path(os.path.join(d4, "ctx", "q.md")).read_text(encoding="utf-8")), ("dette GAI : clore sans page de chantier écrit le total mesuré, pas « non mesuré »") + "\n" + str(s)
+        assert code == 0
+        assert "CLOS Q " in s
+        assert "· chantier 800 000 ·" in s
+        assert "joué 2 fiches 4,00 $" in s
+        assert "non mesuré" not in pathlib.Path(os.path.join(d4, "ctx", "q.md")).read_text(encoding="utf-8")
 
 
 def test_cout_session(tmp_path):
@@ -229,23 +238,30 @@ def test_cout_session(tmp_path):
         os.environ.update(HOME=t, USERPROFILE=t, CLAUDE_CODE_SESSION_ID="ccc")
         try:
             code, s = appel(["cout", f])
-            assert (code == 0 and "aaa.jsonl\t" in s and "bbb.jsonl\t" in s
-                     and "ccc.jsonl\t" not in s and s.count("TOTAL\t") == 1 and s.startswith("DÉCOUPE aucune — ")), ("cout : toutes les sessions du fichier, un total") + "\n" + str(s)
+            assert code == 0
+            assert "aaa.jsonl\t" in s
+            assert "bbb.jsonl\t" in s
+            assert "ccc.jsonl\t" not in s
+            assert s.count("TOTAL\t") == 1
+            assert s.startswith("DÉCOUPE aucune — ")
             code, s = appel(["cout", f, "--session"])
-            assert (code == 0 and s.startswith("SESSION=ccc\nfichier\t")
-                     and s.split("TOTAL\t")[0].count("ccc.jsonl\t") == 3 and s.count("TOTAL\t") == 1
-                     and s.count("\nDÉCOUPE aucune — ") == 1), ("cout --session : la session seule, puis le cumul") + "\n" + str(s)
+            assert code == 0
+            assert s.startswith("SESSION=ccc\nfichier\t")
+            assert s.split("TOTAL\t")[0].count("ccc.jsonl\t") == 3
+            assert s.count("TOTAL\t") == 1
+            assert s.count("\nDÉCOUPE aucune — ") == 1
             os.environ["CLAUDE_CODE_SESSION_ID"] = ""
             assert (appel(["cout", f, "--session"]) == (0, "SESSION=\n")), ("cout --session : id vide, rien mesuré") + "\n" + str(appel(["cout", f, "--session"]))
         finally:
             os.environ.clear()
             os.environ.update(garde_env)
         code, s = appel(["valider", f, "--plan"])
-        assert (s.endswith("\n12:## Y1 [x] — faite\n24:## Y2 [ ] — à faire\n")
-                 and "pas un titre" not in s), ("valider --plan : titres de fiche, grep -n") + "\n" + str(s)
+        assert s.endswith("\n12:## Y1 [x] — faite\n24:## Y2 [ ] — à faire\n")
+        assert "pas un titre" not in s
         code, s = appel(["lignes", f, t, os.path.join(t, "absent.md"), os.path.join(t, "*.md")])
-        assert (code == 0 and s == "%d %s\nDOSSIER %s\nABSENT %s\n%d %s\nSEUILS page %d · fiche %d · socle %d\n"
-                 % (len(mod.lignes_de(f)), f, t, os.path.join(t, "absent.md"), len(mod.lignes_de(f)), f, mod.SEUIL_PAGE, mod.SEUIL_FICHE, mod.SEUIL_SOCLE)), ("lignes : fichier, dossier, absent, motif") + "\n" + str(s)
+        assert code == 0
+        assert (s == "%d %s\nDOSSIER %s\nABSENT %s\n%d %s\nSEUILS page %d · fiche %d · socle %d\n"
+                 % (len(mod.lignes_de(f)), f, t, os.path.join(t, "absent.md"), len(mod.lignes_de(f)), f, mod.SEUIL_PAGE, mod.SEUIL_FICHE, mod.SEUIL_SOCLE))
         d = os.path.join(t, "projet")
         for n in ("b", "A", ".cache"):
             os.makedirs(os.path.join(d, n))
@@ -275,7 +291,8 @@ def test_essais_de(tmp_path):
             os.environ.update(garde_env)
         assert (a == [os.path.join(pr, "C--tmp-sa-aaaa-1-scratchpad-b1", "e.jsonl"),
                        os.path.join(pr, "C--tmp-sa-aaaa-1-scratchpad-b2", "e.jsonl")]), ("essais_de : les deux bacs de A, triés, sans l'intrus") + "\n" + str(a)
-        assert (len(b) == 1 and "bbbb-2-scratchpad-b1" in b[0]), ("essais_de : le bac de B seul") + "\n" + str(b)
+        assert len(b) == 1
+        assert "bbbb-2-scratchpad-b1" in b[0]
         assert (z == []), ("essais_de : session inconnue, liste vide") + "\n" + str(z)
         # MET2 : un essai hors bac (une copie du kit) se déclare au registre, par `vlp.py essai`.
         for copie in ("D--x-vlp-essai-v1", "D--x-vlp-essai-v2", "D--x-vlp-autre-w1"):
@@ -293,13 +310,13 @@ def test_essais_de(tmp_path):
             os.environ.update(garde_env)
         with open(os.path.join(t, ".claude", "vlp-essais.txt"), encoding="utf-8") as f:
             registre = f.read().splitlines()
-        assert (codes == (0, 0, 0, 1)
-                 and a2 == sorted(a + [os.path.join(pr, "D--x-vlp-essai-v1", "e.jsonl"),
-                                       os.path.join(pr, "D--x-vlp-essai-v2", "e.jsonl")])
-                 and b2 == sorted(b + [os.path.join(pr, "D--x-vlp-autre-w1", "e.jsonl")])
-                 and "ESSAI aaaa-1 D--x-vlp-essai-* · 2 dossier(s) · 2 transcript(s)" in o.getvalue()), ("essai : un essai hors bac déclaré pour A est à A, pas à B") + "\n" + str((codes, a2, b2, o.getvalue()))
-        assert (registre == ["aaaa-1 D--x-vlp-essai-*", "bbbb-2 D--x-vlp-autre-w1"]
-                 and refus.getvalue().startswith("GARDE: essai non déclaré")), ("essai : déclaré une fois, un motif qui sort du dossier refusé") + "\n" + str((registre, refus.getvalue()))
+        assert codes == (0, 0, 0, 1)
+        assert (a2 == sorted(a + [os.path.join(pr, "D--x-vlp-essai-v1", "e.jsonl"),
+                                       os.path.join(pr, "D--x-vlp-essai-v2", "e.jsonl")]))
+        assert b2 == sorted(b + [os.path.join(pr, "D--x-vlp-autre-w1", "e.jsonl")])
+        assert "ESSAI aaaa-1 D--x-vlp-essai-* · 2 dossier(s) · 2 transcript(s)" in o.getvalue()
+        assert registre == ["aaaa-1 D--x-vlp-essai-*", "bbbb-2 D--x-vlp-autre-w1"]
+        assert refus.getvalue().startswith("GARDE: essai non déclaré")
 
 
 def test_cout_essai_plage(tmp_path, init_git):
@@ -344,8 +361,8 @@ def test_cout_essai_plage(tmp_path, init_git):
                        + "GARDE: essai claude -p hors bac, non déclaré : h · parti le %s · %s · dossier D--x-hors — le "
                          "déclarer : vlp.py essai D--x-hors --session sss (ESH)\n"
                          % (time.strftime("%Y-%m-%d %H:%M", time.localtime(T0 + 250)), cent))
-            assert (code == 0 and s == attendu), ("cout : l'essai de la plage à Q1, sous-agent compris ; l'autre hors fiches ; TOTAL les deux ; "
-                     "l'essai hors bac signalé en dernier, hors du TOTAL (ESH)") + "\n" + str(s)
+            assert code == 0
+            assert s == attendu
 
 
 def test_essais_hors_bac(tmp_path):
@@ -387,8 +404,10 @@ def test_essais_hors_bac(tmp_path):
                  "la commande qui le déclare — mutant : le filtre du bac retiré") + "\n" + str(gardes)
         assert (coupe == []), ("ESH : un essai parti avant les bornes de la plage n'est pas signalé") + "\n" + str(coupe)
         assert (sans == [("GARDE: aucune séance de la plage ne porte la marque turnOrigin — un essai claude -p hors bac "
-                          "n'y serait pas vu (marque interne, non documentée ; ESH)")] and avant == []), ("ESH : une session récente sans marque turnOrigin, une GARDE ; d'avant la marque, rien") + "\n" + str((sans, avant))
-        assert (code == 0 and s.splitlines()[-1] == gardes[0]), ("ESH : cout imprime la GARDE en dernière ligne, sort 0") + "\n" + str(s)
+                          "n'y serait pas vu (marque interne, non documentée ; ESH)")])
+        assert avant == []
+        assert code == 0
+        assert s.splitlines()[-1] == gardes[0]
 
 
 def test_cout_sans_decoupe(tmp_path):
@@ -412,11 +431,15 @@ def test_cout_sans_decoupe(tmp_path):
         finally:
             os.environ.clear()
             os.environ.update(garde_env)
-        assert (code == 0 and s.startswith("DÉCOUPE aucune — ") and "\nsss.jsonl\t2\t" in s
-                 and s.endswith("\nessais · ≈300,0k (300 000) · 3 tours · 1,50 $ = session 0 · 0 tours · 0,00 $"
-                                " + 0 sous-agent + 2 essais ≈300,0k (300 000) · 3 tours · 1,50 $\n")), ("cout sans découpe : une ligne essais, 2 essais sous-agent compris, après les tables") + "\n" + str(s)
-        assert (code2 == 0
-                 and s2.startswith("DÉCOUPE aucune — ") and "essai" not in s2 and s2.endswith("\n")), ("cout sans découpe, sans essai : pas de ligne essais") + "\n" + str(s2)
+        assert code == 0
+        assert s.startswith("DÉCOUPE aucune — ")
+        assert "\nsss.jsonl\t2\t" in s
+        assert (s.endswith("\nessais · ≈300,0k (300 000) · 3 tours · 1,50 $ = session 0 · 0 tours · 0,00 $"
+                                " + 0 sous-agent + 2 essais ≈300,0k (300 000) · 3 tours · 1,50 $\n"))
+        assert code2 == 0
+        assert s2.startswith("DÉCOUPE aucune — ")
+        assert "essai" not in s2
+        assert s2.endswith("\n")
 
 
 def test_lance_clore():
@@ -467,9 +490,11 @@ def test_clos_sans_commit(tmp_path, init_git):
         lignes_ = s.splitlines()
         q2 = [l for l in lignes_ if l.startswith("Q2 · ")]
         total = [l for l in lignes_ if l.startswith("TOTAL ")]
-        assert (code == 0 and len(q2) == 1 and mod.triplet(q2[0])[:2] == (200000, 2)
-                 and len(total) == 1 and mod.triplet(total[0])[:2] == (400000, 4)), ("ECA2 : clos, Q2 sans commit — Q2 2 tours, TOTAL 400 000 · 4 tours — mutant : clos ignoré"
-                 " (TOTAL 700 000 · 7 tours)") + "\n" + str(s)
+        assert code == 0
+        assert len(q2) == 1
+        assert mod.triplet(q2[0])[:2] == (200000, 2)
+        assert len(total) == 1
+        assert mod.triplet(total[0])[:2] == (400000, 4)
 
 
 def horodate(d):
@@ -577,11 +602,13 @@ def test_compteur_lecture(tmp_path):
         chemin = os.path.join(t, "sss.jsonl")
         ecrire_compteur(chemin)
         j, erreur = m.journal(chemin, mod.lire_sortie)
-        assert (erreur is None and (j.sans_heure, j.sans_appel, j.users, j.origines) == (1, 1, 21, 6)), ("compteur : ce qui manque se compte — 1 ligne sans heure, 1 sortie sans appel, 21 user dont 6 à origin") + "\n" + str((erreur, j and vars(j).items()))
+        assert erreur is None
+        assert (j.sans_heure, j.sans_appel, j.users, j.origines) == (1, 1, 21, 6)
         mesure_ = mod.compter_plage([(chemin, j)], (-mod.INFINI, mod.INFINI))
     assert ((mesure_["parts"], mesure_["pauses"]) == ({"modèle": 127, "outils": 753, "attente": 80, "autre": 25}, 1)), ("compteur : un écart va à la ligne qui le ferme — modèle 127, outils 753, attente 80, autre 25, 1 pause") + "\n" + str(mesure_)
     assert (mesure_["outils"] == {"suite": 342, "--seul": 30, "test-boucle": 0, "mutant": 236, "pyright": 0, "Git": 5,
-                                   "publication": 10, "relance": 0, "reste": 130} and mesure_["fond"] == 285), ("compteur : l'attente d'une tâche de fond va à l'appel qui l'a lancée — boucle, Monitor, notification") + "\n" + str(mesure_)
+                                   "publication": 10, "relance": 0, "reste": 130})
+    assert mesure_["fond"] == 285
     assert (mesure_["appels"] == {"suite": 2, "--seul": 1, "test-boucle": 0, "mutant": 1, "pyright": 0, "Git": 1,
                                    "publication": 1, "relance": 0, "reste": 4}), ("compteur : un appel par sortie directe — ni la notification, ni l'attente, ni la réponse à une question") + "\n" + str(mesure_["appels"])
     assert ((mesure_["suites"], mesure_["garde_fous"]) == ([3, 1], [1, 1, 1, 1, 1])), ("compteur : les garde-fous lus là où ils disent vrai, les suites jugées sur leur verdict") + "\n" + str(mesure_)
@@ -633,8 +660,9 @@ def test_compteur_commande(tmp_path, init_git):
             sans_git = appel(["compteur", os.path.join(dep, "q.md")])
         finally:
             mod.etat.GIT = "git"
-        assert (sans_git[0] == 1 and sans_git[1].startswith(
-            "GARDE: pas de découpe — git ne se lance pas")), ("compteur : sans découpe, une GARDE: et 1") + "\n" + str(sans_git)
+        assert sans_git[0] == 1
+        assert (sans_git[1].startswith(
+            "GARDE: pas de découpe — git ne se lance pas"))
         if not shutil.which("git"):
             pytest.skip("git absent — compteur de bout en bout n'est pas testé")
             return
@@ -680,12 +708,13 @@ def test_compteur_commande(tmp_path, init_git):
              "ne compte nulle part") + "\n" + str(rendus[0][1])
     assert (rendus[1] == (0, "\n".join(
         lignes[:3] + [q2, "TOTAL (fiches nommées) · durée 34 · " + rien % (1, 1, 2, "1,00")]) + "\n")), ("compteur : les fiches nommées seules, et leur TOTAL") + "\n" + str(rendus[1][1])
-    assert (rendus[2][0] == 1
-             and "GARDE: fiche sans plage : Q9 — ni commit « Q9 : », ni session\n" in rendus[2][1]), ("compteur : une fiche nommée sans plage se dit, et sort 1") + "\n" + str(rendus[2])
+    assert rendus[2][0] == 1
+    assert "GARDE: fiche sans plage : Q9 — ni commit « Q9 : », ni session\n" in rendus[2][1]
     recoupe = ("RECOUPE sss.jsonl ligne 23 (minutes) · outils 10,1 contre totalToolDuration 5,0 (écart +5,1 ; sans les "
                "4,8 fermées par une notification de fond : +0,4) · modèle 1,5 contre totalAPIDuration 2,0 (écart -0,5) "
                "· durée 12,8 contre totalDuration absent\n")
     assert (rendus[3] == (0, "\n".join(lignes) + "\n" + recoupe)), ("compteur --recoupe : la cost-state face au compteur, du startTime à sa dernière ligne horodatée ; un "
              "champ absent se dit") + "\n" + str(rendus[3][1])
     assert (declarees == (("vlp.py cocher", "calcul.py"), ())), ("RLA : les commandes longues se lisent au CHANTIER.md du projet, entre accents graves ; sans carte, aucune") + "\n" + str(declarees)
-    assert (relance[0] == 0 and "Git 0 (0), publication 0 (0), relance 0 (1), reste 2 (3) · " in relance[1]), ("RLA : une commande longue déclarée tombe en relance, plus au reste — la suite et Git gardent leur sorte") + "\n" + str(relance)
+    assert relance[0] == 0
+    assert "Git 0 (0), publication 0 (0), relance 0 (1), reste 2 (3) · " in relance[1]

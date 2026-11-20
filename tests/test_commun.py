@@ -31,15 +31,23 @@ def test_archiver(tmp_path):
         pose(os.path.join(ta, "ctx", "00-INDEX.md"), "# I\n\n| Fichier | Lire quand |\n|---|---|\n| `08-etat.md` | on reprend |\n%s\n%s\n%s\n" % (clos_a, clos_b, ouvert))
         code, s = appel(["archiver", ta])
         idx_a, arch_a = lu(os.path.join(ta, "ctx", "00-INDEX.md")), lu(os.path.join(ta, "ctx", "00-INDEX-archive.md"))
-        assert (code == 0 and s.startswith("ARCHIVÉ 2 · index 7 lignes · archive 8 lignes")
-                 and ouvert in idx_a and "**clos**" not in idx_a and idx_a.count("| `00-INDEX-archive.md` |") == 1), ("archiver : 2 clos déplacés, l'ouvert reste") + "\n" + str(s + idx_a)
-        assert (arch_a.endswith("|---|---|\n%s\n%s\n" % (clos_b, clos_a)) and arch_a.startswith("# ") and "QUAND LIRE" in arch_a), ("archiver : lignes identiques à l'octet, triées par numéro — mutant : réécrire la ligne") + "\n" + str(arch_a)
+        assert code == 0
+        assert s.startswith("ARCHIVÉ 2 · index 7 lignes · archive 8 lignes")
+        assert ouvert in idx_a
+        assert "**clos**" not in idx_a
+        assert idx_a.count("| `00-INDEX-archive.md` |") == 1
+        assert arch_a.endswith("|---|---|\n%s\n%s\n" % (clos_b, clos_a))
+        assert arch_a.startswith("# ")
+        assert "QUAND LIRE" in arch_a
         code, s = appel(["archiver", ta])
-        assert (code == 0 and s.startswith("ARCHIVÉ 0 ·") and lu(os.path.join(ta, "ctx", "00-INDEX.md")) == idx_a
-                 and lu(os.path.join(ta, "ctx", "00-INDEX-archive.md")) == arch_a), ("archiver : relancé, rien ne change — mutant : renvoi posé deux fois") + "\n" + str(s)
+        assert code == 0
+        assert s.startswith("ARCHIVÉ 0 ·")
+        assert lu(os.path.join(ta, "ctx", "00-INDEX.md")) == idx_a
+        assert lu(os.path.join(ta, "ctx", "00-INDEX-archive.md")) == arch_a
         pose(os.path.join(ta, "CHANTIER.md"), "# C\n")
         code, s = appel(["archiver", ta])
-        assert (code == 1 and s.startswith("GARDE:")), ("archiver : pas de champ index, garde") + "\n" + str(s)
+        assert code == 1
+        assert s.startswith("GARDE:")
 
 
 GABARIT_FEUILLE = os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html")
@@ -99,8 +107,8 @@ def bac_niv3(t, feuille=True, index=INDEX_NIV3):
 
 
 def test_idx1(tmp_path):
-    assert (mod.chemin_archive("ctx/00-INDEX.md") == "ctx/00-INDEX-archive.md"
-             and mod.chemin_archive("00-INDEX.md") == "00-INDEX-archive.md"), ("IDX1 : l'archive se dérive de l'index, dans son dossier") + "\n" + str(mod.chemin_archive("ctx/00-INDEX.md"))
+    assert mod.chemin_archive("ctx/00-INDEX.md") == "ctx/00-INDEX-archive.md"
+    assert mod.chemin_archive("00-INDEX.md") == "00-INDEX-archive.md"
     with tempfile.TemporaryDirectory(dir=tmp_path) as t:
         rc = os.path.join(t, "rc")
         ecrire(os.path.join(rc, "CHANTIER.md"), "# Chantier courant\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n")
@@ -113,15 +121,16 @@ def test_idx1(tmp_path):
                '    <!-- ZONE:clos — test -->\n      <table>\n        <tbody>\n'
                + ligne_close(mod.arrondi(999)).replace("Q1–Q2", "N1") + "        </tbody>\n      </table>\n")
         code, s = appel(["recompter", rc])
-        assert (code == 0 and s.splitlines()[0] == "N inscrit 999 · recompté gardé · écart +0 · gardé — sans session"), ("IDX1 : recompter trouve le fichier par l'archive — mutant : ne lire que l'index") + "\n" + str(s)
+        assert code == 0
+        assert s.splitlines()[0] == "N inscrit 999 · recompté gardé · écart +0 · gardé — sans session"
 
     with tempfile.TemporaryDirectory(dir=tmp_path) as t:
         proj = bac_niv3(t, index="# Index\n\n| Fichier | On l'ouvre quand |\n|---|---|\n| `08-etat.md` | on reprend |\n")
         ecrire(os.path.join(proj, "ctx", "00-INDEX-archive.md"),
                "| Fichier | Lire quand |\n|---|---|\n| `10-a.md` | chantier **clos** « A », `A1..A2` |\n")
         code, s = appel(["niveau", proj, "--ecrire", "--date", "2026-09-18"])
-        assert ("CORRIGÉ: clos: table des chantiers clos retirée de CHANTIER.md:8" in s
-                 and "| ctx/10-a.md |" not in pathlib.Path(os.path.join(proj, "CHANTIER.md")).read_text(encoding="utf-8")), ("IDX1 : niveau retire la table des clos que l'archive nomme — mutant : ne lire que l'index") + "\n" + str(s)
+        assert "CORRIGÉ: clos: table des chantiers clos retirée de CHANTIER.md:8" in s
+        assert "| ctx/10-a.md |" not in pathlib.Path(os.path.join(proj, "CHANTIER.md")).read_text(encoding="utf-8")
 
     with tempfile.TemporaryDirectory(dir=tmp_path) as t:
         ecrire(os.path.join(t, "CHANTIER.md"), "- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n")
@@ -130,8 +139,9 @@ def test_idx1(tmp_path):
         ecrire(os.path.join(t, "ctx", "00-INDEX-archive.md"),
                "| Fichier | Lire quand |\n|---|---|\n| `20-mort.md` | chantier **clos** « M », `M1..M1` |\n")
         code, s = appel(["renvois", t])
-        assert (code == 1 and s == "ABSENT: ctx/00-INDEX-archive.md:3: 20-mort.md\n"
-                 "POIDS CLAUDE.md absent/100 · CHANTIER.md 2/50 · index 3/80\nRENVOIS 2 nommés · 1 absents\n"), ("IDX1 : renvois lit l'archive, sans poids — mutant : archive non lue") + "\n" + str(s)
+        assert code == 1
+        assert (s == "ABSENT: ctx/00-INDEX-archive.md:3: 20-mort.md\n"
+                 "POIDS CLAUDE.md absent/100 · CHANTIER.md 2/50 · index 3/80\nRENVOIS 2 nommés · 1 absents\n")
 
 
 def gardien_test(texte):
@@ -165,18 +175,27 @@ def test_premier_lancement():
 
         # Premier appel : doit refuser (écrit en JSON)
         code1, out1, err1 = gardien_test(entree_commit)
-        assert (code1 == 0 and "permissionDecision" in out1 and "deny" in out1 and err1 == ""), ("gardien : premier lancement, refuse le git commit") + "\n" + str(out1 + err1)
+        assert code1 == 0
+        assert "permissionDecision" in out1
+        assert "deny" in out1
+        assert err1 == ""
 
         # Deuxième appel avec la même entrée : doit être muet (retourne 0 sans rien écrire)
         code2, out2, err2 = gardien_test(entree_commit)
-        assert (code2 == 0 and out2 == "" and err2 == ""), ("gardien : deuxième lancement de la même entrée, muet") + "\n" + str("out=%s err=%s" % (out2, err2))
+        assert code2 == 0
+        assert out2 == ""
+        assert err2 == ""
 
         # Troisième appel avec une entrée différente : doit refuser (écrit en JSON)
         code3, out3, err3 = gardien_test(entree_commit_ps)
-        assert (code3 == 0 and "permissionDecision" in out3 and "deny" in out3 and err3 == ""), ("gardien : entrée différente, refuse le git commit") + "\n" + str(out3 + err3)
+        assert code3 == 0
+        assert "permissionDecision" in out3
+        assert "deny" in out3
+        assert err3 == ""
         # PYT2 : sur une écriture, `filet` et `hook` reçoivent la même entrée — chacun agit une fois
-        assert (mod.premier_lancement("{}", "cmd_filet") and mod.premier_lancement("{}", "cmd_hook")
-                 and not mod.premier_lancement("{}", "cmd_hook")), ("premier_lancement : même entrée, deux sous-commandes, chacune une fois")
+        assert mod.premier_lancement("{}", "cmd_filet")
+        assert mod.premier_lancement("{}", "cmd_hook")
+        assert not mod.premier_lancement("{}", "cmd_hook")
         # SON : VLP_SANS_TAMPON saute le tampon — la même entrée rejouée agit à chaque fois
         os.environ["VLP_SANS_TAMPON"] = "1"
         try:
@@ -207,9 +226,8 @@ def test_lecteur_copie():
                                    ("script des nombres insécables", "vlp.js", "// INSECABLE — début",
                                     "// INSECABLE — fin")):
         kit, copie = entre(nom, debut, fin), entre(rapport, debut, fin)
-        assert (kit is not None and kit == copie), ("LEC : le %s, dans %s et %s, pareil à l'octet" % (genre, nom, rapport)) + "\n" + str("%s : %s ; %s : %s" % (
-                     nom, "absent" if kit is None else "%d car." % len(kit),
-                     rapport, "absent" if copie is None else "%d car." % len(copie)))
+        assert kit is not None
+        assert kit == copie
 
 
 NOMBRES_RECOPIES = (
@@ -274,7 +292,9 @@ def test_nombres_recopies(tmp_path):
         faux = (("tours", ("a.md", r"en (\w+) tours"), (("skills/b.md", r"en (\w+) tours"),
                                                         ("skills/b.md", r"absent (\w+)"))),)
         e = ecarts_nombres(tnr, faux)
-        assert (len(e) == 2 and "« trois »" in e[0] and "introuvable" in e[1]), ("COP : une copie qui diffère, et une copie introuvable, sortent chacune en ÉCART:") + "\n" + str("\n".join(e))
+        assert len(e) == 2
+        assert "« trois »" in e[0]
+        assert "introuvable" in e[1]
 
 
 def test_agents_suite_rapide():
@@ -312,6 +332,12 @@ def test_chef_page_explique(tmp_path):
             page = mod.lire(chemin) if os.path.exists(chemin) else ""
             rendus.append((code, s.getvalue(), page))
     (c1, s1, p1), (c2, s2, p2), (c3, s3, p3) = rendus
-    assert (c1 == 0 and s1.endswith("CARTES Q1\nCAPACITES sample\n") and div % " data-explique" in p1), ("chef page explique=true : data-explique sur la page, CAPACITES sample après CARTES") + "\n" + str(s1)
-    assert (c2 == 0 and "CAPACITES" not in s2 and div % "" in p2), ("chef page sans explique : ni data-explique sur la page, ni CAPACITES") + "\n" + str(s2)
-    assert (c3 == 1 and s3 == "GARDE: racine : « explique » vaut true ou false\n" and p3 == ""), ("chef page explique=\"oui\" : GARDE, sort 1, rien d'écrit") + "\n" + str(s3)
+    assert c1 == 0
+    assert s1.endswith("CARTES Q1\nCAPACITES sample\n")
+    assert div % " data-explique" in p1
+    assert c2 == 0
+    assert "CAPACITES" not in s2
+    assert div % "" in p2
+    assert c3 == 1
+    assert s3 == "GARDE: racine : « explique » vaut true ou false\n"
+    assert p3 == ""

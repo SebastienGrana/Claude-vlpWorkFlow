@@ -93,14 +93,18 @@ def test_page_creer(tmp_path):
         code, s = appel(["page", fiches, page, "--creer", "--projet", "Proj", "--titre", "Le <titre>",
                          "--resultat", "Fini quand.", "--note", "P1", "Produit a.py", "--date", "2026-01-02"])
         html = lire(page) if os.path.exists(page) else ""
-        assert (code == 0 and "<title>Proj — Le &lt;titre&gt;</title>" in html
-                 and "Proj · fiches P1–P3" in html and "<p>Fini quand.</p>" in html
-                 and '<span data-etat="encours"></span><span></span><span></span>' in html
-                 and "3 fiches · 0 faite · en cours : P1" in html and '<span class="note">Produit a.py</span>' in html
-                 and "&lt;" not in html.split("<ul class=\"journal\">")[1].split("</ul>")[0]
-                 and '<p class="mono cout-total">' not in html and '<p class="mono cout-hors">' not in html
-                 and "Mis à jour le <span class=\"mono\">2026-01-02</span>" in html
-                 and "lignes · total non mesuré" in s), ("page --creer") + "\n" + str(s + html)
+        assert code == 0
+        assert "<title>Proj — Le &lt;titre&gt;</title>" in html
+        assert "Proj · fiches P1–P3" in html
+        assert "<p>Fini quand.</p>" in html
+        assert '<span data-etat="encours"></span><span></span><span></span>' in html
+        assert "3 fiches · 0 faite · en cours : P1" in html
+        assert '<span class="note">Produit a.py</span>' in html
+        assert "&lt;" not in html.split("<ul class=\"journal\">")[1].split("</ul>")[0]
+        assert '<p class="mono cout-total">' not in html
+        assert '<p class="mono cout-hors">' not in html
+        assert "Mis à jour le <span class=\"mono\">2026-01-02</span>" in html
+        assert "lignes · total non mesuré" in s
         # Dette CLI : `--projet .` écrivait « . » en tête de page ; un dossier donne son alias, sinon son nom
         with tempfile.TemporaryDirectory(dir=tmp_path) as tnom:
             dnom = os.path.join(tnom, "mon-projet")
@@ -112,24 +116,29 @@ def test_page_creer(tmp_path):
             pnom = os.path.join(tnom, "p.html")
             appel(["page", fiches, pnom, "--creer", "--projet", dnom, "--titre", "T", "--resultat", "R"])
             assert ('<div class="eyebrow">mp · fiches'
-                     in lire(pnom) and "<title>mp — T</title>" in lire(pnom)), ("page --creer : --projet <dossier> écrit l'alias en tête") + "\n" + str(lire(pnom)[:400])
+                     in lire(pnom))
+            assert "<title>mp — T</title>" in lire(pnom)
         code, s = appel(["page", fiches, page, "--creer", "--projet", "P", "--titre", "T", "--resultat", "R"])
-        assert (code == 1 and "existe déjà" in s), ("page --creer n'écrase pas") + "\n" + str(s)
+        assert code == 1
+        assert "existe déjà" in s
 
         ecrire(fiches, PAGE % ("x", "**Session** : %s\n" % sa, " ", ""))
         code, s = appel(["page", fiches, page, "--verifier"])
-        assert (code == 1 and "ÉCART: P1 : page encours, fichier faite" in s
-                 and "EN RETARD 3 fiches · 3 écarts" in s), ("page --verifier : en retard") + "\n" + str(s)
+        assert code == 1
+        assert "ÉCART: P1 : page encours, fichier faite" in s
+        assert "EN RETARD 3 fiches · 3 écarts" in s
         code, s = appel(["page", fiches, page, "--note", "P1", "a.py : <3 tests>", "--journal", "P1 : tranché.", "--date", "2026-01-03"])
         html = lire(page)
-        assert (code == 0
-                 and '<li class="fiche" data-etat="faite">' in html and "a.py : &lt;3 tests&gt;" in html
-                 and '<span class="cout mono">≈200,0k (200 000) · 2 tours · 1,00 $</span>' in html
-                 and '<p class="mono cout-total">Coût du chantier : ≈200,0k (200 000) · 2 tours · 1,00 $</p>' in html
-                 and '<time datetime="2026-01-03">2026-01-03</time><span>P1 : tranché.</span>' in html
-                 and "3 fiches · 1 faite · en cours : P2" in html), ("page : fiche faite, coût, note échappée, journal") + "\n" + str(s + html)
+        assert code == 0
+        assert '<li class="fiche" data-etat="faite">' in html
+        assert "a.py : &lt;3 tests&gt;" in html
+        assert '<span class="cout mono">≈200,0k (200 000) · 2 tours · 1,00 $</span>' in html
+        assert '<p class="mono cout-total">Coût du chantier : ≈200,0k (200 000) · 2 tours · 1,00 $</p>' in html
+        assert '<time datetime="2026-01-03">2026-01-03</time><span>P1 : tranché.</span>' in html
+        assert "3 fiches · 1 faite · en cours : P2" in html
         code, s = appel(["page", fiches, page, "--verifier"])
-        assert (code == 0 and s == "À JOUR 3 fiches · 0 écarts (états et avancement seulement)\n"), ("page --verifier : à jour") + "\n" + str(s)
+        assert code == 0
+        assert s == "À JOUR 3 fiches · 0 écarts (états et avancement seulement)\n"
         avant = lire(page)
         appel(["page", fiches, page, "--date", "2026-01-03"])
         assert (lire(page) == avant), ("page : régénérer deux fois ne change rien") + "\n" + str(lire(page))
@@ -143,11 +152,11 @@ def test_page_creer(tmp_path):
         ecrire(fiches, PAGE % ("x", "**Session** : %s\n" % sa, "x", "**Session** : %s\n**Session** : %s\n" % (sa, sb)))
         code, s = appel(["page", fiches, page, "--date", "2026-01-04"])
         html = lire(page)
-        assert (code == 0
-                 and html.count('<span class="cout mono">≈200,0k (200 000) · 2 tours · 1,00 $</span>') == 2
-                 and '<span class="cout mono">≈100,0k (100 000) · 1 tours · 0,50 $</span>' not in html
-                 and "Coût du chantier : ≈500,0k (500 000) · 5 tours · 2,50 $" in html
-                 and "3 fiches · 2 faites · en cours : P3" in html), ("page : session partagée, le reste à la dernière") + "\n" + str(s + html)
+        assert code == 0
+        assert html.count('<span class="cout mono">≈200,0k (200 000) · 2 tours · 1,00 $</span>') == 2
+        assert '<span class="cout mono">≈100,0k (100 000) · 1 tours · 0,50 $</span>' not in html
+        assert "Coût du chantier : ≈500,0k (500 000) · 5 tours · 2,50 $" in html
+        assert "3 fiches · 2 faites · en cours : P3" in html
         avant = lire(page)
         appel(["page", fiches, page, "--date", "2026-01-04"])
         assert (lire(page) == avant), ("page : session partagée, régénérer deux fois ne change rien") + "\n" + str(lire(page))
@@ -159,38 +168,45 @@ def test_page_creer(tmp_path):
         ecrire(page, html)
         appel(["page", fiches, page])
         html = lire(page)
-        assert ('<li class="fiche" data-etat="bloquee">' in html and "bloquée : P3" in html
-                 and "<section>\n    <h2>Arrêt sur blocage</h2>" in html), ("page : bloquée gardée") + "\n" + str(html)
+        assert '<li class="fiche" data-etat="bloquee">' in html
+        assert "bloquée : P3" in html
+        assert "<section>\n    <h2>Arrêt sur blocage</h2>" in html
         ecrire(fiches, lire(fiches).replace("## P3 [ ]", "## P3 [x]"))
         code, s = appel(["page", fiches, page])
         html = lire(page)
-        assert (code == 0 and "<section hidden>\n    <h2>Arrêt sur blocage</h2>" in html
-                 and "3 fiches · 3 faites</p>" in html and 'data-etat="bloquee"' not in html.split('<div class="page">')[1]), ("page : blocage masqué une fois cochée") + "\n" + str(s + html.split("<div class=\"page\">")[1])
+        assert code == 0
+        assert "<section hidden>\n    <h2>Arrêt sur blocage</h2>" in html
+        assert "3 fiches · 3 faites</p>" in html
+        assert 'data-etat="bloquee"' not in html.split('<div class="page">')[1]
 
         # L'en-tête suit la plage du fichier : quand on ajoute P4, la plage devient P1–P4, mais ce qui suit reste.
         ecrire(page, lire(page).replace('Proj · fiches P1–P3</div>', 'Proj · fiches P1–P3 · clos</div>'))
         ecrire(fiches, lire(fiches) + '\n<!-- FICHE:P4 -->\n## P4 [ ] — Ajoutée\n**Critère de fin**\n<!-- /FICHE -->\n')
         code, s = appel(["page", fiches, page])
         html = lire(page)
-        assert (code == 0 and 'Proj · fiches P1–P4 · clos</div>' in html), ("page : l'en-tête suit la plage du fichier") + "\n" + str(s + html)
+        assert code == 0
+        assert 'Proj · fiches P1–P4 · clos</div>' in html
 
         u_fiches = os.path.join(t, "u.md")
         u_page = os.path.join(t, "artefacts", "u.html")
         ecrire(u_fiches, "# Chantier U\n\n## Le socle commun\n\n## L'ordre des fiches\n\n<!-- FICHE:U1 -->\n## U1 [ ] — Seule\n**Critère de fin**\n<!-- /FICHE -->\n")
         code, s = appel(["page", u_fiches, u_page, "--creer", "--projet", "Proj", "--titre", "U", "--resultat", "R."])
         u_html = lire(u_page) if os.path.exists(u_page) else ""
-        assert (code == 0 and "Proj · fiches U1</div>" in u_html), ("page : l'en-tête d'une fiche seule") + "\n" + str(s + u_html)
+        assert code == 0
+        assert "Proj · fiches U1</div>" in u_html
 
         # Un en-tête sans plage reconnue reste tel quel : ni texte libre, ni parenthèses, ni trait d'union (REV6).
         for entete in ("fiches à venir", "fiches (X1–X2)", "fiches X1-X2"):
             ecrire(u_page, u_html.replace("Proj · fiches U1</div>", "Proj · %s</div>" % entete))
             code, s = appel(["page", u_fiches, u_page])
             html = lire(u_page)
-            assert (code == 0 and "Proj · %s</div>" % entete in html), ("page : un en-tête sans plage reste tel quel (%s)" % entete) + "\n" + str(s + html)
+            assert code == 0
+            assert "Proj · %s</div>" % entete in html
         ecrire(u_page, u_html)
 
         code, s = appel(["page", fiches, os.path.join(t, "absente.html")])
-        assert (code == 1 and "--creer" in s), ("page absente sans --creer") + "\n" + str(s)
+        assert code == 1
+        assert "--creer" in s
 
 
 def test_plages():
@@ -204,13 +220,15 @@ def test_plages():
     assert (bornes(({"Q1": 300, "Q2": 600}, [300, 600, 800], [30, 200]))
              == ([("Q1", (200, 300)), ("Q2", (300, 600))], [(600, 800)])), ("plages : sans commit qui nomme avant, la première fiche part de l'origine") + "\n" + str(bornes(({"Q1": 300, "Q2": 600}, [300, 600, 800], [30, 200])))
     assert (bornes(({"Q1": 300}, [20, 100, 300, 800], [10]), P2[:1])[1] == [(10, 100), (300, 800)]), ("plages : une mention juste avant l'ouverture y fait entrer son travail") + "\n" + str(bornes(({"Q1": 300}, [20, 100, 300, 800], [10]), P2[:1]))
-    assert (bornes(({"Q1": 300}, [100, 300], [30])) == ([("Q1", (100, 300)), ("Q2", (300, mod.INFINI))], [(30, 100)])
-             and not G), ("plages : fiche à session sans commit, au bout, rien après") + "\n" + str((bornes(({"Q1": 300}, [100, 300], [30])), G))
+    assert bornes(({"Q1": 300}, [100, 300], [30])) == ([("Q1", (100, 300)), ("Q2", (300, mod.INFINI))], [(30, 100)])
+    assert not G
 
     # FIN2 : sans commit de fiche, la première fiche part du dernier commit qui nomme le préfixe
     COCHEE, VIDE = [("Q1", "a", True, ["s"]), ("Q2", "b", False, [])], [("Q1", "a", False, [])]
-    assert (bornes(({}, [100], [30, 900]), COCHEE) == ([("Q1", (100, mod.INFINI))], [(30, 100)]) and not G), ("plages : sans commit de fiche, la fiche cochée part de l'ouverture") + "\n" + str((bornes(({}, [100], [30, 900]), COCHEE), G))
-    assert (bornes(({}, [100], [30]), VIDE) == ([], []) and not G), ("plages : sans commit de fiche ni session, rien") + "\n" + str((bornes(({}, [100], [30]), VIDE), G))
+    assert bornes(({}, [100], [30, 900]), COCHEE) == ([("Q1", (100, mod.INFINI))], [(30, 100)])
+    assert not G
+    assert bornes(({}, [100], [30]), VIDE) == ([], [])
+    assert not G
 
 
 def test_plages_preparation():
@@ -218,7 +236,8 @@ def test_plages_preparation():
     P2, G = [("Q1", "a", True, ["s"]), ("Q2", "b", True, ["s"])], []
     h = ({"Q1": 300, "Q2": 600}, [100, 300, 450, 600, 800], [30, 900], [450])
     r = mod.plages(P2, h, G)
-    assert (r == ([("Q1", (100, 300)), ("Q2", (450, 600))], [(30, 100), (300, 450), (600, 800)]) and not G), ("plages_preparation : la fiche 2 part du commit `<PRÉFIXE> :`, le morceau d'avant hors fiches") + "\n" + str((r, G))
+    assert r == ([("Q1", (100, 300)), ("Q2", (450, 600))], [(30, 100), (300, 450), (600, 800)])
+    assert not G
     longueur = lambda p: sum(b - a for _, (a, b) in p[0]) + sum(b - a for a, b in p[1])
     assert (longueur(r) == longueur(mod.plages(P2, h[:3], G))), ("plages_preparation : le total ne bouge pas") + "\n" + str((r, mod.plages(P2, h[:3], G)))
 
@@ -249,7 +268,8 @@ def test_ena3_lancables(tmp_path):
             suite.append(appel(["lancables", chemin, "--max", "3"])[1].strip())
         assert (suite == ["LANCABLES T2", "LANCABLES T4", "LANCABLES aucune"]), ("ENA3 : T2 seule avant la (visuel), puis T4 seule, puis aucune") + "\n" + str(repr(suite))
         code, sortie = appel(["lancables", os.path.join(t, "absent.md")])
-        assert (code == 1 and sortie.startswith("GARDE:")), ("ENA3 : fichier absent → GARDE:, sort 1") + "\n" + str(sortie)
+        assert code == 1
+        assert sortie.startswith("GARDE:")
 
 
 def test_ena5_ensemble(tmp_path):
@@ -288,7 +308,9 @@ def test_ena5_ensemble(tmp_path):
     meme = ["scripts/vlp.py", "vlp.py", "scripts/", "scripts/*.py", "scripts/{vlp,x}.py", "*.py", "scripts/*",
             "scripts/v*.py", "*/vlp.py"]
     manque = [(x, y) for x in meme for y in meme if not mod.croisent({x}, {y})]
-    assert (manque == [] and not mod.croisent({"scripts/"}, {"doc/a.md"}) and not mod.croisent({"vlp.py"}, {"a.md"})), ("ENA5 : croisent voit les 81 paires d'un même fichier, et sépare scripts/ de doc/a.md") + "\n" + str(repr(manque))
+    assert manque == []
+    assert not mod.croisent({"scripts/"}, {"doc/a.md"})
+    assert not mod.croisent({"vlp.py"}, {"a.md"})
     # 3e relecteur d'ENA5 : le filtre d'apercu_fiches jetait `.gitignore`, `skills`, `*.py`. Les formes relevées sur les
     # 421 lignes **Fichiers** du kit, par `lancables` — chaque paire vise un même fichier ; les libres, non.
     racine = {"skills": True, "scripts": True, "context ai": True, "seul": True, ".gitignore": False,
@@ -338,8 +360,9 @@ def test_ena5_ensemble(tmp_path):
              "libres (ISO3)") + "\n" + str(repr(rates))
     chef = pathlib.Path(os.path.join(RACINE, "skills", "enchainer", "SKILL.md")).read_text(encoding="utf-8")
     plat = " ".join(chef.split())
-    assert ('vlp.py" commiter "' in plat and "git add -A" not in plat and "agents ensemble" not in plat), ("ENA8 : le chef commite par commiter, jamais git add -A, et ne propose plus agents ensemble — lancables "
-             "revient avec ISO6") + "\n" + "skills/enchainer/SKILL.md"
+    assert 'vlp.py" commiter "' in plat
+    assert "git add -A" not in plat
+    assert "agents ensemble" not in plat
 
 
 def test_iso3_indice(tmp_path):
@@ -407,18 +430,22 @@ def test_fiches_repliees(tmp_path):
         html = lire(page)
         ul = re.search(r'<ul class="fiches">.*?</ul>', html, re.S)
         zone = ul.group(0) if ul else ""
-        assert (code == 0 and zone.count("<details") == 3 and zone.count("<details open>") == 1
-                 and '<details open><summary><span class="titre">En cours</span><span class="etat">En cours</span></summary>'
-                 in zone), ("PLI5 : 3 fiches, 3 blocs repliables, un seul ouvert — celui en cours"
-                 " — mutant : tout ouvrir") + "\n" + str(s + zone)
+        assert code == 0
+        assert zone.count("<details") == 3
+        assert zone.count("<details open>") == 1
+        assert ('<details open><summary><span class="titre">En cours</span><span class="etat">En cours</span></summary>'
+                 in zone)
         ecrire(ancienne, forme_ancienne(html))
-        assert ("<details" not in lire(ancienne) and lire(ancienne).count('<li class="fiche"') == 3), ("PLI5 : la forme ancienne du test n'a plus de bloc repliable") + "\n" + str(lire(ancienne))
+        assert "<details" not in lire(ancienne)
+        assert lire(ancienne).count('<li class="fiche"') == 3
         code, s = appel(["comparer", ancienne, page])
-        assert (code == 0 and "PERDU:" not in s and s.rstrip().startswith("COMPARER 0 perdus")), ("PLI5 : comparer contre l'ancienne forme ne dit aucune ligne de texte perdue") + "\n" + str(s)
+        assert code == 0
+        assert "PERDU:" not in s
+        assert s.rstrip().startswith("COMPARER 0 perdus")
         vues_neuves, vues_anciennes = mod.lis_page(html), mod.lis_page(lire(ancienne))
-        assert (len(vues_neuves) == 3 and vues_anciennes == vues_neuves
-                 and vues_anciennes["Q2"][0] == "encours"), ("PLI5 : une page à l'ancienne forme se lit encore, mêmes fiches"
-                 " — mutant : ne lire que la nouvelle forme") + "\n" + str("%r\n%r" % (vues_neuves, vues_anciennes))
+        assert len(vues_neuves) == 3
+        assert vues_anciennes == vues_neuves
+        assert vues_anciennes["Q2"][0] == "encours"
 
 
 FICHES_ME = """# Chantier ME

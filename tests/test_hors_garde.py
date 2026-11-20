@@ -67,9 +67,12 @@ def test_ref41_hors_commit_garde(tmp_path):
         os.path.normcase(os.path.realpath(os.path.join(d, ".git"))) + os.sep)
     check = code_git(d, "apply", "--check", correctif) if existe else None
     intact = git(d, "status", "--porcelain")
-    assert code == 0 and n == "2" and sous_git and "PERDU" not in s and check == 0 and intact == "", (
-        "REF41 : chemins hors commit → GARDÉ 2 chemin(s) : <correctif sous .git>, sort 0, pas de PERDU, "
-        "git apply --check passe sur main fusionnée, arbre propre" + " · %r" % ((code, s, correctif, sous_git, check, intact),))
+    assert code == 0
+    assert n == "2"
+    assert sous_git
+    assert "PERDU" not in s
+    assert check == 0
+    assert intact == ""
 
 
 def test_ref56_crlf_et_latin1_gardent_leurs_octets(tmp_path):
@@ -83,9 +86,12 @@ def test_ref56_crlf_et_latin1_gardent_leurs_octets(tmp_path):
     check = code_git(d, "apply", "--check", correctif) if correctif else None
     applique = code_git(d, "apply", correctif) if check == 0 else None
     rendus = {nom: pathlib.Path(os.path.join(d, nom)).read_bytes() for nom in neufs}
-    assert code == 0 and n == "2" and "PERDU" not in s and check == 0 and applique == 0 and rendus == neufs, (
-        "REF56 : un CRLF et un latin-1 hors commit → GARDÉ 2, git apply --check passe, octets rendus exacts"
-        + " · %r" % ((code, s, check, applique, rendus),))
+    assert code == 0
+    assert n == "2"
+    assert "PERDU" not in s
+    assert check == 0
+    assert applique == 0
+    assert rendus == neufs
 
 
 def test_ref56_correctif_rejete_est_perdu(tmp_path, monkeypatch):
@@ -94,8 +100,9 @@ def test_ref56_correctif_rejete_est_perdu(tmp_path, monkeypatch):
     vrai = mod.git_texte
     monkeypatch.setattr(mod.noyau.relecture, "git_texte", lambda args, cwd, env=None: (1, "refusé") if args[:2] == ["apply", "--check"]
                         else vrai(args, cwd, env))
-    code, s = appel(["fusionner", fiches, "W1", "--worktree", wa])
+    _code, s = appel(["fusionner", fiches, "W1", "--worktree", wa])
     m = re.search(r"^PERDU 1 chemin\(s\) non commités du worktree : doc\.txt — correctif rejeté par git apply "
                   r"--check : (.+)$", s, re.M)
-    assert m and os.path.isfile(m.group(1)) and "GARDÉ" not in s, (
-        "REF56 : un correctif que git apply --check rejette → PERDU, avec son chemin" + " · %r" % ((code, s),))
+    assert m
+    assert os.path.isfile(m.group(1))
+    assert "GARDÉ" not in s

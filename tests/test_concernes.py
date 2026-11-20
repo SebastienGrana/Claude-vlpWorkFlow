@@ -53,8 +53,9 @@ def test_principal(tmp_path):
     assert concernes.principal(["f", "h", "--racine", t], s) == 0, s.getvalue()
     assert s.getvalue() == "ABSENTE h\nCONCERNES 1 test(s) pour f\n  test_m.test_f\n", s.getvalue()
     s = io.StringIO()
-    assert concernes.principal(["f", "--racine", str(tmp_path)], s) == 1 and s.getvalue().startswith(
-        "GARDE: concernes — pas de mesure"), s.getvalue()
+    assert concernes.principal(["f", "--racine", str(tmp_path)], s) == 1
+    assert (s.getvalue().startswith(
+        "GARDE: concernes — pas de mesure"))
     sans = str(tmp_path / "sans")
     ecrire(os.path.join(sans, "scripts", "m.py"), MODULE)
     os.makedirs(os.path.join(sans, ".couverture"))
@@ -62,7 +63,8 @@ def test_principal(tmp_path):
     d.add_lines({os.path.join(sans, "scripts", "m.py"): [1, 2]})
     d.write()
     s = io.StringIO()
-    assert concernes.principal(["f", "--racine", sans], s) == 1 and "contexte par test" in s.getvalue(), s.getvalue()
+    assert concernes.principal(["f", "--racine", sans], s) == 1
+    assert "contexte par test" in s.getvalue()
 
 
 def test_ligne_carte(tmp_path):

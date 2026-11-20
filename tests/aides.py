@@ -22,7 +22,8 @@ def charger_coeur():
     """Charger `scripts/vlp_coeur.py` par son chemin (`spec_from_file_location`), puis le régler comme
     l'ancienne suite maison le règle : tampon des hooks coupé, page d'enchaînement du vrai kit jamais refaite."""
     spec = importlib.util.spec_from_file_location("vlp_coeur", os.path.join(SCRIPTS, "vlp_coeur.py"))
-    assert spec and spec.loader
+    assert spec
+    assert spec.loader
     module: Any = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     module.etat.TAMPON_HOOKS = None

@@ -11,7 +11,8 @@ import os
 from aides import SCRIPTS
 
 spec = importlib.util.spec_from_file_location("mesure_tokens", os.path.join(SCRIPTS, "mesure-tokens.py"))
-assert spec and spec.loader
+assert spec
+assert spec.loader
 mod = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(mod)
 

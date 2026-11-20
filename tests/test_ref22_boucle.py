@@ -21,7 +21,8 @@ from aides import SCRIPTS
 from aides_boucle import aides_du_canal, bmod, carnet_de
 
 _spec = importlib.util.spec_from_file_location("mesure_tokens_ref22", os.path.join(SCRIPTS, "mesure-tokens.py"))
-assert _spec and _spec.loader
+assert _spec
+assert _spec.loader
 mt = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(mt)
 

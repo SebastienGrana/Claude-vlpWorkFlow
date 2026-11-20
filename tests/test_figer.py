@@ -79,10 +79,12 @@ def figer(t, outil, entree, transcription, **plus):
 def test_figer_decisions():
     """Les décisions du hook, en mémoire : quel fichier est un test, quelle fiche est en cours, ce qu'est un ajout pur,
     et la déclaration `**Tests**`."""
-    assert H.est_test("tests/test_a.py") and H.est_test("tests/sous/x.py") and H.est_test("scripts/test-vlp.py"), (
-        "figer : tests/** et scripts/test-*.py sont des tests")
-    assert not H.est_test("scripts/vlp.py") and not H.est_test("tests.md") and not H.est_test("../tests/x.py"), (
-        "figer : le reste n'en est pas")
+    assert H.est_test("tests/test_a.py")
+    assert H.est_test("tests/sous/x.py")
+    assert H.est_test("scripts/test-vlp.py")
+    assert not H.est_test("scripts/vlp.py")
+    assert not H.est_test("tests.md")
+    assert not H.est_test("../tests/x.py")
     assert H.fiche_de_transcription([message("bonjour"), invocation("F1"), invocation("vlp F2")]) == "F2", (
         "figer : la dernière invocation de /vlp:tache, son dernier code de fiche")
     assert H.fiche_de_transcription([invocation("")]) == "", "figer : /vlp:tache sans fiche → la prochaine"
@@ -92,8 +94,8 @@ def test_figer_decisions():
     lignes = fiches(f1="x").split("\n")
     assert (H.fiche_en_cours(lignes, "F1"), H.fiche_en_cours(lignes, "F2"), H.fiche_en_cours(lignes, "")) == (
         None, "F2", "F2"), "figer : une fiche cochée n'est plus en cours ; sans code, la première non cochée"
-    assert H.tests_declares(lignes, "F2") and not H.tests_declares(lignes, "F1"), (
-        "figer : la ligne **Tests** de la fiche, et d'elle seule")
+    assert H.tests_declares(lignes, "F2")
+    assert not H.tests_declares(lignes, "F1")
     assert H.ajout_pur({"old_string": "a\n", "new_string": "a\nb\n"}), "figer : old_string entier dans new_string"
     assert not H.ajout_pur({"old_string": "a\n", "new_string": "c\n"}), "figer : une ligne changée n'est pas un ajout"
     assert not H.ajout_pur({"content": "a"}), "figer : un Write n'est pas un ajout pur"
@@ -109,8 +111,11 @@ def test_figer_hook(tmp_path, init_git):
     change = {"file_path": a, "old_string": "1 == 1", "new_string": "2 == 2"}
 
     code, o, e = figer(t, "Edit", change, trans)
-    assert code == 2 and "F1" in e and "tests/test_a.py" in e and "**Tests** : modifiés" in e and o == "", (
-        "figer : modifier une ligne de test pendant une fiche, refusé, sortie 2, raison lue\n" + e)
+    assert code == 2
+    assert "F1" in e
+    assert "tests/test_a.py" in e
+    assert "**Tests** : modifiés" in e
+    assert o == ""
     code, _o, e = figer(t, "Write", {"file_path": a, "content": "x\n"}, trans)
     assert code == 2, "figer : réécrire un test existant pendant une fiche, refusé\n" + e
     assert figer(t, "Edit", {"file_path": a, "old_string": "1 == 1\n", "new_string": "1 == 1\n    assert 2\n"},
@@ -143,8 +148,9 @@ def test_figer_cas_limites(tmp_path, init_git, monkeypatch):
     assert H.fiche_de_transcription(["pas du json", json.dumps({"message": {"role": "assistant", "content": "F1"}})]) \
         is None, "figer : une ligne illisible ou de l'assistant ne nomme aucune fiche"
     assert H.fiche_en_cours(fiches().split("\n"), "ZZ9") is None, "figer : une fiche absente n'est pas en cours"
-    assert H.lignes_transcription({}) == [] and H.lignes_transcription(
-        {"transcript_path": str(tmp_path / "absente.jsonl")}) == [], "figer : sans transcription lisible, rien"
+    assert H.lignes_transcription({}) == []
+    assert (H.lignes_transcription(
+        {"transcript_path": str(tmp_path / "absente.jsonl")}) == [])
 
     dehors = str(tmp_path / "dehors")
     ecrire(os.path.join(dehors, "tests", "test_a.py"), TEST_A)

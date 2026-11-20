@@ -47,8 +47,8 @@ def test_gras_et_liens():
     s = cellule("`[t](https://u)`")
     assert (s == '<span class="mono">[t](https://u)</span>'), ("gras_et_liens : un lien dans du code, inchangé") + "\n" + str(s)
     s = cellule("**voir [la doc](https://u) et `x`** puis **y")
-    assert (gras_liens(s) == s
-             and s == '<strong>voir <a href="https://u">la doc</a> et <span class="mono">x</span></strong> puis **y'), ("gras_et_liens : deux passes = une, un gras englobe lien et code") + "\n" + str(s)
+    assert gras_liens(s) == s
+    assert s == '<strong>voir <a href="https://u">la doc</a> et <span class="mono">x</span></strong> puis **y'
     s = gras_liens("[A](https://w/A_(b))")
     assert (s == '<a href="https://w/A_(b)">A</a>'), ("gras_et_liens : des parenthèses équilibrées dans l'URL") + "\n" + str(s)
     s = gras_liens('[t](https://u"x)')
@@ -60,9 +60,9 @@ def test_gras_et_liens():
 def test_feuille_phases():
     """Contrôler la TODO de la feuille en sous-listes (AVL12) : phase et score lus en tête de la case
     Coût, une pastille à gauche, une sous-liste par phase écrite, « Sans phase » en dernier."""
-    assert (mod.phase_todo("**V1 · score 25 (5 × 5)** · 1 fiche") == ("V1", "25", "5 × 5", "1 fiche")
-             and mod.phase_todo("**après · score ? (1 × ?)** · à cadrer") == ("après", "?", "1 × ?", "à cadrer")
-             and mod.phase_todo("2 fiches") == (None, None, None, "2 fiches")), ("phase_todo : lue en tête, retirée du coût") + "\n" + str(mod.phase_todo("**V1 · score 25 (5 × 5)** · 1 fiche"))
+    assert mod.phase_todo("**V1 · score 25 (5 × 5)** · 1 fiche") == ("V1", "25", "5 × 5", "1 fiche")
+    assert mod.phase_todo("**après · score ? (1 × ?)** · à cadrer") == ("après", "?", "1 × ?", "à cadrer")
+    assert mod.phase_todo("2 fiches") == (None, None, None, "2 fiches")
     assert (sorted([None, "après", "V10", "V1", "V2"], key=mod.rang_phase) == ["V1", "V2", "V10", "après", None]), ("rang_phase : V1, V2, V10, après, puis sans phase") + "\n" + ""
     tailles = [mod.taille_todo(c) for c in ("1 fiche", "**V2 · score 12 (3 × 4)** · 3 fiches", "6 fiches", "à cadrer")]
     assert (tailles == ["petit", "moyen", "gros", "pas-estime"]), ("taille_todo : les parts du décompte, phase en tête comprise") + "\n" + str(tailles)
@@ -73,38 +73,45 @@ def test_feuille_phases():
     corps = mod.corps_todo(rangs, "8", [])
     ordre = re.findall(r'<li class="(?:phase-titre|carte-todo)"(?: data-phase="([^"]*)")?', corps)
     titres = re.findall(r"<h3>([^<]*)</h3>", corps)
-    assert (titres == ["V1 · 2&nbsp;chantiers", "V2 · 1&nbsp;chantier", "Sans phase · 1&nbsp;chantier"]
-             and corps.index('rang mono">7<') < corps.index('rang mono">8<') < corps.index('rang mono">5<') < corps.index('rang mono">6<')
-             and ordre == ["V1", "V1", "V1", "V2", "V2", "aucune", ""]), ("corps_todo : V1, V2, puis Sans phase, l'ordre de la TODO gardé dans chacune — mutant : trier les cartes par score") + "\n" + str(corps)
+    assert titres == ["V1 · 2&nbsp;chantiers", "V2 · 1&nbsp;chantier", "Sans phase · 1&nbsp;chantier"]
+    assert corps.index('rang mono">7<') < corps.index('rang mono">8<') < corps.index('rang mono">5<') < corps.index('rang mono">6<')
+    assert ordre == ["V1", "V1", "V1", "V2", "V2", "aucune", ""]
     assert ('<span class="rang mono">7</span><span class="phase mono" data-phase="V1" title="score 25 = 5 × 5 (importance × facilité)">V1 · 25</span>'
-             in corps and '<span class="meta"><span class="seg">1 fiche</span></span>' in corps and "score 25 (5" not in corps.split("title=")[-1]), ("carte_todo : pastille à gauche, détail en infobulle, la phase ôtée de droite") + "\n" + str(corps)
+             in corps)
+    assert '<span class="meta"><span class="seg">1 fiche</span></span>' in corps
+    assert "score 25 (5" not in corps.split("title=")[-1]
     seg = mod.carte_todo(("9", "Neuf", "e", "**V2 · score 6 (3 × 2)** · 5 fiches · ≈ 22 $ (estimé) · → 6 fiches en tout", "—"), "", False)
     assert ('<span class="meta"><span class="seg">5 fiches</span><span class="seg">≈ 22 $ (estimé)</span>'
              '<span class="seg">→ 6 fiches en tout</span></span>' in seg), ("carte_todo : le coût sous le titre, un segment ` · ` par ligne (dit « en pâtés » le 2026-10-12)") + "\n" + str(seg)
     methode = " ".join(pathlib.Path(os.path.join(ICI, "..", "methode-chantier.md")).read_text(encoding="utf-8").split())
     echelle = ("vaut %d en `V1`, %d en `V2`, %d en `V3`, %d `après`" % tuple(n for _, n in mod.IMPORTANCE_PHASE),
                " · ".join("%s → %d" % f for f in mod.FACILITE_FICHES), "« sans fiche » vaut 5", "note de 1 à 5")
-    assert ([p for p, _ in mod.IMPORTANCE_PHASE] == ["V1", "V2", "V3", "après"] and all(e in methode for e in echelle)
-             and "5 en V1, 3 en V2, 2 en V3, 1 après" in mod.aide_score() and "1 → 5 · 2 → 4 · 3 à 4 → 3 · 5 à 7 → 2 · 8 et plus → 1"
-             in mod.aide_score()), ("aide du score : son échelle est celle de methode-chantier.md — mutant : changer un nombre d'un côté") + "\n" + str([e for e in echelle if e not in methode])
-    assert (corps.startswith('          <li class="aide-score"><details class="aide">') and "aide-score" not in
-             mod.corps_todo([r for r in rangs if r[0] == "6"], "", [])), ("aide du score : en tête des sous-listes, absente sans phase") + "\n" + str(corps[:200])
-    assert ('<li class="carte-todo" data-phase="V1" data-score="25" data-taille="petit" data-pret="non">' in corps
-             and '<li class="carte-todo" data-phase="V1" data-score="" data-taille="pas-estime" data-pret="oui">' in corps
-             and '<li class="carte-todo" data-taille="petit" data-pret="oui">' in corps
-             and '<span class="rang mono">8</span><span class="phase mono" data-phase="V1" title="score ? = 5 × ? (importance × facilité)">V1 · ?</span>'
-             + mod.BADGE_COURS in corps), ("carte_todo : data- des filtres — prêt, bloqué, score ? vide, badge en cours") + "\n" + str(corps)
+    assert [p for p, _ in mod.IMPORTANCE_PHASE] == ["V1", "V2", "V3", "après"]
+    assert all(e in methode for e in echelle)
+    assert "5 en V1, 3 en V2, 2 en V3, 1 après" in mod.aide_score()
+    assert ("1 → 5 · 2 → 4 · 3 à 4 → 3 · 5 à 7 → 2 · 8 et plus → 1"
+             in mod.aide_score())
+    assert corps.startswith('          <li class="aide-score"><details class="aide">')
+    assert ("aide-score" not in
+             mod.corps_todo([r for r in rangs if r[0] == "6"], "", []))
+    assert '<li class="carte-todo" data-phase="V1" data-score="25" data-taille="petit" data-pret="non">' in corps
+    assert '<li class="carte-todo" data-phase="V1" data-score="" data-taille="pas-estime" data-pret="oui">' in corps
+    assert '<li class="carte-todo" data-taille="petit" data-pret="oui">' in corps
+    assert ('<span class="rang mono">8</span><span class="phase mono" data-phase="V1" title="score ? = 5 × ? (importance × facilité)">V1 · ?</span>'
+             + mod.BADGE_COURS in corps)
     sans = mod.corps_todo([r for r in rangs if r[0] == "6"], "", [])
-    assert ("phase-titre" not in sans and sans.count('<li class="carte-todo"') == 1), ("corps_todo : aucune phase écrite, les cartes seules sans titre") + "\n" + str(sans)
+    assert "phase-titre" not in sans
+    assert sans.count('<li class="carte-todo"') == 1
     assert ("Rien en attente" in mod.corps_todo([], "", [])), ("corps_todo : TODO vide") + "\n" + ""
     carte_ = ["- **artefact du chantier** : aucun", "- **artefact archive** : https://a/b",
               "- **artefact enchaînement** : <https://c/d>"]
     page_ = "<header></header>\n" + mod.SOMMAIRE + "<p>x</p>\n"
     une = mod.liens_pages(page_, carte_)
     assert ('\n  <nav class="pages" aria-label="Les autres pages">Les autres pages : <a href="https://a/b">l\'archive des '
-             'clos</a> · <a href="https://c/d">la page d\'enchaînement</a></nav>\n<p>x</p>' in une
-             and mod.liens_pages(une, carte_) == une and mod.liens_pages(une, carte_[:1]) == page_
-             and mod.liens_pages("<p>x</p>", carte_) == "<p>x</p>"), ("liens_pages : archive et enchaînement sous le sommaire, refaite sans doublon, ôtée sans lien (AVL10)") + "\n" + str(une)
+             'clos</a> · <a href="https://c/d">la page d\'enchaînement</a></nav>\n<p>x</p>' in une)
+    assert mod.liens_pages(une, carte_) == une
+    assert mod.liens_pages(une, carte_[:1]) == page_
+    assert mod.liens_pages("<p>x</p>", carte_) == "<p>x</p>"
     assert (mod.rang_en_cours(corps, "cartes") == "8"), ("feuille : rang en cours relu derrière la pastille") + "\n" + str(mod.rang_en_cours(corps, "cartes"))
 
 
@@ -138,21 +145,37 @@ def test_archive(tmp_path):
         archive = os.path.join(proj, "ctx", "artefacts", mod.ARCHIVE_CLOS)
         code, s = appel(["archive", proj])
         a_html, f_html = lire(archive) if os.path.isfile(archive) else "", lire(fdr)
-        assert (code == 0 and "ARCHIVE 2 déplacées" in s and len(mod.lignes_clos(a_html)) == 2
-                 and "Total cumulé" in a_html and "Total cumulé" not in f_html and "<!-- ZONE:clos" not in f_html), ("ARC2 : archive déplace les deux lignes et le pied") + "\n" + str(s)
-        assert ("<!-- ZONE:archive" in f_html and "2 chantiers clos" in f_html and "pas encore publiée" in f_html
-                 and "data-couts=" in f_html and "&lt;md&gt;" not in a_html), ("ARC2 : la feuille garde le bloc d'archive, son résumé et le graphique") + "\n" + str(f_html[-1500:])
+        assert code == 0
+        assert "ARCHIVE 2 déplacées" in s
+        assert len(mod.lignes_clos(a_html)) == 2
+        assert "Total cumulé" in a_html
+        assert "Total cumulé" not in f_html
+        assert "<!-- ZONE:clos" not in f_html
+        assert "<!-- ZONE:archive" in f_html
+        assert "2 chantiers clos" in f_html
+        assert "pas encore publiée" in f_html
+        assert "data-couts=" in f_html
+        assert "&lt;md&gt;" not in a_html
         code, s = appel(["archive", proj])
-        assert (code == 0 and "ARCHIVE 0 déplacées" in s and lire(fdr) == f_html and lire(archive) == a_html), ("ARC2 : relancé, rien ne bouge") + "\n" + str(s)
+        assert code == 0
+        assert "ARCHIVE 0 déplacées" in s
+        assert lire(fdr) == f_html
+        assert lire(archive) == a_html
         code, s = appel(["archive", proj, "--url", "https://claude.ai/artifact/ARCH"])
-        assert (code == 0 and "- **artefact archive** : https://claude.ai/artifact/ARCH" in lire(os.path.join(proj, "CHANTIER.md"))
-                 and 'href="https://claude.ai/artifact/ARCH"' in lire(fdr)), ("ARC2 : --url écrit le champ et le lien") + "\n" + str(s)
+        assert code == 0
+        assert "- **artefact archive** : https://claude.ai/artifact/ARCH" in lire(os.path.join(proj, "CHANTIER.md"))
+        assert 'href="https://claude.ai/artifact/ARCH"' in lire(fdr)
         code, s = appel(["clore", proj, "--livre", "fini", "--tokens", "1000"])
         attente = os.path.join(proj, "ctx", "artefacts", "en-attente")
-        assert (code == 0 and "3 chantiers clos" in lire(fdr) and "data-couts=" in lire(fdr) and len(mod.lignes_clos(lire(archive))) == 3
-                 and os.path.isfile(attente) and mod.ARCHIVE_CLOS + "\thttps://claude.ai/artifact/ARCH" in lire(attente)), ("ARC2 : clore refait le bloc (3 clos) et met l'archive en attente") + "\n" + str(s)
+        assert code == 0
+        assert "3 chantiers clos" in lire(fdr)
+        assert "data-couts=" in lire(fdr)
+        assert len(mod.lignes_clos(lire(archive))) == 3
+        assert os.path.isfile(attente)
+        assert mod.ARCHIVE_CLOS + "\thttps://claude.ai/artifact/ARCH" in lire(attente)
         code, s = appel(["archive", proj])
-        assert (code == 0 and "ARCHIVE 0 déplacées" in s), ("ARC2 : après clore, archive ne bouge plus rien") + "\n" + str(s)
+        assert code == 0
+        assert "ARCHIVE 0 déplacées" in s
 
 
 def test_trois_lettres(tmp_path):
@@ -201,13 +224,16 @@ RNV1 puis RNV2
         assert (s3.rstrip().endswith("PROCHAINE=RNV1")), ("3 lettres : PROCHAINE") + "\n" + str(s3)
 
         code, s3 = appel(["valider", fiches3])
-        assert (code == 0 and "VALIDE 2 fiches" in s3), ("3 lettres : marqueurs valides") + "\n" + str(s3)
+        assert code == 0
+        assert "VALIDE 2 fiches" in s3
 
         code, s3 = appel(["extraire", fiches3, "RNV2"])
-        assert (code == 0 and "## RNV2 [ ] — seconde" in s3), ("3 lettres : extraire") + "\n" + str(s3)
+        assert code == 0
+        assert "## RNV2 [ ] — seconde" in s3
 
         code, s3 = appel(["cocher", fiches3, "RNV1"])
-        assert (code == 0 and "COCHÉ RNV1" in s3), ("3 lettres : cocher") + "\n" + str(s3)
+        assert code == 0
+        assert "COCHÉ RNV1" in s3
 
         lettres3 = mod.lettres_prises(CHANTIER_3.splitlines())
         assert (lettres3 == ["Z", "RNV"]), ("3 lettres : lettres prises, une et trois lettres mêlées") + "\n" + str(repr(lettres3))
@@ -233,22 +259,26 @@ def test_zone_todo():
                    '</summary><div class="detail">y</div></details></li>\n'
                    '        </ol>\n  </section>\n') + CLOS_FEU2
     d2, f2, forme2 = mod.zone_todo(cartes_feu2)
-    assert (forme2 == "cartes" and f2 < cartes_feu2.index("<!-- ZONE:clos") and cartes_feu2[d2:f2].count("carte-todo") == 2
-             and mod.rang_en_cours(cartes_feu2[d2:f2], forme2) == "30"), ("FEU2 : cartes → forme cartes, fin avant ZONE:clos, badge relu sur le rang 30") + "\n" + str((d2, f2, forme2, cartes_feu2[d2:f2]))
+    assert forme2 == "cartes"
+    assert f2 < cartes_feu2.index("<!-- ZONE:clos")
+    assert cartes_feu2[d2:f2].count("carte-todo") == 2
+    assert mod.rang_en_cours(cartes_feu2[d2:f2], forme2) == "30"
     tableau_feu2 = ('  <section>\n    <!-- ZONE:todo — les chantiers possibles -->\n    <table><tbody>\n'
                     '          <tr><td class="mono">29</td><td><span class="mono">FEU</span> — a</td><td>x</td></tr>\n'
                     '          <tr><td class="mono">30</td><td><span class="mono">BTN</span> — b' + mod.BADGE_COURS
                     + '</td><td>y</td></tr>\n        </tbody></table>\n  </section>\n') + CLOS_FEU2
     d2, f2, forme2 = mod.zone_todo(tableau_feu2)
-    assert (forme2 == "tableau" and (d2, f2) == mod.zone(tableau_feu2, "todo", "<tbody>\n", "        </tbody>")
-             and mod.rang_en_cours(tableau_feu2[d2:f2], forme2) == "30"), ("FEU2 : tableau → forme tableau, mêmes bornes que zone(), badge relu sur le rang 30") + "\n" + str((d2, f2, forme2))
+    assert forme2 == "tableau"
+    assert (d2, f2) == mod.zone(tableau_feu2, "todo", "<tbody>\n", "        </tbody>")
+    assert mod.rang_en_cours(tableau_feu2[d2:f2], forme2) == "30"
     vide_feu2 = '  <section>\n    <!-- ZONE:todo — les chantiers possibles -->\n    <p>rien</p>\n  </section>\n' + CLOS_FEU2
     try:
         mod.zone_todo(vide_feu2)
         erreur_feu2 = None
     except ValueError as e:
         erreur_feu2 = str(e)
-    assert (erreur_feu2 is not None and "ZONE:todo" in erreur_feu2), ("FEU2 : ni tableau ni cartes dans la zone → ValueError, jamais le <tbody> des clos") + "\n" + str(erreur_feu2)
+    assert erreur_feu2 is not None
+    assert "ZONE:todo" in erreur_feu2
 
 
 def test_feuille_en_cartes(tmp_path):
@@ -281,15 +311,22 @@ def test_feuille_en_cartes(tmp_path):
         # « Dépend de » (5e cellule) passe en flèche à gauche de la carte (gabarit en colonnes).
         absentes = ([c for r in rangs for c in r[:4] if mod.cellule_md(c) not in html[d:f]]
                     + [r[4] for r in rangs if mod.depend_todo(r[4]) not in html[d:f]])
-        assert (code == 0 and forme == "cartes" and "<table" not in zone_t and "<tr" not in zone_t
-                 and html[d:f].count('<li class="carte-todo"') == len(rangs) == 3 and not absentes
-                 and html[d:f].count(mod.BADGE_COURS) == 1 and mod.rang_en_cours(html[d:f], forme) == "4"
-                 and "<p>Un préambule gardé.</p>" in zone_t and zone_t.count("resume-todo") == 0), ("FEU3 : tableau → cartes, une par rang, chaque cellule telle quelle (« Dépend de » en flèche),"
-                 " badge sur la carte 4, préambule gardé") + "\n" + str((s, absentes, zone_t))
+        assert code == 0
+        assert forme == "cartes"
+        assert "<table" not in zone_t
+        assert "<tr" not in zone_t
+        assert html[d:f].count('<li class="carte-todo"') == len(rangs) == 3
+        assert not absentes
+        assert html[d:f].count(mod.BADGE_COURS) == 1
+        assert mod.rang_en_cours(html[d:f], forme) == "4"
+        assert "<p>Un préambule gardé.</p>" in zone_t
+        assert zone_t.count("resume-todo") == 0
         code, s = appel(["feuille", tc, "--date", "2026-09-28"])
-        assert (code == 0 and "inchangée" in s), ("FEU3 : 2e appel inchangée") + "\n" + str(s)
+        assert code == 0
+        assert "inchangée" in s
         code, s = appel(["vigile", fdr])
-        assert (code == 0 and s.startswith("PAGE SAINE")), ("FEU3 : vigile sur la page en cartes") + "\n" + str(s)
+        assert code == 0
+        assert s.startswith("PAGE SAINE")
 
 
 def test_bornes(tmp_path):
@@ -305,9 +342,9 @@ def test_bornes(tmp_path):
         ecrire(os.path.join(tb, "CLAUDE.md"), "| La tâche | Ouvrir |\n|---|---|\n| relire un chantier clos | `ctx/00-INDEX.md` |\n")
         ecrire(os.path.join(tb, "ctx", "30-q.md"), "# Chantier Q — q\n\n## Q2 [ ] — b\n## Q1 [ ] — a\n")
         c, sortie = appel(["ouvrir", tb, "--fiches", "ctx/30-q.md", "--titre", "q"])
-        carte = pathlib.Path(os.path.join(tb, "CHANTIER.md")).read_text(encoding="utf-8")
-        assert (c == 0 and "OUVERT Q Q1..Q2 " in sortie
-                 and mod.courant_de(tb) == "ctx/30-q.md"), ("PLG1 : ouvrir sur Q2 puis Q1 écrit Q1..Q2") + "\n" + str(sortie + carte)
+        assert c == 0
+        assert "OUVERT Q Q1..Q2 " in sortie
+        assert mod.courant_de(tb) == "ctx/30-q.md"
 
 
 def test_voi3_lettres():
@@ -329,28 +366,32 @@ def test_carte_en_colonnes(tmp_path):
         fiches = os.path.join(tcc, "q.md")
         page = os.path.join(tcc, "artefacts", "q.html")
         ecrire(fiches, fiches_md)
-        code, s = appel(["page", fiches, page, "--creer", "--projet", "Proj", "--titre", "T", "--resultat", "R0",
+        code, _ = appel(["page", fiches, page, "--creer", "--projet", "Proj", "--titre", "T", "--resultat", "R0",
                          "--note", "Q2", "n2"])
         html = lire(page)
         li = {m.group(1): m.group(0)
               for m in re.finditer(r'<li class="fiche".*?<span class="id">(\w+)</span>.*?</li>', html, re.S)}
-        assert (code == 0 and '<span class="gauche"><span class="id">Q2</span></span>' in li.get("Q2", "")
-                 and '<summary><span class="titre">Visuelle</span><span class="etat">En cours</span></summary>'
-                 in li.get("Q2", "")), ("colonnes : à gauche l'identifiant seul, l'état en une phrase sous le titre") + "\n" + str(s + html)
-        assert ("Q1" in li and all('class="dep' not in c for c in li.values())), ("colonnes : une dépendance faite ne s'affiche plus, sur aucune fiche (Q2 dépend de Q1, faite)") + "\n" + str("%r" % li)
-        assert ('<span class="etat">Après Q2</span>' in li.get("Q3", "") and " data-attend" in li.get("Q3", "")), ("colonnes : une dépendance sur la ligne suivante se lit — Q3 « Après Q2 »") + "\n" + str(li.get("Q3", ""))
-        assert (mod.VISUEL in li.get("Q2", "") and mod.VISUEL not in li.get("Q1", "")
-                 and mod.VISUEL not in li.get("Q3", "")), ("colonnes : « visuel » à droite d'une fiche à regarder et non faite, seulement"
-                 " — mutant : la fiche faite l'a aussi") + "\n" + str("%r" % li)
+        assert code == 0
+        assert '<span class="gauche"><span class="id">Q2</span></span>' in li.get("Q2", "")
+        assert ('<summary><span class="titre">Visuelle</span><span class="etat">En cours</span></summary>'
+                 in li.get("Q2", ""))
+        assert "Q1" in li
+        assert all('class="dep' not in c for c in li.values())
+        assert '<span class="etat">Après Q2</span>' in li.get("Q3", "")
+        assert " data-attend" in li.get("Q3", "")
+        assert mod.VISUEL in li.get("Q2", "")
+        assert mod.VISUEL not in li.get("Q1", "")
+        assert mod.VISUEL not in li.get("Q3", "")
         assert (('<details open><summary><span class="titre">Visuelle</span><span class="etat">En cours</span></summary>\n'
                   '        <span class="note">n2</span></details>\n        ' + mod.VISUEL + '</li>') in li.get("Q2", "")), ("colonnes : le titre et l'état dans le summary, la note dans le corps, « visuel » après") + "\n" + str(li.get("Q2", ""))
         # Le coût d'une page d'avant passe à droite : `--forme` le relit, puis le pose après le corps.
         q1 = '<span class="titre">Faite</span><span class="etat">Faite</span></summary></details>'
         ecrire(page, html.replace(q1 + '</li>', q1 + '\n        <span class="cout mono">%s</span></li>' % c1))
-        code, s = appel(["page", fiches, page, "--forme"])
+        code, _s = appel(["page", fiches, page, "--forme"])
         apres = lire(page)
-        assert (code == 0 and (q1 + '\n        <span class="cout mono">%s</span></li>' % c1) in apres
-                 and mod.lis_page(apres)["Q1"][2] == c1), ("colonnes : --forme garde le coût, à droite, et le relit — mutant : coût gardé dans le corps") + "\n" + str(s + apres)
+        assert code == 0
+        assert (q1 + '\n        <span class="cout mono">%s</span></li>' % c1) in apres
+        assert mod.lis_page(apres)["Q1"][2] == c1
     pli5 = ('      <li class="fiche" data-etat="encours"><details open>\n'
             '        <summary><span class="id">Q2</span><span class="titre">Visuelle</span>\n'
             '        <span class="etat">en cours</span></summary>\n'
@@ -364,21 +405,26 @@ def test_carte_en_colonnes(tmp_path):
              '</span></summary></details></li>\n')
     ancienne = ('<li class="carte-todo"><details><summary><span class="rang mono">5</span><span class="titre">a'
                 + mod.BADGE_COURS + '</span><span class="meta mono">1 fiche · dépend de : —</span></summary></details></li>\n')
-    assert (mod.rang_en_cours(neuve, "cartes") == "8" and mod.rang_en_cours(ancienne, "cartes") == "5"), ("colonnes : le badge « en cours » se lit à gauche d'une carte, et dans le titre d'une carte d'avant"
-             " — mutant : exiger le titre juste après le rang") + "\n" + str("%r %r" % (mod.rang_en_cours(neuve, "cartes"), mod.rang_en_cours(ancienne, "cartes")))
-    assert (mod.depend_todo("`PLI`") == '<span class="dep mono">← PLI</span>'
-             and mod.depend_todo("3") == '<span class="dep mono">← 3</span>' and mod.depend_todo("—") == ""
-             and mod.depend_todo("`A`, `B`, `C`") == '<span class="dep mono" title="A, B, C">← 3 chantiers</span>'), ("colonnes : dépendances d'un chantier possible — code, rang, rien, et plus de deux codes") + "\n" + str("%r" % [mod.depend_todo(d) for d in ("`PLI`", "3", "—", "`A`, `B`, `C`")])
+    assert mod.rang_en_cours(neuve, "cartes") == "8"
+    assert mod.rang_en_cours(ancienne, "cartes") == "5"
+    assert mod.depend_todo("`PLI`") == '<span class="dep mono">← PLI</span>'
+    assert mod.depend_todo("3") == '<span class="dep mono">← 3</span>'
+    assert mod.depend_todo("—") == ""
+    assert mod.depend_todo("`A`, `B`, `C`") == '<span class="dep mono" title="A, B, C">← 3 chantiers</span>'
 
 
 def test_decompte_todo(tmp_path):
     gabarit = lire(os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html"))
     assert ([l.strip() for l in gabarit.splitlines() if "resume-todo" in l]
              == ['<p class="resume-todo"><strong>&lt;n&gt; chantiers possibles</strong></p>']), ("Dette BTN : le gabarit porte le décompte en valeur, sans style= (mutant : ancienne forme)") + "\n" + ""
-    assert (mod.borne_haute_cout("~0,5 fiche") == 0.5 and mod.borne_haute_cout("~4 à 6 fiches") == 6.0
-             and mod.borne_haute_cout("2-3 fiches") == 3.0 and mod.borne_haute_cout("à cadrer") is None
-             and mod.borne_haute_cout("~½ fiche") == 0.5 and mod.borne_haute_cout("1½ fiche") == 1.5
-             and mod.borne_haute_cout("🟡 pas estimé") is None and mod.borne_haute_cout("—") is None), ("FEU8 : borne_haute_cout — borne haute, ou None sans nombre avant « fiche »") + "\n" + str((mod.borne_haute_cout("~0,5 fiche"), mod.borne_haute_cout("~4 à 6 fiches")))
+    assert mod.borne_haute_cout("~0,5 fiche") == 0.5
+    assert mod.borne_haute_cout("~4 à 6 fiches") == 6.0
+    assert mod.borne_haute_cout("2-3 fiches") == 3.0
+    assert mod.borne_haute_cout("à cadrer") is None
+    assert mod.borne_haute_cout("~½ fiche") == 0.5
+    assert mod.borne_haute_cout("1½ fiche") == 1.5
+    assert mod.borne_haute_cout("🟡 pas estimé") is None
+    assert mod.borne_haute_cout("—") is None
     # CLU : les cellules lues de travers à `AVL7`, recopiées de la TODO d'avant `AVL9` (69e47df~1)
     fautives = {
         "estimé comme `ACA` : 4 à 6 fiches, 15 à 22 $ (`AMD` : 7 fiches, 37,80 $ mesurés)": 6.0,
@@ -418,12 +464,12 @@ def test_decompte_todo(tmp_path):
     lues = {c: mod.borne_haute_cout(c) for c in cellules}
     assert (lues == cellules), ("NUI38 : borne_haute_cout — la dernière estimation fait foi (segment ` · `, puis `→`), ni somme ni durée, "
              "« sans fiche » → None") + "\n" + str([(c[:40], lues[c], v) for c, v in cellules.items() if lues[c] != v])
-    assert (mod.est_bloque("`AAA`", ["AAA"], {"1", "2"}) is False
-             and mod.est_bloque("`ZZZ`", ["AAA"], {"1", "2"}) is True
-             and mod.est_bloque("3", ["AAA"], {"1", "3"}) is True
-             and mod.est_bloque("1..9", ["AAA"], {"5"}) is True
-             and mod.est_bloque("—", ["AAA"], {"1"}) is False
-             and mod.est_bloque("`C1` de MapDecorator", ["AAA"], set()) is True), ("FEU8 : est_bloque — code absent, numéro ou plage d'un rang présent, tiret non bloquant") + "\n" + ""
+    assert mod.est_bloque("`AAA`", ["AAA"], {"1", "2"}) is False
+    assert mod.est_bloque("`ZZZ`", ["AAA"], {"1", "2"}) is True
+    assert mod.est_bloque("3", ["AAA"], {"1", "3"}) is True
+    assert mod.est_bloque("1..9", ["AAA"], {"5"}) is True
+    assert mod.est_bloque("—", ["AAA"], {"1"}) is False
+    assert mod.est_bloque("`C1` de MapDecorator", ["AAA"], set()) is True
     # Fichier d'état en mémoire, comme demandé par le critère de fin de FEU8 : 4 rangs, un de
     # chaque taille et un pas estimé ; deux bloqués (code `ZZZ` absent, numéro 1 encore présent).
     lignes = ["| # | Chantier | Apporte | Coût | Dépend |", "|---|---|---|---|---|",
@@ -450,36 +496,40 @@ def test_decompte_todo(tmp_path):
         # Le gabarit porte le décompte d'avant (`mono`, `style=`) : deux `feuille` n'en laissent qu'un.
         ecrire(fdr, pathlib.Path(os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html")).read_text(encoding="utf-8"))
         appel(["feuille", tb, "--date", "2026-09-27"])
-        code, s = appel(["feuille", tb, "--date", "2026-09-27"])
+        code, _ = appel(["feuille", tb, "--date", "2026-09-27"])
         sans = lire_fdr()
         decomptes = [l for l in sans.splitlines() if "resume-todo" in l]
         css = pathlib.Path(os.path.join(tb, "ctx", "artefacts", "vlp.css")).read_text(encoding="utf-8")
-        assert (code == 0 and decomptes == [('    <p class="resume-todo"><strong>2 chantiers possibles</strong>'
-                                             ' · 1 petit, 1 moyen · 1 bloqué · ≈3 fiches estimées</p>')]
-                 and ".resume-todo {" in css and ".resume-todo strong" in css), ("BTN7 : décompte en <strong>, sans style=, un seul après deux feuille sur la forme d'avant,"
-                 " .resume-todo dans vlp.css — mutant : RESUME_TODO sans l'ancienne forme") + "\n" + str((s, decomptes))
+        assert code == 0
+        assert (decomptes == [('    <p class="resume-todo"><strong>2 chantiers possibles</strong>'
+                                             ' · 1 petit, 1 moyen · 1 bloqué · ≈3 fiches estimées</p>')])
+        assert ".resume-todo {" in css
+        assert ".resume-todo strong" in css
         assert ('class="lecture"' not in sans), ("BTN7 : sans préambule, aucun details.lecture") + "\n" + ""
         i = sans.index('<ol class="todo">')
         ancienne = sans[:i] + "<p>Lire ainsi.</p>\n    <ul>\n      <li>un</li>\n    </ul>\n    " + sans[i:]
         vieille = os.path.join(tb, "ancienne.html")
         ecrire(vieille, ancienne)
         ecrire(fdr, ancienne)
-        code, s = appel(["feuille", tb, "--date", "2026-09-27"])
+        code, _s = appel(["feuille", tb, "--date", "2026-09-27"])
         neuve = lire_fdr()
         code2, s2 = appel(["feuille", tb, "--date", "2026-09-27"])
         _, sc = appel(["comparer", vieille, fdr])
-        assert (code == 0 and code2 == 0 and neuve.count('<details class="lecture">') == 1
-                 and neuve == lire_fdr() and "inchangée" in s2 and "COMPARER 0 perdus" in sc
-                 and ('<details class="lecture"><summary>Comment lire cette liste</summary>\n    <p>Lire ainsi.</p>\n'
-                      '    <ul>\n      <li>un</li>\n    </ul>\n    </details>\n    <ol class="todo">') in neuve), ("BTN7 : préambule replié une fois dans un details.lecture fermé, texte intact, 2e feuille"
-                 " inchangée — mutant : details posé sans vérifier qu'il y est") + "\n" + str((s, s2, sc))
+        assert code == 0
+        assert code2 == 0
+        assert neuve.count('<details class="lecture">') == 1
+        assert neuve == lire_fdr()
+        assert "inchangée" in s2
+        assert "COMPARER 0 perdus" in sc
+        assert (('<details class="lecture"><summary>Comment lire cette liste</summary>\n    <p>Lire ainsi.</p>\n'
+                      '    <ul>\n      <li>un</li>\n    </ul>\n    </details>\n    <ol class="todo">') in neuve)
 
 
 def test_barre_todo(tmp_path):
     entete = ["| # | Chantier | Apporte | Coût | Dépend |", "|---|---|---|---|---|"]
     rangs = mod.todo_du_fichier(entete + ["| 1 | A | `sed x \\| sha256sum` | 2 fiches | — |"])
-    assert (rangs == [["1", "A", "`sed x \\| sha256sum`", "2 fiches", "—"]]
-             and mod.cellule_md(rangs[0][2]) == '<span class="mono">sed x | sha256sum</span>'), ("PIP1 : une barre échappée dans du code reste un caractère — 5 cellules, rendue sans \\") + "\n" + str(rangs)
+    assert rangs == [["1", "A", "`sed x \\| sha256sum`", "2 fiches", "—"]]
+    assert mod.cellule_md(rangs[0][2]) == '<span class="mono">sed x | sha256sum</span>'
     for ligne, n in (("| 2 | B | `sed x | sha256sum` | 2 fiches | — |", 6), ("| 3 | C | x | — |", 4)):
         try:
             mod.todo_du_fichier(entete + [ligne])
@@ -499,11 +549,13 @@ def test_barre_todo(tmp_path):
         ecrire(fdr, pathlib.Path(os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html")).read_text(encoding="utf-8"))
         code, s = appel(["feuille", tp, "--date", "2026-09-29"])
         avant = pathlib.Path(fdr).read_text(encoding="utf-8")
-        assert (code == 0 and "GARDE" not in s), ("PIP1 : une TODO saine passe") + "\n" + str(s)
+        assert code == 0
+        assert "GARDE" not in s
         ecrire(etat, "# État\n\n| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |\n|---|---|---|---|---|\n"
                      "| 3 | Trois | `sed | sha256sum` | 2 fiches | — |\n\n## Journal\n")
         code, s = appel(["feuille", tp, "--date", "2026-09-29"])
-        assert (code == 1 and "GARDE: ligne 3 de la TODO : 6 cellules" in s
-                 and pathlib.Path(fdr).read_text(encoding="utf-8") == avant), ("PIP1 : feuille rend GARDE avec le numéro, sort 1, la page ne bouge pas") + "\n" + str(s)
+        assert code == 1
+        assert "GARDE: ligne 3 de la TODO : 6 cellules" in s
+        assert pathlib.Path(fdr).read_text(encoding="utf-8") == avant
         _, s = appel(["niveau", tp, "--date", "2026-09-29"])
         assert ("ÉCART: feuille: ligne 3 de la TODO : 6 cellules" in s), ("PIP1 : niveau compte la ligne comme un écart de la feuille") + "\n" + str(s)

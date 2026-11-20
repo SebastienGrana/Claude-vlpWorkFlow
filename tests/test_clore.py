@@ -108,12 +108,15 @@ def test_clore_todo(tmp_path):
             avant = empreinte(te)
             code, s = appel(["clore", te, "--livre", "fini", "--date", "2026-10-09"])
             if saine:
-                assert (code == 0 and "CLOS U " in s), ("TAB3 : clore sur une TODO saine passe") + "\n" + str(s)
-                assert ("\nLIRE vlp.css vlp.js\n" in s
-                         and not os.path.exists(os.path.join(te, "ctx", "artefacts", "couts.svg"))), ("REF29 : clore sans couts.svg dit LIRE sans lui") + "\n" + str(s)
+                assert code == 0
+                assert "CLOS U " in s
+                assert "\nLIRE vlp.css vlp.js\n" in s
+                assert not os.path.exists(os.path.join(te, "ctx", "artefacts", "couts.svg"))
             else:
-                assert (code == 1 and s.startswith("GARDE: ligne 3 de la TODO : 6 cellules au lieu de 5")
-                         and "rien écrit" in s and empreinte(te) == avant), ("TAB3 : clore sur une TODO cassée rend GARDE, sort 1, rien écrit") + "\n" + str((code, s))
+                assert code == 1
+                assert s.startswith("GARDE: ligne 3 de la TODO : 6 cellules au lieu de 5")
+                assert "rien écrit" in s
+                assert empreinte(te) == avant
 
 
 def test_clore_ote_todo(tmp_path):
@@ -137,11 +140,18 @@ def test_clore_ote_todo(tmp_path):
             code, s = appel(["clore", tr, "--livre", "fini", "--date", "2026-10-09"])
             lu = pathlib.Path(chemin).read_text(encoding="utf-8")
             if present:
-                assert (code == 0 and "| 3 | `U`" not in lu and "| 4 | `AAA`" in lu
-                         and "Provenance : 3, de x ; 4, de y. 3, `U`, clos le 2026-10-09.\n" in lu
-                         and lu.endswith(journal) and "TODO `U` ôtée · n° 3\n" in s and "CLOS U " in s), ("RTO1 : clore ôte la rangée U, garde l'autre, marque la provenance, journal inchangé") + "\n" + str((code, s, lu))
+                assert code == 0
+                assert "| 3 | `U`" not in lu
+                assert "| 4 | `AAA`" in lu
+                assert "Provenance : 3, de x ; 4, de y. 3, `U`, clos le 2026-10-09.\n" in lu
+                assert lu.endswith(journal)
+                assert "TODO `U` ôtée · n° 3\n" in s
+                assert "CLOS U " in s
             else:
-                assert (code == 0 and "TODO `U` absente — rien ôté\n" in s and lu == etat and "CLOS U " in s), ("RTO1 : clore sur un code absent de la TODO — rien ôté, fichier d'état inchangé, pas de GARDE") + "\n" + str((code, s, lu))
+                assert code == 0
+                assert "TODO `U` absente — rien ôté\n" in s
+                assert lu == etat
+                assert "CLOS U " in s
 
 
 def test_clore_reperes_et_routage():
@@ -149,14 +159,18 @@ def test_clore_reperes_et_routage():
     cité plus loin dans la ligne non ; une ligne « relire un chantier clos — … » prolongée compte comme présente."""
     todo = ["| # | Chantier | a | b | c |", "|---|---|---|---|---|", "| 1 | 🔴📅 `SCH` — x | a | b | — |",
             "| 2 | 🟡💤 ⏸️ `HD` — y | voir `REG` | b | — |", "| 3 | `REG` — z | a | b | — |"]
-    assert (mod.rangee_todo(todo, "SCH") == (0, 2, "1") and mod.rangee_todo(todo, "HD") == (0, 3, "2")
-             and mod.rangee_todo(todo, "REG") == (0, 4, "3") and mod.rangee_todo(todo, "SC") == (0, None, None)), ("dette SCH : rangée trouvée derrière ses repères, code cité ailleurs ignoré — mutant : `\\s*` au lieu de `[^|`]*`") + "\n" + str([mod.rangee_todo(todo, c) for c in ("SCH", "HD", "REG", "SC")])
+    assert mod.rangee_todo(todo, "SCH") == (0, 2, "1")
+    assert mod.rangee_todo(todo, "HD") == (0, 3, "2")
+    assert mod.rangee_todo(todo, "REG") == (0, 4, "3")
+    assert mod.rangee_todo(todo, "SC") == (0, None, None)
     cl = ["| T | O |", "|---|---|", "| relire un chantier clos — filet de tests | `ctx/00-INDEX-archive.md` |"]
-    assert (mod.rang_routage_clos(cl) == 2 and mod.rang_routage_clos(["| relire un chantier clos | x |"]) == 0
-             and mod.rang_routage_clos(["| relire un chantier closes | x |"]) is None), ("dette SCH : ligne « relire un chantier clos — … » reconnue, « closes » non — mutant : startswith(ROUTAGE_CLOS)") + "\n" + str(mod.rang_routage_clos(cl))
+    assert mod.rang_routage_clos(cl) == 2
+    assert mod.rang_routage_clos(["| relire un chantier clos | x |"]) == 0
+    assert mod.rang_routage_clos(["| relire un chantier closes | x |"]) is None
     vieux = ["| T | O |", "| relire le chantier E (e) | x |"]
-    assert (mod.rang_routage_clos(vieux, "| relire le chantier") == 1 and mod.rang_routage_clos(vieux) is None
-             and mod.rang_routage_clos(cl, "| relire le chantier") == 2), ("dette SCH : sans « relire un chantier clos », le repli « relire le chantier » ; sans repli, None") + "\n" + str(vieux)
+    assert mod.rang_routage_clos(vieux, "| relire le chantier") == 1
+    assert mod.rang_routage_clos(vieux) is None
+    assert mod.rang_routage_clos(cl, "| relire le chantier") == 2
 
 
 def test_oter(tmp_path):
@@ -174,23 +188,28 @@ def test_oter(tmp_path):
         ecrire(chemin, etat)
         for code, quoi in (("ZZZ", "absent"), ("OUV", "ouvert"), ("U", "clos")):
             res = appel(["oter", to, code, "--raison", "r", "--date", "2026-10-09"])
-            assert (res[0] == 1 and res[1].startswith("GARDE: ") and "rien écrit" in res[1]
-                     and pathlib.Path(chemin).read_text(encoding="utf-8") == etat), ("TAB4 : oter refuse un code %s — GARDE, sort 1, fichier inchangé" % quoi) + "\n" + str(res)
+            assert res[0] == 1
+            assert res[1].startswith("GARDE: ")
+            assert "rien écrit" in res[1]
+            assert pathlib.Path(chemin).read_text(encoding="utf-8") == etat
         res = appel(["oter", to, "AAA", "--raison", "fait ailleurs", "--date", "2026-10-09"])
         lu = pathlib.Path(chemin).read_text(encoding="utf-8")
-        assert (res[0] == 0 and "| 3 | `AAA`" not in lu
-                 and "| 4 | `BBB`" in lu and len(mod.todo_du_fichier(lu.split("\n"))) == 3), ("TAB4 : oter ôte la rangée, et elle seule") + "\n" + str((res, lu))
+        assert res[0] == 0
+        assert "| 3 | `AAA`" not in lu
+        assert "| 4 | `BBB`" in lu
+        assert len(mod.todo_du_fichier(lu.split("\n"))) == 3
         assert ("Provenance : 3, de x ; 4, de y. 3, `AAA`, retiré le 2026-10-09 : fait ailleurs.\n" in lu), ("TAB4 : oter marque le numéro retiré dans la phrase de provenance") + "\n" + str(lu)
         assert (lu.endswith("## 2026-10-01 — x\n\n## 2026-10-09 — `AAA` retiré de la TODO (n° 3)\n\n"
                              "- **Raison** : fait ailleurs.\n")), ("TAB4 : oter écrit une entrée datée au journal") + "\n" + str(lu)
         res = appel(["oter", to, "BBB", "--raison", "fait cette nuit", "--date", "2026-10-12", "--fait"])
         lu, carte_ = pathlib.Path(chemin).read_text(encoding="utf-8"), pathlib.Path(os.path.join(to, "CHANTIER.md")).read_text(encoding="utf-8")
         prises = mod.lettres_prises(carte_.split("\n"))
-        assert (res[0] == 0 and res[1].rstrip().endswith("· lettre prise")
-                 and "U (test), BBB (b, sans fiche). Un nouveau chantier" in carte_
-                 and not mod.est_bloque("`BBB`", prises, [])), ("oter --fait : la lettre est prise, ce qui l'attend n'est plus bloqué — mutant : sans l'ajout aux lettres") + "\n" + str((res, carte_))
-        assert ("4, `BBB`, fait sans fiche le 2026-10-12 : fait cette nuit.\n" in lu
-                 and "## 2026-10-12 — `BBB` fait sans fiche, retiré de la TODO (n° 4)\n" in lu), ("oter --fait : « fait sans fiche » dans la provenance et au journal") + "\n" + str(lu)
+        assert res[0] == 0
+        assert res[1].rstrip().endswith("· lettre prise")
+        assert "U (test), BBB (b, sans fiche). Un nouveau chantier" in carte_
+        assert not mod.est_bloque("`BBB`", prises, [])
+        assert "4, `BBB`, fait sans fiche le 2026-10-12 : fait cette nuit.\n" in lu
+        assert "## 2026-10-12 — `BBB` fait sans fiche, retiré de la TODO (n° 4)\n" in lu
 
 
 def test_todo_sans_code(tmp_path):
@@ -201,11 +220,11 @@ def test_todo_sans_code(tmp_path):
     lire = lambda c: pathlib.Path(c).read_text(encoding="utf-8")
     todo = ["| # | Chantier | a | b | c |", "|---|---|---|---|---|", "| 10 | Finitions de l'API : erreurs et Swagger | a | b | — |",
             "| 11 | Réparer le banc | a | b | — |", "| 12 | Réparer le banc | a | b | — |"]
-    assert (mod.rangee_todo(todo, "11") == (0, 3, "11") and mod.rangee_todo(todo, "1") == (0, None, None)
-             and mod.rangee_todo(todo, "FIN", "finitions de l’API :  erreurs et Swagger") == (0, 2, "10")
-             and mod.rangee_todo(todo, "BAN", "Réparer le banc") == (0, None, None)
-             and mod.rangee_todo(todo, "FIN") == (0, None, None)), ("dette FIN : rangée par numéro, ou par titre (apostrophe courbe, casse) s'il est seul ; deux pareils, aucune "
-             "— mutant : sans le repli du titre") + "\n" + str([mod.rangee_todo(todo, "11"), mod.rangee_todo(todo, "FIN", "finitions de l’API :  erreurs et Swagger")])
+    assert mod.rangee_todo(todo, "11") == (0, 3, "11")
+    assert mod.rangee_todo(todo, "1") == (0, None, None)
+    assert mod.rangee_todo(todo, "FIN", "finitions de l’API :  erreurs et Swagger") == (0, 2, "10")
+    assert mod.rangee_todo(todo, "BAN", "Réparer le banc") == (0, None, None)
+    assert mod.rangee_todo(todo, "FIN") == (0, None, None)
     etat = ("# État\n\nProvenance : 10, de x ; 11, de y.\n\n| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |\n"
             "|---|---|---|---|---|\n| 10 | Finitions de l'API : erreurs et Swagger | a | 1 | `DRO` |\n"
             "| 11 | Réparer le banc | a | 1 | rien |\n| 12 | Seed | a | 1 | 10..11 |\n\n## Journal des décisions\n\n## 2026-10-01 — x\n")
@@ -226,24 +245,37 @@ def test_todo_sans_code(tmp_path):
         ecrire(os.path.join(tf, "ctx", "artefacts", "13-fin.html"), gabarit("artefact-chantier.html"))
         ecrire(os.path.join(tf, "ctx", "artefacts", "feuille-de-route.html"), gabarit("artefact-feuille-de-route.html"))
         code, s = appel(["ouvrir", tf, "--fiches", "ctx/13-fin.md", "--titre", "Finitions de l'API : erreurs et Swagger"])
-        assert (code == 0 and "routage +1" in s and "GARDE" not in s and "| modifier | x |\n| jouer une fiche du chantier FIN "
+        assert code == 0
+        assert "routage +1" in s
+        assert "GARDE" not in s
+        assert ("| modifier | x |\n| jouer une fiche du chantier FIN "
                  "(finitions de l'API : erreurs et Swagger) | `ctx/13-fin.md` — chantier **ouvert**, par `/vlp:tache FIN<n>` |\n"
-                 "| relire une fiche `DRO1`" in lire(os.path.join(tf, "CLAUDE.md"))), ("dette FIN : ouvrir pose sa ligne avant la première ligne **clos** — mutant : sans ce repli") + "\n" + str((s, lire(os.path.join(tf, "CLAUDE.md"))))
+                 "| relire une fiche `DRO1`" in lire(os.path.join(tf, "CLAUDE.md")))
         for code_, quoi in (("10", "ouvert, trouvé par son titre"), ("99", "absent")):
             res = appel(["oter", tf, code_, "--raison", "r", "--date", "2026-10-14"])
-            assert (res[0] == 1 and res[1].startswith("GARDE: ") and lire(chemin) == etat), ("dette FIN : oter refuse un numéro %s — GARDE, fichier inchangé" % quoi) + "\n" + str(res)
+            assert res[0] == 1
+            assert res[1].startswith("GARDE: ")
+            assert lire(chemin) == etat
         res = appel(["oter", tf, "11", "--raison", "fait à la main", "--date", "2026-10-14", "--fait"])
         lu = lire(chemin)
-        assert (res[0] == 0 and "| 11 |" not in lu and "| 10 |" in lu and "| 12 |" in lu
-                 and "11, « Réparer le banc », fait sans fiche le 2026-10-14 : fait à la main.\n" in lu
-                 and "## 2026-10-14 — « Réparer le banc » fait sans fiche, retiré de la TODO (n° 11)\n" in lu
-                 and lire(os.path.join(tf, "CHANTIER.md")) == carte_f and "lettre prise" not in res[1]), ("dette FIN : oter par numéro ôte la rangée, marque provenance et journal, ne prend aucune lettre "
-                 "— mutant : sans la branche du numéro") + "\n" + str((res, lu))
+        assert res[0] == 0
+        assert "| 11 |" not in lu
+        assert "| 10 |" in lu
+        assert "| 12 |" in lu
+        assert "11, « Réparer le banc », fait sans fiche le 2026-10-14 : fait à la main.\n" in lu
+        assert "## 2026-10-14 — « Réparer le banc » fait sans fiche, retiré de la TODO (n° 11)\n" in lu
+        assert lire(os.path.join(tf, "CHANTIER.md")) == carte_f
+        assert "lettre prise" not in res[1]
         code, s = appel(["clore", tf, "--livre", "fini", "--date", "2026-10-14"])
         lu, claude_lu = lire(chemin), lire(os.path.join(tf, "CLAUDE.md"))
-        assert (code == 0 and "TODO `FIN` ôtée · n° 10\n" in s and "| 10 |" not in lu and "| 12 | Seed" in lu
-                 and "10, `FIN`, clos le 2026-10-14." in lu and "routage 1" in s and "jouer une fiche" not in claude_lu
-                 and "ligne « jouer une fiche" not in s), ("dette FIN : clore trouve la rangée par le titre du chantier, et la ligne de routage posée par ouvrir") + "\n" + str((s, lu, claude_lu))
+        assert code == 0
+        assert "TODO `FIN` ôtée · n° 10\n" in s
+        assert "| 10 |" not in lu
+        assert "| 12 | Seed" in lu
+        assert "10, `FIN`, clos le 2026-10-14." in lu
+        assert "routage 1" in s
+        assert "jouer une fiche" not in claude_lu
+        assert "ligne « jouer une fiche" not in s
         if ancien is None:
             del os.environ["CLAUDE_CODE_SESSION_ID"]
         else:
@@ -254,8 +286,8 @@ def _tester_bilan_md_clore(page_q):
     """Dans une fonction : au niveau du module, pyright jugeait le fichier trop complexe (ABR3)."""
     bilan_md = mod.lire_abri(mod.chemin_abri(page_q))["bilan"]
     assert (bilan_md == ["Livré : Livré `a` <b>", "Surpris : x < y",
-                          "Estimé : estimé 2 fiches ≈0,40 $ · cadré 2 · joué 1 fiches ? $"]
-             and "\x00" not in "\n".join(bilan_md)), ("clore : bilan écrit dans le .md, estimé résolu — mutant : écrire avant de remplacer ESTIME_A_ECRIRE") + "\n" + str(bilan_md)
+                          "Estimé : estimé 2 fiches ≈0,40 $ · cadré 2 · joué 1 fiches ? $"])
+    assert "\x00" not in "\n".join(bilan_md)
 
 
 def test_feuille_clore(tmp_path):
@@ -275,47 +307,63 @@ def test_feuille_clore(tmp_path):
         lire = lambda c: pathlib.Path(c).read_text(encoding="utf-8")
         code, s = appel(["feuille", t, "--date", "2026-01-02"])
         html = lire(fdr)
-        assert (code == 0 and "FEUILLE todo 2 · encours non · lettres 2 · réécrite" in s
-                 and "Aucun chantier ouvert" in html and '<span class="mono">E, M</span>' in html
-                 and '<span class="mono">2026-01-02</span>' in html), ("feuille : fermé, réécrite") + "\n" + str(s + html)
+        assert code == 0
+        assert "FEUILLE todo 2 · encours non · lettres 2 · réécrite" in s
+        assert "Aucun chantier ouvert" in html
+        assert '<span class="mono">E, M</span>' in html
+        assert '<span class="mono">2026-01-02</span>' in html
         assert ('<span class="gauche"><span class="rang mono">3</span></span><details><summary>'
                  '<span class="titre">Le <span class="mono">sh</span></span></summary><div class="detail">a || b &lt;c&gt;</div>'
-                 '</details><span class="meta"><span class="seg">2 fiches</span></span></li>' in html
-                 and "&lt;U, R&gt;" not in html and 'data-etat="cours"' not in html.split("ZONE:todo")[1]), ("feuille : TODO rendue") + "\n" + str(html)
+                 '</details><span class="meta"><span class="seg">2 fiches</span></span></li>' in html)
+        assert "&lt;U, R&gt;" not in html
+        assert 'data-etat="cours"' not in html.split("ZONE:todo")[1]
         avant_todo = html.split("<!-- ZONE:todo")[0].split("Les chantiers possibles")[1]
-        assert (avant_todo.count("resume-todo") == 1
-                 and "><strong>2 chantiers possibles</strong> · 1 petit, 1 moyen · 1 bloqué · ≈3 fiches estimées</p>" in avant_todo
-                 and "&lt;n&gt; chantiers possibles" not in html), ("feuille : décompte au-dessus de la TODO, détaillé (FEU8)") + "\n" + str(html)
+        assert avant_todo.count("resume-todo") == 1
+        assert "><strong>2 chantiers possibles</strong> · 1 petit, 1 moyen · 1 bloqué · ≈3 fiches estimées</p>" in avant_todo
+        assert "&lt;n&gt; chantiers possibles" not in html
         code, s = appel(["feuille", t, "--date", "2026-03-04"])
-        assert (code == 0 and "inchangée" in s and "2026-01-02" in lire(fdr)), ("feuille : idempotente, date gardée") + "\n" + str(s)
+        assert code == 0
+        assert "inchangée" in s
+        assert "2026-01-02" in lire(fdr)
         ecrire(fdr, mod.RESUME_TODO.sub("", lire(fdr)))
         code, s = appel(["feuille", t, "--date", "2026-01-02"])
-        assert (code == 0 and lire(fdr).count("resume-todo") == 1
-                 and ("><strong>2 chantiers possibles</strong> · 1 petit, 1 moyen · 1 bloqué · ≈3 fiches estimées</p>\n    <!-- ZONE:todo"
-                      in lire(fdr))), ("feuille : décompte posé sur une feuille d'avant") + "\n" + str(s + lire(fdr))
-        assert (mod.resume_todo(1) == "1 chantier possible" and mod.resume_todo(0) == "aucun chantier possible"), ("feuille : décompte au singulier et vide") + "\n" + ""
+        assert code == 0
+        assert lire(fdr).count("resume-todo") == 1
+        assert ("><strong>2 chantiers possibles</strong> · 1 petit, 1 moyen · 1 bloqué · ≈3 fiches estimées</p>\n    <!-- ZONE:todo"
+                      in lire(fdr))
+        assert mod.resume_todo(1) == "1 chantier possible"
+        assert mod.resume_todo(0) == "aucun chantier possible"
         ecrire(os.path.join(t, "CHANTIER.md"), carte_ % "https://exemple/q")
         ecrire(os.path.join(t, "ctx", "30-q.md"), ouvert(q_ferme))
         code, s = appel(["feuille", t, "--verifier"])
-        assert (code == 1 and "écart" in s and "Aucun chantier" in lire(fdr)), ("feuille : --verifier voit l'écart sans écrire") + "\n" + str(s)
+        assert code == 1
+        assert "écart" in s
+        assert "Aucun chantier" in lire(fdr)
         code, s = appel(["feuille", t, "--todo", "4", "--date", "2026-03-04"])
         html = lire(fdr)
-        assert (code == 0 and "encours oui · lettres 3" in s
-                 and 'Un titre <span class="badge" data-etat="cours">' in html and '<span class="mono">Q1–Q2</span>' in html
-                 and 'href="https://exemple/q"' in html and "E, M, Q" in html
-                 and ('<span class="rang mono">4</span>' + mod.BADGE_COURS + '<span class="dep mono">← 3</span></span>'
-                      '<details><summary><span class="titre">Quatre</span></summary>') in html), ("feuille : ouvert, badge, lettre") + "\n" + str(s + html)
+        assert code == 0
+        assert "encours oui · lettres 3" in s
+        assert 'Un titre <span class="badge" data-etat="cours">' in html
+        assert '<span class="mono">Q1–Q2</span>' in html
+        assert 'href="https://exemple/q"' in html
+        assert "E, M, Q" in html
+        assert (('<span class="rang mono">4</span>' + mod.BADGE_COURS + '<span class="dep mono">← 3</span></span>'
+                      '<details><summary><span class="titre">Quatre</span></summary>') in html)
         code, s = appel(["feuille", t])
-        assert (code == 0 and "inchangée" in s), ("feuille : badge gardé sans --todo") + "\n" + str(s)
+        assert code == 0
+        assert "inchangée" in s
         assert (appel(["feuille", t, "--verifier"])[0] == 0), ("feuille : --verifier identique") + "\n" + str(appel(["feuille", t, "--verifier"]))
         code, s = appel(["feuille", t, "--todo", "9"])
-        assert (code == 1 and s.startswith("GARDE:")), ("feuille : --todo absent, garde") + "\n" + str(s)
+        assert code == 1
+        assert s.startswith("GARDE:")
         ecrire(os.path.join(t, "CHANTIER.md"), carte_ % "aucun")
         ecrire(os.path.join(t, "ctx", "30-q.md"), q_ferme)
         code, s = appel(["feuille", t])
         html = lire(fdr)
-        assert (code == 0 and "Aucun chantier ouvert" in html
-                 and 'data-etat="cours"' not in html.split("ZONE:encours")[1] and "E, M</span>" in html), ("feuille : refermé, badge ôté") + "\n" + str(s)
+        assert code == 0
+        assert "Aucun chantier ouvert" in html
+        assert 'data-etat="cours"' not in html.split("ZONE:encours")[1]
+        assert "E, M</span>" in html
 
         ecrire(os.path.join(t, "CHANTIER.md"), carte_ % "https://exemple/q"
                + "\n| Fichier de fiches | Fiches | Clos le | Artefact |\n|---|---|---|---|\n| ctx/10-e.md | E1..E2 | 2026-01-01 | u |\n\nFin.\n")
@@ -333,60 +381,88 @@ def test_feuille_clore(tmp_path):
         ecrire(page_q, pathlib.Path(os.path.join(ICI, "..", "templates", "artefact-chantier.html")).read_text(encoding="utf-8")
                .replace("<!-- ZONE:blocage — publiée quand /tache s'arrête après deux tentatives ; retirée dès que la fiche repasse -->\n  <section hidden>",
                         "<!-- ZONE:blocage — publiée quand /tache s'arrête après deux tentatives ; retirée dès que la fiche repasse -->\n  <section>"))
-        assert (page_q and "<!-- ZONE:blocage" in lire(page_q) and lire(page_q).count("<section hidden>") == 1), ("clore : gabarit, blocage visible avant") + "\n" + str(lire(page_q))
+        assert page_q
+        assert "<!-- ZONE:blocage" in lire(page_q)
+        assert lire(page_q).count("<section hidden>") == 1
         code, s = appel(["clore", t, "--livre", "Livré `a` <b>", "--tokens", "1500", "--abandon", "Q2 abandonnée", "--date", "2026-05-06", "--surpris", "x < y", "--resume", "b `c`."])
         carte_lue, fiches_lues, html = lire(os.path.join(t, "CHANTIER.md")), lire(os.path.join(t, "ctx", "30-q.md")), lire(fdr)
-        assert ("· routage 1 · index 1 · archivé 1 · bilan 1 · résumé 1 ·" in s and "GARDE" not in s), ("clore : routage, index, bilan, résumé comptés") + "\n" + str(s)
-        assert ("\nLIRE vlp.css vlp.js couts.svg\n" in s and os.path.exists(os.path.join(os.path.dirname(fdr), "couts.svg"))), ("REF29 : clore, coût mesuré, dit LIRE avec couts.svg") + "\n" + str(s)
+        assert "· routage 1 · index 1 · archivé 1 · bilan 1 · résumé 1 ·" in s
+        assert "GARDE" not in s
+        assert "\nLIRE vlp.css vlp.js couts.svg\n" in s
+        assert os.path.exists(os.path.join(os.path.dirname(fdr), "couts.svg"))
         assert ("- Clos le 2026-05-06 : a (chantier E).\n- Clos le 2026-05-06 : b `c` (chantier Q).\n\n## Routage" in lire(os.path.join(t, "CLAUDE.md"))), ("clore : résumé, une ligne par clos") + "\n" + str(lire(os.path.join(t, "CLAUDE.md")))
         cl, gr = ["## Où on en est", "", "- Clos le 2026-01-01 : a (chantier E).", "", "## Règles"], []
-        assert (mod.resume_claude(cl, "Q", "b", "2026-02-02", gr)
-                 and cl[3] == "- Clos le 2026-02-02 : b (chantier Q)." and cl[2].endswith("E).") and not gr), ("résumé : ligne ajoutée après la dernière") + "\n" + str(cl)
+        assert mod.resume_claude(cl, "Q", "b", "2026-02-02", gr)
+        assert cl[3] == "- Clos le 2026-02-02 : b (chantier Q)."
+        assert cl[2].endswith("E).")
+        assert not gr
         cl2 = ["## Où on en est", "- Clos le 2026-01-01 : a (chantier E)."]
-        assert (mod.resume_claude(cl2, "Q", "b (chantier Q).", "2026-01-01", gr)
-                 and cl2[-1] == "- Clos le 2026-01-01 : b (chantier Q)."), ("résumé : suffixe (chantier Q) déjà dans le texte, pas doublé") + "\n" + str(cl2)
+        assert mod.resume_claude(cl2, "Q", "b (chantier Q).", "2026-01-01", gr)
+        assert cl2[-1] == "- Clos le 2026-01-01 : b (chantier Q)."
         cl5 = ["## Où on en est", "- Clos le 2026-01-01 : a (chantier E)."]
-        assert (mod.resume_claude(cl5, "Q", "Clos le 2026-09-27 : b.", "2026-09-27", gr)
-                 and cl5[-1] == "- Clos le 2026-09-27 : b (chantier Q)."), ("résumé : préfixe Clos le déjà dans le texte, pas doublé") + "\n" + str(cl5)
-        assert (not mod.resume_claude(cl, "Q", "b", "2026-02-02", gr) and len(cl) == 6), ("résumé : déjà là, rien") + "\n" + str(cl)
+        assert mod.resume_claude(cl5, "Q", "Clos le 2026-09-27 : b.", "2026-09-27", gr)
+        assert cl5[-1] == "- Clos le 2026-09-27 : b (chantier Q)."
+        assert not mod.resume_claude(cl, "Q", "b", "2026-02-02", gr)
+        assert len(cl) == 6
         cl3 = ["## Où on en est", "- Prouvé : x.", "  puis vieux (chantier A) ;"] + ["- Clos le 2026-01-0%d : c%d (chantier %s)." % (i, i, "BCDEF"[i - 1]) for i in range(1, 6)] + ["", "## R"]
-        assert (mod.resume_claude(cl3, "G", "g", "2026-01-09", gr)
-                 and mod.CLOS_GARDES == 5 and not any("(chantier B)" in l for l in cl3) and cl3[:3] == ["## Où on en est", "- Prouvé : x.", "  puis vieux (chantier A) ;"]
-                 and sum(1 for l in cl3 if l.startswith("- Clos le")) == 5 and cl3[-3] == "- Clos le 2026-01-09 : g (chantier G)."), ("résumé : garde les CLOS_GARDES derniers, le plus ancien sorti") + "\n" + str(cl3)
-        assert (not mod.resume_claude(["# x"], "Q", "b", "d", gr) and gr and "Où on en est" in gr[0]), ("résumé : section absente, garde") + "\n" + str(gr)
+        assert mod.resume_claude(cl3, "G", "g", "2026-01-09", gr)
+        assert mod.CLOS_GARDES == 5
+        assert not any("(chantier B)" in l for l in cl3)
+        assert cl3[:3] == ["## Où on en est", "- Prouvé : x.", "  puis vieux (chantier A) ;"]
+        assert sum(1 for l in cl3 if l.startswith("- Clos le")) == 5
+        assert cl3[-3] == "- Clos le 2026-01-09 : g (chantier G)."
+        assert not mod.resume_claude(["# x"], "Q", "b", "d", gr)
+        assert gr
+        assert "Où on en est" in gr[0]
         cl4, g4 = ["## Où on en est", "- Clos le 2026-01-01 : a (chantier E)."], []
-        assert (mod.resume_claude(cl4, "Q", "deux lignes\nici.\n", "2026-09-24", g4)
-                 and cl4[-1] == "- Clos le 2026-09-24 : deux lignes ici (chantier Q)."
-                 and bool(mod.ENTREE_CLOS.match(cl4[-1])) and not g4), ("résumé : sur une ligne, relu par ENTREE_CLOS") + "\n" + str(repr(cl4[-1]))
-        assert ("**Fait.** Q1..Q2 (2026-05-06) : Livré `a` <b> — estimé 2 fiches ≈0,40 $ · cadré 2 · joué 1 fiches ? $.\n" in fiches_lues and "**Fait.** Rien." not in fiches_lues), ("clore : Fait. remplacé") + "\n" + str(fiches_lues)
+        assert mod.resume_claude(cl4, "Q", "deux lignes\nici.\n", "2026-09-24", g4)
+        assert cl4[-1] == "- Clos le 2026-09-24 : deux lignes ici (chantier Q)."
+        assert bool(mod.ENTREE_CLOS.match(cl4[-1]))
+        assert not g4
+        assert "**Fait.** Q1..Q2 (2026-05-06) : Livré `a` <b> — estimé 2 fiches ≈0,40 $ · cadré 2 · joué 1 fiches ? $.\n" in fiches_lues
+        assert "**Fait.** Rien." not in fiches_lues
         ligne_q = "| `30-q.md` | on relit le socle du chantier Q — **clos** « Un (vrai) titre », `Q1..Q2` |\n"
-        assert (lire(os.path.join(t, "ctx", "00-INDEX.md")).split("---|\n")[1].startswith("| `00-INDEX-archive.md` |") and "**clos**" not in lire(os.path.join(t, "ctx", "00-INDEX.md"))
-                 and lire(os.path.join(t, "ctx", "00-INDEX-archive.md")).split("---|\n")[1] == ligne_q), ("clore : index clos, passé à l'archive — mutant : clore n'appelle pas archiver") + "\n" + str(lire(os.path.join(t, "ctx", "00-INDEX.md")))
-        assert ("|---|---|\n| relire un chantier clos | `ctx/00-INDEX-archive.md` — sa ligne y nomme le fichier de fiches |\n| relire le chantier E" in lire(os.path.join(t, "CLAUDE.md"))
-                 and "chantier Q" not in lire(os.path.join(t, "CLAUDE.md")).split("## Routage")[1]), ("clore : routage ouvert retiré, une ligne vers l'index") + "\n" + str(lire(os.path.join(t, "CLAUDE.md")))
+        assert lire(os.path.join(t, "ctx", "00-INDEX.md")).split("---|\n")[1].startswith("| `00-INDEX-archive.md` |")
+        assert "**clos**" not in lire(os.path.join(t, "ctx", "00-INDEX.md"))
+        assert lire(os.path.join(t, "ctx", "00-INDEX-archive.md")).split("---|\n")[1] == ligne_q
+        assert "|---|---|\n| relire un chantier clos | `ctx/00-INDEX-archive.md` — sa ligne y nomme le fichier de fiches |\n| relire le chantier E" in lire(os.path.join(t, "CLAUDE.md"))
+        assert "chantier Q" not in lire(os.path.join(t, "CLAUDE.md")).split("## Routage")[1]
         pq = lire(page_q)
-        assert ("<section>\n    <h2>Chantier clos le 2026-05-06</h2>\n    <div class=\"bilan\">\n      <p>Livré : Livré `a` &lt;b&gt;</p>\n      <p>Surpris : x &lt; y</p>\n      <p>Estimé : estimé 2 fiches ≈0,40 $ · cadré 2 · joué 1 fiches ? $</p>\n    </div>\n  </section>" in pq
-                 and pq.split("<!-- ZONE:blocage")[1].split("-->\n")[1].startswith("  <section hidden>") and pq.count("<section hidden>") == 1), ("clore : ZONE:bilan visible, blocage caché") + "\n" + str(pq)
-        assert ('<span class="id">Q1</span>' in pq and '<span class="id">Q2</span>' in pq
-                 and '<span class="id">&lt;R' not in pq and '<p class="mono cout-total">' not in pq), ("clore : la page régénérée, fiches du fichier") + "\n" + str(pq)
+        assert "<section>\n    <h2>Chantier clos le 2026-05-06</h2>\n    <div class=\"bilan\">\n      <p>Livré : Livré `a` &lt;b&gt;</p>\n      <p>Surpris : x &lt; y</p>\n      <p>Estimé : estimé 2 fiches ≈0,40 $ · cadré 2 · joué 1 fiches ? $</p>\n    </div>\n  </section>" in pq
+        assert pq.split("<!-- ZONE:blocage")[1].split("-->\n")[1].startswith("  <section hidden>")
+        assert pq.count("<section hidden>") == 1
+        assert '<span class="id">Q1</span>' in pq
+        assert '<span class="id">Q2</span>' in pq
+        assert '<span class="id">&lt;R' not in pq
+        assert '<p class="mono cout-total">' not in pq
         _tester_bilan_md_clore(page_q)
-        assert (code == 0 and "CLOS Q Q1..Q2 (Q2 abandonnée) · chantier 1 500 · cumul 3 812 · routage 1 · index 1 · archivé 1 · bilan 1 · résumé 1 · estimé 2 fiches ≈0,40 $ · cadré 2 · joué 1 fiches ? $ — " in s and "encours non" in s), ("clore : bilan") + "\n" + str(s)
-        assert ("**CLOS** le 2026-05-06. Ne se rejoue pas" in fiches_lues
-                 and fiches_lues.index("**CLOS**") < fiches_lues.index("**Fait.**") and "Abandonnées : Q2 abandonnée." in fiches_lues), ("clore : fichier de fiches") + "\n" + str(fiches_lues)
-        assert ("**artefact du chantier** : aucun" in carte_lue
-                 and "| ctx/10-e.md | E1..E2 | 2026-01-01 | u |\n\nFin." in carte_lue and "| ctx/30-q.md |" not in carte_lue
-                 and "M (Deux `x`), Q (Un `titre`). Un nouveau chantier" in carte_lue), ("clore : CHANTIER.md") + "\n" + str(carte_lue)
+        assert code == 0
+        assert "CLOS Q Q1..Q2 (Q2 abandonnée) · chantier 1 500 · cumul 3 812 · routage 1 · index 1 · archivé 1 · bilan 1 · résumé 1 · estimé 2 fiches ≈0,40 $ · cadré 2 · joué 1 fiches ? $ — " in s
+        assert "encours non" in s
+        assert "**CLOS** le 2026-05-06. Ne se rejoue pas" in fiches_lues
+        assert fiches_lues.index("**CLOS**") < fiches_lues.index("**Fait.**")
+        assert "Abandonnées : Q2 abandonnée." in fiches_lues
+        assert "**artefact du chantier** : aucun" in carte_lue
+        assert "| ctx/10-e.md | E1..E2 | 2026-01-01 | u |\n\nFin." in carte_lue
+        assert "| ctx/30-q.md |" not in carte_lue
+        assert "M (Deux `x`), Q (Un `titre`). Un nouveau chantier" in carte_lue
         clos = html.split("<!-- ZONE:clos")[1]
-        assert ('<a href="https://exemple/q">Un <span class="mono">titre</span></a>' in clos
-                 and '<td class="mono">Q1–Q2</td><td class="mono">2026-05-06</td>' in clos and "≈1,5k (1 500)" in clos
-                 and "Livré <span class=\"mono\">a</span> &lt;b&gt;" in clos and clos.index("Q1–Q2") < clos.index("2 312", clos.index("<tbody>"))
-                 and "<strong>≈3,8k (3 812)</strong>" in clos and "Aucun chantier ouvert" in html and "E, M, Q</span>" in html), ("clore : feuille de route") + "\n" + str(clos)
+        assert '<a href="https://exemple/q">Un <span class="mono">titre</span></a>' in clos
+        assert '<td class="mono">Q1–Q2</td><td class="mono">2026-05-06</td>' in clos
+        assert "≈1,5k (1 500)" in clos
+        assert "Livré <span class=\"mono\">a</span> &lt;b&gt;" in clos
+        assert clos.index("Q1–Q2") < clos.index("2 312", clos.index("<tbody>"))
+        assert "<strong>≈3,8k (3 812)</strong>" in clos
+        assert "Aucun chantier ouvert" in html
+        assert "E, M, Q</span>" in html
         assert ('<strong>≈3,8k (3 812)</strong></td><td class="mono"></td>' in clos), ("clore : pied de table sans $ — aucune ligne n'a de prix mesuré (chantier TAU)") + "\n" + str(clos)
         assert ('<span class="resume-clos">2 chantiers clos · ≈3,8k (3 812) tokens · coût non mesuré</span>' in clos), ("clore : résumé du bloc repliable des clos, coût non mesuré") + "\n" + str(clos)
-        assert ('<details class="clos">' in clos and "</details>" in clos), ("clore : la table des clos reste dans un details repliable") + "\n" + str(clos)
+        assert '<details class="clos">' in clos
+        assert "</details>" in clos
         code, s = appel(["clore", t, "--livre", "x"])
-        assert (code == 1 and s.startswith("GARDE: aucun chantier ouvert")
-                 and lire(os.path.join(t, "CHANTIER.md")) == carte_lue), ("clore : second appel refusé") + "\n" + str(s)
+        assert code == 1
+        assert s.startswith("GARDE: aucun chantier ouvert")
+        assert lire(os.path.join(t, "CHANTIER.md")) == carte_lue
 
 
 OUVERT_DU_JOUR = mod.OUVERT_LIGNE % __import__("datetime").date.today().isoformat()
@@ -430,14 +506,15 @@ def test_apc3(tmp_path, init_git):
                     message=dict(lignes_[0]["message"], id="m9"))) + "\n")
             commit_(900, "Chantier Q clos : fini")
             code2, s2 = appel(["cout", os.path.join(proj, "ctx", "q.md")])
-            assert (code == 0 and code2 == 0
-                     and "chantier 300 000" in s and "**CLOS**" in lire(os.path.join(proj, "ctx", "q.md"))
-                     and "\nTOTAL (fiches + hors fiches) · ≈300,0k (300 000) · 3 tours" in s2), ("APC3 : inscrit par clore = recompté, 300 000 · 3 tours ; le tour d'après clore n'y est pas"
-                     " — mutant : decouper sans heure_clore (recompté 400 000)") + "\n" + str(s + s2)
-            code3, s3_ = appel(["page", os.path.join(proj, "ctx", "q.md"), os.path.join(proj, "ctx", "artefacts", "q.html")])
-            assert (code3 == 0 and "Coût du chantier : ≈300,0k (300 000) · 3 tours"
-                     in lire(os.path.join(proj, "ctx", "artefacts", "q.html"))), ("dette PLI : page d'un clos = cout, 300 000 · 3 tours — mutant : page sans heure_clore"
-                     " (400 000 · 4 tours)") + "\n" + str(s3_)
+            assert code == 0
+            assert code2 == 0
+            assert "chantier 300 000" in s
+            assert "**CLOS**" in lire(os.path.join(proj, "ctx", "q.md"))
+            assert "\nTOTAL (fiches + hors fiches) · ≈300,0k (300 000) · 3 tours" in s2
+            code3, _ = appel(["page", os.path.join(proj, "ctx", "q.md"), os.path.join(proj, "ctx", "artefacts", "q.html")])
+            assert code3 == 0
+            assert ("Coût du chantier : ≈300,0k (300 000) · 3 tours"
+                     in lire(os.path.join(proj, "ctx", "artefacts", "q.html")))
 
 
 GABARIT_FEUILLE = os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html")
@@ -455,7 +532,9 @@ def test_uni1_total(tmp_path):
         page_u = os.path.join(proj, "ctx", "artefacts", "50-u.html")
         ecrire(page_u, pathlib.Path(os.path.join(ICI, "..", "templates", "artefact-chantier.html")).read_text(encoding="utf-8"))
         code, s = appel(["clore", proj, "--livre", "fini", "--tokens", "950", "--date", "2026-09-25"])
-        assert (code == 0 and "chantier 950" in s and "ÉCART" not in s), ("UNI1 : sans mesure, --tokens utilisé, pas d'ÉCART") + "\n" + str(s)
+        assert code == 0
+        assert "chantier 950" in s
+        assert "ÉCART" not in s
 
     # UNI1 : mesuré, le total de la page gagne sur un --tokens faux, et le dit
     with tempfile.TemporaryDirectory(dir=tmp_path) as t:
@@ -479,9 +558,11 @@ def test_uni1_total(tmp_path):
         finally:
             mod.noyau.page.regenerer = regenerer_vrai
         fu = pathlib.Path(feuille_u).read_text(encoding="utf-8")
-        assert (code == 0
-                 and "ÉCART tokens 950 donné · 4 321 mesuré — le mesuré fait foi" in s and "· chantier 4 321 ·" in s
-                 and "(4 321)" in fu and ">950<" not in fu), ("UNI1 : --tokens faux, ÉCART et le mesuré écrit sur la feuille") + "\n" + str(s + fu[-800:])
+        assert code == 0
+        assert "ÉCART tokens 950 donné · 4 321 mesuré — le mesuré fait foi" in s
+        assert "· chantier 4 321 ·" in s
+        assert "(4 321)" in fu
+        assert ">950<" not in fu
 
 
 JOUR_MATIN = "2026-10-01"
@@ -568,13 +649,18 @@ def test_ouverts(tmp_path, init_git):
         code7, s7 = appel(["ouverts", d, "--rev", "nexistepas"])
         git_matin(d, "checkout", "-q", "main")
         code8, s8 = appel(["ouverts", os.path.join(tr, "vide")])
-    assert ((code0, s0) == (0, "OUVERTS=0\n") and s1 == "OUVERT ctx/b.md\n" and s2 == "OUVERTS=0\n"
-             and s3 == "OUVERTS=0\n" and s4 == "OUVERT ctx/b.md\n"
-             and s5 == "OUVERT ctx/b.md\nOUVERT ctx/c.md\n" and s6 == s5
-             and (code1, code2, code3, code4, code5, code6) == (0,) * 6), ("NUI21 ouverts : sans marque → OUVERTS=0 ; marqué → 1 ; + CLOS → 0 ; + Pause → 0 ; --rev lit le commit, "
-             "un fichier marqué sur l'autre branche est absent de main — mutants : la Pause ouvre, --rev lit l'arbre") + "\n" + str("\n".join((s0, s1, s2, s3, s4, s5, s6)))
-    assert (code7 == 1 and s7.startswith("GARDE: révision inconnue")
-             and code8 == 1 and s8.startswith("GARDE: pas de CHANTIER.md")), ("NUI21 ouverts : un dossier sans CHANTIER.md, un --rev inconnu → GARDE et code 1, jamais un traceback") + "\n" + str(s7 + s8)
+    assert (code0, s0) == (0, "OUVERTS=0\n")
+    assert s1 == "OUVERT ctx/b.md\n"
+    assert s2 == "OUVERTS=0\n"
+    assert s3 == "OUVERTS=0\n"
+    assert s4 == "OUVERT ctx/b.md\n"
+    assert s5 == "OUVERT ctx/b.md\nOUVERT ctx/c.md\n"
+    assert s6 == s5
+    assert (code1, code2, code3, code4, code5, code6) == (0,) * 6
+    assert code7 == 1
+    assert s7.startswith("GARDE: révision inconnue")
+    assert code8 == 1
+    assert s8.startswith("GARDE: pas de CHANTIER.md")
 
 
 def test_blobs_git(tmp_path, init_git):
@@ -603,10 +689,10 @@ def test_blobs_git(tmp_path, init_git):
         nouveau = mod.textes_contexte(d, "HEAD")
         anciens = [ancien(c) for c, _ in nouveau]
         lus = mod.blobs_git(["HEAD:./ctx/a.md", "HEAD:./ctx/absent.md", "HEAD:./ctx/d.md", "HEAD:./ctx/c.md"], d)
-    assert ([c for c, _ in nouveau] == ["ctx/a.md", "ctx/b é.md", "ctx/c.md", "ctx/d.md"]
-             and [l for _, l in nouveau] == anciens and nouveau[0][1] == ["# Chantier A", "ligne", ""]
-             and nouveau[1][1] == ["# Chantier B — été", "fin sans LF"]), ("VIT3 : textes_contexte --rev égale l'ancien lecteur sur 3 fichiers et un dossier en .md (CRLF, \\r, accents, "
-             "fin sans LF)") + "\n" + str((nouveau, anciens))
+    assert [c for c, _ in nouveau] == ["ctx/a.md", "ctx/b é.md", "ctx/c.md", "ctx/d.md"]
+    assert [l for _, l in nouveau] == anciens
+    assert nouveau[0][1] == ["# Chantier A", "ligne", ""]
+    assert nouveau[1][1] == ["# Chantier B — été", "fin sans LF"]
     assert (lus == ["# Chantier A\nligne\n", None, None, "un\ndeux\n\n"]), ("VIT3 : blobs_git — absent et dossier rendent None, sans décaler l'entrée suivante — mutant : sauter le LF "
              "d'après le contenu") + "\n" + str(lus)
 
@@ -655,13 +741,16 @@ def test_courant_de(tmp_path, init_git):
                "- **contexte** : ctx/\n")
         ecrire(os.path.join(v, "ctx", "x.md"), ouvert_ligne("# Chantier X — x\n\n## X1 [ ] — f\n"))
         d_vieux = courant(v)
-    assert (a_wt == (0, "COURANT=aucun") and a_main == (0, "COURANT=ctx/a.md")
-             and b_wt == (0, "COURANT=ctx/b.md") and b_main == (0, "COURANT=ctx/a.md") and b_rev == "ctx/b.md"), ("NUI22 (a, b) courant_de : un worktree n'hérite pas du chantier de main, il voit le sien ; main inchangé ; "
-             "de_cote lit la branche — mutant : la règle 2 garde les hérités") + "\n" + str(repr((a_wt, a_main, b_wt, b_main, b_rev)))
-    assert (c_clos == (0, "COURANT=ctx/a.md") and c_deux[0] == 1
-             and c_deux[1] == "GARDE: plusieurs chantiers ouverts : ctx/a.md, ctx/e.md"
-             and c_postit == (0, "COURANT=ctx/e.md") and d_vieux == (0, "COURANT=ctx/x.md")), ("NUI22 (c, d) courant_de : post-it sur un clos ignoré, sur un ouvert suivi ; deux ouverts sans post-it → "
-             "GARDE ; projet sans marque → l'ancienne ligne de CHANTIER.md") + "\n" + str(repr((c_clos, c_deux, c_postit, d_vieux)))
+    assert a_wt == (0, "COURANT=aucun")
+    assert a_main == (0, "COURANT=ctx/a.md")
+    assert b_wt == (0, "COURANT=ctx/b.md")
+    assert b_main == (0, "COURANT=ctx/a.md")
+    assert b_rev == "ctx/b.md"
+    assert c_clos == (0, "COURANT=ctx/a.md")
+    assert c_deux[0] == 1
+    assert c_deux[1] == "GARDE: plusieurs chantiers ouverts : ctx/a.md, ctx/e.md"
+    assert c_postit == (0, "COURANT=ctx/e.md")
+    assert d_vieux == (0, "COURANT=ctx/x.md")
 
 
 def test_postit(tmp_path, init_git):
@@ -692,11 +781,17 @@ def test_postit(tmp_path, init_git):
         git_matin(d, "worktree", "remove", "--force", wt)
     chef = pathlib.Path(os.path.join(RACINE, "skills", "enchainer", "SKILL.md")).read_text(encoding="utf-8")
     trois = chef[chef.find("## 3. Jouer chaque fiche"):chef.find("## 3 bis.")]
-    assert (avant == "COURANT=aucun" and pose == (0, "POSTIT ctx/a.md — %s\n" % wt) and lu == "ctx/a.md\n"
-             and apres == "COURANT=ctx/a.md"), ("ISO8 : postit écrit le post-it du worktree, carte y lit COURANT=ctx/a.md — mutant : postit qui n'écrit rien") + "\n" + str(repr((avant, pose, lu, apres)))
-    assert (clos[0] == 1 and clos[1].startswith("GARDE: ctx/c.md n'est pas un chantier ouvert") and clos_rien
-             and sans_git[0] == 1 and sans_git[1].startswith("GARDE: %s hors Git" % hors)), ("ISO8 : postit refuse un fichier non ouvert et un dossier hors Git — GARDE:, sort 1, rien d'écrit") + "\n" + str(repr((clos, clos_rien, sans_git)))
-    assert ("(Write)" not in trois and "scripts/vlp.py\" postit " in trois), ("ISO8 : le prompt du sous-agent ne lui fait plus écrire le post-it — l'étape 3 sans (Write), avec postit") + "\n" + str(trois[:200])
+    assert avant == "COURANT=aucun"
+    assert pose == (0, "POSTIT ctx/a.md — %s\n" % wt)
+    assert lu == "ctx/a.md\n"
+    assert apres == "COURANT=ctx/a.md"
+    assert clos[0] == 1
+    assert clos[1].startswith("GARDE: ctx/c.md n'est pas un chantier ouvert")
+    assert clos_rien
+    assert sans_git[0] == 1
+    assert sans_git[1].startswith("GARDE: %s hors Git" % hors)
+    assert "(Write)" not in trois
+    assert "scripts/vlp.py\" postit " in trois
 
 
 def noms_ailleurs(dossier):
@@ -744,9 +839,11 @@ def test_ailleurs(tmp_path, init_git):
         commit_matin(wl, "ZZZ1 : vieux", 3)      # un vieux commit jamais fusionné, d'un chantier ouvert nulle part
         _, joue = appel(["niveau", d])
         carte = [l for l in appel(["carte", d])[1].splitlines() if l.startswith("AILLEURS=")]
-    assert ("AILLEURS: page: LOC joue dans " in joue and "ÉCART: page:" not in joue and len(carte) == 1
-             and carte[0].startswith("AILLEURS=LOC ") and carte[0].rstrip("/").endswith("wt-l")), ("NWT (a) un worktree sans marque ni post-it : ses commits « LOC1 : » disent qu'il joue LOC, ouvert dans le "
-             "principal → AILLEURS ; « ZZZ1 : », ouvert nulle part, ne compte pas") + "\n" + str((joue, carte))
+    assert "AILLEURS: page: LOC joue dans " in joue
+    assert "ÉCART: page:" not in joue
+    assert len(carte) == 1
+    assert carte[0].startswith("AILLEURS=LOC ")
+    assert carte[0].rstrip("/").endswith("wt-l")
 
     with tempfile.TemporaryDirectory(dir=tmp_path) as tr:
         d, wv = os.path.join(tr, "v"), os.path.join(tr, "wt-v")
@@ -761,5 +858,5 @@ def test_ailleurs(tmp_path, init_git):
         commit_matin(d, "contexte suivi", 2)
         retard, principal_ = mod.ligne_git(wv), mod.ligne_git(d)
     assert ("GIT=en retard sur main : CHANTIER.md, CLAUDE.md suivi(s) là-bas, pas ici — worktree né avant ; y fusionner "
-             "main" in retard and not any("retard" in l for l in principal_)), ("NWT (b) un worktree né avant que main suive CHANTIER.md et CLAUDE.md : la carte le dit et propose de "
-             "fusionner main ; main lui-même, non") + "\n" + str((retard, principal_))
+             "main" in retard)
+    assert not any("retard" in l for l in principal_)

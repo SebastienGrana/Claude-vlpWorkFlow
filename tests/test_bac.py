@@ -61,8 +61,9 @@ def test_pre_commit(tmp_path, init_git):
                 ecrire(os.path.join(depot, ".claude-plugin", "plugin.json"), "{")
                 git("add", "-A")
                 code, s = git("commit", "-q", "-m", "casse")
-                assert (code == 1
-                         and "pre-commit : .claude-plugin/plugin.json invalide" in s and "marketplace.json" not in s), ("hook : plugin.json cassé est nommé") + "\n" + str(s)
+                assert code == 1
+                assert "pre-commit : .claude-plugin/plugin.json invalide" in s
+                assert "marketplace.json" not in s
             code, s = git("check-attr", "eol", "--", "skills/chantier/SKILL.md")
             assert (s == "skills/chantier/SKILL.md: eol: lf\n"), (".gitattributes : les .md en LF") + "\n" + str(s)
             # JNT2 : les joints publiés en LF dans tout clone — un worktree en CRLF changeait leurs octets
@@ -94,9 +95,13 @@ def test_suite_verte(tmp_path, init_git):
         hors = cocher(fiches, "Z2")
         ecrire(os.path.join(t, "scripts", "x.py"), "x = 1\n")
         touche = cocher(fiches, "Z3")
-        assert (sans[0] == 1 and "GARDE: Z1 non cochée" in sans[1] and apres[0] == 0 and hors[0] == 0
-                 and touche[0] == 1 and "GARDE: Z3 non cochée" in touche[1]
-                 and lire(fiches).count("[x]") == 2), ("VIT11 : cocher dans le kit — refus sans suite verte, accord après, refus après un script touché") + "\n" + str(repr((sans, apres, hors, touche)))
+        assert sans[0] == 1
+        assert "GARDE: Z1 non cochée" in sans[1]
+        assert apres[0] == 0
+        assert hors[0] == 0
+        assert touche[0] == 1
+        assert "GARDE: Z3 non cochée" in touche[1]
+        assert lire(fiches).count("[x]") == 2
         os.remove(os.path.join(t, ".claude-plugin", "plugin.json"))
         equipe = cocher(fiches, "Z3")
         assert (equipe[0] == 0), ("VIT11 : un projet équipé (sans plugin) coche sans suite verte") + "\n" + str(repr(equipe))
@@ -106,14 +111,16 @@ def test_bac(tmp_path):
     with tempfile.TemporaryDirectory(dir=tmp_path) as tbac:
         dbac = os.path.join(tbac, "bac")
         code, s = appel(["bac", dbac])
-        assert (code == 0 and s.startswith("BAC %s\n" % dbac)), ("bac : sort 0 et annonce le dossier") + "\n" + str(s)
+        assert code == 0
+        assert s.startswith("BAC %s\n" % dbac)
         assert (s.count("claude -p") == 2), ("bac : deux commandes claude -p") + "\n" + str(s)
         fbac = os.path.join(dbac, mod.BAC_FICHES)
         code, sv = appel(["valider", fbac])
         assert (code == 0), ("bac : le fichier de fiches se valide") + "\n" + str(sv)
         for ident in ("F1", "F2"):
             code, se_ = appel(["extraire", fbac, ident])
-            assert (code == 0 and ("## %s [ ]" % ident) in se_), ("bac : extraire %s non vide" % ident) + "\n" + str(se_)
+            assert code == 0
+            assert ("## %s [ ]" % ident) in se_
         ns = [n for n in os.listdir(dbac) if re.match(r"^n\d\d\.txt$", n)]
         assert (len(ns) == 12), ("bac : douze fichiers n*.txt") + "\n" + str(" ".join(sorted(ns)))
         with open(fbac, encoding="utf-8") as f:
@@ -121,12 +128,14 @@ def test_bac(tmp_path):
         assert (texte_bac.count("un appel par message") == 2), ("bac : « un appel par message » deux fois") + "\n" + str(texte_bac)
         assert ("par tour" not in texte_bac), ("bac : jamais « par tour »") + "\n" + str(texte_bac)
         code, s2 = appel(["bac", dbac])
-        assert (code == 1 and s2.startswith("GARDE:")), ("bac : un 2e appel rend une GARDE") + "\n" + str(s2)
+        assert code == 1
+        assert s2.startswith("GARDE:")
         # Dette REG : `clore` refusait le bac, faute de la ligne des lettres (REG3, 2026-09-29)
         for ident in ("F1", "F2"):
             appel(["cocher", fbac, ident])
         code, s3 = appel(["clore", dbac, "--livre", "x", "--resume", "x"])
-        assert (code == 0 and "CLOS F F1..F2" in s3), ("bac : clore passe, les deux fiches jouées") + "\n" + str(s3)
+        assert code == 0
+        assert "CLOS F F1..F2" in s3
 
 
 def test_claude(tmp_path):
@@ -148,42 +157,51 @@ def test_claude(tmp_path):
             os.environ["APPDATA"] = os.path.join(tcl, "app")
             os.environ["LOCALAPPDATA"] = os.path.join(tcl, "loc")
             code, s = appel(["claude"])
-            assert (code == 0 and s == "CLAUDE %s\n" % p10), ("claude : Packages avant APPDATA, 2.1.10 avant 2.1.9") + "\n" + str(s)
+            assert code == 0
+            assert s == "CLAUDE %s\n" % p10
             dbac = os.path.join(tcl, "bac")
             code, s = appel(["bac", dbac])
-            assert (code == 0 and s.endswith(
-                'SESSION Set-Location "%s"; & "%s"\n' % (os.path.abspath(dbac), p10))), ("claude : bac imprime la ligne SESSION") + "\n" + str(s)
+            assert code == 0
+            assert (s.endswith(
+                'SESSION Set-Location "%s"; & "%s"\n' % (os.path.abspath(dbac), p10)))
             spec = importlib.util.spec_from_file_location("boucle", os.path.join(ICI, "boucle.py"))
-            assert spec and spec.loader
+            assert spec
+            assert spec.loader
             boucle = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(boucle)
             assert (boucle.trouver_claude(None) == p10), ("claude : boucle.py rend le même chemin") + "\n" + str(str(boucle.trouver_claude(None)))
             os.environ["LOCALAPPDATA"] = os.path.join(tcl, "vide")
             code, s = appel(["claude"])
-            assert (code == 0 and s == "CLAUDE %s\n" % a99), ("claude : sans Packages, APPDATA") + "\n" + str(s)
+            assert code == 0
+            assert s == "CLAUDE %s\n" % a99
             os.environ["VLP_CLAUDE"] = "mon-claude"
             code, s = appel(["claude"])
-            assert (code == 0 and s == "CLAUDE mon-claude\n"), ("claude : VLP_CLAUDE gagne sur tout") + "\n" + str(s)
+            assert code == 0
+            assert s == "CLAUDE mon-claude\n"
             os.environ.pop("VLP_CLAUDE")
             os.environ["APPDATA"] = os.path.join(tcl, "vide")
             code, s = appel(["claude"])
-            assert (code == 1 and s.startswith("GARDE: claude.exe introuvable")), ("claude : rien trouvé → GARDE, sort 1") + "\n" + str(s)
+            assert code == 1
+            assert s.startswith("GARDE: claude.exe introuvable")
             code, s = appel(["bac", os.path.join(tcl, "bac2")])
-            assert (code == 0
-                     and 'GARDE: claude.exe introuvable' in s and s.endswith('; & "claude"\n')), ("claude : bac sans claude sort 0, GARDE puis SESSION claude") + "\n" + str(s)
+            assert code == 0
+            assert 'GARDE: claude.exe introuvable' in s
+            assert s.endswith('; & "claude"\n')
             # VIT19 : l'app range claude.exe un dossier plus bas, sous une empreinte ; la version reste au-dessus
             faux("loc2", *paquet[1:], "2.1.99")
             p288 = faux("loc2", *paquet[1:], "2.1.288", "36aa8c97bf86")
             os.environ["LOCALAPPDATA"] = os.path.join(tcl, "loc2")
             code, s = appel(["claude"])
-            assert (code == 0 and s == "CLAUDE %s\n" % p288), ("claude : à la seconde profondeur, 2.1.288 avant 2.1.99") + "\n" + str(s)
+            assert code == 0
+            assert s == "CLAUDE %s\n" % p288
             sans_exe = os.path.join(tcl, "app2", "Claude", "claude-code")
             os.makedirs(os.path.join(sans_exe, "2.1.288", "36aa8c97bf86"))
             os.environ["LOCALAPPDATA"] = os.path.join(tcl, "vide")
             os.environ["APPDATA"] = os.path.join(tcl, "app2")
             code, s = appel(["claude"])
-            assert (code == 1
-                     and s.startswith("GARDE: claude.exe absent de l'app") and sans_exe in s), ("claude : l'app sans claude.exe → sa GARDE, le dossier nommé, sort 1") + "\n" + str(s)
+            assert code == 1
+            assert s.startswith("GARDE: claude.exe absent de l'app")
+            assert sans_exe in s
         finally:
             for n, v in avant.items():
                 if v is None:
@@ -206,14 +224,17 @@ def test_kit_essai(tmp_path):
                 f.write("x\n")
         dke = os.path.join(tke, "copie")
         code, s = appel(["kit-essai", dke, "--max-turns", "6", "--kit", src])
-        assert (code == 0 and s == "KIT %s · maxTurns 80 → 6\n" % dke), ("kit-essai : sort 0 et annonce 80 → 6") + "\n" + str(s)
+        assert code == 0
+        assert s == "KIT %s · maxTurns 80 → 6\n" % dke
         assert (mod.lire_max_turns(os.path.join(dke, "agents", "fiche.md")) == 6), ("kit-essai : maxTurns 6 dans la copie") + "\n" + str(repr(mod.lire_max_turns(os.path.join(dke, "agents", "fiche.md"))))
         assert (mod.lire_max_turns(fiche_src) == 80), ("kit-essai : maxTurns inchangé dans le kit") + "\n" + ""
         presents = [rel for rel in ("scripts/x.py", "evals/cas/case.yaml") if os.path.exists(os.path.join(dke, rel))]
         absents = [rel for rel in (".git", "context AI", "evals/results") if not os.path.exists(os.path.join(dke, rel))]
-        assert (len(presents) == 2 and len(absents) == 3), ("kit-essai : copie le kit, sans .git, context AI ni evals/results") + "\n" + str("%r %r" % (presents, absents))
+        assert len(presents) == 2
+        assert len(absents) == 3
         code, s2 = appel(["kit-essai", dke, "--max-turns", "6", "--kit", src])
-        assert (code == 1 and s2.startswith("GARDE:")), ("kit-essai : un 2e appel rend une GARDE") + "\n" + str(s2)
+        assert code == 1
+        assert s2.startswith("GARDE:")
 
 
 def test_transcription(tmp_path):
@@ -254,13 +275,16 @@ def test_transcription(tmp_path):
                    "HOOK_ERREURS=2 pour 2 appels\n"
                    "DERNIER mot=RETOUR stop_reason=end_turn\n"
                    "DERNIERE_LIGNE=Il reste un appel.\n")
-        assert (code == 0 and s == attendu), ("transcription : la sortie du socle, tours par message.id, is_error par toolUseID") + "\n" + str(s)
+        assert code == 0
+        assert s == attendu
         sans = os.path.join(ttr, "sans.jsonl")
         with open(sans, "w", encoding="utf-8") as f:
             f.write(json.dumps(lignes[-1]) + "\n")
         code, s = appel(["transcription", sans])
-        assert (code == 0 and "PREMIER_AVERTISSEMENT aucun\n" in s and "TEXTE=" not in s
-                 and "AVERTIS_PAR_TOUR=aucun\n" in s), ("transcription : sans avertissement, « aucun » et pas de TEXTE=") + "\n" + str(s)
+        assert code == 0
+        assert "PREMIER_AVERTISSEMENT aucun\n" in s
+        assert "TEXTE=" not in s
+        assert "AVERTIS_PAR_TOUR=aucun\n" in s
         # TOU1 : 3 avertissements au tour 2 (une salve de trois Read), 1 au tour 3
         salve = [{"type": "assistant", "message": {"id": "m1", "usage": u, "stop_reason": "tool_use",
                                                    "content": [{"type": "tool_use", "id": "s0", "name": "Read"}]}}]
@@ -276,9 +300,11 @@ def test_transcription(tmp_path):
         with open(par_tour, "w", encoding="utf-8") as f:
             f.writelines(json.dumps(ligne) + "\n" for ligne in salve)
         code, s = appel(["transcription", par_tour])
-        assert (code == 0 and "AVERTISSEMENTS=4\nAVERTIS_PAR_TOUR=2:3,3:1\n" in s), ("transcription : AVERTIS_PAR_TOUR range chaque avertissement au tour de son appel") + "\n" + str(s)
+        assert code == 0
+        assert "AVERTISSEMENTS=4\nAVERTIS_PAR_TOUR=2:3,3:1\n" in s
         code, s = appel(["transcription", os.path.join(ttr, "absent.jsonl")])
-        assert (code == 1 and s.startswith("GARDE:")), ("transcription : illisible rend une GARDE") + "\n" + str(s)
+        assert code == 1
+        assert s.startswith("GARDE:")
 
 
 def hook_isole(init_git, t):
@@ -324,18 +350,20 @@ def test_hook_pyright(tmp_path, init_git):
         ecrire(os.path.join(depot, "a.md"), "a\n")
         git(sans, "add", "a.md")
         code, s = git([rouge] + sans, "commit", "-q", "-m", "md")
-        assert (code == 0 and "pyright" not in s), ("hook pyright : un .md seul passe") + "\n" + str(s)
+        assert code == 0
+        assert "pyright" not in s
         ecrire(os.path.join(depot, "a.py"), "x = 1\n")
         git(sans, "add", "a.py")
         code, s = git([rouge] + sans, "commit", "-q", "-m", "py")
-        assert (code == 1 and "faux uv run --frozen pyright : sortie 1" in s
-                 and "pre-commit : pyright en erreur ou absent de l'atelier (uv sync), commit refusé." in s), ("hook pyright : un .py en erreur est refusé") + "\n" + str(s)
+        assert code == 1
+        assert "faux uv run --frozen pyright : sortie 1" in s
+        assert "pre-commit : pyright en erreur ou absent de l'atelier (uv sync), commit refusé." in s
         code, s = git(sans, "commit", "-q", "-m", "py")
-        assert (code == 1
-                 and "pre-commit : uv introuvable, pyright non lancé, commit refusé" in s), ("hook pyright : sans uv, le .py est refusé en le disant (E27)") + "\n" + str(s)
+        assert code == 1
+        assert "pre-commit : uv introuvable, pyright non lancé, commit refusé" in s
         code, s = git([vert] + sans, "commit", "-q", "-m", "py")
-        assert (code == 0
-                 and "faux uv run --frozen pyright : sortie 0" not in s), ("hook pyright : pyright vert sous uv, le .py passe") + "\n" + str(s)
+        assert code == 0
+        assert "faux uv run --frozen pyright : sortie 0" not in s
 
 
 def test_hook_chemin(tmp_path, init_git):
@@ -350,7 +378,8 @@ def test_hook_chemin(tmp_path, init_git):
         ecrire(os.path.join(depot, "a.md"), "le kit : ~/.claude/skills/vlp\n")
         git(sans, "add", "a.md")
         code, s = git(sans, "commit", "-q", "-m", "tilde")
-        assert (code == 0 and "chemin de machine" not in s), ("CHM : hook, un chemin en ~ passe") + "\n" + str(s)
+        assert code == 0
+        assert "chemin de machine" not in s
         refus = []
         for forme in ("C:" + "/Users/bob/x", "C:" + "\\Users\\bob\\x", "/mnt/c/" + "Users/bob/x", "C-" + "-Users-bob-Documents"):
             ecrire(os.path.join(depot, "b.md"), "voir `%s`\n" % forme)
@@ -373,12 +402,13 @@ def test_hook_claude(tmp_path, init_git):
         ecrire(os.path.join(depot, "a.md"), "a\n")
         git(sans, "add", "a.md")
         code, s = git(sans, "commit", "-q", "-m", "md", LOCALAPPDATA=os.path.join(t, "loc"))
-        assert (code == 1
-                 and "GARDE: claude.exe absent de l'app" in s and app in s
-                 and "pre-commit : l'app Claude est là sans claude.exe trouvé, validate impossible, commit refusé." in s), ("hook claude : l'app sans claude.exe refuse le commit, en le disant") + "\n" + str(s)
+        assert code == 1
+        assert "GARDE: claude.exe absent de l'app" in s
+        assert app in s
+        assert "pre-commit : l'app Claude est là sans claude.exe trouvé, validate impossible, commit refusé." in s
         code, s = git(sans, "commit", "-q", "-m", "md")
-        assert (code == 0
-                 and "pre-commit : claude introuvable, ni dans le PATH ni dans l'app, validate sauté." in s), ("hook claude : ni app ni claude, le commit passe averti") + "\n" + str(s)
+        assert code == 0
+        assert "pre-commit : claude introuvable, ni dans le PATH ni dans l'app, validate sauté." in s
 
 
 def test_apercu(tmp_path, init_git):
@@ -408,46 +438,63 @@ def test_apercu(tmp_path, init_git):
                 init_git(p)
 
             code, s = appel(["apercu", p])
-            assert (code == 0 and s.startswith("APERCU écrit apercu-proj · port 8790 · ")
-                     and [e["port"] for e in entrees()] == [8790]), ("apercu : sans launch.json, le crée avec l'entrée et le premier port, sort 0") + "\n" + str(s)
+            assert code == 0
+            assert s.startswith("APERCU écrit apercu-proj · port 8790 · ")
+            assert [e["port"] for e in entrees()] == [8790]
             ecrire(lancement, launch)
             avant_voisine = lu().split(voisine)
             code, s = appel(["apercu", p])
             e = entrees()
-            assert (code == 0 and s.startswith("APERCU écrit apercu-proj · port 8790") and len(e) == 1
-                     and e[0]["runtimeArgs"][1:] == ["servir", os.path.join(p, "context AI", "artefacts").replace("\\", "/"),
-                                                     "8790"]), ("apercu : ajoute l'entrée après la voisine, port 8790 (8792 est pris ailleurs)") + "\n" + str(s)
+            assert code == 0
+            assert s.startswith("APERCU écrit apercu-proj · port 8790")
+            assert len(e) == 1
+            assert (e[0]["runtimeArgs"][1:] == ["servir", os.path.join(p, "context AI", "artefacts").replace("\\", "/"),
+                                                     "8790"])
             une_fois = lu()
             code, s = appel(["apercu", p])
-            assert (code == 0 and s.startswith("APERCU déjà apercu-proj") and lu() == une_fois
-                     and len(entrees()) == 1 and lu().split(voisine)[0] == avant_voisine[0]
-                     and voisine in lu()), ("apercu : deux fois → une seule entrée apercu-, fichier identique, la voisine intacte à l'octet"
-                     " — mutant : ajouter sans chercher l'entrée existante") + "\n" + str(s)
+            assert code == 0
+            assert s.startswith("APERCU déjà apercu-proj")
+            assert lu() == une_fois
+            assert len(entrees()) == 1
+            assert lu().split(voisine)[0] == avant_voisine[0]
+            assert voisine in lu()
             code, s = appel(["apercu", p, "--port", "8801"])
-            assert (code == 0 and "remplacé apercu-proj · port 8801" in s and [x["port"] for x in entrees()] == [8801]
-                     and voisine in lu()), ("apercu : --port remplace l'entrée (toujours une seule), la voisine intacte") + "\n" + str(s)
+            assert code == 0
+            assert "remplacé apercu-proj · port 8801" in s
+            assert [x["port"] for x in entrees()] == [8801]
+            assert voisine in lu()
             code, s = appel(["apercu", p])
-            assert (code == 0 and "déjà apercu-proj · port 8801" in s), ("apercu : sans --port, garde le port de l'entrée déjà là") + "\n" + str(s)
+            assert code == 0
+            assert "déjà apercu-proj · port 8801" in s
             ecrire(lancement, '{"version": "0.0.1", "configurations": []}\r\n')
             code, s = appel(["apercu", p])
-            assert (code == 0 and len(entrees()) == 1 and "\r\n" in lu() and "\n" not in lu().replace("\r\n", "")), ("apercu : tableau vide → une entrée, fin de ligne CRLF gardée") + "\n" + str(lu())
+            assert code == 0
+            assert len(entrees()) == 1
+            assert "\r\n" in lu()
+            assert "\n" not in lu().replace("\r\n", "")
             for nom, contenu in (("illisible", "{pas du json"), ("sans tableau", '{"version": "0.0.1"}'),
                                  ("deux entrées", '{"configurations": [{"name": "apercu-proj"}, {"name": "apercu-proj"}]}')):
                 ecrire(lancement, contenu)
                 code, s = appel(["apercu", p])
-                assert (code == 1 and s.startswith("GARDE:") and lu() == contenu), ("apercu : launch.json %s → GARDE:, sort 1, rien d'écrit" % nom) + "\n" + str(s)
+                assert code == 1
+                assert s.startswith("GARDE:")
+                assert lu() == contenu
             code, s = appel(["apercu", os.path.join(t, "nulle-part")])
-            assert (code == 1 and s.startswith("GARDE: pas de projet")), ("apercu : pas de projet équipé → GARDE:, sort 1") + "\n" + str(s)
+            assert code == 1
+            assert s.startswith("GARDE: pas de projet")
             if not git_ok:
                 pytest.skip("git absent — la GARDE du .gitignore n'est pas testée")
             else:
                 os.remove(lancement)
                 code, s = appel(["apercu", p])
-                assert (code == 0 and len(entrees()) == 1 and s.splitlines()[-1].startswith("GARDE: .claude/launch.json")), ("apercu : sans .gitignore → écrit quand même, et une GARDE: le dit, sort 0"
-                         " — mutant : ne pas consulter git check-ignore") + "\n" + str(s)
+                assert code == 0
+                assert len(entrees()) == 1
+                assert s.splitlines()[-1].startswith("GARDE: .claude/launch.json")
                 ecrire(os.path.join(p, ".gitignore"), ".claude/launch.json\n")
                 code, s = appel(["apercu", p])
-                assert (code == 0 and s.startswith("APERCU déjà") and "GARDE" not in s), ("apercu : .gitignore couvre le fichier → pas de GARDE:") + "\n" + str(s)
+                assert code == 0
+                assert s.startswith("APERCU déjà")
+                assert "GARDE" not in s
 
             # servir : un vrai serveur, sur un port libre choisi par le système (port 0).
             art = os.path.join(t, "art")
@@ -468,14 +515,18 @@ def test_apercu(tmp_path, init_git):
             try:
                 with contextlib.redirect_stderr(io.StringIO()):     # le journal des requêtes
                     statut, tetes, corps = prendre("/a.html")
-                    assert (statut == 200 and tetes["Cache-Control"] == "no-store"
-                             and tetes["Content-Type"] == "text/html; charset=utf-8" and corps == "<p>é</p>"), ("servir : Cache-Control: no-store et html en UTF-8 — mutant : l'en-tête retiré") + "\n" + str((statut, tetes))
-                    assert (prendre("/vlp.js")[1]["Content-Type"] == "text/javascript; charset=utf-8"
-                             and prendre("/sous/b.svg")[1]["Content-Type"] == "image/svg+xml; charset=utf-8"
-                             and prendre("/vlp.js")[1]["Cache-Control"] == "no-store"), ("servir : .js et .svg (sous-dossier) en UTF-8, sans cache") + "\n" + "types"
+                    assert statut == 200
+                    assert tetes["Cache-Control"] == "no-store"
+                    assert tetes["Content-Type"] == "text/html; charset=utf-8"
+                    assert corps == "<p>é</p>"
+                    assert prendre("/vlp.js")[1]["Content-Type"] == "text/javascript; charset=utf-8"
+                    assert prendre("/sous/b.svg")[1]["Content-Type"] == "image/svg+xml; charset=utf-8"
+                    assert prendre("/vlp.js")[1]["Cache-Control"] == "no-store"
                     statut, tetes, corps = prendre("/_telephone?page=sous/b.svg")
-                    assert (statut == 200 and 'src="/sous/b.svg"' in corps and "width:375px" in corps
-                             and tetes["Cache-Control"] == "no-store"), ("servir : /_telephone rend la page dans un cadre de 375 px, sans cache") + "\n" + str(corps)
+                    assert statut == 200
+                    assert 'src="/sous/b.svg"' in corps
+                    assert "width:375px" in corps
+                    assert tetes["Cache-Control"] == "no-store"
                     for mauvais in ("", "?page=../secret", "?page=/etc/passwd", "?page=<script>", "?page=a.html%22onload%3D1"):
                         assert (prendre("/_telephone" + mauvais)[0] == 400), ("servir : /_telephone%s → 400, jamais de cadre" % mauvais) + "\n" + str(mauvais)
                     assert (prendre("/nulle.html")[0] == 404), ("servir : page absente → 404 sans cache") + "\n" + "404"
@@ -483,9 +534,11 @@ def test_apercu(tmp_path, init_git):
                 serveur.shutdown()
                 serveur.server_close()
             code, s = appel(["servir", os.path.join(t, "absent"), "8800"])
-            assert (code == 1 and s.startswith("GARDE: dossier introuvable")), ("servir : dossier absent → GARDE:, sort 1") + "\n" + str(s)
+            assert code == 1
+            assert s.startswith("GARDE: dossier introuvable")
             code, s = appel(["servir", art, "99999"])
-            assert (code == 1 and s.startswith("GARDE: port 99999")), ("servir : port impossible → GARDE:, sort 1") + "\n" + str(s)
+            assert code == 1
+            assert s.startswith("GARDE: port 99999")
         finally:
             for k, v in anciens.items():
                 if v is None:
@@ -508,22 +561,27 @@ def test_nuits(tmp_path, init_git):
             os.environ["VLP_CANAL"] = "B"
             codes.append(mod.main(["nuits", "noter", "arrêtez", "--stop"], sortie[2]))
             lignes = mod.carnet.lire(c)
-            assert (codes == [0, 0, 0] and [d["note"] for d in lignes] == ["première", "deuxième", None]
-                     and [d["stop"] for d in lignes] == [None, None, "arrêtez"]
-                     and [d["canal"] for d in lignes] == ["A", None, "B"]
-                     and all(s.getvalue() == "NOTÉ %s\n" % c for s in sortie)
-                     and all(d["nuit"] == "nuit" and d["role"] is None for d in lignes)), ("nuits noter : deux notes puis un stop au carnet de VLP_CARNET, NOTÉ <chemin>, canal de "
-                     "--canal puis de VLP_CANAL") + "\n" + str((codes, lignes))
+            assert codes == [0, 0, 0]
+            assert [d["note"] for d in lignes] == ["première", "deuxième", None]
+            assert [d["stop"] for d in lignes] == [None, None, "arrêtez"]
+            assert [d["canal"] for d in lignes] == ["A", None, "B"]
+            assert all(s.getvalue() == "NOTÉ %s\n" % c for s in sortie)
+            assert all(d["nuit"] == "nuit" and d["role"] is None for d in lignes)
             del os.environ["VLP_CARNET"], os.environ["VLP_CANAL"]
             o = io.StringIO()
             code = mod.cmd_nuits_noter("sans dépôt", None, False, o, dossier=t)
-            assert (code == 1 and o.getvalue().startswith("GARDE:") and os.listdir(t) == ["nuit.jsonl"]), ("nuits noter : sans dépôt Git ni VLP_CARNET → GARDE:, sort 1, rien d'écrit") + "\n" + str((code, o.getvalue()))
+            assert code == 1
+            assert o.getvalue().startswith("GARDE:")
+            assert os.listdir(t) == ["nuit.jsonl"]
             init_git(t)
             o = io.StringIO()
             code = mod.cmd_nuits_noter("du jour", "A", False, o, dossier=t)
             jour = mod.carnet.du_jour(t)
-            assert (code == 0 and jour and o.getvalue() == "NOTÉ %s\n" % jour and os.path.join(".git", "vlp-nuit") in jour
-                     and [d["note"] for d in mod.carnet.lire(jour)] == ["du jour"]), ("nuits noter : sans VLP_CARNET, le carnet du jour du dépôt (.git/vlp-nuit/<date>.jsonl)") + "\n" + str((code, o.getvalue(), jour))
+            assert code == 0
+            assert jour
+            assert o.getvalue() == "NOTÉ %s\n" % jour
+            assert os.path.join(".git", "vlp-nuit") in jour
+            assert [d["note"] for d in mod.carnet.lire(jour)] == ["du jour"]
     finally:
         for k, v in env.items():
             if v is not None:

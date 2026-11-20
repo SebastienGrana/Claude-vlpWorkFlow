@@ -75,8 +75,9 @@ def test_ordre(tmp_path, init_git):
         donnees = json.loads(pathlib.Path(os.path.join(kit, "ctx", "ordre", "donnees.json")).read_text(encoding="utf-8"))
         ecrire(source, ORDRE_SOURCE.replace("| 1 fiche |", "| |"))
         sans = appel(["ordre", "--json", "--source", source])
-    assert (code == 0 and s.startswith("GARDE: projet x absent : absent n'est pas un dossier équipé")
-             and "ORDRE 5 pas · 2 trouvés en TODO · 2 pris de la source\n" in s), ("ORD1 : ordre --json compte les pas, ceux lus en TODO, ceux pris de la source ; le projet absent dit") + "\n" + str(s)
+    assert code == 0
+    assert s.startswith("GARDE: projet x absent : absent n'est pas un dossier équipé")
+    assert "ORDRE 5 pas · 2 trouvés en TODO · 2 pris de la source\n" in s
     a1 = [p for p in donnees["pas"] if p["code"] == "A1"]
     assert (a1 == [{"projet": "a", "code": "A1", "numero": "7", "nom": "Le pont", "phase": "V2", "score": 9,
                      "bas": 4.0, "haut": 4.0, "fait": False, "note": "", "depend": "`K1`", "niveau": "obligatoire",
@@ -86,9 +87,11 @@ def test_ordre(tmp_path, init_git):
                                                   "a": {"pas": 2, "bas": 5.0, "haut": 5.0}},
                                    "par_niveau": {"obligatoire": {"pas": 2, "bas": 6.0, "haut": 7.0},
                                                   "conseillé": {"pas": 1, "bas": 0, "haut": 0},
-                                                  "à la marge": {"pas": 1, "bas": 1.0, "haut": 1.0}}}
-             and donnees["cible"] == {"a": ["A1"]} and donnees["projets_absents"] == ["x"]), ("ORD1 : les totaux du JSON — fiches bas et haut des pas chiffrés, faits, par projet") + "\n" + str(donnees)
-    assert (sans[0] == 1 and "GARDE: pas A2 (a) : ni dans la TODO, ni un coût en fiches dans la source\n" in sans[1]), ("ORD1 : un pas ni en TODO ni chiffré par la source, une GARDE qui le nomme, sort 1") + "\n" + str(sans)
+                                                  "à la marge": {"pas": 1, "bas": 1.0, "haut": 1.0}}})
+    assert donnees["cible"] == {"a": ["A1"]}
+    assert donnees["projets_absents"] == ["x"]
+    assert sans[0] == 1
+    assert "GARDE: pas A2 (a) : ni dans la TODO, ni un coût en fiches dans la source\n" in sans[1]
     with tempfile.TemporaryDirectory(dir=tmp_path) as t:     # un dépôt neuf, le .gitignore du kit : vrai aussi dans une copie
         shutil.copy(os.path.join(mod.etat.KIT, ".gitignore"), t)
         init_git(t)
@@ -146,15 +149,20 @@ def test_ordre_classement(tmp_path):
             return code, s, json.loads(pathlib.Path(chemin).read_text(encoding="utf-8")) if os.path.isfile(chemin) else None
     code, s, donnees = classer("—", "—")
     niveaux = donnees and {p["code"]: p["niveau"] for p in donnees["pas"]}
-    assert (code == 0 and niveaux == {"P1": "obligatoire", "P2": "obligatoire", "P3": "obligatoire", "P4": "conseillé",
-                                       "P5": "à la marge", "P6": "obligatoire"}), ("ORD2 : obligatoire de proche en proche depuis la cible, conseillé en V1, à la marge en V2") + "\n" + str((s, niveaux))
-    assert (donnees is not None and donnees["vagues"] == [["P1", "P5", "P6"], ["P2", "P4"], ["P3"]]
-             and "CLASSEMENT 4 obligatoires · 1 conseillés · 1 à la marge · 3 vagues · dépendances : 3 lues en TODO, "
-                 "1 écrites par la source, 0 hors du chemin\n" in s), ("ORD2 : les vagues du tri, dans l'ordre du chemin, et le compte des dépendances") + "\n" + str((s, donnees and donnees["vagues"]))
+    assert code == 0
+    assert (niveaux == {"P1": "obligatoire", "P2": "obligatoire", "P3": "obligatoire", "P4": "conseillé",
+                                       "P5": "à la marge", "P6": "obligatoire"})
+    assert donnees is not None
+    assert donnees["vagues"] == [["P1", "P5", "P6"], ["P2", "P4"], ["P3"]]
+    assert ("CLASSEMENT 4 obligatoires · 1 conseillés · 1 à la marge · 3 vagues · dépendances : 3 lues en TODO, "
+                 "1 écrites par la source, 0 hors du chemin\n" in s)
     cycle = classer("`P3`", "—")
-    assert (cycle[0] == 1 and cycle[1].startswith("GARDE: cycle de dépendances : ") and cycle[2] is None), ("ORD2 : un cycle, une GARDE qui le nomme, rien d'écrit, sort 1") + "\n" + str(cycle[:2])
+    assert cycle[0] == 1
+    assert cycle[1].startswith("GARDE: cycle de dépendances : ")
+    assert cycle[2] is None
     illisible = classer("—", "plus tard")
-    assert (illisible[0] == 1 and "GARDE: pas P5 : dépendance illisible « plus tard »\n" in illisible[1]), ("ORD2 : une dépendance illisible, une GARDE qui nomme le pas, sort 1") + "\n" + str(illisible[:2])
+    assert illisible[0] == 1
+    assert "GARDE: pas P5 : dépendance illisible « plus tard »\n" in illisible[1]
 
 
 def donnees_de_page(html_):
@@ -192,20 +200,30 @@ def test_ordre_page(tmp_path):
         finally:
             mod.etat.GABARIT_ORDRE = avant
     embarque = donnees_de_page(page)
-    assert (code == 0 and "\nPAGE " in s and "\nFILES {" in s and '"vlp.css"' in s and joints == ["vlp.css", "vlp.js"]), ("ORD3 : ordre sans --json écrit la page et ses joints, puis la ligne FILES") + "\n" + str((s, joints))
-    assert (embarque == donnees and [p["code"] for p in embarque["pas"]] == ["K9", "K1", "A1", "A2"]
-             and embarque["totaux"]["par_niveau"]["obligatoire"] == {"pas": 2, "bas": 6.0, "haut": 7.0}
-             and [p["nom"] for p in embarque["projets"]] == ["Le kit", "a"]), ("ORD3 : la page porte les données entières — chaque pas, dans l'ordre, et chaque total") + "\n" + str(embarque)
-    assert (embarque and embarque["prose"]["Le jugement"] == ["`A1` d'abord, puis le reste."]
-             and embarque["prose"]["Les décisions"] == ["**K1** avant tout."]
-             and [x["code"] for x in embarque["piste"]] == ["K1"]), ("ORD3 : la prose de la source en texte, puce continuée comprise, et la piste du projet de la source") + "\n" + str(embarque and embarque["prose"])
+    assert code == 0
+    assert "\nPAGE " in s
+    assert "\nFILES {" in s
+    assert '"vlp.css"' in s
+    assert joints == ["vlp.css", "vlp.js"]
+    assert embarque == donnees
+    assert [p["code"] for p in embarque["pas"]] == ["K9", "K1", "A1", "A2"]
+    assert embarque["totaux"]["par_niveau"]["obligatoire"] == {"pas": 2, "bas": 6.0, "haut": 7.0}
+    assert [p["nom"] for p in embarque["projets"]] == ["Le kit", "a"]
+    assert embarque
+    assert embarque["prose"]["Le jugement"] == ["`A1` d'abord, puis le reste."]
+    assert embarque["prose"]["Les décisions"] == ["**K1** avant tout."]
+    assert [x["code"] for x in embarque["piste"]] == ["K1"]
     restes = re.findall(r"<[^\x00-\x7f]|<…", page)
-    assert (page and not restes and page.count("</script>") == lire(mod.etat.GABARIT_ORDRE).count("</script>")
-             and mod.defauts_page(page) == [] and '<meta name="viewport"' in page), ("ORD3 : aucune balise de gabarit restante, un </script> de TODO échappé, la page saine, la balise viewport") + "\n" + str(restes)
-    assert (garde[0] == 1 and "la balise <données> y est 2 fois, attendu 1" in garde[1]), ("ORD3 : un gabarit à deux balises, une GARDE qui le dit, sort 1") + "\n" + str(garde)
+    assert page
+    assert not restes
+    assert page.count("</script>") == lire(mod.etat.GABARIT_ORDRE).count("</script>")
+    assert mod.defauts_page(page) == []
+    assert '<meta name="viewport"' in page
+    assert garde[0] == 1
+    assert "la balise <données> y est 2 fois, attendu 1" in garde[1]
     url = re.compile(r"https://cdn\.jsdelivr\.net/npm/chart\.js@[^\"']+")
-    assert (url.findall(lire(mod.etat.GABARIT_ORDRE)) == url.findall(lire(os.path.join(mod.etat.KIT, "templates", "vlp.js")))
-             and len(url.findall(lire(mod.etat.GABARIT_ORDRE))) == 1), ("ORD3 : Chart.js chargé à la même URL que vlp.js") + "\n" + str(url.findall(lire(mod.etat.GABARIT_ORDRE)))
+    assert url.findall(lire(mod.etat.GABARIT_ORDRE)) == url.findall(lire(os.path.join(mod.etat.KIT, "templates", "vlp.js")))
+    assert len(url.findall(lire(mod.etat.GABARIT_ORDRE))) == 1
 
 
 CLES_ORDRE_DB = ["source", "date", "projets", "cible", "projets_absents", "pas", "vagues", "dependances", "totaux",
@@ -240,11 +258,19 @@ def test_ordre_db(tmp_path):
         reecrit = os.path.isfile(chemin)
     doc = json.loads(brut)
     taille = len(brut.rstrip("\n").encode("utf-8"))
-    assert (code == 0 and isinstance(doc, dict) and list(doc) == CLES_ORDRE_DB and "\n " not in brut and not page), ("ORD4 : ordre --db écrit un objet JSON compact, chaque clé que la page lit, sans page") + "\n" + str((s, list(doc)))
-    assert (mod.etat.LIMITE_DOC_DB == 262144 and "DB ordre/donnees %d octets · limite 262144 · " % taille in s
-             and "AVERTISSEMENT" not in s), ("ORD4 : la ligne DB dit la taille en octets face à la limite d'un document db (256 KiB)") + "\n" + str(s)
-    assert (dixieme[0] == 0 and "AVERTISSEMENT: ordre/donnees passe le dixième" in dixieme[1]
-             and trop[0] == 1 and "au-delà de la limite d'un document db (100)" in trop[1] and not reecrit), ("ORD4 : passé un dixième de la limite, un AVERTISSEMENT ; passé la limite, une GARDE, rien d'écrit") + "\n" + str((dixieme, trop))
+    assert code == 0
+    assert isinstance(doc, dict)
+    assert list(doc) == CLES_ORDRE_DB
+    assert "\n " not in brut
+    assert not page
+    assert mod.etat.LIMITE_DOC_DB == 262144
+    assert "DB ordre/donnees %d octets · limite 262144 · " % taille in s
+    assert "AVERTISSEMENT" not in s
+    assert dixieme[0] == 0
+    assert "AVERTISSEMENT: ordre/donnees passe le dixième" in dixieme[1]
+    assert trop[0] == 1
+    assert "au-delà de la limite d'un document db (100)" in trop[1]
+    assert not reecrit
 
 
 def test_ordre_clore(tmp_path):
@@ -282,10 +308,16 @@ def test_ordre_clore(tmp_path):
             sorties.append((code, s, os.path.isfile(donnees) and json.loads(pathlib.Path(donnees).read_text(encoding="utf-8")),
                             os.path.realpath(donnees), os.path.realpath(source)))
     (code, s, doc, donnees, _), (code_sans, s_sans, doc_sans, _, source_sans) = sorties
-    assert (code == 0 and "CLOS U " in s and "ORDRE envoyer %s → https://claude.ai/artifact/essai\n" % donnees in s
-             and isinstance(doc, dict) and [p["code"] for p in doc["pas"]] == ["K1"]), ("ORD5 : clore d'un autre projet refait les données du kit et dit quoi envoyer où") + "\n" + str((code, s))
-    assert (code_sans == 0 and "CLOS U " in s_sans and "ORDRE envoyer" not in s_sans and doc_sans is False
-             and "GARDE: ordre : source introuvable (%s)" % source_sans in s_sans), ("ORD5 : sans source, une GARDE qui le dit, pas de ligne ORDRE, et la clôture finit") + "\n" + str((code_sans, s_sans))
+    assert code == 0
+    assert "CLOS U " in s
+    assert "ORDRE envoyer %s → https://claude.ai/artifact/essai\n" % donnees in s
+    assert isinstance(doc, dict)
+    assert [p["code"] for p in doc["pas"]] == ["K1"]
+    assert code_sans == 0
+    assert "CLOS U " in s_sans
+    assert "ORDRE envoyer" not in s_sans
+    assert doc_sans is False
+    assert "GARDE: ordre : source introuvable (%s)" % source_sans in s_sans
 
 
 def test_clore_pages_aucun(tmp_path):
@@ -314,10 +346,13 @@ def test_clore_pages_aucun(tmp_path):
         finally:
             mod.etat.SOURCE_ORDRE = avant
         donnees = os.path.join(kit, "ctx", "ordre", "donnees.json")
-        assert (code == 0 and "CLOS U " in s and "ORDRE envoyer" not in s and not os.path.exists(donnees)
-                 and "page du chantier introuvable" not in s and "feuille de route introuvable" not in s
-                 and "SANS PAGE la page du chantier, la feuille de route — CHANTIER.md dit « aucun »\n" in s), ("ISO : clore d'un projet aux pages « aucun » — ni ORDRE vers le kit, ni GARDE de page absente, "
-                 "une ligne SANS PAGE — clore : enchaînement « aucun » ignoré") + "\n" + str((code, s))
+        assert code == 0
+        assert "CLOS U " in s
+        assert "ORDRE envoyer" not in s
+        assert not os.path.exists(donnees)
+        assert "page du chantier introuvable" not in s
+        assert "feuille de route introuvable" not in s
+        assert "SANS PAGE la page du chantier, la feuille de route — CHANTIER.md dit « aucun »\n" in s
 
 
 def lien_dossier(cible, lien):
@@ -345,4 +380,6 @@ def test_ordre_jonction(tmp_path):
         lien_dossier(kit, lien)
         code, s = appel(["ordre", "--json", "--source", os.path.join(lien, "ctx", "ordre.md")])
         os.rmdir(lien) if os.name == "nt" else os.remove(lien)   # la jonction seule, jamais ce qu'elle vise
-    assert (code == 0 and "GARDE" not in s and "ORDRE 2 pas · 2 trouvés en TODO" in s), ("Dette ORD : la source lue par une jonction trouve le projet voisin du vrai kit") + "\n" + str((code, s))
+    assert code == 0
+    assert "GARDE" not in s
+    assert "ORDRE 2 pas · 2 trouvés en TODO" in s

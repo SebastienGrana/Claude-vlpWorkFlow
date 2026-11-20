@@ -60,48 +60,60 @@ def test_ouvrir(tmp_path):
         ecrire(os.path.join(t, "ctx", "30-q.md"), "# Chantier Q — Un titre\n\n## Q1 [ ] — a\n## Q2 [ ] — b\n")
         code, s = appel(["ouvrir", t, "--fiches", "ctx/30-q.md", "--titre", "Un `titre`"])
         carte_lue, index_lu, claude_lu = lire(os.path.join(t, "CHANTIER.md")), lire(os.path.join(t, "ctx", "00-INDEX.md")), lire(os.path.join(t, "CLAUDE.md"))
-        assert (code == 0 and s == "OUVERT Q Q1..Q2 · index +1 · routage +1 · session +1 · artefact aucun — %s\n" % t), ("ouvrir : bilan") + "\n" + str(s)
+        assert code == 0
+        assert s == "OUVERT Q Q1..Q2 · index +1 · routage +1 · session +1 · artefact aucun — %s\n" % t
         assert (lire(os.path.join(t, "ctx", "30-q.md"))
                  == "# Chantier Q — Un titre\n\n%s\n\n**Session** : cadre\n\n## Q1 [ ] — a\n## Q2 [ ] — b\n"
                  % (mod.OUVERT_LIGNE % __import__("datetime").date.today().isoformat())), ("ouvrir : la session du cadrage, avant la première ligne ##") + "\n" + str(lire(os.path.join(t, "ctx", "30-q.md")))
-        assert ("fichier de fiches" not in carte_lue and "- **artefact du chantier** : aucun\n" in carte_lue
-                 and mod.courant_de(t) == "ctx/30-q.md"), ("ouvrir : CHANTIER.md, l'artefact seul — plus de ligne du fichier courant (NUI31)") + "\n" + str(carte_lue)
+        assert "fichier de fiches" not in carte_lue
+        assert "- **artefact du chantier** : aucun\n" in carte_lue
+        assert mod.courant_de(t) == "ctx/30-q.md"
         assert ("| `10-e.md` | on relit |\n| `30-q.md` | on joue une fiche `Q*` — chantier **ouvert** « Un `titre` », `Q1..Q2` |\n| `05-d.md`" in index_lu), ("ouvrir : index, après le plus grand numéro") + "\n" + str(index_lu)
         assert ("**clos** |\n| jouer une fiche du chantier Q (un `titre`) | `ctx/30-q.md` — chantier **ouvert**, par `/vlp:tache Q<n>` |\n| relire" in claude_lu), ("ouvrir : routage, avant « relire un chantier clos »") + "\n" + str(claude_lu)
         code, s = appel(["ouvrir", t, "--fiches", "ctx/30-q.md", "--titre", "Un `titre`", "--artefact", "https://exemple/q"])
-        assert (code == 0 and "index +0 · routage +0 · session +0 · artefact https://exemple/q" in s
-                 and lire(os.path.join(t, "ctx", "30-q.md")).count("**Session**") == 1
-                 and lire(os.path.join(t, "CLAUDE.md")) == claude_lu and lire(os.path.join(t, "ctx", "00-INDEX.md")) == index_lu
-                 and "**artefact du chantier** : https://exemple/q" in lire(os.path.join(t, "CHANTIER.md"))), ("ouvrir : relance, artefact seul") + "\n" + str(s)
+        assert code == 0
+        assert "index +0 · routage +0 · session +0 · artefact https://exemple/q" in s
+        assert lire(os.path.join(t, "ctx", "30-q.md")).count("**Session**") == 1
+        assert lire(os.path.join(t, "CLAUDE.md")) == claude_lu
+        assert lire(os.path.join(t, "ctx", "00-INDEX.md")) == index_lu
+        assert "**artefact du chantier** : https://exemple/q" in lire(os.path.join(t, "CHANTIER.md"))
         avant = lire(os.path.join(t, "CHANTIER.md"))
         code, s = appel(["ouvrir", t, "--fiches", "ctx/30-q.md", "--titre", "Un `titre`"])
-        assert (code == 0 and lire(os.path.join(t, "CHANTIER.md")) == avant), ("ouvrir : relance sans artefact, rien ne change") + "\n" + str(s)
+        assert code == 0
+        assert lire(os.path.join(t, "CHANTIER.md")) == avant
         ecrire(os.path.join(t, "ctx", "31-r.md"), "# Chantier R — r\n\n## R1 [ ] — a\n")
         code, s = appel(["ouvrir", t, "--fiches", "ctx/31-r.md", "--titre", "r"])
-        assert (code == 1 and s.startswith("GARDE: un chantier est déjà ouvert")
-                 and lire(os.path.join(t, "CHANTIER.md")) == avant), ("ouvrir : autre chantier ouvert, refus") + "\n" + str(s)
+        assert code == 1
+        assert s.startswith("GARDE: un chantier est déjà ouvert")
+        assert lire(os.path.join(t, "CHANTIER.md")) == avant
         ecrire(os.path.join(t, "ctx", "30-q.md"), "# Chantier Q — Un titre\n\n## Q1 [ ] — a\n## Q2 [ ] — b\n## Q3 [ ] — c\n")
         # Relancé avec un autre titre : seule la plage suit, sur la même et unique ligne.
         code, s = appel(["ouvrir", t, "--fiches", "ctx/30-q.md", "--titre", "Un autre titre"])
         index_q = [l for l in lire(os.path.join(t, "ctx", "00-INDEX.md")).split("\n") if l.startswith("| `30-q.md` |")]
-        assert (code == 0 and "OUVERT Q Q1..Q3 · index ~1 · routage +0 · session +1" in s
-                 and index_q == ["| `30-q.md` | on joue une fiche `Q*` — chantier **ouvert** « Un `titre` », `Q1..Q3` |"]
-                 and mod.courant_de(t) == "ctx/30-q.md"), ("ouvrir : relancé, la plage de l'index suit le fichier") + "\n" + str(s + repr(index_q))
+        assert code == 0
+        assert "OUVERT Q Q1..Q3 · index ~1 · routage +0 · session +1" in s
+        assert index_q == ["| `30-q.md` | on joue une fiche `Q*` — chantier **ouvert** « Un `titre` », `Q1..Q3` |"]
+        assert mod.courant_de(t) == "ctx/30-q.md"
         index_main = lire(os.path.join(t, "ctx", "00-INDEX.md")).replace("chantier **ouvert** « Un `titre` », `Q1..Q3`", "à la main `Q1..Q2`")
         ecrire(os.path.join(t, "ctx", "00-INDEX.md"), index_main)
         code, s = appel(["ouvrir", t, "--fiches", "ctx/30-q.md", "--titre", "Un `titre`"])
-        assert (code == 0 and "index +0" in s
-                 and lire(os.path.join(t, "ctx", "00-INDEX.md")) == index_main), ("ouvrir : relancé, une ligne d'index écrite à la main reste") + "\n" + str(s)
+        assert code == 0
+        assert "index +0" in s
+        assert lire(os.path.join(t, "ctx", "00-INDEX.md")) == index_main
         sans_chantier(t, carte_o % "aucun")
         os.remove(os.path.join(t, "CLAUDE.md"))
         code, s = appel(["ouvrir", t, "--fiches", "ctx/31-r.md", "--titre", "r"])
-        assert (code == 0 and "GARDE: CLAUDE.md introuvable" in s
-                 and "routage +0" in s and "index +1" in s and mod.courant_de(t) == "ctx/31-r.md"), ("ouvrir : CLAUDE.md absent, garde, le reste écrit") + "\n" + str(s)
+        assert code == 0
+        assert "GARDE: CLAUDE.md introuvable" in s
+        assert "routage +0" in s
+        assert "index +1" in s
+        assert mod.courant_de(t) == "ctx/31-r.md"
         sans_chantier(t, carte_o % "aucun")
         ecrire(os.path.join(t, "ctx", "32-s.md"), "# Chantier S — s\n\n**CLOS** le 2026-01-01. Ne se rejoue pas.\n\n## S1 [x] — a\n")
         code, s = appel(["ouvrir", t, "--fiches", "ctx/32-s.md", "--titre", "s"])
-        assert (code == 1 and s.startswith("GARDE: ctx/32-s.md porte **CLOS**")
-                 and "aucun" in lire(os.path.join(t, "CHANTIER.md"))), ("ouvrir : fichier CLOS, refus sans écrire") + "\n" + str(s)
+        assert code == 1
+        assert s.startswith("GARDE: ctx/32-s.md porte **CLOS**")
+        assert "aucun" in lire(os.path.join(t, "CHANTIER.md"))
         # Un vrai fichier : la session va avant `## Le socle commun`, jamais entre le marqueur d'une
         # fiche et son titre — la fiche extraite n'en porte pas. Déjà sur une ligne `**Session**`, même
         # d'une fiche, elle n'est pas redoublée ; un id vide ne note rien.
@@ -113,19 +125,22 @@ def test_ouvrir(tmp_path):
         sans_chantier(t, carte_o % "aucun")
         code, s = appel(["ouvrir", t, "--fiches", "ctx/33-t.md", "--titre", "t"])
         lu_o = lire(os.path.join(t, "ctx", "33-t.md"))
-        assert (code == 0 and "· session +1 ·" in s
-                 and lu_o == vrai.replace("## Le socle commun", "**Session** : cadre\n\n## Le socle commun")
-                                 .replace("# Chantier T — t\n\n", "# Chantier T — t\n\n%s\n\n" % OUVERT_DU_JOUR)
-                 and "**Session**" not in appel(["extraire", os.path.join(t, "ctx", "33-t.md"), "T1"])[1]), ("ouvrir : un vrai fichier, la session avant le socle, hors de toute fiche") + "\n" + str(s + lu_o)
+        assert code == 0
+        assert "· session +1 ·" in s
+        assert (lu_o == vrai.replace("## Le socle commun", "**Session** : cadre\n\n## Le socle commun")
+                                 .replace("# Chantier T — t\n\n", "# Chantier T — t\n\n%s\n\n" % OUVERT_DU_JOUR))
+        assert "**Session**" not in appel(["extraire", os.path.join(t, "ctx", "33-t.md"), "T1"])[1]
         sans_chantier(t, carte_o % "aucun")
         code, s = appel(["ouvrir", t, "--fiches", "ctx/34-u.md", "--titre", "u"])
-        assert (code == 0 and "· session +0 ·" in s
-                 and lire(os.path.join(t, "ctx", "34-u.md")).count("**Session**") == 1), ("ouvrir : session déjà sur une ligne d'une fiche, pas redoublée") + "\n" + str(s)
+        assert code == 0
+        assert "· session +0 ·" in s
+        assert lire(os.path.join(t, "ctx", "34-u.md")).count("**Session**") == 1
         sans_chantier(t, carte_o % "aucun")
         os.environ["CLAUDE_CODE_SESSION_ID"] = ""
         code, s = appel(["ouvrir", t, "--fiches", "ctx/35-v.md", "--titre", "v"])
-        assert (code == 0 and "· session +0 ·" in s
-                 and lire(os.path.join(t, "ctx", "35-v.md")) == "# Chantier V — v\n\n%s\n\n## V1 [ ] — a\n" % OUVERT_DU_JOUR), ("ouvrir : id vide, rien de noté") + "\n" + str(s)
+        assert code == 0
+        assert "· session +0 ·" in s
+        assert lire(os.path.join(t, "ctx", "35-v.md")) == "# Chantier V — v\n\n%s\n\n## V1 [ ] — a\n" % OUVERT_DU_JOUR
         os.environ.pop("CLAUDE_CODE_SESSION_ID", None)
 
 
@@ -147,43 +162,50 @@ def test_estime():
         ecrire(os.path.join(te, "CHANTIER.md"), carte_e)
         ecrire(os.path.join(te, "ctx", "30-q.md"), fiches_e)
         code, s = appel(["ouvrir", te, "--fiches", "ctx/30-q.md", "--titre", "q", "--estime-fiches", "2"])
-        assert (code == 0 and "GARDE: feuille de route introuvable" in s
-                 and "estimé" not in s.split("\n")[-2] and "**Estimé.**" not in lire(os.path.join(te, "ctx", "30-q.md"))
-                 and mod.courant_de(te) == "ctx/30-q.md"), ("EST1 : sans feuille, GARDE, le reste écrit") + "\n" + str(s)
+        assert code == 0
+        assert "GARDE: feuille de route introuvable" in s
+        assert "estimé" not in s.split("\n")[-2]
+        assert "**Estimé.**" not in lire(os.path.join(te, "ctx", "30-q.md"))
+        assert mod.courant_de(te) == "ctx/30-q.md"
         ecrire(os.path.join(te, "ctx", "artefacts", "feuille-de-route.html"),
                "<!-- ZONE:clos -->\n<tbody>\n" + rang % ("A1–A3", "3,00 $ · ≈3,0M (3 000 000)")
                + rang % ("B1", "1,00 $ · ≈1,0M (1 000 000)") + rang % ("D1–D2", "≈2,0M (2 000 000)")
                + rang % ("E1–E8", "non recompté — fichier introuvable · non mesurable") + "</tbody>\n")
         code, s = appel(["ouvrir", te, "--fiches", "ctx/30-q.md", "--titre", "q", "--estime-fiches", "2"])
         lu_e = lire(os.path.join(te, "ctx", "30-q.md"))
-        assert (code == 0 and "· estimé 2 fiches ≈2,00 $ — " in s
-                 and "\n**Estimé.** 2 fiches · ≈2,00 $ — ≈1,00 $/fiche sur 3 clos (le " in lu_e
-                 and lu_e.index("**Estimé.**") < lu_e.index("**Fait.**")), ("EST1 : l'estimé avant **Fait.**, fiches lues sur la plage — mutant : D1–D2 comptée dans la moyenne $") + "\n" + str(s + lu_e)
+        assert code == 0
+        assert "· estimé 2 fiches ≈2,00 $ — " in s
+        assert "\n**Estimé.** 2 fiches · ≈2,00 $ — ≈1,00 $/fiche sur 3 clos (le " in lu_e
+        assert lu_e.index("**Estimé.**") < lu_e.index("**Fait.**")
         code, s = appel(["ouvrir", te, "--fiches", "ctx/30-q.md", "--titre", "q", "--estime-fiches", "0,5"])
-        assert (code == 0 and "· estimé gardé — " in s
-                 and lire(os.path.join(te, "ctx", "30-q.md")).count("**Estimé.**") == 1), ("EST1 : second appel, estimé gardé, une seule ligne") + "\n" + str(s)
+        assert code == 0
+        assert "· estimé gardé — " in s
+        assert lire(os.path.join(te, "ctx", "30-q.md")).count("**Estimé.**") == 1
         code, s = appel(["ouvrir", te, "--fiches", "ctx/30-q.md", "--titre", "q"])
-        assert (code == 0 and "estimé" not in s
-                 and lire(os.path.join(te, "ctx", "30-q.md")) == lu_e), ("EST1 : sans l'option, rien ne change") + "\n" + str(s)
-        assert (mod.nombre_fiches("0,5") == mod.nombre_fiches("0.5") == 0.5
-                 and mod.decimal_fr(0.5) == "0,5" and mod.decimal_fr(2.0) == "2"), ("EST1 : 0,5 et 0.5 acceptés") + "\n" + ""
+        assert code == 0
+        assert "estimé" not in s
+        assert lire(os.path.join(te, "ctx", "30-q.md")) == lu_e
+        assert mod.nombre_fiches("0,5") == mod.nombre_fiches("0.5") == 0.5
+        assert mod.decimal_fr(0.5) == "0,5"
+        assert mod.decimal_fr(2.0) == "2"
         sans_chantier(te, carte_e)
         ecrire(os.path.join(te, "ctx", "31-r.md"), "# Chantier R — r\n\n**Fait.** Rien.\n\n## R1 [ ] — a\n")
         ecrire(os.path.join(te, "ctx", "artefacts", "feuille-de-route.html"),
                "<!-- ZONE:clos -->\n<tbody>\n" + rang % ("E1–E8", "non mesurable") + "</tbody>\n")
         code, s = appel(["ouvrir", te, "--fiches", "ctx/31-r.md", "--titre", "r", "--estime-fiches", "1"])
-        assert (code == 0 and "GARDE: aucun chantier clos mesuré" in s
-                 and mod.courant_de(te) == "ctx/31-r.md"), ("EST1 : aucun clos mesuré, GARDE, le reste écrit") + "\n" + str(s)
+        assert code == 0
+        assert "GARDE: aucun chantier clos mesuré" in s
+        assert mod.courant_de(te) == "ctx/31-r.md"
         # TAU2 : des clos mesurés en tokens, mais aucun au prix `$` — GARDE dédiée, pas d'estimé en $.
         sans_chantier(te, carte_e)
         ecrire(os.path.join(te, "ctx", "32-s.md"), "# Chantier S — s\n\n**Fait.** Rien.\n\n## S1 [ ] — a\n")
         ecrire(os.path.join(te, "ctx", "artefacts", "feuille-de-route.html"),
                "<!-- ZONE:clos -->\n<tbody>\n" + rang % ("D1–D2", "≈2,0M (2 000 000)") + "</tbody>\n")
         code, s = appel(["ouvrir", te, "--fiches", "ctx/32-s.md", "--titre", "s", "--estime-fiches", "1"])
-        assert (code == 0
-                 and "GARDE: aucun chantier clos au prix mesuré sur la feuille de route — pas d'estimé" in s
-                 and "**Estimé.**" not in lire(os.path.join(te, "ctx", "32-s.md"))
-                 and mod.courant_de(te) == "ctx/32-s.md"), ("TAU2 : mesuré en tokens, aucun au prix $ — GARDE dédiée, le reste écrit") + "\n" + str(s)
+        assert code == 0
+        assert "GARDE: aucun chantier clos au prix mesuré sur la feuille de route — pas d'estimé" in s
+        assert "**Estimé.**" not in lire(os.path.join(te, "ctx", "32-s.md"))
+        assert mod.courant_de(te) == "ctx/32-s.md"
         os.environ.pop("CLAUDE_CODE_SESSION_ID", None)
     # TAU2 : le total de la feuille (`resume_clos`, `resommer`) sur trois clos, deux avec `$` et un
     # sans — mutant : compter la ligne sans `$` comme 0 $ fausse la somme comme la moyenne.
@@ -197,8 +219,8 @@ def test_estime():
                     '<td class="mono"><strong>x</strong></td><td class="mono">y</td></tr></tfoot></table>'
                     '<span class="resume-clos">z</span>' % corps_mixte)
     resomme = mod.resommer(gabarit_pied, 3, 6_000_000, *mod.prix_clos(corps_mixte))
-    assert ('<strong>≈6,0M (6 000 000)</strong></td><td class="mono">4,00 $ sur 2 clos mesurés</td>' in resomme
-             and '<span class="resume-clos">3 chantiers clos · ≈6,0M (6 000 000) tokens · 4,00 $ sur 2 clos mesurés</span>' in resomme), ("TAU2 : resommer — pied « 4,00 $ sur 2 clos mesurés », toutes mesurées → sans le « sur »") + "\n" + str(resomme)
+    assert '<strong>≈6,0M (6 000 000)</strong></td><td class="mono">4,00 $ sur 2 clos mesurés</td>' in resomme
+    assert '<span class="resume-clos">3 chantiers clos · ≈6,0M (6 000 000) tokens · 4,00 $ sur 2 clos mesurés</span>' in resomme
     corps_toutes = rang % ("A1–A3", "3,00 $ · ≈3,0M (3 000 000)") + rang % ("B1", "1,00 $ · ≈1,0M (1 000 000)")
     assert (mod.texte_cout_clos(*mod.prix_clos(corps_toutes), 2) == "4,00 $"), ("TAU2 : texte_cout_clos — toutes mesurées, sans « sur »") + "\n" + str(mod.texte_cout_clos(*mod.prix_clos(corps_toutes), 2))
     assert (mod.texte_cout_clos(None, 0, 1) == ""), ("TAU2 : texte_cout_clos — aucune mesurée, vide") + "\n" + str(mod.texte_cout_clos(None, 0, 1))
@@ -210,10 +232,11 @@ def test_estime():
                "Lettres de fiche déjà prises : U (test).\n")
         ecrire(os.path.join(te, "ctx", "50-u.md"), ouvert("# Chantier U — u\n\n**Fait.** Rien.\n\n## U1 [x] — a\n## U2 [x] — b\n"))
         code, s = appel(["clore", te, "--livre", "fini", "--date", "2026-09-26"])
-        assert (code == 0
-                 and " · estimé non noté · cadré 2 · joué 2 fiches ? $ — " in s and "stim" not in s.split("CLOS ")[0]
-                 and "**Fait.** U1..U2 (2026-09-26) : fini — estimé non noté · cadré 2 · joué 2 fiches ? $.\n"
-                 in pathlib.Path(os.path.join(te, "ctx", "50-u.md")).read_text(encoding="utf-8")), ("EST2 : sans **Estimé.**, estimé non noté, réel ≈? $") + "\n" + str(s)
+        assert code == 0
+        assert " · estimé non noté · cadré 2 · joué 2 fiches ? $ — " in s
+        assert "stim" not in s.split("CLOS ")[0]
+        assert ("**Fait.** U1..U2 (2026-09-26) : fini — estimé non noté · cadré 2 · joué 2 fiches ? $.\n"
+                 in pathlib.Path(os.path.join(te, "ctx", "50-u.md")).read_text(encoding="utf-8"))
     # Le prix mesuré (le pondéré de la page, ici 12,34 $ pour 2 M tokens — la louche en dirait
     # ≈1,67 $) : au joué, et en tête de la cellule Tokens de la feuille ; inconnu, `? $` et une
     # cellule sans `$` (chantier TAU). Mutant : remettre `estimation_usd` au joué — le test tombe.
@@ -243,15 +266,16 @@ def test_estime():
             texte = "estimé 3 fiches ≈9,00 $ · cadré 1 · joué 1 fiches " + joue
             lu = lambda c: pathlib.Path(c).read_text(encoding="utf-8")
             feuille = lu(fdr)
-            assert (code == 0
-                     and " · " + texte + " — " in s
-                     and "<p>Estimé : " + texte + "</p>" in lu(os.path.join(te, "ctx", "artefacts", "50-u.html"))
-                     and "Estimé : " + texte + "\n" in lu(os.path.join(te, "ctx", "artefacts", "50-u.md"))
-                     and "**Fait.** U1..U1 (2026-09-26) : fini — " + texte + ".\n" in lu(os.path.join(te, "ctx", "50-u.md"))), ("TAU1 : joué au prix mesuré (%s) — CLOS, page, .md, **Fait.**" % joue) + "\n" + str(s)
+            assert code == 0
+            assert " · " + texte + " — " in s
+            assert "<p>Estimé : " + texte + "</p>" in lu(os.path.join(te, "ctx", "artefacts", "50-u.html"))
+            assert "Estimé : " + texte + "\n" in lu(os.path.join(te, "ctx", "artefacts", "50-u.md"))
+            assert "**Fait.** U1..U1 (2026-09-26) : fini — " + texte + ".\n" in lu(os.path.join(te, "ctx", "50-u.md"))
             attendu = (2_000_000, 1, 1, prix, 1 if prix is not None else 0)
-            assert ('<td class="mono">' + cellule + "</td>" in "".join(mod.lignes_clos(feuille))
-                     and mod.couts_clos(feuille) == [("u", 2_000_000)] and mod.moyenne_clos(feuille) == attendu
-                     and (prix is not None or "$ · ≈2,0M" not in feuille)), ("TAU1 : cellule Tokens « %s », brut relu par couts_clos et moyenne_clos" % cellule) + "\n" + str("%r %r %s" % (mod.couts_clos(feuille), mod.moyenne_clos(feuille), mod.lignes_clos(feuille)))
+            assert '<td class="mono">' + cellule + "</td>" in "".join(mod.lignes_clos(feuille))
+            assert mod.couts_clos(feuille) == [("u", 2_000_000)]
+            assert mod.moyenne_clos(feuille) == attendu
+            assert prix is not None or "$ · ≈2,0M" not in feuille
 
 
 def test_rep2_chevrons(tmp_path):
@@ -352,25 +376,29 @@ def test_ouvrir_marque(tmp_path, init_git):
         git_matin(d, "add", "-A")
         git_matin(d, *signe, "commit", "-q", "-m", "base")
         git_matin(d, "worktree", "add", "-q", "-b", "par", wt)
-        code1, s1 = appel(["ouvrir", wt, "--fiches", "ctx/51-par.md", "--titre", "Par"])
-        code1b, s1b = appel(["ouvrir", wt, "--fiches", "ctx/51-par.md", "--titre", "Par"])
+        code1, _s1 = appel(["ouvrir", wt, "--fiches", "ctx/51-par.md", "--titre", "Par"])
+        code1b, _s1b = appel(["ouvrir", wt, "--fiches", "ctx/51-par.md", "--titre", "Par"])
         carte_par = mod.lire(os.path.join(wt, "CHANTIER.md"))
         par = mod.lire(os.path.join(wt, "ctx", "51-par.md"))
         p_wt = mod.postit(wt) or ""
         nomme = mod.lire(p_wt).strip() if os.path.isfile(p_wt) else None
         ouverts_avant = mod.ouverts(wt)
-        code2, s2 = appel(["clore", wt, "--livre", "fini", "--date", "2026-10-04"])
+        code2, _s2 = appel(["clore", wt, "--livre", "fini", "--date", "2026-10-04"])
         postit_reste = os.path.isfile(p_wt)
         ouverts_apres = mod.ouverts(wt)
         ecrire(os.path.join(d, "ctx", "52-q.md"), "# Chantier Q — q\n\n## Q1 [ ] — a\n")
         code3, s3 = appel(["ouvrir", d, "--fiches", "ctx/52-q.md", "--titre", "Q"])
         git_matin(d, "worktree", "remove", "--force", wt)
-    assert ((code1, code1b) == (0, 0) and "- **artefact du chantier** : aucun\n" in carte_par
-             and par.count("**Ouvert.**") == 1 and nomme == "ctx/51-par.md"
-             and ouverts_avant == ["ctx/50-nui.md", "ctx/51-par.md"]), ("NUI23 ouvrir : dans un worktree tiré de main où NUI est ouvert, PAR s'ouvre, artefact « aucun », une "
-             "seule marque même relancé, post-it écrit — mutant : l'artefact toujours repris") + "\n" + str(s1 + s1b + carte_par + par)
-    assert (code2 == 0 and not postit_reste and ouverts_apres == ["ctx/50-nui.md"]
-             and code3 == 1 and s3.startswith("GARDE: un chantier est déjà ouvert : ctx/50-nui.md")), ("NUI23 clore : post-it effacé, PAR hors des ouverts ; ouvrir un 2e chantier dans le dossier → GARDE") + "\n" + str("\n".join((s2, repr(ouverts_apres), s3)))
+    assert (code1, code1b) == (0, 0)
+    assert "- **artefact du chantier** : aucun\n" in carte_par
+    assert par.count("**Ouvert.**") == 1
+    assert nomme == "ctx/51-par.md"
+    assert ouverts_avant == ["ctx/50-nui.md", "ctx/51-par.md"]
+    assert code2 == 0
+    assert not postit_reste
+    assert ouverts_apres == ["ctx/50-nui.md"]
+    assert code3 == 1
+    assert s3.startswith("GARDE: un chantier est déjà ouvert : ctx/50-nui.md")
 
 
 # Pas sous tmp_path : son nom porterait « marque », que ce test cherche absent de la sortie.
@@ -406,7 +434,7 @@ def test_nui30_marque(init_git):
         f2 = mod.lire(os.path.join(d, "ctx", "59-f.md"))
         code3, s3 = appel(["pause", os.path.join(d, "ctx", "34-h.md"), "en pause le soir même", "--date", "2026-09-20"])
         code4, s4 = appel(["pause", os.path.join(d, "ctx", "34-h.md"), "encore"])
-        code5, s5 = appel(["pause", os.path.join(d, "ctx", "59-f.md"), "attend"])
+        code5, _s5 = appel(["pause", os.path.join(d, "ctx", "59-f.md"), "attend"])
         ouverts2, f5 = appel(["ouverts", d])[1], mod.lire(os.path.join(d, "ctx", "59-f.md"))
         code6, s6 = appel(["ouvrir", d, "--fiches", "ctx/59-f.md", "--titre", "x"])
         ouverts3, f6 = appel(["ouverts", d])[1], mod.lire(os.path.join(d, "ctx", "59-f.md"))
@@ -420,25 +448,37 @@ def test_nui30_marque(init_git):
         ecrire(os.path.join(rien, "ctx", "9-s.md"), "# Chantier S — x\n\n## S1 [ ] — f\n")
         _, s10 = appel(["niveau", rien, "--ecrire", "--date", "2026-10-08"])
     marque = "**Ouvert.** le 2026-09-20."
-    assert ("ÉCART: marque: ctx/59-f.md sans **Ouvert.**" in s0
-             and "CORRIGÉ: marque: **Ouvert.** le 2026-09-20 sur ctx/59-f.md — son commit d'ouverture" in s1
-             and f1.startswith("# Chantier F — x\n\n" + marque + "\n\n## F1") and ouverts1 == "OUVERT ctx/59-f.md\n"
-             and "marque" not in s2 and f2 == f1), ("NUI30 niveau : projet à la Cairn — ÉCART sans --ecrire ; --ecrire pose la marque du commit d'ouverture sous "
-             "le titre ; rejoué → rien écrit — mutant : `migre` ignoré, la marque doublée") + "\n" + str("\n".join((avant, apres, s0, s1, s2, f1)))
-    assert (avant == "COURANT=aucun" and apres == "COURANT=ctx/59-f.md"
-             and "ÉCART: ligne: CHANTIER.md:3 — « fichier de fiches courant » n'est plus lue (NUI31) — gardée tant que "
-                 "la marque d'ouverture manque" in s0
-             and "CORRIGÉ: ligne: « fichier de fiches courant » retirée de CHANTIER.md:3" in s1
-             and carte1 == "- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n- **artefact du chantier** : aucun\n"
-             and "ligne:" not in s2), ("NUI31 niveau : la ligne « fichier de fiches courant » n'est plus lue (COURANT=aucun avant la marque) ; "
-             "gardée sans --ecrire, retirée après la marque, le reste de CHANTIER.md intact ; rejoué → rien — mutant : "
-             "retirée avant que la marque ne soit posée") + "\n" + str("\n".join((avant, apres, s0, s1, s2, carte1)))
+    assert "ÉCART: marque: ctx/59-f.md sans **Ouvert.**" in s0
+    assert "CORRIGÉ: marque: **Ouvert.** le 2026-09-20 sur ctx/59-f.md — son commit d'ouverture" in s1
+    assert f1.startswith("# Chantier F — x\n\n" + marque + "\n\n## F1")
+    assert ouverts1 == "OUVERT ctx/59-f.md\n"
+    assert "marque" not in s2
+    assert f2 == f1
+    assert avant == "COURANT=aucun"
+    assert apres == "COURANT=ctx/59-f.md"
+    assert ("ÉCART: ligne: CHANTIER.md:3 — « fichier de fiches courant » n'est plus lue (NUI31) — gardée tant que "
+                 "la marque d'ouverture manque" in s0)
+    assert "CORRIGÉ: ligne: « fichier de fiches courant » retirée de CHANTIER.md:3" in s1
+    assert carte1 == "- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n- **artefact du chantier** : aucun\n"
+    assert "ligne:" not in s2
     assert ("CORRIGÉ: marque: **Ouvert.** le 2026-10-08 sur ctx/9-s.md — date de l'appel, aucun commit « Chantier S "
-             "ouvert »" in s9 and "CORRIGÉ: ligne:" in s9 and "marque" not in s10 and "ligne:" not in s10), ("NUI30 niveau : sans commit d'ouverture, la date de l'appel, dite, puis la ligne retirée ; sans ligne → rien") + "\n" + str(s9 + s10)
-    assert ((code3, s3) == (0, "PAUSE %s le 2026-09-20\n" % os.path.join(d, "ctx", "34-h.md").replace("\\", "/"))
-             and h3.startswith("# Chantier H — x\n\n**Pause.** le 2026-09-20 — en pause le soir même\n\n## H1")
-             and code4 == 1 and "porte déjà **Pause.**" in s4 and code5 == 0 and ouverts2 == "OUVERTS=0\n"
-             and "**Pause.**" in f5 and code6 == 0 and " · pause levée" in s6 and "**Pause.**" not in f6
-             and f6.startswith("# Chantier F — x\n\n" + marque + "\n\n## F1") and ouverts3 == "OUVERT ctx/59-f.md\n"
-             and code7 == 1 and "porte déjà **CLOS**" in s7 and code8 == 1 and s8.startswith("GARDE: fichier de fiches")), ("NUI30 pause : posée sous le titre, le chantier sort des ouverts ; en double, sur un clos, introuvable → GARDE ; "
-             "ouvrir la lève — mutant : lever_pause ne rend rien") + "\n" + str("\n".join((s3, s4, s5, ouverts2, s6, ouverts3, f6, s7, s8, h3)))
+             "ouvert »" in s9)
+    assert "CORRIGÉ: ligne:" in s9
+    assert "marque" not in s10
+    assert "ligne:" not in s10
+    assert (code3, s3) == (0, "PAUSE %s le 2026-09-20\n" % os.path.join(d, "ctx", "34-h.md").replace("\\", "/"))
+    assert h3.startswith("# Chantier H — x\n\n**Pause.** le 2026-09-20 — en pause le soir même\n\n## H1")
+    assert code4 == 1
+    assert "porte déjà **Pause.**" in s4
+    assert code5 == 0
+    assert ouverts2 == "OUVERTS=0\n"
+    assert "**Pause.**" in f5
+    assert code6 == 0
+    assert " · pause levée" in s6
+    assert "**Pause.**" not in f6
+    assert f6.startswith("# Chantier F — x\n\n" + marque + "\n\n## F1")
+    assert ouverts3 == "OUVERT ctx/59-f.md\n"
+    assert code7 == 1
+    assert "porte déjà **CLOS**" in s7
+    assert code8 == 1
+    assert s8.startswith("GARDE: fichier de fiches")

@@ -21,8 +21,9 @@ def test_ena2_arriere_plan():
     de fin, pas dans ce que l'appel rend tout de suite."""
     chef = pathlib.Path(os.path.join(RACINE, "skills", "enchainer", "SKILL.md")).read_text(encoding="utf-8")
     plat = " ".join(chef.split())
-    assert ('subagent_type: "vlp:fiche"' in plat and 'subagent_type: "vlp:relecture"' in plat
-             and plat.count("run_in_background: true") == 2), ("ENA2 : fiche et relecteur lancés par Agent, en arrière-plan") + "\n" + "skills/enchainer/SKILL.md"
+    assert 'subagent_type: "vlp:fiche"' in plat
+    assert 'subagent_type: "vlp:relecture"' in plat
+    assert plat.count("run_in_background: true") == 2
     assert ("Fiche à jouer : <fiche> " in plat), ("ENA2 : le prompt de la fiche se lit par FICHE_A_JOUER (id suivi d'une espace, pas d'un point)") + "\n" + "skills/enchainer/SKILL.md"
     assert ("**notification de fin**" in chef), ("ENA2 : le chef lit le Result à la notification de fin") + "\n" + "absent de skills/enchainer/SKILL.md"
 
@@ -32,9 +33,10 @@ def test_gai1_rejeu():
     de la même fiche attend que plus rien ne tourne (les deux causes d'`ISO7`, tranchées le 2026-10-17)."""
     plat = " ".join(pathlib.Path(os.path.join(RACINE, "skills", "enchainer", "SKILL.md")).read_text(encoding="utf-8").split())
     assert ("plafond compte chaque fiche une fois, plus chaque rejeu après `REFUSÉE` ; un rejeu après `CONFLIT`, non"
-             in plat and "chaque départ, rejeu compris" not in plat), ("GAI1 : le plafond compte chaque fiche une fois, le rejeu après CONFLIT hors plafond") + "\n" + "skills/enchainer/SKILL.md"
-    assert ("`CONFLIT` : la fiche sort de `--tourne` et repart aussitôt" in plat
-             and "à son 2ᵉ `CONFLIT`, elle y reste" in plat), ("GAI1 : CONFLIT sort de --tourne et repart aussitôt ; le 2ᵉ attend") + "\n" + "skills/enchainer/SKILL.md"
+             in plat)
+    assert "chaque départ, rejeu compris" not in plat
+    assert "`CONFLIT` : la fiche sort de `--tourne` et repart aussitôt" in plat
+    assert "à son 2ᵉ `CONFLIT`, elle y reste" in plat
 
 
 def test_ena4_commiter(tmp_path, init_git):
@@ -73,18 +75,24 @@ def test_ena4_commiter(tmp_path, init_git):
             for args in (["add", "--"] + list(marques), ["commit", "-q", "-m", "kit"]):
                 subprocess.run(["git"] + args, cwd=d, check=True, capture_output=True)
             mod.noter_suite_verte(d, mod.empreinte_kit(d))  # cocher dans le kit exige la suite verte (VIT11)
-            kit = appel(["commiter", fiches, "C2"])
+            appel(["commiter", fiches, "C2"])
             montre_kit = subprocess.run(["git", "show", "--name-only", "--format=%s", "HEAD"], cwd=d,
                                         capture_output=True, encoding="utf-8", check=False).stdout.split()
         finally:
             os.environ.clear()
             os.environ.update(vieux)
-        assert (code == 0 and "src/a.py" in montre and "ctx/fiches.md" in montre and "src/b.py" not in montre
-                 and "## C1 [x]" in pathlib.Path(fiches).read_text(encoding="utf-8")), ("ENA4 : commiter C1 ne prend que src/a.py et le fichier de fiches, coché") + "\n" + str(repr((code, sortie, montre)))
-        assert ("src/b.py" in sortie.partition("HORS:")[2] and "M src/b.py" in reste), ("ENA4 : src/b.py dit HORS: et reste à commiter — le « **b** » de la prose n'est pas un motif (ENA5)") + "\n" + str(repr((sortie, reste)))
-        assert ("scripts/sante-base.json" not in montre and "scripts/sante-base.json" in sortie.partition("HORS:")[2]
-                 and "M scripts/sante-base.json" in reste), ("ENA4 : hors du kit, scripts/sante-base.json n'est pas un commun — HORS:, laissé hors du commit") + "\n" + str(repr((sortie, montre, reste)))
-        assert ("scripts/sante-base.json" in montre_kit and "src/b.py" in montre_kit), ("ENA4 : dans le kit, scripts/sante-base.json est un commun — commité avec src/b.py") + "\n" + str(repr((kit, montre_kit)))
+        assert code == 0
+        assert "src/a.py" in montre
+        assert "ctx/fiches.md" in montre
+        assert "src/b.py" not in montre
+        assert "## C1 [x]" in pathlib.Path(fiches).read_text(encoding="utf-8")
+        assert "src/b.py" in sortie.partition("HORS:")[2]
+        assert "M src/b.py" in reste
+        assert "scripts/sante-base.json" not in montre
+        assert "scripts/sante-base.json" in sortie.partition("HORS:")[2]
+        assert "M scripts/sante-base.json" in reste
+        assert "scripts/sante-base.json" in montre_kit
+        assert "src/b.py" in montre_kit
 
 
 def test_lanceur_trie(tmp_path):
@@ -98,8 +106,11 @@ def test_lanceur_trie(tmp_path):
         env.pop("VLP_SANS_TAMPON", None)
         r = [subprocess.run([sys.executable, "-X", "importtime", os.path.join(ICI, "vlp.py"), "gardien"], input=entree,
                             capture_output=True, text=True, encoding="utf-8", env=env, check=False) for _ in range(2)]
-    assert ([x.returncode for x in r] == [0, 0] and "deny" in r[0].stdout and "vlp_coeur" in r[0].stderr
-             and r[1].stdout == "" and "vlp_coeur" not in r[1].stderr), ("VIT8 : deux lanceurs, même entrée — le 1er refuse, le 2e sort muet sans charger le cœur") + "\n" + str("\n".join("code %d\n%s\n%s" % (x.returncode, x.stdout, x.stderr[-600:]) for x in r))
+    assert [x.returncode for x in r] == [0, 0]
+    assert "deny" in r[0].stdout
+    assert "vlp_coeur" in r[0].stderr
+    assert r[1].stdout == ""
+    assert "vlp_coeur" not in r[1].stderr
 
 
 def test_iso6_parallele():
@@ -116,7 +127,10 @@ def test_iso6_parallele():
                 'etat "<fichier d\'état>" --texte', "CONFLIT", 'postit "<dossier>" "<fichier de fiches courant>"']
     plat = " ".join(chef.split())
     assert ([a for a in attendus if a not in trois] == []), ("ISO6 : l'étape 3 lance en worktree par lancables, fusionne, écrit l'état et rejoue un CONFLIT") + "\n" + str([a for a in attendus if a not in trois])
-    assert ("agents [<largeur>]" in indice and "agents file" in indice and "`agents file`" in plat
-             and "**Sans argument (ou `main`) : aucun sous-agent.**" in plat and 'boucle.py" . --plafond' in plat
-             and "Plafond : **5 fiches**" in plat), ("ISO6 : argument-hint dit la largeur et file ; main, clear et le plafond de 5 restent") + "\n" + str(indice)
+    assert "agents [<largeur>]" in indice
+    assert "agents file" in indice
+    assert "`agents file`" in plat
+    assert "**Sans argument (ou `main`) : aucun sous-agent.**" in plat
+    assert 'boucle.py" . --plafond' in plat
+    assert "Plafond : **5 fiches**" in plat
     assert (all(m in contrat for m in ("DOSSIER: <chemin", "\nÉTAT:\n", "\n/ÉTAT\n"))), ("ISO6 : le contrat porte DOSSIER:, ÉTAT: et /ÉTAT") + "\n" + "enchainement.md"

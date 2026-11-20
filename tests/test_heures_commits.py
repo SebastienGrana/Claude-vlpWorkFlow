@@ -80,16 +80,18 @@ def ouv_texte(q):
 def test_sans_depot(q):
     pourquoi = []
     h = mod.heures_commits(os.path.join(q["sans"], "q.md"), ["Q1", "Q2"], pourquoi)
-    assert h is None and len(pourquoi) == 1 and pourquoi[0].startswith(
-        ("git log en échec : ", "git ne se lance pas : ")), "heures_commits : sans .git, rien, et pourquoi"
+    assert h is None
+    assert len(pourquoi) == 1
+    assert (pourquoi[0].startswith(
+        ("git log en échec : ", "git ne se lance pas : ")))
 
 
 def test_sans_git(q, monkeypatch):
     monkeypatch.setattr(mod.etat, "GIT", "git-absent-vlp")
     pourquoi = []
     h = mod.heures_commits(os.path.join(q["sans"], "q.md"), ["Q1", "Q2"], pourquoi)
-    assert h is None and pourquoi[0].startswith("git ne se lance pas : "), \
-        "heures_commits : sans git, rien — jamais un traceback"
+    assert h is None
+    assert pourquoi[0].startswith("git ne se lance pas : ")
 
 
 def test_heures_d_auteur(avec):
@@ -101,7 +103,8 @@ def test_heures_d_auteur(avec):
 def test_aucun_commit_de_fiche(avec):
     pourquoi = []
     h = mod.heures_commits(os.path.join(avec, "q.md"), ["Z1"], pourquoi)
-    assert h is None and pourquoi == ["aucun commit qui nomme Z"], "heures_commits : aucun commit de fiche, et pourquoi"
+    assert h is None
+    assert pourquoi == ["aucun commit qui nomme Z"]
 
 
 def test_page_coupee(q, avec):
@@ -109,14 +112,13 @@ def test_page_coupee(q, avec):
     code, s = appel(["page", os.path.join(avec, "q.md"), page, "--creer", "--projet", "P", "--titre", "T",
                      "--resultat", "R", "--date", "2026-01-05"])
     html = lire(page) if os.path.exists(page) else ""
-    assert (code == 0
-            and '<span class="cout mono">≈200,0k (200 000) · 2 tours · 1,00 $</span>' in html
-            and '<span class="cout mono">≈300,0k (300 000) · 3 tours · 1,50 $</span>' in html
-            and '<p class="mono cout-hors">Hors fiches : ≈200,0k (200 000) · 2 tours · 1,00 $</p>' in html
-            and '<p class="mono cout-total">Coût du chantier : ≈700,0k (700 000) · 7 tours · 3,50 $</p>' in html
-            and "Hors fiches : &lt;" not in html
-            and ", dont hors fiches ≈200,0k (200 000) · 2 tours · 1,00 $" in s), \
-        "page coupée aux commits : sous-agent compris, hors fiches à part, total = somme"
+    assert code == 0
+    assert '<span class="cout mono">≈200,0k (200 000) · 2 tours · 1,00 $</span>' in html
+    assert '<span class="cout mono">≈300,0k (300 000) · 3 tours · 1,50 $</span>' in html
+    assert '<p class="mono cout-hors">Hors fiches : ≈200,0k (200 000) · 2 tours · 1,00 $</p>' in html
+    assert '<p class="mono cout-total">Coût du chantier : ≈700,0k (700 000) · 7 tours · 3,50 $</p>' in html
+    assert "Hors fiches : &lt;" not in html
+    assert ", dont hors fiches ≈200,0k (200 000) · 2 tours · 1,00 $" in s
     avant = lire(page)
     appel(["page", os.path.join(avec, "q.md"), page, "--date", "2026-01-05"])
     assert lire(page) == avant, "page coupée : régénérer deux fois ne change rien"
@@ -126,33 +128,39 @@ def test_page_coupee(q, avec):
     ecrire(ancienne, avant)
     code, s = appel(["page", os.path.join(q["sans"], "q.md"), ancienne, "--date", "2026-01-05"])
     html = lire(ancienne)
-    assert (code == 0
-            and html.count('<span class="cout mono">≈200,0k (200 000) · 2 tours · 1,00 $</span>') == 2
-            and '<p class="mono cout-hors">' not in html
-            and "Coût du chantier : ≈600,0k (600 000) · 6 tours · 3,00 $" in html), \
-        "page sans .git : l'ancienne logique, sur l'ancienne page"
+    assert code == 0
+    assert html.count('<span class="cout mono">≈200,0k (200 000) · 2 tours · 1,00 $</span>') == 2
+    assert '<p class="mono cout-hors">' not in html
+    assert "Coût du chantier : ≈600,0k (600 000) · 6 tours · 3,00 $" in html
 
 
 def test_cout_coupe(q, avec, monkeypatch):
     fiches = os.path.join(avec, "q.md")
     code, s = appel(["cout", fiches])
-    assert code == 0 and s == ATTENDU, "cout coupé aux commits : une ligne par fiche, hors fiches, TOTAL"
+    assert code == 0
+    assert s == ATTENDU
     assert [mod.triplet(l)[:2] for l in s.splitlines()[1:]] == [(200000, 2), (300000, 3), (200000, 2), (700000, 7)], \
         "cout : triplet relit la somme de chaque ligne, celle de la page"
     monkeypatch.setenv("CLAUDE_CODE_SESSION_ID", q["sq"])
     code, s = appel(["cout", fiches, "--session"])
-    assert (code == 0 and s.startswith("SESSION=%s\nfichier\t" % q["sq"]) and "\nagent-a1.jsonl\t" in s
-            and s.endswith("\n" + ATTENDU)), "cout --session : la table de la session, puis la découpe"
+    assert code == 0
+    assert s.startswith("SESSION=%s\nfichier\t" % q["sq"])
+    assert "\nagent-a1.jsonl\t" in s
+    assert s.endswith("\n" + ATTENDU)
     monkeypatch.delenv("CLAUDE_CODE_SESSION_ID")
     code, s = appel(["cout", os.path.join(q["sans"], "q.md")])
-    assert (code == 0 and s.startswith("DÉCOUPE aucune — git log en échec : ") and "\ns.jsonl\t" in s
-            and "\nagent-a1.jsonl\t" in s and "\nTOTAL\t" in s), "cout sans .git : la table d'avant, sous la raison"
+    assert code == 0
+    assert s.startswith("DÉCOUPE aucune — git log en échec : ")
+    assert "\ns.jsonl\t" in s
+    assert "\nagent-a1.jsonl\t" in s
+    assert "\nTOTAL\t" in s
 
 
 def test_cout_clos_avec_commits(q, avec):
     ecrire(os.path.join(avec, "qk.md"), clos_(QFICHES % (q["sq"], q["sq"])))
     code, s = appel(["cout", os.path.join(avec, "qk.md")])
-    assert code == 0 and s == ATTENDU, "cout : clos avec commits de fiche, la découpe"
+    assert code == 0
+    assert s == ATTENDU
 
 
 def test_cout_borne_par_le_bas(q, depots):
@@ -163,9 +171,9 @@ def test_cout_borne_par_le_bas(q, depots):
                     (600, "Q2 : Brancher")], T0)
     ecrire(os.path.join(multi, "q.md"), QFICHES % (q["sq"], q["sq"]))
     code, s = appel(["cout", os.path.join(multi, "q.md")])
-    assert (code == 0 and "\nhors fiches · ≈200,0k (200 000) · 2 tours · 1,00 $ = session" in s
-            and "\nTOTAL (fiches + hors fiches) · ≈700,0k (700 000) · 7 tours · 3,50 $ = " in s), \
-        "cout : P clos borne Q par le bas, sans clôture hors fiches va au bout"
+    assert code == 0
+    assert "\nhors fiches · ≈200,0k (200 000) · 2 tours · 1,00 $ = session" in s
+    assert "\nTOTAL (fiches + hors fiches) · ≈700,0k (700 000) · 7 tours · 3,50 $ = " in s
 
 
 def test_cout_premiere_fiche(depots, ouv_texte):
@@ -175,9 +183,9 @@ def test_cout_premiere_fiche(depots, ouv_texte):
     commits(ouv, [(60, "Chantier P clos : fini"), (100, "Chantier Q ouvert : cadré")], T0)
     ecrire(os.path.join(ouv, "q.md"), ouv_texte)
     code, s = appel(["cout", os.path.join(ouv, "q.md")])
-    assert (code == 0 and "\nQ1 · ≈700,0k (700 000) · 7 tours · 3,50 $ = " in s
-            and "\nTOTAL (fiches + hors fiches) · ≈700,0k (700 000) · 7 tours" in s), \
-        "cout : la première fiche avant son commit"
+    assert code == 0
+    assert "\nQ1 · ≈700,0k (700 000) · 7 tours · 3,50 $ = " in s
+    assert "\nTOTAL (fiches + hors fiches) · ≈700,0k (700 000) · 7 tours" in s
 
 
 def test_clos_sans_commit_de_fiche(q, depots, ouv_texte):
@@ -191,34 +199,36 @@ def test_clos_sans_commit_de_fiche(q, depots, ouv_texte):
     ecrire(os.path.join(clq, "q.md"), ouv_texte)
     ecrire(os.path.join(clq, "qz.md"), clos_(ouv_texte))
     code, s = appel(["cout", os.path.join(clq, "qz.md")])
-    assert (code == 0 and s.startswith("DÉCOUPE aucune — chantier clos sans commit « Q1 : » ni d'une autre fiche : "
-                                       "sessions entières, sous-agents compris\n")
-            and "\nTOTAL\t8\t0\t-\t-\t800000\t0\t0\t0\t0\t800000\t800000\t4.00\t0\n" in s), \
-        "cout : clos sans commit de fiche, les sessions entières, et pourquoi"
+    assert code == 0
+    assert (s.startswith("DÉCOUPE aucune — chantier clos sans commit « Q1 : » ni d'une autre fiche : "
+                                       "sessions entières, sous-agents compris\n"))
+    assert "\nTOTAL\t8\t0\t-\t-\t800000\t0\t0\t0\t0\t800000\t800000\t4.00\t0\n" in s
     code, s = appel(["page", os.path.join(clq, "qz.md"), os.path.join(clq, "artefacts", "qz.html"), "--creer",
                      "--projet", "P", "--titre", "T", "--resultat", "R", "--date", "2026-01-05"])
     html = lire(os.path.join(clq, "artefacts", "qz.html")) if code == 0 else ""
-    assert (code == 0 and '<p class="mono cout-hors">' not in html
-            and "Coût du chantier : ≈600,0k (600 000) · 6 tours · 3,00 $" in html), \
-        "page : clos sans commit de fiche, les sessions entières, sans hors fiches"
+    assert code == 0
+    assert '<p class="mono cout-hors">' not in html
+    assert "Coût du chantier : ≈600,0k (600 000) · 6 tours · 3,00 $" in html
     pourquoi = []
     h = mod.heures_commits(os.path.join(clq, "qz.md"), ["Q1", "Q2"], pourquoi, clos=True)
-    assert h is None and pourquoi == ["chantier clos sans commit « Q1 : » ni d'une autre fiche"], \
-        "heures_commits : clos sans commit de fiche, le repli et pourquoi"
+    assert h is None
+    assert pourquoi == ["chantier clos sans commit « Q1 : » ni d'une autre fiche"]
     h = mod.heures_commits(os.path.join(clq, "q.md"), ["Q1", "Q2"])
     assert h == ({}, [T0 + 100, T0 + 1100], [T0 + 60, T0 + 1050], []), \
         "heures_commits : en cours sans commit de fiche, la découpe"
     code, s = appel(["cout", os.path.join(clq, "q.md")])
-    assert (code == 0 and s.startswith("GARDE: découpe à zéro — aucun tour de 2 transcripts ne tombe dans une plage\n"
-                                       "DÉCOUPE aux commits de fiche")
-            and "\nTOTAL (fiches + hors fiches) · 0 · 0 tours · 0,00 $ = " in s), "cout : une découpe à zéro le dit"
+    assert code == 0
+    assert (s.startswith("GARDE: découpe à zéro — aucun tour de 2 transcripts ne tombe dans une plage\n"
+                                       "DÉCOUPE aux commits de fiche"))
+    assert "\nTOTAL (fiches + hors fiches) · 0 · 0 tours · 0,00 $ = " in s
     c2 = os.path.join(q["t"], "c2.jsonl")
     transcript(c2, 1, [T0 + 1080])
     ecrire(os.path.join(clq, "q2.md"), lire(os.path.join(clq, "q.md")).replace(
         "## Le socle commun", "**Session** : %s\n\n## Le socle commun" % c2, 1))
     code, s = appel(["cout", os.path.join(clq, "q2.md")])
-    assert code == 0 and "GARDE" not in s and "\nhors fiches · ≈100,0k (100 000) · 1 tours · 0,50 $ = " in s, \
-        "cout : fiches à zéro, un tour hors fiches — pas de garde"
+    assert code == 0
+    assert "GARDE" not in s
+    assert "\nhors fiches · ≈100,0k (100 000) · 1 tours · 0,50 $ = " in s
 
 
 def test_session_du_cadrage(q, avec):
@@ -229,17 +239,17 @@ def test_session_du_cadrage(q, avec):
     qc = os.path.join(avec, "qc.md")
     ecrire(qc, (QFICHES % (q["sq"], q["sq"])).replace("## Le socle commun", "**Session** : %s\n\n## Le socle commun" % sc))
     code, s = appel(["cout", qc])
-    assert code == 0 and s.splitlines() == ATTENDU.splitlines()[:3] + [
+    assert code == 0
+    assert (s.splitlines() == ATTENDU.splitlines()[:3] + [
         "hors fiches · ≈400,0k (400 000) · 4 tours · 2,00 $ = session ≈400,0k (400 000) · 4 tours · 2,00 $ + 0 sous-agent",
         ("TOTAL (fiches + hors fiches) · ≈900,0k (900 000) · 9 tours · 4,50 $ = session ≈700,0k (700 000) · 7 tours · 3,50 $"
-        " + 1 sous-agent ≈200,0k (200 000) · 2 tours · 1,00 $")], "cout : la session du cadrage, en tête, compte hors fiches"
+        " + 1 sous-agent ≈200,0k (200 000) · 2 tours · 1,00 $")])
     code, s = appel(["page", qc, os.path.join(avec, "artefacts", "qc.html"), "--creer", "--projet", "P", "--titre", "T",
                      "--resultat", "R", "--date", "2026-01-05"])
     html = lire(os.path.join(avec, "artefacts", "qc.html")) if code == 0 else ""
-    assert (code == 0
-            and '<p class="mono cout-hors">Hors fiches : ≈400,0k (400 000) · 4 tours · 2,00 $</p>' in html
-            and '<p class="mono cout-total">Coût du chantier : ≈900,0k (900 000) · 9 tours · 4,50 $</p>' in html), \
-        "page : la session du cadrage, en tête, compte hors fiches"
+    assert code == 0
+    assert '<p class="mono cout-hors">Hors fiches : ≈400,0k (400 000) · 4 tours · 2,00 $</p>' in html
+    assert '<p class="mono cout-total">Coût du chantier : ≈900,0k (900 000) · 9 tours · 4,50 $</p>' in html
 
 
 SEULE = ("# Chantier %s\n\n**CLOS** le 2026-01-06.\n\n## Le socle commun\n\n## L'ordre des fiches\n\n"
@@ -278,7 +288,8 @@ def disque(racine):
 def test_recompter_lit_sans_ecrire(rc):
     avant = disque(rc)
     code, s = appel(["recompter", rc])
-    assert code == 0 and s.splitlines() == [
+    assert code == 0
+    assert (s.splitlines() == [
         "Q inscrit 650 000 · recompté 700 000 · écart +50 000 · découpe · partagée avec M",
         ("M inscrit 300 000 · recompté gardé · écart +0 · gardé — DÉCOUPE aucune (aucun commit qui nomme M)"
         " · partagée avec Q"),
@@ -286,12 +297,10 @@ def test_recompter_lit_sans_ecrire(rc):
         "P inscrit 2 000 · recompté gardé · écart +0 · gardé — transcription absente (rec1-transcription-absente)",
         "K inscrit 1 500 · recompté gardé · écart +0 · gardé — fichier introuvable",
         "E inscrit 0 · recompté gardé · écart +0 · gardé — fichier introuvable",
-        "RECOMPTE 6 clos · 1 recomptés · 5 gardés · inscrit 954 499 · recompté 1 004 499 · écart +50 000"], \
-        ("recompter : un clos découpé, des gardés à écart 0, la somme avec les gardés — mutants :"
-         " un gardé compté dans l'écart, la somme sans les gardés")
+        "RECOMPTE 6 clos · 1 recomptés · 5 gardés · inscrit 954 499 · recompté 1 004 499 · écart +50 000"])
     code2, s2 = appel(["cout", os.path.join(rc, "ctx", "q.md")])
-    assert code2 == 0 and "\nTOTAL (fiches + hors fiches) · ≈700,0k (700 000) · 7 tours" in s2, \
-        "recompter : le recompté de Q est le TOTAL de cout"
+    assert code2 == 0
+    assert "\nTOTAL (fiches + hors fiches) · ≈700,0k (700 000) · 7 tours" in s2
     assert disque(rc) == avant, "recompter n'écrit rien"
 
 
@@ -305,25 +314,23 @@ def test_recompter_ecrire(rc, tmp_path):
     code, s = appel(["recompter", rc, "--ecrire"])
     feuille_ = lire(fr)
     corps_ = feuille_[:feuille_.find("<tfoot>")]
-    assert (code == 0 and mod.total_clos(corps_) == 1004499
-            and s.splitlines()[-2:] == [
+    assert code == 0
+    assert mod.total_clos(corps_) == 1004499
+    assert (s.splitlines()[-2:] == [
                 "RECOMPTE 6 clos · 1 recomptés · 5 gardés · inscrit 954 499 · recompté 1 004 499 · écart +50 000",
-                "ÉCRIT 6 cellules · total 954 499 → 1 004 499"]
-            and '<td class="mono">recompté (REC), était 650 000 · ≈700,0k (700 000)</td>' in feuille_
-            and '<td class="mono">non recompté — sans session · (999)</td>' in feuille_
-            and '<td class="mono">non recompté — fichier introuvable · non mesurable</td>' in feuille_), \
-        ("recompter --ecrire : total_clos égale le recompté — mutants : la marque posée en parenthèses,"
-         " la marque dans une balise")
-    assert ("<strong>%s</strong></td><td class=\"mono\"></td>" % mod.arrondi(1004499) in feuille_
-            and '<span class="resume-clos">%s</span>' % mod.resume_clos(6, 1004499) in feuille_), \
-        ("recompter --ecrire : pied et résumé resommés, sans $ (aucune ligne au prix mesuré) — mutant :"
-         " le pied non resommé")
+                "ÉCRIT 6 cellules · total 954 499 → 1 004 499"])
+    assert '<td class="mono">recompté (REC), était 650 000 · ≈700,0k (700 000)</td>' in feuille_
+    assert '<td class="mono">non recompté — sans session · (999)</td>' in feuille_
+    assert '<td class="mono">non recompté — fichier introuvable · non mesurable</td>' in feuille_
+    assert "<strong>%s</strong></td><td class=\"mono\"></td>" % mod.arrondi(1004499) in feuille_
+    assert '<span class="resume-clos">%s</span>' % mod.resume_clos(6, 1004499) in feuille_
     code, s = appel(["recompter", rc, "--ecrire"])
-    assert (code == 0 and lire(fr) == feuille_
-            and s.splitlines()[-1] == "ÉCRIT 0 cellules · total 1 004 499 → 1 004 499"
-            and "Q inscrit 700 000 · recompté 700 000 · écart +0 · découpe · partagée avec M" in s), \
-        "recompter --ecrire relancé : rien ne change"
+    assert code == 0
+    assert lire(fr) == feuille_
+    assert s.splitlines()[-1] == "ÉCRIT 0 cellules · total 1 004 499 → 1 004 499"
+    assert "Q inscrit 700 000 · recompté 700 000 · écart +0 · découpe · partagée avec M" in s
     sans_chantier = tmp_path / "sans-chantier"
     sans_chantier.mkdir()
     code, s = appel(["recompter", str(sans_chantier)])
-    assert code == 1 and s.startswith("GARDE: pas de CHANTIER.md"), "recompter : pas de CHANTIER.md, une garde"
+    assert code == 1
+    assert s.startswith("GARDE: pas de CHANTIER.md")

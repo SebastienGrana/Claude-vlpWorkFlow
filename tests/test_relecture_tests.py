@@ -60,7 +60,8 @@ def test_relecture_liste_un_test_affaibli(tmp_path, init_git):
     os.chdir(depot)
     try:
         code, s = appel(["relecture", "X1"])
-        assert code == 0 and "TEST MODIFIÉ tests/test_a.py — assert 2 → 1\nRETRAITS assert 2 → 1\ndiff --git" in s, s
+        assert code == 0
+        assert "TEST MODIFIÉ tests/test_a.py — assert 2 → 1\nRETRAITS assert 2 → 1\ndiff --git" in s
     finally:
         appel(["relecture", "--retirer"])
         os.chdir(ici)

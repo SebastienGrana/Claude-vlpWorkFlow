@@ -112,9 +112,10 @@ def test_wip_de_cote(tmp_path, init_git):
         etat_wip, etat_her = mod.etat_branche_nuit(d, noms["WIP"]), mod.etat_branche_nuit(d, noms["HER"])
         code, s = appel(["matin", d, JOUR_MATIN])
         wip_fusionne = code_git(d, "merge-base", "--is-ancestor", noms["WIP"], "main") == 0
-    assert (etat_wip == ("cote", "WIP WIP mis de côté : découpage coupé") and etat_her == ("fusion", None)
-             and "DE CÔTÉ %s — WIP WIP mis de côté : découpage coupé\n" % noms["WIP"] in s and not wip_fusionne), ("NUI24 : pointe WIP, chantier aucun → DE CÔTÉ, jamais fusionnée ; héritière de LOC ouvert → fusionnable — "
-             "mutant : la pointe WIP n'est plus lue") + "\n" + str(repr((etat_wip, etat_her, wip_fusionne)) + "\n" + s)
+    assert etat_wip == ("cote", "WIP WIP mis de côté : découpage coupé")
+    assert etat_her == ("fusion", None)
+    assert "DE CÔTÉ %s — WIP WIP mis de côté : découpage coupé\n" % noms["WIP"] in s
+    assert not wip_fusionne
 
 
 def test_fusionner(tmp_path, init_git):
@@ -137,16 +138,18 @@ def test_fusionner(tmp_path, init_git):
         code, s = appel(["fusionner", d, "clot-loc"])
         carte_, courant_a = mod.lignes_de(os.path.join(d, "CHANTIER.md")), mod.courant_de(d)
         ecrire(os.path.join(d, "ctx", "50-neo.md"), "# Chantier NEO — Neuf\n\n## NEO1 [ ] — a\n")
-        code_ouvrir, s_ouvrir = appel(["ouvrir", d, "--fiches", "ctx/50-neo.md", "--titre", "Neuf"])
+        code_ouvrir, _s_ouvrir = appel(["ouvrir", d, "--fiches", "ctx/50-neo.md", "--titre", "Neuf"])
         neo = lire(os.path.join(d, "ctx", "50-neo.md"))
-    assert (code_clore == 0 and ('FUSIONNER depuis %s : ' % d.replace("\\", "/")) in s_clore.replace("\\", "/")
-             and ' fusionner "' in s_clore and s_clore.rstrip().endswith(" clot-loc")
-             and code == 0 and s == "FUSIONNÉE clot-loc\n"
-             and courant_a is None and mod.champ(carte_, "artefact du chantier") == "aucun"
-             and code_ouvrir == 0 and "**Ouvert.**" in neo), ("NUI26 (a) un worktree clôt LOC, le chantier de main : clore dit la ligne FUSIONNER ; fusionner depuis main "
-             "→ FUSIONNÉE, commit « Fusion : clot-loc », main à aucun (courant et artefact) ; ouvrir passe ensuite ; "
-             "la ligne 79 ôtée de la TODO par la clôture ne fait plus s'arrêter la feuille (dette NUI, 2026-10-08) — "
-             "mutant : l'exception **CLOS** retirée") + "\n" + str((code_clore, s_clore, code, s, carte_, code_ouvrir, s_ouvrir))
+    assert code_clore == 0
+    assert ('FUSIONNER depuis %s : ' % d.replace("\\", "/")) in s_clore.replace("\\", "/")
+    assert ' fusionner "' in s_clore
+    assert s_clore.rstrip().endswith(" clot-loc")
+    assert code == 0
+    assert s == "FUSIONNÉE clot-loc\n"
+    assert courant_a is None
+    assert mod.champ(carte_, "artefact du chantier") == "aucun"
+    assert code_ouvrir == 0
+    assert "**Ouvert.**" in neo
 
     with tempfile.TemporaryDirectory(dir=tmp_path) as tr:
         d, vide = os.path.join(tr, "g"), os.path.join(tr, "vide")
@@ -191,14 +194,16 @@ def test_fusionner(tmp_path, init_git):
     attendu = ("GARDE: pas de CHANTIER.md dans", "n'est pas la racine d'un dépôt Git", "GARDE: HEAD détachée",
                "GARDE: une fusion est déjà en cours (MERGE_HEAD)", "GARDE: arbre pas propre (1 chemin(s))",
                "GARDE: branche absente : nulle-part", "GARDE: ouvre garde un chantier ouvert (ctx/70-ouv.md) — clos-le")
-    assert (len(refus) == len(attendu) and all(c == 1 and a in r and "rien fusionné" in r for (c, r), a in zip(refus, attendu))
-             and not ouvre_fusionne), ("NUI26 (b) six refus, un cas chacun (non équipé, hors racine, HEAD détachée, MERGE_HEAD, arbre sale, branche "
-             "absente) et la branche qui garde un chantier ouvert — sort 1, rien fusionné") + "\n" + str(refus)
-    assert (code == 0 and s == "FUSIONNÉE par\n" and sujet == "Fusion : par"
-             and courant_c == "ctx/40-loc.md"
-             and mod.champ(carte_, "artefact du chantier") == "https://claude.ai/artifact/LOC"
-             and mod.lettres_prises(carte_) == ["E", "ENQ", "PAR"] and deja == (0, "DÉJÀ par\n")), ("NUI26 (c) un worktree ouvre puis clôt PAR : fusionner → main garde LOC (courant et artefact), PAR ajouté aux "
-             "lettres, commit « Fusion : par » ; rejoué → DÉJÀ par, sort 0") + "\n" + str((code, s, sujet, carte_, deja))
+    assert len(refus) == len(attendu)
+    assert all(c == 1 and a in r and "rien fusionné" in r for (c, r), a in zip(refus, attendu))
+    assert not ouvre_fusionne
+    assert code == 0
+    assert s == "FUSIONNÉE par\n"
+    assert sujet == "Fusion : par"
+    assert courant_c == "ctx/40-loc.md"
+    assert mod.champ(carte_, "artefact du chantier") == "https://claude.ai/artifact/LOC"
+    assert mod.lettres_prises(carte_) == ["E", "ENQ", "PAR"]
+    assert deja == (0, "DÉJÀ par\n")
 
 
 def noms_worktrees(d):
@@ -238,13 +243,15 @@ def test_iso4_fusionner_fiche(tmp_path, init_git):
         apres_conf = (git_matin(d, "status", "--porcelain"), code_git(d, "rev-parse", "-q", "--verify", "MERGE_HEAD"),
                       lire(os.path.join(d, "a.txt")).replace("\r\n", "\n"), noms_worktrees(d),
                       git_matin(d, "branch", "--format=%(refname:short)").split())
-    assert (fus[0] == 0 and re.fullmatch(r"FUSIONNÉ W1 [0-9a-f]{7,}\n", fus[1]) is not None
-             and apres_fus == (True, ["d", "wt-c"])), ("ISO4 : sans conflit → FUSIONNÉ W1 <sha>, sort 0, b.txt dans main, le worktree wt-a retiré") + "\n" + str((fus, apres_fus))
-    assert (conf == (1, "CONFLIT W2 a.txt\n") and apres_conf == ("", 1, "1\nm\n3\n", ["d"], ["main"])), ("ISO4 : même ligne changée des deux côtés → CONFLIT W2 a.txt, sort 1, git status propre, pas de "
-             "MERGE_HEAD, la ligne de main gardée, plus de worktree ni de branche a ou c — mutant : pas d'abort") + "\n" + str((conf, apres_conf))
-    assert ([c for c, _ in gardes] == [1, 1] and gardes[0][1].startswith("GARDE: aucun commit « W1 : »")
-             and "n'est pas un autre worktree" in gardes[1][1] and intact), ("ISO4 : sans commit « W1 : » dans le worktree, ou un dossier hors des worktrees → GARDE:, sort 1, rien "
-             "touché") + "\n" + str((gardes, intact))
+    assert fus[0] == 0
+    assert re.fullmatch(r"FUSIONNÉ W1 [0-9a-f]{7,}\n", fus[1]) is not None
+    assert apres_fus == (True, ["d", "wt-c"])
+    assert conf == (1, "CONFLIT W2 a.txt\n")
+    assert apres_conf == ("", 1, "1\nm\n3\n", ["d"], ["main"])
+    assert [c for c, _ in gardes] == [1, 1]
+    assert gardes[0][1].startswith("GARDE: aucun commit « W1 : »")
+    assert "n'est pas un autre worktree" in gardes[1][1]
+    assert intact
 
 
 def test_lettres_doublon(tmp_path, init_git):
@@ -277,10 +284,13 @@ def test_lettres_doublon(tmp_path, init_git):
         en_cours = code_git(d, "rev-parse", "-q", "--verify", "MERGE_HEAD") == 0
         code_c, s_c = appel(["fusionner", d, "pc"])
         lettres = mod.lettres_prises(mod.lignes_de(os.path.join(d, "CHANTIER.md")))
-    assert ((code_a, s_a) == (0, "FUSIONNÉE pa\n") and code_b == 1
-             and s_b.startswith("GARDE: le code PAR est pris deux fois : « A » et « B »") and propre and not en_cours), ("NUI27 (a) PAR (A) fusionné, puis PAR (B) → GARDE: le code PAR est pris deux fois, sort 1, rien écrit "
-             "(status vide, HEAD immobile, pas de MERGE_HEAD) — mutant : le saut silencieux remis") + "\n" + str((code_a, s_a, code_b, s_b, propre, en_cours))
-    assert ((code_c, s_c) == (0, "FUSIONNÉE pc\n") and lettres == ["E", "ENQ", "PAR"]), ("NUI27 (b) la même entrée des deux côtés, aux backticks près → fusion sans garde, PAR compté une fois") + "\n" + str((code_c, s_c, lettres))
+    assert (code_a, s_a) == (0, "FUSIONNÉE pa\n")
+    assert code_b == 1
+    assert s_b.startswith("GARDE: le code PAR est pris deux fois : « A » et « B »")
+    assert propre
+    assert not en_cours
+    assert (code_c, s_c) == (0, "FUSIONNÉE pc\n")
+    assert lettres == ["E", "ENQ", "PAR"]
 
     with tempfile.TemporaryDirectory(dir=tmp_path) as tr:
         d, wz, wh = os.path.join(tr, "o"), os.path.join(tr, "wt-zed"), os.path.join(tr, "wt-her")
@@ -301,7 +311,9 @@ def test_lettres_doublon(tmp_path, init_git):
         ecrire(os.path.join(d, "ctx", "82-her.md"), "# Chantier HER — Hérité\n\n%s\n\n## HER1 [ ] — a\n" % OUVERT_DU_JOUR)
         commit_matin(d, "HER ouvert", 4)
         git_matin(d, "worktree", "add", "-q", "--detach", wh, "main")
-        code_h, s_h = appel(["ouvrir", d, "--fiches", "ctx/82-her.md", "--titre", "Hérité"])
-    assert (code_z == 1 and s_z.startswith("GARDE: le code ZED est déjà ouvert ailleurs : ctx/80-zed.md dans ")
-             and "wt-zed" in s_z and intact and code_h == 0), ("NUI27 (c) ouvrir ZED quand un autre worktree a ZED ouvert → GARDE: déjà ouvert ailleurs, sort 1, rien écrit ; "
-             "le même fichier hérité par un worktree détaché ne bloque pas sa réouverture") + "\n" + str((code_z, s_z, intact, code_h, s_h))
+        code_h, _s_h = appel(["ouvrir", d, "--fiches", "ctx/82-her.md", "--titre", "Hérité"])
+    assert code_z == 1
+    assert s_z.startswith("GARDE: le code ZED est déjà ouvert ailleurs : ctx/80-zed.md dans ")
+    assert "wt-zed" in s_z
+    assert intact
+    assert code_h == 0

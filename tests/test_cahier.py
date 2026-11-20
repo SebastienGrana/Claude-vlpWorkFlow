@@ -118,14 +118,17 @@ def test_commande_garde_sans_essai(tmp_path):
     source, sortie = tmp_path / "s.md", tmp_path / "p.html"
     source.write_text("# Rien\n\n- [ ] une case\n", encoding="utf-8")
     code, texte = appel(["cahier", str(source), str(sortie)])
-    assert code == 1 and texte.startswith("GARDE:") and "rien d'écrit" in texte, texte
+    assert code == 1
+    assert texte.startswith("GARDE:")
+    assert "rien d'écrit" in texte
     assert not sortie.exists()
 
 
 def test_commande_garde_source_absente(tmp_path):
     """Une source absente : `GARDE:`, sort 1."""
     code, texte = appel(["cahier", str(tmp_path / "absent.md"), str(tmp_path / "p.html")])
-    assert code == 1 and texte.startswith("GARDE:"), texte
+    assert code == 1
+    assert texte.startswith("GARDE:")
 
 
 def test_commande_avertit_d_une_ancre_manquante(tmp_path):
@@ -133,5 +136,6 @@ def test_commande_avertit_d_une_ancre_manquante(tmp_path):
     source, sortie = tmp_path / "s.md", tmp_path / "p.html"
     source.write_text(MD + "\n[z](#zut)\n", encoding="utf-8")
     code, texte = appel(["cahier", str(source), str(sortie), "--version", "v"])
-    assert code == 0 and "AVERTISSEMENT: lien sans ancre : #zut" in texte, texte
+    assert code == 0
+    assert "AVERTISSEMENT: lien sans ancre : #zut" in texte
     assert sortie.exists()

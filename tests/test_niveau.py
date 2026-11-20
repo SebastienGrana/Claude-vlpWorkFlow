@@ -80,8 +80,9 @@ def test_niveau_git(tmp_path, init_git):
         ecrire(os.path.join(p, ".gitignore"), "# rien\nCHANTIER.md\n")
         ecrire(os.path.join(p, "ctx", "09-neuf.md"), "# neuf\n")
         e = ecarts_git(p)
-        assert (len(e) == 2 and e[0].startswith("ÉCART: git: CHANTIER.md — ignoré par .gitignore:2")
-                 and e[1].startswith("ÉCART: git: ctx/09-neuf.md — non ajouté")), ("niveau git : ignoré par sa ligne, et non ajouté") + "\n" + str(e)
+        assert len(e) == 2
+        assert e[0].startswith("ÉCART: git: CHANTIER.md — ignoré par .gitignore:2")
+        assert e[1].startswith("ÉCART: git: ctx/09-neuf.md — non ajouté")
         assert (ecarts_git(p, ecrire=True) == e), ("niveau git : --ecrire ne corrige rien") + "\n" + str(ecarts_git(p, True))
         carte = mod.lire(os.path.join(p, "CHANTIER.md"))
         ecrire(os.path.join(p, "CHANTIER.md"), carte + "- **contexte dans Git** : non — dépôt public\n")
@@ -89,15 +90,16 @@ def test_niveau_git(tmp_path, init_git):
         mod.ecarts_git(p, s)
         ecrire(os.path.join(p, "CHANTIER.md"), carte)
         assert ("EXPRÈS: git: 1 chemin(s) ignoré(s) exprès — CHANTIER.md, « contexte dans Git » : non — dépôt public ; "
-                 "aucun écart compté\n" in s.getvalue() and "ignoré par" not in s.getvalue()
-                 and "ÉCART: git: ctx/09-neuf.md — non ajouté" in s.getvalue()), ("NWT (c) niveau git : l'ignoré déclaré exprès (« contexte dans Git » : non) se dit en une ligne EXPRÈS, "
-                 "sans écart ; le non ajouté reste un écart") + "\n" + str(s.getvalue())
+                 "aucun écart compté\n" in s.getvalue())
+        assert "ignoré par" not in s.getvalue()
+        assert "ÉCART: git: ctx/09-neuf.md — non ajouté" in s.getvalue()
         ecrire(os.path.join(p, ".gitignore"), "# rien\n")
         git(p, "add", "-A")
         ecrire(os.path.join(p, "CHANTIER.md"), CHANTIER % ("pn", "ctx/") + "- **kit** : D:/Projets/kit, lié dans"
                " ~/.claude/skills/vlp\n")
         e = ecarts_git(p)
-        assert (len(e) == 1 and "la ligne « kit » porte un chemin de machine" in e[0]), ("niveau git : la ligne « kit » à chemin de machine") + "\n" + str(e)
+        assert len(e) == 1
+        assert "la ligne « kit » porte un chemin de machine" in e[0]
 
 
 def test_niveau_git_sauf(tmp_path, init_git):
@@ -169,14 +171,15 @@ def test_niv2_ecarts(tmp_path):
 
         code, s = appel(["niveau", proj])
         cat = [l.split(":")[1].strip() for l in s.splitlines() if l.startswith("ÉCART:")]
-        assert (code == 1 and cat == ["renvois", "feuille", "variable", "variable", "clos"]), ("NIV2 : les cinq catégories d'écart, sauf `page` (aucun courant)") + "\n" + str(s)
+        assert code == 1
+        assert cat == ["renvois", "feuille", "variable", "variable", "clos"]
         assert ("ÉCART: renvois: ctx/00-INDEX.md:5: 99-fantome.md — nommé, introuvable\n" in s), ("NIV2 : le renvoi absent est nommé avec sa source et sa ligne") + "\n" + str(s)
         assert ("ÉCART: feuille: feuille de route introuvable :" in s), ("NIV2 : la feuille de route absente est un écart") + "\n" + str(s)
-        assert ("ÉCART: variable: CHANTIER.md:7 cite ${CLAUDE_PLUGIN_ROOT}" in s
-                 and "08-etat.md:3" not in s), ("NIV2 : la variable est lue en champ et en cellule, jamais en prose") + "\n" + str(s)
+        assert "ÉCART: variable: CHANTIER.md:7 cite ${CLAUDE_PLUGIN_ROOT}" in s
+        assert "08-etat.md:3" not in s
         assert ("ÉCART: clos: CHANTIER.md:9 —" in s), ("NIV2 : la table des clos est repérée à son titre") + "\n" + str(s)
-        assert ("POIDS CLAUDE.md absent/100 · CHANTIER.md 13/50 · index 6/80\n" in s
-                 and s.rstrip().endswith("NIVEAU 5 écarts · 0 avertissements — %s" % proj)), ("NIV2 : le poids sort brut, et le bilan compte les deux genres") + "\n" + str(s)
+        assert "POIDS CLAUDE.md absent/100 · CHANTIER.md 13/50 · index 6/80\n" in s
+        assert s.rstrip().endswith("NIVEAU 5 écarts · 0 avertissements — %s" % proj)
 
 
 CARTE_NETTE = """# Chantier courant
@@ -208,23 +211,28 @@ def test_niv2_a_niveau(tmp_path):
         appel(["feuille", proj])
 
         code, s = appel(["niveau", proj])
-        assert (code == 0 and "ÉCART:" not in s
-                 and s.rstrip().endswith("NIVEAU 0 écarts · 0 avertissements — %s" % proj)), ("NIV2 : un projet à niveau ne sort aucun écart, et 0") + "\n" + str(s)
+        assert code == 0
+        assert "ÉCART:" not in s
+        assert s.rstrip().endswith("NIVEAU 0 écarts · 0 avertissements — %s" % proj)
         assert ("methode-chantier" not in s), ("NIV2 : une copie locale de methode-chantier.md n'est pas un écart") + "\n" + str(s)
 
         ecrire(os.path.join(proj, "CLAUDE.md"), "x\n" * (mod.SEUIL_CLAUDE + 1))
         code, s = appel(["niveau", proj])
-        assert (code == 0 and "AVERTISSEMENT: poids: CLAUDE.md %d lignes > %d\n"
-                 % (mod.SEUIL_CLAUDE + 1, mod.SEUIL_CLAUDE) in s
-                 and "NIVEAU 0 écarts · 1 avertissements" in s), ("NIV2 : un fichier de tête trop lourd avertit, il ne fait pas un écart") + "\n" + str(s)
+        assert code == 0
+        assert ("AVERTISSEMENT: poids: CLAUDE.md %d lignes > %d\n"
+                 % (mod.SEUIL_CLAUDE + 1, mod.SEUIL_CLAUDE) in s)
+        assert "NIVEAU 0 écarts · 1 avertissements" in s
 
         ecrire(os.path.join(proj, "CLAUDE.md"), "x\n" * 93)
         code, s = appel(["niveau", proj])
-        assert (code == 0 and "AVERTISSEMENT:" not in s and "POIDS CLAUDE.md 93/100 ·" in s
-                 and "NIVEAU 0 écarts · 0 avertissements" in s), ("CLAUDE.md de 93 lignes : sous le plafond de 100, sans avertissement (décision de l'utilisateur, 2026-10-24)") + "\n" + str(s)
+        assert code == 0
+        assert "AVERTISSEMENT:" not in s
+        assert "POIDS CLAUDE.md 93/100 ·" in s
+        assert "NIVEAU 0 écarts · 0 avertissements" in s
 
         code, s = appel(["niveau", os.path.join(t, "pas-un-projet")])
-        assert (code == 1 and s.startswith("GARDE: pas de CHANTIER.md dans ")), ("NIV2 : sans CHANTIER.md, une GARDE et 1") + "\n" + str(s)
+        assert code == 1
+        assert s.startswith("GARDE: pas de CHANTIER.md dans ")
 
     # `niveau` lit les chemins du projet par le point unique : il hérite des GARDE.
     with tempfile.TemporaryDirectory(dir=tmp_path) as t:
@@ -232,7 +240,8 @@ def test_niv2_a_niveau(tmp_path):
         ecrire(os.path.join(proj, "CHANTIER.md"), CARTE_NETTE.replace("ctx/00-INDEX.md", "ctx/absent.md"))
         ecrire(os.path.join(proj, "ctx", "08-etat.md"), ETAT_NIV)
         code, s = appel(["niveau", proj])
-        assert (code == 1 and "GARDE: index introuvable : ctx/absent.md\n" in s), ("NIV2 : un chemin de CHANTIER.md introuvable rend une GARDE, pas un traceback") + "\n" + str(s)
+        assert code == 1
+        assert "GARDE: index introuvable : ctx/absent.md\n" in s
 
 
 def niveau_courant():
@@ -252,7 +261,8 @@ def niveau_courant():
 def test_hab_niveau():
     """Contrôler `niveau` avec un chantier courant (chantier HAB)."""
     code, s = niveau_courant()
-    assert (code is not None and "\nNIVEAU " in s), ("HAB : `niveau` avec un chantier courant rend son bilan, pas un traceback") + "\n" + str(s)
+    assert code is not None
+    assert "\nNIVEAU " in s
 
 
 GABARIT_VLPCSS = os.path.join(ICI, "..", "templates", "vlp.css")
@@ -313,33 +323,42 @@ def test_niv3(tmp_path):
         code, avant = appel(["niveau", proj])
         n = compte(avant, "ÉCART:")
         # VOI1 : la page du disque, un gabarit jamais régénéré, porte un lien cassé — le cinquième
-        assert (code == 1 and n == 5 and "ÉCART: renvois: " in avant
-                 and "ÉCART: feuille: le bloc repliable" in avant and "ÉCART: clos: " in avant
-                 and "ÉCART: feuille: Markdown brut ou lien cassé" in avant), ("NIV3 avant : cinq écarts, dont le renvoi absent que rien ne sait corriger") + "\n" + str(avant)
+        assert code == 1
+        assert n == 5
+        assert "ÉCART: renvois: " in avant
+        assert "ÉCART: feuille: le bloc repliable" in avant
+        assert "ÉCART: clos: " in avant
+        assert "ÉCART: feuille: Markdown brut ou lien cassé" in avant
 
         code, pendant = appel(["niveau", proj, "--ecrire", "--date", "2026-09-18"])
         m = compte(pendant, "CORRIGÉ:")
-        assert (code == 1 and m == 3 and compte(pendant, "ÉCART:") == 1
-                 and "CORRIGÉ: feuille: bloc repliable des chantiers clos posé\n" in pendant
-                 and "CORRIGÉ: feuille: régénérée\n" in pendant
-                 and "CORRIGÉ: clos: table des chantiers clos retirée de CHANTIER.md:8" in pendant
-                 and pendant.rstrip().endswith("NIVEAU 3 corrigés · 1 à la main — %s" % proj)), ("NIV3 : trois corrigés, le renvoi absent reste à la main") + "\n" + str(pendant)
+        assert code == 1
+        assert m == 3
+        assert compte(pendant, "ÉCART:") == 1
+        assert "CORRIGÉ: feuille: bloc repliable des chantiers clos posé\n" in pendant
+        assert "CORRIGÉ: feuille: régénérée\n" in pendant
+        assert "CORRIGÉ: clos: table des chantiers clos retirée de CHANTIER.md:8" in pendant
+        assert pendant.rstrip().endswith("NIVEAU 3 corrigés · 1 à la main — %s" % proj)
 
         code, apres = appel(["niveau", proj])
         # la régénération corrige deux écarts d'un coup : la page, et le lien cassé qu'elle portait
-        assert (code == 1 and compte(apres, "ÉCART:") == n - m - 1 and "ÉCART: renvois: " in apres), ("NIV3 après : %d écarts, %d corrigés, %d restants — le compte se ferme"
-                 % (n, m, n - m - 1)) + "\n" + str(apres)
+        assert code == 1
+        assert compte(apres, "ÉCART:") == n - m - 1
+        assert "ÉCART: renvois: " in apres
 
         carte_niv3 = pathlib.Path(os.path.join(proj, "CHANTIER.md")).read_text(encoding="utf-8")
-        assert ("| ctx/10-a.md |" not in carte_niv3 and "## Chantiers clos — dans l'index, pas ici" in carte_niv3
-                 and "Lettres de fiche déjà prises : A." in carte_niv3), ("NIV3 : la table est partie, le titre et la phrase du gabarit la remplacent,"
-                 " les lettres prises restent") + "\n" + str(carte_niv3)
+        assert "| ctx/10-a.md |" not in carte_niv3
+        assert "## Chantiers clos — dans l'index, pas ici" in carte_niv3
+        assert "Lettres de fiche déjà prises : A." in carte_niv3
 
         html_niv3 = pathlib.Path(os.path.join(proj, "ctx", "artefacts", "feuille-de-route.html")).read_text(encoding="utf-8")
-        assert ('<details class="clos">' in html_niv3 and '<span class="resume-clos">' in html_niv3
-                 and html_niv3.count('href="vlp.css"') == 1 and "<style>" not in html_niv3), ("NIV3 : le bloc repliable et son résumé sont posés, le style migré vers vlp.css (PLI3)") + "\n" + str(html_niv3[:200])
+        assert '<details class="clos">' in html_niv3
+        assert '<span class="resume-clos">' in html_niv3
+        assert html_niv3.count('href="vlp.css"') == 1
+        assert "<style>" not in html_niv3
         assert ('\n          <tr>\n' in html_niv3), ("NIV3 : les lignes de ZONE:clos gardent les dix espaces que `clore` repère") + "\n" + "indentation changée"
-        assert ('<span class="titre">un truc</span>' in html_niv3 and "2026-09-18" in html_niv3), ("NIV3 : la feuille est aussi régénérée — la TODO du fichier d'état y passe") + "\n" + str(html_niv3[-600:])
+        assert '<span class="titre">un truc</span>' in html_niv3
+        assert "2026-09-18" in html_niv3
 
         code, encore = appel(["niveau", proj, "--ecrire", "--date", "2026-09-18"])
         assert ("NIVEAU 0 corrigés · 1 à la main" in encore), ("NIV3 : rejoué, il ne corrige plus rien — les corrections sont idempotentes") + "\n" + str(encore)
@@ -349,24 +368,28 @@ def test_niv3(tmp_path):
         proj = bac_niv3(t, feuille=False)
         page = os.path.join(proj, "ctx", "artefacts", "feuille-de-route.html")
         code, s = appel(["niveau", proj])
-        assert (not os.path.exists(page)
-                 and "ÉCART: feuille: feuille de route introuvable :" in s), ("NIV3 : sans --ecrire, rien n'est posé") + "\n" + str(s)
+        assert not os.path.exists(page)
+        assert "ÉCART: feuille: feuille de route introuvable :" in s
         code, s = appel(["niveau", proj, "--ecrire", "--date", "2026-09-18"])
-        assert (os.path.isfile(page) and "CORRIGÉ: feuille: posée depuis le gabarit" in s
-                 and '<span class="titre">un truc</span>' in pathlib.Path(page).read_text(encoding="utf-8")), ("NIV3 : la feuille absente est posée depuis le gabarit puis régénérée") + "\n" + str(s)
+        assert os.path.isfile(page)
+        assert "CORRIGÉ: feuille: posée depuis le gabarit" in s
+        assert '<span class="titre">un truc</span>' in pathlib.Path(page).read_text(encoding="utf-8")
 
     # L'index ne nomme pas un fichier de la table : la retirer le perdrait.
     with tempfile.TemporaryDirectory(dir=tmp_path) as t:
         proj = bac_niv3(t, index="# Index\n\n| Fichier | On l'ouvre quand |\n|---|---|\n"
                                "| `08-etat.md` | on reprend |\n")
         code, s = appel(["niveau", proj, "--ecrire", "--date", "2026-09-18"])
-        assert ("ÉCART: clos: " in s and "CORRIGÉ: clos: " not in s
-                 and "| ctx/10-a.md |" in pathlib.Path(os.path.join(proj, "CHANTIER.md")).read_text(encoding="utf-8")), ("NIV3 : une table dont l'index ne nomme pas les fichiers reste à la main") + "\n" + str(s)
+        assert "ÉCART: clos: " in s
+        assert "CORRIGÉ: clos: " not in s
+        assert "| ctx/10-a.md |" in pathlib.Path(os.path.join(proj, "CHANTIER.md")).read_text(encoding="utf-8")
 
     # Rien n'est écrit tant qu'un calcul peut échouer : un projet sans CHANTIER.md.
     with tempfile.TemporaryDirectory(dir=tmp_path) as t:
         code, s = appel(["niveau", os.path.join(t, "rien"), "--ecrire"])
-        assert (code == 1 and s.startswith("GARDE: pas de CHANTIER.md dans ") and not os.listdir(t)), ("NIV3 : sans CHANTIER.md, --ecrire s'arrête sur une GARDE et n'écrit rien") + "\n" + str(s)
+        assert code == 1
+        assert s.startswith("GARDE: pas de CHANTIER.md dans ")
+        assert not os.listdir(t)
 
 
 VIEILLE = ('          <tr>\n            <td><a href="&lt;https://v&gt;">Un <span class="mono">**c**</span></a>'
@@ -399,33 +422,39 @@ def test_rep3_compteurs(tmp_path):
         appel(["feuille", proj, "--date", "2026-09-18"])
 
         code, s = appel(["niveau", proj, "--date", "2026-09-18"])
-        assert (code == 0 and "ÉCART:" not in s
-                 and "MARKDOWN 0 ** · 0 liens Markdown · 0 liens cassés — %s\n" % page in s), ("REP3 : une feuille propre sort ses trois compteurs, à zéro, sans écart") + "\n" + str(s)
+        assert code == 0
+        assert "ÉCART:" not in s
+        assert "MARKDOWN 0 ** · 0 liens Markdown · 0 liens cassés — %s\n" % page in s
 
         html = pathlib.Path(page).read_text(encoding="utf-8")
         d, _f = mod.zone(html, "clos", "<tbody>\n", "        </tbody>")
         ecrire(page, html[:d] + VIEILLE + html[d:])
         code, s = appel(["niveau", proj, "--date", "2026-09-18"])
         # Le second écart (BTN5) : la ligne close a un coût, la feuille n'a pas encore la balise de couts.svg.
-        assert (code == 1 and compte(s, "ÉCART:") == 2
-                 and "MARKDOWN 2 ** · 1 liens Markdown · 1 liens cassés — %s\n" % page in s
-                 and "ÉCART: feuille: Markdown brut ou lien cassé — « vlp.py niveau --ecrire »"
-                     " convertit les lignes closes\n" in s), ("REP3 : la ligne close brute se compte hors code cité, fait un écart, et nomme --ecrire") + "\n" + str(s)
+        assert code == 1
+        assert compte(s, "ÉCART:") == 2
+        assert "MARKDOWN 2 ** · 1 liens Markdown · 1 liens cassés — %s\n" % page in s
+        assert ("ÉCART: feuille: Markdown brut ou lien cassé — « vlp.py niveau --ecrire »"
+                     " convertit les lignes closes\n" in s)
 
         code, s = appel(["niveau", proj, "--ecrire", "--date", "2026-09-18"])
         apres = pathlib.Path(page).read_text(encoding="utf-8")
-        assert (code == 0 and "CORRIGÉ: feuille: 1 lignes closes converties\n" in s
-                 and "MARKDOWN 0 ** · 0 liens Markdown · 0 liens cassés — %s\n" % page in s
-                 and '<a href="&lt;URL de son artefact&gt;">' in apres), ("REP3 : --ecrire convertit la ligne close en place, et les compteurs tombent à zéro") + "\n" + str(s)
+        assert code == 0
+        assert "CORRIGÉ: feuille: 1 lignes closes converties\n" in s
+        assert "MARKDOWN 0 ** · 0 liens Markdown · 0 liens cassés — %s\n" % page in s
+        assert '<a href="&lt;URL de son artefact&gt;">' in apres
 
         ligne = rangs_clos(page)[0]
-        assert (visible(ligne) == visible(VIEILLE).replace("**x**", "x").replace("[t](https://u)", "t")
-                 and '<a href="https://v">' in ligne and '<a href="https://u">t</a>' in ligne
-                 and "<strong>x</strong>" in ligne and '<span class="mono">**c**</span>' in ligne
-                 and ligne.startswith("          <tr>\n")), ("REP3 : aucun texte visible perdu, chaque URL dans un href, le code cité et les dix espaces intacts") + "\n" + str(ligne)
+        assert visible(ligne) == visible(VIEILLE).replace("**x**", "x").replace("[t](https://u)", "t")
+        assert '<a href="https://v">' in ligne
+        assert '<a href="https://u">t</a>' in ligne
+        assert "<strong>x</strong>" in ligne
+        assert '<span class="mono">**c**</span>' in ligne
+        assert ligne.startswith("          <tr>\n")
 
         code, s = appel(["niveau", proj, "--ecrire", "--date", "2026-09-18"])
-        assert (pathlib.Path(page).read_text(encoding="utf-8") == apres and "CORRIGÉ: feuille:" not in s), ("REP3 : rejoué, --ecrire ne change plus rien — deux passes = une") + "\n" + str(s)
+        assert pathlib.Path(page).read_text(encoding="utf-8") == apres
+        assert "CORRIGÉ: feuille:" not in s
 
         carte = pathlib.Path(os.path.join(proj, "CHANTIER.md")).read_text(encoding="utf-8")
         ecrire(os.path.join(proj, "CHANTIER.md"), carte.replace(
@@ -433,9 +462,12 @@ def test_rep3_compteurs(tmp_path):
             + "\nLettres de fiche déjà prises : A. Un nouveau chantier en choisit une autre.\n")
         ecrire(os.path.join(proj, "ctx", "40-w.md"), ouvert("# Chantier W — Un titre\n\n## W1 [x] — a\n"))
         code, s = appel(["clore", proj, "--livre", "y", "--tokens", "950", "--date", "2026-09-19"])
-        assert (code == 0 and "· chantier 950 · cumul 2 450 ·" in s), ("clore : une clôture sous 1 000, comptée une fois") + "\n" + str(s)
+        assert code == 0
+        assert "· chantier 950 · cumul 2 450 ·" in s
         rangs = rangs_clos(page)
-        assert (len(rangs) == 2 and "2026-09-19" in rangs[0] and rangs[1] == ligne), ("REP3 : clore pose sa ligne au-dessus de la ligne convertie, sans la défaire") + "\n" + str(s)
+        assert len(rangs) == 2
+        assert "2026-09-19" in rangs[0]
+        assert rangs[1] == ligne
 
 
 def test_voi1_markdown(tmp_path):
@@ -463,8 +495,9 @@ def test_rep3_sans_etat(tmp_path):
         ecrire(os.path.join(proj, "CHANTIER.md"), CARTE_NETTE.replace("- **fichier d'état** : ctx/08-etat.md\n", ""))
         ecrire(os.path.join(proj, "ctx", "00-INDEX.md"), INDEX_NET)
         code, s = appel(["niveau", proj])
-        assert (code == 1 and "MARKDOWN non mesuré, la feuille ne se régénère pas — " in s
-                 and "ÉCART: feuille: fichier d'état introuvable : aucun\n" in s), ("REP3 : sans fichier d'état, la ligne MARKDOWN dit « non mesuré »") + "\n" + str(s)
+        assert code == 1
+        assert "MARKDOWN non mesuré, la feuille ne se régénère pas — " in s
+        assert "ÉCART: feuille: fichier d'état introuvable : aucun\n" in s
 
 
 ANCIENNE_CMP = ("<html><body><table><tbody>\n"
@@ -487,10 +520,13 @@ def test_voi2_comparer(tmp_path):
         ecrire(anc, ANCIENNE_CMP)
         ecrire(neu, NEUVE_CMP)
         code, s = appel(["comparer", anc, neu])
-        assert (code == 0 and "PERDU: TODO : un truc\n" in s and "AJOUTÉ: 2026-09-26\n" in s
-                 and s.rstrip().endswith("COMPARER 1 perdus · 1 ajoutés")), ("VOI2 : une ligne perdue, une ajoutée, code 0 — une mesure, pas une garde") + "\n" + str(s)
+        assert code == 0
+        assert "PERDU: TODO : un truc\n" in s
+        assert "AJOUTÉ: 2026-09-26\n" in s
+        assert s.rstrip().endswith("COMPARER 1 perdus · 1 ajoutés")
         code, s = appel(["comparer", anc, os.path.join(tc, "absente.html")])
-        assert (code == 1 and s.startswith("GARDE:")), ("VOI2 : fichier absent — GARDE, code 1") + "\n" + str(s)
+        assert code == 1
+        assert s.startswith("GARDE:")
 
 
 def test_page_enveloppee(tmp_path):
@@ -502,8 +538,10 @@ def test_page_enveloppee(tmp_path):
             ecrire(chemin, page.replace("<body>", "<body><div class=\"page\"><h2>Titre</h2>")
                    .replace("</body>", "</div></body>"))
         c, sortie = appel(["comparer", a, n])
-        assert (c == 0 and "PERDU: TODO : un truc\n" in sortie and "AJOUTÉ: 2026-09-26\n" in sortie
-                 and sortie.rstrip().endswith("COMPARER 1 perdus · 1 ajoutés")), ("Dette IDX : page dans un div — mutant : seul le bloc extérieur compte") + "\n" + str(sortie)
+        assert c == 0
+        assert "PERDU: TODO : un truc\n" in sortie
+        assert "AJOUTÉ: 2026-09-26\n" in sortie
+        assert sortie.rstrip().endswith("COMPARER 1 perdus · 1 ajoutés")
 
 
 def test_plage_refaite(tmp_path):
@@ -514,18 +552,21 @@ def test_plage_refaite(tmp_path):
         for chemin, fin in ((a, "P7"), (n, "P8")):
             ecrire(chemin, ANCIENNE_CMP.replace("<body>", "<body><div>kit · fiches P1–%s</div>" % fin))
         c, sortie = appel(["comparer", a, n])
-        assert (c == 0 and "PERDU:" not in sortie and "AJOUTÉ:" not in sortie
-                 and "PLAGE: kit · fiches P1–P7 → kit · fiches P1–P8\n" in sortie
-                 and sortie.rstrip().endswith("COMPARER 0 perdus · 0 ajoutés · 1 plages refaites")), ("Dette HAB : plage refaite — PLAGE, 0 perdu (mutant : sans appariement)") + "\n" + str(sortie)
+        assert c == 0
+        assert "PERDU:" not in sortie
+        assert "AJOUTÉ:" not in sortie
+        assert "PLAGE: kit · fiches P1–P7 → kit · fiches P1–P8\n" in sortie
+        assert sortie.rstrip().endswith("COMPARER 0 perdus · 0 ajoutés · 1 plages refaites")
         ecrire(n, ANCIENNE_CMP.replace("<body>", "<body><div>autre · fiches P1–P8</div>"))
         c, sortie = appel(["comparer", a, n])
-        assert ("PERDU: kit · fiches P1–P7\n" in sortie and "PLAGE:" not in sortie
-                 and sortie.rstrip().endswith("COMPARER 1 perdus · 1 ajoutés")), ("Dette HAB : texte changé autour de la plage — reste PERDU et AJOUTÉ") + "\n" + str(sortie)
+        assert "PERDU: kit · fiches P1–P7\n" in sortie
+        assert "PLAGE:" not in sortie
+        assert sortie.rstrip().endswith("COMPARER 1 perdus · 1 ajoutés")
         for chemin, fin in ((a, "P7"), (n, "P8")):
             ecrire(chemin, ANCIENNE_CMP.replace("<body>", "<body><div>Fiches P1–%s — la page</div>" % fin))
         c, sortie = appel(["comparer", a, n])
-        assert ("PLAGE: Fiches P1–P7 — la page → Fiches P1–P8 — la page\n" in sortie
-                 and "PERDU:" not in sortie), ("Dette BTN : « Fiches » avec majuscule, plage refaite — PLAGE (mutant : minuscule seule)") + "\n" + str(sortie)
+        assert "PLAGE: Fiches P1–P7 — la page → Fiches P1–P8 — la page\n" in sortie
+        assert "PERDU:" not in sortie
 
 
 def test_attente(tmp_path):
@@ -553,8 +594,10 @@ def test_attente(tmp_path):
         assert ((code, s) == (0, "ATTENTE 1\n")), ("attente ajouter : ATTENTE 1") + "\n" + str(s)
         code, s = appel(["attente", "ajouter", "88-boutons.html", "--url", url, "--projet", p])
         lignes = mod.lignes_de(liste)
-        assert ((code, s) == (0, "ATTENTE 1\n") and len(lignes) == 1 and lignes[0].split("\t")[:2] == ["88-boutons.html", url]
-                 and len(lignes[0].split("\t")) == 3), ("attente ajouter deux fois la même page : 1 ligne, la seconde url — mutant : ajouter sans remplacer") + "\n" + str(str(lignes))
+        assert (code, s) == (0, "ATTENTE 1\n")
+        assert len(lignes) == 1
+        assert lignes[0].split("\t")[:2] == ["88-boutons.html", url]
+        assert len(lignes[0].split("\t")) == 3
         assert (not os.path.exists(liste + ".tmp")), ("attente : aucun .tmp laissé") + "\n" + str(str(os.listdir(art)))
         code, s = appel(["attente", "lister", art])
         assert ((code, s) == (0, "ATTENTE=88-boutons.html %s\nATTENTE 1\n" % url)), ("attente lister") + "\n" + str(s)
@@ -566,9 +609,11 @@ def test_attente(tmp_path):
         mod.carte(p, s, True)
         assert ("ATTENTE=" not in s.getvalue()), ("attente : la carte du relecteur n'a pas de ligne ATTENTE=") + "\n" + str(s.getvalue())
         code, s = appel(["attente", "ajouter", "../hors.html", "--projet", p])
-        assert (code == 1 and s.startswith("GARDE:")), ("attente ajouter : une page hors des artefacts, GARDE") + "\n" + str(s)
+        assert code == 1
+        assert s.startswith("GARDE:")
         code, s = appel(["attente", "retirer", page, "--projet", p])
-        assert ((code, s) == (0, "ATTENTE 0\n") and not os.path.exists(liste)), ("attente retirer la dernière (chemin absolu) : ATTENTE 0, fichier absent — mutant : laisser un fichier vide") + "\n" + str(s)
+        assert (code, s) == (0, "ATTENTE 0\n")
+        assert not os.path.exists(liste)
 
         # Le hook : un vrai dossier de tampons, comme TOU2 — le tampon du jour fait la différence
         ancien_tampon = mod.etat.TAMPON_HOOKS
@@ -577,13 +622,17 @@ def test_attente(tmp_path):
             echec = {"hook_event_name": "PostToolUseFailure", "tool_name": "Artifact", "cwd": p,
                      "tool_input": {"file_path": page, "url": url}, "error": refus}
             code, s = hook(echec)
-            assert (code == 0 and mod.lire_attente(art)[0][:2] == ("88-boutons.html", url)), ("attente hook : un 429 ajoute la page avec son url") + "\n" + str(str(mod.lire_attente(art)))
+            assert code == 0
+            assert mod.lire_attente(art)[0][:2] == ("88-boutons.html", url)
             sortie = json.loads(s)["hookSpecificOutput"] if s else {}
-            assert (sortie.get("hookEventName") == "PostToolUseFailure" and "88-boutons.html" in sortie.get("additionalContext", "")
-                     and "à 02:00 locale" in sortie["additionalContext"] and "à 02:10 qui" in sortie["additionalContext"]), ("attente hook : 1er appel du jour, proposition à 02:00 / 02:10 (maintenant = 2026-09-28 20:00 UTC+2)") + "\n" + str(s)
+            assert sortie.get("hookEventName") == "PostToolUseFailure"
+            assert "88-boutons.html" in sortie.get("additionalContext", "")
+            assert "à 02:00 locale" in sortie["additionalContext"]
+            assert "à 02:10 qui" in sortie["additionalContext"]
             code, s = hook(dict(echec, tool_input={"file_path": autre}))
-            assert (s == "" and [e[0] for e in mod.lire_attente(art)] == ["88-boutons.html", "91-x.html"]
-                     and mod.lire_attente(art)[1][1] == "aucune"), ("attente hook : 2e appel du jour, page ajoutée, pas de proposition — mutant : sans tampon_neuf") + "\n" + str(s + str(mod.lire_attente(art)))
+            assert s == ""
+            assert [e[0] for e in mod.lire_attente(art)] == ["88-boutons.html", "91-x.html"]
+            assert mod.lire_attente(art)[1][1] == "aucune"
             code, s = hook(echec, soir + datetime.timedelta(days=1))
             assert ('"additionalContext"' in s), ("attente hook : le lendemain (jour UTC), la proposition revient") + "\n" + str(s)
             p2, art2 = projet(t, "proj2")
@@ -600,11 +649,17 @@ def test_attente(tmp_path):
                     ("asset", dict(echec, tool_input={"file_path": page, "asset": True})),
                     ("page hors projet", dict(echec, tool_input={"file_path": os.path.join(t, "ailleurs", "x.html")}))):
                 code, s = hook(d, soir + datetime.timedelta(days=2))
-                assert (code == 0 and s == "" and mod.lire_attente(art) == avant), ("attente hook : %s, rien — code 0, silence, liste inchangée" % nom) + "\n" + str(s)
+                assert code == 0
+                assert s == ""
+                assert mod.lire_attente(art) == avant
             code, s = hook(dict(echec, hook_event_name="PostToolUse", tool_input={"file_path": page}))
-            assert (code == 0 and s == "" and [e[0] for e in mod.lire_attente(art)] == ["91-x.html"]), ("attente hook : une publication réussie retire la page listée, en silence") + "\n" + str(s)
+            assert code == 0
+            assert s == ""
+            assert [e[0] for e in mod.lire_attente(art)] == ["91-x.html"]
             code, s = hook(dict(echec, hook_event_name="PostToolUse", tool_input={"file_path": page}))
-            assert (code == 0 and s == "" and [e[0] for e in mod.lire_attente(art)] == ["91-x.html"]), ("attente hook : un succès d'une page absente de la liste, rien") + "\n" + str(s)
+            assert code == 0
+            assert s == ""
+            assert [e[0] for e in mod.lire_attente(art)] == ["91-x.html"]
             o = io.StringIO()
             code = mod.main(["attente", "hook"], o, io.StringIO("pas du json"))
             assert ((code, o.getvalue()) == (0, "")), ("attente hook : entrée illisible, muet, code 0") + "\n" + str(o.getvalue())
@@ -696,11 +751,12 @@ def test_attentes_de_nuit(tmp_path):
     finally:
         if garde is not None:
             os.environ["VLP_NUIT"] = garde
-    assert (vus[True][0] == 0 and vus[True][2] == [["50-u.html", "https://claude.ai/artifact/c"],
-                                                     ["feuille-de-route.html", "https://claude.ai/artifact/f"]]
-             and "ATTENTE 50-u.html — https://claude.ai/artifact/c\n" in vus[True][1]
-             and vus[False][0] == 0 and vus[False][2] == []), ("NPB1 (a) clore sous VLP_NUIT=1 met en attente la page du chantier et la feuille, et le dit ; sans la "
-             "nuit, rien — mutant : la garde VLP_NUIT forcée à faux") + "\n" + str(vus)
+    assert vus[True][0] == 0
+    assert (vus[True][2] == [["50-u.html", "https://claude.ai/artifact/c"],
+                                                     ["feuille-de-route.html", "https://claude.ai/artifact/f"]])
+    assert "ATTENTE 50-u.html — https://claude.ai/artifact/c\n" in vus[True][1]
+    assert vus[False][0] == 0
+    assert vus[False][2] == []
 
 
 def noms_ailleurs(dossier):
@@ -726,10 +782,12 @@ def test_ailleurs_meme_chantier(tmp_path, init_git):
         commit_matin(wl, "LOC1 : a", 2)                 # et une fiche de LOC que main n'a pas (ISO2)
         _, avec = appel(["niveau", d])
         _, dans = appel(["niveau", wl])
-    assert ("ÉCART: page:" in seul and "AILLEURS:" not in seul
-             and "AILLEURS: page: LOC joue dans " in avec and "wt-l" in avec and "ÉCART: page:" not in avec
-             and "AILLEURS:" not in dans), ("NUI28 (b) niveau : LOC joué dans un worktree → « AILLEURS: page: LOC joue dans … », aucun ÉCART: page "
-             "dans le principal ; sans worktree, ou lancé dans le worktree, la page se compte") + "\n" + str((seul, avec, dans))
+    assert "ÉCART: page:" in seul
+    assert "AILLEURS:" not in seul
+    assert "AILLEURS: page: LOC joue dans " in avec
+    assert "wt-l" in avec
+    assert "ÉCART: page:" not in avec
+    assert "AILLEURS:" not in dans
 
     with tempfile.TemporaryDirectory(dir=tmp_path) as tr:
         d, wh = os.path.join(tr, "h"), os.path.join(tr, "wt-h")

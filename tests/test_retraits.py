@@ -63,8 +63,9 @@ def test_juger(tmp_path, init_git):
     ecrire(a, "def test_a():\n    assert 1\n")
     git("add", "-A")
     code, s = juger(d, "x\n")
-    assert code == 1 and "tests 2 → 1" in s and "Test retiré : <raison>" in s, (
-        "retraits : un test retiré, commit refusé\n" + s)
+    assert code == 1
+    assert "tests 2 → 1" in s
+    assert "Test retiré : <raison>" in s
     assert juger(d, "x\n\nTest retiré : doublon\n")[0] == 0, "retraits : avec la raison, accepté"
 
     ecrire(os.path.join(d, "tests", "test_b.py"), "def test_b():\n    assert 2\n    verifier('b', True)\n")
@@ -76,7 +77,8 @@ def test_juger(tmp_path, init_git):
     git("rm", "-q", "--cached", "tests/test_b.py")
     git("add", "tests/test_a.py")
     code, s = juger(d, "x\n")
-    assert code == 1 and "skip 0 → 1" in s, "retraits : un skip ajouté, commit refusé\n" + s
+    assert code == 1
+    assert "skip 0 → 1" in s
 
 
 def test_juger_sans_head(tmp_path, init_git):
@@ -85,7 +87,8 @@ def test_juger_sans_head(tmp_path, init_git):
     ecrire(os.path.join(d, "tests", "test_a.py"), DEUX)
     init_git(d)
     code, s = juger(d, "x\n")
-    assert code == 0 and "premier commit" in s, "retraits : sans HEAD, rien à comparer\n" + s
+    assert code == 0
+    assert "premier commit" in s
 
 
 def test_hook_commit_msg(tmp_path, init_git):
@@ -99,7 +102,8 @@ def test_hook_commit_msg(tmp_path, init_git):
     ecrire(os.path.join(d, "tests", "test_a.py"), "def test_a():\n    assert 1\n")
     git("add", "-A")
     code, s = git("commit", "-q", "-m", "retire b")
-    assert code != 0 and "tests 2 → 1" in s, "retraits : le hook commit-msg refuse un test retiré\n" + s
+    assert code != 0
+    assert "tests 2 → 1" in s
     code, s = git("commit", "-q", "-m", "retire b", "-m", "Test retiré : doublon de test_a")
     assert code == 0, "retraits : le hook accepte la ligne de raison\n" + s
 
@@ -114,16 +118,16 @@ def test_principal(tmp_path, init_git):
     git("add", "-A")
     r = subprocess.run([sys.executable, os.path.join(RACINE, "scripts", "vlp.py"), "retraits", msg, "--racine", d],
                        capture_output=True, encoding="utf-8", errors="replace", check=False)
-    assert r.returncode == 0 and "ILLISIBLE tests/test_c.py" in r.stdout, (
-        "retraits : un test illisible se dit, sans rien retirer\n" + r.stdout + r.stderr)
+    assert r.returncode == 0
+    assert "ILLISIBLE tests/test_c.py" in r.stdout
     vide = str(tmp_path / "vide")
     ecrire(os.path.join(vide, "a.md"), "a\n")
     init_git(vide)
     subprocess.run(["git", "-C", vide, "add", "-A"], check=True, capture_output=True)
     subprocess.run(["git", "-C", vide, "commit", "-q", "-m", "a"], check=True, capture_output=True)
     s = io.StringIO()
-    assert retraits.principal([msg, "--racine", vide], s) == 0 and "passe" in s.getvalue(), (
-        "retraits : un dépôt sans test passe\n" + s.getvalue())
+    assert retraits.principal([msg, "--racine", vide], s) == 0
+    assert "passe" in s.getvalue()
     s = io.StringIO()
-    assert retraits.principal([str(tmp_path / "absent.txt")], s) == 1 and s.getvalue().startswith("GARDE:"), (
-        "retraits : un message illisible rend une GARDE\n" + s.getvalue())
+    assert retraits.principal([str(tmp_path / "absent.txt")], s) == 1
+    assert s.getvalue().startswith("GARDE:")

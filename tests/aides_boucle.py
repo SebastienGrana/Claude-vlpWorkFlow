@@ -142,7 +142,8 @@ def nuit(t, *options, rate="", claude=FAUX_CLAUDE, traces=None, **env):
 # --- les plafonds de chaque rôle, l'issue de chaque session, la limite d'usage (NUI4) -----
 
 _spec_b = importlib.util.spec_from_file_location("boucle", os.path.join(SCRIPTS, "boucle.py"))
-assert _spec_b and _spec_b.loader
+assert _spec_b
+assert _spec_b.loader
 bmod: Any = importlib.util.module_from_spec(_spec_b)   # `jouer()` y est appelé tel quel, un rôle à la fois
 _spec_b.loader.exec_module(bmod)
 kit = mod   # le code de vlp.py : source indépendante des `maxTurns` attendus

@@ -34,10 +34,12 @@ def test_symboles(tmp_path):
                        "        return 2\n    return dedans()\n\n\nclass Trois:\n    def m(self):\n        return 3\n")
         o = io.StringIO()
         code = mod.main(["symboles", chemin], o)
-        assert (code == 0 and o.getvalue() == "un 4-5\ndeux 8-11\nTrois 14-16\n"), ("VIT9 : symboles, une ligne `nom début-fin` par fonction ou classe de premier niveau") + "\n" + str(o.getvalue())
+        assert code == 0
+        assert o.getvalue() == "un 4-5\ndeux 8-11\nTrois 14-16\n"
         o = io.StringIO()
         code = mod.main(["symboles", chemin, "Trois", "rien", "un"], o)
-        assert (code == 1 and o.getvalue() == "Trois 14-16\nABSENT rien\nun 4-5\n"), ("VIT9 : symboles avec des noms, leurs seules lignes, ABSENT pour l'inconnu, sort 1") + "\n" + str(o.getvalue())
+        assert code == 1
+        assert o.getvalue() == "Trois 14-16\nABSENT rien\nun 4-5\n"
         angel = os.path.join(t, "deco.as")
         ecrire(angel, "class Deco {\n    void Poser() { int x = 1; }\n}\n")
         o = io.StringIO()
@@ -45,8 +47,9 @@ def test_symboles(tmp_path):
             code = mod.main(["symboles", angel], o)
         except SyntaxError as e:    # l'ancien comportement : le traceback, rendu en écart
             code = "traceback %s" % e
-        assert (code == 1 and o.getvalue().startswith("GARDE: %s ne se lit pas en Python" % angel)
-                 and o.getvalue().count("\n") == 1), ("SYM : symboles sur un fichier non Python, une GARDE: et sort 1, jamais un traceback") + "\n" + str(o.getvalue())
+        assert code == 1
+        assert o.getvalue().startswith("GARDE: %s ne se lit pas en Python" % angel)
+        assert o.getvalue().count("\n") == 1
 
 
 def test_mutant(tmp_path):
@@ -76,13 +79,23 @@ def test_mutant(tmp_path):
                                                         test=[os.path.join(tm, "absent.exe")]), o), o.getvalue())
         with open(f, "rb") as g:
             rendu_plante = g.read() == source.encode()
-        assert (attrape[0] == 0 and "MUTANT ATTRAPÉ 2 écart(s)" in attrape[1] and attrape[1].count("ÉCART:") == 2
-                 and "RENDU " in attrape[1] and attrape[2]
-                 and vivant[0] == 1 and "MUTANT VIVANT" in vivant[1] and vivant[2]
-                 and absent[0] == 1 and "trouvé 0 fois" in absent[1] and absent[2]
-                 and double[0] == 1 and "trouvé 3 fois" in double[1] and double[2]
-                 and plante[0] == 1 and "ne se lancent pas" in plante[1] and rendu_plante), ("MUT1 : mutant — attrapé (2 écarts, @fichier sur CRLF), vivant, absent, double, tests qui ne "
-                 "se lancent pas ; fichier rendu à l'octet chaque fois — mutant : restauration retirée") + "\n" + str((attrape, vivant, absent, double, plante, rendu_plante))
+        assert attrape[0] == 0
+        assert "MUTANT ATTRAPÉ 2 écart(s)" in attrape[1]
+        assert attrape[1].count("ÉCART:") == 2
+        assert "RENDU " in attrape[1]
+        assert attrape[2]
+        assert vivant[0] == 1
+        assert "MUTANT VIVANT" in vivant[1]
+        assert vivant[2]
+        assert absent[0] == 1
+        assert "trouvé 0 fois" in absent[1]
+        assert absent[2]
+        assert double[0] == 1
+        assert "trouvé 3 fois" in double[1]
+        assert double[2]
+        assert plante[0] == 1
+        assert "ne se lancent pas" in plante[1]
+        assert rendu_plante
 
 
 SUITE_MUTANT = """import hashlib, subprocess, sys, time
@@ -127,17 +140,24 @@ def test_mutant_attendu(tmp_path):
         with open(pendant, encoding="utf-8") as g:
             vu_pendant = g.read()
         time.sleep(2.5)     # le petit-fils, s'il vit encore, a écrit sa trace
-        assert (attrape[0] == 0 and "MUTANT ATTRAPÉ 2 écart(s) · arrêté sur « attendu »\n" in attrape[1]
-                 and attrape[2] < 20 and not os.path.exists(petit) and vu_pendant == empreinte and attrape[3]
-                 and "RENDU %s\n" % empreinte in attrape[1] and "COPIE restée" not in attrape[1]), ("VIT2 : --attendu juste → MUTANT ATTRAPÉ, l'arbre tué dès l'écart (pas 30 s, petit-fils compris) ; "
-                 "vrai fichier inchangé pendant (sha1) et après — mutants : muter le vrai fichier, tuer le seul fils") + "\n" + str((attrape, vu_pendant, os.path.exists(petit)))
+        assert attrape[0] == 0
+        assert "MUTANT ATTRAPÉ 2 écart(s) · arrêté sur « attendu »\n" in attrape[1]
+        assert attrape[2] < 20
+        assert not os.path.exists(petit)
+        assert vu_pendant == empreinte
+        assert attrape[3]
+        assert "RENDU %s\n" % empreinte in attrape[1]
+        assert "COPIE restée" not in attrape[1]
         vivant = mutant("x = 4", "--attendu", "jamais")
-        assert (vivant[0] == 1 and vivant[1].startswith("ÉCART: autre\nMUTANT VIVANT pour jamais\n") and vivant[3]), ("VIT2 : --attendu d'un test qui ne tombe pas → MUTANT VIVANT pour …, sort 1, avec les écarts vus") + "\n" + str(vivant)
+        assert vivant[0] == 1
+        assert vivant[1].startswith("ÉCART: autre\nMUTANT VIVANT pour jamais\n")
+        assert vivant[3]
         milieu = mutant("x = 4", "--attendu", "utr")
-        assert (milieu[0] == 1 and milieu[1].startswith(
+        assert milieu[0] == 1
+        assert (milieu[1].startswith(
                      "ÉCART: autre\nMUTANT VIVANT pour utr\n"
-                     "ATTENDU AU MILIEU · « utr » est dans « autre » : --attendu \"autr\"\n") and milieu[3]), ("REF31 : --attendu au milieu d'un écart (cas d'ENA) → VIVANT, puis la ligne ATTENDU AU MILIEU qui "
-                 "donne le début du libellé à recopier — mutant : la ligne retirée") + "\n" + str(milieu)
+                     "ATTENDU AU MILIEU · « utr » est dans « autre » : --attendu \"autr\"\n"))
+        assert milieu[3]
         plante = mutant("x = 3", "--attendu", "attendu")
         plante_tous = mutant("x = 3")
         assert (all(p[0] == 1 and "MUTANT PLANTÉ · tests sortis 1 sans finir, après 1 écart(s)" in p[1]
@@ -170,14 +190,18 @@ def test_mutant_juge(tmp_path):
                "vivant": mutant("y = 1", "y = 2", "--attendu", "KO X"),
                "muet": mutant("x = 1", "x = 2", "--attendu", "jamais"),
                "planté": mutant("x = 1", "x = 9", "--attendu", "KO X")}
-        assert (vus["attrapé"][0] == 0 and "MUTANT ATTRAPÉ · juge hors kit sorti 1 — « KO X -- lu »" in vus["attrapé"][1]
-                 and vus["nu"][0] == 0 and "MUTANT ATTRAPÉ · juge hors kit sorti 1" in vus["nu"][1]
-                 and vus["vivant"][0] == 1 and "MUTANT VIVANT pour KO X · juge hors kit sorti 0" in vus["vivant"][1]
-                 and vus["muet"][0] == 1 and "MUTANT VIVANT pour jamais · juge hors kit sorti 1 sans le dire"
-                 in vus["muet"][1]
-                 and vus["planté"][0] == 1 and "MUTANT PLANTÉ · juge hors kit sorti 1" in vus["planté"][1]
-                 and "ValueError" in vus["planté"][1]), ("ISO : mutant d'un juge hors kit — sorti 1 en disant --attendu → ATTRAPÉ ; sorti 0, ou sans le "
-                 "dire → VIVANT ; erreur Python → PLANTÉ — mutant : juge hors kit dit PLANTÉ") + "\n" + str(vus)
+        assert vus["attrapé"][0] == 0
+        assert "MUTANT ATTRAPÉ · juge hors kit sorti 1 — « KO X -- lu »" in vus["attrapé"][1]
+        assert vus["nu"][0] == 0
+        assert "MUTANT ATTRAPÉ · juge hors kit sorti 1" in vus["nu"][1]
+        assert vus["vivant"][0] == 1
+        assert "MUTANT VIVANT pour KO X · juge hors kit sorti 0" in vus["vivant"][1]
+        assert vus["muet"][0] == 1
+        assert ("MUTANT VIVANT pour jamais · juge hors kit sorti 1 sans le dire"
+                 in vus["muet"][1])
+        assert vus["planté"][0] == 1
+        assert "MUTANT PLANTÉ · juge hors kit sorti 1" in vus["planté"][1]
+        assert "ValueError" in vus["planté"][1]
 
 
 SUITE_VISEE = """import sys
@@ -224,24 +248,26 @@ def test_mutant_vise(tmp_path, monkeypatch):
             with open(journal, encoding="utf-8") as j:
                 return code, o.getvalue(), j.read().split("\n")[:-1]
         vise = mutant("a = 1", "a = 9", "porte a")
-        assert (vise[0] == 0 and vise[1].startswith("VISÉ --seul « porte a »\nÉCART: porte a\n"
-                                                     "MUTANT ATTRAPÉ 1 écart(s) · arrêté sur « porte a »\n")
-                 and vise[2] == ["porte a"]), ("VIT21 : --attendu sans --test → ses seuls groupes (--seul), MUTANT ATTRAPÉ dit VISÉ, sans suite "
-                 "entière — mutant : --seul jamais ajouté") + "\n" + str(vise)
+        assert vise[0] == 0
+        assert (vise[1].startswith("VISÉ --seul « porte a »\nÉCART: porte a\n"
+                                                     "MUTANT ATTRAPÉ 1 écart(s) · arrêté sur « porte a »\n"))
+        assert vise[2] == ["porte a"]
         sans = mutant("c = 3", "c = 9", "hors c")
-        assert (sans[0] == 0 and sans[1].startswith("SUITE ENTIÈRE · aucun groupe ne porte « hors c »\nÉCART: hors c\n"
-                                                     "MUTANT ATTRAPÉ 1 écart(s) · arrêté sur « hors c »\n")
-                 and sans[2] == ["hors c", ""]), ("VIT21 : un --attendu qu'aucun groupe ne porte → la GARDE de --seul n'est pas un écart : suite "
-                 "entière, dite, qui l'attrape — mutant : pas de repli") + "\n" + str(sans)
+        assert sans[0] == 0
+        assert (sans[1].startswith("SUITE ENTIÈRE · aucun groupe ne porte « hors c »\nÉCART: hors c\n"
+                                                     "MUTANT ATTRAPÉ 1 écart(s) · arrêté sur « hors c »\n"))
+        assert sans[2] == ["hors c", ""]
         autre = mutant("b = 2", "b = 9", "porte a")
-        assert (autre[0] == 1 and autre[1].startswith("SUITE ENTIÈRE · « porte a » n'est pas tombé dans ses groupes\n"
-                                                       "ÉCART: voisin b\nMUTANT VIVANT pour porte a\n")
-                 and "ATTRAPÉ" not in autre[1] and autre[2] == ["porte a", ""]), ("VIT21 : un groupe qui ne porte pas le contrôle ne rend jamais ATTRAPÉ — suite entière, dite, "
-                 "MUTANT VIVANT pour …, sort 1") + "\n" + str(autre)
+        assert autre[0] == 1
+        assert (autre[1].startswith("SUITE ENTIÈRE · « porte a » n'est pas tombé dans ses groupes\n"
+                                                       "ÉCART: voisin b\nMUTANT VIVANT pour porte a\n"))
+        assert "ATTRAPÉ" not in autre[1]
+        assert autre[2] == ["porte a", ""]
         test = '"%s" "%s"' % (sys.executable, os.path.join(kit, "scripts", "suite.py"))
         dernier = mutant("a = 1", "a = 9", "porte a", "--test", test)
-        assert (dernier[0] == 0 and dernier[1].startswith("ÉCART: porte a\nMUTANT ATTRAPÉ 1 écart(s)")
-                 and dernier[2] == [""]), ("VIT21 : --test donné garde le dernier mot — sa seule commande, ni VISÉ ni SUITE ENTIÈRE") + "\n" + str(dernier)
+        assert dernier[0] == 0
+        assert dernier[1].startswith("ÉCART: porte a\nMUTANT ATTRAPÉ 1 écart(s)")
+        assert dernier[2] == [""]
 
 
 def test_mutant_worktree(tmp_path, monkeypatch):
@@ -265,9 +291,10 @@ def test_mutant_worktree(tmp_path, monkeypatch):
             code = mod.main(["mutant", f, "a = 1", "a = 9", "--attendu", "porte a"], o)
         finally:
             mod.etat.KIT = garde
-        assert (code == 0 and "MUTANT ATTRAPÉ" in o.getvalue() and "TESTS %s\n" % interieur in o.getvalue()
-                 and mod.kit_de(f) == interieur), ("MUW1 : cible d'un worktree sous KIT → ses tests à lui, MUTANT ATTRAPÉ et ligne TESTS du worktree — "
-                 "mutant : copie_mutee reprise sur KIT") + "\n" + str((code, o.getvalue()))
+        assert code == 0
+        assert "MUTANT ATTRAPÉ" in o.getvalue()
+        assert "TESTS %s\n" % interieur in o.getvalue()
+        assert mod.kit_de(f) == interieur
 
 
 CLIQUET_FAUX = """import os, sys
@@ -320,39 +347,47 @@ def test_rapide(tmp_path, monkeypatch, init_git):
         touches = [t.replace(os.sep, "/").rsplit("/kit/", 1)[-1] for t in mod.py_touches(kit)]
         assert (touches == ["f.py", "sous dossier/neuf.py"]), ("VIT23 : les .py touchés — modifié, et neuf sous un dossier à espace —, ni .txt ni .py intact") + "\n" + str(touches)
         vert = rapide("porte")
-        assert (vert[0] == 0 and vert[2] == ["porte"] and vert[1] == (
+        assert vert[0] == 0
+        assert vert[2] == ["porte"]
+        assert (vert[1] == (
                      "RAPIDE groupes « porte » : vert · N s · OK\n"
                      "RAPIDE pyright 2 fichier(s) : vert · N s · 0 errors, 0 warnings, 0 informations\n"
                      "RAPIDE cliquet : vert · N s · CLIQUET TENU\n"
-                     "RAPIDE VERT · N s — la suite entière reste à jouer : cocher l'exige\n")), ("VIT23 : tout passe → trois lignes vertes, RAPIDE VERT, sort 0 ; seul --seul lancé, jamais la suite "
-                 "entière") + "\n" + str(vert)
+                     "RAPIDE VERT · N s — la suite entière reste à jouer : cocher l'exige\n"))
         ecrire(os.path.join(kit, "f.py"), "a = 9\nb = 2\nc = 3\nd = 4\n")
         seme = rapide("porte")
-        assert (seme[0] == 1 and seme[2] == ["porte"] and seme[1].startswith(
-                     "RAPIDE groupes « porte » : rouge · N s · code 1\n  ÉCART: porte a\n  FIN: 1 écart(s)\n")
-                 and seme[1].endswith("RAPIDE ROUGE · N s — corrige avant de lancer la suite entière\n")), ("VIT23 : un écart semé dans le groupe de la fiche → rouge, ses lignes, RAPIDE ROUGE, sort 1, sans "
-                 "lancer la suite entière — mutant : un rouge parmi des verts ne compte pas") + "\n" + str(seme)
+        assert seme[0] == 1
+        assert seme[2] == ["porte"]
+        assert (seme[1].startswith(
+                     "RAPIDE groupes « porte » : rouge · N s · code 1\n  ÉCART: porte a\n  FIN: 1 écart(s)\n"))
+        assert seme[1].endswith("RAPIDE ROUGE · N s — corrige avant de lancer la suite entière\n")
         ecrire(os.path.join(kit, "f.py"), "a = 1\nb = 2\nc = 3\nd = 4\n")
         ecrire(os.path.join(kit, "sous dossier", "neuf.py"), "erreur = 5\n")
         ecrire(os.path.join(kit, "rompu"), "")
         types = rapide("porte")
-        assert (types[0] == 1 and "RAPIDE pyright 2 fichier(s) : rouge · N s · code 1\n" in types[1]
-                 and "neuf.py:1:1 - error: faux\n  1 errors, 0 warnings, 0 informations\n" in types[1]
-                 and "RAPIDE cliquet : rouge · N s · code 1\n  EMPIRE f.py:1 g · complexité 3 → 11, seuil 10\n"
-                     "  CLIQUET ROMPU\n" in types[1]), ("VIT23 : pyright en erreur et cliquet rompu → chacun rouge, avec ses lignes") + "\n" + str(types)
+        assert types[0] == 1
+        assert "RAPIDE pyright 2 fichier(s) : rouge · N s · code 1\n" in types[1]
+        assert "neuf.py:1:1 - error: faux\n  1 errors, 0 warnings, 0 informations\n" in types[1]
+        assert ("RAPIDE cliquet : rouge · N s · code 1\n  EMPIRE f.py:1 g · complexité 3 → 11, seuil 10\n"
+                     "  CLIQUET ROMPU\n" in types[1])
         os.remove(os.path.join(kit, "rompu"))
         sautes = rapide("rien", None)
-        assert (sautes[0] == 0 and sautes[2] == ["rien"] and sautes[1] == (
+        assert sautes[0] == 0
+        assert sautes[2] == ["rien"]
+        assert (sautes[1] == (
                      "RAPIDE groupes « rien » : sauté · N s · aucun groupe ne porte ce motif\n"
                      "RAPIDE pyright : sauté · pyright introuvable\n"
                      "RAPIDE cliquet : vert · N s · CLIQUET TENU\n"
-                     "RAPIDE VERT · N s — la suite entière reste à jouer : cocher l'exige\n")), ("VIT23 : aucun groupe ne porte le motif, pyright absent → sautés, chacun sa raison, VERT") + "\n" + str(sautes)
+                     "RAPIDE VERT · N s — la suite entière reste à jouer : cocher l'exige\n"))
         o = io.StringIO()
         absent = mod.ecrire_rapide("x", None, mod.jouer_rapide([os.path.join(tr, "absent.exe")], kit), o)
         hors = io.StringIO()
-        assert (absent and "RAPIDE x : rouge · " in o.getvalue() and "  ne se lance pas : " in o.getvalue()
-                 and mod.main(["rapide", "porte", "--racine", tr], hors) == 1
-                 and hors.getvalue().startswith("GARDE: ") and "pas de tests/conftest.py" in hors.getvalue()), ("VIT23 : une commande qui ne se lance pas → rouge, dite ; hors du kit → GARDE, sort 1") + "\n" + str((o.getvalue(), hors.getvalue()))
+        assert absent
+        assert "RAPIDE x : rouge · " in o.getvalue()
+        assert "  ne se lance pas : " in o.getvalue()
+        assert mod.main(["rapide", "porte", "--racine", tr], hors) == 1
+        assert hors.getvalue().startswith("GARDE: ")
+        assert "pas de tests/conftest.py" in hors.getvalue()
 
 
 JOUR_MATIN = "2026-10-01"
@@ -427,12 +462,16 @@ def test_ref40_base_refaite(tmp_path, init_git):
         conf = appel(["fusionner", fiches, "W2", "--worktree", wb])
         apres_conf = (git_matin(d, "status", "--porcelain"), code_git(d, "rev-parse", "-q", "--verify", "MERGE_HEAD"),
                       base(d) == neuve)
-    assert (fus[0] == 0 and fus[1].startswith("FUSIONNÉ W1 ") and "\nBASE REFAITE scripts/sante-base.json" in fus[1]
-             and fusionnee[1:] == ("", ["d", "wt-b"], "Fusion : W1")), ("REF40 : conflit sur sante-base.json seul → FUSIONNÉ W1 et BASE REFAITE, sort 0, arbre propre, "
-             "worktree retiré, commit « Fusion : W1 »") + "\n" + str((fus, fusionnee[1:]))
-    assert (fusionnee[0] == neuve and '"f2"' in neuve and '"g2"' in neuve), ("REF40 : la base fusionnée égale celle d'un sante --base neuf, f2 et g2 comprises") + "\n" + str((fusionnee[0], neuve))
-    assert (conf[0] == 1 and conf[1].endswith("CONFLIT W2 scripts/sante-base.json\n") and apres_conf == ("", 1, True)), ("REF40 : une fonction qui empire sur le code fusionné → CONFLIT W2 scripts/sante-base.json, sort 1, "
-             "arbre propre, pas de MERGE_HEAD, base de main intacte") + "\n" + str((conf, apres_conf))
+    assert fus[0] == 0
+    assert fus[1].startswith("FUSIONNÉ W1 ")
+    assert "\nBASE REFAITE scripts/sante-base.json" in fus[1]
+    assert fusionnee[1:] == ("", ["d", "wt-b"], "Fusion : W1")
+    assert fusionnee[0] == neuve
+    assert '"f2"' in neuve
+    assert '"g2"' in neuve
+    assert conf[0] == 1
+    assert conf[1].endswith("CONFLIT W2 scripts/sante-base.json\n")
+    assert apres_conf == ("", 1, True)
 
 
 def test_ref9_tailles(tmp_path):
@@ -459,14 +498,23 @@ def test_ref9_tailles(tmp_path):
         maigri = lancer({"tests/test_gros.py": None, "scripts/gros.py": 1100}, "--base")
         regrossi = lancer({"scripts/gros.py": 1150}, "--cliquet")
         refuse = lancer({}, "--base")
-    assert (pose[0] == 0 and tenu[0] == 0 and "TAILLES au-dessus de %d lignes, taille/plafond : scripts/gros.py "
-             "1200/1200\n" % seuil in tenu[1] and tenu[1].endswith("CLIQUET TENU\n")), ("REF9 : la base pose les tailles ; le même code → TENU, et la ligne des gros fichiers, taille/plafond") + "\n" + str((pose, tenu))
-    assert (grossi[0] == 1 and "TAILLE scripts/gros.py · 1201 lignes, plafond 1200 (base)\n" in grossi[1]), ("REF9 : une ligne ajoutée à un gros fichier → TAILLE …, plafond 1200 (base), ROMPU") + "\n" + str(grossi)
-    assert (neuf[0] == 1 and "TAILLE scripts/neuf.py · %d lignes, plafond %d (seuil)\n" % (seuil + 1, seuil) in neuf[1]
-             and test_neuf[0] == 1 and "TAILLE tests/test_gros.py · %d lignes" % (seuil + 1) in test_neuf[1]), ("REF9 : un fichier neuf de 1 001 lignes, dans scripts/ ou tests/ → TAILLE …, plafond 1000 (seuil), ROMPU") + "\n" + str((neuf, test_neuf))
-    assert (maigri[0] == 0 and regrossi[0] == 1 and "TAILLE scripts/gros.py · 1150 lignes, plafond 1100 (base)\n"
-             in regrossi[1] and refuse[0] == 1 and "GARDE: la base ne se relâche pas" in refuse[1]), ("REF9 : un gros fichier qui maigrit (1100) fait baisser sa base : 1150 → ROMPU, plafond 1100, et --base "
-             "refuse de relâcher") + "\n" + str((maigri, regrossi, refuse))
+    assert pose[0] == 0
+    assert tenu[0] == 0
+    assert ("TAILLES au-dessus de %d lignes, taille/plafond : scripts/gros.py "
+             "1200/1200\n" % seuil in tenu[1])
+    assert tenu[1].endswith("CLIQUET TENU\n")
+    assert grossi[0] == 1
+    assert "TAILLE scripts/gros.py · 1201 lignes, plafond 1200 (base)\n" in grossi[1]
+    assert neuf[0] == 1
+    assert "TAILLE scripts/neuf.py · %d lignes, plafond %d (seuil)\n" % (seuil + 1, seuil) in neuf[1]
+    assert test_neuf[0] == 1
+    assert "TAILLE tests/test_gros.py · %d lignes" % (seuil + 1) in test_neuf[1]
+    assert maigri[0] == 0
+    assert regrossi[0] == 1
+    assert ("TAILLE scripts/gros.py · 1150 lignes, plafond 1100 (base)\n"
+             in regrossi[1])
+    assert refuse[0] == 1
+    assert "GARDE: la base ne se relâche pas" in refuse[1]
 
 
 def mod_sante():
@@ -656,11 +704,10 @@ def test_sante_comptes(tmp_path):
         crlf = sante.mesurer_fichier(ts, os.path.join(ts, "crlf.py"))[0]
         double = [f["fonction"] for f in sante.mesurer_fichier(ts, os.path.join(ts, "double.py"))[0]]
     comptes = {f["fonction"]: f["ast"] for f in fonctions}
-    assert (comptes == {n: c for n, c in SONDES_ATTENDU.items() if not n.startswith("f_match")}
-             and [f["fonction"] for f in fonctions if f["doc"]] == ["f_externe", "f_instr"]
-             and [f["empreinte"] for f in crlf] == [f["empreinte"] for f in fonctions] and double == ["f", "f#2"]), ("VIT15 (a) les cinq comptes ast des sondes égalent ceux de ruff 0.16.10 — elif et else-if, boucles et leur "
-             "else, try complet, imbrication, fonction et classe imbriquées, arguments muets et de méthode, instructions "
-             "à la Pylint ; docstrings vues ; même empreinte en CRLF ; un nom en double → f#2") + "\n" + str((comptes, double))
+    assert comptes == {n: c for n, c in SONDES_ATTENDU.items() if not n.startswith("f_match")}
+    assert [f["fonction"] for f in fonctions if f["doc"]] == ["f_externe", "f_instr"]
+    assert [f["empreinte"] for f in crlf] == [f["empreinte"] for f in fonctions]
+    assert double == ["f", "f#2"]
     with tempfile.TemporaryDirectory(dir=tmp_path) as ts:
         ecrire(os.path.join(ts, "choix.py"), SONDES_MATCH)
         choix = {f["fonction"]: f["ast"] for f in sante.mesurer_fichier(ts, os.path.join(ts, "choix.py"))[0]}
@@ -690,12 +737,16 @@ def test_sante_ruff(tmp_path):
     lus = {f["fonction"]: f["ruff"] for f in fonctions if any(f["ruff"])}
     assert (lus == {n: SONDES_ATTENDU[n] for n in ("f_externe", "f_externe.interne", "f_chaine", "f_chaine.g")}), ("VIT15 (b) la sortie JSON de ruff, enregistrée : un diagnostic va à la fonction la plus intérieure de sa "
              "ligne, le plus grand des deux PLR1702 de la ligne 89 gagne ; un autre code, un autre fichier ne comptent pas") + "\n" + str(lus)
-    assert (version is None and echec.getvalue() == "RUFF ÉCHEC ruff sort 3 — comptes estimés (ast)\n"
-             and len(apres) == 15 and all(f["ruff"] is None for f in apres)), ("VIT15 (c) ruff qui sort 3 → `RUFF ÉCHEC ruff sort 3`, puis les comptes ast seuls") + "\n" + str(echec.getvalue())
+    assert version is None
+    assert echec.getvalue() == "RUFF ÉCHEC ruff sort 3 — comptes estimés (ast)\n"
+    assert len(apres) == 15
+    assert all(f["ruff"] is None for f in apres)
     if commande is None:
         pytest.skip("ruff absent — son chemin réel n'est pas testé")
         return
-    assert (code == 0 and s.startswith("SANTE ruff %s · " % reel) and "AST=RUFF 15/15 fonctions\n" in s), ("VIT15 (c bis) ruff réel %s sur les sondes : ses comptes égalent ceux d'ast, 15/15" % reel) + "\n" + str(s)
+    assert code == 0
+    assert s.startswith("SANTE ruff %s · " % reel)
+    assert "AST=RUFF 15/15 fonctions\n" in s
 
 
 def test_sante_reglages():
@@ -704,7 +755,9 @@ def test_sante_reglages():
     import sante
     sortie = sante.lancer_ruff([sys.executable, "-c", "import json, sys; print(json.dumps(sys.argv[1:]))"], ["x.py"])
     args = json.loads(sortie)
-    assert ("--isolated" not in args and args[:1] == ["check"] and args[-1] == "x.py"), ("sante : la commande ruff lit pyproject.toml, sans --isolated") + "\n" + str(sortie)
+    assert "--isolated" not in args
+    assert args[:1] == ["check"]
+    assert args[-1] == "x.py"
 
 
 def test_sante_cliquet(tmp_path):
@@ -738,44 +791,41 @@ def test_sante_cliquet(tmp_path):
 
         sans_base = lancer({"m.py": m, "test-m.py": longue(60)}, "--cliquet")
         posee, tenu = lancer({}, "--base"), lancer({}, "--cliquet")
-        assert (sans_base == (1, "GARDE: pas de base scripts/sante-base.json — `vlp.py sante --base` d'abord\n")
-                 and posee == (0, "BASE scripts/sante-base.json · 4 fonctions · sans ruff\n")
-                 and tenu == (0, tete + bilan % (4, 0, 0, 0) + "\nCLIQUET TENU\n")), ("VIT15 (d) sans base → GARDE:, sort 1 ; --base pose 4 fonctions ; le même code → CLIQUET TENU") + "\n" + str((sans_base, posee, tenu))
+        assert sans_base == (1, "GARDE: pas de base scripts/sante-base.json — `vlp.py sante --base` d'abord\n")
+        assert posee == (0, "BASE scripts/sante-base.json · 4 fonctions · sans ruff\n")
+        assert tenu == (0, tete + bilan % (4, 0, 0, 0) + "\nCLIQUET TENU\n")
         empire = lancer({"m.py": ifs(12, "grosse") + ifs(1, "petite") + muette}, "--cliquet")
         assert (empire == (1, tete + "EMPIRE scripts/m.py:1 grosse · complexité 12 → 13, seuil 10\n"
                             + bilan % (4, 1, 0, 0) + "\nCLIQUET ROMPU · 1 écart(s)\n")), ("VIT15 (e) une vieille fonction déjà au-dessus du seuil empire (complexité 12 → 13) → EMPIRE, ROMPU, sort "
                  "1 ; ses branches montent au seuil (12), sans écart — mutant : le plafond relâché d'un cran") + "\n" + str(empire)
         sous_seuil = lancer({"m.py": ifs(11, "grosse") + ifs(9, "petite") + muette}, "--cliquet")
         passe = lancer({"m.py": ifs(11, "grosse") + ifs(10, "petite") + muette}, "--cliquet")
-        assert (sous_seuil == (0, tete + bilan % (4, 1, 0, 0) + "\nCLIQUET TENU\n")
-                 and passe == (1, tete + "EMPIRE scripts/m.py:28 petite · complexité 2 → 11, seuil 10\n"
-                               + bilan % (4, 1, 0, 0) + "\nCLIQUET ROMPU · 1 écart(s)\n")), ("VIT15 (f) une vieille fonction sous les seuils grandit jusqu'au seuil (complexité 2 → 10) → TENU ; le "
-                 "passer (→ 11) → EMPIRE") + "\n" + str((sous_seuil, passe))
+        assert sous_seuil == (0, tete + bilan % (4, 1, 0, 0) + "\nCLIQUET TENU\n")
+        assert (passe == (1, tete + "EMPIRE scripts/m.py:28 petite · complexité 2 → 11, seuil 10\n"
+                               + bilan % (4, 1, 0, 0) + "\nCLIQUET ROMPU · 1 écart(s)\n"))
         neuves = lancer({"m.py": m + "\n\n" + ifs(10, "neuve_grosse") + "def neuve(a):\n    return a\n"}, "--cliquet")
         tests = lancer({"m.py": m, "test-m.py": longue(70) + ifs(10, "test_neuf").replace('    """Des if."""\n', "")},
                        "--cliquet")
         assert (neuves == (1, tete + "SEUIL scripts/m.py:39 neuve_grosse · complexité 11, seuil 10 (neuve)\n"
                             "DOCSTRING scripts/m.py:64 neuve · sans docstring (neuve)\n"
-                            + bilan % (6, 0, 0, 2) + "\nCLIQUET ROMPU · 2 écart(s)\n")
-                 and tests == (1, tete + "SEUIL scripts/test-m.py:75 test_neuf · complexité 11, seuil 10 (neuve)\n"
-                               + bilan % (5, 1, 0, 1) + "\nCLIQUET ROMPU · 1 écart(s)\n")), ("VIT15 (g) une fonction neuve au-dessus d'un seuil → SEUIL, une neuve sans docstring → DOCSTRING ; dans un "
-                 "test-*.py, ni instructions (70) ni docstring, mais la complexité tient") + "\n" + str((neuves, tests))
+                            + bilan % (6, 0, 0, 2) + "\nCLIQUET ROMPU · 2 écart(s)\n"))
+        assert (tests == (1, tete + "SEUIL scripts/test-m.py:75 test_neuf · complexité 11, seuil 10 (neuve)\n"
+                               + bilan % (5, 1, 0, 1) + "\nCLIQUET ROMPU · 1 écart(s)\n"))
         touchee = lancer({"m.py": m.replace(muette, "def muette(a):\n    return a + 1\n"), "test-m.py": longue(60)},
                          "--cliquet")
         renommee = lancer({"m.py": ifs(11, "grosse") + ifs(1, "petite2") + muette}, "--cliquet")
         deplacee = lancer({"m.py": ifs(11, "grosse") + muette, "m2.py": ifs(1, "petite")}, "--cliquet")
         assert (touchee == (1, tete + "DOCSTRING scripts/m.py:35 muette · sans docstring (touchée)\n"
-                             + bilan % (4, 1, 0, 0) + "\nCLIQUET ROMPU · 1 écart(s)\n")
-                 and renommee == deplacee == (0, tete + bilan % (4, 0, 1, 0) + "\nCLIQUET TENU\n")), ("VIT15 (h) une vieille fonction touchée sans docstring → DOCSTRING (intacte, elle passait) ; renommée ou "
-                 "déplacée dans un autre fichier, même empreinte → suivie, TENU") + "\n" + str((touchee, renommee, deplacee))
+                             + bilan % (4, 1, 0, 0) + "\nCLIQUET ROMPU · 1 écart(s)\n"))
+        assert renommee == deplacee == (0, tete + bilan % (4, 0, 1, 0) + "\nCLIQUET TENU\n")
         mieux = lancer({"m.py": ifs(9, "grosse") + ifs(1, "petite") + muette, "m2.py": None}, "--cliquet")
         verrou = lancer({}, "--base")
         rechute = lancer({"m.py": ifs(10, "grosse") + ifs(1, "petite") + muette}, "--cliquet")
         assert (mieux == (0, tete + bilan % (4, 1, 0, 0) + " · améliorées 1 : `vlp.py sante --base` les verrouille\n"
-                           "CLIQUET TENU\n") and verrou[0] == 0
-                 and rechute == (1, tete + "EMPIRE scripts/m.py:1 grosse · complexité 10 → 11, seuil 10\n"
-                                 + bilan % (4, 1, 0, 0) + "\nCLIQUET ROMPU · 1 écart(s)\n")), ("VIT15 (i) une amélioration se dit, --base la verrouille : remonter de 10 à 11, sous l'ancienne base (12), "
-                 "→ EMPIRE") + "\n" + str((mieux, verrou, rechute))
+                           "CLIQUET TENU\n"))
+        assert verrou[0] == 0
+        assert (rechute == (1, tete + "EMPIRE scripts/m.py:1 grosse · complexité 10 → 11, seuil 10\n"
+                                 + bilan % (4, 1, 0, 0) + "\nCLIQUET ROMPU · 1 écart(s)\n"))
         avant = mod.lire(base)
         refus = lancer({}, "--base")
         intacte = mod.lire(base) == avant
@@ -783,17 +833,22 @@ def test_sante_cliquet(tmp_path):
         trace = json.loads(mod.lire(base))["forcee"]
         assert (refus == (1, "EMPIRE scripts/m.py:1 grosse · complexité 10 → 11, seuil 10\n"
                            + "GARDE: la base ne se relâche pas : 1 écart(s) ci-dessus — corrige, ou "
-                           + "`--base --forcer \"<raison>\"`, rien écrit\n")
-                 and intacte and forcee == (0, "BASE scripts/sante-base.json · 4 fonctions · sans ruff · relâchée : essai\n")
-                 and len(trace) == 1 and trace[0]["raison"] == "essai" and trace[0]["ecarts"] == 1), ("VIT15 (j) --base qui relâcherait → l'écart, GARDE:, sort 1, base intacte ; --forcer écrit, et garde sa "
-                 "raison dans la base") + "\n" + str((refus, intacte, forcee, trace))
+                           + "`--base --forcer \"<raison>\"`, rien écrit\n"))
+        assert intacte
+        assert forcee == (0, "BASE scripts/sante-base.json · 4 fonctions · sans ruff · relâchée : essai\n")
+        assert len(trace) == 1
+        assert trace[0]["raison"] == "essai"
+        assert trace[0]["ecarts"] == 1
         seul = lancer({}, "--forcer", "x")
         ecrire(base, "{}")
         illisible = lancer({}, "--cliquet")
         casse = lancer({"m.py": "def (\n"}, "--cliquet")
-    assert (seul == (1, "GARDE: --forcer ne va qu'avec --base\n")
-             and illisible[0] == 1 and illisible[1].endswith("sante-base.json : base illisible, format 1 attendu\n")
-             and casse[0] == 1 and casse[1].startswith("GARDE: ") and "m.py:1 : " in casse[1]), ("VIT15 (k) --forcer sans --base, une base illisible, un fichier qui ne se lit pas → GARDE:, sort 1") + "\n" + str((seul, illisible, casse))
+    assert seul == (1, "GARDE: --forcer ne va qu'avec --base\n")
+    assert illisible[0] == 1
+    assert illisible[1].endswith("sante-base.json : base illisible, format 1 attendu\n")
+    assert casse[0] == 1
+    assert casse[1].startswith("GARDE: ")
+    assert "m.py:1 : " in casse[1]
 
 
 def test_sante_si_base(tmp_path):
@@ -815,18 +870,18 @@ def test_sante_si_base(tmp_path):
             os.chdir(ici)
         sans_scripts = appel(["sante", "--base", "--si-base", "--racine", vide, "--sans-ruff"])
         cree = os.listdir(vide) + os.listdir(os.path.join(equipe, "scripts"))
-        assert (dehors == sans_scripts == (0, "SANS BASE scripts/sante-base.json · rien écrit\n") and cree == ["m.py"]
-                 and hashlib.sha1(pathlib.Path(base_kit).read_bytes()).hexdigest() == empreinte_kit), ("VIT16 (a) --si-base sans base → SANS BASE, sort 0, rien d'écrit — dans un projet sans `scripts/`, et "
-                 "hors du kit par `--racine .`, la base du kit identique à l'octet — mutant : --si-base ignoré") + "\n" + str((dehors, sans_scripts, cree))
+        assert dehors == sans_scripts == (0, "SANS BASE scripts/sante-base.json · rien écrit\n")
+        assert cree == ["m.py"]
+        assert hashlib.sha1(pathlib.Path(base_kit).read_bytes()).hexdigest() == empreinte_kit
         posee = appel(["sante", "--base", "--racine", equipe, "--sans-ruff"])
         reprise = appel(["sante", "--base", "--si-base", "--racine", equipe, "--sans-ruff"])
         ecrire(os.path.join(equipe, "scripts", "m.py"), m + "\n\ndef g(a):\n    return a\n")
         refus = appel(["sante", "--base", "--si-base", "--racine", equipe, "--sans-ruff"])
         seul = appel(["sante", "--si-base", "--racine", equipe, "--sans-ruff"])
-    assert (posee == reprise == (0, "BASE scripts/sante-base.json · 1 fonctions · sans ruff\n")
-             and refus[0] == 1 and "GARDE: la base ne se relâche pas : 1 écart(s)" in refus[1]
-             and seul == (1, "GARDE: --si-base ne va qu'avec --base\n")), ("VIT16 (b) avec une base, --si-base fait comme --base : BASE, sort 0 ; une fonction neuve sans docstring → "
-             "GARDE:, sort 1 ; --si-base sans --base → GARDE:") + "\n" + str((posee, reprise, refus, seul))
+    assert posee == reprise == (0, "BASE scripts/sante-base.json · 1 fonctions · sans ruff\n")
+    assert refus[0] == 1
+    assert "GARDE: la base ne se relâche pas : 1 écart(s)" in refus[1]
+    assert seul == (1, "GARDE: --si-base ne va qu'avec --base\n")
 
 
 def test_sante_kit():
@@ -837,5 +892,5 @@ def test_sante_kit():
         pytest.skip("sous le mutant, le cliquet du kit ne joue pas")
         return
     code, s = appel(["sante", "--cliquet"])
-    assert (code == 0 and s.endswith("CLIQUET TENU\n")), ("VIT15 (l) le kit tient son cliquet : `vlp.py sante --cliquet` → CLIQUET TENU ; sinon, chaque écart y est "
-             "nommé — corrige la fonction, `--base --forcer` seulement si le relâchement est voulu") + "\n" + str(s)
+    assert code == 0
+    assert s.endswith("CLIQUET TENU\n")

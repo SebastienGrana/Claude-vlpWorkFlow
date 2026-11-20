@@ -20,14 +20,16 @@ def rapport(taux, total, violations=None):
 
 def test_verdict_sous_le_seuil_refuse_et_nomme_les_lignes():
     code, lignes = couverture.verdict(rapport(50, 4, {"scripts/x.py": [7, 9], "scripts/y.py": []}))
-    assert code == 1 and lignes == [
+    assert code == 1
+    assert (lignes == [
         "NON COUVERT scripts/x.py : 7, 9\n",
-        "COUVERTURE 50 %% des 4 lignes changées, seuil %d %% — commit refusé\n" % couverture.SEUIL], lignes
+        "COUVERTURE 50 %% des 4 lignes changées, seuil %d %% — commit refusé\n" % couverture.SEUIL])
 
 
 def test_verdict_au_seuil_passe():
     code, lignes = couverture.verdict(rapport(couverture.SEUIL, 10, {"scripts/x.py": [3]}))
-    assert code == 0 and lignes[-1].endswith("— passe\n"), lignes
+    assert code == 0
+    assert lignes[-1].endswith("— passe\n")
 
 
 def test_verdict_sans_ligne_mesuree_n_a_rien_a_couvrir():
@@ -82,16 +84,22 @@ def test_juger_refuse_sans_rapport_puis_une_ligne_non_couverte_et_passe_couvert(
     ecrire(str(depot / "scripts" / "x.py"), CODE + "\n\ndef triple(n):\n    return 3 * n\n")
     git(depot, "add", "scripts/x.py")
     code, s = juger()
-    assert code == 1 and s.startswith("GARDE: couverture — pas de rapport mesuré sur ce code"), s
+    assert code == 1
+    assert s.startswith("GARDE: couverture — pas de rapport mesuré sur ce code")
 
-    assert mesurer_ici(depot) == 0 and lire(couverture.chemins(str(depot))[2]) == "E\n"
+    assert mesurer_ici(depot) == 0
+    assert lire(couverture.chemins(str(depot))[2]) == "E\n"
     code, s = juger()
-    assert code == 1 and "NON COUVERT scripts/x.py : 6\n" in s and s.endswith("— commit refusé\n"), s
+    assert code == 1
+    assert "NON COUVERT scripts/x.py : 6\n" in s
+    assert s.endswith("— commit refusé\n")
 
     ecrire(str(depot / "appel.py"), APPEL + "assert x.triple(2) == 6\n")
     assert mesurer_ici(depot) == 0
     code, s = juger()
-    assert code == 0 and "NON COUVERT" not in s and s.endswith("— passe\n"), s
+    assert code == 0
+    assert "NON COUVERT" not in s
+    assert s.endswith("— passe\n")
 
 
 def test_une_suite_rouge_ne_laisse_pas_de_rapport(tmp_path):
@@ -100,13 +108,16 @@ def test_une_suite_rouge_ne_laisse_pas_de_rapport(tmp_path):
     ecrire(rapport, "vieux\n")
     ecrire(note, "E\n")
     code = couverture.mesurer(str(tmp_path), "appel.py", [], "E", lanceur=[sys.executable, "-m", "coverage"])
-    assert code == 3 and not os.path.exists(rapport) and not os.path.exists(note)
+    assert code == 3
+    assert not os.path.exists(rapport)
+    assert not os.path.exists(note)
 
 
 def test_vlp_py_aiguille_couverture_avant_le_coeur(tmp_path):
     r = subprocess.run([sys.executable, os.path.join(RACINE, "scripts", "vlp.py"), "couverture", "--racine",
                         str(tmp_path)], capture_output=True, encoding="utf-8", errors="replace", check=False)
-    assert r.returncode == 1 and r.stdout.startswith("GARDE: couverture — git diff --cached a échoué"), r
+    assert r.returncode == 1
+    assert r.stdout.startswith("GARDE: couverture — git diff --cached a échoué")
 
 
 def test_mesurer_sans_uv_ne_mesure_pas_et_le_dit(tmp_path, monkeypatch, capsys):

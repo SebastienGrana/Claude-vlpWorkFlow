@@ -80,14 +80,18 @@ def test_sommaire(tmp_path):
         code, s = appel(["feuille", ts, "--date", "2026-09-27"])
         html = pathlib.Path(fdr).read_text(encoding="utf-8")
         noms = ("encours", "todo", "clos")
-        assert (code == 0 and "sommaire" not in sans and 'id="' not in sans
-                 and html.count('class="sommaire"') == 1 and html.count("<nav") == 1
-                 and html.count('<a href="#') == 3
-                 and all(html.count('href="#%s"' % n) == 1 and html.count('id="%s"' % n) == 1 for n in noms)
-                 and html.index("</header>") < html.index("<nav") < html.index('id="encours"')
-                 < html.index('id="todo"') < html.index('id="clos"')), ("FEU4 : un sommaire sous l'en-tête, trois liens, chaque cible id une fois") + "\n" + str((s, html[:1500]))
+        assert code == 0
+        assert "sommaire" not in sans
+        assert 'id="' not in sans
+        assert html.count('class="sommaire"') == 1
+        assert html.count("<nav") == 1
+        assert html.count('<a href="#') == 3
+        assert all(html.count('href="#%s"' % n) == 1 and html.count('id="%s"' % n) == 1 for n in noms)
+        assert (html.index("</header>") < html.index("<nav") < html.index('id="encours"')
+                 < html.index('id="todo"') < html.index('id="clos"'))
         code, s = appel(["feuille", ts, "--date", "2026-09-28"])
-        assert (code == 0 and "inchangée" in s), ("FEU4 : 2e appel inchangée") + "\n" + str(s)
+        assert code == 0
+        assert "inchangée" in s
 
 
 FICHES_PLI2 = """# Chantier PLI2
@@ -146,17 +150,22 @@ def test_chef_page(tmp_path):
         code, s, pa = faire(base(), "a.html")
         a = octets_de(pa)
         page = a.decode("utf-8")
-        assert (code == 0 and re.fullmatch(r"PAGE SAINE \d+ blocs\nCARTES D1 Q1 Q2\n", s) is not None), ("chef page (a) : jauge Imprévu, une décision, Q1 à deux options, Q2 à trois — sort 0, CARTES D1 Q1 Q2") + "\n" + str(s)
+        assert code == 0
+        assert re.fullmatch(r"PAGE SAINE \d+ blocs\nCARTES D1 Q1 Q2\n", s) is not None
         comptes = (page.count('name="Q2"'), page.count("(recommandé)"), page.count('class="jauge moyen"'))
         assert (comptes == (3, 1, 1)), ("chef page (a) : name=\"Q2\" 3 fois, « (recommandé) » 1 fois, class=\"jauge moyen\" 1 fois") + "\n" + str(str(comptes))
         code2, s2 = appel(["vigile", pa])
-        assert (code2 == 0 and s2 == s.split("\n")[0] + "\n"), ("chef page (a) : vigile sur le fichier, PAGE SAINE du même compte de blocs") + "\n" + str(s2)
-        assert ('data-cle="Demo-2026-10-01-essai"' in page and "<title>Demo — Rapport d'essai</title>" in page), ("chef page (a) : data-cle <projet>-<date>-<sujet> et <title> <projet> — <titre>") + "\n" + str(page[:200])
+        assert code2 == 0
+        assert s2 == s.split("\n")[0] + "\n"
+        assert 'data-cle="Demo-2026-10-01-essai"' in page
+        assert "<title>Demo — Rapport d'essai</title>" in page
         comptes = (page.count("<h2>Tes réponses</h2>"), page.count("<script>"), page.count("<!--"))
         assert (comptes == (1, 1, 0)), ("chef page (a) : « Tes réponses » et <script> 1 fois, aucun commentaire") + "\n" + str(str(comptes))
         restes = [x for x in ("Le fil", "&lt;Projet&gt;", "<dépôt>") if x in page]
         assert (restes == []), ("chef page (a) : ni « Le fil », ni &lt;Projet&gt;, ni <dépôt>") + "\n" + str(str(restes))
-        assert (a != b"" and b"\r" not in a and a.endswith(b"\n")), ("chef page (a) : UTF-8, fins \\n, jamais \\r") + "\n" + str(repr(a[-40:]))
+        assert a != b""
+        assert b"\r" not in a
+        assert a.endswith(b"\n")
         defaut = [p for p in (("name=\"D1\"", 2), ("name=\"Q1\"", 2)) if page.count(p[0]) != p[1]]
         assert (defaut == []), ("chef page (a) : D1 et Q1 portent leurs deux boutons") + "\n" + str(str(defaut))
         assert ("<li>Un <strong>point</strong> clé</li>" in page), ("chef page (a) : les puces d'en-tête passent par cellule_md") + "\n" + str(page[page.find("<header"):][:300])
@@ -167,26 +176,30 @@ def test_chef_page(tmp_path):
         d["choix"][0]["options"].append(option('a"b'))
         code, s, pb = faire(d, "b.html")
         b = octets_de(pb).decode("utf-8")
-        assert (code == 0 and "<h3>🟡 Q1 · a &lt; b &amp; <strong>c</strong></h3>" in b), ("chef page (b) : le titre de Q1 `a < b & **c**` échappé, gras rendu dans son <h3> — mutant : cellule_md ôté "
-                 "du titre de question") + "\n" + str(s + b[b.find("<h3>🟡 Q1"):][:120])
-        assert ("<title>P &amp; Q — T &lt; U</title>" in b and 'data-cle="P &amp; Q-2026-10-01-essai"' in b
-                 and 'value="a&quot;b"' in b), ("chef page (b) : <title>, data-cle et value passent par esc seul, le guillemet d'une valeur devient &quot;") + "\n" + str(b[:200])
+        assert code == 0
+        assert "<h3>🟡 Q1 · a &lt; b &amp; <strong>c</strong></h3>" in b
+        assert "<title>P &amp; Q — T &lt; U</title>" in b
+        assert 'data-cle="P &amp; Q-2026-10-01-essai"' in b
+        assert 'value="a&quot;b"' in b
 
         # (c) un commentaire de tête qui cite des balises : la page ne change pas d'un octet
         citee = gabarit.replace("<!--\n", '<!--\n  Cite <div class="page" data-cle="x"> et <script> ici.\n', 1)
-        assert (citee != gabarit and -1 < citee.find("<script>") < citee.find("-->")
-                 and -1 < citee.find('<div class="page"') < citee.find("-->")), ("chef page (c) : prémisse, la copie cite ces balises dans son commentaire, avant les vraies") + "\n" + str(citee[:300])
+        assert citee != gabarit
+        assert -1 < citee.find("<script>") < citee.find("-->")
+        assert -1 < citee.find('<div class="page"') < citee.find("-->")
         code, s, pc = faire(base(), "c.html", citee)
-        assert (code == 0 and a != b"" and octets_de(pc) == a), ("chef page (c) : balise citée dans le commentaire de tête — sort 0, page identique à l'octet à celle de (a) "
-                 "— mutant : morceaux cherchés dans le gabarit brut") + "\n" + str(s)
+        assert code == 0
+        assert a != b""
+        assert octets_de(pc) == a
 
         # (d) une page sans style ne part pas
         sans_tete = re.sub(r"<link\b[^>]*>|<style\b.*?</style>", "", gabarit, flags=re.S | re.I)
-        assert ("<style" not in sans_tete.lower() and "<link" not in sans_tete.lower()), ("chef page (d) : prémisse, la copie n'a ni <style> ni <link>") + "\n" + str(sans_tete[:200])
+        assert "<style" not in sans_tete.lower()
+        assert "<link" not in sans_tete.lower()
         code, s, pd = faire(base(), "d.html", sans_tete)
-        assert (code == 1 and not os.path.exists(pd)
-                 and s == 'GARDE: %s — aucun style (ni balise style, ni link rel="stylesheet")\n' % pd), ("chef page (d) : copie sans style ni link → GARDE aucun style, fichier absent, sort 1 — mutant : résultat "
-                 "de defauts_page ignoré") + "\n" + str(s)
+        assert code == 1
+        assert not os.path.exists(pd)
+        assert s == 'GARDE: %s — aucun style (ni balise style, ni link rel="stylesheet")\n' % pd
 
         # (e) ce qui ne se remplit pas : une GARDE chacun, rien d'écrit
         sans_carte = {k: v for k, v in base().items() if k not in ("decisions", "choix")}
@@ -198,7 +211,9 @@ def test_chef_page(tmp_path):
                 ("option sans effet", sans_effet,
                  "GARDE: choix[1].options[2] : « effet » manque, ou n'est pas un texte non vide\n"))):
             code, s, pe = faire(entree, "e%d.html" % k)
-            assert (code == 1 and s == attendu and not os.path.exists(pe)), ("chef page (e) %s : GARDE, rien écrit, sort 1" % nom) + "\n" + str(s)
+            assert code == 1
+            assert s == attendu
+            assert not os.path.exists(pe)
 
         # les autres GARDE, chacune seule : JSON, champs, gabarit, écriture
         occupe = os.path.join(tcp, "occupe")
@@ -234,9 +249,14 @@ def test_chef_page(tmp_path):
              "GARDE: gabarit : la section « Tes réponses » est introuvable\n"))
         for k, (nom, entree, copie, attendu) in enumerate(autres):
             code, s, po = faire(entree, "g%d.html" % k, copie)
-            assert (code == 1 and s.startswith(attendu) and s.count("GARDE:") == 1 and not os.path.exists(po)), ("chef page GARDE %s : une ligne, rien écrit, sort 1" % nom) + "\n" + str(s)
+            assert code == 1
+            assert s.startswith(attendu)
+            assert s.count("GARDE:") == 1
+            assert not os.path.exists(po)
         code, s, po = faire(base(), os.path.join("occupe", "p.html"))
-        assert (code == 1 and s.startswith("GARDE: %s — écriture impossible" % po) and s.count("GARDE:") == 1), ("chef page GARDE écriture impossible : le dossier de sortie est un fichier") + "\n" + str(s)
+        assert code == 1
+        assert s.startswith("GARDE: %s — écriture impossible" % po)
+        assert s.count("GARDE:") == 1
 
         # toutes les sections, dans l'ordre du gabarit, et les cinq mots de la jauge
         complet = base(jauge="Pas bon", plage="NUI1 à NUI3", pied="Fin du **rapport**.",
@@ -249,11 +269,13 @@ def test_chef_page(tmp_path):
         complet["decisions"]["intro"] = "Trois choix pris."
         code, s, pf = faire(complet, "complet.html")
         f = octets_de(pf).decode("utf-8")
-        assert (code == 0 and s.endswith("CARTES D1 Q1 Q2\n")), ("chef page complet : sort 0, CARTES D1 Q1 Q2") + "\n" + str(s)
+        assert code == 0
+        assert s.endswith("CARTES D1 Q1 Q2\n")
         titres = ["Les chiffres", "Ce qui a été fait", "Les décisions prises seul", "Les choix à trancher",
                   "Ce qui a mal tourné", "Le fil", "Tes réponses"]
         places = [f.find("<h2>%s" % t) for t in titres]
-        assert (-1 not in places and places == sorted(places)), ("chef page complet : sept sections, dans l'ordre du gabarit") + "\n" + str(str(places))
+        assert -1 not in places
+        assert places == sorted(places)
         manques = [x for x in ('class="jauge ko">❌ Pas bon</span>', "Demo · 2026-10-01 · NUI1 à NUI3",
                                '<div class="chiffre"><b>1,2 $</b><span>coût</span></div>', '<span class="mono">vlp.py cout</span>',
                                "<td class=\"n\">NUI1</td>", "Trois choix pris.", '<div class="erreur">', "🔥 Un défaut",
@@ -266,18 +288,24 @@ def test_chef_page(tmp_path):
                     '<span class="jauge ko">🔥 Grosse erreur</span>']
         assert (mots == attendus), ("chef page : les cinq mots de JAUGE, leur émoji et leur classe") + "\n" + str(str(mots))
         code, s = appel(["vigile", pf])
-        assert (code == 0 and s.startswith("PAGE SAINE")), ("chef page complet : vigile sur le fichier, PAGE SAINE") + "\n" + str(s)
+        assert code == 0
+        assert s.startswith("PAGE SAINE")
 
         # la commande : le vrai gabarit sous KIT, le JSON par @fichier, la date du jour par défaut
         jq = os.path.join(tcp, "q.json")
         ecrire(jq, json.dumps(base(), ensure_ascii=False))
         sortie = os.path.join(tcp, "cmd.html")
         code, s = appel(["chef", "page", "--questions", "@" + jq, "--sortie", sortie])
-        assert (code == 0 and s.endswith("CARTES D1 Q1 Q2\n") and a != b"" and octets_de(sortie) == a), ("chef page par la commande : sort 0, page identique à l'octet à celle de (a)") + "\n" + str(s)
+        assert code == 0
+        assert s.endswith("CARTES D1 Q1 Q2\n")
+        assert a != b""
+        assert octets_de(sortie) == a
         sans_date = {k: v for k, v in base().items() if k != "date"}
         code, s, pj = faire(sans_date, "jour.html")
         m = re.search(r'data-cle="Demo-(\d{4}-\d\d-\d\d)-essai"', octets_de(pj).decode("utf-8"))
-        assert (code == 0 and m is not None and datetime.date.fromisoformat(m.group(1)) <= datetime.date.today()), ("chef page : sans date, le jour — AAAA-MM-JJ lu dans data-cle") + "\n" + str(s)
+        assert code == 0
+        assert m is not None
+        assert datetime.date.fromisoformat(m.group(1)) <= datetime.date.today()
 
 
 def test_trier(tmp_path):
@@ -301,20 +329,28 @@ def test_trier(tmp_path):
         code, s = appel(["trier", tp])
         lignes = s.splitlines()
         canal = [l for l in lignes if l.startswith("CANAL ")]
-        assert (code == 0 and all("PRÊT %s" % c in lignes for c in ("AAA", "BBB", "CCC", "JJJ", "III"))), ("NUI10 : trier sort 0, PRÊT pour AAA, BBB, CCC (dépend d'un code prêt), JJJ (dépend d'un rang prêt), III") + "\n" + str(s)
-        assert ("FICHIERS AAA scripts/vlp.py" in lignes and "FICHIERS BBB vlp.py" in lignes
-                 and "FICHIERS HHH dossier x/m.py" in lignes), ("NUI10 : FICHIERS — `vlp.py archive` donne vlp.py, un chemin à espace reste entier") + "\n" + str(s)
-        assert (len(canal) == 3 and canal[0].startswith("CANAL 1 : AAA, BBB, CCC, JJJ — ")
-                 and "fichier vlp.py : AAA, BBB" in canal[0] and "CCC dépend de AAA" in canal[0]), ("NUI10 : un CANAL groupe AAA, BBB, CCC, JJJ et nomme vlp.py et la dépendance — mutant : chemin entier") + "\n" + str(canal)
-        assert ("CANAL 2 : HHH — inconnu → à la page" in canal and "CANAL 3 : III — inconnu → à la page" in canal), ("NUI10 : une prête sans lien — inconnu → à la page") + "\n" + str(canal)
-        assert (any(l.startswith("ÉCARTÉE DDD") for l in lignes)
-                 and "MARQUES DDD 5 : 🟡 1 · à trancher 1 · non mesuré 1 · %s 1 · push 1" % mod.MARQUE_VISUELLE in lignes), ("NUI10 : DDD porte les cinq marques, la visuelle en cellule 3 — ÉCARTÉE, MARQUES à 5 — mutant : cellule 3 retirée") + "\n" + str(s)
-        assert (any(l.startswith("ÉCARTÉE FFF") for l in lignes) and any(l.startswith("ÉCARTÉE GGG") for l in lignes)), ("NUI10 : push en cellule 4 écarte FFF ; dépendance absente écarte GGG") + "\n" + str(s)
-        assert (any(l.startswith("SOIR HHH") for l in lignes) and not any(l.startswith("SOIR III") for l in lignes)), ("NUI10 : SOIR pour HHH (~6 fiches), pas pour III (~½ fiche)") + "\n" + str(s)
+        assert code == 0
+        assert all("PRÊT %s" % c in lignes for c in ("AAA", "BBB", "CCC", "JJJ", "III"))
+        assert "FICHIERS AAA scripts/vlp.py" in lignes
+        assert "FICHIERS BBB vlp.py" in lignes
+        assert "FICHIERS HHH dossier x/m.py" in lignes
+        assert len(canal) == 3
+        assert canal[0].startswith("CANAL 1 : AAA, BBB, CCC, JJJ — ")
+        assert "fichier vlp.py : AAA, BBB" in canal[0]
+        assert "CCC dépend de AAA" in canal[0]
+        assert "CANAL 2 : HHH — inconnu → à la page" in canal
+        assert "CANAL 3 : III — inconnu → à la page" in canal
+        assert any(l.startswith("ÉCARTÉE DDD") for l in lignes)
+        assert "MARQUES DDD 5 : 🟡 1 · à trancher 1 · non mesuré 1 · %s 1 · push 1" % mod.MARQUE_VISUELLE in lignes
+        assert any(l.startswith("ÉCARTÉE FFF") for l in lignes)
+        assert any(l.startswith("ÉCARTÉE GGG") for l in lignes)
+        assert any(l.startswith("SOIR HHH") for l in lignes)
+        assert not any(l.startswith("SOIR III") for l in lignes)
         assert (pathlib.Path(etat).read_text(encoding="utf-8") == "# État\n\n" + entete + lignes_todo + "\n## Journal\n"), ("NUI10 : trier n'écrit rien — le fichier d'état reste tel quel") + "\n" + ""
         ecrire(etat, "# État\n\n" + entete + "| 1 | `AAA` — a | `sed x | sha256sum` | 2 fiches | — |\n\n## Journal\n")
         code, s = appel(["trier", tp])
-        assert (code == 1 and s.startswith("GARDE: ligne 1 de la TODO")), ("NUI10 : une barre non échappée — GARDE, sort 1") + "\n" + str(s)
+        assert code == 1
+        assert s.startswith("GARDE: ligne 1 de la TODO")
 
 
 def test_trier_branche(tmp_path, init_git):
@@ -324,10 +360,13 @@ def test_trier_branche(tmp_path, init_git):
         ecrire(os.path.join(tb, "ctx", "08-etat.md"), "# État\n\n| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |\n"
                "|---|---|---|---|---|\n| 1 | `AAA` — a | x | 1 fiche | — |\n\n## Journal\n")
         init_git(tb)
-        code_main, s_main = appel(["trier", tb])
+        code_main, _s_main = appel(["trier", tb])
         subprocess.run(["git", "switch", "-q", "-c", "nuit/x"], cwd=tb, capture_output=True, check=False)
         code, s = appel(["trier", tb])
-        assert (code_main == 0 and code == 1 and len(s.splitlines()) == 1 and s.startswith("GARDE: trier hors de main")), ("BRA1 : trier sort 0 sur main, 1 sur nuit/x — une seule ligne, GARDE: trier hors de main") + "\n" + str("%s\n%s" % (s_main, s))
+        assert code_main == 0
+        assert code == 1
+        assert len(s.splitlines()) == 1
+        assert s.startswith("GARDE: trier hors de main")
 
 
 def test_fichier_nuits(tmp_path, init_git):
@@ -354,11 +393,16 @@ def test_fichier_nuits(tmp_path, init_git):
         chemin = mod.fichier_nuits(tp, True)
         idx = lire_idx().splitlines()
         avant = lire_idx()
-        assert (chemin == os.path.join(tp, "ctx", "101-nuits.md") and os.path.isfile(chemin)
-                 and idx[idx.index("| `100-x.md` | un chantier |") + 1].startswith("| `101-nuits.md` |")
-                 and "**clos**" not in avant and "**ouvert**" not in avant and "NUITS absent" in s0), ("NUI11 (a) : 00, 08, 100 → 101-nuits.md, sa ligne d'index juste sous celle de 100 ; trier sans fichier le dit") + "\n" + str((chemin, idx, s0))
-        assert (mod.fichier_nuits(tp, True) == chemin and lire_idx() == avant
-                 and appel(["archiver", tp])[1].startswith("ARCHIVÉ 0 ") and lire_idx() == avant), ("NUI11 (a) : relancé, même chemin, index inchangé ; archiver ne la déplace pas") + "\n" + str(lire_idx())
+        assert chemin == os.path.join(tp, "ctx", "101-nuits.md")
+        assert os.path.isfile(chemin)
+        assert idx[idx.index("| `100-x.md` | un chantier |") + 1].startswith("| `101-nuits.md` |")
+        assert "**clos**" not in avant
+        assert "**ouvert**" not in avant
+        assert "NUITS absent" in s0
+        assert mod.fichier_nuits(tp, True) == chemin
+        assert lire_idx() == avant
+        assert appel(["archiver", tp])[1].startswith("ARCHIVÉ 0 ")
+        assert lire_idx() == avant
         # (b) écrire, retirer, indice, plafond, forme
         ligne_t = "| 2026-09-25 | A | NUI | 3/2/1 | 4,50 |"
         premiere, seconde = mod.nuits_ecrire(chemin, ligne_t), mod.nuits_ecrire(chemin, ligne_t)
@@ -366,25 +410,39 @@ def test_fichier_nuits(tmp_path, init_git):
         mod.nuits_ecrire(chemin, l2)
         mod.nuits_ecrire(chemin, l2)
         lu = pathlib.Path(chemin).read_text(encoding="utf-8")
-        assert (premiere is True and seconde is False and lu.count(ligne_t) == 1 and lu.count(l2) == 1
-                 and lu.index(ligne_t) < lu.index("## Leçons") < lu.index(l2)), ("NUI11 (b) : nuits_ecrire deux fois → une ligne de table, une leçon") + "\n" + str(lu)
+        assert premiere is True
+        assert seconde is False
+        assert lu.count(ligne_t) == 1
+        assert lu.count(l2) == 1
+        assert lu.index(ligne_t) < lu.index("## Leçons") < lu.index(l2)
         code, s = appel(["trier", tp])
-        assert (code == 0 and "--- Leçons : ctx/101-nuits.md (lignes " in s and l2 + " — indice" in s.splitlines()), ("NUI11 (b) : N=2 → la leçon porte « indice », sous --- Leçons ---, sort 0") + "\n" + str(s)
+        assert code == 0
+        assert "--- Leçons : ctx/101-nuits.md (lignes " in s
+        assert l2 + " — indice" in s.splitlines()
         retiree = mod.nuits_retirer(chemin, l2, "2026-09-27", "NUI12")
         encore = mod.nuits_retirer(chemin, l2, "2026-09-27", "NUI12")
         code, s = appel(["trier", tp])
-        assert (retiree is True and encore is False
-                 and l2 + " — retirée le 2026-09-27 par NUI12" in s.splitlines() and " — indice" not in s and code == 0), ("NUI11 (b) : nuits_retirer → suffixe, leçon gardée, plus d'indice, rien la seconde fois") + "\n" + str(s)
+        assert retiree is True
+        assert encore is False
+        assert l2 + " — retirée le 2026-09-27 par NUI12" in s.splitlines()
+        assert " — indice" not in s
+        assert code == 0
         for k in range(12):
             mod.nuits_ecrire(chemin, lecon % (3, "cause %d" % k))
         code, s = appel(["trier", tp])
-        assert (code == 0 and "GARDE" not in s), ("NUI11 (b) : 12 vivantes + 1 retirée → pas de GARDE — mutant : retirées comptées vivantes") + "\n" + str(s)
+        assert code == 0
+        assert "GARDE" not in s
         mod.nuits_ecrire(chemin, lecon % (3, "cause 12"))
         code, s = appel(["trier", tp])
-        assert (code == 1 and "GARDE: 13 leçons vivantes" in s and "TRI 1 rangs" in s), ("NUI11 (b) : 13 vivantes → GARDE:, tri imprimé, sort 1") + "\n" + str(s)
+        assert code == 1
+        assert "GARDE: 13 leçons vivantes" in s
+        assert "TRI 1 rangs" in s
         ecrire(chemin, pathlib.Path(chemin).read_text(encoding="utf-8").replace(lecon % (3, "cause 12") + "\n", "- pas une forme\n"))
         code, s = appel(["trier", tp])
-        assert (code == 1 and "GARDE: leçon hors forme" in s and "- pas une forme" in s and "TRI 1 rangs" in s), ("NUI11 (b) : une leçon hors forme → GARDE: qui la cite, tri imprimé, sort 1") + "\n" + str(s)
+        assert code == 1
+        assert "GARDE: leçon hors forme" in s
+        assert "- pas une forme" in s
+        assert "TRI 1 rangs" in s
         ecrire(chemin, pathlib.Path(chemin).read_text(encoding="utf-8").replace("- pas une forme\n", ""))
         # (d) une ligne de table à 6 cellules
         try:
@@ -423,8 +481,9 @@ def test_fichier_nuits(tmp_path, init_git):
         ecrire(os.path.join(tp, "ctx", "30-q.md"), "# Chantier Q — q\n\n**Fait.** Rien.\n\n## Q1 [ ] — a\n")
         appel(["ouvrir", tp, "--fiches", "ctx/30-q.md", "--titre", "q", "--estime-fiches", "2"])
         estime = re.search(r"— (≈[\d,]+ \$/fiche sur \d+ clos) \(le", pathlib.Path(os.path.join(tp, "ctx", "30-q.md")).read_text(encoding="utf-8"))
-        assert (estime is not None and estime.group(1) == "≈1,00 $/fiche sur 3 clos"
-                 and "TAUX jour " + estime.group(1) in s.splitlines()), ("NUI11 (c) : TAUX jour = le prix par fiche de l'estimé d'ouvrir sur la même feuille (≈1,00 $/fiche sur 3 clos)") + "\n" + str((s, estime))
+        assert estime is not None
+        assert estime.group(1) == "≈1,00 $/fiche sur 3 clos"
+        assert "TAUX jour " + estime.group(1) in s.splitlines()
     if env is None:
         os.environ.pop("CLAUDE_CODE_SESSION_ID", None)
     else:
@@ -472,10 +531,14 @@ def test_plan(tmp_path):
 
         # (0) sans fichier des nuits : lire refuse ; ecrire le crée, sa ligne d'index comprise
         code, s = lire_plan("--date", "2026-09-25")
-        assert (code == 1 and s.startswith("GARDE: pas de fichier des nuits") and not os.path.isfile(nuits)), ("NUI12 (0) : plan lire sans fichier des nuits → GARDE:, sort 1") + "\n" + str(s)
+        assert code == 1
+        assert s.startswith("GARDE: pas de fichier des nuits")
+        assert not os.path.isfile(nuits)
         code, s = ecrire_plan(plan("passee", borne_usd=3, borne_chantiers=1, A=[ch("AAA", "AAA", "ancienne")]), "2026-09-25")
-        assert (code == 0 and s.startswith("PLAN ctx/101-nuits.md · 2026-09-25 · 1 chantiers") and os.path.isfile(nuits)
-                 and "| `101-nuits.md` |" in octets()[1].decode("utf-8")), ("NUI12 (0) : plan ecrire crée 101-nuits.md et sa ligne d'index, sort 0") + "\n" + str(s)
+        assert code == 0
+        assert s.startswith("PLAN ctx/101-nuits.md · 2026-09-25 · 1 chantiers")
+        assert os.path.isfile(nuits)
+        assert "| `101-nuits.md` |" in octets()[1].decode("utf-8")
         mod.nuits_ecrire(nuits, "| 2026-09-24 | A | NUI | 3/2/1 | 4,50 |")
         mod.nuits_ecrire(nuits, "- 2026-09-24 · N=3 · cause un · jouées 3 sur 5 · nuits 2026-09-24 · sessions s1")
         # (a) A = deux chantiers, B = un : lire par canal, dans l'ordre, aussi sous VLP_NUIT=1
@@ -488,25 +551,36 @@ def test_plan(tmp_path):
         code_c, s_c = lire_plan("--date", "2026-09-30", "--canal", "A", "--chantier", "BBB")
         del os.environ["VLP_NUIT"]
         lignes_a = [l for l in s_a.splitlines() if l.startswith("CHANTIER ")]
-        assert (code == 0 and code_a == 0 and s_a.startswith("BORNE 12.5 $ · 3 chantiers\n")
-                 and lignes_a == ["CHANTIER AAA · canal A · rang 1 · préfixe AAA", "CHANTIER BBB · canal A · rang 2 · préfixe BBB"]), ("NUI12 (a) : lire --canal A sous VLP_NUIT=1 → sort 0, la borne, 2 chantiers dans l'ordre") + "\n" + str(s_a)
-        assert (code_b == 0 and [l for l in s_b.splitlines() if l.startswith("CHANTIER ")]
-                 == ["CHANTIER CCC · canal B · rang 1 · préfixe CCC"]), ("NUI12 (a) : lire --canal B → son seul chantier") + "\n" + str(s_b)
-        assert (code_c == 0 and "- r2" in s_c.splitlines() and "r1a" not in s_c and "### AAA" not in s_c), ("NUI12 (a) : lire --chantier BBB → ses réponses, aucune de AAA") + "\n" + str(s_c)
+        assert code == 0
+        assert code_a == 0
+        assert s_a.startswith("BORNE 12.5 $ · 3 chantiers\n")
+        assert lignes_a == ["CHANTIER AAA · canal A · rang 1 · préfixe AAA", "CHANTIER BBB · canal A · rang 2 · préfixe BBB"]
+        assert code_b == 0
+        assert ([l for l in s_b.splitlines() if l.startswith("CHANTIER ")]
+                 == ["CHANTIER CCC · canal B · rang 1 · préfixe CCC"])
+        assert code_c == 0
+        assert "- r2" in s_c.splitlines()
+        assert "r1a" not in s_c
+        assert "### AAA" not in s_c
         assert ("- r1b é" in lire_plan("--date", "2026-09-30", "--chantier", "AAA")[1].splitlines()), ("NUI12 (a) : la réponse en é revient telle quelle, en puce") + "\n" + ""
         code, s = lire_plan("--date", "2026-09-29")
-        assert (code == 1 and s.startswith("GARDE: pas de plan à la date 2026-09-29")
-                 and lire_plan()[0] == 1), ("NUI12 (a) : une date sans plan → GARDE:, sort 1; sans --date → GARDE:") + "\n" + str(s)
+        assert code == 1
+        assert s.startswith("GARDE: pas de plan à la date 2026-09-29")
+        assert lire_plan()[0] == 1
         avant = texte()
-        assert (avant.count("## Nuit 2026-09-25") == 1 and avant.index("## Nuit 2026-09-25")
-                 < avant.index("## Nuit 2026-09-30") < avant.index("## Leçons")), ("NUI12 (a) : la nuit passée reste, la nouvelle se pose avant ## Leçons") + "\n" + str(avant)
+        assert avant.count("## Nuit 2026-09-25") == 1
+        assert (avant.index("## Nuit 2026-09-25")
+                 < avant.index("## Nuit 2026-09-30") < avant.index("## Leçons"))
         # (b) réécrit à la même date : une seule section, le reste octet pour octet
         code, s = ecrire_plan(plan("soir2", borne_usd=7, borne_chantiers=2, A=[ch("AAA", "AAA", "neuf")]), "2026-09-30")
         apres = texte()
-        assert (code == 0 and apres.count("## Nuit 2026-09-30") == 1 and "- neuf" in apres and "r1a" not in apres
-                 and apres.index("## Nuit 2026-09-30") < apres.index("## Leçons")), ("NUI12 (b) : même date → une seule `## Nuit`, remplacée, avant ## Leçons — mutant : autres sections perdues") + "\n" + str(apres)
-        assert (apres[:apres.index("## Nuit 2026-09-30")] == avant[:avant.index("## Nuit 2026-09-30")]
-                 and apres[apres.index("## Leçons"):] == avant[avant.index("## Leçons"):]), ("NUI12 (b) : la nuit passée, la table et ## Leçons identiques octet pour octet") + "\n" + str(apres)
+        assert code == 0
+        assert apres.count("## Nuit 2026-09-30") == 1
+        assert "- neuf" in apres
+        assert "r1a" not in apres
+        assert apres.index("## Nuit 2026-09-30") < apres.index("## Leçons")
+        assert apres[:apres.index("## Nuit 2026-09-30")] == avant[:avant.index("## Nuit 2026-09-30")]
+        assert apres[apres.index("## Leçons"):] == avant[avant.index("## Leçons"):]
         # (c) neuf refus : GARDE:, sort 1, ni le fichier des nuits ni l'index ne bougent
         refus = [
             ("code absent de la TODO", plan("r1", borne_usd=1, borne_chantiers=1, A=[ch("ZZZ", "ZZZ")])),
@@ -521,13 +595,17 @@ def test_plan(tmp_path):
         for nom, f in refus:
             fichier_avant = octets()
             code, s = ecrire_plan(f, "2026-10-01")
-            assert (code == 1 and s.startswith("GARDE: ") and octets() == fichier_avant), ("NUI12 (c) : %s → GARDE:, sort 1, rien d'écrit — mutant : contrôle des lettres prises retiré" % nom) + "\n" + str(s)
+            assert code == 1
+            assert s.startswith("GARDE: ")
+            assert octets() == fichier_avant
         valide = plan("r9", borne_usd=1, borne_chantiers=1, A=[ch("AAA", "XXX")])
         fichier_avant = octets()
         os.environ["VLP_NUIT"] = "1"
         code, s = ecrire_plan(valide, "2026-10-01")
         del os.environ["VLP_NUIT"]
-        assert (code == 1 and s.startswith("GARDE: VLP_NUIT=1") and octets() == fichier_avant), ("NUI12 (c) : VLP_NUIT=1 → plan ecrire refuse (GARDE:, sort 1, rien d'écrit)") + "\n" + str(s)
+        assert code == 1
+        assert s.startswith("GARDE: VLP_NUIT=1")
+        assert octets() == fichier_avant
         code, s = ecrire_plan(valide, "2026-10-01")
         assert (code == 0), ("NUI12 (c) : le même plan, sans VLP_NUIT → écrit (le refus venait bien de la variable)") + "\n" + str(s)
         # (d) carte : NUIT=1 une fois, dans le bloc d'avant les fiches ; rien sinon
@@ -546,8 +624,9 @@ def test_plan(tmp_path):
             return sortie.getvalue().splitlines()
 
         nuit = carte_sous("1")
-        assert (nuit.count("NUIT=1") == 1 and nuit.index("--- CHANTIER.md ---") < nuit.index("NUIT=1")
-                 < next(k for k, l in enumerate(nuit) if l.startswith("--- fiches :"))), ("NUI12 (d) : carte sous VLP_NUIT=1 → NUIT=1 une fois, après --- CHANTIER.md --- et avant --- fiches : — mutant : ligne jamais écrite") + "\n" + str(nuit)
+        assert nuit.count("NUIT=1") == 1
+        assert (nuit.index("--- CHANTIER.md ---") < nuit.index("NUIT=1")
+                 < next(k for k, l in enumerate(nuit) if l.startswith("--- fiches :")))
         assert (not any(l.startswith("NUIT=") for l in carte_sous("1", True) + carte_sous("0") + carte_sous(None))), ("NUI12 (d) : --relecteur, VLP_NUIT=0 et variable absente → aucune ligne NUIT=") + "\n" + ""
     if env is not None:
         os.environ["VLP_NUIT"] = env
@@ -622,21 +701,27 @@ def test_joints(tmp_path):
         ecrire(fiches, FICHES_PLI2)
         appel(["page", fiches, page, "--creer", "--projet", "Proj", "--titre", "T", "--resultat", "R0"])
         ecrire(page, sans_balises(lire(page)))
-        assert ("<meta charset" not in lire(page) and "vlp.js" not in lire(page)), ("BTN1 : (c) la page d'avant n'a ni charset ni script") + "\n" + str(lire(page)[:300])
+        assert "<meta charset" not in lire(page)
+        assert "vlp.js" not in lire(page)
         code, s = appel(["page", fiches, page])
-        assert (code == 0 and balises_une_fois(lire(page))), ("BTN1 : (c) page d'avant régénérée — charset et script reçus une fois chacun") + "\n" + str(s + lire(page)[:300])
+        assert code == 0
+        assert balises_une_fois(lire(page))
         code, s = appel(["page", fiches, page])
-        assert (code == 0 and balises_une_fois(lire(page))), ("BTN1 : (c) régénérée deux fois, rien de plus — mutant : la balise posée sans vérifier sa présence") + "\n" + str(lire(page)[:300] + lire(page)[-300:])
+        assert code == 0
+        assert balises_une_fois(lire(page))
     with tempfile.TemporaryDirectory(dir=tmp_path) as tab:
         proj, fdr = projet_btn1(tab)
         ecrire(fdr, sans_balises(lire(fdr)))
         code, s = appel(["feuille", proj])
-        assert (code == 0 and balises_une_fois(lire(fdr))), ("BTN1 : (c) feuille d'avant régénérée — charset et script reçus une fois chacun") + "\n" + str(s + lire(fdr)[:300])
+        assert code == 0
+        assert balises_une_fois(lire(fdr))
         code, s = appel(["feuille", proj])
-        assert (code == 0 and balises_une_fois(lire(fdr))), ("BTN1 : (c) feuille régénérée deux fois, rien de plus") + "\n" + str(lire(fdr)[:300] + lire(fdr)[-300:])
+        assert code == 0
+        assert balises_une_fois(lire(fdr))
     # Un charset cité dans un commentaire n'est pas un charset posé.
     cite = mod.migrer_joints("<!-- %s -->\n<p>x</p>\n" % META_BTN1)
-    assert (cite.startswith(META_BTN1 + "\n") and cite.count(META_BTN1) == 2), ("BTN1 : (c) charset cité en commentaire — le vrai est posé quand même") + "\n" + str(cite)
+    assert cite.startswith(META_BTN1 + "\n")
+    assert cite.count(META_BTN1) == 2
 
     # (a) et (b) : `page --creer`, puis `page` sans --creer ; vlp.js modifié à la main entre deux.
     with tempfile.TemporaryDirectory(dir=tmp_path) as tab:
@@ -645,27 +730,34 @@ def test_joints(tmp_path):
         page = os.path.join(art, "p.html")
         ecrire(fiches, FICHES_PLI2)
         code, s = appel(["page", fiches, page, "--creer", "--projet", "Proj", "--titre", "T", "--resultat", "R0"])
-        assert (code == 0 and joints_recopies(s, art) and "CSS %s\n" % os.path.join(art, "vlp.css") in s), ("BTN1 : (a) page --creer recopie vlp.css et vlp.js à l'octet, FILES les nomme"
-                 " — mutant : vlp.js retiré de recopier_joints") + "\n" + str(s)
+        assert code == 0
+        assert joints_recopies(s, art)
+        assert "CSS %s\n" % os.path.join(art, "vlp.css") in s
         assert (balises_une_fois(lire(page))), ("BTN1 : (b) page --creer — charset et script une fois chacun") + "\n" + str(lire(page)[:300])
         with open(os.path.join(art, "vlp.js"), "wb") as f:
             f.write(b"/* modifie a la main */")
         code, s = appel(["page", fiches, page])
-        assert (code == 0 and joints_recopies(s, art)), ("BTN1 : (a) page (régénération) remet vlp.js à l'octet, FILES les nomme") + "\n" + str(s)
+        assert code == 0
+        assert joints_recopies(s, art)
         assert (balises_une_fois(lire(page))), ("BTN1 : (b) page régénérée — charset et script une fois chacun") + "\n" + str(lire(page)[:300])
     with tempfile.TemporaryDirectory(dir=tmp_path) as tab:
         proj, fdr = projet_btn1(tab)
         art = os.path.dirname(fdr)
         code, s = appel(["feuille", proj])
-        assert (code == 0 and joints_recopies(s, art) and "CSS %s\n" % os.path.join(art, "vlp.css") in s), ("BTN1 : (a) feuille recopie vlp.css et vlp.js à l'octet, FILES les nomme") + "\n" + str(s)
+        assert code == 0
+        assert joints_recopies(s, art)
+        assert "CSS %s\n" % os.path.join(art, "vlp.css") in s
         assert (balises_une_fois(lire(fdr))), ("BTN1 : (b) feuille régénérée — charset et script une fois chacun") + "\n" + str(lire(fdr)[:300])
 
     # `joints <dossier>` : les deux copies, et la ligne FILES seule ; un dossier absent est gardé.
     with tempfile.TemporaryDirectory(dir=tmp_path) as tab:
         code, s = appel(["joints", tab])
-        assert (code == 0 and joints_recopies(s, tab) and len(s.splitlines()) == 1), ("BTN1 : joints recopie les deux joints et n'écrit que la ligne FILES") + "\n" + str(s)
+        assert code == 0
+        assert joints_recopies(s, tab)
+        assert len(s.splitlines()) == 1
         code, s = appel(["joints", os.path.join(tab, "absent")])
-        assert (code == 1 and s.startswith("GARDE: dossier introuvable")), ("BTN1 : joints sur un dossier absent — GARDE, sort 1") + "\n" + str(s)
+        assert code == 1
+        assert s.startswith("GARDE: dossier introuvable")
 
     # Les deux gabarits : charset en première ligne, script en dernière, une fois chacun.
     for nom in ("artefact-chantier.html", "artefact-feuille-de-route.html"):
@@ -714,23 +806,30 @@ def test_joints(tmp_path):
         code, s = appel(["feuille", proj])
         b = barres(svg)
         h = [x[1] for x in b]
-        assert (code == 0 and len(b) == 3), ("BTN5 : 4 lignes closes, une sans coût — couts.svg a 3 barres") + "\n" + str(s + str(b))
+        assert code == 0
+        assert len(b) == 3
         r = sorted(h)
-        assert (abs(2 * r[0] - r[1]) <= 1 and abs(4 * r[0] - r[2]) <= 1), ("BTN5 : hauteurs dans le rapport 1 : 2 : 4, à 1 px près — mutant : hauteur constante") + "\n" + str(str(b))
-        assert (b[-1][1] == max(h) and b[0][1] == min(h)), ("BTN5 : la plus récente (la plus chère) à droite, la plus ancienne à gauche"
-                 " — mutant : ordre non retourné") + "\n" + str(str(b))
+        assert abs(2 * r[0] - r[1]) <= 1
+        assert abs(4 * r[0] - r[2]) <= 1
+        assert b[-1][1] == max(h)
+        assert b[0][1] == min(h)
         dessin = lire(svg)
         formes = re.findall(r"<(?:rect|text)\b[^>]*>", dessin)
-        assert ("%s tokens</text>" % mod.arrondi(4000) in dessin and formes
-                 and all('fill="#' in f for f in formes)), ("BTN5 : le maximum en haut à gauche (arrondi + « tokens »), chaque forme a son fill") + "\n" + str(dessin)
+        assert "%s tokens</text>" % mod.arrondi(4000) in dessin
+        assert formes
+        assert all('fill="#' in f for f in formes)
         files = files_de(s) or {}
-        assert ("couts.svg" in files and "\\" not in files["couts.svg"]
-                 and os.path.samefile(files["couts.svg"], svg)), ("BTN5 : FILES nomme couts.svg, à côté de la feuille") + "\n" + str(s)
+        assert "couts.svg" in files
+        assert "\\" not in files["couts.svg"]
+        assert os.path.samefile(files["couts.svg"], svg)
         assert ("\nLIRE vlp.css vlp.js couts.svg\n" in s), ("REF29 : feuille dit LIRE avec couts.svg joint — mutant : ligne LIRE retirée") + "\n" + str(s)
         html = lire(fdr)
         alt = re.search(r'<img src="couts\.svg" alt="([^"]*)"', html)
-        assert (html.count(IMG) == 1 and html.index(IMG) < html.index('<details class="clos">')
-                 and alt is not None and "3 barres" in alt.group(1) and alt.group(1).endswith("le plus cher : D")), ("BTN5 : la balise <img> une fois, avant details.clos ; alt : 3 barres, D le plus cher") + "\n" + str(html[-3000:])
+        assert html.count(IMG) == 1
+        assert html.index(IMG) < html.index('<details class="clos">')
+        assert alt is not None
+        assert "3 barres" in alt.group(1)
+        assert alt.group(1).endswith("le plus cher : D")
         donnees = re.search(r'<img src="couts\.svg"[^>]* data-couts="([^"]*)">', html)
         donnees = json.loads(mod.html.unescape(donnees.group(1))) if donnees else {}
         assert (donnees == {"couleur": mod.COUTS_BARRE, "barres": [[n, t, mod.arrondi(t)] for n, t in
@@ -738,17 +837,17 @@ def test_joints(tmp_path):
                  " de la plus ancienne à la plus récente — mutant : attribut retiré") + "\n" + str(str(donnees))
         # CTR1 : l'image recopie `--cours` et `--doux` de vlp.css, lisibles à 4,5:1 sur les deux fonds.
         css, rapports = contrastes_couts(mod.COUTS_BARRE, mod.COUTS_TEXTE)
-        assert (mod.COUTS_BARRE == css.get("--cours") and mod.COUTS_TEXTE == css.get("--doux")
-                 and min(rapports) >= 4.5), ("Graphique : couleurs de couts.svg = --cours et --doux de vlp.css, contraste ≥ 4,5"
-                 " sur --surface et --ground — mutant : ancienne couleur des barres") + "\n" + str("rapports %s · css %s" % (
-                     " ".join("%.2f" % r for r in rapports), css))
+        assert mod.COUTS_BARRE == css.get("--cours")
+        assert mod.COUTS_TEXTE == css.get("--doux")
+        assert min(rapports) >= 4.5
         print("  CTR1 contrastes (barre/surface, barre/ground, texte/surface, texte/ground) : %s"
               % " ".join("%.2f" % r for r in rapports))
         ecrire(fdr, mod.BALISE_COUTS.sub("", html))
         appel(["feuille", proj])
         assert (lire(fdr).count(IMG) == 1), ("BTN5 : une feuille d'avant, sans balise, la reçoit à sa régénération") + "\n" + str(lire(fdr)[-3000:])
         appel(["feuille", proj])
-        assert (lire(fdr).count(IMG) == 1 and lire(svg) == dessin), ("BTN5 : régénérée encore, toujours une balise, même dessin") + "\n" + str(lire(fdr)[-3000:])
+        assert lire(fdr).count(IMG) == 1
+        assert lire(svg) == dessin
 
     # Sans coût (les lignes d'exemple du gabarit seules) : ni fichier — un ancien est retiré —, ni balise.
     with tempfile.TemporaryDirectory(dir=tmp_path) as tab:
@@ -756,14 +855,16 @@ def test_joints(tmp_path):
         svg = os.path.join(os.path.dirname(fdr), "couts.svg")
         ecrire(svg, "<svg/>")
         code, s = appel(["feuille", proj])
-        assert (code == 0 and not os.path.exists(svg) and IMG not in lire(fdr)
-                 and "couts.svg" not in (files_de(s) or {})), ("BTN5 : une feuille sans coût n'a ni couts.svg, ni balise, ni entrée FILES") + "\n" + str(s + lire(fdr)[-2000:])
+        assert code == 0
+        assert not os.path.exists(svg)
+        assert IMG not in lire(fdr)
+        assert "couts.svg" not in (files_de(s) or {})
         assert ("\nLIRE vlp.css vlp.js\n" in s), ("REF29 : feuille sans couts.svg dit LIRE sans lui") + "\n" + str(s)
 
     # Des coûts mesurés, tous à 0 (dette BTN) : rien à dessiner, et pas de division par un maximum nul.
     with tempfile.TemporaryDirectory(dir=tmp_path) as tab:
         proj, fdr = projet_btn5(tab, [rang("B", mod.arrondi(0)), rang("A", mod.arrondi(0))])
         code, s = appel(["feuille", proj])
-        assert (code == 0 and not os.path.exists(os.path.join(os.path.dirname(fdr), "couts.svg"))
-                 and IMG not in lire(fdr)), ("Dette BTN : coûts clos tous à 0 — feuille passe, sans couts.svg ni balise"
-                 " — mutant : garde de couts_clos retirée") + "\n" + str(s)
+        assert code == 0
+        assert not os.path.exists(os.path.join(os.path.dirname(fdr), "couts.svg"))
+        assert IMG not in lire(fdr)
