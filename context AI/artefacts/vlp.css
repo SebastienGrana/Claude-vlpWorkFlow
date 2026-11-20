@@ -190,3 +190,10 @@ footer { border-top:1px solid var(--line); padding-top:.9rem; font-size:.9375rem
 .barre-lecture progress::-moz-progress-bar { background:var(--accent); }
 body.vlp-lit { padding-bottom:9rem; }
 /* LECTEUR — fin */
+/* Une fiche abandonnée (branche écartée) : une couleur à elle, son titre et sa note barrés (demandé le 2026-11-15, CON3). */
+:root { --abandon:#7b4f6e; }
+.avancement span[data-etat="abandonnee"] { background:repeating-linear-gradient(45deg,var(--abandon) 0 3px,transparent 3px 6px); }
+.fiche[data-etat="abandonnee"] { border-left-color:var(--abandon); }
+.fiche[data-etat="abandonnee"] .etat { color:var(--abandon); font-weight:700; }
+.fiche[data-etat="abandonnee"] .id { color:var(--abandon); }
+.fiche[data-etat="abandonnee"] .titre,.fiche[data-etat="abandonnee"] .note { color:var(--abandon); text-decoration:line-through; text-decoration-thickness:2px; font-weight:400; }

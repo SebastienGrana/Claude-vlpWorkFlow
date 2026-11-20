@@ -1,0 +1,90 @@
+<meta charset="utf-8">
+<title>vlp — ruff au commit</title>
+<!--
+  GABARIT — artefact d'un chantier. Publié par /chantier à l'ouverture,
+  mis à jour par /tache à chaque fiche. Remplace les <…> et ne renomme pas
+  les marqueurs `ZONE:…` : les commandes les cherchent tels quels.
+
+  Convention de coût — posée ici, référencée (jamais recopiée) par
+  artefact-feuille-de-route.html, tache.md et cloture.md : un nombre < 1000
+  s'affiche tel quel ; au-delà, "≈<arrondi 1 décimale><k|M> (<compte brut>)"
+  — virgule française, k = mille, M = million. Le compte brut reste toujours
+  visible à côté de l'arrondi.
+-->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="vlp.css">
+
+<div class="page">
+  <header>
+    <div class="eyebrow">vlp · fiches RUF1–RUF8 · <a href="https://claude.ai/artifact/YWDny8kjubq9DhdP5rbPxA">la feuille de route</a></div>
+    <h1>ruff au commit</h1>
+    <p>ruff check scripts tests rend 0 remarque, et le pre-commit refuse tout commit qui en ajoute une.</p>
+    <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
+    <div class="avancement">
+      <span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+    </div>
+    <p class="mono" style="margin-top:.5rem">8 fiches · 0 faite · en cours : RUF1</p>
+  </header>
+
+  <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
+  <section hidden>
+    <h2>Chantier clos le </h2>
+    <div class="bilan">
+      <p></p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Les fiches, dans l'ordre des dépendances</h2>
+    <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
+    <ul class="fiches">
+      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">RUF1</span></span>
+        <details open><summary><span class="titre">Écrire le script qui sépare les assertions composées</span><span class="etat">En cours · RUF3 peut partir en même temps</span></summary>
+        <span class="note">le script vlp.py separer, testé ; dépend de rien</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">RUF2</span></span>
+        <details><summary><span class="titre">Séparer les 742 assertions composées des tests</span><span class="etat">Après RUF1</span></summary>
+        <span class="note">les 742 assertions composées des tests séparées ; après RUF1</span></details></li>
+      <li class="fiche"><span class="gauche"><span class="id">RUF3</span></span>
+        <details><summary><span class="titre">Solder les petites remarques de scripts/ et de tests/</span><span class="etat">À lancer · en même temps que RUF1</span></summary>
+        <span class="note">les 3 I001 de scripts et 7 petites remarques des tests ; à tout moment</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">RUF4</span></span>
+        <details><summary><span class="titre">Découper les longs tests de nuit, matin, niveau et notes</span><span class="etat">Après RUF2</span></summary>
+        <span class="note">9 longs tests découpés (nuit, matin, niveau, notes) ; après RUF2</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">RUF5</span></span>
+        <details><summary><span class="titre">Découper les longs tests de boucle et boucle_canal, et le faux claude</span><span class="etat">Après RUF2</span></summary>
+        <span class="note">8 longs tests et le faux claude découpés (boucle, boucle_canal) ; après RUF2</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">RUF6</span></span>
+        <details><summary><span class="titre">Découper les longs tests d'ouvrir, clore, clos et fusion</span><span class="etat">Après RUF2</span></summary>
+        <span class="note">11 longs tests découpés (ouvrir, clore, clos, fusion) ; après RUF2</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">RUF7</span></span>
+        <details><summary><span class="titre">Découper les longs tests des neuf autres fichiers</span><span class="etat">Après RUF2</span></summary>
+        <span class="note">les 11 derniers longs tests découpés, tout tests/ à 0 ; après RUF2</span></details></li>
+      <li class="fiche" data-attend><span class="gauche"><span class="id">RUF8</span></span>
+        <details><summary><span class="titre">Mettre ruff strict au pre-commit</span><span class="etat">Après RUF1, RUF2, RUF3, RUF4, RUF5, RUF6, RUF7</span></summary>
+        <span class="note">ruff strict au pre-commit, testé, et le cliquet aligné ; en dernier</span></details></li>
+    </ul>
+    <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
+  </section>
+
+  <!-- ZONE:blocage — publiée quand /tache s'arrête après deux tentatives ; retirée dès que la fiche repasse -->
+  <section hidden>
+    <h2>Arrêt sur blocage</h2>
+    <div class="blocage">
+      <p></p>
+      <pre></pre>
+    </div>
+  </section>
+
+  <section>
+    <h2>Journal des décisions</h2>
+    <!-- ZONE:journal — une ligne par décision imprévue tranchée en cours de fiche -->
+    <ul class="journal">
+    </ul>
+  </section>
+
+  <footer>
+    <span>Fichier de fiches : <span class="mono">context AI/130-ruf.md</span></span>
+    <span>Mis à jour le <span class="mono">2026-11-20</span></span>
+  </footer>
+</div>
+<script src="vlp.js"></script>
