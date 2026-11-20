@@ -78,6 +78,7 @@ Aiguillées avant le cœur, sans le charger — leur détail est la docstring de
 - `concernes` — les tests qui exécutent ces fonctions
 - `conserve` — aucune ligne de texte ne se perd quand une doc se découpe ou se range
 - `retraits` — un test retiré ou affaibli, vu au commit
+- `separer` — sépare les assertions composées : une assertion par part, sans message
 
 Les lignes des chantiers clos — lues ou écrites par `clore`, `recompter`, `prix`, `liens`,
 `repeindre` et le prix moyen d'`ouvrir` — vivent dans `<contexte>/artefacts/archive-clos.html`
@@ -119,6 +120,9 @@ if __name__ == "__main__":
     if sys.argv[1:2] == ["conserve"]:       # REF16 : son module à lui, hors du cœur
         import conserve
         sys.exit(conserve.principal(sys.argv[2:]))
+    if sys.argv[1:2] == ["separer"]:        # RUF1 : son module à lui, hors du cœur
+        import separer
+        sys.exit(separer.principal(sys.argv[2:]))
     import vlp_hook
     triee = vlp_hook.trier(sys.argv[1:])
     if triee == "":                     # un hook déjà pris par l'autre lanceur : sortir sans charger le cœur (VIT8)

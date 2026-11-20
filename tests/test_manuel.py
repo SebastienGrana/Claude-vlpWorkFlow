@@ -12,10 +12,12 @@ import conserve
 import couverture
 import pytest
 import retraits
+import separer
 from aides import SCRIPTS, mod
 from noyau import manuel
 
-AIGUILLEES = {"couverture": couverture, "concernes": concernes, "conserve": conserve, "retraits": retraits}
+AIGUILLEES = {"couverture": couverture, "concernes": concernes, "conserve": conserve, "retraits": retraits,
+              "separer": separer}
 
 
 def aide(lancer, argv):

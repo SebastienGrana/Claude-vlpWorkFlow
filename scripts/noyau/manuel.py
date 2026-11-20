@@ -955,4 +955,5 @@ AIGUILLEES = {
     "concernes": "les tests qui exécutent ces fonctions",
     "conserve": "aucune ligne de texte ne se perd quand une doc se découpe ou se range",
     "retraits": "un test retiré ou affaibli, vu au commit",
+    "separer": "sépare les assertions composées : une assertion par part, sans message",
 }
