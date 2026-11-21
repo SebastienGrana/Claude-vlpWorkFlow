@@ -8,6 +8,7 @@ import re
 import shutil
 import subprocess
 import tempfile
+from decimal import Decimal
 
 import pytest
 from aides import SCRIPTS, appel, ecrire, mod
@@ -47,17 +48,30 @@ def sans_chantier(racine, carte):
 OUVERT_DU_JOUR = mod.OUVERT_LIGNE % __import__("datetime").date.today().isoformat()
 
 
-def test_ouvrir(tmp_path):
-    """Contrôler `ouvrir` : bilan, fichier de fiches posé, ligne de l'état."""
+CARTE_O = ("# C\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n"
+           "- **artefact du chantier** : %s\n")
+
+
+def lire_texte(chemin):
+    """Le texte UTF-8 de `chemin` ; `FileNotFoundError` s'il n'existe pas."""
+    return pathlib.Path(chemin).read_text(encoding="utf-8")
+
+
+def decor_ouvrir(t, monkeypatch):
+    """Le départ de chaque test d'`ouvrir`, posé dans `t` : une carte sans chantier, un index, un routage `CLAUDE.md`,
+    `ctx/30-q.md` (Q1..Q2), et la session du cadrage à « cadre », que `ouvrir` note ; ne rend rien."""
+    monkeypatch.setenv("CLAUDE_CODE_SESSION_ID", "cadre")
+    ecrire(os.path.join(t, "CHANTIER.md"), CARTE_O % "aucun")
+    ecrire(os.path.join(t, "ctx", "00-INDEX.md"), "| Fichier | Lire |\n|---|---|\n| `10-e.md` | on relit |\n| `05-d.md` | vieux |\n\nFin.\n")
+    ecrire(os.path.join(t, "CLAUDE.md"), "| La tâche | Ouvrir |\n|---|---|\n| modifier | x |\n| relire le chantier E (e) | `ctx/10-e.md` — chantier **clos** |\n| relire un chantier clos | `ctx/00-INDEX.md` |\n")
+    ecrire(os.path.join(t, "ctx", "30-q.md"), "# Chantier Q — Un titre\n\n## Q1 [ ] — a\n## Q2 [ ] — b\n")
+
+
+def test_ouvrir(tmp_path, monkeypatch):
+    """Contrôler `ouvrir` : bilan, fichier de fiches posé, ligne de l'état ; relancé avec un artefact, rien de doublé."""
     with tempfile.TemporaryDirectory(dir=tmp_path) as t:
-        lire = lambda c: pathlib.Path(c).read_text(encoding="utf-8")
-        os.environ["CLAUDE_CODE_SESSION_ID"] = "cadre"     # la session du cadrage, que `ouvrir` note
-        carte_o = ("# C\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n"
-                   "- **artefact du chantier** : %s\n")
-        ecrire(os.path.join(t, "CHANTIER.md"), carte_o % "aucun")
-        ecrire(os.path.join(t, "ctx", "00-INDEX.md"), "| Fichier | Lire |\n|---|---|\n| `10-e.md` | on relit |\n| `05-d.md` | vieux |\n\nFin.\n")
-        ecrire(os.path.join(t, "CLAUDE.md"), "| La tâche | Ouvrir |\n|---|---|\n| modifier | x |\n| relire le chantier E (e) | `ctx/10-e.md` — chantier **clos** |\n| relire un chantier clos | `ctx/00-INDEX.md` |\n")
-        ecrire(os.path.join(t, "ctx", "30-q.md"), "# Chantier Q — Un titre\n\n## Q1 [ ] — a\n## Q2 [ ] — b\n")
+        lire = lire_texte
+        decor_ouvrir(t, monkeypatch)
         code, s = appel(["ouvrir", t, "--fiches", "ctx/30-q.md", "--titre", "Un `titre`"])
         carte_lue, index_lu, claude_lu = lire(os.path.join(t, "CHANTIER.md")), lire(os.path.join(t, "ctx", "00-INDEX.md")), lire(os.path.join(t, "CLAUDE.md"))
         assert code == 0
@@ -77,6 +91,16 @@ def test_ouvrir(tmp_path):
         assert lire(os.path.join(t, "CLAUDE.md")) == claude_lu
         assert lire(os.path.join(t, "ctx", "00-INDEX.md")) == index_lu
         assert "**artefact du chantier** : https://exemple/q" in lire(os.path.join(t, "CHANTIER.md"))
+
+
+def test_ouvrir_relance(tmp_path, monkeypatch):
+    """`ouvrir` relancé sur le chantier ouvert : rien ne bouge ; un autre chantier refusé ; un titre neuf ne fait suivre
+    que la plage, sur la même ligne d'index ; une ligne d'index écrite à la main gardée."""
+    with tempfile.TemporaryDirectory(dir=tmp_path) as t:
+        lire = lire_texte
+        decor_ouvrir(t, monkeypatch)
+        appel(["ouvrir", t, "--fiches", "ctx/30-q.md", "--titre", "Un `titre`"])
+        appel(["ouvrir", t, "--fiches", "ctx/30-q.md", "--titre", "Un `titre`", "--artefact", "https://exemple/q"])
         avant = lire(os.path.join(t, "CHANTIER.md"))
         code, s = appel(["ouvrir", t, "--fiches", "ctx/30-q.md", "--titre", "Un `titre`"])
         assert code == 0
@@ -100,7 +124,16 @@ def test_ouvrir(tmp_path):
         assert code == 0
         assert "index +0" in s
         assert lire(os.path.join(t, "ctx", "00-INDEX.md")) == index_main
-        sans_chantier(t, carte_o % "aucun")
+
+
+def test_ouvrir_sans_claude(tmp_path, monkeypatch):
+    """Sans `CLAUDE.md`, `ouvrir` ouvre quand même et le dit, routage +0 ; un fichier qui porte **CLOS** est refusé."""
+    with tempfile.TemporaryDirectory(dir=tmp_path) as t:
+        lire = lire_texte
+        decor_ouvrir(t, monkeypatch)
+        appel(["ouvrir", t, "--fiches", "ctx/30-q.md", "--titre", "Un `titre`"])
+        ecrire(os.path.join(t, "ctx", "31-r.md"), "# Chantier R — r\n\n## R1 [ ] — a\n")
+        sans_chantier(t, CARTE_O % "aucun")
         os.remove(os.path.join(t, "CLAUDE.md"))
         code, s = appel(["ouvrir", t, "--fiches", "ctx/31-r.md", "--titre", "r"])
         assert code == 0
@@ -108,12 +141,19 @@ def test_ouvrir(tmp_path):
         assert "routage +0" in s
         assert "index +1" in s
         assert mod.courant_de(t) == "ctx/31-r.md"
-        sans_chantier(t, carte_o % "aucun")
+        sans_chantier(t, CARTE_O % "aucun")
         ecrire(os.path.join(t, "ctx", "32-s.md"), "# Chantier S — s\n\n**CLOS** le 2026-01-01. Ne se rejoue pas.\n\n## S1 [x] — a\n")
         code, s = appel(["ouvrir", t, "--fiches", "ctx/32-s.md", "--titre", "s"])
         assert code == 1
         assert s.startswith("GARDE: ctx/32-s.md porte **CLOS**")
         assert "aucun" in lire(os.path.join(t, "CHANTIER.md"))
+
+
+def test_ouvrir_session(tmp_path, monkeypatch):
+    """La session du cadrage notée par `ouvrir` : avant `## Le socle commun`, jamais redoublée, rien pour un id vide."""
+    with tempfile.TemporaryDirectory(dir=tmp_path) as t:
+        lire = lire_texte
+        decor_ouvrir(t, monkeypatch)
         # Un vrai fichier : la session va avant `## Le socle commun`, jamais entre le marqueur d'une
         # fiche et son titre — la fiche extraite n'en porte pas. Déjà sur une ligne `**Session**`, même
         # d'une fiche, elle n'est pas redoublée ; un id vide ne note rien.
@@ -122,7 +162,7 @@ def test_ouvrir(tmp_path):
         for nom, texte in (("33-t.md", vrai), ("34-u.md", "# Chantier U — u\n\n## U1 [x] — a\n**Session** : cadre\n"),
                            ("35-v.md", "# Chantier V — v\n\n## V1 [ ] — a\n")):
             ecrire(os.path.join(t, "ctx", nom), texte)
-        sans_chantier(t, carte_o % "aucun")
+        sans_chantier(t, CARTE_O % "aucun")
         code, s = appel(["ouvrir", t, "--fiches", "ctx/33-t.md", "--titre", "t"])
         lu_o = lire(os.path.join(t, "ctx", "33-t.md"))
         assert code == 0
@@ -130,34 +170,40 @@ def test_ouvrir(tmp_path):
         assert (lu_o == vrai.replace("## Le socle commun", "**Session** : cadre\n\n## Le socle commun")
                                  .replace("# Chantier T — t\n\n", "# Chantier T — t\n\n%s\n\n" % OUVERT_DU_JOUR))
         assert "**Session**" not in appel(["extraire", os.path.join(t, "ctx", "33-t.md"), "T1"])[1]
-        sans_chantier(t, carte_o % "aucun")
+        sans_chantier(t, CARTE_O % "aucun")
         code, s = appel(["ouvrir", t, "--fiches", "ctx/34-u.md", "--titre", "u"])
         assert code == 0
         assert "· session +0 ·" in s
         assert lire(os.path.join(t, "ctx", "34-u.md")).count("**Session**") == 1
-        sans_chantier(t, carte_o % "aucun")
-        os.environ["CLAUDE_CODE_SESSION_ID"] = ""
+        sans_chantier(t, CARTE_O % "aucun")
+        monkeypatch.setenv("CLAUDE_CODE_SESSION_ID", "")
         code, s = appel(["ouvrir", t, "--fiches", "ctx/35-v.md", "--titre", "v"])
         assert code == 0
         assert "· session +0 ·" in s
         assert lire(os.path.join(t, "ctx", "35-v.md")) == "# Chantier V — v\n\n%s\n\n## V1 [ ] — a\n" % OUVERT_DU_JOUR
-        os.environ.pop("CLAUDE_CODE_SESSION_ID", None)
+
+
+RANG = ('          <tr>\n            <td>x</td>\n            <td class="mono">%s</td><td class="mono">2026-01-01</td>\n'
+        '            <td class="mono">%s</td>\n            <td>y</td>\n          </tr>\n')
+
+
+CARTE_E = ("# C\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n"
+           "- **artefact du chantier** : aucun\n")
 
 
 # Pas sous tmp_path : son nom porterait « estime », que ce test cherche absent de la sortie.
-def test_estime():
+def test_estime(monkeypatch):
+    """`ouvrir --estime-fiches` : sans feuille, une GARDE ; avec elle, l'estimé au prix moyen des clos, gardé au
+    relancement (chantiers EST, TAU)."""
     with tempfile.TemporaryDirectory() as te:
         # `ouvrir --estime-fiches` (chantier EST) : A1–A3 à 3,00 $ et B1 à 1,00 $ (4 fiches, 4,00 $)
         # font 1,00 $/fiche — le prix mesuré des lignes, pas les tokens (chantier TAU). D1–D2, mesurée
         # en tokens mais sans `$`, ne compte ni dans la somme ni dans les fiches de la moyenne — mutant :
         # la compter comme 0 $ ferait 4,00 $ sur 6 fiches, ≈0,67 $/fiche au lieu de ≈1,00 $/fiche. La
         # ligne non mesurable (E) ne compte pas non plus.
-        lire = lambda c: pathlib.Path(c).read_text(encoding="utf-8")
-        os.environ["CLAUDE_CODE_SESSION_ID"] = ""
-        rang = ('          <tr>\n            <td>x</td>\n            <td class="mono">%s</td><td class="mono">2026-01-01</td>\n'
-                '            <td class="mono">%s</td>\n            <td>y</td>\n          </tr>\n')
-        carte_e = ("# C\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n"
-                   "- **artefact du chantier** : aucun\n")
+        lire = lire_texte
+        monkeypatch.setenv("CLAUDE_CODE_SESSION_ID", "")
+        rang, carte_e = RANG, CARTE_E
         fiches_e = "# Chantier Q — q\n\n**Fait.** Rien.\n\n## Q1 [ ] — a\n"
         ecrire(os.path.join(te, "CHANTIER.md"), carte_e)
         ecrire(os.path.join(te, "ctx", "30-q.md"), fiches_e)
@@ -188,8 +234,17 @@ def test_estime():
         assert mod.nombre_fiches("0,5") == mod.nombre_fiches("0.5") == 0.5
         assert mod.decimal_fr(0.5) == "0,5"
         assert mod.decimal_fr(2.0) == "2"
-        sans_chantier(te, carte_e)
+
+
+# Pas sous tmp_path, comme `test_estime`.
+def test_estime_sans_prix(monkeypatch):
+    """`ouvrir --estime-fiches` sans clos mesuré, puis sans clos au prix `$` : une GARDE, pas d'estimé (EST, TAU2)."""
+    with tempfile.TemporaryDirectory() as te:
+        lire = lire_texte
+        monkeypatch.setenv("CLAUDE_CODE_SESSION_ID", "")
+        rang, carte_e = RANG, CARTE_E
         ecrire(os.path.join(te, "ctx", "31-r.md"), "# Chantier R — r\n\n**Fait.** Rien.\n\n## R1 [ ] — a\n")
+        sans_chantier(te, carte_e)
         ecrire(os.path.join(te, "ctx", "artefacts", "feuille-de-route.html"),
                "<!-- ZONE:clos -->\n<tbody>\n" + rang % ("E1–E8", "non mesurable") + "</tbody>\n")
         code, s = appel(["ouvrir", te, "--fiches", "ctx/31-r.md", "--titre", "r", "--estime-fiches", "1"])
@@ -206,12 +261,16 @@ def test_estime():
         assert "GARDE: aucun chantier clos au prix mesuré sur la feuille de route — pas d'estimé" in s
         assert "**Estimé.**" not in lire(os.path.join(te, "ctx", "32-s.md"))
         assert mod.courant_de(te) == "ctx/32-s.md"
-        os.environ.pop("CLAUDE_CODE_SESSION_ID", None)
+
+
+def test_estime_total():
+    """Le total de la feuille sur trois clos, deux au prix `$` et un sans : `prix_clos`, `resume_clos`, `resommer`,
+    `texte_cout_clos` (TAU2)."""
+    rang = RANG
     # TAU2 : le total de la feuille (`resume_clos`, `resommer`) sur trois clos, deux avec `$` et un
     # sans — mutant : compter la ligne sans `$` comme 0 $ fausse la somme comme la moyenne.
     corps_mixte = (rang % ("A1–A3", "3,00 $ · ≈3,0M (3 000 000)") + rang % ("B1", "1,00 $ · ≈1,0M (1 000 000)")
                    + rang % ("D1–D2", "≈2,0M (2 000 000)"))
-    from decimal import Decimal
     assert (mod.prix_clos(corps_mixte) == (Decimal("4.00"), 2)), ("TAU2 : prix_clos — deux lignes sur trois portent un $, la troisième ignorée") + "\n" + str(mod.prix_clos(corps_mixte))
     assert (mod.resume_clos(3, 6_000_000, Decimal("4.00"), 2)
              == "3 chantiers clos · ≈6,0M (6 000 000) tokens · 4,00 $ sur 2 clos mesurés"), ("TAU2 : resume_clos — « sur 2 clos mesurés »") + "\n" + str(mod.resume_clos(3, 6_000_000, Decimal("4.00"), 2))
@@ -224,6 +283,11 @@ def test_estime():
     corps_toutes = rang % ("A1–A3", "3,00 $ · ≈3,0M (3 000 000)") + rang % ("B1", "1,00 $ · ≈1,0M (1 000 000)")
     assert (mod.texte_cout_clos(*mod.prix_clos(corps_toutes), 2) == "4,00 $"), ("TAU2 : texte_cout_clos — toutes mesurées, sans « sur »") + "\n" + str(mod.texte_cout_clos(*mod.prix_clos(corps_toutes), 2))
     assert (mod.texte_cout_clos(None, 0, 1) == ""), ("TAU2 : texte_cout_clos — aucune mesurée, vide") + "\n" + str(mod.texte_cout_clos(None, 0, 1))
+
+
+def test_estime_clore(monkeypatch):
+    """`clore` d'un chantier ouvert avant EST, sans ligne **Estimé.** : « estimé non noté », sans GARDE d'estimé."""
+    monkeypatch.delenv("CLAUDE_CODE_SESSION_ID", raising=False)
     # `clore` sans ligne **Estimé.** (chantier ouvert avant EST) : « estimé non noté », sans GARDE
     # d'estimé ; le réel en dollars est le prix mesuré de la page, `? $` sans lui (chantiers EST, TAU).
     with tempfile.TemporaryDirectory() as te:
@@ -237,6 +301,11 @@ def test_estime():
         assert "stim" not in s.split("CLOS ")[0]
         assert ("**Fait.** U1..U2 (2026-09-26) : fini — estimé non noté · cadré 2 · joué 2 fiches ? $.\n"
                  in pathlib.Path(os.path.join(te, "ctx", "50-u.md")).read_text(encoding="utf-8"))
+
+
+def test_estime_clore_prix(monkeypatch):
+    """`clore` : le joué au prix mesuré de la page, `? $` sans lui, et la cellule Tokens de la feuille (TAU)."""
+    monkeypatch.delenv("CLAUDE_CODE_SESSION_ID", raising=False)
     # Le prix mesuré (le pondéré de la page, ici 12,34 $ pour 2 M tokens — la louche en dirait
     # ≈1,67 $) : au joué, et en tête de la cellule Tokens de la feuille ; inconnu, `? $` et une
     # cellule sans `$` (chantier TAU). Mutant : remettre `estimation_usd` au joué — le test tombe.
@@ -401,46 +470,45 @@ def test_ouvrir_marque(tmp_path, init_git):
     assert s3.startswith("GARDE: un chantier est déjà ouvert : ctx/50-nui.md")
 
 
+def courant_carte(dossier):
+    """La ligne `COURANT=` (ou `GARDE:`) de `vlp.py carte` sur `dossier` ; "" s'il n'en rend aucune."""
+    return next((l for l in appel(["carte", dossier])[1].split("\n") if l.startswith(("COURANT=", "GARDE:"))), "")
+
+
+def decor_cairn(d, init_git):
+    """Un projet à la Cairn dans `d` : cinq fichiers de fiches sans **CLOS** dont F, nommé courant par l'ancienne ligne
+    de la carte, un clos Z, l'index, et un seul commit « Chantier F ouvert », daté du 2026-09-20 ; ne rend rien."""
+    ecrire(os.path.join(d, "CHANTIER.md"), "- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n"
+           "- **fichier de fiches courant** : ctx/59-f.md (F1..F1)\n- **artefact du chantier** : aucun\n")
+    for n, code in (("22-a", "A"), ("23-b", "B"), ("34-h", "H"), ("58-m", "M"), ("59-f", "F")):
+        ecrire(os.path.join(d, "ctx", n + ".md"), "# Chantier %s — x\n\n## %s1 [ ] — f\n" % (code, code))
+    ecrire(os.path.join(d, "ctx", "21-z.md"), "# Chantier Z — x\n\n" + mod.CLOS_LIGNE % "2026-09-01" + "\n")
+    ecrire(os.path.join(d, "ctx", "00-INDEX.md"), "# Index\n")
+    init_git(d)
+    git_matin(d, "add", "-A")
+    git_matin(d, "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "--date=2026-09-20T12:00:00",
+              "-m", "Chantier F ouvert : x")
+
+
 # Pas sous tmp_path : son nom porterait « marque », que ce test cherche absent de la sortie.
 def test_nui30_marque(init_git):
     """NUI30 : `niveau --ecrire` pose la marque d'un projet à la Cairn (5 fichiers sans CLOS, un courant), datée de son
-    commit d'ouverture ; rejoué, rien ; `pause` la pose, `ouvrir` la lève."""
+    commit d'ouverture ; rejoué, rien. La pause : `test_nui30_pause`."""
     if not shutil.which("git"):
         pytest.skip("git absent — la marque de niveau et la pause ne sont pas testées")
         return
-
-    def courant(dossier):
-        return next((l for l in appel(["carte", dossier])[1].split("\n") if l.startswith(("COURANT=", "GARDE:"))), "")
-
     with tempfile.TemporaryDirectory() as tr:
         d, sans_git, rien = os.path.join(tr, "ca"), os.path.join(tr, "sg"), os.path.join(tr, "rien")
-        ecrire(os.path.join(d, "CHANTIER.md"), "- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n"
-               "- **fichier de fiches courant** : ctx/59-f.md (F1..F1)\n- **artefact du chantier** : aucun\n")
-        for n, code in (("22-a", "A"), ("23-b", "B"), ("34-h", "H"), ("58-m", "M"), ("59-f", "F")):
-            ecrire(os.path.join(d, "ctx", n + ".md"), "# Chantier %s — x\n\n## %s1 [ ] — f\n" % (code, code))
-        ecrire(os.path.join(d, "ctx", "21-z.md"), "# Chantier Z — x\n\n" + mod.CLOS_LIGNE % "2026-09-01" + "\n")
-        for p_ in (d, sans_git, rien):
+        decor_cairn(d, init_git)
+        for p_ in (sans_git, rien):
             ecrire(os.path.join(p_, "ctx", "00-INDEX.md"), "# Index\n")
-        init_git(d)
-        git_matin(d, "add", "-A")
-        git_matin(d, "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "--date=2026-09-20T12:00:00",
-                  "-m", "Chantier F ouvert : x")
-        avant = courant(d)
+        avant = courant_carte(d)
         _, s0 = appel(["niveau", d])
         _, s1 = appel(["niveau", d, "--ecrire", "--date", "2026-10-08"])
-        apres, ouverts1, f1 = courant(d), appel(["ouverts", d])[1], mod.lire(os.path.join(d, "ctx", "59-f.md"))
+        apres, ouverts1, f1 = courant_carte(d), appel(["ouverts", d])[1], mod.lire(os.path.join(d, "ctx", "59-f.md"))
         carte1 = mod.lire(os.path.join(d, "CHANTIER.md"))
         _, s2 = appel(["niveau", d, "--ecrire", "--date", "2026-10-08"])
         f2 = mod.lire(os.path.join(d, "ctx", "59-f.md"))
-        code3, s3 = appel(["pause", os.path.join(d, "ctx", "34-h.md"), "en pause le soir même", "--date", "2026-09-20"])
-        code4, s4 = appel(["pause", os.path.join(d, "ctx", "34-h.md"), "encore"])
-        code5, _s5 = appel(["pause", os.path.join(d, "ctx", "59-f.md"), "attend"])
-        ouverts2, f5 = appel(["ouverts", d])[1], mod.lire(os.path.join(d, "ctx", "59-f.md"))
-        code6, s6 = appel(["ouvrir", d, "--fiches", "ctx/59-f.md", "--titre", "x"])
-        ouverts3, f6 = appel(["ouverts", d])[1], mod.lire(os.path.join(d, "ctx", "59-f.md"))
-        code7, s7 = appel(["pause", os.path.join(d, "ctx", "21-z.md"), "x"])
-        code8, s8 = appel(["pause", os.path.join(d, "ctx", "absent.md"), "x"])
-        h3 = mod.lire(os.path.join(d, "ctx", "34-h.md"))
         ecrire(os.path.join(sans_git, "CHANTIER.md"), "- **contexte** : ctx/\n- **fichier de fiches courant** : ctx/9-s.md\n")
         ecrire(os.path.join(sans_git, "ctx", "9-s.md"), "# Chantier S — x\n\n## S1 [ ] — f\n")
         _, s9 = appel(["niveau", sans_git, "--ecrire", "--date", "2026-10-08"])
@@ -466,6 +534,26 @@ def test_nui30_marque(init_git):
     assert "CORRIGÉ: ligne:" in s9
     assert "marque" not in s10
     assert "ligne:" not in s10
+
+
+# Pas sous tmp_path, comme `test_nui30_marque`.
+def test_nui30_pause(init_git):
+    """NUI30 : `pause` pose sa marque, refuse un doublon, un clos, un fichier absent ; `ouvrir` la lève. Sans git,
+    `init_git` saute le test."""
+    with tempfile.TemporaryDirectory() as tr:
+        d = os.path.join(tr, "ca")
+        decor_cairn(d, init_git)
+        appel(["niveau", d, "--ecrire", "--date", "2026-10-08"])
+        code3, s3 = appel(["pause", os.path.join(d, "ctx", "34-h.md"), "en pause le soir même", "--date", "2026-09-20"])
+        code4, s4 = appel(["pause", os.path.join(d, "ctx", "34-h.md"), "encore"])
+        code5, _s5 = appel(["pause", os.path.join(d, "ctx", "59-f.md"), "attend"])
+        ouverts2, f5 = appel(["ouverts", d])[1], mod.lire(os.path.join(d, "ctx", "59-f.md"))
+        code6, s6 = appel(["ouvrir", d, "--fiches", "ctx/59-f.md", "--titre", "x"])
+        ouverts3, f6 = appel(["ouverts", d])[1], mod.lire(os.path.join(d, "ctx", "59-f.md"))
+        code7, s7 = appel(["pause", os.path.join(d, "ctx", "21-z.md"), "x"])
+        code8, s8 = appel(["pause", os.path.join(d, "ctx", "absent.md"), "x"])
+        h3 = mod.lire(os.path.join(d, "ctx", "34-h.md"))
+    marque = "**Ouvert.** le 2026-09-20."
     assert (code3, s3) == (0, "PAUSE %s le 2026-09-20\n" % os.path.join(d, "ctx", "34-h.md").replace("\\", "/"))
     assert h3.startswith("# Chantier H — x\n\n**Pause.** le 2026-09-20 — en pause le soir même\n\n## H1")
     assert code4 == 1

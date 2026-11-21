@@ -120,7 +120,7 @@ def test_wip_de_cote(tmp_path, init_git):
 
 def test_fusionner(tmp_path, init_git):
     """NUI26 : `vlp.py fusionner <projet> <branche>`, la fusion du jour par le chemin de `matin` — un worktree qui clôt
-    le chantier de main le libère ; un worktree qui ouvre puis clôt PAR laisse à main le sien ; six refus et `DÉJÀ`."""
+    le chantier de main le libère. Le chantier ouvert puis clos ailleurs, les refus et `DÉJÀ` : `test_fusionner_refus`."""
     if not shutil.which("git"):
         pytest.skip("git absent — fusionner n'est pas testé")
         return
@@ -151,6 +151,10 @@ def test_fusionner(tmp_path, init_git):
     assert code_ouvrir == 0
     assert "**Ouvert.**" in neo
 
+
+def test_fusionner_refus(tmp_path, init_git):
+    """NUI26 : un worktree qui ouvre puis clôt PAR laisse à main son chantier ; six refus de `fusionner`, puis `DÉJÀ`.
+    Sans git, `init_git` saute le test."""
     with tempfile.TemporaryDirectory(dir=tmp_path) as tr:
         d, vide = os.path.join(tr, "g"), os.path.join(tr, "vide")
         depot_matin(init_git, d)
@@ -256,7 +260,7 @@ def test_iso4_fusionner_fiche(tmp_path, init_git):
 
 def test_lettres_doublon(tmp_path, init_git):
     """NUI27 : un code pris deux fois n'est plus avalé — à la fusion, même lettre et titres différents → `GARDE:` avant
-    toute écriture, même entrée → rien ; `ouvrir` refuse un code déjà ouvert dans un autre worktree, pas le sien hérité."""
+    toute écriture, même entrée → rien. Le refus d'`ouvrir` : `test_lettres_doublon_ouvrir`."""
     if not shutil.which("git"):
         pytest.skip("git absent — les lettres en double ne sont pas testées")
         return
@@ -292,6 +296,10 @@ def test_lettres_doublon(tmp_path, init_git):
     assert (code_c, s_c) == (0, "FUSIONNÉE pc\n")
     assert lettres == ["E", "ENQ", "PAR"]
 
+
+def test_lettres_doublon_ouvrir(tmp_path, init_git):
+    """NUI27 : `ouvrir` refuse un code déjà ouvert dans un autre worktree, sans rien écrire ; pas le sien, hérité d'un
+    worktree détaché. Sans git, `init_git` saute le test."""
     with tempfile.TemporaryDirectory(dir=tmp_path) as tr:
         d, wz, wh = os.path.join(tr, "o"), os.path.join(tr, "wt-zed"), os.path.join(tr, "wt-her")
         depot_matin(init_git, d)

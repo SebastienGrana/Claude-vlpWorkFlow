@@ -70,38 +70,45 @@ def hook(texte):
     return code, o.getvalue(), e.getvalue()
 
 
+def projet_prix(tp):
+    """Pose dans `tp` un projet à deux clos, X mesuré à 12,34 $ et Y jamais mesuré, leurs pages, l'abri de X et la
+    feuille ; rend le chemin de la feuille."""
+    ecrire(os.path.join(tp, "CHANTIER.md"), "# Chantier courant\n\n- **contexte** : ctx/\n"
+           "- **index** : ctx/00-INDEX.md\n")
+    ecrire(os.path.join(tp, "ctx", "00-INDEX.md"), "| Fichier | Lire quand |\n|---|---|\n"
+           "| `x.md` | chantier **clos** « X », `X1..X1` |\n"
+           "| `y.md` | chantier **clos** « Y », `Y1..Y1` |\n")
+    seule = ("# Chantier %s\n\n**CLOS** le 2026-01-06.\n\n**Fait.** %s1..%s1 (2026-01-06) : fini —"
+             " estimé 1 fiches ≈%s $ · cadré 1 · joué 1 fiches %s.\n\n## Le socle commun\n\n"
+             "## L'ordre des fiches\n\n<!-- FICHE:%s1 -->\n## %s1 [x] — Seule\n**Critère de fin**\n<!-- /FICHE -->\n")
+    ecrire(os.path.join(tp, "ctx", "x.md"), seule % ("X", "X", "X", "25", "≈25 $", "X", "X"))
+    ecrire(os.path.join(tp, "ctx", "y.md"), seule % ("Y", "Y", "Y", "10", "? $", "Y", "Y"))
+    ecrire(os.path.join(tp, "ctx", "artefacts", "x.html"),
+           '<p class="mono cout-total">Coût du chantier : ≈50,0k (50 000) · 5 tours · 12,34 $</p>\n'
+           '<div class="bilan"><p>Estimé : estimé 1 fiches ≈25 $ · cadré 1 · joué 1 fiches ≈25 $</p></div>\n')
+    ecrire(os.path.join(tp, "ctx", "artefacts", "y.html"),
+           '<p class="mono cout-total">Coût du chantier : ≈20,0k (20 000) · 3 tours · ? $</p>\n')
+    ecrire(os.path.join(tp, "ctx", "artefacts", "x.md"),
+           "# X — notes et journal\n\n## Résultat\nFini\n\n## Notes\n\n## Journal\n\n## Bilan\n"
+           "- Estimé : estimé 1 fiches ≈25 $ · cadré 1 · joué 1 fiches ≈25 $\n")
+    fdr = os.path.join(tp, "ctx", "artefacts", "feuille-de-route.html")
+    ecrire(fdr, '    <!-- ZONE:clos — test -->\n'
+           '    <details class="clos">\n      <summary><span class="resume-clos">vieux</span></summary>\n'
+           '      <table>\n        <tbody>\n'
+           + ligne_close(mod.arrondi(50000)).replace("Q1–Q2", "X1")
+           + ligne_close(mod.arrondi(20000)).replace("Q1–Q2", "Y1")
+           + '        </tbody>\n        <tfoot>\n          <tr><td colspan="3">Total cumulé</td>'
+             '<td class="mono"><strong>vieux</strong></td><td class="mono">vieux</td></tr>\n        </tfoot>\n'
+           '      </table>\n    </details>\n')
+    return fdr
+
+
 def test_prix(tmp_path):
     """prix (chantier TAU3) : le `$` de la page de chaque clos posé en tête de sa cellule Tokens,
     le vieux joué à la louche recalé dessus, le vieil estimé marqué `(taux plat)` — sur un projet
     à deux clos, X mesuré en $, Y jamais mesuré."""
     with tempfile.TemporaryDirectory(dir=tmp_path) as tp:
-        ecrire(os.path.join(tp, "CHANTIER.md"), "# Chantier courant\n\n- **contexte** : ctx/\n"
-               "- **index** : ctx/00-INDEX.md\n")
-        ecrire(os.path.join(tp, "ctx", "00-INDEX.md"), "| Fichier | Lire quand |\n|---|---|\n"
-               "| `x.md` | chantier **clos** « X », `X1..X1` |\n"
-               "| `y.md` | chantier **clos** « Y », `Y1..Y1` |\n")
-        seule = ("# Chantier %s\n\n**CLOS** le 2026-01-06.\n\n**Fait.** %s1..%s1 (2026-01-06) : fini —"
-                 " estimé 1 fiches ≈%s $ · cadré 1 · joué 1 fiches %s.\n\n## Le socle commun\n\n"
-                 "## L'ordre des fiches\n\n<!-- FICHE:%s1 -->\n## %s1 [x] — Seule\n**Critère de fin**\n<!-- /FICHE -->\n")
-        ecrire(os.path.join(tp, "ctx", "x.md"), seule % ("X", "X", "X", "25", "≈25 $", "X", "X"))
-        ecrire(os.path.join(tp, "ctx", "y.md"), seule % ("Y", "Y", "Y", "10", "? $", "Y", "Y"))
-        ecrire(os.path.join(tp, "ctx", "artefacts", "x.html"),
-               '<p class="mono cout-total">Coût du chantier : ≈50,0k (50 000) · 5 tours · 12,34 $</p>\n'
-               '<div class="bilan"><p>Estimé : estimé 1 fiches ≈25 $ · cadré 1 · joué 1 fiches ≈25 $</p></div>\n')
-        ecrire(os.path.join(tp, "ctx", "artefacts", "y.html"),
-               '<p class="mono cout-total">Coût du chantier : ≈20,0k (20 000) · 3 tours · ? $</p>\n')
-        ecrire(os.path.join(tp, "ctx", "artefacts", "x.md"),
-               "# X — notes et journal\n\n## Résultat\nFini\n\n## Notes\n\n## Journal\n\n## Bilan\n"
-               "- Estimé : estimé 1 fiches ≈25 $ · cadré 1 · joué 1 fiches ≈25 $\n")
-        fdr = os.path.join(tp, "ctx", "artefacts", "feuille-de-route.html")
-        ecrire(fdr, '    <!-- ZONE:clos — test -->\n'
-               '    <details class="clos">\n      <summary><span class="resume-clos">vieux</span></summary>\n'
-               '      <table>\n        <tbody>\n'
-               + ligne_close(mod.arrondi(50000)).replace("Q1–Q2", "X1")
-               + ligne_close(mod.arrondi(20000)).replace("Q1–Q2", "Y1")
-               + '        </tbody>\n        <tfoot>\n          <tr><td colspan="3">Total cumulé</td>'
-                 '<td class="mono"><strong>vieux</strong></td><td class="mono">vieux</td></tr>\n        </tfoot>\n'
-               '      </table>\n    </details>\n')
+        fdr = projet_prix(tp)
         disque = lambda: {os.path.relpath(os.path.join(r, n), tp): lire(os.path.join(r, n))
                           for r, _, ns in os.walk(tp) for n in ns}
         avant = disque()
@@ -146,24 +153,31 @@ def test_prix(tmp_path):
         assert s.startswith("GARDE: pas de CHANTIER.md")
 
 
+def transcripts_a_clore(t):
+    """Pose sous `t` deux transcripts, sss (deux appels à `vlp.py clore` et un grep) et ttt (aucun), et deux fichiers
+    de fiches q.md et r.md qui les nomment ; rend (dossier des projets, dossier du dépôt)."""
+    pr, dep = os.path.join(t, ".claude", "projects"), os.path.join(t, "depot")
+    os.makedirs(os.path.join(pr, "p"))
+    for s_, heures_ in (("sss", [T0 + 200, T0 + 400, T0 + 700, T0 + 800, T0 + 1000]), ("ttt", [T0 + 200, T0 + 400, T0 + 700])):
+        chemin_ = os.path.join(pr, "p", s_ + ".jsonl")
+        transcript(chemin_, len(heures_), heures_)
+        if s_ == "sss":
+            lignes_ = [json.loads(l) for l in lire(chemin_).splitlines()]
+            for k in (2, 4):
+                lignes_[k]["message"]["content"] = [{"type": "tool_use", "id": "t%d" % k, "name": "Bash", "input": {
+                    "command": 'py "C:/k/scripts/vlp.py" clore . --livre x'}}]
+            lignes_[3]["message"]["content"] = [{"type": "tool_use", "id": "t3", "name": "Bash",
+                                                 "input": {"command": 'grep -n "clore" scripts/vlp.py'}}]
+            ecrire(chemin_, "".join(json.dumps(l) + "\n" for l in lignes_))
+    ecrire(os.path.join(dep, "q.md"), QFICHES % ("sss", "sss"))
+    ecrire(os.path.join(dep, "r.md"), QFICHES % ("ttt", "ttt"))
+    return pr, dep
+
+
 def test_cout_a_clore(tmp_path, init_git):
     """Contrôler `cout --a-clore` et `recompter --a-clore` (chantier APC)."""
     with tempfile.TemporaryDirectory(dir=tmp_path) as t:
-        pr, dep = os.path.join(t, ".claude", "projects"), os.path.join(t, "depot")
-        os.makedirs(os.path.join(pr, "p"))
-        for s_, heures_ in (("sss", [T0 + 200, T0 + 400, T0 + 700, T0 + 800, T0 + 1000]), ("ttt", [T0 + 200, T0 + 400, T0 + 700])):
-            chemin_ = os.path.join(pr, "p", s_ + ".jsonl")
-            transcript(chemin_, len(heures_), heures_)
-            if s_ == "sss":
-                lignes_ = [json.loads(l) for l in lire(chemin_).splitlines()]
-                for k in (2, 4):
-                    lignes_[k]["message"]["content"] = [{"type": "tool_use", "id": "t%d" % k, "name": "Bash", "input": {
-                        "command": 'py "C:/k/scripts/vlp.py" clore . --livre x'}}]
-                lignes_[3]["message"]["content"] = [{"type": "tool_use", "id": "t3", "name": "Bash",
-                                                     "input": {"command": 'grep -n "clore" scripts/vlp.py'}}]
-                ecrire(chemin_, "".join(json.dumps(l) + "\n" for l in lignes_))
-        ecrire(os.path.join(dep, "q.md"), QFICHES % ("sss", "sss"))
-        ecrire(os.path.join(dep, "r.md"), QFICHES % ("ttt", "ttt"))
+        _pr, dep = transcripts_a_clore(t)
         if not shutil.which("git"):
             pytest.skip("git absent — cout --a-clore n'est pas testé")
         else:
@@ -273,17 +287,22 @@ def test_recompter_essais(tmp_path):
         assert resimule[1].splitlines()[0].startswith("M inscrit 500 000 · essais 200 000 · ajout +0 · ")
         assert resimule[1].splitlines()[0].endswith(" · déjà ajoutés (ESD)")
         assert resimule[1].splitlines()[-1].endswith(" · 0 reçoivent · inscrit 502 000 · avec essais 502 000 · ajout +0")
-        # La règle du découpé, en fonction pure : les essais sans passer le recompté.
-        assert ([mod.ajout_essais("x", 100, 150, "découpe", 80), mod.ajout_essais("x", 100, 300, "découpe", 80),
-                  mod.ajout_essais("x", 100, 90, "découpe", 80), mod.ajout_essais("x", 100, None, "gardé — sans session", 80),
-                  mod.ajout_essais(mod.MARQUE_ESSAIS + "+5 · (105)", 105, None, "gardé — DÉCOUPE aucune (r)", 5)]
-                 == [50, 80, 0, 0, 0]), ("ajout_essais : découpé borné par l'écart ; autre gardé, rien ; marque, rien") + "\n" + ""
-        # Dette d'ESD : un `recompter --ecrire` sur une cellule marquée ESD garde la marque en tête.
-        marques = [mod.marquer("essais (ESD) +200 000 · recompté (REC), était 650 000 · ≈850,0k (850 000)", 850000, 900000, "découpe"),
-                   mod.marquer("essais (ESD) +50 000 · ≈700,0k (700 000)", 700000, 750000, "découpe")]
-        assert (marques == [
-            "essais (ESD) +200 000 · recompté (REC), était 650 000 · ≈900,0k (900 000)",
-            "essais (ESD) +50 000 · recompté (REC), était 700 000 · ≈750,0k (750 000)"]), ("marquer : la marque ESD reste en tête — mutant : la marque ESD perdue") + "\n" + str(marques)
+
+
+def test_ajout_essais_marquer():
+    """`ajout_essais` et `marquer`, en fonctions pures : le découpé borné par l'écart, la marque ESD gardée en tête
+    (chantier ESD)."""
+    # La règle du découpé, en fonction pure : les essais sans passer le recompté.
+    assert ([mod.ajout_essais("x", 100, 150, "découpe", 80), mod.ajout_essais("x", 100, 300, "découpe", 80),
+              mod.ajout_essais("x", 100, 90, "découpe", 80), mod.ajout_essais("x", 100, None, "gardé — sans session", 80),
+              mod.ajout_essais(mod.MARQUE_ESSAIS + "+5 · (105)", 105, None, "gardé — DÉCOUPE aucune (r)", 5)]
+             == [50, 80, 0, 0, 0]), ("ajout_essais : découpé borné par l'écart ; autre gardé, rien ; marque, rien") + "\n" + ""
+    # Dette d'ESD : un `recompter --ecrire` sur une cellule marquée ESD garde la marque en tête.
+    marques = [mod.marquer("essais (ESD) +200 000 · recompté (REC), était 650 000 · ≈850,0k (850 000)", 850000, 900000, "découpe"),
+               mod.marquer("essais (ESD) +50 000 · ≈700,0k (700 000)", 700000, 750000, "découpe")]
+    assert (marques == [
+        "essais (ESD) +200 000 · recompté (REC), était 650 000 · ≈900,0k (900 000)",
+        "essais (ESD) +50 000 · recompté (REC), était 700 000 · ≈750,0k (750 000)"]), ("marquer : la marque ESD reste en tête — mutant : la marque ESD perdue") + "\n" + str(marques)
 
 
 def test_recompter_un_clos(tmp_path):
@@ -401,26 +420,35 @@ def avec_style_inline(html):
     return html.replace('<link rel="stylesheet" href="vlp.css">', "<style>\n%s</style>" % css, 1)
 
 
+def vigile_hook(d):
+    """`vlp.py vigile` en hook, sur `d` (un texte, ou un objet passé en JSON) ; rend (code, sortie)."""
+    o = io.StringIO()
+    code = mod.main(["vigile"], o, io.StringIO(d if isinstance(d, str) else json.dumps(d)))
+    return code, o.getvalue()
+
+
+def pages_vigile(tvg):
+    """Pose dans `tvg` les cinq pages de `test_vigile` ; rend leurs chemins (saine, cairn, sans_style, sans_bloc,
+    lien)."""
+    saine = os.path.join(tvg, "saine.html")
+    ecrire(saine, "<!-- tête fermée -->\n<html><head><style>p{}</style></head>"
+                  "<body><h1>Titre</h1><p>Un texte.</p></body></html>\n")
+    cairn = os.path.join(tvg, "cairn.html")
+    ecrire(cairn, "<!-- Gabarit : remplis les <…>\n<html><head><style>p{}</style></head>"
+                  "<body><h1>Titre</h1><p>Un texte.</p></body></html>\n")
+    sans_style = os.path.join(tvg, "sans-style.html")
+    ecrire(sans_style, "<html><body><p>Un texte.</p></body></html>\n")
+    sans_bloc = os.path.join(tvg, "sans-bloc.html")
+    ecrire(sans_bloc, "<html><head><style>p{}</style></head><body><script>x()</script></body></html>\n")
+    lien = os.path.join(tvg, "lien.html")
+    ecrire(lien, '<html><head><link rel="stylesheet" href="vlp.css"></head><body><p>Un texte.</p></body></html>\n')
+    return saine, cairn, sans_style, sans_bloc, lien
+
+
 def test_vigile(tmp_path):
     """vigile (chantier VID1) : une page cassée ne part pas — commentaire ouvert, aucun style, aucun bloc."""
-    def hook(d):
-        o = io.StringIO()
-        code = mod.main(["vigile"], o, io.StringIO(d if isinstance(d, str) else json.dumps(d)))
-        return code, o.getvalue()
-
     with tempfile.TemporaryDirectory(dir=tmp_path) as tvg:
-        saine = os.path.join(tvg, "saine.html")
-        ecrire(saine, "<!-- tête fermée -->\n<html><head><style>p{}</style></head>"
-                      "<body><h1>Titre</h1><p>Un texte.</p></body></html>\n")
-        cairn = os.path.join(tvg, "cairn.html")
-        ecrire(cairn, "<!-- Gabarit : remplis les <…>\n<html><head><style>p{}</style></head>"
-                      "<body><h1>Titre</h1><p>Un texte.</p></body></html>\n")
-        sans_style = os.path.join(tvg, "sans-style.html")
-        ecrire(sans_style, "<html><body><p>Un texte.</p></body></html>\n")
-        sans_bloc = os.path.join(tvg, "sans-bloc.html")
-        ecrire(sans_bloc, "<html><head><style>p{}</style></head><body><script>x()</script></body></html>\n")
-        lien = os.path.join(tvg, "lien.html")
-        ecrire(lien, '<html><head><link rel="stylesheet" href="vlp.css"></head><body><p>Un texte.</p></body></html>\n')
+        saine, cairn, sans_style, sans_bloc, lien = pages_vigile(tvg)
 
         code, s = appel(["vigile", saine])
         assert ((code, s) == (0, "PAGE SAINE 2 blocs\n")), ("vigile : page saine, PAGE SAINE 2 blocs") + "\n" + str(s)
@@ -443,6 +471,13 @@ def test_vigile(tmp_path):
         assert code == 1
         assert s.startswith("GARDE: introuvable")
 
+
+def test_vigile_hook(tmp_path):
+    """vigile en hook PreToolUse : refuse la publication d'une page cassée ; muet sur une page saine, un asset, un Bash,
+    un .md, un texte qui n'est pas du JSON, un fichier illisible (VID1)."""
+    hook = vigile_hook
+    with tempfile.TemporaryDirectory(dir=tmp_path) as tvg:
+        saine, cairn, _sans_style, _sans_bloc, _lien = pages_vigile(tvg)
         pub = {"hook_event_name": "PreToolUse", "tool_name": "Artifact"}
         code, s = hook(dict(pub, tool_input={"file_path": cairn}))
         assert code == 0
