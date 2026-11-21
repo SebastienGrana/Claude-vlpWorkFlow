@@ -359,7 +359,7 @@ def faire_serveur(dossier, port):
     import urllib.parse
 
     class Apercu(http.server.SimpleHTTPRequestHandler):
-        # noqa : l'attribut de classe que `http.server` lit, redéfini comme il le prévoit
+        # RUF012 dispensé : l'attribut de classe que `http.server` lit, redéfini comme il le prévoit
         extensions_map = {**http.server.SimpleHTTPRequestHandler.extensions_map, **TYPES_APERCU}  # noqa: RUF012
 
         def end_headers(self):
