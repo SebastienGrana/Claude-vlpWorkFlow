@@ -101,6 +101,28 @@ def test_ref22_pre_commit_refuse_git_bash_et_quatre_barres(tmp_path, init_git):
         "REF22 : pre-commit, Git Bash et quatre barres refusés, une URL et un chemin relatif passent\n" + str(vus))
 
 
+def test_ruf8_pre_commit_lance_ruff(tmp_path, init_git):
+    """RUF8 : un `.py` indexé réveille `ruff check scripts tests` après pyright — une remarque refuse le commit, un
+    fichier propre passe. Un faux `uv` rend pyright vert et passe `ruff` au vrai ruff de l'atelier, sous les
+    réglages du kit (`pyproject.toml` copié). Sans git, `init_git` (par `depot_modele`) saute le test."""
+    depot, sans, git = hook_isole(init_git, str(tmp_path))
+    shutil.copy(os.path.join(RACINE, "pyproject.toml"), os.path.join(depot, "pyproject.toml"))
+    faux = str(tmp_path / "faux")
+    python = sys.executable.replace("\\", "/")
+    ecrire(os.path.join(faux, "uv"), '#!/bin/sh\nshift 2\n[ "$1" = pyright ] && exit 0\nexec "%s" -m "$@"\n' % python)
+    os.chmod(os.path.join(faux, "uv"), 0o755)
+    ecrire(os.path.join(depot, "tests", "test_x.py"), "import os\n")
+    git(sans, "add", "pyproject.toml", "tests/test_x.py")
+    refus = git([faux, *sans], "commit", "-q", "-m", "remarque")
+    ecrire(os.path.join(depot, "tests", "test_x.py"), "X = 1\n")
+    git(sans, "add", "tests/test_x.py")
+    passe = git([faux, *sans], "commit", "-q", "-m", "propre")
+    assert refus[0] == 1, refus[1]
+    assert "F401" in refus[1]
+    assert "pre-commit : ruff" in refus[1]
+    assert passe[0] == 0, passe[1]
+
+
 # --- 3. `sante <fichiers> --base` ------------------------------------------------------------------------------------
 
 

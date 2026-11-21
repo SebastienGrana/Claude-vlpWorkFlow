@@ -606,8 +606,8 @@ l'utilisateur au chantier `MET` (`context AI/08-etat.md`, entrée « MET1 — ce
   Coding », 2025).
 - **Le test d'abord, vu échouer** : « Anatomie d'une fiche », rouge → vert (`REF13`) ; le mutant, quand le critère en nomme un (`ALG1`).
 - **Un test existant ne se modifie pas pendant une fiche** : le hook `figer` (`REF10`).
-- Ces règles de ruff, pour `tests/` seul : `tests/ruff.toml`. Un long scénario de test reste permis
-  (`PLR0915` signalé, pas tenu : décision `VIT`, Q4).
+- Ces règles de ruff, pour `tests/` seul : `tests/ruff.toml`. `ruff check scripts tests` tourne au `pre-commit`
+  après pyright : une remarque refuse le commit, long test compris (`RUF8`).
 
 **La prose que Claude lit** — commandes, agents, doctrine, `CLAUDE.md` :
 

@@ -848,8 +848,9 @@ def test_sante_cliquet_neuves(tmp_path):
         assert (neuves == (1, tete + "SEUIL scripts/m.py:39 neuve_grosse · complexité 11, seuil 10 (neuve)\n"
                             "DOCSTRING scripts/m.py:64 neuve · sans docstring (neuve)\n"
                             + bilan % (6, 0, 0, 2) + "\nCLIQUET ROMPU · 2 écart(s)\n"))
-        assert (tests == (1, tete + "SEUIL scripts/test-m.py:75 test_neuf · complexité 11, seuil 10 (neuve)\n"
-                               + bilan % (5, 1, 0, 1) + "\nCLIQUET ROMPU · 1 écart(s)\n"))
+        assert (tests == (1, tete + "EMPIRE scripts/test-m.py:1 test_long · instructions 60 → 70, seuil 50\n"
+                               "SEUIL scripts/test-m.py:75 test_neuf · complexité 11, seuil 10 (neuve)\n"
+                               + bilan % (5, 1, 0, 1) + "\nCLIQUET ROMPU · 2 écart(s)\n"))
         touchee = lancer({"m.py": m.replace(muette, "def muette(a):\n    return a + 1\n"), "test-m.py": longue(60)},
                          "--cliquet")
         assert (touchee == (1, tete + "DOCSTRING scripts/m.py:35 muette · sans docstring (touchée)\n"

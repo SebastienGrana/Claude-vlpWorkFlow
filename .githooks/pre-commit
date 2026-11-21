@@ -30,6 +30,12 @@ if git -c core.quotepath=false diff --cached --name-only --diff-filter=ACMR | gr
     echo "pre-commit : pyright en erreur ou absent de l'atelier (uv sync), commit refusé." >&2
     exit 1
   fi
+  # ruff, sous les règles de `pyproject.toml` (RUF8) : une remarque refuse, ruff absent aussi, comme pyright.
+  if ! sortie=$(cd "$racine" && uv run --frozen ruff check scripts tests 2>&1); then
+    printf '%s\n' "$sortie" >&2
+    echo "pre-commit : ruff en remarque ou absent de l'atelier (uv sync), commit refusé." >&2
+    exit 1
+  fi
   # La couverture des lignes changées (REF8) ne se juge plus à chaque commit, mais à la clôture du chantier, sur
   # son diff, et au `pre-push` (ALG3, choix 5 B de l'utilisateur, 2026-11-08 : 612 s de suite à chaque fiche).
 fi

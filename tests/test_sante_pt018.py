@@ -34,9 +34,11 @@ def test_un_fichier_de_tests_est_un_test(tmp_path):
 
 
 def test_le_seuil_ne_tient_que_pour_un_test():
+    """PT018 ne tient que pour un test ; les instructions d'un test tiennent leur seuil de 50, comme ruff au commit
+    (RUF8 : la dispense de VIT Q4 retirée)."""
     i = sante.COMPTES.index("assertions composées")
     assert (sante.seuils_de({"test": True})[i], sante.seuils_de({"test": False})[i]) == (0, None)
-    assert sante.seuils_de({"test": True})[sante.COMPTES.index("instructions")] is None, "VIT Q4, Q2 A : gardé"
+    assert sante.seuils_de({"test": True})[sante.COMPTES.index("instructions")] == 50, "RUF8 : plus de dispense"
 
 
 def test_le_cliquet_mesure_tests(tmp_path):

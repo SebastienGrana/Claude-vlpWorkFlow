@@ -34,7 +34,7 @@ SEUILS = (10, 12, 5, 50, 5, 0)  # les défauts de ruff : `ruff rule C901`, `ruff
 REGLES = ("C901", "PLR0912", "PLR0913", "PLR0915", "PLR1702", "PT018")
 REGLAGES = ("lint.mccabe.max-complexity", "lint.pylint.max-branches", "lint.pylint.max-args",
             "lint.pylint.max-statements", "lint.pylint.max-nested-blocks")
-EXEMPTS_TESTS = ("instructions",)     # un long scénario de test reste permis (socle de VIT, Q4 ; REF15, Q2 A)
+EXEMPTS_TESTS = ()     # plus aucun compte dispensé : ruff tient `PLR0915` sur les tests au commit (RUF8)
 TESTS_SEULS = ("assertions composées",)     # PT018 ne tient que pour un test (REF15, Q1 A)
 SEUIL_LIGNES = 1000   # le défaut de Pylint, `max-module-lines` (C0302) : la taille d'un fichier (REF9, D6)
 BASE = "scripts/sante-base.json"
@@ -339,7 +339,8 @@ def mesurer(racine, chemins, ruff, sortie):
 
 
 def seuils_de(f):
-    """Rendre les seuils qui tiennent pour une fonction : ceux de ruff, sans les instructions d'un test."""
+    """Rendre les seuils qui tiennent pour une fonction : ceux de ruff, None pour un compte qui ne la vise pas
+    (`EXEMPTS_TESTS` pour un test, `TESTS_SEULS` hors des tests)."""
     return [None if (f["test"] and nom in EXEMPTS_TESTS) or (not f["test"] and nom in TESTS_SEULS) else s
             for nom, s in zip(COMPTES, SEUILS)]
 
