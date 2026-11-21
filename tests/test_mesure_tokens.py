@@ -150,6 +150,12 @@ LIGNES_HAIKU55_HAUT = [assistant("msg_L", 10_001, 10**6, 40_000, 50_000, sous_ob
                                  modele="claude-haiku-5-5")]
 ATTENDU_HAIKU55_HAUT = {"tours": 1, "usd": "2.55", "inconnus": []}
 
+# claude-fable-5-2 est dans la grille depuis le 2026-11-21 : les relecteurs de RUF y tournaient, chiffrés « ? $ ».
+# Même tour que Opus 5.5, aux prix de la page officielle lue ce jour : 8 + 40 + 0,20 + 0,6 × 10 + 0,4 × 16 = 60,60 $.
+LIGNES_FABLE52 = [assistant("msg_F", 10**6, 10**6, 10**6, 10**6, sous_objet=(400_000, 600_000),
+                            modele="claude-fable-5-2")]
+ATTENDU_FABLE52 = {"tours": 1, "usd": "60.60", "inconnus": []}
+
 # Les heures des plages : des minutes autour du 2026-09-23 à 10:00 UTC, écrites comme dans un
 # transcript (`iso`) ou comme une borne de plage (`sec`).
 ORIGINE = datetime.datetime(2026, 9, 23, 10, 0, tzinfo=datetime.UTC)
@@ -461,6 +467,7 @@ CAS = [
     ("sonnet-5-5", LIGNES_SONNET55, ATTENDU_SONNET55),
     ("haiku-5-5 palier bas", LIGNES_HAIKU55_BAS, ATTENDU_HAIKU55_BAS),
     ("haiku-5-5 palier haut", LIGNES_HAIKU55_HAUT, ATTENDU_HAIKU55_HAUT),
+    ("fable-5-2", LIGNES_FABLE52, ATTENDU_FABLE52),
 ] + CAS_PLAGE
 
 

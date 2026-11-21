@@ -107,11 +107,15 @@ SOMMABLES = ["tours", "appels", "input", "output", "cache_creation", "cache_1h",
 #     une sonde le rendait « ? »). Deux paliers : « pour les requêtes jusqu'à 100 000
 #     jetons » dans GRILLE, au-delà dans PALIERS. La page ne dit pas ce qu'elle compte :
 #     ici, les jetons d'entrée de l'appel, cache lu et écrit compris.
+#   - claude-fable-5-2 : ligne « Claude Fable 5.2 », lue le 2026-11-21 (dette de RUF : les
+#     relecteurs y tournaient, chiffrés « ? ») — « $8 / MTok | $10 / MTok | $16 / MTok |
+#     $0.20 / MTok | $40 / MTok ».
 # Seuls les modèles que nomment les transcripts y figurent. Le mode « fast »
 # n'y est pas : le 2026-09-17, la skill claude-api donnait son prix d'entrée et
 # de sortie, pas celui de son cache — un tour fast compte comme un modèle inconnu.
 GRILLE = {
     # modèle:                    (entrée,  sortie, cache lu, écrit 5 min, écrit 1 h)
+    "claude-fable-5-2":          ("8",     "40",   "0.20",   "10",        "16"),
     "claude-fable-5-1":          ("10",    "50",   "0.25",   "12.5",      "20"),
     "claude-opus-5-5":           ("4",     "20",   "0.20",   "5",         "8"),
     "claude-opus-5":             ("5",     "25",   "0.5",    "6.25",      "10"),
