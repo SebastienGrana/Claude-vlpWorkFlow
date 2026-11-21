@@ -363,28 +363,34 @@ def test_niv3(tmp_path):
         code, encore = appel(["niveau", proj, "--ecrire", "--date", "2026-09-18"])
         assert ("NIVEAU 0 corrigés · 1 à la main" in encore), ("NIV3 : rejoué, il ne corrige plus rien — les corrections sont idempotentes") + "\n" + str(encore)
 
-    # La feuille absente : posée depuis le gabarit, puis régénérée.
+
+def test_niv3_feuille_absente(tmp_path):
+    """NIV3 : la feuille absente — posée depuis le gabarit, puis régénérée."""
     with tempfile.TemporaryDirectory(dir=tmp_path) as t:
         proj = bac_niv3(t, feuille=False)
         page = os.path.join(proj, "ctx", "artefacts", "feuille-de-route.html")
-        code, s = appel(["niveau", proj])
+        _code, s = appel(["niveau", proj])
         assert not os.path.exists(page)
         assert "ÉCART: feuille: feuille de route introuvable :" in s
-        code, s = appel(["niveau", proj, "--ecrire", "--date", "2026-09-18"])
+        _code, s = appel(["niveau", proj, "--ecrire", "--date", "2026-09-18"])
         assert os.path.isfile(page)
         assert "CORRIGÉ: feuille: posée depuis le gabarit" in s
         assert '<span class="titre">un truc</span>' in pathlib.Path(page).read_text(encoding="utf-8")
 
-    # L'index ne nomme pas un fichier de la table : la retirer le perdrait.
+
+def test_niv3_index_incomplet(tmp_path):
+    """NIV3 : l'index ne nomme pas un fichier de la table — la retirer le perdrait."""
     with tempfile.TemporaryDirectory(dir=tmp_path) as t:
         proj = bac_niv3(t, index="# Index\n\n| Fichier | On l'ouvre quand |\n|---|---|\n"
                                "| `08-etat.md` | on reprend |\n")
-        code, s = appel(["niveau", proj, "--ecrire", "--date", "2026-09-18"])
+        _code, s = appel(["niveau", proj, "--ecrire", "--date", "2026-09-18"])
         assert "ÉCART: clos: " in s
         assert "CORRIGÉ: clos: " not in s
         assert "| ctx/10-a.md |" in pathlib.Path(os.path.join(proj, "CHANTIER.md")).read_text(encoding="utf-8")
 
-    # Rien n'est écrit tant qu'un calcul peut échouer : un projet sans CHANTIER.md.
+
+def test_niv3_sans_carte(tmp_path):
+    """NIV3 : rien n'est écrit tant qu'un calcul peut échouer — un projet sans CHANTIER.md."""
     with tempfile.TemporaryDirectory(dir=tmp_path) as t:
         code, s = appel(["niveau", os.path.join(t, "rien"), "--ecrire"])
         assert code == 1
@@ -569,26 +575,32 @@ def test_plage_refaite(tmp_path):
         assert "PERDU:" not in sortie
 
 
+SOIR_ATTENTE = datetime.datetime(2026, 9, 28, 20, 0, tzinfo=datetime.timezone(datetime.timedelta(hours=2)))
+URL_ATTENTE = "https://claude.ai/artifact/AAA"
+REFUS_ATTENTE = "publish 429: daily publish limit for your plan reached (200) — resets at UTC midnight"
+
+
+def hook_attente(d, maintenant=SOIR_ATTENTE):
+    """`(code, sortie)` de `cmd_attente_hook` sur l'entrée JSON `d`, à l'heure `maintenant`."""
+    o = io.StringIO()
+    code = mod.cmd_attente_hook(io.StringIO(json.dumps(d)), o, maintenant)
+    return code, o.getvalue()
+
+
+def projet_attente(t, nom):
+    """Un projet équipé `<t>/<nom>` ; rend `(projet, son dossier artefacts)`."""
+    p = os.path.join(t, nom)
+    ecrire(os.path.join(p, "CHANTIER.md"), CHANTIER % ("pz", "context AI/"))
+    ecrire(os.path.join(p, "context AI", "20-z.md"), FICHES)
+    return p, os.path.join(p, "context AI", "artefacts")
+
+
 def test_attente(tmp_path):
-    """attente (chantier LOC2) : la liste des pages refusées par la limite du jour, et son hook."""
-    soir = datetime.datetime(2026, 9, 28, 20, 0, tzinfo=datetime.timezone(datetime.timedelta(hours=2)))
-    url = "https://claude.ai/artifact/AAA"
-    refus = "publish 429: daily publish limit for your plan reached (200) — resets at UTC midnight"
-
-    def hook(d, maintenant=soir):
-        o = io.StringIO()
-        code = mod.cmd_attente_hook(io.StringIO(json.dumps(d)), o, maintenant)
-        return code, o.getvalue()
-
-    def projet(t, nom):
-        p = os.path.join(t, nom)
-        ecrire(os.path.join(p, "CHANTIER.md"), CHANTIER % ("pz", "context AI/"))
-        ecrire(os.path.join(p, "context AI", "20-z.md"), FICHES)
-        return p, os.path.join(p, "context AI", "artefacts")
-
+    """attente (chantier LOC2) : la liste des pages refusées par la limite du jour — ajouter, lister, retirer."""
+    url = URL_ATTENTE
     with tempfile.TemporaryDirectory(dir=tmp_path) as t:
-        p, art = projet(t, "proj")
-        liste, page, autre = os.path.join(art, "en-attente"), os.path.join(art, "88-boutons.html"), os.path.join(art, "91-x.html")
+        p, art = projet_attente(t, "proj")
+        liste, page = os.path.join(art, "en-attente"), os.path.join(art, "88-boutons.html")
         assert ("ATTENTE=" not in rendu(p)), ("attente : carte sans liste, pas de ligne ATTENTE=") + "\n" + str(rendu(p))
         code, s = appel(["attente", "ajouter", "88-boutons.html", "--projet", p])
         assert ((code, s) == (0, "ATTENTE 1\n")), ("attente ajouter : ATTENTE 1") + "\n" + str(s)
@@ -615,59 +627,75 @@ def test_attente(tmp_path):
         assert (code, s) == (0, "ATTENTE 0\n")
         assert not os.path.exists(liste)
 
-        # Le hook : un vrai dossier de tampons, comme TOU2 — le tampon du jour fait la différence
-        ancien_tampon = mod.etat.TAMPON_HOOKS
-        mod.etat.TAMPON_HOOKS = tempfile.mkdtemp()
-        try:
-            echec = {"hook_event_name": "PostToolUseFailure", "tool_name": "Artifact", "cwd": p,
-                     "tool_input": {"file_path": page, "url": url}, "error": refus}
-            code, s = hook(echec)
-            assert code == 0
-            assert mod.lire_attente(art)[0][:2] == ("88-boutons.html", url)
-            sortie = json.loads(s)["hookSpecificOutput"] if s else {}
-            assert sortie.get("hookEventName") == "PostToolUseFailure"
-            assert "88-boutons.html" in sortie.get("additionalContext", "")
-            assert "à 02:00 locale" in sortie["additionalContext"]
-            assert "à 02:10 qui" in sortie["additionalContext"]
-            code, s = hook(dict(echec, tool_input={"file_path": autre}))
-            assert s == ""
-            assert [e[0] for e in mod.lire_attente(art)] == ["88-boutons.html", "91-x.html"]
-            assert mod.lire_attente(art)[1][1] == "aucune"
-            code, s = hook(echec, soir + datetime.timedelta(days=1))
-            assert ('"additionalContext"' in s), ("attente hook : le lendemain (jour UTC), la proposition revient") + "\n" + str(s)
-            p2, art2 = projet(t, "proj2")
-            code, s = hook(dict(echec, cwd=p2, tool_input={"file_path": os.path.join(art2, "88-boutons.html")}))
-            assert ('"additionalContext"' in s), ("attente hook : un autre projet, sa propre proposition") + "\n" + str(s)
-            avant = mod.lire_attente(art)
-            for nom, d in (
-                    ("page non lue", dict(echec, error="Nothing was published or removed: this publish touches files"
-                                                       " whose published content is not what you last saw")),
-                    ("refus du vigile", dict(echec, error="PreToolUse:Artifact hook error: Page cassée, publication"
-                                                          " refusée (vlp.py vigile) — x.html : aucun style")),
-                    ("vigile avant l'appel", dict(echec, hook_event_name="PreToolUse")),
-                    ("autre outil", dict(echec, tool_name="Write")),
-                    ("asset", dict(echec, tool_input={"file_path": page, "asset": True})),
-                    ("page hors projet", dict(echec, tool_input={"file_path": os.path.join(t, "ailleurs", "x.html")}))):
-                code, s = hook(d, soir + datetime.timedelta(days=2))
-                assert code == 0
-                assert s == ""
-                assert mod.lire_attente(art) == avant
-            code, s = hook(dict(echec, hook_event_name="PostToolUse", tool_input={"file_path": page}))
-            assert code == 0
-            assert s == ""
-            assert [e[0] for e in mod.lire_attente(art)] == ["91-x.html"]
-            code, s = hook(dict(echec, hook_event_name="PostToolUse", tool_input={"file_path": page}))
-            assert code == 0
-            assert s == ""
-            assert [e[0] for e in mod.lire_attente(art)] == ["91-x.html"]
-            o = io.StringIO()
-            code = mod.main(["attente", "hook"], o, io.StringIO("pas du json"))
-            assert ((code, o.getvalue()) == (0, "")), ("attente hook : entrée illisible, muet, code 0") + "\n" + str(o.getvalue())
-        finally:
-            shutil.rmtree(mod.etat.TAMPON_HOOKS, ignore_errors=True)
-            mod.etat.TAMPON_HOOKS = ancien_tampon
 
-    zero, tache = mod.remise_a_zero(soir)
+@pytest.fixture
+def tampon_hooks():
+    """Un vrai dossier de tampons, comme TOU2 — le tampon du jour fait la différence ; l'ancien remis après."""
+    ancien_tampon = mod.etat.TAMPON_HOOKS
+    mod.etat.TAMPON_HOOKS = tempfile.mkdtemp()
+    try:
+        yield
+    finally:
+        shutil.rmtree(mod.etat.TAMPON_HOOKS, ignore_errors=True)
+        mod.etat.TAMPON_HOOKS = ancien_tampon
+
+
+def test_attente_hook(tmp_path, tampon_hooks):
+    """attente hook : un refus de la limite du jour s'ajoute à la liste et se propose une fois par jour et par
+    projet ; les autres échecs ne font rien ; une publication réussie retire la page."""
+    soir, url = SOIR_ATTENTE, URL_ATTENTE
+    with tempfile.TemporaryDirectory(dir=tmp_path) as t:
+        p, art = projet_attente(t, "proj")
+        page, autre = os.path.join(art, "88-boutons.html"), os.path.join(art, "91-x.html")
+        echec = {"hook_event_name": "PostToolUseFailure", "tool_name": "Artifact", "cwd": p,
+                 "tool_input": {"file_path": page, "url": url}, "error": REFUS_ATTENTE}
+        code, s = hook_attente(echec)
+        assert code == 0
+        assert mod.lire_attente(art)[0][:2] == ("88-boutons.html", url)
+        sortie = json.loads(s)["hookSpecificOutput"] if s else {}
+        assert sortie.get("hookEventName") == "PostToolUseFailure"
+        assert "88-boutons.html" in sortie.get("additionalContext", "")
+        assert "à 02:00 locale" in sortie["additionalContext"]
+        assert "à 02:10 qui" in sortie["additionalContext"]
+        code, s = hook_attente(dict(echec, tool_input={"file_path": autre}))
+        assert s == ""
+        assert [e[0] for e in mod.lire_attente(art)] == ["88-boutons.html", "91-x.html"]
+        assert mod.lire_attente(art)[1][1] == "aucune"
+        code, s = hook_attente(echec, soir + datetime.timedelta(days=1))
+        assert ('"additionalContext"' in s), ("attente hook : le lendemain (jour UTC), la proposition revient") + "\n" + str(s)
+        p2, art2 = projet_attente(t, "proj2")
+        code, s = hook_attente(dict(echec, cwd=p2, tool_input={"file_path": os.path.join(art2, "88-boutons.html")}))
+        assert ('"additionalContext"' in s), ("attente hook : un autre projet, sa propre proposition") + "\n" + str(s)
+        avant = mod.lire_attente(art)
+        for nom, d in (
+                ("page non lue", dict(echec, error="Nothing was published or removed: this publish touches files"
+                                                   " whose published content is not what you last saw")),
+                ("refus du vigile", dict(echec, error="PreToolUse:Artifact hook error: Page cassée, publication"
+                                                      " refusée (vlp.py vigile) — x.html : aucun style")),
+                ("vigile avant l'appel", dict(echec, hook_event_name="PreToolUse")),
+                ("autre outil", dict(echec, tool_name="Write")),
+                ("asset", dict(echec, tool_input={"file_path": page, "asset": True})),
+                ("page hors projet", dict(echec, tool_input={"file_path": os.path.join(t, "ailleurs", "x.html")}))):
+            code, s = hook_attente(d, soir + datetime.timedelta(days=2))
+            assert code == 0
+            assert s == ""
+            assert mod.lire_attente(art) == avant
+        code, s = hook_attente(dict(echec, hook_event_name="PostToolUse", tool_input={"file_path": page}))
+        assert code == 0
+        assert s == ""
+        assert [e[0] for e in mod.lire_attente(art)] == ["91-x.html"]
+        code, s = hook_attente(dict(echec, hook_event_name="PostToolUse", tool_input={"file_path": page}))
+        assert code == 0
+        assert s == ""
+        assert [e[0] for e in mod.lire_attente(art)] == ["91-x.html"]
+        o = io.StringIO()
+        code = mod.main(["attente", "hook"], o, io.StringIO("pas du json"))
+        assert ((code, o.getvalue()) == (0, "")), ("attente hook : entrée illisible, muet, code 0") + "\n" + str(o.getvalue())
+
+
+def test_attente_remise_a_zero():
+    """attente : remise à zéro 02:00 et tâche 02:10 pour 2026-09-28 20:00 UTC+2."""
+    zero, tache = mod.remise_a_zero(SOIR_ATTENTE)
     assert ((zero.strftime("%Y-%m-%d %H:%M"), tache.strftime("%H:%M")) == ("2026-09-29 02:00", "02:10")), ("attente : remise à zéro 02:00 et tâche 02:10 pour 2026-09-28 20:00 UTC+2") + "\n" + str(str(zero))
 
 

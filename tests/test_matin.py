@@ -556,10 +556,25 @@ def matin_n_f(tr, fab):
 
 
 
-def matin_r(tr, fab):
-    """NUI19 : `matin --rapport` — le carnet complété (sous-agents sommés, jamais 0), une ligne par chantier au fichier des
-    nuits, le JSON de `chef page` ; rejoué, rien ne change. Un dépôt, un carnet de neuf lignes, un `HOME` à transcripts."""
+def somme_transcripts(*transcripts):
+    """`(usd, tours)` de `transcripts` mesurés par `mesure-tokens.py` : le dollar exact sommé puis arrondi au cent."""
     from decimal import ROUND_HALF_UP
+    usd, tours = Decimal(0), 0
+    for p in transcripts:
+        r = mod.mesure().mesurer(p)[0]
+        usd, tours = usd + r["usd_exact"], tours + r["tours"]
+    return float(usd.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)), tours
+
+
+def octets(chemin):
+    """Les octets de `chemin`."""
+    with open(chemin, "rb") as f:
+        return f.read()
+
+
+def decor_matin_r(tr, fab):
+    """Le décor de `matin_r` : un dépôt à deux branches de nuit (A fusionnable, B de côté), le carnet du jour, et un
+    `HOME` à transcriptions — dont un sous-agent d'un modèle hors GRILLE ; rend `(dépôt, home, carnet, chemins, sous)`."""
     d, h = os.path.join(tr, "r"), os.path.join(tr, "home-r")
     fab.depot(d)
     ecrire(os.path.join(d, "ctx", "00-INDEX.md"), "| Fichier | Lire quand |\n|---|---|\n| `40-loc.md` | x |\n")
@@ -583,141 +598,170 @@ def matin_r(tr, fab):
             "id": "m0", "model": "claude-inconnu-9", "content": [], "usage": {
                 "input_tokens": 1000, "output_tokens": 0, "cache_creation_input_tokens": 0,
                 "cache_read_input_tokens": 0}}}) + "\n")
+    return d, h, c, chemins, sous
 
-    def somme(*transcripts):
-        usd, tours = Decimal(0), 0
-        for p in transcripts:
-            r = mod.mesure().mesurer(p)[0]
-            usd, tours = usd + r["usd_exact"], tours + r["tours"]
-        return float(usd.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)), tours
 
-    def octets(chemin):
-        with open(chemin, "rb") as f:
-            return f.read()
-
+def carnet_matin_r(c):
+    """Les neuf lignes du carnet de `matin_r` et sa note de base ; puis `nuits noter` : deux notes à sorte, une sans,
+    et `--stop` refusé."""
     def ligne_c(**champs):
         mod.carnet.ajouter(c, nuit=JOUR_MATIN, **champs)
 
+    ligne_c(canal="A", chantier="AAA", fiche="AAA1", note="depart jouer", session="s-aaa-1", plugin_retard=4)
+    ligne_c(canal="A", chantier="AAA", role="jouer", fiche="AAA1", issue="jouée", modeles_vus=["claude-sonnet-5-5"],
+            usd_cli=7.77, tours_cli=9, session="s-aaa-1", plugin_retard=4)
+    ligne_c(canal="A", chantier="AAA", role="relire", fiche="AAA1", issue="jouée", session="s-aaa-r")
+    ligne_c(canal="A", chantier="AAA", role="clore", issue="jouée", session="s-aaa-c")
+    ligne_c(canal="B", chantier="PAR", role="jouer", fiche="PAR1", issue="jouée", session="s-par-1")
+    ligne_c(canal="B", chantier="PAR", role="relire", fiche="PAR1", issue="jouée", refus_n=1, cause="la cause du refus",
+            reecriture="RÉÉCRITURE : refaire le test", session="s-par-r")
+    ligne_c(canal="B", chantier="PAR", garde="mis-de-cote:test cassé")
+    ligne_c(canal="B", chantier="DEP", issue="pas partie", garde="saute:PAR")
+    ligne_c(canal="B", chantier="ZZZ", garde="mis-de-cote:sans branche")
+    mod.carnet.noter(c, "A", "base abc123")
+    codes = [appel(["nuits", "noter", "verser ceci", "--canal", "A", "--sorte", "reste"])[0],
+             appel(["nuits", "noter", "faire niveau", "--canal", "B", "--sorte", "case3"])[0],
+             appel(["nuits", "noter", "oubli de sorte", "--canal", "A"])[0]]
+    code_stop, s_stop = appel(["nuits", "noter", "x", "--stop", "--sorte", "reste"])
+    sortes = [(x["note"], x["sorte"]) for x in mod.carnet.lire(c) if x["note"] and not x["note"].startswith(("depart", "base"))]
+    assert codes == [0, 0, 0]
+    assert sortes == [("verser ceci", "reste"), ("faire niveau", "case3"), ("oubli de sorte", None)]
+    assert code_stop == 1
+    assert s_stop.startswith("GARDE: --sorte")
+    assert len(mod.carnet.lire(c)) == 13
+
+
+def rapport_matin_r(d, c, rapport, chemins, sous):
+    """`matin`, puis `matin --rapport` deux fois : le carnet complété (sous-agents sommés, jamais 0), une ligne par
+    chantier au fichier des nuits ; rejoué, rien ne change. Rend `(fichier des nuits, sortie, JSON, table du jour)`."""
+    code, s = appel(["matin", d, JOUR_MATIN])
+    assert code == 0
+    assert s.endswith("MATIN 1 fusionnée(s) · 1 de côté\n")
+    avant = git_matin(d, "rev-list", "--count", "HEAD")
+    code1, s1 = appel(["matin", d, JOUR_MATIN, "--rapport", rapport])
+    carnet1, json1 = octets(c), octets(rapport)
+    nuits = mod.fichier_nuits(d)
+    assert nuits
+    nuits1 = octets(nuits)
+    code2, s2 = appel(["matin", d, JOUR_MATIN, "--rapport", rapport])
+    lignes = mod.carnet.lire(c)
+    par_session = {x["session"]: x for x in lignes if mod.carnet.est_session(x)}
+    u_a, t_a = somme_transcripts(chemins["s-aaa-1"], sous["s-aaa-1"])
+    u_r, t_r = somme_transcripts(chemins["s-aaa-r"])
+    u_p, t_p = somme_transcripts(chemins["s-par-r"])
+    assert code1 == 0
+    assert (par_session["s-aaa-1"]["usd_kit"], par_session["s-aaa-1"]["tours_kit"]) == (u_a, t_a)
+    assert (par_session["s-aaa-r"]["usd_kit"], par_session["s-aaa-r"]["tours_kit"]) == (u_r, t_r)
+    assert (par_session["s-par-r"]["usd_kit"], par_session["s-par-r"]["tours_kit"]) == (u_p, t_p)
+    assert par_session["s-aaa-1"]["usd_cli"] == 7.77
+    assert t_a == 3
+    assert s1.startswith("KIT ? ")
+    assert all(par_session[n]["usd_kit"] is None and par_session[n]["tours_kit"] is None for n in ("s-aaa-c", "s-par-1"))
+    assert "KIT ? s-aaa-c — transcription introuvable\n" in s1
+    assert "KIT ? s-par-1 — modèle hors grille (claude-inconnu-9)\n" in s1
+    assert s1.count("KIT ? ") == 2
+    table = [l for l in octets(nuits).decode("utf-8").splitlines() if l.startswith("| " + JOUR_MATIN)]
+    euros = lambda v: ("%.2f" % v).replace(".", ",")
+    assert code2 == 0
+    assert carnet1 == octets(c)
+    assert nuits1 == octets(nuits)
+    assert json1 == octets(rapport)
+    assert len(table) == 4
+    assert "NUITS ctx/41-nuits.md · 4 ligne(s) ajoutée(s)\n" in s1
+    assert "NUITS ctx/41-nuits.md · 0 ligne(s) ajoutée(s)\n" in s2
+    assert "| %s | A | AAA | 1/1/0 | ≥ %s |" % (JOUR_MATIN, euros(u_a + u_r)) in table
+    assert "| %s | B | PAR | 1/0/1 | ≥ %s |" % (JOUR_MATIN, euros(u_p)) in table
+    assert not os.path.exists(c + ".verrou")
+    assert git_matin(d, "rev-list", "--count", "HEAD") == avant
+    return nuits, s1, json1, table
+
+
+def choix_matin_r(s1, json1):
+    """Le JSON de `chef page` rendu par `matin --rapport` : les cartes de choix, la note sans sorte, l'écart, et aucun
+    chiffre de la CLI ni push."""
+    donnees = json.loads(json1.decode("utf-8"))
+    choix = donnees.get("choix", [])
+    titres = [q["titre"] for q in choix]
+    cote =next((q for q in choix if q["titre"].startswith("Mis de côté : PAR")), {})
+    reste = next((q for q in choix if q["titre"].startswith("Reste à verser")), {})
+    case3 = next((q for q in choix if q["titre"].startswith("Case 3")), {})
+    sans = [m for m in donnees.get("mal", []) if m["titre"] == "NOTE SANS SORTE"]
+    assert [len(q.get("options", [])) for q in (cote, reste, case3)] == [3, 3, 2]
+    assert [o["valeur"] for o in cote["options"]] == ["reprendre", "abandonner", "rejouer"]
+    assert [o["valeur"] for o in reste["options"]] == ["verser", "fondre", "abandonner"]
+    assert len(sans) == 1
+    assert "oubli de sorte" in sans[0]["texte"]
+    assert "NOTE SANS SORTE A — oubli de sorte\n" in s1
+    assert "ÉCART B-ZZZ — le carnet le met de côté, Git non" in s1
+    assert s1.count("ÉCART ") == 1
+    assert any("Chantiers sautés à cause de lui : DEP" in p for p in cote["puces"])
+    assert any("la cause du refus" in p for p in cote["puces"])
+    assert any("`git branch -D nuit/" in o["effet"] for o in cote["options"])
+    assert "7,77" not in json1.decode("utf-8")
+    assert "7.77" not in json1.decode("utf-8")
+    assert "push" not in json1.decode("utf-8").lower()
+    assert len(titres) == 4
+    assert [t.startswith("Mis de côté : ") for t in titres].count(True) == 2
+    assert any("ZZZ" in t for t in titres)
+
+
+def page_et_lecons_matin_r(tr, d, rapport, nuits):
+    """Le JSON du rapport fait une page saine à quatre cartes ; `nuits lecon` refuse une leçon hors forme, ajoute la
+    bonne une seule fois, sous « ## Leçons »."""
+    html = os.path.join(tr, "rapport-r.html")
+    code, s = appel(["chef", "page", "--questions", "@" + rapport, "--sortie", html])
+    assert code == 0
+    assert s.startswith("PAGE SAINE ")
+    assert s.endswith("CARTES Q1 Q2 Q3 Q4\n")
+    code_h, s_h = appel(["nuits", "lecon", "hors forme", "--projet", d])
+    lecon = "- %s · N=1 · cause un · jouées 3 sur 5 · nuits %s · sessions s-aaa-1" % (JOUR_MATIN, JOUR_MATIN)
+    code_l, s_l = appel(["nuits", "lecon", lecon, "--projet", d])
+    code_m, s_m = appel(["nuits", "lecon", lecon, "--projet", d])
+    textes = octets(nuits).decode("utf-8").splitlines()
+    assert code_h == 1
+    assert s_h.startswith("GARDE: leçon hors forme")
+    assert code_l == 0
+    assert s_l == "LEÇON ctx/41-nuits.md · ajoutée\n"
+    assert code_m == 0
+    assert s_m == "LEÇON ctx/41-nuits.md · déjà là\n"
+    assert textes.count(lecon) == 1
+    assert textes.index("## Leçons") < textes.index(lecon)
+
+
+def transcription_parait_matin_r(h, d, c, rapport, table):
+    """La transcription qui manquait paraît : le carnet la mesure, la table du jour ne change pas ; une nuit sans
+    carnet est gardée."""
+    transcript(os.path.join(h, ".claude", "projects", "p", "s-aaa-c.jsonl"), 1)     # le chiffre de A/AAA changerait
+    code3, s3 = appel(["matin", d, JOUR_MATIN, "--rapport", rapport])
+    nuits = mod.fichier_nuits(d)
+    assert nuits
+    table3 = [l for l in octets(nuits).decode("utf-8").splitlines() if l.startswith("| " + JOUR_MATIN)]
+    mesuree = next(x for x in mod.carnet.lire(c) if x["session"] == "s-aaa-c")
+    assert code3 == 0
+    assert mesuree["usd_kit"] is not None
+    assert table3 == table
+    assert "NUITS ctx/41-nuits.md · 0 ligne(s) ajoutée(s)\n" in s3
+    assert "KIT ? s-aaa-c" not in s3
+    code_a, s_a = appel(["matin", d, "2026-10-02", "--rapport", rapport])
+    assert code_a == 1
+    assert s_a.startswith("GARDE: carnet de la nuit 2026-10-02 absent ou vide")
+
+
+def matin_r(tr, fab):
+    """NUI19 : `matin --rapport` — le carnet complété (sous-agents sommés, jamais 0), une ligne par chantier au fichier des
+    nuits, le JSON de `chef page` ; rejoué, rien ne change. Un dépôt, un carnet de neuf lignes, un `HOME` à transcripts.
+    Un seul scénario, dont chaque étape lit l'état laissé par la précédente : découpé en étapes, pas en tests."""
+    d, h, c, chemins, sous = decor_matin_r(tr, fab)
     sauve = {k: os.environ.get(k) for k in ("HOME", "USERPROFILE", "VLP_CARNET", "VLP_CANAL")}
     os.environ.update(HOME=h, USERPROFILE=h, VLP_CARNET=c)
     os.environ.pop("VLP_CANAL", None)
     try:
-        ligne_c(canal="A", chantier="AAA", fiche="AAA1", note="depart jouer", session="s-aaa-1", plugin_retard=4)
-        ligne_c(canal="A", chantier="AAA", role="jouer", fiche="AAA1", issue="jouée", modeles_vus=["claude-sonnet-5-5"],
-                usd_cli=7.77, tours_cli=9, session="s-aaa-1", plugin_retard=4)
-        ligne_c(canal="A", chantier="AAA", role="relire", fiche="AAA1", issue="jouée", session="s-aaa-r")
-        ligne_c(canal="A", chantier="AAA", role="clore", issue="jouée", session="s-aaa-c")
-        ligne_c(canal="B", chantier="PAR", role="jouer", fiche="PAR1", issue="jouée", session="s-par-1")
-        ligne_c(canal="B", chantier="PAR", role="relire", fiche="PAR1", issue="jouée", refus_n=1, cause="la cause du refus",
-                reecriture="RÉÉCRITURE : refaire le test", session="s-par-r")
-        ligne_c(canal="B", chantier="PAR", garde="mis-de-cote:test cassé")
-        ligne_c(canal="B", chantier="DEP", issue="pas partie", garde="saute:PAR")
-        ligne_c(canal="B", chantier="ZZZ", garde="mis-de-cote:sans branche")
-        mod.carnet.noter(c, "A", "base abc123")
-        codes = [appel(["nuits", "noter", "verser ceci", "--canal", "A", "--sorte", "reste"])[0],
-                 appel(["nuits", "noter", "faire niveau", "--canal", "B", "--sorte", "case3"])[0],
-                 appel(["nuits", "noter", "oubli de sorte", "--canal", "A"])[0]]
-        code_stop, s_stop = appel(["nuits", "noter", "x", "--stop", "--sorte", "reste"])
-        sortes = [(x["note"], x["sorte"]) for x in mod.carnet.lire(c) if x["note"] and not x["note"].startswith(("depart", "base"))]
-        assert codes == [0, 0, 0]
-        assert sortes == [("verser ceci", "reste"), ("faire niveau", "case3"), ("oubli de sorte", None)]
-        assert code_stop == 1
-        assert s_stop.startswith("GARDE: --sorte")
-        assert len(mod.carnet.lire(c)) == 13
-        code, s = appel(["matin", d, JOUR_MATIN])
-        assert code == 0
-        assert s.endswith("MATIN 1 fusionnée(s) · 1 de côté\n")
-        avant = git_matin(d, "rev-list", "--count", "HEAD")
+        carnet_matin_r(c)
         rapport = os.path.join(tr, "rapport-r.json")
-        code1, s1 = appel(["matin", d, JOUR_MATIN, "--rapport", rapport])
-        carnet1, json1 = octets(c), octets(rapport)
-        nuits = mod.fichier_nuits(d)
-        assert nuits
-        nuits1 = octets(nuits)
-        code2, s2 = appel(["matin", d, JOUR_MATIN, "--rapport", rapport])
-        lignes = mod.carnet.lire(c)
-        par_session = {x["session"]: x for x in lignes if mod.carnet.est_session(x)}
-        u_a, t_a = somme(chemins["s-aaa-1"], sous["s-aaa-1"])
-        u_r, t_r = somme(chemins["s-aaa-r"])
-        u_p, t_p = somme(chemins["s-par-r"])
-        assert code1 == 0
-        assert (par_session["s-aaa-1"]["usd_kit"], par_session["s-aaa-1"]["tours_kit"]) == (u_a, t_a)
-        assert (par_session["s-aaa-r"]["usd_kit"], par_session["s-aaa-r"]["tours_kit"]) == (u_r, t_r)
-        assert (par_session["s-par-r"]["usd_kit"], par_session["s-par-r"]["tours_kit"]) == (u_p, t_p)
-        assert par_session["s-aaa-1"]["usd_cli"] == 7.77
-        assert t_a == 3
-        assert s1.startswith("KIT ? ")
-        assert all(par_session[n]["usd_kit"] is None and par_session[n]["tours_kit"] is None for n in ("s-aaa-c", "s-par-1"))
-        assert "KIT ? s-aaa-c — transcription introuvable\n" in s1
-        assert "KIT ? s-par-1 — modèle hors grille (claude-inconnu-9)\n" in s1
-        assert s1.count("KIT ? ") == 2
-        table = [l for l in octets(nuits).decode("utf-8").splitlines() if l.startswith("| " + JOUR_MATIN)]
-        euros = lambda v: ("%.2f" % v).replace(".", ",")
-        assert code2 == 0
-        assert carnet1 == octets(c)
-        assert nuits1 == octets(nuits)
-        assert json1 == octets(rapport)
-        assert len(table) == 4
-        assert "NUITS ctx/41-nuits.md · 4 ligne(s) ajoutée(s)\n" in s1
-        assert "NUITS ctx/41-nuits.md · 0 ligne(s) ajoutée(s)\n" in s2
-        assert "| %s | A | AAA | 1/1/0 | ≥ %s |" % (JOUR_MATIN, euros(u_a + u_r)) in table
-        assert "| %s | B | PAR | 1/0/1 | ≥ %s |" % (JOUR_MATIN, euros(u_p)) in table
-        assert not os.path.exists(c + ".verrou")
-        assert git_matin(d, "rev-list", "--count", "HEAD") == avant
-        donnees = json.loads(json1.decode("utf-8"))
-        choix = donnees.get("choix", [])
-        titres = [q["titre"] for q in choix]
-        cote =next((q for q in choix if q["titre"].startswith("Mis de côté : PAR")), {})
-        reste = next((q for q in choix if q["titre"].startswith("Reste à verser")), {})
-        case3 = next((q for q in choix if q["titre"].startswith("Case 3")), {})
-        sans = [m for m in donnees.get("mal", []) if m["titre"] == "NOTE SANS SORTE"]
-        assert [len(q.get("options", [])) for q in (cote, reste, case3)] == [3, 3, 2]
-        assert [o["valeur"] for o in cote["options"]] == ["reprendre", "abandonner", "rejouer"]
-        assert [o["valeur"] for o in reste["options"]] == ["verser", "fondre", "abandonner"]
-        assert len(sans) == 1
-        assert "oubli de sorte" in sans[0]["texte"]
-        assert "NOTE SANS SORTE A — oubli de sorte\n" in s1
-        assert "ÉCART B-ZZZ — le carnet le met de côté, Git non" in s1
-        assert s1.count("ÉCART ") == 1
-        assert any("Chantiers sautés à cause de lui : DEP" in p for p in cote["puces"])
-        assert any("la cause du refus" in p for p in cote["puces"])
-        assert any("`git branch -D nuit/" in o["effet"] for o in cote["options"])
-        assert "7,77" not in json1.decode("utf-8")
-        assert "7.77" not in json1.decode("utf-8")
-        assert "push" not in json1.decode("utf-8").lower()
-        assert len(titres) == 4
-        assert [t.startswith("Mis de côté : ") for t in titres].count(True) == 2
-        assert any("ZZZ" in t for t in titres)
-        html = os.path.join(tr, "rapport-r.html")
-        code, s = appel(["chef", "page", "--questions", "@" + rapport, "--sortie", html])
-        assert code == 0
-        assert s.startswith("PAGE SAINE ")
-        assert s.endswith("CARTES Q1 Q2 Q3 Q4\n")
-        code_h, s_h = appel(["nuits", "lecon", "hors forme", "--projet", d])
-        lecon = "- %s · N=1 · cause un · jouées 3 sur 5 · nuits %s · sessions s-aaa-1" % (JOUR_MATIN, JOUR_MATIN)
-        code_l, s_l = appel(["nuits", "lecon", lecon, "--projet", d])
-        code_m, s_m = appel(["nuits", "lecon", lecon, "--projet", d])
-        textes = octets(nuits).decode("utf-8").splitlines()
-        assert code_h == 1
-        assert s_h.startswith("GARDE: leçon hors forme")
-        assert code_l == 0
-        assert s_l == "LEÇON ctx/41-nuits.md · ajoutée\n"
-        assert code_m == 0
-        assert s_m == "LEÇON ctx/41-nuits.md · déjà là\n"
-        assert textes.count(lecon) == 1
-        assert textes.index("## Leçons") < textes.index(lecon)
-        transcript(os.path.join(pr, "s-aaa-c.jsonl"), 1)     # la transcription qui manquait paraît : le chiffre de A/AAA changerait
-        code3, s3 = appel(["matin", d, JOUR_MATIN, "--rapport", rapport])
-        table3 = [l for l in octets(nuits).decode("utf-8").splitlines() if l.startswith("| " + JOUR_MATIN)]
-        mesuree = next(x for x in mod.carnet.lire(c) if x["session"] == "s-aaa-c")
-        assert code3 == 0
-        assert mesuree["usd_kit"] is not None
-        assert table3 == table
-        assert "NUITS ctx/41-nuits.md · 0 ligne(s) ajoutée(s)\n" in s3
-        assert "KIT ? s-aaa-c" not in s3
-        code_a, s_a = appel(["matin", d, "2026-10-02", "--rapport", rapport])
-        assert code_a == 1
-        assert s_a.startswith("GARDE: carnet de la nuit 2026-10-02 absent ou vide")
+        nuits, s1, json1, table = rapport_matin_r(d, c, rapport, chemins, sous)
+        choix_matin_r(s1, json1)
+        page_et_lecons_matin_r(tr, d, rapport, nuits)
+        transcription_parait_matin_r(h, d, c, rapport, table)
     finally:
         for k, v in sauve.items():
             if v is None:

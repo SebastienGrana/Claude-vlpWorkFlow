@@ -108,46 +108,60 @@ x
 """
 
 
+def gabarit_rapport():
+    """Le texte du vrai gabarit `templates/rapport-choix.html`, que `chef page` remplit."""
+    return mod.lire(os.path.join(ICI, "..", "templates", "rapport-choix.html"))
+
+
+def option_page(valeur, **plus):
+    """Une option de question de `chef page` : `valeur`, son libellé capitalisé, un effet ; `plus` s'y ajoute."""
+    return dict({"valeur": valeur, "libelle": valeur.capitalize(), "effet": "ça change"}, **plus)
+
+
+def base_page(**plus):
+    """Le JSON ordinaire de `chef page` : une carte de décision, deux questions ; `plus` remplace des champs de tête."""
+    d = {"projet": "Demo", "sujet": "essai", "titre": "Rapport d'essai", "date": "2026-10-01", "jauge": "Imprévu",
+         "puces": ["Un **point** clé"],
+         "decisions": {"cartes": [{"titre": "Ordre par défaut", "portee": "matin", "niveau": "faible",
+                                   "probleme": "deux côtés ajoutent", "choix": "à la fin", "ecarte": "en tête",
+                                   "prix": "ordre figé", "defaire": "une ligne"}]},
+         "choix": [{"titre": "Quelle suite ?", "options": [option_page("oui"), option_page("non")]},
+                   {"titre": "Quel plafond ?", "puces": ["le contexte"],
+                    "options": [option_page("bas"), option_page("moyen", recommande=True), option_page("haut")]}]}
+    d.update(plus)
+    return d
+
+
+def base_modifiee(f):
+    """Une copie profonde de `base_page()`, passée à `f` qui la modifie en place ; rend la copie."""
+    d = json.loads(json.dumps(base_page()))
+    f(d)
+    return d
+
+
+def faire_page(dossier, d, nom, copie=None):
+    """`(code, sortie, chemin)` de `cmd_chef_page` : `d` un dict (mis en JSON) ou un texte tel quel ; `nom` un fichier
+    de `dossier`, ou un chemin absolu ; `copie` le gabarit, le vrai par défaut."""
+    chemin = os.path.join(dossier, nom)
+    s = io.StringIO()
+    code = mod.cmd_chef_page(d if isinstance(d, str) else json.dumps(d, ensure_ascii=False), chemin, s,
+                             gabarit_rapport() if copie is None else copie)
+    return code, s.getvalue(), chemin
+
+
+def octets_de(chemin):
+    """Les octets de `chemin` ; `b""` s'il n'existe pas."""
+    if not os.path.exists(chemin):
+        return b""
+    with open(chemin, "rb") as f:
+        return f.read()
+
+
 def test_chef_page(tmp_path):
-    """chef page (chantier NUI, NUI17) : la page à cartes remplie par script, sur une copie lue du vrai gabarit."""
-    gabarit = mod.lire(os.path.join(ICI, "..", "templates", "rapport-choix.html"))
-
-    def option(valeur, **plus):
-        return dict({"valeur": valeur, "libelle": valeur.capitalize(), "effet": "ça change"}, **plus)
-
-    def base(**plus):
-        d = {"projet": "Demo", "sujet": "essai", "titre": "Rapport d'essai", "date": "2026-10-01", "jauge": "Imprévu",
-             "puces": ["Un **point** clé"],
-             "decisions": {"cartes": [{"titre": "Ordre par défaut", "portee": "matin", "niveau": "faible",
-                                       "probleme": "deux côtés ajoutent", "choix": "à la fin", "ecarte": "en tête",
-                                       "prix": "ordre figé", "defaire": "une ligne"}]},
-             "choix": [{"titre": "Quelle suite ?", "options": [option("oui"), option("non")]},
-                       {"titre": "Quel plafond ?", "puces": ["le contexte"],
-                        "options": [option("bas"), option("moyen", recommande=True), option("haut")]}]}
-        d.update(plus)
-        return d
-
-    def modifiee(f):
-        d = json.loads(json.dumps(base()))
-        f(d)
-        return d
-
+    """chef page (chantier NUI, NUI17) : la page à cartes remplie par script, sur une copie lue du vrai gabarit —
+    (a) la page du cas ordinaire."""
     with tempfile.TemporaryDirectory(dir=tmp_path) as tcp:
-        def faire(d, nom, copie=gabarit):
-            """`(code, sortie, chemin)` : `nom` est un fichier du dossier temporaire, ou un chemin absolu."""
-            chemin = os.path.join(tcp, nom)
-            s = io.StringIO()
-            code = mod.cmd_chef_page(d if isinstance(d, str) else json.dumps(d, ensure_ascii=False), chemin, s, copie)
-            return code, s.getvalue(), chemin
-
-        def octets_de(chemin):
-            if not os.path.exists(chemin):
-                return b""
-            with open(chemin, "rb") as f:
-                return f.read()
-
-        # (a) la page du cas ordinaire
-        code, s, pa = faire(base(), "a.html")
+        code, s, pa = faire_page(tcp, base_page(), "a.html")
         a = octets_de(pa)
         page = a.decode("utf-8")
         assert code == 0
@@ -170,11 +184,14 @@ def test_chef_page(tmp_path):
         assert (defaut == []), ("chef page (a) : D1 et Q1 portent leurs deux boutons") + "\n" + str(str(defaut))
         assert ("<li>Un <strong>point</strong> clé</li>" in page), ("chef page (a) : les puces d'en-tête passent par cellule_md") + "\n" + str(page[page.find("<header"):][:300])
 
-        # (b) un texte échappé, une valeur sûre dans son attribut
-        d = base(projet="P & Q", titre="T < U")
+
+def test_chef_page_echappe(tmp_path):
+    """chef page (b) : un texte échappé, une valeur sûre dans son attribut."""
+    with tempfile.TemporaryDirectory(dir=tmp_path) as tcp:
+        d = base_page(projet="P & Q", titre="T < U")
         d["choix"][0]["titre"] = "a < b & **c**"
-        d["choix"][0]["options"].append(option('a"b'))
-        code, s, pb = faire(d, "b.html")
+        d["choix"][0]["options"].append(option_page('a"b'))
+        code, _s, pb = faire_page(tcp, d, "b.html")
         b = octets_de(pb).decode("utf-8")
         assert code == 0
         assert "<h3>🟡 Q1 · a &lt; b &amp; <strong>c</strong></h3>" in b
@@ -182,40 +199,56 @@ def test_chef_page(tmp_path):
         assert 'data-cle="P &amp; Q-2026-10-01-essai"' in b
         assert 'value="a&quot;b"' in b
 
-        # (c) un commentaire de tête qui cite des balises : la page ne change pas d'un octet
+
+def test_chef_page_commentaire_cite(tmp_path):
+    """chef page (c) : un commentaire de tête qui cite des balises — la page ne change pas d'un octet."""
+    gabarit = gabarit_rapport()
+    with tempfile.TemporaryDirectory(dir=tmp_path) as tcp:
+        a = octets_de(faire_page(tcp, base_page(), "a.html")[2])
         citee = gabarit.replace("<!--\n", '<!--\n  Cite <div class="page" data-cle="x"> et <script> ici.\n', 1)
         assert citee != gabarit
         assert -1 < citee.find("<script>") < citee.find("-->")
         assert -1 < citee.find('<div class="page"') < citee.find("-->")
-        code, s, pc = faire(base(), "c.html", citee)
+        code, _s, pc = faire_page(tcp, base_page(), "c.html", citee)
         assert code == 0
         assert a != b""
         assert octets_de(pc) == a
 
-        # (d) une page sans style ne part pas
+
+def test_chef_page_sans_style(tmp_path):
+    """chef page (d) : une page sans style ne part pas."""
+    gabarit = gabarit_rapport()
+    with tempfile.TemporaryDirectory(dir=tmp_path) as tcp:
         sans_tete = re.sub(r"<link\b[^>]*>|<style\b.*?</style>", "", gabarit, flags=re.S | re.I)
         assert "<style" not in sans_tete.lower()
         assert "<link" not in sans_tete.lower()
-        code, s, pd = faire(base(), "d.html", sans_tete)
+        code, s, pd = faire_page(tcp, base_page(), "d.html", sans_tete)
         assert code == 1
         assert not os.path.exists(pd)
         assert s == 'GARDE: %s — aucun style (ni balise style, ni link rel="stylesheet")\n' % pd
 
-        # (e) ce qui ne se remplit pas : une GARDE chacun, rien d'écrit
-        sans_carte = {k: v for k, v in base().items() if k not in ("decisions", "choix")}
-        sans_effet = modifiee(lambda x: x["choix"][1]["options"][2].pop("effet"))
+
+def test_chef_page_non_remplie(tmp_path):
+    """chef page (e) : ce qui ne se remplit pas — une GARDE chacun, rien d'écrit."""
+    with tempfile.TemporaryDirectory(dir=tmp_path) as tcp:
+        sans_carte = {k: v for k, v in base_page().items() if k not in ("decisions", "choix")}
+        sans_effet = base_modifiee(lambda x: x["choix"][1]["options"][2].pop("effet"))
         for k, (nom, entree, attendu) in enumerate((
                 ("aucune carte", sans_carte, "GARDE: aucune carte : ni « decisions », ni « choix »\n"),
-                ("jauge Super", base(jauge="Super"),
+                ("jauge Super", base_page(jauge="Super"),
                  "GARDE: jauge : « Super » n'est pas un de %s\n" % " · ".join(mod.JAUGE)),
                 ("option sans effet", sans_effet,
                  "GARDE: choix[1].options[2] : « effet » manque, ou n'est pas un texte non vide\n"))):
-            code, s, pe = faire(entree, "e%d.html" % k)
+            code, s, pe = faire_page(tcp, entree, "e%d.html" % k)
             assert code == 1
             assert s == attendu
             assert not os.path.exists(pe)
 
-        # les autres GARDE, chacune seule : JSON, champs, gabarit, écriture
+
+def test_chef_page_autres_gardes(tmp_path):
+    """chef page : les autres GARDE, chacune seule — JSON, champs, gabarit, écriture."""
+    gabarit = gabarit_rapport()
+    with tempfile.TemporaryDirectory(dir=tmp_path) as tcp:
         occupe = os.path.join(tcp, "occupe")
         ecrire(occupe, "un fichier, pas un dossier\n")
         sans_script = gabarit.replace("<script>", "<scrip>")
@@ -224,50 +257,53 @@ def test_chef_page(tmp_path):
             ("JSON illisible", "pas du json", gabarit, "GARDE: JSON illisible"),
             ("JSON qui n'est pas un objet", "[1]", gabarit, "GARDE: le JSON n'est pas un objet\n"),
             ("@fichier absent", "@" + os.path.join(tcp, "absent.json"), gabarit, "GARDE: questions illisibles"),
-            ("titre absent", modifiee(lambda x: x.pop("titre")), gabarit,
+            ("titre absent", base_modifiee(lambda x: x.pop("titre")), gabarit,
              "GARDE: racine : « titre » manque, ou n'est pas un texte non vide\n"),
-            ("date invalide", base(date="demain"), gabarit, "GARDE: racine : « date » vaut AAAA-MM-JJ\n"),
-            ("puces qui ne sont pas des textes", base(puces=[1]), gabarit,
+            ("date invalide", base_page(date="demain"), gabarit, "GARDE: racine : « date » vaut AAAA-MM-JJ\n"),
+            ("puces qui ne sont pas des textes", base_page(puces=[1]), gabarit,
              "GARDE: racine : « puces » doit être une liste de textes\n"),
-            ("niveau inconnu", modifiee(lambda x: x["decisions"]["cartes"][0].update(niveau="fort")), gabarit,
+            ("niveau inconnu", base_modifiee(lambda x: x["decisions"]["cartes"][0].update(niveau="fort")), gabarit,
              "GARDE: decisions.cartes[0] : « niveau » vaut faible ou moyen\n"),
-            ("champ de carte absent", modifiee(lambda x: x["decisions"]["cartes"][0].pop("prix")), gabarit,
+            ("champ de carte absent", base_modifiee(lambda x: x["decisions"]["cartes"][0].pop("prix")), gabarit,
              "GARDE: decisions.cartes[0] : « prix » manque, ou n'est pas un texte non vide\n"),
-            ("question à une option", base(choix=[{"titre": "Une ?", "options": [option("a")]}]), gabarit,
+            ("question à une option", base_page(choix=[{"titre": "Une ?", "options": [option_page("a")]}]), gabarit,
              "GARDE: choix[0] : 1 option(s), il en faut au moins deux\n"),
-            ("valeur doublée", modifiee(lambda x: x["choix"][1]["options"][0].update(valeur="moyen")), gabarit,
+            ("valeur doublée", base_modifiee(lambda x: x["choix"][1]["options"][0].update(valeur="moyen")), gabarit,
              "GARDE: choix[1].options[1] : la valeur « moyen » est déjà prise\n"),
-            ("deux recommandées", modifiee(lambda x: x["choix"][1]["options"][2].update(recommande=True)), gabarit,
+            ("deux recommandées", base_modifiee(lambda x: x["choix"][1]["options"][2].update(recommande=True)), gabarit,
              "GARDE: choix[1] : deux options recommandées\n"),
             ("recommande qui n'est pas un booléen",
-             modifiee(lambda x: x["choix"][1]["options"][0].update(recommande="oui")), gabarit,
+             base_modifiee(lambda x: x["choix"][1]["options"][0].update(recommande="oui")), gabarit,
              "GARDE: choix[1].options[0] : « recommande » vaut true ou false\n"),
-            ("genre de mal inconnu", base(mal=[{"genre": "grave", "titre": "x", "texte": "y"}]), gabarit,
+            ("genre de mal inconnu", base_page(mal=[{"genre": "grave", "titre": "x", "texte": "y"}]), gabarit,
              "GARDE: mal[0] : « genre » vaut erreur ou alerte\n"),
-            ("gabarit sans <script>", base(), sans_script, "GARDE: gabarit : le <script> est introuvable\n"),
-            ("gabarit sans « Tes réponses »", base(), sans_reponses,
+            ("gabarit sans <script>", base_page(), sans_script, "GARDE: gabarit : le <script> est introuvable\n"),
+            ("gabarit sans « Tes réponses »", base_page(), sans_reponses,
              "GARDE: gabarit : la section « Tes réponses » est introuvable\n"))
         for k, (nom, entree, copie, attendu) in enumerate(autres):
-            code, s, po = faire(entree, "g%d.html" % k, copie)
+            code, s, po = faire_page(tcp, entree, "g%d.html" % k, copie)
             assert code == 1
             assert s.startswith(attendu)
             assert s.count("GARDE:") == 1
             assert not os.path.exists(po)
-        code, s, po = faire(base(), os.path.join("occupe", "p.html"))
+        code, s, po = faire_page(tcp, base_page(), os.path.join("occupe", "p.html"))
         assert code == 1
         assert s.startswith("GARDE: %s — écriture impossible" % po)
         assert s.count("GARDE:") == 1
 
-        # toutes les sections, dans l'ordre du gabarit, et les cinq mots de la jauge
-        complet = base(jauge="Pas bon", plage="NUI1 à NUI3", pied="Fin du **rapport**.",
-                       chiffres={"cases": [{"valeur": "3", "legende": "fiches"}, {"valeur": "1,2 $", "legende": "coût"}],
-                                 "sources": ["`vlp.py cout`"]},
-                       fait=[{"ref": "NUI1", "code": "abc1234", "titre": "Relever", "livre": "un fichier", "cout": "0,5 $"}],
-                       mal=[{"genre": "erreur", "titre": "Un défaut", "texte": "à revoir"},
-                            {"genre": "alerte", "titre": "Un doute", "texte": "à suivre"}],
-                       fil=[{"heure": "19:22", "code": "NUI1", "texte": "fait"}])
+
+def test_chef_page_complet(tmp_path):
+    """chef page : toutes les sections, dans l'ordre du gabarit, et les cinq mots de la jauge."""
+    with tempfile.TemporaryDirectory(dir=tmp_path) as tcp:
+        complet = base_page(jauge="Pas bon", plage="NUI1 à NUI3", pied="Fin du **rapport**.",
+                            chiffres={"cases": [{"valeur": "3", "legende": "fiches"}, {"valeur": "1,2 $", "legende": "coût"}],
+                                      "sources": ["`vlp.py cout`"]},
+                            fait=[{"ref": "NUI1", "code": "abc1234", "titre": "Relever", "livre": "un fichier", "cout": "0,5 $"}],
+                            mal=[{"genre": "erreur", "titre": "Un défaut", "texte": "à revoir"},
+                                 {"genre": "alerte", "titre": "Un doute", "texte": "à suivre"}],
+                            fil=[{"heure": "19:22", "code": "NUI1", "texte": "fait"}])
         complet["decisions"]["intro"] = "Trois choix pris."
-        code, s, pf = faire(complet, "complet.html")
+        code, s, pf = faire_page(tcp, complet, "complet.html")
         f = octets_de(pf).decode("utf-8")
         assert code == 0
         assert s.endswith("CARTES D1 Q1 Q2\n")
@@ -291,17 +327,21 @@ def test_chef_page(tmp_path):
         assert code == 0
         assert s.startswith("PAGE SAINE")
 
-        # la commande : le vrai gabarit sous KIT, le JSON par @fichier, la date du jour par défaut
+
+def test_chef_page_commande(tmp_path):
+    """chef page, la commande : le vrai gabarit sous KIT, le JSON par @fichier, la date du jour par défaut."""
+    with tempfile.TemporaryDirectory(dir=tmp_path) as tcp:
+        a = octets_de(faire_page(tcp, base_page(), "a.html")[2])
         jq = os.path.join(tcp, "q.json")
-        ecrire(jq, json.dumps(base(), ensure_ascii=False))
+        ecrire(jq, json.dumps(base_page(), ensure_ascii=False))
         sortie = os.path.join(tcp, "cmd.html")
         code, s = appel(["chef", "page", "--questions", "@" + jq, "--sortie", sortie])
         assert code == 0
         assert s.endswith("CARTES D1 Q1 Q2\n")
         assert a != b""
         assert octets_de(sortie) == a
-        sans_date = {k: v for k, v in base().items() if k != "date"}
-        code, s, pj = faire(sans_date, "jour.html")
+        sans_date = {k: v for k, v in base_page().items() if k != "date"}
+        code, s, pj = faire_page(tcp, sans_date, "jour.html")
         m = re.search(r'data-cle="Demo-(\d{4}-\d\d-\d\d)-essai"', octets_de(pj).decode("utf-8"))
         assert code == 0
         assert m is not None
@@ -369,26 +409,32 @@ def test_trier_branche(tmp_path, init_git):
         assert s.startswith("GARDE: trier hors de main")
 
 
-def test_fichier_nuits(tmp_path, init_git):
-    entete = "| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |\n|---|---|---|---|---|\n"
+ENTETE_TODO = "| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |\n|---|---|---|---|---|\n"
+
+LECON_NUITS = "- 2026-09-26 · N=%d · %s · jouées 3 sur 5 · nuits 2026-09-25 · sessions s1"
+
+
+def projet_nuits(tp, init_git):
+    """Un dépôt Git à une ligne de TODO et un index dont `100-x.md` est le plus grand numéro, sans fichier des nuits ;
+    rend la fonction qui relit l'index."""
     carte = ("# C\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n- **fichier d'état** : ctx/08-etat.md\n"
              "- **artefact du chantier** : aucun\n\n"
              "Lettres de fiche déjà prises : E (Un). Un nouveau chantier en choisit une autre.\n")
     indice = ("# Index\n\n| Fichier | Lire quand |\n|---|---|\n| `00-INDEX.md` | l'index |\n| `08-etat.md` | l'état |\n"
               "| `100-x.md` | un chantier |\n\nFin.\n")
-    rang = ('          <tr>\n            <td>x</td>\n            <td class="mono">%s</td><td class="mono">2026-01-01</td>\n'
-            '            <td class="mono">%s</td>\n            <td>y</td>\n          </tr>\n')
-    lecon = "- 2026-09-26 · N=%d · %s · jouées 3 sur 5 · nuits 2026-09-25 · sessions s1"
-    env = os.environ.get("CLAUDE_CODE_SESSION_ID")
-    os.environ["CLAUDE_CODE_SESSION_ID"] = ""
+    init_git(tp)
+    ecrire(os.path.join(tp, "CHANTIER.md"), carte)
+    ecrire(os.path.join(tp, "ctx", "00-INDEX.md"), indice)
+    ecrire(os.path.join(tp, "ctx", "08-etat.md"), "# État\n\n" + ENTETE_TODO + "| 1 | `AAA` — a | x | 1 fiche | — |\n\n## Journal\n")
+    ecrire(os.path.join(tp, "ctx", "100-x.md"), "# x\n")
+    return lambda: pathlib.Path(os.path.join(tp, "ctx", "00-INDEX.md")).read_text(encoding="utf-8")
+
+
+def test_fichier_nuits(tmp_path, init_git, monkeypatch):
+    """(a) création : le numéro suivant le plus grand, la ligne sous le plus grand numéro lu en entier."""
+    monkeypatch.setenv("CLAUDE_CODE_SESSION_ID", "")
     with tempfile.TemporaryDirectory(dir=tmp_path) as tp:
-        init_git(tp)
-        ecrire(os.path.join(tp, "CHANTIER.md"), carte)
-        ecrire(os.path.join(tp, "ctx", "00-INDEX.md"), indice)
-        ecrire(os.path.join(tp, "ctx", "08-etat.md"), "# État\n\n" + entete + "| 1 | `AAA` — a | x | 1 fiche | — |\n\n## Journal\n")
-        ecrire(os.path.join(tp, "ctx", "100-x.md"), "# x\n")
-        lire_idx = lambda: pathlib.Path(os.path.join(tp, "ctx", "00-INDEX.md")).read_text(encoding="utf-8")
-        # (a) création : le numéro suivant le plus grand, la ligne sous le plus grand numéro lu en entier
+        lire_idx = projet_nuits(tp, init_git)
         _, s0 = appel(["trier", tp])
         chemin = mod.fichier_nuits(tp, True)
         idx = lire_idx().splitlines()
@@ -403,7 +449,15 @@ def test_fichier_nuits(tmp_path, init_git):
         assert lire_idx() == avant
         assert appel(["archiver", tp])[1].startswith("ARCHIVÉ 0 ")
         assert lire_idx() == avant
-        # (b) écrire, retirer, indice, plafond, forme
+
+
+def test_fichier_nuits_lecons(tmp_path, init_git, monkeypatch):
+    """(b) écrire, retirer, indice, plafond, forme des leçons du fichier des nuits."""
+    monkeypatch.setenv("CLAUDE_CODE_SESSION_ID", "")
+    lecon = LECON_NUITS
+    with tempfile.TemporaryDirectory(dir=tmp_path) as tp:
+        projet_nuits(tp, init_git)
+        chemin = mod.fichier_nuits(tp, True)
         ligne_t = "| 2026-09-25 | A | NUI | 3/2/1 | 4,50 |"
         premiere, seconde = mod.nuits_ecrire(chemin, ligne_t), mod.nuits_ecrire(chemin, ligne_t)
         l2 = lecon % (2, "cause un")
@@ -443,36 +497,49 @@ def test_fichier_nuits(tmp_path, init_git):
         assert "GARDE: leçon hors forme" in s
         assert "- pas une forme" in s
         assert "TRI 1 rangs" in s
-        ecrire(chemin, pathlib.Path(chemin).read_text(encoding="utf-8").replace("- pas une forme\n", ""))
-        # (d) une ligne de table à 6 cellules
-        try:
-            mod.nuits_du_fichier(mod.NUITS_TETE[:6] + ["| a | b | c | d | e | f |"] + mod.NUITS_TETE[6:])
-            dit = "aucune erreur"
-        except ValueError as e:
-            dit = str(e)
-        assert ("ligne 7 de la table des nuits : 6 cellules au lieu de 5" in dit), ("NUI11 (d) : une ligne de table à 6 cellules lève une ValueError qui la nomme") + "\n" + str(dit)
-        # (c) TAUX nuit : carnets du dépôt, médiane des fiches acceptées
+
+
+def test_nuits_table_six_cellules():
+    """(d) une ligne de table à 6 cellules lève une ValueError qui la nomme."""
+    try:
+        mod.nuits_du_fichier(mod.NUITS_TETE[:6] + ["| a | b | c | d | e | f |"] + mod.NUITS_TETE[6:])
+        dit = "aucune erreur"
+    except ValueError as e:
+        dit = str(e)
+    assert ("ligne 7 de la table des nuits : 6 cellules au lieu de 5" in dit), ("NUI11 (d) : une ligne de table à 6 cellules lève une ValueError qui la nomme") + "\n" + str(dit)
+
+
+def fiche_carnet(c, nuit, code, lignes, refus=None):
+    """Ajouter au carnet `c` une fiche `code` du chantier NUI : une ligne par `(role, usd_kit, usd_cli)` de `lignes`,
+    `refus` posé sur la ligne `relire` seule."""
+    for role, usd_kit, usd_cli in lignes:
+        mod.carnet.ajouter(c, nuit=nuit, canal="A", chantier="NUI", role=role, fiche=code, usd_kit=usd_kit,
+                           usd_cli=usd_cli, refus_n=refus if role == "relire" else None)
+
+
+def test_fichier_nuits_taux(tmp_path, init_git, monkeypatch):
+    """(c) TAUX nuit : carnets du dépôt, médiane des fiches acceptées ; TAUX jour : le prix par fiche de l'estimé
+    d'`ouvrir`, sur la même feuille."""
+    monkeypatch.setenv("CLAUDE_CODE_SESSION_ID", "")
+    rang = ('          <tr>\n            <td>x</td>\n            <td class="mono">%s</td><td class="mono">2026-01-01</td>\n'
+            '            <td class="mono">%s</td>\n            <td>y</td>\n          </tr>\n')
+    with tempfile.TemporaryDirectory(dir=tmp_path) as tp:
+        projet_nuits(tp, init_git)
+        mod.fichier_nuits(tp, True)
         c1, c2 = mod.carnet.du_jour(tp, "2026-09-25"), mod.carnet.du_jour(tp, "2026-09-26")
-
-        def fiche(c, nuit, code, lignes, refus=None):
-            for role, usd_kit, usd_cli in lignes:
-                mod.carnet.ajouter(c, nuit=nuit, canal="A", chantier="NUI", role=role, fiche=code, usd_kit=usd_kit,
-                                   usd_cli=usd_cli, refus_n=refus if role == "relire" else None)
-
-        fiche(c1, "2026-09-25", "N1", [("jouer", 0.5, 99), ("relire", 0.5, 99)])
-        fiche(c1, "2026-09-25", "N2", [("jouer", 0.5, 99), ("relire", 1.5, 99)])
-        fiche(c2, "2026-09-26", "N3", [("jouer", 0.5, 99), ("relance", 1.0, 99), ("relire", 1.5, 99)])
-        fiche(c2, "2026-09-26", "N4", [("jouer", 0.5, 99), ("relire", 3.5, 99)])
-        code, s = appel(["trier", tp])
+        fiche_carnet(c1, "2026-09-25", "N1", [("jouer", 0.5, 99), ("relire", 0.5, 99)])
+        fiche_carnet(c1, "2026-09-25", "N2", [("jouer", 0.5, 99), ("relire", 1.5, 99)])
+        fiche_carnet(c2, "2026-09-26", "N3", [("jouer", 0.5, 99), ("relance", 1.0, 99), ("relire", 1.5, 99)])
+        fiche_carnet(c2, "2026-09-26", "N4", [("jouer", 0.5, 99), ("relire", 3.5, 99)])
+        _code, s = appel(["trier", tp])
         assert ("TAUX nuit indice — 4 fiches acceptées" in s.splitlines()), ("NUI11 (c) : 4 fiches acceptées → indice, sans chiffre — mutant : CARNET_MIN = 0") + "\n" + str(s)
-        fiche(c2, "2026-09-26", "N5", [("jouer", 0.5, 99), ("relire", 9.5, 99)])
-        fiche(c2, "2026-09-26", "R1", [("jouer", 100, 99), ("relire", 50, 99)], refus=1)
-        fiche(c2, "2026-09-26", "R1", [("relance", 40, 99), ("relire", 50, 99)], refus=2)
+        fiche_carnet(c2, "2026-09-26", "N5", [("jouer", 0.5, 99), ("relire", 9.5, 99)])
+        fiche_carnet(c2, "2026-09-26", "R1", [("jouer", 100, 99), ("relire", 50, 99)], refus=1)
+        fiche_carnet(c2, "2026-09-26", "R1", [("relance", 40, 99), ("relire", 50, 99)], refus=2)
         mod.carnet.ajouter(c1, nuit="2026-09-25", canal="A", chantier="NUI", role="relance", fiche="N1", usd_kit=None, usd_cli=99)
-        code, s = appel(["trier", tp])
+        _code, s = appel(["trier", tp])
         assert ("TAUX nuit médiane 3 $/fiche sur 5 fiches acceptées · sans usd_kit 1" in s.splitlines()), ("NUI11 (c) : 5 fiches (1, 2, 3, 4, 10), une refusée deux fois hors compte, une ligne sans usd_kit"
                  " → médiane 3 — mutant : usd_kit lu en usd_cli") + "\n" + str(s)
-        # TAUX jour : le prix par fiche de l'estimé d'`ouvrir`, sur la même feuille
         ecrire(os.path.join(tp, "ctx", "artefacts", "feuille-de-route.html"),
                "<!-- ZONE:clos -->\n<tbody>\n" + rang % ("A1–A3", "3,00 $ · ≈3,0M (3 000 000)")
                + rang % ("B1", "1,00 $ · ≈1,0M (1 000 000)") + rang % ("D1–D2", "≈2,0M (2 000 000)")
@@ -484,72 +551,91 @@ def test_fichier_nuits(tmp_path, init_git):
         assert estime is not None
         assert estime.group(1) == "≈1,00 $/fiche sur 3 clos"
         assert "TAUX jour " + estime.group(1) in s.splitlines()
-    if env is None:
-        os.environ.pop("CLAUDE_CODE_SESSION_ID", None)
-    else:
-        os.environ["CLAUDE_CODE_SESSION_ID"] = env
 
 
-def test_plan(tmp_path):
-    entete = "| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |\n|---|---|---|---|---|\n"
-    carte = ("# C\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n- **fichier d'état** : ctx/08-etat.md\n"
-             "- **artefact du chantier** : aucun\n\n"
-             "Lettres de fiche déjà prises : E (Un), KKK (Clos). Un nouveau chantier en choisit une autre.\n")
+CARTE_PLAN = ("# C\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n- **fichier d'état** : ctx/08-etat.md\n"
+              "- **artefact du chantier** : aucun\n\n"
+              "Lettres de fiche déjà prises : E (Un), KKK (Clos). Un nouveau chantier en choisit une autre.\n")
+
+
+def projet_plan(tp):
+    """Un projet à trois lignes de TODO (AAA, BBB, CCC), sans fichier des nuits ; rend `(nuits, index)`, leurs chemins."""
     indice = ("# Index\n\n| Fichier | Lire quand |\n|---|---|\n| `00-INDEX.md` | l'index |\n| `08-etat.md` | l'état |\n"
               "| `100-x.md` | un chantier |\n\nFin.\n")
-    todo = ("# État\n\n" + entete + "| 1 | `AAA` — a | x | 1 fiche | — |\n| 2 | `BBB` — b | x | 1 fiche | — |\n"
+    todo = ("# État\n\n" + ENTETE_TODO + "| 1 | `AAA` — a | x | 1 fiche | — |\n| 2 | `BBB` — b | x | 1 fiche | — |\n"
             "| 3 | `CCC` — c | x | 1 fiche | — |\n\n## Journal\n")
-    env = os.environ.get("VLP_NUIT")
+    ecrire(os.path.join(tp, "CHANTIER.md"), CARTE_PLAN)
+    ecrire(os.path.join(tp, "ctx", "00-INDEX.md"), indice)
+    ecrire(os.path.join(tp, "ctx", "08-etat.md"), todo)
+    ecrire(os.path.join(tp, "ctx", "100-x.md"), "# x\n")
+    return os.path.join(tp, "ctx", "101-nuits.md"), os.path.join(tp, "ctx", "00-INDEX.md")
+
+
+def octets_plan(nuits, index):
+    """`(octets du fichier des nuits ou None s'il manque, octets de l'index)`."""
+    with open(index, "rb") as fi:
+        return (pathlib.Path(nuits).read_bytes() if os.path.isfile(nuits) else None), fi.read()
+
+
+def texte_nuits(nuits):
+    """Le texte du fichier des nuits, lu en octets puis décodé (les fins de ligne gardées)."""
+    with open(nuits, "rb") as fn:
+        return fn.read().decode("utf-8")
+
+
+def json_plan(tp, nom, **corps):
+    """Écrire `corps` en JSON dans `<tp>/<nom>.json` ; rend son chemin."""
+    chemin = os.path.join(tp, nom + ".json")
+    ecrire(chemin, json.dumps(corps))
+    return chemin
+
+
+def ch(code, prefixe, *reponses):
+    """Un chantier d'un canal du plan : son code, son préfixe, ses réponses."""
+    return {"code": code, "prefixe": prefixe, "reponses": list(reponses)}
+
+
+def ecrire_plan(tp, f, date):
+    """`(code, sortie)` de `plan ecrire` du JSON `f` à `date`."""
+    return appel(["plan", "ecrire", tp, "--json", f, "--date", date])
+
+
+def lire_plan(tp, *options):
+    """`(code, sortie)` de `plan lire` avec `options`."""
+    return appel(["plan", "lire", tp, *options])
+
+
+def plans_du_soir(tp, nuits):
+    """Le plan passé du 2026-09-25, une ligne de table et une leçon, puis le plan du soir 2026-09-30 (A = AAA et BBB,
+    B = CCC) ; rend la sortie de ce dernier `plan ecrire`."""
+    ecrire_plan(tp, json_plan(tp, "passee", borne_usd=3, borne_chantiers=1, A=[ch("AAA", "AAA", "ancienne")]), "2026-09-25")
+    mod.nuits_ecrire(nuits, "| 2026-09-24 | A | NUI | 3/2/1 | 4,50 |")
+    mod.nuits_ecrire(nuits, "- 2026-09-24 · N=3 · cause un · jouées 3 sur 5 · nuits 2026-09-24 · sessions s1")
+    return ecrire_plan(tp, json_plan(tp, "soir", borne_usd=12.5, borne_chantiers=3,
+                                     A=[ch("AAA", "AAA", "r1a", "r1b é"), ch("BBB", "BBB", "r2")], B=[ch("CCC", "CCC", "r3")]),
+                       "2026-09-30")
+
+
+def test_plan(tmp_path, monkeypatch):
+    """(0) sans fichier des nuits : lire refuse ; ecrire le crée, sa ligne d'index comprise. (a) A = deux chantiers,
+    B = un : lire par canal, dans l'ordre, aussi sous VLP_NUIT=1."""
     with tempfile.TemporaryDirectory(dir=tmp_path) as tp:
-        ecrire(os.path.join(tp, "CHANTIER.md"), carte)
-        ecrire(os.path.join(tp, "ctx", "00-INDEX.md"), indice)
-        ecrire(os.path.join(tp, "ctx", "08-etat.md"), todo)
-        ecrire(os.path.join(tp, "ctx", "100-x.md"), "# x\n")
-        nuits, index = os.path.join(tp, "ctx", "101-nuits.md"), os.path.join(tp, "ctx", "00-INDEX.md")
-
-        def octets():
-            with open(index, "rb") as fi:
-                return (pathlib.Path(nuits).read_bytes() if os.path.isfile(nuits) else None), fi.read()
-
-        def texte():
-            with open(nuits, "rb") as fn:
-                return fn.read().decode("utf-8")
-
-        def plan(nom, **corps):
-            chemin = os.path.join(tp, nom + ".json")
-            ecrire(chemin, json.dumps(corps))
-            return chemin
-
-        def ch(code, prefixe, *reponses):
-            return {"code": code, "prefixe": prefixe, "reponses": list(reponses)}
-
-        def ecrire_plan(f, date):
-            return appel(["plan", "ecrire", tp, "--json", f, "--date", date])
-
-        def lire_plan(*options):
-            return appel(["plan", "lire", tp, *options])
-
-        # (0) sans fichier des nuits : lire refuse ; ecrire le crée, sa ligne d'index comprise
-        code, s = lire_plan("--date", "2026-09-25")
+        nuits, index = projet_plan(tp)
+        code, s = lire_plan(tp, "--date", "2026-09-25")
         assert code == 1
         assert s.startswith("GARDE: pas de fichier des nuits")
         assert not os.path.isfile(nuits)
-        code, s = ecrire_plan(plan("passee", borne_usd=3, borne_chantiers=1, A=[ch("AAA", "AAA", "ancienne")]), "2026-09-25")
+        code, s = ecrire_plan(tp, json_plan(tp, "passee", borne_usd=3, borne_chantiers=1, A=[ch("AAA", "AAA", "ancienne")]), "2026-09-25")
         assert code == 0
         assert s.startswith("PLAN ctx/101-nuits.md · 2026-09-25 · 1 chantiers")
         assert os.path.isfile(nuits)
-        assert "| `101-nuits.md` |" in octets()[1].decode("utf-8")
-        mod.nuits_ecrire(nuits, "| 2026-09-24 | A | NUI | 3/2/1 | 4,50 |")
-        mod.nuits_ecrire(nuits, "- 2026-09-24 · N=3 · cause un · jouées 3 sur 5 · nuits 2026-09-24 · sessions s1")
-        # (a) A = deux chantiers, B = un : lire par canal, dans l'ordre, aussi sous VLP_NUIT=1
-        code, s = ecrire_plan(plan("soir", borne_usd=12.5, borne_chantiers=3,
-                                   A=[ch("AAA", "AAA", "r1a", "r1b é"), ch("BBB", "BBB", "r2")], B=[ch("CCC", "CCC", "r3")]),
-                              "2026-09-30")
-        os.environ["VLP_NUIT"] = "1"
-        code_a, s_a = lire_plan("--date", "2026-09-30", "--canal", "A")
-        code_b, s_b = lire_plan("--date", "2026-09-30", "--canal", "B")
-        code_c, s_c = lire_plan("--date", "2026-09-30", "--canal", "A", "--chantier", "BBB")
-        del os.environ["VLP_NUIT"]
+        assert "| `101-nuits.md` |" in octets_plan(nuits, index)[1].decode("utf-8")
+        code, s = plans_du_soir(tp, nuits)
+        monkeypatch.setenv("VLP_NUIT", "1")
+        code_a, s_a = lire_plan(tp, "--date", "2026-09-30", "--canal", "A")
+        code_b, s_b = lire_plan(tp, "--date", "2026-09-30", "--canal", "B")
+        code_c, s_c = lire_plan(tp, "--date", "2026-09-30", "--canal", "A", "--chantier", "BBB")
+        monkeypatch.delenv("VLP_NUIT")
         lignes_a = [l for l in s_a.splitlines() if l.startswith("CHANTIER ")]
         assert code == 0
         assert code_a == 0
@@ -562,18 +648,25 @@ def test_plan(tmp_path):
         assert "- r2" in s_c.splitlines()
         assert "r1a" not in s_c
         assert "### AAA" not in s_c
-        assert ("- r1b é" in lire_plan("--date", "2026-09-30", "--chantier", "AAA")[1].splitlines()), ("NUI12 (a) : la réponse en é revient telle quelle, en puce") + "\n" + ""
-        code, s = lire_plan("--date", "2026-09-29")
+        assert ("- r1b é" in lire_plan(tp, "--date", "2026-09-30", "--chantier", "AAA")[1].splitlines()), ("NUI12 (a) : la réponse en é revient telle quelle, en puce") + "\n" + ""
+        code, s = lire_plan(tp, "--date", "2026-09-29")
         assert code == 1
         assert s.startswith("GARDE: pas de plan à la date 2026-09-29")
-        assert lire_plan()[0] == 1
-        avant = texte()
+        assert lire_plan(tp)[0] == 1
+        avant = texte_nuits(nuits)
         assert avant.count("## Nuit 2026-09-25") == 1
         assert (avant.index("## Nuit 2026-09-25")
                  < avant.index("## Nuit 2026-09-30") < avant.index("## Leçons"))
-        # (b) réécrit à la même date : une seule section, le reste octet pour octet
-        code, s = ecrire_plan(plan("soir2", borne_usd=7, borne_chantiers=2, A=[ch("AAA", "AAA", "neuf")]), "2026-09-30")
-        apres = texte()
+
+
+def test_plan_reecrit(tmp_path):
+    """(b) réécrit à la même date : une seule section, le reste octet pour octet."""
+    with tempfile.TemporaryDirectory(dir=tmp_path) as tp:
+        nuits, _index = projet_plan(tp)
+        plans_du_soir(tp, nuits)
+        avant = texte_nuits(nuits)
+        code, _s = ecrire_plan(tp, json_plan(tp, "soir2", borne_usd=7, borne_chantiers=2, A=[ch("AAA", "AAA", "neuf")]), "2026-09-30")
+        apres = texte_nuits(nuits)
         assert code == 0
         assert apres.count("## Nuit 2026-09-30") == 1
         assert "- neuf" in apres
@@ -581,55 +674,64 @@ def test_plan(tmp_path):
         assert apres.index("## Nuit 2026-09-30") < apres.index("## Leçons")
         assert apres[:apres.index("## Nuit 2026-09-30")] == avant[:avant.index("## Nuit 2026-09-30")]
         assert apres[apres.index("## Leçons"):] == avant[avant.index("## Leçons"):]
-        # (c) neuf refus : GARDE:, sort 1, ni le fichier des nuits ni l'index ne bougent
+
+
+def test_plan_refus(tmp_path, monkeypatch):
+    """(c) neuf refus : GARDE:, sort 1, ni le fichier des nuits ni l'index ne bougent."""
+    with tempfile.TemporaryDirectory(dir=tmp_path) as tp:
+        nuits, index = projet_plan(tp)
+        plans_du_soir(tp, nuits)
         refus = [
-            ("code absent de la TODO", plan("r1", borne_usd=1, borne_chantiers=1, A=[ch("ZZZ", "ZZZ")])),
-            ("préfixe NUIT (quatre lettres)", plan("r2", borne_usd=1, borne_chantiers=1, A=[ch("AAA", "NUIT")])),
-            ("préfixe déjà pris (E)", plan("r3", borne_usd=1, borne_chantiers=1, A=[ch("AAA", "E")])),
-            ("préfixe donné deux fois", plan("r4", borne_usd=1, borne_chantiers=2, A=[ch("AAA", "XXX")], B=[ch("BBB", "XXX")])),
-            ("chantier dans deux canaux", plan("r5", borne_usd=1, borne_chantiers=2, A=[ch("AAA", "XXX")], B=[ch("AAA", "YYY")])),
-            ("canal C", plan("r6", borne_usd=1, borne_chantiers=1, C=[ch("AAA", "XXX")])),
-            ("JSON sans borne", plan("r7", A=[ch("AAA", "XXX")])),
-            ("réponse à saut de ligne", plan("r8", borne_usd=1, borne_chantiers=1, A=[ch("AAA", "XXX", "a\nb")])),
+            ("code absent de la TODO", json_plan(tp, "r1", borne_usd=1, borne_chantiers=1, A=[ch("ZZZ", "ZZZ")])),
+            ("préfixe NUIT (quatre lettres)", json_plan(tp, "r2", borne_usd=1, borne_chantiers=1, A=[ch("AAA", "NUIT")])),
+            ("préfixe déjà pris (E)", json_plan(tp, "r3", borne_usd=1, borne_chantiers=1, A=[ch("AAA", "E")])),
+            ("préfixe donné deux fois", json_plan(tp, "r4", borne_usd=1, borne_chantiers=2, A=[ch("AAA", "XXX")], B=[ch("BBB", "XXX")])),
+            ("chantier dans deux canaux", json_plan(tp, "r5", borne_usd=1, borne_chantiers=2, A=[ch("AAA", "XXX")], B=[ch("AAA", "YYY")])),
+            ("canal C", json_plan(tp, "r6", borne_usd=1, borne_chantiers=1, C=[ch("AAA", "XXX")])),
+            ("JSON sans borne", json_plan(tp, "r7", A=[ch("AAA", "XXX")])),
+            ("réponse à saut de ligne", json_plan(tp, "r8", borne_usd=1, borne_chantiers=1, A=[ch("AAA", "XXX", "a\nb")])),
         ]
         for nom, f in refus:
-            fichier_avant = octets()
-            code, s = ecrire_plan(f, "2026-10-01")
+            fichier_avant = octets_plan(nuits, index)
+            code, s = ecrire_plan(tp, f, "2026-10-01")
             assert code == 1
             assert s.startswith("GARDE: ")
-            assert octets() == fichier_avant
-        valide = plan("r9", borne_usd=1, borne_chantiers=1, A=[ch("AAA", "XXX")])
-        fichier_avant = octets()
-        os.environ["VLP_NUIT"] = "1"
-        code, s = ecrire_plan(valide, "2026-10-01")
-        del os.environ["VLP_NUIT"]
+            assert octets_plan(nuits, index) == fichier_avant
+        valide = json_plan(tp, "r9", borne_usd=1, borne_chantiers=1, A=[ch("AAA", "XXX")])
+        fichier_avant = octets_plan(nuits, index)
+        monkeypatch.setenv("VLP_NUIT", "1")
+        code, s = ecrire_plan(tp, valide, "2026-10-01")
+        monkeypatch.delenv("VLP_NUIT")
         assert code == 1
         assert s.startswith("GARDE: VLP_NUIT=1")
-        assert octets() == fichier_avant
-        code, s = ecrire_plan(valide, "2026-10-01")
+        assert octets_plan(nuits, index) == fichier_avant
+        code, s = ecrire_plan(tp, valide, "2026-10-01")
         assert (code == 0), ("NUI12 (c) : le même plan, sans VLP_NUIT → écrit (le refus venait bien de la variable)") + "\n" + str(s)
-        # (d) carte : NUIT=1 une fois, dans le bloc d'avant les fiches ; rien sinon
+
+
+def test_plan_carte_nuit(tmp_path, monkeypatch):
+    """(d) carte : NUIT=1 une fois, dans le bloc d'avant les fiches ; rien sinon."""
+    with tempfile.TemporaryDirectory(dir=tmp_path) as tp:
         projet = os.path.join(tp, "proj")
         ecrire(os.path.join(projet, "CHANTIER.md"), CHANTIER % ("pz", "context AI/"))
         ecrire(os.path.join(projet, "context AI", "20-z.md"), FICHES)
 
-        def carte_sous(valeur, relecteur=False):
+        def carte_nuit(valeur, relecteur=False):
+            """Les lignes de la carte de `projet` sous `VLP_NUIT=valeur` (absente si `None`), la variable retirée après."""
             if valeur is None:
-                os.environ.pop("VLP_NUIT", None)
+                monkeypatch.delenv("VLP_NUIT", raising=False)
             else:
-                os.environ["VLP_NUIT"] = valeur
+                monkeypatch.setenv("VLP_NUIT", valeur)
             sortie = io.StringIO()
             mod.carte(projet, sortie, relecteur)
-            os.environ.pop("VLP_NUIT", None)
+            monkeypatch.delenv("VLP_NUIT", raising=False)
             return sortie.getvalue().splitlines()
 
-        nuit = carte_sous("1")
+        nuit = carte_nuit("1")
         assert nuit.count("NUIT=1") == 1
         assert (nuit.index("--- CHANTIER.md ---") < nuit.index("NUIT=1")
                  < next(k for k, l in enumerate(nuit) if l.startswith("--- fiches :")))
-        assert (not any(l.startswith("NUIT=") for l in carte_sous("1", True) + carte_sous("0") + carte_sous(None))), ("NUI12 (d) : --relecteur, VLP_NUIT=0 et variable absente → aucune ligne NUIT=") + "\n" + ""
-    if env is not None:
-        os.environ["VLP_NUIT"] = env
+        assert (not any(l.startswith("NUIT=") for l in carte_nuit("1", True) + carte_nuit("0") + carte_nuit(None))), ("NUI12 (d) : --relecteur, VLP_NUIT=0 et variable absente → aucune ligne NUIT=") + "\n" + ""
 
 
 def contrastes_couts(barre, texte):
@@ -649,52 +751,59 @@ def contrastes_couts(barre, texte):
     return css, [contraste(c, css.get(f, "#000000")) for c in (barre, texte) for f in ("--surface", "--ground")]
 
 
+META_BTN1 = '<meta charset="utf-8">'
+SCRIPT_BTN1 = '<script src="vlp.js"></script>'
+IMG_COUTS = '<img src="couts.svg"'
+
+
+def files_de(s):
+    """Le dict de la ligne `FILES` d'une sortie, ou None."""
+    for l in s.splitlines():
+        if l.startswith("FILES "):
+            return json.loads(l[len("FILES "):])
+    return None
+
+
+def joints_recopies(s, dossier):
+    """(a) : FILES a les clés `vlp.css` et `vlp.js`, chacune vers un fichier qui existe, en
+    barres obliques, dans `dossier`, identique à l'octet à sa source de `templates/`."""
+    files = files_de(s)
+    return (files is not None and sorted(files) == ["vlp.css", "vlp.js"]
+            and all("\\" not in c and os.path.isfile(c) and os.path.samefile(c, os.path.join(dossier, n))
+                    and pathlib.Path(c).read_bytes() == pathlib.Path(os.path.join(ICI, "..", "templates", n)).read_bytes()
+                    for n, c in files.items()))
+
+
+def balises_une_fois(html):
+    """(b) : le charset une fois, en première ligne ; le script une fois, en dernière."""
+    lignes = html.rstrip("\n").split("\n")
+    return (html.count(META_BTN1) == 1 and html.count(SCRIPT_BTN1) == 1
+            and lignes[0] == META_BTN1 and lignes[-1] == SCRIPT_BTN1)
+
+
+def sans_balises(html):
+    """`html` sans sa ligne de charset ni sa ligne de script."""
+    return html.replace(META_BTN1 + "\n", "").replace(SCRIPT_BTN1 + "\n", "")
+
+
+def projet_btn1(tab):
+    """Un projet équipé minimal, sa feuille posée depuis le gabarit (comme PLI2) ; rend `(projet, feuille)`."""
+    proj = os.path.join(tab, "proj")
+    ecrire(os.path.join(proj, "CHANTIER.md"),
+           "# C\n\n- **contexte** : ctx/\n- **fichier d'état** : ctx/08-etat.md\n"
+           ""
+           "- **artefact du chantier** : aucun\n\nLettres de fiche déjà prises : U (test).\n")
+    ecrire(os.path.join(proj, "ctx", "08-etat.md"),
+           "# État\n\n## La TODO\n\n| # | Chantier | Apporte | Coût | Dépend |\n|---|---|---|---|---|\n")
+    fdr = os.path.join(proj, "ctx", "artefacts", "feuille-de-route.html")
+    ecrire(fdr, pathlib.Path(os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html")).read_text(encoding="utf-8"))
+    return proj, fdr
+
+
 def test_joints(tmp_path):
-    """Les aides vivent ici, pas au niveau du module : celui-ci est déjà au seuil de
-    complexité de pyright (« Code is too complex to analyze », mesuré sur BTN1)."""
-    META_BTN1 = '<meta charset="utf-8">'
-    SCRIPT_BTN1 = '<script src="vlp.js"></script>'
-
-    def files_de(s):
-        """Le dict de la ligne `FILES` d'une sortie, ou None."""
-        for l in s.splitlines():
-            if l.startswith("FILES "):
-                return json.loads(l[len("FILES "):])
-        return None
-
-    def joints_recopies(s, dossier):
-        """(a) : FILES a les clés `vlp.css` et `vlp.js`, chacune vers un fichier qui existe, en
-        barres obliques, dans `dossier`, identique à l'octet à sa source de `templates/`."""
-        files = files_de(s)
-        return (files is not None and sorted(files) == ["vlp.css", "vlp.js"]
-                and all("\\" not in c and os.path.isfile(c) and os.path.samefile(c, os.path.join(dossier, n))
-                        and pathlib.Path(c).read_bytes() == pathlib.Path(os.path.join(ICI, "..", "templates", n)).read_bytes()
-                        for n, c in files.items()))
-
-    def balises_une_fois(html):
-        """(b) : le charset une fois, en première ligne ; le script une fois, en dernière."""
-        lignes = html.rstrip("\n").split("\n")
-        return (html.count(META_BTN1) == 1 and html.count(SCRIPT_BTN1) == 1
-                and lignes[0] == META_BTN1 and lignes[-1] == SCRIPT_BTN1)
-
-    def sans_balises(html):
-        return html.replace(META_BTN1 + "\n", "").replace(SCRIPT_BTN1 + "\n", "")
-
-    def projet_btn1(tab):
-        """Un projet équipé minimal, sa feuille posée depuis le gabarit (comme PLI2)."""
-        proj = os.path.join(tab, "proj")
-        ecrire(os.path.join(proj, "CHANTIER.md"),
-               "# C\n\n- **contexte** : ctx/\n- **fichier d'état** : ctx/08-etat.md\n"
-               ""
-               "- **artefact du chantier** : aucun\n\nLettres de fiche déjà prises : U (test).\n")
-        ecrire(os.path.join(proj, "ctx", "08-etat.md"),
-               "# État\n\n## La TODO\n\n| # | Chantier | Apporte | Coût | Dépend |\n|---|---|---|---|---|\n")
-        fdr = os.path.join(proj, "ctx", "artefacts", "feuille-de-route.html")
-        ecrire(fdr, pathlib.Path(os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html")).read_text(encoding="utf-8"))
-        return proj, fdr
-
-    # (c) d'abord : une page d'avant, sans charset ni script, les reçoit une fois ; une seconde
-    # régénération n'en ajoute pas — page du chantier, puis feuille de route.
+    """(c) d'abord : une page d'avant, sans charset ni script, les reçoit une fois ; une seconde
+    régénération n'en ajoute pas — page du chantier, puis feuille de route ; un charset cité dans un commentaire
+    n'est pas un charset posé."""
     with tempfile.TemporaryDirectory(dir=tmp_path) as tab:
         fiches = os.path.join(tab, "p.md")
         page = os.path.join(tab, "artefacts", "p.html")
@@ -703,27 +812,28 @@ def test_joints(tmp_path):
         ecrire(page, sans_balises(lire(page)))
         assert "<meta charset" not in lire(page)
         assert "vlp.js" not in lire(page)
-        code, s = appel(["page", fiches, page])
+        code, _s = appel(["page", fiches, page])
         assert code == 0
         assert balises_une_fois(lire(page))
-        code, s = appel(["page", fiches, page])
+        code, _s = appel(["page", fiches, page])
         assert code == 0
         assert balises_une_fois(lire(page))
     with tempfile.TemporaryDirectory(dir=tmp_path) as tab:
         proj, fdr = projet_btn1(tab)
         ecrire(fdr, sans_balises(lire(fdr)))
-        code, s = appel(["feuille", proj])
+        code, _s = appel(["feuille", proj])
         assert code == 0
         assert balises_une_fois(lire(fdr))
-        code, s = appel(["feuille", proj])
+        code, _s = appel(["feuille", proj])
         assert code == 0
         assert balises_une_fois(lire(fdr))
-    # Un charset cité dans un commentaire n'est pas un charset posé.
     cite = mod.migrer_joints("<!-- %s -->\n<p>x</p>\n" % META_BTN1)
     assert cite.startswith(META_BTN1 + "\n")
     assert cite.count(META_BTN1) == 2
 
-    # (a) et (b) : `page --creer`, puis `page` sans --creer ; vlp.js modifié à la main entre deux.
+
+def test_joints_page(tmp_path):
+    """(a) et (b) : `page --creer`, puis `page` sans --creer ; vlp.js modifié à la main entre deux ; puis la feuille."""
     with tempfile.TemporaryDirectory(dir=tmp_path) as tab:
         fiches = os.path.join(tab, "p.md")
         art = os.path.join(tab, "artefacts")
@@ -749,7 +859,9 @@ def test_joints(tmp_path):
         assert "CSS %s\n" % os.path.join(art, "vlp.css") in s
         assert (balises_une_fois(lire(fdr))), ("BTN1 : (b) feuille régénérée — charset et script une fois chacun") + "\n" + str(lire(fdr)[:300])
 
-    # `joints <dossier>` : les deux copies, et la ligne FILES seule ; un dossier absent est gardé.
+
+def test_joints_commande(tmp_path):
+    """`joints <dossier>` : les deux copies, et la ligne FILES seule ; un dossier absent est gardé."""
     with tempfile.TemporaryDirectory(dir=tmp_path) as tab:
         code, s = appel(["joints", tab])
         assert code == 0
@@ -759,7 +871,9 @@ def test_joints(tmp_path):
         assert code == 1
         assert s.startswith("GARDE: dossier introuvable")
 
-    # Les deux gabarits : charset en première ligne, script en dernière, une fois chacun.
+
+def test_joints_gabarits():
+    """Les deux gabarits : charset en première ligne, script en dernière, une fois chacun ; aucun lien local hors joints."""
     for nom in ("artefact-chantier.html", "artefact-feuille-de-route.html"):
         gabarit = pathlib.Path(os.path.join(ICI, "..", "templates", nom)).read_text(encoding="utf-8")
         assert (balises_une_fois(gabarit)), ("BTN1 : (b) gabarit %s — charset et script une fois chacun" % nom) + "\n" + str(gabarit[:300])
@@ -769,41 +883,46 @@ def test_joints(tmp_path):
         assert (locaux <= set(mod.JOINTS)), ("Dette BTN : gabarit %s — ne lie en local que les joints — mutant : image couts.svg remise"
                  % nom) + "\n" + str(str(sorted(locaux)))
 
-    # --- BTN5 : le coût des chantiers clos en image, `couts.svg` et sa balise — imbriqué ici : le
-    # module est au seuil de complexité de pyright (BTN1), et couts.svg est un joint de plus.
-    IMG = '<img src="couts.svg"'
 
-    def projet_btn5(tab, rangs):
-        """Un projet équipé minimal, sa feuille posée depuis le gabarit, `rangs` en tête de ZONE:clos."""
-        proj = os.path.join(tab, "proj")
-        ecrire(os.path.join(proj, "CHANTIER.md"),
-               "# C\n\n- **contexte** : ctx/\n- **fichier d'état** : ctx/08-etat.md\n"
-               ""
-               "- **artefact du chantier** : aucun\n\nLettres de fiche déjà prises : U (test).\n")
-        ecrire(os.path.join(proj, "ctx", "08-etat.md"),
-               "# État\n\n## La TODO\n\n| # | Chantier | Apporte | Coût | Dépend |\n|---|---|---|---|---|\n")
-        fdr = os.path.join(proj, "ctx", "artefacts", "feuille-de-route.html")
-        gabarit = pathlib.Path(os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html")).read_text(encoding="utf-8")
-        i = gabarit.index("<tbody>\n", gabarit.index("<!-- ZONE:clos")) + len("<tbody>\n")
-        ecrire(fdr, gabarit[:i] + "".join(rangs) + gabarit[i:])
-        return proj, fdr
+# --- BTN5 : le coût des chantiers clos en image, `couts.svg` et sa balise.
 
-    def rang(nom, cout):
-        return ligne_close(cout).replace("<td>Test ", "<td>%s " % nom)
+def projet_btn5(tab, rangs):
+    """Un projet équipé minimal, sa feuille posée depuis le gabarit, `rangs` en tête de ZONE:clos ; rend
+    `(projet, feuille)`."""
+    proj, fdr = projet_btn1(tab)
+    gabarit = lire(fdr)
+    i = gabarit.index("<tbody>\n", gabarit.index("<!-- ZONE:clos")) + len("<tbody>\n")
+    ecrire(fdr, gabarit[:i] + "".join(rangs) + gabarit[i:])
+    return proj, fdr
 
-    def barres(chemin):
-        """[(x, hauteur)] des barres de `couts.svg`, de gauche à droite ; [] sans fichier."""
-        if not os.path.isfile(chemin):
-            return []
-        return sorted((float(x), float(h)) for x, h in re.findall(
-            r'<rect class="barre" x="([\d.]+)" y="[\d.]+" width="[\d.]+" height="([\d.]+)"', lire(chemin)))
 
-    # Quatre lignes closes, la plus récente en haut : D 4 000, C sans coût, B 2 000, A 1 000.
+def rang_clos(nom, cout):
+    """Une ligne de ZONE:clos au nom `nom` et au coût `cout`."""
+    return ligne_close(cout).replace("<td>Test ", "<td>%s " % nom)
+
+
+def barres(chemin):
+    """[(x, hauteur)] des barres de `couts.svg`, de gauche à droite ; [] sans fichier."""
+    if not os.path.isfile(chemin):
+        return []
+    return sorted((float(x), float(h)) for x, h in re.findall(
+        r'<rect class="barre" x="([\d.]+)" y="[\d.]+" width="[\d.]+" height="([\d.]+)"', lire(chemin)))
+
+
+def feuille_quatre_clos(tab):
+    """Quatre lignes closes, la plus récente en haut : D 4 000, C sans coût, B 2 000, A 1 000 ; rend
+    `(projet, feuille, couts.svg, code, sortie)` de la première `feuille`."""
+    proj, fdr = projet_btn5(tab, [rang_clos("D", mod.arrondi(4000)), rang_clos("C", "non mesuré"),
+                                  rang_clos("B", mod.arrondi(2000)), rang_clos("A", mod.arrondi(1000))])
+    svg = os.path.join(os.path.dirname(fdr), "couts.svg")
+    code, s = appel(["feuille", proj])
+    return proj, fdr, svg, code, s
+
+
+def test_couts_svg(tmp_path):
+    """BTN5 : quatre lignes closes — trois barres à l'échelle, chacune colorée, la ligne FILES et la ligne LIRE."""
     with tempfile.TemporaryDirectory(dir=tmp_path) as tab:
-        proj, fdr = projet_btn5(tab, [rang("D", mod.arrondi(4000)), rang("C", "non mesuré"),
-                                      rang("B", mod.arrondi(2000)), rang("A", mod.arrondi(1000))])
-        svg = os.path.join(os.path.dirname(fdr), "couts.svg")
-        code, s = appel(["feuille", proj])
+        _proj, _fdr, svg, code, s = feuille_quatre_clos(tab)
         b = barres(svg)
         h = [x[1] for x in b]
         assert code == 0
@@ -823,10 +942,18 @@ def test_joints(tmp_path):
         assert "\\" not in files["couts.svg"]
         assert os.path.samefile(files["couts.svg"], svg)
         assert ("\nLIRE vlp.css vlp.js couts.svg\n" in s), ("REF29 : feuille dit LIRE avec couts.svg joint — mutant : ligne LIRE retirée") + "\n" + str(s)
+
+
+def test_couts_svg_balise(tmp_path):
+    """BTN5 : la balise de couts.svg, son texte de remplacement et ses données ; les contrastes (CTR1) ; une feuille
+    d'avant, sans balise, la reçoit à sa régénération."""
+    with tempfile.TemporaryDirectory(dir=tmp_path) as tab:
+        proj, fdr, svg, _code, _s = feuille_quatre_clos(tab)
+        dessin = lire(svg)
         html = lire(fdr)
         alt = re.search(r'<img src="couts\.svg" alt="([^"]*)"', html)
-        assert html.count(IMG) == 1
-        assert html.index(IMG) < html.index('<details class="clos">')
+        assert html.count(IMG_COUTS) == 1
+        assert html.index(IMG_COUTS) < html.index('<details class="clos">')
         assert alt is not None
         assert "3 barres" in alt.group(1)
         assert alt.group(1).endswith("le plus cher : D")
@@ -844,27 +971,28 @@ def test_joints(tmp_path):
               % " ".join("%.2f" % r for r in rapports))
         ecrire(fdr, mod.BALISE_COUTS.sub("", html))
         appel(["feuille", proj])
-        assert (lire(fdr).count(IMG) == 1), ("BTN5 : une feuille d'avant, sans balise, la reçoit à sa régénération") + "\n" + str(lire(fdr)[-3000:])
+        assert (lire(fdr).count(IMG_COUTS) == 1), ("BTN5 : une feuille d'avant, sans balise, la reçoit à sa régénération") + "\n" + str(lire(fdr)[-3000:])
         appel(["feuille", proj])
-        assert lire(fdr).count(IMG) == 1
+        assert lire(fdr).count(IMG_COUTS) == 1
         assert lire(svg) == dessin
 
-    # Sans coût (les lignes d'exemple du gabarit seules) : ni fichier — un ancien est retiré —, ni balise.
+
+def test_couts_svg_sans_cout(tmp_path):
+    """Sans coût (les lignes d'exemple du gabarit seules) : ni fichier — un ancien est retiré —, ni balise ; des coûts
+    mesurés, tous à 0 (dette BTN) : rien à dessiner, et pas de division par un maximum nul."""
     with tempfile.TemporaryDirectory(dir=tmp_path) as tab:
-        proj, fdr = projet_btn5(tab, [rang("C", "non mesuré")])
+        proj, fdr = projet_btn5(tab, [rang_clos("C", "non mesuré")])
         svg = os.path.join(os.path.dirname(fdr), "couts.svg")
         ecrire(svg, "<svg/>")
         code, s = appel(["feuille", proj])
         assert code == 0
         assert not os.path.exists(svg)
-        assert IMG not in lire(fdr)
+        assert IMG_COUTS not in lire(fdr)
         assert "couts.svg" not in (files_de(s) or {})
         assert ("\nLIRE vlp.css vlp.js\n" in s), ("REF29 : feuille sans couts.svg dit LIRE sans lui") + "\n" + str(s)
-
-    # Des coûts mesurés, tous à 0 (dette BTN) : rien à dessiner, et pas de division par un maximum nul.
     with tempfile.TemporaryDirectory(dir=tmp_path) as tab:
-        proj, fdr = projet_btn5(tab, [rang("B", mod.arrondi(0)), rang("A", mod.arrondi(0))])
+        proj, fdr = projet_btn5(tab, [rang_clos("B", mod.arrondi(0)), rang_clos("A", mod.arrondi(0))])
         code, s = appel(["feuille", proj])
         assert code == 0
         assert not os.path.exists(os.path.join(os.path.dirname(fdr), "couts.svg"))
-        assert IMG not in lire(fdr)
+        assert IMG_COUTS not in lire(fdr)

@@ -399,47 +399,72 @@ x
 """
 
 
+def fiche_r(ident, case, dep, fichiers):
+    """Une fiche `ident` à la case `case`, qui dépend de `dep`, avec sa ligne **Fichiers** si `fichiers` n'est pas vide."""
+    return ("<!-- FICHE:%s -->\n## %s [%s] — Fiche %s\n**Dépend de** : %s\n%s**Critère de fin**\nx\n"
+            "<!-- /FICHE -->\n\n" % (ident, ident, case, ident, dep, "**Fichiers** : %s\n" % fichiers if fichiers else ""))
+
+
+def fichier_r(faites):
+    """Le chantier R à sept fiches : R1 faite, et celles de `faites` parmi R2, R3, R4, R7."""
+    return ("# Chantier R\n\n## Le socle commun\n\n## L'ordre des fiches\n\n"
+            + fiche_r("R1", "x", "rien.", "`a.py`")
+            + fiche_r("R2", "x" if "R2" in faites else " ", "`R1`.", "`scripts/a.py`, `b.css`")
+            + fiche_r("R3", "x" if "R3" in faites else " ", "`R1`.", "`c.js` (nouveau) — et rien d'autre.")
+            + fiche_r("R4", "x" if "R4" in faites else " ", "rien.", "`templates/b.css` (`.x > y` `:12`), `compte_todo`")
+            + fiche_r("R5", " ", "`R2`, `R3`,\n`R4` et `PLI9`.", "`d.md`")
+            + fiche_r("R6", " ", "`R1`.", "")
+            + fiche_r("R7", "x" if "R7" in faites else " ", "`R3`.", "`e.md`"))
+
+
+def cartes_r(html):
+    """{identifiant: <li> de sa carte} des fiches d'une page."""
+    return {m.group(1): m.group(0)
+            for m in re.finditer(r'<li class="fiche".*?<span class="id">(\w+)</span>.*?</li>', html, re.S)}
+
+
+def tete_r(attributs, ident):
+    """Le début attendu de la carte `ident`, avec ses `attributs`."""
+    return '<li class="fiche"%s><span class="gauche"><span class="id">%s</span></span>' % (attributs, ident)
+
+
+def dit_r(li, ident, texte):
+    """Vrai si la carte `ident` de `li` porte l'état `texte` ; faux si la carte manque."""
+    return ('<span class="etat">%s</span>' % texte) in li.get(ident, "")
+
+
+def libelle_r(html, ident, texte):
+    """`html` où l'état de la carte `ident` est remplacé par `texte`, à la main."""
+    return re.sub(r'(<span class="id">%s</span>.*?<span class="etat">)[^<]*' % ident,
+                  lambda m: m.group(1) + texte, html, count=1, flags=re.S)
+
+
+def page_r(tpp):
+    """Le chantier R écrit, sa page créée ; rend `(fiches, page, code de page --creer)`."""
+    fiches = os.path.join(tpp, "r.md")
+    page = os.path.join(tpp, "artefacts", "r.html")
+    ecrire(fiches, fichier_r(()))
+    code, _ = appel(["page", fiches, page, "--creer", "--projet", "Proj", "--titre", "T", "--resultat", "R0"])
+    return fiches, page, code
+
+
 def test_pretes_et_paralleles(tmp_path):
-    def fiche(ident, case, dep, fichiers):
-        return ("<!-- FICHE:%s -->\n## %s [%s] — Fiche %s\n**Dépend de** : %s\n%s**Critère de fin**\nx\n"
-                "<!-- /FICHE -->\n\n" % (ident, ident, case, ident, dep, "**Fichiers** : %s\n" % fichiers if fichiers else ""))
-    def fichier_md(faites):
-        return ("# Chantier R\n\n## Le socle commun\n\n## L'ordre des fiches\n\n"
-                + fiche("R1", "x", "rien.", "`a.py`")
-                + fiche("R2", "x" if "R2" in faites else " ", "`R1`.", "`scripts/a.py`, `b.css`")
-                + fiche("R3", "x" if "R3" in faites else " ", "`R1`.", "`c.js` (nouveau) — et rien d'autre.")
-                + fiche("R4", "x" if "R4" in faites else " ", "rien.", "`templates/b.css` (`.x > y` `:12`), `compte_todo`")
-                + fiche("R5", " ", "`R2`, `R3`,\n`R4` et `PLI9`.", "`d.md`")
-                + fiche("R6", " ", "`R1`.", "")
-                + fiche("R7", "x" if "R7" in faites else " ", "`R3`.", "`e.md`"))
-    def cartes(html):
-        return {m.group(1): m.group(0)
-                for m in re.finditer(r'<li class="fiche".*?<span class="id">(\w+)</span>.*?</li>', html, re.S)}
-    def tete(attributs, ident):
-        return '<li class="fiche"%s><span class="gauche"><span class="id">%s</span></span>' % (attributs, ident)
-    def dit(li, ident, texte):
-        return ('<span class="etat">%s</span>' % texte) in li.get(ident, "")
-    def libelle(html, ident, texte):
-        return re.sub(r'(<span class="id">%s</span>.*?<span class="etat">)[^<]*' % ident,
-                      lambda m: m.group(1) + texte, html, count=1, flags=re.S)
+    """Les fiches prêtes, celles qui attendent, et celles qui peuvent partir en même temps ; la page refaite est stable."""
     with tempfile.TemporaryDirectory(dir=tmp_path) as tpp:
-        fiches = os.path.join(tpp, "r.md")
-        page = os.path.join(tpp, "artefacts", "r.html")
-        ecrire(fiches, fichier_md(()))
-        code, _ = appel(["page", fiches, page, "--creer", "--projet", "Proj", "--titre", "T", "--resultat", "R0"])
+        fiches, page, code = page_r(tpp)
         html = lire(page)
-        li = cartes(html)
+        li = cartes_r(html)
         assert code == 0
-        assert li.get("R5", "").startswith(tete(" data-attend", "R5"))
-        assert dit(li, "R5", "Après R2, R3, R4")
-        assert li.get("R7", "").startswith(tete(" data-attend", "R7"))
-        assert dit(li, "R7", "Après R3")
-        assert dit(li, "R4", "À lancer")
-        assert dit(li, "R6", "À lancer")
+        assert li.get("R5", "").startswith(tete_r(" data-attend", "R5"))
+        assert dit_r(li, "R5", "Après R2, R3, R4")
+        assert li.get("R7", "").startswith(tete_r(" data-attend", "R7"))
+        assert dit_r(li, "R7", "Après R3")
+        assert dit_r(li, "R4", "À lancer")
+        assert dit_r(li, "R6", "À lancer")
         assert all('class="dep' not in c for c in li.values())
-        assert li.get("R2", "").startswith(tete(' data-etat="encours"', "R2"))
-        assert dit(li, "R2", "En cours · R3 peut partir en même temps")
-        assert dit(li, "R3", "À lancer · en même temps que R2")
+        assert li.get("R2", "").startswith(tete_r(' data-etat="encours"', "R2"))
+        assert dit_r(li, "R2", "En cours · R3 peut partir en même temps")
+        assert dit_r(li, "R3", "À lancer · en même temps que R2")
         assert all("même temps" not in li.get(i, "même temps") for i in ("R1", "R4", "R5", "R6", "R7"))
         assert mod.lis_page(html).get("R2", ("?",))[0] == "encours"
         assert mod.lis_page(html).get("R5", ("?",))[0] is None
@@ -448,50 +473,61 @@ def test_pretes_et_paralleles(tmp_path):
         assert code == 0
         assert code2 == 0
         assert lire(page) == html
-        # Une page d'avant : « à faire » (avant BTN), « à lancer » et « après » en minuscules (v12 de la page
-        # BTN), une phrase périmée, et un libellé écrit à la main.
-        vieille = html
+
+
+def test_pretes_page_d_avant(tmp_path):
+    """Une page d'avant : « à faire » (avant BTN), « à lancer » et « après » en minuscules (v12 de la page BTN), une
+    phrase périmée, et un libellé écrit à la main ; puis les fiches faites avancent « en même temps »."""
+    with tempfile.TemporaryDirectory(dir=tmp_path) as tpp:
+        fiches, page, _code = page_r(tpp)
+        vieille = lire(page)
         for ident, texte in (("R6", "abandonnée"), ("R4", "à lancer"), ("R3", "À lancer · en même temps que R9"),
                              ("R5", "à faire"), ("R7", "après R3")):
-            vieille = libelle(vieille, ident, texte)
+            vieille = libelle_r(vieille, ident, texte)
         ecrire(page, vieille)
         code, _ = appel(["page", fiches, page, "--forme"])
-        li = cartes(lire(page))
+        li = cartes_r(lire(page))
         assert code == 0
-        assert dit(li, "R3", "À lancer · en même temps que R2")
-        assert dit(li, "R4", "À lancer")
-        assert dit(li, "R5", "Après R2, R3, R4")
-        assert dit(li, "R7", "Après R3")
-        assert dit(li, "R6", "abandonnée")
-        ecrire(fiches, fichier_md(("R2", "R3")))
+        assert dit_r(li, "R3", "À lancer · en même temps que R2")
+        assert dit_r(li, "R4", "À lancer")
+        assert dit_r(li, "R5", "Après R2, R3, R4")
+        assert dit_r(li, "R7", "Après R3")
+        assert dit_r(li, "R6", "abandonnée")
+        ecrire(fiches, fichier_r(("R2", "R3")))
         appel(["page", fiches, page])
-        li = cartes(lire(page))
-        assert dit(li, "R4", "En cours · R7 peut partir en même temps")
-        assert dit(li, "R7", "À lancer · en même temps que R4")
-        assert dit(li, "R5", "Après R4")
-        ecrire(fiches, fichier_md(("R2", "R3", "R4", "R7")))
+        li = cartes_r(lire(page))
+        assert dit_r(li, "R4", "En cours · R7 peut partir en même temps")
+        assert dit_r(li, "R7", "À lancer · en même temps que R4")
+        assert dit_r(li, "R5", "Après R4")
+        ecrire(fiches, fichier_r(("R2", "R3", "R4", "R7")))
         appel(["page", fiches, page])
-        assert (all("même temps" not in c for c in cartes(lire(page)).values())), ("en même temps : une seule prête avec des fichiers — aucun « en même temps »") + "\n" + str(lire(page))
-        # En cours, mais une dépendance plus bas n'est pas faite : l'état reste, puis « attend ».
-        ecrire(fiches, "# Chantier S\n\n" + fiche("S1", " ", "`S2`, `S3`, `S4`.", "`f.md`")
-               + "".join(fiche(i, " ", "rien.", "`g.md`") for i in ("S2", "S3", "S4")))
+        assert (all("même temps" not in c for c in cartes_r(lire(page)).values())), ("en même temps : une seule prête avec des fichiers — aucun « en même temps »") + "\n" + str(lire(page))
+
+
+def test_pretes_attend_et_plage(tmp_path):
+    """En cours, mais une dépendance plus bas n'est pas faite : l'état reste, puis « attend » ; une plage « `P1` à
+    `P4` » se déplie."""
+    with tempfile.TemporaryDirectory(dir=tmp_path) as tpp:
+        fiches = os.path.join(tpp, "r.md")
+        ecrire(fiches, "# Chantier S\n\n" + fiche_r("S1", " ", "`S2`, `S3`, `S4`.", "`f.md`")
+               + "".join(fiche_r(i, " ", "rien.", "`g.md`") for i in ("S2", "S3", "S4")))
         code, _ = appel(["page", fiches, os.path.join(tpp, "artefacts", "s.html"), "--creer", "--projet", "P",
                          "--titre", "T", "--resultat", "R"])
-        li = cartes(lire(os.path.join(tpp, "artefacts", "s.html")))
+        li = cartes_r(lire(os.path.join(tpp, "artefacts", "s.html")))
         assert code == 0
-        assert li.get("S1", "").startswith(tete(' data-etat="encours" data-attend', "S1"))
-        assert dit(li, "S1", "En cours · attend S2, S3, S4")
+        assert li.get("S1", "").startswith(tete_r(' data-etat="encours" data-attend', "S1"))
+        assert dit_r(li, "S1", "En cours · attend S2, S3, S4")
         # Une plage « `P1` à `P4` » (cadrage d'ACA, 2026-10-11) : lue en deux noms, P5 se disait « À lancer »,
         # sans data-attend, alors que P2 et P3, au milieu, ne sont pas faites.
-        ecrire(fiches, "# Chantier P\n\n" + "".join(fiche(i, c, "rien.", "`%s.md`" % i) for i, c in
+        ecrire(fiches, "# Chantier P\n\n" + "".join(fiche_r(i, c, "rien.", "`%s.md`" % i) for i, c in
                                                      (("P1", "x"), ("P2", " "), ("P3", " "), ("P4", "x")))
-               + fiche("P5", " ", "`P1` à `P4`.", "`p5.md`"))
+               + fiche_r("P5", " ", "`P1` à `P4`.", "`p5.md`"))
         code, _s = appel(["page", fiches, os.path.join(tpp, "artefacts", "p.html"), "--creer", "--projet", "P",
                          "--titre", "T", "--resultat", "R"])
-        li = cartes(lire(os.path.join(tpp, "artefacts", "p.html")))
+        li = cartes_r(lire(os.path.join(tpp, "artefacts", "p.html")))
         assert code == 0
-        assert li.get("P5", "").startswith(tete(" data-attend", "P5"))
-        assert dit(li, "P5", "Après P2, P3")
+        assert li.get("P5", "").startswith(tete_r(" data-attend", "P5"))
+        assert dit_r(li, "P5", "Après P2, P3")
         assert mod.deplier_plages("`P4` à `P2`") == "`P4` à `P2`"
 
 
@@ -564,64 +600,82 @@ def test_bilan_en_haut(tmp_path):
         assert "<section hidden>\n    <h2>Chantier clos le" in html
 
 
+FORME_C1, FORME_C2 = "≈1,1k (1 111) · 1 tours · 0,01 $", "≈2,2k (2 222) · 2 tours · 0,02 $"
+FORME_TOTAL = "Coût du chantier : ≈11,3M (11 262 523) · 42 tours · 3,40 $"
+FORME_HORS = "Hors fiches : ≈5,0k (5 000) · 1 tours · 0,05 $"
+
+
+def depot_forme(tfo, init_git):
+    """Un dépôt à trois commits de fiche et une transcription, la page du chantier Q créée ; rend `(fiches, page)`."""
+    sq = os.path.join(tfo, "s.jsonl")
+    transcript(sq, 6, [T0 + d for d in (50, 200, 250, 400, 700, 1000)])
+    fiches = os.path.join(tfo, "q.md")
+    ecrire(fiches, QFICHES % (sq, sq))
+    env = dict(os.environ, GIT_CONFIG_GLOBAL=os.path.join(tfo, "gitconfig"), GIT_CONFIG_NOSYSTEM="1",
+               GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t")
+    ecrire(env["GIT_CONFIG_GLOBAL"], "")
+    init_git(tfo)
+    for d, sujet in ((100, "Chantier Q ouvert : cadré"), (300, "Q1 : Créer"), (600, "Q2 : Brancher")):
+        date = "%d +0000" % (T0 + d)
+        subprocess.run(["git", "commit", "-q", "--allow-empty", "-m", sujet], cwd=tfo, check=True,
+                       capture_output=True, env=dict(env, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date))
+    page = os.path.join(tfo, "artefacts", "q.html")
+    code, s = appel(["page", fiches, page, "--creer", "--projet", "P", "--titre", "T", "--resultat", "R",
+                     "--date", "2026-01-05"])
+    assert (code == 0), ("HAB1 : la page de départ se crée") + "\n" + str(s)
+    return fiches, page
+
+
+def ancien_format(html):
+    """`html` à l'ancien format : style dans la page, fiches à plat, bilan visible en bas, chiffres d'une autre mesure
+    (FORME_C1, FORME_C2, FORME_TOTAL, FORME_HORS), un libellé et un comptage écrits à la main."""
+    html = avec_style_inline(html)
+    for balise in ("<details open>", "<details>", "</details>", "<summary>", "</summary>"):
+        html = html.replace(balise, "")
+    html = re.sub(r'<span class="cout mono">.*?</span>', "", html)
+    # Écrits à la main sur les vieilles pages (18-evals, 11-conso du kit) : un libellé, un comptage.
+    html = re.sub(r'(<span class="id">Q2</span>.*?<span class="etat">)Faite(</span>)', r"\1abandonnée\2", html, count=1, flags=re.S)
+    html = re.sub(r'(<p class="mono" style="margin-top:.5rem">).*?(</p>)', r"\g<1>2 fiches · Q2 abandonnée · clos\2", html, count=1)
+    for q, c in (("Q1", FORME_C1), ("Q2", FORME_C2)):
+        html = re.sub(r'(<span class="id">%s</span>.*?)(\s*</li>)' % q,
+                      lambda m, c=c: m.group(1) + '\n        <span class="cout mono">%s</span>' % c + m.group(2),
+                      html, count=1, flags=re.S)
+    html = re.sub(r'<p class="mono cout-total">.*?</p>', '<p class="mono cout-total">%s</p>' % FORME_TOTAL, html, flags=re.S)
+    html = re.sub(r'<p class="mono cout-hors">.*?</p>', '<p class="mono cout-hors">%s</p>' % FORME_HORS, html, flags=re.S)
+    i = html.index("  <!-- ZONE:bilan")
+    fin = html.index("  </section>\n", i) + len("  </section>\n\n")
+    bloc = html[i:fin].replace("<section hidden>", "<section>", 1).replace("<p></p>", "<p>Fini.</p>", 1)
+    return (html[:i] + html[fin:]).replace("  <footer>", bloc + "  <footer>", 1)
+
+
+def page_ancienne(tfo, init_git):
+    """La page du chantier Q remise à l'ancien format sur le disque ; rend `(fiches, page, html ancien)`."""
+    if not shutil.which("git"):
+        pytest.skip("git absent — page --forme n'est pas testée")
+    fiches, page = depot_forme(tfo, init_git)
+    html = ancien_format(lire(page))
+    assert "<style>" in html
+    assert "<details" not in html
+    assert FORME_TOTAL in html
+    assert html.index("ZONE:bilan") > html.index("ZONE:fiches")
+    ecrire(page, html)
+    return fiches, page, html
+
+
 def test_forme(tmp_path, init_git):
     """page --forme (chantier HAB1) : la forme d'une page ancienne refaite, ses chiffres gardés,
     même dans un dépôt dont les commits de fiche feraient changer le coût."""
-    if not shutil.which("git"):
-        pytest.skip("git absent — page --forme n'est pas testée")
-        return
     with tempfile.TemporaryDirectory(dir=tmp_path) as tfo:
-        sq = os.path.join(tfo, "s.jsonl")
-        transcript(sq, 6, [T0 + d for d in (50, 200, 250, 400, 700, 1000)])
-        fiches = os.path.join(tfo, "q.md")
-        ecrire(fiches, QFICHES % (sq, sq))
-        env = dict(os.environ, GIT_CONFIG_GLOBAL=os.path.join(tfo, "gitconfig"), GIT_CONFIG_NOSYSTEM="1",
-                   GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t")
-        ecrire(env["GIT_CONFIG_GLOBAL"], "")
-        init_git(tfo)
-        for d, sujet in ((100, "Chantier Q ouvert : cadré"), (300, "Q1 : Créer"), (600, "Q2 : Brancher")):
-            date = "%d +0000" % (T0 + d)
-            subprocess.run(["git", "commit", "-q", "--allow-empty", "-m", sujet], cwd=tfo, check=True,
-                           capture_output=True, env=dict(env, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date))
-        page = os.path.join(tfo, "artefacts", "q.html")
-        code, s = appel(["page", fiches, page, "--creer", "--projet", "P", "--titre", "T", "--resultat", "R",
-                         "--date", "2026-01-05"])
-        assert (code == 0), ("HAB1 : la page de départ se crée") + "\n" + str(s)
-        # L'ancien format : style dans la page, fiches à plat, bilan visible en bas, chiffres d'une autre mesure.
-        html = avec_style_inline(lire(page))
-        for balise in ("<details open>", "<details>", "</details>", "<summary>", "</summary>"):
-            html = html.replace(balise, "")
-        html = re.sub(r'<span class="cout mono">.*?</span>', "", html)
-        # Écrits à la main sur les vieilles pages (18-evals, 11-conso du kit) : un libellé, un comptage.
-        html = re.sub(r'(<span class="id">Q2</span>.*?<span class="etat">)Faite(</span>)', r"\1abandonnée\2", html, count=1, flags=re.S)
-        html = re.sub(r'(<p class="mono" style="margin-top:.5rem">).*?(</p>)', r"\g<1>2 fiches · Q2 abandonnée · clos\2", html, count=1)
-        c1, c2 = "≈1,1k (1 111) · 1 tours · 0,01 $", "≈2,2k (2 222) · 2 tours · 0,02 $"
-        for q, c in (("Q1", c1), ("Q2", c2)):
-            html = re.sub(r'(<span class="id">%s</span>.*?)(\s*</li>)' % q,
-                          lambda m, c=c: m.group(1) + '\n        <span class="cout mono">%s</span>' % c + m.group(2),
-                          html, count=1, flags=re.S)
-        total = "Coût du chantier : ≈11,3M (11 262 523) · 42 tours · 3,40 $"
-        hors = "Hors fiches : ≈5,0k (5 000) · 1 tours · 0,05 $"
-        html = re.sub(r'<p class="mono cout-total">.*?</p>', '<p class="mono cout-total">%s</p>' % total, html, flags=re.S)
-        html = re.sub(r'<p class="mono cout-hors">.*?</p>', '<p class="mono cout-hors">%s</p>' % hors, html, flags=re.S)
-        i = html.index("  <!-- ZONE:bilan")
-        fin = html.index("  </section>\n", i) + len("  </section>\n\n")
-        bloc = html[i:fin].replace("<section hidden>", "<section>", 1).replace("<p></p>", "<p>Fini.</p>", 1)
-        html = (html[:i] + html[fin:]).replace("  <footer>", bloc + "  <footer>", 1)
-        assert "<style>" in html
-        assert "<details" not in html
-        assert total in html
-        assert html.index("ZONE:bilan") > html.index("ZONE:fiches")
-        ecrire(page, html)
+        fiches, page, html = page_ancienne(tfo, init_git)
         code, s = appel(["page", fiches, page, "--forme", "--date", "2026-01-06"])
         apres = lire(page)
         lu = mod.lis_page(apres)
         assert code == 0
-        assert apres.count(total) == 1
-        assert apres.count(hors) == 1
+        assert apres.count(FORME_TOTAL) == 1
+        assert apres.count(FORME_HORS) == 1
         assert "total ≈11,3M (11 262 523) · 42 tours · 3,40 $" in s
-        assert lu["Q1"][2] == c1
-        assert lu["Q2"][2] == c2
+        assert lu["Q1"][2] == FORME_C1
+        assert lu["Q2"][2] == FORME_C2
         assert "<style>" not in apres
         assert apres.count('href="vlp.css"') == 1
         assert apres.count("<details") >= 2
@@ -637,6 +691,14 @@ def test_forme(tmp_path, init_git):
         code, s = appel(["vigile", page])
         assert code == 0
         assert s.startswith("PAGE SAINE")
+
+
+def test_forme_rejouee(tmp_path, init_git):
+    """page --forme rejouée : rien ne bouge ; avec --creer : refusée ; sans --forme, la même page recompte — la preuve
+    que le dépôt ferait changer le total."""
+    with tempfile.TemporaryDirectory(dir=tmp_path) as tfo:
+        fiches, page, _html = page_ancienne(tfo, init_git)
+        appel(["page", fiches, page, "--forme", "--date", "2026-01-06"])
         avant = lire(page)
         code, s = appel(["page", fiches, page, "--forme", "--date", "2026-01-06"])
         assert code == 0
@@ -646,10 +708,9 @@ def test_forme(tmp_path, init_git):
         assert code == 1
         assert s.startswith("GARDE: --forme ne va pas avec --creer")
         assert not os.path.exists(os.path.join(tfo, "neuve.html"))
-        # Témoin : sans --forme, la même page recompte — la preuve que le dépôt ferait changer le total.
         code, s = appel(["page", fiches, page, "--date", "2026-01-06"])
         assert code == 0
-        assert total not in lire(page)
+        assert FORME_TOTAL not in lire(page)
 
 
 def projet_clos(dossier, liens=()):
