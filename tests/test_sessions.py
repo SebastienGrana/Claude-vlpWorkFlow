@@ -141,28 +141,40 @@ def test_cout_sous_agent_nomme(tmp_path, init_git):
         assert "\nTOTAL (fiches + hors fiches) · ≈800,0k (800 000) · 8 tours · 4,00 $ = " in s
 
 
+def session_au_titre(t):
+    """Pose sous `t` la session s (6 tours, de T0 + 50 à T0 + 1000), un sous-agent de 2 tours à T0 + 450, et une
+    config Git à part ; rend (transcript de la session, environnement Git). Git absent : saute le test."""
+    if not shutil.which("git"):
+        pytest.skip("git absent — le commit au titre n'est pas testé")
+    sq = os.path.join(t, "s.jsonl")
+    transcript(sq, 6, [T0 + x for x in (50, 200, 250, 400, 700, 1000)])
+    os.makedirs(os.path.join(t, "s", "subagents"))
+    transcript(os.path.join(t, "s", "subagents", "agent-a1.jsonl"), 2, [T0 + 450, T0 + 460])
+    env = dict(os.environ, GIT_CONFIG_GLOBAL=os.path.join(t, "gitconfig"), GIT_CONFIG_NOSYSTEM="1",
+               GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t")
+    ecrire(env["GIT_CONFIG_GLOBAL"], "")
+    return sq, env
+
+
+def commits_dates(d, env, sujets):
+    """Commite dans `d`, vides, les `(décalage, sujet)` de `sujets`, chacun daté de T0 + décalage ; rend None."""
+    for x, sujet in sujets:
+        date = "%d +0000" % (T0 + x)
+        subprocess.run(["git", "commit", "-q", "--allow-empty", "-m", sujet], cwd=d, check=True,
+                       capture_output=True, env=dict(env, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date))
+
+
 def test_commit_au_titre(tmp_path, init_git):
     """PRP4 : une fiche à deux commits `<id> :` va jusqu'à celui qui porte son titre — `NUI20`,
     coupée à son commit d'étape, perdait sa séance (2 tours au lieu de 35)."""
-    if not shutil.which("git"):
-        pytest.skip("git absent — le commit au titre n'est pas testé")
-        return
     with tempfile.TemporaryDirectory(dir=tmp_path) as t:
-        d, sq = os.path.join(t, "q"), os.path.join(t, "s.jsonl")
-        transcript(sq, 6, [T0 + x for x in (50, 200, 250, 400, 700, 1000)])
-        os.makedirs(os.path.join(t, "s", "subagents"))
-        transcript(os.path.join(t, "s", "subagents", "agent-a1.jsonl"), 2, [T0 + 450, T0 + 460])
+        sq, env = session_au_titre(t)
+        d = os.path.join(t, "q")
         ecrire(os.path.join(d, "q.md"), QFICHES % (sq, sq))
-        env = dict(os.environ, GIT_CONFIG_GLOBAL=os.path.join(t, "gitconfig"), GIT_CONFIG_NOSYSTEM="1",
-                   GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@t")
-        ecrire(env["GIT_CONFIG_GLOBAL"], "")
         init_git(d)
-        for x, sujet in ((100, "Chantier Q ouvert : cadré"), (300, "Q1 : Créer"), (350, "Q2 : l'avant, relevé"),
-                         (380, "Autre : un chantier voisin au milieu"), (600, "Q2 : Brancher"),
-                         (800, "Chantier Q clos : fini"), (950, "Q1 : correctif d'après")):
-            date = "%d +0000" % (T0 + x)
-            subprocess.run(["git", "commit", "-q", "--allow-empty", "-m", sujet], cwd=d, check=True,
-                           capture_output=True, env=dict(env, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date))
+        commits_dates(d, env, ((100, "Chantier Q ouvert : cadré"), (300, "Q1 : Créer"), (350, "Q2 : l'avant, relevé"),
+                               (380, "Autre : un chantier voisin au milieu"), (600, "Q2 : Brancher"),
+                               (800, "Chantier Q clos : fini"), (950, "Q1 : correctif d'après")))
         q = os.path.join(d, "q.md")
         h = mod.heures_commits(q, ["Q1", "Q2"], titres={"Q1": "Créer", "Q2": "Brancher"})
         assert h is not None
@@ -175,28 +187,33 @@ def test_commit_au_titre(tmp_path, init_git):
         assert "\nQ1 · ≈200,0k (200 000) · 2 tours · 1,00 $" in s
         assert "\nQ2 · ≈300,0k (300 000) · 3 tours · 1,50 $" in s
         assert "TOTAL (fiches + hors fiches) · ≈700,0k (700 000) · 7 tours" in s
-        # PRF : un commit `Q1 : case cochée` posé juste avant `Q1 : Créer` ne devient pas le début de Q1.
+
+
+def test_commit_au_titre_case_cochee(tmp_path, init_git):
+    """PRF : un commit `Q1 : case cochée` posé juste avant `Q1 : Créer` ne devient pas le début de Q1."""
+    with tempfile.TemporaryDirectory(dir=tmp_path) as t:
+        sq, env = session_au_titre(t)
         d2 = os.path.join(t, "q2")
         ecrire(os.path.join(d2, "q.md"), QFICHES % (sq, sq))
         init_git(d2)
-        for x, sujet in ((100, "Chantier Q ouvert : cadré"), (298, "Q1 : case cochée, en route"), (300, "Q1 : Créer"),
-                         (600, "Q2 : Brancher"), (800, "Chantier Q clos : fini")):
-            date = "%d +0000" % (T0 + x)
-            subprocess.run(["git", "commit", "-q", "--allow-empty", "-m", sujet], cwd=d2, check=True,
-                           capture_output=True, env=dict(env, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date))
+        commits_dates(d2, env, ((100, "Chantier Q ouvert : cadré"), (298, "Q1 : case cochée, en route"),
+                                (300, "Q1 : Créer"), (600, "Q2 : Brancher"), (800, "Chantier Q clos : fini")))
         code, s = appel(["cout", os.path.join(d2, "q.md")])
         assert code == 0
         assert "\nQ1 · ≈200,0k (200 000) · 2 tours · 1,00 $" in s
         assert "TOTAL (fiches + hors fiches) · ≈700,0k (700 000) · 7 tours" in s
-        # Dette GAI : en parallèle, `Fusion : Q2` suit `Q2 :` d'une seconde ; la clôture va jusqu'au commit qui clôt.
+
+
+def test_commit_au_titre_fusion(tmp_path, init_git):
+    """Dette GAI : en parallèle, `Fusion : Q2` suit `Q2 :` d'une seconde ; la clôture va jusqu'au commit qui clôt,
+    et `clore` d'un projet sans page de chantier (le bac de GAI2) compte son total, comme `cout`."""
+    with tempfile.TemporaryDirectory(dir=tmp_path) as t:
+        sq, env = session_au_titre(t)
         d3 = os.path.join(t, "q3")
         ecrire(os.path.join(d3, "q.md"), QFICHES % (sq, sq))
         init_git(d3)
-        for x, sujet in ((100, "Chantier Q ouvert : cadré"), (300, "Q1 : Créer"), (301, "Fusion : Q1"),
-                         (600, "Q2 : Brancher"), (601, "Fusion : Q2"), (800, "Chantier Q clos : fini")):
-            date = "%d +0000" % (T0 + x)
-            subprocess.run(["git", "commit", "-q", "--allow-empty", "-m", sujet], cwd=d3, check=True,
-                           capture_output=True, env=dict(env, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date))
+        commits_dates(d3, env, ((100, "Chantier Q ouvert : cadré"), (300, "Q1 : Créer"), (301, "Fusion : Q1"),
+                                (600, "Q2 : Brancher"), (601, "Fusion : Q2"), (800, "Chantier Q clos : fini")))
         h = mod.heures_commits(os.path.join(d3, "q.md"), ["Q1", "Q2"])
         code, s = appel(["cout", os.path.join(d3, "q.md")])
         assert h is not None
@@ -211,10 +228,7 @@ def test_commit_au_titre(tmp_path, init_git):
                "Lettres de fiche déjà prises : U (test).\n")
         ecrire(os.path.join(d4, "ctx", "q.md"), ouvert(QFICHES % (sq, sq)))
         init_git(d4)
-        for x, sujet in ((100, "Chantier Q ouvert : cadré"), (300, "Q1 : Créer"), (600, "Q2 : Brancher")):
-            date = "%d +0000" % (T0 + x)
-            subprocess.run(["git", "commit", "-q", "--allow-empty", "-m", sujet], cwd=d4, check=True,
-                           capture_output=True, env=dict(env, GIT_AUTHOR_DATE=date, GIT_COMMITTER_DATE=date))
+        commits_dates(d4, env, ((100, "Chantier Q ouvert : cadré"), (300, "Q1 : Créer"), (600, "Q2 : Brancher")))
         code, s = appel(["clore", d4, "--livre", "fini", "--date", "2026-10-17"])
         assert code == 0
         assert "CLOS Q " in s

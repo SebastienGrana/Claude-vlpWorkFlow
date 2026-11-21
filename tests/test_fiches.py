@@ -83,7 +83,8 @@ SANS = "## Z1 [ ] — ancien\nlong\n---\n## Z2 [ ] — dernier\nfin\n"
 
 
 def test_extraire_socle(tmp_path):
-    """Contrôler `extraire`, `socle` et `carte` sur un fichier de fiches : marqueurs, CRLF, fichier absent (chantier U)."""
+    """Contrôler `extraire`, `socle` et `sessions` sur un fichier de fiches à marqueurs, et un marqueur fermant absent
+    (chantier U)."""
     with tempfile.TemporaryDirectory(dir=tmp_path) as t:
         f = os.path.join(t, "y.md")
         ecrire(f, AVEC)
@@ -115,6 +116,12 @@ def test_extraire_socle(tmp_path):
         assert "Y2" not in s
         assert s.endswith("```\n\n---\n\n--- fiche, lignes : 11\n")
 
+
+def test_extraire_socle_sans_marqueurs(tmp_path):
+    """`extraire`, `socle` et `sessions` sur un fichier sans marqueurs (repli), en CRLF, et sur un fichier absent
+    (chantier U)."""
+    with tempfile.TemporaryDirectory(dir=tmp_path) as t:
+        f = os.path.join(t, "y.md")
         ecrire(f, SANS)
         code, s = appel(["extraire", f, "Z1"])
         assert code == 0
@@ -138,6 +145,10 @@ def test_extraire_socle(tmp_path):
         assert code == 1
         assert "GARDE: fichier introuvable" in s
 
+
+def test_extraire_socle_carte(tmp_path):
+    """`carte` hors d'un projet : AUCUN_PROJET, la ligne PYTHON=, et deux relais muets (U4)."""
+    with tempfile.TemporaryDirectory(dir=tmp_path) as t:
         code, s = appel(["carte", os.path.join(t, "nulle-part")])
         assert code == 0
         assert s == "AUCUN_PROJET\n"

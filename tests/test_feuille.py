@@ -413,7 +413,9 @@ def test_carte_en_colonnes(tmp_path):
     assert mod.depend_todo("`A`, `B`, `C`") == '<span class="dep mono" title="A, B, C">← 3 chantiers</span>'
 
 
-def test_decompte_todo(tmp_path):
+def test_decompte_todo():
+    """Le gabarit porte le décompte en valeur ; `borne_haute_cout` lit la borne haute d'une cellule « Coût », et les
+    cellules lues de travers à `AVL7` (CLU)."""
     gabarit = lire(os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html"))
     assert ([l.strip() for l in gabarit.splitlines() if "resume-todo" in l]
              == ['<p class="resume-todo"><strong>&lt;n&gt; chantiers possibles</strong></p>']), ("Dette BTN : le gabarit porte le décompte en valeur, sans style= (mutant : ancienne forme)") + "\n" + ""
@@ -441,7 +443,11 @@ def test_decompte_todo(tmp_path):
     }
     lues_clu = {c: mod.borne_haute_cout(c) for c in fautives}
     assert (lues_clu == fautives), ("CLU : borne_haute_cout — un ajout « +½ » s'additionne, un prix par fiche et une parenthèse ne se lisent pas") + "\n" + str([(c[:40], v) for c, v in lues_clu.items() if v != fautives[c]])
-    # les cellules « Coût » de la TODO du 2026-10-08, recopiées telles quelles (NUI38)
+
+
+def test_decompte_todo_cellules():
+    """NUI38 : `borne_haute_cout` sur les cellules « Coût » de la TODO du 2026-10-08, recopiées telles quelles ; puis
+    `est_bloque` sur un code, un numéro, une plage, un autre projet."""
     cellules = {
         "~6 fiches, plus une nuit d'essai · ré-estimé à `MET10` (restent `NUI28` à `NUI32` et `NUI20`, `CLR` compris : "
         "7 fiches) : 14 à 21 fiches, 52 à 77 $, plus la nuit d'essai (borne 20 $)": 21.0,
@@ -470,6 +476,11 @@ def test_decompte_todo(tmp_path):
     assert mod.est_bloque("1..9", ["AAA"], {"5"}) is True
     assert mod.est_bloque("—", ["AAA"], {"1"}) is False
     assert mod.est_bloque("`C1` de MapDecorator", ["AAA"], set()) is True
+
+
+def test_decompte_todo_fichier(tmp_path):
+    """FEU8 : le décompte d'une TODO lue en mémoire ; BTN7 : `feuille` l'écrit en valeur, une seule fois, et replie le
+    texte d'avant la liste."""
     # Fichier d'état en mémoire, comme demandé par le critère de fin de FEU8 : 4 rangs, un de
     # chaque taille et un pas estimé ; deux bloqués (code `ZZZ` absent, numéro 1 encore présent).
     lignes = ["| # | Chantier | Apporte | Coût | Dépend |", "|---|---|---|---|---|",

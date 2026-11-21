@@ -79,19 +79,34 @@ PAGE = """# Chantier P
 """
 
 
-def test_page_creer(tmp_path):
-    """Contrôler `page --creer`, `page --verifier` et une page absente."""
-    with tempfile.TemporaryDirectory(dir=tmp_path) as t:
-        fiches = os.path.join(t, "p.md")
-        page = os.path.join(t, "artefacts", "p.html")  # comme en vrai : le .md de l'abri (même dossier que la
-        # page) ne collisionne pas avec le fichier de fiches, dans le dossier parent (chantier ABR)
-        sa, sb = os.path.join(t, "a.jsonl"), os.path.join(t, "b.jsonl")
-        transcript(sa, 2)
-        transcript(sb, 1)
+def page_creee(t):
+    """Pose sous `t` le fichier de fiches P1–P3 (aucune cochée), deux transcripts a (2 tours) et b (1 tour), et crée
+    sa page par `page --creer` ; rend ((fiches, page, transcript a, transcript b), (code, sortie) de la création)."""
+    fiches = os.path.join(t, "p.md")
+    page = os.path.join(t, "artefacts", "p.html")  # comme en vrai : le .md de l'abri (même dossier que la
+    # page) ne collisionne pas avec le fichier de fiches, dans le dossier parent (chantier ABR)
+    sa, sb = os.path.join(t, "a.jsonl"), os.path.join(t, "b.jsonl")
+    transcript(sa, 2)
+    transcript(sb, 1)
+    ecrire(fiches, PAGE % (" ", "", " ", ""))
+    sortie = appel(["page", fiches, page, "--creer", "--projet", "Proj", "--titre", "Le <titre>",
+                    "--resultat", "Fini quand.", "--note", "P1", "Produit a.py", "--date", "2026-01-02"])
+    return (fiches, page, sa, sb), sortie
 
-        ecrire(fiches, PAGE % (" ", "", " ", ""))
-        code, s = appel(["page", fiches, page, "--creer", "--projet", "Proj", "--titre", "Le <titre>",
-                         "--resultat", "Fini quand.", "--note", "P1", "Produit a.py", "--date", "2026-01-02"])
+
+def page_p1_faite(chemins):
+    """Sur les `chemins` de `page_creee` : P1 cochée sur la session a, et la page régénérée avec une note et un
+    journal ; rend (code, sortie) de la régénération."""
+    fiches, page, sa, _ = chemins
+    ecrire(fiches, PAGE % ("x", "**Session** : %s\n" % sa, " ", ""))
+    return appel(["page", fiches, page, "--note", "P1", "a.py : <3 tests>", "--journal", "P1 : tranché.",
+                  "--date", "2026-01-03"])
+
+
+def test_page_creer(tmp_path):
+    """Contrôler `page --creer` : la page neuve, et une seconde création refusée."""
+    with tempfile.TemporaryDirectory(dir=tmp_path) as t:
+        (fiches, page, _, _), (code, s) = page_creee(t)
         html = lire(page) if os.path.exists(page) else ""
         assert code == 0
         assert "<title>Proj — Le &lt;titre&gt;</title>" in html
@@ -105,7 +120,16 @@ def test_page_creer(tmp_path):
         assert '<p class="mono cout-hors">' not in html
         assert "Mis à jour le <span class=\"mono\">2026-01-02</span>" in html
         assert "lignes · total non mesuré" in s
-        # Dette CLI : `--projet .` écrivait « . » en tête de page ; un dossier donne son alias, sinon son nom
+        code, s = appel(["page", fiches, page, "--creer", "--projet", "P", "--titre", "T", "--resultat", "R"])
+        assert code == 1
+        assert "existe déjà" in s
+
+
+def test_page_creer_nom_du_projet(tmp_path):
+    """Dette CLI : `--projet .` écrivait « . » en tête de page ; un dossier donne son alias, sinon son nom."""
+    with tempfile.TemporaryDirectory(dir=tmp_path) as t:
+        fiches = os.path.join(t, "p.md")
+        ecrire(fiches, PAGE % (" ", "", " ", ""))
         with tempfile.TemporaryDirectory(dir=tmp_path) as tnom:
             dnom = os.path.join(tnom, "mon-projet")
             os.makedirs(dnom)
@@ -118,16 +142,20 @@ def test_page_creer(tmp_path):
             assert ('<div class="eyebrow">mp · fiches'
                      in lire(pnom))
             assert "<title>mp — T</title>" in lire(pnom)
-        code, s = appel(["page", fiches, page, "--creer", "--projet", "P", "--titre", "T", "--resultat", "R"])
-        assert code == 1
-        assert "existe déjà" in s
 
+
+def test_page_creer_verifier(tmp_path):
+    """`page --verifier` : en retard quand le fichier a coché P1, à jour après la régénération, qui porte la note, le
+    journal et le coût ; régénérer deux fois ne change rien."""
+    with tempfile.TemporaryDirectory(dir=tmp_path) as t:
+        chemins, _ = page_creee(t)
+        fiches, page, sa, _ = chemins
         ecrire(fiches, PAGE % ("x", "**Session** : %s\n" % sa, " ", ""))
         code, s = appel(["page", fiches, page, "--verifier"])
         assert code == 1
         assert "ÉCART: P1 : page encours, fichier faite" in s
         assert "EN RETARD 3 fiches · 3 écarts" in s
-        code, s = appel(["page", fiches, page, "--note", "P1", "a.py : <3 tests>", "--journal", "P1 : tranché.", "--date", "2026-01-03"])
+        code, s = page_p1_faite(chemins)
         html = lire(page)
         assert code == 0
         assert '<li class="fiche" data-etat="faite">' in html
@@ -143,14 +171,20 @@ def test_page_creer(tmp_path):
         appel(["page", fiches, page, "--date", "2026-01-03"])
         assert (lire(page) == avant), ("page : régénérer deux fois ne change rien") + "\n" + str(lire(page))
 
-        # P2 partage la session de P1 : P1 garde son coût affiché, P2 prend le reste, plus b, sa seconde session
-        # (REF22 : elles s'écrasaient, tranché le 2026-11-02 : on additionne).
-        # L'ancien total compte 1 tour de cadrage (100 000) qu'aucune fiche ne porte : il reste hors de P2.
+
+def test_page_creer_session_partagee(tmp_path):
+    """P2 partage la session de P1 : P1 garde son coût affiché, P2 prend le reste, plus b, sa seconde session
+    (REF22 : elles s'écrasaient, tranché le 2026-11-02 : on additionne). L'ancien total compte 1 tour de cadrage
+    (100 000) qu'aucune fiche ne porte : il reste hors de P2."""
+    with tempfile.TemporaryDirectory(dir=tmp_path) as t:
+        chemins, _ = page_creee(t)
+        fiches, page, sa, sb = chemins
+        page_p1_faite(chemins)
         ecrire(page, lire(page).replace("Coût du chantier : ≈200,0k (200 000) · 2 tours · 1,00 $",
                                         "Coût du chantier : ≈300,0k (300 000) · 3 tours · 1,50 $"))
         transcript(sa, 4)
         ecrire(fiches, PAGE % ("x", "**Session** : %s\n" % sa, "x", "**Session** : %s\n**Session** : %s\n" % (sa, sb)))
-        code, s = appel(["page", fiches, page, "--date", "2026-01-04"])
+        code, _ = appel(["page", fiches, page, "--date", "2026-01-04"])
         html = lire(page)
         assert code == 0
         assert html.count('<span class="cout mono">≈200,0k (200 000) · 2 tours · 1,00 $</span>') == 2
@@ -161,7 +195,14 @@ def test_page_creer(tmp_path):
         appel(["page", fiches, page, "--date", "2026-01-04"])
         assert (lire(page) == avant), ("page : session partagée, régénérer deux fois ne change rien") + "\n" + str(lire(page))
 
-        # Blocage : bloquée reste bloquée tant que non cochée ; le bloc se masque quand elle l'est.
+
+def test_page_creer_blocage(tmp_path):
+    """Blocage : bloquée reste bloquée tant que non cochée ; le bloc se masque quand elle l'est. Puis l'en-tête suit
+    la plage du fichier : quand on ajoute P4, la plage devient P1–P4, mais ce qui suit reste."""
+    with tempfile.TemporaryDirectory(dir=tmp_path) as t:
+        (fiches, page, _, _), _ = page_creee(t)
+        ecrire(fiches, PAGE % ("x", "", "x", ""))
+        appel(["page", fiches, page])
         html = lire(page).replace('<li class="fiche" data-etat="encours">', '<li class="fiche" data-etat="bloquee">')
         html = html.replace("<section hidden>\n    <h2>Arrêt sur blocage</h2>", "<section>\n    <h2>Arrêt sur blocage</h2>")
         html = html.replace('<div class="blocage">\n      <p></p>', '<div class="blocage">\n      <p>P3 — deux essais.</p>')
@@ -172,21 +213,24 @@ def test_page_creer(tmp_path):
         assert "bloquée : P3" in html
         assert "<section>\n    <h2>Arrêt sur blocage</h2>" in html
         ecrire(fiches, lire(fiches).replace("## P3 [ ]", "## P3 [x]"))
-        code, s = appel(["page", fiches, page])
+        code, _ = appel(["page", fiches, page])
         html = lire(page)
         assert code == 0
         assert "<section hidden>\n    <h2>Arrêt sur blocage</h2>" in html
         assert "3 fiches · 3 faites</p>" in html
         assert 'data-etat="bloquee"' not in html.split('<div class="page">')[1]
-
-        # L'en-tête suit la plage du fichier : quand on ajoute P4, la plage devient P1–P4, mais ce qui suit reste.
         ecrire(page, lire(page).replace('Proj · fiches P1–P3</div>', 'Proj · fiches P1–P3 · clos</div>'))
         ecrire(fiches, lire(fiches) + '\n<!-- FICHE:P4 -->\n## P4 [ ] — Ajoutée\n**Critère de fin**\n<!-- /FICHE -->\n')
-        code, s = appel(["page", fiches, page])
+        code, _ = appel(["page", fiches, page])
         html = lire(page)
         assert code == 0
         assert 'Proj · fiches P1–P4 · clos</div>' in html
 
+
+def test_page_creer_une_fiche(tmp_path):
+    """Une page d'une seule fiche porte `fiches U1` ; un en-tête sans plage reconnue reste tel quel (REV6) ; une page
+    absente, sans `--creer`, refusée."""
+    with tempfile.TemporaryDirectory(dir=tmp_path) as t:
         u_fiches = os.path.join(t, "u.md")
         u_page = os.path.join(t, "artefacts", "u.html")
         ecrire(u_fiches, "# Chantier U\n\n## Le socle commun\n\n## L'ordre des fiches\n\n<!-- FICHE:U1 -->\n## U1 [ ] — Seule\n**Critère de fin**\n<!-- /FICHE -->\n")
@@ -204,7 +248,7 @@ def test_page_creer(tmp_path):
             assert "Proj · %s</div>" % entete in html
         ecrire(u_page, u_html)
 
-        code, s = appel(["page", fiches, os.path.join(t, "absente.html")])
+        code, s = appel(["page", u_fiches, os.path.join(t, "absente.html")])
         assert code == 1
         assert "--creer" in s
 

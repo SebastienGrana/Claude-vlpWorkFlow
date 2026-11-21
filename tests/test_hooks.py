@@ -100,23 +100,25 @@ def test_hook_fiches(tmp_path):
         assert "section absente : ## Le socle commun" in e
 
 
+def filet_test(json_obj):
+    """Appelle `vlp.py filet` avec l'entrée JSON ; rend (code, sortie, erreur)."""
+    o, e = io.StringIO(), io.StringIO()
+    code = mod.main(["filet"], o, io.StringIO(json.dumps(json_obj)), e)
+    return code, o.getvalue(), e.getvalue()
+
+
+def creer_trans(chemin, tours):
+    """Écrit à `chemin` un transcript factice de `tours` messages (dossiers créés au besoin) ; rend None."""
+    os.makedirs(os.path.dirname(chemin), exist_ok=True)
+    with open(chemin, "w", encoding="utf-8") as f:
+        for n in range(tours):
+            d = {"message": {"id": f"m{n}", "usage": {"input_tokens": 100, "output_tokens": 50}}}
+            f.write(json.dumps(d) + "\n")
+
+
 def test_filet(tmp_path):
-    """Contrôler le filet : sous-agent ou non, un avertissement par tour (chantier TOU)."""
+    """Contrôler le filet : sous-agent ou non, un avertissement aux derniers tours (chantier TOU)."""
     with tempfile.TemporaryDirectory(dir=tmp_path) as t:
-        def filet_test(json_obj):
-            """Appelle vlp.py filet avec l'entrée JSON."""
-            o, e = io.StringIO(), io.StringIO()
-            code = mod.main(["filet"], o, io.StringIO(json.dumps(json_obj)), e)
-            return code, o.getvalue(), e.getvalue()
-
-        def creer_trans(chemin, tours):
-            """Crée un transcript factice."""
-            os.makedirs(os.path.dirname(chemin), exist_ok=True)
-            with open(chemin, "w", encoding="utf-8") as f:
-                for n in range(tours):
-                    d = {"message": {"id": f"m{n}", "usage": {"input_tokens": 100, "output_tokens": 50}}}
-                    f.write(json.dumps(d) + "\n")
-
         # Pas d'agent_id
         code, o, e = filet_test({"agent_type": "vlp:fiche"})
         assert ((code, o, e) == (0, "", "")), ("filet : pas agent_id, muet") + "\n" + str(o + e)
@@ -157,31 +159,34 @@ def test_filet(tmp_path):
         assert '"hookEventName": "PostToolUseFailure"' in o
         assert '"additionalContext": "Attention : 3 tours restants' in o
 
-        # TOU2 : une fois par tour — tampon `vlp-filet-<agent_id>-<tours>` dans un TAMPON_HOOKS neuf
-        ancien_tampon = mod.etat.TAMPON_HOOKS
-        mod.etat.TAMPON_HOOKS = tempfile.mkdtemp()
-        try:
-            def salve(*ids):
-                """Un appel par id d'outil (entrées différentes) ; rend le nombre de sorties non vides."""
-                return sum(bool(filet_test({"agent_type": "vlp:fiche", "agent_id": "a1", "tool_use_id": i,
-                                            "transcript_path": t_fwd + "/s.jsonl"})[1]) for i in ids)
-            creer_trans(sub_path, 77)
-            assert (salve("u1", "u2") == 1), ("TOU2 : deux appels du même tour, une seule sortie") + "\n" + ""
-            creer_trans(sub_path, 78)
-            assert (salve("u3") == 1), ("TOU2 : un tour de plus, le filet avertit de nouveau") + "\n" + ""
-            creer_trans(sub_path, 77)
-            os.environ["VLP_SANS_TAMPON"] = "1"
-            try:
-                n = salve("u4", "u5")
-            finally:
-                del os.environ["VLP_SANS_TAMPON"]
-            assert (n == 2), ("TOU2 : VLP_SANS_TAMPON, deux sorties") + "\n" + str(str(n))
-        finally:
-            shutil.rmtree(mod.etat.TAMPON_HOOKS, ignore_errors=True)
-            mod.etat.TAMPON_HOOKS = ancien_tampon
 
-        # Un vrai chemin de plus de 260 caractères, bâti comme dans FIL1 : sans le préfixe,
-        # isfile et open y disent absent un transcript présent ; le filet doit avertir quand même
+def test_filet_tampon(tmp_path, monkeypatch):
+    """TOU2 : le filet n'avertit qu'une fois par tour — tampon `vlp-filet-<agent_id>-<tours>` dans un TAMPON_HOOKS
+    neuf ; `VLP_SANS_TAMPON` le lève."""
+    t_fwd = str(tmp_path).replace(os.sep, '/')
+    sub_path = os.path.join(str(tmp_path), "s", "subagents", "agent-a1.jsonl")
+    monkeypatch.setattr(mod.etat, "TAMPON_HOOKS", str(tmp_path / "tampon"))
+    os.makedirs(mod.etat.TAMPON_HOOKS)
+
+    def salve(*ids):
+        """Un appel par id d'outil (entrées différentes) ; rend le nombre de sorties non vides."""
+        return sum(bool(filet_test({"agent_type": "vlp:fiche", "agent_id": "a1", "tool_use_id": i,
+                                    "transcript_path": t_fwd + "/s.jsonl"})[1]) for i in ids)
+    creer_trans(sub_path, 77)
+    assert (salve("u1", "u2") == 1), ("TOU2 : deux appels du même tour, une seule sortie") + "\n" + ""
+    creer_trans(sub_path, 78)
+    assert (salve("u3") == 1), ("TOU2 : un tour de plus, le filet avertit de nouveau") + "\n" + ""
+    creer_trans(sub_path, 77)
+    monkeypatch.setenv("VLP_SANS_TAMPON", "1")
+    n = salve("u4", "u5")
+    monkeypatch.delenv("VLP_SANS_TAMPON")
+    assert (n == 2), ("TOU2 : VLP_SANS_TAMPON, deux sorties") + "\n" + str(str(n))
+
+
+def test_filet_chemin_long(tmp_path):
+    """Un vrai chemin de plus de 260 caractères, bâti comme dans FIL1 : sans le préfixe, isfile et open y disent
+    absent un transcript présent ; le filet doit avertir quand même."""
+    with tempfile.TemporaryDirectory(dir=tmp_path) as t:
         if os.name != "nt":
             pytest.skip("hors Windows — le chemin long du filet n'est pas testé (le préfixe est propre à Windows)")
         else:
@@ -190,10 +195,10 @@ def test_filet(tmp_path):
             long_sub = os.path.join(long_base, "subagents", "agent-a1.jsonl")
             os.makedirs(prefixe + os.path.dirname(long_sub))
             with open(prefixe + long_sub, "w", encoding="utf-8") as f:
-                for n in range(77):
-                    f.write(json.dumps({"message": {"id": f"m{n}", "usage": {"input_tokens": 1}}}) + "\n")
+                f.writelines(json.dumps({"message": {"id": f"m{n}", "usage": {"input_tokens": 1}}}) + "\n"
+                             for n in range(77))
             try:
-                code, o, e = filet_test({"agent_type": "vlp:fiche", "agent_id": "a1",
+                _, o, _ = filet_test({"agent_type": "vlp:fiche", "agent_id": "a1",
                                          "transcript_path": long_base.replace(os.sep, "/") + ".jsonl"})
                 assert len(long_sub) > 260
                 assert '"additionalContext": "Attention : 3 tours restants' in o
@@ -272,49 +277,68 @@ def test_contrat(tmp_path):
         assert ("interrompue vlp:fiche 2026-09-24T10:00:00Z (interrompu) git 0 bloqué 0\n" in s), ("ENQ1 : la ligne de l'interrompu porte (interrompu)") + "\n" + str(s)
 
 
-def test_gardien(tmp_path, init_git):
-    """Contrôler le gardien : ce qu'il refuse et laisse passer, entrées illisibles."""
+FICHE = {"agent_id": "a1", "agent_type": "vlp:fiche"}
+RELECTURE = {"agent_id": "a2", "agent_type": "vlp:relecture"}
+
+
+def gardien(d):
+    """Appelle `vlp.py gardien` sur `d` (texte tel quel, sinon JSON) ; rend (code, sortie)."""
+    o = io.StringIO()
+    code = mod.main(["gardien"], o, io.StringIO(d if isinstance(d, str) else json.dumps(d)))
+    return code, o.getvalue()
+
+
+def projet_gardien(t, case):
+    """Pose sous `t` un projet `px` à une fiche X1 de case `case` (" " ou "x") et le transcript d'un sous-agent qui
+    joue X1 ; rend (dossier du projet, fin de fiche, fin de relecture) — les deux entrées SubagentStop du gardien."""
+    proj = os.path.join(t, "proj")
+    ecrire(os.path.join(proj, "CHANTIER.md"), CHANTIER % ("px", "."))
+    ecrire(os.path.join(proj, "f.md"), "# Chantier X\n\n**Ouvert.** le 2026-10-08.\n\n<!-- FICHE:X1 -->\n"
+           "## X1 [%s] — une\n<!-- /FICHE -->\n" % case)
+    trans = os.path.join(t, "agent-a1.jsonl")
+    ecrire(trans, json.dumps({"message": {"role": "user", "content": "Fiche à jouer :\n\nX1\n\nKit : k"}},
+                             ensure_ascii=False) + "\n")
+    fin = dict(FICHE, hook_event_name="SubagentStop", stop_hook_active=False, cwd=proj,
+               agent_transcript_path=trans)
+    fin_relecture = dict(RELECTURE, hook_event_name="SubagentStop", stop_hook_active=False, cwd=proj,
+                         agent_transcript_path=trans)
+    return proj, fin, fin_relecture
+
+
+def test_gardien():
+    """Contrôler le gardien avant un outil : ce qu'il refuse et laisse passer, entrées illisibles."""
+    fiche, relecture = FICHE, RELECTURE
+    commit = {"hook_event_name": "PreToolUse", "tool_name": "Bash",
+              "tool_input": {"command": 'git -C "C:/a b" commit -m "X1 : fin"'}}
+    code, s = gardien(dict(commit, **relecture))
+    assert code == 0
+    assert '"permissionDecision": "deny"' in s
+    assert "vlp:relecture" in s
+    code, s = gardien(dict(fiche, **commit))
+    assert code == 0
+    assert '"permissionDecision": "deny"' in s
+    assert "vlp:fiche" in s
+    code, s = gardien(dict(relecture, hook_event_name="PreToolUse", tool_name="Bash",
+                           tool_input={"command": "git diff HEAD~1"}))
+    assert ((code, s) == (0, "")), ("gardien : relecteur git diff laissé passer") + "\n" + str(s)
+    code, s = gardien(dict(fiche, hook_event_name="PreToolUse", tool_name="PowerShell",
+                           tool_input={"command": "git status; git log -1"}))
+    assert ((code, s) == (0, "")), ("gardien : fiche git status laissé passer") + "\n" + str(s)
+    assert (gardien("pas du json") == (0, "")), ("gardien : entrée illisible, muet") + "\n" + ""
+    assert gardien('[43, "sonde"]') == (0, "")
+    assert gardien('"x"') == (0, "")
+    assert (all(
+        gardien(dict(agent, hook_event_name="PreToolUse", tool_name="Bash", tool_input=ti)) == (0, "")
+        for agent in (fiche, relecture) for ti in ("git commit", ["git commit"], 7)))
+    assert (gardien(dict(
+            commit, agent_id="a3", agent_type=["vlp:relecture"])) == (0, ""))
+
+
+def test_gardien_fin(tmp_path, init_git):
+    """Le gardien à la fin d'une fiche : il renvoie un « Parfait, » de tête, un FAITE sur case vide, un FAITE après un
+    commit de la fiche ; laisse un renvoi déjà fait et un FAITE sur case cochée."""
     with tempfile.TemporaryDirectory(dir=tmp_path) as t:
-        def gardien(d):
-            o = io.StringIO()
-            code = mod.main(["gardien"], o, io.StringIO(d if isinstance(d, str) else json.dumps(d)))
-            return code, o.getvalue()
-
-        fiche = {"agent_id": "a1", "agent_type": "vlp:fiche"}
-        relecture = {"agent_id": "a2", "agent_type": "vlp:relecture"}
-        commit = {"hook_event_name": "PreToolUse", "tool_name": "Bash",
-                  "tool_input": {"command": 'git -C "C:/a b" commit -m "X1 : fin"'}}
-        code, s = gardien(dict(commit, **relecture))
-        assert code == 0
-        assert '"permissionDecision": "deny"' in s
-        assert "vlp:relecture" in s
-        code, s = gardien(dict(fiche, **commit))
-        assert code == 0
-        assert '"permissionDecision": "deny"' in s
-        assert "vlp:fiche" in s
-        code, s = gardien(dict(relecture, hook_event_name="PreToolUse", tool_name="Bash",
-                               tool_input={"command": "git diff HEAD~1"}))
-        assert ((code, s) == (0, "")), ("gardien : relecteur git diff laissé passer") + "\n" + str(s)
-        code, s = gardien(dict(fiche, hook_event_name="PreToolUse", tool_name="PowerShell",
-                               tool_input={"command": "git status; git log -1"}))
-        assert ((code, s) == (0, "")), ("gardien : fiche git status laissé passer") + "\n" + str(s)
-        assert (gardien("pas du json") == (0, "")), ("gardien : entrée illisible, muet") + "\n" + ""
-        assert gardien('[43, "sonde"]') == (0, "")
-        assert gardien('"x"') == (0, "")
-        assert (all(
-            gardien(dict(agent, hook_event_name="PreToolUse", tool_name="Bash", tool_input=ti)) == (0, "")
-            for agent in (fiche, relecture) for ti in ("git commit", ["git commit"], 7)))
-        assert (gardien(dict(
-                commit, agent_id="a3", agent_type=["vlp:relecture"])) == (0, ""))
-
-        proj = os.path.join(t, "proj")
-        ecrire(os.path.join(proj, "CHANTIER.md"), CHANTIER % ("px", "."))
-        ecrire(os.path.join(proj, "f.md"), "# Chantier X\n\n**Ouvert.** le 2026-10-08.\n\n<!-- FICHE:X1 -->\n## X1 [ ] — une\n<!-- /FICHE -->\n")
-        trans = os.path.join(t, "agent-a1.jsonl")
-        ecrire(trans, json.dumps({"message": {"role": "user", "content": "Fiche à jouer :\n\nX1\n\nKit : k"}},
-                                 ensure_ascii=False) + "\n")
-        fin = dict(fiche, hook_event_name="SubagentStop", stop_hook_active=False, cwd=proj,
-                   agent_transcript_path=trans)
+        proj, fin, _ = projet_gardien(t, " ")
         code, s = gardien(dict(fin, last_assistant_message="Parfait, la fiche est faite."))
         assert '"decision": "block"' in s
         assert "« Parfait, »" in s
@@ -326,7 +350,7 @@ def test_gardien(tmp_path, init_git):
         code, s = gardien(dict(fin, last_assistant_message="FAITE — X1."))
         assert '"decision": "block"' in s
         assert "case de X1 est vide" in s
-        ecrire(os.path.join(proj, "f.md"), "# Chantier X\n\n**Ouvert.** le 2026-10-08.\n\n<!-- FICHE:X1 -->\n## X1 [x] — une\n<!-- /FICHE -->\n")
+        ecrire(os.path.join(proj, "f.md"), lire(os.path.join(proj, "f.md")).replace("[ ]", "[x]"))
         if not shutil.which("git"):
             pytest.skip("git absent — le gardien sur HEAD n'est pas testé")
         else:
@@ -342,8 +366,13 @@ def test_gardien(tmp_path, init_git):
             code, s = gardien(dict(fin, last_assistant_message="FAITE — X1."))
             assert '"decision": "block"' in s
             assert "tu as commité" in s
-        fin_relecture = dict(relecture, hook_event_name="SubagentStop", stop_hook_active=False, cwd=proj,
-                             agent_transcript_path=trans)
+
+
+def test_gardien_forme(tmp_path):
+    """Le gardien à la fin d'un sous-agent, sur la forme : un « En résumé » ou une jauge renvoyés, sauf déjà renvoyé ;
+    un verdict de relecteur seul, muet ; un mot de jauge dans une phrase, muet (FOR3, JUG2)."""
+    with tempfile.TemporaryDirectory(dir=tmp_path) as t:
+        _, fin, fin_relecture = projet_gardien(t, "x")
         code, s = gardien(dict(fin_relecture, last_assistant_message="ACCEPTÉE — tout va bien"))
         assert ((code, s) == (0, "")), ("gardien : relecteur ACCEPTÉE muet") + "\n" + str(s)
         code, s = gardien(dict(fin_relecture, last_assistant_message="REFUSÉE — erreur"))

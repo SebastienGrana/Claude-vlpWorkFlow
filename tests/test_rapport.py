@@ -316,78 +316,98 @@ sys.exit(1 if fautifs else 0)
 """
 
 
-def test_rapide(tmp_path, monkeypatch, init_git):
-    """VIT23 : `vlp.py rapide` joue les groupes de la fiche (`--seul`), pyright sur les `.py` touchés et le cliquet ;
-    un écart semé dans le groupe d'une fiche → rouge, sans suite entière ; un contrôle sauté dit sa raison."""
+@pytest.fixture
+def faux_kit(tmp_path, monkeypatch, init_git):
+    """Un faux kit commité — `f.py`, une suite qui journalise ses motifs, un cliquet qui rompt sur un fichier
+    `rompu` — et un faux pyright qui fautit un fichier portant « erreur » ; rend (dossier temporaire, kit, journal,
+    commande pyright)."""
     monkeypatch.setattr(mod.noyau.bac, "commande_suite",   # le faux script du faux kit (REF59)
                         lambda projet, parallele=True: [sys.executable, os.path.join("scripts", "suite.py")])
-    with tempfile.TemporaryDirectory(dir=tmp_path) as tr:
-        kit, journal = os.path.join(tr, "kit"), os.path.join(tr, "journal.txt")
-        pyright = [sys.executable, os.path.join(tr, "pyright.py")]
-        ecrire(pyright[1], PYRIGHT_FAUX)
-        ecrire(os.path.join(kit, "f.py"), "a = 1\nb = 2\nc = 3\n")
-        ecrire(os.path.join(kit, "scripts", "suite.py"), SUITE_VISEE.replace("@JOURNAL@", repr(journal)))
-        ecrire(os.path.join(kit, "scripts", "vlp.py"), CLIQUET_FAUX)
-        init_git(kit)
-        for args in (["add", "-A"], ["-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "-m", "0"]):
-            subprocess.run(["git"] + args, cwd=kit, capture_output=True, check=True)
-        propre = mod.controles_rapides(kit, "porte", pyright)[1]
-        assert (propre == ("pyright", None, "aucun .py touché")), ("VIT23 : arbre propre → pyright sauté, « aucun .py touché » — mutant : pyright lancé sur rien") + "\n" + str(propre)
+    tr = str(tmp_path)
+    kit, journal = os.path.join(tr, "kit"), os.path.join(tr, "journal.txt")
+    pyright = [sys.executable, os.path.join(tr, "pyright.py")]
+    ecrire(pyright[1], PYRIGHT_FAUX)
+    ecrire(os.path.join(kit, "f.py"), "a = 1\nb = 2\nc = 3\n")
+    ecrire(os.path.join(kit, "scripts", "suite.py"), SUITE_VISEE.replace("@JOURNAL@", repr(journal)))
+    ecrire(os.path.join(kit, "scripts", "vlp.py"), CLIQUET_FAUX)
+    init_git(kit)
+    for args in (["add", "-A"], ["-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "-m", "0"]):
+        subprocess.run(["git"] + args, cwd=kit, capture_output=True, check=True)
+    return tr, kit, journal, pyright
 
-        def rapide(motif, outil=pyright):
-            """Jouer `rapide` sur le faux kit ; rendre (code, sortie aux durées masquées, motifs lancés)."""
-            ecrire(journal, "")
-            o = io.StringIO()
-            code = mod.controle_rapide(kit, motif, outil, o)
-            with open(journal, encoding="utf-8") as j:
-                return code, re.sub(r"\d+\.\d s", "N s", o.getvalue()), j.read().split("\n")[:-1]
-        ecrire(os.path.join(kit, "f.py"), "a = 1\nb = 2\nc = 3\nd = 4\n")
-        ecrire(os.path.join(kit, "sous dossier", "neuf.py"), "e = 5\n")
-        ecrire(os.path.join(kit, "note.txt"), "x\n")
-        touches = [t.replace(os.sep, "/").rsplit("/kit/", 1)[-1] for t in mod.py_touches(kit)]
-        assert (touches == ["f.py", "sous dossier/neuf.py"]), ("VIT23 : les .py touchés — modifié, et neuf sous un dossier à espace —, ni .txt ni .py intact") + "\n" + str(touches)
-        vert = rapide("porte")
-        assert vert[0] == 0
-        assert vert[2] == ["porte"]
-        assert (vert[1] == (
-                     "RAPIDE groupes « porte » : vert · N s · OK\n"
-                     "RAPIDE pyright 2 fichier(s) : vert · N s · 0 errors, 0 warnings, 0 informations\n"
-                     "RAPIDE cliquet : vert · N s · CLIQUET TENU\n"
-                     "RAPIDE VERT · N s — la suite entière reste à jouer : cocher l'exige\n"))
-        ecrire(os.path.join(kit, "f.py"), "a = 9\nb = 2\nc = 3\nd = 4\n")
-        seme = rapide("porte")
-        assert seme[0] == 1
-        assert seme[2] == ["porte"]
-        assert (seme[1].startswith(
-                     "RAPIDE groupes « porte » : rouge · N s · code 1\n  ÉCART: porte a\n  FIN: 1 écart(s)\n"))
-        assert seme[1].endswith("RAPIDE ROUGE · N s — corrige avant de lancer la suite entière\n")
-        ecrire(os.path.join(kit, "f.py"), "a = 1\nb = 2\nc = 3\nd = 4\n")
-        ecrire(os.path.join(kit, "sous dossier", "neuf.py"), "erreur = 5\n")
-        ecrire(os.path.join(kit, "rompu"), "")
-        types = rapide("porte")
-        assert types[0] == 1
-        assert "RAPIDE pyright 2 fichier(s) : rouge · N s · code 1\n" in types[1]
-        assert "neuf.py:1:1 - error: faux\n  1 errors, 0 warnings, 0 informations\n" in types[1]
-        assert ("RAPIDE cliquet : rouge · N s · code 1\n  EMPIRE f.py:1 g · complexité 3 → 11, seuil 10\n"
-                     "  CLIQUET ROMPU\n" in types[1])
-        os.remove(os.path.join(kit, "rompu"))
-        sautes = rapide("rien", None)
-        assert sautes[0] == 0
-        assert sautes[2] == ["rien"]
-        assert (sautes[1] == (
-                     "RAPIDE groupes « rien » : sauté · N s · aucun groupe ne porte ce motif\n"
-                     "RAPIDE pyright : sauté · pyright introuvable\n"
-                     "RAPIDE cliquet : vert · N s · CLIQUET TENU\n"
-                     "RAPIDE VERT · N s — la suite entière reste à jouer : cocher l'exige\n"))
-        o = io.StringIO()
-        absent = mod.ecrire_rapide("x", None, mod.jouer_rapide([os.path.join(tr, "absent.exe")], kit), o)
-        hors = io.StringIO()
-        assert absent
-        assert "RAPIDE x : rouge · " in o.getvalue()
-        assert "  ne se lance pas : " in o.getvalue()
-        assert mod.main(["rapide", "porte", "--racine", tr], hors) == 1
-        assert hors.getvalue().startswith("GARDE: ")
-        assert "pas de tests/conftest.py" in hors.getvalue()
+
+def rapide_sur(kit, journal, motif, outil):
+    """Jouer `rapide` sur le faux kit ; rendre (code, sortie aux durées masquées, motifs lancés)."""
+    ecrire(journal, "")
+    o = io.StringIO()
+    code = mod.controle_rapide(kit, motif, outil, o)
+    with open(journal, encoding="utf-8") as j:
+        return code, re.sub(r"\d+\.\d s", "N s", o.getvalue()), j.read().split("\n")[:-1]
+
+
+def toucher_deux_py(kit, neuf):
+    """Modifie `f.py` du faux kit et pose `sous dossier/neuf.py` de texte `neuf` : deux .py touchés ; rend None."""
+    ecrire(os.path.join(kit, "f.py"), "a = 1\nb = 2\nc = 3\nd = 4\n")
+    ecrire(os.path.join(kit, "sous dossier", "neuf.py"), neuf)
+
+
+def test_rapide(faux_kit):
+    """VIT23 : `vlp.py rapide` joue les groupes de la fiche (`--seul`), pyright sur les `.py` touchés et le cliquet ;
+    un écart semé dans le groupe d'une fiche → rouge, sans suite entière."""
+    _, kit, journal, pyright = faux_kit
+    propre = mod.controles_rapides(kit, "porte", pyright)[1]
+    assert (propre == ("pyright", None, "aucun .py touché")), ("VIT23 : arbre propre → pyright sauté, « aucun .py touché » — mutant : pyright lancé sur rien") + "\n" + str(propre)
+    toucher_deux_py(kit, "e = 5\n")
+    ecrire(os.path.join(kit, "note.txt"), "x\n")
+    touches = [t.replace(os.sep, "/").rsplit("/kit/", 1)[-1] for t in mod.py_touches(kit)]
+    assert (touches == ["f.py", "sous dossier/neuf.py"]), ("VIT23 : les .py touchés — modifié, et neuf sous un dossier à espace —, ni .txt ni .py intact") + "\n" + str(touches)
+    vert = rapide_sur(kit, journal, "porte", pyright)
+    assert vert[0] == 0
+    assert vert[2] == ["porte"]
+    assert (vert[1] == (
+                 "RAPIDE groupes « porte » : vert · N s · OK\n"
+                 "RAPIDE pyright 2 fichier(s) : vert · N s · 0 errors, 0 warnings, 0 informations\n"
+                 "RAPIDE cliquet : vert · N s · CLIQUET TENU\n"
+                 "RAPIDE VERT · N s — la suite entière reste à jouer : cocher l'exige\n"))
+    ecrire(os.path.join(kit, "f.py"), "a = 9\nb = 2\nc = 3\nd = 4\n")
+    seme = rapide_sur(kit, journal, "porte", pyright)
+    assert seme[0] == 1
+    assert seme[2] == ["porte"]
+    assert (seme[1].startswith(
+                 "RAPIDE groupes « porte » : rouge · N s · code 1\n  ÉCART: porte a\n  FIN: 1 écart(s)\n"))
+    assert seme[1].endswith("RAPIDE ROUGE · N s — corrige avant de lancer la suite entière\n")
+
+
+def test_rapide_rouges_et_sautes(faux_kit):
+    """VIT23 : pyright et le cliquet rouges disent leur sortie ; un contrôle sauté dit sa raison ; un outil qui ne se
+    lance pas est rouge ; hors d'un kit, GARDE."""
+    tr, kit, journal, pyright = faux_kit
+    toucher_deux_py(kit, "erreur = 5\n")
+    ecrire(os.path.join(kit, "rompu"), "")
+    types = rapide_sur(kit, journal, "porte", pyright)
+    assert types[0] == 1
+    assert "RAPIDE pyright 2 fichier(s) : rouge · N s · code 1\n" in types[1]
+    assert "neuf.py:1:1 - error: faux\n  1 errors, 0 warnings, 0 informations\n" in types[1]
+    assert ("RAPIDE cliquet : rouge · N s · code 1\n  EMPIRE f.py:1 g · complexité 3 → 11, seuil 10\n"
+                 "  CLIQUET ROMPU\n" in types[1])
+    os.remove(os.path.join(kit, "rompu"))
+    sautes = rapide_sur(kit, journal, "rien", None)
+    assert sautes[0] == 0
+    assert sautes[2] == ["rien"]
+    assert (sautes[1] == (
+                 "RAPIDE groupes « rien » : sauté · N s · aucun groupe ne porte ce motif\n"
+                 "RAPIDE pyright : sauté · pyright introuvable\n"
+                 "RAPIDE cliquet : vert · N s · CLIQUET TENU\n"
+                 "RAPIDE VERT · N s — la suite entière reste à jouer : cocher l'exige\n"))
+    o = io.StringIO()
+    absent = mod.ecrire_rapide("x", None, mod.jouer_rapide([os.path.join(tr, "absent.exe")], kit), o)
+    hors = io.StringIO()
+    assert absent
+    assert "RAPIDE x : rouge · " in o.getvalue()
+    assert "  ne se lance pas : " in o.getvalue()
+    assert mod.main(["rapide", "porte", "--racine", tr], hors) == 1
+    assert hors.getvalue().startswith("GARDE: ")
+    assert "pas de tests/conftest.py" in hors.getvalue()
 
 
 JOUR_MATIN = "2026-10-01"
@@ -760,35 +780,47 @@ def test_sante_reglages():
     assert args[-1] == "x.py"
 
 
+def ifs(n, nom):
+    """Une fonction documentée à `n` `if` : complexité n + 1, branches n, instructions n + 1."""
+    corps = "".join("    if a == %d:\n        return %d\n" % (i, i) for i in range(n))
+    return 'def %s(a):\n    """Des if."""\n%s    return a\n\n\n' % (nom, corps)
+
+
+def longue(n):
+    """Un test sans docstring, de `n` instructions."""
+    return "def test_long():\n%s    return 0\n\n\n" % "".join("    x%d = %d\n" % (i, i) for i in range(n))
+
+
+MUETTE = "def muette(a):\n    return a\n"
+M_CLIQUET = ifs(11, "grosse") + ifs(1, "petite") + MUETTE    # le m.py de la base du cliquet
+TETE_CLIQUET = "CLIQUET sur ast, comptes estimés (sans ruff)\n"
+BILAN_CLIQUET = "CLIQUET %d fonctions · vieilles 4, dont touchées %d, renommées ou déplacées %d · neuves %d"
+
+
+def lancer_sante(tc, fichiers, *options):
+    """Écrire `fichiers` sous `tc/scripts/` (`{nom: texte}`, None efface), puis lancer `sante --sans-ruff` ; rend
+    (code, sortie)."""
+    for nom, texte in fichiers.items():
+        if texte is None:
+            os.remove(os.path.join(tc, "scripts", nom))
+        else:
+            ecrire(os.path.join(tc, "scripts", nom), texte)
+    return appel(["sante", "--racine", tc, "--sans-ruff"] + list(options))
+
+
+def cliquet_pose(tc):
+    """Pose sous `tc` le faux kit du cliquet (`m.py`, un long `test-m.py`) et sa base ; rend une fonction qui lance
+    `sante` sur lui (`lancer_sante` sans `tc`)."""
+    lancer = lambda fichiers, *options: lancer_sante(tc, fichiers, *options)
+    lancer({"m.py": M_CLIQUET, "test-m.py": longue(60)}, "--base")
+    return lancer
+
+
 def test_sante_cliquet(tmp_path):
-    """VIT15 : le cliquet sur un faux kit, sans ruff — la base, ce qui empire, ce qui grandit sous le seuil, la fonction
-    neuve, la docstring, les tests, le renommage et le déplacement, le verrou d'une amélioration, et la base qui ne se
-    relâche que par `--forcer`."""
-    def ifs(n, nom):
-        """Une fonction documentée à `n` `if` : complexité n + 1, branches n, instructions n + 1."""
-        corps = "".join("    if a == %d:\n        return %d\n" % (i, i) for i in range(n))
-        return 'def %s(a):\n    """Des if."""\n%s    return a\n\n\n' % (nom, corps)
-
-    def longue(n):
-        """Un test sans docstring, de `n` instructions."""
-        return "def test_long():\n%s    return 0\n\n\n" % "".join("    x%d = %d\n" % (i, i) for i in range(n))
-
-    muette = "def muette(a):\n    return a\n"
-    m = ifs(11, "grosse") + ifs(1, "petite") + muette
-    tete = "CLIQUET sur ast, comptes estimés (sans ruff)\n"
-    bilan = "CLIQUET %d fonctions · vieilles 4, dont touchées %d, renommées ou déplacées %d · neuves %d"
+    """VIT15 : le cliquet sur un faux kit, sans ruff — la base, ce qui empire, ce qui grandit sous le seuil."""
+    m, muette, tete, bilan = M_CLIQUET, MUETTE, TETE_CLIQUET, BILAN_CLIQUET
     with tempfile.TemporaryDirectory(dir=tmp_path) as tc:
-        base = os.path.join(tc, "scripts", "sante-base.json")
-
-        def lancer(fichiers, *options):
-            """Écrire `fichiers` sous `scripts/` (`{nom: texte}`, None efface), puis lancer `sante --sans-ruff`."""
-            for nom, texte in fichiers.items():
-                if texte is None:
-                    os.remove(os.path.join(tc, "scripts", nom))
-                else:
-                    ecrire(os.path.join(tc, "scripts", nom), texte)
-            return appel(["sante", "--racine", tc, "--sans-ruff"] + list(options))
-
+        lancer = lambda fichiers, *options: lancer_sante(tc, fichiers, *options)
         sans_base = lancer({"m.py": m, "test-m.py": longue(60)}, "--cliquet")
         posee, tenu = lancer({}, "--base"), lancer({}, "--cliquet")
         assert sans_base == (1, "GARDE: pas de base scripts/sante-base.json — `vlp.py sante --base` d'abord\n")
@@ -803,6 +835,13 @@ def test_sante_cliquet(tmp_path):
         assert sous_seuil == (0, tete + bilan % (4, 1, 0, 0) + "\nCLIQUET TENU\n")
         assert (passe == (1, tete + "EMPIRE scripts/m.py:28 petite · complexité 2 → 11, seuil 10\n"
                                + bilan % (4, 1, 0, 0) + "\nCLIQUET ROMPU · 1 écart(s)\n"))
+
+
+def test_sante_cliquet_neuves(tmp_path):
+    """VIT15 : le cliquet sur la fonction neuve, la docstring d'une neuve ou d'une touchée, et les tests."""
+    m, muette, tete, bilan = M_CLIQUET, MUETTE, TETE_CLIQUET, BILAN_CLIQUET
+    with tempfile.TemporaryDirectory(dir=tmp_path) as tc:
+        lancer = cliquet_pose(tc)
         neuves = lancer({"m.py": m + "\n\n" + ifs(10, "neuve_grosse") + "def neuve(a):\n    return a\n"}, "--cliquet")
         tests = lancer({"m.py": m, "test-m.py": longue(70) + ifs(10, "test_neuf").replace('    """Des if."""\n', "")},
                        "--cliquet")
@@ -813,10 +852,19 @@ def test_sante_cliquet(tmp_path):
                                + bilan % (5, 1, 0, 1) + "\nCLIQUET ROMPU · 1 écart(s)\n"))
         touchee = lancer({"m.py": m.replace(muette, "def muette(a):\n    return a + 1\n"), "test-m.py": longue(60)},
                          "--cliquet")
-        renommee = lancer({"m.py": ifs(11, "grosse") + ifs(1, "petite2") + muette}, "--cliquet")
-        deplacee = lancer({"m.py": ifs(11, "grosse") + muette, "m2.py": ifs(1, "petite")}, "--cliquet")
         assert (touchee == (1, tete + "DOCSTRING scripts/m.py:35 muette · sans docstring (touchée)\n"
                              + bilan % (4, 1, 0, 0) + "\nCLIQUET ROMPU · 1 écart(s)\n"))
+
+
+def test_sante_cliquet_verrou(tmp_path):
+    """VIT15 : le cliquet sur le renommage et le déplacement, le verrou d'une amélioration, et la base qui ne se
+    relâche que par `--forcer`."""
+    muette, tete, bilan = MUETTE, TETE_CLIQUET, BILAN_CLIQUET
+    with tempfile.TemporaryDirectory(dir=tmp_path) as tc:
+        base = os.path.join(tc, "scripts", "sante-base.json")
+        lancer = cliquet_pose(tc)
+        renommee = lancer({"m.py": ifs(11, "grosse") + ifs(1, "petite2") + muette}, "--cliquet")
+        deplacee = lancer({"m.py": ifs(11, "grosse") + muette, "m2.py": ifs(1, "petite")}, "--cliquet")
         assert renommee == deplacee == (0, tete + bilan % (4, 0, 1, 0) + "\nCLIQUET TENU\n")
         mieux = lancer({"m.py": ifs(9, "grosse") + ifs(1, "petite") + muette, "m2.py": None}, "--cliquet")
         verrou = lancer({}, "--base")

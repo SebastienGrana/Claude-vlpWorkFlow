@@ -138,76 +138,95 @@ def test_bac(tmp_path):
         assert "CLOS F F1..F2" in s3
 
 
-def test_claude(tmp_path):
-    noms = ("VLP_CLAUDE", "PATH", "LOCALAPPDATA", "APPDATA")
-    avant = {n: os.environ.get(n) for n in noms}
+PAQUET = ("Packages", "Claude_x1", "LocalCache", "Roaming", "Claude", "claude-code")   # sous LOCALAPPDATA
+
+
+def faux_claude(tcl, *parties):
+    """Pose un `claude.exe` vide sous `tcl/<parties>` ; rend son chemin."""
+    p = os.path.join(tcl, *parties, "claude.exe")
+    os.makedirs(os.path.dirname(p))
+    ecrire(p, "")
+    return p
+
+
+def env_claude(monkeypatch, tcl, local, app):
+    """Règle l'environnement que lit `vlp.py claude` : sans `VLP_CLAUDE`, un PATH vide, LOCALAPPDATA et APPDATA
+    sous `tcl` ; monkeypatch le remet en fin de test."""
+    monkeypatch.delenv("VLP_CLAUDE", raising=False)
+    monkeypatch.setenv("PATH", os.path.join(tcl, "vide"))
+    monkeypatch.setenv("LOCALAPPDATA", os.path.join(tcl, local))
+    monkeypatch.setenv("APPDATA", os.path.join(tcl, app))
+
+
+def poser_claudes(tcl):
+    """Pose deux claude de l'app empaquetée (2.1.9 et 2.1.10) et un de l'app classique (2.1.99) ; rend (2.1.10,
+    2.1.99)."""
+    faux_claude(tcl, "loc", *PAQUET, "2.1.9")
+    return faux_claude(tcl, "loc", *PAQUET, "2.1.10"), faux_claude(tcl, "app", "Claude", "claude-code", "2.1.99")
+
+
+def test_claude(tmp_path, monkeypatch):
+    """`vlp.py claude` prend la plus haute version de l'app empaquetée ; `bac` et `boucle.py` rendent le même."""
     with tempfile.TemporaryDirectory(dir=tmp_path) as tcl:
-        def faux(*parties):
-            p = os.path.join(tcl, *parties, "claude.exe")
-            os.makedirs(os.path.dirname(p))
-            ecrire(p, "")
-            return p
-        paquet = ("loc", "Packages", "Claude_x1", "LocalCache", "Roaming", "Claude", "claude-code")
-        faux(*paquet, "2.1.9")
-        p10 = faux(*paquet, "2.1.10")
-        a99 = faux("app", "Claude", "claude-code", "2.1.99")
-        try:
-            os.environ.pop("VLP_CLAUDE", None)
-            os.environ["PATH"] = os.path.join(tcl, "vide")
-            os.environ["APPDATA"] = os.path.join(tcl, "app")
-            os.environ["LOCALAPPDATA"] = os.path.join(tcl, "loc")
-            code, s = appel(["claude"])
-            assert code == 0
-            assert s == "CLAUDE %s\n" % p10
-            dbac = os.path.join(tcl, "bac")
-            code, s = appel(["bac", dbac])
-            assert code == 0
-            assert (s.endswith(
-                'SESSION Set-Location "%s"; & "%s"\n' % (os.path.abspath(dbac), p10)))
-            spec = importlib.util.spec_from_file_location("boucle", os.path.join(ICI, "boucle.py"))
-            assert spec
-            assert spec.loader
-            boucle = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(boucle)
-            assert (boucle.trouver_claude(None) == p10), ("claude : boucle.py rend le même chemin") + "\n" + str(str(boucle.trouver_claude(None)))
-            os.environ["LOCALAPPDATA"] = os.path.join(tcl, "vide")
-            code, s = appel(["claude"])
-            assert code == 0
-            assert s == "CLAUDE %s\n" % a99
-            os.environ["VLP_CLAUDE"] = "mon-claude"
-            code, s = appel(["claude"])
-            assert code == 0
-            assert s == "CLAUDE mon-claude\n"
-            os.environ.pop("VLP_CLAUDE")
-            os.environ["APPDATA"] = os.path.join(tcl, "vide")
-            code, s = appel(["claude"])
-            assert code == 1
-            assert s.startswith("GARDE: claude.exe introuvable")
-            code, s = appel(["bac", os.path.join(tcl, "bac2")])
-            assert code == 0
-            assert 'GARDE: claude.exe introuvable' in s
-            assert s.endswith('; & "claude"\n')
-            # VIT19 : l'app range claude.exe un dossier plus bas, sous une empreinte ; la version reste au-dessus
-            faux("loc2", *paquet[1:], "2.1.99")
-            p288 = faux("loc2", *paquet[1:], "2.1.288", "36aa8c97bf86")
-            os.environ["LOCALAPPDATA"] = os.path.join(tcl, "loc2")
-            code, s = appel(["claude"])
-            assert code == 0
-            assert s == "CLAUDE %s\n" % p288
-            sans_exe = os.path.join(tcl, "app2", "Claude", "claude-code")
-            os.makedirs(os.path.join(sans_exe, "2.1.288", "36aa8c97bf86"))
-            os.environ["LOCALAPPDATA"] = os.path.join(tcl, "vide")
-            os.environ["APPDATA"] = os.path.join(tcl, "app2")
-            code, s = appel(["claude"])
-            assert code == 1
-            assert s.startswith("GARDE: claude.exe absent de l'app")
-            assert sans_exe in s
-        finally:
-            for n, v in avant.items():
-                if v is None:
-                    os.environ.pop(n, None)
-                else:
-                    os.environ[n] = v
+        p10, _ = poser_claudes(tcl)
+        env_claude(monkeypatch, tcl, "loc", "app")
+        code, s = appel(["claude"])
+        assert code == 0
+        assert s == "CLAUDE %s\n" % p10
+        dbac = os.path.join(tcl, "bac")
+        code, s = appel(["bac", dbac])
+        assert code == 0
+        assert (s.endswith(
+            'SESSION Set-Location "%s"; & "%s"\n' % (os.path.abspath(dbac), p10)))
+        spec = importlib.util.spec_from_file_location("boucle", os.path.join(ICI, "boucle.py"))
+        assert spec
+        assert spec.loader
+        boucle = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(boucle)
+        assert (boucle.trouver_claude(None) == p10), ("claude : boucle.py rend le même chemin") + "\n" + str(str(boucle.trouver_claude(None)))
+
+
+def test_claude_repli(tmp_path, monkeypatch):
+    """Sans l'app empaquetée, l'app classique ; `VLP_CLAUDE` prime ; sans rien, une GARDE, et `bac` lance `claude`."""
+    with tempfile.TemporaryDirectory(dir=tmp_path) as tcl:
+        _, a99 = poser_claudes(tcl)
+        env_claude(monkeypatch, tcl, "vide", "app")
+        code, s = appel(["claude"])
+        assert code == 0
+        assert s == "CLAUDE %s\n" % a99
+        monkeypatch.setenv("VLP_CLAUDE", "mon-claude")
+        code, s = appel(["claude"])
+        assert code == 0
+        assert s == "CLAUDE mon-claude\n"
+        monkeypatch.delenv("VLP_CLAUDE")
+        monkeypatch.setenv("APPDATA", os.path.join(tcl, "vide"))
+        code, s = appel(["claude"])
+        assert code == 1
+        assert s.startswith("GARDE: claude.exe introuvable")
+        code, s = appel(["bac", os.path.join(tcl, "bac2")])
+        assert code == 0
+        assert 'GARDE: claude.exe introuvable' in s
+        assert s.endswith('; & "claude"\n')
+
+
+def test_claude_empreinte(tmp_path, monkeypatch):
+    """VIT19 : l'app range claude.exe un dossier plus bas, sous une empreinte ; la version reste au-dessus. Un dossier
+    de version sans claude.exe : GARDE qui le nomme."""
+    with tempfile.TemporaryDirectory(dir=tmp_path) as tcl:
+        faux_claude(tcl, "loc2", *PAQUET, "2.1.99")
+        p288 = faux_claude(tcl, "loc2", *PAQUET, "2.1.288", "36aa8c97bf86")
+        env_claude(monkeypatch, tcl, "loc2", "vide")
+        code, s = appel(["claude"])
+        assert code == 0
+        assert s == "CLAUDE %s\n" % p288
+        sans_exe = os.path.join(tcl, "app2", "Claude", "claude-code")
+        os.makedirs(os.path.join(sans_exe, "2.1.288", "36aa8c97bf86"))
+        monkeypatch.setenv("LOCALAPPDATA", os.path.join(tcl, "vide"))
+        monkeypatch.setenv("APPDATA", os.path.join(tcl, "app2"))
+        code, s = appel(["claude"])
+        assert code == 1
+        assert s.startswith("GARDE: claude.exe absent de l'app")
+        assert sans_exe in s
 
 
 def test_kit_essai(tmp_path):
@@ -411,140 +430,150 @@ def test_hook_claude(tmp_path, init_git):
         assert "pre-commit : claude introuvable, ni dans le PATH ni dans l'app, validate sauté." in s
 
 
-def test_apercu(tmp_path, init_git):
-    """servir et apercu (chantier LOC4) : un serveur sans cache, et une seule entrée dans launch.json."""
+VOISINE = ('{"name": "gabarits", "runtimeExecutable": "py",\n'
+           '      "runtimeArgs": ["-c", "print(1)"],   "port": 8792}')
+
+
+@pytest.fixture
+def projet_apercu(tmp_path, init_git, monkeypatch):
+    """Un projet `pz` sous `tmp_path`, en dépôt Git si git est là, à l'abri de la config Git de l'utilisateur (ni
+    config globale ni exclusions ne masquent le `.gitignore` du test) ; rend (dossier, chemin de launch.json, lire
+    launch.json, ses entrées `apercu-`, git présent)."""
+    t = str(tmp_path)
+    monkeypatch.setenv("GIT_CONFIG_GLOBAL", os.path.join(t, "gitconfig"))
+    monkeypatch.setenv("GIT_CONFIG_NOSYSTEM", "1")
+    monkeypatch.setenv("XDG_CONFIG_HOME", os.path.join(t, "xdg"))
+    ecrire(os.environ["GIT_CONFIG_GLOBAL"], "")
+    p = os.path.join(t, "proj")
+    ecrire(os.path.join(p, "CHANTIER.md"), CHANTIER % ("pz", "context AI/"))
+    lancement = os.path.join(p, ".claude", "launch.json")
+    lu = lambda: pathlib.Path(lancement).read_text(encoding="utf-8", newline="")
+    entrees = lambda: [e for e in json.loads(lu())["configurations"] if e["name"].startswith("apercu-")]
+    git_ok = bool(shutil.which("git"))
+    if git_ok:
+        init_git(p)
+    return p, lancement, lu, entrees, git_ok
+
+
+def test_apercu(projet_apercu):
+    """apercu (chantier LOC4) : une seule entrée dans launch.json, la voisine intacte, un port qui se remplace."""
+    p, lancement, lu, entrees, _ = projet_apercu
+    code, s = appel(["apercu", p])
+    assert code == 0
+    assert s.startswith("APERCU écrit apercu-proj · port 8790 · ")
+    assert [e["port"] for e in entrees()] == [8790]
+    ecrire(lancement, '{\n  "version": "0.0.1",\n  "configurations": [\n    %s\n  ]\n}' % VOISINE)
+    avant_voisine = lu().split(VOISINE)
+    code, s = appel(["apercu", p])
+    e = entrees()
+    assert code == 0
+    assert s.startswith("APERCU écrit apercu-proj · port 8790")
+    assert len(e) == 1
+    assert (e[0]["runtimeArgs"][1:] == ["servir", os.path.join(p, "context AI", "artefacts").replace("\\", "/"),
+                                             "8790"])
+    une_fois = lu()
+    code, s = appel(["apercu", p])
+    assert code == 0
+    assert s.startswith("APERCU déjà apercu-proj")
+    assert lu() == une_fois
+    assert len(entrees()) == 1
+    assert lu().split(VOISINE)[0] == avant_voisine[0]
+    assert VOISINE in lu()
+    code, s = appel(["apercu", p, "--port", "8801"])
+    assert code == 0
+    assert "remplacé apercu-proj · port 8801" in s
+    assert [x["port"] for x in entrees()] == [8801]
+    assert VOISINE in lu()
+    code, s = appel(["apercu", p])
+    assert code == 0
+    assert "déjà apercu-proj · port 8801" in s
+
+
+def test_apercu_gardes(projet_apercu):
+    """apercu (chantier LOC4) : les fins de ligne CRLF gardées, un launch.json illisible laissé tel quel, un projet
+    absent, et un launch.json suivi par Git signalé."""
+    p, lancement, lu, entrees, git_ok = projet_apercu
+    ecrire(lancement, '{"version": "0.0.1", "configurations": []}\r\n')
+    code, s = appel(["apercu", p])
+    assert code == 0
+    assert len(entrees()) == 1
+    assert "\r\n" in lu()
+    assert "\n" not in lu().replace("\r\n", "")
+    for nom, contenu in (("illisible", "{pas du json"), ("sans tableau", '{"version": "0.0.1"}'),
+                         ("deux entrées", '{"configurations": [{"name": "apercu-proj"}, {"name": "apercu-proj"}]}')):
+        ecrire(lancement, contenu)
+        code, s = appel(["apercu", p])
+        assert code == 1
+        assert s.startswith("GARDE:")
+        assert lu() == contenu
+    code, s = appel(["apercu", os.path.join(os.path.dirname(p), "nulle-part")])
+    assert code == 1
+    assert s.startswith("GARDE: pas de projet")
+    if not git_ok:
+        pytest.skip("git absent — la GARDE du .gitignore n'est pas testée")
+    else:
+        os.remove(lancement)
+        code, s = appel(["apercu", p])
+        assert code == 0
+        assert len(entrees()) == 1
+        assert s.splitlines()[-1].startswith("GARDE: .claude/launch.json")
+        ecrire(os.path.join(p, ".gitignore"), ".claude/launch.json\n")
+        code, s = appel(["apercu", p])
+        assert code == 0
+        assert s.startswith("APERCU déjà")
+        assert "GARDE" not in s
+
+
+def test_apercu_servir(tmp_path):
+    """servir (chantier LOC4) : un vrai serveur sans cache, sur un port libre choisi par le système (port 0)."""
     import contextlib
     import threading
     import urllib.error
     import urllib.request
 
-    voisine = ('{"name": "gabarits", "runtimeExecutable": "py",\n'
-               '      "runtimeArgs": ["-c", "print(1)"],   "port": 8792}')
-    launch = '{\n  "version": "0.0.1",\n  "configurations": [\n    %s\n  ]\n}' % voisine
     with tempfile.TemporaryDirectory(dir=tmp_path) as t:
-        # Ni la config globale ni les exclusions de l'utilisateur ne masquent le `.gitignore` du test.
-        anciens = {k: os.environ.get(k) for k in ("GIT_CONFIG_GLOBAL", "GIT_CONFIG_NOSYSTEM", "XDG_CONFIG_HOME")}
-        os.environ.update(GIT_CONFIG_GLOBAL=os.path.join(t, "gitconfig"), GIT_CONFIG_NOSYSTEM="1",
-                          XDG_CONFIG_HOME=os.path.join(t, "xdg"))
-        ecrire(os.environ["GIT_CONFIG_GLOBAL"], "")
-        try:
-            p = os.path.join(t, "proj")
-            ecrire(os.path.join(p, "CHANTIER.md"), CHANTIER % ("pz", "context AI/"))
-            lancement = os.path.join(p, ".claude", "launch.json")
-            lu = lambda: pathlib.Path(lancement).read_text(encoding="utf-8", newline="")
-            entrees = lambda: [e for e in json.loads(lu())["configurations"] if e["name"].startswith("apercu-")]
-            git_ok = bool(shutil.which("git"))
-            if git_ok:
-                init_git(p)
+        art = os.path.join(t, "art")
+        ecrire(os.path.join(art, "a.html"), "<p>é</p>")
+        ecrire(os.path.join(art, "vlp.js"), "var x = 'é';")
+        ecrire(os.path.join(art, "sous", "b.svg"), "<svg/>")
+        serveur = mod.faire_serveur(art, 0)
+        fil = threading.Thread(target=serveur.serve_forever, daemon=True)
+        fil.start()
+        base = "http://127.0.0.1:%d" % serveur.server_port
 
-            code, s = appel(["apercu", p])
-            assert code == 0
-            assert s.startswith("APERCU écrit apercu-proj · port 8790 · ")
-            assert [e["port"] for e in entrees()] == [8790]
-            ecrire(lancement, launch)
-            avant_voisine = lu().split(voisine)
-            code, s = appel(["apercu", p])
-            e = entrees()
-            assert code == 0
-            assert s.startswith("APERCU écrit apercu-proj · port 8790")
-            assert len(e) == 1
-            assert (e[0]["runtimeArgs"][1:] == ["servir", os.path.join(p, "context AI", "artefacts").replace("\\", "/"),
-                                                     "8790"])
-            une_fois = lu()
-            code, s = appel(["apercu", p])
-            assert code == 0
-            assert s.startswith("APERCU déjà apercu-proj")
-            assert lu() == une_fois
-            assert len(entrees()) == 1
-            assert lu().split(voisine)[0] == avant_voisine[0]
-            assert voisine in lu()
-            code, s = appel(["apercu", p, "--port", "8801"])
-            assert code == 0
-            assert "remplacé apercu-proj · port 8801" in s
-            assert [x["port"] for x in entrees()] == [8801]
-            assert voisine in lu()
-            code, s = appel(["apercu", p])
-            assert code == 0
-            assert "déjà apercu-proj · port 8801" in s
-            ecrire(lancement, '{"version": "0.0.1", "configurations": []}\r\n')
-            code, s = appel(["apercu", p])
-            assert code == 0
-            assert len(entrees()) == 1
-            assert "\r\n" in lu()
-            assert "\n" not in lu().replace("\r\n", "")
-            for nom, contenu in (("illisible", "{pas du json"), ("sans tableau", '{"version": "0.0.1"}'),
-                                 ("deux entrées", '{"configurations": [{"name": "apercu-proj"}, {"name": "apercu-proj"}]}')):
-                ecrire(lancement, contenu)
-                code, s = appel(["apercu", p])
-                assert code == 1
-                assert s.startswith("GARDE:")
-                assert lu() == contenu
-            code, s = appel(["apercu", os.path.join(t, "nulle-part")])
-            assert code == 1
-            assert s.startswith("GARDE: pas de projet")
-            if not git_ok:
-                pytest.skip("git absent — la GARDE du .gitignore n'est pas testée")
-            else:
-                os.remove(lancement)
-                code, s = appel(["apercu", p])
-                assert code == 0
-                assert len(entrees()) == 1
-                assert s.splitlines()[-1].startswith("GARDE: .claude/launch.json")
-                ecrire(os.path.join(p, ".gitignore"), ".claude/launch.json\n")
-                code, s = appel(["apercu", p])
-                assert code == 0
-                assert s.startswith("APERCU déjà")
-                assert "GARDE" not in s
-
-            # servir : un vrai serveur, sur un port libre choisi par le système (port 0).
-            art = os.path.join(t, "art")
-            ecrire(os.path.join(art, "a.html"), "<p>é</p>")
-            ecrire(os.path.join(art, "vlp.js"), "var x = 'é';")
-            ecrire(os.path.join(art, "sous", "b.svg"), "<svg/>")
-            serveur = mod.faire_serveur(art, 0)
-            fil = threading.Thread(target=serveur.serve_forever, daemon=True)
-            fil.start()
-            base = "http://127.0.0.1:%d" % serveur.server_port
-
-            def prendre(chemin):
-                try:
-                    with urllib.request.urlopen(base + chemin) as r:
-                        return r.status, r.headers, r.read().decode("utf-8")
-                except urllib.error.HTTPError as err:
-                    return err.code, err.headers, ""
+        def prendre(chemin):
             try:
-                with contextlib.redirect_stderr(io.StringIO()):     # le journal des requêtes
-                    statut, tetes, corps = prendre("/a.html")
-                    assert statut == 200
-                    assert tetes["Cache-Control"] == "no-store"
-                    assert tetes["Content-Type"] == "text/html; charset=utf-8"
-                    assert corps == "<p>é</p>"
-                    assert prendre("/vlp.js")[1]["Content-Type"] == "text/javascript; charset=utf-8"
-                    assert prendre("/sous/b.svg")[1]["Content-Type"] == "image/svg+xml; charset=utf-8"
-                    assert prendre("/vlp.js")[1]["Cache-Control"] == "no-store"
-                    statut, tetes, corps = prendre("/_telephone?page=sous/b.svg")
-                    assert statut == 200
-                    assert 'src="/sous/b.svg"' in corps
-                    assert "width:375px" in corps
-                    assert tetes["Cache-Control"] == "no-store"
-                    for mauvais in ("", "?page=../secret", "?page=/etc/passwd", "?page=<script>", "?page=a.html%22onload%3D1"):
-                        assert (prendre("/_telephone" + mauvais)[0] == 400), ("servir : /_telephone%s → 400, jamais de cadre" % mauvais) + "\n" + str(mauvais)
-                    assert (prendre("/nulle.html")[0] == 404), ("servir : page absente → 404 sans cache") + "\n" + "404"
-            finally:
-                serveur.shutdown()
-                serveur.server_close()
-            code, s = appel(["servir", os.path.join(t, "absent"), "8800"])
-            assert code == 1
-            assert s.startswith("GARDE: dossier introuvable")
-            code, s = appel(["servir", art, "99999"])
-            assert code == 1
-            assert s.startswith("GARDE: port 99999")
+                with urllib.request.urlopen(base + chemin) as r:
+                    return r.status, r.headers, r.read().decode("utf-8")
+            except urllib.error.HTTPError as err:
+                return err.code, err.headers, ""
+        try:
+            with contextlib.redirect_stderr(io.StringIO()):     # le journal des requêtes
+                statut, tetes, corps = prendre("/a.html")
+                assert statut == 200
+                assert tetes["Cache-Control"] == "no-store"
+                assert tetes["Content-Type"] == "text/html; charset=utf-8"
+                assert corps == "<p>é</p>"
+                assert prendre("/vlp.js")[1]["Content-Type"] == "text/javascript; charset=utf-8"
+                assert prendre("/sous/b.svg")[1]["Content-Type"] == "image/svg+xml; charset=utf-8"
+                assert prendre("/vlp.js")[1]["Cache-Control"] == "no-store"
+                statut, tetes, corps = prendre("/_telephone?page=sous/b.svg")
+                assert statut == 200
+                assert 'src="/sous/b.svg"' in corps
+                assert "width:375px" in corps
+                assert tetes["Cache-Control"] == "no-store"
+                for mauvais in ("", "?page=../secret", "?page=/etc/passwd", "?page=<script>", "?page=a.html%22onload%3D1"):
+                    assert (prendre("/_telephone" + mauvais)[0] == 400), ("servir : /_telephone%s → 400, jamais de cadre" % mauvais) + "\n" + str(mauvais)
+                assert (prendre("/nulle.html")[0] == 404), ("servir : page absente → 404 sans cache") + "\n" + "404"
         finally:
-            for k, v in anciens.items():
-                if v is None:
-                    os.environ.pop(k, None)
-                else:
-                    os.environ[k] = v
+            serveur.shutdown()
+            serveur.server_close()
+        code, s = appel(["servir", os.path.join(t, "absent"), "8800"])
+        assert code == 1
+        assert s.startswith("GARDE: dossier introuvable")
+        code, s = appel(["servir", art, "99999"])
+        assert code == 1
+        assert s.startswith("GARDE: port 99999")
 
 
 def test_nuits(tmp_path, init_git):
