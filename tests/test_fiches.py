@@ -1,10 +1,10 @@
 """`noyau/fiches.py` : `extraire`, `socle`, `sessions`, `valider`, `cocher` et ses options (`--verifier`, `--refuser`,
 `--resolu`, `--session`), le point unique des chemins (`Z2`).
 
-Deux étages (socle de `REF`, « La découpe sépare la décision de Git ») : les décisions qui ne lancent pas `git`
-(REF45), chacune sur le texte qu'un `git` aurait rendu ; puis les commandes, migrées de l'ancienne suite maison (REF50),
-un seul test sur vrai dépôt par branchement. Chaque `assert` migré garde le libellé d'origine de son `verifier` en
-tête de son message (REF5), puis le diagnostic.
+Deux étages (socle de `REF`, « La découpe sépare la décision de Git ») : les décisions qui ne lancent pas `git` (REF45),
+chacune sur le texte qu'un `git` aurait rendu ; puis les commandes, migrées de l'ancienne suite maison (REF50), un seul
+test sur vrai dépôt par branchement. Chaque `assert` migré garde le libellé d'origine de son `verifier` en tête de son
+message (REF5), puis le diagnostic — sauf ceux que `RUF2` a séparés, sans message : pytest montre les valeurs comparées.
 """
 import os
 import shutil

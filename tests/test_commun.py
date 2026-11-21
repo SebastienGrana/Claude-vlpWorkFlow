@@ -1,7 +1,8 @@
-"""Les aides communes du noyau (noyau/commun.py) vues par leurs commandes : `archiver`, le chemin de l'archive
-(`IDX1`), `premier_lancement` et le tampon des hooks, les copies du lecteur et des nombres recopiés, la règle de
-`rapide` dans les agents, l'option `explique` de `chef page` — migré de l'ancienne suite maison (REF50). Chaque
-`assert` garde le libellé d'origine de son `verifier` en tête de son message (REF5), puis le diagnostic.
+"""Les aides communes du noyau (noyau/commun.py) vues par leurs commandes : `archiver`, le chemin de l'archive (`IDX1`),
+`premier_lancement` et le tampon des hooks, les copies du lecteur et des nombres recopiés, la règle de `rapide` dans les
+agents, l'option `explique` de `chef page` — migré de l'ancienne suite maison (REF50). Chaque `assert` garde le libellé
+d'origine de son `verifier` en tête de son message (REF5), puis le diagnostic — sauf ceux que `RUF2` a séparés, sans
+message : pytest montre les valeurs comparées.
 """
 import io
 import json

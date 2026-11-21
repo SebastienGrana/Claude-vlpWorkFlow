@@ -602,8 +602,9 @@ l'utilisateur au chantier `MET` (`context AI/08-etat.md`, entrée « MET1 — ce
   « Software Engineering at Google », ch. 12).
 - **Pas de `if` ni de `for` dans un test** : du code en ligne droite, juste à la lecture (Google, ch. 12).
   `C901` le garde, sur `tests/`.
-- **Une vérification dit ce qu'elle attend** : une assertion par fait, un message qui le nomme (Meszaros,
-  « Assertion Roulette »). `PT018` le garde : le 6e compte du cliquet de `sante.py`, sur les tests seuls.
+- **Une vérification dit ce qu'elle attend** : une assertion par fait (Meszaros, « Assertion Roulette »). `PT018` le
+  garde : le 6e compte du cliquet de `sante.py`, sur les tests seuls. Le message n'est pas exigé : pytest montre les
+  valeurs comparées (choix de l'utilisateur, cadrage de `RUF`, 2026-11-20 ; `vlp.py separer` le retire).
 - **Un commit de rangement reste à part** d'un changement de comportement (Kent Beck, « Augmented
   Coding », 2025).
 - **Le test d'abord, vu échouer** : « Anatomie d'une fiche », rouge → vert (`REF13`) ; le mutant, quand le critère en nomme un (`ALG1`).

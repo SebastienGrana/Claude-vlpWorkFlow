@@ -1,6 +1,7 @@
 """`noyau/page.py` : la page d'un chantier, ses plages, ses arrondis, les fiches lançables. Deux étages : la décision de
 `heures_commits` sans Git (REF46), sur le texte de `git log` ; puis les commandes, migrées de l'ancienne suite maison
-(REF58), chaque `assert` migré au libellé d'origine de son `verifier` (REF5).
+(REF58), chaque `assert` migré au libellé d'origine de son `verifier` (REF5), sauf ceux que `RUF2` a séparés, sans
+message.
 """
 import os
 import pathlib

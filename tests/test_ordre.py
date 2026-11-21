@@ -1,6 +1,6 @@
 """`noyau/ordre.py` : la page d'enchaînement entre projets, son classement, sa base, sa clôture, sa jonction — migré de
 l'ancienne suite maison (REF51). Chaque `assert` garde le libellé d'origine de son `verifier` en tête de son message
-(REF5), puis le diagnostic.
+(REF5), puis le diagnostic — sauf ceux que `RUF2` a séparés, sans message : pytest montre les valeurs comparées.
 """
 import json
 import os

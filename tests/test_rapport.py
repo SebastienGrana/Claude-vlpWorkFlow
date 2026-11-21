@@ -1,6 +1,6 @@
 """`noyau/rapport.py` : `symboles`, `mutant`, `rapide`, `sante` et son cliquet, la base refaite à la fusion, les tailles
 — migré de l'ancienne suite maison (REF51). Chaque `assert` garde le libellé d'origine de son `verifier` en tête de son
-message (REF5), puis le diagnostic.
+message (REF5), puis le diagnostic — sauf ceux que `RUF2` a séparés, sans message : pytest montre les valeurs comparées.
 """
 import io
 import json

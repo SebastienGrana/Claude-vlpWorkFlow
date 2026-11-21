@@ -1,6 +1,6 @@
-"""`noyau/ouvrir.py` : `ouvrir`, l'estimé d'un chantier, sa marque, les chevrons de la feuille — migré de
-l'ancienne suite maison (REF51). Chaque `assert` garde le libellé d'origine de son `verifier` en tête de son message
-(REF5), puis le diagnostic.
+"""`noyau/ouvrir.py` : `ouvrir`, l'estimé d'un chantier, sa marque, les chevrons de la feuille — migré de l'ancienne
+suite maison (REF51). Chaque `assert` garde le libellé d'origine de son `verifier` en tête de son message (REF5), puis
+le diagnostic — sauf ceux que `RUF2` a séparés, sans message : pytest montre les valeurs comparées.
 """
 import os
 import pathlib

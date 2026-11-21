@@ -1,6 +1,6 @@
-"""`noyau/clos.py` : la zone des chantiers clos, l'estimé et le prix, le recompte, la vigie — migré de
-l'ancienne suite maison (REF58). Chaque `assert` garde le libellé d'origine de son `verifier` en tête de son message
-(REF5), puis le diagnostic.
+"""`noyau/clos.py` : la zone des chantiers clos, l'estimé et le prix, le recompte, la vigie — migré de l'ancienne suite
+maison (REF58). Chaque `assert` garde le libellé d'origine de son `verifier` en tête de son message (REF5), puis le
+diagnostic — sauf ceux que `RUF2` a séparés, sans message : pytest montre les valeurs comparées.
 """
 import io
 import json

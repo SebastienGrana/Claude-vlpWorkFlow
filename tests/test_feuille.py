@@ -1,6 +1,6 @@
-"""`noyau/feuille.py` : la feuille de route, sa TODO, ses phases, ses cartes, les lettres prises — migré de
-l'ancienne suite maison (REF58). Chaque `assert` garde le libellé d'origine de son `verifier` en tête de son message
-(REF5), puis le diagnostic.
+"""`noyau/feuille.py` : la feuille de route, sa TODO, ses phases, ses cartes, les lettres prises — migré de l'ancienne
+suite maison (REF58). Chaque `assert` garde le libellé d'origine de son `verifier` en tête de son message (REF5), puis
+le diagnostic — sauf ceux que `RUF2` a séparés, sans message : pytest montre les valeurs comparées.
 """
 import io
 import os

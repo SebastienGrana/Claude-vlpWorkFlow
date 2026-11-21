@@ -1,6 +1,6 @@
 """`noyau/notes.py` : l'abri des notes et du journal, l'état, les renvois, la forme des pages et leurs liens — migré de
 l'ancienne suite maison (REF58). Chaque `assert` garde le libellé d'origine de son `verifier` en tête de son message
-(REF5), puis le diagnostic.
+(REF5), puis le diagnostic — sauf ceux que `RUF2` a séparés, sans message : pytest montre les valeurs comparées.
 """
 import io
 import json

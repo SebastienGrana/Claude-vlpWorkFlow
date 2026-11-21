@@ -1,6 +1,7 @@
 """`noyau/hooks.py` : le filet, le gardien, le contrat, la forme du sous-agent, `hooks.json`. Deux étages : la décision
 d'`ouverture` sans Git (REF47), sur le texte de `git log` ; puis les commandes, migrées de l'ancienne suite maison
-(REF58), chaque `assert` migré au libellé d'origine de son `verifier` (REF5).
+(REF58), chaque `assert` migré au libellé d'origine de son `verifier` (REF5), sauf ceux que `RUF2` a séparés, sans
+message.
 """
 import io
 import json
