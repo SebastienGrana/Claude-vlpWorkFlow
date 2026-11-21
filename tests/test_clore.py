@@ -20,6 +20,7 @@ from aides import (
     ecrire,
     ligne_close,
     lire,
+    lire_texte,
     mod,
     transcript,
 )
@@ -296,11 +297,6 @@ CARTE_FEUILLE = ("# C\n\n- **contexte** : ctx/\n- **fichier d'état** : ctx/08-e
 
 
 Q_FERME = "# Chantier Q — Un titre\n\n## Q1 [x] — a\n## Q2 [ ] — b\n"
-
-
-def lire_texte(chemin):
-    """Le texte UTF-8 de `chemin` ; `FileNotFoundError` s'il n'existe pas."""
-    return pathlib.Path(chemin).read_text(encoding="utf-8")
 
 
 def decor_feuille(t):

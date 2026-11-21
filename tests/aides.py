@@ -67,6 +67,12 @@ def ecrire(chemin, texte):
         f.write(texte)
 
 
+def lire_texte(chemin):
+    """Le texte UTF-8 de `chemin` ; `FileNotFoundError` s'il n'existe pas."""
+    with open(chemin, encoding="utf-8") as f:
+        return f.read()
+
+
 def transcript(chemin, tours, heures=None):
     """Un jsonl de `tours` tours, 100 000 tokens d'entrée chacun, sur claude-opus-5 (5 $ le million) ;
     `heures` : celle de chaque tour, en secondes UTC — sans elles, aucun `timestamp`."""

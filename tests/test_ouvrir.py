@@ -11,7 +11,7 @@ import tempfile
 from decimal import Decimal
 
 import pytest
-from aides import SCRIPTS, appel, ecrire, mod
+from aides import SCRIPTS, appel, ecrire, lire_texte, mod
 
 ICI = SCRIPTS     # le dossier des scripts, d'où ces tests viennent
 
@@ -50,11 +50,6 @@ OUVERT_DU_JOUR = mod.OUVERT_LIGNE % __import__("datetime").date.today().isoforma
 
 CARTE_O = ("# C\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n"
            "- **artefact du chantier** : %s\n")
-
-
-def lire_texte(chemin):
-    """Le texte UTF-8 de `chemin` ; `FileNotFoundError` s'il n'existe pas."""
-    return pathlib.Path(chemin).read_text(encoding="utf-8")
 
 
 def decor_ouvrir(t, monkeypatch):
