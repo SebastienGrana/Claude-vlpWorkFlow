@@ -119,3 +119,4 @@ QUAND LIRE : on relit un chantier clos ; l'index n'en garde qu'une ligne qui ren
 | `127-rou.md` | on relit le socle du chantier ROU — **clos** « Un rouge qui compte juste », `ROU1..ROU2` |
 | `128-fig.md` | on relit le socle du chantier FIG — **clos** « Les garde-fous de fin de fiche », `FIG1..FIG4` |
 | `129-pen.md` | on relit le socle du chantier PEN — **clos** « Pages et enchaînement : un chantier reconnu à son code », `PEN1..PEN2` |
+| `130-ruf.md` | on relit le socle du chantier RUF — **clos** « ruff au commit », `RUF1..RUF8` |

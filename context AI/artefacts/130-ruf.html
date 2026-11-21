@@ -21,16 +21,18 @@
     <p>ruff check scripts tests rend 0 remarque, et le pre-commit refuse tout commit qui en ajoute une.</p>
     <!-- ZONE:avancement — un span par fiche, dans l'ordre, même data-etat que la fiche -->
     <div class="avancement">
-      <span data-etat="encours"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      <span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span><span data-etat="faite"></span>
     </div>
-    <p class="mono" style="margin-top:.5rem">8 fiches · 0 faite · en cours : RUF1</p>
+    <p class="mono" style="margin-top:.5rem">8 fiches · 8 faites</p>
   </header>
 
   <!-- ZONE:bilan — remplie à la clôture, en même temps que « clos » en tête du fichier de fiches -->
-  <section hidden>
-    <h2>Chantier clos le </h2>
+  <section>
+    <h2>Chantier clos le 2026-11-21</h2>
     <div class="bilan">
-      <p></p>
+      <p>Livré : ruff strict au commit : 742 assertions composées séparées par un script, 44 longs tests découpés, scripts/ et tests/ à 0 remarque, ruff refuse le commit au pre-commit</p>
+      <p>Surpris : séparer sans message fait naître 22 remarques (des variables qui ne servaient qu'au message) ; le motif tests/**/*.py ne prend pas tests/a.py ; un verrou de l'ancienne dispense (test_sante_pt018) hors de la ligne Fichiers de RUF8</p>
+      <p>Estimé : estimé non noté · cadré 8 · joué 8 fiches ? $</p>
     </div>
   </section>
 
@@ -38,31 +40,41 @@
     <h2>Les fiches, dans l'ordre des dépendances</h2>
     <!-- ZONE:fiches — data-etat vaut faite | encours | bloquee ; absent = à faire -->
     <ul class="fiches">
-      <li class="fiche" data-etat="encours"><span class="gauche"><span class="id">RUF1</span></span>
-        <details open><summary><span class="titre">Écrire le script qui sépare les assertions composées</span><span class="etat">En cours · RUF3 peut partir en même temps</span></summary>
-        <span class="note">le script vlp.py separer, testé ; dépend de rien</span></details></li>
-      <li class="fiche" data-attend><span class="gauche"><span class="id">RUF2</span></span>
-        <details><summary><span class="titre">Séparer les 742 assertions composées des tests</span><span class="etat">Après RUF1</span></summary>
-        <span class="note">les 742 assertions composées des tests séparées ; après RUF1</span></details></li>
-      <li class="fiche"><span class="gauche"><span class="id">RUF3</span></span>
-        <details><summary><span class="titre">Solder les petites remarques de scripts/ et de tests/</span><span class="etat">À lancer · en même temps que RUF1</span></summary>
-        <span class="note">les 3 I001 de scripts et 7 petites remarques des tests ; à tout moment</span></details></li>
-      <li class="fiche" data-attend><span class="gauche"><span class="id">RUF4</span></span>
-        <details><summary><span class="titre">Découper les longs tests de nuit, matin, niveau et notes</span><span class="etat">Après RUF2</span></summary>
-        <span class="note">9 longs tests découpés (nuit, matin, niveau, notes) ; après RUF2</span></details></li>
-      <li class="fiche" data-attend><span class="gauche"><span class="id">RUF5</span></span>
-        <details><summary><span class="titre">Découper les longs tests de boucle et boucle_canal, et le faux claude</span><span class="etat">Après RUF2</span></summary>
-        <span class="note">8 longs tests et le faux claude découpés (boucle, boucle_canal) ; après RUF2</span></details></li>
-      <li class="fiche" data-attend><span class="gauche"><span class="id">RUF6</span></span>
-        <details><summary><span class="titre">Découper les longs tests d'ouvrir, clore, clos et fusion</span><span class="etat">Après RUF2</span></summary>
-        <span class="note">11 longs tests découpés (ouvrir, clore, clos, fusion) ; après RUF2</span></details></li>
-      <li class="fiche" data-attend><span class="gauche"><span class="id">RUF7</span></span>
-        <details><summary><span class="titre">Découper les longs tests des neuf autres fichiers</span><span class="etat">Après RUF2</span></summary>
-        <span class="note">les 11 derniers longs tests découpés, tout tests/ à 0 ; après RUF2</span></details></li>
-      <li class="fiche" data-attend><span class="gauche"><span class="id">RUF8</span></span>
-        <details><summary><span class="titre">Mettre ruff strict au pre-commit</span><span class="etat">Après RUF1, RUF2, RUF3, RUF4, RUF5, RUF6, RUF7</span></summary>
-        <span class="note">ruff strict au pre-commit, testé, et le cliquet aligné ; en dernier</span></details></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">RUF1</span></span>
+        <details><summary><span class="titre">Écrire le script qui sépare les assertions composées</span><span class="etat">Faite</span></summary>
+        <span class="note">le script vlp.py separer, testé ; dépend de rien</span></details>
+        <span class="cout mono">≈4,7M (4 682 478) · 30 tours · 2,60 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">RUF2</span></span>
+        <details><summary><span class="titre">Séparer les 742 assertions composées des tests</span><span class="etat">Faite</span></summary>
+        <span class="note">les 742 assertions composées des tests séparées ; après RUF1</span></details>
+        <span class="cout mono">≈6,1M (6 073 398) · 29 tours · 1,93 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">RUF3</span></span>
+        <details><summary><span class="titre">Solder les petites remarques de scripts/ et de tests/</span><span class="etat">Faite</span></summary>
+        <span class="note">les 3 I001 de scripts et 7 petites remarques des tests ; à tout moment</span></details>
+        <span class="cout mono">≈2,3M (2 344 473) · 10 tours · 0,70 $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">RUF4</span></span>
+        <details><summary><span class="titre">Découper les longs tests de nuit, matin, niveau et notes</span><span class="etat">Faite</span></summary>
+        <span class="note">9 longs tests découpés (nuit, matin, niveau, notes) ; après RUF2</span></details>
+        <span class="cout mono">≈12,0M (12 044 205) · 87 tours · ? $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">RUF5</span></span>
+        <details><summary><span class="titre">Découper les longs tests de boucle et boucle_canal, et le faux claude</span><span class="etat">Faite</span></summary>
+        <span class="note">8 longs tests et le faux claude découpés (boucle, boucle_canal) ; après RUF2</span></details>
+        <span class="cout mono">≈6,7M (6 713 969) · 57 tours · ? $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">RUF6</span></span>
+        <details><summary><span class="titre">Découper les longs tests d'ouvrir, clore, clos et fusion</span><span class="etat">Faite</span></summary>
+        <span class="note">11 longs tests découpés (ouvrir, clore, clos, fusion) ; après RUF2</span></details>
+        <span class="cout mono">≈9,2M (9 156 386) · 63 tours · ? $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">RUF7</span></span>
+        <details><summary><span class="titre">Découper les longs tests des neuf autres fichiers</span><span class="etat">Faite</span></summary>
+        <span class="note">les 11 derniers longs tests découpés, tout tests/ à 0 ; après RUF2</span></details>
+        <span class="cout mono">≈13,5M (13 477 310) · 103 tours · ? $</span></li>
+      <li class="fiche" data-etat="faite"><span class="gauche"><span class="id">RUF8</span></span>
+        <details><summary><span class="titre">Mettre ruff strict au pre-commit</span><span class="etat">Faite</span></summary>
+        <span class="note">ruff strict au pre-commit, testé, et le cliquet aligné ; en dernier</span></details>
+        <span class="cout mono">≈9,2M (9 235 473) · 73 tours · ? $</span></li>
     </ul>
+    <p class="mono cout-hors">Hors fiches : ≈9,4M (9 353 435) · 54 tours · 4,11 $</p>
+    <p class="mono cout-total">Coût du chantier : ≈73,1M (73 081 127) · 506 tours · ? $</p>
     <!-- hors fiches (coupé aux commits `<ID> :` seulement) et total, absents si rien n'est mesuré -->
   </section>
 
@@ -84,7 +96,7 @@
 
   <footer>
     <span>Fichier de fiches : <span class="mono">context AI/130-ruf.md</span></span>
-    <span>Mis à jour le <span class="mono">2026-11-20</span></span>
+    <span>Mis à jour le <span class="mono">2026-11-21</span></span>
   </footer>
 </div>
 <script src="vlp.js"></script>
