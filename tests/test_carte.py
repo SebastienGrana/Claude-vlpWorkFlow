@@ -14,25 +14,7 @@ import subprocess
 import tempfile
 import time
 
-from aides import RACINE, ecrire, mod
-
-CHANTIER = "# Chantier courant\n\n- **alias** : %s\n- **contexte** : %s\n"
-
-
-OUVERT = "**Ouvert.** le 2026-10-08."
-
-
-FICHES = """# Chantier Z
-
-**Ouvert.** le 2026-10-08.
-
-## Le socle commun
-
-## Z1 [x] — faite
----
-## Z2 [ ] — à faire
-## Z10 [ ] — après
-"""
+from aides import CHANTIER, FICHES, OUVERT, RACINE, ecrire, mod
 
 
 def ouvert(texte):

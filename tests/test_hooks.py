@@ -12,7 +12,7 @@ import tempfile
 import time
 
 import pytest
-from aides import RACINE, appel, ecrire, lire, mod
+from aides import AVEC, CHANTIER, RACINE, T0, appel, ecrire, lire, mod
 from noyau import hooks
 
 SANS = "aucun commit n'ajoute ce fichier : l'ouverture n'est pas commitée"
@@ -25,42 +25,6 @@ def test_heure_d_ajout_le_plus_ancien():
 def test_heure_d_ajout_sans_commit_ou_en_echec():
     assert hooks.heure_d_ajout(0, "") == (None, SANS), "CHK1 : fichier jamais commité, GARDE"
     assert hooks.heure_d_ajout(128, "100\n") == (None, SANS)
-
-
-CHANTIER = "# Chantier courant\n\n- **alias** : %s\n- **contexte** : %s\n"
-
-
-AVEC = """# Chantier Y
-
-## Le socle commun
-
-Socle, ligne 1.
-
-## L'ordre des fiches
-
----
-
-<!-- FICHE:Y1 -->
-## Y1 [x] — faite
-**Session** : aaa
-**Prompt**
-```
----
-## pas un titre
-```
-<!-- /FICHE -->
-
----
-
-<!-- FICHE:Y2 -->
-## Y2 [ ] — à faire
-**Session** : bbb
-**Session** : aaa
-<!-- /FICHE -->
-"""
-
-
-T0 = 1790000000
 
 
 def hook(texte):

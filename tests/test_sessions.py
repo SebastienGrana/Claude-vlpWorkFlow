@@ -15,48 +15,25 @@ import time
 from decimal import Decimal
 
 import pytest
-from aides import appel, ecrire, lire, mod, transcript
-
-OUVERT = "**Ouvert.** le 2026-10-08."
+from aides import (
+    AVEC,
+    DECOUPE_TETE,
+    OUVERT,
+    QFICHES,
+    SANS,
+    T0,
+    appel,
+    ecrire,
+    lire,
+    mod,
+    transcript,
+)
 
 
 def ouvert(texte):
     """`texte` d'un fichier de fiches, la marque d'ouverture sous son titre `# Chantier `, comme la pose `vlp.py
     ouvrir` : `courant_de` le lit (NUI31)."""
     return re.sub(r"^(# Chantier [^\n]*\n)", r"\g<1>\n%s\n" % OUVERT, texte, count=1, flags=re.M)
-
-
-AVEC = """# Chantier Y
-
-## Le socle commun
-
-Socle, ligne 1.
-
-## L'ordre des fiches
-
----
-
-<!-- FICHE:Y1 -->
-## Y1 [x] — faite
-**Session** : aaa
-**Prompt**
-```
----
-## pas un titre
-```
-<!-- /FICHE -->
-
----
-
-<!-- FICHE:Y2 -->
-## Y2 [ ] — à faire
-**Session** : bbb
-**Session** : aaa
-<!-- /FICHE -->
-"""
-
-
-SANS = "## Z1 [ ] — ancien\nlong\n---\n## Z2 [ ] — dernier\nfin\n"
 
 
 def transcript_marque(chemin, marque, heures):
@@ -69,32 +46,6 @@ def transcript_marque(chemin, marque, heures):
         with open(chemin, "w", encoding="utf-8") as f:
             f.write(json.dumps({"type": "user", "turnOrigin": marque, "timestamp": iso,
                                 "message": {"role": "user", "content": "x"}}) + "\n" + suite)
-
-
-QFICHES = """# Chantier Q
-
-## Le socle commun
-
-## L'ordre des fiches
-
-<!-- FICHE:Q1 -->
-## Q1 [x] — Créer
-**Session** : %s
-**Critère de fin**
-<!-- /FICHE -->
-<!-- FICHE:Q2 -->
-## Q2 [x] — Brancher
-**Session** : %s
-**Critère de fin**
-<!-- /FICHE -->
-"""
-
-
-T0 = 1790000000
-
-
-DECOUPE_TETE = ("DÉCOUPE aux commits de fiche — une fiche va du commit d'avant au sien, "
-                "un sous-agent compte à la fiche que nomme son prompt, sinon à son départ\n")
 
 
 def test_cout_sous_agent_nomme(tmp_path, init_git):

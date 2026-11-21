@@ -11,24 +11,9 @@ import re
 import subprocess
 import tempfile
 
-from aides import SCRIPTS, appel, ecrire, mod
+from aides import CHANTIER, FICHES, SCRIPTS, appel, ecrire, mod
 
 ICI = SCRIPTS     # le dossier des scripts, d'où ces tests viennent
-
-CHANTIER = "# Chantier courant\n\n- **alias** : %s\n- **contexte** : %s\n"
-
-
-FICHES = """# Chantier Z
-
-**Ouvert.** le 2026-10-08.
-
-## Le socle commun
-
-## Z1 [x] — faite
----
-## Z2 [ ] — à faire
-## Z10 [ ] — après
-"""
 
 
 def valide(texte):
@@ -58,9 +43,6 @@ def carte_sous(depart, session=None, nuit=False, argv=None, **options):
         os.environ.pop("CLAUDE_CODE_SESSION_ID", None)
         os.environ.pop("VLP_NUIT", None)
     return s.getvalue()
-
-
-GABARIT_VLPCSS = os.path.join(ICI, "..", "templates", "vlp.css")
 
 
 def test_sommaire(tmp_path):

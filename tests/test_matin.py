@@ -11,23 +11,25 @@ import subprocess
 from decimal import Decimal
 
 import pytest
-from aides import RACINE, SCRIPTS, appel, ecrire, ligne_close, lire, mod, transcript
+from aides import (
+    CARTE_MATIN,
+    ETAT_MATIN,
+    JOUR_MATIN,
+    OUVERT,
+    RACINE,
+    SCRIPTS,
+    appel,
+    ecrire,
+    ligne_close,
+    lire,
+    mod,
+    transcript,
+)
 
 pytestmark = pytest.mark.skipif(shutil.which("git") is None, reason="git absent : matin n'est pas testé")
 GABARIT_FEUILLE = os.path.join(RACINE, "templates", "artefact-feuille-de-route.html")
 
 ICI = SCRIPTS     # le dossier des scripts, d'où ce test vient
-OUVERT = "**Ouvert.** le 2026-10-08."
-JOUR_MATIN = "2026-10-01"
-CARTE_MATIN = ("# Chantier courant\n\n- **alias** : mt\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n"
-               "- **fichier d'état** : ctx/08-etat.md\n"
-               "- **artefact feuille de route** : https://claude.ai/artifact/FEU\n"
-               "- **artefact du chantier** : https://claude.ai/artifact/LOC\n- **artefact archive** : aucune\n\n"
-               "Lettres de fiche déjà prises : E (Enchaîner), ENQ (Les écritures Git). "
-               "Un nouveau chantier en choisit un autre.\n")
-ETAT_MATIN = ("# État\n\n## TODO\n\n| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |\n|---|---|---|---|---|\n"
-              "| 79 | `LOC` — publier | a | 2 fiches | — |\n| 80 | `PAR` — deux chantiers | b | 3 fiches | — |\n\n"
-              "## Journal\n")
 HOOK_REFUSE = "#!/bin/sh\necho 'hook : refusé' >&2\nexit 1\n"
 ORDRE_ABSENT = "ORDRE pointes — carnet absent\n"
 ETAT = "ctx/08-etat.md"
@@ -55,7 +57,6 @@ def ouvert(texte):
     return re.sub(r"^(# Chantier [^\n]*\n)", r"\g<1>\n%s\n" % OUVERT, texte, count=1, flags=re.M)
 
 
-
 def git_matin(d, *args):
     r = subprocess.run(["git"] + list(args), cwd=d, capture_output=True, encoding="utf-8", errors="replace", check=False)
     if r.returncode:
@@ -63,10 +64,8 @@ def git_matin(d, *args):
     return r.stdout
 
 
-
 def code_git(d, *args):
     return subprocess.run(["git"] + list(args), cwd=d, capture_output=True, check=False).returncode
-
 
 
 def commit_matin(d, message, heure):
@@ -74,7 +73,6 @@ def commit_matin(d, message, heure):
     os.environ["GIT_AUTHOR_DATE"] = os.environ["GIT_COMMITTER_DATE"] = "%sT%02d:00:00+00:00" % (JOUR_MATIN, heure)
     git_matin(d, "add", "-A")
     git_matin(d, "commit", "-q", "-m", message)
-
 
 
 class Fabrique:
@@ -124,7 +122,6 @@ def batir_depot_matin(fab, d, archive, etat):
     commit_matin(d, "base", 0)
 
 
-
 def branche_matin(d, canal, code, lettre, heure, clos=True, x=None, ligne=None, retire=None, modifs=None):
     """`nuit/<jour>-<canal>-<code>`, un commit à `heure` depuis `main` : `clos`, le chantier est clos (l'artefact à
     `aucun`), sinon ouvert sur la branche, `ctx/41-<code>.md` à sa marque — l'hérité de main ne compte pas (NUI31) et la feuille refaite sans badge ; `lettre`, sa lettre ajoutée à la liste ; `x`, le nouveau
@@ -160,7 +157,6 @@ def branche_matin(d, canal, code, lettre, heure, clos=True, x=None, ligne=None, 
     return nom
 
 
-
 def etat_matin(d):
     """Ce que `matin` a laissé dans `d` : (lignes de CHANTIER.md, feuille, rang « en cours », zone d'archive)."""
     carte_ = mod.lignes_de(os.path.join(d, "CHANTIER.md"))
@@ -168,7 +164,6 @@ def etat_matin(d):
     debut, fin, forme = mod.zone_todo(html)
     return (carte_, html, mod.rang_en_cours(html[debut:fin], forme),
             html[html.index("<!-- ZONE:archive"):html.index("<!-- /ZONE:archive")])
-
 
 
 def matin_a(tr, fab):
@@ -200,7 +195,6 @@ def matin_a(tr, fab):
     assert (git_matin(origine, "rev-parse", "main").strip() == pousse != git_matin(d, "rev-parse", "main").strip()), ("NUI15 (f) un dépôt nu en origin : sa main n'a pas bougé, matin ne pousse rien") + "\n" + str((pousse, git_matin(d, "rev-parse", "main")))
 
 
-
 def matin_b(tr, fab):
     """(b) A et B ajoutent chacun une lettre sur la même ligne, la feuille change des deux côtés : les deux lettres
     restent ; le carnet met B avant A, bien que la pointe de B soit la plus récente."""
@@ -224,7 +218,6 @@ def matin_b(tr, fab):
                  == ["Matin %s : %s" % (JOUR_MATIN, b), "Matin %s : %s" % (JOUR_MATIN, a)])
 
 
-
 def matin_c(tr, fab):
     """(c) sans carnet : l'heure de la pointe ; une pointe à chantier ouvert (commit WIP) reste de côté."""
     d = os.path.join(tr, "c")
@@ -236,7 +229,6 @@ def matin_c(tr, fab):
     assert (s == (ORDRE_ABSENT + "DE CÔTÉ %s — ctx/41-wip.md\nFUSIONNÉE %s\n"
                                      "MATIN 1 fusionnée(s) · 1 de côté\n" % (wip, ok)))
     assert code_git(d, "merge-base", "--is-ancestor", wip, "main") == 1
-
 
 
 def matin_d(tr, fab):
@@ -264,7 +256,6 @@ def matin_d(tr, fab):
     assert s == ORDRE_ABSENT + "DÉJÀ %s\nFUSIONNÉE %s\nMATIN 1 fusionnée(s) · 0 de côté\n" % (a, b)
 
 
-
 def matin_e(tr, fab):
     """(e) un hook qui refuse (`core.hooksPath`) : ARRÊT, la fusion reste en cours."""
     d, hooks = os.path.join(tr, "e"), os.path.join(tr, "hooks-e")
@@ -280,7 +271,6 @@ def matin_e(tr, fab):
     assert code_git(d, "rev-parse", "-q", "--verify", "MERGE_HEAD") == 0
 
 
-
 def matin_h(tr, fab):
     """(h) sans archive, les clos vivent sur la feuille : une feuille en conflit ne se reprend pas de main, ARRÊT."""
     d = os.path.join(tr, "h")
@@ -292,7 +282,6 @@ def matin_h(tr, fab):
                                             " — après résolution : " % (a, b)))
     assert s.endswith(' feuille "%s"\n' % d)
     assert code_git(d, "rev-parse", "-q", "--verify", "MERGE_HEAD") == 0
-
 
 
 def matin_g(tr, fab):
@@ -323,7 +312,6 @@ def matin_g(tr, fab):
     assert code_git(d, "rev-parse", "-q", "--verify", "MERGE_HEAD") != 0
 
 
-
 def depot_nui16(fab, d, fichiers=None, archive=True):
     """`depot_matin` sur l'état à quatre rangées et son journal, puis `fichiers` (`{chemin: texte}`) en un 2e commit."""
     fab.depot(d, archive=archive, etat=ETAT_NUI16)
@@ -333,14 +321,12 @@ def depot_nui16(fab, d, fichiers=None, archive=True):
         commit_matin(d, "fichiers", 0)
 
 
-
 def retoucher(chemin, f):
     """Une retouche pour `branche_matin(modifs=…)` : réécrit `chemin` (relatif au dépôt) par `f(texte)`."""
     def faire(d):
         complet = os.path.join(d, chemin)
         ecrire(complet, f(lire(complet)))
     return faire
-
 
 
 def resumee(lettre, texte):
@@ -352,10 +338,8 @@ def resumee(lettre, texte):
     return faire
 
 
-
 def rangees(texte, motif=r"`(\d\d)-"):
     return re.findall(motif, "\n".join(l for l in texte.splitlines() if l.startswith("|")))
-
 
 
 def matin_n_a(tr, fab):
@@ -387,7 +371,6 @@ def matin_n_a(tr, fab):
     assert git_matin(d, "log", "-1", "--format=%s").strip() == "Matin %s : %s" % (JOUR_MATIN, a)
 
 
-
 def matin_n_b(tr, fab):
     """(b) 5d7fc42 : A et B ajoutent un bloc au journal, en fin de fichier."""
     d = os.path.join(tr, "nj")
@@ -402,7 +385,6 @@ def matin_n_b(tr, fab):
     assert etat.index("une ligne de base") < etat.index("bloc de A") < etat.index("bloc de B")
     assert etat.count("## 2026-10-01 — AAA") == etat.count("## 2026-10-01 — BBB") == 1
     assert re.findall(r"^\| (\d+) \|", etat, re.M) == ["58", "79", "80", "82"]
-
 
 
 def matin_n_c(tr, fab):
@@ -425,7 +407,6 @@ def matin_n_c(tr, fab):
     assert "le kit tient, A." in claude
     assert "1. une règle, B." in claude
     assert "<<<<<<<" not in claude
-
 
 
 def matin_n_d(tr, fab):
@@ -465,7 +446,6 @@ def matin_n_d(tr, fab):
     assert "<<<<<<<" not in clos
 
 
-
 def matin_n_e(tr, fab):
     """(e) `en-attente` : retirée par A et intacte en B ; changée des deux côtés ; vide ; non suivie."""
     def heure(h):
@@ -501,7 +481,6 @@ def matin_n_e(tr, fab):
     assert lire(os.path.join(d, ATTENTE)) == attente(("P", heure(9)))
 
 
-
 def publie_essai(fab, tr, nom, base, ea, eb):
     """L'essai D2 : un dépôt à `publie merge=union`, deux branches écrites par `noter_publie` ; `(ce que Git en fait lu par
     lire_publie, ce que fusion_publie en fait, ses lignes imprimées)`."""
@@ -528,7 +507,6 @@ def publie_essai(fab, tr, nom, base, ea, eb):
     return mod.lire_publie(art), par_cle, infos
 
 
-
 def matin_n_f(tr, fab):
     """(f) `publie` : l'essai D2 en quatre cas, l'état choisi verrouillé, puis `matin` de bout en bout."""
     h = {n: n * 64 for n in "123"}
@@ -553,7 +531,6 @@ def matin_n_f(tr, fab):
     assert code == 0
     assert "PUBLIE feuille-de-route.html vlp.css — empreintes différentes des deux côtés, clé retirée" in s
     assert lire(os.path.join(d, PUBLIE_MATIN)) == js + h["2"] + "\n"
-
 
 
 def somme_transcripts(*transcripts):
@@ -770,7 +747,6 @@ def matin_r(tr, fab):
                 os.environ[k] = v
 
 
-
 def matin_s(tr, fab):
     """(s) `matin` sans date : la seule nuit à ranger est prise et dite ; plusieurs nuits, ou aucune (tout fusionné, ou
     de côté), ne fusionnent rien ; `--rapport` veut la date."""
@@ -807,7 +783,6 @@ def matin_s(tr, fab):
     assert code_git(wip_d, "merge-base", "--is-ancestor", wip, "main") == 1
 
 
-
 def matin_t(tr, fab):
     """(t) une fusion qui touche `scripts/` : `PLUGIN_RETARD=1` avant `MATIN` quand le projet est le kit chargé (`KIT`),
     rien pour un autre projet (RTD1)."""
@@ -830,7 +805,6 @@ def matin_t(tr, fab):
     assert "PLUGIN_RETARD" not in s_a
 
 
-
 def matin_u(tr, fab):
     """(u) une branche qui laisse une page en attente : `matin` imprime son `ATTENTE=` avant `MATIN` (NPB1)."""
     d = os.path.join(tr, "u")
@@ -841,7 +815,6 @@ def matin_u(tr, fab):
     code, s = appel(["matin", d, JOUR_MATIN])
     assert code == 0
     assert s.endswith("ATTENTE=50-x.html https://claude.ai/artifact/x\nMATIN 1 fusionnée(s) · 0 de côté\n")
-
 
 
 def test_matin_a(tmp_path, fab):

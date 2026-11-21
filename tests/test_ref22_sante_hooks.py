@@ -19,7 +19,7 @@ import couverture
 import coverage
 import pytest
 import retraits
-from aides import RACINE, appel, ecrire, lire
+from aides import CODE, RACINE, appel, ecrire, lire
 
 CAFE = "café"   # un nom non ASCII : Git le cite d'office
 
@@ -143,7 +143,6 @@ def test_ref22_sante_base_avec_fichiers_refuse(tmp_path):
 # --- 4. Un `.py` indexé en partie ------------------------------------------------------------------------------------
 
 
-CODE = "def double(n):\n    return 2 * n\n"
 APPEL = "import sys\nsys.path.insert(0, 'scripts')\nimport x\nassert x.double(2) == 4\nassert x.triple(2) == 6\n"
 
 

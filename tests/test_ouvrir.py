@@ -11,20 +11,24 @@ import tempfile
 from decimal import Decimal
 
 import pytest
-from aides import SCRIPTS, appel, ecrire, lire_texte, mod
+from aides import (
+    OUVERT,
+    OUVERT_DU_JOUR,
+    OUVERT_LIGNE,
+    SCRIPTS,
+    appel,
+    ecrire,
+    lire_texte,
+    mod,
+)
 
 ICI = SCRIPTS     # le dossier des scripts, d'où ces tests viennent
-
-OUVERT = "**Ouvert.** le 2026-10-08."
 
 
 def ouvert(texte):
     """`texte` d'un fichier de fiches, la marque d'ouverture sous son titre `# Chantier `, comme la pose `vlp.py
     ouvrir` : `courant_de` le lit (NUI31)."""
     return re.sub(r"^(# Chantier [^\n]*\n)", r"\g<1>\n%s\n" % OUVERT, texte, count=1, flags=re.M)
-
-
-OUVERT_LIGNE = mod.OUVERT_LIGNE   # la seconde valeur d'`OUVERT` dans l'ancienne suite maison, lue par les groupes de sa fin
 
 
 def ouvert_ligne(texte):
@@ -43,9 +47,6 @@ def sans_chantier(racine, carte):
         if nom.endswith(".md") and os.path.isfile(chemin):
             texte = mod.lire(chemin)
             ecrire(chemin, re.sub(r"\n\n\*\*Ouvert\.\*\* le [^\n]*", "", texte))
-
-
-OUVERT_DU_JOUR = mod.OUVERT_LIGNE % __import__("datetime").date.today().isoformat()
 
 
 CARTE_O = ("# C\n\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n"

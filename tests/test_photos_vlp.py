@@ -19,9 +19,8 @@ import tempfile
 from contextlib import redirect_stderr, redirect_stdout
 
 import pytest
-from aides import RACINE, ecrire, lire, mod, transcript
+from aides import RACINE, T0, ecrire, lire, mod, transcript
 
-T0 = 1790000000
 KIT = RACINE.replace("\\", "/")
 
 FICHES = """# Chantier DEM — La démo

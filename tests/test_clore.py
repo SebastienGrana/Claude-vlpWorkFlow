@@ -14,8 +14,17 @@ import tempfile
 
 import pytest
 from aides import (
+    CARTE_MATIN,
+    ETAT_MATIN,
+    GABARIT_FEUILLE,
+    JOUR_MATIN,
+    OUVERT,
+    OUVERT_DU_JOUR,
+    OUVERT_LIGNE,
+    QFICHES,
     RACINE,
     SCRIPTS,
+    T0,
     appel,
     ecrire,
     ligne_close,
@@ -47,44 +56,16 @@ def test_prefixes_joues():
     assert clore.prefixes_joues("") == []
 
 
-OUVERT = "**Ouvert.** le 2026-10-08."
-
-
 def ouvert(texte):
     """`texte` d'un fichier de fiches, la marque d'ouverture sous son titre `# Chantier `, comme la pose `vlp.py
     ouvrir` : `courant_de` le lit (NUI31)."""
     return re.sub(r"^(# Chantier [^\n]*\n)", r"\g<1>\n%s\n" % OUVERT, texte, count=1, flags=re.M)
 
 
-OUVERT_LIGNE = mod.OUVERT_LIGNE   # la seconde valeur d'`OUVERT` dans l'ancienne suite maison, lue par les groupes de sa fin
-
-
 def ouvert_ligne(texte):
     """`ouvert`, tel que les groupes de la fin de l'ancienne suite maison l'appelaient : le gabarit `OUVERT_LIGNE` inséré
     brut, `%s` compris."""
     return re.sub(r"^(# Chantier [^\n]*\n)", r"\g<1>\n%s\n" % OUVERT_LIGNE, texte, count=1, flags=re.M)
-
-
-QFICHES = """# Chantier Q
-
-## Le socle commun
-
-## L'ordre des fiches
-
-<!-- FICHE:Q1 -->
-## Q1 [x] — Créer
-**Session** : %s
-**Critère de fin**
-<!-- /FICHE -->
-<!-- FICHE:Q2 -->
-## Q2 [x] — Brancher
-**Session** : %s
-**Critère de fin**
-<!-- /FICHE -->
-"""
-
-
-T0 = 1790000000
 
 
 def test_clore_todo(tmp_path):
@@ -540,9 +521,6 @@ def test_resume_claude():
     assert not g4
 
 
-OUVERT_DU_JOUR = mod.OUVERT_LIGNE % __import__("datetime").date.today().isoformat()
-
-
 def test_apc3(tmp_path, init_git):
     """APC3, et la dette PLI : page d'un clos s'arrête à clore, comme cout."""
     with tempfile.TemporaryDirectory(dir=tmp_path) as t:
@@ -592,9 +570,6 @@ def test_apc3(tmp_path, init_git):
                      in lire(os.path.join(proj, "ctx", "artefacts", "q.html")))
 
 
-GABARIT_FEUILLE = os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html")
-
-
 def test_uni1_total(tmp_path):
     """Contrôler que `clore` utilise le total mesuré, et `--tokens` sans mesure (UNI1)."""
     with tempfile.TemporaryDirectory(dir=tmp_path) as t:
@@ -638,22 +613,6 @@ def test_uni1_total(tmp_path):
         assert "· chantier 4 321 ·" in s
         assert "(4 321)" in fu
         assert ">950<" not in fu
-
-
-JOUR_MATIN = "2026-10-01"
-
-
-CARTE_MATIN = ("# Chantier courant\n\n- **alias** : mt\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n"
-               "- **fichier d'état** : ctx/08-etat.md\n"
-               "- **artefact feuille de route** : https://claude.ai/artifact/FEU\n"
-               "- **artefact du chantier** : https://claude.ai/artifact/LOC\n- **artefact archive** : aucune\n\n"
-               "Lettres de fiche déjà prises : E (Enchaîner), ENQ (Les écritures Git). "
-               "Un nouveau chantier en choisit un autre.\n")
-
-
-ETAT_MATIN = ("# État\n\n## TODO\n\n| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |\n|---|---|---|---|---|\n"
-              "| 79 | `LOC` — publier | a | 2 fiches | — |\n| 80 | `PAR` — deux chantiers | b | 3 fiches | — |\n\n"
-              "## Journal\n")
 
 
 def git_matin(d, *args):

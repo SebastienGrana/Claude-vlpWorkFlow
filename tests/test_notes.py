@@ -12,55 +12,30 @@ import subprocess
 import tempfile
 
 import pytest
-from aides import SCRIPTS, appel, ecrire, ligne_close, lire, mod, transcript
+from aides import (
+    CHANTIER,
+    FICHES,
+    FICHES_PLI2,
+    FICHES_PLI5,
+    OUVERT,
+    QFICHES,
+    SCRIPTS,
+    T0,
+    appel,
+    ecrire,
+    ligne_close,
+    lire,
+    mod,
+    transcript,
+)
 
 ICI = SCRIPTS     # le dossier des scripts, d'où ces tests viennent
-
-CHANTIER = "# Chantier courant\n\n- **alias** : %s\n- **contexte** : %s\n"
-
-
-OUVERT = "**Ouvert.** le 2026-10-08."
-
-
-FICHES = """# Chantier Z
-
-**Ouvert.** le 2026-10-08.
-
-## Le socle commun
-
-## Z1 [x] — faite
----
-## Z2 [ ] — à faire
-## Z10 [ ] — après
-"""
 
 
 def ouvert(texte):
     """`texte` d'un fichier de fiches, la marque d'ouverture sous son titre `# Chantier `, comme la pose `vlp.py
     ouvrir` : `courant_de` le lit (NUI31)."""
     return re.sub(r"^(# Chantier [^\n]*\n)", r"\g<1>\n%s\n" % OUVERT, texte, count=1, flags=re.M)
-
-
-QFICHES = """# Chantier Q
-
-## Le socle commun
-
-## L'ordre des fiches
-
-<!-- FICHE:Q1 -->
-## Q1 [x] — Créer
-**Session** : %s
-**Critère de fin**
-<!-- /FICHE -->
-<!-- FICHE:Q2 -->
-## Q2 [x] — Brancher
-**Session** : %s
-**Critère de fin**
-<!-- /FICHE -->
-"""
-
-
-T0 = 1790000000
 
 
 def hook(texte):
@@ -283,20 +258,6 @@ def test_abr2(tmp_path):
         assert '<span class="note">' not in html.split("<ul class=\"journal\">")[0].split('id">P1')[1].split("</li>")[0]
 
 
-FICHES_PLI2 = """# Chantier PLI2
-
-## Le socle commun
-
-## L'ordre des fiches
-
-<!-- FICHE:P1 -->
-## P1 [ ] — Un
-**Critère de fin**
-x
-<!-- /FICHE -->
-"""
-
-
 def test_vlp_css_recopie(tmp_path):
     source = pathlib.Path(os.path.join(ICI, "..", "templates", "vlp.css")).read_bytes()
 
@@ -371,32 +332,6 @@ def test_style_migre(tmp_path):
         code, s = appel(["page", fiches, page])
         assert code == 0
         assert lire(page).count('href="vlp.css"') == 1
-
-
-FICHES_PLI5 = """# Chantier PLI5
-
-## Le socle commun
-
-## L'ordre des fiches
-
-<!-- FICHE:Q1 -->
-## Q1 [x] — Faite
-**Critère de fin**
-x
-<!-- /FICHE -->
-
-<!-- FICHE:Q2 -->
-## Q2 [ ] — En cours
-**Critère de fin**
-x
-<!-- /FICHE -->
-
-<!-- FICHE:Q3 -->
-## Q3 [ ] — À faire
-**Critère de fin**
-x
-<!-- /FICHE -->
-"""
 
 
 def fiche_r(ident, case, dep, fichiers):

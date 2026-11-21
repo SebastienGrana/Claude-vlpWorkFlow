@@ -10,11 +10,9 @@ import shutil
 import subprocess
 import tempfile
 
-from aides import SCRIPTS, appel, ecrire, lire, mod
+from aides import OUVERT, SCRIPTS, appel, ecrire, lire, mod
 
 ICI = SCRIPTS     # le dossier des scripts, d'où ces tests viennent
-
-OUVERT = "**Ouvert.** le 2026-10-08."
 
 
 def ouvert(texte):

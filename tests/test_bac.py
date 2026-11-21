@@ -13,11 +13,9 @@ import subprocess
 import tempfile
 
 import pytest
-from aides import RACINE, SCRIPTS, appel, ecrire, lire, mod
+from aides import CHANTIER, RACINE, SCRIPTS, appel, ecrire, lire, mod
 
 ICI = SCRIPTS     # le dossier des scripts, d'où ces tests viennent
-
-CHANTIER = "# Chantier courant\n\n- **alias** : %s\n- **contexte** : %s\n"
 
 
 def test_pre_commit(tmp_path, init_git):

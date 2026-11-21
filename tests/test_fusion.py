@@ -9,11 +9,23 @@ import subprocess
 import tempfile
 
 import pytest
-from aides import SCRIPTS, appel, ecrire, ligne_close, lire, mod
+from aides import (
+    CARTE_MATIN,
+    ETAT_MATIN,
+    GABARIT_FEUILLE,
+    JOUR_MATIN,
+    OUVERT,
+    OUVERT_DU_JOUR,
+    OUVERT_LIGNE,
+    SCRIPTS,
+    appel,
+    ecrire,
+    ligne_close,
+    lire,
+    mod,
+)
 
 ICI = SCRIPTS     # le dossier des scripts, d'où ces tests viennent
-
-OUVERT = "**Ouvert.** le 2026-10-08."
 
 
 def ouvert(texte):
@@ -22,35 +34,10 @@ def ouvert(texte):
     return re.sub(r"^(# Chantier [^\n]*\n)", r"\g<1>\n%s\n" % OUVERT, texte, count=1, flags=re.M)
 
 
-OUVERT_LIGNE = mod.OUVERT_LIGNE   # la seconde valeur d'`OUVERT` dans l'ancienne suite maison, lue par les groupes de sa fin
-
-
 def ouvert_ligne(texte):
     """`ouvert`, tel que les groupes de la fin de l'ancienne suite maison l'appelaient : le gabarit `OUVERT_LIGNE` inséré
     brut, `%s` compris."""
     return re.sub(r"^(# Chantier [^\n]*\n)", r"\g<1>\n%s\n" % OUVERT_LIGNE, texte, count=1, flags=re.M)
-
-
-OUVERT_DU_JOUR = mod.OUVERT_LIGNE % __import__("datetime").date.today().isoformat()
-
-
-GABARIT_FEUILLE = os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html")
-
-
-JOUR_MATIN = "2026-10-01"
-
-
-CARTE_MATIN = ("# Chantier courant\n\n- **alias** : mt\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n"
-               "- **fichier d'état** : ctx/08-etat.md\n"
-               "- **artefact feuille de route** : https://claude.ai/artifact/FEU\n"
-               "- **artefact du chantier** : https://claude.ai/artifact/LOC\n- **artefact archive** : aucune\n\n"
-               "Lettres de fiche déjà prises : E (Enchaîner), ENQ (Les écritures Git). "
-               "Un nouveau chantier en choisit un autre.\n")
-
-
-ETAT_MATIN = ("# État\n\n## TODO\n\n| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |\n|---|---|---|---|---|\n"
-              "| 79 | `LOC` — publier | a | 2 fiches | — |\n| 80 | `PAR` — deux chantiers | b | 3 fiches | — |\n\n"
-              "## Journal\n")
 
 
 def git_matin(d, *args):

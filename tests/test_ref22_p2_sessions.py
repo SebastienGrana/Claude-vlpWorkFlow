@@ -5,9 +5,7 @@ import json
 import os
 from decimal import Decimal
 
-from aides import appel, commits, ecrire, ligne_close, lire, mod, transcript
-
-T0 = 1790000000
+from aides import T0, appel, commits, ecrire, ligne_close, lire, mod, transcript
 
 FICHES = """# Chantier Q
 

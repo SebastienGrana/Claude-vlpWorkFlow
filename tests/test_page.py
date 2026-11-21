@@ -8,7 +8,7 @@ import re
 import tempfile
 from decimal import Decimal
 
-from aides import RACINE, appel, ecrire, lire, mod, transcript
+from aides import FICHES_PLI5, PAGE, RACINE, appel, ecrire, lire, mod, transcript
 from noyau import page
 
 LOG = "\n".join([   # le plus récent d'abord, comme `git log`
@@ -56,27 +56,6 @@ def test_triplet():
     assert (all(mod.triplet(mod.ligne_cout(*a)) == a for a in allers)), ("triplet relit ligne_cout") + "\n" + str([(a, mod.ligne_cout(*a), mod.triplet(mod.ligne_cout(*a)) == a) for a in allers if mod.triplet(mod.ligne_cout(*a)) != a])
     # Le brut entre parenthèses suffit, sans l'arrondi devant : une page d'un autre format se relit.
     assert (mod.triplet("(5 284 442) · 42 tours · 1,83 $") == (5284442, 42, Decimal("1.83"))), ("triplet : le brut entre parenthèses suffit") + "\n" + str(mod.triplet("(5 284 442) · 42 tours · 1,83 $"))
-
-
-PAGE = """# Chantier P
-
-## Le socle commun
-
-## L'ordre des fiches
-
-<!-- FICHE:P1 -->
-## P1 [%s] — Créer `a.py`
-%s**Critère de fin**
-<!-- /FICHE -->
-<!-- FICHE:P2 -->
-## P2 [%s] — Brancher
-%s**Critère de fin**
-<!-- /FICHE -->
-<!-- FICHE:P3 -->
-## P3 [ ] — Finir
-**Critère de fin**
-<!-- /FICHE -->
-"""
 
 
 def page_creee(t):
@@ -430,32 +409,6 @@ def test_iso3_indice(tmp_path):
                          (0, ["GARDE: --tourne I9 : aucune fiche de ce nom dans F, ignorée", "LANCABLES I1 I2 I3",
                               "INDICE: I1 I2 src/a.py"])]), ("ISO3 : --tourne I1 compte dans la largeur, son croisement avec I2 en INDICE: ; un id inconnu → GARDE:, "
              "ignoré, le reste sort, sort 0") + "\n" + str(repr(vus[2:]))
-
-
-FICHES_PLI5 = """# Chantier PLI5
-
-## Le socle commun
-
-## L'ordre des fiches
-
-<!-- FICHE:Q1 -->
-## Q1 [x] — Faite
-**Critère de fin**
-x
-<!-- /FICHE -->
-
-<!-- FICHE:Q2 -->
-## Q2 [ ] — En cours
-**Critère de fin**
-x
-<!-- /FICHE -->
-
-<!-- FICHE:Q3 -->
-## Q3 [ ] — À faire
-**Critère de fin**
-x
-<!-- /FICHE -->
-"""
 
 
 def forme_ancienne(html):

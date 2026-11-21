@@ -10,28 +10,19 @@ compte pas.
 import os
 
 import pytest
-from aides import appel, commits, ecrire, ligne_close, lire, mod, transcript
+from aides import (
+    DECOUPE_TETE,
+    QFICHES,
+    T0,
+    appel,
+    commits,
+    ecrire,
+    ligne_close,
+    lire,
+    mod,
+    transcript,
+)
 
-QFICHES = """# Chantier Q
-
-## Le socle commun
-
-## L'ordre des fiches
-
-<!-- FICHE:Q1 -->
-## Q1 [x] — Créer
-**Session** : %s
-**Critère de fin**
-<!-- /FICHE -->
-<!-- FICHE:Q2 -->
-## Q2 [x] — Brancher
-**Session** : %s
-**Critère de fin**
-<!-- /FICHE -->
-"""
-T0 = 1790000000
-DECOUPE_TETE = ("DÉCOUPE aux commits de fiche — une fiche va du commit d'avant au sien, "
-                "un sous-agent compte à la fiche que nomme son prompt, sinon à son départ\n")
 SUJETS_Q = [(100, "Chantier Q ouvert : cadré"), (300, "Q1 : Créer"), (600, "Q2 : Brancher"),
             (800, "Chantier Q clos : fini"), (900, "Autre : QA et Q12xy ne nomment pas le préfixe")]
 ATTENDU = (DECOUPE_TETE +

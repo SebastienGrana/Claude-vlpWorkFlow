@@ -10,7 +10,7 @@ import sys
 
 import couverture
 import pytest
-from aides import RACINE, ecrire, lire, mod
+from aides import CODE, RACINE, ecrire, lire, mod
 
 
 def rapport(taux, total, violations=None):
@@ -52,7 +52,6 @@ def git(d, *args):
     subprocess.run(["git", *args], cwd=d, check=True, capture_output=True)
 
 
-CODE = "def double(n):\n    return 2 * n\n"
 APPEL = "import sys\nsys.path.insert(0, 'scripts')\nimport x\nassert x.double(2) == 4\n"
 
 

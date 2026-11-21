@@ -11,7 +11,18 @@ import re
 import shutil
 import tempfile
 
-from aides import SCRIPTS, appel, ecrire, ligne_close, mod
+from aides import (
+    CARTE_NIV3,
+    ETAT_NIV,
+    GABARIT_FEUILLE,
+    GABARIT_VLPCSS,
+    INDEX_NIV3,
+    SCRIPTS,
+    appel,
+    ecrire,
+    ligne_close,
+    mod,
+)
 
 ICI = SCRIPTS     # le dossier des scripts, d'où ces tests viennent
 
@@ -50,18 +61,6 @@ def test_archiver(tmp_path):
         assert s.startswith("GARDE:")
 
 
-GABARIT_FEUILLE = os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html")
-
-
-ETAT_NIV = ("# État\n\n"
-            "Le plugin pose `${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py` — prose, pas un chemin lu.\n\n"
-            "## TODO\n\n| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |\n"
-            "|---|---|---|---|---|\n| 1 | un truc | utile | bas | — |\n")
-
-
-GABARIT_VLPCSS = os.path.join(ICI, "..", "templates", "vlp.css")
-
-
 def feuille_ancienne():
     css = "".join(l for l in pathlib.Path(GABARIT_VLPCSS).read_text(encoding="utf-8").splitlines(True)
                   if not l.lstrip().startswith(("details.clos", ".resume-clos")))
@@ -71,28 +70,6 @@ def feuille_ancienne():
     return "".join(l for l in lignes
                    if not l.lstrip().startswith(("<details class=\"clos\">",
                                                  "<summary><span class=\"resume-clos\">", "</details>")))
-
-
-CARTE_NIV3 = """# Chantier courant
-
-- **alias** : niv3
-- **contexte** : ctx/
-- **index** : ctx/00-INDEX.md
-- **fichier d'état** : ctx/08-etat.md
-
-## Chantiers clos — ne se rejouent pas
-
-| Fichier de fiches | Fiches | Clos le |
-|---|---|---|
-| ctx/10-a.md | `A1`..`A2` | 2026-01-01 |
-
-Lettres de fiche déjà prises : A. Un nouveau chantier en choisit une autre.
-"""
-
-
-INDEX_NIV3 = ("# Index\n\n| Fichier | On l'ouvre quand |\n|---|---|\n"
-              "| `10-a.md` | on relit le chantier A |\n"
-              "| `99-fantome.md` | jamais, il n'existe pas |\n")
 
 
 def bac_niv3(t, feuille=True, index=INDEX_NIV3):

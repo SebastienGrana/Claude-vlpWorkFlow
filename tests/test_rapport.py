@@ -14,7 +14,7 @@ import tempfile
 import time
 
 import pytest
-from aides import SCRIPTS, appel, ecrire, lire, mod
+from aides import JOUR_MATIN, SCRIPTS, appel, ecrire, lire, mod
 from noyau import rapport
 
 ICI = SCRIPTS     # le dossier des scripts, d'où ces tests viennent
@@ -408,9 +408,6 @@ def test_rapide_rouges_et_sautes(faux_kit):
     assert mod.main(["rapide", "porte", "--racine", tr], hors) == 1
     assert hors.getvalue().startswith("GARDE: ")
     assert "pas de tests/conftest.py" in hors.getvalue()
-
-
-JOUR_MATIN = "2026-10-01"
 
 
 def git_matin(d, *args):

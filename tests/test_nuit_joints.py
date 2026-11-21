@@ -7,27 +7,18 @@ import pathlib
 import re
 import tempfile
 
-from aides import SCRIPTS, appel, ecrire, ligne_close, lire, mod
+from aides import (
+    FICHES_PLI2,
+    GABARIT_VLPCSS,
+    SCRIPTS,
+    appel,
+    ecrire,
+    ligne_close,
+    lire,
+    mod,
+)
 
 ICI = SCRIPTS     # le dossier des scripts, d'où ces tests viennent
-
-CHANTIER = "# Chantier courant\n\n- **alias** : %s\n- **contexte** : %s\n"
-
-GABARIT_VLPCSS = os.path.join(ICI, "..", "templates", "vlp.css")
-
-
-FICHES_PLI2 = """# Chantier PLI2
-
-## Le socle commun
-
-## L'ordre des fiches
-
-<!-- FICHE:P1 -->
-## P1 [ ] — Un
-**Critère de fin**
-x
-<!-- /FICHE -->
-"""
 
 
 def contrastes_couts(barre, texte):

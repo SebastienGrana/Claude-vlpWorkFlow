@@ -8,11 +8,20 @@ import pathlib
 import re
 import tempfile
 
-from aides import SCRIPTS, appel, ecrire, ligne_close, lire, mod
+from aides import (
+    CARTE_Z,
+    ETAT_Z,
+    GABARIT_FEUILLE,
+    OUVERT,
+    SCRIPTS,
+    appel,
+    ecrire,
+    ligne_close,
+    lire,
+    mod,
+)
 
 ICI = SCRIPTS     # le dossier des scripts, d'où ces tests viennent
-
-OUVERT = "**Ouvert.** le 2026-10-08."
 
 
 def ouvert(texte):
@@ -113,17 +122,6 @@ def test_feuille_phases():
     assert mod.liens_pages(une, carte_[:1]) == page_
     assert mod.liens_pages("<p>x</p>", carte_) == "<p>x</p>"
     assert (mod.rang_en_cours(corps, "cartes") == "8"), ("feuille : rang en cours relu derrière la pastille") + "\n" + str(mod.rang_en_cours(corps, "cartes"))
-
-
-GABARIT_FEUILLE = os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html")
-
-
-ETAT_Z = ("# État\n\n## TODO\n\n| n° | Chantier | Apport | Coût | Décidé |\n|---|---|---|---|---|\n"
-          "| 1 | un truc | utile | bas | 2026-01-02 |\n")
-
-
-CARTE_Z = ("# Chantier courant\n\n- **alias** : z\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n"
-           "- **fichier d'état** : ctx/08-etat.md\n- **artefact du chantier** : aucun\n")
 
 
 def test_archive(tmp_path):

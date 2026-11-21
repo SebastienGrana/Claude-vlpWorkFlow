@@ -102,3 +102,188 @@ def ligne_close(c):
     return ('          <tr>\n            <td>Test <span class="badge" data-etat="clos">clos</span></td>\n'
             '            <td class="mono">Q1–Q2</td><td class="mono">2026-05-06</td>\n'
             '            <td class="mono">%s</td>\n            <td>Test</td>\n          </tr>\n' % c)
+
+
+# Les constantes que plusieurs fichiers de tests posaient à l'identique (dette RUF, 2026-11-21).
+
+AVEC = """# Chantier Y
+
+## Le socle commun
+
+Socle, ligne 1.
+
+## L'ordre des fiches
+
+---
+
+<!-- FICHE:Y1 -->
+## Y1 [x] — faite
+**Session** : aaa
+**Prompt**
+```
+---
+## pas un titre
+```
+<!-- /FICHE -->
+
+---
+
+<!-- FICHE:Y2 -->
+## Y2 [ ] — à faire
+**Session** : bbb
+**Session** : aaa
+<!-- /FICHE -->
+"""
+
+CARTE_MATIN = ("# Chantier courant\n\n- **alias** : mt\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n"
+               "- **fichier d'état** : ctx/08-etat.md\n"
+               "- **artefact feuille de route** : https://claude.ai/artifact/FEU\n"
+               "- **artefact du chantier** : https://claude.ai/artifact/LOC\n- **artefact archive** : aucune\n\n"
+               "Lettres de fiche déjà prises : E (Enchaîner), ENQ (Les écritures Git). "
+               "Un nouveau chantier en choisit un autre.\n")
+
+CARTE_NIV3 = """# Chantier courant
+
+- **alias** : niv3
+- **contexte** : ctx/
+- **index** : ctx/00-INDEX.md
+- **fichier d'état** : ctx/08-etat.md
+
+## Chantiers clos — ne se rejouent pas
+
+| Fichier de fiches | Fiches | Clos le |
+|---|---|---|
+| ctx/10-a.md | `A1`..`A2` | 2026-01-01 |
+
+Lettres de fiche déjà prises : A. Un nouveau chantier en choisit une autre.
+"""
+
+CARTE_Z = ("# Chantier courant\n\n- **alias** : z\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n"
+           "- **fichier d'état** : ctx/08-etat.md\n- **artefact du chantier** : aucun\n")
+
+CHANTIER = "# Chantier courant\n\n- **alias** : %s\n- **contexte** : %s\n"
+
+CODE = "def double(n):\n    return 2 * n\n"
+
+DECOUPE_TETE = ("DÉCOUPE aux commits de fiche — une fiche va du commit d'avant au sien, "
+                "un sous-agent compte à la fiche que nomme son prompt, sinon à son départ\n")
+
+ETAT_MATIN = ("# État\n\n## TODO\n\n| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |\n|---|---|---|---|---|\n"
+              "| 79 | `LOC` — publier | a | 2 fiches | — |\n| 80 | `PAR` — deux chantiers | b | 3 fiches | — |\n\n"
+              "## Journal\n")
+
+ETAT_NIV = ("# État\n\n"
+            "Le plugin pose `${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py` — prose, pas un chemin lu.\n\n"
+            "## TODO\n\n| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |\n"
+            "|---|---|---|---|---|\n| 1 | un truc | utile | bas | — |\n")
+
+ETAT_Z = ("# État\n\n## TODO\n\n| n° | Chantier | Apport | Coût | Décidé |\n|---|---|---|---|---|\n"
+          "| 1 | un truc | utile | bas | 2026-01-02 |\n")
+
+FICHES = """# Chantier Z
+
+**Ouvert.** le 2026-10-08.
+
+## Le socle commun
+
+## Z1 [x] — faite
+---
+## Z2 [ ] — à faire
+## Z10 [ ] — après
+"""
+
+FICHES_PLI2 = """# Chantier PLI2
+
+## Le socle commun
+
+## L'ordre des fiches
+
+<!-- FICHE:P1 -->
+## P1 [ ] — Un
+**Critère de fin**
+x
+<!-- /FICHE -->
+"""
+
+FICHES_PLI5 = """# Chantier PLI5
+
+## Le socle commun
+
+## L'ordre des fiches
+
+<!-- FICHE:Q1 -->
+## Q1 [x] — Faite
+**Critère de fin**
+x
+<!-- /FICHE -->
+
+<!-- FICHE:Q2 -->
+## Q2 [ ] — En cours
+**Critère de fin**
+x
+<!-- /FICHE -->
+
+<!-- FICHE:Q3 -->
+## Q3 [ ] — À faire
+**Critère de fin**
+x
+<!-- /FICHE -->
+"""
+
+GABARIT_FEUILLE = os.path.join(SCRIPTS, "..", "templates", "artefact-feuille-de-route.html")
+
+GABARIT_VLPCSS = os.path.join(SCRIPTS, "..", "templates", "vlp.css")
+
+INDEX_NIV3 = ("# Index\n\n| Fichier | On l'ouvre quand |\n|---|---|\n"
+              "| `10-a.md` | on relit le chantier A |\n"
+              "| `99-fantome.md` | jamais, il n'existe pas |\n")
+
+JOUR_MATIN = "2026-10-01"
+
+OUVERT = "**Ouvert.** le 2026-10-08."
+
+OUVERT_DU_JOUR = mod.OUVERT_LIGNE % __import__("datetime").date.today().isoformat()
+
+OUVERT_LIGNE = mod.OUVERT_LIGNE   # la seconde valeur d'`OUVERT` dans l'ancienne suite maison, lue par les groupes de sa fin
+
+PAGE = """# Chantier P
+
+## Le socle commun
+
+## L'ordre des fiches
+
+<!-- FICHE:P1 -->
+## P1 [%s] — Créer `a.py`
+%s**Critère de fin**
+<!-- /FICHE -->
+<!-- FICHE:P2 -->
+## P2 [%s] — Brancher
+%s**Critère de fin**
+<!-- /FICHE -->
+<!-- FICHE:P3 -->
+## P3 [ ] — Finir
+**Critère de fin**
+<!-- /FICHE -->
+"""
+
+QFICHES = """# Chantier Q
+
+## Le socle commun
+
+## L'ordre des fiches
+
+<!-- FICHE:Q1 -->
+## Q1 [x] — Créer
+**Session** : %s
+**Critère de fin**
+<!-- /FICHE -->
+<!-- FICHE:Q2 -->
+## Q2 [x] — Brancher
+**Session** : %s
+**Critère de fin**
+<!-- /FICHE -->
+"""
+
+SANS = "## Z1 [ ] — ancien\nlong\n---\n## Z2 [ ] — dernier\nfin\n"
+
+T0 = 1790000000

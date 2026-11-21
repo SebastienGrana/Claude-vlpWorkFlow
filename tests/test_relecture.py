@@ -10,7 +10,7 @@ import subprocess
 import tempfile
 
 import pytest
-from aides import appel, ecrire, mod
+from aides import CHANTIER, appel, ecrire, mod
 from noyau import relecture
 
 
@@ -33,9 +33,6 @@ def test_meme_depot_ailleurs(tmp_path):
     assert not relecture.meme_depot_ailleurs("%s\n%s\n" % (commun, kit), "%s\n%s\n" % (commun, kit))   # même dossier
     assert not relecture.meme_depot_ailleurs("%s\n%s\n" % (commun, kit), "%s/autre/.git\n%s\n" % (tmp_path, arbre))
     assert not relecture.meme_depot_ailleurs("", "%s\n%s\n" % (commun, arbre))   # git muet
-
-
-CHANTIER = "# Chantier courant\n\n- **alias** : %s\n- **contexte** : %s\n"
 
 
 def _tester_canaux(g):

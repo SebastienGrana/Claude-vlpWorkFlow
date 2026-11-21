@@ -13,7 +13,25 @@ import subprocess
 import tempfile
 
 import pytest
-from aides import SCRIPTS, appel, ecrire, ligne_close, lire, mod
+from aides import (
+    CARTE_MATIN,
+    CARTE_NIV3,
+    CHANTIER,
+    ETAT_MATIN,
+    ETAT_NIV,
+    FICHES,
+    GABARIT_FEUILLE,
+    GABARIT_VLPCSS,
+    INDEX_NIV3,
+    JOUR_MATIN,
+    OUVERT,
+    SCRIPTS,
+    appel,
+    ecrire,
+    ligne_close,
+    lire,
+    mod,
+)
 from noyau import niveau
 
 ICI = SCRIPTS     # le dossier des scripts, d'où ces tests viennent
@@ -22,25 +40,6 @@ def test_source_ignore():
     assert niveau.source_ignore(".gitignore:3:context AI/\tcontext AI/a.md\n") == ".gitignore:3"   # le fichier et sa ligne : « ignoré par .gitignore:3 »
     assert niveau.source_ignore("C:/x/.git/info/exclude:1:*.md\tz.md") == "C:/x/.git/info/exclude:1"
     assert niveau.source_ignore("") == "?"
-
-
-CHANTIER = "# Chantier courant\n\n- **alias** : %s\n- **contexte** : %s\n"
-
-
-OUVERT = "**Ouvert.** le 2026-10-08."
-
-
-FICHES = """# Chantier Z
-
-**Ouvert.** le 2026-10-08.
-
-## Le socle commun
-
-## Z1 [x] — faite
----
-## Z2 [ ] — à faire
-## Z10 [ ] — après
-"""
 
 
 def ouvert(texte):
@@ -132,15 +131,6 @@ def hook(texte):
     o, e = io.StringIO(), io.StringIO()
     code = mod.main(["hook"], o, io.StringIO(texte), e)
     return code, o.getvalue(), e.getvalue()
-
-
-GABARIT_FEUILLE = os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html")
-
-
-ETAT_NIV = ("# État\n\n"
-            "Le plugin pose `${CLAUDE_PLUGIN_ROOT}/scripts/vlp.py` — prose, pas un chemin lu.\n\n"
-            "## TODO\n\n| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |\n"
-            "|---|---|---|---|---|\n| 1 | un truc | utile | bas | — |\n")
 
 
 def test_niv2_ecarts(tmp_path):
@@ -265,9 +255,6 @@ def test_hab_niveau():
     assert "\nNIVEAU " in s
 
 
-GABARIT_VLPCSS = os.path.join(ICI, "..", "templates", "vlp.css")
-
-
 def feuille_ancienne():
     css = "".join(l for l in pathlib.Path(GABARIT_VLPCSS).read_text(encoding="utf-8").splitlines(True)
                   if not l.lstrip().startswith(("details.clos", ".resume-clos")))
@@ -277,28 +264,6 @@ def feuille_ancienne():
     return "".join(l for l in lignes
                    if not l.lstrip().startswith(("<details class=\"clos\">",
                                                  "<summary><span class=\"resume-clos\">", "</details>")))
-
-
-CARTE_NIV3 = """# Chantier courant
-
-- **alias** : niv3
-- **contexte** : ctx/
-- **index** : ctx/00-INDEX.md
-- **fichier d'état** : ctx/08-etat.md
-
-## Chantiers clos — ne se rejouent pas
-
-| Fichier de fiches | Fiches | Clos le |
-|---|---|---|
-| ctx/10-a.md | `A1`..`A2` | 2026-01-01 |
-
-Lettres de fiche déjà prises : A. Un nouveau chantier en choisit une autre.
-"""
-
-
-INDEX_NIV3 = ("# Index\n\n| Fichier | On l'ouvre quand |\n|---|---|\n"
-              "| `10-a.md` | on relit le chantier A |\n"
-              "| `99-fantome.md` | jamais, il n'existe pas |\n")
 
 
 def bac_niv3(t, feuille=True, index=INDEX_NIV3):
@@ -697,22 +662,6 @@ def test_attente_remise_a_zero():
     """attente : remise à zéro 02:00 et tâche 02:10 pour 2026-09-28 20:00 UTC+2."""
     zero, tache = mod.remise_a_zero(SOIR_ATTENTE)
     assert ((zero.strftime("%Y-%m-%d %H:%M"), tache.strftime("%H:%M")) == ("2026-09-29 02:00", "02:10")), ("attente : remise à zéro 02:00 et tâche 02:10 pour 2026-09-28 20:00 UTC+2") + "\n" + str(str(zero))
-
-
-JOUR_MATIN = "2026-10-01"
-
-
-CARTE_MATIN = ("# Chantier courant\n\n- **alias** : mt\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n"
-               "- **fichier d'état** : ctx/08-etat.md\n"
-               "- **artefact feuille de route** : https://claude.ai/artifact/FEU\n"
-               "- **artefact du chantier** : https://claude.ai/artifact/LOC\n- **artefact archive** : aucune\n\n"
-               "Lettres de fiche déjà prises : E (Enchaîner), ENQ (Les écritures Git). "
-               "Un nouveau chantier en choisit un autre.\n")
-
-
-ETAT_MATIN = ("# État\n\n## TODO\n\n| # | Chantier | Ce qu'il apporte | Coût estimé | Dépend de |\n|---|---|---|---|---|\n"
-              "| 79 | `LOC` — publier | a | 2 fiches | — |\n| 80 | `PAR` — deux chantiers | b | 3 fiches | — |\n\n"
-              "## Journal\n")
 
 
 def git_matin(d, *args):

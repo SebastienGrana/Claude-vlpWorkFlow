@@ -12,7 +12,20 @@ import subprocess
 import tempfile
 
 import pytest
-from aides import SCRIPTS, appel, commits, ecrire, lire, mod
+from aides import (
+    AVEC,
+    CARTE_Z,
+    ETAT_Z,
+    GABARIT_FEUILLE,
+    PAGE,
+    SANS,
+    SCRIPTS,
+    appel,
+    commits,
+    ecrire,
+    lire,
+    mod,
+)
 from noyau import fiches
 
 ICI = SCRIPTS     # le dossier des scripts, d'où ces tests viennent
@@ -47,39 +60,6 @@ def test_partage_commit_ses_fichiers_et_les_communs():
     ajout, hors = fiches.partage_commit(FICHES, "W1", {"fiches.md"}, avant, apres)
     assert ajout == ["src/a.py", "docs/guide.md", "src/notes.txt", "fiches.md"]
     assert hors == ["src/b.py", "autre.py"]   # le fichier d'une autre fiche, et un inconnu
-
-
-AVEC = """# Chantier Y
-
-## Le socle commun
-
-Socle, ligne 1.
-
-## L'ordre des fiches
-
----
-
-<!-- FICHE:Y1 -->
-## Y1 [x] — faite
-**Session** : aaa
-**Prompt**
-```
----
-## pas un titre
-```
-<!-- /FICHE -->
-
----
-
-<!-- FICHE:Y2 -->
-## Y2 [ ] — à faire
-**Session** : bbb
-**Session** : aaa
-<!-- /FICHE -->
-"""
-
-
-SANS = "## Z1 [ ] — ancien\nlong\n---\n## Z2 [ ] — dernier\nfin\n"
 
 
 def test_extraire_socle(tmp_path):
@@ -246,27 +226,6 @@ def test_valider():
     code, s = appel(["valider", "absent-1.md", "absent-2.md"])
     assert code == 1
     assert s.count("INVALIDE 0 fiches") == 2
-
-
-PAGE = """# Chantier P
-
-## Le socle commun
-
-## L'ordre des fiches
-
-<!-- FICHE:P1 -->
-## P1 [%s] — Créer `a.py`
-%s**Critère de fin**
-<!-- /FICHE -->
-<!-- FICHE:P2 -->
-## P2 [%s] — Brancher
-%s**Critère de fin**
-<!-- /FICHE -->
-<!-- FICHE:P3 -->
-## P3 [ ] — Finir
-**Critère de fin**
-<!-- /FICHE -->
-"""
 
 
 COCHE = """## L'ordre des fiches
@@ -509,17 +468,6 @@ def test_cocher_texte_libre(tmp_path):
         assert vus[nom][0] == (0, sortie)
         assert extrait in vus[nom][1]
         assert vus[nom][1].count("**Tentatives**") == 1
-
-
-GABARIT_FEUILLE = os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html")
-
-
-ETAT_Z = ("# État\n\n## TODO\n\n| n° | Chantier | Apport | Coût | Décidé |\n|---|---|---|---|---|\n"
-          "| 1 | un truc | utile | bas | 2026-01-02 |\n")
-
-
-CARTE_Z = ("# Chantier courant\n\n- **alias** : z\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n"
-           "- **fichier d'état** : ctx/08-etat.md\n- **artefact du chantier** : aucun\n")
 
 
 def test_z2_chemin(tmp_path):

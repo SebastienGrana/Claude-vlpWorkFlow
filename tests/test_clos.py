@@ -12,11 +12,23 @@ import tempfile
 from decimal import Decimal
 
 import pytest
-from aides import SCRIPTS, appel, ecrire, ligne_close, lire, mod, transcript
+from aides import (
+    CARTE_Z,
+    ETAT_Z,
+    GABARIT_FEUILLE,
+    OUVERT,
+    QFICHES,
+    SCRIPTS,
+    T0,
+    appel,
+    ecrire,
+    ligne_close,
+    lire,
+    mod,
+    transcript,
+)
 
 ICI = SCRIPTS     # le dossier des scripts, d'où ces tests viennent
-
-OUVERT = "**Ouvert.** le 2026-10-08."
 
 
 def test_total_clos(tmp_path):
@@ -40,28 +52,6 @@ def test_total_clos(tmp_path):
         assert total == (300000, 3, Decimal("1.5"))
         assert hors is None
         assert not gardes
-
-
-QFICHES = """# Chantier Q
-
-## Le socle commun
-
-## L'ordre des fiches
-
-<!-- FICHE:Q1 -->
-## Q1 [x] — Créer
-**Session** : %s
-**Critère de fin**
-<!-- /FICHE -->
-<!-- FICHE:Q2 -->
-## Q2 [x] — Brancher
-**Session** : %s
-**Critère de fin**
-<!-- /FICHE -->
-"""
-
-
-T0 = 1790000000
 
 
 def hook(texte):
@@ -357,17 +347,6 @@ def test_recompter_un_clos(tmp_path):
         assert deux[0] == 0
         assert deux[1].splitlines()[-1] == "COPIES 0 écrites · 4 inchangées · 0 introuvables"
         assert lire(fdr) == feuille_
-
-
-GABARIT_FEUILLE = os.path.join(ICI, "..", "templates", "artefact-feuille-de-route.html")
-
-
-ETAT_Z = ("# État\n\n## TODO\n\n| n° | Chantier | Apport | Coût | Décidé |\n|---|---|---|---|---|\n"
-          "| 1 | un truc | utile | bas | 2026-01-02 |\n")
-
-
-CARTE_Z = ("# Chantier courant\n\n- **alias** : z\n- **contexte** : ctx/\n- **index** : ctx/00-INDEX.md\n"
-           "- **fichier d'état** : ctx/08-etat.md\n- **artefact du chantier** : aucun\n")
 
 
 def test_page_clos(tmp_path):

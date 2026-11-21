@@ -8,9 +8,7 @@ import pathlib
 import re
 import tempfile
 
-from aides import SCRIPTS, appel, ecrire, lire, mod
-
-OUVERT = "**Ouvert.** le 2026-10-08."
+from aides import OUVERT, SCRIPTS, appel, ecrire, lire, mod
 
 
 def ouvert(texte):
