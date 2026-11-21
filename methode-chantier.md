@@ -455,6 +455,8 @@ Quatre exigences, apprises en cassant :
 
 1. **Tout fichier à ouvrir est nommé dans la fiche.** Une fiche qui laisse
    chercher fait ouvrir trois fichiers au hasard — plus cher que le chantier.
+   Un motif de la ligne **Fichiers** se lit par `fnmatch`, où `*` passe les `/` : `tests/*.py`
+   prend tout le dossier, `tests/**/*.py` laisse `tests/aides.py` (`RUF2`, 2026-11-21).
    Du code se cite par son **nom** — fonction, classe, constante —, jamais par
    sa ligne : le code bouge, la ligne ment (récit dans `lecons-mesure.md`) ; `vlp.py symboles <fichier> <nom>` rend sa ligne du jour.
 2. **Aucun libellé ni chiffre inventé** : les libellés viennent de la plage de
@@ -606,6 +608,10 @@ l'utilisateur au chantier `MET` (`context AI/08-etat.md`, entrée « MET1 — ce
   Coding », 2025).
 - **Le test d'abord, vu échouer** : « Anatomie d'une fiche », rouge → vert (`REF13`) ; le mutant, quand le critère en nomme un (`ALG1`).
 - **Un test existant ne se modifie pas pendant une fiche** : le hook `figer` (`REF10`).
+- **Retirer un message d'assertion laisse mortes les variables qui ne servaient qu'à lui** : ruff
+  (`RUF059`, `F841`) les montre, la même fiche les solde (`RUF2`, 2026-11-21 : 22 remarques nées).
+- **Un test ne double pas le saut de sa fixture** : `retraits` compte chaque `skip` de plus et refuse
+  le commit (`RUF8`, 2026-11-21).
 - Ces règles de ruff, pour `tests/` seul : `tests/ruff.toml`. `ruff check scripts tests` tourne au `pre-commit`
   après pyright : une remarque refuse le commit, long test compris (`RUF8`).
 
