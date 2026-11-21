@@ -112,8 +112,11 @@ def test_faux():
                  code == 0 and "**CLOS**" in lire(nouveau)
                  and "**artefact du chantier** : aucun" in lire(carte), lire(carte) + e)
 
+
+def test_faux_relire():
+    """Le faux `claude` en relecteur : ACCEPTÉE par défaut, REFUSÉE fiche ou copie par VLP_FAUX_REFUSE (NUI2)."""
     with tempfile.TemporaryDirectory() as t:
-        relire = ["--agent", "vlp:relecture", "--model", "claude-opus-5-5"]
+        relire =["--agent", "vlp:relecture", "--model", "claude-opus-5-5"]
         code, l, e = faux(["-p", "F1 --sha abc123"] + relire, t)
         verifier("faux relire : ACCEPTÉE par défaut, outils de relecture dans init",
                  code == 0 and verdict_de(l).startswith("ACCEPTÉE — ") and l[0]["tools"] == ["Read", "Edit", "Bash", "PowerShell"], l)
@@ -128,6 +131,9 @@ def test_faux():
         code, l, e = faux(["-p", "F1 --sha"] + relire, t)
         verifier("faux relire : prompt mal formé → code 2", code == 2 and l == [], (code, l, e))
 
+
+def test_faux_pilotes():
+    """Le faux `claude` en joueur : chaque variable VLP_FAUX_* change ce qu'il émet ou son code de sortie (NUI2)."""
     with tempfile.TemporaryDirectory() as t:
         projet(t)
         jouer =["-p", "/vlp:tache F9"]
@@ -180,8 +186,20 @@ def test_faux():
         verifier("faux : VLP_FAUX_ERREUR inconnue → code 2", code == 2 and "zzz" in e, (code, e))
 
 
+CANAL_A = ("--canal", "A", "--chantier", "X")
+
+
+@pytest.fixture
+def bascule_nulle():
+    """Remet à zéro la bascule Opus → Sonnet avant et après le test : aucun test ne voit celle d'un autre."""
+    bmod.BASCULE["jusqu"] = 0.0
+    yield
+    bmod.BASCULE["jusqu"] = 0.0
+
+
 def test_nuit():
-    canal_a = ("--canal", "A", "--chantier", "X")
+    """`--nuit` sur trois fiches : une ligne `jouer` et une `relire` par fiche au carnet, aux clés de CLES (NUI3 a)."""
+    canal_a = CANAL_A
     with tempfile.TemporaryDirectory() as t:
         depot(t)
         code, s = nuit(t, *canal_a)
@@ -198,6 +216,10 @@ def test_nuit():
                          and d["nuit"] == carnet.nuit_de(carnet_de(t)) and isinstance(d["duree_s"], int)
                          and len(d["session"] or "") == 36 for d in lignes), (s, lignes))
 
+
+def test_nuit_bornes():
+    """`--nuit` s'arrête à la borne de coût, à la borne de chantiers, ou au stop d'un autre canal (NUI3 b, c, d)."""
+    canal_a = CANAL_A
     with tempfile.TemporaryDirectory() as t:
         depot(t)
         chemin = carnet_de(t)
@@ -234,6 +256,9 @@ def test_nuit():
         verifier("NUI3 (d) stop() de B : le canal A rend ARRÊT STOP, rien joué, sort 1",
                  code == 1 and "ARRÊT STOP — raison de B" in s and "JOUE" not in s and cases_de(t) == "...", s)
 
+
+def test_nuit_verrou():
+    """Le verrou du carnet : vieux, il se casse ; jeune, on l'attend ; deux processus n'y mêlent rien (NUI3 e)."""
     with tempfile.TemporaryDirectory() as t:
         c = os.path.join(t, "e.jsonl")
         verrou = c + ".verrou"
@@ -286,6 +311,9 @@ def test_nuit():
         verifier("NUI3 : une clé inconnue est refusée, rien d'écrit, pas de verrou resté",
                  refuse and lire(c) == avant and not os.path.exists(c + ".verrou"), lire(c))
 
+
+def test_nuit_options():
+    """La fille de `--nuit` reçoit VLP_CARNET et VLP_CANAL ; sans `--nuit`, ni carnet ni options de nuit (NUI3 f)."""
     with tempfile.TemporaryDirectory() as t:
         stub = os.path.join(t, "rec.py")
         with open(stub, "w", encoding="utf-8", newline="") as h:
@@ -321,10 +349,9 @@ def test_nuit():
                  r.returncode == 2 and "--plafond est exigé" in r.stderr, r.stderr)
 
 
-def test_plafonds():
-    canal_a = ("--canal", "A", "--chantier", "X")
-    bmod.BASCULE["jusqu"] = 0.0
-
+def test_plafonds(bascule_nulle):
+    """Les plafonds de chaque rôle : absents sans `--nuit`, posés par rôle sous `--nuit` (NUI4 a, b, c)."""
+    canal_a = CANAL_A
     with tempfile.TemporaryDirectory() as t:
         projet(t)
         code, s, _cases = boucle(t, FAUX_CLAUDE, 1)
@@ -374,6 +401,10 @@ def test_plafonds():
                  bmod.max_tours("découper") == 150 and bmod.max_tours("relire") == tours_de("relecture.md")
                  and bmod.max_tours("jouer") == tours_de("fiche.md"), None)
 
+
+def test_plafonds_issues(bascule_nulle):
+    """L'issue d'une session au carnet : timeout, coupure, plafond, pas partie, refus de permission, ratée (NUI4 d, e)."""
+    canal_a = CANAL_A
     with tempfile.TemporaryDirectory() as t:
         depot(t)
         bmod.ROLES["relire"]["timeout"] = 2
@@ -429,6 +460,10 @@ def test_plafonds():
                  s["issue"] == "ratée" and s["ok"] is False and [x["issue"] for x in sessions] == ["ratée"]
                  and s["stop"] is None, (s, sessions))
 
+
+def test_plafonds_limites(bascule_nulle):
+    """Une limite d'abonnement : Opus bascule en Sonnet jusqu'au reset, semaine et session arrêtent (NUI4 f)."""
+    canal_a = CANAL_A
     with tempfile.TemporaryDirectory() as t:
         depot(t)
         s, sessions, argvs = lancer(t, VLP_FAUX_LIMITE="claude-opus", VLP_FAUX_GENRE="opus")
@@ -597,61 +632,73 @@ def test_relecture():
 
 # --- relancer plus fort sur refus, ou arrêter tôt (NUI6) -------------------------------------------------
 
+ECRITS = [0]   # les cas neufs de NUI6 passés, sommés sur les trois tests `test_relance*`
+
+REFUS_SEULS = ("**Tentatives** (2026-09-26) — non résolu.\n1. FAITE refusée à la relecture.\n"
+               "Erreur : REFUSÉE — copie : motif factice")
+
+
+def neuf(nom, cond, sortie):
+    """Un cas neuf de NUI6 : `verifier` sort au premier écart, donc ceux qui passent = ceux qui sont écrits."""
+    ECRITS[0] += 1
+    verifier("NUI6 " + nom, cond, sortie)
+
+
+def nuit_relance(t, hors, *options, etat=False, **env):
+    """Le code, la sortie et les argv reçus par le faux d'une boucle `--nuit` du canal A ; `etat` : refus comptés."""
+    argv = os.path.join(hors, "argv.jsonl")
+    if etat:
+        env["VLP_FAUX_ETAT"] = os.path.join(hors, "etat.json")
+    code, s = nuit(t, *CANAL_A, *options, traces=hors, VLP_FAUX_ARGV=argv, **env)
+    return code, s, journal_de(argv)
+
+
+def relances(argvs):
+    """Les lancements du rôle relance : l'ID et l'effort de `ROLES["relance"]` (le faux ne les distingue
+    du rôle jouer que par là)."""
+    r = bmod.ROLES["relance"]
+    return [x for x in argvs if drapeau(x, "--model") == r["modele"] and drapeau(x, "--effort") == r["effort"]]
+
+
+def lignes_carnet(t, **cles):
+    """Les lignes du carnet de `t` qui portent toutes les valeurs de `cles` ; sans clé, toutes."""
+    return [d for d in carnet.lire(carnet_de(t)) if all(d.get(k) == v for k, v in cles.items())]
+
+
+def arret_de(t):
+    """La ligne du carnet d'un arrêt : sans `role`, une `garde`."""
+    return [d for d in carnet.lire(carnet_de(t)) if d["role"] is None and d["garde"]]
+
+
+def sujets(t):
+    """Les sujets des commits de `t`, du plus récent au plus ancien."""
+    return git(t, "log", "--format=%s").split("\n")
+
+
+def avec_bloc(t, bloc):
+    """Pose un bloc Tentatives sous F1 (le premier `**Prompt**`), commité : l'arbre reste propre."""
+    chemin = os.path.join(t, "fiches.md")
+    with open(chemin, encoding="utf-8", newline="") as h:
+        texte = h.read()
+    with open(chemin, "w", encoding="utf-8", newline="") as h:
+        h.write(texte.replace("**Prompt**", bloc + "\n\n**Prompt**", 1))
+    git(t, "add", "-A")
+    git(t, "commit", "-q", "-m", "bloc")
+
+
+def avec_verification(t, hors, script):
+    """CHANTIER.md porte le libellé, la commande lance `script` (écrit dans `hors`) par ce Python."""
+    chemin = os.path.join(hors, "verif.py")
+    with open(chemin, "w", encoding="utf-8", newline="") as h:
+        h.write(script)
+    with open(os.path.join(t, "CHANTIER.md"), "a", encoding="utf-8", newline="") as h:
+        h.write('- **vérification de nuit** : "%s" "%s"\n' % (sys.executable, chemin))
+    git(t, "add", "-A")
+    git(t, "commit", "-q", "-m", "libellé")
+
+
 def test_relance():
-    canal_a = ("--canal", "A", "--chantier", "X")
-    ecrits = [0]
-
-    def neuf(nom, cond, sortie):
-        """Un cas neuf de NUI6 : `verifier` sort au premier écart, donc ceux qui passent = ceux qui sont écrits."""
-        ecrits[0] += 1
-        verifier("NUI6 " + nom, cond, sortie)
-
-    def nuit_relance(t, hors, *options, etat=False, **env):
-        argv = os.path.join(hors, "argv.jsonl")
-        if etat:
-            env["VLP_FAUX_ETAT"] = os.path.join(hors, "etat.json")
-        code, s = nuit(t, *canal_a, *options, traces=hors, VLP_FAUX_ARGV=argv, **env)
-        return code, s, journal_de(argv)
-
-    def relances(argvs):
-        """Les lancements du rôle relance : l'ID et l'effort de `ROLES["relance"]` (le faux ne les distingue
-        du rôle jouer que par là)."""
-        r = bmod.ROLES["relance"]
-        return [x for x in argvs if drapeau(x, "--model") == r["modele"] and drapeau(x, "--effort") == r["effort"]]
-
-    def lignes_carnet(t, **cles):
-        return [d for d in carnet.lire(carnet_de(t)) if all(d.get(k) == v for k, v in cles.items())]
-
-    def arret_de(t):
-        """La ligne du carnet d'un arrêt : sans `role`, une `garde`."""
-        return [d for d in carnet.lire(carnet_de(t)) if d["role"] is None and d["garde"]]
-
-    def sujets(t):
-        return git(t, "log", "--format=%s").split("\n")
-
-    def avec_bloc(t, bloc):
-        """Pose un bloc Tentatives sous F1 (le premier `**Prompt**`), commité : l'arbre reste propre."""
-        chemin = os.path.join(t, "fiches.md")
-        with open(chemin, encoding="utf-8", newline="") as h:
-            texte = h.read()
-        with open(chemin, "w", encoding="utf-8", newline="") as h:
-            h.write(texte.replace("**Prompt**", bloc + "\n\n**Prompt**", 1))
-        git(t, "add", "-A")
-        git(t, "commit", "-q", "-m", "bloc")
-
-    def avec_verification(t, hors, script):
-        """CHANTIER.md porte le libellé, la commande lance `script` (écrit dans `hors`) par ce Python."""
-        chemin = os.path.join(hors, "verif.py")
-        with open(chemin, "w", encoding="utf-8", newline="") as h:
-            h.write(script)
-        with open(os.path.join(t, "CHANTIER.md"), "a", encoding="utf-8", newline="") as h:
-            h.write('- **vérification de nuit** : "%s" "%s"\n' % (sys.executable, chemin))
-        git(t, "add", "-A")
-        git(t, "commit", "-q", "-m", "libellé")
-
-    refus_seuls = ("**Tentatives** (2026-09-26) — non résolu.\n1. FAITE refusée à la relecture.\n"
-                   "Erreur : REFUSÉE — copie : motif factice")
-
+    """Un refus de relecture : `copie` relance plus fort, `fiche` ou sans verdict arrête tôt (NUI6 a, b)."""
     with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors:
         depot(t)
         code, s, argvs = nuit_relance(t, hors, "--plafond", "1", etat=True, VLP_FAUX_REFUSE="F1:copie")
@@ -683,6 +730,9 @@ def test_relance():
              code == 1 and not relances(argvs) and "RELIT F1 · aucun verdict" in s and "garde sans-cause" in s
              and len(arret) == 1 and arret[0]["garde"] == "sans-cause" and arret[0]["cause"] == "aucune", (s, arret))
 
+
+def test_relance_refus():
+    """Deux refus de suite, ou un bloc Tentatives déjà là : refus-max, meme-erreur, ou rien joué (NUI6 c, d)."""
     with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors:
         depot(t)
         code, s, argvs = nuit_relance(t, hors, etat=True, VLP_FAUX_REFUSE="F1:copie,copie")
@@ -699,7 +749,7 @@ def test_relance():
 
     with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors:
         depot(t)
-        avec_bloc(t, refus_seuls)
+        avec_bloc(t, REFUS_SEULS)
         code, s, argvs = nuit_relance(t, hors, VLP_FAUX_REFUSE="F1:copie")
         arret = arret_de(t)
         neuf("(d) F1 à bloc de refus seuls dont Erreur : égale le nouveau motif, bloc remplacé par --resolu : "
@@ -709,11 +759,14 @@ def test_relance():
 
     with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors:
         depot(t)
-        avec_bloc(t, refus_seuls.replace("\nErreur :", "\n2. RETOUR.\nErreur :"))
+        avec_bloc(t, REFUS_SEULS.replace("\nErreur :", "\n2. RETOUR.\nErreur :"))
         code, s, argvs = nuit_relance(t, hors)
         neuf("(d) un bloc qui n'est pas fait de refus seuls arrête encore, rien joué",
              code == 1 and "porte un bloc Tentatives" in s and "JOUE" not in s and not argvs, (s, argvs))
 
+
+def test_relance_verification():
+    """La vérification de nuit de CHANTIER.md : avant chaque fiche et après son commit ; absente, rien (NUI6 e)."""
     with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors:
         depot(t)
         avec_verification(t, hors, "import sys\nsys.exit(1)\n")
@@ -741,4 +794,4 @@ def test_relance():
              code == 0 and cases_de(t) == "x.." and "VERIF" not in s and "verification" not in s
              and not arret_de(t), (s, arret_de(t)))
 
-    sys.stderr.write("NUI6 : %d cas neufs passés / %d écrits\n" % (ecrits[0], ecrits[0]))
+    sys.stderr.write("NUI6 : %d cas neufs passés / %d écrits\n" % (ECRITS[0], ECRITS[0]))

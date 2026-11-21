@@ -38,20 +38,42 @@ from aides_boucle import (
     verifier,
 )
 
+AIDES = aides_du_canal()
+ECRITS = dict.fromkeys(("NUI7", "NUI25", "NUI8", "NUI9"), 0)   # les cas neufs passés, sommés sur les parties
+SID = "00000000-0000-4000-8000-00000000000a"
+
+
+def neuf_nui7(nom, cond, sortie):
+    """Un cas neuf de NUI7 : `verifier` sort au premier écart, donc ceux qui passent = ceux qui sont écrits."""
+    ECRITS["NUI7"] += 1
+    verifier("NUI7 " + nom, cond, sortie)
+
+
+def neuf_nui25(nom, cond, sortie):
+    """Un cas neuf de NUI25, compté comme ceux de NUI7."""
+    ECRITS["NUI25"] += 1
+    verifier("NUI25 " + nom, cond, sortie)
+
+
+def neuf_nui8(nom, cond, sortie):
+    """Un cas neuf de NUI8, compté comme ceux de NUI7."""
+    ECRITS["NUI8"] += 1
+    verifier("NUI8 " + nom, cond, sortie)
+
+
+def neuf_nui9(nom, cond, sortie):
+    """Un cas neuf de NUI9, compté comme ceux de NUI7."""
+    ECRITS["NUI9"] += 1
+    verifier("NUI9 " + nom, cond, sortie)
+
 
 def test_canal():
     """NUI7 : un canal enchaîne les chantiers de son plan, chacun sur sa branche, et met de côté ce qui bloque."""
-    aides = aides_du_canal()
-    DATE, ecrire_f, depot_canal, carnet_du, canal, br = (aides[k] for k in ("DATE", "ecrire_f", "depot_canal", "carnet_du",
-                                                                           "canal", "br"))
+    aides = AIDES
+    depot_canal, canal, br = (aides[k] for k in ("depot_canal", "canal", "br"))
     sha, sujet, ancetre, branches, roles, gardes = (aides[k] for k in ("sha", "sujet", "ancetre", "branches", "roles",
                                                                        "gardes"))
-    ecrits = [0]
-
-    def neuf(nom, cond, sortie):
-        """Un cas neuf de NUI7 : `verifier` sort au premier écart, donc ceux qui passent = ceux qui sont écrits."""
-        ecrits[0] += 1
-        verifier("NUI7 " + nom, cond, sortie)
+    neuf = neuf_nui7
 
     with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors:
         depot_canal(t, hors, ("AAA", "BBB", "CCC"))
@@ -90,6 +112,14 @@ def test_canal():
              and [g.split(":")[0] for g in gardes(lignes, "AAA")] == ["cause-fiche", "mis-de-cote"]
              and roles(lignes, "CCC") == ["découper", "jouer", "relire", "jouer", "relire", "clore"]
              and gardes(lignes, "CCC") == [], (s, lignes))
+
+
+def test_canal_de_cote():
+    """NUI7 : un chantier mis de côté — clos hors rôle, trop gros, découpage vide — et un WIP que le pre-commit refuse."""
+    aides = AIDES
+    ecrire_f, depot_canal, canal, br = (aides[k] for k in ("ecrire_f", "depot_canal", "canal", "br"))
+    sha, sujet, branches, roles, gardes = (aides[k] for k in ("sha", "sujet", "branches", "roles", "gardes"))
+    neuf = neuf_nui7
 
     with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors:
         depot_canal(t, hors, ("AAA", "CCC"))
@@ -134,6 +164,15 @@ def test_canal():
              and os.path.exists(os.path.join(t, "CASSE")) and git(t, "status", "--porcelain").strip() != ""
              and gardes(lignes, "AAA")[-1] == "wip-refuse" and "SAUTÉ" not in s and "CHANTIER CCC" not in s
              and branches(t) == [br("AAA")], (s, lignes))
+
+
+def test_canal_arrets():
+    """NUI7 : la borne, une TODO illisible, un chantier ouvert au départ, un plan absent, la carte en retard."""
+    aides = AIDES
+    DATE, ecrire_f, depot_canal, carnet_du, canal = (aides[k] for k in ("DATE", "ecrire_f", "depot_canal", "carnet_du",
+                                                                        "canal"))
+    roles = aides["roles"]
+    neuf = neuf_nui7
 
     with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors:
         depot_canal(t, hors, ("AAA", "CCC"), borne_chantiers=1)
@@ -193,7 +232,7 @@ def test_canal():
              code == 0 and "plan terminé — 1 clos" in sortie.getvalue() and len(lignes) == 6
              and all(d["plugin_retard"] == 8 for d in lignes), (sortie.getvalue(), lignes))
 
-    sys.stderr.write("NUI7 : %d cas neufs passés / %d écrits\n" % (ecrits[0], ecrits[0]))
+    sys.stderr.write("NUI7 : %d cas neufs passés / %d écrits\n" % (ECRITS["NUI7"], ECRITS["NUI7"]))
 
 
 def test_sans_nuit():
@@ -209,34 +248,30 @@ def test_sans_nuit():
                  and envs[0]["VLP_NUIT"] is None and envs[0]["VLP_CANAL"] is None, (s, envs))
 
 
+def marque(code, fiches=()):
+    """Un fichier de fiches ouvert comme par `vlp.py ouvrir` : titre `# Chantier `, marque, fiches."""
+    return ("# Chantier %s — hérité\n\n**Ouvert.** le 2026-09-30.\n\n## Le socle commun\n\nRien.\n\n"
+            "## L'ordre des fiches\n\n%s.\n\n---\n\n" % (code, ", ".join(fiches))
+            + "".join(FICHE % (f, f, f, "") for f in fiches))
+
+
+def main_herite(t, hors, d):
+    """Le dépôt du canal, main portant le chantier HHH ouvert (sa marque), puis le worktree
+    détaché du canal dans `d` : son chemin."""
+    AIDES["depot_canal"](t, hors, ("AAA",))
+    AIDES["ecrire_f"](os.path.join(t, "ctx", "100-x.md"), marque("HHH", ("HHH1", "HHH2")))
+    git(t, "add", "-A")
+    git(t, "commit", "-q", "-m", "HHH ouvert sur main")
+    wt = os.path.join(d, "canal")
+    git(t, "worktree", "add", "-q", "--detach", wt, "HEAD")
+    return wt
+
+
 def test_herite():
     """NUI25 : un canal part d'un worktree détaché sur main, comme le lanceur — main y porte un chantier marqué, que
     le canal hérite sans le jouer ; et une carte gardée (plusieurs ouverts) n'est jamais lue « aucun »."""
-    aides = aides_du_canal()
-    DATE, ecrire_f, depot_canal, canal, br, _sujet = (aides[k] for k in ("DATE", "ecrire_f", "depot_canal", "canal", "br",
-                                                                         "sujet"))
-    ecrits = [0]
-
-    def neuf(nom, cond, sortie):
-        ecrits[0] += 1
-        verifier("NUI25 " + nom, cond, sortie)
-
-    def marque(code, fiches=()):
-        """Un fichier de fiches ouvert comme par `vlp.py ouvrir` : titre `# Chantier `, marque, fiches."""
-        return ("# Chantier %s — hérité\n\n**Ouvert.** le 2026-09-30.\n\n## Le socle commun\n\nRien.\n\n"
-                "## L'ordre des fiches\n\n%s.\n\n---\n\n" % (code, ", ".join(fiches))
-                + "".join(FICHE % (f, f, f, "") for f in fiches))
-
-    def main_herite(t, hors, d):
-        """Le dépôt du canal, main portant le chantier HHH ouvert (sa marque), puis le worktree
-        détaché du canal dans `d` : son chemin."""
-        depot_canal(t, hors, ("AAA",))
-        ecrire_f(os.path.join(t, "ctx", "100-x.md"), marque("HHH", ("HHH1", "HHH2")))
-        git(t, "add", "-A")
-        git(t, "commit", "-q", "-m", "HHH ouvert sur main")
-        wt = os.path.join(d, "canal")
-        git(t, "worktree", "add", "-q", "--detach", wt, "HEAD")
-        return wt
+    ecrire_f, canal, br = (AIDES[k] for k in ("ecrire_f", "canal", "br"))
+    neuf = neuf_nui25
 
     with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors, tempfile.TemporaryDirectory() as d:
         wt = main_herite(t, hors, d)
@@ -268,6 +303,12 @@ def test_herite():
              code == 1 and "GARDE: plusieurs chantiers ouverts : ctx/200-a.md, ctx/201-b.md" in s
              and "DÉCOUPER" not in s and "JOUE" not in s, s)
 
+
+def test_herite_carte_gardee():
+    """NUI25 : une carte qui garde après la clôture met le chantier de côté, jamais compté clos."""
+    DATE, depot_canal = AIDES["DATE"], AIDES["depot_canal"]
+    neuf = neuf_nui25
+
     with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors:
         depot_canal(t, hors, ("AAA",))
         vrai = bmod.vlp
@@ -293,46 +334,43 @@ def test_herite():
              code == 0 and "MIS DE CÔTÉ AAA — carte gardée — GARDE: plusieurs chantiers ouverts" in s
              and "CLOS AAA —" not in s and "ARRÊT plan terminé — 0 clos, 1 de côté, 0 sautés" in s, s)
 
-    sys.stderr.write("NUI25 : %d cas neufs passés / %d écrits\n" % (ecrits[0], ecrits[0]))
+    sys.stderr.write("NUI25 : %d cas neufs passés / %d écrits\n" % (ECRITS["NUI25"], ECRITS["NUI25"]))
 
 
 # --- reprendre une nuit coupée (NUI8) ---------------------------------------------------------------------
 # Chaque cas pose son projet, son dépôt, son carnet et son `~` (HOME, USERPROFILE) dans des dossiers jetés.
 
+def mesure_cli(h, sid):
+    """`mesure-tokens.py <id>` lancé par le test sous le `~` de `h` : (tours, usd) de sa ligne ; -1 si elle manque."""
+    r = subprocess.run([sys.executable, os.path.join(SCRIPTS, "mesure-tokens.py"), sid], capture_output=True, text=True,
+                       encoding="utf-8", env=dict(os.environ, HOME=h, USERPROFILE=h, PYTHONIOENCODING="utf-8"), check=False)
+    tete, valeurs = (r.stdout.splitlines() + ["", ""])[:2]
+    d = dict(zip(tete.split("\t"), valeurs.split("\t")))
+    return int(d.get("tours") or -1), float(d.get("usd") or -1)
+
+
+def session_de(lignes, role, fiche=None):
+    """La première ligne de session du rôle (et de la fiche), ou None."""
+    return next((d for d in lignes if carnet.est_session(d) and d["role"] == role
+                 and (fiche is None or d["fiche"] == fiche)), None)
+
+
+def reprendre(t, hors, h, *options, **env):
+    """boucle.py --nuit --canal A --reprendre --carnet <celui de DATE> dans `t` : (code, sortie, lignes du carnet)."""
+    env.setdefault("VLP_FAUX_CLORE", "commit")
+    chemin = carnet.du_jour(t, AIDES["DATE"])
+    assert chemin
+    code, s = nuit(t, "--canal", "A", "--reprendre", "--carnet", chemin, *options, traces=hors, HOME=h, USERPROFILE=h, **env)
+    return code, s, AIDES["carnet_du"](t)
+
+
 def test_reprise():
-    aides = aides_du_canal()
-    DATE, canal, depot_canal, carnet_du = aides["DATE"], aides["canal"], aides["depot_canal"], aides["carnet_du"]
-    br, sha, sujet, branches, roles = aides["br"], aides["sha"], aides["sujet"], aides["branches"], aides["roles"]
-    ecrire_f, ancetre = aides["ecrire_f"], aides["ancetre"]
-    ecrits, sautes = [0], [0]
+    """NUI8 : un jeu coupé se mesure dans sa transcription et met son chantier de côté ; sans transcription, le
+    plafond du rôle compte."""
+    canal, depot_canal = AIDES["canal"], AIDES["depot_canal"]
+    br, sha, sujet, roles = AIDES["br"], AIDES["sha"], AIDES["sujet"], AIDES["roles"]
     plafonds = bmod.plafonds()
-    SID = "00000000-0000-4000-8000-00000000000a"
-
-    def neuf(nom, cond, sortie):
-        """Un cas neuf de NUI8 : `verifier` sort au premier écart, donc ceux qui passent = ceux qui sont écrits."""
-        ecrits[0] += 1
-        verifier("NUI8 " + nom, cond, sortie)
-
-    def mesure_cli(h, sid):
-        """`mesure-tokens.py <id>` lancé par le test sous le `~` de `h` : (tours, usd) de sa ligne."""
-        r = subprocess.run([sys.executable, os.path.join(SCRIPTS, "mesure-tokens.py"), sid], capture_output=True, text=True,
-                           encoding="utf-8", env=dict(os.environ, HOME=h, USERPROFILE=h, PYTHONIOENCODING="utf-8"), check=False)
-        tete, valeurs = (r.stdout.splitlines() + ["", ""])[:2]
-        d = dict(zip(tete.split("\t"), valeurs.split("\t")))
-        return int(d.get("tours") or -1), float(d.get("usd") or -1)
-
-    def session_de(lignes, role, fiche=None):
-        """La première ligne de session du rôle (et de la fiche), ou None."""
-        return next((d for d in lignes if carnet.est_session(d) and d["role"] == role
-                     and (fiche is None or d["fiche"] == fiche)), None)
-
-    def reprendre(t, hors, h, *options, **env):
-        """boucle.py --nuit --canal A --reprendre --carnet <celui de DATE> dans `t` : (code, sortie, lignes du carnet)."""
-        env.setdefault("VLP_FAUX_CLORE", "commit")
-        chemin = carnet.du_jour(t, DATE)
-        assert chemin
-        code, s = nuit(t, "--canal", "A", "--reprendre", "--carnet", chemin, *options, traces=hors, HOME=h, USERPROFILE=h, **env)
-        return code, s, carnet_du(t)
+    neuf = neuf_nui8
 
     # (a) un jeu coupé : mesuré dans sa transcription, chantier de côté, la fiche suivante pas jouée -----------------
     with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors, tempfile.TemporaryDirectory() as h:
@@ -370,12 +408,18 @@ def test_reprise():
              and carnet.pot([j], plafonds) == bmod.ROLES["jouer"]["usd"]
              and "ARRÊT borne atteinte — pot 5.0100 $ ≥ borne 4.5000 $" in s and "CHANTIER CCC" not in s, (s, lignes))
 
+
+def test_reprise_sortie():
+    """NUI8 : le code de sortie d'une session coupée ne décide pas de son issue ; le faux coupé écrit sa transcription."""
+    canal, depot_canal = AIDES["canal"], AIDES["depot_canal"]
+    neuf = neuf_nui8
+
     # (c) le code de sortie ne décide pas de l'issue ---------------------------------------------------------------
     issues = []
     for sortie in ("143", "1"):
         with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors, tempfile.TemporaryDirectory() as h:
             depot_canal(t, hors, ("AAA",))
-            code, s, lignes = canal(t, hors, VLP_FAUX_COUPE="AAA1=" + sortie, HOME=h, USERPROFILE=h)
+            code, _s, lignes = canal(t, hors, VLP_FAUX_COUPE="AAA1=" + sortie, HOME=h, USERPROFILE=h)
             j = session_de(lignes, "jouer", "AAA1")
             issues.append((code, j["issue"] if j else None, j["usd_cli"] if j else 0))
     neuf("(c) COUPE sortie 143, puis sortie 1 : la même issue `coupure` les deux fois", issues == [(0, "coupure", None)] * 2, issues)
@@ -403,6 +447,14 @@ def test_reprise():
              code == 1 and not transcriptions()
              and faux(["-p", "/vlp:tache F9"], t, VLP_FAUX_COUPE="F8", VLP_FAUX_RATE="F9", HOME=h, USERPROFILE=h)[0] == 0,
              (code, l, e))
+
+
+def test_reprise_reprendre():
+    """NUI8 : `--reprendre` solde une session sans fin, puis ne refait rien ; un chantier arrêté reprend dans sa branche."""
+    DATE, canal, depot_canal = AIDES["DATE"], AIDES["canal"], AIDES["depot_canal"]
+    br, sha, sujet, branches, roles = AIDES["br"], AIDES["sha"], AIDES["sujet"], AIDES["branches"], AIDES["roles"]
+    ecrire_f, ancetre = AIDES["ecrire_f"], AIDES["ancetre"]
+    neuf = neuf_nui8
 
     # (d) un depart sans fin, la branche créée, l'arbre sale : --reprendre -------------------------------------------
     with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors, tempfile.TemporaryDirectory() as h:
@@ -453,6 +505,13 @@ def test_reprise():
              and branches(t) == [br("AAA"), br("CCC")] and ancetre(t, pointe, br("AAA"))
              and "ARRÊT plan terminé — 2 clos, 0 de côté, 0 sautés" in s, (s1, s, lignes))
 
+
+def test_reprise_coupees():
+    """NUI8 : une relecture ou une clôture coupée met le chantier de côté ; sans `--nuit` ou sans dépôt, `--reprendre`
+    est refusé."""
+    DATE, canal, depot_canal = AIDES["DATE"], AIDES["canal"], AIDES["depot_canal"]
+    neuf = neuf_nui8
+
     # (g) une relecture coupée, une clôture coupée : le chantier se met de côté ---------------------------------------
     for coupe, genre in (("relire:AAA1", "la relecture a été coupée"), ("clore", "la clôture a été coupée")):
         with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors, tempfile.TemporaryDirectory() as h:
@@ -494,6 +553,13 @@ def test_reprise():
         neuf("(h) dossier du canal absent, ou sans Git : GARDE:, sort 1, ni claude lancé ni carnet écrit",
              absent[0] == 1 and absent[1].startswith("GARDE:") and sans_git[0] == 1 and sans_git[1].startswith("GARDE:")
              and "CLAUDE=" not in absent[1] + sans_git[1] and not os.path.exists(chemin), (absent, sans_git))
+
+
+def test_reprise_pot():
+    """NUI8 : le coût d'une session au pot, `mesure_kit` sur une transcription illisible, et l'éveil de la machine."""
+    plafonds = bmod.plafonds()
+    sautes = [0]
+    neuf = neuf_nui8
 
     # (i) le pot, ligne à ligne, et le coût d'une session coupée sans transcription lisible --------------------------------
     neuf("(i) carnet.cout_de : usd_cli, à défaut usd_kit, à défaut le plafond du rôle, sinon 0 ; un 0.0 est un coût",
@@ -546,66 +612,71 @@ def test_reprise():
         sys.stderr.write("SAUTÉ (plateforme) : (f) ÉVEIL tenu et non tenu — sys.platform vaut %s, pas win32\n" % sys.platform)
 
     sys.stderr.write("NUI8 : %d cas neufs passés / %d écrits · %d cas d'avant passés · %d cas sautés (plateforme)\n"
-                     % (ecrits[0], ecrits[0], _PASSES[0] - ecrits[0], sautes[0]))
+                     % (ECRITS["NUI8"], ECRITS["NUI8"], _PASSES[0] - ECRITS["NUI8"], sautes[0]))
 
 
 # --- lancer les deux canaux d'une nuit (NUI9) -------------------------------------------------------------
 # Chaque cas bâtit projet, dépôt sur `main`, dépôt nu `origin` (poussé une fois), carnet et `~` dans des dossiers jetés.
 
+def projet_lanceur(t, hors, o):
+    """Le dépôt de `depot_canal` avec un plan à deux chantiers en A (AAA, BBB) et un en B (CCC), sur `main`, et un
+    dépôt nu `origin` poussé une fois."""
+    AIDES["depot_canal"](t, hors, ("AAA", "BBB"), codes_b=("CCC",))
+    git(t, "branch", "-M", "main")
+    subprocess.run(["git", "init", "-q", "--bare", o], check=True, capture_output=True)
+    git(t, "remote", "add", "origin", o)
+    git(t, "push", "-q", "origin", "main")
+
+
+def lance(t, *options, claude: Any = FAUX_CLAUDE, base=None, **env):
+    """boucle.py --nuit --lancer --date DATE dans `t` : (code, sortie). Sans --traces : celles des canaux vont au carnet."""
+    env_ = dict(base) if base is not None else {k: v for k, v in os.environ.items()
+                                                if k not in (carnet.ENV_CARNET, carnet.ENV_CANAL)}
+    env_.update(ENV_GIT)
+    env_.update(VLP_FAUX_VLP=os.path.join(SCRIPTS, "vlp.py"), VLP_FAUX_CLORE="commit", PYTHONIOENCODING="utf-8")
+    env_.update(env)
+    argv = [sys.executable, os.path.join(SCRIPTS, "boucle.py"), t, "--nuit", "--lancer", "--date", AIDES["DATE"]]
+    r = subprocess.run(argv + (["--claude", claude] if claude else []) + list(options), env=env_,
+                       capture_output=True, text=True, encoding="utf-8", check=False)
+    return r.returncode, r.stdout + r.stderr
+
+
+def chemin_carnet(t):
+    """Le chemin du carnet de DATE pour le dépôt `t` ; une assertion tombe s'il n'en a pas."""
+    chemin = carnet.du_jour(t, AIDES["DATE"])
+    assert chemin
+    return chemin
+
+
+def octets(chemin):
+    """Le contenu brut du fichier `chemin`."""
+    with open(chemin, "rb") as h:
+        return h.read()
+
+
+def worktrees(t):
+    """Les lignes de `git worktree list` du dépôt `t`, le dépôt principal en tête."""
+    return git(t, "worktree", "list").splitlines()
+
+
+def exclu(t):
+    """Le texte de `info/exclude` du dépôt, ou ''."""
+    chemin = os.path.join(t, ".git", "info", "exclude")
+    return octets(chemin).decode("utf-8", "replace") if os.path.isfile(chemin) else ""
+
+
+def rien_cree(t):
+    """Aucun worktree, aucun dossier `.claude/worktrees`, rien dans le dossier du carnet, `info/exclude` sans la ligne."""
+    return (len(worktrees(t)) == 1 and not os.path.exists(os.path.join(t, ".claude", "worktrees"))
+            and not glob.glob(os.path.join(os.path.dirname(chemin_carnet(t)), "*")) and ".claude/worktrees" not in exclu(t))
+
+
 def test_lanceur():
-    aides = aides_du_canal()
-    DATE, depot_canal, carnet_du = aides["DATE"], aides["depot_canal"], aides["carnet_du"]
-    br, sha, branches, ecrire_f = aides["br"], aides["sha"], aides["branches"], aides["ecrire_f"]
-    ecrits = [0]
+    """NUI9 : `--lancer` ouvre deux canaux en parallèle, rien fusionné, rien poussé ; relancé à la même date, il garde."""
+    DATE, carnet_du = AIDES["DATE"], AIDES["carnet_du"]
+    br, sha, branches = AIDES["br"], AIDES["sha"], AIDES["branches"]
     SOIR = "RIEN FUSIONNÉ, RIEN POUSSÉ — /vlp:chef le matin"
-
-    def neuf(nom, cond, sortie):
-        """Un cas neuf de NUI9 : `verifier` sort au premier écart, donc ceux qui passent = ceux qui sont écrits."""
-        ecrits[0] += 1
-        verifier("NUI9 " + nom, cond, sortie)
-
-    def projet_lanceur(t, hors, o):
-        """Le dépôt de `depot_canal` avec un plan à deux chantiers en A (AAA, BBB) et un en B (CCC), sur `main`, et un
-        dépôt nu `origin` poussé une fois."""
-        depot_canal(t, hors, ("AAA", "BBB"), codes_b=("CCC",))
-        git(t, "branch", "-M", "main")
-        subprocess.run(["git", "init", "-q", "--bare", o], check=True, capture_output=True)
-        git(t, "remote", "add", "origin", o)
-        git(t, "push", "-q", "origin", "main")
-
-    def lance(t, *options, claude: Any = FAUX_CLAUDE, base=None, **env):
-        """boucle.py --nuit --lancer --date DATE dans `t` : (code, sortie). Sans --traces : celles des canaux vont au carnet."""
-        env_ = dict(base) if base is not None else {k: v for k, v in os.environ.items()
-                                                    if k not in (carnet.ENV_CARNET, carnet.ENV_CANAL)}
-        env_.update(ENV_GIT)
-        env_.update(VLP_FAUX_VLP=os.path.join(SCRIPTS, "vlp.py"), VLP_FAUX_CLORE="commit", PYTHONIOENCODING="utf-8")
-        env_.update(env)
-        argv = [sys.executable, os.path.join(SCRIPTS, "boucle.py"), t, "--nuit", "--lancer", "--date", DATE]
-        r = subprocess.run(argv + (["--claude", claude] if claude else []) + list(options), env=env_,
-                           capture_output=True, text=True, encoding="utf-8", check=False)
-        return r.returncode, r.stdout + r.stderr
-
-    def chemin_carnet(t):
-        chemin = carnet.du_jour(t, DATE)
-        assert chemin
-        return chemin
-
-    def octets(chemin):
-        with open(chemin, "rb") as h:
-            return h.read()
-
-    def worktrees(t):
-        return git(t, "worktree", "list").splitlines()
-
-    def exclu(t):
-        """Le texte de `info/exclude` du dépôt, ou ''."""
-        chemin = os.path.join(t, ".git", "info", "exclude")
-        return octets(chemin).decode("utf-8", "replace") if os.path.isfile(chemin) else ""
-
-    def rien_cree(t):
-        """Aucun worktree, aucun dossier `.claude/worktrees`, rien dans le dossier du carnet, `info/exclude` sans la ligne."""
-        return (len(worktrees(t)) == 1 and not os.path.exists(os.path.join(t, ".claude", "worktrees"))
-                and not glob.glob(os.path.join(os.path.dirname(chemin_carnet(t)), "*")) and ".claude/worktrees" not in exclu(t))
+    neuf = neuf_nui9
 
     # (a) la nuit lancée : deux canaux en parallèle, rien fusionné, rien poussé ---------------------------------------------
     with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors, tempfile.TemporaryDirectory() as o:
@@ -652,6 +723,13 @@ def test_lanceur():
         neuf("(b) les worktrees retirés, les branches restent : GARDE sur la branche existante, sort 1, aucun worktree",
              code == 1 and "GARDE: une branche de cette nuit existe déjà" in s and "DÉPART" not in s and len(worktrees(t)) == 1
              and octets(chemin_carnet(t)) == avant_b[0], s)
+
+
+def test_lanceur_gardes():
+    """NUI9 : les gardes du projet avant tout worktree — arbre sale, autre branche, plan absent ou ignoré, claude
+    introuvable — et `.claude/worktrees/` déjà ignoré."""
+    ecrire_f = AIDES["ecrire_f"]
+    neuf = neuf_nui9
 
     # (c) les gardes du projet : aucun worktree, aucun carnet, rien d'écrit avant la dernière ---------------------------
     with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as hors, tempfile.TemporaryDirectory() as o:
@@ -701,6 +779,11 @@ def test_lanceur():
              "introuvable, sort 1, aucun worktree",
              code == 1 and s.startswith("GARDE: claude introuvable") and rien_cree(t), s)
 
+
+def test_lanceur_options():
+    """NUI9 : ce qu'argparse refuse de `--lancer`, `--nuit` et `--plafond`."""
+    neuf = neuf_nui9
+
     # (e) les options : ce qu'argparse refuse -------------------------------------------------------------------------------
     with tempfile.TemporaryDirectory() as t:
         def argparse_refuse(*options):
@@ -716,7 +799,7 @@ def test_lanceur():
         neuf("(e) --nuit --lancer --canal : refusé par argparse (code 2), le lanceur ouvre les deux canaux lui-même",
              code == 2 and "--lancer ouvre les deux canaux" in s, s)
 
-    sys.stderr.write("NUI9 : %d cas neufs passés / %d écrits\n" % (ecrits[0], ecrits[0]))
+    sys.stderr.write("NUI9 : %d cas neufs passés / %d écrits\n" % (ECRITS["NUI9"], ECRITS["NUI9"]))
 
 
 # --- `vlp` appelé dans le processus rend ce que rendait le sous-processus (VIT6) -----

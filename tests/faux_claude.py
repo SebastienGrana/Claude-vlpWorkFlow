@@ -281,37 +281,33 @@ def transcription(sid: str, modele: str) -> None:
                 "content": [{"type": "text", "text": "tour %d" % i}], "usage": usage}}, ensure_ascii=False) + "\n")
 
 
-def main(argv: list) -> int:
+def journaliser(argv: list) -> None:
+    """Ajoute `argv` en une ligne JSON au fichier VLP_FAUX_ARGV ; ne fait rien si la variable est vide."""
     journal = os.environ.get("VLP_FAUX_ARGV")
     if journal:
         with open(journal, "a", encoding="utf-8", newline="") as f:
             f.write(json.dumps(argv, ensure_ascii=False) + "\n")
-    prompt = valeur(argv, "-p")
-    if prompt is None:
-        return inconnu("pas de -p")
-    mots = prompt.split()
-    modele = valeur(argv, "--model") or MODELE_DEFAUT
-    sid = valeur(argv, "--session-id") or str(uuid.uuid4())
+
+
+def reconnaitre(argv: list, mots: list, prompt: str) -> tuple[str, str] | int:
+    """Le rôle et le texte final de la session, ou le code de `inconnu` : prompt ou relecture non reconnus."""
     texte = "joué %s · %s" % (mots[-1] if mots else "", ",".join(argv))
     if valeur(argv, "--agent") == "vlp:relecture":
-        role, texte = "relire", verdict(mots)
-        if texte is None:
+        avis = verdict(mots)
+        if avis is None:
             return inconnu("prompt de relecture inconnu : %s" % prompt)
-    elif len(mots) == 2 and mots[0] == "/vlp:chantier":
-        role, texte = "découper", "découpé %s" % mots[1]
-    elif len(mots) == 2 and mots[0] == "/vlp:tache":
-        role = "jouer"
-    elif mots == ["/vlp:tache"]:
-        role, texte = "clore", "chantier clos"
-    else:
-        return inconnu("prompt inconnu : %s" % prompt)
+        return "relire", avis
+    if len(mots) == 2 and mots[0] == "/vlp:chantier":
+        return "découper", "découpé %s" % mots[1]
+    if len(mots) == 2 and mots[0] == "/vlp:tache":
+        return "jouer", texte
+    if mots == ["/vlp:tache"]:
+        return "clore", "chantier clos"
+    return inconnu("prompt inconnu : %s" % prompt)
 
-    emettre({"type": "system", "subtype": "init", "cwd": os.getcwd(), "session_id": sid, "model": modele,
-             "tools": ["Read", "Edit", "Bash", "PowerShell"] if role == "relire" else ["Bash", "Read", "Edit", "Write", "Skill"],
-             "permissionMode": valeur(argv, "--permission-mode") or "default"})
-    dort = os.environ.get("VLP_FAUX_DORT")
-    if dort:
-        time.sleep(float(dort))
+
+def echouer(sid: str, modele: str) -> int | None:
+    """Le code de l'échec simulé (VLP_FAUX_ERREUR, VLP_FAUX_LIMITE), lignes émises ; None : aucun échec demandé."""
     erreur = os.environ.get("VLP_FAUX_ERREUR")
     if erreur == "coupure":
         return 1
@@ -336,13 +332,44 @@ def main(argv: list) -> int:
             return inconnu("VLP_FAUX_GENRE inconnu : %s" % genre)
         emettre(resultat(sid, None, 0.0, is_error=True, result=LIMITES[genre]))
         return 1
+    return None
 
+
+def noter_env(role: str) -> None:
+    """Ajoute le rôle et VLP_CANAL, VLP_CARNET, VLP_NUIT au fichier VLP_FAUX_ENV ; rien si la variable est vide."""
     chemin_env = os.environ.get("VLP_FAUX_ENV")
     if chemin_env:
         with open(chemin_env, "a", encoding="utf-8", newline="") as f:
             f.write(json.dumps({"role": role, "VLP_CANAL": os.environ.get("VLP_CANAL"),
                                 "VLP_CARNET": os.environ.get("VLP_CARNET"),
                                 "VLP_NUIT": os.environ.get("VLP_NUIT")}, ensure_ascii=False) + "\n")
+
+
+def main(argv: list) -> int:
+    """Le code de sortie du faux `claude` : 0 session finie, 1 échec simulé, 2 prompt inconnu ou travail raté,
+    ou le code que VLP_FAUX_COUPE donne à la session coupée."""
+    journaliser(argv)
+    prompt = valeur(argv, "-p")
+    if prompt is None:
+        return inconnu("pas de -p")
+    mots = prompt.split()
+    modele = valeur(argv, "--model") or MODELE_DEFAUT
+    sid = valeur(argv, "--session-id") or str(uuid.uuid4())
+    reconnu = reconnaitre(argv, mots, prompt)
+    if isinstance(reconnu, int):
+        return reconnu
+    role, texte = reconnu
+
+    emettre({"type": "system", "subtype": "init", "cwd": os.getcwd(), "session_id": sid, "model": modele,
+             "tools": ["Read", "Edit", "Bash", "PowerShell"] if role == "relire" else ["Bash", "Read", "Edit", "Write", "Skill"],
+             "permissionMode": valeur(argv, "--permission-mode") or "default"})
+    dort = os.environ.get("VLP_FAUX_DORT")
+    if dort:
+        time.sleep(float(dort))
+    echec = echouer(sid, modele)
+    if echec is not None:
+        return echec
+    noter_env(role)
     code = {"découper": lambda: decouper(mots[1]), "jouer": lambda: jouer(mots[1], valeur(argv, "--session-id")),
             "clore": clore, "relire": lambda: 0}[role]()
     if code:
